@@ -1,0 +1,196 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu 'Generic setup'
+
+config VENDOR_NAME
+	string "Device vendor name"
+	default "Soliton (Shanghai)"
+
+config PRODUCT_NAME
+	string "Device product name"
+	default "Soliton Small Device"
+
+config VENDOR_ID
+	int "Device vendor identifier"
+	range 0 65535
+	default 990
+
+config PRODUCT_ID
+	int "Device product identifier"
+	range 0 255
+	default 0
+
+config SERIAL_NO
+	int "Device serial number"
+	range 0 65535
+	default 0
+
+config EXPERIMENTAL
+	bool "Prompt for development"
+	help
+	  Some of the various things that SDFirm supports can be in a state
+	  of development where the functionality, stability, or the level of
+	  testing is not yet high enough for general use. This is usually
+	  known as the "alpha-test" phase among developers. If a feature is
+	  currently in alpha-test, then the developers usually discourage
+	  uninformed widespread use of this feature by the general public to
+	  avoid "Why doesn't this work?" type mail messages. However, active
+	  testing and use of these systems is welcomed. Just be aware that it
+	  may not meet the normal level of reliability or it may fail to work
+	  in some special cases. Detailed bug reports from people familiar
+	  with the kernel internals are usually welcomed by the developers
+	  This option will also make obsoleted drivers available. These are
+	  drivers that have been replaced by something else, and/or are
+	  scheduled to be removed in a future kernel release.
+	  Unless you intend to help test and develop a feature or driver that
+	  falls into this category, or you have a situation that requires
+	  using these features, you should probably say N here, which will
+	  cause the configurator to present you with fewer choices. If
+	  you say Y here, you will be offered the choice of using features or
+	  drivers that are currently considered to be in the alpha-test phase.
+
+config CC_OPT_SIZE
+	bool "Optimize for size"
+	default y
+	help
+	  Enabling this option will pass "--opt-code-size" instead of
+	  "--opt-code-speed" to sdcc resulting in a smaller kernel.
+	  If unsure, say N.
+
+menuconfig DEBUG
+	bool 'Debugging options'
+	depends EXPERIMENTAL
+
+if DEBUG
+
+config CC_GEN_DEBUG
+	bool "Compile with debug info"
+	help
+	  Say Y here if you wish to examine internals while applets are
+	  running.  This increases the size of the binary considerably, and
+	  should only be used when doing development.  If you are doing
+	  development and want to debug, answer Y.
+	  Most people should answer N.
+
+config DEBUG_PANIC
+	bool "Enable debug panic output"
+	select PANIC_DEBUG
+
+menuconfig PORTING
+	bool "Run porting initialization steps"
+
+if PORTING
+
+choice
+	prompt "Porting step"
+
+config PORTING_LOAD
+	bool "load"
+	select UART
+	help
+	  Testing whether self loader is correctly working.  Self loader
+	  is implemented in the arch/$ARCH/common/head.S for every
+	  architecture.
+
+config PORTING_HEAP
+	bool "heap"
+	select HEAP
+	select UART
+
+config PORTING_UART
+	bool "UART"
+	select UART
+
+config PORTING_TASK
+	bool "task"
+	select TASK
+	select UART
+
+config PORTING_LED
+	bool "LED"
+	select LED
+
+config PORTING_TSC
+	bool "TSC"
+	select UART
+
+config PORTING_GPT
+	bool "GPT"
+	select UART
+	depends !TIMER && !TICK
+
+config PORTING_DELAY
+	bool "delay"
+	select UART
+
+config PORTING_TIMER
+	bool "timer"
+	select UART
+	select TIMER
+
+endchoice
+
+config PORTING_LED_FLASH
+	bool "Enable flashing LED"
+	depends PORTING_LED
+
+config PORTING_LED_TIMER
+	bool "LED flashed by timer"
+	depends PORTING_LED_FLASH
+	select TIMER
+
+endif
+
+menuconfig DEBUG_PRINT
+	bool "Enable debug print output"
+	depends !OUTPUT_NONE
+
+if DEBUG_PRINT
+
+config PANIC_DEBUG
+	bool "Panic debug message support"
+
+config IDLE_DEBUG
+	bool "Task/timer debug message support"
+
+config IO_DEBUG
+	bool "Input/output debug message support"
+	depends KBD
+
+config USB_DEBUG
+	bool "USB debug message support"
+	depends USB
+
+config USB_DEBUG_CALL
+	bool "USB callback debug messages support"
+	depends USB_DEBUG
+
+config HID_DEBUG
+	bool "HID debug message support"
+	depends USB_HID
+
+config SCD_DEBUG
+	bool "SCD debug message support"
+	depends USB_SCD
+
+config SCS_DEBUG
+	bool "Smart card debug message support"
+	depends SCS
+	select BIT_FFS16
+
+config MSD_DEBUG
+	bool "Mass storage device debug message support"
+	depends USB_MSD
+
+config DFU_DEBUG
+	bool "Device firmware update debug message support"
+	depends USB_DFU
+
+endif
+
+endif
+
+endmenu
