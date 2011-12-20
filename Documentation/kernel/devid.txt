@@ -1,0 +1,84 @@
+
+                  Device Identification Assignment Rule
+
+
+Device need to be assigned with the Vendor ID (VID), Product ID (PID),
+Device ID (DID) and the Serial No (SID).
+
+1. VID
+
+VID should be given by the vendor, it appears to be an configurable item.
+For example, Soliton's assigned vendor ID is 0x03DE, then we configure
+CONFIG_VENDOR_ID item using 990.
+
+2. DID
+
+DID should be based on the software features.  Following figure shows how
+device ID (system_device_id) is a 4 bytes value formmatted as follows:
+
+  +------+------+------+------+
+  |  3   |  2   |  1   |  0   |
+  +------+------+------+------+
+  | ARCH | INTF | FUNC | FEAT |
+  +------+------+------+------+
+
+Where:
+  ARCH: device CPU architecture ID
+    01: MCS51
+    02: AVR
+  INTF: device interface exported, this is a bitmap field
+    01: USB
+  FUNC: device functions, this is a bitmap field
+    01: KBD
+    02: LCD
+    04: IFD
+    08: ICC
+  FEAT: function specific device features.
+
+3. PID
+
+PID is made from DID's FUNC field, along with a configurable lower byte
+to avoid conflicts:
+
+  +------+-------------------+
+  |  1   |         0         |
+  +------+-------------------+
+  | FUNC | CONFIG_PRODUCT_ID |
+  +------+-------------------+
+
+i.e. PID can be made from the following formula:
+
+  PID = MAKEWORD(CONFIG_PRODUCT_ID, HIBYTE(LOWORD(system_device_id)))
+
+CONFIG_PRODUCT_ID field is used to avoid PID conflict.  For example, both
+CCID Secure Interface Device (functions include IFD, KBD, LCD) and
+Composite (CCID Interface & HID Keyboard) Device have the same FUNC field
+value (0x07), the CONFIG_PRODUCT_ID item then can be configured as 1 for
+the latter.
+
+Here is a list for the used CONFIG_PRODUCT_ID field:
+
+  +------+-------------------+----------------------+
+  | FUNC | CONFIG_PRODUCT_ID | Device Features      |
+  +------+-------------------+----------------------+
+  | 0x07 |                 1 | CCID(SPE) + HID(KBD) |
+  +------+-------------------+----------------------+
+
+
+4. SID
+
+SID is made from VID, PID and a serial NO that can be configured through
+CONFIG_SERIAL_NO item.  SID is formmated as follows:
+
+  +---+---+---+---+---+---+---+---+---+---+---+---+
+  |11 |10 | 9 | 8 | 7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 |
+  +---+---+---+---+-------+---+---+---+---+---+---+
+  |      VID      |      PID      |      SN       |
+  +---------------+---------------+---------------+
+
+Where SN is comming from the configurable CONFIG_SERIAL_NO item.
+
+For USB device, SID will be converted to heximal string by the
+usb_input_serial function.
+
+                                                        by Lv ZETALOG Zheng

@@ -1,0 +1,326 @@
+
+              A Memory Allocator Designed by Doug Lea
+                              (DLMALLOC)
+							  
+							  
+Doug Lea has presented a memory allocator implementation which is used by
+large amounts of embedded system softwares to maintain their heaps.
+We could find the original design document from:
+http://g.oswego.edu/dl/html/malloc.html
+We could find the original source code from:
+ftp://g.oswego.edu/pub/misc/malloc.c
+
+In this article, we will discuss in more details against the original
+document and source code comments to help the embedded software
+developers to understand the DLMALLOC algorithms.
+
+
+A. Boundary Tags (struct heap_chunk)
+
+Chunks of memory are maintained using a 'boundary tag' method as
+described in e.g., Knuth or Standish.
+See the paper by Paul Wilson for a survey of such techniques:
+ftp://ftp.cs.utexas.edu/pub/garbage/allocsrv.ps
+
+Sizes of free chunks are stored both in the front of each chunk and at the
+end.  This makes consolidating fragmented chunks into bigger chunks very
+fast.  The size fields also hold bits representing whether chunks are free
+or in use.
+
+A.1. An allocated chunk (INUSE memory chunk) looks like this:
+
+ curr->+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       | prev_size = chunk size of (prev) if P=0             | |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       | curr_size = chunk size of (curr) + HEAP_SIZE_SIZE   |P|
+  mem->+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+       | user data will begin here                             . | [inuse]
+       .                                                       . | chunk size of (curr)
+       .                                                       . |
+       .                                                       | |
+ next->+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |
+       | user data will end here                               | |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+       | curr_size = chunk size of (next) + HEAP_SIZE_SIZE   |1|
+  mem->+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       .                                                       .
+       .                                                       .
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+             Figure 1. Allocated Memory Chunks' Tag
+
+NOTE: chunk size of (p) implies bytes of user data plus size of
+      'curr_size' fields.
+
+Where
+1. "curr": is the beginning of the current contiguous memory chunk.
+2. "mem" : is the pointer that is returned to the user.
+3. "next": is the beginning of the next contiguous memory chunk.
+
+Due to the unusability of the last bit for the curr_size field, chunks are
+always begin on even word boundries, so the mem portion (which is returned
+to the user) is also on an even word boundary, and thus double-word
+aligned.
+
+A.2. Free chunks are stored in circular doubly-linked lists, and look like
+     this:
+
+ curr->+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       | prev_size = chunk size of (prev) if P=0             | |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  head:| curr_size = chunk size of (curr) + HEAP_SIZE_SIZE   |P|
+  mem->+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+       | Forward pointer to next chunk in free chunk list      | | [!inuse]
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ | at least
+       | Back pointer to previous chunk in free chunk list     | | forward/back pointers
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |
+       | unused space (may be 0 bytes long)                    . |
+       .                                                       . |
+       .                                                       | |
+ next->+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+  foot:| curr_size = chunk size of (curr) + HEAP_SIZE_SIZE     |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       | curr_size = chunk size of (next) + HEAP_SIZE_SIZE   |0|
+  mem->+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       .                                                       .
+       .                                                       .
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+             Figure 2. Freed Memory Chunks' Tag
+
+NOTE: chunk size of (p) implies bytes of unused space plus size of
+      'prev_size' and 'curr_size' fields.
+
+Where
+1. "P:     The P (HEAP_CHUNK_FLAG_P) bit, stored in the unused low-order
+           bit of the chunk size (which is always a multiple of two
+           words), is an in-use bit for the *PREVIOUS* chunk.  If that bit
+           is *CLEAR*, then the word before the current chunk size
+           contains the previous chunk size, and can be used to find the
+           front of the previous chunk.
+           The very first chunk allocated always has this bit set,
+		   preventing access to non-existent (or non-owned) memory.
+2. "head": is the head of the current chunk.
+3. "foot": is the foot of the current chunk.  Note that the it is actually
+           represented as the prev_size of the NEXT chunk.  This makes it
+		   easier to deal with alignments etc. 
+
+A.3. There are tow special memory chunk pointers:
+
+1. "heap_first_chunk": The top-most available chunk (i.e., the one
+                       bordering the end of available memory) is treated
+                       specially.  It is never included in any bin, is
+                       used only if no other chunk is available, and is
+                       released back to the system if it is larger than
+                       the M_TRIM_THRESHOLD.
+                       This special chunk doesn't bother using the
+                       trailing size field since there is no next
+                       contiguous chunk that would have to index off it.
+                       After initialization, 'heap_top' is forced to
+                       always exist.  If it would become less than
+                       HEAP_HEAD_SIZE bytes long, it is replenished via
+                       heap_extend_top().
+2. "heap_last_chunk":  It holds only the remainder of the most recently
+                       split (non-top) chunk.  This pointer is checked
+                       before other non-fitting chunks, so as to provide
+                       better locality for runs of sequentially allocated
+                       chunks.
+
+
+B. Bining (struct list_head)
+
+B.1. Bin Concepts
+
+Free memory chunks are divided into several groups by their size, each of
+such group is called a bin.  The bin are also known as "av"s.  The
+'heap_bins' is an array of pairs of pointers serving as the heads of
+(initially empty) doubly-linked lists of free memory chunks, laid out in a
+way so that each pair can be treated as if it were in a heap_chunk.  This
+way, the forward/backward field in the free memory chunks can link each
+others into the same sizing group.  Actually, the bins use the list_head
+structure to maintain the forward/backward pointers.  The number of bin
+groups will always be less than 128 (depending on the total heap memory
+size).  The chunks in each bin are maintained in decreasing sorted order
+by size.
+
+ |<----- Exact Bins ----->|<-----    Sorted Bins   ----->|
+ | 0   1    2         63  | 64    65                127  | <- bin index
+ +---+---+----+-----+-----+-----+-----+-----+-----+------+
+ | 0 | 8 | 16 | ... | 504 | 512 | 576 | 640 | ... | 2^31 | <- chunk size
+ +---+---+----+-----+-----+-----+-----+-----+-----+------+
+   |        |                      |                 |
+ +--+     +--+                   +--+              +--+
+ |  |     |  |                   |  |              |  |
+ +--+     +--+                   +--+              +--+
+   |                               |
+ +--+                            +--+
+ |  |                            |  |
+ +--+                            +--+
+   |
+ +--+
+ |  |
+ +--+
+                        Figure 3. Bin's Concepts
+
+Bins for sizes<512 bytes contain chunks of all the same size, spaced
+8 bytes apart.  Larger bins are approximately logarithmically spaced.
+(See the table below.) The 'heap_bins' array is never mentioned directly
+in the code, but instead via bin access macros.  These bins are knowns
+exact bins, which all contain the same-sized chunks, but facilitates
+best-fit allocation for larger chunks.
+
+         id                number/id            size
+         64 bins of size           8         (0-511)
+         32 bins of size          64      (512-2559)
+         16 bins of size         512    (2560-10751)
+          8 bins of size        4096   (10752-40959)
+          4 bins of size       32768  (40960-163840)
+          2 bins of size      262144 (163840-524288)
+          1 bin  of size what's left
+                   Figure 4. Bin's Sizing Layout
+
+B.2. Bin Indexing
+
+To index into bins, we could extract the bin's index for every size
+value as follows:
+
+      index          size number
+      ==========================
+          0      0-     7      8
+      ..........................
+         63    504-   511      8 (exact)
+      ==========================
+         64    512-   575     64
+      ..........................
+         95   2496-  2559     64
+      ==========================
+         96   2560-  3072    512
+      ..........................
+        111  10239- 10751    512
+      ==========================
+        112  10752- 12287   1536 (including < 512 blocks)
+        113  11288- 16383   4096
+      ..........................
+        119  36864- 40959   4096
+      ==========================
+        120  40960- 65535  24576 (including < 4096 blocks)
+        121  65536- 98303  32768
+      ..........................
+        123 131072-163840  32768
+      ==========================
+        124 163840-262143  98304 (including < 32768 blocks)
+        125 262144-524287 262144
+      ==========================
+        126 524288-
+                   Figure 5. Bin's Indexing
+
+To help compensate for the large number of bins, a one-level index
+structure is used for bin-by-bin searching.  'heap_blocks' is a bitmap
+recording whether groups of HEAP_BINS_PER_BLOCK bins have any (possibly)
+non-empty bins, so they can be skipped over all at once during traversals.
+The bits are NOT always cleared as soon as all bins in a block are empty,
+but instead only when all are noticed to be empty during traversal in
+heap_alloc.
+
+B.3. Special Bins
+The special chunks 'heap_first_chunk' and 'heap_last_chunk' get their own
+bins, (this is implemented via yet more trickery with the heap_bins
+array), although 'heap_first_chunk' is never properly linked to its bin since
+it is always handled specially.
+
+
+C. Alogrithems
+
+C.1. alloc
+        +-----+
+        |START|
+        +-----+
+           |
+        +-----+
+        |ALLOC|
+        +-----+
+           |
+ +--------------------+
+ |SIZE(IN) => PAD(OUT)|
+ +--------------------+
+           |
+ +--------------------+
+ |PAD(IN) =>  BIN_IDX |
+ +--------------------+
+           |
+    <>----------<> (y) +--------------+
+    |chunk>=pad| ------|min(block_idx)|
+    <>----------<>     +--------------+
+           |                  |                  
+           |        <>-----------------<> (y)<>----------<>
+           |         |exist(next_block)|------|chunk>=pad|------
+           |        <>-----------------<>    <>----------<>    |
+           |                  |    |                |          |
+           |                  |    |            (n) |      (y) |
+           |                  |    |                |          |
+           |                  |    |                |          |
+           |                  |    |                |          |
+           |                  |    |       +----------------+  |
+           |                  |    |       |if(no bin block)|  |
+           |                  |    |       | &~ block flag  |  |
+           |                  |    |       +----------------+  |
+           |                  |    |                |          |
+           |                  |    |                |    +------------+
+           |                  |    |                |    |assign chunk|
+           |                  |    |                |    +------------+
+           |                  |    |                |          |
+       (n) |              (n) |    |        +---------------+  |
+           |                  |    |        |next(block_idx)|  |
+           |                  |    |        +---------------+  |
+           |                  |    |                |          |
+           |                  |    |                |          |
+           |                  |    |                |          |
+           |                  |    |----------------|          |
+           |                  |                                |
+           |                  |                                |
+           |                  |                                |
+           |                  |                                |
+           |                  |                                |
+           |             +---------+                       +-------+
+           --------------|top split|-----------------------|  END  |
+                         +---------+                       +-------+
+
+
+C.2. free
+1. free(0) has no effect.
+2. If a returned chunk borders the current high end of memory, it is
+   consolidated into the heap_top, and if the total unused topmost memory
+   exceeds the trim threshold, heap_trim is called.
+3. Other chunks are consolidated as they arrive, and placed in
+   corresponding bins. (This includes the case of consolidating with the
+   current 'heap_last_remainder').
+
+C.3. realloc
+If the reallocation is for additional space, and the chunk can be
+extended, it is, else a malloc-copy-free sequence is taken.  There are
+several different ways that a chunk could be extended. All are tried:
+
+Extending forward into following adjacent free chunk.
+Shifting backwards, joining preceding adjacent space
+Both shifting backwards and extending forward.
+Extending into newly sbrked space
+
+realloc with a size argument of zero (re)allocates a minimum-sized
+chunk.
+
+If the reallocation is for less space, and the new request is for
+a 'exact' (<512 bytes) size, then the newly unused space is lopped
+off and freed.
+ 
+The old unix realloc convention of allowing the last-free'd chunk
+to be used as an argument to realloc is no longer supported.
+I don't know of any programs still relying on this feature,
+and allowing it would also allow too many other incorrect
+usages of realloc to be sensible.
+
+
+D. Performance considerations
+
+Please refer to the original design documents for performance
+considerations.
+
+                                                        by Lv ZETALOG Zheng
+                                                     & Renjie VA_AUTHRO Yin

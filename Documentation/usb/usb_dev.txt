@@ -1,0 +1,676 @@
+
+              How to Implement USB Device Controller Drivers
+
+
+===== Initialization =====
+
+In this chapter we will discuss the following functions:
+Functions should be implemented by the driver:
+1. usbd_hw_ctrl_init
+2. usbd_hw_ctrl_start
+3. usbd_hw_ctrl_stop
+4. usbd_hw_pm_start
+5. usbd_hw_pm_stop
+6. usbd_hw_bus_attach
+7. usbd_hw_bus_detach
+Functions might be called by the driver:
+1. usbd_restart
+
+The usbd_hw_ctrl_init is called by software to give a chance to the driver
+to implement hardware specific initializations.
+1. enable the USB device controller
+2. call usbd_restart if the controller is not an OTG enabled controller
+
+The usbd_hw_ctrl_start is where USB device interrupts (typically, RESET &
+SOF interrupts) should be enabled.
+The usbd_hw_ctrl_stop is where USB device interrupts (typically, RESET &
+SOF interrupts) should be disabled.
+
+The usbd_hw_pm_start is where USB device power management interrupts
+(typically, SUSPEND & RESUME interrupts) should be enabled.
+The usbd_hw_pm_stop is where USB device power management interrupts
+(typically, SUSPEND & RESUME interrupts) should be disabled.
+
+The usbd_hw_bus_attach is used by the USB device stack to simulate a bus
+attachment process.
+The usbd_hw_bus_detach is used by the USB device stack to simulate a bus
+detachment process.
+
+===== OTG State Machine =====
+
+In this chapter we will discuss the following functions:
+Functions might be called by the driver:
+1. usbd_start
+2. usbd_stop
+Interrupts should be handled by the driver:
+1. USB ID pin detection
+2. USB VBUS pin detection
+
+===== Device State Machine =====
+
+In this chapter we will discuss the following functions:
+Functions should be implemented by the driver:
+1. usbd_hw_set_address
+2. usbd_hw_set_config
+Functions might be called by the driver:
+1. usbd_bus_reset
+2. usbd_bus_suspend
+3. usbd_bus_resume
+4. usbd_address
+5. usbd_config
+Interrupts should be handled by the driver:
+1. RESET signaling reception
+2. SUSPEND condition detection
+3. RESUME signaling reception
+4. SOF token reception
+
+Then the USB device controller driver would receive an RESET interrupt.
+The driver should call the usbd_bus_reset in the interrupt handler.
+
+There are tow additional power management interrupts might be handled by
+the USB device controller driver:
+A. If the USB device controller driver received a SUSPEND interrupt, the
+   driver should call the usbd_bus_suspend in the interrupt handler.
+B. If the USB device controller driver received a RESUME interrupt, the
+   driver should call the usbd_bus_resume in the interrupt handler.
+
+There are tow interfaces will be called by the software in case DEVICE
+ADDRESS or CONFIGURATION VALUE is changed by the software:
+A. The usbd_hw_set_address is used to notify the hardware that the
+   following commucations will be detined to a DEVICE ADDRESS equals to
+   the usbd_address variable.
+B. The usbd_hw_set_config is used to notify the hardware that the device
+   has entered the CONFIGURED state.  The driver might find the
+   CONFIGURATION VALUE in the usbd_config variable.
+
+===== Endpoint Configuration =====
+
+In this chapter we will discuss the following functions:
+Functions should be implemented by the driver:
+1. usbd_hw_endp_select
+2. usbd_hw_endp_enable
+3. usbd_hw_endp_caps
+4. usbd_hw_endp_size
+Functions might be called by the driver:
+1. usbd_endpoint_type
+2. usbd_endpoint_dir
+
+To avoid too much stack consumption, the USB device software will select
+an endpoint before performing actions on it.  The usbd_hw_endp_select is
+the fuctions that must be implemented by the driver to meet this
+requirement.
+
+There are four kinds of endpoint, but we only cares about three of them
+because we haven't implement isochronous transfers yet.  To configure an
+endpoint, one must configure endpoint's type (CONTROL/BULK/INTERRUPT) and
+direction (IN/OUT) for the hardware.
+
+The usbd_hw_endp_enable is such a function that should be implement by the
+USB device controller driver to configure endpoint's type and direction,
+allocating memory banks for the endpoint FIFO.  The driver might call the
+usbd_endpoint_type and the usbd_endpoint_dir to get the related
+configuration of the destined endpoint.
+
+There are tow capability functions should be implemented by the device
+controller driver.  The usbd_hw_endp_caps function is used by the endpoint
+allocation process to determine which endpoint can be claimed by the
+interface driver.  The USB device software will call the usbd_hw_endp_size
+function to get the endpoint FIFO buffer's size to determine how to split
+a USB transfer.
+
+===== Non-control Request/Transfer =====
+
+In this chapter we will discuss the following functions:
+Functions should be implemented by the driver:
+1. usbd_hw_request_open
+2. usbd_hw_request_close
+3. usbd_hw_write_byte
+4. usbd_hw_read_byte
+5. usbd_hw_transfer_open
+6. usbd_hw_transfer_close
+7. usbd_hw_request_reset
+8. usbd_hw_endp_halt
+9. usbd_hw_endp_unhalt
+Functions might be called by the driver:
+1. usbd_transfer_iocb
+2. usbd_transfer_submit
+3. usbd_request_stall
+Interrupts should be handled by the driver:
+1. IN token reception
+2. OUT token reception
+3. STALL token transmission
+
+A USB transaction (also known as USB IRP or USB request block - URB) could
+be ended up with success or failure.
+
+A. Transaction Success
+A successful write request (DATA IN) is handled as follows:
+==========================================================================
+usbd_hw_request_open
+while (request_bytes && IN interrupt is raised) {
+	usbd_transfer_iocb
+	[
+		usbd_hw_transfer_open();
+		while (usbd_hw_endp_size() > request_bytes--) {
+			usbd_hw_write_byte();
+		}
+		usbd_hw_transfer_close();
+	]
+}
+usbd_hw_request_close
+==========================================================================
+                         Figure 1. IN Transaction
+
+A successful read request (DATA OUT) is handled as follows:
+==========================================================================
+usbd_hw_request_open
+while (request_bytes && OUT interrupt is raised) {
+	usbd_transfer_submit
+	usbd_transfer_iocb
+	[
+		usbd_hw_transfer_open();
+		while (usbd_hw_endp_size() > request_bytes--) {
+			usbd_hw_read_byte();
+		}
+		usbd_hw_transfer_close();
+	]
+};
+usbd_hw_request_close
+==========================================================================
+                         Figure 2. OUT Transaction
+
+Above figures have showed us the following interfaces between the USB
+device controller driver and the USB device firmware:
+
+usbd_hw_request_open:   A driver implementation to enable endpoint IRQs.
+                        Some control endpoint requires direction switch
+                        to be implemented in this function (please refer
+                        to the 'Control Endpoint' chapter).
+usbd_hw_request_close:  A driver implmentation to disable endpoint IRQs.
+usbd_hw_read_byte:      A driver implementation to read a byte from the
+                        endpoint FIFO.
+usbd_hw_write_byte:     A driver implementation to write a byte to the
+                        endpoint FIFO.
+usbd_hw_transfer_open:  A driver implementation to splits a USB request
+                        into several USB transfers that can be handled
+                        within the limited endpoint FIFO buffer's size.
+usbd_hw_transfer_close: A driver implementation to splits a USB request
+                        into several USB transfers that can be handled
+                        within the limited endpoint FIFO buffer's size.
+usbd_transfer_iocb:     A firmware interface to handle next TX/RX transfer
+                        for the USB request.
+                        A driver implementation should call it when A
+                        IN/OUT endpoint interrupt is raised.
+usbd_transfer_submit:   A firmware interface to limit RX transfer's size
+                        available in the endpoint FIFO.
+			Unlike the TX process, the additional function
+                        must be called before the usbd_transfer_iocb is
+                        called in the OUT IRQ handler.
+Addtional information for these functions will be discussed in the later
+"Asynchronous IO" and "Synchronous IO" chapters.
+
+B. Transaction Failure
+A failed transaction will always ended up with a STALL token on the USB
+bus to allow both of the host and the device to drop the current pending
+transactions.
+
+The STALL packet can be used by the device to notify the host side that
+there are errors in the device, an implementation dependant STALL
+termination condition can recover the endpoint from such condition to
+advance further operations.  There's also a protocol STALL that can be
+called by the host to force the endpoints keeping on returning STALL.
+Since the STALL token will be sent by the hardware, the driver must
+implement the usbd_hw_endp_halt and the usbd_hw_endp_unhalt to offer this
+feature.
+
+The usbd_request_stall is called by the USB device controller driver to
+handle STALL token sent interrupt.  This informs the USB device stack of
+the actual ocurrence of a USB pipe broken.
+
+The usbd_hw_request_reset is used by the USB device stack to reset
+endpoint transaction's state machine.  This includes FIFO flush and data
+toggle bit reset.  There are three cases where endpoint reset should be
+executed:
+1. Transaction initialization: after the endpoint is enabled, this
+   function should be called by the USB device stack to synchronize the
+   transaction state with the hardware controller.
+2. Transaction finalization (success): as FIFO flush and data toggle bit
+   reset has automatically been done by the USB protocol for error-free
+   IRPs, this function is not been used in the figure 1 & 2 - successful
+   trasaction completions.
+3. Transaction finalization (failure): there's one exception where the
+   function is called for a transaction completion - usbd_endpoint_unhalt.
+   As FIFO may contain stained data and the data toggle bit may be set
+   after the STALL condition has terminated.  A STALL termination
+   operation must be accompanied by the transaction reset to ensure the
+   transaction state synchronized between the hardware and the USB device
+   stack.
+
+===== Control Request/Transfer =====
+
+In this chapter we will discuss the following functions:
+Functions might be called by the driver:
+1. usbd_control_setup_staging
+2. usbd_control_setup
+3. usbd_control_reset
+4. usbd_config_apply
+5. usbd_request_dir
+Interrupts should be handled by the driver:
+1. SETUP token reception
+
+The control endpoints have a special feature that is different from other
+kind of endpoints.  Control transfer direction can change across its three
+stages: setup, data, status.  Each of these stages can be treated as a
+normal non-transfer request discussed above.
+
+In the setup stage, control setup request are sent from host to device.
+The direction of the data and the status stage is then determined by the
+"wIndex" field.  Some hardware requires manually changing the endpoint
+direction for the control pipe.  This can done in the usbd_hw_request_open
+function since it is called after stage switch and before any of the
+request's transfer begins.  The request direction of current control stage
+can be accessed through the usbd_request_dir provided by the usb device
+firmware.
+
+Since the USB host may actively reset control pipe by transferring a new
+setup request, the setup request arrival event SETUP is often
+implemented as an interrupt in most of the USB device controllers.  The
+SETUP interrupt handler should call the usbd_control_setup function to
+handle the control setup request if the USB device controller does not
+support CONTROL STATUS OFFLOADING.  The usbd_control_setup function is
+diveded into tow pieces for CONTROL STATUS OFFLOADING hardwares:
+usbd_control_reset and usbd_config_apply.  Please see the CONTROL STATUS
+OFFLOADING differentiation below for further informations. For synchronous
+USB device IO support, the SETUP IRQ must be replied in the
+usbd_hw_transfer_close function.  USB device controller driver should call
+the usbd_control_setup_staging to test whether SETUP IRQ should be
+replied.
+
+CONTROL STATUS OFFLOADING differentiation:
+usbd_control_setup: A firmware interface to handle control setup request.
+                    A driver implementation should call it when A SETUP
+                    endpoint interrupt is raised.
+usbd_control_reset: A firmware interface to handle control setup request.
+                    A driver implementation should call it when A SETUP
+                    endpoint interrupt is raised for CONTROL STATUS
+                    OFFLOADING controllers.
+usbd_config_apply:  A firmware interface to handle the device
+                    address/configuration application requests.
+                    A driver implementation might call it when A SETUP
+                    endpoint interrupt is raised for CONTROL STATUS
+                    OFFLOADING controllers.
+
+The special handling of the control endpoint can be concluded here:
+1. In the control pipe, STALL condition should always be cleared before
+   next transaction.  This has been ensured by the USB device stack.
+2. A reception of the SETUP token should be treated as the completion of
+   the current transaction.  So the SETUP reception interrupt should
+   always be enabled by the USB device controller driver whatever the
+   current stage is a SETUP stage or not.
+3. Hardware controllers may choose to offload the STATUS stage, USB device
+   controller should handle carefully for such offloading.
+4. usbd_endpoint_dir should not be used to determine the transaction
+   direction of the current stage as it changes stage by stage.  The USB
+   device controller driver should use usbd_request_dir to determine the
+   direction of current stage.
+
+===== Asynchronous IO =====
+
+In this chapter we will discuss the following functions:
+Functions should be implemented by the driver:
+1. usbd_hw_transfer_open
+2. usbd_hw_transfer_close
+3. usbd_hw_write_byte
+4. usbd_hw_read_byte
+Interrupts should be handled by the driver:
+1. IN (DATA) token rectiption
+2. OUT (DATA) token rectiption
+3. STALL token transmission
+4. SETUP token rectiption
+
+Asynchronous USB device IO implementation are required to implement
+following driver interfaces in special manner:
+
+usbd_hw_transfer_open:  An asynchronous IO driver implementation must wait
+                        the hardware for the readiness of the received
+                        data that has been filled into the endpoint FIFO.
+usbd_hw_transfer_close: An asynchronous IO driver implementation must wait
+                        the hardware for the completion of the transmitted
+                        data that has been filled into the endpoint FIFO.
+usbd_hw_write_byte:     An asynchronous IO driver implementation must
+                        write the byte to the FIFO if the endpoint FIFO
+                        are ready to be written.
+usbd_hw_read_byte:      An asynchronous IO driver implementation must read
+                        a byte from the FIFO.  It should also wait  for
+                        the next transfer when all current transfer data
+                        is handled by the software
+                        (usbd_transfer_handled == 0).  The function
+                        usbd_transfer_submit should be called as long as
+                        the next transfer is ready to be read.
+IN IRQ:                 IN IRQ must be answered before the
+                        usbd_control_iocb is called in the interrupt
+                        handler.
+OUT IRQ:                OUT IRQ must be answered after the
+                        usbd_control_iocb is called in the interrupt
+                        handler.
+STALL IRQ:              STALL IRQ must be answered after the
+                        usbd_request_stall is called in the interrupt
+                        handler.
+SETUP IRQ:              SETUP IRQ must be answered after the
+                        usbd_control_setup or usbd_control_reset is called
+                        in the interrupt handler.
+
+===== Synchronous IO =====
+
+In this chapter we will discuss the following functions:
+Functions should be implemented by the driver:
+1. usbd_hw_transfer_open
+2. usbd_hw_transfer_close
+3. usbd_hw_write_byte
+4. usbd_hw_read_byte
+Functions might be called by the driver:
+1.usbd_request_syncing
+3.usbd_transfer_handled
+Interrupts should be handled by the driver:
+1. USB endpoint IN (DATA)
+2. USB endpoint OUT (DATA)
+3. USB endpoint STALL
+4. USB endpoint SETUP
+
+Synchronous USB device IO implementation are required to implement
+following driver interfaces in special manner:
+
+usbd_hw_transfer_open:  A synchronous IO driver implementation must wait
+                        the hardware for the readiness of the received
+                        data that has been filled into the endpoint
+                        FIFO.
+usbd_hw_transfer_close: A synchronous IO driver implementation must wait
+                        the hardware for the completion of the
+                        transmitted data that has been filled into the
+                        endpoint FIFO.  This includes:
+                        A. Wait for the IN completion when SYNC flag is
+                           set.
+                        B. Acknowledge the IN completion when SYNC flag
+                           is set.
+                        C. Acknowledge the OUT completion.
+                        D. Answer the SETUP token if the the
+                           corresponding  control endpoint is in the
+                           setup stage, this can be test through:
+                           usbd_control_setup_staging == true.
+usbd_hw_write_byte:     A synchronous IO driver implementation must
+                        write the byte to the FIFO if the endpoint FIFO
+                        are ready to be written.
+usbd_hw_read_byte:      A synchronous IO driver implementation must read
+                        a byte from the FIFO.  It should also wait for
+			the next transfer when all current transfer data
+			is handled by the software
+			(usbd_transfer_handled == 0).  The function
+                        usbd_transfer_submit should be called as long as
+                        the next transfer is ready to be read.
+IN IRQ:                 IN IRQ must be answered before the
+                        usbd_control_txin is called in the interrupt
+                        handler.  This is because our synchronous
+                        implementation will have the first TX transfer
+                        handled asynchronously.
+OUT IRQ:                OUT IRQ must not be answered in the interrupt
+                        handler.
+STALL IRQ:              STALL IRQ must not be answered in the interrupt
+                        handler.
+SETUP IRQ:              SETUP IRQ must not be answered in the interrupt
+                        handler.
+
+===== Transfer Example =====
+
+In this chapter, an example driver will be introduced to demonstrate the
+concepts discussed in this article.  The driver is an AT90USB1287 USB
+device controller's driver.
+
+The AT90USB1287's data sheet introduces its time sequences as follows:
+
+1. Control OUT (1 out bank)
+==========================================================================
+       |     SETUP          |          DATA(OUT)        |  STATUS(OUT)   |
+       | +-------+<=====>   |+-----+<----->+-----+      |<----->+----+   |
+USB    | | SETUP || NAK |   || OUT || NAK || OUT |      || NAK || IN |   |
+       | +-------+<=====>   |+-----+<----->+-----+      |<----->+----+   |
+       |          +-----+   |                           |                |
+       |        HW|     |SW1|                           |                |
+RXSTPI |----------+     +---|---------------------------|----------------|
+       |                    |       +-----+       +-+   |                |
+       |                    |     HW|     |SW2  HW| |SW2|                |
+RXOUTI |--------------------|-------+     +-------+ +---|----------------|
+       |--------------------|---------------------------|------+      +--|
+       |                    |                           |      |SW3 HW|  |
+TXINI  |                    |                           |      +------+  |
+==========================================================================
+                     Figure 3. AT90USB1287 Control OUT
+Where:
+SW1: firmware should read the SETUP packet from the FIFO and clear the
+     RXSTPI flag to acknowledge the control SETUP packet.
+     NAK marked with "=" might not occur if there's a seperate SETUP bank
+     (2 OUT banks) for the endpoint.
+SW2: firmware should read the OUT packet from the FIFO and clear the
+     RXOUTI flag to acknowledge the control OUT packet.
+SW3: firmware should clear the TXINI flag to send the control IN ZLP
+     packet.
+
+2. Control IN
+==========================================================================
+       |    SETUP       |          DATA(IN)          |  STATUS(IN)  |
+       | +-------+      |<----->+----+<----->+----+  |+-----+       |
+USB    | | SETUP |      || NAK || IN || NAK || IN |  || OUT |       |
+       | +-------+      |<----->+----+<----->+----+  |+-----+       |
+       |          +-+   |                            |              |
+       |        HW| |SW1|                            |              |
+RXSTPI |----------+ +---|----------------------------|--------------|
+       |                |                            |       +-+    |
+       |                |                            |     HW| |SW2 |
+RXOUTI |----------------|----------------------------|-------+ +----|
+       |----------------|------+      +-----+      +-|--------------|
+       |                |      |SW3 HW|     |SW3 HW| |              |
+TXINI  |                |      +------+     +------+ |              |
+==========================================================================
+                     Figure 4. AT90USB1287 Control IN
+Where:
+SW1: firmware should read the SETUP packet from the FIFO and clear the
+     RXSTPI flag to acknowledge the control SETUP packet.
+SW3: firmware should write the IN packet to the FIFO and clear the TXINI
+     flag to send the control IN packet.
+SW2: firmware should clear the RXOUTI flag to acknowledge the control OUT
+     ZLP packet.
+
+3. Bulk/Interrupt OUT (1 OUT bank)
+==========================================================================
+        | +-----+<----->+-----+         |
+USB     | | OUT || NAK || OUT |         |
+        | +-----+<----->+-----+         |
+        |        +-+           +-+      |
+        |      HW| |SW4      HW| |SW4   |
+RXOUTI  |--------+ +-----------+ +------|
+        |        +-----+       +---+    |
+        |      HW|     |SW5    |   |SW5 |
+FIFOCON |--------+     +-------+   +----|
+==========================================================================
+                 Figure 5. AT90USB1287 Bulk/Interrupt OUT
+Where:
+SW4: firmware should clear the RXOUTI flag to acknowledge the
+     bulk/interrupt OUT packet.
+SW5: firmware should read the OUT packet from the FIFO and clear the
+     FIFOCON flag to allow the next bulk/interrupt OUT packet.
+
+4. Bulk/Interrupt IN (1 IN bank)
+==========================================================================
+        | <----->+----+<----->+----+   |
+USB     | | NAK || IN || NAK || IN |   |
+        | <----->+----+<----->+----+   |
+        |---+          +-+          +--|
+        |   |SW6     HW| |SW6     HW|  |
+TXINI   |   +----------+ +----------+  |
+        |-------+      +-----+      +--|
+        |       |SW7 HW|     |SW7 HW|  |
+FIFOCON |       +------+     +------+  |
+==========================================================================
+                 Figure 6. AT90USB1287 Bulk/Interrupt IN
+Where:
+SW6: firmware should clear the TXINI flag to begin a IN transfer.
+SW7: firmware should write the IN packet to the FIFO and clear the FIFOCON
+     flag to send the bulk/interrupt IN packet.
+
+A USB device controller driver writer may rearrange the above figures to
+form a unified time sequence chart for the following OUT transfers:
+1. C-SETUP: control SETUP
+2. C-DATA(OUT): control DATA(OUT)
+3. C-STATUS(IN): control STATUS(IN)
+4. BI-DATA(OUT): bulk/interrupt DATA(OUT)
+==========================================================================
+        | +-------+ :   :   :   :   | C-SETUP
+USB     | | SETUP | :   :   :   :   |
+        | +-------+ :   :   :   :   |
+        |         +-:---:---:-+ :   |
+        |         | :   :   : | :   |
+RXSTPI  |---------+ :   :   : +-:---|
+--------|-----------:---:---:---:---|-------------------------------------
+        | +-------+<:---:---:-> :   | C-DATA(OUT)
+USB     | |  OUT  ||:   :NAK: | :   | C-STATUS(IN)
+        | +-------+<:---:---:-> :   |
+        |         +-:---:---:-+ :   |
+        |         | :   :   : | :   |
+RXOUTI  |---------+ :   :   : +-:---|
+--------|-----------:---:---:---:---|-------------------------------------
+        | +-------+<:---:---:-> :   | BI-DATA(OUT)
+USB     | |  OUT  ||:   :NAK: | :   |
+        | +-------+<:---:---:-> :   |
+        |         +-:-+ :   :   :   |
+        |         | : | :   :   :   |
+RXOUTI  |---------+ : +-:---:---:---|
+        |         +-:---:---:-+ :   |
+        |         | :   :   : | :   |
+FIFOCON |---------+ :   :   : +-:---|
+--------|-----------:---:---:---:---|-------------------------------------
+        |           :FW1:FW2:FW3:   |
+==========================================================================
+                 Figure 7. AT90USB1287 OUT Transfers
+Where:
+FW1: firmware should implement these operations in the
+     usbd_hw_transfer_open function.  Thus following codes should be
+     included in this function:
+     1. clear RXOUTI for BI-DATA(OUT)
+FW2: firmware should implement these operations in the usbd_hw_read_byte
+     function.
+FW3: firmware should implement these operations in the
+     usbd_hw_transfer_close function.  Thus following codes should be
+     included in this function:
+     1. clear RXSTPI for C-SETUP
+     2. clear RXOUTI for C-DATA(OUT)/C-STATUS(IN)
+     3. clear FIFOCON for BI-DATA(OUT)
+
+A USB device controller driver writer may rearrange the above figures to
+form a unified time sequence chart for the IN transfers:
+1. C-DATA(IN): control DATA(IN)
+2. C-STATUS(OUT): control STATUS(OUT)
+3. BI-DATA(IN): bulk/interrupt DATA(IN)
+==========================================================================
+        | <:---:---:-> :+----+  | C-DATA(IN)
+USB     | |:   :NAK: | :| IN |  | C-STATUS(OUT)
+        | <:---:---:-> :+----+  |
+        |--:---:---:-+ :     +--|
+        |  :   :   : | :     |  |
+TXINI   |  :   :   : +-:-----+  |
+--------|--:---:---:---:--------|-----------------------------------------
+        | <:---:---:-> :+----+  | BI-DATA(IN)
+USB     | |:NAK:   : | :| IN |  |
+        | <:---:---:-> :+----+  |
+        |--:-+ :   :   :     +--|
+        |  : | :   :   :     |  |
+TXINI   |  : +-:---:---:-----+  |
+        |--:---:---:-+ :     +--|
+        |  :   :   : | :     |  |
+FIFOCON |  :   :   : +-:-----+  |
+--------|--:---:---:---:--------|-----------------------------------------
+        |  :FW1:FW2:FW3:        |
+==========================================================================
+                 Figure 8. AT90USB1287 IN Transfers
+Where:
+FW1: firmware should implement these operations in the
+     usbd_hw_transfer_open function.  Thus following codes should be
+     included in this function:
+     1. clear TXIN for BI-DATA(IN)
+FW2: firmware should implement these operations in the usbd_hw_write_byte
+     function.
+FW3: firmware should implement these operations in the
+     usbd_hw_transfer_close function.  Thus following codes should be
+     included in this function:
+     1. clear TXIN for C-DATA(IN)/C-STATUS(OUT)
+     2. clear FIFOCON for BI-DATA(IN)
+
+Note that FW1 and FW3 are always divided by the FW2 in which a simple FIFO
+data read/write should be implementd.  A driver writer should always use
+this principle to distinguish the operations before/after a FIFO access.
+Operations before the FIFO access should be put in the
+usbd_hw_transfer_open function while operations after the FIFO access
+should be put in the usbd_hw_transfer_close function.
+
+Finally, we can publish the driver codes like follows:
+==========================================================================
+#define __usbd_hw_eirq_raised(irq)	(UEINTX &   _BV(irq))
+#define __usbd_hw_unraise_eirq(irq)	(UEINTX &= ~_BV(irq))
+
+boolean __usbd_hw_is_txaval(void)
+{
+	if (usbd_endpoint_type() == USB_ENDP_CONTROL)
+		return __usbd_hw_eirq_raised(TXIN);
+	else
+		return __usbd_hw_eirq_raised(RWAL);
+}
+
+boolean __usbd_hw_is_rxaval(void)
+{
+	if (usbd_endpoint_type() == USB_ENDP_CONTROL)
+		return __usbd_hw_eirq_raised(RXSTP) ||
+		       __usbd_hw_eirq_raised(RXOUT);
+	else
+		return __usbd_hw_eirq_raised(RWAL);
+}
+
+void usbd_hw_transfer_open(void)
+{
+	if (usbd_request_dir() == USB_DIR_IN) {
+		if (usbd_request_syncing())
+			while (!__usbd_hw_is_txaval());
+	} else {
+		if (usbd_request_syncing())
+			while (!__usbd_hw_is_rxaval());
+	}
+	if (usbd_request_dir() == USB_DIR_OUT) {
+		usbd_transfer_submit(usbd_hw_read_avail());
+	}
+	if (usbd_endpoint_type() != USB_ENDP_CONTROL) {
+		if (usbd_request_dir() == USB_DIR_IN) {
+			__usbd_hw_unraise_eirq(TXIN);
+		} else {
+			__usbd_hw_unraise_eirq(RXOUT);
+		}
+	}
+}
+
+void usbd_hw_transfer_close(void)
+{
+	if (usbd_endpoint_type() == USB_ENDP_CONTROL) {
+		if (usbd_control_setup_staging()) {
+			__usbd_hw_unraise_eirq(RXSTP);
+		} else {
+			if (usbd_request_dir() == USB_DIR_IN) {
+				__usbd_hw_unraise_eirq(TXIN);
+			} else {
+				__usbd_hw_unraise_eirq(RXOUT);
+			}
+		}
+	} else {
+		__usbd_hw_unraise_eirq(FIFOCON);
+	}
+}
+==========================================================================
+              Figure 9. AT90USB1287 Transfers Implementation
+
+
+                                                       by Lv ZETALOG Zheng

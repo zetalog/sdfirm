@@ -1,0 +1,410 @@
+
+                 How to Implement Timing Facility Drivers
+
+
+A. Timer/delay on tick/tickless system:
+
+Our system offers 3 timing features:
+1. jiffy (tick)
+2. timer
+3. delay
+
+===== delay =====
+
+In this chapter we will discuss the following functions:
+Functions should be implemented by the TSC driver:
+1. tsc_hw_ctrl_init
+2. tsc_hw_read_counter
+
+The firmware has implemented timestamp counter (TSC) using such a kind of
+clock event device (cycle counter):
+1. Whose counter has a bit width value as great as possible.
+2. Whose counter has a clock rate value as slow as possible.
+3. Whose counter can automaticlly reloaded when overflowed.
+4. The device should not generate hardware interrupts.
+
+Some consideration need to be mentioned about the choice of the slowest
+clock rate.  Since the portable calibrate_delay() need a single formula
+based on some 16-bit div/mul functions.  The frequency used by the formula
+should be a solid HZ value rather than the platform dependent variable
+value tsc_freq.  We have to select a tsc_freq value to meet the following
+condition -- tsc_freq%HZ=0, which means the chosen tsc_freq value must be
+multiples of HZ.  We use TSC_MAX to describe the maximum counter value of
+the TSC hardware under tsc_freq.  To ensure tsc_freq is a multiple HZ,
+we define HZ as 1000 and define TSC_FREQ macro using a KHz basis value.
+
+The calibrate_delay codes is as follows. It is copied from Linux except
+the 'delay_ticks()' being replaced by the current counter value (can be
+obtained from the 'tsc_read_counter' call) and the 'delay_delta' being
+replaced by the (tsc_freq/HZ=TSC_FREQ*1000/HZ=TSC_FREQ):
+
+#ifdef CONFIG_TICK_PERIODIC
+#define delay_ticks()	jiffies
+#define delay_delta	1
+#else
+#define delay_ticks()	tsc_read_counter()
+#define delay_delta	TSC_FREQ
+#endif
+
+#define LPS_PREC	8
+#define LPS_INIT	8
+static void calibrate_delay(void)
+{
+	uint16_t ticks_old, ticks_new, loopbit;
+	uint8_t lps_precision = LPS_PREC;
+
+	loops_per_ms = 1 << LPS_INIT;
+	while ((loops_per_ms <<= 1) != 0) {
+		ticks_old = delay_ticks();
+		while (ticks_old == delay_ticks());
+		ticks_old = delay_ticks();
+		__delay(loops_per_ms);
+		ticks_new = delay_ticks();
+		if (delay_elapsed(ticks_old, ticks_new) >= delay_delta)
+			break;
+	}
+
+	loops_per_ms >>= 1;
+	loopbit = loops_per_ms;
+	while (lps_precision-- && (loopbit >>= 1)) {
+		loops_per_ms |= loopbit;
+		ticks_old = delay_ticks();
+		while (ticks_old == delay_ticks());
+		ticks_old = delay_ticks();
+		__delay(loops_per_ms);
+		ticks_new = delay_ticks();
+		if (delay_elapsed(ticks_old, ticks_new) >= delay_delta)
+			loops_per_ms &= ~loopbit;
+	}
+}
+
+The principles on how to choose a suitable TSC_FREQ value:
+1. tsc_freq must be multiples of HZ
+2. TSC ticks per jiffy should be less than half of TSC overflow value
+   (i.e. tsc_freq>(2*TSC_MAX*HZ))
+
+Why tsc_freq>(2*TSC_MAX*HZ) condition must be matched?  If a
+loops_per_jiffy try doesn't make a significant HZ variation, then its next
+value "loops_per_jiffy*2" can meet following conditions:
+  HZ<=(loops_per_jiffy*2)<TSC_MAX or (loops_per_jiffy*2)<HZ
+i.e., loops_per_jiffy*2 would not make a TSC overflow.  It's likely fail
+to calibrate delay using a wrong tsc_freq.
+
+In AT90USB1287, whose CPU_FREQ is 8M, the clock divisor for its timers can
+be 1, 8, 64, 256 and 1024, since system HZ is 1000 or 100, the suitable
+divisor values for the firmware should be 1, 8 and 64.  Thus we could get
+the following tsc_freq values: 8M, 1M or 125K.  8M tsc_freq is not suitable
+for 16-bit counter value when HZ=100 (since TSC ticks per jiffy is
+80000, greater than (2^16)/2).
+NOTE: HZ=100 support is deleted in the recent firmware version.
+
+To implement a TSC emulation hardware, driver must implement 2 functions.
+The 'tsc_hw_ctrl_init' is called by delay codes to initialize the
+configurations of the TSC hardware.
+The 'tsc_hw_read_counter' is hardware part of the 'tsc_read_counter'
+function.
+
+If jiffy can be incremented timingly without being interrupted by any
+other IRQ triggers, jiffy can also be used as 'delay_ticks()', whose
+'delay_deta' is 1 for calibrate_delay().  In this case, TSC driver might
+not be implemented by the firmware.  See CONFIG_TICK_PERIODIC below.
+
+Some hardwares are not equipped with a TSC that can match the condition of
+"tsc_freq>(2*TSC_MAX*HZ)".  Thus we use a calibration_freq instead of HZ.
+The value of calibration_freq is not tsc_freq as tsc_freq may be too great
+to allow a loop completed in one TSC cycle.  The frequency of
+calibration_freq is chosen according to the following considerations:
+1. calibration_freq=calibration_ratio*HZ,
+   where calibration_ratio must be a positive integer;
+2. tsc_freq>(2*TSC_MAX*calibration_freq);
+3. loops_per_calibration>1,
+   where loops_per_calibration is the count of loops that can be completed
+   in 1/calibration_freq time.
+TSC implementation then can define CALIBRATION_FREQ for such hardwares.
+
+===== jiffy =====
+
+In this chapter we will discuss the following functions:
+Functions should be implemented by the GPT driver:
+1. gpt_hw_ctrl_init
+2. gpt_hw_periodic_start
+3. gpt_hw_periodic_restart
+Functions might be called by the GPT driver:
+1. tick_handler
+
+In the firmware, jiffy is implemented using another kind of clock event
+device (periodic timer).  If its interrupt can be non-maskable, jiffy is
+incremented one by one every time its interrupt occurs.  If it cannot be
+implemented as a non-maskable timer, jiffy is incremented according to
+the TSC elapsed when its interrupt occurs.  The tick interrupt handler
+codes are as follows:
+
+#ifdef CONFIG_TICK
+#ifdef CONFIG_TICK_PERIODIC
+void tick_handler(void)
+{
+	jiffies++;
+	gpt_periodic_restart();
+}
+#else
+void tick_handler(void)
+{
+	tick = (tsc_read_counter() - tsc_old)/(TSC_FREQ);
+	jiffies += tick;
+	gpt_periodic_restart();
+}
+#endif
+#endif
+
+To implement a jiffy tick device, driver must implement 3 functions.
+The 'gpt_hw_ctrl_init' is called by jiffy codes to initialize the
+configurations of the GPT hardware.
+In the interrupt handler, the driver must call 'tick_handler' to handle
+jiffy increment events.
+The 'gpt_hw_periodic_start' and 'gpt_hw_periodic_restart' are called by
+the jiffy startup codes and the 'tick_handler' codes to make the tick
+device running continuously.  The 'gpt_hw_periodic_restart' function might
+be dummy if the hardware can automatically restart itself.
+
+In the firmware, jiffy is used to implemented the realtime timers.  It
+is not required by any other modules in the firmware (because we do not
+need a correct wall-time) while the realtime timer is critical to the
+firmware.  We could disable the jiffy function and implement the
+realtime timer using the third kind of clock event device (oneshot timer).
+See CONFIG_TIMER_ONESHOT below.
+
+Systems without jiffy tick interrupts are called tickless systems in
+Linux, also known as NO_HZ systems.  In the firmware, platforms can define
+ARCH_IS_TICKLESS to force the firmware to be compiled as a tickless
+system.
+
+===== timer =====
+
+In this chapter we will discuss the following functions:
+Functions should be implemented by the GPT driver:
+1. gpt_hw_ctrl_init
+2. gpt_hw_oneshot_timeout
+Functions might be called by the GPT driver:
+1. tick_handler
+
+The firmware implements timers using the periodic jiffy or the third
+kind of clock event device - oneshot timer, both of them are implemented
+using same hardware timer hardware device - GPT.
+
+When the periodic jiffy is implemented, timeouts are triggered in the
+task context by referencing the delta of the jiffy counter.
+
+When oneshot timer is implemented, timeouts are triggered in the interrupt
+context while timeout handlers are executed by the codes running in the
+task context.  Next timeout value is also calculated and set to the GPT
+device by the software in the task context.
+
+In a system, there are three timeout timing requirements:
+1. Delayable timer (dtimer)
+   A. timeout event should occur after a preset timeslot;
+   B. timeout event need not occur as early as possible;
+   C. timeout event should be IRQ maskable;
+   D. timeout determination need not refer a third party realtime axis.
+2. Interruptable timer (itimer)
+   A. timeout event should occur after a preset timeslot;
+   B. timeout event should occur as early as possible;
+   C. timeout event should be non-IRQ maskable;
+   D. timeout determination need not refer a third party realtime axis.
+3. Realtime timer (rtimer)
+   A. timeout event should occur after a preset timeslot;
+   B. timeout determination refers a third party realtime axis.
+
+What is realtime axis?  In a handler of a timer, there will always be
+significant hardware and software delays.
+If a timer implementation refers a third party clock source event which
+will not affected by such delays, and timer determination will be made
+according to the value of the realtime clock source when timeout event
+is arrived, we treat this implementation is realtime.  In such an
+implementation, timeout event will be corrected according to the realtime
+clock source result.
+In a non-realtime timer implementation, only timeslot are ensured.
+Without the realtime clock source, too many delayed timer handlers will
+cause the system time axis stretched.
+Consider timeout events would occur on the time axis:
+
+       A         B         C
+       |=========|=========|
+  +----+----+----+----+----+
+  0   100  200  300  400  500 (ms)
+
+Where:
+  |====|: timer's timeout slot
+
+Where:
+  A. a time event timeout at 100ms
+  B. a time event timeout at 300ms
+  C. a time event timeout at 500ms
+
+In a system who has a 100ms overall hardware and software delays,
+A stretched time axis implementation could be ticked as follows:
+
+       A              B              C
+       |++++|         |++++|         |++++|
+            |=========|    |=========|
+  +----+----+----+----+----+----+----+----+
+  0   100  200  300  400  500  600  700  800 (ms)
+
+Where:
+  |++++|: timer handler's overall execution delay
+  |====|: timer's timeout slot
+
+A reltime time axis implementation could be ticked as follows:
+
+       A         B         C
+       |++++|    |++++|    |++++|
+       |=========|=========|
+  +----+----+----+----+----+----+
+  0   100  200  300  400  500  600 (ms)
+
+Where:
+  |++++|: timer handler's overall execution delay
+  |====|: timer's timeout slot
+
+Codes implemented by the timer task is as follows:
+
+#ifndef CONFIG_TICK
+void tick_handler(void)
+{
+	state_wakeup(TIMER_PID);
+}
+
+void timer_run(void)
+{
+	1. run all timed out timers.
+	2. calculate timer_next_timeout;
+}
+
+void timer_restart(void)
+{
+	gpt_oneshot_timeout(timer_next_timeout);
+	gpt_periodic_restart();
+}
+#else
+void timer_run(void)
+{
+	1. run all timed out timers.
+}
+
+#define timer_restart()
+#endif
+
+timer_handler(void)
+{
+	timer_run();
+	timer_restart();
+}
+
+
+To implement the oneshot timer, jiffy function must be disabled.  Thus
+'tick_handler' call called by the GPT driver can be used to trigger
+timeouts.
+The 'gpt_hw_ctrl_init' should be implemented differently from the tick
+device one.  When CONFIG_TIMER_ONESHOT is enabled, this function should
+configure the clock event device as follows:
+1. Choose a bit width value based on timer precision (1ms)
+2. Choose a clock rate value in the range of timeout values (1-255ms)
+3. Make clock stopped after interrupts raised (force oneshot)
+The 'gpt_hw_oneshot_timeout' will be called by the timer task when the
+next timeout value is determined.
+
+===== configs =====
+
+Since "delay/mdelay" is useful for drivers codes, the delay feature is not
+configurable.  Both jiffy and timer are configurable.
+
+When jiffy is disabled, the timer implementation will choose hardware
+oneshot timer interrupt as timeout issuer.
+When jiffy is enabled and there can't be periodic timer interrupt for
+the system, a cycle counter must be used to calibrate the jiffy.
+delay will be calibrated using the jiffy when there is periodic timer in
+the system, or be calibrated using the cycle counter.
+In case jiffy is disabled, we can still implement correct timeouts since
+timer can be based on hardware oneshot timer devices rather than based on
+the software jiffy.
+
+Thus we got following configuration items:
+*jiffy -> CONFIG_TICK / CONFIG_TICK_PERIODIC
+delay
+*timer -> CONFIG_TIMER / CONFIG_TIMER_ONESHOT / CONFIG_TIMER_INTERRUPT /
+          CONFIG_TIMER_REALTIME
+
+a. CONFIG_TICK:
+   If CONFIG_TICK=y, volatile value jiffies can be accessed by the other
+   modules.
+b. CONFIG_TICK_PERIODIC:
+   If CONFIG_TICK_PERIODIC=y, jiffy will increment on every non-maskable
+   timer interrupt assertion.
+c. CONFIG_TIMER:
+   If CONFIG_TIMER=y, timer_register/timer_schedule_shot functions are
+   available.
+d. CONFIG_TIMER_ONESHOT:
+   If CONFIG_TICK=n and CONFIG_TIMER=y, this will be enabled automatically
+   to implement TIMER features using hardware timer device.
+e. CONFIG_TIMER_INTERRUPT:
+f. CONFIG_TIMER_REALTIME:
+
+
+B. Initial value of loops_per_ms:
+
+log2 & roundup/rounddown implementations:
+a. log2: designated power of 2 
+b. rounddown: nearest to the 2^N, ex., rounddown(100) = 64
+c. roundup: nearest to the 2^(N+1), ex., roundup(100) = 128
+log2 should be ffs, but it is better implemented in a way that its result
+can be determined in the compile time rather than run time.
+roundup/down should be clear_bits except the ffs bit.
+
+loops_per_ms = CPU_FREQ / HZ / CPU_CYCLES_PER_LOOP
+since loops_per_ms = 2^N, N is the intial weight of loops_per_ms
+thus N = log2(CPU_FREQ / HZ / CPU_CYCLES_PER_LOOP).
+Since CPU_FREQ/HZ might not be an multiplexer of CPU_CYCLES_PER_LOOP,
+we transform this to:
+N = log2(rounddown(CPU_FREQ / HZ)) - log2(roundup(CPU_CYCLES_PER_LOOP))
+
+CPU_CYCLES_PER_LOOP should be a defined constant value, this value might
+be configurable:
+CONFIG_CPU_CYCLES_PER_LOOP = log2(roundup(CPU_CYCLES_PER_LOOP)
+Thus, the formula can be transformed to:
+log2(rounddown(CPU_FREQ / HZ)) - CONFIG_CPU_CYCLES_PER_LOOP
+
+Since there shouldn't be 16 CPU cycles after which the delay loop cannot
+run to an end, we can suppose the default value of
+CONFIG_CPU_CYCLES_PER_LOOP is 4.
+
+===== Briefs =====
+
+In this article, we've discussed following timing facilities and how they
+are implemented.
+
+1. Instruction delay
+delay  -> jiffy (GPT[periodic/NMI])
+       -> TSC[maxcounts - the longer the better
+              frequency - the slower the better]
+
+2. System ticks
+jiffy  -> GPT[periodic/IRQ] +
+          TSC[maxcounts - the longer the better
+              frequency - faster than jiffy's resolution]
+       -> GPT[periodic/NMI]
+
+3. Delayable timer
+dtimer -> GPT[oneshot/IRQ/task]
+       -> jiffy
+
+4. Interruptable timer
+itimer -> GPT[oneshot/IRQ/irq]
+
+5. Realtime timer
+rtimer -> GPT[oneshot/IRQ] +
+          TSC[maxcounts - the longer the better
+              frequency - faster than rtimer's resolution]
+       -> GPT[oneshot/IRQ] +
+          jiffy[low resolution case]
+
+
+                                                        by Lv ZETALOG Zheng

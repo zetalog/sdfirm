@@ -1,0 +1,322 @@
+
+              Asynchronous USB IO with Low Memory Consumption
+
+
+A complete USB data transaction include several IO transfers, the data
+size of each IO transfer should not exceed the endpoint FIFO size.  When a
+USB request is arrived, the USB device firmware will call a correct 'iocb'
+callback provided by the interface drivers owning the endpoint to handle
+the transaction.
+
+
+1. TERMINOLOGY
+
+In this document, we use following terms:
+
+URB: USB request block, it's also called as 'request'. It refers to the
+     whole USB data IO transaction, whose size can be described using
+     urb_size_t.  The urb_size_t might be defined as 16-bits for low
+     memory devices.
+UTB: USB transfer block, it's also called as 'transfer'.  It refers to the
+     single IO transfer within a URB, whose size should not exceed the
+     endpoint FIFO size and can be described using utb_size_t.  The
+     utb_size_t might be defined as 8-bits for low memory devices.
+RS:  It refers to the size of the whole URB transaction that might be
+     replied by the device firmware.
+RA:  It refers to the size limitation of the whole URB transaction that
+     might be requested by the host.
+RC:  It refers to the handled bytes count of the whole URB transaction.
+TS:  It refers to the size of the endpoint FIFO.
+TA:  It refers to the size limitation of a single UTB transfer.  TA should
+     meet following requirement:
+     TA <= TS && TA(last) < TS
+     For RX endpoint, TA will be the byte count reported by the hardware.
+     For TX endpoint, as we could not know the value RS before the
+                      'iocb' function reaches an end, we use following
+		      algorithm to determine its value:
+		      TS > (RA-RC-TC) ? TA = (RA-RC-TC) : TA = TS
+		      Whenver one of the RA, RC, TC has changed, TS should
+		      be updated accordingly.
+TC: It refers to the handled bytes count of a single UTB transfer.
+
+
+2. VARIABLES
+
+The URB transaction is implemented with following variables:
+
+  RA = req_all
+  RC = req_cur
+  TS = usbd_endpoint_size()
+  TA = xfr_all
+  TC = xfr_cur
+  ID = iter
+       ID is reset to zero before the 'iocb' callback is called, it is
+       incremented by one each time a usbd_inb/usbd_outb is called.  Since
+       the 'iocb' might be called each time an UTB occurs. The variable
+       iter can be used to determine whether actual IO transfer should
+       happen within the 'iocb' call.
+       The USB IO transfer occurs only when the following condition is
+       true (IO occurrence algorithm):
+       ID == RC && TA-TC > 0
+  RS = 'iocb' IN/OUTs
+       RS can not be determined in advance before the 'iocb' callback
+       ends.  That's why the USB IO in our firmware can be asynchronous
+       even there isn't enough memory for data storage.
+
+Following figure demonstrate the variables in an USB transaction:
+
+  |                                                |    |
+  |<---------------------------------------------->|    |
+  |                    RA <=> IO                   |    |
+  |<--------------------------------------------------->|
+  |                                                |    |
+  +================================================+    |
+  |                      RA                        |    |
+  +================================================+    |
+  +====================+==========+.........+......+    |
+  |         RC         :          |         :      :    |
+  +====================+==========+.........+......+    |
+  |         TS         |         TS         |           |
+  |<------------------>|<------------------>|           |
+  |                    |                    |           |
+                                                        |
+  +====================+==========+=========+======+    |
+  |        [TA]        |       TA :         | [TA] |    |
+  +====================+==========+=========+======+    |
+                       +==========+                     |
+                       |    TC    |                     | 
+                       +==========+                     |
+  +=====================================================+
+  |                          IO                         |
+  +===============================+=====================+
+  |                               |
+  |------------------------------>|
+  |              ID               |
+
+                    Figure 1 - Transaction Variables
+
+3. STAGES
+
+Every URB transaction has following stages:
+
+POLLING: USB endpoints enters this stage after the usbd_request_reset is
+         called.
+	 In this stage, the endpoints are not ready to accept the IO
+         transfer requests.
+
+	 Some hardware mechanisms may help to keep on replying NAKs to the
+         host whenever the endpoints are polled by the host controller.
+
+         Each endpoint runs a timer in this stage to check whether its
+         high level interface software stack allows handling USB requests.
+         This is done through a 'poll' callback.  The period between two
+         timer ticks will be the interval value configured in the endpoint
+         attributes.
+
+         Control endpoints have a special mechanism to enter the DATA
+         stage.  A control setup request may be received by hardware in
+         this stage to force the control endpoint to discard the previous
+         transaction.  Thus there might be an RXSETUP event raised to the
+         USB device software stack from the hardware controller.
+
+STARTED: USB endpoints enters this stage after the usbd_request_submit is
+         called.
+         In this stage, UTB transfers are repeated in case of (RC < RA).
+
+         For an IN endpoint, there might be a special asynchronous TXIN
+         event that must occur to allow software to begin the transfer.
+         For an OUT endpoint, there must be the special asynchronous
+         RXOUT event reported by the hardware to allow software to begin
+         the transfer.  This event means there is data ready to be read in
+         the endpoints' FIFO.
+
+         The usbd_transfer_iocb is called by the IN endpoints immediately
+         after the TXIN event.
+         The usbd_transfer_submit is called by the OUT endpoints
+         immediately after the RXOUT event.
+
+         Then the callback function 'iocb' is called through
+         the function __usbd_request_data after the ID value is reset by
+         the function usbd_transfer_reset.
+
+         For an IN endpoint, the asynchronous TXIN event can be used by
+         software to determine the end of the request by examining the TC
+         value.
+         For an OUT endpoint, software can determine whether the URB
+         request has reached an end by excamining the TA value.
+
+STOPPED: In this stage, the usbd_request_reset will be called to let the
+         endpoint returning to the RESET stage.
+
+	 Before doing that, 'done' callback will be called to give a
+         chance to the interface driver handling this asynchronous state
+         change events.
+
+Following figure illustrates the stage change diagram:
+
+          |           IN           |          OUT           |
+  ========+========================+========================+
+  POLLING |                      poll                       |
+          |              [usbd_request_submit]              |
+          |            [[usbd_hw_request_open]]             |
+  ========+========================+========================+<-+
+  STARTED |          TXIN          |         RXOUT          |  |
+          +------------------------+------------------------+  |
+          |                        |  usbd_transfer_submit  |  |
+          |                usbd_transfer_iocb               |  |
+          +------------------------+------------------------+  |
+          |              [usbd_transfer_reset]              |  | (RC < RA)
+          |            [[usbd_hw_transfer_open]]            |  |
+          |             [__usbd_transfer_data]              |  |
+          |                    [[iocb]]                     |  |
+          |            [[usbd_hw_transfer_close]]           |  |
+  ========+========================+========================+--+
+  STOPPED |                usbd_transfer_iocb               |
+          |             [usbd_hw_request_close]             |
+          |                     [done]                      |
+          |              [usbd_request_reset]               |
+  ========+========================+========================+
+
+                      Figure 2 - Transaction Stages
+
+The USB device driver should implement IRQ enabling in
+usbd_hw_request_open, IRQ disabling in usbd_hw_request_close, IRQ
+acknowledgement in usbd_hw_transfer_close.
+
+4. FLAGS
+
+Note that usbd_request_submit and usbd_transfer_iocb are the core
+functions to control the transaction process:
+
+usbd_request_submit: This function is designed for calling elsewhere by
+                     the interface drivers.  Thus there might be high
+                     stack consumption risk when it is called.
+usbd_transfer_iocb:  This function is designed to collect all of the
+                     transfer handlings inside one function.  It acts more
+                     like a state machine callback except that there are
+                     only flags to control its states instead of using
+                     state variable.
+                     This function is called in the interrupt context or
+                     it must be called by the task context where the stack
+                     consumption is low.
+
+The flags controlling the transaction states are listed below:
+
+SOFT:  This flag is used to indicate that a USB request is running.
+       It is set when the usbd_request_submit is called.
+       It is cleared when the STOPPED stage is entered.
+HARD:  This flag is used to distinguish the first 'iocb' from the others.
+       It is set when the usbd_transfer_iocb is called while the HARD flag
+       is cleared.
+       It is cleared when usbd_transfer_iocb is called while the HARD flag
+       is set.
+LAST:  This flag is used to distinguish STOPPED stage from the STARTED
+       stage.
+       It can be tested by calling the usbd_transfer_last function.
+ASYNC: The TXIN event raised by the hardware are always an indication of
+       completion of the current IN USB transfer.
+       The RXOUT event raised by the hardware are always an indication of
+       availability of the current OUT USB transfer.
+       Thus The first TXIN event and the last RXOUT would never be issued
+       by the hardware controller.  They are emulated by software using
+       the flag ASYNC.
+       When ASYNC flag is set, the function usbd_transfer_iocb will be
+       called by the software on the top of the stack to ensure low stack
+       consumption before the usbd_transfer_iocb is called.
+       USB endpoint IRQs must be disabled when ASYNC flag is set to avoid
+       the race condition between the RXOUT ASYNC handling of the current
+       request and the RXOUT IRQ handling of the next request's first
+       transfer.
+
+The transaction flags mentioned in this chapter are listed in the
+following chart:
+
+  +-------------------+---------------------+-------+-------+-------+
+  |     flags         |     function        | stack | TXIN  | RXOUT |
+  +-------------------+---------------------+-------+-------+-------+
+  | !SOFT !HARD  LAST | usbd_request_submit | high  |   -   |   -   |
+  +-------------------+---------------------+-------+-------+-------+
+  |  SOFT !HARD  LAST | usbd_transfer_iocb  | low   | ASYNC |  IRQ  |
+  +-------------------+                     |       +-------+-------+
+  |  SOFT  HARD !LAST |                     |       |  IRQ  |  IRQ  |
+  +-------------------+                     |       +-------+-------+
+  |  SOFT  HARD  LAST |                     |       |  IRQ  | ASYNC |
+  +-------------------+---------------------+-------+-------+-------+
+
+                      Figure 3 - Transaction Flags
+
+The column 'flags' indicates the USB devices' IO staging while the 'stack'
+columns illustrates stack consumption for the stage.
+
+5. FUNCTIONS
+
+For an IN transaction, following sequence is called inside the USB IO
+transaction state machine:
+
+usbd_request_reset
+poll
+usbd_request_submit
+usbd_hw_request_open
+do {
+	usbd_transfer_iocb
+		usbd_transfer_reset
+		__usbd_transfer_data
+			iocb
+				usbd_inb
+				? usbd_request_commit
+			usbd_hw_transfer_close
+} while (RC < RA);
+usbd_transfer_iocb
+	usbd_hw_request_close
+	done
+
+                     Figure 4 - IN Request Sequence
+
+For an OUT transaction, following sequence is called inside the USB IO
+transaction state machine:
+
+usbd_request_reset
+poll
+usbd_request_submit
+usbd_hw_request_open
+do {
+	*usbd_transfer_submit*
+	usbd_transfer_iocb
+		usbd_transfer_reset
+		__usbd_transfer_data
+			iocb
+				usbd_inb
+				? usbd_request_commit
+			usbd_hw_transfer_close
+} while (RC < RA);
+usbd_transfer_iocb
+	usbd_hw_request_close
+	done
+
+                     Figure 5 - OUT Request Sequence
+
+The functions listed in the sequences are as follows:
+
+  usbd_request_reset
+    called by IN/OUT endpoints
+    reset RA, RC, CL, CH to zero
+  usbd_request_submit
+    called by IN/OUT endpoints in SETUP stage
+  usbd_request_commit
+    called by IN/OUT endpoints in DATA stage
+    usbd_request_commit is called when the 'iocb' implementator want to
+    modify the RA to allow further IO occurrences.
+  usbd_transfer_submit
+    called by OUT endpoint
+    set CL according to the HW report
+  usbd_transfer_iocb
+    called by IN/OUT endpoints
+    reset CH, update CL accordingly for IN endpoint
+  usbd_inb
+    called by IN endpoint in DATA stage
+    Hardware IN is protected by the IO occurrence algorithm.
+  usbd_outb
+    called by OUT endpoint in DATA stage
+    Hardware OUT is protected by the IO occurrence algorithm.
+
+                                                        by Lv ZETALOG Zheng

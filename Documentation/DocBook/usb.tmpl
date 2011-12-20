@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+	"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" []>
+
+<book id="SDFirm-USB-API">
+ <bookinfo>
+  <title>The SDFirm-USB API</title>
+  
+  <legalnotice>
+   <para>
+     This documentation is free software; you can redistribute
+     it and/or modify it under the terms of the GNU General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later
+     version.
+   </para>
+      
+   <para>
+     This program is distributed in the hope that it will be
+     useful, but WITHOUT ANY WARRANTY; without even the implied
+     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+     See the GNU General Public License for more details.
+   </para>
+      
+   <para>
+     You should have received a copy of the GNU General Public
+     License along with this program; if not, write to the Free
+     Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+     MA 02111-1307 USA
+   </para>
+      
+   <para>
+     For more details see the file COPYING in the source
+     distribution of Linux.
+   </para>
+  </legalnotice>
+ </bookinfo>
+
+<toc></toc>
+
+<chapter id="intro">
+    <title>Introduction to USB on SDFirm</title>
+
+    <para>A Universal Serial Bus (USB) is used to connect a host,
+    such as a PC or workstation, to a number of peripheral
+    devices.  USB uses a tree structure, with the host as the
+    root (the system's master), hubs as interior nodes, and
+    peripherals as leaves (and slaves).
+    Modern PCs support several such trees of USB devices, usually
+    one USB 2.0 tree (480 Mbit/sec each) with
+    a few USB 1.1 trees (12 Mbit/sec each) that are used when you
+    connect a USB 1.1 device directly to the machine's "root hub".
+    </para>
+
+    <para>That master/slave asymmetry was designed-in for a number of
+    reasons, one being ease of use.  It is not physically possible to
+    assemble (legal) USB cables incorrectly:  all upstream "to the host"
+    connectors are the rectangular type (matching the sockets on
+    root hubs), and all downstream connectors are the squarish type
+    (or they are built into the peripheral).
+    Also, the host software doesn't need to deal with distributed
+    auto-configuration since the pre-designated master node manages all that.
+    And finally, at the electrical level, bus protocol overhead is reduced by
+    eliminating arbitration and moving scheduling into the host software.
+    </para>
+
+    <para>USB 1.0 was announced in January 1996 and was revised
+    as USB 1.1 (with improvements in hub specification and
+    support for interrupt-out transfers) in September 1998.
+    USB 2.0 was released in April 2000, adding high-speed
+    transfers and transaction-translating hubs (used for USB 1.1
+    and 1.0 backward compatibility).
+    </para>
+
+    <para>Kernel developers added USB support to Linux early in the 2.2 kernel
+    series, shortly before 2.3 development forked.  Updates from 2.3 were
+    regularly folded back into 2.2 releases, which improved reliability and
+    brought <filename>/sbin/hotplug</filename> support as well more drivers.
+    Such improvements were continued in the 2.5 kernel series, where they added
+    USB 2.0 support, improved performance, and made the host controller drivers
+    (HCDs) more consistent.  They also simplified the API (to make bugs less
+    likely) and added internal "kerneldoc" documentation.
+    </para>
+
+    <para>Linux can run inside USB devices as well as on
+    the hosts that control the devices.
+    But USB device drivers running inside those peripherals
+    don't do the same things as the ones running inside hosts,
+    so they've been given a different name:
+    <emphasis>gadget drivers</emphasis>.
+    This document does not cover gadget drivers.
+    </para>
+
+    </chapter>
+
+<chapter id="types"><title>USB-Standard Types</title>
+
+    <para>In <filename>&lt;usb.h&gt;</filename> you will find
+    the USB data types defined in chapter 9 of the USB specification.
+    These data types are used throughout USB, and in APIs including
+    this host side API, gadget APIs, and usbfs.
+    </para>
+
+!Iinclude/target/usb.h
+
+    </chapter>
+
+    <chapter id="usbcore"><title>USB Core APIs</title>
+
+    <para>There are two basic I/O models in the USB API.
+    The most elemental one is asynchronous:  drivers submit requests
+    in the form of an URB, and the URB's completion callback
+    handle the next step.
+    All USB transfer types support that model, although there
+    are special cases for control URBs (which always have setup
+    and status stages, but may not have a data stage) and
+    isochronous URBs (which allow large packets and include
+    per-packet fault reports).
+    Built on top of that is synchronous API support, where a
+    driver calls a routine that allocates one or more URBs,
+    submits them, and waits until they complete.
+    There are synchronous wrappers for single-buffer control
+    and bulk transfers (which are awkward to use in some
+    driver disconnect scenarios), and for scatterlist based
+    streaming i/o (bulk or interrupt).
+    </para>
+
+    <para>USB drivers need to provide buffers that can be
+    used for DMA, although they don't necessarily need to
+    provide the DMA mapping themselves.
+    There are APIs to use used when allocating DMA buffers,
+    which can prevent use of bounce buffers on some systems.
+    In some cases, drivers may be able to rely on 64bit DMA
+    to eliminate another kind of bounce buffer.
+    </para>
+
+!Ekernel/usb.c
+    </chapter>
+
+</book>
+<!-- vim:syntax=sgml:sw=4
+-->

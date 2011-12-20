@@ -1,0 +1,137 @@
+
+
+                  Fault Handling in Cortex-M3 Platform
+
+This document includes detailed description on fault exceptions occuring
+on the Cortex-M3.  There are three kinds of faults in the Cortex-M3:
+1. MPU fault, exception number is 4
+2. Bus fault, exception number is 5
+3. Usage fault, exception number is 6
+If any of the above faults is not correctly handled, a fault might be
+escalated as a "hard fault" whose exception number is 3.
+
+A. Determination of the fault type
+By observing IPSR register (through xPSR processor register), the number
+of current triggered exception can be determined:
++-------+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|       |3                                            | | | | | | | | | |
+|       |1...........................................9|8|7|6|5|4|3|2|1|0|
++-------+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| xPSR  |                                             |   exception No  |
++-------+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+If an escalated "hard fault" is pending, the escalated exception type can
+also be determined through observing SHCSR register (memory mapped at
+0xE000ED24).
++-------+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|       |3                       1|1|1|1|1|1|1|1|1              | | | | |
+|       |1.......................9|8|7|6|5|4|3|2|1.............4|3|2| |0|
++-------+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| SHCSR |                         |U|B|M| |B|M|U|               |U| |B|M|
+|       |                         |E|E|E| |P|P|P|               |A| |A|A|
++-------+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+Where:
+  ME: MPU fault is enabled
+  MA: MPU fault is active
+  MP: MPU fault is pending
+  BE: bus fault is enabled
+  BA: bus fault is active
+  BP: bus fault is pending
+  UE: usage fault is enabled
+  UA: usage fault is active
+  UP: usage fault is pending
+
+B. Determination of the fault cause
+The detailed fault cause can be addressed through observing CFSR register
+(memory mapped at 0xE000ED28).
++-------+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|       |3                             1|1              |               |
+|       |1.............................6|5.............8|7.............0|
++-------+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| CFSR  |        Usage fault            |   Bus fault   |   MPU fault   |
+|       |           status              |     status    |     status    |
++-------+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+Where
+ MPU fault status contains:
+  IACCVIOL (bit 0): instruction access violation MPU fault.
+  DACCVIOL (bit 1): data access violation MPU fault.
+  MUNSTKERR (bit 3): MPU fault on unstacking for an exception return.
+  MSTKERR (bit 4): MPU fault on stacking for an exception entry.
+  MLSPERR (bit 5): MPU fault on floating point lazy state preservation.
+ Bus fault status contains:
+  IBUSERR (bit 8): instruction bus fault.
+  PRECISEERR (bit 9): precise data bus fault.
+  IMPRECISEERR (bit 10): imprecise data bus fault.
+  UNSTKERR (bit 11): bus fault on unstacking for an exception return.
+  STKERR (bit 12): bus fault on stacking for an exception entry.
+  LSPERR (bit 13): bus fault on floating point lazy state preservation.
+ Usage fault status contains:
+  UNDEFINSTR (bit 16): undefined instruction usage fault.
+  INVSTATE (bit 17): invalid state usage fault.
+  INVPC (bit 18): invalid PC load usage fault.
+  NOCP (bit 19): no coprocessor usage fault.
+  UNALIGNED (bit 24): unaligned access usage fault.
+  DIVBYZERO (bit 25): divide by zero usage fault.
+
+C. Determination of the faulting instruction
+There are tow ways to find out the address where the instruction caused
+the fault:
+C.1. xFAR registers:
+     Fault address can be found in:
+     A. the BFAR register (memory mapped at 0xE000ED38) for bus faults if
+        the bit 15 of CFSR is set to 1, or
+     B. the MMFAR register (memory mapped at 0xE000ED34) for MPU faults if
+        the bit 7 of CFSR is set to 1.
+C.2. Stacked PC:
+     Where neither BFAR nor MMFAR is containing the valid address of the
+     faulting instruction, the faulting address can always be determined
+     through observing the stacked PC.  The stacked PC is located at an
+     offset 0x18 to the latest stack pointer.  Bit 1 of the processor
+     register LR indicates which stack pointer is valid.  If it is set,
+     the faulting frame is located on the main stack, the stacked PC is at
+     the address of MSP+0x18.   If it is cleared, the faulting frame is
+     located on the process stack, the stacked PC is at the address of
+     PSP+0x18. The MSP and PSP are all processor registers.
+
+D. Cause determination examples
+Since the fault determination in the real world is a more complicated
+issue than the description above.  The details of some faults are further
+discussed one by one in this chapter.  For the reset faults not listed in
+this chapter, you can refer the <<apnt209.pdf>> document:
+"Keil Tools for ARM" Application Note 209 -
+ <<Using Cortex-M3 and Cortex-M4 Fault Exceptions>>
+
+D.1. Bus Fault:
+Causes of the bus faults will be further discussed in this chapter.
+
+D.1.1. Imprecise Data Bus Fault:
+The Cortex-M3 processor contains write buffer - it means a multi-cycle
+write transfer going to a bufferable memory region can be carried out by
+the write buffer, while the processor continue to the next instructions.
+As a result of that, if the bus system return an error response for the
+buffered transfer, the processor will receive the fault information after
+the processor start the next instruction, or several instructions after.
+In this case, it is called as imprecise bus fault.  For Cortex-M3,
+imprecise bus fault can only be caused by buffered write.  Bus fault on
+read transfers must be precise.
+The the faulting instruction can usually be located from the stacked PC
+and find out what store operation had just been executed.
+The write buffer in the Cortex-M3 processor is used to enhance
+performance. By using write buffer, the processor does not have to wait
+for the write operation to complete and can start executing subseqence
+instructions.  For Cortex-M3 revision 2, there is a new feature to disable
+write buffer.  Alternatively if MPU is available, MPU could be use the MPU
+to make the memory attribute to strongly ordered to disable write buffer
+inside the processor.  This new feature doesn't disable write buffer
+outside the processor.
+
+D.2. Usage Fault:
+Causes of the usage faults will be further discussed in this chapter.
+
+D.2.1. Unaligned Access Usage Fault:
+This is triggered if the processor has made an unaligned memory access and
+the UNALIGN_TRP bit (bit 3) in the CCR register (memory mapped at
+0xE000ED14) is set.
+But any of the unaligned LDM, STM, LDRD, and STRD instructions will always
+fault irrespective of the setting of UNALIGN_TRP bit.
+
+                                                        by Lv ZETALOG Zheng

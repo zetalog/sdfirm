@@ -1,0 +1,103 @@
+﻿1. 配置菜单入口
+scripts/kconfig/Makefile
+menuconfig/config/oldconfig target:
+	$< arch/$ARCH/Kconfig
+
+
+2. CPU体系结构特定菜单
+MCS51 system options
+	arch/mcs51/Kconfig
+	arch/mcs51/common/Kconfig
+ARM system options
+	arch/arm/Kconfig
+	arch/arm/common/Kconfig
+AVR system options
+	arch/avr/Kconfig
+	arch/avr/common/Kconfig
+特定ABI编译器的ARCH特定选项：指令集，CPU类型，ABI类型，优化选项
+加载器（head.S）/链接器（sdfirm.lds.S）
+
+
+3. SoC平台架构特定菜单
+XXX board options
+	arch/$ARCH/mach-$MACH/Kconfig
+
+以下为初始化功能，board_init	-> init/main.c system_init的驱动
+	上电：电源管理控制器配置
+	上时钟：CPU频率/源配置
+	设置中断：中断控制器配置
+	设置存储器：存储器控制器配置
+	设置引脚：GPIO复用/封装配置
+
+以下为kernel功能
+	TSC驱动tsc.c		-> kernel/delay.c的驱动
+	GPT驱动gpt.c		-> kernel/timer.c和kernel/tick.c的驱动
+
+SoC片内控制器驱动		-> kernel/module/xxx.c的驱动
+例如：
+	UART驱动uart.c		-> kernel/io/uart.c的驱动
+	USB设备驱动usb.c		-> kernel/usb/usb_dev.c的驱动
+
+
+4. 内核功能及协议栈菜单
+Feature setup
+	kernel/Kconfig
+
+系统软件架构模型/调度功能配置/定时功能配置/内存布局配置
+
+system_init -> 上电/上时钟/设置存储器/设置引脚/设置中断
+
+delay -> TSC驱动
+timer -> GPT驱动
+state
+tick -> GPT驱动
+
+重要选项：
+SYS_POLL_RT选项：
+SYS_POLL选项：
+
+	kernel/io/Kconfig
+
+	kernel/usb/Kconfig
+	kernel/scs/Kconfig
+	kernel/mtd/Kconfig
+	kernel/scsi/Kconfig
+	kernel/net/Kconfig
+	kernel/os/Kconfig ->
+		kernel/sys/linux.c
+		kernel/sys/freebsd.c
+		kernel/sys/solaris.c
+		kernel/sys/win32.c
+
+
+5. 外设驱动特定菜单
+Drivers setup
+	drivers/Kconfig
+
+SoC片外控制器驱动		-> kernel/module/xxx.c的驱动
+例如：
+	LCD-XXX驱动lcd_xxx.c	-> kernel/io/lcd.c的驱动
+
+
+6. 库，算法功能菜单
+Library setup
+	lib/Kconfig
+本应属于C库的功能，因为不链接C库，所以需要firmware自己实现
+数学乘除模，位运算，CRC算法，加密算法，数据结构算法
+
+
+7. 初始化，调试，编译器菜单
+Generic setup
+	init/Kconfig
+编译器的ARCH无关选项：调试信息，栈框架，优化选项
+产品的信息：VID/PID/序列号/产品名
+调试功能，移植功能，优化功能
+system_init的选项（early调试，early传参）
+
+重要选项：
+EXPERIMENTAL选项：正在开发的功能，或者和开发过程关联的功能都依赖该选项
+CC_开头的选项：编译器选项
+DEBUG_PANIC：assert功能
+DEBUG_PRINT：trace功能
+PORTING：替换正常system_init，跑板卡移植时候基本功能的system_init
+
