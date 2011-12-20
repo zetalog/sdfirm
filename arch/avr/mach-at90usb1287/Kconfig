@@ -1,0 +1,166 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+if ARCH_AT90USB1287
+
+menu "Atmel AT90USB1287 board options"
+
+choice
+	prompt "CPU frequency"
+	default CPU_AT90USB1287_FREQ_8M
+	help
+	  These choices are applied to low power crystal oscillator clock
+	  source.
+
+config CPU_AT90USB1287_FREQ_8M
+	bool "8MHz"
+
+endchoice
+
+choice
+	prompt "Cycle counter frequency"
+	default TSC_AT90USB1287_FREQ_125K
+
+config TSC_AT90USB1287_FREQ_125K
+	bool "125KHz"
+
+config TSC_AT90USB1287_FREQ_1M
+	bool "1MHz"
+
+config TSC_AT90USB1287_FREQ_8M
+	bool "8MHz"
+
+endchoice
+
+menuconfig GPT_AT90USB1287
+	bool "Atmel AT90USB1287 general purpose timer support"
+	depends TIMER
+	select ARCH_HAS_GPT
+	default y
+
+if GPT_AT90USB1287
+endif
+
+menuconfig WDT_AT90USB1287
+	bool "Atmel AT90USB1287 watchdog support"
+	depends WDT
+	default y
+
+if WDT_AT90USB1287
+endif
+
+menuconfig LED_AT90USB1287
+	bool "Atmel AT90USB1287 led support"
+	depends LED
+	default y
+
+if LED_AT90USB1287
+
+config LED_AT90USB1287_MAX_LIGHTS
+	int "Number of led lights (1~4)"
+	range 1 4
+	default 4
+
+config LED_AT90USB1287_CROSS_COLORS
+	bool "Enable cross colors" if LED_AT90USB1287_MAX_LIGHTS=2
+	default y
+
+config LED_AT90USB1287_VAR_COLORS
+	bool "Enable variable colors"
+	help
+	  LEDs can be configured one color per bit if this is disabled.
+
+config LED_AT90USB1287_MAX_COLORS
+	int "Number of led colors (1~4)"
+	range 1 4
+	range 1 16 if LED_AT90USB1287_VAR_COLORS
+	default 1
+
+endif
+
+menuconfig UART_AT90USB1287
+	bool "Atmel AT90USB1287 serial port support"
+	depends UART
+	select ARCH_HAS_UART
+	default y
+	help
+	  The baud rate 38400 is recommended to achieve better performance
+	  and accuracy on 8MHz frequency configured CPU.
+
+if UART_AT90USB1287
+
+endif
+
+menuconfig SPI_AT90USB1287
+	bool "Atmel AT90USB1287 SPI controller support"
+	depends SPI
+	select ARCH_HAS_SPI
+	select BIT_FLS16
+	default y
+
+if SPI_AT90USB1287
+
+choice
+	prompt "SPI bus frequency"
+	depends SPI_MASTER
+	default SPI_AT90USB1287_FREQ_4M
+
+config SPI_AT90USB1287_FREQ_8M
+	bool "8MHz"
+
+config SPI_AT90USB1287_FREQ_4M
+	bool "4MHz"
+
+config SPI_AT90USB1287_FREQ_2M
+	bool "2MHz"
+
+config SPI_AT90USB1287_FREQ_1M
+	bool "1MHz"
+
+config SPI_AT90USB1287_FREQ_500K
+	bool "500KHz"
+
+config SPI_AT90USB1287_FREQ_250K
+	bool "250KHz"
+
+config SPI_AT90USB1287_FREQ_125K
+	bool "125KHz"
+
+endchoice
+
+endif
+
+menuconfig USB_AT90USB1287
+	bool "Atmel AT90USB1287 USB controller support"
+	depends USB
+	select ARCH_HAS_USB_OTG
+	default y
+
+if USB_AT90USB1287
+
+config USB_AT90USB1287_DEV
+	bool "Atmel AT90USB1287 USB device controller support"
+	depends USB_DEV
+	default y
+
+if USB_AT90USB1287_DEV
+
+config USB_AT90USB1287_MAX_ENDPS
+	int "Number of endpoints (1~7)"
+	range 1 7
+	default 7
+
+endif
+
+config USB_AT90USB1287_VBUS_SWC
+	bool "Disable VBUS hardware control"
+	depends USB_HCD
+
+endif
+
+endmenu
+
+endif
+

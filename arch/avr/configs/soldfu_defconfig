@@ -1,0 +1,213 @@
+#
+# Automatically generated make config: don't edit
+# Small Device version: 1.0.0.0
+# Thu Nov 17 14:39:44 2011
+#
+CONFIG_AVR=y
+
+#
+# AVR system options
+#
+CONFIG_ARCH_AT90USB1287=y
+# CONFIG_ARCH_AT90SCR100 is not set
+CONFIG_CPU_8=y
+CONFIG_AVR_ENHANCED=y
+CONFIG_AVR_MEGA=y
+CONFIG_AVR_2_BYTE_PC=y
+# CONFIG_CPU_ATTINY1 is not set
+# CONFIG_CPU_ATTINY2 is not set
+# CONFIG_CPU_ATTINY4 is not set
+# CONFIG_CPU_ATTINY8 is not set
+# CONFIG_CPU_ATTINY16 is not set
+# CONFIG_CPU_ATMEGA60 is not set
+# CONFIG_CPU_ATMEGA10 is not set
+# CONFIG_CPU_ATMEGA8 is not set
+# CONFIG_CPU_ATMEGA16 is not set
+# CONFIG_CPU_ATMEGA32 is not set
+# CONFIG_CPU_ATMEGA64 is not set
+CONFIG_CPU_ATMEGA128=y
+# CONFIG_CPU_ATMEGA256 is not set
+CONFIG_CPU_8v51=y
+
+#
+# Compiler options
+#
+# CONFIG_CC_ISR_VECTOR is not set
+
+#
+# Atmel AT90USB1287 board options
+#
+CONFIG_CPU_AT90USB1287_FREQ_8M=y
+CONFIG_TSC_AT90USB1287_FREQ_125K=y
+# CONFIG_TSC_AT90USB1287_FREQ_1M is not set
+# CONFIG_TSC_AT90USB1287_FREQ_8M is not set
+CONFIG_UART_AT90USB1287=y
+CONFIG_USB_AT90USB1287=y
+CONFIG_USB_AT90USB1287_DEV=y
+CONFIG_USB_AT90USB1287_MAX_ENDPS=1
+
+#
+# Feature setup
+#
+
+#
+# Generic kernel features
+#
+CONFIG_SYS_NOIRQ=y
+# CONFIG_SYS_POLL is not set
+# CONFIG_SYS_POLL_RT is not set
+# CONFIG_SYS_TASK is not set
+# CONFIG_SYS_TASK_RT is not set
+CONFIG_ARCH_HAS_TSC=y
+CONFIG_ARCH_IS_TICKLESS=y
+
+#
+# Scheduling facility (poll) support
+#
+CONFIG_MAX_STATES=3
+
+#
+# Timing facility (jiffy) support
+#
+
+#
+# Timing facility (delay) support
+#
+# CONFIG_LPS_32BITS is not set
+CONFIG_LPS_WEIGHT=8
+# CONFIG_LPS_PRESET is not set
+# CONFIG_TIMER is not set
+
+#
+# Address space layout (.text) support
+#
+# CONFIG_XIP is not set
+CONFIG_TEXT_ROM_BASE=0x0
+CONFIG_TEXT_RAM_BASE=0x0
+# CONFIG_HEAP is not set
+# CONFIG_BULK is not set
+
+#
+# Input / Output support
+#
+CONFIG_ARCH_HAS_UART=y
+CONFIG_UART=y
+# CONFIG_UART_230400 is not set
+# CONFIG_UART_115200 is not set
+# CONFIG_UART_57600 is not set
+CONFIG_UART_38400=y
+# CONFIG_UART_19200 is not set
+# CONFIG_UART_9600 is not set
+# CONFIG_UART_4800 is not set
+# CONFIG_UART_METERING is not set
+# CONFIG_I2C is not set
+# CONFIG_SPI is not set
+# CONFIG_LCD is not set
+# CONFIG_KBD is not set
+# CONFIG_LED is not set
+CONFIG_INPUT_NONE=y
+# CONFIG_INPUT_UART is not set
+# CONFIG_INPUT_KBD is not set
+# CONFIG_OUTPUT_NONE is not set
+CONFIG_OUTPUT_UART=y
+# CONFIG_OUTPUT_LCD is not set
+CONFIG_ARCH_HAS_USB=y
+CONFIG_ARCH_HAS_USB_OTG=y
+CONFIG_USB=y
+CONFIG_USB_DEV=y
+# CONFIG_USB_HCD is not set
+# CONFIG_USBD_XFR_MASS is not set
+CONFIG_USBD_XFR_ASYNC=y
+# CONFIG_USBD_XFR_SYNC is not set
+# CONFIG_USBD_BULK is not set
+# CONFIG_USBD_XFR_ASYNC_TXAVAL is not set
+CONFIG_USBD_MAX_INTFS=1
+# CONFIG_USB_HID is not set
+# CONFIG_USB_MSD is not set
+# CONFIG_USB_SCD is not set
+CONFIG_USB_DFU=y
+# CONFIG_DFU_RUNTIME is not set
+# CONFIG_DFU_DFUMODE is not set
+CONFIG_DFU_FULLCMD=y
+CONFIG_DFU_AUTO_RESET=y
+# CONFIG_SCS is not set
+# CONFIG_MTD is not set
+# CONFIG_SCSI is not set
+# CONFIG_NET is not set
+
+#
+# Driver setup
+#
+
+#
+# LCD drivers
+#
+
+#
+# MTD memory drivers
+#
+
+#
+# Library setup
+#
+
+#
+# Bit-wise operations
+#
+# CONFIG_BIT_FFS8 is not set
+# CONFIG_BIT_FLS8 is not set
+# CONFIG_BIT_FLS16 is not set
+CONFIG_BIT_FFS16=y
+CONFIG_BIT_FLS32=y
+# CONFIG_BIT_FFS32 is not set
+# CONFIG_BIT_ROUNDUP16 is not set
+# CONFIG_BIT_ROUNDDOWN16 is not set
+# CONFIG_BIT_ROUNDUP32 is not set
+# CONFIG_BIT_ROUNDDOWN32 is not set
+
+#
+# Bitmap operations
+#
+# CONFIG_BIT_FIND_SET is not set
+# CONFIG_BIT_FIND_CLEAR is not set
+
+#
+# Mathematic operations
+#
+CONFIG_MATH_MOD32=y
+# CONFIG_MATH_MUL32 is not set
+# CONFIG_MATH_DIV64 is not set
+# CONFIG_MATH_MOD64 is not set
+
+#
+# Atomic operations
+#
+# CONFIG_ATOMIC_SUB_RETURN is not set
+# CONFIG_ATOMIC_ADD_RETURN is not set
+
+#
+# Checksum algorithms
+#
+# CONFIG_CRC16_CCITT is not set
+CONFIG_CRC32=y
+
+#
+# Generic setup
+#
+CONFIG_VENDOR_NAME="Soliton"
+CONFIG_PRODUCT_NAME="DFU Demo Device"
+CONFIG_VENDOR_ID=990
+CONFIG_PRODUCT_ID=4
+CONFIG_SERIAL_NO=0
+CONFIG_EXPERIMENTAL=y
+CONFIG_CC_OPT_SIZE=y
+CONFIG_DEBUG=y
+# CONFIG_CC_GEN_DEBUG is not set
+CONFIG_DEBUG_PANIC=y
+# CONFIG_PORTING is not set
+CONFIG_DEBUG_PRINT=y
+CONFIG_PANIC_DEBUG=y
+# CONFIG_IDLE_DEBUG is not set
+CONFIG_USB_DEBUG=y
+# CONFIG_USB_DEBUG_CALL is not set
+CONFIG_DFU_DEBUG=y

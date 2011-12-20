@@ -1,0 +1,150 @@
+config CPU_8
+	bool
+	default y
+
+config AVR_ENHANCED
+	bool
+
+config AVR_TINY
+	bool
+
+config AVR_MEGA
+	bool
+
+config AVR_2_BYTE_PC
+	bool
+
+config AVR_3_BYTE_PC
+	bool
+
+choice
+	prompt "Processor type"
+
+config CPU_ATTINY1
+	bool "Support ATTINY1x processor"
+	select CPU_8v1
+	select AVR_2_BYTE_PC
+	select AVR_TINY
+	help
+
+config CPU_ATTINY2
+	bool "Support ATTINY2x processor"
+	select CPU_8v2
+	select AVR_2_BYTE_PC
+	select AVR_TINY
+	help
+
+config CPU_ATTINY4
+	bool "Support ATTINY4x processor"
+	select CPU_8v25
+	select AVR_2_BYTE_PC
+	select AVR_TINY
+	help
+
+config CPU_ATTINY8
+	bool "Support ATTINY8x processor"
+	select CPU_8v25
+	select AVR_2_BYTE_PC
+	select AVR_TINY
+	help
+
+config CPU_ATTINY16
+	bool "Support ATTINY16x processor"
+	select CPU_8v35
+	select AVR_2_BYTE_PC
+	select AVR_MEGA
+	help
+
+config CPU_ATMEGA60
+	bool "Support ATMEGA60 processor"
+	select CPU_8v3
+	select AVR_2_BYTE_PC
+	select AVR_MEGA
+	help
+
+config CPU_ATMEGA10
+	bool "Support ATMEGA10 processor"
+	select CPU_8v31
+	select AVR_2_BYTE_PC
+	select AVR_MEGA
+	help
+
+config CPU_ATMEGA8
+	bool "Support ATMEGA8x processor"
+	select CPU_8v4
+	select AVR_ENHANCED
+	select AVR_2_BYTE_PC
+	select AVR_MEGA
+	help
+
+config CPU_ATMEGA16
+	bool "Support ATMEGA16x processor"
+	select CPU_8v5
+	select AVR_ENHANCED
+	select AVR_2_BYTE_PC
+	select AVR_MEGA
+	help
+
+config CPU_ATMEGA32
+	bool "Support ATMEGA32x processor"
+	select CPU_8v5
+	select AVR_ENHANCED
+	select AVR_2_BYTE_PC
+	select AVR_MEGA
+	help
+
+config CPU_ATMEGA64
+	bool "Support ATMEGA64x processor"
+	select CPU_8v5
+	select AVR_ENHANCED
+	select AVR_2_BYTE_PC
+	select AVR_MEGA
+	help
+
+config CPU_ATMEGA128
+	bool "Support ATMEGA128x processor"
+	select CPU_8v51
+	select AVR_ENHANCED
+	select AVR_2_BYTE_PC
+	select AVR_MEGA
+	help
+
+config CPU_ATMEGA256
+	bool "Support ATMEGA256x processor"
+	select CPU_8v6
+	select AVR_ENHANCED
+	select AVR_3_BYTE_PC
+	select AVR_MEGA
+	help
+
+endchoice
+
+config CPU_8v6
+	bool
+
+config CPU_8v51
+	bool
+
+config CPU_8v5
+	bool
+
+config CPU_8v4
+	bool
+
+config CPU_8v35
+	bool
+
+config CPU_8v31
+	bool
+
+config CPU_8v3
+	bool
+
+config CPU_8v25
+	bool
+
+config CPU_8v2
+	bool
+
+config CPU_8v1
+	bool

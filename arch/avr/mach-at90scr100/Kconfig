@@ -1,0 +1,265 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+if ARCH_AT90SCR100
+
+menu "Atmel AT90SCR100 board options"
+
+choice
+	prompt "CPU frequency"
+	default CPU_AT90SCR100_FREQ_8M
+	help
+	  These choices are applied to low power crystal oscillator clock
+	  source.
+
+config CPU_AT90SCR100_FREQ_8M
+	bool "8MHz"
+
+config CPU_AT90SCR100_FREQ_16M
+	bool "16MHz"
+
+config CPU_AT90SCR100_FREQ_24M
+	bool "24MHz"
+
+endchoice
+
+choice
+	prompt "Cycle counter frequency"
+	default TSC_AT90SCR100_FREQ_125K
+
+config TSC_AT90SCR100_FREQ_125K
+	bool "125KHz"
+
+config TSC_AT90SCR100_FREQ_375K
+	bool "375KHz"
+
+config TSC_AT90SCR100_FREQ_1M
+	bool "1MHz"
+
+config TSC_AT90SCR100_FREQ_8M
+	bool "8MHz"
+
+endchoice
+
+menuconfig GPT_AT90SCR100
+	bool "Atmel AT90SCR100 general purpose support"
+	depends TIMER
+	select ARCH_HAS_GPT
+	default y
+
+if GPT_AT90SCR100
+
+choice
+	prompt "General purpose timer frequency"
+	default GPT_AT90SCR100_FREQ_125K
+
+config GPT_AT90SCR100_FREQ_24K
+	depends on CPU_AT90SCR100_FREQ_24M
+	bool "24KHz"
+
+config GPT_AT90SCR100_FREQ_125K
+	depends on !CPU_AT90SCR100_FREQ_24M
+	bool "125KHz"
+
+config GPT_AT90SCR100_FREQ_188K
+	depends on CPU_AT90SCR100_FREQ_24M
+	bool "188KHz"
+
+config GPT_AT90SCR100_FREQ_250K
+	bool "250KHz"
+
+endchoice
+
+endif
+
+menuconfig UART_AT90SCR100
+	bool "Atmel AT90SCR100 serial port support"
+	depends UART
+	select ARCH_HAS_UART
+	default y
+
+if UART_AT90SCR100
+
+endif
+
+menuconfig KBD_AT90SCR100
+	bool "Atmel AT90SCR100 keyboard controller support"
+	depends KBD
+	default y
+
+if KBD_AT90SCR100
+
+choice
+	prompt "Keyboard layout"
+	default KBD_AT90SCR100_ROW4_COL4
+
+config KBD_AT90SCR100_ROW4_COL4
+	bool "4 rows, 4 columns (NUMs+OP+ENT+ESC)"
+
+endchoice
+
+choice
+	prompt "Keyboard Column Pinout"
+	default KBD_AT90SCR100_COL_LOW
+
+config KBD_AT90SCR100_COL_LOW
+	bool "Pin is located low"
+
+config KBD_AT90SCR100_COL_HIGH
+	bool "Pin is located high"
+
+endchoice
+
+config KBD_AT90SCR100_COL_OFFSET
+	int "Offset of column pin (0~7)"
+	range 0 7
+	depends KBD_AT90SCR100_COL_HIGH
+	default 0
+
+choice
+	prompt "Keyboard Row Pinout"
+	default KBD_AT90SCR100_ROW_LOW
+
+config KBD_AT90SCR100_ROW_LOW
+	bool "Pin is located low"
+
+config KBD_AT90SCR100_ROW_HIGH
+	bool "Pin is located high"
+
+endchoice
+
+config KBD_AT90SCR100_ROW_OFFSET
+	int "Offset of column pin (0~7)"
+	range 0 7
+	depends KBD_AT90SCR100_ROW_HIGH
+	default 0
+
+config KBD_AT90SCR100_MAX_ROWS
+	int "Number of key rows (1~4)"
+	range 1 4
+	depends KBD
+	default 4
+
+config KBD_AT90SCR100_MAX_COLS
+	int "Number of key columns (1~5)"
+	range 1 5
+	depends KBD
+	default 4
+
+endif
+
+menuconfig USB_AT90SCR100
+	bool "Atmel AT90SCR100 USB controller support"
+	depends USB
+	select ARCH_HAS_USB_HCD
+	select ARCH_HAS_USB_DEV
+	default y
+
+if USB_AT90SCR100
+
+config USB_AT90SCR100_MAX_ENDPS
+	int "Number of endpoints (1~7)"
+	range 1 7
+	depends USB
+	default 7
+
+endif
+
+menuconfig LED_AT90SCR100
+	bool "Atmel AT90SCR100 LED support"
+	depends LED
+	default y
+
+if LED_AT90SCR100
+endif
+
+menuconfig IFD_AT90SCR100
+	bool "Atmel AT90SCR100 smart card interface block (SCIB) support"
+	select ARCH_HAS_IFD
+	depends SCS
+	default y
+
+if IFD_AT90SCR100
+
+config IFD_AT90SCR100_MAX_DATA
+	int "Maximum data baud rates in bps"
+	range 9600 921600
+	default 115200
+	help
+
+choice
+	prompt "Card presence detection"
+	default IFD_AT90SCR100_PRES_LOW
+	help
+	  Card presence detection can be done through CPRES pin.  Card
+	  slot mechanical may various board by board, CARDDET bit in
+	  SCICR register can be used to detect card presence.  Please
+	  choose correct detector sense for your board.
+	  If PRESIT interrupt is enabled, choice here will also lead to
+	  correct CPLEV configuration.
+
+config IFD_AT90SCR100_PRES_LOW
+	bool "Closed - CPRES low"
+	help
+	  Card insertion will cause card presence switch in the slot to be
+	  closed, and CPRES will be pulled down.
+
+config IFD_AT90SCR100_PRES_HIGH
+	bool "Opened - CPRES high"
+	help
+	  Card insertion will cause card presence switch in the slot to be
+	  opened, and CPRES will be pulled up.
+
+endchoice
+
+config IFD_AT90SCR100_PRES_EXTERNAL
+	bool "External pullup on card presence input"
+	help
+	  The internal pullup (weak pullup) on CPRES input can be
+	  disconnected to reduce the consumption.  In this case, an
+	  external resistor must be externally tied to VCC.
+	  If unsure, say N.
+
+endif
+
+menuconfig WDT_AT90SCR100
+	bool "Atmel AT90SCR100 watchdog support"
+	depends WDT
+	default y
+
+if WDT_AT90SCR100
+endif
+
+menuconfig TWI_AT90SCR100
+	bool "Atmel AT90SCR100 2-wire serial interface (TWI) support"
+	depends I2C
+	select BIT_FLS16
+	default y
+
+if TWI_AT90SCR100
+
+choice
+	prompt "TWI frequency"
+	default TWI_AT90SCR100_FREQ_300K
+	help
+
+config TWI_AT90SCR100_FREQ_300K
+	depends CPU_AT90SCR100_FREQ_24M
+	bool "300KHz"
+
+config TWI_AT90SCR100_FREQ_200K
+	bool "200KHz"
+
+config TWI_AT90SCR100_FREQ_100K
+	bool "100KHz"
+
+endchoice
+
+endif
+
+endmenu
+
+endif
+

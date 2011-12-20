@@ -1,0 +1,8 @@
+
+ifeq ($(COMPILER),)
+COMPILER	:= gcc
+endif
+ifeq ($(CROSS_COMPILE),)
+CROSS_COMPILE	:= avr-
+endif
+
