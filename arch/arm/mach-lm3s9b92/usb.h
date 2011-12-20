@@ -1,0 +1,68 @@
+#ifndef __USB_LM3S9B92_PRIV_H_INCLUDE__
+#define __USB_LM3S9B92_PRIV_H_INCLUDE__
+
+#include "usb_otg.h"
+
+#define __usb_hw_irq_status()		__raw_readb(USBIS)
+#define __usb_hw_irq_enable(irq)	__raw_setb_atomic((irq), USBIE)
+
+/* external power control */
+#define __usb_hw_epc_irq_enable()	__raw_setb_atomic(PF, USBEPCIM)
+#define __usb_hw_epc_irq_disable()	__raw_clearb_atomic(PF, USBEPCIM)
+/* device resume */
+#define __usb_hw_dr_irq_enable()	__raw_setb_atomic(RESUME, USBDRIM)
+#define __usb_hw_dr_irq_disable()	__raw_clearb_atomic(RESUME, USBDRIM)
+#define __usb_hw_dr_irq_status()	__raw_testb_atomic(RESUME, USBDRISC)
+
+#define __usb_hw_switch_device()	__raw_writeb(__USB_HW_MODE_OTG | _BV(DEVMOD), USBGPCS)
+#define __usb_hw_switch_host()		__raw_writeb(__USB_HW_MODE_OTG, USBGPCS)
+
+/* functions exported by board.c for USBEPEN & USBPFLT pins configuration */
+void usb_epc_pin_init(void);
+
+/* USB0ID and USB0VBUS are configured by clearing the appropriate
+ * DEN bit in the GPIODEN register
+ */
+/* configure GPIOB0 as analog USB0ID pin */
+/* configure GPIOB1 as analog USB0VBUS pin */
+#define usb_otg_pin_init()						\
+	do {								\
+		pm_hw_resume_device(DEV_GPIOB, DEV_MODE_ON);		\
+		gpio_hw_config_mux(GPIOB, 0, GPIOB0_MUX_USB0ID);	\
+		gpio_hw_config_pad(GPIOB, 0, GPIO_DIR_HW,		\
+				   GPIO_PAD_ANALOG_IO, GPIO_DRIVE_8MA);	\
+		gpio_hw_config_mux(GPIOB, 1, GPIOB1_MUX_USB0VBUS);	\
+		gpio_hw_config_pad(GPIOB, 1, GPIO_DIR_HW,		\
+				   GPIO_PAD_ANALOG_IO, GPIO_DRIVE_8MA);	\
+	} while (0)
+
+/* TODO: Dedicated Device Requires ID PIN Disabling
+ *
+ * Deconfigure GPIOB0 (USB0ID) as GPIO input pin, but this seemed useless.
+ * Perhaps ID pin should only be disabled through board layout.
+ * Don't use following macro unless you know something more than me.
+ */
+#define __usb_hw_disable_id()						\
+	do {								\
+		gpio_hw_config_mux(GPIOB, 0, GPIO_MUX_NONE);		\
+		gpio_hw_config_pad(GPIOB, 0, GPIO_DIR_OUT,		\
+				   GPIO_PAD_PP, GPIO_DRIVE_2MA);	\
+	} while (0)
+/* Deconfigure GPIOB1 (USB0VBUS) as GPIO output pin, this will also
+ * disable the D+/D- pull up resistors.
+ */
+#define __usb_hw_disable_vbus()						\
+	do {								\
+		gpio_hw_config_mux(GPIOB, 1, GPIOB1_MUX_NONE);		\
+		gpio_hw_config_pad(GPIOB, 1, GPIO_DIR_OUT,		\
+				   GPIO_PAD_DIGITAL_IO, GPIO_DRIVE_2MA);\
+	} while (0)
+/* Configure GPIOB1 as analog USB0VBUS pin. */
+#define __usb_hw_enable_vbus()						\
+	do {								\
+		gpio_hw_config_mux(GPIOB, 1, GPIOB1_MUX_USB0VBUS);	\
+		gpio_hw_config_pad(GPIOB, 1, GPIO_DIR_HW,		\
+				   GPIO_PAD_ANALOG_IO, GPIO_DRIVE_8MA);	\
+	} while (0)
+
+#endif /* __USB_LM3S9B92_PRIV_H_INCLUDE__ */

@@ -1,0 +1,223 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+if ARCH_LM3S9B92
+
+menu "TI LM3S9B92 board options"
+
+choice
+	prompt "Chip PINs packaging"
+	default PIN_LM3S9B92_100LQFP
+
+config PIN_LM3S9B92_100LQFP
+	bool "100LQFP"
+
+config PIN_LM3S9B92_108BGA
+	bool "108BGA"
+
+endchoice
+
+choice
+	prompt "System clock derivation"
+	default CPU_LM3S9B92_FREQ_PLL
+	help
+	  These choices are applied to system clock.
+
+config CPU_LM3S9B92_PLL
+	bool "PLL"
+	help
+	  System clock derives from PLL output.
+
+config CPU_LM3S9B92_MOSC
+	bool "MOSC"
+#	depends !USB_LM3S9B92
+	help
+	  System clock derives from MOSC.
+	  The LM3S9B92 datasheet says the USB controller could not
+	  function correct when the system clock is running at a frequency
+	  that is less than 20MHz.  If it is true for your board,
+	  uncomment the dependancy above.
+
+endchoice
+
+choice
+	prompt "Main oscillator frequency"
+	default CPU_LM3S9B92_MOSC_16M
+
+config CPU_LM3S9B92_MOSC_16M
+	bool "16MHz"
+
+endchoice
+
+choice
+	prompt "PLL divided frequency"
+	depends CPU_LM3S9B92_PLL
+	default CPU_LM3S9B92_PLL_80M
+	help
+	  These choices are applied to system clock.
+	  Note that though the PLL frequency is 400MHz, the derivable
+	  value has been divided by 2 as 200MHz.
+
+config CPU_LM3S9B92_PLL_100M
+	bool "100MHz"
+	help
+	  The LM3S9B92 datasheet says this could not function, but the
+	  evaluation board seems working well for this configuration.
+	  So we leave the default value to a suggested 80MHz and please
+	  don't bother if this could not work for your board.
+
+config CPU_LM3S9B92_PLL_80M
+	bool "80MHz"
+
+config CPU_LM3S9B92_PLL_50M
+	bool "50MHz"
+
+config CPU_LM3S9B92_PLL_40M
+	bool "40MHz"
+
+config CPU_LM3S9B92_PLL_25M
+	bool "25MHz"
+
+config CPU_LM3S9B92_PLL_20M
+	bool "20MHz"
+
+endchoice
+
+config TICK_LM3S9B92_PERIODIC
+	bool "Enable SysTick as periodic tick (HZ)"
+	depends EXPERIMENTAL
+	select TICK
+	select TICK_PERIODIC
+	select TSC_LM3S9B92_GPT1
+	help
+	  Since HZ interrupt is not non-maskable, this may not be the best
+	  choice for the timing implementation.
+
+config TSC_LM3S9B92_GPT1
+	bool "Enable GPT1 as 32bit TSC device"
+	depends TICK_LM3S9B92_PERIODIC
+	help
+	  This is possible if we us SysTick as HZ generator.  If this
+	  configuration is not enabled, TSC will be implemented using
+	  SysTick.  Thus, this option may only useful if SysTick is
+	  configured as a HZ generator.
+
+menuconfig GPIO_LM3S9B92
+	bool "TI LM3S9B92 general purpose IO support"
+
+if GPIO_LM3S9B92
+
+config GPIO_LM3S9B92_AHB
+	bool "Enable AHB access for GPIO registers"
+	help
+	  The GPIO modules may be accessed via two different memory
+	  apertures. The legacy aperture APB (Advanced Peripheral Bus) is
+	  backwards-compatible with previous Stellaris parts.
+	  The other aperture AHB (Advanced High-Performance Bus), offers
+	  the same register map but provides better back-to-back access
+	  performance than the APB bus. These apertures are mutually
+	  exclusive.
+	  The aperture enabled for a given GPIO port is controlled by the
+	  appropriate bit in the GPIOHBCTL register.
+
+endif
+
+menuconfig GPT_LM3S9B92
+	bool "TI LM3S9B92 general purpose timer support"
+	depends TIMER
+	select ARCH_HAS_GPT
+	default y
+
+if GPT_LM3S9B92
+
+endif
+
+menuconfig UART_LM3S9B92
+	bool "TI LM3S9B92 UART controller support"
+	select GPIO_LM3S9B92
+	select ARCH_HAS_UART
+	select MATH_MOD32
+	select MATH_MUL32
+	depends UART
+	default y
+
+if UART_LM3S9B92
+
+endif
+
+menuconfig SSI_LM3S9B92
+	bool "TI LM3S9B92 SSI controller support"
+	depends SPI
+	select ARCH_HAS_SPI
+	default y
+
+if SSI_LM3S9B92
+
+endif
+
+menuconfig FLASH_LM3S9B92
+	bool "TI LM3S9B92 on-chip flash support"
+	depends MTD_FLASH
+	select ARCH_HAS_FLASH
+	default y
+
+if FLASH_LM3S9B92
+
+endif
+
+menuconfig LED_LM3S9B92
+	bool "TI LM3S9B92 LED support"
+	select GPIO_LM3S9B92
+	depends LED
+	default y
+
+if LED_LM3S9B92
+endif
+
+menuconfig USB_LM3S9B92
+	bool "TI LM3S9B92 USB controller support"
+	depends USB
+	select ARCH_HAS_USB_OTG
+	select ARCH_IS_USBD_ENDP_TXCMPL
+	select ARCH_IS_USBD_ENDP_DUPLEX
+	select ARCH_HAS_USBD_ENDP_CSO
+	default y
+
+if USB_LM3S9B92
+
+config USB_LM3S9B92_DEV
+	bool "TI LM3S9B92 USB device support"
+	depends USB_DEV
+	default y
+
+if USB_LM3S9B92_DEV
+
+config USB_LM3S9B92_FIFO_DOUBLE
+	bool "Enable double buffering FIFO support"
+	depends EXPERIMENTAL
+
+config USB_LM3S9B92_MAX_ISOS
+	int "Number of isochronous endpoints"
+	depends !USB_LM3S9B92_FIFO_DOUBLE
+	range 0 3
+	default 0
+
+endif
+
+endif
+
+menuconfig IFDS_LM3S9B92
+	bool "TI LM3S9B92 serial smart card support"
+	select ARCH_HAS_IFDS
+	depends IFD_SERIAL
+	default y
+
+if IFDS_LM3S9B92
+
+endif
+
+endmenu
+
+endif

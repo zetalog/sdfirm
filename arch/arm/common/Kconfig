@@ -1,0 +1,61 @@
+choice
+	prompt "Processor type"
+
+# Cortex-M3
+config CPU_CORTEXM3
+	bool "Support Cortex-M3 processor"
+	select CPU_32v7M
+	select ARCH_HAS_VIC
+	help
+
+endchoice
+
+# Figure out what processor architecture version we should be using.
+# This defines the compiler instruction set which depends on the machine type.
+config CPU_32v3
+	bool
+
+config CPU_32v3M
+	bool
+	select ARM_THUMB2
+
+config CPU_32v4
+	bool
+
+config CPU_32v4T
+	bool
+
+config CPU_32v5
+	bool
+
+config CPU_32v5T
+	bool
+
+config CPU_32v6
+	bool
+
+config CPU_32v6T
+	bool
+
+config CPU_32v6K
+	bool
+
+config CPU_32v6M
+	bool
+	select ARM_THUMB2
+
+config CPU_32v7
+	bool
+
+config CPU_32v7M
+	bool
+	select ARM_THUMB2
+
+config CPU_BIG_ENDIAN
+	bool "Build big-endian kernel"
+	depends on ARCH_SUPPORTS_BIG_ENDIAN
+	help
+	  Say Y if you plan on running a kernel in big-endian mode.
+	  Note that your board must be properly built and your board
+	  port must properly enable any big-endian related features
+	  of your chipset/board/processor.
