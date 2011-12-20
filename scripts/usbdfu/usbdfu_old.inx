@@ -1,0 +1,57 @@
+[Version]
+Signature = "$CHICAGO$"
+Class = USB
+ClassGUID = {36fc9e60-c465-11cf-8056-444553540000}
+Provider = %SOLN%
+DriverVer = 04/18/2011,1.0.0.0
+
+[SourceDisksNames.$ARCH$]
+1 = %Disk_Description%,,,
+
+[SourceDisksFiles]
+USBDFU.sys = 1
+
+[Manufacturer]
+$ARCH$ = ""
+%Generic.Mfg% = Generic
+
+[Generic]
+%GenericDFU.DeviceDesc% = USBDFU_RUN, USB\Class_FE&SubClass_01&Prot_01
+%GenericDFU.DeviceDesc% = USBDFU_DFU, USB\Class_FE&SubClass_01&Prot_02
+
+[USBDFU_RUN.NT]
+CopyFiles = USBDFU.CopyList
+
+[USBDFU_DFU.NT]
+CopyFiles = USBDFU.CopyList
+
+[USBDFU.CopyList]
+USBDFU.sys
+
+[DestinationDirs]
+USBDFU.CopyList = 10, system32\drivers
+
+[USBDFU_RUN.NT.Services]
+Addservice = USBDFU, 0x00000002, USBDFU.AddService
+
+[USBDFU_DFU.NT.Services]
+Addservice = USBDFU, 0x00000002, USBDFU.AddService
+
+[USBDFU_RUN.AddReg]
+HKR,,DriverFlags,0x00010001,0x00000001
+
+[USBDFU_DFU.AddReg]
+HKR,,DriverFlags,0x00010001,0x00000002
+
+[USBDFU.AddService]
+DisplayName    = %GenericDFU.DeviceDesc%
+ServiceType    = 1
+StartType      = 3
+ErrorControl   = 1
+ServiceBinary  = %12%\USBDFU.sys
+
+[Strings]
+SOLN 			= "Soliton"
+Disk_Description 	= "USB DFU Installation Disk"
+Generic.Mfg 		= "Compatible USB Device Firmware Upgrade"
+GenericDFU.DeviceDesc 	= "USB Device Firmware Upgrade"
