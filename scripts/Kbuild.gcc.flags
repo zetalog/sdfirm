@@ -1,0 +1,10 @@
+c_flags        = -Wp,-MD,$(depfile) $(NOSTDINC_FLAGS) $(CPPFLAGS) \
+		 $(__c_flags) \
+
+a_flags        = -Wp,-MD,$(depfile) $(NOSTDINC_FLAGS) $(CPPFLAGS) \
+		 $(__a_flags)
+
+cpp_flags      = -Wp,-MD,$(depfile) $(NOSTDINC_FLAGS) $(__cpp_flags)
+
+ld_flags       = $(LDFLAGS) $(EXTRA_LDFLAGS)
+

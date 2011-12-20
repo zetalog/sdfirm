@@ -1,0 +1,14 @@
+AS		= $(CROSS_COMPILE)asx8051
+LD		= $(CROSS_COMPILE)sdcc
+CC		= $(CROSS_COMPILE)sdcc
+CPP		= $(CROSS_COMPILE)sdcpp
+AR		= $(CROSS_COMPILE)ar
+RANLIB		= $(CROSS_COMPILE)asranlib
+NM		= $(CROSS_COMPILE)nm
+STRIP		= $(CROSS_COMPILE)strip
+OBJCOPY		= $(CROSS_COMPILE)packihx
+CPPFLAGS        := -D__KERNEL__ $(TARGETINCLUDE)
+CFLAGS          := -DKBUILD_CONF $(TARGETINCLUDE) --stack-auto --model-small
+AFLAGS          := -D__ASSEMBLY__
+SYMLINK		:= cp -rf
+#SYMLINK	:= ln -fsn
