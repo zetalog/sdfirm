@@ -1,0 +1,47 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+mainmenu "Small Device Firmware Configuration"
+
+config MCS51
+	bool
+	default y
+	select CC_ISR_VECTOR
+
+menu "Device Setup"
+
+menu "MCS51 system options"
+
+choice
+	prompt "System type"
+	default ARCH_AT8XC5122
+
+config ARCH_AT8XC5122
+	bool "Atmel AT8xC5122 based"
+	select TICK_PERIODIC if TICK
+	select GPT_AT8XC5122 if TIMER || TICK
+#	select ARCH_IS_TICKLESS
+	select ARCH_HAS_TSC
+
+endchoice
+
+endmenu
+
+menu "Compiler options"
+
+config CC_ISR_VECTOR
+	bool "Enable compiler vectors"
+
+endmenu
+
+source "arch/mcs51/mach-at8xc5122/Kconfig"
+#source "arch/mcs51/plat-at8051/Kconfig"
+
+endmenu
+
+source "kernel/Kconfig"
+source "drivers/Kconfig"
+source "lib/Kconfig"
+source "init/Kconfig"

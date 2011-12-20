@@ -1,0 +1,15 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "MTD memory drivers"
+
+config DATAFLASH_AT45DB642D
+	bool "ATMEL AT45DB642D DataFlash support"
+	depends MTD_DATAFLASH
+
+if DATAFLASH_AT45DB642D
+endif
+
+endmenu

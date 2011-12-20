@@ -1,0 +1,10 @@
+#
+# Internet Protocol
+#
+
+
+menuconfig INET
+	bool "Internet protocol (IP) support"
+
+if INET
+endif

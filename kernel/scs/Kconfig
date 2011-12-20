@@ -1,0 +1,307 @@
+#
+# Smart Card Standard
+#
+
+config ARCH_HAS_IFD
+	bool
+config ARCH_HAS_IFD_PRES_IRQ
+	bool
+config ARCH_HAS_PCD
+	bool
+
+menuconfig SCS
+	bool "Smart card standards support"
+	help
+	  nothing here
+
+if SCS
+
+menuconfig SCD
+	bool "Smart card device support"
+
+if SCD
+
+config SCD_MAX_DEVICES
+	int "Number of smart card devices (1~8)"
+	range 1 8
+	default 1
+
+endif
+
+menuconfig IFD
+	bool "Smart card interface device (ISO7816-3) support"
+	select IFD_T0
+	help
+	  nothing here
+
+if IFD
+
+config IFD_SCD
+	bool "Enable smard card device registration"
+	depends SCD
+	select IFD_AUTO_RESET
+	select IFD_XCHG_APDU
+
+config IFD_MAX_SLOTS
+	int "Number of slots support (1~15)"
+	range 1 15
+	default 1
+	help
+	  Set this to the maximum number of the slots your want the
+	  kernel to register in the boot time.
+
+choice
+	prompt "Card presence sensor"
+	default IFD_PRES_POLL
+
+config IFD_PRES_IRQ
+	bool "Interrupt"
+	depends ARCH_HAS_IFD_PRES_IRQ
+
+config IFD_PRES_POLL
+	bool "Polling"
+	select TIMER
+
+endchoice
+
+config IFD_WT_RATIO
+       int "Enable waiting time adjustment"
+       range 1 10
+       default 1
+       help
+         This option may useless if ICCs are always standard compatible.
+         But it is useful when ICCs' are not correctly timing measured.
+         If you are not sure, say '1' here, which means no adjustment.
+
+choice
+	prompt "Exchange level"
+	default IFD_XCHG_TPDU
+	help
+	  nothing here
+
+config IFD_XCHG_TPDU
+	bool "TPDU"
+	depends !IFD_SCD
+	help
+	  This option will use a buffer with 260 bytes to store APDU.
+	  If you enable T=1 support, use TPDU level exchange can save a
+	  lot of code rom.
+
+config IFD_XCHG_APDU
+	bool "Short APDU"
+	select IFD_AUTO_SEQUENCE
+	select IFD_AUTO_INFO_XCHG
+#	select IFD_AUTO_PPS_PROP
+	help
+	  This option will use a buffer with 261 bytes to store APDU.
+
+endchoice
+
+config IFD_PANIC_BUF
+	bool "Enable transmission buffer debugging"
+	depends PANIC_DEBUG && IFD_XCHG_TPDU
+
+menu "Transmission protocols support"
+
+menuconfig IFD_T0
+	bool "Protocol T=0 support"
+	default y
+	help
+	  Protocol T=0 is a half-duplex transmission of characters protocol
+
+if IFD_T0
+
+config IFD_T0_APDU
+	bool "Issue GET_RESPONSE/ENVELOP for APDU level exchange"
+	depends IFD_XCHG_APDU
+	help
+	  If this is not configured, T=0 protocol will not issue
+	  GET_RESPONSE even when Ne < protocol buffer size or
+	  ENVELOP      even when Nc > protocol buffer size.
+	  When this configuration item is enabled, it is required that
+	  upper layer should set CLA for GET RESPONSE generation.
+	  If you are not sure, say N.
+
+config IFD_T0_6C
+	bool "T=0 SW1=0x6C support"
+	depends IFD_XCHG_APDU
+
+endif
+
+menuconfig IFD_T1
+	bool "Protocol T=1 support"
+	select CRC16_CCITT if IFD_XCHG_APDU
+	help
+	  Protocol T=1 is a half-duplex transmission of blocks protocol
+
+if IFD_T1
+
+config IFD_T1_MAX_IFSD
+	int "T=1 maximum information field size"
+	range 32 254
+	default 254
+	help
+	  Only works for IFSD=254, other configuration values are not
+	  tested.
+	  If unsure, say '254' here.
+
+config IFD_T1_NAD
+	bool "T=1 addressing support"
+	help
+	  The node address byte(NAD) allows identifying the source and the
+	  intended destination of the clock; it may be used to distinguish
+	  between multiple logical connections when the coexist. Bits 1 to
+	  3 are the source node address denoted SAD and bits 5 to 7 the 
+	  destination node address denoted DAD.
+	  When the addressing is not used, the values of SAD and DAD shall
+	  be set to 000. Any other value of NAD where SAD and DAD are
+	  identical is reserved for future use.
+
+config IFD_T1_CRC
+	bool "T=1 CRC support"
+	default n
+
+config IFD_T1_LRC
+	bool "T=1 LRC support"
+	default y
+
+endif
+
+endmenu
+
+menuconfig IFD_AUTO_SEQUENCE
+	bool "Auto sequence support"
+	help
+	  Automatic sequences include:
+	  Class selection
+	  Activation, cold reset, warm reset
+	  Reset
+	  Information exchange
+	  Please refer to ISO/IEC 7816-3 chapter 6.
+
+if IFD_AUTO_SEQUENCE
+config IFD_AUTO_CLASS_SELECT
+	bool "Automatic class selection"
+	help
+	  Automatic ICC voltage selection.
+
+choice	
+	prompt "Class sequence"
+	default IFD_CLASS_SELECT_ASCEND
+	depends IFD_AUTO_CLASS_SELECT
+	help
+	  Choose class selection algorithm here.
+
+config IFD_CLASS_SELECT_DESCEND
+	bool "Descend"
+	help
+	  Class A -> Class B -> Class C if you want to gain maximum
+	  performance.
+	  
+config	IFD_CLASS_SELECT_ASCEND
+	bool "Ascend"
+	help
+	  Class C -> Class B -> Class A if you want to gain minimum
+	  power consumption.
+
+endchoice
+
+config IFD_AUTO_ACTIVATE
+	bool "Automatic activation"
+	select IFD_AUTO_CLASS_SELECT
+	help
+	  Automatic activation on ICC inserting.
+	  This will lead to automatic clock frequency and data rate
+	  configuration.
+
+config IFD_AUTO_RESET
+	bool "Automatic reset"
+	select IFD_AUTO_ACTIVATE
+	help
+	  Automatic reset on ICC activation.
+	  This will lead to automatic ATR preparation.
+
+config IFD_AUTO_INFO_XCHG
+	bool "Automatic infomation exchange"
+	select IFD_AUTO_RESET
+	depends !IFD_SCD
+	help
+	  Automatic parameters configuration based on ATR data.
+	  This will lead to automatic PPS if card is in negotiatable mode.
+
+if IFD_AUTO_INFO_XCHG
+choice
+	prompt "PPS negotiation base"
+	default IFD_AUTO_PPS_BASE
+	help
+	  Choose PPS negotiation algorithm here.
+
+config IFD_AUTO_PPS_BASE
+	bool "Active parameters"
+	depends !IFD_SCD
+#	depends !IFD_XCHG_APDU
+	help
+	  Automatic PPS negotiation made by SCS according to the active
+	  parameters.
+	  If you are not sure, say Y.
+
+config IFD_AUTO_PPS_PROP
+	bool "Proprietary algorithm"
+	help
+	  Automatic PPS negotiation made by SCS according to a manufacture
+	  proprietary algorithm to select communication parameters with
+	  ICC.
+	  Since this requires ATR rebuilding or saving support, we could
+	  never support this.
+	  If you are not sure, say N.
+
+endchoice
+
+config IFD_AUTO_ATR_BUILD
+	bool "Building fake ATR from interface device settings"
+	depends on IFD_AUTO_PPS_PROP
+endif
+endif
+
+config IFD_CLOCK_CONTROL
+	bool "Clock control support"
+	depends !IFD_SCD
+	help
+	  nothing here
+
+config IFD_MECHA_CONTROL
+	bool "Mechanical control support"
+	depends !IFD_SCD
+	help
+	  nothing here
+
+endif
+
+menuconfig PCD
+	bool "Proximity coupling device (ISO14443-4) support"
+
+if PCD
+
+endif
+
+menuconfig COS
+	bool "Card operating system (COS) support"
+	help
+	  nothing here
+
+if COS
+config COS_SCD
+	bool
+	depends SCD
+	default y
+
+config COS_MAX_CARDS
+	int "Number of smart card devices (1~4)"
+	range 1 4
+	default 1
+	help
+	  MAX ICC number is same as supported COS count
+	  now(i.e. each cos one ICC).
+endif
+
+endif

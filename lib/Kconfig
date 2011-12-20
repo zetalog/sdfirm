@@ -1,0 +1,93 @@
+#
+# Library Features
+#
+
+menu "Library setup"
+
+menu "Bit-wise operations"
+
+config BIT_FFS8
+	bool "ffs"
+
+config BIT_FLS8
+	bool "fls"
+
+config BIT_FLS16
+	bool "fls16"
+
+config BIT_FFS16
+	bool "ffs16"
+
+config BIT_FLS32
+	bool "fls32"
+
+config BIT_FFS32
+	bool "ffs32"
+
+config BIT_ROUNDUP16
+	bool "roundup16"
+	select BIT_FLS16
+
+config BIT_ROUNDDOWN16
+	bool "rounddown16"
+	select BIT_FLS16
+
+config BIT_ROUNDUP32
+	bool "roundup32"
+	select BIT_FLS32
+
+config BIT_ROUNDDOWN32
+	bool "rounddown32"
+	select BIT_FLS32
+
+endmenu
+
+menu "Bitmap operations"
+
+config BIT_FIND_SET
+	bool "find_set_bit"
+	select BIT_FFS8
+
+config BIT_FIND_CLEAR
+	bool "find_clear_bit"
+	select BIT_FFS8
+
+endmenu
+
+menu "Mathematic operations"
+
+config MATH_MOD32
+	bool "mod32u"
+
+config MATH_MUL32
+	bool "mul32u"
+
+config MATH_DIV64
+	bool "div64u"
+
+config MATH_MOD64
+	bool "mod64u"
+
+endmenu
+
+menu "Atomic operations"
+
+config ATOMIC_SUB_RETURN
+	bool "atomic_sub_return"
+
+config ATOMIC_ADD_RETURN
+	bool "atomic_add_return"
+
+endmenu
+
+menu "Checksum algorithms"
+
+config CRC16_CCITT
+	bool "CRC16 CCITT"
+
+config CRC32
+	bool "CRC32"
+
+endmenu
+
+endmenu

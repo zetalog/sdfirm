@@ -1,0 +1,300 @@
+#
+# Firmware Features
+#
+
+menu "Feature setup"
+
+menu "Generic kernel features"
+
+choice
+	prompt "Scheduling model"
+	default SYS_POLL
+
+config SYS_NOIRQ
+	bool "Polling states without IRQs"
+	help
+	  No hardware interrupt handlers will be registered, all hardware
+	  events are examined through polling.
+	  This is a suitable architecture for those bootloaders that would
+	  use an unsafe different interrupt vectors from the loaded
+	  firmware.
+
+config SYS_POLL
+	bool "Polling states with various IRQs"
+	help
+	  Hardware interrupt handlers will be registered, while some
+	  hardware events will still be implemented in synchronous way.
+	  This is a suitable architecture for those firmwares that would
+	  expect faster process of interrupts and the firmware itself
+	  does not require high resolution realtime responsiveness.
+
+config SYS_POLL_RT
+	bool "Polling states with realtime IRQs"
+	help
+	  No hardware interrupt handlers will be registered besides the
+	  GPT interrupts.  Other hardware events will be implemented
+	  through polling.
+	  This is a suitable architecture for those firmwares that would
+	  expect critical realtime responsiveness.
+
+config SYS_TASK
+	bool "Multiple tasking with various IRQs"
+	select TASK
+	depends EXPERIMENTAL
+	help
+	  Same as "Polling states with various IRQs", but multi-tasking is
+	  added instead of timer-driven state machines.
+	  This architecture requires larger memory consumption but could
+	  offer better software realtime responsiveness than the
+	  "Polling states with various IRQs" architecture.
+
+config SYS_TASK_RT
+	bool "Multiple tasking with realtime IRQs"
+	select TASK
+	depends EXPERIMENTAL
+
+endchoice
+
+config ARCH_HAS_VIC
+	bool
+
+config ARCH_HAS_GPT
+	bool
+
+config ARCH_HAS_TSC
+	bool
+
+config ARCH_IS_TICKLESS
+	bool
+
+menu "Scheduling facility (irq) support"
+	depends !SYS_NOIRQ
+
+config MAX_VECTORS
+	int "Num of vectors (1~255)"
+	range 1 255
+	depends !CC_ISR_VECTOR && !ARCH_HAS_VIC
+	default 4
+	help
+	  Vector handlers consumes RAM memories when ISR entries are
+	  implemented by the firmware rather than the compiler.  Setting
+	  maximum vector number the software currently is using can reduce
+	  memory consumption.
+
+endmenu
+
+menu "Scheduling facility (poll) support"
+
+config MAX_STATES
+	int "Num of pollable state machines (1~8)"
+	range 1 8
+	default 4
+	help
+	  State machines may register state machines for tasks.  Since
+	  state machines can be disabled, you can also reduce number of
+	  state machines here to save memory usage.
+	  Following state machines require timers:
+	  timer
+	  usb
+	  ifd
+	  keyboard
+	  dfu
+	  If you are not sure, say 6 here.
+
+endmenu
+
+menuconfig TASK
+	bool "Scheduling facility (task) support"
+	depends EXPERIMENTAL
+	depends SYS_TASK || SYS_TASK_RT
+#	select HEAP
+
+if TASK
+
+config MAX_TASKS
+	int "Num of schedulable tasks (1~8)"
+	range 1 8
+	default 4
+
+endif
+
+menu "Timing facility (jiffy) support"
+
+config TICK
+	bool "Enable tick device support"
+	depends !ARCH_IS_TICKLESS
+	default y
+	help
+	  A "jiffies" variable will get compiled into the firmware and
+	  the firmware may get interrupted by a jiffies counting tick
+	  device hardware.
+
+config TICK_PERIODIC
+	bool "Enable periodic tick device support"
+	depends TICK
+	help
+	  A platform that supports the periodic tick device is a platform
+	  that owns a non IRQ maskable device interrupted per 1/HZ
+	  seconds.
+	  If the platform does not have a periodic tick device, a hardware
+	  timestamp counter (TSC) device may be used to calibrate the
+	  jiffies value.
+
+endmenu
+
+menu "Timing facility (delay) support"
+
+config LPS_32BITS
+	bool "Enable 32 bit loops/jiffy support"
+	select MATH_MUL32
+
+config LPS_WEIGHT
+	int "Initail loops/jiffy weight"
+	default 8
+	range 0 15 if !LPS_32BITS
+	range 0 31 if LPS_32BITS
+	help
+	  Correct initial LPS weight can help firmware to boot faster.
+	  Incorrect initial LPS weight may result in calibrate delay
+	  failure.
+	  If calibrate delay always get failed on initial LPS weight 0, it
+	  is suggested that the system should choose a counter with
+	  greater bit width.
+	  Initial LPS weight should be chosen carefully according to the
+	  current running CPU frequency. 
+
+config LPS_PRESET
+	bool "Enabled preset loops/jiffy support"
+
+config LPS_PRESET_MS
+	int "Preset loops/ms value"
+	depends LPS_PRESET
+	range 1 65535 if !LPS_32BITS
+	range 1 4294967296 if LPS_32BITS
+
+endmenu
+
+menuconfig TIMER
+	bool "Timing facility (timer) support"
+	default y
+	select TIMER_ONESHOT if !TICK
+
+if TIMER
+
+config TIMER_16BIT
+	bool "Enable 16-bit timeout value"
+
+config TIMER_ONESHOT
+	bool "Enable onshot timer interrupt"
+	depends !TICK
+
+config MAX_TIMERS
+	int "Num of timers (1~16)"
+	range 1 16
+	default 1
+	help
+	  State machines may register timers for delayed works.  Since
+	  state machines can be disabled, you can also reduce number of
+	  timers here to save memory usage.
+	  Following state machines require timers:
+	  usb (USB)
+	  scs (IFD_PRES_POLL)
+	  So if you are not sure, say 1 here.
+
+endif
+
+menu "Address space layout (.text) support"
+
+config XIP
+	bool "Enable eXecute In Place (XIP) support"
+
+config TEXT_ROM_BASE
+	hex "Base offset of the .text section in the ROM"
+	default 0
+	help
+	  In XIP firmware, this could be used in the linker script to
+	  determine the load address of the .text section.  While in
+	  non-XIP firmware, this might be used to calculate the load
+	  address of the variables created in the linker script.
+
+config TEXT_RAM_BASE
+	hex "Base offset of the .text section in the RAM"
+	default 0
+	help
+	  For non-XIP firmware, an offset might be needed to avoid
+	  system tables corss-over.  While in XIP firmware, this might be
+	  used in the linker script to determine the load address of the
+	  .data section.
+
+endmenu
+
+menuconfig HEAP
+	bool "Address space layout (heap) support"
+	help
+	  Heap will start aligned from data/bss end.
+
+if HEAP
+
+choice
+	prompt "Heap start address alignment"
+	default HEAP_ALIGN_4
+
+config HEAP_ALIGN_1
+	bool "1"
+
+config HEAP_ALIGN_2
+	bool "2"
+
+config HEAP_ALIGN_4
+	bool "4"
+
+endchoice
+
+config HEAP_SIZE
+	hex "Total heap allocable size"
+	range 0x256 0x00010000
+	default 0x256
+
+choice
+	prompt "Allocator selection"
+	default HEAP_DLMALLOC
+
+config HEAP_DLMALLOC
+	bool "Doug Lea malloc"
+	select BIT_FIND_SET
+
+endchoice
+
+config ALLOC_TRIM
+	bool "Enable heap trim support"
+	depends HEAP_DLMALLOC
+
+config ALLOC_CHECK
+	bool "Enable allocation check support"
+	depends HEAP_DLMALLOC
+
+endif
+
+menuconfig BULK
+	bool "IO data flow model (bulk) support"
+	select BIT_FLS16
+
+if BULK
+
+config BULK_MAX_CHANS
+	int "Number of bulk channels"
+	range 1 255
+	default 1
+
+endif
+
+endmenu
+
+source kernel/io/Kconfig
+source kernel/usb/Kconfig
+source kernel/scs/Kconfig
+source kernel/mtd/Kconfig
+source kernel/scsi/Kconfig
+source kernel/net/Kconfig
+
+endmenu

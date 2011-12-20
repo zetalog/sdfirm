@@ -1,0 +1,30 @@
+
+config ARCH_HAS_IFDS
+	bool
+
+if IFD
+menu "IFD drivers"
+
+config IFD_SERIAL
+	bool "Serial smart card interface"
+
+if IFD_SERIAL
+
+endif
+
+endmenu
+endif
+
+
+if PCD
+menu "PCD drivers"
+
+config PCD_PN53X
+	bool "NXP PN53x proximity coupling device"
+
+if PCD_PN53X
+
+endif
+
+endmenu
+endif

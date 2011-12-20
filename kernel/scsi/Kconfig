@@ -1,0 +1,232 @@
+#
+# SCSI Storage
+#
+
+menuconfig SCSI
+	bool "Small computer storage interface (SCSI-3) support"
+
+if SCSI
+
+#config SCSI_INITIATOR
+#	bool "Enable SCSI initiator device support"
+
+config SCSI_TARGET
+	bool "Enable SCSI target device support"
+	select BULK
+	default y
+
+if SCSI_TARGET
+
+config SCSI_T10_REVISION
+	int "T10 product revision level"
+	range 0 65535
+	default 0
+
+config SCSI_MAX_UNITS
+	int "Number of logical units per target device (1~8)"
+	default 1
+
+config SCSI_MAX_PORTS
+	int "Number of target ports per target device (1~8)"
+	default 1
+
+config SCSI_MAX_TASKS
+	int "Number of tasks per logical unit (1~8)"
+	default 1
+
+config SCSI_MAX_CMNDS
+	int "Number of commands per logical unit (1~8)"
+	default 1
+
+config SCSI_MAX_BUFFER
+	int "Data IN/OUT buffer size"
+	range 64 65536
+	default 2048
+
+menu "Standard INQUIRY data features"
+
+config SCSI_LINK
+	bool "Enable continuation of tasks (LINKED) support"
+	default 1
+
+config SCSI_NACA
+	bool "Enable auto contingent allegiance (NormACA) support"
+
+choice
+	prompt "Task set management model"
+	default SCSI_CMDQUE
+	help
+	  Affect BQue/CmdQue bits in standard INQUIRY data.
+
+config SCSI_CMDQUE
+	bool "Full (BQue=0, CmdQue=1)"
+
+config SCSI_BQUE
+	bool "Base (BQue=1, CmdQue=0)"
+
+endchoice
+
+config SCSI_HISUP
+	bool "Enable hierachical addressing model (HiSup) support"
+	depends EXPERIMENTAL
+
+config SCSI_STD_ACC
+	bool "Enable access controls coordinator (ACC) support"
+	depends EXPERIMENTAL
+
+#choice
+#	prompt "Target port group (TPGS) support"
+#	depends EXPERIMENTAL
+#endchoice
+
+config SCSI_3PC
+	bool "Enable third-party copy (3PC) support"
+	depends EXPERIMENTAL
+
+config SCSI_RMB
+	bool "Enable removable medium (RMB) support"
+
+endmenu
+
+menuconfig SCSI_INQUIRY_EX
+	bool "Extended INQUIRY data (VPD=0x86) features"
+
+if SCSI_INQUIRY_EX
+
+config SCSI_PRIOR
+	bool "Task priority support"
+
+endif
+
+menu "Vital product data (VPD) parameters support"
+
+config SCSI_MAX_VPDS
+	int "Number of VPD pages (2~255)"
+	range 2 255
+	default 2
+
+config SCSI_VPD_ASCII
+	bool "ASCII information (VPD=0x01~0x7F)"
+
+config SCSI_MAX_ASCIIS
+	int "Number of ASCII informations (0~127)"
+	depends SCSI_VPD_ASCII
+	range 0 127
+	default 0
+
+menu "Device Identification (VPD=0x83)"
+
+config SCSI_RPID
+	bool "Enable relative port identifier support"
+
+endmenu
+
+config SCSI_VPD_SN
+	bool "Serial number (VPD=0x80)"
+
+config SCSI_VPD_SOFT_ID
+	bool "Software interface identification (VPD=0x84)"
+	depends EXPERIMENTAL
+
+config SCSI_VPD_ADDRS
+	bool "Management network addresses (VPD=0x85)"
+	depends EXPERIMENTAL
+
+config SCSI_VPD_PORTS
+	bool "SCSI ports (VPD=0x88)"
+	depends EXPERIMENTAL
+
+endmenu
+
+menuconfig SCSI_LOG
+	bool "Log parameters (LOG) support"
+	depends EXPERIMENTAL
+
+if SCSI_LOG
+endif
+
+menuconfig SCSI_MODE
+	bool "Mode parameters (VPD=0x87) support"
+	help
+	  Enabling of this configuration item will turn on the MODE SENSEN
+	  and MODE SELECT SCSI commands support.
+	  Mode page policy VPD will also be registered.
+
+if SCSI_MODE
+
+config SCSI_MAX_MODES
+	int "Number of mode pages per logical unit (1~32)"
+	default 1
+
+config SCSI_MAX_PAGES
+	int "Mode pages buffer size"
+	range 64 4096
+	default 64
+	help
+	  Mode parameters will stored in this buffer, allocated per
+	  logical unit.
+
+config SCSI_MODE_SAVING
+	bool "Saving mode parameters support"
+
+endif
+
+menu "Control mode (Page=0x0A,0x00) features"
+
+config SCSI_TMF_ONLY
+	bool "Enable task termination on faulted nexus (TMF_ONLY)"
+	help
+	  Device server should terminate all tasks received on the faulted
+	  I_T nexus with an ACA ACTIVE status when an ACA condition has
+	  been established.
+
+endmenu
+
+endif
+
+menuconfig SCSI_SMC
+	bool "SCSI media changer commands (SMC) support"
+	select SCSI_RMB
+
+if SCSI_SMC
+endif
+
+menuconfig SCSI_SBC
+	bool "SCSI block commands (SBC) support"
+	help
+	  SBC describes the command sets for block-oriented direct-access
+	  devices such as magnetic disk drives
+
+if SCSI_SBC
+
+config SBC_PROTECT
+	bool "Protect information support"
+	select SCSI_INQUIRY_EX
+
+config SBC_PROTECT_RTO
+	bool "Reference tag ownership support"
+	depends SBC_PROTECT
+
+config SBC_PROTECT_GRD
+	bool "Checking LOGICAL BLOCK GUARD field"
+	depends SBC_PROTECT
+
+config SBC_PROTECT_APP
+	bool "Checking LOGICAL BLOCK APPLICATION TAG field"
+	depends SBC_PROTECT
+
+config SBC_PROTECT_REF
+	bool "Checking LOGICAL BLOCK REFERENCE TAG field"
+	depends SBC_PROTECT
+
+config SBC_GROUP
+	bool "Grouping function support"
+	select SCSI_INQUIRY_EX
+
+config SBC_CACHE
+	bool "Device caches (DPO, FUA) support"
+	select SCSI_INQUIRY_EX
+
+endif
+
+endif

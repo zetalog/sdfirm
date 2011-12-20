@@ -1,0 +1,415 @@
+#
+# USB Bus Interfaces
+#
+
+config ARCH_HAS_USB
+	bool
+
+config ARCH_HAS_USB_DEV
+	bool
+	select ARCH_HAS_USB
+
+config ARCH_HAS_USB_HCD
+	bool
+	select ARCH_HAS_USB
+
+config ARCH_HAS_USB_OTG
+	bool
+	select ARCH_HAS_USB
+
+config ARCH_IS_USBD_ENDP_TXCMPL
+	bool
+	select USBD_XFR_ASYNC_TXAVAL
+
+config ARCH_IS_USBD_ENDP_DUPLEX
+	bool
+
+config ARCH_HAS_USBD_ENDP_CSO
+	bool
+
+menuconfig USB
+	bool "Universal serial bus (USB) support"
+	select TIMER if !SYS_NOIRQ
+	select BIT_FFS16
+
+if USB
+
+config USB_DEV
+	bool "USB device controller (USBD) support"
+	depends ARCH_HAS_USB_DEV || ARCH_HAS_USB_OTG
+	select USBD_XFR_ASYNC if !USBD_XFR_SYNC
+	select USBD_XFR_ADAPT if (USBD_XFR_SYNC && USBD_XFR_ASYNC)
+
+config USB_HCD
+	bool "USB host controller (HCD) support"
+	depends ARCH_HAS_USB_HCD || ARCH_HAS_USB_OTG
+
+config USB_OTG
+	bool "USB On-The-Go (OTG) support"
+	depends USB_DEV && USB_HCD && ARCH_HAS_USB_OTG
+
+config USBD_ENDP_DUPLEX
+	bool "Enable duplex endpoints support"
+	depends ARCH_IS_USBD_ENDP_DUPLEX && EXPERIMENTAL
+	default y
+
+config USBD_DETACH
+	bool "Enable bus detach support"
+	depends ARCH_HAS_USBD_DETACH
+
+config USBD_XFR_MASS
+	bool "Enable massive transfer support"
+	depends USB_DEV
+
+config USBD_XFR_ADAPT
+	bool "Enable adaptive device transfer support"
+	depends USBD_XFR_SYNC
+	depends USBD_XFR_ASYNC
+
+config USBD_XFR_ASYNC
+	bool "Enable asynchronous device transfer support"
+
+config USBD_XFR_SYNC
+	bool "Enable synchronous device transfer support"
+	help
+	  This enables tuned USB requests handling codes between the
+	  usbd_request_set_sync and the usbd_request_clear_sync to work as
+	  synchronous transfers.
+	  Note that this is not always safe. There are situations that an
+	  asynchronous STALL or SETUP token may be received by the USB
+	  device controller when a transfer is running.  The USB device
+	  controller driver may choose not to handle these events
+	  correctly in usbd_hw_transfer_open/usbd_hw_transfer_close for
+	  synchronous support as it's very difficult to stop current
+	  running synchronous transfers through these implementations.
+
+config USBD_BULK
+	bool "Enable bulk transfer support"
+
+config USBD_XFR_ASYNC_TXAVAL
+	bool "Enable asynchronous TXAVAL emulation support"
+	default n
+	help
+	  This is required for controllers with TXCMPL edge triggered
+	  IRQs, but controllers with TXAVAL level triggered IRQs are safe
+	  to enable this to emulate itself as a controller with TXCMPL
+	  IRQs.  Note asynchronous task context transfer IO calls then can
+	  not be disabled in this way, which might result in worse
+	  performance on the controllers with TXAVAL IRQs.
+	  If you are not sure, say N here.
+
+config USBD_MAX_INTFS
+	int "Number of interfaces (1~3)"
+	range 1 3
+	depends USB_DEV
+	default 1
+	help
+	  Currently, we only support 3 kind of interfaces:
+	    HID: Human interface device
+	    MSD: Mass storage device
+	    CCID: Curcuit card interface device
+	  Since interface drivers can be disabled, you can also reduce
+	  number of interfaces here to save memory.
+	  If you are not sure, say 1 here.
+
+menuconfig USB_HID
+	bool "Human interface device (HID) support"
+
+if USB_HID
+
+config HID_DURATION
+	bool "Enable HID duration support"
+	depends TICK
+
+config HID_MAX_REPORTS
+	int "Number of HID reports (1~2)"
+	range 1 2
+	default 1
+	help
+	  Currently, we only support 2 kind of HID reports:
+	    Keyboard (HID_KBD): Keyboard
+	    Display (HID_LCD): Alphanumeric display
+	  Since report drivers can be disabled, you can also reduce
+	  number of reports here to save memory.
+	  If you are not sure, say 1 here.
+
+config HID_KBD
+	bool "HID keyboard support"
+	select KBD
+
+endif
+
+menuconfig USB_MSD
+	bool "Mass storage device (MSD) support"
+	select USBD_XFR_MASS
+
+if USB_MSD
+
+choice
+	prompt "MSD protocol selection"
+
+#config MSD_CBI
+#	bool "Control-bulk-interrupt"
+#	depends EXPERIMENTAL
+
+config MSD_BBB
+	bool "Bulk-only"
+	select MATH_MOD32
+	help
+	  Used for flash drives.
+
+endchoice
+
+choice
+	prompt "MSD subclass selection"
+
+config MSD_SCSI
+	bool "SCSI transport command set"
+	select SCSI
+	select SCSI_TARGET
+	select SCSI_BQUE
+	select USBD_XFR_SYNC if MSD_BBB
+	select USBD_BULK if MSD_BBB
+	help
+	  Used for SCSI storage devices.
+
+endchoice
+
+choice
+	prompt "Hi > Di operation"
+	depends MSD_BBB
+	default MSD_BBB_LESS_PADDING
+	help
+	  Describe how device should act on Hi (host expects to receive
+	  data from the devices) > Di (device intentds to send data to the
+	  host) condition.
+
+config MSD_BBB_LESS_PADDING
+	bool "Padding up to dCBWDataTransferLegnth"
+	help
+	  The device may send fill data to padup to a total of
+	  dCBWDataTransferLength.
+
+config MSD_BBB_LESS_HALTING
+	bool "Halting the Bulk-In pipe"
+	help
+	  If the device actually transfers less data than the host
+	  indicated, then:
+	    The device may end the transfer with a short packet.
+	    The device shall stall the Bulk-In pipe.
+
+endchoice
+
+choice
+	prompt "Base managed task attributes"
+	depends MSD_SCSI
+	default MSD_SCSI_SIMPLE
+
+config MSD_SCSI_SIMPLE
+	bool "SIMPLE"
+
+config MSD_SCSI_ORDERED
+	bool "ORDERED"
+
+endchoice
+
+endif
+
+menuconfig USB_SCD
+	bool "Smart card device (SCD) support"
+	select SCS
+
+if USB_SCD
+
+choice
+	prompt "Style"
+	default USB_CCID
+
+config USB_CCID
+	bool "Chip circuit interface (CCID)"
+	select IFD
+
+config USB_ICCD
+	bool "Integrated circuit card (ICCD)"
+
+endchoice
+
+if USB_CCID
+
+config CCID_INTERRUPT_IN
+	bool "CCID optional input interrupt support"
+	default y
+	help
+	  This function may not required as our CCID has implemented
+	  message queuing.  Some host side CCID drivers may require this
+	  function.
+	  If this option is enabled, CCID firmware can report slot status
+	  changes and hardware errors through this optional interrupt
+	  endpoint.
+	  If you are not sure, say Y here.
+
+config CCID_INTERRUPT_HWERR
+	bool "CCID hardware error interrupt support"
+	depends CCID_INTERRUPT_IN
+	help
+	  This feature is implemented but never used by any other modules
+	  in this implementation.
+	  If you are not sure, say N here.
+
+config CCID_DISCARD
+	bool "CCID command/response queue discard support"
+
+config CCID_QUEUE
+	bool "CCID queued command/response support"
+	default y
+
+config CCID_SECURE
+	bool "CCID secure command support"
+	depends LCD && KBD
+	default y
+	help
+	  This function is implemented according to what CCID specified.
+	  If you are searching for a PC/SC part 10 support, this
+	  implementation does not meet the requirement.
+	  In order to enabling your hardware with this function,
+	  A. Keyboard form factor is expected to follow EMV keypad layout
+	     specification;
+	  B. Keyboard driver is expected to present specified ascii codes
+	     for the following key strokes:
+	     1. cancel button: ESC (0x1B);
+	     2. enter/OK button: CR (0x0D).
+
+choice
+	prompt "CCID escape command vendor"
+	default CCID_ESC_NONE
+
+config CCID_ESC_NONE
+	bool "None"
+
+endchoice
+
+endif
+
+if USB_ICCD
+
+choice
+	prompt "ICCD lower"
+	default ICCD_COS
+
+config ICCD_COS
+	bool "COS"
+	select COS
+
+config ICCD_SCD
+	bool "SCD"
+	select SCD
+
+endchoice
+
+choice
+	prompt "ICCD interface protocol"
+	default ICCD_PROTO_BULK
+
+config ICCD_PROTO_BULK
+	bool "Bulk"
+	help
+	  Bulk transfers optional interrupt-IN.
+
+config ICCD_PROTO_A
+	bool "Version A"
+	help
+	  Control transfers, (no interrupt-IN)
+
+config ICCD_PROTO_B
+	bool "Version B"
+	help
+	  Control transfers, (optional interrupt-IN)
+
+endchoice
+
+config ICCD_INTERRUPT_IN
+	bool "ICCD optional input interrupt support"
+	depends on !ICCD_PROTO_A
+	default y
+	help
+	  This function may not required as our CCID has implemented
+	  message queuing.  Some host side CCID drivers may require this
+	  function.
+	  If this option is enabled, CCID firmware can report slot status
+	  changes and hardware errors through this optional interrupt
+	  endpoint.
+	  If you are not sure, say Y here.
+
+choice
+	prompt "ICCD Exchange Level"
+	default ICCD_XCHG_APDU
+
+#config ICCD_XCHG_CHAR
+#	bool "Character"
+#	help
+#	  Character level exchanges.
+
+config ICCD_XCHG_APDU
+	bool "APDU"
+	help
+	  Short APDU
+
+#config ICCD_XCHG_APDU_EXT
+#	bool "APDU EXT"
+#	help
+#	  Short and Extended APDU
+
+endchoice
+
+choice
+	prompt "Transmission protocol"
+
+config ICCD_T0
+	bool "T0"
+
+config ICCD_T1
+	bool "T1"
+
+endchoice
+
+endif
+
+endif
+
+menuconfig USB_DFU
+	bool "Device firmware upgrade (DFU) support"
+	select CRC32
+
+if USB_DFU
+
+choice
+	prompt "DFU protocol"
+	help
+	  You can only compile one protocol at a time.  The DFU mode
+	  firmware should be put into the boot section in your hardware
+	  while the runtime firmware could be put with the other interface
+	  classes to form a USB composite device.
+
+config DFU_RUNTIME
+	bool "Runtime"
+
+config DFU_DFUMODE
+	bool "DFU mode"
+	depends SYS_NOIRQ
+	help
+	  Since DFU interface has only one control endpoint which does not
+	  require interval polling mechanism, it is safe to force USB
+	  device stack running without timer support.
+
+config DFU_FULLCMD
+	bool "Full command set"
+
+endchoice
+
+config DFU_AUTO_RESET
+	bool "Automatically reset after detach/manifestation"
+	default y
+
+endif
+
+endif

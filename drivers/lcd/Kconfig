@@ -1,0 +1,73 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "LCD drivers"
+
+config LCD_HD44780U
+	bool "Hitachi HD44780U LCD controller support"
+	depends LCD
+
+if LCD_HD44780U
+config LCD_HD44780U_MAX_ROWS
+	int "Number of dispaly rows (1~2)"
+	range 1 2
+	depends LCD
+	default 2
+
+config LCD_HD44780U_MAX_COLS
+	int "Number of dispaly columns (1~16)"
+	range 1 16
+	depends LCD
+	default 16
+endif
+
+config LCD_PCF2119X
+	bool "NXP PCF2119X LCD controller support"
+	depends LCD
+
+if LCD_PCF2119X
+
+config LCD_PCF2119X_DISP_LINE
+	int "Number of dispaly rows (1~2)"
+	range 1 2
+	default 2
+
+config LCD_PCF2119X_DATA_LENGTH_8BITS
+	bool "Interface data length"
+	default y
+
+config LCD_PCF2119X_MUL_MODE32
+	bool "1x32 or 2x16 character display"
+	default y
+
+endif
+
+config LCD_NHDC0216AZ
+	bool "Newheaven Display C0216AZ LCD controller support"
+	depends LCD
+
+if LCD_NHDC0216AZ
+
+config LCD_NHD_C0216AZ_MAX_ROWS
+	int "Number of dispaly rows (1~2)"
+	range 1 2
+	default 2
+
+config LCD_NHD_C0216AZ_MAX_COLS
+	int "Number of dispaly columns (1~16)"
+	range 1 16
+	depends LCD
+	default 16
+
+endif
+
+config LCD_NHDC0216CIZ
+	bool "Newheaven Display C0216CiZ LCD controller support"
+	depends LCD
+
+if LCD_NHDC0216CIZ
+endif
+
+endmenu

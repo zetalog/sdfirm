@@ -1,0 +1,5 @@
+
+ifeq ($(COMPILER),)
+COMPILER	:= sdcc
+endif
+

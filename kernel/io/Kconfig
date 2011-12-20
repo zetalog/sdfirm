@@ -1,0 +1,153 @@
+#
+# Input/Output Devices
+#
+
+menu "Input / Output support"
+
+config ARCH_HAS_UART
+	bool
+config ARCH_HAS_SPI
+	bool
+
+menuconfig UART
+	bool "Universal asynchronous RX/TX (UART) support"
+
+if UART
+
+choice
+	prompt "UART baud rate"
+	help
+	  This setting lets you define what baudrate is for the serial
+	  port.
+
+config UART_230400
+	bool "230400"
+
+config UART_115200
+	bool "115200"
+
+config UART_57600
+	bool "57600"
+
+config UART_38400
+	bool "38400"
+
+config UART_19200
+	bool "19200"
+
+config UART_9600
+	bool "9600"
+
+config UART_4800
+	bool "4800"
+
+endchoice
+
+config UART_METERING
+	bool "Enable oscilloscope metering"
+	depends EXPERIMENTAL
+	help
+	  All uart_putchar will be forced an output of 0x55 that can be
+	  easily observed by the oscilloscope to measure the baudrate.
+	  Frequency displayed by the oscilloscope will be a half of the
+	  baudrate.
+
+endif
+
+menuconfig I2C
+	bool "Inter integrated circuit (I2C) bus support"
+
+if I2C
+
+config I2C_MASTER
+	bool "Enable bus master support"
+	default y
+
+config I2C_SLAVE
+	bool "Enable bus slave support"
+
+config I2C_GENERAL_CALL
+	bool "Enable general call address support"
+	help
+
+config I2C_10BIT_ADDRESS
+	bool "Enable 10-bit addressing support"
+	help
+	  Disabling this will force the master driver to use 7-bit
+	  addressing.
+
+config I2C_DEVICE_ID
+	bool "Enable device-ID support"
+	help
+	  Disabling this will force the master driver not to perform
+	  device ID probing procedure.
+
+endif
+
+menuconfig SPI
+	bool "Serial peripheral interface (SPI) support"
+
+if SPI
+
+choice
+	prompt "SPI bus type"
+	default SPI_MASTER
+
+config SPI_MASTER
+	bool "Master"
+
+config SPI_SLAVE
+	bool "Slave"
+
+endchoice
+
+config SPI_MAX_DEVICES
+	int "Number of SPI slave devices (1~8)"
+	range 1 8
+	default 2
+
+endif
+
+config LCD
+	bool "Liquid crystal display (LCD) output support"
+
+config KBD
+	bool "Keyboard input support"
+
+config LED
+	bool "Light-Emitting Diode (LED) output support"
+
+choice
+	prompt "Standard Input"
+
+config INPUT_NONE
+	bool "None"
+
+config INPUT_UART
+	bool "Serial port"
+	depends UART
+
+config INPUT_KBD
+	bool "Keyboard"
+	depends KBD
+
+endchoice
+
+choice
+	prompt "Standard Output"
+
+config OUTPUT_NONE
+	bool "None"
+
+config OUTPUT_UART
+	bool "Serial port"
+	depends UART
+
+config OUTPUT_LCD
+	bool "LCD"
+	depends LCD
+
+endchoice
+
+endmenu
+

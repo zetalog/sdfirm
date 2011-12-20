@@ -1,0 +1,92 @@
+#
+# MTD Devices
+#
+
+menuconfig MTD
+	bool "Memory technology device (MTD) support"
+
+if MTD
+
+config MTD_MAX_CHIPS
+	int "Number of memory chip drivers (1~8)"
+	range 1 8
+	default 1
+
+config MTD_MAX_DEVS
+	int "Number of memory devices (1~8)"
+	range 1 8
+	default 1
+
+config MTD_CONCAT
+	bool "Enable MTD device concatenation support"
+	select BIT_FLS32
+	select BIT_FLS16
+	help
+
+config MTD_BLOCK_RW
+	bool "Read/write on block boundary"
+	default y
+
+if MTD_CONCAT
+
+config MTD_MAX_CONCATS
+	int "Number of concatenated devices (1~8)"
+	range 1 8
+	default 1
+
+choice
+	prompt "Concatenation style"
+
+config MTD_CONCAT_PAGE
+	bool "Page boundary"
+
+config MTD_CONCAT_CHIP
+	bool "Chip boundary"
+
+endchoice
+
+endif
+
+config MTD_BLOCK
+	bool "MTD block device support"
+	depends SCSI_SBC
+	default y
+
+menuconfig MTD_FLASH
+	bool "Flash (NOR) memory support"
+
+config ARCH_HAS_FLASH
+	bool
+	select BIT_FLS16
+
+if MTD_FLASH
+
+config FLASH_MAX_BANKS
+	int "Number of Flash banks"
+	range 1 16
+	default 1
+
+endif
+
+menuconfig MTD_DATAFLASH
+	bool "ATMEL SPI interfaced DataFlash support"
+	depends SPI_MASTER
+	select BIT_FLS16
+	select BIT_ROUNDUP16
+
+if MTD_DATAFLASH
+
+config DATAFLASH_MAX_BANKS
+	int "Number of DataFlash banks"
+	range 1 16
+	default 2
+
+config DATAFLASH_WRITE_VERIFY
+	bool "Verify DataFlash page writes"
+
+config DATAFLASH_OTP
+	bool "DataFlash one time programmable (OTP) support"
+
+endif
+
+endif
