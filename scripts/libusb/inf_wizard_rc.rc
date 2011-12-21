@@ -1,0 +1,181 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "inf_resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "winres.h"
+#include "commctrl.h"
+#include "winver.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Chinese (P.R.C.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+#ifdef _WIN32
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+#endif //_WIN32
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 0,0,0,0
+ PRODUCTVERSION 0,0,0,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "http://libusb-win32.sourceforge.net\0"
+            VALUE "FileDescription", "0.1.12\0"
+            VALUE "FileVersion", "0.1.12\0"
+            VALUE "InternalName", "inf-wizard.exe\0"
+            VALUE "LegalCopyright", "@ 2002-2005 S. Meyer, <ste_meyer@web.de>\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "inf-wizard.exe\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "0.1.12\0"
+            VALUE "ProductVersion", "0.1.12\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+ID_DIALOG_0 DIALOG DISCARDABLE  0, 0, 310, 200
+STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_MINIMIZEBOX | 
+    WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "LibUSB-Win32 - INF File Wizard"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Next >",ID_BUTTON_NEXT,185,175,50,15
+    PUSHBUTTON      "Cancel",ID_BUTTON_CANCEL,245,175,50,15
+    GROUPBOX        "Information",ID_DUMMY,10,10,285,155
+    LTEXT           0,ID_INFO_TEXT,20,25,265,100
+END
+
+ID_DIALOG_1 DIALOG DISCARDABLE  0, 0, 310, 200
+STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_MINIMIZEBOX | 
+    WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "LibUSB-Win32 - INF File Wizard "
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Next >",ID_BUTTON_NEXT,185,175,50,15
+    PUSHBUTTON      "< Back",ID_BUTTON_BACK,125,175,50,15
+    PUSHBUTTON      "Cancel",ID_BUTTON_CANCEL,245,175,50,15
+    GROUPBOX        "Device Selection",ID_DUMMY,10,10,285,155
+    LTEXT           0,ID_LIST_HEADER_TEXT,20,25,270,30
+    CONTROL         "List2",ID_LIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | 
+                    WS_TABSTOP,20,60,265,95
+END
+
+ID_DIALOG_2 DIALOG DISCARDABLE  0, 0, 310, 200
+STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_MINIMIZEBOX | 
+    WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "LibUSB-Win32 - INF File Wizard "
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Next >",ID_BUTTON_NEXT,185,175,50,15
+    PUSHBUTTON      "< Back",ID_BUTTON_BACK,125,175,50,15
+    PUSHBUTTON      "Cancel",ID_BUTTON_CANCEL,245,175,50,15
+    GROUPBOX        "Device Configuration",ID_DUMMY,10,10,285,155
+    EDITTEXT        ID_TEXT_VID,125,35,155,14
+    EDITTEXT        ID_TEXT_PID,125,55,155,14
+    EDITTEXT        ID_TEXT_MANUFACTURER,125,75,155,14
+    EDITTEXT        ID_TEXT_DEV_NAME,125,95,155,14
+    LTEXT           "Vendor ID (hex format)",IDC_STATIC,25,35,95,15,
+                    SS_CENTERIMAGE
+    LTEXT           "Product ID (hex format)",IDC_STATIC,25,55,95,15,
+                    SS_CENTERIMAGE
+    LTEXT           "Manufacturer Name",IDC_STATIC,25,75,95,15,
+                    SS_CENTERIMAGE
+    LTEXT           "Device Name",IDC_STATIC,25,95,95,15,SS_CENTERIMAGE
+END
+
+ID_DIALOG_3 DIALOG DISCARDABLE  0, 0, 310, 200
+STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_MINIMIZEBOX | 
+    WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "LibUSB-Win32 - INF File Wizard"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Finish",ID_BUTTON_NEXT,245,175,50,15
+    GROUPBOX        "Information",ID_DUMMY,10,10,285,155
+    LTEXT           0,ID_INFO_TEXT,20,25,265,100
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "inf_resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""winres.h""\r\n"
+    "#include ""commctrl.h""\r\n"
+    "#include ""winver.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Chinese (P.R.C.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

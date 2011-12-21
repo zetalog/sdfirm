@@ -1,0 +1,12 @@
+EXPORTS
+	usb_registry_get_property
+	usb_registry_match
+	;usb_install_needs_restart_np
+	;usb_install_service_np
+	;usb_install_service_np_rundll
+	;usb_uninstall_service_np
+	;usb_uninstall_service_np_rundll
+	;usb_install_driver_np
+	;usb_install_driver_np_rundll
+	;usb_touch_inf_file_np
+	;usb_touch_inf_file_np_rundll

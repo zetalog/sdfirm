@@ -1,0 +1,16 @@
+*.d
+*.cmd
+*.ncb
+*.opt
+*.plg
+*.pdb
+*.aps
+*.ilk
+usbstub.exp
+usbstub.lib
+usbstub.dll
+libusb.exp
+libusb.lib
+libusb.so
+usb_sample
+RC*

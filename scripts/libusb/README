@@ -1,0 +1,43 @@
+
+                    LibUSB Installation Guide
+
+This is a refined libusb-win32 ports porting to the latest libusb.
+
+1. Build
+
+1.1. Build on Windows
+
+To build this implementation on Windows, please install Windows DDK in
+your machine.  Launch a DDK build environment, where you must "cd" to
+libusb/win32-dirver folder, by typing "make", you will get the
+"libusb0.sys" device driver software in the folder corresponding to
+your build environment type.
+
+Launch MSVC to open libusb.dsw, set inf_wizard as active project and
+build it.  This program can generate libusb alternate driver's inf file
+for the selected USB devices.
+
+1.2. Build on Linux
+
+To build this implementation on Linux, just type "make scripts_libusb"
+from the top source directory.
+
+2. Install
+
+2.1. Install on Windows
+
+Copy generated files, libusb0.sys, libusb0.dll to the same directory.
+Now you can update driver software from Windows "Device Manager" console.
+Follow steps below, you can switch normal USB device drivers to libusb
+ones:
+
+1. Browse my computer for driver software
+2. Let me pick from a list of device drivers on my computer
+3. Have disk
+
+Find where the generated inf file stores and click OK, then you can
+choose a libusb alternate driver from the list.  Select this driver and
+complete the "Update Driver Software" wizard.
+
+Now you can call libusb exported functions to handle this USB device
+from the user space.
