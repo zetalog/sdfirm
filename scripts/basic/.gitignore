@@ -1,0 +1,6 @@
+*.cmd
+*.tmp
+*.d
+split-include
+docproc
+fixdep

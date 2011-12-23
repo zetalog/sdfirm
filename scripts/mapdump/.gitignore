@@ -1,0 +1,16 @@
+cuartdbg.exe
+wuartdbg.exe
+*.ncb
+*.opt
+*.pch
+*.obj
+*.plg
+*.sbr
+*.idb
+*.pdb
+*.sbr
+*.ilk
+*.aps
+*.res
+*.SUP
+*.log
