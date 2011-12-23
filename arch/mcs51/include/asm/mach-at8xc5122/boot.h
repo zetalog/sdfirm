@@ -13,4 +13,6 @@
 #error "Multiple bootloader defined"
 #endif
 
+#define board_hw_firmware_boot()
+
 #endif /* __BOOT_ATC8X5122_H_INCLUDE__ */

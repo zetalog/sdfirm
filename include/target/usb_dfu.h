@@ -115,8 +115,8 @@ struct dfu_function_desc {
 
 struct dfu_suffix {
 	uint32_t dwCRC;
-	uint32_t bLength : 8;
-	uint32_t ucDfuSignature : 24;
+	uint8_t bLength;
+	uint8_t ucDfuSignature[3];
 	uint16_t bcdDFU;
 	uint16_t idVendor;
 	uint16_t idProduct;

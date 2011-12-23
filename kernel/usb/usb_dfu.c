@@ -40,20 +40,11 @@
  */
 #include <target/usb_dfu.h>
 #include <target/crc32_table.h>
-
-#if 0
-#define BOARD_HW_FIRMWARE_SIZE			0x8000
-#define BOARD_HW_TRANSFER_SIZE			200
-
-#define board_hw_firmware_toggle(boot)
-#define board_hw_firmware_size()		BOARD_HW_FIRMWARE_SIZE
-#define board_hw_firmware_manifest(size)
-#define board_hw_firmware_write(n, block, length)
-#define board_hw_firmware_read(n, block)
-#endif
+#include <target/boot.h>
 
 #define DFU_DETACH_TIMEOUT		10
 #define DFU_POLL_TIMEOUT		((uint32_t)10)
+#define DFU_TRANSFER_SIZE	BOARD_HW_TRANSFER_SIZE
 
 #define DFU_STRING_FIRST		40
 #define DFU_STRING_INTERFACE		DFU_STRING_FIRST+0
@@ -91,12 +82,13 @@ void dfu_auto_reset(uint8_t proto)
 	if (proto == DFU_INTERFACE_PROTOCOL_DFUMODE) {
 		dfu_proto = DFU_INTERFACE_PROTOCOL_DFUMODE;
 		dfu_set_state(DFU_STATE_DFU_IDLE);
+		board_hw_firmware_boot();
 	} else {
 		dfu_proto = DFU_INTERFACE_PROTOCOL_RUNTIME;
 		dfu_set_state(DFU_STATE_APP_IDLE);
+		board_hw_firmware_appl();
 	}
 	usbd_restart();
-	board_hw_firmware_toggle(proto == DFU_INTERFACE_PROTOCOL_DFUMODE);
 }
 #else
 #define DFU_ATTR_AUTO_RESET		0
@@ -104,14 +96,15 @@ void dfu_auto_reset(uint8_t proto)
 {
 	if (proto == DFU_INTERFACE_PROTOCOL_DFUMODE) {
 		dfu_set_state(DFU_STATE_APP_DETACH);
+		board_hw_firmware_boot();
 	} else {
 		dfu_set_state(DFU_STATE_DFU_MANIFEST_WAIT_RESET);
+		board_hw_firmware_appl();
 	}
-	board_hw_firmware_toggle(proto == DFU_INTERFACE_PROTOCOL_DFUMODE);
 }
 #endif
 
-#if defined(CONFIG_DFU_RUNTIME) || defined(CONFIG_DFU_FULLCMD)
+#ifdef DFU_RUNTIME
 static void dfu_detach(void)
 {
 	uint16_t tout_ms = usbd_control_request_value();
@@ -129,9 +122,7 @@ static void dfu_detach(void)
 #define dfu_detach()		dfu_set_error(DFU_STATUS_ERR_STALLEDPKT)
 #endif
 
-#if defined(CONFIG_DFU_DFUMODE) || defined(CONFIG_DFU_FULLCMD)
-#define DFU_TRANSFER_SIZE	BOARD_HW_TRANSFER_SIZE
-
+#ifdef DFU_DFUMODE
 uint8_t dfu_block[DFU_TRANSFER_SIZE];
 uint16_t dfu_upload_size;
 uint16_t dfu_dnload_size;
@@ -326,7 +317,6 @@ void dfu_proto_init(void)
 	dfu_upload_size = board_hw_firmware_size();
 }
 #else
-#define DFU_TRANSFER_SIZE	0
 #define dfu_dnload()		dfu_set_error(DFU_STATUS_ERR_STALLEDPKT)
 #define dfu_upload()		dfu_set_error(DFU_STATUS_ERR_STALLEDPKT)
 #define dfu_abort()		dfu_set_error(DFU_STATUS_ERR_STALLEDPKT)
