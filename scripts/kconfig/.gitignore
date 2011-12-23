@@ -1,5 +1,7 @@
 *.cmd
 *.tmp
+*.exe
+*.o
 *.d
 lex.zconf.c
 zconf.tab.c
