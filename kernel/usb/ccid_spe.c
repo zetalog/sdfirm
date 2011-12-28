@@ -357,7 +357,7 @@ void ccid_spe_key_confirm(unsigned char keycode)
 {
 	if (ccid_spe_ctrl.nr_next < ccid_spe_max_digits()) {
 		uint8_t digit = ccid_spe_key2digit(keycode);
-		ccid_debug(SCD_DEBUG_DIGIT, digit);
+		scd_debug(SCD_DEBUG_DIGIT, digit);
 		if (ccid_spe_is_justify_l()) {
 			lcd_draw_point('*', ccid_spe_ctrl.nr_next, 1);
 			if (digit != ccid_spe_read_digit(ccid_spe_ctrl.nr_next))
@@ -377,7 +377,7 @@ void ccid_spe_key_number(unsigned char keycode)
 {
 	if (ccid_spe_ctrl.nr_next < ccid_spe_max_digits()) {
 		uint8_t digit = ccid_spe_key2digit(keycode);
-		ccid_debug(SCD_DEBUG_DIGIT, digit);
+		scd_debug(SCD_DEBUG_DIGIT, digit);
 		if (ccid_spe_is_justify_l()) {
 			lcd_draw_point('*', ccid_spe_ctrl.nr_next, 1);
 			ccid_spe_write_digit(ccid_spe_ctrl.nr_next, digit);

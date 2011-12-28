@@ -337,7 +337,7 @@ static uint8_t iccd_dev_status(void)
 static void iccd_dev_enter(uint8_t state)
 {
 	if (iccd_devs[iccd_cid].state != state) {
-		iccd_debug(SCD_DEBUG_STATE, state);
+		scd_debug(SCD_DEBUG_STATE, state);
 		iccd_devs[iccd_cid].state = state;
 	}
 	if (state == ICCD_SLOT_STATE_PC2RDR) {
@@ -532,7 +532,7 @@ static void iccd_handle_class_request(void)
 {
 	uint8_t req = usbd_control_request_type();
 
-	iccd_debug(SCD_DEBUG_CS_REQ, req);
+	scd_debug(SCD_DEBUG_CS_REQ, req);
 
 	switch (req) {
 #ifndef CONFIG_ICCD_PROTO_BULK
@@ -723,7 +723,7 @@ static void iccd_handle_command(iccd_t id)
 	iccd_t ocid;
 
 	ocid = iccd_cid_save(id);
-	iccd_debug(SCD_DEBUG_SLOT, id);
+	scd_debug(SCD_DEBUG_SLOT, id);
 
 	BUG_ON(iccd_devs[iccd_cid].state != ICCD_SLOT_STATE_PC2RDR &&
 	       iccd_devs[iccd_cid].state != ICCD_SLOT_STATE_SANITY);
@@ -745,7 +745,7 @@ static void iccd_handle_command(iccd_t id)
 	if (usbd_request_handled() == ICCD_HEADER_SIZE) {
 		usbd_request_commit(ICCD_HEADER_SIZE +
 				   iccd_cmds[iccd_cid].dwLength);
-		iccd_debug(SCD_DEBUG_PC2RDR, iccd_cmds[iccd_cid].bMessageType);
+		scd_debug(SCD_DEBUG_PC2RDR, iccd_cmds[iccd_cid].bMessageType);
 	}
 
 	if (iccd_cmds[iccd_cid].bSlot != ICCD_SINGLE_SLOT_IDX)
@@ -798,7 +798,7 @@ static void iccd_handle_response(iccd_t id)
 	iccd_t ocid;
 
 	ocid = iccd_cid_save(id);
-	iccd_debug(SCD_DEBUG_SLOT, iccd_cid);
+	scd_debug(SCD_DEBUG_SLOT, iccd_cid);
 
 	BUG_ON(iccd_devs[iccd_cid].state != ICCD_SLOT_STATE_RDR2PC);
 
@@ -1013,7 +1013,7 @@ static void iccd_change_discard(iccd_t id)
 {
 	if (__iccd_change_running(id)) {
 		clear_bit(ICCD_INTR_CHANGE(id), iccd_running_intrs);
-		iccd_debug(SCD_DEBUG_INTR, ICCD_INTR_RUNNING_UNSET);
+		scd_debug(SCD_DEBUG_INTR, ICCD_INTR_RUNNING_UNSET);
 	}
 }
 
@@ -1024,17 +1024,17 @@ static void iccd_change_submit(void)
 	for (id = 0; id < NR_ICCD_DEVICES; id++) {
 		/* copy changed bits */
 		clear_bit(ICCD_INTR_CHANGE(id), iccd_pending_intrs);
-		iccd_debug(SCD_DEBUG_INTR, ICCD_INTR_PENDING_UNSET);
+		scd_debug(SCD_DEBUG_INTR, ICCD_INTR_PENDING_UNSET);
 		set_bit(ICCD_INTR_CHANGE(id), iccd_running_intrs);
-		iccd_debug(SCD_DEBUG_INTR, ICCD_INTR_RUNNING_SET);
+		scd_debug(SCD_DEBUG_INTR, ICCD_INTR_RUNNING_SET);
 
 		/* copy status bits */
 		if (test_bit(ICCD_INTR_STATUS(id), iccd_pending_intrs)) {
 			set_bit(ICCD_INTR_STATUS(id), iccd_running_intrs);
-			iccd_debug(SCD_DEBUG_INTR, ICCD_DEV_STATE_PRESENT);
+			scd_debug(SCD_DEBUG_INTR, ICCD_DEV_STATE_PRESENT);
 		} else {
 			clear_bit(ICCD_INTR_STATUS(id), iccd_running_intrs);
-			iccd_debug(SCD_DEBUG_INTR, ICCD_DEV_STATE_NOTPRESENT);
+			scd_debug(SCD_DEBUG_INTR, ICCD_DEV_STATE_NOTPRESENT);
 		}
 	}
 }
@@ -1056,7 +1056,7 @@ static void iccd_change_raise(void)
 	}
 	if (changed) {
 		set_bit(ICCD_INTR_CHANGE(iccd_cid), iccd_pending_intrs);
-		iccd_debug(SCD_DEBUG_INTR, ICCD_INTR_PENDING_SET);
+		scd_debug(SCD_DEBUG_INTR, ICCD_INTR_PENDING_SET);
 	}
 }
 

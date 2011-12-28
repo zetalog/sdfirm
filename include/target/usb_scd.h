@@ -7,11 +7,9 @@
 #include <target/scs.h>
 
 #ifdef CONFIG_SCD_DEBUG
-#define ccid_debug(tag, val)	dbg_print((tag), (val))
-#define iccd_debug(tag, val)	dbg_print((tag), (val))
+#define scd_debug(tag, val)	dbg_print((tag), (val))
 #else
-#define ccid_debug(tag, val)
-#define iccd_debug(tag, val)
+#define scd_debug(tag, val)
 #endif
 
 #define SCD_DT_SCD			(USB_TYPE_CLASS | 0x01)
