@@ -42,7 +42,6 @@
 #ifndef __USB_ICCD_H_INCLUDE__
 #define __USB_ICCD_H_INCLUDE__
 
-#include <target/usb_scd.h>
 #include <target/scd.h>
 
 #if NR_SCD_DEVICES == 0

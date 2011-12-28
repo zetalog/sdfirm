@@ -44,7 +44,7 @@
  *   2. SPE timeout validation support
  *   3. multiple clock frequencies support
  */
-#include <target/usb_ccid.h>
+#include <target/usb_scd.h>
 #include <target/lcd.h>
 #include <target/kbd.h>
 
@@ -1230,7 +1230,7 @@ static void ccid_handle_slot_pc2rdr(void)
 		ccid_Secure_out();
 		break;
 	case CCID_PC2RDR_ESCAPE:
-		ccid_Escape_out();
+		scd_Escape_out();
 		break;
 	case CCID_PC2RDR_SETPARAMETERS:
 		ccid_SetParameters_out();
@@ -1395,7 +1395,7 @@ static void ccid_handle_response(void)
 		ccid_Parameters_in();
 		break;
 	case CCID_PC2RDR_ESCAPE:
-		ccid_Escape_in();
+		scd_Escape_in();
 		break;
 	case CCID_PC2RDR_SETDATAANDFREQ:
 		ccid_DataAndFreq_in();
@@ -1597,7 +1597,7 @@ static void ccid_complete_slot_pc2rdr(void)
 		ccid_Secure_cmp();
 		break;
 	case CCID_PC2RDR_ESCAPE:
-		ccid_Escape_cmp();
+		scd_Escape_cmp();
 		break;
 	case CCID_PC2RDR_SETPARAMETERS:
 		ccid_SetParameters_cmp();

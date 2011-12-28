@@ -42,7 +42,6 @@
 #ifndef __USB_CCID_H_INCLUDE__
 #define __USB_CCID_H_INCLUDE__
 
-#include <target/usb_scd.h>
 #include <target/ifd.h>
 
 typedef ifd_sid_t	ccid_qid_t;
@@ -220,10 +219,6 @@ struct ccid_hwerr {
 #define CCID_MECHA_CAPTURE_CARD		0x03
 #define CCID_MECHA_LOCK_CARD		0x04
 #define CCID_MECHA_UNLOCK_CARD		0x05
-
-void ccid_Escape_out(void);
-void ccid_Escape_cmp(void);
-void ccid_Escape_in(void);
 
 void ccid_CmdResponse_cmp(void);
 void ccid_ScsSequence_cmp(scs_err_t err);

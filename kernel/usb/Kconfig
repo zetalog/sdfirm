@@ -281,10 +281,13 @@ config CCID_SECURE
 
 choice
 	prompt "CCID escape command vendor"
-	default CCID_ESC_NONE
+	default SCD_ESC_NONE
 
-config CCID_ESC_NONE
+config SCD_ESC_NONE
 	bool "None"
+
+config SCD_ESC_ACR122
+	bool "ACR122"
 
 endchoice
 

@@ -39,7 +39,7 @@
  * $Id: usb_iccd.c,v 1.90 2011-11-10 07:02:37 zhenglv Exp $
  */
 
-#include <target/usb_iccd.h>
+#include <target/usb_scd.h>
 #include <target/cos.h>
 #include <target/scd.h>
 
