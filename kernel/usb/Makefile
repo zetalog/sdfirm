@@ -20,6 +20,6 @@ obj-$(CONFIG_USB_SCD) += usb_scd.rel
 obj-$(CONFIG_USB_CCID) += usb_ccid.rel
 obj-$(CONFIG_USB_ICCD) += usb_iccd.rel
 obj-$(CONFIG_SCD_ESC_NONE) += scd_none.rel
-obj-$(CONFIG_SCD_ESC_ACR122) += scd_acr122.rel
+obj-$(CONFIG_SCD_ESC_PN53X) += scd_pn53x.rel
 
 obj-$(CONFIG_USB_DFU) += usb_dfu.rel
