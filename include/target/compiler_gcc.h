@@ -33,5 +33,6 @@
 #define ULL(x)		x##ULL
 
 #define __packed	__attribute__((packed))
+#define __always_inline	inline __attribute__((always_inline))
 
 #endif  /* __COMPILER_GCC_H_INCLUDE__ */

@@ -11,4 +11,8 @@
 #include <target/compiler_keil.h>
 #endif
 
+#ifndef __always_inline
+#define __always_inline	inline
+#endif
+
 #endif /* __COMPILER_H_INCLUDE__ */
