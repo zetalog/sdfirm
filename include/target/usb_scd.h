@@ -116,6 +116,7 @@ typedef struct scd_desc {
 #define ICCD_MAX_BUSY_SLOT		0x01
 } scd_desc_t;
 
+void scd_Escape_init(void);
 void scd_Escape_out(void);
 void scd_Escape_cmp(void);
 void scd_Escape_in(void);

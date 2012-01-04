@@ -13,3 +13,7 @@ void scd_Escape_in(void)
 {
 	scd_SlotStatus_in();
 }
+
+void scd_Escape_init(void)
+{
+}

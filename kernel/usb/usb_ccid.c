@@ -2389,4 +2389,5 @@ void ccid_init(void)
 	ccid_intr_init();
 	ccid_spe_init();
 	ccid_start();
+	scd_Escape_init();
 }
