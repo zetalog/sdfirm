@@ -1,0 +1,13 @@
+*.d
+*.cmd
+*.ncb
+*.opt
+*.plg
+*.pdb
+*.aps
+*.ilk
+*.exp
+*.lib
+*.dll
+*.so
+RC*
