@@ -1159,29 +1159,19 @@ void __ccid_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size)
 
 	usbd_iter_accel();
 	for (i = CCID_XB_NC; i < blk_size; i++) {
-		/* TODO: Bug Fix Required
-		 *
-		 * Use USBD_OUT_BEGIN/USBD_OUT_END or it could be buggy
-		 * here.
-		 */
-		USBD_OUTB(byte);
-
 		/* XXX: USBD_OUTB May Fake Reads 'byte'
 		 * Following codes are enabled only when USBD_OUTB actually
 		 * gets something into the 'byte', which happens when:
 		 * handled-1 == NC+hdr_size.
 		 */
-		if (usbd_request_handled() != (CCID_XB_NC + hdr_size + 1)) {
-			/* Skip fake readings. */
-			continue;
-		}
-
-		/* Now byte contains non-fake value. */
-		CCID_XB_ERR = ifd_write_byte(CCID_XB_NC, byte);
-		if (!ccid_slot_success(CCID_XB_ERR)) {
-			return;
-		}
-		CCID_XB_NC++;
+		USBD_OUT_BEGIN(byte) {
+			/* Now byte contains non-fake value. */
+			CCID_XB_ERR = ifd_write_byte(CCID_XB_NC, byte);
+			if (!ccid_slot_success(CCID_XB_ERR)) {
+				return;
+			}
+			CCID_XB_NC++;
+		} USBD_OUT_END
 	}
 }
 

@@ -47,14 +47,10 @@
 #define NR_ICCD_DEVICES 1
 #define iccd_id		0
 typedef cos_err_t 	iccd_err_t;
-typedef cos_size_t 	iccd_size_t;
-typedef cos_off_t 	iccd_off_t;
 #else
 #define NR_ICCD_DEVICES NR_SCD_DEVICES
 #define iccd_id		scd_id
 typedef scd_err_t 	iccd_err_t;
-typedef scd_size_t 	iccd_size_t;
-typedef scd_off_t 	iccd_off_t;
 #endif
 #define INVALID_ICCD_UNIT NR_ICCD_DEVICES
 
@@ -97,7 +93,7 @@ static void iccd_submit_response(iccd_t id);
 static void iccd_submit_command(iccd_t id);
 
 static void iccd_handle_cmp(iccd_err_t err, boolean block);
-static void __iccd_XfrBlock_out(iccd_size_t hdr_size, iccd_size_t blk_size);
+static void __iccd_XfrBlock_out(scd_size_t hdr_size, scd_size_t blk_size);
 
 struct iccd_cmd iccd_cmds[NR_ICCD_DEVICES];
 struct iccd_dev iccd_devs[NR_ICCD_DEVICES];
@@ -619,8 +615,8 @@ static void iccd_SlotStatus_out(void)
 
 static void iccd_DataBlock_out(void)
 {
-	iccd_size_t nr = __iccd_xchg_avail();
-	iccd_size_t ne = ICCD_XB_NE;
+	scd_size_t nr = __iccd_xchg_avail();
+	scd_size_t ne = ICCD_XB_NE;
 
 	__iccd_CmdSuccess_out();
 	iccd_resps[iccd_cid].abRFU3 = 0;
@@ -641,9 +637,9 @@ static void iccd_IccPowerOn_out(void)
 	}
 }
 
-static void __iccd_XfrBlock_out(iccd_size_t hdr_size, iccd_size_t blk_size)
+static void __iccd_XfrBlock_out(scd_size_t hdr_size, scd_size_t blk_size)
 {
-	iccd_off_t i;
+	scd_off_t i;
 	uint8_t byte = 0;
 
 	if (usbd_request_handled() == hdr_size) {
@@ -667,29 +663,19 @@ static void __iccd_XfrBlock_out(iccd_size_t hdr_size, iccd_size_t blk_size)
 
 	usbd_iter_accel();
 	for (i = ICCD_XB_NC; i < blk_size; i++) {
-		/* TODO: Bug Fix Required
-		 *
-		 * Codes here need to be refined using USBD_OUT_BEGIN and
-		 * USBD_OUT_END pair.
-		 */
-		USBD_OUTB(byte);
-
 		/* XXX: USBD_OUTB May Fake Reads 'byte'
 		 * Following codes are enabled only when USBD_OUTB actually
 		 * gets something into the 'byte', which happens when:
 		 * handled-1 == NC+hdr_size.
 		 */
-		if (usbd_request_handled() != (ICCD_XB_NC + hdr_size + 1)) {
-			/* Skip fake readings. */
-			continue;
-		}
-
-		/* Now byte contains non-fake value. */
-		ICCD_XB_ERR = __iccd_xchg_write(ICCD_XB_NC, byte);
-		if (!iccd_dev_success(ICCD_XB_ERR)) {
-			return;
-		}
-		ICCD_XB_NC++;
+		USBD_OUT_BEGIN(byte) {
+			/* Now byte contains non-fake value. */
+			ICCD_XB_ERR = __iccd_xchg_write(ICCD_XB_NC, byte);
+			if (!iccd_dev_success(ICCD_XB_ERR)) {
+				return;
+			}
+			ICCD_XB_NC++;
+		} USBD_OUT_END
 	}
 }
 
@@ -760,7 +746,7 @@ out:
 /*=========================================================================
  * bulk-in data
  *=======================================================================*/
-static void iccd_RespHeader_in(iccd_size_t length)
+static void iccd_RespHeader_in(scd_size_t length)
 {
 	USBD_INB(iccd_resp_message());
 	USBD_INL(length);
@@ -778,7 +764,7 @@ void iccd_SlotStatus_in(void)
 
 void iccd_DataBlock_in(void)
 {
-	iccd_off_t i;
+	scd_off_t i;
 
 	iccd_RespHeader_in(iccd_resps[iccd_cid].dwLength);
 
