@@ -1,7 +1,7 @@
-/*-
+/**
  * Public platform independent Near Field Communication (NFC) library
  * 
- * Copyright (C) 2011, Romuald Conty, Romain Tartière
+ * Copyright (C) 2009, Roel Verdult
  * 
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by the
@@ -17,17 +17,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-/* Defines some macros extracted for ISO/IEC 7816-4 */
+#ifndef __NFC_DRIVER_ACR122_H_INCLUDE__
+#define __NFC_DRIVER_ACR122_H_INCLUDE__
 
-#ifndef __NFC_ISO7816_H_INCLUDE__
-#define __NFC_ISO7816_H_INCLUDE__
+#include <nfc-types.h>
 
-#define ISO7816_C_APDU_COMMAND_HEADER_LEN 4
-#define ISO7816_SHORT_APDU_MAX_DATA_LEN 256
-#define ISO7816_SHORT_C_APDU_MAX_OVERHEAD 2
-#define ISO7816_SHORT_R_APDU_RESPONSE_TRAILER_LEN 2
+bool acr122_probe(nfc_device_desc_t pnddDevices[],
+		  size_t szDevices, size_t *pszDeviceFound);
 
-#define ISO7816_SHORT_C_APDU_MAX_LEN (ISO7816_C_APDU_COMMAND_HEADER_LEN + ISO7816_SHORT_APDU_MAX_DATA_LEN + ISO7816_SHORT_C_APDU_MAX_OVERHEAD)
-#define ISO7816_SHORT_R_APDU_MAX_LEN (ISO7816_SHORT_APDU_MAX_DATA_LEN + ISO7816_SHORT_R_APDU_RESPONSE_TRAILER_LEN)
+/* Functions used by developer to handle connection to this device */
+nfc_device_t *acr122_connect(const nfc_device_desc_t * pndd);
+bool acr122_send(nfc_device_t *pnd, const byte_t *pbtData,
+		 const size_t szData, struct timeval *timeout);
+int acr122_receive(nfc_device_t *pnd, byte_t *pbtData,
+		   const size_t szData, struct timeval *timeout);
+void acr122_disconnect(nfc_device_t *pnd);
 
-#endif /* __NFC_ISO7816_H_INCLUDE__ */
+extern const struct nfc_driver_t acr122_driver;
+
+#endif /* __NFC_DRIVER_ACR122_H_INCLUDE__ */

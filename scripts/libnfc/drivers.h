@@ -18,34 +18,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-/**
- * @file drivers.h
- * @brief Supported drivers header
- */
+#ifndef __NFC_DRIVERS_H_INCLUDE__
+#define __NFC_DRIVERS_H_INCLUDE__
 
-#ifndef __NFC_DRIVERS_H__
-#  define __NFC_DRIVERS_H__
+#include <nfc-types.h>
 
-#  include <nfc-types.h>
+#include "drivers/acr122.h"
 
-#  if defined (DRIVER_ACR122_ENABLED)
-#    include "drivers/acr122.h"
-#  endif /* DRIVER_ACR122_ENABLED */
+#ifdef DRIVER_PN53X_USB_ENABLED
+#include "drivers/pn53x_usb.h"
+#endif
 
-#  if defined (DRIVER_PN53X_USB_ENABLED)
-#    include "drivers/pn53x_usb.h"
-#  endif /* DRIVER_PN53X_USB_ENABLED */
+#ifdef DRIVER_ARYGON_ENABLED
+#include "drivers/arygon.h"
+#endif
 
-#  if defined (DRIVER_ARYGON_ENABLED)
-#    include "drivers/arygon.h"
-#  endif /* DRIVER_ARYGON_ENABLED */
+#ifdef DRIVER_PN532_UART_ENABLED
+#include "drivers/pn532_uart.h"
+#endif
 
-#  if defined (DRIVER_PN532_UART_ENABLED)
-#    include "drivers/pn532_uart.h"
-#  endif /* DRIVER_PN532_UART_ENABLED */
-
-#  define DRIVERS_MAX_DEVICES         16
+#define DRIVERS_MAX_DEVICES         16
 
 extern const struct nfc_driver_t *nfc_drivers[];
 
-#endif // __NFC_DRIVERS_H__
+#endif /* __NFC_DRIVERS_H_INCLUDE__ */

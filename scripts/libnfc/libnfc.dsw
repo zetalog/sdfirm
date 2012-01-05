@@ -15,6 +15,21 @@ Package=<4>
 
 ###############################################################################
 
+Project: "nfc_list"=".\nfc_list.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Global:
 
 Package=<5>

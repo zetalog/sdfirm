@@ -85,6 +85,10 @@ LIB32=link.exe -lib
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
+SOURCE=.\drivers\acr122.c
+# End Source File
+# Begin Source File
+
 SOURCE=".\iso14443-subr.c"
 # End Source File
 # Begin Source File
@@ -107,10 +111,18 @@ SOURCE=".\nfc-internal.c"
 
 SOURCE=.\nfc.c
 # End Source File
+# Begin Source File
+
+SOURCE=.\chips\pn53x.c
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\drivers\acr122.h
+# End Source File
 # Begin Source File
 
 SOURCE=.\drivers.h
@@ -142,6 +154,14 @@ SOURCE="..\..\include\host\nfc-types.h"
 # Begin Source File
 
 SOURCE=..\..\include\host\nfc.h
+# End Source File
+# Begin Source File
+
+SOURCE=".\chips\pn53x-internal.h"
+# End Source File
+# Begin Source File
+
+SOURCE=.\chips\pn53x.h
 # End Source File
 # End Group
 # End Target
