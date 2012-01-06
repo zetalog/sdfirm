@@ -153,8 +153,20 @@ struct heap_chunk {
  * the inuse bit, even when heap_size_t is uint8_t, this calculation can
  * ensure HEAP_ALIGN_SIZE is at least a multiples of tow
  */
-#define HEAP_ALIGN_SIZE		(HEAP_CHUNK_FLAG_MASK+1)
-#define HEAP_ALIGN_MASK		HEAP_CHUNK_FLAG_MASK
+#if 0
+/* Alignement is always bitmask+1, since HEAP_CHUNK_FLAG_MASK is the mask,
+ * alignment size should be HEAP_CHUNK_FLAG_MASK+1.
+ */
+#define HEAP_ALIGN_SIZE		(HEAP_CHUNK_FLAG_MASK+1+HEAP_CHUNK_FLAG_MASK+1)
+#endif
+/* TODO: Conditional Alignment Size
+ * Following statement is TRUE only if
+ *   HEAP_CHUNK_FLAG_MASK+1 <= HEAP_SIZE_SIZE
+ * But the compiler wouldn't allow such expressions in the "#if"
+ * directives.
+ */
+#define HEAP_ALIGN_SIZE		(HEAP_SIZE_SIZE+HEAP_SIZE_SIZE)
+#define HEAP_ALIGN_MASK		(HEAP_ALIGN_SIZE-1)
 
 #define heap_chunk2mem(chk)		\
 	(((caddr_t)(chk) + 2*HEAP_SIZE_SIZE))
@@ -761,7 +773,7 @@ static struct list_head heap_bins[NR_HEAP_BINS] = {
  */
 #define HEAP_BINS_PER_BLOCK	4
 #define HEAP_NR_BLOCKS		\
-	((NR_HEAP_BINS+HEAP_BINS_PER_BLOCK-1)/(HEAP_BINS_PER_BLOCK*BITS_PER_UNIT))
+	((NR_HEAP_BINS+HEAP_BINS_PER_BLOCK-1)/(HEAP_BINS_PER_BLOCK))
 
 #define heap_block_index(index)	((uint8_t)(index / HEAP_BINS_PER_BLOCK))
 #define heap_set_block(index)	set_bit(heap_block_index(index), heap_blocks)

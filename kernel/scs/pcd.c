@@ -42,3 +42,67 @@
 #include <target/state.h>
 #include <target/delay.h>
 #include <target/timer.h>
+
+#define PCD_CRC_A 1
+#define PCD_CRC_B 2
+
+uint16_t pcd_crc16_update(uint8_t ch, uint16_t *pcrc)
+{
+	ch = (ch^(uint8_t)((*pcrc) & 0x00FF));
+	ch = (ch^(ch<<4));
+	*pcrc = (*pcrc >> 8)^
+		((uint16_t)ch << 8)^
+		((uint16_t)ch << 3)^
+		((uint16_t)ch >> 4);
+	return (*pcrc);
+}
+
+void pcd_crc16_compute(int type, char *buf, size_t len,
+			uint8_t *xmit_1st, uint8_t *xmit_2nd)
+{
+	uint8_t c;
+	uint16_t crc;
+	switch (type) {
+	case PCD_CRC_A:
+		crc = 0x6363; /* ITU-V.41 */
+		break;
+	case PCD_CRC_B:
+		crc = 0xFFFF; /* ISO/IEC 13239 (formerly ISO/IEC 3309) */
+		break;
+	default:
+		return;
+	}
+	do {
+		c = *buf++;
+		pcd_crc16_update(c, &crc);
+	} while (--len);
+	if (type == PCD_CRC_B)
+		crc = ~crc; /* ISO/IEC 13239 (formerly ISO/IEC 3309) */
+	*xmit_1st = (uint8_t)(crc & 0xFF);
+	*xmit_2nd = (uint8_t)((crc >> 8) & 0xFF);
+}
+
+#ifdef CONFIG_PCD_TEST
+void pcd_crc16_test(void)
+{
+	int i;
+	uint8_t buf_a[10] = {0x12, 0x34};
+	uint8_t buf_b[10] = {0x0A, 0x12, 0x34, 0x56};
+	uint8_t first, second;
+
+	printf("CRC-16 reference results ISO/IEC 14443-3\n");
+	printf("Crc-16 G(x) = x^16 + x^12 + x^5 + 1\n\n");
+
+	printf("CRC_A of [ ");
+	for (i = 0; i < 2; i++)
+		printf("%02X ", buf_a[i]);
+	pcd_crc16_compute(PCD_CRC_A, buf_a, 2, &first, &second);
+	printf("] Transmitted: %02X then %02X.\n", first, second);
+
+	printf("CRC_B of [ ");
+	for (i = 0; i < 4; i++)
+		printf("%02X ", buf_b[i]);
+	pcd_crc16_compute(PCD_CRC_B, buf_b, 4, &first, &second);
+	printf("] Transmitted: %02X then %02X.\n", first, second);
+}
+#endif

@@ -233,6 +233,10 @@ SOURCE=..\..\..\include\target\state.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\asm\task.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\include\target\timer.h
 # End Source File
 # Begin Source File

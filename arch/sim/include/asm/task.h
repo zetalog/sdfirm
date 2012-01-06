@@ -8,4 +8,7 @@
 
 extern caddr_t sim_stack;
 
+#define arch_hw_init_task(task, call, priv)
+#define arch_hw_switch_to(prev, next, last)
+
 #endif /* __TASK_SIM_H_INCLUDE__ */
