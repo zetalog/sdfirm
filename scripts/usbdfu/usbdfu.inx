@@ -22,6 +22,7 @@ $ARCH$ = ""
 
 [Soliton]
 %USB\VID_03DE&PID_0003&MI_01.DeviceDesc% = USBDFU_RUN, USB\VID_03DE&PID_0003&MI_01
+%USB\VID_03DE&PID_0004&MI_01.DeviceDesc% = USBDFU_RUN, USB\VID_03DE&PID_0004&MI_01
 %USB\VID_03DE&PID_0100&MI_01.DeviceDesc% = USBDFU_RUN, USB\VID_03DE&PID_0100&MI_01
 %USB\VID_03DE&PID_0004&REV_0000.DeviceDesc% = USBDFU_DFU, USB\VID_03DE&PID_0004&REV_0000
 
@@ -63,6 +64,7 @@ Disk_Description 	= "USB DFU Installation Disk"
 ;GenericDFU.DeviceDesc 	= "USB Device Firmware Upgrade"
 Soliton.Mfg		= "Soliton Corporation"
 USB\VID_03DE&PID_0100&MI_01.DeviceDesc = "Soliton Firmware Upgrade (Run Mode)"
+USB\VID_03DE&PID_0004&MI_01.DeviceDesc = "Soliton Firmware Upgrade (Run Mode)"
 USB\VID_03DE&PID_0003&MI_01.DeviceDesc = "Soliton Firmware Upgrade (Run Mode)"
 USB\VID_03DE&PID_0004&REV_0000.DeviceDesc = "Soliton Firmware Upgrade (DFU Mode)"
 

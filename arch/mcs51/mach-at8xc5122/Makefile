@@ -14,3 +14,4 @@ obj-$(CONFIG_KBD_AT8XC5122) += kbd.rel
 obj-$(CONFIG_UART_AT8XC5122) += uart.rel
 obj-$(CONFIG_USB_AT8XC5122) += usb.rel
 obj-$(CONFIG_IFD_AT8XC5122) += ifd.rel
+obj-$(CONFIG_DSU_AT8XC5122) += boot.rel
