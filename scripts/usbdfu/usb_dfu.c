@@ -867,6 +867,11 @@ void dfu_buffer_calc(struct dfu_device *dfu, uint16_t xfr_size)
 	size_t size;
 
 	BUG_ON(DFU_BUFFERED_XFRS<=1);
+
+	if (xfr_size == 0)
+		dfu->xfr_size = 8;
+	else
+		dfu->xfr_size = xfr_size;
 	
 	dfu->xfr_size = xfr_size;
 	size = __roundup32(dfu->xfr_size*DFU_BUFFERED_XFRS);
@@ -1178,7 +1183,9 @@ status_t dfu_start_device(os_usbif *usb)
 
 	desc = dfu_match_function(usb->usb_interface_desc,
 				  usb->usb_interface_desc_length);
-	if (!desc || desc->wTransferSize == 0) {
+	if (!desc || 
+	    (desc->wTransferSize == 0 && 
+	     usb->usb_interface_desc->bInterfaceProtocol != USBDFU_PROTO_RUNTIME)) {
 		status = STATUS_NO_SUCH_DEVICE;
 		goto end;
 	}
