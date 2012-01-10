@@ -13,14 +13,6 @@
 #error "Multiple bootloader defined"
 #endif
 
-/* PLLDIV config byte */
-#define BOOT_HW_PLLDIV_CFG	0x7FFB
-/* PLL/XTAL config byte */
-#define BOOT_HW_PLLXTAL_CFG	0x7FFC
-/* software identification byte */
-#define BOOT_HW_SOFTWARE_ID	0x7FFD
-#define BOOT_HW_CODE_LENGTH	0x7FFE
-#define BOOT_HW_USB_ID		0x7F00
 #define CRAM_SIZE		0x7F00
 
 #ifdef CONFIG_DSU_AT8XC5122

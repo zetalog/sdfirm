@@ -191,7 +191,7 @@ heap_size_t porting_heap_space = PORTING_HEAP_UNIT;
 #undef uart_putchar
 #define uart_putchar(byte)
 
-void porting_handler(uint8_t event)
+void porting_heap_test(void)
 {
 	uint32_t mem, mem2;
 
@@ -214,7 +214,12 @@ void porting_handler(uint8_t event)
 	porting_heap_space += PORTING_HEAP_UNIT;
 	if (porting_heap_space >= CONFIG_HEAP_SIZE || porting_heap_space == 0)
 		porting_heap_space = PORTING_HEAP_UNIT;
+}
 
+void porting_handler(uint8_t event)
+{
+	while (1)
+		porting_heap_test();
 	state_wakeup(porting_sid);
 }
 

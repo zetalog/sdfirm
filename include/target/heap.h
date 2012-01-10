@@ -82,6 +82,7 @@ typedef uint16_t heap_size_t;
 #else
 typedef uint8_t heap_size_t;
 #endif
+
 #if CONFIG_HEAP_SIZE > 32767
 typedef int32_t heap_offset_t;
 #elif CONFIG_HEAP_SIZE > 127
@@ -92,6 +93,9 @@ typedef int8_t heap_offset_t;
 #if defined(CONFIG_HEAP) && (CONFIG_HEAP_SIZE < 256)
 #error "Unsupported small heap size"
 #endif
+
+#define HEAP_SIZE_SIZE		(sizeof (heap_size_t))
+#define HEAP_ADDR_SIZE		(sizeof (caddr_t))
 
 #define INVALID_HEAP_ADDR	((caddr_t)-1)
 

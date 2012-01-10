@@ -135,37 +135,31 @@
  * non-fitting chunks, so as to provide better locality for runs of
  * sequentially allocated chunks.
  */
+
 struct heap_chunk {
 	heap_size_t prev_size;
 	heap_size_t curr_size;
-	/* flags are held in 'curr_size' field */
+/* Flags are held in 'curr_size' field of heap_chunk which could affect
+ * the heap chunk alignment.
+ */
 #define HEAP_CHUNK_FLAG_P	0x1
-#define HEAP_CHUNK_FLAG_MASK	(HEAP_CHUNK_FLAG_P)
+#define HEAP_CHUNK_FLAG_BITS	1
+#define HEAP_CHUNK_FLAG_MASK	((1<<HEAP_CHUNK_FLAG_BITS)-1)
 	struct list_head node;
 #define heap_node2chunk(p)	list_entry(p, struct heap_chunk, node)
 };
-
-#define HEAP_SIZE_SIZE		(sizeof (heap_size_t))
-#define HEAP_ADDR_SIZE		(sizeof (caddr_t))
 #define HEAP_HEAD_SIZE		(sizeof (struct heap_chunk))
 
-/* HEAP_ALIGN_SIZE must >= 2 to insure curr_size is a even number to hold
- * the inuse bit, even when heap_size_t is uint8_t, this calculation can
- * ensure HEAP_ALIGN_SIZE is at least a multiples of tow
+/* HEAP_ALIGN_SIZE must > 1 to insure curr_size is a even number to hold
+ * the inuse bit, even when heap_size_t is uint8_t.
+ * HEAP_ALIGN_SIZE should also be an exp of 2 to be used by the ALIGN
+ * macro.
  */
-#if 0
-/* Alignement is always bitmask+1, since HEAP_CHUNK_FLAG_MASK is the mask,
- * alignment size should be HEAP_CHUNK_FLAG_MASK+1.
- */
-#define HEAP_ALIGN_SIZE		(HEAP_CHUNK_FLAG_MASK+1+HEAP_CHUNK_FLAG_MASK+1)
+#if CONFIG_HEAP_SIZE <= 255
+#define HEAP_ALIGN_SIZE		(1<<HEAP_CHUNK_FLAG_BITS)
+#else
+#define HEAP_ALIGN_SIZE		(HEAP_SIZE_SIZE<<1)
 #endif
-/* TODO: Conditional Alignment Size
- * Following statement is TRUE only if
- *   HEAP_CHUNK_FLAG_MASK+1 <= HEAP_SIZE_SIZE
- * But the compiler wouldn't allow such expressions in the "#if"
- * directives.
- */
-#define HEAP_ALIGN_SIZE		(HEAP_SIZE_SIZE+HEAP_SIZE_SIZE)
 #define HEAP_ALIGN_MASK		(HEAP_ALIGN_SIZE-1)
 
 #define heap_chunk2mem(chk)		\
@@ -258,7 +252,7 @@ struct heap_chunk {
  *  1 bin  of size what's left
  *
  * There is actually a little bit of slop in the numbers in
- * heap_bin_index for the sake of speed. This makes no difference
+ * heap_bin_hash for the sake of speed. This makes no difference
  * elsewhere.
  *
  * The special chunks 'heap_first_chunk' and 'heap_last_chunk' get their own
@@ -308,22 +302,20 @@ struct heap_chunk {
  * ==========================
  *   126 524288-
  */
-uint8_t heap_bin_index(heap_size_t sz)
-{
-	return ((uint8_t)(((((heap_size_t)(sz)) >>  9) ==   0) ?
-			   (((heap_size_t)(sz)) >>  3) :
-			  ((((heap_size_t)(sz)) >>  9) <=   4) ?
-			   (((heap_size_t)(sz)) >>  6) +   56 :
-			  ((((heap_size_t)(sz)) >>  9) <=  20) ?
-			   (((heap_size_t)(sz)) >>  9) +   91 :
-			  ((((heap_size_t)(sz)) >>  9) <=  84) ?
-			   (((heap_size_t)(sz)) >> 12) +  110 :
-			  ((((heap_size_t)(sz)) >>  9) <= 340) ?
-			   (((heap_size_t)(sz)) >> 15) +  119 :
-			  ((((heap_size_t)(sz)) >> 9) <= 1364) ?
-			   (((heap_size_t)(sz)) >> 18) +  124 :
-			    126));
-}
+#define heap_bin_hash(sz)					\
+	((uint8_t)(((((heap_size_t)(sz)) >>  9) ==   0) ?	\
+		   (((heap_size_t)(sz)) >>  3) :		\
+		  ((((heap_size_t)(sz)) >>  9) <=   4) ?	\
+		   (((heap_size_t)(sz)) >>  6) +   56 :		\
+		  ((((heap_size_t)(sz)) >>  9) <=  20) ?	\
+		   (((heap_size_t)(sz)) >>  9) +   91 :		\
+		  ((((heap_size_t)(sz)) >>  9) <=  84) ?	\
+		   (((heap_size_t)(sz)) >> 12) +  110 :		\
+		  ((((heap_size_t)(sz)) >>  9) <= 340) ?	\
+		   (((heap_size_t)(sz)) >> 15) +  119 :		\
+		  ((((heap_size_t)(sz)) >> 9) <= 1364) ?	\
+		   (((heap_size_t)(sz)) >> 18) +  124 :		\
+		    126))
 
 #if CONFIG_HEAP_SIZE < 512
 #define __NR_HEAP_BINS	(CONFIG_HEAP_SIZE >> 3)
@@ -771,7 +763,7 @@ static struct list_head heap_bins[NR_HEAP_BINS] = {
  * in a block are empty, but instead only when all are noticed to be empty
  * during traversal in heap_alloc.
  */
-#define HEAP_BINS_PER_BLOCK	4
+#define HEAP_BINS_PER_BLOCK	1
 #define HEAP_NR_BLOCKS		\
 	((NR_HEAP_BINS+HEAP_BINS_PER_BLOCK-1)/(HEAP_BINS_PER_BLOCK))
 
@@ -970,7 +962,7 @@ do {									\
 		INIT_LIST_HEAD(&((P)->node));				\
 		list_add_tail(&((P)->node), heap_bin(IDX));		\
 	}  else {							\
-		IDX = heap_bin_index(S);				\
+		IDX = heap_bin_hash(S);					\
 		BK = heap_bin(IDX);					\
 		FD = BK->next;						\
 		if (FD == BK) heap_set_block(IDX);			\
@@ -1034,7 +1026,7 @@ static void heap_extend_top(heap_size_t nb)
 		/* guarantee alignment of first new chunk made from this space */
 		front_misalign = (heap_size_t)(heap_chunk2mem(brk) & HEAP_ALIGN_MASK);
 		if (front_misalign == 0) {
-			correction = (HEAP_ALIGN_SIZE) - front_misalign;
+			correction = (heap_size_t)(HEAP_ALIGN_SIZE) - front_misalign;
 			brk += correction;
 		} else {
 			correction = 0;
@@ -1139,7 +1131,7 @@ caddr_t heap_alloc(heap_size_t bytes)
 		/* set for bin scan below. We've already scanned 2 bins. */
 		idx += 2;
 	} else {
-		idx = heap_bin_index(nb);
+		idx = heap_bin_hash(nb);
 		bin = heap_bin(idx);
 
 		heap_chunk_for_each_safe(victim, n, bin) {
@@ -1206,7 +1198,7 @@ caddr_t heap_alloc(heap_size_t bytes)
 		if (block > heap_block_index(idx)) {
 			idx = block*HEAP_BINS_PER_BLOCK;
 		}
-		for (;;) {
+		while (idx < NR_HEAP_BINS) {
 			startidx = idx;     /* (track incomplete blocks) */
 			q = bin = heap_bin(idx);
 
@@ -1236,7 +1228,9 @@ caddr_t heap_alloc(heap_size_t bytes)
 				}
 				bin = heap_next_bin(bin);
 				printf("%d\n", ((idx+1) & (HEAP_BINS_PER_BLOCK - 1)));
-			} while ((++idx & (HEAP_BINS_PER_BLOCK - 1)) != 0);
+				idx++;
+			} while (((idx & (HEAP_BINS_PER_BLOCK - 1)) != 0) &&
+				 (idx < NR_HEAP_BINS));
 
 			/* clear out the block bit */
 			do  {
@@ -1546,23 +1540,4 @@ caddr_t heap_calloc(heap_size_t bytes)
 
 void heap_alloc_init(void)
 {
-	uint8_t idx;
-	struct list_head *bin;
-
-	for (idx = 0; idx < NR_HEAP_BINS; idx++) {
-		bin = &heap_bins[idx];
-		printf("bin=%03d, head=%08x, next=%08x, prev=%08x\n",
-		       idx, bin, bin->next, bin->prev);
-	}
-#if 0
-	heap_size_t i, pad;
-
-	for (i = 0; i < CONFIG_HEAP_SIZE; i++) {
-		pad = heap_request_pad(i);
-		BUG_ON(heap_aligned_ok(pad));
-		printf("REQUEST=%04x, PADDING=%04x, HEAD_SIZE=%04x\n",
-		       i, pad, HEAP_HEAD_SIZE);
-		BUG_ON(pad < i || pad > (CONFIG_HEAP_SIZE-HEAP_HEAD_SIZE));
-	}
-#endif
 }
