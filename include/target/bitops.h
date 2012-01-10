@@ -31,15 +31,89 @@ uint8_t find_next_clear_bit(const bits_t *addr,
 #define ALIGN(x,a)		__ALIGN_MASK(x,(a)-1)
 #define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
 
-uint8_t __fls8(uint8_t x);
 uint8_t __ffs8(uint8_t word);
-#define __ffz8(x)	__ffs8((uint8_t)(~(x)))
 uint8_t __ffs16(uint16_t word);
+uint8_t __fls8(uint8_t x);
 uint8_t __fls16(uint16_t word);
 uint8_t __fls32(uint32_t word);
+#define __ffz8(x)	__ffs8((uint8_t)(~(x)))
+#define __ffz16(x)	__ffz8((uint16_t)(~(x)))
 uint32_t __roundup32(uint32_t n);
 uint32_t __rounddown32(uint32_t n);
 uint16_t __roundup16(uint16_t n);
+#define __ilog2_u8(n)	__fls8(n)
+#define __ilog2_u16(n)	__fls16(n)
+#define __ilog2_u32(n)	__fls32(n)
+extern uint8_t ____ilog2_NaN(void);
+#define ilog2_const(n)			\
+(					\
+	(n) < 1 ? ____ilog2_NaN() :	\
+	(n) & (ULL(1) << 63) ? 63 :	\
+	(n) & (ULL(1) << 62) ? 62 :	\
+	(n) & (ULL(1) << 61) ? 61 :	\
+	(n) & (ULL(1) << 60) ? 60 :	\
+	(n) & (ULL(1) << 59) ? 59 :	\
+	(n) & (ULL(1) << 58) ? 58 :	\
+	(n) & (ULL(1) << 57) ? 57 :	\
+	(n) & (ULL(1) << 56) ? 56 :	\
+	(n) & (ULL(1) << 55) ? 55 :	\
+	(n) & (ULL(1) << 54) ? 54 :	\
+	(n) & (ULL(1) << 53) ? 53 :	\
+	(n) & (ULL(1) << 52) ? 52 :	\
+	(n) & (ULL(1) << 51) ? 51 :	\
+	(n) & (ULL(1) << 50) ? 50 :	\
+	(n) & (ULL(1) << 49) ? 49 :	\
+	(n) & (ULL(1) << 48) ? 48 :	\
+	(n) & (ULL(1) << 47) ? 47 :	\
+	(n) & (ULL(1) << 46) ? 46 :	\
+	(n) & (ULL(1) << 45) ? 45 :	\
+	(n) & (ULL(1) << 44) ? 44 :	\
+	(n) & (ULL(1) << 43) ? 43 :	\
+	(n) & (ULL(1) << 42) ? 42 :	\
+	(n) & (ULL(1) << 41) ? 41 :	\
+	(n) & (ULL(1) << 40) ? 40 :	\
+	(n) & (ULL(1) << 39) ? 39 :	\
+	(n) & (ULL(1) << 38) ? 38 :	\
+	(n) & (ULL(1) << 37) ? 37 :	\
+	(n) & (ULL(1) << 36) ? 36 :	\
+	(n) & (ULL(1) << 35) ? 35 :	\
+	(n) & (ULL(1) << 34) ? 34 :	\
+	(n) & (ULL(1) << 33) ? 33 :	\
+	(n) & (ULL(1) << 32) ? 32 :	\
+	(n) & (ULL(1) << 31) ? 31 :	\
+	(n) & (ULL(1) << 30) ? 30 :	\
+	(n) & (ULL(1) << 29) ? 29 :	\
+	(n) & (ULL(1) << 28) ? 28 :	\
+	(n) & (ULL(1) << 27) ? 27 :	\
+	(n) & (ULL(1) << 26) ? 26 :	\
+	(n) & (ULL(1) << 25) ? 25 :	\
+	(n) & (ULL(1) << 24) ? 24 :	\
+	(n) & (ULL(1) << 23) ? 23 :	\
+	(n) & (ULL(1) << 22) ? 22 :	\
+	(n) & (ULL(1) << 21) ? 21 :	\
+	(n) & (ULL(1) << 20) ? 20 :	\
+	(n) & (ULL(1) << 19) ? 19 :	\
+	(n) & (ULL(1) << 18) ? 18 :	\
+	(n) & (ULL(1) << 17) ? 17 :	\
+	(n) & (ULL(1) << 16) ? 16 :	\
+	(n) & (ULL(1) << 15) ? 15 :	\
+	(n) & (ULL(1) << 14) ? 14 :	\
+	(n) & (ULL(1) << 13) ? 13 :	\
+	(n) & (ULL(1) << 12) ? 12 :	\
+	(n) & (ULL(1) << 11) ? 11 :	\
+	(n) & (ULL(1) << 10) ? 10 :	\
+	(n) & (ULL(1) <<  9) ?  9 :	\
+	(n) & (ULL(1) <<  8) ?  8 :	\
+	(n) & (ULL(1) <<  7) ?  7 :	\
+	(n) & (ULL(1) <<  6) ?  6 :	\
+	(n) & (ULL(1) <<  5) ?  5 :	\
+	(n) & (ULL(1) <<  4) ?  4 :	\
+	(n) & (ULL(1) <<  3) ?  3 :	\
+	(n) & (ULL(1) <<  2) ?  2 :	\
+	(n) & (ULL(1) <<  1) ?  1 :	\
+	(n) & (ULL(1) <<  0) ?  0 :	\
+	____ilog2_NaN()			\
+ )
 
 uint8_t bitrev8(uint8_t byte);
 uint8_t hweight8(uint8_t byte);
