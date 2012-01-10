@@ -188,9 +188,6 @@ void porting_init(void)
 #define PORTING_HEAP_UNIT		(CONFIG_HEAP_SIZE / PORTING_HEAP_LOOP)
 heap_size_t porting_heap_space = PORTING_HEAP_UNIT;
 
-#undef uart_putchar
-#define uart_putchar(byte)
-
 void porting_heap_test(void)
 {
 	uint32_t mem, mem2;

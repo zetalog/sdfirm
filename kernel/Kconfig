@@ -252,8 +252,8 @@ endchoice
 
 config HEAP_SIZE
 	hex "Total heap allocable size"
-	range 0x256 0x00010000
-	default 0x256
+	range 0x100 0x10000
+	default 0x100
 
 choice
 	prompt "Allocator selection"
