@@ -1203,9 +1203,6 @@ caddr_t heap_alloc(heap_size_t bytes)
 			q = bin = heap_bin(idx);
 
 			do {
-				printf("bin=%03d, head=%08x, next=%08x, prev=%08x\n",
-				       idx, bin, bin->next, bin->prev);
-
 				heap_chunk_for_each_safe(victim, n, bin) {
 					victim_size = heap_curr_size(victim);
 					remainder_size = victim_size - nb;
@@ -1227,7 +1224,6 @@ caddr_t heap_alloc(heap_size_t bytes)
 					}
 				}
 				bin = heap_next_bin(bin);
-				printf("%d\n", ((idx+1) & (HEAP_BINS_PER_BLOCK - 1)));
 				idx++;
 			} while (((idx & (HEAP_BINS_PER_BLOCK - 1)) != 0) &&
 				 (idx < NR_HEAP_BINS));

@@ -206,8 +206,6 @@ void porting_heap_test(void)
 	uart_putchar(HIBYTE(LOWORD(mem)));
 	uart_putchar(LOBYTE(LOWORD(mem)));
 
-	printf("%04x %08x %08x\n", porting_heap_space, mem, mem2);
-
 	if (mem) heap_free((caddr_t)mem);
 	if (mem2) heap_free((caddr_t)mem2);
 
@@ -218,8 +216,7 @@ void porting_heap_test(void)
 
 void porting_handler(uint8_t event)
 {
-	while (1)
-		porting_heap_test();
+	porting_heap_test();
 	state_wakeup(porting_sid);
 }
 
