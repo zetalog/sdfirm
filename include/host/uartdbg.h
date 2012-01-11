@@ -67,6 +67,12 @@ typedef void (*dbg_dump_cb)(void *ctx, dbg_cmd_t cmd, const char *fmt, ...);
 typedef void (*dbg_last_cb)(void *ctx, const unsigned char *buf, size_t len);
 typedef void (*dbg_storage_cb)(void *ctx, unsigned char buf);
 
+#define DBG_STORE_EVENT		0x00
+#define DBG_STORE_RAW		0x01
+struct dbg_storage {
+	dbg_storage_cb call;
+};
+
 struct dbg_parser {
 	const char *name;
 	unsigned long flags;
@@ -84,8 +90,11 @@ const char *dbg_event_name(dbg_cmd_t cmd);
 void dbg_register_output(dbg_dump_cb dump, dbg_last_cb last);
 void dbg_register_source(dbg_cmd_t state, struct dbg_source *source);
 
-dbg_storage_cb dbg_save_storage(dbg_storage_cb cb);
-void dbg_restore_storage(dbg_storage_cb cb);
+struct dbg_storage *dbg_save_storage(int store,
+				     struct dbg_storage *stor);
+void dbg_restore_storage(int store,
+			 struct dbg_storage *stor);
+void dbg_store_event(void *ctx, unsigned char log);
 void dbg_store_raw(void *ctx, unsigned char log);
 
 extern dbg_dump_cb dbg_dumper;

@@ -213,6 +213,7 @@ void porting_heap_test(void)
 
 void porting_handler(uint8_t event)
 {
+	while (1)
 	porting_heap_test();
 	state_wakeup(porting_sid);
 }

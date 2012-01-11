@@ -18,17 +18,35 @@ struct dbg_source *dbg_sources[NR_DBG_UI_SRCS];
 static bool dbg_dump_log(void *ctx, const unsigned char *log);
 static void dbg_dump_raw(void *ctx);
 
-dbg_storage_cb dbg_store_call = dbg_store_raw;
+struct dbg_storage dbg_defualt_raw = {
+	dbg_store_raw,
+};
 
-void dbg_restore_storage(dbg_storage_cb cb)
+struct dbg_storage dbg_defualt_event = {
+	dbg_store_event,
+};
+
+struct dbg_storage *dbg_raw_storage = &dbg_defualt_raw;
+struct dbg_storage *dbg_event_storage = &dbg_defualt_event;
+
+void dbg_restore_storage(int type, struct dbg_storage *stor)
 {
-	dbg_store_call = cb;
+	if (type == DBG_STORE_RAW)
+		dbg_raw_storage = stor;
+	else
+		dbg_event_storage = stor;
 }
 
-dbg_storage_cb dbg_save_storage(dbg_storage_cb cb)
+struct dbg_storage *dbg_save_storage(int type,
+				     struct dbg_storage *stor)
 {
-	dbg_storage_cb ocb = dbg_store_call;
-	dbg_restore_storage(cb);
+	struct dbg_storage *ocb;
+	
+	if (type == DBG_STORE_RAW)
+		ocb = dbg_raw_storage;
+	else
+		ocb = dbg_event_storage;
+	dbg_restore_storage(type, stor);
 	return ocb;
 }
 
@@ -45,6 +63,14 @@ static void dbg_dump_raw(void *ctx)
 	}
 	dbg_dump_stored = 0;
 	dbg_dumper(ctx, (DBG_SRC_RAW<<4 | RAW_EVENT_DATA), "%s", buf);
+}
+
+void dbg_store_event(void *ctx, unsigned char log)
+{
+	assert(dbg_event_stored < DBG_EVENT_SIZE);
+
+	dbg_event_buffer[dbg_event_stored] = log;
+	dbg_event_stored++;
 }
 
 void dbg_store_raw(void *ctx, unsigned char log)
@@ -91,10 +117,7 @@ void dbg_process_log(void *ctx, uint8_t byte)
 	if (dbg_logger)
 		dbg_logger(ctx, &byte, 1);
 
-	assert(dbg_event_stored < DBG_EVENT_SIZE);
-
-	dbg_event_buffer[dbg_event_stored] = byte;
-	dbg_event_stored++;
+	dbg_event_storage->call(ctx, byte);
 
 	if (dbg_event_stored == DBG_EVENT_SIZE) {
 		if (dbg_event_buffer[0] == dbg_event_buffer[2]) {
@@ -109,7 +132,7 @@ void dbg_process_log(void *ctx, uint8_t byte)
 			dbg_event_buffer[iter] = dbg_event_buffer[iter+1];
 		}
 		
-		dbg_store_call(ctx, raw);
+		dbg_raw_storage->call(ctx, raw);
 	}
 }
 
@@ -169,49 +192,50 @@ static void main_dump_init(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 	}
 }
 
+int panic_stage;
+#define PANIC_STORE_FILE	0x00
+#define PANIC_STORE_LINE	0x01
+struct dbg_storage *panic_storage = NULL;
+size_t panic_line;
 unsigned char panic_file[MAX_PATH];
 int panic_offset;
-unsigned char *panic_buffer = NULL;
-dbg_storage_cb panic_storage = NULL;
-unsigned char panic_line[2];
 
 static void main_store_panic(void *ctx, unsigned char byte)
 {
-	panic_buffer[panic_offset] = byte;
-	panic_offset++;
+	if (panic_stage == PANIC_STORE_FILE) {
+		panic_file[panic_offset] = byte;
+		panic_offset++;
+		if (byte == '\0') {
+			panic_stage = PANIC_STORE_LINE;
+			panic_offset = 0;
+		}
+	} else {
+		if (panic_offset == 0) {
+			panic_line = byte;
+			panic_offset++;
+		} else {
+			panic_line += 256 * byte;
+			dbg_restore_storage(DBG_STORE_EVENT, panic_storage);
+		}
+	}
 }
+
+struct dbg_storage main_panic_storage = {
+	main_store_panic,
+};
 
 static void main_dump_panic(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 {
-	char *file = NULL;
-	size_t line = 0;
-
 	dbg_cmd_t p = (data & 0xF0) >> 4;
 	switch (p) {
 	case 0:
-		dbg_dumper(ctx, cmd, "panic occurs at:");
+		panic_stage = PANIC_STORE_FILE;
 		panic_offset = 0;
-		panic_buffer = panic_file;
-		panic_storage = dbg_save_storage(main_store_panic);
+		panic_storage = dbg_save_storage(DBG_STORE_EVENT,
+						 &main_panic_storage);
 		break;
 	case 1:
-		if (panic_buffer) {
-			panic_buffer[panic_offset] = '\0';
-			dbg_dumper(ctx, cmd, "file: %s", file);
-			dbg_restore_storage(panic_storage);
-			panic_offset = 0;
-			panic_buffer = panic_line;
-			panic_storage = dbg_save_storage(main_store_panic);
-		} else {
-			dbg_store_raw(ctx, MAIN_DEBUG_PANIC);
-			dbg_store_raw(ctx, 1);
-			dbg_store_raw(ctx, MAIN_DEBUG_PANIC);
-		}
-		break;
-	case 2:
-		line = panic_line[0] + 256 * panic_line[1];
-		dbg_dumper(ctx, cmd, "line: %d", line);
-		dbg_restore_storage(panic_storage);
+		dbg_dumper(ctx, cmd, "%s:%d", panic_file, panic_line);
 		break;
 	default:
 		dbg_dumper(ctx, cmd, "flavour");

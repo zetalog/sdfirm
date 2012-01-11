@@ -90,6 +90,7 @@ typedef int16_t heap_offset_t;
 #else
 typedef int8_t heap_offset_t;
 #endif
+
 #if defined(CONFIG_HEAP) && (CONFIG_HEAP_SIZE < 256)
 #error "Unsupported small heap size"
 #endif
