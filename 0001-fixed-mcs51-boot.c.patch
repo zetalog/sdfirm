@@ -1,0 +1,100 @@
+From e80cb75baabca3ec9458429a653cbce949413592 Mon Sep 17 00:00:00 2001
+From: Mingqing Xie <sfp218@gmail.com>
+Date: Wed, 11 Jan 2012 17:56:56 +0800
+Subject: [PATCH] fixed mcs51 boot.c
+
+
+Signed-off-by: Mingqing Xie <sfp218@gmail.com>
+---
+ arch/mcs51/mach-at8xc5122/boot.c |   24 +++++++++++-------------
+ init/main.c                      |    7 +++----
+ 2 files changed, 14 insertions(+), 17 deletions(-)
+
+diff --git a/arch/mcs51/mach-at8xc5122/boot.c b/arch/mcs51/mach-at8xc5122/boot.c
+index 6bba658..d438313 100644
+--- a/arch/mcs51/mach-at8xc5122/boot.c
++++ b/arch/mcs51/mach-at8xc5122/boot.c
+@@ -55,36 +55,34 @@ struct __boot_usb_id {
+ #define BOOT_HW_CAST256_S3	((text_quad_t *)0x9A00)
+ #define BOOT_HW_CAST256_S4	((text_quad_t *)0xA200)
+ 
+-uint8_t boot_hw_api_a, boot_hw_api_b;
++uint8_t boot_hw_api_writeb;
+ 
+ uint16_t boot_hw_get_id(void)
+ {
+ 	__asm
+-	mov	r7, BOOT_HW_API_GET_ID
++	mov	r7, #BOOT_HW_API_GET_ID
+ 	lcall	BOOT_HW_API_ENTRY
+-	mov	_boot_hw_api_a, a
+-	mov	_boot_hw_api_b, b
++	mov	dpl, a
++	mov	dph, b
+ 	__endasm;
+-	return MAKEWORD(boot_hw_api_a, boot_hw_api_b);
+ }
+ 
+ uint8_t boot_hw_cram_readb(text_byte_t *addr)
+ {
+ 	__asm
+-	mov	r7, BOOT_HW_API_CRAM_READ
+-	lcall	BOOT_HW_API_ENTRY
+-	mov	_boot_hw_api_a, a
++	mov	r7, #BOOT_HW_API_CRAM_READ
++	lcall	#BOOT_HW_API_ENTRY
++	mov	dpl, a
+ 	__endasm;
+-	return boot_hw_api_a;
+ }
+ 
+ void boot_hw_cram_writeb(text_byte_t *addr, uint8_t val)
+ {
+-	boot_hw_api_a = val;
++	boot_hw_api_writeb = val;
+ 	__asm
+-	mov	r7, BOOT_HW_API_CRAM_WRITE
+-	mov	a, _boot_hw_api_a
+-	lcall	BOOT_HW_API_ENTRY
++	mov	r7,# BOOT_HW_API_CRAM_WRITE
++	mov	a, _boot_hw_api_writeb
++	lcall	#BOOT_HW_API_ENTRY
+ 	__endasm;
+ }
+ 
+diff --git a/init/main.c b/init/main.c
+index fb52c14..9ee70a6 100644
+--- a/init/main.c
++++ b/init/main.c
+@@ -194,7 +194,7 @@ void porting_heap_test(void)
+ 
+ 	uart_putchar(HIBYTE(porting_heap_space));
+ 	uart_putchar(LOBYTE(porting_heap_space));
+-	
++
+ 	mem = (uint32_t)heap_alloc(porting_heap_space);
+ 	mem2 = (uint32_t)heap_alloc(porting_heap_space);
+ 
+@@ -395,9 +395,9 @@ void porting_init(void)
+ 	int i;
+ 
+ 	timer_init();
+-	
++
+ 	task_init();
+-	
++
+ 	for (i = 0; i < 2; i++) {
+ 		pfgs[i] = false;
+ 		pids[i] = task_create(pfns[i], NULL,
+@@ -414,7 +414,6 @@ void porting_handler(uint8_t event)
+ 	while (1)
+ 		uart_putchar(0x55);
+ }
+-
+ void porting_init(void)
+ {
+ 	porting_sid = state_register(porting_handler);
+-- 
+1.7.2.5
+
