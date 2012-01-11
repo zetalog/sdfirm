@@ -26,7 +26,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <missing.h>
+#include <host/missing.h>
 
 #ifndef MIN
 #define MIN(a, b) (((a) < (b))?(a):(b))

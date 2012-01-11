@@ -49,14 +49,14 @@ struct usbfs_bulktransfer {
 
 struct usbfs_setinterface {
 	/* keep in sync with usbdevice_fs.h:usbdevfs_setinterface */
-	unsigned int interface;
+	unsigned int Interface;
 	unsigned int altsetting;
 };
 
 #define USBFS_MAXDRIVERNAME 255
 
 struct usbfs_getdriver {
-	unsigned int interface;
+	unsigned int Interface;
 	char driver[USBFS_MAXDRIVERNAME + 1];
 };
 

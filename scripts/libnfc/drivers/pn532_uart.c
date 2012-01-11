@@ -29,7 +29,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <nfc.h>
+#include <host/nfc.h>
 #include "../nfc-internal.h"
 #include "../chips/pn53x.h"
 #include "../chips/pn53x-internal.h"

@@ -522,7 +522,7 @@ static int op_get_configuration(struct libusb_device_handle *handle,
 	return 0;
 }
 
-static int op_claim_interface(libusb_device_handle *dev, int interface)
+static int op_claim_interface(libusb_device_handle *dev, int Interface)
 {
 	libusb_request req;
 	struct win32_device_handle_priv *hpriv = __device_handle_priv(dev);
@@ -532,19 +532,19 @@ static int op_claim_interface(libusb_device_handle *dev, int interface)
 		return -EINVAL;
 	}
 	
-	req.interface.interface = interface;
+	req.Interface.Interface = Interface;
 	
 	if (!_usb_io_sync(hpriv->dev_handle, LIBUSB_IOCTL_CLAIM_INTERFACE, 
 			  &req, sizeof(libusb_request), NULL, 0, NULL)) {
 		usbi_dbg("usb_claim_interface: could not claim interface %d, "
-			  "win error: %s", interface, usb_win_error_to_string());
+			  "win error: %s", Interface, usb_win_error_to_string());
 		return -usb_win_error_to_errno();
 	} else {
 		return 0;
 	}
 }
 
-int op_release_interface(libusb_device_handle *handle, int interface)
+int op_release_interface(libusb_device_handle *handle, int Interface)
 {
 	libusb_request req;
 	struct win32_device_handle_priv *hpriv = __device_handle_priv(handle);
@@ -554,12 +554,12 @@ int op_release_interface(libusb_device_handle *handle, int interface)
 		return -EINVAL;
 	}
 	
-	req.interface.interface = interface;
+	req.Interface.Interface = Interface;
 	
 	if (!_usb_io_sync(hpriv->dev_handle, LIBUSB_IOCTL_RELEASE_INTERFACE, 
 			  &req, sizeof(libusb_request), NULL, 0, NULL)) {
 		usbi_dbg("usb_release_interface: could not release interface %d, "
-			  "win error: %s", interface, usb_win_error_to_string());
+			  "win error: %s", Interface, usb_win_error_to_string());
 		return -usb_win_error_to_errno();
 	} else {
 		return 0;
@@ -577,8 +577,8 @@ static int op_set_interface(struct libusb_device_handle *handle,
 		return -EINVAL;
 	}
 
-	req.interface.interface = iface;
-	req.interface.altsetting = altsetting;
+	req.Interface.Interface = iface;
+	req.Interface.altsetting = altsetting;
 	if (!_usb_io_sync(hpriv->dev_handle, LIBUSB_IOCTL_SET_INTERFACE, 
 			  &req, sizeof(libusb_request), NULL, 0, NULL)) {
 		usbi_dbg("usb_set_interface: could not set interface %d, "
@@ -657,19 +657,19 @@ static void op_destroy_device(struct libusb_device *dev)
 }
 
 static int op_kernel_driver_active(struct libusb_device_handle *handle,
-				   int interface)
+				   int Interface)
 {
 	return 0;
 }
 
 static int op_detach_kernel_driver(struct libusb_device_handle *handle,
-				   int interface)
+				   int Interface)
 {
 	return 0;
 }
 
 static int op_attach_kernel_driver(struct libusb_device_handle *handle,
-				   int interface)
+				   int Interface)
 {
 	return LIBUSB_ERROR_NOT_FOUND;
 }
@@ -1072,13 +1072,13 @@ static int setup_ctrl_async(struct usbi_transfer *itransfer,
 			break;
 			
 		case LIBUSB_REQUEST_GET_INTERFACE:
-			tpriv->req.interface.interface = index;
+			tpriv->req.Interface.Interface = index;
 			code = LIBUSB_IOCTL_GET_INTERFACE;	  
 			break;
 			
 		case LIBUSB_REQUEST_SET_INTERFACE:
-			tpriv->req.interface.interface = index;
-			tpriv->req.interface.altsetting = value;
+			tpriv->req.Interface.Interface = index;
+			tpriv->req.Interface.altsetting = value;
 			code = LIBUSB_IOCTL_SET_INTERFACE;	  
 			break;
 			

@@ -7,9 +7,6 @@
 #ifndef inline
 #define inline __inline
 #endif
-#ifdef interface
-#undef interface
-#endif
 #endif
 #include <sys/types.h>
 #include <time.h>
@@ -480,7 +477,7 @@ struct libusb_config_descriptor {
 
 	/** Array of interfaces supported by this configuration. The length of
 	 * this array is determined by the bNumInterfaces field. */
-	struct libusb_interface *interface;
+	struct libusb_interface *Interface;
 
 	/** Extra descriptors. If libusb encounters unknown configuration
 	 * descriptors, it will store them here, should you wish to parse them. */
@@ -803,9 +800,9 @@ int libusb_set_interface_alt_setting(libusb_device_handle *dev,
 int libusb_clear_halt(libusb_device_handle *dev, unsigned char endpoint);
 int libusb_reset_device(libusb_device_handle *dev);
 
-int libusb_kernel_driver_active(libusb_device_handle *dev, int interface);
-int libusb_detach_kernel_driver(libusb_device_handle *dev, int interface);
-int libusb_attach_kernel_driver(libusb_device_handle *dev, int interface);
+int libusb_kernel_driver_active(libusb_device_handle *dev, int Interface);
+int libusb_detach_kernel_driver(libusb_device_handle *dev, int Interface);
+int libusb_attach_kernel_driver(libusb_device_handle *dev, int Interface);
 
 /* async I/O */
 

@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <nfc.h>
-#include <nfc-emulation.h>
+#include <host/nfc.h>
+#include <host/nfc-emulation.h>
 
 void prepare_initiator_data(const nfc_modulation_t nm,
 			    byte_t **ppbtInitiatorData,

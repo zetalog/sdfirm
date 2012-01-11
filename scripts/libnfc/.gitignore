@@ -13,3 +13,5 @@
 *.so
 RC*
 nfc_list.exe
+libnfc.lib
+

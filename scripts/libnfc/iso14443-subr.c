@@ -18,7 +18,7 @@
  */
 
 #include <string.h>
-#include <nfc.h>
+#include <host/nfc.h>
 
 void iso14443a_crc(byte_t *pbtData, size_t szLen, byte_t *pbtCrc)
 {

@@ -23,7 +23,7 @@
 #define __NFC_DRIVER_PN532_UART_H__
 
 #include <sys/time.h>
-#include <nfc-types.h>
+#include <host/nfc-types.h>
 
 bool pn532_uart_probe(nfc_device_desc_t pnddDevices[],
 		      size_t szDevices, size_t *pszDeviceFound);

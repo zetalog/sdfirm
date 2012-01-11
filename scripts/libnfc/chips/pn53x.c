@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdlib.h>
-#include <nfc.h>
+#include <host/nfc.h>
 #include "pn53x.h"
 #include "pn53x-internal.h"
 #include "../mirror-subr.h"

@@ -45,7 +45,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <nfc.h>
+#include <host/nfc.h>
 
 #include "nfc-utils.h"
 

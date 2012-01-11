@@ -1062,7 +1062,7 @@ static int op_set_interface(struct libusb_device_handle *handle,
 	struct usbfs_setinterface setintf;
 	int r;
 
-	setintf.interface = iface;
+	setintf.Interface = iface;
 	setintf.altsetting = altsetting;
 	r = ioctl(fd, IOCTL_USBFS_SETINTF, (unsigned long)&setintf);
 	if (r) {
@@ -1116,13 +1116,13 @@ static int op_reset_device(struct libusb_device_handle *handle)
 }
 
 static int op_kernel_driver_active(struct libusb_device_handle *handle,
-				   int interface)
+				   int Interface)
 {
 	int fd = __device_handle_priv(handle)->fd;
 	struct usbfs_getdriver getdrv;
 	int r;
 
-	getdrv.interface = interface;
+	getdrv.Interface = Interface;
 	r = ioctl(fd, IOCTL_USBFS_GETDRIVER, (unsigned long)&getdrv);
 	if (r) {
 		if (errno == ENODATA)
@@ -1139,13 +1139,13 @@ static int op_kernel_driver_active(struct libusb_device_handle *handle,
 }
 
 static int op_detach_kernel_driver(struct libusb_device_handle *handle,
-				   int interface)
+				   int Interface)
 {
 	int fd = __device_handle_priv(handle)->fd;
 	struct usbfs_ioctl command;
 	int r;
 
-	command.ifno = interface;
+	command.ifno = Interface;
 	command.ioctl_code = IOCTL_USBFS_DISCONNECT;
 	command.data = NULL;
 
@@ -1167,13 +1167,13 @@ static int op_detach_kernel_driver(struct libusb_device_handle *handle,
 }
 
 static int op_attach_kernel_driver(struct libusb_device_handle *handle,
-				   int interface)
+				   int Interface)
 {
 	int fd = __device_handle_priv(handle)->fd;
 	struct usbfs_ioctl command;
 	int r;
 
-	command.ifno = interface;
+	command.ifno = Interface;
 	command.ioctl_code = IOCTL_USBFS_CONNECT;
 	command.data = NULL;
 

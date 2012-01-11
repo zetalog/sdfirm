@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
-#include <nfc.h>
+#include <host/nfc.h>
 #include "nfc-internal.h"
 #include "drivers.h"
 

@@ -2,6 +2,7 @@
  * Public platform independent Near Field Communication (NFC) library
  * 
  * Copyright (C) 2009, Roel Verdult
+ * Copyright (C) 2011, Romain Tartière
  * 
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by the
@@ -17,15 +18,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef __LIBNFC_MIRROR_SUBR_H_INCLUDE__
-#define __LIBNFC_MIRROR_SUBR_H_INCLUDE__
+#ifndef __NFC_DRIVER_PN53X_USB_H_INCLUDE__
+#define __NFC_DRIVER_PN53X_USB_H_INCLUDE__
 
-#include <stdint.h>
+#include <sys/time.h>
 #include <host/nfc-types.h>
 
-byte_t mirror(byte_t bt);
-uint32_t mirror32(uint32_t ui32Bits);
-uint64_t mirror64(uint64_t ui64Bits);
-void mirror_byte_ts(byte_t * pbts, size_t szLen);
+bool pn53x_usb_probe(nfc_device_desc_t pnddDevices[],
+		     size_t szDevices, size_t *pszDeviceFound);
+nfc_device_t *pn53x_usb_connect(const nfc_device_desc_t *pndd);
+bool pn53x_usb_send(nfc_device_t *pnd,
+		    const byte_t *pbtData, const size_t szData,
+		    struct timeval *timeout);
+int pn53x_usb_receive(nfc_device_t *pnd,
+		      byte_t *pbtData, const size_t szData,
+		      struct timeval *timeout);
+void pn53x_usb_disconnect(nfc_device_t *pnd);
 
-#endif /* __LIBNFC_MIRROR_SUBR_H_INCLUDE__ */
+extern const struct nfc_driver_t pn53x_usb_driver;
+
+#endif /* __NFC_DRIVER_PN53X_USB_H_INCLUDE__ */

@@ -28,7 +28,7 @@
  *
  */
 
-#include <nfc.h>
+#include <host/nfc.h>
 #include "nfc-utils.h"
 
 static const byte_t OddParity[256] = {

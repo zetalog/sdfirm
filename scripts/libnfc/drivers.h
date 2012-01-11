@@ -21,14 +21,11 @@
 #ifndef __NFC_DRIVERS_H_INCLUDE__
 #define __NFC_DRIVERS_H_INCLUDE__
 
-#include <nfc-types.h>
+#include <host/nfc-types.h>
 
 #include "drivers/acr122.h"
 #include "drivers/pn532_uart.h"
-
-#ifdef DRIVER_PN53X_USB_ENABLED
 #include "drivers/pn53x_usb.h"
-#endif
 
 #ifdef DRIVER_ARYGON_ENABLED
 #include "drivers/arygon.h"

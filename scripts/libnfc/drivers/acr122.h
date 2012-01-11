@@ -20,7 +20,7 @@
 #ifndef __NFC_DRIVER_ACR122_H_INCLUDE__
 #define __NFC_DRIVER_ACR122_H_INCLUDE__
 
-#include <nfc-types.h>
+#include <host/nfc-types.h>
 
 bool acr122_probe(nfc_device_desc_t pnddDevices[],
 		  size_t szDevices, size_t *pszDeviceFound);

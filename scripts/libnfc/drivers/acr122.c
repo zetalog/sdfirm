@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
-#include <nfc.h>
+#include <host/nfc.h>
 
 #include "../chips/pn53x.h"
 #include "acr122.h"
@@ -49,7 +49,7 @@
 #    error "Can't determine serial string for your system"
 #endif
 
-#include <nfc.h>
+#include <host/nfc.h>
 
 #define SCARD_OPERATION_SUCCESS	0x61
 #define SCARD_OPERATION_ERROR	0x63

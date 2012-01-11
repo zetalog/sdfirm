@@ -20,7 +20,7 @@
 #ifndef __NFC_INTERNAL_H_INCLUDE__
 #define __NFC_INTERNAL_H_INCLUDE__
 
-#include <nfc-types.h>
+#include <host/nfc-types.h>
 #include <stdbool.h>
 
 #include "log.h"

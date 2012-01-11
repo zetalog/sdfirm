@@ -20,13 +20,8 @@
  *
  */
 
-/**
- * @file uart.h
- * @brief UART driver header
- */
-
-#ifndef __NFC_BUS_UART_H__
-#define __NFC_BUS_UART_H__
+#ifndef __NFC_BUS_UART_H_INCLUDE__
+#define __NFC_BUS_UART_H_INCLUDE__
 
 #include <sys/time.h>
 
@@ -34,7 +29,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <nfc-types.h>
+#include <host/nfc-types.h>
 
 /* Define shortcut to types to make code more readable */
 typedef void *serial_port;
@@ -57,4 +52,4 @@ int uart_send(serial_port sp,
 
 char **uart_list_ports(void);
 
-#endif /* __NFC_BUS_UART_H__ */
+#endif /* __NFC_BUS_UART_H_INCLUDE__ */

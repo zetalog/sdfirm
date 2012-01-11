@@ -1,4 +1,4 @@
-#include <nfc.h>
+#include <host/nfc.h>
 #include "../nfc-internal.h"
 #include "../log.h"
 #include "uart.h"

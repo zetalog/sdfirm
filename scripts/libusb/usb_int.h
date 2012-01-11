@@ -384,11 +384,11 @@ struct usbi_os_backend {
 	int (*reset_device)(struct libusb_device_handle *handle);
 
 	int (*kernel_driver_active)(struct libusb_device_handle *handle,
-				    int interface);
+				    int Interface);
 	int (*detach_kernel_driver)(struct libusb_device_handle *handle,
-				    int interface);
+				    int Interface);
 	int (*attach_kernel_driver)(struct libusb_device_handle *handle,
-				    int interface);
+				    int Interface);
 
 	void (*destroy_device)(struct libusb_device *dev);
 

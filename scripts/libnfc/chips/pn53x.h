@@ -24,7 +24,7 @@
 #ifndef __NFC_CHIPS_PN53X_H_INCLUDE__
 #define __NFC_CHIPS_PN53X_H_INCLUDE__
 
-#include <nfc-types.h>
+#include <host/nfc-types.h>
 #include "pn53x-internal.h"
 
 // Registers and symbols masks used to covers parts within a register

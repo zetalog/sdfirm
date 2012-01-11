@@ -26,7 +26,7 @@
 #include <time.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <nfc-types.h>
+#include <host/nfc-types.h>
 
 #ifdef __cplusplus
 extern  "C" {

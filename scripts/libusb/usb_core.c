@@ -234,7 +234,7 @@ int libusb_get_max_packet_size(libusb_device *dev,
 
 	r = LIBUSB_ERROR_NOT_FOUND;
 	for (iface_idx = 0; iface_idx < config->bNumInterfaces; iface_idx++) {
-		const struct libusb_interface *iface = &config->interface[iface_idx];
+		const struct libusb_interface *iface = &config->Interface[iface_idx];
 		int altsetting_idx;
 
 		for (altsetting_idx = 0; altsetting_idx < iface->num_altsetting;
@@ -485,31 +485,31 @@ int libusb_reset_device(libusb_device_handle *dev)
 }
 
 int libusb_kernel_driver_active(libusb_device_handle *dev,
-				int interface)
+				int Interface)
 {
-	usbi_dbg("interface %d", interface);
+	usbi_dbg("interface %d", Interface);
 	if (usbi_backend->kernel_driver_active)
-		return usbi_backend->kernel_driver_active(dev, interface);
+		return usbi_backend->kernel_driver_active(dev, Interface);
 	else
 		return LIBUSB_ERROR_NOT_SUPPORTED;
 }
 
 int libusb_detach_kernel_driver(libusb_device_handle *dev,
-				int interface)
+				int Interface)
 {
-	usbi_dbg("interface %d", interface);
+	usbi_dbg("interface %d", Interface);
 	if (usbi_backend->detach_kernel_driver)
-		return usbi_backend->detach_kernel_driver(dev, interface);
+		return usbi_backend->detach_kernel_driver(dev, Interface);
 	else
 		return LIBUSB_ERROR_NOT_SUPPORTED;
 }
 
 int libusb_attach_kernel_driver(libusb_device_handle *dev,
-				int interface)
+				int Interface)
 {
-	usbi_dbg("interface %d", interface);
+	usbi_dbg("interface %d", Interface);
 	if (usbi_backend->attach_kernel_driver)
-		return usbi_backend->attach_kernel_driver(dev, interface);
+		return usbi_backend->attach_kernel_driver(dev, Interface);
 	else
 		return LIBUSB_ERROR_NOT_SUPPORTED;
 }

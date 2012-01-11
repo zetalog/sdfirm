@@ -108,9 +108,9 @@ typedef struct {
 			unsigned int configuration;
 		} configuration;
 		struct {
-			unsigned int interface;
+			unsigned int Interface;
 			unsigned int altsetting;
-		} interface;
+		} Interface;
 		struct {
 			unsigned int endpoint;
 			unsigned int packet_size;

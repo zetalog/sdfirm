@@ -21,7 +21,7 @@
 #define __NFC_EMULATION_H_INCLUDE__
 
 #include <sys/types.h>
-#include <nfc.h>
+#include <host/nfc.h>
 
 #ifdef __cplusplus
 extern  "C" {
