@@ -5,9 +5,11 @@
 *.plg
 *.pdb
 *.aps
+*.SUP
 *.ilk
 *.exp
 *.lib
 *.dll
 *.so
 RC*
+nfc_list.exe

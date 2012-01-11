@@ -1,6 +1,7 @@
 #ifndef __SYS_TIME_H_INCLUDE__
 #define __SYS_TIME_H_INCLUDE__
 
+#include <time.h>
 
 struct timespec {
 	time_t tv_sec;			/* Seconds.  */

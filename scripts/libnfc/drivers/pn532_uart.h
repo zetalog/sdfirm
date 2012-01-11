@@ -1,7 +1,7 @@
-/*-
+/**
  * Public platform independent Near Field Communication (NFC) library
  * 
- * Copyright (C) 2009, Roel Verdult
+ * Copyright (C) 2010, Roel Verdult, Romuald Conty
  * Copyright (C) 2011, Romuald Conty, Romain Tartière
  * 
  * This program is free software: you can redistribute it and/or modify it
@@ -17,25 +17,26 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
+/* Driver for PN532 connected in UART (HSU) */
 
-#ifndef __NFC_DRIVERS_H_INCLUDE__
-#define __NFC_DRIVERS_H_INCLUDE__
+#ifndef __NFC_DRIVER_PN532_UART_H__
+#define __NFC_DRIVER_PN532_UART_H__
 
+#include <sys/time.h>
 #include <nfc-types.h>
 
-#include "drivers/acr122.h"
-#include "drivers/pn532_uart.h"
+bool pn532_uart_probe(nfc_device_desc_t pnddDevices[],
+		      size_t szDevices, size_t *pszDeviceFound);
 
-#ifdef DRIVER_PN53X_USB_ENABLED
-#include "drivers/pn53x_usb.h"
-#endif
+nfc_device_t *pn532_uart_connect(const nfc_device_desc_t *pndd);
+void pn532_uart_disconnect(nfc_device_t *pnd);
+bool pn532_uart_send(nfc_device_t *pnd,
+		     const byte_t *pbtData, const size_t szData,
+		     struct timeval *timeout);
+int pn532_uart_receive(nfc_device_t *pnd,
+		       byte_t *pbtData, const size_t szData,
+		       struct timeval *timeout);
 
-#ifdef DRIVER_ARYGON_ENABLED
-#include "drivers/arygon.h"
-#endif
+extern const struct nfc_driver_t pn532_uart_driver;
 
-#define DRIVERS_MAX_DEVICES         16
-
-extern const struct nfc_driver_t *nfc_drivers[];
-
-#endif /* __NFC_DRIVERS_H_INCLUDE__ */
+#endif /*  __NFC_DRIVER_PN532_UART_H__ */

@@ -113,7 +113,15 @@ SOURCE=.\nfc.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\drivers\pn532_uart.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\chips\pn53x.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\buses\uart_win32.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -157,11 +165,19 @@ SOURCE=..\..\include\host\nfc.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\drivers\pn532_uart.h
+# End Source File
+# Begin Source File
+
 SOURCE=".\chips\pn53x-internal.h"
 # End Source File
 # Begin Source File
 
 SOURCE=.\chips\pn53x.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\buses\uart.h
 # End Source File
 # End Group
 # End Target

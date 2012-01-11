@@ -31,13 +31,11 @@
 #define LOG_CATEGORY "libnfc.general"
 
 const struct nfc_driver_t *nfc_drivers[] = {
+	&acr122_driver,
+	&pn532_uart_driver,
 #  if defined (DRIVER_PN53X_USB_ENABLED)
 	&pn53x_usb_driver,
 #  endif /* DRIVER_PN53X_USB_ENABLED */
-	&acr122_driver,
-#  if defined (DRIVER_PN532_UART_ENABLED)
-	&pn532_uart_driver,
-#  endif /* DRIVER_PN532_UART_ENABLED */
 #  if defined (DRIVER_ARYGON_ENABLED)
 	&arygon_driver,
 #  endif /* DRIVER_ARYGON_ENABLED */
