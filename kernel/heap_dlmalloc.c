@@ -183,8 +183,8 @@ struct heap_chunk {
 #define heap_prev_chunk(p)		\
 	((struct heap_chunk *)(((caddr_t)(p)) - heap_prev_size(p)))
 
-#define heap_offset(sz)			((heap_offset_t)(sz & (CONFIG_HEAP_SIZE-1)))
-#define heap_align(sz)			((heap_size_t)(ALIGN(sz, HEAP_ALIGN_SIZE)))
+#define heap_offset(sz)			((heap_offset_t)((sz) & (CONFIG_HEAP_SIZE-1)))
+#define heap_align(sz)			((heap_size_t)(ALIGN((sz), HEAP_ALIGN_SIZE)))
 
 /* XXX: Pad Request Bytes into Usable Bits
  *
