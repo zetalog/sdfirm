@@ -323,18 +323,18 @@ struct heap_chunk {
  * small.
  */
 #define heap_bin_hash(sz)					\
-	((uint8_t)(((((heap_size_t)(sz)) >>  9) ==   0) ?	\
-		   (((heap_size_t)(sz)) >>  3) :		\
-		  ((((heap_size_t)(sz)) >>  9) <=   4) ?	\
-		   (((heap_size_t)(sz)) >>  6) +   56 :		\
-		  ((((heap_size_t)(sz)) >>  9) <=  20) ?	\
-		   (((heap_size_t)(sz)) >>  9) +   91 :		\
-		  ((((heap_size_t)(sz)) >>  9) <=  84) ?	\
-		   (((heap_size_t)(sz)) >> 12) +  110 :		\
-		  ((((heap_size_t)(sz)) >>  9) <= 340) ?	\
-		   (((heap_size_t)(sz)) >> 15) +  119 :		\
-		  ((((heap_size_t)(sz)) >> 9) <= 1364) ?	\
-		   (((heap_size_t)(sz)) >> 18) +  124 :		\
+	((uint8_t)(((((heap_size_t)(sz)) >>  9) ==    0) ?	\
+		    (((heap_size_t)(sz)) >>  3) :		\
+		   ((((heap_size_t)(sz)) >>  9) <=    4) ?	\
+		    (((heap_size_t)(sz)) >>  6) +    56 :	\
+		   ((((heap_size_t)(sz)) >>  9) <=   20) ?	\
+		    (((heap_size_t)(sz)) >>  9) +    91 :	\
+		   ((((heap_size_t)(sz)) >>  9) <=   84) ?	\
+		    (((heap_size_t)(sz)) >> 12) +   110 :	\
+		   ((((heap_size_t)(sz)) >>  9) <=  340) ?	\
+		    (((heap_size_t)(sz)) >> 15) +   119 :	\
+		   ((((heap_size_t)(sz)) >>  9) <= 1364) ?	\
+		    (((heap_size_t)(sz)) >> 18) +   124 :	\
 		    126))
 
 #if CONFIG_HEAP_SIZE < 512
