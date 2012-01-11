@@ -235,9 +235,9 @@ struct heap_chunk {
 #define heap_get_inuse_at(p, s)		\
 	(heap_get_chunk_at(p, s)->curr_size & HEAP_CHUNK_FLAG_P)
 #define heap_set_inuse_at(p, s)		\
-	 (heap_get_chunk_at(p, s)->curr_size |= HEAP_CHUNK_FLAG_P)
+	(heap_get_chunk_at(p, s)->curr_size |= HEAP_CHUNK_FLAG_P)
 #define heap_clear_inuse_at(p, s)	\
-	 (heap_get_chunk_at(p, s)->curr_size &= ~(HEAP_CHUNK_FLAG_P))
+	(heap_get_chunk_at(p, s)->curr_size &= ~(HEAP_CHUNK_FLAG_P))
 
 /*=========================================================================
  * bin field
