@@ -5,10 +5,11 @@
 #define USB_WAIT_TIMEOUT		60*1000
 
 static libusb_context *g_ctx = NULL;
+static int g_usb_err = LIBUSB_SUCCESS;
 static struct usb_device *g_devs = NULL;
 static int g_nr_devs = 0;
-static int g_usb_err = LIBUSB_SUCCESS;
 static struct libusb_device **g_udevs = NULL;
+static int g_nr_udevs = 0;
 
 void usb_free_devices(void)
 {
@@ -32,20 +33,21 @@ void usb_free_devices(void)
 int usb_find_devices(void)
 {
 	int err;
-	int devid, nr_devs;
+	int devid;
 	uint8_t cnfid = 1;
 	libusb_device_handle *udev;
 
-	usb_free_devices();
-
-	nr_devs = libusb_get_device_list(g_ctx, &g_udevs);
-	if (nr_devs <= 0)
+	if (g_udevs)
 		return LIBUSB_SUCCESS;
-	g_devs = malloc(sizeof (struct usb_device) * nr_devs);
+
+	g_nr_udevs = libusb_get_device_list(g_ctx, &g_udevs);
+	if (g_nr_udevs <= 0)
+		return LIBUSB_SUCCESS;
+	g_devs = malloc(sizeof (struct usb_device) * g_nr_udevs);
 	if (!g_devs)
 		return LIBUSB_ERROR_NO_MEM;
 
-	for (devid = 0; devid < nr_devs; devid++) {
+	for (devid = 0; devid < g_nr_udevs; devid++) {
 		g_devs[g_nr_devs].dev = g_udevs[devid];
 		libusb_get_device_descriptor(g_udevs[devid],
 					     &(g_devs[g_nr_devs].descriptor));
@@ -170,12 +172,9 @@ int usb_get_string(libusb_device_handle *dev,
 		   unsigned char *data, uint16_t length,
 		   int timeout)
 {
-	g_usb_err = libusb_get_string_descriptor(dev, desc_index,
-						 langid, data, length,
-						 timeout);
-	if (g_usb_err)
-		return g_usb_err;
-	return length;
+	return libusb_get_string_descriptor(dev, desc_index,
+					    langid, data, length,
+					    timeout);
 }
 
 int usb_get_string_simple(libusb_device_handle *dev, int index,
@@ -186,20 +185,24 @@ int usb_get_string_simple(libusb_device_handle *dev, int index,
 	int si, di;
 	int ret;
 	
-	g_usb_err = usb_get_string(dev, 0, 0, tbuf, sizeof(tbuf), USB_WAIT_TIMEOUT);
-	if (g_usb_err)
+	ret = usb_get_string(dev, 0, 0, tbuf, sizeof(tbuf), USB_WAIT_TIMEOUT);
+	if (ret < 0)
 		return g_usb_err;
+	if (ret < 4) {
+		g_usb_err = LIBUSB_ERROR_IO;
+		return g_usb_err;
+	}
 	langid = tbuf[2] | (tbuf[3] << 8);
 	ret = usb_get_string(dev, (uint8_t)index, langid,
 			     tbuf, sizeof(tbuf), USB_WAIT_TIMEOUT);
 	if (ret < 0)
 		return ret;
 	if (tbuf[1] != LIBUSB_DT_STRING) {
-		g_usb_err = -LIBUSB_ERROR_IO;
+		g_usb_err = LIBUSB_ERROR_IO;
 		return g_usb_err;
 	}
 	if (tbuf[0] > ret) {
-		g_usb_err = -LIBUSB_ERROR_OVERFLOW;
+		g_usb_err = LIBUSB_ERROR_OVERFLOW;
 		return g_usb_err;
 	}
 	for (di = 0, si = 2; si < tbuf[0]; si += 2) {
