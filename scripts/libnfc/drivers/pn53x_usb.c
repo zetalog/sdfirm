@@ -19,9 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-/*
-Thanks to d18c7db and Okko for example code
-*/
+/* Thanks to d18c7db and Okko for example code */
 
 #include <errno.h>
 #include <stdio.h>
@@ -572,10 +570,13 @@ int pn53x_usb_receive(nfc_device_t *pnd,
 	}
 read:
 	if (timeout) {
-		// A user-provided timeout is set, we have to cut it in multiple chunk to be able to keep an nfc_abort_command() mecanism
+		/* A user-provided timeout is set, we have to cut it in
+		 * multiple chunk to be able to keep an
+		 * nfc_abort_command() mecanism.
+		 */
 		struct timeval tmp;
 		if (1 == timeval_subtract (&tmp, &remaining_time, &fixed_timeout)) {
-			// The subtraction result is negative
+			/* The subtraction result is negative. */
 			usb_timeout = remaining_time;
 			remaining_time.tv_sec = 0;
 			remaining_time.tv_usec = 0;
@@ -584,7 +585,9 @@ read:
 			remaining_time = tmp;
 		}
 	} else {
-		// No user-provided timeout, we will wait infinitely but we need nfc_abort_command() mecanism.
+		/* No user-provided timeout, we will wait infinitely but
+		 * we need nfc_abort_command() mecanism.
+		 */
 		usb_timeout = fixed_timeout;
 	}
 	if ((usb_timeout.tv_sec == 0) && (usb_timeout.tv_usec == 0)) {
@@ -612,61 +615,72 @@ read:
 		return -1;
 	}
 	
-	if (0 != (memcmp (abtRxBuf, pn53x_preamble, 3))) {
-		log_put (LOG_CATEGORY, NFC_PRIORITY_ERROR, "%s", "Frame preamble+start code mismatch");
+	if (0 != (memcmp(abtRxBuf, pn53x_preamble, 3))) {
+		log_put(LOG_CATEGORY, NFC_PRIORITY_ERROR,
+			"%s", "Frame preamble+start code mismatch");
 		pnd->iLastError = ECOMIO;
 		return -1;
 	}
 	offset += 3;
 	
 	if ((0x01 == abtRxBuf[offset]) && (0xff == abtRxBuf[offset + 1])) {
-		// Error frame
-		log_put (LOG_CATEGORY, NFC_PRIORITY_ERROR, "%s", "Application level error detected");
+		/* Error frame */
+		log_put(LOG_CATEGORY, NFC_PRIORITY_ERROR,
+			"%s", "Application level error detected");
 		pnd->iLastError = EFRAISERRFRAME;
 		return -1;
 	} else if ((0xff == abtRxBuf[offset]) && (0xff == abtRxBuf[offset + 1])) {
-		// Extended frame
+		/* Extended frame */
 		offset += 2;
 		
-		// (abtRxBuf[offset] << 8) + abtRxBuf[offset + 1] (LEN) include TFI + (CC+1)
+		/* (abtRxBuf[offset] << 8) + abtRxBuf[offset + 1] (LEN)
+		 * include TFI + (CC+1)
+		 */
 		len = (abtRxBuf[offset] << 8) + abtRxBuf[offset + 1] - 2;
-		if (((abtRxBuf[offset] + abtRxBuf[offset + 1] + abtRxBuf[offset + 2]) % 256) != 0) {
-			// TODO: Retry
-			log_put (LOG_CATEGORY, NFC_PRIORITY_ERROR, "%s", "Length checksum mismatch");
+		if (((abtRxBuf[offset] + abtRxBuf[offset + 1] +
+		      abtRxBuf[offset + 2]) % 256) != 0) {
+			/* TODO: Retry */
+			log_put(LOG_CATEGORY, NFC_PRIORITY_ERROR,
+				"%s", "Length checksum mismatch");
 			pnd->iLastError = ECOMIO;
 			return -1;
 		}
 		offset += 3;
 	} else {
-		// Normal frame
+		/* Normal frame */
 		if (256 != (abtRxBuf[offset] + abtRxBuf[offset + 1])) {
-			// TODO: Retry
-			log_put (LOG_CATEGORY, NFC_PRIORITY_ERROR, "%s", "Length checksum mismatch");
+			/* TODO: Retry */
+			log_put(LOG_CATEGORY, NFC_PRIORITY_ERROR,
+				"%s", "Length checksum mismatch");
 			pnd->iLastError = ECOMIO;
 			return -1;
 		}
 		
-		// abtRxBuf[3] (LEN) include TFI + (CC+1)
+		/* abtRxBuf[3] (LEN) include TFI + (CC+1) */
 		len = abtRxBuf[offset] - 2;
 		offset += 2;
 	}
 	
 	if (len > szDataLen) {
-		log_put (LOG_CATEGORY, NFC_PRIORITY_ERROR, "Unable to receive data: buffer too small. (szDataLen: %zu, len: %zu)", szDataLen, len);
+		log_put(LOG_CATEGORY, NFC_PRIORITY_ERROR,
+			"Unable to receive data: buffer too small. (szDataLen: %zu, len: %zu)",
+			szDataLen, len);
 		pnd->iLastError = ECOMIO;
 		return -1;
 	}
 	
-	// TFI + PD0 (CC+1)
+	/* TFI + PD0 (CC+1) */
 	if (abtRxBuf[offset] != 0xD5) {
-		log_put (LOG_CATEGORY, NFC_PRIORITY_ERROR, "%s", "TFI Mismatch");
+		log_put(LOG_CATEGORY, NFC_PRIORITY_ERROR,
+			"%s", "TFI Mismatch");
 		pnd->iLastError = ECOMIO;
 		return -1;
 	}
 	offset += 1;
 	
 	if (abtRxBuf[offset] != CHIP_DATA (pnd)->ui8LastCommand + 1) {
-		log_put (LOG_CATEGORY, NFC_PRIORITY_ERROR, "%s", "Command Code verification failed");
+		log_put(LOG_CATEGORY, NFC_PRIORITY_ERROR,
+			"%s", "Command Code verification failed");
 		pnd->iLastError = ECOMIO;
 		return -1;
 	}
@@ -682,18 +696,22 @@ read:
 	}
 	
 	if (btDCS != abtRxBuf[offset]) {
-		log_put (LOG_CATEGORY, NFC_PRIORITY_ERROR, "%s", "Data checksum mismatch");
+		log_put(LOG_CATEGORY, NFC_PRIORITY_ERROR,
+			"%s", "Data checksum mismatch");
 		pnd->iLastError = ECOMIO;
 		return -1;
 	}
 	offset += 1;
 	
 	if (0x00 != abtRxBuf[offset]) {
-		log_put (LOG_CATEGORY, NFC_PRIORITY_ERROR, "%s", "Frame postamble mismatch");
+		log_put(LOG_CATEGORY, NFC_PRIORITY_ERROR,
+			"%s", "Frame postamble mismatch");
 		pnd->iLastError = ECOMIO;
 		return -1;
 	}
-	// The PN53x command is done and we successfully received the reply
+	/* The PN53x command is done and we successfully received the
+	 * reply.
+	 */
 	pnd->iLastError = 0;
 	return len;
 }
