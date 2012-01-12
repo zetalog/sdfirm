@@ -32,10 +32,8 @@
 
 const struct nfc_driver_t *nfc_drivers[] = {
 	&acr122_driver,
-	&pn532_uart_driver,
-//#ifdef DRIVER_PN53X_USB_ENABLED
+//	&pn532_uart_driver,
 	&pn53x_usb_driver,
-//#endif
 #ifdef DRIVER_ARYGON_ENABLED
 	&arygon_driver,
 #endif

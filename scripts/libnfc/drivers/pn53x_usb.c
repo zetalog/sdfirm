@@ -238,6 +238,7 @@ bool pn53x_usb_probe(nfc_device_desc_t pnddDevices[],
 	usb_init();
 	
 	*pszDeviceFound = 0;
+	usb_find_devices();
 	nr_devs = usb_get_nr_devices();
 	for (i = 0; i < nr_devs; i++) {
 		dev = usb_get_device(i);
@@ -352,7 +353,7 @@ nfc_device_t *pn53x_usb_connect(const nfc_device_desc_t *pndd)
 	int res;
 	
 	usb_init();
-	
+	usb_find_devices();
 	nr_devs = usb_get_nr_devices();
 	for (i = 0; i < nr_devs; i++) {
 		dev = usb_get_device(i);
