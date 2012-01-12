@@ -168,7 +168,6 @@ struct pn53x_usb_supported_device {
 };
 
 const struct pn53x_usb_supported_device pn53x_usb_supported_devices[] = {
-	{ 0x072F, 0x2200, NXP_PN531,   "ACS / ACR122U for NFC" },
 	{ 0x04CC, 0x0531, NXP_PN531,   "Philips / PN531" },
 	{ 0x04CC, 0x2533, NXP_PN533,   "NXP / PN533" },
 	{ 0x04E6, 0x5591, SCM_SCL3711, "SCM Micro / SCL3711-NFC&RW" },
