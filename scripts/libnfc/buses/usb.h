@@ -6,6 +6,7 @@
 struct usb_device {
 	struct libusb_device_descriptor descriptor;
 	struct libusb_config_descriptor *config;
+	int devid;
 };
 
 int usb_init(void);

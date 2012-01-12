@@ -112,7 +112,7 @@ boolean usb_scan_config(uint8_t clazz, usb_parse_cb parser)
 	}
 
 	for (infid = 0; infid < dt_cnf->bNumInterfaces; infid++) {
-		intf = (struct libusb_interface *)dt_cnf->interface + infid;
+		intf = (struct libusb_interface *)dt_cnf->Interface + infid;
 
 		g_usb_iid = infid;
 		if (usb_scan_interface(intf, clazz, parser)) {

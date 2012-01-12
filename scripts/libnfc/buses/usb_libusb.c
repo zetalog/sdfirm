@@ -19,6 +19,74 @@ struct usb_device *usb_get_device(int nr)
 	return NULL;
 }
 
+#if 0
+static int _usb_transfer_sync(usb_dev_handle *dev, int control_code,
+                              int ep, int pktsize, char *bytes, int size,
+                              int timeout)
+{
+    void *context = NULL;
+    int transmitted = 0;
+    int ret;
+    int requested;
+
+	if (!timeout) timeout=INFINITE;
+    ret = _usb_setup_async(dev, &context, control_code, (unsigned char )ep,
+                           pktsize);
+
+    if (ret < 0)
+    {
+        return ret;
+    }
+
+    do
+    {
+#ifdef LIBUSB_WIN32_DLL_LARGE_TRANSFER_SUPPORT
+        requested = size > LIBUSB_MAX_READ_WRITE ? LIBUSB_MAX_READ_WRITE : size;
+#else
+        requested = size;
+#endif
+        ret = usb_submit_async(context, bytes, requested);
+
+        if (ret < 0)
+        {
+            transmitted = ret;
+            break;
+        }
+
+        ret = usb_reap_async(context, timeout);
+
+        if (ret < 0)
+        {
+            transmitted = ret;
+            break;
+        }
+
+        transmitted += ret;
+        bytes += ret;
+        size -= ret;
+    }
+    while (size > 0 && ret == requested);
+
+    usb_free_async(&context);
+
+    return transmitted;
+}
+
+int usb_bulk_write(libusb_dev_handle *dev, int ep, char *bytes, int size,
+                   int timeout)
+{
+	return _usb_transfer_sync(dev, LIBUSB_IOCTL_INTERRUPT_OR_BULK_WRITE,
+				  ep, 0, bytes, size, timeout);
+}
+
+int usb_bulk_read(libusb_dev_handle *dev, int ep, char *bytes, int size,
+                  int timeout)
+{
+	return _usb_transfer_sync(dev, LIBUSB_IOCTL_INTERRUPT_OR_BULK_READ,
+				  ep, 0, bytes, size, timeout);
+}
+#endif
+
 int usb_init(void)
 {
 	int res = -1;
