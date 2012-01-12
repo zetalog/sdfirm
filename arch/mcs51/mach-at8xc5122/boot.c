@@ -55,36 +55,34 @@ struct __boot_usb_id {
 #define BOOT_HW_CAST256_S3	((text_quad_t *)0x9A00)
 #define BOOT_HW_CAST256_S4	((text_quad_t *)0xA200)
 
-uint8_t boot_hw_api_a, boot_hw_api_b;
+uint8_t boot_hw_api_a;
 
 uint16_t boot_hw_get_id(void)
 {
 	__asm
-	mov	r7, BOOT_HW_API_GET_ID
-	lcall	BOOT_HW_API_ENTRY
-	mov	_boot_hw_api_a, a
-	mov	_boot_hw_api_b, b
+	mov	r7, #BOOT_HW_API_GET_ID
+	lcall	#BOOT_HW_API_ENTRY
+	mov	dpl, a
+	mov	dph, b
 	__endasm;
-	return MAKEWORD(boot_hw_api_a, boot_hw_api_b);
 }
 
 uint8_t boot_hw_cram_readb(text_byte_t *addr)
 {
 	__asm
-	mov	r7, BOOT_HW_API_CRAM_READ
-	lcall	BOOT_HW_API_ENTRY
-	mov	_boot_hw_api_a, a
+	mov	r7, #BOOT_HW_API_CRAM_READ
+	lcall	#BOOT_HW_API_ENTRY
+	mov	dpl, a
 	__endasm;
-	return boot_hw_api_a;
 }
 
 void boot_hw_cram_writeb(text_byte_t *addr, uint8_t val)
 {
 	boot_hw_api_a = val;
 	__asm
-	mov	r7, BOOT_HW_API_CRAM_WRITE
+	mov	r7, #BOOT_HW_API_CRAM_WRITE
 	mov	a, _boot_hw_api_a
-	lcall	BOOT_HW_API_ENTRY
+	lcall	#BOOT_HW_API_ENTRY
 	__endasm;
 }
 
@@ -102,6 +100,7 @@ uint32_t boot_hw_cram_readl(text_quad_t *addr)
 			boot_hw_cram_readw(caddr+1));
 }
 
+#if 0
 void boot_api_test(void)
 {
 	uint32_t i;
@@ -163,3 +162,5 @@ void boot_api_test(void)
 	uart_putchar(HIBYTE(LOWORD(lv)));
 	uart_putchar(LOBYTE(LOWORD(lv)));
 }
+#endif
+
