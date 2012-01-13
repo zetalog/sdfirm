@@ -433,7 +433,7 @@ nfc_device_t *pn53x_usb_connect(const nfc_device_desc_t *pndd)
 		 *       command, to reset chip before
 		 *       talking to it:
 		 */
-		pn53x_usb_ack (pnd);
+		pn53x_usb_ack(pnd);
 		
 		/* HACK2 Then send a GetFirmware
 		 *       command to resync USB toggle bit
@@ -528,7 +528,7 @@ bool pn53x_usb_send(nfc_device_t *pnd,
 		 * correct response packet.
 		 */
 		/* FIXME Sony reader is also affected by this bug but NACK
-		 * is not supported.
+		 *       is not supported.
 		 */
 		res = pn53x_usb_bulk_write(DRIVER_DATA(pnd),
 					   (byte_t *)pn53x_nack_frame,
