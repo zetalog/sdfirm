@@ -1,0 +1,26 @@
+===== Revision 0.1.0 =====
+This is the first release of sdfirm.
+1. USB: Though USB functionalities are completed, the usb_dev.c is not released
+        due to some license issues.
+2. SCS: There are bugs in the ifd.c that might cause a contact chip card reader
+        not working properly.
+3. SCSI: scsi functions are completed for a MSD device.
+4. Time: There is a plan adding interrupt context timers to meet some
+         protocol's realtime requirements.  Though this has not been done in
+         this revision, other functionalities may be enough for those without
+         such requirments.
+5. DFU: Windows DFU driver is well completed.  As bootloader facilities are
+        not implemented in the firmware, DFU mode is not functioning in the
+        firmware for this release.
+6. MCS51: MCS51 is compiled using SDCC.  The loader code is linked from SDCC
+          which might not be adequate for some boards.
+7. AVR: AVR is compiled using GCC, with a full link script support.
+8. ARM: ARM is compiled using GCC, with a full link script support.
+9. toolchains: There are simple toolchain generation scripts attached in the
+               arch specific script folder.
+10.external packages: There are tow external projects' source code embedded in
+                      this release: libusb-win32, libnfc. You can find them in
+                      the scripts/libusb, scripts/libnfc, scripts/usbstub
+                      folders.
+===== Revision 0.2.0 =====
+NYI.
