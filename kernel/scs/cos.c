@@ -769,7 +769,7 @@ static uint8_t cos_scd_xchg_read(scs_off_t index)
 	return cos_xchg_read(index);
 }
 
-scd_driver_t cos_scd = {
+icc_driver_t cos_scd = {
 	cos_scd_select,
 	cos_scd_activate,
 	cos_scd_deactivate,

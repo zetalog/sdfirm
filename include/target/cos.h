@@ -3,7 +3,7 @@
 
 #include <target/config.h>
 #include <target/generic.h>
-#include <target/scd.h>
+#include <target/icc.h>
 #include <target/usb.h>
 
 typedef uint8_t icc_t;

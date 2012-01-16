@@ -304,8 +304,8 @@ config ICCD_COS
 	select COS
 
 config ICCD_SCD
-	bool "SCD"
-	select SCD
+	bool "ICC"
+	select ICC
 
 endchoice
 

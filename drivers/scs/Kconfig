@@ -28,3 +28,13 @@ endif
 
 endmenu
 endif
+
+if COS
+menu "COS drivers"
+
+config COS_SCOS
+	bool "Small device card operating system (SCOS)"
+	default y
+
+endmenu
+endif

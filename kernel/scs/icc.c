@@ -1,24 +1,24 @@
-#include <target/scd.h>
+#include <target/icc.h>
 #include <target/state.h>
 
 scs_intr_cb scd_notifier = NULL;
 scs_cmpl_cb scd_complete = NULL;
 
-#if NR_SCD_DEVICES > 1
-scd_driver_t *scd_drivers[NR_SCD_DEVICES];
+#if NR_ICC_CARDS > 1
+icc_driver_t *scd_drivers[NR_ICC_CARDS];
 scd_t scd_nr_devs = 0;
-struct scd_device scd_devices[NR_SCD_DEVICES];
+struct scd_device scd_devices[NR_ICC_CARDS];
 
 #define scd_dev_driver			scd_drivers[scd_id]
 #define scd_dev_attrib			scd_devices[scd_id]
 
-scd_t scd_id = INVALID_SCD_UNIT;
+scd_t scd_id = INVALID_ICC_CARD;
 
-scd_t scd_register_device(scd_driver_t *drv)
+scd_t scd_register_device(icc_driver_t *drv)
 {
 	scd_t id;
 
-	BUG_ON(scd_nr_devs >= INVALID_SCD_UNIT);
+	BUG_ON(scd_nr_devs >= INVALID_ICC_CARD);
 	id = scd_nr_devs;
 	scd_drivers[id] = drv;
 	scd_nr_devs++;
@@ -39,9 +39,9 @@ scd_t scd_dev_save(scd_t id)
 }
 #else
 struct scd_device scd_dev_attrib;
-scd_driver_t *scd_dev_driver = NULL;
+icc_driver_t *scd_dev_driver = NULL;
 
-scd_t scd_register_device(scd_driver_t *drv)
+scd_t scd_register_device(icc_driver_t *drv)
 {
 	BUG_ON(scd_dev_driver);
 	scd_dev_driver = drv;
@@ -147,6 +147,6 @@ void scd_register_handlers(scs_intr_cb notifier, scs_cmpl_cb completion)
 	scd_complete = completion;
 }
 
-void scd_init(void)
+void icc_init(void)
 {
 }

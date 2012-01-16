@@ -85,12 +85,6 @@ void ifd_init(void);
 #define ifd_init()
 #endif
 
-#ifdef CONFIG_SCD
-void scd_init(void);
-#else
-#define scd_init()
-#endif
-
 #ifdef CONFIG_ICC
 void icc_init(void);
 #else
@@ -175,7 +169,6 @@ void modules_init(void)
 	i2c_init();
 	lcd_init();
 	spi_init();
-	scd_init();
 	ifd_init();
 	icc_init();
 

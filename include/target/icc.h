@@ -1,5 +1,5 @@
-#ifndef __SCD_H_INCLUDE__
-#define __SCD_H_INCLUDE__
+#ifndef __ICC_H_INCLUDE__
+#define __ICC_H_INCLUDE__
 
 #include <target/config.h>
 #include <target/generic.h>
@@ -7,20 +7,19 @@
 
 typedef uint8_t scd_t;
 
-#ifdef CONFIG_SCD_MAX_DEVICES
-#define NR_SCD_DEVICES		CONFIG_SCD_MAX_DEVICES
+#ifdef CONFIG_ICC_MAX_CARDS
+#define NR_ICC_CARDS		CONFIG_ICC_MAX_CARDS
 #else
-#define NR_SCD_DEVICES		1
+#define NR_ICC_CARDS		1
 #endif
-#define INVALID_SCD_UNIT	NR_SCD_DEVICES
+#define INVALID_ICC_CARD	NR_ICC_CARDS
 
-/* Smart card devices includes
- * 1. ISO7816-3 interface device (IFD)
- * 2. ISO7816-4 card with contacts COS (ICC)
- * 3. ISO14443-4 contactless interface device (MIFARE)
+/* Integreted chip card devices includes
+ * 1. ISO7816-4 card with contacts COS (native ICC)
+ * 2. ISO7816-3 interface device (IFD)
+ * 3. ISO14443-4 contactless interface device (PCD)
  */
-
-struct scd_driver {
+struct icc_driver {
 	void (*select)(void);
 	scs_err_t (*activate)(void);
 	scs_err_t (*deactivate)(void);
@@ -29,7 +28,7 @@ struct scd_driver {
 	scs_err_t (*xchg_write)(scs_off_t index, uint8_t byte);
 	uint8_t (*xchg_read)(scs_off_t index);
 };
-__TEXT_TYPE__(struct scd_driver, scd_driver_t);
+__TEXT_TYPE__(struct icc_driver, icc_driver_t);
 
 struct scd_device {
 	uint8_t error;
@@ -42,7 +41,7 @@ struct scd_device {
 #define SCD_DEV_STATE_ACTIVE		0x02
 #define SCD_DEV_STATE_HWERROR		0x03
 
-#if NR_SCD_DEVICES > 1
+#if NR_ICC_CARDS > 1
 void scd_dev_restore(scd_t id);
 scd_t scd_dev_save(scd_t id);
 extern scd_t scd_id;
@@ -56,7 +55,7 @@ extern scd_t scd_nr_devs;
 #define scd_dev_select(id)		scd_dev_restore(id)
 
 /* used by SCD server */
-scd_t scd_register_device(scd_driver_t *drv);
+scd_t scd_register_device(icc_driver_t *drv);
 void scd_seq_complete(scs_err_t err);
 
 /* used by SCD client */
@@ -76,4 +75,4 @@ scs_err_t scd_get_error(void);
 uint8_t scd_dev_get_state(void);
 void scd_dev_set_state(uint8_t status);
 
-#endif
+#endif /* __ICC_H_INCLUDE__ */

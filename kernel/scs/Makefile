@@ -14,4 +14,4 @@ obj-$(CONFIG_PCD_B) += pcd_b.rel
 
 obj-$(CONFIG_COS) += cos.rel
 
-obj-$(CONFIG_SCD) += scd.rel
+obj-$(CONFIG_ICC) += icc.rel

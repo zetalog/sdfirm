@@ -118,7 +118,7 @@ CONFIG_ICCD_T0=y
 # CONFIG_ICCD_T1 is not set
 # CONFIG_USB_DFU is not set
 CONFIG_SCS=y
-# CONFIG_SCD is not set
+# CONFIG_ICC is not set
 # CONFIG_IFD is not set
 CONFIG_COS=y
 CONFIG_COS_MAX_CARDS=1

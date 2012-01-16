@@ -16,12 +16,12 @@ menuconfig SCS
 
 if SCS
 
-menuconfig SCD
-	bool "Smart card device support"
+menuconfig ICC
+	bool "Smart card chip card device support"
 
-if SCD
+if ICC
 
-config SCD_MAX_DEVICES
+config ICC_MAX_CARDS
 	int "Number of smart card devices (1~8)"
 	range 1 8
 	default 1
@@ -38,7 +38,7 @@ if IFD
 
 config IFD_SCD
 	bool "Enable smard card device registration"
-	depends SCD
+	depends ICC
 	select IFD_AUTO_RESET
 	select IFD_XCHG_APDU
 
@@ -292,7 +292,7 @@ menuconfig COS
 if COS
 config COS_SCD
 	bool
-	depends SCD
+	depends ICC
 	default y
 
 config COS_MAX_CARDS

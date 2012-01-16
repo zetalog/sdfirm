@@ -4,7 +4,7 @@
 #define CCID_SPE_TIMEOUT	120
 
 struct ccid_po_param {
-	struct ccid_xb_param xb;
+	struct scd_xb_param xb;
 	uint8_t bPINOpeartion;
 	uint8_t bTimeout;
 	uint8_t bmFormatString;

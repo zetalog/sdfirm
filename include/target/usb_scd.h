@@ -116,6 +116,69 @@ typedef struct scd_desc {
 #define ICCD_MAX_BUSY_SLOT		0x01
 } scd_desc_t;
 
+struct scd_cmd {
+	uint8_t  bMessageType;
+	scs_size_t dwLength;
+	uint8_t  bSlot;
+	uint8_t  bSeq;
+	uint8_t  abRFU[3];
+};
+
+struct scd_resp {
+	uint8_t  bMessageType;
+	scs_size_t dwLength;
+	/* Slot Status Register */
+	uint8_t bStatus;
+	/* Slot Error Register */
+	uint8_t bError;
+	uint8_t abRFU3;
+};
+
+/* SCD_PC2RDR_XFRBLOCK parameters */
+struct scd_xb_param {
+	scs_err_t dwIccOutErr;
+	urb_size_t dwIccOutCnt;
+	urb_size_t dwIccExpCnt;
+	uint8_t bIccWaitInt;
+};
+
+/* SCD_RDR2PC_DATABLOCK parameters */
+struct scd_db_param {
+	urb_size_t dwIccOutIter;
+	scs_err_t dwIccOutErr;
+};
+
+struct scd_t0_param {
+	uint8_t bmFindexDindex;
+	uint8_t bmTCCKST0;
+	uint8_t bGuardTimeT0;
+	uint8_t bWaitingIntegerT0;
+	uint8_t bClockStop;
+};
+
+struct scd_t1_param {
+	uint8_t bmFindexDindex;
+	uint8_t bmTCCKST1;
+	uint8_t bGuardTimeT1;
+	uint8_t bWaitingIntegerT1;
+	uint8_t bClockStop;
+	uint8_t bIFSC;
+	uint8_t bNadValue;
+};
+
+#define SCD_SLOT_STATE_PC2RDR		0x00
+#define SCD_SLOT_STATE_ISO7816		0x01
+#define SCD_SLOT_STATE_RDR2PC		0x02
+#define SCD_SLOT_STATE_SANITY		0x03
+
+#define SCD_CMD_STATUS_SUCC		(0x00 << 6)
+#define SCD_CMD_STATUS_FAIL		(0x01 << 6)
+#define SCD_CMD_STATUS_TIME_EXT	(0x02 << 6)
+#define SCD_CMD_STATUS_MASK		(0xc0)
+
+#define scd_slot_success(err)		((err) == SCS_ERR_SUCCESS)
+#define scd_slot_progress(err)		((err) == SCS_ERR_PROGRESS)
+
 void scd_Escape_init(void);
 void scd_Escape_out(void);
 void scd_Escape_cmp(void);

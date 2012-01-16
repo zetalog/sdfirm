@@ -59,51 +59,11 @@ typedef uint8_t		ccid_seq_t;
 #define CCID_REQ_GET_CLOCK_FREQS	0x02
 #define CCID_REQ_GET_DATA_RATES		0x03
 
-struct ccid_cmd {
-	uint8_t  bMessageType;
-	scs_size_t dwLength;
-	uint8_t  bSlot;
-	uint8_t  bSeq;
-	uint8_t  abRFU[3];
-};
-
-struct ccid_resp {
-	uint8_t  bMessageType;
-	scs_size_t dwLength;
-	/* Slot Status Register */
-	uint8_t bStatus;
-	/* Slot Error Register */
-	uint8_t bError;
-	uint8_t abRFU3;
-};
-
-struct ccid_t0_param {
-	uint8_t bmFindexDindex;
-	uint8_t bmTCCKST0;
-	uint8_t bGuardTimeT0;
-	uint8_t bWaitingIntegerT0;
-	uint8_t bClockStop;
-};
-
-struct ccid_t1_param {
-	uint8_t bmFindexDindex;
-	uint8_t bmTCCKST1;
-	uint8_t bGuardTimeT1;
-	uint8_t bWaitingIntegerT1;
-	uint8_t bClockStop;
-	uint8_t bIFSC;
-	uint8_t bNadValue;
-};
-
 #define CCID_HEADER_SIZE		10
 #define CCID_MESSAGE_SIZE		(IFD_BUF_SIZE + CCID_HEADER_SIZE)
 
 struct ccid_slot {
 	uint8_t state;
-#define CCID_SLOT_STATE_PC2RDR		0x00
-#define CCID_SLOT_STATE_ISO7816		0x01
-#define CCID_SLOT_STATE_RDR2PC		0x02
-#define CCID_SLOT_STATE_SANITY		0x03
 	/* sync ABORT messages for CTRL and BULK_OUT */
 #define CCID_ABORT_NONE			0x00
 #define CCID_ABORT_CTRL			0x01
@@ -173,11 +133,6 @@ struct ccid_hwerr {
 #define CCID_ERROR_USER(e)			(CCID_ERROR_USER_DEFINED-e)
 #define CCID_ERROR_RESERVED			0x80
 #define CCID_ERROR_CMD_UNSUPPORT		0x00
-
-#define CCID_CMD_STATUS_SUCC		(0x00 << 6)
-#define CCID_CMD_STATUS_FAIL		(0x01 << 6)
-#define CCID_CMD_STATUS_TIME_EXT	(0x02 << 6)
-#define CCID_CMD_STATUS_MASK		(0xc0)
 
 /* clock status for RDR2PC_SlotStatus */
 #define CCID_CLOCK_RUNNING		0x00

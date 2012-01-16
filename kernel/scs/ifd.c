@@ -2477,7 +2477,7 @@ static void ifd_pres_handler(void)
 #endif
 
 #ifdef CONFIG_IFD_SCD
-#include <target/scd.h>
+#include <target/icc.h>
 
 __near__ scd_t ifd_scds[NR_IFD_SLOTS];
 
@@ -2590,7 +2590,7 @@ static uint8_t ifd_scd_read_byte(scs_off_t index)
 	return ifd_read_byte(index);
 }
 
-scd_driver_t ifd_scd = {
+icc_driver_t ifd_scd = {
 	ifd_scd_select,
 	ifd_scd_activate,
 	ifd_scd_deactivate,

@@ -9,6 +9,4 @@ obj-$(CONFIG_BLOCK) += block.o
 
 obj-$(CONFIG_LCD) += lcd/
 obj-$(CONFIG_MTD) += mtd/
-obj-$(CONFIG_COS) += cos/
-obj-$(CONFIG_SCD) += scd/
-
+obj-$(CONFIG_SCS) += scs/

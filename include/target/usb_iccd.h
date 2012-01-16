@@ -42,9 +42,9 @@
 #ifndef __USB_ICCD_H_INCLUDE__
 #define __USB_ICCD_H_INCLUDE__
 
-#include <target/scd.h>
+#include <target/icc.h>
 
-#if NR_SCD_DEVICES == 0
+#if NR_ICC_CARDS == 0
 #error "SCD device is not defined"
 #endif
 
@@ -55,40 +55,14 @@
 #define USB_PROTOCOL_ICCD_B		0x02
 
 #ifdef CONFIG_ICCD_PROTO_BULK
- #define USB_PROTOCOL_ICCD	USB_PROTOCOL_ICCD_BULK
+#define USB_PROTOCOL_ICCD	USB_PROTOCOL_ICCD_BULK
 #elif defined(CONFIG_ICCD_PROTO_A)
- #define USB_PROTOCOL_ICCD	USB_PROTOCOL_ICCD_A
+#define USB_PROTOCOL_ICCD	USB_PROTOCOL_ICCD_A
 #elif defined(CONFIG_ICCD_PROTO_B)
- #define USB_PROTOCOL_ICCD	USB_PROTOCOL_ICCD_B
+#define USB_PROTOCOL_ICCD	USB_PROTOCOL_ICCD_B
 #endif
 
 #define ICCD_RDR2PC_NOTIFYSLOTCHANGE	0x50
-
-struct iccd_cmd {
-	uint8_t  bMessageType;
-	scs_size_t dwLength;
-	uint8_t  bSlot;
-	uint8_t  bSeq;
-	uint8_t  abRFU[3];
-};
-
-struct iccd_resp {
-	uint8_t  bMessageType;
-	scs_size_t dwLength;
-	/* Slot Status Register */
-	uint8_t bStatus;
-	/* Slot Error Register */
-	uint8_t bError;
-	uint8_t abRFU3;
-};
-
-struct iccd_t0_param {
-	uint8_t bmFindexDindex;
-	uint8_t bmTCCKST0;
-	uint8_t bGuardTimeT0;
-	uint8_t bWaitingIntegerT0;
-	uint8_t bClockStop;
-};
 
 struct iccd_t1_param {
 	uint8_t bmFindexDindex;
@@ -110,10 +84,6 @@ struct iccd_t1_param {
 
 struct iccd_dev {
 	uint8_t state;
-#define ICCD_SLOT_STATE_PC2RDR		0x00
-#define ICCD_SLOT_STATE_ISO7816		0x01
-#define ICCD_SLOT_STATE_RDR2PC		0x02
-#define ICCD_SLOT_STATE_SANITY		0x03
 };
 
 struct iccd_hwerr {
@@ -129,8 +99,8 @@ struct iccd_hwerr {
 };
 #define CCID_IRQ_HWERR_SIZE	0x04
 
-#define ICCD_INVALID_SLOT		NR_SCD_DEVICES
-#define ICCD_SINGLE_SLOT_IDX	(ICCD_MAX_BUSY_SLOT-1)
+#define ICCD_INVALID_SLOT		NR_ICC_CARDS
+#define ICCD_SINGLE_SLOT_IDX		(ICCD_MAX_BUSY_SLOT-1)
 
 /* TODO:
  * Each intfc has the same endpoint number (NR_ICCD_ENDPS). 
@@ -174,11 +144,6 @@ struct iccd_hwerr {
 #define ICCD_ERROR_USER(e)			(ICCD_ERROR_USER_DEFINED-e)
 #define ICCD_ERROR_RESERVED			0x80
 #define ICCD_ERROR_CMD_UNSUPPORT		0x00
-
-#define ICCD_CMD_STATUS_SUCC		(0x00 << 6)
-#define ICCD_CMD_STATUS_FAIL		(0x01 << 6)
-#define ICCD_CMD_STATUS_TIME_EXT	(0x02 << 6)
-#define ICCD_CMD_STATUS_MASK		(0xc0)
 
 #define ICCD_PC2RDR_ICCPOWERON		0x62
 #define ICCD_PC2RDR_ICCPOWEROFF		0x63
