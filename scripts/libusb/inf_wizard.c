@@ -42,11 +42,11 @@
 #define STRINGIFY(x) _STRINGIFY(x)
 
 
-DEFINE_GUID(GUID_DEVINTERFACE_USB_HUB, 0xf18a0e88, 0xc30c, 0x11d0, 0x88, \
-            0x15, 0x00, 0xa0, 0xc9, 0x06, 0xbe, 0xd8);
+DEFINE_GUID(GUID_DEVINTERFACE_USB_HUB, 0x7C1F910D, 0xCDDA, 0x41D5, \
+		0xB1, 0x54, 0x4, 0x4C, 0x1, 0xA4, 0xF4, 0x1A);
 
-DEFINE_GUID(GUID_DEVINTERFACE_USB_DEVICE, 0xA5DCBF10L, 0x6530, 0x11D2, \
-            0x90, 0x1F, 0x00, 0xC0, 0x4F, 0xB9, 0x51, 0xED);
+DEFINE_GUID(GUID_DEVINTERFACE_USB_DEVICE, 0x3AFA3FF7L, 0x67E9, 0x4907, \
+		0xBA, 0xF0, 0x39, 0x52, 0xCF, 0x12, 0x78, 0x5F);
 
 const char cat_file_content[] =
 "This file will contain the digital signature of the files to be installed\n"
@@ -89,7 +89,7 @@ const char inf_body[] =
 "HKR,,Icon,,\"-20\"\n"
 "\n"
 "[Manufacturer]\n"
-"%manufacturer%=Devices,NT,NTAMD64\n"
+"%manufacturer%=Devices,NT\n"
 "\n"
 ";--------------------------------------------------------------------------\n"
 "; Files\n"
@@ -100,17 +100,12 @@ const char inf_body[] =
 "\n"
 "[SourceDisksFiles]\n"
 "usbstub.sys = 1,,\n"
-"usbstub_x64.sys = 1,,\n"
 "\n"
 "[DestinationDirs]\n"
 "libusb_files_sys = 10,system32\\drivers\n"
-"libusb_files_sys_x64 = 10,system32\\drivers\n"
 "\n"
 "[libusb_files_sys]\n"
 "usbstub.sys\n"
-"\n"
-"[libusb_files_sys_x64]\n"
-"usbstub.sys,usbstub_x64.sys\n"
 "\n"
 ";--------------------------------------------------------------------------\n"
 "; Device driver\n"
@@ -123,9 +118,6 @@ const char inf_body[] =
 "[LIBUSB_DEV.NT]\n"
 "CopyFiles = libusb_files_sys\n"
 "\n"
-"[LIBUSB_DEV.NTAMD64]\n"
-"CopyFiles = libusb_files_sys_x64\n"
-"\n"
 "[LIBUSB_DEV.HW]\n"
 "DelReg = libusb_del_reg_hw\n"
 "AddReg = libusb_add_reg_hw\n"
@@ -134,14 +126,7 @@ const char inf_body[] =
 "DelReg = libusb_del_reg_hw\n"
 "AddReg = libusb_add_reg_hw\n"
 "\n"
-"[LIBUSB_DEV.NTAMD64.HW]\n"
-"DelReg = libusb_del_reg_hw\n"
-"AddReg = libusb_add_reg_hw\n"
-"\n"
 "[LIBUSB_DEV.NT.Services]\n"
-"AddService = usbstub, 0x00000002, libusb_add_service\n"
-"\n"
-"[LIBUSB_DEV.NTAMD64.Services]\n"
 "AddService = usbstub, 0x00000002, libusb_add_service\n"
 "\n"
 "[libusb_add_reg]\n"
@@ -610,9 +595,6 @@ static int save_file(HWND dialog, device_context_t *device)
 	char cat_name[MAX_PATH];
 	char cat_path[MAX_PATH];
 	
-	char cat_name_x64[MAX_PATH];
-	char cat_path_x64[MAX_PATH];
-	
 	char error[MAX_PATH];
 	FILE *file;
 	
@@ -634,13 +616,9 @@ static int save_file(HWND dialog, device_context_t *device)
 	if (GetSaveFileName(&open_file)) {
 		strcpy(cat_path, inf_path);
 		strcpy(cat_name, inf_name);
-		strcpy(cat_path_x64, inf_path);
-		strcpy(cat_name_x64, inf_name);
 		
 		strcpy(strstr(cat_path, ".inf"), ".cat");
 		strcpy(strstr(cat_name, ".inf"), ".cat");
-		strcpy(strstr(cat_path_x64, ".inf"), "_x64.cat");
-		strcpy(strstr(cat_name_x64, ".inf"), "_x64.cat");
 		
 		file = fopen(inf_path, "w");
 		
@@ -648,7 +626,6 @@ static int save_file(HWND dialog, device_context_t *device)
 			fprintf(file, "%s", inf_header);
 			fprintf(file, "CatalogFile = %s\n", cat_name);
 			fprintf(file, "CatalogFile.NT = %s\n", cat_name);
-			fprintf(file, "CatalogFile.NTAMD64 = %s\n\n", cat_name_x64);
 			fprintf(file, "%s", inf_body);
 			
 			fprintf(file, "[Devices]\n");
@@ -656,10 +633,6 @@ static int save_file(HWND dialog, device_context_t *device)
 				device->description,
 				device->vid, device->pid);
 			fprintf(file, "[Devices.NT]\n");
-			fprintf(file, "\"%s\"=LIBUSB_DEV, USB\\VID_%04x&PID_%04x\n\n", 
-				device->description,
-				device->vid, device->pid);
-			fprintf(file, "[Devices.NTAMD64]\n");
 			fprintf(file, "\"%s\"=LIBUSB_DEV, USB\\VID_%04x&PID_%04x\n\n", 
 				device->description,
 				device->vid, device->pid);
@@ -682,17 +655,6 @@ static int save_file(HWND dialog, device_context_t *device)
 			fclose(file);
 		} else {
 			sprintf(error, "Error: unable to open file: %s", cat_name);
-			MessageBox(dialog, error, "Error",
-				   MB_OK | MB_APPLMODAL | MB_ICONWARNING);
-		}
-		
-		file = fopen(cat_path_x64, "w");
-		
-		if (file) {
-			fprintf(file, "%s", cat_file_content);
-			fclose(file);
-		} else {
-			sprintf(error, "Error: unable to open file: %s", cat_name_x64);
 			MessageBox(dialog, error, "Error",
 				   MB_OK | MB_APPLMODAL | MB_ICONWARNING);
 		}
