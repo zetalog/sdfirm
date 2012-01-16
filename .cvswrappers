@@ -1,3 +1,5 @@
 # VC++ Files are BINARY
 
 *.pdf -k 'b'
+*.dsp -k 'b'
+*.dsw -k 'b'

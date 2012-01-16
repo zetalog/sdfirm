@@ -21,5 +21,8 @@ cscope*
 *.log
 *.wrn
 *.err
+*.opt
+*.plg
+*.ncb
 obj
 bin

@@ -1,0 +1,353 @@
+Microsoft Developer Studio Workspace File, Format Version 6.00
+# WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
+
+###############################################################################
+
+Project: "buildall"=".\buildall.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name cuartdbg
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name wuartdbg
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name inf_wizard
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libusb
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name usbstub
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name dfu_suffix
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name windfu
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_anticol
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_dep_initiator
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_dep_target
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_list
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_mfclassic
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_mfsetuid
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_mfultralight
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_poll
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name pn53x_diagnose
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name pn53x_sam
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name pn53x_tamashell
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "cuartdbg"=".\scripts\uartlog\cuartdbg.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "dfu_suffix"=".\scripts\windfu\dfu_suffix.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "inf_wizard"=".\scripts\libusb\inf_wizard.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name usbstub
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "libnfc"=".\scripts\libnfc\libnfc.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libusb
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "libusb"=".\scripts\libusb\libusb.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "nfc_anticol"=".\scripts\winnfc\nfc_anticol.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "nfc_dep_initiator"=".\scripts\winnfc\nfc_dep_initiator.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "nfc_dep_target"=".\scripts\winnfc\nfc_dep_target.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "nfc_list"=".\scripts\winnfc\nfc_list.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "nfc_mfclassic"=".\scripts\winnfc\nfc_mfclassic.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "nfc_mfsetuid"=".\scripts\winnfc\nfc_mfsetuid.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "nfc_mfultralight"=".\scripts\winnfc\nfc_mfultralight.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "nfc_poll"=".\scripts\winnfc\nfc_poll.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "pn53x_diagnose"=".\scripts\winnfc\pn53x_diagnose.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "pn53x_sam"=".\scripts\winnfc\pn53x_sam.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "pn53x_tamashell"=".\scripts\winnfc\pn53x_tamashell.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "usbstub"=".\scripts\libusb\usbstub.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "windfu"=".\scripts\windfu\windfu.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "wuartdbg"=".\scripts\uartlog\wuartdbg.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Global:
+
+Package=<5>
+{{{
+}}}
+
+Package=<3>
+{{{
+}}}
+
+###############################################################################
+
