@@ -70,8 +70,9 @@ int timeval_subtract(struct timeval *result,
 		tmp.tv_usec += 1000000 * nsec;
 		tmp.tv_sec -= nsec;
 	}
-	/* Compute the time remaining to wait.
-	tv_usec is certainly positive. */
+	/* Compute the time remaining to wait.  tv_usec is certainly
+	 * positive.
+	 */
 	result->tv_sec = x->tv_sec - tmp.tv_sec;
 	result->tv_usec = x->tv_usec - tmp.tv_usec;
 	/* Return 1 if result is negative. */
@@ -168,6 +169,7 @@ struct pn53x_usb_supported_device {
 };
 
 const struct pn53x_usb_supported_device pn53x_usb_supported_devices[] = {
+	{ 0x03DE, 0x0531, NXP_PN533,   "Soliton (Shanghai) / PN533" },
 	{ 0x04CC, 0x0531, NXP_PN531,   "Philips / PN531" },
 	{ 0x04CC, 0x2533, NXP_PN533,   "NXP / PN533" },
 	{ 0x04E6, 0x5591, SCM_SCL3711, "SCM Micro / SCL3711-NFC&RW" },

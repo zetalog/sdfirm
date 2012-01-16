@@ -19,6 +19,7 @@ obj-$(CONFIG_MSD_BBB) += msd_bbb.rel
 obj-$(CONFIG_USB_SCD) += usb_scd.rel
 obj-$(CONFIG_USB_CCID) += usb_ccid.rel
 obj-$(CONFIG_USB_ICCD) += usb_iccd.rel
+obj-$(CONFIG_USB_PN53X) += usb_pn53x.rel
 obj-$(CONFIG_SCD_ESC_NONE) += scd_none.rel
 obj-$(CONFIG_SCD_ESC_PN53X) += scd_pn53x.rel
 

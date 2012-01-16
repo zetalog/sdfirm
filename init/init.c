@@ -140,6 +140,12 @@ void iccd_init(void);
 #define iccd_init()
 #endif
 
+#ifdef CONFIG_USB_PN53X
+void usb_pn53x_init(void);
+#else
+#define usb_pn53x_init()
+#endif
+
 #ifdef CONFIG_COS
 void cos_init(void);
 #else
@@ -180,6 +186,7 @@ void modules_init(void)
 	msd_init();
 	ccid_init();
 	iccd_init();
+	usb_pn53x_init();
 	cos_init();
 	dfu_init();
 

@@ -348,9 +348,13 @@ static uint8_t ccid_resp_message(void)
 
 static uint8_t ccid_proto_features(void)
 {
-	uint8_t protocols = (1 << SCD_PROTOCOL_T0);
+	uint8_t protocols;
+#ifdef CONFIG_SCD_ESC_PN53X
+#else
+	protocols = (1 << SCD_PROTOCOL_T0);
 #ifdef CONFIG_IFD_T1
 	protocols |= (1 << SCD_PROTOCOL_T1);
+#endif
 #endif
 	return protocols;
 }

@@ -415,4 +415,11 @@ config DFU_AUTO_RESET
 
 endif
 
+menuconfig USB_PN53X
+	bool "NXP PN53X NFC device support"
+
+if USB_PN53X
+
+endif
+
 endif
