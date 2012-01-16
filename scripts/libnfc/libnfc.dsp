@@ -32,12 +32,12 @@ RSC=rc.exe
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
-# PROP BASE Output_Dir "."
+# PROP BASE Output_Dir "../../bin/release/utils"
 # PROP BASE Intermediate_Dir "../../obj/release/libusb"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "."
+# PROP Output_Dir "../../bin/release/utils"
 # PROP Intermediate_Dir "../../obj/release/libusb"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
@@ -55,13 +55,13 @@ LIB32=link.exe -lib
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
-# PROP BASE Output_Dir "."
-# PROP BASE Intermediate_Dir "../../obj/release/libusb"
+# PROP BASE Output_Dir "../../bin/debug/utils"
+# PROP BASE Intermediate_Dir "../../obj/debug/libusb"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "."
-# PROP Intermediate_Dir "../../obj/release/libusb"
+# PROP Output_Dir "../../bin/debug/utils"
+# PROP Intermediate_Dir "../../obj/debug/libusb"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\include" /I "..\..\include\host\missing" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c

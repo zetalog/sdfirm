@@ -30,7 +30,157 @@ Package=<4>
 
 ###############################################################################
 
-Project: "nfc_list"=".\nfc_list.dsp" - Package Owner=<4>
+Project: "nfc_anticol"="..\winnfc\nfc_anticol.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "nfc_dep_initiator"="..\winnfc\nfc_dep_initiator.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "nfc_dep_target"="..\winnfc\nfc_dep_target.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "nfc_list"="..\winnfc\nfc_list.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "nfc_mfclassic"="..\winnfc\nfc_mfclassic.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "nfc_mfsetuid"="..\winnfc\nfc_mfsetuid.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "nfc_mfultralight"="..\winnfc\nfc_mfultralight.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "nfc_poll"="..\winnfc\nfc_poll.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "pn53x_diagnose"="..\winnfc\pn53x_diagnose.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "pn53x_sam"="..\winnfc\pn53x_sam.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "pn53x_tamashell"="..\winnfc\pn53x_tamashell.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{

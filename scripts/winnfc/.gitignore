@@ -1,0 +1,11 @@
+*.d
+*.cmd
+*.ncb
+*.opt
+*.plg
+*.aps
+*.SUP
+*.pdb
+*.ilk
+*.log
+
