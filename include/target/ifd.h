@@ -136,15 +136,15 @@ uint32_t ifd_cf_get_freq(uint8_t index);
 uint32_t ifd_get_freq(void);
 void ifd_set_freq(uint32_t freq);
 
-/* Error number defined refers ccid */
-#define IFD_ERR_BAD_PCK			(SCS_ERR_MAX+8)
-#define IFD_ERR_BAD_PPSR		(SCS_ERR_MAX+7)
-#define IFD_ERR_BAD_PPSS		(SCS_ERR_MAX+6)
-#define IFD_ERR_BAD_FD			(SCS_ERR_MAX+5)
-#define IFD_ERR_BAD_PROTO		(SCS_ERR_MAX+4)
-#define IFD_ERR_BAD_TCK			(SCS_ERR_MAX+3)
-#define IFD_ERR_BAD_TS			(SCS_ERR_MAX+2)
-#define IFD_ERR_BAD_CLASS		(SCS_ERR_MAX+1)
+/* Error number defined refers to the CCID specification */
+#define IFD_ERR_BAD_PCK			(SCS_ERR_SANITY|8)
+#define IFD_ERR_BAD_PPSR		(SCS_ERR_SANITY|7)
+#define IFD_ERR_BAD_PPSS		(SCS_ERR_SANITY|6)
+#define IFD_ERR_BAD_FD			(SCS_ERR_SANITY|5)
+#define IFD_ERR_BAD_PROTO		(SCS_ERR_SANITY|4)
+#define IFD_ERR_BAD_TCK			(SCS_ERR_SANITY|3)
+#define IFD_ERR_BAD_TS			(SCS_ERR_SANITY|2)
+#define IFD_ERR_BAD_CLASS		(SCS_ERR_SANITY|1)
 
 #define IFD_SEQ_AUTO_SEQ		0x00
 #define IFD_SEQ_POWER_ON		0x01

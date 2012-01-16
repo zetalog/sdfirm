@@ -6,12 +6,6 @@
 #include <target/scs.h>
 
 typedef uint8_t scd_t;
-typedef uint16_t scd_size_t;
-typedef uint16_t scd_off_t;
-typedef uint8_t scd_err_t;
-
-typedef void (*scd_intr_cb)(void);
-typedef void (*scd_cmpl_cb)(void);
 
 #ifdef CONFIG_SCD_MAX_DEVICES
 #define NR_SCD_DEVICES		CONFIG_SCD_MAX_DEVICES
@@ -28,27 +22,20 @@ typedef void (*scd_cmpl_cb)(void);
 
 struct scd_driver {
 	void (*select)(void);
-	scd_err_t (*activate)(void);
-	scd_err_t (*deactivate)(void);
-	scd_err_t (*xchg_block)(scd_size_t nc, scd_size_t ne);
-	scd_size_t (*xchg_avail)(void);
-	scd_err_t (*xchg_write)(scd_off_t index, uint8_t byte);
-	uint8_t (*xchg_read)(scd_off_t index);
+	scs_err_t (*activate)(void);
+	scs_err_t (*deactivate)(void);
+	scs_err_t (*xchg_block)(scs_size_t nc, scs_size_t ne);
+	scs_size_t (*xchg_avail)(void);
+	scs_err_t (*xchg_write)(scs_off_t index, uint8_t byte);
+	uint8_t (*xchg_read)(scs_off_t index);
 };
 __TEXT_TYPE__(struct scd_driver, scd_driver_t);
 
 struct scd_device {
 	uint8_t error;
 	uint8_t state;
-	scd_cmpl_cb cmpl;
+	scs_cmpl_cb cmpl;
 };
-
-#define SCD_ERR_PROGRESS		0x12
-#define SCD_ERR_OVERRUN			0x0E
-#define SCD_ERR_TIMEOUT			0x03
-#define SCD_ERR_NOTPRESENT		0x02
-#define SCD_ERR_HW_ERROR		0x01
-#define SCD_ERR_SUCCESS			0x00
 
 #define SCD_DEV_STATE_NOTPRESENT	0x00
 #define SCD_DEV_STATE_PRESENT		0x01
@@ -70,22 +57,22 @@ extern scd_t scd_nr_devs;
 
 /* used by SCD server */
 scd_t scd_register_device(scd_driver_t *drv);
-void scd_seq_complete(scd_err_t err);
+void scd_seq_complete(scs_err_t err);
 
 /* used by SCD client */
-void scd_register_handlers(scd_intr_cb notifier, scd_cmpl_cb completion);
+void scd_register_handlers(scs_intr_cb notifier, scs_cmpl_cb completion);
 
-scd_err_t scd_power_on(void);
-scd_err_t scd_power_off(void);
+scs_err_t scd_power_on(void);
+scs_err_t scd_power_off(void);
 
-scd_err_t scd_xchg_block(scd_size_t nc, scd_size_t ne);
-scd_size_t scd_xchg_avail(void);
-scd_err_t scd_xchg_write(scd_off_t index, uint8_t byte);
-uint8_t scd_xchg_read(scd_off_t index);
+scs_err_t scd_xchg_block(scs_size_t nc, scs_size_t ne);
+scs_size_t scd_xchg_avail(void);
+scs_err_t scd_xchg_write(scs_off_t index, uint8_t byte);
+uint8_t scd_xchg_read(scs_off_t index);
 
 /* misc */
-void scd_set_error(scd_err_t errno);
-scd_err_t scd_get_error(void);
+void scd_set_error(scs_err_t errno);
+scs_err_t scd_get_error(void);
 uint8_t scd_dev_get_state(void);
 void scd_dev_set_state(uint8_t status);
 

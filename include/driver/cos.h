@@ -8,7 +8,7 @@
 #endif
 
 #ifndef ARCH_HAVE_ICC
-#define cos_vs_activate()			ICC_ERR_SUCCESS
+#define cos_vs_activate()			SCS_ERR_SUCCESS
 #define cos_vs_deactivate()
 #define cos_vs_init()
 #endif

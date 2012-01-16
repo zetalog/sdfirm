@@ -95,7 +95,7 @@ typedef scs_err_t (*scs_txfr_cb)(scs_size_t nc, scs_size_t ne);
 typedef void (*scs_tvoid_cb)(void);
 
 /* Error number defined refers ccid */
-#define SCS_ERR_MAX			0x20
+#define SCS_ERR_SANITY			0x20
 #define SCS_ERR_ABORTED			0x0B
 #define SCS_ERR_PROGRESS		0x0A
 #define SCS_ERR_UNSUPPORT		0x09

@@ -7,7 +7,7 @@
 #error "Multiple COS defined"
 #endif
 
-cos_err_t cos_vs_activate(void);
+scs_err_t cos_vs_activate(void);
 void cos_vs_deactivate(void);
 void cos_vs_init(void);
 

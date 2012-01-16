@@ -2499,21 +2499,17 @@ ifd_sid_t ifd_scd_slot(scd_t scd)
 	return INVALID_IFD_SID;
 }
 
-scd_err_t ifd_scd_error(scs_err_t err)
+scs_err_t ifd_scd_error(scs_err_t err)
 {
 	switch (err) {
-	case SCS_ERR_PROGRESS:
-		return SCD_ERR_PROGRESS;
-	case SCS_ERR_OVERRUN:
-		return SCD_ERR_OVERRUN;
-	case SCS_ERR_TIMEOUT:
-		return SCD_ERR_TIMEOUT;
-	case SCS_ERR_NOTPRESENT:
-		return SCD_ERR_NOTPRESENT;
 	case SCS_ERR_SUCCESS:
-		return SCD_ERR_SUCCESS;
+	case SCS_ERR_PROGRESS:
+	case SCS_ERR_OVERRUN:
+	case SCS_ERR_TIMEOUT:
+	case SCS_ERR_NOTPRESENT:
+		return err;
 	default:
-		return SCD_ERR_HW_ERROR;
+		return SCS_ERR_HW_ERROR;
 	}
 }
 
@@ -2555,36 +2551,33 @@ static void ifd_scd_select(void)
 	ifd_sid_select(ifd_scd_slot(scd_id));
 }
 
-static scd_err_t ifd_scd_activate(void)
+static scs_err_t ifd_scd_activate(void)
 {
 	scs_err_t err;
-
 	err = ifd_scd_power_on(true);
 	return ifd_scd_error(err);
 }
 
-static scd_err_t ifd_scd_deactivate(void)
+static scs_err_t ifd_scd_deactivate(void)
 {
 	scs_err_t err;
-
 	err = ifd_power_off();
 	return ifd_scd_error(err);
 }
 
-static scd_err_t ifd_scd_xchg_block(scd_size_t nc, scd_size_t ne)
+static scs_err_t ifd_scd_xchg_block(scs_size_t nc, scs_size_t ne)
 {
 	scs_err_t err;
-
 	err = ifd_xchg_block(nc, ne);
 	return ifd_scd_error(err);
 }
 
-static scd_size_t ifd_scd_xchg_avail(void)
+static scs_size_t ifd_scd_xchg_avail(void)
 {
 	return ifd_xchg_avail();
 }
 
-static scd_err_t ifd_scd_write_byte(scd_off_t index, uint8_t byte)
+static scs_err_t ifd_scd_write_byte(scs_off_t index, uint8_t byte)
 {
 	scs_err_t err;
 
@@ -2592,7 +2585,7 @@ static scd_err_t ifd_scd_write_byte(scd_off_t index, uint8_t byte)
 	return ifd_scd_error(err);
 }
 
-static uint8_t ifd_scd_read_byte(scd_off_t index)
+static uint8_t ifd_scd_read_byte(scs_off_t index)
 {
 	return ifd_read_byte(index);
 }

@@ -5,7 +5,7 @@
 #define COS_RESERVE_FID		0x0000
 
 struct cos_state {
-	cos_err_t error;
+	scs_err_t error;
 	cos_sw_t sw;
 	boolean activated;
 };
@@ -28,7 +28,7 @@ uint8_t			cos_buf[COS_APDU_SIZE];
 struct cos_state		cos_intfc;
 uint8_t data_uint_size;
 uint8_t data_coding_byte;
-cos_cmpl_cb cos_complete = NULL;
+scs_cmpl_cb cos_complete = NULL;
 
 static void cos_chan_set_curr(cos_fid_t fid);
 
@@ -46,32 +46,30 @@ static void cos_scd_seq_complete(icc_err_t err);
 #define __cos_read_byte(index)		(cos_buf[index])
 
 /* absolute (MF) or relative (current DF) */
-cos_err_t cos_fs_select_by_path(uint8_t type)
+scs_err_t cos_fs_select_by_path(uint8_t type)
 {
 	cos_set_sw(COS_SW_PARAM_ERR);
-	return COS_ERR_SUCCESS;
+	return SCS_ERR_SUCCESS;
 }
 
-cos_err_t cos_fs_select_by_name(void)
+scs_err_t cos_fs_select_by_name(void)
 {
-	/*
-	 * Loop all DFs and check the name whether match or not.
+	/* Loop all DFs and check the name whether match or not.
 	 * If true then select it.
 	 */
 	cos_set_sw(COS_SW_PARAM_ERR);
-	return COS_ERR_SUCCESS;
+	return SCS_ERR_SUCCESS;
 }
 
 /* FID or SFID */
-cos_err_t cos_fs_select_by_fid(uint8_t type)
+scs_err_t cos_fs_select_by_fid(uint8_t type)
 {
-	/* 
-	 * Loop all files ((depends upon the type)) and check the FID or SFID 
+	/* Loop all files ((depends upon the type)) and check the FID or SFID 
 	 * whether match or not. If true then select it. Otherwise report the 
 	 * error. 
 	 */
 	cos_set_sw(COS_SW_PARAM_ERR);
-	return COS_ERR_SUCCESS;
+	return SCS_ERR_SUCCESS;
 }
 
 /*=========================================================================
@@ -257,10 +255,10 @@ static cos_fid_t cos_chan_cfid(void)
 	return cos_curr_chan.cfid;
 }
 
-#define __cos_select_fid(fid)	COS_ERR_SUCCESS
-cos_err_t cos_chan_switch_file(uint16_t fid)
+#define __cos_select_fid(fid)	SCS_ERR_SUCCESS
+scs_err_t cos_chan_switch_file(uint16_t fid)
 {
-	cos_err_t err = COS_ERR_SUCCESS;
+	scs_err_t err = SCS_ERR_SUCCESS;
 
 	if (cos_chan_cfid() != fid)
 		err = __cos_select_fid(fid);
@@ -268,15 +266,15 @@ cos_err_t cos_chan_switch_file(uint16_t fid)
 }
 
 /* TODO: retrieve data unit from object. */
-cos_err_t cos_decap_data(void)
+scs_err_t cos_decap_data(void)
 {
-	return COS_ERR_SUCCESS;
+	return SCS_ERR_SUCCESS;
 }
 
 /* TODO: encapsulate data unit to object. */
-cos_err_t cos_encap_data(void)
+scs_err_t cos_encap_data(void)
 {
-	return COS_ERR_SUCCESS;
+	return SCS_ERR_SUCCESS;
 }
 
 /*=========================================================================
@@ -294,39 +292,37 @@ static boolean cos_dtype_match(uint8_t dtype)
 }
 
 #define cos_security_check()	false
-/* 
- * Command(s) sanity check.
+/* Command(s) sanity check.
  * - check data type.
  * - check security status.
  */
-static cos_err_t cos_cmd_sanity_check(uint8_t dtype)
+static scs_err_t cos_cmd_sanity_check(uint8_t dtype)
 {
 	if (COS_DATA_TYPE_MASK != dtype &&
 	    !cos_dtype_match(dtype)) {
 		cos_set_sw(COS_SW_CMD_INCOMP);
-		return COS_ERR_CHECKING;
+		return SCS_ERR_SANITY;
 	}
-
 	if (!cos_security_check()) {
 		cos_set_sw(COS_SW_SECU_NOT_SATISFY);
-		return COS_ERR_CHECKING;
+		return SCS_ERR_SANITY;
 	}
-	return COS_ERR_SUCCESS;
+	return SCS_ERR_SUCCESS;
 }
 
 /* Card Management (7816-9) */
-cos_err_t cos_cmds_management(void)
+scs_err_t cos_cmds_management(void)
 {
 	cos_set_sw(COS_SW_UNSUPP_INS);
-	return COS_ERR_SUCCESS;
+	return SCS_ERR_SUCCESS;
 }
 
 #define cos_fs_curr_fid()	0x0000
 
 /* Selection (7816-4) */
-cos_err_t cos_cmd_select(void)
+scs_err_t cos_cmd_select(void)
 {
-	cos_err_t err;
+	scs_err_t err;
 
 	if (P1 & __bit_mask(4)) {
 		err = cos_fs_select_by_path(P1 & __bit_mask(1));
@@ -335,44 +331,44 @@ cos_err_t cos_cmd_select(void)
 	} else {
 		err = cos_fs_select_by_fid(P1 & __bits_mask(3));
 	}
-	if (err == COS_ERR_PROGRESS || err != COS_ERR_SUCCESS)
+	if (err == SCS_ERR_PROGRESS || err != SCS_ERR_SUCCESS)
 		return err;
 	
 	cos_chan_switch(CLA);
 #if 0
 	cos_chan_set_curr((cos_fid_t)cos_fs_curr_fid());
 #endif
-	return COS_ERR_SUCCESS;
+	return SCS_ERR_SUCCESS;
 }
 
-cos_err_t cos_cmds_selection(void)
+scs_err_t cos_cmds_selection(void)
 {
-	cos_err_t err = cos_cmd_sanity_check(COS_DATA_TYPE_MASK);
-	if (err != COS_ERR_SUCCESS)
+	scs_err_t err = cos_cmd_sanity_check(COS_DATA_TYPE_MASK);
+	if (err != SCS_ERR_SUCCESS)
 		return err;
 
 	if (cos_apdu.ins == COS_INS_SELECT)
 		return cos_cmd_select();
 
 	cos_set_sw(COS_SW_UNSUPP_INS);
-	return COS_ERR_SUCCESS;
+	return SCS_ERR_SUCCESS;
 }
 
-#define cos_read_bin(offset)	COS_ERR_SUCCESS
-#define cos_write_bin(offset)	COS_ERR_SUCCESS
-#define cos_update_bin(offset)	COS_ERR_SUCCESS
-#define cos_search_bin(offset)	COS_ERR_SUCCESS
-#define cos_erase_bin(offset)	COS_ERR_SUCCESS
+#define cos_read_bin(offset)	SCS_ERR_SUCCESS
+#define cos_write_bin(offset)	SCS_ERR_SUCCESS
+#define cos_update_bin(offset)	SCS_ERR_SUCCESS
+#define cos_search_bin(offset)	SCS_ERR_SUCCESS
+#define cos_erase_bin(offset)	SCS_ERR_SUCCESS
 
 /* Data unit handling (7816-4) */
 /* TODO: adjust data_uint_size first? */
-cos_err_t cos_cmds_dataunit(void)
+scs_err_t cos_cmds_dataunit(void)
 {
 	uint16_t offset;
 	uint16_t fid = COS_RESERVE_FID;
-	cos_err_t err = cos_cmd_sanity_check(COS_DATA_TYPE_UNIT);
+	scs_err_t err = cos_cmd_sanity_check(COS_DATA_TYPE_UNIT);
 
-	if (err != COS_ERR_SUCCESS)
+	if (err != SCS_ERR_SUCCESS)
 		return err;
 
 	/* obtain fid and offset */
@@ -428,27 +424,27 @@ cos_err_t cos_cmds_dataunit(void)
 	return err;
 }
 
-#define cos_read_record(P1, P2)		COS_ERR_SUCCESS
-#define cos_write_record(P1, P2)	COS_ERR_SUCCESS
-#define cos_update_record(P1, P2)	COS_ERR_SUCCESS
-#define cos_append_record(P1, P2)	COS_ERR_SUCCESS
-#define cos_search_record(P1, P2)	COS_ERR_SUCCESS
-#define cos_erase_record(P1, P2)	COS_ERR_SUCCESS
+#define cos_read_record(P1, P2)		SCS_ERR_SUCCESS
+#define cos_write_record(P1, P2)	SCS_ERR_SUCCESS
+#define cos_update_record(P1, P2)	SCS_ERR_SUCCESS
+#define cos_append_record(P1, P2)	SCS_ERR_SUCCESS
+#define cos_search_record(P1, P2)	SCS_ERR_SUCCESS
+#define cos_erase_record(P1, P2)	SCS_ERR_SUCCESS
 
 /* Record handling (7816-4) */
-cos_err_t cos_cmds_record(void)
+scs_err_t cos_cmds_record(void)
 {
-	cos_err_t err;
+	scs_err_t err;
 	uint16_t fid = COS_RESERVE_FID;
 
 	err = cos_cmd_sanity_check(COS_DATA_TYPE_RECORD);
-	if (err != COS_ERR_SUCCESS)
+	if (err != SCS_ERR_SUCCESS)
 		return err;
 	
 	/* record number or identifier */
 	if (P1 == 0x00 || P1 == 0xFF) {
 		cos_set_sw(COS_SW_PARAM_ERR);
-		return COS_ERR_SUCCESS;
+		return SCS_ERR_SUCCESS;
 	}
 
 	if (cos_is_odd_ins())
@@ -478,24 +474,24 @@ cos_err_t cos_cmds_record(void)
 }
 
 /* Data object handling (7816-4) */
-cos_err_t cos_cmd_dataobj(void)
+scs_err_t cos_cmd_dataobj(void)
 {
 	cos_set_sw(COS_SW_UNSUPP_INS);
-	return COS_ERR_SUCCESS;
+	return SCS_ERR_SUCCESS;
 }
 
 /* Basic security handling (7816-4) */
-cos_err_t cos_cmds_base(void)
+scs_err_t cos_cmds_base(void)
 {
 	cos_set_sw(COS_SW_UNSUPP_INS);
-	return COS_ERR_SUCCESS;
+	return SCS_ERR_SUCCESS;
 }
 
 /* Transmission handling (7816-4) */
-cos_err_t cos_cmds_trans(void)
+scs_err_t cos_cmds_trans(void)
 {
 	cos_set_sw(COS_SW_UNSUPP_INS);
-	return COS_ERR_SUCCESS;
+	return SCS_ERR_SUCCESS;
 }
 
 /*=========================================================================
@@ -523,26 +519,26 @@ cos_sw_t cos_get_sw(void)
 /*=========================================================================
  * xfr
  *=======================================================================*/
-void cos_set_error(cos_err_t err)
+void cos_set_error(scs_err_t err)
 {
 	cos_intfc.error = err;
 }
 
-cos_err_t cos_get_error(void)
+scs_err_t cos_get_error(void)
 {
 	return cos_intfc.error;
 }
 
-void cos_xchg_reset(cos_size_t tx)
+void cos_xchg_reset(scs_size_t tx)
 {
 	cos_xfr.rx = 0;
 	cos_xfr.tx = tx;
 }
 
 /* called after having received whole apdu command */
-static cos_err_t cos_handle_apdu(void)
+static scs_err_t cos_handle_apdu(void)
 {
-	cos_err_t err = COS_ERR_SUCCESS;
+	scs_err_t err = SCS_ERR_SUCCESS;
 
 	cos_write_resp(0x90);
 	cos_write_resp(0x00);
@@ -610,51 +606,51 @@ void cos_write_resp(uint8_t byte)
 	}
 }
 
-cos_err_t cos_xchg_write(cos_off_t index, uint8_t byte)
+scs_err_t cos_xchg_write(scs_off_t index, uint8_t byte)
 {
 	if (!cos_intfc.activated)
-		return COS_ERR_PARAM;
+		return SCS_ERR_NOTPRESENT;
 	if (index >= COS_APDU_SIZE)
-		return COS_ERR_PARAM;
+		return SCS_ERR_OVERRUN;
 	__cos_write_byte(index, byte);
-	return COS_ERR_SUCCESS;
+	return SCS_ERR_SUCCESS;
 }
 
-uint8_t cos_xchg_read(cos_off_t index)
+uint8_t cos_xchg_read(scs_off_t index)
 {
 #if 0
 	if (!cos_intfc.activated)
-		return COS_ERR_PARAM;
+		return SCS_ERR_NOTPRESENT;
 #endif
 	return __cos_read_byte(index);
 }
 
-cos_size_t cos_xchg_avail(void)
+scs_size_t cos_xchg_avail(void)
 {
 	return cos_xfr.rx;
 }
 
-cos_err_t cos_xchg_block(cos_size_t nc, cos_size_t ne)
+scs_err_t cos_xchg_block(scs_size_t nc, scs_size_t ne)
 {
 	if (!cos_intfc.activated)
-		return COS_ERR_PARAM;
+		return SCS_ERR_NOTPRESENT;
 	if (!nc)
-		return COS_ERR_PARAM;
+		return SCS_ERR_OVERRUN;
 	cos_xchg_reset(nc);
 	cos_parse_header();
 	return cos_handle_apdu();
 }
 
-cos_err_t cos_power_on(void)
+scs_err_t cos_power_on(void)
 {
-	cos_err_t err;
+	scs_err_t err;
 
 	cos_xchg_reset(0);
 	cos_write_resp(0x3B);
 	/* cos_fsid = fs_mount(cos_fs_path, cos_fs_type); */
 	err = cos_vs_activate();
-	BUG_ON(err == COS_ERR_PROGRESS);
-	if (err == COS_ERR_SUCCESS)
+	BUG_ON(err == SCS_ERR_PROGRESS);
+	if (err == SCS_ERR_SUCCESS)
 		cos_intfc.activated = true;
 	/*
 	else
@@ -663,7 +659,7 @@ cos_err_t cos_power_on(void)
 	return err;
 }
 
-cos_err_t cos_power_off(void)
+scs_err_t cos_power_off(void)
 {
 	if (cos_intfc.activated) {
 		cos_xchg_reset(0);
@@ -671,10 +667,10 @@ cos_err_t cos_power_off(void)
 		/* fs_umount(cos_fsid); */
 		cos_intfc.activated = false;
 	}
-	return COS_ERR_SUCCESS;
+	return SCS_ERR_SUCCESS;
 }
 
-void cos_register_handlers(cos_cmpl_cb completion)
+void cos_register_handlers(scs_cmpl_cb completion)
 {
 	cos_complete = completion;
 }
@@ -686,15 +682,14 @@ void cos_register_handlers(cos_cmpl_cb completion)
 
 scd_t cos_scds[NR_MAX_ICC];
 
-static scd_err_t cos_scd_err(icc_err_t err)
+static scs_err_t cos_scd_err(icc_err_t err)
 {
 	switch (err) {
-	case COS_ERR_SUCCESS:
-		return SCD_ERR_SUCCESS;
-	case COS_ERR_PROGRESS:
-		return SCD_ERR_PROGRESS;
+	case SCS_ERR_SUCCESS:
+	case SCS_ERR_PROGRESS:
+		return err;
 	default:
-		return SCD_ERR_HW_ERROR;
+		return SCS_ERR_HW_ERROR;
 	}
 }
 
@@ -729,44 +724,44 @@ static void cos_scd_select(void)
 	icc_id_select(icc_scd2id(scd_id));
 }
 
-static scd_err_t cos_scd_activate(void)
+static scs_err_t cos_scd_activate(void)
 {
-	cos_err_t err;
+	scs_err_t err;
 	if (icc_id == INVALID_ICC_ID)
-		return SCD_ERR_HW_ERROR;
+		return SCS_ERR_HW_ERROR;
 	err = cos_power_on();
 	return cos_scd_err(err);
 }
 
-static scd_err_t cos_scd_deactivate(void)
+static scs_err_t cos_scd_deactivate(void)
 {
 	if (icc_id == INVALID_ICC_ID)
-		return SCD_ERR_HW_ERROR;
-	return SCD_ERR_SUCCESS;
+		return SCS_ERR_HW_ERROR;
+	return SCS_ERR_SUCCESS;
 }
 
-static scd_err_t cos_scd_xchg_block(scd_size_t nc, scd_size_t ne)
+static scs_err_t cos_scd_xchg_block(scs_size_t nc, scs_size_t ne)
 {
 	if (icc_id == INVALID_ICC_ID)
-		return SCD_ERR_HW_ERROR;
-	return SCD_ERR_SUCCESS;
+		return SCS_ERR_HW_ERROR;
+	return SCS_ERR_SUCCESS;
 }
 
-static scd_size_t cos_scd_xchg_avail(void)
+static scs_size_t cos_scd_xchg_avail(void)
 {
 	return cos_xchg_avail();
 }
 
-static scd_err_t cos_scd_xchg_write(scd_off_t index, uint8_t byte)
+static scs_err_t cos_scd_xchg_write(scs_off_t index, uint8_t byte)
 {
 	if (icc_id == INVALID_ICC_ID)
-		return SCD_ERR_HW_ERROR;
+		return SCS_ERR_HW_ERROR;
 
 	cos_xchg_write(index, byte);
-	return SCD_ERR_SUCCESS;
+	return SCS_ERR_SUCCESS;
 }
 
-static uint8_t cos_scd_xchg_read(scd_off_t index)
+static uint8_t cos_scd_xchg_read(scs_off_t index)
 {
 	if (icc_id == INVALID_ICC_ID)
 		return 0x00;

@@ -16,12 +16,12 @@ void cos_vs_parse(void)
 {
 }
 
-cos_err_t cos_vs_activate(void)
+scs_err_t cos_vs_activate(void)
 {
 	uint8_t i;
 	for (i = 0; i < SCOS_ATR_SIZE; i++)
 		cos_write_resp(scos_atr[i]);
-	return COS_ERR_SUCCESS;
+	return SCS_ERR_SUCCESS;
 }
 
 void cos_vs_deactivate(void)

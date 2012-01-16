@@ -46,11 +46,9 @@
 #ifdef CONFIG_ICCD_COS
 #define NR_ICCD_DEVICES 1
 #define iccd_id		0
-typedef cos_err_t 	iccd_err_t;
 #else
 #define NR_ICCD_DEVICES NR_SCD_DEVICES
 #define iccd_id		scd_id
-typedef scd_err_t 	iccd_err_t;
 #endif
 #define INVALID_ICCD_UNIT NR_ICCD_DEVICES
 
@@ -62,7 +60,7 @@ typedef scd_err_t 	iccd_err_t;
 #define ICCD_REQ_SLOT_STATUS		0x81
 
 struct iccd_xb_param {
-	iccd_err_t dwIccOutErr;
+	scs_err_t dwIccOutErr;
 	urb_size_t dwIccOutCnt;
 	urb_size_t dwIccExpCnt;
 	uint8_t bIccWaitInt;
@@ -75,7 +73,7 @@ struct iccd_xb_param {
 /* DataBlock */
 struct iccd_db_param {
 	urb_size_t dwIccOutIter;
-	iccd_err_t dwIccOutErr;
+	scs_err_t dwIccOutErr;
 };
 
 typedef union iccd_data {
@@ -92,8 +90,8 @@ static void iccd_dev_reset(iccd_t id);
 static void iccd_submit_response(iccd_t id);
 static void iccd_submit_command(iccd_t id);
 
-static void iccd_handle_cmp(iccd_err_t err, boolean block);
-static void __iccd_XfrBlock_out(scd_size_t hdr_size, scd_size_t blk_size);
+static void iccd_handle_cmp(scs_err_t err, boolean block);
+static void __iccd_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size);
 
 struct iccd_cmd iccd_cmds[NR_ICCD_DEVICES];
 struct iccd_dev iccd_devs[NR_ICCD_DEVICES];
@@ -166,7 +164,7 @@ usb_endp_desc_t iccd_endpoints[NR_ICCD_ENDPS] = {
 #define __iccd_xchg_avail()		cos_xchg_avail()
 #define __iccd_power_off()		cos_power_off()
 #define __iccd_power_on()		cos_power_on()
-#define __iccd_err_success()		COS_ERR_SUCCESS
+#define __iccd_err_success()		SCS_ERR_SUCCESS
 #define __iccd_reg_handlers(cb1, cb2) 		\
 	do {					\
 		cos_register_handlers(cb2);	\
@@ -178,25 +176,25 @@ uint8_t iccd_dev_state(uint8_t state)
 	return ICCD_DEV_STATE_PRESENT;
 }
 
-static boolean iccd_dev_progress(iccd_err_t err)
+static boolean iccd_dev_progress(scs_err_t err)
 {
-	return err == COS_ERR_PROGRESS;
+	return err == SCS_ERR_SUCCESS;
 }
 
-static boolean iccd_dev_success(iccd_err_t err)
+static boolean iccd_dev_success(scs_err_t err)
 {
-	return err == COS_ERR_SUCCESS;
+	return err == SCS_ERR_SUCCESS;
 }
 
-static uint8_t iccd_dev_error(iccd_err_t err)
+static uint8_t iccd_dev_error(scs_err_t err)
 {
 	switch (err) {
-	case COS_ERR_OVERRUN:
+	case SCS_ERR_OVERRUN:
 		return ICCD_ERROR_XFR_OVERRUN;
-	case COS_ERR_NOTPRESENT:
+	case SCS_ERR_NOTPRESENT:
 		return ICCD_ERROR_ICC_MUTE;
-	case COS_ERR_TIMEOUT:
-	case COS_ERR_HW_ERROR:
+	case SCS_ERR_TIMEOUT:
+	case SCS_ERR_HW_ERROR:
 		return ICCD_ERROR_HW_ERROR;
 	}
 	return ICCD_ERROR_HW_ERROR;
@@ -214,7 +212,7 @@ static uint8_t iccd_dev_error(iccd_err_t err)
 #define __iccd_xchg_block(nc, ne)	scd_xchg_block(nc, ne)
 #define __iccd_power_off()		scd_power_off()
 #define __iccd_power_on()		scd_power_on()
-#define __iccd_err_success()		SCD_ERR_SUCCESS
+#define __iccd_err_success()		SCS_ERR_SUCCESS
 #define __iccd_reg_handlers(cb1, cb2) 	scd_register_handlers(cb1, cb2)
 
 uint8_t iccd_dev_state(uint8_t d)
@@ -230,25 +228,25 @@ uint8_t iccd_dev_state(uint8_t d)
 	}
 }
 
-static boolean iccd_dev_progress(iccd_err_t err)
+static boolean iccd_dev_progress(scs_err_t err)
 {
-	return err == SCD_ERR_PROGRESS;
+	return err == SCS_ERR_PROGRESS;
 }
 
-static boolean iccd_dev_success(iccd_err_t err)
+static boolean iccd_dev_success(scs_err_t err)
 {
-	return err == SCD_ERR_SUCCESS;
+	return err == SCS_ERR_SUCCESS;
 }
 
-static uint8_t iccd_dev_error(iccd_err_t err)
+static uint8_t iccd_dev_error(scs_err_t err)
 {
 	switch (err) {
-	case SCD_ERR_OVERRUN:
+	case SCS_ERR_OVERRUN:
 		return ICCD_ERROR_XFR_OVERRUN;
-	case SCD_ERR_NOTPRESENT:
+	case SCS_ERR_NOTPRESENT:
 		return ICCD_ERROR_ICC_MUTE;
-	case SCD_ERR_TIMEOUT:
-	case SCD_ERR_HW_ERROR:
+	case SCS_ERR_TIMEOUT:
+	case SCS_ERR_HW_ERROR:
 		return ICCD_ERROR_HW_ERROR;
 	}
 	return ICCD_ERROR_HW_ERROR;
@@ -615,8 +613,8 @@ static void iccd_SlotStatus_out(void)
 
 static void iccd_DataBlock_out(void)
 {
-	scd_size_t nr = __iccd_xchg_avail();
-	scd_size_t ne = ICCD_XB_NE;
+	scs_size_t nr = __iccd_xchg_avail();
+	scs_size_t ne = ICCD_XB_NE;
 
 	__iccd_CmdSuccess_out();
 	iccd_resps[iccd_cid].abRFU3 = 0;
@@ -637,9 +635,9 @@ static void iccd_IccPowerOn_out(void)
 	}
 }
 
-static void __iccd_XfrBlock_out(scd_size_t hdr_size, scd_size_t blk_size)
+static void __iccd_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size)
 {
-	scd_off_t i;
+	scs_off_t i;
 	uint8_t byte = 0;
 
 	if (usbd_request_handled() == hdr_size) {
@@ -746,7 +744,7 @@ out:
 /*=========================================================================
  * bulk-in data
  *=======================================================================*/
-static void iccd_RespHeader_in(scd_size_t length)
+static void iccd_RespHeader_in(scs_size_t length)
 {
 	USBD_INB(iccd_resp_message());
 	USBD_INL(length);
@@ -764,7 +762,7 @@ void iccd_SlotStatus_in(void)
 
 void iccd_DataBlock_in(void)
 {
-	scd_off_t i;
+	scs_off_t i;
 
 	iccd_RespHeader_in(iccd_resps[iccd_cid].dwLength);
 
@@ -823,7 +821,7 @@ static void iccd_complete_response(iccd_t id)
 /*=========================================================================
  * bulk-out cmpl
  *=======================================================================*/
-void iccd_DataBlock_cmp(iccd_err_t err)
+void iccd_DataBlock_cmp(scs_err_t err)
 {
 	iccd_handle_cmp(err, true);
 }
@@ -839,7 +837,7 @@ void iccd_CmdResponse_cmp(void)
 	iccd_dev_enter(ICCD_SLOT_STATE_RDR2PC);
 }
 
-static void iccd_handle_cmp(iccd_err_t err, boolean block)
+static void iccd_handle_cmp(scs_err_t err, boolean block)
 {
 	if (!iccd_dev_progress(err)) {
 		if (!iccd_dev_success(err)) {
@@ -859,7 +857,7 @@ static void iccd_handle_cmp(iccd_err_t err, boolean block)
 
 static void iccd_IccPowerOn_cmp(void)
 {
-	iccd_err_t err;
+	scs_err_t err;
 
 	err = __iccd_power_on();
 	iccd_handle_cmp(err, true);
@@ -867,7 +865,7 @@ static void iccd_IccPowerOn_cmp(void)
 
 static void iccd_IccPowerOff_cmp(void)
 {
-	iccd_err_t err;
+	scs_err_t err;
 
 	err = __iccd_power_off();
 	iccd_handle_cmp(err, false);
@@ -887,7 +885,7 @@ void iccd_CmdOffset_cmp(uint8_t offset)
 
 void iccd_XfrBlock_cmp(void)
 {
-	iccd_err_t err = ICCD_XB_ERR;
+	scs_err_t err = ICCD_XB_ERR;
 
 	/* TODO: wLevelParameter check when XCHG_CHAR or XCHG_APDU_EXT */
 	if (iccd_dev_success(err) && ICCD_XB_NC != 0) {
@@ -1173,7 +1171,7 @@ static void iccd_handle_endp_poll(void)
 /* TODO: how to know the slot number we should answer */
 static void iccd_handle_ll_cmpl(void)
 {
-	iccd_err_t err = __iccd_get_error();
+	scs_err_t err = __iccd_get_error();
 	BUG_ON(iccd_devs[iccd_cid].state != ICCD_SLOT_STATE_ISO7816);
 
 	switch (iccd_cmds[iccd_cid].bMessageType) {

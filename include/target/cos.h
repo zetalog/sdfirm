@@ -7,22 +7,17 @@
 #include <target/usb.h>
 
 typedef uint8_t icc_t;
-typedef uint16_t cos_off_t;
-typedef uint16_t cos_size_t;
-typedef uint8_t cos_err_t;
 typedef uint16_t cos_sw_t;
 typedef uint8_t icc_event_t;
 typedef uint16_t fid_t;
 typedef uint16_t cos_fid_t;
 
-typedef void (*icc_tvoid_cb)(void);
-
 #include <driver/cos.h>
 
 struct cos_xb_param {
-	cos_err_t bCosOutErr;
-	cos_size_t wCosOutCnt;
-	cos_size_t wCosInCnt;
+	scs_err_t bCosOutErr;
+	scs_size_t wCosOutCnt;
+	scs_size_t wCosInCnt;
 	uint8_t bCosWaitInt;
 #define COS_XB_ERR	cos_cmd_data.xb.bCosOutErr
 #define COS_XB_OUT	cos_cmd_data.xb.wCosOutCnt
@@ -54,14 +49,12 @@ struct icc_proto {
 #define ICC_PROTO_T0			0x00
 #define ICC_PROTO_T1			0x01
 #define ICC_PROTO_MAX			0x0E
-
 #define ICC_ATR_MAX			33
-
 	uint8_t hdr;
-	icc_tvoid_cb xfr_in;
-	icc_tvoid_cb xfr_out;
-	icc_tvoid_cb xfr_cmpl;
-	icc_tvoid_cb ne_expire;
+	scs_tvoid_cb xfr_in;
+	scs_tvoid_cb xfr_out;
+	scs_tvoid_cb xfr_cmpl;
+	scs_tvoid_cb ne_expire;
 };
 __TEXT_TYPE__(struct icc_proto, icc_proto_t);
 
@@ -75,7 +68,6 @@ __TEXT_TYPE__(struct icc_proto, icc_proto_t);
 #ifdef CONFIG_ICC_T0
 #define NR_ICC_PROTOS			1
 #endif
-
 
 /* ICC event */
 #define ICC_EVENT_HANDLE_CMD		0x01	/* complete command receiving */
@@ -132,18 +124,6 @@ __TEXT_TYPE__(struct icc_proto, icc_proto_t);
 #define COS_CHAN_STATE_OPEND	0x00
 #define COS_CHAN_STATE_CLOSED	0x01
 
-/* COS error */
-#define COS_ERR_SUCCESS			0x00
-#define COS_ERR_PARAM			0x01
-#define COS_ERR_NOTSUPPORT		0x02
-#define COS_ERR_PROGRESS		0x03
-#define COS_ERR_OVERRUN			0x04
-#define COS_ERR_CHECKING		0x05
-#define COS_ERR_TIMEOUT			0x06
-#define COS_ERR_HW_ERROR		0x07
-#define COS_ERR_NOTPRESENT		0x08
-#define COS_ERR_UNKNOWN			0x09
-
 #define COS_DEV_STATE_PRESENT		0x00
 
 #define COS_SW_NORMAL			0x9000		/* Normal processing */
@@ -181,8 +161,6 @@ __TEXT_TYPE__(struct icc_proto, icc_proto_t);
 #define COS_DATA_TYPE_OBJECT	0x04
 #define COS_DATA_TYPE_MASK	0x07
 
-typedef void (*cos_cmpl_cb)(void);
-
 struct cos_btlv_tag {
 	uint8_t first;
 	uint8_t flen;
@@ -197,7 +175,6 @@ struct cos_btlv_length {
 struct cos_btlv_value {
 	uint8_t *value;
 };
-
 
 struct cos_object {
 	uint8_t type;
@@ -217,7 +194,6 @@ union cos_secu_status {
 
 /* Logical channel */
 struct cos_chan {
-
 #if NR_MAX_CHANNELS > 1
 	boolean opened;
 	boolean actived;
@@ -289,7 +265,6 @@ struct cos_record {
 #define COS_RECORD_ORG_CYCLIC	0x02
 };
 
-
 struct cos_secu_mech {
 	union {
 		uint8_t auth_pass;
@@ -310,19 +285,19 @@ struct cos_secu {
 
 };
 
-cos_err_t cos_power_on(void);
-cos_err_t cos_power_off(void);
+scs_err_t cos_power_on(void);
+scs_err_t cos_power_off(void);
 
-cos_err_t cos_xchg_block(cos_size_t nc, cos_size_t ne);
-cos_size_t cos_xchg_avail(void);
-cos_err_t cos_xchg_write(cos_off_t index, uint8_t byte);
-uint8_t cos_xchg_read(cos_off_t index);
-void cos_xchg_reset(cos_size_t tx);
+scs_err_t cos_xchg_block(scs_size_t nc, scs_size_t ne);
+scs_size_t cos_xchg_avail(void);
+scs_err_t cos_xchg_write(scs_off_t index, uint8_t byte);
+uint8_t cos_xchg_read(scs_off_t index);
+void cos_xchg_reset(scs_size_t tx);
 
 void cos_write_resp(uint8_t byte);
 
-cos_err_t cos_get_error(void);
-void cos_set_error(cos_err_t err);
-void cos_register_handlers(cos_cmpl_cb compl);
+scs_err_t cos_get_error(void);
+void cos_set_error(scs_err_t err);
+void cos_register_handlers(scs_cmpl_cb compl);
 
 #endif /* __COS_H_INCLUDE__ */
