@@ -11,6 +11,9 @@ static int g_nr_devs = 0;
 static struct libusb_device **g_udevs = NULL;
 static int g_nr_udevs = 0;
 
+int usb_init(void);
+void usb_exit(void);
+
 void usb_free_devices(void)
 {
 	int i;
@@ -39,6 +42,11 @@ int usb_find_devices(void)
 
 	if (g_udevs)
 		return LIBUSB_SUCCESS;
+	if (!g_ctx) {
+		g_usb_err = usb_init();
+		if (g_usb_err != LIBUSB_SUCCESS)
+			return LIBUSB_ERROR_NO_DEVICE;
+	}
 
 	g_nr_udevs = libusb_get_device_list(g_ctx, &g_udevs);
 	if (g_nr_udevs <= 0)

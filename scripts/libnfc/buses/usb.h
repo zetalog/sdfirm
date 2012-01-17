@@ -10,9 +10,6 @@ struct usb_device {
 	libusb_device_handle *dev_handle;
 };
 
-int usb_init(void);
-void usb_exit(void);
-
 char *usb_strerror(void);
 
 int usb_find_devices(void);
