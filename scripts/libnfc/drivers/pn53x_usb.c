@@ -390,7 +390,7 @@ nfc_device_t *pn53x_usb_connect(const nfc_device_desc_t *pndd)
 			usb_close(data.pudh);
 			/* we failed to use the specified
 			 * device
-			*/
+			 */
 			return NULL;
 		}
 		data.model = pn53x_usb_get_device_model(dev->descriptor.idVendor,
