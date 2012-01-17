@@ -59,8 +59,7 @@ typedef uint8_t		ccid_seq_t;
 #define CCID_REQ_GET_CLOCK_FREQS	0x02
 #define CCID_REQ_GET_DATA_RATES		0x03
 
-#define CCID_HEADER_SIZE		10
-#define CCID_MESSAGE_SIZE		(IFD_BUF_SIZE + CCID_HEADER_SIZE)
+#define CCID_MESSAGE_SIZE		(IFD_BUF_SIZE + SCD_HEADER_SIZE)
 
 struct ccid_slot {
 	uint8_t state;
@@ -86,7 +85,7 @@ struct ccid_hwerr {
 };
 #define CCID_IRQ_HWERR_SIZE	0x04
 
-#ifdef CONFIG_CCID_INTERRUPT_IN
+#ifdef CONFIG_SCD_INTERRUPT
 #define NR_CCID_ENDPS		3
 #else
 #define NR_CCID_ENDPS		2

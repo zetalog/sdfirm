@@ -134,6 +134,12 @@ struct scd_resp {
 	uint8_t abRFU3;
 };
 
+#ifdef CONFIG_SCD_BULK
+#define SCD_HEADER_SIZE			10
+#else
+#define SCD_HEADER_SIZE			0
+#endif
+
 /* SCD_PC2RDR_XFRBLOCK parameters */
 struct scd_xb_param {
 	scs_err_t dwIccOutErr;

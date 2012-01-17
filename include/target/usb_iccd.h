@@ -74,13 +74,8 @@ struct iccd_t1_param {
 	uint8_t bNadValue;
 };
 
-#ifdef CONFIG_ICCD_PROTO_BULK
-#define ICCD_HEADER_SIZE		10
-#else
-#define ICCD_HEADER_SIZE		0
-#endif
 #define ICCD_BUF_SIZE			261
-#define ICCD_MESSAGE_SIZE		(ICCD_BUF_SIZE + ICCD_HEADER_SIZE)
+#define ICCD_MESSAGE_SIZE		(ICCD_BUF_SIZE + SCD_HEADER_SIZE)
 
 struct iccd_dev {
 	uint8_t state;
@@ -107,13 +102,13 @@ struct iccd_hwerr {
  * How to improve this case?
  */
 #ifdef CONFIG_ICCD_PROTO_BULK
- #ifdef CONFIG_ICCD_INTERRUPT_IN
+ #ifdef CONFIG_SCD_INTERRUPT
   #define NR_ICCD_ENDPS		3
  #else
   #define NR_ICCD_ENDPS		2
  #endif
 #elif defined(CONFIG_ICCD_PROTO_B)
- #ifdef CONFIG_ICCD_INTERRUPT_IN
+ #ifdef CONFIG_SCD_INTERRUPT
   #define NR_ICCD_ENDPS		1
  #endif
 #else

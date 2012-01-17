@@ -771,7 +771,7 @@ boolean ccid_resp_valid(uint32_t length)
 	uint8_t status = g_ccid_resp[7];
 
 	if ((status & CCID_CMD_STATUS_MASK) == CCID_CMD_STATUS_FAIL) {
-		return length == CCID_HEADER_SIZE;
+		return length == SCD_HEADER_SIZE;
 	}
 
 	switch (cmd) {
@@ -781,7 +781,7 @@ boolean ccid_resp_valid(uint32_t length)
 	case CCID_PC2RDR_T0APDU:
 	case CCID_PC2RDR_MECHANICAL:
 	case CCID_PC2RDR_ABORT:
-		return length == CCID_HEADER_SIZE;
+		return length == SCD_HEADER_SIZE;
 	case CCID_PC2RDR_SETPARAMETERS:
 	case CCID_PC2RDR_GETPARAMETERS:
 	case CCID_PC2RDR_RESETPARAMETERS:
@@ -789,12 +789,12 @@ boolean ccid_resp_valid(uint32_t length)
 			return false;
 		switch (g_ccid_cmd[7]) {
 		case SCD_PROTOCOL_T0:
-			return (CCID_HEADER_SIZE + 5);
+			return (SCD_HEADER_SIZE + 5);
 		case SCD_PROTOCOL_T1:
-			return (CCID_HEADER_SIZE + 7);
+			return (SCD_HEADER_SIZE + 7);
 		}
 	case CCID_PC2RDR_SETDATAANDFREQ:
-		return length == (CCID_HEADER_SIZE + 8);
+		return length == (SCD_HEADER_SIZE + 8);
 	}
 	return true;
 }
@@ -811,20 +811,20 @@ void ccid_reset_timeout(void)
 
 boolean ccid_resp_sanity(void)
 {
-	uint32_t length = CCID_HEADER_SIZE+dw2i(g_ccid_resp+1);
+	uint32_t length = SCD_HEADER_SIZE+dw2i(g_ccid_resp+1);
 	return ccid_resp_match() && ccid_resp_valid(length) && ccid_error_valid();
 }
 
 boolean __ccid_async_in(void)
 {
-	return (ccid_bulk_in(CCID_MAX_BUFFER) >= CCID_HEADER_SIZE);
+	return (ccid_bulk_in(CCID_MAX_BUFFER) >= SCD_HEADER_SIZE);
 }
 
 boolean __ccid_async_out(void)
 {
 	uint32_t dwLength;
 	dwLength = dw2i(g_ccid_cmd+1);
-	return ccid_bulk_out((uint16_t)(dwLength + CCID_HEADER_SIZE)) == 0;
+	return ccid_bulk_out((uint16_t)(dwLength + SCD_HEADER_SIZE)) == 0;
 }
 
 void ccid_async_in(void)
@@ -866,12 +866,12 @@ boolean ccid_async_out(ccid_cmpl_cb cb, void *data)
 
 boolean ccid_sync(void)
 {
-	uint32_t length = CCID_HEADER_SIZE + (dw2i(g_ccid_cmd+1));
+	uint32_t length = SCD_HEADER_SIZE + (dw2i(g_ccid_cmd+1));
 
 	if (ccid_bulk_out(length) != 0)
 		return false;
 	length = ccid_bulk_in(CCID_MAX_BUFFER);
-	if (length != (CCID_HEADER_SIZE+dw2i(g_ccid_resp+1)))
+	if (length != (SCD_HEADER_SIZE+dw2i(g_ccid_resp+1)))
 		return false;
 	return ccid_resp_sanity();
 }
@@ -900,7 +900,7 @@ int ccid_resp_block(uint8_t *abData, uint32_t dwLength)
 {
 	int length = ccid_resp_length();
 	if (length > 0)
-		memcpy(abData, g_ccid_resp+CCID_HEADER_SIZE, length);
+		memcpy(abData, g_ccid_resp+SCD_HEADER_SIZE, length);
 	return length;
 }
 
@@ -1059,7 +1059,7 @@ static uint8_t ccid_build_XfrBlock(uint8_t bBWI, uint16_t wLevelParameter,
 			  bSeq, bBWI,
 			  (uint8_t)((wLevelParameter & 0xFF00) >> 8),
 			  (uint8_t)(wLevelParameter & 0x00FF));
-	memcpy(g_ccid_cmd+CCID_HEADER_SIZE, abData, dwLength);
+	memcpy(g_ccid_cmd+SCD_HEADER_SIZE, abData, dwLength);
 	return bSeq;
 }
 
@@ -1085,7 +1085,7 @@ static uint32_t ccid_build_PINVerification(struct ccid_pv_param *pv)
 	g_ccid_cmd[22] = pv->bTeoPrologue[0];
 	g_ccid_cmd[23] = pv->bTeoPrologue[1];
 	g_ccid_cmd[24] = pv->bTeoPrologue[2];
-	return 25 - CCID_HEADER_SIZE;
+	return 25 - SCD_HEADER_SIZE;
 }
 
 static uint32_t ccid_build_PINModification(struct ccid_pm_param *pm)
@@ -1113,7 +1113,7 @@ static uint32_t ccid_build_PINModification(struct ccid_pm_param *pm)
 		g_ccid_cmd[dwLength] = pm->bTeoPrologue[i];
 		dwLength++;
 	}
-	return dwLength - CCID_HEADER_SIZE;
+	return dwLength - SCD_HEADER_SIZE;
 }
 
 static uint8_t ccid_build_Secure(uint8_t bBWI,
@@ -1139,7 +1139,7 @@ static uint8_t ccid_build_Secure(uint8_t bBWI,
 			  bSeq, bBWI,
 			  (uint8_t)((wLevelParameter & 0xFF00) >> 8),
 			  (uint8_t)(wLevelParameter & 0x00FF));
-	memcpy(g_ccid_cmd+CCID_HEADER_SIZE+dwDSLength, abData, dwLength);
+	memcpy(g_ccid_cmd+SCD_HEADER_SIZE+dwDSLength, abData, dwLength);
 	return bSeq;
 }
 

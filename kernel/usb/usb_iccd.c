@@ -85,7 +85,7 @@ struct scd_resp iccd_resps[NR_ICCD_CARDS];
 iccd_data_t iccd_cmd_data;
 iccd_t iccd_cid = INVALID_ICCD_CARD;
 
-#ifdef CONFIG_ICCD_INTERRUPT_IN
+#ifdef CONFIG_SCD_INTERRUPT
 DECLARE_BITMAP(iccd_running_intrs, NR_ICCD_CARDS+NR_ICCD_CARDS);
 DECLARE_BITMAP(iccd_pending_intrs, NR_ICCD_CARDS+NR_ICCD_CARDS);
 #endif
@@ -321,7 +321,7 @@ static void iccd_submit_response(iccd_t id)
 	if (iccd_devs[id].state == SCD_SLOT_STATE_RDR2PC) {
 		ocid = iccd_cid_save(id);
 		usbd_request_submit(ICCD_ADDR_IN,
-				    ICCD_HEADER_SIZE + iccd_resps[id].dwLength);
+				    SCD_HEADER_SIZE + iccd_resps[id].dwLength);
 		iccd_cid_restore(ocid);
 	}
 }
@@ -331,7 +331,7 @@ static void iccd_submit_command(iccd_t id)
 	iccd_t ocid;
 	if (iccd_devs[id].state == SCD_SLOT_STATE_PC2RDR) {
 		ocid = iccd_cid_save(id);
-		usbd_request_submit(ICCD_ADDR_OUT, ICCD_HEADER_SIZE);
+		usbd_request_submit(ICCD_ADDR_OUT, SCD_HEADER_SIZE);
 		iccd_cid_restore(ocid);
 	}
 }
@@ -588,7 +588,7 @@ static void iccd_DataBlock_out(void)
 
 static void iccd_IccPowerOn_out(void)
 {
-	if (usbd_request_handled() == ICCD_HEADER_SIZE) {
+	if (usbd_request_handled() == SCD_HEADER_SIZE) {
 		/* reset SCD error */
 		ICCD_XB_ERR = __iccd_err_success();
 		/* reset Nc */
@@ -644,7 +644,7 @@ static void __iccd_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size)
 
 static void iccd_XfrBlock_out(void)
 {
-	__iccd_XfrBlock_out(ICCD_HEADER_SIZE, iccd_cmds[iccd_cid].dwLength);
+	__iccd_XfrBlock_out(SCD_HEADER_SIZE, iccd_cmds[iccd_cid].dwLength);
 }
 
 static void iccd_handle_slot_pc2rdr(void)
@@ -688,11 +688,11 @@ static void iccd_handle_command(iccd_t id)
 	USBD_OUTB(iccd_cmds[iccd_cid].abRFU[1]);
 	USBD_OUTB(iccd_cmds[iccd_cid].abRFU[2]);
 
-	if (usbd_request_handled() < ICCD_HEADER_SIZE)
+	if (usbd_request_handled() < SCD_HEADER_SIZE)
 		goto out;
 
-	if (usbd_request_handled() == ICCD_HEADER_SIZE) {
-		usbd_request_commit(ICCD_HEADER_SIZE +
+	if (usbd_request_handled() == SCD_HEADER_SIZE) {
+		usbd_request_commit(SCD_HEADER_SIZE +
 				   iccd_cmds[iccd_cid].dwLength);
 		scd_debug(SCD_DEBUG_PC2RDR, iccd_cmds[iccd_cid].bMessageType);
 	}
@@ -733,13 +733,13 @@ void iccd_DataBlock_in(void)
 
 	usbd_iter_accel();
 
-	for (i = usbd_request_handled()-ICCD_HEADER_SIZE;
+	for (i = usbd_request_handled()-SCD_HEADER_SIZE;
 	     i < iccd_resps[iccd_cid].dwLength; i++) {
 		USBD_INB(__iccd_xchg_read(i));
 	}
 
 	BUG_ON(usbd_request_handled() >
-	       iccd_resps[iccd_cid].dwLength + ICCD_HEADER_SIZE);
+	       iccd_resps[iccd_cid].dwLength + SCD_HEADER_SIZE);
 }
 
 static void iccd_handle_response(iccd_t id)
@@ -862,7 +862,7 @@ void iccd_XfrBlock_cmp(void)
 static void iccd_complete_slot_pc2rdr(void)
 {
 	if (usbd_request_handled() !=
-	    (iccd_cmds[iccd_cid].dwLength + ICCD_HEADER_SIZE)) {
+	    (iccd_cmds[iccd_cid].dwLength + SCD_HEADER_SIZE)) {
 		iccd_CmdOffset_cmp(1);
 		return;
 	}
@@ -899,7 +899,7 @@ static void iccd_complete_command(iccd_t id)
 	BUG_ON(iccd_devs[iccd_cid].state != SCD_SLOT_STATE_PC2RDR &&
 	       iccd_devs[iccd_cid].state != SCD_SLOT_STATE_SANITY);
 
-	if (usbd_request_handled() < ICCD_HEADER_SIZE ||
+	if (usbd_request_handled() < SCD_HEADER_SIZE ||
 	    iccd_cmds[iccd_cid].bSlot != ICCD_SINGLE_SLOT_IDX) {
 		iccd_SlotNotExist_cmp();
 		goto out;
@@ -922,7 +922,7 @@ out:
 /*=========================================================================
  * interrupt data
  *=======================================================================*/
-#ifdef CONFIG_ICCD_INTERRUPT_IN
+#ifdef CONFIG_SCD_INTERRUPT
 /*=========================================================================
  * dev changes
  *=======================================================================*/
@@ -1089,7 +1089,7 @@ static void iccd_handle_endp_done(void)
 	if (usbd_saved_addr() == ICCD_ADDR_IN) {
 		iccd_complete_response(id);
 	}
-#ifdef CONFIG_ICCD_INTERRUPT_IN
+#ifdef CONFIG_SCD_INTERRUPT
 	if (usbd_saved_addr() == ICCD_ADDR_IRQ) {
 		iccd_complete_interrupt(id);
 	}
@@ -1108,7 +1108,7 @@ static void iccd_handle_endp_iocb(void)
 		iccd_handle_response(id);
 		return;
 	}
-#ifdef CONFIG_ICCD_INTERRUPT_IN
+#ifdef CONFIG_SCD_INTERRUPT
 	if (usbd_saved_addr() == ICCD_ADDR_IRQ) {
 		iccd_handle_interrupt();
 		return;
@@ -1126,7 +1126,7 @@ static void iccd_handle_endp_poll(void)
 	if (usbd_saved_addr() == ICCD_ADDR_IN) {
 		iccd_submit_response(id);
 	}
-#ifdef CONFIG_ICCD_INTERRUPT_IN
+#ifdef CONFIG_SCD_INTERRUPT
 	if (usbd_saved_addr() == ICCD_ADDR_IRQ) {
 		iccd_submit_interrupt();
 	}

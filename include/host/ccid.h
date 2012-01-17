@@ -145,8 +145,8 @@ struct ccid_t1_param {
 	uint8_t bNadValue;
 };
 
-#define CCID_HEADER_SIZE		10
-#define CCID_MESSAGE_SIZE		(IFD_BUF_SIZE + CCID_HEADER_SIZE)
+#define SCD_HEADER_SIZE		10
+#define CCID_MESSAGE_SIZE		(IFD_BUF_SIZE + SCD_HEADER_SIZE)
 
 #define CCID_ENDP_BULK_IN		0x00
 #define CCID_ENDP_BULK_OUT		0x01
@@ -272,7 +272,7 @@ struct ccid_pm_param {
 #define CCID_SPE_MODIFY_FIXED	12	/* bytes before bNumberMessage */
 #define CCID_SPE_MODIFY_SIZE	18
 
-#define CCID_MAX_BUFFER		(IFD_BUF_SIZE + CCID_HEADER_SIZE + sizeof (struct ccid_pm_param))
+#define CCID_MAX_BUFFER		(IFD_BUF_SIZE + SCD_HEADER_SIZE + sizeof (struct ccid_pm_param))
 
 #define CCID_INVALID_SEQ	0xFF
 

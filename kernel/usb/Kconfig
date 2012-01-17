@@ -227,6 +227,7 @@ choice
 
 config USB_CCID
 	bool "Chip circuit interface (CCID)"
+	select SCD_BULK
 	select IFD
 
 config USB_ICCD
@@ -234,10 +235,12 @@ config USB_ICCD
 
 endchoice
 
-if USB_CCID
+config SCD_BULK
+	bool "Enable bulk IN/OUT endpoint"
+	default y
 
-config CCID_INTERRUPT_IN
-	bool "CCID optional input interrupt support"
+config SCD_INTERRUPT
+	bool "Enable interrupt IN endpoint"
 	default y
 	help
 	  This function may not required as our CCID has implemented
@@ -248,9 +251,11 @@ config CCID_INTERRUPT_IN
 	  endpoint.
 	  If you are not sure, say Y here.
 
+if USB_CCID
+
 config CCID_INTERRUPT_HWERR
 	bool "CCID hardware error interrupt support"
-	depends CCID_INTERRUPT_IN
+	depends SCD_INTERRUPT
 	help
 	  This feature is implemented but never used by any other modules
 	  in this implementation.
@@ -315,33 +320,25 @@ choice
 
 config ICCD_PROTO_BULK
 	bool "Bulk"
+	select SCD_BULK
+	select SCD_INTERRUPT
 	help
 	  Bulk transfers optional interrupt-IN.
 
 config ICCD_PROTO_A
 	bool "Version A"
+	depends !SCD_BULK
+	depends !SCD_INTERRUPT
 	help
 	  Control transfers, (no interrupt-IN)
 
 config ICCD_PROTO_B
 	bool "Version B"
+	depends !SCD_BULK
 	help
 	  Control transfers, (optional interrupt-IN)
 
 endchoice
-
-config ICCD_INTERRUPT_IN
-	bool "ICCD optional input interrupt support"
-	depends on !ICCD_PROTO_A
-	default y
-	help
-	  This function may not required as our CCID has implemented
-	  message queuing.  Some host side CCID drivers may require this
-	  function.
-	  If this option is enabled, CCID firmware can report slot status
-	  changes and hardware errors through this optional interrupt
-	  endpoint.
-	  If you are not sure, say Y here.
 
 choice
 	prompt "ICCD Exchange Level"

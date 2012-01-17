@@ -580,7 +580,7 @@ static void ccid_submit_response(void)
 	if (ccid_nr_seqs > 0 &&
 	    ccid_slots[CCID_QID_IN].state == SCD_SLOT_STATE_RDR2PC) {
 		usbd_request_submit(CCID_ADDR_IN,
-				    CCID_HEADER_SIZE +
+				    SCD_HEADER_SIZE +
 				    ccid_resps[CCID_QID_IN].dwLength);
 	}
 }
@@ -588,7 +588,7 @@ static void ccid_submit_response(void)
 static void ccid_submit_command(void)
 {
 	if (ccid_slots[CCID_QID_OUT].state == SCD_SLOT_STATE_PC2RDR) {
-		usbd_request_submit(CCID_ADDR_OUT, CCID_HEADER_SIZE);
+		usbd_request_submit(CCID_ADDR_OUT, SCD_HEADER_SIZE);
 	}
 }
 
@@ -952,7 +952,7 @@ static void ccid_SetParameters_cmp(void)
 	switch (bProtocolNum) {
 	case SCD_PROTOCOL_T0:
 		if (usbd_request_handled() >=
-		    CCID_HEADER_SIZE + sizeof (struct scd_t0_param)) {
+		    SCD_HEADER_SIZE + sizeof (struct scd_t0_param)) {
 			ccid_slot_enter(SCD_SLOT_STATE_ISO7816);
 			err = ifd_set_t0_param(ccid_cmd_data.t0.bmFindexDindex,
 					       ccid_cmd_data.t0.bGuardTimeT0,
@@ -966,7 +966,7 @@ static void ccid_SetParameters_cmp(void)
 #ifdef CONFIG_IFD_T1
 	case SCD_PROTOCOL_T1:
 		if (usbd_request_handled() >=
-		    CCID_HEADER_SIZE + sizeof (struct scd_t1_param)) {
+		    SCD_HEADER_SIZE + sizeof (struct scd_t1_param)) {
 			ccid_slot_enter(SCD_SLOT_STATE_ISO7816);
 			err = ifd_set_t1_param(ccid_cmd_data.t1.bmFindexDindex,
 					       ccid_cmd_data.t1.bmTCCKST1,
@@ -1103,7 +1103,7 @@ static void ccid_ResetParameters_cmp(void)
 
 static void ccid_IccPowerOn_out(void)
 {
-	if (usbd_request_handled() == CCID_HEADER_SIZE) {
+	if (usbd_request_handled() == SCD_HEADER_SIZE) {
 		/* reset SCS error */
 		CCID_XB_ERR = SCS_ERR_SUCCESS;
 		/* reset Nc */
@@ -1159,7 +1159,7 @@ void __ccid_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size)
 
 static void ccid_XfrBlock_out(void)
 {
-	__ccid_XfrBlock_out(CCID_HEADER_SIZE, ccid_cmds[ccid_qid].dwLength);
+	__ccid_XfrBlock_out(SCD_HEADER_SIZE, ccid_cmds[ccid_qid].dwLength);
 }
 
 static void ccid_handle_slot_pc2rdr(void)
@@ -1234,11 +1234,11 @@ static void ccid_handle_command(void)
 	USBD_OUTB(ccid_cmds[ccid_qid].abRFU[1]);
 	USBD_OUTB(ccid_cmds[ccid_qid].abRFU[2]);
 
-	if (usbd_request_handled() < CCID_HEADER_SIZE)
+	if (usbd_request_handled() < SCD_HEADER_SIZE)
 		return;
 
-	if (usbd_request_handled() == CCID_HEADER_SIZE) {
-		usbd_request_commit(CCID_HEADER_SIZE +
+	if (usbd_request_handled() == SCD_HEADER_SIZE) {
+		usbd_request_commit(SCD_HEADER_SIZE +
 				    ccid_cmds[ccid_qid].dwLength);
 		scd_debug(SCD_DEBUG_PC2RDR, ccid_cmds[ccid_qid].bMessageType);
 	}
@@ -1259,7 +1259,7 @@ static void ccid_handle_command(void)
 		return;
 	}
 
-	if (usbd_request_handled() == CCID_HEADER_SIZE) {
+	if (usbd_request_handled() == SCD_HEADER_SIZE) {
 		ccid_cmds[sid].bMessageType = ccid_cmds[ccid_qid].bMessageType;
 		ccid_cmds[sid].dwLength = ccid_cmds[ccid_qid].dwLength;
 		ccid_cmds[sid].bSlot = ccid_cmds[ccid_qid].bSlot;
@@ -1303,21 +1303,21 @@ void ccid_DataBlock_in(void)
 
 	usbd_iter_accel();
 
-	for (i = usbd_request_handled()-CCID_HEADER_SIZE;
+	for (i = usbd_request_handled()-SCD_HEADER_SIZE;
 	     i < ccid_resps[ccid_qid].dwLength; i++) {
 		USBD_INB(ifd_read_byte(i));
 	}
 
 #if 0
 	if (usbd_request_handled() ==
-	    ccid_resps[ccid_qid].dwLength + CCID_HEADER_SIZE) {
+	    ccid_resps[ccid_qid].dwLength + SCD_HEADER_SIZE) {
 		/* allow next XfrBlock fetching next bytes */
 		ccid_resps[ccid_qid].dwLength;
 	}
 #endif
 
 	BUG_ON(usbd_request_handled() >
-	       ccid_resps[ccid_qid].dwLength + CCID_HEADER_SIZE);
+	       ccid_resps[ccid_qid].dwLength + SCD_HEADER_SIZE);
 }
 
 static void ccid_handle_response(void)
@@ -1542,7 +1542,7 @@ void ccid_XfrBlock_cmp(void)
 static void ccid_complete_slot_pc2rdr(void)
 {
 	if (usbd_request_handled() !=
-	    (ccid_cmds[ccid_qid].dwLength + CCID_HEADER_SIZE)) {
+	    (ccid_cmds[ccid_qid].dwLength + SCD_HEADER_SIZE)) {
 		ccid_CmdOffset_cmp(1);
 		return;
 	}
@@ -1619,7 +1619,7 @@ static void ccid_complete_command(void)
 	BUG_ON(ccid_slots[ccid_qid].state != SCD_SLOT_STATE_PC2RDR &&
 	       ccid_slots[ccid_qid].state != SCD_SLOT_STATE_SANITY);
 
-	if (usbd_request_handled() < CCID_HEADER_SIZE ||
+	if (usbd_request_handled() < SCD_HEADER_SIZE ||
 	    ccid_cmds[ccid_qid].bSlot >= NR_IFD_SLOTS) {
 		ccid_SlotNotExist_cmp();
 		return;
@@ -1687,10 +1687,10 @@ static void ccid_PinBlock_out(uint8_t base_size)
 {
 	if (ccid_spe_msg_number() > 1)
 		base_size += ccid_spe_msg_number()-1;
-	if (usbd_request_handled() >= (CCID_HEADER_SIZE + base_size)) {
-		__ccid_XfrBlock_out(CCID_HEADER_SIZE + base_size,
+	if (usbd_request_handled() >= (SCD_HEADER_SIZE + base_size)) {
+		__ccid_XfrBlock_out(SCD_HEADER_SIZE + base_size,
 				    ccid_cmds[ccid_qid].dwLength - base_size);
-		if (usbd_request_handled() >= (CCID_HEADER_SIZE + base_size + 2)) {
+		if (usbd_request_handled() >= (SCD_HEADER_SIZE + base_size + 2)) {
 			ccid_PinInsByte_out();
 		}
 	}
@@ -1743,7 +1743,7 @@ static void ccid_PinVerify_out(void)
 	USBD_OUTB(ccid_cmd_data.po.bEntryValidationCondition);
 	USBD_OUTB(ccid_cmd_data.po.bNumberMessage);
 	if (usbd_request_handled() >=
-	    (CCID_HEADER_SIZE + CCID_SPE_VERIFY_FIXED)) {
+	    (SCD_HEADER_SIZE + CCID_SPE_VERIFY_FIXED)) {
 		if (ccid_EntryValidaton_ok()) {
 			ccid_PinMessage_out();
 			ccid_PinTeoPrologue_out();
@@ -1762,7 +1762,7 @@ static void ccid_PinModify_out(void)
 	USBD_OUTB(ccid_cmd_data.po.bEntryValidationCondition);
 	USBD_OUTB(ccid_cmd_data.po.bNumberMessage);
 	if (usbd_request_handled() >=
-	    (CCID_HEADER_SIZE + CCID_SPE_MODIFY_FIXED)) {
+	    (SCD_HEADER_SIZE + CCID_SPE_MODIFY_FIXED)) {
 		if (ccid_EntryValidaton_ok()) {
 			ccid_PinMessage_out();
 			ccid_PinTeoPrologue_out();
@@ -1792,7 +1792,7 @@ static void ccid_PinModify_cmp(void)
 void ccid_Secure_out(void)
 {
 	USBD_OUTB(ccid_cmd_data.po.bPINOpeartion);
-	if (usbd_request_handled() >= CCID_HEADER_SIZE+1) {
+	if (usbd_request_handled() >= SCD_HEADER_SIZE+1) {
 		switch (ccid_cmd_data.po.bPINOpeartion) {
 		case CCID_SPE_PIN_VERIFY:
 			ccid_PinVerify_out();
@@ -1828,7 +1828,7 @@ void ccid_spe_init(void)
 /*=========================================================================
  * interrupt data
  *=======================================================================*/
-#ifdef CONFIG_CCID_INTERRUPT_IN
+#ifdef CONFIG_SCD_INTERRUPT
 /*=========================================================================
  * slot changes
  *=======================================================================*/
@@ -2199,7 +2199,7 @@ static void ccid_handle_endp_iocb(void)
 		ccid_handle_response();
 		return;
 	}
-#ifdef CONFIG_CCID_INTERRUPT_IN
+#ifdef CONFIG_SCD_INTERRUPT
 	if (usbd_saved_addr() == CCID_ADDR_IRQ) {
 		ccid_handle_interrupt();
 		return;
@@ -2215,7 +2215,7 @@ static void ccid_handle_endp_done(void)
 	if (usbd_saved_addr() == CCID_ADDR_IN) {
 		ccid_complete_response();
 	}
-#ifdef CONFIG_CCID_INTERRUPT_IN
+#ifdef CONFIG_SCD_INTERRUPT
 	if (usbd_saved_addr() == CCID_ADDR_IRQ) {
 		ccid_discard_interrupt();
 	}
@@ -2230,7 +2230,7 @@ static void ccid_handle_endp_poll(void)
 	if (usbd_saved_addr() == CCID_ADDR_IN) {
 		ccid_submit_response();
 	}
-#ifdef CONFIG_CCID_INTERRUPT_IN
+#ifdef CONFIG_SCD_INTERRUPT
 	if (usbd_saved_addr() == CCID_ADDR_IRQ) {
 		ccid_submit_interrupt();
 	}
