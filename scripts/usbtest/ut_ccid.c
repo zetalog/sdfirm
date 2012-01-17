@@ -198,7 +198,7 @@ void CUNITCBK ccid_slot_status(void)
 	if (!(g_desc.dwFeatures & SCD_FEATURE_AUTO_CLASS)) {
 		CUNIT_ASSERT_TRUE(bStatus == CCID_ICC_STATUS_INACTIVE);
 	} else {
-		CUNIT_ASSERT_TRUE(bStatus != CCID_ICC_STATUS_NOTPRESENT);
+		CUNIT_ASSERT_TRUE(bStatus != SCD_STATUS_NOTPRESENT);
 	}
 	g_card_in = true;
 }
@@ -207,7 +207,7 @@ void ccid_apply_class(uint8_t bClass)
 {
 	CUNIT_ASSERT_TRUE(ccid_sync_IccPowerOn(bClass));
 	CUNIT_ASSERT_TRUE(ccid_resp_length() >= 0);
-	ccid_parse_SlotStatus(CCID_ICC_STATUS_ACTIVE, 0);
+	ccid_parse_SlotStatus(SCD_STATUS_ACTIVE, 0);
 
 	g_atr_len = ccid_resp_block(g_atr_buff, sizeof (g_atr_buff));
 	g_atr_ready = true;
@@ -407,11 +407,11 @@ void CUNITCBK ccid_icc_mecha(void)
 
 	/* lock first */
 	CUNIT_ASSERT_TRUE(ccid_sync_Mechanical(CCID_MECHA_LOCK_CARD));
-	ccid_parse_SlotStatus(CCID_ICC_STATUS_ACTIVE, 0);
+	ccid_parse_SlotStatus(SCD_STATUS_ACTIVE, 0);
 
 	/* unlock */
 	CUNIT_ASSERT_TRUE(ccid_sync_Mechanical(CCID_MECHA_UNLOCK_CARD));
-	ccid_parse_SlotStatus(CCID_ICC_STATUS_ACTIVE, 0);
+	ccid_parse_SlotStatus(SCD_STATUS_ACTIVE, 0);
 }
 
 void ccid_parse_DataAndFreq(uint32_t dwClockFreq, uint32_t dwDataRate)
@@ -523,7 +523,7 @@ void CUNITCBK ccid_warmup(void)
 	ccid_set_timeout(CCID_WAIT_FAST);
 	while (__ccid_async_in());
 	while (!ccid_sync_GetSlotStatus() ||
-	       ccid_resp_status() == CCID_ICC_STATUS_NOTPRESENT);
+	       ccid_resp_status() == SCD_STATUS_NOTPRESENT);
 	ccid_sync_IccPowerOff();
 	ccid_set_timeout(CCID_WAIT_SLOW);
 }

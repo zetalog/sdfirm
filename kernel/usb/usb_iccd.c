@@ -40,17 +40,6 @@
  */
 
 #include <target/usb_scd.h>
-#include <target/cos.h>
-#include <target/icc.h>
-
-#ifdef CONFIG_ICCD_COS
-#define NR_ICCD_CARDS		1
-#define iccd_id			0
-#else
-#define NR_ICCD_CARDS		NR_ICC_CARDS
-#define iccd_id			scd_id
-#endif
-#define INVALID_ICCD_CARD	NR_ICCD_CARDS
 
 #define ICCD_REQ_DATA_BLOCK		0x6F
 #define ICCD_REQ_GET_ICC_STATUS		0xA0
@@ -138,10 +127,6 @@ usb_endp_desc_t iccd_endpoints[NR_ICCD_ENDPS] = {
 };
 
 #ifdef CONFIG_ICCD_COS
-#define ICCD_DEV_STATE_PRESENT		COS_DEV_STATE_PRESENT
-#define ICCD_DEV_STATE_HWERROR		COS_DEV_STATE_PRESENT+1
-#define ICCD_DEV_STATE_NOTPRESENT	COS_DEV_STATE_PRESENT+2
-
 #define __iccd_get_error()		cos_get_error()
 #define __iccd_xchg_read(idx)		cos_xchg_read(idx)
 #define __iccd_xchg_write(idx, b)	cos_xchg_write(idx, b)
@@ -158,7 +143,7 @@ usb_endp_desc_t iccd_endpoints[NR_ICCD_ENDPS] = {
 
 uint8_t iccd_dev_state(uint8_t state)
 {
-	return ICCD_DEV_STATE_PRESENT;
+	return SCD_STATUS_ACTIVE;
 }
 
 static uint8_t iccd_dev_error(scs_err_t err)
@@ -175,10 +160,6 @@ static uint8_t iccd_dev_error(scs_err_t err)
 	return ICCD_ERROR_HW_ERROR;
 }
 #else
-#define ICCD_DEV_STATE_HWERROR		SCD_DEV_STATE_HWERROR
-#define ICCD_DEV_STATE_NOTPRESENT	SCD_DEV_STATE_NOTPRESENT
-#define ICCD_DEV_STATE_PRESENT		SCD_DEV_STATE_PRESENT
-
 #define __iccd_dev_get_state()		scd_dev_get_state()
 #define __iccd_get_error()		scd_get_error()
 #define __iccd_xchg_read(idx)		scd_xchg_read(idx)	
@@ -197,9 +178,9 @@ uint8_t iccd_dev_state(uint8_t d)
 	switch (state) {
 	default:
 	case SCD_DEV_STATE_HWERROR:
-		return ICCD_DEV_STATE_HWERROR;
+		return SCD_STATUS_INACTIVE;
 	case SCD_DEV_STATE_NOTPRESENT:
-		return ICCD_DEV_STATE_NOTPRESENT;
+		return SCD_STATUS_NOTPRESENT;
 	}
 }
 
@@ -285,7 +266,7 @@ static iccd_t iccd_cid_save(iccd_t id)
 static uint8_t iccd_dev_status(void)
 {
 	uint8_t status = iccd_dev_state(0);
-	if (status == ICCD_DEV_STATE_HWERROR)
+	if (status == SCD_STATUS_INACTIVE)
 		BUG();
 	return status;
 }
@@ -649,7 +630,7 @@ static void iccd_XfrBlock_out(void)
 
 static void iccd_handle_slot_pc2rdr(void)
 {
-	if (iccd_dev_status() == ICCD_DEV_STATE_NOTPRESENT) {
+	if (iccd_dev_status() == SCD_STATUS_NOTPRESENT) {
 		iccd_CmdFailure_out(ICCD_ERROR_ICC_MUTE);
 		return;
 	}
@@ -838,7 +819,7 @@ static void iccd_IccPowerOff_cmp(void)
 
 void iccd_SlotNotExist_cmp(void)
 {
-	__iccd_CmdFailure_out(5, ICCD_DEV_STATE_NOTPRESENT);
+	__iccd_CmdFailure_out(5, SCD_STATUS_NOTPRESENT);
 	iccd_CmdResponse_cmp();
 }
 
@@ -980,10 +961,10 @@ static void iccd_change_submit(void)
 		/* copy status bits */
 		if (test_bit(ICCD_INTR_STATUS(id), iccd_pending_intrs)) {
 			set_bit(ICCD_INTR_STATUS(id), iccd_running_intrs);
-			scd_debug(SCD_DEBUG_INTR, ICCD_DEV_STATE_PRESENT);
+			scd_debug(SCD_DEBUG_INTR, SCD_STATUS_ACTIVE);
 		} else {
 			clear_bit(ICCD_INTR_STATUS(id), iccd_running_intrs);
-			scd_debug(SCD_DEBUG_INTR, ICCD_DEV_STATE_NOTPRESENT);
+			scd_debug(SCD_DEBUG_INTR, SCD_STATUS_NOTPRESENT);
 		}
 	}
 }
@@ -991,7 +972,7 @@ static void iccd_change_submit(void)
 static void iccd_change_raise(void)
 {
 	boolean changed = false;
-	if (iccd_dev_status() == ICCD_DEV_STATE_NOTPRESENT) {
+	if (iccd_dev_status() == SCD_STATUS_NOTPRESENT) {
 		if (test_bit(ICCD_INTR_STATUS(iccd_cid), iccd_pending_intrs)) {
 			clear_bit(ICCD_INTR_STATUS(iccd_cid),
 				  iccd_pending_intrs);

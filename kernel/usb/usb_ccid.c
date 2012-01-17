@@ -66,7 +66,9 @@ typedef union ccid_data {
 	struct scd_t1_param t1;
 	struct scd_db_param db;
 	struct scd_xb_param xb;
+#ifdef CONFIG_USB_CCID
 	struct ccid_fd_param fd;
+#endif
 #ifdef CONFIG_CCID_SECURE
 	struct ccid_po_param po;
 	struct ccid_pv_param pv;
@@ -457,17 +459,17 @@ static uint8_t ccid_slot_status(void)
 {
 	switch (ifd_slot_get_state()) {
 	case IFD_SLOT_STATE_NOTPRESENT:
-		return CCID_ICC_STATUS_NOTPRESENT;
+		return SCD_STATUS_NOTPRESENT;
 	case IFD_SLOT_STATE_PRESENT:
 	case IFD_SLOT_STATE_SELECTED:
 	case IFD_SLOT_STATE_ACTIVATED:
 	case IFD_SLOT_STATE_HWERROR:
-		return CCID_ICC_STATUS_INACTIVE;
+		return SCD_STATUS_INACTIVE;
 	case IFD_SLOT_STATE_ATR_READY:
 	case IFD_SLOT_STATE_PPS_READY:
-		return CCID_ICC_STATUS_ACTIVE;
+		return SCD_STATUS_ACTIVE;
 	}
-	return CCID_ICC_STATUS_NOTPRESENT;
+	return SCD_STATUS_NOTPRESENT;
 }
 
 static void ccid_slot_reset(ccid_qid_t qid)
@@ -1167,13 +1169,13 @@ static void ccid_handle_slot_pc2rdr(void)
 	if (ccid_cmds[ccid_qid].bMessageType == CCID_PC2RDR_GETSLOTSTATUS) {
 		return;
 	}
-	if (ccid_slot_status() == CCID_ICC_STATUS_NOTPRESENT) {
+	if (ccid_slot_status() == SCD_STATUS_NOTPRESENT) {
 		ccid_CmdFailure_out(CCID_ERROR_ICC_MUTE);
 		return;
 	}
 #if 0
 	/* FIXME: check auto sequence */
-	if (ccid_slot_status() != CCID_ICC_STATUS_ACTIVE) {
+	if (ccid_slot_status() != SCD_STATUS_ACTIVE) {
 		ccid_CmdFailure_out(CCID_ERROR_BUSY_AUTO_SEQ);
 		return;
 	}
@@ -1506,7 +1508,7 @@ static void ccid_IccPowerOff_cmp(void)
 
 void ccid_SlotNotExist_cmp(void)
 {
-	__ccid_CmdFailure_out(5, CCID_ICC_STATUS_NOTPRESENT);
+	__ccid_CmdFailure_out(5, SCD_STATUS_NOTPRESENT);
 	ccid_CmdResponse_cmp();
 }
 
@@ -1953,8 +1955,7 @@ static void ccid_change_raise(void)
 {
 	if (ccid_qid < NR_IFD_SLOTS) {
 		boolean changed = false;
-		if (ccid_slot_status() == CCID_ICC_STATUS_NOTPRESENT) {
-
+		if (ccid_slot_status() == SCD_STATUS_NOTPRESENT) {
 			ccid_discard();
 			if (test_bit(CCID_INTR_STATUS(ccid_qid), ccid_pending_intrs)) {
 				clear_bit(CCID_INTR_STATUS(ccid_qid), ccid_pending_intrs);

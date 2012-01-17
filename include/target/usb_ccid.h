@@ -47,10 +47,6 @@
 typedef ifd_sid_t	ccid_qid_t;
 typedef uint8_t		ccid_seq_t;
 
-#define CCID_ICC_STATUS_ACTIVE		0x00
-#define CCID_ICC_STATUS_INACTIVE	0x01
-#define CCID_ICC_STATUS_NOTPRESENT	0x02
-
 #define USB_INTERFACE_CLASS_CCID	11
 
 #define USB_INTERFACE_PROTOCOL_CCID	0x00

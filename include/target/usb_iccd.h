@@ -43,6 +43,7 @@
 #define __USB_ICCD_H_INCLUDE__
 
 #include <target/icc.h>
+#include <target/cos.h>
 
 #if NR_ICC_CARDS == 0
 #error "SCD device is not defined"
@@ -63,6 +64,15 @@
 #endif
 
 #define ICCD_RDR2PC_NOTIFYSLOTCHANGE	0x50
+
+#ifdef CONFIG_ICCD_COS
+#define NR_ICCD_CARDS		1
+#define iccd_id			0
+#else
+#define NR_ICCD_CARDS		NR_ICC_CARDS
+#define iccd_id			scd_id
+#endif
+#define INVALID_ICCD_CARD	NR_ICCD_CARDS
 
 struct iccd_t1_param {
 	uint8_t bmFindexDindex;

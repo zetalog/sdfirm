@@ -134,6 +134,10 @@ struct scd_resp {
 	uint8_t abRFU3;
 };
 
+#define SCD_STATUS_ACTIVE		0x00
+#define SCD_STATUS_INACTIVE		0x01
+#define SCD_STATUS_NOTPRESENT		0x02
+
 #ifdef CONFIG_SCD_BULK
 #define SCD_HEADER_SIZE			10
 #else
@@ -192,11 +196,13 @@ void scd_Escape_in(void);
 
 #ifdef CONFIG_USB_CCID
 #include <target/usb_ccid.h>
+#define NR_SCD_QUEUES		NR_CCID_QUEUES
 #define scd_CmdOffset_cmp(off)	ccid_CmdOffset_cmp(off)
 #define scd_SlotStatus_in()	ccid_SlotStatus_in()
 #endif
 #ifdef CONFIG_USB_ICCD
 #include <target/usb_iccd.h>
+#define NR_SCD_QUEUES		NR_ICCD_CARDS
 #define scd_CmdOffset_cmp(off)	iccd_CmdOffset_cmp(off)
 #define scd_SlotStatus_in()	iccd_SlotStatus_in()
 #endif
