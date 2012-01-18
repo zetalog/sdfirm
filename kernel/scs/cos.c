@@ -10,15 +10,53 @@ struct cos_state {
 	boolean activated;
 };
 
-#if NR_MAX_CHANNELS > 1
-struct cos_chan cos_chan[NR_MAX_CHANNELS];
-DECLARE_BITMAP(cos_cstate, NR_MAX_CHANNELS);
+#if NR_MAX_CHANS > 1
+struct cos_chan cos_chan[NR_MAX_CHANS];
+DECLARE_BITMAP(cos_cstate, NR_MAX_CHANS);
 uint8_t cos_cid = COS_DEF_CID;
+
 #define cos_curr_chan		cos_chan[cos_cid]
+void cos_cid_restore(uint8_t cid)
+{
+	cos_cid = cid;
+}
+
+uint8_t cos_cid_save(uint8_t cid)
+{
+	uint8_t scid = cos_cid;
+	cos_cid_restore(cid);
+	return scid;
+}
+
+static void cos_chan_active(boolean on)
+{
+	if (on)
+		cos_curr_chan.actived = true;
+	else
+		cos_curr_chan.actived = false;
+}
+
+static void cos_chan_open(boolean on)
+{
+	if (on)
+		cos_curr_chan.opened = true;
+	else
+		cos_curr_chan.opened = false;
+}
+
+static void cos_chan_switch(uint8_t cid)
+{
+	if (cid == cos_cid)
+		return;
+	cos_chan_deactive(false);
+	cos_cid_select(cid);
+	cos_chan_open(true);
+	cos_chan_deactive(true);
+}
 #else
 struct cos_chan cos_curr_chan;
-#define cos_cid			COS_DEF_CID
 #define cos_curr_cstate		COS_CHAN_STATE_OPEND
+#define cos_chan_switch(cid)
 #endif
 
 struct cos_xfr		cos_xfr;
@@ -33,14 +71,6 @@ scs_cmpl_cb cos_complete = NULL;
 static void cos_chan_set_curr(cos_fid_t fid);
 
 void cos_set_sw(cos_sw_t err);
-
-#ifdef CONFIG_ICC_SCD
-static void cos_scd_seq_complete(icc_err_t err);
-#else
-#define cos_scd_set_state(state)
-#define cos_scd_init()
-#define cos_scd_seq_complete(err)
-#endif
 
 #define __cos_write_byte(index, b)	(cos_buf[index] = b)
 #define __cos_read_byte(index)		(cos_buf[index])
@@ -211,38 +241,6 @@ static boolean cos_find_cmd_tag_all(uint16_t tag)
 	}
 	return false;
 }
-
-#if NR_MAX_CHANNELS > 1
-static void cos_chan_active(boolean on)
-{
-	if (on)
-		cos_curr_chan.actived = true;
-	else
-		cos_curr_chan.actived = false;
-}
-
-static void cos_chan_open(boolean on)
-{
-	if (on)
-		cos_curr_chan.opened = true;
-	else
-		cos_curr_chan.opened = false;
-}
-
-static void cos_chan_switch(uint8_t cla)
-{
-	uint8_t cid = cla2cid(cla);
-
-	if (cid == cos_cid)
-		return;
-	cos_chan_deactive(false);
-	cos_cid = cid;
-	cos_chan_open(true);
-	cos_chan_deactive(true);
-}
-#else
-#define cos_chan_switch(cla)
-#endif
 
 static void cos_chan_set_curr(cos_fid_t fid)
 {
@@ -675,135 +673,8 @@ void cos_register_handlers(scs_cmpl_cb completion)
 	cos_complete = completion;
 }
 
-/*=========================================================================
- * SCD_COS
- *=======================================================================*/
-#ifdef CONFIG_ICC_SCD
-
-scd_t cos_scds[NR_MAX_ICC];
-
-static scs_err_t cos_scd_err(icc_err_t err)
-{
-	switch (err) {
-	case SCS_ERR_SUCCESS:
-	case SCS_ERR_PROGRESS:
-		return err;
-	default:
-		return SCS_ERR_HW_ERROR;
-	}
-}
-
-uint8_t cos_scd_state(uint8_t state)
-{
-	if (state < COS_STATE_POWERED)
-		return ICC_STATE_PRESENT;
-	return ICC_STATE_ACTIVE;
-}
-
-static scd_t cos_scd_dev(icc_t id)
-{
-	return cos_scds[id];
-}
-
-static icc_t icc_scd2id(scd_t scd)
-{
-	icc_t id;
-
-	for (id = 0; id < NR_MAX_ICC; id++) {
-		if (scd == icc_scds[id])
-			return id;
-	}
-	BUG();
-	return INVALID_ICC_ID;
-}
-
-#define icc_id_select()
-
-static void cos_scd_select(void)
-{
-	icc_id_select(icc_scd2id(scd_id));
-}
-
-static scs_err_t cos_scd_activate(void)
-{
-	scs_err_t err;
-	if (icc_id == INVALID_ICC_ID)
-		return SCS_ERR_HW_ERROR;
-	err = cos_power_on();
-	return cos_scd_err(err);
-}
-
-static scs_err_t cos_scd_deactivate(void)
-{
-	if (icc_id == INVALID_ICC_ID)
-		return SCS_ERR_HW_ERROR;
-	return SCS_ERR_SUCCESS;
-}
-
-static scs_err_t cos_scd_xchg_block(scs_size_t nc, scs_size_t ne)
-{
-	if (icc_id == INVALID_ICC_ID)
-		return SCS_ERR_HW_ERROR;
-	return SCS_ERR_SUCCESS;
-}
-
-static scs_size_t cos_scd_xchg_avail(void)
-{
-	return cos_xchg_avail();
-}
-
-static scs_err_t cos_scd_xchg_write(scs_off_t index, uint8_t byte)
-{
-	if (icc_id == INVALID_ICC_ID)
-		return SCS_ERR_HW_ERROR;
-
-	cos_xchg_write(index, byte);
-	return SCS_ERR_SUCCESS;
-}
-
-static uint8_t cos_scd_xchg_read(scs_off_t index)
-{
-	if (icc_id == INVALID_ICC_ID)
-		return 0x00;
-
-	return cos_xchg_read(index);
-}
-
-icc_driver_t cos_scd = {
-	cos_scd_select,
-	cos_scd_activate,
-	cos_scd_deactivate,
-	cos_scd_xchg_block,
-	cos_scd_xchg_avail,
-	cos_scd_xchg_write,
-	cos_scd_xchg_read,
-};
-
-static void cos_scd_seq_complete(icc_err_t err)
-{
-	scd_dev_select(cos_scd_dev(ifd_slid));
-	scd_seq_complete(cos_scd_err(err));
-}
-
-static void cos_scd_set_state(uint8_t state)
-{
-	scd_dev_select(cos_scd_dev(icc_id));
-	scd_dev_set_state(cos_scd_state(state));
-}
-
-static void cos_scd_init(void)
-{
-	icc_t id;
-
-	for (id = 0; id < NR_MAX_ICC; id++) {
-		cos_scds[id] = scd_register_device(&cos_scd);
-	}
-}
-#endif
-
 void cos_init(void)
 {
 	DEVICE_FUNC(DEVICE_FUNC_COS);
-	cos_scd_init();
 	cos_vs_init();
 }

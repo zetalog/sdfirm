@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Nov  8 12:05:08 2011
+# Thu Nov 17 14:39:44 2011
 #
 CONFIG_AVR=y
 
@@ -32,7 +32,7 @@ CONFIG_CPU_8v51=y
 #
 # Compiler options
 #
-CONFIG_CC_ISR_VECTOR=y
+# CONFIG_CC_ISR_VECTOR is not set
 
 #
 # Atmel AT90USB1287 board options
@@ -41,8 +41,10 @@ CONFIG_CPU_AT90USB1287_FREQ_8M=y
 CONFIG_TSC_AT90USB1287_FREQ_125K=y
 # CONFIG_TSC_AT90USB1287_FREQ_1M is not set
 # CONFIG_TSC_AT90USB1287_FREQ_8M is not set
-CONFIG_GPT_AT90USB1287=y
 CONFIG_UART_AT90USB1287=y
+CONFIG_USB_AT90USB1287=y
+CONFIG_USB_AT90USB1287_DEV=y
+CONFIG_USB_AT90USB1287_MAX_ENDPS=1
 
 #
 # Feature setup
@@ -51,25 +53,18 @@ CONFIG_UART_AT90USB1287=y
 #
 # Generic kernel features
 #
-# CONFIG_SYS_NOIRQ is not set
-CONFIG_SYS_POLL=y
+CONFIG_SYS_NOIRQ=y
+# CONFIG_SYS_POLL is not set
 # CONFIG_SYS_POLL_RT is not set
 # CONFIG_SYS_TASK is not set
 # CONFIG_SYS_TASK_RT is not set
-CONFIG_ARCH_HAS_GPT=y
 CONFIG_ARCH_HAS_TSC=y
 CONFIG_ARCH_IS_TICKLESS=y
-
-#
-# Scheduling facility (irq) support
-#
 
 #
 # Scheduling facility (poll) support
 #
 CONFIG_MAX_STATES=3
-CONFIG_TASK=y
-CONFIG_MAX_TASKS=4
 
 #
 # Timing facility (jiffy) support
@@ -81,10 +76,7 @@ CONFIG_MAX_TASKS=4
 # CONFIG_LPS_32BITS is not set
 CONFIG_LPS_WEIGHT=8
 # CONFIG_LPS_PRESET is not set
-CONFIG_TIMER=y
-# CONFIG_TIMER_16BIT is not set
-CONFIG_TIMER_ONESHOT=y
-CONFIG_MAX_TIMERS=1
+# CONFIG_TIMER is not set
 
 #
 # Address space layout (.text) support
@@ -119,7 +111,25 @@ CONFIG_INPUT_NONE=y
 # CONFIG_OUTPUT_NONE is not set
 CONFIG_OUTPUT_UART=y
 # CONFIG_OUTPUT_LCD is not set
-# CONFIG_USB is not set
+CONFIG_ARCH_HAS_USB=y
+CONFIG_ARCH_HAS_USB_OTG=y
+CONFIG_USB=y
+CONFIG_USB_DEV=y
+# CONFIG_USB_HCD is not set
+# CONFIG_USBD_XFR_MASS is not set
+CONFIG_USBD_XFR_ASYNC=y
+# CONFIG_USBD_XFR_SYNC is not set
+# CONFIG_USBD_BULK is not set
+# CONFIG_USBD_XFR_ASYNC_TXAVAL is not set
+CONFIG_USBD_MAX_INTFS=1
+# CONFIG_USB_HID is not set
+# CONFIG_USB_MSD is not set
+# CONFIG_USB_SCD is not set
+CONFIG_USB_DFU=y
+# CONFIG_DFU_RUNTIME is not set
+# CONFIG_DFU_DFUMODE is not set
+CONFIG_DFU_FULLCMD=y
+CONFIG_DFU_AUTO_RESET=y
 # CONFIG_SCS is not set
 # CONFIG_MTD is not set
 # CONFIG_SCSI is not set
@@ -144,11 +154,11 @@ CONFIG_OUTPUT_UART=y
 #
 # Bit-wise operations
 #
-CONFIG_BIT_FFS8=y
+# CONFIG_BIT_FFS8 is not set
 # CONFIG_BIT_FLS8 is not set
 # CONFIG_BIT_FLS16 is not set
-# CONFIG_BIT_FFS16 is not set
-# CONFIG_BIT_FLS32 is not set
+CONFIG_BIT_FFS16=y
+CONFIG_BIT_FLS32=y
 # CONFIG_BIT_FFS32 is not set
 # CONFIG_BIT_ROUNDUP16 is not set
 # CONFIG_BIT_ROUNDDOWN16 is not set
@@ -158,13 +168,13 @@ CONFIG_BIT_FFS8=y
 #
 # Bitmap operations
 #
-CONFIG_BIT_FIND_SET=y
+# CONFIG_BIT_FIND_SET is not set
 # CONFIG_BIT_FIND_CLEAR is not set
 
 #
 # Mathematic operations
 #
-# CONFIG_MATH_MOD32 is not set
+CONFIG_MATH_MOD32=y
 # CONFIG_MATH_MUL32 is not set
 # CONFIG_MATH_DIV64 is not set
 # CONFIG_MATH_MOD64 is not set
@@ -179,29 +189,25 @@ CONFIG_BIT_FIND_SET=y
 # Checksum algorithms
 #
 # CONFIG_CRC16_CCITT is not set
-# CONFIG_CRC32 is not set
+CONFIG_CRC32=y
 
 #
 # Generic setup
 #
-CONFIG_VENDOR_NAME="Soliton (Shanghai)"
-CONFIG_PRODUCT_NAME="CCID Interface Device"
+CONFIG_VENDOR_NAME="Soliton"
+CONFIG_PRODUCT_NAME="DFU Demo Device"
 CONFIG_VENDOR_ID=990
-CONFIG_PRODUCT_ID=0
+CONFIG_PRODUCT_ID=4
 CONFIG_SERIAL_NO=0
 CONFIG_EXPERIMENTAL=y
 CONFIG_CC_OPT_SIZE=y
 CONFIG_DEBUG=y
 # CONFIG_CC_GEN_DEBUG is not set
-# CONFIG_DEBUG_PANIC is not set
-CONFIG_PORTING=y
-# CONFIG_PORTING_LOAD is not set
-# CONFIG_PORTING_HEAP is not set
-# CONFIG_PORTING_UART is not set
-CONFIG_PORTING_TASK=y
-# CONFIG_PORTING_LED is not set
-# CONFIG_PORTING_TSC is not set
-# CONFIG_PORTING_GPT is not set
-# CONFIG_PORTING_DELAY is not set
-# CONFIG_PORTING_TIMER is not set
-# CONFIG_DEBUG_PRINT is not set
+CONFIG_DEBUG_PANIC=y
+# CONFIG_PORTING is not set
+CONFIG_DEBUG_PRINT=y
+CONFIG_PANIC_DEBUG=y
+# CONFIG_IDLE_DEBUG is not set
+CONFIG_USB_DEBUG=y
+# CONFIG_USB_DEBUG_CALL is not set
+CONFIG_DFU_DEBUG=y

@@ -17,7 +17,7 @@ menuconfig SCS
 if SCS
 
 menuconfig ICC
-	bool "Integreted chip card device support"
+	bool "Smart card device support"
 
 if ICC
 
@@ -26,8 +26,12 @@ config ICC_MAX_CARDS
 	range 1 8
 	default 1
 
+config ICC_COS
+	bool "Enable card operating system (ISO7816-4)"
+	select COS
+
 config ICC_IFD
-	bool "Enable integreted card from ISO7816-3"
+	bool "Enable contact card initiator (ISO7816-3)"
 	select IFD
 	select IFD_AUTO_RESET
 	select IFD_XCHG_APDU
@@ -290,18 +294,13 @@ menuconfig COS
 	  nothing here
 
 if COS
-config COS_SCD
-	bool
-	depends ICC
-	default y
 
-config COS_MAX_CARDS
-	int "Number of smart card devices (1~4)"
+config COS_MAX_CHANS
+	int "Number of COS channels (1~4)"
 	range 1 4
 	default 1
 	help
-	  MAX ICC number is same as supported COS count
-	  now(i.e. each cos one ICC).
+
 endif
 
 endif

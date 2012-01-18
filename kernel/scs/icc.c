@@ -153,7 +153,14 @@ void icc_ifd_init(void);
 #define icc_ifd_init()
 #endif
 
+#ifdef CONFIG_ICC_COS
+void icc_cos_init(void);
+#else
+#define icc_cos_init()
+#endif
+
 void icc_init(void)
 {
 	icc_ifd_init();
+	icc_cos_init();
 }

@@ -6,28 +6,12 @@
 #include <target/icc.h>
 #include <target/usb.h>
 
-typedef uint8_t icc_t;
 typedef uint16_t cos_sw_t;
 typedef uint8_t icc_event_t;
 typedef uint16_t fid_t;
 typedef uint16_t cos_fid_t;
 
 #include <driver/cos.h>
-
-struct cos_xb_param {
-	scs_err_t bCosOutErr;
-	scs_size_t wCosOutCnt;
-	scs_size_t wCosInCnt;
-	uint8_t bCosWaitInt;
-#define COS_XB_ERR	cos_cmd_data.xb.bCosOutErr
-#define COS_XB_OUT	cos_cmd_data.xb.wCosOutCnt
-#define COS_XB_IN	cos_cmd_data.xb.wCosInCnt
-#define COS_XB_WI	cos_cmd_data.xb.bCosWaitInt
-};
-
-typedef union cos_data {
-	struct cos_xb_param xb;
-} cos_data_t;
 
 struct cos_xfr {
 	uint8_t rx;
@@ -58,12 +42,12 @@ struct icc_proto {
 };
 __TEXT_TYPE__(struct icc_proto, icc_proto_t);
 
-#ifndef CONFIG_ICC_MAX_CARDS
-#define NR_MAX_ICC			1
+#ifndef CONFIG_COS_MAX_CHANS
+#define NR_MAX_CHANS			1
 #else
-#define NR_MAX_ICC			CONFIG_ICC_MAX_CARDS
+#define NR_MAX_CHANS			CONFIG_COS_MAX_CHANS
 #endif
-#define INVALID_ICC_ID			NR_MAX_ICC
+#define INVALID_ICC_CHAN		NR_MAX_CHANS
 
 #ifdef CONFIG_ICC_T0
 #define NR_ICC_PROTOS			1
@@ -194,15 +178,21 @@ union cos_secu_status {
 
 /* Logical channel */
 struct cos_chan {
-#if NR_MAX_CHANNELS > 1
+#if NR_MAX_CHANS > 1
 	boolean opened;
 	boolean actived;
 	uint8_t id;
 #endif	
-	uint16_t pfid;	/* previous */
-	uint16_t cfid;	/* current */
+	cos_fid_t pfid;	/* previous */
+	cos_fid_t cfid;	/* current */
 	union cos_secu_status status;
 };
+
+#if NR_MAX_CHANS > 1
+uint8_t cos_cid;
+#else
+#define cos_cid			COS_DEF_CID
+#endif
 
 struct cos_sae {
 	uint8_t dummy;
@@ -285,6 +275,14 @@ struct cos_secu {
 
 };
 
+#ifdef CONFIG_ICC_COS
+void icc_cos_seq_complete(scs_err_t err);
+void icc_cos_set_state(uint8_t state);
+#else
+#define icc_cos_set_state(state)
+#define icc_cos_seq_complete(err)
+#endif
+
 scs_err_t cos_power_on(void);
 scs_err_t cos_power_off(void);
 
@@ -299,5 +297,9 @@ void cos_write_resp(uint8_t byte);
 scs_err_t cos_get_error(void);
 void cos_set_error(scs_err_t err);
 void cos_register_handlers(scs_cmpl_cb compl);
+
+void cos_cid_restore(uint8_t cid);
+#define cos_cid_select(cid)		cos_cid_restore(cid)
+uint8_t cos_cid_save(uint8_t cid);
 
 #endif /* __COS_H_INCLUDE__ */
