@@ -68,28 +68,6 @@ static void hid_set_report(void);
 #define HID_STRING_INTERFACE		HID_STRING_FIRST+0
 #define HID_STRING_LAST			HID_STRING_INTERFACE
 
-usb_endp_desc_t hid_endpoints[NR_HID_ENDPS] = {
-	{
-		USB_DT_ENDPOINT_SIZE,
-		USB_DT_ENDPOINT,
-		USB_DIR2ADDR(USB_DIR_IN) | 0,	/* !bEndpointAddress */
-		USB_ENDP_INTERRUPT,		/* bmAttributes */
-		0,				/* !wMaxPacketSize */
-		HID_ENDP_INTERVAL,
-	},
-#if NR_HID_ENDPS > 1
-	/* optional */
-	{
-		USB_DT_ENDPOINT_SIZE,
-		USB_DT_ENDPOINT,
-		USB_DIR2ADDR(USB_DIR_OUT) | 0,	/* !bEndpointAddress */
-		USB_ENDP_INTERRUPT,		/* bmAttributes */
-		0,				/* !wMaxPacketSize */
-		HID_ENDP_INTERVAL,
-	},
-#endif
-};
-
 uint8_t hid_nr_reports = 0;
 uint8_t hid_addr[NR_HID_ENDPS];
 struct hid_report_ctrl hid_rept_ctrls[NR_HID_REPORTS];
@@ -252,19 +230,13 @@ static void hid_get_intfc_desc(void)
 
 static void hid_get_config_desc(void)
 {
-	hid_rid_t i;
-
 	hid_get_intfc_desc();
 	hid_get_hid_desc();
 
-	for (i = 0; i < NR_HID_ENDPS; i++) {
-		USBD_INB(hid_endpoints[i].bLength);
-		USBD_INB(hid_endpoints[i].bDescriptorType);
-		USBD_INB(hid_endpoints[i].bEndpointAddress | hid_addr[i]);
-		USBD_INB(hid_endpoints[i].bmAttributes);
-		USBD_INW(usbd_endpoint_size_addr(hid_addr[i]));
-		USBD_INB(hid_endpoints[i].bInterval);
-	}
+	usbd_get_endpoint_desc(HID_ADDR_IN);
+#if NR_HID_ENDPS > 1
+	usbd_get_endpoint_desc(HID_ADDR_OUT);
+#endif
 }
 
 static void hid_get_string_desc(void)
@@ -641,24 +613,10 @@ void hid_input_submit(void)
 	}
 }
 
-static void hid_handle_endp_poll(void)
+static void hid_handle_in_poll(void)
 {
-	if (usbd_saved_addr() == HID_ADDR_IN) {
-		hid_input_poll();
-		hid_input_submit();
-	}
-	if (usbd_saved_addr() == HID_ADDR_OUT) {
-		/* allow next out transfer */
-		usbd_request_submit(HID_ADDR_OUT, hid_output_length());
-	}
-}
-
-static void hid_handle_endp_done(void)
-{
-	if (usbd_saved_addr() == HID_ADDR_IN) {
-		hid_input_discard();
-	}
-	/* nothing to do for OUT status stage */
+	hid_input_poll();
+	hid_input_submit();
 }
 
 static void hid_handle_in_data(void)
@@ -669,6 +627,26 @@ static void hid_handle_in_data(void)
 	}
 }
 
+usbd_endpoint_t hid_endpoint_in = {
+	USB_DIR2ATTR(USB_DIR_IN) | USB_ENDP_INTERRUPT,
+	HID_ENDP_INTERVAL,
+	hid_handle_in_poll,
+	hid_handle_in_data,
+	hid_input_discard,
+};
+
+#if NR_HID_ENDPS > 1
+static void hid_handle_out_poll(void)
+{
+	/* allow next out transfer */
+	usbd_request_submit(HID_ADDR_OUT, hid_output_length());
+}
+
+static void hid_handle_out_done(void)
+{
+	/* nothing to do for OUT status stage */
+}
+
 static void hid_handle_out_data(void)
 {
 	hid_rid_t rid;
@@ -677,18 +655,28 @@ static void hid_handle_out_data(void)
 	}
 }
 
-static void hid_handle_endp_iocb(void)
-{
-	if (usbd_saved_addr() == HID_ADDR_IN) {
-		hid_handle_in_data();
-		return;
-	}
-	if (usbd_saved_addr() == HID_ADDR_OUT) {
-		hid_handle_out_data();
-		return;
-	}
-	BUG();
-}
+usbd_endpoint_t hid_endpoint_out = {
+	USB_DIR2ATTR(USB_DIR_OUT) | USB_ENDP_INTERRUPT,
+	HID_ENDP_INTERVAL,
+	hid_handle_out_poll,
+	hid_handle_out_data,
+	hid_handle_out_done,
+};
+
+#define hid_out_init()								\
+	do {									\
+		HID_ADDR_OUT = usbd_claim_endpoint(true, &hid_endpoint_out);	\
+	} while (0)
+#else
+#define hid_out_init()
+#endif
+
+usbd_interface_t usb_hid_interface = {
+	HID_STRING_FIRST,
+	HID_STRING_LAST,
+	hid_handle_ctrl_data,
+	hid_config_length,
+};
 
 static void hid_start(void)
 {
@@ -698,31 +686,11 @@ static void hid_start(void)
 		hid_raise_interrupt(rid);
 }
 
-usbd_endpoint_t usb_hid_endpoint = {
-	hid_handle_endp_poll,
-	hid_handle_endp_iocb,
-	hid_handle_endp_done,
-};
-
-usbd_interface_t usb_hid_interface = {
-	HID_STRING_FIRST,
-	HID_STRING_LAST,
-	hid_handle_ctrl_data,
-	hid_config_length,
-};
-
 void hid_init(void)
 {
-	uint8_t i;
-
 	usbd_declare_interface(50, &usb_hid_interface);
-	for (i = 0; i < NR_HID_ENDPS; i++) {
-		hid_addr[i] = usbd_claim_endpoint(hid_endpoints[i].bmAttributes,
-						  USB_ADDR2DIR(hid_endpoints[i].bEndpointAddress),
-						  hid_endpoints[i].bInterval,
-						  true,
-						  &usb_hid_endpoint);
-	}
+	HID_ADDR_IN = usbd_claim_endpoint(true, &hid_endpoint_in);
+	hid_out_init();
 	hid_kbd_init();
 	hid_start();
 }

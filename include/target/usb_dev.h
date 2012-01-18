@@ -162,15 +162,14 @@ struct usbd_endp_ctrl {
 #define USBD_ENDP_FLAG_HALT		0x04
 
 	uint8_t tick;
-
-	uint8_t attrs;
-#define USB_ATTR2DIR(attrs)		USB_ADDR2DIR(attrs)
-#define USB_DIR2ATTR(dir)		USB_DIR2ADDR(dir)
-#define USB_ATTR2TYPE(attrs)		((attrs) & USB_ENDP_TYPE_MASK)
-	uint8_t interval;
 };
 
 struct usbd_endpoint {
+	uint8_t attrs;
+#define USB_ATTR2DIR(attrs)		USB_ADDR2DIR(attrs)
+#define USB_ATTR2TYPE(attrs)		((attrs) & USB_ENDP_TYPE_MASK)
+#define USB_DIR2ATTR(dir)		USB_DIR2ADDR(dir)
+	uint16_t interval;
 	usb_io_cb poll;
 	usb_io_cb iocb;
 	usb_io_cb done;
@@ -211,6 +210,9 @@ void usbd_transfer_rxout(void);
 void usbd_config_reset(void);
 void usbd_config_apply(void);
 
+uint8_t usbd_endpoint_attrs(void);
+uint8_t usbd_endpoint_interval(void);
+
 /*=========================================================================
  * USB device
  *=======================================================================*/
@@ -248,8 +250,7 @@ void usbd_endpoint_reset_addr(uint8_t addr);
 void usbd_endpoint_halt_addr(uint8_t addr);
 void usbd_endpoint_unhalt_addr(uint8_t addr);
 
-uint8_t usbd_claim_endpoint(uint8_t type, uint8_t dir,
-			    uint8_t interval, boolean explicit_zlp,
+uint8_t usbd_claim_endpoint(boolean explicit_zlp,
 			    usbd_endpoint_t *cendp);
 boolean usbd_endpoint_claimed(uint8_t addr);
 
@@ -404,6 +405,8 @@ boolean usbd_request_syncing(void);
 #define usbd_request_set_sync()
 #define usbd_request_clear_sync()
 #endif
+
+void usbd_get_endpoint_desc(uint8_t addr);
 
 void usb_input_string(text_char_t *string);
 void usb_input_device(void);

@@ -48,27 +48,6 @@ struct msd_cbw msd_cbw;
 struct msd_csw msd_csw;
 uint8_t msd_state;
 
-usb_endp_desc_t msd_endpoints[NR_MSD_ENDPS] = {
-	/* .MSD_BBB_ENDP_IN */
-	{
-		USB_DT_ENDPOINT_SIZE,
-		USB_DT_ENDPOINT,
-		USB_DIR2ADDR(USB_DIR_IN) | 0,	/* !bEndpointAddress */
-		USB_ENDP_BULK,			/* bmAttributes */
-		0,				/* !wMaxPacketSize */
-		MSD_ENDP_INTERVAL,
-	},
-	/* .MSD_BBB_ENDP_OUT */
-	{
-		USB_DT_ENDPOINT_SIZE,
-		USB_DT_ENDPOINT,
-		USB_DIR2ADDR(USB_DIR_OUT) | 0,	/* !bEndpointAddress */
-		USB_ENDP_BULK,			/* bmAttributes */
-		0,				/* !wMaxPacketSize */
-		MSD_ENDP_INTERVAL,
-	},
-};
-
 static void msd_proto_submit_out(void);
 static void msd_proto_submit_in(void);
 
@@ -266,36 +245,6 @@ static void msd_proto_complete_in(void)
 	}
 }
 
-void msd_proto_poll(void)
-{
-	if (usbd_saved_addr() == MSD_ADDR_OUT) {
-		msd_proto_submit_out();
-	}
-	if (usbd_saved_addr() == MSD_ADDR_IN) {
-		msd_proto_submit_in();
-	}
-}
-
-void msd_proto_iocb(void)
-{
-	if (usbd_saved_addr() == MSD_ADDR_OUT) {
-		msd_proto_handle_out();
-	}
-	if (usbd_saved_addr() == MSD_ADDR_IN) {
-		msd_proto_handle_in();
-	}
-}
-
-void msd_proto_done(void)
-{
-	if (usbd_saved_addr() == MSD_ADDR_OUT) {
-		msd_proto_complete_out();
-	}
-	if (usbd_saved_addr() == MSD_ADDR_IN) {
-		msd_proto_complete_in();
-	}
-}
-
 void msd_proto_ctrl(void)
 {
 	uint8_t req = usbd_control_request_type();
@@ -328,6 +277,24 @@ void msd_proto_start(void)
 	msd_proto_set_state(MSD_BBB_STATE_CBW);
 }
 
+usbd_endpoint_t msd_endpoint_in = {
+	USB_DIR2ATTR(USB_DIR_IN) | USB_ENDP_BULK,
+	MSD_ENDP_INTERVAL,
+	msd_proto_submit_in,
+	msd_proto_handle_in,
+	msd_proto_complete_in,
+};
+
+usbd_endpoint_t msd_endpoint_out = {
+	USB_DIR2ATTR(USB_DIR_OUT) | USB_ENDP_BULK,
+	MSD_ENDP_INTERVAL,
+	msd_proto_submit_out,
+	msd_proto_handle_out,
+	msd_proto_complete_out,
+};
+
 void msd_proto_init(void)
 {
+	MSD_ADDR_IN = usbd_claim_endpoint(false, &msd_endpoint_in);
+	MSD_ADDR_OUT = usbd_claim_endpoint(false, &msd_endpoint_out);
 }

@@ -104,9 +104,6 @@ typedef void (*msd_cmpl_cb)(boolean result);
 #endif
 
 void msd_proto_ctrl(void);
-void msd_proto_poll(void);
-void msd_proto_iocb(void);
-void msd_proto_done(void);
 void msd_proto_init(void);
 void msd_proto_start(void);
 void msd_proto_reset(void);
@@ -134,7 +131,6 @@ uint8_t msd_class_max_luns(void);
 uint32_t msd_class_get_expect(void);
 boolean msd_class_get_status(void);
 
-extern usb_endp_desc_t msd_endpoints[NR_MSD_ENDPS];
 extern uint8_t msd_addr[NR_MSD_ENDPS];
 
 #endif /* __USB_MSD_H_INCLUDE__ */

@@ -67,12 +67,7 @@ static void msd_get_config_desc(void)
 	msd_get_intfc_desc();
 
 	for (i = 0; i < NR_MSD_ENDPS; i++) {
-		USBD_INB(msd_endpoints[i].bLength);
-		USBD_INB(msd_endpoints[i].bDescriptorType);
-		USBD_INB((uint8_t)(msd_endpoints[i].bEndpointAddress | msd_addr[i]));
-		USBD_INB(msd_endpoints[i].bmAttributes);
-		USBD_INW(usbd_endpoint_size_addr(msd_addr[i]));
-		USBD_INB(msd_endpoints[i].bInterval);
+		usbd_get_endpoint_desc(msd_addr[i]);
 	}
 }
 
@@ -181,12 +176,6 @@ boolean msd_proto_bulk_idle(void)
 	return true;
 }
 
-usbd_endpoint_t usb_msd_endpoint = {
-	msd_proto_poll,
-	msd_proto_iocb,
-	msd_proto_done,
-};
-
 #ifdef CONFIG_USB_USBIP_DEV
 uint8_t msd_handle_intf_attr(uint8_t type)
 {
@@ -222,17 +211,7 @@ void msd_start(void)
 
 void msd_init(void)
 {
-	uint8_t i;
-
 	usbd_declare_interface(50, &usb_msd_interface);
-
-	for (i = 0; i < NR_MSD_ENDPS; i++) {
-		msd_addr[i] = usbd_claim_endpoint(msd_endpoints[i].bmAttributes,
-						  USB_ADDR2DIR(msd_endpoints[i].bEndpointAddress),
-						  msd_endpoints[i].bInterval,
-						  false,
-						  &usb_msd_endpoint);
-	}
 
 	msd_proto_init();
 	msd_class_init();

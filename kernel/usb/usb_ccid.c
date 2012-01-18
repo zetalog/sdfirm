@@ -199,57 +199,6 @@ __near__ ccid_qid_t ccid_qid = INVALID_CCID_QID;
 #define CCID_STRING_INTERFACE	CCID_STRING_FIRST+0
 #define CCID_STRING_LAST	CCID_STRING_INTERFACE
 
-usb_endp_desc_t ccid_endpoints[NR_CCID_ENDPS] = {
-	/* XXX: CCID Endpoints Ordering
-	 *
-	 * IN endpoint should always be handled prior to OUT endpoint.
-	 *
-	 * Consider an exchange flow as follows:
-	 * OUT -> PC2RDR -> ISO7816 -> RDR2PC -> IN
-	 * Finally, txcmpl interrupt on IN may raise.
-	 * Unfortunately, rxaval on OUT may also raise meanwhile, be
-	 * aware of that host is running faster than the device.
-	 * If CCID_ADDR_OUT < CCID_ADDR_IN, the rxaval will be handled
-	 * first as USB layer will traverse endpoint event queue from
-	 * lower EID to higher EID.
-	 * Result is that we will return SLOT_BUSY to the second request!
-	 * If host hasn't any retry mechanisms, it fails on this command.
-	 *
-	 * A reasonable solution to solve this is to add priority support
-	 * for endpoints in USB layer, as this will add size overhead to
-	 * the firmware, we do not implement in this way.  Just keep it in
-	 * mind that endpoints have natural priority that ordered by their
-	 * EID.  So we make IN endpoint registered before OUT endpoint's
-	 * registration like follows.
-	 */
-	{
-		USB_DT_ENDPOINT_SIZE,
-		USB_DT_ENDPOINT,
-		USB_DIR2ADDR(USB_DIR_IN) | 0,	/* !bEndpointAddress */
-		USB_ENDP_BULK,			/* bmAttributes */
-		0,				/* !wMaxPacketSize */
-		CCID_ENDP_INTERVAL_IN,
-	},
-	{
-		USB_DT_ENDPOINT_SIZE,
-		USB_DT_ENDPOINT,
-		USB_DIR2ADDR(USB_DIR_OUT) | 0,	/* !bEndpointAddress */
-		USB_ENDP_BULK,			/* bmAttributes */
-		0,				/* !wMaxPacketSize */
-		CCID_ENDP_INTERVAL_OUT,
-	},
-#if NR_CCID_ENDPS > 2
-	{
-		USB_DT_ENDPOINT_SIZE,
-		USB_DT_ENDPOINT,
-		USB_DIR2ADDR(USB_DIR_IN) | 0,	/* !bEndpointAddress */
-		USB_ENDP_INTERRUPT,		/* bmAttributes */
-		0,				/* !wMaxPacketSize */
-		CCID_ENDP_INTERVAL_INTR,
-	},
-#endif
-};
-
 /*=========================================================================
  * ISO7816 translator
  *=======================================================================*/
@@ -592,210 +541,6 @@ static void ccid_submit_command(void)
 	if (ccid_slots[CCID_QID_OUT].state == SCD_SLOT_STATE_PC2RDR) {
 		usbd_request_submit(CCID_ADDR_OUT, SCD_HEADER_SIZE);
 	}
-}
-
-/*=========================================================================
- * control data
- *=======================================================================*/
-static uint16_t ccid_config_length(void)
-{
-	uint8_t i;
-	uint16_t length;
-	
-	length = USB_DT_INTERFACE_SIZE;
-	length += SCD_DT_SCD_SIZE;
-	for (i = 0; i < NR_CCID_ENDPS; i++) {
-		length += USB_DT_ENDPOINT_SIZE;
-	}
-	return length;
-}
-
-static void ccid_get_ccid_desc(void)
-{
-	USBD_INB(SCD_DT_SCD_SIZE);
-	USBD_INB(SCD_DT_SCD);
-	USBD_INW(CCID_VERSION_DEFAULT);
-	USBD_INB(NR_IFD_SLOTS-1);
-	USBD_INB(SCD_VOLTAGE_ALL);
-	USBD_INL(ccid_proto_features());
-	USBD_INL((uint32_t)(IFD_HW_FREQ_DEF));
-	USBD_INL((uint32_t)(IFD_HW_FREQ_MAX));
-	USBD_INB(ifd_cf_nr_freq());
-	USBD_INL((uint32_t)(IFD_HW_DATA_DEF));
-	USBD_INL((uint32_t)(IFD_HW_DATA_MAX));
-	USBD_INB(ifd_cf_nr_data());
-	USBD_INL(IFD_T1_MAX_IFSD);
-	USBD_INL(SCD_SYNCH_PROTO_NONE);
-	USBD_INL(SCD_MECHA_NONE);
-	USBD_INL(ccid_device_features());
-	USBD_INL(CCID_MESSAGE_SIZE);
-	USBD_INB(SCD_MUTE_APDU_CLASS);
-	USBD_INB(SCD_MUTE_APDU_CLASS);
-	USBD_INW(CCID_SPE_LCD_LAYOUT);
-	USBD_INB(CCID_SPE_SUPPORT_FUNC);
-	USBD_INB(NR_CCID_QUEUES);
-}
-
-static void ccid_get_intfc_desc(void)
-{
-	/* IN interface descriptor */
-	USBD_INB(NR_CCID_ENDPS);
-	USBD_INB(USB_INTERFACE_CLASS_CCID);
-	USBD_INB(USB_DEVICE_SUBCLASS_NONE);
-	USBD_INB(USB_INTERFACE_PROTOCOL_CCID);
-	USBD_INB(CCID_STRING_INTERFACE);
-}
-
-static void ccid_get_config_desc(void)
-{
-	uint8_t i;
-
-	ccid_get_intfc_desc();
-	ccid_get_ccid_desc();
-
-	for (i = 0; i < NR_CCID_ENDPS; i++) {
-		USBD_INB(ccid_endpoints[i].bLength);
-		USBD_INB(ccid_endpoints[i].bDescriptorType);
-		USBD_INB(ccid_endpoints[i].bEndpointAddress | ccid_addr[i]);
-		USBD_INB(ccid_endpoints[i].bmAttributes);
-		USBD_INW(usbd_endpoint_size_addr(ccid_addr[i]));
-		USBD_INB(ccid_endpoints[i].bInterval);
-	}
-}
-
-static void ccid_get_string_desc(void)
-{
-	uint8_t id = LOBYTE(usbd_control_request_value());
-
-	switch (id) {
-	case CCID_STRING_INTERFACE:
-		usb_input_device();
-		break;
-	default:
-		USBD_INB(0x00);
-		break;
-	}
-}
-
-static void ccid_get_descriptor(void)
-{
-	uint8_t desc;
-	
-	desc = HIBYTE(usbd_control_request_value());
-
-	switch (desc) {
-	case USB_DT_CONFIG:
-		ccid_get_config_desc();
-		break;
-	case USB_DT_STRING:
-		ccid_get_string_desc();
-		break;
-	default:
-		usbd_endpoint_halt();
-		break;
-	}
-}
-
-#define ccid_set_descriptor()		usbd_endpoint_halt()
-
-static void ccid_abort(void)
-{
-	uint8_t bSlot = LOBYTE(usbd_control_request_value());
-	uint8_t bSeq = HIBYTE(usbd_control_request_value());
-
-	if (bSlot < NR_IFD_SLOTS) {
-		ccid_slot_abort(CCID_ABORT_CTRL, bSlot, bSeq);
-	} else {
-		usbd_endpoint_halt();
-	}
-}
-
-static void ccid_get_clock_freqs(void)
-{
-	uint8_t c;
-	for (c = 0; c < ifd_cf_nr_freq(); c++) {
-		USBD_INL(ifd_cf_get_freq(c));
-	}
-}
-
-static void ccid_get_data_rates(void)
-{
-	uint8_t c, d, f;
-	uint32_t rate;
-
-	for (c = 0; c < ifd_cf_nr_freq(); c++) {
-		for (d = 0; d < NR_IFD_DIS; d++) {
-			for (f = 0; f < NR_IFD_FIS; f++) {
-				rate = ifd_cf_get_data(ifd_cf_get_freq(c), d, f);
-				if (rate)
-					USBD_INL(rate);
-			}
-		}
-	}
-}
-
-static void ccid_handle_standard_request(void)
-{
-	uint8_t req = usbd_control_request_type();
-
-	switch (req) {
-	case USB_REQ_GET_DESCRIPTOR:
-		ccid_get_descriptor();
-		break;
-	case USB_REQ_SET_DESCRIPTOR:
-		ccid_set_descriptor();
-		break;
-	default:
-		usbd_endpoint_halt();
-	}
-}
-
-static void ccid_handle_class_request(void)
-{
-	uint8_t req = usbd_control_request_type();
-
-	scd_debug(SCD_DEBUG_CS_REQ, req);
-
-	switch (req) {
-	case CCID_REQ_ABORT:
-		ccid_abort();
-		break;
-	case CCID_REQ_GET_CLOCK_FREQS:
-		ccid_get_clock_freqs();
-		break;
-	case CCID_REQ_GET_DATA_RATES:
-		ccid_get_data_rates();
-		break;
-	default:
-		usbd_endpoint_halt();
-	}
-}
-
-static void ccid_handle_ctrl_data(void)
-{
-	uint8_t type = usbd_control_setup_type();
-	uint8_t recp = usbd_control_setup_recp();
-
-	switch (recp) {
-	case USB_RECP_DEVICE:
-		switch (type) {
-		case USB_TYPE_STANDARD:
-			ccid_handle_standard_request();
-			return;
-		}
-		break;
-	case USB_RECP_INTERFACE:
-		switch (type) {
-		case USB_TYPE_STANDARD:
-			ccid_handle_standard_request();
-			return;
-		case USB_TYPE_CLASS:
-			ccid_handle_class_request();
-			return;
-		}
-		break;
-	}
-	usbd_endpoint_halt();
 }
 
 /*=========================================================================
@@ -1831,6 +1576,8 @@ void ccid_spe_init(void)
  * interrupt data
  *=======================================================================*/
 #ifdef CONFIG_SCD_INTERRUPT
+static void ccid_change_init(void);
+
 /*=========================================================================
  * slot changes
  *=======================================================================*/
@@ -1977,10 +1724,6 @@ static void ccid_change_raise(void)
 static uint16_t ccid_change_length(void)
 {
 	return 1 + div16u(ALIGN(NR_IFD_SLOTS, 4), 4);
-}
-
-static void ccid_change_init(void)
-{
 }
 
 /*=========================================================================
@@ -2143,10 +1886,18 @@ static void ccid_intr_init(void)
 #define ccid_interrupt_running()	ccid_change_running()
 #define ccid_running_length()		ccid_change_length()
 #define ccid_pending_length()		ccid_change_length()
-#define ccid_discard_interrupt()	ccid_change_discard()
 #define __ccid_submit_interrupt()	ccid_change_submit()
-#define ccid_handle_interrupt()		ccid_change_data()
 #define ccid_intr_init()		ccid_change_init()
+
+void ccid_discard_interrupt(void)
+{
+	ccid_change_discard();
+}
+
+void ccid_handle_interrupt(void)
+{
+	ccid_change_data();
+}
 #endif
 
 /*=========================================================================
@@ -2178,11 +1929,30 @@ static void ccid_intr_start(void)
 		ccid_qid_restore(ssid);
 	}
 }
+
+usbd_endpoint_t ccid_endpoint_irq = {
+	USB_DIR2ATTR(USB_DIR_IN) | USB_ENDP_INTERRUPT,
+	CCID_ENDP_INTERVAL_INTR,
+	ccid_submit_interrupt,
+	ccid_handle_interrupt,
+	ccid_discard_interrupt,
+};
+
+static void ccid_intr_desc(void)
+{
+	usbd_get_endpoint_desc(CCID_ADDR_IRQ);
+}
+
+static void ccid_change_init(void)
+{
+	CCID_ADDR_IRQ = usbd_claim_endpoint(true, &ccid_endpoint_irq);
+}
 #else
 static void ccid_handle_iso7816_intr(void)
 {
 }
 
+#define ccid_intr_desc()
 #define ccid_intr_start()
 #define ccid_intr_init()
 #endif
@@ -2190,54 +1960,6 @@ static void ccid_handle_iso7816_intr(void)
 /*=========================================================================
  * CCID entrances
  *=======================================================================*/
-static void ccid_handle_endp_iocb(void)
-{
-	if (usbd_saved_addr() == CCID_ADDR_OUT) {
-		ccid_handle_command();
-		return;
-	}
-	if (usbd_saved_addr() == CCID_ADDR_IN) {
-		ccid_handle_response();
-		return;
-	}
-#ifdef CONFIG_SCD_INTERRUPT
-	if (usbd_saved_addr() == CCID_ADDR_IRQ) {
-		ccid_handle_interrupt();
-		return;
-	}
-#endif
-}
-
-static void ccid_handle_endp_done(void)
-{
-	if (usbd_saved_addr() == CCID_ADDR_OUT) {
-		ccid_complete_command();
-	}
-	if (usbd_saved_addr() == CCID_ADDR_IN) {
-		ccid_complete_response();
-	}
-#ifdef CONFIG_SCD_INTERRUPT
-	if (usbd_saved_addr() == CCID_ADDR_IRQ) {
-		ccid_discard_interrupt();
-	}
-#endif
-}
-
-static void ccid_handle_endp_poll(void)
-{
-	if (usbd_saved_addr() == CCID_ADDR_OUT) {
-		ccid_submit_command();
-	}
-	if (usbd_saved_addr() == CCID_ADDR_IN) {
-		ccid_submit_response();
-	}
-#ifdef CONFIG_SCD_INTERRUPT
-	if (usbd_saved_addr() == CCID_ADDR_IRQ) {
-		ccid_submit_interrupt();
-	}
-#endif
-}
-
 static void ccid_handle_iso7816_cmpl(void)
 {
 	scs_err_t err;
@@ -2276,6 +1998,203 @@ static void ccid_handle_iso7816_cmpl(void)
 		BUG();
 		break;
 	}
+}
+
+/*=========================================================================
+ * control data
+ *=======================================================================*/
+static uint16_t ccid_config_length(void)
+{
+	uint8_t i;
+	uint16_t length;
+	
+	length = USB_DT_INTERFACE_SIZE;
+	length += SCD_DT_SCD_SIZE;
+	for (i = 0; i < NR_CCID_ENDPS; i++) {
+		length += USB_DT_ENDPOINT_SIZE;
+	}
+	return length;
+}
+
+static void ccid_get_ccid_desc(void)
+{
+	USBD_INB(SCD_DT_SCD_SIZE);
+	USBD_INB(SCD_DT_SCD);
+	USBD_INW(CCID_VERSION_DEFAULT);
+	USBD_INB(NR_IFD_SLOTS-1);
+	USBD_INB(SCD_VOLTAGE_ALL);
+	USBD_INL(ccid_proto_features());
+	USBD_INL((uint32_t)(IFD_HW_FREQ_DEF));
+	USBD_INL((uint32_t)(IFD_HW_FREQ_MAX));
+	USBD_INB(ifd_cf_nr_freq());
+	USBD_INL((uint32_t)(IFD_HW_DATA_DEF));
+	USBD_INL((uint32_t)(IFD_HW_DATA_MAX));
+	USBD_INB(ifd_cf_nr_data());
+	USBD_INL(IFD_T1_MAX_IFSD);
+	USBD_INL(SCD_SYNCH_PROTO_NONE);
+	USBD_INL(SCD_MECHA_NONE);
+	USBD_INL(ccid_device_features());
+	USBD_INL(CCID_MESSAGE_SIZE);
+	USBD_INB(SCD_MUTE_APDU_CLASS);
+	USBD_INB(SCD_MUTE_APDU_CLASS);
+	USBD_INW(CCID_SPE_LCD_LAYOUT);
+	USBD_INB(CCID_SPE_SUPPORT_FUNC);
+	USBD_INB(NR_CCID_QUEUES);
+}
+
+static void ccid_get_intfc_desc(void)
+{
+	/* IN interface descriptor */
+	USBD_INB(NR_CCID_ENDPS);
+	USBD_INB(USB_INTERFACE_CLASS_CCID);
+	USBD_INB(USB_DEVICE_SUBCLASS_NONE);
+	USBD_INB(USB_INTERFACE_PROTOCOL_CCID);
+	USBD_INB(CCID_STRING_INTERFACE);
+}
+
+static void ccid_get_config_desc(void)
+{
+	ccid_get_intfc_desc();
+	ccid_get_ccid_desc();
+
+	usbd_get_endpoint_desc(CCID_ADDR_IN);
+	usbd_get_endpoint_desc(CCID_ADDR_OUT);
+	ccid_intr_desc();
+}
+
+static void ccid_get_string_desc(void)
+{
+	uint8_t id = LOBYTE(usbd_control_request_value());
+
+	switch (id) {
+	case CCID_STRING_INTERFACE:
+		usb_input_device();
+		break;
+	default:
+		USBD_INB(0x00);
+		break;
+	}
+}
+
+static void ccid_get_descriptor(void)
+{
+	uint8_t desc;
+	
+	desc = HIBYTE(usbd_control_request_value());
+
+	switch (desc) {
+	case USB_DT_CONFIG:
+		ccid_get_config_desc();
+		break;
+	case USB_DT_STRING:
+		ccid_get_string_desc();
+		break;
+	default:
+		usbd_endpoint_halt();
+		break;
+	}
+}
+
+#define ccid_set_descriptor()		usbd_endpoint_halt()
+
+static void ccid_abort(void)
+{
+	uint8_t bSlot = LOBYTE(usbd_control_request_value());
+	uint8_t bSeq = HIBYTE(usbd_control_request_value());
+
+	if (bSlot < NR_IFD_SLOTS) {
+		ccid_slot_abort(CCID_ABORT_CTRL, bSlot, bSeq);
+	} else {
+		usbd_endpoint_halt();
+	}
+}
+
+static void ccid_get_clock_freqs(void)
+{
+	uint8_t c;
+	for (c = 0; c < ifd_cf_nr_freq(); c++) {
+		USBD_INL(ifd_cf_get_freq(c));
+	}
+}
+
+static void ccid_get_data_rates(void)
+{
+	uint8_t c, d, f;
+	uint32_t rate;
+
+	for (c = 0; c < ifd_cf_nr_freq(); c++) {
+		for (d = 0; d < NR_IFD_DIS; d++) {
+			for (f = 0; f < NR_IFD_FIS; f++) {
+				rate = ifd_cf_get_data(ifd_cf_get_freq(c), d, f);
+				if (rate)
+					USBD_INL(rate);
+			}
+		}
+	}
+}
+
+static void ccid_handle_standard_request(void)
+{
+	uint8_t req = usbd_control_request_type();
+
+	switch (req) {
+	case USB_REQ_GET_DESCRIPTOR:
+		ccid_get_descriptor();
+		break;
+	case USB_REQ_SET_DESCRIPTOR:
+		ccid_set_descriptor();
+		break;
+	default:
+		usbd_endpoint_halt();
+	}
+}
+
+static void ccid_handle_class_request(void)
+{
+	uint8_t req = usbd_control_request_type();
+
+	scd_debug(SCD_DEBUG_CS_REQ, req);
+
+	switch (req) {
+	case CCID_REQ_ABORT:
+		ccid_abort();
+		break;
+	case CCID_REQ_GET_CLOCK_FREQS:
+		ccid_get_clock_freqs();
+		break;
+	case CCID_REQ_GET_DATA_RATES:
+		ccid_get_data_rates();
+		break;
+	default:
+		usbd_endpoint_halt();
+	}
+}
+
+static void ccid_handle_ctrl_data(void)
+{
+	uint8_t type = usbd_control_setup_type();
+	uint8_t recp = usbd_control_setup_recp();
+
+	switch (recp) {
+	case USB_RECP_DEVICE:
+		switch (type) {
+		case USB_TYPE_STANDARD:
+			ccid_handle_standard_request();
+			return;
+		}
+		break;
+	case USB_RECP_INTERFACE:
+		switch (type) {
+		case USB_TYPE_STANDARD:
+			ccid_handle_standard_request();
+			return;
+		case USB_TYPE_CLASS:
+			ccid_handle_class_request();
+			return;
+		}
+		break;
+	}
+	usbd_endpoint_halt();
 }
 
 void ccid_start(void)
@@ -2317,10 +2236,20 @@ void ccid_devid_init(void)
 #endif
 }
 
-usbd_endpoint_t usb_ccid_endpoint = {
-	ccid_handle_endp_poll,
-	ccid_handle_endp_iocb,
-	ccid_handle_endp_done,
+usbd_endpoint_t ccid_endpoint_in = {
+	USB_DIR2ATTR(USB_DIR_IN) | USB_ENDP_BULK,
+	CCID_ENDP_INTERVAL_IN,
+	ccid_submit_response,
+	ccid_handle_response,
+	ccid_complete_response,
+};
+
+usbd_endpoint_t ccid_endpoint_out = {
+	USB_DIR2ATTR(USB_DIR_OUT) | USB_ENDP_BULK,
+	CCID_ENDP_INTERVAL_OUT,
+	ccid_submit_command,
+	ccid_handle_command,
+	ccid_complete_command,
 };
 
 usbd_interface_t usb_ccid_interface = {
@@ -2338,7 +2267,6 @@ usbd_interface_t usb_ccid_interface = {
 
 void ccid_init(void)
 {
-	uint8_t i;
 	ccid_qid_t qid;
 
 	ccid_devid_init();
@@ -2349,13 +2277,30 @@ void ccid_init(void)
 	ifd_register_handlers(ccid_handle_iso7816_intr,
 			      ccid_handle_iso7816_cmpl);
 
-	for (i = 0; i < NR_CCID_ENDPS; i++) {
-		ccid_addr[i] = usbd_claim_endpoint(ccid_endpoints[i].bmAttributes,
-						   USB_ADDR2DIR(ccid_endpoints[i].bEndpointAddress),
-						   ccid_endpoints[i].bInterval,
-						   true,
-						   &usb_ccid_endpoint);
-	}
+	/* XXX: CCID Endpoints Ordering
+	 *
+	 * IN endpoint should always be handled prior to OUT endpoint.
+	 *
+	 * Consider an exchange flow as follows:
+	 * OUT -> PC2RDR -> ISO7816 -> RDR2PC -> IN
+	 * Finally, txcmpl interrupt on IN may raise.
+	 * Unfortunately, rxaval on OUT may also raise meanwhile, be
+	 * aware of that host is running faster than the device.
+	 * If CCID_ADDR_OUT < CCID_ADDR_IN, the rxaval will be handled
+	 * first as USB layer will traverse endpoint event queue from
+	 * lower EID to higher EID.
+	 * Result is that we will return SLOT_BUSY to the second request!
+	 * If host hasn't any retry mechanisms, it fails on this command.
+	 *
+	 * A reasonable solution to solve this is to add priority support
+	 * for endpoints in USB layer, as this will add size overhead to
+	 * the firmware, we do not implement in this way.  Just keep it in
+	 * mind that endpoints have natural priority that ordered by their
+	 * EID.  So we make IN endpoint registered before OUT endpoint's
+	 * registration like follows.
+	 */
+	CCID_ADDR_IN = usbd_claim_endpoint(true, &ccid_endpoint_in);
+	CCID_ADDR_OUT = usbd_claim_endpoint(true, &ccid_endpoint_out);
 	for (qid = 0; qid < NR_CCID_QUEUES; qid++) {
 		ccid_slot_reset(qid);
 	}

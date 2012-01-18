@@ -61,8 +61,7 @@ typedef uint8_t	iccd_t;
 
 static void iccd_dev_enter(uint8_t state);
 static void iccd_dev_reset(iccd_t id);
-static void iccd_submit_response(iccd_t id);
-static void iccd_submit_command(iccd_t id);
+static iccd_t iccd_addr2id(uint8_t addr);
 
 static void iccd_handle_cmp(scs_err_t err, boolean block);
 static void __iccd_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size);
@@ -93,38 +92,6 @@ uint8_t iccd_addr[NR_ICCD_CARDS][NR_ICCD_ENDPS];
 #define ICCD_STRING_FIRST	0x10
 #define ICCD_STRING_INTERFACE	ICCD_STRING_FIRST+0
 #define ICCD_STRING_LAST	ICCD_STRING_INTERFACE
-
-/* all interface can use it */
-usb_endp_desc_t iccd_endpoints[NR_ICCD_ENDPS] = {
-#if NR_ICCD_ENDPS > 1
-	{
-		USB_DT_ENDPOINT_SIZE,
-		USB_DT_ENDPOINT,
-		USB_DIR2ADDR(USB_DIR_IN) | 0,	/* !bEndpointAddress */
-		USB_ENDP_BULK,			/* bmAttributes */
-		0,				/* !wMaxPacketSize */
-		ICCD_ENDP_INTERVAL_IN,
-	},
-	{
-		USB_DT_ENDPOINT_SIZE,
-		USB_DT_ENDPOINT,
-		USB_DIR2ADDR(USB_DIR_OUT) | 0,	/* !bEndpointAddress */
-		USB_ENDP_BULK,			/* bmAttributes */
-		0,				/* !wMaxPacketSize */
-		ICCD_ENDP_INTERVAL_OUT,
-	},
-#endif
-#if NR_ICCD_ENDPS == 1 || NR_ICCD_ENDPS == 3
-	{
-		USB_DT_ENDPOINT_SIZE,
-		USB_DT_ENDPOINT,
-		USB_DIR2ADDR(USB_DIR_IN) | 0,	/* !bEndpointAddress */
-		USB_ENDP_INTERRUPT,		/* bmAttributes */
-		0,				/* !wMaxPacketSize */
-		ICCD_ENDP_INTERVAL_INTR,
-	},
-#endif
-};
 
 #ifdef CONFIG_ICCD_COS
 #define __iccd_get_error()		cos_get_error()
@@ -296,8 +263,9 @@ static boolean iccd_is_cmd_status(uint8_t status)
 	return ((iccd_resps[iccd_cid].bStatus & SCD_CMD_STATUS_MASK) == status);
 }
 
-static void iccd_submit_response(iccd_t id)
+static void iccd_submit_response(void)
 {
+	iccd_t id = iccd_addr2id(usbd_saved_addr());
 	iccd_t ocid;
 	if (iccd_devs[id].state == SCD_SLOT_STATE_RDR2PC) {
 		ocid = iccd_cid_save(id);
@@ -307,8 +275,9 @@ static void iccd_submit_response(iccd_t id)
 	}
 }
 
-static void iccd_submit_command(iccd_t id)
+static void iccd_submit_command(void)
 {
+	iccd_t id = iccd_addr2id(usbd_saved_addr());
 	iccd_t ocid;
 	if (iccd_devs[id].state == SCD_SLOT_STATE_PC2RDR) {
 		ocid = iccd_cid_save(id);
@@ -371,24 +340,16 @@ static void iccd_get_intfc_desc(void)
 
 static void iccd_get_config_desc(void)
 {
-	uint8_t i;
-
 	iccd_get_intfc_desc();
 	iccd_get_iccd_desc();
 
-	for (i = 0; i < NR_ICCD_ENDPS; i++) {
-		USBD_INB(iccd_endpoints[i].bLength);
-		USBD_INB(iccd_endpoints[i].bDescriptorType);
-		USBD_INB(iccd_endpoints[i].bEndpointAddress | iccd_addr[iccd_cid][i]);
-		USBD_INB(iccd_endpoints[i].bmAttributes);
-		USBD_INW(usbd_endpoint_size_addr(iccd_addr[iccd_cid][i]));
-		/* XXX: ICCD spec says bulk's interval is 0x00.
-		 * But usbd stack use this value to drive endpoint. */
-		if (iccd_endpoints[i].bmAttributes == USB_ENDP_BULK)
-			USBD_INB(ICCD_ENDP_INTERVAL_NONE);
-		else
-			USBD_INB(iccd_endpoints[i].bInterval);
-	}
+#ifdef CONFIG_SCD_BULK
+	usbd_get_endpoint_desc(ICCD_ADDR_IN);
+	usbd_get_endpoint_desc(ICCD_ADDR_OUT);
+#endif
+#ifdef CONFIG_SCD_INTERRUPT
+	usbd_get_endpoint_desc(ICCD_ADDR_IRQ);
+#endif
 }
 
 static void iccd_get_string_desc(void)
@@ -648,8 +609,9 @@ static void iccd_handle_slot_pc2rdr(void)
 	}
 }
 
-static void iccd_handle_command(iccd_t id)
+static void iccd_handle_command(void)
 {
+	iccd_t id = iccd_addr2id(usbd_saved_addr());
 	iccd_t ocid;
 
 	ocid = iccd_cid_save(id);
@@ -723,8 +685,9 @@ void iccd_DataBlock_in(void)
 	       iccd_resps[iccd_cid].dwLength + SCD_HEADER_SIZE);
 }
 
-static void iccd_handle_response(iccd_t id)
+static void iccd_handle_response(void)
 {
+	iccd_t id = iccd_addr2id(usbd_saved_addr());
 	iccd_t ocid;
 
 	ocid = iccd_cid_save(id);
@@ -736,7 +699,6 @@ static void iccd_handle_response(iccd_t id)
 		iccd_SlotStatus_in();
 		goto out;
 	}
-
 
 	BUG_ON(iccd_cmds[iccd_cid].bSlot != ICCD_SINGLE_SLOT_IDX);
 
@@ -757,8 +719,9 @@ out:
 	iccd_cid_restore(ocid);
 }
 
-static void iccd_complete_response(iccd_t id)
+static void iccd_complete_response(void)
 {
+	iccd_t id = iccd_addr2id(usbd_saved_addr());
 	iccd_t ocid = iccd_cid_save(id);
 	iccd_dev_enter(SCD_SLOT_STATE_PC2RDR);
 	iccd_cid_restore(ocid);
@@ -872,8 +835,9 @@ static void iccd_complete_slot_pc2rdr(void)
 	}
 }
 
-static void iccd_complete_command(iccd_t id)
+static void iccd_complete_command(void)
 {
+	iccd_t id = iccd_addr2id(usbd_saved_addr());
 	iccd_t ocid;
 	ocid = iccd_cid_save(id);
 
@@ -939,8 +903,9 @@ static void iccd_change_data(void)
 	}
 }
 
-static void iccd_change_discard(iccd_t id)
+static void iccd_change_discard(void)
 {
+	iccd_t id = iccd_addr2id(usbd_saved_addr());
 	if (__iccd_change_running(id)) {
 		clear_bit(ICCD_INTR_CHANGE(id), iccd_running_intrs);
 		scd_debug(SCD_DEBUG_INTR, ICCD_INTR_RUNNING_UNSET);
@@ -999,9 +964,17 @@ static void iccd_change_init(void)
 {
 }
 
-#define iccd_handle_interrupt()		iccd_change_data()
+void iccd_handle_interrupt(void)
+{
+	iccd_change_data();
+}
+
+void iccd_complete_interrupt(void)
+{
+	iccd_change_discard();
+}
+
 #define iccd_intr_init()		iccd_change_init()
-#define iccd_complete_interrupt(id)	iccd_change_discard(id)
 
 /*=========================================================================
  * generic interupts
@@ -1060,60 +1033,6 @@ static iccd_t iccd_addr2id(uint8_t addr)
 /*=========================================================================
  * ICCD entrances
  *=======================================================================*/
-static void iccd_handle_endp_done(void)
-{
-	iccd_t id = iccd_addr2id(usbd_saved_addr());
-
-	if (usbd_saved_addr() == ICCD_ADDR_OUT) {
-		iccd_complete_command(id);
-	}
-	if (usbd_saved_addr() == ICCD_ADDR_IN) {
-		iccd_complete_response(id);
-	}
-#ifdef CONFIG_SCD_INTERRUPT
-	if (usbd_saved_addr() == ICCD_ADDR_IRQ) {
-		iccd_complete_interrupt(id);
-	}
-#endif
-}
-
-static void iccd_handle_endp_iocb(void)
-{
-	iccd_t id = iccd_addr2id(usbd_saved_addr());
-
-	if (usbd_saved_addr() == ICCD_ADDR_OUT) {
-		iccd_handle_command(id);
-		return;
-	}
-	if (usbd_saved_addr() == ICCD_ADDR_IN) {
-		iccd_handle_response(id);
-		return;
-	}
-#ifdef CONFIG_SCD_INTERRUPT
-	if (usbd_saved_addr() == ICCD_ADDR_IRQ) {
-		iccd_handle_interrupt();
-		return;
-	}
-#endif
-}
-
-static void iccd_handle_endp_poll(void)
-{
-	iccd_t id = iccd_addr2id(usbd_saved_addr());
-
-	if (usbd_saved_addr() == ICCD_ADDR_OUT) {
-		iccd_submit_command(id);
-	}
-	if (usbd_saved_addr() == ICCD_ADDR_IN) {
-		iccd_submit_response(id);
-	}
-#ifdef CONFIG_SCD_INTERRUPT
-	if (usbd_saved_addr() == ICCD_ADDR_IRQ) {
-		iccd_submit_interrupt();
-	}
-#endif
-}
-
 /* TODO: how to know the slot number we should answer */
 static void iccd_handle_ll_cmpl(void)
 {
@@ -1143,11 +1062,33 @@ void iccd_devid_init(void)
 {
 }
 
-usbd_endpoint_t usb_iccd_endpoint = {
-	iccd_handle_endp_poll,
-	iccd_handle_endp_iocb,
-	iccd_handle_endp_done,
+#ifdef CONFIG_SCD_BULK
+usbd_endpoint_t iccd_endpoint_out = {
+	USB_DIR2ATTR(USB_DIR_OUT) | USB_ENDP_BULK,
+	ICCD_ENDP_INTERVAL_OUT,
+	iccd_submit_command,
+	iccd_handle_command,
+	iccd_complete_command,
 };
+
+usbd_endpoint_t iccd_endpoint_in = {
+	USB_DIR2ATTR(USB_DIR_IN) | USB_ENDP_BULK,
+	ICCD_ENDP_INTERVAL_IN,
+	iccd_submit_response,
+	iccd_handle_response,
+	iccd_complete_response,
+};
+#endif
+
+#ifdef CONFIG_SCD_INTERRUPT
+usbd_endpoint_t iccd_endpoint_irq = {
+	USB_DIR2ATTR(USB_DIR_IN) | USB_ENDP_INTERRUPT,
+	ICCD_ENDP_INTERVAL_INTR,
+	iccd_submit_interrupt,
+	iccd_handle_interrupt,
+	iccd_complete_interrupt,
+};
+#endif
 
 usbd_interface_t usb_iccd_interface = {
 	ICCD_STRING_FIRST,
@@ -1158,17 +1099,13 @@ usbd_interface_t usb_iccd_interface = {
 
 static void iccd_claim_endp(iccd_t id)
 {
-	uint8_t addr;
-	uint8_t type;
-
-	for (type = 0; type < NR_ICCD_ENDPS; type++) {
-		addr = usbd_claim_endpoint(iccd_endpoints[type].bmAttributes,
-					   USB_ADDR2DIR(iccd_endpoints[type].bEndpointAddress),
-					   iccd_endpoints[type].bInterval,
-					   true,
-					   &usb_iccd_endpoint);
-		iccd_addr[id][type] = addr;
-	}
+#ifdef CONFIG_SCD_BULK
+	iccd_addr[id][ICCD_ENDP_BULK_OUT] = usbd_claim_endpoint(true, &iccd_endpoint_out);
+	iccd_addr[id][ICCD_ENDP_BULK_IN] = usbd_claim_endpoint(true, &iccd_endpoint_in);
+#endif
+#ifdef CONFIG_SCD_INTERRUPT
+	iccd_addr[id][ICCD_ENDP_INTR_IN] = usbd_claim_endpoint(true, &iccd_endpoint_irq);
+#endif
 }
 
 static void iccd_dev_init(void)
