@@ -696,8 +696,8 @@ static scs_err_t cos_scd_err(icc_err_t err)
 uint8_t cos_scd_state(uint8_t state)
 {
 	if (state < COS_STATE_POWERED)
-		return SCD_DEV_STATE_PRESENT;
-	return SCD_DEV_STATE_ACTIVE;
+		return ICC_STATE_PRESENT;
+	return ICC_STATE_ACTIVE;
 }
 
 static scd_t cos_scd_dev(icc_t id)

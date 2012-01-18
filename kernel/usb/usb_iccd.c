@@ -177,9 +177,9 @@ uint8_t iccd_dev_state(uint8_t d)
 
 	switch (state) {
 	default:
-	case SCD_DEV_STATE_HWERROR:
+	case ICC_STATE_HWERROR:
 		return SCD_STATUS_INACTIVE;
-	case SCD_DEV_STATE_NOTPRESENT:
+	case ICC_STATE_NOTPRESENT:
 		return SCD_STATUS_NOTPRESENT;
 	}
 }

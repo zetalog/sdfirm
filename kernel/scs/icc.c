@@ -7,7 +7,7 @@ scs_cmpl_cb scd_complete = NULL;
 #if NR_ICC_CARDS > 1
 icc_driver_t *scd_drivers[NR_ICC_CARDS];
 scd_t scd_nr_devs = 0;
-struct scd_device scd_devices[NR_ICC_CARDS];
+struct icc_card scd_devices[NR_ICC_CARDS];
 
 #define scd_dev_driver			scd_drivers[scd_id]
 #define scd_dev_attrib			scd_devices[scd_id]
@@ -38,7 +38,7 @@ scd_t scd_dev_save(scd_t id)
 	return o_id;
 }
 #else
-struct scd_device scd_dev_attrib;
+struct icc_card scd_dev_attrib;
 icc_driver_t *scd_dev_driver = NULL;
 
 scd_t scd_register_device(icc_driver_t *drv)
@@ -147,6 +147,13 @@ void scd_register_handlers(scs_intr_cb notifier, scs_cmpl_cb completion)
 	scd_complete = completion;
 }
 
+#ifdef CONFIG_ICC_IFD
+void icc_ifd_init(void);
+#else
+#define icc_ifd_init()
+#endif
+
 void icc_init(void)
 {
+	icc_ifd_init();
 }

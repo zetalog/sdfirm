@@ -30,16 +30,16 @@ struct icc_driver {
 };
 __TEXT_TYPE__(struct icc_driver, icc_driver_t);
 
-struct scd_device {
+struct icc_card {
 	uint8_t error;
 	uint8_t state;
 	scs_cmpl_cb cmpl;
 };
 
-#define SCD_DEV_STATE_NOTPRESENT	0x00
-#define SCD_DEV_STATE_PRESENT		0x01
-#define SCD_DEV_STATE_ACTIVE		0x02
-#define SCD_DEV_STATE_HWERROR		0x03
+#define ICC_STATE_NOTPRESENT		0x00
+#define ICC_STATE_PRESENT		0x01
+#define ICC_STATE_ACTIVE		0x02
+#define ICC_STATE_HWERROR		0x03
 
 #if NR_ICC_CARDS > 1
 void scd_dev_restore(scd_t id);

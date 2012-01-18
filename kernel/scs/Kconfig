@@ -17,7 +17,7 @@ menuconfig SCS
 if SCS
 
 menuconfig ICC
-	bool "Smart card chip card device support"
+	bool "Integreted chip card device support"
 
 if ICC
 
@@ -26,21 +26,21 @@ config ICC_MAX_CARDS
 	range 1 8
 	default 1
 
+config ICC_IFD
+	bool "Enable integreted card from ISO7816-3"
+	select IFD
+	select IFD_AUTO_RESET
+	select IFD_XCHG_APDU
+
 endif
 
 menuconfig IFD
-	bool "Smart card interface device (ISO7816-3) support"
+	bool "Contact interface device (ISO7816-3) support"
 	select IFD_T0
 	help
 	  nothing here
 
 if IFD
-
-config IFD_SCD
-	bool "Enable smard card device registration"
-	depends ICC
-	select IFD_AUTO_RESET
-	select IFD_XCHG_APDU
 
 config IFD_MAX_SLOTS
 	int "Number of slots support (1~15)"
@@ -81,7 +81,7 @@ choice
 
 config IFD_XCHG_TPDU
 	bool "TPDU"
-	depends !IFD_SCD
+	depends !ICC_IFD
 	help
 	  This option will use a buffer with 260 bytes to store APDU.
 	  If you enable T=1 support, use TPDU level exchange can save a
@@ -224,7 +224,7 @@ config IFD_AUTO_RESET
 config IFD_AUTO_INFO_XCHG
 	bool "Automatic infomation exchange"
 	select IFD_AUTO_RESET
-	depends !IFD_SCD
+	depends !ICC_IFD
 	help
 	  Automatic parameters configuration based on ATR data.
 	  This will lead to automatic PPS if card is in negotiatable mode.
@@ -238,7 +238,7 @@ choice
 
 config IFD_AUTO_PPS_BASE
 	bool "Active parameters"
-	depends !IFD_SCD
+	depends !ICC_IFD
 #	depends !IFD_XCHG_APDU
 	help
 	  Automatic PPS negotiation made by SCS according to the active
@@ -265,13 +265,13 @@ endif
 
 config IFD_CLOCK_CONTROL
 	bool "Clock control support"
-	depends !IFD_SCD
+	depends !ICC_IFD
 	help
 	  nothing here
 
 config IFD_MECHA_CONTROL
 	bool "Mechanical control support"
-	depends !IFD_SCD
+	depends !ICC_IFD
 	help
 	  nothing here
 

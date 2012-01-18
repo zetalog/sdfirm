@@ -85,8 +85,8 @@
 static uint8_t ifd_seq_get(void);
 static void ifd_seq_set(uint8_t seq); 
 static void ifd_seq_reset(void);
-
 static void ifd_seq_onoff(boolean on);
+
 static void ifd_seq_complete(scs_err_t err);
 static scs_err_t ifd_seq_start(uint8_t seq);
 
@@ -233,14 +233,6 @@ __near__ struct ifd_user ifd_user_ctrl;
 #define __ifd_xchg_write(index, byte)	(ifd_xchg_buff[index] = byte)
 #define __ifd_xchg_read(index)		(ifd_xchg_buff[index])
 
-#ifdef CONFIG_IFD_SCD
-static void ifd_scd_seq_complete(scs_err_t err);
-static void ifd_scd_set_state(uint8_t state);
-#else
-#define ifd_scd_seq_complete(err)
-#define ifd_scd_set_state(state)
-#endif
-
 /*=======================================================================
  * error handlings
  *======================================================================*/
@@ -294,7 +286,7 @@ static void ifd_slot_set_state(uint8_t status)
 	ifd_slot_ctrl.status = status;
 	ifd_handle_slot_seq();
 	if (ifd_notifier) ifd_notifier();
-	ifd_scd_set_state(status);
+	icc_ifd_set_state(status);
 }
 
 uint8_t ifd_slot_get_state(void)
@@ -466,6 +458,23 @@ static scs_err_t ifd_cls_select(void)
 		return IFD_ERR_BAD_CLASS;
 	}
 }
+
+#ifdef CONFIG_ICC_IFD
+scs_err_t icc_ifd_power_on(boolean cmpl)
+{
+	scs_err_t err;
+
+	err = ifd_slot_exist();
+	if (err != SCS_ERR_SUCCESS) return err;
+
+	__ifd_class_init(IFD_CLASS_AUTO);
+	ifd_deactivate();
+	ifd_seq_set(IFD_SEQ_AUTO_SEQ);
+	if (cmpl)
+		ifd_seq_onoff(true);
+	return SCS_ERR_PROGRESS;
+}
+#endif
 
 /* XXX: CLK contact based delay
  * The cold reset should maintain RST at state L for at least 400 clock
@@ -1677,10 +1686,10 @@ static void ifd_seq_complete(scs_err_t err)
 		ifd_slot_ctrl.cmpl();
 	ifd_seq_set(IFD_SEQ_IDLE);
 	ifd_seq_onoff(false);
-	ifd_scd_seq_complete(err);
+	icc_ifd_seq_complete(err);
 }
 
-void ifd_seq_reset(void)
+static void ifd_seq_reset(void)
 {
 	ifd_seq_set(IFD_SEQ_IDLE);
 	ifd_seq_onoff(false);
@@ -1712,7 +1721,7 @@ scs_err_t ifd_slot_active(void)
 	return SCS_ERR_SUCCESS;
 }
 
-#if defined(CONFIG_IFD_AUTO_SEQUENCE) && !defined(CONFIG_IFD_SCD)
+#if defined(CONFIG_IFD_AUTO_SEQUENCE) && !defined(CONFIG_ICC_IFD)
 static scs_err_t scs_auto_seq(boolean cmpl)
 {
 	scs_err_t err;
@@ -2476,154 +2485,6 @@ static void ifd_pres_handler(void)
 #define ifd_pres_handler()
 #endif
 
-#ifdef CONFIG_IFD_SCD
-#include <target/icc.h>
-
-__near__ scd_t ifd_scds[NR_IFD_SLOTS];
-
-scd_t ifd_scd_dev(ifd_sid_t sid)
-{
-	BUG_ON(sid >= NR_IFD_SLOTS);
-	return ifd_scds[sid];
-}
-
-ifd_sid_t ifd_scd_slot(scd_t scd)
-{
-	ifd_sid_t sid;
-
-	for (sid = 0; sid < NR_IFD_SLOTS; sid++) {
-		if (scd == ifd_scds[sid])
-			return sid;
-	}
-	BUG();
-	return INVALID_IFD_SID;
-}
-
-scs_err_t ifd_scd_error(scs_err_t err)
-{
-	switch (err) {
-	case SCS_ERR_SUCCESS:
-	case SCS_ERR_PROGRESS:
-	case SCS_ERR_OVERRUN:
-	case SCS_ERR_TIMEOUT:
-	case SCS_ERR_NOTPRESENT:
-		return err;
-	default:
-		return SCS_ERR_HW_ERROR;
-	}
-}
-
-uint8_t ifd_scd_state(uint8_t state)
-{
-	switch (state) {
-	case IFD_SLOT_STATE_NOTPRESENT:
-		return SCD_DEV_STATE_NOTPRESENT;
-	case IFD_SLOT_STATE_PRESENT:
-	case IFD_SLOT_STATE_SELECTED:
-	case IFD_SLOT_STATE_ACTIVATED:
-		return SCD_DEV_STATE_PRESENT;
-	case IFD_SLOT_STATE_ATR_READY:
-	case IFD_SLOT_STATE_PPS_READY:
-		return SCD_DEV_STATE_ACTIVE;
-	case IFD_SLOT_STATE_HWERROR:
-	default:
-		return SCD_DEV_STATE_HWERROR;
-	}
-}
-
-static scs_err_t ifd_scd_power_on(boolean cmpl)
-{
-	scs_err_t err;
-
-	err = ifd_slot_exist();
-	if (err != SCS_ERR_SUCCESS) return err;
-
-	__ifd_class_init(IFD_CLASS_AUTO);
-	ifd_deactivate();
-	ifd_seq_set(IFD_SEQ_AUTO_SEQ);
-	if (cmpl)
-		ifd_seq_onoff(true);
-	return SCS_ERR_PROGRESS;
-}
-
-static void ifd_scd_select(void)
-{
-	ifd_sid_select(ifd_scd_slot(scd_id));
-}
-
-static scs_err_t ifd_scd_activate(void)
-{
-	scs_err_t err;
-	err = ifd_scd_power_on(true);
-	return ifd_scd_error(err);
-}
-
-static scs_err_t ifd_scd_deactivate(void)
-{
-	scs_err_t err;
-	err = ifd_power_off();
-	return ifd_scd_error(err);
-}
-
-static scs_err_t ifd_scd_xchg_block(scs_size_t nc, scs_size_t ne)
-{
-	scs_err_t err;
-	err = ifd_xchg_block(nc, ne);
-	return ifd_scd_error(err);
-}
-
-static scs_size_t ifd_scd_xchg_avail(void)
-{
-	return ifd_xchg_avail();
-}
-
-static scs_err_t ifd_scd_write_byte(scs_off_t index, uint8_t byte)
-{
-	scs_err_t err;
-
-	err = ifd_write_byte(index, byte);
-	return ifd_scd_error(err);
-}
-
-static uint8_t ifd_scd_read_byte(scs_off_t index)
-{
-	return ifd_read_byte(index);
-}
-
-icc_driver_t ifd_scd = {
-	ifd_scd_select,
-	ifd_scd_activate,
-	ifd_scd_deactivate,
-	ifd_scd_xchg_block,
-	ifd_scd_xchg_avail,
-	ifd_scd_write_byte,
-	ifd_scd_read_byte,
-};
-
-static void ifd_scd_seq_complete(scs_err_t err)
-{
-	scd_dev_select(ifd_scd_dev(ifd_slid));
-	scd_seq_complete(ifd_scd_error(err));
-}
-
-static void ifd_scd_set_state(uint8_t state)
-{
-	scd_dev_select(ifd_scd_dev(ifd_slid));
-	scd_dev_set_state(ifd_scd_state(state));
-}
-
-static void ifd_scd_init()
-{
-	ifd_sid_t sid;
-
-	for (sid = 0; sid < NR_IFD_SLOTS; sid++) {
-		ifd_scds[sid] = scd_register_device(&ifd_scd);
-	}
-}
-#else
-#define ifd_scd_init()
-#endif
-
 static void ifd_state_handler(void)
 {
 	uint8_t sid, ssid;
@@ -2663,7 +2524,6 @@ void ifd_init(void)
 	ifd_t0_init();
 	ifd_t1_init();
 	ifd_pres_init();
-	ifd_scd_init();
 
 	for (sid = 0; sid < NR_IFD_SLOTS; sid++) {
 		ssid = ifd_sid_save(sid);
