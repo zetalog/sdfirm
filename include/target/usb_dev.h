@@ -210,9 +210,6 @@ void usbd_transfer_rxout(void);
 void usbd_config_reset(void);
 void usbd_config_apply(void);
 
-uint8_t usbd_endpoint_attrs(void);
-uint8_t usbd_endpoint_interval(void);
-
 /*=========================================================================
  * USB device
  *=======================================================================*/
@@ -234,9 +231,16 @@ extern __near__ uint8_t usbd_nr_intfs;
 /*=========================================================================
  * USB endpoints
  *=======================================================================*/
-uint8_t usbd_endpoint_dir(void);
-uint8_t usbd_endpoint_type(void);
-utb_size_t usbd_endpoint_size(void);
+#define usbd_endpoint_size_addr(addr)		usbd_hw_endp_size(addr)
+uint8_t usbd_endpoint_dir_addr(uint8_t addr);
+uint8_t usbd_endpoint_interval_addr(uint8_t addr);
+uint8_t usbd_endpoint_attrs_addr(uint8_t addr);
+uint8_t usbd_endpoint_type_addr(uint8_t addr);
+#define usbd_endpoint_size()			usbd_endpoint_size_addr(usbd_endp)
+#define usbd_endpoint_dir()			usbd_endpoint_dir_addr(usbd_endp)
+#define usbd_endpoint_type()			usbd_endpoint_type_addr(usbd_endp)
+#define usbd_endpoint_attrs()			usbd_endpoint_attrs_addr(usbd_endp)
+#define usbd_endpoint_interval()		usbd_endpoint_interval_addr(usbd_endp)
 
 void usbd_endpoint_reset(void);
 void usbd_endpoint_stall(void);
@@ -244,7 +248,6 @@ void usbd_endpoint_halt(void);
 void usbd_endpoint_unhalt(void);
 boolean usbd_endpoint_halting(void);
 
-#define usbd_endpoint_size_addr(addr)	usbd_hw_endp_size(addr)
 void usbd_endpoint_start_addr(uint8_t addr);
 void usbd_endpoint_reset_addr(uint8_t addr);
 void usbd_endpoint_halt_addr(uint8_t addr);
