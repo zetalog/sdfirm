@@ -61,16 +61,8 @@ Sfr(KBLS,	0x9C);		/* Keyboard Level Selector */
 #define __kbd_hw_read_cols()		(KBD_PORT & __KBD_HW_COL_MASK)
 
 /* driver implementations */
-#ifdef CONFIG_KBD_AT8XC5122_MAX_ROWS
-#define KBD_HW_ROW_KEYS			CONFIG_KBD_AT8XC5122_MAX_ROWS
-#else
 #define KBD_HW_ROW_KEYS			__KBD_HW_ROW_MAX
-#endif
-#ifdef CONFIG_KBD_AT8XC5122_MAX_COLS
-#define KBD_HW_COL_KEYS			CONFIG_KBD_AT8XC5122_MAX_COLS
-#else
 #define KBD_HW_COL_KEYS			__KBD_HW_COL_MAX
-#endif
 
 void kbd_hw_ctrl_init(void);
 void kbd_hw_scan_sync(uint8_t sec);
