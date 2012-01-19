@@ -391,13 +391,13 @@ void ccid_spe_key_number(unsigned char keycode)
 	}
 }
 
-#if NR_IFD_SLOTS > 1
-DECLARE_BITMAP(ccid_spe_waits, NR_IFD_SLOTS);
+#if NR_SCD_SLOTS > 1
+DECLARE_BITMAP(ccid_spe_waits, NR_SCD_SLOTS);
 
 static void ccid_spe_operate_next(void)
 {
 	ifd_sid_t sid;
-	for (sid = 0; sid < NR_IFD_SLOTS; sid++) {
+	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
 		if (test_bit(sid, ccid_spe_waits)) {
 			clear_bit(sid, ccid_spe_waits);
 			ccid_sid_select(sid);

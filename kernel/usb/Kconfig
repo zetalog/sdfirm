@@ -251,6 +251,18 @@ config SCD_INTERRUPT
 	  endpoint.
 	  If you are not sure, say Y here.
 
+choice
+	prompt "SCD escape command vendor"
+	default SCD_ESC_NONE
+
+config SCD_ESC_NONE
+	bool "None"
+
+config SCD_ESC_PN53X
+	bool "PN53X"
+
+endchoice
+
 if USB_CCID
 
 config CCID_INTERRUPT_HWERR
@@ -283,18 +295,6 @@ config CCID_SECURE
 	     for the following key strokes:
 	     1. cancel button: ESC (0x1B);
 	     2. enter/OK button: CR (0x0D).
-
-choice
-	prompt "CCID escape command vendor"
-	default SCD_ESC_NONE
-
-config SCD_ESC_NONE
-	bool "None"
-
-config SCD_ESC_PN53X
-	bool "ACR122"
-
-endchoice
 
 endif
 

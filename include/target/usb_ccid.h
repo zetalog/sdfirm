@@ -88,7 +88,7 @@ struct ccid_hwerr {
 #endif
 
 /* maximum busy slots in CCID layer */
-#define NR_CCID_SLOTS			NR_IFD_SLOTS
+#define NR_SCD_SLOTS			NR_IFD_SLOTS
 /*
  * QID = SID+1: additional QID for BULK_OUT
  */

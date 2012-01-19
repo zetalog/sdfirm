@@ -12,7 +12,7 @@
 #define scd_debug(tag, val)
 #endif
 
-#define SCD_DT_SCD			(USB_TYPE_CLASS | 0x01)
+#define SCD_DT_SCD		(USB_TYPE_CLASS | 0x01)
 
 /* Smart Card Device Class */
 typedef struct scd_desc {
@@ -183,11 +183,15 @@ struct scd_t1_param {
 
 #define SCD_CMD_STATUS_SUCC		(0x00 << 6)
 #define SCD_CMD_STATUS_FAIL		(0x01 << 6)
-#define SCD_CMD_STATUS_TIME_EXT	(0x02 << 6)
+#define SCD_CMD_STATUS_TIME_EXT		(0x02 << 6)
 #define SCD_CMD_STATUS_MASK		(0xc0)
 
+/* functions should be implemented by SCD generic */
 #define scd_slot_success(err)		((err) == SCS_ERR_SUCCESS)
 #define scd_slot_progress(err)		((err) == SCS_ERR_PROGRESS)
+
+/* functions should be implemented by SCD protocol */
+uint8_t scd_slot_status(void);
 
 void scd_Escape_init(void);
 void scd_Escape_out(void);
@@ -202,7 +206,7 @@ void scd_Escape_in(void);
 #endif
 #ifdef CONFIG_USB_ICCD
 #include <target/usb_iccd.h>
-#define NR_SCD_QUEUES		NR_ICCD_CARDS
+#define NR_SCD_QUEUES		NR_SCD_SLOTS
 #define scd_CmdOffset_cmp(off)	iccd_CmdOffset_cmp(off)
 #define scd_SlotStatus_in()	iccd_SlotStatus_in()
 #endif

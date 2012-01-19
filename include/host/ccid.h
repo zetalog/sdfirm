@@ -178,10 +178,10 @@ struct ccid_t1_param {
 #define CCID_ERROR_RESERVED			0x80
 #define CCID_ERROR_CMD_UNSUPPORT		0x00
 
-#define CCID_CMD_STATUS_SUCC		(0x00 << 6)
-#define CCID_CMD_STATUS_FAIL		(0x01 << 6)
-#define CCID_CMD_STATUS_TIME_EXT	(0x02 << 6)
-#define CCID_CMD_STATUS_MASK		(0xc0)
+#define SCD_CMD_STATUS_SUCC		(0x00 << 6)
+#define SCD_CMD_STATUS_FAIL		(0x01 << 6)
+#define SCD_CMD_STATUS_TIME_EXT		(0x02 << 6)
+#define SCD_CMD_STATUS_MASK		(0xc0)
 
 /* clock status for RDR2PC_SlotStatus */
 #define CCID_CLOCK_RUNNING		0x00

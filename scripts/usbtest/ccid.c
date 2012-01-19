@@ -698,7 +698,7 @@ boolean ccid_error_valid(void)
 	int i, items;
 	uint8_t bIccStatus = (status & SCD_SLOT_STATUS_MASK);
 
-	if ((status & CCID_CMD_STATUS_MASK) != CCID_CMD_STATUS_FAIL)
+	if ((status & SCD_CMD_STATUS_MASK) != SCD_CMD_STATUS_FAIL)
 		return true;
 
 	for (i = 0; i < sizeof (ccid_valid_errors); i++) {
@@ -770,7 +770,7 @@ boolean ccid_resp_valid(uint32_t length)
 	uint8_t cmd = g_ccid_cmd[0];
 	uint8_t status = g_ccid_resp[7];
 
-	if ((status & CCID_CMD_STATUS_MASK) == CCID_CMD_STATUS_FAIL) {
+	if ((status & SCD_CMD_STATUS_MASK) == SCD_CMD_STATUS_FAIL) {
 		return length == SCD_HEADER_SIZE;
 	}
 
@@ -878,7 +878,7 @@ boolean ccid_sync(void)
 
 boolean ccid_resp_fail(void)
 {
-	return (g_ccid_resp[7] & CCID_CMD_STATUS_MASK) != CCID_CMD_STATUS_SUCC;
+	return (g_ccid_resp[7] & SCD_CMD_STATUS_MASK) != SCD_CMD_STATUS_SUCC;
 }
 
 uint32_t ccid_resp_length(void)

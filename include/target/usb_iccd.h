@@ -66,13 +66,13 @@
 #define ICCD_RDR2PC_NOTIFYSLOTCHANGE	0x50
 
 #ifdef CONFIG_ICCD_COS
-#define NR_ICCD_CARDS		1
+#define NR_SCD_SLOTS		1
 #define iccd_id			0
 #else
-#define NR_ICCD_CARDS		NR_SCS_SLOTS
+#define NR_SCD_SLOTS		NR_SCS_SLOTS
 #define iccd_id			scs_sid
 #endif
-#define INVALID_ICCD_CARD	NR_ICCD_CARDS
+#define INVALID_ICCD_CARD	NR_SCD_SLOTS
 #define ICCD_SINGLE_SLOT_IDX	(ICCD_MAX_BUSY_SLOT-1)
 
 struct iccd_t1_param {
@@ -150,6 +150,7 @@ struct iccd_hwerr {
 
 #define ICCD_PC2RDR_ICCPOWERON		0x62
 #define ICCD_PC2RDR_ICCPOWEROFF		0x63
+#define ICCD_PC2RDR_ESCAPE		0x6B
 #define ICCD_PC2RDR_XFRBLOCK		0x6F
 #define ICCD_PC2RDR_GETPARAMETERS	0x6C
 
