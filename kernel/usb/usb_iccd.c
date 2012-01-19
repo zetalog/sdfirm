@@ -127,16 +127,16 @@ static uint8_t iccd_dev_error(scs_err_t err)
 	return ICCD_ERROR_HW_ERROR;
 }
 #else
-#define __iccd_dev_get_state()		scd_dev_get_state()
-#define __iccd_get_error()		scd_get_error()
-#define __iccd_xchg_read(idx)		scd_xchg_read(idx)	
-#define __iccd_xchg_write(idx, b)	scd_xchg_write(idx, b)
-#define __iccd_xchg_avail()		scd_xchg_avail()
-#define __iccd_xchg_block(nc, ne)	scd_xchg_block(nc, ne)
-#define __iccd_power_off()		scd_power_off()
-#define __iccd_power_on()		scd_power_on()
+#define __iccd_dev_get_state()		scs_get_slot_status()
+#define __iccd_get_error()		scs_get_slot_error()
+#define __iccd_xchg_read(idx)		scs_slot_xchg_read(idx)	
+#define __iccd_xchg_write(idx, b)	scs_slot_xchg_write(idx, b)
+#define __iccd_xchg_avail()		scs_slot_xchg_avail()
+#define __iccd_xchg_block(nc, ne)	scs_slot_xchg_block(nc, ne)
+#define __iccd_power_off()		scs_slot_power_off()
+#define __iccd_power_on()		scs_slot_power_on()
 #define __iccd_err_success()		SCS_ERR_SUCCESS
-#define __iccd_reg_handlers(cb1, cb2) 	scd_register_handlers(cb1, cb2)
+#define __iccd_reg_handlers(cb1, cb2) 	scd_notify_slot(cb1, cb2)
 
 uint8_t iccd_dev_state(uint8_t d)
 {

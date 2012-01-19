@@ -85,10 +85,10 @@ void ifd_init(void);
 #define ifd_init()
 #endif
 
-#ifdef CONFIG_ICC
-void icc_init(void);
+#ifdef CONFIG_SCS_SLOT
+void scs_slot_init(void);
 #else
-#define icc_init()
+#define scs_slot_init()
 #endif
 
 /* modules */
@@ -170,7 +170,7 @@ void modules_init(void)
 	lcd_init();
 	spi_init();
 	ifd_init();
-	icc_init();
+	scs_slot_init();
 
 	/* modules */
 	flash_init();

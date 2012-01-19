@@ -415,14 +415,14 @@ scs_err_t ifd_set_param(void);
 scs_err_t ifd_reset_param(void);
 scs_err_t ifd_set_freq_data(uint32_t clock, uint32_t rate);
 
-#ifdef CONFIG_ICC_IFD
-scs_err_t icc_ifd_power_on(boolean cmpl);
-void icc_ifd_seq_complete(scs_err_t err);
-void icc_ifd_set_state(uint8_t state);
+#ifdef CONFIG_IFD_SLOT
+scs_err_t ifd_slot_activation(boolean cmpl);
+void ifd_slot_completion(scs_err_t err);
+void ifd_slot_synchronization(uint8_t state);
 #else
-#define icc_ifd_power_on(cmpl)
-#define icc_ifd_seq_complete(err)
-#define icc_ifd_set_state(state)
+#define ifd_slot_activation(cmpl)
+#define ifd_slot_completion(err)
+#define ifd_slot_synchronization(state)
 #endif
 
 /* Mechanical */

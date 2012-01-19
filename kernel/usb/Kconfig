@@ -309,8 +309,8 @@ config ICCD_COS
 	select COS
 
 config ICCD_SCD
-	bool "ICC"
-	select ICC
+	bool "SCS Slots"
+	select SCS_SLOT
 
 endchoice
 

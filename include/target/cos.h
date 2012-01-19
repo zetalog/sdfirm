@@ -3,7 +3,7 @@
 
 #include <target/config.h>
 #include <target/generic.h>
-#include <target/icc.h>
+#include <target/scs_slot.h>
 #include <target/usb.h>
 
 typedef uint16_t cos_sw_t;
@@ -275,12 +275,12 @@ struct cos_secu {
 
 };
 
-#ifdef CONFIG_ICC_COS
-void icc_cos_seq_complete(scs_err_t err);
-void icc_cos_set_state(uint8_t state);
+#ifdef CONFIG_COS_SLOT
+void cos_slot_completion(scs_err_t err);
+void cos_slot_synchronization(uint8_t state);
 #else
-#define icc_cos_set_state(state)
-#define icc_cos_seq_complete(err)
+#define cos_slot_completion(err)
+#define cos_slot_synchronization(state)
 #endif
 
 scs_err_t cos_power_on(void);

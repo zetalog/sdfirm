@@ -104,7 +104,7 @@ CONFIG_IFD_AUTO_PPS_BASE=y
 # CONFIG_IFD_AUTO_PPS_PROP is not set
 # CONFIG_IFD_CLOCK_CONTROL is not set
 # CONFIG_IFD_MECHA_CONTROL is not set
-# CONFIG_ICC is not set
+# CONFIG_SCS_SLOT is not set
 # CONFIG_MTD is not set
 # CONFIG_SCSI is not set
 

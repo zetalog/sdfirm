@@ -42,10 +42,10 @@
 #ifndef __USB_ICCD_H_INCLUDE__
 #define __USB_ICCD_H_INCLUDE__
 
-#include <target/icc.h>
+#include <target/scs_slot.h>
 #include <target/cos.h>
 
-#if NR_ICC_CARDS == 0
+#if NR_SCS_SLOTS == 0
 #error "SCD device is not defined"
 #endif
 
@@ -69,10 +69,11 @@
 #define NR_ICCD_CARDS		1
 #define iccd_id			0
 #else
-#define NR_ICCD_CARDS		NR_ICC_CARDS
-#define iccd_id			scd_id
+#define NR_ICCD_CARDS		NR_SCS_SLOTS
+#define iccd_id			scs_sid
 #endif
 #define INVALID_ICCD_CARD	NR_ICCD_CARDS
+#define ICCD_SINGLE_SLOT_IDX	(ICCD_MAX_BUSY_SLOT-1)
 
 struct iccd_t1_param {
 	uint8_t bmFindexDindex;
@@ -103,9 +104,6 @@ struct iccd_hwerr {
 	uint8_t bPendingCode;
 };
 #define CCID_IRQ_HWERR_SIZE	0x04
-
-#define ICCD_INVALID_SLOT		NR_ICC_CARDS
-#define ICCD_SINGLE_SLOT_IDX		(ICCD_MAX_BUSY_SLOT-1)
 
 /* TODO:
  * Each intfc has the same endpoint number (NR_ICCD_ENDPS). 

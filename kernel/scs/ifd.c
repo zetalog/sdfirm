@@ -286,7 +286,7 @@ static void ifd_slot_set_state(uint8_t status)
 	ifd_slot_ctrl.status = status;
 	ifd_handle_slot_seq();
 	if (ifd_notifier) ifd_notifier();
-	icc_ifd_set_state(status);
+	ifd_slot_synchronization(status);
 }
 
 uint8_t ifd_slot_get_state(void)
@@ -459,8 +459,8 @@ static scs_err_t ifd_cls_select(void)
 	}
 }
 
-#ifdef CONFIG_ICC_IFD
-scs_err_t icc_ifd_power_on(boolean cmpl)
+#ifdef CONFIG_IFD_SLOT
+scs_err_t ifd_slot_activation(boolean cmpl)
 {
 	scs_err_t err;
 
@@ -1686,7 +1686,7 @@ static void ifd_seq_complete(scs_err_t err)
 		ifd_slot_ctrl.cmpl();
 	ifd_seq_set(IFD_SEQ_IDLE);
 	ifd_seq_onoff(false);
-	icc_ifd_seq_complete(err);
+	ifd_slot_completion(err);
 }
 
 static void ifd_seq_reset(void)
@@ -1721,7 +1721,7 @@ scs_err_t ifd_slot_active(void)
 	return SCS_ERR_SUCCESS;
 }
 
-#if defined(CONFIG_IFD_AUTO_SEQUENCE) && !defined(CONFIG_ICC_IFD)
+#if defined(CONFIG_IFD_AUTO_SEQUENCE) && !defined(CONFIG_IFD_SLOT)
 static scs_err_t scs_auto_seq(boolean cmpl)
 {
 	scs_err_t err;
