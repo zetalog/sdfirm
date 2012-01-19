@@ -278,7 +278,7 @@ void msd_proto_start(void)
 }
 
 usbd_endpoint_t msd_endpoint_in = {
-	USB_DIR2ATTR(USB_DIR_IN) | USB_ENDP_BULK,
+	USBD_ENDP_BULK_IN,
 	MSD_ENDP_INTERVAL,
 	msd_proto_submit_in,
 	msd_proto_handle_in,
@@ -286,7 +286,7 @@ usbd_endpoint_t msd_endpoint_in = {
 };
 
 usbd_endpoint_t msd_endpoint_out = {
-	USB_DIR2ATTR(USB_DIR_OUT) | USB_ENDP_BULK,
+	USBD_ENDP_BULK_OUT,
 	MSD_ENDP_INTERVAL,
 	msd_proto_submit_out,
 	msd_proto_handle_out,

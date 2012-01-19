@@ -36,10 +36,9 @@ struct icc_card {
 	scs_cmpl_cb cmpl;
 };
 
-#define ICC_STATE_NOTPRESENT		0x00
-#define ICC_STATE_PRESENT		0x01
-#define ICC_STATE_ACTIVE		0x02
-#define ICC_STATE_HWERROR		0x03
+#define SCS_SLOT_STATUS_ACTIVE		0x00
+#define SCS_SLOT_STATUS_INACTIVE	0x01
+#define SCS_SLOT_STATUS_NOTPRESENT	0x02
 
 #if NR_ICC_CARDS > 1
 void scd_dev_restore(scd_t id);

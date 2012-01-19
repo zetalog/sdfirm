@@ -38,18 +38,17 @@ scs_err_t icc_ifd_error(scs_err_t err)
 uint8_t icc_ifd_state(uint8_t state)
 {
 	switch (state) {
+	case IFD_SLOT_STATE_ATR_READY:
+		return SCS_SLOT_STATUS_ACTIVE;
 	case IFD_SLOT_STATE_NOTPRESENT:
-		return ICC_STATE_NOTPRESENT;
+		return SCS_SLOT_STATUS_NOTPRESENT;
+	case IFD_SLOT_STATE_PPS_READY:
 	case IFD_SLOT_STATE_PRESENT:
 	case IFD_SLOT_STATE_SELECTED:
 	case IFD_SLOT_STATE_ACTIVATED:
-		return ICC_STATE_PRESENT;
-	case IFD_SLOT_STATE_ATR_READY:
-	case IFD_SLOT_STATE_PPS_READY:
-		return ICC_STATE_ACTIVE;
 	case IFD_SLOT_STATE_HWERROR:
 	default:
-		return ICC_STATE_HWERROR;
+		return SCS_SLOT_STATUS_INACTIVE;
 	}
 }
 

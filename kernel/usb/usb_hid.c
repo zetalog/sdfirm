@@ -628,7 +628,7 @@ static void hid_handle_in_data(void)
 }
 
 usbd_endpoint_t hid_endpoint_in = {
-	USB_DIR2ATTR(USB_DIR_IN) | USB_ENDP_INTERRUPT,
+	USBD_ENDP_INTR_IN,
 	HID_ENDP_INTERVAL,
 	hid_handle_in_poll,
 	hid_handle_in_data,
@@ -656,7 +656,7 @@ static void hid_handle_out_data(void)
 }
 
 usbd_endpoint_t hid_endpoint_out = {
-	USB_DIR2ATTR(USB_DIR_OUT) | USB_ENDP_INTERRUPT,
+	USBD_ENDP_INTR_OUT,
 	HID_ENDP_INTERVAL,
 	hid_handle_out_poll,
 	hid_handle_out_data,

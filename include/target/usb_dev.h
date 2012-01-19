@@ -166,9 +166,14 @@ struct usbd_endp_ctrl {
 
 struct usbd_endpoint {
 	uint8_t attrs;
-#define USB_ATTR2DIR(attrs)		USB_ADDR2DIR(attrs)
-#define USB_ATTR2TYPE(attrs)		((attrs) & USB_ENDP_TYPE_MASK)
-#define USB_DIR2ATTR(dir)		USB_DIR2ADDR(dir)
+#define USBD_ATTR2DIR(attrs)		USB_ADDR2DIR(attrs)
+#define USBD_ATTR2TYPE(attrs)		((attrs) & USB_ENDP_TYPE_MASK)
+#define USBD_DIR2ATTR(dir)		USB_DIR2ADDR(dir)
+#define USBD_ENDP_CTRL			(USBD_DIR2ATTR(USB_DIR_OUT) | USB_ENDP_CONTROL)
+#define USBD_ENDP_BULK_IN		(USBD_DIR2ATTR(USB_DIR_IN) | USB_ENDP_BULK)
+#define USBD_ENDP_BULK_OUT		(USBD_DIR2ATTR(USB_DIR_OUT) | USB_ENDP_BULK)
+#define USBD_ENDP_INTR_IN		(USBD_DIR2ATTR(USB_DIR_IN) | USB_ENDP_INTERRUPT)
+#define USBD_ENDP_INTR_OUT		(USBD_DIR2ATTR(USB_DIR_OUT) | USB_ENDP_INTERRUPT)
 	uint16_t interval;
 	usb_io_cb poll;
 	usb_io_cb iocb;

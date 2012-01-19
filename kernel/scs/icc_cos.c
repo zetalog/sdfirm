@@ -21,8 +21,8 @@ static scs_err_t icc_cos_err(scs_err_t err)
 uint8_t icc_cos_state(uint8_t state)
 {
 	if (cos_state == COS_STATE_DESELECTED)
-		return ICC_STATE_PRESENT;
-	return ICC_STATE_ACTIVE;
+		return SCS_SLOT_STATUS_INACTIVE;
+	return SCS_SLOT_STATUS_ACTIVE;
 }
 
 static void icc_cos_select(void)

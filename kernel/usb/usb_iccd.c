@@ -110,7 +110,7 @@ uint8_t iccd_addr[NR_ICCD_CARDS][NR_ICCD_ENDPS];
 
 uint8_t iccd_dev_state(uint8_t state)
 {
-	return SCD_STATUS_ACTIVE;
+	return SCD_SLOT_STATUS_ACTIVE;
 }
 
 static uint8_t iccd_dev_error(scs_err_t err)
@@ -143,11 +143,13 @@ uint8_t iccd_dev_state(uint8_t d)
 	uint8_t state = __iccd_dev_get_state();
 
 	switch (state) {
+	case SCS_SLOT_STATUS_ACTIVE:
+		return SCD_SLOT_STATUS_ACTIVE;
+	case SCS_SLOT_STATUS_NOTPRESENT:
+		return SCD_SLOT_STATUS_NOTPRESENT;
+	case SCS_SLOT_STATUS_INACTIVE:
 	default:
-	case ICC_STATE_HWERROR:
-		return SCD_STATUS_INACTIVE;
-	case ICC_STATE_NOTPRESENT:
-		return SCD_STATUS_NOTPRESENT;
+		return SCD_SLOT_STATUS_INACTIVE;
 	}
 }
 
@@ -233,7 +235,7 @@ static iccd_t iccd_cid_save(iccd_t id)
 static uint8_t iccd_dev_status(void)
 {
 	uint8_t status = iccd_dev_state(0);
-	if (status == SCD_STATUS_INACTIVE)
+	if (status == SCD_SLOT_STATUS_INACTIVE)
 		BUG();
 	return status;
 }
@@ -591,7 +593,7 @@ static void iccd_XfrBlock_out(void)
 
 static void iccd_handle_slot_pc2rdr(void)
 {
-	if (iccd_dev_status() == SCD_STATUS_NOTPRESENT) {
+	if (iccd_dev_status() == SCD_SLOT_STATUS_NOTPRESENT) {
 		iccd_CmdFailure_out(ICCD_ERROR_ICC_MUTE);
 		return;
 	}
@@ -782,7 +784,7 @@ static void iccd_IccPowerOff_cmp(void)
 
 void iccd_SlotNotExist_cmp(void)
 {
-	__iccd_CmdFailure_out(5, SCD_STATUS_NOTPRESENT);
+	__iccd_CmdFailure_out(5, SCD_SLOT_STATUS_NOTPRESENT);
 	iccd_CmdResponse_cmp();
 }
 
@@ -926,10 +928,10 @@ static void iccd_change_submit(void)
 		/* copy status bits */
 		if (test_bit(ICCD_INTR_STATUS(id), iccd_pending_intrs)) {
 			set_bit(ICCD_INTR_STATUS(id), iccd_running_intrs);
-			scd_debug(SCD_DEBUG_INTR, SCD_STATUS_ACTIVE);
+			scd_debug(SCD_DEBUG_INTR, SCD_SLOT_STATUS_ACTIVE);
 		} else {
 			clear_bit(ICCD_INTR_STATUS(id), iccd_running_intrs);
-			scd_debug(SCD_DEBUG_INTR, SCD_STATUS_NOTPRESENT);
+			scd_debug(SCD_DEBUG_INTR, SCD_SLOT_STATUS_NOTPRESENT);
 		}
 	}
 }
@@ -937,7 +939,7 @@ static void iccd_change_submit(void)
 static void iccd_change_raise(void)
 {
 	boolean changed = false;
-	if (iccd_dev_status() == SCD_STATUS_NOTPRESENT) {
+	if (iccd_dev_status() == SCD_SLOT_STATUS_NOTPRESENT) {
 		if (test_bit(ICCD_INTR_STATUS(iccd_cid), iccd_pending_intrs)) {
 			clear_bit(ICCD_INTR_STATUS(iccd_cid),
 				  iccd_pending_intrs);
@@ -1064,7 +1066,7 @@ void iccd_devid_init(void)
 
 #ifdef CONFIG_SCD_BULK
 usbd_endpoint_t iccd_endpoint_out = {
-	USB_DIR2ATTR(USB_DIR_OUT) | USB_ENDP_BULK,
+	USBD_ENDP_BULK_OUT,
 	ICCD_ENDP_INTERVAL_OUT,
 	iccd_submit_command,
 	iccd_handle_command,
@@ -1072,7 +1074,7 @@ usbd_endpoint_t iccd_endpoint_out = {
 };
 
 usbd_endpoint_t iccd_endpoint_in = {
-	USB_DIR2ATTR(USB_DIR_IN) | USB_ENDP_BULK,
+	USBD_ENDP_BULK_IN,
 	ICCD_ENDP_INTERVAL_IN,
 	iccd_submit_response,
 	iccd_handle_response,
@@ -1082,7 +1084,7 @@ usbd_endpoint_t iccd_endpoint_in = {
 
 #ifdef CONFIG_SCD_INTERRUPT
 usbd_endpoint_t iccd_endpoint_irq = {
-	USB_DIR2ATTR(USB_DIR_IN) | USB_ENDP_INTERRUPT,
+	USBD_ENDP_INTR_IN,
 	ICCD_ENDP_INTERVAL_INTR,
 	iccd_submit_interrupt,
 	iccd_handle_interrupt,

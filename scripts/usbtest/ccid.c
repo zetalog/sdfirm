@@ -43,127 +43,127 @@ struct ccid_resp_errors {
 
 struct ccid_error ccid_errors[CCID_MAX_ERRORS] = {
 /*  1 */{
-		SCD_STATUS_NOTPRESENT, 0x05,
+		SCD_SLOT_STATUS_NOTPRESENT, 0x05,
 		"bSlot does not exist"
 	},
 /*  2 */{
-		SCD_STATUS_NOTPRESENT, CCID_ERROR_ICC_MUTE,
+		SCD_SLOT_STATUS_NOTPRESENT, CCID_ERROR_ICC_MUTE,
 		"No ICC present"
 	},
 /*  3 */{
-		SCD_STATUS_INACTIVE, CCID_ERROR_HW_ERROR,
+		SCD_SLOT_STATUS_INACTIVE, CCID_ERROR_HW_ERROR,
 		"Hardware error"
 	},
 /*  4 */{
-		SCD_STATUS_INACTIVE, 0x07,
+		SCD_SLOT_STATUS_INACTIVE, 0x07,
 		"bPowerselect error(not supported)"
 	},
 /*  5 */{
-		SCD_STATUS_INACTIVE, CCID_ERROR_XFR_PARITY_ERROR,
+		SCD_SLOT_STATUS_INACTIVE, CCID_ERROR_XFR_PARITY_ERROR,
 		"parity error on ATR"
 	},
 /*  6 */{
-		SCD_STATUS_INACTIVE, CCID_ERROR_ICC_MUTE,
+		SCD_SLOT_STATUS_INACTIVE, CCID_ERROR_ICC_MUTE,
 		"ICC mute (Time out)"
 	},
 /*  7 */{
-		SCD_STATUS_INACTIVE, CCID_ERROR_BAD_ATR_TS,
+		SCD_SLOT_STATUS_INACTIVE, CCID_ERROR_BAD_ATR_TS,
 		"Bad TS in ATR"
 	},
 /*  8 */{
-		SCD_STATUS_INACTIVE, CCID_ERROR_BAD_ATR_TCK,
+		SCD_SLOT_STATUS_INACTIVE, CCID_ERROR_BAD_ATR_TCK,
 		"Bad TCK in ATR"
 	},
 /*  9 */{
-		SCD_STATUS_INACTIVE, CCID_ERROR_PROTO_UNSUPPORT,
+		SCD_SLOT_STATUS_INACTIVE, CCID_ERROR_PROTO_UNSUPPORT,
 		"Protocol not managed"
 	},
 /*  a */{
-		SCD_STATUS_INACTIVE, CCID_ERROR_ICC_CLASS_NOSUP,
+		SCD_SLOT_STATUS_INACTIVE, CCID_ERROR_ICC_CLASS_NOSUP,
 		"ICC class not supported"
 	},
 /*  b */{
-		SCD_STATUS_INACTIVE, CCID_ERROR_CMD_ABORTED,
+		SCD_SLOT_STATUS_INACTIVE, CCID_ERROR_CMD_ABORTED,
 		"Command aborted by control pipe"
 	},
 /*  c */{
-		SCD_STATUS_ACTIVE, 0x00,
+		SCD_SLOT_STATUS_ACTIVE, 0x00,
 		"Command Not Supported"
 	},
 /*  d */{
-		SCD_STATUS_ACTIVE, CCID_ERROR_CMD_SLOT_BUSY,
+		SCD_SLOT_STATUS_ACTIVE, CCID_ERROR_CMD_SLOT_BUSY,
 		"CCID_ERR_SLOT_BUSY"
 	},
 /*  e */{
-		SCD_STATUS_INACTIVE, CCID_ERROR_CMD_SLOT_BUSY,
+		SCD_SLOT_STATUS_INACTIVE, CCID_ERROR_CMD_SLOT_BUSY,
 		"CCID_ERR_SLOT_BUSY"
 	},
 /*  f */{
-		SCD_STATUS_NOTPRESENT, CCID_ERROR_CMD_SLOT_BUSY,
+		SCD_SLOT_STATUS_NOTPRESENT, CCID_ERROR_CMD_SLOT_BUSY,
 		"CCID_ERR_SLOT_BUSY"
 	},
 /* 10 */{
-		SCD_STATUS_INACTIVE, CCID_ERROR_BUSY_AUTO_SEQ,
+		SCD_SLOT_STATUS_INACTIVE, CCID_ERROR_BUSY_AUTO_SEQ,
 		"Automatic sequence on-going"
 	},
 /* 11 */{
-		SCD_STATUS_ACTIVE, 0x07,
+		SCD_SLOT_STATUS_ACTIVE, 0x07,
 		"bPowerselect error(not supported)"
 	},
 /* 12 */{
-		SCD_STATUS_ACTIVE, CCID_ERROR_XFR_PARITY_ERROR,
+		SCD_SLOT_STATUS_ACTIVE, CCID_ERROR_XFR_PARITY_ERROR,
 		"parity error"
 	},
 /* 13 */{
-		SCD_STATUS_ACTIVE, CCID_ERROR_XFR_OVERRUN,
+		SCD_SLOT_STATUS_ACTIVE, CCID_ERROR_XFR_OVERRUN,
 		"CCID_ERR_XFR_OVERRUN"
 	},
 /* 14 */{
-		SCD_STATUS_ACTIVE, CCID_ERROR_ICC_MUTE,
+		SCD_SLOT_STATUS_ACTIVE, CCID_ERROR_ICC_MUTE,
 		"ICC mute (Time out)"
 	},
 /* 15 */{
-		SCD_STATUS_ACTIVE, 0x08,
+		SCD_SLOT_STATUS_ACTIVE, 0x08,
 		"Bad wLevelParameter"
 	},
 /* 16 */{
-		SCD_STATUS_ACTIVE, 0x01,
+		SCD_SLOT_STATUS_ACTIVE, 0x01,
 		"Bad dwLength"
 	},
 /* 17 */{
-		SCD_STATUS_ACTIVE, CCID_ERROR_CMD_ABORTED,
+		SCD_SLOT_STATUS_ACTIVE, CCID_ERROR_CMD_ABORTED,
 		"Command aborted by control pipe"
 	},
 /* 18 */{
-		SCD_STATUS_ACTIVE, 0x07,
+		SCD_SLOT_STATUS_ACTIVE, 0x07,
 		"Protocol invalid or not supported"
 	},
 /* 19 */{
-		SCD_STATUS_ACTIVE, 0x10,
+		SCD_SLOT_STATUS_ACTIVE, 0x10,
 		"FI ¨C DI pair invalid or not supported"
 	},
 /* 1a */{
-		SCD_STATUS_ACTIVE, 0x11,
+		SCD_SLOT_STATUS_ACTIVE, 0x11,
 		"Invalid TCCKTS parameter"
 	},
 /* 1b */{
-		SCD_STATUS_ACTIVE, 0x12,
+		SCD_SLOT_STATUS_ACTIVE, 0x12,
 		"Guard time not supported"
 	},
 /* 1c */{
-		SCD_STATUS_ACTIVE, 0x13,
+		SCD_SLOT_STATUS_ACTIVE, 0x13,
 		"(T=0)WI/(T=1)BWI/(T=1)CWI invalid or not supported"
 	},
 /* 1d */{
-		SCD_STATUS_ACTIVE, 0x14,
+		SCD_SLOT_STATUS_ACTIVE, 0x14,
 		"Clock stop support requested invalid or not supported"
 	},
 /* 1e */{
-		SCD_STATUS_ACTIVE, 0x15,
+		SCD_SLOT_STATUS_ACTIVE, 0x15,
 		"IFSC size invalid or not supported"
 	},
 /* 1f */{
-		SCD_STATUS_ACTIVE, 0x16,
+		SCD_SLOT_STATUS_ACTIVE, 0x16,
 		"NAD value invalid or not supported"
 	},
 	{
@@ -574,11 +574,11 @@ void ccid_get_descriptor(scd_desc_t *desc)
 static const char *ccid_icc_type(uint8_t status)
 {
 	switch (status) {
-	case SCD_STATUS_NOTPRESENT:
+	case SCD_SLOT_STATUS_NOTPRESENT:
 		return "Not present";
-	case SCD_STATUS_INACTIVE:
+	case SCD_SLOT_STATUS_INACTIVE:
 		return "Inactive";
-	case SCD_STATUS_ACTIVE:
+	case SCD_SLOT_STATUS_ACTIVE:
 		return "Active";
 	default:
 		return "Unknown";
@@ -696,7 +696,7 @@ boolean ccid_error_valid(void)
 	uint8_t status = g_ccid_resp[7];
 	uint8_t bError = g_ccid_resp[8];
 	int i, items;
-	uint8_t bIccStatus = (status & CCID_ICC_STATUS_MASK);
+	uint8_t bIccStatus = (status & SCD_SLOT_STATUS_MASK);
 
 	if ((status & CCID_CMD_STATUS_MASK) != CCID_CMD_STATUS_FAIL)
 		return true;

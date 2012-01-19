@@ -408,17 +408,17 @@ static uint8_t ccid_slot_status(void)
 {
 	switch (ifd_slot_get_state()) {
 	case IFD_SLOT_STATE_NOTPRESENT:
-		return SCD_STATUS_NOTPRESENT;
+		return SCD_SLOT_STATUS_NOTPRESENT;
 	case IFD_SLOT_STATE_PRESENT:
 	case IFD_SLOT_STATE_SELECTED:
 	case IFD_SLOT_STATE_ACTIVATED:
 	case IFD_SLOT_STATE_HWERROR:
-		return SCD_STATUS_INACTIVE;
+		return SCD_SLOT_STATUS_INACTIVE;
 	case IFD_SLOT_STATE_ATR_READY:
 	case IFD_SLOT_STATE_PPS_READY:
-		return SCD_STATUS_ACTIVE;
+		return SCD_SLOT_STATUS_ACTIVE;
 	}
-	return SCD_STATUS_NOTPRESENT;
+	return SCD_SLOT_STATUS_NOTPRESENT;
 }
 
 static void ccid_slot_reset(ccid_qid_t qid)
@@ -914,13 +914,13 @@ static void ccid_handle_slot_pc2rdr(void)
 	if (ccid_cmds[ccid_qid].bMessageType == CCID_PC2RDR_GETSLOTSTATUS) {
 		return;
 	}
-	if (ccid_slot_status() == SCD_STATUS_NOTPRESENT) {
+	if (ccid_slot_status() == SCD_SLOT_STATUS_NOTPRESENT) {
 		ccid_CmdFailure_out(CCID_ERROR_ICC_MUTE);
 		return;
 	}
 #if 0
 	/* FIXME: check auto sequence */
-	if (ccid_slot_status() != SCD_STATUS_ACTIVE) {
+	if (ccid_slot_status() != SCD_SLOT_STATUS_ACTIVE) {
 		ccid_CmdFailure_out(CCID_ERROR_BUSY_AUTO_SEQ);
 		return;
 	}
@@ -1253,7 +1253,7 @@ static void ccid_IccPowerOff_cmp(void)
 
 void ccid_SlotNotExist_cmp(void)
 {
-	__ccid_CmdFailure_out(5, SCD_STATUS_NOTPRESENT);
+	__ccid_CmdFailure_out(5, SCD_SLOT_STATUS_NOTPRESENT);
 	ccid_CmdResponse_cmp();
 }
 
@@ -1702,7 +1702,7 @@ static void ccid_change_raise(void)
 {
 	if (ccid_qid < NR_IFD_SLOTS) {
 		boolean changed = false;
-		if (ccid_slot_status() == SCD_STATUS_NOTPRESENT) {
+		if (ccid_slot_status() == SCD_SLOT_STATUS_NOTPRESENT) {
 			ccid_discard();
 			if (test_bit(CCID_INTR_STATUS(ccid_qid), ccid_pending_intrs)) {
 				clear_bit(CCID_INTR_STATUS(ccid_qid), ccid_pending_intrs);
@@ -1931,7 +1931,7 @@ static void ccid_intr_start(void)
 }
 
 usbd_endpoint_t ccid_endpoint_irq = {
-	USB_DIR2ATTR(USB_DIR_IN) | USB_ENDP_INTERRUPT,
+	USBD_ENDP_INTR_IN,
 	CCID_ENDP_INTERVAL_INTR,
 	ccid_submit_interrupt,
 	ccid_handle_interrupt,
@@ -2237,7 +2237,7 @@ void ccid_devid_init(void)
 }
 
 usbd_endpoint_t ccid_endpoint_in = {
-	USB_DIR2ATTR(USB_DIR_IN) | USB_ENDP_BULK,
+	USBD_ENDP_BULK_IN,
 	CCID_ENDP_INTERVAL_IN,
 	ccid_submit_response,
 	ccid_handle_response,
@@ -2245,7 +2245,7 @@ usbd_endpoint_t ccid_endpoint_in = {
 };
 
 usbd_endpoint_t ccid_endpoint_out = {
-	USB_DIR2ATTR(USB_DIR_OUT) | USB_ENDP_BULK,
+	USBD_ENDP_BULK_OUT,
 	CCID_ENDP_INTERVAL_OUT,
 	ccid_submit_command,
 	ccid_handle_command,
