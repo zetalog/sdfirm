@@ -360,7 +360,7 @@ static void iccd_get_string_desc(void)
 
 	switch (id) {
 	case ICCD_STRING_INTERFACE:
-		usb_input_device();
+		usbd_input_device();
 		break;
 	default:
 		USBD_INB(0x00);

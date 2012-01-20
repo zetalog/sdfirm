@@ -416,8 +416,8 @@ boolean usbd_request_syncing(void);
 
 void usbd_get_endpoint_desc(uint8_t addr);
 
-void usb_input_string(text_char_t *string);
-void usb_input_device(void);
+void usbd_input_string(text_char_t *string);
+void usbd_input_device(void);
 
 /*=========================================================================
  * USB globals
