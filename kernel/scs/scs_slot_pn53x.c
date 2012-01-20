@@ -1,5 +1,5 @@
 #include <target/scs_slot.h>
-#include <driver/pn53x.h>
+#include <driver/pcd_pn53x.h>
 
 scs_sid_t pn53x_sid;
 
