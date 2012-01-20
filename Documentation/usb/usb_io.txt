@@ -176,6 +176,7 @@ Following figure illustrates the stage change diagram:
           |                     [done]                      |
           |              [usbd_request_reset]               |
   ========+========================+========================+
+  NOTE: [] illustrates the calling depth of the function.
 
                       Figure 2 - Transaction Stages
 

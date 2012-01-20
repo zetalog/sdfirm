@@ -1,0 +1,325 @@
+
+               How to Implement USB Class Interface Drivers
+
+
+===== Introduction =====
+
+This document is not written for the purpose of describing the
+implementation details for the sdfirm USB device stack, but for the
+purpose of giving instructions to the USB class interface driver writers
+using the sdfirm USB device stack.
+The sdfirm USB device stack offers APIs accessing the core USB device
+facilities such as:
+1. USB class registration.
+2. USB I/O communication.
+These facilities will be discussed each by each in the following chapters.
+
+===== Class Registration =====
+
+In this chapter we will discuss the following structures and functions:
+Structures should be implemented by the driver:
+1. usbd_interface_t
+2. usbd_endpoint_t
+Functions might be called by the driver:
+1. usbd_declare_interface
+2. usbd_claim_endpoint
+3. usbd_input_interface_desc
+4. usbd_input_endpoint_desc
+5. usbd_input_string
+6. usbd_input_device_name
+7. usbd_control_setup_dir
+8. usbd_control_setup_type
+9. usbd_control_setup_recp
+10.usbd_control_request_type
+11.usbd_control_request_value
+12.usbd_control_request_index
+13.usbd_control_request_length
+
+A typical class specification will define interface/endpoint descriptors
+as long as some optional class/vendor specific descriptors to the host in
+USB CONFIGURATION DESCRIPTOR using the following structure:
+             +--------------------------------------------+
+             |           Interface Descriptor             |
+             +--------------------------------------------+
+             | Optional Class/Vendor Specific Descriptors |
+             +--------------------------------------------+
+             |           Endpoint Descriptors             |
+             +--------------------------------------------+
+                Figure 1 - Class Specific Configurations
+
+An interface driver can call usbd_claim_endpoint to register its class
+specific endpoints and then call usbd_declare_interface to register its
+interface information to the core USB device stack.
+
+In the usbd_endpoint_t structure, the following fields are given:
+  attrs		This field contain the type and direction of the endpoint,
+                please refer Figure 2 for the macros can be used in this
+		field.  This field can affect the bEndpointAddress and the
+		bmAttributes reported in the USB ENDPOINT DESCRIPTOR.
+  interval	This field contain the bInterval value that should be
+                reported in the USB ENDPOINT DESCRIPTOR.
+  poll		The three functions will be called by the USB device stack
+  iocb          core, please refer to the I/O Communication chapter for
+  done		the details.
+Following macros can be used for the attrs value listed in the
+usbd_endpoint_t structure:
+      +--------------------+--------------------------------------+
+      | Macro              | Meaning                              |
+      +--------------------+--------------------------------------+
+      | USBD_ENDP_CTRL     | Duplex control endpoint              |
+      +--------------------+--------------------------------------+
+      | USBD_ENDP_BULK_IN  | Half duplex bulk IN endpoint         |
+      +--------------------+--------------------------------------+
+      | USBD_ENDP_BULK_OUT | Half duplex bulk OUT endpoint        |
+      +--------------------+--------------------------------------+
+      | USBD_ENDP_INTR_IN  | Half duplex interrupt IN endpoint    |
+      +--------------------+--------------------------------------+
+      | USBD_ENDP_INTR_OUT | Half duplex interrupt OUT endpoint   |
+      +--------------------+--------------------------------------+
+      | USBD_ENDP_ISOC_IN  | Half duplex isochronous IN endpoint  |
+      +--------------------+--------------------------------------+
+      | USBD_ENDP_ISOC_OUT | Half duplex isochronous OUT endpoint |
+      +--------------------+--------------------------------------+
+             Figure 2 - Value of 'attrs' for usbd_endpoint_t
+
+In the usbd_interface_t structure, the following fields are given:
+  string_first	These tow fields give a range of the string IDs that is
+  string_last   current maintained by this interface driver.
+  nr_endps	Number of extra endpoints (compared to the default control
+                endpoint 0) used by this interface driver.
+  config_len	Length of class/vendor specific descriptors reported in
+  		the USB_GET_DESCRIPTOR(USB CONFIGURATION DESCRIPTOR)
+  		request transaction.
+  ctrl		This function will be called by the USB device stack core,
+  		please refer to the I/O Communication chapter for the
+  		details.
+  		NOTE: class/vendor specific descriptors and string
+  		      descriptors should also be reported in this
+  		      function.
+
+It is mandated that the interface driver should implement the 'ctrl'
+callback to report the class specific configuration descriptor part shown
+in the Figure 1 and string descriptors maintained by this interface
+driver.
+Following functions can be called in the 'ctrl' callback to obtain the
+control setup request fields sent from the host:
+      +-----------------------------+----------------------------+
+      | Function                    | Field to Access            |
+      +-----------------------------+----------------------------+
+      | usbd_control_setup_dir      | direction of bmRequestType |
+      +-----------------------------+----------------------------+
+      | usbd_control_setup_type     | type of bmRequestType      |
+      +-----------------------------+----------------------------+
+      | usbd_control_setup_recp     | recipient of bmRequestType |
+      +-----------------------------+----------------------------+
+      | usbd_control_request_type   | bRequest                   |
+      +-----------------------------+----------------------------+
+      | usbd_control_request_value  | wValue                     |
+      +-----------------------------+----------------------------+
+      | usbd_control_request_index  | wIndex                     |
+      +-----------------------------+----------------------------+
+      | usbd_control_request_length | wLength                    |
+      +-----------------------------+----------------------------+
+           Figure 3 - Functions to Access Control Setup Request
+
+Then a typical USB_GET_DESCRIPTOR(USB CONFIGURATION DESCRIPTOR) request
+handler would look like the following:
+==========================================================================
+/* Carefully choosen to avoid conflicts between interface drivers. */
+#define CLASS_STRING_FIRST		30
+#define CLASS_STRING_INTERFACE		CLASS_STRING_FIRST+0
+#define CLASS_STRING_LAST		CLASS_STRING_INTERFACE
+/* Set this to none of 0 if there's class/vendor specific descriptors */
+#define CLASS_DT_SPECIFIC_SIZE		0
+
+uint8_t class_addr[NR_CLASS_ENDPS];
+
+static void class_get_specific_desc(void)
+{
+	/* Call the USBD_OUTX functions to report any class/vendor
+	 * specific descriptors.
+	 */
+}
+
+static void class_get_config_desc(void)
+{
+	uint8_t i;
+	usbd_input_interface_desc(USB_INTERFACE_CLASS_XXX,
+				  USB_INTERFACE_SUBCLASS_XXX,
+				  INTERFACE_PROTOCOL_XXX,
+				  CLASS_STRING_INTERFACE);
+	class_get_specific_desc();
+	for (i = 0; i < NR_MSD_ENDPS; i++) {
+		usbd_input_endpoint_desc(class_addr[i]);
+	}
+}
+
+static void class_get_string_desc(void)
+{
+	uint8_t id = LOBYTE(usbd_control_request_value());
+	switch (id) {
+	case CLASS_STRING_INTERFACE:
+		usbd_input_device_name();
+		break;
+	case CLASS_STRING_OTHERS:
+		usbd_input_string(other_string);
+		break
+	default:
+		USBD_INB(0x00);
+		break;
+	}
+}
+
+static void class_get_descriptor(void)
+{
+	uint8_t desc = HIBYTE(usbd_control_request_value());
+	switch (desc) {
+	case USB_DT_CONFIG:
+		class_get_config_desc();
+		break;
+	case USB_DT_STRING:
+		class_get_string_desc();
+		break;
+	default:
+		usbd_endpoint_halt();
+		break;
+	}
+}
+#define class_set_descriptor()	usbd_endpoint_halt()
+
+static void class_handle_standard_request(void)
+{
+	uint8_t req = usbd_control_request_type();
+	switch (req) {
+	case USB_REQ_GET_DESCRIPTOR:
+		class_get_descriptor();
+		break;
+	case USB_REQ_SET_DESCRIPTOR:
+		class_set_descriptor();
+		break;
+	default:
+		usbd_endpoint_halt();
+	}
+}
+
+static void class_handle_ctrl_data(void)
+{
+	uint8_t type = usbd_control_setup_type();
+	uint8_t recp = usbd_control_setup_recp();
+	switch (recp) {
+	case USB_RECP_DEVICE:
+		switch (type) {
+		case USB_TYPE_STANDARD:
+			class_handle_standard_request();
+			return;
+		}
+		break;
+	case USB_RECP_INTERFACE:
+		switch (type) {
+		case USB_TYPE_STANDARD:
+			class_handle_standard_request();
+			return;
+		case USB_TYPE_CLASS:
+			class_handle_class_request();
+			return;
+		}
+		break;
+	}
+	usbd_endpoint_halt();
+}
+
+static uint16_t class_config_length(void)
+{
+	return CLASS_DT_SPECIFIC_SIZE;
+}
+
+usbd_interface_t class_interface = {
+	CLASS_STRING_FIRST,
+	CLASS_STRING_LAST,
+	NR_CLASS_ENDPS,
+	class_handle_ctrl_data,
+	class_config_length,
+};
+
+void class_init(void)
+{
+	/* Register NR_CLASS_ENDPS endpoints. */
+	class_addr[0] =
+		usbd_claim_endpoint(true, &class_endpoint_xxx);
+	class_addr[NR_CLASS_ENDPS-1] =
+		usbd_claim_endpoint(true, &class_endpoint_xxx);
+	/* Register interface. */
+	usbd_declare_interface(50, &class_interface);
+}
+==========================================================================
+             Figure 4 - Sample Class Interface Driver Entrance
+Where:
+  1. usbd_input_interface_desc are called to report the class specific
+     fields of the interface descriptor.
+  2. usbd_input_endpoint_desc are called to report the class specific
+     endpoint descriptors.
+  3. usbd_input_string are called to report specific strings.
+  4. usbd_input_device_name are used to report firmware wide device name
+     string.
+  5. Functions or macros with the XXX or xxx suffix should be defined
+     according to the class specification.
+  6. The 'class_handle_class_request' function would get discussed in the
+     'ctrl' function description of the I/O Communication chapter.
+
+===== I/O Communication =====
+
+In this chapter we will discuss the following structures and functions:
+Functions should be implemented by the driver:
+1. ctrl (of usbd_interface_t)
+1. poll (of usbd_endpoint_t)
+1. iocb (of usbd_endpoint_t)
+2. done (of usbd_endpoint_t)
+Functions might be called by the driver:
+1. usbd_request_submit
+2. usbd_request_commit
+3. usbd_request_handled
+4. USBD_INB/USBD_INW/USBD_INL
+5. USBD_OUTB/USBD_OUTW/USBD_OUTL
+6. usbd_request_set_sync
+7. usbd_request_clear_sync
+
+USB class may require control endpoint 0 to be implemented to handle class
+specific control request.  The standard control requests are discussed in
+the previous chapter.  Likewise, the class specific control requests may
+also be implemented in the 'ctrl' callback.  Please find entrance of
+'class_handle_class_request' in the Figure 4.
+
+USB class may implement class specific bulk/interrupt endpoints.  They are
+registered through the 'usbd_claim_endpoint' function discussed in the
+previous chapter.  In this function, there're three callback should be
+implemented to handle I/O communications occurred in these endpoints.  USB
+device I/Os are well documented and you can find its descriptions in the
+Documentation/usb/usb_io.txt, in the Figure 2 of which you can find where
+these callbacks are get called.  This figure can help you imagine what
+should be implemented in such callback functions.
+In the 'poll' function, only the 'usbd_request_submit' function are
+allowed to be called.  The USB device stack core will periodically poll
+the registered endpoints to see whether there's any URB need to be
+handled.  In the 'poll' callback, class interface drivers should generally
+check its protocol's state and call the 'usbd_request_submit' if necessary
+according to the protocol's state.
+Once the 'usbd_request_submit' is called in the 'poll' callback, the
+'iocb' callback would get invoked by the core USB device stack.  In this
+function, I/O data can be received and sent using the 'USBD_OUTX' and the
+'USBD_INX' macros.  Note that the URB request size along with the
+'usbd_request_submit' call are typically header size of the URB, the
+'usbd_request_handled' and 'usbd_request_commit' the will then be called
+in the 'iocb' functions to validate the submitted bytes and submitted
+bytes and request more bytes for the URB.
+Once the total size of the submitted I/O is handled, the 'done' callback
+will get invoked by the core USB device stack.  Typically, a class
+interface driver would switch its state to allow another URB can be
+submitted in the following 'poll' callback.
+
+For performance reasons, some class interface drivers may switch I/O
+communication models between asynchronous and synchronous model.  This can
+be through the 'usbd_request_set_sync' and 'usbd_request_clear_sync' APIs
+in the 'iocb' callback.
+
+
+                                                       by Lv ZETALOG Zheng
