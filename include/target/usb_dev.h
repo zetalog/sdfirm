@@ -98,7 +98,7 @@ struct usb_transfer {
 struct usbd_interface {
 	uint8_t string_first;
 	uint8_t string_last;
-	uint8_t nr_endps,
+	uint8_t nr_endps;
 	usb_io_cb ctrl;
 	usb_size_cb config_len;
 #ifdef CONFIG_USB_USBIP_DEV
