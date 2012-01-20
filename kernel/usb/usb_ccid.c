@@ -1940,7 +1940,7 @@ usbd_endpoint_t ccid_endpoint_irq = {
 
 static void ccid_intr_desc(void)
 {
-	usbd_get_endpoint_desc(CCID_ADDR_IRQ);
+	usbd_input_endpoint_desc(CCID_ADDR_IRQ);
 }
 
 static void ccid_change_init(void)
@@ -2005,15 +2005,7 @@ static void ccid_handle_iso7816_cmpl(void)
  *=======================================================================*/
 static uint16_t ccid_config_length(void)
 {
-	uint8_t i;
-	uint16_t length;
-	
-	length = USB_DT_INTERFACE_SIZE;
-	length += SCD_DT_SCD_SIZE;
-	for (i = 0; i < NR_CCID_ENDPS; i++) {
-		length += USB_DT_ENDPOINT_SIZE;
-	}
-	return length;
+	return SCD_DT_SCD_SIZE;
 }
 
 static void ccid_get_ccid_desc(void)
@@ -2042,23 +2034,15 @@ static void ccid_get_ccid_desc(void)
 	USBD_INB(NR_CCID_QUEUES);
 }
 
-static void ccid_get_intfc_desc(void)
-{
-	/* IN interface descriptor */
-	USBD_INB(NR_CCID_ENDPS);
-	USBD_INB(USB_INTERFACE_CLASS_CCID);
-	USBD_INB(USB_DEVICE_SUBCLASS_NONE);
-	USBD_INB(USB_INTERFACE_PROTOCOL_CCID);
-	USBD_INB(CCID_STRING_INTERFACE);
-}
-
 static void ccid_get_config_desc(void)
 {
-	ccid_get_intfc_desc();
+	usbd_input_interface_desc(USB_INTERFACE_CLASS_CCID,
+				  USB_DEVICE_SUBCLASS_NONE,
+				  USB_INTERFACE_PROTOCOL_CCID,
+				  CCID_STRING_INTERFACE);
 	ccid_get_ccid_desc();
-
-	usbd_get_endpoint_desc(CCID_ADDR_IN);
-	usbd_get_endpoint_desc(CCID_ADDR_OUT);
+	usbd_input_endpoint_desc(CCID_ADDR_IN);
+	usbd_input_endpoint_desc(CCID_ADDR_OUT);
 	ccid_intr_desc();
 }
 
@@ -2068,7 +2052,7 @@ static void ccid_get_string_desc(void)
 
 	switch (id) {
 	case CCID_STRING_INTERFACE:
-		usbd_input_device();
+		usbd_input_device_name();
 		break;
 	default:
 		USBD_INB(0x00);
@@ -2255,6 +2239,7 @@ usbd_endpoint_t ccid_endpoint_out = {
 usbd_interface_t usb_ccid_interface = {
 	CCID_STRING_FIRST,
 	CCID_STRING_LAST,
+	NR_CCID_ENDPS,
 	ccid_handle_ctrl_data,
 	ccid_config_length,
 };

@@ -181,15 +181,7 @@ static uint8_t hid_descriptor_length(void)
 
 static uint16_t hid_config_length(void)
 {
-	uint8_t i;
-	uint16_t length;
-	
-	length = sizeof (usb_intf_desc_t);
-	length += hid_descriptor_length();
-	for (i = 0; i < NR_HID_ENDPS; i++) {
-		length += USB_DT_ENDPOINT_SIZE;
-	}
-	return length;
+	return hid_descriptor_length();
 }
 
 static uint16_t hid_opt_descriptor_length(hid_rid_t rid)
@@ -218,24 +210,16 @@ static void hid_get_hid_desc(void)
 	}
 }
 
-static void hid_get_intfc_desc(void)
-{
-	/* IN interface descriptor */
-	USBD_INB(NR_HID_ENDPS);
-	USBD_INB(USB_INTERFACE_CLASS_HID);
-	USBD_INB(USB_INTERFACE_SUBCLASS_BOOT);
-	USBD_INB(USB_INTERFACE_PROTOCOL_KEYBOARD);
-	USBD_INB(HID_STRING_INTERFACE);
-}
-
 static void hid_get_config_desc(void)
 {
-	hid_get_intfc_desc();
+	usbd_input_interface_desc(USB_INTERFACE_CLASS_HID,
+				  USB_INTERFACE_SUBCLASS_BOOT,
+				  USB_INTERFACE_PROTOCOL_KEYBOARD,
+				  HID_STRING_INTERFACE);
 	hid_get_hid_desc();
-
-	usbd_get_endpoint_desc(HID_ADDR_IN);
+	usbd_input_endpoint_desc(HID_ADDR_IN);
 #if NR_HID_ENDPS > 1
-	usbd_get_endpoint_desc(HID_ADDR_OUT);
+	usbd_input_endpoint_desc(HID_ADDR_OUT);
 #endif
 }
 
@@ -245,7 +229,7 @@ static void hid_get_string_desc(void)
 
 	switch (id) {
 	case HID_STRING_INTERFACE:
-		usbd_input_device();
+		usbd_input_device_name();
 		break;
 	default:
 		USBD_INB(0x00);
@@ -674,6 +658,7 @@ usbd_endpoint_t hid_endpoint_out = {
 usbd_interface_t usb_hid_interface = {
 	HID_STRING_FIRST,
 	HID_STRING_LAST,
+	NR_HID_ENDPS,
 	hid_handle_ctrl_data,
 	hid_config_length,
 };

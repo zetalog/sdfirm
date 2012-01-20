@@ -407,19 +407,12 @@ static void dfu_get_func_desc(void)
 	USBD_INW(DFU_VERSION);
 }
 
-static void dfu_get_intfc_desc(void)
-{
-	/* IN interface descriptor */
-	USBD_INB(0);
-	USBD_INB(USB_INTERFACE_CLASS_DFU);
-	USBD_INB(DFU_INTERFACE_SUBCLASS);
-	USBD_INB(dfu_proto);
-	USBD_INB(DFU_STRING_INTERFACE);
-}
-
 static void dfu_get_config_desc(void)
 {
-	dfu_get_intfc_desc();
+	usbd_input_interface_desc(USB_INTERFACE_CLASS_DFU,
+				  DFU_INTERFACE_SUBCLASS,
+				  dfu_proto,
+				  DFU_STRING_INTERFACE);
 	dfu_get_func_desc();
 }
 
@@ -433,7 +426,7 @@ static void dfu_get_string_desc(void)
 
 	switch (id) {
 	case DFU_STRING_INTERFACE:
-		usbd_input_device();
+		usbd_input_device_name();
 		break;
 	default:
 		USBD_INB(0x00);
@@ -518,6 +511,7 @@ static uint16_t dfu_config_length(void)
 usbd_interface_t usb_dfu_interface = {
 	DFU_STRING_FIRST,
 	DFU_STRING_LAST,
+	0,
 	dfu_handle_ctrl_data,
 	dfu_config_length,
 };

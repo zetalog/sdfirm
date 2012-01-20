@@ -50,24 +50,17 @@ uint8_t msd_addr[NR_MSD_ENDPS];
 #define MSD_STRING_INTERFACE		MSD_STRING_FIRST+0
 #define MSD_STRING_LAST			MSD_STRING_INTERFACE
 
-static void msd_get_intfc_desc(void)
-{
-	/* IN interface descriptor */
-	USBD_INB(NR_MSD_ENDPS);
-	USBD_INB(USB_INTERFACE_CLASS_MSD);
-	USBD_INB(MSD_INTERFACE_SUBCLASS);
-	USBD_INB(MSD_INTERFACE_PROTOCOL);
-	USBD_INB(MSD_STRING_INTERFACE);
-}
-
 static void msd_get_config_desc(void)
 {
 	uint8_t i;
 
-	msd_get_intfc_desc();
+	usbd_input_interface_desc(USB_INTERFACE_CLASS_MSD,
+				  MSD_INTERFACE_SUBCLASS,
+				  MSD_INTERFACE_PROTOCOL,
+				  MSD_STRING_INTERFACE);
 
 	for (i = 0; i < NR_MSD_ENDPS; i++) {
-		usbd_get_endpoint_desc(msd_addr[i]);
+		usbd_input_endpoint_desc(msd_addr[i]);
 	}
 }
 
@@ -77,7 +70,7 @@ static void msd_get_string_desc(void)
 
 	switch (id) {
 	case MSD_STRING_INTERFACE:
-		usbd_input_device();
+		usbd_input_device_name();
 		break;
 	default:
 		USBD_INB(0x00);
@@ -151,14 +144,7 @@ static void msd_handle_ctrl_data(void)
 
 static uint16_t msd_config_length(void)
 {
-	uint8_t i;
-	uint16_t length;
-	
-	length = USB_DT_INTERFACE_SIZE;
-	for (i = 0; i < NR_MSD_ENDPS; i++) {
-		length += USB_DT_ENDPOINT_SIZE;
-	}
-	return length;
+	return 0;
 }
 
 uint8_t msd_proto_bulk_type(void)
@@ -196,6 +182,7 @@ uint8_t msd_handle_intf_attr(uint8_t type)
 usbd_interface_t usb_msd_interface = {
 	MSD_STRING_FIRST,
 	MSD_STRING_LAST,
+	NR_MSD_ENDPS,
 	msd_handle_ctrl_data,
 	msd_config_length,
 #ifdef CONFIG_USB_USBIP_DEV

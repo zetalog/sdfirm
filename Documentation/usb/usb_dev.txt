@@ -4,16 +4,17 @@
 
 ===== Initialization =====
 
-In this chapter we will discuss the following structures and functions:
-Structures should be implemented by the driver:
-1. usbd_interface_t
-2. usbd_endpoint_t
+In this chapter we will discuss the following functions:
+Functions should be implemented by the driver:
+1. usbd_hw_ctrl_init
+2. usbd_hw_ctrl_start
+3. usbd_hw_ctrl_stop
+4. usbd_hw_pm_start
+5. usbd_hw_pm_stop
+6. usbd_hw_bus_attach
+7. usbd_hw_bus_detach
 Functions might be called by the driver:
-1. usbd_declare_interface
-2. usbd_claim_endpoint
-3. usbd_get_endpoint_desc
-4. usbd_input_string
-5. usbd_input_device
+1. usbd_restart
 
 The usbd_hw_ctrl_init is called by software to give a chance to the driver
 to implement hardware specific initializations.

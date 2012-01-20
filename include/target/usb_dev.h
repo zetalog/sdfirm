@@ -98,6 +98,7 @@ struct usb_transfer {
 struct usbd_interface {
 	uint8_t string_first;
 	uint8_t string_last;
+	uint8_t nr_endps,
 	usb_io_cb ctrl;
 	usb_size_cb config_len;
 #ifdef CONFIG_USB_USBIP_DEV
@@ -414,10 +415,12 @@ boolean usbd_request_syncing(void);
 #define usbd_request_clear_sync()
 #endif
 
-void usbd_get_endpoint_desc(uint8_t addr);
-
+void usbd_input_interface_desc(uint8_t cls, uint8_t subcls,
+			       uint8_t proto, uint8_t istring);
+void usbd_input_endpoint_desc(uint8_t addr);
 void usbd_input_string(text_char_t *string);
-void usbd_input_device(void);
+void usbd_input_device_name(void);
+void usbd_input_serial_no(void);
 
 /*=========================================================================
  * USB globals

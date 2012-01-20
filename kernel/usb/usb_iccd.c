@@ -293,15 +293,7 @@ static void iccd_submit_command(void)
  *=======================================================================*/
 static uint16_t iccd_config_length(void)
 {
-	uint8_t i;
-	uint16_t length;
-	
-	length = USB_DT_INTERFACE_SIZE;
-	length += SCD_DT_SCD_SIZE;
-	for (i = 0; i < NR_ICCD_ENDPS; i++) {
-		length += USB_DT_ENDPOINT_SIZE;
-	}
-	return length;
+	return SCD_DT_SCD_SIZE;
 }
 
 static void iccd_get_iccd_desc(void)
@@ -330,27 +322,19 @@ static void iccd_get_iccd_desc(void)
 	USBD_INB(ICCD_MAX_BUSY_SLOT);	/* must be 1 */
 }
 
-static void iccd_get_intfc_desc(void)
-{
-	/* IN interface descriptor */
-	USBD_INB(NR_ICCD_ENDPS);
-	USBD_INB(USB_INTERFACE_CLASS_ICCD);
-	USBD_INB(USB_DEVICE_SUBCLASS_NONE);
-	USBD_INB(USB_PROTOCOL_ICCD);
-	USBD_INB(ICCD_STRING_INTERFACE);
-}
-
 static void iccd_get_config_desc(void)
 {
-	iccd_get_intfc_desc();
+	usbd_input_interface_desc(USB_INTERFACE_CLASS_ICCD,
+				  USB_DEVICE_SUBCLASS_NONE,
+				  USB_PROTOCOL_ICCD,
+				  ICCD_STRING_INTERFACE);
 	iccd_get_iccd_desc();
-
 #ifdef CONFIG_SCD_BULK
-	usbd_get_endpoint_desc(ICCD_ADDR_IN);
-	usbd_get_endpoint_desc(ICCD_ADDR_OUT);
+	usbd_input_endpoint_desc(ICCD_ADDR_IN);
+	usbd_input_endpoint_desc(ICCD_ADDR_OUT);
 #endif
 #ifdef CONFIG_SCD_INTERRUPT
-	usbd_get_endpoint_desc(ICCD_ADDR_IRQ);
+	usbd_input_endpoint_desc(ICCD_ADDR_IRQ);
 #endif
 }
 
@@ -360,7 +344,7 @@ static void iccd_get_string_desc(void)
 
 	switch (id) {
 	case ICCD_STRING_INTERFACE:
-		usbd_input_device();
+		usbd_input_device_name();
 		break;
 	default:
 		USBD_INB(0x00);
@@ -1104,6 +1088,7 @@ usbd_endpoint_t iccd_endpoint_irq = {
 usbd_interface_t usb_iccd_interface = {
 	ICCD_STRING_FIRST,
 	ICCD_STRING_LAST,
+	NR_ICCD_ENDPS,
 	iccd_handle_ctrl_data,
 	iccd_config_length,
 };
