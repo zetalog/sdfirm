@@ -52,15 +52,15 @@ specific endpoints and then call usbd_declare_interface to register its
 interface information to the core USB device stack.
 
 In the usbd_endpoint_t structure, the following fields are given:
-  attrs		This field contain the type and direction of the endpoint,
-                please refer Figure 2 for the macros can be used in this
-		field.  This field can affect the bEndpointAddress and the
-		bmAttributes reported in the USB ENDPOINT DESCRIPTOR.
-  interval	This field contain the bInterval value that should be
-                reported in the USB ENDPOINT DESCRIPTOR.
-  poll		The three functions will be called by the USB device stack
-  iocb          core, please refer to the I/O Communication chapter for
-  done		the details.
+  attrs    This field contain the type and direction of the endpoint,
+           please refer Figure 2 for the macros can be used in this field.
+           This field can affect the bEndpointAddress and the bmAttributes
+           reported in the USB ENDPOINT DESCRIPTOR.
+  interval This field contain the bInterval value that should be reported
+           in the USB ENDPOINT DESCRIPTOR.
+  poll     The three functions will be called by the USB device stack
+  iocb     core, please refer to the I/O Communication chapter for the
+  done     details.
 Following macros can be used for the attrs value listed in the
 usbd_endpoint_t structure:
       +--------------------+--------------------------------------+
@@ -83,19 +83,19 @@ usbd_endpoint_t structure:
              Figure 2 - Value of 'attrs' for usbd_endpoint_t
 
 In the usbd_interface_t structure, the following fields are given:
-  string_first	These tow fields give a range of the string IDs that is
-  string_last   current maintained by this interface driver.
-  nr_endps	Number of extra endpoints (compared to the default control
-                endpoint 0) used by this interface driver.
-  config_len	Length of class/vendor specific descriptors reported in
-  		the USB_GET_DESCRIPTOR(USB CONFIGURATION DESCRIPTOR)
-  		request transaction.
-  ctrl		This function will be called by the USB device stack core,
-  		please refer to the I/O Communication chapter for the
-  		details.
-  		NOTE: class/vendor specific descriptors and string
-  		      descriptors should also be reported in this
-  		      function.
+  string_first These tow fields give a range of the string IDs that is
+  string_last  current maintained by this interface driver.
+  nr_endps     Number of extra endpoints (compared to the default control
+               endpoint 0) used by this interface driver.
+  config_len   Length of class/vendor specific descriptors reported in the
+               USB_GET_DESCRIPTOR(USB CONFIGURATION DESCRIPTOR) request
+               transaction.
+  ctrl         This function will be called by the USB device stack core.
+               Class/vendor specific descriptors and string descriptors
+               should also be reported in this function, which will be
+               discussed in the text below.  Class specific requests
+               should also get handled in this function, please refer to
+               the I/O Communication chapter for the details.
 
 It is mandated that the interface driver should implement the 'ctrl'
 callback to report the class specific configuration descriptor part shown
