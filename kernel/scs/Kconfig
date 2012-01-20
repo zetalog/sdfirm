@@ -36,6 +36,11 @@ config IFD_SLOT
 	select IFD_AUTO_RESET
 	select IFD_XCHG_APDU
 
+config PN53X_SLOT
+	bool "Enable fake ICC for PN53x communication"
+	select PCD
+	select PCD_PN53X
+
 endif
 
 menuconfig IFD

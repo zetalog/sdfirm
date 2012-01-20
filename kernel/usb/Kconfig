@@ -414,6 +414,8 @@ endif
 
 menuconfig USB_PN53X
 	bool "NXP PN53X NFC device support"
+	select PCD
+	select PCD_PN53X
 
 if USB_PN53X
 
