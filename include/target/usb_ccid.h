@@ -89,13 +89,20 @@ struct ccid_hwerr {
 
 /* maximum busy slots in CCID layer */
 #define NR_SCD_SLOTS			NR_IFD_SLOTS
+#define scd_sid				ifd_slid
+#ifdef CONFIG_CCID_ABORT
+#define NR_SCD_QUEUES			(NR_SCD_SLOTS + 1)
+#else
+#define NR_SCD_QUEUES			NR_SCD_SLOTS
+#endif
+
+#define scd_read_byte(i)		ifd_read_byte(i)
+
 /*
  * QID = SID+1: additional QID for BULK_OUT
  */
-#define NR_CCID_QUEUES			NR_IFD_SLOTS + 1
-#define INVALID_CCID_SID		NR_IFD_SLOTS
-#define INVALID_CCID_QID		NR_CCID_QUEUES
-#define INVALID_CCID_SEQ		NR_CCID_QUEUES
+#define INVALID_CCID_SID		NR_SCD_SLOTS
+#define INVALID_CCID_SEQ		NR_SCD_QUEUES
 
 #define CCID_STATE_IDLE			0x00
 

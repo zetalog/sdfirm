@@ -512,8 +512,8 @@ usbd_interface_t usb_dfu_interface = {
 	DFU_STRING_FIRST,
 	DFU_STRING_LAST,
 	0,
-	dfu_handle_ctrl_data,
 	dfu_config_length,
+	dfu_handle_ctrl_data,
 };
 
 #if 0

@@ -183,8 +183,8 @@ usbd_interface_t usb_msd_interface = {
 	MSD_STRING_FIRST,
 	MSD_STRING_LAST,
 	NR_MSD_ENDPS,
-	msd_handle_ctrl_data,
 	msd_config_length,
+	msd_handle_ctrl_data,
 #ifdef CONFIG_USB_USBIP_DEV
 	msd_handle_intf_attr,
 #endif

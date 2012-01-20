@@ -67,12 +67,12 @@
 
 #ifdef CONFIG_ICCD_COS
 #define NR_SCD_SLOTS		1
-#define iccd_id			0
+#define scd_sid			0
 #else
 #define NR_SCD_SLOTS		NR_SCS_SLOTS
-#define iccd_id			scs_sid
+#define scd_sid			scs_sid
 #endif
-#define INVALID_ICCD_CARD	NR_SCD_SLOTS
+#define NR_SCD_QUEUES		NR_SCS_SLOTS
 #define ICCD_SINGLE_SLOT_IDX	(ICCD_MAX_BUSY_SLOT-1)
 
 struct iccd_t1_param {

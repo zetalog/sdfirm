@@ -200,15 +200,15 @@ void scd_Escape_in(void);
 
 #ifdef CONFIG_USB_CCID
 #include <target/usb_ccid.h>
-#define NR_SCD_QUEUES		NR_CCID_QUEUES
 #define scd_CmdOffset_cmp(off)	ccid_CmdOffset_cmp(off)
 #define scd_SlotStatus_in()	ccid_SlotStatus_in()
 #endif
 #ifdef CONFIG_USB_ICCD
 #include <target/usb_iccd.h>
-#define NR_SCD_QUEUES		NR_SCD_SLOTS
 #define scd_CmdOffset_cmp(off)	iccd_CmdOffset_cmp(off)
 #define scd_SlotStatus_in()	iccd_SlotStatus_in()
 #endif
+
+#define INVALID_SCD_QID			NR_SCD_QUEUES
 
 #endif /* __USB_SCD_H_INCLUDE__ */

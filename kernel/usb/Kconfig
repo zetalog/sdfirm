@@ -273,12 +273,8 @@ config CCID_INTERRUPT_HWERR
 	  in this implementation.
 	  If you are not sure, say N here.
 
-config CCID_DISCARD
-	bool "CCID command/response queue discard support"
-
-config CCID_QUEUE
-	bool "CCID queued command/response support"
-	default y
+config CCID_ABORT
+	bool "Enable abort command support"
 
 config CCID_SECURE
 	bool "CCID secure command support"
@@ -343,11 +339,6 @@ endchoice
 choice
 	prompt "ICCD Exchange Level"
 	default ICCD_XCHG_APDU
-
-#config ICCD_XCHG_CHAR
-#	bool "Character"
-#	help
-#	  Character level exchanges.
 
 config ICCD_XCHG_APDU
 	bool "APDU"

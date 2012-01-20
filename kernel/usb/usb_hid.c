@@ -659,8 +659,8 @@ usbd_interface_t usb_hid_interface = {
 	HID_STRING_FIRST,
 	HID_STRING_LAST,
 	NR_HID_ENDPS,
-	hid_handle_ctrl_data,
 	hid_config_length,
+	hid_handle_ctrl_data,
 };
 
 static void hid_start(void)

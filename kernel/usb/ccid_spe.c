@@ -409,7 +409,7 @@ static void ccid_spe_operate_next(void)
 
 static void ccid_spe_operate_wait(void)
 {
-	set_bit(ccid_qid, ccid_spe_waits);
+	set_bit(scd_qid, ccid_spe_waits);
 }
 
 static void ccid_spe_slot_init(void)
@@ -562,7 +562,7 @@ static void ccid_spe_key_begin(ccid_spe_cmpl_cb cb)
 {
 	ccid_spe_reset_init();
 	ccid_spe_ctrl.entry_cmpl = cb;
-	ccid_spe_ctrl.sid = ccid_qid;
+	ccid_spe_ctrl.sid = scd_qid;
 	ccid_spe_kh = kbd_set_capture(ccid_spe_capture,
 				      ccid_spe_key_timeout());
 	BUG_ON(ccid_spe_kh == ccid_spe_capture);
@@ -576,7 +576,7 @@ uint8_t ccid_spe_msg_number(void)
 		return 0;
 }
 
-/* this function is called when ccid_qid is determined
+/* this function is called when scd_qid is determined
  */
 static void __ccid_spe_operate_init(void)
 {

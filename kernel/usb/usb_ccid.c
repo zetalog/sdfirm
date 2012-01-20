@@ -86,7 +86,7 @@ typedef union ccid_data {
 #define CCID_ADDR_OUT			ccid_addr[CCID_ENDP_BULK_OUT]
 #define CCID_ADDR_IRQ			ccid_addr[CCID_ENDP_INTR_IN]
 
-#define CCID_QID_OUT			(NR_CCID_QUEUES-1)
+#define CCID_QID_OUT			(NR_SCD_QUEUES-1)
 #define CCID_QID_IN			ccid_seq_queue[0]
 
 static void ccid_slot_enter(uint8_t state);
@@ -130,9 +130,9 @@ static void ccid_RespHeader_in(scs_size_t length);
  *  |                      seq_queue                     | |
  *  +----------------------------------------------------+ |
  *
- * ccid_qid_t 0 ~ NR_CCID_QUEUES (0 ~ NR_SCD_SLOTS+1)
+ * ccid_qid_t 0 ~ NR_SCD_QUEUES (0 ~ NR_SCD_SLOTS+1)
  * ifd_sid_t  0 ~ NR_SCD_SLOTS
- * ccid_seq_t 0 ~ NR_CCID_QUEUES (seq_queue index)
+ * ccid_seq_t 0 ~ NR_SCD_QUEUES (seq_queue index)
  * seq_queue: USB request queue, only queue[0] is sensitive for BULK IN
  */
 /*
@@ -179,10 +179,10 @@ static void ccid_RespHeader_in(scs_size_t length);
  * 	      usbd_request_submit(IN) (is IN_QID)
  * 	        -> DATA
  */
-__near__ struct ccid_slot ccid_slots[NR_CCID_QUEUES];
-__near__ struct scd_resp ccid_resps[NR_CCID_QUEUES];
-__near__ struct scd_cmd ccid_cmds[NR_CCID_QUEUES];
-__near__ ifd_sid_t ccid_seq_queue[NR_CCID_QUEUES];
+__near__ struct ccid_slot ccid_slots[NR_SCD_QUEUES];
+__near__ struct scd_resp ccid_resps[NR_SCD_QUEUES];
+__near__ struct scd_cmd ccid_cmds[NR_SCD_QUEUES];
+__near__ ifd_sid_t ccid_seq_queue[NR_SCD_QUEUES];
 __near__ ccid_seq_t ccid_nr_seqs = 0;
 
 __near__ uint8_t ccid_addr[NR_CCID_ENDPS];
@@ -193,7 +193,7 @@ __near__ struct ccid_hwerr ccid_intr_hwerrs[NR_SCD_SLOTS];
 DECLARE_BITMAP(ccid_running_intrs, NR_SCD_SLOTS+NR_SCD_SLOTS);
 DECLARE_BITMAP(ccid_pending_intrs, NR_SCD_SLOTS+NR_SCD_SLOTS);
 
-__near__ ccid_qid_t ccid_qid = INVALID_CCID_QID;
+__near__ ccid_qid_t scd_qid = INVALID_SCD_QID;
 
 #define CCID_STRING_FIRST	0x10
 #define CCID_STRING_INTERFACE	CCID_STRING_FIRST+0
@@ -253,7 +253,7 @@ static uint32_t ccid_device_features(void)
 
 static uint8_t ccid_resp_message(void)
 {
-	switch (ccid_cmds[ccid_qid].bMessageType) {
+	switch (ccid_cmds[scd_qid].bMessageType) {
 	case CCID_PC2RDR_ICCPOWERON:
 	case CCID_PC2RDR_XFRBLOCK:
 	case CCID_PC2RDR_SECURE:
@@ -300,14 +300,14 @@ static uint8_t ccid_proto_features(void)
 
 static void ccid_qid_restore(ccid_qid_t qid)
 {
-	ccid_qid = qid;
+	scd_qid = qid;
 }
 
 static ccid_qid_t ccid_qid_save(ccid_qid_t qid)
 {
 	ccid_qid_t sqid;
 
-	sqid = ccid_qid;
+	sqid = scd_qid;
 	ccid_qid_restore(qid);
 	return sqid;
 }
@@ -366,7 +366,7 @@ __near__ boolean ccid_msg_custom = false;
 
 void ccid_display_slot(void)
 {
-	ccid_qid_t qid = ccid_qid;
+	ccid_qid_t qid = scd_qid;
 
 	if (qid >= NR_SCD_SLOTS)
 		qid = 0;
@@ -430,7 +430,7 @@ static void ccid_slot_reset(ccid_qid_t qid)
 
 static boolean ccid_is_cmd_status(uint8_t status)
 {
-	return ((ccid_resps[ccid_qid].bStatus & SCD_CMD_STATUS_MASK) == status);
+	return ((ccid_resps[scd_qid].bStatus & SCD_CMD_STATUS_MASK) == status);
 }
 
 static void ccid_slot_abort(uint8_t type, ifd_sid_t sid, uint8_t seq)
@@ -477,7 +477,7 @@ static void ccid_enqueue(ccid_qid_t qid)
 {
 	ccid_seq_queue[ccid_nr_seqs] = qid;
 	ccid_nr_seqs++;
-	BUG_ON(ccid_nr_seqs > NR_CCID_QUEUES);
+	BUG_ON(ccid_nr_seqs > NR_SCD_QUEUES);
 
 	if (qid == CCID_QID_IN) {
 		ccid_submit_response();
@@ -488,7 +488,7 @@ static void ccid_dequeue(ccid_qid_t qid)
 {
 	ccid_seq_t i;
 
-	BUG_ON(qid >= INVALID_CCID_QID);
+	BUG_ON(qid >= INVALID_SCD_QID);
 
 	if (ccid_nr_seqs > 0 && CCID_QID_IN == qid) {
 		/* remove top one */
@@ -500,10 +500,10 @@ static void ccid_dequeue(ccid_qid_t qid)
 		for (i = 0; i < ccid_nr_seqs; i++) {
 			/* new seq should be VALID */
 			qid = ccid_seq_queue[i+1];
-			BUG_ON(qid > NR_CCID_QUEUES-1);
+			BUG_ON(qid > NR_SCD_QUEUES-1);
 			ccid_seq_queue[i] = qid;
 		}
-		BUG_ON(ccid_nr_seqs > NR_CCID_QUEUES);
+		BUG_ON(ccid_nr_seqs > NR_SCD_QUEUES);
 		ccid_submit_response();
 	}
 	if (CCID_QID_OUT == qid) {
@@ -513,16 +513,16 @@ static void ccid_dequeue(ccid_qid_t qid)
 
 static void ccid_slot_enter(uint8_t state)
 {
-	if (ccid_slots[ccid_qid].state != state) {
+	if (ccid_slots[scd_qid].state != state) {
 		scd_debug(SCD_DEBUG_STATE, state);
-		ccid_slots[ccid_qid].state = state;
+		ccid_slots[scd_qid].state = state;
 	}
 	if (state == SCD_SLOT_STATE_RDR2PC) {
-		ccid_enqueue(ccid_qid);
+		ccid_enqueue(scd_qid);
 	}
 	if (state == SCD_SLOT_STATE_PC2RDR) {
-		ccid_dequeue(ccid_qid);
-		ccid_resps[ccid_qid].abRFU3 = 0;
+		ccid_dequeue(scd_qid);
+		ccid_resps[scd_qid].abRFU3 = 0;
 	}
 }
 
@@ -548,17 +548,17 @@ static void ccid_submit_command(void)
  *=======================================================================*/
 static void __ccid_CmdSuccess_out(void)
 {
-	ccid_resps[ccid_qid].bStatus = scd_slot_status();
-	ccid_resps[ccid_qid].bError = 0;
+	ccid_resps[scd_qid].bStatus = scd_slot_status();
+	ccid_resps[scd_qid].bError = 0;
 }
 
 static void __ccid_CmdFailure_out(uint8_t error, uint8_t status)
 {
-	ccid_resps[ccid_qid].bStatus = SCD_CMD_STATUS_FAIL |
+	ccid_resps[scd_qid].bStatus = SCD_CMD_STATUS_FAIL |
 				       status;
-	ccid_resps[ccid_qid].bError = error;
-	ccid_resps[ccid_qid].abRFU3 = CCID_CLOCK_RUNNING;
-	ccid_resps[ccid_qid].dwLength = 0;
+	ccid_resps[scd_qid].bError = error;
+	ccid_resps[scd_qid].abRFU3 = CCID_CLOCK_RUNNING;
+	ccid_resps[scd_qid].dwLength = 0;
 }
 
 static void ccid_CmdFailure_out(uint8_t error)
@@ -569,8 +569,8 @@ static void ccid_CmdFailure_out(uint8_t error)
 static void ccid_SlotStatus_out(void)
 {
 	__ccid_CmdSuccess_out();
-	ccid_resps[ccid_qid].abRFU3 = CCID_CLOCK_RUNNING;
-	ccid_resps[ccid_qid].dwLength = 0;
+	ccid_resps[scd_qid].abRFU3 = CCID_CLOCK_RUNNING;
+	ccid_resps[scd_qid].dwLength = 0;
 }
 
 static void ccid_DataBlock_out(void)
@@ -579,8 +579,8 @@ static void ccid_DataBlock_out(void)
 	scs_size_t ne = CCID_XB_NE;
 
 	__ccid_CmdSuccess_out();
-	ccid_resps[ccid_qid].abRFU3 = 0;
-	ccid_resps[ccid_qid].dwLength = ne ? (nr < ne ? nr : ne) : nr;
+	ccid_resps[scd_qid].abRFU3 = 0;
+	ccid_resps[scd_qid].dwLength = ne ? (nr < ne ? nr : ne) : nr;
 }
 
 #ifndef CONFIG_IFD_AUTO_PPS_PROP
@@ -588,20 +588,20 @@ static void ccid_DataAndFreq_out(void)
 {
 	__ccid_CmdSuccess_out();
 	/* TODO: chain parameter */
-	ccid_resps[ccid_qid].abRFU3 = 0;
-	ccid_resps[ccid_qid].dwLength = 8;
+	ccid_resps[scd_qid].abRFU3 = 0;
+	ccid_resps[scd_qid].dwLength = 8;
 }
 
 static void ccid_Parameters_out(void)
 {
 	__ccid_CmdSuccess_out();
-	switch (ccid_resps[ccid_qid].abRFU3) {
+	switch (ccid_resps[scd_qid].abRFU3) {
 	case SCD_PROTOCOL_T0:
-		ccid_resps[ccid_qid].dwLength = sizeof (struct scd_t0_param);
+		ccid_resps[scd_qid].dwLength = sizeof (struct scd_t0_param);
 		break;
 #ifdef CONFIG_IFD_T1
 	case SCD_PROTOCOL_T1:
-		ccid_resps[ccid_qid].dwLength = sizeof (struct scd_t1_param);
+		ccid_resps[scd_qid].dwLength = sizeof (struct scd_t1_param);
 		break;
 #endif
 	}
@@ -616,9 +616,9 @@ static void ccid_GetParameters_out(void)
 	 * inserted.  We wonder whether windows does not care about
 	 * parameters on APDU level exchange.
 	 */
-	ccid_resps[ccid_qid].abRFU3 = SCD_PROTOCOL_T0;
+	ccid_resps[scd_qid].abRFU3 = SCD_PROTOCOL_T0;
 #else
-	ccid_resps[ccid_qid].abRFU3 = ifd_get_proto();
+	ccid_resps[scd_qid].abRFU3 = ifd_get_proto();
 #endif
 	ccid_Parameters_out();
 }
@@ -630,7 +630,7 @@ static void ccid_SetParametersT0_out(void)
 	USBD_OUTB(ccid_cmd_data.t0.bGuardTimeT0);
 	USBD_OUTB(ccid_cmd_data.t0.bWaitingIntegerT0);
 	USBD_OUTB(ccid_cmd_data.t0.bClockStop);
-	ccid_resps[ccid_qid].abRFU3 = SCD_PROTOCOL_T0;
+	ccid_resps[scd_qid].abRFU3 = SCD_PROTOCOL_T0;
 	ccid_Parameters_out();
 }
 
@@ -644,14 +644,14 @@ static void ccid_SetParametersT1_out(void)
 	USBD_OUTB(ccid_cmd_data.t1.bClockStop);
 	USBD_OUTB(ccid_cmd_data.t1.bIFSC);
 	USBD_OUTB(ccid_cmd_data.t1.bNadValue);
-	ccid_resps[ccid_qid].abRFU3 = SCD_PROTOCOL_T1;
+	ccid_resps[scd_qid].abRFU3 = SCD_PROTOCOL_T1;
 	ccid_Parameters_out();
 }
 #endif
 
 static void ccid_SetParameters_out(void)
 {
-	uint8_t bProtocolNum = ccid_cmds[ccid_qid].abRFU[0];
+	uint8_t bProtocolNum = ccid_cmds[scd_qid].abRFU[0];
 
 	switch (bProtocolNum) {
 	case SCD_PROTOCOL_T0:
@@ -693,7 +693,7 @@ static void ccid_ResetParameters_cmp(void)
 
 static void ccid_SetParameters_cmp(void)
 {
-	uint8_t bProtocolNum = ccid_cmds[ccid_qid].abRFU[0];
+	uint8_t bProtocolNum = ccid_cmds[scd_qid].abRFU[0];
 	scs_err_t err;
 
 	switch (bProtocolNum) {
@@ -738,7 +738,7 @@ static void ccid_Parameters_in(void)
 {
 	uint32_t param_length;
 
-	switch (ccid_resps[ccid_qid].abRFU3) {
+	switch (ccid_resps[scd_qid].abRFU3) {
 	case SCD_PROTOCOL_T0:
 		param_length = sizeof (struct scd_t0_param);
 		break;
@@ -754,7 +754,7 @@ static void ccid_Parameters_in(void)
 
 	ccid_RespHeader_in(param_length);
 
-	switch (ccid_resps[ccid_qid].abRFU3) {
+	switch (ccid_resps[scd_qid].abRFU3) {
 	case SCD_PROTOCOL_T0:
 		USBD_INB(ifd_get_t0_param(IFD_T0_PARAM_FD));
 		USBD_INB(ifd_get_t0_param(IFD_T0_PARAM_TCCKS));
@@ -876,10 +876,10 @@ void __ccid_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size)
 		 * TODO: extended APDU level
 		 * more efforts
 		 */
-		CCID_XB_NE = (ccid_cmds[ccid_qid].abRFU[1] << 8) |
-			      ccid_cmds[ccid_qid].abRFU[2];
+		CCID_XB_NE = (ccid_cmds[scd_qid].abRFU[1] << 8) |
+			      ccid_cmds[scd_qid].abRFU[2];
 		/* reset WI */
-		CCID_XB_WI = ccid_cmds[ccid_qid].abRFU[0];
+		CCID_XB_WI = ccid_cmds[scd_qid].abRFU[0];
 	}
 	/* force USB reap on error */
 	if (!scd_slot_success(CCID_XB_ERR)) {
@@ -906,12 +906,12 @@ void __ccid_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size)
 
 static void ccid_XfrBlock_out(void)
 {
-	__ccid_XfrBlock_out(SCD_HEADER_SIZE, ccid_cmds[ccid_qid].dwLength);
+	__ccid_XfrBlock_out(SCD_HEADER_SIZE, ccid_cmds[scd_qid].dwLength);
 }
 
 static void ccid_handle_slot_pc2rdr(void)
 {
-	if (ccid_cmds[ccid_qid].bMessageType == CCID_PC2RDR_GETSLOTSTATUS) {
+	if (ccid_cmds[scd_qid].bMessageType == CCID_PC2RDR_GETSLOTSTATUS) {
 		return;
 	}
 	if (scd_slot_status() == SCD_SLOT_STATUS_NOTPRESENT) {
@@ -926,7 +926,7 @@ static void ccid_handle_slot_pc2rdr(void)
 	}
 #endif
 
-	switch (ccid_cmds[ccid_qid].bMessageType) {
+	switch (ccid_cmds[scd_qid].bMessageType) {
 	case CCID_PC2RDR_ICCPOWERON:
 		ccid_IccPowerOn_out();
 		break;
@@ -965,36 +965,36 @@ static void ccid_handle_command(void)
 	ifd_sid_t sid;
 
 	ccid_qid_select(CCID_QID_OUT);
-	scd_debug(SCD_DEBUG_SLOT, ccid_qid);
+	scd_debug(SCD_DEBUG_SLOT, scd_qid);
 
-	BUG_ON(ccid_slots[ccid_qid].state != SCD_SLOT_STATE_PC2RDR &&
-	       ccid_slots[ccid_qid].state != SCD_SLOT_STATE_SANITY);
+	BUG_ON(ccid_slots[scd_qid].state != SCD_SLOT_STATE_PC2RDR &&
+	       ccid_slots[scd_qid].state != SCD_SLOT_STATE_SANITY);
 
 	ccid_slot_enter(SCD_SLOT_STATE_SANITY);
 
 	/* CCID message header */
-	USBD_OUTB(ccid_cmds[ccid_qid].bMessageType);
-	USBD_OUTL(ccid_cmds[ccid_qid].dwLength);
-	USBD_OUTB(ccid_cmds[ccid_qid].bSlot);
-	USBD_OUTB(ccid_cmds[ccid_qid].bSeq);
-	USBD_OUTB(ccid_cmds[ccid_qid].abRFU[0]);
-	USBD_OUTB(ccid_cmds[ccid_qid].abRFU[1]);
-	USBD_OUTB(ccid_cmds[ccid_qid].abRFU[2]);
+	USBD_OUTB(ccid_cmds[scd_qid].bMessageType);
+	USBD_OUTL(ccid_cmds[scd_qid].dwLength);
+	USBD_OUTB(ccid_cmds[scd_qid].bSlot);
+	USBD_OUTB(ccid_cmds[scd_qid].bSeq);
+	USBD_OUTB(ccid_cmds[scd_qid].abRFU[0]);
+	USBD_OUTB(ccid_cmds[scd_qid].abRFU[1]);
+	USBD_OUTB(ccid_cmds[scd_qid].abRFU[2]);
 
 	if (usbd_request_handled() < SCD_HEADER_SIZE)
 		return;
 
 	if (usbd_request_handled() == SCD_HEADER_SIZE) {
 		usbd_request_commit(SCD_HEADER_SIZE +
-				    ccid_cmds[ccid_qid].dwLength);
-		scd_debug(SCD_DEBUG_PC2RDR, ccid_cmds[ccid_qid].bMessageType);
+				    ccid_cmds[scd_qid].dwLength);
+		scd_debug(SCD_DEBUG_PC2RDR, ccid_cmds[scd_qid].bMessageType);
 	}
 
-	sid = ccid_cmds[ccid_qid].bSlot;
+	sid = ccid_cmds[scd_qid].bSlot;
 	if (sid >= NR_SCD_SLOTS) {
 		return;
 	}
-	if (ccid_cmds[ccid_qid].bMessageType == CCID_PC2RDR_ABORT) {
+	if (ccid_cmds[scd_qid].bMessageType == CCID_PC2RDR_ABORT) {
 		return;
 	}
 	if (ccid_slots[sid].aborting != CCID_ABORT_NONE) {
@@ -1007,18 +1007,18 @@ static void ccid_handle_command(void)
 	}
 
 	if (usbd_request_handled() == SCD_HEADER_SIZE) {
-		ccid_cmds[sid].bMessageType = ccid_cmds[ccid_qid].bMessageType;
-		ccid_cmds[sid].dwLength = ccid_cmds[ccid_qid].dwLength;
-		ccid_cmds[sid].bSlot = ccid_cmds[ccid_qid].bSlot;
-		ccid_cmds[sid].bSeq = ccid_cmds[ccid_qid].bSeq;
-		ccid_cmds[sid].abRFU[0] = ccid_cmds[ccid_qid].abRFU[0];
-		ccid_cmds[sid].abRFU[1] = ccid_cmds[ccid_qid].abRFU[1];
-		ccid_cmds[sid].abRFU[2] = ccid_cmds[ccid_qid].abRFU[2];
+		ccid_cmds[sid].bMessageType = ccid_cmds[scd_qid].bMessageType;
+		ccid_cmds[sid].dwLength = ccid_cmds[scd_qid].dwLength;
+		ccid_cmds[sid].bSlot = ccid_cmds[scd_qid].bSlot;
+		ccid_cmds[sid].bSeq = ccid_cmds[scd_qid].bSeq;
+		ccid_cmds[sid].abRFU[0] = ccid_cmds[scd_qid].abRFU[0];
+		ccid_cmds[sid].abRFU[1] = ccid_cmds[scd_qid].abRFU[1];
+		ccid_cmds[sid].abRFU[2] = ccid_cmds[scd_qid].abRFU[2];
 	}
 
 	/* slot ID determined */
 	ccid_sid_select(sid);
-	scd_debug(SCD_DEBUG_SLOT, ccid_qid);
+	scd_debug(SCD_DEBUG_SLOT, scd_qid);
 
 	ccid_handle_slot_pc2rdr();
 }
@@ -1030,11 +1030,11 @@ static void ccid_RespHeader_in(scs_size_t length)
 {
 	USBD_INB(ccid_resp_message());
 	USBD_INL(length);
-	USBD_INB(ccid_cmds[ccid_qid].bSlot);
-	USBD_INB(ccid_cmds[ccid_qid].bSeq);
-	USBD_INB(ccid_resps[ccid_qid].bStatus);
-	USBD_INB(ccid_resps[ccid_qid].bError);
-	USBD_INB(ccid_resps[ccid_qid].abRFU3);
+	USBD_INB(ccid_cmds[scd_qid].bSlot);
+	USBD_INB(ccid_cmds[scd_qid].bSeq);
+	USBD_INB(ccid_resps[scd_qid].bStatus);
+	USBD_INB(ccid_resps[scd_qid].bError);
+	USBD_INB(ccid_resps[scd_qid].abRFU3);
 }
 
 void ccid_SlotStatus_in(void)
@@ -1046,37 +1046,37 @@ void ccid_DataBlock_in(void)
 {
 	scs_off_t i;
 
-	ccid_RespHeader_in(ccid_resps[ccid_qid].dwLength);
+	ccid_RespHeader_in(ccid_resps[scd_qid].dwLength);
 
 	usbd_iter_accel();
 
 	for (i = usbd_request_handled()-SCD_HEADER_SIZE;
-	     i < ccid_resps[ccid_qid].dwLength; i++) {
-		USBD_INB(ifd_read_byte(i));
+	     i < ccid_resps[scd_qid].dwLength; i++) {
+		USBD_INB(scd_read_byte(i));
 	}
 
 #if 0
 	if (usbd_request_handled() ==
-	    ccid_resps[ccid_qid].dwLength + SCD_HEADER_SIZE) {
+	    ccid_resps[scd_qid].dwLength + SCD_HEADER_SIZE) {
 		/* allow next XfrBlock fetching next bytes */
-		ccid_resps[ccid_qid].dwLength;
+		ccid_resps[scd_qid].dwLength;
 	}
 #endif
 
 	BUG_ON(usbd_request_handled() >
-	       ccid_resps[ccid_qid].dwLength + SCD_HEADER_SIZE);
+	       ccid_resps[scd_qid].dwLength + SCD_HEADER_SIZE);
 }
 
 static void ccid_handle_response(void)
 {
 	ccid_qid_select(CCID_QID_IN);
-	scd_debug(SCD_DEBUG_SLOT, ccid_qid);
+	scd_debug(SCD_DEBUG_SLOT, scd_qid);
 
 	BUG_ON(ccid_nr_seqs == 0);
-	BUG_ON(ccid_slots[ccid_qid].state != SCD_SLOT_STATE_RDR2PC);
-	BUG_ON(ccid_qid >= NR_CCID_QUEUES);
+	BUG_ON(ccid_slots[scd_qid].state != SCD_SLOT_STATE_RDR2PC);
+	BUG_ON(scd_qid >= NR_SCD_QUEUES);
 
-	if (ccid_cmds[ccid_qid].bMessageType == CCID_PC2RDR_ABORT) {
+	if (ccid_cmds[scd_qid].bMessageType == CCID_PC2RDR_ABORT) {
 		ccid_SlotStatus_in();
 		return;
 	}
@@ -1085,13 +1085,13 @@ static void ccid_handle_response(void)
 		return;
 	}
 
-	BUG_ON(ccid_qid >= NR_SCD_SLOTS);
-	BUG_ON(ccid_cmds[ccid_qid].bSlot != ccid_qid);
+	BUG_ON(scd_qid >= NR_SCD_SLOTS);
+	BUG_ON(ccid_cmds[scd_qid].bSlot != scd_qid);
 
-	ccid_sid_select(ccid_cmds[ccid_qid].bSlot);
-	scd_debug(SCD_DEBUG_SLOT, ccid_qid);
+	ccid_sid_select(ccid_cmds[scd_qid].bSlot);
+	scd_debug(SCD_DEBUG_SLOT, scd_qid);
 
-	switch (ccid_cmds[ccid_qid].bMessageType) {
+	switch (ccid_cmds[scd_qid].bMessageType) {
 	case CCID_PC2RDR_ICCPOWERON:
 	case CCID_PC2RDR_XFRBLOCK:
 	case CCID_PC2RDR_SECURE:
@@ -1129,8 +1129,8 @@ static void ccid_handle_response(void)
 static void ccid_complete_response(void)
 {
 	ccid_qid_select(CCID_QID_IN);
-	scd_debug(SCD_DEBUG_SLOT, ccid_qid);
-	BUG_ON(ccid_nr_seqs > NR_CCID_QUEUES);
+	scd_debug(SCD_DEBUG_SLOT, scd_qid);
+	BUG_ON(ccid_nr_seqs > NR_SCD_QUEUES);
 	if (ccid_nr_seqs > 0) {
 		ccid_slot_enter(SCD_SLOT_STATE_PC2RDR);
 	}
@@ -1163,7 +1163,7 @@ static void ccid_SlotStatus_cmp(void)
 #ifdef CONFIG_IFD_CLOCK_CONTROL
 static void ccid_IccClock_cmp(void)
 {
-	uint8_t bClockCommand = ccid_cmds[ccid_qid].abRFU[0];
+	uint8_t bClockCommand = ccid_cmds[scd_qid].abRFU[0];
 	scs_err_t err;
 
 	switch (bClockCommand) {
@@ -1188,7 +1188,7 @@ static void ccid_IccClock_cmp(void)
 static void ccid_Mechanical_cmp(void)
 {
 	scs_err_t err;
-	uint8_t bMechaCommand = ccid_cmds[ccid_qid].abRFU[0];
+	uint8_t bMechaCommand = ccid_cmds[scd_qid].abRFU[0];
 
 	switch (bMechaCommand) {
 	case CCID_MECHA_LOCK_CARD:
@@ -1216,8 +1216,8 @@ void ccid_CmdResponse_cmp(void)
 static void ccid_Abort_cmp(void)
 {
 	ccid_slot_abort(CCID_ABORT_BULK,
-			ccid_cmds[ccid_qid].bSlot,
-			ccid_cmds[ccid_qid].bSeq);
+			ccid_cmds[scd_qid].bSlot,
+			ccid_cmds[scd_qid].bSeq);
 }
 
 void ccid_ScsSequence_cmp(scs_err_t err)
@@ -1237,7 +1237,7 @@ void ccid_ScsSequence_cmp(scs_err_t err)
 static void ccid_IccPowerOn_cmp(void)
 {
 	scs_err_t err;
-	uint8_t bPowerSelect = ccid_cmds[ccid_qid].abRFU[0];
+	uint8_t bPowerSelect = ccid_cmds[scd_qid].abRFU[0];
 
 	err = ifd_power_on(bPowerSelect);
 	ccid_ScsSequence_cmp(err);
@@ -1268,9 +1268,9 @@ static void ccid_T0APDU_cmp(void)
 {
 	scs_err_t err;
 
-	err = ifd_set_t0_apdu(ccid_cmds[ccid_qid].abRFU[0],
-			      ccid_cmds[ccid_qid].abRFU[1],
-			      ccid_cmds[ccid_qid].abRFU[2]);
+	err = ifd_set_t0_apdu(ccid_cmds[scd_qid].abRFU[0],
+			      ccid_cmds[scd_qid].abRFU[1],
+			      ccid_cmds[scd_qid].abRFU[2]);
 	ccid_ScsSequence_cmp(err);
 }
 #endif
@@ -1289,11 +1289,11 @@ void ccid_XfrBlock_cmp(void)
 static void ccid_complete_slot_pc2rdr(void)
 {
 	if (usbd_request_handled() !=
-	    (ccid_cmds[ccid_qid].dwLength + SCD_HEADER_SIZE)) {
+	    (ccid_cmds[scd_qid].dwLength + SCD_HEADER_SIZE)) {
 		ccid_CmdOffset_cmp(1);
 		return;
 	}
-	if (ccid_cmds[ccid_qid].bMessageType == CCID_PC2RDR_GETSLOTSTATUS) {
+	if (ccid_cmds[scd_qid].bMessageType == CCID_PC2RDR_GETSLOTSTATUS) {
 		ccid_SlotStatus_cmp();
 		return;
 	}
@@ -1302,7 +1302,7 @@ static void ccid_complete_slot_pc2rdr(void)
 		return;
 	}
 
-	switch (ccid_cmds[ccid_qid].bMessageType) {
+	switch (ccid_cmds[scd_qid].bMessageType) {
 	case CCID_PC2RDR_ICCPOWERON:
 		ccid_IccPowerOn_cmp();
 		break;
@@ -1361,20 +1361,20 @@ static void ccid_complete_command(void)
 	ifd_sid_t sid;
 
 	ccid_qid_select(CCID_QID_OUT);
-	scd_debug(SCD_DEBUG_SLOT, ccid_qid);
+	scd_debug(SCD_DEBUG_SLOT, scd_qid);
 
-	BUG_ON(ccid_slots[ccid_qid].state != SCD_SLOT_STATE_PC2RDR &&
-	       ccid_slots[ccid_qid].state != SCD_SLOT_STATE_SANITY);
+	BUG_ON(ccid_slots[scd_qid].state != SCD_SLOT_STATE_PC2RDR &&
+	       ccid_slots[scd_qid].state != SCD_SLOT_STATE_SANITY);
 
 	if (usbd_request_handled() < SCD_HEADER_SIZE ||
-	    ccid_cmds[ccid_qid].bSlot >= NR_SCD_SLOTS) {
+	    ccid_cmds[scd_qid].bSlot >= NR_SCD_SLOTS) {
 		ccid_SlotNotExist_cmp();
 		return;
 	}
 
-	sid = ccid_cmds[ccid_qid].bSlot;
+	sid = ccid_cmds[scd_qid].bSlot;
 	/* XXX: care should be taken on BULK ABORT */
-	if (ccid_cmds[ccid_qid].bMessageType == CCID_PC2RDR_ABORT) {
+	if (ccid_cmds[scd_qid].bMessageType == CCID_PC2RDR_ABORT) {
 		ccid_Abort_cmp();
 		return;
 	}
@@ -1390,7 +1390,7 @@ static void ccid_complete_command(void)
 
 	/* now we are able to handle slot specific request */
 	ccid_sid_select(sid);
-	scd_debug(SCD_DEBUG_SLOT, ccid_qid);
+	scd_debug(SCD_DEBUG_SLOT, scd_qid);
 	ccid_complete_slot_pc2rdr();
 }
 
@@ -1436,7 +1436,7 @@ static void ccid_PinBlock_out(uint8_t base_size)
 		base_size += ccid_spe_msg_number()-1;
 	if (usbd_request_handled() >= (SCD_HEADER_SIZE + base_size)) {
 		__ccid_XfrBlock_out(SCD_HEADER_SIZE + base_size,
-				    ccid_cmds[ccid_qid].dwLength - base_size);
+				    ccid_cmds[scd_qid].dwLength - base_size);
 		if (usbd_request_handled() >= (SCD_HEADER_SIZE + base_size + 2)) {
 			ccid_PinInsByte_out();
 		}
@@ -1672,8 +1672,8 @@ static void ccid_discard(void)
 	for (i = 1, j = 1; i < ccid_nr_seqs; i++) {
 		qid = ccid_seq_queue[i];
 		/* new seq should be VALID */
-		BUG_ON(qid > NR_CCID_QUEUES-1);
-		if (ccid_cmds[ccid_qid].bSlot != ccid_qid) {
+		BUG_ON(qid > NR_SCD_QUEUES-1);
+		if (ccid_cmds[scd_qid].bSlot != scd_qid) {
 			ccid_seq_queue[j++] = qid;
 		} else {
 			ccid_qid_t sqid;
@@ -1684,12 +1684,12 @@ static void ccid_discard(void)
 		}
 	}
 
-	BUG_ON(ccid_nr_seqs > NR_CCID_QUEUES);
+	BUG_ON(ccid_nr_seqs > NR_SCD_QUEUES);
 
 	/* allow host sending commands, this should be called before
 	 * ccid_submit_response
 	 */
-	if (CCID_QID_IN == ccid_qid) {
+	if (CCID_QID_IN == scd_qid) {
 		/* usbd_request_discard_addr(CCID_ADDR_OUT); */
 		usbd_request_discard_addr(CCID_ADDR_IN);
 	}
@@ -1700,22 +1700,22 @@ static void ccid_discard(void)
 
 static void ccid_change_raise(void)
 {
-	if (ccid_qid < NR_SCD_SLOTS) {
+	if (scd_qid < NR_SCD_SLOTS) {
 		boolean changed = false;
 		if (scd_slot_status() == SCD_SLOT_STATUS_NOTPRESENT) {
 			ccid_discard();
-			if (test_bit(CCID_INTR_STATUS(ccid_qid), ccid_pending_intrs)) {
-				clear_bit(CCID_INTR_STATUS(ccid_qid), ccid_pending_intrs);
+			if (test_bit(CCID_INTR_STATUS(scd_qid), ccid_pending_intrs)) {
+				clear_bit(CCID_INTR_STATUS(scd_qid), ccid_pending_intrs);
 				changed = true;
 			}
 		} else {
-			if (!test_bit(CCID_INTR_STATUS(ccid_qid), ccid_pending_intrs)) {
-				set_bit(CCID_INTR_STATUS(ccid_qid), ccid_pending_intrs);
+			if (!test_bit(CCID_INTR_STATUS(scd_qid), ccid_pending_intrs)) {
+				set_bit(CCID_INTR_STATUS(scd_qid), ccid_pending_intrs);
 				changed = true;
 			}
 		}
 		if (changed) {
-			set_bit(CCID_INTR_CHANGE(ccid_qid), ccid_pending_intrs);
+			set_bit(CCID_INTR_CHANGE(scd_qid), ccid_pending_intrs);
 			scd_debug(SCD_DEBUG_INTR, CCID_INTR_PENDING_SET);
 		}
 	}
@@ -1762,10 +1762,10 @@ static boolean ccid_hwerr_pending(void)
 
 static void ccid_hwerr_raise(uint8_t err)
 {
-	if (ccid_qid < NR_SCD_SLOTS) {
-		ccid_intr_hwerrs[ccid_qid].bState |= CCID_HWERR_PENDING;
-		ccid_intr_hwerrs[ccid_qid].bPendingSeq = ccid_cmds[ccid_qid].bSeq;
-		ccid_intr_hwerrs[ccid_qid].bPendingCode |= err;
+	if (scd_qid < NR_SCD_SLOTS) {
+		ccid_intr_hwerrs[scd_qid].bState |= CCID_HWERR_PENDING;
+		ccid_intr_hwerrs[scd_qid].bPendingSeq = ccid_cmds[scd_qid].bSeq;
+		ccid_intr_hwerrs[scd_qid].bPendingCode |= err;
 	}
 }
 
@@ -1915,8 +1915,8 @@ static void ccid_submit_interrupt(void)
 
 static void ccid_handle_iso7816_intr(void)
 {
-	ccid_qid_select(ifd_slid);
-	BUG_ON(ccid_qid >= NR_SCD_SLOTS);
+	ccid_qid_select(scd_sid);
+	BUG_ON(scd_qid >= NR_SCD_SLOTS);
 	ccid_change_raise();
 }
 
@@ -1965,14 +1965,14 @@ static void ccid_handle_iso7816_cmpl(void)
 	scs_err_t err;
 
 	/* slot ID is determined before cmpl is called */
-	ccid_qid_select(ifd_slid);
+	ccid_qid_select(scd_sid);
 
-	BUG_ON(ccid_qid >= NR_SCD_SLOTS);
-	BUG_ON(ccid_slots[ccid_qid].state != SCD_SLOT_STATE_ISO7816);
+	BUG_ON(scd_qid >= NR_SCD_SLOTS);
+	BUG_ON(ccid_slots[scd_qid].state != SCD_SLOT_STATE_ISO7816);
 
 	err = ifd_xchg_get_error();
 
-	switch (ccid_cmds[ccid_qid].bMessageType) {
+	switch (ccid_cmds[scd_qid].bMessageType) {
 	case CCID_PC2RDR_ICCPOWERON:
 	case CCID_PC2RDR_XFRBLOCK:
 	case CCID_PC2RDR_SECURE:
@@ -2031,7 +2031,7 @@ static void ccid_get_ccid_desc(void)
 	USBD_INB(SCD_MUTE_APDU_CLASS);
 	USBD_INW(CCID_SPE_LCD_LAYOUT);
 	USBD_INB(CCID_SPE_SUPPORT_FUNC);
-	USBD_INB(NR_CCID_QUEUES);
+	USBD_INB(NR_SCD_QUEUES);
 }
 
 static void ccid_get_config_desc(void)
@@ -2240,8 +2240,8 @@ usbd_interface_t usb_ccid_interface = {
 	CCID_STRING_FIRST,
 	CCID_STRING_LAST,
 	NR_CCID_ENDPS,
-	ccid_handle_ctrl_data,
 	ccid_config_length,
+	ccid_handle_ctrl_data,
 };
 
 #ifdef CONFIG_CCID_SECURE
@@ -2286,7 +2286,7 @@ void ccid_init(void)
 	 */
 	CCID_ADDR_IN = usbd_claim_endpoint(true, &ccid_endpoint_in);
 	CCID_ADDR_OUT = usbd_claim_endpoint(true, &ccid_endpoint_out);
-	for (qid = 0; qid < NR_CCID_QUEUES; qid++) {
+	for (qid = 0; qid < NR_SCD_QUEUES; qid++) {
 		ccid_slot_reset(qid);
 	}
 	ccid_intr_init();
