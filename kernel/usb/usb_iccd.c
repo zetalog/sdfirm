@@ -67,7 +67,6 @@ static void iccd_handle_cmp(scs_err_t err, boolean block);
 static void __iccd_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size);
 
 struct iccd_dev iccd_devs[NR_SCD_SLOTS];
-struct scd_cmd iccd_cmds[NR_SCD_SLOTS];
 struct scd_resp iccd_resps[NR_SCD_SLOTS];
 
 iccd_data_t iccd_cmd_data;
@@ -78,11 +77,11 @@ DECLARE_BITMAP(iccd_running_intrs, NR_SCD_SLOTS+NR_SCD_SLOTS);
 DECLARE_BITMAP(iccd_pending_intrs, NR_SCD_SLOTS+NR_SCD_SLOTS);
 #endif
 
-#if NR_ICCD_ENDPS > 0
-uint8_t iccd_addr[NR_SCD_SLOTS][NR_ICCD_ENDPS];
-#define ICCD_ADDR_IN			iccd_addr[scd_qid][ICCD_ENDP_BULK_IN]
-#define ICCD_ADDR_OUT			iccd_addr[scd_qid][ICCD_ENDP_BULK_OUT]
-#define ICCD_ADDR_IRQ			iccd_addr[scd_qid][ICCD_ENDP_INTR_IN]
+#if NR_SCD_ENDPS > 0
+uint8_t iccd_addr[NR_SCD_SLOTS][NR_SCD_ENDPS];
+#define ICCD_ADDR_IN			iccd_addr[scd_qid][SCD_ENDP_BULK_IN]
+#define ICCD_ADDR_OUT			iccd_addr[scd_qid][SCD_ENDP_BULK_OUT]
+#define ICCD_ADDR_IRQ			iccd_addr[scd_qid][SCD_ENDP_INTR_IN]
 #define ICCD_ENDP_INTERVAL_INTR		0x7F
 #define ICCD_ENDP_INTERVAL_NONE		0x00
 #define ICCD_ENDP_INTERVAL_IN		0x01
@@ -101,7 +100,6 @@ uint8_t iccd_addr[NR_SCD_SLOTS][NR_ICCD_ENDPS];
 #define __iccd_xchg_avail()		cos_xchg_avail()
 #define __iccd_power_off()		cos_power_off()
 #define __iccd_power_on()		cos_power_on()
-#define __iccd_err_success()		SCS_ERR_SUCCESS
 #define __iccd_reg_handlers(cb1, cb2) 		\
 	do {					\
 		cos_register_handlers(cb2);	\
@@ -135,7 +133,6 @@ static uint8_t iccd_dev_error(scs_err_t err)
 #define __iccd_xchg_block(nc, ne)	scs_slot_xchg_block(nc, ne)
 #define __iccd_power_off()		scs_slot_power_off()
 #define __iccd_power_on()		scs_slot_power_on()
-#define __iccd_err_success()		SCS_ERR_SUCCESS
 #define __iccd_reg_handlers(cb1, cb2) 	scd_notify_slot(cb1, cb2)
 
 uint8_t iccd_dev_state(uint8_t d)
@@ -189,14 +186,16 @@ static uint32_t iccd_device_features(void)
 
 static uint8_t iccd_resp_message(void)
 {
-	switch (iccd_cmds[scd_qid].bMessageType) {
-	case ICCD_PC2RDR_ICCPOWERON:
-	case ICCD_PC2RDR_XFRBLOCK:
-		return ICCD_RDR2PC_DATABLOCK;
-	case ICCD_PC2RDR_ICCPOWEROFF:
-		return ICCD_RDR2PC_SLOTSTATUS;
+	switch (scd_cmds[scd_qid].bMessageType) {
+	case SCD_PC2RDR_ICCPOWERON:
+	case SCD_PC2RDR_XFRBLOCK:
+		return SCD_RDR2PC_DATABLOCK;
+	case SCD_PC2RDR_ICCPOWEROFF:
+		return SCD_RDR2PC_SLOTSTATUS;
+	case SCD_PC2RDR_ESCAPE:
+		return SCD_RDR2PC_ESCAPE;
 	}
-	return ICCD_RDR2PC_SLOTSTATUS;
+	return SCD_RDR2PC_SLOTSTATUS;
 }
 
 static uint32_t iccd_proto_features(void)
@@ -324,9 +323,9 @@ static void iccd_get_iccd_desc(void)
 
 static void iccd_get_config_desc(void)
 {
-	usbd_input_interface_desc(USB_INTERFACE_CLASS_ICCD,
+	usbd_input_interface_desc(USB_INTERFACE_CLASS_SCD,
 				  USB_DEVICE_SUBCLASS_NONE,
-				  USB_PROTOCOL_ICCD,
+				  USB_INTERFACE_PROTOCOL_ICCD,
 				  ICCD_STRING_INTERFACE);
 	iccd_get_iccd_desc();
 #ifdef CONFIG_SCD_BULK
@@ -423,13 +422,13 @@ static void iccd_handle_class_request(void)
 
 	switch (req) {
 #ifndef CONFIG_ICCD_PROTO_BULK
-	case ICCD_PC2RDR_ICCPOWERON:
+	case SCD_PC2RDR_ICCPOWERON:
 		iccd_req_icc_poweron();
 		break;
-	case ICCD_PC2RDR_ICCPOWEROFF:
+	case SCD_PC2RDR_ICCPOWEROFF:
 		iccd_req_icc_poweroff();
 		break;
-	case ICCD_PC2RDR_XFRBLOCK:
+	case SCD_PC2RDR_XFRBLOCK:
 		iccd_req_xchg_block();
 		break;
 	case ICCD_REQ_DATA_BLOCK:
@@ -518,7 +517,7 @@ static void iccd_IccPowerOn_out(void)
 {
 	if (usbd_request_handled() == SCD_HEADER_SIZE) {
 		/* reset SCD error */
-		ICCD_XB_ERR = __iccd_err_success();
+		ICCD_XB_ERR = SCS_ERR_SUCCESS;
 		/* reset Nc */
 		ICCD_XB_NC = 0;
 		/* Ne should be 32 (ATR) + 1 (TS) */
@@ -535,17 +534,17 @@ static void __iccd_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size)
 
 	if (usbd_request_handled() == hdr_size) {
 		/* reset SCD error */
-		ICCD_XB_ERR = __iccd_err_success();
+		ICCD_XB_ERR = SCS_ERR_SUCCESS;
 		/* reset Nc */
 		ICCD_XB_NC = 0;
 		/* Ne is from wLevelParameter
 		 * TODO: extended APDU level
 		 * more efforts
 		 */
-		ICCD_XB_NE = (iccd_cmds[scd_qid].abRFU[1] << 8) |
-			      iccd_cmds[scd_qid].abRFU[2];
+		ICCD_XB_NE = (scd_cmds[scd_qid].abRFU[1] << 8) |
+			      scd_cmds[scd_qid].abRFU[2];
 		/* reset WI */
-		ICCD_XB_WI = iccd_cmds[scd_qid].abRFU[0];
+		ICCD_XB_WI = scd_cmds[scd_qid].abRFU[0];
 	}
 	/* force USB reap on error */
 	if (!scd_slot_success(ICCD_XB_ERR)) {
@@ -572,7 +571,7 @@ static void __iccd_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size)
 
 static void iccd_XfrBlock_out(void)
 {
-	__iccd_XfrBlock_out(SCD_HEADER_SIZE, iccd_cmds[scd_qid].dwLength);
+	__iccd_XfrBlock_out(SCD_HEADER_SIZE, scd_cmds[scd_qid].dwLength);
 }
 
 static void iccd_handle_slot_pc2rdr(void)
@@ -582,20 +581,31 @@ static void iccd_handle_slot_pc2rdr(void)
 		return;
 	}
 
-	switch (iccd_cmds[scd_qid].bMessageType) {
-	case ICCD_PC2RDR_ICCPOWERON:
+	switch (scd_cmds[scd_qid].bMessageType) {
+	case SCD_PC2RDR_ICCPOWERON:
 		iccd_IccPowerOn_out();
 		break;
-	case ICCD_PC2RDR_ICCPOWEROFF:
+	case SCD_PC2RDR_ICCPOWEROFF:
 		/* nothing to do */
 		break;
-	case ICCD_PC2RDR_XFRBLOCK:
+	case SCD_PC2RDR_XFRBLOCK:
 		iccd_XfrBlock_out();
 		break;
-	case ICCD_PC2RDR_ESCAPE:
+	case SCD_PC2RDR_ESCAPE:
 		scd_Escape_out();
 		break;
 	}
+}
+
+static void scd_CmdHeader_out(void)
+{
+	USBD_OUTB(scd_cmds[scd_qid].bMessageType);
+	USBD_OUTL(scd_cmds[scd_qid].dwLength);
+	USBD_OUTB(scd_cmds[scd_qid].bSlot);
+	USBD_OUTB(scd_cmds[scd_qid].bSeq);
+	USBD_OUTB(scd_cmds[scd_qid].abRFU[0]);
+	USBD_OUTB(scd_cmds[scd_qid].abRFU[1]);
+	USBD_OUTB(scd_cmds[scd_qid].abRFU[2]);
 }
 
 static void iccd_handle_command(void)
@@ -612,24 +622,18 @@ static void iccd_handle_command(void)
 	iccd_dev_enter(SCD_SLOT_STATE_SANITY);
 
 	/* CCID message header */
-	USBD_OUTB(iccd_cmds[scd_qid].bMessageType);
-	USBD_OUTL(iccd_cmds[scd_qid].dwLength);
-	USBD_OUTB(iccd_cmds[scd_qid].bSlot);
-	USBD_OUTB(iccd_cmds[scd_qid].bSeq);
-	USBD_OUTB(iccd_cmds[scd_qid].abRFU[0]);
-	USBD_OUTB(iccd_cmds[scd_qid].abRFU[1]);
-	USBD_OUTB(iccd_cmds[scd_qid].abRFU[2]);
+	scd_CmdHeader_out();
 
 	if (usbd_request_handled() < SCD_HEADER_SIZE)
 		goto out;
 
 	if (usbd_request_handled() == SCD_HEADER_SIZE) {
 		usbd_request_commit(SCD_HEADER_SIZE +
-				   iccd_cmds[scd_qid].dwLength);
-		scd_debug(SCD_DEBUG_PC2RDR, iccd_cmds[scd_qid].bMessageType);
+				   scd_cmds[scd_qid].dwLength);
+		scd_debug(SCD_DEBUG_PC2RDR, scd_cmds[scd_qid].bMessageType);
 	}
 
-	if (iccd_cmds[scd_qid].bSlot != ICCD_SINGLE_SLOT_IDX)
+	if (scd_cmds[scd_qid].bSlot != ICCD_SINGLE_SLOT_IDX)
 		goto out;
 
 	iccd_handle_slot_pc2rdr();
@@ -645,8 +649,8 @@ static void iccd_RespHeader_in(scs_size_t length)
 {
 	USBD_INB(iccd_resp_message());
 	USBD_INL(length);
-	USBD_INB(iccd_cmds[scd_qid].bSlot);
-	USBD_INB(iccd_cmds[scd_qid].bSeq);
+	USBD_INB(scd_cmds[scd_qid].bSlot);
+	USBD_INB(scd_cmds[scd_qid].bSeq);
 	USBD_INB(iccd_resps[scd_qid].bStatus);
 	USBD_INB(iccd_resps[scd_qid].bError);
 	USBD_INB(iccd_resps[scd_qid].abRFU3);
@@ -689,18 +693,18 @@ static void iccd_handle_response(void)
 		goto out;
 	}
 
-	BUG_ON(iccd_cmds[scd_qid].bSlot != ICCD_SINGLE_SLOT_IDX);
+	BUG_ON(scd_cmds[scd_qid].bSlot != ICCD_SINGLE_SLOT_IDX);
 
-	switch (iccd_cmds[scd_qid].bMessageType) {
-	case ICCD_PC2RDR_ICCPOWERON:
-	case ICCD_PC2RDR_XFRBLOCK:
+	switch (scd_cmds[scd_qid].bMessageType) {
+	case SCD_PC2RDR_ICCPOWERON:
+	case SCD_PC2RDR_XFRBLOCK:
 		iccd_DataBlock_in();
 		break;
-	case ICCD_PC2RDR_ICCPOWEROFF:
+	case SCD_PC2RDR_ICCPOWEROFF:
 	case ICCD_PC2RDR_GETPARAMETERS:
 		iccd_SlotStatus_in();
 		break;
-	case ICCD_PC2RDR_ESCAPE:
+	case SCD_PC2RDR_ESCAPE:
 		scd_Escape_in();
 		break;
 	default:
@@ -798,7 +802,7 @@ void iccd_XfrBlock_cmp(void)
 static void iccd_complete_slot_pc2rdr(void)
 {
 	if (usbd_request_handled() !=
-	    (iccd_cmds[scd_qid].dwLength + SCD_HEADER_SIZE)) {
+	    (scd_cmds[scd_qid].dwLength + SCD_HEADER_SIZE)) {
 		iccd_CmdOffset_cmp(1);
 		return;
 	}
@@ -807,21 +811,21 @@ static void iccd_complete_slot_pc2rdr(void)
 		return;
 	}
 
-	switch (iccd_cmds[scd_qid].bMessageType) {
-	case ICCD_PC2RDR_ICCPOWERON:
+	switch (scd_cmds[scd_qid].bMessageType) {
+	case SCD_PC2RDR_ICCPOWERON:
 		iccd_IccPowerOn_cmp();
 		break;
-	case ICCD_PC2RDR_ICCPOWEROFF:
+	case SCD_PC2RDR_ICCPOWEROFF:
 		iccd_IccPowerOff_cmp();
 		break;
-	case ICCD_PC2RDR_XFRBLOCK:
+	case SCD_PC2RDR_XFRBLOCK:
 		iccd_XfrBlock_cmp();
 		break;
 	case ICCD_PC2RDR_GETPARAMETERS:
 		/* FIXME: windows sent us */
 		iccd_SlotStatus_cmp();
 		break;
-	case ICCD_PC2RDR_ESCAPE:
+	case SCD_PC2RDR_ESCAPE:
 		scd_Escape_cmp();
 		break;
 	default:
@@ -840,7 +844,7 @@ static void iccd_complete_command(void)
 	       iccd_devs[scd_qid].state != SCD_SLOT_STATE_SANITY);
 
 	if (usbd_request_handled() < SCD_HEADER_SIZE ||
-	    iccd_cmds[scd_qid].bSlot != ICCD_SINGLE_SLOT_IDX) {
+	    scd_cmds[scd_qid].bSlot != ICCD_SINGLE_SLOT_IDX) {
 		iccd_SlotNotExist_cmp();
 		goto out;
 	}
@@ -1017,7 +1021,7 @@ static iccd_t iccd_addr2id(uint8_t addr)
 	uint8_t i;
 
 	for (id = 0; id < NR_SCD_SLOTS; id++) {
-		for (i = 0; i < NR_ICCD_ENDPS; i++) {
+		for (i = 0; i < NR_SCD_ENDPS; i++) {
 			if (addr == iccd_addr[scd_qid][i])
 				return id;
 		}
@@ -1034,12 +1038,12 @@ static void iccd_handle_ll_cmpl(void)
 	scs_err_t err = __iccd_get_error();
 	BUG_ON(iccd_devs[scd_qid].state != SCD_SLOT_STATE_ISO7816);
 
-	switch (iccd_cmds[scd_qid].bMessageType) {
-	case ICCD_PC2RDR_ICCPOWERON:
-	case ICCD_PC2RDR_XFRBLOCK:
+	switch (scd_cmds[scd_qid].bMessageType) {
+	case SCD_PC2RDR_ICCPOWERON:
+	case SCD_PC2RDR_XFRBLOCK:
 		iccd_DataBlock_cmp(err);
 		break;
-	case ICCD_PC2RDR_ICCPOWEROFF:
+	case SCD_PC2RDR_ICCPOWEROFF:
 		iccd_SlotStatus_cmp();
 		break;
 	default:
@@ -1088,7 +1092,7 @@ usbd_endpoint_t iccd_endpoint_irq = {
 usbd_interface_t usb_iccd_interface = {
 	ICCD_STRING_FIRST,
 	ICCD_STRING_LAST,
-	NR_ICCD_ENDPS,
+	NR_SCD_ENDPS,
 	iccd_config_length,
 	iccd_handle_ctrl_data,
 };
@@ -1096,11 +1100,11 @@ usbd_interface_t usb_iccd_interface = {
 static void iccd_claim_endp(iccd_t id)
 {
 #ifdef CONFIG_SCD_BULK
-	iccd_addr[id][ICCD_ENDP_BULK_OUT] = usbd_claim_endpoint(true, &iccd_endpoint_out);
-	iccd_addr[id][ICCD_ENDP_BULK_IN] = usbd_claim_endpoint(true, &iccd_endpoint_in);
+	iccd_addr[id][SCD_ENDP_BULK_OUT] = usbd_claim_endpoint(true, &iccd_endpoint_out);
+	iccd_addr[id][SCD_ENDP_BULK_IN] = usbd_claim_endpoint(true, &iccd_endpoint_in);
 #endif
 #ifdef CONFIG_SCD_INTERRUPT
-	iccd_addr[id][ICCD_ENDP_INTR_IN] = usbd_claim_endpoint(true, &iccd_endpoint_irq);
+	iccd_addr[id][SCD_ENDP_INTR_IN] = usbd_claim_endpoint(true, &iccd_endpoint_irq);
 #endif
 }
 

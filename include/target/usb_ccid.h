@@ -47,10 +47,6 @@
 typedef ifd_sid_t	ccid_qid_t;
 typedef uint8_t		ccid_seq_t;
 
-#define USB_INTERFACE_CLASS_CCID	11
-
-#define USB_INTERFACE_PROTOCOL_CCID	0x00
-
 #define CCID_REQ_ABORT			0x01
 #define CCID_REQ_GET_CLOCK_FREQS	0x02
 #define CCID_REQ_GET_DATA_RATES		0x03
@@ -81,12 +77,6 @@ struct ccid_hwerr {
 };
 #define CCID_IRQ_HWERR_SIZE	0x04
 
-#ifdef CONFIG_SCD_INTERRUPT
-#define NR_CCID_ENDPS		3
-#else
-#define NR_CCID_ENDPS		2
-#endif
-
 /* maximum busy slots in CCID layer */
 #define NR_SCD_SLOTS			NR_IFD_SLOTS
 #define scd_sid				ifd_slid
@@ -97,6 +87,7 @@ struct ccid_hwerr {
 #endif
 
 #define scd_read_byte(i)		ifd_read_byte(i)
+#define scd_write_byte(i, v)		ifd_write_byte((i), (v))
 
 /*
  * QID = SID+1: additional QID for BULK_OUT
@@ -105,10 +96,6 @@ struct ccid_hwerr {
 #define INVALID_CCID_SEQ		NR_SCD_QUEUES
 
 #define CCID_STATE_IDLE			0x00
-
-#define CCID_ENDP_BULK_IN		0x00
-#define CCID_ENDP_BULK_OUT		0x01
-#define CCID_ENDP_INTR_IN		0x02
 
 #define CCID_INTR_RUNNING_SET		0x00
 #define CCID_INTR_RUNNING_UNSET		0x01
@@ -143,24 +130,17 @@ struct ccid_hwerr {
 #define CCID_CLOCK_STOPPED_U		0x03
 
 #define CCID_PC2RDR_SETPARAMETERS	0x61
-#define CCID_PC2RDR_ICCPOWERON		0x62
-#define CCID_PC2RDR_ICCPOWEROFF		0x63
 #define CCID_PC2RDR_GETSLOTSTATUS	0x65
 #define CCID_PC2RDR_SECURE		0x69
 #define CCID_PC2RDR_T0APDU		0x6A
-#define CCID_PC2RDR_ESCAPE		0x6B
 #define CCID_PC2RDR_GETPARAMETERS	0x6C
 #define CCID_PC2RDR_RESETPARAMETERS	0x6D
 #define CCID_PC2RDR_ICCCLOCK		0x6E
-#define CCID_PC2RDR_XFRBLOCK		0x6F
 #define CCID_PC2RDR_MECHANICAL		0x71
 #define CCID_PC2RDR_ABORT		0x72
 #define CCID_PC2RDR_SETDATAANDFREQ	0x73
 
-#define CCID_RDR2PC_DATABLOCK		0x80
-#define CCID_RDR2PC_SLOTSTATUS		0x81
 #define CCID_RDR2PC_PARAMETERS		0x82
-#define CCID_RDR2PC_ESCAPE		0x83
 #define CCID_RDR2PC_DATARATEANDCLOCK	0x84
 
 #define CCID_RDR2PC_NOTIFYSLOTCHANGE	0x50

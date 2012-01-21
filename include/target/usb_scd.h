@@ -12,13 +12,34 @@
 #define scd_debug(tag, val)
 #endif
 
-#define SCD_DT_SCD		(USB_TYPE_CLASS | 0x01)
+#define USB_INTERFACE_CLASS_SCD		11
+#define USB_INTERFACE_PROTOCOL_SCD	0x00
+
+#ifdef CONFIG_SCD_BULK
+# ifdef CONFIG_SCD_INTERRUPT
+#  define NR_SCD_ENDPS		3
+# else
+#  define NR_SCD_ENDPS		2
+# endif
+#else
+# ifdef CONFIG_SCD_INTERRUPT
+#  define NR_SCD_ENDPS		1
+# else
+#  define NR_SCD_ENDPS		0
+# endif
+#endif
+
+#ifdef CONFIG_SCD_BULK
+# define SCD_ENDP_BULK_IN	0x00
+# define SCD_ENDP_BULK_OUT	0x01
+#endif
+#ifdef CONFIG_SCD_INTERRUPT
+# define SCD_ENDP_INTR_IN	(NR_SCD_ENDPS-1)
+#endif
 
 /* Smart Card Device Class */
 typedef struct scd_desc {
 	uint8_t	 bLength;
-#define SCD_DT_SCD_SIZE	0x36
-
 	uint8_t	 bDescriptorType;
 	uint16_t bcdCCID;
 #define CCID_VERSION_DEFAULT	0x100
@@ -115,6 +136,8 @@ typedef struct scd_desc {
 	uint8_t	 bMaxCCIDBusySlots;
 #define ICCD_MAX_BUSY_SLOT		0x01
 } scd_desc_t;
+#define SCD_DT_SCD			(USB_TYPE_CLASS | 0x01)
+#define SCD_DT_SCD_SIZE			0x36
 
 struct scd_cmd {
 	uint8_t  bMessageType;
@@ -133,6 +156,15 @@ struct scd_resp {
 	uint8_t bError;
 	uint8_t abRFU3;
 };
+
+#define SCD_PC2RDR_ICCPOWERON		0x62
+#define SCD_PC2RDR_ICCPOWEROFF		0x63
+#define SCD_PC2RDR_ESCAPE		0x6B
+#define SCD_PC2RDR_XFRBLOCK		0x6F
+
+#define SCD_RDR2PC_DATABLOCK		0x80
+#define SCD_RDR2PC_SLOTSTATUS		0x81
+#define SCD_RDR2PC_ESCAPE		0x83
 
 #define SCD_SLOT_STATUS_ACTIVE		0x00
 #define SCD_SLOT_STATUS_INACTIVE	0x01
@@ -210,5 +242,7 @@ void scd_Escape_in(void);
 #endif
 
 #define INVALID_SCD_QID			NR_SCD_QUEUES
+
+extern __near__ struct scd_cmd scd_cmds[NR_SCD_QUEUES];
 
 #endif /* __USB_SCD_H_INCLUDE__ */

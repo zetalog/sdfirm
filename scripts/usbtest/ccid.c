@@ -174,7 +174,7 @@ struct ccid_error ccid_errors[CCID_MAX_ERRORS] = {
 
 struct ccid_resp_errors ccid_valid_errors[] = {
 	{
-		CCID_PC2RDR_ICCPOWERON, 
+		SCD_PC2RDR_ICCPOWERON, 
 		{
 			0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
 			0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
@@ -182,7 +182,7 @@ struct ccid_resp_errors ccid_valid_errors[] = {
 		},
 	},
 	{
-		CCID_PC2RDR_ICCPOWEROFF,
+		SCD_PC2RDR_ICCPOWEROFF,
 		{
 			0x01, 0x10, 0x0C, 0x0D, 0x0E, 0x0F,
 			CCID_ERROR_END,
@@ -196,7 +196,7 @@ struct ccid_resp_errors ccid_valid_errors[] = {
 		},
 	},
 	{
-		CCID_PC2RDR_XFRBLOCK,
+		SCD_PC2RDR_XFRBLOCK,
 		{
 			0x01, 0x02, 0x10, 0x03, 0x0C, 0x0D, 0x0E, 0x0F,
 			0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
@@ -625,9 +625,9 @@ static const char *ccid_ctl_type(uint8_t type)
 static const char *ccid_msg_type(uint8_t type)
 {
 	switch (type) {
-	case CCID_PC2RDR_ICCPOWERON:
+	case SCD_PC2RDR_ICCPOWERON:
 		return "PC_to_RDR_IccPowerOn     ";
-	case CCID_PC2RDR_ICCPOWEROFF:
+	case SCD_PC2RDR_ICCPOWEROFF:
 		return "PC_to_RDR_IccPowerOff    ";
 	case CCID_PC2RDR_SETPARAMETERS:
 		return "PC_to_RDR_SetParameters  ";
@@ -637,7 +637,7 @@ static const char *ccid_msg_type(uint8_t type)
 		return "PC_to_RDR_ResetParameters";
 	case CCID_PC2RDR_ABORT:
 		return "PC_to_RDR_Abort          ";
-	case CCID_PC2RDR_XFRBLOCK:
+	case SCD_PC2RDR_XFRBLOCK:
 		return "PC_to_RDR_XfrBlock       ";
 	case CCID_PC2RDR_GETSLOTSTATUS:
 		return "PC_to_RDR_GetSlotStatus  ";
@@ -655,11 +655,11 @@ static const char *ccid_msg_type(uint8_t type)
 		return "PC_to_RDR_SetDataAndFreq ";	
 	case CCID_RDR2PC_PARAMETERS:
 		return "RDR_to_PC_Parameters     ";	
-	case CCID_RDR2PC_ESCAPE:
+	case SCD_RDR2PC_ESCAPE:
 		return "RDR_to_PC_Escape         ";
-	case CCID_RDR2PC_DATABLOCK:
+	case SCD_RDR2PC_DATABLOCK:
 		return "RDR_to_PC_DataBlock      ";
-	case CCID_RDR2PC_SLOTSTATUS:
+	case SCD_RDR2PC_SLOTSTATUS:
 		return "RDR_to_PC_SlotStatus     ";
 	case CCID_RDR2PC_DATARATEANDCLOCK:
 		return "RDR_to_PC_DataAndFreq    ";
@@ -727,23 +727,23 @@ boolean ccid_error_valid(void)
 boolean ccid_msg_ispair(uint8_t cmd, uint8_t resp)
 {
 	switch (cmd) {
-	case CCID_PC2RDR_ICCPOWERON:
-	case CCID_PC2RDR_XFRBLOCK:
+	case SCD_PC2RDR_ICCPOWERON:
+	case SCD_PC2RDR_XFRBLOCK:
 	case CCID_PC2RDR_SECURE:
-		return (resp == CCID_RDR2PC_DATABLOCK);
-	case CCID_PC2RDR_ICCPOWEROFF:
+		return (resp == SCD_RDR2PC_DATABLOCK);
+	case SCD_PC2RDR_ICCPOWEROFF:
 	case CCID_PC2RDR_GETSLOTSTATUS:
 	case CCID_PC2RDR_ICCCLOCK:
 	case CCID_PC2RDR_T0APDU:
 	case CCID_PC2RDR_MECHANICAL:
 	case CCID_PC2RDR_ABORT:
-		return (resp == CCID_RDR2PC_SLOTSTATUS);
+		return (resp == SCD_RDR2PC_SLOTSTATUS);
 	case CCID_PC2RDR_SETPARAMETERS:
 	case CCID_PC2RDR_GETPARAMETERS:
 	case CCID_PC2RDR_RESETPARAMETERS:
 		return (resp == CCID_RDR2PC_PARAMETERS);
 	case CCID_PC2RDR_ESCAPE:
-		return (resp == CCID_RDR2PC_ESCAPE);
+		return (resp == SCD_RDR2PC_ESCAPE);
 	case CCID_PC2RDR_SETDATAANDFREQ:
 		return (resp == CCID_RDR2PC_DATARATEANDCLOCK);
 	default:
@@ -756,7 +756,7 @@ boolean ccid_resp_match(void)
 	uint8_t cmd = g_ccid_cmd[0];
 	uint8_t resp = g_ccid_resp[0];
 
-	if (ccid_msg_ispair(cmd, resp) || resp == CCID_RDR2PC_SLOTSTATUS) {
+	if (ccid_msg_ispair(cmd, resp) || resp == SCD_RDR2PC_SLOTSTATUS) {
 		if (g_ccid_resp[6] == g_ccid_cmd[6]) {
 			return true;
 		}
@@ -775,7 +775,7 @@ boolean ccid_resp_valid(uint32_t length)
 	}
 
 	switch (cmd) {
-	case CCID_PC2RDR_ICCPOWEROFF:
+	case SCD_PC2RDR_ICCPOWEROFF:
 	case CCID_PC2RDR_GETSLOTSTATUS:
 	case CCID_PC2RDR_ICCCLOCK:
 	case CCID_PC2RDR_T0APDU:
@@ -966,7 +966,7 @@ static uint8_t ccid_build_GetSlotStatus(void)
 static uint8_t ccid_build_IccPowerOn(uint8_t bClass)
 {
 	uint8_t bSeq = ccid_seq_alloc();
-	ccid_build_common(CCID_PC2RDR_ICCPOWERON, 0,
+	ccid_build_common(SCD_PC2RDR_ICCPOWERON, 0,
 			  bSeq, bClass, 0, 0);
 	return bSeq;
 }
@@ -974,7 +974,7 @@ static uint8_t ccid_build_IccPowerOn(uint8_t bClass)
 static uint8_t ccid_build_IccPowerOff(void)
 {
 	uint8_t bSeq = ccid_seq_alloc();
-	ccid_build_common(CCID_PC2RDR_ICCPOWEROFF, 0,
+	ccid_build_common(SCD_PC2RDR_ICCPOWEROFF, 0,
 			  bSeq, 0, 0, 0);
 	return bSeq;
 }
@@ -1055,7 +1055,7 @@ static uint8_t ccid_build_XfrBlock(uint8_t bBWI, uint16_t wLevelParameter,
 				   uint8_t *abData, uint32_t dwLength)
 {
 	uint8_t bSeq = ccid_seq_alloc();
-	ccid_build_common(CCID_PC2RDR_XFRBLOCK, dwLength,
+	ccid_build_common(SCD_PC2RDR_XFRBLOCK, dwLength,
 			  bSeq, bBWI,
 			  (uint8_t)((wLevelParameter & 0xFF00) >> 8),
 			  (uint8_t)(wLevelParameter & 0x00FF));
@@ -1429,13 +1429,13 @@ static int ccid_bulk_transfer(int type, uint8_t *data, int len)
 
 int ccid_bulk_out(int length)
 {
-	int r = ccid_bulk_transfer(CCID_ENDP_BULK_OUT, g_ccid_cmd, length);
+	int r = ccid_bulk_transfer(SCD_ENDP_BULK_OUT, g_ccid_cmd, length);
 	return r;
 }
 
 int ccid_bulk_in(int length)
 {
-	return ccid_bulk_transfer(CCID_ENDP_BULK_IN, g_ccid_resp, length);
+	return ccid_bulk_transfer(SCD_ENDP_BULK_IN, g_ccid_resp, length);
 }
 
 

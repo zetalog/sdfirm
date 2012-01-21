@@ -113,7 +113,7 @@ static void ccid_spe_invs(void)
 		return;
 
 	for (i = CCID_SPE_APDU_FIXED; i < CCID_XB_NC; i++) {
-		ifd_write_byte(i, bitrev8(ifd_read_byte(i)));
+		scd_write_byte(i, bitrev8(scd_read_byte(i)));
 	}
 }
 
@@ -257,11 +257,11 @@ uint8_t ccid_spe_read_bits(scs_off_t ibyte, uint8_t ibit, uint8_t bits)
 {
 	uint8_t b1, b2, cont;
 	if (ibit) {
-		b1 = ifd_read_byte(ibyte)&bits2mask_m(ibit);
-		b2 = ifd_read_byte((scs_off_t)(ibyte+1))&bits2mask_l(ibit);
+		b1 = scd_read_byte(ibyte)&bits2mask_m(ibit);
+		b2 = scd_read_byte((scs_off_t)(ibyte+1))&bits2mask_l(ibit);
 		cont = (b1>>(8-ibit)) | (b2<<ibit);
 	} else {
-		cont = ifd_read_byte(ibyte);
+		cont = scd_read_byte(ibyte);
 	}
 	return cont & bits2mask_l(bits);
 }

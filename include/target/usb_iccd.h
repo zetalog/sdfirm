@@ -49,18 +49,15 @@
 #error "SCD device is not defined"
 #endif
 
-#define USB_INTERFACE_CLASS_ICCD	11
-
-#define USB_PROTOCOL_ICCD_BULK		0x00
-#define USB_PROTOCOL_ICCD_A		0x01
-#define USB_PROTOCOL_ICCD_B		0x02
+#define USB_INTERFACE_PROTOCOL_ICCD_A	0x01
+#define USB_INTERFACE_PROTOCOL_ICCD_B	0x02
 
 #ifdef CONFIG_ICCD_PROTO_BULK
-#define USB_PROTOCOL_ICCD	USB_PROTOCOL_ICCD_BULK
+#define USB_INTERFACE_PROTOCOL_ICCD	USB_INTERFACE_PROTOCOL_SCD
 #elif defined(CONFIG_ICCD_PROTO_A)
-#define USB_PROTOCOL_ICCD	USB_PROTOCOL_ICCD_A
+#define USB_INTERFACE_PROTOCOL_ICCD	USB_INTERFACE_PROTOCOL_ICCD_A
 #elif defined(CONFIG_ICCD_PROTO_B)
-#define USB_PROTOCOL_ICCD	USB_PROTOCOL_ICCD_B
+#define USB_INTERFACE_PROTOCOL_ICCD	USB_INTERFACE_PROTOCOL_ICCD_B
 #endif
 
 #define ICCD_RDR2PC_NOTIFYSLOTCHANGE	0x50
@@ -105,34 +102,6 @@ struct iccd_hwerr {
 };
 #define CCID_IRQ_HWERR_SIZE	0x04
 
-/* TODO:
- * Each intfc has the same endpoint number (NR_ICCD_ENDPS). 
- * How to improve this case?
- */
-#ifdef CONFIG_ICCD_PROTO_BULK
- #ifdef CONFIG_SCD_INTERRUPT
-  #define NR_ICCD_ENDPS		3
- #else
-  #define NR_ICCD_ENDPS		2
- #endif
-#elif defined(CONFIG_ICCD_PROTO_B)
- #ifdef CONFIG_SCD_INTERRUPT
-  #define NR_ICCD_ENDPS		1
- #endif
-#else
-  #define NR_ICCD_ENDPS		0
-#endif
-
-#ifdef CONFIG_ICCD_PROTO_BULK
- #define ICCD_ENDP_BULK_IN		0x00
- #define ICCD_ENDP_BULK_OUT		0x01
- #define ICCD_ENDP_INTR_IN		0x02
-#else
- #define ICCD_ENDP_BULK_IN		0x00	/* for compiler */
- #define ICCD_ENDP_BULK_OUT		0x00	/* for compiler */
- #define ICCD_ENDP_INTR_IN		0x00	
-#endif
-
 #define ICCD_INTR_RUNNING_SET		0x00
 #define ICCD_INTR_RUNNING_UNSET		0x01
 #define ICCD_INTR_PENDING_SET		0x02
@@ -148,14 +117,8 @@ struct iccd_hwerr {
 #define ICCD_ERROR_RESERVED			0x80
 #define ICCD_ERROR_CMD_UNSUPPORT		0x00
 
-#define ICCD_PC2RDR_ICCPOWERON		0x62
-#define ICCD_PC2RDR_ICCPOWEROFF		0x63
-#define ICCD_PC2RDR_ESCAPE		0x6B
-#define ICCD_PC2RDR_XFRBLOCK		0x6F
+/* Windows CCID requires this, though these should not be an ICCD command */
 #define ICCD_PC2RDR_GETPARAMETERS	0x6C
-
-#define ICCD_RDR2PC_DATABLOCK		0x80
-#define ICCD_RDR2PC_SLOTSTATUS		0x81
 
 void iccd_CmdResponse_cmp(void);
 void iccd_ScsSequence_cmp(scs_err_t err);
