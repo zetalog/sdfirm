@@ -2,7 +2,7 @@
                How to Implement USB Class Interface Drivers
 
 
-===== Introduction =====
+===== Chapter 1. Introduction =====
 
 This document is not written for the purpose of describing the
 implementation details for the sdfirm USB device stack, but for the
@@ -14,7 +14,7 @@ facilities such as:
 2. USB I/O communication.
 These facilities will be discussed each by each in the following chapters.
 
-===== Class Registration =====
+===== Chapter 2. Class Registration =====
 
 In this chapter we will discuss the following structures and functions:
 Structures should be implemented by the driver:
@@ -252,7 +252,7 @@ void class_init(void)
 	usbd_declare_interface(50, &class_interface);
 }
 ==========================================================================
-             Figure 4 - Sample Class Interface Driver Entrance
+             Figure 4 - Sample Class Interface Implementation
 Where:
   1. usbd_input_interface_desc are called to report the class specific
      fields of the interface descriptor.
@@ -266,7 +266,7 @@ Where:
   6. The 'class_handle_class_request' function would get discussed in the
      'ctrl' function description of the I/O Communication chapter.
 
-===== I/O Communication =====
+===== Chapter 3. I/O Communication =====
 
 In this chapter we will discuss the following structures and functions:
 Functions should be implemented by the driver:
@@ -276,12 +276,8 @@ Functions should be implemented by the driver:
 2. done (of usbd_endpoint_t)
 Functions might be called by the driver:
 1. usbd_request_submit
-2. usbd_request_commit
-3. usbd_request_handled
 4. USBD_INB/USBD_INW/USBD_INL
 5. USBD_OUTB/USBD_OUTW/USBD_OUTL
-6. usbd_request_set_sync
-7. usbd_request_clear_sync
 
 USB class may require control endpoint 0 to be implemented to handle class
 specific control request.  The standard control requests are discussed in
@@ -306,20 +302,201 @@ according to the protocol's state.
 Once the 'usbd_request_submit' is called in the 'poll' callback, the
 'iocb' callback would get invoked by the core USB device stack.  In this
 function, I/O data can be received and sent using the 'USBD_OUTX' and the
-'USBD_INX' macros.  Note that the URB request size along with the
-'usbd_request_submit' call are typically header size of the URB, the
-'usbd_request_handled' and 'usbd_request_commit' the will then be called
-in the 'iocb' functions to validate the submitted bytes and submitted
-bytes and request more bytes for the URB.
+'USBD_INX' macros.  Note that the sdfirm I/O model is very complicated to
+meet the requirement of the various USB class interface specifications.
+This model is discussed in the Documentation/usb/usb_io.txt.  Please see
+the "APENDIX A. Special I/O Handling" below to see what should be done in
+the class interface drivers to handle the special requirement of the
+sdfirm USB device I/O model.
 Once the total size of the submitted I/O is handled, the 'done' callback
 will get invoked by the core USB device stack.  Typically, a class
 interface driver would switch its state to allow another URB can be
 submitted in the following 'poll' callback.
 
-For performance reasons, some class interface drivers may switch I/O
-communication models between asynchronous and synchronous model.  This can
-be through the 'usbd_request_set_sync' and 'usbd_request_clear_sync' APIs
-in the 'iocb' callback.
+===== APPENDIX A. Special I/O Handling =====
 
+In this chapter we will discuss the following structures and functions:
+Functions might be called by the driver:
+1. usbd_request_commit
+2. usbd_request_handled
+3. USBD_INB_BEGIN/USBD_INB_END
+4. USBD_OUTB_BEGIN/USBD_OUTB_END
+5. usbd_request_set_sync
+6. usbd_request_clear_sync
+7. usbd_iter_accel
+
+A USB request (URB) is transferred through hardware endpoints whose have
+some limitted buffer size that cannot keep the whole URB at once.  With
+this inherent USB I/O property, a single URB handling in the firmware
+could be written in a very complicated style.  But the sdfirm USB I/O APIs
+allow you handle a OUT URB or IN URB in a one function per URB style with
+the simplicity like the following (which has been discussed in the "I/O
+Communication" chapter):
+==========================================================================
+uint8_t class_out_urb[CLASS_OUT_LENGTH];
+uint8_t class_in_urb[CLASS_IN_LENGTH];
+uint8_t class_state = CLASS_STATE_OUT;
+
+void class_out_endpoint_iocb(void)
+{
+	size_t i;
+	for (i = 0; i < CLASS_OUT_LENGTH; i++) {
+		USBD_OUTB(class_out_urb[i]);
+	}
+}
+
+void class_in_endpoint_iocb(void)
+{
+	size_t i;
+	for (i = 0; i < CLASS_IN_LENGTH; i++) {
+		USBD_INB(class_in_urb[i]);
+	}
+}
+
+void class_out_endpoint_poll(void)
+{
+	if (class_state == CLASS_STATE_OUT)
+		usbd_request_submmit(CLASS_OUT_LENGTH);
+}
+
+void class_in_endpoint_poll(void)
+{
+	if (class_state == CLASS_STATE_IN)
+		usbd_request_submmit(CLASS_IN_LENGTH);
+}
+
+void class_out_endpoint_done(void)
+{
+	if (class_state == CLASS_STATE_OUT)
+		class_state = CLASS_STATE_IN;
+}
+
+void class_in_endpoint_done(void)
+{
+	if (class_state == CLASS_STATE_IN)
+		class_state = CLASS_STATE_OUT;
+}
+==========================================================================
+            Figure 5 - Sample Class Endpoint Implementation - 1
+The class interface driver impelementators are emancipated from handling
+the complexity between the too small endpoint buffer limitation and the
+too large total URB size without interfacing the USB device driver
+functions.  But the things will not be always so easy due to the
+asynchronous/synchronous switchable I/O model implemented behind the
+USB_INX/USB_OUTX macros.
+
+A simple USBD_OUTB(val) call might not cause a valid 'val' obtained from
+the endpoint's buffer while a simple USBD_INB(val) cannot ensure the byte
+with the 'val' has been transmitted with the completion the the USBD_INB
+call.  Thus following sample code might be run to an errounous result:
+==========================================================================
+void class_out_endpoint_iocb(void)
+{
+	size_t i;
+	uint8_t val;
+	for (i = 0; i < CLASS_OUT_LENGTH; i++) {
+		USBD_OUTB(val);
+		ifd_xchg_write(val);
+	}
+}
+==========================================================================
+                   Figure 6 - Fuzzy Endpoint Iteration
+Where the 'ifd_xchg_write' call will actually advance the buffer pos in
+the ISO7816-3 implementation layer while the USBD_OUTB might not advance
+the URB iteration, as a result, the fake value returned by the USBD_OUTB
+may be put into the ISO7816-3 buffer.  In order to solve this problem,
+the function should be implemented like the following:
+==========================================================================
+void class_out_endpoint_iocb(void)
+{
+	size_t i;
+	uint8_t val;
+	for (i = 0; i < CLASS_OUT_LENGTH; i++) {
+		USBD_OUTB_BEGIN(val) {
+			ifd_xchg_write(val);
+		} USBD_OUTB_END
+	}
+}
+==========================================================================
+                   Figure 7 - Exact Endpoint Iteration
+There is also a USBD_INB_BEGIN/USBD_INB_END pair defined for the IN
+endpoints.
+
+Note that there is a 'usbd_request_handled' call embedded the
+USBD_XXXB_BEGIN/USBD_XXXB_END macros pair.  This function will return the
+URB iteration that is actually sent to or receved from the USB bus.  If
+the class specification that is going to be implemented does not know the
+URB size at the endpoint 'poll' stage, but know a header size that would
+actually occurred on the endpoint, a special 'usbd_request_commit' call
+should be used in the 'iocb' stage like the following:
+==========================================================================
+uint8_t class_out_urb[CLASS_OUT_LENGTH];
+uint8_t class_in_urb[CLASS_IN_LENGTH];
+size_t class_out_len;
+size_t class_in_len;
+uint8_t class_state = CLASS_STATE_OUT;
+
+void class_out_endpoint_iocb(void)
+{
+	size_t i;
+	for (i = 0; i < CLASS_OUT_HEADER_LENGTH; i++) {
+		USBD_OUTB(class_out_urb[i]);
+	}
+	if (usbd_request_handled() == CLASS_OUT_HEADER_LENGTH) {
+		class_out_len = class_get_out_urb_len();
+		usbd_request_commit(class_out_len);
+	}
+}
+
+void class_in_endpoint_iocb(void)
+{
+	size_t i;
+	for (i = 0; i < CLASS_IN_HEADER_LENGTH; i++) {
+		USBD_INB(class_in_urb[i]);
+	}
+	if (usbd_request_handled() == CLASS_IN_HEADER_LENGTH) {
+		class_in_len = class_get_in_urb_len();
+		usbd_request_commit(class_in_len);
+	}
+}
+
+void class_out_endpoint_poll(void)
+{
+	if (class_state == CLASS_STATE_OUT)
+		usbd_request_submmit(CLASS_OUT_HEADER_LENGTH);
+}
+
+void class_in_endpoint_poll(void)
+{
+	if (class_state == CLASS_STATE_IN)
+		usbd_request_submmit(CLASS_IN_HEADER_LENGTH);
+}
+
+void class_out_endpoint_done(void)
+{
+	if (class_state == CLASS_STATE_OUT)
+		class_state = CLASS_STATE_IN;
+}
+
+void class_in_endpoint_done(void)
+{
+	if (class_state == CLASS_STATE_IN)
+		class_state = CLASS_STATE_OUT;
+}
+==========================================================================
+            Figure 8 - Sample Class Endpoint Implementation - 2
+NOTE: A 'usbd_request_handled() == 0' determination can give the driver
+      writers a correct position to put the initialization codes for the
+      URBs.
+
+Endpoint iteration impelementation shown in the Figure 6 and Figure 7 are
+not performance optimized styles.  A simple way is to add a call of the
+'usbd_iter_accel' before the iteration codes.  But sometimes it is still
+not enough to obtain the maximum throughput on the USB bus.  If the class
+specification allow syncrhonous I/O models on a specific endpont, class
+interface drivers can switch the I/O communication models from
+asynchronous to synchronous by calling the 'usbd_request_set_sync'
+function and switch back by calling the 'usbd_request_clear_sync' function
+in the 'iocb' callback.
 
                                                        by Lv ZETALOG Zheng
