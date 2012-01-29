@@ -7,7 +7,7 @@
 #include <target/scs.h>
 
 #ifdef CONFIG_SCD_DEBUG
-#define scd_debug(tag, val)	dbg_print((tag), (val))
+#define scd_debug(tag, val)		dbg_print((tag), (val))
 #else
 #define scd_debug(tag, val)
 #endif
@@ -17,24 +17,24 @@
 
 #ifdef CONFIG_SCD_BULK
 # ifdef CONFIG_SCD_INTERRUPT
-#  define NR_SCD_ENDPS		3
+#  define NR_SCD_ENDPS			3
 # else
-#  define NR_SCD_ENDPS		2
+#  define NR_SCD_ENDPS			2
 # endif
 #else
 # ifdef CONFIG_SCD_INTERRUPT
-#  define NR_SCD_ENDPS		1
+#  define NR_SCD_ENDPS			1
 # else
-#  define NR_SCD_ENDPS		0
+#  define NR_SCD_ENDPS			0
 # endif
 #endif
 
 #ifdef CONFIG_SCD_BULK
-# define SCD_ENDP_BULK_IN	0x00
-# define SCD_ENDP_BULK_OUT	0x01
+# define SCD_ENDP_BULK_IN		0x00
+# define SCD_ENDP_BULK_OUT		0x01
 #endif
 #ifdef CONFIG_SCD_INTERRUPT
-# define SCD_ENDP_INTR_IN	(NR_SCD_ENDPS-1)
+# define SCD_ENDP_INTR_IN		(NR_SCD_ENDPS-1)
 #endif
 
 /* Smart Card Device Class */
@@ -42,29 +42,29 @@ typedef struct scd_desc {
 	uint8_t	 bLength;
 	uint8_t	 bDescriptorType;
 	uint16_t bcdCCID;
-#define CCID_VERSION_DEFAULT	0x100
-#define ICCD_VERSION_DEFAULT	0x110
+#define CCID_VERSION_DEFAULT		0x100
+#define ICCD_VERSION_DEFAULT		0x110
 
 	uint8_t	 bMaxSlotIndex;
 	uint8_t	 bVoltageSupport;
-#define SCD_VOLTAGE_5V		0x01
-#define SCD_VOLTAGE_3V		0x02
-#define SCD_VOLTAGE_1_8V	0x04
-#define SCD_VOLTAGE_ALL		(SCD_VOLTAGE_5V | \
-				 SCD_VOLTAGE_3V | \
-				 SCD_VOLTAGE_1_8V)
-#define SCD_VOLTAGE_AUTO	0x00
+#define SCD_VOLTAGE_5V			0x01
+#define SCD_VOLTAGE_3V			0x02
+#define SCD_VOLTAGE_1_8V		0x04
+#define SCD_VOLTAGE_ALL			(SCD_VOLTAGE_5V | \
+					 SCD_VOLTAGE_3V | \
+					 SCD_VOLTAGE_1_8V)
+#define SCD_VOLTAGE_AUTO		0x00
 
 	uint32_t dwProtocols;
-#define SCD_PROTOCOL_NONE	0x0000
-#define SCD_PROTOCOL_T0		0x0000
-#define SCD_PROTOCOL_T1		0x0001
-#define SCD_PROTOCOL_T15	0x000F
+#define SCD_PROTOCOL_NONE		0x0000
+#define SCD_PROTOCOL_T0			0x0000
+#define SCD_PROTOCOL_T1			0x0001
+#define SCD_PROTOCOL_T15		0x000F
 
 	uint32_t dwDefaultClock;
 	uint32_t dwMaximumClock;
 	uint8_t	 bNumClockSupported;
-#define ICCD_FIXED_CLOCK	0x0DFC
+#define ICCD_FIXED_CLOCK		0x0DFC
 
 	uint32_t dwDataRate;
 	uint32_t dwMaxDataRate;
@@ -237,15 +237,44 @@ void scd_Escape_in(void);
 #include <target/usb_iccd.h>
 #endif
 
+/* XXX: Temporary Storage for SCD Stack
+ * This structure holds temporary storages, which should be allocated in
+ * heap.  In a system without heap, it is perferred to be united objects.
+ */
+typedef union scd_data {
+	struct scd_db_param db;
+	struct scd_xb_param xb;
+#define SCD_XB_ERR			scd_cmd_data.xb.dwIccOutErr
+#define SCD_XB_NC			scd_cmd_data.xb.dwIccOutCnt
+#define SCD_XB_NE			scd_cmd_data.xb.dwIccExpCnt
+#define SCD_XB_WI			scd_cmd_data.xb.bIccWaitInt
+	struct scd_t0_param t0;
+	struct scd_t1_param t1;
+#ifdef CONFIG_USB_CCID
+	struct ccid_fd_param fd;
+#endif
+#ifdef CONFIG_CCID_SECURE
+	struct ccid_po_param po;
+	struct ccid_pv_param pv;
+	struct ccid_pm_param pm;
+#endif
+} scd_data_t;
+
 #define INVALID_SCD_QID			NR_SCD_QUEUES
 
 extern __near__ struct scd_cmd scd_cmds[NR_SCD_QUEUES];
 extern __near__ struct scd_resp scd_resps[NR_SCD_QUEUES];
+extern __near__ scd_qid_t scd_qid;
+extern scd_data_t scd_cmd_data;
 
-void scd_CmdHeader_out(void);
+void __scd_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size);
 void __scd_CmdSuccess_out(void);
 void __scd_CmdFailure_out(uint8_t error, uint8_t status);
+void scd_CmdHeader_out(void);
+void scd_XfrBlock_out(void);
 void scd_SlotStatus_out(void);
+void scd_DataBlock_out(void);
+#define scd_XfrBlock_out()		(__scd_XfrBlock_out(SCD_HEADER_SIZE, scd_cmds[scd_qid].dwLength))
 #define scd_CmdFailure_out(error)	(__scd_CmdFailure_out(error, scd_slot_status()))
 #define scd_CmdResponse_cmp()		(scd_slot_enter(SCD_SLOT_STATE_RDR2PC))
 void scd_SlotNotExist_cmp(void);
@@ -254,9 +283,11 @@ void scd_SlotStatus_cmp(void);
 
 void scd_RespHeader_in(scs_size_t length);
 #define scd_SlotStatus_in()		(scd_RespHeader_in(0))
+void scd_DataBlock_in(void);
 
 /* drivers */
 uint8_t scd_resp_message(void);
 void scd_slot_enter(uint8_t state);
+void scd_queue_reset(scd_qid_t qid);
 
 #endif /* __USB_SCD_H_INCLUDE__ */

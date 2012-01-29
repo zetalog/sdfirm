@@ -25,11 +25,11 @@
 #define CCID_SPE_FORMAT_ASCII	0x02
 
 #define CCID_SPE_JUSTIFY()		\
-	(ccid_cmd_data.po.bmFormatString&CCID_SPE_JUSTIFY_MASK)
+	(scd_cmd_data.po.bmFormatString&CCID_SPE_JUSTIFY_MASK)
 #define CCID_SPE_PIN_UNIT()		\
-	(ccid_cmd_data.po.bmFormatString&CCID_SPE_PIN_UNIT_MASK)
+	(scd_cmd_data.po.bmFormatString&CCID_SPE_PIN_UNIT_MASK)
 #define CCID_SPE_LEN_UNIT()		\
-	(ccid_cmd_data.po.bmPINLengthFormat&CCID_SPE_LEN_UNIT_MASK)
+	(scd_cmd_data.po.bmPINLengthFormat&CCID_SPE_LEN_UNIT_MASK)
 
 #define CCID_SPE_APDU_FIXED		5
 
@@ -93,7 +93,7 @@ static void ccid_spe_indexed_msg(void)
 	uint8_t msgidx;
 	BUG_ON(index > 2);
 
-	msgidx = ccid_cmd_data.po.bMsgIndex[index];
+	msgidx = scd_cmd_data.po.bMsgIndex[index];
 	if (msgidx > 0x02)
 		ccid_display_default();
 	else
@@ -102,7 +102,7 @@ static void ccid_spe_indexed_msg(void)
 
 static uint8_t ccid_spe_pin_format(void)
 {
-	return ccid_cmd_data.po.bmFormatString&CCID_SPE_FORMAT_MASK;
+	return scd_cmd_data.po.bmFormatString&CCID_SPE_FORMAT_MASK;
 }
 
 static void ccid_spe_invs(void)
@@ -112,7 +112,7 @@ static void ccid_spe_invs(void)
 	if (ifd_get_convention() == IFD_CONV_DIRECT)
 		return;
 
-	for (i = CCID_SPE_APDU_FIXED; i < CCID_XB_NC; i++) {
+	for (i = CCID_SPE_APDU_FIXED; i < SCD_XB_NC; i++) {
 		scd_write_byte(i, bitrev8(scd_read_byte(i)));
 	}
 }
@@ -184,18 +184,18 @@ static boolean ccid_spe_is_justify_l(void)
 
 static uint8_t ccid_spe_pin_pos(void)
 {
-	return (uint8_t)(ccid_cmd_data.po.bmFormatString&CCID_SPE_PIN_POS_MASK)>>
+	return (uint8_t)(scd_cmd_data.po.bmFormatString&CCID_SPE_PIN_POS_MASK)>>
 			CCID_SPE_PIN_POS_OFFSET;
 }
 
 static uint8_t ccid_spe_len_pos(void)
 {
-	return (uint8_t)(ccid_cmd_data.po.bmPINLengthFormat&CCID_SPE_LEN_POS_MASK);
+	return (uint8_t)(scd_cmd_data.po.bmPINLengthFormat&CCID_SPE_LEN_POS_MASK);
 }
 
 static uint8_t ccid_spe_pin_bytes(void)
 {
-	return LOHALF(ccid_cmd_data.po.bmPINBlockString);
+	return LOHALF(scd_cmd_data.po.bmPINBlockString);
 }
 
 static uint8_t ccid_spe_pin_bits(void)
@@ -205,7 +205,7 @@ static uint8_t ccid_spe_pin_bits(void)
 
 static uint8_t ccid_spe_len_bits(void)
 {
-	return HIHALF(ccid_cmd_data.po.bmPINBlockString);
+	return HIHALF(scd_cmd_data.po.bmPINBlockString);
 }
 
 scs_off_t ccid_spe_first_byte(boolean len)
@@ -331,12 +331,12 @@ static uint8_t ccid_spe_pin_digits(void)
 
 static uint8_t ccid_spe_max_digits(void)
 {
-	return LOBYTE(ccid_cmd_data.po.wPINMaxExtraDigit);
+	return LOBYTE(scd_cmd_data.po.wPINMaxExtraDigit);
 }
 
 static boolean ccid_spe_validation(uint8_t validation)
 {
-	return ccid_cmd_data.po.bEntryValidationCondition & validation;
+	return scd_cmd_data.po.bEntryValidationCondition & validation;
 }
 
 void ccid_spe_shift_left(void)
@@ -485,7 +485,7 @@ void ccid_Secure_abort(void)
 	 */
 	if (ccid_spe_kh != NULL) {
 		ccid_spe_ctrl.aborted = true;
-		CCID_XB_ERR = SCS_ERR_TIMEOUT;
+		SCD_XB_ERR = SCS_ERR_TIMEOUT;
 		ccid_spe_key_end();
 	}
 }
@@ -553,8 +553,8 @@ static void ccid_spe_capture(uint8_t scancode, uint8_t event)
 
 static uint8_t ccid_spe_key_timeout(void)
 {
-	return (uint8_t)(ccid_cmd_data.po.bTimeout ?
-			 ccid_cmd_data.po.bTimeout :
+	return (uint8_t)(scd_cmd_data.po.bTimeout ?
+			 scd_cmd_data.po.bTimeout :
 			 CCID_SPE_TIMEOUT);
 }
 
@@ -570,8 +570,8 @@ static void ccid_spe_key_begin(ccid_spe_cmpl_cb cb)
 
 uint8_t ccid_spe_msg_number(void)
 {
-	if (ccid_cmd_data.po.bNumberMessage < 4)
-		return ccid_cmd_data.po.bNumberMessage;
+	if (scd_cmd_data.po.bNumberMessage < 4)
+		return scd_cmd_data.po.bNumberMessage;
 	else
 		return 0;
 }
@@ -581,13 +581,13 @@ uint8_t ccid_spe_msg_number(void)
 static void __ccid_spe_operate_init(void)
 {
 	ccid_spe_invs();
-	switch (ccid_cmd_data.po.bPINOpeartion) {
+	switch (scd_cmd_data.po.bPINOpeartion) {
 	case CCID_SPE_PIN_VERIFY:
 		ccid_spe_key_begin(ccid_spe_verify_step);
 		break;
 	case CCID_SPE_PIN_MODIFY:
 		ccid_spe_key_begin(ccid_spe_modify_step);
-		ccid_spe_ctrl.pin_offset = ccid_cmd_data.pm.bInsertionOffsetOld;
+		ccid_spe_ctrl.pin_offset = scd_cmd_data.pm.bInsertionOffsetOld;
 		break;
 	default:
 		BUG();
@@ -597,8 +597,8 @@ static void __ccid_spe_operate_init(void)
 
 static void ccid_spe_verify_step(void)
 {
-	if (ccid_spe_ctrl.nr_next < HIBYTE(ccid_cmd_data.po.wPINMaxExtraDigit))
-		CCID_XB_ERR = SCS_ERR_OVERRUN;
+	if (ccid_spe_ctrl.nr_next < HIBYTE(scd_cmd_data.po.wPINMaxExtraDigit))
+		SCD_XB_ERR = SCS_ERR_OVERRUN;
 	ccid_spe_operate_exit();
 }
 
@@ -607,10 +607,10 @@ static void ccid_spe_modify_step(void)
 	switch (ccid_spe_get_state()) {
 	case CCID_SPE_STATE_OLDPIN:
 		ccid_spe_set_state(CCID_SPE_STATE_NEWPIN);
-		ccid_spe_ctrl.pin_offset = ccid_cmd_data.pm.bInsertionOffsetNew;
+		ccid_spe_ctrl.pin_offset = scd_cmd_data.pm.bInsertionOffsetNew;
 		break;
 	case CCID_SPE_STATE_NEWPIN:
-		if (!ccid_cmd_data.pm.bConfirmPIN) {
+		if (!scd_cmd_data.pm.bConfirmPIN) {
 			ccid_spe_operate_exit();
 		} else {
 			ccid_spe_set_state(CCID_SPE_STATE_CONFIRM);

@@ -65,14 +65,14 @@
 #ifdef CONFIG_ICCD_COS
 #define NR_SCD_SLOTS		1
 #define scd_sid			0
+typedef uint8_t			scd_qid_t;
 #else
 #define NR_SCD_SLOTS		NR_SCS_SLOTS
 #define scd_sid			scs_sid
+typedef scs_sid_t		scd_qid_t;
 #endif
 #define NR_SCD_QUEUES		NR_SCS_SLOTS
 #define ICCD_SINGLE_SLOT_IDX	(ICCD_MAX_BUSY_SLOT-1)
-
-typedef uint8_t	iccd_t;
 
 struct iccd_t1_param {
 	uint8_t bmFindexDindex;
@@ -122,13 +122,34 @@ struct iccd_hwerr {
 /* Windows CCID requires this, though these should not be an ICCD command */
 #define ICCD_PC2RDR_GETPARAMETERS	0x6C
 
+#ifdef CONFIG_ICCD_COS
+#define __iccd_get_error()		cos_get_error()
+#define scd_read_byte(idx)		cos_xchg_read(idx)
+#define scd_write_byte(idx, b)		cos_xchg_write(idx, b)
+#define scd_xchg_avail()		cos_xchg_avail()
+#define __iccd_xchg_block(nc, ne)	cos_xchg_block(nc, ne)
+#define __iccd_power_off()		cos_power_off()
+#define __iccd_power_on()		cos_power_on()
+#define __iccd_reg_handlers(cb1, cb2) 		\
+	do {					\
+		cos_register_handlers(cb2);	\
+		cb1();				\
+	} while (0)
+#else
+#define __iccd_dev_get_state()		scs_get_slot_status()
+#define __iccd_get_error()		scs_get_slot_error()
+#define scd_read_byte(idx)		scs_slot_xchg_read(idx)	
+#define scd_write_byte(idx, b)		scs_slot_xchg_write(idx, b)
+#define scd_xchg_avail()		scs_slot_xchg_avail()
+#define __iccd_xchg_block(nc, ne)	scs_slot_xchg_block(nc, ne)
+#define __iccd_power_off()		scs_slot_power_off()
+#define __iccd_power_on()		scs_slot_power_on()
+#define __iccd_reg_handlers(cb1, cb2) 	scd_notify_slot(cb1, cb2)
+#endif
+
 void iccd_ScsSequence_cmp(scs_err_t err);
 void iccd_XfrBlock_cmp(void);
 
 void iccd_DataBlock_cmp(scs_err_t err);
-
-void iccd_DataBlock_in(void);
-
-extern iccd_t scd_qid;
 
 #endif /* __USB_ICCD_H_INCLUDE__ */

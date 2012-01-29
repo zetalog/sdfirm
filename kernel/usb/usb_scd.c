@@ -2,7 +2,8 @@
 
 __near__ struct scd_cmd scd_cmds[NR_SCD_QUEUES];
 __near__ struct scd_resp scd_resps[NR_SCD_QUEUES];
-/* scd_qid_t scd_qid = INVALID_SCD_QUEUE; */
+__near__ scd_qid_t scd_qid = INVALID_SCD_QID;
+scd_data_t scd_cmd_data;
 
 /*=========================================================================
  * bulk-out data
@@ -40,6 +41,58 @@ void scd_SlotStatus_out(void)
 	scd_resps[scd_qid].dwLength = 0;
 }
 
+void scd_DataBlock_out(void)
+{
+	scs_size_t nr = scd_xchg_avail();
+	scs_size_t ne = SCD_XB_NE;
+
+	__scd_CmdSuccess_out();
+	scd_resps[scd_qid].abRFU3 = 0;
+	scd_resps[scd_qid].dwLength = ne ? (nr < ne ? nr : ne) : nr;
+}
+
+void __scd_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size)
+{
+	scs_off_t i;
+	uint8_t byte = 0;
+
+	if (usbd_request_handled() == hdr_size) {
+		/* reset SCS error */
+		SCD_XB_ERR = SCS_ERR_SUCCESS;
+		/* reset Nc */
+		SCD_XB_NC = 0;
+		/* Ne is from wLevelParameter
+		 * TODO: extended APDU level
+		 * more efforts
+		 */
+		SCD_XB_NE = (scd_cmds[scd_qid].abRFU[1] << 8) |
+			     scd_cmds[scd_qid].abRFU[2];
+		/* reset WI */
+		SCD_XB_WI = scd_cmds[scd_qid].abRFU[0];
+	}
+	/* force USB reap on error */
+	if (!scd_slot_success(SCD_XB_ERR)) {
+		return;
+	}
+
+	usbd_iter_accel();
+	for (i = SCD_XB_NC; i < blk_size; i++) {
+		/* XXX: USBD_OUTB May Fake Reads 'byte'
+		 * Following codes are enabled only when USBD_OUTB actually
+		 * gets something into the 'byte', which happens when:
+		 * handled-1 == NC+hdr_size.
+		 */
+		USBD_OUT_BEGIN(byte) {
+			/* Now byte contains non-fake value. */
+			SCD_XB_ERR = scd_write_byte(SCD_XB_NC, byte);
+			if (!scd_slot_success(SCD_XB_ERR)) {
+				return;
+			}
+			SCD_XB_NC++;
+		} USBD_OUT_END
+	}
+}
+
 void scd_SlotNotExist_cmp(void)
 {
 	__scd_CmdFailure_out(5, SCD_SLOT_STATUS_NOTPRESENT);
@@ -70,4 +123,29 @@ void scd_RespHeader_in(scs_size_t length)
 	USBD_INB(scd_resps[scd_qid].bStatus);
 	USBD_INB(scd_resps[scd_qid].bError);
 	USBD_INB(scd_resps[scd_qid].abRFU3);
+}
+
+void scd_DataBlock_in(void)
+{
+	scs_off_t i;
+
+	scd_RespHeader_in(scd_resps[scd_qid].dwLength);
+
+	usbd_iter_accel();
+
+	for (i = usbd_request_handled()-SCD_HEADER_SIZE;
+	     i < scd_resps[scd_qid].dwLength; i++) {
+		USBD_INB(scd_read_byte(i));
+	}
+
+#if 0
+	if (usbd_request_handled() ==
+	    scd_resps[scd_qid].dwLength + SCD_HEADER_SIZE) {
+		/* allow next XfrBlock fetching next bytes */
+		scd_resps[scd_qid].dwLength;
+	}
+#endif
+
+	BUG_ON(usbd_request_handled() >
+	       scd_resps[scd_qid].dwLength + SCD_HEADER_SIZE);
 }

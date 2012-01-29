@@ -44,7 +44,7 @@
 
 #include <target/ifd.h>
 
-typedef ifd_sid_t	ccid_qid_t;
+typedef ifd_sid_t	scd_qid_t;
 typedef uint8_t		ccid_seq_t;
 
 #define CCID_REQ_ABORT			0x01
@@ -77,6 +77,14 @@ struct ccid_hwerr {
 };
 #define CCID_IRQ_HWERR_SIZE	0x04
 
+/* DataRate and ClockFreq */
+struct ccid_fd_param {
+	uint32_t dwClockFrequency;
+	uint32_t dwDataRate;
+};
+
+#include <target/ccid_spe.h>
+
 /* maximum busy slots in CCID layer */
 #define NR_SCD_SLOTS			NR_IFD_SLOTS
 #define scd_sid				ifd_slid
@@ -88,6 +96,7 @@ struct ccid_hwerr {
 
 #define scd_read_byte(i)		ifd_read_byte(i)
 #define scd_write_byte(i, v)		ifd_write_byte((i), (v))
+#define scd_xchg_avail()		ifd_xchg_avail()
 
 /*
  * QID = SID+1: additional QID for BULK_OUT
@@ -163,13 +172,7 @@ void ccid_XfrBlock_cmp(void);
 void ccid_Parameters_cmp(scs_err_t err);
 void ccid_DataBlock_cmp(scs_err_t err);
 
-void __ccid_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size);
-
-void ccid_DataBlock_in(void);
-
 void ccid_display_slot(void);
 void ccid_display_default(void);
-
-extern __near__ ccid_qid_t scd_qid;
 
 #endif /* __USB_CCID_H_INCLUDE__ */

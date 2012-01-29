@@ -45,28 +45,9 @@
 #define ICCD_REQ_GET_ICC_STATUS		0xA0
 #define ICCD_REQ_SLOT_STATUS		0x81
 
-#define ICCD_XB_ERR	iccd_cmd_data.xb.dwIccOutErr
-#define ICCD_XB_NC	iccd_cmd_data.xb.dwIccOutCnt
-#define ICCD_XB_NE	iccd_cmd_data.xb.dwIccExpCnt
-#define ICCD_XB_WI	iccd_cmd_data.xb.bIccWaitInt
-
-typedef union iccd_data {
-	struct scd_t0_param t0;
-	struct scd_t1_param t1;
-	struct scd_db_param db;
-	struct scd_xb_param xb;
-} iccd_data_t;
-
-static void iccd_dev_reset(iccd_t id);
-static iccd_t iccd_addr2id(uint8_t addr);
-
 static void iccd_handle_cmp(scs_err_t err, boolean block);
-static void __iccd_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size);
 
 struct iccd_dev iccd_devs[NR_SCD_SLOTS];
-
-iccd_data_t iccd_cmd_data;
-iccd_t scd_qid = INVALID_SCD_QID;
 
 #ifdef CONFIG_SCD_INTERRUPT
 DECLARE_BITMAP(iccd_running_intrs, NR_SCD_SLOTS+NR_SCD_SLOTS);
@@ -89,19 +70,6 @@ uint8_t iccd_addr[NR_SCD_SLOTS][NR_SCD_ENDPS];
 #define ICCD_STRING_LAST	ICCD_STRING_INTERFACE
 
 #ifdef CONFIG_ICCD_COS
-#define __iccd_get_error()		cos_get_error()
-#define __iccd_xchg_read(idx)		cos_xchg_read(idx)
-#define __iccd_xchg_write(idx, b)	cos_xchg_write(idx, b)
-#define __iccd_xchg_block(nc, ne)	cos_xchg_block(nc, ne)
-#define __iccd_xchg_avail()		cos_xchg_avail()
-#define __iccd_power_off()		cos_power_off()
-#define __iccd_power_on()		cos_power_on()
-#define __iccd_reg_handlers(cb1, cb2) 		\
-	do {					\
-		cos_register_handlers(cb2);	\
-		cb1();				\
-	} while (0)
-
 uint8_t iccd_dev_state(uint8_t state)
 {
 	return SCD_SLOT_STATUS_ACTIVE;
@@ -121,16 +89,6 @@ static uint8_t iccd_dev_error(scs_err_t err)
 	return ICCD_ERROR_HW_ERROR;
 }
 #else
-#define __iccd_dev_get_state()		scs_get_slot_status()
-#define __iccd_get_error()		scs_get_slot_error()
-#define __iccd_xchg_read(idx)		scs_slot_xchg_read(idx)	
-#define __iccd_xchg_write(idx, b)	scs_slot_xchg_write(idx, b)
-#define __iccd_xchg_avail()		scs_slot_xchg_avail()
-#define __iccd_xchg_block(nc, ne)	scs_slot_xchg_block(nc, ne)
-#define __iccd_power_off()		scs_slot_power_off()
-#define __iccd_power_on()		scs_slot_power_on()
-#define __iccd_reg_handlers(cb1, cb2) 	scd_notify_slot(cb1, cb2)
-
 uint8_t iccd_dev_state(uint8_t d)
 {
 	uint8_t state = __iccd_dev_get_state();
@@ -206,14 +164,14 @@ static uint32_t iccd_proto_features(void)
 }
 
 #if NR_SCD_SLOTS > 1
-static void iccd_cid_restore(iccd_t id)
+static void iccd_cid_restore(scd_qid_t id)
 {
 	scd_qid = id;
 }
 
-static iccd_t iccd_cid_save(iccd_t id)
+static scd_qid_t iccd_cid_save(scd_qid_t id)
 {
-	iccd_t scid;
+	scd_qid_t scid;
 
 	scid = scd_qid;
 	iccd_cid_restore(id);
@@ -226,6 +184,20 @@ static iccd_t iccd_cid_save(iccd_t id)
 #define iccd_cid_save(id)	(id)
 #define iccd_cid_select(id)	(scd_qid = id)
 #endif
+
+static scd_qid_t iccd_addr2qid(uint8_t addr)
+{
+	scd_qid_t id;
+	uint8_t i;
+
+	for (id = 0; id < NR_SCD_SLOTS; id++) {
+		for (i = 0; i < NR_SCD_ENDPS; i++) {
+			if (addr == iccd_addr[scd_qid][i])
+				return id;
+		}
+	}
+	return NR_SCD_SLOTS;
+}
 
 uint8_t scd_slot_status(void)
 {
@@ -249,7 +221,7 @@ void scd_slot_enter(uint8_t state)
 	}
 }
 
-static void iccd_dev_reset(iccd_t id)
+void scd_queue_reset(scd_qid_t id)
 {
 	iccd_devs[id].state = SCD_SLOT_STATE_PC2RDR;
 	scd_resps[id].bStatus &= ~SCD_CMD_STATUS_MASK;
@@ -262,8 +234,8 @@ static boolean iccd_is_cmd_status(uint8_t status)
 
 static void iccd_submit_response(void)
 {
-	iccd_t id = iccd_addr2id(usbd_saved_addr());
-	iccd_t ocid;
+	scd_qid_t id = iccd_addr2qid(usbd_saved_addr());
+	scd_qid_t ocid;
 	if (iccd_devs[id].state == SCD_SLOT_STATE_RDR2PC) {
 		ocid = iccd_cid_save(id);
 		usbd_request_submit(ICCD_ADDR_IN,
@@ -274,8 +246,8 @@ static void iccd_submit_response(void)
 
 static void iccd_submit_command(void)
 {
-	iccd_t id = iccd_addr2id(usbd_saved_addr());
-	iccd_t ocid;
+	scd_qid_t id = iccd_addr2qid(usbd_saved_addr());
+	scd_qid_t ocid;
 	if (iccd_devs[id].state == SCD_SLOT_STATE_PC2RDR) {
 		ocid = iccd_cid_save(id);
 		usbd_request_submit(ICCD_ADDR_OUT, SCD_HEADER_SIZE);
@@ -472,75 +444,18 @@ static void iccd_handle_ctrl_data(void)
 /*=========================================================================
  * bulk-out data
  *=======================================================================*/
-static void iccd_DataBlock_out(void)
-{
-	scs_size_t nr = __iccd_xchg_avail();
-	scs_size_t ne = ICCD_XB_NE;
-
-	__scd_CmdSuccess_out();
-	scd_resps[scd_qid].abRFU3 = 0;
-	scd_resps[scd_qid].dwLength = ne ? (nr < ne ? nr : ne) : nr;
-}
-
 static void iccd_IccPowerOn_out(void)
 {
 	if (usbd_request_handled() == SCD_HEADER_SIZE) {
 		/* reset SCD error */
-		ICCD_XB_ERR = SCS_ERR_SUCCESS;
+		SCD_XB_ERR = SCS_ERR_SUCCESS;
 		/* reset Nc */
-		ICCD_XB_NC = 0;
+		SCD_XB_NC = 0;
 		/* Ne should be 32 (ATR) + 1 (TS) */
-		ICCD_XB_NE = ICC_ATR_MAX;
+		SCD_XB_NE = ICC_ATR_MAX;
 		/* reset WI */
-		ICCD_XB_WI = 0;
+		SCD_XB_WI = 0;
 	}
-}
-
-static void __iccd_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size)
-{
-	scs_off_t i;
-	uint8_t byte = 0;
-
-	if (usbd_request_handled() == hdr_size) {
-		/* reset SCD error */
-		ICCD_XB_ERR = SCS_ERR_SUCCESS;
-		/* reset Nc */
-		ICCD_XB_NC = 0;
-		/* Ne is from wLevelParameter
-		 * TODO: extended APDU level
-		 * more efforts
-		 */
-		ICCD_XB_NE = (scd_cmds[scd_qid].abRFU[1] << 8) |
-			      scd_cmds[scd_qid].abRFU[2];
-		/* reset WI */
-		ICCD_XB_WI = scd_cmds[scd_qid].abRFU[0];
-	}
-	/* force USB reap on error */
-	if (!scd_slot_success(ICCD_XB_ERR)) {
-		return;
-	}
-
-	usbd_iter_accel();
-	for (i = ICCD_XB_NC; i < blk_size; i++) {
-		/* XXX: USBD_OUTB May Fake Reads 'byte'
-		 * Following codes are enabled only when USBD_OUTB actually
-		 * gets something into the 'byte', which happens when:
-		 * handled-1 == NC+hdr_size.
-		 */
-		USBD_OUT_BEGIN(byte) {
-			/* Now byte contains non-fake value. */
-			ICCD_XB_ERR = __iccd_xchg_write(ICCD_XB_NC, byte);
-			if (!scd_slot_success(ICCD_XB_ERR)) {
-				return;
-			}
-			ICCD_XB_NC++;
-		} USBD_OUT_END
-	}
-}
-
-static void iccd_XfrBlock_out(void)
-{
-	__iccd_XfrBlock_out(SCD_HEADER_SIZE, scd_cmds[scd_qid].dwLength);
 }
 
 static void iccd_handle_slot_pc2rdr(void)
@@ -558,7 +473,7 @@ static void iccd_handle_slot_pc2rdr(void)
 		/* nothing to do */
 		break;
 	case SCD_PC2RDR_XFRBLOCK:
-		iccd_XfrBlock_out();
+		scd_XfrBlock_out();
 		break;
 	case SCD_PC2RDR_ESCAPE:
 		scd_Escape_out();
@@ -568,8 +483,8 @@ static void iccd_handle_slot_pc2rdr(void)
 
 static void iccd_handle_command(void)
 {
-	iccd_t id = iccd_addr2id(usbd_saved_addr());
-	iccd_t ocid;
+	scd_qid_t id = iccd_addr2qid(usbd_saved_addr());
+	scd_qid_t ocid;
 
 	ocid = iccd_cid_save(id);
 	scd_debug(SCD_DEBUG_SLOT, id);
@@ -603,27 +518,10 @@ out:
 /*=========================================================================
  * bulk-in data
  *=======================================================================*/
-void iccd_DataBlock_in(void)
-{
-	scs_off_t i;
-
-	scd_RespHeader_in(scd_resps[scd_qid].dwLength);
-
-	usbd_iter_accel();
-
-	for (i = usbd_request_handled()-SCD_HEADER_SIZE;
-	     i < scd_resps[scd_qid].dwLength; i++) {
-		USBD_INB(__iccd_xchg_read(i));
-	}
-
-	BUG_ON(usbd_request_handled() >
-	       scd_resps[scd_qid].dwLength + SCD_HEADER_SIZE);
-}
-
 static void iccd_handle_response(void)
 {
-	iccd_t id = iccd_addr2id(usbd_saved_addr());
-	iccd_t ocid;
+	scd_qid_t id = iccd_addr2qid(usbd_saved_addr());
+	scd_qid_t ocid;
 
 	ocid = iccd_cid_save(id);
 	scd_debug(SCD_DEBUG_SLOT, scd_qid);
@@ -640,7 +538,7 @@ static void iccd_handle_response(void)
 	switch (scd_cmds[scd_qid].bMessageType) {
 	case SCD_PC2RDR_ICCPOWERON:
 	case SCD_PC2RDR_XFRBLOCK:
-		iccd_DataBlock_in();
+		scd_DataBlock_in();
 		break;
 	case SCD_PC2RDR_ICCPOWEROFF:
 	case ICCD_PC2RDR_GETPARAMETERS:
@@ -659,8 +557,8 @@ out:
 
 static void iccd_complete_response(void)
 {
-	iccd_t id = iccd_addr2id(usbd_saved_addr());
-	iccd_t ocid = iccd_cid_save(id);
+	scd_qid_t id = iccd_addr2qid(usbd_saved_addr());
+	scd_qid_t ocid = iccd_cid_save(id);
 	scd_slot_enter(SCD_SLOT_STATE_PC2RDR);
 	iccd_cid_restore(ocid);
 }
@@ -680,7 +578,7 @@ static void iccd_handle_cmp(scs_err_t err, boolean block)
 			scd_CmdFailure_out(iccd_dev_error(err));
 		} else {
 			if (block) {
-				iccd_DataBlock_out();
+				scd_DataBlock_out();
 			} else {
 				scd_SlotStatus_out();
 			}
@@ -708,11 +606,11 @@ static void iccd_IccPowerOff_cmp(void)
 
 void iccd_XfrBlock_cmp(void)
 {
-	scs_err_t err = ICCD_XB_ERR;
+	scs_err_t err = SCD_XB_ERR;
 
 	/* TODO: wLevelParameter check when XCHG_CHAR or XCHG_APDU_EXT */
-	if (scd_slot_success(err) && ICCD_XB_NC != 0) {
-		err = __iccd_xchg_block(ICCD_XB_NC, ICCD_XB_NE);
+	if (scd_slot_success(err) && SCD_XB_NC != 0) {
+		err = __iccd_xchg_block(SCD_XB_NC, SCD_XB_NE);
 	}
 	iccd_handle_cmp(err, true);
 }
@@ -754,8 +652,8 @@ static void iccd_complete_slot_pc2rdr(void)
 
 static void iccd_complete_command(void)
 {
-	iccd_t id = iccd_addr2id(usbd_saved_addr());
-	iccd_t ocid;
+	scd_qid_t id = iccd_addr2qid(usbd_saved_addr());
+	scd_qid_t ocid;
 	ocid = iccd_cid_save(id);
 
 	BUG_ON(iccd_devs[scd_qid].state != SCD_SLOT_STATE_PC2RDR &&
@@ -790,19 +688,19 @@ out:
  *=======================================================================*/
 #define ICCD_INTR_CHANGE(id)		((id<<1)+1)
 #define ICCD_INTR_STATUS(id)		((id<<1))
-static boolean __iccd_change_running(iccd_t id)
+static boolean __iccd_change_running(scd_qid_t id)
 {
 	return test_bit(ICCD_INTR_CHANGE(id), iccd_running_intrs);
 }
 
-static boolean __iccd_change_pending(iccd_t id)
+static boolean __iccd_change_pending(scd_qid_t id)
 {
 	return test_bit(ICCD_INTR_CHANGE(id), iccd_pending_intrs);
 }
 
 static boolean iccd_change_pending(void)
 {
-	iccd_t id;
+	scd_qid_t id;
 	for (id = 0; id < NR_SCD_SLOTS; id++) {
 		if (__iccd_change_pending(id))
 			return true;
@@ -822,7 +720,7 @@ static void iccd_change_data(void)
 
 static void iccd_change_discard(void)
 {
-	iccd_t id = iccd_addr2id(usbd_saved_addr());
+	scd_qid_t id = iccd_addr2qid(usbd_saved_addr());
 	if (__iccd_change_running(id)) {
 		clear_bit(ICCD_INTR_CHANGE(id), iccd_running_intrs);
 		scd_debug(SCD_DEBUG_INTR, ICCD_INTR_RUNNING_UNSET);
@@ -831,7 +729,7 @@ static void iccd_change_discard(void)
 
 static void iccd_change_submit(void)
 {
-	iccd_t id;
+	scd_qid_t id;
 
 	for (id = 0; id < NR_SCD_SLOTS; id++) {
 		/* copy changed bits */
@@ -908,14 +806,14 @@ static void iccd_submit_interrupt(void)
 
 static void iccd_handle_ll_intr(void)
 {
-	iccd_t ocid = iccd_cid_save(scd_sid);
+	scd_qid_t ocid = iccd_cid_save(scd_sid);
 	iccd_change_raise();
 	iccd_cid_restore(ocid);
 }
 
 static void iccd_intr_start(void)
 {
-	iccd_t id, ocid;
+	scd_qid_t id, ocid;
 
 	for (id = 0; id < NR_SCD_SLOTS; id++) {
 		ocid = iccd_cid_save(id);
@@ -931,21 +829,6 @@ static void iccd_handle_ll_intr(void)
 #define iccd_intr_start()
 #define iccd_intr_init()
 #endif
-
-/* iccd */
-static iccd_t iccd_addr2id(uint8_t addr)
-{
-	iccd_t id;
-	uint8_t i;
-
-	for (id = 0; id < NR_SCD_SLOTS; id++) {
-		for (i = 0; i < NR_SCD_ENDPS; i++) {
-			if (addr == iccd_addr[scd_qid][i])
-				return id;
-		}
-	}
-	return NR_SCD_SLOTS;
-}
 
 /*=========================================================================
  * ICCD entrances
@@ -1015,7 +898,7 @@ usbd_interface_t usb_iccd_interface = {
 	iccd_handle_ctrl_data,
 };
 
-static void iccd_claim_endp(iccd_t id)
+static void iccd_claim_endp(scd_qid_t id)
 {
 #ifdef CONFIG_SCD_BULK
 	iccd_addr[id][SCD_ENDP_BULK_OUT] = usbd_claim_endpoint(true, &iccd_endpoint_out);
@@ -1028,13 +911,13 @@ static void iccd_claim_endp(iccd_t id)
 
 static void iccd_dev_init(void)
 {
-	iccd_t id;
+	scd_qid_t id;
 	
 	/* USB interface and endpoint stuff */
 	for (id = 0; id < NR_SCD_SLOTS; id++) {
 		usbd_declare_interface(50, &usb_iccd_interface);
 		iccd_claim_endp(id);
-		iccd_dev_reset(id);
+		scd_queue_reset(id);
 	}
 	iccd_cid_select(0);
 }
