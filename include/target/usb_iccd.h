@@ -72,6 +72,8 @@
 #define NR_SCD_QUEUES		NR_SCS_SLOTS
 #define ICCD_SINGLE_SLOT_IDX	(ICCD_MAX_BUSY_SLOT-1)
 
+typedef uint8_t	iccd_t;
+
 struct iccd_t1_param {
 	uint8_t bmFindexDindex;
 	uint8_t bmTCCKST1;
@@ -120,15 +122,13 @@ struct iccd_hwerr {
 /* Windows CCID requires this, though these should not be an ICCD command */
 #define ICCD_PC2RDR_GETPARAMETERS	0x6C
 
-void iccd_CmdResponse_cmp(void);
 void iccd_ScsSequence_cmp(scs_err_t err);
 void iccd_XfrBlock_cmp(void);
 
-void iccd_CmdOffset_cmp(uint8_t offset);
-void iccd_SlotNotExist_cmp(void);
 void iccd_DataBlock_cmp(scs_err_t err);
 
-void iccd_SlotStatus_in(void);
 void iccd_DataBlock_in(void);
+
+extern iccd_t scd_qid;
 
 #endif /* __USB_ICCD_H_INCLUDE__ */

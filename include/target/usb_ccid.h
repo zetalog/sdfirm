@@ -157,21 +157,19 @@ struct ccid_hwerr {
 #define CCID_MECHA_LOCK_CARD		0x04
 #define CCID_MECHA_UNLOCK_CARD		0x05
 
-void ccid_CmdResponse_cmp(void);
 void ccid_ScsSequence_cmp(scs_err_t err);
 void ccid_XfrBlock_cmp(void);
 
-void ccid_CmdOffset_cmp(uint8_t offset);
-void ccid_SlotNotExist_cmp(void);
 void ccid_Parameters_cmp(scs_err_t err);
 void ccid_DataBlock_cmp(scs_err_t err);
 
 void __ccid_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size);
 
-void ccid_SlotStatus_in(void);
 void ccid_DataBlock_in(void);
 
 void ccid_display_slot(void);
 void ccid_display_default(void);
+
+extern __near__ ccid_qid_t scd_qid;
 
 #endif /* __USB_CCID_H_INCLUDE__ */

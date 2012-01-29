@@ -232,17 +232,31 @@ void scd_Escape_in(void);
 
 #ifdef CONFIG_USB_CCID
 #include <target/usb_ccid.h>
-#define scd_CmdOffset_cmp(off)	ccid_CmdOffset_cmp(off)
-#define scd_SlotStatus_in()	ccid_SlotStatus_in()
 #endif
 #ifdef CONFIG_USB_ICCD
 #include <target/usb_iccd.h>
-#define scd_CmdOffset_cmp(off)	iccd_CmdOffset_cmp(off)
-#define scd_SlotStatus_in()	iccd_SlotStatus_in()
 #endif
 
 #define INVALID_SCD_QID			NR_SCD_QUEUES
 
 extern __near__ struct scd_cmd scd_cmds[NR_SCD_QUEUES];
+extern __near__ struct scd_resp scd_resps[NR_SCD_QUEUES];
+
+void scd_CmdHeader_out(void);
+void __scd_CmdSuccess_out(void);
+void __scd_CmdFailure_out(uint8_t error, uint8_t status);
+void scd_SlotStatus_out(void);
+#define scd_CmdFailure_out(error)	(__scd_CmdFailure_out(error, scd_slot_status()))
+#define scd_CmdResponse_cmp()		(scd_slot_enter(SCD_SLOT_STATE_RDR2PC))
+void scd_SlotNotExist_cmp(void);
+void scd_CmdOffset_cmp(uint8_t offset);
+void scd_SlotStatus_cmp(void);
+
+void scd_RespHeader_in(scs_size_t length);
+#define scd_SlotStatus_in()		(scd_RespHeader_in(0))
+
+/* drivers */
+uint8_t scd_resp_message(void);
+void scd_slot_enter(uint8_t state);
 
 #endif /* __USB_SCD_H_INCLUDE__ */

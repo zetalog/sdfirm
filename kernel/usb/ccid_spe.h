@@ -1,8 +1,4 @@
 #ifdef CONFIG_CCID_SECURE
-#define CCID_SPE_CR		0x0D
-#define CCID_SPE_ESC		0x1B
-#define CCID_SPE_TIMEOUT	120
-
 struct ccid_po_param {
 	struct scd_xb_param xb;
 	uint8_t bPINOpeartion;
@@ -37,6 +33,10 @@ struct ccid_pm_param {
 #define CCID_SPE_MODIFY_FIXED	12	/* bytes before bNumberMessage */
 #define CCID_SPE_MODIFY_SIZE	18
 
+#define CCID_SPE_CR		0x0D
+#define CCID_SPE_ESC		0x1B
+#define CCID_SPE_TIMEOUT	120
+
 #define CCID_SPE_LCD_LAYOUT	((MAX_LCD_ROWS << 8) | MAX_LCD_COLS)
 #define CCID_SPE_SUPPORT_FUNC	SCD_SPE_SUPPORT_ALL
 
@@ -53,6 +53,6 @@ void ccid_spe_init(void);
 #define ccid_Secure_abort()
 #define ccid_kbd_abort()
 #define ccid_Secure_out()
-#define ccid_Secure_cmp()	ccid_CmdOffset_cmp(0)
+#define ccid_Secure_cmp()	scd_CmdOffset_cmp(0)
 #define ccid_spe_init()
 #endif
