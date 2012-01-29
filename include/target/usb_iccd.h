@@ -39,8 +39,8 @@
  * $Id: usb_iccd.h,v 1.32 2011-11-10 07:02:37 zhenglv Exp $
  */
 
-#ifndef __USB_ICCD_H_INCLUDE__
-#define __USB_ICCD_H_INCLUDE__
+#ifndef __SCD_ICCD_H_INCLUDE__
+#define __SCD_ICCD_H_INCLUDE__
 
 #include <target/scs_slot.h>
 #include <target/cos.h>
@@ -63,46 +63,32 @@
 #define ICCD_RDR2PC_NOTIFYSLOTCHANGE	0x50
 
 #ifdef CONFIG_ICCD_COS
-#define NR_SCD_SLOTS		1
-#define scd_sid			0
-typedef uint8_t			scd_qid_t;
+#define NR_SCD_SLOTS			1
+#define scd_sid				0
+typedef uint8_t				scd_sid_t;
 #else
-#define NR_SCD_SLOTS		NR_SCS_SLOTS
-#define scd_sid			scs_sid
-typedef scs_sid_t		scd_qid_t;
+#define NR_SCD_SLOTS			NR_SCS_SLOTS
+#define scd_sid				scs_sid
+typedef scs_sid_t			scd_sid_t;
 #endif
-#define NR_SCD_QUEUES		NR_SCS_SLOTS
-#define ICCD_SINGLE_SLOT_IDX	(ICCD_MAX_BUSY_SLOT-1)
-
-struct iccd_t1_param {
-	uint8_t bmFindexDindex;
-	uint8_t bmTCCKST1;
-	uint8_t bGuardTimeT1;
-	uint8_t bWaitingIntegerT1;
-	uint8_t bClockStop;
-	uint8_t bIFSC;
-	uint8_t bNadValue;
-};
+#define NR_SCD_QUEUES			NR_SCS_SLOTS
+#define ICCD_SID_USB			(ICCD_MAX_BUSY_SLOT-1)
 
 #define ICCD_BUF_SIZE			261
 #define ICCD_MESSAGE_SIZE		(ICCD_BUF_SIZE + SCD_HEADER_SIZE)
 
-struct iccd_dev {
-	uint8_t state;
-};
-
 struct iccd_hwerr {
 	/* hwerr interrupt is pending */
 	uint8_t bState;
-#define ICCD_HWERR_PENDING	0x01
-#define ICCD_HWERR_RUNNING	0x02
+#define ICCD_HWERR_PENDING		0x01
+#define ICCD_HWERR_RUNNING		0x02
 	uint8_t bSeq;
-#define ICCD_HWERR_OVERCURRENT	0x01
+#define ICCD_HWERR_OVERCURRENT		0x01
 	uint8_t bHardwareErrorCode;
 	uint8_t bPendingSeq;
 	uint8_t bPendingCode;
 };
-#define CCID_IRQ_HWERR_SIZE	0x04
+#define CCID_IRQ_HWERR_SIZE		0x04
 
 #define ICCD_INTR_RUNNING_SET		0x00
 #define ICCD_INTR_RUNNING_UNSET		0x01
@@ -111,13 +97,13 @@ struct iccd_hwerr {
 #define ICCD_INTR_ICC_PRESENT		0x04
 #define ICCD_INTR_ICC_NOTPRESENT	0x05
 
-#define ICCD_ERROR_ICC_MUTE			0xFE
-#define ICCD_ERROR_XFR_OVERRUN			0xFC
-#define ICCD_ERROR_HW_ERROR			0xFB
-#define ICCD_ERROR_USER_DEFINED			0xC0
-#define ICCD_ERROR_USER(e)			(ICCD_ERROR_USER_DEFINED-e)
-#define ICCD_ERROR_RESERVED			0x80
-#define ICCD_ERROR_CMD_UNSUPPORT		0x00
+#define ICCD_ERROR_ICC_MUTE		0xFE
+#define ICCD_ERROR_XFR_OVERRUN		0xFC
+#define ICCD_ERROR_HW_ERROR		0xFB
+#define ICCD_ERROR_USER_DEFINED		0xC0
+#define ICCD_ERROR_USER(e)		(ICCD_ERROR_USER_DEFINED-e)
+#define ICCD_ERROR_RESERVED		0x80
+#define ICCD_ERROR_CMD_UNSUPPORT	0x00
 
 /* Windows CCID requires this, though these should not be an ICCD command */
 #define ICCD_PC2RDR_GETPARAMETERS	0x6C
@@ -127,7 +113,7 @@ struct iccd_hwerr {
 #define scd_read_byte(idx)		cos_xchg_read(idx)
 #define scd_write_byte(idx, b)		cos_xchg_write(idx, b)
 #define scd_xchg_avail()		cos_xchg_avail()
-#define __iccd_xchg_block(nc, ne)	cos_xchg_block(nc, ne)
+#define scd_xchg_block(nc, ne)		cos_xchg_block(nc, ne)
 #define __iccd_power_off()		cos_power_off()
 #define __iccd_power_on()		cos_power_on()
 #define __iccd_reg_handlers(cb1, cb2) 		\
@@ -136,20 +122,14 @@ struct iccd_hwerr {
 		cb1();				\
 	} while (0)
 #else
-#define __iccd_dev_get_state()		scs_get_slot_status()
 #define __iccd_get_error()		scs_get_slot_error()
 #define scd_read_byte(idx)		scs_slot_xchg_read(idx)	
 #define scd_write_byte(idx, b)		scs_slot_xchg_write(idx, b)
 #define scd_xchg_avail()		scs_slot_xchg_avail()
-#define __iccd_xchg_block(nc, ne)	scs_slot_xchg_block(nc, ne)
+#define scd_xchg_block(nc, ne)		scs_slot_xchg_block(nc, ne)
 #define __iccd_power_off()		scs_slot_power_off()
 #define __iccd_power_on()		scs_slot_power_on()
 #define __iccd_reg_handlers(cb1, cb2) 	scd_notify_slot(cb1, cb2)
 #endif
 
-void iccd_ScsSequence_cmp(scs_err_t err);
-void iccd_XfrBlock_cmp(void);
-
-void iccd_DataBlock_cmp(scs_err_t err);
-
-#endif /* __USB_ICCD_H_INCLUDE__ */
+#endif /* __SCD_ICCD_H_INCLUDE__ */

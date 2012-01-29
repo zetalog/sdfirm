@@ -1,9 +1,32 @@
 #include <target/usb_scd.h>
 
+__near__ uint8_t scd_states[NR_SCD_QUEUES];
 __near__ struct scd_cmd scd_cmds[NR_SCD_QUEUES];
 __near__ struct scd_resp scd_resps[NR_SCD_QUEUES];
-__near__ scd_qid_t scd_qid = INVALID_SCD_QID;
 scd_data_t scd_cmd_data;
+
+#if NR_SCD_QUEUES > 1
+__near__ scd_qid_t scd_qid = INVALID_SCD_QID;
+
+void scd_qid_restore(scd_qid_t qid)
+{
+	scd_qid = qid;
+}
+
+scd_qid_t scd_qid_save(scd_qid_t id)
+{
+	scd_qid_t scid;
+
+	scid = scd_qid;
+	scd_qid_restore(id);
+	return scid;
+}
+#endif
+
+boolean scd_is_cmd_status(uint8_t status)
+{
+	return ((scd_resps[scd_qid].bStatus & SCD_CMD_STATUS_MASK) == status);
+}
 
 /*=========================================================================
  * bulk-out data
@@ -109,6 +132,35 @@ void scd_SlotStatus_cmp(void)
 {
 	scd_SlotStatus_out();
 	scd_CmdResponse_cmp();
+}
+
+void scd_XfrBlock_cmp(void)
+{
+	scs_err_t err = SCD_XB_ERR;
+
+	/* TODO: wLevelParameter check when XCHG_CHAR or XCHG_APDU_EXT */
+	if (scd_slot_success(err) && SCD_XB_NC != 0) {
+		err = scd_xchg_block(SCD_XB_NC, SCD_XB_NE);
+	}
+	scd_ScsSequence_cmp(err, true);
+}
+
+void scd_ScsSequence_cmp(scs_err_t err, boolean block)
+{
+	if (!scd_slot_progress(err)) {
+		if (!scd_slot_success(err)) {
+			scd_CmdFailure_out(scd_slot_error(err));
+		} else {
+			if (block) {
+				scd_DataBlock_out();
+			} else {
+				scd_SlotStatus_out();
+			}
+		}
+		scd_CmdResponse_cmp();
+	} else {
+		scd_slot_enter(SCD_SLOT_STATE_ISO7816);
+	}
 }
 
 /*=========================================================================

@@ -176,6 +176,8 @@ struct scd_resp {
 #define SCD_HEADER_SIZE			0
 #endif
 
+typedef uint8_t			scd_qid_t;
+
 /* SCD_PC2RDR_XFRBLOCK parameters */
 struct scd_xb_param {
 	scs_err_t dwIccOutErr;
@@ -262,10 +264,23 @@ typedef union scd_data {
 
 #define INVALID_SCD_QID			NR_SCD_QUEUES
 
+extern __near__ uint8_t scd_states[NR_SCD_QUEUES];
 extern __near__ struct scd_cmd scd_cmds[NR_SCD_QUEUES];
 extern __near__ struct scd_resp scd_resps[NR_SCD_QUEUES];
-extern __near__ scd_qid_t scd_qid;
 extern scd_data_t scd_cmd_data;
+
+#if NR_SCD_QUEUES > 1
+extern __near__ scd_qid_t scd_qid;
+void scd_qid_restore(scd_qid_t qid);
+scd_qid_t scd_qid_save(scd_qid_t qid);
+#else
+#define scd_qid				0
+#define scd_qid_restore(qid)
+#define scd_qid_save(qid)		(qid)
+#endif
+#define scd_qid_select(qid)		scd_qid_restore(qid)
+
+boolean scd_is_cmd_status(uint8_t status);
 
 void __scd_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size);
 void __scd_CmdSuccess_out(void);
@@ -279,7 +294,10 @@ void scd_DataBlock_out(void);
 #define scd_CmdResponse_cmp()		(scd_slot_enter(SCD_SLOT_STATE_RDR2PC))
 void scd_SlotNotExist_cmp(void);
 void scd_CmdOffset_cmp(uint8_t offset);
+void scd_ScsSequence_cmp(scs_err_t err, boolean block);
 void scd_SlotStatus_cmp(void);
+#define scd_DataBlock_cmp(err)		(scd_ScsSequence_cmp(err, true))
+void scd_XfrBlock_cmp(void);
 
 void scd_RespHeader_in(scs_size_t length);
 #define scd_SlotStatus_in()		(scd_RespHeader_in(0))
@@ -289,5 +307,7 @@ void scd_DataBlock_in(void);
 uint8_t scd_resp_message(void);
 void scd_slot_enter(uint8_t state);
 void scd_queue_reset(scd_qid_t qid);
+uint8_t scd_slot_error(scs_err_t err);
+void scd_sid_select(scd_sid_t sid);
 
 #endif /* __USB_SCD_H_INCLUDE__ */

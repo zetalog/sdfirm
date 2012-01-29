@@ -44,8 +44,8 @@
 
 #include <target/ifd.h>
 
-typedef ifd_sid_t	scd_qid_t;
-typedef uint8_t		ccid_seq_t;
+typedef ifd_sid_t		scd_sid_t;
+typedef uint8_t			ccid_seq_t;
 
 #define CCID_REQ_ABORT			0x01
 #define CCID_REQ_GET_CLOCK_FREQS	0x02
@@ -53,8 +53,7 @@ typedef uint8_t		ccid_seq_t;
 
 #define CCID_MESSAGE_SIZE		(IFD_BUF_SIZE + SCD_HEADER_SIZE)
 
-struct ccid_slot {
-	uint8_t state;
+struct ccid_abort {
 	/* sync ABORT messages for CTRL and BULK_OUT */
 #define CCID_ABORT_NONE			0x00
 #define CCID_ABORT_CTRL			0x01
@@ -97,6 +96,7 @@ struct ccid_fd_param {
 #define scd_read_byte(i)		ifd_read_byte(i)
 #define scd_write_byte(i, v)		ifd_write_byte((i), (v))
 #define scd_xchg_avail()		ifd_xchg_avail()
+#define scd_xchg_block(nc, ne)		ifd_xchg_block((nc), (ne))
 
 /*
  * QID = SID+1: additional QID for BULK_OUT
@@ -166,11 +166,7 @@ struct ccid_fd_param {
 #define CCID_MECHA_LOCK_CARD		0x04
 #define CCID_MECHA_UNLOCK_CARD		0x05
 
-void ccid_ScsSequence_cmp(scs_err_t err);
-void ccid_XfrBlock_cmp(void);
-
 void ccid_Parameters_cmp(scs_err_t err);
-void ccid_DataBlock_cmp(scs_err_t err);
 
 void ccid_display_slot(void);
 void ccid_display_default(void);

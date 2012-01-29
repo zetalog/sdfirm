@@ -42,7 +42,7 @@ struct ccid_spe {
 	boolean aborted;
 	uint8_t flags;
 	uint8_t pin_offset;
-	ifd_sid_t sid;
+	scd_sid_t sid;
 };
 
 __near__ kbd_event_cb ccid_spe_kh = NULL;
@@ -396,11 +396,11 @@ DECLARE_BITMAP(ccid_spe_waits, NR_SCD_SLOTS);
 
 static void ccid_spe_operate_next(void)
 {
-	ifd_sid_t sid;
+	scd_sid_t sid;
 	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
 		if (test_bit(sid, ccid_spe_waits)) {
 			clear_bit(sid, ccid_spe_waits);
-			ccid_sid_select(sid);
+			scd_sid_select(sid);
 			__ccid_spe_operate_init();
 			return;
 		}
@@ -539,7 +539,7 @@ static void ccid_spe_key_down(uint8_t scancode)
 
 static void ccid_spe_capture(uint8_t scancode, uint8_t event)
 {
-	ccid_sid_select(ccid_spe_ctrl.sid);
+	scd_sid_select(ccid_spe_ctrl.sid);
 
 	switch (event) {
 	case KBD_EVENT_KEY_TOUT:
