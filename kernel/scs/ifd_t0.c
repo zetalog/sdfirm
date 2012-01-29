@@ -112,7 +112,7 @@ scs_err_t ifd_set_t0_param(uint8_t fd, uint8_t gi,
 
 	/* configure negotiation parameters */
 	ifd_slot_ctrl.nego_fd = fd;
-	ifd_slot_ctrl.nego_proto = IFD_PROTO_T0;
+	ifd_slot_ctrl.nego_proto = SCS_PROTO_T0;
 
 	/* not negotiatables */
 	ifd_apply_n(gi);
@@ -423,7 +423,7 @@ void ifd_t0_xchg_cmpl(void)
 }
 
 ifd_proto_t ifd_t0 = {
-	IFD_PROTO_T0,
+	SCS_PROTO_T0,
 	0,
 	ifd_t0_atr_parse,
 	ifd_t0_xchg_init,

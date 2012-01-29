@@ -78,7 +78,6 @@ typedef void (*ifd_atr_cb)(uint8_t y);
 #define NR_IFD_DIS			10
 
 #define IFD_FI_MIN			372
-#define IFD_ATR_MAX			33
 
 #define IFD_ETU_IMPLICIT		0x11	/* F = 372, D = 1 */
 /* #define IFD_WT_ATR			(40000/372+1) */
@@ -94,10 +93,7 @@ typedef void (*ifd_atr_cb)(uint8_t y);
 #define IFD_N_IMPLICIT			0x00
 #define IFD_N_MINIMUM			0xFF
 
-#define IFD_PROTO_T0			0x00
-#define IFD_PROTO_T1			0x01
-#define IFD_PROTO_MAX			0x0E
-#define IFD_PROTO_DEF			IFD_PROTO_T0
+#define IFD_PROTO_DEF			SCS_PROTO_T0
 #define IFD_GLOBAL_T15			0x0F
 #define IFD_PROTO_INVALID		0xFF
 

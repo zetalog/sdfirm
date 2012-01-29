@@ -105,17 +105,14 @@ struct iccd_hwerr {
 #define ICCD_ERROR_RESERVED		0x80
 #define ICCD_ERROR_CMD_UNSUPPORT	0x00
 
-/* Windows CCID requires this, though these should not be an ICCD command */
-#define ICCD_PC2RDR_GETPARAMETERS	0x6C
-
 #ifdef CONFIG_ICCD_COS
 #define __iccd_get_error()		cos_get_error()
 #define scd_read_byte(idx)		cos_xchg_read(idx)
 #define scd_write_byte(idx, b)		cos_xchg_write(idx, b)
 #define scd_xchg_avail()		cos_xchg_avail()
 #define scd_xchg_block(nc, ne)		cos_xchg_block(nc, ne)
-#define __iccd_power_off()		cos_power_off()
-#define __iccd_power_on()		cos_power_on()
+#define scd_power_on(cls)		cos_power_on()
+#define scd_power_off()			cos_power_off()
 #define __iccd_reg_handlers(cb1, cb2) 		\
 	do {					\
 		cos_register_handlers(cb2);	\
@@ -127,8 +124,8 @@ struct iccd_hwerr {
 #define scd_write_byte(idx, b)		scs_slot_xchg_write(idx, b)
 #define scd_xchg_avail()		scs_slot_xchg_avail()
 #define scd_xchg_block(nc, ne)		scs_slot_xchg_block(nc, ne)
-#define __iccd_power_off()		scs_slot_power_off()
-#define __iccd_power_on()		scs_slot_power_on()
+#define scd_power_on(cls)		scs_slot_power_on()
+#define scd_power_off()			scs_slot_power_off()
 #define __iccd_reg_handlers(cb1, cb2) 	scd_notify_slot(cb1, cb2)
 #endif
 

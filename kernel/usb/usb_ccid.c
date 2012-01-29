@@ -219,7 +219,7 @@ uint8_t scd_resp_message(void)
 	case CCID_PC2RDR_SECURE:
 		return SCD_RDR2PC_DATABLOCK;
 	case SCD_PC2RDR_ICCPOWEROFF:
-	case CCID_PC2RDR_GETSLOTSTATUS:
+	case SCD_PC2RDR_GETSLOTSTATUS:
 	case CCID_PC2RDR_T0APDU:
 	case CCID_PC2RDR_ICCCLOCK:
 	case CCID_PC2RDR_MECHANICAL:
@@ -229,13 +229,13 @@ uint8_t scd_resp_message(void)
 		return SCD_RDR2PC_ESCAPE;
 #ifdef CONFIG_IFD_AUTO_PPS_PROP
 	case CCID_PC2RDR_SETPARAMETERS:
-	case CCID_PC2RDR_GETPARAMETERS:
+	case SCD_PC2RDR_GETPARAMETERS:
 	case CCID_PC2RDR_RESETPARAMETERS:
 	case CCID_PC2RDR_SETDATAANDFREQ:
 		return SCD_RDR2PC_SLOTSTATUS;
 #else
 	case CCID_PC2RDR_SETPARAMETERS:
-	case CCID_PC2RDR_GETPARAMETERS:
+	case SCD_PC2RDR_GETPARAMETERS:
 	case CCID_PC2RDR_RESETPARAMETERS:
 		return CCID_RDR2PC_PARAMETERS;
 	case CCID_PC2RDR_SETDATAANDFREQ:
@@ -368,8 +368,7 @@ uint8_t scd_slot_status(void)
 void scd_queue_reset(scd_qid_t qid)
 {
 	ccid_aborts[qid].aborting = CCID_ABORT_NONE;
-	scd_states[qid] = SCD_SLOT_STATE_PC2RDR;
-	scd_resps[qid].bStatus &= ~SCD_CMD_STATUS_MASK;
+	__scd_queue_reset(qid);
 }
 
 static void ccid_slot_abort(uint8_t type, scd_sid_t sid, uint8_t seq)
@@ -467,19 +466,14 @@ void scd_slot_enter(uint8_t state)
 
 static void ccid_submit_response(void)
 {
-	if (ccid_nr_seqs > 0 &&
-	    scd_states[CCID_QID_IN] == SCD_SLOT_STATE_RDR2PC) {
-		usbd_request_submit(CCID_ADDR_IN,
-				    SCD_HEADER_SIZE +
-				    scd_resps[CCID_QID_IN].dwLength);
+	if (ccid_nr_seqs > 0) {
+		__scd_submit_response(CCID_ADDR_IN, CCID_QID_IN);
 	}
 }
 
 static void ccid_submit_command(void)
 {
-	if (scd_states[CCID_QID_OUT] == SCD_SLOT_STATE_PC2RDR) {
-		usbd_request_submit(CCID_ADDR_OUT, SCD_HEADER_SIZE);
-	}
+	__scd_submit_command(CCID_ADDR_OUT, CCID_QID_OUT);
 }
 
 /*=========================================================================
@@ -752,23 +746,9 @@ static void ccid_ResetParameters_cmp(void)
 #define ccid_SetDataAndFreq_out()	scd_CmdFailure_out(CCID_ERROR_CMD_UNSUPPORT)
 #endif
 
-static void ccid_IccPowerOn_out(void)
-{
-	if (usbd_request_handled() == SCD_HEADER_SIZE) {
-		/* reset SCS error */
-		SCD_XB_ERR = SCS_ERR_SUCCESS;
-		/* reset Nc */
-		SCD_XB_NC = 0;
-		/* Ne should be 32 (ATR) + 1 (TS) */
-		SCD_XB_NE = IFD_ATR_MAX;
-		/* reset WI */
-		SCD_XB_WI = 0;
-	}
-}
-
 static void ccid_handle_slot_pc2rdr(void)
 {
-	if (scd_cmds[scd_qid].bMessageType == CCID_PC2RDR_GETSLOTSTATUS) {
+	if (scd_cmds[scd_qid].bMessageType == SCD_PC2RDR_GETSLOTSTATUS) {
 		return;
 	}
 	if (scd_slot_status() == SCD_SLOT_STATUS_NOTPRESENT) {
@@ -785,11 +765,28 @@ static void ccid_handle_slot_pc2rdr(void)
 
 	switch (scd_cmds[scd_qid].bMessageType) {
 	case SCD_PC2RDR_ICCPOWERON:
-		ccid_IccPowerOn_out();
+		scd_IccPowerOn_out();
 		break;
 	case SCD_PC2RDR_ICCPOWEROFF:
+	case SCD_PC2RDR_GETPARAMETERS:
+		/* nothing to do */
+		break;
+	case SCD_PC2RDR_XFRBLOCK:
+		scd_XfrBlock_out();
+		break;
+	case SCD_PC2RDR_ESCAPE:
+		scd_Escape_out();
+		break;
+	case CCID_PC2RDR_SECURE:
+		ccid_Secure_out();
+		break;
+	case CCID_PC2RDR_SETPARAMETERS:
+		ccid_SetParameters_out();
+		break;
+	case CCID_PC2RDR_SETDATAANDFREQ:
+		ccid_SetDataAndFreq_out();
+		break;
 	case CCID_PC2RDR_RESETPARAMETERS:
-	case CCID_PC2RDR_GETPARAMETERS:
 	case CCID_PC2RDR_T0APDU:
 #ifdef CONFIG_IFD_CLOCK_CONTROL
 	case CCID_PC2RDR_ICCCLOCK:
@@ -798,21 +795,6 @@ static void ccid_handle_slot_pc2rdr(void)
 	case CCID_PC2RDR_MECHANICAL:
 #endif
 		/* nothing to do */
-		break;
-	case SCD_PC2RDR_XFRBLOCK:
-		scd_XfrBlock_out();
-		break;
-	case CCID_PC2RDR_SECURE:
-		ccid_Secure_out();
-		break;
-	case SCD_PC2RDR_ESCAPE:
-		scd_Escape_out();
-		break;
-	case CCID_PC2RDR_SETPARAMETERS:
-		ccid_SetParameters_out();
-		break;
-	case CCID_PC2RDR_SETDATAANDFREQ:
-		ccid_SetDataAndFreq_out();
 		break;
 	}
 }
@@ -904,11 +886,15 @@ static void ccid_handle_response(void)
 	switch (scd_cmds[scd_qid].bMessageType) {
 	case SCD_PC2RDR_ICCPOWERON:
 	case SCD_PC2RDR_XFRBLOCK:
-	case CCID_PC2RDR_SECURE:
 		scd_DataBlock_in();
 		break;
+	case SCD_PC2RDR_ESCAPE:
+		scd_Escape_in();
+		break;
 	case SCD_PC2RDR_ICCPOWEROFF:
-	case CCID_PC2RDR_GETSLOTSTATUS:
+	case SCD_PC2RDR_GETSLOTSTATUS:
+		scd_SlotStatus_in();
+		break;
 #ifdef CONFIG_IFD_CLOCK_CONTROL
 	case CCID_PC2RDR_ICCCLOCK:
 #endif
@@ -918,16 +904,16 @@ static void ccid_handle_response(void)
 	case CCID_PC2RDR_T0APDU:
 		scd_SlotStatus_in();
 		break;
-	case CCID_PC2RDR_GETPARAMETERS:
+	case SCD_PC2RDR_GETPARAMETERS:
 	case CCID_PC2RDR_RESETPARAMETERS:
 	case CCID_PC2RDR_SETPARAMETERS:
 		ccid_Parameters_in();
 		break;
-	case SCD_PC2RDR_ESCAPE:
-		scd_Escape_in();
-		break;
 	case CCID_PC2RDR_SETDATAANDFREQ:
 		ccid_DataAndFreq_in();
+		break;
+	case CCID_PC2RDR_SECURE:
+		scd_DataBlock_in();
 		break;
 	case CCID_PC2RDR_ABORT:
 	default:
@@ -1004,23 +990,6 @@ static void ccid_Abort_cmp(void)
 			scd_cmds[scd_qid].bSeq);
 }
 
-static void ccid_IccPowerOn_cmp(void)
-{
-	scs_err_t err;
-	uint8_t bPowerSelect = scd_cmds[scd_qid].abRFU[0];
-
-	err = ifd_power_on(bPowerSelect);
-	scd_ScsSequence_cmp(err, true);
-}
-
-static void ccid_IccPowerOff_cmp(void)
-{
-	scs_err_t err;
-
-	err = ifd_power_off();
-	scd_ScsSequence_cmp(err, false);
-}
-
 #ifdef CONFIG_IFD_T0_APDU
 static void ccid_T0APDU_cmp(void)
 {
@@ -1040,7 +1009,7 @@ static void ccid_complete_slot_pc2rdr(void)
 		scd_CmdOffset_cmp(1);
 		return;
 	}
-	if (scd_cmds[scd_qid].bMessageType == CCID_PC2RDR_GETSLOTSTATUS) {
+	if (scd_cmds[scd_qid].bMessageType == SCD_PC2RDR_GETSLOTSTATUS) {
 		scd_SlotStatus_cmp();
 		return;
 	}
@@ -1051,24 +1020,24 @@ static void ccid_complete_slot_pc2rdr(void)
 
 	switch (scd_cmds[scd_qid].bMessageType) {
 	case SCD_PC2RDR_ICCPOWERON:
-		ccid_IccPowerOn_cmp();
+		scd_IccPowerOn_cmp();
 		break;
 	case SCD_PC2RDR_ICCPOWEROFF:
-		ccid_IccPowerOff_cmp();
+		scd_IccPowerOff_cmp();
 		break;
 	case SCD_PC2RDR_XFRBLOCK:
 		scd_XfrBlock_cmp();
 		break;
-	case CCID_PC2RDR_SECURE:
-		ccid_Secure_cmp();
-		break;
 	case SCD_PC2RDR_ESCAPE:
 		scd_Escape_cmp();
+		break;
+	case CCID_PC2RDR_SECURE:
+		ccid_Secure_cmp();
 		break;
 	case CCID_PC2RDR_SETPARAMETERS:
 		ccid_SetParameters_cmp();
 		break;
-	case CCID_PC2RDR_GETPARAMETERS:
+	case SCD_PC2RDR_GETPARAMETERS:
 		ccid_GetParameters_cmp();
 		break;
 	case CCID_PC2RDR_RESETPARAMETERS:
@@ -1092,7 +1061,7 @@ static void ccid_complete_slot_pc2rdr(void)
 	case CCID_PC2RDR_SETDATAANDFREQ:
 		ccid_SetDataAndFreq_cmp();
 		break;
-	case CCID_PC2RDR_GETSLOTSTATUS:
+	case SCD_PC2RDR_GETSLOTSTATUS:
 	case CCID_PC2RDR_ABORT:
 		/* handled before */
 		BUG();

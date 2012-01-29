@@ -30,10 +30,6 @@ struct cos_apdu_hdr {
 
 struct icc_proto {
 	uint8_t id;
-#define ICC_PROTO_T0			0x00
-#define ICC_PROTO_T1			0x01
-#define ICC_PROTO_MAX			0x0E
-#define ICC_ATR_MAX			33
 	uint8_t hdr;
 	scs_tvoid_cb xfr_in;
 	scs_tvoid_cb xfr_out;

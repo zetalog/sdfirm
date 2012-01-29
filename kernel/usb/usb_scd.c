@@ -28,6 +28,12 @@ boolean scd_is_cmd_status(uint8_t status)
 	return ((scd_resps[scd_qid].bStatus & SCD_CMD_STATUS_MASK) == status);
 }
 
+void __scd_queue_reset(scd_qid_t qid)
+{
+	scd_states[qid] = SCD_SLOT_STATE_PC2RDR;
+	scd_resps[qid].bStatus &= ~SCD_CMD_STATUS_MASK;
+}
+
 /*=========================================================================
  * bulk-out data
  *=======================================================================*/
@@ -116,6 +122,20 @@ void __scd_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size)
 	}
 }
 
+void scd_IccPowerOn_out(void)
+{
+	if (usbd_request_handled() == SCD_HEADER_SIZE) {
+		/* reset SCD error */
+		SCD_XB_ERR = SCS_ERR_SUCCESS;
+		/* reset Nc */
+		SCD_XB_NC = 0;
+		/* Ne should be 32 (ATR) + 1 (TS) */
+		SCD_XB_NE = SCS_ATR_MAX;
+		/* reset WI */
+		SCD_XB_WI = 0;
+	}
+}
+
 void scd_SlotNotExist_cmp(void)
 {
 	__scd_CmdFailure_out(5, SCD_SLOT_STATUS_NOTPRESENT);
@@ -143,6 +163,21 @@ void scd_XfrBlock_cmp(void)
 		err = scd_xchg_block(SCD_XB_NC, SCD_XB_NE);
 	}
 	scd_ScsSequence_cmp(err, true);
+}
+
+void scd_IccPowerOn_cmp(void)
+{
+	scs_err_t err;
+	uint8_t bPowerSelect = scd_cmds[scd_qid].abRFU[0];
+	err = scd_power_on(bPowerSelect);
+	scd_ScsSequence_cmp(err, true);
+}
+
+void scd_IccPowerOff_cmp(void)
+{
+	scs_err_t err;
+	err = scd_power_off();
+	scd_ScsSequence_cmp(err, false);
 }
 
 void scd_ScsSequence_cmp(scs_err_t err, boolean block)

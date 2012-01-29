@@ -109,4 +109,10 @@ typedef void (*scs_tvoid_cb)(void);
 #define SCS_ERR_HW_ERROR		0x01
 #define SCS_ERR_SUCCESS			0x00
 
+#define SCS_PROTO_T0			0x00
+#define SCS_PROTO_T1			0x01
+#define SCS_PROTO_MAX			0x0E
+
+#define SCS_ATR_MAX			33
+
 #endif /* __SCS_H_INCLUDE__ */

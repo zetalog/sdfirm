@@ -189,7 +189,7 @@ struct ccid_resp_errors ccid_valid_errors[] = {
 		},
 	},
 	{
-		CCID_PC2RDR_GETSLOTSTATUS,
+		SCD_PC2RDR_GETSLOTSTATUS,
 		{
 			0x01, 0x02, 0x03, 0x0C, 0x0D, 0x0E, 0x0F,
 			CCID_ERROR_END,
@@ -205,7 +205,7 @@ struct ccid_resp_errors ccid_valid_errors[] = {
 	},
 
 	{
-		CCID_PC2RDR_GETPARAMETERS,
+		SCD_PC2RDR_GETPARAMETERS,
 		{
 			0x01, 0x02, 0x10, 0x03, 0x0C, 0x0D, 0x0E, 0x0F,
 			CCID_ERROR_END,
@@ -631,7 +631,7 @@ static const char *ccid_msg_type(uint8_t type)
 		return "PC_to_RDR_IccPowerOff    ";
 	case CCID_PC2RDR_SETPARAMETERS:
 		return "PC_to_RDR_SetParameters  ";
-	case CCID_PC2RDR_GETPARAMETERS:
+	case SCD_PC2RDR_GETPARAMETERS:
 		return "PC_to_RDR_GetParameters  ";
 	case CCID_PC2RDR_RESETPARAMETERS:
 		return "PC_to_RDR_ResetParameters";
@@ -639,7 +639,7 @@ static const char *ccid_msg_type(uint8_t type)
 		return "PC_to_RDR_Abort          ";
 	case SCD_PC2RDR_XFRBLOCK:
 		return "PC_to_RDR_XfrBlock       ";
-	case CCID_PC2RDR_GETSLOTSTATUS:
+	case SCD_PC2RDR_GETSLOTSTATUS:
 		return "PC_to_RDR_GetSlotStatus  ";
 	case CCID_PC2RDR_ESCAPE:
 		return "PC_to_RDR_Escape         ";
@@ -732,14 +732,14 @@ boolean ccid_msg_ispair(uint8_t cmd, uint8_t resp)
 	case CCID_PC2RDR_SECURE:
 		return (resp == SCD_RDR2PC_DATABLOCK);
 	case SCD_PC2RDR_ICCPOWEROFF:
-	case CCID_PC2RDR_GETSLOTSTATUS:
+	case SCD_PC2RDR_GETSLOTSTATUS:
 	case CCID_PC2RDR_ICCCLOCK:
 	case CCID_PC2RDR_T0APDU:
 	case CCID_PC2RDR_MECHANICAL:
 	case CCID_PC2RDR_ABORT:
 		return (resp == SCD_RDR2PC_SLOTSTATUS);
 	case CCID_PC2RDR_SETPARAMETERS:
-	case CCID_PC2RDR_GETPARAMETERS:
+	case SCD_PC2RDR_GETPARAMETERS:
 	case CCID_PC2RDR_RESETPARAMETERS:
 		return (resp == CCID_RDR2PC_PARAMETERS);
 	case CCID_PC2RDR_ESCAPE:
@@ -776,14 +776,14 @@ boolean ccid_resp_valid(uint32_t length)
 
 	switch (cmd) {
 	case SCD_PC2RDR_ICCPOWEROFF:
-	case CCID_PC2RDR_GETSLOTSTATUS:
+	case SCD_PC2RDR_GETSLOTSTATUS:
 	case CCID_PC2RDR_ICCCLOCK:
 	case CCID_PC2RDR_T0APDU:
 	case CCID_PC2RDR_MECHANICAL:
 	case CCID_PC2RDR_ABORT:
 		return length == SCD_HEADER_SIZE;
 	case CCID_PC2RDR_SETPARAMETERS:
-	case CCID_PC2RDR_GETPARAMETERS:
+	case SCD_PC2RDR_GETPARAMETERS:
 	case CCID_PC2RDR_RESETPARAMETERS:
 		if (g_ccid_cmd[7] != g_ccid_resp[9])
 			return false;
@@ -958,7 +958,7 @@ static void ccid_build_common(uint8_t bMessageType, uint32_t dwLength,
 static uint8_t ccid_build_GetSlotStatus(void)
 {
 	uint8_t bSeq = ccid_seq_alloc();
-	ccid_build_common(CCID_PC2RDR_GETSLOTSTATUS, 0,
+	ccid_build_common(SCD_PC2RDR_GETSLOTSTATUS, 0,
 			  bSeq, 0, 0, 0);
 	return bSeq;
 }
@@ -982,7 +982,7 @@ static uint8_t ccid_build_IccPowerOff(void)
 uint8_t ccid_build_GetParameters(uint8_t bProtocolNum)
 {
 	uint8_t bSeq = ccid_seq_alloc();
-	ccid_build_common(CCID_PC2RDR_GETPARAMETERS, 0,
+	ccid_build_common(SCD_PC2RDR_GETPARAMETERS, 0,
 			  bSeq, bProtocolNum, 0, 0);
 	return bSeq;
 }

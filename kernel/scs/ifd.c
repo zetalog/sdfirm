@@ -578,7 +578,7 @@ static void ifd_atr_expire(void)
 	} else if (ifd_atr_xchg.atr_state == IFD_ATR_TD) {
 		td = ifd_atr_xchg.atr_td_last & TD_EXISTS ?
 		     ifd_xfr_read(ifd_atr_xchg.atr_y-1) : 0;
-		ifd_atr_xchg.atr_tck |= (TD_T(td) != IFD_PROTO_T0);
+		ifd_atr_xchg.atr_tck |= (TD_T(td) != SCS_PROTO_T0);
 		ifd_atr_xchg.atr_td_last = td;
 		ifd_atr_xchg.atr_y = ifd_atr_bytes(td);
 	}
@@ -1375,7 +1375,7 @@ boolean ifd_only_support_t0(void)
 {
 	if (ifd_nr_protos != 1)
 		return false;
-	if (ifd_pid_proto(0) == IFD_PROTO_T0)
+	if (ifd_pid_proto(0) == SCS_PROTO_T0)
 		return true;
 	return false;
 }
@@ -1574,7 +1574,7 @@ static void ifd_atr_build(void)
 	ifd_atr_set_ta(tmp);
 
 	/* TC2 use T=0 seqence 0 */
-	if (proto == IFD_PROTO_T0)
+	if (proto == SCS_PROTO_T0)
 		ifd_proto_byte(proto, 0);
 
 	/* TAi / TBi / TCi / TDi i > 2*/
@@ -1982,7 +1982,7 @@ static void scs_atr_start(void)
 	/* if no TA1 */
 	ifd_slot_ctrl.ind_fd = IFD_FD_IMPLICIT;
 	/* if no TD1 */
-	ifd_slot_ctrl.first_proto = IFD_PROTO_T0;
+	ifd_slot_ctrl.first_proto = SCS_PROTO_T0;
 
 	/* if no TA2 */
 	ifd_slot_ctrl.spec_proto = IFD_PROTO_INVALID;
@@ -2064,7 +2064,7 @@ static void ifd_atr_parse_t(void)
 		uint8_t pid;
 
 		if (!ifd_atr_parser.tck_exists)
-			ifd_atr_parser.tck_exists = (t != IFD_PROTO_T0);
+			ifd_atr_parser.tck_exists = (t != SCS_PROTO_T0);
 		/* unsupported protocols will be ignored */
 		pid = ifd_proto_pid(t);
 		if (pid < ifd_nr_protos) {

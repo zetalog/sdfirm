@@ -97,6 +97,8 @@ struct ccid_fd_param {
 #define scd_write_byte(i, v)		ifd_write_byte((i), (v))
 #define scd_xchg_avail()		ifd_xchg_avail()
 #define scd_xchg_block(nc, ne)		ifd_xchg_block((nc), (ne))
+#define scd_power_on(cls)		ifd_power_on(cls)
+#define scd_power_off()			ifd_power_off()
 
 /*
  * QID = SID+1: additional QID for BULK_OUT
@@ -139,10 +141,8 @@ struct ccid_fd_param {
 #define CCID_CLOCK_STOPPED_U		0x03
 
 #define CCID_PC2RDR_SETPARAMETERS	0x61
-#define CCID_PC2RDR_GETSLOTSTATUS	0x65
 #define CCID_PC2RDR_SECURE		0x69
 #define CCID_PC2RDR_T0APDU		0x6A
-#define CCID_PC2RDR_GETPARAMETERS	0x6C
 #define CCID_PC2RDR_RESETPARAMETERS	0x6D
 #define CCID_PC2RDR_ICCCLOCK		0x6E
 #define CCID_PC2RDR_MECHANICAL		0x71

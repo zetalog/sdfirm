@@ -110,7 +110,7 @@ scs_err_t ifd_set_t1_param(uint8_t fd, uint8_t tccks,
 	if (err != SCS_ERR_SUCCESS) return err;
 
 	ifd_slot_ctrl.nego_fd = fd;
-	ifd_slot_ctrl.nego_proto = IFD_PROTO_T1;
+	ifd_slot_ctrl.nego_proto = SCS_PROTO_T1;
 
 	/* not negotiatables */
 	ifd_apply_n(gi);
@@ -1036,7 +1036,7 @@ static void ifd_t1_nego_pps(void)
 }
 
 ifd_proto_t ifd_t1 = {
-	IFD_PROTO_T1,
+	SCS_PROTO_T1,
 	IFD_T1_PROLOGUE_SIZE,
 	ifd_t1_atr_parse,
 	ifd_t1_xchg_init,
