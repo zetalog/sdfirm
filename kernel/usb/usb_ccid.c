@@ -62,8 +62,6 @@
 #define CCID_QID_IN			ccid_seq_queue[0]
 
 static void ccid_slot_abort(uint8_t type, scd_sid_t sid, uint8_t seq);
-static void ccid_submit_response(void);
-static void ccid_submit_command(void);
 static void ccid_handle_iso7816_cmpl(void);
 
 /* Multiple CCID Slot support
@@ -107,11 +105,11 @@ static void ccid_handle_iso7816_cmpl(void);
  * CCID state machine is implemented by 4 hooks:
  *
  * poll
- * 	(OUT) ccid_submit_command
+ * 	(OUT) scd_submit_command
  * 	  usbd_request_submit(OUT) (OUT_QID is PC2RDR)
  * 	    -> DATA
  * 
- * 	(IN) ccid_submit_response
+ * 	(IN) scd_submit_response
  * 	  usbd_request_submit(IN) (nr_seqs > 0 && IN_QID is RDR2PC)
  * 	    -> DATA
  * 
@@ -124,23 +122,23 @@ static void ccid_handle_iso7816_cmpl(void);
  * 	  icc/scs_xxx
  * 	(OUT) scd_slot_enter(RDR2PC)
  * 	  ccid_enqueue
- * 	    ccid_submit_response
+ * 	    scd_submit_response
  * 	      usbd_request_submit(IN) (is IN_QID)
  * 	        -> DATA
  * 
  * 	(IN) scd_slot_enter(PC2RDR)
  * 	  ccid_dequeue
- * 	    ccid_submit_command
+ * 	    scd_submit_command
  * 	      usbd_request_submit(OUT) (is OUT_QID)
  * 	        -> DATA
- * 	    ccid_submit_response
+ * 	    scd_submit_response
  * 	      usbd_request_submit(IN) (is IN_QID)
  * 	        -> DATA
  * 
  * 7816_cmpl
  * 	scd_slot_enter(RDR2PC)
  * 	  ccid_enqueue
- * 	    ccid_submit_response
+ * 	    scd_submit_response
  * 	      usbd_request_submit(IN) (is IN_QID)
  * 	        -> DATA
  */
@@ -248,7 +246,7 @@ uint8_t scd_resp_message(void)
 static uint8_t ccid_proto_features(void)
 {
 	uint8_t protocols;
-#ifdef CONFIG_SCD_ESC_PN53X
+#ifdef CONFIG_SCD_ESC_ACR122
 #else
 	protocols = (1 << SCD_PROTOCOL_T0);
 #ifdef CONFIG_IFD_T1
@@ -418,7 +416,7 @@ static void ccid_enqueue(scd_qid_t qid)
 	BUG_ON(ccid_nr_seqs > NR_SCD_QUEUES);
 
 	if (qid == CCID_QID_IN) {
-		ccid_submit_response();
+		scd_submit_response();
 	}
 }
 
@@ -442,10 +440,10 @@ static void ccid_dequeue(scd_qid_t qid)
 			ccid_seq_queue[i] = qid;
 		}
 		BUG_ON(ccid_nr_seqs > NR_SCD_QUEUES);
-		ccid_submit_response();
+		scd_submit_response();
 	}
 	if (CCID_QID_OUT == qid) {
-		ccid_submit_command();
+		scd_submit_command();
 	}
 }
 
@@ -464,14 +462,14 @@ void scd_slot_enter(uint8_t state)
 	}
 }
 
-static void ccid_submit_response(void)
+void scd_submit_response(void)
 {
 	if (ccid_nr_seqs > 0) {
 		__scd_submit_response(CCID_ADDR_IN, CCID_QID_IN);
 	}
 }
 
-static void ccid_submit_command(void)
+void scd_submit_command(void)
 {
 	__scd_submit_command(CCID_ADDR_OUT, CCID_QID_OUT);
 }
@@ -746,37 +744,9 @@ static void ccid_ResetParameters_cmp(void)
 #define ccid_SetDataAndFreq_out()	scd_CmdFailure_out(CCID_ERROR_CMD_UNSUPPORT)
 #endif
 
-static void ccid_handle_slot_pc2rdr(void)
+void scd_handle_bulk_pc2rdr(void)
 {
-	if (scd_cmds[scd_qid].bMessageType == SCD_PC2RDR_GETSLOTSTATUS) {
-		return;
-	}
-	if (scd_slot_status() == SCD_SLOT_STATUS_NOTPRESENT) {
-		scd_CmdFailure_out(CCID_ERROR_ICC_MUTE);
-		return;
-	}
-#if 0
-	/* FIXME: check auto sequence */
-	if (scd_slot_status() != SCD_SLOT_STATUS_ACTIVE) {
-		scd_CmdFailure_out(CCID_ERROR_BUSY_AUTO_SEQ);
-		return;
-	}
-#endif
-
 	switch (scd_cmds[scd_qid].bMessageType) {
-	case SCD_PC2RDR_ICCPOWERON:
-		scd_IccPowerOn_out();
-		break;
-	case SCD_PC2RDR_ICCPOWEROFF:
-	case SCD_PC2RDR_GETPARAMETERS:
-		/* nothing to do */
-		break;
-	case SCD_PC2RDR_XFRBLOCK:
-		scd_XfrBlock_out();
-		break;
-	case SCD_PC2RDR_ESCAPE:
-		scd_Escape_out();
-		break;
 	case CCID_PC2RDR_SECURE:
 		ccid_Secure_out();
 		break;
@@ -796,64 +766,15 @@ static void ccid_handle_slot_pc2rdr(void)
 #endif
 		/* nothing to do */
 		break;
+	default:
+		scd_handle_pc2rdr_default();
+		break;
 	}
 }
 
-static void ccid_handle_command(void)
+void scd_handle_command(void)
 {
-	scd_sid_t sid;
-
-	scd_qid_select(CCID_QID_OUT);
-	scd_debug(SCD_DEBUG_SLOT, scd_qid);
-
-	BUG_ON(scd_states[scd_qid] != SCD_SLOT_STATE_PC2RDR &&
-	       scd_states[scd_qid] != SCD_SLOT_STATE_SANITY);
-
-	scd_slot_enter(SCD_SLOT_STATE_SANITY);
-
-	/* CCID message header */
-	scd_CmdHeader_out();
-
-	if (usbd_request_handled() < SCD_HEADER_SIZE)
-		return;
-
-	if (usbd_request_handled() == SCD_HEADER_SIZE) {
-		usbd_request_commit(SCD_HEADER_SIZE +
-				    scd_cmds[scd_qid].dwLength);
-		scd_debug(SCD_DEBUG_PC2RDR, scd_cmds[scd_qid].bMessageType);
-	}
-
-	sid = scd_cmds[scd_qid].bSlot;
-	if (sid >= NR_SCD_SLOTS) {
-		return;
-	}
-	if (scd_cmds[scd_qid].bMessageType == CCID_PC2RDR_ABORT) {
-		return;
-	}
-	if (ccid_aborts[sid].aborting != CCID_ABORT_NONE) {
-		scd_CmdFailure_out(CCID_ERROR_CMD_ABORTED);
-		return;
-	}
-	if (scd_states[sid] != SCD_SLOT_STATE_PC2RDR) {
-		scd_CmdFailure_out(CCID_ERROR_CMD_SLOT_BUSY);
-		return;
-	}
-
-	if (usbd_request_handled() == SCD_HEADER_SIZE) {
-		scd_cmds[sid].bMessageType = scd_cmds[scd_qid].bMessageType;
-		scd_cmds[sid].dwLength = scd_cmds[scd_qid].dwLength;
-		scd_cmds[sid].bSlot = scd_cmds[scd_qid].bSlot;
-		scd_cmds[sid].bSeq = scd_cmds[scd_qid].bSeq;
-		scd_cmds[sid].abRFU[0] = scd_cmds[scd_qid].abRFU[0];
-		scd_cmds[sid].abRFU[1] = scd_cmds[scd_qid].abRFU[1];
-		scd_cmds[sid].abRFU[2] = scd_cmds[scd_qid].abRFU[2];
-	}
-
-	/* slot ID determined */
-	scd_sid_select(sid);
-	scd_debug(SCD_DEBUG_SLOT, scd_qid);
-
-	ccid_handle_slot_pc2rdr();
+	__scd_handle_command(CCID_QID_OUT);
 }
 
 /*=========================================================================
@@ -1002,35 +923,9 @@ static void ccid_T0APDU_cmp(void)
 }
 #endif
 
-static void ccid_complete_slot_pc2rdr(void)
+void scd_complete_bulk_pc2rdr(void)
 {
-	if (usbd_request_handled() !=
-	    (scd_cmds[scd_qid].dwLength + SCD_HEADER_SIZE)) {
-		scd_CmdOffset_cmp(1);
-		return;
-	}
-	if (scd_cmds[scd_qid].bMessageType == SCD_PC2RDR_GETSLOTSTATUS) {
-		scd_SlotStatus_cmp();
-		return;
-	}
-	if (scd_is_cmd_status(SCD_CMD_STATUS_FAIL)) {
-		scd_CmdResponse_cmp();
-		return;
-	}
-
 	switch (scd_cmds[scd_qid].bMessageType) {
-	case SCD_PC2RDR_ICCPOWERON:
-		scd_IccPowerOn_cmp();
-		break;
-	case SCD_PC2RDR_ICCPOWEROFF:
-		scd_IccPowerOff_cmp();
-		break;
-	case SCD_PC2RDR_XFRBLOCK:
-		scd_XfrBlock_cmp();
-		break;
-	case SCD_PC2RDR_ESCAPE:
-		scd_Escape_cmp();
-		break;
 	case CCID_PC2RDR_SECURE:
 		ccid_Secure_cmp();
 		break;
@@ -1067,47 +962,14 @@ static void ccid_complete_slot_pc2rdr(void)
 		BUG();
 		break;
 	default:
-		scd_CmdOffset_cmp(0);
+		scd_complete_pc2rdr_default();
 		break;
 	}
 }
 
-static void ccid_complete_command(void)
+void scd_complete_command(void)
 {
-	scd_sid_t sid;
-
-	scd_qid_select(CCID_QID_OUT);
-	scd_debug(SCD_DEBUG_SLOT, scd_qid);
-
-	BUG_ON(scd_states[scd_qid] != SCD_SLOT_STATE_PC2RDR &&
-	       scd_states[scd_qid] != SCD_SLOT_STATE_SANITY);
-
-	if (usbd_request_handled() < SCD_HEADER_SIZE ||
-	    scd_cmds[scd_qid].bSlot >= NR_SCD_SLOTS) {
-		scd_SlotNotExist_cmp();
-		return;
-	}
-
-	sid = scd_cmds[scd_qid].bSlot;
-	/* XXX: care should be taken on BULK ABORT */
-	if (scd_cmds[scd_qid].bMessageType == CCID_PC2RDR_ABORT) {
-		ccid_Abort_cmp();
-		return;
-	}
-	if (scd_is_cmd_status(SCD_CMD_STATUS_FAIL)) {
-		/* CMD_ABORTED and SLOT_BUSY error */
-		scd_CmdResponse_cmp();
-		return;
-	}
-
-	/* SANITY state completed */
-	/* CCID_QID_OUT should be idle */
-	scd_slot_enter(SCD_SLOT_STATE_PC2RDR);
-
-	/* now we are able to handle slot specific request */
-	scd_sid_select(sid);
-	scd_debug(SCD_DEBUG_SLOT, scd_qid);
-	ccid_complete_slot_pc2rdr();
+	__scd_complete_command(CCID_QID_OUT);
 }
 
 /*============================================================
@@ -1403,7 +1265,7 @@ static void ccid_discard(void)
 	BUG_ON(ccid_nr_seqs > NR_SCD_QUEUES);
 
 	/* allow host sending commands, this should be called before
-	 * ccid_submit_response
+	 * scd_submit_response
 	 */
 	if (CCID_QID_IN == scd_qid) {
 		/* usbd_request_discard_addr(CCID_ADDR_OUT); */
@@ -1673,6 +1535,45 @@ static void ccid_handle_iso7816_intr(void)
 #define ccid_intr_init()
 #endif
 
+#if NR_SCD_QUEUES != NR_SCD_SLOTS
+boolean scd_abort_completed(void)
+{
+	if (scd_cmds[scd_qid].bMessageType == CCID_PC2RDR_ABORT) {
+		ccid_Abort_cmp();
+		return true;
+	}
+	return false;
+}
+
+boolean scd_abort_handled(void)
+{
+	scd_sid_t sid;
+
+	sid = scd_cmds[scd_qid].bSlot;
+	if (scd_cmds[scd_qid].bMessageType == CCID_PC2RDR_ABORT) {
+		return true;
+	}
+	if (ccid_aborts[sid].aborting != CCID_ABORT_NONE) {
+		scd_CmdFailure_out(CCID_ERROR_CMD_ABORTED);
+		return true;
+	}
+	if (scd_states[sid] != SCD_SLOT_STATE_PC2RDR) {
+		scd_CmdFailure_out(CCID_ERROR_CMD_SLOT_BUSY);
+		return true;
+	}
+	if (usbd_request_handled() == SCD_HEADER_SIZE) {
+		scd_cmds[sid].bMessageType = scd_cmds[scd_qid].bMessageType;
+		scd_cmds[sid].dwLength = scd_cmds[scd_qid].dwLength;
+		scd_cmds[sid].bSlot = scd_cmds[scd_qid].bSlot;
+		scd_cmds[sid].bSeq = scd_cmds[scd_qid].bSeq;
+		scd_cmds[sid].abRFU[0] = scd_cmds[scd_qid].abRFU[0];
+		scd_cmds[sid].abRFU[1] = scd_cmds[scd_qid].abRFU[1];
+		scd_cmds[sid].abRFU[2] = scd_cmds[scd_qid].abRFU[2];
+	}
+	return false;
+}
+#endif
+
 /*=========================================================================
  * CCID entrances
  *=======================================================================*/
@@ -1728,8 +1629,8 @@ static void ccid_get_ccid_desc(void)
 {
 	USBD_INB(SCD_DT_SCD_SIZE);
 	USBD_INB(SCD_DT_SCD);
-	USBD_INW(CCID_VERSION_DEFAULT);
-	USBD_INB(NR_SCD_SLOTS-1);
+	USBD_INW(SCD_VERSION);
+	USBD_INB(NR_SCD_USB_SLOTS-1);
 	USBD_INB(SCD_VOLTAGE_ALL);
 	USBD_INL(ccid_proto_features());
 	USBD_INL((uint32_t)(IFD_HW_FREQ_DEF));
@@ -1747,7 +1648,7 @@ static void ccid_get_ccid_desc(void)
 	USBD_INB(SCD_MUTE_APDU_CLASS);
 	USBD_INW(CCID_SPE_LCD_LAYOUT);
 	USBD_INB(CCID_SPE_SUPPORT_FUNC);
-	USBD_INB(NR_SCD_QUEUES);
+	USBD_INB(NR_SCD_USB_QUEUES);
 }
 
 static void ccid_get_config_desc(void)
@@ -1939,7 +1840,7 @@ void ccid_devid_init(void)
 usbd_endpoint_t ccid_endpoint_in = {
 	USBD_ENDP_BULK_IN,
 	CCID_ENDP_INTERVAL_IN,
-	ccid_submit_response,
+	scd_submit_response,
 	ccid_handle_response,
 	ccid_complete_response,
 };
@@ -1947,9 +1848,9 @@ usbd_endpoint_t ccid_endpoint_in = {
 usbd_endpoint_t ccid_endpoint_out = {
 	USBD_ENDP_BULK_OUT,
 	CCID_ENDP_INTERVAL_OUT,
-	ccid_submit_command,
-	ccid_handle_command,
-	ccid_complete_command,
+	scd_submit_command,
+	scd_handle_command,
+	scd_complete_command,
 };
 
 usbd_interface_t usb_ccid_interface = {

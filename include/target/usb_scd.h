@@ -42,9 +42,6 @@ typedef struct scd_desc {
 	uint8_t	 bLength;
 	uint8_t	 bDescriptorType;
 	uint16_t bcdCCID;
-#define CCID_VERSION_DEFAULT		0x100
-#define ICCD_VERSION_DEFAULT		0x110
-
 	uint8_t	 bMaxSlotIndex;
 	uint8_t	 bVoltageSupport;
 #define SCD_VOLTAGE_5V			0x01
@@ -134,7 +131,6 @@ typedef struct scd_desc {
 					 SCD_SPE_SUPPORT_MODIFY)
 
 	uint8_t	 bMaxCCIDBusySlots;
-#define ICCD_MAX_BUSY_SLOT		0x01
 } scd_desc_t;
 #define SCD_DT_SCD			(USB_TYPE_CLASS | 0x01)
 #define SCD_DT_SCD_SIZE			0x36
@@ -171,6 +167,23 @@ struct scd_resp {
 #define SCD_SLOT_STATUS_ACTIVE		0x00
 #define SCD_SLOT_STATUS_INACTIVE	0x01
 #define SCD_SLOT_STATUS_NOTPRESENT	0x02
+
+#define CCID_ERROR_ICC_MUTE			0xFE
+#define CCID_ERROR_XFR_PARITY_ERROR		0xFD
+#define CCID_ERROR_XFR_OVERRUN			0xFC
+#define CCID_ERROR_HW_ERROR			0xFB
+#define CCID_ERROR_CMD_SLOT_BUSY		0xE0
+#define CCID_ERROR_USER_DEFINED			0xC0
+#define CCID_ERROR_USER(e)			(CCID_ERROR_USER_DEFINED-e)
+#define CCID_ERROR_RESERVED			0x80
+#define CCID_ERROR_CMD_UNSUPPORT		0x00
+#define ICCD_ERROR_ICC_MUTE			0xFE
+#define ICCD_ERROR_XFR_OVERRUN			0xFC
+#define ICCD_ERROR_HW_ERROR			0xFB
+#define ICCD_ERROR_USER_DEFINED			0xC0
+#define ICCD_ERROR_USER(e)			(ICCD_ERROR_USER_DEFINED-e)
+#define ICCD_ERROR_RESERVED			0x80
+#define ICCD_ERROR_CMD_UNSUPPORT		0x00
 
 #ifdef CONFIG_SCD_BULK
 #define SCD_HEADER_SIZE			10
@@ -282,8 +295,17 @@ scd_qid_t scd_qid_save(scd_qid_t qid);
 #endif
 #define scd_qid_select(qid)		scd_qid_restore(qid)
 
+#if NR_SCD_QUEUES != NR_SCD_SLOTS
+boolean scd_abort_handled(void);
+boolean scd_abort_completed(void);
+#else
+#define scd_abort_handled()		(false)
+#define scd_abort_completed()		(false)
+#endif
+
 boolean scd_is_cmd_status(uint8_t status);
 void __scd_queue_reset(scd_qid_t qid);
+
 #define __scd_submit_response(addr, qid)				\
 	do {								\
 		if (scd_states[qid] == SCD_SLOT_STATE_RDR2PC) {		\
@@ -298,6 +320,8 @@ void __scd_queue_reset(scd_qid_t qid);
 			usbd_request_submit((addr), SCD_HEADER_SIZE);	\
 		}							\
 	} while (0)
+void __scd_handle_command(scd_qid_t qid);
+void __scd_complete_command(scd_qid_t qid);
 
 void __scd_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size);
 void __scd_CmdSuccess_out(void);
@@ -323,11 +347,25 @@ void scd_RespHeader_in(scs_size_t length);
 #define scd_SlotStatus_in()		(scd_RespHeader_in(0))
 void scd_DataBlock_in(void);
 
-/* drivers */
+/* protocol drivers */
 uint8_t scd_resp_message(void);
 void scd_slot_enter(uint8_t state);
 void scd_queue_reset(scd_qid_t qid);
 uint8_t scd_slot_error(scs_err_t err);
 void scd_sid_select(scd_sid_t sid);
+
+/* bulk protocol entrance */
+void scd_submit_command(void);
+void scd_handle_command(void);
+void scd_complete_command(void);
+void scd_submit_response(void);
+
+/* bulk protocol hooks */
+void scd_handle_bulk_pc2rdr(void);
+void scd_complete_bulk_pc2rdr(void);
+
+/* default handlers called by bulk protocol hooks */
+#define scd_handle_pc2rdr_default()
+#define scd_complete_pc2rdr_default()	(scd_CmdOffset_cmp(0))
 
 #endif /* __USB_SCD_H_INCLUDE__ */

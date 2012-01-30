@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Jan 20 10:26:21 2012
+# Mon Jan 30 18:56:08 2012
 #
 CONFIG_AVR=y
 
@@ -151,8 +151,8 @@ CONFIG_USB_SCD=y
 CONFIG_USB_ICCD=y
 CONFIG_SCD_BULK=y
 CONFIG_SCD_INTERRUPT=y
-# CONFIG_SCD_ESC_NONE is not set
-CONFIG_SCD_ESC_PN53X=y
+CONFIG_SCD_ESC_NONE=y
+# CONFIG_SCD_ESC_ACR122 is not set
 # CONFIG_ICCD_COS is not set
 CONFIG_ICCD_SCD=y
 CONFIG_ICCD_PROTO_BULK=y
@@ -168,9 +168,9 @@ CONFIG_SCS_SLOT=y
 CONFIG_SCS_MAX_SLOTS=1
 # CONFIG_COS_SLOT is not set
 # CONFIG_IFD_SLOT is not set
-CONFIG_PN53X_SLOT=y
+CONFIG_ACR122_SLOT=y
 # CONFIG_IFD is not set
-CONFIG_PCD=y
+# CONFIG_PCD is not set
 # CONFIG_COS is not set
 # CONFIG_MTD is not set
 # CONFIG_SCSI is not set
@@ -187,11 +187,7 @@ CONFIG_PCD=y
 #
 # MTD memory drivers
 #
-
-#
-# PCD drivers
-#
-CONFIG_PCD_PN53X=y
+CONFIG_PN53X=y
 
 #
 # Library setup

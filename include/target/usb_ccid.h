@@ -44,8 +44,10 @@
 
 #include <target/ifd.h>
 
-typedef ifd_sid_t		scd_sid_t;
-typedef uint8_t			ccid_seq_t;
+#define SCD_VERSION			0x100
+
+typedef ifd_sid_t			scd_sid_t;
+typedef uint8_t				ccid_seq_t;
 
 #define CCID_REQ_ABORT			0x01
 #define CCID_REQ_GET_CLOCK_FREQS	0x02
@@ -92,6 +94,8 @@ struct ccid_fd_param {
 #else
 #define NR_SCD_QUEUES			NR_SCD_SLOTS
 #endif
+#define NR_SCD_USB_SLOTS		NR_SCD_SLOTS
+#define NR_SCD_USB_QUEUES		NR_SCD_QUEUES
 
 #define scd_read_byte(i)		ifd_read_byte(i)
 #define scd_write_byte(i, v)		ifd_write_byte((i), (v))
@@ -115,11 +119,6 @@ struct ccid_fd_param {
 #define CCID_INTR_ICC_PRESENT		0x04
 #define CCID_INTR_ICC_NOTPRESENT	0x05
 
-#define CCID_ERROR_CMD_ABORTED			0xFF
-#define CCID_ERROR_ICC_MUTE			0xFE
-#define CCID_ERROR_XFR_PARITY_ERROR		0xFD
-#define CCID_ERROR_XFR_OVERRUN			0xFC
-#define CCID_ERROR_HW_ERROR			0xFB
 #define CCID_ERROR_BAD_ATR_TS			0xF8
 #define CCID_ERROR_BAD_ATR_TCK			0xF7
 #define CCID_ERROR_PROTO_UNSUPPORT		0xF6
@@ -128,11 +127,7 @@ struct ccid_fd_param {
 #define CCID_ERROR_BUSY_AUTO_SEQ		0xF2
 #define CCID_ERROR_PIN_TIMEOUT			0xF0
 #define CCID_ERROR_PIN_CANCELLED		0xEF
-#define CCID_ERROR_CMD_SLOT_BUSY		0xE0
-#define CCID_ERROR_USER_DEFINED			0xC0
-#define CCID_ERROR_USER(e)			(CCID_ERROR_USER_DEFINED-e)
-#define CCID_ERROR_RESERVED			0x80
-#define CCID_ERROR_CMD_UNSUPPORT		0x00
+#define CCID_ERROR_CMD_ABORTED			0xFF
 
 /* clock status for RDR2PC_SlotStatus */
 #define CCID_CLOCK_RUNNING		0x00

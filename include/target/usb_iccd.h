@@ -49,6 +49,8 @@
 #error "SCD device is not defined"
 #endif
 
+#define SCD_VERSION			0x110
+
 #define USB_INTERFACE_PROTOCOL_ICCD_A	0x01
 #define USB_INTERFACE_PROTOCOL_ICCD_B	0x02
 
@@ -72,7 +74,9 @@ typedef uint8_t				scd_sid_t;
 typedef scs_sid_t			scd_sid_t;
 #endif
 #define NR_SCD_QUEUES			NR_SCS_SLOTS
-#define ICCD_SID_USB			(ICCD_MAX_BUSY_SLOT-1)
+#define NR_SCD_USB_SLOTS		1
+#define NR_SCD_USB_QUEUES		NR_SCD_USB_SLOTS
+#define ICCD_SID_USB			(NR_SCD_USB_SLOTS-1)
 
 #define ICCD_BUF_SIZE			261
 #define ICCD_MESSAGE_SIZE		(ICCD_BUF_SIZE + SCD_HEADER_SIZE)
@@ -96,14 +100,6 @@ struct iccd_hwerr {
 #define ICCD_INTR_PENDING_UNSET		0x03
 #define ICCD_INTR_ICC_PRESENT		0x04
 #define ICCD_INTR_ICC_NOTPRESENT	0x05
-
-#define ICCD_ERROR_ICC_MUTE		0xFE
-#define ICCD_ERROR_XFR_OVERRUN		0xFC
-#define ICCD_ERROR_HW_ERROR		0xFB
-#define ICCD_ERROR_USER_DEFINED		0xC0
-#define ICCD_ERROR_USER(e)		(ICCD_ERROR_USER_DEFINED-e)
-#define ICCD_ERROR_RESERVED		0x80
-#define ICCD_ERROR_CMD_UNSUPPORT	0x00
 
 #ifdef CONFIG_ICCD_COS
 #define __iccd_get_error()		cos_get_error()

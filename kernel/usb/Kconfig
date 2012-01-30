@@ -258,8 +258,8 @@ choice
 config SCD_ESC_NONE
 	bool "None"
 
-config SCD_ESC_PN53X
-	bool "PN53X"
+config SCD_ESC_ACR122
+	bool "ACR122"
 
 endchoice
 
@@ -405,8 +405,7 @@ endif
 
 menuconfig USB_PN53X
 	bool "NXP PN53X NFC device support"
-	select PCD
-	select PCD_PN53X
+	select PN53X
 
 if USB_PN53X
 

@@ -204,13 +204,13 @@ void scd_queue_reset(scd_qid_t qid)
 	__scd_queue_reset(qid);
 }
 
-static void iccd_submit_response(void)
+void scd_submit_response(void)
 {
 	__scd_submit_response(ICCD_ADDR_IN,
 			      iccd_addr2qid(usbd_saved_addr()));
 }
 
-static void iccd_submit_command(void)
+void scd_submit_command(void)
 {
 	__scd_submit_command(ICCD_ADDR_OUT,
 			     iccd_addr2qid(usbd_saved_addr()));
@@ -228,8 +228,8 @@ static void iccd_get_iccd_desc(void)
 {
 	USBD_INB(SCD_DT_SCD_SIZE);
 	USBD_INB(SCD_DT_SCD);
-	USBD_INW(ICCD_VERSION_DEFAULT);
-	USBD_INB(ICCD_MAX_BUSY_SLOT - 1);	/* must be 0 */
+	USBD_INW(SCD_VERSION);
+	USBD_INB(NR_SCD_USB_SLOTS - 1);	/* must be 0 */
 	USBD_INB(SCD_VOLTAGE_5V);
 	USBD_INL(iccd_proto_features());
 	USBD_INL((uint32_t)(ICCD_FIXED_CLOCK));
@@ -247,7 +247,7 @@ static void iccd_get_iccd_desc(void)
 	USBD_INB(SCD_ECHO_APDU_CLASS);
 	USBD_INW(SCD_LCD_LAYOUT_NONE);
 	USBD_INB(SCD_SPE_SUPPORT_NONE);
-	USBD_INB(ICCD_MAX_BUSY_SLOT);	/* must be 1 */
+	USBD_INB(NR_SCD_USB_QUEUES);	/* must be 1 */
 }
 
 static void iccd_get_config_desc(void)
@@ -405,61 +405,14 @@ static void iccd_handle_ctrl_data(void)
 /*=========================================================================
  * bulk-out data
  *=======================================================================*/
-static void iccd_handle_slot_pc2rdr(void)
+void scd_handle_bulk_pc2rdr(void)
 {
-	if (scd_slot_status() == SCD_SLOT_STATUS_NOTPRESENT) {
-		scd_CmdFailure_out(ICCD_ERROR_ICC_MUTE);
-		return;
-	}
-
-	switch (scd_cmds[scd_qid].bMessageType) {
-	case SCD_PC2RDR_ICCPOWERON:
-		scd_IccPowerOn_out();
-		break;
-	case SCD_PC2RDR_ICCPOWEROFF:
-		/* nothing to do */
-		break;
-	case SCD_PC2RDR_XFRBLOCK:
-		scd_XfrBlock_out();
-		break;
-	case SCD_PC2RDR_ESCAPE:
-		scd_Escape_out();
-		break;
-	}
+	scd_handle_pc2rdr_default();
 }
 
-static void iccd_handle_command(void)
+void scd_handle_command(void)
 {
-	scd_qid_t qid = iccd_addr2qid(usbd_saved_addr());
-	scd_qid_t oqid;
-
-	oqid = scd_qid_save(qid);
-	scd_debug(SCD_DEBUG_SLOT, scd_qid);
-
-	BUG_ON(scd_states[scd_qid] != SCD_SLOT_STATE_PC2RDR &&
-	       scd_states[scd_qid] != SCD_SLOT_STATE_SANITY);
-
-	scd_slot_enter(SCD_SLOT_STATE_SANITY);
-
-	/* CCID message header */
-	scd_CmdHeader_out();
-
-	if (usbd_request_handled() < SCD_HEADER_SIZE)
-		goto out;
-
-	if (usbd_request_handled() == SCD_HEADER_SIZE) {
-		usbd_request_commit(SCD_HEADER_SIZE +
-				    scd_cmds[scd_qid].dwLength);
-		scd_debug(SCD_DEBUG_PC2RDR, scd_cmds[scd_qid].bMessageType);
-	}
-
-	if (scd_cmds[scd_qid].bSlot != ICCD_SID_USB)
-		goto out;
-
-	iccd_handle_slot_pc2rdr();
-out:
-	scd_qid_restore(oqid);
-	return;
+	__scd_handle_command(iccd_addr2qid(usbd_saved_addr()));
 }
 
 /*=========================================================================
@@ -515,69 +468,22 @@ static void iccd_complete_response(void)
 /*=========================================================================
  * bulk-out cmpl
  *=======================================================================*/
-static void iccd_complete_slot_pc2rdr(void)
+void scd_complete_bulk_pc2rdr(void)
 {
-	if (usbd_request_handled() !=
-	    (scd_cmds[scd_qid].dwLength + SCD_HEADER_SIZE)) {
-		scd_CmdOffset_cmp(1);
-		return;
-	}
-	if (scd_is_cmd_status(SCD_CMD_STATUS_FAIL)) {
-		scd_CmdResponse_cmp();
-		return;
-	}
-
 	switch (scd_cmds[scd_qid].bMessageType) {
-	case SCD_PC2RDR_ICCPOWERON:
-		scd_IccPowerOn_cmp();
-		break;
-	case SCD_PC2RDR_ICCPOWEROFF:
-		scd_IccPowerOff_cmp();
-		break;
-	case SCD_PC2RDR_XFRBLOCK:
-		scd_XfrBlock_cmp();
-		break;
-	case SCD_PC2RDR_ESCAPE:
-		scd_Escape_cmp();
-		break;
 	case SCD_PC2RDR_GETPARAMETERS:
 		/* FIXME: windows sent us */
 		scd_SlotStatus_cmp();
 		break;
 	default:
-		scd_CmdOffset_cmp(0);
+		scd_complete_pc2rdr_default();
 		break;
 	}
 }
 
-static void iccd_complete_command(void)
+void scd_complete_command(void)
 {
-	scd_qid_t qid = iccd_addr2qid(usbd_saved_addr());
-	scd_qid_t oqid;
-
-	oqid = scd_qid_save(qid);
-
-	BUG_ON(scd_states[scd_qid] != SCD_SLOT_STATE_PC2RDR &&
-	       scd_states[scd_qid] != SCD_SLOT_STATE_SANITY);
-
-	if (usbd_request_handled() < SCD_HEADER_SIZE ||
-	    scd_cmds[scd_qid].bSlot != ICCD_SID_USB) {
-		scd_SlotNotExist_cmp();
-		goto out;
-	}
-
-	if (scd_is_cmd_status(SCD_CMD_STATUS_FAIL)) {
-		/* CMD_ABORTED and SLOT_BUSY error */
-		scd_CmdResponse_cmp();
-		goto out;
-	}
-
-	/* SANITY state completed */
-	scd_slot_enter(SCD_SLOT_STATE_PC2RDR);
-
-	iccd_complete_slot_pc2rdr();
-out:
-	scd_qid_restore(oqid);
+	__scd_complete_command(iccd_addr2qid(usbd_saved_addr()));
 }
 
 /*=========================================================================
@@ -767,15 +673,15 @@ void iccd_devid_init(void)
 usbd_endpoint_t iccd_endpoint_out = {
 	USBD_ENDP_BULK_OUT,
 	ICCD_ENDP_INTERVAL_OUT,
-	iccd_submit_command,
-	iccd_handle_command,
-	iccd_complete_command,
+	scd_submit_command,
+	scd_handle_command,
+	scd_complete_command,
 };
 
 usbd_endpoint_t iccd_endpoint_in = {
 	USBD_ENDP_BULK_IN,
 	ICCD_ENDP_INTERVAL_IN,
-	iccd_submit_response,
+	scd_submit_response,
 	iccd_handle_response,
 	iccd_complete_response,
 };

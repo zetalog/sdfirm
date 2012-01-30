@@ -14,8 +14,6 @@ typedef struct scd_desc {
 
 	uint8_t	 bDescriptorType;
 	uint16_t bcdCCID;
-#define CCID_VERSION_DEFAULT	0x100
-#define ICCD_VERSION_DEFAULT	0x110
 
 	uint8_t	 bMaxSlotIndex;
 	uint8_t	 bVoltageSupport;
@@ -104,7 +102,6 @@ typedef struct scd_desc {
 					 SCD_SPE_SUPPORT_MODIFY)
 
 	uint8_t	 bMaxCCIDBusySlots;
-#define ICCD_MAX_BUSY_SLOT		0x01
 } scd_desc_t;
 
 #define IFD_HEADER_SIZE		5

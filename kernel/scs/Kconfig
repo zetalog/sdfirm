@@ -36,10 +36,9 @@ config IFD_SLOT
 	select IFD_AUTO_RESET
 	select IFD_XCHG_APDU
 
-config PN53X_SLOT
-	bool "Enable fake ICC for PN53x communication"
-	select PCD
-	select PCD_PN53X
+config ACR122_SLOT
+	bool "Enable fake ACR122 reader"
+	select PN53X
 
 endif
 

@@ -15,16 +15,15 @@ endif
 endmenu
 endif
 
+config PN53X
+	bool "NXP PN53x proximity coupling device"
+
+if PN53X
+
+endif
 
 if PCD
 menu "PCD drivers"
-
-config PCD_PN53X
-	bool "NXP PN53x proximity coupling device"
-
-if PCD_PN53X
-
-endif
 
 endmenu
 endif

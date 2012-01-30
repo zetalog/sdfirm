@@ -236,3 +236,141 @@ void scd_DataBlock_in(void)
 	BUG_ON(usbd_request_handled() >
 	       scd_resps[scd_qid].dwLength + SCD_HEADER_SIZE);
 }
+
+void __scd_handle_command(scd_qid_t qid)
+{
+	scd_sid_t sid;
+
+	scd_qid_select(qid);
+	scd_debug(SCD_DEBUG_SLOT, scd_qid);
+
+	BUG_ON(scd_states[scd_qid] != SCD_SLOT_STATE_PC2RDR &&
+	       scd_states[scd_qid] != SCD_SLOT_STATE_SANITY);
+
+	scd_slot_enter(SCD_SLOT_STATE_SANITY);
+
+	/* CCID message header */
+	scd_CmdHeader_out();
+
+	if (usbd_request_handled() < SCD_HEADER_SIZE)
+		return;
+
+	if (usbd_request_handled() == SCD_HEADER_SIZE) {
+		usbd_request_commit(SCD_HEADER_SIZE +
+				    scd_cmds[scd_qid].dwLength);
+		scd_debug(SCD_DEBUG_PC2RDR, scd_cmds[scd_qid].bMessageType);
+	}
+
+	sid = scd_cmds[scd_qid].bSlot;
+	if (sid >= NR_SCD_USB_SLOTS) {
+		return;
+	}
+	/* XXX: care should be taken on BULK ABORT */
+	if (scd_abort_handled())
+		return;
+
+	/* slot ID determined */
+	scd_sid_select(sid);
+	scd_debug(SCD_DEBUG_SLOT, scd_qid);
+
+	if (scd_cmds[scd_qid].bMessageType == SCD_PC2RDR_GETSLOTSTATUS) {
+		return;
+	}
+	if (scd_slot_status() == SCD_SLOT_STATUS_NOTPRESENT) {
+		scd_CmdFailure_out(CCID_ERROR_ICC_MUTE);
+		return;
+	}
+#if 0
+	/* FIXME: check auto sequence */
+	if (scd_slot_status() != SCD_SLOT_STATUS_ACTIVE) {
+		scd_CmdFailure_out(CCID_ERROR_BUSY_AUTO_SEQ);
+		return;
+	}
+#endif
+
+	switch (scd_cmds[scd_qid].bMessageType) {
+	case SCD_PC2RDR_ICCPOWERON:
+		scd_IccPowerOn_out();
+		break;
+	case SCD_PC2RDR_ICCPOWEROFF:
+	case SCD_PC2RDR_GETPARAMETERS:
+		/* nothing to do */
+		break;
+	case SCD_PC2RDR_XFRBLOCK:
+		scd_XfrBlock_out();
+		break;
+	case SCD_PC2RDR_ESCAPE:
+		scd_Escape_out();
+		break;
+	default:
+		scd_handle_bulk_pc2rdr();
+		break;
+	}
+}
+
+void __scd_complete_command(scd_qid_t qid)
+{
+	scd_sid_t sid;
+
+	scd_qid_select(qid);
+	scd_debug(SCD_DEBUG_SLOT, scd_qid);
+
+	BUG_ON(scd_states[scd_qid] != SCD_SLOT_STATE_PC2RDR &&
+	       scd_states[scd_qid] != SCD_SLOT_STATE_SANITY);
+
+	sid = scd_cmds[scd_qid].bSlot;
+	if (usbd_request_handled() < SCD_HEADER_SIZE ||
+	    sid >= NR_SCD_USB_SLOTS) {
+		scd_SlotNotExist_cmp();
+		return;
+	}
+
+	/* XXX: care should be taken on BULK ABORT */
+	if (scd_abort_completed())
+		return;
+	if (scd_is_cmd_status(SCD_CMD_STATUS_FAIL)) {
+		/* CMD_ABORTED and SLOT_BUSY error */
+		scd_CmdResponse_cmp();
+		return;
+	}
+
+	/* SANITY state completed */
+	/* CCID_QID_OUT should be idle */
+	scd_slot_enter(SCD_SLOT_STATE_PC2RDR);
+
+	/* now we are able to handle slot specific request */
+	scd_sid_select(sid);
+	scd_debug(SCD_DEBUG_SLOT, scd_sid);
+
+	if (usbd_request_handled() !=
+	    (scd_cmds[scd_qid].dwLength + SCD_HEADER_SIZE)) {
+		scd_CmdOffset_cmp(1);
+		return;
+	}
+	if (scd_cmds[scd_qid].bMessageType == SCD_PC2RDR_GETSLOTSTATUS) {
+		scd_SlotStatus_cmp();
+		return;
+	}
+	if (scd_is_cmd_status(SCD_CMD_STATUS_FAIL)) {
+		scd_CmdResponse_cmp();
+		return;
+	}
+
+	switch (scd_cmds[scd_qid].bMessageType) {
+	case SCD_PC2RDR_ICCPOWERON:
+		scd_IccPowerOn_cmp();
+		break;
+	case SCD_PC2RDR_ICCPOWEROFF:
+		scd_IccPowerOff_cmp();
+		break;
+	case SCD_PC2RDR_XFRBLOCK:
+		scd_XfrBlock_cmp();
+		break;
+	case SCD_PC2RDR_ESCAPE:
+		scd_Escape_cmp();
+		break;
+	default:
+		scd_complete_bulk_pc2rdr();
+		break;
+	}
+}

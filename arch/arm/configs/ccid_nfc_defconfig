@@ -192,7 +192,7 @@ CONFIG_IFD_AUTO_INFO_XCHG=y
 # CONFIG_IFD_AUTO_PPS_BASE is not set
 CONFIG_IFD_AUTO_PPS_PROP=y
 # CONFIG_IFD_AUTO_ATR_BUILD is not set
-CONFIG_PCD=y
+# CONFIG_PCD is not set
 # CONFIG_COS is not set
 # CONFIG_MTD is not set
 # CONFIG_SCSI is not set
@@ -219,7 +219,7 @@ CONFIG_IFD_SERIAL=y
 #
 # PCD drivers
 #
-CONFIG_PCD_PN53X=y
+CONFIG_PN53X=y
 
 #
 # Library setup

@@ -150,7 +150,7 @@ CONFIG_USBD_MAX_INTFS=1
 # CONFIG_USB_CCID is not set
 # CONFIG_USB_ICCD is not set
 # CONFIG_SCD_ESC_NONE is not set
-# CONFIG_SCD_ESC_PN53X is not set
+# CONFIG_SCD_ESC_ACR122 is not set
 # CONFIG_ICCD_COS is not set
 # CONFIG_ICCD_SCD is not set
 # CONFIG_ICCD_PROTO_BULK is not set
@@ -164,7 +164,7 @@ CONFIG_USB_PN53X=y
 CONFIG_SCS=y
 # CONFIG_SCS_SLOT is not set
 # CONFIG_IFD is not set
-CONFIG_PCD=y
+# CONFIG_PCD is not set
 # CONFIG_COS is not set
 # CONFIG_MTD is not set
 # CONFIG_SCSI is not set
@@ -185,7 +185,7 @@ CONFIG_PCD=y
 #
 # PCD drivers
 #
-CONFIG_PCD_PN53X=y
+CONFIG_PN53X=y
 
 #
 # Library setup
