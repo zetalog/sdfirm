@@ -13,3 +13,7 @@ boolean pn53x_poll_ready(void)
 {
 	return true;
 }
+
+void pn53x_ctrl_init(void)
+{
+}

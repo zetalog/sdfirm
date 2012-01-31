@@ -14,5 +14,6 @@
 boolean pn53x_poll_ready(void);
 uint8_t pn53x_read_byte(void);
 void pn53x_write_byte(uint8_t val);
+void pn53x_ctrl_init(void);
 
 #endif /* __PN53X_H_INCLUDE_ */
