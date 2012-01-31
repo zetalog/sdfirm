@@ -8,19 +8,6 @@ boolean pn53x_ready;
 boolean pn53x_is_resp;
 boolean pn53x_is_cmd;
 
-#define PN53X_ACK	0x00FF
-#define PN53X_NAK	0xFF00
-
-uint16_t pn53x_cmd_type(void)
-{
-	return MAKEWORD(pn53x_cmd[4], pn53x_cmd[3]);
-}
-
-uint16_t pn53x_resp_type(void)
-{
-	return MAKEWORD(pn53x_resp[4], pn53x_resp[3]);
-}
-
 void pn53x_xchg_pseudo(void)
 {
 	scs_off_t i;
@@ -49,7 +36,7 @@ void pn53x_write_cmpl(scs_size_t nc)
 	pn53x_nc = nc;
 	pn53x_ready = false;
 
-	switch (pn53x_cmd_type()) {
+	switch (pn53x_type(pn53x_cmd)) {
 	case PN53X_ACK:
 		pn53x_is_cmd = false;
 		pn53x_is_resp = false;

@@ -10,6 +10,10 @@
 #define PN53X_TAIL_SIZE			2
 #define PN53X_DATA_SIZE			(PN53X_BUF_SIZE-PN53X_HEAD_SIZE-PN53X_TAIL_SIZE)
 
+#define PN53X_ACK			0x00FF
+#define PN53X_NAK			0xFF00
+#define pn53x_type(buf)			MAKEWORD((buf)[4], (buf)[3]);
+
 /* API used for PN53x USB devices */
 boolean pn53x_read_aval(void);
 void pn53x_write_cmpl(scs_size_t nc);
