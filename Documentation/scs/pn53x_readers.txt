@@ -4,59 +4,63 @@
 There might be the following PN53x reader implementation variants in the
 sdfirm:
 1. PN533: It runs PN53x host protocol directly through USB, since halt is
-          not considered by this USB interface design, host side drivers
-          may face difficulties on asynchronous URBs.
-2. ACR122(T=0): It wrappers PN53x host protocol using pseudo APDUs, thus
-                a standard CCID host driver can interface this kind of
-                device easily.  But since it's not implemented in a way
-                compliant to PCSC framework, it might not utilize
-                Microsoft Windows smart card solutions, every solution
-                vendors are required to implement specific support for
-                this reader.
-3. ACR122(ESC): It can exchages PN53x commands and responses using CCID
-                ESCAPE commands, thus its vendor specific.
-4. PCD Slot: This might be the only correct way to implement an ISO14443
-             compliant readers for PCSC, but it may generate pseduo ATRs
-             for every PICCs which may require better identification of
-             ICC drivers on host side.  Unfortunately, Windows does not
-             contain a clean ICC driver identification framework.
+          not taken into account by this USB interface design, host side
+          drivers may face difficulties on asynchronous URBs.
+2. ACR122(APDU): This might be the only correct way to implement an
+                 ISO14443 compliant readers for PCSC, it will generate
+                 pseduo ATRs for every PICCs, which may require better
+                 identification of ICC drivers on host side.
+                 Unfortunately, Windows does not contain a smart ICC
+                 driver identification framework.  More efforts should be
+                 done to implement duplicated Windows CSPs.
+3. ACR122(PAPDU): It wrappers PN53x host protocol using pseudo APDUs,
+                  ACR122 prefer this way to access non-ISO14443 compliant
+                  tags.  Since it's not implemented in a way compliant to
+                  PCSC framework, it might not utilize Microsoft Windows
+                  smart card solutions, solution vendors are required
+                  to implement specific support for such ICCs.
+4. ACR122(ESC): It can exchages PN53x commands and responses using CCID
+                ESCAPE commands, thus it's also a vendor specific
+                solution.
 
 Following figure describes the softwares that should be implemented for
 each of such devices:
 
-+===============+================+=====================+==================+
-| PN533         | PCD Slot       | ACR122 (T=0)        | ACR122 (ESC)     |
-+===============+================+=====================+==================+
++===============+================+===================+==================+
+| PN533         | ACR122(APDU)   | ACR122(PAPDU)     | ACR122(ESC)      |
++===============+================+===================+==================+
 
-+===============+================+=====================+==================+
-|               | pn53x.c        |                     |                  |
-|               +----------------+                     |                  |
-|               | pcd_pn53x.c    |                     |                  |
-|               +----------------+---------------------+                  |
-|               | pcd.c 1        | pn53x.c             |                  |
-|               +----------------+---------------------+------------------+
-|               | scs_slot_pcd.c | scs_slot_acr122.c 1 | pn53x.c          |
-+---------------+----------------+---------------------+------------------+
-| pn53x.c       | scs_slot.c     | scs_slot.c          | acr122_xchg.c 1  |
-+---------------+----------------+---------------------+------------------+
-               \|/ USB                               SCS /|\
-+---------------+----------------+---------------------+------------------+
-|               |                |                     | scd_esc_acr122.c |
-+---------------+----------------+---------------------+------------------+
-| usb_pn53x.c 2 | usb_iccd.c     | usb_iccd.c          | usb_iccd.c       |
-+---------------+----------------+---------------------+------------------+
-| usb_dev.c                                                               |
-+===============+================+=====================+==================+
-               \|/ Host                           Target /|\
-+===============+================+=====================+==================+
-| usb_pn53x.sys | usb_ccid.sys   | usb_ccid.sys        | usb_ccid.sys     |
-+===============+================+=====================+==================+
-| pcsc          | pcsc           | pcsc (VS)           | pcsc             |
-+---------------+----------------+---------------------+------------------+
-|               |                | smarton_acr122.c    | smarton_acr122.c |
-+---------------+----------------+---------------------+------------------+
-| Microsoft Windows Solutions    | Soliton SmartOn Solutions              |
-+===============+================+=====================+==================+
++===============+================+===================+==================+
+|               |                |                   |                  |
+|               +----------------+                   |                  |
+|               | pn53x.c        |                   |                  |
+|               +----------------+-------------------+                  |
+|               | pcd_pn53x.c    | pn53x.c           |                  |
+|               +----------------+-------------------+                  |
+|               | pcd.c 1        | acr122_xchg.c 1   |                  |
+|               +----------------+-------------------+------------------+
+|               | scs_slot_pcd.c | scs_slot_acr122.c | pn53x.c          |
++---------------+----------------+-------------------+------------------+
+| pn53x.c       | scs_slot.c     | scs_slot.c        | acr122_xchg.c 1  |
++---------------+----------------+-------------------+------------------+
+               \|/ USB                             SCS /|\
++---------------+----------------+-------------------+------------------+
+|               |                |                   | scd_esc_acr122.c |
++---------------+----------------+-------------------+------------------+
+| usb_pn53x.c 2 | usb_iccd.c     | usb_iccd.c        | usb_iccd.c       |
++---------------+----------------+-------------------+------------------+
+| usb_dev.c                                                             |
++===============+================+===================+==================+
+               \|/ Host                         Target /|\
++===============+================+===================+==================+
+| usb_pn53x.sys | usb_ccid.sys   | usb_ccid.sys      | usb_ccid.sys     |
++===============+================+===================+==================+
+| pcsc          | pcsc           | pcsc              | pcsc             |
++---------------+----------------+-------------------+------------------+
+|               |                | smarton_acr122.c  | smarton_acr122.c |
++---------------+----------------+-------------------+------------------+
+| Microsoft Windows Solutions    | Soliton SmartOn Solutions            |
++===============+================+=====================+================+
 Where:
 2: Requires 2 half-duplex buffer implemented in this layer.
 1: Requires 1 duplex buffer implemented in this layer.
@@ -64,13 +68,14 @@ Where:
 The following tow types of ACR122 readers might not utilize Microsoft
 Windows native smart card solutions, 3rd party solutions (Soliton
 SmartOn) may be required to perform Windows logon with smart cards.
-ACR122 (T=0): acr122 implemented in libnfc that
-              1. reports T=0;
-              2. runs modified PN53x protocol using SCardTransmit.
-ACR122 (ESC): acr122 implemented in libnfc that
-              1. reports T=undef;
-              2. exchanges PN53x commands/responses using
-                 SCardControl(IOCTL_CCID_ESCAPE_SCARD_CTL_CODE).
+ACR122(PAPDU): acr122 implemented in libnfc that
+               1. reports T=0;
+               2. runs modified PN53x protocol using SCardTransmit.
+ACR122(ESC): acr122 implemented in libnfc that
+             1. reports T=undef;
+             2. exchanges PN53x commands/responses using
+                SCardControl(IOCTL_CCID_ESCAPE_SCARD_CTL_CODE).
+Actually ACR122U supports both ACR122(APDU), ACR122(PAPDU), ACR122(ESC).
 NOTE: A combination of the previous tow types might implement specific T
       for PCSC and emulate the PN53x protocol as a pseudo ICC for PCSC,
       thus it might run Microsoft Windows Solutions directly with some ACS
@@ -78,20 +83,20 @@ NOTE: A combination of the previous tow types might implement specific T
 
 Note that PN53x host protocols may be implemented in the following
 modules:
-+===============+================+=====================+==================+
-| PN533         | PCD Slot       | ACR122 (T=0)        | ACR122 (ESC)     |
-+---------------+----------------+---------------------+------------------+
-| usb_pn53x.sys | pcd_pn53x.c    | smarton_acr122.c    | acr122_xchg.c    |
-+===============+================+=====================+==================+
++===============+================+===================+==================+
+| PN533         | PCD Slot       | ACR122 (T=0)      | ACR122 (ESC)     |
++---------------+----------------+-------------------+------------------+
+| usb_pn53x.sys | pcd_pn53x.c    | acr122_xchg.c     | acr122_xchg.c    |
++===============+================+===================+==================+
 
 Much more software development work should be done in the 
 following
 modules:
-+===============+================+=====================+==================+
-| PN533         | PCD Slot       | ACR122 (T=0)        | ACR122 (ESC)     |
-+---------------+----------------+---------------------+------------------+
-| usb_pn53x.c   | pcd.c          | smarton             | smarton          |
-| usb_pn53x.sys | pcd_pn53x.c    | scs_slot_acr122.c   | acr122_xchg.c    |
-+===============+================+=====================+==================+
++===============+================+===================+==================+
+| PN533         | PCD Slot       | ACR122 (T=0)      | ACR122 (ESC)     |
++---------------+----------------+-------------------+------------------+
+| usb_pn53x.c   | pcd.c          | smarton           | smarton          |
+| usb_pn53x.sys | pcd_pn53x.c    | acr122_xchg.c     | acr122_xchg.c    |
++===============+================+===================+==================+
 
                                                        by Lv ZETALOG Zheng

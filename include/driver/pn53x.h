@@ -12,7 +12,7 @@
 
 #define PN53X_ACK			0x00FF
 #define PN53X_NAK			0xFF00
-#define pn53x_type(buf)			MAKEWORD((buf)[4], (buf)[3]);
+#define pn53x_type(buf)			MAKEWORD((buf)[4], (buf)[3])
 
 /* API used for PN53x USB devices */
 boolean pn53x_read_aval(void);
