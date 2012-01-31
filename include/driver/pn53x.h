@@ -11,9 +11,11 @@
 #define PN53X_DATA_SIZE			(PN53X_BUF_SIZE-PN53X_HEAD_SIZE-PN53X_TAIL_SIZE)
 
 /* API used for PN53x USB devices */
-boolean pn53x_poll_ready(void);
-uint8_t pn53x_read_byte(void);
-void pn53x_write_byte(uint8_t val);
+boolean pn53x_read_aval(void);
+void pn53x_write_cmpl(scs_size_t nc);
+void pn53x_read_cmpl(scs_size_t ne);
+uint8_t pn53x_xchg_read(scs_off_t index);
+void pn53x_xchg_write(scs_off_t index, uint8_t val);
 void pn53x_ctrl_init(void);
 
 #endif /* __PN53X_H_INCLUDE_ */

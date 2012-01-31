@@ -40,13 +40,13 @@ static scs_size_t acr122_slot_xchg_avail(void)
 
 static scs_err_t acr122_slot_xchg_write(scs_off_t index, uint8_t byte)
 {
-	pn53x_write_byte(byte);
+	pn53x_xchg_write(index, byte);
 	return SCS_ERR_SUCCESS;
 }
 
 static uint8_t acr122_slot_xchg_read(scs_off_t index)
 {
-	return pn53x_read_byte();
+	return pn53x_xchg_read(index);
 }
 
 scs_slot_driver_t acr122_slot = {
