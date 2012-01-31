@@ -11,7 +11,7 @@
 #define PN53X_DATA_SIZE			(PN53X_BUF_SIZE-PN53X_HEAD_SIZE-PN53X_TAIL_SIZE)
 
 /* API used for PN53x USB devices */
-scs_err_t pn53x_poll_ready(uint8_t ms);
+boolean pn53x_poll_ready(void);
 uint8_t pn53x_read_byte(void);
 void pn53x_write_byte(uint8_t val);
 

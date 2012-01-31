@@ -84,8 +84,9 @@ modules:
 | usb_pn53x.sys | pcd_pn53x.c    | smarton_acr122.c    | acr122_xchg.c    |
 +===============+================+=====================+==================+
 
-Much more software development works should be implemented in the
-following modules:
+Much more software development work should be done in the 
+following
+modules:
 +===============+================+=====================+==================+
 | PN533         | PCD Slot       | ACR122 (T=0)        | ACR122 (ESC)     |
 +---------------+----------------+---------------------+------------------+

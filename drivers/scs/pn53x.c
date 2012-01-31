@@ -9,7 +9,7 @@ void pn53x_write_byte(uint8_t val)
 {
 }
 
-scs_err_t pn53x_poll_ready(uint8_t ms)
+boolean pn53x_poll_ready(void)
 {
-	return SCS_ERR_TIMEOUT;
+	return true;
 }
