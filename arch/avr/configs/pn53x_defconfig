@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Feb  1 10:23:47 2012
+# Wed Feb  1 13:02:26 2012
 #
 CONFIG_AVR=y
 
@@ -231,3 +231,4 @@ CONFIG_PANIC_DEBUG=y
 # CONFIG_IDLE_DEBUG is not set
 CONFIG_USB_DEBUG=y
 # CONFIG_USB_DEBUG_CALL is not set
+CONFIG_PN53X_DEBUG=y
