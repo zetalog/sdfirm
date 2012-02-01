@@ -5,6 +5,14 @@
 #include <target/generic.h>
 #include <target/scs.h>
 
+#ifdef CONFIG_PN53X_DEBUG
+#define pn53x_debug(tag, val)		dbg_print((tag), (val))
+#define PN53X_DUMP_USBD			true
+#else
+#define pn53x_debug(tag, val)
+#define PN53X_DUMP_USBD			false
+#endif
+
 #define PN53X_BUF_SIZE			264
 #define PN53X_HEAD_SIZE			6
 #define PN53X_TAIL_SIZE			2

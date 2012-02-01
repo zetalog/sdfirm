@@ -189,6 +189,10 @@ config DFU_DEBUG
 	bool "Device firmware update debug message support"
 	depends USB_DFU
 
+config PN53X_DEBUG
+	bool "PN53x device debug message support"
+	depends PN53X
+
 endif
 
 endif
