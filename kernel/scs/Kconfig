@@ -38,7 +38,7 @@ config IFD_SLOT
 
 config ACR122_SLOT
 	bool "Enable fake ACR122 reader"
-	select PN53X
+	select ACR122
 
 endif
 

@@ -22,6 +22,14 @@ if PN53X
 
 endif
 
+config ACR122
+	bool "ACS ACR122 pseudo APDU support"
+	select PN53X
+
+if ACR122
+
+endif
+
 if PCD
 menu "PCD drivers"
 

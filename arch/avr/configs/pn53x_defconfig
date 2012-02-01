@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Jan 20 10:10:49 2012
+# Wed Feb  1 10:23:47 2012
 #
 CONFIG_AVR=y
 
@@ -147,25 +147,9 @@ CONFIG_USBD_MAX_INTFS=1
 # CONFIG_USB_HID is not set
 # CONFIG_USB_MSD is not set
 # CONFIG_USB_SCD is not set
-# CONFIG_USB_CCID is not set
-# CONFIG_USB_ICCD is not set
-# CONFIG_SCD_ESC_NONE is not set
-# CONFIG_SCD_ESC_ACR122 is not set
-# CONFIG_ICCD_COS is not set
-# CONFIG_ICCD_SCD is not set
-# CONFIG_ICCD_PROTO_BULK is not set
-# CONFIG_ICCD_PROTO_A is not set
-# CONFIG_ICCD_PROTO_B is not set
-# CONFIG_ICCD_XCHG_APDU is not set
-# CONFIG_ICCD_T0 is not set
-# CONFIG_ICCD_T1 is not set
 # CONFIG_USB_DFU is not set
 CONFIG_USB_PN53X=y
-CONFIG_SCS=y
-# CONFIG_SCS_SLOT is not set
-# CONFIG_IFD is not set
-# CONFIG_PCD is not set
-# CONFIG_COS is not set
+# CONFIG_SCS is not set
 # CONFIG_MTD is not set
 # CONFIG_SCSI is not set
 # CONFIG_NET is not set
@@ -181,11 +165,8 @@ CONFIG_SCS=y
 #
 # MTD memory drivers
 #
-
-#
-# PCD drivers
-#
 CONFIG_PN53X=y
+# CONFIG_ACR122 is not set
 
 #
 # Library setup
@@ -235,7 +216,7 @@ CONFIG_BIT_FFS16=y
 # Generic setup
 #
 CONFIG_VENDOR_NAME="Soliton"
-CONFIG_PRODUCT_NAME="USB Key (Soliton COS)"
+CONFIG_PRODUCT_NAME="USB PN532"
 CONFIG_VENDOR_ID=990
 CONFIG_PRODUCT_ID=5
 CONFIG_SERIAL_NO=0
@@ -248,5 +229,5 @@ CONFIG_DEBUG_PANIC=y
 CONFIG_DEBUG_PRINT=y
 CONFIG_PANIC_DEBUG=y
 # CONFIG_IDLE_DEBUG is not set
-# CONFIG_USB_DEBUG is not set
-# CONFIG_SCS_DEBUG is not set
+CONFIG_USB_DEBUG=y
+# CONFIG_USB_DEBUG_CALL is not set
