@@ -5,7 +5,6 @@
 obj-y:=
 
 obj-y += driver.rel
-obj-$(CONFIG_BLOCK) += block.o
 
 obj-$(CONFIG_LCD) += lcd/
 obj-$(CONFIG_MTD) += mtd/
