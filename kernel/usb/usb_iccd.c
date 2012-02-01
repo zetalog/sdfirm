@@ -41,16 +41,6 @@
 
 #include <target/usb_scd.h>
 
-#define ICCD_REQ_DATA_BLOCK		0x6F
-#define ICCD_REQ_GET_ICC_STATUS		0xA0
-#define ICCD_REQ_SLOT_STATUS		0x81
-
-#ifdef CONFIG_SCD_INTERRUPT
-DECLARE_BITMAP(iccd_running_intrs, NR_SCD_SLOTS+NR_SCD_SLOTS);
-DECLARE_BITMAP(iccd_pending_intrs, NR_SCD_SLOTS+NR_SCD_SLOTS);
-#define SCD_ADDR_IRQ			iccd_addr[scd_qid][SCD_ENDP_INTR_IN]
-#endif
-
 #if NR_SCD_ENDPS > 0
 uint8_t iccd_addr[NR_SCD_SLOTS][NR_SCD_ENDPS];
 #endif
@@ -90,14 +80,14 @@ uint8_t scd_slot_error(scs_err_t err)
 {
 	switch (err) {
 	case SCS_ERR_OVERRUN:
-		return ICCD_ERROR_XFR_OVERRUN;
+		return SCD_ERROR_XFR_OVERRUN;
 	case SCS_ERR_NOTPRESENT:
-		return ICCD_ERROR_ICC_MUTE;
+		return SCD_ERROR_ICC_MUTE;
 	case SCS_ERR_TIMEOUT:
 	case SCS_ERR_HW_ERROR:
-		return ICCD_ERROR_HW_ERROR;
+		return SCD_ERROR_HW_ERROR;
 	}
-	return ICCD_ERROR_HW_ERROR;
+	return SCD_ERROR_HW_ERROR;
 }
 
 void scd_sid_select(scd_sid_t sid)
@@ -123,14 +113,14 @@ uint8_t scd_slot_error(scs_err_t err)
 {
 	switch (err) {
 	case SCS_ERR_OVERRUN:
-		return ICCD_ERROR_XFR_OVERRUN;
+		return SCD_ERROR_XFR_OVERRUN;
 	case SCS_ERR_NOTPRESENT:
-		return ICCD_ERROR_ICC_MUTE;
+		return SCD_ERROR_ICC_MUTE;
 	case SCS_ERR_TIMEOUT:
 	case SCS_ERR_HW_ERROR:
-		return ICCD_ERROR_HW_ERROR;
+		return SCD_ERROR_HW_ERROR;
 	}
-	return ICCD_ERROR_HW_ERROR;
+	return SCD_ERROR_HW_ERROR;
 }
 
 void scd_sid_select(scd_sid_t sid)
@@ -237,6 +227,10 @@ void scd_complete_command(void)
  * interrupt data
  *=======================================================================*/
 #ifdef CONFIG_SCD_INTERRUPT
+DECLARE_BITMAP(iccd_running_intrs, NR_SCD_SLOTS+NR_SCD_SLOTS);
+DECLARE_BITMAP(iccd_pending_intrs, NR_SCD_SLOTS+NR_SCD_SLOTS);
+#define SCD_ADDR_IRQ			iccd_addr[scd_qid][SCD_ENDP_INTR_IN]
+
 /*=========================================================================
  * dev changes
  *=======================================================================*/
@@ -386,6 +380,10 @@ static void iccd_handle_ll_intr(void)
 /*=========================================================================
  * control endpoint
  *=======================================================================*/
+#define ICCD_REQ_DATA_BLOCK		0x6F
+#define ICCD_REQ_GET_ICC_STATUS		0xA0
+#define ICCD_REQ_SLOT_STATUS		0x81
+
 static uint32_t iccd_device_features(void)
 {
 	uint32_t features = ICCD_FEATURE_DEFAULT;

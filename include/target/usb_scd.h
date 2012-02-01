@@ -139,6 +139,58 @@ typedef struct scd_desc {
 #define SCD_DT_SCD			(USB_TYPE_CLASS | 0x01)
 #define SCD_DT_SCD_SIZE			0x36
 
+typedef uint8_t					scd_qid_t;
+
+/* functions should be implemented by SCD generic */
+#define scd_slot_success(err)			((err) == SCS_ERR_SUCCESS)
+#define scd_slot_progress(err)			((err) == SCS_ERR_PROGRESS)
+
+/* functions should be implemented by SCD protocol */
+uint8_t scd_slot_status(void);
+
+#ifdef CONFIG_USB_CCID
+#include <target/usb_ccid.h>
+#endif
+#ifdef CONFIG_USB_ICCD
+#include <target/usb_iccd.h>
+#endif
+
+#define INVALID_SCD_QID			NR_SCD_QUEUES
+#if NR_SCD_QUEUES > 1
+extern __near__ scd_qid_t scd_qid;
+void scd_qid_restore(scd_qid_t qid);
+scd_qid_t scd_qid_save(scd_qid_t qid);
+#else
+#define scd_qid				0
+#define scd_qid_restore(qid)
+#define scd_qid_save(qid)		(qid)
+#endif
+#define scd_qid_select(qid)		scd_qid_restore(qid)
+
+#ifdef CONFIG_SCD_BULK
+#define SCD_SLOT_STATUS_ACTIVE			0x00
+#define SCD_SLOT_STATUS_INACTIVE		0x01
+#define SCD_SLOT_STATUS_NOTPRESENT		0x02
+
+#define SCD_ERROR_ICC_MUTE			0xFE
+#define SCD_ERROR_XFR_OVERRUN			0xFC
+#define SCD_ERROR_HW_ERROR			0xFB
+#define SCD_ERROR_USER_DEFINED			0xC0
+#define SCD_ERROR_USER(e)			(SCD_ERROR_USER_DEFINED-e)
+#define SCD_ERROR_RESERVED			0x80
+#define SCD_ERROR_CMD_UNSUPPORT			0x00
+
+#ifdef CONFIG_SCD_BULK
+#define SCD_HEADER_SIZE				10
+#else
+#define SCD_HEADER_SIZE				0
+#endif
+
+#define SCD_CMD_STATUS_SUCC			(0x00 << 6)
+#define SCD_CMD_STATUS_FAIL			(0x01 << 6)
+#define SCD_CMD_STATUS_TIME_EXT			(0x02 << 6)
+#define SCD_CMD_STATUS_MASK			(0xc0)
+
 struct scd_cmd {
 	uint8_t  bMessageType;
 	scs_size_t dwLength;
@@ -157,45 +209,16 @@ struct scd_resp {
 	uint8_t abRFU3;
 };
 
-#define SCD_PC2RDR_ICCPOWERON		0x62
-#define SCD_PC2RDR_ICCPOWEROFF		0x63
-#define SCD_PC2RDR_GETSLOTSTATUS	0x65
-#define SCD_PC2RDR_ESCAPE		0x6B
-#define SCD_PC2RDR_GETPARAMETERS	0x6C
-#define SCD_PC2RDR_XFRBLOCK		0x6F
+#define SCD_PC2RDR_ICCPOWERON			0x62
+#define SCD_PC2RDR_ICCPOWEROFF			0x63
+#define SCD_PC2RDR_GETSLOTSTATUS		0x65
+#define SCD_PC2RDR_ESCAPE			0x6B
+#define SCD_PC2RDR_GETPARAMETERS		0x6C
+#define SCD_PC2RDR_XFRBLOCK			0x6F
 
-#define SCD_RDR2PC_DATABLOCK		0x80
-#define SCD_RDR2PC_SLOTSTATUS		0x81
-#define SCD_RDR2PC_ESCAPE		0x83
-
-#define SCD_SLOT_STATUS_ACTIVE		0x00
-#define SCD_SLOT_STATUS_INACTIVE	0x01
-#define SCD_SLOT_STATUS_NOTPRESENT	0x02
-
-#define CCID_ERROR_ICC_MUTE			0xFE
-#define CCID_ERROR_XFR_PARITY_ERROR		0xFD
-#define CCID_ERROR_XFR_OVERRUN			0xFC
-#define CCID_ERROR_HW_ERROR			0xFB
-#define CCID_ERROR_CMD_SLOT_BUSY		0xE0
-#define CCID_ERROR_USER_DEFINED			0xC0
-#define CCID_ERROR_USER(e)			(CCID_ERROR_USER_DEFINED-e)
-#define CCID_ERROR_RESERVED			0x80
-#define CCID_ERROR_CMD_UNSUPPORT		0x00
-#define ICCD_ERROR_ICC_MUTE			0xFE
-#define ICCD_ERROR_XFR_OVERRUN			0xFC
-#define ICCD_ERROR_HW_ERROR			0xFB
-#define ICCD_ERROR_USER_DEFINED			0xC0
-#define ICCD_ERROR_USER(e)			(ICCD_ERROR_USER_DEFINED-e)
-#define ICCD_ERROR_RESERVED			0x80
-#define ICCD_ERROR_CMD_UNSUPPORT		0x00
-
-#ifdef CONFIG_SCD_BULK
-#define SCD_HEADER_SIZE			10
-#else
-#define SCD_HEADER_SIZE			0
-#endif
-
-typedef uint8_t			scd_qid_t;
+#define SCD_RDR2PC_DATABLOCK			0x80
+#define SCD_RDR2PC_SLOTSTATUS			0x81
+#define SCD_RDR2PC_ESCAPE			0x83
 
 /* SCD_PC2RDR_XFRBLOCK parameters */
 struct scd_xb_param {
@@ -234,26 +257,6 @@ struct scd_t1_param {
 #define SCD_SLOT_STATE_RDR2PC		0x02
 #define SCD_SLOT_STATE_SANITY		0x03
 
-#define SCD_CMD_STATUS_SUCC		(0x00 << 6)
-#define SCD_CMD_STATUS_FAIL		(0x01 << 6)
-#define SCD_CMD_STATUS_TIME_EXT		(0x02 << 6)
-#define SCD_CMD_STATUS_MASK		(0xc0)
-
-/* functions should be implemented by SCD generic */
-#define scd_slot_success(err)		((err) == SCS_ERR_SUCCESS)
-#define scd_slot_progress(err)		((err) == SCS_ERR_PROGRESS)
-
-/* functions should be implemented by SCD protocol */
-uint8_t scd_slot_status(void);
-
-#ifdef CONFIG_USB_CCID
-#include <target/usb_ccid.h>
-#endif
-#ifdef CONFIG_USB_ICCD
-#include <target/usb_iccd.h>
-#endif
-
-#ifdef CONFIG_SCD_BULK
 /* XXX: Temporary Storage for SCD Stack
  * This structure holds temporary storages, which should be allocated in
  * heap.  In a system without heap, it is perferred to be united objects.
@@ -277,23 +280,10 @@ typedef union scd_data {
 #endif
 } scd_data_t;
 
-#define INVALID_SCD_QID			NR_SCD_QUEUES
-
 extern __near__ uint8_t scd_states[NR_SCD_QUEUES];
 extern __near__ struct scd_cmd scd_cmds[NR_SCD_QUEUES];
 extern __near__ struct scd_resp scd_resps[NR_SCD_QUEUES];
 extern scd_data_t scd_cmd_data;
-
-#if NR_SCD_QUEUES > 1
-extern __near__ scd_qid_t scd_qid;
-void scd_qid_restore(scd_qid_t qid);
-scd_qid_t scd_qid_save(scd_qid_t qid);
-#else
-#define scd_qid				0
-#define scd_qid_restore(qid)
-#define scd_qid_save(qid)		(qid)
-#endif
-#define scd_qid_select(qid)		scd_qid_restore(qid)
 
 #if NR_SCD_QUEUES != NR_SCD_SLOTS
 boolean scd_abort_requested(void);

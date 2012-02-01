@@ -47,11 +47,11 @@ struct ccid_error ccid_errors[CCID_MAX_ERRORS] = {
 		"bSlot does not exist"
 	},
 /*  2 */{
-		SCD_SLOT_STATUS_NOTPRESENT, CCID_ERROR_ICC_MUTE,
+		SCD_SLOT_STATUS_NOTPRESENT, SCD_ERROR_ICC_MUTE,
 		"No ICC present"
 	},
 /*  3 */{
-		SCD_SLOT_STATUS_INACTIVE, CCID_ERROR_HW_ERROR,
+		SCD_SLOT_STATUS_INACTIVE, SCD_ERROR_HW_ERROR,
 		"Hardware error"
 	},
 /*  4 */{
@@ -63,7 +63,7 @@ struct ccid_error ccid_errors[CCID_MAX_ERRORS] = {
 		"parity error on ATR"
 	},
 /*  6 */{
-		SCD_SLOT_STATUS_INACTIVE, CCID_ERROR_ICC_MUTE,
+		SCD_SLOT_STATUS_INACTIVE, SCD_ERROR_ICC_MUTE,
 		"ICC mute (Time out)"
 	},
 /*  7 */{
@@ -115,11 +115,11 @@ struct ccid_error ccid_errors[CCID_MAX_ERRORS] = {
 		"parity error"
 	},
 /* 13 */{
-		SCD_SLOT_STATUS_ACTIVE, CCID_ERROR_XFR_OVERRUN,
+		SCD_SLOT_STATUS_ACTIVE, SCD_ERROR_XFR_OVERRUN,
 		"CCID_ERR_XFR_OVERRUN"
 	},
 /* 14 */{
-		SCD_SLOT_STATUS_ACTIVE, CCID_ERROR_ICC_MUTE,
+		SCD_SLOT_STATUS_ACTIVE, SCD_ERROR_ICC_MUTE,
 		"ICC mute (Time out)"
 	},
 /* 15 */{

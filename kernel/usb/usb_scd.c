@@ -284,7 +284,7 @@ void __scd_handle_command(scd_qid_t qid)
 		return;
 	}
 	if (scd_slot_status() == SCD_SLOT_STATUS_NOTPRESENT) {
-		scd_CmdFailure_out(CCID_ERROR_ICC_MUTE);
+		scd_CmdFailure_out(SCD_ERROR_ICC_MUTE);
 		return;
 	}
 #if 0

@@ -198,16 +198,16 @@ uint8_t scd_slot_error(scs_err_t err)
 {
 	switch (err) {
 	case SCS_ERR_UNSUPPORT:
-		return CCID_ERROR_CMD_UNSUPPORT;
+		return SCD_ERROR_CMD_UNSUPPORT;
 	case SCS_ERR_OVERRUN:
-		return CCID_ERROR_XFR_OVERRUN;
+		return SCD_ERROR_XFR_OVERRUN;
 	case SCS_ERR_BUSY_SLOT:
 		return CCID_ERROR_CMD_SLOT_BUSY;
 	case SCS_ERR_BUSY_AUTO:
 		return CCID_ERROR_BUSY_AUTO_SEQ;
 	case SCS_ERR_TIMEOUT:
 	case SCS_ERR_NOTPRESENT:
-		return CCID_ERROR_ICC_MUTE;
+		return SCD_ERROR_ICC_MUTE;
 	case IFD_ERR_BAD_TCK:
 		return CCID_ERROR_BAD_ATR_TCK;
 	case IFD_ERR_BAD_TS:
@@ -221,7 +221,7 @@ uint8_t scd_slot_error(scs_err_t err)
 	case SCS_ERR_ABORTED:
 		return CCID_ERROR_CMD_ABORTED;
 	default:
-		return CCID_ERROR_HW_ERROR;
+		return SCD_ERROR_HW_ERROR;
 	}
 }
 
@@ -652,7 +652,7 @@ static void ccid_DataAndFreq_in(void)
 #define ccid_DataAndFreq_in()		scd_SlotStatus_in()
 
 /* IN endpoint completion */
-#define ccid_GetParameters_out()	scd_CmdFailure_out(CCID_ERROR_CMD_UNSUPPORT)
+#define ccid_GetParameters_out()	scd_CmdFailure_out(SCD_ERROR_CMD_UNSUPPORT)
 
 void ccid_GetParameters_cmp(void)
 {
@@ -671,8 +671,8 @@ static void ccid_ResetParameters_cmp(void)
 #define ccid_SetDataAndFreq_cmp()	scd_SlotStatus_cmp()
 
 /* OUT endpoint */
-#define ccid_SetParameters_out()	scd_CmdFailure_out(CCID_ERROR_CMD_UNSUPPORT)
-#define ccid_SetDataAndFreq_out()	scd_CmdFailure_out(CCID_ERROR_CMD_UNSUPPORT)
+#define ccid_SetParameters_out()	scd_CmdFailure_out(SCD_ERROR_CMD_UNSUPPORT)
+#define ccid_SetDataAndFreq_out()	scd_CmdFailure_out(SCD_ERROR_CMD_UNSUPPORT)
 #endif
 
 void scd_handle_bulk_pc2rdr(void)

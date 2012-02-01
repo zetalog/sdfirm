@@ -127,6 +127,8 @@ struct ccid_fd_param {
 #define CCID_ERROR_BUSY_AUTO_SEQ		0xF2
 #define CCID_ERROR_PIN_TIMEOUT			0xF0
 #define CCID_ERROR_PIN_CANCELLED		0xEF
+#define CCID_ERROR_XFR_PARITY_ERROR		0xFD
+#define CCID_ERROR_CMD_SLOT_BUSY		0xE0
 #define CCID_ERROR_CMD_ABORTED			0xFF
 
 /* clock status for RDR2PC_SlotStatus */
