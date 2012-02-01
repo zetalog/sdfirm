@@ -228,6 +228,7 @@ choice
 config USB_CCID
 	bool "Chip circuit interface (CCID)"
 	select SCD_BULK
+	select SCS
 	select IFD
 
 config USB_ICCD
@@ -302,10 +303,12 @@ choice
 
 config ICCD_COS
 	bool "COS"
+	select SCS
 	select COS
 
 config ICCD_SCD
 	bool "SCS Slots"
+	select SCS
 	select SCS_SLOT
 
 endchoice

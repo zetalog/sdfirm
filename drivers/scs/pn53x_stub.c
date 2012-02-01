@@ -19,19 +19,19 @@ void pn53x_xchg_pseudo(void)
 	pn53x_ready = true;
 }
 
-boolean pn53x_poll_ready(void)
+boolean pn53x_hw_poll_ready(void)
 {
 	return pn53x_ready;
 }
 
-void pn53x_read_cmpl(scs_size_t ne)
+void pn53x_hw_read_cmpl(scs_size_t ne)
 {
 	if (!pn53x_is_resp && pn53x_is_cmd) {
 		pn53x_xchg_pseudo();
 	}
 }
 
-void pn53x_write_cmpl(scs_size_t nc)
+void pn53x_hw_write_cmpl(scs_size_t nc)
 {
 	pn53x_nc = nc;
 	pn53x_ready = false;
@@ -62,19 +62,19 @@ void pn53x_write_cmpl(scs_size_t nc)
 	}
 }
 
-uint8_t pn53x_xchg_read(scs_off_t index)
+uint8_t pn53x_hw_xchg_read(scs_off_t index)
 {
 	if (index < pn53x_ne)
 		return pn53x_resp[index];
 	return 0;
 }
 
-void pn53x_xchg_write(scs_off_t index, uint8_t val)
+void pn53x_hw_xchg_write(scs_off_t index, uint8_t val)
 {
 	pn53x_cmd[index] = val;
 }
 
-void pn53x_ctrl_init(void)
+void pn53x_hw_ctrl_init(void)
 {
 	pn53x_nc = 0;
 	pn53x_ne = 0;

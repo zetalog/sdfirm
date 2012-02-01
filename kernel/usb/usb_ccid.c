@@ -153,76 +153,11 @@ DECLARE_BITMAP(ccid_pending_intrs, NR_SCD_SLOTS+NR_SCD_SLOTS);
 /*=========================================================================
  * ISO7816 translator
  *=======================================================================*/
-uint8_t scd_resp_message(void)
-{
-	switch (scd_cmds[scd_qid].bMessageType) {
-	case SCD_PC2RDR_ICCPOWERON:
-	case SCD_PC2RDR_XFRBLOCK:
-	case CCID_PC2RDR_SECURE:
-		return SCD_RDR2PC_DATABLOCK;
-	case SCD_PC2RDR_ICCPOWEROFF:
-	case SCD_PC2RDR_GETSLOTSTATUS:
-	case CCID_PC2RDR_T0APDU:
-	case CCID_PC2RDR_ICCCLOCK:
-	case CCID_PC2RDR_MECHANICAL:
-	case CCID_PC2RDR_ABORT:
-		return SCD_RDR2PC_SLOTSTATUS;
-	case SCD_PC2RDR_ESCAPE:
-		return SCD_RDR2PC_ESCAPE;
-#ifdef CONFIG_IFD_AUTO_PPS_PROP
-	case CCID_PC2RDR_SETPARAMETERS:
-	case SCD_PC2RDR_GETPARAMETERS:
-	case CCID_PC2RDR_RESETPARAMETERS:
-	case CCID_PC2RDR_SETDATAANDFREQ:
-		return SCD_RDR2PC_SLOTSTATUS;
-#else
-	case CCID_PC2RDR_SETPARAMETERS:
-	case SCD_PC2RDR_GETPARAMETERS:
-	case CCID_PC2RDR_RESETPARAMETERS:
-		return CCID_RDR2PC_PARAMETERS;
-	case CCID_PC2RDR_SETDATAANDFREQ:
-		return CCID_RDR2PC_DATARATEANDCLOCK;
-#endif
-	}
-	return SCD_RDR2PC_SLOTSTATUS;
-}
-
 void scd_sid_select(scd_sid_t sid)
 {
 	scd_qid_select(sid);
 	BUG_ON(sid >= NR_SCD_SLOTS);
 	ifd_sid_select(sid);
-}
-
-uint8_t scd_slot_error(scs_err_t err)
-{
-	switch (err) {
-	case SCS_ERR_UNSUPPORT:
-		return SCD_ERROR_CMD_UNSUPPORT;
-	case SCS_ERR_OVERRUN:
-		return SCD_ERROR_XFR_OVERRUN;
-	case SCS_ERR_BUSY_SLOT:
-		return CCID_ERROR_CMD_SLOT_BUSY;
-	case SCS_ERR_BUSY_AUTO:
-		return CCID_ERROR_BUSY_AUTO_SEQ;
-	case SCS_ERR_TIMEOUT:
-	case SCS_ERR_NOTPRESENT:
-		return SCD_ERROR_ICC_MUTE;
-	case IFD_ERR_BAD_TCK:
-		return CCID_ERROR_BAD_ATR_TCK;
-	case IFD_ERR_BAD_TS:
-		return CCID_ERROR_BAD_ATR_TS;
-	case IFD_ERR_BAD_PPSS:
-	case IFD_ERR_BAD_PCK:
-	case SCS_ERR_PARITY_ERR:
-		return CCID_ERROR_XFR_PARITY_ERROR;
-	case IFD_ERR_BAD_PROTO:
-		return CCID_ERROR_PROTO_DEACTIVATE;
-	case SCS_ERR_ABORTED:
-		return CCID_ERROR_CMD_ABORTED;
-	default:
-		return SCD_ERROR_HW_ERROR;
-	}
 }
 
 /*=========================================================================
@@ -273,6 +208,75 @@ void ccid_display_custom(text_char_t *msg)
 {
 }
 #endif
+
+/*=========================================================================
+ * bulk endpoints
+ *=======================================================================*/
+uint8_t scd_resp_message(void)
+{
+	switch (scd_cmds[scd_qid].bMessageType) {
+	case SCD_PC2RDR_ICCPOWERON:
+	case SCD_PC2RDR_XFRBLOCK:
+	case CCID_PC2RDR_SECURE:
+		return SCD_RDR2PC_DATABLOCK;
+	case SCD_PC2RDR_ICCPOWEROFF:
+	case SCD_PC2RDR_GETSLOTSTATUS:
+	case CCID_PC2RDR_T0APDU:
+	case CCID_PC2RDR_ICCCLOCK:
+	case CCID_PC2RDR_MECHANICAL:
+	case CCID_PC2RDR_ABORT:
+		return SCD_RDR2PC_SLOTSTATUS;
+	case SCD_PC2RDR_ESCAPE:
+		return SCD_RDR2PC_ESCAPE;
+#ifdef CONFIG_IFD_AUTO_PPS_PROP
+	case CCID_PC2RDR_SETPARAMETERS:
+	case SCD_PC2RDR_GETPARAMETERS:
+	case CCID_PC2RDR_RESETPARAMETERS:
+	case CCID_PC2RDR_SETDATAANDFREQ:
+		return SCD_RDR2PC_SLOTSTATUS;
+#else
+	case CCID_PC2RDR_SETPARAMETERS:
+	case SCD_PC2RDR_GETPARAMETERS:
+	case CCID_PC2RDR_RESETPARAMETERS:
+		return CCID_RDR2PC_PARAMETERS;
+	case CCID_PC2RDR_SETDATAANDFREQ:
+		return CCID_RDR2PC_DATARATEANDCLOCK;
+#endif
+	}
+	return SCD_RDR2PC_SLOTSTATUS;
+}
+
+uint8_t scd_slot_error(scs_err_t err)
+{
+	switch (err) {
+	case SCS_ERR_UNSUPPORT:
+		return SCD_ERROR_CMD_UNSUPPORT;
+	case SCS_ERR_OVERRUN:
+		return SCD_ERROR_XFR_OVERRUN;
+	case SCS_ERR_TIMEOUT:
+	case SCS_ERR_NOTPRESENT:
+		return SCD_ERROR_ICC_MUTE;
+	case SCS_ERR_BUSY_SLOT:
+		return CCID_ERROR_CMD_SLOT_BUSY;
+	case SCS_ERR_BUSY_AUTO:
+		return CCID_ERROR_BUSY_AUTO_SEQ;
+	case SCS_ERR_ABORTED:
+		return CCID_ERROR_CMD_ABORTED;
+	case SCS_ERR_PARITY_ERR:
+		return CCID_ERROR_XFR_PARITY_ERROR;
+	case IFD_ERR_BAD_PPSS:
+	case IFD_ERR_BAD_PCK:
+		return CCID_ERROR_XFR_PARITY_ERROR;
+	case IFD_ERR_BAD_TCK:
+		return CCID_ERROR_BAD_ATR_TCK;
+	case IFD_ERR_BAD_TS:
+		return CCID_ERROR_BAD_ATR_TS;
+	case IFD_ERR_BAD_PROTO:
+		return CCID_ERROR_PROTO_DEACTIVATE;
+	default:
+		return SCD_ERROR_HW_ERROR;
+	}
+}
 
 /*=========================================================================
  * CCID slots
@@ -1055,7 +1059,7 @@ void ccid_spe_init(void)
 #endif
 
 /*=========================================================================
- * interrupt data
+ * interrupt endpoint
  *=======================================================================*/
 #ifdef CONFIG_SCD_INTERRUPT
 static void ccid_change_init(void);

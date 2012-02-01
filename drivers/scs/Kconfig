@@ -20,6 +20,19 @@ config PN53X
 
 if PN53X
 
+choice
+	prompt "PN53x host bus"
+
+config PN53X_SPI
+	bool "SPI"
+	select SPI
+	select SPI_MASTER
+
+config PN53X_STUB
+	bool "stub"
+
+endchoice
+
 endif
 
 config ACR122
