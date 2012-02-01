@@ -1,5 +1,9 @@
 #include <target/usb_scd.h>
 
+#ifdef CONFIG_SCD_BULK
+/*=========================================================================
+ * bulk endpoint
+ *=======================================================================*/
 __near__ uint8_t scd_states[NR_SCD_QUEUES];
 __near__ struct scd_cmd scd_cmds[NR_SCD_QUEUES];
 __near__ struct scd_resp scd_resps[NR_SCD_QUEUES];
@@ -35,7 +39,7 @@ void __scd_queue_reset(scd_qid_t qid)
 }
 
 /*=========================================================================
- * bulk-out data
+ * bulk-out endpoint
  *=======================================================================*/
 void scd_CmdHeader_out(void)
 {
@@ -199,7 +203,7 @@ void scd_ScsSequence_cmp(scs_err_t err, boolean block)
 }
 
 /*=========================================================================
- * bulk-in data
+ * bulk-in endpoint
  *=======================================================================*/
 void scd_RespHeader_in(scs_size_t length)
 {
@@ -238,7 +242,7 @@ void scd_DataBlock_in(void)
 }
 
 /*=========================================================================
- * endpoint entrance
+ * bulk endpoint entrance
  *=======================================================================*/
 void __scd_handle_command(scd_qid_t qid)
 {
@@ -269,12 +273,12 @@ void __scd_handle_command(scd_qid_t qid)
 		return;
 	}
 	/* XXX: care should be taken on BULK ABORT */
-	if (scd_abort_handled())
+	if (scd_abort_requested())
 		return;
 
 	/* slot ID determined */
 	scd_sid_select(sid);
-	scd_debug(SCD_DEBUG_SLOT, scd_qid);
+	scd_debug(SCD_DEBUG_SLOT, scd_sid);
 
 	if (scd_cmds[scd_qid].bMessageType == SCD_PC2RDR_GETSLOTSTATUS) {
 		return;
@@ -384,3 +388,165 @@ void __scd_complete_response(scd_qid_t qid)
 	scd_debug(SCD_DEBUG_SLOT, scd_qid);
 	scd_slot_enter(SCD_SLOT_STATE_PC2RDR);
 }
+
+void __scd_handle_response(scd_qid_t qid)
+{
+	scd_sid_t sid;
+
+	scd_qid_select(qid);
+	scd_debug(SCD_DEBUG_SLOT, scd_qid);
+
+	BUG_ON(scd_states[scd_qid] != SCD_SLOT_STATE_RDR2PC);
+
+	if (scd_abort_responded())
+		return;
+	if (scd_is_cmd_status(SCD_CMD_STATUS_FAIL)) {
+		scd_SlotStatus_in();
+		return;
+	}
+
+	sid = scd_cmds[scd_qid].bSlot;
+	scd_sid_select(sid);
+	scd_debug(SCD_DEBUG_SLOT, scd_sid);
+
+	switch (scd_cmds[scd_qid].bMessageType) {
+	case SCD_PC2RDR_ICCPOWERON:
+	case SCD_PC2RDR_XFRBLOCK:
+		scd_DataBlock_in();
+		break;
+	case SCD_PC2RDR_ESCAPE:
+		scd_Escape_in();
+		break;
+	case SCD_PC2RDR_ICCPOWEROFF:
+	case SCD_PC2RDR_GETSLOTSTATUS:
+		scd_SlotStatus_in();
+		break;
+	default:
+		scd_handle_bulk_rdr2pc();
+		break;
+	}
+}
+
+usbd_endpoint_t scd_endpoint_out = {
+	USBD_ENDP_BULK_OUT,
+	SCD_ENDP_INTERVAL_OUT,
+	scd_submit_command,
+	scd_handle_command,
+	scd_complete_command,
+};
+
+usbd_endpoint_t scd_endpoint_in = {
+	USBD_ENDP_BULK_IN,
+	SCD_ENDP_INTERVAL_IN,
+	scd_submit_response,
+	scd_handle_response,
+	scd_complete_response,
+};
+#endif
+
+/*=========================================================================
+ * control endpoint
+ *=======================================================================*/
+#define SCD_STRING_FIRST	0x10
+#define SCD_STRING_INTERFACE	SCD_STRING_FIRST+0
+#define SCD_STRING_LAST		SCD_STRING_INTERFACE
+
+static uint16_t scd_config_length(void)
+{
+	return SCD_DT_SCD_SIZE;
+}
+
+static void scd_get_config_desc(void)
+{
+	usbd_input_interface_desc(USB_INTERFACE_CLASS_SCD,
+				  USB_DEVICE_SUBCLASS_NONE,
+				  USB_INTERFACE_PROTOCOL_SCD,
+				  SCD_STRING_INTERFACE);
+	scd_ctrl_get_desc();
+}
+
+static void scd_get_string_desc(void)
+{
+	uint8_t id = LOBYTE(usbd_control_request_value());
+
+	switch (id) {
+	case SCD_STRING_INTERFACE:
+		usbd_input_device_name();
+		break;
+	default:
+		USBD_INB(0x00);
+		break;
+	}
+}
+
+static void scd_get_descriptor(void)
+{
+	uint8_t desc;
+	
+	desc = HIBYTE(usbd_control_request_value());
+
+	switch (desc) {
+	case USB_DT_CONFIG:
+		scd_get_config_desc();
+		break;
+	case USB_DT_STRING:
+		scd_get_string_desc();
+		break;
+	default:
+		usbd_endpoint_halt();
+		break;
+	}
+}
+
+#define scd_set_descriptor()		usbd_endpoint_halt()
+
+static void scd_handle_standard_request(void)
+{
+	uint8_t req = usbd_control_request_type();
+
+	switch (req) {
+	case USB_REQ_GET_DESCRIPTOR:
+		scd_get_descriptor();
+		break;
+	case USB_REQ_SET_DESCRIPTOR:
+		scd_set_descriptor();
+		break;
+	default:
+		usbd_endpoint_halt();
+	}
+}
+
+static void scd_handle_ctrl_data(void)
+{
+	uint8_t type = usbd_control_setup_type();
+	uint8_t recp = usbd_control_setup_recp();
+
+	switch (recp) {
+	case USB_RECP_DEVICE:
+		switch (type) {
+		case USB_TYPE_STANDARD:
+			scd_handle_standard_request();
+			return;
+		}
+		break;
+	case USB_RECP_INTERFACE:
+		switch (type) {
+		case USB_TYPE_STANDARD:
+			scd_handle_standard_request();
+			return;
+		case USB_TYPE_CLASS:
+			scd_handle_ctrl_class();
+			return;
+		}
+		break;
+	}
+	usbd_endpoint_halt();
+}
+
+usbd_interface_t usb_scd_interface = {
+	SCD_STRING_FIRST,
+	SCD_STRING_LAST,
+	NR_SCD_ENDPS,
+	scd_config_length,
+	scd_handle_ctrl_data,
+};

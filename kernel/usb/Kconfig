@@ -311,32 +311,6 @@ config ICCD_SCD
 endchoice
 
 choice
-	prompt "ICCD interface protocol"
-	default ICCD_PROTO_BULK
-
-config ICCD_PROTO_BULK
-	bool "Bulk"
-	select SCD_BULK
-	select SCD_INTERRUPT
-	help
-	  Bulk transfers optional interrupt-IN.
-
-config ICCD_PROTO_A
-	bool "Version A"
-	depends !SCD_BULK
-	depends !SCD_INTERRUPT
-	help
-	  Control transfers, (no interrupt-IN)
-
-config ICCD_PROTO_B
-	bool "Version B"
-	depends !SCD_BULK
-	help
-	  Control transfers, (optional interrupt-IN)
-
-endchoice
-
-choice
 	prompt "ICCD Exchange Level"
 	default ICCD_XCHG_APDU
 

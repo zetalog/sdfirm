@@ -48,9 +48,6 @@
 #include <target/lcd.h>
 #include <target/kbd.h>
 
-#define CCID_ENDP_INTERVAL_INTR		0x7F
-#define CCID_ENDP_INTERVAL_IN		0x01
-#define CCID_ENDP_INTERVAL_OUT		0x01
 #define CCID_XCHG_IS_LEVEL(xchg)	\
 	((ccid_device_features() & SCD_FEATURE_XCHG_MASK) == xchg)
 
@@ -153,62 +150,9 @@ __near__ struct ccid_hwerr ccid_intr_hwerrs[NR_SCD_SLOTS];
 DECLARE_BITMAP(ccid_running_intrs, NR_SCD_SLOTS+NR_SCD_SLOTS);
 DECLARE_BITMAP(ccid_pending_intrs, NR_SCD_SLOTS+NR_SCD_SLOTS);
 
-#define CCID_STRING_FIRST	0x10
-#define CCID_STRING_INTERFACE	CCID_STRING_FIRST+0
-#define CCID_STRING_LAST	CCID_STRING_INTERFACE
-
 /*=========================================================================
  * ISO7816 translator
  *=======================================================================*/
-static uint32_t ccid_device_features(void)
-{
-	uint32_t features = SCD_FEATURE_NONE;
-
-#ifdef CONFIG_IFD_AUTO_CLASS_SELECT
-	features |= SCD_FEATURE_AUTO_CLASS;
-#endif
-#ifdef CONFIG_IFD_AUTO_RESET
-	features |= SCD_FEATURE_AUTO_ACTIVATE;
-#endif
-#ifdef CONFIG_IFD_AUTO_INFO_XCHG
-	features |= SCD_FEATURE_AUTO_CONFIG;
-
-#ifdef CONFIG_IFD_AUTO_PPS_PROP
-	features |= SCD_FEATURE_AUTO_FREQ;
-	features |= SCD_FEATURE_AUTO_DATA;
-	features |= SCD_FEATURE_AUTO_PPS_PROP;
-#else
-	/* PPS algorithm choice */
-	features |= SCD_FEATURE_AUTO_PPS_BASE;
-#endif
-	/* XXX: No Prop support
-	 * SCD_FEATURE_AUTO_PPS_PROP is hard to implement in resource
-	 * limited devices.
-	 * We won't support this feature currently.
-	 */
-#endif
-#ifdef CONFIG_IFD_CLOCK_CONTROL
-	features |= SCD_FEATURE_CAP_CLOCK_STOP;
-#endif
-#ifdef CONFIG_IFD_T1
-#ifdef CONFIG_IFD_T1_NAD
-	features |= SCD_FEATURE_CAP_ACCEPT_NAD;
-#endif
-#ifndef CONFIG_IFD_XCHG_TPDU
-	/* TPDU exchange requires ifsd negotiation from host */
-	features |= SCD_FEATURE_AUTO_IFSD;
-#endif
-#endif
-#ifdef CONFIG_IFD_XCHG_TPDU
-	features |= SCD_FEATURE_XCHG_TPDU;
-#endif
-#ifdef CONFIG_IFD_XCHG_APDU
-	features |= SCD_FEATURE_XCHG_APDU;
-#endif
-	/* SCD_FEATURE_WAKEUP_ICC */
-	return features;
-}
-
 uint8_t scd_resp_message(void)
 {
 	switch (scd_cmds[scd_qid].bMessageType) {
@@ -241,19 +185,6 @@ uint8_t scd_resp_message(void)
 #endif
 	}
 	return SCD_RDR2PC_SLOTSTATUS;
-}
-
-static uint8_t ccid_proto_features(void)
-{
-	uint8_t protocols;
-#ifdef CONFIG_SCD_ESC_ACR122
-#else
-	protocols = (1 << SCD_PROTOCOL_T0);
-#ifdef CONFIG_IFD_T1
-	protocols |= (1 << SCD_PROTOCOL_T1);
-#endif
-#endif
-	return protocols;
 }
 
 void scd_sid_select(scd_sid_t sid)
@@ -780,42 +711,9 @@ void scd_handle_command(void)
 /*=========================================================================
  * bulk-in data
  *=======================================================================*/
-static void ccid_handle_response(void)
+void scd_handle_bulk_rdr2pc(void)
 {
-	scd_qid_select(CCID_QID_IN);
-	scd_debug(SCD_DEBUG_SLOT, scd_qid);
-
-	BUG_ON(ccid_nr_seqs == 0);
-	BUG_ON(scd_states[scd_qid] != SCD_SLOT_STATE_RDR2PC);
-	BUG_ON(scd_qid >= NR_SCD_QUEUES);
-
-	if (scd_cmds[scd_qid].bMessageType == CCID_PC2RDR_ABORT) {
-		scd_SlotStatus_in();
-		return;
-	}
-	if (scd_is_cmd_status(SCD_CMD_STATUS_FAIL)) {
-		scd_SlotStatus_in();
-		return;
-	}
-
-	BUG_ON(scd_qid >= NR_SCD_SLOTS);
-	BUG_ON(scd_cmds[scd_qid].bSlot != scd_qid);
-
-	scd_sid_select(scd_cmds[scd_qid].bSlot);
-	scd_debug(SCD_DEBUG_SLOT, scd_qid);
-
 	switch (scd_cmds[scd_qid].bMessageType) {
-	case SCD_PC2RDR_ICCPOWERON:
-	case SCD_PC2RDR_XFRBLOCK:
-		scd_DataBlock_in();
-		break;
-	case SCD_PC2RDR_ESCAPE:
-		scd_Escape_in();
-		break;
-	case SCD_PC2RDR_ICCPOWEROFF:
-	case SCD_PC2RDR_GETSLOTSTATUS:
-		scd_SlotStatus_in();
-		break;
 #ifdef CONFIG_IFD_CLOCK_CONTROL
 	case CCID_PC2RDR_ICCCLOCK:
 #endif
@@ -837,10 +735,18 @@ static void ccid_handle_response(void)
 		scd_DataBlock_in();
 		break;
 	case CCID_PC2RDR_ABORT:
-	default:
 		BUG();
 		break;
+	default:
+		scd_handle_rdr2pc_default();
+		break;
 	}
+}
+
+void scd_handle_response(void)
+{
+	BUG_ON(ccid_nr_seqs == 0);
+	__scd_handle_response(CCID_QID_IN);
 }
 
 void scd_complete_response(void)
@@ -1508,16 +1414,11 @@ static void ccid_intr_start(void)
 
 usbd_endpoint_t ccid_endpoint_irq = {
 	USBD_ENDP_INTR_IN,
-	CCID_ENDP_INTERVAL_INTR,
+	SCD_ENDP_INTERVAL_INTR,
 	ccid_submit_interrupt,
 	ccid_handle_interrupt,
 	ccid_discard_interrupt,
 };
-
-static void ccid_intr_desc(void)
-{
-	usbd_input_endpoint_desc(CCID_ADDR_IRQ);
-}
 
 static void ccid_change_init(void)
 {
@@ -1528,12 +1429,21 @@ static void ccid_handle_iso7816_intr(void)
 {
 }
 
-#define ccid_intr_desc()
 #define ccid_intr_start()
 #define ccid_intr_init()
 #endif
 
 #if NR_SCD_QUEUES != NR_SCD_SLOTS
+boolean scd_abort_responded(void)
+{
+	BUG_ON(scd_qid >= NR_SCD_QUEUES);
+	if (scd_cmds[scd_qid].bMessageType == CCID_PC2RDR_ABORT) {
+		scd_SlotStatus_in();
+		return true;
+	}
+	return false;
+}
+
 boolean scd_abort_completed(void)
 {
 	if (scd_cmds[scd_qid].bMessageType == CCID_PC2RDR_ABORT) {
@@ -1543,7 +1453,7 @@ boolean scd_abort_completed(void)
 	return false;
 }
 
-boolean scd_abort_handled(void)
+boolean scd_abort_requested(void)
 {
 	scd_sid_t sid;
 
@@ -1616,14 +1526,71 @@ static void ccid_handle_iso7816_cmpl(void)
 }
 
 /*=========================================================================
- * control data
+ * control endpoint
  *=======================================================================*/
-static uint16_t ccid_config_length(void)
+static uint32_t ccid_device_features(void)
 {
-	return SCD_DT_SCD_SIZE;
+	uint32_t features = SCD_FEATURE_NONE;
+
+#ifdef CONFIG_IFD_AUTO_CLASS_SELECT
+	features |= SCD_FEATURE_AUTO_CLASS;
+#endif
+#ifdef CONFIG_IFD_AUTO_RESET
+	features |= SCD_FEATURE_AUTO_ACTIVATE;
+#endif
+#ifdef CONFIG_IFD_AUTO_INFO_XCHG
+	features |= SCD_FEATURE_AUTO_CONFIG;
+
+#ifdef CONFIG_IFD_AUTO_PPS_PROP
+	features |= SCD_FEATURE_AUTO_FREQ;
+	features |= SCD_FEATURE_AUTO_DATA;
+	features |= SCD_FEATURE_AUTO_PPS_PROP;
+#else
+	/* PPS algorithm choice */
+	features |= SCD_FEATURE_AUTO_PPS_BASE;
+#endif
+	/* XXX: No Prop support
+	 * SCD_FEATURE_AUTO_PPS_PROP is hard to implement in resource
+	 * limited devices.
+	 * We won't support this feature currently.
+	 */
+#endif
+#ifdef CONFIG_IFD_CLOCK_CONTROL
+	features |= SCD_FEATURE_CAP_CLOCK_STOP;
+#endif
+#ifdef CONFIG_IFD_T1
+#ifdef CONFIG_IFD_T1_NAD
+	features |= SCD_FEATURE_CAP_ACCEPT_NAD;
+#endif
+#ifndef CONFIG_IFD_XCHG_TPDU
+	/* TPDU exchange requires ifsd negotiation from host */
+	features |= SCD_FEATURE_AUTO_IFSD;
+#endif
+#endif
+#ifdef CONFIG_IFD_XCHG_TPDU
+	features |= SCD_FEATURE_XCHG_TPDU;
+#endif
+#ifdef CONFIG_IFD_XCHG_APDU
+	features |= SCD_FEATURE_XCHG_APDU;
+#endif
+	/* SCD_FEATURE_WAKEUP_ICC */
+	return features;
 }
 
-static void ccid_get_ccid_desc(void)
+static uint8_t ccid_proto_features(void)
+{
+	uint8_t protocols;
+#ifdef CONFIG_SCD_ESC_ACR122
+#else
+	protocols = (1 << SCD_PROTOCOL_T0);
+#ifdef CONFIG_IFD_T1
+	protocols |= (1 << SCD_PROTOCOL_T1);
+#endif
+#endif
+	return protocols;
+}
+
+void scd_ctrl_get_desc(void)
 {
 	USBD_INB(SCD_DT_SCD_SIZE);
 	USBD_INB(SCD_DT_SCD);
@@ -1647,54 +1614,9 @@ static void ccid_get_ccid_desc(void)
 	USBD_INW(CCID_SPE_LCD_LAYOUT);
 	USBD_INB(CCID_SPE_SUPPORT_FUNC);
 	USBD_INB(NR_SCD_USB_QUEUES);
+	scd_get_bulk_desc(CCID_ADDR_OUT, CCID_ADDR_IN);
+	scd_get_intr_desc(CCID_ADDR_IRQ);
 }
-
-static void ccid_get_config_desc(void)
-{
-	usbd_input_interface_desc(USB_INTERFACE_CLASS_SCD,
-				  USB_DEVICE_SUBCLASS_NONE,
-				  USB_INTERFACE_PROTOCOL_SCD,
-				  CCID_STRING_INTERFACE);
-	ccid_get_ccid_desc();
-	usbd_input_endpoint_desc(CCID_ADDR_IN);
-	usbd_input_endpoint_desc(CCID_ADDR_OUT);
-	ccid_intr_desc();
-}
-
-static void ccid_get_string_desc(void)
-{
-	uint8_t id = LOBYTE(usbd_control_request_value());
-
-	switch (id) {
-	case CCID_STRING_INTERFACE:
-		usbd_input_device_name();
-		break;
-	default:
-		USBD_INB(0x00);
-		break;
-	}
-}
-
-static void ccid_get_descriptor(void)
-{
-	uint8_t desc;
-	
-	desc = HIBYTE(usbd_control_request_value());
-
-	switch (desc) {
-	case USB_DT_CONFIG:
-		ccid_get_config_desc();
-		break;
-	case USB_DT_STRING:
-		ccid_get_string_desc();
-		break;
-	default:
-		usbd_endpoint_halt();
-		break;
-	}
-}
-
-#define ccid_set_descriptor()		usbd_endpoint_halt()
 
 static void ccid_abort(void)
 {
@@ -1732,23 +1654,7 @@ static void ccid_get_data_rates(void)
 	}
 }
 
-static void ccid_handle_standard_request(void)
-{
-	uint8_t req = usbd_control_request_type();
-
-	switch (req) {
-	case USB_REQ_GET_DESCRIPTOR:
-		ccid_get_descriptor();
-		break;
-	case USB_REQ_SET_DESCRIPTOR:
-		ccid_set_descriptor();
-		break;
-	default:
-		usbd_endpoint_halt();
-	}
-}
-
-static void ccid_handle_class_request(void)
+void scd_handle_ctrl_class(void)
 {
 	uint8_t req = usbd_control_request_type();
 
@@ -1767,33 +1673,6 @@ static void ccid_handle_class_request(void)
 	default:
 		usbd_endpoint_halt();
 	}
-}
-
-static void ccid_handle_ctrl_data(void)
-{
-	uint8_t type = usbd_control_setup_type();
-	uint8_t recp = usbd_control_setup_recp();
-
-	switch (recp) {
-	case USB_RECP_DEVICE:
-		switch (type) {
-		case USB_TYPE_STANDARD:
-			ccid_handle_standard_request();
-			return;
-		}
-		break;
-	case USB_RECP_INTERFACE:
-		switch (type) {
-		case USB_TYPE_STANDARD:
-			ccid_handle_standard_request();
-			return;
-		case USB_TYPE_CLASS:
-			ccid_handle_class_request();
-			return;
-		}
-		break;
-	}
-	usbd_endpoint_halt();
 }
 
 void ccid_start(void)
@@ -1835,30 +1714,6 @@ void ccid_devid_init(void)
 #endif
 }
 
-usbd_endpoint_t ccid_endpoint_in = {
-	USBD_ENDP_BULK_IN,
-	CCID_ENDP_INTERVAL_IN,
-	scd_submit_response,
-	ccid_handle_response,
-	scd_complete_response,
-};
-
-usbd_endpoint_t ccid_endpoint_out = {
-	USBD_ENDP_BULK_OUT,
-	CCID_ENDP_INTERVAL_OUT,
-	scd_submit_command,
-	scd_handle_command,
-	scd_complete_command,
-};
-
-usbd_interface_t usb_ccid_interface = {
-	CCID_STRING_FIRST,
-	CCID_STRING_LAST,
-	NR_SCD_ENDPS,
-	ccid_config_length,
-	ccid_handle_ctrl_data,
-};
-
 #ifdef CONFIG_CCID_SECURE
 #define CCID_INTERFACE_POWER	100
 #else
@@ -1872,7 +1727,7 @@ void ccid_init(void)
 	ccid_devid_init();
 
 	usbd_declare_interface(CCID_INTERFACE_POWER,
-			       &usb_ccid_interface);
+			       &usb_scd_interface);
 
 	ifd_register_handlers(ccid_handle_iso7816_intr,
 			      ccid_handle_iso7816_cmpl);
@@ -1899,8 +1754,7 @@ void ccid_init(void)
 	 * EID.  So we make IN endpoint registered before OUT endpoint's
 	 * registration like follows.
 	 */
-	CCID_ADDR_IN = usbd_claim_endpoint(true, &ccid_endpoint_in);
-	CCID_ADDR_OUT = usbd_claim_endpoint(true, &ccid_endpoint_out);
+	scd_bulk_register(CCID_ADDR_OUT, CCID_ADDR_IN);
 	for (qid = 0; qid < NR_SCD_QUEUES; qid++) {
 		scd_queue_reset(qid);
 	}

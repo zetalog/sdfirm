@@ -37,6 +37,10 @@
 # define SCD_ENDP_INTR_IN		(NR_SCD_ENDPS-1)
 #endif
 
+#define SCD_ENDP_INTERVAL_INTR		0x7F
+#define SCD_ENDP_INTERVAL_IN		0x01
+#define SCD_ENDP_INTERVAL_OUT		0x01
+
 /* Smart Card Device Class */
 typedef struct scd_desc {
 	uint8_t	 bLength;
@@ -242,11 +246,6 @@ struct scd_t1_param {
 /* functions should be implemented by SCD protocol */
 uint8_t scd_slot_status(void);
 
-void scd_Escape_init(void);
-void scd_Escape_out(void);
-void scd_Escape_cmp(void);
-void scd_Escape_in(void);
-
 #ifdef CONFIG_USB_CCID
 #include <target/usb_ccid.h>
 #endif
@@ -254,6 +253,7 @@ void scd_Escape_in(void);
 #include <target/usb_iccd.h>
 #endif
 
+#ifdef CONFIG_SCD_BULK
 /* XXX: Temporary Storage for SCD Stack
  * This structure holds temporary storages, which should be allocated in
  * heap.  In a system without heap, it is perferred to be united objects.
@@ -296,12 +296,19 @@ scd_qid_t scd_qid_save(scd_qid_t qid);
 #define scd_qid_select(qid)		scd_qid_restore(qid)
 
 #if NR_SCD_QUEUES != NR_SCD_SLOTS
-boolean scd_abort_handled(void);
+boolean scd_abort_requested(void);
 boolean scd_abort_completed(void);
+boolean scd_abort_responded(void);
 #else
-#define scd_abort_handled()		(false)
+#define scd_abort_requested()		(false)
 #define scd_abort_completed()		(false)
+#define scd_abort_responded()		(false)
 #endif
+
+void scd_Escape_init(void);
+void scd_Escape_out(void);
+void scd_Escape_cmp(void);
+void scd_Escape_in(void);
 
 boolean scd_is_cmd_status(uint8_t status);
 void __scd_queue_reset(scd_qid_t qid);
@@ -323,6 +330,7 @@ void __scd_queue_reset(scd_qid_t qid);
 void __scd_handle_command(scd_qid_t qid);
 void __scd_complete_command(scd_qid_t qid);
 void __scd_complete_response(scd_qid_t qid);
+void __scd_handle_response(scd_qid_t qid);
 
 void __scd_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size);
 void __scd_CmdSuccess_out(void);
@@ -361,13 +369,52 @@ void scd_handle_command(void);
 void scd_complete_command(void);
 void scd_submit_response(void);
 void scd_complete_response(void);
+void scd_handle_response(void);
 
 /* bulk protocol hooks */
 void scd_handle_bulk_pc2rdr(void);
 void scd_complete_bulk_pc2rdr(void);
+void scd_handle_bulk_rdr2pc(void);
 
 /* default handlers called by bulk protocol hooks */
 #define scd_handle_pc2rdr_default()
 #define scd_complete_pc2rdr_default()	(scd_CmdOffset_cmp(0))
+#define scd_handle_rdr2pc_default()	BUG()
+
+extern usbd_endpoint_t scd_endpoint_out;
+extern usbd_endpoint_t scd_endpoint_in;
+
+#define scd_bulk_register(out, in)					\
+	do {								\
+		(out) = usbd_claim_endpoint(true, &scd_endpoint_out);	\
+		(in) = usbd_claim_endpoint(true, &scd_endpoint_in);	\
+	} while (0)
+#define scd_get_bulk_desc(out, in)					\
+	do {								\
+		usbd_input_endpoint_desc(out);				\
+		usbd_input_endpoint_desc(in);				\
+	} while (0)
+#else
+#define scd_bulk_register(out, in)
+#define scd_get_bulk_desc(out, in)
+#endif
+
+#ifdef CONFIG_SCD_INTERRUPT
+#define scd_irq_register(irq)						\
+	do {								\
+		irq = usbd_claim_endpoint(true, &iccd_endpoint_irq);	\
+	} while (0)
+#define scd_get_intr_desc(irq)						\
+	do {								\
+		usbd_input_endpoint_desc(irq);				\
+	} while (0)
+#else
+#define scd_irq_register(irq)
+#define scd_get_intr_desc(irq)
+#endif
+
+void scd_ctrl_get_desc(void);
+void scd_handle_ctrl_class(void);
+extern usbd_interface_t usb_scd_interface;
 
 #endif /* __USB_SCD_H_INCLUDE__ */
