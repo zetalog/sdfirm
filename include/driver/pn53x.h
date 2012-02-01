@@ -15,7 +15,7 @@
 #define pn53x_type(buf)			MAKEWORD((buf)[4], (buf)[3])
 
 /* API used for PN53x USB devices */
-boolean pn53x_read_ready(void);
+boolean pn53x_poll_ready(void);
 void pn53x_write_cmpl(scs_size_t nc);
 void pn53x_read_cmpl(scs_size_t ne);
 uint8_t pn53x_xchg_read(scs_off_t index);
