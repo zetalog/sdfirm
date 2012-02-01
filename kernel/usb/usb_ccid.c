@@ -843,13 +843,11 @@ static void ccid_handle_response(void)
 	}
 }
 
-static void ccid_complete_response(void)
+void scd_complete_response(void)
 {
-	scd_qid_select(CCID_QID_IN);
-	scd_debug(SCD_DEBUG_SLOT, scd_qid);
 	BUG_ON(ccid_nr_seqs > NR_SCD_QUEUES);
 	if (ccid_nr_seqs > 0) {
-		scd_slot_enter(SCD_SLOT_STATE_PC2RDR);
+		__scd_complete_response(CCID_QID_IN);
 	}
 }
 
@@ -1842,7 +1840,7 @@ usbd_endpoint_t ccid_endpoint_in = {
 	CCID_ENDP_INTERVAL_IN,
 	scd_submit_response,
 	ccid_handle_response,
-	ccid_complete_response,
+	scd_complete_response,
 };
 
 usbd_endpoint_t ccid_endpoint_out = {

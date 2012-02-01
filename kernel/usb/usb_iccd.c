@@ -457,12 +457,9 @@ out:
 	scd_qid_restore(oqid);
 }
 
-static void iccd_complete_response(void)
+void scd_complete_response(void)
 {
-	scd_qid_t qid = iccd_addr2qid(usbd_saved_addr());
-	scd_qid_t oqid = scd_qid_save(qid);
-	scd_slot_enter(SCD_SLOT_STATE_PC2RDR);
-	scd_qid_restore(oqid);
+	__scd_complete_response(iccd_addr2qid(usbd_saved_addr()));
 }
 
 /*=========================================================================
@@ -683,7 +680,7 @@ usbd_endpoint_t iccd_endpoint_in = {
 	ICCD_ENDP_INTERVAL_IN,
 	scd_submit_response,
 	iccd_handle_response,
-	iccd_complete_response,
+	scd_complete_response,
 };
 #endif
 

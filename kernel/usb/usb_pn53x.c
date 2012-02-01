@@ -13,7 +13,6 @@
 #define USB_INTERFACE_SUBCLASS_VENDOR	0xff
 #define USB_INTERFACE_PROTOCOL_VENDOR	0xff
 
-#define PN53X_INTERFACE_POWER	100
 #define PN53X_STRING_FIRST	0xf0
 #define PN53X_STRING_INTERFACE	PN53X_STRING_FIRST+0
 #define PN53X_STRING_LAST	PN53X_STRING_INTERFACE
@@ -37,9 +36,7 @@ struct pn53x_ctrl {
 };
 
 #define PN53X_CMD_LEN		(pn53x_cmd[3])
-#define PN53X_CMD_LCS		(pn53x_cmd[4])
 #define PN53X_RESP_LEN		(pn53x_resp[3])
-#define PN53X_RESP_LCS		(pn53x_resp[4])
 #define PN53X_RESP_TFI		(pn53x_resp[5])
 #define PN53X_CMD_NORMAL_SIZE	((PN53X_HEAD_SIZE -1) + \
 				 PN53X_CMD_LEN + PN53X_TAIL_SIZE)
@@ -49,16 +46,6 @@ struct pn53x_ctrl {
 struct pn53x_ctrl pn53x_ctrl;
 uint8_t pn53x_cmd[PN53X_BUF_SIZE];
 uint8_t pn53x_resp[PN53X_BUF_SIZE];
-
-uint16_t pn53x_cmd_type(void)
-{
-	return MAKEWORD(PN53X_CMD_LCS, PN53X_CMD_LEN);
-}
-
-uint16_t pn53x_resp_type(void)
-{
-	return MAKEWORD(PN53X_RESP_LCS, PN53X_RESP_LEN);
-}
 
 static void pn53x_discard_response(void)
 {
@@ -96,7 +83,7 @@ static void pn53x_poll_completion(void)
 	for (i = 0; i < PN53X_HEAD_SIZE; i++)
 		pn53x_resp[i] = pn53x_xchg_read(i);
 
-	switch (pn53x_resp_type()) {
+	switch (pn53x_type(pn53x_resp)) {
 	case PN53X_ACK:
 		pn53x_ctrl.in_length = PN53X_HEAD_SIZE;
 		break;
@@ -147,7 +134,7 @@ static void pn53x_complete_response(void)
 
 static scs_size_t pn53x_cmd_expected(void)
 {
-	if (PN53X_NORMAL(pn53x_cmd_type()))
+	if (PN53X_NORMAL(pn53x_type(pn53x_cmd)))
 		return PN53X_CMD_NORMAL_SIZE;
 	else
 		return PN53X_HEAD_SIZE;
@@ -168,7 +155,7 @@ static void pn53x_handle_command(void)
 	if (usbd_request_handled() < PN53X_HEAD_SIZE)
 		return;
 
-	if (PN53X_NORMAL(pn53x_cmd_type())) {
+	if (PN53X_NORMAL(pn53x_type(pn53x_cmd))) {
 		if (usbd_request_handled() == PN53X_HEAD_SIZE)
 			usbd_request_commit(PN53X_CMD_NORMAL_SIZE);
 
@@ -191,7 +178,7 @@ static void pn53x_complete_command(void)
 		pn53x_xchg_write(i, pn53x_cmd[i]);
 	pn53x_write_cmpl(i);
 
-	switch (pn53x_cmd_type()) {
+	switch (pn53x_type(pn53x_cmd)) {
 	case PN53X_ACK:
 		pn53x_set_state(PN53X_STATE_CMD, PN53X_HEAD_SIZE);
 		break;
@@ -321,7 +308,7 @@ usbd_interface_t usb_pn53x_interface = {
 
 void usb_pn53x_init(void)
 {
-	usbd_declare_interface(PN53X_INTERFACE_POWER, &usb_pn53x_interface);
+	usbd_declare_interface(100, &usb_pn53x_interface);
 	PN53X_ADDR_IN = usbd_claim_endpoint(true, &pn53x_endpoint_in);
 	PN53X_ADDR_OUT = usbd_claim_endpoint(true, &pn53x_endpoint_out);
 	pn53x_ctrl_init();

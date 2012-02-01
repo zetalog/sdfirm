@@ -322,6 +322,7 @@ void __scd_queue_reset(scd_qid_t qid);
 	} while (0)
 void __scd_handle_command(scd_qid_t qid);
 void __scd_complete_command(scd_qid_t qid);
+void __scd_complete_response(scd_qid_t qid);
 
 void __scd_XfrBlock_out(scs_size_t hdr_size, scs_size_t blk_size);
 void __scd_CmdSuccess_out(void);
@@ -359,6 +360,7 @@ void scd_submit_command(void);
 void scd_handle_command(void);
 void scd_complete_command(void);
 void scd_submit_response(void);
+void scd_complete_response(void);
 
 /* bulk protocol hooks */
 void scd_handle_bulk_pc2rdr(void);

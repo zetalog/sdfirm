@@ -237,6 +237,9 @@ void scd_DataBlock_in(void)
 	       scd_resps[scd_qid].dwLength + SCD_HEADER_SIZE);
 }
 
+/*=========================================================================
+ * endpoint entrance
+ *=======================================================================*/
 void __scd_handle_command(scd_qid_t qid)
 {
 	scd_sid_t sid;
@@ -373,4 +376,11 @@ void __scd_complete_command(scd_qid_t qid)
 		scd_complete_bulk_pc2rdr();
 		break;
 	}
+}
+
+void __scd_complete_response(scd_qid_t qid)
+{
+	scd_qid_select(qid);
+	scd_debug(SCD_DEBUG_SLOT, scd_qid);
+	scd_slot_enter(SCD_SLOT_STATE_PC2RDR);
 }
