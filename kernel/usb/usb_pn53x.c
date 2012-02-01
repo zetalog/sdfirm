@@ -122,7 +122,7 @@ static void pn53x_handle_response(void)
 	usbd_dump_on(PN53X_DUMP_USBD);
 	for (i = 0; i < pn53x_ctrl.in_length; i++)
 		USBD_INB(pn53x_resp[i]);
-	usbd_dump_off(PN53X_DUMP_USBD);
+	usbd_dump_off();
 }
 
 static void pn53x_complete_response(void)
@@ -166,7 +166,7 @@ static void pn53x_handle_command(void)
 			USBD_OUTB(pn53x_cmd[i]);
 		}
 	}
-	usbd_dump_off(PN53X_DUMP_USBD);
+	usbd_dump_off();
 }
 
 static void pn53x_complete_command(void)
