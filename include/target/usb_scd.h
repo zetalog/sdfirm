@@ -386,8 +386,8 @@ extern usbd_endpoint_t scd_endpoint_in;
 
 #define scd_bulk_register(out, in)					\
 	do {								\
-		(out) = usbd_claim_endpoint(true, &scd_endpoint_out);	\
 		(in) = usbd_claim_endpoint(true, &scd_endpoint_in);	\
+		(out) = usbd_claim_endpoint(true, &scd_endpoint_out);	\
 	} while (0)
 #define scd_get_bulk_desc(out, in)					\
 	do {								\

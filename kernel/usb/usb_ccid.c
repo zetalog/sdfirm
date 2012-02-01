@@ -1732,34 +1732,12 @@ void ccid_init(void)
 	ifd_register_handlers(ccid_handle_iso7816_intr,
 			      ccid_handle_iso7816_cmpl);
 
-	/* XXX: CCID Endpoints Ordering
-	 *
-	 * IN endpoint should always be handled prior to OUT endpoint.
-	 *
-	 * Consider an exchange flow as follows:
-	 * OUT -> PC2RDR -> ISO7816 -> RDR2PC -> IN
-	 * Finally, txcmpl interrupt on IN may raise.
-	 * Unfortunately, rxaval on OUT may also raise meanwhile, be
-	 * aware of that host is running faster than the device.
-	 * If CCID_ADDR_OUT < CCID_ADDR_IN, the rxaval will be handled
-	 * first as USB layer will traverse endpoint event queue from
-	 * lower EID to higher EID.
-	 * Result is that we will return SLOT_BUSY to the second request!
-	 * If host hasn't any retry mechanisms, it fails on this command.
-	 *
-	 * A reasonable solution to solve this is to add priority support
-	 * for endpoints in USB layer, as this will add size overhead to
-	 * the firmware, we do not implement in this way.  Just keep it in
-	 * mind that endpoints have natural priority that ordered by their
-	 * EID.  So we make IN endpoint registered before OUT endpoint's
-	 * registration like follows.
-	 */
 	scd_bulk_register(CCID_ADDR_OUT, CCID_ADDR_IN);
 	for (qid = 0; qid < NR_SCD_QUEUES; qid++) {
 		scd_queue_reset(qid);
 	}
-	ccid_intr_init();
 	ccid_spe_init();
-	ccid_start();
 	scd_Escape_init();
+	ccid_intr_init();
+	ccid_start();
 }
