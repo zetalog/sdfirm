@@ -244,10 +244,9 @@ usbd_endpoint_t usb_pn53x_endpoint_out = {
 static void usb_pn53x_get_config_desc(void)
 {
 	usbd_input_interface_desc(USB_INTERFACE_CLASS_VENDOR,
-			  USB_INTERFACE_SUBCLASS_VENDOR,
-			  USB_INTERFACE_PROTOCOL_VENDOR,
-			  USB_PN53X_STRING_INTERFACE);
-
+				  USB_INTERFACE_SUBCLASS_VENDOR,
+				  USB_INTERFACE_PROTOCOL_VENDOR,
+				  USB_PN53X_STRING_INTERFACE);
 	usbd_input_endpoint_desc(PN53X_ADDR_IN);
 	usbd_input_endpoint_desc(PN53X_ADDR_OUT);
 }
