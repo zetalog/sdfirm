@@ -14,7 +14,8 @@
 #define DBG_SRC_SCS		7
 #define DBG_SRC_MSD		8
 #define DBG_SRC_DFU		9
-#define NR_DBG_SRCS		10
+#define DBG_SRC_PN53X		10
+#define NR_DBG_SRCS		11
 /* XXX: Current DBG_SRCS Limitation
  * current NR_DBG_SRCS should not exceed 0x14, or 0x15 could not be used
  * as raw data in the UI
@@ -82,6 +83,10 @@
 #define DFU_DEBUG_STATE		DFU_DEBUG_BASE+1
 #define DFU_DEBUG_ERROR		DFU_DEBUG_BASE+2
 #define NR_DFU_EVENTS		(DFU_DEBUG_ERROR - DFU_DEBUG_BASE + 1)
+
+#define PN53X_DEBUG_BASE	(DBG_SRC_PN53X<<4)
+#define PN53X_DEBUG_USB_STATE	PN53X_DEBUG_BASE+0
+#define NR_PN53X_EVENTS		(PN53X_DEBUG_USB_STATE - PN53X_DEBUG_BASE + 1)
 
 #define IDLE_DEBUG_BASE		(DBG_SRC_IDLE<<4)
 #define IDLE_DEBUG_SID		IDLE_DEBUG_BASE

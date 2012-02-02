@@ -18,9 +18,20 @@
 #define PN53X_TAIL_SIZE			2
 #define PN53X_DATA_SIZE			(PN53X_BUF_SIZE-PN53X_HEAD_SIZE-PN53X_TAIL_SIZE)
 
+#define PN53X_LEN			3
+#define PN53X_LCS			4
+#define PN53X_TFI			5
+
+#define PN53X_CMD			0xD4
+#define PN53X_RESP			0xD5
+
 #define PN53X_ACK			0x00FF
 #define PN53X_NAK			0xFF00
-#define pn53x_type(buf)			MAKEWORD((buf)[4], (buf)[3])
+#define pn53x_type(buf)			MAKEWORD((buf)[PN53X_LCS], (buf)[PN53X_LEN])
+#define PN53X_NORMAL(buf)		\
+	((pn53x_type(buf) != PN53X_ACK) && (pn53x_type(buf) != PN53X_NAK))
+#define PN53X_ERROR(buf)			\
+	((buf)[PN53X_LEN] == 0x01 && (buf)[PN53X_TFI] != PN53X_RESP)
 
 boolean pn53x_hw_poll_ready(void);
 void pn53x_hw_write_cmpl(scs_size_t nc);

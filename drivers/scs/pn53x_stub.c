@@ -26,10 +26,10 @@ boolean pn53x_hw_poll_ready(void)
 
 void pn53x_hw_read_cmpl(scs_size_t ne)
 {
+	pn53x_stub_ready = false;
 	if (!pn53x_stub_is_resp && pn53x_stub_is_cmd) {
 		pn53x_xchg_pseudo();
 	}
-	pn53x_stub_ready = false;
 }
 
 void pn53x_hw_write_cmpl(scs_size_t nc)
@@ -52,9 +52,9 @@ void pn53x_hw_write_cmpl(scs_size_t nc)
 		pn53x_stub_is_resp = false;
 		pn53x_stub_resp[0] = 0x00;
 		pn53x_stub_resp[1] = 0x00;
-		pn53x_stub_resp[2] = 0x00;
-		pn53x_stub_resp[3] = 0xFF;
-		pn53x_stub_resp[4] = 0x00;
+		pn53x_stub_resp[2] = 0xFF;
+		pn53x_stub_resp[3] = 0x00;
+		pn53x_stub_resp[4] = 0xFF;
 		pn53x_stub_resp[5] = 0x00;
 		pn53x_stub_ne = 6;
 		pn53x_stub_ready = true;
