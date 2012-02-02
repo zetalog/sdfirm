@@ -34,13 +34,6 @@ struct usb_pn53x_ctrl {
 	scs_size_t out_length;
 };
 
-#define PN53X_CMD_LEN		(usb_pn53x_cmd[PN53X_LEN])
-#define PN53X_RESP_LEN		(usb_pn53x_resp[PN53X_LEN])
-#define PN53X_CMD_NORMAL_SIZE	((PN53X_HEAD_SIZE -1) + \
-				 PN53X_CMD_LEN + PN53X_TAIL_SIZE)
-#define PN53X_RESP_NORMAL_SIZE	((PN53X_HEAD_SIZE -1) + \
-				 PN53X_RESP_LEN + PN53X_TAIL_SIZE)
-
 struct usb_pn53x_ctrl usb_pn53x_ctrl;
 uint8_t usb_pn53x_cmd[PN53X_BUF_SIZE];
 uint8_t usb_pn53x_resp[PN53X_BUF_SIZE];
@@ -66,7 +59,7 @@ static void usb_pn53x_read_cmpl(scs_size_t length)
 static scs_size_t usb_pn53x_cmd_total(void)
 {
 	if (PN53X_NORMAL(usb_pn53x_cmd))
-		return PN53X_CMD_NORMAL_SIZE;
+		return PN53X_NORMAL_SIZE(usb_pn53x_cmd);
 	else
 		return PN53X_HEAD_SIZE;
 }
@@ -74,7 +67,7 @@ static scs_size_t usb_pn53x_cmd_total(void)
 static scs_size_t usb_pn53x_resp_total(void)
 {
 	if (PN53X_NORMAL(usb_pn53x_resp))
-		return PN53X_RESP_NORMAL_SIZE;
+		return PN53X_NORMAL_SIZE(usb_pn53x_resp);
 	else
 		return PN53X_HEAD_SIZE;
 }
@@ -134,9 +127,10 @@ static void usb_pn53x_handle_command(void)
 
 	if (PN53X_NORMAL(usb_pn53x_cmd)) {
 		if (usbd_request_handled() == PN53X_HEAD_SIZE)
-			usbd_request_commit(PN53X_CMD_NORMAL_SIZE);
+			usbd_request_commit(PN53X_NORMAL_SIZE(usb_pn53x_cmd));
 
-		for (i = PN53X_HEAD_SIZE; i < PN53X_CMD_NORMAL_SIZE; i++) {
+		for (i = PN53X_HEAD_SIZE;
+		     i < PN53X_NORMAL_SIZE(usb_pn53x_cmd); i++) {
 			USBD_OUTB(usb_pn53x_cmd[i]);
 		}
 	}
