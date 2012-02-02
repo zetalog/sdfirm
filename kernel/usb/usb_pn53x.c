@@ -88,8 +88,8 @@ static void pn53x_poll_completion(void)
 		pn53x_ctrl.in_length = PN53X_HEAD_SIZE;
 		break;
 	default:
-		for (i = PN53X_HEAD_SIZE;
-		     i < PN53X_RESP_NORMAL_SIZE; i++) {
+		BUG_ON(i != PN53X_HEAD_SIZE);
+		for (; i < PN53X_RESP_NORMAL_SIZE; i++) {
 			pn53x_resp[i] = pn53x_xchg_read(i);
 		}
 		pn53x_ctrl.in_length = PN53X_RESP_NORMAL_SIZE;

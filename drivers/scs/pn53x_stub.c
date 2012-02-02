@@ -52,7 +52,7 @@ void pn53x_hw_write_cmpl(scs_size_t nc)
 		pn53x_is_resp = false;
 		pn53x_resp[0] = 0x00;
 		pn53x_resp[1] = 0x00;
-		pn53x_resp[2] = 0xFF;
+		pn53x_resp[2] = 0x00;
 		pn53x_resp[3] = 0xFF;
 		pn53x_resp[4] = 0x00;
 		pn53x_resp[5] = 0x00;
