@@ -8,15 +8,116 @@ boolean pn53x_stub_ready;
 boolean pn53x_stub_is_resp;
 boolean pn53x_stub_is_cmd;
 
-void pn53x_xchg_pseudo(void)
+void pn53x_build_frame(void)
 {
-	scs_off_t i;
+	scs_size_t ne = PN53X_NORMAL_SIZE(pn53x_stub_resp);
+	uint8_t dcs = 0x00;
 
-	for (i = 0; i < pn53x_stub_nc; i++)
-		pn53x_stub_resp[i] = pn53x_stub_cmd[i];
-	pn53x_stub_ne = pn53x_stub_nc;
+	pn53x_stub_resp[PN53X_LCS] = (uint8_t)(0x00 - pn53x_stub_resp[PN53X_LEN]);
+
+	/* TODO: Calculate DCS. */
+	pn53x_stub_resp[ne - PN53X_TAIL_SIZE] = dcs;
+	pn53x_stub_resp[ne-1] = 0x00;
+
+	pn53x_stub_ne = ne;
 	pn53x_stub_is_resp = true;
 	pn53x_stub_ready = true;
+}
+
+void pn53x_response_error(uint8_t ec)
+{
+	pn53x_debug(PN53X_DEBUG_ERR_CODE, ec);
+
+	pn53x_stub_resp[PN53X_LEN] = 0x01;
+	pn53x_stub_resp[PN53X_ERR] = ec;
+	pn53x_build_frame();
+}
+
+void pn53x_response_dummy(void)
+{
+	scs_off_t i;
+	for (i = 0; i < pn53x_stub_nc; i++)
+		pn53x_stub_resp[i] = pn53x_stub_cmd[i];
+	pn53x_build_frame();
+}
+
+void pn53x_response_GetFirmwareVersion(void)
+{
+	pn53x_build_frame();
+}
+
+void pn53x_xchg_pseudo(void)
+{
+	uint8_t cmd;
+
+	/* Validate LCS. */
+	if (0x00 != (uint8_t)(pn53x_stub_cmd[PN53X_LEN]+
+			      pn53x_stub_cmd[PN53X_LCS]))
+		return;
+	/* Validate TFI. */
+	if (pn53x_stub_cmd[PN53X_TFI] != PN53X_OUT)
+		return;
+	/* TODO: Validate DCS. */
+
+	pn53x_stub_resp[0] = 0x00;
+	pn53x_stub_resp[1] = 0x00;
+	pn53x_stub_resp[2] = 0xFF;
+	pn53x_stub_resp[PN53X_TFI] = PN53X_IN;
+
+	cmd = pn53x_stub_cmd[PN53X_CMD];
+	pn53x_debug(PN53X_DEBUG_CMD_CODE, cmd);
+	switch (cmd) {
+	case PN53X_Diagnose:
+		pn53x_response_error(PN53X_ERR_CMD);
+		break;
+	case PN53X_GetFirmwareVersion:
+		pn53x_response_dummy();
+		break;
+	case PN53X_ReadRegister:
+		pn53x_response_dummy();
+		break;
+	case PN53X_WriteRegister:
+		pn53x_response_dummy();
+		break;
+	case PN53X_ReadGPIO:
+	case PN53X_WriteGPIO:
+	case PN53X_AlparCommandForTDA:
+		pn53x_response_error(PN53X_ERR_CMD);
+		break;
+	case PN53X_SetSerialBaudRate:
+		pn53x_response_dummy();
+		break;
+	case PN53X_SetParameters:
+		pn53x_response_dummy();
+		break;
+	case PN53X_SAMConfiguration:
+		pn53x_response_dummy();
+		break;
+	case PN53X_PowerDown:
+		pn53x_response_dummy();
+		break;
+	case PN53X_InJumpForDEP:
+	case PN53X_InJumpForPSL:
+	case PN53X_InActivateDeactivatePaypass:
+		pn53x_response_error(PN53X_ERR_CMD);
+		break;
+	case PN53X_InListPassiveTarget:
+		pn53x_response_dummy();
+		break;
+	case PN53X_InATR:
+	case PN53X_InPSL:
+	case PN53X_InDataExchange:
+	case PN53X_InCommunicateThru:
+	case PN53X_InQuartetByteExchange:
+	case PN53X_InDeselect:
+	case PN53X_InRelease:
+	case PN53X_InSelect:
+		pn53x_response_error(PN53X_ERR_CMD);
+		break;
+	case PN53X_InAutoPoll:
+		pn53x_response_dummy();
+		break;
+	}
 }
 
 boolean pn53x_hw_poll_ready(void)
