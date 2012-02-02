@@ -30,8 +30,6 @@ struct usb_pn53x_ctrl {
 	uint8_t flags;
 #define USB_PN53X_FLAG_RESP	0x01
 #define USB_PN53X_FLAG_POLL	0x02
-	boolean responding;
-	boolean polling;
 	scs_size_t in_length;
 	scs_size_t out_length;
 };
@@ -84,11 +82,13 @@ static scs_size_t usb_pn53x_resp_total(void)
 static void usb_pn53x_clear_flags(flags)
 {
 	unraise_bits(usb_pn53x_ctrl.flags, flags);
+	pn53x_debug(PN53X_DEBUG_USB_FLAGS, usb_pn53x_ctrl.flags);
 }
 
 static void usb_pn53x_set_flags(flags)
 {
 	raise_bits(usb_pn53x_ctrl.flags, flags);
+	pn53x_debug(PN53X_DEBUG_USB_FLAGS, usb_pn53x_ctrl.flags);
 }
 
 static boolean usb_pn53x_test_flags(flags)
