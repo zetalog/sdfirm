@@ -122,13 +122,13 @@ void msd_init(void);
 #define msd_init()
 #endif
 
-#ifdef CONFIG_USB_CCID
+#ifdef CONFIG_SCD_CCID
 void ccid_init(void);
 #else
 #define ccid_init()
 #endif
 
-#ifdef CONFIG_USB_ICCD
+#ifdef CONFIG_SCD_ICCD
 void iccd_init(void);
 #else
 #define iccd_init()

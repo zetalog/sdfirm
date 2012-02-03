@@ -1,0 +1,30 @@
+#
+# HID Interfaces
+#
+
+menuconfig USB_HID
+	bool "Human interface device (HID) support"
+
+if USB_HID
+
+config HID_DURATION
+	bool "Enable HID duration support"
+	depends TICK
+
+config HID_MAX_REPORTS
+	int "Number of HID reports (1~2)"
+	range 1 2
+	default 1
+	help
+	  Currently, we only support 2 kind of HID reports:
+	    Keyboard (HID_KBD): Keyboard
+	    Display (HID_LCD): Alphanumeric display
+	  Since report drivers can be disabled, you can also reduce
+	  number of reports here to save memory.
+	  If you are not sure, say 1 here.
+
+config HID_KBD
+	bool "HID keyboard support"
+	select KBD
+
+endif

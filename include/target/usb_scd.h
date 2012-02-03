@@ -148,11 +148,11 @@ typedef uint8_t					scd_qid_t;
 /* functions should be implemented by SCD protocol */
 uint8_t scd_slot_status(void);
 
-#ifdef CONFIG_USB_CCID
-#include <target/usb_ccid.h>
+#ifdef CONFIG_SCD_CCID
+#include <target/scd_ccid.h>
 #endif
-#ifdef CONFIG_USB_ICCD
-#include <target/usb_iccd.h>
+#ifdef CONFIG_SCD_ICCD
+#include <target/scd_iccd.h>
 #endif
 
 #define INVALID_SCD_QID			NR_SCD_QUEUES
@@ -270,7 +270,7 @@ typedef union scd_data {
 #define SCD_XB_WI			scd_cmd_data.xb.bIccWaitInt
 	struct scd_t0_param t0;
 	struct scd_t1_param t1;
-#ifdef CONFIG_USB_CCID
+#ifdef CONFIG_SCD_CCID
 	struct ccid_fd_param fd;
 #endif
 #ifdef CONFIG_CCID_SECURE

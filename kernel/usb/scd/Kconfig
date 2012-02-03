@@ -1,0 +1,132 @@
+#
+# SCD Interfaces
+#
+
+menuconfig USB_SCD
+	bool "Smart card device (SCD) support"
+	select SCS
+
+if USB_SCD
+
+choice
+	prompt "Version"
+	default SCD_CCID
+
+config SCD_CCID
+	bool "Chip circuit interface (CCID)"
+	select SCD_BULK
+	select SCS
+	select IFD
+
+config SCD_ICCD
+	bool "Integrated circuit card (ICCD)"
+
+endchoice
+
+config SCD_BULK
+	bool "Enable bulk IN/OUT endpoint"
+	default y
+
+config SCD_INTERRUPT
+	bool "Enable interrupt IN endpoint"
+	default y
+	help
+	  This function may not required as our CCID has implemented
+	  message queuing.  Some host side CCID drivers may require this
+	  function.
+	  If this option is enabled, CCID firmware can report slot status
+	  changes and hardware errors through this optional interrupt
+	  endpoint.
+	  If you are not sure, say Y here.
+
+choice
+	prompt "SCD escape command vendor"
+	default SCD_ESC_NONE
+
+config SCD_ESC_NONE
+	bool "None"
+
+config SCD_ESC_ACR122
+	bool "ACR122"
+
+endchoice
+
+if SCD_CCID
+
+config CCID_INTERRUPT_HWERR
+	bool "CCID hardware error interrupt support"
+	depends SCD_INTERRUPT
+	help
+	  This feature is implemented but never used by any other modules
+	  in this implementation.
+	  If you are not sure, say N here.
+
+config CCID_ABORT
+	bool "Enable abort command support"
+
+config CCID_SECURE
+	bool "CCID secure command support"
+	depends LCD && KBD
+	default y
+	help
+	  This function is implemented according to what CCID specified.
+	  If you are searching for a PC/SC part 10 support, this
+	  implementation does not meet the requirement.
+	  In order to enabling your hardware with this function,
+	  A. Keyboard form factor is expected to follow EMV keypad layout
+	     specification;
+	  B. Keyboard driver is expected to present specified ascii codes
+	     for the following key strokes:
+	     1. cancel button: ESC (0x1B);
+	     2. enter/OK button: CR (0x0D).
+
+endif
+
+if SCD_ICCD
+
+choice
+	prompt "ICCD lower"
+	default ICCD_COS
+
+config ICCD_COS
+	bool "COS"
+	select SCS
+	select COS
+
+config ICCD_SCD
+	bool "SCS Slots"
+	select SCS
+	select SCS_SLOT
+
+endchoice
+
+choice
+	prompt "ICCD Exchange Level"
+	default ICCD_XCHG_APDU
+
+config ICCD_XCHG_APDU
+	bool "APDU"
+	help
+	  Short APDU
+
+#config ICCD_XCHG_APDU_EXT
+#	bool "APDU EXT"
+#	help
+#	  Short and Extended APDU
+
+endchoice
+
+choice
+	prompt "Transmission protocol"
+
+config ICCD_T0
+	bool "T0"
+
+config ICCD_T1
+	bool "T1"
+
+endchoice
+
+endif
+
+endif

@@ -1,7 +1,8 @@
-#cmd_link_o_target = rm -f $@; \
-#	$(AR) rcs $(EXTRA_ARFLAGS) $@ $(filter $(obj-y), $^)
-cmd_link_o_target = rm -f $@; $(AR) rcs $(EXTRA_ARFLAGS) $@ \
-	$(filter-out %built-in.lib, $(filter $(obj-y), $^)) \
-	$(foreach l,$(filter %built-in.lib, $(filter $(obj-y), $^)), \
-	$(foreach f,$(shell $(AR) -t $(l)), \
-	$(addprefix $(subst built-in.lib,,$(l)), $(f))))
+cmd_link_o_target = $(if $(strip $(obj-y)),\
+		      $(LD) $(ld_flags) -r -o $@ $(filter $(obj-y), $^), \
+		      rm -f $@; $(AR) rcs $@)
+#cmd_link_o_target = rm -f $@; $(AR) rcs $(EXTRA_ARFLAGS) $@ \
+#	$(filter-out %built-in.lib, $(filter $(obj-y), $^)) \
+#	$(foreach l,$(filter %built-in.lib, $(filter $(obj-y), $^)), \
+#	$(foreach f,$(shell $(AR) -t $(l)), \
+#	$(addprefix $(subst built-in.lib,,$(l)), $(f))))

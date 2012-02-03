@@ -128,7 +128,7 @@ SOURCE=..\..\..\kernel\usb\usb.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\kernel\usb\usb_ccid.c
+SOURCE=..\..\..\kernel\usb\scd_ccid.c
 # PROP Exclude_From_Build 1
 # End Source File
 # Begin Source File
@@ -151,7 +151,7 @@ SOURCE=..\..\..\kernel\usb\usb_hid.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\kernel\usb\usb_iccd.c
+SOURCE=..\..\..\kernel\usb\scd_iccd.c
 # PROP Exclude_From_Build 1
 # End Source File
 # Begin Source File

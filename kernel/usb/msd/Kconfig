@@ -1,0 +1,79 @@
+#
+# MSD Interfaces
+#
+
+menuconfig USB_MSD
+	bool "Mass storage device (MSD) support"
+	select USBD_XFR_MASS
+
+if USB_MSD
+
+choice
+	prompt "MSD protocol selection"
+
+#config MSD_CBI
+#	bool "Control-bulk-interrupt"
+#	depends EXPERIMENTAL
+
+config MSD_BBB
+	bool "Bulk-only"
+	select MATH_MOD32
+	help
+	  Used for flash drives.
+
+endchoice
+
+choice
+	prompt "MSD subclass selection"
+
+config MSD_SCSI
+	bool "SCSI transport command set"
+	select SCSI
+	select SCSI_TARGET
+	select SCSI_BQUE
+	select USBD_XFR_SYNC if MSD_BBB
+	select USBD_BULK if MSD_BBB
+	help
+	  Used for SCSI storage devices.
+
+endchoice
+
+choice
+	prompt "Hi > Di operation"
+	depends MSD_BBB
+	default MSD_BBB_LESS_PADDING
+	help
+	  Describe how device should act on Hi (host expects to receive
+	  data from the devices) > Di (device intentds to send data to the
+	  host) condition.
+
+config MSD_BBB_LESS_PADDING
+	bool "Padding up to dCBWDataTransferLegnth"
+	help
+	  The device may send fill data to padup to a total of
+	  dCBWDataTransferLength.
+
+config MSD_BBB_LESS_HALTING
+	bool "Halting the Bulk-In pipe"
+	help
+	  If the device actually transfers less data than the host
+	  indicated, then:
+	    The device may end the transfer with a short packet.
+	    The device shall stall the Bulk-In pipe.
+
+endchoice
+
+choice
+	prompt "Base managed task attributes"
+	depends MSD_SCSI
+	default MSD_SCSI_SIMPLE
+
+config MSD_SCSI_SIMPLE
+	bool "SIMPLE"
+
+config MSD_SCSI_ORDERED
+	bool "ORDERED"
+
+endchoice
+
+endif

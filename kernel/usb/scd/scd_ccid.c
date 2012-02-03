@@ -35,8 +35,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)usb_ccid.c: circuit chip interface device functions
- * $Id: usb_ccid.c,v 1.135 2011-10-26 10:09:44 zhenglv Exp $
+ * @(#)scd_ccid.c: circuit chip interface device functions
+ * $Id: scd_ccid.c,v 1.135 2011-10-26 10:09:44 zhenglv Exp $
  */
 
 /* TODO:

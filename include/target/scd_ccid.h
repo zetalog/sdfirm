@@ -35,12 +35,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)usb_ccid.h: circuit chip interface card interfaces
- * $Id: usb_ccid.h,v 1.79 2011-02-21 02:27:09 zhenglv Exp $
+ * @(#)scd_ccid.h: circuit chip interface card interfaces
+ * $Id: scd_ccid.h,v 1.79 2011-02-21 02:27:09 zhenglv Exp $
  */
 
-#ifndef __USB_CCID_H_INCLUDE__
-#define __USB_CCID_H_INCLUDE__
+#ifndef __SCD_CCID_H_INCLUDE__
+#define __SCD_CCID_H_INCLUDE__
 
 #include <target/ifd.h>
 
@@ -168,4 +168,4 @@ void ccid_Parameters_cmp(scs_err_t err);
 void ccid_display_slot(void);
 void ccid_display_default(void);
 
-#endif /* __USB_CCID_H_INCLUDE__ */
+#endif /* __SCD_CCID_H_INCLUDE__ */

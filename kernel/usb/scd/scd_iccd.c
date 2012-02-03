@@ -35,8 +35,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)usb_iccd.c: integrated circuit chip devices functions
- * $Id: usb_iccd.c,v 1.90 2011-11-10 07:02:37 zhenglv Exp $
+ * @(#)scd_iccd.c: integrated circuit chip devices functions
+ * $Id: scd_iccd.c,v 1.90 2011-11-10 07:02:37 zhenglv Exp $
  */
 
 #include <target/usb_scd.h>

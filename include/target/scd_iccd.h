@@ -35,8 +35,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)usb_iccd.h: integrated circuit card devices (ICCD) interfaces
- * $Id: usb_iccd.h,v 1.32 2011-11-10 07:02:37 zhenglv Exp $
+ * @(#)scd_iccd.h: integrated circuit card devices (ICCD) interfaces
+ * $Id: scd_iccd.h,v 1.32 2011-11-10 07:02:37 zhenglv Exp $
  */
 
 #ifndef __SCD_ICCD_H_INCLUDE__
