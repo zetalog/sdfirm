@@ -693,3 +693,20 @@ usbd_interface_t usb_scd_interface = {
 	scd_config_length,
 	scd_handle_ctrl_data,
 };
+
+void scd_devid_init(void)
+{
+#ifdef CONFIG_SCD_BULK
+	DEVICE_FUNC(SCD_FUNC_BULK);
+#endif
+#ifdef CONFIG_SCD_INTERRUPT
+	DEVICE_FUNC(SCD_FUNC_IRQ);
+#endif
+#if NR_SCD_SLOTS != NR_SCD_QUEUES
+	DEVICE_FUNC(SCD_FUNC_ABORT);
+#endif
+#ifdef CONFIG_IFD_T1
+	DEVICE_FUNC(SCD_FUNC_T1);
+#endif
+}
+

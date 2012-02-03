@@ -1087,6 +1087,7 @@ void ccid_Secure_cmp(void)
 void ccid_spe_init(void)
 {
 	ccid_spe_slot_init();
+	DEVICE_FUNC(SCD_FUNC_SECURE);
 }
 #endif
 
@@ -1495,44 +1496,19 @@ static void ccid_handle_iso7816_cmpl(void)
 	}
 }
 
-#define CCID_FUNC_T1	0x00000001
-#define CCID_FUNC_SPE	0x00000002
-#define CCID_FUNC_TPDU	0x00000004
-#define CCID_FUNC_APDU	0x00000008
-#define CCID_FUNC_CLS	0x00000010
-#define CCID_FUNC_ATR	0x00000020
-#define CCID_FUNC_PPS	0x00000040
-
-void ccid_devid_init(void)
-{
-#ifdef CONFIG_IFD_T1
-	DEVICE_FUNC(CCID_FUNC_T1);
-#endif
-#ifdef CONFIG_CCID_SECURE
-	DEVICE_FUNC(CCID_FUNC_SPE);
-#endif
-#ifdef CONFIG_IFD_XCHG_APDU
-	DEVICE_FUNC(CCID_FUNC_APDU);
-#endif
-#ifdef CONFIG_IFD_XCHG_TPDU
-	DEVICE_FUNC(CCID_FUNC_TPDU);
-#endif
-#ifdef CONFIG_IFD_AUTO_CLASS_SELECT
-	DEVICE_FUNC(CCID_FUNC_CLS);
-#endif
-#ifdef CONFIG_IFD_AUTO_RESET
-	DEVICE_FUNC(CCID_FUNC_ATR);
-#endif
-#ifdef CONFIG_IFD_AUTO_INFO_XCHG
-	DEVICE_FUNC(CCID_FUNC_PPS);
-#endif
-}
-
 #ifdef CONFIG_CCID_SECURE
 #define CCID_INTERFACE_POWER	100
 #else
 #define CCID_INTERFACE_POWER	50
 #endif
+
+static void ccid_devid_init(void)
+{
+	scd_devid_init();
+#ifdef CONFIG_IFD_XCHG_APDU
+	DEVICE_FUNC(SCD_FUNC_APDU);
+#endif
+}
 
 void scd_init(void)
 {

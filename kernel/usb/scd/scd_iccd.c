@@ -431,10 +431,6 @@ static void iccd_handle_ll_cmpl(void)
 	}
 }
 
-void iccd_devid_init(void)
-{
-}
-
 static void iccd_usb_register(void)
 {
 	scd_qid_t qid, oqid;
@@ -445,6 +441,12 @@ static void iccd_usb_register(void)
 		scd_irq_register(SCD_ADDR_IRQ);
 		scd_qid_restore(oqid);
 	}
+}
+
+void iccd_devid_init(void)
+{
+	scd_devid_init();
+	DEVICE_FUNC(SCD_FUNC_APDU);
 }
 
 void scd_init(void)

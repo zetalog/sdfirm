@@ -29,6 +29,14 @@
 # endif
 #endif
 
+/* SCD device ID */
+#define SCD_FUNC_BULK	0x00000001
+#define SCD_FUNC_IRQ	0x00000002
+#define SCD_FUNC_T1	0x00000004
+#define SCD_FUNC_APDU	0x00000008
+#define SCD_FUNC_SECURE	0x00000010
+#define SCD_FUNC_ABORT	0x00000020
+
 /* Smart Card Device Class */
 typedef struct scd_desc {
 	uint8_t	 bLength;
@@ -430,5 +438,6 @@ void scd_irq_init(void);
 void scd_ctrl_get_desc(void);
 void scd_handle_ctrl_class(void);
 extern usbd_interface_t usb_scd_interface;
+void scd_devid_init(void);
 
 #endif /* __USB_SCD_H_INCLUDE__ */
