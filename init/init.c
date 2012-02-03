@@ -122,16 +122,10 @@ void msd_init(void);
 #define msd_init()
 #endif
 
-#ifdef CONFIG_SCD_CCID
-void ccid_init(void);
+#ifdef CONFIG_USB_SCD
+void scd_init(void);
 #else
-#define ccid_init()
-#endif
-
-#ifdef CONFIG_SCD_ICCD
-void iccd_init(void);
-#else
-#define iccd_init()
+#define scd_init()
 #endif
 
 #ifdef CONFIG_USB_PN53X
@@ -177,8 +171,7 @@ void modules_init(void)
 	dataflash_init();
 	hid_init();
 	msd_init();
-	ccid_init();
-	iccd_init();
+	scd_init();
 	usb_pn53x_init();
 	cos_init();
 	dfu_init();

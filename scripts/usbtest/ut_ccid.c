@@ -695,10 +695,9 @@ void CUNITCBK ccid_set_fd(void)
 #define __ALIGN_MASK(x, mask)	(((x)+(mask))&~(mask))
 #define ROUNDUP_BYTE(x)		__ALIGN_MASK(x, 8-1)
 
-int ccid_change_length(void)
+int scd_change_length(void)
 {
 	int len = 2 * (g_desc.bMaxSlotIndex+1);
-
 	len = ROUNDUP_BYTE(len) / 8;
 	return len+1;
 }
@@ -753,7 +752,7 @@ void CUNITCBK ccid_interrupt(void)
 		len = ccid_intr_in(buf, buf_size);
 
 		switch (buf[0]) {
-		case CCID_RDR2PC_NOTIFYSLOTCHANGE:
+		case SCD_RDR2PC_NOTIFYSLOTCHANGE:
 			curr_state = ccid_interrupt_state(buf+1, CCID_SLOT_NO);
 			free(buf);
 			CUNIT_ASSERT_TRUE(want_state == curr_state);

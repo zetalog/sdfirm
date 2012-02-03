@@ -599,7 +599,7 @@ static const char *ccid_err_type(uint8_t error)
 static const char *ccid_int_type(uint8_t type)
 {
 	switch (type) {
-	case CCID_RDR2PC_NOTIFYSLOTCHANGE:
+	case SCD_RDR2PC_NOTIFYSLOTCHANGE:
 		return "RDR_to_PC_NotifyChange   ";
 	case CCID_RDR2PC_HARDWAREERROR:
 		return "RDR_to_PC_HardwareError  ";

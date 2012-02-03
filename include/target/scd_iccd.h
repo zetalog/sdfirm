@@ -62,8 +62,6 @@
 #endif
 #endif
 
-#define ICCD_RDR2PC_NOTIFYSLOTCHANGE	0x50
-
 #ifdef CONFIG_ICCD_COS
 #define NR_SCD_SLOTS			1
 #define scd_sid				0
@@ -93,13 +91,6 @@ struct iccd_hwerr {
 	uint8_t bPendingCode;
 };
 #define CCID_IRQ_HWERR_SIZE		0x04
-
-#define ICCD_INTR_RUNNING_SET		0x00
-#define ICCD_INTR_RUNNING_UNSET		0x01
-#define ICCD_INTR_PENDING_SET		0x02
-#define ICCD_INTR_PENDING_UNSET		0x03
-#define ICCD_INTR_ICC_PRESENT		0x04
-#define ICCD_INTR_ICC_NOTPRESENT	0x05
 
 #ifdef CONFIG_ICCD_COS
 #define __iccd_get_error()		cos_get_error()

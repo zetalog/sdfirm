@@ -63,13 +63,6 @@ static scd_sid_t iccd_addr2sid(uint8_t addr)
 }
 #define iccd_addr2qid(addr)		((scd_qid_t)(iccd_addr2sid(addr)))
 
-/*=========================================================================
- * bulk endpoints
- *=======================================================================*/
-#ifdef CONFIG_SCD_BULK
-#define SCD_ADDR_IN			iccd_addr[scd_qid][SCD_ENDP_BULK_IN]
-#define SCD_ADDR_OUT			iccd_addr[scd_qid][SCD_ENDP_BULK_OUT]
-
 #ifdef CONFIG_ICCD_COS
 uint8_t scd_slot_status(void)
 {
@@ -129,6 +122,13 @@ void scd_sid_select(scd_sid_t sid)
 	scs_slot_select(scd_qid);
 }
 #endif
+
+/*=========================================================================
+ * bulk endpoints
+ *=======================================================================*/
+#ifdef CONFIG_SCD_BULK
+#define SCD_ADDR_IN			iccd_addr[scd_qid][SCD_ENDP_BULK_IN]
+#define SCD_ADDR_OUT			iccd_addr[scd_qid][SCD_ENDP_BULK_OUT]
 
 void scd_slot_enter(uint8_t state)
 {
@@ -227,153 +227,66 @@ void scd_complete_command(void)
  * interrupt data
  *=======================================================================*/
 #ifdef CONFIG_SCD_INTERRUPT
-DECLARE_BITMAP(iccd_running_intrs, NR_SCD_SLOTS+NR_SCD_SLOTS);
-DECLARE_BITMAP(iccd_pending_intrs, NR_SCD_SLOTS+NR_SCD_SLOTS);
 #define SCD_ADDR_IRQ			iccd_addr[scd_qid][SCD_ENDP_INTR_IN]
 
 /*=========================================================================
  * dev changes
  *=======================================================================*/
-#define ICCD_INTR_CHANGE(id)		((id<<1)+1)
-#define ICCD_INTR_STATUS(id)		((id<<1))
-static boolean __iccd_change_running(scd_sid_t sid)
+boolean scd_change_pending(void)
 {
-	return test_bit(ICCD_INTR_CHANGE(sid), iccd_running_intrs);
+	return __scd_change_pending_sid(iccd_addr2sid(usbd_saved_addr()));
 }
 
-static boolean __iccd_change_pending(scd_sid_t sid)
+void __scd_handle_change(void)
 {
-	return test_bit(ICCD_INTR_CHANGE(sid), iccd_pending_intrs);
+	__scd_handle_change_sid(iccd_addr2sid(usbd_saved_addr()));
 }
 
-static boolean iccd_change_pending(void)
+void scd_discard_change(void)
 {
-	scd_sid_t sid;
-	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
-		if (__iccd_change_pending(sid))
-			return true;
-	}
-	return false;
+	__scd_discard_change_sid(iccd_addr2sid(usbd_saved_addr()));
 }
 
-static void iccd_change_data(void)
+void scd_submit_change(void)
 {
-	uint8_t i;
-	
-	USBD_INB(ICCD_RDR2PC_NOTIFYSLOTCHANGE);
-	for (i = 0; i < sizeof (iccd_running_intrs); i++) {
-		USBD_INB(iccd_running_intrs[i]);
-	}
+	__scd_submit_change_sid(iccd_addr2sid(usbd_saved_addr()));
 }
-
-static void iccd_change_discard(void)
-{
-	scd_sid_t sid = iccd_addr2sid(usbd_saved_addr());
-	if (__iccd_change_running(sid)) {
-		clear_bit(ICCD_INTR_CHANGE(sid), iccd_running_intrs);
-		scd_debug(SCD_DEBUG_INTR, ICCD_INTR_RUNNING_UNSET);
-	}
-}
-
-static void iccd_change_submit(void)
-{
-	scd_sid_t sid;
-
-	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
-		/* copy changed bits */
-		clear_bit(ICCD_INTR_CHANGE(sid), iccd_pending_intrs);
-		scd_debug(SCD_DEBUG_INTR, ICCD_INTR_PENDING_UNSET);
-		set_bit(ICCD_INTR_CHANGE(sid), iccd_running_intrs);
-		scd_debug(SCD_DEBUG_INTR, ICCD_INTR_RUNNING_SET);
-
-		/* copy status bits */
-		if (test_bit(ICCD_INTR_STATUS(sid), iccd_pending_intrs)) {
-			set_bit(ICCD_INTR_STATUS(sid), iccd_running_intrs);
-			scd_debug(SCD_DEBUG_INTR, SCD_SLOT_STATUS_ACTIVE);
-		} else {
-			clear_bit(ICCD_INTR_STATUS(sid), iccd_running_intrs);
-			scd_debug(SCD_DEBUG_INTR, SCD_SLOT_STATUS_NOTPRESENT);
-		}
-	}
-}
-
-static void iccd_change_raise(void)
-{
-	boolean changed = false;
-	if (scd_slot_status() == SCD_SLOT_STATUS_NOTPRESENT) {
-		if (test_bit(ICCD_INTR_STATUS(scd_qid), iccd_pending_intrs)) {
-			clear_bit(ICCD_INTR_STATUS(scd_qid),
-				  iccd_pending_intrs);
-			changed = true;
-		}
-	} else {
-		if (!test_bit(ICCD_INTR_STATUS(scd_qid), iccd_pending_intrs)) {
-			set_bit(ICCD_INTR_STATUS(scd_qid), iccd_pending_intrs);
-			changed = true;
-		}
-	}
-	if (changed) {
-		set_bit(ICCD_INTR_CHANGE(scd_qid), iccd_pending_intrs);
-		scd_debug(SCD_DEBUG_INTR, ICCD_INTR_PENDING_SET);
-	}
-}
-
-static uint16_t iccd_change_length(void)
-{
-	return 1 + div16u(ALIGN(NR_SCD_SLOTS, 4), 4);
-}
-
-static void iccd_change_init(void)
-{
-}
-
-void iccd_handle_interrupt(void)
-{
-	iccd_change_data();
-}
-
-void iccd_complete_interrupt(void)
-{
-	iccd_change_discard();
-}
-
-#define iccd_intr_init()		iccd_change_init()
 
 /*=========================================================================
  * generic interupts
  *=======================================================================*/
 static void iccd_submit_interrupt(void)
 {
-	if (iccd_change_pending()) {
+	if (scd_change_pending()) {
 		if (usbd_request_submit(SCD_ADDR_IRQ,
-					iccd_change_length())) {
-			iccd_change_submit();
+					scd_change_length())) {
+			scd_submit_change();
 		}
 	}
 }
 
+void iccd_handle_interrupt(void)
+{
+	scd_handle_change();
+}
+
+void iccd_complete_interrupt(void)
+{
+	scd_discard_change();
+}
+
+#define iccd_intr_init()		scd_change_init()
+
 static void iccd_handle_ll_intr(void)
 {
 	scd_qid_select(scd_sid);
-	iccd_change_raise();
-}
-
-static void iccd_intr_start(void)
-{
-	scd_qid_t qid, oqid;
-
-	for (qid = 0; qid < NR_SCD_SLOTS; qid++) {
-		oqid = scd_qid_save(qid);
-		iccd_change_raise();
-		scd_qid_restore(oqid);
-	}
+	scd_irq_raise_change();
 }
 #else
 static void iccd_handle_ll_intr(void)
 {
 }
 
-#define iccd_intr_start()
 #define iccd_intr_init()
 #endif
 
@@ -523,17 +436,12 @@ static void iccd_handle_ll_cmpl(void)
 	}
 }
 
-void iccd_start(void)
-{
-	iccd_intr_start();
-}
-
 void iccd_devid_init(void)
 {
 }
 
 #ifdef CONFIG_SCD_INTERRUPT
-usbd_endpoint_t iccd_endpoint_irq = {
+usbd_endpoint_t scd_endpoint_irq = {
 	USBD_ENDP_INTR_IN,
 	SCD_ENDP_INTERVAL_INTR,
 	iccd_submit_interrupt,
@@ -542,27 +450,25 @@ usbd_endpoint_t iccd_endpoint_irq = {
 };
 #endif
 
-static void iccd_dev_init(void)
+static void iccd_usb_register(void)
 {
 	scd_qid_t qid, oqid;
-	
-	/* USB interface and endpoint stuff */
 	for (qid = 0; qid < NR_SCD_SLOTS; qid++) {
 		usbd_declare_interface(50, &usb_scd_interface);
 		oqid = scd_qid_save(qid);
 		scd_bulk_register(SCD_ADDR_OUT, SCD_ADDR_IN);
 		scd_irq_register(SCD_ADDR_IRQ);
 		scd_qid_restore(oqid);
-		scd_queue_reset(qid);
 	}
-	scd_qid_select(0);
 }
 
-void iccd_init(void)
+void scd_init(void)
 {
 	iccd_devid_init();
-	iccd_dev_init();
-	iccd_intr_init();
+
 	__iccd_reg_handlers(iccd_handle_ll_intr, iccd_handle_ll_cmpl);
-	iccd_start();
+	iccd_usb_register();
+
+	scd_bulk_init();
+	iccd_intr_init();
 }

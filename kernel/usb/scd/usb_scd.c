@@ -1,9 +1,9 @@
 #include <target/usb_scd.h>
 
-#ifdef CONFIG_SCD_BULK
 /*=========================================================================
  * bulk endpoint
  *=======================================================================*/
+#ifdef CONFIG_SCD_BULK
 __near__ uint8_t scd_states[NR_SCD_QUEUES];
 __near__ struct scd_cmd scd_cmds[NR_SCD_QUEUES];
 __near__ struct scd_resp scd_resps[NR_SCD_QUEUES];
@@ -442,6 +442,132 @@ usbd_endpoint_t scd_endpoint_in = {
 	scd_handle_response,
 	scd_complete_response,
 };
+
+void scd_bulk_init(void)
+{
+	scd_qid_t qid;
+	for (qid = 0; qid < NR_SCD_QUEUES; qid++) {
+		scd_queue_reset(qid);
+	}
+	scd_qid_select(0);
+}
+#endif
+
+/*=========================================================================
+ * interrupt endpoint
+ *=======================================================================*/
+#ifdef CONFIG_SCD_BULK
+DECLARE_BITMAP(scd_running_intrs, NR_SCD_SLOTS+NR_SCD_SLOTS);
+DECLARE_BITMAP(scd_pending_intrs, NR_SCD_SLOTS+NR_SCD_SLOTS);
+
+#define SCD_INTR_CHANGE(sid)		((sid<<1)+1)
+#define SCD_INTR_STATUS(sid)		((sid<<1))
+
+static boolean __scd_change_running(scd_sid_t sid)
+{
+	return test_bit(SCD_INTR_CHANGE(sid), scd_running_intrs);
+}
+
+boolean __scd_change_pending_sid(scd_sid_t sid)
+{
+	return test_bit(SCD_INTR_CHANGE(sid), scd_pending_intrs);
+}
+
+boolean __scd_change_pending_all(void)
+{
+	scd_sid_t sid;
+	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
+		if (__scd_change_pending_sid(sid))
+			return true;
+	}
+	return false;
+}
+
+void __scd_handle_change_sid(scd_sid_t sid)
+{
+	uint8_t status = 0x00;
+
+	/* TODO */
+	USBD_INB(status);
+}
+
+void __scd_handle_change_all(void)
+{
+	uint8_t i;
+	for (i = 0; i < sizeof (scd_running_intrs); i++) {
+		USBD_INB(scd_running_intrs[i]);
+	}
+}
+
+void scd_handle_change(void)
+{
+	USBD_INB(SCD_RDR2PC_NOTIFYSLOTCHANGE);
+	__scd_handle_change();
+}
+
+void __scd_discard_change_sid(scd_sid_t sid)
+{
+	if (__scd_change_running(sid)) {
+		clear_bit(SCD_INTR_CHANGE(sid), scd_running_intrs);
+		scd_debug(SCD_DEBUG_INTR, SCD_INTR_RUNNING_UNSET);
+	}
+}
+
+void __scd_submit_change_sid(scd_sid_t sid)
+{
+	/* copy changed bits */
+	clear_bit(SCD_INTR_CHANGE(sid), scd_pending_intrs);
+	scd_debug(SCD_DEBUG_INTR, SCD_INTR_PENDING_UNSET);
+	set_bit(SCD_INTR_CHANGE(sid), scd_running_intrs);
+	scd_debug(SCD_DEBUG_INTR, SCD_INTR_RUNNING_SET);
+
+	/* copy status bits */
+	if (test_bit(SCD_INTR_STATUS(sid), scd_pending_intrs)) {
+		set_bit(SCD_INTR_STATUS(sid), scd_running_intrs);
+		scd_debug(SCD_DEBUG_INTR, SCD_INTR_ICC_PRESENT);
+	} else {
+		clear_bit(SCD_INTR_STATUS(sid), scd_running_intrs);
+		scd_debug(SCD_DEBUG_INTR, SCD_INTR_ICC_NOTPRESENT);
+	}
+}
+
+uint16_t scd_change_length(void)
+{
+	return 1 + div16u(ALIGN(NR_SCD_USB_SLOTS, 4), 4);
+}
+
+void scd_irq_raise_change(void)
+{
+	boolean changed = false;
+
+	BUG_ON(scd_sid >= NR_SCD_SLOTS);
+	if (scd_slot_status() == SCD_SLOT_STATUS_NOTPRESENT) {
+		/* ccid_discard(); */
+		if (test_bit(SCD_INTR_STATUS(scd_sid), scd_pending_intrs)) {
+			clear_bit(SCD_INTR_STATUS(scd_sid), scd_pending_intrs);
+			changed = true;
+		}
+	} else {
+		if (!test_bit(SCD_INTR_STATUS(scd_sid), scd_pending_intrs)) {
+			set_bit(SCD_INTR_STATUS(scd_sid), scd_pending_intrs);
+			changed = true;
+		}
+	}
+	if (changed) {
+		set_bit(SCD_INTR_CHANGE(scd_sid), scd_pending_intrs);
+		scd_debug(SCD_DEBUG_INTR, SCD_INTR_PENDING_SET);
+	}
+}
+
+void scd_change_init(void)
+{
+	scd_sid_t sid, ssid;
+	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
+		ssid = scd_qid_save(sid);
+		scd_irq_raise_change();
+		scd_qid_restore(ssid);
+	}
+}
 #endif
 
 /*=========================================================================

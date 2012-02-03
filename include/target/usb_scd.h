@@ -29,18 +29,6 @@
 # endif
 #endif
 
-#ifdef CONFIG_SCD_BULK
-# define SCD_ENDP_BULK_IN		0x00
-# define SCD_ENDP_BULK_OUT		0x01
-#endif
-#ifdef CONFIG_SCD_INTERRUPT
-# define SCD_ENDP_INTR_IN		(NR_SCD_ENDPS-1)
-#endif
-
-#define SCD_ENDP_INTERVAL_INTR		0x7F
-#define SCD_ENDP_INTERVAL_IN		0x01
-#define SCD_ENDP_INTERVAL_OUT		0x01
-
 /* Smart Card Device Class */
 typedef struct scd_desc {
 	uint8_t	 bLength;
@@ -141,19 +129,21 @@ typedef struct scd_desc {
 
 typedef uint8_t					scd_qid_t;
 
-/* functions should be implemented by SCD generic */
-#define scd_slot_success(err)			((err) == SCS_ERR_SUCCESS)
-#define scd_slot_progress(err)			((err) == SCS_ERR_PROGRESS)
-
-/* functions should be implemented by SCD protocol */
-uint8_t scd_slot_status(void);
-
 #ifdef CONFIG_SCD_CCID
 #include <target/scd_ccid.h>
 #endif
 #ifdef CONFIG_SCD_ICCD
 #include <target/scd_iccd.h>
 #endif
+
+/* functions should be implemented by SCD generic */
+#define scd_slot_success(err)			((err) == SCS_ERR_SUCCESS)
+#define scd_slot_progress(err)			((err) == SCS_ERR_PROGRESS)
+
+/* functions should be implemented by SCD protocol */
+uint8_t scd_slot_status(void);
+uint8_t scd_slot_error(scs_err_t err);
+void scd_sid_select(scd_sid_t sid);
 
 #define INVALID_SCD_QID			NR_SCD_QUEUES
 #if NR_SCD_QUEUES > 1
@@ -168,6 +158,11 @@ scd_qid_t scd_qid_save(scd_qid_t qid);
 #define scd_qid_select(qid)		scd_qid_restore(qid)
 
 #ifdef CONFIG_SCD_BULK
+#define SCD_ENDP_BULK_IN		0x00
+#define SCD_ENDP_BULK_OUT		0x01
+#define SCD_ENDP_INTERVAL_IN		0x01
+#define SCD_ENDP_INTERVAL_OUT		0x01
+
 #define SCD_SLOT_STATUS_ACTIVE			0x00
 #define SCD_SLOT_STATUS_INACTIVE		0x01
 #define SCD_SLOT_STATUS_NOTPRESENT		0x02
@@ -180,11 +175,7 @@ scd_qid_t scd_qid_save(scd_qid_t qid);
 #define SCD_ERROR_RESERVED			0x80
 #define SCD_ERROR_CMD_UNSUPPORT			0x00
 
-#ifdef CONFIG_SCD_BULK
 #define SCD_HEADER_SIZE				10
-#else
-#define SCD_HEADER_SIZE				0
-#endif
 
 #define SCD_CMD_STATUS_SUCC			(0x00 << 6)
 #define SCD_CMD_STATUS_FAIL			(0x01 << 6)
@@ -350,8 +341,6 @@ void scd_DataBlock_in(void);
 uint8_t scd_resp_message(void);
 void scd_slot_enter(uint8_t state);
 void scd_queue_reset(scd_qid_t qid);
-uint8_t scd_slot_error(scs_err_t err);
-void scd_sid_select(scd_sid_t sid);
 
 /* bulk protocol entrance */
 void scd_submit_command(void);
@@ -374,6 +363,7 @@ void scd_handle_bulk_rdr2pc(void);
 extern usbd_endpoint_t scd_endpoint_out;
 extern usbd_endpoint_t scd_endpoint_in;
 
+void scd_bulk_init(void);
 #define scd_bulk_register(out, in)					\
 	do {								\
 		(in) = usbd_claim_endpoint(true, &scd_endpoint_in);	\
@@ -385,20 +375,55 @@ extern usbd_endpoint_t scd_endpoint_in;
 		usbd_input_endpoint_desc(in);				\
 	} while (0)
 #else
+#define SCD_HEADER_SIZE				0
+#define scd_bulk_init()
 #define scd_bulk_register(out, in)
 #define scd_get_bulk_desc(out, in)
 #endif
 
 #ifdef CONFIG_SCD_INTERRUPT
+#define SCD_ENDP_INTR_IN		(NR_SCD_ENDPS-1)
+#define SCD_ENDP_INTERVAL_INTR		0x7F
+
+#define SCD_RDR2PC_NOTIFYSLOTCHANGE	0x50
+
+#define SCD_INTR_RUNNING_SET		0x00
+#define SCD_INTR_RUNNING_UNSET		0x01
+#define SCD_INTR_PENDING_SET		0x02
+#define SCD_INTR_PENDING_UNSET		0x03
+#define SCD_INTR_ICC_PRESENT		0x04
+#define SCD_INTR_ICC_NOTPRESENT		0x05
+
+/* called by core */
+void scd_handle_change(void);
+uint16_t scd_change_length(void);
+void scd_change_init(void);
+
+/* Implemented by drivers */
+void __scd_handle_change(void);
+void scd_discard_change(void);
+void scd_submit_change(void);
+boolean scd_change_pending(void);
+
+/* called by drivers */
+void __scd_handle_change_sid(scd_sid_t sid);
+void __scd_handle_change_all(void);
+void __scd_discard_change_sid(scd_sid_t sid);
+void __scd_submit_change_sid(scd_sid_t sid);
+boolean __scd_change_pending_sid(scd_sid_t sid);
+boolean __scd_change_pending_all(void);
+
+void scd_irq_raise_change(void);
 #define scd_irq_register(irq)						\
 	do {								\
-		irq = usbd_claim_endpoint(true, &iccd_endpoint_irq);	\
+		irq = usbd_claim_endpoint(true, &scd_endpoint_irq);	\
 	} while (0)
 #define scd_get_intr_desc(irq)						\
 	do {								\
 		usbd_input_endpoint_desc(irq);				\
 	} while (0)
 #else
+#define scd_irq_raise_change()
 #define scd_irq_register(irq)
 #define scd_get_intr_desc(irq)
 #endif
