@@ -460,6 +460,13 @@ void scd_bulk_init(void)
 DECLARE_BITMAP(scd_running_intrs, NR_SCD_SLOTS+NR_SCD_SLOTS);
 DECLARE_BITMAP(scd_pending_intrs, NR_SCD_SLOTS+NR_SCD_SLOTS);
 
+#define SCD_INTR_RUNNING_SET		0x00
+#define SCD_INTR_RUNNING_UNSET		0x01
+#define SCD_INTR_PENDING_SET		0x02
+#define SCD_INTR_PENDING_UNSET		0x03
+#define SCD_INTR_ICC_PRESENT		0x04
+#define SCD_INTR_ICC_NOTPRESENT		0x05
+
 #define SCD_INTR_CHANGE(sid)		((sid<<1)+1)
 #define SCD_INTR_STATUS(sid)		((sid<<1))
 
@@ -473,20 +480,11 @@ boolean __scd_change_pending_sid(scd_sid_t sid)
 	return test_bit(SCD_INTR_CHANGE(sid), scd_pending_intrs);
 }
 
-boolean __scd_change_pending_all(void)
-{
-	scd_sid_t sid;
-	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
-		if (__scd_change_pending_sid(sid))
-			return true;
-	}
-	return false;
-}
-
 void __scd_handle_change_sid(scd_sid_t sid)
 {
 	uint8_t status = 0x00;
 
+	USBD_INB(SCD_RDR2PC_NOTIFYSLOTCHANGE);
 	/* TODO */
 	USBD_INB(status);
 }
@@ -494,15 +492,10 @@ void __scd_handle_change_sid(scd_sid_t sid)
 void __scd_handle_change_all(void)
 {
 	uint8_t i;
+	USBD_INB(SCD_RDR2PC_NOTIFYSLOTCHANGE);
 	for (i = 0; i < sizeof (scd_running_intrs); i++) {
 		USBD_INB(scd_running_intrs[i]);
 	}
-}
-
-void scd_handle_change(void)
-{
-	USBD_INB(SCD_RDR2PC_NOTIFYSLOTCHANGE);
-	__scd_handle_change();
 }
 
 void __scd_discard_change_sid(scd_sid_t sid)
@@ -531,7 +524,7 @@ void __scd_submit_change_sid(scd_sid_t sid)
 	}
 }
 
-uint16_t scd_change_length(void)
+static uint16_t scd_change_length(void)
 {
 	return 1 + div16u(ALIGN(NR_SCD_USB_SLOTS, 4), 4);
 }
@@ -559,7 +552,7 @@ void scd_irq_raise_change(void)
 	}
 }
 
-void scd_change_init(void)
+static void scd_change_init(void)
 {
 	scd_sid_t sid, ssid;
 	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
@@ -568,6 +561,30 @@ void scd_change_init(void)
 		scd_qid_restore(ssid);
 	}
 }
+
+void __scd_submit_interrupt(uint8_t addr)
+{
+	if (scd_change_pending()) {
+		if (usbd_request_submit(addr,
+					scd_change_length())) {
+			scd_submit_change();
+		}
+	}
+}
+
+void scd_irq_init(void)
+{
+	__scd_irq_init();
+	scd_change_init();
+}
+
+usbd_endpoint_t scd_endpoint_irq = {
+	USBD_ENDP_INTR_IN,
+	SCD_ENDP_INTERVAL_INTR,
+	scd_submit_interrupt,
+	scd_handle_interrupt,
+	scd_discard_interrupt,
+};
 #endif
 
 /*=========================================================================

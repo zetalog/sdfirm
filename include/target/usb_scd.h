@@ -146,6 +146,8 @@ uint8_t scd_slot_error(scs_err_t err);
 void scd_sid_select(scd_sid_t sid);
 
 #define INVALID_SCD_QID			NR_SCD_QUEUES
+#define INVALID_SCD_SID			NR_SCD_SLOTS
+
 #if NR_SCD_QUEUES > 1
 extern __near__ scd_qid_t scd_qid;
 void scd_qid_restore(scd_qid_t qid);
@@ -387,45 +389,42 @@ void scd_bulk_init(void);
 
 #define SCD_RDR2PC_NOTIFYSLOTCHANGE	0x50
 
-#define SCD_INTR_RUNNING_SET		0x00
-#define SCD_INTR_RUNNING_UNSET		0x01
-#define SCD_INTR_PENDING_SET		0x02
-#define SCD_INTR_PENDING_UNSET		0x03
-#define SCD_INTR_ICC_PRESENT		0x04
-#define SCD_INTR_ICC_NOTPRESENT		0x05
-
-/* called by core */
-void scd_handle_change(void);
-uint16_t scd_change_length(void);
-void scd_change_init(void);
-
 /* Implemented by drivers */
-void __scd_handle_change(void);
+void scd_handle_change(void);
 void scd_discard_change(void);
 void scd_submit_change(void);
 boolean scd_change_pending(void);
+void scd_submit_interrupt(void);
+void scd_handle_interrupt(void);
+void scd_discard_interrupt(void);
+void __scd_irq_init(void);
 
-/* called by drivers */
+/* Called by drivers */
 void __scd_handle_change_sid(scd_sid_t sid);
-void __scd_handle_change_all(void);
 void __scd_discard_change_sid(scd_sid_t sid);
 void __scd_submit_change_sid(scd_sid_t sid);
 boolean __scd_change_pending_sid(scd_sid_t sid);
-boolean __scd_change_pending_all(void);
+void __scd_handle_change_all(void);
+
+void __scd_submit_interrupt(uint8_t addr);
+
+extern usbd_endpoint_t scd_endpoint_irq;
 
 void scd_irq_raise_change(void);
 #define scd_irq_register(irq)						\
 	do {								\
 		irq = usbd_claim_endpoint(true, &scd_endpoint_irq);	\
 	} while (0)
-#define scd_get_intr_desc(irq)						\
+#define scd_get_irq_desc(irq)						\
 	do {								\
 		usbd_input_endpoint_desc(irq);				\
 	} while (0)
+void scd_irq_init(void);
 #else
 #define scd_irq_raise_change()
 #define scd_irq_register(irq)
-#define scd_get_intr_desc(irq)
+#define scd_get_irq_desc(irq)
+#define scd_irq_init()
 #endif
 
 void scd_ctrl_get_desc(void);

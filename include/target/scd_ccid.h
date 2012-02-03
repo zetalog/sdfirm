@@ -90,6 +90,9 @@ struct ccid_fd_param {
 #define NR_SCD_SLOTS			NR_IFD_SLOTS
 #define scd_sid				ifd_slid
 #ifdef CONFIG_CCID_ABORT
+/*
+ * QID = SID+1: additional QID for BULK_OUT
+ */
 #define NR_SCD_QUEUES			(NR_SCD_SLOTS + 1)
 #else
 #define NR_SCD_QUEUES			NR_SCD_SLOTS
@@ -104,10 +107,6 @@ struct ccid_fd_param {
 #define scd_power_on(cls)		ifd_power_on(cls)
 #define scd_power_off()			ifd_power_off()
 
-/*
- * QID = SID+1: additional QID for BULK_OUT
- */
-#define INVALID_CCID_SID		NR_SCD_SLOTS
 #define INVALID_CCID_SEQ		NR_SCD_QUEUES
 
 #define CCID_STATE_IDLE			0x00

@@ -1099,10 +1099,15 @@ void ccid_spe_init(void)
  *=======================================================================*/
 boolean scd_change_pending(void)
 {
-	return __scd_change_pending_all();
+	scd_sid_t sid;
+	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
+		if (__scd_change_pending_sid(sid))
+			return true;
+	}
+	return false;
 }
 
-void __scd_handle_change(void)
+void scd_handle_change(void)
 {
 	__scd_handle_change_all();
 }
@@ -1128,20 +1133,11 @@ void scd_submit_change(void)
  *=======================================================================*/
 #ifdef CONFIG_CCID_INTERRUPT_HWERR
 __near__ struct ccid_hwerr ccid_intr_hwerrs[NR_SCD_SLOTS];
+__near__ scd_sid_t ccid_hwerr_sid;
 
 static boolean __ccid_hwerr_running(scd_sid_t sid)
 {
 	return ccid_intr_hwerrs[sid].bState & CCID_HWERR_RUNNING;
-}
-
-static boolean ccid_hwerr_running(void)
-{
-	scd_sid_t sid;
-	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
-		if (__ccid_hwerr_running(sid))
-			return true;
-	}
-	return false;
 }
 
 static boolean __ccid_hwerr_pending(scd_sid_t sid)
@@ -1149,17 +1145,17 @@ static boolean __ccid_hwerr_pending(scd_sid_t sid)
 	return ccid_intr_hwerrs[sid].bState & CCID_HWERR_PENDING;
 }
 
-static boolean ccid_hwerr_pending(void)
+static scd_sid_t ccid_hwerr_pending_sid(void)
 {
 	scd_sid_t sid;
 	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
 		if (__ccid_hwerr_pending(sid))
-			return true;
+			return scd_sid_t;
 	}
-	return false;
+	return INVALID_SCD_SID;
 }
 
-static void ccid_hwerr_raise(uint8_t err)
+static void ccid_hwerr_raise_irq(uint8_t err)
 {
 	if (scd_qid < NR_SCD_SLOTS) {
 		ccid_intr_hwerrs[scd_qid].bState |= CCID_HWERR_PENDING;
@@ -1168,135 +1164,76 @@ static void ccid_hwerr_raise(uint8_t err)
 	}
 }
 
-static boolean ccid_hwerr_data(void)
+static void ccid_hwerr_handle_irq(void)
 {
-	scd_sid_t sid;
-	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
-		if (__ccid_hwerr_running(sid)) {
-			USBD_INB(CCID_RDR2PC_HARDWAREERROR);
-			USBD_INB(sid);
-			USBD_INB(ccid_intr_hwerrs[sid].bSeq);
-			USBD_INB(ccid_intr_hwerrs[sid].bHardwareErrorCode);
-			return true;
-		}
-	}
-	return false;
+	USBD_INB(CCID_RDR2PC_HARDWAREERROR);
+	USBD_INB(ccid_hwerr_sid);
+	USBD_INB(ccid_intr_hwerrs[ccid_hwerr_sid].bSeq);
+	USBD_INB(ccid_intr_hwerrs[ccid_hwerr_sid].bHardwareErrorCode);
 }
 
-static void ccid_hwerr_discard(void)
+static void ccid_hwerr_discard_irq(void)
 {
-	scd_sid_t sid;
-	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
-		if (__ccid_hwerr_running(sid)) {
-			ccid_intr_hwerrs[sid].bState &= ~CCID_HWERR_RUNNING;
-		}
-	}
+	ccid_intr_hwerrs[ccid_hwerr_sid].bState &= ~CCID_HWERR_RUNNING;
+	ccid_hwerr_sid = INVALID_SCD_SID;
 }
 
-static boolean ccid_hwerr_submit(void)
+static void ccid_hwerr_submit_irq(scd_sid_t sid)
 {
-	scd_sid_t sid;
-	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
-		if (ccid_hwerr_pending(sid)) {
-			ccid_intr_hwerrs[sid].bState &= ~CCID_HWERR_PENDING;
-			ccid_intr_hwerrs[sid].bState |= CCID_HWERR_RUNNING;
-			return true;
-		}
-	}
-	return false;
+	ccid_intr_hwerrs[sid].bState &= ~CCID_HWERR_PENDING;
+	ccid_intr_hwerrs[sid].bState |= CCID_HWERR_RUNNING;
+	ccid_hwerr_sid = sid;
 }
 
-static uint16_t ccid_hwerr_pending_length(void)
-{
-	scd_sid_t sid;
-	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
-		if (ccid_hwerr_pending(sid))
-			return CCID_IRQ_HWERR_SIZE;
-	}
-	return 0;
-}
-
-static uint16_t ccid_hwerr_running_length(void)
-{
-	scd_sid_t sid;
-	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
-		if (ccid_hwerr_running(sid))
-			return CCID_IRQ_HWERR_SIZE;
-	}
-	return 0;
-}
-
-static void ccid_hwerr_init(void)
+static void ccid_hwerr_init_irq(void)
 {
 	scd_sid_t sid;
 	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
 		ccid_intr_hwerrs[sid].bState = 0;
 		ccid_intr_hwerrs[sid].bSeq = 0;
 	}
+	ccid_hwerr_sid = INVALID_SCD_SID;
 }
 #else
-#define ccid_hwerr_pending_length()		0
-#define ccid_hwerr_running_length()		0
-#define ccid_hwerr_running()			false
-#define ccid_hwerr_pending()			false
-#define ccid_hwerr_discard()
-#define ccid_hwerr_submit()			false
-#define ccid_hwerr_data()			false
-#define ccid_hwerr_init()
+#define ccid_hwerr_pending_sid()		INVALID_SCD_SID
+#define ccid_hwerr_submit_irq(sid)
+#define ccid_hwerr_discard_irq()
+#define ccid_hwerr_handle_irq()
+#define ccid_hwerr_raise_irq(err)
+#define ccid_hwerr_sid				INVALID_SCD_SID
+#define ccid_hwerr_init_irq()
 #endif
 
 /*=========================================================================
  * generic interupts
  *=======================================================================*/
-static uint16_t ccid_pending_length(void)
+void scd_discard_interrupt(void)
 {
-	return ccid_hwerr_pending_length() || scd_change_length();
+	if (ccid_hwerr_sid < NR_SCD_SLOTS)
+		ccid_hwerr_discard_irq();
+	else
+		scd_discard_change();
 }
 
-static uint16_t ccid_running_length(void)
+void scd_handle_interrupt(void)
 {
-	return ccid_hwerr_running_length() || scd_change_length();
+	if (ccid_hwerr_sid < NR_SCD_SLOTS)
+		ccid_hwerr_handle_irq();
+	else
+		scd_handle_change();
 }
 
-static boolean ccid_interrupt_pending(void)
+void scd_submit_interrupt(void)
 {
-	return ccid_hwerr_pending() || scd_change_pending();
-}
-
-static void ccid_discard_interrupt(void)
-{
-	ccid_hwerr_discard();
-	scd_discard_change();
-}
-
-static void __ccid_submit_interrupt(void)
-{
-	if (ccid_hwerr_submit())
-		return;
-	scd_submit_change();
-}
-
-static void ccid_handle_interrupt(void)
-{
-	if (ccid_hwerr_data())
-		return;
-	scd_handle_change();
-}
-
-static void ccid_submit_interrupt(void)
-{
-	if (ccid_interrupt_pending()) {
+	scd_sid_t sid = ccid_hwerr_pending_sid();
+	if (sid < NR_SCD_SLOTS) {
 		if (usbd_request_submit(CCID_ADDR_IRQ,
-					ccid_pending_length())) {
-			__ccid_submit_interrupt();
+					CCID_IRQ_HWERR_SIZE)) {
+			ccid_hwerr_submit_irq(sid);
 		}
+	} else {
+		__scd_submit_interrupt(CCID_ADDR_IRQ);
 	}
-}
-
-static void ccid_intr_init(void)
-{
-	ccid_hwerr_init();
-	scd_change_init();
 }
 
 static void ccid_handle_iso7816_intr(void)
@@ -1306,19 +1243,14 @@ static void ccid_handle_iso7816_intr(void)
 	scd_irq_raise_change();
 }
 
-usbd_endpoint_t scd_endpoint_irq = {
-	USBD_ENDP_INTR_IN,
-	SCD_ENDP_INTERVAL_INTR,
-	ccid_submit_interrupt,
-	ccid_handle_interrupt,
-	ccid_discard_interrupt,
-};
+void __scd_irq_init(void)
+{
+	ccid_hwerr_init_irq();
+}
 #else
 static void ccid_handle_iso7816_intr(void)
 {
 }
-
-#define ccid_intr_init()
 #endif
 
 #if NR_SCD_QUEUES != NR_SCD_SLOTS
@@ -1369,49 +1301,6 @@ boolean scd_abort_requested(void)
 	return false;
 }
 #endif
-
-/*=========================================================================
- * CCID entrances
- *=======================================================================*/
-static void ccid_handle_iso7816_cmpl(void)
-{
-	scs_err_t err;
-
-	/* slot ID is determined before cmpl is called */
-	scd_qid_select(scd_sid);
-
-	BUG_ON(scd_qid >= NR_SCD_SLOTS);
-	BUG_ON(scd_states[scd_qid] != SCD_SLOT_STATE_ISO7816);
-
-	err = ifd_xchg_get_error();
-
-	switch (scd_cmds[scd_qid].bMessageType) {
-	case SCD_PC2RDR_ICCPOWERON:
-	case SCD_PC2RDR_XFRBLOCK:
-	case CCID_PC2RDR_SECURE:
-		scd_DataBlock_cmp(err);
-		break;
-	case SCD_PC2RDR_ICCPOWEROFF:
-#ifdef CONFIG_IFD_CLOCK_CONTROL
-	case CCID_PC2RDR_ICCCLOCK:
-#endif
-#ifdef CONFIG_IFD_MECHA_CONTROL
-	case CCID_PC2RDR_MECHANICAL:
-#endif
-		scd_SlotStatus_cmp();
-		break;
-	case CCID_PC2RDR_SETPARAMETERS:
-	case CCID_PC2RDR_RESETPARAMETERS:
-		ccid_Parameters_cmp(err);
-		break;
-	case CCID_PC2RDR_SETDATAANDFREQ:
-		ccid_DataAndFreq_cmp(err);
-		break;
-	default:
-		BUG();
-		break;
-	}
-}
 
 /*=========================================================================
  * control endpoint
@@ -1503,7 +1392,7 @@ void scd_ctrl_get_desc(void)
 	USBD_INB(CCID_SPE_SUPPORT_FUNC);
 	USBD_INB(NR_SCD_USB_QUEUES);
 	scd_get_bulk_desc(CCID_ADDR_OUT, CCID_ADDR_IN);
-	scd_get_intr_desc(CCID_ADDR_IRQ);
+	scd_get_irq_desc(CCID_ADDR_IRQ);
 }
 
 static void ccid_abort(void)
@@ -1563,6 +1452,49 @@ void scd_handle_ctrl_class(void)
 	}
 }
 
+/*=========================================================================
+ * CCID entrances
+ *=======================================================================*/
+static void ccid_handle_iso7816_cmpl(void)
+{
+	scs_err_t err;
+
+	/* slot ID is determined before cmpl is called */
+	scd_qid_select(scd_sid);
+
+	BUG_ON(scd_qid >= NR_SCD_SLOTS);
+	BUG_ON(scd_states[scd_qid] != SCD_SLOT_STATE_ISO7816);
+
+	err = ifd_xchg_get_error();
+
+	switch (scd_cmds[scd_qid].bMessageType) {
+	case SCD_PC2RDR_ICCPOWERON:
+	case SCD_PC2RDR_XFRBLOCK:
+	case CCID_PC2RDR_SECURE:
+		scd_DataBlock_cmp(err);
+		break;
+	case SCD_PC2RDR_ICCPOWEROFF:
+#ifdef CONFIG_IFD_CLOCK_CONTROL
+	case CCID_PC2RDR_ICCCLOCK:
+#endif
+#ifdef CONFIG_IFD_MECHA_CONTROL
+	case CCID_PC2RDR_MECHANICAL:
+#endif
+		scd_SlotStatus_cmp();
+		break;
+	case CCID_PC2RDR_SETPARAMETERS:
+	case CCID_PC2RDR_RESETPARAMETERS:
+		ccid_Parameters_cmp(err);
+		break;
+	case CCID_PC2RDR_SETDATAANDFREQ:
+		ccid_DataAndFreq_cmp(err);
+		break;
+	default:
+		BUG();
+		break;
+	}
+}
+
 #define CCID_FUNC_T1	0x00000001
 #define CCID_FUNC_SPE	0x00000002
 #define CCID_FUNC_TPDU	0x00000004
@@ -1617,6 +1549,6 @@ void scd_init(void)
 	ccid_spe_init();
 	scd_Escape_init();
 
-	ccid_intr_init();
+	scd_irq_init();
 	ccid_display_default();
 }

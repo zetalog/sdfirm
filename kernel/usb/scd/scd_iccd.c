@@ -237,7 +237,7 @@ boolean scd_change_pending(void)
 	return __scd_change_pending_sid(iccd_addr2sid(usbd_saved_addr()));
 }
 
-void __scd_handle_change(void)
+void scd_handle_change(void)
 {
 	__scd_handle_change_sid(iccd_addr2sid(usbd_saved_addr()));
 }
@@ -255,39 +255,34 @@ void scd_submit_change(void)
 /*=========================================================================
  * generic interupts
  *=======================================================================*/
-static void iccd_submit_interrupt(void)
+void scd_submit_interrupt(void)
 {
-	if (scd_change_pending()) {
-		if (usbd_request_submit(SCD_ADDR_IRQ,
-					scd_change_length())) {
-			scd_submit_change();
-		}
-	}
+	__scd_submit_interrupt(SCD_ADDR_IRQ);
 }
 
-void iccd_handle_interrupt(void)
+void scd_handle_interrupt(void)
 {
 	scd_handle_change();
 }
 
-void iccd_complete_interrupt(void)
+void scd_discard_interrupt(void)
 {
 	scd_discard_change();
 }
-
-#define iccd_intr_init()		scd_change_init()
 
 static void iccd_handle_ll_intr(void)
 {
 	scd_qid_select(scd_sid);
 	scd_irq_raise_change();
 }
+
+void __scd_irq_init(void)
+{
+}
 #else
 static void iccd_handle_ll_intr(void)
 {
 }
-
-#define iccd_intr_init()
 #endif
 
 /*=========================================================================
@@ -410,7 +405,7 @@ void scd_ctrl_get_desc(void)
 	USBD_INB(SCD_SPE_SUPPORT_NONE);
 	USBD_INB(NR_SCD_USB_QUEUES);	/* must be 1 */
 	scd_get_bulk_desc(SCD_ADDR_OUT, SCD_ADDR_IN);
-	scd_get_intr_desc(SCD_ADDR_IRQ);
+	scd_get_irq_desc(SCD_ADDR_IRQ);
 }
 
 /*=========================================================================
@@ -440,16 +435,6 @@ void iccd_devid_init(void)
 {
 }
 
-#ifdef CONFIG_SCD_INTERRUPT
-usbd_endpoint_t scd_endpoint_irq = {
-	USBD_ENDP_INTR_IN,
-	SCD_ENDP_INTERVAL_INTR,
-	iccd_submit_interrupt,
-	iccd_handle_interrupt,
-	iccd_complete_interrupt,
-};
-#endif
-
 static void iccd_usb_register(void)
 {
 	scd_qid_t qid, oqid;
@@ -470,5 +455,5 @@ void scd_init(void)
 	iccd_usb_register();
 
 	scd_bulk_init();
-	iccd_intr_init();
+	scd_irq_init();
 }
