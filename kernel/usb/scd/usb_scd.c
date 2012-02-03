@@ -709,4 +709,3 @@ void scd_devid_init(void)
 	DEVICE_FUNC(SCD_FUNC_T1);
 #endif
 }
-
