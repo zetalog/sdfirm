@@ -12,9 +12,9 @@
 
 #define PN53X_SPI_FREQ		5000
 
-spi_t spi;
+spi_t pn53x_spi;
 
-spi_device_t spi_pn53x = {
+spi_device_t pn53x_spi_device = {
 	SPI_MODE_0,
 	PN53X_SPI_FREQ,
 	PN53X_HW_SPI_CHIP,
@@ -39,7 +39,7 @@ void pn53x_hw_write_cmpl(scs_size_t nc)
 uint8_t pn53x_hw_xchg_read(scs_off_t index)
 {
 	if (!index) {
-		spi_select_device(spi);
+		spi_select_device(pn53x_spi);
 		spi_write_byte(PN53X_CMD_DR);
 	}
 	return spi_read_byte();
@@ -48,7 +48,7 @@ uint8_t pn53x_hw_xchg_read(scs_off_t index)
 void pn53x_hw_xchg_write(scs_off_t index, uint8_t val)
 {
 	if (!index) {
-		spi_select_device(spi);
+		spi_select_device(pn53x_spi);
 		spi_write_byte(PN53X_CMD_DW);
 	}
 	spi_write_byte(val);
@@ -56,5 +56,5 @@ void pn53x_hw_xchg_write(scs_off_t index, uint8_t val)
 
 void pn53x_hw_ctrl_init(void)
 {
-	spi = spi_register_device(&spi_pn53x);
+	pn53x_spi = spi_register_device(&pn53x_spi_device);
 }
