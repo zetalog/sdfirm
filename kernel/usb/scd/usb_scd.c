@@ -510,7 +510,7 @@ static uint16_t scd_present_length(void)
 			  SCD_IRQ_PRESENT_ALIGN);
 }
 
-boolean __scd_present_test_slot(sid)
+boolean __scd_present_test_slot(scd_sid_t sid)
 {
 	if (scd_slot_status() == SCD_SLOT_STATUS_NOTPRESENT)
 		return false;

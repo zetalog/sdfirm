@@ -1,5 +1,9 @@
 cmd_link_o_target = rm -f $@; $(AR) -Sqc $(EXTRA_ARFLAGS) $@ \
 	$(filter-out %built-in.lib, $(filter $(obj-y), $^)) \
 	$(foreach l,$(filter %built-in.lib, $(filter $(obj-y), $^)), \
-	$(foreach f,$(shell $(AR) -t $(l)), \
-	$(addprefix $(subst built-in.lib,,$(l)), $(f))))
+	  $(foreach f,$(shell $(AR) -t $(l)), \
+	    $(shell cp -f $(addprefix $(subst built-in.lib,,$(l)), $(f)) \
+	                  $(addprefix $(subst /built-in.lib,,$(l)), _$(f))) \
+	    $(addprefix $(subst /built-in.lib,,$(l)), _$(f)) \
+	   ) \
+	 )
