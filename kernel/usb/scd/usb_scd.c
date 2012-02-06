@@ -559,26 +559,39 @@ static void __scd_present_fill_all(bits_t *addr)
 	}
 }
 
-void __scd_handle_present_sid(scd_sid_t sid)
+void __scd_handle_present_init(bits_t *addr, uint8_t size)
 {
 	uint8_t i;
-	DECLARE_BITMAP(status, NR_SCD_USB_SLOTS+NR_SCD_USB_SLOTS);
 	USBD_INB(SCD_RDR2PC_NOTIFYSLOTCHANGE);
-	__scd_present_fill_sid(status, sid, 0);
 	for (i = 0; i < sizeof (status); i++) {
-		USBD_INB(status[i]);
+		addr[i] = 0x00;
 	}
+}
+
+void __scd_handle_present_exit(bits_t *addr, uint8_t size)
+{
+	uint8_t i;
+	for (i = 0; i < sizeof (status); i++) {
+		USBD_INB(addr[i]);
+	}
+}
+
+void __scd_handle_present_sid(scd_sid_t sid)
+{
+	DECLARE_BITMAP(status, NR_SCD_USB_SLOTS+NR_SCD_USB_SLOTS);
+
+	__scd_handle_present_init(status, sizeof (status));
+	__scd_present_fill_sid(status, sid, 0);
+	__scd_handle_present_exit(status, sizeof (status));
 }
 
 void __scd_handle_present_all(void)
 {
-	uint8_t i;
 	DECLARE_BITMAP(status, NR_SCD_USB_SLOTS+NR_SCD_USB_SLOTS);
-	USBD_INB(SCD_RDR2PC_NOTIFYSLOTCHANGE);
+
+	__scd_handle_present_init(status, sizeof (status));
 	__scd_present_fill_all(status);
-	for (i = 0; i < sizeof (status); i++) {
-		USBD_INB(status[i]);
-	}
+	__scd_handle_present_exit(status, sizeof (status));
 }
 
 void __scd_discard_present_sid(scd_sid_t sid)
