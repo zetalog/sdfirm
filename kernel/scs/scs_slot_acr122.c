@@ -4,16 +4,6 @@
 scs_sid_t acr122_sid;
 boolean acr122_activated;
 
-uint8_t acr122_slot_status(uint8_t status)
-{
-	switch (status) {
-	case SCS_SLOT_STATUS_ACTIVE:
-		return SCS_SLOT_STATUS_ACTIVE;
-	default:
-		return SCS_SLOT_STATUS_INACTIVE;
-	}
-}
-
 static void acr122_slot_select(void)
 {
 	/* Shouldn't be multiple pn53x chips. */
