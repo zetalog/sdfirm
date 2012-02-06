@@ -59,7 +59,7 @@ scs_sid_t scs_register_slot(scs_slot_driver_t *drv);
 void scs_complete_slot(scs_err_t err);
 
 /* Called by SCS slot users */
-void scd_notify_slot(scs_intr_cb notifier, scs_cmpl_cb completion);
+void scd_slot_register_completion(scs_cmpl_cb completion);
 
 scs_err_t scs_slot_power_on(void);
 scs_err_t scs_slot_power_off(void);

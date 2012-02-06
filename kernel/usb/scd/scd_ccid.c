@@ -1098,34 +1098,29 @@ void ccid_spe_init(void)
 /*=========================================================================
  * slot changes
  *=======================================================================*/
-boolean scd_change_pending(void)
+boolean scd_present_changed(void)
+{
+	return __scd_present_changed_all();
+}
+
+void scd_handle_present(void)
+{
+	__scd_handle_present_all();
+}
+
+void scd_discard_present(void)
 {
 	scd_sid_t sid;
 	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
-		if (__scd_change_pending_sid(sid))
-			return true;
-	}
-	return false;
-}
-
-void scd_handle_change(void)
-{
-	__scd_handle_change_all();
-}
-
-void scd_discard_change(void)
-{
-	scd_sid_t sid;
-	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
-		__scd_discard_change_sid(sid);
+		__scd_discard_present_sid(sid);
 	}
 }
 
-void scd_submit_change(void)
+void scd_submit_present(void)
 {
 	scd_sid_t sid;
 	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
-		__scd_submit_change_sid(sid);
+		__scd_submit_present_sid(sid);
 	}
 }
 
@@ -1213,7 +1208,7 @@ void scd_discard_interrupt(void)
 	if (ccid_hwerr_sid < NR_SCD_SLOTS)
 		ccid_hwerr_discard_irq();
 	else
-		scd_discard_change();
+		scd_discard_present();
 }
 
 void scd_handle_interrupt(void)
@@ -1221,7 +1216,7 @@ void scd_handle_interrupt(void)
 	if (ccid_hwerr_sid < NR_SCD_SLOTS)
 		ccid_hwerr_handle_irq();
 	else
-		scd_handle_change();
+		scd_handle_present();
 }
 
 void scd_submit_interrupt(void)
@@ -1237,20 +1232,9 @@ void scd_submit_interrupt(void)
 	}
 }
 
-static void ccid_handle_iso7816_intr(void)
-{
-	scd_qid_select(scd_sid);
-	BUG_ON(scd_qid >= NR_SCD_SLOTS);
-	scd_irq_raise_change();
-}
-
-void __scd_irq_init(void)
+void scd_irq_init(void)
 {
 	ccid_hwerr_init_irq();
-}
-#else
-static void ccid_handle_iso7816_intr(void)
-{
 }
 #endif
 
@@ -1514,8 +1498,7 @@ void scd_init(void)
 {
 	ccid_devid_init();
 
-	ifd_register_handlers(ccid_handle_iso7816_intr,
-			      ccid_handle_iso7816_cmpl);
+	ifd_register_completion(ccid_handle_iso7816_cmpl);
 	usbd_declare_interface(CCID_INTERFACE_POWER,
 			       &usb_scd_interface);
 	scd_bulk_register(CCID_ADDR_OUT, CCID_ADDR_IN);

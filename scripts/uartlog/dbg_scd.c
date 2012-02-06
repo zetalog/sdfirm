@@ -27,22 +27,16 @@ static void scd_dump_interrupt(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 {
 	switch (data) {
 	case 0:
-		dbg_dumper(ctx, cmd, "intr=RUNNING_SET");
+		dbg_dumper(ctx, cmd, "intr=submit(NOTPRESENT)");
 		break;
 	case 1:
-		dbg_dumper(ctx, cmd, "intr=RUNNING_UNSET");
+		dbg_dumper(ctx, cmd, "intr=submit(PRESENT)");
 		break;
 	case 2:
-		dbg_dumper(ctx, cmd, "intr=PENDING_SET");
+		dbg_dumper(ctx, cmd, "intr=discard(NOTPRESENT)");
 		break;
 	case 3:
-		dbg_dumper(ctx, cmd, "intr=PENDING_UNSET");
-		break;
-	case 4:
-		dbg_dumper(ctx, cmd, "intr=ICC_PRESENT");
-		break;
-	case 5:
-		dbg_dumper(ctx, cmd, "intr=ICC_NOTPRESENT");
+		dbg_dumper(ctx, cmd, "intr=discard(PRESENT)");
 		break;
 	default:
 		dbg_dumper(ctx, cmd, "intr=%02x", data);

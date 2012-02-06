@@ -1,7 +1,6 @@
 #include <target/scs_slot.h>
 #include <target/state.h>
 
-scs_intr_cb scs_slot_notifier = NULL;
 scs_cmpl_cb scs_slot_completion = NULL;
 
 #if NR_SCS_SLOTS > 1
@@ -68,7 +67,6 @@ void scs_complete_slot(scs_err_t err)
 void scs_set_slot_status(uint8_t state)
 {
 	scs_slot_attrib.state = state;
-	if (scs_slot_notifier) scs_slot_notifier();
 }
 
 uint8_t scs_get_slot_status(void)
@@ -141,9 +139,8 @@ uint8_t scs_slot_xchg_read(scs_off_t index)
 	return scs_slot_driver->xchg_read(index);
 }
 
-void scd_notify_slot(scs_intr_cb notifier, scs_cmpl_cb completion)
+void scd_slot_register_completion(scs_cmpl_cb completion)
 {
-	scs_slot_notifier = notifier;
 	scs_slot_completion = completion;
 }
 

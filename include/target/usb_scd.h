@@ -398,27 +398,27 @@ void scd_bulk_init(void);
 #define SCD_RDR2PC_NOTIFYSLOTCHANGE	0x50
 
 /* Implemented by drivers */
-void scd_handle_change(void);
-void scd_discard_change(void);
-void scd_submit_change(void);
-boolean scd_change_pending(void);
+void scd_handle_present(void);
+void scd_discard_present(void);
+void scd_submit_present(void);
+boolean scd_present_changed(void);
 void scd_submit_interrupt(void);
 void scd_handle_interrupt(void);
 void scd_discard_interrupt(void);
-void __scd_irq_init(void);
+void scd_irq_init(void);
 
 /* Called by drivers */
-void __scd_handle_change_sid(scd_sid_t sid);
-void __scd_discard_change_sid(scd_sid_t sid);
-void __scd_submit_change_sid(scd_sid_t sid);
-boolean __scd_change_pending_sid(scd_sid_t sid);
-void __scd_handle_change_all(void);
+void __scd_handle_present_sid(scd_sid_t sid);
+void __scd_discard_present_sid(scd_sid_t sid);
+void __scd_submit_present_sid(scd_sid_t sid);
+boolean __scd_present_changed_sid(scd_sid_t sid);
+boolean __scd_present_changed_all(void);
+void __scd_handle_present_all(void);
 
 void __scd_submit_interrupt(uint8_t addr);
 
 extern usbd_endpoint_t scd_endpoint_irq;
 
-void scd_irq_raise_change(void);
 #define scd_irq_register(irq)						\
 	do {								\
 		irq = usbd_claim_endpoint(true, &scd_endpoint_irq);	\
@@ -427,9 +427,7 @@ void scd_irq_raise_change(void);
 	do {								\
 		usbd_input_endpoint_desc(irq);				\
 	} while (0)
-void scd_irq_init(void);
 #else
-#define scd_irq_raise_change()
 #define scd_irq_register(irq)
 #define scd_get_irq_desc(irq)
 #define scd_irq_init()

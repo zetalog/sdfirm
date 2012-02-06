@@ -89,7 +89,6 @@ typedef uint16_t scs_size_t;
 typedef uint16_t scs_off_t;
 typedef uint8_t scs_err_t;
 
-typedef void (*scs_intr_cb)(void);
 typedef void (*scs_cmpl_cb)(void);
 typedef scs_err_t (*scs_txfr_cb)(scs_size_t nc, scs_size_t ne);
 typedef void (*scs_tvoid_cb)(void);

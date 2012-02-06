@@ -232,24 +232,24 @@ void scd_complete_command(void)
 /*=========================================================================
  * dev changes
  *=======================================================================*/
-boolean scd_change_pending(void)
+boolean scd_present_changed(void)
 {
-	return __scd_change_pending_sid(iccd_addr2sid(usbd_saved_addr()));
+	return __scd_present_changed_sid(iccd_addr2sid(usbd_saved_addr()));
 }
 
-void scd_handle_change(void)
+void scd_handle_present(void)
 {
-	__scd_handle_change_sid(iccd_addr2sid(usbd_saved_addr()));
+	__scd_handle_present_sid(iccd_addr2sid(usbd_saved_addr()));
 }
 
-void scd_discard_change(void)
+void scd_discard_present(void)
 {
-	__scd_discard_change_sid(iccd_addr2sid(usbd_saved_addr()));
+	__scd_discard_present_sid(iccd_addr2sid(usbd_saved_addr()));
 }
 
-void scd_submit_change(void)
+void scd_submit_present(void)
 {
-	__scd_submit_change_sid(iccd_addr2sid(usbd_saved_addr()));
+	__scd_submit_present_sid(iccd_addr2sid(usbd_saved_addr()));
 }
 
 /*=========================================================================
@@ -262,25 +262,15 @@ void scd_submit_interrupt(void)
 
 void scd_handle_interrupt(void)
 {
-	scd_handle_change();
+	scd_handle_present();
 }
 
 void scd_discard_interrupt(void)
 {
-	scd_discard_change();
+	scd_discard_present();
 }
 
-static void iccd_handle_ll_intr(void)
-{
-	scd_qid_select(scd_sid);
-	scd_irq_raise_change();
-}
-
-void __scd_irq_init(void)
-{
-}
-#else
-static void iccd_handle_ll_intr(void)
+void scd_irq_init(void)
 {
 }
 #endif
@@ -453,7 +443,7 @@ void scd_init(void)
 {
 	iccd_devid_init();
 
-	__iccd_reg_handlers(iccd_handle_ll_intr, iccd_handle_ll_cmpl);
+	__iccd_reg_completion(iccd_handle_ll_cmpl);
 	iccd_usb_register();
 
 	scd_bulk_init();

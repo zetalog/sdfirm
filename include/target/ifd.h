@@ -395,7 +395,7 @@ boolean ifd_xchg_raised_any(void);
 /*=========================================================================
  * user interfaces
  *=======================================================================*/
-void ifd_register_handlers(scs_intr_cb notifier, scs_cmpl_cb completion);
+void ifd_register_completion(scs_cmpl_cb completion);
 
 scs_err_t ifd_write_byte(scs_off_t index, uint8_t byte);
 scs_err_t ifd_write_byte_mask(scs_off_t index,

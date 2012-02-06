@@ -241,9 +241,6 @@ void scd_DataBlock_in(void)
 	       scd_resps[scd_qid].dwLength + SCD_HEADER_SIZE);
 }
 
-/*=========================================================================
- * bulk endpoint entrance
- *=======================================================================*/
 void __scd_handle_command(scd_qid_t qid)
 {
 	scd_sid_t sid;
@@ -457,125 +454,158 @@ void scd_bulk_init(void)
  * interrupt endpoint
  *=======================================================================*/
 #ifdef CONFIG_SCD_BULK
-DECLARE_BITMAP(scd_running_intrs, NR_SCD_SLOTS+NR_SCD_SLOTS);
-DECLARE_BITMAP(scd_pending_intrs, NR_SCD_SLOTS+NR_SCD_SLOTS);
+DECLARE_BITMAP(scd_discarded_presents, NR_SCD_SLOTS);
+DECLARE_BITMAP(scd_submitted_presents, NR_SCD_SLOTS);
 
-#define SCD_INTR_RUNNING_SET		0x00
-#define SCD_INTR_RUNNING_UNSET		0x01
-#define SCD_INTR_PENDING_SET		0x02
-#define SCD_INTR_PENDING_UNSET		0x03
-#define SCD_INTR_ICC_PRESENT		0x04
-#define SCD_INTR_ICC_NOTPRESENT		0x05
+#define SCD_IRQ_ICC_NOTPRESENT		0x00
+#define SCD_IRQ_ICC_PRESENT		0x01
+#define SCD_IRQ_ICC_CHANGED		0x02
 
-#define SCD_INTR_CHANGE(sid)		((sid<<1)+1)
-#define SCD_INTR_STATUS(sid)		((sid<<1))
+#define SCD_IRQ_PRESENT(sid)		(SCD_IRQ_ICC_PRESENT<<(sid))
 
-static boolean __scd_change_running(scd_sid_t sid)
+#define SCD_IRQ_PRESENT_BITS		2
+#define SCD_IRQ_PRESENT_ALIGN		(1<<SCD_IRQ_PRESENT_BITS)
+#define SCD_IRQ_PRESENT_BIT(sid)	((uint8_t)(1<<(sid)))
+#define SCD_IRQ_CHANGED_BIT(sid)	((uint8_t)((1<<(sid))+1))
+
+#define scd_dbg_irq_submitted		0x00
+#define scd_dbg_irq_discarded		0x01
+
+#define __scd_present_test_discarded(sid)	\
+	test_bit(SCD_IRQ_PRESENT(sid), scd_discarded_presents)
+#define __scd_present_test_submitted(sid)	\
+	test_bit(SCD_IRQ_PRESENT(sid), scd_submitted_presents)
+#ifndef CONFIG_SCD_DEBUG
+#define __scd_present_set(_what_, sid)		\
+	set_bit(SCD_IRQ_PRESENT(sid), scd_##_what_##_presents)
+#define __scd_present_clear(_what_, sid)	\
+	clear_bit(SCD_IRQ_PRESENT(sid), scd_##_what_##_presents)
+#else
+#define __scd_present_set(_what_, sid)				\
+	do {							\
+		if (!__scd_present_test_##_what_(sid)) {	\
+			set_bit(SCD_IRQ_PRESENT(sid),		\
+				scd_##_what_##_presents);	\
+			scd_debug(SCD_DEBUG_INTR,		\
+				  SCD_IRQ_ICC_PRESENT+		\
+				  (1<<scd_dbg_irq_##_what_));	\
+		}						\
+	} while (0)
+#define __scd_present_clear(_what_, sid)			\
+	do {							\
+		if (__scd_present_test_##_what_(sid)) {		\
+			clear_bit(SCD_IRQ_PRESENT(sid),		\
+				  scd_##_what_##_presents);	\
+			scd_debug(SCD_DEBUG_INTR,		\
+				  SCD_IRQ_ICC_NOTPRESENT+	\
+				  (1<<scd_dbg_irq_##_what_));	\
+		}						\
+	} while (0)
+#endif
+
+static uint16_t scd_present_length(void)
 {
-	return test_bit(SCD_INTR_CHANGE(sid), scd_running_intrs);
+	return 1 + div16u(ALIGN(NR_SCD_USB_SLOTS,
+				SCD_IRQ_PRESENT_ALIGN),
+			  SCD_IRQ_PRESENT_ALIGN);
 }
 
-boolean __scd_change_pending_sid(scd_sid_t sid)
+boolean __scd_present_test_slot(sid)
 {
-	return test_bit(SCD_INTR_CHANGE(sid), scd_pending_intrs);
+	if (scd_slot_status() == SCD_SLOT_STATUS_NOTPRESENT)
+		return false;
+	return true;
 }
 
-void __scd_handle_change_sid(scd_sid_t sid)
+boolean __scd_present_changed_sid(scd_sid_t sid)
 {
-	uint8_t status = 0x00;
-
-	USBD_INB(SCD_RDR2PC_NOTIFYSLOTCHANGE);
-	/* TODO */
-	USBD_INB(status);
+	if (__scd_present_test_submitted(sid) !=
+	    __scd_present_test_slot(sid))
+		return true;
+	return false;
 }
 
-void __scd_handle_change_all(void)
+boolean __scd_present_changed_all(void)
+{
+	scd_sid_t sid;
+	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
+		if (__scd_present_changed_sid(sid))
+			return true;
+	}
+	return false;
+}
+
+static void __scd_present_fill_sid(bits_t *addr,
+				   scd_sid_t sid, scd_sid_t usbsid)
+{
+	if (__scd_present_test_submitted(sid)) {
+		set_bit(SCD_IRQ_PRESENT_BIT(usbsid), addr);
+	} else {
+		clear_bit(SCD_IRQ_PRESENT_BIT(usbsid), addr);
+	}
+	if (__scd_present_test_submitted(sid) !=
+	    __scd_present_test_discarded(sid)) {
+		set_bit(SCD_IRQ_CHANGED_BIT(usbsid), addr);
+	} else {
+		clear_bit(SCD_IRQ_CHANGED_BIT(usbsid), addr);
+	}
+}
+
+static void __scd_present_fill_all(bits_t *addr)
+{
+	scd_sid_t sid;
+	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
+		__scd_present_fill_sid(addr, sid, sid);
+	}
+}
+
+void __scd_handle_present_sid(scd_sid_t sid)
 {
 	uint8_t i;
+	DECLARE_BITMAP(status, NR_SCD_USB_SLOTS+NR_SCD_USB_SLOTS);
 	USBD_INB(SCD_RDR2PC_NOTIFYSLOTCHANGE);
-	for (i = 0; i < sizeof (scd_running_intrs); i++) {
-		USBD_INB(scd_running_intrs[i]);
+	__scd_present_fill_sid(status, sid, 0);
+	for (i = 0; i < sizeof (status); i++) {
+		USBD_INB(status[i]);
 	}
 }
 
-void __scd_discard_change_sid(scd_sid_t sid)
+void __scd_handle_present_all(void)
 {
-	if (__scd_change_running(sid)) {
-		clear_bit(SCD_INTR_CHANGE(sid), scd_running_intrs);
-		scd_debug(SCD_DEBUG_INTR, SCD_INTR_RUNNING_UNSET);
+	uint8_t i;
+	DECLARE_BITMAP(status, NR_SCD_USB_SLOTS+NR_SCD_USB_SLOTS);
+	USBD_INB(SCD_RDR2PC_NOTIFYSLOTCHANGE);
+	__scd_present_fill_all(status);
+	for (i = 0; i < sizeof (status); i++) {
+		USBD_INB(status[i]);
 	}
 }
 
-void __scd_submit_change_sid(scd_sid_t sid)
+void __scd_discard_present_sid(scd_sid_t sid)
 {
-	/* copy changed bits */
-	clear_bit(SCD_INTR_CHANGE(sid), scd_pending_intrs);
-	scd_debug(SCD_DEBUG_INTR, SCD_INTR_PENDING_UNSET);
-	set_bit(SCD_INTR_CHANGE(sid), scd_running_intrs);
-	scd_debug(SCD_DEBUG_INTR, SCD_INTR_RUNNING_SET);
-
-	/* copy status bits */
-	if (test_bit(SCD_INTR_STATUS(sid), scd_pending_intrs)) {
-		set_bit(SCD_INTR_STATUS(sid), scd_running_intrs);
-		scd_debug(SCD_DEBUG_INTR, SCD_INTR_ICC_PRESENT);
+	if (__scd_present_test_submitted(sid)) {
+		__scd_present_set(discarded, sid);
 	} else {
-		clear_bit(SCD_INTR_STATUS(sid), scd_running_intrs);
-		scd_debug(SCD_DEBUG_INTR, SCD_INTR_ICC_NOTPRESENT);
+		__scd_present_clear(discarded, sid);
 	}
 }
 
-static uint16_t scd_change_length(void)
+void __scd_submit_present_sid(scd_sid_t sid)
 {
-	return 1 + div16u(ALIGN(NR_SCD_USB_SLOTS, 4), 4);
-}
-
-void scd_irq_raise_change(void)
-{
-	boolean changed = false;
-
-	BUG_ON(scd_sid >= NR_SCD_SLOTS);
-	if (scd_slot_status() == SCD_SLOT_STATUS_NOTPRESENT) {
-		/* ccid_discard(); */
-		if (test_bit(SCD_INTR_STATUS(scd_sid), scd_pending_intrs)) {
-			clear_bit(SCD_INTR_STATUS(scd_sid), scd_pending_intrs);
-			changed = true;
-		}
+	if (__scd_present_test_slot(sid)) {
+		__scd_present_set(submitted, sid);
 	} else {
-		if (!test_bit(SCD_INTR_STATUS(scd_sid), scd_pending_intrs)) {
-			set_bit(SCD_INTR_STATUS(scd_sid), scd_pending_intrs);
-			changed = true;
-		}
-	}
-	if (changed) {
-		set_bit(SCD_INTR_CHANGE(scd_sid), scd_pending_intrs);
-		scd_debug(SCD_DEBUG_INTR, SCD_INTR_PENDING_SET);
-	}
-}
-
-static void scd_change_init(void)
-{
-	scd_sid_t sid, ssid;
-	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
-		ssid = scd_qid_save(sid);
-		scd_irq_raise_change();
-		scd_qid_restore(ssid);
+		__scd_present_clear(submitted, sid);
 	}
 }
 
 void __scd_submit_interrupt(uint8_t addr)
 {
-	if (scd_change_pending()) {
-		if (usbd_request_submit(addr,
-					scd_change_length())) {
-			scd_submit_change();
+	if (scd_present_changed()) {
+		if (usbd_request_submit(addr, scd_present_length())) {
+			scd_submit_present();
 		}
 	}
-}
-
-void scd_irq_init(void)
-{
-	__scd_irq_init();
-	scd_change_init();
 }
 
 usbd_endpoint_t scd_endpoint_irq = {

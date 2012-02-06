@@ -285,7 +285,6 @@ static void ifd_slot_set_state(uint8_t status)
 	scs_debug_sl_state(status);
 	ifd_slot_ctrl.status = status;
 	ifd_handle_slot_seq();
-	if (ifd_notifier) ifd_notifier();
 	ifd_slot_synchronization(status);
 }
 
@@ -2436,9 +2435,8 @@ uint8_t ifd_register_protocol(ifd_proto_t *proto)
 	return pid;
 }
 
-void ifd_register_handlers(scs_intr_cb notifier, scs_cmpl_cb completion)
+void ifd_register_completion(scs_cmpl_cb completion)
 {
-	ifd_notifier = notifier;
 	ifd_complete = completion;
 }
 
