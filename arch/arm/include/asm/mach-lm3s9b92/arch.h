@@ -19,4 +19,8 @@
 /* flash memory */
 #include <driver/flash.h>
 
+#define PN53X_HW_SPI_CHIP	0x11
+#define LCD_HW_SPI_CHIP		0x01
+#define	SD_HW_SPI_CHIP		0x02
+
 #endif /* __ARCH_LM3S9B92_H_INCLUDE__ */
