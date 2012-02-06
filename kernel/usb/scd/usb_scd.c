@@ -563,7 +563,7 @@ void __scd_handle_present_init(bits_t *addr, uint8_t size)
 {
 	uint8_t i;
 	USBD_INB(SCD_RDR2PC_NOTIFYSLOTCHANGE);
-	for (i = 0; i < sizeof (status); i++) {
+	for (i = 0; i < size; i++) {
 		addr[i] = 0x00;
 	}
 }
@@ -571,7 +571,7 @@ void __scd_handle_present_init(bits_t *addr, uint8_t size)
 void __scd_handle_present_exit(bits_t *addr, uint8_t size)
 {
 	uint8_t i;
-	for (i = 0; i < sizeof (status); i++) {
+	for (i = 0; i < size; i++) {
 		USBD_INB(addr[i]);
 	}
 }
