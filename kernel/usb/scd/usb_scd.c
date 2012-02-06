@@ -465,8 +465,8 @@ DECLARE_BITMAP(scd_submitted_presents, NR_SCD_SLOTS);
 
 #define SCD_IRQ_PRESENT_BITS		2
 #define SCD_IRQ_PRESENT_ALIGN		(1<<SCD_IRQ_PRESENT_BITS)
-#define SCD_IRQ_PRESENT_BIT(sid)	((uint8_t)(1<<(sid)))
-#define SCD_IRQ_CHANGED_BIT(sid)	((uint8_t)((1<<(sid))+1))
+#define SCD_IRQ_PRESENT_BIT(sid)	((uint8_t)((sid)<<1))
+#define SCD_IRQ_CHANGED_BIT(sid)	((uint8_t)(((sid)<<1)+1))
 
 #define scd_dbg_irq_submitted		0x00
 #define scd_dbg_irq_discarded		0x01
