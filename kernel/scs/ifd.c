@@ -169,7 +169,6 @@ text_word_t ifd_fmax_supps[NR_IFD_FIS] = {
 	    0,  5000,  7500, 10000, 15000, 20000,
 };
 
-__near__ scs_intr_cb ifd_notifier = NULL;
 __near__ scs_cmpl_cb ifd_complete = NULL;
 __near__ sid_t ifd_sid = INVALID_SID;
 
