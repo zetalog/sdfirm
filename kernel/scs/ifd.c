@@ -284,7 +284,6 @@ static void ifd_slot_set_state(uint8_t status)
 	scs_debug_sl_state(status);
 	ifd_slot_ctrl.status = status;
 	ifd_handle_slot_seq();
-	ifd_slot_synchronization(status);
 }
 
 uint8_t ifd_slot_get_state(void)

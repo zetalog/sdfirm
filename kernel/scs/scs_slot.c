@@ -64,14 +64,10 @@ void scs_complete_slot(scs_err_t err)
 	scs_slot_seq_onoff(false);
 }
 
-void scs_set_slot_status(uint8_t state)
-{
-	scs_slot_attrib.state = state;
-}
-
 uint8_t scs_get_slot_status(void)
 {
-	return scs_slot_attrib.state;
+	BUG_ON(!scs_slot_driver || !scs_slot_driver->status);
+	return scs_slot_driver->status();
 }
 
 void scs_set_slot_error(scs_err_t errno)

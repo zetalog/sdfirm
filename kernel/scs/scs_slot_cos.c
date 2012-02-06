@@ -14,16 +14,6 @@ static scs_err_t cos_slot_error(scs_err_t err)
 	}
 }
 
-uint8_t cos_slot_status(uint8_t status)
-{
-	switch (status) {
-	case SCS_SLOT_STATUS_ACTIVE:
-		return SCS_SLOT_STATUS_ACTIVE;
-	default:
-		return SCS_SLOT_STATUS_INACTIVE;
-	}
-}
-
 static void cos_slot_select(void)
 {
 	/* Shouldn't be multiple COSes. */
@@ -31,8 +21,7 @@ static void cos_slot_select(void)
 
 static scs_err_t cos_slot_activate(void)
 {
-	scs_err_t err;
-	err = cos_power_on();
+	scs_err_t err = cos_power_on();
 	return cos_slot_error(err);
 }
 
@@ -63,7 +52,17 @@ static uint8_t cos_slot_xchg_read(scs_off_t index)
 	return cos_xchg_read(index);
 }
 
+static uint8_t cos_slot_status(void)
+{
+	scs_slot_select(cos_sid);
+	if (cos_activated())
+		return SCS_SLOT_STATUS_ACTIVE;
+	else
+		return SCS_SLOT_STATUS_INACTIVE;
+}
+
 scs_slot_driver_t cos_slot = {
+	cos_slot_status,
 	cos_slot_select,
 	cos_slot_activate,
 	cos_slot_deactivate,
@@ -77,12 +76,6 @@ void cos_slot_completion(scs_err_t err)
 {
 	scs_slot_select(cos_sid);
 	scs_complete_slot(cos_slot_error(err));
-}
-
-void cos_slot_synchronization(uint8_t status)
-{
-	scs_slot_select(cos_sid);
-	scs_set_slot_status(cos_slot_status(status));
 }
 
 void cos_slot_init(void)

@@ -104,20 +104,36 @@ Sfr(SCICLK,	0xC1);		/* Smart Card Clock Prescaler */
 //#define __ifd_hw_xchg_raised(irq)	(SCISR & (SCIB_IRQ(irq) | SCIB_IRQ(SCWTO) | SCIB_IRQ(SCPE)))
 
 /* Card Presence Detection
- *   Registers involves:
- * 	SCICR.CARDDET	select the card in sense
- * 	ISEL.CPLEV	detect level selection bit
- * 	PMOD.CPRESRES	connect to the internal pullup if there is no external pullup
- * 	ISEL.PRESEN	detect interrupt enable bit
- * 	ISEL.PRESIT	detect interrupt flag
+ * Registers involves:
+ *  PMOD.CPRESRES - Card Presence Pull-up resistor
+ *   Cleared to connect the internal 100K pull-up
+ *   Set to disconnect the internal pull-up
+ *  SCICR.CARDDET - Card Presence Detector Sense
+ *   Clear this bit to indicate the card presence detector is open when no
+ *   card is inserted (CPRES is high).
+ *   Set this bit to indicate the card presence detector is closed when no
+ *   card is inserted (CPRES is low).
+ *  ISEL.CPLEV - Card presence detection level
+ *   This bit indicates which CPRES level will bring about an interrupt
+ *   Set this bit to indicate that Card Presence IT will appear if CPRES
+ *   is at high level.
+ *   Clear this bit to indicate that Card Presence IT will appear if CPRES
+ *   is at low level.
+ *  ISEL.PRESEN - Card presence detection Interrupt Enable bit
+ *   Clear to disable the card presence detection interrupt coming from
+ *   SCIB.
+ *   Set to enable the card presence detection interrupt coming from SCIB.
+ *  ISEL.PRESIT - Card presence detection interrupt flag
+ *   Set by hardware
+ *   Must be cleared by software
  */
-#ifdef CONFIG_IFD_AT8XC5122_PRES_HIGH
+#ifdef CONFIG_IFD_AT8XC5122_PRES_LOW
 #define __ifd_hw_detect_config()	\
 	(SCSR |= MSK_SCSR_SCRS, SCICR &= ~MSK_SCICR_CARDDET)
 #define __ifd_hw_detect_pres()		(ISEL &= ~MSK_ISEL_CPLEV)
 #define __ifd_hw_detect_abse()		(ISEL |= MSK_ISEL_CPLEV)
 #endif
-#ifdef CONFIG_IFD_AT8XC5122_PRES_LOW
+#ifdef CONFIG_IFD_AT8XC5122_PRES_HIGH
 #define __ifd_hw_detect_config()	\
 	(SCSR |= MSK_SCSR_SCRS, SCICR |= MSK_SCICR_CARDDET)
 #define __ifd_hw_detect_pres()		(ISEL |= MSK_ISEL_CPLEV)

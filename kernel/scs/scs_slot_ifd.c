@@ -34,9 +34,10 @@ scs_err_t ifd_slot_error(scs_err_t err)
 	}
 }
 
-uint8_t ifd_slot_status(uint8_t state)
+static uint8_t ifd_slot_status(void)
 {
-	switch (state) {
+	scs_slot_select(ifd_slot_sid(ifd_slid));
+	switch (ifd_slot_get_state()) {
 	case IFD_SLOT_STATE_ATR_READY:
 		return SCS_SLOT_STATUS_ACTIVE;
 	case IFD_SLOT_STATE_NOTPRESENT:
@@ -95,6 +96,7 @@ static uint8_t ifd_slot_xchg_read(scs_off_t index)
 }
 
 scs_slot_driver_t ifd_slot = {
+	ifd_slot_status,
 	ifd_slot_select,
 	ifd_slot_activate,
 	ifd_slot_deactivate,
@@ -108,12 +110,6 @@ void ifd_slot_completion(scs_err_t err)
 {
 	scs_slot_select(ifd_slot_sid(ifd_slid));
 	scs_complete_slot(ifd_slot_error(err));
-}
-
-void ifd_slot_synchronization(uint8_t status)
-{
-	scs_slot_select(ifd_slot_sid(ifd_slid));
-	scs_set_slot_status(ifd_slot_status(status));
 }
 
 void ifd_slot_init()

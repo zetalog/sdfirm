@@ -273,14 +273,13 @@ struct cos_secu {
 
 #ifdef CONFIG_COS_SLOT
 void cos_slot_completion(scs_err_t err);
-void cos_slot_synchronization(uint8_t state);
 #else
 #define cos_slot_completion(err)
-#define cos_slot_synchronization(state)
 #endif
 
 scs_err_t cos_power_on(void);
 scs_err_t cos_power_off(void);
+boolean cos_activated(void);
 
 scs_err_t cos_xchg_block(scs_size_t nc, scs_size_t ne);
 scs_size_t cos_xchg_avail(void);

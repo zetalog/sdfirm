@@ -181,7 +181,7 @@ config IFD_AT8XC5122_MAX_FREQ
 	help
 
 choice
-	prompt "Card presence detection"
+	prompt "CPRES detected on card presence"
 	default IFD_AT8XC5122_PRES_LOW
 	help
 	  Card presence detection can be done through CPRES pin.  Card
@@ -192,13 +192,13 @@ choice
 	  correct CPLEV configuration.
 
 config IFD_AT8XC5122_PRES_LOW
-	bool "Closed - CPRES low"
+	bool "Low"
 	help
 	  Card insertion will cause card presence switch in the slot to be
 	  closed, and CPRES will be pulled down.
 
 config IFD_AT8XC5122_PRES_HIGH
-	bool "Opened - CPRES high"
+	bool "High"
 	help
 	  Card insertion will cause card presence switch in the slot to be
 	  opened, and CPRES will be pulled up.

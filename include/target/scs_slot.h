@@ -21,6 +21,7 @@ typedef uint8_t scs_sid_t;
  * 3. ISO14443-4 contactless interface device (PCD)
  */
 struct scs_slot_driver {
+	uint8_t (*status)(void);
 	void (*select)(void);
 	scs_err_t (*activate)(void);
 	scs_err_t (*deactivate)(void);
@@ -33,7 +34,6 @@ __TEXT_TYPE__(struct scs_slot_driver, scs_slot_driver_t);
 
 struct scs_slot {
 	uint8_t error;
-	uint8_t state;
 	scs_cmpl_cb cmpl;
 };
 
@@ -73,6 +73,5 @@ uint8_t scs_slot_xchg_read(scs_off_t index);
 void scs_set_slot_error(scs_err_t errno);
 scs_err_t scs_get_slot_error(void);
 uint8_t scs_get_slot_status(void);
-void scs_set_slot_status(uint8_t status);
 
 #endif /* __SCS_SLOT_H_INCLUDE__ */

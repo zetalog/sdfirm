@@ -628,6 +628,11 @@ scs_size_t cos_xchg_avail(void)
 	return cos_xfr.rx;
 }
 
+boolean cos_activated(void)
+{
+	return cos_intfc.activated;
+}
+
 scs_err_t cos_xchg_block(scs_size_t nc, scs_size_t ne)
 {
 	if (!cos_intfc.activated)
