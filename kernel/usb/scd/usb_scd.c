@@ -468,9 +468,6 @@ DECLARE_BITMAP(scd_submitted_presents, NR_SCD_SLOTS);
 #define SCD_IRQ_PRESENT_BIT(sid)	((uint8_t)((sid)<<1))
 #define SCD_IRQ_CHANGED_BIT(sid)	((uint8_t)(((sid)<<1)+1))
 
-#define scd_dbg_irq_submitted		0x00
-#define scd_dbg_irq_discarded		0x01
-
 #define __scd_present_test_discarded(sid)	\
 	test_bit(SCD_IRQ_PRESENT(sid), scd_discarded_presents)
 #define __scd_present_test_submitted(sid)	\
@@ -481,14 +478,17 @@ DECLARE_BITMAP(scd_submitted_presents, NR_SCD_SLOTS);
 #define __scd_present_clear(_what_, sid)	\
 	clear_bit(SCD_IRQ_PRESENT(sid), scd_##_what_##_presents)
 #else
+#define scd_dbg_irq_submitted		0x80
+#define scd_dbg_irq_discarded		0x00
+
 #define __scd_present_set(_what_, sid)				\
 	do {							\
 		if (!__scd_present_test_##_what_(sid)) {	\
 			set_bit(SCD_IRQ_PRESENT(sid),		\
 				scd_##_what_##_presents);	\
 			scd_debug(SCD_DEBUG_INTR,		\
-				  SCD_IRQ_ICC_PRESENT+		\
-				  (1<<scd_dbg_irq_##_what_));	\
+				  SCD_IRQ_ICC_PRESENT |		\
+				  (scd_dbg_irq_##_what_));	\
 		}						\
 	} while (0)
 #define __scd_present_clear(_what_, sid)			\
@@ -497,8 +497,8 @@ DECLARE_BITMAP(scd_submitted_presents, NR_SCD_SLOTS);
 			clear_bit(SCD_IRQ_PRESENT(sid),		\
 				  scd_##_what_##_presents);	\
 			scd_debug(SCD_DEBUG_INTR,		\
-				  SCD_IRQ_ICC_NOTPRESENT+	\
-				  (1<<scd_dbg_irq_##_what_));	\
+				  SCD_IRQ_ICC_NOTPRESENT |	\
+				  (scd_dbg_irq_##_what_));	\
 		}						\
 	} while (0)
 #endif

@@ -25,25 +25,35 @@ static void scd_dump_slot(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 
 #define SCD_IRQ_ICC_NOTPRESENT		0x00
 #define SCD_IRQ_ICC_PRESENT		0x01
-#define scd_dbg_irq_submitted		0x00
-#define scd_dbg_irq_discarded		0x01
+#define scd_dbg_irq_submitted		0x80
+#define scd_dbg_irq_discarded		0x00
 
 static void scd_dump_interrupt(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 {
-	if (data & (1<<scd_dbg_irq_submitted)) {
-		if (data & SCD_IRQ_ICC_PRESENT) {
-			dbg_dumper(ctx, cmd, "irq=SUBMITTED_PRESENT");
-		} else {
+	if (data & scd_dbg_irq_submitted) {
+		switch (data & 0x7F) {
+		case 0x00:
 			dbg_dumper(ctx, cmd, "irq=SUBMITTED_NOTPRESENT)");
-		}
-	} else if (data & (1<<scd_dbg_irq_discarded)) {
-		if (data & SCD_IRQ_ICC_PRESENT) {
-			dbg_dumper(ctx, cmd, "irq=DISCARDED_PRESENT");
-		} else {
-			dbg_dumper(ctx, cmd, "irq=DISCARDED_NOTPRESENT)");
+			break;
+		case 0x01:
+			dbg_dumper(ctx, cmd, "irq=SUBMITTED_PRESENT");
+			break;
+		default:
+			dbg_dumper(ctx, cmd, "irq=%02x", data);
+			break;
 		}
 	} else {
-		dbg_dumper(ctx, cmd, "irq=%02x", data);
+		switch (data & 0x7F) {
+		case 0x00:
+			dbg_dumper(ctx, cmd, "irq=DISCARDED_NOTPRESENT)");
+			break;
+		case 0x01:
+			dbg_dumper(ctx, cmd, "irq=DISCARDED_PRESENT");
+			break;
+		default:
+			dbg_dumper(ctx, cmd, "irq=%02x", data);
+			break;
+		}
 	}
 }
 
