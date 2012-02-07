@@ -23,24 +23,27 @@ static void scd_dump_slot(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 	dbg_dumper(ctx, cmd, "sid=%02x", data);
 }
 
+#define SCD_IRQ_ICC_NOTPRESENT		0x00
+#define SCD_IRQ_ICC_PRESENT		0x01
+#define scd_dbg_irq_submitted		0x00
+#define scd_dbg_irq_discarded		0x01
+
 static void scd_dump_interrupt(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 {
-	switch (data) {
-	case 0:
-		dbg_dumper(ctx, cmd, "intr=submit(NOTPRESENT)");
-		break;
-	case 1:
-		dbg_dumper(ctx, cmd, "intr=submit(PRESENT)");
-		break;
-	case 2:
-		dbg_dumper(ctx, cmd, "intr=discard(NOTPRESENT)");
-		break;
-	case 3:
-		dbg_dumper(ctx, cmd, "intr=discard(PRESENT)");
-		break;
-	default:
-		dbg_dumper(ctx, cmd, "intr=%02x", data);
-		break;
+	if (data & (1<<scd_dbg_irq_submitted)) {
+		if (data & SCD_IRQ_ICC_PRESENT) {
+			dbg_dumper(ctx, cmd, "irq=SUBMITTED_PRESENT");
+		} else {
+			dbg_dumper(ctx, cmd, "irq=SUBMITTED_NOTPRESENT)");
+		}
+	} else if (data & (1<<scd_dbg_irq_discarded)) {
+		if (data & SCD_IRQ_ICC_PRESENT) {
+			dbg_dumper(ctx, cmd, "irq=DISCARDED_PRESENT");
+		} else {
+			dbg_dumper(ctx, cmd, "irq=DISCARDED_NOTPRESENT)");
+		}
+	} else {
+		dbg_dumper(ctx, cmd, "irq=%02x", data);
 	}
 }
 
