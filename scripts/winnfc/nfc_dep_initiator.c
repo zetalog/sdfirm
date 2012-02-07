@@ -45,58 +45,61 @@ static nfc_device_t *pnd;
 
 void stop_dep_communication (int sig)
 {
-  (void) sig;
-  if (pnd)
-    nfc_abort_command (pnd);
-  else
-    exit (EXIT_FAILURE);
+	(void)sig;
+	if (pnd)
+		nfc_abort_command(pnd);
+	else
+		exit(EXIT_FAILURE);
 }
 
-int
-main (int argc, const char *argv[])
+int main(int argc, const char *argv[])
 {
-  nfc_target_t nt;
-  byte_t  abtRx[MAX_FRAME_LEN];
-  size_t  szRx = sizeof(abtRx);
-  byte_t  abtTx[] = "Hello World!";
-
-  if (argc > 1) {
-    printf ("Usage: %s\n", argv[0]);
-    return EXIT_FAILURE;
-  }
-
-  pnd = nfc_connect (NULL);
-  if (!pnd) {
-    printf("Unable to connect to NFC device.\n");
-    return EXIT_FAILURE;
-  }
-  printf ("Connected to NFC device: %s\n", pnd->acName);
-
-  signal (SIGINT, stop_dep_communication);
-
-  if (!nfc_initiator_init (pnd)) {
-    nfc_perror(pnd, "nfc_initiator_init");
-    return EXIT_FAILURE;
-  }
-
-  if(!nfc_initiator_select_dep_target (pnd, NDM_PASSIVE, NBR_212, NULL, &nt)) {
-    nfc_perror(pnd, "nfc_initiator_select_dep_target");
-    goto error;
-  }
-  print_nfc_target (nt, false);
-
-  printf ("Sending: %s\n", abtTx);
-  if (!nfc_initiator_transceive_bytes (pnd, abtTx, sizeof(abtTx), abtRx, &szRx, NULL)) {
-    nfc_perror(pnd, "nfc_initiator_transceive_bytes");
-    goto error;
-  }
-
-  abtRx[szRx] = 0;
-  printf ("Received: %s\n", abtRx);
-
-  nfc_initiator_deselect_target (pnd);
-
+	nfc_target_t nt;
+	byte_t abtRx[MAX_FRAME_LEN];
+	size_t szRx = sizeof (abtRx);
+	byte_t abtTx[] = "Hello World!";
+	
+	if (argc > 1) {
+		printf("Usage: %s\n", argv[0]);
+		return EXIT_FAILURE;
+	}
+	
+	pnd = nfc_connect(NULL);
+	if (!pnd) {
+		printf("Unable to connect to NFC device.\n");
+		return EXIT_FAILURE;
+	}
+	printf("Connected to NFC device: %s\n", pnd->acName);
+	
+	signal(SIGINT, stop_dep_communication);
+	
+	if (!nfc_initiator_init(pnd)) {
+		nfc_perror(pnd, "nfc_initiator_init");
+		return EXIT_FAILURE;
+	}
+	
+	if (!nfc_initiator_select_dep_target(pnd,
+					     NDM_PASSIVE, NBR_212,
+					     NULL, &nt)) {
+		nfc_perror(pnd, "nfc_initiator_select_dep_target");
+		goto error;
+	}
+	print_nfc_target(nt, false);
+	
+	printf("Sending: %s\n", abtTx);
+	if (!nfc_initiator_transceive_bytes(pnd,
+					    abtTx, sizeof(abtTx),
+					    abtRx, &szRx, NULL)) {
+		nfc_perror(pnd, "nfc_initiator_transceive_bytes");
+		goto error;
+	}
+	
+	abtRx[szRx] = 0;
+	printf("Received: %s\n", abtRx);
+	
+	nfc_initiator_deselect_target(pnd);
+	
 error:
-  nfc_disconnect (pnd);
-  return EXIT_SUCCESS;
+	nfc_disconnect(pnd);
+	return EXIT_SUCCESS;
 }

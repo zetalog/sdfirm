@@ -43,88 +43,91 @@
 
 static nfc_device_t *pnd = NULL;
 
-void stop_polling (int sig)
+void stop_polling(int sig)
 {
-  (void) sig;
-  if (pnd)
-    nfc_abort_command (pnd);
-  else
-    exit (EXIT_FAILURE);
+	(void) sig;
+	if (pnd)
+		nfc_abort_command (pnd);
+	else
+		exit (EXIT_FAILURE);
 }
 
-int
-main (int argc, const char *argv[])
+int main(int argc, const char *argv[])
 {
-  size_t  szFound;
-  size_t  i;
-  bool verbose = false;
-  nfc_device_desc_t *pnddDevices;
-  // Display libnfc version
-  const char *acLibnfcVersion = nfc_version ();
-
-  signal (SIGINT, stop_polling);
-
-  pnddDevices = parse_args (argc, argv, &szFound, &verbose);
-
-  if (argc > 1) {
-    ERR ("usage: %s", argv[0]);
-  }
-
-  printf ("%s uses libnfc %s\n", argv[0], acLibnfcVersion);
-
-  if (szFound == 0) {
-    if (!(pnddDevices = malloc (MAX_DEVICE_COUNT * sizeof (*pnddDevices)))) {
-      fprintf (stderr, "malloc() failed\n");
-      exit (EXIT_FAILURE);
-    }
-  }
-
-  nfc_list_devices (pnddDevices, MAX_DEVICE_COUNT, &szFound);
-
-  if (szFound == 0) {
-    printf ("No NFC device found.\n");
-  }
-
-  for (i = 0; i < szFound; i++) {
-    const uint8_t uiPollNr = 20;
-    const uint8_t uiPeriod = 2;
-    const nfc_modulation_t nmModulations[5] = {
-      { NMT_ISO14443A, NBR_106 },
-      { NMT_ISO14443B, NBR_106 },
-      { NMT_FELICA, NBR_212 },
-      { NMT_FELICA, NBR_424 },
-      { NMT_JEWEL, NBR_106 },
-    };
-    const size_t szModulations = 5;
-
-    nfc_target_t nt;
-    bool    res;
-
-    pnd = nfc_connect (&(pnddDevices[i]));
-
-    if (pnd == NULL) {
-      ERR ("%s", "Unable to connect to NFC device.");
-      exit (EXIT_FAILURE);
-    }
-    nfc_initiator_init (pnd);
-
-    printf ("Connected to NFC reader: %s\n", pnd->acName);
-    printf ("NFC device will poll during %ld ms (%u pollings of %lu ms for %zd modulations)\n", (unsigned long) uiPollNr * szModulations * uiPeriod * 150, uiPollNr, (unsigned long) uiPeriod * 150, szModulations);
-    res = nfc_initiator_poll_target (pnd, nmModulations, szModulations, uiPollNr, uiPeriod, &nt);
-    if (res) {
-      print_nfc_target ( nt, verbose );
-    } else {
-      if (pnd->iLastError) {
-        nfc_perror (pnd, "nfc_initiator_poll_targets");
-        nfc_disconnect (pnd);
-        exit (EXIT_FAILURE);
-      } else {
-        printf ("No target found.\n");
-      }
-    }
-    nfc_disconnect (pnd);
-  }
-
-  free (pnddDevices);
-  exit (EXIT_SUCCESS);
+	size_t  szFound;
+	size_t  i;
+	bool verbose = false;
+	nfc_device_desc_t *pnddDevices;
+	/* Display libnfc version */
+	const char *acLibnfcVersion = nfc_version();
+	
+	signal(SIGINT, stop_polling);
+	
+	pnddDevices = parse_args(argc, argv, &szFound, &verbose);
+	
+	if (argc > 1) {
+		ERR("usage: %s", argv[0]);
+	}
+	
+	printf("%s uses libnfc %s\n", argv[0], acLibnfcVersion);
+	
+	if (szFound == 0) {
+		if (!(pnddDevices = malloc(MAX_DEVICE_COUNT * sizeof (*pnddDevices)))) {
+			fprintf(stderr, "malloc() failed\n");
+			exit(EXIT_FAILURE);
+		}
+	}
+	
+	nfc_list_devices(pnddDevices, MAX_DEVICE_COUNT, &szFound);
+	
+	if (szFound == 0) {
+		printf("No NFC device found.\n");
+	}
+	
+	for (i = 0; i < szFound; i++) {
+		const uint8_t uiPollNr = 20;
+		const uint8_t uiPeriod = 2;
+		const nfc_modulation_t nmModulations[5] = {
+			{ NMT_ISO14443A, NBR_106 },
+			{ NMT_ISO14443B, NBR_106 },
+			{ NMT_FELICA, NBR_212 },
+			{ NMT_FELICA, NBR_424 },
+			{ NMT_JEWEL, NBR_106 },
+		};
+		const size_t szModulations = 5;
+		nfc_target_t nt;
+		bool res;
+		
+		pnd = nfc_connect(&(pnddDevices[i]));
+		
+		if (pnd == NULL) {
+			ERR("%s", "Unable to connect to NFC device.");
+			exit(EXIT_FAILURE);
+		}
+		nfc_initiator_init(pnd);
+		
+		printf("Connected to NFC reader: %s\n", pnd->acName);
+		printf("NFC device will poll during %ld ms (%u pollings of %lu ms for %zd modulations)\n",
+		       (unsigned long)uiPollNr * szModulations * uiPeriod * 150,
+		       uiPollNr,
+		       (unsigned long)uiPeriod * 150, szModulations);
+		res = nfc_initiator_poll_target(pnd, nmModulations,
+						szModulations,
+						uiPollNr, uiPeriod, &nt);
+		if (res) {
+			print_nfc_target(nt, verbose);
+		} else {
+			if (pnd->iLastError) {
+				nfc_perror(pnd, "nfc_initiator_poll_targets");
+				nfc_disconnect(pnd);
+				exit(EXIT_FAILURE);
+			} else {
+				printf("No target found.\n");
+			}
+		}
+		nfc_disconnect(pnd);
+	}
+	
+	free(pnddDevices);
+	exit(EXIT_SUCCESS);
 }

@@ -3,6 +3,57 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
+Project: "buildall"="..\..\buildall.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libusb
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_anticol
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_dep_initiator
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_dep_target
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_list
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_mfclassic
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_mfsetuid
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_mfultralight
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_poll
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name pn53x_diagnose
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name pn53x_sam
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name pn53x_tamashell
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "libnfc"=".\libnfc.dsp" - Package Owner=<4>
 
 Package=<5>

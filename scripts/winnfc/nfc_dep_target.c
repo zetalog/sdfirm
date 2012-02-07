@@ -38,98 +38,100 @@
 
 #include "nfc-utils.h"
 
-#define MAX_FRAME_LEN 264
+#define MAX_FRAME_LEN	264
 
 static nfc_device_t *pnd;
 
-void stop_dep_communication (int sig)
+void stop_dep_communication(int sig)
 {
-  (void) sig;
-  if (pnd)
-    nfc_abort_command (pnd);
-  else
-    exit (EXIT_FAILURE);
+	(void) sig;
+	if (pnd)
+		nfc_abort_command(pnd);
+	else
+		exit(EXIT_FAILURE);
 }
 
-int
-main (int argc, const char *argv[])
+int main(int argc, const char *argv[])
 {
-  byte_t  abtRx[MAX_FRAME_LEN];
-  size_t  szRx = sizeof(abtRx);
-  size_t  szDeviceFound;
-  byte_t  abtTx[] = "Hello Mars!";
-  #define MAX_DEVICE_COUNT 2
-  nfc_device_desc_t pnddDevices[MAX_DEVICE_COUNT];
-  nfc_dep_info_t ndi = {
-    { 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xff, 0x00, 0x00 },
-    /* These bytes are not used by nfc_target_init: the chip will provide them automatically to the initiator */
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x01,
-    { 0x12, 0x34, 0x56, 0x78 },
-    4,
-    NDM_UNDEFINED,
-  };
-  nfc_target_t nt;
-
-  nfc_list_devices (pnddDevices, MAX_DEVICE_COUNT, &szDeviceFound);
-  // Little hack to allow using nfc-dep-initiator & nfc-dep-target from
-  // the same machine: if there is more than one readers connected
-  // nfc-dep-target will connect to the second reader
-  // (we hope they're always detected in the same order)
-  if (szDeviceFound == 1) {
-    pnd = nfc_connect (&(pnddDevices[0]));
-  } else if (szDeviceFound > 1) {
-    pnd = nfc_connect (&(pnddDevices[1]));
-  } else {
-    printf("No device found.");
-    return EXIT_FAILURE;
-  }
-
-  if (argc > 1) {
-    printf ("Usage: %s\n", argv[0]);
-    return EXIT_FAILURE;
-  }
-
-  nt.nm.nmt = NMT_DEP;
-  nt.nm.nbr = NBR_UNDEFINED;
-  memcpy(&nt.nti.ndi, &ndi, sizeof (ndi));
-
-  if (!pnd) {
-    printf("Unable to connect to NFC device.\n");
-    return EXIT_FAILURE;
-  }
-  printf ("Connected to NFC device: %s\n", pnd->acName);
-
-  signal (SIGINT, stop_dep_communication);
-
-  printf ("NFC device will now act as: ");
-  print_nfc_target (nt, false);
-
-  printf ("Waiting for initiator request...\n");
-  if(!nfc_target_init (pnd, &nt, abtRx, &szRx)) {
-    nfc_perror(pnd, "nfc_target_init");
-    goto error;
-  }
-
-  printf("Initiator request received. Waiting for data...\n");
-  if (!nfc_target_receive_bytes (pnd, abtRx, &szRx, NULL)) {
-    nfc_perror(pnd, "nfc_target_receive_bytes");
-    goto error;
-  }
-  abtRx[szRx] = '\0';
-  printf ("Received: %s\n", abtRx);
-
-  printf ("Sending: %s\n", abtTx);
-  if (!nfc_target_send_bytes (pnd, abtTx, sizeof(abtTx), NULL)) {
-    nfc_perror(pnd, "nfc_target_send_bytes");
-    goto error;
-  }
-  printf("Data sent.\n");
-
+	byte_t abtRx[MAX_FRAME_LEN];
+	size_t szRx = sizeof(abtRx);
+	size_t szDeviceFound;
+	byte_t abtTx[] = "Hello Mars!";
+#define MAX_DEVICE_COUNT	2
+	nfc_device_desc_t pnddDevices[MAX_DEVICE_COUNT];
+	nfc_dep_info_t ndi = {
+		{ 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xff, 0x00, 0x00 },
+		/* These bytes are not used by nfc_target_init: the chip
+		 * will provide them automatically to the initiator
+		 */
+		0x00,
+		0x00,
+		0x00,
+		0x00,
+		0x01,
+		{ 0x12, 0x34, 0x56, 0x78 },
+		4,
+		NDM_UNDEFINED,
+	};
+	nfc_target_t nt;
+	
+	nfc_list_devices(pnddDevices, MAX_DEVICE_COUNT, &szDeviceFound);
+	/* Little hack to allow using nfc-dep-initiator & nfc-dep-target
+	 * from the same machine: if there is more than one readers
+	 * connected nfc-dep-target will connect to the second reader
+	 * (we hope they're always detected in the same order)
+	 */
+	if (szDeviceFound == 1) {
+		pnd = nfc_connect(&(pnddDevices[0]));
+	} else if (szDeviceFound > 1) {
+		pnd = nfc_connect(&(pnddDevices[1]));
+	} else {
+		printf("No device found.");
+		return EXIT_FAILURE;
+	}
+	
+	if (argc > 1) {
+		printf("Usage: %s\n", argv[0]);
+		return EXIT_FAILURE;
+	}
+	
+	nt.nm.nmt = NMT_DEP;
+	nt.nm.nbr = NBR_UNDEFINED;
+	memcpy(&nt.nti.ndi, &ndi, sizeof (ndi));
+	
+	if (!pnd) {
+		printf("Unable to connect to NFC device.\n");
+		return EXIT_FAILURE;
+	}
+	printf("Connected to NFC device: %s\n", pnd->acName);
+	
+	signal(SIGINT, stop_dep_communication);
+	
+	printf("NFC device will now act as: ");
+	print_nfc_target(nt, false);
+	
+	printf("Waiting for initiator request...\n");
+	if (!nfc_target_init(pnd, &nt, abtRx, &szRx)) {
+		nfc_perror(pnd, "nfc_target_init");
+		goto error;
+	}
+	
+	printf("Initiator request received. Waiting for data...\n");
+	if (!nfc_target_receive_bytes(pnd, abtRx, &szRx, NULL)) {
+		nfc_perror(pnd, "nfc_target_receive_bytes");
+		goto error;
+	}
+	abtRx[szRx] = '\0';
+	printf("Received: %s\n", abtRx);
+	
+	printf("Sending: %s\n", abtTx);
+	if (!nfc_target_send_bytes(pnd, abtTx, sizeof(abtTx), NULL)) {
+		nfc_perror(pnd, "nfc_target_send_bytes");
+		goto error;
+	}
+	printf("Data sent.\n");
+	
 error:
-  nfc_disconnect (pnd);
-  return EXIT_SUCCESS;
+	nfc_disconnect(pnd);
+	return EXIT_SUCCESS;
 }
