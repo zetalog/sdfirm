@@ -170,8 +170,6 @@ scd_qid_t scd_qid_save(scd_qid_t qid);
 #ifdef CONFIG_SCD_BULK
 #define SCD_ENDP_BULK_IN		0x00
 #define SCD_ENDP_BULK_OUT		0x01
-#define SCD_ENDP_INTERVAL_IN		0x01
-#define SCD_ENDP_INTERVAL_OUT		0x01
 
 #define SCD_SLOT_STATUS_ACTIVE			0x00
 #define SCD_SLOT_STATUS_INACTIVE		0x01
@@ -393,7 +391,7 @@ void scd_bulk_init(void);
 
 #ifdef CONFIG_SCD_INTERRUPT
 #define SCD_ENDP_INTR_IN		(NR_SCD_ENDPS-1)
-#define SCD_ENDP_INTERVAL_INTR		0x7F
+#define SCD_ENDP_INTERVAL_INTERRUPT	0xFF
 
 #define SCD_RDR2PC_NOTIFYSLOTCHANGE	0x50
 

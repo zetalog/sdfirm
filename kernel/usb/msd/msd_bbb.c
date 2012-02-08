@@ -279,7 +279,7 @@ void msd_proto_start(void)
 
 usbd_endpoint_t msd_endpoint_in = {
 	USBD_ENDP_BULK_IN,
-	MSD_ENDP_INTERVAL,
+	USB_ENDP_INTERVAL_BULK,
 	msd_proto_submit_in,
 	msd_proto_handle_in,
 	msd_proto_complete_in,
@@ -287,7 +287,7 @@ usbd_endpoint_t msd_endpoint_in = {
 
 usbd_endpoint_t msd_endpoint_out = {
 	USBD_ENDP_BULK_OUT,
-	MSD_ENDP_INTERVAL,
+	USB_ENDP_INTERVAL_BULK,
 	msd_proto_submit_out,
 	msd_proto_handle_out,
 	msd_proto_complete_out,

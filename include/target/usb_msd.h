@@ -94,8 +94,6 @@ typedef void (*msd_cmpl_cb)(boolean result);
 #include <target/msd_bbb.h>
 #endif
 
-#define MSD_ENDP_INTERVAL		10
-
 #ifndef MSD_INTERFACE_SUBCLASS
 #error "MSD subclass is not defined"
 #endif

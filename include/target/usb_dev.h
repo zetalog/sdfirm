@@ -80,6 +80,9 @@ boolean usbd_dump_save(boolean dbg);
 #define INVALID_USBD_IID	NR_USBD_INTFS
 #define INVALID_USBD_EID	USB_ADDR(USB_DIR_IN, NR_USBD_ENDPS)
 
+/* 10ms precesion for endpoint polling interval scheduling */
+#define USBD_POLL_INTERVAL		10
+
 struct usb_transfer {
 	/* request available bytes, this should be usb_ctrl_reqs.wLength
 	 * for control transfers.
@@ -161,8 +164,6 @@ struct usbd_endp_ctrl {
 
 #define USBD_ENDP_FLAG_MASK		0x0C
 #define USBD_ENDP_FLAG_HALT		0x04
-
-	uint8_t tick;
 };
 
 struct usbd_endpoint {

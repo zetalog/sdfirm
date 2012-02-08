@@ -426,7 +426,7 @@ void __scd_handle_response(scd_qid_t qid)
 
 usbd_endpoint_t scd_endpoint_out = {
 	USBD_ENDP_BULK_OUT,
-	SCD_ENDP_INTERVAL_OUT,
+	USB_ENDP_INTERVAL_BULK,
 	scd_submit_command,
 	scd_handle_command,
 	scd_complete_command,
@@ -434,7 +434,7 @@ usbd_endpoint_t scd_endpoint_out = {
 
 usbd_endpoint_t scd_endpoint_in = {
 	USBD_ENDP_BULK_IN,
-	SCD_ENDP_INTERVAL_IN,
+	USB_ENDP_INTERVAL_BULK,
 	scd_submit_response,
 	scd_handle_response,
 	scd_complete_response,
@@ -623,7 +623,7 @@ void __scd_submit_interrupt(uint8_t addr)
 
 usbd_endpoint_t scd_endpoint_irq = {
 	USBD_ENDP_INTR_IN,
-	SCD_ENDP_INTERVAL_INTR,
+	SCD_ENDP_INTERVAL_INTERRUPT,
 	scd_submit_interrupt,
 	scd_handle_interrupt,
 	scd_discard_interrupt,

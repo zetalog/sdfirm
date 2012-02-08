@@ -112,9 +112,6 @@ typedef uint16_t (*usb_size_cb)(void);
 #define USB_STATE_ADDRESS		0x04
 #define USB_STATE_CONFIGURED		0x05
 
-/* 1ms precesion for endpoint polling interval scheduling */
-#define USB_ENDP_INTERVAL		1
-
 /* Direction (DIR) & Endpoint ID (EID) Field
  *
  * These bit flags are used in 2 structures defined in the USB standard:
@@ -347,6 +344,7 @@ struct usb_endp_desc {
 
 	uint16_t wMaxPacketSize;
 	uint8_t  bInterval;
+#define USB_ENDP_INTERVAL_BULK	0x00
 };
 __TEXT_TYPE__(struct usb_endp_desc, usb_endp_desc_t);
 #define USB_DT_ENDPOINT_SIZE	7
