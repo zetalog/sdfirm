@@ -1333,7 +1333,11 @@ static uint32_t ccid_device_features(void)
 	features |= SCD_FEATURE_XCHG_TPDU;
 #endif
 #ifdef CONFIG_IFD_XCHG_APDU
+#if SCS_APDU_MAX > 256
+	features |= SCD_FEATURE_XCHG_APDU_EXT;
+#else
 	features |= SCD_FEATURE_XCHG_APDU;
+#endif
 #endif
 	/* SCD_FEATURE_WAKEUP_ICC */
 	return features;

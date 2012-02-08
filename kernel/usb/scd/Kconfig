@@ -100,22 +100,6 @@ config ICCD_SCD
 
 endchoice
 
-choice
-	prompt "ICCD Exchange Level"
-	default ICCD_XCHG_APDU
-
-config ICCD_XCHG_APDU
-	bool "APDU"
-	help
-	  Short APDU
-
-#config ICCD_XCHG_APDU_EXT
-#	bool "APDU EXT"
-#	help
-#	  Short and Extended APDU
-
-endchoice
-
 endif
 
 endif

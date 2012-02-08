@@ -85,8 +85,6 @@
 #define scs_debug_dump(b)
 #endif
 
-typedef uint16_t scs_size_t;
-typedef uint16_t scs_off_t;
 typedef uint8_t scs_err_t;
 
 typedef void (*scs_cmpl_cb)(void);
@@ -115,5 +113,14 @@ typedef void (*scs_tvoid_cb)(void);
 #define SCD_PROTO_T15			0x0F
 
 #define SCS_ATR_MAX			33
+
+#ifdef CONFIG_SCS_APDU_SIZE
+#define SCS_APDU_MAX			CONFIG_SCS_APDU_SIZE
+#else
+#define SCS_APDU_MAX			256
+#endif
+
+typedef uint16_t scs_size_t;
+typedef uint16_t scs_off_t;
 
 #endif /* __SCS_H_INCLUDE__ */

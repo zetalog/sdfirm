@@ -72,7 +72,7 @@ typedef void (*ifd_atr_cb)(uint8_t y);
  * T=1, header+tail is 4-5 bytes
  */
 #define IFD_HEADER_SIZE			5
-#define IFD_BUF_SIZE			256+IFD_HEADER_SIZE
+#define IFD_BUF_SIZE			SCS_APDU_MAX+IFD_HEADER_SIZE
 
 #define NR_IFD_FIS			14
 #define NR_IFD_DIS			10

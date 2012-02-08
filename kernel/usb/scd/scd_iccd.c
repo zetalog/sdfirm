@@ -259,15 +259,10 @@ void scd_irq_init(void)
 static uint32_t iccd_device_features(void)
 {
 	uint32_t features = ICCD_FEATURE_DEFAULT;
-
-#ifdef CONFIG_ICCD_XCHG_CHAR
-	features |= SCD_FEATURE_XCHG_CHAR;
-#endif
-#ifdef CONFIG_ICCD_XCHG_APDU
-	features |= SCD_FEATURE_XCHG_APDU;
-#endif
-#ifdef CONFIG_ICCD_XCHG_APDU_EXT
+#if SCS_APDU_MAX > 256
 	features |= SCD_FEATURE_XCHG_APDU_EXT;
+#else
+	features |= SCD_FEATURE_XCHG_APDU;
 #endif
 	return features;
 }

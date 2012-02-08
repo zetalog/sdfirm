@@ -16,6 +16,11 @@ menuconfig SCS
 
 if SCS
 
+config SCS_APDU_SIZE
+	int "Maximum APDU size"
+	default 256
+	range 256 65536
+
 menuconfig SCS_SLOT
 	bool "Smart card slot device support"
 
@@ -96,7 +101,7 @@ config IFD_XCHG_TPDU
 	  lot of code rom.
 
 config IFD_XCHG_APDU
-	bool "Short APDU"
+	bool "APDU"
 	select IFD_AUTO_SEQUENCE
 	select IFD_AUTO_INFO_XCHG
 #	select IFD_AUTO_PPS_PROP
