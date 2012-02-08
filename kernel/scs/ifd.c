@@ -1683,7 +1683,6 @@ static void ifd_seq_complete(scs_err_t err)
 		ifd_slot_ctrl.cmpl();
 	ifd_seq_set(IFD_SEQ_IDLE);
 	ifd_seq_onoff(false);
-	ifd_slot_completion(err);
 }
 
 static void ifd_seq_reset(void)

@@ -63,33 +63,14 @@ static scd_sid_t iccd_addr2sid(uint8_t addr)
 }
 #define iccd_addr2qid(addr)		((scd_qid_t)(iccd_addr2sid(addr)))
 
-#ifdef CONFIG_ICCD_COS
-uint8_t scd_slot_status(void)
-{
-	return SCD_SLOT_STATUS_ACTIVE;
-}
-
-uint8_t scd_slot_error(scs_err_t err)
-{
-	switch (err) {
-	case SCS_ERR_OVERRUN:
-		return SCD_ERROR_XFR_OVERRUN;
-	case SCS_ERR_NOTPRESENT:
-		return SCD_ERROR_ICC_MUTE;
-	case SCS_ERR_TIMEOUT:
-	case SCS_ERR_HW_ERROR:
-		return SCD_ERROR_HW_ERROR;
-	}
-	return SCD_ERROR_HW_ERROR;
-}
-
 void scd_sid_select(scd_sid_t sid)
 {
+	scd_slot_select(sid);
 }
-#else
+
 uint8_t scd_slot_status(void)
 {
-	uint8_t state = scs_get_slot_status();
+	uint8_t state = scd_get_slot_status();
 
 	switch (state) {
 	case SCS_SLOT_STATUS_ACTIVE:
@@ -115,13 +96,6 @@ uint8_t scd_slot_error(scs_err_t err)
 	}
 	return SCD_ERROR_HW_ERROR;
 }
-
-void scd_sid_select(scd_sid_t sid)
-{
-	/* sid should always be 0, thus useless */
-	scs_slot_select(scd_qid);
-}
-#endif
 
 /*=========================================================================
  * bulk endpoints
@@ -404,7 +378,7 @@ void scd_ctrl_get_desc(void)
 /* TODO: how to know the slot number we should answer */
 static void iccd_handle_ll_cmpl(void)
 {
-	scs_err_t err = __iccd_get_error();
+	scs_err_t err = scd_get_slot_error();
 	BUG_ON(scd_states[scd_qid] != SCD_SLOT_STATE_ISO7816);
 
 	switch (scd_cmds[scd_qid].bMessageType) {
@@ -443,7 +417,7 @@ void scd_init(void)
 {
 	iccd_devid_init();
 
-	__iccd_reg_completion(iccd_handle_ll_cmpl);
+	scd_register_completion(iccd_handle_ll_cmpl);
 	iccd_usb_register();
 
 	scd_bulk_init();

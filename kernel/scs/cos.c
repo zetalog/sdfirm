@@ -128,6 +128,14 @@ struct cos_btlv_value cos_btlv_value;
 #define cos_is_odd_ins()	((INS & __bit_mask(1)) == 1)
 #define COS_SFID_BIT_MASK	0x1F
 
+uint8_t cos_get_status(void)
+{
+	if (cos_activated())
+		return SCS_SLOT_STATUS_ACTIVE;
+	else
+		return SCS_SLOT_STATUS_INACTIVE;
+}
+
 static void cos_parse_header(void)
 {
 	cos_apdu.cla = __cos_read_byte(0);
@@ -673,7 +681,7 @@ scs_err_t cos_power_off(void)
 	return SCS_ERR_SUCCESS;
 }
 
-void cos_register_handlers(scs_cmpl_cb completion)
+void cos_register_completion(scs_cmpl_cb completion)
 {
 	cos_complete = completion;
 }

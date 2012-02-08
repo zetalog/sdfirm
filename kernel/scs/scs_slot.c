@@ -56,9 +56,8 @@ static void scs_slot_seq_onoff(boolean on)
 		scs_slot_attrib.cmpl = NULL;
 }
 
-void scs_complete_slot(scs_err_t err)
+void scs_complete_slot(void)
 {
-	scs_set_slot_error(err);
 	if (scs_slot_attrib.cmpl)
 		scs_slot_attrib.cmpl();
 	scs_slot_seq_onoff(false);
@@ -70,14 +69,10 @@ uint8_t scs_get_slot_status(void)
 	return scs_slot_driver->status();
 }
 
-void scs_set_slot_error(scs_err_t errno)
-{
-	scs_slot_attrib.error = errno;
-}
-
 scs_err_t scs_get_slot_error(void)
 {
-	return scs_slot_attrib.error;
+	BUG_ON(!scs_slot_driver || !scs_slot_driver->get_error);
+	return scs_slot_driver->get_error();
 }
 
 scs_err_t scs_slot_power_on(void)
@@ -135,7 +130,7 @@ uint8_t scs_slot_xchg_read(scs_off_t index)
 	return scs_slot_driver->xchg_read(index);
 }
 
-void scd_slot_register_completion(scs_cmpl_cb completion)
+void scs_slot_register_completion(scs_cmpl_cb completion)
 {
 	scs_slot_completion = completion;
 }

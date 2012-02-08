@@ -21,6 +21,7 @@ typedef uint8_t scs_sid_t;
  * 3. ISO14443-4 contactless interface device (PCD)
  */
 struct scs_slot_driver {
+	uint8_t (*get_error)(void);
 	uint8_t (*status)(void);
 	void (*select)(void);
 	scs_err_t (*activate)(void);
@@ -33,7 +34,6 @@ struct scs_slot_driver {
 __TEXT_TYPE__(struct scs_slot_driver, scs_slot_driver_t);
 
 struct scs_slot {
-	uint8_t error;
 	scs_cmpl_cb cmpl;
 };
 
@@ -56,10 +56,10 @@ extern scs_sid_t scs_nr_slots;
 
 /* Called by SCS slot implementations */
 scs_sid_t scs_register_slot(scs_slot_driver_t *drv);
-void scs_complete_slot(scs_err_t err);
+void scs_complete_slot(void);
 
 /* Called by SCS slot users */
-void scd_slot_register_completion(scs_cmpl_cb completion);
+void scs_slot_register_completion(scs_cmpl_cb completion);
 
 scs_err_t scs_slot_power_on(void);
 scs_err_t scs_slot_power_off(void);
@@ -70,7 +70,6 @@ scs_err_t scs_slot_xchg_write(scs_off_t index, uint8_t byte);
 uint8_t scs_slot_xchg_read(scs_off_t index);
 
 /* misc */
-void scs_set_slot_error(scs_err_t errno);
 scs_err_t scs_get_slot_error(void);
 uint8_t scs_get_slot_status(void);
 

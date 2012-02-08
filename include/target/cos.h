@@ -271,12 +271,6 @@ struct cos_secu {
 
 };
 
-#ifdef CONFIG_COS_SLOT
-void cos_slot_completion(scs_err_t err);
-#else
-#define cos_slot_completion(err)
-#endif
-
 scs_err_t cos_power_on(void);
 scs_err_t cos_power_off(void);
 boolean cos_activated(void);
@@ -289,9 +283,10 @@ void cos_xchg_reset(scs_size_t tx);
 
 void cos_write_resp(uint8_t byte);
 
+uint8_t cos_get_status(void);
 scs_err_t cos_get_error(void);
 void cos_set_error(scs_err_t err);
-void cos_register_handlers(scs_cmpl_cb compl);
+void cos_register_completion(scs_cmpl_cb compl);
 
 void cos_cid_restore(uint8_t cid);
 #define cos_cid_select(cid)		cos_cid_restore(cid)

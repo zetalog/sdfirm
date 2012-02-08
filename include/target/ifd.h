@@ -413,10 +413,8 @@ scs_err_t ifd_set_freq_data(uint32_t clock, uint32_t rate);
 
 #ifdef CONFIG_IFD_SLOT
 scs_err_t ifd_slot_activation(boolean cmpl);
-void ifd_slot_completion(scs_err_t err);
 #else
 #define ifd_slot_activation(cmpl)
-#define ifd_slot_completion(err)
 #endif
 
 /* Mechanical */

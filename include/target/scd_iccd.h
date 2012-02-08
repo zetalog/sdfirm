@@ -93,23 +93,27 @@ struct iccd_hwerr {
 #define CCID_IRQ_HWERR_SIZE		0x04
 
 #ifdef CONFIG_ICCD_COS
-#define __iccd_get_error()		cos_get_error()
+#define scd_slot_select(sid)
+#define scd_get_slot_error()		cos_get_error()
+#define scd_get_slot_status()		cos_get_status()
 #define scd_read_byte(idx)		cos_xchg_read(idx)
 #define scd_write_byte(idx, b)		cos_xchg_write(idx, b)
 #define scd_xchg_avail()		cos_xchg_avail()
 #define scd_xchg_block(nc, ne)		cos_xchg_block(nc, ne)
 #define scd_power_on(cls)		cos_power_on()
 #define scd_power_off()			cos_power_off()
-#define __iccd_reg_completion(cb) 	cos_register_handlers(cb)
+#define scd_register_completion(cb) 	cos_register_completion(cb)
 #else
-#define __iccd_get_error()		scs_get_slot_error()
+#define scd_slot_select(sid)		scs_slot_select(scd_qid)
+#define scd_get_slot_error()		scs_get_slot_error()
+#define scd_get_slot_status()		scs_get_slot_status()
 #define scd_read_byte(idx)		scs_slot_xchg_read(idx)	
 #define scd_write_byte(idx, b)		scs_slot_xchg_write(idx, b)
 #define scd_xchg_avail()		scs_slot_xchg_avail()
 #define scd_xchg_block(nc, ne)		scs_slot_xchg_block(nc, ne)
 #define scd_power_on(cls)		scs_slot_power_on()
 #define scd_power_off()			scs_slot_power_off()
-#define __iccd_reg_completion(cb)	scd_slot_register_completion(cb)
+#define scd_register_completion(cb)	scs_slot_register_completion(cb)
 #endif
 
 #endif /* __SCD_ICCD_H_INCLUDE__ */

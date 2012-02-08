@@ -3,13 +3,13 @@
 
 __near__ scs_sid_t ifd_sids[NR_IFD_SLOTS];
 
-scs_sid_t ifd_slot_sid(ifd_sid_t sid)
+scs_sid_t ifd_slot_ifd2slot(ifd_sid_t sid)
 {
 	BUG_ON(sid >= NR_IFD_SLOTS);
 	return ifd_sids[sid];
 }
 
-ifd_sid_t ifd_slot_id(scs_sid_t sid)
+ifd_sid_t ifd_slot_slot2ifd(scs_sid_t sid)
 {
 	ifd_sid_t id;
 	for (id = 0; id < NR_IFD_SLOTS; id++) {
@@ -36,7 +36,7 @@ scs_err_t ifd_slot_error(scs_err_t err)
 
 static uint8_t ifd_slot_status(void)
 {
-	scs_slot_select(ifd_slot_sid(ifd_slid));
+	scs_slot_select(ifd_slot_ifd2slot(ifd_slid));
 	switch (ifd_slot_get_state()) {
 	case IFD_SLOT_STATE_ATR_READY:
 		return SCS_SLOT_STATUS_ACTIVE;
@@ -54,7 +54,7 @@ static uint8_t ifd_slot_status(void)
 
 static void ifd_slot_select(void)
 {
-	ifd_sid_select(ifd_slot_id(scs_sid));
+	ifd_sid_select(ifd_slot_slot2ifd(scs_sid));
 }
 
 static scs_err_t ifd_slot_activate(void)
@@ -95,7 +95,19 @@ static uint8_t ifd_slot_xchg_read(scs_off_t index)
 	return ifd_read_byte(index);
 }
 
+static uint8_t ifd_slot_get_error(void)
+{
+	return ifd_slot_error(ifd_xchg_get_error());
+}
+
+static void ifd_slot_complete_slot(void)
+{
+	scs_slot_select(ifd_slot_ifd2slot(ifd_slid));
+	scs_complete_slot();
+}
+
 scs_slot_driver_t ifd_slot = {
+	ifd_slot_get_error,
 	ifd_slot_status,
 	ifd_slot_select,
 	ifd_slot_activate,
@@ -106,16 +118,11 @@ scs_slot_driver_t ifd_slot = {
 	ifd_slot_xchg_read,
 };
 
-void ifd_slot_completion(scs_err_t err)
-{
-	scs_slot_select(ifd_slot_sid(ifd_slid));
-	scs_complete_slot(ifd_slot_error(err));
-}
-
 void ifd_slot_init()
 {
 	ifd_sid_t sid;
 	for (sid = 0; sid < NR_IFD_SLOTS; sid++) {
 		ifd_sids[sid] = scs_register_slot(&ifd_slot);
 	}
+	ifd_register_completion(ifd_slot_complete_slot);
 }
