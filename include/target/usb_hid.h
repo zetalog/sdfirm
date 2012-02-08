@@ -447,7 +447,7 @@ __TEXT_TYPE__(struct hid_report, hid_report_t);
 #else
 #define NR_HID_REPORTS		1
 #endif
-#define HID_ENDP_INTERVAL	10
+#define HID_ENDP_INTERVAL_INTERRUPT	10
 
 #define HID_ENDP_IN	0
 #define HID_ENDP_OUT	1

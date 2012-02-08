@@ -51,8 +51,8 @@
 #define HID_ADDR_IN	hid_addr[HID_ENDP_IN]
 #define HID_ADDR_OUT	hid_addr[HID_ENDP_OUT]
 
-static void hid_handle_in_data(void);
-static void hid_handle_out_data(void);
+static void hid_input_handle(void);
+static void hid_output_handle(void);
 static void hid_handle_ctrl_data(void);
 static void hid_handle_standard_request(void);
 static void hid_handle_class_request(void);
@@ -295,7 +295,7 @@ static void hid_get_report(void)
 	if (reportid == HID_REPORTID_ALL) {
 		switch (repttype) {
 		case HID_REPORT_INPUT:
-			hid_handle_in_data();
+			hid_input_handle();
 			return;
 		}
 	} else if (hid_report_registered(reportid)) {
@@ -316,7 +316,7 @@ static void hid_set_report(void)
 	if (reportid == HID_REPORTID_ALL) {
 		switch (repttype) {
 		case HID_REPORT_OUTPUT:
-			hid_handle_out_data();
+			hid_output_handle();
 			return;
 		}
 	} else if (hid_report_registered(reportid)) {
@@ -581,6 +581,7 @@ void hid_input_discard(void)
 
 void hid_input_submit(void)
 {
+	hid_input_poll();
 	if (hid_input_pending()) {
 		if (usbd_request_submit(HID_ADDR_IN,
 					hid_input_length())) {
@@ -597,13 +598,7 @@ void hid_input_submit(void)
 	}
 }
 
-static void hid_handle_in_poll(void)
-{
-	hid_input_poll();
-	hid_input_submit();
-}
-
-static void hid_handle_in_data(void)
+static void hid_input_handle(void)
 {
 	hid_rid_t rid;
 	for (rid = 0; rid < hid_nr_reports; rid++) {
@@ -613,25 +608,25 @@ static void hid_handle_in_data(void)
 
 usbd_endpoint_t hid_endpoint_in = {
 	USBD_ENDP_INTR_IN,
-	HID_ENDP_INTERVAL,
-	hid_handle_in_poll,
-	hid_handle_in_data,
+	HID_ENDP_INTERVAL_INTERRUPT,
+	hid_input_submit,
+	hid_input_handle,
 	hid_input_discard,
 };
 
 #if NR_HID_ENDPS > 1
-static void hid_handle_out_poll(void)
+static void hid_output_submit(void)
 {
 	/* allow next out transfer */
 	usbd_request_submit(HID_ADDR_OUT, hid_output_length());
 }
 
-static void hid_handle_out_done(void)
+static void hid_output_discard(void)
 {
 	/* nothing to do for OUT status stage */
 }
 
-static void hid_handle_out_data(void)
+static void hid_output_handle(void)
 {
 	hid_rid_t rid;
 	for (rid = 0; rid < hid_nr_reports; rid++) {
@@ -641,10 +636,10 @@ static void hid_handle_out_data(void)
 
 usbd_endpoint_t hid_endpoint_out = {
 	USBD_ENDP_INTR_OUT,
-	HID_ENDP_INTERVAL,
-	hid_handle_out_poll,
-	hid_handle_out_data,
-	hid_handle_out_done,
+	HID_ENDP_INTERVAL_INTERRUPT,
+	hid_output_submit,
+	hid_output_handle,
+	hid_output_discard,
 };
 
 #define hid_out_init()								\

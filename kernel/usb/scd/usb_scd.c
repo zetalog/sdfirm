@@ -453,7 +453,7 @@ void scd_bulk_init(void)
 /*=========================================================================
  * interrupt endpoint
  *=======================================================================*/
-#ifdef CONFIG_SCD_BULK
+#ifdef CONFIG_SCD_INTERRUPT
 DECLARE_BITMAP(scd_discarded_presents, NR_SCD_SLOTS);
 DECLARE_BITMAP(scd_submitted_presents, NR_SCD_SLOTS);
 
