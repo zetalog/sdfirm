@@ -788,9 +788,9 @@ boolean ccid_resp_valid(uint32_t length)
 		if (g_ccid_cmd[7] != g_ccid_resp[9])
 			return false;
 		switch (g_ccid_cmd[7]) {
-		case SCD_PROTOCOL_T0:
+		case SCS_PROTO_T0:
 			return (SCD_HEADER_SIZE + 5);
-		case SCD_PROTOCOL_T1:
+		case SCS_PROTO_T1:
 			return (SCD_HEADER_SIZE + 7);
 		}
 	case CCID_PC2RDR_SETDATAANDFREQ:
@@ -916,9 +916,9 @@ void ccid_parse_Parameters(uint8_t bProtocolNum,
 			   void *abProtocolDataStructure)
 {
 	switch (bProtocolNum) {
-	case SCD_PROTOCOL_T0:
+	case SCS_PROTO_T0:
 		ccid_parse_T0Parameters(abProtocolDataStructure);
-	case SCD_PROTOCOL_T1:
+	case SCS_PROTO_T1:
 		ccid_parse_T1Parameters(abProtocolDataStructure);
 	}
 }
@@ -1008,7 +1008,7 @@ static uint8_t __ccid_build_SetParameters(uint8_t bProtocolNum,
 
 static uint8_t ccid_build_SetT0Parameters(struct ccid_t0_param *t0)
 {
-	return __ccid_build_SetParameters(SCD_PROTOCOL_T0,
+	return __ccid_build_SetParameters(SCS_PROTO_T0,
 					  5,
 					  t0->bmFindexDindex,
 					  t0->bmTCCKST0,
@@ -1021,7 +1021,7 @@ static uint8_t ccid_build_SetT1Parameters(struct ccid_t1_param *t1)
 {
 	g_ccid_cmd[15] = t1->bIFSC;
 	g_ccid_cmd[16] = t1->bNadValue;
-	return __ccid_build_SetParameters(SCD_PROTOCOL_T1,
+	return __ccid_build_SetParameters(SCS_PROTO_T1,
 					  7,
 					  t1->bmFindexDindex,
 					  t1->bmTCCKST1,
@@ -1034,9 +1034,9 @@ static uint8_t ccid_build_SetParameters(uint8_t bProtocolNum,
 					void *abProtocolDataStructure)
 {
 	switch (bProtocolNum) {
-	case SCD_PROTOCOL_T0:
+	case SCS_PROTO_T0:
 		return ccid_build_SetT0Parameters((struct ccid_t0_param *)abProtocolDataStructure);
-	case SCD_PROTOCOL_T1:
+	case SCS_PROTO_T1:
 		return ccid_build_SetT1Parameters((struct ccid_t1_param *)abProtocolDataStructure);
 	default:
 		return -1;

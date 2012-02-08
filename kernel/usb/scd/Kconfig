@@ -116,17 +116,6 @@ config ICCD_XCHG_APDU
 
 endchoice
 
-choice
-	prompt "Transmission protocol"
-
-config ICCD_T0
-	bool "T0"
-
-config ICCD_T1
-	bool "T1"
-
-endchoice
-
 endif
 
 endif

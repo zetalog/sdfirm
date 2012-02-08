@@ -83,6 +83,12 @@ struct atr_table {
 #define max(x, y)	((x)>(y)?(x):(y))
 #endif
 
+#define SCS_PROTO_T0		0x00
+#define SCS_PROTO_T1		0x01
+#define SCS_PROTO_T15		0x0F
+#define IFD_HEADER_SIZE		5
+#define IFD_BUF_SIZE		256+IFD_HEADER_SIZE
+
 int pcsc_select_file(uint8_t *buf, uint16_t fid);
 int pcsc_read_binary(uint8_t *apdu, int length);
 int pcsc_pin_verify(struct ccid_pv_param *pv, uint8_t *apdu);

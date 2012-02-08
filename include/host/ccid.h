@@ -27,9 +27,6 @@ typedef struct scd_desc {
 
 	uint32_t dwProtocols;
 #define SCD_PROTOCOL_NONE	0x0000
-#define SCD_PROTOCOL_T0		0x0000
-#define SCD_PROTOCOL_T1		0x0001
-#define SCD_PROTOCOL_T15	0x000F
 
 	uint32_t dwDefaultClock;
 	uint32_t dwMaximumClock;
@@ -103,9 +100,6 @@ typedef struct scd_desc {
 
 	uint8_t	 bMaxCCIDBusySlots;
 } scd_desc_t;
-
-#define IFD_HEADER_SIZE		5
-#define IFD_BUF_SIZE		256+IFD_HEADER_SIZE
 
 #define CCID_REQ_ABORT			0x01
 #define CCID_REQ_GET_CLOCK_FREQS	0x02

@@ -112,6 +112,7 @@ typedef void (*scs_tvoid_cb)(void);
 #define SCS_PROTO_T0			0x00
 #define SCS_PROTO_T1			0x01
 #define SCS_PROTO_MAX			0x0E
+#define SCD_PROTO_T15			0x0F
 
 #define SCS_ATR_MAX			33
 

@@ -79,19 +79,6 @@ typedef scs_sid_t			scd_sid_t;
 #define ICCD_BUF_SIZE			261
 #define ICCD_MESSAGE_SIZE		(ICCD_BUF_SIZE + SCD_HEADER_SIZE)
 
-struct iccd_hwerr {
-	/* hwerr interrupt is pending */
-	uint8_t bState;
-#define ICCD_HWERR_PENDING		0x01
-#define ICCD_HWERR_RUNNING		0x02
-	uint8_t bSeq;
-#define ICCD_HWERR_OVERCURRENT		0x01
-	uint8_t bHardwareErrorCode;
-	uint8_t bPendingSeq;
-	uint8_t bPendingCode;
-};
-#define CCID_IRQ_HWERR_SIZE		0x04
-
 #ifdef CONFIG_ICCD_COS
 #define scd_slot_select(sid)
 #define scd_get_slot_error()		cos_get_error()

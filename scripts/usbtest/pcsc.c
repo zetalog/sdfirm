@@ -98,7 +98,7 @@ int pcsc_parse_atr(uint8_t *atr, size_t atr_len, struct pcsc_atr *info)
 	memset(info, 0, sizeof (struct pcsc_atr));
 
 	info->default_proto = SCD_PROTOCOL_NONE;
-	info->supported_protos = SCD_PROTOCOL_NONE;
+	info->supported_protos = 0;
 
 	if (atr_len < 2)
 		return -1;
@@ -146,10 +146,10 @@ int pcsc_parse_atr(uint8_t *atr, size_t atr_len, struct pcsc_atr *info)
 			if (info->default_proto == SCD_PROTOCOL_NONE) {
 				switch (T) {
 				case 0: 
-					info->default_proto = SCD_PROTOCOL_T0;
+					info->default_proto = SCS_PROTO_T0;
 					break;
 				case 1:
-					info->default_proto = SCD_PROTOCOL_T1;
+					info->default_proto = SCS_PROTO_T1;
 					break;
 				default:
 					return -1;
@@ -157,12 +157,12 @@ int pcsc_parse_atr(uint8_t *atr, size_t atr_len, struct pcsc_atr *info)
 			}
 
 			if (T == 0) {
-				info->supported_protos |= SCD_PROTOCOL_T0;
+				info->supported_protos |= (1<<SCS_PROTO_T0);
 			} else if (T == 1) {
-				info->supported_protos |= SCD_PROTOCOL_T1;
+				info->supported_protos |= (1<<SCS_PROTO_T1);
 			} else if (T == 15) {
 				log_msg(LOG_INFO, "TODO: T15 found, handle class");
-				info->supported_protos |= SCD_PROTOCOL_T15;
+				info->supported_protos |= (1<<SCS_PROTO_T15);
 			} else {
 				/* Do nothing for now since other protocols are not 
 				 * supported at this time. */
@@ -170,7 +170,7 @@ int pcsc_parse_atr(uint8_t *atr, size_t atr_len, struct pcsc_atr *info)
 
 			/* TODO: get protocol 1st value */
 #if 0
-			if ((info->supported_protos & SCD_PROTOCOL_T1) &&
+			if ((info->supported_protos & (1<<SCS_PROTO_T1)) &&
 			    (g_t1_crc == CCID_T1_CRC_INVALID) &&
 			    info->ib[i][ATR_INTERFACE_BYTE_TC].present) {
 				if (info->ib[i][ATR_INTERFACE_BYTE_TC].value & 0x01)
@@ -184,14 +184,12 @@ int pcsc_parse_atr(uint8_t *atr, size_t atr_len, struct pcsc_atr *info)
 				/* not fix for 7816-3 */
 				switch (T) {
 				case 0:
-					info->default_proto = 
-						info->supported_protos = 
-						SCD_PROTOCOL_T0;
+					info->default_proto = SCS_PROTO_T0;
+					info->supported_protos = (1<<SCS_PROTO_T0);
 					break;
 				case 1:
-					info->default_proto =
-						info->supported_protos = 
-						SCD_PROTOCOL_T1;
+					info->default_proto = SCS_PROTO_T1;
+					info->supported_protos = (1<<SCS_PROTO_T1);
 					break;
 				default:
 					return	-1;
@@ -206,15 +204,15 @@ int pcsc_parse_atr(uint8_t *atr, size_t atr_len, struct pcsc_atr *info)
 	} while (Y1i != 0);
 	
 	if (info->default_proto == SCD_PROTOCOL_NONE) {
-		info->default_proto = SCD_PROTOCOL_T0;
-		info->supported_protos |= SCD_PROTOCOL_T0;
+		info->default_proto = SCS_PROTO_T0;
+		info->supported_protos |= (1<<SCS_PROTO_T0);
 	}
 
 	info->historical_len = K;
 	memcpy(info->historical_bytes, &atr[p], min(K, ATR_MAX_HISTORICAL));
 	p += K;
 
-	if (info->supported_protos & SCD_PROTOCOL_T1)
+	if (info->supported_protos & (1<<SCS_PROTO_T1))
 		TCK = atr[p++];
 	pcsc_probe_card(atr, atr_len);
 	return 0;

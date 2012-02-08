@@ -53,11 +53,6 @@ typedef struct scd_desc {
 #define SCD_VOLTAGE_AUTO		0x00
 
 	uint32_t dwProtocols;
-#define SCD_PROTOCOL_NONE		0x0000
-#define SCD_PROTOCOL_T0			0x0000
-#define SCD_PROTOCOL_T1			0x0001
-#define SCD_PROTOCOL_T15		0x000F
-
 	uint32_t dwDefaultClock;
 	uint32_t dwMaximumClock;
 	uint8_t	 bNumClockSupported;

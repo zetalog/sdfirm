@@ -21,7 +21,7 @@ uint8_t g_info_xchg = CCID_INFO_XCHG_SPECIFIC;
 uint8_t g_ind_conv = ATR_TS_DIRECT;
 uint8_t g_ind_fd = ATR_DEFAULT_FD;
 uint8_t g_ind_n = ATR_DEFAULT_N;
-uint8_t g_ind_t = SCD_PROTOCOL_T0;	
+uint8_t g_ind_t = SCS_PROTO_T0;	
 uint8_t g_ind_t0_wi;
 uint8_t g_ind_t1_ifsc = ATR_DEFAULT_IFSC;
 uint8_t g_ind_t1_cwi = ATR_DEFAULT_CWI;
@@ -154,9 +154,9 @@ static void ccid_parse_pps(void)
 	g_curr_fd = g_ind_fd;
 	g_curr_n = g_ind_n;
 
-	if (g_curr_t == SCD_PROTOCOL_T0) {
+	if (g_curr_t == SCS_PROTO_T0) {
 		ccid_config_t0_param();
-	} else if (g_curr_t == SCD_PROTOCOL_T1) {
+	} else if (g_curr_t == SCS_PROTO_T1) {
 		ccid_config_t1_param();
 	}
 }
@@ -243,10 +243,10 @@ void CUNITCBK ccid_get_param(void)
 
 	CUNIT_ASSERT_TRUE(ccid_sync_GetParameters(g_curr_t));
 	switch (g_curr_t) {
-	case SCD_PROTOCOL_T0:
+	case SCS_PROTO_T0:
 		ccid_resp_param(&g_t0_param);
 		break;
-	case SCD_PROTOCOL_T1:
+	case SCS_PROTO_T1:
 		ccid_resp_param(&g_t1_param);
 		break;
 	}
@@ -262,7 +262,7 @@ void CUNITCBK ccid_t0_set_param(void)
 	t0.bWaitingIntegerT0 = g_ind_t0_wi;
 	t0.bClockStop = g_clk_status;
 
-	CUNIT_ASSERT_TRUE(ccid_sync_SetParameters(SCD_PROTOCOL_T0, &t0));
+	CUNIT_ASSERT_TRUE(ccid_sync_SetParameters(SCS_PROTO_T0, &t0));
 
 	g_curr_t = ccid_resp_param(&g_t0_param);
 }
@@ -279,7 +279,7 @@ void CUNITCBK ccid_t1_set_param(void)
 	t1.bIFSC = g_ind_t1_ifsc;
 	t1.bNadValue = g_ind_t1_nad;
 
-	CUNIT_ASSERT_TRUE(ccid_sync_SetParameters(SCD_PROTOCOL_T1,
+	CUNIT_ASSERT_TRUE(ccid_sync_SetParameters(SCS_PROTO_T1,
 						  &t1));
 
 	g_curr_t = ccid_resp_param(&g_t1_param);
@@ -322,10 +322,10 @@ void CUNITCBK ccid_set_param(void)
 
 	if (!(g_desc.dwFeatures & SCD_FEATURE_AUTO_PPS_PROP)) {
 		switch (g_ind_t) {
-		case SCD_PROTOCOL_T0:
+		case SCS_PROTO_T0:
 			ccid_t0_set_param();
 			break;
-		case SCD_PROTOCOL_T1:
+		case SCS_PROTO_T1:
 			ccid_t1_set_param();
 			break;
 		default:
@@ -348,10 +348,10 @@ void CUNITCBK ccid_reset_param(void)
 	g_curr_t = ccid_resp_param(NULL);
 
 	switch (g_curr_t) {
-	case SCD_PROTOCOL_T0:
+	case SCS_PROTO_T0:
 		ccid_resp_param(&g_t0_param);
 		break;
-	case SCD_PROTOCOL_T1:
+	case SCS_PROTO_T1:
 		ccid_resp_param(&g_t1_param);
 		break;
 	}
@@ -363,7 +363,7 @@ void CUNITCBK ccid_t0_xfr_block(void)
 	if (!g_atr_ready)
 		return;
 
-	if (g_curr_t != SCD_PROTOCOL_T0)
+	if (g_curr_t != SCS_PROTO_T0)
 		return;
 
 	if (CCID_XCHG_IS_LEVEL(SCD_FEATURE_XCHG_APDU) ||
@@ -382,7 +382,7 @@ void CUNITCBK ccid_t0_xfr_block(void)
 
 void CUNITCBK ccid_t1_xfr_block(void)
 {
-	if (g_curr_t != SCD_PROTOCOL_T1)
+	if (g_curr_t != SCS_PROTO_T1)
 		return;
 	/* TODO: NIY */
 }

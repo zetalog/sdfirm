@@ -274,10 +274,8 @@ static uint32_t iccd_device_features(void)
 
 static uint32_t iccd_proto_features(void)
 {
-#ifdef CONFIG_ICCD_T0
 	uint32_t proto = SCS_PROTO_T0;
-#endif
-#ifdef CONFIG_ICCD_T1
+#ifdef CONFIG_IFD_T1
 	uint32_t proto = SCS_PROTO_T1;
 #endif
 	return 1 << proto;

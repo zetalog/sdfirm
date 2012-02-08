@@ -420,11 +420,11 @@ static void ccid_Parameters_out(void)
 {
 	__scd_CmdSuccess_out();
 	switch (scd_resps[scd_qid].abRFU3) {
-	case SCD_PROTOCOL_T0:
+	case SCS_PROTO_T0:
 		scd_resps[scd_qid].dwLength = sizeof (struct scd_t0_param);
 		break;
 #ifdef CONFIG_IFD_T1
-	case SCD_PROTOCOL_T1:
+	case SCS_PROTO_T1:
 		scd_resps[scd_qid].dwLength = sizeof (struct scd_t1_param);
 		break;
 #endif
@@ -440,7 +440,7 @@ static void ccid_GetParameters_out(void)
 	 * inserted.  We wonder whether windows does not care about
 	 * parameters on APDU level exchange.
 	 */
-	scd_resps[scd_qid].abRFU3 = SCD_PROTOCOL_T0;
+	scd_resps[scd_qid].abRFU3 = SCS_PROTO_T0;
 #else
 	scd_resps[scd_qid].abRFU3 = ifd_get_proto();
 #endif
@@ -454,7 +454,7 @@ static void ccid_SetParametersT0_out(void)
 	USBD_OUTB(scd_cmd_data.t0.bGuardTimeT0);
 	USBD_OUTB(scd_cmd_data.t0.bWaitingIntegerT0);
 	USBD_OUTB(scd_cmd_data.t0.bClockStop);
-	scd_resps[scd_qid].abRFU3 = SCD_PROTOCOL_T0;
+	scd_resps[scd_qid].abRFU3 = SCS_PROTO_T0;
 	ccid_Parameters_out();
 }
 
@@ -468,7 +468,7 @@ static void ccid_SetParametersT1_out(void)
 	USBD_OUTB(scd_cmd_data.t1.bClockStop);
 	USBD_OUTB(scd_cmd_data.t1.bIFSC);
 	USBD_OUTB(scd_cmd_data.t1.bNadValue);
-	scd_resps[scd_qid].abRFU3 = SCD_PROTOCOL_T1;
+	scd_resps[scd_qid].abRFU3 = SCS_PROTO_T1;
 	ccid_Parameters_out();
 }
 #endif
@@ -478,11 +478,11 @@ static void ccid_SetParameters_out(void)
 	uint8_t bProtocolNum = scd_cmds[scd_qid].abRFU[0];
 
 	switch (bProtocolNum) {
-	case SCD_PROTOCOL_T0:
+	case SCS_PROTO_T0:
 		ccid_SetParametersT0_out();
 		break;
 #ifdef CONFIG_IFD_T1
-	case SCD_PROTOCOL_T1:
+	case SCS_PROTO_T1:
 		ccid_SetParametersT1_out();
 		break;
 #endif
@@ -521,7 +521,7 @@ static void ccid_SetParameters_cmp(void)
 	scs_err_t err;
 
 	switch (bProtocolNum) {
-	case SCD_PROTOCOL_T0:
+	case SCS_PROTO_T0:
 		if (usbd_request_handled() >=
 		    SCD_HEADER_SIZE + sizeof (struct scd_t0_param)) {
 			scd_slot_enter(SCD_SLOT_STATE_ISO7816);
@@ -535,7 +535,7 @@ static void ccid_SetParameters_cmp(void)
 		}
 		break;
 #ifdef CONFIG_IFD_T1
-	case SCD_PROTOCOL_T1:
+	case SCS_PROTO_T1:
 		if (usbd_request_handled() >=
 		    SCD_HEADER_SIZE + sizeof (struct scd_t1_param)) {
 			scd_slot_enter(SCD_SLOT_STATE_ISO7816);
@@ -563,11 +563,11 @@ static void ccid_Parameters_in(void)
 	uint32_t param_length;
 
 	switch (scd_resps[scd_qid].abRFU3) {
-	case SCD_PROTOCOL_T0:
+	case SCS_PROTO_T0:
 		param_length = sizeof (struct scd_t0_param);
 		break;
 #ifdef CONFIG_IFD_T1
-	case SCD_PROTOCOL_T1:
+	case SCS_PROTO_T1:
 		param_length = sizeof (struct scd_t1_param);
 		break;
 #endif
@@ -579,7 +579,7 @@ static void ccid_Parameters_in(void)
 	scd_RespHeader_in(param_length);
 
 	switch (scd_resps[scd_qid].abRFU3) {
-	case SCD_PROTOCOL_T0:
+	case SCS_PROTO_T0:
 		USBD_INB(ifd_get_t0_param(IFD_T0_PARAM_FD));
 		USBD_INB(ifd_get_t0_param(IFD_T0_PARAM_TCCKS));
 		USBD_INB(ifd_get_t0_param(IFD_T0_PARAM_GT));
@@ -587,7 +587,7 @@ static void ccid_Parameters_in(void)
 		USBD_INB(ifd_get_t0_param(IFD_T0_PARAM_CLOCKSTOP));
 		break;
 #ifdef CONFIG_IFD_T1
-	case SCD_PROTOCOL_T1:
+	case SCS_PROTO_T1:
 		USBD_INB(ifd_get_t1_param(IFD_T1_PARAM_FD));
 		USBD_INB(ifd_get_t1_param(IFD_T1_PARAM_TCCKS));
 		USBD_INB(ifd_get_t1_param(IFD_T1_PARAM_GT));
@@ -1343,10 +1343,11 @@ static uint8_t ccid_proto_features(void)
 {
 	uint8_t protocols;
 #ifdef CONFIG_SCD_ESC_ACR122
+	protocols = (1 << SCS_PROTO_T15);
 #else
-	protocols = (1 << SCD_PROTOCOL_T0);
+	protocols = (1 << SCS_PROTO_T0);
 #ifdef CONFIG_IFD_T1
-	protocols |= (1 << SCD_PROTOCOL_T1);
+	protocols |= (1 << SCS_PROTO_T1);
 #endif
 #endif
 	return protocols;
