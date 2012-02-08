@@ -24,7 +24,7 @@
 #include <ddk/usb100.h>
 #include <ddk/usbdi.h>
 #include <ddk/winddk.h>
-#include "usbdlib_gcc.h"
+#include "usbstub_gcc.h"
 #else
 #include <wdm.h>
 #include "usbdi.h"
@@ -36,8 +36,12 @@
 
 #undef interface
 
-#include "driver_debug.h"
-#include "driver_api.h"
+void DEBUG_PRINT_NL();
+void DEBUG_SET_LEVEL(int level);
+void DEBUG_MESSAGE(const char *format, ...);
+void DEBUG_ERROR(const char *format, ...);
+
+#include "usbdapi.h"
 
 /* some missing defines */
 #ifdef __GNUC__
