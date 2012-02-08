@@ -428,6 +428,7 @@ extern usbd_endpoint_t scd_endpoint_irq;
 
 void scd_ctrl_get_desc(void);
 void scd_handle_ctrl_class(void);
+uint8_t scd_proto_features(void);
 extern usbd_interface_t usb_scd_interface;
 void scd_devid_init(void);
 

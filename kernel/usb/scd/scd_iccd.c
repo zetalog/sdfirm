@@ -272,15 +272,6 @@ static uint32_t iccd_device_features(void)
 	return features;
 }
 
-static uint32_t iccd_proto_features(void)
-{
-	uint32_t proto = SCS_PROTO_T0;
-#ifdef CONFIG_IFD_T1
-	uint32_t proto = SCS_PROTO_T1;
-#endif
-	return 1 << proto;
-}
-
 #ifndef CONFIG_SCD_BULK
 static void iccd_req_icc_poweron(void) 
 {
@@ -349,7 +340,7 @@ void scd_ctrl_get_desc(void)
 	USBD_INW(SCD_VERSION);
 	USBD_INB(NR_SCD_USB_SLOTS - 1);	/* must be 0 */
 	USBD_INB(SCD_VOLTAGE_5V);
-	USBD_INL(iccd_proto_features());
+	USBD_INL(scd_proto_features());
 	USBD_INL((uint32_t)(ICCD_FIXED_CLOCK));
 	USBD_INL((uint32_t)(ICCD_FIXED_CLOCK));
 	USBD_INB(0);

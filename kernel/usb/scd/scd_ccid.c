@@ -1339,20 +1339,6 @@ static uint32_t ccid_device_features(void)
 	return features;
 }
 
-static uint8_t ccid_proto_features(void)
-{
-	uint8_t protocols;
-#ifdef CONFIG_SCD_ESC_ACR122
-	protocols = (1 << SCS_PROTO_T15);
-#else
-	protocols = (1 << SCS_PROTO_T0);
-#ifdef CONFIG_IFD_T1
-	protocols |= (1 << SCS_PROTO_T1);
-#endif
-#endif
-	return protocols;
-}
-
 void scd_ctrl_get_desc(void)
 {
 	USBD_INB(SCD_DT_SCD_SIZE);
@@ -1360,7 +1346,7 @@ void scd_ctrl_get_desc(void)
 	USBD_INW(SCD_VERSION);
 	USBD_INB(NR_SCD_USB_SLOTS-1);
 	USBD_INB(SCD_VOLTAGE_ALL);
-	USBD_INL(ccid_proto_features());
+	USBD_INL(scd_proto_features());
 	USBD_INL((uint32_t)(IFD_HW_FREQ_DEF));
 	USBD_INL((uint32_t)(IFD_HW_FREQ_MAX));
 	USBD_INB(ifd_cf_nr_freq());
