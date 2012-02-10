@@ -98,7 +98,7 @@ typedef void (*ifd_atr_cb)(uint8_t y);
  *  | header | C(5)=Lc | data |
  *  +--------+---------+------+
  *  N = 5 + C5 [1-255]
- * Case 3S: Extended APDU, Nc=1-65535, Ne=0
+ * Case 3E: Extended APDU, Nc=1-65535, Ne=0
  *  +--------+---------+-------------+------+
  *  | header | C(5)=00 | C(6)C(7)=Lc | data |
  *  +--------+---------+-------------+------+

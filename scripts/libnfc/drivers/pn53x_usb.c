@@ -169,7 +169,7 @@ struct pn53x_usb_supported_device {
 };
 
 const struct pn53x_usb_supported_device pn53x_usb_supported_devices[] = {
-	{ 0x03DE, 0x0531, NXP_PN533,   "Soliton (Shanghai) / PN533" },
+	{ 0x03DE, 0x0005, NXP_PN533,   "Soliton / USB PN532" },
 	{ 0x04CC, 0x0531, NXP_PN531,   "Philips / PN531" },
 	{ 0x04CC, 0x2533, NXP_PN533,   "NXP / PN533" },
 	{ 0x04E6, 0x5591, SCM_SCL3711, "SCM Micro / SCL3711-NFC&RW" },
