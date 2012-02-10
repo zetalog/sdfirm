@@ -68,11 +68,92 @@ typedef void (*ifd_atr_cb)(uint8_t y);
 
 #define NR_IFD_PROTOS			2
 
-/* T=0, header is 5 bytes
- * T=1, header+tail is 4-5 bytes
+/* APDU command is:
+ *  +--------+--------+-------+-------+====+======+====+
+ *  | C1=CLA | C2=INS | C3=P1 | C4=P2 | Lc | data | Le |
+ *  +--------+--------+-------+-------+====+======+====+
+ *  shortened as:
+ *  +--------+====+======+====+
+ *  | header | Lc | data | Le |
+ *  +--------+====+======+====+
+ *  Lc codes Nc, Le codes Ne.
+ *  Command size N could be following cases:
+ * Case 1: Nc=0, Ne=0, thus 
+ *  +--------+
+ *  | header |
+ *  +--------+
+ *  N = 4
+ * Case 2S: Short APDU, Nc=0, Ne=1-256 (Le=0x00 means 256)
+ *  +--------+---------+
+ *  | header | C(5)=Le |
+ *  +--------+---------+
+ *  N = 5
+ * Case 2E: Extended APDU, Nc=0, Ne=1-65536 (Le=0x0000 means 65536)
+ *  +--------+---------+-------------+
+ *  | header | C(5)=00 | C(6)C(7)=Le |
+ *  +--------+---------+-------------+
+ *  N = 7
+ * Case 3S: Short APDU, Nc=1-255, Ne=0
+ *  +--------+---------+------+
+ *  | header | C(5)=Lc | data |
+ *  +--------+---------+------+
+ *  N = 5 + C5 [1-255]
+ * Case 3S: Extended APDU, Nc=1-65535, Ne=0
+ *  +--------+---------+-------------+------+
+ *  | header | C(5)=00 | C(6)C(7)=Lc | data |
+ *  +--------+---------+-------------+------+
+ *  N = 7 + C(6)C(7) [1-65535]
+ * Case 4S: Short APDU, Nc != 0, Ne != 0
+ *  +--------+---------+------+---------+
+ *  | header | C(5)=Lc | data | C(N)=Le |
+ *  +--------+---------+------+---------+
+ *  N = 6 + C(5) [1-255]
+ * Case 4E: Extended APDU, Nc != 0, Ne != 0
+ *  +--------+---------+-------------+------+---------------+
+ *  | header | C(5)=00 | C(6)C(7)=Lc | data | C(N-1)C(N)=Le |
+ *  +--------+---------+-------------+------+---------------+
+ *  N = 9 + C(6)C(7) [1-65535]
+ * Thus, APDU command size N would be:
+ *  N = 5 + SCS_APDU_MAX if short APDU
+ *  N = 8 + SCS_APDU_MAX if extended APDU
+ * APDU response is:
+ *  +======+-----+-----+
+ *  | data | SW1 | SW2 |
+ *  +======+-----+-----+
+ *  Thus, APDU response size N would be:
+ *  N = 2 + SCS_APDU_MAX
+ *
+ * T=0 TPDU command/response using APDU format, thus T=0 command/response
+ * size would be:
+ *  N = 5 + SCS_APDU_MAX if short APDU
+ *  N = 8 + SCS_APDU_MAX if extended APDU
+ *
+ * T=1 TPDU command/response is:
+ *  +-----+-----+-----+-----+---------+
+ *  | NAD | PCB | LEN | INF | LRC|CRC |
+ *  +-----+-----+-----+-----+---------+
+ *  shortened as:
+ *  +----------+======+----------+
+ *  | prologue | data | epilogue |
+ *  +----------+======+----------+
+ *  epilogue size is 1 byte for LRC, 2 bytes for CRC, INF would be 0-254,
+ *  thus T=1 command/response size N would be:
+ *  N = 3 + SCS_APDU_MAX if short APDU
+ *  N = 3 + 256 if extended APDU
+ *
+ * We can conclude from the above:
+ * To contain APDU level exchanges, buffer should have a size of:
+ *  EXTRA_SIZE is 5 bytes if short APDU.
+ *  EXTRA_SIZE is 8 bytes if extended APDU.
+ * To contain TPDU level exchanges, buffer should have a size of:
+ *  EXTRA_SIZE is 5 bytes.
  */
-#define IFD_HEADER_SIZE			5
-#define IFD_BUF_SIZE			SCS_APDU_MAX+IFD_HEADER_SIZE
+#if SCS_APDU_MAX > 256
+#define IFD_EXTRA_SIZE			8
+#else
+#define IFD_EXTRA_SIZE			5
+#endif
+#define IFD_BUF_SIZE			SCS_APDU_MAX+IFD_EXTRA_SIZE
 
 #define NR_IFD_FIS			14
 #define NR_IFD_DIS			10

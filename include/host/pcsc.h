@@ -7,8 +7,8 @@
 #define CCID_T1_CRC		0x01
 #define CCID_T1_LRC		0x00
 
-#define	ATR_TS_DIRECT			0x00
-#define	ATR_TS_INVERSE			0x01
+#define	ATR_TS_DIRECT		0x00
+#define	ATR_TS_INVERSE		0x01
 
 /* Paramenters */
 #define ATR_MAX_SIZE 		33	/* Maximum size of ATR byte array */
@@ -86,8 +86,8 @@ struct atr_table {
 #define SCS_PROTO_T0		0x00
 #define SCS_PROTO_T1		0x01
 #define SCS_PROTO_T15		0x0F
-#define IFD_HEADER_SIZE		5
-#define IFD_BUF_SIZE		256+IFD_HEADER_SIZE
+#define IFD_EXTRA_SIZE		5
+#define IFD_BUF_SIZE		256+IFD_EXTRA_SIZE
 
 int pcsc_select_file(uint8_t *buf, uint16_t fid);
 int pcsc_read_binary(uint8_t *apdu, int length);

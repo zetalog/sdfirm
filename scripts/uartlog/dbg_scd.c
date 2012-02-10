@@ -101,13 +101,16 @@ static void scd_dump_state(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 		dbg_dumper(ctx, cmd, "state=PC2RDR", data);
 		break;
 	case 1:
-		dbg_dumper(ctx, cmd, "state=ISO7816", data);
-		break;
-	case 2:
 		dbg_dumper(ctx, cmd, "state=RDR2PC", data);
 		break;
-	case 3:
+	case 2:
 		dbg_dumper(ctx, cmd, "state=SANITY", data);
+		break;
+	case 3:
+		dbg_dumper(ctx, cmd, "state=RUNNING", data);
+		break;
+	case 4:
+		dbg_dumper(ctx, cmd, "state=WAITING", data);
 		break;
 	default:
 		dbg_dumper(ctx, cmd, "state=%02x", data);

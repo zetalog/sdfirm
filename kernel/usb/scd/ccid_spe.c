@@ -631,7 +631,7 @@ static void ccid_spe_modify_step(void)
 
 static void ccid_spe_operate_init(void)
 {
-	scd_slot_enter(SCD_SLOT_STATE_ISO7816);
+	scd_slot_enter(SCD_SLOT_STATE_RUNNING);
 	if (ccid_spe_kh) {
 		ccid_spe_operate_wait();
 	} else {

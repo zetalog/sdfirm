@@ -247,9 +247,10 @@ struct scd_t1_param {
 };
 
 #define SCD_SLOT_STATE_PC2RDR		0x00
-#define SCD_SLOT_STATE_ISO7816		0x01
-#define SCD_SLOT_STATE_RDR2PC		0x02
-#define SCD_SLOT_STATE_SANITY		0x03
+#define SCD_SLOT_STATE_RDR2PC		0x01
+#define SCD_SLOT_STATE_SANITY		0x02
+#define SCD_SLOT_STATE_RUNNING		0x03
+#define SCD_SLOT_STATE_WAITING		0x04
 
 /* XXX: Temporary Storage for SCD Stack
  * This structure holds temporary storages, which should be allocated in

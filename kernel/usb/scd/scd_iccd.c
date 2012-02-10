@@ -363,7 +363,7 @@ void scd_ctrl_get_desc(void)
 static void iccd_handle_ll_cmpl(void)
 {
 	scs_err_t err = scd_get_slot_error();
-	BUG_ON(scd_states[scd_qid] != SCD_SLOT_STATE_ISO7816);
+	BUG_ON(scd_states[scd_qid] != SCD_SLOT_STATE_RUNNING);
 
 	switch (scd_cmds[scd_qid].bMessageType) {
 	case SCD_PC2RDR_ICCPOWERON:

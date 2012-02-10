@@ -151,8 +151,10 @@ static void ifd_t0_conf_param(void)
 			       (uint16_t)mul16u(IFD_WT_RATIO,
 						IFD_T0_WWT_FACTOR));
 #ifdef CONFIG_IFD_T0_APDU
-	/* TODO: up layer(CCID) should set this value (SCD_MUTE_APDU_CLASS)
-	 * by ifd_set_t0_apdu */
+	/* TODO: T0 APDU Support
+	 * Higher layer(CCID) should set this value (SCD_MUTE_APDU_CLASS)
+	 * by ifd_set_t0_apdu.
+	 */
 	ifd_t0_conf.cla_resp = 0x00;
 	ifd_t0_conf.cla_env = 0x00;
 #endif

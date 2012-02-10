@@ -63,66 +63,61 @@ static void ccid_handle_iso7816_cmpl(void);
 
 /* Multiple CCID Slot support
  *
- *                      +----------+        +----------+   |  slot
- *                      | Bulk OUT |        | Bulk IN  |   | states
- *                      +----------+        +----+-----+   |
- *                           \|/                /|\        +=========+
- *  +--------------+/ +-------+--------+         |         |         |
- *  |   cmds[sid]  +--|  cmds[OUT_QID] |         |         |         |
- *  +--------------+\ +----------------+         |         |         |
- *        \|/                \|/                 |         | PC2RDR  |
- *  +------+-------+  +-------+--------+         |         |         |
- *  | iso7816 call |  | resps[OUT_QID] |         |         |         |
- *  +--------------+  +----------------+         |         |         |
- *        \|/                 |                  |         +=========+
- *  +------+-------+          |                  |         |         |
- *  | iso7816 cmpl |          |                  |         |         |
- *  +--------------+          |                  |         |         |
- *        \|/                 |                  |         | ISO7816 |
- *  +------+-------+          |                  |         |         |
- *  |  resps[sid]  |          |                  |         |         |
- *  +--------------+          |                  |         |         |
- *         |                  |                  |         +=========+
- *         |                  |          +---------------+ |         |
- *         |                  |          | resps[IN_QID] | | RDR2PC  |
- *         |                  |          +-------+-------+ |         |
- *         |                  |                 /|\        +=========+
- *      enqueue            enqueue            dequeue      |
- *        \|/                \|/                 |         |
- *  +------+------------------+--------------------------+ |
- *  |                      seq_queue                     | |
- *  +----------------------------------------------------+ |
+ *                    +----------+        +----------+   |  slot
+ *                    | Bulk OUT |        | Bulk IN  |   | states
+ *                    +----------+        +----+-----+   |
+ *                         \|/                /|\        +=========+
+ *  +------------+/ +-------+--------+         |         | PC2RDR  |
+ *  | cmds[sid]  +--|  cmds[OUT_QID] |         |         |         |
+ *  +------------+\ +----------------+         |         |         |
+ *       \|/               \|/                 |         |         |
+ *  +-----+------+  +-------+--------+         |         |         |
+ *  | lower call |  | resps[OUT_QID] |         |         |         |
+ *  +------------+  +----------------+         |         |         |
+ *       \|/                |                  |         +=========+
+ *  +-----+------+          |                  |         | RUNNING |
+ *  | lower cmpl |          |                  |         |         |
+ *  +------------+          |                  |         |         |
+ *       \|/                |                  |         |         |
+ *  +-----+------+          |                  |         |         |
+ *  | resps[sid] |          |                  |         |         |
+ *  +------------+          |                  |         |         |
+ *        |                 |                  |         +=========+
+ *        |                 |          +---------------+ | RDR2PC  |
+ *        |                 |          | resps[IN_QID] | | WAITING |
+ *        |                 |          +-------+-------+ |         |
+ *        |                 |                 /|\        +=========+
+ *     enqueue           enqueue            dequeue      |
+ *       \|/               \|/                 |         |
+ *  +-----+-----------------+--------------------------+ |
+ *  |                    seq_queue                     | |
+ *  +--------------------------------------------------+ |
  *
  * scd_qid    0 ~ NR_SCD_QUEUES (0 ~ NR_SCD_SLOTS+1)
  * scd_sid    0 ~ NR_SCD_SLOTS
  * ccid_seq_t 0 ~ NR_SCD_QUEUES (seq_queue index)
  * seq_queue: USB request queue, only queue[0] is sensitive for BULK IN
  */
-/*
- * CCID state machine is implemented by 4 hooks:
+/* CCID state machine is implemented by 4 hooks:
  *
  * poll
  * 	(OUT) scd_submit_command
  * 	  usbd_request_submit(OUT) (OUT_QID is PC2RDR)
  * 	    -> DATA
- * 
  * 	(IN) scd_submit_response
  * 	  usbd_request_submit(IN) (nr_seqs > 0 && IN_QID is RDR2PC)
  * 	    -> DATA
- * 
  * iocb
  * 	(OUT) usbd_request_commit
- * 
  * done
  * 	(OUT) usbd_request_handled
- * 	(OUT) scd_slot_enter(ISO7816)
- * 	  icc/scs_xxx
+ * 	(OUT) scd_slot_enter(RUNNING)
+ * 	  lower_call
  * 	(OUT) scd_slot_enter(RDR2PC)
  * 	  ccid_enqueue
  * 	    scd_submit_response
  * 	      usbd_request_submit(IN) (is IN_QID)
  * 	        -> DATA
- * 
  * 	(IN) scd_slot_enter(PC2RDR)
  * 	  ccid_dequeue
  * 	    scd_submit_command
@@ -131,8 +126,7 @@ static void ccid_handle_iso7816_cmpl(void);
  * 	    scd_submit_response
  * 	      usbd_request_submit(IN) (is IN_QID)
  * 	        -> DATA
- * 
- * 7816_cmpl
+ * lower_cmpl
  * 	scd_slot_enter(RDR2PC)
  * 	  ccid_enqueue
  * 	    scd_submit_response
@@ -524,7 +518,7 @@ static void ccid_SetParameters_cmp(void)
 	case SCS_PROTO_T0:
 		if (usbd_request_handled() >=
 		    SCD_HEADER_SIZE + sizeof (struct scd_t0_param)) {
-			scd_slot_enter(SCD_SLOT_STATE_ISO7816);
+			scd_slot_enter(SCD_SLOT_STATE_RUNNING);
 			err = ifd_set_t0_param(scd_cmd_data.t0.bmFindexDindex,
 					       scd_cmd_data.t0.bGuardTimeT0,
 					       scd_cmd_data.t0.bWaitingIntegerT0,
@@ -538,7 +532,7 @@ static void ccid_SetParameters_cmp(void)
 	case SCS_PROTO_T1:
 		if (usbd_request_handled() >=
 		    SCD_HEADER_SIZE + sizeof (struct scd_t1_param)) {
-			scd_slot_enter(SCD_SLOT_STATE_ISO7816);
+			scd_slot_enter(SCD_SLOT_STATE_RUNNING);
 			err = ifd_set_t1_param(scd_cmd_data.t1.bmFindexDindex,
 					       scd_cmd_data.t1.bmTCCKST1,
 					       scd_cmd_data.t1.bGuardTimeT1,
@@ -767,12 +761,12 @@ static void ccid_IccClock_cmp(void)
 
 	switch (bClockCommand) {
 	case CCID_CLOCK_RESTART:
-		scd_slot_enter(SCD_SLOT_STATE_ISO7816);
+		scd_slot_enter(SCD_SLOT_STATE_RUNNING);
 		err = ifd_restart_clock();
 		scd_ScsSequence_cmp(err, false);
 		break;
 	case CCID_CLOCK_STOP:
-		scd_slot_enter(SCD_SLOT_STATE_ISO7816);
+		scd_slot_enter(SCD_SLOT_STATE_RUNNING);
 		err = ifd_stop_clock();
 		scd_ScsSequence_cmp(err, false);
 		break;
@@ -791,12 +785,12 @@ static void ccid_Mechanical_cmp(void)
 
 	switch (bMechaCommand) {
 	case CCID_MECHA_LOCK_CARD:
-		scd_slot_enter(SCD_SLOT_STATE_ISO7816);
+		scd_slot_enter(SCD_SLOT_STATE_RUNNING);
 		err = ifd_lock_card();
 		scd_ScsSequence_cmp(err, false);
 		break;
 	case CCID_MECHA_UNLOCK_CARD:
-		scd_slot_enter(SCD_SLOT_STATE_ISO7816);
+		scd_slot_enter(SCD_SLOT_STATE_RUNNING);
 		err = ifd_unlock_card();
 		scd_ScsSequence_cmp(err, false);
 		break;
@@ -1439,7 +1433,7 @@ static void ccid_handle_iso7816_cmpl(void)
 	scd_qid_select(scd_sid);
 
 	BUG_ON(scd_qid >= NR_SCD_SLOTS);
-	BUG_ON(scd_states[scd_qid] != SCD_SLOT_STATE_ISO7816);
+	BUG_ON(scd_states[scd_qid] != SCD_SLOT_STATE_RUNNING);
 
 	err = ifd_xchg_get_error();
 

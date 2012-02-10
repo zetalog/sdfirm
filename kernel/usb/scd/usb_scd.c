@@ -198,7 +198,7 @@ void scd_ScsSequence_cmp(scs_err_t err, boolean block)
 		}
 		scd_CmdResponse_cmp();
 	} else {
-		scd_slot_enter(SCD_SLOT_STATE_ISO7816);
+		scd_slot_enter(SCD_SLOT_STATE_RUNNING);
 	}
 }
 

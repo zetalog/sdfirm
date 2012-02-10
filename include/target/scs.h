@@ -80,7 +80,7 @@
  * reduce throughput of the interrupt handler.
  */
 #ifdef CONFIG_SCS_DEBUG_DUMP
-#define scs_debug_dump(b)	debug_dump(b)
+#define scs_debug_dump(b)		debug_dump(b)
 #else
 #define scs_debug_dump(b)
 #endif
@@ -92,8 +92,14 @@
 #define SCS_APDU_MAX			256
 #endif
 
+/* TODO: Remove overhead of APDU extra size. */
+#if SCS_APDU_MAX <= 256
 typedef uint16_t scs_size_t;
 typedef uint16_t scs_off_t;
+#else
+typedef uint32_t scs_size_t;
+typedef uint32_t scs_off_t;
+#endif
 typedef uint8_t scs_err_t;
 
 typedef void (*scs_cmpl_cb)(void);
