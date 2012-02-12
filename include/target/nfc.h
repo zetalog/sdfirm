@@ -1,5 +1,8 @@
-#ifndef __NFC_H__
-#define __NFC_H__
+#ifndef __NFC_H_INCLUDE__
+#define __NFC_H_INCLUDE__
+
+#include <target/config.h>
+#include <target/generic.h>
 
 /* NFC target information in D.E.P. (Data Exchange Protocol) see
  * ISO/IEC 18092 (NFCIP-1)
@@ -116,4 +119,4 @@ struct nfc_target {
 	struct nfc_modulation nm;
 } __packed;
 
-#endif /* __NFC_TYPES_H_INCLUDE__ */
+#endif /* __NFC_H_INCLUDE__ */

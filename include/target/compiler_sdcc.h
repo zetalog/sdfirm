@@ -9,6 +9,6 @@
 
 #pragma disable_warning 85
 
-#define __packed	__attribute__((packed))
+#define __packed
 
 #endif /* __COMPILER_SDCC_H_INCLUDE__ */

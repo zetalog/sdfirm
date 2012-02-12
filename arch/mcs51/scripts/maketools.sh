@@ -1,13 +1,14 @@
 #!/bin/sh
 
 export SYSTEM=
-export TARGET=sdcc
-export PREFIX=/usr/local/$TARGET
-#export SDCC_VER=3.0.0
+export TARGET=mcs51
+export PREFIX=/usr/local/sdcc
+
+export SDCC_VER=3.1.0
 export SDCC_DIR=sdcc
 
 export TOPDIR=`pwd`
-export BLDDIR=$TOPDIR/.build/$TARGET
+export BLDDIR=$TOPDIR/.build/sdcc
 export PATH=$PATH:$BLDDIR/static/bin
 
 (
@@ -21,7 +22,7 @@ export PATH=$PATH:$BLDDIR/static/bin
 		--disable-ds390-port	\
 		--disable-ds400-port	\
 		--disable-hc08-port	\
-		--disable-pic-port	\
+		--disable-pic14-port	\
 		--disable-pic16-port	\
 		--disable-xa51-port	\
 		--disable-ucsim		\
