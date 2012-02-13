@@ -75,12 +75,19 @@ scs_size_t acr122_xchg_avail(void)
 
 uint8_t acr122_read_byte(scs_off_t index)
 {
-	if (index < acr122_apdu.ne)
+	if (index < acr122_apdu.ne) {
 		return acr122_resp[index];
-	else if (index == acr122_apdu.ne)
-		return acr122_apdu.sw1;
-	else if (index == (acr122_apdu.ne+1))
-		return acr122_apdu.sw2;
+	} else {
+		if (acr122_apdu.p1 == 0x48) {
+			if (index < 10)
+				return acr122_resp[index];
+		} else {
+			if (index == acr122_apdu.ne)
+				return acr122_apdu.sw1;
+			else if (index == (acr122_apdu.ne+1))
+				return acr122_apdu.sw2;
+		}
+	}
 	return 0;
 }
 
@@ -100,11 +107,13 @@ void acr122_write_byte(scs_off_t index, uint8_t value)
 			acr122_set_sanity(index);
 		break;
 	case 1:
-		if ((value == 0xC0) && (acr122_state != ACR122_XCHG_STATE_RESP))
+		if (value == 0xC0) {
+			if (acr122_state != ACR122_XCHG_STATE_RESP)
+				acr122_set_sanity(index);
+		} else if (value != 0x00) {
 			acr122_set_sanity(index);
-		else if (value != 0x00)
-			acr122_set_sanity(index);
-		else
+		}
+		if (acr122_error == SCS_ERR_SUCCESS)
 			acr122_apdu.ins = value;
 		break;
 	case 2:
@@ -116,7 +125,7 @@ void acr122_write_byte(scs_off_t index, uint8_t value)
 			if (value != 0x00)
 				acr122_set_sanity(index);
 		}
-		if (acr122_error != SCS_ERR_SUCCESS)
+		if (acr122_error == SCS_ERR_SUCCESS)
 			acr122_apdu.p1 = value;
 		break;
 	case 3:
@@ -217,7 +226,7 @@ scs_err_t acr122_xchg_block(scs_size_t nc, scs_size_t ne)
 			acr122_resp[0x07] = 31;
 			acr122_resp[0x08] = 30;
 			acr122_resp[0x09] = 31;
-			acr122_apdu.ne = 10;
+			acr122_apdu.ne = 8;
 			break;
 		default:
 			BUG();
@@ -326,8 +335,8 @@ static void acr122_handler(uint8_t event)
 
 void acr122_init(void)
 {
+	acr122_set_state(ACR122_XCHG_STATE_CMD, 0);
 	acr122_sid = state_register(acr122_handler);
 	acr122_tid = timer_register(acr122_sid, TIMER_DELAYABLE);
 	timer_schedule_shot(acr122_tid, ACR122_POLL_TIMEOUT);
-	acr122_set_state(ACR122_XCHG_STATE_CMD, 0);
 }
