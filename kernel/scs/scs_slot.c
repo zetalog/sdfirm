@@ -147,8 +147,15 @@ void cos_slot_init(void);
 #define cos_slot_init()
 #endif
 
+#ifdef CONFIG_ACR122_SLOT
+void acr122_slot_init(void);
+#else
+#define acr122_slot_init()
+#endif
+
 void scs_slot_init(void)
 {
 	ifd_slot_init();
 	cos_slot_init();
+	acr122_slot_init();
 }
