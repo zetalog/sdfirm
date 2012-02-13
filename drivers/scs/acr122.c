@@ -216,16 +216,16 @@ scs_err_t acr122_xchg_block(scs_size_t nc, scs_size_t ne)
 		case 0x40:
 			break;
 		case 0x48:
-			acr122_resp[0x00] = 41;
-			acr122_resp[0x01] = 43;
-			acr122_resp[0x02] = 52;
-			acr122_resp[0x03] = 31;
-			acr122_resp[0x04] = 32;
-			acr122_resp[0x05] = 32;
-			acr122_resp[0x06] = 55;
-			acr122_resp[0x07] = 31;
-			acr122_resp[0x08] = 30;
-			acr122_resp[0x09] = 31;
+			acr122_resp[0x00] = 0x41;
+			acr122_resp[0x01] = 0x43;
+			acr122_resp[0x02] = 0x52;
+			acr122_resp[0x03] = 0x31;
+			acr122_resp[0x04] = 0x32;
+			acr122_resp[0x05] = 0x32;
+			acr122_resp[0x06] = 0x55;
+			acr122_resp[0x07] = 0x31;
+			acr122_resp[0x08] = 0x30;
+			acr122_resp[0x09] = 0x31;
 			acr122_apdu.ne = 8;
 			break;
 		default:
