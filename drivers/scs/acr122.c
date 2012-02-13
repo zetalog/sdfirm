@@ -218,6 +218,9 @@ scs_err_t acr122_xchg_block(scs_size_t nc, scs_size_t ne)
 			acr122_resp[0x09] = 31;
 			acr122_apdu.ne = 10;
 			break;
+		default:
+			BUG();
+			break;
 		}
 		break;
 	case 0xC0:
