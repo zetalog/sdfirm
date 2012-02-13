@@ -10,7 +10,7 @@ static scs_err_t acr122_slot_error(scs_err_t err)
 	switch (err) {
 	case SCS_ERR_SUCCESS:
 	case SCS_ERR_PROGRESS:
-	case SCS_ERR_TIMEOUT;
+	case SCS_ERR_TIMEOUT:
 		return err;
 	default:
 		return SCS_ERR_HW_ERROR;
@@ -60,7 +60,7 @@ static uint8_t acr122_slot_xchg_read(scs_off_t index)
 {
 	if (acr122_slot_atr) {
 		switch (index) {
-		case 0x00
+		case 0x00:
 			return 0x3B;
 		default:
 			return 0x00;
