@@ -60,6 +60,7 @@ static void acr122_set_error(scs_err_t err)
 static void acr122_set_state(uint8_t state, uint8_t poll)
 {
 	acr122_state = state;
+	acr122_poll = poll;
 }
 
 void acr122_register_completion(scs_cmpl_cb completion)
