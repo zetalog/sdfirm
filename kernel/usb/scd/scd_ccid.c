@@ -267,16 +267,16 @@ uint8_t scd_resp_message(void)
 	case SCD_PC2RDR_ESCAPE:
 		return SCD_RDR2PC_ESCAPE;
 #ifdef CONFIG_IFD_AUTO_PPS_PROP
-	case CCID_PC2RDR_SETPARAMETERS:
+	case SCD_PC2RDR_SETPARAMETERS:
 	case SCD_PC2RDR_GETPARAMETERS:
 	case CCID_PC2RDR_RESETPARAMETERS:
 	case CCID_PC2RDR_SETDATAANDFREQ:
 		return SCD_RDR2PC_SLOTSTATUS;
 #else
-	case CCID_PC2RDR_SETPARAMETERS:
+	case SCD_PC2RDR_SETPARAMETERS:
 	case SCD_PC2RDR_GETPARAMETERS:
 	case CCID_PC2RDR_RESETPARAMETERS:
-		return CCID_RDR2PC_PARAMETERS;
+		return SCD_RDR2PC_PARAMETERS;
 	case CCID_PC2RDR_SETDATAANDFREQ:
 		return CCID_RDR2PC_DATARATEANDCLOCK;
 #endif
@@ -410,19 +410,25 @@ static void ccid_DataAndFreq_out(void)
 	scd_resps[scd_qid].dwLength = 8;
 }
 
-static void ccid_Parameters_out(void)
+static uint8_t ccid_Parameter_size(uint8_t proto)
 {
-	__scd_CmdSuccess_out();
-	switch (scd_resps[scd_qid].abRFU3) {
+	switch (proto) {
 	case SCS_PROTO_T0:
-		scd_resps[scd_qid].dwLength = sizeof (struct scd_t0_param);
+		return sizeof (struct scd_t0_param);
 		break;
 #ifdef CONFIG_IFD_T1
 	case SCS_PROTO_T1:
-		scd_resps[scd_qid].dwLength = sizeof (struct scd_t1_param);
+		return sizeof (struct scd_t1_param);
 		break;
-#endif
 	}
+#endif
+	return 0;
+}
+
+static void ccid_Parameters_out(void)
+{
+	__scd_CmdSuccess_out();
+	scd_resps[scd_qid].dwLength = ccid_Parameter_size(scd_resps[scd_qid].abRFU3);
 }
 
 static void ccid_GetParameters_out(void)
@@ -511,39 +517,35 @@ static void ccid_ResetParameters_cmp(void)
 
 static void ccid_SetParameters_cmp(void)
 {
-	uint8_t bProtocolNum = scd_cmds[scd_qid].abRFU[0];
 	scs_err_t err;
 
-	switch (bProtocolNum) {
+	if (usbd_request_handled() <
+	    (SCD_HEADER_SIZE +
+	     ccid_Parameter_size(scd_cmds[scd_qid].abRFU[0]))) {
+		scd_CmdOffset_cmp(1);
+		return;
+	}
+
+	switch (scd_cmds[scd_qid].abRFU[0]) {
 	case SCS_PROTO_T0:
-		if (usbd_request_handled() >=
-		    SCD_HEADER_SIZE + sizeof (struct scd_t0_param)) {
-			scd_slot_enter(SCD_SLOT_STATE_RUNNING);
-			err = ifd_set_t0_param(scd_cmd_data.t0.bmFindexDindex,
-					       scd_cmd_data.t0.bGuardTimeT0,
-					       scd_cmd_data.t0.bWaitingIntegerT0,
-					       scd_cmd_data.t0.bClockStop);
-			ccid_Parameters_cmp(err);
-		} else {
-			scd_CmdOffset_cmp(1);
-		}
+		scd_slot_enter(SCD_SLOT_STATE_RUNNING);
+		err = ifd_set_t0_param(scd_cmd_data.t0.bmFindexDindex,
+				       scd_cmd_data.t0.bGuardTimeT0,
+				       scd_cmd_data.t0.bWaitingIntegerT0,
+				       scd_cmd_data.t0.bClockStop);
+		ccid_Parameters_cmp(err);
 		break;
 #ifdef CONFIG_IFD_T1
 	case SCS_PROTO_T1:
-		if (usbd_request_handled() >=
-		    SCD_HEADER_SIZE + sizeof (struct scd_t1_param)) {
-			scd_slot_enter(SCD_SLOT_STATE_RUNNING);
-			err = ifd_set_t1_param(scd_cmd_data.t1.bmFindexDindex,
-					       scd_cmd_data.t1.bmTCCKST1,
-					       scd_cmd_data.t1.bGuardTimeT1,
-					       scd_cmd_data.t1.bWaitingIntegerT1,
-					       scd_cmd_data.t1.bClockStop,
-					       scd_cmd_data.t1.bIFSC,
-					       scd_cmd_data.t1.bNadValue);
-			ccid_Parameters_cmp(err);
-		} else {
-			scd_CmdOffset_cmp(1);
-		}
+		scd_slot_enter(SCD_SLOT_STATE_RUNNING);
+		err = ifd_set_t1_param(scd_cmd_data.t1.bmFindexDindex,
+				       scd_cmd_data.t1.bmTCCKST1,
+				       scd_cmd_data.t1.bGuardTimeT1,
+				       scd_cmd_data.t1.bWaitingIntegerT1,
+				       scd_cmd_data.t1.bClockStop,
+				       scd_cmd_data.t1.bIFSC,
+				       scd_cmd_data.t1.bNadValue);
+		ccid_Parameters_cmp(err);
 		break;
 #endif
 	default:
@@ -554,23 +556,7 @@ static void ccid_SetParameters_cmp(void)
 
 static void ccid_Parameters_in(void)
 {
-	uint32_t param_length;
-
-	switch (scd_resps[scd_qid].abRFU3) {
-	case SCS_PROTO_T0:
-		param_length = sizeof (struct scd_t0_param);
-		break;
-#ifdef CONFIG_IFD_T1
-	case SCS_PROTO_T1:
-		param_length = sizeof (struct scd_t1_param);
-		break;
-#endif
-	default:
-		param_length = 0;
-		break;
-	}
-
-	scd_RespHeader_in(param_length);
+	scd_RespHeader_in(ccid_Parameter_size(scd_resps[scd_qid].abRFU3));
 
 	switch (scd_resps[scd_qid].abRFU3) {
 	case SCS_PROTO_T0:
@@ -671,11 +657,13 @@ static void ccid_ResetParameters_cmp(void)
 void scd_handle_bulk_pc2rdr(void)
 {
 	switch (scd_cmds[scd_qid].bMessageType) {
+	case SCD_PC2RDR_GETPARAMETERS:
+		break;
+	case SCD_PC2RDR_SETPARAMETERS:
+		ccid_SetParameters_out();
+		break;
 	case CCID_PC2RDR_SECURE:
 		ccid_Secure_out();
-		break;
-	case CCID_PC2RDR_SETPARAMETERS:
-		ccid_SetParameters_out();
 		break;
 	case CCID_PC2RDR_SETDATAANDFREQ:
 		ccid_SetDataAndFreq_out();
@@ -717,8 +705,8 @@ void scd_handle_bulk_rdr2pc(void)
 		scd_SlotStatus_in();
 		break;
 	case SCD_PC2RDR_GETPARAMETERS:
+	case SCD_PC2RDR_SETPARAMETERS:
 	case CCID_PC2RDR_RESETPARAMETERS:
-	case CCID_PC2RDR_SETPARAMETERS:
 		ccid_Parameters_in();
 		break;
 	case CCID_PC2RDR_SETDATAANDFREQ:
@@ -863,7 +851,7 @@ void scd_complete_bulk_pc2rdr(void)
 	case CCID_PC2RDR_SECURE:
 		ccid_Secure_cmp();
 		break;
-	case CCID_PC2RDR_SETPARAMETERS:
+	case SCD_PC2RDR_SETPARAMETERS:
 		ccid_SetParameters_cmp();
 		break;
 	case SCD_PC2RDR_GETPARAMETERS:
@@ -1337,6 +1325,19 @@ static uint32_t ccid_device_features(void)
 	return features;
 }
 
+static uint8_t ccid_proto_features(void)
+{
+	uint8_t protocols;
+	protocols = (1 << SCS_PROTO_T0);
+#ifdef CONFIG_IFD_T1
+	protocols |= (1 << SCS_PROTO_T1);
+#endif
+#ifdef CONFIG_SCD_ESC_ACR122
+	protocols = (1 << SCS_PROTO_T15);
+#endif
+	return protocols;
+}
+
 void scd_ctrl_get_desc(void)
 {
 	USBD_INB(SCD_DT_SCD_SIZE);
@@ -1344,7 +1345,7 @@ void scd_ctrl_get_desc(void)
 	USBD_INW(SCD_VERSION);
 	USBD_INB(NR_SCD_USB_SLOTS-1);
 	USBD_INB(SCD_VOLTAGE_ALL);
-	USBD_INL(scd_proto_features());
+	USBD_INL(ccid_proto_features());
 	USBD_INL((uint32_t)(IFD_HW_FREQ_DEF));
 	USBD_INL((uint32_t)(IFD_HW_FREQ_MAX));
 	USBD_INB(ifd_cf_nr_freq());
@@ -1452,7 +1453,7 @@ static void ccid_handle_iso7816_cmpl(void)
 #endif
 		scd_SlotStatus_cmp();
 		break;
-	case CCID_PC2RDR_SETPARAMETERS:
+	case SCD_PC2RDR_SETPARAMETERS:
 	case CCID_PC2RDR_RESETPARAMETERS:
 		ccid_Parameters_cmp(err);
 		break;

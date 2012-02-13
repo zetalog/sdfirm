@@ -219,7 +219,7 @@ struct ccid_resp_errors ccid_valid_errors[] = {
 		},
 	},
 	{
-		CCID_PC2RDR_SETPARAMETERS,
+		SCD_PC2RDR_SETPARAMETERS,
 		{
 			0x01, 0x02, 0x10, 0x03, 0x0C, 0x0D, 0x0E, 0x0F,
 			0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F,
@@ -629,7 +629,7 @@ static const char *ccid_msg_type(uint8_t type)
 		return "PC_to_RDR_IccPowerOn     ";
 	case SCD_PC2RDR_ICCPOWEROFF:
 		return "PC_to_RDR_IccPowerOff    ";
-	case CCID_PC2RDR_SETPARAMETERS:
+	case SCD_PC2RDR_SETPARAMETERS:
 		return "PC_to_RDR_SetParameters  ";
 	case SCD_PC2RDR_GETPARAMETERS:
 		return "PC_to_RDR_GetParameters  ";
@@ -653,7 +653,7 @@ static const char *ccid_msg_type(uint8_t type)
 		return "PC_to_RDR_Mechanical     ";
 	case CCID_PC2RDR_SETDATAANDFREQ:
 		return "PC_to_RDR_SetDataAndFreq ";	
-	case CCID_RDR2PC_PARAMETERS:
+	case SCD_RDR2PC_PARAMETERS:
 		return "RDR_to_PC_Parameters     ";	
 	case SCD_RDR2PC_ESCAPE:
 		return "RDR_to_PC_Escape         ";
@@ -738,10 +738,10 @@ boolean ccid_msg_ispair(uint8_t cmd, uint8_t resp)
 	case CCID_PC2RDR_MECHANICAL:
 	case CCID_PC2RDR_ABORT:
 		return (resp == SCD_RDR2PC_SLOTSTATUS);
-	case CCID_PC2RDR_SETPARAMETERS:
+	case SCD_PC2RDR_SETPARAMETERS:
 	case SCD_PC2RDR_GETPARAMETERS:
 	case CCID_PC2RDR_RESETPARAMETERS:
-		return (resp == CCID_RDR2PC_PARAMETERS);
+		return (resp == SCD_RDR2PC_PARAMETERS);
 	case CCID_PC2RDR_ESCAPE:
 		return (resp == SCD_RDR2PC_ESCAPE);
 	case CCID_PC2RDR_SETDATAANDFREQ:
@@ -782,7 +782,7 @@ boolean ccid_resp_valid(uint32_t length)
 	case CCID_PC2RDR_MECHANICAL:
 	case CCID_PC2RDR_ABORT:
 		return length == SCD_HEADER_SIZE;
-	case CCID_PC2RDR_SETPARAMETERS:
+	case SCD_PC2RDR_SETPARAMETERS:
 	case SCD_PC2RDR_GETPARAMETERS:
 	case CCID_PC2RDR_RESETPARAMETERS:
 		if (g_ccid_cmd[7] != g_ccid_resp[9])
@@ -996,7 +996,7 @@ static uint8_t __ccid_build_SetParameters(uint8_t bProtocolNum,
 					  uint8_t bClockStop)
 {
 	uint8_t bSeq = ccid_seq_alloc();
-	ccid_build_common(CCID_PC2RDR_SETPARAMETERS, dwLength,
+	ccid_build_common(SCD_PC2RDR_SETPARAMETERS, dwLength,
 			  bSeq, bProtocolNum, 0, 0);
 	g_ccid_cmd[10] = bmFindexDindex;
 	g_ccid_cmd[11] = bmTCCKS;

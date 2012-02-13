@@ -105,9 +105,6 @@ typedef struct scd_desc {
 
 #define SCD_FEATURE_WAKEUP_ICC		0x00100000
 
-#define ICCD_FEATURE_SPECIFIC		0x00000800
-#define ICCD_FEATURE_DEFAULT		(ICCD_FEATURE_SPECIFIC | SCD_FEATURE_AUTO_PPS_PROP)
-
 	uint32_t dwMaxCCIDMessageLength;
 
 	uint8_t	 bClassGetResponse;
@@ -203,6 +200,7 @@ struct scd_resp {
 	uint8_t abRFU3;
 };
 
+#define SCD_PC2RDR_SETPARAMETERS		0x61
 #define SCD_PC2RDR_ICCPOWERON			0x62
 #define SCD_PC2RDR_ICCPOWEROFF			0x63
 #define SCD_PC2RDR_GETSLOTSTATUS		0x65
@@ -212,6 +210,7 @@ struct scd_resp {
 
 #define SCD_RDR2PC_DATABLOCK			0x80
 #define SCD_RDR2PC_SLOTSTATUS			0x81
+#define SCD_RDR2PC_PARAMETERS			0x82
 #define SCD_RDR2PC_ESCAPE			0x83
 
 /* SCD_PC2RDR_XFRBLOCK parameters */
@@ -429,7 +428,6 @@ extern usbd_endpoint_t scd_endpoint_irq;
 
 void scd_ctrl_get_desc(void);
 void scd_handle_ctrl_class(void);
-uint8_t scd_proto_features(void);
 extern usbd_interface_t usb_scd_interface;
 void scd_devid_init(void);
 

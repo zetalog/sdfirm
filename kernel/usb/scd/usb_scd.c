@@ -297,7 +297,6 @@ void __scd_handle_command(scd_qid_t qid)
 		scd_IccPowerOn_out();
 		break;
 	case SCD_PC2RDR_ICCPOWEROFF:
-	case SCD_PC2RDR_GETPARAMETERS:
 		/* nothing to do */
 		break;
 	case SCD_PC2RDR_XFRBLOCK:
@@ -636,19 +635,6 @@ usbd_endpoint_t scd_endpoint_irq = {
 #define SCD_STRING_FIRST	0x10
 #define SCD_STRING_INTERFACE	SCD_STRING_FIRST+0
 #define SCD_STRING_LAST		SCD_STRING_INTERFACE
-
-uint8_t scd_proto_features(void)
-{
-	uint8_t protocols;
-	protocols = (1 << SCS_PROTO_T0);
-#ifdef CONFIG_IFD_T1
-	protocols |= (1 << SCS_PROTO_T1);
-#endif
-#ifdef CONFIG_SCD_ESC_ACR122
-	protocols = (1 << SCS_PROTO_T15);
-#endif
-	return protocols;
-}
 
 static uint16_t scd_config_length(void)
 {

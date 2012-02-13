@@ -49,7 +49,13 @@
 #error "SCD device is not defined"
 #endif
 
+#ifdef CONFIG_ICCD_OLDVER
+#define SCD_VERSION			0x100
+#define ICCD_FEATURE_SPECIFIC		0x00000000
+#else
 #define SCD_VERSION			0x110
+#define ICCD_FEATURE_SPECIFIC		0x00000800
+#endif
 
 #define USB_INTERFACE_PROTOCOL_ICCD_A	0x01
 #define USB_INTERFACE_PROTOCOL_ICCD_B	0x02

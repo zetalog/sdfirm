@@ -100,6 +100,9 @@ config ICCD_SCD
 
 endchoice
 
+config ICCD_OLDVER
+	bool "Enable old version number"
+
 endif
 
 endif
