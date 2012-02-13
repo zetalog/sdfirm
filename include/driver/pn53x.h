@@ -22,6 +22,7 @@
 #define PN53X_TAIL_SIZE			2
 #define PN53X_DATA_SIZE			(PN53X_BUF_SIZE-PN53X_HEAD_SIZE-PN53X_TAIL_SIZE)
 
+/* Normal frames */
 #define PN53X_LEN			3
 #define PN53X_LCS			4
 #define PN53X_TFI			5
@@ -29,14 +30,25 @@
 #define PN53X_CMD			6
 #define PN53X_PD(n)			(PN53X_CMD+1+(n))
 
+/* Extended frames */
+#define PN53X_ELENM			5
+#define PN53X_ELENL			6
+#define PN53X_ELCS			7
+#define PN53X_ETFI			8
+#define PN53X_ECMD			9
+#define PN53X_EPD(n)			(PN53X_ECMD+1+(n))
+
 #define PN53X_OUT			0xD4
 #define PN53X_IN			0xD5
 
 #define PN53X_ACK			0x00FF
 #define PN53X_NAK			0xFF00
+#define PN53X_EXT			0xFFFF
 #define pn53x_type(buf)			MAKEWORD((buf)[PN53X_LCS], (buf)[PN53X_LEN])
 #define PN53X_NORMAL(buf)		\
 	((pn53x_type(buf) != PN53X_ACK) && (pn53x_type(buf) != PN53X_NAK))
+#define PN53X_EXTEND(buf)		\
+	(pn53x_type(buf) == 0xFFFF)
 #define PN53X_ERROR(buf)		\
 	((buf)[PN53X_LEN] == 0x01 && (buf)[PN53X_TFI] != PN53X_RESP)
 #define PN53X_NORMAL_SIZE(buf)		\

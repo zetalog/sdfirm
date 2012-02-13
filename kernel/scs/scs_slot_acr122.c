@@ -1,14 +1,16 @@
 #include <target/scs_slot.h>
 #include <driver/acr122.h>
 
-scs_sid_t acr122_sid;
-boolean acr122_activated;
+scs_sid_t acr122_slot_sid;
+boolean acr122_slot_activated;
+boolean acr122_slot_atr;
 
 static scs_err_t acr122_slot_error(scs_err_t err)
 {
 	switch (err) {
 	case SCS_ERR_SUCCESS:
 	case SCS_ERR_PROGRESS:
+	case SCS_ERR_TIMEOUT;
 		return err;
 	default:
 		return SCS_ERR_HW_ERROR;
@@ -22,25 +24,29 @@ static void acr122_slot_select(void)
 
 static scs_err_t acr122_slot_activate(void)
 {
-	acr122_activated = true;
+	acr122_slot_activated = true;
+	acr122_slot_atr = true;
 	return SCS_ERR_SUCCESS;
 }
 
 static scs_err_t acr122_slot_deactivate(void)
 {
-	acr122_activated = false;
+	acr122_slot_activated = false;
 	return SCS_ERR_SUCCESS;
 }
 
 static scs_err_t acr122_slot_xchg_block(scs_size_t nc, scs_size_t ne)
 {
 	scs_err_t err;
+	acr122_slot_atr = false;
 	err = acr122_xchg_block(nc, ne);
 	return acr122_slot_error(err);
 }
 
 static scs_size_t acr122_slot_xchg_avail(void)
 {
+	if (acr122_slot_atr)
+		return 2;
 	return acr122_xchg_avail();
 }
 
@@ -52,12 +58,20 @@ static scs_err_t acr122_slot_xchg_write(scs_off_t index, uint8_t byte)
 
 static uint8_t acr122_slot_xchg_read(scs_off_t index)
 {
+	if (acr122_slot_atr) {
+		switch (index) {
+		case 0x00
+			return 0x3B;
+		default:
+			return 0x00;
+		}
+	}
 	return acr122_read_byte(index);
 }
 
 static uint8_t acr122_slot_status(void)
 {
-	if (acr122_activated)
+	if (acr122_slot_activated)
 		return SCS_SLOT_STATUS_ACTIVE;
 	else
 		return SCS_SLOT_STATUS_INACTIVE;
@@ -70,7 +84,7 @@ static uint8_t acr122_slot_get_error(void)
 
 static void acr122_slot_complete_slot(void)
 {
-	scs_slot_select(acr122_sid);
+	scs_slot_select(acr122_slot_sid);
 	scs_complete_slot();
 }
 
@@ -88,7 +102,8 @@ scs_slot_driver_t acr122_slot = {
 
 void acr122_slot_init(void)
 {
-	acr122_sid = scs_register_slot(&acr122_slot);
-	acr122_activated = false;
+	acr122_init();
+	acr122_slot_sid = scs_register_slot(&acr122_slot);
+	acr122_slot_activated = false;
 	acr122_register_completion(acr122_slot_complete_slot);
 }

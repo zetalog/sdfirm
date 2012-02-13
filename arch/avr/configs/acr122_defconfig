@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Feb  1 10:19:43 2012
+# Mon Feb 13 11:11:41 2012
 #
 CONFIG_AVR=y
 
@@ -79,7 +79,7 @@ CONFIG_MAX_VECTORS=3
 #
 # Scheduling facility (poll) support
 #
-CONFIG_MAX_STATES=2
+CONFIG_MAX_STATES=3
 
 #
 # Timing facility (jiffy) support
@@ -94,7 +94,7 @@ CONFIG_LPS_WEIGHT=8
 CONFIG_TIMER=y
 # CONFIG_TIMER_16BIT is not set
 CONFIG_TIMER_ONESHOT=y
-CONFIG_MAX_TIMERS=1
+CONFIG_MAX_TIMERS=2
 
 #
 # Address space layout (.text) support
@@ -144,8 +144,6 @@ CONFIG_USBD_XFR_ASYNC=y
 # CONFIG_USBD_BULK is not set
 # CONFIG_USBD_XFR_ASYNC_TXAVAL is not set
 CONFIG_USBD_MAX_INTFS=1
-# CONFIG_USB_HID is not set
-# CONFIG_USB_MSD is not set
 CONFIG_USB_SCD=y
 # CONFIG_SCD_CCID is not set
 CONFIG_SCD_ICCD=y
@@ -155,6 +153,8 @@ CONFIG_SCD_ESC_NONE=y
 # CONFIG_SCD_ESC_ACR122 is not set
 # CONFIG_ICCD_COS is not set
 CONFIG_ICCD_SCD=y
+# CONFIG_USB_MSD is not set
+# CONFIG_USB_HID is not set
 # CONFIG_USB_DFU is not set
 # CONFIG_USB_PN53X is not set
 CONFIG_SCS=y
@@ -183,6 +183,8 @@ CONFIG_ACR122_SLOT=y
 # MTD memory drivers
 #
 CONFIG_PN53X=y
+# CONFIG_PN53X_SPI is not set
+CONFIG_PN53X_STUB=y
 CONFIG_ACR122=y
 
 #
@@ -250,3 +252,4 @@ CONFIG_USB_DEBUG=y
 # CONFIG_USB_DEBUG_CALL is not set
 # CONFIG_SCD_DEBUG is not set
 # CONFIG_SCS_DEBUG is not set
+# CONFIG_PN53X_DEBUG is not set

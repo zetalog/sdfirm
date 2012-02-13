@@ -22,5 +22,6 @@ uint8_t acr122_read_byte(scs_off_t index);
 void acr122_write_byte(scs_off_t index, uint8_t value);
 void acr122_register_completion(scs_cmpl_cb completion);
 scs_err_t acr122_get_error(void);
+void acr122_init(void);
 
 #endif /* __ACR122_H_INCLUDE__ */

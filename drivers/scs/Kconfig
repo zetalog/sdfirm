@@ -38,6 +38,7 @@ endif
 config ACR122
 	bool "ACS ACR122 pseudo APDU support"
 	select PN53X
+	select TIMER
 
 if ACR122
 
