@@ -30,7 +30,7 @@ static void acr122_set_sw(uint8_t sw1, uint8_t sw2)
 	acr122_apdu.sw2 = sw2;
 }
 #define acr122_set_sw_default()		acr122_set_sw(0x90, 0x00)
-#define acr122_set_sw_length(len)	acr122_set_sw(0x61, (len))
+#define acr122_set_sw_length(len)	acr122_set_sw(0x61, (len)+2)
 #define acr122_set_sw_error(err)	acr122_set_sw(0x63, (err))
 
 scs_err_t acr122_get_error(void)
@@ -136,7 +136,7 @@ void acr122_write_byte(scs_off_t index, uint8_t value)
 			acr122_apdu.ne = 0;
 		} else {
 			acr122_apdu.nc = 0;
-			acr122_apdu.ne = value;
+			acr122_apdu.ne = (value-2);
 		}
 		break;
 	default:
