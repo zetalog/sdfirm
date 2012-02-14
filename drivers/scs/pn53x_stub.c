@@ -79,16 +79,16 @@ void pn53x_response_error(uint8_t ec)
 void pn53x_response_Diagnose(void)
 {
 	uint8_t len;
-	switch (pn53x_stub_cmd[PN53X_PD(0)]) {
+	switch (pn53x_stub_cmd[PN53X_PD(1)]) {
 	case PN53X_DIAG_CMDLINE:
 		len = pn53x_stub_cmd[PN53X_LEN];
-		memory_copy((caddr_t)(pn53x_stub_resp)+PN53X_PD(0),
-			    (caddr_t)(pn53x_stub_cmd)+PN53X_PD(0),
+		memory_copy((caddr_t)(pn53x_stub_resp)+PN53X_PD(1),
+			    (caddr_t)(pn53x_stub_cmd)+PN53X_PD(1),
 			    len-2);
 		break;
 	case PN53X_DIAG_ROMTEST:
 	case PN53X_DIAG_RAMTEST:
-		pn53x_stub_resp[PN53X_PD(0)] = PN53X_DIAG_STATUS_OK;
+		pn53x_stub_resp[PN53X_PD(1)] = PN53X_DIAG_STATUS_OK;
 		len = 3;
 		break;
 	case PN53X_DIAG_POLL_TARGET:
@@ -106,16 +106,16 @@ void pn53x_response_Diagnose(void)
 
 void pn53x_response_GetFirmwareVersion(void)
 {
-	pn53x_stub_resp[PN53X_CMD+1] = 0x32;
-	pn53x_stub_resp[PN53X_CMD+2] = 0x01;
-	pn53x_stub_resp[PN53X_CMD+3] = 0x06;
-	pn53x_stub_resp[PN53X_CMD+4] = 0x07;
+	pn53x_stub_resp[PN53X_PD(1)] = 0x32;
+	pn53x_stub_resp[PN53X_PD(2)] = 0x01;
+	pn53x_stub_resp[PN53X_PD(3)] = 0x06;
+	pn53x_stub_resp[PN53X_PD(4)] = 0x07;
 	pn53x_build_frame(6);
 }
 
 void pn53x_response_SetParameters(void)
 {
-	pn53x_flags = pn53x_stub_cmd[PN53X_PD(0)];
+	pn53x_flags = pn53x_stub_cmd[PN53X_PD(1)];
 	/* if (bits_raised(pn53x_flags, PN53X_PARAM_AUTO_ATR_RES) &&
 	    bits_raised(pn53x_flags, PN53X_PARAM_AUTO_RATS))
 	if (bits_raised(pn53x_flags, PN53X_PARAM_14443_4_PICC)) */
@@ -195,8 +195,8 @@ void pn53x_response_InAutoPoll(void)
 	uint8_t i;
 	scs_off_t offset;
 
-	nr_poll = pn53x_stub_cmd[PN53X_PD(0)];
-	period = pn53x_stub_cmd[PN53X_PD(1)];
+	nr_poll = pn53x_stub_cmd[PN53X_PD(1)];
+	period = pn53x_stub_cmd[PN53X_PD(2)];
 	do {
 		if (pn53x_nr_targets == 0)
 			pn53x_poll_targets(period);
@@ -205,7 +205,7 @@ void pn53x_response_InAutoPoll(void)
 		if (nr_poll != PN53X_POLL_INFINITE)
 			nr_poll--;
 	} while (nr_poll > 0);
-	offset = PN53X_PD(0);
+	offset = PN53X_PD(1);
 	pn53x_stub_resp[offset++] = pn53x_nr_targets;
 	for (i = 0; i < pn53x_nr_targets; i++) {
 		uint8_t size = pn53x_target_info_size(i);
@@ -248,8 +248,8 @@ void pn53x_response_ReadRegister(void)
 	for (i = 0, j = 0;
 	     i < (pn53x_stub_cmd[PN53X_LEN]-2);
 	     i += 2, j++) {
-		reg = MAKEWORD(pn53x_stub_cmd[PN53X_PD(1)+i],
-			       pn53x_stub_cmd[PN53X_PD(0)+i]);
+		reg = MAKEWORD(pn53x_stub_cmd[PN53X_PD(2)+i],
+			       pn53x_stub_cmd[PN53X_PD(1)+i]);
 		if (!pn53x_is_ciu_register(reg)) {
 			if (reg == PN53X_REG_Control_switch_rng) {
 				val = pn53x_ctrl_reg_switch_rng;
@@ -263,7 +263,7 @@ void pn53x_response_ReadRegister(void)
 			mask = pn53x_ciu_readables[index];
 			val = (pn53x_ciu_read_register(reg) & mask);
 		}
-		pn53x_stub_resp[PN53X_PD(0)+j] = val;
+		pn53x_stub_resp[PN53X_PD(1)+j] = val;
 	}
 	pn53x_build_frame(j+2);
 }
@@ -277,9 +277,9 @@ void pn53x_response_WriteRegister(void)
 	for (i = 0;
 	     i < (pn53x_stub_cmd[PN53X_LEN]-2);
 	     i += 3) {
-		reg = MAKEWORD(pn53x_stub_cmd[PN53X_PD(1)+i],
-			       pn53x_stub_cmd[PN53X_PD(0)+i]);
-		val = pn53x_stub_cmd[PN53X_PD(2)+i];
+		reg = MAKEWORD(pn53x_stub_cmd[PN53X_PD(2)+i],
+			       pn53x_stub_cmd[PN53X_PD(1)+i]);
+		val = pn53x_stub_cmd[PN53X_PD(3)+i];
 		if (!pn53x_is_ciu_register(reg)) {
 			if (reg == PN53X_REG_Control_switch_rng) {
 				pn53x_ctrl_reg_switch_rng = val;
@@ -300,22 +300,22 @@ void pn53x_response_WriteRegister(void)
 
 void pn53x_response_ReadGPIO(void)
 {
-	pn53x_stub_resp[PN53X_PD(0)] = (pn53x_sfr_p3 & PN53X_P3_MASK);
-	pn53x_stub_resp[PN53X_PD(1)] = (pn53x_sfr_p7 & PN53X_P7_MASK);
-	pn53x_stub_resp[PN53X_PD(2)] = pn53x_hci_mode;
+	pn53x_stub_resp[PN53X_PD(1)] = (pn53x_sfr_p3 & PN53X_P3_MASK);
+	pn53x_stub_resp[PN53X_PD(2)] = (pn53x_sfr_p7 & PN53X_P7_MASK);
+	pn53x_stub_resp[PN53X_PD(3)] = pn53x_hci_mode;
 	pn53x_build_frame(5);
 }
 
 void pn53x_response_WriteGPIO(void)
 {
-	pn53x_sfr_p3 = pn53x_stub_cmd[PN53X_PD(0)];
-	pn53x_sfr_p7 = pn53x_stub_cmd[PN53X_PD(1)];
+	pn53x_sfr_p3 = pn53x_stub_cmd[PN53X_PD(1)];
+	pn53x_sfr_p7 = pn53x_stub_cmd[PN53X_PD(2)];
 	pn53x_build_frame(2);
 }
 
 void pn53x_response_SetSerialBaudRate(void)
 {
-	pn53x_serial_br = pn53x_stub_cmd[PN53X_PD(0)];
+	pn53x_serial_br = pn53x_stub_cmd[PN53X_PD(1)];
 	pn53x_build_frame(2);
 }
 
@@ -324,10 +324,10 @@ void pn53x_response_SAMConfiguration(void)
 	uint8_t mode;
 	uint8_t timeout;
 	uint8_t irq;
-	mode = pn53x_stub_cmd[PN53X_PD(0)];
-	timeout = pn53x_stub_cmd[PN53X_PD(1)];
+	mode = pn53x_stub_cmd[PN53X_PD(1)];
+	timeout = pn53x_stub_cmd[PN53X_PD(2)];
 	if (pn53x_stub_cmd[PN53X_LEN] > 4)
-		irq = pn53x_stub_cmd[PN53X_PD(2)];
+		irq = pn53x_stub_cmd[PN53X_PD(3)];
 	pn53x_build_frame(2);
 }
 
@@ -335,15 +335,15 @@ void pn53x_response_PowerDown(void)
 {
 	uint8_t wakeupenable;
 	uint8_t generateirq;
-	wakeupenable = pn53x_stub_cmd[PN53X_PD(0)];
+	wakeupenable = pn53x_stub_cmd[PN53X_PD(1)];
 	if (pn53x_stub_cmd[PN53X_LEN] > 3)
-		generateirq = pn53x_stub_cmd[PN53X_PD(1)];
+		generateirq = pn53x_stub_cmd[PN53X_PD(2)];
 	pn53x_response_error(PN53X_ERR_SUCCESS);
 }
 
 void pn53x_response_RFConfiguration(void)
 {
-	uint8_t type = pn53x_stub_cmd[PN53X_PD(0)];
+	uint8_t type = pn53x_stub_cmd[PN53X_PD(1)];
 
 	switch (type) {
 	case PN53X_RFCI_FIELD:
@@ -373,14 +373,14 @@ void pn53x_response_InListPassiveTarget(void)
 	uint8_t max_targets, nr_targets;
 	scs_off_t offset;
 
-	if (pn53x_stub_cmd[PN53X_PD(0)] > 2) {
+	if (pn53x_stub_cmd[PN53X_PD(1)] > 2) {
 		pn53x_response_error(PN53X_ERR_CMD);
 		return;
 	}
-	max_targets = min(pn53x_nr_targets, pn53x_stub_cmd[PN53X_PD(0)]);
-	modulation = pn53x_stub_cmd[PN53X_PD(1)];
+	max_targets = min(pn53x_nr_targets, pn53x_stub_cmd[PN53X_PD(1)]);
+	modulation = pn53x_stub_cmd[PN53X_PD(2)];
 	nr_targets = 0;
-	offset = PN53X_PD(1);
+	offset = PN53X_PD(2);
 	for (i = 0; i < pn53x_nr_targets; i++) {
 		if (pn53x_nm_to_pm(pn53x_targets[i].nm) == modulation) {
 			nr_targets++;
@@ -388,7 +388,7 @@ void pn53x_response_InListPassiveTarget(void)
 			offset += pn53x_target_info_size(i);
 		}
 	}
-	pn53x_stub_resp[PN53X_PD(0)] = nr_targets;
+	pn53x_stub_resp[PN53X_PD(1)] = nr_targets;
 	pn53x_build_frame(offset-PN53X_TFI);
 }
 

@@ -28,7 +28,7 @@
 #define PN53X_TFI			5
 #define PN53X_ERR			5
 #define PN53X_CMD			6
-#define PN53X_PD(n)			(PN53X_CMD+1+(n))
+#define PN53X_PD(n)			(PN53X_CMD+(n))
 
 /* Extended frames */
 #define PN53X_ELENM			5
@@ -36,7 +36,7 @@
 #define PN53X_ELCS			7
 #define PN53X_ETFI			8
 #define PN53X_ECMD			9
-#define PN53X_EPD(n)			(PN53X_ECMD+1+(n))
+#define PN53X_EPD(n)			(PN53X_ECMD+(n))
 
 #define PN53X_OUT			0xD4
 #define PN53X_IN			0xD5
