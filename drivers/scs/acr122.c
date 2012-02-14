@@ -340,6 +340,7 @@ static void acr122_handler(uint8_t event)
 
 void acr122_init(void)
 {
+	pn53x_ctrl_init();
 	acr122_set_state(ACR122_XCHG_STATE_CMD, 0);
 	acr122_sid = state_register(acr122_handler);
 	acr122_tid = timer_register(acr122_sid, TIMER_DELAYABLE);
