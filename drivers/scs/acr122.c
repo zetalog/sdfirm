@@ -14,7 +14,6 @@ static scs_cmpl_cb acr122_complete = NULL;
 static struct acr122_pseudo_apdu acr122_apdu;
 static uint8_t acr122_cmd[ACR122_BUF_SIZE];
 static uint8_t acr122_resp[ACR122_BUF_SIZE];
-static scs_err_t acr122_error;
 static uint8_t acr122_state;
 static uint8_t acr122_poll;
 
@@ -26,7 +25,7 @@ static void acr122_write_cmd(void);
 
 static void acr122_set_sw(uint8_t sw1, uint8_t sw2)
 {
-	acr122_apdu.ne = 2;
+	acr122_apdu.ne = 0;
 	acr122_apdu.sw1 = sw1;
 	acr122_apdu.sw2 = sw2;
 }
@@ -36,12 +35,11 @@ static void acr122_set_sw(uint8_t sw1, uint8_t sw2)
 
 scs_err_t acr122_get_error(void)
 {
-	return acr122_error;
+	return SCS_ERR_SUCCESS;
 }
 
 static void acr122_set_error(scs_err_t err)
 {
-	acr122_error = err;
 	switch (err) {
 	case SCS_ERR_TIMEOUT:
 		acr122_set_sw_error(ACR122_SW2_TIMEOUT);
@@ -97,7 +95,7 @@ void acr122_write_byte(scs_off_t index, uint8_t value)
 		acr122_apdu.nc = 0;
 		acr122_set_sw_default();
 	} else {
-		if (acr122_error != SCS_ERR_SUCCESS)
+		if (acr122_apdu.sw1 != 0x90)
 			return;
 	}
 
@@ -113,7 +111,7 @@ void acr122_write_byte(scs_off_t index, uint8_t value)
 		} else if (value != 0x00) {
 			acr122_set_sanity(index);
 		}
-		if (acr122_error == SCS_ERR_SUCCESS)
+		if (acr122_apdu.sw1 == 0x90)
 			acr122_apdu.ins = value;
 		break;
 	case 2:
@@ -125,7 +123,7 @@ void acr122_write_byte(scs_off_t index, uint8_t value)
 			if (value != 0x00)
 				acr122_set_sanity(index);
 		}
-		if (acr122_error == SCS_ERR_SUCCESS)
+		if (acr122_apdu.sw1 == 0x90)
 			acr122_apdu.p1 = value;
 		break;
 	case 3:
@@ -177,9 +175,10 @@ static void acr122_write_cmd(void)
 
 	for (i = 0; i < acr122_apdu.nc; i++) {
 		dcs += acr122_cmd[i];
-		pn53x_xchg_write(i+PN53X_HEAD_SIZE, acr122_cmd[i]);
+		pn53x_xchg_write(i+PN53X_HEAD_SIZE-1, acr122_cmd[i]);
 	}
 
+	i += (PN53X_HEAD_SIZE-1);
 	pn53x_xchg_write(i++, (uint8_t)(-dcs));
 	pn53x_xchg_write(i++, 0);
 	pn53x_write_cmpl(i);
@@ -202,16 +201,15 @@ static scs_err_t acr122_xchg_begin(void)
 
 scs_err_t acr122_xchg_block(scs_size_t nc, scs_size_t ne)
 {
-	scs_err_t err = acr122_error;
-
-	if (err != SCS_ERR_SUCCESS)
-		return err;
+	if (acr122_apdu.sw1 != 0x90) {
+		return SCS_ERR_SUCCESS;
+	}
 
 	switch (acr122_apdu.ins) {
 	case 0x00:
 		switch (acr122_apdu.p1) {
 		case 0x00:
-			err = acr122_xchg_begin();
+			return acr122_xchg_begin();
 			break;
 		case 0x40:
 			break;
@@ -240,7 +238,7 @@ scs_err_t acr122_xchg_block(scs_size_t nc, scs_size_t ne)
 		BUG();
 		break;
 	}
-	return err;
+	return SCS_ERR_SUCCESS;
 }
 
 static void acr122_xchg_failure(scs_err_t err)
@@ -255,18 +253,25 @@ static void acr122_xchg_success(uint8_t len)
 	acr122_xchg_end(ACR122_XCHG_STATE_RESP);
 }
 
+static void acr122_read_completion(scs_off_t i)
+{
+	uint8_t val;
+	val = pn53x_xchg_read(i++);
+	pn53x_read_cmpl(i);
+}
+
 static void acr122_poll_completion(void)
 {
 	scs_off_t i;
-	uint8_t head[PN53X_HEAD_SIZE];
+	uint8_t head[PN53X_HEAD_SIZE-1];
 
 	BUG_ON(acr122_poll == 0);
 
-	for (i = 0; i < PN53X_HEAD_SIZE; i++)
+	for (i = 0; i < (PN53X_HEAD_SIZE-1); i++)
 		head[i] = pn53x_xchg_read(i);
 
 	if ((uint8_t)(head[PN53X_LEN] + head[PN53X_LCS]) != 0) {
-		pn53x_read_cmpl(PN53X_HEAD_SIZE);
+		acr122_read_completion(PN53X_HEAD_SIZE-1);
 		if (PN53X_EXTEND(head))
 			acr122_xchg_failure(SCS_ERR_UNSUPPORT);
 		else
@@ -275,7 +280,7 @@ static void acr122_poll_completion(void)
 	}
 
 	if (!PN53X_NORMAL(head)) {
-		pn53x_read_cmpl(PN53X_HEAD_SIZE);
+		acr122_read_completion(PN53X_HEAD_SIZE-1);
 		if ((pn53x_type(head) == PN53X_ACK) &&
 		    (acr122_state == ACR122_XCHG_STATE_CMD)) {
 			acr122_set_state(ACR122_XCHG_STATE_RESP, 1);
@@ -287,14 +292,14 @@ static void acr122_poll_completion(void)
 		uint8_t value;
 		uint8_t len = head[PN53X_LEN];
 
-		for (; i < (len + PN53X_HEAD_SIZE); i++) {
-			value = pn53x_xchg_read(i);
+		for (i = 0; i < len; i++) {
+			value = pn53x_xchg_read(i+PN53X_HEAD_SIZE-1);
 			dcs += value;
-			acr122_resp[i-PN53X_HEAD_SIZE] = value;
+			acr122_resp[i] = value;
 		}
+		i += (PN53X_HEAD_SIZE-1);
 		dcs += pn53x_xchg_read(i++);
-		value = pn53x_xchg_read(i++);
-		pn53x_read_cmpl(i);
+		acr122_read_completion(i);
 
 		if (dcs != 0) {
 			acr122_xchg_failure(SCS_ERR_PARITY_ERR);
