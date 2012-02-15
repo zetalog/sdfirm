@@ -1,7 +1,7 @@
-#include <target/scs_slot.h>
+#include <target/scs_card.h>
 #include <driver/acr122.h>
 
-scs_sid_t acr122_slot_sid;
+scs_cid_t acr122_slot_sid;
 boolean acr122_slot_activated;
 boolean acr122_slot_atr;
 

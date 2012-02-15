@@ -42,30 +42,30 @@
 #include <target/usb_scd.h>
 
 #if NR_SCD_ENDPS > 0
-uint8_t iccd_addr[NR_SCD_SLOTS][NR_SCD_ENDPS];
+uint8_t iccd_addr[NR_SCD_DEVICES][NR_SCD_ENDPS];
 #endif
 
 /*=========================================================================
  * ISO7816 translator
  *=======================================================================*/
-static scd_sid_t iccd_addr2sid(uint8_t addr)
+static scd_did_t iccd_addr2did(uint8_t addr)
 {
-	scd_qid_t id;
+	scd_did_t did;
 	uint8_t i;
 
-	for (id = 0; id < NR_SCD_SLOTS; id++) {
+	for (did = 0; did < NR_SCD_DEVICES; did++) {
 		for (i = 0; i < NR_SCD_ENDPS; i++) {
 			if (addr == iccd_addr[scd_qid][i])
-				return id;
+				return did;
 		}
 	}
-	return NR_SCD_SLOTS;
+	return NR_SCD_DEVICES;
 }
-#define iccd_addr2qid(addr)		((scd_qid_t)(iccd_addr2sid(addr)))
+#define iccd_addr2qid(addr)		((scd_qid_t)(iccd_addr2did(addr)))
 
-void scd_sid_select(scd_sid_t sid)
+void scd_did_select(scd_did_t did)
 {
-	scd_slot_select(sid);
+	scd_slot_select(did);
 }
 
 uint8_t scd_slot_status(void)
@@ -333,22 +333,22 @@ void scd_complete_command(void)
  *=======================================================================*/
 boolean scd_present_changed(void)
 {
-	return __scd_present_changed_sid(iccd_addr2sid(usbd_saved_addr()));
+	return __scd_present_changed_id(iccd_addr2did(usbd_saved_addr()));
 }
 
 void scd_handle_present(void)
 {
-	__scd_handle_present_sid(iccd_addr2sid(usbd_saved_addr()));
+	__scd_handle_present_id(iccd_addr2did(usbd_saved_addr()));
 }
 
 void scd_discard_present(void)
 {
-	__scd_discard_present_sid(iccd_addr2sid(usbd_saved_addr()));
+	__scd_discard_present_id(iccd_addr2did(usbd_saved_addr()));
 }
 
 void scd_submit_present(void)
 {
-	__scd_submit_present_sid(iccd_addr2sid(usbd_saved_addr()));
+	__scd_submit_present_id(iccd_addr2did(usbd_saved_addr()));
 }
 
 /*=========================================================================
@@ -524,7 +524,7 @@ static void iccd_handle_ll_cmpl(void)
 static void iccd_usb_register(void)
 {
 	scd_qid_t qid, oqid;
-	for (qid = 0; qid < NR_SCD_SLOTS; qid++) {
+	for (qid = 0; qid < NR_SCD_DEVICES; qid++) {
 		usbd_declare_interface(50, &usb_scd_interface);
 		oqid = scd_qid_save(qid);
 		scd_bulk_register(SCD_ADDR_OUT, SCD_ADDR_IN);

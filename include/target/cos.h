@@ -3,7 +3,7 @@
 
 #include <target/config.h>
 #include <target/generic.h>
-#include <target/scs_slot.h>
+#include <target/scs_card.h>
 #include <target/usb.h>
 
 typedef uint16_t cos_sw_t;

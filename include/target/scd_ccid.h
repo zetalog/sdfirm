@@ -46,7 +46,7 @@
 
 #define SCD_VERSION			0x100
 
-typedef ifd_sid_t			scd_sid_t;
+typedef ifd_sid_t			scd_did_t;
 typedef uint8_t				ccid_seq_t;
 
 #define CCID_REQ_ABORT			0x01
@@ -87,17 +87,17 @@ struct ccid_fd_param {
 #include <target/ccid_spe.h>
 
 /* maximum busy slots in CCID layer */
-#define NR_SCD_SLOTS			NR_IFD_SLOTS
-#define scd_sid				ifd_slid
+#define NR_SCD_DEVICES			NR_IFD_SLOTS
+#define scd_did				ifd_slid
 #ifdef CONFIG_CCID_ABORT
 /*
  * QID = SID+1: additional QID for BULK_OUT
  */
-#define NR_SCD_QUEUES			(NR_SCD_SLOTS + 1)
+#define NR_SCD_QUEUES			(NR_SCD_DEVICES + 1)
 #else
-#define NR_SCD_QUEUES			NR_SCD_SLOTS
+#define NR_SCD_QUEUES			NR_SCD_DEVICES
 #endif
-#define NR_SCD_USB_SLOTS		NR_SCD_SLOTS
+#define NR_SCD_USB_SLOTS		NR_SCD_DEVICES
 #define NR_SCD_USB_QUEUES		NR_SCD_QUEUES
 
 #define scd_read_byte(i)		ifd_read_byte(i)

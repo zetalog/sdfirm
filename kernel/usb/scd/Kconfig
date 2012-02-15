@@ -94,9 +94,9 @@ config ICCD_COS
 	select COS
 
 config ICCD_SCD
-	bool "SCS Slots"
+	bool "SCS Cards"
 	select SCS
-	select SCS_SLOT
+	select SCS_CARD
 
 endchoice
 

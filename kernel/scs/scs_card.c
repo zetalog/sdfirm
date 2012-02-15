@@ -1,46 +1,46 @@
-#include <target/scs_slot.h>
+#include <target/scs_card.h>
 #include <target/state.h>
 
 scs_cmpl_cb scs_slot_completion = NULL;
 
-#if NR_SCS_SLOTS > 1
+#if NR_SCS_CARDS > 1
 scs_slot_driver_t *scs_slot_drivers[NR_SCS_SLOTS];
-scs_sid_t scs_nr_slots = 0;
+scs_cid_t scs_nr_slots = 0;
 struct scs_slot scs_slots[NR_SCS_SLOTS];
 
 #define scs_slot_driver			scs_slot_drivers[scs_sid]
 #define scs_slot_attrib			scs_slots[scs_sid]
 
-scs_sid_t scs_sid = INVALID_SCS_SLOT;
+scs_cid_t scs_sid = INVALID_SCS_CARD;
 
-scs_sid_t scs_register_slot(scs_slot_driver_t *drv)
+scs_cid_t scs_register_slot(scs_slot_driver_t *drv)
 {
-	scs_sid_t sid;
+	scs_cid_t cid;
 
-	BUG_ON(scs_nr_slots >= INVALID_SCS_SLOT);
-	sid = scs_nr_slots;
-	scs_slot_drivers[sid] = drv;
+	BUG_ON(scs_nr_slots >= INVALID_SCS_CARD);
+	cid = scs_nr_slots;
+	scs_slot_drivers[cid] = drv;
 	scs_nr_slots++;
-	return sid;
+	return cid;
 }
 
-void scs_slot_restore(scs_sid_t sid)
+void scs_slot_restore(scs_cid_t cid)
 {
-	scs_sid = sid;
+	scs_sid = cid;
 	scs_slot_driver->select();
 }
 
-scs_sid_t scs_slot_save(scs_sid_t sid)
+scs_cid_t scs_slot_save(scs_cid_t cid)
 {
-	scs_sid_t ssid = scs_sid;
-	scs_slot_restore(sid);
-	return ssid;
+	scs_cid_t scid = scs_sid;
+	scs_slot_restore(cid);
+	return scid;
 }
 #else
 struct scs_slot scs_slot_attrib;
 scs_slot_driver_t *scs_slot_driver = NULL;
 
-scs_sid_t scs_register_slot(scs_slot_driver_t *drv)
+scs_cid_t scs_register_slot(scs_slot_driver_t *drv)
 {
 	BUG_ON(scs_slot_driver);
 	scs_slot_driver = drv;

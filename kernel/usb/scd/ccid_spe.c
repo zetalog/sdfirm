@@ -42,7 +42,7 @@ struct ccid_spe {
 	boolean aborted;
 	uint8_t flags;
 	uint8_t pin_offset;
-	scd_sid_t sid;
+	scd_did_t id;
 };
 
 __near__ kbd_event_cb ccid_spe_kh = NULL;
@@ -391,16 +391,16 @@ void ccid_spe_key_number(unsigned char keycode)
 	}
 }
 
-#if NR_SCD_SLOTS > 1
-DECLARE_BITMAP(ccid_spe_waits, NR_SCD_SLOTS);
+#if NR_SCD_DEVICES > 1
+DECLARE_BITMAP(ccid_spe_waits, NR_SCD_DEVICES);
 
 static void ccid_spe_operate_next(void)
 {
-	scd_sid_t sid;
-	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
-		if (test_bit(sid, ccid_spe_waits)) {
-			clear_bit(sid, ccid_spe_waits);
-			scd_sid_select(sid);
+	scd_did_t did;
+	for (did = 0; did < NR_SCD_DEVICES; did++) {
+		if (test_bit(did, ccid_spe_waits)) {
+			clear_bit(did, ccid_spe_waits);
+			scd_did_select(did);
 			__ccid_spe_operate_init();
 			return;
 		}
@@ -539,7 +539,7 @@ static void ccid_spe_key_down(uint8_t scancode)
 
 static void ccid_spe_capture(uint8_t scancode, uint8_t event)
 {
-	scd_sid_select(ccid_spe_ctrl.sid);
+	scd_did_select(ccid_spe_ctrl.id);
 
 	switch (event) {
 	case KBD_EVENT_KEY_TOUT:
@@ -562,7 +562,7 @@ static void ccid_spe_key_begin(ccid_spe_cmpl_cb cb)
 {
 	ccid_spe_reset_init();
 	ccid_spe_ctrl.entry_cmpl = cb;
-	ccid_spe_ctrl.sid = scd_qid;
+	ccid_spe_ctrl.id = scd_qid;
 	ccid_spe_kh = kbd_set_capture(ccid_spe_capture,
 				      ccid_spe_key_timeout());
 	BUG_ON(ccid_spe_kh == ccid_spe_capture);

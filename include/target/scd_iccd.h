@@ -42,10 +42,10 @@
 #ifndef __SCD_ICCD_H_INCLUDE__
 #define __SCD_ICCD_H_INCLUDE__
 
-#include <target/scs_slot.h>
+#include <target/scs_card.h>
 #include <target/cos.h>
 
-#if NR_SCS_SLOTS == 0
+#if NR_SCS_CARDS == 0
 #error "SCD device is not defined"
 #endif
 
@@ -69,15 +69,15 @@
 #endif
 
 #ifdef CONFIG_ICCD_COS
-#define NR_SCD_SLOTS			1
-#define scd_sid				0
-typedef uint8_t				scd_sid_t;
+#define NR_SCD_DEVICES			1
+#define scd_did				0
+typedef uint8_t				scd_did_t;
 #else
-#define NR_SCD_SLOTS			NR_SCS_SLOTS
-#define scd_sid				scs_sid
-typedef scs_sid_t			scd_sid_t;
+#define NR_SCD_DEVICES			NR_SCS_CARDS
+#define scd_did				scs_sid
+typedef scs_cid_t			scd_did_t;
 #endif
-#define NR_SCD_QUEUES			NR_SCS_SLOTS
+#define NR_SCD_QUEUES			NR_SCS_CARDS
 #define NR_SCD_USB_SLOTS		1
 #define NR_SCD_USB_QUEUES		NR_SCD_USB_SLOTS
 #define ICCD_SID_USB			(NR_SCD_USB_SLOTS-1)
@@ -86,7 +86,7 @@ typedef scs_sid_t			scd_sid_t;
 #define ICCD_MESSAGE_SIZE		(ICCD_BUF_SIZE + SCD_HEADER_SIZE)
 
 #ifdef CONFIG_ICCD_COS
-#define scd_slot_select(sid)
+#define scd_slot_select(did)
 #define scd_get_slot_error()		cos_get_error()
 #define scd_get_slot_status()		cos_get_status()
 #define scd_read_byte(idx)		cos_xchg_read(idx)
@@ -97,7 +97,7 @@ typedef scs_sid_t			scd_sid_t;
 #define scd_power_off()			cos_power_off()
 #define scd_register_completion(cb) 	cos_register_completion(cb)
 #else
-#define scd_slot_select(sid)		scs_slot_select(scd_qid)
+#define scd_slot_select(did)		scs_slot_select(scd_qid)
 #define scd_get_slot_error()		scs_get_slot_error()
 #define scd_get_slot_status()		scs_get_slot_status()
 #define scd_read_byte(idx)		scs_slot_xchg_read(idx)	

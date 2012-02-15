@@ -1,15 +1,15 @@
-#include <target/scs_slot.h>
+#include <target/scs_card.h>
 #include <target/ifd.h>
 
-__near__ scs_sid_t ifd_sids[NR_IFD_SLOTS];
+__near__ scs_cid_t ifd_sids[NR_IFD_SLOTS];
 
-scs_sid_t ifd_slot_ifd2slot(ifd_sid_t sid)
+scs_cid_t ifd_slot_ifd2slot(ifd_sid_t sid)
 {
 	BUG_ON(sid >= NR_IFD_SLOTS);
 	return ifd_sids[sid];
 }
 
-ifd_sid_t ifd_slot_slot2ifd(scs_sid_t sid)
+ifd_sid_t ifd_slot_slot2ifd(scs_cid_t sid)
 {
 	ifd_sid_t id;
 	for (id = 0; id < NR_IFD_SLOTS; id++) {
