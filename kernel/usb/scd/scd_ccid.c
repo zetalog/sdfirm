@@ -58,7 +58,7 @@
 #define CCID_QID_OUT			(NR_SCD_QUEUES-1)
 #define CCID_QID_IN			ccid_seq_queue[0]
 
-static void ccid_slot_abort(uint8_t type, scd_did_t did, uint8_t seq);
+static void ccid_slot_abort(uint8_t type, scd_sid_t sid, uint8_t seq);
 static void ccid_handle_iso7816_cmpl(void);
 
 /* Multiple CCID Slot support
@@ -68,7 +68,7 @@ static void ccid_handle_iso7816_cmpl(void);
  *                    +----------+        +----+-----+   |
  *                         \|/                /|\        +=========+
  *  +------------+/ +-------+--------+         |         | PC2RDR  |
- *  | cmds[did]  +--|  cmds[OUT_QID] |         |         |         |
+ *  | cmds[sid]  +--|  cmds[OUT_QID] |         |         |         |
  *  +------------+\ +----------------+         |         |         |
  *       \|/               \|/                 |         |         |
  *  +-----+------+  +-------+--------+         |         |         |
@@ -80,7 +80,7 @@ static void ccid_handle_iso7816_cmpl(void);
  *  +------------+          |                  |         |         |
  *       \|/                |                  |         |         |
  *  +-----+------+          |                  |         |         |
- *  | resps[did] |          |                  |         |         |
+ *  | resps[sid] |          |                  |         |         |
  *  +------------+          |                  |         |         |
  *        |                 |                  |         +=========+
  *        |                 |          +---------------+ | RDR2PC  |
@@ -93,8 +93,8 @@ static void ccid_handle_iso7816_cmpl(void);
  *  |                    seq_queue                     | |
  *  +--------------------------------------------------+ |
  *
- * scd_qid    0 ~ NR_SCD_QUEUES (0 ~ NR_SCD_DEVICES+1)
- * scd_did    0 ~ NR_SCD_DEVICES
+ * scd_qid    0 ~ NR_SCD_QUEUES (0 ~ NR_SCD_SLOTS+1)
+ * scd_sid    0 ~ NR_SCD_SLOTS
  * ccid_seq_t 0 ~ NR_SCD_QUEUES (seq_queue index)
  * seq_queue: USB request queue, only queue[0] is sensitive for BULK IN
  */
@@ -134,7 +134,7 @@ static void ccid_handle_iso7816_cmpl(void);
  * 	        -> DATA
  */
 __near__ struct ccid_abort ccid_aborts[NR_SCD_QUEUES];
-__near__ scd_did_t ccid_seq_queue[NR_SCD_QUEUES];
+__near__ scd_sid_t ccid_seq_queue[NR_SCD_QUEUES];
 __near__ ccid_seq_t ccid_nr_seqs = 0;
 
 __near__ uint8_t ccid_addr[NR_SCD_ENDPS];
@@ -142,11 +142,11 @@ __near__ uint8_t ccid_addr[NR_SCD_ENDPS];
 /*=========================================================================
  * ISO7816 translator
  *=======================================================================*/
-void scd_did_select(scd_did_t did)
+void scd_sid_select(scd_sid_t sid)
 {
-	scd_qid_select(did);
-	BUG_ON(did >= NR_SCD_DEVICES);
-	ifd_sid_select(did);
+	scd_qid_select(sid);
+	BUG_ON(sid >= NR_SCD_SLOTS);
+	ifd_sid_select(sid);
 }
 
 uint8_t scd_slot_status(void)
@@ -214,7 +214,7 @@ void ccid_display_slot(void)
 {
 	scd_qid_t qid = scd_qid;
 
-	if (qid >= NR_SCD_DEVICES)
+	if (qid >= NR_SCD_SLOTS)
 		qid = 0;
 	lcd_draw_point((unsigned char)('0'+qid), MAX_LCD_COLS-1, 0);
 }
@@ -293,35 +293,35 @@ void scd_queue_reset(scd_qid_t qid)
 	__scd_queue_reset(qid);
 }
 
-static void ccid_slot_abort(uint8_t type, scd_did_t did, uint8_t seq)
+static void ccid_slot_abort(uint8_t type, scd_sid_t sid, uint8_t seq)
 {
 	scd_qid_t sqid;
 	boolean aborting = false;
 	scs_err_t err = SCS_ERR_SUCCESS;
 
-	sqid = scd_qid_save(did);
+	sqid = scd_qid_save(sid);
 
 	switch (type) {
 	case CCID_ABORT_CTRL:
-		ccid_aborts[did].ctrl_seq = seq;
+		ccid_aborts[sid].ctrl_seq = seq;
 		scd_debug(SCD_DEBUG_ABORT, 0);
 		break;
 	case CCID_ABORT_BULK:
-		ccid_aborts[did].bulk_seq = seq;
+		ccid_aborts[sid].bulk_seq = seq;
 		scd_debug(SCD_DEBUG_ABORT, 1);
 		break;
 	}
-	ccid_aborts[did].aborting |= type;
+	ccid_aborts[sid].aborting |= type;
 
-	if (ccid_aborts[did].aborting == (CCID_ABORT_CTRL | CCID_ABORT_BULK) &&
-	    ccid_aborts[did].bulk_seq == ccid_aborts[did].ctrl_seq) {
+	if (ccid_aborts[sid].aborting == (CCID_ABORT_CTRL | CCID_ABORT_BULK) &&
+	    ccid_aborts[sid].bulk_seq == ccid_aborts[sid].ctrl_seq) {
 		scd_debug(SCD_DEBUG_ABORT, 4);
 		ccid_kbd_abort();
 		scd_debug(SCD_DEBUG_ABORT, 5);
-		ifd_xchg_abort(did);
+		ifd_xchg_abort(sid);
 		scd_debug(SCD_DEBUG_ABORT, 2);
 		aborting = true;
-		ccid_aborts[did].aborting = CCID_ABORT_NONE;
+		ccid_aborts[sid].aborting = CCID_ABORT_NONE;
 	}
 	scd_qid_restore(sqid);
 
@@ -1092,17 +1092,17 @@ void scd_handle_present(void)
 
 void scd_discard_present(void)
 {
-	scd_did_t did;
-	for (did = 0; did < NR_SCD_DEVICES; did++) {
-		__scd_discard_present_id(did);
+	scd_sid_t sid;
+	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
+		__scd_discard_present_sid(sid);
 	}
 }
 
 void scd_submit_present(void)
 {
-	scd_did_t did;
-	for (did = 0; did < NR_SCD_DEVICES; did++) {
-		__scd_submit_present_id(did);
+	scd_sid_t sid;
+	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
+		__scd_submit_present_sid(sid);
 	}
 }
 
@@ -1110,32 +1110,32 @@ void scd_submit_present(void)
  * hardware errors
  *=======================================================================*/
 #ifdef CONFIG_CCID_INTERRUPT_HWERR
-__near__ struct ccid_hwerr ccid_intr_hwerrs[NR_SCD_DEVICES];
-__near__ scd_did_t ccid_hwerr_did;
+__near__ struct ccid_hwerr ccid_intr_hwerrs[NR_SCD_SLOTS];
+__near__ scd_sid_t ccid_hwerr_sid;
 
-static boolean __ccid_hwerr_running(scd_did_t did)
+static boolean __ccid_hwerr_running(scd_sid_t sid)
 {
-	return ccid_intr_hwerrs[did].bState & CCID_HWERR_RUNNING;
+	return ccid_intr_hwerrs[sid].bState & CCID_HWERR_RUNNING;
 }
 
-static boolean __ccid_hwerr_pending(scd_did_t did)
+static boolean __ccid_hwerr_pending(scd_sid_t sid)
 {
-	return ccid_intr_hwerrs[did].bState & CCID_HWERR_PENDING;
+	return ccid_intr_hwerrs[sid].bState & CCID_HWERR_PENDING;
 }
 
-static scd_did_t ccid_hwerr_pending_id(void)
+static scd_sid_t ccid_hwerr_pending_sid(void)
 {
-	scd_did_t did;
-	for (did = 0; did < NR_SCD_DEVICES; did++) {
-		if (__ccid_hwerr_pending(did))
-			return did;
+	scd_sid_t sid;
+	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
+		if (__ccid_hwerr_pending(sid))
+			return scd_sid_t;
 	}
-	return INVALID_SCD_DID;
+	return INVALID_SCD_SID;
 }
 
 static void ccid_hwerr_raise_irq(uint8_t err)
 {
-	if (scd_qid < NR_SCD_DEVICES) {
+	if (scd_qid < NR_SCD_SLOTS) {
 		ccid_intr_hwerrs[scd_qid].bState |= CCID_HWERR_PENDING;
 		ccid_intr_hwerrs[scd_qid].bPendingSeq = scd_cmds[scd_qid].bSeq;
 		ccid_intr_hwerrs[scd_qid].bPendingCode |= err;
@@ -1145,40 +1145,40 @@ static void ccid_hwerr_raise_irq(uint8_t err)
 static void ccid_hwerr_handle_irq(void)
 {
 	USBD_INB(CCID_RDR2PC_HARDWAREERROR);
-	USBD_INB(ccid_hwerr_did);
-	USBD_INB(ccid_intr_hwerrs[ccid_hwerr_did].bSeq);
-	USBD_INB(ccid_intr_hwerrs[ccid_hwerr_did].bHardwareErrorCode);
+	USBD_INB(ccid_hwerr_sid);
+	USBD_INB(ccid_intr_hwerrs[ccid_hwerr_sid].bSeq);
+	USBD_INB(ccid_intr_hwerrs[ccid_hwerr_sid].bHardwareErrorCode);
 }
 
 static void ccid_hwerr_discard_irq(void)
 {
-	ccid_intr_hwerrs[ccid_hwerr_did].bState &= ~CCID_HWERR_RUNNING;
-	ccid_hwerr_did = INVALID_SCD_DID;
+	ccid_intr_hwerrs[ccid_hwerr_sid].bState &= ~CCID_HWERR_RUNNING;
+	ccid_hwerr_sid = INVALID_SCD_SID;
 }
 
-static void ccid_hwerr_submit_irq(scd_did_t did)
+static void ccid_hwerr_submit_irq(scd_sid_t sid)
 {
-	ccid_intr_hwerrs[did].bState &= ~CCID_HWERR_PENDING;
-	ccid_intr_hwerrs[did].bState |= CCID_HWERR_RUNNING;
-	ccid_hwerr_did = did;
+	ccid_intr_hwerrs[sid].bState &= ~CCID_HWERR_PENDING;
+	ccid_intr_hwerrs[sid].bState |= CCID_HWERR_RUNNING;
+	ccid_hwerr_sid = sid;
 }
 
 static void ccid_hwerr_init_irq(void)
 {
-	scd_did_t did;
-	for (did = 0; did < NR_SCD_DEVICES; did++) {
-		ccid_intr_hwerrs[did].bState = 0;
-		ccid_intr_hwerrs[did].bSeq = 0;
+	scd_sid_t sid;
+	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
+		ccid_intr_hwerrs[sid].bState = 0;
+		ccid_intr_hwerrs[sid].bSeq = 0;
 	}
-	ccid_hwerr_did = INVALID_SCD_DID;
+	ccid_hwerr_sid = INVALID_SCD_SID;
 }
 #else
-#define ccid_hwerr_pending_id()			INVALID_SCD_DID
-#define ccid_hwerr_submit_irq(did)
+#define ccid_hwerr_pending_sid()		INVALID_SCD_SID
+#define ccid_hwerr_submit_irq(sid)
 #define ccid_hwerr_discard_irq()
 #define ccid_hwerr_handle_irq()
 #define ccid_hwerr_raise_irq(err)
-#define ccid_hwerr_did				INVALID_SCD_DID
+#define ccid_hwerr_sid				INVALID_SCD_SID
 #define ccid_hwerr_init_irq()
 #endif
 
@@ -1187,7 +1187,7 @@ static void ccid_hwerr_init_irq(void)
  *=======================================================================*/
 void scd_discard_interrupt(void)
 {
-	if (ccid_hwerr_did < NR_SCD_DEVICES)
+	if (ccid_hwerr_sid < NR_SCD_SLOTS)
 		ccid_hwerr_discard_irq();
 	else
 		scd_discard_present();
@@ -1195,7 +1195,7 @@ void scd_discard_interrupt(void)
 
 void scd_handle_interrupt(void)
 {
-	if (ccid_hwerr_did < NR_SCD_DEVICES)
+	if (ccid_hwerr_sid < NR_SCD_SLOTS)
 		ccid_hwerr_handle_irq();
 	else
 		scd_handle_present();
@@ -1203,11 +1203,11 @@ void scd_handle_interrupt(void)
 
 void scd_submit_interrupt(void)
 {
-	scd_did_t did = ccid_hwerr_pending_id();
-	if (did < NR_SCD_DEVICES) {
+	scd_sid_t sid = ccid_hwerr_pending_sid();
+	if (sid < NR_SCD_SLOTS) {
 		if (usbd_request_submit(CCID_ADDR_IRQ,
 					CCID_IRQ_HWERR_SIZE)) {
-			ccid_hwerr_submit_irq(did);
+			ccid_hwerr_submit_irq(sid);
 		}
 	} else {
 		__scd_submit_interrupt(CCID_ADDR_IRQ);
@@ -1220,7 +1220,7 @@ void scd_irq_init(void)
 }
 #endif
 
-#if NR_SCD_QUEUES != NR_SCD_DEVICES
+#if NR_SCD_QUEUES != NR_SCD_SLOTS
 boolean scd_abort_responded(void)
 {
 	BUG_ON(scd_qid >= NR_SCD_QUEUES);
@@ -1242,28 +1242,28 @@ boolean scd_abort_completed(void)
 
 boolean scd_abort_requested(void)
 {
-	scd_did_t did;
+	scd_sid_t sid;
 
-	did = scd_cmds[scd_qid].bSlot;
+	sid = scd_cmds[scd_qid].bSlot;
 	if (scd_cmds[scd_qid].bMessageType == CCID_PC2RDR_ABORT) {
 		return true;
 	}
-	if (ccid_aborts[did].aborting != CCID_ABORT_NONE) {
+	if (ccid_aborts[sid].aborting != CCID_ABORT_NONE) {
 		scd_CmdFailure_out(CCID_ERROR_CMD_ABORTED);
 		return true;
 	}
-	if (scd_states[did] != SCD_SLOT_STATE_PC2RDR) {
+	if (scd_states[sid] != SCD_SLOT_STATE_PC2RDR) {
 		scd_CmdFailure_out(CCID_ERROR_CMD_SLOT_BUSY);
 		return true;
 	}
 	if (usbd_request_handled() == SCD_HEADER_SIZE) {
-		scd_cmds[did].bMessageType = scd_cmds[scd_qid].bMessageType;
-		scd_cmds[did].dwLength = scd_cmds[scd_qid].dwLength;
-		scd_cmds[did].bSlot = scd_cmds[scd_qid].bSlot;
-		scd_cmds[did].bSeq = scd_cmds[scd_qid].bSeq;
-		scd_cmds[did].abRFU[0] = scd_cmds[scd_qid].abRFU[0];
-		scd_cmds[did].abRFU[1] = scd_cmds[scd_qid].abRFU[1];
-		scd_cmds[did].abRFU[2] = scd_cmds[scd_qid].abRFU[2];
+		scd_cmds[sid].bMessageType = scd_cmds[scd_qid].bMessageType;
+		scd_cmds[sid].dwLength = scd_cmds[scd_qid].dwLength;
+		scd_cmds[sid].bSlot = scd_cmds[scd_qid].bSlot;
+		scd_cmds[sid].bSeq = scd_cmds[scd_qid].bSeq;
+		scd_cmds[sid].abRFU[0] = scd_cmds[scd_qid].abRFU[0];
+		scd_cmds[sid].abRFU[1] = scd_cmds[scd_qid].abRFU[1];
+		scd_cmds[sid].abRFU[2] = scd_cmds[scd_qid].abRFU[2];
 	}
 	return false;
 }
@@ -1371,7 +1371,7 @@ static void ccid_abort(void)
 	uint8_t bSlot = LOBYTE(usbd_control_request_value());
 	uint8_t bSeq = HIBYTE(usbd_control_request_value());
 
-	if (bSlot < NR_SCD_DEVICES) {
+	if (bSlot < NR_SCD_SLOTS) {
 		ccid_slot_abort(CCID_ABORT_CTRL, bSlot, bSeq);
 	} else {
 		usbd_endpoint_halt();
@@ -1431,9 +1431,9 @@ static void ccid_handle_iso7816_cmpl(void)
 	scs_err_t err;
 
 	/* slot ID is determined before cmpl is called */
-	scd_qid_select(scd_did);
+	scd_qid_select(scd_sid);
 
-	BUG_ON(scd_qid >= NR_SCD_DEVICES);
+	BUG_ON(scd_qid >= NR_SCD_SLOTS);
 	BUG_ON(scd_states[scd_qid] != SCD_SLOT_STATE_RUNNING);
 
 	err = ifd_xchg_get_error();

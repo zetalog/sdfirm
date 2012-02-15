@@ -129,6 +129,40 @@ typedef struct scd_desc {
 
 typedef uint8_t					scd_qid_t;
 
+#ifdef CONFIG_SCD_CCID
+#include <target/scd_ccid.h>
+#endif
+#ifdef CONFIG_SCD_ICCD
+#include <target/scd_iccd.h>
+#endif
+
+/* functions should be implemented by SCD generic */
+#define scd_slot_success(err)			((err) == SCS_ERR_SUCCESS)
+#define scd_slot_progress(err)			((err) == SCS_ERR_PROGRESS)
+
+/* functions should be implemented by SCD protocol */
+uint8_t scd_slot_status(void);
+uint8_t scd_slot_error(scs_err_t err);
+void scd_sid_select(scd_sid_t sid);
+
+#define INVALID_SCD_QID			NR_SCD_QUEUES
+#define INVALID_SCD_SID			NR_SCD_SLOTS
+
+#if NR_SCD_QUEUES > 1
+extern __near__ scd_qid_t scd_qid;
+void scd_qid_restore(scd_qid_t qid);
+scd_qid_t scd_qid_save(scd_qid_t qid);
+#else
+#define scd_qid				0
+#define scd_qid_restore(qid)
+#define scd_qid_save(qid)		(qid)
+#endif
+#define scd_qid_select(qid)		scd_qid_restore(qid)
+
+#ifdef CONFIG_SCD_BULK
+#define SCD_ENDP_BULK_IN		0x00
+#define SCD_ENDP_BULK_OUT		0x01
+
 #define SCD_SLOT_STATUS_ACTIVE			0x00
 #define SCD_SLOT_STATUS_INACTIVE		0x01
 #define SCD_SLOT_STATUS_NOTPRESENT		0x02
@@ -217,40 +251,6 @@ struct scd_t1_param {
 #define SCD_SLOT_STATE_RUNNING		0x03
 #define SCD_SLOT_STATE_WAITING		0x04
 
-#ifdef CONFIG_SCD_CCID
-#include <target/scd_ccid.h>
-#endif
-#ifdef CONFIG_SCD_ICCD
-#include <target/scd_iccd.h>
-#endif
-
-/* functions should be implemented by SCD generic */
-#define scd_slot_success(err)			((err) == SCS_ERR_SUCCESS)
-#define scd_slot_progress(err)			((err) == SCS_ERR_PROGRESS)
-
-/* functions should be implemented by SCD protocol */
-uint8_t scd_slot_status(void);
-uint8_t scd_slot_error(scs_err_t err);
-void scd_did_select(scd_did_t did);
-
-#define INVALID_SCD_QID			NR_SCD_QUEUES
-#define INVALID_SCD_DID			NR_SCD_DEVICES
-
-#if NR_SCD_QUEUES > 1
-extern __near__ scd_qid_t scd_qid;
-void scd_qid_restore(scd_qid_t qid);
-scd_qid_t scd_qid_save(scd_qid_t qid);
-#else
-#define scd_qid				0
-#define scd_qid_restore(qid)
-#define scd_qid_save(qid)		(qid)
-#endif
-#define scd_qid_select(qid)		scd_qid_restore(qid)
-
-#ifdef CONFIG_SCD_BULK
-#define SCD_ENDP_BULK_IN		0x00
-#define SCD_ENDP_BULK_OUT		0x01
-
 /* XXX: Temporary Storage for SCD Stack
  * This structure holds temporary storages, which should be allocated in
  * heap.  In a system without heap, it is perferred to be united objects.
@@ -279,7 +279,7 @@ extern __near__ struct scd_cmd scd_cmds[NR_SCD_QUEUES];
 extern __near__ struct scd_resp scd_resps[NR_SCD_QUEUES];
 extern scd_data_t scd_cmd_data;
 
-#if NR_SCD_QUEUES != NR_SCD_DEVICES
+#if NR_SCD_QUEUES != NR_SCD_SLOTS
 boolean scd_abort_requested(void);
 boolean scd_abort_completed(void);
 boolean scd_abort_responded(void);
@@ -401,10 +401,10 @@ void scd_discard_interrupt(void);
 void scd_irq_init(void);
 
 /* Called by drivers */
-void __scd_handle_present_id(scd_did_t did);
-void __scd_discard_present_id(scd_did_t did);
-void __scd_submit_present_id(scd_did_t did);
-boolean __scd_present_changed_id(scd_did_t did);
+void __scd_handle_present_sid(scd_sid_t sid);
+void __scd_discard_present_sid(scd_sid_t sid);
+void __scd_submit_present_sid(scd_sid_t sid);
+boolean __scd_present_changed_sid(scd_sid_t sid);
 boolean __scd_present_changed_all(void);
 void __scd_handle_present_all(void);
 

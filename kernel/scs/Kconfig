@@ -21,13 +21,13 @@ config SCS_APDU_SIZE
 	default 256
 	range 256 65536
 
-menuconfig SCS_CARD
-	bool "Smart integreted chip card support"
+menuconfig SCS_SLOT
+	bool "Smart card slot device support"
 
-if SCS_CARD
+if SCS_SLOT
 
-config SCS_MAX_CARDS
-	int "Number of cards (1~8)"
+config SCS_MAX_SLOTS
+	int "Number of smart card slots (1~8)"
 	range 1 8
 	default 1
 

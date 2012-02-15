@@ -1,19 +1,19 @@
-#ifndef __SCS_CARD_H_INCLUDE__
-#define __SCS_CARD_H_INCLUDE__
+#ifndef __SCS_SLOT_H_INCLUDE__
+#define __SCS_SLOT_H_INCLUDE__
 
 #include <target/config.h>
 #include <target/generic.h>
 #include <target/scs.h>
 
 /* slot identifier */
-typedef uint8_t scs_cid_t;
+typedef uint8_t scs_sid_t;
 
-#ifdef CONFIG_SCS_MAX_CARDS
-#define NR_SCS_CARDS		CONFIG_SCS_MAX_CARDS
+#ifdef CONFIG_SCS_MAX_SLOTS
+#define NR_SCS_SLOTS		CONFIG_SCS_MAX_SLOTS
 #else
-#define NR_SCS_CARDS		1
+#define NR_SCS_SLOTS		1
 #endif
-#define INVALID_SCS_CARD	NR_SCS_CARDS
+#define INVALID_SCS_SLOT	NR_SCS_SLOTS
 
 /* Smart card standard slot devices includes
  * 1. ISO7816-4 card with contacts COS (native ICC)
@@ -41,11 +41,11 @@ struct scs_slot {
 #define SCS_SLOT_STATUS_INACTIVE	0x01
 #define SCS_SLOT_STATUS_NOTPRESENT	0x02
 
-#if NR_SCS_CARDS > 1
-scs_cid_t scs_slot_save(scs_cid_t cid);
-void scs_slot_restore(scs_cid_t cid);
-extern scs_cid_t scs_sid;
-extern scs_cid_t scs_nr_slots;
+#if NR_SCS_SLOTS > 1
+scs_sid_t scs_slot_save(scs_sid_t sid);
+void scs_slot_restore(scs_sid_t sid);
+extern scs_sid_t scs_sid;
+extern scs_sid_t scs_nr_slots;
 #else
 #define scs_slot_save(sid)		0
 #define scs_slot_restore(sid)
@@ -55,7 +55,7 @@ extern scs_cid_t scs_nr_slots;
 #define scs_slot_select(id)		scs_slot_restore(id)
 
 /* Called by SCS slot implementations */
-scs_cid_t scs_register_slot(scs_slot_driver_t *drv);
+scs_sid_t scs_register_slot(scs_slot_driver_t *drv);
 void scs_complete_slot(void);
 
 /* Called by SCS slot users */
@@ -73,4 +73,4 @@ uint8_t scs_slot_xchg_read(scs_off_t index);
 scs_err_t scs_get_slot_error(void);
 uint8_t scs_get_slot_status(void);
 
-#endif /* __SCS_CARD_H_INCLUDE__ */
+#endif /* __SCS_SLOT_H_INCLUDE__ */

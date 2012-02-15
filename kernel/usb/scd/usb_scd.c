@@ -243,7 +243,7 @@ void scd_DataBlock_in(void)
 
 void __scd_handle_command(scd_qid_t qid)
 {
-	scd_did_t did;
+	scd_sid_t sid;
 
 	scd_qid_select(qid);
 	scd_debug(SCD_DEBUG_SLOT, scd_qid);
@@ -265,8 +265,8 @@ void __scd_handle_command(scd_qid_t qid)
 		scd_debug(SCD_DEBUG_PC2RDR, scd_cmds[scd_qid].bMessageType);
 	}
 
-	did = scd_cmds[scd_qid].bSlot;
-	if (did >= NR_SCD_USB_SLOTS) {
+	sid = scd_cmds[scd_qid].bSlot;
+	if (sid >= NR_SCD_USB_SLOTS) {
 		return;
 	}
 	/* XXX: care should be taken on BULK ABORT */
@@ -274,8 +274,8 @@ void __scd_handle_command(scd_qid_t qid)
 		return;
 
 	/* slot ID determined */
-	scd_did_select(did);
-	scd_debug(SCD_DEBUG_SLOT, scd_did);
+	scd_sid_select(sid);
+	scd_debug(SCD_DEBUG_SLOT, scd_sid);
 
 	if (scd_cmds[scd_qid].bMessageType == SCD_PC2RDR_GETSLOTSTATUS) {
 		return;
@@ -313,7 +313,7 @@ void __scd_handle_command(scd_qid_t qid)
 
 void __scd_complete_command(scd_qid_t qid)
 {
-	scd_did_t did;
+	scd_sid_t sid;
 
 	scd_qid_select(qid);
 	scd_debug(SCD_DEBUG_SLOT, scd_qid);
@@ -321,9 +321,9 @@ void __scd_complete_command(scd_qid_t qid)
 	BUG_ON(scd_states[scd_qid] != SCD_SLOT_STATE_PC2RDR &&
 	       scd_states[scd_qid] != SCD_SLOT_STATE_SANITY);
 
-	did = scd_cmds[scd_qid].bSlot;
+	sid = scd_cmds[scd_qid].bSlot;
 	if (usbd_request_handled() < SCD_HEADER_SIZE ||
-	    did >= NR_SCD_USB_SLOTS) {
+	    sid >= NR_SCD_USB_SLOTS) {
 		scd_SlotNotExist_cmp();
 		return;
 	}
@@ -342,8 +342,8 @@ void __scd_complete_command(scd_qid_t qid)
 	scd_slot_enter(SCD_SLOT_STATE_PC2RDR);
 
 	/* now we are able to handle slot specific request */
-	scd_did_select(did);
-	scd_debug(SCD_DEBUG_SLOT, scd_did);
+	scd_sid_select(sid);
+	scd_debug(SCD_DEBUG_SLOT, scd_sid);
 
 	if (usbd_request_handled() !=
 	    (scd_cmds[scd_qid].dwLength + SCD_HEADER_SIZE)) {
@@ -387,7 +387,7 @@ void __scd_complete_response(scd_qid_t qid)
 
 void __scd_handle_response(scd_qid_t qid)
 {
-	scd_did_t did;
+	scd_sid_t sid;
 
 	scd_qid_select(qid);
 	scd_debug(SCD_DEBUG_SLOT, scd_qid);
@@ -401,9 +401,9 @@ void __scd_handle_response(scd_qid_t qid)
 		return;
 	}
 
-	did = scd_cmds[scd_did].bSlot;
-	scd_did_select(did);
-	scd_debug(SCD_DEBUG_SLOT, scd_did);
+	sid = scd_cmds[scd_qid].bSlot;
+	scd_sid_select(sid);
+	scd_debug(SCD_DEBUG_SLOT, scd_sid);
 
 	switch (scd_cmds[scd_qid].bMessageType) {
 	case SCD_PC2RDR_ICCPOWERON:
@@ -453,47 +453,47 @@ void scd_bulk_init(void)
  * interrupt endpoint
  *=======================================================================*/
 #ifdef CONFIG_SCD_INTERRUPT
-DECLARE_BITMAP(scd_discarded_presents, NR_SCD_DEVICES);
-DECLARE_BITMAP(scd_submitted_presents, NR_SCD_DEVICES);
+DECLARE_BITMAP(scd_discarded_presents, NR_SCD_SLOTS);
+DECLARE_BITMAP(scd_submitted_presents, NR_SCD_SLOTS);
 
 #define SCD_IRQ_ICC_NOTPRESENT		0x00
 #define SCD_IRQ_ICC_PRESENT		0x01
 #define SCD_IRQ_ICC_CHANGED		0x02
 
-#define SCD_IRQ_PRESENT(did)		(SCD_IRQ_ICC_PRESENT<<(did))
+#define SCD_IRQ_PRESENT(sid)		(SCD_IRQ_ICC_PRESENT<<(sid))
 
 #define SCD_IRQ_PRESENT_BITS		2
 #define SCD_IRQ_PRESENT_ALIGN		(1<<SCD_IRQ_PRESENT_BITS)
-#define SCD_IRQ_PRESENT_BIT(did)	((uint8_t)((did)<<1))
-#define SCD_IRQ_CHANGED_BIT(did)	((uint8_t)(((did)<<1)+1))
+#define SCD_IRQ_PRESENT_BIT(sid)	((uint8_t)((sid)<<1))
+#define SCD_IRQ_CHANGED_BIT(sid)	((uint8_t)(((sid)<<1)+1))
 
-#define __scd_present_test_discarded(did)	\
-	test_bit(SCD_IRQ_PRESENT(did), scd_discarded_presents)
-#define __scd_present_test_submitted(did)	\
-	test_bit(SCD_IRQ_PRESENT(did), scd_submitted_presents)
+#define __scd_present_test_discarded(sid)	\
+	test_bit(SCD_IRQ_PRESENT(sid), scd_discarded_presents)
+#define __scd_present_test_submitted(sid)	\
+	test_bit(SCD_IRQ_PRESENT(sid), scd_submitted_presents)
 #ifndef CONFIG_SCD_DEBUG
-#define __scd_present_set(_what_, did)		\
-	set_bit(SCD_IRQ_PRESENT(did), scd_##_what_##_presents)
-#define __scd_present_clear(_what_, did)	\
-	clear_bit(SCD_IRQ_PRESENT(did), scd_##_what_##_presents)
+#define __scd_present_set(_what_, sid)		\
+	set_bit(SCD_IRQ_PRESENT(sid), scd_##_what_##_presents)
+#define __scd_present_clear(_what_, sid)	\
+	clear_bit(SCD_IRQ_PRESENT(sid), scd_##_what_##_presents)
 #else
 #define scd_dbg_irq_submitted		0x80
 #define scd_dbg_irq_discarded		0x00
 
-#define __scd_present_set(_what_, did)				\
+#define __scd_present_set(_what_, sid)				\
 	do {							\
-		if (!__scd_present_test_##_what_(did)) {	\
-			set_bit(SCD_IRQ_PRESENT(did),		\
+		if (!__scd_present_test_##_what_(sid)) {	\
+			set_bit(SCD_IRQ_PRESENT(sid),		\
 				scd_##_what_##_presents);	\
 			scd_debug(SCD_DEBUG_INTR,		\
 				  SCD_IRQ_ICC_PRESENT |		\
 				  (scd_dbg_irq_##_what_));	\
 		}						\
 	} while (0)
-#define __scd_present_clear(_what_, did)			\
+#define __scd_present_clear(_what_, sid)			\
 	do {							\
-		if (__scd_present_test_##_what_(did)) {		\
-			clear_bit(SCD_IRQ_PRESENT(did),		\
+		if (__scd_present_test_##_what_(sid)) {		\
+			clear_bit(SCD_IRQ_PRESENT(sid),		\
 				  scd_##_what_##_presents);	\
 			scd_debug(SCD_DEBUG_INTR,		\
 				  SCD_IRQ_ICC_NOTPRESENT |	\
@@ -509,52 +509,52 @@ static uint16_t scd_present_length(void)
 			  SCD_IRQ_PRESENT_ALIGN);
 }
 
-boolean __scd_present_test_slot(scd_did_t did)
+boolean __scd_present_test_slot(scd_sid_t sid)
 {
 	if (scd_slot_status() == SCD_SLOT_STATUS_NOTPRESENT)
 		return false;
 	return true;
 }
 
-boolean __scd_present_changed_id(scd_did_t did)
+boolean __scd_present_changed_sid(scd_sid_t sid)
 {
-	if (__scd_present_test_submitted(did) !=
-	    __scd_present_test_slot(did))
+	if (__scd_present_test_submitted(sid) !=
+	    __scd_present_test_slot(sid))
 		return true;
 	return false;
 }
 
 boolean __scd_present_changed_all(void)
 {
-	scd_did_t did;
-	for (did = 0; did < NR_SCD_DEVICES; did++) {
-		if (__scd_present_changed_id(did))
+	scd_sid_t sid;
+	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
+		if (__scd_present_changed_sid(sid))
 			return true;
 	}
 	return false;
 }
 
-static void __scd_present_fill_id(bits_t *addr,
-				  scd_did_t did, scd_did_t usbdid)
+static void __scd_present_fill_sid(bits_t *addr,
+				   scd_sid_t sid, scd_sid_t usbsid)
 {
-	if (__scd_present_test_submitted(did)) {
-		set_bit(SCD_IRQ_PRESENT_BIT(usbdid), addr);
+	if (__scd_present_test_submitted(sid)) {
+		set_bit(SCD_IRQ_PRESENT_BIT(usbsid), addr);
 	} else {
-		clear_bit(SCD_IRQ_PRESENT_BIT(usbdid), addr);
+		clear_bit(SCD_IRQ_PRESENT_BIT(usbsid), addr);
 	}
-	if (__scd_present_test_submitted(did) !=
-	    __scd_present_test_discarded(did)) {
-		set_bit(SCD_IRQ_CHANGED_BIT(usbdid), addr);
+	if (__scd_present_test_submitted(sid) !=
+	    __scd_present_test_discarded(sid)) {
+		set_bit(SCD_IRQ_CHANGED_BIT(usbsid), addr);
 	} else {
-		clear_bit(SCD_IRQ_CHANGED_BIT(usbdid), addr);
+		clear_bit(SCD_IRQ_CHANGED_BIT(usbsid), addr);
 	}
 }
 
 static void __scd_present_fill_all(bits_t *addr)
 {
-	scd_did_t did;
-	for (did = 0; did < NR_SCD_DEVICES; did++) {
-		__scd_present_fill_id(addr, did, did);
+	scd_sid_t sid;
+	for (sid = 0; sid < NR_SCD_SLOTS; sid++) {
+		__scd_present_fill_sid(addr, sid, sid);
 	}
 }
 
@@ -575,12 +575,12 @@ void __scd_handle_present_exit(bits_t *addr, uint8_t size)
 	}
 }
 
-void __scd_handle_present_id(scd_did_t did)
+void __scd_handle_present_sid(scd_sid_t sid)
 {
 	DECLARE_BITMAP(status, NR_SCD_USB_SLOTS+NR_SCD_USB_SLOTS);
 
 	__scd_handle_present_init(status, sizeof (status));
-	__scd_present_fill_id(status, did, 0);
+	__scd_present_fill_sid(status, sid, 0);
 	__scd_handle_present_exit(status, sizeof (status));
 }
 
@@ -593,21 +593,21 @@ void __scd_handle_present_all(void)
 	__scd_handle_present_exit(status, sizeof (status));
 }
 
-void __scd_discard_present_id(scd_did_t did)
+void __scd_discard_present_sid(scd_sid_t sid)
 {
-	if (__scd_present_test_submitted(did)) {
-		__scd_present_set(discarded, did);
+	if (__scd_present_test_submitted(sid)) {
+		__scd_present_set(discarded, sid);
 	} else {
-		__scd_present_clear(discarded, did);
+		__scd_present_clear(discarded, sid);
 	}
 }
 
-void __scd_submit_present_id(scd_did_t did)
+void __scd_submit_present_sid(scd_sid_t sid)
 {
-	if (__scd_present_test_slot(did)) {
-		__scd_present_set(submitted, did);
+	if (__scd_present_test_slot(sid)) {
+		__scd_present_set(submitted, sid);
 	} else {
-		__scd_present_clear(submitted, did);
+		__scd_present_clear(submitted, sid);
 	}
 }
 
@@ -744,7 +744,7 @@ void scd_devid_init(void)
 #ifdef CONFIG_SCD_INTERRUPT
 	DEVICE_FUNC(SCD_FUNC_IRQ);
 #endif
-#if NR_SCD_DEVICES != NR_SCD_QUEUES
+#if NR_SCD_SLOTS != NR_SCD_QUEUES
 	DEVICE_FUNC(SCD_FUNC_ABORT);
 #endif
 #ifdef CONFIG_IFD_T1

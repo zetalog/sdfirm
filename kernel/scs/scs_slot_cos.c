@@ -1,7 +1,7 @@
-#include <target/scs_card.h>
+#include <target/scs_slot.h>
 #include <target/cos.h>
 
-scs_cid_t cos_sid;
+scs_sid_t cos_sid;
 
 static scs_err_t cos_slot_error(scs_err_t err)
 {

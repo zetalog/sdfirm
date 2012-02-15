@@ -85,7 +85,7 @@ void ifd_init(void);
 #define ifd_init()
 #endif
 
-#ifdef CONFIG_SCS_CARD
+#ifdef CONFIG_SCS_SLOT
 void scs_slot_init(void);
 #else
 #define scs_slot_init()
