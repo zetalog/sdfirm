@@ -1,0 +1,14 @@
+This software contains many source codes developed for the open source linux
+communities.  They are included into this project using source code style with
+some modifications just for improving their usability when they are working
+together with this firmware.  The copyright and license of such codes along
+with the new modifications should remain their original declarations.
+The firmware codes have been written with the referrence to the Linux design,
+they should be GPLv2 licence codes.  Projects derived from these firmware codes
+should take this into account.
+
+License: GPLv2
+Copyright: Soliton Network Systems (Shanghai) Co., Ltd.
+Author: Lv "ZETALOG" Zheng
+Please see the COPYING for GPLv2 details.
+
