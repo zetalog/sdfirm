@@ -303,12 +303,16 @@ void scd_submit_command(void)
 
 void scd_handle_command(void)
 {
+	usbd_dump_on(SCD_DUMP_USBD);
 	__scd_handle_command(iccd_addr2qid(usbd_saved_addr()));
+	usbd_dump_off();
 }
 
 void scd_handle_response(void)
 {
+	usbd_dump_on(SCD_DUMP_USBD);
 	__scd_handle_response(iccd_addr2qid(usbd_saved_addr()));
+	usbd_dump_off();
 }
 
 void scd_complete_response(void)

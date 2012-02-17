@@ -686,7 +686,9 @@ void scd_handle_bulk_pc2rdr(void)
 
 void scd_handle_command(void)
 {
+	usbd_dump_on(SCD_DUMP_USBD);
 	__scd_handle_command(CCID_QID_OUT);
+	usbd_dump_off();
 }
 
 /*=========================================================================
@@ -726,8 +728,10 @@ void scd_handle_bulk_rdr2pc(void)
 
 void scd_handle_response(void)
 {
+	usbd_dump_on(SCD_DUMP_USBD);
 	BUG_ON(ccid_nr_seqs == 0);
 	__scd_handle_response(CCID_QID_IN);
+	usbd_dump_off();
 }
 
 void scd_complete_response(void)

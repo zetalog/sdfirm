@@ -7,9 +7,11 @@
 #include <target/scs.h>
 
 #ifdef CONFIG_SCD_DEBUG
-#define scd_debug(tag, val)		dbg_print((tag), (val))
+#define scd_debug(tag, val)	dbg_print((tag), (val))
+#define SCD_DUMP_USBD		true
 #else
 #define scd_debug(tag, val)
+#define SCD_DUMP_USBD		false
 #endif
 
 #define USB_INTERFACE_CLASS_SCD		11
