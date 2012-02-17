@@ -284,7 +284,7 @@ void usbd_hw_endp_enable(void)
 	}
 }
 
-static utb_size_t usbd_hw_read_avail()
+static utb_size_t usbd_hw_read_avail(void)
 {
 	if (usbd_endpoint_type() == USB_ENDP_CONTROL) {
 		return __raw_readw(USBCOUNT0);
