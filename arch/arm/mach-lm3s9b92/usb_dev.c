@@ -472,11 +472,19 @@ static void usbd_hw_handle_ctrl(void)
 		usbd_control_reset();
 	}
 	if (usbd_request_interrupting(USB_DIR_OUT)) {
+		if (__usbd_hw_stall_raised()) {
+			__usbd_hw_stall_unraise();
+			usbd_request_stall();
+		}
 		if (__usbd_hw_is_rxrdy()) {
 			usbd_transfer_rxout();
 		}
 	}
 	if (usbd_request_interrupting(USB_DIR_IN)) {
+		if (__usbd_hw_stall_raised()) {
+			__usbd_hw_stall_unraise();
+			usbd_request_stall();
+		}
 		if (!__usbd_hw_is_txrdy()) {
 			usbd_transfer_txin();
 		}
