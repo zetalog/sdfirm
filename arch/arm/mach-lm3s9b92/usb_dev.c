@@ -250,32 +250,37 @@ void usbd_hw_request_reset(void)
 	__usbd_hw_raise_flush();
 }
 
-static uint16_t __usbd_hw_fifoadd_size(void)
+static uint16_t __usbd_hw_fifoadd_inc(void)
 {
 	return usbd_endpoint_size() >> USB_LM3S9B92_FIFOADD_S;
+}
+
+static uint8_t __usbd_hw_fifosz_value(void)
+{
+	uint8_t size_type = usb_endpoint_size_type(usbd_endpoint_size());
+	return (size_type | (USB_LM3S9B92_FIFOSZ_DPB<<DPB));
 }
 
 void usbd_hw_endp_enable(void)
 {
 	uint8_t eid = USB_ADDR2EID(usbd_endp);
-	uint8_t dir = __USBD_HW_DIR();
-	uint8_t size_type = usb_endpoint_size_type(usbd_endpoint_size());
 
 	if (eid != USB_EID_DEFAULT) {
+		uint8_t dir = __USBD_HW_DIR();
 		BUG_ON(usbd_config == USB_CONF_DEFAULT);
 		if (dir == USB_DIR_IN) {
 			__raw_writew(__usbd_hw_fifo_addr, USBTXFIFOADD);
-			__raw_writeb(size_type, USBTXFIFOSZ);
+			__raw_writeb(__usbd_hw_fifosz_value(), USBTXFIFOSZ);
 			__raw_writew(usbd_endpoint_size(), USBTXMAXP(eid));
 			__raw_writeb(__usbd_hw_type_bits() | _BV(TXMODE),
 				     USBTXCSRH(eid));
 		} else {
 			__raw_writew(__usbd_hw_fifo_addr, USBRXFIFOADD);
-			__raw_writeb(size_type, USBRXFIFOSZ);
+			__raw_writeb(__usbd_hw_fifosz_value(), USBRXFIFOSZ);
 			__raw_writew(usbd_endpoint_size(), USBRXMAXP(eid));
 			__raw_writeb(__usbd_hw_type_bits(), USBRXCSRH(eid));
 		}
-		__usbd_hw_fifo_addr += __usbd_hw_fifoadd_size();
+		__usbd_hw_fifo_addr += __usbd_hw_fifoadd_inc();
 	}
 }
 
