@@ -52,7 +52,7 @@ endchoice
 
 menuconfig GPT_AT8XC5122
 	bool "Atmel AT8XC5122 general purpose timer support"
-	depends TIMER
+	depends TIMER || TICK
 	select ARCH_HAS_GPT
 	default y
 

@@ -268,8 +268,10 @@
 
 #ifdef CONFIG_USB_LM3S9B92_FIFO_DOUBLE
 #define USB_LM3S9B92_FIFO_SIZE	128
+#define USB_LM3S9B92_FIFOADD_S	2
 #else
 #define USB_LM3S9B92_FIFO_SIZE	64
+#define USB_LM3S9B92_FIFOADD_S	3
 #endif
 
 typedef uint8_t utb_size_t;
