@@ -14,8 +14,8 @@
 #define PN53X_DUMP_USBD			false
 #endif
 
+#define NR_PN53X_TARGETS		PN53X_HW_MAX_TARGETS
 #define PN53X_POLL_INFINITE		0xFF
-#define NR_PN53X_SLOTS			0x02
 
 #define PN53X_BUF_SIZE			264
 #define PN53X_HEAD_SIZE			6
@@ -323,15 +323,23 @@
 #define PN53X_REG_CIU_SIZE		0x40
 #define PN53X_CIU_REG2INDEX(reg)	((reg) - PN53X_REG_CIU_BASE)
 
+/* chip drivers for PN53x
+ * support nothing but PN532
+ */
+/* #define NR_PN53X_SLOTS			0x02 */
+#define PN53X_HW_MAX_TARGETS		2
 boolean pn53x_hw_poll_ready(void);
 void pn53x_hw_write_cmpl(scs_size_t nc);
 void pn53x_hw_read_cmpl(scs_size_t ne);
 uint8_t pn53x_hw_xchg_read(scs_off_t index);
 void pn53x_hw_xchg_write(scs_off_t index, uint8_t val);
 void pn53x_hw_ctrl_init(void);
+
+/* APIs for NFC<->PN53x constants conversion */
 uint8_t pn53x_nm_to_pm(const struct nfc_modulation nm);
 struct nfc_modulation pn53x_ptt_to_nm(const uint8_t ptt);
 uint8_t pn53x_nm_to_ptt(const struct nfc_modulation nm);
+
 /* API used for PN53x USB devices */
 #define pn53x_poll_ready()			pn53x_hw_poll_ready()
 #define pn53x_write_cmpl(nc)			pn53x_hw_write_cmpl(nc)
@@ -339,5 +347,17 @@ uint8_t pn53x_nm_to_ptt(const struct nfc_modulation nm);
 #define pn53x_xchg_read(index)			pn53x_hw_xchg_read(index)
 #define pn53x_xchg_write(index, val)		pn53x_hw_xchg_write(index, val)
 #define pn53x_ctrl_init()			pn53x_hw_ctrl_init()
+
+struct pn53x_stub_driver {
+	struct nfc_modulation nm;
+	scs_err_t (*auto_poll)(uint8_t tg, union nfc_target_info *info);
+	scs_size_t (*xchg_avail)(uint8_t tg);
+	void (*xchg_block)(uint8_t tg, scs_size_t nc, scs_size_t ne);
+	uint8_t (*xchg_read)(uint8_t tg, scs_off_t index);
+	void (*xchg_write)(uint8_t tg, scs_off_t index, uint8_t value);
+};
+__TEXT_TYPE__(struct pn53x_stub_driver, pn53x_stub_driver_t);
+uint8_t pn53x_register_stub_driver(pn53x_stub_driver_t *driver);
+void pn53x_stub_driver_init(void);
 
 #endif /* __PN53X_H_INCLUDE_ */

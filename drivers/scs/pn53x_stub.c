@@ -12,8 +12,11 @@ static uint8_t pn53x_serial_br;
 static uint8_t pn53x_sfr_p3;
 static uint8_t pn53x_sfr_p7;
 static uint8_t pn53x_hci_mode = PN53X_HCI_SPI;
-static struct nfc_target pn53x_targets[NR_PN53X_SLOTS];
+static struct nfc_target pn53x_targets[NR_PN53X_TARGETS];
 static uint8_t pn53x_nr_targets;
+#define NR_PN53X_STUB_DRIVERS	1
+static pn53x_stub_driver_t *pn53x_stub_drivers[NR_PN53X_STUB_DRIVERS];
+static uint8_t pn53x_nr_drivers;
 static uint8_t pn53x_ciu_regs[PN53X_REG_CIU_SIZE] = {
 	0x00, 0x3B, 0x00, 0x00, 0x80, 0x00, 0x10, 0x84, /* 0x00 */
 	0x84, 0x4F, 0x00, 0x00, 0x62, 0x00, 0x00, 0x00, /* 0x08 */
@@ -122,24 +125,24 @@ void pn53x_response_SetParameters(void)
 	pn53x_build_frame(2);
 }
 
-static uint8_t pn53x_target_iso14443a_size(uint8_t cid)
+static uint8_t pn53x_target_iso14443a_size(uint8_t tg)
 {
 	uint8_t size = 4;
 	uint8_t len;
 
-	len = pn53x_targets[cid].nti.nai.szAtsLen;
+	len = pn53x_targets[tg].nti.nai.szAtsLen;
 	if (len)
 		size += (1+len);
-	size += pn53x_targets[cid].nti.nai.szUidLen;
+	size += pn53x_targets[tg].nti.nai.szUidLen;
 	return size;
 }
 
-static uint8_t pn53x_target_info_size(uint8_t cid)
+static uint8_t pn53x_target_info_size(uint8_t tg)
 {
 	uint8_t size = 1;
-	switch (pn53x_targets[cid].nm.nmt) {
+	switch (pn53x_targets[tg].nm.nmt) {
 	case NFC_TYPE_ISO14443A:
-		size += pn53x_target_iso14443a_size(cid);
+		size += pn53x_target_iso14443a_size(tg);
 		break;
 	default:
 		BUG();
@@ -148,35 +151,35 @@ static uint8_t pn53x_target_info_size(uint8_t cid)
 	return size;
 }
 
-static void pn53x_target_iso14443a_data(uint8_t cid,
+static void pn53x_target_iso14443a_data(uint8_t tg,
 					scs_off_t offset)
 {
 	uint8_t len;
-	pn53x_stub_resp[offset++] = pn53x_targets[cid].nti.nai.abtAtqa[0];
-	pn53x_stub_resp[offset++] = pn53x_targets[cid].nti.nai.abtAtqa[1];
-	pn53x_stub_resp[offset++] = pn53x_targets[cid].nti.nai.btSak;
-	len = pn53x_targets[cid].nti.nai.szUidLen;
+	pn53x_stub_resp[offset++] = pn53x_targets[tg].nti.nai.abtAtqa[0];
+	pn53x_stub_resp[offset++] = pn53x_targets[tg].nti.nai.abtAtqa[1];
+	pn53x_stub_resp[offset++] = pn53x_targets[tg].nti.nai.btSak;
+	len = pn53x_targets[tg].nti.nai.szUidLen;
 	pn53x_stub_resp[offset++] = len;
 	memory_copy((caddr_t)(pn53x_stub_resp)+offset,
-		    (caddr_t)(pn53x_targets[cid].nti.nai.abtUid),
+		    (caddr_t)(pn53x_targets[tg].nti.nai.abtUid),
 		    len);
 	offset += len;
-	len = pn53x_targets[cid].nti.nai.szAtsLen;
+	len = pn53x_targets[tg].nti.nai.szAtsLen;
 	if (len) {
 		pn53x_stub_resp[offset++] = len;
 		memory_copy((caddr_t)(pn53x_stub_resp)+offset,
-			    (caddr_t)(pn53x_targets[cid].nti.nai.abtAts),
+			    (caddr_t)(pn53x_targets[tg].nti.nai.abtAts),
 			    len);
 	}
 }
 
-static void pn53x_target_info_data(uint8_t cid,
+static void pn53x_target_info_data(uint8_t tg,
 				   scs_off_t offset)
 {
-	pn53x_stub_resp[offset++] = cid;
-	switch (pn53x_targets[cid].nm.nmt) {
+	pn53x_stub_resp[offset++] = tg;
+	switch (pn53x_targets[tg].nm.nmt) {
 	case NFC_TYPE_ISO14443A:
-		pn53x_target_iso14443a_data(cid, offset);
+		pn53x_target_iso14443a_data(tg, offset);
 		break;
 	default:
 		BUG();
@@ -186,6 +189,24 @@ static void pn53x_target_info_data(uint8_t cid,
 
 static void pn53x_poll_targets(uint8_t period)
 {
+	scs_err_t err;
+	uint8_t tg, drv;
+	pn53x_stub_driver_t *driver;
+
+	pn53x_nr_targets = 0;
+	for (drv = 0; drv < pn53x_nr_drivers; drv++) {
+		driver = pn53x_stub_drivers[drv];
+		BUG_ON(!driver || !driver->auto_poll);
+		for (tg = 0; tg < NR_PN53X_TARGETS; tg++) {
+			pn53x_targets[tg].nm.nmt = driver->nm.nmt;
+			pn53x_targets[tg].nm.nbr = driver->nm.nbr;
+			err = driver->auto_poll(tg, &pn53x_targets[0].nti);
+			if (err == SCS_ERR_SUCCESS) {
+				pn53x_nr_targets++;
+				break;
+			}
+		}
+	}
 }
 
 void pn53x_response_InAutoPoll(void)
@@ -195,6 +216,9 @@ void pn53x_response_InAutoPoll(void)
 	uint8_t i;
 	scs_off_t offset;
 
+	/* This command is requesting N times polling (N is indicated by PD1),
+	 * each polling should have a period indicated by PD2.
+	 */
 	nr_poll = pn53x_stub_cmd[PN53X_PD(1)];
 	period = pn53x_stub_cmd[PN53X_PD(2)];
 	do {
@@ -205,6 +229,7 @@ void pn53x_response_InAutoPoll(void)
 		if (nr_poll != PN53X_POLL_INFINITE)
 			nr_poll--;
 	} while (nr_poll > 0);
+
 	offset = PN53X_PD(1);
 	pn53x_stub_resp[offset++] = pn53x_nr_targets;
 	for (i = 0; i < pn53x_nr_targets; i++) {
@@ -373,11 +398,17 @@ void pn53x_response_InListPassiveTarget(void)
 	uint8_t max_targets, nr_targets;
 	scs_off_t offset;
 
-	if (pn53x_stub_cmd[PN53X_PD(1)] > 2) {
+	/* Handle MaxTg field */
+	max_targets = pn53x_stub_cmd[PN53X_PD(1)];
+	if (max_targets > NR_PN53X_TARGETS) {
+		/* MaxTg should not exceed NR_PN53X_TARGETS */
 		pn53x_response_error(PN53X_ERR_CMD);
 		return;
 	}
-	max_targets = min(pn53x_nr_targets, pn53x_stub_cmd[PN53X_PD(1)]);
+	if (max_targets > pn53x_nr_targets)
+		max_targets = pn53x_nr_targets;
+
+	/* Handle BrTy field */
 	modulation = pn53x_stub_cmd[PN53X_PD(2)];
 	nr_targets = 0;
 	offset = PN53X_PD(2);
@@ -389,6 +420,17 @@ void pn53x_response_InListPassiveTarget(void)
 		}
 	}
 	pn53x_stub_resp[PN53X_PD(1)] = nr_targets;
+	pn53x_build_frame(offset-PN53X_TFI);
+}
+
+void pn53x_response_InDataExchange(void)
+{
+	uint8_t tg;
+	scs_off_t offset;
+
+	tg = pn53x_stub_cmd[PN53X_PD(1)];
+
+	offset = PN53X_PD(1);
 	pn53x_build_frame(offset-PN53X_TFI);
 }
 
@@ -436,9 +478,6 @@ void pn53x_xchg_pseudo(void)
 	case PN53X_WriteGPIO:
 		pn53x_response_WriteGPIO();
 		break;
-	case PN53X_AlparCommandForTDA:
-		pn53x_response_error(PN53X_ERR_CMD);
-		break;
 	case PN53X_SetSerialBaudRate:
 		pn53x_response_SetSerialBaudRate();
 		break;
@@ -454,28 +493,39 @@ void pn53x_xchg_pseudo(void)
 	case PN53X_RFConfiguration:
 		pn53x_response_RFConfiguration();
 		break;
-	case PN53X_InJumpForDEP:
-	case PN53X_InJumpForPSL:
-	case PN53X_InActivateDeactivatePaypass:
-		pn53x_response_error(PN53X_ERR_CMD);
-		break;
 	case PN53X_InListPassiveTarget:
 		pn53x_response_InListPassiveTarget();
 		break;
+	case PN53X_InAutoPoll:
+		pn53x_response_InAutoPoll();
+		break;
+	case PN53X_InDataExchange:
+		pn53x_response_InDataExchange();
+		break;
+	case PN53X_InJumpForDEP:
+	case PN53X_InJumpForPSL:
+	case PN53X_InActivateDeactivatePaypass:
 	case PN53X_InATR:
 	case PN53X_InPSL:
-	case PN53X_InDataExchange:
 	case PN53X_InCommunicateThru:
 	case PN53X_InQuartetByteExchange:
 	case PN53X_InDeselect:
 	case PN53X_InRelease:
 	case PN53X_InSelect:
+	case PN53X_AlparCommandForTDA:
+	default:
 		pn53x_response_error(PN53X_ERR_CMD);
 		break;
-	case PN53X_InAutoPoll:
-		pn53x_response_InAutoPoll();
-		break;
 	}
+}
+
+uint8_t pn53x_register_stub_driver(pn53x_stub_driver_t *driver)
+{
+	uint8_t drv = pn53x_nr_drivers;
+	BUG_ON(drv >= NR_PN53X_STUB_DRIVERS);
+	pn53x_stub_drivers[drv] = driver;
+	pn53x_nr_drivers++;
+	return drv;
 }
 
 boolean pn53x_hw_poll_ready(void)
@@ -540,17 +590,5 @@ void pn53x_hw_ctrl_init(void)
 	pn53x_stub_ready = false;
 	pn53x_stub_is_resp = false;
 	pn53x_stub_is_cmd = false;
-
-	pn53x_nr_targets = 1;
-	pn53x_targets[0].nm.nmt = NFC_TYPE_ISO14443A;
-	pn53x_targets[0].nm.nbr = NFC_BAUD_106;
-	pn53x_targets[0].nti.nai.abtAtqa[0] = 0x00;
-	pn53x_targets[0].nti.nai.abtAtqa[1] = 0x04;
-	pn53x_targets[0].nti.nai.btSak = 0x08;
-	pn53x_targets[0].nti.nai.szUidLen = 0x04;
-	pn53x_targets[0].nti.nai.abtUid[0] = 0xC3;
-	pn53x_targets[0].nti.nai.abtUid[1] = 0xB2;
-	pn53x_targets[0].nti.nai.abtUid[2] = 0xEF;
-	pn53x_targets[0].nti.nai.abtUid[3] = 0xC8;
-	pn53x_targets[0].nti.nai.szAtsLen = 0x00;
+	pn53x_stub_driver_init();
 }
