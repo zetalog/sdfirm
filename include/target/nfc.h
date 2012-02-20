@@ -97,7 +97,7 @@ union nfc_target_info {
 
 #define NFC_MODUL_TYPE(nm)		HIBYTE(nm)
 #define NFC_MODUL_BAUD(nm)		LOBYTE(nm)
-#define NFC_MODULATION(type, baud)	MAKEWORD(baud, type)
+#define NFC_MODULATION(type, baud)	MAKEWORD((baud), (type))
 
 #define	NFC_TYPE_ISO14443A	0x00
 #define	NFC_TYPE_JEWEL		0x01
