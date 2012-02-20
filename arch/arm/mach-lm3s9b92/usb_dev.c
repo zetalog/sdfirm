@@ -248,7 +248,6 @@ void usbd_hw_request_reset(void)
 	}
 	__usbd_hw_toggle_data();
 	__usbd_hw_raise_flush();
-	__usbd_hw_stall_unraise();
 }
 
 static uint16_t __usbd_hw_fifoadd_inc(void)
@@ -374,11 +373,9 @@ static inline void __usbd_hw_stall_unraise(void)
 		__raw_clearb_atomic(STALLED, USBCSRL0);
 	} else {
 		if (dir == USB_DIR_IN) {
-			__raw_clearl(_BV(TXSTALLED) | _BV(TXUNDRN),
-				     USBTXCSRL(eid));
+			__raw_clearb_atomic(TXSTALLED, USBTXCSRL(eid));
 		} else {
-			__raw_clearl(_BV(RXSTALLED) | _BV(RXDATAERR) | _BV(RXOVER),
-				     USBRXCSRL(eid));
+			__raw_clearb_atomic(RXSTALLED, USBRXCSRL(eid));
 		}
 	}
 }
