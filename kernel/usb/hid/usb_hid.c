@@ -668,7 +668,7 @@ static void hid_start(void)
 
 void hid_init(void)
 {
-	usbd_declare_interface(50, &usb_hid_interface);
+	usbd_declare_interface(&usb_hid_interface);
 	HID_ADDR_IN = usbd_claim_endpoint(true, &hid_endpoint_in);
 	hid_out_init();
 	hid_kbd_init();

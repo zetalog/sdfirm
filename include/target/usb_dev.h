@@ -1,6 +1,8 @@
 #ifndef __USB_DEV_H_INCLUDE__
 #define __USB_DEV_H_INCLUDE__
 
+#include <target/arch.h>
+
 #ifdef CONFIG_USB_DEBUG
 #define usbd_debug_state(state)					\
 	do {							\
@@ -64,6 +66,12 @@ boolean usbd_dump_save(boolean dbg);
 #define USBD_VENDOR_ID			((uint16_t)DEV_VENDOR_ID)
 #define USBD_PRODUCT_ID			((uint8_t)DEV_PRODUCT_ID)
 #define USBD_SERIAL_NO			((uint16_t)DEV_SERIAL_NO)
+
+#ifdef BOARD_HW_MAX_POWER
+#define USBD_MAX_POWER		BOARD_HW_MAX_POWER
+#else
+#define USBD_MAX_POWER		500
+#endif
 
 #define NR_USBD_CONFS		1
 #ifdef CONFIG_USBD_MAX_INTFS
@@ -226,8 +234,7 @@ uint8_t usbd_state_get(void);
 /*=========================================================================
  * USB interface
  *=======================================================================*/
-usb_iid_t usbd_declare_interface(uint8_t power,
-				 usbd_interface_t *cintf);
+usb_iid_t usbd_declare_interface(usbd_interface_t *cintf);
 #ifdef CONFIG_USB_USBIP_DEV
 uint8_t usbd_interface_get_attr(uint8_t iid, uint8_t type);
 #else

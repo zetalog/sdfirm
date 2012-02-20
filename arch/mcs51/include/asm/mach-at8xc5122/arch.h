@@ -22,4 +22,6 @@
 /* interface device */
 #include <driver/ifd.h>
 
+#define BOARD_HW_MAX_POWER	100
+
 #endif /* __ARCH_AT8XC5122_H_INCLUDE__ */

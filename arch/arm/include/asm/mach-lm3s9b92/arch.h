@@ -22,5 +22,6 @@
 #define PN53X_HW_SPI_CHIP	0x11
 #define LCD_HW_SPI_CHIP		0x01
 #define	SD_HW_SPI_CHIP		0x02
+#define BOARD_HW_MAX_POWER	500
 
 #endif /* __ARCH_LM3S9B92_H_INCLUDE__ */

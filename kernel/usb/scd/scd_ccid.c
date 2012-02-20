@@ -1470,12 +1470,6 @@ static void ccid_handle_iso7816_cmpl(void)
 	}
 }
 
-#ifdef CONFIG_CCID_SECURE
-#define CCID_INTERFACE_POWER	100
-#else
-#define CCID_INTERFACE_POWER	50
-#endif
-
 static void ccid_devid_init(void)
 {
 	scd_devid_init();
@@ -1489,8 +1483,7 @@ void scd_init(void)
 	ccid_devid_init();
 
 	ifd_register_completion(ccid_handle_iso7816_cmpl);
-	usbd_declare_interface(CCID_INTERFACE_POWER,
-			       &usb_scd_interface);
+	usbd_declare_interface(&usb_scd_interface);
 	scd_bulk_register(CCID_ADDR_OUT, CCID_ADDR_IN);
 	scd_irq_register(CCID_ADDR_IRQ);
 

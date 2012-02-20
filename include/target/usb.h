@@ -279,7 +279,6 @@ struct usb_conf_desc {
 #define USB_CONFIG_ATTR_SELF_POWERED	(1<<6)
 #define USB_CONFIG_ATTR_REMOTE_WAKEUP	(1<<7)
 	uint8_t  bMaxPower;
-#define USB_POWER_PER_2MA		0.5
 };
 __TEXT_TYPE__(struct usb_conf_desc, usb_conf_desc_t);
 #define USB_DT_CONFIG_SIZE		9

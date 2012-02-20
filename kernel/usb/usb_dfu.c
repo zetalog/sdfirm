@@ -553,7 +553,7 @@ void dfu_suffix_test(void)
 
 void dfu_init(void)
 {
-	usbd_declare_interface(50, &usb_dfu_interface);
+	usbd_declare_interface(&usb_dfu_interface);
 	dfu_proto_init();
 	dfu_suffix_test();
 }

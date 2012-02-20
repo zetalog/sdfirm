@@ -341,7 +341,7 @@ usbd_interface_t usb_pn53x_interface = {
 
 void usb_pn53x_init(void)
 {
-	usbd_declare_interface(100, &usb_pn53x_interface);
+	usbd_declare_interface(&usb_pn53x_interface);
 	PN53X_ADDR_IN = usbd_claim_endpoint(true, &usb_pn53x_endpoint_in);
 	PN53X_ADDR_OUT = usbd_claim_endpoint(true, &usb_pn53x_endpoint_out);
 	pn53x_ctrl_init();

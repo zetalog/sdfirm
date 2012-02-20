@@ -16,4 +16,6 @@
 /* serial port */
 #include <driver/uart.h>
 
+#define BOARD_HW_MAX_POWER	100
+
 #endif /* __ARCH_AT90SCR100_H_INCLUDE__ */

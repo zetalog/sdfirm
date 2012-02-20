@@ -529,7 +529,7 @@ static void iccd_usb_register(void)
 {
 	scd_qid_t qid, oqid;
 	for (qid = 0; qid < NR_SCD_SLOTS; qid++) {
-		usbd_declare_interface(50, &usb_scd_interface);
+		usbd_declare_interface(&usb_scd_interface);
 		oqid = scd_qid_save(qid);
 		scd_bulk_register(SCD_ADDR_OUT, SCD_ADDR_IN);
 		scd_irq_register(SCD_ADDR_IRQ);

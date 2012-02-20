@@ -198,7 +198,7 @@ void msd_start(void)
 
 void msd_init(void)
 {
-	usbd_declare_interface(50, &usb_msd_interface);
+	usbd_declare_interface(&usb_msd_interface);
 
 	msd_proto_init();
 	msd_class_init();
