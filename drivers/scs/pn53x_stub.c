@@ -187,6 +187,16 @@ static void pn53x_target_info_data(uint8_t tg,
 	}
 }
 
+uint8_t pn53x_stub_get_driver(uint16_t nm)
+{
+	uint8_t drv;
+	for (drv = 0; drv < pn53x_nr_drivers; drv++) {
+		if (nm == pn53x_stub_drivers[drv]->nm)
+			break;
+	}
+	return drv;
+}
+
 static void pn53x_poll_targets(uint8_t period)
 {
 	scs_err_t err;
@@ -196,10 +206,10 @@ static void pn53x_poll_targets(uint8_t period)
 	pn53x_nr_targets = 0;
 	for (drv = 0; drv < pn53x_nr_drivers; drv++) {
 		driver = pn53x_stub_drivers[drv];
-		BUG_ON(!driver || !driver->auto_poll);
+		BUG_ON(!driver || !driver->get_info);
 		for (tg = 0; tg < NR_PN53X_TARGETS; tg++) {
 			pn53x_targets[tg].nm = driver->nm;
-			err = driver->auto_poll(tg, &pn53x_targets[0].nti);
+			err = driver->get_info(tg, &pn53x_targets[0].nti);
 			if (err == SCS_ERR_SUCCESS) {
 				pn53x_nr_targets++;
 				break;
@@ -401,7 +411,7 @@ void pn53x_response_InListPassiveTarget(void)
 	max_targets = pn53x_stub_cmd[PN53X_PD(1)];
 	if (max_targets > NR_PN53X_TARGETS) {
 		/* MaxTg should not exceed NR_PN53X_TARGETS */
-		pn53x_response_error(PN53X_ERR_CMD);
+		pn53x_response_error(PN53X_ERR_CID);
 		return;
 	}
 	if (max_targets > pn53x_nr_targets)
@@ -424,10 +434,21 @@ void pn53x_response_InListPassiveTarget(void)
 
 void pn53x_response_InDataExchange(void)
 {
-	uint8_t tg;
+	uint8_t tg, drv;
 	scs_off_t offset;
+	pn53x_stub_driver_t *driver;
 
 	tg = pn53x_stub_cmd[PN53X_PD(1)];
+	if (tg >= pn53x_nr_targets) {
+		pn53x_response_error(PN53X_ERR_CID);
+		return;
+	}
+
+	drv = pn53x_stub_get_driver(pn53x_targets[tg].nm);
+	driver = pn53x_stub_drivers[drv];
+
+	BUG_ON(!driver);
+	BUG_ON(!driver->write_byte || !driver->write_ready);
 
 	offset = PN53X_PD(1);
 	pn53x_build_frame(offset-PN53X_TFI);

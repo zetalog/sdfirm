@@ -350,11 +350,12 @@ uint8_t pn53x_nm_to_ptt(const uint16_t nm);
 
 struct pn53x_stub_driver {
 	uint16_t nm;
-	scs_err_t (*auto_poll)(uint8_t tg, union nfc_target_info *info);
-	scs_size_t (*xchg_avail)(uint8_t tg);
-	void (*xchg_block)(uint8_t tg, scs_size_t nc, scs_size_t ne);
-	uint8_t (*xchg_read)(uint8_t tg, scs_off_t index);
-	void (*xchg_write)(uint8_t tg, scs_off_t index, uint8_t value);
+	scs_err_t (*get_info)(uint8_t tg, union nfc_target_info *info);
+	scs_err_t (*read_ready)(uint8_t tg);
+	scs_size_t (*read_count)(uint8_t tg);
+	uint8_t (*read_byte)(uint8_t tg, scs_off_t index);
+	void (*write_ready)(uint8_t tg, scs_size_t size);
+	void (*write_byte)(uint8_t tg, scs_off_t index, uint8_t value);
 };
 __TEXT_TYPE__(struct pn53x_stub_driver, pn53x_stub_driver_t);
 uint8_t pn53x_register_stub_driver(pn53x_stub_driver_t *driver);
