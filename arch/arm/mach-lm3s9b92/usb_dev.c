@@ -339,7 +339,8 @@ static inline void __usbd_hw_unraise_rxrdy(void)
 		__raw_setb_atomic(RXRDYC, USBCSRL0);
 		__usbd_hw_mark_dataend();
 	} else {
-		__raw_clearb_atomic(RXRXRDY, USBRXCSRL(eid));
+		__raw_clearb(_BV(RXRXRDY) | _BV(RXDATAERR) | _BV(RXOVER),
+			     USBRXCSRL(eid));
 	}
 }
 
@@ -385,11 +386,23 @@ static inline void __usbd_hw_unraise_ctrl_reset(void)
 	__raw_clearb_atomic(SETENDC, USBCSRL0);
 }
 
+static inline void __usbd_hw_unraise_txrdy(void)
+{
+	uint8_t eid = USB_ADDR2EID(usbd_endp);
+	uint8_t dir = __USBD_HW_DIR();
+
+	if ((eid != USB_EID_DEFAULT) && (dir == USB_DIR_IN)) {
+		__raw_clearb(_BV(TXUNDRN), USBTXCSRL(eid));
+	}
+}
+
 void usbd_hw_transfer_open(void)
 {
+	__usbd_hw_unraise_error();
 	if (usbd_request_dir() == USB_DIR_IN) {
 		if (usbd_request_syncing())
 			while (__usbd_hw_is_txrdy());
+		__usbd_hw_unraise_txrdy();
 	} else {
 		if (usbd_request_syncing())
 			while (!__usbd_hw_is_rxrdy());
