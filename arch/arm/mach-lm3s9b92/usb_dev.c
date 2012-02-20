@@ -168,12 +168,12 @@ void usbd_hw_endp_unhalt(void)
 	uint8_t dir = __USBD_HW_DIR();
 
 	if (eid == USB_EID_DEFAULT) {
-		__raw_clearb_atomic(STALLED, USBCSRL0);
+		__raw_clearb_atomic(STALL, USBCSRL0);
 	} else {
 		if (dir == USB_DIR_IN) {
-			__raw_clearb_atomic(TXSTALLED, USBTXCSRL(eid));
+			__raw_clearb_atomic(TXSTALL, USBTXCSRL(eid));
 		} else {
-			__raw_clearb_atomic(RXSTALLED, USBRXCSRL(eid));
+			__raw_clearb_atomic(RXSTALL, USBRXCSRL(eid));
 		}
 	}
 }
@@ -248,6 +248,7 @@ void usbd_hw_request_reset(void)
 	}
 	__usbd_hw_toggle_data();
 	__usbd_hw_raise_flush();
+	__usbd_hw_stall_unraise();
 }
 
 static uint16_t __usbd_hw_fifoadd_inc(void)
