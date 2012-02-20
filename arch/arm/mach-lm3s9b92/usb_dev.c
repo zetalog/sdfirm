@@ -398,7 +398,6 @@ static inline void __usbd_hw_unraise_txrdy(void)
 
 void usbd_hw_transfer_open(void)
 {
-	__usbd_hw_unraise_error();
 	if (usbd_request_dir() == USB_DIR_IN) {
 		if (usbd_request_syncing())
 			while (__usbd_hw_is_txrdy());
