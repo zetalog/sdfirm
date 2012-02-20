@@ -336,9 +336,9 @@ void pn53x_hw_xchg_write(scs_off_t index, uint8_t val);
 void pn53x_hw_ctrl_init(void);
 
 /* APIs for NFC<->PN53x constants conversion */
-uint8_t pn53x_nm_to_pm(const struct nfc_modulation nm);
-struct nfc_modulation pn53x_ptt_to_nm(const uint8_t ptt);
-uint8_t pn53x_nm_to_ptt(const struct nfc_modulation nm);
+uint8_t pn53x_nm_to_pm(const uint16_t nm);
+uint16_t pn53x_ptt_to_nm(const uint8_t ptt);
+uint8_t pn53x_nm_to_ptt(const uint16_t nm);
 
 /* API used for PN53x USB devices */
 #define pn53x_poll_ready()			pn53x_hw_poll_ready()
@@ -349,7 +349,7 @@ uint8_t pn53x_nm_to_ptt(const struct nfc_modulation nm);
 #define pn53x_ctrl_init()			pn53x_hw_ctrl_init()
 
 struct pn53x_stub_driver {
-	struct nfc_modulation nm;
+	uint16_t nm;
 	scs_err_t (*auto_poll)(uint8_t tg, union nfc_target_info *info);
 	scs_size_t (*xchg_avail)(uint8_t tg);
 	void (*xchg_block)(uint8_t tg, scs_size_t nc, scs_size_t ne);

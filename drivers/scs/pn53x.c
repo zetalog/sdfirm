@@ -1,13 +1,13 @@
 #include <driver/pn53x.h>
 
-uint8_t pn53x_nm_to_pm(const struct nfc_modulation nm)
+uint8_t pn53x_nm_to_pm(const uint16_t nm)
 {
-	switch (nm.nmt) {
+	switch (NFC_MODUL_TYPE(nm)) {
 	case NFC_TYPE_ISO14443A:
 		return PN53X_MODULATION_ISO14443A_106;
 		break;
 	case NFC_TYPE_ISO14443B:
-		switch (nm.nbr) {
+		switch (NFC_MODUL_BAUD(nm)) {
 		case NFC_BAUD_106:
 			return PN53X_MODULATION_ISO14443B_106;
 			break;
@@ -29,7 +29,7 @@ uint8_t pn53x_nm_to_pm(const struct nfc_modulation nm)
 		return PN53X_MODULATION_JEWEL_106;
 		break;
 	case NFC_TYPE_FELICA:
-		switch (nm.nbr) {
+		switch (NFC_MODUL_BAUD(nm)) {
 		case NFC_BAUD_212:
 			return PN53X_MODULATION_FELICA_212;
 			break;
@@ -53,9 +53,9 @@ uint8_t pn53x_nm_to_pm(const struct nfc_modulation nm)
 	return PN53X_MODULATION_UNDEFINED;
 }
 
-struct nfc_modulation pn53x_ptt_to_nm(const uint8_t ptt)
+uint16_t pn53x_ptt_to_nm(const uint8_t ptt)
 {
-	struct nfc_modulation nm;
+	uint16_t nm;
 	switch (ptt) {
 	case PN53X_TARGET_GENERIC_PASSIVE_106:
 	case PN53X_TARGET_GENERIC_PASSIVE_212:
@@ -65,65 +65,56 @@ struct nfc_modulation pn53x_ptt_to_nm(const uint8_t ptt)
 		break;
 	case PN53X_TARGET_MIFARE:
 	case PN53X_TARGET_ISO14443_4A_106:
-		nm.nmt = NFC_TYPE_ISO14443A;
-		nm.nbr = NFC_BAUD_106;
+		nm = NFC_MODULATION(NFC_TYPE_ISO14443A, NFC_BAUD_106);
 		return nm;
 		break;
 	case PN53X_TARGET_ISO14443_4B_106:
 	case PN53X_TARGET_ISO14443_4B_TCL_106:
-		nm.nmt = NFC_TYPE_ISO14443B;
-		nm.nbr = NFC_BAUD_106;
+		nm = NFC_MODULATION(NFC_TYPE_ISO14443B, NFC_BAUD_106);
 		return nm;
 		break;
 	case PN53X_TARGET_JEWEL_106:
-		nm.nmt = NFC_TYPE_JEWEL;
-		nm.nbr = NFC_BAUD_106;
+		nm = NFC_MODULATION(NFC_TYPE_JEWEL, NFC_BAUD_106);
 		return nm;
 		break;
 	case PN53X_TARGET_FELICA_212:
-		nm.nmt = NFC_TYPE_FELICA;
-		nm.nbr = NFC_BAUD_212;
+		nm = NFC_MODULATION(NFC_TYPE_FELICA, NFC_BAUD_212);
 		return nm;
 		break;
 	case PN53X_TARGET_FELICA_424:
-		nm.nmt = NFC_TYPE_FELICA;
-		nm.nbr = NFC_BAUD_424;
+		nm = NFC_MODULATION(NFC_TYPE_FELICA, NFC_BAUD_424);
 		return nm;
 		break;
 	case PN53X_TARGET_DEP_PASSIVE_106:
 	case PN53X_TARGET_DEP_ACTIVE_106:
-		nm.nmt = NFC_TYPE_DEP;
-		nm.nbr = NFC_BAUD_106;
+		nm = NFC_MODULATION(NFC_TYPE_DEP, NFC_BAUD_106);
 		return nm;
 		break;
 	case PN53X_TARGET_DEP_PASSIVE_212:
 	case PN53X_TARGET_DEP_ACTIVE_212:
-		nm.nmt = NFC_TYPE_DEP;
-		nm.nbr = NFC_BAUD_212;
+		nm = NFC_MODULATION(NFC_TYPE_DEP, NFC_BAUD_212);
 		return nm;
 		break;
 	case PN53X_TARGET_DEP_PASSIVE_424:
 	case PN53X_TARGET_DEP_ACTIVE_424:
-		nm.nmt = NFC_TYPE_DEP;
-		nm.nbr = NFC_BAUD_424;
+		nm = NFC_MODULATION(NFC_TYPE_DEP, NFC_BAUD_424);
 		return nm;
 		break;
 	}
 	/* We should never be here, this line silent compilation warning */
-	nm.nmt = NFC_TYPE_ISO14443A;
-	nm.nbr = NFC_BAUD_106;
+	nm = NFC_MODULATION(NFC_TYPE_ISO14443A, NFC_BAUD_106);
 	return nm;
 }
 
-uint8_t pn53x_nm_to_ptt(const struct nfc_modulation nm)
+uint8_t pn53x_nm_to_ptt(const uint16_t nm)
 {
-	switch (nm.nmt) {
+	switch (NFC_MODUL_TYPE(nm)) {
 	case NFC_TYPE_ISO14443A:
 		return PN53X_TARGET_MIFARE;
 		/* return PTT_ISO14443_4A_106; */
 		break;
 	case NFC_TYPE_ISO14443B:
-		switch (nm.nbr) {
+		switch (NFC_MODUL_BAUD(nm)) {
 		case NFC_BAUD_106:
 			return PN53X_TARGET_ISO14443_4B_106;
 			break;
@@ -139,7 +130,7 @@ uint8_t pn53x_nm_to_ptt(const struct nfc_modulation nm)
 		return PN53X_TARGET_JEWEL_106;
 		break;
 	case NFC_TYPE_FELICA:
-		switch (nm.nbr) {
+		switch (NFC_MODUL_BAUD(nm)) {
 		case NFC_BAUD_212:
 			return PN53X_TARGET_FELICA_212;
 			break;

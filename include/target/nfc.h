@@ -95,28 +95,28 @@ union nfc_target_info {
 	struct nfc_dep_info ndi;
 };
 
-struct nfc_modulation {
-	uint8_t nmt;
+#define NFC_MODUL_TYPE(nm)		HIBYTE(nm)
+#define NFC_MODUL_BAUD(nm)		LOBYTE(nm)
+#define NFC_MODULATION(type, baud)	MAKEWORD(baud, type)
+
 #define	NFC_TYPE_ISO14443A	0x00
 #define	NFC_TYPE_JEWEL		0x01
 #define	NFC_TYPE_ISO14443B	0x02
-	/* pre-ISO14443B aka ISO/IEC 14443 B' or Type B' */
+/* pre-ISO14443B aka ISO/IEC 14443 B' or Type B' */
 #define	NFC_TYPE_ISO14443BI	0x03
 #define	NFC_TYPE_ISO14443B2SR	0x04 /* ISO14443-2B ST SRx */
 #define	NFC_TYPE_ISO14443B2CT	0x05 /* ISO14443-2B ASK CTx */
 #define	NFC_TYPE_FELICA		0x06
 #define	NFC_TYPE_DEP		0x07
-	uint8_t nbr;
 #define NFC_BAUD_UNDEFINED	0x00
 #define NFC_BAUD_106		0x01
 #define NFC_BAUD_212		0x02
 #define NFC_BAUD_424		0x03
 #define NFC_BAUD_847		0x04
-} __packed;
 
 struct nfc_target {
 	union nfc_target_info nti;
-	struct nfc_modulation nm;
+	uint16_t nm;
 } __packed;
 
 #endif /* __NFC_H_INCLUDE__ */

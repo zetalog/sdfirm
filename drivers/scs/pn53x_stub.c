@@ -140,7 +140,7 @@ static uint8_t pn53x_target_iso14443a_size(uint8_t tg)
 static uint8_t pn53x_target_info_size(uint8_t tg)
 {
 	uint8_t size = 1;
-	switch (pn53x_targets[tg].nm.nmt) {
+	switch (NFC_MODUL_TYPE(pn53x_targets[tg].nm)) {
 	case NFC_TYPE_ISO14443A:
 		size += pn53x_target_iso14443a_size(tg);
 		break;
@@ -177,7 +177,7 @@ static void pn53x_target_info_data(uint8_t tg,
 				   scs_off_t offset)
 {
 	pn53x_stub_resp[offset++] = tg;
-	switch (pn53x_targets[tg].nm.nmt) {
+	switch (NFC_MODUL_TYPE(pn53x_targets[tg].nm)) {
 	case NFC_TYPE_ISO14443A:
 		pn53x_target_iso14443a_data(tg, offset);
 		break;
@@ -198,8 +198,7 @@ static void pn53x_poll_targets(uint8_t period)
 		driver = pn53x_stub_drivers[drv];
 		BUG_ON(!driver || !driver->auto_poll);
 		for (tg = 0; tg < NR_PN53X_TARGETS; tg++) {
-			pn53x_targets[tg].nm.nmt = driver->nm.nmt;
-			pn53x_targets[tg].nm.nbr = driver->nm.nbr;
+			pn53x_targets[tg].nm = driver->nm;
 			err = driver->auto_poll(tg, &pn53x_targets[0].nti);
 			if (err == SCS_ERR_SUCCESS) {
 				pn53x_nr_targets++;

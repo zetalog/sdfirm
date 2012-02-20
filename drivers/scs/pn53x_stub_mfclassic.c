@@ -18,10 +18,7 @@ scs_err_t pn53x_stub_mfclassic_auto_poll(uint8_t tg,
 }
 
 pn53x_stub_driver_t pn53x_stub_mfclassic = {
-	{
-		NFC_TYPE_ISO14443A,
-		NFC_BAUD_106,
-	},
+	NFC_MODULATION(NFC_TYPE_ISO14443A, NFC_BAUD_106),
 	pn53x_stub_mfclassic_auto_poll,
 };
 
