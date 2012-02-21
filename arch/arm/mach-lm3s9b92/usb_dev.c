@@ -91,37 +91,36 @@ static uint16_t __usbd_hw_fifo_addr = 8;
 void __usbd_hw_dump_regs(uint8_t hint)
 {
 	uint8_t eid = USB_ADDR2EID(usbd_endp);
-	uint8_t dir = __USBD_HW_DIR();
+	uint8_t dir = usbd_request_dir();
 
-	if (dir == USB_DIR_IN) {
+	dbg_dump(hint++);
+	if ((eid == USB_EID_DEFAULT) || (dir == USB_DIR_IN)) {
+		dbg_dump((USB_ENDPADDR(dir, eid) |
+			 ((0x01 & (__raw_readw(USBTXIE) >> eid)) << 4) |
+			 ((0x01 & (__raw_readw(USBTXIS) >> eid)) << 5)));
+	} else {
+		dbg_dump((USB_ENDPADDR(dir, eid) |
+			 ((0x01 & (__raw_readw(USBRXIE) >> eid)) << 4) |
+			 ((0x01 & (__raw_readw(USBRXIS) >> eid)) << 5)));
+	}
+	dbg_dump(hint++);
+	if (eid == USB_EID_DEFAULT) {
+		dbg_dump(__raw_readb(USBCSRH0));
 		dbg_dump(hint++);
-		dbg_dump((uint8_t)(0x01 & (__raw_readw(USBTXIE) >> eid)));
-		dbg_dump(hint++);
-		if (eid != USB_EID_DEFAULT) {
+		dbg_dump(__raw_readb(USBCSRL0));
+	} else {
+		if (dir == USB_DIR_IN) {
 			dbg_dump(__raw_readb(USBTXCSRH(eid)));
 			dbg_dump(hint++);
 			dbg_dump(__raw_readb(USBTXCSRL(eid)));
-			dbg_dump(hint++);
-		}
-	} else {
-		dbg_dump(hint++);
-		dbg_dump((uint8_t)(0x01 & (__raw_readw(USBRXIE) >> eid)));
-		dbg_dump(hint++);
-		if (eid != USB_EID_DEFAULT) {
+		} else {
 			dbg_dump(__raw_readb(USBRXCSRH(eid)));
 			dbg_dump(hint++);
 			dbg_dump(__raw_readb(USBRXCSRL(eid)));
 		}
 	}
-	if (eid == USB_EID_DEFAULT) {
-		dbg_dump(__raw_readb(USBCSRH0));
-		dbg_dump(hint++);
-		dbg_dump(__raw_readb(USBCSRL0));
-	}
 	dbg_dump(hint++);
 }
-#else
-#define __usbd_hw_dump_regs(hint)
 #endif
 
 #ifdef CONFIG_USBD_SELF_POWERED

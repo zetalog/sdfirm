@@ -328,4 +328,10 @@ void usbd_hw_request_open(void);
 void usbd_hw_request_close(void);
 void usbd_hw_request_reset(void);
 
+#ifdef CONFIG_USB_DEBUG
+void __usbd_hw_dump_regs(uint8_t hint);
+#else
+#define __usbd_hw_dump_regs(hint)
+#endif
+
 #endif /* __USB_LM3S9B92_H_INCLUDE__ */
