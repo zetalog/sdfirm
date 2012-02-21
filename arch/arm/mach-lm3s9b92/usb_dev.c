@@ -426,11 +426,11 @@ void __usbd_hw_status_completing(void)
 #define __usbd_hw_status_completing()
 uint16_t __usbd_hw_endp_txrdy = 0;
 #define __usbd_hw_set_txrdy(eid)	\
-	raise_bits(__usbd_hw_endp_txrdy, 1<<(eid))
+	raise_bits(__usbd_hw_endp_txrdy, ((uint16_t)1)<<(eid))
 #define __usbd_hw_clear_txrdy(eid)	\
-	unraise_bits(__usbd_hw_endp_txrdy, 1<<(eid))
+	unraise_bits(__usbd_hw_endp_txrdy, ((uint16_t)1)<<(eid))
 #define __usbd_hw_test_txrdy(eid)	\
-	bits_raised_any(__usbd_hw_endp_txrdy, 1<<(eid))
+	bits_raised_any(__usbd_hw_endp_txrdy, ((uint16_t)1)<<(eid))
 #endif
 
 #ifdef CONFIG_USB_DEBUG
