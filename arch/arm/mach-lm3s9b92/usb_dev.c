@@ -421,6 +421,7 @@ void __usbd_hw_status_completing(void)
 #define __usbd_hw_set_txrdy(eid)
 #define __usbd_hw_clear_txrdy(eid)
 #define __usbd_hw_test_txrdy(eid)	true
+#define __usbd_hw_endp_txrdy		((uint16_t)0xFFFF)
 #else
 #define __usbd_hw_config_apply()
 #define __usbd_hw_status_completing()
