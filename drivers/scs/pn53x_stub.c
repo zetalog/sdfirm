@@ -435,8 +435,10 @@ void pn53x_response_InListPassiveTarget(void)
 void pn53x_response_InDataExchange(void)
 {
 	uint8_t tg, drv;
-	scs_off_t offset;
+	scs_off_t offset, i;
+	scs_size_t len;
 	pn53x_stub_driver_t *driver;
+	scs_err_t err;
 
 	tg = pn53x_stub_cmd[PN53X_PD(1)];
 	if (tg >= pn53x_nr_targets) {
@@ -450,7 +452,39 @@ void pn53x_response_InDataExchange(void)
 	BUG_ON(!driver);
 	BUG_ON(!driver->write_byte || !driver->write_ready);
 
-	offset = PN53X_PD(1);
+	/* get the DATA_OUT fields after the TFI and CMD fields */
+	offset = PN53X_PD(2);
+	len = pn53x_stub_cmd[PN53X_LEN]-2;
+	for (i = 0; i < len; i++) {
+		driver->write_byte(tg, i, pn53x_stub_cmd[offset++]);
+	}
+	driver->write_ready(tg, i);
+
+	/* TODO: Asynchronous Access for RX Handlers
+	 * Following codes might be put into a timeout handler to allow
+	 * asynchronous RX handlers.
+	 */
+	BUG_ON(!driver->read_ready || !driver->read_count ||
+	       !driver->read_byte);
+	do {
+		err = driver->read_ready(tg);
+		if (err != SCS_ERR_PROGRESS)
+			break;
+	} while (1);
+	/* return error status on failure */
+	if (err != SCS_ERR_SUCCESS) {
+		pn53x_response_error(PN53X_ERR_CMD);
+		return;
+	}
+
+	/* set the STATUS field */
+	pn53x_stub_resp[PN53X_PD(1)] = PN53X_ERR_SUCCESS;
+	/* set the DATA_IN fields */
+	offset = PN53X_PD(2);
+	len = driver->read_count(tg);
+	for (i = 0; i < len; i++) {
+		pn53x_stub_resp[offset++] = driver->read_byte(tg, i);
+	}
 	pn53x_build_frame(offset-PN53X_TFI);
 }
 
