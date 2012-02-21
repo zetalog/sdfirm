@@ -86,7 +86,43 @@ utb_text_size_t usbd_hw_endp_sizes[NR_USBD_ENDPS] = {
 };
 
 static uint16_t __usbd_hw_fifo_addr = 8;
-static boolean __usbd_hw_conf_pending = false;
+
+#ifdef CONFIG_USB_DEBUG
+void __usbd_hw_dump_regs(uint8_t hint)
+{
+	uint8_t eid = USB_ADDR2EID(usbd_endp);
+	uint8_t dir = __USBD_HW_DIR();
+
+	if (dir == USB_DIR_IN) {
+		dbg_dump(hint++);
+		dbg_dump((uint8_t)(0x01 & (__raw_readw(USBTXIE) >> eid)));
+		dbg_dump(hint++);
+		if (eid != USB_EID_DEFAULT) {
+			dbg_dump(__raw_readb(USBTXCSRH(eid)));
+			dbg_dump(hint++);
+			dbg_dump(__raw_readb(USBTXCSRL(eid)));
+			dbg_dump(hint++);
+		}
+	} else {
+		dbg_dump(hint++);
+		dbg_dump((uint8_t)(0x01 & (__raw_readw(USBRXIE) >> eid)));
+		dbg_dump(hint++);
+		if (eid != USB_EID_DEFAULT) {
+			dbg_dump(__raw_readb(USBRXCSRH(eid)));
+			dbg_dump(hint++);
+			dbg_dump(__raw_readb(USBRXCSRL(eid)));
+		}
+	}
+	if (eid == USB_EID_DEFAULT) {
+		dbg_dump(__raw_readb(USBCSRH0));
+		dbg_dump(hint++);
+		dbg_dump(__raw_readb(USBCSRL0));
+	}
+	dbg_dump(hint++);
+}
+#else
+#define __usbd_hw_dump_regs(hint)
+#endif
 
 #ifdef CONFIG_USBD_SELF_POWERED
 void usbd_hw_power_init(void)
@@ -144,6 +180,7 @@ void usbd_hw_set_config(void)
 
 void usbd_hw_request_open(void)
 {
+	__usbd_hw_dump_regs(0x70);
 	if (usbd_request_dir() == USB_DIR_IN) {
 		__usbd_hw_txirq_enable();
 	} else {
@@ -160,6 +197,7 @@ void usbd_hw_request_close(void)
 	if (USB_ADDR2EID(usbd_endp) != USB_EID_DEFAULT)
 		__usbd_hw_rxirq_disable();
 	__usbd_hw_txirq_disable();
+	__usbd_hw_dump_regs(0x80);
 }
 
 void usbd_hw_endp_unhalt(void)
@@ -238,13 +276,6 @@ void __usbd_hw_toggle_data(void)
 	}
 }
 
-void usbd_hw_request_reset(void)
-{
-	uint8_t dir = __USBD_HW_DIR();
-	__usbd_hw_toggle_data();
-	__usbd_hw_raise_flush();
-}
-
 static uint16_t __usbd_hw_fifoadd_inc(void)
 {
 	return usbd_endpoint_size() >> USB_LM3S9B92_FIFOADD_S;
@@ -293,17 +324,6 @@ static inline void __usbd_hw_mark_dataend(void)
 	if (usbd_control_get_stage() == USBD_CTRL_STAGE_DATA &&
 	    usbd_transfer_last()) {
 		__raw_setb_atomic(DATAEND, USBCSRL0);
-	}
-}
-
-static inline void __usbd_hw_raise_txrdy(void)
-{
-	uint8_t eid = USB_ADDR2EID(usbd_endp);
-	if (eid == USB_EID_DEFAULT) {
-		__raw_setb_atomic(TXRDY, USBCSRL0);
-		__usbd_hw_mark_dataend();
-	} else {
-		__raw_setb_atomic(TXTXRDY, USBTXCSRL(eid));
 	}
 }
 
@@ -360,7 +380,7 @@ static inline boolean __usbd_hw_stall_raised(void)
 	}
 }
 
-static inline void __usbd_hw_stall_unraise(void)
+static inline void __usbd_hw_unraise_stall(void)
 {
 	uint8_t eid = USB_ADDR2EID(usbd_endp);
 	uint8_t dir = __USBD_HW_DIR();
@@ -381,18 +401,9 @@ static inline void __usbd_hw_unraise_ctrl_reset(void)
 	__raw_clearb_atomic(SETENDC, USBCSRL0);
 }
 
-static inline void __usbd_hw_unraise_txcmpl(void)
-{
-	uint8_t eid = USB_ADDR2EID(usbd_endp);
-	uint8_t dir = __USBD_HW_DIR();
-
-	if ((eid != USB_EID_DEFAULT) && (dir == USB_DIR_IN)) {
-		__raw_clearb(_BV(TXUNDRN), USBTXCSRL(eid));
-	}
-}
-
 void usbd_hw_transfer_open(void)
 {
+	__usbd_hw_dump_regs(0x30);
 	if (usbd_request_dir() == USB_DIR_IN) {
 		if (usbd_request_syncing())
 			while (__usbd_hw_is_txrdy());
@@ -401,7 +412,11 @@ void usbd_hw_transfer_open(void)
 			while (!__usbd_hw_is_rxrdy());
 		usbd_transfer_submit(usbd_hw_read_avail());
 	}
+	__usbd_hw_dump_regs(0x40);
 }
+
+#ifdef CONFIG_USB_LM3S9B92_CSO
+static boolean __usbd_hw_conf_pending = false;
 
 /* XXX: Device Configuration Application - Chip Bug
  *
@@ -440,12 +455,69 @@ void __usbd_hw_status_completing(void)
 	}
 }
 
+#define __usbd_hw_set_txrdy(eid)
+#define __usbd_hw_clear_txrdy(eid)
+#define __usbd_hw_test_txrdy(eid)	true
+#define __usbd_hw_control_setup()	usbd_control_reset()
+#else
+#define __usbd_hw_config_apply()
+#define __usbd_hw_status_completing()
+uint16_t __usbd_hw_endp_txrdy = 0;
+#define __usbd_hw_set_txrdy(eid)	(__usbd_hw_endp_txrdy |= (eid)<<1)
+#define __usbd_hw_clear_txrdy(eid)	(__usbd_hw_endp_txrdy &= ~(eid)<<1)
+#define __usbd_hw_test_txrdy(eid)	(__usbd_hw_endp_txrdy & (eid)<<1)
+#define __usbd_hw_control_setup()	usbd_control_setup()
+#endif
+
+boolean __usbd_hw_is_txcmpl(void)
+{
+	return __usbd_hw_test_txrdy(USB_ADDR2EID(usbd_endp)) &&
+	       !__usbd_hw_is_txrdy();
+}
+
+static inline void __usbd_hw_raise_txrdy(void)
+{
+	uint8_t eid = USB_ADDR2EID(usbd_endp);
+
+	__usbd_hw_set_txrdy(eid);
+	if (eid == USB_EID_DEFAULT) {
+		__raw_setb_atomic(TXRDY, USBCSRL0);
+		__usbd_hw_mark_dataend();
+	} else {
+		__raw_setb_atomic(TXTXRDY, USBTXCSRL(eid));
+	}
+}
+
+static inline void __usbd_hw_unraise_txcmpl(void)
+{
+	uint8_t eid = USB_ADDR2EID(usbd_endp);
+	uint8_t dir = __USBD_HW_DIR();
+
+	if (dir == USB_DIR_IN) {
+		if (eid != USB_EID_DEFAULT) {
+			__raw_clearb(_BV(TXUNDRN), USBTXCSRL(eid));
+		}
+		__usbd_hw_clear_txrdy(eid);
+	}
+}
+
+void usbd_hw_request_reset(void)
+{
+	uint8_t dir = __USBD_HW_DIR();
+	if (dir == USB_DIR_IN)
+		__usbd_hw_clear_txrdy(USB_ADDR2EID(usbd_endp));
+	__usbd_hw_toggle_data();
+	__usbd_hw_raise_flush();
+	__usbd_hw_dump_regs(0x90);
+}
+
 void usbd_hw_transfer_close(void)
 {
+	__usbd_hw_dump_regs(0x50);
 	if (usbd_request_dir() == USB_DIR_IN) {
 		__usbd_hw_raise_txrdy();
 		if (usbd_request_syncing()) {
-			while (__usbd_hw_is_txrdy());
+			while (!__usbd_hw_is_txcmpl());
 			__usbd_hw_unraise_txcmpl();
 		}
 	} else {
@@ -456,6 +528,7 @@ void usbd_hw_transfer_close(void)
 		}
 		__usbd_hw_unraise_rxrdy();
 	}
+	__usbd_hw_dump_regs(0x60);
 }
 
 static void usbd_hw_handle_rxout(void)
@@ -463,12 +536,13 @@ static void usbd_hw_handle_rxout(void)
 	if (!usbd_request_interrupting(USB_DIR_OUT))
 		return;
 	if (__usbd_hw_stall_raised()) {
-		__usbd_hw_stall_unraise();
+		__usbd_hw_unraise_stall();
 		usbd_request_stall();
 	}
 	if (__usbd_hw_is_rxrdy()) {
 		usbd_transfer_rxout();
 	}
+	__usbd_hw_dump_regs(0x10);
 }
 
 static void usbd_hw_handle_txin(void)
@@ -476,37 +550,41 @@ static void usbd_hw_handle_txin(void)
 	if (!usbd_request_interrupting(USB_DIR_IN))
 		return;
 	if (__usbd_hw_stall_raised()) {
-		__usbd_hw_stall_unraise();
+		__usbd_hw_unraise_stall();
 		usbd_request_stall();
 	}
-	if (!__usbd_hw_is_txrdy()) {
+	if (__usbd_hw_is_txcmpl()) {
 		__usbd_hw_unraise_txcmpl();
 		usbd_transfer_txin();
 	}
+	__usbd_hw_dump_regs(0x20);
 }
 
 static void usbd_hw_handle_ctrl(void)
 {
 	if (__usbd_hw_is_ctrl_reset()) {
-		usbd_control_reset();
+		__usbd_hw_control_setup();
 	}
 	if (usbd_request_interrupting(USB_DIR_OUT)) {
 		if (__usbd_hw_stall_raised()) {
-			__usbd_hw_stall_unraise();
+			__usbd_hw_unraise_stall();
 			usbd_request_stall();
 		}
 		if (__usbd_hw_is_rxrdy()) {
 			usbd_transfer_rxout();
 		}
+		__usbd_hw_dump_regs(0x10);
 	}
 	if (usbd_request_interrupting(USB_DIR_IN)) {
 		if (__usbd_hw_stall_raised()) {
-			__usbd_hw_stall_unraise();
+			__usbd_hw_unraise_stall();
 			usbd_request_stall();
 		}
-		if (!__usbd_hw_is_txrdy()) {
+		if (__usbd_hw_is_txcmpl()) {
+			__usbd_hw_unraise_txcmpl();
 			usbd_transfer_txin();
 		}
+		__usbd_hw_dump_regs(0x20);
 	}
 }
 

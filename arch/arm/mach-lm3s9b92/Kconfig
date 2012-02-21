@@ -182,10 +182,14 @@ menuconfig USB_LM3S9B92
 	select ARCH_HAS_USB_OTG
 	select ARCH_IS_USBD_ENDP_TXCMPL
 	select ARCH_IS_USBD_ENDP_DUPLEX
-	select ARCH_HAS_USBD_ENDP_CSO
 	default y
 
 if USB_LM3S9B92
+
+config USB_LM3S9B92_CSO
+	bool "TI LM3S9B92 USB CSO support"
+	select ARCH_HAS_USBD_ENDP_CSO
+	default y
 
 config USB_LM3S9B92_DEV
 	bool "TI LM3S9B92 USB device support"
