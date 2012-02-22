@@ -12,8 +12,7 @@
 
 static scs_cmpl_cb acr122_complete = NULL;
 static struct acr122_pseudo_apdu acr122_apdu;
-static uint8_t acr122_cmd[ACR122_BUF_SIZE];
-static uint8_t acr122_resp[ACR122_BUF_SIZE];
+static uint8_t acr122_buf[ACR122_BUF_SIZE];
 static uint8_t acr122_state;
 static uint8_t acr122_poll;
 
@@ -74,11 +73,11 @@ scs_size_t acr122_xchg_avail(void)
 uint8_t acr122_read_byte(scs_off_t index)
 {
 	if (index < acr122_apdu.ne) {
-		return acr122_resp[index];
+		return acr122_buf[index];
 	} else {
 		if (acr122_apdu.p1 == 0x48) {
 			if (index < 10)
-				return acr122_resp[index];
+				return acr122_buf[index];
 		} else {
 			if (index == acr122_apdu.ne)
 				return acr122_apdu.sw1;
@@ -143,7 +142,7 @@ void acr122_write_byte(scs_off_t index, uint8_t value)
 		if ((index-ACR122_HEAD_SIZE) >= acr122_apdu.nc)
 			acr122_set_sanity(index);
 		else
-			acr122_cmd[index-ACR122_HEAD_SIZE] = value;
+			acr122_buf[index-ACR122_HEAD_SIZE] = value;
 		break;
 	}
 }
@@ -174,8 +173,8 @@ static void acr122_write_cmd(void)
 	pn53x_xchg_write(PN53X_LCS, (uint8_t)(-acr122_apdu.nc));
 
 	for (i = 0; i < acr122_apdu.nc; i++) {
-		dcs += acr122_cmd[i];
-		pn53x_xchg_write(i+PN53X_HEAD_SIZE-1, acr122_cmd[i]);
+		dcs += acr122_buf[i];
+		pn53x_xchg_write(i+PN53X_HEAD_SIZE-1, acr122_buf[i]);
 	}
 
 	i += (PN53X_HEAD_SIZE-1);
@@ -214,16 +213,16 @@ scs_err_t acr122_xchg_block(scs_size_t nc, scs_size_t ne)
 		case 0x40:
 			break;
 		case 0x48:
-			acr122_resp[0x00] = 0x41;
-			acr122_resp[0x01] = 0x43;
-			acr122_resp[0x02] = 0x52;
-			acr122_resp[0x03] = 0x31;
-			acr122_resp[0x04] = 0x32;
-			acr122_resp[0x05] = 0x32;
-			acr122_resp[0x06] = 0x55;
-			acr122_resp[0x07] = 0x31;
-			acr122_resp[0x08] = 0x30;
-			acr122_resp[0x09] = 0x31;
+			acr122_buf[0x00] = 0x41;
+			acr122_buf[0x01] = 0x43;
+			acr122_buf[0x02] = 0x52;
+			acr122_buf[0x03] = 0x31;
+			acr122_buf[0x04] = 0x32;
+			acr122_buf[0x05] = 0x32;
+			acr122_buf[0x06] = 0x55;
+			acr122_buf[0x07] = 0x31;
+			acr122_buf[0x08] = 0x30;
+			acr122_buf[0x09] = 0x31;
 			acr122_apdu.ne = 8;
 			break;
 		default:
@@ -295,7 +294,7 @@ static void acr122_poll_completion(void)
 		for (i = 0; i < len; i++) {
 			value = pn53x_xchg_read(i+PN53X_HEAD_SIZE-1);
 			dcs += value;
-			acr122_resp[i] = value;
+			acr122_buf[i] = value;
 		}
 		i += (PN53X_HEAD_SIZE-1);
 		dcs += pn53x_xchg_read(i++);
