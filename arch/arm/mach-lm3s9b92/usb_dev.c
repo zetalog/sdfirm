@@ -299,8 +299,10 @@ void __usbd_hw_cso_capture(void)
  	if (USB_ADDR2EID(usbd_endp) == USB_EID_DEFAULT) {
  		switch (usbd_control_request_type()) {
  		case USB_REQ_SET_ADDRESS:
- 		case USB_REQ_SET_CONFIGURATION:
  			__usbd_hw_is_cso = 1;
+			break;
+ 		case USB_REQ_SET_CONFIGURATION:
+			usbd_config_apply();
  			break;
  		}
  	}
