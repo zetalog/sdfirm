@@ -293,7 +293,6 @@ uint8_t usbd_control_request_addr(void);
 void usbd_control_set_stage(uint8_t stage);
 uint8_t usbd_control_get_stage(void);
 boolean usbd_control_setup_staging(void);
-boolean usbd_control_data_staging(void);
 
 /*=========================================================================
  * USB request (IRP or URB)
