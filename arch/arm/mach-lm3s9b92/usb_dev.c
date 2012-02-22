@@ -548,8 +548,9 @@ void __usbd_hw_transfer_iocb(void)
 
 void __usbd_hw_cso_forward(uint8_t dir)
 {
-	if (!usbd_request_interrupting(dir) &&
-	    (usbd_control_get_stage() == USBD_CTRL_STAGE_DATA)) {
+	if ((usbd_request_dir() != dir) &&
+	    (usbd_control_get_stage() != USBD_CTRL_STAGE_SETUP) &&
+	    (usbd_hw_read_avail() == 0)) {
 		/* Caught a CSO?  Forward control stage to STATUS. */
 		__usbd_hw_cso_capture();
 		while (usbd_control_get_stage() == USBD_CTRL_STAGE_DATA)
