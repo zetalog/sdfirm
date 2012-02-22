@@ -378,61 +378,47 @@ void usbd_hw_transfer_open(void)
 	__usbd_hw_dump_regs(0x40);
 }
 
-#ifdef CONFIG_USB_LM3S9B92_CSO
-static boolean __usbd_hw_conf_pending = false;
-
-/* XXX: Device Configuration Application - Chip Bug
- *
- * On LM3S9B92, the control status stage is offloaded by the USB device
- * controller.  Which means that the CPU doesn't need to TX/RX a status
- * IRPs.  But problem is raised that the CPU then could hardly get an
- * indication of a status stage completion to complete the SET_ADDRESS and
- * the SET_CONFIGURATION request.  Fortunately, IRQ of control endpoint
- * will arrive even when USBCSR0 is 0x0000 (this might be a delayed 0x0002
- * IRQ) for such requests, which could mean a status stage completion.
- * Though the USB device controller is assumed to present a more
- * comprehensive status flag for such indication.
- */
-void __usbd_hw_config_apply(void)
-{
-	if (__usbd_hw_conf_pending) {
-		usbd_config_apply();
-		__usbd_hw_conf_pending = false;
-	}
-}
-
-/* XXX: STATUS Completion Indication - Chip Bug
- *
- * Work around to capture the STATUS completion indication.  See detailed
- * comments in the __usbd_hw_config_apply() call.
- */
-void __usbd_hw_status_completing(void)
-{
-	if (USB_ADDR2EID(usbd_endp) == USB_EID_DEFAULT) {
-		switch (usbd_control_request_type()) {
-		case USB_REQ_SET_ADDRESS:
-		case USB_REQ_SET_CONFIGURATION:
-			__usbd_hw_conf_pending = true;
-			break;
-		}
-	}
-}
-
-#define __usbd_hw_set_txrdy(eid)
-#define __usbd_hw_clear_txrdy(eid)
-#define __usbd_hw_test_txrdy(eid)	true
-#define __usbd_hw_endp_txrdy		((uint16_t)0xFFFF)
-#else
-#define __usbd_hw_config_apply()
-#define __usbd_hw_status_completing()
 uint16_t __usbd_hw_endp_txrdy = 0;
+
 #define __usbd_hw_set_txrdy(eid)	\
 	raise_bits(__usbd_hw_endp_txrdy, ((uint16_t)1)<<(eid))
 #define __usbd_hw_clear_txrdy(eid)	\
 	unraise_bits(__usbd_hw_endp_txrdy, ((uint16_t)1)<<(eid))
 #define __usbd_hw_test_txrdy(eid)	\
 	bits_raised_any(__usbd_hw_endp_txrdy, ((uint16_t)1)<<(eid))
-#endif
+
+/* XXX: STATUS Stage Offloading Issue - Chip Bug
+ * On LM3S9B92, NO DATA stage control requests have a special logic in the
+ * controller.  It seems the controller has sent a ZLP for such requests while
+ * it should be sent by the CPU in may firmware designs.  Note that a control
+ * IRQ will arrive with USBCSR0 is 0x0000 (TXRDY completion) even when the CPU
+ * side does not perform any TX activities for the STATUS stage for such
+ * requests.  We could take this IRQ as a STATUS stage TX completion and
+ * carefully not send any ZLPs in the STATUS stages for such requests.
+ * This workaround can work for the USB device controller though it should
+ * have presented a more comprehensive flag for such offloading.
+ */
+static uint8_t __usbd_hw_is_cso = 0;
+
+void __usbd_hw_cso_release(void)
+{
+	if (__usbd_hw_is_cso == 1) {
+		__usbd_hw_is_cso = 0;
+	}
+}
+
+void __usbd_hw_cso_capture(void)
+{
+	/* Work around to capture the STATUS offloading indication. */
+	if (USB_ADDR2EID(usbd_endp) == USB_EID_DEFAULT) {
+		switch (usbd_control_request_type()) {
+		case USB_REQ_SET_ADDRESS:
+		case USB_REQ_SET_CONFIGURATION:
+			__usbd_hw_is_cso = 1;
+			break;
+		}
+	}
+}
 
 #ifdef CONFIG_USB_DEBUG
 void __usbd_hw_dump_regs(uint8_t hint)
@@ -444,13 +430,13 @@ void __usbd_hw_dump_regs(uint8_t hint)
 	if ((eid == USB_EID_DEFAULT) || (dir == USB_DIR_IN)) {
 		dbg_dump((USB_ENDPADDR(dir, eid) |
 			 ((0x01 & (__usbd_hw_endp_txrdy >> eid)) << 6) |
-			 ((0x01 & (__raw_readw(USBTXIE) >> eid)) << 4) |
-			 ((0x01 & (__raw_readw(USBTXIS) >> eid)) << 5)));
+			 ((0x01 & (__usbd_hw_is_cso)) << 5) |
+			 ((0x01 & (__raw_readw(USBTXIE) >> eid)) << 4)));
 	} else {
 		dbg_dump((USB_ENDPADDR(dir, eid) |
 			 ((0x01 & (__usbd_hw_endp_txrdy >> eid)) << 6) |
-			 ((0x01 & (__raw_readw(USBRXIE) >> eid)) << 4) |
-			 ((0x01 & (__raw_readw(USBRXIS) >> eid)) << 5)));
+			 ((0x01 & (__usbd_hw_is_cso)) << 5) |
+			 ((0x01 & (__raw_readw(USBRXIE) >> eid)) << 4)));
 	}
 	dbg_dump(hint++);
 	if (eid == USB_EID_DEFAULT) {
@@ -484,7 +470,9 @@ static inline void __usbd_hw_raise_txrdy(void)
 
 	__usbd_hw_set_txrdy(eid);
 	if (eid == USB_EID_DEFAULT) {
-		__raw_setb_atomic(TXRDY, USBCSRL0);
+		if (__usbd_hw_is_cso == 0) {
+			__raw_setb_atomic(TXRDY, USBCSRL0);
+		}
 		__usbd_hw_mark_dataend();
 	} else {
 		__raw_setb_atomic(TXTXRDY, USBTXCSRL(eid));
@@ -501,6 +489,7 @@ static inline void __usbd_hw_unraise_txcmpl(void)
 			__raw_clearb(_BV(TXUNDRN), USBTXCSRL(eid));
 		}
 		__usbd_hw_clear_txrdy(eid);
+		__usbd_hw_cso_release();
 	}
 }
 
@@ -524,10 +513,11 @@ void usbd_hw_transfer_close(void)
 			__usbd_hw_unraise_txcmpl();
 		}
 	} else {
-		__usbd_hw_status_completing();
-		if (usbd_control_setup_staging() &&
-		    __usbd_hw_is_ctrl_reset()) {
-			__usbd_hw_unraise_ctrl_reset();
+		if (usbd_control_setup_staging()) {
+			__usbd_hw_cso_capture();
+			if (__usbd_hw_is_ctrl_reset()) {
+				__usbd_hw_unraise_ctrl_reset();
+			}
 		}
 		__usbd_hw_unraise_rxrdy();
 	}
@@ -623,7 +613,6 @@ void usbd_hw_handle_irq(void)
 
 	saddr = usbd_addr_save(USB_ADDR(USB_DIR_IN, 0));
 	if (__usbd_hw_txirq_raised(tx_status)) {
-		__usbd_hw_config_apply();
 		usbd_hw_handle_ctrl();
 	}
 	usbd_addr_restore(saddr);
