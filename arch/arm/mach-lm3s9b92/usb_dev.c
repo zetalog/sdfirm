@@ -564,6 +564,7 @@ void __usbd_hw_cso_forward(uint8_t dir)
 
 static void usbd_hw_handle_ctrl(void)
 {
+	__usbd_hw_dump_regs(0x00);
 	if (__usbd_hw_is_ctrl_reset()) {
 		usbd_control_reset();
 	}
