@@ -284,7 +284,7 @@ static utb_size_t usbd_hw_read_avail(void)
 
 static inline void __usbd_hw_mark_dataend(void)
 {
-	if (usbd_control_data_staging() &&
+	if ((usbd_control_get_stage() == USBD_CTRL_STAGE_DATA) &&
 	    usbd_transfer_last()) {
 		__raw_setb_atomic(DATAEND, USBCSRL0);
 	}
