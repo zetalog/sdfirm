@@ -557,7 +557,8 @@ void __usbd_hw_cso_forward(uint8_t dir)
 			__usbd_hw_transfer_iocb();
 		if (usbd_control_get_stage() == USBD_CTRL_STAGE_STATUS) {
 			usbd_request_poll();
-			__usbd_hw_transfer_iocb();
+			if (usbd_request_dir() == USB_DIR_IN)
+				usbd_async_iocb();
 		}
 		__usbd_hw_cso_release();
 	}
