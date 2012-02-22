@@ -85,6 +85,21 @@ utb_text_size_t usbd_hw_endp_sizes[NR_USBD_ENDPS] = {
 #endif
 };
 
+/* XXX: STATUS Stage Offloading Issue - Chip Bug
+ * On LM3S9B92, NO DATA stage control requests have a special logic in the
+ * controller.  It seems the controller has sent a ZLP for such requests while
+ * it should be sent by the CPU in may firmware designs.  Note that a control
+ * IRQ will arrive with USBCSR0 is 0x0000 (TXRDY completion) even when the CPU
+ * side does not perform any TX activities for the STATUS stage for such
+ * requests.  We could take this IRQ as a STATUS stage TX completion and
+ * carefully not send any ZLPs in the STATUS stages for such requests.
+ * This workaround can work for the USB device controller though it should
+ * have presented a more comprehensive flag for such offloading.
+ */
+static uint8_t __usbd_hw_is_cso = 0;
+#define __usbd_hw_cso_release()		(__usbd_hw_is_cso = 0)
+#define __usbd_hw_cso_capture()		(__usbd_hw_is_cso = 1)
+
 static uint16_t __usbd_hw_fifo_addr = 8;
 
 #ifdef CONFIG_USBD_SELF_POWERED
@@ -313,12 +328,16 @@ static boolean __usbd_hw_is_rxrdy(void)
 static inline void __usbd_hw_unraise_rxrdy(void)
 {
 	uint8_t eid = USB_ADDR2EID(usbd_endp);
-	if (eid == USB_EID_DEFAULT) {
-		__raw_setb_atomic(RXRDYC, USBCSRL0);
-		__usbd_hw_mark_dataend();
-	} else {
-		__raw_clearb(_BV(RXRXRDY) | _BV(RXDATAERR) | _BV(RXOVER),
-			     USBRXCSRL(eid));
+
+	if (__usbd_hw_is_cso == 0) {
+		if (eid == USB_EID_DEFAULT) {
+			__raw_setb_atomic(RXRDYC, USBCSRL0);
+			__usbd_hw_mark_dataend();
+		} else {
+			__raw_clearb(_BV(RXRXRDY) |
+				     _BV(RXDATAERR) | _BV(RXOVER),
+				     USBRXCSRL(eid));
+		}
 	}
 }
 
@@ -387,38 +406,6 @@ uint16_t __usbd_hw_endp_txrdy = 0;
 #define __usbd_hw_test_txrdy(eid)	\
 	bits_raised_any(__usbd_hw_endp_txrdy, ((uint16_t)1)<<(eid))
 
-/* XXX: STATUS Stage Offloading Issue - Chip Bug
- * On LM3S9B92, NO DATA stage control requests have a special logic in the
- * controller.  It seems the controller has sent a ZLP for such requests while
- * it should be sent by the CPU in may firmware designs.  Note that a control
- * IRQ will arrive with USBCSR0 is 0x0000 (TXRDY completion) even when the CPU
- * side does not perform any TX activities for the STATUS stage for such
- * requests.  We could take this IRQ as a STATUS stage TX completion and
- * carefully not send any ZLPs in the STATUS stages for such requests.
- * This workaround can work for the USB device controller though it should
- * have presented a more comprehensive flag for such offloading.
- */
-static uint8_t __usbd_hw_is_cso = 0;
-
-void __usbd_hw_cso_release(void)
-{
-	if (__usbd_hw_is_cso == 1) {
-		__usbd_hw_is_cso = 0;
-	}
-}
-
-void __usbd_hw_cso_capture(void)
-{
-	/* Work around to capture the STATUS offloading indication. */
-	if (USB_ADDR2EID(usbd_endp) == USB_EID_DEFAULT) {
-		switch (usbd_control_request_type()) {
-		case USB_REQ_SET_ADDRESS:
-		case USB_REQ_SET_CONFIGURATION:
-			__usbd_hw_is_cso = 1;
-			break;
-		}
-	}
-}
 
 #ifdef CONFIG_USB_DEBUG
 void __usbd_hw_dump_regs(uint8_t hint)
@@ -469,13 +456,13 @@ static inline void __usbd_hw_raise_txrdy(void)
 	uint8_t eid = USB_ADDR2EID(usbd_endp);
 
 	__usbd_hw_set_txrdy(eid);
-	if (eid == USB_EID_DEFAULT) {
-		if (__usbd_hw_is_cso == 0) {
+	if (__usbd_hw_is_cso == 0) {
+		if (eid == USB_EID_DEFAULT) {
 			__raw_setb_atomic(TXRDY, USBCSRL0);
+			__usbd_hw_mark_dataend();
+		} else {
+			__raw_setb_atomic(TXTXRDY, USBTXCSRL(eid));
 		}
-		__usbd_hw_mark_dataend();
-	} else {
-		__raw_setb_atomic(TXTXRDY, USBTXCSRL(eid));
 	}
 }
 
@@ -489,7 +476,6 @@ static inline void __usbd_hw_unraise_txcmpl(void)
 			__raw_clearb(_BV(TXUNDRN), USBTXCSRL(eid));
 		}
 		__usbd_hw_clear_txrdy(eid);
-		__usbd_hw_cso_release();
 	}
 }
 
@@ -514,7 +500,6 @@ void usbd_hw_transfer_close(void)
 		}
 	} else {
 		if (usbd_control_setup_staging()) {
-			__usbd_hw_cso_capture();
 			if (__usbd_hw_is_ctrl_reset()) {
 				__usbd_hw_unraise_ctrl_reset();
 			}
@@ -553,31 +538,41 @@ static void usbd_hw_handle_txin(void)
 	__usbd_hw_dump_regs(0x20);
 }
 
+void __usbd_hw_cso_forward(uint8_t dir)
+{
+	if (!usbd_request_interrupting(dir) &&
+	    (usbd_control_get_stage() == USBD_CTRL_STAGE_DATA)) {
+		/* Caught a CSO?  Forward control stage to STATUS. */
+		__usbd_hw_cso_capture();
+		while (usbd_control_get_stage() == USBD_CTRL_STAGE_DATA)
+			usbd_transfer_iocb();
+		if (usbd_control_get_stage() == USBD_CTRL_STAGE_STATUS) {
+			usbd_endpoint_poll();
+			usbd_transfer_iocb();
+		}
+		__usbd_hw_cso_release();
+	}
+}
+
 static void usbd_hw_handle_ctrl(void)
 {
 	if (__usbd_hw_is_ctrl_reset()) {
 		usbd_control_reset();
 	}
-	if (usbd_request_interrupting(USB_DIR_OUT)) {
-		if (__usbd_hw_stall_raised()) {
-			__usbd_hw_unraise_stall();
-			usbd_request_stall();
-		}
-		if (__usbd_hw_is_rxrdy()) {
-			usbd_transfer_rxout();
-		}
-		__usbd_hw_dump_regs(0x10);
+	if (__usbd_hw_stall_raised()) {
+		__usbd_hw_unraise_stall();
+		usbd_request_stall();
 	}
-	if (usbd_request_interrupting(USB_DIR_IN)) {
-		if (__usbd_hw_stall_raised()) {
-			__usbd_hw_unraise_stall();
-			usbd_request_stall();
-		}
-		if (__usbd_hw_is_txcmpl()) {
-			__usbd_hw_unraise_txcmpl();
-			usbd_transfer_txin();
-		}
+	if (__usbd_hw_is_txcmpl()) {
+		__usbd_hw_cso_forward(USB_DIR_IN);
+		__usbd_hw_unraise_txcmpl();
+		usbd_transfer_txin();
 		__usbd_hw_dump_regs(0x20);
+	}
+	if (__usbd_hw_is_rxrdy()) {
+		__usbd_hw_cso_forward(USB_DIR_OUT);
+		usbd_transfer_rxout();
+		__usbd_hw_dump_regs(0x10);
 	}
 }
 
