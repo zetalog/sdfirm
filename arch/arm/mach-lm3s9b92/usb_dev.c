@@ -538,6 +538,14 @@ static void usbd_hw_handle_txin(void)
 	__usbd_hw_dump_regs(0x20);
 }
 
+void __usbd_hw_transfer_iocb(void)
+{
+	if (usbd_request_interrupting(USB_DIR_OUT))
+		usbd_transfer_rxout();
+	if (usbd_request_interrupting(USB_DIR_IN))
+		usbd_transfer_txin();
+}
+
 void __usbd_hw_cso_forward(uint8_t dir)
 {
 	if (!usbd_request_interrupting(dir) &&
@@ -545,10 +553,10 @@ void __usbd_hw_cso_forward(uint8_t dir)
 		/* Caught a CSO?  Forward control stage to STATUS. */
 		__usbd_hw_cso_capture();
 		while (usbd_control_get_stage() == USBD_CTRL_STAGE_DATA)
-			usbd_transfer_iocb();
+			__usbd_hw_transfer_iocb();
 		if (usbd_control_get_stage() == USBD_CTRL_STAGE_STATUS) {
-			usbd_endpoint_poll();
-			usbd_transfer_iocb();
+			usbd_request_poll();
+			__usbd_hw_transfer_iocb();
 		}
 		__usbd_hw_cso_release();
 	}
