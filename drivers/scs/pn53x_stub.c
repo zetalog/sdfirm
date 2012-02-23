@@ -74,9 +74,8 @@ void pn53x_response_error(uint8_t ec)
 {
 	pn53x_debug(PN53X_DEBUG_ERR_CODE, ec);
 
-	pn53x_stub_resp[PN53X_LEN] = 0x01;
-	pn53x_stub_resp[PN53X_ERR] = ec;
-	pn53x_build_frame(2);
+	pn53x_stub_resp[PN53X_TFI] = ec;
+	pn53x_build_frame(1);
 }
 
 void pn53x_response_Diagnose(void)

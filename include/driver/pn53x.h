@@ -26,7 +26,6 @@
 #define PN53X_LEN			3
 #define PN53X_LCS			4
 #define PN53X_TFI			5
-#define PN53X_ERR			5
 #define PN53X_CMD			6
 #define PN53X_PD(n)			(PN53X_CMD+(n))
 
