@@ -61,9 +61,11 @@ static inline void __usbd_hw_cso_capture(void)
 
 static inline void __usbd_hw_cso_release(void)
 {
-	if (__usbd_hw_is_cso == 1) {
-		usbd_config_apply();
-		__usbd_hw_is_cso = 0;
+ 	if (USB_ADDR2EID(usbd_endp) == USB_EID_DEFAULT) {
+		if (__usbd_hw_is_cso == 1) {
+			usbd_config_apply();
+			__usbd_hw_is_cso = 0;
+		}
 	}
 }
 
@@ -662,13 +664,16 @@ void usbd_hw_handle_irq(void)
 	__usbd_hw_dirq_save();
 	__usbd_hw_eirq_save();
 
+
 	for (eid = 0; eid < NR_USBD_HW_ENDPS; eid++) {
 		saddr = usbd_addr_save(USB_ADDR(USB_DIR_OUT, eid));
+		__usbd_hw_cso_release();
 		if (__usbd_hw_rxirq_raised()) {
 			__usbd_hw_unraise_rxirq();
-			if ((eid == USB_EID_DEFAULT) &&
-			    __usbd_hw_csetup_raised()) {
-				usbd_control_reset();
+			if (eid == USB_EID_DEFAULT) {
+				if (__usbd_hw_csetup_raised()) {
+					usbd_control_reset();
+				}
 			}
 			usbd_hw_handle_rxout();
 		}
@@ -677,9 +682,6 @@ void usbd_hw_handle_irq(void)
 		saddr = usbd_addr_save(USB_ADDR(USB_DIR_IN, eid));
 		if (__usbd_hw_txirq_raised()) {
 			__usbd_hw_unraise_txirq();
-			if (eid == USB_EID_DEFAULT) {
-				__usbd_hw_cso_release();
-			}
 			usbd_hw_handle_txin();
 		}
 		usbd_addr_restore(saddr);
