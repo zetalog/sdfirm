@@ -102,7 +102,7 @@ static void __usbd_hw_eirq_reset(void)
 #ifdef SYS_REALTIME
 #define __usbd_hw_eirq_enable()
 #define __usbd_hw_eirq_disable()
-#define __usbd_hw_eirq_enabled()	true
+#define __usbd_hw_eirq_enabled(dir)	true
 #define __usbd_hw_cirq_enabled(irq)	true
 #else
 static uint8_t __usbd_hw_ctrl_flags = 0;
@@ -115,8 +115,7 @@ static inline void __usbd_hw_eirq_enable(void)
 	uint8_t dir = usbd_request_dir();
 
 	if (eid == USB_EID_DEFAULT) {
-		if (dir == USB_DIR_IN)
-			__usbd_hw_ctrl_flags |= _BV(USBCTXIE);
+		__usbd_hw_ctrl_flags |= _BV(USBCTXIE);
 		__usbd_hw_ctrl_flags |= _BV(USBCRXIE);
 		__raw_setw_atomic(eid, USBTXIE);
 	} else {
@@ -134,11 +133,8 @@ static inline void __usbd_hw_eirq_disable(void)
 	uint8_t dir = usbd_request_dir();
 
 	if (eid == USB_EID_DEFAULT) {
-		if (dir == USB_DIR_IN) {
-			__usbd_hw_ctrl_flags &= ~_BV(USBCTXIE);
-		} else {
-			__usbd_hw_ctrl_flags &= ~_BV(USBCRXIE);
-		}
+		__usbd_hw_ctrl_flags &= ~_BV(USBCTXIE);
+		__usbd_hw_ctrl_flags &= ~_BV(USBCRXIE);
 		__raw_clearw_atomic(eid, USBTXIE);
 	} else {
 		if (dir == USB_DIR_IN) {
@@ -149,18 +145,15 @@ static inline void __usbd_hw_eirq_disable(void)
 	}
 }
 
-static boolean __usbd_hw_eirq_enabled(void)
+static boolean __usbd_hw_eirq_enabled(uint8_t dir)
 {
 	uint8_t eid = USB_ADDR2EID(usbd_endp);
-	uint8_t dir = usbd_request_dir();
 
 	if (eid == USB_EID_DEFAULT) {
 		if (dir == USB_DIR_IN) {
-			return __raw_testw_atomic(eid, USBTXIE) &&
-			       (__usbd_hw_ctrl_flags & _BV(USBCTXIE));
+			return (__usbd_hw_ctrl_flags & _BV(USBCTXIE));
 		} else {
-			return __raw_testw_atomic(eid, USBRXIE) &&
-			       (__usbd_hw_ctrl_flags & _BV(USBCRXIE));
+			return (__usbd_hw_ctrl_flags & _BV(USBCRXIE));
 		}
 	} else {
 		if (dir == USB_DIR_IN) {
@@ -228,7 +221,7 @@ static boolean __usbd_hw_txirq_raised(void)
 {
 	uint8_t eid = USB_ADDR2EID(usbd_endp);
 
-	return __usbd_hw_eirq_enabled() &&
+	return __usbd_hw_eirq_enabled(USB_DIR_IN) &&
 	       (__usbd_hw_tx_status & _BV(eid));
 }
 
@@ -236,7 +229,7 @@ static boolean __usbd_hw_rxirq_raised(void)
 {
 	uint8_t eid = USB_ADDR2EID(usbd_endp);
 
-	return __usbd_hw_eirq_enabled() &&
+	return __usbd_hw_eirq_enabled(USB_DIR_OUT) &&
 	       (__usbd_hw_rx_status & _BV(eid));
 }
 
@@ -665,7 +658,6 @@ void usbd_hw_handle_irq(void)
 
 	__usbd_hw_dirq_save();
 	__usbd_hw_eirq_save();
-
 
 	for (eid = 0; eid < NR_USBD_HW_ENDPS; eid++) {
 		saddr = usbd_addr_save(USB_ADDR(USB_DIR_OUT, eid));
