@@ -95,16 +95,6 @@ static void __usbd_hw_eirq_reset(void)
 	__usbd_hw_rx_status = 0;
 }
 
-static void __usbd_hw_request_reset_eirq(void)
-{
-	uint8_t eid = USB_ADDR2EID(usbd_endp);
-
-	if (usbd_request_dir() == USB_DIR_IN)
-		__usbd_hw_tx_status &= ~_BV(eid);
-	else
-		__usbd_hw_rx_status &= ~_BV(eid);
-}
-
 #define USBCTXIE		0
 #define USBCRXIE		1
 #ifdef SYS_REALTIME
@@ -123,11 +113,8 @@ static inline void __usbd_hw_eirq_enable(void)
 	uint8_t dir = usbd_request_dir();
 
 	if (eid == USB_EID_DEFAULT) {
-		if (dir == USB_DIR_IN) {
-			__usbd_hw_ctrl_flags |= _BV(USBCTXIE);
-		} else {
-			__usbd_hw_ctrl_flags |= _BV(USBCRXIE);
-		}
+		__usbd_hw_ctrl_flags |= _BV(USBCTXIE);
+		__usbd_hw_ctrl_flags |= _BV(USBCRXIE);
 		__raw_setw_atomic(eid, USBTXIE);
 	} else {
 		if (dir == USB_DIR_IN) {
@@ -585,14 +572,8 @@ static utb_size_t usbd_hw_read_avail(void)
 
 void usbd_hw_request_reset(void)
 {
-	uint8_t eid = USB_ADDR2EID(usbd_endp);
-	uint8_t dir = __USBD_HW_DIR();
-
-	if (dir == USB_DIR_IN)
-		__usbd_hw_clear_txrdy(eid);
 	__usbd_hw_toggle_data();
 	__usbd_hw_raise_flush();
-	__usbd_hw_request_reset_eirq();
 	__usbd_hw_dump_regs(0x90);
 }
 
