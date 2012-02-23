@@ -105,50 +105,17 @@ static void __usbd_hw_request_reset_eirq(void)
 		__usbd_hw_rx_status &= ~_BV(eid);
 }
 
-static inline void __usbd_hw_eirq_save(void)
-{
-	uint8_t cirq = _BV(USB_EID_DEFAULT);
-
-	__usbd_hw_tx_status |= __raw_readw(USBTXIS);
-	__usbd_hw_rx_status |= __raw_readw(USBRXIS);
-
-	/* Split control irq into direction specific IRQ. */
-	if (__usbd_hw_tx_status & cirq) {
-		__usbd_hw_tx_status &= ~cirq;
-		if (__usbd_hw_endp_txrdy & cirq) {
-			if (__usbd_hw_cstall_raised() ||
-			    !__usbd_hw_ctxrdy_raised()) {
-				__usbd_hw_tx_status |= cirq;
-			}
-		} else {
-			if (__usbd_hw_cstall_raised()) {
-				__usbd_hw_rx_status |= cirq;
-			}
-		}
-		if (__usbd_hw_csetup_raised() &&
-		    __usbd_hw_crxrdy_raised()) {
-			__usbd_hw_rx_status |= cirq;
-		}
-	}
-}
-
-static inline void __usbd_hw_eirq_restore(void)
-{
-	if ((__usbd_hw_tx_status != 0) ||
-	    (__usbd_hw_rx_status != 0)) {
-		__usbd_hw_dump_regs(0xA0);
-		vic_hw_irq_trigger(IRQ_USB);
-	}
-}
-
+#define USBCTXIE		0
+#define USBCRXIE		1
 #ifdef SYS_REALTIME
 #define __usbd_hw_eirq_enable()
 #define __usbd_hw_eirq_disable()
-#define __usbd_hw_eirq_enabled()	(true)
+#define __usbd_hw_eirq_enabled()	true
+#define __usbd_hw_cirq_enabled(irq)	true
 #else
 static uint8_t __usbd_hw_ctrl_flags = 0;
-#define USBCTXIE		0
-#define USBCRXIE		1
+
+#define __usbd_hw_cirq_enabled(irq)	(__usbd_hw_ctrl_flags & _BV(irq))
 
 static inline void __usbd_hw_eirq_enable(void)
 {
@@ -214,6 +181,52 @@ static boolean __usbd_hw_eirq_enabled(void)
 	}
 }
 #endif
+
+static inline void __usbd_hw_eirq_save(void)
+{
+	uint8_t cirq = _BV(USB_EID_DEFAULT);
+
+	__usbd_hw_tx_status |= __raw_readw(USBTXIS);
+	__usbd_hw_rx_status |= __raw_readw(USBRXIS);
+
+	/* Split control irq into direction specific IRQ. */
+	if (__usbd_hw_tx_status & cirq) {
+		__usbd_hw_tx_status &= ~cirq;
+		if (__usbd_hw_endp_txrdy & cirq) {
+			if (__usbd_hw_cstall_raised() ||
+			    !__usbd_hw_ctxrdy_raised()) {
+				__usbd_hw_tx_status |= cirq;
+			}
+		} else {
+			if (__usbd_hw_cstall_raised()) {
+				__usbd_hw_rx_status |= cirq;
+			}
+		}
+		if (__usbd_hw_csetup_raised() &&
+		    __usbd_hw_crxrdy_raised()) {
+			__usbd_hw_rx_status |= cirq;
+		}
+	}
+}
+
+static inline void __usbd_hw_eirq_restore(void)
+{
+	uint8_t cirq = _BV(USB_EID_DEFAULT);
+	uint16_t tx_enable = __raw_readw(USBTXIE);
+	uint16_t rx_enable = __raw_readw(USBRXIE);
+
+	tx_enable &= ~cirq;
+	if (__usbd_hw_cirq_enabled(USBCTXIE))
+		tx_enable |= cirq;
+	if (__usbd_hw_cirq_enabled(USBCRXIE))
+		rx_enable |= cirq;
+
+	if ((__usbd_hw_tx_status & tx_enable) ||
+	    (__usbd_hw_rx_status & rx_enable)) {
+		__usbd_hw_dump_regs(0xA0);
+		usb_hw_irq_trigger();
+	}
+}
 
 #define __usbd_hw_set_address()		__raw_writeb(usbd_address & 0x7F, USBFADDR)
 #define __usbd_hw_hub_connect()		__raw_setb_atomic(DEVSOFTCONN, USBPOWER)
@@ -659,16 +672,6 @@ static void usbd_hw_handle_txin(void)
 	__usbd_hw_dump_regs(0x20);
 }
 
-static void usbd_hw_handle_ctrl(void)
-{
-	__usbd_hw_dump_regs(0x00);
-
-	__usbd_hw_cso_release();
-	if (__usbd_hw_csetup_raised()) {
-		usbd_control_reset();
-	}
-}
-
 void usbd_hw_handle_irq(void)
 {
 	uint8_t saddr;
@@ -682,6 +685,10 @@ void usbd_hw_handle_irq(void)
 		saddr = usbd_addr_save(USB_ADDR(USB_DIR_OUT, eid));
 		if (__usbd_hw_rxirq_raised()) {
 			__usbd_hw_unraise_rxirq();
+			if ((eid == USB_EID_DEFAULT) &&
+			    __usbd_hw_csetup_raised()) {
+				usbd_control_reset();
+			}
 			usbd_hw_handle_rxout();
 		}
 		usbd_addr_restore(saddr);
@@ -689,6 +696,9 @@ void usbd_hw_handle_irq(void)
 		saddr = usbd_addr_save(USB_ADDR(USB_DIR_IN, eid));
 		if (__usbd_hw_txirq_raised()) {
 			__usbd_hw_unraise_txirq();
+			if (eid == USB_EID_DEFAULT) {
+				__usbd_hw_cso_release();
+			}
 			usbd_hw_handle_txin();
 		}
 		usbd_addr_restore(saddr);

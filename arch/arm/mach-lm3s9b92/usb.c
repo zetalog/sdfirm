@@ -30,6 +30,11 @@ void usb_hw_irq_poll(void)
 	__usb_hw_handle_irq();
 }
 #else
+void usb_hw_irq_trigger(void)
+{
+	vic_hw_irq_trigger(IRQ_USB);
+}
+
 void usb_hw_irq_init(void)
 {
 	vic_hw_register_irq(IRQ_USB, __usb_hw_handle_irq);

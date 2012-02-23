@@ -9,7 +9,9 @@
 #define __usb_hw_epc_irq_disable()
 #define __usb_hw_dr_irq_enable()
 #define __usb_hw_dr_irq_disable()
+#define usb_hw_irq_trigger()
 #else
+void usb_hw_irq_trigger(void);
 #define __usb_hw_irq_enable(irq)	__raw_setb_atomic((irq), USBIE)
 /* external power control */
 #define __usb_hw_epc_irq_enable()	__raw_setb_atomic(PF, USBEPCIM)
