@@ -680,7 +680,6 @@ void usbd_hw_handle_irq(void)
 	__usbd_hw_dirq_save();
 	__usbd_hw_eirq_save();
 
-	usbd_hw_handle_ctrl();
 	for (eid = 0; eid < NR_USBD_HW_ENDPS; eid++) {
 		saddr = usbd_addr_save(USB_ADDR(USB_DIR_OUT, eid));
 		if (__usbd_hw_rxirq_raised()) {
