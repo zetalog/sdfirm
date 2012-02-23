@@ -113,7 +113,8 @@ static inline void __usbd_hw_eirq_enable(void)
 	uint8_t dir = usbd_request_dir();
 
 	if (eid == USB_EID_DEFAULT) {
-		__usbd_hw_ctrl_flags |= _BV(USBCTXIE);
+		if (dir == USB_DIR_IN)
+			__usbd_hw_ctrl_flags |= _BV(USBCTXIE);
 		__usbd_hw_ctrl_flags |= _BV(USBCRXIE);
 		__raw_setw_atomic(eid, USBTXIE);
 	} else {
