@@ -3,15 +3,23 @@
 
 #include "usb_otg.h"
 
-#define __usb_hw_irq_status()		__raw_readb(USBIS)
+#ifdef SYS_REALTIME
+#define __usb_hw_irq_enable(irq)
+#define __usb_hw_epc_irq_enable()
+#define __usb_hw_epc_irq_disable()
+#define __usb_hw_dr_irq_enable()
+#define __usb_hw_dr_irq_disable()
+#else
 #define __usb_hw_irq_enable(irq)	__raw_setb_atomic((irq), USBIE)
-
 /* external power control */
 #define __usb_hw_epc_irq_enable()	__raw_setb_atomic(PF, USBEPCIM)
 #define __usb_hw_epc_irq_disable()	__raw_clearb_atomic(PF, USBEPCIM)
 /* device resume */
 #define __usb_hw_dr_irq_enable()	__raw_setb_atomic(RESUME, USBDRIM)
 #define __usb_hw_dr_irq_disable()	__raw_clearb_atomic(RESUME, USBDRIM)
+#endif
+
+#define __usb_hw_irq_status()		__raw_readb(USBIS)
 #define __usb_hw_dr_irq_status()	__raw_testb_atomic(RESUME, USBDRISC)
 
 #define __usb_hw_switch_device()	__raw_writeb(__USB_HW_MODE_OTG | _BV(DEVMOD), USBGPCS)

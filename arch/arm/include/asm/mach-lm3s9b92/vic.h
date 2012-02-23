@@ -63,4 +63,9 @@ void vic_hw_vectors_init(void);
 void vic_hw_irq_priority(uint8_t irq, uint8_t prio);
 void vic_hw_trap_priority(uint8_t trap, uint8_t prio);
 
+#define vic_hw_irq_set_pending(irq)	__raw_setl(VIC_TRIG_V(irq), VIC_TRIG_A(PEND0, irq))
+#define vic_hw_irq_clear_pending(irq)	__raw_setl(VIC_TRIG_V(irq), VIC_TRIG_A(UNPEND0, irq))
+#define vic_hw_irq_test_pending(irq)	__raw_testl(VIC_TRIG_V(irq), VIC_TRIG_A(PEND0, irq))
+#define vic_hw_irq_active(irq)		__raw_testl(VIC_TRIG_V(irq), VIC_TRIG_A(ACTIVE0, irq))
+
 #endif /* __VIC_LM3S9B92_H_INCLUDE__ */
