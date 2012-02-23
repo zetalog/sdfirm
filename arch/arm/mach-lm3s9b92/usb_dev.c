@@ -87,7 +87,7 @@ static void __usbd_hw_dirq_reset(void)
 
 static inline void __usbd_hw_dirq_save(void)
 {
-	__usbd_hw_dev_status |= __usb_hw_irq_status();
+	raise_bits(__usbd_hw_dev_status, __usb_hw_irq_status());
 }
 
 static inline void __usbd_hw_dirq_restore(void)
@@ -121,8 +121,8 @@ static inline void __usbd_hw_eirq_enable(void)
 	uint8_t dir = usbd_request_dir();
 
 	if (eid == USB_EID_DEFAULT) {
-		__usbd_hw_ctrl_flags |= _BV(USBCTXIE);
-		__usbd_hw_ctrl_flags |= _BV(USBCRXIE);
+		raise_bits(__usbd_hw_ctrl_flags, _BV(USBCTXIE));
+		raise_bits(__usbd_hw_ctrl_flags, _BV(USBCRXIE));
 		__raw_setw_atomic(eid, USBTXIE);
 	} else {
 		if (dir == USB_DIR_IN) {
@@ -139,8 +139,8 @@ static inline void __usbd_hw_eirq_disable(void)
 	uint8_t dir = usbd_request_dir();
 
 	if (eid == USB_EID_DEFAULT) {
-		__usbd_hw_ctrl_flags &= ~_BV(USBCTXIE);
-		__usbd_hw_ctrl_flags &= ~_BV(USBCRXIE);
+		unraise_bits(__usbd_hw_ctrl_flags, _BV(USBCTXIE));
+		unraise_bits(__usbd_hw_ctrl_flags, _BV(USBCRXIE));
 		__raw_clearw_atomic(eid, USBTXIE);
 	} else {
 		if (dir == USB_DIR_IN) {
@@ -179,38 +179,50 @@ static inline void __usbd_hw_eirq_save(void)
 
 	/* Split control irq into direction specific IRQ. */
 	if (tx_status & cirq) {
-		tx_status &= ~cirq;
+		__usbd_hw_cso_release();
+		unraise_bits(tx_status, cirq);
 		if (__usbd_hw_endp_txrdy & cirq) {
 			if (__usbd_hw_cstall_raised() ||
 			    !__usbd_hw_ctxrdy_raised()) {
-				tx_status |= cirq;
+				raise_bits(tx_status, cirq);
 			}
 		} else {
 			if (__usbd_hw_cstall_raised()) {
-				rx_status |= cirq;
+				raise_bits(rx_status, cirq);
 			}
 		}
 		if (__usbd_hw_csetup_raised() ||
 		    __usbd_hw_crxrdy_raised()) {
-			rx_status |= cirq;
+			raise_bits(rx_status, cirq);
 		}
 	}
 
-	__usbd_hw_tx_status |= tx_status;
-	__usbd_hw_rx_status |= rx_status;
+	raise_bits(__usbd_hw_tx_status, tx_status);
+	raise_bits(__usbd_hw_rx_status, rx_status);
 }
 
 static inline void __usbd_hw_eirq_restore(void)
 {
-	uint8_t cirq = _BV(USB_EID_DEFAULT);
-	uint16_t tx_enable = __raw_readw(USBTXIE);
-	uint16_t rx_enable = __raw_readw(USBRXIE);
+	uint8_t cirq;
+	uint16_t tx_enable;
+	uint16_t rx_enable;
 
-	tx_enable &= ~cirq;
+	if ((__usbd_hw_tx_status == 0) &&
+	    (__usbd_hw_rx_status == 0))
+		return;
+
+	cirq = _BV(USB_EID_DEFAULT);
+	tx_enable = __raw_readw(USBTXIE);
+	rx_enable = __raw_readw(USBRXIE);
+
 	if (__usbd_hw_cirq_enabled(USBCTXIE))
-		tx_enable |= cirq;
+		raise_bits(tx_enable, cirq);
+	else
+		unraise_bits(tx_enable, cirq);
 	if (__usbd_hw_cirq_enabled(USBCRXIE))
-		rx_enable |= cirq;
+		raise_bits(rx_enable, cirq);
+	else
+		unraise_bits(rx_enable, cirq);
 
 	if ((__usbd_hw_tx_status & tx_enable) ||
 	    (__usbd_hw_rx_status & rx_enable)) {
@@ -243,14 +255,14 @@ static void __usbd_hw_unraise_txirq(void)
 {
 	uint8_t eid = USB_ADDR2EID(usbd_endp);
 
-	__usbd_hw_tx_status &= ~_BV(eid);
+	unraise_bits(__usbd_hw_tx_status, _BV(eid));
 }
 
 static void __usbd_hw_unraise_rxirq(void)
 {
 	uint8_t eid = USB_ADDR2EID(usbd_endp);
 
-	__usbd_hw_rx_status &= ~_BV(eid);
+	unraise_bits(__usbd_hw_rx_status, _BV(eid));
 }
 
 static inline void __usbd_hw_raise_flush(void)
@@ -667,7 +679,6 @@ void usbd_hw_handle_irq(void)
 
 	for (eid = 0; eid < NR_USBD_HW_ENDPS; eid++) {
 		saddr = usbd_addr_save(USB_ADDR(USB_DIR_OUT, eid));
-		__usbd_hw_cso_release();
 		if (__usbd_hw_rxirq_raised()) {
 			__usbd_hw_unraise_rxirq();
 			if (eid == USB_EID_DEFAULT) {
