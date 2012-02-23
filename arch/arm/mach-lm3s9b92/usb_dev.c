@@ -4,6 +4,12 @@
 #include <target/irq.h>
 #include "usb.h"
 
+#ifdef CONFIG_USB_LM3S9B92_DUMP_REGS
+void __usbd_hw_dump_regs(uint8_t hint);
+#else
+#define __usbd_hw_dump_regs(hint)
+#endif
+
 #if 0
 /* XXX: USBD_ENDP_DUPLEX Modification
  * Enable the definition below if duplex modification has succeeded.
@@ -705,7 +711,7 @@ void usbd_hw_handle_irq(void)
 	__usbd_hw_dirq_restore();
 }
 
-#ifdef CONFIG_USB_DEBUG
+#ifdef CONFIG_USB_LM3S9B92_DUMP_REGS
 void __usbd_hw_dump_regs(uint8_t hint)
 {
 	uint8_t eid = USB_ADDR2EID(usbd_endp);
