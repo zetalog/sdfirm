@@ -416,6 +416,8 @@ void pn53x_response_InListPassiveTarget(void)
 	if (max_targets > pn53x_nr_targets)
 		max_targets = pn53x_nr_targets;
 
+	if (pn53x_nr_targets == 0)
+		pn53x_poll_targets(0);
 	/* Handle BrTy field */
 	modulation = pn53x_stub_cmd[PN53X_PD(2)];
 	nr_targets = 0;

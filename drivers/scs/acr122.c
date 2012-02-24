@@ -269,7 +269,8 @@ static void acr122_poll_completion(void)
 	for (i = 0; i < (PN53X_HEAD_SIZE-1); i++)
 		head[i] = pn53x_xchg_read(i);
 
-	if ((uint8_t)(head[PN53X_LEN] + head[PN53X_LCS]) != 0) {
+	if ((acr122_state == ACR122_XCHG_STATE_RESP) &&
+	    ((uint8_t)(head[PN53X_LEN] + head[PN53X_LCS]) != 0)) {
 		acr122_read_completion(PN53X_HEAD_SIZE-1);
 		if (PN53X_EXTEND(head))
 			acr122_xchg_failure(SCS_ERR_UNSUPPORT);
