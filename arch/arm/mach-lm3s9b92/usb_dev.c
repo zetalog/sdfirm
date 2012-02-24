@@ -825,6 +825,8 @@ void usbd_hw_ctrl_stop(void)
 {
 	/* disable & clear all USB interrupt */
 	__raw_writeb(0, USBIE);
+	__raw_writew(0, USBTXIE);
+	__raw_writew(0, USBRXIE);
 	__usbd_hw_eirq_reset();
 	__usbd_hw_dirq_reset();
 #if 0
