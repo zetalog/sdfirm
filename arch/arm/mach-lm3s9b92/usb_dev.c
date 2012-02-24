@@ -4,12 +4,6 @@
 #include <target/irq.h>
 #include "usb.h"
 
-#ifdef CONFIG_USB_LM3S9B92_DUMP_REGS
-void __usbd_hw_dump_regs(uint8_t hint);
-#else
-#define __usbd_hw_dump_regs(hint)
-#endif
-
 #if 0
 /* XXX: USBD_ENDP_DUPLEX Modification
  * Enable the definition below if duplex modification has succeeded.
@@ -226,7 +220,6 @@ static inline void __usbd_hw_eirq_restore(void)
 
 	if ((__usbd_hw_tx_status & tx_enable) ||
 	    (__usbd_hw_rx_status & rx_enable)) {
-		__usbd_hw_dump_regs(0xA0);
 		usb_hw_irq_trigger();
 	}
 }
@@ -593,24 +586,20 @@ void usbd_hw_request_reset(void)
 {
 	__usbd_hw_toggle_data();
 	__usbd_hw_raise_flush();
-	__usbd_hw_dump_regs(0x90);
 }
 
 void usbd_hw_request_open(void)
 {
-	__usbd_hw_dump_regs(0x70);
 	__usbd_hw_eirq_enable();
 }
 
 void usbd_hw_request_close(void)
 {
 	__usbd_hw_eirq_disable();
-	__usbd_hw_dump_regs(0x80);
 }
 
 void usbd_hw_transfer_open(void)
 {
-	__usbd_hw_dump_regs(0x30);
 	if (usbd_request_dir() == USB_DIR_IN) {
 		if (usbd_request_syncing())
 			while (__usbd_hw_is_txrdy());
@@ -619,12 +608,10 @@ void usbd_hw_transfer_open(void)
 			while (!__usbd_hw_is_rxrdy());
 		usbd_transfer_submit(usbd_hw_read_avail());
 	}
-	__usbd_hw_dump_regs(0x40);
 }
 
 void usbd_hw_transfer_close(void)
 {
-	__usbd_hw_dump_regs(0x50);
 	if (usbd_request_dir() == USB_DIR_IN) {
 		__usbd_hw_raise_txrdy();
 		if (usbd_request_syncing()) {
@@ -640,7 +627,6 @@ void usbd_hw_transfer_close(void)
 		}
 		__usbd_hw_unraise_rxrdy();
 	}
-	__usbd_hw_dump_regs(0x60);
 }
 
 static void usbd_hw_handle_rxout(void)
@@ -654,7 +640,6 @@ static void usbd_hw_handle_rxout(void)
 	if (__usbd_hw_is_rxrdy()) {
 		usbd_transfer_rxout();
 	}
-	__usbd_hw_dump_regs(0x10);
 }
 
 static void usbd_hw_handle_txin(void)
@@ -669,7 +654,6 @@ static void usbd_hw_handle_txin(void)
 		__usbd_hw_unraise_txcmpl();
 		usbd_transfer_txin();
 	}
-	__usbd_hw_dump_regs(0x20);
 }
 
 void usbd_hw_handle_irq(void)
@@ -709,6 +693,8 @@ void usbd_hw_handle_irq(void)
 		usbd_frame_start(__raw_readw(USBFRAME));
 	}
 	if (__usbd_hw_dev_status & _BV(DEVRESET)) {
+		__raw_writew(0, USBTXIE);
+		__raw_writew(0, USBRXIE);
 		usbd_bus_reset();
 	}
 	if (__usbd_hw_dev_status & _BV(DEVRESUME)) {
@@ -724,48 +710,6 @@ void usbd_hw_handle_irq(void)
 	__usbd_hw_eirq_restore();
 	__usbd_hw_dirq_restore();
 }
-
-#ifdef CONFIG_USB_LM3S9B92_DUMP_REGS
-void __usbd_hw_dump_regs(uint8_t hint)
-{
-	uint8_t eid = USB_ADDR2EID(usbd_endp);
-	uint8_t dir = usbd_request_dir();
-
-	dbg_dump(hint++);
-	dbg_dump(__raw_readb(USBFADDR));
-	dbg_dump(hint++);
-	dbg_dump(usbd_hw_read_avail());
-	dbg_dump(hint++);
-	if ((eid == USB_EID_DEFAULT) || (dir == USB_DIR_IN)) {
-		dbg_dump((USB_ENDPADDR(dir, eid) |
-			 ((0x01 & (__usbd_hw_endp_txrdy >> eid)) << 6) |
-			 ((0x01 & (__usbd_hw_is_cso)) << 5) |
-			 ((0x01 & (__raw_readw(USBTXIE) >> eid)) << 4)));
-	} else {
-		dbg_dump((USB_ENDPADDR(dir, eid) |
-			 ((0x01 & (__usbd_hw_endp_txrdy >> eid)) << 6) |
-			 ((0x01 & (__usbd_hw_is_cso)) << 5) |
-			 ((0x01 & (__raw_readw(USBRXIE) >> eid)) << 4)));
-	}
-	dbg_dump(hint++);
-	if (eid == USB_EID_DEFAULT) {
-		dbg_dump(__raw_readb(USBCSRH0));
-		dbg_dump(hint++);
-		dbg_dump(__raw_readb(USBCSRL0));
-	} else {
-		if (dir == USB_DIR_IN) {
-			dbg_dump(__raw_readb(USBTXCSRH(eid)));
-			dbg_dump(hint++);
-			dbg_dump(__raw_readb(USBTXCSRL(eid)));
-		} else {
-			dbg_dump(__raw_readb(USBRXCSRH(eid)));
-			dbg_dump(hint++);
-			dbg_dump(__raw_readb(USBRXCSRL(eid)));
-		}
-	}
-	dbg_dump(hint++);
-}
-#endif
 
 #ifdef CONFIG_PM
 void usbd_hw_pm_suspend(void)
@@ -828,8 +772,6 @@ void usbd_hw_ctrl_stop(void)
 {
 	/* disable & clear all USB interrupt */
 	__raw_writeb(0, USBIE);
-	__raw_writew(0, USBTXIE);
-	__raw_writew(0, USBRXIE);
 	__usbd_hw_eirq_reset();
 	__usbd_hw_dirq_reset();
 #if 0
