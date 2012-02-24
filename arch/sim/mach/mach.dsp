@@ -118,6 +118,10 @@ SOURCE=..\..\..\scripts\uartlog\dbg_msd.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\scripts\uartlog\dbg_pn53x.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\scripts\uartlog\dbg_scd.c
 # End Source File
 # Begin Source File

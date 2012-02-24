@@ -464,6 +464,7 @@ utb_text_size_t usbd_hw_endp_sizes[NR_USBD_ENDPS] = {
 boolean usbd_hw_endp_caps(uint8_t addr, uint8_t type)
 {
 	uint8_t eid = USB_ADDR2EID(addr);
+
 	if (eid >= NR_USBD_ENDPS)
 		return false;
 	if (type == USB_ENDP_CONTROL) {
@@ -480,6 +481,7 @@ boolean usbd_hw_endp_caps(uint8_t addr, uint8_t type)
 utb_size_t usbd_hw_endp_size(uint8_t addr)
 {
 	uint8_t eid = USB_ADDR2EID(addr);
+
 	if (eid >= NR_USBD_ENDPS)
 		return 0;
 	return usbd_hw_endp_sizes[eid];
@@ -551,6 +553,7 @@ static uint16_t __usbd_hw_fifoadd_inc(void)
 static uint8_t __usbd_hw_fifosz_value(void)
 {
 	uint8_t size_type = usb_endpoint_size_type(usbd_endpoint_size());
+
 	return (size_type | (USB_LM3S9B92_FIFOSZ_DPB<<DPB));
 }
 
