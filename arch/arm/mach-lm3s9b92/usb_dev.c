@@ -43,7 +43,7 @@ uint16_t __usbd_hw_endp_txrdy;
 #define __usbd_hw_test_txrdy(eid)	\
 	bits_raised_any(__usbd_hw_endp_txrdy, ((uint16_t)1)<<(eid))
 
-static uint16_t __usbd_hw_fifo_addr = 8;
+static uint16_t __usbd_hw_fifo_addr = (USBD_HW_CTRL_SIZE>>3);
 
 static inline void __usbd_hw_cso_capture(void)
 {

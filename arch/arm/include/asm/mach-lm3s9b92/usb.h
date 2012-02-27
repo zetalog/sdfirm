@@ -296,6 +296,10 @@ typedef uint8_t utb_size_t;
 #define USB_HW_EID_ISO_MAX	CONFIG_USB_LM3S9B92_MAX_ISOS
 #define USB_HW_EID_MAX_NONISOS	(USB_HW_EID_BI_MAX-USB_HW_EID_BI_MIN+1)
 
+/*
+ * Default endpoint 0 is automatically configured to use the first 64 bytes
+ * of the FIFO.
+ */
 #define USBD_HW_CTRL_SIZE	64
 
 void usb_hw_ctrl_init(void);
