@@ -15,7 +15,7 @@ static void sbc_lba_out_of_range(void)
 static boolean sbc_invalid_lba_range(void)
 {
 	struct mtd_info *info = mtd_get_info(board_mtd);
-	return (sbc_read_cmnd.lba + scsi_current_cmnd.transfer_length) >
+	return (sbc_read_cmnd.lba + scsi_current_cmnd.expect_length) >
 	       ((scsi_lba_t)info->nr_pages << 1);
 }
 
@@ -33,7 +33,7 @@ void sbc_read10_send(void)
 	scsi_lbs_t j, size;
 	mtd_t smtd;
 
-	size = scsi_data_size();
+	size = scsi_current_cmnd.expect_length;
 	smtd = mtd_save_device(board_mtd);
 
 	j = 0;
@@ -122,12 +122,12 @@ void sbc_read10_send(void)
 	mtd_restore_device(smtd);
 }
 
-static void sbc_write10_recv(scsi_lbs_t expected)
+static void sbc_write10_recv(void)
 {
 	scsi_lbs_t j, size;
 	mtd_t smtd;
 
-	size = expected;
+	size = scsi_current_cmnd.expect_length;
 	smtd = mtd_save_device(board_mtd);
 
 	j = 0;
@@ -218,20 +218,20 @@ static void sbc_write10_recv(scsi_lbs_t expected)
 static void sbc_read10_cmpl(void)
 {
 	scsi_current_cmnd.data_length =
-		(scsi_lbs_t)mul16u((uint16_t)scsi_current_cmnd.transfer_length,
+		(scsi_lbs_t)mul16u((uint16_t)scsi_current_cmnd.expect_length,
 				   MTD_BLOCK_SIZE);
 	scsi_command_done(SCSI_STATUS_GOOD);
 }
 
 static void sbc_read10_parse(uint8_t *cdb, uint8_t len)
 {
-	scsi_current_cmnd.transfer_length = scsi_getw(cdb, 7);
-	sbc_read_cmnd.dpo = SCSI_CDB_BITS(SBC_READ_10_DPO);
-	sbc_read_cmnd.fua = SCSI_CDB_BITS(SBC_READ_10_FUA);
-	sbc_read_cmnd.fua_nv = SCSI_CDB_BITS(SBC_READ_10_FUA_NV);
-	sbc_read_cmnd.rdprotect = SCSI_CDB_BITS(SBC_READ_10_RDPROTECT);
-	sbc_read_cmnd.lba = scsi_getl(cdb, 2);
-	sbc_read_cmnd.group_no = SCSI_CDB_BITS(SBC_READ_10_GROUP_NUMBER);
+	scsi_current_cmnd.expect_length = scsi_cdb_word(cdb, 7);
+	sbc_read_cmnd.dpo = SCSI_CDB_BITS(cdb, SBC_READ_10_DPO);
+	sbc_read_cmnd.fua = SCSI_CDB_BITS(cdb, SBC_READ_10_FUA);
+	sbc_read_cmnd.fua_nv = SCSI_CDB_BITS(cdb, SBC_READ_10_FUA_NV);
+	sbc_read_cmnd.rdprotect = SCSI_CDB_BITS(cdb, SBC_READ_10_RDPROTECT);
+	sbc_read_cmnd.lba = scsi_cdb_long(cdb, 2);
+	sbc_read_cmnd.group_no = SCSI_CDB_BITS(cdb, SBC_READ_10_GROUP_NUMBER);
 	scsi_command_aval_in(sbc_read10_send);
 }
 
@@ -246,11 +246,11 @@ static void sbc_read10_aval(void)
 
 static void sbc_write10_parse(uint8_t *cdb, uint8_t len)
 {
-	scsi_current_cmnd.transfer_length = scsi_getw(cdb, 7);
-	sbc_write_cmnd.dpo = SCSI_CDB_BITS(SBC_WRITE_10_DPO);
-	sbc_write_cmnd.fua = SCSI_CDB_BITS(SBC_WRITE_10_FUA);
-	sbc_write_cmnd.ebp = SCSI_CDB_BITS(SBC_WRITE_10_EBP);
-	sbc_write_cmnd.lba = scsi_getl(cdb, 2);
+	scsi_current_cmnd.expect_length = scsi_cdb_word(cdb, 7);
+	sbc_write_cmnd.dpo = SCSI_CDB_BITS(cdb, SBC_WRITE_10_DPO);
+	sbc_write_cmnd.fua = SCSI_CDB_BITS(cdb, SBC_WRITE_10_FUA);
+	sbc_write_cmnd.ebp = SCSI_CDB_BITS(cdb, SBC_WRITE_10_EBP);
+	sbc_write_cmnd.lba = scsi_cdb_long(cdb, 2);
 	scsi_command_aval_out(sbc_write10_recv);
 }
 
@@ -273,8 +273,8 @@ static void sbc_write10_cmpl(void)
  *=======================================================================*/
 static void sbc_read_capacity10_parse(uint8_t *cdb, uint8_t len)
 {
-	sbc_read_capacity_cmnd.lba = scsi_getl(cdb, 2);
-	sbc_read_capacity_cmnd.pmi = SCSI_CDB_BITS(SBC_READ_CAPACITY_10_PMI);
+	sbc_read_capacity_cmnd.lba = scsi_cdb_long(cdb, 2);
+	sbc_read_capacity_cmnd.pmi = SCSI_CDB_BITS(cdb, SBC_READ_CAPACITY_10_PMI);
 	scsi_command_aval(SCSI_CMND_IN);
 }
 
@@ -294,14 +294,8 @@ static void sbc_read_capacity10_cmpl(void)
 	struct mtd_info *info = mtd_get_info(board_mtd);
 	scsi_lba_t lba_last = ((scsi_lba_t)(info->nr_pages) << 1) - 1;
 
-	scsi_in_writeb(HIBYTE(HIWORD(lba_last)));
-	scsi_in_writeb(LOBYTE(HIWORD(lba_last)));
-	scsi_in_writeb(HIBYTE(LOWORD(lba_last)));
-	scsi_in_writeb(LOBYTE(LOWORD(lba_last)));
-	scsi_in_writeb(HIBYTE(HIWORD(MTD_BLOCK_SIZE)));
-	scsi_in_writeb(LOBYTE(HIWORD(MTD_BLOCK_SIZE)));
-	scsi_in_writeb(HIBYTE(LOWORD(MTD_BLOCK_SIZE)));
-	scsi_in_writeb(LOBYTE(LOWORD(MTD_BLOCK_SIZE)));
+	scsi_def_writel(lba_last);
+	scsi_def_writel(MTD_BLOCK_SIZE);
 
 	scsi_command_done(SCSI_STATUS_GOOD);
 }
@@ -406,21 +400,14 @@ static void sbc_block_limit_vpd_data(uint8_t page_code)
 	struct mtd_info *info = mtd_get_info(board_mtd);
 	uint32_t transfer_length = (uint32_t)SCSI_MAX_BUFFER >> (info->pageorder-1);
 
-	scsi_in_writeb(0);
-	scsi_in_writeb(0);
+	scsi_def_writeb(0);
+	scsi_def_writeb(0);
 	/* optimal transfer granularity */
-	scsi_in_writeb(HIBYTE(granularity));
-	scsi_in_writeb(LOBYTE(granularity));
+	scsi_def_writew(granularity);
 	/* maximum transfer length */
-	scsi_in_writeb(HIBYTE(HIWORD(transfer_length)));
-	scsi_in_writeb(LOBYTE(HIWORD(transfer_length)));
-	scsi_in_writeb(HIBYTE(LOWORD(transfer_length)));
-	scsi_in_writeb(LOBYTE(LOWORD(transfer_length)));
+	scsi_def_writel(transfer_length);
 	/* optimal transfer length */
-	scsi_in_writeb(HIBYTE(HIWORD(transfer_length)));
-	scsi_in_writeb(LOBYTE(HIWORD(transfer_length)));
-	scsi_in_writeb(HIBYTE(LOWORD(transfer_length)));
-	scsi_in_writeb(LOBYTE(LOWORD(transfer_length)));
+	scsi_def_writel(transfer_length);
 }
 
 scsi_vpd_page_t sbc_block_limit_vpd = {

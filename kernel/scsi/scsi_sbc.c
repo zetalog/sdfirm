@@ -1,5 +1,4 @@
 #include <target/scsi.h>
-#include <target/mtd.h>
 
 sbc_lun_t sbc_nr_luns = 0;
 scsi_lun_t sbc_scsi_luns[NR_SBC_UNITS];
