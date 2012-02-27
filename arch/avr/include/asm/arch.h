@@ -6,5 +6,8 @@
 
 #define nop()		__asm__ __volatile__ ("nop" ::)
 #define waiti()		__asm__ __volatile__ ("sleep" ::)
+#define mb()		__asm__ __volatile__ ("" : : : "memory")
+#define rmb()		__asm__ __volatile__ ("" : : : "memory")
+#define wmb()		__asm__ __volatile__ ("" : : : "memory")
 
 #endif /* __ARCH_AVR_H_INCLUDE__ */

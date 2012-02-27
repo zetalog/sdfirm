@@ -9,6 +9,9 @@
 	nop	\
 	_endasm
 #endif
+#define mb()
+#define rmb()
+#define wmb()
 
 #include <asm/mach/arch.h>
 
