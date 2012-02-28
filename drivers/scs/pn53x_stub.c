@@ -208,7 +208,7 @@ static void pn53x_poll_targets(uint8_t period)
 		BUG_ON(!driver || !driver->get_info);
 		for (tg = 0; tg < NR_PN53X_TARGETS; tg++) {
 			pn53x_targets[tg].nm = driver->nm;
-			err = driver->get_info(tg, &pn53x_targets[0].nti);
+			err = driver->get_info(tg, &pn53x_targets[tg].nti);
 			if (err == SCS_ERR_SUCCESS) {
 				pn53x_nr_targets++;
 				break;
