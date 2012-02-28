@@ -482,24 +482,30 @@ void pn53x_response_InDataExchange(void)
 	pn53x_build_frame(offset-PN53X_TFI);
 }
 
-void pn53x_xchg_pseudo(void)
+boolean pn53x_valiate_cmd(void)
 {
-	uint8_t cmd;
 	uint8_t i;
 	uint8_t dcs;
 
 	/* Validate LCS. */
 	if (0x00 != (uint8_t)(pn53x_stub_cmd[PN53X_LEN]+
 			      pn53x_stub_cmd[PN53X_LCS]))
-		return;
+		return false;
 	/* Validate TFI. */
 	if (pn53x_stub_cmd[PN53X_TFI] != PN53X_OUT)
-		return;
+		return false;
 	/* Validate DCS. */
 	for (i = 0, dcs = 0; i <= pn53x_stub_cmd[PN53X_LEN]; i++)
 		dcs += pn53x_stub_cmd[PN53X_TFI+i];
 	if (dcs != 0x00)
-		return;
+		return false;
+	return true;
+}
+
+void pn53x_xchg_pseudo(void)
+{
+	uint8_t cmd;
+
 	pn53x_stub_resp[0] = 0x00;
 	pn53x_stub_resp[1] = 0x00;
 	pn53x_stub_resp[2] = 0xFF;
@@ -593,6 +599,7 @@ void pn53x_hw_write_cmpl(scs_size_t nc)
 {
 	pn53x_stub_nc = nc;
 
+	pn53x_stub_ready = false;
 	switch (pn53x_type(pn53x_stub_cmd)) {
 	case PN53X_ACK:
 		pn53x_stub_is_cmd = false;
@@ -600,21 +607,23 @@ void pn53x_hw_write_cmpl(scs_size_t nc)
 		pn53x_stub_ne = 0;
 		break;
 	case PN53X_NAK:
-		if (pn53x_stub_ne && pn53x_stub_is_resp)
+		if (pn53x_stub_is_resp)
 			pn53x_stub_ready = true;
 		break;
 	default:
 		/* validate LCS, DCS, TFI */
-		pn53x_stub_is_cmd = true;
-		pn53x_stub_is_resp = false;
-		pn53x_stub_resp[0] = 0x00;
-		pn53x_stub_resp[1] = 0x00;
-		pn53x_stub_resp[2] = 0xFF;
-		pn53x_stub_resp[3] = 0x00;
-		pn53x_stub_resp[4] = 0xFF;
-		pn53x_stub_resp[5] = 0x00;
-		pn53x_stub_ne = 6;
-		pn53x_stub_ready = true;
+		if (pn53x_valiate_cmd()) {
+			pn53x_stub_is_cmd = true;
+			pn53x_stub_is_resp = false;
+			pn53x_stub_resp[0] = 0x00;
+			pn53x_stub_resp[1] = 0x00;
+			pn53x_stub_resp[2] = 0xFF;
+			pn53x_stub_resp[3] = 0x00;
+			pn53x_stub_resp[4] = 0xFF;
+			pn53x_stub_resp[5] = 0x00;
+			pn53x_stub_ne = 6;
+			pn53x_stub_ready = true;
+		}
 		break;
 	}
 }
