@@ -133,9 +133,9 @@ struct sbc_device {
 
 	uint8_t (*read_byte)(void);
 	void (*write_byte)(uint8_t);
-	void (*open_block)(struct sbc_device *dev, uint8_t type,
-			   scsi_lba_t lba, scsi_lbs_t blks);
-	void (*close_block)(struct sbc_device *dev);
+	void (*open)(struct sbc_device *dev, uint8_t type,
+		     scsi_lba_t lba, scsi_lbs_t blks);
+	void (*close)(struct sbc_device *dev);
 };
 
 sbc_lun_t sbc_register_device(struct sbc_device *dev);

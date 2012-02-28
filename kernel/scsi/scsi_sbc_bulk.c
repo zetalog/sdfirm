@@ -71,15 +71,15 @@ static void sbc_data_cmpl(void)
 
 static void sbc_bulk_open(size_t size)
 {
-	sbc_devices[sbc_lun]->open_block(sbc_devices[sbc_lun],
-					 sbc_bulkios[sbc_lun].open_type,
-					 sbc_read_cmnd.lba+sbc_bulkios[sbc_lun].iter,
-					 1);
+	sbc_devices[sbc_lun]->open(sbc_devices[sbc_lun],
+				   sbc_bulkios[sbc_lun].open_type,
+				   sbc_read_cmnd.lba+sbc_bulkios[sbc_lun].iter,
+				   1);
 }
 
 static void sbc_bulk_close(bulk_size_t size)
 {
-	sbc_devices[sbc_lun]->close_block(sbc_devices[sbc_lun]);
+	sbc_devices[sbc_lun]->close(sbc_devices[sbc_lun]);
 	sbc_bulkio_iter();
 }
 

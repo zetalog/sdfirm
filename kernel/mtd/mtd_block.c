@@ -44,8 +44,8 @@ void mtd_block_create(mtd_t mtd)
 	mtd_blocks[blknr].sbc.block_size = MTD_BLOCK_SIZE;
 	mtd_blocks[blknr].sbc.nr_blocks = info->nr_pages << 1;
 #endif
-	mtd_blocks[blknr].sbc.open_block = mtd_block_open;
-	mtd_blocks[blknr].sbc.close_block = mtd_block_close;
+	mtd_blocks[blknr].sbc.open = mtd_block_open;
+	mtd_blocks[blknr].sbc.close = mtd_block_close;
 	mtd_blocks[blknr].sbc.read_byte = mtd_read_byte;
 	mtd_blocks[blknr].sbc.write_byte = mtd_write_byte;
 	mtd_blocks[blknr].mtd = mtd;

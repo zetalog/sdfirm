@@ -46,8 +46,8 @@ void sbc_read10_send(void)
 	BUG_ON(!xprt_in || !read_byte);
 
 	for (j = 0; j < scsi_current_cmnd.expect_length; j++) {
-		sbc_devices[lun]->open_block(sbc_devices[lun], OPEN_READ,
-					     sbc_read_cmnd.lba+j, 1);
+		sbc_devices[lun]->open(sbc_devices[lun], OPEN_READ,
+				       sbc_read_cmnd.lba+j, 1);
 		i = 0;
 		while (i < block_size) {
 			scsi_target_xprt->open((j << __fls16(block_size)) + i);
@@ -56,7 +56,7 @@ void sbc_read10_send(void)
 			scsi_target_xprt->close(k);
 			i += k;
 		}
-		sbc_devices[lun]->close_block(sbc_devices[lun]);
+		sbc_devices[lun]->close(sbc_devices[lun]);
 	}
 }
 
@@ -91,8 +91,8 @@ static void sbc_write10_recv(void)
 	BUG_ON(!xprt_out || !write_byte);
 
 	for (j = 0; j < scsi_current_cmnd.expect_length; j++) {
-		sbc_devices[lun]->open_block(sbc_devices[lun], OPEN_WRITE,
-					     sbc_read_cmnd.lba+j, 1);
+		sbc_devices[lun]->open(sbc_devices[lun], OPEN_WRITE,
+				       sbc_read_cmnd.lba+j, 1);
 		i = 0;
 		while (i < block_size) {
 			scsi_target_xprt->open((j << __fls16(block_size)) + i);
@@ -101,7 +101,7 @@ static void sbc_write10_recv(void)
 			scsi_target_xprt->close(k);
 			i += k;
 		}
-		sbc_devices[lun]->close_block(sbc_devices[lun]);
+		sbc_devices[lun]->close(sbc_devices[lun]);
 	}
 }
 
