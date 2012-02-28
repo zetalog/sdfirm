@@ -1,5 +1,15 @@
 #include <driver/pn53x.h>
 
+/* XXX: Workaround for an AVR-GCC Bug
+ * This function should be put into a seperate file to avoid a GCC bug when
+ * optimizations are performed on uint16_t operations for 8-bit AVR chips.
+ */
+boolean pn53x_is_ciu_register(uint16_t reg)
+{
+	return (reg >= PN53X_REG_CIU_BASE) &&
+	       (reg < (PN53X_REG_CIU_BASE + PN53X_REG_CIU_SIZE));
+}
+
 uint8_t pn53x_nm_to_pm(const uint16_t nm)
 {
 	switch (NFC_MODUL_TYPE(nm)) {

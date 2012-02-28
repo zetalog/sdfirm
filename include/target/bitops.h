@@ -145,12 +145,15 @@ uint8_t hweight16(uint16_t word);
 #endif
 #define MAKEBYTE(a, b)			((uint8_t)(((a) & 0x0F) | (((b) & 0x0F) << 4))) 
 #ifndef MAKEWORD
-#define MAKEWORD(a, b)			((uint16_t)((a) | ((uint16_t)(b)) << 8))
+#define MAKEWORD(a, b)			((uint16_t)(((uint16_t)(a)) | \
+						    ((uint16_t)(b)) << 8))
 #endif
 #ifndef MAKELONG
-#define MAKELONG(a, b)			((uint32_t)((a) | ((uint32_t)(b)) << 16))
+#define MAKELONG(a, b)			((uint32_t)(((uint32_t)(a)) | \
+						    ((uint32_t)(b)) << 16))
 #endif
-#define MAKELLONG(a, b)			((uint64_t)((a) | ((uint64_t)(b)) << 32))
+#define MAKELLONG(a, b)			((uint64_t)(((uint64_t)(a)) | \
+						    ((uint64_t)(b)) << 32))
 
 #define raise_bits(i, bits)		((i) |= (bits))
 #define unraise_bits(i, bits)		((i) &= ~(bits))

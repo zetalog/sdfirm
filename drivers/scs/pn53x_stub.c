@@ -251,13 +251,6 @@ void pn53x_response_InAutoPoll(void)
 	pn53x_build_frame(offset-PN53X_TFI);
 }
 
-
-static boolean pn53x_is_ciu_register(uint16_t reg)
-{
-	return (reg >= PN53X_REG_CIU_BASE) &&
-	       (reg < PN53X_REG_CIU_BASE + PN53X_REG_CIU_SIZE);
-}
-
 void pn53x_ciu_write_register(uint16_t reg, uint8_t val)
 {
 	uint8_t index = PN53X_CIU_REG2INDEX(reg);

@@ -338,6 +338,7 @@ void pn53x_hw_ctrl_init(void);
 uint8_t pn53x_nm_to_pm(const uint16_t nm);
 uint16_t pn53x_ptt_to_nm(const uint8_t ptt);
 uint8_t pn53x_nm_to_ptt(const uint16_t nm);
+boolean pn53x_is_ciu_register(uint16_t reg);
 
 /* API used for PN53x USB devices */
 #define pn53x_poll_ready()			pn53x_hw_poll_ready()
