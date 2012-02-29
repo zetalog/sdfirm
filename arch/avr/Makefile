@@ -16,6 +16,10 @@ CFLAGS		+=-D__AVR__ -ffunction-sections -fsigned-char
 AFLAGS		+=-D__AVR__ -D__ASSEMBLER__
 LDFLAGS_sdfirm	:=--gc-sections --relax -nostdstartfiles
 
+# See GCC PR39633 for -fno-split-wide-types, thanks Georg-Johann Lay
+# <avr@gjlay.de> for pointing out this.  This bug is fixed since GCC-4.6.2.
+CFLAGS += $(call cc-ifversion, -lt, 0407, -fno-split-wide-types)
+
 # Select a platform tht is kept up-to-date
 KBUILD_DEFCONFIG := solmsd_defconfig
 
