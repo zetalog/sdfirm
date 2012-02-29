@@ -5,8 +5,10 @@ uint8_t pn53x_stub_resp[PN53X_BUF_SIZE];
 scs_size_t pn53x_stub_nc;
 scs_size_t pn53x_stub_ne;
 boolean pn53x_stub_ready;
-boolean pn53x_stub_is_resp;
-boolean pn53x_stub_is_cmd;
+#define PN53X_STUB_STATE_IDLE	0x00
+#define PN53X_STUB_STATE_CMD	0x01
+#define PN53X_STUB_STATE_RESP	0x02
+static uint8_t pn53x_stub_state;
 static uint8_t pn53x_flags;
 static uint8_t pn53x_serial_br;
 static uint8_t pn53x_sfr_p3;
@@ -66,7 +68,7 @@ void pn53x_build_frame(uint8_t len)
 	pn53x_stub_resp[ne-1] = 0x00;
 
 	pn53x_stub_ne = ne;
-	pn53x_stub_is_resp = true;
+	pn53x_stub_state = PN53X_STUB_STATE_RESP;
 	pn53x_stub_ready = true;
 }
 
@@ -357,6 +359,18 @@ void pn53x_response_SAMConfiguration(void)
 	pn53x_build_frame(2);
 }
 
+void pn53x_response_InDeselect(void)
+{
+	uint8_t tg;
+
+	tg = pn53x_stub_cmd[PN53X_PD(1)];
+	/* if tg == 0, this process is done for all the known targets */
+		/* do sth... */
+	/* pn53x_stub return status success */
+	pn53x_stub_resp[PN53X_PD(1)] = PN53X_ERR_SUCCESS;
+	pn53x_build_frame(3);
+}
+
 void pn53x_response_PowerDown(void)
 {
 	uint8_t wakeupenable;
@@ -364,7 +378,8 @@ void pn53x_response_PowerDown(void)
 	wakeupenable = pn53x_stub_cmd[PN53X_PD(1)];
 	if (pn53x_stub_cmd[PN53X_LEN] > 3)
 		generateirq = pn53x_stub_cmd[PN53X_PD(2)];
-	pn53x_response_error(PN53X_ERR_SUCCESS);
+	pn53x_stub_resp[PN53X_PD(1)] = PN53X_ERR_SUCCESS;
+	pn53x_build_frame(3);
 }
 
 void pn53x_response_RFConfiguration(void)
@@ -556,6 +571,9 @@ void pn53x_xchg_pseudo(void)
 	case PN53X_InDataExchange:
 		pn53x_response_InDataExchange();
 		break;
+	case PN53X_InDeselect:
+		pn53x_response_InDeselect();
+		break;
 	case PN53X_InJumpForDEP:
 	case PN53X_InJumpForPSL:
 	case PN53X_InActivateDeactivatePaypass:
@@ -563,7 +581,6 @@ void pn53x_xchg_pseudo(void)
 	case PN53X_InPSL:
 	case PN53X_InCommunicateThru:
 	case PN53X_InQuartetByteExchange:
-	case PN53X_InDeselect:
 	case PN53X_InRelease:
 	case PN53X_InSelect:
 	case PN53X_AlparCommandForTDA:
@@ -590,9 +607,8 @@ boolean pn53x_hw_poll_ready(void)
 void pn53x_hw_read_cmpl(scs_size_t ne)
 {
 	pn53x_stub_ready = false;
-	if (!pn53x_stub_is_resp && pn53x_stub_is_cmd) {
+	if (pn53x_stub_state == PN53X_STUB_STATE_CMD)
 		pn53x_xchg_pseudo();
-	}
 }
 
 void pn53x_hw_write_cmpl(scs_size_t nc)
@@ -602,19 +618,17 @@ void pn53x_hw_write_cmpl(scs_size_t nc)
 	pn53x_stub_ready = false;
 	switch (pn53x_type(pn53x_stub_cmd)) {
 	case PN53X_ACK:
-		pn53x_stub_is_cmd = false;
-		pn53x_stub_is_resp = false;
+		pn53x_stub_state = PN53X_STUB_STATE_IDLE;
 		pn53x_stub_ne = 0;
 		break;
 	case PN53X_NAK:
-		if (pn53x_stub_is_resp)
+		if (pn53x_stub_state == PN53X_STUB_STATE_RESP)
 			pn53x_stub_ready = true;
 		break;
 	default:
 		/* validate LCS, DCS, TFI */
 		if (pn53x_valiate_cmd()) {
-			pn53x_stub_is_cmd = true;
-			pn53x_stub_is_resp = false;
+			pn53x_stub_state = PN53X_STUB_STATE_CMD;
 			pn53x_stub_resp[0] = 0x00;
 			pn53x_stub_resp[1] = 0x00;
 			pn53x_stub_resp[2] = 0xFF;
@@ -645,7 +659,6 @@ void pn53x_hw_ctrl_init(void)
 	pn53x_stub_nc = 0;
 	pn53x_stub_ne = 0;
 	pn53x_stub_ready = false;
-	pn53x_stub_is_resp = false;
-	pn53x_stub_is_cmd = false;
+	pn53x_stub_state = PN53X_STUB_STATE_IDLE;
 	pn53x_stub_driver_init();
 }
