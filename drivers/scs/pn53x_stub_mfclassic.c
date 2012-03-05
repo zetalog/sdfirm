@@ -46,7 +46,7 @@ extern mtd_t board_mtd;
 scs_err_t pn53x_stub_mfclassic_get_info(uint8_t tg,
 					union nfc_target_info *nti)
 {
-	if (tg != 0)
+	if (tg != 1)
 		return SCS_ERR_HW_ERROR;
 	nti->nai.abtAtqa[0] = 0x00;
 	nti->nai.abtAtqa[1] = 0x04;
@@ -62,7 +62,7 @@ scs_err_t pn53x_stub_mfclassic_get_info(uint8_t tg,
 
 scs_err_t pn53x_stub_mfclassic_read_ready(uint8_t tg)
 {
-	if (tg != 0)
+	if (tg != 1)
 		return SCS_ERR_NOTPRESENT;
 	if (mfclassic_code == MFCLASSIC_RESP_INIT)
 		return SCS_ERR_PROGRESS;
@@ -73,14 +73,14 @@ scs_err_t pn53x_stub_mfclassic_read_ready(uint8_t tg)
 
 scs_size_t pn53x_stub_mfclassic_read_count(uint8_t tg)
 {
-	if (tg != 0)
+	if (tg != 1)
 		return 0;
 	return mfclassic_resp_len;
 }
 
 uint8_t pn53x_stub_mfclassic_read_byte(uint8_t tg, scs_off_t index)
 {
-	if ((tg == 0) && (index < mfclassic_resp_len))
+	if ((tg == 1) && (index < mfclassic_resp_len))
 		return mfclassic_resp[index];
 	return 0;
 }
@@ -132,7 +132,7 @@ void pn53x_stub_mfclassic_store(void)
 
 void pn53x_stub_mfclassic_write_ready(uint8_t tg, scs_size_t count)
 {
-	if (tg != 0)
+	if (tg != 1)
 		return;
 
 	mfclassic_cmd_len = count;
@@ -172,7 +172,7 @@ void pn53x_stub_mfclassic_write_ready(uint8_t tg, scs_size_t count)
 
 void pn53x_stub_mfclassic_write_byte(uint8_t tg, scs_off_t index, uint8_t value)
 {
-	if ((tg == 0) && (index < MFCLASSIC_MAX_BUF)) {
+	if ((tg == 1) && (index < MFCLASSIC_MAX_BUF)) {
 		mfclassic_cmd[index] = value;
 	}
 }

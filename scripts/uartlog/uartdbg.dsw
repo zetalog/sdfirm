@@ -3,7 +3,7 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
-Project: "cuartdbg"=.\cuartdbg.dsp - Package Owner=<4>
+Project: "cuartdbg"=".\cuartdbg.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -15,7 +15,19 @@ Package=<4>
 
 ###############################################################################
 
-Project: "wuartdbg"=.\wuartdbg.dsp - Package Owner=<4>
+Project: "ezio"=".\ezio.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "wuartdbg"=".\wuartdbg.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{

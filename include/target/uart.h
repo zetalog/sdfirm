@@ -3,6 +3,13 @@
 
 #include <target/config.h>
 #include <target/generic.h>
+#include <target/bulk.h>
+
+struct uart_port {
+	bulk_cid_t bulk;
+};
+
+typedef uint8_t uart_pid_t;
 
 #ifdef CONFIG_UART_115200
 #define UART_BAUDRATE		115200
@@ -56,6 +63,12 @@
 #else
 #define uart_putchar(byte)
 #define uart_getchar()		(0)
+#endif
+
+#ifdef CONFIG_UART_MAX_PORT
+#define NR_UART_PORTS		CONFIG_UART_MAX_PORT
+#else
+#define NR_UART_PORTS		1
 #endif
 
 #endif /* __UART_H_INCLUDE__ */

@@ -4,7 +4,6 @@
 
 obj-y:=
 
-obj-$(CONFIG_UART) += uart.rel
 obj-$(CONFIG_LED) += led.rel
 obj-$(CONFIG_LCD) += lcd.rel
 obj-$(CONFIG_KBD) += kbd.rel

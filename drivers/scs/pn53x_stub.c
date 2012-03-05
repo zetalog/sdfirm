@@ -1,13 +1,14 @@
 #include <driver/pn53x.h>
 
+#define PN53X_STUB_STATE_IDLE	0x00
+#define PN53X_STUB_STATE_CMD	0x01
+#define PN53X_STUB_STATE_RESP	0x02
+
 uint8_t pn53x_stub_cmd[PN53X_BUF_SIZE];
 uint8_t pn53x_stub_resp[PN53X_BUF_SIZE];
 scs_size_t pn53x_stub_nc;
 scs_size_t pn53x_stub_ne;
 boolean pn53x_stub_ready;
-#define PN53X_STUB_STATE_IDLE	0x00
-#define PN53X_STUB_STATE_CMD	0x01
-#define PN53X_STUB_STATE_RESP	0x02
 static uint8_t pn53x_stub_state;
 static uint8_t pn53x_flags;
 static uint8_t pn53x_serial_br;
@@ -131,17 +132,17 @@ static uint8_t pn53x_target_iso14443a_size(uint8_t tg)
 	uint8_t size = 4;
 	uint8_t len;
 
-	len = pn53x_targets[tg].nti.nai.szAtsLen;
+	len = pn53x_targets[tg-1].nti.nai.szAtsLen;
 	if (len)
 		size += (1+len);
-	size += pn53x_targets[tg].nti.nai.szUidLen;
+	size += pn53x_targets[tg-1].nti.nai.szUidLen;
 	return size;
 }
 
 static uint8_t pn53x_target_info_size(uint8_t tg)
 {
 	uint8_t size = 1;
-	switch (NFC_MODUL_TYPE(pn53x_targets[tg].nm)) {
+	switch (NFC_MODUL_TYPE(pn53x_targets[tg-1].nm)) {
 	case NFC_TYPE_ISO14443A:
 		size += pn53x_target_iso14443a_size(tg);
 		break;
@@ -156,20 +157,20 @@ static void pn53x_target_iso14443a_data(uint8_t tg,
 					scs_off_t offset)
 {
 	uint8_t len;
-	pn53x_stub_resp[offset++] = pn53x_targets[tg].nti.nai.abtAtqa[0];
-	pn53x_stub_resp[offset++] = pn53x_targets[tg].nti.nai.abtAtqa[1];
-	pn53x_stub_resp[offset++] = pn53x_targets[tg].nti.nai.btSak;
-	len = pn53x_targets[tg].nti.nai.szUidLen;
+	pn53x_stub_resp[offset++] = pn53x_targets[tg-1].nti.nai.abtAtqa[0];
+	pn53x_stub_resp[offset++] = pn53x_targets[tg-1].nti.nai.abtAtqa[1];
+	pn53x_stub_resp[offset++] = pn53x_targets[tg-1].nti.nai.btSak;
+	len = pn53x_targets[tg-1].nti.nai.szUidLen;
 	pn53x_stub_resp[offset++] = len;
 	memory_copy((caddr_t)(pn53x_stub_resp)+offset,
-		    (caddr_t)(pn53x_targets[tg].nti.nai.abtUid),
+		    (caddr_t)(pn53x_targets[tg-1].nti.nai.abtUid),
 		    len);
 	offset += len;
-	len = pn53x_targets[tg].nti.nai.szAtsLen;
+	len = pn53x_targets[tg-1].nti.nai.szAtsLen;
 	if (len) {
 		pn53x_stub_resp[offset++] = len;
 		memory_copy((caddr_t)(pn53x_stub_resp)+offset,
-			    (caddr_t)(pn53x_targets[tg].nti.nai.abtAts),
+			    (caddr_t)(pn53x_targets[tg-1].nti.nai.abtAts),
 			    len);
 	}
 }
@@ -178,7 +179,7 @@ static void pn53x_target_info_data(uint8_t tg,
 				   scs_off_t offset)
 {
 	pn53x_stub_resp[offset++] = tg;
-	switch (NFC_MODUL_TYPE(pn53x_targets[tg].nm)) {
+	switch (NFC_MODUL_TYPE(pn53x_targets[tg-1].nm)) {
 	case NFC_TYPE_ISO14443A:
 		pn53x_target_iso14443a_data(tg, offset);
 		break;
@@ -204,19 +205,20 @@ static void pn53x_poll_targets(uint8_t period)
 	uint8_t tg, drv;
 	pn53x_stub_driver_t *driver;
 
-	pn53x_nr_targets = 0;
+	tg = 1;
 	for (drv = 0; drv < pn53x_nr_drivers; drv++) {
 		driver = pn53x_stub_drivers[drv];
 		BUG_ON(!driver || !driver->get_info);
-		for (tg = 0; tg < NR_PN53X_TARGETS; tg++) {
+		while (tg <= NR_PN53X_TARGETS) {
 			pn53x_targets[tg].nm = driver->nm;
-			err = driver->get_info(tg, &pn53x_targets[tg].nti);
+			err = driver->get_info(tg, &pn53x_targets[tg-1].nti);
 			if (err == SCS_ERR_SUCCESS) {
-				pn53x_nr_targets++;
+				tg++;
 				break;
 			}
 		}
 	}
+	pn53x_nr_targets = tg;
 }
 
 void pn53x_response_InAutoPoll(void)
@@ -359,14 +361,30 @@ void pn53x_response_SAMConfiguration(void)
 	pn53x_build_frame(2);
 }
 
+void pn53x_deselect_target(uint8_t tg)
+{
+	uint8_t drv;
+	pn53x_stub_driver_t *driver;
+
+	drv = pn53x_stub_get_driver(pn53x_targets[tg-1].nm);
+	if (drv < pn53x_nr_drivers) {
+		driver = pn53x_stub_drivers[drv];
+		/* TODO: add driver specific deselect here */
+	}
+}
+
 void pn53x_response_InDeselect(void)
 {
 	uint8_t tg;
 
 	tg = pn53x_stub_cmd[PN53X_PD(1)];
-	/* if tg == 0, this process is done for all the known targets */
-		/* do sth... */
-	/* pn53x_stub return status success */
+	if (tg == 0) {
+		for (tg = 1; tg <= pn53x_nr_targets; tg++) {
+			pn53x_deselect_target(tg);
+		}
+	} else {
+		pn53x_deselect_target(tg);
+	}
 	pn53x_stub_resp[PN53X_PD(1)] = PN53X_ERR_SUCCESS;
 	pn53x_build_frame(3);
 }
@@ -450,12 +468,12 @@ void pn53x_response_InDataExchange(void)
 	scs_err_t err;
 
 	tg = pn53x_stub_cmd[PN53X_PD(1)];
-	if (tg >= pn53x_nr_targets) {
+	if ((tg == 0) || (tg > pn53x_nr_targets)) {
 		pn53x_response_error(PN53X_ERR_CID);
 		return;
 	}
 
-	drv = pn53x_stub_get_driver(pn53x_targets[tg].nm);
+	drv = pn53x_stub_get_driver(pn53x_targets[tg-1].nm);
 	driver = pn53x_stub_drivers[drv];
 
 	BUG_ON(!driver);
@@ -497,7 +515,7 @@ void pn53x_response_InDataExchange(void)
 	pn53x_build_frame(offset-PN53X_TFI);
 }
 
-boolean pn53x_valiate_cmd(void)
+boolean pn53x_parse_frame(void)
 {
 	uint8_t i;
 	uint8_t dcs;
@@ -627,7 +645,7 @@ void pn53x_hw_write_cmpl(scs_size_t nc)
 		break;
 	default:
 		/* validate LCS, DCS, TFI */
-		if (pn53x_valiate_cmd()) {
+		if (pn53x_parse_frame()) {
 			pn53x_stub_state = PN53X_STUB_STATE_CMD;
 			pn53x_stub_resp[0] = 0x00;
 			pn53x_stub_resp[1] = 0x00;

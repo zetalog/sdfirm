@@ -16,6 +16,7 @@ obj-$(CONFIG_HEAP_DLMALLOC) += heap_dlmalloc.rel
 obj-$(CONFIG_BULK) += bulk.rel
 
 obj-y += io/
+obj-$(CONFIG_UART) += uart/
 obj-$(CONFIG_USB) += usb/
 obj-$(CONFIG_SCS) += scs/
 obj-$(CONFIG_MTD) += mtd/

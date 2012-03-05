@@ -288,9 +288,46 @@ config BULK_MAX_CHANS
 
 endif
 
+menu "Simple debug console support"
+
+choice
+	prompt "Standard Input"
+
+config INPUT_NONE
+	bool "None"
+
+config INPUT_UART
+	bool "Serial port"
+	depends UART
+
+config INPUT_KBD
+	bool "Keyboard"
+	depends KBD
+
+endchoice
+
+choice
+	prompt "Standard Output"
+
+config OUTPUT_NONE
+	bool "None"
+
+config OUTPUT_UART
+	bool "Serial port"
+	depends UART
+
+config OUTPUT_LCD
+	bool "LCD"
+	depends LCD
+
+endchoice
+
+endmenu
+
 endmenu
 
 source kernel/io/Kconfig
+source kernel/uart/Kconfig
 source kernel/usb/Kconfig
 source kernel/scs/Kconfig
 source kernel/mtd/Kconfig

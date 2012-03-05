@@ -4,55 +4,8 @@
 
 menu "Input / Output support"
 
-config ARCH_HAS_UART
-	bool
 config ARCH_HAS_SPI
 	bool
-
-menuconfig UART
-	bool "Universal asynchronous RX/TX (UART) support"
-
-if UART
-
-choice
-	prompt "UART baud rate"
-	help
-	  This setting lets you define what baudrate is for the serial
-	  port.
-
-config UART_230400
-	bool "230400"
-
-config UART_115200
-	bool "115200"
-
-config UART_57600
-	bool "57600"
-
-config UART_38400
-	bool "38400"
-
-config UART_19200
-	bool "19200"
-
-config UART_9600
-	bool "9600"
-
-config UART_4800
-	bool "4800"
-
-endchoice
-
-config UART_METERING
-	bool "Enable oscilloscope metering"
-	depends EXPERIMENTAL
-	help
-	  All uart_putchar will be forced an output of 0x55 that can be
-	  easily observed by the oscilloscope to measure the baudrate.
-	  Frequency displayed by the oscilloscope will be a half of the
-	  baudrate.
-
-endif
 
 menuconfig I2C
 	bool "Inter integrated circuit (I2C) bus support"
@@ -116,38 +69,6 @@ config KBD
 
 config LED
 	bool "Light-Emitting Diode (LED) output support"
-
-choice
-	prompt "Standard Input"
-
-config INPUT_NONE
-	bool "None"
-
-config INPUT_UART
-	bool "Serial port"
-	depends UART
-
-config INPUT_KBD
-	bool "Keyboard"
-	depends KBD
-
-endchoice
-
-choice
-	prompt "Standard Output"
-
-config OUTPUT_NONE
-	bool "None"
-
-config OUTPUT_UART
-	bool "Serial port"
-	depends UART
-
-config OUTPUT_LCD
-	bool "LCD"
-	depends LCD
-
-endchoice
 
 endmenu
 
