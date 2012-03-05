@@ -7,5 +7,5 @@ uart_pid_t uart_pid;
 
 void uart_write_wakeup(void)
 {
-	bulk_wakeup_write(uart_ports[uart_pid].bulk);
+	bulk_schedule_write(uart_ports[uart_pid].bulk);
 }

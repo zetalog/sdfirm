@@ -4,6 +4,4 @@
 
 obj-y:=
 
-obj-$(CONFIG_LED) += led.rel
-obj-$(CONFIG_LCD) += lcd.rel
-obj-$(CONFIG_KBD) += kbd.rel
+obj-y += spi.rel

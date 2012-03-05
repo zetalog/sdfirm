@@ -1,0 +1,34 @@
+#
+# I2C Devices
+#
+
+menuconfig I2C
+	bool "Inter integrated circuit (I2C) support"
+
+if I2C
+
+config I2C_MASTER
+	bool "Enable bus master support"
+	default y
+
+config I2C_SLAVE
+	bool "Enable bus slave support"
+
+config I2C_GENERAL_CALL
+	bool "Enable general call address support"
+	help
+
+config I2C_10BIT_ADDRESS
+	bool "Enable 10-bit addressing support"
+	help
+	  Disabling this will force the master driver to use 7-bit
+	  addressing.
+
+config I2C_DEVICE_ID
+	bool "Enable device-ID support"
+	help
+	  Disabling this will force the master driver not to perform
+	  device ID probing procedure.
+
+endif
+

@@ -2,64 +2,7 @@
 # Input/Output Devices
 #
 
-menu "Input / Output support"
-
-config ARCH_HAS_SPI
-	bool
-
-menuconfig I2C
-	bool "Inter integrated circuit (I2C) bus support"
-
-if I2C
-
-config I2C_MASTER
-	bool "Enable bus master support"
-	default y
-
-config I2C_SLAVE
-	bool "Enable bus slave support"
-
-config I2C_GENERAL_CALL
-	bool "Enable general call address support"
-	help
-
-config I2C_10BIT_ADDRESS
-	bool "Enable 10-bit addressing support"
-	help
-	  Disabling this will force the master driver to use 7-bit
-	  addressing.
-
-config I2C_DEVICE_ID
-	bool "Enable device-ID support"
-	help
-	  Disabling this will force the master driver not to perform
-	  device ID probing procedure.
-
-endif
-
-menuconfig SPI
-	bool "Serial peripheral interface (SPI) support"
-
-if SPI
-
-choice
-	prompt "SPI bus type"
-	default SPI_MASTER
-
-config SPI_MASTER
-	bool "Master"
-
-config SPI_SLAVE
-	bool "Slave"
-
-endchoice
-
-config SPI_MAX_DEVICES
-	int "Number of SPI slave devices (1~8)"
-	range 1 8
-	default 2
-
-endif
+menu "Human interface devices support"
 
 config LCD
 	bool "Liquid crystal display (LCD) output support"

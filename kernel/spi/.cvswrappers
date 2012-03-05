@@ -1,0 +1,3 @@
+# VC++ Files are BINARY
+
+*.pdf -k 'b'

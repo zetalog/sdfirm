@@ -1,0 +1,31 @@
+#
+# SPI Devices
+#
+
+config ARCH_HAS_SPI
+	bool
+
+menuconfig SPI
+	bool "Serial peripheral interface (SPI) support"
+
+if SPI
+
+choice
+	prompt "SPI bus type"
+	default SPI_MASTER
+
+config SPI_MASTER
+	bool "Master"
+
+config SPI_SLAVE
+	bool "Slave"
+
+endchoice
+
+config SPI_MAX_DEVICES
+	int "Number of SPI slave devices (1~8)"
+	range 1 8
+	default 2
+
+endif
+
