@@ -95,7 +95,7 @@ void sbc_read10_send(void)
 	olun = sbc_save_lun(lun);
 	if (scsi_target_xprt->bulk_type() == BULK_TYPE_CPU) {
 		block_size = sbc_bulkio_init(OPEN_READ, BULK_TYPE_CPU);
-		xprt_size = scsi_target_xprt->bulk_size(BULK_SIZE_OPT);
+		xprt_size = scsi_target_xprt->bulk_size();
 		bulk_cpu_write(scsi_current_cmnd.bulk,
 			       xprt_size,
 			       scsi_target_xprt->open,
@@ -143,7 +143,7 @@ static void sbc_write10_recv(void)
 	olun = sbc_save_lun(lun);
 	if (scsi_target_xprt->bulk_type() == BULK_TYPE_CPU) {
 		block_size = sbc_bulkio_init(OPEN_READ, BULK_TYPE_CPU);
-		xprt_size = scsi_target_xprt->bulk_size(BULK_SIZE_OPT);
+		xprt_size = scsi_target_xprt->bulk_size();
 		bulk_cpu_read(scsi_current_cmnd.bulk,
 			      xprt_size,
 			      scsi_target_xprt->open,

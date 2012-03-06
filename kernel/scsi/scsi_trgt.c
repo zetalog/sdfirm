@@ -69,7 +69,7 @@ void scsi_def_data_in(void)
 
 	BUG_ON(!scsi_target_xprt);
 
-	bulk_size = scsi_target_xprt->bulk_size(BULK_SIZE_OPT);
+	bulk_size = scsi_target_xprt->bulk_size();
 	total_size = scsi_current_cmnd.expect_length;
 	buffer_pos = scsi_current_cmnd.data_buffer;
 
@@ -94,7 +94,7 @@ void scsi_def_data_out(void)
 
 	BUG_ON(!scsi_target_xprt);
 
-	bulk_size = scsi_target_xprt->bulk_size(BULK_SIZE_OPT);
+	bulk_size = scsi_target_xprt->bulk_size();
 	total_size = scsi_current_cmnd.expect_length;
 	buffer_pos = scsi_current_cmnd.data_buffer;
 

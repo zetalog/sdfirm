@@ -250,8 +250,8 @@ CONFIG_BIT_FFS16=y
 #
 # Generic setup
 #
-CONFIG_VENDOR_NAME="Soliton (Shanghai)"
-CONFIG_PRODUCT_NAME="Composite (CCID Interface & HID Keyboard) Device"
+CONFIG_VENDOR_NAME="Soliton"
+CONFIG_PRODUCT_NAME="CCID Secure Keying Reader"
 CONFIG_VENDOR_ID=990
 CONFIG_PRODUCT_ID=1
 CONFIG_SERIAL_NO=0

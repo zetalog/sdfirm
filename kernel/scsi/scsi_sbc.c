@@ -51,7 +51,7 @@ void sbc_read10_send(void)
 		i = 0;
 		while (i < block_size) {
 			scsi_target_xprt->open((j << __fls16(block_size)) + i);
-			for (k = 0; k < scsi_target_xprt->bulk_size(BULK_SIZE_OPT); k++)
+			for (k = 0; k < scsi_target_xprt->bulk_size(); k++)
 				xprt_in(read_byte());
 			scsi_target_xprt->close(k);
 			i += k;
@@ -96,7 +96,7 @@ static void sbc_write10_recv(void)
 		i = 0;
 		while (i < block_size) {
 			scsi_target_xprt->open((j << __fls16(block_size)) + i);
-			for (k = 0; k < scsi_target_xprt->bulk_size(BULK_SIZE_OPT); k++)
+			for (k = 0; k < scsi_target_xprt->bulk_size(); k++)
 				write_byte(xprt_out());
 			scsi_target_xprt->close(k);
 			i += k;

@@ -13,10 +13,6 @@
 typedef uint8_t bulk_cid_t;
 typedef uint16_t bulk_size_t;
 
-#define BULK_SIZE_OPT		0x00	/* optimal size */
-#define BULK_SIZE_MIN		0x01	/* minimum size */
-#define BULK_SIZE_MAX		0x02	/* maximum size */
-
 #define BULK_TYPE_DMA		0x00
 #define BULK_TYPE_CPU		0x01
 #define BULK_TYPE_MASK		0x01
