@@ -106,7 +106,7 @@ static boolean bulk_def_space(void)
 	return true;
 }
 
-bulk_cid_t bulk_init(uint8_t *buffer, bulk_size_t length)
+bulk_cid_t bulk_set_buffer(uint8_t *buffer, bulk_size_t length)
 {
 	bulk_cid_t bulk;
 	BUG_ON(bulk_last_chan >= NR_BULK_CHANS);
@@ -117,7 +117,7 @@ bulk_cid_t bulk_init(uint8_t *buffer, bulk_size_t length)
 	return bulk;
 }
 
-void bulk_reset(bulk_cid_t bulk, uint8_t type)
+void bulk_reset_buffer(bulk_cid_t bulk, uint8_t type)
 {
 	INIT_CIRCBF_DECLARE(&(bulk_channels[bulk].buffer));
 	bulk_channels[bulk].flags = type;

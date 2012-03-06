@@ -1,9 +1,19 @@
 #include <target/uart.h>
 
+#ifdef CONFIG_UART_SYNC
+void uart_sync_init(void);
+#else
+#define uart_sync_init()
+#endif
+
+#ifdef CONFIG_UART_ASYNC
+void uart_async_init(void);
+#else
+#define uart_async_init()
+#endif
+
 void uart_init(void)
 {
-	uart_hw_ctrl_init();
-	uart_hw_ctrl_stop();
-	uart_hw_set_params(UART_PARAMS, UART_BAUDRATE);
-	uart_hw_ctrl_start();
+	uart_sync_init();
+	uart_async_init();
 }

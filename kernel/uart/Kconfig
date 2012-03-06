@@ -10,6 +10,12 @@ menuconfig UART
 
 if UART
 
+config UART_SYNC
+	bool "Synchronous UART support"
+	default y
+
+if UART_SYNC
+
 choice
 	prompt "UART baud rate"
 	help
@@ -47,6 +53,8 @@ config UART_METERING
 	  easily observed by the oscilloscope to measure the baudrate.
 	  Frequency displayed by the oscilloscope will be a half of the
 	  baudrate.
+
+endif
 
 config UART_ASYNC
 	bool "Asynchronous UART support"

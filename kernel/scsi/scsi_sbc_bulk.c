@@ -28,7 +28,7 @@ static bulk_size_t sbc_bulkio_init(uint8_t open_type, uint8_t bulk_type)
 {
 	sbc_bulkios[sbc_lun].iter = 0;
 	sbc_bulkios[sbc_lun].open_type = open_type;
-	bulk_reset(scsi_current_cmnd.bulk, bulk_type);
+	bulk_reset_buffer(scsi_current_cmnd.bulk, bulk_type);
 	return sbc_bulkios[sbc_lun].optimal_size;
 }
 

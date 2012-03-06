@@ -6,8 +6,13 @@
 #include <target/bulk.h>
 
 struct uart_port {
-	bulk_cid_t bulk;
+	void (*startup)(void);
+	void (*cleanup)(void);
+	void (*config)(uint8_t params, uint32_t baudrate);
+	void (*start_tx)(void);
+	void (*stop_tx)(void);
 };
+__TEXT_TYPE__(struct uart_port, uart_port_t);
 
 typedef uint8_t uart_pid_t;
 
@@ -70,5 +75,24 @@ typedef uint8_t uart_pid_t;
 #else
 #define NR_UART_PORTS		1
 #endif
+
+/* Asynchronous UART */
+void uart_write_wakeup(void);
+void uart_stop(void);
+void uart_start(void);
+int uart_put_char(uint8_t c);
+void uart_flush_chars(void);
+int uart_write(const uint8_t *buf, int count);
+void uart_config_port(uint8_t params, uint32_t baudrate);
+
+void uart_port_restore(uart_pid_t pid);
+uart_pid_t uart_port_save(uart_pid_t pid);
+#define uart_port_select(pid)	uart_port_restore(pid)
+
+uart_pid_t uart_startup(uint8_t *inbuf, int inlen,
+			uint8_t *outbuf, int outlen);
+void uart_cleanup(uart_pid_t pid);
+
+uart_pid_t uart_register_port(uart_port_t *port);
 
 #endif /* __UART_H_INCLUDE__ */
