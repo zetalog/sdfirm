@@ -1,5 +1,4 @@
 #include <target/uart.h>
-#include <target/generic.h>
 
 struct uart_state {
 	bulk_cid_t bulk_in;

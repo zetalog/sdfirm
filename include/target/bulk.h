@@ -47,13 +47,6 @@ void bulk_dma_read(bulk_cid_t bulk, bulk_size_t flush,
 		   bulk_xmit_cb read, bulk_space_cb space);
 void bulk_dma_write(bulk_cid_t bulk, bulk_size_t flush,
 		    bulk_xmit_cb write, bulk_space_cb space);
-/* Specific side is CPU transfer */
-void bulk_dma_read_cpu(bulk_cid_t bulk,
-		       bulk_size_t min_block, bulk_size_t max_block);
-void bulk_dma_write_cpu(bulk_cid_t bulk,
-			bulk_size_t min_block, bulk_size_t max_block);
 void bulk_dma_execute(bulk_cid_t bulk, size_t size);
-bulk_size_t bulk_dma_read_size(bulk_cid_t bulk);
-bulk_size_t bulk_dma_write_size(bulk_cid_t bulk);
 
 #endif /* __BULK_H_INCLUDE__ */
