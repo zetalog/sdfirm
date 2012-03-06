@@ -140,8 +140,40 @@ void uart_hw_ctrl_stop(void)
 {
 }
 
+#ifdef CONFIG_UART_AT8XC5122_ASYNC
+static void uart_hw_handle_irq(void)
+{
+}
+
+#ifdef SYS_REALTIME
+void uart_hw_irq_poll(void)
+{
+	uart_hw_handle_irq();
+}
+#else
+void uart_hw_irq_init(void)
+{
+	irq_hw_set_priority(IRQ_UART, IRQ_PRIO_1);
+	irq_hw_enable_vector(IRQ_UART, true);
+}
+#endif
+
+void DEFINE_ISR(uart_isr(void), IRQ_UART)
+{
+	uart_hw_handle_irq();
+}
+
+static void uart_hw_async_init(void)
+{
+	uart_hw_irq_init();
+}
+#else
+#define uart_hw_async_init();
+#endif
+
 void uart_hw_ctrl_init(void)
 {
 	clk_hw_resume_dev(DEV_UART);
 	__uart_hw_disable_fed();
+	uart_hw_async_init();
 }

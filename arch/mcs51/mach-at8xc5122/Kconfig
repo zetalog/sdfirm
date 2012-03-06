@@ -74,6 +74,10 @@ config UART_AT8XC5122_TIMER1
 	  Default select the internal baud rate generator in mode0.
 	  Enable this will use Timer1 as baud rate generator source.
 
+config UART_AT8XC5122_ASYNC
+	bool "Enable asynchronous support"
+	depends UART_ASYNC
+
 endif
 
 menuconfig KBD_AT8XC5122

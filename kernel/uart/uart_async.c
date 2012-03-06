@@ -116,7 +116,7 @@ void uart_config_port(uint8_t params, uint32_t baudrate)
 {
 	uart_port_t *port = uart_ports[uart_pid];
 
-	BUG_ON(!port || !port->set_params);
+	BUG_ON(!port || !port->config);
 	port->config(params, baudrate);
 }
 
