@@ -58,6 +58,7 @@ endif
 
 config UART_ASYNC
 	bool "Asynchronous UART support"
+	select BULK
 
 if UART_ASYNC
 

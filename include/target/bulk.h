@@ -25,7 +25,12 @@ typedef void (*bulk_xmit_cb)(uint8_t *, bulk_size_t);
 typedef boolean (*bulk_space_cb)(void);
 
 bulk_cid_t bulk_set_buffer(uint8_t *buffer, bulk_size_t length);
-void bulk_reset_buffer(bulk_cid_t bulk, uint8_t type);
+void bulk_clear_buffer(bulk_cid_t bulk);
+void bulk_flush_buffer(bulk_cid_t bulk, uint8_t type);
+
+bulk_size_t bulk_write_buffer(bulk_cid_t bulk,
+			      const uint8_t *buf, bulk_size_t len);
+bulk_size_t bulk_write_byte(bulk_cid_t bulk, uint8_t c);
 
 /* Both sides are CPU transfer */
 void bulk_cpu_read(bulk_cid_t bulk, bulk_size_t flush,

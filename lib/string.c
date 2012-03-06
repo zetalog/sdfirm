@@ -8,7 +8,6 @@ int text_strlen(const text_char_t *str)
 	return len;
 }
 
-#ifndef SDCC
 void memory_set(caddr_t s, uint8_t c, size_t count)
 {
 	uint8_t *xs = (uint8_t *)s;
@@ -24,4 +23,3 @@ void memory_copy(caddr_t dest, const caddr_t src,
 	while (count--)
 		*tmp++ = *s++;
 }
-#endif

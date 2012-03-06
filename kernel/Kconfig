@@ -278,6 +278,7 @@ endif
 menuconfig BULK
 	bool "IO data flow model (bulk) support"
 	select BIT_FLS16
+	select BIT_FIND_CLEAR
 
 if BULK
 

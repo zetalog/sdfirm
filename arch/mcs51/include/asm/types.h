@@ -23,4 +23,7 @@ typedef unsigned char uint64_t[8];
 	typedef __text__ __type__ __name__
 #endif
 
+typedef void *caddr_t;
+#define ARCH_HAVE_CADDR_T 1
+
 #endif /* __TYPES_MCS51_H_INCLUDE__ */

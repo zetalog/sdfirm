@@ -85,26 +85,14 @@ void uart_cleanup(uart_pid_t pid)
 	port = uart_ports[uart_pid];
 	BUG_ON(!port || !port->cleanup);
 	port->cleanup();
-#if 0
 	bulk_clear_buffer(uart_states[uart_pid].bulk_out);
 	bulk_clear_buffer(uart_states[uart_pid].bulk_in);
-#endif
 	clear_bit(pid, uart_port_regs);
 }
 
 int uart_put_char(uint8_t c)
 {
-	int ret = 0;
-
-#if 0
-	struct circ_buf *circ = &state->xmit
-	if (uart_circ_chars_free(circ) != 0) {
-		circ->buf[circ->head] = c;
-		circ->head = (circ->head + 1) & (UART_XMIT_SIZE - 1);
-		ret = 1;
-	}
-#endif
-	return ret;
+	return bulk_write_byte(uart_states[uart_pid].bulk_out, c);
 }
 
 void uart_flush_chars(void)
@@ -115,23 +103,10 @@ void uart_flush_chars(void)
 int uart_write(const uint8_t *buf, int count)
 {
 	uart_port_t *port = uart_ports[uart_pid];
-	int c, ret = 0;
+	int ret = 0;
 
-#if 0
-	struct circ_buf *circ = &state->xmit;
-	while (1) {
-		c = CIRC_SPACE_TO_END(circ->head, circ->tail, UART_XMIT_SIZE);
-		if (count < c)
-			c = count;
-		if (c <= 0)
-			break;
-		memcpy(circ->buf + circ->head, buf, c);
-		circ->head = (circ->head + c) & (UART_XMIT_SIZE - 1);
-		buf += c;
-		count -= c;
-		ret += c;
-	}
-#endif
+	ret = bulk_write_buffer(uart_states[uart_pid].bulk_out,
+				buf, count);
 	uart_start();
 
 	return ret;
@@ -159,4 +134,3 @@ uart_pid_t uart_register_port(uart_port_t *port)
 void uart_async_init(void)
 {
 }
-

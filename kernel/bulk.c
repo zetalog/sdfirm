@@ -42,7 +42,7 @@ struct bulk {
 };
 
 struct bulk bulk_channels[NR_BULK_CHANS];
-bulk_cid_t bulk_last_chan = 0;
+DECLARE_BITMAP(bulk_chan_regs, NR_BULK_CHANS);
 
 #define bulk_is_type(bulk, type)					\
 	((bulk_channels[bulk].flags & BULK_TYPE_MASK) == type)
@@ -63,18 +63,68 @@ static boolean bulk_def_space(void)
 bulk_cid_t bulk_set_buffer(uint8_t *buffer, bulk_size_t length)
 {
 	bulk_cid_t bulk;
-	BUG_ON(bulk_last_chan >= NR_BULK_CHANS);
-	bulk = bulk_last_chan;
-	bulk_last_chan++;
+
+	bulk = find_first_clear_bit(bulk_chan_regs, NR_BULK_CHANS);
+	/* Wrong firmware configuration */
+	BUG_ON(bulk >= NR_BULK_CHANS);
 	bulk_channels[bulk].length = length;
 	INIT_CIRCBF_ASSIGN(&(bulk_channels[bulk].buffer), buffer);
+	set_bit(bulk, bulk_chan_regs);
+
 	return bulk;
 }
 
-void bulk_reset_buffer(bulk_cid_t bulk, uint8_t type)
+void bulk_flush_buffer(bulk_cid_t bulk, uint8_t type)
 {
 	INIT_CIRCBF_DECLARE(&(bulk_channels[bulk].buffer));
 	bulk_channels[bulk].flags = type;
+}
+
+void bulk_clear_buffer(bulk_cid_t bulk)
+{
+	BUG_ON(bulk >= NR_BULK_CHANS);
+	bulk_channels[bulk].length = 0;
+	INIT_CIRCBF_ASSIGN(&(bulk_channels[bulk].buffer), NULL);
+	clear_bit(bulk, bulk_chan_regs);
+}
+
+bulk_size_t bulk_write_byte(bulk_cid_t bulk, uint8_t c)
+{
+	ASSIGN_CIRCBF16_REF(buffer, circbf, &bulk_channels[bulk].buffer);
+	bulk_size_t length = bulk_channels[bulk].length;
+	bulk_size_t ret = 0;
+
+	if (circbf_space(circbf, length) != 0) {
+		*(circbf_wpos(circbf)) = c;
+		circbf_write(circbf, length, 1);
+		ret = 1;
+	}
+
+	return ret;
+}
+
+bulk_size_t bulk_write_buffer(bulk_cid_t bulk,
+			      const uint8_t *buf, bulk_size_t len)
+{
+	ASSIGN_CIRCBF16_REF(buffer, circbf, &bulk_channels[bulk].buffer);
+	bulk_size_t length = bulk_channels[bulk].length;
+	bulk_size_t ret = 0, c;
+
+	while (1) {
+		c = circbf_space_end(circbf, length);
+		if (len < c)
+			c = len;
+		if (c <= 0)
+			break;
+		memory_copy((caddr_t)(circbf_wpos(circbf)),
+			    (const caddr_t)buf, c);
+		circbf_write(circbf, length, c);
+		buf += c;
+		len -= c;
+		ret += c;
+	}
+
+	return ret;
 }
 
 void bulk_dma_read(bulk_cid_t bulk, bulk_size_t flush,
