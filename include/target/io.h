@@ -15,7 +15,7 @@
 #define io_getchar()	(0)
 #endif
 
-#ifdef CONFIG_OUTPUT_UART
+#ifdef CONFIG_OUTPUT_UART_SYNC
 #include <target/uart.h>
 #define io_putchar(b)	uart_putchar(b)
 #endif
