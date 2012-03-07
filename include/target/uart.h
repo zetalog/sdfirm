@@ -10,7 +10,7 @@ struct uart_port {
 	void (*cleanup)(void);
 	void (*config)(uint8_t params, uint32_t baudrate);
 };
-__TEXT_TYPE__(struct uart_port, uart_port_t);
+__TEXT_TYPE__(const struct uart_port, uart_port_t);
 
 typedef uint8_t uart_pid_t;
 
@@ -96,6 +96,6 @@ void uart_cleanup(uart_pid_t pid);
 bulk_cid_t uart_bulk_out(void);
 bulk_cid_t uart_bulk_in(void);
 
-uart_pid_t uart_register_port(const uart_port_t *port);
+uart_pid_t uart_register_port(uart_port_t *port);
 
 #endif /* __UART_H_INCLUDE__ */

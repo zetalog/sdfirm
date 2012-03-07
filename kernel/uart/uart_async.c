@@ -1,6 +1,6 @@
 #include <target/uart.h>
 
-const uart_port_t *uart_ports[NR_UART_PORTS];
+uart_port_t *uart_ports[NR_UART_PORTS];
 uart_pid_t uart_nr_ports;
 uart_pid_t uart_pid;
 
@@ -96,7 +96,7 @@ void uart_config_port(uint8_t params, uint32_t baudrate)
 	port->config(params, baudrate);
 }
 
-uart_pid_t uart_register_port(const uart_port_t *port)
+uart_pid_t uart_register_port(uart_port_t *port)
 {
 	uart_pid_t pid = uart_nr_ports;
 

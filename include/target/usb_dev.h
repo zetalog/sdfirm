@@ -116,7 +116,7 @@ struct usbd_interface {
 	uint8_t (*attr)(uint8_t type);
 #endif
 };
-__TEXT_TYPE__(struct usbd_interface, usbd_interface_t);
+__TEXT_TYPE__(const struct usbd_interface, usbd_interface_t);
 
 struct usbd_endp_ctrl {
 	uint8_t ctrls;
@@ -189,7 +189,7 @@ struct usbd_endpoint {
 	usb_io_cb iocb;
 	usb_io_cb done;
 };
-__TEXT_TYPE__(struct usbd_endpoint, usbd_endpoint_t);
+__TEXT_TYPE__(const struct usbd_endpoint, usbd_endpoint_t);
 
 #ifdef CONFIG_USB_DEV
 void usbd_start(void);
@@ -234,7 +234,7 @@ uint8_t usbd_state_get(void);
 /*=========================================================================
  * USB interface
  *=======================================================================*/
-usb_iid_t usbd_declare_interface(const usbd_interface_t *cintf);
+usb_iid_t usbd_declare_interface(usbd_interface_t *cintf);
 #ifdef CONFIG_USB_USBIP_DEV
 uint8_t usbd_interface_get_attr(uint8_t iid, uint8_t type);
 #else
@@ -268,7 +268,7 @@ void usbd_endpoint_halt_addr(uint8_t addr);
 void usbd_endpoint_unhalt_addr(uint8_t addr);
 
 uint8_t usbd_claim_endpoint(boolean explicit_zlp,
-			    const usbd_endpoint_t *cendp);
+			    usbd_endpoint_t *cendp);
 boolean usbd_endpoint_claimed(uint8_t addr);
 
 uint8_t usbd_addr_save(uint8_t addr);

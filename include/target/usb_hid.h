@@ -439,7 +439,7 @@ struct hid_report {
 	usb_size_cb config_len;
 	usb_io_cb ctrl;
 };
-__TEXT_TYPE__(struct hid_report, hid_report_t);
+__TEXT_TYPE__(const struct hid_report, hid_report_t);
 
 #define NR_HID_ENDPS		2
 #ifdef CONFIG_HID_MAX_REPORTS
@@ -464,7 +464,7 @@ __TEXT_TYPE__(struct hid_report, hid_report_t);
 #define HID_REPORT_FEATURE	0x03
 
 hid_rid_t hid_register_report(uint8_t duration,
-			      const hid_report_t *creport);
+			      hid_report_t *creport);
 boolean hid_report_registered(uint8_t reportid);
 
 void hid_raise_interrupt(hid_rid_t rid);
