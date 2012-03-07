@@ -58,11 +58,11 @@ typedef uint8_t uart_pid_t;
 #ifdef CONFIG_UART
 #ifdef CONFIG_UART_METERING
 /* frequency measured by the oscilloscope will be half of the baudrate */
-#define uart_putchar(byte)	uart_hw_write_byte(0x55)
+#define uart_putchar(byte)	uart_hw_sync_write(0x55)
 #else
-#define uart_putchar(byte)	uart_hw_write_byte(byte)
+#define uart_putchar(byte)	uart_hw_sync_write(byte)
 #endif
-#define uart_getchar()		uart_hw_read_byte()
+#define uart_getchar()		uart_hw_sync_read()
 #else
 #define uart_putchar(byte)
 #define uart_getchar()		(0)

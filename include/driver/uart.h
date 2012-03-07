@@ -11,13 +11,12 @@
 #define uart_hw_sync_init()
 #define uart_hw_sync_start()
 #define uart_hw_sync_stop()
-
-#define uart_hw_write_byte(byte)
-#define uart_hw_read_byte()		(0)
-
-#define uart_hw_set_params(params, baudrate)
+#define uart_hw_sync_write(byte)
+#define uart_hw_sync_read()		(0)
 
 #define uart_hw_async_init()
+
+#define uart_hw_set_params(params, baudrate)
 #endif
 
 #endif /* __UART_DRIVER_H_INCLUDE__ */

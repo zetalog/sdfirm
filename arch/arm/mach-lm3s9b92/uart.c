@@ -17,13 +17,13 @@ void uart_hw_set_params(uint8_t params, uint32_t baudrate)
 	__uart0_hw_ctrl_config(params, baudrate);
 }
 
-void uart_hw_write_byte(uint8_t byte)
+void uart_hw_sync_write(uint8_t byte)
 {
 	if (pm_hw_device_mode(DEV_UART0) != DEV_MODE_OFF)
 		__uart0_hw_write_byte(byte);
 }
 
-uint8_t uart_hw_read_byte(void)
+uint8_t uart_hw_sync_read(void)
 {
 	if (pm_hw_device_mode(DEV_UART0) != DEV_MODE_OFF)
 		return __uart0_hw_read_byte();

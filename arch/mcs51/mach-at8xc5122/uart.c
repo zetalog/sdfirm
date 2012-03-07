@@ -115,14 +115,14 @@ void uart_hw_set_params(uint8_t params, uint32_t baudrate)
 	__uart_hw_config_brg(baudrate);
 }
 
-void uart_hw_write_byte(uint8_t byte)
+void uart_hw_sync_write(uint8_t byte)
 {
 	SBUF = byte;
 	while (!__uart_hw_ti_raised());
 	__uart_hw_unraise_ti();
 }
 
-uint8_t uart_hw_read_byte(void)
+uint8_t uart_hw_sync_read(void)
 {
 	uint8_t byte;
 	while (!__uart_hw_ri_raised());
@@ -150,12 +150,12 @@ void uart_hw_sync_init(void)
 #ifdef CONFIG_UART_ASYNC
 static uart_pid_t __uart_hw_pid;
 
-static uint8_t uart_hw_read_async(void)
+static uint8_t uart_hw_async_read(void)
 {
 	return SBUF;
 }
 
-static void uart_hw_write_async(uint8_t byte)
+static void uart_hw_async_write(uint8_t byte)
 {
 	SBUF = byte;
 }
@@ -164,7 +164,7 @@ static void uart_hw_handle_rx(void)
 {
 	if (!__uart_hw_fe_raised()) {
 		bulk_handle_read_byte(uart_bulk_in(),
-				      uart_hw_read_async, 1);
+				      uart_hw_async_read, 1);
 	} else {
 		__uart_hw_unraise_fe();
 	}
@@ -174,7 +174,7 @@ static void uart_hw_handle_rx(void)
 static void uart_hw_handle_tx(void)
 {
 	bulk_handle_write_byte(uart_bulk_out(),
-			       uart_hw_write_async, 1);
+			       uart_hw_async_write, 1);
 	__uart_hw_unraise_ti();
 }
 

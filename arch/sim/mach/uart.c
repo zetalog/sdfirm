@@ -1,12 +1,12 @@
 #include "mach.h"
 #include <target/uart.h>
 
-void uart_hw_write_byte(uint8_t byte)
+void uart_hw_sync_write(uint8_t byte)
 {
 	sim_uart_write_byte(byte);
 }
 
-uint8_t uart_hw_read_byte(void)
+uint8_t uart_hw_sync_read(void)
 {
 	return 0;
 }

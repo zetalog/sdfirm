@@ -48,11 +48,11 @@ Sfr(BDRCON,	0x9B);		/* Baud Rate Control*/
 void uart_hw_sync_init(void);
 void uart_hw_sync_start(void);
 void uart_hw_sync_stop(void);
+void uart_hw_sync_write(uint8_t byte);
+uint8_t uart_hw_sync_read(void);
 
 void uart_hw_async_init(void);
 
-void uart_hw_write_byte(uint8_t byte);
-uint8_t uart_hw_read_byte(void);
 void uart_hw_set_params(uint8_t params, uint32_t baudrate);
 
 #endif /* __UART_AT8XC5122_H_INCLUDE__ */
