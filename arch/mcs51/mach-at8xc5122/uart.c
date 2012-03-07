@@ -1,9 +1,8 @@
 #include <target/uart.h>
 
 /* frame error detection */
-#define __uart_hw_enable_fed()		(PCON |= MSK_PCON_SMOD0)
-#define __uart_hw_disable_fed()		(PCON &= ~MSK_PCON_SMOD0)
-#define __uart_hw_fed_raised()		(SCON & MSK_SCON_FE)
+#define __uart_hw_unraise_fe()		(PCON &= ~MSK_PCON_SMOD0)
+#define __uart_hw_fe_raised()		(SCON & MSK_SCON_FE)
 
 /* auto address recognition */
 #define __uart_hw_enable_aar()		(SCON |= MSK_SCON_SM2)
@@ -144,11 +143,13 @@ void uart_hw_sync_stop(void)
 void uart_hw_sync_init(void)
 {
 	clk_hw_resume_dev(DEV_UART);
-	__uart_hw_disable_fed();
+	__uart_hw_unraise_fe();
 }
 #endif
 
 #ifdef CONFIG_UART_ASYNC
+uart_pid_t uart_hw_pid;
+
 void uart_hw_stop_rx(void)
 {
 	__uart_hw_unraise_ri();
@@ -165,6 +166,13 @@ void uart_hw_start_tx(void)
 
 static void uart_hw_handle_rx(void)
 {
+	if (!__uart_hw_fe_raised()) {
+		uint8_t c = SBUF;
+		uart_insert_char(c);
+	} else {
+		__uart_hw_unraise_fe();
+	}
+	uart_hw_stop_rx();
 }
 
 static void uart_hw_handle_tx(void)
@@ -195,12 +203,37 @@ void uart_hw_irq_init(void)
 	irq_hw_set_priority(IRQ_UART, IRQ_PRIO_1);
 	irq_hw_enable_vector(IRQ_UART, true);
 }
+
+void uart_hw_irq_exit(void)
+{
+	irq_hw_enable_vector(IRQ_UART, false);
+}
 #endif
+
+static void uart_hw_async_start(void)
+{
+	clk_hw_resume_dev(DEV_UART);
+	__uart_hw_unraise_fe();
+	uart_hw_irq_init();
+}
+
+static void uart_hw_async_stop(void)
+{
+	uart_hw_irq_exit();
+	clk_hw_suspend_dev(DEV_UART);
+}
+
+static uart_port_t __uart_hw_port = {
+	uart_hw_async_start,
+	uart_hw_async_stop,
+	uart_hw_set_params,
+	uart_hw_start_tx,
+	uart_hw_stop_tx,
+	uart_hw_stop_rx,
+};
 
 static void uart_hw_async_init(void)
 {
-	clk_hw_resume_dev(DEV_UART);
-	__uart_hw_disable_fed();
-	uart_hw_irq_init();
+	uart_hw_pid = uart_register_port(&__uart_hw_port);
 }
 #endif

@@ -5,7 +5,7 @@ struct uart_state {
 	bulk_cid_t bulk_out;
 };
 
-uart_port_t *uart_ports[NR_UART_PORTS];
+const uart_port_t *uart_ports[NR_UART_PORTS];
 uart_pid_t uart_nr_ports;
 uart_pid_t uart_pid;
 
@@ -32,6 +32,10 @@ boolean uart_started(uart_pid_t pid)
 void uart_write_wakeup(void)
 {
 	/* bulk_write_aval(uart_ctrl[uart_pid].bulk); */
+}
+
+void uart_insert_char(uint8_t c)
+{
 }
 
 void uart_stop(void)
@@ -120,7 +124,7 @@ void uart_config_port(uint8_t params, uint32_t baudrate)
 	port->config(params, baudrate);
 }
 
-uart_pid_t uart_register_port(uart_port_t *port)
+uart_pid_t uart_register_port(const uart_port_t *port)
 {
 	uart_pid_t pid = uart_nr_ports;
 

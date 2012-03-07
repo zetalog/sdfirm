@@ -79,6 +79,7 @@ typedef uint8_t uart_pid_t;
 
 /* Asynchronous UART */
 void uart_write_wakeup(void);
+void uart_insert_char(uint8_t c);
 void uart_stop(void);
 void uart_start(void);
 int uart_put_char(uint8_t c);
@@ -94,6 +95,6 @@ uart_pid_t uart_startup(uint8_t *inbuf, int inlen,
 			uint8_t *outbuf, int outlen);
 void uart_cleanup(uart_pid_t pid);
 
-uart_pid_t uart_register_port(uart_port_t *port);
+uart_pid_t uart_register_port(const uart_port_t *port);
 
 #endif /* __UART_H_INCLUDE__ */

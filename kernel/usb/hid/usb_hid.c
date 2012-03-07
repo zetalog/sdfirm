@@ -131,7 +131,8 @@ void hid_poll_duration(hid_rid_t rid)
 /*=========================================================================
  * report APIs
  *=======================================================================*/
-hid_rid_t hid_register_report(uint8_t duration, hid_report_t *creport)
+hid_rid_t hid_register_report(uint8_t duration,
+			      const hid_report_t *creport)
 {
 	hid_rid_t rid = hid_nr_reports;
 	if (rid < NR_HID_REPORTS) {

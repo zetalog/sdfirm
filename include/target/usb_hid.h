@@ -463,7 +463,8 @@ __TEXT_TYPE__(struct hid_report, hid_report_t);
 #define HID_REPORT_OUTPUT	0x02
 #define HID_REPORT_FEATURE	0x03
 
-hid_rid_t hid_register_report(uint8_t duration, hid_report_t *creport);
+hid_rid_t hid_register_report(uint8_t duration,
+			      const hid_report_t *creport);
 boolean hid_report_registered(uint8_t reportid);
 
 void hid_raise_interrupt(hid_rid_t rid);
