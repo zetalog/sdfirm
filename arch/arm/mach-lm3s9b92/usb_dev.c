@@ -16,22 +16,28 @@
 #define __USBD_HW_SPEED_FULL		0x80
 #define __USBD_HW_SPEED_LOW		0xC0
 
-#define __usbd_hw_csetup_raised()	__raw_testb_atomic(SETEND, USBCSRL0)
-#define __usbd_hw_cstall_raised()	__raw_testb_atomic(STALLED, USBCSRL0)
-#define	__usbd_hw_ctxrdy_raised()	__raw_testb_atomic(TXRDY, USBCSRL0)
-#define	__usbd_hw_crxrdy_raised()	__raw_testb_atomic(RXRDY, USBCSRL0)
-#define __usbd_hw_unraise_csetup()	__raw_clearb_atomic(SETENDC, USBCSRL0)
+#define __usbd_hw_csetup_raised()	\
+	__raw_testb_atomic(SETEND, USBCSRL0)
+#define __usbd_hw_cstall_raised()	\
+	__raw_testb_atomic(STALLED, USBCSRL0)
+#define	__usbd_hw_ctxrdy_raised()	\
+	__raw_testb_atomic(TXRDY, USBCSRL0)
+#define	__usbd_hw_crxrdy_raised()	\
+	__raw_testb_atomic(RXRDY, USBCSRL0)
+#define __usbd_hw_unraise_csetup()	\
+	__raw_clearb_atomic(SETENDC, USBCSRL0)
 
 /* XXX: STATUS Stage Offloading Issue - Chip Bug
  * On LM3S9B92, NO DATA stage control requests have a special logic in the
- * controller.  It seems the controller has sent a ZLP for such requests while
- * it should be sent by the CPU in may firmware designs.  Note that a control
- * IRQ will arrive with USBCSR0 is 0x0000 (TXRDY completion) even when the CPU
- * side does not perform any TX activities for the STATUS stage for such
- * requests.  We could take this IRQ as a STATUS stage TX completion and
- * carefully not send any ZLPs in the STATUS stages for such requests.
- * This workaround can work for the USB device controller though it should
- * have presented a more comprehensive flag for such offloading.
+ * controller.  It seems the controller has sent a ZLP for such requests
+ * while it should be sent by the CPU in may firmware designs.  Note that
+ * a control IRQ will arrive with USBCSR0 is 0x0000 (TXRDY completion)
+ * even when the CPU side does not perform any TX activities for the
+ * STATUS stage for such requests.  We could take this IRQ as a STATUS
+ * stage TX completion and carefully not send any ZLPs in the STATUS
+ * stages for such requests. This workaround can work for the USB device
+ * controller though it should have presented a more comprehensive flag
+ * for such offloading.
  */
 static uint8_t __usbd_hw_is_cso;
 
@@ -224,9 +230,12 @@ static inline void __usbd_hw_eirq_restore(void)
 	}
 }
 
-#define __usbd_hw_set_address()		__raw_writeb(usbd_address & 0x7F, USBFADDR)
-#define __usbd_hw_hub_connect()		__raw_setb_atomic(DEVSOFTCONN, USBPOWER)
-#define __usbd_hw_hub_disconnect()	__raw_clearb_atomic(DEVSOFTCONN, USBPOWER)
+#define __usbd_hw_set_address()		\
+	__raw_writeb(usbd_address & 0x7F, USBFADDR)
+#define __usbd_hw_hub_connect()		\
+	__raw_setb_atomic(DEVSOFTCONN, USBPOWER)
+#define __usbd_hw_hub_disconnect()	\
+	__raw_clearb_atomic(DEVSOFTCONN, USBPOWER)
 
 static boolean __usbd_hw_txirq_raised(void)
 {
@@ -305,9 +314,11 @@ static boolean __usbd_hw_stall_raised(void)
 		return __usbd_hw_cstall_raised();
 	} else {
 		if (dir == USB_DIR_IN) {
-			return __raw_testb_atomic(TXSTALLED, USBTXCSRL(eid));
+			return __raw_testb_atomic(TXSTALLED,
+						  USBTXCSRL(eid));
 		} else {
-			return __raw_testb_atomic(RXSTALLED, USBRXCSRL(eid));
+			return __raw_testb_atomic(RXSTALLED,
+						  USBRXCSRL(eid));
 		}
 	}
 }
@@ -393,9 +404,9 @@ static void __usbd_hw_unraise_txcmpl(void)
 	__usbd_hw_clear_txrdy(eid);
 }
 
-/*=========================================================================
+/*======================================================================*
  * usb device implementation
- *=======================================================================*/
+ *======================================================================*/
 utb_text_size_t usbd_hw_endp_sizes[NR_USBD_ENDPS] = {
 	64,
 #if CONFIG_USB_LM3S9B92_MAX_ISOS > 0
@@ -559,15 +570,20 @@ void usbd_hw_endp_enable(void)
 		BUG_ON(usbd_config == USB_CONF_DEFAULT);
 		if (dir == USB_DIR_IN) {
 			__raw_writew(__usbd_hw_fifo_addr, USBTXFIFOADD);
-			__raw_writeb(__usbd_hw_fifosz_value(), USBTXFIFOSZ);
-			__raw_writew(usbd_endpoint_size(), USBTXMAXP(eid));
+			__raw_writeb(__usbd_hw_fifosz_value(),
+				     USBTXFIFOSZ);
+			__raw_writew(usbd_endpoint_size(),
+				     USBTXMAXP(eid));
 			__raw_writeb(__usbd_hw_type_bits() | _BV(TXMODE),
 				     USBTXCSRH(eid));
 		} else {
 			__raw_writew(__usbd_hw_fifo_addr, USBRXFIFOADD);
-			__raw_writeb(__usbd_hw_fifosz_value(), USBRXFIFOSZ);
-			__raw_writew(usbd_endpoint_size(), USBRXMAXP(eid));
-			__raw_writeb(__usbd_hw_type_bits(), USBRXCSRH(eid));
+			__raw_writeb(__usbd_hw_fifosz_value(),
+				     USBRXFIFOSZ);
+			__raw_writew(usbd_endpoint_size(),
+				     USBRXMAXP(eid));
+			__raw_writeb(__usbd_hw_type_bits(),
+				     USBRXCSRH(eid));
 		}
 		__usbd_hw_fifo_addr += __usbd_hw_fifoadd_inc();
 	}

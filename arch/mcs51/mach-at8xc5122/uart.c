@@ -132,17 +132,51 @@ uint8_t uart_hw_read_byte(void)
 	return byte;
 }
 
-void uart_hw_ctrl_start(void)
+#ifdef CONFIG_UART_SYNC
+void uart_hw_sync_start(void)
 {
 }
 
-void uart_hw_ctrl_stop(void)
+void uart_hw_sync_stop(void)
 {
 }
 
-#ifdef CONFIG_UART_AT8XC5122_ASYNC
+void uart_hw_sync_init(void)
+{
+	clk_hw_resume_dev(DEV_UART);
+	__uart_hw_disable_fed();
+}
+#endif
+
+#ifdef CONFIG_UART_ASYNC
+void uart_hw_stop_rx(void)
+{
+	__uart_hw_unraise_ri();
+}
+
+void uart_hw_stop_tx(void)
+{
+	__uart_hw_unraise_ti();
+}
+
+void uart_hw_start_tx(void)
+{
+}
+
+static void uart_hw_handle_rx(void)
+{
+}
+
+static void uart_hw_handle_tx(void)
+{
+}
+
 static void uart_hw_handle_irq(void)
 {
+	if (__uart_hw_ri_raised())
+		uart_hw_handle_rx();
+	if (__uart_hw_ti_raised())
+		uart_hw_handle_tx();
 }
 
 #ifdef SYS_REALTIME
@@ -151,6 +185,11 @@ void uart_hw_irq_poll(void)
 	uart_hw_handle_irq();
 }
 #else
+void DEFINE_ISR(uart_isr(void), IRQ_UART)
+{
+	uart_hw_handle_irq();
+}
+
 void uart_hw_irq_init(void)
 {
 	irq_hw_set_priority(IRQ_UART, IRQ_PRIO_1);
@@ -158,22 +197,10 @@ void uart_hw_irq_init(void)
 }
 #endif
 
-void DEFINE_ISR(uart_isr(void), IRQ_UART)
-{
-	uart_hw_handle_irq();
-}
-
 static void uart_hw_async_init(void)
-{
-	uart_hw_irq_init();
-}
-#else
-#define uart_hw_async_init();
-#endif
-
-void uart_hw_ctrl_init(void)
 {
 	clk_hw_resume_dev(DEV_UART);
 	__uart_hw_disable_fed();
-	uart_hw_async_init();
+	uart_hw_irq_init();
 }
+#endif

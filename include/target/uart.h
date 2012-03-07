@@ -11,6 +11,7 @@ struct uart_port {
 	void (*config)(uint8_t params, uint32_t baudrate);
 	void (*start_tx)(void);
 	void (*stop_tx)(void);
+	void (*stop_rx)(void);
 };
 __TEXT_TYPE__(struct uart_port, uart_port_t);
 

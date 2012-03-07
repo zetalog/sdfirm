@@ -30,17 +30,17 @@ uint8_t uart_hw_read_byte(void)
 	return 0;
 }
 
-void uart_hw_ctrl_start(void)
+void uart_hw_sync_start(void)
 {
 	__uart0_hw_ctrl_enable();
 }
 
-void uart_hw_ctrl_stop(void)
+void uart_hw_sync_stop(void)
 {
 	__uart0_hw_ctrl_disable();
 }
 
-void uart_hw_ctrl_init(void)
+void uart_hw_sync_init(void)
 {
 	pm_hw_resume_device(DEV_UART0, DEV_MODE_ON);
 	__uart0_hw_config_pins();

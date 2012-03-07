@@ -81,12 +81,12 @@ uint8_t uart_hw_read_byte(void)
 	return __usart0_hw_read_byte();
 }
 
-void uart_hw_ctrl_start(void)
+void uart_hw_sync_start(void)
 {
 	__usart0_hw_enable_io();
 }
 
-void uart_hw_ctrl_stop(void)
+void uart_hw_sync_stop(void)
 {
 	__usart0_hw_disable_io();
 }
