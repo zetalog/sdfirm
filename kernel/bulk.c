@@ -1,4 +1,5 @@
 #include <target/bulk.h>
+#include <target/state.h>
 
 struct bulk_block_writer {
 	bulk_xmit_cb write;
@@ -43,6 +44,7 @@ struct bulk {
 
 struct bulk bulk_channels[NR_BULK_CHANS];
 DECLARE_BITMAP(bulk_chan_regs, NR_BULK_CHANS);
+sid_t bulk_sid = INVALID_SID;
 
 #define bulk_is_type(bulk, type)					\
 	((bulk_channels[bulk].flags & BULK_TYPE_MASK) == type)
@@ -257,4 +259,81 @@ void bulk_dma_execute(bulk_cid_t bulk, size_t size)
 
 	/* Wait for the completion of both sides. */
 	while (!bulk_channels[bulk].w.b.space() || !bulk_channels[bulk].r.b.space());
+}
+
+void bulk_handle_write_byte(bulk_cid_t bulk,
+			    bulk_write_cb write,
+			    bulk_size_t count)
+{
+	ASSIGN_CIRCBF16_REF(buffer, circbf, &bulk_channels[bulk].buffer);
+	bulk_size_t length = bulk_channels[bulk].length;
+	bulk_size_t wflush = bulk_channels[bulk].wflush;
+
+	if (count == 0)
+		count = wflush;
+#if 0
+	bulk_channels[bulk].write_cmpl();
+	while ((circbf_space(circbf, length) >= wflush) &&
+	       count > 0) {
+		write(bulk_write_byte(circbf_wpos(circbf)));
+		count--;
+	}
+	if (circbf_space(circbf, length) > 0)
+		state_wakeup(bulk_sid);
+/*		bulk_channels[bulk].write_aval(); */
+#endif
+}
+
+void bulk_handle_read_byte(bulk_cid_t bulk,
+			   bulk_read_cb read,
+			   bulk_size_t count)
+{
+	ASSIGN_CIRCBF16_REF(buffer, circbf, &bulk_channels[bulk].buffer);
+	bulk_size_t length = bulk_channels[bulk].length;
+	bulk_size_t rflush = bulk_channels[bulk].rflush;
+
+	if (count == 0)
+		count = rflush;
+}
+
+void bulk_handle_write_buffer(bulk_cid_t bulk,
+			      bulk_xmit_cb write,
+			      bulk_size_t count)
+{
+	ASSIGN_CIRCBF16_REF(buffer, circbf, &bulk_channels[bulk].buffer);
+	bulk_size_t length = bulk_channels[bulk].length;
+	bulk_size_t wflush = bulk_channels[bulk].wflush;
+
+	if (count == 0)
+		count = wflush;
+}
+
+void bulk_handle_read_buffer(bulk_cid_t bulk,
+			     bulk_xmit_cb read,
+			     bulk_size_t count)
+{
+	ASSIGN_CIRCBF16_REF(buffer, circbf, &bulk_channels[bulk].buffer);
+	bulk_size_t length = bulk_channels[bulk].length;
+	bulk_size_t rflush = bulk_channels[bulk].wflush;
+
+	if (count == 0)
+		count = rflush;
+}
+
+static void bulk_handler(uint8_t event)
+{
+	switch (event) {
+	case STATE_EVENT_SHOT:
+		break;
+	case STATE_EVENT_WAKE:
+		break;
+	default:
+		BUG();
+		break;
+	}
+}
+
+void bulk_init(void)
+{
+	bulk_sid = state_register(bulk_handler);
 }

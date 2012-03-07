@@ -148,39 +148,39 @@ void uart_hw_sync_init(void)
 #endif
 
 #ifdef CONFIG_UART_ASYNC
-uart_pid_t uart_hw_pid;
+static uart_pid_t __uart_hw_pid;
 
-void uart_hw_stop_rx(void)
+static uint8_t uart_hw_read_async(void)
 {
-	__uart_hw_unraise_ri();
+	return SBUF;
 }
 
-void uart_hw_stop_tx(void)
+static void uart_hw_write_async(uint8_t byte)
 {
-	__uart_hw_unraise_ti();
-}
-
-void uart_hw_start_tx(void)
-{
+	SBUF = byte;
 }
 
 static void uart_hw_handle_rx(void)
 {
 	if (!__uart_hw_fe_raised()) {
-		uint8_t c = SBUF;
-		uart_insert_char(c);
+		bulk_handle_read_byte(uart_bulk_in(),
+				      uart_hw_read_async, 1);
 	} else {
 		__uart_hw_unraise_fe();
 	}
-	uart_hw_stop_rx();
+	__uart_hw_unraise_ri();
 }
 
 static void uart_hw_handle_tx(void)
 {
+	bulk_handle_write_byte(uart_bulk_out(),
+			       uart_hw_write_async, 1);
+	__uart_hw_unraise_ti();
 }
 
 static void uart_hw_handle_irq(void)
 {
+	uart_port_select(__uart_hw_pid);
 	if (__uart_hw_ri_raised())
 		uart_hw_handle_rx();
 	if (__uart_hw_ti_raised())
@@ -227,13 +227,10 @@ static uart_port_t __uart_hw_port = {
 	uart_hw_async_start,
 	uart_hw_async_stop,
 	uart_hw_set_params,
-	uart_hw_start_tx,
-	uart_hw_stop_tx,
-	uart_hw_stop_rx,
 };
 
 static void uart_hw_async_init(void)
 {
-	uart_hw_pid = uart_register_port(&__uart_hw_port);
+	__uart_hw_pid = uart_register_port(&__uart_hw_port);
 }
 #endif

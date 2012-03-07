@@ -9,9 +9,6 @@ struct uart_port {
 	void (*startup)(void);
 	void (*cleanup)(void);
 	void (*config)(uint8_t params, uint32_t baudrate);
-	void (*start_tx)(void);
-	void (*stop_tx)(void);
-	void (*stop_rx)(void);
 };
 __TEXT_TYPE__(struct uart_port, uart_port_t);
 
@@ -77,13 +74,15 @@ typedef uint8_t uart_pid_t;
 #define NR_UART_PORTS		1
 #endif
 
+struct uart_state {
+	bulk_cid_t bulk_in;
+	bulk_cid_t bulk_out;
+};
+
+extern uart_pid_t uart_pid;
+
 /* Asynchronous UART */
-void uart_write_wakeup(void);
-void uart_insert_char(uint8_t c);
-void uart_stop(void);
-void uart_start(void);
 int uart_put_char(uint8_t c);
-void uart_flush_chars(void);
 int uart_write(const uint8_t *buf, int count);
 void uart_config_port(uint8_t params, uint32_t baudrate);
 
@@ -94,6 +93,8 @@ uart_pid_t uart_port_save(uart_pid_t pid);
 uart_pid_t uart_startup(uint8_t *inbuf, int inlen,
 			uint8_t *outbuf, int outlen);
 void uart_cleanup(uart_pid_t pid);
+bulk_cid_t uart_bulk_out(void);
+bulk_cid_t uart_bulk_in(void);
 
 uart_pid_t uart_register_port(const uart_port_t *port);
 

@@ -1,10 +1,5 @@
 #include <target/uart.h>
 
-struct uart_state {
-	bulk_cid_t bulk_in;
-	bulk_cid_t bulk_out;
-};
-
 const uart_port_t *uart_ports[NR_UART_PORTS];
 uart_pid_t uart_nr_ports;
 uart_pid_t uart_pid;
@@ -29,32 +24,14 @@ boolean uart_started(uart_pid_t pid)
 	return test_bit(pid, uart_port_regs);
 }
 
-void uart_write_wakeup(void)
+bulk_cid_t uart_bulk_out(void)
 {
-	/* bulk_write_aval(uart_ctrl[uart_pid].bulk); */
+	return uart_states[uart_pid].bulk_out;
 }
 
-void uart_insert_char(uint8_t c)
+bulk_cid_t uart_bulk_in(void)
 {
-}
-
-void uart_stop(void)
-{
-	uart_port_t *port = uart_ports[uart_pid];
-
-	BUG_ON(!port || !port->stop_tx);
-	port->stop_tx();
-}
-
-void uart_start(void)
-{
-	uart_port_t *port = uart_ports[uart_pid];
-
-	BUG_ON(!port || !port->start_tx);
-#if 0
-	if (!uart_circ_empty(&state->xmit) && state->xmit.buf)
-		port->start_tx(port);
-#endif
+	return uart_states[uart_pid].bulk_in;
 }
 
 uart_pid_t uart_startup(uint8_t *inbuf, int inlen,
@@ -99,11 +76,6 @@ int uart_put_char(uint8_t c)
 	return bulk_write_byte(uart_states[uart_pid].bulk_out, c);
 }
 
-void uart_flush_chars(void)
-{
-	uart_start();
-}
-
 int uart_write(const uint8_t *buf, int count)
 {
 	uart_port_t *port = uart_ports[uart_pid];
@@ -111,7 +83,7 @@ int uart_write(const uint8_t *buf, int count)
 
 	ret = bulk_write_buffer(uart_states[uart_pid].bulk_out,
 				buf, count);
-	uart_start();
+	/* uart_start(); */
 
 	return ret;
 }

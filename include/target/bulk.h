@@ -50,4 +50,17 @@ void bulk_dma_write(bulk_cid_t bulk, bulk_size_t flush,
 		    bulk_xmit_cb write, bulk_space_cb space);
 void bulk_dma_execute(bulk_cid_t bulk, size_t size);
 
+void bulk_handle_write_byte(bulk_cid_t bulk,
+			    bulk_write_cb write,
+			    bulk_size_t count);
+void bulk_handle_read_byte(bulk_cid_t bulk,
+			   bulk_read_cb read,
+			   bulk_size_t count);
+void bulk_handle_write_buffer(bulk_cid_t bulk,
+			      bulk_xmit_cb write,
+			      bulk_size_t count);
+void bulk_handle_read_buffer(bulk_cid_t bulk,
+			     bulk_xmit_cb read,
+			     bulk_size_t count);
+
 #endif /* __BULK_H_INCLUDE__ */
