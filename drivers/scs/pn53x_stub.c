@@ -210,7 +210,7 @@ static void pn53x_poll_targets(uint8_t period)
 		driver = pn53x_stub_drivers[drv];
 		BUG_ON(!driver || !driver->get_info);
 		while (tg <= NR_PN53X_TARGETS) {
-			pn53x_targets[tg].nm = driver->nm;
+			pn53x_targets[tg-1].nm = driver->nm;
 			err = driver->get_info(tg, &pn53x_targets[tg-1].nti);
 			if (err == SCS_ERR_SUCCESS) {
 				tg++;
@@ -218,14 +218,14 @@ static void pn53x_poll_targets(uint8_t period)
 			}
 		}
 	}
-	pn53x_nr_targets = tg;
+	pn53x_nr_targets = tg-1;
 }
 
 void pn53x_response_InAutoPoll(void)
 {
 	uint8_t nr_poll;
 	uint8_t period;
-	uint8_t i;
+	uint8_t tg;
 	scs_off_t offset;
 
 	/* This command is requesting N times polling (N is indicated by PD1),
@@ -244,12 +244,12 @@ void pn53x_response_InAutoPoll(void)
 
 	offset = PN53X_PD(1);
 	pn53x_stub_resp[offset++] = pn53x_nr_targets;
-	for (i = 0; i < pn53x_nr_targets; i++) {
-		uint8_t size = pn53x_target_info_size(i);
+	for (tg = 1; tg <= pn53x_nr_targets; tg++) {
+		uint8_t size = pn53x_target_info_size(tg);
 		pn53x_stub_resp[offset++] =
-			pn53x_nm_to_ptt(pn53x_targets[i].nm);
+			pn53x_nm_to_ptt(pn53x_targets[tg-1].nm);
 		pn53x_stub_resp[offset++] = size;
-		pn53x_target_info_data(i, offset);
+		pn53x_target_info_data(tg, offset);
 		offset += size;
 	}
 	pn53x_build_frame(offset-PN53X_TFI);
@@ -427,7 +427,7 @@ void pn53x_response_RFConfiguration(void)
 
 void pn53x_response_InListPassiveTarget(void)
 {
-	uint8_t i;
+	uint8_t tg;
 	uint8_t modulation;
 	uint8_t max_targets, nr_targets;
 	scs_off_t offset;
@@ -448,11 +448,11 @@ void pn53x_response_InListPassiveTarget(void)
 	modulation = pn53x_stub_cmd[PN53X_PD(2)];
 	nr_targets = 0;
 	offset = PN53X_PD(2);
-	for (i = 0; i < pn53x_nr_targets; i++) {
-		if (pn53x_nm_to_pm(pn53x_targets[i].nm) == modulation) {
+	for (tg = 1; tg <= pn53x_nr_targets; tg++) {
+		if (pn53x_nm_to_pm(pn53x_targets[tg-1].nm) == modulation) {
 			nr_targets++;
-			pn53x_target_info_data(i, offset);
-			offset += pn53x_target_info_size(i);
+			pn53x_target_info_data(tg, offset);
+			offset += pn53x_target_info_size(tg);
 		}
 	}
 	pn53x_stub_resp[PN53X_PD(1)] = nr_targets;
