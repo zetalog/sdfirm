@@ -292,6 +292,9 @@ extern void spi_init(void);
 spi_t porting_spi;
 
 spi_device_t porting_spi_device = {
+	SPI_MODE_0,
+	SPI_FREQ_DEF,
+	0,
 };
 
 void porting_handler(uint8_t event)
