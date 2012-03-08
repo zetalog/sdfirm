@@ -180,9 +180,21 @@ static inline void __ssi##n##_hw_config_mode(uint8_t mode)		\
 			  __SSI_MODE_MASK<<__SSI_MODE_OFFSET,		\
 			  SSICR0(n));					\
 }									\
-static inline boolean __ssi##n##_hw_busy_raised(void)			\
+static inline boolean __ssi##n##_hw_io_idle(void)			\
 {									\
-	return __raw_testl_atomic(BSY, SSISR(n));			\
+	return !__raw_testl_atomic(BSY, SSISR(n));			\
+}									\
+static inline boolean __ssi##n##_hw_rx_full(void)			\
+{									\
+	return __raw_testl_atomic(RFF, SSISR(n));			\
+}									\
+static inline boolean __ssi##n##_hw_rx_empty(void)			\
+{									\
+	return !__raw_testl_atomic(RNE, SSISR(n));			\
+}									\
+static inline boolean __ssi##n##_hw_tx_full(void)			\
+{									\
+	return !__raw_testl_atomic(TNF, SSISR(n));			\
 }
 
 #endif /* __SSI_LM3S9B92_H_INCLUDE__ */

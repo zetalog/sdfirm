@@ -49,7 +49,7 @@ static inline void __ssi0_hw_config_pins(void)
 
 void spi_hw_write_byte(uint8_t byte)
 {
-	while (__ssi0_hw_busy_raised());
+	while (__ssi0_hw_tx_full());
 	if (__spi_hw_is_lsb())
 		byte = bitrev8(byte);
 	__ssi0_hw_write_byte(byte);
@@ -59,7 +59,7 @@ uint8_t spi_hw_read_byte(void)
 {
 	uint8_t byte;
 
-	while (__ssi0_hw_busy_raised());
+	while (__ssi0_hw_rx_empty());
 	byte = __ssi0_hw_read_byte();
 	if (__spi_hw_is_lsb())
 		byte = bitrev8(byte);
