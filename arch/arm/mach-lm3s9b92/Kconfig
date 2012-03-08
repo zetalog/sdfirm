@@ -200,7 +200,6 @@ config USB_LM3S9B92_FIFO_DOUBLE
 
 config USB_LM3S9B92_MAX_ISOS
 	int "Number of isochronous endpoints"
-	depends !USB_LM3S9B92_FIFO_DOUBLE
 	range 0 3
 	default 0
 
