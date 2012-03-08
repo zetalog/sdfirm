@@ -28,7 +28,6 @@
 #define __SSI_FRF_MICROWIRE	0x2
 #define __SSI_DSS_OFFSET	0
 #define __SSI_DSS_MASK		0xf
-#define __SSI_DSS_8BIT		0x7
 
 /* SSI Control 1 */
 #define SSICR1(n)		SSI(0x##n##004)
@@ -112,19 +111,15 @@ static inline void __ssi##n##_hw_config_frame(uint8_t type)		\
 			  __SSI_FRF_MASK<<(__SSI_FRF_OFFSET),		\
 			  SSICR0(n));					\
 }									\
-static inline void __ssi##n##_hw_config_8bit(void)			\
+static inline void __ssi##n##_hw_config_bits(uint8_t bits)		\
 {									\
-	__raw_writel_mask(__SSI_DSS_8BIT<<(__SSI_DSS_OFFSET),		\
+	__raw_writel_mask(((bits)-1)<<(__SSI_DSS_OFFSET),		\
 			  __SSI_DSS_MASK<<(__SSI_DSS_OFFSET),		\
 			  SSICR0(n));					\
 }									\
-static inline void __ssi##n##_hw_master_mode(void)			\
+static inline void __ssi##n##_hw_config_ctrl(uint8_t ctrl)		\
 {									\
-	__raw_setl_atomic(MS, SSICR1(n));				\
-}									\
-static inline void __ssi##n##_hw_loopback_mode(void)			\
-{									\
-	__raw_setl_atomic(LBM, SSICR1(n));				\
+	__raw_setl(ctrl, SSICR1(n));					\
 }									\
 static inline void __ssi##n##_hw_write_byte(uint8_t byte)		\
 {									\
@@ -140,13 +135,13 @@ static inline void __ssi##n##_hw_config_prescale(uint8_t prescale)	\
 }									\
 static inline  void __ssi##n##_hw_irq_enable_all(void)			\
 {									\
-	__raw_setl_atomic((TXIM | RXIM |				\
-				  RTIM | RORIM), SSIIM(n));		\
+	__raw_setl_atomic((TXIM | RXIM | RTIM | RORIM),			\
+			  SSIIM(n));					\
 }									\
 static inline void __ssi##n##_hw_irq_disable_all(void)			\
 {									\
-	__raw_clearl_atomic((TXIM | RXIM |				\
-				    RTIM | RORIM), SSIIM(n));		\
+	__raw_clearl_atomic((TXIM | RXIM | RTIM | RORIM),		\
+			    SSIIM(n));					\
 }									\
 static inline void __ssi##n##_hw_irq_enable(uint8_t irq)		\
 {									\

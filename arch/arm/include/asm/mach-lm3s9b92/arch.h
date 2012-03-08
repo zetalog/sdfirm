@@ -19,7 +19,7 @@
 /* flash memory */
 #include <driver/flash.h>
 
-#define PN53X_HW_SPI_CHIP	0x01
+#define BOARD_HW_SPI_PN53X	0x01
 #define BOARD_HW_MAX_POWER	500
 
 #endif /* __ARCH_LM3S9B92_H_INCLUDE__ */

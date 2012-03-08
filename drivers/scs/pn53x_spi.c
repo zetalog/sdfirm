@@ -16,9 +16,9 @@
 spi_t pn53x_spi;
 
 spi_device_t pn53x_spi_device = {
-	SPI_MODE_0,
+	(SPI_MODE_0 I SPI_LSB),
 	PN53X_SPI_FREQ,
-	PN53X_HW_SPI_CHIP,
+	BOARD_HW_SPI_PN53X,
 };
 
 void pn53x_hw_pm_resume(void)
