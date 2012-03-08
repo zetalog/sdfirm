@@ -104,6 +104,11 @@ config PORTING_UART
 	bool "UART"
 	select UART
 
+config PORTING_SPI
+	bool "SPI"
+	select SPI
+	select UART
+
 config PORTING_TASK
 	bool "task"
 	select TASK

@@ -10,8 +10,6 @@
 #include <asm/mach/timer.h>
 #include <asm/mach/tick.h>
 
-#define CLK_GPT32	CLK_SYS
-
 #ifdef CONFIG_GPT_LM3S9B92_16BITS
 #define CLK_GPT		CLK_GPT16
 #else

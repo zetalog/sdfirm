@@ -150,6 +150,7 @@ endif
 menuconfig SSI_LM3S9B92
 	bool "TI LM3S9B92 SSI controller support"
 	depends SPI
+	select BIT_FLS16
 	select ARCH_HAS_SPI
 	default y
 

@@ -307,4 +307,6 @@ LM3S9B92_PWM(n)
 #define LM3S9B92_PWM_32BIT(n)						\
 LM3S9B92_PWM(n)
 
+#define CLK_GPT32	CLK_SYS
+
 #endif /* __TIMER_LM3S9B92_H_INCLUDE__ */

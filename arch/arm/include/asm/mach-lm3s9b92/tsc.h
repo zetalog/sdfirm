@@ -7,7 +7,7 @@
 #include <asm/mach/mem.h>
 #include <asm/mach/clk.h>
 #include <asm/mach/tick.h>
-#include <asm/mach/gpt.h>
+#include <asm/mach/timer.h>
 
 #ifdef CONFIG_TSC_LM3S9B92_GPT1
 #define TSC_MAX				0xFFFFFFFF

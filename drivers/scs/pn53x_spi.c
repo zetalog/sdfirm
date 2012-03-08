@@ -1,6 +1,7 @@
 #include <driver/pn53x.h>
 #include <target/spi.h>
 #include <target/arch.h>
+#include <target/delay.h>
 
 /*
  * PN53X Classic SPI communication Preamble
@@ -20,6 +21,17 @@ spi_device_t pn53x_spi_device = {
 	PN53X_HW_SPI_CHIP,
 };
 
+void pn53x_hw_pm_resume(void)
+{
+	spi_select_device(pn53x_spi);
+	mdelay(1);
+}
+
+void pn53x_hw_pm_suspend(void)
+{
+	spi_deselect_device();
+}
+
 boolean pn53x_hw_poll_ready(void)
 {
 	spi_write_byte(PN53X_CMD_SR);
@@ -28,18 +40,18 @@ boolean pn53x_hw_poll_ready(void)
 
 void pn53x_hw_read_cmpl(scs_size_t ne)
 {
-	spi_deselect_device();
+	pn53x_hw_pm_suspend();
 }
 
 void pn53x_hw_write_cmpl(scs_size_t nc)
 {
-	spi_deselect_device();
+	pn53x_hw_pm_suspend();
 }
 
 uint8_t pn53x_hw_xchg_read(scs_off_t index)
 {
 	if (!index) {
-		spi_select_device(pn53x_spi);
+		pn53x_hw_pm_resume();
 		spi_write_byte(PN53X_CMD_DR);
 	}
 	return spi_read_byte();
@@ -48,7 +60,7 @@ uint8_t pn53x_hw_xchg_read(scs_off_t index)
 void pn53x_hw_xchg_write(scs_off_t index, uint8_t val)
 {
 	if (!index) {
-		spi_select_device(pn53x_spi);
+		pn53x_hw_pm_resume();
 		spi_write_byte(PN53X_CMD_DW);
 	}
 	spi_write_byte(val);

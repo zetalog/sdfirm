@@ -194,7 +194,7 @@ void porting_heap_test(void)
 
 	uart_putchar(HIBYTE(porting_heap_space));
 	uart_putchar(LOBYTE(porting_heap_space));
-	
+
 	mem = (uint32_t)heap_alloc(porting_heap_space);
 	mem2 = (uint32_t)heap_alloc(porting_heap_space);
 
@@ -275,6 +275,41 @@ void porting_handler(uint8_t event)
 void porting_init(void)
 {
 	delay_init();
+	porting_sid = state_register(porting_handler);
+	state_wakeup(porting_sid);
+}
+#endif
+
+#ifdef CONFIG_PORTING_SPI
+#include <target/spi.h>
+
+#ifdef CONFIG_SPI
+extern void spi_init(void);
+#else
+#define spi_init()
+#endif
+
+spi_t porting_spi;
+
+spi_device_t porting_spi_device = {
+};
+
+void porting_handler(uint8_t event)
+{
+	uint8_t i;
+	spi_select_device(porting_spi);
+	for (i = 0; i < 256; i++) {
+		spi_write_byte(i);
+		uart_putchar(spi_read_byte());
+	}
+	spi_deselect_device();
+	state_wakeup(porting_sid);
+}
+
+void porting_init(void)
+{
+	spi_init();
+	porting_spi = spi_register_device(&porting_spi_device);
 	porting_sid = state_register(porting_handler);
 	state_wakeup(porting_sid);
 }
