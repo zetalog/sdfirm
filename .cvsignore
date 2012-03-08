@@ -12,6 +12,9 @@ sdfirm.strip
 *.mem
 *.map
 *.usg
+*.omf
+*.cdb
+*.lk
 *.hex
 *.tar.gz
 cscope*
