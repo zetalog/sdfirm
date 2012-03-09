@@ -107,15 +107,8 @@ extern void led_init(void);
 #endif
 
 #ifdef CONFIG_PORTING_LED
-struct led_light {
-	led_no_t light;
-	uint8_t color;
-};
-
-#ifdef CONFIG_PORTING_LED_FLASH
-struct led_light flash_led = {
-	-1, 0,
-};
+led_no_t porting_led_light;
+uint8_t porting_led_count;
 
 #ifdef CONFIG_PORTING_LED_TIMER
 static void flash_restart_timer(void)
@@ -144,33 +137,19 @@ void flash_start_timer(void)
 
 void porting_led_run(void)
 {
-	flash_led.color++;
-	led_light_on(flash_led.light, flash_led.color & 0x01);
+	porting_led_count++;
+	if (porting_led_count & 0x01)
+		led_light_on(porting_led_light, 0);
+	else
+		led_light_off(porting_led_light);
 	flash_restart_timer();
 }
 
 void porting_led_init(void)
 {
-	flash_led.light = led_claim_light();
+	porting_led_light = led_claim_light();
 	flash_start_timer();
 }
-#else
-
-struct led_light solid_led = {
-	1, LED_COLOR_RED,
-};
-
-void porting_led_run(void)
-{
-	state_wakeup(porting_sid);
-}
-
-void porting_led_init(void)
-{
-	led_light_on(solid_led.light, solid_led.color);
-	state_wakeup(porting_sid);
-}
-#endif
 
 void porting_handler(uint8_t event)
 {

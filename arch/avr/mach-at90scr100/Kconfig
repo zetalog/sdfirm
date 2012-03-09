@@ -167,14 +167,6 @@ config USB_AT90SCR100_MAX_ENDPS
 
 endif
 
-menuconfig LED_AT90SCR100
-	bool "Atmel AT90SCR100 LED support"
-	depends LED
-	default y
-
-if LED_AT90SCR100
-endif
-
 menuconfig IFD_AT90SCR100
 	bool "Atmel AT90SCR100 smart card interface block (SCIB) support"
 	select ARCH_HAS_IFD

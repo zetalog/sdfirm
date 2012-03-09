@@ -138,13 +138,9 @@ config PORTING_TIMER
 
 endchoice
 
-config PORTING_LED_FLASH
-	bool "Enable flashing LED"
-	depends PORTING_LED
-
 config PORTING_LED_TIMER
 	bool "LED flashed by timer"
-	depends PORTING_LED_FLASH
+	depends PORTING_LED
 	select TIMER
 
 endif
