@@ -114,14 +114,14 @@ unsigned long gpio_hw_read_pin(uint8_t port, uint8_t pin)
 {
 	unsigned long reg;
 	reg = __gpio_hw_port_reg(port, GPIODATA);
-	return __raw_readl(reg + (_BV(pin) << 2));
+	return __raw_readl(reg + (_BV(pin) << 2)) >> pin;
 }
 
 void gpio_hw_write_pin(uint8_t port, uint8_t pin, unsigned long val)
 {
 	unsigned long reg;
 	reg = __gpio_hw_port_reg(port, GPIODATA);
-	__raw_writel(val, reg + (_BV(pin) << 2));
+	__raw_writel(val << pin, reg + (_BV(pin) << 2));
 }
 
 void gpio_hw_ctrl_init(void)
