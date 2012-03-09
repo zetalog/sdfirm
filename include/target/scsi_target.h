@@ -81,7 +81,7 @@ struct scsi_transport {
 
 	/* bulk IO transports */
 	uint8_t (*bulk_type)(void);
-	bulk_size_t (*bulk_size)(uint8_t type);
+	bulk_size_t (*bulk_size)(void);
 
 	/* char transfer APIs */
 	bulk_open_cb open;

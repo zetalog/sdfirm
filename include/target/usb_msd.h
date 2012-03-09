@@ -115,7 +115,7 @@ uint8_t msd_proto_get_dir(void);
 #define msd_proto_bulk_write	usbd_bulk_in
 #define msd_proto_bulk_read	usbd_bulk_out
 uint8_t msd_proto_bulk_type(void);
-bulk_size_t msd_proto_bulk_size(uint8_t type);
+bulk_size_t msd_proto_bulk_size(void);
 boolean msd_proto_bulk_idle(void);
 
 void msd_class_init(void);

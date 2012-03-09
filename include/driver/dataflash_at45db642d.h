@@ -14,7 +14,7 @@
 mtd_size_t dataflash_hw_page_size(void);
 #define DATAFLASH_HW_PAGE_SIZE		1056
 #define DATAFLASH_HW_MAX_PAGES		8192
-#define DATAFLASH_HW_MAX_FREQ		50000
+#define DATAFLASH_HW_MAX_FREQ		66000
 #define DATAFLASH_HW_SPI_MODE		(SPI_MSB | SPI_MODE_3)
 
 void dataflash_hw_chip_init(void);
