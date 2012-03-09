@@ -34,8 +34,13 @@ void pn53x_hw_pm_suspend(void)
 
 boolean pn53x_hw_poll_ready(void)
 {
+	boolean ready;
+
+	pn53x_hw_pm_resume();
 	spi_write_byte(PN53X_CMD_SR);
-	return ((spi_read_byte() & 0x01) ? true : false);
+	ready = ((spi_read_byte() & 0x01) ? true : false);
+	if (!ready)
+		pn53x_hw_pm_suspend();
 }
 
 void pn53x_hw_read_cmpl(scs_size_t ne)
@@ -51,7 +56,6 @@ void pn53x_hw_write_cmpl(scs_size_t nc)
 uint8_t pn53x_hw_xchg_read(scs_off_t index)
 {
 	if (!index) {
-		pn53x_hw_pm_resume();
 		spi_write_byte(PN53X_CMD_DR);
 	}
 	return spi_read_byte();
