@@ -47,6 +47,7 @@
 #include <target/usb_scd.h>
 #include <target/lcd.h>
 #include <target/kbd.h>
+#include <target/ccid_spe.h>
 
 #define CCID_XCHG_IS_LEVEL(xchg)	\
 	((ccid_device_features() & SCD_FEATURE_XCHG_MASK) == xchg)

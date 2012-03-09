@@ -84,8 +84,6 @@ struct ccid_fd_param {
 	uint32_t dwDataRate;
 };
 
-#include <target/ccid_spe.h>
-
 /* maximum busy slots in CCID layer */
 #define NR_SCD_SLOTS			NR_IFD_SLOTS
 #define scd_sid				ifd_slid
