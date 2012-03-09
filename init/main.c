@@ -142,44 +142,46 @@ void flash_start_timer(void)
 }
 #endif
 
-void flash_run(void)
+void porting_led_run(void)
 {
 	flash_led.color++;
 	led_light_on(flash_led.light, flash_led.color & 0x01);
 	flash_restart_timer();
 }
 
-void flash_init(void)
+void porting_led_init(void)
 {
 	flash_led.light = led_claim_light();
-	state_wakeup(porting_sid);
 	flash_start_timer();
 }
 #else
-#define flash_init()
-#define flash_run()
-#endif
 
 struct led_light solid_led = {
 	1, LED_COLOR_RED,
 };
 
-void porting_handler(uint8_t event)
+void porting_led_run(void)
 {
-	flash_run();
+	state_wakeup(porting_sid);
 }
 
-void solid_init(void)
+void porting_led_init(void)
 {
 	led_light_on(solid_led.light, solid_led.color);
+	state_wakeup(porting_sid);
+}
+#endif
+
+void porting_handler(uint8_t event)
+{
+	porting_led_run();
 }
 
 void porting_init(void)
 {
 	led_init();
-	flash_init();
-	solid_init();
 	porting_sid = state_register(porting_handler);
+	porting_led_init();
 }
 #endif
 
