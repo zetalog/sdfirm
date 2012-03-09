@@ -170,7 +170,7 @@ void scsi_command_done(uint8_t status)
 static void scsi_cmnd_init(void)
 {
 	scsi_current_cmnd.crn = scsi_crn;
-	scsi_current_cmnd.bulk = bulk_set_buffer(scsi_current_cmnd.data_buffer,
+	scsi_current_cmnd.bulk = bulk_alloc_fifo(scsi_current_cmnd.data_buffer,
 						 SCSI_MAX_BUFFER);
 	__scsi_cmnd_init();
 }

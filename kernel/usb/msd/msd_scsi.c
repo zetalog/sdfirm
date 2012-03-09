@@ -149,7 +149,6 @@ scsi_transport_t msd_scsi_xprt = {
 	msd_scsi_inquiry,
 	msd_scsi_command_cmpl,
 
-	msd_proto_bulk_type,
 	msd_proto_bulk_size,
 	msd_proto_bulk_open,
 	msd_proto_bulk_close,

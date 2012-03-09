@@ -27,8 +27,6 @@ struct bulk {
 	bulk_size_t length;
 	ASSIGN_CIRCBF16_MEMBER(buffer);
 
-	uint8_t flags;
-
 	bulk_size_t rflush;
 	bulk_size_t wflush;
 
@@ -46,9 +44,6 @@ struct bulk bulk_channels[NR_BULK_CHANS];
 DECLARE_BITMAP(bulk_chan_regs, NR_BULK_CHANS);
 sid_t bulk_sid = INVALID_SID;
 
-#define bulk_is_type(bulk, type)					\
-	((bulk_channels[bulk].flags & BULK_TYPE_MASK) == type)
-
 static void bulk_def_open(size_t size)
 {
 }
@@ -62,7 +57,7 @@ static boolean bulk_def_space(void)
 	return true;
 }
 
-bulk_cid_t bulk_set_buffer(uint8_t *buffer, bulk_size_t length)
+bulk_cid_t bulk_alloc_fifo(uint8_t *buffer, bulk_size_t length)
 {
 	bulk_cid_t bulk;
 
@@ -76,13 +71,12 @@ bulk_cid_t bulk_set_buffer(uint8_t *buffer, bulk_size_t length)
 	return bulk;
 }
 
-void bulk_flush_buffer(bulk_cid_t bulk, uint8_t type)
+void bulk_reset_fifo(bulk_cid_t bulk)
 {
 	INIT_CIRCBF_DECLARE(&(bulk_channels[bulk].buffer));
-	bulk_channels[bulk].flags = type;
 }
 
-void bulk_clear_buffer(bulk_cid_t bulk)
+void bulk_free_fifo(bulk_cid_t bulk)
 {
 	BUG_ON(bulk >= NR_BULK_CHANS);
 	bulk_channels[bulk].length = 0;
@@ -129,55 +123,29 @@ bulk_size_t bulk_write_buffer(bulk_cid_t bulk,
 	return ret;
 }
 
-void bulk_dma_read(bulk_cid_t bulk, bulk_size_t flush,
-		   bulk_xmit_cb read, bulk_space_cb space)
+void bulk_config_read_byte(bulk_cid_t bulk, bulk_size_t flush,
+			   bulk_open_cb open,
+			   bulk_read_cb read,
+			   bulk_close_cb close)
 {
-	BUG_ON(!bulk_is_type(bulk, BULK_TYPE_DMA));
-	BUG_ON(flush > (bulk_channels[bulk].length>>1));
-	/* Block size 'flush' must be a power of two. */
-	BUG_ON((flush & ((1<<__fls16(flush))-1)) != 0);
-	bulk_channels[bulk].rflush = flush;
-	bulk_channels[bulk].r.b.read = read;
-	bulk_channels[bulk].r.b.space = space ? space : bulk_def_space;
-}
-
-void bulk_cpu_read(bulk_cid_t bulk, bulk_size_t flush,
-		   bulk_open_cb open,
-		   bulk_read_cb read,
-		   bulk_close_cb close)
-{
-	BUG_ON(!bulk_is_type(bulk, BULK_TYPE_CPU));
 	bulk_channels[bulk].rflush = flush;
 	bulk_channels[bulk].r.c.read = read;
 	bulk_channels[bulk].r.c.open = open ? open : bulk_def_open;
 	bulk_channels[bulk].r.c.close = close ? close : bulk_def_close;
 }
 
-void bulk_dma_write(bulk_cid_t bulk, bulk_size_t flush,
-		    bulk_xmit_cb write, bulk_space_cb space)
+void bulk_config_write_byte(bulk_cid_t bulk, bulk_size_t flush,
+			    bulk_open_cb open,
+			    bulk_write_cb write,
+			    bulk_close_cb close)
 {
-	BUG_ON(!bulk_is_type(bulk, BULK_TYPE_DMA));
-	BUG_ON(flush > (bulk_channels[bulk].length>>1));
-	/* Block size 'flush' must be a power of two. */
-	BUG_ON((flush & ((1<<__fls16(flush))-1)) != 0);
-	bulk_channels[bulk].wflush = flush;
-	bulk_channels[bulk].w.b.write = write;
-	bulk_channels[bulk].w.b.space = space ? space : bulk_def_space;
-}
-
-void bulk_cpu_write(bulk_cid_t bulk, bulk_size_t flush,
-		    bulk_open_cb open,
-		    bulk_write_cb write,
-		    bulk_close_cb close)
-{
-	BUG_ON(!bulk_is_type(bulk, BULK_TYPE_CPU));
 	bulk_channels[bulk].wflush = flush;
 	bulk_channels[bulk].w.c.write = write;
 	bulk_channels[bulk].w.c.open = open ? open : bulk_def_open;
 	bulk_channels[bulk].w.c.close = close ? close : bulk_def_close;
 }
 
-void bulk_cpu_execute(bulk_cid_t bulk, size_t size)
+void bulk_transfer_sync(bulk_cid_t bulk, size_t size)
 {
 	bulk_read_cb read_byte = bulk_channels[bulk].r.c.read;
 	bulk_write_cb write_byte = bulk_channels[bulk].w.c.write;
@@ -186,8 +154,6 @@ void bulk_cpu_execute(bulk_cid_t bulk, size_t size)
 	bulk_size_t witer, riter;
 	size_t iter = 0;
 	bulk_size_t wchunk, rchunk;
-
-	BUG_ON(!bulk_is_type(bulk, BULK_TYPE_CPU));
 
 	while (size-iter) {
 		if (rflush < wflush) {
@@ -220,45 +186,8 @@ void bulk_cpu_execute(bulk_cid_t bulk, size_t size)
 	}
 }
 
-void bulk_dma_execute(bulk_cid_t bulk, size_t size)
+bulk_cid_t bulk_register_channel(bulk_channel_t *chan)
 {
-	ASSIGN_CIRCBF16_REF(buffer, circbf, &bulk_channels[bulk].buffer);
-	bulk_size_t length = bulk_channels[bulk].length;
-	bulk_size_t rflush = bulk_channels[bulk].rflush;
-	bulk_size_t wflush = bulk_channels[bulk].wflush;
-	size_t wsize = 0, rsize = 0;
-	bulk_size_t wwait = 0, rwait = 0;
-
-	BUG_ON(!bulk_is_type(bulk, BULK_TYPE_DMA));
-
-	/* Initial tuning block size. */
-	while ((wsize < size) || (rsize < size)) {
-		if ((wsize < size) && bulk_channels[bulk].w.b.space()) {
-			if (wwait) {
-				circbf_write(circbf, length, wwait);
-				wsize += wwait;
-				wwait = 0;
-			}
-			if (circbf_space(circbf, length) >= wflush) {
-				wwait = (bulk_size_t)min((size_t)wflush, size-wsize);
-				bulk_channels[bulk].w.b.write(circbf_wpos(circbf), wwait);
-			}
-		}
-		if ((rsize < size) && bulk_channels[bulk].r.b.space()) {
-			if (rwait) {
-				circbf_read(circbf, length, rwait);
-				rsize += rwait;
-				rwait = 0;
-			}
-			if (circbf_count(circbf, length) >= rflush) {
-				rwait = (bulk_size_t)min((size_t)rflush, size-rsize);
-				bulk_channels[bulk].r.b.read(circbf_rpos(circbf), rwait);
-			}
-		}
-	}
-
-	/* Wait for the completion of both sides. */
-	while (!bulk_channels[bulk].w.b.space() || !bulk_channels[bulk].r.b.space());
 }
 
 void bulk_handle_write_byte(bulk_cid_t bulk,

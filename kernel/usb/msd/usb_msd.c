@@ -147,11 +147,6 @@ static uint16_t msd_config_length(void)
 	return 0;
 }
 
-uint8_t msd_proto_bulk_type(void)
-{
-	return BULK_TYPE_CPU;
-}
-
 bulk_size_t msd_proto_bulk_size(void)
 {
 	return usbd_endpoint_size();

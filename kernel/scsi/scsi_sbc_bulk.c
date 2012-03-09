@@ -24,11 +24,11 @@ sbc_lun_t sbc_save_lun(sbc_lun_t lun)
 	return olun;
 }
 
-static bulk_size_t sbc_bulkio_init(uint8_t open_type, uint8_t bulk_type)
+static bulk_size_t sbc_bulkio_init(uint8_t open_type)
 {
 	sbc_bulkios[sbc_lun].iter = 0;
 	sbc_bulkios[sbc_lun].open_type = open_type;
-	bulk_reset_buffer(scsi_current_cmnd.bulk, bulk_type);
+	bulk_reset_fifo(scsi_current_cmnd.bulk);
 	return sbc_bulkios[sbc_lun].optimal_size;
 }
 
@@ -93,25 +93,24 @@ void sbc_read10_send(void)
 	size_t bulk_total;
 
 	olun = sbc_save_lun(lun);
-	if (scsi_target_xprt->bulk_type() == BULK_TYPE_CPU) {
-		block_size = sbc_bulkio_init(OPEN_READ, BULK_TYPE_CPU);
-		xprt_size = scsi_target_xprt->bulk_size();
-		bulk_cpu_write(scsi_current_cmnd.bulk,
+
+	block_size = sbc_bulkio_init(OPEN_READ);
+	xprt_size = scsi_target_xprt->bulk_size();
+	bulk_config_write_byte(scsi_current_cmnd.bulk,
 			       xprt_size,
 			       scsi_target_xprt->open,
 			       scsi_target_xprt->byte_in,
 			       scsi_target_xprt->close);
-		bulk_cpu_read(scsi_current_cmnd.bulk,
+	bulk_config_read_byte(scsi_current_cmnd.bulk,
 			      block_size,
 			      sbc_bulk_open,
 			      sbc_devices[lun]->read_byte,
 			      sbc_bulk_close);
-		bulk_total = (scsi_current_cmnd.expect_length) <<
-			     (scsi_current_cmnd.expect_granularity);
-		bulk_cpu_execute(scsi_current_cmnd.bulk, bulk_total);
-		sbc_bulkio_exit(block_size);
-	} else {
-	}
+	bulk_total = (scsi_current_cmnd.expect_length) <<
+		     (scsi_current_cmnd.expect_granularity);
+	bulk_transfer_sync(scsi_current_cmnd.bulk, bulk_total);
+	sbc_bulkio_exit(block_size);
+
 	sbc_restore_lun(olun);
 }
 
@@ -141,25 +140,24 @@ static void sbc_write10_recv(void)
 	size_t bulk_total;
 
 	olun = sbc_save_lun(lun);
-	if (scsi_target_xprt->bulk_type() == BULK_TYPE_CPU) {
-		block_size = sbc_bulkio_init(OPEN_READ, BULK_TYPE_CPU);
-		xprt_size = scsi_target_xprt->bulk_size();
-		bulk_cpu_read(scsi_current_cmnd.bulk,
+
+	block_size = sbc_bulkio_init(OPEN_READ);
+	xprt_size = scsi_target_xprt->bulk_size();
+	bulk_config_read_byte(scsi_current_cmnd.bulk,
 			      xprt_size,
 			      scsi_target_xprt->open,
 			      scsi_target_xprt->byte_out,
 			      scsi_target_xprt->close);
-		bulk_cpu_write(scsi_current_cmnd.bulk,
+	bulk_config_write_byte(scsi_current_cmnd.bulk,
 			       block_size,
 			       sbc_bulk_open,
 			       sbc_devices[lun]->write_byte,
 			       sbc_bulk_close);
-		bulk_total = (scsi_current_cmnd.expect_length) <<
-			     (scsi_current_cmnd.expect_granularity);
-		bulk_cpu_execute(scsi_current_cmnd.bulk, bulk_total);
-		sbc_bulkio_exit(block_size);
-	} else {
-	}
+	bulk_total = (scsi_current_cmnd.expect_length) <<
+		     (scsi_current_cmnd.expect_granularity);
+	bulk_transfer_sync(scsi_current_cmnd.bulk, bulk_total);
+	sbc_bulkio_exit(block_size);
+
 	sbc_restore_lun(olun);
 }
 

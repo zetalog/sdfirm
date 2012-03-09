@@ -45,9 +45,9 @@ uart_pid_t uart_startup(uint8_t *inbuf, int inlen,
 			uart_port_select(pid);
 			port = uart_ports[uart_pid];
 			uart_states[uart_pid].bulk_out =
-				bulk_set_buffer(outbuf, outlen);
+				bulk_alloc_fifo(outbuf, outlen);
 			uart_states[uart_pid].bulk_in =
-				bulk_set_buffer(inbuf, inlen);
+				bulk_alloc_fifo(inbuf, inlen);
 			BUG_ON(!port || !port->startup);
 			port->startup();
 			set_bit(pid, uart_port_regs);
@@ -66,8 +66,8 @@ void uart_cleanup(uart_pid_t pid)
 	port = uart_ports[uart_pid];
 	BUG_ON(!port || !port->cleanup);
 	port->cleanup();
-	bulk_clear_buffer(uart_states[uart_pid].bulk_out);
-	bulk_clear_buffer(uart_states[uart_pid].bulk_in);
+	bulk_free_fifo(uart_states[uart_pid].bulk_out);
+	bulk_free_fifo(uart_states[uart_pid].bulk_in);
 	clear_bit(pid, uart_port_regs);
 }
 

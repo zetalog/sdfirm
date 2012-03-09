@@ -80,7 +80,6 @@ struct scsi_transport {
 	void (*cmnd_cmpl)(void);
 
 	/* bulk IO transports */
-	uint8_t (*bulk_type)(void);
 	bulk_size_t (*bulk_size)(void);
 
 	/* char transfer APIs */
