@@ -31,9 +31,6 @@
 #define NR_LED_HW_COLORS	1
 #endif
 
-#define LED_COLOR_GREEN		0
-#define LED_COLOR_RED		1
-
 typedef uint8_t led_no_t;
 
 #define led_hw_ctrl_init()	(LED_DDR |= LED_MASK)
