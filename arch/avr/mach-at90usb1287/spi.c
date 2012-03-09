@@ -98,16 +98,12 @@ void spi_hw_deselect_chips(void)
 void spi_hw_chip_select(uint8_t chip)
 {
 	spi_hw_deselect_chips();
-#ifdef SPI_CHIP_DATAFLASH0
-	if (chip == SPI_CHIP_DATAFLASH0) {
+	if (chip == SPI_CS_0) {
 		PORTE &= ~_BV(PINE0);
 	}
-#endif
-#ifdef SPI_CHIP_DATAFLASH1
-	if (chip == SPI_CHIP_DATAFLASH1) {
+	if (chip == SPI_CS_1) {
 		PORTE &= ~_BV(PINE1);
 	}
-#endif
 }
 
 void spi_hw_ctrl_stop(void)
@@ -117,7 +113,10 @@ void spi_hw_ctrl_stop(void)
 
 void spi_hw_config_freq(uint32_t khz)
 {
-	uint8_t div = div16u(CLK_OSC, khz);
+	uint8_t div;
+
+	BUG_ON(khz > SPI_MAX_FREQ);
+	div = div16u(CLK_OSC, khz);
 	__spi_hw_config_clock(div);
 }
 

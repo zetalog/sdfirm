@@ -9,6 +9,16 @@
 #error "Multiple SPI controller defined"
 #endif
 
+/*
+ * The frequency of the output clock SSIClk is defined by:
+ * SSIClk = SysClk / (CPSDVSR * (1 + SCR))
+ * Where:
+ *  CPSDVSR from 2 to 254
+ *  SCR+1 from 1 to 256
+ * Thus:
+ *  Maximum SSIClk could be SysClk/(2*1)
+ */
+#define SPI_HW_MAX_FREQ		(CLK_SYS / 2)
 
 void spi_hw_write_byte(uint8_t byte);
 uint8_t spi_hw_read_byte(void);

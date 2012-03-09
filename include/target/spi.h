@@ -37,13 +37,7 @@ typedef struct spi_device spi_device_t;
 #define spi_mode(mode)	(mode&SPI_MODE_MASK)
 #define INVALID_SPI_MODE	0x04
 
-#ifdef CONFIG_SPI_MASTER
-#ifdef SPI_HW_FREQ
-#define SPI_FREQ_DEF	SPI_HW_FREQ
-#else
-#error "SPI bus frequency not defined"
-#endif
-#endif
+#define SPI_MAX_FREQ	SPI_HW_MAX_FREQ
 
 void spi_write_byte(uint8_t byte);
 uint8_t spi_read_byte(void);

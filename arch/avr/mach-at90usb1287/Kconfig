@@ -102,34 +102,6 @@ menuconfig SPI_AT90USB1287
 
 if SPI_AT90USB1287
 
-choice
-	prompt "SPI bus frequency"
-	depends SPI_MASTER
-	default SPI_AT90USB1287_FREQ_4M
-
-config SPI_AT90USB1287_FREQ_8M
-	bool "8MHz"
-
-config SPI_AT90USB1287_FREQ_4M
-	bool "4MHz"
-
-config SPI_AT90USB1287_FREQ_2M
-	bool "2MHz"
-
-config SPI_AT90USB1287_FREQ_1M
-	bool "1MHz"
-
-config SPI_AT90USB1287_FREQ_500K
-	bool "500KHz"
-
-config SPI_AT90USB1287_FREQ_250K
-	bool "250KHz"
-
-config SPI_AT90USB1287_FREQ_125K
-	bool "125KHz"
-
-endchoice
-
 endif
 
 menuconfig USB_AT90USB1287

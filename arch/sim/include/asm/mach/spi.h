@@ -10,7 +10,7 @@
 #error "Multiple SPI controller defined"
 #endif
 
-#define SPI_HW_FREQ		4000
+#define SPI_HW_MAX_FREQ		4000
 
 void spi_hw_write_byte(uint8_t byte);
 uint8_t spi_hw_read_byte(void);

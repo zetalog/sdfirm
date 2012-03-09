@@ -293,7 +293,7 @@ spi_t porting_spi;
 
 spi_device_t porting_spi_device = {
 	SPI_MODE_0,
-	SPI_FREQ_DEF,
+	SPI_MAX_FREQ,
 	0,
 };
 

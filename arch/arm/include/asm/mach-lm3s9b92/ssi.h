@@ -11,8 +11,6 @@
 #define SSI_BASE		0x40008000
 #define SSI(offset)		(SSI_BASE + offset)
 
-#define SPI_HW_FREQ		2000
-
 /* SSI Control 0 */
 #define SSICR0(n)		SSI(0x##n##000)
 #define __SSI_SCR_OFFSET	8

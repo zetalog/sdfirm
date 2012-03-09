@@ -8,7 +8,7 @@
 #endif
 
 #ifndef ARCH_HAVE_SPI
-#define SPI_HW_FREQ	0
+#define SPI_HW_MAX_FREQ		0
 #define spi_hw_config_mode(mode)
 #define spi_hw_config_freq(khz)
 #define spi_hw_read_byte()	0x00

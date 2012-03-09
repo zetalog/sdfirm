@@ -30,9 +30,8 @@ void __spi_config_master(uint32_t khz, uint8_t mode)
 {
 	spi_last_mode = mode;
 	spi_hw_ctrl_stop();
-	/* BUG_ON(SPI_FREQ_DEF > khz); */
 	spi_hw_config_mode(mode);
-	spi_hw_config_freq(SPI_FREQ_DEF);
+	spi_hw_config_freq(min(khz, SPI_MAX_FREQ));
 	spi_hw_ctrl_start();
 }
 
@@ -54,5 +53,5 @@ void spi_select_device(spi_t spi)
 void spi_init(void)
 {
 	spi_hw_ctrl_init();
-	spi_config_master(SPI_FREQ_DEF, 0);
+	spi_config_master(SPI_MAX_FREQ, 0);
 }

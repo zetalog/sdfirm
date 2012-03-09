@@ -62,8 +62,8 @@
 #define PIN_SS			PINB0
 
 /* chip selection configuration */
-#define SPI_CHIP_DATAFLASH0	0
-#define SPI_CHIP_DATAFLASH1	1
+#define SPI_CS_0		0
+#define SPI_CS_1		1
 
 /* SPI IRQ control */
 #define __spi_hw_is_wcol(status)	(status & _BV(WCOL))
@@ -76,28 +76,7 @@
 #define __spi_hw_irq_enable()	(SPCR |=  (_BV(SPIE))
 #define __spi_hw_irq_disable()	(SPCR &= ~(_BV(SPIE))
 
-#ifdef CONFIG_SPI_AT90USB1287_FREQ_8M
-#define SPI_HW_FREQ		8000
-#endif
-#ifdef CONFIG_SPI_AT90USB1287_FREQ_4M
-#define SPI_HW_FREQ		4000
-#endif
-#ifdef CONFIG_SPI_AT90USB1287_FREQ_2M
-#define SPI_HW_FREQ		2000
-#endif
-#ifdef CONFIG_SPI_AT90USB1287_FREQ_1M
-#define SPI_HW_FREQ		1000
-#endif
-#ifdef CONFIG_SPI_AT90USB1287_FREQ_500K
-#define SPI_HW_FREQ		500
-#endif
-#ifdef CONFIG_SPI_AT90USB1287_FREQ_250K
-#define SPI_HW_FREQ		250
-#endif
-#ifdef CONFIG_SPI_AT90USB1287_FREQ_125K
-#define SPI_HW_FREQ		125
-#endif
-/* SPR = 128 is not suitable */
+#define SPI_HW_MAX_FREQ		(CLK_OSC/2)
 
 #define __spi_hw_write_byte(byte)		\
 	({SPDR = byte; while ((SPSR & (1<<SPIF)) == 0);})

@@ -1,7 +1,6 @@
 #include <target/spi.h>
 #include <target/arch.h>
 
-#define MAX_SSI_CLK	(CLK_SYS / 2)
 #ifdef CONFIG_PORTING_SPI
 #define __SPI_HW_LBM	_BV(LBM)
 #else
@@ -99,16 +98,19 @@ void spi_hw_ctrl_stop(void)
 
 void spi_hw_config_freq(uint32_t khz)
 {
-	/*
+	uint16_t clk;
+	uint16_t div, mod, fls;
+	uint8_t cpsdvsr, scr;
+
+	BUG_ON(khz > SPI_HW_MAX_FREQ);
+
+	/* The calculation is based on the following definitions:
+	 *
 	 * SSICLK = SysClk / (CPSDVSR * (1 + SCR)) ->
 	 * CPSDVSR * (1 + SCR) = SysClk / SSICLK ->
 	 * CPSDVSR * (1 + SCR) = CLK_SYS / khz = clk
 	 */
-	uint16_t clk = (div32u(CLK_SYS, khz) & 0xfffe);
-	uint16_t div, mod, fls;
-	uint8_t cpsdvsr, scr;
-
-	clk = min(MAX_SSI_CLK, clk);
+	clk = (div32u(CLK_SYS, khz) & 0xfffe);
 	fls = __fls16(clk);
 	div = div16u(fls, 2);
 	mod = mod16u(fls, 2);

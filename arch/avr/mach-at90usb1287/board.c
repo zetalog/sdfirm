@@ -49,9 +49,9 @@ void appl_dataflash_chip(uint8_t chip)
 
 void appl_dataflash_init(void)
 {
-	appl_dataflash_chip(SPI_CHIP_DATAFLASH0);
+	appl_dataflash_chip(SPI_CS_0);
 #if DATAFLASH_MAX_BANKS > 1
-	appl_dataflash_chip(SPI_CHIP_DATAFLASH1);
+	appl_dataflash_chip(SPI_CS_1);
 	board_mtd = mtd_concat_devices(board_flashes, nr_board_flashes);
 #else
 	board_mtd = board_flashes[0];
