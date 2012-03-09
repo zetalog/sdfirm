@@ -50,7 +50,7 @@ void spi_hw_write_byte(uint8_t byte)
 {
 	if (__spi_hw_is_lsb())
 		byte = bitrev8(byte);
-	while (!__ssi0_hw_io_idle());
+	while (!__ssi0_hw_tx_full());
 	__ssi0_hw_write_byte(byte);
 }
 
@@ -58,7 +58,7 @@ uint8_t spi_hw_read_byte(void)
 {
 	uint8_t byte;
 
-	while (!__ssi0_hw_io_idle());
+	while (__ssi0_hw_rx_empty());
 	byte = __ssi0_hw_read_byte();
 	if (__spi_hw_is_lsb())
 		byte = bitrev8(byte);
