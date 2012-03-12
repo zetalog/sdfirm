@@ -29,8 +29,9 @@
 	__raw_setl((_BV(ENABLE) | SYSTICK_HW_CONFIG), STCTRL)
 #define __systick_hw_write_reload(c)	\
 	__raw_writel((c & SYSTICK_HW_MAX_COUNT), STRELOAD)
-#define __systick_hw_write_current(c)	\
-	__raw_writel((c & SYSTICK_HW_MAX_COUNT), STCURRENT)
+/* STCURRENT is a clear-on-write register */
+#define __systick_hw_clear_current()	\
+	__raw_writel(0, STCURRENT)
 #define __systick_hw_read_current()	\
 	(__raw_readl(STCURRENT) & SYSTICK_HW_MAX_COUNT)
 
