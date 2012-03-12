@@ -52,12 +52,12 @@ Sfr(PLLDIV,	0xA4);
 #define CLK_CPU			48	/* M */
 #endif
 #endif
-#ifdef CONFIG_CPU_AT8XC5122_OSC
-#ifdef CONFIG_OSC_AT8XC5122_FREQ_24M
+#ifdef CONFIG_CPU_AT8XC5122_XTAL
+#ifdef CONFIG_XTAL_AT8XC5122_FREQ_24M
 #define CLK_XTAL1		24	/* M */
 #define PLLDIV_RN		0x20
 #endif
-#ifdef CONFIG_OSC_AT8XC5122_FREQ_48M
+#ifdef CONFIG_XTAL_AT8XC5122_FREQ_48M
 #define CLK_XTAL1		48	/* M */
 #define PLLDIV_RN		0x10
 #endif

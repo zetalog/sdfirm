@@ -12,21 +12,21 @@ choice
 config CPU_AT8XC5122_PLL
 	bool "PLL"
 
-config CPU_AT8XC5122_OSC
-	bool "On-chip oscillator"
+config CPU_AT8XC5122_XTAL
+	bool "External crystal"
 	depends EXPERIMENTAL
 
 endchoice
 
 choice
-	prompt "On-chip oscillator frequency"
-	depends CPU_AT8XC5122_OSC
+	prompt "External crystal frequency"
+	depends CPU_AT8XC5122_XTAL
 
-config OSC_AT8XC5122_FREQ_24M
+config XTAL_AT8XC5122_FREQ_24M
 	depends !USB_AT8XC5122
 	bool "24M"
 
-config OSC_AT8XC5122_FREQ_48M
+config XTAL_AT8XC5122_FREQ_48M
 	bool "48M"
 
 endchoice
