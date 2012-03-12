@@ -93,6 +93,15 @@
 #define __UART_HW_FBRD_OFFSET	6
 #define __UART_HW_FBRD_MASK	((1<<__UART_HW_FBRD_OFFSET)-1)
 
+/* GPIO PIN A0 */
+#define GPIOA0_MUX_U0RX		0x01
+/* GPIO PIN A1 */
+#define GPIOA1_MUX_U0TX		0x01
+/* GPIO PIN B4 */
+#define GPIOB4_MUX_U1RX		0x05
+/* GPIO PIN B5 */
+#define GPIOB5_MUX_U1TX		0x05
+
 #define LM3S9B92_UART(n)						\
 static inline uint32_t __uart##n##_hw_config_param(uint8_t params)	\
 {									\

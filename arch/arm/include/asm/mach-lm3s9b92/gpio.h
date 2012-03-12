@@ -82,44 +82,6 @@
  *=======================================================================*/
 #define GPIO_MUX_NONE		0
 
-/* GPIO PIN A0 */
-#define GPIOA0_MUX_U0RX		0x01
-#define GPIOA0_MUX_I2C1SCL	0x08
-
-/* GPIO PIN A1 */
-#define GPIOA1_MUX_U0TX		0x01
-#define GPIOA1_MUX_I2C1SDA	0x08
-
-/* GPIO PIN A2 */
-#define GPIOA2_MUX_SSI0CLK	0x01
-
-/* GPIO PIN A3 */
-#define GPIOA3_MUX_SSI0FSS	0x01
-
-/* GPIO PIN A4 */
-#define GPIOA4_MUX_SSI0RX	0x01
-
-/* GPIO PIN A5 */
-#define GPIOA5_MUX_SSI0TX	0x01
-
-/* GPIO PIN B4 */
-#define GPIOB4_MUX_U1RX		0x05
-
-/* GPIO PIN B5 */
-#define GPIOB5_MUX_U1TX		0x05
-
-/* GPIO PIN E0 */
-#define GPIOE0_MUX_SSI1CLK	0x02
-
-/* GPIO PIN E1 */
-#define GPIOE1_MUX_SSI1FSS	0x02
-
-/* GPIO PIN E2 */
-#define GPIOE2_MUX_SSI1RX	0x02
-
-/* GPIO PIN E3 */
-#define GPIOE3_MUX_SSI1TX	0x02
-
 /*=========================================================================
  * GPIO pad configuration
  *=======================================================================*/

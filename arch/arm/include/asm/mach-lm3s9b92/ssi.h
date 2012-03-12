@@ -96,6 +96,23 @@
 #define SSIPCellID2(n)		SSI(0x##n##FF8)
 #define SSIPCellID3(n)		SSI(0x##n##FFC)
 
+/* GPIO PIN A2 */
+#define GPIOA2_MUX_SSI0CLK	0x01
+/* GPIO PIN A3 */
+#define GPIOA3_MUX_SSI0FSS	0x01
+/* GPIO PIN A4 */
+#define GPIOA4_MUX_SSI0RX	0x01
+/* GPIO PIN A5 */
+#define GPIOA5_MUX_SSI0TX	0x01
+/* GPIO PIN E0 */
+#define GPIOE0_MUX_SSI1CLK	0x02
+/* GPIO PIN E1 */
+#define GPIOE1_MUX_SSI1FSS	0x02
+/* GPIO PIN E2 */
+#define GPIOE2_MUX_SSI1RX	0x02
+/* GPIO PIN E3 */
+#define GPIOE3_MUX_SSI1TX	0x02
+
 #define LM3S9B92_SSI(n)							\
 static inline void __ssi##n##_hw_config_phase(uint8_t phase)		\
 {									\
