@@ -59,6 +59,8 @@ void bulk_restore_channel(bulk_cid_t bulk);
 bulk_cid_t bulk_save_channel(bulk_cid_t bulk);
 #define bulk_select_channel(bulk)	bulk_restore_channel(bulk)
 
+boolean bulk_channel_syncing(void);
+
 boolean bulk_submit_channel(bulk_cid_t bulk, size_t length);
 void bulk_commit_channel(size_t length);
 
@@ -96,10 +98,6 @@ uint32_t bulk_readl(uint32_t dword);
 	}
 
 void bulk_reset_fifo(bulk_cid_t bulk);
-bulk_size_t bulk_write_buffer(bulk_cid_t bulk,
-			      const uint8_t *buf,
-			      bulk_size_t len);
-void bulk_write_byte(bulk_cid_t bulk, uint8_t c);
 
 /*=========================================================================
  * deprecated bulk APIs

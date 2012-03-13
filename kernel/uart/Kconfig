@@ -43,16 +43,10 @@ config UART_9600
 config UART_4800
 	bool "4800"
 
-endchoice
+config UART_2400
+	bool "2400"
 
-config UART_METERING
-	bool "Enable oscilloscope metering"
-	depends EXPERIMENTAL
-	help
-	  All uart_putchar will be forced an output of 0x55 that can be
-	  easily observed by the oscilloscope to measure the baudrate.
-	  Frequency displayed by the oscilloscope will be a half of the
-	  baudrate.
+endchoice
 
 endif
 

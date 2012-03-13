@@ -47,7 +47,7 @@ struct bulk {
 	raise_bits(bulk_chan_ctrls[bulk_cid].flags, BULK_FLAG_SYNC)
 #define bulk_channel_clear_sync()		\
 	unraise_bits(bulk_chan_ctrls[bulk_cid].flags, BULK_FLAG_SYNC)
-#define bulk_channel_syncing()			\
+#define __bulk_channel_syncing()			\
 	bits_raised(bulk_chan_ctrls[bulk_cid].flags, BULK_FLAG_SYNC)
 #define bulk_channel_halting()			\
 	bits_raised(bulk_chan_ctrls[bulk_cid].flags, BULK_FLAG_HALT)
@@ -181,6 +181,11 @@ bulk_cid_t bulk_save_channel(bulk_cid_t bulk)
 	bulk_cid_t sbulk = bulk_cid;
 	bulk_restore_channel(bulk);
 	return sbulk;
+}
+
+boolean bulk_channel_syncing(void)
+{
+	return __bulk_channel_syncing();
 }
 
 static void bulk_channel_set_async(void)
@@ -672,34 +677,6 @@ static uint8_t bulk_hw_read_byte(void)
 	}
 }
 
-bulk_size_t bulk_write_buffer(bulk_cid_t bulk,
-			      const uint8_t *buf, bulk_size_t len)
-{
-	ASSIGN_CIRCBF16_REF(buffer, circbf,
-			    &bulk_chan_ctrls[bulk].buffer);
-	bulk_size_t length = bulk_chan_ctrls[bulk].length;
-	bulk_size_t ret = 0, c;
-
-	if (!circbf->buffer)
-		return 0;
-
-	while (1) {
-		c = circbf_space_end(circbf, length);
-		if (len < c)
-			c = len;
-		if (c <= 0)
-			break;
-		memory_copy((caddr_t)(circbf_wpos(circbf)),
-			    (const caddr_t)buf, c);
-		circbf_write(circbf, length, c);
-		buf += c;
-		len -= c;
-		ret += c;
-	}
-
-	return ret;
-}
-
 void bulk_async_iocb(void)
 {
 	if (bulk_channel_asyncing()) {
@@ -723,7 +700,8 @@ static void bulk_async_handler(void)
 
 static void bulk_channel_poll(void)
 {
-	if (!bulk_channel_pending()) {
+	if (bulk_users[bulk_cid] &&
+	    !bulk_channel_pending()) {
 		bulk_handle_poll();
 	}
 }
@@ -734,9 +712,7 @@ static void bulk_timer_handler(void)
 		bulk_cid_t bulk, sbulk;
 		for (bulk = 0; bulk < bulk_nr_chans; bulk++) {
 			sbulk = bulk_save_channel(bulk);
-			if (bulk_users[bulk_cid]) {
-				bulk_channel_poll();
-			}
+			bulk_channel_poll();
 			bulk_restore_channel(sbulk);
 		}
 		timer_schedule_shot(bulk_tid, BULK_POLL_INTERVAL);

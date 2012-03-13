@@ -150,6 +150,10 @@ void uart_hw_sync_init(void)
 #ifdef CONFIG_UART_ASYNC
 static uart_pid_t __uart_hw_pid;
 
+static void uart_hw_async_dummy(void)
+{
+}
+
 static uint8_t uart_hw_async_read(void)
 {
 	return SBUF;
@@ -160,10 +164,49 @@ static void uart_hw_async_write(uint8_t byte)
 	SBUF = byte;
 }
 
+static void uart_hw_rx_start(void)
+{
+	SCON |= MSK_SCON_REN;
+}
+
+static void uart_hw_rx_stop(void)
+{
+	SCON &= ~MSK_SCON_REN;
+}
+
+static void uart_hw_rx_open(void)
+{
+	if (bulk_channel_syncing()) {
+		while (!__uart_hw_ri_raised());
+	}
+	bulk_transfer_submit(1);
+}
+
+static void uart_hw_rx_close(void)
+{
+	if (__uart_hw_ri_raised())
+		__uart_hw_unraise_ri();
+}
+
+static void uart_hw_tx_open(void)
+{
+	if (bulk_channel_syncing()) {
+		while (!__uart_hw_ti_raised());
+	}
+}
+
+static void uart_hw_tx_close(void)
+{
+	if (bulk_channel_syncing()) {
+		while (!__uart_hw_ti_raised());
+		__uart_hw_unraise_ti();
+	}
+}
+
 static void uart_hw_handle_rx(void)
 {
 	if (!__uart_hw_fe_raised()) {
-		bulk_transfer_read(uart_bulk_rx());
+		bulk_transfer_read(uart_bulk_rx(__uart_hw_pid));
 	} else {
 		__uart_hw_unraise_fe();
 	}
@@ -172,13 +215,12 @@ static void uart_hw_handle_rx(void)
 
 static void uart_hw_handle_tx(void)
 {
-	bulk_transfer_write(uart_bulk_tx());
 	__uart_hw_unraise_ti();
+	bulk_transfer_write(uart_bulk_tx(__uart_hw_pid));
 }
 
 static void uart_hw_handle_irq(void)
 {
-	uart_port_select(__uart_hw_pid);
 	if (__uart_hw_ri_raised())
 		uart_hw_handle_rx();
 	if (__uart_hw_ti_raised())
@@ -221,13 +263,41 @@ static void uart_hw_async_stop(void)
 	clk_hw_suspend_dev(DEV_UART);
 }
 
+bulk_channel_t __uart_hw_tx = {
+	O_WRONLY,
+	1,
+	uart_hw_async_dummy,
+	uart_hw_async_dummy,
+	uart_hw_tx_open,
+	uart_hw_tx_close,
+	NULL,
+	uart_hw_async_write,
+	NULL,
+	NULL,
+};
+
+bulk_channel_t __uart_hw_rx = {
+	O_RDONLY,
+	1,
+	uart_hw_rx_start,
+	uart_hw_rx_stop,
+	uart_hw_rx_open,
+	uart_hw_rx_close,
+	uart_hw_async_read,
+	NULL,
+	NULL,
+	NULL,
+};
+
 static uart_port_t __uart_hw_port = {
 	uart_hw_async_start,
 	uart_hw_async_stop,
 	uart_hw_set_params,
+	&__uart_hw_tx,
+	&__uart_hw_rx,
 };
 
-static void uart_hw_async_init(void)
+void uart_hw_async_init(void)
 {
 	__uart_hw_pid = uart_register_port(&__uart_hw_port);
 }

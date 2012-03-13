@@ -5,15 +5,6 @@
 #include <target/generic.h>
 #include <target/bulk.h>
 
-struct uart_port {
-	void (*startup)(void);
-	void (*cleanup)(void);
-	void (*config)(uint8_t params, uint32_t baudrate);
-};
-__TEXT_TYPE__(const struct uart_port, uart_port_t);
-
-typedef uint8_t uart_pid_t;
-
 #ifdef CONFIG_UART_115200
 #define UART_BAUDRATE		115200
 #endif
@@ -28,6 +19,12 @@ typedef uint8_t uart_pid_t;
 #endif
 #ifdef CONFIG_UART_9600
 #define UART_BAUDRATE		9600
+#endif
+#ifdef CONFIG_UART_4800
+#define UART_BAUDRATE		4800
+#endif
+#ifdef CONFIG_UART_2400
+#define UART_BAUDRATE		2400
 #endif
 
 #ifndef UART_BAUDRATE
@@ -55,13 +52,8 @@ typedef uint8_t uart_pid_t;
 
 #define INVALID_UART_VALUE	-1
 
-#ifdef CONFIG_UART
-#ifdef CONFIG_UART_METERING
-/* frequency measured by the oscilloscope will be half of the baudrate */
-#define uart_putchar(byte)	uart_hw_sync_write(0x55)
-#else
+#ifdef CONFIG_UART_SYNC
 #define uart_putchar(byte)	uart_hw_sync_write(byte)
-#endif
 #define uart_getchar()		uart_hw_sync_read()
 #else
 #define uart_putchar(byte)
@@ -74,26 +66,23 @@ typedef uint8_t uart_pid_t;
 #define NR_UART_PORTS		1
 #endif
 
+typedef uint8_t uart_pid_t;
+
 struct uart_state {
 	bulk_cid_t bulk_tx;
 	bulk_cid_t bulk_rx;
 };
 
-extern uart_pid_t uart_pid;
+extern struct uart_state uart_states[NR_UART_PORTS];
+
+#define uart_bulk_tx(pid)	(uart_states[pid].bulk_tx)
+#define uart_bulk_rx(pid)	(uart_states[pid].bulk_rx)
 
 /* Asynchronous UART */
-void uart_config_port(uint8_t params, uint32_t baudrate);
-
-void uart_port_restore(uart_pid_t pid);
-uart_pid_t uart_port_save(uart_pid_t pid);
-#define uart_port_select(pid)	uart_port_restore(pid)
-
-uart_pid_t uart_startup(bulk_user_t *txusr, uint8_t *txbuf, int txlen,
+uart_pid_t uart_startup(uint8_t params, uint32_t baudrate,
+			bulk_user_t *txusr, uint8_t *txbuf, int txlen,
 			bulk_user_t *rxusr, uint8_t *rxbuf, int rxlen);
 void uart_cleanup(uart_pid_t pid);
-bulk_cid_t uart_bulk_tx(void);
-bulk_cid_t uart_bulk_rx(void);
-
 uart_pid_t uart_register_port(uart_port_t *port);
 
 #endif /* __UART_H_INCLUDE__ */

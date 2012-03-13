@@ -432,12 +432,21 @@ void porting_init(void)
 #endif
 
 #ifdef CONFIG_PORTING_UART
+/* XXX: UART Metering
+ * uart_putchar will be forced an output of 0x55 that can be easily
+ * observed by the oscilloscope to measure the baudrate.  Frequency
+ * displayed by the oscilloscope will be a half of the baudrate/10.
+ * The frequency captured by the oscilloscope "osc_freq" and the uart
+ * baudrate "uart_baud" could have following relationship:
+ * osc_freq = uart_baud/20
+ */
+#define UART_METER_BAUD_IS_20FREQ	0x55
+#define UART_METER_BAUD_IS_40FREQ	0x99
+#define UART_METER			UART_METER_BAUD_IS_20FREQ
 void porting_handler(uint8_t event)
 {
-	/* 0x55 could be used by oscilloscope to calculate the frequency
-	 */
 	while (1)
-		uart_putchar(0x55);
+		uart_putchar(UART_METER);
 }
 
 void porting_init(void)
