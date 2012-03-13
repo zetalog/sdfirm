@@ -75,8 +75,8 @@ typedef uint8_t uart_pid_t;
 #endif
 
 struct uart_state {
-	bulk_cid_t bulk_in;
-	bulk_cid_t bulk_out;
+	bulk_cid_t bulk_tx;
+	bulk_cid_t bulk_rx;
 };
 
 extern uart_pid_t uart_pid;
@@ -90,11 +90,11 @@ void uart_port_restore(uart_pid_t pid);
 uart_pid_t uart_port_save(uart_pid_t pid);
 #define uart_port_select(pid)	uart_port_restore(pid)
 
-uart_pid_t uart_startup(uint8_t *inbuf, int inlen,
-			uint8_t *outbuf, int outlen);
+uart_pid_t uart_startup(bulk_user_t *txusr, uint8_t *txbuf, int txlen,
+			bulk_user_t *rxusr, uint8_t *rxbuf, int rxlen);
 void uart_cleanup(uart_pid_t pid);
-bulk_cid_t uart_bulk_out(void);
-bulk_cid_t uart_bulk_in(void);
+bulk_cid_t uart_bulk_tx(void);
+bulk_cid_t uart_bulk_rx(void);
 
 uart_pid_t uart_register_port(uart_port_t *port);
 

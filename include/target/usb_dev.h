@@ -111,7 +111,7 @@ struct usbd_interface {
 	uint8_t string_last;
 	uint8_t nr_endps;
 	usb_size_cb config_len;
-	usb_io_cb ctrl;
+	io_cb ctrl;
 #ifdef CONFIG_USB_USBIP_DEV
 	uint8_t (*attr)(uint8_t type);
 #endif
@@ -185,9 +185,9 @@ struct usbd_endpoint {
 #define USBD_ENDP_INTR_IN		(USBD_DIR2ATTR(USB_DIR_IN) | USB_ENDP_INTERRUPT)
 #define USBD_ENDP_INTR_OUT		(USBD_DIR2ATTR(USB_DIR_OUT) | USB_ENDP_INTERRUPT)
 	uint16_t interval;
-	usb_io_cb poll;
-	usb_io_cb iocb;
-	usb_io_cb done;
+	io_cb poll;
+	io_cb iocb;
+	io_cb done;
 };
 __TEXT_TYPE__(const struct usbd_endpoint, usbd_endpoint_t);
 

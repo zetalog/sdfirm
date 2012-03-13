@@ -437,7 +437,7 @@ struct hid_report {
 	hid_io_cb iocb;
 	hid_io_cb done;
 	usb_size_cb config_len;
-	usb_io_cb ctrl;
+	io_cb ctrl;
 };
 __TEXT_TYPE__(const struct hid_report, hid_report_t);
 

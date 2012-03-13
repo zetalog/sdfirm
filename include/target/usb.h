@@ -88,7 +88,6 @@
 
 #include <driver/usb.h>
 
-typedef void (*usb_io_cb)(void);
 typedef uint16_t (*usb_size_cb)(void);
 
 #define USB_VERSION_DEFAULT		0x110

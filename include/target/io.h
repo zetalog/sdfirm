@@ -3,6 +3,13 @@
 
 #include <target/config.h>
 
+#define O_RDONLY	0x01
+#define O_WRONLY	0x02
+#define O_RDWR		0x03
+#define O_DIRECT	0x08
+
+typedef void (*io_cb)(void);
+
 #ifdef CONFIG_INPUT_UART
 #include <target/uart.h>
 #define io_getchar()	uart_getchar()
