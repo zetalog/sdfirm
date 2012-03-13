@@ -71,23 +71,6 @@ void uart_cleanup(uart_pid_t pid)
 	clear_bit(pid, uart_port_regs);
 }
 
-int uart_put_char(uint8_t c)
-{
-	return bulk_write_byte(uart_states[uart_pid].bulk_tx, c);
-}
-
-int uart_write(const uint8_t *buf, int count)
-{
-	uart_port_t *port = uart_ports[uart_pid];
-	int ret = 0;
-
-	ret = bulk_write_buffer(uart_states[uart_pid].bulk_tx,
-				buf, count);
-	/* uart_start(); */
-
-	return ret;
-}
-
 void uart_config_port(uint8_t params, uint32_t baudrate)
 {
 	uart_port_t *port = uart_ports[uart_pid];

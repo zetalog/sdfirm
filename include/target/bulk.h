@@ -16,8 +16,6 @@ typedef uint16_t bulk_size_t;
 
 typedef void (*bulk_open_cb)(size_t);
 typedef void (*bulk_close_cb)(bulk_size_t);
-typedef uint8_t (*bulk_read_cb)(void);
-typedef void (*bulk_write_cb)(uint8_t);
 typedef void (*bulk_xmit_cb)(uint8_t *, bulk_size_t);
 typedef boolean (*bulk_space_cb)(void);
 
@@ -31,8 +29,8 @@ struct bulk_channel {
 	io_cb stop;	/* disable bulk IRQ/event */
 	io_cb open;	/* prepare bulk */
 	io_cb close;	/* acknowledge bulk */
-	bulk_read_cb getchar;
-	bulk_write_cb putchar;
+	iord_cb getchar;
+	iowr_cb putchar;
 	bulk_xmit_cb read;
 	bulk_xmit_cb write;
 };
@@ -42,36 +40,13 @@ struct bulk_user {
 	io_cb poll;
 	io_cb iocb;
 	io_cb done;
-	io_cb halt;
+	io_cb halt;	/* handle OOB data */
 };
 __TEXT_TYPE__(const struct bulk_user, bulk_user_t);
 
 /*=========================================================================
- * deprecated bulk APIs
- *=======================================================================*/
-/* Both sides are CPU transfer */
-void bulk_config_read_byte(bulk_cid_t bulk, bulk_size_t flush,
-			   bulk_open_cb open,
-			   bulk_read_cb read,
-			   bulk_close_cb close);
-void bulk_config_write_byte(bulk_cid_t bulk, bulk_size_t flush,
-			    bulk_open_cb open,
-			    bulk_write_cb write,
-			    bulk_close_cb close);
-void bulk_transfer_sync(uint8_t bulk, size_t size);
-
-/*=========================================================================
  * bulk APIs
  *=======================================================================*/
-bulk_cid_t bulk_alloc_fifo(uint8_t *buffer, bulk_size_t length);
-void bulk_free_fifo(bulk_cid_t bulk);
-void bulk_reset_fifo(bulk_cid_t bulk);
-
-bulk_size_t bulk_write_buffer(bulk_cid_t bulk,
-			      const uint8_t *buf,
-			      bulk_size_t len);
-bulk_size_t bulk_write_byte(bulk_cid_t bulk, uint8_t c);
-
 bulk_cid_t bulk_register_channel(bulk_channel_t *chan);
 boolean bulk_open_channel(bulk_cid_t bulk,
 			  bulk_user_t *user,
@@ -84,23 +59,62 @@ void bulk_restore_channel(bulk_cid_t bulk);
 bulk_cid_t bulk_save_channel(bulk_cid_t bulk);
 #define bulk_select_channel(bulk)	bulk_restore_channel(bulk)
 
-void bulk_write_flush(bulk_cid_t bulk);
-void bulk_read_flush(bulk_cid_t bulk);
-
 boolean bulk_submit_channel(bulk_cid_t bulk, size_t length);
 void bulk_commit_channel(size_t length);
 
-void bulk_handle_write_byte(bulk_cid_t bulk,
-			    bulk_write_cb write,
-			    bulk_size_t count);
-void bulk_handle_read_byte(bulk_cid_t bulk,
-			   bulk_read_cb read,
-			   bulk_size_t count);
-void bulk_handle_write_buffer(bulk_cid_t bulk,
-			      bulk_xmit_cb write,
-			      bulk_size_t count);
-void bulk_handle_read_buffer(bulk_cid_t bulk,
-			     bulk_xmit_cb read,
-			     bulk_size_t count);
+void bulk_transfer_write(bulk_cid_t bulk);
+void bulk_transfer_read(bulk_cid_t bulk);
+void bulk_transfer_submit(size_t bytes);
+
+void bulk_writeb(uint8_t byte);
+void bulk_writew(uint16_t word);
+void bulk_writel(uint32_t dword);
+uint8_t bulk_readb(uint8_t byte);
+uint16_t bulk_readw(uint16_t word);
+uint32_t bulk_readl(uint32_t dword);
+
+#define BULK_WRITEB(byte)		(bulk_writeb(byte))
+#define BULK_WRITEW(word)		(bulk_writew(word))
+#define BULK_WRITEL(dword)		(bulk_writel(dword))
+#define BULK_READB(byte)		(byte = bulk_readb(byte))
+#define BULK_READW(word)		(word = bulk_readw(word))
+#define BULK_READL(dword)		(dword = bulk_readl(dword))
+
+#define BULK_READ_BEGIN(byte)					\
+	{							\
+		size_t __l = bulk_channel_handled();		\
+		BULK_READB(byte);				\
+		if (bulk_channel_handled() != __l)
+#define BULK_READ_END						\
+	}
+#define BULK_WRITE_BEGIN(byte)					\
+	{							\
+		size_t __l = bulk_channel_handled();		\
+		BULK_WRITEB(byte);				\
+		if (bulk_channel_handled() != __l)
+#define BULK_WRITE_END						\
+	}
+
+void bulk_reset_fifo(bulk_cid_t bulk);
+bulk_size_t bulk_write_buffer(bulk_cid_t bulk,
+			      const uint8_t *buf,
+			      bulk_size_t len);
+void bulk_write_byte(bulk_cid_t bulk, uint8_t c);
+
+/*=========================================================================
+ * deprecated bulk APIs
+ *=======================================================================*/
+/* Both sides are CPU transfer */
+void bulk_config_read_byte(bulk_cid_t bulk, bulk_size_t flush,
+			   bulk_open_cb open,
+			   iord_cb read,
+			   bulk_close_cb close);
+void bulk_config_write_byte(bulk_cid_t bulk, bulk_size_t flush,
+			    bulk_open_cb open,
+			    iowr_cb write,
+			    bulk_close_cb close);
+void bulk_transfer_sync(uint8_t bulk, size_t size);
+bulk_cid_t bulk_alloc_fifo(uint8_t *buffer, bulk_size_t length);
+void bulk_free_fifo(bulk_cid_t bulk);
 
 #endif /* __BULK_H_INCLUDE__ */

@@ -12,13 +12,13 @@ struct bulk_block_reader {
 
 struct bulk_byte_writer {
 	bulk_open_cb open;
-	bulk_write_cb write;
+	iowr_cb write;
 	bulk_close_cb close;
 };
 
 struct bulk_byte_reader {
 	bulk_open_cb open;
-	bulk_read_cb read;
+	iord_cb read;
 	bulk_close_cb close;
 };
 
@@ -94,7 +94,7 @@ static boolean bulk_def_space(void)
 
 void bulk_config_read_byte(bulk_cid_t bulk, bulk_size_t flush,
 			   bulk_open_cb open,
-			   bulk_read_cb read,
+			   iord_cb read,
 			   bulk_close_cb close)
 {
 	bulk_chan_ctrls[bulk].rflush = flush;
@@ -105,7 +105,7 @@ void bulk_config_read_byte(bulk_cid_t bulk, bulk_size_t flush,
 
 void bulk_config_write_byte(bulk_cid_t bulk, bulk_size_t flush,
 			    bulk_open_cb open,
-			    bulk_write_cb write,
+			    iowr_cb write,
 			    bulk_close_cb close)
 {
 	bulk_chan_ctrls[bulk].wflush = flush;
@@ -116,8 +116,8 @@ void bulk_config_write_byte(bulk_cid_t bulk, bulk_size_t flush,
 
 void bulk_transfer_sync(bulk_cid_t bulk, size_t size)
 {
-	bulk_read_cb read_byte = bulk_chan_ctrls[bulk].r.c.read;
-	bulk_write_cb write_byte = bulk_chan_ctrls[bulk].w.c.write;
+	iord_cb read_byte = bulk_chan_ctrls[bulk].r.c.read;
+	iowr_cb write_byte = bulk_chan_ctrls[bulk].w.c.write;
 	bulk_size_t rflush = bulk_chan_ctrls[bulk].rflush;
 	bulk_size_t wflush = bulk_chan_ctrls[bulk].wflush;
 	bulk_size_t witer, riter;

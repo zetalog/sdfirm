@@ -82,8 +82,6 @@ struct uart_state {
 extern uart_pid_t uart_pid;
 
 /* Asynchronous UART */
-int uart_put_char(uint8_t c);
-int uart_write(const uint8_t *buf, int count);
 void uart_config_port(uint8_t params, uint32_t baudrate);
 
 void uart_port_restore(uart_pid_t pid);

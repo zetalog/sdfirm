@@ -80,15 +80,16 @@ static void calibrate_delay(void)
 
 The principles on how to choose a suitable TSC_FREQ value:
 1. tsc_freq must be multiples of HZ
-2. TSC ticks per jiffy should be less than half of TSC overflow value
-   (i.e. tsc_freq>(2*TSC_MAX*HZ))
+2. TSC ticks per jiffy should be less than half of TSC overflow value,
+   tsc_freq/HZ < TSC_MAX/2, ie., tsc_freq < TSC_MAX*HZ/2, thus, in case of
+   tsc_freq/HZ = TSC_FREQ, this means TSC_FREQ < TSC_MAX/2.
 
-Why tsc_freq>(2*TSC_MAX*HZ) condition must be matched?  If a
-loops_per_jiffy try doesn't make a significant HZ variation, then its next
-value "loops_per_jiffy*2" can meet following conditions:
+Why tsc_freq < (TSC_MAX*HZ/2) condition must be matched?  If a
+loops_per_jiffy fails to make a significant HZ variation, then its next value
+"loops_per_jiffy*2" must meet following conditions:
   HZ<=(loops_per_jiffy*2)<TSC_MAX or (loops_per_jiffy*2)<HZ
-i.e., loops_per_jiffy*2 would not make a TSC overflow.  It's likely fail
-to calibrate delay using a wrong tsc_freq.
+i.e., loops_per_jiffy*2 would not make a TSC overflow.  It's likely that the
+delay calibration could fail when a wrong tsc_freq is used.
 
 In AT90USB1287, whose CPU_FREQ is 8M, the clock divisor for its timers can
 be 1, 8, 64, 256 and 1024, since system HZ is 1000 or 100, the suitable

@@ -13,8 +13,8 @@ obj-$(CONFIG_TICK) += tick.rel
 obj-$(CONFIG_TIMER) += timer.rel
 obj-$(CONFIG_HEAP) += heap.rel
 obj-$(CONFIG_HEAP_DLMALLOC) += heap_dlmalloc.rel
-#obj-$(CONFIG_BULK) += bulk.rel
-obj-$(CONFIG_BULK) += bulk_dio.rel
+obj-$(CONFIG_BULK) += bulk.rel
+#obj-$(CONFIG_BULK) += bulk_dio.rel
 
 obj-y += io/
 obj-$(CONFIG_UART) += uart/

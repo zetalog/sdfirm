@@ -38,6 +38,11 @@ extern void heap_init(void);
 #else
 #define heap_init()
 #endif
+#ifdef CONFIG_BULK
+extern void bulk_init(void);
+#else
+#define bulk_init()
+#endif
 
 #ifndef CONFIG_PORTING
 void system_init(void)
@@ -48,6 +53,7 @@ void system_init(void)
 	state_init();
 	tick_init();
 	delay_init();
+	bulk_init();
 
 	modules_init();
 	appl_init();

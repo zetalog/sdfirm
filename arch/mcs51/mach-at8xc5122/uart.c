@@ -163,8 +163,7 @@ static void uart_hw_async_write(uint8_t byte)
 static void uart_hw_handle_rx(void)
 {
 	if (!__uart_hw_fe_raised()) {
-		bulk_handle_read_byte(uart_bulk_rx(),
-				      uart_hw_async_read, 1);
+		bulk_transfer_read(uart_bulk_rx());
 	} else {
 		__uart_hw_unraise_fe();
 	}
@@ -173,8 +172,7 @@ static void uart_hw_handle_rx(void)
 
 static void uart_hw_handle_tx(void)
 {
-	bulk_handle_write_byte(uart_bulk_tx(),
-			       uart_hw_async_write, 1);
+	bulk_transfer_write(uart_bulk_tx());
 	__uart_hw_unraise_ti();
 }
 

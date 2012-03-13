@@ -2,6 +2,7 @@
 #define __IO_H_INCLUDE__
 
 #include <target/config.h>
+#include <target/generic.h>
 
 #define O_RDONLY	0x01
 #define O_WRONLY	0x02
@@ -9,6 +10,8 @@
 #define O_DIRECT	0x08
 
 typedef void (*io_cb)(void);
+typedef uint8_t (*iord_cb)(void);
+typedef void (*iowr_cb)(uint8_t);
 
 #ifdef CONFIG_INPUT_UART
 #include <target/uart.h>

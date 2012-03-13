@@ -7,8 +7,7 @@
 struct bulk {
 	bulk_size_t length;
 	ASSIGN_CIRCBF16_MEMBER(buffer);
-	bulk_size_t rflush;
-	bulk_size_t wflush;
+	bulk_size_t flush;
 
 	uint8_t flags;
 #define BULK_FLAG_MASK		0x0F
@@ -105,6 +104,13 @@ static void bulk_channel_begin(void);
 #endif
 static void bulk_channel_end(void);
 
+static void bulk_hw_write_byte(uint8_t c);
+static uint8_t bulk_hw_read_byte(void);
+static void bulk_hw_channel_start(void);
+static void bulk_hw_channel_stop(void);
+static void bulk_hw_channel_open(void);
+static void bulk_hw_channel_close(void);
+
 static inline void __bulk_alloc_fifo(bulk_cid_t bulk,
 				     uint8_t *buffer,
 				     bulk_size_t length)
@@ -149,14 +155,7 @@ boolean bulk_open_channel(bulk_cid_t bulk,
 	chan = bulk_channels[bulk];
 
 	bulk_users[bulk] = user;
-
-	if (bulk_channel_dir() == O_RDONLY) {
-		bulk_chan_ctrls[bulk].rflush = threshold;
-		bulk_chan_ctrls[bulk].wflush = chan->threshold;
-	} else {
-		bulk_chan_ctrls[bulk].rflush = chan->threshold;
-		bulk_chan_ctrls[bulk].wflush = threshold;
-	}
+	bulk_chan_ctrls[bulk].flush = threshold;
 	if (buffer) {
 		__bulk_alloc_fifo(bulk, buffer, length);
 	}
@@ -205,15 +204,6 @@ static void bulk_channel_clear_async(void)
 	chan->start();
 }
 
-static void bulk_hw_channel_close(void)
-{
-	bulk_channel_t *chan;
-	
-	chan = bulk_channels[bulk_cid];
-	BUG_ON(!chan || !chan->close);
-	chan->close();
-}
-
 static void bulk_hw_channel_open(void)
 {
 	bulk_channel_t *chan;
@@ -221,6 +211,15 @@ static void bulk_hw_channel_open(void)
 	chan = bulk_channels[bulk_cid];
 	BUG_ON(!chan || !chan->open);
 	chan->open();
+}
+
+static void bulk_hw_channel_close(void)
+{
+	bulk_channel_t *chan;
+	
+	chan = bulk_channels[bulk_cid];
+	BUG_ON(!chan || !chan->close);
+	chan->close();
 }
 
 static void bulk_hw_channel_start(void)
@@ -239,6 +238,24 @@ static void bulk_hw_channel_stop(void)
 	chan = bulk_channels[bulk_cid];
 	BUG_ON(!chan || !chan->stop);
 	chan->stop();
+}
+
+static uint8_t bulk_hw_channel_getchar(void)
+{
+	bulk_channel_t *chan;
+	
+	chan = bulk_channels[bulk_cid];
+	BUG_ON(!chan || !chan->getchar);
+	return chan->getchar();
+}
+
+static void bulk_hw_channel_putchar(uint8_t c)
+{
+	bulk_channel_t *chan;
+	
+	chan = bulk_channels[bulk_cid];
+	BUG_ON(!chan || !chan->putchar);
+	chan->putchar(c);
 }
 
 static uint8_t bulk_channel_dir(void)
@@ -304,12 +321,18 @@ static void bulk_iter_reset(void)
 
 static void bulk_iter_accel(void)
 {
-	bulk_chan_ctrls[bulk_cid].iter = bulk_chan_ctrls[bulk_cid].req_cur;
+	bulk_chan_ctrls[bulk_cid].iter =
+	bulk_chan_ctrls[bulk_cid].req_cur;
 }
 
 boolean bulk_transfer_last(void)
 {
 	return bulk_channel_unhandled() == 0;
+}
+
+void bulk_transfer_submit(size_t bytes)
+{
+	bulk_chan_ctrls[bulk_cid].xfr_all = bytes;
 }
 
 static void bulk_channel_reap(void)
@@ -455,6 +478,138 @@ void bulk_transfer_iocb(void)
 	}
 }
 
+void bulk_writeb_sync(uint8_t byte)
+{
+	if (bulk_transfer_handled() == bulk_channel_size())
+		bulk_transfer_reset();
+	if (bulk_channel_unhandled() > 0 &&
+	    bulk_chan_ctrls[bulk_cid].req_cur ==
+	    bulk_chan_ctrls[bulk_cid].iter) {
+		bulk_hw_write_byte(byte);
+		bulk_chan_ctrls[bulk_cid].xfr_cur++;
+		bulk_chan_ctrls[bulk_cid].req_cur++;
+		if (bulk_transfer_handled() == bulk_channel_size()) {
+			bulk_hw_channel_close();
+		}
+	}
+	bulk_chan_ctrls[bulk_cid].iter++;
+}
+
+uint8_t bulk_readb_sync(void)
+{
+	uint8_t newval = 0;
+
+	if (bulk_transfer_handled() == bulk_channel_size())
+		bulk_transfer_reset();
+	if (bulk_channel_unhandled() > 0 &&
+	    bulk_chan_ctrls[bulk_cid].req_cur ==
+	    bulk_chan_ctrls[bulk_cid].iter) {
+		newval = bulk_hw_read_byte();
+		bulk_chan_ctrls[bulk_cid].xfr_cur++;
+		bulk_chan_ctrls[bulk_cid].req_cur++;
+		if (bulk_transfer_handled() == bulk_channel_size()) {
+			bulk_hw_channel_close();
+		}
+	}
+	bulk_chan_ctrls[bulk_cid].iter++;
+
+	return newval;
+}
+
+void bulk_writeb_async(uint8_t byte)
+{
+	if (bulk_transfer_unhandled() > 0 &&
+	    bulk_chan_ctrls[bulk_cid].req_cur ==
+	    bulk_chan_ctrls[bulk_cid].iter) {
+		bulk_hw_write_byte(byte);
+		bulk_chan_ctrls[bulk_cid].xfr_cur++;
+		bulk_chan_ctrls[bulk_cid].req_cur++;
+		if (bulk_transfer_handled() == bulk_channel_size()) {
+			bulk_hw_channel_close();
+		}
+	}
+	bulk_chan_ctrls[bulk_cid].iter++;
+}
+
+uint8_t bulk_readb_async(uint8_t byte)
+{
+	uint8_t newval = byte;
+
+	if (bulk_transfer_unhandled() > 0 &&
+	    bulk_chan_ctrls[bulk_cid].req_cur ==
+	    bulk_chan_ctrls[bulk_cid].iter) {
+		newval = bulk_hw_read_byte();
+		bulk_chan_ctrls[bulk_cid].xfr_cur++;
+		bulk_chan_ctrls[bulk_cid].req_cur++;
+		if (bulk_transfer_handled() == bulk_channel_size()) {
+			bulk_hw_channel_close();
+		}
+	}
+	bulk_chan_ctrls[bulk_cid].iter++;
+
+	return newval;
+}
+
+void bulk_writeb(uint8_t byte)
+{
+	if (bulk_channel_syncing()) {
+		bulk_writeb_sync(byte);
+	} else {
+		bulk_writeb_async(byte);
+	}
+}
+
+void bulk_writew(uint16_t word)
+{
+	bulk_writeb(LOBYTE(word));
+	bulk_writeb(HIBYTE(word));
+}
+
+void bulk_writel(uint32_t dword)
+{
+	bulk_writew(LOWORD(dword));
+	bulk_writew(HIWORD(dword));
+}
+
+uint8_t bulk_readb(uint8_t byte)
+{
+	if (bulk_channel_syncing()) {
+		return bulk_readb_sync();
+	} else {
+		return bulk_readb_async(byte);
+	}
+}
+
+uint16_t bulk_readw(uint16_t word)
+{
+	uint8_t lo = LOBYTE(word);
+	uint8_t hi = HIBYTE(word);
+	lo = bulk_readb(lo);
+	hi = bulk_readb(hi);
+	return lo | ((uint16_t)hi << 8);
+}
+
+uint32_t bulk_readl(uint32_t dword)
+{
+	uint16_t lo = LOWORD(dword);
+	uint16_t hi = HIWORD(dword);
+	lo = bulk_readw(lo);
+	hi = bulk_readw(hi);
+	return lo | ((uint32_t)hi << 16);
+}
+
+void bulk_transfer_write(bulk_cid_t bulk)
+{
+	bulk_select_channel(bulk);
+	bulk_transfer_iocb();
+}
+
+void bulk_transfer_read(bulk_cid_t bulk)
+{
+	bulk_select_channel(bulk);
+	bulk_transfer_iocb();
+}
+
 boolean bulk_submit_channel(bulk_cid_t bulk, size_t length)
 {
 	uint8_t sbulk;
@@ -481,23 +636,40 @@ void bulk_commit_channel(size_t length)
 	bulk_channel_limit(length);
 }
 
-bulk_size_t bulk_write_byte(bulk_cid_t bulk, uint8_t c)
+static void bulk_hw_write_byte(uint8_t c)
 {
 	ASSIGN_CIRCBF16_REF(buffer, circbf,
-			    &bulk_chan_ctrls[bulk].buffer);
-	bulk_size_t length = bulk_chan_ctrls[bulk].length;
-	bulk_size_t ret = 0;
+			    &bulk_chan_ctrls[bulk_cid].buffer);
+	bulk_size_t length = bulk_chan_ctrls[bulk_cid].length;
 
-	if (!circbf->buffer)
-		return 0;
-
-	if (circbf_space(circbf, length) != 0) {
+	if (!circbf->buffer) {
+		/* direct IO */
+		bulk_hw_channel_putchar(c);
+	} else {
+		/* buffer IO */
+		BUG_ON(circbf_space(circbf, length) == 0);
 		*(circbf_wpos(circbf)) = c;
 		circbf_write(circbf, length, 1);
-		ret = 1;
 	}
+}
 
-	return ret;
+static uint8_t bulk_hw_read_byte(void)
+{
+	ASSIGN_CIRCBF16_REF(buffer, circbf,
+			    &bulk_chan_ctrls[bulk_cid].buffer);
+	bulk_size_t length = bulk_chan_ctrls[bulk_cid].length;
+
+	if (!circbf->buffer) {
+		/* direct IO */
+		return bulk_hw_channel_getchar();
+	} else {
+		/* buffer IO */
+		uint8_t c;
+		BUG_ON(circbf_count(circbf, length) == 0);
+		c = *(circbf_rpos(circbf));
+		circbf_read(circbf, length, 1);
+		return c;
+	}
 }
 
 bulk_size_t bulk_write_buffer(bulk_cid_t bulk,
@@ -526,93 +698,6 @@ bulk_size_t bulk_write_buffer(bulk_cid_t bulk,
 	}
 
 	return ret;
-}
-
-void bulk_write_flush(bulk_cid_t bulk)
-{
-	ASSIGN_CIRCBF16_REF(buffer, circbf,
-			    &bulk_chan_ctrls[bulk].buffer);
-	bulk_size_t length = bulk_chan_ctrls[bulk].length;
-
-	if (circbf_count(circbf, length) >
-	    bulk_chan_ctrls[bulk].wflush) {
-		state_wakeup(bulk_sid);
-	}
-}
-
-void bulk_read_flush(bulk_cid_t bulk)
-{
-	ASSIGN_CIRCBF16_REF(buffer, circbf,
-			    &bulk_chan_ctrls[bulk].buffer);
-	bulk_size_t length = bulk_chan_ctrls[bulk].length;
-
-	if (circbf_count(circbf, length) >
-	    bulk_chan_ctrls[bulk].rflush) {
-		state_wakeup(bulk_sid);
-	}
-}
-
-void bulk_handle_write_byte(bulk_cid_t bulk,
-			    bulk_write_cb write,
-			    bulk_size_t count)
-{
-	ASSIGN_CIRCBF16_REF(buffer, circbf,
-			    &bulk_chan_ctrls[bulk].buffer);
-	bulk_size_t length = bulk_chan_ctrls[bulk].length;
-	bulk_size_t wflush = bulk_chan_ctrls[bulk].wflush;
-
-	if (count == 0)
-		count = wflush;
-#if 0
-	bulk_chan_ctrls[bulk].write_cmpl();
-	while ((circbf_space(circbf, length) >= wflush) &&
-	       count > 0) {
-		write(bulk_write_byte(circbf_wpos(circbf)));
-		count--;
-	}
-	if (circbf_space(circbf, length) > 0)
-		state_wakeup(bulk_sid);
-/*		bulk_chan_ctrls[bulk].write_aval(); */
-#endif
-}
-
-void bulk_handle_read_byte(bulk_cid_t bulk,
-			   bulk_read_cb read,
-			   bulk_size_t count)
-{
-	ASSIGN_CIRCBF16_REF(buffer, circbf,
-			    &bulk_chan_ctrls[bulk].buffer);
-	bulk_size_t length = bulk_chan_ctrls[bulk].length;
-	bulk_size_t rflush = bulk_chan_ctrls[bulk].rflush;
-
-	if (count == 0)
-		count = rflush;
-}
-
-void bulk_handle_write_buffer(bulk_cid_t bulk,
-			      bulk_xmit_cb write,
-			      bulk_size_t count)
-{
-	ASSIGN_CIRCBF16_REF(buffer, circbf,
-			    &bulk_chan_ctrls[bulk].buffer);
-	bulk_size_t length = bulk_chan_ctrls[bulk].length;
-	bulk_size_t wflush = bulk_chan_ctrls[bulk].wflush;
-
-	if (count == 0)
-		count = wflush;
-}
-
-void bulk_handle_read_buffer(bulk_cid_t bulk,
-			     bulk_xmit_cb read,
-			     bulk_size_t count)
-{
-	ASSIGN_CIRCBF16_REF(buffer, circbf,
-			    &bulk_chan_ctrls[bulk].buffer);
-	bulk_size_t length = bulk_chan_ctrls[bulk].length;
-	bulk_size_t rflush = bulk_chan_ctrls[bulk].wflush;
-
-	if (count == 0)
-		count = rflush;
 }
 
 void bulk_async_iocb(void)

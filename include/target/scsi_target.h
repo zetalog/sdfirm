@@ -85,8 +85,8 @@ struct scsi_transport {
 	/* char transfer APIs */
 	bulk_open_cb open;
 	bulk_close_cb close;
-	bulk_write_cb byte_in;
-	bulk_read_cb byte_out;
+	iowr_cb byte_in;
+	iord_cb byte_out;
 
 	/* block transfer APIs */
 	bulk_xmit_cb data_in;
