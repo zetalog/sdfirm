@@ -114,7 +114,6 @@
 /* Put even when the buffer is full. */
 #define circbf_push(circ, size, byte)				\
 	do {							\
-		assert((circ)->head < size);			\
 		(circ)->buffer[(circ)->head] = (byte);		\
 		if (circbf_space((circ), (size)) < 1)		\
 			__CIRCBF_GROW((circ)->tail, size);	\

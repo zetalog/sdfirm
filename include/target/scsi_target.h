@@ -89,9 +89,9 @@ struct scsi_transport {
 	iord_cb byte_out;
 
 	/* block transfer APIs */
-	bulk_xmit_cb data_in;
-	bulk_xmit_cb data_out;
-	bulk_space_cb bulk_idle;
+	iobulk_cb data_in;
+	iobulk_cb data_out;
+	iotest_cb bulk_idle;
 };
 typedef struct scsi_transport scsi_transport_t;
 

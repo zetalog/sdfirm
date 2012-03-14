@@ -24,7 +24,3 @@ void board_init(void)
 
 	DEVICE_ARCH(DEVICE_ARCH_AVR);
 }
-
-void appl_init(void)
-{
-}

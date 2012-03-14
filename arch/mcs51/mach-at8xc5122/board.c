@@ -49,7 +49,3 @@ void board_init(void)
 	clk_init();
 	mem_init();
 }
-
-void appl_init(void)
-{
-}

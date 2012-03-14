@@ -57,6 +57,7 @@ endmenu
 
 source "arch/arm/mach-lm3s9b92/Kconfig"
 
+source "appl/Kconfig"
 source "kernel/Kconfig"
 source "drivers/Kconfig"
 source "lib/Kconfig"

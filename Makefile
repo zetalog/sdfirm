@@ -379,7 +379,7 @@ scripts: scripts_basic include/config/auto.conf
 	$(Q)$(MAKE) $(build)=$(@)
 
 # Objects we will link into kernel / subdirs we need to visit
-init-y		:= init/
+init-y		:= init/ appl/
 libs-y		:= lib/
 drivers-y	:= drivers/
 core-y		:=

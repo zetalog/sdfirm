@@ -1,13 +1,9 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Mar  6 15:41:15 2012
+# Wed Mar 14 18:18:54 2012
 #
 CONFIG_MCS51=y
-
-#
-# Device Setup
-#
 
 #
 # MCS51 system options
@@ -40,6 +36,13 @@ CONFIG_KBD_AT8XC5122_MAX_ROWS=2
 CONFIG_KBD_AT8XC5122_MAX_COLS=6
 CONFIG_USB_AT8XC5122=y
 CONFIG_USB_AT8XC5122_MAX_ENDPS=6
+
+#
+# Function options
+#
+# CONFIG_APPL_STORAGE is not set
+CONFIG_APPL_DISPLAY=y
+CONFIG_DISPLAY_EZIO=y
 
 #
 # Feature setup

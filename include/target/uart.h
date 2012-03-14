@@ -68,9 +68,29 @@
 
 typedef uint8_t uart_pid_t;
 
+typedef boolean (*uart_sync_cb)(uint8_t *);
+
+struct uart_user {
+	uint8_t params;
+	uint32_t baudrate;
+	uint8_t *txbuf;
+	uint8_t *rxbuf;
+	bulk_size_t txlen;
+	bulk_size_t rxlen;
+	bulk_user_t *txusr;
+	bulk_user_t *rxusr;
+	uart_sync_cb sync_func;
+	bulk_size_t sync_size;
+};
+__TEXT_TYPE__(const struct uart_user, uart_user_t);
+
 struct uart_state {
 	bulk_cid_t bulk_tx;
 	bulk_cid_t bulk_rx;
+	uint8_t *sync_buf;
+	uart_sync_cb sync_func;
+	bulk_size_t sync_size;
+	bulk_size_t sync_len;
 };
 
 extern struct uart_state uart_states[NR_UART_PORTS];
@@ -79,10 +99,12 @@ extern struct uart_state uart_states[NR_UART_PORTS];
 #define uart_bulk_rx(pid)	(uart_states[pid].bulk_rx)
 
 /* Asynchronous UART */
-uart_pid_t uart_startup(uint8_t params, uint32_t baudrate,
-			bulk_user_t *txusr, uint8_t *txbuf, int txlen,
-			bulk_user_t *rxusr, uint8_t *rxbuf, int rxlen);
+void uart_startup(uart_pid_t pid, uart_user_t *user);
 void uart_cleanup(uart_pid_t pid);
 uart_pid_t uart_register_port(uart_port_t *port);
+void uart_read_sync(uart_pid_t pid);
+void uart_read_submit(uart_pid_t pid, bulk_size_t size);
+void uart_read_byte(uart_pid_t pid, uint8_t c);
+void uart_write_byte(uart_pid_t pid);
 
 #endif /* __UART_H_INCLUDE__ */

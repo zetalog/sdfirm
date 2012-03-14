@@ -10,8 +10,6 @@ config MCS51
 	default y
 	select CC_ISR_VECTOR
 
-menu "Device Setup"
-
 menu "MCS51 system options"
 
 choice
@@ -34,13 +32,12 @@ menu "Compiler options"
 config CC_ISR_VECTOR
 	bool "Enable compiler vectors"
 
-endmenu
-
 source "arch/mcs51/mach-at8xc5122/Kconfig"
 #source "arch/mcs51/plat-at8051/Kconfig"
 
 endmenu
 
+source "appl/Kconfig"
 source "kernel/Kconfig"
 source "drivers/Kconfig"
 source "lib/Kconfig"

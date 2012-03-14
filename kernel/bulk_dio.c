@@ -1,13 +1,13 @@
 #include <target/bulk.h>
 
 struct bulk_block_writer {
-	bulk_xmit_cb write;
-	bulk_space_cb space;
+	iobulk_cb write;
+	iotest_cb space;
 };
 
 struct bulk_block_reader {
-	bulk_xmit_cb read;
-	bulk_space_cb space;
+	iobulk_cb read;
+	iotest_cb space;
 };
 
 struct bulk_byte_writer {

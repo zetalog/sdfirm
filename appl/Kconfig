@@ -1,0 +1,29 @@
+
+#
+# Firmware Appliance
+#
+
+menu "Appliance types"
+
+config APPL_STORAGE
+	bool "Enable storage function"
+
+config APPL_DISPLAY
+	bool "Enable alpha/numeric display function"
+	select LCD
+
+if APPL_DISPLAY
+
+choice
+	prompt "Protocols"
+
+config DISPLAY_EZIO
+	bool "EZIO"
+	select UART
+	select UART_ASYNC
+
+endchoice
+
+endif
+
+endmenu

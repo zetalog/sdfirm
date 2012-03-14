@@ -2,7 +2,7 @@
 #include <target/mtd.h>
 #include <target/bulk.h>
 
-extern mtd_t board_mtd;
+extern mtd_t board_flash;
 #define MTD_BLOCK_SIZE	((mtd_addr_t)512)
 
 scsi_lun_t sbc_luns[1];
@@ -14,7 +14,7 @@ static void sbc_lba_out_of_range(void)
 
 static boolean sbc_invalid_lba_range(void)
 {
-	struct mtd_info *info = mtd_get_info(board_mtd);
+	struct mtd_info *info = mtd_get_info(board_flash);
 	return (sbc_read_cmnd.lba + scsi_current_cmnd.expect_length) >
 	       ((scsi_lba_t)info->nr_pages << 1);
 }
@@ -34,7 +34,7 @@ void sbc_read10_send(void)
 	mtd_t smtd;
 
 	size = scsi_current_cmnd.expect_length;
-	smtd = mtd_save_device(board_mtd);
+	smtd = mtd_save_device(board_flash);
 
 	j = 0;
 	size >>= 6;
@@ -128,7 +128,7 @@ static void sbc_write10_recv(void)
 	mtd_t smtd;
 
 	size = scsi_current_cmnd.expect_length;
-	smtd = mtd_save_device(board_mtd);
+	smtd = mtd_save_device(board_flash);
 
 	j = 0;
 	size >>= 6;
@@ -291,7 +291,7 @@ static void sbc_read_capacity10_aval(void)
 
 static void sbc_read_capacity10_cmpl(void)
 {
-	struct mtd_info *info = mtd_get_info(board_mtd);
+	struct mtd_info *info = mtd_get_info(board_flash);
 	scsi_lba_t lba_last = ((scsi_lba_t)(info->nr_pages) << 1) - 1;
 
 	scsi_def_writel(lba_last);
@@ -397,7 +397,7 @@ static uint16_t sbc_block_limit_vpd_size(uint8_t page_code)
 static void sbc_block_limit_vpd_data(uint8_t page_code)
 {
 	uint16_t granularity = 1;
-	struct mtd_info *info = mtd_get_info(board_mtd);
+	struct mtd_info *info = mtd_get_info(board_flash);
 	uint32_t transfer_length = (uint32_t)SCSI_MAX_BUFFER >> (info->pageorder-1);
 
 	scsi_def_writeb(0);

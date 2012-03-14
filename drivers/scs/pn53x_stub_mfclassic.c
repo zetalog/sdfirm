@@ -41,8 +41,6 @@ uint8_t mfclassic_code;
 uint8_t mfclassic_cmd[MFCLASSIC_MAX_BUF];
 uint8_t mfclassic_resp[MFCLASSIC_MAX_BUF];
 
-extern mtd_t board_mtd;
-
 scs_err_t pn53x_stub_mfclassic_get_info(uint8_t tg,
 					union nfc_target_info *nti)
 {

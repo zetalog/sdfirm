@@ -154,50 +154,60 @@ static void uart_hw_async_dummy(void)
 {
 }
 
-static uint8_t uart_hw_async_read(void)
+static boolean uart_hw_rx_poll(void)
 {
-	return SBUF;
+	return __uart_hw_ri_raised();
 }
 
-static void uart_hw_async_write(uint8_t byte)
+static boolean uart_hw_tx_poll(void)
 {
-	SBUF = byte;
+	return __uart_hw_ti_raised();
 }
 
-static void uart_hw_rx_start(void)
+static void uart_hw_rx_getch(uint8_t *byte)
 {
-	SCON |= MSK_SCON_REN;
+	*byte = SBUF;
 }
 
-static void uart_hw_rx_stop(void)
+static void uart_hw_tx_putch(uint8_t *byte)
 {
-	SCON &= ~MSK_SCON_REN;
+	SBUF = *byte;
 }
 
 static void uart_hw_rx_open(void)
 {
-	if (bulk_channel_syncing()) {
-		while (!__uart_hw_ri_raised());
-	}
-	bulk_transfer_submit(1);
+	SCON |= MSK_SCON_REN;
 }
 
 static void uart_hw_rx_close(void)
+{
+	SCON &= ~MSK_SCON_REN;
+}
+
+static void uart_hw_rx_start(void)
+{
+	if (bulk_request_syncing()) {
+		while (!__uart_hw_ri_raised());
+	}
+	uart_read_submit(__uart_hw_pid, 1);
+}
+
+static void uart_hw_rx_stop(void)
 {
 	if (__uart_hw_ri_raised())
 		__uart_hw_unraise_ri();
 }
 
-static void uart_hw_tx_open(void)
+static void uart_hw_tx_start(void)
 {
-	if (bulk_channel_syncing()) {
+	if (bulk_request_syncing()) {
 		while (!__uart_hw_ti_raised());
 	}
 }
 
-static void uart_hw_tx_close(void)
+static void uart_hw_tx_stop(void)
 {
-	if (bulk_channel_syncing()) {
+	if (bulk_request_syncing()) {
 		while (!__uart_hw_ti_raised());
 		__uart_hw_unraise_ti();
 	}
@@ -206,7 +216,7 @@ static void uart_hw_tx_close(void)
 static void uart_hw_handle_rx(void)
 {
 	if (!__uart_hw_fe_raised()) {
-		bulk_transfer_read(uart_bulk_rx(__uart_hw_pid));
+		uart_read_byte(__uart_hw_pid, SBUF);
 	} else {
 		__uart_hw_unraise_fe();
 	}
@@ -216,7 +226,7 @@ static void uart_hw_handle_rx(void)
 static void uart_hw_handle_tx(void)
 {
 	__uart_hw_unraise_ti();
-	bulk_transfer_write(uart_bulk_tx(__uart_hw_pid));
+	uart_write_byte(__uart_hw_pid);
 }
 
 static void uart_hw_handle_irq(void)
@@ -263,29 +273,36 @@ static void uart_hw_async_stop(void)
 	clk_hw_suspend_dev(DEV_UART);
 }
 
+static void uart_hw_rx_halt(void)
+{
+	uart_read_sync(__uart_hw_pid);
+}
+
 bulk_channel_t __uart_hw_tx = {
 	O_WRONLY,
 	1,
 	uart_hw_async_dummy,
 	uart_hw_async_dummy,
-	uart_hw_tx_open,
-	uart_hw_tx_close,
-	NULL,
-	uart_hw_async_write,
-	NULL,
+	uart_hw_tx_start,
+	uart_hw_tx_stop,
+	uart_hw_async_dummy,
+	uart_hw_async_dummy,
+	uart_hw_tx_poll,
+	uart_hw_tx_putch,
 	NULL,
 };
 
 bulk_channel_t __uart_hw_rx = {
 	O_RDONLY,
 	1,
-	uart_hw_rx_start,
-	uart_hw_rx_stop,
 	uart_hw_rx_open,
 	uart_hw_rx_close,
-	uart_hw_async_read,
-	NULL,
-	NULL,
+	uart_hw_rx_start,
+	uart_hw_rx_stop,
+	uart_hw_rx_halt,
+	uart_hw_async_dummy,
+	uart_hw_rx_poll,
+	uart_hw_rx_getch,
 	NULL,
 };
 
@@ -293,8 +310,8 @@ static uart_port_t __uart_hw_port = {
 	uart_hw_async_start,
 	uart_hw_async_stop,
 	uart_hw_set_params,
-	&__uart_hw_tx,
-	&__uart_hw_rx,
+	(bulk_channel_t *)(&__uart_hw_tx),
+	(bulk_channel_t *)(&__uart_hw_rx),
 };
 
 void uart_hw_async_init(void)

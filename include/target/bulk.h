@@ -16,23 +16,21 @@ typedef uint16_t bulk_size_t;
 
 typedef void (*bulk_open_cb)(size_t);
 typedef void (*bulk_close_cb)(bulk_size_t);
-typedef void (*bulk_xmit_cb)(uint8_t *, bulk_size_t);
-typedef boolean (*bulk_space_cb)(void);
 
 struct bulk_channel {
 	/* io flags defined in the io.h */
 	uint8_t flags;
-
 	bulk_size_t threshold;
 
-	io_cb start;	/* enable bulk IRQ/event */
-	io_cb stop;	/* disable bulk IRQ/event */
-	io_cb open;	/* prepare bulk */
-	io_cb close;	/* acknowledge bulk */
-	iord_cb getchar;
-	iowr_cb putchar;
-	bulk_xmit_cb read;
-	bulk_xmit_cb write;
+	io_cb open;	/* enable hardware ant its IRQ/event */
+	io_cb close;	/* disable hardware ant its IRQ/event */
+	io_cb start;	/* before the transfer */
+	io_cb stop;	/* after the transfer  */
+	io_cb halt;	/* halt the channel */
+	io_cb unhalt;	/* unhalt the channel */
+	iotest_cb testpoll;
+	iordwr_cb xmitbyte;
+	iobulk_cb xmitbulk;
 };
 __TEXT_TYPE__(const struct bulk_channel, bulk_channel_t);
 
@@ -40,7 +38,6 @@ struct bulk_user {
 	io_cb poll;
 	io_cb iocb;
 	io_cb done;
-	io_cb halt;	/* handle OOB data */
 };
 __TEXT_TYPE__(const struct bulk_user, bulk_user_t);
 
@@ -59,14 +56,26 @@ void bulk_restore_channel(bulk_cid_t bulk);
 bulk_cid_t bulk_save_channel(bulk_cid_t bulk);
 #define bulk_select_channel(bulk)	bulk_restore_channel(bulk)
 
-boolean bulk_channel_syncing(void);
+boolean bulk_request_syncing(void);
+void bulk_request_set_sync(void);
+void bulk_request_clear_sync(void);
 
-boolean bulk_submit_channel(bulk_cid_t bulk, size_t length);
-void bulk_commit_channel(size_t length);
+boolean bulk_channel_halting(bulk_cid_t bulk);
+void bulk_channel_halt(bulk_cid_t bulk);
+void bulk_channel_unhalt(bulk_cid_t bulk, bulk_size_t resync_bytes);
+
+boolean bulk_request_submit(bulk_cid_t bulk, size_t length);
+void bulk_request_commit(size_t length);
+void bulk_request_discard(void);
+
+size_t bulk_request_handled(void);
+size_t bulk_request_unhandled(bulk_cid_t bulk);
+bulk_size_t bulk_transfer_handled(void);
+bulk_size_t bulk_transfer_unhandled(void);
 
 void bulk_transfer_write(bulk_cid_t bulk);
 void bulk_transfer_read(bulk_cid_t bulk);
-void bulk_transfer_submit(size_t bytes);
+void bulk_transfer_submit(bulk_cid_t bulk, bulk_size_t bytes);
 
 void bulk_writeb(uint8_t byte);
 void bulk_writew(uint16_t word);
@@ -84,18 +93,23 @@ uint32_t bulk_readl(uint32_t dword);
 
 #define BULK_READ_BEGIN(byte)					\
 	{							\
-		size_t __l = bulk_channel_handled();		\
+		size_t __l = bulk_request_handled();		\
 		BULK_READB(byte);				\
-		if (bulk_channel_handled() != __l)
+		if (bulk_request_handled() != __l)
 #define BULK_READ_END						\
 	}
 #define BULK_WRITE_BEGIN(byte)					\
 	{							\
-		size_t __l = bulk_channel_handled();		\
+		size_t __l = bulk_request_handled();		\
 		BULK_WRITEB(byte);				\
-		if (bulk_channel_handled() != __l)
+		if (bulk_request_handled() != __l)
 #define BULK_WRITE_END						\
 	}
+
+int bulk_putchar(uint8_t *c);
+int bulk_getchar(uint8_t *c);
+int bulk_write(uint8_t *buf, size_t len);
+int bulk_read(uint8_t *buf, size_t len);
 
 void bulk_reset_fifo(bulk_cid_t bulk);
 

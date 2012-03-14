@@ -5,7 +5,6 @@
 #include <target/mtd.h>
 
 extern caddr_t __bss_stop[];
-mtd_t board_mtd = INVALID_MTD_ID;
 
 void mem_init(void)
 {
@@ -50,8 +49,4 @@ void board_init(void)
 	gpio_init();
 
 	DEVICE_ARCH(DEVICE_ARCH_ARM);
-}
-
-void appl_init(void)
-{
 }

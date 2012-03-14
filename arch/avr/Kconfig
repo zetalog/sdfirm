@@ -50,6 +50,7 @@ endmenu
 source "arch/avr/mach-at90usb1287/Kconfig"
 source "arch/avr/mach-at90scr100/Kconfig"
 
+source "appl/Kconfig"
 source "kernel/Kconfig"
 source "drivers/Kconfig"
 source "lib/Kconfig"

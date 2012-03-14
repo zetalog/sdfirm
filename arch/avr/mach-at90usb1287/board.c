@@ -3,6 +3,8 @@
 #include <target/wdt.h>
 #include <target/irq.h>
 #include <target/heap.h>
+#include <target/mtd.h>
+#include <target/dataflash.h>
 
 extern caddr_t __bss_end[];
 
@@ -25,64 +27,39 @@ void mem_init(void)
 	heap_range_init((caddr_t)__bss_end);
 }
 
+#ifdef CONFIG_MTD_DATAFLASH
+mtd_t board_flashes[DATAFLASH_MAX_BANKS];
+uint8_t nr_board_flashes = 0;
+mtd_t board_flash = INVALID_MTD_ID;
+
+void board_flash_chip(uint8_t chip)
+{
+	board_flashes[nr_board_flashes] = dataflash_register_bank(chip);
+	nr_board_flashes++;
+}
+
+void board_flash_init(void)
+{
+	board_flash_chip(SPI_CS_0);
+#if DATAFLASH_MAX_BANKS > 1
+	board_flash_chip(SPI_CS_1);
+	board_flash = mtd_concat_devices(board_flashes, nr_board_flashes);
+#else
+	board_flash = board_flashes[0];
+#endif
+	mtd_block_create(board_flash);
+}
+#else
+#define board_flash_init()
+#endif
+
 void board_init(void)
 {
 	clk_init();
 	mem_init();
 	wdt_ctrl_stop();
 	DEVICE_ARCH(DEVICE_ARCH_AVR);
-}
-
-#include <target/mtd.h>
-#include <target/dataflash.h>
-
-#ifdef CONFIG_MTD_DATAFLASH
-mtd_t board_flashes[DATAFLASH_MAX_BANKS];
-mtd_t board_mtd = INVALID_MTD_ID;
-uint8_t nr_board_flashes = 0;
-
-void appl_dataflash_chip(uint8_t chip)
-{
-	board_flashes[nr_board_flashes] = dataflash_register_bank(chip);
-	nr_board_flashes++;
-}
-
-void appl_dataflash_init(void)
-{
-	appl_dataflash_chip(SPI_CS_0);
-#if DATAFLASH_MAX_BANKS > 1
-	appl_dataflash_chip(SPI_CS_1);
-	board_mtd = mtd_concat_devices(board_flashes, nr_board_flashes);
-#else
-	board_mtd = board_flashes[0];
-#endif
-	mtd_block_create(board_mtd);
-}
-#else
-#define appl_dataflash_init()
-#endif
-
-#ifdef CONFIG_MTD_BLOCK
-void appl_block_init(void)
-{
-	/* board_blkdev = mtd_register_blkdev(board_mtd); */
-}
-#else
-#define appl_block_init()
-#endif
-
-#ifdef CONFIG_SCSI_SBC
-void appl_scsi_init(void)
-{
+	board_flash_init();
+	/* board_blkdev = mtd_register_blkdev(board_flash); */
 	/* board_lun = sbc_mount_device(board_blkdev); */
-}
-#else
-#define appl_scsi_init()
-#endif
-
-void appl_init(void)
-{
-	appl_dataflash_init();
-	appl_block_init();
-	appl_scsi_init();
 }
