@@ -64,7 +64,7 @@ boolean bulk_channel_halting(bulk_cid_t bulk);
 void bulk_channel_halt(bulk_cid_t bulk);
 void bulk_channel_unhalt(bulk_cid_t bulk, bulk_size_t resync_bytes);
 
-boolean bulk_request_submit(bulk_cid_t bulk, size_t length);
+boolean bulk_request_submit(size_t length);
 void bulk_request_commit(size_t length);
 void bulk_request_discard(void);
 
@@ -106,6 +106,9 @@ uint32_t bulk_readl(uint32_t dword);
 #define BULK_WRITE_END						\
 	}
 
+/* bulk APIs */
+boolean bulk_transmit_submit(void);
+void bulk_transmit_complete(void);
 int bulk_putchar(uint8_t *c);
 int bulk_getchar(uint8_t *c);
 int bulk_write(uint8_t *buf, size_t len);

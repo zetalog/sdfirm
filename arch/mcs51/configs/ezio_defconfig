@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Mar 15 10:57:27 2012
+# Thu Mar 15 14:47:38 2012
 #
 CONFIG_MCS51=y
 

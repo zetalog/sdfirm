@@ -694,23 +694,25 @@ void bulk_transfer_read(bulk_cid_t bulk)
 	bulk_transfer_iocb();
 }
 
-boolean bulk_request_submit(bulk_cid_t bulk, size_t length)
+boolean bulk_transmit_submit(void)
 {
-	uint8_t sbulk;
-	boolean result = false;
-
-	sbulk = bulk_save_channel(bulk);
 	if (bulk_request_pending() || __bulk_channel_halting(bulk_cid))
-		goto end;
+		return false;
+	return true;
+}
 
+void bulk_transmit_complete(void)
+{
+}
+
+boolean bulk_request_submit(size_t length)
+{
+	if (bulk_request_pending() || __bulk_channel_halting(bulk_cid))
+		return false;
 	bulk_request_limit(length);
 	bulk_request_set_soft();
 	bulk_request_open();
-	result = true;
-
-end:
-	bulk_restore_channel(sbulk);
-	return result;
+	return true;
 }
 
 void bulk_request_commit(size_t length)

@@ -5,15 +5,10 @@
 
 menu "Appliance types"
 
-menu "Flash storage support"
-
-endmenu
-
-menu "Alpha/numeric display support"
-
 config LCD_EZIO
-	bool "EZIO"
+	bool "EZIO-100 LCD/Keyboard module"
 	select LCD
+	select KBD
 	select UART
 	select UART_ASYNC
 
@@ -25,7 +20,5 @@ config EZIO_UART_PORT
 	default 1
 
 endif
-
-endmenu
 
 endmenu
