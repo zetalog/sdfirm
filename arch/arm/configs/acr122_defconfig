@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Feb 21 15:40:44 2012
+# Thu Mar 15 19:59:11 2012
 #
 CONFIG_ARM=y
 
@@ -39,10 +39,14 @@ CONFIG_GPIO_LM3S9B92=y
 CONFIG_GPT_LM3S9B92=y
 CONFIG_UART_LM3S9B92=y
 CONFIG_USB_LM3S9B92=y
-CONFIG_USB_LM3S9B92_CSO=y
 CONFIG_USB_LM3S9B92_DEV=y
 # CONFIG_USB_LM3S9B92_FIFO_DOUBLE is not set
 CONFIG_USB_LM3S9B92_MAX_ISOS=0
+
+#
+# Appliance types
+#
+# CONFIG_LCD_EZIO is not set
 
 #
 # Feature setup
@@ -78,7 +82,7 @@ CONFIG_MAX_STATES=3
 # Timing facility (delay) support
 #
 # CONFIG_LPS_32BITS is not set
-CONFIG_LPS_WEIGHT=5
+CONFIG_LPS_WEIGHT=13
 # CONFIG_LPS_PRESET is not set
 CONFIG_TIMER=y
 CONFIG_TIMER_16BIT=y
@@ -95,8 +99,22 @@ CONFIG_TEXT_RAM_BASE=0x20000000
 # CONFIG_BULK is not set
 
 #
-# Input / Output support
+# Simple debug console support
 #
+CONFIG_INPUT_NONE=y
+# CONFIG_INPUT_UART_ASYNC is not set
+# CONFIG_INPUT_KBD is not set
+# CONFIG_OUTPUT_NONE is not set
+CONFIG_OUTPUT_UART_SYNC=y
+# CONFIG_OUTPUT_UART_ASYNC is not set
+# CONFIG_OUTPUT_LCD is not set
+
+#
+# Human interface devices support
+#
+# CONFIG_LCD is not set
+# CONFIG_KBD is not set
+# CONFIG_LED is not set
 CONFIG_ARCH_HAS_UART=y
 CONFIG_UART=y
 CONFIG_UART_SYNC=y
@@ -107,20 +125,10 @@ CONFIG_UART_115200=y
 # CONFIG_UART_19200 is not set
 # CONFIG_UART_9600 is not set
 # CONFIG_UART_4800 is not set
-# CONFIG_I2C is not set
+# CONFIG_UART_2400 is not set
+# CONFIG_UART_ASYNC is not set
 # CONFIG_SPI is not set
-# CONFIG_SPI_MASTER is not set
-# CONFIG_SPI_SLAVE is not set
-# CONFIG_LCD is not set
-# CONFIG_KBD is not set
-# CONFIG_LED is not set
-CONFIG_INPUT_NONE=y
-# CONFIG_INPUT_UART_ASYNC is not set
-# CONFIG_INPUT_KBD is not set
-# CONFIG_OUTPUT_NONE is not set
-CONFIG_OUTPUT_UART_SYNC=y
-# CONFIG_OUTPUT_UART_ASYNC is not set
-# CONFIG_OUTPUT_LCD is not set
+# CONFIG_I2C is not set
 CONFIG_ARCH_HAS_USB=y
 CONFIG_ARCH_HAS_USB_OTG=y
 CONFIG_ARCH_IS_USBD_ENDP_TXCMPL=y
@@ -149,9 +157,6 @@ CONFIG_ICCD_OLDVER=y
 # CONFIG_USB_MSD is not set
 # CONFIG_USB_HID is not set
 # CONFIG_USB_DFU is not set
-# CONFIG_DFU_RUNTIME is not set
-# CONFIG_DFU_DFUMODE is not set
-# CONFIG_DFU_FULLCMD is not set
 # CONFIG_USB_PN53X is not set
 CONFIG_SCS=y
 CONFIG_SCS_APDU_SIZE=256

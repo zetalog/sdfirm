@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Mar 15 14:47:38 2012
+# Thu Mar 15 20:03:11 2012
 #
 CONFIG_MCS51=y
 
@@ -40,14 +40,6 @@ CONFIG_USB_AT8XC5122_MAX_ENDPS=6
 #
 # Appliance types
 #
-
-#
-# Flash storage support
-#
-
-#
-# Alpha/numeric display support
-#
 CONFIG_LCD_EZIO=y
 CONFIG_EZIO_UART_PORT=0
 
@@ -84,7 +76,7 @@ CONFIG_MAX_STATES=4
 # Timing facility (delay) support
 #
 # CONFIG_LPS_32BITS is not set
-CONFIG_LPS_WEIGHT=8
+CONFIG_LPS_WEIGHT=0
 # CONFIG_LPS_PRESET is not set
 CONFIG_TIMER=y
 # CONFIG_TIMER_16BIT is not set
