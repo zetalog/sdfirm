@@ -125,10 +125,10 @@ static inline void __uart##n##_hw_ctrl_disable(void)			\
 	/* disable the UART */						\
 	__raw_clearl(_BV(UARTEN) | _BV(TXE) | _BV(RXE), UARTCTL(n));	\
 }									\
-static inline void __uart##n##_hw_ctrl_enable(void)			\
+static inline void __uart##n##_hw_ctrl_enable(uint8_t params)		\
 {									\
 	/* disable the FIFO and BRK */					\
-	__raw_writel(__uart##n##_hw_config_param(UART_PARAMS),		\
+	__raw_writel(__uart##n##_hw_config_param(params),		\
 		     UARTLCRH(n));					\
 	/* enable RX, TX, and the UART */				\
 	__raw_writel(_BV(UARTEN) | _BV(TXE) | _BV(RXE), UARTCTL(n));	\

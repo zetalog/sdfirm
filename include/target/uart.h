@@ -5,31 +5,6 @@
 #include <target/generic.h>
 #include <target/bulk.h>
 
-#ifdef CONFIG_UART_115200
-#define UART_BAUDRATE		115200
-#endif
-#ifdef CONFIG_UART_57600
-#define UART_BAUDRATE		57600
-#endif
-#ifdef CONFIG_UART_38400
-#define UART_BAUDRATE		38400
-#endif
-#ifdef CONFIG_UART_19200
-#define UART_BAUDRATE		19200
-#endif
-#ifdef CONFIG_UART_9600
-#define UART_BAUDRATE		9600
-#endif
-#ifdef CONFIG_UART_4800
-#define UART_BAUDRATE		4800
-#endif
-#ifdef CONFIG_UART_2400
-#define UART_BAUDRATE		2400
-#endif
-
-#ifndef UART_BAUDRATE
-#define UART_BAUDRATE		115200
-#endif
 
 #define UART_BITS_MASK		0x0F
 #define UART_PARITY_MASK	0x30
@@ -47,12 +22,37 @@
 
 #include <driver/uart.h>
 
-/* always use this to communicate with PC: bits = 8, parity = N, stopb = 1 */
-#define UART_PARAMS		(8 | UART_PARITY_NONE | UART_STOPB_ONE)
-
 #define INVALID_UART_VALUE	-1
 
 #ifdef CONFIG_UART_SYNC
+/* always use this to communicate with PC: bits = 8, parity = N, stopb = 1 */
+#define UART_SYNC_PARAMS	(8 | UART_PARITY_NONE | UART_STOPB_ONE)
+
+#ifdef CONFIG_UART_115200
+#define UART_SYNC_BAUDRATE	115200
+#endif
+#ifdef CONFIG_UART_57600
+#define UART_SYNC_BAUDRATE	57600
+#endif
+#ifdef CONFIG_UART_38400
+#define UART_SYNC_BAUDRATE	38400
+#endif
+#ifdef CONFIG_UART_19200
+#define UART_SYNC_BAUDRATE	19200
+#endif
+#ifdef CONFIG_UART_9600
+#define UART_SYNC_BAUDRATE	9600
+#endif
+#ifdef CONFIG_UART_4800
+#define UART_SYNC_BAUDRATE	4800
+#endif
+#ifdef CONFIG_UART_2400
+#define UART_SYNC_BAUDRATE	2400
+#endif
+#ifndef UART_SYNC_BAUDRATE
+#define UART_SYNC_BAUDRATE	115200
+#endif
+
 #define uart_putchar(byte)	uart_hw_sync_write(byte)
 #define uart_getchar()		uart_hw_sync_read()
 #else

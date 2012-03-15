@@ -5,5 +5,5 @@
 obj-y:=
 
 obj-y += appl.rel
-obj-$(CONFIG_DISPLAY_EZIO) += lcd_ezio.rel
+obj-$(CONFIG_LCD_EZIO) += lcd_ezio.rel
 

@@ -32,7 +32,7 @@ uint8_t uart_hw_sync_read(void)
 
 void uart_hw_sync_start(void)
 {
-	__uart0_hw_ctrl_enable();
+	__uart0_hw_ctrl_enable(UART_SYNC_PARAMS);
 }
 
 void uart_hw_sync_stop(void)

@@ -5,25 +5,27 @@
 
 menu "Appliance types"
 
-config APPL_STORAGE
-	bool "Enable storage function"
+menu "Flash storage support"
 
-config APPL_DISPLAY
-	bool "Enable alpha/numeric display function"
-	select LCD
+endmenu
 
-if APPL_DISPLAY
+menu "Alpha/numeric display support"
 
-choice
-	prompt "Protocols"
-
-config DISPLAY_EZIO
+config LCD_EZIO
 	bool "EZIO"
+	select LCD
 	select UART
 	select UART_ASYNC
 
-endchoice
+if LCD_EZIO
+
+config EZIO_UART_PORT
+	int "Asynchronous UART port"
+	range 0 9
+	default 1
 
 endif
+
+endmenu
 
 endmenu
