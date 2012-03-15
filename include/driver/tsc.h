@@ -3,6 +3,10 @@
 
 #include <target/config.h>
 
+#ifdef CONFIG_ARCH_HAS_TSC
+#include <asm/mach/tsc.h>
+#endif
+
 #if TSC_MAX <= 0xFF
 typedef uint8_t tsc_count_t;
 #define __tsc_div(a, b)	(a/b)
@@ -17,10 +21,14 @@ typedef uint32_t tsc_count_t;
 #define __tsc_mul	mul32u
 #endif
 
-#ifdef CONFIG_ARCH_HAS_TSC
-#include <asm/mach/tsc.h>
+/* XXX:Allow ARCH Specific Definition
+ * In some ARCH, a function called tsc_hw_read_counter may lead to extra
+ * overheads in delay calibration.  Thus we allow such ARCH defining a
+ * macro before tsc_count_t definitions to eliminate such overheads.
+ */
+#ifndef tsc_hw_read_counter
+tsc_count_t tsc_hw_read_counter();
 #endif
-
 void tsc_hw_ctrl_init(void);
 
 #endif /* __TSC_DRIVER_H_INCLUDE__ */

@@ -85,6 +85,4 @@
 
 AT90USB1287_TIMER_16BIT(1)
 
-tsc_count_t tsc_hw_read_counter(void);
-
 #endif /* __TSC_AT90USB1287_H_INCLUDE__ */

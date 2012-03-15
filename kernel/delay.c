@@ -158,7 +158,8 @@ static void __calibrate_delay(void)
 		dbg_dump(LOBYTE(loops_per_calibration));
 		dbg_dump(tickerr);
 		dbg_dump(elapsed);
-		dbg_dump(DELAY_TICKS_PER_CALIBRATION);
+		dbg_dump(HIBYTE(DELAY_TICKS_PER_CALIBRATION));
+		dbg_dump(LOBYTE(DELAY_TICKS_PER_CALIBRATION));
 		dbg_dump(0xAA);
 #endif
 
@@ -178,7 +179,8 @@ static void __calibrate_delay(void)
 		dbg_dump(LOBYTE(loops_per_calibration));
 		dbg_dump(tickerr);
 		dbg_dump(elapsed);
-		dbg_dump(DELAY_TICKS_PER_CALIBRATION);
+		dbg_dump(HIBYTE(DELAY_TICKS_PER_CALIBRATION));
+		dbg_dump(LOBYTE(DELAY_TICKS_PER_CALIBRATION));
 		dbg_dump(0xBB);
 #endif
 

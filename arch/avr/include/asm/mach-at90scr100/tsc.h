@@ -50,6 +50,4 @@
 
 AT90SCR100_TIMER_16BIT(1)
 
-tsc_count_t tsc_hw_read_counter(void);
-
 #endif /* __TSC_AT90SCR100_H_INCLUDE__ */

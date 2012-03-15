@@ -91,6 +91,7 @@ config TICK_LM3S9B92_PERIODIC
 	select TICK
 	select TICK_PERIODIC
 	select TSC_LM3S9B92_GPT1
+	select MATH_MUL32
 	help
 	  Since HZ interrupt is not non-maskable, this may not be the best
 	  choice for the timing implementation.

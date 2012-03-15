@@ -11,7 +11,7 @@ uint32_t gpt_reload;
 
 void __gpt_hw_periodic_restart(void)
 {
-	__systick_hw_write_current(0);
+	__systick_hw_clear_current();
 	__systick_hw_enable_trap();
 }
 
@@ -21,7 +21,8 @@ void gpt_hw_periodic_restart(void)
 
 void gpt_hw_periodic_start(void)
 {
-	gpt_reload = mul16u(__SYSTICK_HW_FREQ, div16u(1000, HZ)) - 1;
+	gpt_reload = (uint32_t)(mul32u(__SYSTICK_HW_FREQ,
+				div16u(1000, HZ))) - 1;
 	__systick_hw_write_reload(gpt_reload);
 	__gpt_hw_periodic_restart();
 }

@@ -17,6 +17,4 @@
 #define TSC_FREQ			__SYSTICK_HW_FREQ
 #endif
 
-tsc_count_t tsc_hw_read_counter(void);
-
 #endif /* __TSC_LM3S9B92_H_INCLUDE__ */
