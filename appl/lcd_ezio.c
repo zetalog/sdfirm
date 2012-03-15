@@ -29,15 +29,25 @@
 #define EZIO_KEY_DownArrow	0x47
 
 boolean ezio_sync_cmd(uint8_t *cmd);
+void ezio_resp_poll(void);
+void ezio_resp_iocb(void);
+void ezio_resp_done(void);
+void ezio_cmd_poll(void);
+void ezio_cmd_iocb(void);
+void ezio_cmd_done(void);
 
 uint8_t ezio_cmd[EZIO_MAX_CMD];
 
 bulk_user_t ezio_bulk_resp = {
-	O_WRONLY,
+	ezio_resp_poll,
+	ezio_resp_iocb,
+	ezio_resp_done,
 };
 
 bulk_user_t ezio_bulk_cmd = {
-	O_RDONLY,
+	ezio_cmd_poll,
+	ezio_cmd_iocb,
+	ezio_cmd_done,
 };
 
 uart_user_t ezio_uart = {
@@ -52,6 +62,30 @@ uart_user_t ezio_uart = {
 	ezio_sync_cmd,
 	1,
 };
+
+void ezio_resp_poll(void)
+{
+}
+
+void ezio_resp_iocb(void)
+{
+}
+
+void ezio_resp_done(void)
+{
+}
+
+void ezio_cmd_poll(void)
+{
+}
+
+void ezio_cmd_iocb(void)
+{
+}
+
+void ezio_cmd_done(void)
+{
+}
 
 boolean ezio_sync_cmd(uint8_t *cmd)
 {
