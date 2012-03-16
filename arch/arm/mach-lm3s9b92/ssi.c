@@ -87,9 +87,9 @@ void spi_hw_ctrl_stop(void)
 
 void spi_hw_config_freq(uint32_t khz)
 {
-	uint16_t clk;
-	uint16_t div, mod, fls;
-	uint8_t cpsdvsr, scr;
+	uint16_t ratio;
+	uint8_t cpsdvsr;
+	uint16_t scr;
 
 	BUG_ON(khz > SPI_HW_MAX_FREQ);
 
@@ -97,15 +97,19 @@ void spi_hw_config_freq(uint32_t khz)
 	 *
 	 * SSICLK = SysClk / (CPSDVSR * (1 + SCR)) ->
 	 * CPSDVSR * (1 + SCR) = SysClk / SSICLK ->
-	 * CPSDVSR * (1 + SCR) = CLK_SYS / khz = clk
+	 * CPSDVSR * (1 + SCR) = CLK_SYS / khz = ratio
 	 */
-	clk = (div32u(CLK_SYS, khz) & 0xfffe);
-	fls = __fls16(clk);
-	div = div16u(fls, 2);
-	mod = mod16u(fls, 2);
+	ratio = (uint16_t)div32u(CLK_SYS, khz);
+	cpsdvsr = 0;
+	do
+	{
+		cpsdvsr += 2;
+		scr = div16u(ratio, cpsdvsr) - 1;
+	} while (scr > 255 && cpsdvsr != 0);
 
-	cpsdvsr = (1 << div) + (mod ? ((1 << div) - 2) : 0);
-	scr = div16u(clk, cpsdvsr) - 1;
+	/* ensure calculated SSICLK < wanted SSICLK */
+	while (div32u(CLK_SYS, mul16u(cpsdvsr, (1+scr))) > khz)
+		scr++;
 
 	__ssi0_hw_config_prescale(cpsdvsr);
 	__ssi0_hw_config_phase(scr);
