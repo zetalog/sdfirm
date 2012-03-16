@@ -72,7 +72,26 @@ void pn53x_hw_xchg_write(scs_off_t index, uint8_t val)
 	spi_write_byte(val);
 }
 
+#if 0
+void pn53x_hw_ctrl_test(void)
+{
+	uint8_t i;
+
+	while (1) {
+		spi_select_device(pn53x_spi);
+		for (i = 0; i < 256; i++) {
+			spi_write_byte(i);
+			uart_putchar(spi_read_byte());
+		}
+		spi_deselect_device();
+	}
+}
+#else
+#define pn53x_hw_ctrl_test()
+#endif
+
 void pn53x_hw_ctrl_init(void)
 {
 	pn53x_spi = spi_register_device(&pn53x_spi_device);
+	pn53x_hw_ctrl_test();
 }
