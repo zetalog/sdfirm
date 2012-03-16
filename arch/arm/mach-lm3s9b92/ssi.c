@@ -73,8 +73,6 @@ uint8_t spi_hw_read_byte(void)
 
 void spi_hw_ctrl_start(void)
 {
-	__ssi0_hw_ctrl_enable();
-	__ssi0_hw_config_ctrl(__SPI_HW_CTRL);
 }
 
 void spi_hw_config_mode(uint8_t mode)
@@ -99,7 +97,6 @@ void spi_hw_chip_select(uint8_t chip)
 
 void spi_hw_ctrl_stop(void)
 {
-	__ssi0_hw_ctrl_disable();
 }
 
 void spi_hw_config_freq(uint32_t khz)
@@ -136,4 +133,6 @@ void spi_hw_ctrl_init(void)
 {
 	pm_hw_resume_device(DEV_SSI0, DEV_MODE_ON);
 	__ssi0_hw_config_pins();
+	__ssi0_hw_ctrl_enable();
+	__ssi0_hw_config_ctrl(__SPI_HW_CTRL);
 }
