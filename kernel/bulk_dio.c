@@ -87,11 +87,6 @@ static void bulk_def_close(bulk_size_t size)
 {
 }
 
-static boolean bulk_def_space(void)
-{
-	return true;
-}
-
 void bulk_config_read_byte(bulk_cid_t bulk, bulk_size_t flush,
 			   bulk_open_cb open,
 			   iord_cb read,

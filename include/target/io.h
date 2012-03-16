@@ -14,8 +14,8 @@ typedef void (*iowr_cb)(uint8_t);
 typedef void (*io_cb)(void);
 typedef boolean (*iotest_cb)(void);
 typedef void (*iordwr_cb)(uint8_t *c);
-typedef int (*iobyte_cb)(uint8_t *c);
-typedef int (*iobulk_cb)(uint8_t *buf, size_t len);
+typedef boolean (*iobyte_cb)(uint8_t *c);
+typedef size_t (*iobulk_cb)(uint8_t *buf, size_t len);
 
 #ifdef CONFIG_INPUT_UART
 #include <target/uart.h>

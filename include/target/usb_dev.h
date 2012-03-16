@@ -374,8 +374,8 @@ void usbd_bulk_open(size_t offset);
 void usbd_bulk_close(bulk_size_t size);
 void usbd_bulk_put(uint8_t byte);
 uint8_t usbd_bulk_get(void);
-void usbd_bulk_in(uint8_t *buffer, bulk_size_t size);
-void usbd_bulk_out(uint8_t *buffer, bulk_size_t size);
+size_t usbd_bulk_in(uint8_t *buffer, size_t size);
+size_t usbd_bulk_out(uint8_t *buffer, bulk_size_t size);
 #else
 #define usbd_bulk_open(offset)
 #define usbd_bulk_close(size)

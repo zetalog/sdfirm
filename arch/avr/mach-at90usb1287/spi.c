@@ -51,34 +51,30 @@ uint8_t spi_hw_read_byte(void)
  * PINB3: the MISO signal direction is INPUT
  */
 #ifdef CONFIG_SPI_MASTER
-static void __spi_hw_config_pins(void)
+static void __spi_hw_ctrl_init(void)
 {
 	SPI_DDR &= ~_BV(DD_MISO);
 	SPI_DDR |= (_BV(DD_MOSI) | _BV(DD_SCK) | _BV(DD_SS));
 	SPI_PORT |= (_BV(PIN_MISO) | _BV(PIN_MOSI) | _BV(PIN_SCK) | _BV(PIN_SS));
-}
-
-void spi_hw_ctrl_start(void)
-{
 	SPCR |= _BV(MSTR);
 	__spi_hw_ctrl_enable();
 }
 #endif
 
 #ifdef CONFIG_SPI_SLAVE
-static void __spi_hw_config_pins(void)
+static void __spi_hw_ctrl_init(void)
 {
 	SPI_DDR |= _BV(DD_MISO);
 	SPI_DDR &= ~(_BV(DD_MOSI) | _BV(DD_SCK) | _BV(DD_SS));
 	SPI_PORT |= (_BV(PIN_MISO) | _BV(PIN_MOSI) | _BV(PIN_SCK) | _BV(PIN_SS));
-}
-
-void spi_hw_ctrl_start(void)
-{
-	SPCR &= ~(_BV(MSTR));
+	SPCR &= ~_BV(MSTR);
 	__spi_hw_ctrl_enable();
 }
 #endif
+
+void spi_hw_ctrl_start(void)
+{
+}
 
 void spi_hw_config_mode(uint8_t mode)
 {
@@ -116,7 +112,6 @@ void spi_hw_chip_select(uint8_t chip)
 
 void spi_hw_ctrl_stop(void)
 {
-	__spi_hw_ctrl_disable();
 }
 
 void spi_hw_config_freq(uint32_t khz)
@@ -132,5 +127,5 @@ void spi_hw_ctrl_init(void)
 {
 	AT90USB1287_POWER_ENABLE(PRR0, PRSPI);
 	DDRE |= (_BV(DDE0) | _BV(DDE1));
-	__spi_hw_config_pins();
+	__spi_hw_ctrl_init();
 }
