@@ -1,8 +1,14 @@
 
                  Measurement Results of Delay Calibration
 
-1. at89c5122
-   at89c5122 has a tick platform, it can be configured in 4 ways:
+This document collects the measurement result of delay calibration for the
+platforms supported by the sdfirm.  Application developers may refer this
+document for the correct timing facility configurations.
+
+1. MCS51 - at89c5122
+   The at89c5122 is a tickaware platform equipped with a non-maskable tick
+   device.
+   Timing for this MCU can be configured in 4 ways:
    CONFIG-1.1. PLL, cpu_freq = 24M
                jiffy is implemented by a non-maskable tick device (GPT0)
                CONFIG_CPU_AT8XC5122_PLL = y
@@ -21,6 +27,7 @@
                CONFIG_CPU_AT8XC5122_PLL = y
                CONFIG_CPU_AT8XC5122_FREQ_48M = y
                CONFIG_TICK = n
+
    The delay calibration results are as follows:
                +------------+--------------+------------+-----------+
                |  CONFIG    | loops_per_ms | LPS_WEIGHT | LPS_32BIT |
@@ -33,12 +40,15 @@
                +------------+--------------+------------+-----------+
                | 48M, tsc   |    0x04B0    |      0     |     n     |
                +------------+--------------+------------+-----------+
-  Important: at89c5122 LPS_WEIGHT depends on tickerr,
-             details in __calibrate_delay.
-  The results are measured on avr-gcc *GCC 4.5.1*:
+  The results are measured for a firmware compiled with *SDCC 3.0.0*.
+  NOTE: delay calibration with TSC on at89c5122 is heavily depends on an
+        estimated tick_err, thus LPS_WEIGHT initial value should be low
+        enough for tick_err estimation.  Please see the comments in the
+        __calibrate_delay source codes for the dscription of tick_err.
 
-  2. at90usb1287
-     at90usb1287 has a tickless platform, it can be configured in 3 ways:
+2. AVR - at90usb1287
+   The at90usb1287 is a tickless platform.
+   Timing for this MCU can be configured in 3 ways:
    CONFIG-2.1. cpu_freq = 8M, tsc_freq = 125K
                CONFIG_CPU_AT90USB1287_FREQ_8M = y
                CONFIG_TSC_AT90USB1287_FREQ_125K = y
@@ -48,6 +58,7 @@
    CONFIG-2.3. cpu_freq = 8M, tsc_freq = 8M
                CONFIG_CPU_AT90USB1287_FREQ_8M = y
                CONFIG_TSC_AT90USB1287_FREQ_8M = y
+
    The delay calibration results are as follows:
                +------------+--------------+------------+-----------+
                |  CONFIG    | loops_per_ms | LPS_WEIGHT | LPS_32BIT |
@@ -58,27 +69,28 @@
                +------------+--------------+------------+-----------+
                | tsc = 8M   |    0x0213    |      9     |     n     |
                +------------+--------------+------------+-----------+
-  The results are measured on avr-gcc *GCC 4.5.1*:
+   The results are measured for a firmware compiled with *GCC 4.5.1*.
 
-  3. lm3s9b92 
-     lm3s9b92 can be configured as a tickless platform or
-     jiffy can be implemented based on a maskable tick device.
-     In order to drive USB module, PLL must be greater than 50MHz.
-     Thus, it can be configured in 6 ways:
+3. ARM - lm3s9b92
+   lm3s9b92 can be configured as a tickless platform.
+   lm3s9b92 can also be configured as a tickaware platform equipped with a
+   maskable tick device.
+   Timing for this MCU can be configured in 6 ways as PLL must be greater
+   than 50MHz in order to drive USB module:
    CONFIG-3.1. PLL, cpu_freq = 50M
-               jiffy is implemented by a maskable tick device (systick)
+               jiffy is implemented by a maskable tick device (SysTick)
                CONFIG_CPU_LM3S9B92_PLL = y
                CONFIG_CPU_LM3S9B92_PLL_50M = y
 	       CONFIG_LM3S9B92_TICK_PERIODIC = y
                CONFIG_TICK = y
    CONFIG-3.2. PLL, cpu_freq = 80M
-               jiffy is implemented by a maskable tick device (systick)
+               jiffy is implemented by a maskable tick device (SysTick)
                CONFIG_CPU_LM3S9B92_PLL = y
                CONFIG_CPU_LM3S9B92_PLL_80M = y
 	       CONFIG_LM3S9B92_TICK_PERIODIC = y
                CONFIG_TICK = y
    CONFIG-3.3. PLL, cpu_freq = 100M
-               jiffy is implemented by a maskable tick device (systick)
+               jiffy is implemented by a maskable tick device (SysTick)
                CONFIG_CPU_LM3S9B92_PLL = y
                CONFIG_CPU_LM3S9B92_PLL_100M = y
 	       CONFIG_LM3S9B92_TICK_PERIODIC = y
@@ -95,6 +107,7 @@
                CONFIG_CPU_LM3S9B92_PLL = y
                CONFIG_CPU_LM3S9B92_PLL_100M = y
 	       CONFIG_LM3S9B92_TICK_PERIODIC = n
+
    The delay calibration results are as follows:
                +------------+--------------+------------+-----------+
                |  CONFIG    | loops_per_ms | LPS_WEIGHT | LPS_32BIT |
@@ -123,4 +136,7 @@
                +------------+--------------+------------+-----------+
                | 100M,tsc   |    0x7529    |     14     |     y     |
                +------------+--------------+------------+-----------+
-  The results are measured on avr-gcc *GCC 4.5.1*:
+  The results are measured for a firmware compiled with *GCC 4.5.1*.
+
+                                                   authorized by Renjie Yin
+                                               reviewed by Lv ZETALOG Zheng
