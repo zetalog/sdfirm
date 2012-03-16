@@ -55,5 +55,4 @@ void spi_select_device(spi_t spi)
 void spi_init(void)
 {
 	spi_hw_ctrl_init();
-	spi_config_master(SPI_MAX_FREQ, 0);
 }
