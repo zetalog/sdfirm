@@ -3,6 +3,7 @@
 spi_device_t *spi_devices[NR_SPI_DEVICES];
 spi_t spi_last_id = 0;
 uint8_t spi_last_mode = INVALID_SPI_MODE;
+uint32_t spi_last_freq = SPI_MAX_FREQ;
 
 void spi_write_byte(uint8_t byte)
 {
@@ -29,6 +30,7 @@ spi_t spi_register_device(spi_device_t *dev)
 void __spi_config_master(uint32_t khz, uint8_t mode)
 {
 	spi_last_mode = mode;
+	spi_last_freq = khz;
 	spi_hw_ctrl_stop();
 	spi_hw_config_mode(mode);
 	spi_hw_config_freq(min(khz, SPI_MAX_FREQ));
@@ -37,7 +39,7 @@ void __spi_config_master(uint32_t khz, uint8_t mode)
 
 static inline void spi_config_master(uint32_t khz, uint8_t mode)
 {
-	if (spi_last_mode != mode) {
+	if ((spi_last_mode != mode) || (spi_last_freq != khz)) {
 		__spi_config_master(khz, mode);
 	}
 }
