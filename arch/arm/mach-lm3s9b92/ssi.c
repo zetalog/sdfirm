@@ -88,13 +88,13 @@ void spi_hw_config_mode(uint8_t mode)
 void spi_hw_deselect_chips(void)
 {
 	while (!__ssi0_hw_io_idle());
-	__ssi0_hw_write_cs(0);
+	__ssi0_hw_write_cs(1);
 }
 
 void spi_hw_chip_select(uint8_t chip)
 {
 	spi_hw_deselect_chips();
-	__ssi0_hw_write_cs(1);
+	__ssi0_hw_write_cs(0);
 }
 
 void spi_hw_ctrl_stop(void)
