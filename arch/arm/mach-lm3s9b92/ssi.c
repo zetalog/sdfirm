@@ -8,8 +8,25 @@
 #endif
 #ifdef CONFIG_SPI_MASTER
 #define __SPI_HW_MS	0
+static inline void __ssi0_hw_config_cs(void)
+{
+	gpio_hw_config_mux(GPIOA, 3, GPIO_MUX_NONE);
+	gpio_hw_config_pad(GPIOA, 3, GPIO_DIR_OUT,
+			   GPIO_PAD_PP, GPIO_DRIVE_2MA);
+}
+
+static inline void __ssi0_hw_write_cs(uint8_t val)
+{
+	gpio_hw_write_pin(GPIOA, 3, val);
+}
 #else
 #define __SPI_HW_MS	_BV(MS)
+static inline void __ssi0_hw_config_cs(void)
+{
+	gpio_hw_config_mux(GPIOA, 3, GPIOA3_MUX_SSI0FSS);
+	gpio_hw_config_pad(GPIOA, 3, GPIO_DIR_HW,
+			   GPIO_PAD_PP, GPIO_DRIVE_2MA);
+}
 #endif
 #define __SPI_HW_CTRL	(__SPI_HW_MS | __SPI_HW_LBM)
 
@@ -31,9 +48,7 @@ static inline void __ssi0_hw_config_pins(void)
 	gpio_hw_config_mux(GPIOA, 5, GPIOA5_MUX_SSI0TX);
 	gpio_hw_config_pad(GPIOA, 5, GPIO_DIR_HW,
 			   GPIO_PAD_PP, GPIO_DRIVE_2MA);
-	gpio_hw_config_mux(GPIOA, 3, GPIOA3_MUX_SSI0FSS);
-	gpio_hw_config_pad(GPIOA, 3, GPIO_DIR_HW,
-			   GPIO_PAD_PP, GPIO_DRIVE_2MA);
+	__ssi0_hw_config_cs();
 }
 
 void spi_hw_write_byte(uint8_t byte)
@@ -73,11 +88,13 @@ void spi_hw_config_mode(uint8_t mode)
 void spi_hw_deselect_chips(void)
 {
 	while (!__ssi0_hw_io_idle());
+	__ssi0_hw_write_cs(0);
 }
 
 void spi_hw_chip_select(uint8_t chip)
 {
 	spi_hw_deselect_chips();
+	__ssi0_hw_write_cs(1);
 }
 
 void spi_hw_ctrl_stop(void)
