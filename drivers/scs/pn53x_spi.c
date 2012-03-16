@@ -41,6 +41,8 @@ boolean pn53x_hw_poll_ready(void)
 	ready = ((spi_read_byte() & 0x01) ? true : false);
 	if (!ready)
 		pn53x_hw_pm_suspend();
+
+	return ready;
 }
 
 void pn53x_hw_read_cmpl(scs_size_t ne)

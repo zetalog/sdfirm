@@ -72,7 +72,7 @@ void spi_hw_config_mode(uint8_t mode)
 
 void spi_hw_deselect_chips(void)
 {
-	while (__ssi0_hw_io_busy());
+	while (!__ssi0_hw_io_idle());
 }
 
 void spi_hw_chip_select(uint8_t chip)
