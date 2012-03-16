@@ -101,7 +101,7 @@ void spi_hw_ctrl_stop(void)
 
 void spi_hw_config_freq(uint32_t khz)
 {
-	uint16_t ratio;
+	uint32_t ratio;
 	uint8_t cpsdvsr;
 	uint16_t scr;
 
@@ -113,13 +113,13 @@ void spi_hw_config_freq(uint32_t khz)
 	 * CPSDVSR * (1 + SCR) = SysClk / SSICLK ->
 	 * CPSDVSR * (1 + SCR) = CLK_SYS / khz = ratio
 	 */
-	ratio = (uint16_t)div32u(CLK_SYS, khz);
+	ratio = div32u(CLK_SYS, khz);
 	cpsdvsr = 0;
 	do
 	{
 		cpsdvsr += 2;
-		scr = div16u(ratio, cpsdvsr) - 1;
-	} while (scr > 255 && cpsdvsr != 0);
+		scr = (uint16_t)div32u(ratio, cpsdvsr) - 1;
+	} while (scr > 255);
 
 	/* ensure calculated SSICLK < wanted SSICLK */
 	while (div32u(CLK_SYS, mul16u(cpsdvsr, (1+scr))) > khz)
