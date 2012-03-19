@@ -99,33 +99,56 @@ void spi_hw_ctrl_stop(void)
 {
 }
 
+/* The calculation is based on the following definitions:
+ *
+ * SSICLK = SysClk / (CPSDVSR * (1 + SCR)) ->
+ * SSICLK = SysClk>>1 / ((CPSDVSR>>1) * (1 + SCR)) ->
+ * SysClk>>1 = SPI_HW_MAX_FREQ
+ * CPSDVSR>>1 = __cpsdvsr
+ * SCR = __scr
+ * thus:
+ * SSICLK = SPI_HW_MAX_FREQ / (__cpsdvsr * (1+__scr))
+ */
+#define __ssiclk(__cpsdvsr, __scr)	\
+	(uint32_t)div32u(SPI_HW_MAX_FREQ, mul16u(__cpsdvsr, (1+__scr)))
+
 void spi_hw_config_freq(uint32_t khz)
 {
 	uint32_t ratio;
-	uint8_t cpsdvsr;
-	uint16_t scr;
+	uint8_t __cpsdvsr;
+	uint16_t __scr;
 
 	BUG_ON(khz > SPI_HW_MAX_FREQ);
 
-	/* The calculation is based on the following definitions:
-	 *
-	 * SSICLK = SysClk / (CPSDVSR * (1 + SCR)) ->
-	 * CPSDVSR * (1 + SCR) = SysClk / SSICLK ->
-	 * CPSDVSR * (1 + SCR) = CLK_SYS / khz = ratio
+	/* From the calculation:
+	 * SSICLK = SPI_HW_MAX_FREQ / (__cpsdvsr * (1+__scr))
+	 * We can conclude:
+	 * __cpsdvsr * (1+__scr) = SPI_HW_MAX_FREQ / SSICLK ->
+	 * __cpsdvsr * (1+__scr) = SPI_HW_MAX_FREQ / khz = ratio
+	 * Where:
+	 * __cpsdvsr is 1-127
+	 * __scr is 1-255, and can be easily calibrated from ratio
 	 */
-	ratio = div32u(CLK_SYS, khz);
-	cpsdvsr = 0;
+	ratio = div32u(SPI_HW_MAX_FREQ, khz);
+	__cpsdvsr = 0;
 	do
 	{
-		cpsdvsr += 2;
-		scr = (uint16_t)div32u(ratio, cpsdvsr) - 1;
-	} while (scr > 255);
+		__cpsdvsr++;
+		__scr = (uint16_t)div32u(ratio, __cpsdvsr) - 1;
+		if (__scr > 255)
+			continue;
+		while (__scr <= 255) {
+			if (__ssiclk(__cpsdvsr, __scr) <= khz)
+				goto calibration_done;
+			__scr++;
+		}
+	} while (__scr > 255);
 
-	/* ensure calculated SSICLK < wanted SSICLK */
-	while (div32u(CLK_SYS, mul16u(cpsdvsr, (1+scr))) > khz)
-		scr++;
+calibration_done:
+	BUG_ON(__ssiclk(__cpsdvsr, __scr) > khz);
+	BUG_ON(__cpsdvsr > 127 || __cpsdvsr < 1);
 
-	__ssi0_hw_config_prescale(cpsdvsr);
+	__ssi0_hw_config_prescale((__cpsdvsr<<1));
 	__ssi0_hw_config_phase(scr);
 }
 
