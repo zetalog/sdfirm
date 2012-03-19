@@ -1,0 +1,236 @@
+#
+# Automatically generated make config: don't edit
+# Small Device version: 1.0.0.0
+# Mon Mar 19 16:55:14 2012
+#
+CONFIG_ARM=y
+
+#
+# ARM system options
+#
+CONFIG_ARCH_LM3S9B92=y
+CONFIG_CPU_CORTEXM3=y
+CONFIG_CPU_32v7M=y
+
+#
+# Compiler options
+#
+CONFIG_ARM_THUMB2=y
+CONFIG_ARM_ASM_UNIFIED=y
+CONFIG_ARM_EABI=y
+
+#
+# TI LM3S9B92 board options
+#
+CONFIG_PIN_LM3S9B92_100LQFP=y
+# CONFIG_PIN_LM3S9B92_108BGA is not set
+CONFIG_CPU_LM3S9B92_PLL=y
+# CONFIG_CPU_LM3S9B92_MOSC is not set
+CONFIG_CPU_LM3S9B92_MOSC_16M=y
+# CONFIG_CPU_LM3S9B92_PLL_100M is not set
+# CONFIG_CPU_LM3S9B92_PLL_80M is not set
+CONFIG_CPU_LM3S9B92_PLL_50M=y
+# CONFIG_CPU_LM3S9B92_PLL_40M is not set
+# CONFIG_CPU_LM3S9B92_PLL_25M is not set
+# CONFIG_CPU_LM3S9B92_PLL_20M is not set
+# CONFIG_TICK_LM3S9B92_PERIODIC is not set
+CONFIG_GPIO_LM3S9B92=y
+# CONFIG_GPIO_LM3S9B92_AHB is not set
+CONFIG_GPT_LM3S9B92=y
+CONFIG_UART_LM3S9B92=y
+# CONFIG_UART_LM3S9B92_UART1_PA0 is not set
+# CONFIG_UART_LM3S9B92_UART1_PB0 is not set
+# CONFIG_UART_LM3S9B92_UART1_PB4 is not set
+# CONFIG_UART_LM3S9B92_UART1_PC6 is not set
+# CONFIG_UART_LM3S9B92_UART1_PD0 is not set
+CONFIG_UART_LM3S9B92_UART1_PD2=y
+# CONFIG_UART_LM3S9B92_UART2_PD0 is not set
+CONFIG_UART_LM3S9B92_UART2_PD5=y
+# CONFIG_UART_LM3S9B92_UART2_PG0 is not set
+
+#
+# Appliance types
+#
+CONFIG_LCD_EZIO=y
+CONFIG_EZIO_UART_PORT=1
+
+#
+# Feature setup
+#
+
+#
+# Generic kernel features
+#
+# CONFIG_SYS_NOIRQ is not set
+CONFIG_SYS_POLL=y
+# CONFIG_SYS_POLL_RT is not set
+# CONFIG_SYS_TASK is not set
+# CONFIG_SYS_TASK_RT is not set
+CONFIG_ARCH_HAS_VIC=y
+CONFIG_ARCH_HAS_GPT=y
+CONFIG_ARCH_HAS_TSC=y
+CONFIG_ARCH_IS_TICKLESS=y
+
+#
+# Scheduling facility (irq) support
+#
+
+#
+# Scheduling facility (poll) support
+#
+CONFIG_MAX_STATES=3
+
+#
+# Timing facility (jiffy) support
+#
+
+#
+# Timing facility (delay) support
+#
+# CONFIG_LPS_32BITS is not set
+CONFIG_LPS_WEIGHT=13
+# CONFIG_LPS_PRESET is not set
+CONFIG_TIMER=y
+CONFIG_TIMER_16BIT=y
+CONFIG_TIMER_ONESHOT=y
+CONFIG_MAX_TIMERS=2
+
+#
+# Address space layout (.text) support
+#
+# CONFIG_XIP is not set
+CONFIG_TEXT_ROM_BASE=0x0
+CONFIG_TEXT_RAM_BASE=0x20000000
+# CONFIG_HEAP is not set
+CONFIG_BULK=y
+CONFIG_BULK_MAX_CHANS=1
+
+#
+# Simple debug console support
+#
+CONFIG_INPUT_NONE=y
+# CONFIG_INPUT_UART_ASYNC is not set
+# CONFIG_INPUT_KBD is not set
+# CONFIG_OUTPUT_NONE is not set
+CONFIG_OUTPUT_UART_SYNC=y
+# CONFIG_OUTPUT_UART_ASYNC is not set
+# CONFIG_OUTPUT_LCD is not set
+
+#
+# Human interface devices support
+#
+CONFIG_LCD=y
+CONFIG_KBD=y
+# CONFIG_LED is not set
+CONFIG_ARCH_HAS_UART=y
+CONFIG_UART=y
+CONFIG_UART_SYNC=y
+# CONFIG_UART_230400 is not set
+CONFIG_UART_115200=y
+# CONFIG_UART_57600 is not set
+# CONFIG_UART_38400 is not set
+# CONFIG_UART_19200 is not set
+# CONFIG_UART_9600 is not set
+# CONFIG_UART_4800 is not set
+# CONFIG_UART_2400 is not set
+CONFIG_UART_ASYNC=y
+CONFIG_UART_MAX_PORTS=2
+# CONFIG_SPI is not set
+# CONFIG_I2C is not set
+# CONFIG_USB is not set
+# CONFIG_SCS is not set
+# CONFIG_MTD is not set
+# CONFIG_SCSI is not set
+# CONFIG_NET is not set
+
+#
+# Driver setup
+#
+
+#
+# LCD drivers
+#
+# CONFIG_LCD_HD44780U is not set
+# CONFIG_LCD_PCF2119X is not set
+# CONFIG_LCD_NHDC0216AZ is not set
+# CONFIG_LCD_NHDC0216CIZ is not set
+
+#
+# MTD memory drivers
+#
+# CONFIG_PN53X is not set
+# CONFIG_ACR122 is not set
+
+#
+# Library setup
+#
+
+#
+# Bit-wise operations
+#
+CONFIG_BIT_FFS8=y
+# CONFIG_BIT_FLS8 is not set
+CONFIG_BIT_FLS16=y
+CONFIG_BIT_FFS16=y
+# CONFIG_BIT_FLS32 is not set
+# CONFIG_BIT_FFS32 is not set
+# CONFIG_BIT_ROUNDUP16 is not set
+# CONFIG_BIT_ROUNDDOWN16 is not set
+# CONFIG_BIT_ROUNDUP32 is not set
+# CONFIG_BIT_ROUNDDOWN32 is not set
+
+#
+# Bitmap operations
+#
+# CONFIG_BIT_FIND_SET is not set
+CONFIG_BIT_FIND_CLEAR=y
+
+#
+# Mathematic operations
+#
+CONFIG_MATH_MOD32=y
+CONFIG_MATH_MUL32=y
+# CONFIG_MATH_DIV64 is not set
+# CONFIG_MATH_MOD64 is not set
+
+#
+# Atomic operations
+#
+# CONFIG_ATOMIC_SUB_RETURN is not set
+# CONFIG_ATOMIC_ADD_RETURN is not set
+
+#
+# Checksum algorithms
+#
+# CONFIG_CRC16_CCITT is not set
+# CONFIG_CRC32 is not set
+CONFIG_FONTS=y
+CONFIG_FONT_8x8=y
+# CONFIG_FONT_8x16 is not set
+# CONFIG_FONT_6x11 is not set
+# CONFIG_FONT_7x14 is not set
+# CONFIG_FONT_PEARL_8x8 is not set
+# CONFIG_FONT_ACORN_8x8 is not set
+# CONFIG_FONT_MINI_4x6 is not set
+# CONFIG_FONT_SUN8x16 is not set
+# CONFIG_FONT_SUN12x22 is not set
+# CONFIG_FONT_10x18 is not set
+
+#
+# Generic setup
+#
+CONFIG_VENDOR_NAME="Soliton"
+CONFIG_PRODUCT_NAME="ACR122 Clone"
+CONFIG_VENDOR_ID=990
+CONFIG_PRODUCT_ID=9
+CONFIG_SERIAL_NO=0
+CONFIG_EXPERIMENTAL=y
+CONFIG_CC_OPT_SIZE=y
+CONFIG_DEBUG=y
+# CONFIG_CC_GEN_DEBUG is not set
+CONFIG_DEBUG_PANIC=y
+# CONFIG_PORTING is not set
+CONFIG_DEBUG_PRINT=y
+CONFIG_PANIC_DEBUG=y
+# CONFIG_IDLE_DEBUG is not set
+# CONFIG_IO_DEBUG is not set
