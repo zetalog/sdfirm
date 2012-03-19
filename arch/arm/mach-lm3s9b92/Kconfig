@@ -151,22 +151,22 @@ choice
 	depends UART_ASYNC
 
 config UART_LM3S9B92_UART1_PA0
-	bool "RX=PA0,TX=PA1"
+	bool "RX=PA0 TX=PA1"
 
 config UART_LM3S9B92_UART1_PB0
-	bool "RX=PB0,TX=PB1"
+	bool "RX=PB0 TX=PB1"
 
 config UART_LM3S9B92_UART1_PB4
-	bool "RX=PB4,TX=PB5"
+	bool "RX=PB4 TX=PB5"
 
 config UART_LM3S9B92_UART1_PC6
-	bool "RX=PC6,TX=PC7"
+	bool "RX=PC6 TX=PC7"
 
 config UART_LM3S9B92_UART1_PD0
-	bool "RX=PD0,TX=PD1"
+	bool "RX=PD0 TX=PD1"
 
 config UART_LM3S9B92_UART1_PD2
-	bool "RX=PD2,TX=PD3"
+	bool "RX=PD2 TX=PD3"
 
 endchoice
 
@@ -174,14 +174,14 @@ choice
 	prompt "UART2 Mux"
 	depends UART_ASYNC
 
-config UART_LM3S9B92_UART1_PD0
-	bool "RX=PD0,TX=PD1"
+config UART_LM3S9B92_UART2_PD0
+	bool "RX=PD0 TX=PD1"
 
-config UART_LM3S9B92_UART1_PD5
-	bool "RX=PD5,TX=PD6"
+config UART_LM3S9B92_UART2_PD5
+	bool "RX=PD5 TX=PD6"
 
-config UART_LM3S9B92_UART1_PG0
-	bool "RX=PG0,TX=PG1"
+config UART_LM3S9B92_UART2_PG0
+	bool "RX=PG0 TX=PG1"
 
 endchoice
 
