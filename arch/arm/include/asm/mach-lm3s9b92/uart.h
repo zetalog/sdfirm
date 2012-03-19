@@ -101,12 +101,12 @@
 #define __UART_HW_FBRD_MASK	((1<<__UART_HW_FBRD_OFFSET)-1)
 
 struct uart_hw_gpio {
-	uint8_t dev,
+	uint8_t dev;
 	uint8_t rx_port;
-	uint8_t rxpin;
+	uint8_t rx_pin;
 	uint8_t rx_mux;
 	uint8_t tx_port;
-	uint8_t txpin;
+	uint8_t tx_pin;
 	uint8_t tx_mux;
 };
 
@@ -274,6 +274,8 @@ void uart_hw_sync_start(void);
 void uart_hw_sync_stop(void);
 void uart_hw_sync_write(uint8_t byte);
 uint8_t uart_hw_sync_read(void);
+
+void uart_hw_async_init(void);
 
 void uart_hw_set_params(uint8_t params, uint32_t baudrate);
 

@@ -343,7 +343,9 @@ uint8_t usbd_outb_async(uint8_t byte);
 uint16_t usbd_outw_async(uint16_t word);
 uint32_t usbd_outl_async(uint32_t dword);
 #else
+#ifndef usbd_request_syncing
 #define usbd_request_syncing()		true
+#endif
 #define usbd_inb_async(byte)
 #define usbd_inw_async(word)
 #define usbd_inl_async(dword)
@@ -360,7 +362,9 @@ uint8_t usbd_outb_sync(void);
 uint16_t usbd_outw_sync(void);
 uint32_t usbd_outl_sync(void);
 #else
+#ifndef usbd_request_syncing
 #define usbd_request_syncing()		false
+#endif
 #define usbd_inb_sync(byte)
 #define usbd_inw_sync(word)
 #define usbd_inl_sync(dword)

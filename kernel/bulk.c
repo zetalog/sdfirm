@@ -351,7 +351,8 @@ static void bulk_hw_transmit_byte(uint8_t *c)
 	bulk_channel_t *chan;
 	
 	chan = bulk_channels[bulk_cid];
-	BUG_ON(!chan || !chan->xmitbyte && !bulk_hw_poll_ready());
+	BUG_ON(!chan || !chan->xmitbyte);
+	BUG_ON(!bulk_hw_poll_ready());
 	chan->xmitbyte(c);
 }
 
@@ -761,7 +762,7 @@ static uint8_t bulk_hw_read_byte(void)
 	return c;
 }
 
-static int bulk_putchar(uint8_t *c)
+int bulk_putchar(uint8_t *c)
 {
 	ASSIGN_CIRCBF16_REF(buffer, circbf,
 			    &bulk_chan_ctrls[bulk_cid].buffer);
@@ -786,7 +787,7 @@ static int bulk_putchar(uint8_t *c)
 	return ret;
 }
 
-static int bulk_getchar(uint8_t *c)
+int bulk_getchar(uint8_t *c)
 {
 	ASSIGN_CIRCBF16_REF(buffer, circbf,
 			    &bulk_chan_ctrls[bulk_cid].buffer);

@@ -1,8 +1,8 @@
 #ifndef __BULK_H_INCLUDE__
 #define __BULK_H_INCLUDE__
 
-#include <target/generic.h>
-#include <target/io.h>
+#include <target/config.h>
+#include <target/types.h>
 
 #ifdef CONFIG_BULK_MAX_CHANS
 #define NR_BULK_CHANS	CONFIG_BULK_MAX_CHANS

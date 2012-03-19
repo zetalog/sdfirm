@@ -36,7 +36,8 @@ static void __uart_sync(uart_pid_t pid, uint8_t c)
 			uart_states[pid].sync_len = len;
 			bulk_channel_unhalt(uart_states[pid].bulk_rx, len);
 		} else {
-			memory_copy(buf, buf+1, len-1);
+			memory_copy((caddr_t)buf,
+				    (caddr_t)(buf+1), len-1);
 		}
 	} else {
 		uart_states[pid].sync_len = len;
@@ -57,7 +58,7 @@ void uart_hw_port_startup(uart_pid_t pid,
 void uart_startup(uart_pid_t pid, uart_user_t *user)
 {
 	BUG_ON(!user->rxbuf || !user->rxlen ||
-	       (user->sync_size < user_rxlen));
+	       (user->sync_size < user->rxlen));
 
 	if (test_bit(pid, uart_port_regs)) {
 		uart_hw_port_startup(pid,
