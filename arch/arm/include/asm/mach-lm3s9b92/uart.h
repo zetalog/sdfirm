@@ -18,7 +18,10 @@
 
 #define UART_BASE	0x4000C000
 #define UART(offset)	(UART_BASE + offset)
+#define UART_REG(n, o)	(UART_BASE+((n)<<12)+(o))
 
+#define __UARTDR	0x000
+#define REG_UARTDR(n)	UART_REG(n, __UARTDR)
 #define UARTDR(n)	UART(0x##n##000)
 #define DRFE		8
 #define DRPE		9
@@ -30,6 +33,8 @@
 #define SRPE		1
 #define SRBE		2
 #define SROE		3
+#define __UARTFR	0x018
+#define REG_UARTFR(n)	UART_REG(n, __UARTFR)
 #define UARTFR(n)	UART(0x##n##018)
 #define RI		8
 #define TXFE		7
@@ -51,6 +56,8 @@
 #define EPS		2
 #define PEN		1
 #define BRK		0
+#define __UARTCTL	0x030
+#define REG_UARTCTL(n)	UART_REG(n, __UARTCTL)
 #define UARTCTL(n)	UART(0x##n##030)
 #define CTSEN		15
 #define RTSEN		14
@@ -93,14 +100,69 @@
 #define __UART_HW_FBRD_OFFSET	6
 #define __UART_HW_FBRD_MASK	((1<<__UART_HW_FBRD_OFFSET)-1)
 
+struct uart_hw_gpio {
+	uint8_t dev,
+	uint8_t rx_port;
+	uint8_t rxpin;
+	uint8_t rx_mux;
+	uint8_t tx_port;
+	uint8_t txpin;
+	uint8_t tx_mux;
+};
+
+/* UART0 */
 /* GPIO PIN A0 */
 #define GPIOA0_MUX_U0RX		0x01
 /* GPIO PIN A1 */
 #define GPIOA1_MUX_U0TX		0x01
+
+/* UART1 */
+/* GPIO PIN A0 */
+#define GPIOA0_MUX_U1RX		0x09
+/* GPIO PIN A1 */
+#define GPIOA1_MUX_U1TX		0x09
+/* GPIO PIN B0 */
+#define GPIOB0_MUX_U1RX		0x05
+/* GPIO PIN B1 */
+#define GPIOB1_MUX_U1TX		0x05
 /* GPIO PIN B4 */
-#define GPIOB4_MUX_U1RX		0x05
+#define GPIOB4_MUX_U1RX		0x07
 /* GPIO PIN B5 */
-#define GPIOB5_MUX_U1TX		0x05
+#define GPIOB5_MUX_U1TX		0x07
+
+/* UART2 */
+/* GPIO PIN D0 */
+#define GPIOD0_MUX_U2RX		0x04
+/* GPIO PIN D1 */
+#define GPIOD1_MUX_U2TX		0x04
+
+#define __UART0_HW_DEV		DEV_GPIOA
+#define __UART0_HW_RX_PORT	GPIOA
+#define __UART0_HW_RX_PIN	1
+#define __UART0_HW_RX_MUX	GPIOA0_MUX_U0RX
+#define __UART0_HW_TX_PORT	GPIOA
+#define __UART0_HW_TX_PIN	0
+#define __UART0_HW_TX_MUX	GPIOA1_MUX_U0TX
+
+#ifdef CONFIG_UART_LM3S9B92_UART1_PA0
+#define __UART1_HW_DEV		DEV_GPIOA
+#define __UART1_HW_RX_PORT	GPIOA
+#define __UART1_HW_RX_PIN	1
+#define __UART1_HW_RX_MUX	GPIOA0_MUX_U1RX
+#define __UART1_HW_TX_PORT	GPIOA
+#define __UART1_HW_TX_PIN	0
+#define __UART1_HW_TX_MUX	GPIOA0_MUX_U1TX
+#endif
+
+#ifdef CONFIG_UART_LM3S9B92_UART1_PD0
+#define __UART2_HW_DEV		DEV_GPIOD
+#define __UART2_HW_RX_PORT	GPIOD
+#define __UART2_HW_RX_PIN	1
+#define __UART2_HW_RX_MUX	GPIOD0_MUX_U2RX
+#define __UART2_HW_TX_PORT	GPIOD
+#define __UART2_HW_TX_PIN	0
+#define __UART2_HW_TX_MUX	GPIOD0_MUX_U2TX
+#endif
 
 #define LM3S9B92_UART(n)						\
 static inline uint32_t __uart##n##_hw_config_param(uint8_t params)	\
@@ -197,6 +259,14 @@ static inline boolean __uart##n##_hw_smart_empty(void)			\
 static inline uint8_t __uart##n##_hw_smart_read(void)			\
 {									\
 	return __raw_readb(UARTDR(n));					\
+}
+
+static inline void __uart_hw_ctrl_disable(uint8_t n)
+{
+	while (__raw_readl(REG_UARTFR(n)) & _BV(BUSY));
+	/* disable the UART */
+	__raw_clearl(_BV(UARTEN) | _BV(TXE) | _BV(RXE),
+		     REG_UARTCTL(n));
 }
 
 void uart_hw_sync_init(void);

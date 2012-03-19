@@ -61,7 +61,7 @@
 #endif
 
 #ifdef CONFIG_UART_MAX_PORT
-#define NR_UART_PORTS		CONFIG_UART_MAX_PORT
+#define NR_UART_PORTS		CONFIG_UART_MAX_PORTS
 #else
 #define NR_UART_PORTS		1
 #endif

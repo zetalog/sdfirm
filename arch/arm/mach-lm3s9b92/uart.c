@@ -45,3 +45,44 @@ void uart_hw_sync_init(void)
 	pm_hw_resume_device(DEV_UART0, DEV_MODE_ON);
 	__uart0_hw_config_pins();
 }
+
+#ifdef CONFIG_UART_ASYNC
+struct uart_hw_gpio uart_hw_gpios[NR_UART_PORTS] = {
+	{__UART0_HW_DEV,
+	 __UART0_HW_RX_PORT, __UART0_HW_RX_PIN, __UART0_HW_RX_MUX,
+	 __UART0_HW_TX_PORT, __UART0_HW_TX_PIN, __UART0_HW_TX_MUX),
+#if NR_UART_PORTS > 1
+	{__UART1_HW_DEV,
+	 __UART1_HW_RX_PORT, __UART1_HW_RX_PIN, __UART1_HW_RX_MUX,
+	 __UART1_HW_TX_PORT, __UART1_HW_TX_PIN, __UART1_HW_TX_MUX),
+#endif
+#if NR_UART_PORTS > 2
+	{__UART2_HW_DEV,
+	 __UART2_HW_RX_PORT, __UART2_HW_RX_PIN, __UART2_HW_RX_MUX,
+	 __UART2_HW_TX_PORT, __UART2_HW_TX_PIN, __UART2_HW_TX_MUX),
+#endif
+};
+
+void uart_hw_async_init(void)
+{
+	uint8_t n;
+
+	for (n = 0; n < NR_UART_PORTS; n++) {
+		pm_hw_resume_device(uart_hw_gpios[n].dev, DEV_MODE_ON);
+		/* configure UART0 RX pin */
+		gpio_hw_config_mux(uart_hw_gpios[n].rx_port,
+				   uart_hw_gpios[n].rx_pin,
+				   uart_hw_gpios[n].rx_mux);
+		gpio_hw_config_pad(uart_hw_gpios[n].rx_port,
+				   uart_hw_gpios[n].rx_pin,
+				   GPIO_DIR_HW, GPIO_PAD_PP, GPIO_DRIVE_2MA);
+		/* configure UART0 TX pin */
+		gpio_hw_config_mux(uart_hw_gpios[n].tx_port,
+				   uart_hw_gpios[n].tx_pin,
+				   uart_hw_gpios[n].tx_mux);
+		gpio_hw_config_pad(uart_hw_gpios[n].tx_port,
+				   uart_hw_gpios[n].tx_pin,
+				   GPIO_DIR_HW, GPIO_PAD_PP, GPIO_DRIVE_2MA);
+	}
+}
+#endif
