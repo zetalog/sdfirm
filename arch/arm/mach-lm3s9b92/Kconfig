@@ -149,6 +149,7 @@ if UART_LM3S9B92
 choice
 	prompt "UART1 Mux"
 	depends UART_ASYNC
+	default UART_LM3S9B92_UART1_PD2
 
 config UART_LM3S9B92_UART1_PA0
 	bool "RX=PA0 TX=PA1"
@@ -173,6 +174,7 @@ endchoice
 choice
 	prompt "UART2 Mux"
 	depends UART_ASYNC
+	default UART_LM3S9B92_UART2_PD5
 
 config UART_LM3S9B92_UART2_PD0
 	bool "RX=PD0 TX=PD1"

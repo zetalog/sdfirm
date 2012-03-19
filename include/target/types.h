@@ -32,7 +32,7 @@ typedef uint32_t		size_t;
 #define _BV(bit)		(1 << (bit))
 
 __TEXT_TYPE__(char, text_char_t);
-__TEXT_TYPE__(uint8_t, text_byte_t);
+__TEXT_TYPE__(const uint8_t, text_byte_t);
 __TEXT_TYPE__(uint16_t, text_word_t);
 __TEXT_TYPE__(uint32_t, text_quad_t);
 

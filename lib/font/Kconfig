@@ -1,0 +1,49 @@
+#
+# Font configuration
+#
+#
+# Font Features
+#
+
+menuconfig FONTS
+	bool "Compiled-in fonts"
+
+if FONTS
+
+choice
+	prompt "Default font"
+	default FONT_8x8
+
+config FONT_8x8
+	bool "VGA 8x8 font"
+
+config FONT_8x16
+	bool "VGA 8x16 font"
+
+config FONT_6x11
+	bool "Mac console 6x11 font (not supported by all drivers)"
+
+config FONT_7x14
+	bool "console 7x14 font (not supported by all drivers)"
+
+config FONT_PEARL_8x8
+	bool "Pearl (old m68k) console 8x8 font"
+
+config FONT_ACORN_8x8
+	bool "Acorn console 8x8 font"
+
+config FONT_MINI_4x6
+	bool "Mini 4x6 font"
+
+config FONT_SUN8x16
+	bool "Sparc console 8x16 font"
+
+config FONT_SUN12x22
+	bool "Sparc console 12x22 font (not supported by all drivers)"
+
+config FONT_10x18
+	bool "console 10x18 font (not supported by all drivers)"
+
+endchoice
+
+endif

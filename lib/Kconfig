@@ -90,4 +90,7 @@ config CRC32
 
 endmenu
 
+source lib/font/Kconfig
+
 endmenu
+
