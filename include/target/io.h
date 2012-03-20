@@ -4,6 +4,19 @@
 #include <target/config.h>
 #include <target/types.h>
 
+#define O_RDONLY	0x01
+#define O_WRONLY	0x02
+#define O_RDWR		0x03
+#define O_DIRECT	0x08
+
+typedef uint8_t (*iord_cb)(void);
+typedef void (*iowr_cb)(uint8_t);
+typedef void (*io_cb)(void);
+typedef boolean (*iotest_cb)(void);
+typedef void (*iordwr_cb)(uint8_t *c);
+typedef boolean (*iobyte_cb)(uint8_t *c);
+typedef size_t (*iobulk_cb)(uint8_t *buf, size_t len);
+
 #ifdef CONFIG_INPUT_NONE
 #define io_getchar()	0
 #else

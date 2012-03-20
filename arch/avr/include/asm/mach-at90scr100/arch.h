@@ -10,11 +10,11 @@
 #include <asm/mach/gpio.h>
 
 /* watch-dog timer */
-#include <driver/wdt.h>
+#include <target/wdt.h>
 /* timestamp counter */
-#include <driver/tsc.h>
+#include <target/tsc.h>
 /* serial port */
-#include <driver/uart.h>
+#include <target/uart.h>
 
 #define BOARD_HW_MAX_POWER	100
 

@@ -12,14 +12,14 @@
 #endif
 
 /* timestamp counter */
-#include <driver/tsc.h>
+#include <target/tsc.h>
 /* general purpose timer */
-#include <driver/gpt.h>
+#include <target/gpt.h>
 /* serial port */
-#include <driver/uart.h>
+#include <target/uart.h>
 /* spi bus controller */
-#include <driver/spi.h>
+#include <target/spi.h>
 /* usb device/host controller */
-#include <driver/usb.h>
+#include <target/usb.h>
 
 #endif /* __ARCH_MACH_H_INCLUDE__*/

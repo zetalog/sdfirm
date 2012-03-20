@@ -2,7 +2,6 @@
 #define __PANIC_H_INCLUDE__
 
 #include <target/config.h>
-#include <target/types.h>
 #include <target/io.h>
 
 #ifdef CONFIG_DEBUG_PRINT

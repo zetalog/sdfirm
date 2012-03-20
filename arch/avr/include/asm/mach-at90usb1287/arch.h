@@ -10,19 +10,19 @@
 #include <asm/mach/gpio.h>
 
 /* watch-dog timer */
-#include <driver/wdt.h>
+#include <target/wdt.h>
 /* timestamp counter */
-#include <driver/tsc.h>
+#include <target/tsc.h>
 /* general purpose timer */
-#include <driver/gpt.h>
+#include <target/gpt.h>
 /* serial port */
-#include <driver/uart.h>
+#include <target/uart.h>
 /* spi bus controller */
-#include <driver/spi.h>
+#include <target/spi.h>
 /* light-emitting device */
-#include <driver/led.h>
+#include <target/led.h>
 /* usb device/host controller */
-#include <driver/usb.h>
+#include <target/usb.h>
 
 #define BOARD_HW_MAX_POWER	100
 

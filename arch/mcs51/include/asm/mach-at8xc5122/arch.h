@@ -10,17 +10,17 @@
 #include <asm/mach/gpio.h>
 
 /* general purpose timer */
-#include <driver/gpt.h>
+#include <target/gpt.h>
 /* serial port */
-#include <driver/uart.h>
+#include <target/uart.h>
 /* keyboard */
-#include <driver/kbd.h>
+#include <target/kbd.h>
 /* display */
-#include <driver/lcd.h>
+#include <target/lcd.h>
 /* USB device */
-#include <driver/usb.h>
+#include <target/usb.h>
 /* interface device */
-#include <driver/ifd.h>
+#include <target/ifd.h>
 
 #define BOARD_HW_MAX_POWER	100
 

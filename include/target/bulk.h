@@ -2,7 +2,7 @@
 #define __BULK_H_INCLUDE__
 
 #include <target/config.h>
-#include <target/types.h>
+#include <target/io.h>
 
 #ifdef CONFIG_BULK_MAX_CHANS
 #define NR_BULK_CHANS	CONFIG_BULK_MAX_CHANS
