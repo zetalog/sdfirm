@@ -17,25 +17,20 @@
 #endif
 
 #define UART_BASE	0x4000C000
-#define UART(offset)	(UART_BASE + offset)
-#define UART_REG(n, o)	(UART_BASE+((n)<<12)+(o))
+#define UART(n, o)	(UART_BASE+((n)<<12)+(o))
 
-#define __UARTDR	0x000
-#define REG_UARTDR(n)	UART_REG(n, __UARTDR)
+#define UARTDR(n)	UART(n, 0x000)
 #define DRFE		8
 #define DRPE		9
 #define DRBE		10
 #define DROE		11
-#define __UARTRSR	0x004
-#define REG_UARTRSR(n)	UART_REG(n, __UARTRSR)
-#define __UARTECR	0x004
-#define REG_UARTECR(n)	UART_REG(n, __UARTECR)
+#define UARTRSR(n)	UART(n, 0x004)
+#define UARTECR(n)	UART(n, 0x004)
 #define SRFE		0
 #define SRPE		1
 #define SRBE		2
 #define SROE		3
-#define __UARTFR	0x018
-#define REG_UARTFR(n)	UART_REG(n, __UARTFR)
+#define UARTFR(n)	UART(n, 0x018)
 #define RI		8
 #define TXFE		7
 #define RXFF		6
@@ -45,14 +40,10 @@
 #define DCD		2
 #define DSR		1
 #define CTS		0
-#define __UARTILPR	0x020
-#define REG_UARTILPR(n)	UART_REG(n, __UARTILPR)
-#define __UARTIBRD	0x024
-#define REG_UARTIBRD(n)	UART_REG(n, __UARTIBRD)
-#define __UARTFBRD	0x028
-#define REG_UARTFBRD(n)	UART_REG(n, __UARTFBRD)
-#define __UARTLCRH	0x02C
-#define REG_UARTLCRH(n)	UART_REG(n, __UARTLCRH)
+#define UARTILPR(n)	UART(n, 0x020)
+#define UARTIBRD(n)	UART(n, 0x024)
+#define UARTFBRD(n)	UART(n, 0x028)
+#define UARTLCRH(n)	UART(n, 0x02C)
 #define SPS		7
 #define WLEN		5 /* width = 2bits */
 #define FEN		4
@@ -60,8 +51,7 @@
 #define EPS		2
 #define PEN		1
 #define BRK		0
-#define __UARTCTL	0x030
-#define REG_UARTCTL(n)	UART_REG(n, __UARTCTL)
+#define UARTCTL(n)	UART(n, 0x030)
 #define CTSEN		15
 #define RTSEN		14
 #define RTS		11
@@ -76,18 +66,12 @@
 #define SIRLP		2
 #define SIREN		1
 #define UARTEN		0
-#define __UARTIFLS	0x034
-#define REG_UARTIFLS(n)	UART_REG(n, __UARTIFLS)
-#define __UARTIM	0x038
-#define REG_UARTIM(n)	UART_REG(n, __UARTIM)
-#define __UARTRIS	0x03C
-#define REG_UARTRIS(n)	UART_REG(n, __UARTRIS)
-#define __UARTMIS	0x040
-#define REG_UARTMIS(n)	UART_REG(n, __UARTMIS)
-#define __UARTICR	0x044
-#define REG_UARTICR(n)	UART_REG(n, __UARTICR)
-#define __UARTDMACTL	0x048
-#define REG_UARTDMACTL(n)	UART_REG(n, __UARTDMACTL)
+#define UARTIFLS(n)	UART(n, 0x034)
+#define UARTIM(n)	UART(n, 0x038)
+#define UARTRIS(n)	UART(n, 0x03C)
+#define UARTMIS(n)	UART(n, 0x040)
+#define UARTICR(n)	UART(n, 0x044)
+#define UARTDMACTL(n)	UART(n, 0x048)
 
 #define __UART_HW_SMART_PARAM	(8 | UART_PARITY_EVEN | UART_STOPB_TWO)
 
@@ -150,7 +134,6 @@ struct uart_hw_gpio {
 #define GPIOD2_MUX_U1RX		0x01
 /* GPIO PIN D3 */
 #define GPIOD3_MUX_U1TX		0x01
-
 
 /* UART2 */
 /* GPIO PIN D0 */
@@ -257,111 +240,43 @@ struct uart_hw_gpio {
 #define __UART2_HW_TX_MUX	GPIOG1_MUX_U2TX
 #endif
 
-static inline uint32_t __uart_hw_config_param(uint8_t params)
-{
-	uint32_t cfg;
-	cfg = (uart_bits(params)-5) << WLEN;
-	switch (uart_parity(params)) {
-	case UART_PARITY_EVEN:
-		cfg |= _BV(EPS);
-	case UART_PARITY_ODD:
-		cfg |= _BV(PEN);
-		break;
-	}
-	if (uart_stopb(params))
-		cfg |= _BV(STP2);
-	return cfg;
-}
+void __uart_hw_ctrl_enable(uint8_t n, uint8_t params);
+void __uart_hw_ctrl_disable(uint8_t n);
+void __uart_hw_ctrl_config(uint8_t n,
+			   uint8_t params,
+			   uint32_t baudrate);
+uint32_t __uart_hw_config_param(uint8_t params);
 
-static inline void __uart_hw_ctrl_disable(uint8_t n)
-{
-	while (__raw_readl(REG_UARTFR(n)) & _BV(BUSY));
-	/* disable the UART */
-	__raw_clearl(_BV(UARTEN) | _BV(TXE) | _BV(RXE), REG_UARTCTL(n));
-}
-
-static inline void __uart_hw_ctrl_enable(uint8_t params, uint8_t n)
-{
-	/* disable the FIFO and BRK */
-	__raw_writel(__uart_hw_config_param(params),
-		     REG_UARTLCRH(n));
-	/* enable RX, TX, and the UART */
-	__raw_writel(_BV(UARTEN) | _BV(TXE) | _BV(RXE), REG_UARTCTL(n));
-	/* clear the flags register */
-	/* __raw_writel(0, UART0FR); */
-}
-
-static void __uart_hw_config_baudrate(uint32_t baudrate)
-{
-	unsigned long cfg;
-	/* is the required baud rate greater than the maximum rate */
-	/* supported without the use of high speed mode? */
-	if (baudrate > mul16u((uint16_t)div32u(CLK_SYS, 16), 1000)) {
-		/* enable high speed mode */
-		__raw_setl_atomic(HSE, REG_UARTCTL(0));
-		baudrate = div32u(baudrate, 2);
-	} else {
-		/* disable high speed mode */
-		__raw_clearl_atomic(HSE, REG_UARTCTL(0));
-	}
-	cfg = div32u(div32u((uint32_t)(mul32u(CLK_SYS, 20)),
-			    div32u(baudrate, 400)) + 1, 2);
-	/* set the baud rate */
-	__raw_writel(cfg >> __UART_HW_FBRD_OFFSET, REG_UARTIBRD(0));
-	__raw_writel(cfg & __UART_HW_FBRD_MASK, REG_UARTFBRD(0));
-}
-
-static inline void __uart_hw_ctrl_config(uint8_t params,
-					 uint8_t n,
-					 uint32_t baudrate)
-{
-	__uart_hw_config_baudrate(baudrate);
-	/* UARTLCRH write must follows UART(I|F)BRD writes */
-	__raw_writel_mask(__uart_hw_config_param(params), 0xEE,
-			  REG_UARTLCRH(n));
-}
+void __uart_hw_smart_start(uint8_t n);
+void __uart_hw_smart_stop(uint8_t n);
 
 static inline boolean __uart_hw_status_error(uint8_t n)
 {
-	return __raw_readl(REG_UARTRSR(n));
+	return __raw_readl(UARTRSR(n));
 }
 
-static inline void __uart_hw_write_byte(uint8_t byte, uint8_t n)
+static inline void __uart_hw_sync_write(uint8_t byte, uint8_t n)
 {
-	while (__raw_readl(REG_UARTFR(n)) & _BV(TXFF))
+	while (__raw_readl(UARTFR(n)) & _BV(TXFF))
 		;
-	__raw_writeb(byte, REG_UARTDR(n));
+	__raw_writeb(byte, UARTDR(n));
 }
 
-static inline uint8_t __uart_hw_read_byte(uint8_t n)
+static inline uint8_t __uart_hw_sync_read(uint8_t n)
 {
-	while (__raw_readl(REG_UARTFR(n)) & _BV(RXFE))
+	while (__raw_readl(UARTFR(n)) & _BV(RXFE))
 		;
-	return __raw_readb(REG_UARTDR(n));
-}
-
-static inline void __uart_hw_smart_start(uint8_t n)
-{
-	__raw_writel(__uart_hw_config_param(__UART_HW_SMART_PARAM),
-					    REG_UARTLCRH(n));
-	__raw_writel(_BV(UARTEN) | _BV(SMART), REG_UARTCTL(n));
-}
-
-static inline void __uart_hw_smart_stop(uint8_t n)
-{
-	while (__raw_readl(REG_UARTFR(n)) & _BV(BUSY))
-		;
-	__raw_clearl(_BV(UARTEN) | _BV(SMART), REG_UARTCTL(n));
+	return __raw_readb(UARTDR(n));
 }
 
 static inline boolean __uart_hw_smart_empty(uint8_t n)
 {
-	return __raw_readl(REG_UARTFR(n)) & _BV(RXFE);
+	return __raw_readl(UARTFR(n)) & _BV(RXFE);
 }
 
 static inline uint8_t __uart_hw_smart_read(uint8_t n)
 {
-	return __raw_readb(REG_UARTDR(n));
+	return __raw_readb(UARTDR(n));
 }
 
 void uart_hw_sync_init(void);
@@ -373,6 +288,6 @@ uint8_t uart_hw_sync_read(void);
 void uart_hw_async_init(void);
 
 void uart_hw_set_params(uint8_t params,
-			uint8_t n, uint32_t baudrate);
+			uint32_t baudrate);
 
 #endif /* __UART_LM3S9B92_H_INCLUDE__ */

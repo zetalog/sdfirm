@@ -1,9 +1,87 @@
 #include <target/uart.h>
 
-void uart_hw_set_params(uint8_t params,
-			uint8_t n, uint32_t baudrate)
+void __uart_hw_smart_start(uint8_t n)
 {
-	__uart_hw_ctrl_config(params, n, baudrate);
+	__raw_writel(__uart_hw_config_param(__UART_HW_SMART_PARAM),
+					    UARTLCRH(n));
+	__raw_writel(_BV(UARTEN) | _BV(SMART), UARTCTL(n));
+}
+
+void __uart_hw_smart_stop(uint8_t n)
+{
+	while (__raw_readl(UARTFR(n)) & _BV(BUSY))
+		;
+	__raw_clearl(_BV(UARTEN) | _BV(SMART), UARTCTL(n));
+}
+
+uint32_t __uart_hw_config_param(uint8_t params)
+{
+	uint32_t cfg;
+	cfg = (uart_bits(params)-5) << WLEN;
+	switch (uart_parity(params)) {
+	case UART_PARITY_EVEN:
+		cfg |= _BV(EPS);
+	case UART_PARITY_ODD:
+		cfg |= _BV(PEN);
+		break;
+	}
+	if (uart_stopb(params))
+		cfg |= _BV(STP2);
+	return cfg;
+}
+
+void __uart_hw_ctrl_disable(uint8_t n)
+{
+	while (__raw_readl(UARTFR(n)) & _BV(BUSY));
+	/* disable the UART */
+	__raw_clearl(_BV(UARTEN) | _BV(TXE) | _BV(RXE), UARTCTL(n));
+}
+
+void __uart_hw_ctrl_enable(uint8_t n, uint8_t params)
+{
+	/* disable the FIFO and BRK */
+	__raw_writel(__uart_hw_config_param(params),
+		     UARTLCRH(n));
+	/* enable RX, TX, and the UART */
+	__raw_writel(_BV(UARTEN) | _BV(TXE) | _BV(RXE), UARTCTL(n));
+	/* clear the flags register */
+	/* __raw_writel(0, UART0FR); */
+}
+
+static void __uart_hw_config_baudrate(uint8_t n, uint32_t baudrate)
+{
+	unsigned long cfg;
+	/* is the required baud rate greater than the maximum rate */
+	/* supported without the use of high speed mode? */
+	if (baudrate > mul16u((uint16_t)div32u(CLK_SYS, 16), 1000)) {
+		/* enable high speed mode */
+		__raw_setl_atomic(HSE, UARTCTL(n));
+		baudrate = div32u(baudrate, 2);
+	} else {
+		/* disable high speed mode */
+		__raw_clearl_atomic(HSE, UARTCTL(n));
+	}
+	cfg = div32u(div32u((uint32_t)(mul32u(CLK_SYS, 20)),
+			    div32u(baudrate, 400)) + 1, 2);
+	/* set the baud rate */
+	__raw_writel(cfg >> __UART_HW_FBRD_OFFSET, UARTIBRD(n));
+	__raw_writel(cfg & __UART_HW_FBRD_MASK, UARTFBRD(n));
+}
+
+void __uart_hw_ctrl_config(uint8_t n,
+			   uint8_t params,
+			   uint32_t baudrate)
+{
+	__uart_hw_config_baudrate(n, baudrate);
+	/* UARTLCRH write must follows UART(I|F)BRD writes */
+	__raw_writel_mask(__uart_hw_config_param(params), 0xEE,
+			  UARTLCRH(n));
+}
+
+void uart_hw_set_params(uint8_t params,
+			uint32_t baudrate)
+{
+	__uart_hw_ctrl_config(0, params, baudrate);
 }
 
 #ifdef CONFIG_UART_SYNC
@@ -23,19 +101,19 @@ static inline void __uart_hw_config_pins(void)
 void uart_hw_sync_write(uint8_t byte)
 {
 	if (pm_hw_device_mode(DEV_UART0) != DEV_MODE_OFF)
-		__uart_hw_write_byte(byte, 0);
+		__uart_hw_sync_write(byte, 0);
 }
 
 uint8_t uart_hw_sync_read(void)
 {
 	if (pm_hw_device_mode(DEV_UART0) != DEV_MODE_OFF)
-		return __uart_hw_read_byte(0);
+		return __uart_hw_sync_read(0);
 	return 0;
 }
 
 void uart_hw_sync_start(void)
 {
-	__uart_hw_ctrl_enable(UART_SYNC_PARAMS, 0);
+	__uart_hw_ctrl_enable(0, UART_SYNC_PARAMS);
 }
 
 void uart_hw_sync_stop(void)
