@@ -6,7 +6,7 @@
 #include <asm/reg.h>
 #include <asm/mach/clk.h>
 #include <asm/mach/pm.h>
-#include <asm/mach/gpio.h>
+#include <target/gpio.h>
 
 #define SSI_BASE		0x40008000
 #define SSI(offset)		(SSI_BASE + offset)

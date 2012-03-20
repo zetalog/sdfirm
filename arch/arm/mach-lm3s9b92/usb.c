@@ -42,6 +42,36 @@ void usb_hw_irq_init(void)
 }
 #endif
 
+/* USB External Power Control PINs configuration is only known by the
+ * board designer
+ */
+void usb_epc_pin_init(void)
+{
+	pm_hw_resume_device(DEV_GPIOH, DEV_MODE_ON);
+	/* PH3 USBEPEN */
+	gpio_config_mux(GPIOH, 3, GPIOH3_MUX_USB0EPEN);
+	gpio_config_pad(GPIOH, 3, GPIO_DIR_NONE,
+			GPIO_PAD_PP, 8);
+	/* PH4 USBPFLT */
+	gpio_config_mux(GPIOH, 4, GPIOH4_MUX_USB0PFLT);
+	gpio_config_pad(GPIOH, 4, GPIO_DIR_NONE,
+			GPIO_PAD_PP, 8);
+}
+
+#if 0
+void usb_epc_pin_exit(void)
+{
+	/* PH3 USBEPEN */
+	gpio_config_mux(GPIOH, 3, GPIO_MUX_NONE);
+	gpio_config_pad(GPIOH, 3, GPIO_DIR_OUT,
+			GPIO_PAD_PP, 8);
+	/* PH4 USBPFLT */
+	gpio_config_mux(GPIOH, 4, GPIO_MUX_NONE);
+	gpio_config_pad(GPIOH, 4, GPIO_DIR_IN,
+			GPIO_PAD_PP, 8);
+}
+#endif
+
 void usb_hw_ctrl_init(void)
 {
 	usb_epc_pin_init();

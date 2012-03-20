@@ -8,10 +8,11 @@
 #endif
 
 #include <target/config.h>
+#include <target/generic.h>
 #include <asm/reg.h>
-#include <asm/mach/gpio.h>
 #include <asm/mach/pm.h>
 #include <asm/mach/clk.h>
+#include <target/gpio.h>
 
 #define USB_BASE		0x40050000
 #define USB(offset)		(USB_BASE + offset)

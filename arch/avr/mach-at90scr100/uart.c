@@ -54,7 +54,7 @@ static void __uart_hw_config_brg(uint32_t baudrate)
 	__usart0_hw_config_brg(brg);
 }
 
-void uart_hw_set_params(uint8_t params, uint32_t baudrate)
+void uart_hw_sync_config(uint8_t params, uint32_t baudrate)
 {
 	uint8_t bits = uart_bits(params) - 5;
 

@@ -5,7 +5,6 @@
 #include <target/generic.h>
 #include <target/bulk.h>
 
-
 #define UART_BITS_MASK		0x0F
 #define UART_PARITY_MASK	0x30
 #define UART_STOPB_MASK		0x40
@@ -20,9 +19,15 @@
 #define UART_STOPB_ONE		0x00
 #define UART_STOPB_TWO		0x40
 
-#include <driver/uart.h>
+#ifdef CONFIG_UART_MAX_PORT
+#define NR_UART_PORTS		CONFIG_UART_MAX_PORTS
+#else
+#define NR_UART_PORTS		1
+#endif
 
-#define INVALID_UART_VALUE	-1
+typedef uint8_t uart_pid_t;
+
+#include <driver/uart.h>
 
 #ifdef CONFIG_UART_SYNC
 /* always use this to communicate with PC: bits = 8, parity = N, stopb = 1 */
@@ -59,14 +64,6 @@
 #define uart_putchar(byte)
 #define uart_getchar()		(0)
 #endif
-
-#ifdef CONFIG_UART_MAX_PORT
-#define NR_UART_PORTS		CONFIG_UART_MAX_PORTS
-#else
-#define NR_UART_PORTS		1
-#endif
-
-typedef uint8_t uart_pid_t;
 
 typedef boolean (*uart_sync_cb)(uint8_t *);
 

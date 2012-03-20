@@ -99,7 +99,7 @@ static void __uart_hw_config_brg(uint32_t baudrate)
 #endif
 
 /* should config mode according to the params */
-void uart_hw_set_params(uint8_t params, uint32_t baudrate)
+void uart_hw_sync_config(uint8_t params, uint32_t baudrate)
 {
 	/* config parity, stop bits, data length */
 	/* the only mode that we can support is 8N1 */
@@ -213,6 +213,11 @@ static void uart_hw_tx_stop(void)
 	}
 }
 
+static void uart_hw_rx_halt(void)
+{
+	uart_read_sync(__uart_hw_pid);
+}
+
 static void uart_hw_handle_rx(void)
 {
 	if (!__uart_hw_fe_raised()) {
@@ -273,11 +278,6 @@ static void uart_hw_async_stop(void)
 	clk_hw_suspend_dev(DEV_UART);
 }
 
-static void uart_hw_rx_halt(void)
-{
-	uart_read_sync(__uart_hw_pid);
-}
-
 bulk_channel_t __uart_hw_tx = {
 	O_WRONLY,
 	1,
@@ -309,7 +309,7 @@ bulk_channel_t __uart_hw_rx = {
 static uart_port_t __uart_hw_port = {
 	uart_hw_async_start,
 	uart_hw_async_stop,
-	uart_hw_set_params,
+	uart_hw_sync_config,
 	(bulk_channel_t *)(&__uart_hw_tx),
 	(bulk_channel_t *)(&__uart_hw_rx),
 };

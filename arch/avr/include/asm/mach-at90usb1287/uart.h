@@ -56,7 +56,6 @@ void uart_hw_sync_start(void);
 void uart_hw_sync_stop(void);
 void uart_hw_sync_write(uint8_t byte);
 uint8_t uart_hw_sync_read(void);
-
-void uart_hw_set_params(uint8_t params, uint32_t baudrate);
+void uart_hw_sync_config(uint8_t params, uint32_t baudrate);
 
 #endif /* __UART_AT90USB1287_H_INCLUDE__ */

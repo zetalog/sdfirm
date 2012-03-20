@@ -22,6 +22,7 @@ config ARCH_LM3S9B92
 	select GPT_LM3S9B92 if TIMER
 	select ARCH_IS_TICKLESS if !TICK_LM3S9B92_PERIODIC
 	select ARCH_HAS_TSC
+	select ARCH_HAS_GPIO
 	help
 	  This enables support for systems based on LM3S9B92.
 

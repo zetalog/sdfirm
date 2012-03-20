@@ -6,7 +6,8 @@
 #include <asm/reg.h>
 #include <asm/mach/clk.h>
 #include <asm/mach/pm.h>
-#include <asm/mach/gpio.h>
+#include <asm/mach/irq.h>
+#include <target/gpio.h>
 
 #ifdef CONFIG_UART_LM3S9B92
 #ifndef ARCH_HAVE_UART
@@ -71,6 +72,21 @@
 #define UARTRIS(n)	UART(n, 0x03C)
 #define UARTMIS(n)	UART(n, 0x040)
 #define UARTICR(n)	UART(n, 0x044)
+#define LME5I		15
+#define LME1I		14
+#define LMSBI		13
+#define OEI		10		
+#define BEI		9
+#define PEI		8
+#define FEI		7
+#define RTI		6
+#define TXI		5
+#define RXI		4
+#define DSRI		3
+#define DCDI		2
+#define CTSI		1
+#define RII		0
+
 #define UARTDMACTL(n)	UART(n, 0x048)
 
 #define __UART_HW_SMART_PARAM	(8 | UART_PARITY_EVEN | UART_STOPB_TWO)
@@ -94,7 +110,8 @@
 #define __UART_HW_FBRD_MASK	((1<<__UART_HW_FBRD_OFFSET)-1)
 
 struct uart_hw_gpio {
-	uint8_t dev;
+	uint8_t gpio;
+	uint8_t uart;
 	uint8_t rx_port;
 	uint8_t rx_pin;
 	uint8_t rx_mux;
@@ -149,7 +166,8 @@ struct uart_hw_gpio {
 /* GPIO PIN G1 */
 #define GPIOG1_MUX_U2TX		0x01
 
-#define __UART0_HW_DEV		DEV_GPIOA
+#define __UART0_HW_DEV_GPIO	DEV_GPIOA
+#define __UART0_HW_DEV_UART	DEV_UART0
 #define __UART0_HW_RX_PORT	GPIOA
 #define __UART0_HW_RX_PIN	0
 #define __UART0_HW_RX_MUX	GPIOA0_MUX_U0RX
@@ -157,8 +175,9 @@ struct uart_hw_gpio {
 #define __UART0_HW_TX_PIN	1
 #define __UART0_HW_TX_MUX	GPIOA1_MUX_U0TX
 
+#define __UART1_HW_DEV_UART	DEV_UART1
 #ifdef CONFIG_UART_LM3S9B92_UART1_PA0
-#define __UART1_HW_DEV		DEV_GPIOA
+#define __UART1_HW_DEV_GPIO	DEV_GPIOA
 #define __UART1_HW_RX_PORT	GPIOA
 #define __UART1_HW_RX_PIN	0
 #define __UART1_HW_RX_MUX	GPIOA0_MUX_U1RX
@@ -167,7 +186,7 @@ struct uart_hw_gpio {
 #define __UART1_HW_TX_MUX	GPIOA1_MUX_U1TX
 #endif
 #ifdef CONFIG_UART_LM3S9B92_UART1_PB0
-#define __UART1_HW_DEV		DEV_GPIOB
+#define __UART1_HW_DEV_GPIO	DEV_GPIOB
 #define __UART1_HW_RX_PORT	GPIOB
 #define __UART1_HW_RX_PIN	0
 #define __UART1_HW_RX_MUX	GPIOB0_MUX_U1RX
@@ -176,7 +195,7 @@ struct uart_hw_gpio {
 #define __UART1_HW_TX_MUX	GPIOB1_MUX_U1TX
 #endif
 #ifdef CONFIG_UART_LM3S9B92_UART1_PB4
-#define __UART1_HW_DEV		DEV_GPIOB
+#define __UART1_HW_DEV_GPIO	DEV_GPIOB
 #define __UART1_HW_RX_PORT	GPIOB
 #define __UART1_HW_RX_PIN	4
 #define __UART1_HW_RX_MUX	GPIOB4_MUX_U1RX
@@ -185,7 +204,7 @@ struct uart_hw_gpio {
 #define __UART1_HW_TX_MUX	GPIOB5_MUX_U1TX
 #endif
 #ifdef CONFIG_UART_LM3S9B92_UART1_PC6
-#define __UART1_HW_DEV		DEV_GPIOC
+#define __UART1_HW_DEV_GPIO	DEV_GPIOC
 #define __UART1_HW_RX_PORT	GPIOC
 #define __UART1_HW_RX_PIN	6
 #define __UART1_HW_RX_MUX	GPIOC6_MUX_U1RX
@@ -194,7 +213,7 @@ struct uart_hw_gpio {
 #define __UART1_HW_TX_MUX	GPIOC7_MUX_U1TX
 #endif
 #ifdef CONFIG_UART_LM3S9B92_UART1_PD0
-#define __UART1_HW_DEV		DEV_GPIOD
+#define __UART1_HW_DEV_GPIO	DEV_GPIOD
 #define __UART1_HW_RX_PORT	GPIOD
 #define __UART1_HW_RX_PIN	0
 #define __UART1_HW_RX_MUX	GPIOD0_MUX_U1RX
@@ -203,7 +222,7 @@ struct uart_hw_gpio {
 #define __UART1_HW_TX_MUX	GPIOD1_MUX_U1TX
 #endif
 #ifdef CONFIG_UART_LM3S9B92_UART1_PD2
-#define __UART1_HW_DEV		DEV_GPIOD
+#define __UART1_HW_DEV_GPIO	DEV_GPIOD
 #define __UART1_HW_RX_PORT	GPIOD
 #define __UART1_HW_RX_PIN	2
 #define __UART1_HW_RX_MUX	GPIOD2_MUX_U1RX
@@ -212,8 +231,9 @@ struct uart_hw_gpio {
 #define __UART1_HW_TX_MUX	GPIOD3_MUX_U1TX
 #endif
 
+#define __UART2_HW_DEV_UART	DEV_UART1
 #ifdef CONFIG_UART_LM3S9B92_UART2_PD0
-#define __UART2_HW_DEV		DEV_GPIOD
+#define __UART2_HW_DEV_GPIO	DEV_GPIOD
 #define __UART2_HW_RX_PORT	GPIOD
 #define __UART2_HW_RX_PIN	0
 #define __UART2_HW_RX_MUX	GPIOD0_MUX_U2RX
@@ -222,7 +242,7 @@ struct uart_hw_gpio {
 #define __UART2_HW_TX_MUX	GPIOD1_MUX_U2TX
 #endif
 #ifdef CONFIG_UART_LM3S9B92_UART2_PD5
-#define __UART2_HW_DEV		DEV_GPIOD
+#define __UART2_HW_DEV_GPIO	DEV_GPIOD
 #define __UART2_HW_RX_PORT	GPIOD
 #define __UART2_HW_RX_PIN	5
 #define __UART2_HW_RX_MUX	GPIOD5_MUX_U2RX
@@ -231,7 +251,7 @@ struct uart_hw_gpio {
 #define __UART2_HW_TX_MUX	GPIOD6_MUX_U2TX
 #endif
 #ifdef CONFIG_UART_LM3S9B92_UART2_PG0
-#define __UART2_HW_DEV		DEV_GPIOG
+#define __UART2_HW_DEV_GPIO	DEV_GPIOG
 #define __UART2_HW_RX_PORT	GPIOG
 #define __UART2_HW_RX_PIN	0
 #define __UART2_HW_RX_MUX	GPIOG0_MUX_U2RX
@@ -247,26 +267,41 @@ void __uart_hw_ctrl_config(uint8_t n,
 			   uint32_t baudrate);
 uint32_t __uart_hw_config_param(uint8_t params);
 
-void __uart_hw_smart_start(uint8_t n);
-void __uart_hw_smart_stop(uint8_t n);
+#define __uart_hw_irq_enable(n, flags)	__raw_setl(flags, UARTIM(n))
+#define __uart_hw_irq_disable(n, flags)	__raw_clearl(flags, UARTIM(n))
+#define __uart_hw_irq_raised(n, flags)	(__raw_readl(UARTRIS(n)) & flags)
+#define __uart_hw_irq_unraise(n, flags)	__raw_setl(flags, UARTICR(n))
 
-static inline boolean __uart_hw_status_error(uint8_t n)
-{
-	return __raw_readl(UARTRSR(n));
-}
+#define __uart_hw_smart_start(n)					\
+	do {								\
+		__raw_writel(						\
+			__uart_hw_config_param(__UART_HW_SMART_PARAM),	\
+					       UARTLCRH(n));		\
+		__raw_writel(_BV(UARTEN) | _BV(SMART), UARTCTL(n));	\
+	} while (0)
+#define __uart_hw_smart_stop(n)						\
+	do {								\
+		while (__raw_readl(UARTFR(n)) & _BV(BUSY));		\
+		__raw_clearl(_BV(UARTEN) | _BV(SMART), UARTCTL(n));	\
+	} while (0)
 
-static inline void __uart_hw_sync_write(uint8_t byte, uint8_t n)
+#define __uart_hw_async_write(n, byte)	__raw_writeb(byte, UARTDR(n))
+#define __uart_hw_async_read(n)		__raw_readb(UARTDR(n))
+#define __uart_hw_write_full(n)		(__raw_readl(UARTFR(n)) & _BV(TXFF))
+#define __uart_hw_read_empty(n)		(__raw_readl(UARTFR(n)) & _BV(RXFE))
+
+#define __uart_hw_status_error(n)	__raw_readl(UARTRSR(n))
+
+static inline void __uart_hw_sync_write(uint8_t n, uint8_t byte)
 {
-	while (__raw_readl(UARTFR(n)) & _BV(TXFF))
-		;
-	__raw_writeb(byte, UARTDR(n));
+	while (__uart_hw_write_full(n));
+	__uart_hw_async_write(n, byte);
 }
 
 static inline uint8_t __uart_hw_sync_read(uint8_t n)
 {
-	while (__raw_readl(UARTFR(n)) & _BV(RXFE))
-		;
-	return __raw_readb(UARTDR(n));
+	while (__uart_hw_read_empty(n));
+	return __uart_hw_async_read(n);
 }
 
 static inline boolean __uart_hw_smart_empty(uint8_t n)
@@ -284,10 +319,10 @@ void uart_hw_sync_start(void);
 void uart_hw_sync_stop(void);
 void uart_hw_sync_write(uint8_t byte);
 uint8_t uart_hw_sync_read(void);
+void uart_hw_sync_config(uint8_t params,
+			 uint32_t baudrate);
 
 void uart_hw_async_init(void);
-
-void uart_hw_set_params(uint8_t params,
-			uint32_t baudrate);
+void uart_hw_async_select(uart_pid_t pid);
 
 #endif /* __UART_LM3S9B92_H_INCLUDE__ */

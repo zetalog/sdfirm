@@ -59,7 +59,7 @@ static void __gpt_hw_handler_irq()
 static void __gpt_hw_periodic_init(void)
 {
 	pm_hw_resume_device(DEV_TIMER0, DEV_MODE_ON);
-	vic_hw_register_irq(IRQ_GPT0A, __gpt_hw_handler_irq());
+	vic_hw_register_irq(IRQ_GPT0A, __gpt_hw_handler_irq);
 	vic_hw_irq_enable(IRQ_GPT0A);
 
 	__timer0_hw_ctrl_disable();

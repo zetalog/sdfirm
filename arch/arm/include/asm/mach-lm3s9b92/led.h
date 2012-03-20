@@ -4,7 +4,7 @@
 #include <target/config.h>
 #include <target/generic.h>
 #include <asm/reg.h>
-#include <asm/mach/gpio.h>
+#include <target/gpio.h>
 
 #ifndef ARCH_HAVE_LED
 #define ARCH_HAVE_LED			1

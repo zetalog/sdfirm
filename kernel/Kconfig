@@ -331,6 +331,13 @@ endmenu
 
 endmenu
 
+config ARCH_HAS_GPIO
+	bool
+
+config GPIO
+	bool "General purpose Input/Output (GPIO) support"
+	depends ARCH_HAS_GPIO
+
 source kernel/io/Kconfig
 source kernel/uart/Kconfig
 source kernel/spi/Kconfig

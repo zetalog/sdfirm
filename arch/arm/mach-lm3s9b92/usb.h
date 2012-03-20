@@ -38,12 +38,12 @@ void usb_epc_pin_init(void);
 #define usb_otg_pin_init()						\
 	do {								\
 		pm_hw_resume_device(DEV_GPIOB, DEV_MODE_ON);		\
-		gpio_hw_config_mux(GPIOB, 0, GPIOB0_MUX_USB0ID);	\
-		gpio_hw_config_pad(GPIOB, 0, GPIO_DIR_HW,		\
-				   GPIO_PAD_ANALOG_IO, GPIO_DRIVE_8MA);	\
-		gpio_hw_config_mux(GPIOB, 1, GPIOB1_MUX_USB0VBUS);	\
-		gpio_hw_config_pad(GPIOB, 1, GPIO_DIR_HW,		\
-				   GPIO_PAD_ANALOG_IO, GPIO_DRIVE_8MA);	\
+		gpio_config_mux(GPIOB, 0, GPIOB0_MUX_USB0ID);		\
+		gpio_config_pad(GPIOB, 0, GPIO_DIR_NONE,		\
+				GPIO_PAD_ANALOG_IO, 8);			\
+		gpio_config_mux(GPIOB, 1, GPIOB1_MUX_USB0VBUS);		\
+		gpio_config_pad(GPIOB, 1, GPIO_DIR_NONE,		\
+				GPIO_PAD_ANALOG_IO, 8);			\
 	} while (0)
 
 /* TODO: Dedicated Device Requires ID PIN Disabling
@@ -54,25 +54,25 @@ void usb_epc_pin_init(void);
  */
 #define __usb_hw_disable_id()						\
 	do {								\
-		gpio_hw_config_mux(GPIOB, 0, GPIO_MUX_NONE);		\
-		gpio_hw_config_pad(GPIOB, 0, GPIO_DIR_OUT,		\
-				   GPIO_PAD_PP, GPIO_DRIVE_2MA);	\
+		gpio_config_mux(GPIOB, 0, GPIO_MUX_NONE);		\
+		gpio_config_pad(GPIOB, 0, GPIO_DIR_OUT,			\
+				GPIO_PAD_PP, 2);			\
 	} while (0)
 /* Deconfigure GPIOB1 (USB0VBUS) as GPIO output pin, this will also
  * disable the D+/D- pull up resistors.
  */
 #define __usb_hw_disable_vbus()						\
 	do {								\
-		gpio_hw_config_mux(GPIOB, 1, GPIOB1_MUX_NONE);		\
-		gpio_hw_config_pad(GPIOB, 1, GPIO_DIR_OUT,		\
-				   GPIO_PAD_DIGITAL_IO, GPIO_DRIVE_2MA);\
+		gpio_config_mux(GPIOB, 1, GPIOB1_MUX_NONE);		\
+		gpio_config_pad(GPIOB, 1, GPIO_DIR_OUT,			\
+				GPIO_PAD_DIGITAL_IO, 2);		\
 	} while (0)
 /* Configure GPIOB1 as analog USB0VBUS pin. */
 #define __usb_hw_enable_vbus()						\
 	do {								\
-		gpio_hw_config_mux(GPIOB, 1, GPIOB1_MUX_USB0VBUS);	\
-		gpio_hw_config_pad(GPIOB, 1, GPIO_DIR_HW,		\
-				   GPIO_PAD_ANALOG_IO, GPIO_DRIVE_8MA);	\
+		gpio_config_mux(GPIOB, 1, GPIOB1_MUX_USB0VBUS);		\
+		gpio_config_pad(GPIOB, 1, GPIO_DIR_NONE,		\
+				GPIO_PAD_ANALOG_IO, 8);		\
 	} while (0)
 
 #endif /* __USB_LM3S9B92_PRIV_H_INCLUDE__ */

@@ -6,6 +6,12 @@
  * so many modules, we decide to list all of the functions here after.
  */
 /* prior subsystems */
+#ifdef CONFIG_GPIO
+void gpio_init(void);
+#else
+#define gpio_init()
+#endif
+
 #ifdef CONFIG_UART
 void uart_init(void);
 #else
@@ -149,6 +155,7 @@ void net_init(void);
 void modules_init(void)
 {
 	/* prior subsys */
+	gpio_init();
 	uart_init();
 	heap_init();
 	timer_init();

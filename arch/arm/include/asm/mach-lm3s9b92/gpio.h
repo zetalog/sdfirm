@@ -6,6 +6,14 @@
 #include <asm/reg.h>
 #include <asm/mach/pm.h>
 
+#ifdef CONFIG_GPIO_LM3S9B92
+#ifndef ARCH_HAVE_GPIO
+#define ARCH_HAVE_GPIO		1
+#else
+#error "Multiple GPIO controller defined"
+#endif
+#endif
+
 #ifdef CONFIG_GPIO_LM3S9B92_AHB
 #define GPIOA_BASE		0x40058000
 #define GPIOB_BASE		0x40059000
@@ -77,41 +85,6 @@
 #define GPIOH		7
 #define GPIOJ		8
 
-/*=========================================================================
- * GPIO mux configuration
- *=======================================================================*/
-#define GPIO_MUX_NONE		0
-
-/*=========================================================================
- * GPIO pad configuration
- *=======================================================================*/
-#define GPIO_DIR_IN		0x00  /* GPIO input */
-#define GPIO_DIR_OUT		0x01  /* GPIO output */
-#define GPIO_DIR_HW		0x02  /* peripheral function */
-
-#define GPIO_DRIVE_2MA		0x01
-#define GPIO_DRIVE_4MA		0x02
-#define GPIO_DRIVE_8MA		0x04
-#define GPIO_DRIVE_SLEW_RATE	0x10 /* can only be used with 8MA drive */
-
-#define GPIO_PAD_ANALOG_IO	0x00 /* only valid for port D and E */
-#define GPIO_PAD_DIGITAL_IO	0x08
-#define GPIO_PAD_PULL_DOWN	0x04
-#define GPIO_PAD_PULL_UP	0x02
-#define GPIO_PAD_PUSH_PULL	0x00
-#define GPIO_PAD_OPEN_DRAIN	0x01
-
-#define GPIO_PAD_PP		(GPIO_PAD_DIGITAL_IO | GPIO_PAD_PUSH_PULL)
-#define GPIO_PAD_OD		(GPIO_PAD_DIGITAL_IO | GPIO_PAD_OPEN_DRAIN)
-/* push pull with weak pull up */
-#define GPIO_PAD_PP_WU		(GPIO_PAD_PP | GPIO_PAD_PULL_UP)
-/* push pull with weak pull down */
-#define GPIO_PAD_PP_WD		(GPIO_PAD_PP | GPIO_PAD_PULL_DOWN)
-/* open drain with weak pull up */
-#define GPIO_PAD_OD_WU		(GPIO_PAD_OD | GPIO_PAD_PULL_UP)
-/* open drain with weak pull down */
-#define GPIO_PAD_OD_WD		(GPIO_PAD_OD | GPIO_PAD_PULL_DOWN)
-
 void gpio_hw_config_mux(uint8_t port, uint8_t pin, uint8_t mux);
 void gpio_hw_config_pad(uint8_t port, uint8_t pin, uint8_t dir,
 			uint8_t pad, uint8_t drv);
@@ -119,5 +92,8 @@ unsigned long gpio_hw_read_pin(uint8_t port, uint8_t pin);
 void gpio_hw_write_pin(uint8_t port, uint8_t pin, unsigned long val);
 
 void gpio_hw_ctrl_init(void);
+
+void gpio_hw_set_slewrate(uint8_t port, uint8_t pin);
+void gpio_hw_clear_slewrate(uint8_t port, uint8_t pin);
 
 #endif /* __GPIO_LM3S9B92_H_INCLUDE__ */

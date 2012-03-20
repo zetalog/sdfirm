@@ -107,6 +107,8 @@ config TSC_LM3S9B92_GPT1
 
 menuconfig GPIO_LM3S9B92
 	bool "TI LM3S9B92 general purpose IO support"
+	depends GPIO
+	default y
 
 if GPIO_LM3S9B92
 
@@ -137,7 +139,7 @@ endif
 
 menuconfig UART_LM3S9B92
 	bool "TI LM3S9B92 UART controller support"
-	select GPIO_LM3S9B92
+	select GPIO
 	select ARCH_HAS_UART
 	select MATH_MOD32
 	select MATH_MUL32
@@ -192,6 +194,7 @@ endif
 menuconfig SSI_LM3S9B92
 	bool "TI LM3S9B92 SSI controller support"
 	depends SPI
+	select GPIO
 	select BIT_FLS16
 	select ARCH_HAS_SPI
 	default y
@@ -212,7 +215,7 @@ endif
 
 menuconfig LED_LM3S9B92
 	bool "TI LM3S9B92 LED support"
-	select GPIO_LM3S9B92
+	select GPIO
 	depends LED
 	default y
 
@@ -226,6 +229,7 @@ menuconfig USB_LM3S9B92
 	select ARCH_IS_USBD_ENDP_TXCMPL
 	select ARCH_IS_USBD_ENDP_DUPLEX
 	select ARCH_HAS_USBD_ENDP_CSO
+	select GPIO
 	default y
 
 if USB_LM3S9B92
@@ -253,6 +257,7 @@ endif
 menuconfig IFDS_LM3S9B92
 	bool "TI LM3S9B92 serial smart card support"
 	select ARCH_HAS_IFDS
+	select GPIO
 	depends IFD_SERIAL
 	default y
 
