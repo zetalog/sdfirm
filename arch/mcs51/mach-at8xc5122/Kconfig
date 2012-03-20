@@ -59,6 +59,14 @@ menuconfig GPT_AT8XC5122
 if GPT_AT8XC5122
 endif
 
+menuconfig GPIO_AT8XC5122
+	bool "Atmel AT8XC5122 general purpose IO support"
+	depends GPIO
+	default y
+
+if GPIO_AT8XC5122
+endif
+
 menuconfig UART_AT8XC5122
 	bool "Atmel AT8XC5122 serial port support"
 	depends UART

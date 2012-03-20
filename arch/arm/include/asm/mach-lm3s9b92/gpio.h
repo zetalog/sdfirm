@@ -88,8 +88,10 @@
 void gpio_hw_config_mux(uint8_t port, uint8_t pin, uint8_t mux);
 void gpio_hw_config_pad(uint8_t port, uint8_t pin, uint8_t dir,
 			uint8_t pad, uint8_t drv);
-unsigned long gpio_hw_read_pin(uint8_t port, uint8_t pin);
-void gpio_hw_write_pin(uint8_t port, uint8_t pin, unsigned long val);
+uint8_t gpio_hw_read_pin(uint8_t port, uint8_t pin);
+void gpio_hw_write_pin(uint8_t port, uint8_t pin, uint8_t val);
+uint8_t gpio_hw_read_port(uint8_t port);
+void gpio_hw_write_port(uint8_t port, uint8_t val);
 
 void gpio_hw_ctrl_init(void);
 

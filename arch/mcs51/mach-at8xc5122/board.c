@@ -43,9 +43,30 @@ void board_init_early(void)
 #endif
 }
 
+#ifndef CONFIG_LCD
+#define board_lcd_init()
+#else
+#include <target/lcd.h>
+
+#ifdef CONFIG_LCD_NHDC0216AZ
+lcd_nhdc0216az_pins_t board_lcd = {
+	GPIOA,
+	MAKEWORD(0, GPIOC),
+	MAKEWORD(1, GPIOC),
+	MAKEWORD(2, GPIOC),
+};
+
+void board_lcd_init(void)
+{
+	lcd_nhdc0216az_register(&board_lcd);
+}
+#endif
+#endif
+
 void board_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_MCS51);
 	clk_init();
 	mem_init();
+	board_lcd_init();
 }

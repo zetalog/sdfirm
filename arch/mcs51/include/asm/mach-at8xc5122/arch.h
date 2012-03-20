@@ -7,8 +7,9 @@
 #include <asm/mach/mem.h>
 #include <asm/mach/pm.h>
 #include <asm/mach/irq.h>
-#include <asm/mach/gpio.h>
 
+/* generic purpose input/output */
+#include <target/gpio.h>
 /* general purpose timer */
 #include <target/gpt.h>
 /* serial port */

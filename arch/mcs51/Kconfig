@@ -22,6 +22,7 @@ config ARCH_AT8XC5122
 	select GPT_AT8XC5122 if TIMER || TICK
 #	select ARCH_IS_TICKLESS
 	select ARCH_HAS_TSC
+	select ARCH_HAS_GPIO
 
 endchoice
 

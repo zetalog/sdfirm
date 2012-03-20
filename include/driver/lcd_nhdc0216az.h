@@ -10,13 +10,13 @@
 #error "Multiple LCD controller defined"
 #endif
 
-#ifdef CONFIG_ARCH_AT8XC5122
-#include <asm/mach-at8xc5122/gpio.h>
-#define LCD_RS				P2_0	/* Pin 4 RS */
-#define LCD_RW				P2_1	/* Pin 5 RW */
-#define LCD_EN				P2_2	/* Pin 6 EN */
-#define LCD_DB				P0	/* Pin7 - Pin14 DB0~DB7 */
-#endif
+struct lcd_nhdc0216az_pins {
+	uint8_t lcd_db;
+	uint16_t lcd_rs;
+	uint16_t lcd_rw;
+	uint16_t lcd_en;
+};
+__TEXT_TYPE__(const struct lcd_nhdc0216az_pins, lcd_nhdc0216az_pins_t);
 
 /* RS/RW settings */
 #define LCD_RS_INST			0
@@ -104,5 +104,7 @@ void lcd_hw_set_pos(uint8_t pos);
 #define lcd_hw_write_data(byte)		__lcd_hw_write_us(LCD_RS_DATA, byte, 40)
 #define lcd_hw_read_data()		__lcd_hw_read_us(LCD_RS_DATA, 40)
 void lcd_hw_ctrl_init(void);
+
+void lcd_nhdc0216az_register(lcd_nhdc0216az_pins_t *pins);
 
 #endif /* __LCD_NHD_C0216AZ_H_INCLUDE__ */

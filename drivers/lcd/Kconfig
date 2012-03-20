@@ -7,6 +7,7 @@ menu "LCD drivers"
 
 config LCD_HD44780U
 	bool "Hitachi HD44780U LCD controller support"
+	select GPIO
 	depends LCD
 
 if LCD_HD44780U
@@ -46,6 +47,7 @@ endif
 
 config LCD_NHDC0216AZ
 	bool "Newheaven Display C0216AZ LCD controller support"
+	select GPIO
 	depends LCD
 
 if LCD_NHDC0216AZ

@@ -1,6 +1,22 @@
 #ifndef __GPIO_AT8XC5122_H_INCLUDE__
 #define __GPIO_AT8XC5122_H_INCLUDE__
 
+#include <target/config.h>
+#include <target/generic.h>
+
+#include <asm/reg.h>
+#include <asm/mach/irq.h>
+#include <asm/mach/pm.h>
+#include <asm/mach/clk.h>
+
+#ifdef CONFIG_GPIO_AT8XC5122
+#ifndef ARCH_HAVE_GPIO
+#define ARCH_HAVE_GPIO		1
+#else
+#error "Multiple GPIO controller defined"
+#endif
+#endif
+
 /* Ports */
 Sfr(P0,		0x80);		/* Port 0 */
 Sbit(P0_7,	0x80, 7);
@@ -67,20 +83,35 @@ Sfr(PMOD0,	0x91);
 /* Port Mode Register 1 */
 Sfr(PMOD1,	0x84);
 
-/* PMOD */
-#define MSK_PMOD_P3C1		0x80	/* PMOD0 */
-#define MSK_PMOD_P3C0		0x40
-#define MSK_PMOD_P2C1		0x20
-#define MSK_PMOD_P2C0		0x10
-#define MSK_PMOD_P0C1		0x02
-#define MSK_PMOD_P0C0		0x01
-#define MSK_PMOD_P5HC1		0x80	/* PMOD1 */
-#define MSK_PMOD_P5HC0		0x40
-#define MSK_PMOD_P5MC1		0x20
-#define MSK_PMOD_P5MC0		0x10
-#define MSK_PMOD_P5LC1		0x08
-#define MSK_PMOD_P5LC0		0x04
-#define MSK_PMOD_P4C1		0x02
-#define MSK_PMOD_P4C0		0x01
+/* PMOD0 */
+#define P3C1			7
+#define P3C0			6
+#define	P2C1			5
+#define P2C0			4
+#define P0C1			2
+#define P0C0			1
+/* PMOD1 */
+#define P5HC1			7
+#define P5HC0			6
+#define P5MC1			5
+#define	P5MC0			4
+#define P5LC1			3
+#define P5LC0			2
+#define P4C1			1
+#define P4C0			0
+
+#define GPIOA			0
+#define GPIOB			1
+#define GPIOC			2
+#define GPIOD			3
+#define GPIOE			4
+#define GPIOF			5
+
+uint8_t gpio_hw_read_pin(uint8_t port, uint8_t pin);
+void gpio_hw_write_pin(uint8_t port, uint8_t pin, uint8_t val);
+uint8_t gpio_hw_read_port(uint8_t port);
+void gpio_hw_write_port(uint8_t port, uint8_t val);
+
+#define gpio_hw_ctrl_init()
 
 #endif /* __GPIO_AT8XC5122_H_INCLUDE__ */

@@ -40,6 +40,10 @@
 	gpio_hw_read_pin(port, pin)
 #define gpio_write_pin(port, pin, val)			\
 	gpio_hw_write_pin(port, pin, val)
+#define gpio_read_port(port)				\
+	gpio_hw_read_port(port)
+#define gpio_write_port(port, val)			\
+	gpio_hw_write_port(port, val)
 #define gpio_config_pad(port, pin, dir, pad, ma)	\
 	gpio_hw_config_pad(port, pin, dir, pad, ma)
 #define gpio_config_mux(port, pin, mux)			\

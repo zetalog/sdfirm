@@ -126,18 +126,32 @@ void gpio_hw_clear_slewrate(uint8_t port, uint8_t pin)
 	__raw_clearl_atomic(pin, reg);
 }
 
-unsigned long gpio_hw_read_pin(uint8_t port, uint8_t pin)
+uint8_t gpio_hw_read_pin(uint8_t port, uint8_t pin)
 {
 	unsigned long reg;
 	reg = __gpio_hw_port_reg(port, GPIODATA);
-	return __raw_readl(reg + (_BV(pin) << 2)) >> pin;
+	return (uint8_t)(__raw_readl(reg + (_BV(pin) << 2)) >> pin);
 }
 
-void gpio_hw_write_pin(uint8_t port, uint8_t pin, unsigned long val)
+void gpio_hw_write_pin(uint8_t port, uint8_t pin, uint8_t val)
 {
 	unsigned long reg;
 	reg = __gpio_hw_port_reg(port, GPIODATA);
-	__raw_writel(val << pin, reg + (_BV(pin) << 2));
+	__raw_writel(((uint32_t)val) << pin, reg + (_BV(pin) << 2));
+}
+
+uint8_t gpio_hw_read_port(uint8_t port)
+{
+	unsigned long reg;
+	reg = __gpio_hw_port_reg(port, GPIODATA);
+	return (uint8_t)(__raw_readl(reg + (0xFF << 2)));
+}
+
+void gpio_hw_write_port(uint8_t port, uint8_t val)
+{
+	unsigned long reg;
+	reg = __gpio_hw_port_reg(port, GPIODATA);
+	__raw_writel(((uint32_t)val), reg + (0xFF << 2));
 }
 
 void gpio_hw_ctrl_init(void)

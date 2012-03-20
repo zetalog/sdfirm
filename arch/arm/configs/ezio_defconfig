@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Mar 19 16:55:14 2012
+# Tue Mar 20 19:27:45 2012
 #
 CONFIG_ARM=y
 
@@ -115,6 +115,8 @@ CONFIG_INPUT_NONE=y
 CONFIG_OUTPUT_UART_SYNC=y
 # CONFIG_OUTPUT_UART_ASYNC is not set
 # CONFIG_OUTPUT_LCD is not set
+CONFIG_ARCH_HAS_GPIO=y
+CONFIG_GPIO=y
 
 #
 # Human interface devices support
@@ -152,7 +154,9 @@ CONFIG_UART_MAX_PORTS=2
 #
 # CONFIG_LCD_HD44780U is not set
 # CONFIG_LCD_PCF2119X is not set
-# CONFIG_LCD_NHDC0216AZ is not set
+CONFIG_LCD_NHDC0216AZ=y
+CONFIG_LCD_NHD_C0216AZ_MAX_ROWS=2
+CONFIG_LCD_NHD_C0216AZ_MAX_COLS=16
 # CONFIG_LCD_NHDC0216CIZ is not set
 
 #
