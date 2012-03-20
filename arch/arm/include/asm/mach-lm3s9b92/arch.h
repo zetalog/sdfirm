@@ -11,13 +11,13 @@
 #include <asm/mach/gpio.h>
 
 /* general purpose timer */
-#include <driver/gpt.h>
+#include <target/gpt.h>
 /* serial port */
-#include <driver/uart.h>
+#include <target/uart.h>
 /* USB device */
-#include <driver/usb.h>
+#include <target/usb.h>
 /* flash memory */
-#include <driver/flash.h>
+#include <target/flash.h>
 
 #define BOARD_HW_SPI_PN53X	0x01
 #define BOARD_HW_MAX_POWER	500
