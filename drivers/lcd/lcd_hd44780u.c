@@ -9,8 +9,8 @@ static void __lcd_hw_write_cmd(uint8_t cmd)
 	LCD_DB = (cmd);
 	LCD_RS = MSK_RS_CMD;
 	LCD_RW = MSK_RW_WRITE;
-	LCD_EN = HIGH;
-	LCD_EN = LOW;
+	LCD_EN = 1;
+	LCD_EN = 0;
 	mdelay(1);
 }
 
@@ -31,8 +31,8 @@ void lcd_hw_write_data(unsigned char ch)
 	LCD_DB = ch;
 	LCD_RS = MSK_RS_DATA;
 	LCD_RW = MSK_RW_WRITE;
-	LCD_EN = HIGH;
-	LCD_EN = LOW;
+	LCD_EN = 1;
+	LCD_EN = 0;
 	mdelay(1);
 }
 

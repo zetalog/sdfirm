@@ -15,7 +15,7 @@ static void __lcd_hw_write(uint8_t rs, uint8_t db)
 	 *   Tsu1 >= 100ns (NHDC0216AZ)
 	 */
 	mdelay(1);
-	LCD_EN = HIGH;
+	LCD_EN = 1;
 	db = LCD_DB;
 	/* ensure following timing
 	 * Enable "H" Level Pulse Width
@@ -26,7 +26,7 @@ static void __lcd_hw_write(uint8_t rs, uint8_t db)
 	 *   Tsu2 >= 60ns (NHDC0216AZ)
 	 */
 	mdelay(1);
-	LCD_EN = LOW;
+	LCD_EN = 0;
 	/* ensure following timing
 	 * Enable Cycle Time
 	 *   Tcycle >= 500ns (NT7605)
@@ -67,7 +67,7 @@ uint8_t __lcd_hw_read_us(uint8_t rs, uint8_t us)
 	 *   Tsu1 >= 100ns (NHDC0216AZ)
 	 */
 	udelay(1);
-	LCD_EN = HIGH;
+	LCD_EN = 1;
 	db = LCD_DB;
 	/* ensure following timing
 	 * Enable "H" Level Pulse Width
@@ -78,7 +78,7 @@ uint8_t __lcd_hw_read_us(uint8_t rs, uint8_t us)
 	 *   Td >= 60ns (NHDC0216AZ)
 	 */
 	udelay(1);
-	LCD_EN = LOW;
+	LCD_EN = 0;
 	/* ensure following timing
 	 * Enable Cycle Time
 	 *   Tcycle >= 500ns (NT7605)

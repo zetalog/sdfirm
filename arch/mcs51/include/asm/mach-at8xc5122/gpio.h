@@ -83,8 +83,4 @@ Sfr(PMOD1,	0x84);
 #define MSK_PMOD_P4C1		0x02
 #define MSK_PMOD_P4C0		0x01
 
-/* Level Definition */
-#define LOW			0x00
-#define HIGH			0x01
-
 #endif /* __GPIO_AT8XC5122_H_INCLUDE__ */

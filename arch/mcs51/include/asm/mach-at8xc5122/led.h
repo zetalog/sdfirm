@@ -37,7 +37,7 @@ Sbit(LED4,	0xC0, 3);	/* Led Number 4 */
 #define LED_2			P3_6
 
 /* LED CONTROL */
-#define light_led(led)		((led) = LOW)
-#define out_led(led)		((led) = HIGH)
+#define light_led(led)		((led) = 0)
+#define out_led(led)		((led) = 1)
 
 #endif
