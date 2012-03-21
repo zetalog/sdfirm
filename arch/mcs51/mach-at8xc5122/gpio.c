@@ -3,38 +3,46 @@
 uint8_t __gpio_hw_od;
 uint8_t __gpio_hw_od5;
 
+uint8_t __gpio_hw_port_reg(uint8_t port)
+{
+	if (port == GPIOF)
+		return PORT5;
+	else
+		return PORT0+((port)<<4);
+}
+
 void __gpio_hw_clear_pin(uint8_t port, uint8_t pin)
 {
-	if (port == GPIOF) {
-		__raw_clearb_atomic(pin, PORT5);
-	} else {
-		/* P0_0 = 0; */
-		__raw_clearb_atomic(pin, PORT(port));
-	}
+	uint8_t reg = __gpio_hw_port_reg(port);
+	__raw_clearb_atomic(pin, reg);
 }
 
 void __gpio_hw_set_pin(uint8_t port, uint8_t pin)
 {
-	if (port == GPIOF) {
-		__raw_setb_atomic(pin, PORT5);
-	} else {
-		/* P0_0 = 1; */
-		__raw_setb_atomic(pin, PORT(port));
-	}
+	uint8_t reg = __gpio_hw_port_reg(port);
+	__raw_setb_atomic(pin, reg);
+}
+
+boolean __gpio_hw_test_od_port(uint8_t port)
+{
+	BUG_ON(port == GPIOF);
+	return (port != GPIOA) && (_BV(port) & __gpio_hw_od);
+}
+
+boolean __gpio_hw_test_od_pin(uint8_t port, uint8_t mask)
+{
+	if (port != GPIOF)
+		return __gpio_hw_test_od_port(port);
+	else
+		return mask & __gpio_hw_od5;
 }
 
 uint8_t gpio_hw_read_pin(uint8_t port, uint8_t pin)
 {
-	if (port == GPIOF) {
-		if (_BV(pin) & __gpio_hw_od5)
-			__raw_setb_atomic(pin, PORT5);
-		return __raw_testb_atomic(pin, PORT5);
-	} else {
-		if (_BV(port) & __gpio_hw_od)
-			__raw_setb_atomic(pin, PORT(port));
-		/* return P0_0 */
-		return __raw_testb_atomic(pin, PORT(port));
-	}
+	uint8_t reg = __gpio_hw_port_reg(port);
+	if (__gpio_hw_test_od_pin(port, _BV(pin)))
+		__raw_setb_atomic(pin, reg);
+	return __raw_testb_atomic(pin, reg);
 }
 
 void gpio_hw_write_pin(uint8_t port, uint8_t pin, uint8_t val)
@@ -48,14 +56,9 @@ void gpio_hw_write_pin(uint8_t port, uint8_t pin, uint8_t val)
 void gpio_hw_write_port(uint8_t port, uint8_t mask,
 			uint8_t val)
 {
-	uint8_t reg;
+	uint8_t reg = __gpio_hw_port_reg(port);
 	uint8_t pin;
 
-	if (port == GPIOF) {
-		reg = PORT5;
-	} else {
-		reg = PORT(port);
-	}
 	for (pin = 0; pin < 8; pin++) {
 		/* P0 = val; */
 		if (_BV(pin) & mask)
@@ -65,19 +68,19 @@ void gpio_hw_write_port(uint8_t port, uint8_t mask,
 
 uint8_t gpio_hw_read_port(uint8_t port, uint8_t mask)
 {
+	uint8_t reg = __gpio_hw_port_reg(port);
 	uint8_t pin;
 
 	if (port == GPIOF) {
 		for (pin = 0; pin < 8; pin++) {
-			if (_BV(pin) & (__gpio_hw_od5 & mask))
-				__raw_setb_atomic(pin, PORT5);
+			if (__gpio_hw_test_od_pin(port, _BV(pin) & mask))
+				__raw_setb_atomic(pin, reg);
 		}
 	} else {
-		if ((port != GPIOA) && (__gpio_hw_od & _BV(port)))
-			__raw_writeb(0xFF, PORT(port));
+		if (__gpio_hw_test_od_port(port))
+			__raw_writeb(0xFF, reg);
 	}
-	/* return P0; */
-	return __raw_readb(PORT(port));
+	return __raw_readb(reg);
 }
 
 void __gpio_hw_config_pad(uint8_t port, uint8_t pin,

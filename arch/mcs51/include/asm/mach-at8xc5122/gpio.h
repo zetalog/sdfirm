@@ -83,8 +83,7 @@ Sfr(PMOD0,	0x91);
 /* Port Mode Register 1 */
 Sfr(PMOD1,	0x84);
 
-#define PORT_BASE	0x80
-#define PORT(n)		(PORT_BASE+((n)<<4))
+#define PORT0		0x80
 #define PORT5		0xE8
 
 #define __GPIO_HW_PMOD_MASK	0x03
