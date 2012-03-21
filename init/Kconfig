@@ -100,6 +100,11 @@ config PORTING_HEAP
 	select HEAP
 	select UART
 
+config PORTING_GPIO
+	bool "GPIO"
+	select GPIO
+	select UART
+
 config PORTING_UART
 	bool "UART"
 	select UART
@@ -137,6 +142,29 @@ config PORTING_TIMER
 	select TIMER
 
 endchoice
+
+choice
+	prompt "Select direction"
+	depends PORTING_GPIO
+	default PORTING_GPIO_OUT
+
+config PORTING_GPIO_OUT
+	bool "OUT"
+
+config PORTING_GPIO_IN
+	bool "IN"
+
+endchoice
+
+config PORTING_GPIO_PORT
+	int "Select port number"
+	depends PORTING_GPIO
+	range 0 15
+
+config PORTING_GPIO_PIN
+	int "Select pin number"
+	depends PORTING_GPIO
+	range 0 7
 
 config PORTING_LED_TIMER
 	bool "LED flashed by timer"

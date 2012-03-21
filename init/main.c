@@ -431,6 +431,45 @@ void porting_init(void)
 }
 #endif
 
+#ifdef CONFIG_PORTING_GPIO
+#define PORTING_GPIO_PORT	CONFIG_PORTING_GPIO_PORT
+#define PORTING_GPIO_PIN	CONFIG_PORTING_GPIO_PIN
+#define PORTING_GPIO_DELAY	1
+
+#ifdef CONFIG_PORTING_GPIO_OUT
+uint8_t __porting_gpio(uint8_t i)
+{
+	i++;
+	gpio_write_pin(PORTING_GPIO_PORT, PORTING_GPIO_PIN,
+		       i & 0x01);
+	return i;
+}
+#else
+uint8_t __porting_gpio(uint8_t i)
+{
+	return gpio_read_pin(PORTING_GPIO_PORT, PORTING_GPIO_PIN);
+}
+#endif
+
+void porting_handler(uint8_t event)
+{
+	uint8_t i = 0;
+	while (1) {
+		mdelay(PORTING_GPIO_DELAY);
+		uart_putchar(__porting_gpio(i));
+	}
+}
+
+void porting_init(void)
+{
+	porting_sid = state_register(porting_handler);
+	gpio_config_mux(PORTING_GPIO_PORT, PORTING_GPIO_PIN, GPIO_MUX_NONE);
+	gpio_config_pad(PORTING_GPIO_PORT, PORTING_GPIO_PIN, GPIO_PAD_PP, 2);
+	delay_init();
+	state_wakeup(porting_sid);
+}
+#endif
+
 #ifdef CONFIG_PORTING_UART
 /* XXX: UART Metering
  * uart_putchar will be forced an output of 0x55 that can be easily
