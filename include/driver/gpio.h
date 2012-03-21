@@ -12,7 +12,7 @@
 #define gpio_hw_ctrl_init()
 #define gpio_hw_read_pin(port, pin)		0
 #define gpio_hw_write_pin(port, pin, val)
-#define gpio_hw_read_port(port)			0
+#define gpio_hw_read_port(port, mask)		0
 #define gpio_hw_write_port(port, val)
 /* NOTE: No Pad/Mux Interfaces
  *

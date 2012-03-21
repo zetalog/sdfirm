@@ -45,22 +45,31 @@ void gpio_hw_write_pin(uint8_t port, uint8_t pin, uint8_t val)
 		__gpio_hw_set_pin(port, pin);
 }
 
-void gpio_hw_write_port(uint8_t port, uint8_t val)
+void gpio_hw_write_port(uint8_t port, uint8_t mask,
+			uint8_t val)
 {
+	uint8_t reg;
+	uint8_t pin;
+
 	if (port == GPIOF) {
-		__raw_writeb(val, PORT5);
+		reg = PORT5;
 	} else {
+		reg = PORT(port);
+	}
+	for (pin = 0; pin < 8; pin++) {
 		/* P0 = val; */
-		__raw_writeb(val, PORT(port));
+		if (_BV(pin) & mask)
+			__raw_setb_atomic(pin, reg);
 	}
 }
 
-uint8_t gpio_hw_read_port(uint8_t port)
+uint8_t gpio_hw_read_port(uint8_t port, uint8_t mask)
 {
+	uint8_t pin;
+
 	if (port == GPIOF) {
-		uint8_t pin;
 		for (pin = 0; pin < 8; pin++) {
-			if (_BV(pin) & __gpio_hw_od5)
+			if (_BV(pin) & (__gpio_hw_od5 & mask))
 				__raw_setb_atomic(pin, PORT5);
 		}
 	} else {

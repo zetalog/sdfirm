@@ -150,24 +150,25 @@ void gpio_hw_write_pin(uint8_t port, uint8_t pin, uint8_t val)
 	__raw_writel(((uint32_t)val) << pin, reg + (_BV(pin) << 2));
 }
 
-uint8_t gpio_hw_read_port(uint8_t port)
+uint8_t gpio_hw_read_port(uint8_t port, uint8_t mask)
 {
 	unsigned long reg;
 
 	/* configure PIN directions */
 	reg = __gpio_hw_port_reg(port, GPIODIR);
-	__raw_writel_atomic(pin, 0x0);
+	__raw_writel_mask(0x0, mask, reg);
 	reg = __gpio_hw_port_reg(port, GPIODATA);
 	return (uint8_t)(__raw_readl(reg + (0xFF << 2)));
 }
 
-void gpio_hw_write_port(uint8_t port, uint8_t val)
+void gpio_hw_write_port(uint8_t port, uint8_t mask,
+			uint8_t val)
 {
 	unsigned long reg;
 
 	/* configure PIN directions */
 	reg = __gpio_hw_port_reg(port, GPIODIR);
-	__raw_writel_atomic(pin, 0xFF);
+	__raw_writel_mask(0xFF, mask, reg);
 	reg = __gpio_hw_port_reg(port, GPIODATA);
 	__raw_writel(((uint32_t)val), reg + (0xFF << 2));
 }

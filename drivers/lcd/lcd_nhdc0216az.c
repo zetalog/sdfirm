@@ -42,7 +42,7 @@ static void __lcd_hw_write_en(uint8_t en)
 
 static void __lcd_hw_write(uint8_t rs, uint8_t db)
 {
-	gpio_write_port(__lcd_hw_pins->lcd_db, db);
+	gpio_write_port(__lcd_hw_pins->lcd_db, 0xFF, db);
 	__lcd_hw_write_rs(rs);
 	__lcd_hw_write_rw(LCD_RW_WRITE);
 	/* ensure following timing
@@ -52,7 +52,7 @@ static void __lcd_hw_write(uint8_t rs, uint8_t db)
 	 */
 	mdelay(1);
 	__lcd_hw_write_en(1);
-	db = gpio_read_port(__lcd_hw_pins->lcd_db);
+	db = gpio_read_port(__lcd_hw_pins->lcd_db, 0xFF);
 	/* ensure following timing
 	 * Enable "H" Level Pulse Width
 	 *   Twhe >= 300ns (NT7605)
@@ -104,7 +104,7 @@ uint8_t __lcd_hw_read_us(uint8_t rs, uint8_t us)
 	 */
 	udelay(1);
 	__lcd_hw_write_en(1);
-	db = gpio_read_port(__lcd_hw_pins->lcd_db);
+	db = gpio_read_port(__lcd_hw_pins->lcd_db, 0xFF);
 	/* ensure following timing
 	 * Enable "H" Level Pulse Width
 	 *   Twhe >= 300ns (NT7605)
