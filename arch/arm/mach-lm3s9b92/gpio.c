@@ -158,7 +158,7 @@ uint8_t gpio_hw_read_port(uint8_t port, uint8_t mask)
 	reg = __gpio_hw_port_reg(port, GPIODIR);
 	__raw_writel_mask(0x0, mask, reg);
 	reg = __gpio_hw_port_reg(port, GPIODATA);
-	return (uint8_t)(__raw_readl(reg + (0xFF << 2)));
+	return (uint8_t)(__raw_readl(reg + (mask << 2)));
 }
 
 void gpio_hw_write_port(uint8_t port, uint8_t mask,
@@ -170,7 +170,7 @@ void gpio_hw_write_port(uint8_t port, uint8_t mask,
 	reg = __gpio_hw_port_reg(port, GPIODIR);
 	__raw_writel_mask(0xFF, mask, reg);
 	reg = __gpio_hw_port_reg(port, GPIODATA);
-	__raw_writel(((uint32_t)val), reg + (0xFF << 2));
+	__raw_writel(((uint32_t)val), reg + (mask << 2));
 }
 
 void gpio_hw_ctrl_init(void)
