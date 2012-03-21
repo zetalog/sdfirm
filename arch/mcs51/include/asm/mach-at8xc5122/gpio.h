@@ -83,22 +83,31 @@ Sfr(PMOD0,	0x91);
 /* Port Mode Register 1 */
 Sfr(PMOD1,	0x84);
 
-/* PMOD0 */
-#define P3C1			7
-#define P3C0			6
-#define	P2C1			5
-#define P2C0			4
-#define P0C1			2
-#define P0C0			1
-/* PMOD1 */
-#define P5HC1			7
-#define P5HC0			6
-#define P5MC1			5
-#define	P5MC0			4
-#define P5LC1			3
-#define P5LC0			2
-#define P4C1			1
-#define P4C0			0
+#define PORT_BASE	0x80
+#define PORT(n)		(PORT_BASE+((n)<<4))
+#define PORT5		0xE8
+
+#define __GPIO_HW_PMOD_MASK	0x03
+
+#define __GPIO_HW_P_OD_INOUT	0x00
+#define __GPIO_HW_P_PP_OUT	0x01
+#define __GPIO_HW_P_KB_OUT	0x02
+#define __GPIO_HW_P_PPWU_IN	0x03
+
+#define __GPIO_HW_P0_PP_OUT	0x03
+#define __GPIO_HW_P2_PPWD_IN	0x03
+#define __GPIO_HW_P5_PPWD_IN	0x02
+#define __GPIO_HW_P4_PPMU_IN	0x03
+#define __GPIO_HW_P5L_PPMU_IN	0x02
+
+#define __gpio_hw_clear_mod0(off)	\
+	(PMOD0 &= ~(__GPIO_HW_PMOD_MASK<<(off)))
+#define __gpio_hw_set_mod0(off, val)	\
+	(PMOD0 |= ((val)<<(off)))
+#define __gpio_hw_clear_mod1(off)	\
+	(PMOD1 &= ~(__GPIO_HW_PMOD_MASK<<(off)))
+#define __gpio_hw_set_mod1(off, val)	\
+	(PMOD1 |= ((val)<<(off)))
 
 #define GPIOA			0
 #define GPIOB			1
@@ -111,7 +120,9 @@ uint8_t gpio_hw_read_pin(uint8_t port, uint8_t pin);
 void gpio_hw_write_pin(uint8_t port, uint8_t pin, uint8_t val);
 uint8_t gpio_hw_read_port(uint8_t port);
 void gpio_hw_write_port(uint8_t port, uint8_t val);
-
+void gpio_hw_config_pad(uint8_t port, uint8_t pin, uint8_t dir,
+			uint8_t pad, uint8_t drv);
+#define gpio_hw_config_mux(port, pin, mux)
 #define gpio_hw_ctrl_init()
 
 #endif /* __GPIO_AT8XC5122_H_INCLUDE__ */

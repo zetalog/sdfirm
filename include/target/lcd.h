@@ -4,6 +4,8 @@
 #include <target/config.h>
 #include <target/generic.h>
 
+typedef void (*lcd_init_cb)(void);
+
 #include <driver/lcd.h>
 
 #define MAX_LCD_ROWS		(uint8_t)NR_LCD_HW_ROWS

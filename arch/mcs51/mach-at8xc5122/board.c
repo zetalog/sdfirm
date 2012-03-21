@@ -49,11 +49,21 @@ void board_init_early(void)
 #include <target/lcd.h>
 
 #ifdef CONFIG_LCD_NHDC0216AZ
+static void __board_lcd_config(void)
+{
+	/* PORT0 can be configured as standard IO with 3 states */
+	gpio_config_pad(GPIOA, 0, GPIO_DIR_INOUT,
+			GPIO_PAD_OD, 2);
+	gpio_config_pad(GPIOC, 0, GPIO_DIR_OUT,
+			GPIO_PAD_PP, 2);
+}
+
 lcd_nhdc0216az_pins_t board_lcd = {
 	GPIOA,
 	MAKEWORD(0, GPIOC),
 	MAKEWORD(1, GPIOC),
 	MAKEWORD(2, GPIOC),
+	__board_lcd_config,
 };
 
 void board_lcd_init(void)

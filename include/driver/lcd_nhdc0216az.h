@@ -15,6 +15,7 @@ struct lcd_nhdc0216az_pins {
 	uint16_t lcd_rs;
 	uint16_t lcd_rw;
 	uint16_t lcd_en;
+	lcd_init_cb lcd_init;
 };
 __TEXT_TYPE__(const struct lcd_nhdc0216az_pins, lcd_nhdc0216az_pins_t);
 

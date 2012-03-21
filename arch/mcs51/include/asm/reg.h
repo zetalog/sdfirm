@@ -5,6 +5,13 @@
 #define Sfr(x, y)			__sfr __at y		x
 #define Sbit(x, y, z)			__sbit __at ((y) ^ (z))	x
 #define Sfr16(x, y)			Sfr(x, y)
+#define __raw_readb(a)			0
+#define __raw_writeb(v, a)
+#define __raw_readw(a)			0
+#define __raw_writew(v, a)
+#define __raw_setb_atomic(b, a)
+#define __raw_clearb_atomic(b, a)
+#define __raw_testb_atomic(b, a)	0
 #elif __C51__
 #define Sfr(x, y)			sfr x = y
 #define Sbit(x, y, z)			sbit x = y ^ z

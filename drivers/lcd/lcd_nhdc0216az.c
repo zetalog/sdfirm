@@ -12,6 +12,13 @@ void lcd_nhdc0216az_register(lcd_nhdc0216az_pins_t *pins)
 	__lcd_hw_pins = pins;
 }
 
+static void __lcd_hw_init(void)
+{
+	lcd_init_cb cb = __lcd_hw_pins->lcd_init;
+	BUG_ON(!cb);
+	cb();
+}
+
 static void __lcd_hw_write_rs(uint8_t rs)
 {
 	uint16_t pin;
@@ -139,6 +146,7 @@ void lcd_hw_set_pos(uint8_t pos)
 
 void lcd_hw_ctrl_init(void)
 {
+	__lcd_hw_init();
 	mdelay(30);
 	__lcd_hw_function_set(LCD_DATA_8BIT,
 			      LCD_LINE_DUAL,
