@@ -34,24 +34,26 @@ void gpio_hw_config_mux(uint8_t port, uint8_t pin, uint8_t mux)
 	reg = __gpio_hw_port_reg(port, GPIOPCTL);
 	__raw_clearl(0xf << shift, reg);
 	__raw_setl((mux & 0xf) << shift, reg);
+	reg = __gpio_hw_port_reg(port, GPIOAFSEL);
+	if (mux == GPIO_MUX_NONE)
+		__raw_clearl_atomic(pin, reg);
+	else
+		__raw_setl_atomic(pin, reg);
 }
 
-void gpio_hw_config_pad(uint8_t port, uint8_t pin, uint8_t dir,
+void gpio_hw_config_pad(uint8_t port, uint8_t pin,
 			uint8_t pad, uint8_t drv)
 {
 	unsigned long reg;
 
+#if 0
 	/* configure PIN directions */
 	reg = __gpio_hw_port_reg(port, GPIODIR);
 	if (dir == GPIO_DIR_OUT)
 		__raw_setl_atomic(pin, reg);
 	else
 		__raw_clearl_atomic(pin, reg);
-	reg = __gpio_hw_port_reg(port, GPIOAFSEL);
-	if (dir == GPIO_DIR_NONE)
-		__raw_setl_atomic(pin, reg);
-	else
-		__raw_clearl_atomic(pin, reg);
+#endif
 
 	/* configure PIN IO type */
 	/* digital IO */
@@ -129,6 +131,10 @@ void gpio_hw_clear_slewrate(uint8_t port, uint8_t pin)
 uint8_t gpio_hw_read_pin(uint8_t port, uint8_t pin)
 {
 	unsigned long reg;
+
+	/* configure PIN directions */
+	reg = __gpio_hw_port_reg(port, GPIODIR);
+	__raw_clearl_atomic(pin, reg);
 	reg = __gpio_hw_port_reg(port, GPIODATA);
 	return (uint8_t)(__raw_readl(reg + (_BV(pin) << 2)) >> pin);
 }
@@ -136,6 +142,10 @@ uint8_t gpio_hw_read_pin(uint8_t port, uint8_t pin)
 void gpio_hw_write_pin(uint8_t port, uint8_t pin, uint8_t val)
 {
 	unsigned long reg;
+
+	/* configure PIN directions */
+	reg = __gpio_hw_port_reg(port, GPIODIR);
+	__raw_setl_atomic(pin, reg);
 	reg = __gpio_hw_port_reg(port, GPIODATA);
 	__raw_writel(((uint32_t)val) << pin, reg + (_BV(pin) << 2));
 }
@@ -143,6 +153,10 @@ void gpio_hw_write_pin(uint8_t port, uint8_t pin, uint8_t val)
 uint8_t gpio_hw_read_port(uint8_t port)
 {
 	unsigned long reg;
+
+	/* configure PIN directions */
+	reg = __gpio_hw_port_reg(port, GPIODIR);
+	__raw_writel_atomic(pin, 0x0);
 	reg = __gpio_hw_port_reg(port, GPIODATA);
 	return (uint8_t)(__raw_readl(reg + (0xFF << 2)));
 }
@@ -150,6 +164,10 @@ uint8_t gpio_hw_read_port(uint8_t port)
 void gpio_hw_write_port(uint8_t port, uint8_t val)
 {
 	unsigned long reg;
+
+	/* configure PIN directions */
+	reg = __gpio_hw_port_reg(port, GPIODIR);
+	__raw_writel_atomic(pin, 0xFF);
 	reg = __gpio_hw_port_reg(port, GPIODATA);
 	__raw_writel(((uint32_t)val), reg + (0xFF << 2));
 }

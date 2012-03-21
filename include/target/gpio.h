@@ -12,11 +12,6 @@
 /*=========================================================================
  * GPIO pad configuration
  *=======================================================================*/
-#define GPIO_DIR_NONE		0x00  /* peripheral function */
-#define GPIO_DIR_IN		0x01  /* GPIO input */
-#define GPIO_DIR_OUT		0x02  /* GPIO output */
-#define GPIO_DIR_INOUT		(GPIO_DIR_IN | GPIO_DIR_OUT)
-
 #define GPIO_PAD_PUSH_PULL	0x00
 #define GPIO_PAD_OPEN_DRAIN	0x01
 #define GPIO_PAD_PULL_UP	0x02
@@ -63,8 +58,8 @@
 	gpio_hw_read_port(port)
 #define gpio_write_port(port, val)			\
 	gpio_hw_write_port(port, val)
-#define gpio_config_pad(port, pin, dir, pad, ma)	\
-	gpio_hw_config_pad(port, pin, dir, pad, ma)
+#define gpio_config_pad(port, pin, pad, ma)		\
+	gpio_hw_config_pad(port, pin, pad, ma)
 #define gpio_config_mux(port, pin, mux)			\
 	gpio_hw_config_mux(port, pin, mux)
 

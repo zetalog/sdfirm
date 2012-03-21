@@ -74,12 +74,10 @@ static inline void __uart_hw_config_pins(void)
 	pm_hw_resume_device(DEV_GPIOA, DEV_MODE_ON);
 	/* configure UART0 RX pin */
 	gpio_config_mux(GPIOA, 0, GPIOA0_MUX_U0RX);
-	gpio_config_pad(GPIOA, 0, GPIO_DIR_NONE,
-			GPIO_PAD_PP, 2);
+	gpio_config_pad(GPIOA, 0, GPIO_PAD_PP, 2);
 	/* configure UART0 TX pin */
 	gpio_config_mux(GPIOA, 1, GPIOA1_MUX_U0TX);
-	gpio_config_pad(GPIOA, 1, GPIO_DIR_NONE,
-			GPIO_PAD_PP, 2);
+	gpio_config_pad(GPIOA, 1, GPIO_PAD_PP, 2);
 }
 
 void uart_hw_sync_write(uint8_t byte)
@@ -341,7 +339,6 @@ void uart_hw_async_init(void)
 				uart_hw_gpios[n].rx_mux);
 		gpio_config_pad(uart_hw_gpios[n].rx_port,
 				uart_hw_gpios[n].rx_pin,
-				GPIO_DIR_NONE,
 				GPIO_PAD_PP, 2);
 		/* configure UART0 TX pin */
 		gpio_config_mux(uart_hw_gpios[n].tx_port,
@@ -349,7 +346,6 @@ void uart_hw_async_init(void)
 				uart_hw_gpios[n].tx_mux);
 		gpio_config_pad(uart_hw_gpios[n].tx_port,
 				uart_hw_gpios[n].tx_pin,
-				GPIO_DIR_NONE,
 				GPIO_PAD_PP, 2);
 		/* enable UART port */
 		pm_hw_resume_device(uart_hw_gpios[n].uart, DEV_MODE_ON);

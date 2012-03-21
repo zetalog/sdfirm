@@ -121,18 +121,18 @@ void __gpio_hw_set_od(uint8_t port, uint8_t pin)
 	}
 }
 
-void gpio_hw_config_pad(uint8_t port, uint8_t pin, uint8_t dir,
+void gpio_hw_config_pad(uint8_t port, uint8_t pin,
 			uint8_t pad, uint8_t drv)
 {
 	uint8_t val = 0xFF;
 
 	__gpio_hw_clear_od(port, pin);
-	if ((dir == GPIO_DIR_INOUT) && (pad == GPIO_PAD_OD)) {
+	if (pad == GPIO_PAD_OD) {
 		__gpio_hw_set_od(port, pin);
 		val = __GPIO_HW_P_OD_INOUT;
 		goto done;
 	}
-	if ((dir == GPIO_DIR_OUT) && (pad == GPIO_PAD_PP)) {
+	if (pad == GPIO_PAD_PP) {
 		BUG_ON(port == GPIOB);
 		if (port == GPIOA)
 			val = __GPIO_HW_P0_PP_OUT;
@@ -140,13 +140,13 @@ void gpio_hw_config_pad(uint8_t port, uint8_t pin, uint8_t dir,
 			val = __GPIO_HW_P_PP_OUT;
 		goto done;
 	}
-	if ((dir == GPIO_DIR_IN) && (pad == GPIO_PAD_PP_WU)) {
+	if (pad == GPIO_PAD_PP_WU) {
 		BUG_ON(port < GPIOD);
 		BUG_ON(port == GPIOF && pin == 6);
 		val = __GPIO_HW_P_PPWU_IN;
 		goto done;
 	}
-	if ((dir == GPIO_DIR_IN) && (pad == GPIO_PAD_PP_WD)) {
+	if (pad == GPIO_PAD_PP_WD) {
 		BUG_ON(port != GPIOC && port != GPIOF);
 		BUG_ON(port == GPIOF && pin == 0);
 		if (port == GPIOC)
@@ -155,7 +155,7 @@ void gpio_hw_config_pad(uint8_t port, uint8_t pin, uint8_t dir,
 			val = __GPIO_HW_P5_PPWD_IN;
 		goto done;
 	}
-	if ((dir == GPIO_DIR_IN) && (pad == GPIO_PAD_PP_MU)) {
+	if (pad == GPIO_PAD_PP_MU) {
 		BUG_ON(port != GPIOE && port != GPIOF);
 		BUG_ON(port == GPIOF && pin != 0);
 		if (port == GPIOE)

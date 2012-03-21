@@ -16,6 +16,5 @@ void led_hw_ctrl_init(void)
 	pm_hw_resume_device(DEV_GPIOD, DEV_MODE_ON);
 	/* insert a few cycles after enabling the peripheral */
 	udelay(1);
-	gpio_config_pad(GPIOD, 0, GPIO_DIR_OUT,
-			GPIO_PAD_PP, 2);
+	gpio_config_pad(GPIOD, 0, GPIO_PAD_PP, 2);
 }
