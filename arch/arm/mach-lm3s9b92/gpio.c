@@ -46,15 +46,6 @@ void gpio_hw_config_pad(uint8_t port, uint8_t pin,
 {
 	unsigned long reg;
 
-#if 0
-	/* configure PIN directions */
-	reg = __gpio_hw_port_reg(port, GPIODIR);
-	if (dir == GPIO_DIR_OUT)
-		__raw_setl_atomic(pin, reg);
-	else
-		__raw_clearl_atomic(pin, reg);
-#endif
-
 	/* configure PIN IO type */
 	/* digital IO */
 	/* push-pull & open-drain settings */
