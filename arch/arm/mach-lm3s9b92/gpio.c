@@ -82,6 +82,12 @@ void gpio_hw_config_pad(uint8_t port, uint8_t pin,
 	} else {
 		__raw_clearl_atomic(pin, reg);
 	}
+	reg = __gpio_hw_port_reg(port, GPIOSLR);
+	if (pad & GPIO_PAD_SLEW_RATE) {
+		__raw_setl_atomic(pin, reg);
+	} else {
+		__raw_clearl_atomic(pin, reg);
+	}
 
 	/* configure PIN drive strength */
 	reg = __gpio_hw_port_reg(port, GPIODR2R);
@@ -99,24 +105,6 @@ void gpio_hw_config_pad(uint8_t port, uint8_t pin,
 	if (drv > 4) {
 		__raw_setl_atomic(pin, reg);
 	}
-}
-
-void gpio_hw_set_slewrate(uint8_t port, uint8_t pin)
-{
-	unsigned long reg;
-
-	reg = __gpio_hw_port_reg(port, GPIOSLR);
-	__raw_clearl_atomic(pin, reg);
-	__raw_setl_atomic(pin, reg);
-}
-
-void gpio_hw_clear_slewrate(uint8_t port, uint8_t pin)
-{
-	unsigned long reg;
-
-	reg = __gpio_hw_port_reg(port, GPIOSLR);
-	__raw_clearl_atomic(pin, reg);
-	__raw_clearl_atomic(pin, reg);
 }
 
 uint8_t gpio_hw_read_pin(uint8_t port, uint8_t pin)

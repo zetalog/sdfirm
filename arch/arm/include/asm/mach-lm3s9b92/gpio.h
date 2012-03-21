@@ -69,9 +69,6 @@
 #define GPIOPERIPHID2		(0xFE8)
 #define GPIOPERIPHID3		(0xFEC)
 
-#define GPIOREG_N(port, name)	GPIO##port##name
-#define GPIOREG_O(port, offset)	(GPIO##port##_BASE+offset)
-
 /*=========================================================================
  * GPIO port numbers
  *=======================================================================*/
@@ -95,8 +92,5 @@ void gpio_hw_write_port(uint8_t port, uint8_t mask,
 			uint8_t val);
 
 void gpio_hw_ctrl_init(void);
-
-void gpio_hw_set_slewrate(uint8_t port, uint8_t pin);
-void gpio_hw_clear_slewrate(uint8_t port, uint8_t pin);
 
 #endif /* __GPIO_LM3S9B92_H_INCLUDE__ */

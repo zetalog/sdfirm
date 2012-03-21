@@ -141,6 +141,11 @@ void gpio_hw_config_pad(uint8_t port, uint8_t pin,
 		val = __GPIO_HW_P_OD_INOUT;
 		goto done;
 	}
+	if (pad == GPIO_PAD_KB) {
+		BUG_ON(port != GPIOF);
+		val = __GPIO_HW_P_KB_OUT;
+		goto done;
+	}
 	if (pad == GPIO_PAD_PP) {
 		BUG_ON(port == GPIOB);
 		if (port == GPIOA)
