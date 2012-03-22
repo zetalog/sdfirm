@@ -65,11 +65,4 @@ config LCD_NHD_C0216AZ_MAX_COLS
 
 endif
 
-config LCD_NHDC0216CIZ
-	bool "Newheaven Display C0216CiZ LCD controller support"
-	depends LCD
-
-if LCD_NHDC0216CIZ
-endif
-
 endmenu
