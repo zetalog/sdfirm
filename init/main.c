@@ -435,6 +435,24 @@ void porting_init(void)
 #define PORTING_GPIO_PORT	CONFIG_PORTING_GPIO_PORT
 #define PORTING_GPIO_PIN	CONFIG_PORTING_GPIO_PIN
 #define PORTING_GPIO_DELAY	1
+#ifdef CONFIG_PORTING_GPIO_PP
+#define PORTING_GPIO_PAD	GPIO_PAD_PP
+#endif
+#ifdef CONFIG_PORTING_GPIO_OD
+#define PORTING_GPIO_PAD	GPIO_PAD_OD
+#endif
+#ifdef CONFIG_PORTING_GPIO_KB
+#define PORTING_GPIO_PAD	GPIO_PAD_KB
+#endif
+#ifdef CONFIG_PORTING_GPIO_NP
+#define PORTING_GPIO_RES	0
+#endif
+#ifdef CONFIG_PORTING_GPIO_WU
+#define PORTING_GPIO_RES	GPIO_PAD_WU
+#endif
+#ifdef CONFIG_PORTING_GPIO_WD
+#define PORTING_GPIO_RES	GPIO_PAD_WD
+#endif
 
 #ifdef CONFIG_PORTING_GPIO_OUT
 uint8_t __porting_gpio(uint8_t i)
@@ -464,7 +482,8 @@ void porting_init(void)
 {
 	porting_sid = state_register(porting_handler);
 	gpio_config_mux(PORTING_GPIO_PORT, PORTING_GPIO_PIN, GPIO_MUX_NONE);
-	gpio_config_pad(PORTING_GPIO_PORT, PORTING_GPIO_PIN, GPIO_PAD_PP, 2);
+	gpio_config_pad(PORTING_GPIO_PORT, PORTING_GPIO_PIN,
+			PORTING_GPIO_PAD | PORTING_GPIO_RES, 2);
 	delay_init();
 	state_wakeup(porting_sid);
 }

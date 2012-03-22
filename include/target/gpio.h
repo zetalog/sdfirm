@@ -25,30 +25,27 @@
 #define GPIO_PAD_PP		(GPIO_PAD_DIGITAL_IO | GPIO_PAD_PUSH_PULL)
 #define GPIO_PAD_OD		(GPIO_PAD_DIGITAL_IO | GPIO_PAD_OPEN_DRAIN)
 #define GPIO_PAD_KB		(GPIO_PAD_PP | GPIO_PAD_SLEW_RATE)
+#define GPIO_PAD_WU		(GPIO_PAD_PULL_UP | GPIO_PAD_WEAK_PULL)
+#define GPIO_PAD_WD		(GPIO_PAD_PULL_DOWN | GPIO_PAD_WEAK_PULL)
+#define GPIO_PAD_MU		(GPIO_PAD_PULL_UP | GPIO_PAD_MEDIUM_PULL)
+#define GPIO_PAD_MD		(GPIO_PAD_PULL_DOWN | GPIO_PAD_MEDIUM_PULL)
+
 /* push pull with weak pull up */
-#define GPIO_PAD_PP_WU		\
-	(GPIO_PAD_PP | GPIO_PAD_PULL_UP | GPIO_PAD_WEAK_PULL)
+#define GPIO_PAD_PP_WU		(GPIO_PAD_PP | GPIO_PAD_WU)
 /* push pull with weak pull down */
-#define GPIO_PAD_PP_WD		\
-	(GPIO_PAD_PP | GPIO_PAD_PULL_DOWN | GPIO_PAD_WEAK_PULL)
+#define GPIO_PAD_PP_WD		(GPIO_PAD_PP | GPIO_PAD_WD)
 /* push pull with medium pull up */
-#define GPIO_PAD_PP_MU		\
-	(GPIO_PAD_PP | GPIO_PAD_PULL_UP | GPIO_PAD_MEDIUM_PULL)
+#define GPIO_PAD_PP_MU		(GPIO_PAD_PP | GPIO_PAD_MU)
 /* push pull with medium pull down */
-#define GPIO_PAD_PP_MD		\
-	(GPIO_PAD_PP | GPIO_PAD_PULL_DOWN | GPIO_PAD_MEDIUM_PULL)
+#define GPIO_PAD_PP_MD		(GPIO_PAD_PP | GPIO_PAD_MD)
 /* open drain with weak pull up */
-#define GPIO_PAD_OD_WU		\
-	(GPIO_PAD_OD | GPIO_PAD_PULL_UP | GPIO_PAD_WEAK_PULL)
+#define GPIO_PAD_OD_WU		(GPIO_PAD_OD | GPIO_PAD_WU)
 /* open drain with weak pull down */
-#define GPIO_PAD_OD_WD		\
-	(GPIO_PAD_OD | GPIO_PAD_PULL_DOWN | GPIO_PAD_WEAK_PULL)
+#define GPIO_PAD_OD_WD		(GPIO_PAD_OD | GPIO_PAD_WD)
 /* open drain with medium pull up */
-#define GPIO_PAD_OD_MU		\
-	(GPIO_PAD_OD | GPIO_PAD_PULL_UP | GPIO_PAD_MEDIUM_PULL)
+#define GPIO_PAD_OD_MU		(GPIO_PAD_OD | GPIO_PAD_MU)
 /* open drain with medium pull down */
-#define GPIO_PAD_OD_MD		\
-	(GPIO_PAD_OD | GPIO_PAD_PULL_DOWN | GPIO_PAD_MEDIUM_PULL)
+#define GPIO_PAD_OD_MD		(GPIO_PAD_OD | GPIO_PAD_MD)
 
 #include <driver/gpio.h>
 

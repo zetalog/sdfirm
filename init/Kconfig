@@ -156,6 +156,36 @@ config PORTING_GPIO_IN
 
 endchoice
 
+choice
+	prompt "Select pad type"
+	depends PORTING_GPIO
+
+config PORTING_GPIO_PP
+	bool "Push pull"
+
+config PORTING_GPIO_OD
+	bool "Open drain"
+
+config PORTING_GPIO_KB
+	bool "Low speed for keyboard"
+
+endchoice
+
+choice
+	prompt "Select pull resistor"
+	depends PORTING_GPIO
+
+config PORTING_GPIO_NP
+	bool "No pull"
+
+config PORTING_GPIO_WU
+	bool "Weak pull up"
+
+config PORTING_GPIO_WD
+	bool "Weak pull down"
+
+endchoice
+
 config PORTING_GPIO_PORT
 	int "Select port number"
 	depends PORTING_GPIO
