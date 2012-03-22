@@ -92,5 +92,10 @@ void gpio_hw_write_port(uint8_t port, uint8_t mask,
 			uint8_t val);
 
 void gpio_hw_ctrl_init(void);
+#ifdef CONFIG_PORTING_GPIO
+void gpio_hw_porting_init(void);
+#else
+#define gpio_hw_porting_init()
+#endif
 
 #endif /* __GPIO_LM3S9B92_H_INCLUDE__ */

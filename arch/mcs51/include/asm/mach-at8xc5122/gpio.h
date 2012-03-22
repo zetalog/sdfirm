@@ -128,5 +128,6 @@ void gpio_hw_config_pad(uint8_t port, uint8_t pin,
 			uint8_t pad, uint8_t drv);
 #define gpio_hw_config_mux(port, pin, mux)
 #define gpio_hw_ctrl_init()
+#define gpio_hw_porting_init()
 
 #endif /* __GPIO_AT8XC5122_H_INCLUDE__ */

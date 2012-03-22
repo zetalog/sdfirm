@@ -472,6 +472,11 @@ uint8_t __porting_gpio(uint8_t i)
 void porting_handler(uint8_t event)
 {
 	uint8_t i = 0;
+
+	gpio_hw_porting_init();
+	gpio_config_mux(PORTING_GPIO_PORT, PORTING_GPIO_PIN, GPIO_MUX_NONE);
+	gpio_config_pad(PORTING_GPIO_PORT, PORTING_GPIO_PIN,
+			PORTING_GPIO_PAD | PORTING_GPIO_RES, 2);
 	while (1) {
 		mdelay(PORTING_GPIO_DELAY);
 		i = __porting_gpio(i);
@@ -482,9 +487,6 @@ void porting_handler(uint8_t event)
 void porting_init(void)
 {
 	porting_sid = state_register(porting_handler);
-	gpio_config_mux(PORTING_GPIO_PORT, PORTING_GPIO_PIN, GPIO_MUX_NONE);
-	gpio_config_pad(PORTING_GPIO_PORT, PORTING_GPIO_PIN,
-			PORTING_GPIO_PAD | PORTING_GPIO_RES, 2);
 	delay_init();
 	state_wakeup(porting_sid);
 }

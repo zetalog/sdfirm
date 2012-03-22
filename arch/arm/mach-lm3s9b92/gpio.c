@@ -152,6 +152,14 @@ void gpio_hw_write_port(uint8_t port, uint8_t mask,
 	__raw_writel(((uint32_t)val), reg + (mask << 2));
 }
 
+#ifdef CONFIG_PORTING_GPIO
+void gpio_hw_porting_init(void)
+{
+	pm_hw_resume_device(DEV_GPIOA+CONFIG_PORTING_GPIO_PORT,
+			    DEV_MODE_ON);
+}
+#endif
+
 void gpio_hw_ctrl_init(void)
 {
 	__gpio_hw_port_init();
