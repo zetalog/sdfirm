@@ -5,18 +5,28 @@
 #define Sfr(x, y)			__sfr __at y		x
 #define Sbit(x, y, z)			__sbit __at ((y) ^ (z))	x
 #define Sfr16(x, y)			Sfr(x, y)
-#define __raw_readb(a)			0
-#define __raw_writeb(v, a)
-#define __raw_readw(a)			0
-#define __raw_writew(v, a)
-#define __raw_setb_atomic(b, a)
-#define __raw_clearb_atomic(b, a)
-#define __raw_testb_atomic(b, a)	0
 #elif __C51__
 #define Sfr(x, y)			sfr x = y
 #define Sbit(x, y, z)			sbit x = y ^ z
 #define Sfr16(x, y)			sfr16 x = y
 #endif
+
+#define __raw_readb(a)			(*(volatile __near__ unsigned char *)(a))
+#define __raw_writeb(v, a)		(*(volatile __near__ unsigned char *)(a) = (v))
+#define __raw_setb_atomic(b, a)				\
+	do {						\
+		unsigned char __v = __raw_readb(a);	\
+		__v |= _BV(b);				\
+		__raw_writeb(__v, (a));			\
+	} while (0)
+#define __raw_clearb_atomic(b, a)			\
+	do {						\
+		unsigned char __v = __raw_readb(a);	\
+		__v &= ~_BV(b);				\
+		__raw_writeb(__v, (a));			\
+	} while(0)
+#define __raw_testb_atomic(b, a)			\
+	((__raw_readb(a) >> b) & 0x01)
 
 /* 80C51/80C52 Special Function Registers */
 

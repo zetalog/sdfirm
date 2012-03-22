@@ -115,6 +115,10 @@ Sfr(PMOD1,	0x84);
 #define GPIOE			4
 #define GPIOF			5
 
+/* NOTE: Pin Access Failures
+ * Following functions may not work correctly due to the lackness of bit
+ * addressing for MCS51.
+ */
 uint8_t gpio_hw_read_pin(uint8_t port, uint8_t pin);
 void gpio_hw_write_pin(uint8_t port, uint8_t pin, uint8_t val);
 uint8_t gpio_hw_read_port(uint8_t port, uint8_t mask);

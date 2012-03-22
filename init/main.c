@@ -474,7 +474,8 @@ void porting_handler(uint8_t event)
 	uint8_t i = 0;
 	while (1) {
 		mdelay(PORTING_GPIO_DELAY);
-		uart_putchar(__porting_gpio(i));
+		i = __porting_gpio(i);
+		uart_putchar(i);
 	}
 }
 
