@@ -550,12 +550,19 @@ void led_on(void)
 }
 #endif
 
+#ifdef CONFIG_GPIO
+extern void gpio_init(void);
+#else
+#define gpio_init()
+#endif
+
 void system_init(void)
 {
 	board_init();
 	irq_init();
 	state_init();
 	tick_init();
+	gpio_init();
 	/* omit delay_init() here for porting */
 	uart_init();
 	/* omit heap_init() here for porting */
