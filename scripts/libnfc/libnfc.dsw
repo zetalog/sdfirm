@@ -50,6 +50,15 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name pn53x_tamashell
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_emulate_forum_tag4
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_emulate_forum_tag2
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_read_forum_tag3
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -126,6 +135,36 @@ Package=<4>
 
 ###############################################################################
 
+Project: "nfc_emulate_forum_tag2"="..\winnfc\nfc_emulate_forum_tag2.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "nfc_emulate_forum_tag4"="..\winnfc\nfc_emulate_forum_tag4.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "nfc_list"="..\winnfc\nfc_list.dsp" - Package Owner=<4>
 
 Package=<5>
@@ -187,6 +226,21 @@ Package=<4>
 ###############################################################################
 
 Project: "nfc_poll"="..\winnfc\nfc_poll.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "nfc_read_forum_tag3"="..\winnfc\nfc_read_forum_tag3.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{

@@ -233,13 +233,13 @@ typedef struct {
 } nfc_iso14443bi_info_t;
 
 typedef struct {
-  byte_t abtUID[8];
+	byte_t abtUID[8];
 } nfc_iso14443b2sr_info_t;
 
 typedef struct {
-  byte_t abtUID[4];
-  byte_t btProdCode;
-  byte_t btFabCode;
+	byte_t abtUID[4];
+	byte_t btProdCode;
+	byte_t btFabCode;
 } nfc_iso14443b2ct_info_t;
 
 typedef struct {
