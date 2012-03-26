@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Mar 20 19:27:45 2012
+# Mon Mar 26 16:40:04 2012
 #
 CONFIG_ARM=y
 
@@ -78,7 +78,7 @@ CONFIG_ARCH_IS_TICKLESS=y
 #
 # Scheduling facility (poll) support
 #
-CONFIG_MAX_STATES=3
+CONFIG_MAX_STATES=4
 
 #
 # Timing facility (jiffy) support
@@ -157,7 +157,6 @@ CONFIG_UART_MAX_PORTS=2
 CONFIG_LCD_NHDC0216AZ=y
 CONFIG_LCD_NHD_C0216AZ_MAX_ROWS=2
 CONFIG_LCD_NHD_C0216AZ_MAX_COLS=16
-# CONFIG_LCD_NHDC0216CIZ is not set
 
 #
 # MTD memory drivers
