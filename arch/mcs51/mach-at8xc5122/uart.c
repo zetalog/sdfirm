@@ -148,7 +148,7 @@ void uart_hw_sync_init(void)
 #endif
 
 #ifdef CONFIG_UART_ASYNC
-static uart_pid_t __uart_hw_pid;
+uart_pid_t __uart_hw_pid;
 
 static void uart_hw_async_dummy(void)
 {
@@ -213,11 +213,6 @@ static void uart_hw_tx_stop(void)
 	}
 }
 
-static void uart_hw_rx_halt(void)
-{
-	uart_read_sync(__uart_hw_pid);
-}
-
 static void uart_hw_handle_rx(void)
 {
 	if (!__uart_hw_fe_raised()) {
@@ -278,15 +273,6 @@ static void uart_hw_async_stop(void)
 	clk_hw_suspend_dev(DEV_UART);
 }
 
-static void uart_hw_async_select(uart_pid_t pid)
-{
-}
-
-static uint8_t uart_hw_read_oob(void)
-{
-	return SBUF;
-}
-
 bulk_channel_t __uart_hw_tx = {
 	O_WRONLY,
 	1,
@@ -296,6 +282,7 @@ bulk_channel_t __uart_hw_tx = {
 	uart_hw_tx_stop,
 	uart_hw_async_dummy,
 	uart_hw_async_dummy,
+	uart_async_select,
 	uart_hw_tx_poll,
 	uart_hw_tx_putch,
 	NULL,
@@ -306,12 +293,13 @@ bulk_channel_t __uart_hw_rx = {
 	1,
 	uart_hw_rx_open,
 	uart_hw_rx_close,
-	uart_hw_rx_start,
-	uart_hw_rx_stop,
-	uart_hw_rx_halt,
+	uart_async_start,
+	uart_async_stop,
+	uart_async_halt,
 	uart_hw_async_dummy,
-	uart_hw_rx_poll,
-	uart_hw_rx_getch,
+	uart_async_select,
+	uart_async_poll,
+	uart_async_read,
 	NULL,
 };
 
@@ -319,8 +307,10 @@ static uart_port_t __uart_hw_port = {
 	uart_hw_async_start,
 	uart_hw_async_stop,
 	uart_hw_sync_config,
-	uart_hw_async_select,
-	uart_hw_read_oob,
+	uart_hw_rx_start,
+	uart_hw_rx_stop,
+	uart_hw_rx_getch,
+	uart_hw_rx_poll,
 	(bulk_channel_t *)(&__uart_hw_tx),
 	(bulk_channel_t *)(&__uart_hw_rx),
 };

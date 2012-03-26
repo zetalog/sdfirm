@@ -78,7 +78,6 @@ sid_t bulk_sid = INVALID_SID;
 tid_t bulk_tid = INVALID_TID;
 
 static void bulk_iter_reset(void);
-static void bulk_iter_accel(void);
 
 static uint8_t bulk_channel_size(void);
 static uint8_t bulk_channel_dir(void);
@@ -172,21 +171,14 @@ void bulk_channel_halt(bulk_cid_t bulk)
 	bulk_restore_channel(sbulk);
 }
 
-void bulk_channel_unhalt(bulk_cid_t bulk, bulk_size_t resync_bytes)
+void bulk_channel_unhalt(bulk_cid_t bulk)
 {
 	if (__bulk_channel_halting(bulk)) {
-		ASSIGN_CIRCBF16_REF(buffer, circbf,
-				    &bulk_chan_ctrls[bulk].buffer);
-		bulk_size_t length = bulk_chan_ctrls[bulk].length;
 		bulk_cid_t sbulk;
 
 		sbulk = bulk_save_channel(bulk);
-			if (bulk_channel_dir() == O_RDONLY)
-				circbf_write(circbf, length, resync_bytes);
-			bulk_hw_channel_unhalt();
-			__bulk_request_clear_halt();
-			if (bulk_request_pending())
-				bulk_request_set_async();
+		bulk_hw_channel_unhalt();
+		__bulk_request_clear_halt();
 		bulk_restore_channel(sbulk);
 	}
 }
@@ -254,7 +246,12 @@ void bulk_close_channel(bulk_cid_t bulk)
 
 void bulk_restore_channel(bulk_cid_t bulk)
 {
+	bulk_channel_t *chan;
+
 	bulk_cid = bulk;
+	chan = bulk_channels[bulk_cid];
+	BUG_ON(!chan || !chan->select);
+	chan->select();
 }
 
 bulk_cid_t bulk_save_channel(bulk_cid_t bulk)
@@ -410,7 +407,7 @@ static void bulk_iter_reset(void)
 	bulk_chan_ctrls[bulk_cid].iter = 0;
 }
 
-static void bulk_iter_accel(void)
+void bulk_iter_accel(void)
 {
 	bulk_chan_ctrls[bulk_cid].iter =
 	bulk_chan_ctrls[bulk_cid].req_cur;
@@ -422,9 +419,9 @@ boolean bulk_transfer_last(void)
 	       __bulk_channel_halting(bulk_cid);
 }
 
-void bulk_transfer_submit(bulk_cid_t bulk, bulk_size_t bytes)
+void bulk_transfer_submit(bulk_size_t bytes)
 {
-	bulk_chan_ctrls[bulk].xfr_all = bytes;
+	bulk_chan_ctrls[bulk_cid].xfr_all = bytes;
 }
 
 static void bulk_request_reap(void)
@@ -688,7 +685,7 @@ void bulk_transfer_write(void)
 	bulk_transfer_iocb();
 }
 
-void bulk_transfer_read(bulk_size_t size)
+void bulk_transfer_read(void)
 {
 	bulk_transfer_iocb();
 }

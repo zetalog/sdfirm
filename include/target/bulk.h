@@ -28,6 +28,7 @@ struct bulk_channel {
 	io_cb stop;	/* after the transfer  */
 	io_cb halt;	/* halt the channel */
 	io_cb unhalt;	/* unhalt the channel */
+	io_cb select;
 	iotest_cb testpoll;
 	iordwr_cb xmitbyte;
 	iobulk_cb xmitbulk;
@@ -56,13 +57,15 @@ void bulk_restore_channel(bulk_cid_t bulk);
 bulk_cid_t bulk_save_channel(bulk_cid_t bulk);
 #define bulk_select_channel(bulk)	bulk_restore_channel(bulk)
 
+extern bulk_cid_t bulk_cid;
+
 boolean bulk_request_syncing(void);
 void bulk_request_set_sync(void);
 void bulk_request_clear_sync(void);
 
 boolean bulk_channel_halting(void);
 void bulk_channel_halt(bulk_cid_t bulk);
-void bulk_channel_unhalt(bulk_cid_t bulk, bulk_size_t resync_bytes);
+void bulk_channel_unhalt(bulk_cid_t bulk);
 
 boolean bulk_request_submit(size_t length);
 void bulk_request_commit(size_t length);
@@ -74,8 +77,8 @@ bulk_size_t bulk_transfer_handled(void);
 bulk_size_t bulk_transfer_unhandled(void);
 
 void bulk_transfer_write(void);
-void bulk_transfer_read(bulk_size_t size);
-void bulk_transfer_submit(bulk_cid_t bulk, bulk_size_t bytes);
+void bulk_transfer_read(void);
+void bulk_transfer_submit(bulk_size_t bytes);
 
 void bulk_writeb(uint8_t byte);
 void bulk_writew(uint16_t word);
@@ -83,6 +86,7 @@ void bulk_writel(uint32_t dword);
 uint8_t bulk_readb(uint8_t byte);
 uint16_t bulk_readw(uint16_t word);
 uint32_t bulk_readl(uint32_t dword);
+void bulk_iter_accel(void);
 
 #define BULK_WRITEB(byte)		(bulk_writeb(byte))
 #define BULK_WRITEW(word)		(bulk_writew(word))

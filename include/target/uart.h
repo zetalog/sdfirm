@@ -77,6 +77,7 @@ struct uart_user {
 	bulk_user_t *txusr;
 	bulk_user_t *rxusr;
 	uart_sync_cb sync_func;
+	uint8_t *sync_buf;
 	bulk_size_t sync_size;
 };
 __TEXT_TYPE__(const struct uart_user, uart_user_t);
@@ -88,30 +89,43 @@ struct uart_state {
 	uart_sync_cb sync_func;
 	bulk_size_t sync_size;
 	bulk_size_t sync_len;
+#ifdef CONFIG_UART_WAIT
+	io_cb cb_func;
+	void *cb_data;
+#endif
 };
 
 extern struct uart_state uart_states[NR_UART_PORTS];
+extern uart_pid_t uart_pid;
 
 #define uart_bulk_tx(pid)	(uart_states[pid].bulk_tx)
 #define uart_bulk_rx(pid)	(uart_states[pid].bulk_rx)
+#define uart_read_select(pid)	bulk_select_channel(uart_bulk_rx(pid))
+#define uart_write_select(pid)	bulk_select_channel(uart_bulk_tx(pid))
 
 /* Asynchronous UART */
 void uart_startup(uart_pid_t pid, uart_user_t *user);
 void uart_cleanup(uart_pid_t pid);
 uart_pid_t uart_register_port(uart_port_t *port);
-void uart_read_sync(uart_pid_t pid);
+
+void uart_async_read(uint8_t *byte);
+void uart_async_start(void);
+void uart_async_stop(void);
+boolean uart_async_poll(void);
+void uart_async_halt(void);
+void uart_async_select(void);
 
 void uart_read_submit(uart_pid_t pid, bulk_size_t size);
 void uart_read_byte(uart_pid_t pid);
 void uart_write_byte(uart_pid_t pid);
-void uart_select_port(uart_pid_t pid);
 
 #ifdef CONFIG_UART_WAIT
-void uart_wait_start(uart_pid_t pid);
+void uart_wait_start(uart_pid_t pid, timeout_t tout_ms,
+		     io_cb cb_func, void *cb_data);
 void uart_wait_stop(uart_pid_t pid);
 void uart_wait_timeout(uart_pid_t pid);
 #else
-#define uart_wait_start(pid)
+#define uart_wait_start(pid, ms, cb_func, cb_data)
 #define uart_wait_stop(pid)
 #define uart_wait_timeout(pid)
 #endif

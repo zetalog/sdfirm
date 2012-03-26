@@ -76,6 +76,7 @@ uint8_t ezio_hex;
 struct ezio_cmd ezio_cmd;
 uint8_t ezio_keys;
 kbd_event_cb ezio_kh = NULL;
+uint8_t ezio_oob[1];
 
 bulk_user_t ezio_bulk_resp = {
 	ezio_resp_poll,
@@ -99,6 +100,7 @@ uart_user_t ezio_uart = {
 	&ezio_bulk_resp,
 	&ezio_bulk_cmd,
 	ezio_sync_cmd,
+	ezio_oob,
 	1,
 };
 
