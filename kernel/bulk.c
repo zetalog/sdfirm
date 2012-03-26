@@ -123,9 +123,9 @@ size_t bulk_request_handled(void)
 	return __bulk_request_handled();
 }
 
-size_t bulk_request_unhandled(bulk_cid_t bulk)
+size_t bulk_request_unhandled(void)
 {
-	return __bulk_request_unhandled(bulk);
+	return __bulk_request_unhandled(bulk_cid);
 }
 
 bulk_size_t bulk_transfer_handled(void)
@@ -154,9 +154,9 @@ void bulk_request_discard(void)
 		bulk_request_commit(bulk_chan_ctrls[bulk_cid].req_cur);
 }
 
-boolean bulk_channel_halting(bulk_cid_t bulk)
+boolean bulk_channel_halting(void)
 {
-	return __bulk_channel_halting(bulk);
+	return __bulk_channel_halting(bulk_cid);
 }
 
 void bulk_channel_halt(bulk_cid_t bulk)
@@ -683,15 +683,14 @@ uint32_t bulk_readl(uint32_t dword)
 	return lo | ((uint32_t)hi << 16);
 }
 
-void bulk_transfer_write(bulk_cid_t bulk)
+void bulk_transfer_write(void)
 {
-	bulk_select_channel(bulk);
 	bulk_transfer_iocb();
 }
 
-void bulk_transfer_read(bulk_cid_t bulk)
+void bulk_transfer_read(bulk_size_t size)
 {
-	bulk_select_channel(bulk);
+	bulk_transfer_submit(bulk_cid, size);
 	bulk_transfer_iocb();
 }
 

@@ -12,6 +12,8 @@ struct uart_port {
 	void (*startup)(void);
 	void (*cleanup)(void);
 	void (*config)(uint8_t params, uint32_t baudrate);
+	void (*select)(uart_pid_t pid);
+	uint8_t (*read_oob)(void);
 	bulk_channel_t *tx;
 	bulk_channel_t *rx;
 };

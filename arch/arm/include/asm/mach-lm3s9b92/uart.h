@@ -271,6 +271,7 @@ uint32_t __uart_hw_config_param(uint8_t params);
 #define __uart_hw_irq_disable(n, flags)	__raw_clearl(flags, UARTIM(n))
 #define __uart_hw_irq_raised(n, flags)	(__raw_readl(UARTRIS(n)) & flags)
 #define __uart_hw_irq_unraise(n, flags)	__raw_setl(flags, UARTICR(n))
+#define __uart_hw_irq_status(n)		__raw_readl(UARTRIS(n))
 
 #define __uart_hw_smart_start(n)					\
 	do {								\

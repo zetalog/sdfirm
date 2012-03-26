@@ -169,7 +169,6 @@ static void uart_hw_rx_start(void)
 		while (!__uart_hw_irq_raised(__uart_hw_pid,
 					     __UART_HW_RX_IRQS));
 	}
-	uart_read_submit(__uart_hw_pid, 1);
 }
 
 static void uart_hw_rx_stop(void)
@@ -201,6 +200,22 @@ static void uart_hw_tx_stop(void)
 
 static void uart_hw_handle_irq(void)
 {
+	uint32_t ris = __uart_hw_irq_status(__uart_hw_pid);
+
+	__uart_hw_irq_unraise(__uart_hw_pid, ris);
+	if (ris & _BV(TXI)) {
+		while (!__uart_hw_write_full(__uart_hw_pid)) {
+			uart_write_byte(__uart_hw_pid);
+		}
+	}
+	if (ris & _BV(RXI)) {
+		while (!__uart_hw_read_empty(__uart_hw_pid)) {
+			uart_read_byte(__uart_hw_pid);
+		}
+	}
+	if (ris & _BV(RTI)) {
+		uart_wait_timeout(__uart_hw_pid);
+	}
 }
 
 #ifdef SYS_REALTIME
@@ -273,9 +288,21 @@ void uart_hw_async_stop(void)
 #endif
 
 void uart_hw_async_config(uint8_t params,
-			uint32_t baudrate)
+			  uint32_t baudrate)
 {
 	__uart_hw_ctrl_config(__uart_hw_pid, params, baudrate);
+}
+
+void uart_hw_async_select(uart_pid_t pid)
+{
+	uint8_t n;
+
+	for (n = 0; n < NR_UART_PORTS; n++) {
+		if (__uart_hw_pids[n] == pid) {
+			__uart_hw_pid = pid;
+			break;
+		}
+	}
 }
 
 bulk_channel_t __uart_hw_tx = {
@@ -310,21 +337,11 @@ static uart_port_t __uart_hw_port = {
 	uart_hw_async_start,
 	uart_hw_async_stop,
 	uart_hw_async_config,
+	uart_hw_async_select,
+	uart_hw_async_read,
 	(bulk_channel_t *)(&__uart_hw_tx),
 	(bulk_channel_t *)(&__uart_hw_rx),
 };
-
-void uart_hw_async_select(uart_pid_t pid)
-{
-	uint8_t n;
-
-	for (n = 0; n < NR_UART_PORTS; n++) {
-		if (__uart_hw_pids[n] == pid) {
-			__uart_hw_pid = pid;
-			break;
-		}
-	}
-}
 
 void uart_hw_async_init(void)
 {
@@ -347,6 +364,7 @@ void uart_hw_async_init(void)
 		gpio_config_pad(uart_hw_gpios[n].tx_port,
 				uart_hw_gpios[n].tx_pin,
 				GPIO_PAD_PP, 2);
+
 		/* enable UART port */
 		pm_hw_resume_device(uart_hw_gpios[n].uart, DEV_MODE_ON);
 		/* register uart port */

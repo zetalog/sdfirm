@@ -21,7 +21,7 @@ static void __uart_sync_exit(uart_pid_t pid)
 	uart_states[pid].sync_buf = NULL;
 }
 
-static void __uart_sync(uart_pid_t pid, uint8_t c)
+static void __uart_sync(uart_pid_t pid)
 {
 	uart_sync_cb sync = uart_states[pid].sync_func;
 	bulk_size_t len = uart_states[pid].sync_len;
@@ -94,32 +94,47 @@ void uart_read_sync(uart_pid_t pid)
 	uart_states[pid].sync_len = 0;
 }
 
-void uart_read_submit(uart_pid_t pid, bulk_size_t size)
+void uart_select_port(uart_pid_t pid)
 {
-	bulk_cid_t bulk = uart_states[pid].bulk_rx;
+	bulk_cid_t bulk;
+	uart_port_t *port;
 
-	if (!bulk_channel_halting(bulk))
-		bulk_transfer_submit(bulk, size);
+	BUG_ON(!port->select);
+	port->select(pid);
+	bulk = uart_states[pid].bulk_rx;
+	bulk_select_channel(bulk);
 }
 
-void uart_read_byte(uart_pid_t pid, uint8_t c)
+void uart_read_byte(uart_pid_t pid)
 {
-	bulk_cid_t bulk = uart_states[pid].bulk_rx;
-
-	if (bulk_channel_halting(bulk)) {
-		__uart_sync(pid, c);
+	uart_select_port(pid);
+	if (bulk_channel_halting()) {
+		__uart_sync(pid);
 	} else {
-		bulk_transfer_read(bulk);
+		bulk_transfer_read(1);
 	}
 }
 
 void uart_write_byte(uart_pid_t pid)
 {
-	bulk_cid_t bulk = uart_states[pid].bulk_tx;
-
-	if (bulk_request_unhandled(bulk) > 0)
-		bulk_transfer_write(bulk);
+	uart_select_port(pid);
+	if (bulk_request_unhandled() > 0)
+		bulk_transfer_write();
 }
+
+#ifdef CONFIG_UART_WAIT
+void uart_wait_start(uart_pid_t pid)
+{
+}
+
+void uart_wait_stop(uart_pid_t pid)
+{
+}
+
+void uart_wait_timeout(uart_pid_t pid)
+{
+}
+#endif
 
 uart_pid_t uart_register_port(uart_port_t *port)
 {

@@ -59,6 +59,18 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name nfc_read_forum_tag3
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_emulate_tag
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_emulate_uid
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_relay
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name nfc_relay_picc
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -165,6 +177,36 @@ Package=<4>
 
 ###############################################################################
 
+Project: "nfc_emulate_tag"="..\winnfc\nfc_emulate_tag.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "nfc_emulate_uid"="..\winnfc\nfc_emulate_uid.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "nfc_list"="..\winnfc\nfc_list.dsp" - Package Owner=<4>
 
 Package=<5>
@@ -241,6 +283,36 @@ Package=<4>
 ###############################################################################
 
 Project: "nfc_read_forum_tag3"="..\winnfc\nfc_read_forum_tag3.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "nfc_relay"="..\winnfc\nfc_relay.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "nfc_relay_picc"="..\winnfc\nfc_relay_picc.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{

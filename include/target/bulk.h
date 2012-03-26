@@ -60,7 +60,7 @@ boolean bulk_request_syncing(void);
 void bulk_request_set_sync(void);
 void bulk_request_clear_sync(void);
 
-boolean bulk_channel_halting(bulk_cid_t bulk);
+boolean bulk_channel_halting(void);
 void bulk_channel_halt(bulk_cid_t bulk);
 void bulk_channel_unhalt(bulk_cid_t bulk, bulk_size_t resync_bytes);
 
@@ -69,12 +69,12 @@ void bulk_request_commit(size_t length);
 void bulk_request_discard(void);
 
 size_t bulk_request_handled(void);
-size_t bulk_request_unhandled(bulk_cid_t bulk);
+size_t bulk_request_unhandled(void);
 bulk_size_t bulk_transfer_handled(void);
 bulk_size_t bulk_transfer_unhandled(void);
 
-void bulk_transfer_write(bulk_cid_t bulk);
-void bulk_transfer_read(bulk_cid_t bulk);
+void bulk_transfer_write(void);
+void bulk_transfer_read(bulk_size_t size);
 void bulk_transfer_submit(bulk_cid_t bulk, bulk_size_t bytes);
 
 void bulk_writeb(uint8_t byte);
