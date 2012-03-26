@@ -324,6 +324,5 @@ void uart_hw_sync_config(uint8_t params,
 			 uint32_t baudrate);
 
 void uart_hw_async_init(void);
-void uart_hw_async_select(uart_pid_t pid);
 
 #endif /* __UART_LM3S9B92_H_INCLUDE__ */

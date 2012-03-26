@@ -117,7 +117,11 @@ void uart_hw_sync_init(void)
 #endif
 
 #ifdef CONFIG_UART_ASYNC
+#ifdef CONFIG_UART_WAIT
 #define __UART_HW_RX_IRQS	(_BV(RTI) | _BV(RXI))
+#else
+#define __UART_HW_RX_IRQS	(_BV(RXI))
+#endif
 #define __UART_HW_TX_IRQS	(_BV(TXI))
 
 struct uart_hw_gpio uart_hw_gpios[NR_UART_PORTS] = {
@@ -166,17 +170,20 @@ static void uart_hw_tx_putch(uint8_t *byte)
 static void uart_hw_rx_start(void)
 {
 	if (bulk_request_syncing()) {
-		while (!__uart_hw_irq_raised(__uart_hw_pid,
-					     __UART_HW_RX_IRQS));
+		uint32_t ris;
+		do {
+			ris = __uart_hw_irq_status(__uart_hw_pid) &
+			      __UART_HW_RX_IRQS;
+		} while (!ris);
+		__uart_hw_irq_unraise(__uart_hw_pid, ris);
 	}
+	uart_read_submit(__uart_hw_pid, 1);
 }
 
 static void uart_hw_rx_stop(void)
 {
-	if (__uart_hw_irq_raised(__uart_hw_pid,
-				 __UART_HW_RX_IRQS)) {
-		__uart_hw_irq_unraise(__uart_hw_pid,
-				      __UART_HW_RX_IRQS);
+	if (!!__uart_hw_read_empty(__uart_hw_pid)) {
+		uart_read_submit(__uart_hw_pid, 1);
 	}
 }
 
@@ -305,6 +312,11 @@ void uart_hw_async_select(uart_pid_t pid)
 	}
 }
 
+uint8_t uart_hw_read_oob(void)
+{
+	return __uart_hw_async_read(__uart_hw_pid);
+}
+
 bulk_channel_t __uart_hw_tx = {
 	O_WRONLY,
 	1,
@@ -338,7 +350,7 @@ static uart_port_t __uart_hw_port = {
 	uart_hw_async_stop,
 	uart_hw_async_config,
 	uart_hw_async_select,
-	uart_hw_async_read,
+	uart_hw_read_oob,
 	(bulk_channel_t *)(&__uart_hw_tx),
 	(bulk_channel_t *)(&__uart_hw_rx),
 };

@@ -27,10 +27,13 @@ static void __uart_sync(uart_pid_t pid)
 	bulk_size_t len = uart_states[pid].sync_len;
 	bulk_size_t size = uart_states[pid].sync_size;
 	uint8_t *buf = uart_states[pid].sync_buf;
+	uart_port_t *port;
 
 	BUG_ON(len >= size || !sync);
+	port = uart_ports[pid];
+	BUG_ON(!port || !port->read_oob);
 
-	buf[len++] = c;
+	buf[len++] = port->read_oob();
 	if (len == uart_states[pid].sync_size) {
 		if (sync(buf)) {
 			uart_states[pid].sync_len = len;
@@ -99,10 +102,18 @@ void uart_select_port(uart_pid_t pid)
 	bulk_cid_t bulk;
 	uart_port_t *port;
 
+	port = uart_ports[pid];
 	BUG_ON(!port->select);
 	port->select(pid);
 	bulk = uart_states[pid].bulk_rx;
 	bulk_select_channel(bulk);
+}
+
+void uart_read_submit(uart_pid_t pid, bulk_size_t size)
+{
+	bulk_cid_t bulk;
+	bulk = uart_states[pid].bulk_rx;
+	bulk_transfer_submit(bulk, size);
 }
 
 void uart_read_byte(uart_pid_t pid)

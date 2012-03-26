@@ -189,6 +189,7 @@ static void uart_hw_rx_start(void)
 	if (bulk_request_syncing()) {
 		while (!__uart_hw_ri_raised());
 	}
+	uart_read_submit(__uart_hw_pid, 1);
 }
 
 static void uart_hw_rx_stop(void)
@@ -277,11 +278,11 @@ static void uart_hw_async_stop(void)
 	clk_hw_suspend_dev(DEV_UART);
 }
 
-static void uart_hw_async_select(void)
+static void uart_hw_async_select(uart_pid_t pid)
 {
 }
 
-static uint8_t uart_hw_async_read(void)
+static uint8_t uart_hw_read_oob(void)
 {
 	return SBUF;
 }
@@ -319,7 +320,7 @@ static uart_port_t __uart_hw_port = {
 	uart_hw_async_stop,
 	uart_hw_sync_config,
 	uart_hw_async_select,
-	uart_hw_async_read,
+	uart_hw_read_oob,
 	(bulk_channel_t *)(&__uart_hw_tx),
 	(bulk_channel_t *)(&__uart_hw_rx),
 };

@@ -28,7 +28,6 @@ __TEXT_TYPE__(const struct uart_port, uart_port_t);
 #define uart_hw_sync_config(params, baudrate)
 
 #define uart_hw_async_init()
-#define uart_hw_async_select(pid)
 #endif
 
 #endif /* __UART_DRIVER_H_INCLUDE__ */

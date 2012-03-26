@@ -100,6 +100,8 @@ void uart_startup(uart_pid_t pid, uart_user_t *user);
 void uart_cleanup(uart_pid_t pid);
 uart_pid_t uart_register_port(uart_port_t *port);
 void uart_read_sync(uart_pid_t pid);
+
+void uart_read_submit(uart_pid_t pid, bulk_size_t size);
 void uart_read_byte(uart_pid_t pid);
 void uart_write_byte(uart_pid_t pid);
 void uart_select_port(uart_pid_t pid);

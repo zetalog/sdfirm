@@ -690,7 +690,6 @@ void bulk_transfer_write(void)
 
 void bulk_transfer_read(bulk_size_t size)
 {
-	bulk_transfer_submit(bulk_cid, size);
 	bulk_transfer_iocb();
 }
 

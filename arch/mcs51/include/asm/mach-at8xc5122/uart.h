@@ -53,6 +53,5 @@ uint8_t uart_hw_sync_read(void);
 void uart_hw_sync_config(uint8_t params, uint32_t baudrate);
 
 void uart_hw_async_init(void);
-#define uart_hw_async_select(pid)
 
 #endif /* __UART_AT8XC5122_H_INCLUDE__ */
