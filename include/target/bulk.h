@@ -14,9 +14,6 @@
 typedef uint8_t bulk_cid_t;
 typedef uint16_t bulk_size_t;
 
-typedef void (*bulk_open_cb)(size_t);
-typedef void (*bulk_close_cb)(bulk_size_t);
-
 struct bulk_channel {
 	/* io flags defined in the io.h */
 	uint8_t flags;
@@ -123,6 +120,9 @@ void bulk_reset_fifo(bulk_cid_t bulk);
 /*=========================================================================
  * deprecated bulk APIs
  *=======================================================================*/
+typedef void (*bulk_open_cb)(size_t);
+typedef void (*bulk_close_cb)(bulk_size_t);
+
 /* Both sides are CPU transfer */
 void bulk_config_read_byte(bulk_cid_t bulk, bulk_size_t flush,
 			   bulk_open_cb open,

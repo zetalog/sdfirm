@@ -306,7 +306,7 @@ void uart_hw_async_config(uint8_t params,
 }
 
 bulk_channel_t __uart_hw_tx = {
-	O_WRONLY,
+	O_WRCMPL,
 	1,
 	uart_hw_tx_open,
 	uart_hw_tx_close,
@@ -321,7 +321,7 @@ bulk_channel_t __uart_hw_tx = {
 };
 
 bulk_channel_t __uart_hw_rx = {
-	O_RDONLY,
+	O_RDAVAL,
 	1,
 	uart_hw_rx_open,
 	uart_hw_rx_close,
