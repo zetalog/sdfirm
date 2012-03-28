@@ -16,6 +16,8 @@
 #define O_AVAL		0x00
 #define O_WRCMPL	(O_CMPL | O_WRONLY)
 #define O_WRAVAL	(O_AVAL | O_WRONLY)
+#define O_REAP		0x40
+#define O_RDREAP	(O_AVAL | O_RDONLY | O_REAP)
 #define O_RDAVAL	(O_AVAL | O_RDONLY)
 
 typedef uint8_t (*iord_cb)(void);

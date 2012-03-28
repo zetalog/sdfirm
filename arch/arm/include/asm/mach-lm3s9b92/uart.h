@@ -293,18 +293,6 @@ uint32_t __uart_hw_config_param(uint8_t params);
 
 #define __uart_hw_status_error(n)	__raw_readl(UARTRSR(n))
 
-static inline void __uart_hw_sync_write(uint8_t n, uint8_t byte)
-{
-	while (__uart_hw_write_full(n));
-	__uart_hw_async_write(n, byte);
-}
-
-static inline uint8_t __uart_hw_sync_read(uint8_t n)
-{
-	while (__uart_hw_read_empty(n));
-	return __uart_hw_async_read(n);
-}
-
 static inline boolean __uart_hw_smart_empty(uint8_t n)
 {
 	return __raw_readl(UARTFR(n)) & _BV(RXFE);

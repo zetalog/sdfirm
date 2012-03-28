@@ -219,10 +219,16 @@ void uart_read_submit(uart_pid_t pid, bulk_size_t size)
 
 void uart_read_byte(uart_pid_t pid)
 {
+	bulk_cid_t cid = uart_bulk_rx(pid);
+
 	if (bulk_channel_halting()) {
 		uart_oob_sync(pid);
 	} else {
-		bulk_transfer_read(uart_bulk_rx(pid));
+		bulk_transfer_read(cid);
+		if (bulk_transfer_unhandled(cid) > 0) {
+			bulk_channel_halt(cid);
+			uart_oob_sync(pid);
+		}
 	}
 }
 
