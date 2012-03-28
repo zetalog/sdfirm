@@ -73,8 +73,8 @@ size_t bulk_request_unhandled(void);
 bulk_size_t bulk_transfer_handled(void);
 bulk_size_t bulk_transfer_unhandled(void);
 
-void bulk_transfer_write(void);
-void bulk_transfer_read(void);
+void bulk_transfer_write(bulk_cid_t cid);
+void bulk_transfer_read(bulk_cid_t cid);
 void bulk_transfer_submit(bulk_size_t bytes);
 
 void bulk_writeb(uint8_t byte);

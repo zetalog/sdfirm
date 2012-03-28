@@ -160,6 +160,11 @@ void uart_async_read(uint8_t *byte)
 	}
 }
 
+void uart_select_port(uart_pid_t pid)
+{
+	uart_pid = pid;
+}
+
 void uart_async_select(void)
 {
 	uart_pid_t pid;
@@ -167,32 +172,33 @@ void uart_async_select(void)
 	for (pid = 0; pid < uart_nr_ports; pid++) {
 		if (uart_bulk_rx(pid) == bulk_cid ||
 		    uart_bulk_tx(pid) == bulk_cid)
-			uart_pid = pid;
+			uart_select_port(pid);
 	}
 }
 
 void uart_startup(uart_pid_t pid, uart_user_t *user)
 {
 	BUG_ON(!user->rxbuf || !user->rxlen);
+	BUG_ON(!test_bit(pid, uart_port_regs));
 
-	if (test_bit(pid, uart_port_regs)) {
-		uart_hw_port_startup(pid,
-				     user->params,
-				     user->baudrate);
-		bulk_open_channel(uart_bulk_tx(pid),
-				  user->txusr,
-				  user->txbuf,
-				  user->txlen, 1);
-		bulk_open_channel(uart_bulk_rx(pid),
-				  user->rxusr,
-				  user->rxbuf,
-				  user->rxlen, 1);
-		uart_oob_init(pid, user);
-	}
+	uart_select_port(pid);
+	uart_hw_port_startup(pid,
+			     user->params,
+			     user->baudrate);
+	bulk_open_channel(uart_bulk_tx(pid),
+			  user->txusr,
+			  user->txbuf,
+			  user->txlen, 1);
+	bulk_open_channel(uart_bulk_rx(pid),
+			  user->rxusr,
+			  user->rxbuf,
+			  user->rxlen, 1);
+	uart_oob_init(pid, user);
 }
 
 void uart_cleanup(uart_pid_t pid)
 {
+	uart_select_port(pid);
 	uart_oob_exit(pid);
 	bulk_close_channel(uart_bulk_rx(pid));
 	bulk_close_channel(uart_bulk_tx(pid));
@@ -202,27 +208,27 @@ void uart_cleanup(uart_pid_t pid)
 
 void uart_read_submit(uart_pid_t pid, bulk_size_t size)
 {
-	uart_read_select(pid);
+	bulk_cid_t scid;
+
+	scid = bulk_save_channel(uart_bulk_rx(pid));
 	if (!bulk_channel_halting()) {
 		bulk_transfer_submit(size);
 	}
+	bulk_restore_channel(scid);
 }
 
 void uart_read_byte(uart_pid_t pid)
 {
-	uart_read_select(pid);
 	if (bulk_channel_halting()) {
 		uart_oob_sync(pid);
 	} else {
-		bulk_transfer_read();
+		bulk_transfer_read(uart_bulk_rx(pid));
 	}
 }
 
 void uart_write_byte(uart_pid_t pid)
 {
-	uart_write_select(pid);
-	if (bulk_request_unhandled() > 0)
-		bulk_transfer_write();
+	bulk_transfer_write(uart_bulk_tx(pid));
 }
 
 #ifdef CONFIG_UART_WAIT
@@ -263,10 +269,14 @@ void uart_async_handler(uint8_t event)
 
 	if (event == STATE_EVENT_WAKE) {
 		for (pid = 0; pid < uart_nr_ports; pid++) {
-			uart_read_select(pid);
 			if (!bulk_channel_halting() &&
 			    uart_states[pid].sync_len) {
-				bulk_transfer_read();
+				bulk_transfer_read(uart_bulk_rx(pid));
+			}
+
+			if (!bulk_channel_halting() &&
+			    uart_states[pid].sync_len) {
+				bulk_transfer_write(uart_bulk_tx(pid));
 			}
 		}
 	}

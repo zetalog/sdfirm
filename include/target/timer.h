@@ -33,10 +33,10 @@ typedef uint8_t tid_t;
 
 #ifdef CONFIG_TIMER
 tid_t timer_register(sid_t sid, uint8_t type);
-void timer_run(uint8_t type);
-
-boolean timer_timeout_raised(tid_t tid, uint8_t type);
 void timer_schedule_shot(tid_t tid, timeout_t tout_ms);
+
+void timer_run(uint8_t type);
+boolean timer_timeout_raised(tid_t tid, uint8_t type);
 #else
 #define timer_register(sid, type)		INVALID_TID
 #define timer_timeout_raised(tid, type)		false

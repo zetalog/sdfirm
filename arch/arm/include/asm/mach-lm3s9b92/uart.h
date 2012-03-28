@@ -260,7 +260,7 @@ struct uart_hw_gpio {
 #define __UART2_HW_TX_MUX	GPIOG1_MUX_U2TX
 #endif
 
-void __uart_hw_ctrl_enable(uint8_t n, uint8_t params);
+void __uart_hw_ctrl_enable(uint8_t n);
 void __uart_hw_ctrl_disable(uint8_t n);
 void __uart_hw_ctrl_config(uint8_t n,
 			   uint8_t params,

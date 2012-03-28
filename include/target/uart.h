@@ -100,13 +100,12 @@ extern uart_pid_t uart_pid;
 
 #define uart_bulk_tx(pid)	(uart_states[pid].bulk_tx)
 #define uart_bulk_rx(pid)	(uart_states[pid].bulk_rx)
-#define uart_read_select(pid)	bulk_select_channel(uart_bulk_rx(pid))
-#define uart_write_select(pid)	bulk_select_channel(uart_bulk_tx(pid))
 
 /* Asynchronous UART */
 void uart_startup(uart_pid_t pid, uart_user_t *user);
 void uart_cleanup(uart_pid_t pid);
 uart_pid_t uart_register_port(uart_port_t *port);
+void uart_select_port(uart_pid_t pid);
 
 void uart_async_read(uint8_t *byte);
 void uart_async_start(void);
