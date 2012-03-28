@@ -124,11 +124,16 @@ void uart_hw_sync_init(void)
 
 #ifdef CONFIG_UART_ASYNC
 #ifdef CONFIG_UART_WAIT
-#define __UART_HW_RX_IRQS	(_BV(RTI) | _BV(RXI))
-#else
-#define __UART_HW_RX_IRQS	(_BV(RXI))
+void uart_hw_wait_start(uint16_t ms)
+{
+	__uart_hw_irq_enable(__uart_hw_pids[uart_pid], _BV(RTI));
+}
+
+void uart_hw_wait_stop(void)
+{
+	__uart_hw_irq_disable(__uart_hw_pids[uart_pid], _BV(RTI));
+}
 #endif
-#define __UART_HW_TX_IRQS	(_BV(TXI))
 
 struct uart_hw_gpio uart_hw_gpios[NR_UART_PORTS] = {
 	{__UART0_HW_DEV_GPIO, __UART0_HW_DEV_UART,
@@ -247,22 +252,22 @@ void uart_hw_irq_poll(void)
 #else
 static void uart_hw_tx_open(void)
 {
-	__uart_hw_irq_enable(__uart_hw_pids[uart_pid], __UART_HW_TX_IRQS);
+	__uart_hw_irq_enable(__uart_hw_pids[uart_pid], _BV(TXI));
 }
 
 static void uart_hw_tx_close(void)
 {
-	__uart_hw_irq_disable(__uart_hw_pids[uart_pid], __UART_HW_TX_IRQS);
+	__uart_hw_irq_disable(__uart_hw_pids[uart_pid], _BV(TXI));
 }
 
 static void uart_hw_rx_open(void)
 {
-	__uart_hw_irq_enable(__uart_hw_pids[uart_pid], __UART_HW_RX_IRQS);
+	__uart_hw_irq_enable(__uart_hw_pids[uart_pid], _BV(RXI));
 }
 
 static void uart_hw_rx_close(void)
 {
-	__uart_hw_irq_disable(__uart_hw_pids[uart_pid], __UART_HW_RX_IRQS);
+	__uart_hw_irq_disable(__uart_hw_pids[uart_pid], _BV(RXI));
 }
 
 static void __uart_hw_handle_irq(void)
