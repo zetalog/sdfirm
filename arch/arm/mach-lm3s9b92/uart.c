@@ -174,7 +174,7 @@ static void uart_hw_async_dummy(void)
 static boolean uart_hw_rx_poll(void)
 {
 	uint8_t n = __uart_hw_pid2port(uart_pid);
-	return __uart_hw_read_empty(n);
+	return !__uart_hw_read_empty(n);
 }
 
 static boolean uart_hw_tx_poll(void)
@@ -224,15 +224,11 @@ static void uart_hw_handle_irq(void)
 		__uart_hw_irq_unraise(n, ris);
 		if (ris & _BV(TXI)) {
 			__uart_hw_irq_unraise(n, _BV(TXI));
-			while (!__uart_hw_write_full(n)) {
-				uart_write_byte(pid);
-			}
+			uart_write_byte(pid);
 		}
 		if (ris & _BV(RXI)) {
 			__uart_hw_irq_unraise(n, _BV(RXI));
-			while (!__uart_hw_read_empty(n)) {
-				uart_read_byte(pid);
-			}
+			uart_read_byte(pid);
 		}
 		if (ris & _BV(RTI)) {
 			__uart_hw_irq_unraise(n, _BV(RTI));
