@@ -178,8 +178,7 @@ void uart_async_select(void)
 
 void uart_startup(uart_pid_t pid, uart_user_t *user)
 {
-	BUG_ON(!user->rxbuf || !user->rxlen);
-	BUG_ON(!test_bit(pid, uart_port_regs));
+	BUG_ON(test_bit(pid, uart_port_regs));
 
 	uart_select_port(pid);
 	uart_hw_port_startup(pid,

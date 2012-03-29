@@ -123,18 +123,6 @@ void uart_hw_sync_init(void)
 #endif
 
 #ifdef CONFIG_UART_ASYNC
-#ifdef CONFIG_UART_WAIT
-void uart_hw_wait_start(uint16_t ms)
-{
-	__uart_hw_irq_enable(__uart_hw_pids[uart_pid], _BV(RTI));
-}
-
-void uart_hw_wait_stop(void)
-{
-	__uart_hw_irq_disable(__uart_hw_pids[uart_pid], _BV(RTI));
-}
-#endif
-
 struct uart_hw_gpio uart_hw_gpios[NR_UART_PORTS] = {
 	{__UART0_HW_DEV_GPIO, __UART0_HW_DEV_UART,
 	 __UART0_HW_RX_PORT, __UART0_HW_RX_PIN, __UART0_HW_RX_MUX,
@@ -153,33 +141,63 @@ struct uart_hw_gpio uart_hw_gpios[NR_UART_PORTS] = {
 
 static uart_pid_t __uart_hw_pids[NR_UART_PORTS];
 
+static uint8_t __uart_hw_pid2port(uart_pid_t pid)
+{
+	uint8_t n;
+
+	for (n = 0; n < NR_UART_PORTS; n++) {
+		if (pid == __uart_hw_pids[n])
+			break;
+	}
+
+	return n;
+}
+
+#ifdef CONFIG_UART_WAIT
+void uart_hw_wait_start(uint16_t ms)
+{
+	uint8_t n = __uart_hw_pid2port(uart_pid);
+	__uart_hw_irq_enable(n, _BV(RTI));
+}
+
+void uart_hw_wait_stop(void)
+{
+	uint8_t n = __uart_hw_pid2port(uart_pid);
+	__uart_hw_irq_disable(n, _BV(RTI));
+}
+#endif
+
 static void uart_hw_async_dummy(void)
 {
 }
 
 static boolean uart_hw_rx_poll(void)
 {
-	return __uart_hw_read_empty(__uart_hw_pids[uart_pid]);
+	uint8_t n = __uart_hw_pid2port(uart_pid);
+	return __uart_hw_read_empty(n);
 }
 
 static boolean uart_hw_tx_poll(void)
 {
-	return !__uart_hw_write_full(__uart_hw_pids[uart_pid]);
+	uint8_t n = __uart_hw_pid2port(uart_pid);
+	return !__uart_hw_write_full(n);
 }
 
 static void uart_hw_rx_getch(uint8_t *byte)
 {
-	*byte = __uart_hw_async_read(__uart_hw_pids[uart_pid]);
+	uint8_t n = __uart_hw_pid2port(uart_pid);
+	*byte = __uart_hw_async_read(n);
 }
 
 static void uart_hw_tx_putch(uint8_t *byte)
 {
-	__uart_hw_async_write(__uart_hw_pids[uart_pid], *byte);
+	uint8_t n = __uart_hw_pid2port(uart_pid);
+	__uart_hw_async_write(n, *byte);
 }
 
 static void uart_hw_rx_start(void)
 {
-	uint8_t n = __uart_hw_pids[uart_pid];
+	uint8_t n = __uart_hw_pid2port(uart_pid);
 
 	if (bulk_request_syncing()) {
 		while (__uart_hw_read_empty(n));
@@ -230,12 +248,14 @@ static void uart_hw_handle_irq(void)
 
 void uart_hw_async_start(void)
 {
-	__uart_hw_ctrl_enable(uart_pid);
+	uint8_t n = __uart_hw_pid2port(uart_pid);
+	__uart_hw_ctrl_enable(n);
 }
 
 void uart_hw_async_stop(void)
 {
-	__uart_hw_ctrl_disable(uart_pid);
+	uint8_t n = __uart_hw_pid2port(uart_pid);
+	__uart_hw_ctrl_disable(n);
 }
 
 #ifdef SYS_REALTIME
@@ -252,22 +272,26 @@ void uart_hw_irq_poll(void)
 #else
 static void uart_hw_tx_open(void)
 {
-	__uart_hw_irq_enable(__uart_hw_pids[uart_pid], _BV(TXI));
+	uint8_t n = __uart_hw_pid2port(uart_pid);
+	__uart_hw_irq_enable(n, _BV(TXI));
 }
 
 static void uart_hw_tx_close(void)
 {
-	__uart_hw_irq_disable(__uart_hw_pids[uart_pid], _BV(TXI));
+	uint8_t n = __uart_hw_pid2port(uart_pid);
+	__uart_hw_irq_disable(n, _BV(TXI));
 }
 
 static void uart_hw_rx_open(void)
 {
-	__uart_hw_irq_enable(__uart_hw_pids[uart_pid], _BV(RXI));
+	uint8_t n = __uart_hw_pid2port(uart_pid);
+	__uart_hw_irq_enable(n, _BV(RXI));
 }
 
 static void uart_hw_rx_close(void)
 {
-	__uart_hw_irq_disable(__uart_hw_pids[uart_pid], _BV(RXI));
+	uint8_t n = __uart_hw_pid2port(uart_pid);
+	__uart_hw_irq_disable(n, _BV(RXI));
 }
 
 static void __uart_hw_handle_irq(void)
@@ -298,7 +322,8 @@ void uart_hw_irq_init(void)
 void uart_hw_async_config(uint8_t params,
 			  uint32_t baudrate)
 {
-	__uart_hw_ctrl_config(__uart_hw_pids[uart_pid], params, baudrate);
+	uint8_t n = __uart_hw_pid2port(uart_pid);
+	__uart_hw_ctrl_config(n, params, baudrate);
 }
 
 bulk_channel_t __uart_hw_tx = {
