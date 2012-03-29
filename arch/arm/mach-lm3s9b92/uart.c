@@ -205,7 +205,7 @@ static void uart_hw_rx_start(void)
 		if (!bulk_request_backing())
 			__uart_hw_irq_unraise(n, _BV(RXI));
 	}
-	/* uart_read_submit(port, 1); */
+	uart_read_submit(uart_pid, 1);
 }
 
 static void uart_hw_tx_start(void)
@@ -263,7 +263,7 @@ void uart_hw_async_stop(void)
 #define uart_hw_tx_close	uart_hw_async_dummy
 #define uart_hw_rx_open		uart_hw_async_dummy
 #define uart_hw_rx_close	uart_hw_async_dummy
-#define uart_hw_irq_init	uart_hw_async_dummy
+#define uart_hw_irq_init(n)
 
 void uart_hw_irq_poll(void)
 {
@@ -299,21 +299,19 @@ static void __uart_hw_handle_irq(void)
 	uart_hw_handle_irq();
 }
 
-uint8_t __uart_hw_port_irq(void)
+uint8_t __uart_hw_port_irq(uint8_t n)
 {
-	uint8_t port = __uart_hw_pids[uart_pid];
-
-	if (port == 2)
+	if (n == 2)
 		return IRQ_UART2;
 	else
-		return IRQ_UART0 + port;
+		return IRQ_UART0 + n;
 }
 
-void uart_hw_irq_init(void)
+void uart_hw_irq_init(uint8_t n)
 {
 	uint8_t irq;
 
-	irq = __uart_hw_port_irq();
+	irq = __uart_hw_port_irq(n);
 	vic_hw_register_irq(irq, __uart_hw_handle_irq);
 	vic_hw_irq_enable(irq);
 }
@@ -395,7 +393,7 @@ void uart_hw_async_init(void)
 		/* enable UART port */
 		pm_hw_resume_device(uart_hw_gpios[n].uart, DEV_MODE_ON);
 		/* register UART IRQ */
-		uart_hw_irq_init();
+		uart_hw_irq_init(n);
 		/* TODO: configure FIFO */
 		/* register uart port */
 		__uart_hw_pids[n] = uart_register_port(&__uart_hw_port);
