@@ -112,6 +112,7 @@ void uart_hw_sync_stop(void)
 void uart_hw_sync_config(uint8_t params,
 			 uint32_t baudrate)
 {
+	__uart_hw_ctrl_disable(0);
 	__uart_hw_ctrl_config(0, params, baudrate);
 }
 
@@ -312,6 +313,7 @@ void uart_hw_async_config(uint8_t params,
 			  uint32_t baudrate)
 {
 	uint8_t n = __uart_hw_pid2port(uart_pid);
+	__uart_hw_ctrl_disable(n);
 	__uart_hw_ctrl_config(n, params, baudrate);
 }
 

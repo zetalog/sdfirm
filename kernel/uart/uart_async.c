@@ -1,11 +1,9 @@
 #include <target/uart.h>
-#include <target/state.h>
 
 uart_port_t *uart_ports[NR_UART_PORTS];
 uart_pid_t uart_nr_ports;
 struct uart_state uart_states[NR_UART_PORTS];
 DECLARE_BITMAP(uart_port_regs, NR_UART_PORTS);
-sid_t uart_sid;
 uart_pid_t uart_pid;
 
 void uart_hw_port_startup(uart_pid_t pid,
@@ -80,32 +78,36 @@ static void uart_oob_exit(uart_pid_t pid)
 	uart_states[pid].sync_buf = NULL;
 }
 
-static void uart_oob_sync(uart_pid_t pid)
+static boolean uart_oob_sync(uart_pid_t pid)
 {
 	uint8_t c;
 	uart_sync_cb sync = uart_states[pid].sync_func;
 	bulk_size_t len = uart_states[pid].sync_len;
 	bulk_size_t size = uart_states[pid].sync_size;
 	uint8_t *buf = uart_states[pid].sync_buf;
+	boolean synced = false;
 
 	BUG_ON(len >= size || !sync);
 
-	uart_hw_port_read(&c);
-	buf[len++] = c;
-	if (len == uart_states[pid].sync_size) {
-		if (sync(buf)) {
-			uart_states[pid].sync_len = len;
-			bulk_channel_unhalt(uart_bulk_rx(pid));
-			state_wakeup(uart_sid);
-		} else {
-			len--;
-			if (len) {
-				memory_copy((caddr_t)buf,
-					    (caddr_t)(buf+1), len);
+	while (uart_hw_port_poll() && !synced) {
+		uart_hw_port_read(&c);
+		buf[len++] = c;
+		if (len == uart_states[pid].sync_size) {
+			if (sync(buf)) {
+				uart_states[pid].sync_len = len;
+				bulk_channel_unhalt(uart_bulk_rx(pid));
+				return true;
+			} else {
+				len--;
+				if (len) {
+					memory_copy((caddr_t)buf,
+						    (caddr_t)(buf+1), len);
+				}
 			}
 		}
+		uart_states[pid].sync_len = len;
 	}
-	uart_states[pid].sync_len = len;
+	return false;
 }
 
 void uart_async_halt(void)
@@ -221,12 +223,15 @@ void uart_read_byte(uart_pid_t pid)
 	bulk_cid_t cid = uart_bulk_rx(pid);
 
 	if (bulk_channel_halting()) {
-		uart_oob_sync(pid);
+sync:
+		if (uart_oob_sync(pid))
+			goto bulk;
 	} else {
+bulk:
 		bulk_transfer_read(cid);
 		if (bulk_transfer_unhandled(cid) > 0) {
 			bulk_channel_halt(cid);
-			uart_oob_sync(pid);
+			goto sync;
 		}
 	}
 }
@@ -268,27 +273,7 @@ uart_pid_t uart_register_port(uart_port_t *port)
 	return pid;
 }
 
-void uart_async_handler(uint8_t event)
-{
-	uart_pid_t pid;
-
-	if (event == STATE_EVENT_WAKE) {
-		for (pid = 0; pid < uart_nr_ports; pid++) {
-			if (!bulk_channel_halting() &&
-			    uart_states[pid].sync_len) {
-				bulk_transfer_read(uart_bulk_rx(pid));
-			}
-
-			if (!bulk_channel_halting() &&
-			    uart_states[pid].sync_len) {
-				bulk_transfer_write(uart_bulk_tx(pid));
-			}
-		}
-	}
-}
-
 void uart_async_init(void)
 {
 	uart_hw_async_init();
-	uart_sid = state_register(uart_async_handler);
 }
