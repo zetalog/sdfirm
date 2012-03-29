@@ -32,7 +32,7 @@ void io_putchar(uint8_t val)
 }
 #endif
 
-#ifdef CONFIG_DISPLAY_EZIO
+#ifdef CONFIG_LCD_EZIO
 extern void appl_ezio_init(void);
 #else
 #define appl_ezio_init()
