@@ -197,26 +197,18 @@ static void uart_hw_tx_putch(uint8_t *byte)
 
 static void uart_hw_rx_start(void)
 {
-	uint8_t n = __uart_hw_pid2port(uart_pid);
-
 	if (bulk_request_syncing()) {
+		uint8_t n = __uart_hw_pid2port(uart_pid);
 		while (__uart_hw_read_empty(n));
-	} else {
-		if (!bulk_request_backing())
-			__uart_hw_irq_unraise(n, _BV(RXI));
 	}
 	uart_read_submit(uart_pid, 1);
 }
 
 static void uart_hw_tx_start(void)
 {
-	uint8_t n = __uart_hw_pids[uart_pid];
-
 	if (bulk_request_syncing()) {
+		uint8_t n = __uart_hw_pid2port(uart_pid);
 		while (__uart_hw_write_full(n));
-	} else {
-		if (!bulk_request_backing())
-			__uart_hw_irq_unraise(n, _BV(TXI));
 	}
 }
 
@@ -231,16 +223,19 @@ static void uart_hw_handle_irq(void)
 		ris = __uart_hw_irq_status(n);
 		__uart_hw_irq_unraise(n, ris);
 		if (ris & _BV(TXI)) {
+			__uart_hw_irq_unraise(n, _BV(TXI));
 			while (!__uart_hw_write_full(n)) {
 				uart_write_byte(pid);
 			}
 		}
 		if (ris & _BV(RXI)) {
+			__uart_hw_irq_unraise(n, _BV(RXI));
 			while (!__uart_hw_read_empty(n)) {
 				uart_read_byte(pid);
 			}
 		}
 		if (ris & _BV(RTI)) {
+			__uart_hw_irq_unraise(n, _BV(RTI));
 			uart_wait_timeout(pid);
 		}
 	}
