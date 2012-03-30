@@ -349,14 +349,14 @@ void uart_hw_async_init(void)
 		pm_hw_resume_device(pins->uart, DEV_MODE_ON);
 		/* enable GPIO for PIN configurations */
 		pm_hw_resume_device(pins->gpio, DEV_MODE_ON);
-		/* configure UART0 RX pin */
+		/* configure UART RX pin */
 		gpio_config_mux(pins->rx_port,
 				pins->rx_pin,
 				pins->rx_mux);
 		gpio_config_pad(pins->rx_port,
 				pins->rx_pin,
 				GPIO_PAD_PP, 2);
-		/* configure UART0 TX pin */
+		/* configure UART TX pin */
 		gpio_config_mux(pins->tx_port,
 				pins->tx_pin,
 				pins->tx_mux);
