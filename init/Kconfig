@@ -144,14 +144,28 @@ config PORTING_TIMER
 endchoice
 
 choice
-	prompt "Select direction"
-	depends PORTING_GPIO
-	default PORTING_GPIO_OUT
+	prompt "Select IO mode"
+	depends PORTING_UART
 
-config PORTING_GPIO_OUT
+config PORTING_SYNC
+	bool "SYNC"
+	select UART_SYNC if PORTING_UART
+
+config PORTING_ASYNC
+	bool "ASYNC"
+	select UART_ASYNC if PORTING_UART
+
+endchoice
+
+choice
+	prompt "Select direction"
+	depends PORTING_GPIO || PORTING_UART
+	default PORTING_OUT
+
+config PORTING_OUT
 	bool "OUT"
 
-config PORTING_GPIO_IN
+config PORTING_IN
 	bool "IN"
 
 endchoice
@@ -186,9 +200,9 @@ config PORTING_GPIO_WD
 
 endchoice
 
-config PORTING_GPIO_PORT
-	int "Select port number"
-	depends PORTING_GPIO
+config PORTING_MINOR
+	int "Select minor number"
+	depends PORTING_GPIO || PORTING_UART
 	range 0 15
 
 config PORTING_GPIO_PIN

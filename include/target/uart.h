@@ -29,10 +29,10 @@ typedef uint8_t uart_pid_t;
 
 #include <driver/uart.h>
 
-#ifdef CONFIG_UART_SYNC
 /* always use this to communicate with PC: bits = 8, parity = N, stopb = 1 */
-#define UART_SYNC_PARAMS	(8 | UART_PARITY_NONE | UART_STOPB_ONE)
+#define UART_DEF_PARAMS		(8 | UART_PARITY_NONE | UART_STOPB_ONE)
 
+#ifdef CONFIG_UART_SYNC
 #ifdef CONFIG_UART_115200
 #define UART_SYNC_BAUDRATE	115200
 #endif

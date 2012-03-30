@@ -100,10 +100,16 @@ void system_resume(void)
 sid_t porting_sid = INVALID_SID;
 tid_t porting_tid = INVALID_TID;
 
-#ifdef CONFIG_UART
-extern void uart_init(void);
+#ifdef CONFIG_UART_SYNC
+extern void uart_sync_init(void);
 #else
-#define uart_init()
+#define uart_sync_init()
+#endif
+
+#ifdef CONFIG_UART_ASYNC
+extern void uart_async_init(void);
+#else
+#define uart_async_init()
 #endif
 
 #ifdef CONFIG_LED
@@ -432,7 +438,7 @@ void porting_init(void)
 #endif
 
 #ifdef CONFIG_PORTING_GPIO
-#define PORTING_GPIO_PORT	CONFIG_PORTING_GPIO_PORT
+#define PORTING_GPIO_PORT	CONFIG_PORTING_MINOR
 #define PORTING_GPIO_PIN	CONFIG_PORTING_GPIO_PIN
 #define PORTING_GPIO_DELAY	1
 #ifdef CONFIG_PORTING_GPIO_PP
@@ -454,7 +460,7 @@ void porting_init(void)
 #define PORTING_GPIO_RES	GPIO_PAD_WD
 #endif
 
-#ifdef CONFIG_PORTING_GPIO_OUT
+#ifdef CONFIG_PORTING_OUT
 uint8_t __porting_gpio(uint8_t i)
 {
 	i++;
@@ -504,17 +510,125 @@ void porting_init(void)
 #define UART_METER_BAUD_IS_20FREQ	0x55
 #define UART_METER_BAUD_IS_40FREQ	0x99
 #define UART_METER			UART_METER_BAUD_IS_20FREQ
+
+#ifdef CONFIG_PORTING_SYNC
+#ifdef CONFIG_PORTING_OUT
 void porting_handler(uint8_t event)
 {
 	while (1)
 		uart_putchar(UART_METER);
 }
+#else
+void porting_handler(uint8_t event)
+{
+	while (1) {
+		uint8_t val;
+		val = uart_getchar();
+		uart_putchar(val);
+	}
+}
+#endif
 
 void porting_init(void)
 {
 	porting_sid = state_register(porting_handler);
 	state_wakeup(porting_sid);
 }
+#endif
+
+#ifdef CONFIG_PORTING_ASYNC
+#define PORTING_UART_PORT	CONFIG_PORTING_MINOR
+
+uint8_t porting_uart_oob[1];
+uint8_t porting_uart_echo = UART_METER;
+
+boolean porting_uart_sync(uint8_t *byte)
+{
+	return true;
+}
+
+static void porting_uart_read(void)
+{
+	BULK_READB(porting_uart_echo);
+}
+
+static void porting_uart_write(void)
+{
+	BULK_WRITEB(porting_uart_echo);
+}
+
+#ifdef CONFIG_PORTING_OUT
+static void porting_uart_tx_poll(void)
+{
+	bulk_request_submit(1);
+}
+
+static void porting_uart_none(void)
+{
+}
+
+#define porting_uart_rx_poll	porting_uart_none
+#define porting_uart_rx_done	porting_uart_none
+#define porting_uart_tx_done	porting_uart_none
+#else
+boolean porting_uart_rx = true;
+
+static void porting_uart_tx_poll(void)
+{
+	if (!porting_uart_rx)
+		bulk_request_submit(1);
+}
+
+static void porting_uart_rx_poll(void)
+{
+	if (porting_uart_rx)
+		bulk_request_submit(1);
+}
+
+static void porting_uart_tx_done(void)
+{
+	porting_uart_rx = true;
+}
+
+static void porting_uart_rx_done(void)
+{
+	porting_uart_rx = false;
+}
+#endif
+
+bulk_user_t porting_uart_tx = {
+	porting_uart_tx_poll,
+	porting_uart_write,
+	porting_uart_tx_done,
+};
+
+bulk_user_t porting_uart_rx = {
+	porting_uart_rx_poll,
+	porting_uart_read,
+	porting_uart_rx_done,
+};
+
+uart_user_t porting_uart = {
+	UART_DEF_PARAMS,
+	2400,
+	NULL,
+	NULL,
+	0,
+	0,
+	&porting_uart_tx,
+	&porting_uart_rx,
+	porting_uart_sync,
+	porting_uart_oob,
+	1,
+};
+
+void porting_init(void)
+{
+	bulk_init();
+	uart_async_init();
+	uart_startup(PORTING_UART_PORT, &porting_uart);
+}
+#endif
 #endif
 
 #ifdef CONFIG_PORTING_LOAD
@@ -564,7 +678,7 @@ void system_init(void)
 	tick_init();
 	gpio_init();
 	/* omit delay_init() here for porting */
-	uart_init();
+	uart_sync_init();
 	/* omit heap_init() here for porting */
 	/* omit timer_init() here for porting */
 	/* omit task_init() here for porting */
