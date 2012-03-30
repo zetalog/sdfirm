@@ -185,7 +185,7 @@ void uart_startup(uart_pid_t pid, uart_user_t *user)
 {
 	BUG_ON(test_bit(pid, uart_port_regs));
 
-	uart_select_port(pid);
+	bulk_select_channel(uart_bulk_rx(pid));
 	uart_hw_port_startup(pid,
 			     user->params,
 			     user->baudrate);
@@ -202,7 +202,7 @@ void uart_startup(uart_pid_t pid, uart_user_t *user)
 
 void uart_cleanup(uart_pid_t pid)
 {
-	uart_select_port(pid);
+	bulk_select_channel(uart_bulk_rx(pid));
 	uart_oob_exit(pid);
 	bulk_close_channel(uart_bulk_rx(pid));
 	bulk_close_channel(uart_bulk_tx(pid));
