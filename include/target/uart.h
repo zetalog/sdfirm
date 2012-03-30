@@ -89,10 +89,6 @@ struct uart_state {
 	uart_sync_cb sync_func;
 	bulk_size_t sync_size;
 	bulk_size_t sync_len;
-#ifdef CONFIG_UART_WAIT
-	io_cb cb_func;
-	void *cb_data;
-#endif
 };
 
 extern struct uart_state uart_states[NR_UART_PORTS];
@@ -117,16 +113,5 @@ void uart_async_select(void);
 void uart_read_submit(uart_pid_t pid, bulk_size_t size);
 void uart_read_byte(uart_pid_t pid);
 void uart_write_byte(uart_pid_t pid);
-
-#ifdef CONFIG_UART_WAIT
-void uart_wait_start(uart_pid_t pid, timeout_t tout_ms,
-		     io_cb cb_func, void *cb_data);
-void uart_wait_stop(uart_pid_t pid);
-void uart_wait_timeout(uart_pid_t pid);
-#else
-#define uart_wait_start(pid, ms, cb_func, cb_data)
-#define uart_wait_stop(pid)
-#define uart_wait_timeout(pid)
-#endif
 
 #endif /* __UART_H_INCLUDE__ */

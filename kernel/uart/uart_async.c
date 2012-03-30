@@ -241,25 +241,6 @@ void uart_write_byte(uart_pid_t pid)
 	bulk_transfer_write(uart_bulk_tx(pid));
 }
 
-#ifdef CONFIG_UART_WAIT
-void uart_wait_start(uart_pid_t pid, timeout_t tout_ms,
-		     io_cb cb_func, void *cb_data)
-{
-	uart_states[pid].cb_func = cb_func;
-	uart_states[pid].cb_data = cb_data;
-}
-
-void uart_wait_stop(uart_pid_t pid)
-{
-	uart_states[pid].cb_func = NULL;
-	uart_states[pid].cb_data = NULL;
-}
-
-void uart_wait_timeout(uart_pid_t pid)
-{
-}
-#endif
-
 uart_pid_t uart_register_port(uart_port_t *port)
 {
 	uart_pid_t pid = uart_nr_ports;

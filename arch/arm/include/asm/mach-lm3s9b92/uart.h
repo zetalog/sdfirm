@@ -273,35 +273,24 @@ uint32_t __uart_hw_config_param(uint8_t params);
 #define __uart_hw_irq_unraise(n, flags)	__raw_setl(flags, UARTICR(n))
 #define __uart_hw_irq_status(n)		__raw_readl(UARTRIS(n))
 
-#define __uart_hw_smart_start(n)					\
-	do {								\
-		__raw_writel(						\
-			__uart_hw_config_param(__UART_HW_SMART_PARAM),	\
-					       UARTLCRH(n));		\
-		__raw_writel(_BV(UARTEN) | _BV(SMART), UARTCTL(n));	\
-	} while (0)
-#define __uart_hw_smart_stop(n)						\
-	do {								\
-		while (__raw_readl(UARTFR(n)) & _BV(BUSY));		\
-		__raw_clearl(_BV(UARTEN) | _BV(SMART), UARTCTL(n));	\
-	} while (0)
+#define __uart_hw_fifo_enable(n)	__raw_setl(_BV(FEN), UARTLCRH(n))
+#define __uart_hw_fifo_disable(n)	__raw_clearl(_BV(FEN), UARTLCRH(n))
+#define __uart_hw_uart_enable(n)	__raw_setl(_BV(UARTEN) | _BV(TXE) | _BV(RXE), UARTCTL(n))
+#define __uart_hw_uart_disable(n)	__raw_clearl(_BV(UARTEN) | _BV(TXE) | _BV(RXE), UARTCTL(n))
+#define __uart_hw_ifd_enable(n)		__raw_setl(_BV(UARTEN) | _BV(SMART), UARTCTL(n))
+#define __uart_hw_ifd_disable(n)	__raw_clearl(_BV(UARTEN) | _BV(SMART), UARTCTL(n))
+#define __uart_hw_wt_enable(n)		__uart_hw_irq_enable(n, _BV(RTI))
+#define __uart_hw_wt_disable(n)		__uart_hw_irq_disable(n, _BV(RTI))
+#define __uart_hw_wt_raised(n)		__uart_hw_irq_raised(n, _BV(RTI))
+#define __uart_hw_wt_unraise(n)		__uart_hw_irq_unrais(n, _BV(RTI))
 
-#define __uart_hw_async_write(n, byte)	__raw_writeb(byte, UARTDR(n))
-#define __uart_hw_async_read(n)		__raw_readb(UARTDR(n))
+#define __uart_hw_write_byte(n, byte)	__raw_writeb(byte, UARTDR(n))
+#define __uart_hw_read_byte(n)		__raw_readb(UARTDR(n))
 #define __uart_hw_write_full(n)		(__raw_readl(UARTFR(n)) & _BV(TXFF))
 #define __uart_hw_read_empty(n)		(__raw_readl(UARTFR(n)) & _BV(RXFE))
-
+#define __uart_hw_set_break(n)		__raw_setl(_BV(BRK), UARTLCRH(n))
+#define __uart_hw_clear_break(n)	__raw_clearl(_BV(BRK), UARTLCRH(n))
 #define __uart_hw_status_error(n)	__raw_readl(UARTRSR(n))
-
-static inline boolean __uart_hw_smart_empty(uint8_t n)
-{
-	return __raw_readl(UARTFR(n)) & _BV(RXFE);
-}
-
-static inline uint8_t __uart_hw_smart_read(uint8_t n)
-{
-	return __raw_readb(UARTDR(n));
-}
 
 void uart_hw_sync_init(void);
 void uart_hw_sync_start(void);
