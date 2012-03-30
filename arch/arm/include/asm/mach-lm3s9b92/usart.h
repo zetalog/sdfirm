@@ -176,8 +176,8 @@ void __uart_hw_ctrl_config(uint8_t n, uint8_t params, uint32_t baudrate);
 
 #define __UART_HW_SMART_PARAM		\
 	(8 | UART_PARITY_EVEN | UART_STOPB_TWO)
-#define __uart_hw_ifd_enable(n)		__raw_setl(_BV(UARTEN) | _BV(SMART), UARTCTL(n))
-#define __uart_hw_ifd_disable(n)	__raw_clearl(_BV(UARTEN) | _BV(SMART), UARTCTL(n))
+#define __uart_hw_ifd_enable(n)		__raw_setl(_BV(SMART), UARTCTL(n))
+#define __uart_hw_ifd_disable(n)	__raw_clearl(_BV(SMART), UARTCTL(n))
 #define __uart_hw_wt_enable(n)		__uart_hw_irq_enable(n, _BV(RTI))
 #define __uart_hw_wt_disable(n)		__uart_hw_irq_disable(n, _BV(RTI))
 #define __uart_hw_wt_raised(n)		__uart_hw_irq_raised(n, _BV(RTI))

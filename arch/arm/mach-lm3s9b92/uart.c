@@ -133,6 +133,23 @@ uart_hw_gpio_t uart_hw_gpios[NR_UART_PORTS] = {
 #endif
 };
 
+static void __uart_hw_resume_port(uint8_t n)
+{
+	uart_hw_gpio_t *pins;
+
+	pins = &uart_hw_gpios[n];
+	/* enable UART port */
+	pm_hw_resume_device(pins->uart, DEV_MODE_ON);
+	/* enable GPIO for PIN configurations */
+	pm_hw_resume_device(pins->gpio, DEV_MODE_ON);
+	/* configure UART RX pin */
+	gpio_config_mux(pins->rx_port, pins->rx_pin, pins->rx_mux);
+	gpio_config_pad(pins->rx_port, pins->rx_pin, GPIO_PAD_PP, 2);
+	/* configure UART TX pin */
+	gpio_config_mux(pins->tx_port, pins->tx_pin, pins->tx_mux);
+	gpio_config_pad(pins->tx_port, pins->tx_pin, GPIO_PAD_PP, 2);
+}
+
 static uart_pid_t __uart_hw_pids[NR_UART_PORTS];
 
 static uint8_t __uart_hw_pid2port(uart_pid_t pid)
@@ -177,19 +194,12 @@ static void uart_hw_tx_putch(uint8_t *byte)
 
 static void uart_hw_rx_start(void)
 {
-	if (bulk_request_syncing()) {
-		uint8_t n = __uart_hw_pid2port(uart_pid);
-		while (__uart_hw_read_empty(n));
-	}
 	uart_read_submit(uart_pid, 1);
 }
 
 static void uart_hw_tx_start(void)
 {
-	if (bulk_request_syncing()) {
-		uint8_t n = __uart_hw_pid2port(uart_pid);
-		while (__uart_hw_write_full(n));
-	}
+	/* uart_write_submit(uart_pid, 1); */
 }
 
 static void uart_hw_handle_irq(void)
@@ -216,15 +226,15 @@ static void uart_hw_handle_irq(void)
 void uart_hw_async_start(void)
 {
 	uint8_t n = __uart_hw_pid2port(uart_pid);
-	__uart_hw_uart_enable(n);
 	__uart_hw_ctrl_enable(n);
+	__uart_hw_uart_enable(n);
 }
 
 void uart_hw_async_stop(void)
 {
 	uint8_t n = __uart_hw_pid2port(uart_pid);
-	__uart_hw_ctrl_disable(n);
 	__uart_hw_uart_disable(n);
+	__uart_hw_ctrl_disable(n);
 }
 
 #ifdef SYS_REALTIME
@@ -342,30 +352,11 @@ void uart_hw_async_init(void)
 	uint8_t n;
 
 	for (n = 0; n < NR_UART_PORTS; n++) {
-		uart_hw_gpio_t *pins;
-
-		pins = &uart_hw_gpios[n];
-		/* enable UART port */
-		pm_hw_resume_device(pins->uart, DEV_MODE_ON);
-		/* enable GPIO for PIN configurations */
-		pm_hw_resume_device(pins->gpio, DEV_MODE_ON);
-		/* configure UART RX pin */
-		gpio_config_mux(pins->rx_port,
-				pins->rx_pin,
-				pins->rx_mux);
-		gpio_config_pad(pins->rx_port,
-				pins->rx_pin,
-				GPIO_PAD_PP, 2);
-		/* configure UART TX pin */
-		gpio_config_mux(pins->tx_port,
-				pins->tx_pin,
-				pins->tx_mux);
-		gpio_config_pad(pins->tx_port,
-				pins->tx_pin,
-				GPIO_PAD_PP, 2);
+		/* resume UART power */
+		__uart_hw_resume_port(n);
 		/* register UART IRQ */
 		uart_hw_irq_init(n);
-		/* register uart port */
+		/* register UART port */
 		__uart_hw_pids[n] = uart_register_port(&__uart_hw_port);
 	}
 }

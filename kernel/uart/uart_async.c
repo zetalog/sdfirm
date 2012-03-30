@@ -174,8 +174,10 @@ void uart_async_select(void)
 
 	for (pid = 0; pid < uart_nr_ports; pid++) {
 		if (uart_bulk_rx(pid) == bulk_cid ||
-		    uart_bulk_tx(pid) == bulk_cid)
+		    uart_bulk_tx(pid) == bulk_cid) {
 			uart_select_port(pid);
+			break;
+		}
 	}
 }
 
