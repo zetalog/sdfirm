@@ -128,7 +128,7 @@ __startup_info:
 	.word __bss_stop	@ r7
 	.size __startup_info, . - __startup_info
 
-#ifdef CONFIG_UART
+#ifdef CONFIG_UART_SYNC
 	.extern uart_hw_sync_write
 #define __display_char	uart_hw_sync_write
 #else

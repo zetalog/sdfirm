@@ -14,19 +14,14 @@ static inline void __uart1_hw_config_pins(void)
 
 void __ifd_hw_ctrl_disable(uint8_t n)
 {
-	while (__raw_readl(UARTFR(n)) & _BV(BUSY));
-	/* disable the FIFO */
-	__uart_hw_fifo_disable(n);
-	/* disable the IFD */
-	__uart_hw_ifd_enable(n);
+	__uart_hw_ifd_disable(n);
+	__uart_hw_ctrl_disable(n);
 }
 
 void __ifd_hw_ctrl_enable(uint8_t n)
 {
-	/* enable the FIFO */
-	__uart_hw_fifo_enable(n);
-	/* enable the IFD */
-	__uart_hw_ifd_disable(n);
+	__uart_hw_ctrl_enable(n);
+	__uart_hw_ifd_enable(n);
 }
 
 void __ifd_hw_start_wt(uint8_t n, uint16_t ms)

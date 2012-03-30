@@ -1,12 +1,7 @@
 #ifndef __IFDS_LM3S9B92_H_INCLUDE__
 #define __IFDS_LM3S9B92_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
-#include <asm/reg.h>
-#include <asm/mach/clk.h>
-#include <asm/mach/pm.h>
-
+#include <asm/mach/usart.h>
 #include <target/uart.h>
 #include <target/gpio.h>
 

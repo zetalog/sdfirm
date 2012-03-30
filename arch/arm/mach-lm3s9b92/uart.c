@@ -1,41 +1,6 @@
 #include <target/uart.h>
 #include <target/irq.h>
 
-uint32_t __uart_hw_config_param(uint8_t params)
-{
-	uint32_t cfg;
-
-	cfg = (uart_bits(params)-5) << WLEN;
-	switch (uart_parity(params)) {
-	case UART_PARITY_EVEN:
-		cfg |= _BV(EPS);
-	case UART_PARITY_ODD:
-		cfg |= _BV(PEN);
-		break;
-	}
-	if (uart_stopb(params))
-		cfg |= _BV(STP2);
-
-	return cfg;
-}
-
-void __uart_hw_ctrl_disable(uint8_t n)
-{
-	while (__raw_readl(UARTFR(n)) & _BV(BUSY));
-	/* disable the FIFO */
-	__uart_hw_fifo_disable(n);
-	/* disable the UART */
-	__uart_hw_uart_disable(n);
-}
-
-void __uart_hw_ctrl_enable(uint8_t n)
-{
-	/* enable the FIFO */
-	__uart_hw_fifo_enable(n);
-	/* enable the UART */
-	__uart_hw_uart_enable(n);
-}
-
 static void __uart_hw_config_baudrate(uint8_t n, uint32_t baudrate)
 {
 	unsigned long cfg;
@@ -57,21 +22,31 @@ static void __uart_hw_config_baudrate(uint8_t n, uint32_t baudrate)
 	__raw_writel(cfg & __UART_HW_FBRD_MASK, UARTFBRD(n));
 }
 
+static void __uart_hw_config_params(uint8_t n, uint8_t params)
+{
+	unsigned long cfg;
+
+	cfg = (uart_bits(params)-5) << WLEN;
+	switch (uart_parity(params)) {
+	case UART_PARITY_EVEN:
+		cfg |= _BV(EPS);
+	case UART_PARITY_ODD:
+		cfg |= _BV(PEN);
+		break;
+	}
+	if (uart_stopb(params))
+		cfg |= _BV(STP2);
+
+	/* UARTLCRH write must follows UART(I|F)BRD writes */
+	__raw_writel_mask(cfg, 0xEE, UARTLCRH(n));
+}
+
 void __uart_hw_ctrl_config(uint8_t n,
 			   uint8_t params,
 			   uint32_t baudrate)
 {
-	__uart_hw_ctrl_disable(n);
 	__uart_hw_config_baudrate(n, baudrate);
-	/* UARTLCRH write must follows UART(I|F)BRD writes */
-	__raw_writel_mask(__uart_hw_config_param(params), 0xEE,
-			  UARTLCRH(n));
-#if 0
-	/* disable the FIFO and BRK */
-	__raw_writel(__uart_hw_config_param(params),
-		     UARTLCRH(n));
-#endif
-	__uart_hw_ctrl_enable(n);
+	__uart_hw_config_params(n, params);
 }
 
 #ifdef CONFIG_UART_SYNC
@@ -103,14 +78,29 @@ uint8_t uart_hw_sync_read(void)
 	return 0;
 }
 
+/* XXX: UARTCTL/UARTLCRH Register Access Ordering
+ *
+ * The UARTCTL register should not be changed while the UART is enabled or
+ * else the results are unpredictable. The following sequence is
+ * recommended for making changes to the UARTCTL register.
+ * 1. Disable the UART.
+ * 2. Wait for the end of transmission or reception of the current
+ *    character.
+ * 3. Flush the transmit FIFO by clearing bit 4 (FEN) in the line control
+ *    register (UARTLCRH).
+ * 4. Reprogram the control register.
+ * 5. Enable the UART.
+ */
+void uart_hw_sync_stop(void)
+{
+	__uart_hw_uart_disable(0);
+	__uart_hw_ctrl_disable(0);
+}
+
 void uart_hw_sync_start(void)
 {
 	__uart_hw_ctrl_enable(0);
-}
-
-void uart_hw_sync_stop(void)
-{
-	__uart_hw_ctrl_disable(0);
+	__uart_hw_uart_enable(0);
 }
 
 void uart_hw_sync_config(uint8_t params,
@@ -127,7 +117,7 @@ void uart_hw_sync_init(void)
 #endif
 
 #ifdef CONFIG_UART_ASYNC
-struct uart_hw_gpio uart_hw_gpios[NR_UART_PORTS] = {
+uart_hw_gpio_t uart_hw_gpios[NR_UART_PORTS] = {
 	{__UART0_HW_DEV_GPIO, __UART0_HW_DEV_UART,
 	 __UART0_HW_RX_PORT, __UART0_HW_RX_PIN, __UART0_HW_RX_MUX,
 	 __UART0_HW_TX_PORT, __UART0_HW_TX_PIN, __UART0_HW_TX_MUX},
@@ -226,6 +216,7 @@ static void uart_hw_handle_irq(void)
 void uart_hw_async_start(void)
 {
 	uint8_t n = __uart_hw_pid2port(uart_pid);
+	__uart_hw_uart_enable(n);
 	__uart_hw_ctrl_enable(n);
 }
 
@@ -233,6 +224,7 @@ void uart_hw_async_stop(void)
 {
 	uint8_t n = __uart_hw_pid2port(uart_pid);
 	__uart_hw_ctrl_disable(n);
+	__uart_hw_uart_disable(n);
 }
 
 #ifdef SYS_REALTIME
@@ -350,23 +342,26 @@ void uart_hw_async_init(void)
 	uint8_t n;
 
 	for (n = 0; n < NR_UART_PORTS; n++) {
+		uart_hw_gpio_t *pins;
+
+		pins = &uart_hw_gpios[n];
 		/* enable UART port */
-		pm_hw_resume_device(uart_hw_gpios[n].uart, DEV_MODE_ON);
+		pm_hw_resume_device(pins->uart, DEV_MODE_ON);
 		/* enable GPIO for PIN configurations */
-		pm_hw_resume_device(uart_hw_gpios[n].gpio, DEV_MODE_ON);
+		pm_hw_resume_device(pins->gpio, DEV_MODE_ON);
 		/* configure UART0 RX pin */
-		gpio_config_mux(uart_hw_gpios[n].rx_port,
-				uart_hw_gpios[n].rx_pin,
-				uart_hw_gpios[n].rx_mux);
-		gpio_config_pad(uart_hw_gpios[n].rx_port,
-				uart_hw_gpios[n].rx_pin,
+		gpio_config_mux(pins->rx_port,
+				pins->rx_pin,
+				pins->rx_mux);
+		gpio_config_pad(pins->rx_port,
+				pins->rx_pin,
 				GPIO_PAD_PP, 2);
 		/* configure UART0 TX pin */
-		gpio_config_mux(uart_hw_gpios[n].tx_port,
-				uart_hw_gpios[n].tx_pin,
-				uart_hw_gpios[n].tx_mux);
-		gpio_config_pad(uart_hw_gpios[n].tx_port,
-				uart_hw_gpios[n].tx_pin,
+		gpio_config_mux(pins->tx_port,
+				pins->tx_pin,
+				pins->tx_mux);
+		gpio_config_pad(pins->tx_port,
+				pins->tx_pin,
 				GPIO_PAD_PP, 2);
 		/* register UART IRQ */
 		uart_hw_irq_init(n);
