@@ -143,14 +143,13 @@ menuconfig UART_LM3S9B92
 	select ARCH_HAS_UART
 	select MATH_MOD32
 	select MATH_MUL32
-	depends UART
+	depends UART || DEBUG_PRINT
 	default y
 
 if UART_LM3S9B92
 
 choice
 	prompt "UART1 Mux"
-	depends UART_ASYNC
 	default UART_LM3S9B92_UART1_PD2
 
 config UART_LM3S9B92_UART1_PA0
@@ -175,7 +174,6 @@ endchoice
 
 choice
 	prompt "UART2 Mux"
-	depends UART_ASYNC
 	default UART_LM3S9B92_UART2_PD5
 
 config UART_LM3S9B92_UART2_PD0

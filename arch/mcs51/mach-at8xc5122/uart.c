@@ -99,7 +99,7 @@ static void __uart_hw_config_brg(uint32_t baudrate)
 #endif
 
 /* should config mode according to the params */
-void uart_hw_sync_config(uint8_t params, uint32_t baudrate)
+void uart_hw_dbg_config(uint8_t params, uint32_t baudrate)
 {
 	/* config parity, stop bits, data length */
 	/* the only mode that we can support is 8N1 */
@@ -115,39 +115,30 @@ void uart_hw_sync_config(uint8_t params, uint32_t baudrate)
 	__uart_hw_config_brg(baudrate);
 }
 
-void uart_hw_sync_write(uint8_t byte)
+void uart_hw_dbg_write(uint8_t byte)
 {
 	SBUF = byte;
 	while (!__uart_hw_ti_raised());
 	__uart_hw_unraise_ti();
 }
 
-uint8_t uart_hw_sync_read(void)
-{
-	uint8_t byte;
-	while (!__uart_hw_ri_raised());
-	byte = SBUF;
-	__uart_hw_unraise_ri();
-	return byte;
-}
-
-#ifdef CONFIG_UART_SYNC
-void uart_hw_sync_start(void)
+#ifdef CONFIG_DEBIG_PRINT
+void uart_hw_dbg_start(void)
 {
 }
 
-void uart_hw_sync_stop(void)
+void uart_hw_dbg_stop(void)
 {
 }
 
-void uart_hw_sync_init(void)
+void uart_hw_dbg_init(void)
 {
 	clk_hw_resume_dev(DEV_UART);
 	__uart_hw_unraise_fe();
 }
 #endif
 
-#ifdef CONFIG_UART_ASYNC
+#ifdef CONFIG_UART
 uart_pid_t __uart_hw_pid;
 
 static void uart_hw_async_dummy(void)
@@ -303,7 +294,7 @@ bulk_channel_t __uart_hw_rx = {
 static uart_port_t __uart_hw_port = {
 	uart_hw_async_start,
 	uart_hw_async_stop,
-	uart_hw_sync_config,
+	uart_hw_dbg_config,
 	uart_hw_rx_start,
 	uart_hw_rx_stop,
 	uart_hw_rx_getch,
@@ -312,7 +303,7 @@ static uart_port_t __uart_hw_port = {
 	(bulk_channel_t *)(&__uart_hw_rx),
 };
 
-void uart_hw_async_init(void)
+void uart_hw_ctrl_init(void)
 {
 	__uart_hw_pid = uart_register_port(&__uart_hw_port);
 }

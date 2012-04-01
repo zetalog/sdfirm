@@ -81,7 +81,7 @@ void pn53x_hw_ctrl_test(void)
 		spi_select_device(pn53x_spi);
 		for (i = 0; i < 256; i++) {
 			spi_write_byte(i);
-			uart_putchar(spi_read_byte());
+			dbg_dump(spi_read_byte());
 		}
 		spi_deselect_device();
 	}

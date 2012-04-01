@@ -17,7 +17,7 @@ uint8_t io_getchar(void)
 }
 #endif
 
-#ifdef CONFIG_OUTPUT_UART_SYNC
+#ifdef CONFIG_OUTPUT_UART
 #include <target/uart.h>
 void io_putchar(uint8_t val)
 {

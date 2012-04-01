@@ -22,14 +22,16 @@ struct uart_port {
 __TEXT_TYPE__(const struct uart_port, uart_port_t);
 
 #ifndef ARCH_HAVE_UART
-#define uart_hw_sync_init()
-#define uart_hw_sync_start()
-#define uart_hw_sync_stop()
-#define uart_hw_sync_write(byte)
-#define uart_hw_sync_read()		(0)
-#define uart_hw_sync_config(params, baudrate)
-
-#define uart_hw_async_init()
+#ifdef CONFIG_DEBUG_PRINT
+#define uart_hw_dbg_init()
+#define uart_hw_dbg_start()
+#define uart_hw_dbg_stop()
+#define uart_hw_dbg_write(byte)
+#define uart_hw_dbg_config(params, baudrate)
+#endif
+#ifdef CONFIG_UART
+#define uart_hw_ctrl_init()
+#endif
 #endif
 
 #endif /* __UART_DRIVER_H_INCLUDE__ */

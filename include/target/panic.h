@@ -2,16 +2,18 @@
 #define __PANIC_H_INCLUDE__
 
 #include <target/config.h>
-#include <target/io.h>
 
 #ifdef CONFIG_DEBUG_PRINT
-#define dbg_dump(x)		io_putchar(x)
+#define dbg_dump(x)		dbg_putchar(x)
+void dbg_putchar(uint8_t val);
 void dbg_print(uint8_t tag, uint8_t val);
 void dbg_dump_str(const text_char_t *str);
+void debug_init(void);
 #else
 #define dbg_dump(x)
 #define dbg_dump_str(x)
 #define dbg_print(tag, val)
+#define debug_init()
 #endif
 
 #ifdef CONFIG_DEBUG_PANIC

@@ -109,58 +109,58 @@ void boot_api_test(void)
 
 	for (i = 0; i < BOOT_HW_TABLE_SIZE; i++) {
 		wv = boot_hw_cram_readw(BOOT_HW_CRC16_TABLE+i);
-		uart_putchar(HIBYTE(wv));
-		uart_putchar(LOBYTE(wv));
+		dbg_dump(HIBYTE(wv));
+		dbg_dump(LOBYTE(wv));
 	}
 	for (i = 0; i < BOOT_HW_TABLE_SIZE; i++) {
 		lv = boot_hw_cram_readl(BOOT_HW_CRC32_TABLE+i);
-		uart_putchar(HIBYTE(HIWORD(lv)));
-		uart_putchar(LOBYTE(HIWORD(lv)));
-		uart_putchar(HIBYTE(LOWORD(lv)));
-		uart_putchar(LOBYTE(LOWORD(lv)));
+		dbg_dump(HIBYTE(HIWORD(lv)));
+		dbg_dump(LOBYTE(HIWORD(lv)));
+		dbg_dump(HIBYTE(LOWORD(lv)));
+		dbg_dump(LOBYTE(LOWORD(lv)));
 	}
 	for (i = 0; i < BOOT_HW_TABLE_SIZE; i++) {
 		lv = boot_hw_cram_readl(BOOT_HW_CAST256_S1+i);
-		uart_putchar(HIBYTE(HIWORD(lv)));
-		uart_putchar(LOBYTE(HIWORD(lv)));
-		uart_putchar(HIBYTE(LOWORD(lv)));
-		uart_putchar(LOBYTE(LOWORD(lv)));
+		dbg_dump(HIBYTE(HIWORD(lv)));
+		dbg_dump(LOBYTE(HIWORD(lv)));
+		dbg_dump(HIBYTE(LOWORD(lv)));
+		dbg_dump(LOBYTE(LOWORD(lv)));
 	}
 	for (i = 0; i < BOOT_HW_TABLE_SIZE; i++) {
 		lv = boot_hw_cram_readl(BOOT_HW_CAST256_S2+i);
-		uart_putchar(HIBYTE(HIWORD(lv)));
-		uart_putchar(LOBYTE(HIWORD(lv)));
-		uart_putchar(HIBYTE(LOWORD(lv)));
-		uart_putchar(LOBYTE(LOWORD(lv)));
+		dbg_dump(HIBYTE(HIWORD(lv)));
+		dbg_dump(LOBYTE(HIWORD(lv)));
+		dbg_dump(HIBYTE(LOWORD(lv)));
+		dbg_dump(LOBYTE(LOWORD(lv)));
 	}
 	for (i = 0; i < BOOT_HW_TABLE_SIZE; i++) {
 		lv = boot_hw_cram_readl(BOOT_HW_CAST256_S3+i);
-		uart_putchar(HIBYTE(HIWORD(lv)));
-		uart_putchar(LOBYTE(HIWORD(lv)));
-		uart_putchar(HIBYTE(LOWORD(lv)));
-		uart_putchar(LOBYTE(LOWORD(lv)));
+		dbg_dump(HIBYTE(HIWORD(lv)));
+		dbg_dump(LOBYTE(HIWORD(lv)));
+		dbg_dump(HIBYTE(LOWORD(lv)));
+		dbg_dump(LOBYTE(LOWORD(lv)));
 	}
 	for (i = 0; i < BOOT_HW_TABLE_SIZE; i++) {
 		lv = boot_hw_cram_readl(BOOT_HW_CAST256_S4+i);
-		uart_putchar(HIBYTE(HIWORD(lv)));
-		uart_putchar(LOBYTE(HIWORD(lv)));
-		uart_putchar(HIBYTE(LOWORD(lv)));
-		uart_putchar(LOBYTE(LOWORD(lv)));
+		dbg_dump(HIBYTE(HIWORD(lv)));
+		dbg_dump(LOBYTE(HIWORD(lv)));
+		dbg_dump(HIBYTE(LOWORD(lv)));
+		dbg_dump(LOBYTE(LOWORD(lv)));
 	}
 	for (i = 0; i < BOOT_HW_USB_ID_SIZE; i++) {
-		uart_putchar(boot_hw_cram_readb(BOOT_HW_USB_ID+i));
+		dbg_dump(boot_hw_cram_readb(BOOT_HW_USB_ID+i));
 	}
-	uart_putchar(HIBYTE(boot_hw_get_id()));
-	uart_putchar(LOBYTE(boot_hw_get_id()));
-	uart_putchar(boot_hw_cram_readb(BOOT_HW_PLLDIV_CFG));
-	uart_putchar(boot_hw_cram_readb(BOOT_HW_PLLXTAL_CFG));
-	uart_putchar(boot_hw_cram_readb(BOOT_HW_SOFTWARE_ID));
+	dbg_dump(HIBYTE(boot_hw_get_id()));
+	dbg_dump(LOBYTE(boot_hw_get_id()));
+	dbg_dump(boot_hw_cram_readb(BOOT_HW_PLLDIV_CFG));
+	dbg_dump(boot_hw_cram_readb(BOOT_HW_PLLXTAL_CFG));
+	dbg_dump(boot_hw_cram_readb(BOOT_HW_SOFTWARE_ID));
 
 	lv = boot_hw_cram_readl(BOOT_HW_CODE_LENGTH);
-	uart_putchar(HIBYTE(HIWORD(lv)));
-	uart_putchar(LOBYTE(HIWORD(lv)));
-	uart_putchar(HIBYTE(LOWORD(lv)));
-	uart_putchar(LOBYTE(LOWORD(lv)));
+	dbg_dump(HIBYTE(HIWORD(lv)));
+	dbg_dump(LOBYTE(HIWORD(lv)));
+	dbg_dump(HIBYTE(LOWORD(lv)));
+	dbg_dump(LOBYTE(LOWORD(lv)));
 }
 #endif
 

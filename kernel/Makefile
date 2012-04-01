@@ -18,7 +18,7 @@ obj-$(CONFIG_BULK) += bulk.rel
 obj-$(CONFIG_GPIO) += gpio.rel
 
 obj-y += io/
-obj-$(CONFIG_UART) += uart/
+obj-y += uart/
 obj-$(CONFIG_SPI) += spi/
 obj-$(CONFIG_I2C) += i2c/
 obj-$(CONFIG_USB) += usb/

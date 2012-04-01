@@ -49,7 +49,7 @@ void __uart_hw_ctrl_config(uint8_t n,
 	__uart_hw_config_params(n, params);
 }
 
-#ifdef CONFIG_UART_SYNC
+#ifdef CONFIG_DEBUG_PRINT
 static inline void __uart_hw_config_pins(void)
 {
 	pm_hw_resume_device(DEV_GPIOA, DEV_MODE_ON);
@@ -61,21 +61,12 @@ static inline void __uart_hw_config_pins(void)
 	gpio_config_pad(GPIOA, 1, GPIO_PAD_PP, 2);
 }
 
-void uart_hw_sync_write(uint8_t byte)
+void uart_hw_dbg_write(uint8_t byte)
 {
 	if (pm_hw_device_mode(DEV_UART0) != DEV_MODE_OFF) {
 		while (__uart_hw_write_full(0));
 		__uart_hw_write_byte(0, byte);
 	}
-}
-
-uint8_t uart_hw_sync_read(void)
-{
-	if (pm_hw_device_mode(DEV_UART0) != DEV_MODE_OFF) {
-		while (__uart_hw_read_empty(0));
-		return __uart_hw_read_byte(0);
-	}
-	return 0;
 }
 
 /* XXX: UARTCTL/UARTLCRH Register Access Ordering
@@ -91,32 +82,31 @@ uint8_t uart_hw_sync_read(void)
  * 4. Reprogram the control register.
  * 5. Enable the UART.
  */
-void uart_hw_sync_stop(void)
+void uart_hw_dbg_stop(void)
 {
 	__uart_hw_uart_disable(0);
 	__uart_hw_ctrl_disable(0);
 }
 
-void uart_hw_sync_start(void)
+void uart_hw_dbg_start(void)
 {
 	__uart_hw_ctrl_enable(0);
 	__uart_hw_uart_enable(0);
 }
 
-void uart_hw_sync_config(uint8_t params,
-			 uint32_t baudrate)
+void uart_hw_dbg_config(uint8_t params, uint32_t baudrate)
 {
 	__uart_hw_ctrl_config(0, params, baudrate);
 }
 
-void uart_hw_sync_init(void)
+void uart_hw_dbg_init(void)
 {
 	pm_hw_resume_device(DEV_UART0, DEV_MODE_ON);
 	__uart_hw_config_pins();
 }
 #endif
 
-#ifdef CONFIG_UART_ASYNC
+#ifdef CONFIG_UART
 uart_hw_gpio_t uart_hw_gpios[NR_UART_PORTS] = {
 	{__UART0_HW_DEV_GPIO, __UART0_HW_DEV_UART,
 	 __UART0_HW_RX_PORT, __UART0_HW_RX_PIN, __UART0_HW_RX_MUX,
@@ -349,7 +339,7 @@ static uart_port_t __uart_hw_port = {
 	(bulk_channel_t *)(&__uart_hw_rx),
 };
 
-void uart_hw_async_init(void)
+void uart_hw_ctrl_init(void)
 {
 	uint8_t n;
 

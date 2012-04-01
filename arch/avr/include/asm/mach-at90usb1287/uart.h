@@ -51,11 +51,10 @@
 /* USART Data */
 #define UDR1    _SFR_MEM8(0XCE)
 
-#define uart_hw_sync_init()
-void uart_hw_sync_start(void);
-void uart_hw_sync_stop(void);
-void uart_hw_sync_write(uint8_t byte);
-uint8_t uart_hw_sync_read(void);
-void uart_hw_sync_config(uint8_t params, uint32_t baudrate);
+#define uart_hw_dbg_init()
+void uart_hw_dbg_start(void);
+void uart_hw_dbg_stop(void);
+void uart_hw_dbg_write(uint8_t byte);
+void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
 
 #endif /* __UART_AT90USB1287_H_INCLUDE__ */

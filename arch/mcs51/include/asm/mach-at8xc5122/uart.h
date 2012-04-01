@@ -45,13 +45,16 @@ Sfr(BDRCON,	0x9B);		/* Baud Rate Control*/
 #define MSK_BDRCON_SPD		0x02
 #define MSK_BDRCON_M0SRC	0x01
 
-void uart_hw_sync_init(void);
-void uart_hw_sync_start(void);
-void uart_hw_sync_stop(void);
-void uart_hw_sync_write(uint8_t byte);
-uint8_t uart_hw_sync_read(void);
-void uart_hw_sync_config(uint8_t params, uint32_t baudrate);
+#ifdef CONFIG_DEBUG_PRINT
+void uart_hw_dbg_init(void);
+void uart_hw_dbg_start(void);
+void uart_hw_dbg_stop(void);
+void uart_hw_dbg_write(uint8_t byte);
+void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
+#endif
 
-void uart_hw_async_init(void);
+#ifdef CONFIG_UART
+void uart_hw_ctrl_init(void);
+#endif
 
 #endif /* __UART_AT8XC5122_H_INCLUDE__ */

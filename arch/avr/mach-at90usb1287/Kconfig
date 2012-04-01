@@ -82,7 +82,7 @@ endif
 
 menuconfig UART_AT90USB1287
 	bool "Atmel AT90USB1287 serial port support"
-	depends UART
+	depends UART || DEBUG_PRINT
 	select ARCH_HAS_UART
 	default y
 	help

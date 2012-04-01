@@ -10,7 +10,6 @@ config LCD_EZIO
 	select LCD
 	select KBD
 	select UART
-	select UART_ASYNC
 
 if LCD_EZIO
 

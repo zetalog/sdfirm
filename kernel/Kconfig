@@ -298,9 +298,9 @@ choice
 config INPUT_NONE
 	bool "None"
 
-config INPUT_UART_ASYNC
-	bool "Asynchronous UART"
-	depends UART_ASYNC
+config INPUT_UART
+	bool "UART"
+	depends UART
 
 config INPUT_KBD
 	bool "Keyboard"
@@ -314,13 +314,9 @@ choice
 config OUTPUT_NONE
 	bool "None"
 
-config OUTPUT_UART_SYNC
-	bool "Synchronous UART"
-	depends UART_SYNC
-
-config OUTPUT_UART_ASYNC
-	bool "Asynchronous UART"
-	depends UART_ASYNC
+config OUTPUT_UART
+	bool "UART"
+	depends UART
 
 config OUTPUT_LCD
 	bool "LCD"

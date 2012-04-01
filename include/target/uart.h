@@ -8,9 +8,9 @@
 #define UART_BITS_MASK		0x0F
 #define UART_PARITY_MASK	0x30
 #define UART_STOPB_MASK		0x40
-#define uart_bits(p)		(p&UART_BITS_MASK)
-#define uart_parity(p)		(p&UART_PARITY_MASK)
-#define uart_stopb(p)		(p&UART_STOPB_MASK)
+#define uart_bits(p)		((p)&UART_BITS_MASK)
+#define uart_parity(p)		((p)&UART_PARITY_MASK)
+#define uart_stopb(p)		((p)&UART_STOPB_MASK)
 
 #define UART_PARITY_NONE	0x00
 #define UART_PARITY_ODD		0x10
@@ -31,38 +31,29 @@ typedef uint8_t uart_pid_t;
 
 /* always use this to communicate with PC: bits = 8, parity = N, stopb = 1 */
 #define UART_DEF_PARAMS		(8 | UART_PARITY_NONE | UART_STOPB_ONE)
-
-#ifdef CONFIG_UART_SYNC
 #ifdef CONFIG_UART_115200
-#define UART_SYNC_BAUDRATE	115200
+#define UART_DEF_BAUDRATE	115200
 #endif
 #ifdef CONFIG_UART_57600
-#define UART_SYNC_BAUDRATE	57600
+#define UART_DEF_BAUDRATE	57600
 #endif
 #ifdef CONFIG_UART_38400
-#define UART_SYNC_BAUDRATE	38400
+#define UART_DEF_BAUDRATE	38400
 #endif
 #ifdef CONFIG_UART_19200
-#define UART_SYNC_BAUDRATE	19200
+#define UART_DEF_BAUDRATE	19200
 #endif
 #ifdef CONFIG_UART_9600
-#define UART_SYNC_BAUDRATE	9600
+#define UART_DEF_BAUDRATE	9600
 #endif
 #ifdef CONFIG_UART_4800
-#define UART_SYNC_BAUDRATE	4800
+#define UART_DEF_BAUDRATE	4800
 #endif
 #ifdef CONFIG_UART_2400
-#define UART_SYNC_BAUDRATE	2400
+#define UART_DEF_BAUDRATE	2400
 #endif
-#ifndef UART_SYNC_BAUDRATE
-#define UART_SYNC_BAUDRATE	115200
-#endif
-
-#define uart_putchar(byte)	uart_hw_sync_write(byte)
-#define uart_getchar()		uart_hw_sync_read()
-#else
-#define uart_putchar(byte)
-#define uart_getchar()		(0)
+#ifndef UART_DEF_BAUDRATE
+#define UART_DEF_BAUDRATE	115200
 #endif
 
 typedef boolean (*uart_sync_cb)(uint8_t *);

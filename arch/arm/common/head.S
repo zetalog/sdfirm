@@ -128,15 +128,8 @@ __startup_info:
 	.word __bss_stop	@ r7
 	.size __startup_info, . - __startup_info
 
-#ifdef CONFIG_UART_SYNC
-	.extern uart_hw_sync_write
-#define __display_char	uart_hw_sync_write
-#else
-ENTRY(__display_char)
-__display_char:
-	bx	lr
-ENDPROC(__display_char)
-#endif
+	.extern dbg_putchar
+#define __display_char	dbg_putchar
 
 ENTRY(__display_long)
 	push    {r3, r4, r5, lr}

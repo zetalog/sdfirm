@@ -89,7 +89,7 @@ choice
 
 config PORTING_LOAD
 	bool "load"
-	select UART
+	select DEBUG_PRINT
 	help
 	  Testing whether self loader is correctly working.  Self loader
 	  is implemented in the arch/$ARCH/common/head.S for every
@@ -149,11 +149,10 @@ choice
 
 config PORTING_SYNC
 	bool "SYNC"
-	select UART_SYNC if PORTING_UART
 
 config PORTING_ASYNC
 	bool "ASYNC"
-	select UART_ASYNC if PORTING_UART
+	select UART if PORTING_UART
 
 endchoice
 
@@ -211,11 +210,6 @@ config PORTING_GPIO_PIN
 	depends PORTING_GPIO
 	range 0 7
 
-config PORTING_UART_BAUD
-	int "Configure async baudrate"
-	depends PORTING_UART && PORTING_ASYNC
-	default 2400
-
 config PORTING_SIZE
 	int "Configure frame size"
 	depends PORTING_ASYNC && (PORTING_UART)
@@ -231,7 +225,7 @@ endif
 
 menuconfig DEBUG_PRINT
 	bool "Enable debug print output"
-	depends !OUTPUT_NONE
+	select UART
 
 if DEBUG_PRINT
 

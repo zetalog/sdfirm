@@ -76,7 +76,7 @@ endif
 
 menuconfig UART_AT90SCR100
 	bool "Atmel AT90SCR100 serial port support"
-	depends UART
+	depends UART || DEBUG_PRINT
 	select ARCH_HAS_UART
 	default y
 

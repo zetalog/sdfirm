@@ -43,16 +43,35 @@ extern void bulk_init(void);
 #else
 #define bulk_init()
 #endif
+#ifdef CONFIG_GPIO
+void gpio_init(void);
+#else
+#define gpio_init()
+#endif
+#ifdef CONFIG_DEBUG_PRINT
+void debug_init(void);
+#else
+#define debug_init()
+#endif
+#ifdef CONFIG_TIMER
+void timer_init(void);
+#else
+#define timer_init()
+#endif
 
 #ifndef CONFIG_PORTING
 void system_init(void)
 {
 	main_debug(MAIN_DEBUG_INIT, 0);
 	board_init();
+	gpio_init();
+	debug_init();
 	irq_init();
 	state_init();
 	tick_init();
 	delay_init();
+	timer_init();
+	heap_init();
 	bulk_init();
 
 	modules_init();
@@ -99,18 +118,6 @@ void system_resume(void)
 
 sid_t porting_sid = INVALID_SID;
 tid_t porting_tid = INVALID_TID;
-
-#ifdef CONFIG_UART_SYNC
-extern void uart_sync_init(void);
-#else
-#define uart_sync_init()
-#endif
-
-#ifdef CONFIG_UART_ASYNC
-extern void uart_async_init(void);
-#else
-#define uart_async_init()
-#endif
 
 #ifdef CONFIG_LED
 extern void led_init(void);
@@ -185,16 +192,16 @@ void porting_heap_test(void)
 {
 	uint32_t mem, mem2;
 
-	uart_putchar(HIBYTE(porting_heap_space));
-	uart_putchar(LOBYTE(porting_heap_space));
+	dbg_dump(HIBYTE(porting_heap_space));
+	dbg_dump(LOBYTE(porting_heap_space));
 
 	mem = (uint32_t)heap_alloc(porting_heap_space);
 	mem2 = (uint32_t)heap_alloc(porting_heap_space);
 
-	uart_putchar(HIBYTE(HIWORD(mem)));
-	uart_putchar(LOBYTE(HIWORD(mem)));
-	uart_putchar(HIBYTE(LOWORD(mem)));
-	uart_putchar(LOBYTE(LOWORD(mem)));
+	dbg_dump(HIBYTE(HIWORD(mem)));
+	dbg_dump(LOBYTE(HIWORD(mem)));
+	dbg_dump(HIBYTE(LOWORD(mem)));
+	dbg_dump(LOBYTE(LOWORD(mem)));
 
 	if (mem) heap_free((caddr_t)mem);
 	if (mem2) heap_free((caddr_t)mem2);
@@ -228,11 +235,11 @@ uint8_t porting_ticks = 0;
 void porting_handler(uint8_t event)
 {
 #ifdef CONFIG_TIMER_16BIT
-	uart_putchar(porting_byte++);
+	dbg_dump(porting_byte++);
 	timer_schedule_shot(porting_tid, 1000);
 #else
 	if (porting_ticks == 0) {
-		uart_putchar(porting_byte++);
+		dbg_dump(porting_byte++);
 	}
 	porting_ticks++;
 	porting_ticks &= (8-1);
@@ -257,11 +264,11 @@ void porting_handler(uint8_t event)
 	mdelay(250);
 	mdelay(250);
 #ifdef CONFIG_LPS_32BITS
-	uart_putchar(HIBYTE(HIWORD(loops_per_ms)));
-	uart_putchar(LOBYTE(HIWORD(loops_per_ms)));
+	dbg_dump(HIBYTE(HIWORD(loops_per_ms)));
+	dbg_dump(LOBYTE(HIWORD(loops_per_ms)));
 #endif
-	uart_putchar(HIBYTE(loops_per_ms));
-	uart_putchar(LOBYTE(loops_per_ms));
+	dbg_dump(HIBYTE(loops_per_ms));
+	dbg_dump(LOBYTE(loops_per_ms));
 	state_wakeup(porting_sid);
 }
 
@@ -296,7 +303,7 @@ void porting_handler(uint8_t event)
 	spi_select_device(porting_spi);
 	for (i = 0; i < 256; i++) {
 		spi_write_byte(i);
-		uart_putchar(spi_read_byte());
+		dbg_dump(spi_read_byte());
 	}
 	spi_deselect_device();
 	state_wakeup(porting_sid);
@@ -318,7 +325,7 @@ uint8_t porting_ticks = 0;
 void tick_handler(void)
 {
 	if (!porting_ticks) {
-		uart_putchar(porting_byte++);
+		dbg_dump(porting_byte++);
 		if (porting_byte > 5)
 			porting_byte = 0;
 	}
@@ -346,13 +353,13 @@ void porting_handler(uint8_t event)
 	tsc_count_t counter = tsc_read_counter();
 
 #if TSC_MAX > 65535
-	uart_putchar(HIBYTE(HIWORD(counter)));
-	uart_putchar(LOBYTE(HIWORD(counter)));
+	dbg_dump(HIBYTE(HIWORD(counter)));
+	dbg_dump(LOBYTE(HIWORD(counter)));
 #endif
 #if TSC_MAX > 255
-	uart_putchar(HIBYTE(counter));
+	dbg_dump(HIBYTE(counter));
 #endif
-	uart_putchar(LOBYTE(counter));
+	dbg_dump(LOBYTE(counter));
 	state_wakeup(porting_sid);
 }
 
@@ -379,21 +386,21 @@ uint8_t psts[2][128];
 static void task0(void *priv)
 {
 	while (!pfgs[0]) {
-		uart_putchar(0x00);
+		dbg_dump(0x00);
 		task_schedule();
-		uart_putchar(0x01);
+		dbg_dump(0x01);
 		task_schedule();
-		uart_putchar(0x02);
+		dbg_dump(0x02);
 		task_schedule();
-		uart_putchar(0x03);
+		dbg_dump(0x03);
 		task_schedule();
-		uart_putchar(0x04);
+		dbg_dump(0x04);
 		task_schedule();
-		uart_putchar(0x05);
+		dbg_dump(0x05);
 		task_schedule();
-		uart_putchar(0x06);
+		dbg_dump(0x06);
 		task_schedule();
-		uart_putchar(0x07);
+		dbg_dump(0x07);
 		task_schedule();
 	}
 }
@@ -402,21 +409,21 @@ static void task1(void *priv)
 {
 
 	while (!pfgs[1]) {
-		uart_putchar(0x10);
+		dbg_dump(0x10);
 		task_schedule();
-		uart_putchar(0x11);
+		dbg_dump(0x11);
 		task_schedule();
-		uart_putchar(0x12);
+		dbg_dump(0x12);
 		task_schedule();
-		uart_putchar(0x13);
+		dbg_dump(0x13);
 		task_schedule();
-		uart_putchar(0x14);
+		dbg_dump(0x14);
 		task_schedule();
-		uart_putchar(0x15);
+		dbg_dump(0x15);
 		task_schedule();
-		uart_putchar(0x16);
+		dbg_dump(0x16);
 		task_schedule();
-		uart_putchar(0x17);
+		dbg_dump(0x17);
 		task_schedule();
 	}
 }
@@ -486,7 +493,7 @@ void porting_handler(uint8_t event)
 	while (1) {
 		mdelay(PORTING_GPIO_DELAY);
 		i = __porting_gpio(i);
-		uart_putchar(i);
+		dbg_dump(i);
 	}
 }
 
@@ -500,7 +507,7 @@ void porting_init(void)
 
 #ifdef CONFIG_PORTING_UART
 /* XXX: UART Metering
- * uart_putchar will be forced an output of 0x55 that can be easily
+ * dbg_dump will be forced an output of 0x55 that can be easily
  * observed by the oscilloscope to measure the baudrate.  Frequency
  * displayed by the oscilloscope will be a half of the baudrate/10.
  * The frequency captured by the oscilloscope "osc_freq" and the uart
@@ -511,23 +518,18 @@ void porting_init(void)
 #define UART_METER_BAUD_IS_40FREQ	0x99
 #define UART_METER			UART_METER_BAUD_IS_20FREQ
 
+#ifdef CONFIG_UART
+extern void uart_init(void);
+#else
+#define uart_init()
+#endif
+
 #ifdef CONFIG_PORTING_SYNC
-#ifdef CONFIG_PORTING_OUT
 void porting_handler(uint8_t event)
 {
 	while (1)
-		uart_putchar(UART_METER);
+		dbg_dump(UART_METER);
 }
-#else
-void porting_handler(uint8_t event)
-{
-	while (1) {
-		uint8_t val;
-		val = uart_getchar();
-		uart_putchar(val);
-	}
-}
-#endif
 
 void porting_init(void)
 {
@@ -539,7 +541,6 @@ void porting_init(void)
 #ifdef CONFIG_PORTING_ASYNC
 #define PORTING_UART_PORT	CONFIG_PORTING_MINOR
 #define PORTING_UART_SIZE	CONFIG_PORTING_SIZE
-#define PORTING_UART_BAUDRATE	CONFIG_PORTING_UART_BAUD
 
 uint8_t porting_uart_oob[1];
 
@@ -555,9 +556,9 @@ static void porting_uart_none(void)
 #ifdef CONFIG_PORTING_OUT
 static void porting_uart_tx_poll(void)
 {
-	uart_putchar(0x30);
+	dbg_dump(0x30);
 	bulk_request_submit(PORTING_UART_SIZE);
-	uart_putchar(0x31);
+	dbg_dump(0x31);
 }
 
 static void porting_uart_tx_iocb(void)
@@ -565,20 +566,20 @@ static void porting_uart_tx_iocb(void)
 	size_t i;
 	uint8_t val = UART_METER;
 
-	uart_putchar(0x32);
+	dbg_dump(0x32);
 	for (i = 0; i < PORTING_UART_SIZE; i++) {
 		BULK_WRITE_BEGIN(val) {
-			uart_putchar(val);
+			dbg_dump(val);
 		} BULK_WRITE_END
 	}
-	uart_putchar(0x33);
+	dbg_dump(0x33);
 }
 
 static void porting_uart_tx_done(void)
 {
-	uart_putchar(0x34);
-	uart_putchar(bulk_cid);
-	uart_putchar(0x35);
+	dbg_dump(0x34);
+	dbg_dump(bulk_cid);
+	dbg_dump(0x35);
 }
 #define porting_uart_rx_poll	porting_uart_none
 #define porting_uart_rx_iocb	porting_uart_none
@@ -586,9 +587,9 @@ static void porting_uart_tx_done(void)
 #else
 static void porting_uart_rx_poll(void)
 {
-	uart_putchar(0x30);
+	dbg_dump(0x30);
 	bulk_request_submit(PORTING_UART_SIZE);
-	uart_putchar(0x31);
+	dbg_dump(0x31);
 }
 
 static void porting_uart_rx_iocb(void)
@@ -596,20 +597,20 @@ static void porting_uart_rx_iocb(void)
 	size_t i;
 	uint8_t val = 0;
 
-	uart_putchar(0x32);
+	dbg_dump(0x32);
 	for (i = 0; i < PORTING_UART_SIZE; i++) {
 		BULK_READ_BEGIN(val) {
-			uart_putchar(val);
+			dbg_dump(val);
 		} BULK_READ_END
 	}
-	uart_putchar(0x33);
+	dbg_dump(0x33);
 }
 
 static void porting_uart_rx_done(void)
 {
-	uart_putchar(0x34);
-	uart_putchar(bulk_cid);
-	uart_putchar(0x35);
+	dbg_dump(0x34);
+	dbg_dump(bulk_cid);
+	dbg_dump(0x35);
 }
 
 #define porting_uart_tx_poll	porting_uart_none
@@ -631,7 +632,7 @@ bulk_user_t porting_uart_rx = {
 
 uart_user_t porting_uart = {
 	UART_DEF_PARAMS,
-	PORTING_UART_BAUDRATE,
+	UART_DEF_BAUDRATE,
 	NULL,
 	NULL,
 	0,
@@ -647,10 +648,10 @@ void porting_init(void)
 {
 	timer_init();
 	bulk_init();
-	uart_async_init();
+	uart_init();
 	uart_startup(PORTING_UART_PORT, &porting_uart);
-	uart_putchar(uart_bulk_tx(PORTING_UART_PORT));
-	uart_putchar(uart_bulk_rx(PORTING_UART_PORT));
+	dbg_dump(uart_bulk_tx(PORTING_UART_PORT));
+	dbg_dump(uart_bulk_rx(PORTING_UART_PORT));
 }
 #endif
 #endif
@@ -662,7 +663,7 @@ char porting_string[] = ".data sections is initialized correctly.";
 
 void porting_handler(uint8_t event)
 {
-	uart_putchar((uint8_t)(porting_string[porting_byte]));
+	dbg_dump((uint8_t)(porting_string[porting_byte]));
 	porting_byte++;
 	if (porting_byte > porting_length) porting_byte = 0;
 	state_wakeup(porting_sid);
@@ -688,25 +689,21 @@ void led_on(void)
 }
 #endif
 
-#ifdef CONFIG_GPIO
-extern void gpio_init(void);
-#else
-#define gpio_init()
-#endif
-
 void system_init(void)
 {
 	board_init();
+	gpio_init();
+	debug_init();
 	irq_init();
 	state_init();
 	tick_init();
-	gpio_init();
 	/* omit delay_init() here for porting */
-	uart_sync_init();
-	/* omit heap_init() here for porting */
 	/* omit timer_init() here for porting */
-	/* omit task_init() here for porting */
+	/* omit heap_init() here for porting */
+	bulk_init();
 	porting_init();
+	/* omit task_init() here for porting */
+
 	irq_local_enable();
 
 	while (1) {

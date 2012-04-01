@@ -4,7 +4,5 @@
 
 obj-y:=
 
-obj-y += uart_core.rel
-obj-$(CONFIG_UART_SYNC) += uart_sync.rel
-obj-$(CONFIG_UART_ASYNC) += uart_async.rel
+obj-$(CONFIG_UART) += uart.rel
 

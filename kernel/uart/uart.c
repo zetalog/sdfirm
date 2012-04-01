@@ -257,7 +257,7 @@ uart_pid_t uart_register_port(uart_port_t *port)
 	return pid;
 }
 
-void uart_async_init(void)
+void uart_init(void)
 {
-	uart_hw_async_init();
+	uart_hw_ctrl_init();
 }

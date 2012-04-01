@@ -54,7 +54,7 @@ static void __uart_hw_config_brg(uint32_t baudrate)
 	__usart0_hw_config_brg(brg);
 }
 
-void uart_hw_sync_config(uint8_t params, uint32_t baudrate)
+void uart_hw_dbg_config(uint8_t params, uint32_t baudrate)
 {
 	uint8_t bits = uart_bits(params) - 5;
 
@@ -71,22 +71,17 @@ void uart_hw_sync_config(uint8_t params, uint32_t baudrate)
 	__uart_hw_config_brg(baudrate);
 }
 
-void uart_hw_sync_write(uint8_t byte)
+void uart_hw_dbg_write(uint8_t byte)
 {
 	__usart0_hw_write_byte(byte);
 }
 
-uint8_t uart_hw_sync_read(void)
-{
-	return __usart0_hw_read_byte();
-}
-
-void uart_hw_sync_start(void)
+void uart_hw_dbg_start(void)
 {
 	__usart0_hw_enable_io();
 }
 
-void uart_hw_sync_stop(void)
+void uart_hw_dbg_stop(void)
 {
 	__usart0_hw_disable_io();
 }

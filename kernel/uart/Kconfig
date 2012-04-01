@@ -5,19 +5,8 @@
 config ARCH_HAS_UART
 	bool
 
-menuconfig UART
-	bool "Universal asynchronous RX/TX (UART) support"
-
-if UART
-
-config UART_SYNC
-	bool "Synchronous UART support"
-	default y
-
-if UART_SYNC
-
 choice
-	prompt "UART baud rate"
+	prompt "Default UART baud rate"
 	help
 	  This setting lets you define what baudrate is for the serial
 	  port.
@@ -48,19 +37,13 @@ config UART_2400
 
 endchoice
 
-endif
+menuconfig UART
+	bool "Universal asynchronous RX/TX (UART) support"
 
-config UART_ASYNC
-	bool "Asynchronous UART support"
-	depends BULK
-
-if UART_ASYNC
+if UART
 
 config UART_MAX_PORTS
 	int "Maximum UART ports"
 	range 1 10
 
 endif
-
-endif
-

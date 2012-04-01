@@ -69,7 +69,7 @@ endif
 
 menuconfig UART_AT8XC5122
 	bool "Atmel AT8XC5122 serial port support"
-	depends UART
+	depends UART || DEBUG_PRINT
 	select ARCH_HAS_UART
 	default y
 
