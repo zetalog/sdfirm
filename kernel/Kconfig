@@ -290,7 +290,7 @@ config BULK_MAX_CHANS
 
 endif
 
-menu "Simple debug console support"
+menu "IO standard console (stdio) support"
 
 choice
 	prompt "Standard Input"
