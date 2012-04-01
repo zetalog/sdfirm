@@ -203,12 +203,23 @@ endchoice
 config PORTING_MINOR
 	int "Select minor number"
 	depends PORTING_GPIO || PORTING_UART
-	range 0 15
+	range 0 15 if !PORTING_UART
+	range 1 15 if PORTING_UART
 
 config PORTING_GPIO_PIN
 	int "Select pin number"
 	depends PORTING_GPIO
 	range 0 7
+
+config PORTING_UART_BAUD
+	int "Configure async baudrate"
+	depends PORTING_UART && PORTING_ASYNC
+	default 2400
+
+config PORTING_SIZE
+	int "Configure frame size"
+	depends PORTING_ASYNC && (PORTING_UART)
+	default 32
 
 config PORTING_LED_TIMER
 	bool "LED flashed by timer"

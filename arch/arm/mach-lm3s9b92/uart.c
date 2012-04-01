@@ -208,17 +208,17 @@ static void uart_hw_handle_irq(void)
 
 	for (n = 0; n < NR_UART_PORTS; n++) {
 		uint8_t pid = __uart_hw_pids[n];
-		uint32_t ris;
-		
-		ris = __uart_hw_irq_status(n);
-		__uart_hw_irq_unraise(n, ris);
-		if (ris & _BV(TXI)) {
-			__uart_hw_irq_unraise(n, _BV(TXI));
-			uart_write_byte(pid);
+		if (__uart_hw_irq_raised(n, _BV(TXI))) {
+			if (bulk_request_interrupting(uart_bulk_tx(pid))) {
+				__uart_hw_irq_unraise(n, _BV(TXI));
+				uart_write_byte(pid);
+			}
 		}
-		if (ris & _BV(RXI)) {
-			__uart_hw_irq_unraise(n, _BV(RXI));
-			uart_read_byte(pid);
+		if (__uart_hw_irq_raised(n, _BV(RXI))) {
+			if (bulk_request_interrupting(uart_bulk_rx(pid))) {
+				__uart_hw_irq_unraise(n, _BV(RXI));
+				uart_read_byte(pid);
+			}
 		}
 	}
 }
@@ -226,6 +226,7 @@ static void uart_hw_handle_irq(void)
 void uart_hw_async_start(void)
 {
 	uint8_t n = __uart_hw_pid2port(uart_pid);
+
 	__uart_hw_ctrl_enable(n);
 	__uart_hw_uart_enable(n);
 }
@@ -233,6 +234,7 @@ void uart_hw_async_start(void)
 void uart_hw_async_stop(void)
 {
 	uint8_t n = __uart_hw_pid2port(uart_pid);
+
 	__uart_hw_uart_disable(n);
 	__uart_hw_ctrl_disable(n);
 }

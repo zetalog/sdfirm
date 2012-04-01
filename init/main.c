@@ -538,79 +538,100 @@ void porting_init(void)
 
 #ifdef CONFIG_PORTING_ASYNC
 #define PORTING_UART_PORT	CONFIG_PORTING_MINOR
+#define PORTING_UART_SIZE	CONFIG_PORTING_SIZE
+#define PORTING_UART_BAUDRATE	CONFIG_PORTING_UART_BAUD
 
 uint8_t porting_uart_oob[1];
-uint8_t porting_uart_echo = UART_METER;
 
 boolean porting_uart_sync(uint8_t *byte)
 {
 	return true;
 }
 
-static void porting_uart_read(void)
+static void porting_uart_none(void)
 {
-	BULK_READB(porting_uart_echo);
-}
-
-static void porting_uart_write(void)
-{
-	BULK_WRITEB(porting_uart_echo);
 }
 
 #ifdef CONFIG_PORTING_OUT
 static void porting_uart_tx_poll(void)
 {
-	bulk_request_submit(1);
+	uart_putchar(0x30);
+	bulk_request_submit(PORTING_UART_SIZE);
+	uart_putchar(0x31);
 }
 
-static void porting_uart_none(void)
+static void porting_uart_tx_iocb(void)
 {
-}
+	uint8_t i;
+	uint8_t val = UART_METER;
 
-#define porting_uart_rx_poll	porting_uart_none
-#define porting_uart_rx_done	porting_uart_none
-#define porting_uart_tx_done	porting_uart_none
-#else
-boolean porting_uart_rx = true;
-
-static void porting_uart_tx_poll(void)
-{
-	if (!porting_uart_rx)
-		bulk_request_submit(1);
-}
-
-static void porting_uart_rx_poll(void)
-{
-	if (porting_uart_rx)
-		bulk_request_submit(1);
+	uart_putchar(0x32);
+	for (i = 0; i < PORTING_UART_SIZE; i++) {
+		BULK_WRITE_BEGIN(val) {
+			uart_putchar(val);
+		} BULK_WRITE_END
+	}
+	uart_putchar(0x33);
 }
 
 static void porting_uart_tx_done(void)
 {
-	porting_uart_rx = true;
+	uart_putchar(0x34);
+	uart_putchar(bulk_cid);
+	uart_putchar(0x35);
+}
+#define porting_uart_rx_poll	porting_uart_none
+#define porting_uart_rx_iocb	porting_uart_none
+#define porting_uart_rx_done	porting_uart_none
+#else
+static void porting_uart_rx_poll(void)
+{
+	uart_putchar(0x30);
+	bulk_request_submit(PORTING_UART_SIZE);
+	uart_putchar(0x31);
+}
+
+static void porting_uart_rx_iocb(void)
+{
+	uint8_t i;
+	uint8_t val = 0;
+
+	uart_putchar(0x32);
+	for (i = 0; i < PORTING_UART_SIZE; i++) {
+		BULK_READ_BEGIN(val) {
+			uart_putchar(val);
+		} BULK_READ_END
+	}
+	uart_putchar(0x33);
 }
 
 static void porting_uart_rx_done(void)
 {
-	porting_uart_rx = false;
+	uart_putchar(0x34);
+	uart_putchar(bulk_cid);
+	uart_putchar(0x35);
 }
+
+#define porting_uart_tx_poll	porting_uart_none
+#define porting_uart_tx_iocb	porting_uart_none
+#define porting_uart_tx_done	porting_uart_none
 #endif
 
 bulk_user_t porting_uart_tx = {
 	porting_uart_tx_poll,
-	porting_uart_write,
+	porting_uart_tx_iocb,
 	porting_uart_tx_done,
 };
 
 bulk_user_t porting_uart_rx = {
 	porting_uart_rx_poll,
-	porting_uart_read,
+	porting_uart_rx_iocb,
 	porting_uart_rx_done,
 };
 
 uart_user_t porting_uart = {
 	UART_DEF_PARAMS,
-	2400,
+	PORTING_UART_BAUDRATE,
 	NULL,
 	NULL,
 	0,
@@ -624,9 +645,12 @@ uart_user_t porting_uart = {
 
 void porting_init(void)
 {
+	timer_init();
 	bulk_init();
 	uart_async_init();
 	uart_startup(PORTING_UART_PORT, &porting_uart);
+	uart_putchar(uart_bulk_tx(PORTING_UART_PORT));
+	uart_putchar(uart_bulk_rx(PORTING_UART_PORT));
 }
 #endif
 #endif
