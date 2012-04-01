@@ -220,6 +220,7 @@ config PORTING_SIZE
 	int "Configure frame size"
 	depends PORTING_ASYNC && (PORTING_UART)
 	default 32
+	range 1 4096
 
 config PORTING_LED_TIMER
 	bool "LED flashed by timer"

@@ -562,7 +562,7 @@ static void porting_uart_tx_poll(void)
 
 static void porting_uart_tx_iocb(void)
 {
-	uint8_t i;
+	size_t i;
 	uint8_t val = UART_METER;
 
 	uart_putchar(0x32);
@@ -593,7 +593,7 @@ static void porting_uart_rx_poll(void)
 
 static void porting_uart_rx_iocb(void)
 {
-	uint8_t i;
+	size_t i;
 	uint8_t val = 0;
 
 	uart_putchar(0x32);
