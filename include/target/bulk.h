@@ -62,6 +62,7 @@ void bulk_request_set_sync(void);
 void bulk_request_clear_sync(void);
 boolean bulk_request_backing(void);
 boolean bulk_request_running(void);
+boolean bulk_request_pending(void);
 
 boolean bulk_channel_halting(void);
 void bulk_channel_halt(bulk_cid_t bulk);
