@@ -27,7 +27,7 @@ void debug_init(void)
 {
 	uart_hw_dbg_init();
 	uart_hw_dbg_stop();
-	uart_hw_dbg_config(UART_DEF_PARAMS, UART_DEF_BAUDRATE);
+	uart_hw_dbg_config(UART_DEF_PARAMS, UART_DBG_BAUDRATE);
 	uart_hw_dbg_start();
 }
 #endif

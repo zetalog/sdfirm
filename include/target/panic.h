@@ -4,6 +4,31 @@
 #include <target/config.h>
 
 #ifdef CONFIG_DEBUG_PRINT
+#ifdef CONFIG_DEBUG_115200
+#define UART_DBG_BAUDRATE	115200
+#endif
+#ifdef CONFIG_DEBUG_57600
+#define UART_DBG_BAUDRATE	57600
+#endif
+#ifdef CONFIG_DEBUG_38400
+#define UART_DBG_BAUDRATE	38400
+#endif
+#ifdef CONFIG_DEBUG_19200
+#define UART_DBG_BAUDRATE	19200
+#endif
+#ifdef CONFIG_DEBUG_9600
+#define UART_DBG_BAUDRATE	9600
+#endif
+#ifdef CONFIG_DEBUG_4800
+#define UART_DBG_BAUDRATE	4800
+#endif
+#ifdef CONFIG_DEBUG_2400
+#define UART_DBG_BAUDRATE	2400
+#endif
+#ifndef UART_DBG_BAUDRATE
+#define UART_DBG_BAUDRATE	115200
+#endif
+
 #define dbg_dump(x)		dbg_putchar(x)
 void dbg_putchar(uint8_t val);
 void dbg_print(uint8_t tag, uint8_t val);

@@ -229,6 +229,38 @@ menuconfig DEBUG_PRINT
 
 if DEBUG_PRINT
 
+choice
+	prompt "Debug UART baud rate"
+	help
+	  This setting lets you define what baudrate is for the serial
+	  port.
+
+config DEBUG_230400
+	bool "230400"
+
+config DEBUG_115200
+	bool "115200"
+
+config DEBUG_57600
+	bool "57600"
+
+config DEBUG_38400
+	bool "38400"
+
+config DEBUG_19200
+	bool "19200"
+
+config DEBUG_9600
+	bool "9600"
+
+config DEBUG_4800
+	bool "4800"
+
+config DEBUG_2400
+	bool "2400"
+
+endchoice
+
 config PANIC_DEBUG
 	bool "Panic debug message support"
 

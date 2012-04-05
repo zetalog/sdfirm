@@ -88,14 +88,7 @@ CONFIG_MAX_VECTORS=4
 #
 # Input / Output support
 #
-CONFIG_UART=y
-# CONFIG_UART_230400 is not set
-# CONFIG_UART_115200 is not set
-# CONFIG_UART_57600 is not set
-CONFIG_UART_38400=y
-# CONFIG_UART_19200 is not set
-# CONFIG_UART_9600 is not set
-# CONFIG_UART_4800 is not set
+# CONFIG_UART is not set
 CONFIG_I2C=y
 CONFIG_I2C_MASTER=y
 # CONFIG_I2C_SLAVE is not set
