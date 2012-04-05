@@ -184,12 +184,12 @@ static void uart_hw_tx_putch(uint8_t *byte)
 
 static void uart_hw_rx_start(void)
 {
-	uart_read_submit(uart_pid, 1);
+	uart_read_submit(1);
 }
 
 static void uart_hw_tx_start(void)
 {
-	/* uart_write_submit(uart_pid, 1); */
+	/* uart_write_submit(1); */
 }
 
 static void uart_hw_handle_irq(void)

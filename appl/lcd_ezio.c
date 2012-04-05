@@ -50,10 +50,6 @@
 #define EZIO_STATE_RESP		0x01
 #define EZIO_STATE_HEX		0x02
 
-#define EZIO_HEX_IDLE		0x00
-#define EZIO_HEX_STARTED	0x01
-#define EZIO_HEX_ENDING		0x02
-
 struct ezio_cmd {
 	uint8_t prefix;
 	uint8_t cmd;
@@ -68,15 +64,15 @@ static void ezio_cmd_poll(void);
 static void ezio_cmd_iocb(void);
 static void ezio_cmd_done(void);
 
-static void ezio_hex_transmit(void);
-
 uint8_t ezio_rxbuf[EZIO_MAX_BUF];
 uint8_t ezio_state;
-uint8_t ezio_hex;
+boolean ezio_hex_end;
 struct ezio_cmd ezio_cmd;
 uint8_t ezio_keys;
 kbd_event_cb ezio_kh = NULL;
 uint8_t ezio_oob[1];
+uint8_t ezio_screen[32];
+uint8_t ezio_address;
 
 bulk_user_t ezio_bulk_resp = {
 	ezio_resp_poll,
@@ -107,50 +103,10 @@ uart_user_t ezio_uart = {
 #define ezio_cmd_halt()		\
 	bulk_channel_halt(uart_bulk_rx(EZIO_UART_PID))
 
-static void ezio_hex_transmit(void)
-{
-	uint8_t hex[EZIO_MAX_BUF];
-	int res, i, end_idx = 0;
-
-	res = bulk_read(hex, EZIO_MAX_BUF);
-	if (res <= 0) {
-		ezio_cmd_halt();
-		return;
-	}
-
-started:
-	if (ezio_hex == EZIO_HEX_STARTED) {
-		for (i = end_idx; i < res; i++) {
-			if (hex[i] == EZIO_WRITE) {
-				ezio_hex = EZIO_HEX_ENDING;
-				end_idx = i+1;
-				goto ending;
-			} else {
-				lcd_putchar(hex[i]);
-			}
-		}
-	}
-ending:
-	if (ezio_hex == EZIO_HEX_ENDING && res != end_idx) {
-		BUG_ON(res > end_idx);
-		if ((res - end_idx > 1) ||
-		    !__ezio_hex_is_end(hex[end_idx])) {
-			ezio_hex = EZIO_HEX_STARTED;
-			lcd_putchar(EZIO_WRITE);
-			goto started;
-		} else {
-			bulk_transmit_complete();
-		}
-	}
-}
-
 static void ezio_cmd_poll(void)
 {
-	if (ezio_state == EZIO_STATE_CMD) {
+	if (ezio_state != EZIO_STATE_RESP) {
 		bulk_request_submit(2);
-	} else if (ezio_state == EZIO_STATE_HEX) {
-		if (bulk_transmit_submit())
-			ezio_hex = EZIO_HEX_STARTED;
 	}
 }
 
@@ -164,22 +120,32 @@ static void ezio_cmd_iocb(void)
 				bulk_request_commit(1);
 		}
 	} else {
-		ezio_hex_transmit();
+		uint8_t val = 0;
+
+		BULK_READ_BEGIN(val) {
+			if (!ezio_hex_end) {
+				if (val != EZIO_WRITE) {
+					ezio_screen[ezio_address++] = val;
+				} else {
+					ezio_hex_end = true;
+				}
+				bulk_request_commit(1);
+			} else {
+				if (!__ezio_hex_is_end(val)) {
+					ezio_cmd_halt();
+					return;
+				}
+			}
+		} BULK_READ_END
 	}
 }
 
 static void ezio_cmd_execute(void)
 {
 	switch (ezio_cmd.cmd) {
-	case EZIO_CMD_StartOfHEX:
-		ezio_state = EZIO_STATE_HEX;
-		break;
 	case EZIO_CMD_ClearScreen:
 		break;
 	case EZIO_CMD_HomeCursor:
-		break;
-	case EZIO_CMD_ReadKey:
-		ezio_state = EZIO_STATE_RESP;
 		break;
 	case EZIO_CMD_BlankDisplay:
 		break;
@@ -201,10 +167,23 @@ static void ezio_cmd_execute(void)
 		if (ezio_cmd_addrdisp_is_valid()) {
 		}
 		break;
+	case EZIO_CMD_StartOfHEX:
+		ezio_state = EZIO_STATE_HEX;
+		ezio_hex_end = false;
+		ezio_address = 0;
+		break;
+	case EZIO_CMD_ReadKey:
+		ezio_state = EZIO_STATE_RESP;
+		break;
 	default:
 		ezio_cmd_halt();
 		break;
 	}
+}
+
+static void ezio_cmd_display(void)
+{
+	/* TODO: call LCD functions */
 }
 
 static void ezio_cmd_done(void)
@@ -215,8 +194,10 @@ static void ezio_cmd_done(void)
 			return;
 		}
 		ezio_cmd_execute();
-	} else {
-		ezio_hex = EZIO_HEX_IDLE;
+	} else if (ezio_state == EZIO_STATE_HEX) {
+		ezio_cmd_display();
+		ezio_state = EZIO_STATE_CMD;
+		bulk_request_submit(2);
 	}
 }
 
@@ -234,8 +215,10 @@ static void ezio_resp_iocb(void)
 
 static void ezio_resp_done(void)
 {
-	if (ezio_state == EZIO_STATE_RESP)
+	if (ezio_state == EZIO_STATE_RESP) {
 		ezio_state = EZIO_STATE_CMD;
+		bulk_request_submit(2);
+	}
 }
 
 static boolean ezio_sync_cmd(uint8_t *cmd)
@@ -246,11 +229,11 @@ static boolean ezio_sync_cmd(uint8_t *cmd)
 static void ezio_key_capture(uint8_t scancode, uint8_t event)
 {
 	switch (event) {
-	case KBD_EVENT_KEY_UP:
-		ezio_keys &= ~scancode;
-		break;
 	case KBD_EVENT_KEY_DOWN:
-		ezio_keys |= scancode;
+		ezio_keys &= ~_BV(scancode);
+		break;
+	case KBD_EVENT_KEY_UP:
+		ezio_keys |= _BV(scancode);
 		break;
 	}
 }
@@ -259,6 +242,6 @@ void appl_ezio_init(void)
 {
 	ezio_state = EZIO_STATE_CMD;
 	uart_startup(EZIO_UART_PID, &ezio_uart);
-	ezio_keys = 0;
+	ezio_keys = 0x0F;
 	ezio_kh = kbd_set_capture(ezio_key_capture, 0);
 }

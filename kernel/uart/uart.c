@@ -210,32 +210,28 @@ void uart_cleanup(uart_pid_t pid)
 	clear_bit(pid, uart_port_regs);
 }
 
-void uart_read_submit(uart_pid_t pid, bulk_size_t size)
+void uart_read_submit(bulk_size_t size)
 {
-	bulk_cid_t scid;
-
-	scid = bulk_save_channel(uart_bulk_rx(pid));
 	if (!bulk_channel_halting()) {
 		bulk_transfer_submit(size);
 	}
-	bulk_restore_channel(scid);
 }
 
 void uart_read_byte(uart_pid_t pid)
 {
 	bulk_cid_t cid = uart_bulk_rx(pid);
 
-	if (bulk_channel_halting()) {
 sync:
+	if (__bulk_channel_halting(cid)) {
 		if (uart_oob_sync(pid))
 			goto bulk;
 	} else {
 bulk:
 		bulk_transfer_read(cid);
-		if (bulk_transfer_unhandled(cid) > 0) {
+		if (__bulk_transfer_unhandled(cid) > 0) {
 			bulk_channel_halt(cid);
-			goto sync;
 		}
+		goto sync;
 	}
 }
 

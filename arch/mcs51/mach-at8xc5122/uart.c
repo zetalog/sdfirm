@@ -180,7 +180,7 @@ static void uart_hw_rx_start(void)
 	if (bulk_request_syncing()) {
 		while (!__uart_hw_ri_raised());
 	}
-	uart_read_submit(__uart_hw_pid, 1);
+	uart_read_submit(1);
 }
 
 static void uart_hw_rx_stop(void)
