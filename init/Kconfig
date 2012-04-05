@@ -304,6 +304,10 @@ config PN53X_DEBUG
 	bool "PN53x device debug message support"
 	depends PN53X
 
+config EZIO_DEBUG
+	bool "EZIO lcd debug message support"
+	depends EZIO
+
 endif
 
 endif

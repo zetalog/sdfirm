@@ -66,7 +66,7 @@ static void pn53x_dump_cmd_code(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 		dbg_dumper(ctx, cmd, "cmd=SAMConfiguration", data);
 		break;
 	case 0x16:
-		dbg_dumper(ctx, cmd, "cmd=PowerDown	", data);
+		dbg_dumper(ctx, cmd, "cmd=PowerDown", data);
 		break;
 	case 0x18:
 		dbg_dumper(ctx, cmd, "cmd=AlparCommandForTDA", data);
@@ -244,7 +244,56 @@ static void pn53x_dump_err_code(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 
 static void ezio_dump_cmd(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 {
-	dbg_dumper(ctx, cmd, "cmd=%02x", data);
+	switch (data) {
+	case 0x28:
+		dbg_dumper(ctx, cmd, "cmd=StartOfHEX");
+		break;
+	case 0x37:
+		dbg_dumper(ctx, cmd, "cmd=EndOfHex");
+		break;
+	case 0x01:
+		dbg_dumper(ctx, cmd, "cmd=ClearScreen");
+		break;
+	case 0x02:
+		dbg_dumper(ctx, cmd, "cmd=HomeCursor");
+		break;
+	case 0x06:
+		dbg_dumper(ctx, cmd, "cmd=ReadKey");
+		break;
+	case 0x08:
+		dbg_dumper(ctx, cmd, "cmd=BlankDisplay");
+		break;
+	case 0x0C:
+		dbg_dumper(ctx, cmd, "cmd=HideCursor");
+		break;
+	case 0x0D:
+		dbg_dumper(ctx, cmd, "cmd=TurnOn");
+		break;
+	case 0x0E:
+		dbg_dumper(ctx, cmd, "cmd=ShowCursor");
+		break;
+	case 0x10:
+		dbg_dumper(ctx, cmd, "cmd=MoveLeft");
+		break;
+	case 0x14:
+		dbg_dumper(ctx, cmd, "cmd=MoveRight");
+		break;
+	case 0x18:
+		dbg_dumper(ctx, cmd, "cmd=ScrollLeft");
+		break;
+	case 0x1C:
+		dbg_dumper(ctx, cmd, "cmd=ScrollRight");
+		break;
+	case 0x80:
+		dbg_dumper(ctx, cmd, "cmd=SetDispAddr");
+		break;
+	case 0x40:
+		dbg_dumper(ctx, cmd, "cmd=SetCharAddr");
+		break;
+	default:
+		dbg_dumper(ctx, cmd, "cmd=%02x", data);
+		break;
+	}
 }
 
 static void ezio_dump_hex(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
