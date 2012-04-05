@@ -296,11 +296,6 @@ static void ezio_dump_cmd(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 	}
 }
 
-static void ezio_dump_hex(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
-{
-	dbg_dumper(ctx, cmd, "hex=%02x", data);
-}
-
 static void ezio_dump_state(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 {
 	switch (data) {
@@ -328,7 +323,6 @@ struct dbg_parser dbg_user_events[NR_USER_EVENTS] = {
 	{ "PN53X_CMD", 0, pn53x_dump_cmd_code },
 	{ "PN53X_ERR", 0, pn53x_dump_err_code },
 	{ "EZIO_CMD", 0, ezio_dump_cmd },
-	{ "EZIO_HEX", 0, ezio_dump_hex },
 	{ "EZIO_STATE", 0, ezio_dump_state },
 };
 

@@ -158,12 +158,11 @@ static void ezio_cmd_poll(void)
 
 static void ezio_cmd_iocb(void)
 {
+	bulk_dump_on(EZIO_DUMP_BULK);
 	if (ezio_state == EZIO_STATE_CMD) {
 		BULK_READB(ezio_cmd.prefix);
 		BULK_READB(ezio_cmd.cmd);
 		if (bulk_request_handled() == EZIO_HEAD_LEN) {
-			ezio_debug(EZIO_DEBUG_HEX, ezio_cmd.prefix);
-			ezio_debug(EZIO_DEBUG_HEX, ezio_cmd.cmd);
 			if (ezio_cmd_has_addr())
 				bulk_request_commit(1);
 		}
@@ -171,7 +170,6 @@ static void ezio_cmd_iocb(void)
 		uint8_t val = 0;
 
 		BULK_READ_BEGIN(val) {
-			ezio_debug(EZIO_DEBUG_HEX, val);
 			if (!ezio_hex_end) {
 				if (ezio_data_len == EZIO_MAX_BUF) {
 					ezio_cmd_halt();
@@ -191,6 +189,7 @@ static void ezio_cmd_iocb(void)
 			}
 		} BULK_READ_END
 	}
+	bulk_dump_off();
 }
 
 static boolean ezio_cmd_execute(void)
@@ -268,8 +267,10 @@ static void ezio_resp_poll(void)
 
 static void ezio_resp_iocb(void)
 {
+	bulk_dump_on(EZIO_DUMP_BULK);
 	BULK_WRITEB(EZIO_READ);
 	BULK_WRITEB(0x40 | (ezio_keys & 0x0F));
+	bulk_dump_off();
 }
 
 static void ezio_resp_done(void)
