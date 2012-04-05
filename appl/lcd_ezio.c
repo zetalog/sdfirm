@@ -3,8 +3,17 @@
 #include <target/kbd.h>
 #include <target/usb.h>
 
+#ifdef CONFIG_EZIO_DEBUG
+#define ezio_debug(tag, val)		dbg_print((tag), (val))
+#define EZIO_DUMP_USBD			true
+#else
+#define ezio_debug(tag, val)
+#define EZIO_DUMP_USBD			false
+#endif
+
 #define EZIO_UART_PID		CONFIG_EZIO_UART_PORT
 #define EZIO_MAX_BUF		32
+#define EZIO_HEAD_LEN		2
 
 #define EZIO_WRITE		0xFE
 #define EZIO_READ		0xFD
@@ -49,6 +58,7 @@
 #define EZIO_STATE_CMD		0x00
 #define EZIO_STATE_RESP		0x01
 #define EZIO_STATE_HEX		0x02
+#define EZIO_STATE_HALT		0x03
 
 struct ezio_cmd {
 	uint8_t prefix;
@@ -71,8 +81,8 @@ struct ezio_cmd ezio_cmd;
 uint8_t ezio_keys;
 kbd_event_cb ezio_kh = NULL;
 uint8_t ezio_oob[1];
-uint8_t ezio_screen[32];
-uint8_t ezio_address;
+uint8_t ezio_data_buf[EZIO_MAX_BUF];
+uint8_t ezio_data_len;
 
 bulk_user_t ezio_bulk_resp = {
 	ezio_resp_poll,
@@ -100,13 +110,49 @@ uart_user_t ezio_uart = {
 	1,
 };
 
-#define ezio_cmd_halt()		\
-	bulk_channel_halt(uart_bulk_rx(EZIO_UART_PID))
+void ezio_cmd_halt(void)
+{
+	bulk_channel_halt(uart_bulk_rx(EZIO_UART_PID));
+	ezio_debug(EZIO_DEBUG_STATE, EZIO_STATE_HALT);
+}
+
+void ezio_set_state(uint8_t state)
+{
+	if (ezio_state != state) {
+		ezio_debug(EZIO_DEBUG_STATE, state);
+		ezio_state = state;
+	}
+}
+
+void ezio_cmd_submit(void)
+{
+	ezio_set_state(EZIO_STATE_CMD);
+	bulk_request_submit(EZIO_HEAD_LEN);
+}
+
+void ezio_resp_submit(void)
+{
+	ezio_set_state(EZIO_STATE_RESP);
+	bulk_request_submit(EZIO_HEAD_LEN);
+}
+
+void ezio_hex_submit(void)
+{
+	ezio_hex_end = false;
+	ezio_set_state(EZIO_STATE_HEX);
+	bulk_request_submit(EZIO_HEAD_LEN+ezio_data_len);
+}
+
+void ezio_hex_commit(void)
+{
+	ezio_hex_end = false;
+	bulk_request_commit(EZIO_HEAD_LEN+ezio_data_len);
+}
 
 static void ezio_cmd_poll(void)
 {
 	if (ezio_state != EZIO_STATE_RESP) {
-		bulk_request_submit(2);
+		ezio_cmd_submit();
 	}
 }
 
@@ -115,7 +161,9 @@ static void ezio_cmd_iocb(void)
 	if (ezio_state == EZIO_STATE_CMD) {
 		BULK_READB(ezio_cmd.prefix);
 		BULK_READB(ezio_cmd.cmd);
-		if (bulk_request_handled() == 2) {
+		if (bulk_request_handled() == EZIO_HEAD_LEN) {
+			ezio_debug(EZIO_DEBUG_HEX, ezio_cmd.prefix);
+			ezio_debug(EZIO_DEBUG_HEX, ezio_cmd.cmd);
 			if (ezio_cmd_has_addr())
 				bulk_request_commit(1);
 		}
@@ -123,13 +171,18 @@ static void ezio_cmd_iocb(void)
 		uint8_t val = 0;
 
 		BULK_READ_BEGIN(val) {
+			ezio_debug(EZIO_DEBUG_HEX, val);
 			if (!ezio_hex_end) {
+				if (ezio_data_len == EZIO_MAX_BUF) {
+					ezio_cmd_halt();
+					return;
+				}
 				if (val != EZIO_WRITE) {
-					ezio_screen[ezio_address++] = val;
+					ezio_data_buf[ezio_data_len++] = val;
+					ezio_hex_commit();
 				} else {
 					ezio_hex_end = true;
 				}
-				bulk_request_commit(1);
 			} else {
 				if (!__ezio_hex_is_end(val)) {
 					ezio_cmd_halt();
@@ -140,8 +193,10 @@ static void ezio_cmd_iocb(void)
 	}
 }
 
-static void ezio_cmd_execute(void)
+static boolean ezio_cmd_execute(void)
 {
+	ezio_debug(EZIO_DEBUG_CMD, ezio_cmd.cmd);
+
 	switch (ezio_cmd.cmd) {
 	case EZIO_CMD_ClearScreen:
 		break;
@@ -168,17 +223,21 @@ static void ezio_cmd_execute(void)
 		}
 		break;
 	case EZIO_CMD_StartOfHEX:
-		ezio_state = EZIO_STATE_HEX;
-		ezio_hex_end = false;
-		ezio_address = 0;
+		ezio_data_len = 0;
+		ezio_hex_submit();
+		return false;
 		break;
 	case EZIO_CMD_ReadKey:
-		ezio_state = EZIO_STATE_RESP;
+		ezio_resp_submit();
+		return false;
 		break;
 	default:
 		ezio_cmd_halt();
+		return false;
 		break;
 	}
+
+	return true;
 }
 
 static void ezio_cmd_display(void)
@@ -193,18 +252,18 @@ static void ezio_cmd_done(void)
 			ezio_cmd_halt();
 			return;
 		}
-		ezio_cmd_execute();
+		if (ezio_cmd_execute())
+			ezio_cmd_submit();
 	} else if (ezio_state == EZIO_STATE_HEX) {
 		ezio_cmd_display();
-		ezio_state = EZIO_STATE_CMD;
-		bulk_request_submit(2);
+		ezio_cmd_submit();
 	}
 }
 
 static void ezio_resp_poll(void)
 {
 	if (ezio_state == EZIO_STATE_RESP)
-		bulk_request_submit(2);
+		ezio_resp_submit();
 }
 
 static void ezio_resp_iocb(void)
@@ -216,8 +275,7 @@ static void ezio_resp_iocb(void)
 static void ezio_resp_done(void)
 {
 	if (ezio_state == EZIO_STATE_RESP) {
-		ezio_state = EZIO_STATE_CMD;
-		bulk_request_submit(2);
+		ezio_cmd_submit();
 	}
 }
 
@@ -240,7 +298,7 @@ static void ezio_key_capture(uint8_t scancode, uint8_t event)
 
 void appl_ezio_init(void)
 {
-	ezio_state = EZIO_STATE_CMD;
+	ezio_set_state(EZIO_STATE_CMD);
 	uart_startup(EZIO_UART_PID, &ezio_uart);
 	ezio_keys = 0x0F;
 	ezio_kh = kbd_set_capture(ezio_key_capture, 0);

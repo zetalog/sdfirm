@@ -242,20 +242,54 @@ static void pn53x_dump_err_code(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 	}
 }
 
-struct dbg_parser dbg_pn53x_events[NR_PN53X_EVENTS] = {
-	{ "USBSTATE", 0, pn53x_dump_usb_state },
-	{ "USBFLAGS", 0, pn53x_dump_usb_flags },
-	{ "CMD", 0, pn53x_dump_cmd_code },
-	{ "ERR", 0, pn53x_dump_err_code },
-};
-
-struct dbg_source dbg_pn53x_source = {
-	"pn53x",
-	dbg_pn53x_events,
-	NR_PN53X_EVENTS,
-};
-
-void dbg_pn53x_init(void)
+static void ezio_dump_cmd(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 {
-	dbg_register_source(DBG_SRC_PN53X, &dbg_pn53x_source);
+	dbg_dumper(ctx, cmd, "cmd=%02x", data);
+}
+
+static void ezio_dump_hex(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
+{
+	dbg_dumper(ctx, cmd, "hex=%02x", data);
+}
+
+static void ezio_dump_state(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
+{
+	switch (data) {
+	case 0x00:
+		dbg_dumper(ctx, cmd, "state=CMD", data);
+		break;
+	case 0x01:
+		dbg_dumper(ctx, cmd, "state=RESP", data);
+		break;
+	case 0x02:
+		dbg_dumper(ctx, cmd, "state=HEX", data);
+		break;
+	case 0x03:
+		dbg_dumper(ctx, cmd, "state=HALT", data);
+		break;
+	default:
+		dbg_dumper(ctx, cmd, "state=%02x", data);
+		break;
+	}
+}
+
+struct dbg_parser dbg_user_events[NR_USER_EVENTS] = {
+	{ "PN53X_USBSTATE", 0, pn53x_dump_usb_state },
+	{ "PN53X_USBFLAGS", 0, pn53x_dump_usb_flags },
+	{ "PN53X_CMD", 0, pn53x_dump_cmd_code },
+	{ "PN53X_ERR", 0, pn53x_dump_err_code },
+	{ "EZIO_CMD", 0, ezio_dump_cmd },
+	{ "EZIO_HEX", 0, ezio_dump_hex },
+	{ "EZIO_STATE", 0, ezio_dump_state },
+};
+
+struct dbg_source dbg_user_source = {
+	"user",
+	dbg_user_events,
+	NR_USER_EVENTS,
+};
+
+void dbg_user_init(void)
+{
+	dbg_register_source(DBG_SRC_USER, &dbg_user_source);
 }

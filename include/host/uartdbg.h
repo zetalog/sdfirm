@@ -108,7 +108,7 @@ void dbg_scs_init(void);
 void dbg_msd_init(void);
 void dbg_dfu_init(void);
 void dbg_scsi_init(void);
-void dbg_pn53x_init(void);
+void dbg_user_init(void);
 
 void usb_dump_descriptor(void *ctx, dbg_cmd_t cmd, dbg_data_t data);
 

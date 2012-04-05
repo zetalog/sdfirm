@@ -109,7 +109,7 @@ SOURCE=.\dbg_msd.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\dbg_pn53x.c
+SOURCE=.\dbg_user.c
 # End Source File
 # Begin Source File
 

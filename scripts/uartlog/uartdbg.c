@@ -306,7 +306,7 @@ void dbg_init(void)
 	dbg_msd_init();
 	dbg_dfu_init();
 	//dbg_scsi_init();
-	dbg_pn53x_init();
+	dbg_user_init();
 }
 
 void dbg_exit(void)
