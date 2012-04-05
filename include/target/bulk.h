@@ -4,6 +4,18 @@
 #include <target/config.h>
 #include <target/io.h>
 
+#ifdef CONFIG_DEBUG_PRINT
+void bulk_dump_restore(boolean dbg);
+boolean bulk_dump_save(boolean dbg);
+#define bulk_dump_on(on)		boolean odbg = bulk_dump_save(on)
+#define bulk_dump_off()			bulk_dump_restore(odbg)
+#else
+#define bulk_dump_restore(dbg)
+#define bulk_dump_save(dbg)		false
+#define bulk_dump_on(on)
+#define bulk_dump_off()
+#endif
+
 #ifdef CONFIG_BULK_MAX_CHANS
 #define NR_BULK_CHANS	CONFIG_BULK_MAX_CHANS
 #else

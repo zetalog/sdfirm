@@ -5,10 +5,10 @@
 
 #ifdef CONFIG_EZIO_DEBUG
 #define ezio_debug(tag, val)		dbg_print((tag), (val))
-#define EZIO_DUMP_USBD			true
+#define EZIO_DUMP_BULK			true
 #else
 #define ezio_debug(tag, val)
-#define EZIO_DUMP_USBD			false
+#define EZIO_DUMP_BULK			false
 #endif
 
 #define EZIO_UART_PID		CONFIG_EZIO_UART_PORT
