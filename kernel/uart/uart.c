@@ -69,6 +69,8 @@ static void uart_oob_init(uart_pid_t pid, uart_user_t *user)
 	uart_states[pid].sync_func = user->sync_func;
 	uart_states[pid].sync_size = user->sync_size;
 	uart_states[pid].sync_len = 0;
+	if (user->sync_size > 0)
+		bulk_channel_halt(uart_bulk_rx(pid));
 }
 
 static void uart_oob_exit(uart_pid_t pid)
@@ -92,6 +94,7 @@ static boolean uart_oob_sync(uart_pid_t pid)
 
 	while (uart_hw_port_poll() && !synced) {
 		uart_hw_port_read(&c);
+		uart_debug(UART_DEBUG_OOB, c);
 		buf[len++] = c;
 		if (len == uart_states[pid].sync_size) {
 			if (sync(buf)) {
@@ -148,10 +151,13 @@ boolean uart_async_poll(void)
 void uart_async_read(uint8_t *byte)
 {
 	if (uart_states[uart_pid].sync_len) {
+		uint8_t c;
 		uint8_t *buf = uart_states[uart_pid].sync_buf;
 		bulk_size_t len = uart_states[uart_pid].sync_len;
 
-		*byte = buf[0];
+		c = buf[0];
+		uart_debug(UART_DEBUG_UNOOB, c);
+		*byte = c;
 		len--;
 		if (len) {
 			memory_copy((caddr_t)buf,
@@ -221,6 +227,8 @@ void uart_read_byte(uart_pid_t pid)
 {
 	bulk_cid_t cid = uart_bulk_rx(pid);
 
+	uart_debug_irq(UART_IRQ_RX);
+	uart_debug_pid(pid);
 sync:
 	if (__bulk_channel_halting(cid)) {
 		if (uart_oob_sync(pid))
@@ -237,6 +245,8 @@ bulk:
 
 void uart_write_byte(uart_pid_t pid)
 {
+	uart_debug_irq(UART_IRQ_TX);
+	uart_debug_pid(pid);
 	bulk_transfer_write(uart_bulk_tx(pid));
 }
 

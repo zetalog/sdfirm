@@ -109,10 +109,6 @@ SOURCE=.\dbg_msd.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\dbg_user.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\dbg_scd.c
 # End Source File
 # Begin Source File
@@ -125,7 +121,15 @@ SOURCE=.\dbg_scsi.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\dbg_uart.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\dbg_usb.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\dbg_user.c
 # End Source File
 # Begin Source File
 

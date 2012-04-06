@@ -59,6 +59,7 @@
 #define EZIO_STATE_RESP		0x01
 #define EZIO_STATE_HEX		0x02
 #define EZIO_STATE_HALT		0x03
+#define EZIO_STATE_UNHALT	0x03
 
 struct ezio_cmd {
 	uint8_t prefix;
@@ -282,7 +283,11 @@ static void ezio_resp_done(void)
 
 static boolean ezio_sync_cmd(uint8_t *cmd)
 {
-	return cmd[0] == EZIO_WRITE;
+	if (cmd[0] == EZIO_WRITE) {
+		ezio_debug(EZIO_DEBUG_STATE, EZIO_STATE_UNHALT);
+		return true;
+	}
+	return false;
 }
 
 static void ezio_key_capture(uint8_t scancode, uint8_t event)

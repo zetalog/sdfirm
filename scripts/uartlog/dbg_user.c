@@ -311,6 +311,9 @@ static void ezio_dump_state(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 	case 0x03:
 		dbg_dumper(ctx, cmd, "state=HALT", data);
 		break;
+	case 0x04:
+		dbg_dumper(ctx, cmd, "state=UNHALT", data);
+		break;
 	default:
 		dbg_dumper(ctx, cmd, "state=%02x", data);
 		break;

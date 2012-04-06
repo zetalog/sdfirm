@@ -5,6 +5,24 @@
 #include <target/generic.h>
 #include <target/bulk.h>
 
+#ifdef CONFIG_UART_DEBUG
+#define UART_IRQ_TX		0
+#define UART_IRQ_RX		1
+#define uart_debug(tag, val)	dbg_print((tag), (val))
+#define uart_debug_pid(pid)					\
+	do {							\
+		uart_debug(UART_DEBUG_PORT, pid);		\
+	} while (0)
+#define uart_debug_irq(irq)					\
+	do {							\
+		uart_debug(UART_DEBUG_IRQ, irq);		\
+	} while (0)
+#else
+#define uart_debug(type, val)
+#define uart_debug_pid(pid)
+#define uart_debug_irq(irq)
+#endif
+
 #define UART_BITS_MASK		0x0F
 #define UART_PARITY_MASK	0x30
 #define UART_STOPB_MASK		0x40

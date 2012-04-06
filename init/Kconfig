@@ -279,6 +279,10 @@ config USB_DEBUG_CALL
 	bool "USB callback debug messages support"
 	depends USB_DEBUG
 
+config UART_DEBUG
+	bool "UART debug message support"
+	depends UART
+
 config HID_DEBUG
 	bool "HID debug message support"
 	depends USB_HID

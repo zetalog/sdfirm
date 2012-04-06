@@ -11,7 +11,7 @@
 
 /* Following flags are not used for the IO user, but for the IO channels.
  */
-#define O_BUFFER	0x40
+#define O_BUFFER	0x00
 #define O_CMPL		0x80
 #define O_AVAL		0x00
 #define O_WRCMPL	(O_CMPL | O_WRONLY)
