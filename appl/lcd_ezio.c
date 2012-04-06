@@ -111,12 +111,6 @@ uart_user_t ezio_uart = {
 	1,
 };
 
-void ezio_cmd_halt(void)
-{
-	bulk_channel_halt(uart_bulk_rx(EZIO_UART_PID));
-	ezio_debug(EZIO_DEBUG_STATE, EZIO_STATE_HALT);
-}
-
 void ezio_set_state(uint8_t state)
 {
 	if (ezio_state != state) {
@@ -135,6 +129,13 @@ void ezio_resp_submit(void)
 {
 	ezio_set_state(EZIO_STATE_RESP);
 	bulk_request_submit(EZIO_HEAD_LEN);
+}
+
+void ezio_cmd_halt(void)
+{
+	bulk_channel_halt(uart_bulk_rx(EZIO_UART_PID));
+	ezio_debug(EZIO_DEBUG_STATE, EZIO_STATE_HALT);
+	ezio_cmd_submit();
 }
 
 void ezio_hex_submit(void)
