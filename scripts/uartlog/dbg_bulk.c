@@ -81,10 +81,16 @@ static void bulk_dump_flow(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 	}
 }
 
+static void bulk_dump_channel(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
+{
+	dbg_dumper(ctx, cmd, "cid=%02x", data);
+}
+
 struct dbg_parser dbg_bulk_events[NR_BULK_EVENTS] = {
 	{ "FLAG", 0, bulk_dump_set_flag, },
 	{ "FLAG", 0, bulk_dump_clear_flag, },
 	{ "FLOW", 0, bulk_dump_flow, },
+	{ "CHAN", 0, bulk_dump_channel, },
 };
 
 struct dbg_source dbg_bulk_state = {
