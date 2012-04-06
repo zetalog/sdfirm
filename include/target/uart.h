@@ -123,5 +123,6 @@ void uart_async_select(void);
 void uart_read_submit(bulk_size_t size);
 void uart_read_byte(uart_pid_t pid);
 void uart_write_byte(uart_pid_t pid);
+boolean uart_read_interrupting(uart_pid_t pid);
 
 #endif /* __UART_H_INCLUDE__ */

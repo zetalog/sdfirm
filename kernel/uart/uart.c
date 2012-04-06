@@ -143,6 +143,13 @@ void uart_async_unhalt(void)
 	uart_hw_oob_close(uart_pid);
 }
 
+boolean uart_read_interrupting(uart_pid_t pid)
+{
+	bulk_cid_t cid = uart_bulk_rx(pid);
+	return bulk_request_interrupting(cid) ||
+	       __bulk_channel_halting(cid);
+}
+
 void uart_async_start(void)
 {
 	if (uart_states[uart_pid].sync_len) {

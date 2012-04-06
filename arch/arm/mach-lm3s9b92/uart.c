@@ -205,7 +205,7 @@ static void uart_hw_handle_irq(void)
 			}
 		}
 		if (__uart_hw_irq_raised(n, _BV(RXI))) {
-			if (bulk_request_interrupting(uart_bulk_rx(pid))) {
+			if (uart_read_interrupting(pid)) {
 				__uart_hw_irq_unraise(n, _BV(RXI));
 				uart_read_byte(pid);
 			}
