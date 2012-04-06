@@ -6,6 +6,24 @@ struct uart_state uart_states[NR_UART_PORTS];
 DECLARE_BITMAP(uart_port_regs, NR_UART_PORTS);
 uart_pid_t uart_pid;
 
+void uart_hw_oob_open(uart_pid_t pid)
+{
+	uart_port_t *port;
+
+	port = uart_ports[pid];
+	BUG_ON(!port || !port->rx || !port->rx->open);
+	port->rx->open();
+}
+
+void uart_hw_oob_close(uart_pid_t pid)
+{
+	uart_port_t *port;
+
+	port = uart_ports[pid];
+	BUG_ON(!port || !port->rx || !port->rx->close);
+	port->rx->close();
+}
+
 void uart_hw_port_startup(uart_pid_t pid,
 			  uint8_t params, uint32_t baudrate)
 {
@@ -117,6 +135,12 @@ static boolean uart_oob_sync(uart_pid_t pid)
 void uart_async_halt(void)
 {
 	uart_states[uart_pid].sync_len = 0;
+	uart_hw_oob_open(uart_pid);
+}
+
+void uart_async_unhalt(void)
+{
+	uart_hw_oob_close(uart_pid);
 }
 
 void uart_async_start(void)

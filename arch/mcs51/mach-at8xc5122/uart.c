@@ -284,7 +284,7 @@ bulk_channel_t __uart_hw_rx = {
 	uart_async_start,
 	uart_async_stop,
 	uart_async_halt,
-	uart_hw_async_dummy,
+	uart_async_unhalt,
 	uart_async_select,
 	uart_async_poll,
 	uart_async_read,

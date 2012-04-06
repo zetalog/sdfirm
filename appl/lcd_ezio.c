@@ -99,7 +99,7 @@ bulk_user_t ezio_bulk_cmd = {
 
 uart_user_t ezio_uart = {
 	UART_DEF_PARAMS,
-	2400,
+	UART_DEF_BAUDRATE,
 	NULL,
 	ezio_rxbuf,
 	0,

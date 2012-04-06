@@ -117,6 +117,7 @@ void uart_async_start(void);
 void uart_async_stop(void);
 boolean uart_async_poll(void);
 void uart_async_halt(void);
+void uart_async_unhalt(void);
 void uart_async_select(void);
 
 void uart_read_submit(bulk_size_t size);
