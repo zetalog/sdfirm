@@ -117,7 +117,7 @@ boolean __bulk_channel_halting(bulk_cid_t cid);
 void bulk_channel_halt(bulk_cid_t bulk);
 void bulk_channel_unhalt(bulk_cid_t bulk);
 
-boolean bulk_request_submit(size_t length);
+boolean bulk_request_submit(bulk_cid_t cid, size_t length);
 void bulk_request_commit(size_t length);
 void bulk_request_discard(void);
 

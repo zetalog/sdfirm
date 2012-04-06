@@ -557,7 +557,8 @@ static void porting_uart_none(void)
 static void porting_uart_tx_poll(void)
 {
 	dbg_dump(0x30);
-	bulk_request_submit(PORTING_UART_SIZE);
+	bulk_request_submit(uart_bulk_tx(PORTING_UART_PORT),
+			    PORTING_UART_SIZE);
 	dbg_dump(0x31);
 }
 
@@ -588,7 +589,8 @@ static void porting_uart_tx_done(void)
 static void porting_uart_rx_poll(void)
 {
 	dbg_dump(0x30);
-	bulk_request_submit(PORTING_UART_SIZE);
+	bulk_request_submit(uart_bulk_rx(PORTING_UART_PORT),
+			    PORTING_UART_SIZE);
 	dbg_dump(0x31);
 }
 
