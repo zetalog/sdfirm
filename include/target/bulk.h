@@ -24,9 +24,9 @@ boolean bulk_dump_save(boolean dbg);
 #define BULK_FLOW_HALT			0x04
 #define BULK_FLOW_UNHALT		0x05
 #define bulk_debug(tag, val)		dbg_print((tag), (val))
-#define bulk_debug_cid(cid)				\
+#define bulk_debug_cid()				\
 	do {						\
-		bulk_debug(BULK_DEBUG_CHAN, cid);	\
+		bulk_debug(BULK_DEBUG_CHAN, bulk_cid);	\
 	} while (0)
 #define bulk_raise_flag(cid, flag)			\
 	do {						\
@@ -43,7 +43,7 @@ boolean bulk_dump_save(boolean dbg);
 #else
 #define 
 #define bulk_debug(tag, val)
-#define bulk_debug_cid(cid)
+#define bulk_debug_cid()
 #define bulk_raise_flag(cid, flag)			\
 	do {						\
 		raise_bits(bulk_chan_ctrls[cid].flags,	\
