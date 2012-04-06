@@ -39,6 +39,7 @@ endchoice
 
 menuconfig UART
 	bool "Universal asynchronous RX/TX (UART) support"
+	select BULK
 
 if UART
 
