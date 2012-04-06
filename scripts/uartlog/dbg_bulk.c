@@ -13,10 +13,10 @@ static void bulk_dump_set_flag(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 		dbg_dumper(ctx, cmd, "+BACK");
 		break;
 	case 0x08:
-		dbg_dumper(ctx, cmd, "+BUSY");
-		break;
-	case 0x10:
 		dbg_dumper(ctx, cmd, "+SYNC");
+		break;
+	case 0x40:
+		dbg_dumper(ctx, cmd, "+BUSY");
 		break;
 	case 0x80:
 		dbg_dumper(ctx, cmd, "+HALT");
@@ -40,10 +40,10 @@ static void bulk_dump_clear_flag(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 		dbg_dumper(ctx, cmd, "-BACK");
 		break;
 	case 0x08:
-		dbg_dumper(ctx, cmd, "-BUSY");
-		break;
-	case 0x10:
 		dbg_dumper(ctx, cmd, "-SYNC");
+		break;
+	case 0x40:
+		dbg_dumper(ctx, cmd, "-BUSY");
 		break;
 	case 0x80:
 		dbg_dumper(ctx, cmd, "-HALT");
