@@ -22,12 +22,12 @@ static void uart_dump_port(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 
 static void uart_dump_oob_plus(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 {
-	dbg_dumper(ctx, cmd, "oob+=%02x", data);
+	dbg_dumper(ctx, cmd, "%02x", data);
 }
 
 static void uart_dump_oob_minus(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 {
-	dbg_dumper(ctx, cmd, "oob-=%02x", data);
+	dbg_dumper(ctx, cmd, "%02x", data);
 }
 
 struct dbg_parser dbg_uart_events[NR_UART_EVENTS] = {

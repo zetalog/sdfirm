@@ -101,9 +101,9 @@ uart_user_t ezio_uart = {
 	UART_DEF_PARAMS,
 	UART_DEF_BAUDRATE,
 	NULL,
-	ezio_rxbuf,
+	NULL, /* ezio_rxbuf, */
 	0,
-	EZIO_MAX_BUF,
+	0, /* EZIO_MAX_BUF, */
 	&ezio_bulk_resp,
 	&ezio_bulk_cmd,
 	ezio_sync_cmd,

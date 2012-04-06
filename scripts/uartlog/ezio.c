@@ -351,8 +351,8 @@ int main(int argc, char **argv)
 	uart_config(uart, atoi(argv[2]));
 
 	/* initialize EZIO twice */
-	StartHex();
-	StartHex();
+	Cls();
+	Cls();
 	/* clear screen */
 	Cls();
 	ShowMessage(NULL);
