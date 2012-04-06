@@ -191,7 +191,8 @@ pseudo_bulk:
 				}
 			}
 		} BULK_READ_END
-		goto pseudo_bulk;
+		if (bulk_transfer_unhandled() > 0)
+			goto pseudo_bulk;
 	}
 	bulk_dump_off();
 }
