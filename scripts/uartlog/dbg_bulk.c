@@ -7,7 +7,7 @@ static void bulk_dump_set_flag(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 		dbg_dumper(ctx, cmd, "+SOFT");
 		break;
 	case 0x02:
-		dbg_dumper(ctx, cmd, "+HART");
+		dbg_dumper(ctx, cmd, "+HARD");
 		break;
 	case 0x04:
 		dbg_dumper(ctx, cmd, "+BACK");
@@ -34,7 +34,7 @@ static void bulk_dump_clear_flag(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 		dbg_dumper(ctx, cmd, "-SOFT");
 		break;
 	case 0x02:
-		dbg_dumper(ctx, cmd, "-HART");
+		dbg_dumper(ctx, cmd, "-HARD");
 		break;
 	case 0x04:
 		dbg_dumper(ctx, cmd, "-BACK");

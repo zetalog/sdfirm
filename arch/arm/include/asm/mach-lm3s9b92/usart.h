@@ -185,7 +185,7 @@ void __uart_hw_ctrl_config(uint8_t n, uint8_t params, uint32_t baudrate);
 
 #define __UART_HW_IFLSEL_MASK		0x07
 #define __UART_HW_RXIFLSEL_OFFSET	3
-#define __UART_HW_TXIFLSEL_OSFFSET	0
+#define __UART_HW_TXIFLSEL_OFFSET	0
 
 #define __uart_hw_fifo_level(bytes)	((bytes) & 0x0F >> 2)
 #define __uart_hw_read_trigger(n, bytes)				\
