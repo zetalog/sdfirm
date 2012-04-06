@@ -229,32 +229,36 @@ void uart_config(uart_t uart, int baudr)
 }
 #endif
 
-#define EZIO_WRITE		0xFE
-#define EZIO_READ		0xFD
+#define EZIO_WRITE			0xFE
+#define EZIO_READ			0xFD
 
-#define EZIO_CMD_StartOfHEX	0x28
-#define EZIO_CMD_EndOfHex	0x37
-#define EZIO_CMD_ClearScreen	0x01
-#define EZIO_CMD_HomeCursor	0x02
-#define EZIO_CMD_ReadKey	0x06
-#define EZIO_CMD_BlankDisplay	0x08
-#define EZIO_CMD_HideCursor	0x0C
-#define EZIO_CMD_TurnOn		0x0D
-#define EZIO_CMD_ShowCursor	0x0E
-#define EZIO_CMD_MoveLeft	0x10
-#define EZIO_CMD_MoveRight	0x14
-#define EZIO_CMD_ScrollLeft	0x18
-#define EZIO_CMD_ScrollRight	0x1C
-#define EZIO_CMD_SetDispAddr	0x80
-#define EZIO_CMD_SetCharAddr	0x40
+#define EZIO_CMD_StartOfHEX		0x28
+#define EZIO_CMD_EndOfHex		0x37
+#define EZIO_CMD_ClearScreen		0x01
+#define EZIO_CMD_HomeCursor		0x02
+#define EZIO_CMD_ReadKey		0x06
+#define EZIO_CMD_BlankDisplay		0x08
+#define EZIO_CMD_HideCursor		0x0C
+#define EZIO_CMD_TurnOn			0x0D
+#define EZIO_CMD_ShowCursor		0x0E
+#define EZIO_CMD_MoveLeft		0x10
+#define EZIO_CMD_MoveRight		0x14
+#define EZIO_CMD_ScrollLeft		0x18
+#define EZIO_CMD_ScrollRight		0x1C
+#define EZIO_CMD_SetDispAddr		0x80
+#define EZIO_CMD_SetCharAddr		0x40
 
-#define EZIO_KEY_Escape		0x4E
-#define EZIO_KEY_UpArrow	0x4D
-#define EZIO_KEY_Enter		0x4B
-#define EZIO_KEY_DownArrow	0x47
+#define EZIO_SCAN_Escape		0x00
+#define EZIO_SCAN_UpArrow		0x01
+#define EZIO_SCAN_Enter			0x02
+#define EZIO_SCAN_DownArrow		0x03
+#define EZIO_MAX_SCAN			4
+#define EZIO_KEY(scan)			(1<<(scan))
+#define EZIO_KEY_VAL(key, scan)		((key) & EZIO_KEY(scan))
+#define EZIO_KEY_DOWN(key, scan)	(EZIO_KEY_VAL(key, scan) == 0)
 
-#define EZIO_MAX_LINE		16
-#define EZIO_MAX_BUF		(2*EZIO_MAX_LINE)
+#define EZIO_MAX_LINE			16
+#define EZIO_MAX_BUF			(2*EZIO_MAX_LINE)
 
 static uart_t uart;
 
@@ -307,6 +311,21 @@ void ezio_display(char *str2)
 	ezio_data_stop();
 }
 
+const char *ezio_key_name(int i)
+{
+	switch (i) {
+	case 0:
+		return "Esc";
+	case 1:
+		return "U";
+	case 2:
+		return "Ent";
+	case 3:
+		return "D";
+	}
+	return "*";
+}
+
 int main(int argc, char **argv)
 {
 	if (argc < 3)
@@ -321,28 +340,32 @@ int main(int argc, char **argv)
 	ezio_display(NULL);
 
 	while (1) {
-		int res;
+		int res, i;
 		char buf[255];
+		int last_keys = 0x00, keys;
 
 		ezio_cursor_locate();
 		ezio_keypad_scan();
 		res = uart_read(uart, buf, 255);
 
-		/* switch the pressed key */
-		switch (buf[1]) {
-		case EZIO_KEY_UpArrow:
-			ezio_display("UP");
-			break;
-		case EZIO_KEY_DownArrow:
-			ezio_display("DOWN");
-			break;
-		case EZIO_KEY_Enter:
-			ezio_display("ENTER");
-			break;
-		case EZIO_KEY_Escape:
-			ezio_display("ESC");
-			break;
+		keys = (buf[1] & ~0x40);
+
+		buf[0] = 0;
+		for (i = 0; i < EZIO_MAX_SCAN; i++) {
+			char msg[6];
+
+			if (EZIO_KEY_VAL(keys, i) !=
+			    EZIO_KEY_VAL(last_keys, i)) {
+				if (EZIO_KEY_DOWN(keys, i)) {
+					sprintf(msg, "+%s", ezio_key_name(i));
+				} else {
+					sprintf(msg, "-%s", ezio_key_name(i));
+				}
+				strcat(buf, msg);
+			}
 		}
+
+		ezio_display(buf);
 	}
 
 	uart_close(uart);
