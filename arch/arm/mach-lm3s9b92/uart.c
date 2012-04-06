@@ -293,6 +293,8 @@ void uart_hw_async_config(uint8_t params,
 {
 	uint8_t n = __uart_hw_pid2port(uart_pid);
 	__uart_hw_ctrl_config(n, params, baudrate);
+	__uart_hw_read_trigger(n, 1);
+	__uart_hw_write_trigger(n, 1);
 }
 
 bulk_channel_t __uart_hw_tx = {

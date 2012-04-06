@@ -183,21 +183,20 @@ void __uart_hw_ctrl_config(uint8_t n, uint8_t params, uint32_t baudrate);
 #define __uart_hw_wt_raised(n)		__uart_hw_irq_raised(n, _BV(RTI))
 #define __uart_hw_wt_unraise(n)		__uart_hw_irq_unrais(n, _BV(RTI))
 
-#define __UART_HW_RX_FIFO_1D8		0
-#define __UART_HW_RX_FIFO_1D4		1
-#define __UART_HW_RX_FIFO_1D2		2
-#define __UART_HW_RX_FIFO_3D4		3
-#define __UART_HW_RX_FIFO_7D8		4
-#define __UART_HW_TX_FIFO_1D8		__UART_HW_RX_FIFO_7D8
-#define __UART_HW_TX_FIFO_1D4		__UART_HW_RX_FIFO_3D4
-#define __UART_HW_TX_FIFO_1D2		__UART_HW_RX_FIFO_1D2
-#define __UART_HW_TX_FIFO_3D4		__UART_HW_RX_FIFO_1D4
-#define __UART_HW_TX_FIFO_7D8		__UART_HW_RX_FIFO_1D8
-#define __UART_HW_RXIFLSEL		(0x07 << 3)
-#define __UART_HW_TXIFLSEL		0x07
-#define __uart_hw_read_level(level, n)	\
-	__raw_writel_mask((level << 0x03), __UART_HW_RXIFLSEL, UARTIFLS(n))
-#define __uart_hw_write_level(level, n)	\
-	__raw_writel_mask(level, __UART_HW_TXIFLSEL, UARTIFLS(n))
+#define __UART_HW_IFLSEL_MASK		0x07
+#define __UART_HW_RXIFLSEL_OFFSET	3
+#define __UART_HW_TXIFLSEL_OSFFSET	0
+
+#define __uart_hw_fifo_level(bytes)	((bytes) & 0x0F >> 2)
+#define __uart_hw_read_trigger(n, bytes)				\
+	__raw_writel_mask((__uart_hw_fifo_level(bytes) <<		\
+			   __UART_HW_RXIFLSEL_OFFSET),			\
+			  (__UART_HW_IFLSEL_MASK <<			\
+			   __UART_HW_RXIFLSEL_OFFSET), UARTIFLS(n))
+#define __uart_hw_write_trigger(n, bytes)				\
+	__raw_writel_mask((__uart_hw_fifo_level(bytes) <<		\
+			   __UART_HW_TXIFLSEL_OFFSET),			\
+			  (__UART_HW_IFLSEL_MASK <<			\
+			   __UART_HW_TXIFLSEL_OFFSET), UARTIFLS(n))
 
 #endif /* __USART_LM3S9B92_H_INCLUDE__ */

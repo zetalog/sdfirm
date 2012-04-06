@@ -30,7 +30,8 @@ void uart_hw_port_startup(uart_pid_t pid,
 	uart_port_t *port;
 
 	port = uart_ports[pid];
-	BUG_ON(!port || !port->startup || !port->cleanup || !port->config);
+	BUG_ON(!port || !port->config ||
+	       !port->startup || !port->cleanup);
 	port->cleanup();
 	port->config(params, baudrate);
 	port->startup();
