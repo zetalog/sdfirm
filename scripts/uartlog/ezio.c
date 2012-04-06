@@ -340,6 +340,7 @@ int main(int argc, char **argv)
 	int last_keys = 0x00, keys;
 	int res, i, len;
 	unsigned char buf[EZIO_MAX_BUF];
+	unsigned char msg[EZIO_MAX_BUF];
 
 	if (argc < 3)
 		return -1;
@@ -372,22 +373,22 @@ int main(int argc, char **argv)
 		if (len <= 2)
 			continue;
 
-		buf[0] = 0;
+		msg[0] = 0;
 		for (i = 0; i < EZIO_MAX_SCAN; i++) {
-			char msg[6];
+			char tmp[6];
 
 			if (EZIO_KEY_VAL(keys, i) !=
 			    EZIO_KEY_VAL(last_keys, i)) {
 				if (EZIO_KEY_DOWN(keys, i)) {
-					sprintf(msg, "+%s", ezio_key_name(i));
+					sprintf(tmp, "+%s", ezio_key_name(i));
 				} else {
-					sprintf(msg, "-%s", ezio_key_name(i));
+					sprintf(tmp, "-%s", ezio_key_name(i));
 				}
-				strcat(buf, msg);
+				strcat(msg, tmp);
 			}
 		}
 
-		ezio_display(buf);
+		ezio_display(msg);
 		last_keys = keys;
 		len -= 2;
 	}
