@@ -53,10 +53,11 @@ boolean bulk_dump_save(boolean dbg);
 #endif
 
 #ifdef CONFIG_BULK_MAX_CHANS
-#define NR_BULK_CHANS	CONFIG_BULK_MAX_CHANS
+#define NR_BULK_CHANS		CONFIG_BULK_MAX_CHANS
 #else
-#define NR_BULK_CHANS	1
+#define NR_BULK_CHANS		1
 #endif
+#define INVALID_BULK_CID	NR_BULK_CHANS
 
 /* bulk channel ID */
 typedef uint8_t bulk_cid_t;
