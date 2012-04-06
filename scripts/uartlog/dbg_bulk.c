@@ -40,7 +40,7 @@ static void bulk_dump_clear_flag(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 		dbg_dumper(ctx, cmd, "flag-=SYNC");
 		break;
 	case 0x80:
-		dbg_dumper(ctx, cmd, "flag+=HALT");
+		dbg_dumper(ctx, cmd, "flag-=HALT");
 		break;
 	default:
 		dbg_dumper(ctx, cmd, "flag-=%02x", data);
@@ -78,7 +78,7 @@ static void bulk_dump_flow(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 struct dbg_parser dbg_bulk_events[NR_BULK_EVENTS] = {
 	{ "FLAG+", 0, bulk_dump_set_flag, },
 	{ "FLAG-", 0, bulk_dump_clear_flag, },
-	{ "FLOW-", 0, bulk_dump_flow, },
+	{ "FLOW", 0, bulk_dump_flow, },
 };
 
 struct dbg_source dbg_bulk_state = {
