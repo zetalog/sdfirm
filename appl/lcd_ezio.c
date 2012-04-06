@@ -135,7 +135,7 @@ void ezio_cmd_halt(void)
 {
 	bulk_channel_halt(uart_bulk_rx(EZIO_UART_PID));
 	ezio_debug(EZIO_DEBUG_STATE, EZIO_STATE_HALT);
-	ezio_cmd_submit();
+	ezio_set_state(EZIO_STATE_CMD);
 }
 
 void ezio_hex_submit(void)

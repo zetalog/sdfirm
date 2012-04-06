@@ -4,22 +4,25 @@ static void bulk_dump_set_flag(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 {
 	switch (data) {
 	case 0x01:
-		dbg_dumper(ctx, cmd, "flag+=SOFT");
+		dbg_dumper(ctx, cmd, "+SOFT");
 		break;
 	case 0x02:
-		dbg_dumper(ctx, cmd, "flag+=HART");
+		dbg_dumper(ctx, cmd, "+HART");
 		break;
 	case 0x04:
-		dbg_dumper(ctx, cmd, "flag+=BACK");
+		dbg_dumper(ctx, cmd, "+BACK");
 		break;
 	case 0x08:
-		dbg_dumper(ctx, cmd, "flag+=SYNC");
+		dbg_dumper(ctx, cmd, "+BUSY");
+		break;
+	case 0x10:
+		dbg_dumper(ctx, cmd, "+SYNC");
 		break;
 	case 0x80:
-		dbg_dumper(ctx, cmd, "flag+=HALT");
+		dbg_dumper(ctx, cmd, "+HALT");
 		break;
 	default:
-		dbg_dumper(ctx, cmd, "flag+=%02x", data);
+		dbg_dumper(ctx, cmd, "BULK_FLAG+%02x", data);
 		break;
 	}
 }
@@ -28,22 +31,25 @@ static void bulk_dump_clear_flag(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 {
 	switch (data) {
 	case 0x01:
-		dbg_dumper(ctx, cmd, "flag-=SOFT");
+		dbg_dumper(ctx, cmd, "-SOFT");
 		break;
 	case 0x02:
-		dbg_dumper(ctx, cmd, "flag-=HART");
+		dbg_dumper(ctx, cmd, "-HART");
 		break;
 	case 0x04:
-		dbg_dumper(ctx, cmd, "flag-=BACK");
+		dbg_dumper(ctx, cmd, "-BACK");
 		break;
 	case 0x08:
-		dbg_dumper(ctx, cmd, "flag-=SYNC");
+		dbg_dumper(ctx, cmd, "-BUSY");
+		break;
+	case 0x10:
+		dbg_dumper(ctx, cmd, "-SYNC");
 		break;
 	case 0x80:
-		dbg_dumper(ctx, cmd, "flag-=HALT");
+		dbg_dumper(ctx, cmd, "-HALT");
 		break;
 	default:
-		dbg_dumper(ctx, cmd, "flag-=%02x", data);
+		dbg_dumper(ctx, cmd, "BULK_FLAG-%02x", data);
 		break;
 	}
 }
