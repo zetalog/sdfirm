@@ -1,60 +1,13 @@
-/* *************************************
- * EZIO RS232 LCD Control Sample Program
- * *************************************
- * *************************************************************************
- * Company: Portwell Inc.
- * Date: 4/16/2003
- * Program: 02A.c
- * Version: 1.02
- * Compile: Linux GNU C
- * Purpose: Direct access to EZIO LCD, the program will display
- * messages according to the control button. The current
- * version only has the following function:
- *
+/* Direct access to EZIO LCD, the program will display messages according
+ * to the control button.
  * 1: display welcome message
- * 2: display UP message if "scroll up" button is pressed
+ * 2: display UP message if "UP" button is pressed
  * 3: display ENTER message if "ENTER" button is pressed
  * 4: display ESC message if "ESC" button is pressed
- * 5: display DOWN message if "scroll down" button is pressed
+ * 5: display DOWN message if "DOWN" button is pressed
  *
- * Program Overview:
- *
- * - Parameters:
- * uart : a file name for open() method, here represents the com port
- * Cmd : command prefix
- * cls : clear command
- * init : initialize command
- * blank : display blank screen
- * stopsend : stop input/output
- * home : move cursor to initial position
- * readkey : set to read from EZIO
- * hide : hide cursor & display blanked characters
- * movel : move cursor one character left
- * mover : move cursor one character right
- * turn : turn on blinking-block cursor
- * show : turn on underline cursor
- * scl : scroll cursor one character left
- * scr : scroll cursor one character right
- * setdis : set character-generator address
- *
- * - Procedure:
- * 1. The program sets up the environment, i.e. com port settings.
- * 2. The main function MUST call init() twice to initialize EZIO
- * before any communication.
- * 3. For executing any command, the command prefix, Cmd, MUST be
- * called be command. So all command contains two parts, eg.
- * to initialize the sequence of HEX number is 0xFE, 0x25.
- * 4. After clear screen and display welcome message, ReadKey()
- * method must be call to advise EZIO for reading data.
- * 5. A pooling method is implemented to get input from EZIO while
- * any button is pressed.
- *
- * - NOTE: This program is a sample program provided " AS IS" with NO
- * warranty.
- *
- * Copyright (c) Portwell, Inc. All Rights Reserved.
- *
- * ************************************************************************/
+ * Copyright (c) Soliton Shanghai. All Rights Reserved.
+ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -300,6 +253,9 @@ void uart_config(uart_t uart, int baudr)
 #define EZIO_KEY_Enter		0x4B
 #define EZIO_KEY_DownArrow	0x47
 
+#define EZIO_MAX_LINE		16
+#define EZIO_MAX_BUF		(2*EZIO_MAX_LINE)
+
 static uart_t uart;
 
 void ezio_write(int cmd)
@@ -310,36 +266,45 @@ void ezio_write(int cmd)
 	uart_write(uart, &cmd, 1);
 }
 
-#define StartHex()	ezio_write(EZIO_CMD_StartOfHEX)
-#define StopHex()	ezio_write(EZIO_CMD_EndOfHex)
-#define Cls()		ezio_write(EZIO_CMD_ClearScreen)
-#define Home()		ezio_write(EZIO_CMD_HomeCursor)
-#define ReadKey()	ezio_write(EZIO_CMD_ReadKey)
-#define Blank()		ezio_write(EZIO_CMD_BlankDisplay)
-#define TurnOn()	ezio_write(EZIO_CMD_TurnOn)
-#define Hide()		ezio_write(EZIO_CMD_HideCursor)
-#define Show()		ezio_write(EZIO_CMD_ShowCursor)
-#define MoveL()		ezio_write(EZIO_CMD_MoveLeft)
-#define MoveR()		ezio_write(EZIO_CMD_MoveRight)
-#define ScrollL()	ezio_write(EZIO_CMD_ScrollLeft)
-#define ScrollR()	ezio_write(EZIO_CMD_ScrollRight)
-#define SetDis()	ezio_write(EZIO_CMD_SetDispAddr)
+#define ezio_keypad_scan()	ezio_write(EZIO_CMD_ReadKey)
+#define ezio_screen_clear()	ezio_write(EZIO_CMD_ClearScreen)
+#define ezio_screen_blank()	ezio_write(EZIO_CMD_BlankDisplay)
+#define ezio_data_start()	ezio_write(EZIO_CMD_StartOfHEX)
+#define ezio_data_stop()	ezio_write(EZIO_CMD_EndOfHex)
+#define ezio_data_left()	ezio_write(EZIO_CMD_ScrollLeft)
+#define ezio_data_right()	ezio_write(EZIO_CMD_ScrollRight)
+#define ezio_cursor_home()	ezio_write(EZIO_CMD_HomeCursor)
+#define ezio_cursor_blink()	ezio_write(EZIO_CMD_TurnOn)
+#define ezio_cursor_hide()	ezio_write(EZIO_CMD_HideCursor)
+#define ezio_cursor_show()	ezio_write(EZIO_CMD_ShowCursor)
+#define ezio_cursor_left()	ezio_write(EZIO_CMD_MoveLeft)
+#define ezio_cursor_right()	ezio_write(EZIO_CMD_MoveRight)
+#define ezio_cursor_locate()	ezio_write(EZIO_CMD_SetDispAddr)
 
-void ShowMessage(char *str2)
+void __ezio_display(char *msg)
 {
-	char mes1[] = "Portwell EZIO";
-	char mes2[] = "*************";
 	char nul[] = " ";
 	int a, b;
 
-	if (str2 == NULL)
-		str2 = mes2;
-
-	a = strlen(mes1);
-	b = 40 - a;
-	uart_write(uart, mes1, a);
+	a = strlen(msg);
+	b = EZIO_MAX_LINE - a;
+	uart_write(uart, msg, a);
 	uart_write(uart, nul, b);
-	uart_write(uart, str2, strlen(str2));
+}
+
+void ezio_display(char *str2)
+{
+	char str1[] = "Soliton EZIO LCD";
+	char def2[] = "****************";
+
+	if (str2 == NULL)
+		str2 = def2;
+
+	ezio_screen_clear();
+	ezio_data_start();
+	__ezio_display(str1);
+	__ezio_display(str2);
+	ezio_data_stop();
 }
 
 int main(int argc, char **argv)
@@ -350,38 +315,32 @@ int main(int argc, char **argv)
 	uart = uart_open(atoi(argv[1]));
 	uart_config(uart, atoi(argv[2]));
 
-	/* initialize EZIO twice */
-	Cls();
-	Cls();
-	/* clear screen */
-	Cls();
-	ShowMessage(NULL);
+	/* initialize EZIO */
+	ezio_screen_clear();
+	/* display default message */
+	ezio_display(NULL);
 
 	while (1) {
 		int res;
 		char buf[255];
 
-		SetDis();
-		ReadKey();
+		ezio_cursor_locate();
+		ezio_keypad_scan();
 		res = uart_read(uart, buf, 255);
 
 		/* switch the pressed key */
 		switch (buf[1]) {
 		case EZIO_KEY_UpArrow:
-			Cls();
-			ShowMessage("UP");
+			ezio_display("UP");
 			break;
 		case EZIO_KEY_DownArrow:
-			Cls();
-			ShowMessage("DOWN");
+			ezio_display("DOWN");
 			break;
 		case EZIO_KEY_Enter:
-			Cls();
-			ShowMessage("ENTER");
+			ezio_display("ENTER");
 			break;
 		case EZIO_KEY_Escape:
-			Cls();
-			ShowMessage("ESC");
+			ezio_display("ESC");
 			break;
 		}
 	}
