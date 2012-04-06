@@ -171,17 +171,18 @@ static void ezio_cmd_iocb(void)
 	} else {
 		uint8_t val = 0;
 
+pseudo_bulk:
 		BULK_READ_BEGIN(val) {
 			if (!ezio_hex_end) {
-				if (ezio_data_len == EZIO_MAX_BUF) {
-					ezio_cmd_halt();
-					return;
-				}
-				if (val != EZIO_WRITE) {
+				if (val == EZIO_WRITE) {
+					ezio_hex_end = true;
+				} else {
+					if (ezio_data_len == EZIO_MAX_BUF) {
+						ezio_cmd_halt();
+						return;
+					}
 					ezio_data_buf[ezio_data_len++] = val;
 					ezio_hex_commit();
-				} else {
-					ezio_hex_end = true;
 				}
 			} else {
 				if (!__ezio_hex_is_end(val)) {
@@ -190,6 +191,7 @@ static void ezio_cmd_iocb(void)
 				}
 			}
 		} BULK_READ_END
+		goto pseudo_bulk;
 	}
 	bulk_dump_off();
 }
