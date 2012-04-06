@@ -254,8 +254,8 @@ void uart_config(uart_t uart, int baudr)
 #define EZIO_SCAN_DownArrow		0x03
 #define EZIO_MAX_SCAN			4
 #define EZIO_KEY(scan)			(1<<(scan))
-#define EZIO_KEY_VAL(key, scan)		((key) & EZIO_KEY(scan))
-#define EZIO_KEY_DOWN(key, scan)	(EZIO_KEY_VAL(key, scan) == 0)
+#define EZIO_KEY_VAL(key, scan)		(((key) & EZIO_KEY(scan)) >> (scan))
+#define EZIO_KEY_DOWN(key, scan)	(EZIO_KEY_VAL(key, scan) == 1)
 
 #define EZIO_MAX_LINE			16
 #define EZIO_MAX_BUF			(2*EZIO_MAX_LINE)
@@ -285,23 +285,32 @@ void ezio_write(int cmd)
 #define ezio_cursor_right()	ezio_write(EZIO_CMD_MoveRight)
 #define ezio_cursor_locate()	ezio_write(EZIO_CMD_SetDispAddr)
 
-void __ezio_display(char *msg)
+void __ezio_display(unsigned char *msg)
 {
-	char nul[] = " ";
-	int a, b;
+	unsigned char nul[] = "                ";
+	int a, b, i;
 
 	a = strlen(msg);
 	b = EZIO_MAX_LINE - a;
 	uart_write(uart, msg, a);
 	uart_write(uart, nul, b);
+
+	fwrite(msg, 1, a, stdout);
+	fwrite(nul, 1, b, stdout);
+	fprintf(stdout, "\r\n");
+	for (i = 0; i < a; i++)
+		fprintf(stdout, "%02x ", msg[i]);
+	for (i = 0; i < b; i++)
+		fprintf(stdout, "%02x ", nul[i]);
+	fprintf(stdout, "\r\n");
 }
 
-void ezio_display(char *str2)
+void ezio_display(unsigned char *str2)
 {
-	char str1[] = "Soliton EZIO LCD";
-	char def2[] = "****************";
+	unsigned char str1[] = "Soliton EZIO LCD";
+	unsigned char def2[] = "****************";
 
-	if (str2 == NULL)
+	if (str2 == NULL || str2[0] == 0)
 		str2 = def2;
 
 	ezio_screen_clear();
@@ -328,6 +337,10 @@ const char *ezio_key_name(int i)
 
 int main(int argc, char **argv)
 {
+	int last_keys = 0x00, keys;
+	int res, i, len;
+	unsigned char buf[EZIO_MAX_BUF];
+
 	if (argc < 3)
 		return -1;
 
@@ -339,16 +352,25 @@ int main(int argc, char **argv)
 	/* display default message */
 	ezio_display(NULL);
 
+	len = 0;
 	while (1) {
-		int res, i;
-		char buf[255];
-		int last_keys = 0x00, keys;
-
-		ezio_cursor_locate();
 		ezio_keypad_scan();
-		res = uart_read(uart, buf, 255);
+		res = uart_read(uart, buf+len, EZIO_MAX_BUF-len);
+		if (res <= 0)
+			continue;
 
-		keys = (buf[1] & ~0x40);
+		len += res;
+		while (len > 2) {
+			if (buf[0] == EZIO_READ) {
+				keys = (buf[1] & ~0xF0);
+			} else {
+				len--;
+				memcpy(buf, buf+1, len);
+			}
+		}
+
+		if (len <= 2)
+			continue;
 
 		buf[0] = 0;
 		for (i = 0; i < EZIO_MAX_SCAN; i++) {
@@ -366,6 +388,8 @@ int main(int argc, char **argv)
 		}
 
 		ezio_display(buf);
+		last_keys = keys;
+		len -= 2;
 	}
 
 	uart_close(uart);
