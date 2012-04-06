@@ -15,8 +15,9 @@
 #define DBG_SRC_MSD		8
 #define DBG_SRC_DFU		9
 #define DBG_SRC_UART		10
-#define DBG_SRC_USER		11
-#define NR_DBG_SRCS		12
+#define DBG_SRC_BULK		11
+#define DBG_SRC_USER		12
+#define NR_DBG_SRCS		13
 /* XXX: Current DBG_SRCS Limitation
  * current NR_DBG_SRCS should not exceed 0x14, or 0x15 could not be used
  * as raw data in the UI
@@ -91,6 +92,12 @@
 #define UART_DEBUG_OOB		UART_DEBUG_BASE+2
 #define UART_DEBUG_UNOOB	UART_DEBUG_BASE+3
 #define NR_UART_EVENTS		(UART_DEBUG_UNOOB - UART_DEBUG_BASE + 1)
+
+#define BULK_DEBUG_BASE		(DBG_SRC_BULK<<4)
+#define BULK_DEBUG_SET_FLAG	BULK_DEBUG_BASE+0
+#define BULK_DEBUG_CLEAR_FLAG	BULK_DEBUG_BASE+1
+#define BULK_DEBUG_FLOW		BULK_DEBUG_BASE+2
+#define NR_BULK_EVENTS		(BULK_DEBUG_FLOW - BULK_DEBUG_BASE + 1)
 
 #define USER_DEBUG_BASE		(DBG_SRC_USER<<4)
 #define PN53X_DEBUG_USB_STATE	USER_DEBUG_BASE+0

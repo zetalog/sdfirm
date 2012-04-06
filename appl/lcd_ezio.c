@@ -59,7 +59,7 @@
 #define EZIO_STATE_RESP		0x01
 #define EZIO_STATE_HEX		0x02
 #define EZIO_STATE_HALT		0x03
-#define EZIO_STATE_UNHALT	0x03
+#define EZIO_STATE_UNHALT	0x04
 
 struct ezio_cmd {
 	uint8_t prefix;

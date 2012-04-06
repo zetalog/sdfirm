@@ -101,6 +101,8 @@ extern dbg_dump_cb dbg_dumper;
 extern dbg_last_cb dbg_logger;
 
 void dbg_io_init(void);
+void dbg_bulk_init(void);
+void dbg_uart_init(void);
 void dbg_usb_init(void);
 void dbg_scd_init(void);
 void dbg_hid_init(void);

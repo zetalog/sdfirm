@@ -16,6 +16,42 @@ boolean bulk_dump_save(boolean dbg);
 #define bulk_dump_off()
 #endif
 
+#ifdef CONFIG_BULK_DEBUG
+#define BULK_FLOW_OPEN			0x00
+#define BULK_FLOW_CLOSE			0x01
+#define BULK_FLOW_START			0x02
+#define BULK_FLOW_STOP			0x03
+#define BULK_FLOW_HALT			0x04
+#define BULK_FLOW_UNHALT		0x05
+#define bulk_debug(tag, val)		dbg_print((tag), (val))
+#define bulk_raise_flag(cid, flag)			\
+	do {						\
+		bulk_debug(BULK_DEBUG_SET_FLAG, flag);	\
+		raise_bits(bulk_chan_ctrls[cid].flags,	\
+			   flag);			\
+	} while (0)
+#define bulk_unraise_flag(cid, flag)			\
+	do {						\
+		bulk_debug(BULK_DEBUG_CLEAR_FLAG, flag);\
+		unraise_bits(bulk_chan_ctrls[cid].flags,\
+			     flag);			\
+	} while (0)
+#else
+#define 
+#define bulk_debug(tag, val)
+#define bulk_raise_flag(cid, flag)			\
+	do {						\
+		raise_bits(bulk_chan_ctrls[cid].flags,	\
+			   flag);			\
+	} while (0)
+#define bulk_unraise_flag(cid, flag)			\
+	do {						\
+		bulk_debug(BULK_DEBUG_CLEAR_FLAG, flag);\
+		unraise_bits(bulk_chan_ctrls[cid].flags,\
+			     flag);			\
+	} while (0)
+#endif
+
 #ifdef CONFIG_BULK_MAX_CHANS
 #define NR_BULK_CHANS	CONFIG_BULK_MAX_CHANS
 #else

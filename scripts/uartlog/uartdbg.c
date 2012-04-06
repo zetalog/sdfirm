@@ -299,6 +299,8 @@ void dbg_init(void)
 	dbg_register_source(DBG_SRC_RAW, &dbg_raw_source);
 
 	dbg_io_init();
+	dbg_bulk_init();
+	dbg_uart_init();
 	dbg_usb_init();
 	dbg_scd_init();
 	dbg_hid_init();

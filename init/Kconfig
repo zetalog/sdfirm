@@ -271,6 +271,10 @@ config IO_DEBUG
 	bool "Input/output debug message support"
 	depends KBD
 
+config BULK_DEBUG
+	bool "Bulk IO debug message support"
+	depends BULK
+
 config USB_DEBUG
 	bool "USB debug message support"
 	depends USB
