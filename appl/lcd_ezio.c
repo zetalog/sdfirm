@@ -181,7 +181,7 @@ pseudo_bulk:
 				} else {
 					if (ezio_data_len == EZIO_MAX_BUF) {
 						ezio_cmd_halt();
-						return;
+						goto end;
 					}
 					ezio_data_buf[ezio_data_len++] = val;
 					ezio_hex_commit();
@@ -189,13 +189,15 @@ pseudo_bulk:
 			} else {
 				if (!__ezio_hex_is_end(val)) {
 					ezio_cmd_halt();
-					return;
 				}
+				goto end;
 			}
 		} BULK_READ_END
 		if (bulk_transfer_unhandled() > 0)
 			goto pseudo_bulk;
 	}
+
+end:
 	bulk_dump_off();
 }
 
