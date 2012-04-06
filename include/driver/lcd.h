@@ -17,8 +17,8 @@
 #endif
 
 #ifndef ARCH_HAVE_LCD
-#define NR_LCD_HW_ROWS		0
-#define NR_LCD_HW_COLS		0
+#define NR_LCD_HW_ROWS		1
+#define NR_LCD_HW_COLS		1
 #define lcd_hw_set_pos(pos)
 #define lcd_hw_write_data(ch)
 #define lcd_hw_ctrl_init()

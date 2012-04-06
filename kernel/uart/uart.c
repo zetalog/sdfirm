@@ -260,17 +260,16 @@ void uart_read_byte(uart_pid_t pid)
 
 	uart_debug_irq(UART_IRQ_RX);
 	uart_debug_pid(pid);
-sync:
+
 	if (__bulk_channel_halting(cid)) {
+sync:
 		if (uart_oob_sync(pid))
 			goto bulk;
 	} else {
 bulk:
 		bulk_transfer_read(cid);
-		if (__bulk_transfer_unhandled(cid) > 0) {
-			bulk_channel_halt(cid);
-		}
-		goto sync;
+		if (__bulk_channel_halting(cid))
+			goto sync;
 	}
 }
 
