@@ -89,10 +89,17 @@ void gpio_hw_config_pad(uint8_t port, uint8_t pin,
 		__raw_clearl_atomic(pin, reg);
 	}
 
-	/* configure PIN drive strength */
+	/* configure PIN OUT drive strength & PIN IN*/
+	reg = __gpio_hw_port_reg(port, GPIODIR);
+	if (drv == GPIO_DRIVE_IN) {
+		__raw_clearl_atomic(pin, reg);
+	} else {
+		__raw_setl_atomic(pin, reg);
+	}
+
 	reg = __gpio_hw_port_reg(port, GPIODR2R);
 	__raw_clearl_atomic(pin, reg);
-	if (drv <= 2) {
+	if (drv > 0 && drv <= 2) {
 		__raw_setl_atomic(pin, reg);
 	}
 	reg = __gpio_hw_port_reg(port, GPIODR4R);
@@ -150,6 +157,68 @@ void gpio_hw_write_port(uint8_t port, uint8_t mask,
 	__raw_writel_mask(0xFF, mask, reg);
 	reg = __gpio_hw_port_reg(port, GPIODATA);
 	__raw_writel(((uint32_t)val), reg + (mask << 2));
+}
+
+void gpio_hw_config_irq(uint8_t port, uint8_t pin, uint8_t mode)
+{
+	unsigned long reg;
+
+	if (bits_raised(mode, GPIO_IRQ_HIGH | GPIO_IRQ_LOW)) {
+		reg = __gpio_hw_port_reg(port, GPIOIS);
+		__raw_clearl_atomic(pin, reg);
+		reg = __gpio_hw_port_reg(port, GPIOIBE);
+		__raw_setl_atomic(pin, reg);
+	} else {
+		reg = __gpio_hw_port_reg(port, GPIOIBE);
+		__raw_clearl_atomic(pin, reg);
+
+		if (bits_raised(mode, GPIO_IRQ_EDGE)) {
+			reg = __gpio_hw_port_reg(port, GPIOIS);
+			__raw_clearl_atomic(pin, reg);
+		} else {
+			reg = __gpio_hw_port_reg(port, GPIOIS);
+			__raw_setl_atomic(pin, reg);
+		}
+		if (bits_raised(mode, GPIO_IRQ_LOW)) {
+			reg = __gpio_hw_port_reg(port, GPIOIEV);
+			__raw_clearl_atomic(pin, reg);
+		} else {
+			reg = __gpio_hw_port_reg(port, GPIOIEV);
+			__raw_setl_atomic(pin, reg);
+		}
+	}
+}
+
+void gpio_hw_enable_irq(uint8_t port, uint8_t pin)
+{
+	unsigned long reg;
+
+	reg = __gpio_hw_port_reg(port, GPIOIM);
+	__raw_clearl_atomic(pin, reg);
+}
+
+void gpio_hw_disable_irq(uint8_t port, uint8_t pin)
+{
+	unsigned long reg;
+
+	reg = __gpio_hw_port_reg(port, GPIOIM);
+	__raw_setl_atomic(pin, reg);
+}
+
+uint8_t gpio_hw_irq_status(uint8_t port)
+{
+	unsigned long reg;
+
+	reg = __gpio_hw_port_reg(port, GPIORIS);
+	return	(uint8_t)__raw_readl(reg);
+}
+
+void gpio_hw_clear_irq(uint8_t port, uint8_t pin)
+{
+	unsigned long reg;
+
+	reg = __gpio_hw_port_reg(port, GPIOICR);
+	__raw_setl_atomic(pin, reg);
 }
 
 #ifdef CONFIG_PORTING_GPIO
