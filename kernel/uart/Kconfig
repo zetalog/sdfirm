@@ -5,6 +5,8 @@
 config ARCH_HAS_UART
 	bool
 
+menu "Universal asynchronous RX/TX (UART) support"
+
 choice
 	prompt "Default UART baud rate"
 	help
@@ -38,7 +40,7 @@ config UART_2400
 endchoice
 
 menuconfig UART
-	bool "Universal asynchronous RX/TX (UART) support"
+	bool "UART bulk IO support"
 	select BULK
 
 if UART
@@ -48,3 +50,5 @@ config UART_MAX_PORTS
 	range 1 10
 
 endif
+
+endmenu

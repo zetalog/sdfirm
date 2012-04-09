@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Apr  6 11:59:15 2012
+# Mon Apr  9 11:04:34 2012
 #
 CONFIG_ARM=y
 
@@ -151,9 +151,7 @@ CONFIG_UART_MAX_PORTS=2
 #
 # CONFIG_LCD_HD44780U is not set
 # CONFIG_LCD_PCF2119X is not set
-CONFIG_LCD_NHDC0216AZ=y
-CONFIG_LCD_NHD_C0216AZ_MAX_ROWS=2
-CONFIG_LCD_NHD_C0216AZ_MAX_COLS=16
+# CONFIG_LCD_NHDC0216AZ is not set
 
 #
 # MTD memory drivers
