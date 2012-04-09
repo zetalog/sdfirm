@@ -4,6 +4,8 @@
 #include <target/config.h>
 #include <target/generic.h>
 
+#define GPIO_DRIVE_IN		0
+
 /*=========================================================================
  * GPIO mux configuration
  *=======================================================================*/
