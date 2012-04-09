@@ -89,6 +89,10 @@ LINK32=link.exe
 
 SOURCE=.\ezio.c
 # End Source File
+# Begin Source File
+
+SOURCE=..\cmn\poll.c
+# End Source File
 # End Group
 # Begin Group "Header Files"
 

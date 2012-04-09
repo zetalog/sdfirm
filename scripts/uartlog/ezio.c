@@ -13,6 +13,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#include <sys/poll.h>
 
 #ifdef WIN32
 #include <windows.h>
