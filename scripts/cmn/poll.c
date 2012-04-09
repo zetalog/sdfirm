@@ -159,3 +159,160 @@ out:
 	return count;
 }
 #endif
+
+#ifdef CONFIG_POLL_PIPE_SOCKET
+struct pollfd {
+	int fd;
+	short events, revents;
+	/*
+	 * The Win32 HANDLE to wait on instead of the fd.
+	 * This can be NULL, in which case we use the fd.
+	 */
+	void *ev;
+};
+#define POLLIN		1
+#define POLLOUT		2
+
+int poll(struct pollfd *fds, unsigned int n, int timeout);
+
+/*======================================================================*/
+/*======================================================================*/
+
+#include <poll.h>
+#include <errno.h>
+#include <winsock2.h>
+
+#define PIPE_DELAY 30		/* Update interval for pipe thread */
+
+struct th_fd_info {
+	HANDLE fd, event;
+};
+
+static long mask(short ev)
+{
+	long r = FD_ACCEPT | FD_CLOSE;
+
+	if (ev & POLLIN)
+		r |= FD_READ;
+	if (ev & POLLOUT)
+		r |= FD_WRITE;
+
+	return r;
+}
+
+static int is_socket(int fd)
+{
+	int type, len = sizeof(type);
+	return !getsockopt((SOCKET)fd, SOL_SOCKET, SO_TYPE,
+			   (char *)&type, &len);
+}
+
+/* XXX: is_pipe/is_socket Ordering
+ *
+ * This will return true for sockets, too, not just pipes.
+ * So we should check is_socket() before checking this one.
+ */
+static int is_pipe(int fd)
+{
+	return GetFileType((HANDLE)fd) == FILE_TYPE_PIPE;
+}
+
+static DWORD WINAPI thread_go( LPVOID ptr )
+{
+	struct th_fd_info *inf = ptr;
+	HANDLE fd = inf->fd;
+	HANDLE ev = inf->event;
+	DWORD len = 0;
+
+	free(inf);
+	while (PeekNamedPipe(fd, NULL,0,NULL, &len, NULL)) {
+		if (len)
+			SetEvent(ev);
+		else
+			ResetEvent(ev);
+		Sleep(PIPE_DELAY);
+		len = 0;
+	}
+	SetEvent(ev);
+
+	return 0;
+}
+
+static void start_thread(struct pollfd *fd)
+{
+	DWORD id;
+	struct th_fd_info *info;
+	
+	info = malloc(sizeof(struct th_fd_info));
+	info->fd = (HANDLE)fd->fd;
+	info->event = fd->ev = CreateEvent(NULL, 0,0, NULL);
+	CreateThread(NULL,0, thread_go,info, 0, &id); 
+}
+
+static void check_wsa_events(struct pollfd *fd, unsigned int n)
+{
+	for (; n--; ++fd) {
+		if (is_socket(fd->fd)) {
+			if (!fd->ev)
+				fd->ev = WSACreateEvent();
+			WSAEventSelect(fd->fd, fd->ev, mask(fd->events));
+		} else if (is_pipe(fd->fd) && !fd->ev) {
+			start_thread(fd);
+		}
+	}
+}
+
+
+int poll(struct pollfd *pollfd, unsigned int n, int timeout)
+{
+	HANDLE *handles, *hp;
+	struct pollfd *pp = pollfd;
+	int num = 0;
+	
+	handles = malloc(sizeof (HANDLE) * n);
+	if (!handles)
+		return -ENOMEM;
+
+	hp = handles;
+	hp += n;
+	pp += n;
+
+	check_wsa_events(pollfd, n);
+
+	while (hp-- > handles && pp-- > pollfd) {
+		*hp = (pp->ev ? (HANDLE)pp->ev : (HANDLE)pp->fd);
+	}
+
+	do {
+		DWORD r;
+
+		if (!n)
+			return -1;
+		r = MsgWaitForMultipleObjects(n,
+					      handles,
+					      FALSE,
+					      timeout,
+					      QS_ALLINPUT);
+		if (r >= WAIT_OBJECT_0 && r < WAIT_OBJECT_0 + n) {
+			int i = r - WAIT_OBJECT_0;
+
+			if (!pollfd[i].events)
+				pollfd[i].events = POLLIN;
+			pollfd[i].revents = pollfd[i].events;
+			if (is_socket(pollfd[i].fd))
+				WSAResetEvent(pollfd[i].ev);
+			++num;
+			timeout = 0;
+			++i;
+			handles += i;
+			pollfd += i;
+			n -= i;
+			if (!n)
+				return num;
+		} else if (r == WAIT_TIMEOUT)
+			return num;
+		else
+			return -1;
+	} while (1);
+}
+#endif
