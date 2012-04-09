@@ -1,0 +1,10 @@
+#
+# Video
+#
+
+menuconfig VIDEO
+	bool "Video devices support"
+
+if VIDEO
+
+endif

@@ -344,5 +344,6 @@ source kernel/scs/Kconfig
 source kernel/mtd/Kconfig
 source kernel/scsi/Kconfig
 source kernel/net/Kconfig
+source kernel/video/Kconfig
 
 endmenu

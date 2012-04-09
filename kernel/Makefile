@@ -26,3 +26,4 @@ obj-$(CONFIG_SCS) += scs/
 obj-$(CONFIG_MTD) += mtd/
 obj-$(CONFIG_SCSI) += scsi/
 obj-$(CONFIG_NET) += net/
+obj-$(CONFIG_VIDEO) += video/
