@@ -47,6 +47,7 @@
 #define GPIOIM			(0x410)
 #define GPIORIS			(0x414)
 #define GPIOMIS			(0x418)
+#define GPIOICR			(0x41C)
 #define GPIOAFSEL		(0x420)
 #define GPIODR2R		(0x500)
 #define GPIODR4R		(0x504)
@@ -90,6 +91,11 @@ void gpio_hw_write_pin(uint8_t port, uint8_t pin, uint8_t val);
 uint8_t gpio_hw_read_port(uint8_t port, uint8_t mask);
 void gpio_hw_write_port(uint8_t port, uint8_t mask,
 			uint8_t val);
+void gpio_hw_config_irq(uint8_t port, uint8_t pin, uint8_t mode);
+void gpio_hw_enable_irq(uint8_t port, uint8_t pin);
+void gpio_hw_disable_irq(uint8_t port, uint8_t pin);
+uint8_t gpio_hw_irq_status(uint8_t port);
+void gpio_hw_clear_irq(uint8_t port, uint8_t pin);
 
 void gpio_hw_ctrl_init(void);
 #ifdef CONFIG_PORTING_GPIO

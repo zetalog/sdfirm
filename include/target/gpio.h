@@ -47,6 +47,20 @@
 /* open drain with medium pull down */
 #define GPIO_PAD_OD_MD		(GPIO_PAD_OD | GPIO_PAD_MD)
 
+/*=========================================================================
+ * GPIO irq configuration
+ *=======================================================================*/
+#define GPIO_IRQ_HIGH		0x01
+#define GPIO_IRQ_LOW		0x02
+#define GPIO_IRQ_EDGE		0x00
+#define GPIO_IRQ_LEVEL		0x04
+
+#define GPIO_IRQ_HE		GPIO_IRQ_HIGH | GPIO_IRQ_EDGE
+#define GPIO_IRQ_HL		GPIO_IRQ_HIGH | GPIO_IRQ_LEVEL
+#define GPIO_IRQ_LE		GPIO_IRQ_LOW | GPIO_IRQ_EDGE
+#define GPIO_IRQ_LL		GPIO_IRQ_LOW | GPIO_IRQ_LEVEL
+#define GPIO_IRQ_BE		GPIO_IRQ_HIGH | GPIO_IRQ_LOW | GPIO_IRQ_EDGE
+
 #include <driver/gpio.h>
 
 #define gpio_read_pin(port, pin)			\
@@ -61,5 +75,15 @@
 	gpio_hw_config_pad(port, pin, pad, ma)
 #define gpio_config_mux(port, pin, mux)			\
 	gpio_hw_config_mux(port, pin, mux)
+#define gpio_config_irq(port, pin, mode)		\
+	gpio_hw_config_irq(port, pin, mode)
+#define gpio_enable_irq(port, pin)			\
+	gpio_hw_enable_irq(port, pin)
+#define gpio_disable_irq(port, pin)			\
+	gpio_hw_disable_irq(port, pin)
+#define gpio_irq_status(port)				\
+	gpio_hw_irq_status(port)
+#define gpio_clear_irq(port, pin)			\
+	gpio_hw_clear_irq(port, pin)
 
 #endif /* __GPIO_H_INCLUDE__ */
