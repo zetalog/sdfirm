@@ -4,6 +4,9 @@
 #include <target/config.h>
 #include <target/generic.h>
 
+/*=========================================================================
+ * GPIO special drive
+ *=======================================================================*/
 #define GPIO_DRIVE_IN		0
 
 /*=========================================================================
@@ -54,14 +57,14 @@
  *=======================================================================*/
 #define GPIO_IRQ_HIGH		0x01
 #define GPIO_IRQ_LOW		0x02
-#define GPIO_IRQ_EDGE		0x00
-#define GPIO_IRQ_LEVEL		0x04
+#define GPIO_IRQ_EDGE_TRIG	0x00
+#define GPIO_IRQ_LEVEL_TRIG	0x04
 
-#define GPIO_IRQ_HE		GPIO_IRQ_HIGH | GPIO_IRQ_EDGE
-#define GPIO_IRQ_HL		GPIO_IRQ_HIGH | GPIO_IRQ_LEVEL
-#define GPIO_IRQ_LE		GPIO_IRQ_LOW | GPIO_IRQ_EDGE
-#define GPIO_IRQ_LL		GPIO_IRQ_LOW | GPIO_IRQ_LEVEL
-#define GPIO_IRQ_BE		GPIO_IRQ_HIGH | GPIO_IRQ_LOW | GPIO_IRQ_EDGE
+#define GPIO_IRQ_HE		(GPIO_IRQ_EDGE_TRIG | GPIO_IRQ_HIGH)
+#define GPIO_IRQ_HL		(GPIO_IRQ_LEVEL_TRIG | GPIO_IRQ_HIGH)
+#define GPIO_IRQ_LE		(GPIO_IRQ_EDGE_TRIG | GPIO_IRQ_LOW)
+#define GPIO_IRQ_LL		(GPIO_IRQ_LEVEL_TRIG | GPIO_IRQ_LOW)
+#define GPIO_IRQ_BE		(GPIO_IRQ_EDGE_TRIG | GPIO_IRQ_HIGH | GPIO_IRQ_LOW)
 
 #include <driver/gpio.h>
 
