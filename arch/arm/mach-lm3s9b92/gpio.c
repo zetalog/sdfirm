@@ -89,7 +89,7 @@ void gpio_hw_config_pad(uint8_t port, uint8_t pin,
 		__raw_clearl_atomic(pin, reg);
 	}
 
-	/* configure PIN OUT drive strength & PIN IN*/
+	/* configure PIN OUT drive strength & PIN IN */
 	reg = __gpio_hw_port_reg(port, GPIODIR);
 	if (drv == GPIO_DRIVE_IN) {
 		__raw_clearl_atomic(pin, reg);
