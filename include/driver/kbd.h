@@ -9,6 +9,9 @@
 #ifdef CONFIG_KBD_AT90SCR100
 #include <asm/mach-at90scr100/kbd.h>
 #endif
+#ifdef CONFIG_KBD_LM3S9B92
+#include <asm/mach-lm3s9b92/kbd.h>
+#endif
 
 #ifndef ARCH_HAVE_KBD
 #define KBD_HW_COL_KEYS			2

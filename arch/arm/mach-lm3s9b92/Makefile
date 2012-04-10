@@ -11,6 +11,7 @@ obj-y += tsc.rel
 
 obj-$(CONFIG_GPT_LM3S9B92) += gpt.rel
 obj-$(CONFIG_GPIO_LM3S9B92) += gpio.rel
+obj-$(CONFIG_KBD_LM3S9B92) += kbd.rel
 obj-$(CONFIG_UART_LM3S9B92) += uart.rel
 obj-$(CONFIG_LED_LM3S9B92) += led.rel
 obj-$(CONFIG_SSI_LM3S9B92) += ssi.rel
