@@ -172,7 +172,7 @@ void gpio_hw_config_irq(uint8_t port, uint8_t pin, uint8_t mode)
 		reg = __gpio_hw_port_reg(port, GPIOIBE);
 		__raw_clearl_atomic(pin, reg);
 
-		if (bits_raised(mode, GPIO_IRQ_EDGE)) {
+		if (bits_raised(mode, GPIO_IRQ_EDGE_TRIG)) {
 			reg = __gpio_hw_port_reg(port, GPIOIS);
 			__raw_clearl_atomic(pin, reg);
 		} else {
