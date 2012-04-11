@@ -101,8 +101,9 @@ void gpio_hw_config_pad(uint8_t port, uint8_t pin,
 	__raw_clearl_atomic(pin, reg);
 	if (drv <= 2) {
 		/* XXX: GPIO Bi-directional Drive
-		 * If a PIN can be both read and writen, it should be a
-		 * digital IO, 2mA drive should be enough for such PINs.
+		 * If a PIN can be both read and written, it should be
+		 * a digital IO, 2mA drive should be enough for such
+		 * PINs.
 		 */
 		__raw_setl_atomic(pin, reg);
 	}
