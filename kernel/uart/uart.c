@@ -219,6 +219,16 @@ void uart_async_select(void)
 	}
 }
 
+void uart_async_bh(void)
+{
+	if (bulk_cid == uart_bulk_rx(uart_pid)) {
+		uart_read_byte(uart_pid);
+	}
+	if (bulk_cid == uart_bulk_tx(uart_pid)) {
+		uart_write_byte(uart_pid);
+	}
+}
+
 void uart_startup(uart_pid_t pid, uart_user_t *user)
 {
 	BUG_ON(test_bit(pid, uart_port_regs));

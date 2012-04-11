@@ -23,6 +23,7 @@ boolean bulk_dump_save(boolean dbg);
 #define BULK_FLOW_STOP			0x03
 #define BULK_FLOW_HALT			0x04
 #define BULK_FLOW_UNHALT		0x05
+#define BULK_FLOW_STATE			0x06
 #define bulk_debug(tag, val)		dbg_print((tag), (val))
 #define bulk_debug_cid()				\
 	do {						\
@@ -81,6 +82,7 @@ struct bulk_channel {
 	io_cb halt;	/* halt the channel */
 	io_cb unhalt;	/* unhalt the channel */
 	io_cb select;
+	io_cb bh;
 	iotest_cb testpoll;
 	iordwr_cb xmitbyte;
 	iobulk_cb xmitbulk;

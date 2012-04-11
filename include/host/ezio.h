@@ -57,12 +57,13 @@ const char *ezio_key_name(int i);
 int ezio_init(const char *port, const char *baudrate);
 void ezio_exit(void);
 void ezio_sync_cmd(int cmd);
-void ezio_sync_display(unsigned char *str2);
+void ezio_sync_display(void);
+
 void ezio_async_display(unsigned char *str2);
+int ezio_async_read(void);
 
 extern uart_t ezio_uart;
 extern int ezio_port;
-extern unsigned char ezio_msg[EZIO_MAX_BUF];
 extern int ezio_state;
 
 #endif /* __EZIO_H_INCLUDE__ */

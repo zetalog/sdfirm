@@ -75,6 +75,9 @@ static void bulk_dump_flow(void *ctx, dbg_cmd_t cmd, dbg_data_t data)
 	case 0x05:
 		dbg_dumper(ctx, cmd, "flow=UNHALT");
 		break;
+	case 0x06:
+		dbg_dumper(ctx, cmd, "flow=BH");
+		break;
 	default:
 		dbg_dumper(ctx, cmd, "flow=%02x", data);
 		break;

@@ -226,6 +226,8 @@ static boolean ezio_cmd_execute(void)
 		break;
 	case EZIO_CMD_ScrollRight:
 		break;
+	case EZIO_CMD_EndOfHex:
+		break;
 	case EZIO_CMD_SetDispAddr:
 		if (ezio_cmd_addrdisp_is_valid()) {
 		}
