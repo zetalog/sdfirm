@@ -87,6 +87,10 @@ ifeq ($(CONFIG_ARCH_LM3S9B92),y)
  machine-$(CONFIG_ARCH_LM3S9B92)   := lm3s9b92
  incdir-$(CONFIG_ARCH_LM3S9B92)	   := lm3s9b92
 endif
+ifeq ($(CONFIG_ARCH_LM3S3826),y)
+ machine-$(CONFIG_ARCH_LM3S3826)   := lm3s3826
+ incdir-$(CONFIG_ARCH_LM3S3826)	   := lm3s3826
+endif
 
 ifeq ($(incdir-y),)
 incdir-y := $(machine-y)

@@ -26,6 +26,10 @@ config ARCH_LM3S9B92
 	help
 	  This enables support for systems based on LM3S9B92.
 
+config ARCH_LM3S3826
+	bool "Luminary Stellaris LM3S3826"
+	select CPU_CORTEXM3
+
 endchoice
 
 source arch/arm/common/Kconfig
