@@ -279,8 +279,16 @@ sync:
 	} else {
 bulk:
 		bulk_transfer_read(cid);
-		if (__bulk_channel_halting(cid))
+		if (__bulk_channel_halting(cid)) {
+			/* XXX: Bulk Channel Halt
+			 *
+			 * Note that bulk may disable IRQ after a halted
+			 * bulk_transfer_iocb, in case of UART, we need to
+			 * reenable the IRQ for UART OOB synchronization.
+			 */
+			uart_async_halt();
 			goto sync;
+		}
 	}
 }
 
