@@ -42,7 +42,6 @@ boolean bulk_dump_save(boolean dbg);
 			     flag);			\
 	} while (0)
 #else
-#define 
 #define bulk_debug(tag, val)
 #define bulk_debug_cid()
 #define bulk_raise_flag(cid, flag)			\

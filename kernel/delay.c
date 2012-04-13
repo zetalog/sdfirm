@@ -58,11 +58,11 @@ typedef tick_t lps_count_t;
 #else
 typedef tsc_count_t lps_count_t;
 #ifdef CALIBRATION_FREQ
-#define DELAY_TICKS_PER_CALIBRATION	(tsc_count_t)(TSC_FREQ/CALIBRATION_FREQ)
+#define DELAY_TICKS_PER_CALIBRATION	((tsc_count_t)(TSC_FREQ/CALIBRATION_FREQ))
 #define delay_calc(loops)		(loops_per_ms = __lps_mul(loops, CALIBRATION_FREQ))
 #else
 /* Following definition is true since HZ=1000 and TSC_FREQ=tsc_freq/1000 */
-#define DELAY_TICKS_PER_CALIBRATION	(tsc_count_t)TSC_FREQ
+#define DELAY_TICKS_PER_CALIBRATION	((tsc_count_t)TSC_FREQ)
 #define delay_calc(loops)		(loops_per_ms = loops)
 #endif
 #define DELAY_TICKS_MAX			TSC_MAX
@@ -196,6 +196,7 @@ static void __calibrate_delay(void)
 #endif
 
 	delay_calc(loops_per_calibration);
+	loops_per_us = __lps_div(loops_per_ms, 1000);
 }
 #endif
 
@@ -216,7 +217,6 @@ void udelay(uint8_t us)
 static void calibrate_delay(void)
 {
 	__calibrate_delay();
-	loops_per_us = __lps_div(loops_per_ms, 1000);
 }
 
 void delay_init(void)

@@ -56,7 +56,6 @@ boolean test_bit(uint8_t nr, const bits_t *addr)
 	return (bits_t)1 & (addr[BITOP_WORD(nr)] >> (nr & (BITS_PER_UNIT-1)));
 }
 
-#ifdef CONFIG_BIT_FIND_SET
 uint8_t find_next_set_bit(const bits_t *addr,
 			  uint8_t size,
 			  uint8_t offset)
@@ -96,7 +95,6 @@ found_first:
 found_middle:
 	return result + __ffs8(tmp);
 }
-#endif
 
 #ifdef CONFIG_BIT_FIND_CLEAR
 uint8_t find_next_clear_bit(const bits_t *addr,
@@ -163,7 +161,6 @@ uint8_t __fls8(uint8_t x)
 }
 #endif
 
-#ifdef CONFIG_BIT_FFS8
 uint8_t __ffs8(uint8_t byte)
 {
 	uint8_t num = 0;
@@ -183,7 +180,6 @@ uint8_t __ffs8(uint8_t byte)
 		num += 1;
 	return num;
 }
-#endif
 
 #ifdef CONFIG_BIT_FFS16
 uint8_t __ffs16(uint16_t word)

@@ -5,7 +5,7 @@
 #include <asm/mach/arch.h>
 
 #define nop()		__asm__ __volatile__ ("nop" ::)
-#define waiti()		__asm__ __volatile__ ("sleep" ::)
+#define wait_irq()	__asm__ __volatile__ ("sleep" ::)
 #define mb()		__asm__ __volatile__ ("" : : : "memory")
 #define rmb()		__asm__ __volatile__ ("" : : : "memory")
 #define wmb()		__asm__ __volatile__ ("" : : : "memory")

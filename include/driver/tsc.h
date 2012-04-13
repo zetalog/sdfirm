@@ -27,7 +27,7 @@ typedef uint32_t tsc_count_t;
  * macro before tsc_count_t definitions to eliminate such overheads.
  */
 #ifndef tsc_hw_read_counter
-tsc_count_t tsc_hw_read_counter();
+tsc_count_t tsc_hw_read_counter(void);
 #endif
 void tsc_hw_ctrl_init(void);
 

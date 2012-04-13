@@ -6,9 +6,6 @@ menu "Library setup"
 
 menu "Bit-wise operations"
 
-config BIT_FFS8
-	bool "ffs"
-
 config BIT_FLS8
 	bool "fls"
 
@@ -44,13 +41,8 @@ endmenu
 
 menu "Bitmap operations"
 
-config BIT_FIND_SET
-	bool "find_set_bit"
-	select BIT_FFS8
-
 config BIT_FIND_CLEAR
 	bool "find_clear_bit"
-	select BIT_FFS8
 
 endmenu
 

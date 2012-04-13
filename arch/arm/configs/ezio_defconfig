@@ -166,7 +166,6 @@ CONFIG_UART_MAX_PORTS=2
 #
 # Bit-wise operations
 #
-CONFIG_BIT_FFS8=y
 # CONFIG_BIT_FLS8 is not set
 CONFIG_BIT_FLS16=y
 CONFIG_BIT_FFS16=y
@@ -180,7 +179,6 @@ CONFIG_BIT_FFS16=y
 #
 # Bitmap operations
 #
-# CONFIG_BIT_FIND_SET is not set
 CONFIG_BIT_FIND_CLEAR=y
 
 #

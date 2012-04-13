@@ -1,8 +1,6 @@
 #include <target/state.h>
 #include <target/irq.h>
 
-#define state_sleep(sid)		(clear_bit((sid), state_awakes))
-
 DECLARE_BITMAP(state_awakes, NR_STATES);
 struct state_entry state_entries[NR_STATES];
 sid_t state_nr_regs = 0;
@@ -61,9 +59,21 @@ void state_run(sid_t sid, uint8_t event)
 	state_unlock();
 }
 
-void state_wakeup(sid_t sid)
+void bh_suspend(sid_t sid)
+{	
+	clear_bit((sid), state_awakes);
+}
+
+void bh_resume(sid_t sid)
 {
 	set_bit(sid, state_awakes);
+}
+
+boolean bh_resumed_any(void)
+{
+	return NR_STATES == find_next_set_bit(state_awakes,
+					      NR_STATES, 0) 
+	       ? false : true;
 }
 
 sid_t state_register(state_call_cb handler)
@@ -82,7 +92,7 @@ void state_run_all(void)
 
 	for (sid = 0; sid < state_nr_regs; sid++) {
 		if (test_bit(sid, state_awakes)) {
-			state_sleep(sid);
+			bh_suspend(sid);
 			state_run(sid, STATE_EVENT_WAKE);
 		}
 		poll_run(sid);

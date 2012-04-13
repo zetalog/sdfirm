@@ -25,7 +25,9 @@ void state_run_all(void);
 void state_run(sid_t sid, uint8_t event);
 void __state_run(sid_t sid, uint8_t event);
 void state_run_idle(void);
-void state_wakeup(sid_t sid);
+void bh_suspend(sid_t sid);
+void bh_resume(sid_t sid);
+boolean bh_resumed_any(void); 
 sid_t state_register(state_call_cb handler);
 
 /* hardware irq poller */

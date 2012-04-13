@@ -136,7 +136,6 @@ CONFIG_OUTPUT_NONE=y
 #
 # Bit-wise operations
 #
-CONFIG_BIT_FFS8=y
 # CONFIG_BIT_FLS8 is not set
 # CONFIG_BIT_FLS16 is not set
 # CONFIG_BIT_FFS16 is not set
@@ -150,7 +149,6 @@ CONFIG_BIT_FFS8=y
 #
 # Bitmap operations
 #
-CONFIG_BIT_FIND_SET=y
 # CONFIG_BIT_FIND_CLEAR is not set
 
 #

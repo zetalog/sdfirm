@@ -27,7 +27,7 @@ __near__ sid_t usb_sid = INVALID_SID;
 
 void usb_wakeup_state(void)
 {
-	state_wakeup(usb_sid);
+	bh_resume(usb_sid);
 }
 
 tid_t usb_timer_register(void)

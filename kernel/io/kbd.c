@@ -74,7 +74,7 @@ kbd_event_cb kbd_set_capture(kbd_event_cb new_kh,
 	io_debug(IO_DEBUG_WAIT_KEY, kbd_event_tout);
 	if (timeout) {
 		kbd_sync_aborted = false;
-		state_wakeup(kbd_sid);
+		bh_resume(kbd_sid);
 	}
 	return temp_kh;
 }

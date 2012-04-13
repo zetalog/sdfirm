@@ -80,6 +80,13 @@ void system_init(void)
 	main_debug(MAIN_DEBUG_INIT, 1);
 
 	while (1) {
+#if 0
+		while (!bh_resumed_any()) {
+			dbg_dump(0xAA);
+			wait_irq();
+		}
+		dbg_dump(0xAB);
+#endif
 		state_run_all();
 	}
 }
@@ -145,7 +152,7 @@ static void flash_start_timer(void)
 static void flash_restart_timer(void)
 {
 	mdelay(250);
-	state_wakeup(porting_sid);
+	bh_resume(porting_sid);
 }
 
 void flash_start_timer(void)
@@ -215,7 +222,7 @@ void porting_handler(uint8_t event)
 {
 	while (1)
 	porting_heap_test();
-	state_wakeup(porting_sid);
+	bh_resume(porting_sid);
 }
 
 void porting_init(void)
@@ -224,7 +231,7 @@ void porting_init(void)
 	BUG_ON(CONFIG_HEAP_SIZE <= PORTING_HEAP_UNIT);
 	BUG_ON(CONFIG_HEAP_SIZE & (PORTING_HEAP_UNIT-1));
 	porting_sid = state_register(porting_handler);
-	state_wakeup(porting_sid);
+	bh_resume(porting_sid);
 }
 #endif
 
@@ -259,24 +266,24 @@ void porting_init(void)
 #ifdef CONFIG_PORTING_DELAY
 void porting_handler(uint8_t event)
 {
-	mdelay(250);
-	mdelay(250);
-	mdelay(250);
-	mdelay(250);
 #ifdef CONFIG_LPS_32BITS
 	dbg_dump(HIBYTE(HIWORD(loops_per_ms)));
 	dbg_dump(LOBYTE(HIWORD(loops_per_ms)));
 #endif
 	dbg_dump(HIBYTE(loops_per_ms));
 	dbg_dump(LOBYTE(loops_per_ms));
-	state_wakeup(porting_sid);
+	mdelay(250);
+	mdelay(250);
+	mdelay(250);
+	mdelay(250);
+	bh_resume(porting_sid);
 }
 
 void porting_init(void)
 {
 	delay_init();
 	porting_sid = state_register(porting_handler);
-	state_wakeup(porting_sid);
+	bh_resume(porting_sid);
 }
 #endif
 
@@ -306,7 +313,7 @@ void porting_handler(uint8_t event)
 		dbg_dump(spi_read_byte());
 	}
 	spi_deselect_device();
-	state_wakeup(porting_sid);
+	bh_resume(porting_sid);
 }
 
 void porting_init(void)
@@ -314,7 +321,7 @@ void porting_init(void)
 	spi_init();
 	porting_spi = spi_register_device(&porting_spi_device);
 	porting_sid = state_register(porting_handler);
-	state_wakeup(porting_sid);
+	bh_resume(porting_sid);
 }
 #endif
 
@@ -360,14 +367,14 @@ void porting_handler(uint8_t event)
 	dbg_dump(HIBYTE(counter));
 #endif
 	dbg_dump(LOBYTE(counter));
-	state_wakeup(porting_sid);
+	bh_resume(porting_sid);
 }
 
 void porting_init(void)
 {
 	tsc_hw_ctrl_init();
 	porting_sid = state_register(porting_handler);
-	state_wakeup(porting_sid);
+	bh_resume(porting_sid);
 }
 #endif
 
@@ -501,7 +508,7 @@ void porting_init(void)
 {
 	porting_sid = state_register(porting_handler);
 	delay_init();
-	state_wakeup(porting_sid);
+	bh_resume(porting_sid);
 }
 #endif
 
@@ -534,7 +541,7 @@ void porting_handler(uint8_t event)
 void porting_init(void)
 {
 	porting_sid = state_register(porting_handler);
-	state_wakeup(porting_sid);
+	bh_resume(porting_sid);
 }
 #endif
 
@@ -668,14 +675,14 @@ void porting_handler(uint8_t event)
 	dbg_dump((uint8_t)(porting_string[porting_byte]));
 	porting_byte++;
 	if (porting_byte > porting_length) porting_byte = 0;
-	state_wakeup(porting_sid);
+	bh_resume(porting_sid);
 }
 
 void porting_init(void)
 {
 	porting_length = text_strlen(porting_string);
 	porting_sid = state_register(porting_handler);
-	state_wakeup(porting_sid);
+	bh_resume(porting_sid);
 }
 #endif
 
@@ -709,6 +716,13 @@ void system_init(void)
 	irq_local_enable();
 
 	while (1) {
+#if 0
+		while (!bh_resumed_any()) {
+			dbg_dump(0xAA);
+			wait_irq();
+		}
+		dbg_dump(0xAB);
+#endif
 		state_run_all();
 	}
 }

@@ -12,7 +12,7 @@
 #define mb()
 #define rmb()
 #define wmb()
-
+#define wait_irq()
 #include <asm/mach/arch.h>
 
 #endif /* __ARCH_MCS51_H_INCLUDE__ */

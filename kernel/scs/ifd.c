@@ -263,7 +263,7 @@ void ifd_slot_raise(ifd_event_t event)
 {
 	scs_debug_sl_event(event);
 	ifd_slot_event |= event;
-	state_wakeup(ifd_sid);
+	bh_resume(ifd_sid);
 }
 
 static ifd_event_t ifd_event_save(void)
@@ -998,7 +998,7 @@ void ifd_xchg_raise(uint8_t event)
 {
 	scs_debug_xg_event(event);
 	ifd_xchg_event |= event;
-	state_wakeup(ifd_sid);
+	bh_resume(ifd_sid);
 }
 
 boolean ifd_xchg_raised_any(void)

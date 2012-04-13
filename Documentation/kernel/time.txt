@@ -271,7 +271,7 @@ Codes implemented by the timer task is as follows:
 #ifndef CONFIG_TICK
 void tick_handler(void)
 {
-	state_wakeup(TIMER_PID);
+	bh_resume(TIMER_PID);
 }
 
 void timer_run(void)

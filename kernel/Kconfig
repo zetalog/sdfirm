@@ -261,7 +261,6 @@ choice
 
 config HEAP_DLMALLOC
 	bool "Doug Lea malloc"
-	select BIT_FIND_SET
 
 endchoice
 
