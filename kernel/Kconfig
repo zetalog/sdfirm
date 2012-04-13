@@ -64,6 +64,9 @@ config ARCH_HAS_GPT
 config ARCH_HAS_TSC
 	bool
 
+config ARCH_HAS_WDT
+	bool
+
 config ARCH_IS_TICKLESS
 	bool
 

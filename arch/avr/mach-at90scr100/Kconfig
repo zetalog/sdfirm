@@ -216,14 +216,6 @@ config IFD_AT90SCR100_PRES_EXTERNAL
 
 endif
 
-menuconfig WDT_AT90SCR100
-	bool "Atmel AT90SCR100 watchdog support"
-	depends WDT
-	default y
-
-if WDT_AT90SCR100
-endif
-
 menuconfig TWI_AT90SCR100
 	bool "Atmel AT90SCR100 2-wire serial interface (TWI) support"
 	depends I2C

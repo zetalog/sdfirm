@@ -22,6 +22,7 @@ config ARCH_AT90USB1287
 	select ARCH_IS_TICKLESS
 	select GPT_AT90USB1287 if TIMER
 	select ARCH_HAS_TSC
+	select ARCH_HAS_WDT
 	help
 	  This enables support for systems based on AT90USBKey.
 
@@ -31,6 +32,7 @@ config ARCH_AT90SCR100
 	select GPT_AT90SCR100 if TIMER
 	select ARCH_IS_TICKLESS
 	select ARCH_HAS_TSC
+	select ARCH_HAS_WDT
 	help
 	  This enables support for systems based on AT90SCRdr.
 

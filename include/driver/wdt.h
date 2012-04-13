@@ -3,8 +3,8 @@
 
 #include <target/config.h>
 
-#ifdef CONFIG_WDT_AT90USB1287
-#include <asm/mach-at90usb1287/wdt.h>
+#ifdef CONFIG_ARCH_HAS_WDT
+#include <asm/mach/wdt.h>
 #endif
 
 #ifndef ARCH_HAVE_WDT

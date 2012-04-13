@@ -43,14 +43,6 @@ menuconfig GPT_AT90USB1287
 if GPT_AT90USB1287
 endif
 
-menuconfig WDT_AT90USB1287
-	bool "Atmel AT90USB1287 watchdog support"
-	depends WDT
-	default y
-
-if WDT_AT90USB1287
-endif
-
 menuconfig LED_AT90USB1287
 	bool "Atmel AT90USB1287 led support"
 	depends LED
