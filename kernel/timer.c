@@ -90,7 +90,7 @@ void timer_run(uint8_t type)
 	}
 }
 
-#define timer_start()		bh_resume(timer_sid)
+#define timer_start()		bh_resume(timer_bh)
 #define timer_restart()		timer_start()
 #else
 timeout_t timer_timeout = TIMER_MAKE(TIMER_FLAG_SHOT, 0);
@@ -135,7 +135,7 @@ void timer_shot_timeout(timeout_t to_shot)
 {
 	if (to_shot == 0) {
 		/* do not run GPT on 0 timeout shot value */
-		bh_resume(timer_sid);
+		bh_resume(timer_bh);
 	} else if (to_shot < GPT_MAX_TIMEOUT) {
 		timer_unshot_timeout = 0;
 		gpt_oneshot_timeout(to_shot);
@@ -173,7 +173,7 @@ void tick_handler(void)
 	if (timer_unshot_timeout)
 		timer_shot_timeout(timer_unshot_timeout);
 	else
-		bh_resume(timer_sid);
+		bh_resume(timer_bh);
 }
 #endif
 
@@ -192,6 +192,6 @@ void timer_handler(uint8_t event)
 
 void timer_init(void)
 {
-	timer_sid = bh_register_handler(timer_handler);
+	timer_bh = bh_register_handler(timer_handler);
 	timer_start();
 }
