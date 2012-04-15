@@ -1,39 +1,38 @@
-#ifndef __STATE_H_INCLUDE__
-#define __STATE_H_INCLUDE__
+#ifndef __BH_H_INCLUDE__
+#define __BH_H_INCLUDE__
 
 #include <target/config.h>
 #include <target/generic.h>
 
-typedef uint8_t sid_t;
+typedef uint8_t bh_t;
 
-typedef void (*state_call_cb)(uint8_t event);
+typedef void (*bh_cb)(uint8_t event);
 
-#define STATE_EVENT_WAKE	0x00	/* state wakeup */
-#define STATE_EVENT_SHOT	0x01	/* timeout shot */
-#define STATE_EVENT_POLL	0x02	/* irq polling */
+#define BH_WAKEUP	0x00	/* bottom half wakeup */
+#define BH_TIMEOUT	0x01	/* timeout shot */
+#define BH_POLLIRQ	0x02	/* irq polling */
 
-struct state_entry {
-	state_call_cb handler;		/* module entry */
+struct bh_entry {
+	bh_cb handler;			/* module entry */
 };
 
-#define NR_STATES			CONFIG_MAX_STATES
+#define NR_BHS				CONFIG_MAX_BHS
+#define INVALID_BH			NR_BHS
 
-#define INVALID_SID			NR_STATES
-
-/* state machine */
-void state_run_all(void);
-void state_run(sid_t sid, uint8_t event);
-void __state_run(sid_t sid, uint8_t event);
-void state_run_idle(void);
-void bh_suspend(sid_t sid);
-void bh_resume(sid_t sid);
+/* bottom halves */
+void bh_run_all(void);
+void bh_run(bh_t bh, uint8_t event);
+void __bh_run(bh_t bh, uint8_t event);
+void bh_panic(void);
+void bh_suspend(bh_t bh);
+void bh_resume(bh_t bh);
 boolean bh_resumed_any(void); 
-sid_t state_register(state_call_cb handler);
+bh_t bh_register_handler(bh_cb handler);
 
-/* hardware irq poller */
-void poll_register(sid_t sid);
-void poll_run(sid_t sid);
+/* irq pollers */
+void poll_register(bh_t bh);
+void poll_run(bh_t bh);
 
-void state_init(void);
+void bh_init(void);
 
-#endif /* __STATE_H_INCLUDE__ */
+#endif /* __BH_H_INCLUDE__ */

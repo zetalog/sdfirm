@@ -42,6 +42,6 @@ void dbg_panic(const text_char_t *file, int line)
 	main_debug(MAIN_DEBUG_PANIC, 1<<4);
 
 	while (1)
-		state_run_idle();
+		bh_panic();
 }
 #endif

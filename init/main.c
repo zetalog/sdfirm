@@ -16,7 +16,7 @@ uint16_t system_product_id(void)
 extern void board_init(void);
 extern void appl_init(void);
 extern void modules_init(void);
-extern void state_init(void);
+extern void bh_init(void);
 #ifdef CONFIG_TICK
 extern void tick_init(void);
 #else
@@ -67,7 +67,7 @@ void system_init(void)
 	gpio_init();
 	debug_init();
 	irq_init();
-	state_init();
+	bh_init();
 	tick_init();
 	delay_init();
 	timer_init();
@@ -80,14 +80,12 @@ void system_init(void)
 	main_debug(MAIN_DEBUG_INIT, 1);
 
 	while (1) {
-#if 0
 		while (!bh_resumed_any()) {
 			dbg_dump(0xAA);
 			wait_irq();
 		}
 		dbg_dump(0xAB);
-#endif
-		state_run_all();
+		bh_run_all();
 	}
 }
 
@@ -123,7 +121,7 @@ void system_resume(void)
 #include <target/state.h>
 #include <target/task.h>
 
-sid_t porting_sid = INVALID_SID;
+bh_t porting_bh = INVALID_BH;
 tid_t porting_tid = INVALID_TID;
 
 #ifdef CONFIG_LED
@@ -145,14 +143,14 @@ static void flash_restart_timer(void)
 static void flash_start_timer(void)
 {
 	timer_init();
-	porting_tid = timer_register(porting_sid, TIMER_DELAYABLE);
+	porting_tid = timer_register(porting_bh, TIMER_DELAYABLE);
 	timer_schedule_shot(porting_tid, 0);
 }
 #else
 static void flash_restart_timer(void)
 {
 	mdelay(250);
-	bh_resume(porting_sid);
+	bh_resume(porting_bh);
 }
 
 void flash_start_timer(void)
@@ -185,7 +183,7 @@ void porting_handler(uint8_t event)
 void porting_init(void)
 {
 	led_init();
-	porting_sid = state_register(porting_handler);
+	porting_bh = bh_register_handler(porting_handler);
 	porting_led_init();
 }
 #endif
@@ -222,7 +220,7 @@ void porting_handler(uint8_t event)
 {
 	while (1)
 	porting_heap_test();
-	bh_resume(porting_sid);
+	bh_resume(porting_bh);
 }
 
 void porting_init(void)
@@ -230,8 +228,8 @@ void porting_init(void)
 	heap_init();
 	BUG_ON(CONFIG_HEAP_SIZE <= PORTING_HEAP_UNIT);
 	BUG_ON(CONFIG_HEAP_SIZE & (PORTING_HEAP_UNIT-1));
-	porting_sid = state_register(porting_handler);
-	bh_resume(porting_sid);
+	porting_bh = bh_register_handler(porting_handler);
+	bh_resume(porting_bh);
 }
 #endif
 
@@ -257,8 +255,8 @@ void porting_handler(uint8_t event)
 void porting_init(void)
 {
 	timer_init();
-	porting_sid = state_register(porting_handler);
-	porting_tid = timer_register(porting_sid, TIMER_DELAYABLE);
+	porting_bh = bh_register_handler(porting_handler);
+	porting_tid = timer_register(porting_bh, TIMER_DELAYABLE);
 	timer_schedule_shot(porting_tid, 0);
 }
 #endif
@@ -276,14 +274,14 @@ void porting_handler(uint8_t event)
 	mdelay(250);
 	mdelay(250);
 	mdelay(250);
-	bh_resume(porting_sid);
+	bh_resume(porting_bh);
 }
 
 void porting_init(void)
 {
 	delay_init();
-	porting_sid = state_register(porting_handler);
-	bh_resume(porting_sid);
+	porting_bh = bh_register_handler(porting_handler);
+	bh_resume(porting_bh);
 }
 #endif
 
@@ -313,15 +311,15 @@ void porting_handler(uint8_t event)
 		dbg_dump(spi_read_byte());
 	}
 	spi_deselect_device();
-	bh_resume(porting_sid);
+	bh_resume(porting_bh);
 }
 
 void porting_init(void)
 {
 	spi_init();
 	porting_spi = spi_register_device(&porting_spi_device);
-	porting_sid = state_register(porting_handler);
-	bh_resume(porting_sid);
+	porting_bh = bh_register_handler(porting_handler);
+	bh_resume(porting_bh);
 }
 #endif
 
@@ -350,7 +348,7 @@ void porting_init(void)
 {
 	gpt_hw_ctrl_init();
 	gpt_oneshot_timeout(porting_byte);
-	porting_sid = state_register(porting_handler);
+	porting_bh = bh_register_handler(porting_handler);
 }
 #endif
 
@@ -367,14 +365,14 @@ void porting_handler(uint8_t event)
 	dbg_dump(HIBYTE(counter));
 #endif
 	dbg_dump(LOBYTE(counter));
-	bh_resume(porting_sid);
+	bh_resume(porting_bh);
 }
 
 void porting_init(void)
 {
 	tsc_hw_ctrl_init();
-	porting_sid = state_register(porting_handler);
-	bh_resume(porting_sid);
+	porting_bh = bh_register_handler(porting_handler);
+	bh_resume(porting_bh);
 }
 #endif
 
@@ -506,9 +504,9 @@ void porting_handler(uint8_t event)
 
 void porting_init(void)
 {
-	porting_sid = state_register(porting_handler);
+	porting_bh = bh_register_handler(porting_handler);
 	delay_init();
-	bh_resume(porting_sid);
+	bh_resume(porting_bh);
 }
 #endif
 
@@ -540,8 +538,8 @@ void porting_handler(uint8_t event)
 
 void porting_init(void)
 {
-	porting_sid = state_register(porting_handler);
-	bh_resume(porting_sid);
+	porting_bh = bh_register_handler(porting_handler);
+	bh_resume(porting_bh);
 }
 #endif
 
@@ -675,14 +673,14 @@ void porting_handler(uint8_t event)
 	dbg_dump((uint8_t)(porting_string[porting_byte]));
 	porting_byte++;
 	if (porting_byte > porting_length) porting_byte = 0;
-	bh_resume(porting_sid);
+	bh_resume(porting_bh);
 }
 
 void porting_init(void)
 {
 	porting_length = text_strlen(porting_string);
-	porting_sid = state_register(porting_handler);
-	bh_resume(porting_sid);
+	porting_bh = bh_register_handler(porting_handler);
+	bh_resume(porting_bh);
 }
 #endif
 
@@ -704,7 +702,7 @@ void system_init(void)
 	gpio_init();
 	debug_init();
 	irq_init();
-	state_init();
+	bh_init();
 	tick_init();
 	/* omit delay_init() here for porting */
 	/* omit timer_init() here for porting */
@@ -716,14 +714,12 @@ void system_init(void)
 	irq_local_enable();
 
 	while (1) {
-#if 0
 		while (!bh_resumed_any()) {
 			dbg_dump(0xAA);
 			wait_irq();
 		}
 		dbg_dump(0xAB);
-#endif
-		state_run_all();
+		bh_run_all();
 	}
 }
 #endif

@@ -15,7 +15,7 @@ typedef uint8_t tid_t;
 #ifdef CONFIG_MAX_TIMERS
 #define NR_TIMERS				CONFIG_MAX_TIMERS
 #else
-#define NR_TIMERS				NR_STATES
+#define NR_TIMERS				NR_BHS
 #endif
 #define INVALID_TID				NR_TIMERS
 
@@ -32,7 +32,7 @@ typedef uint8_t tid_t;
 #define TIMER_INTERRUPT				0x02
 
 #ifdef CONFIG_TIMER
-tid_t timer_register(sid_t sid, uint8_t type);
+tid_t timer_register(bh_t bh, uint8_t type);
 void timer_schedule_shot(tid_t tid, timeout_t tout_ms);
 
 void timer_run(uint8_t type);

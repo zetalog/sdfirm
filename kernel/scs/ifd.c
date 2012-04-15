@@ -170,7 +170,7 @@ text_word_t ifd_fmax_supps[NR_IFD_FIS] = {
 };
 
 __near__ scs_cmpl_cb ifd_complete = NULL;
-__near__ sid_t ifd_sid = INVALID_SID;
+__near__ bh_t ifd_bh = INVALID_BH;
 
 uint8_t ifd_nr_protos = 0;
 ifd_proto_t *ifd_protos[NR_IFD_PROTOS];
@@ -263,7 +263,7 @@ void ifd_slot_raise(ifd_event_t event)
 {
 	scs_debug_sl_event(event);
 	ifd_slot_event |= event;
-	bh_resume(ifd_sid);
+	bh_resume(ifd_bh);
 }
 
 static ifd_event_t ifd_event_save(void)
@@ -998,7 +998,7 @@ void ifd_xchg_raise(uint8_t event)
 {
 	scs_debug_xg_event(event);
 	ifd_xchg_event |= event;
-	bh_resume(ifd_sid);
+	bh_resume(ifd_bh);
 }
 
 boolean ifd_xchg_raised_any(void)
@@ -2459,7 +2459,7 @@ __near__ tid_t ifd_tid = INVALID_TID;
 
 static void ifd_pres_init(void)
 {
-	ifd_tid = timer_register(ifd_sid, TIMER_DELAYABLE);
+	ifd_tid = timer_register(ifd_bh, TIMER_DELAYABLE);
 	timer_schedule_shot(ifd_tid, IFD_PRES_POLL_TIMEOUT);
 }
 
@@ -2495,11 +2495,11 @@ static void ifd_state_handler(void)
 static void ifd_handler(uint8_t event)
 {
 	switch (event) {
-	case STATE_EVENT_SHOT:
-		ifd_pres_handler();
-		break;
-	case STATE_EVENT_WAKE:
+	case BH_WAKEUP:
 		ifd_state_handler();
+		break;
+	case BH_TIMEOUT:
+		ifd_pres_handler();
 		break;
 	default:
 		BUG();
@@ -2512,7 +2512,7 @@ void ifd_init(void)
 	ifd_sid_t sid, ssid;
 
 	DEVICE_FUNC(DEVICE_FUNC_IFD);
-	ifd_sid = state_register(ifd_handler);
+	ifd_bh = bh_register_handler(ifd_handler);
 
 	/* only one IFD is allowed */
 	ifd_hw_ctrl_init();

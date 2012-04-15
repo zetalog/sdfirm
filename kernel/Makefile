@@ -6,16 +6,17 @@ obj-y:=
 
 obj-y += panic.rel
 obj-y += irq.rel
-obj-y += state.rel
+obj-y += bh.rel
 obj-y += delay.rel
 obj-$(CONFIG_TASK) += task.rel
 obj-$(CONFIG_TICK) += tick.rel
 obj-$(CONFIG_TIMER) += timer.rel
-obj-$(CONFIG_HEAP) += heap.rel
-obj-$(CONFIG_HEAP_DLMALLOC) += heap_dlmalloc.rel
 obj-$(CONFIG_BULK) += bulk.rel
+# may be deprecated in the future
 #obj-$(CONFIG_BULK) += bulk_dio.rel
 obj-$(CONFIG_GPIO) += gpio.rel
+obj-$(CONFIG_HEAP) += heap.rel
+obj-$(CONFIG_HEAP_DLMALLOC) += heap_dlmalloc.rel
 
 obj-y += io/
 obj-y += uart/

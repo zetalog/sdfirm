@@ -82,7 +82,7 @@ CONFIG_MAX_VECTORS=4
 #
 # Scheduling facility (poll) support
 #
-CONFIG_MAX_STATES=4
+CONFIG_MAX_BHS=4
 
 #
 # Timing facility (jiffy) support

@@ -68,7 +68,7 @@ CONFIG_ARCH_HAS_TSC=y
 #
 # Scheduling facility (poll) support
 #
-CONFIG_MAX_STATES=4
+CONFIG_MAX_BHS=4
 
 #
 # Timing facility (jiffy) support

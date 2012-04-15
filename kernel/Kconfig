@@ -86,22 +86,24 @@ config MAX_VECTORS
 
 endmenu
 
-menu "Scheduling facility (poll) support"
+menu "Scheduling facility (bh) support"
 
-config MAX_STATES
-	int "Num of pollable state machines (1~8)"
+config MAX_BHS
+	int "Num of bottom halves (1~8)"
 	range 1 8
 	default 4
 	help
-	  State machines may register state machines for tasks.  Since
+	  State machines may register bottom halves for tasks.  Since
 	  state machines can be disabled, you can also reduce number of
-	  state machines here to save memory usage.
-	  Following state machines require timers:
+	  bottom halves here to save memory usage.
+	  Following bottom halves may be required:
 	  timer
-	  usb
+	  bulk
+	  task
+	  And the followings may be deleted in the future:
 	  ifd
 	  keyboard
-	  dfu
+	  acr122
 	  If you are not sure, say 6 here.
 
 endmenu

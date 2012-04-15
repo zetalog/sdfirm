@@ -23,16 +23,16 @@ extern void hcd_handler(uint8_t event);
 #define hcd_handler(event)	do {} while (0)
 #endif
 
-__near__ sid_t usb_sid = INVALID_SID;
+__near__ bh_t usb_bh = INVALID_BH;
 
 void usb_wakeup_state(void)
 {
-	bh_resume(usb_sid);
+	bh_resume(usb_bh);
 }
 
 tid_t usb_timer_register(void)
 {
-	return timer_register(usb_sid, TIMER_DELAYABLE);
+	return timer_register(usb_bh, TIMER_DELAYABLE);
 }
 
 #if defined(CONFIG_USB_DEV) && defined(CONFIG_USB_HCD)
@@ -50,11 +50,11 @@ void usb_set_mode(uint8_t mode)
 #endif
 
 #ifdef SYS_REALTIME
-#define usb_poll_init()	poll_register(usb_sid)
+#define usb_poll_init()	poll_register(usb_bh)
 
 static void usb_poll_handler(uint8_t event)
 {
-	if (event == STATE_EVENT_POLL) {
+	if (event == BH_POLLIRQ) {
 		usb_hw_irq_poll();
 	}
 }
@@ -71,7 +71,7 @@ void usb_handler(uint8_t event)
 {
 	usb_poll_handler(event);
 
-	if (event != STATE_EVENT_POLL) {
+	if (event != BH_POLLIRQ) {
 		if (usb_get_mode() == USB_MODE_DEVICE)
 			usbd_handler(event);
 		else
@@ -97,7 +97,7 @@ void usb_switch_mode(uint8_t mode)
 void usb_init(void)
 {
 	DEVICE_INTF(DEVICE_INTF_USB);
-	usb_sid = state_register(usb_handler);
+	usb_bh = bh_register_handler(usb_handler);
 	usb_hw_ctrl_init();
 	usb_poll_init();
 	usbd_init();

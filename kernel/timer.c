@@ -11,13 +11,13 @@
 #define TIMER_MAKE(shot, time)		((shot) | ((timeout_t)(time) << 1))
 
 typedef struct timer_t {
-	sid_t sid;
+	bh_t bh;
 	timeout_t timeout;
 } timer_t;
 
 timer_t timer_entries[NR_TIMERS];
 uint8_t timer_nr_regs = 0;
-sid_t timer_sid = INVALID_SID;
+bh_t timer_bh = INVALID_BH;
 tid_t timer_running_tid = INVALID_TID;
 
 void __timer_reset_timeout(tid_t tid, timeout_t tout_ms)
@@ -26,33 +26,33 @@ void __timer_reset_timeout(tid_t tid, timeout_t tout_ms)
 	timer_entries[tid].timeout = TIMER_MAKE(TIMER_FLAG_SHOT, tout_ms);
 }
 
-sid_t timer_tid2sid(tid_t tid)
+bh_t timer_tid2bh(tid_t tid)
 {
 	BUG_ON(tid >= NR_TIMERS);
-	return timer_entries[tid].sid;
+	return timer_entries[tid].bh;
 }
 
 void __timer_run(tid_t tid)
 {
-	sid_t sid;
+	bh_t bh;
 
 	timer_running_tid = tid;
-	sid = timer_tid2sid(tid);
-	__state_run(sid, STATE_EVENT_SHOT);
+	bh = timer_tid2bh(tid);
+	__bh_run(bh, BH_TIMEOUT);
 	timer_running_tid = INVALID_TID;
 }
 
 /* Reister a timer delay to execute the state machine
  *
- * IN sid: the state machine will be executed when the timer is due
+ * IN bh: the state machine will be executed when the timer is due
  * IN timeout: the period that will be delayed
  * OUT tid: return NR_TIMERS on error
  */
-tid_t timer_register(sid_t sid, uint8_t type)
+tid_t timer_register(bh_t bh, uint8_t type)
 {
 	tid_t tid = timer_nr_regs;
 	BUG_ON(tid == NR_TIMERS);
-	timer_entries[tid].sid = sid;
+	timer_entries[tid].bh = bh;
 	timer_entries[tid].timeout = TIMER_IDLE;
 	timer_nr_regs++;
 	timer_running_tid = tid;
@@ -185,13 +185,13 @@ void timer_schedule_shot(tid_t tid, timeout_t tout_ms)
 
 void timer_handler(uint8_t event)
 {
-	BUG_ON(event != STATE_EVENT_WAKE);
+	BUG_ON(event != BH_WAKEUP);
 	timer_run(TIMER_DELAYABLE);
 	timer_restart();
 }
 
 void timer_init(void)
 {
-	timer_sid = state_register(timer_handler);
+	timer_sid = bh_register_handler(timer_handler);
 	timer_start();
 }

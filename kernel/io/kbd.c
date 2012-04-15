@@ -7,7 +7,7 @@ kbd_event_cb kbd_event_iocb = kbd_default_capture;
 uint8_t kbd_event_tout;
 uint8_t kbd_event_left;
 boolean kbd_sync_aborted;
-sid_t kbd_sid = INVALID_SID;
+bh_t kbd_bh = INVALID_BH;
 
 static void kbd_default_capture(uint8_t scancode, uint8_t event)
 {
@@ -74,14 +74,14 @@ kbd_event_cb kbd_set_capture(kbd_event_cb new_kh,
 	io_debug(IO_DEBUG_WAIT_KEY, kbd_event_tout);
 	if (timeout) {
 		kbd_sync_aborted = false;
-		bh_resume(kbd_sid);
+		bh_resume(kbd_bh);
 	}
 	return temp_kh;
 }
 
 static void kbd_handler(uint8_t event)
 {
-	BUG_ON(event != STATE_EVENT_WAKE);
+	BUG_ON(event != BH_WAKEUP);
 	if (!kbd_sync_aborted) {
 		kbd_capture_sync();
 	}
@@ -90,7 +90,7 @@ static void kbd_handler(uint8_t event)
 void kbd_init(void)
 {
 	DEVICE_FUNC(DEVICE_FUNC_KBD);
-	kbd_sid = state_register(kbd_handler);
+	kbd_bh = bh_register_handler(kbd_handler);
 	kbd_sync_aborted = true;
 	kbd_hw_ctrl_init();
 }

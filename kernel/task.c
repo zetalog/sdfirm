@@ -11,7 +11,7 @@ struct task_entry task_entries[NR_TASKS];
 pid_t task_nr_regs = INIT_PID+1;
 struct task_entry *task_current = INIT_TASK;
 
-sid_t task_sid = INVALID_SID;
+bh_t task_bh = INVALID_BH;
 tid_t task_tid = INVALID_TID;
 
 pid_t task_create(task_call_cb call, void *priv,
@@ -57,7 +57,7 @@ void task_schedule(void)
 void task_handler(uint8_t event)
 {
 	switch (event) {
-	case STATE_EVENT_SHOT:
+	case BH_TIMEOUT:
 		if (timer_timeout_raised(task_tid, TIMER_DELAYABLE)) {
 			task_schedule();
 			timer_schedule_shot(task_tid, TASK_SLICE);
@@ -73,8 +73,8 @@ void task_init(void)
 {
 	struct task_entry *task;
 
-	task_sid = state_register(task_handler);
-	task_tid = timer_register(task_sid, TIMER_DELAYABLE);
+	task_bh = bh_register_handler(task_handler);
+	task_tid = timer_register(task_bh, TIMER_DELAYABLE);
 
 	task = INIT_TASK;
 	task->pid = INIT_PID;

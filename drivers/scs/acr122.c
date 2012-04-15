@@ -16,7 +16,7 @@ static uint8_t acr122_buf[ACR122_BUF_SIZE];
 static uint8_t acr122_state;
 static uint8_t acr122_poll;
 
-static sid_t acr122_sid = INVALID_SID;
+static bh_t acr122_bh = INVALID_BH;
 static tid_t acr122_tid = INVALID_TID;
 
 static void acr122_write_ack(void);
@@ -324,7 +324,7 @@ static void acr122_poll_ready(void)
 static void acr122_handler(uint8_t event)
 {
 	switch (event) {
-	case STATE_EVENT_SHOT:
+	case BH_TIMEOUT:
 		if (timer_timeout_raised(acr122_tid,
 					 TIMER_DELAYABLE)) {
 			if (acr122_poll > 0)
@@ -342,7 +342,7 @@ void acr122_init(void)
 {
 	pn53x_ctrl_init();
 	acr122_set_state(ACR122_XCHG_STATE_CMD, 0);
-	acr122_sid = state_register(acr122_handler);
-	acr122_tid = timer_register(acr122_sid, TIMER_DELAYABLE);
+	acr122_bh = bh_register_handler(acr122_handler);
+	acr122_tid = timer_register(acr122_bh, TIMER_DELAYABLE);
 	timer_schedule_shot(acr122_tid, ACR122_POLL_TIMEOUT);
 }
