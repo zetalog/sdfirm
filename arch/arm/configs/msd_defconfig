@@ -100,16 +100,6 @@ CONFIG_BULK=y
 CONFIG_BULK_MAX_CHANS=1
 
 #
-# Simple debug console support
-#
-CONFIG_INPUT_NONE=y
-# CONFIG_INPUT_UART is not set
-# CONFIG_INPUT_KBD is not set
-CONFIG_OUTPUT_NONE=y
-# CONFIG_OUTPUT_UART is not set
-# CONFIG_OUTPUT_LCD is not set
-
-#
 # Human interface devices support
 #
 # CONFIG_LCD is not set

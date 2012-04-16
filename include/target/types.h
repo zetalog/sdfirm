@@ -21,6 +21,9 @@ typedef uint16_t		caddr_t;
 #ifndef ARCH_HAVE_SIZE_T
 typedef uint32_t		size_t;
 #endif
+#ifndef ARCH_HAVE_LOFF_T
+typedef int32_t			loff_t;
+#endif
 
 #ifndef NULL
 #define	NULL			((void *)0L)

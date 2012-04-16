@@ -36,8 +36,6 @@
 #define CONFIG_MAX_TASKS 4
 
 #define CONFIG_UART 1
-#define CONFIG_INPUT_NONE 1
-#define CONFIG_OUTPUT_UART 1
 
 #if 0
 #define CONFIG_MTD 1

@@ -105,12 +105,6 @@ CONFIG_ARCH_HAS_UART=y
 # CONFIG_LCD is not set
 # CONFIG_KBD is not set
 # CONFIG_LED is not set
-CONFIG_INPUT_NONE=y
-# CONFIG_INPUT_UART is not set
-# CONFIG_INPUT_KBD is not set
-CONFIG_OUTPUT_NONE=y
-# CONFIG_OUTPUT_UART is not set
-# CONFIG_OUTPUT_LCD is not set
 # CONFIG_USB is not set
 # CONFIG_SCS is not set
 # CONFIG_MTD is not set

@@ -294,41 +294,16 @@ config BULK_MAX_CHANS
 
 endif
 
-menu "IO standard console (stdio) support"
+menuconfig TERM
+	bool "IO data flow model (term) support"
 
-choice
-	prompt "Standard Input"
+if TERM
 
-config INPUT_NONE
-	bool "None"
+config TERM_MAX_CONS
+	int "Number of terminal consoles"
+	range 1 255
 
-config INPUT_UART
-	bool "UART"
-	depends UART
-
-config INPUT_KBD
-	bool "Keyboard"
-	depends KBD
-
-endchoice
-
-choice
-	prompt "Standard Output"
-
-config OUTPUT_NONE
-	bool "None"
-
-config OUTPUT_UART
-	bool "UART"
-	depends UART
-
-config OUTPUT_LCD
-	bool "LCD"
-	depends LCD
-
-endchoice
-
-endmenu
+endif
 
 endmenu
 
