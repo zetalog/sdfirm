@@ -94,7 +94,7 @@ void term_cursor_save(void)
 
 size_t term_get_index_by_Y(term_pos_t y)
 {
-	loff_t offset;
+	size_t offset;
 	
 	offset = term_info.view + y;
 	if (offset >= term_info.depth)
@@ -200,7 +200,7 @@ void term_erase_to_EOS(void)
 {
 	term_pos_t i = 0;
 	for (i = term_info.y; i < term_info.height; i++)
-		term_screen_EL0(i);
+		term_erase_to_EOS_line(i);
 }
 
 void term_erase_line(term_pos_t line)
@@ -234,9 +234,11 @@ void term_screen_ap_clear(void)
 
 void term_cursor_on(void)
 {
-	term_pos_t index_Y = (term_info.screen + term_info.y) % term_info.depth;
-	term_len_t y = term_slot_lines(term_info.view, index_Y);
+	term_pos_t index_Y; 
+	term_len_t y;
 
+	index_Y = (term_info.screen + term_info.y) % term_info.depth;
+	y = term_slot_lines(term_info.view, index_Y);
 	term_set_cursor_dot(term_info.x * term_info.cxChar,
 			    y * term_info.cyChar);
 	term_draw_cursor(true);
