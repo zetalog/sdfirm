@@ -276,15 +276,21 @@ void term_screen_recalc(void)
 		term_info.x = term_info.width - 1;
 }
 
+boolean term_screen_is_mode_cmd(void)
+{
+	return (term_info.esc_parms[0] == -2) &&
+	       (term_info.esc_parms[1] == 1);
+}
+
 void term_screen_set_mode(void)
 {
-	if (term_info.esc_parms[0] == -2 && term_info.esc_parms[1] == 1)
+	if (term_screen_is_mode_cmd())
 		term_info.decckm = 1;
 }
 
 void term_screen_reset_mode(void)
 {
-	if (term_info.esc_parms[0] == -2 && term_info.esc_parms[1] == 1)
+	if (term_screen_is_mode_cmd())
 		term_info.decckm = 0;
 }
 
