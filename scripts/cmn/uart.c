@@ -48,7 +48,8 @@ uart_t __uart_open(uart_t uart, int id)
 		sprintf(port, "COM%d", id+1);
 	}
 	hdl = CreateFile(port, GENERIC_READ | GENERIC_WRITE,
-			 0, 0, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, 0);
+			 0, 0, OPEN_EXISTING,
+			 0/*FILE_FLAG_OVERLAPPED*/, 0);
 	rxevt = CreateEvent(NULL, FALSE, TRUE, NULL);
 	txevt = CreateEvent(NULL, FALSE, TRUE, NULL);
 	if (!hdl || !rxevt || !txevt)
@@ -91,11 +92,12 @@ void __uart_close(uart_t uart)
 
 int uart_write(uart_t uart, void *buf, size_t len)
 {
-	DWORD ret;
-	DWORD err;
 	BOOL res;
 	DWORD cb;
 	HANDLE hdl = uart_ports[uart].hdl;
+#if 0
+	DWORD ret;
+	DWORD err;
 	int bytes = 0;
 	DWORD pending_bytes;
 
@@ -162,15 +164,24 @@ failure:
 		return bytes;
 	}
 	return -EINVAL;
+#else
+	res = WriteFile(hdl, buf, len, &cb, NULL);
+	if (res) {
+		printf("Writing %d\r\n", cb);
+		return cb;
+	}
+	return -EINVAL;
+#endif
 }
 
 int uart_read(uart_t uart, void *buf, size_t len)
 {
-	DWORD err;
-	DWORD ret;
 	BOOL res;
 	DWORD cb;
 	HANDLE hdl = uart_ports[uart].hdl;
+#if 0
+	DWORD err;
+	DWORD ret;
 	int bytes = 0;
 	DWORD pending_bytes;
 
@@ -234,6 +245,14 @@ failure:
 		return bytes;
 	}
 	return -EINVAL;
+#else
+	res = ReadFile(hdl, buf, len, &cb, NULL);
+	if (res) {
+		printf("Reading %d\r\n", cb);
+		return cb;
+	}
+	return -EINVAL;
+#endif
 }
 
 uart_t uart_open(int id)
