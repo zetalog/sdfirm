@@ -11,7 +11,11 @@
 #include <host/bitops.h>
 
 #ifdef WIN32
+#define UART_MAX_BUF	16
+#define UART_MAX_PORTS	1
+
 struct uart {
+	int id;
 	HANDLE hdl;
 	int state;
 #define UART_OPENED	0x00
@@ -25,23 +29,18 @@ struct uart {
 	int tx_pend;
 	OVERLAPPED tx_olp;
 	DWORD tx_cb;
-	unsigned char rx_buf[16];
-	unsigned char tx_buf[16];
+	unsigned char rx_buf[UART_MAX_BUF];
+	unsigned char tx_buf[UART_MAX_BUF];
 };
 
-#define UART_MAX_PORTS	1
 struct uart uart_ports[UART_MAX_PORTS];
 DECLARE_BITMAP(uart_port_regs, UART_MAX_PORTS);
 int uart_nr_used = 0;
 
-uart_t __uart_open(int id)
+uart_t __uart_open(uart_t uart, int id)
 {
 	char port[MAX_PATH];
 	HANDLE hdl = NULL, rxevt = NULL, txevt = NULL;
-	int fd = uart_nr_used;
-
-	if (fd >= UART_MAX_PORTS)
-		goto failure;
 
 	if (id > 9) {
 		sprintf(port, "\\\\.\\COM%d", id+1);
@@ -55,15 +54,15 @@ uart_t __uart_open(int id)
 	if (!hdl || !rxevt || !txevt)
 		goto failure;
 
-	uart_ports[fd].hdl = hdl;
-	uart_ports[fd].rx_evt = CreateEvent(NULL, FALSE, TRUE, NULL);
-	uart_ports[fd].tx_evt = CreateEvent(NULL, FALSE, TRUE, NULL);
-	uart_ports[fd].rx_pend = FALSE;
-	uart_ports[fd].tx_pend = FALSE;
-	uart_ports[fd].rx_olp.hEvent = uart_ports[fd].rx_evt;
-	uart_ports[fd].tx_olp.hEvent = uart_ports[fd].tx_evt;
+	uart_ports[uart].hdl = hdl;
+	uart_ports[uart].rx_evt = CreateEvent(NULL, FALSE, TRUE, NULL);
+	uart_ports[uart].tx_evt = CreateEvent(NULL, FALSE, TRUE, NULL);
+	uart_ports[uart].rx_pend = FALSE;
+	uart_ports[uart].tx_pend = FALSE;
+	uart_ports[uart].rx_olp.hEvent = uart_ports[uart].rx_evt;
+	uart_ports[uart].tx_olp.hEvent = uart_ports[uart].tx_evt;
 
-	return fd;
+	return uart;
 failure:
 	if (hdl)
 		CloseHandle(hdl);
@@ -97,46 +96,63 @@ int uart_write(uart_t uart, void *buf, size_t len)
 	DWORD cb;
 	HANDLE hdl = uart_ports[uart].hdl;
 	int bytes = 0;
+	DWORD pending_bytes;
 
-success:
-	if (uart_ports[uart].tx_cb > 0) {
-		DWORD min_cb;
-		min_cb = min(len, uart_ports[uart].tx_cb);
-		memcpy(((unsigned char *)buf)+bytes,
-		       uart_ports[uart].tx_buf, min_cb);
-		if (min_cb < uart_ports[uart].tx_cb) {
-			memmove(uart_ports[uart].tx_buf,
-				uart_ports[uart].tx_buf+min_cb,
-				uart_ports[uart].tx_cb-min_cb);
-		}
-		uart_ports[uart].tx_cb -= min_cb;
-		bytes += min_cb;
-		if ((DWORD)bytes == len)
-			return bytes;
-	}
 	if (uart_ports[uart].tx_pend) {
 		res = GetOverlappedResult(hdl,
 					  &uart_ports[uart].tx_olp,
 					  &cb, FALSE);
 		if (!res)
 			goto failure;
-		uart_ports[uart].tx_cb += cb;
+		if (cb < uart_ports[uart].tx_cb) {
+			memmove(uart_ports[uart].tx_buf,
+				uart_ports[uart].tx_buf+cb,
+				cb);
+		}
+		uart_ports[uart].tx_cb -= cb;
 		uart_ports[uart].tx_pend = FALSE;
-		goto success;
 	}
+	pending_bytes = UART_MAX_BUF - uart_ports[uart].tx_cb;
+	if (pending_bytes > 0) {
+		DWORD min_cb;
+		min_cb = min(len, pending_bytes);
+		memcpy(uart_ports[uart].tx_buf + uart_ports[uart].tx_cb,
+		       buf, min_cb);
+		uart_ports[uart].tx_cb += min_cb;
+		len -= min_cb;
+		bytes += min_cb;
+	}
+again:
 	res = WriteFile(hdl,
 			uart_ports[uart].tx_buf,
-			16-uart_ports[uart].tx_cb,
+			uart_ports[uart].tx_cb,
 			&cb,
 			&uart_ports[uart].tx_olp);
 	if (res) {
-		uart_ports[uart].tx_cb += cb;
-		goto success;
+		if (cb < uart_ports[uart].tx_cb) {
+			memmove(uart_ports[uart].tx_buf,
+				uart_ports[uart].tx_buf+cb,
+				cb);
+		}
+		uart_ports[uart].tx_cb -= cb;
+		if (uart_ports[uart].tx_cb)
+			return bytes;
 	}
 failure:
 	err = GetLastError();
 	if (err == ERROR_IO_PENDING) {
 		uart_ports[uart].tx_pend = TRUE;
+		return bytes;
+	}
+	if (err == ERROR_IO_INCOMPLETE) {
+	//	CancelIo(uart_ports[uart].hdl);
+	//	printf("Canceling writes\r\n");
+		uart_ports[uart].tx_pend = FALSE;
+		goto again;
+	}
+	if (err == ERROR_OPERATION_ABORTED) {
+	//	printf("Aborting writes\r\n");
+		uart_ports[uart].tx_pend = FALSE;
 		return bytes;
 	}
 	return -EINVAL;
@@ -149,23 +165,9 @@ int uart_read(uart_t uart, void *buf, size_t len)
 	DWORD cb;
 	HANDLE hdl = uart_ports[uart].hdl;
 	int bytes = 0;
+	DWORD pending_bytes;
 
 success:
-	if (uart_ports[uart].rx_cb > 0) {
-		DWORD min_cb;
-		min_cb = min(len, uart_ports[uart].rx_cb);
-		memcpy(((unsigned char *)buf)+bytes,
-		       uart_ports[uart].rx_buf, min_cb);
-		if (min_cb < uart_ports[uart].rx_cb) {
-			memmove(uart_ports[uart].rx_buf,
-				uart_ports[uart].rx_buf+min_cb,
-				uart_ports[uart].rx_cb-min_cb);
-		}
-		uart_ports[uart].rx_cb -= min_cb;
-		bytes += min_cb;
-		if ((DWORD)bytes == len)
-			return bytes;
-	}
 	if (uart_ports[uart].rx_pend) {
 		res = GetOverlappedResult(hdl,
 					  &uart_ports[uart].rx_olp,
@@ -174,11 +176,28 @@ success:
 			goto failure;
 		uart_ports[uart].rx_cb += cb;
 		uart_ports[uart].rx_pend = FALSE;
-		goto success;
 	}
+	pending_bytes = uart_ports[uart].rx_cb;
+	if (pending_bytes > 0) {
+		DWORD min_cb;
+		min_cb = min(len, pending_bytes);
+		memcpy(((unsigned char *)buf)+bytes,
+		       uart_ports[uart].rx_buf, min_cb);
+		if (min_cb < uart_ports[uart].rx_cb) {
+			memmove(uart_ports[uart].rx_buf,
+				uart_ports[uart].rx_buf+min_cb,
+				uart_ports[uart].rx_cb-min_cb);
+		}
+		uart_ports[uart].rx_cb -= min_cb;
+		len -= min_cb;
+		bytes += min_cb;
+		if (0 == len)
+			return bytes;
+	}
+again:
 	res = ReadFile(hdl,
 		       uart_ports[uart].rx_buf,
-		       16-uart_ports[uart].rx_cb,
+		       UART_MAX_BUF-uart_ports[uart].rx_cb,
 		       &cb,
 		       &uart_ports[uart].rx_olp);
 	if (res) {
@@ -191,14 +210,30 @@ failure:
 		uart_ports[uart].rx_pend = TRUE;
 		return bytes;
 	}
+	if (err == ERROR_IO_INCOMPLETE) {
+		CancelIo(uart_ports[uart].hdl);
+		uart_ports[uart].tx_pend = FALSE;
+	//	printf("Canceling reads\r\n");
+		goto again;
+	}
+	if (err == ERROR_OPERATION_ABORTED) {
+	//	printf("Aborting reads\r\n");
+		uart_ports[uart].rx_pend = FALSE;
+		return bytes;
+	}
 	return -EINVAL;
 }
 
 uart_t uart_open(int id)
 {
-	uart_t uart = __uart_open(id);
+	uart_t uart = uart_nr_used;
+
+	if (uart >= UART_MAX_PORTS)
+		return -1;
+	uart = __uart_open(uart, id);
 	if (uart >= 0) {
 		uart_nr_used++;
+		uart_ports[uart].id = id;
 		uart_ports[uart].state = UART_OPENED;
 		uart_ports[uart].rx_cb = uart_ports[uart].tx_cb = 0;
 	}

@@ -106,7 +106,7 @@ int ezio_async_read(void)
 	unsigned char msg[EZIO_MAX_BUF];
 
 	res = uart_read(ezio_uart, ezio_rxbuf+ezio_rxlen, EZIO_MAX_BUF-ezio_rxlen);
-	if (res <= 0) {
+	if (res < 0) {
 		return res;
 	}
 

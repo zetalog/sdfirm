@@ -111,6 +111,10 @@ SOURCE=..\cmn\poll.c
 
 SOURCE=..\cmn\uart.c
 # End Source File
+# Begin Source File
+
+SOURCE=..\cmn\winhandle.c
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -122,6 +126,10 @@ SOURCE=..\..\include\host\ezio.h
 # Begin Source File
 
 SOURCE=..\..\include\host\uart.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\host\winhandle.h
 # End Source File
 # End Group
 # End Target

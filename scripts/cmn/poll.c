@@ -10,6 +10,7 @@
 #include <errno.h>
 #include <io.h>
 #include <string.h>
+#include <assert.h>
 
 #define CONFIG_POLL_ALL	1
 
