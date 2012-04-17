@@ -91,6 +91,7 @@ void __uart_close(uart_t uart)
 
 int uart_write(uart_t uart, void *buf, size_t len)
 {
+	DWORD ret;
 	DWORD err;
 	BOOL res;
 	DWORD cb;
@@ -98,6 +99,11 @@ int uart_write(uart_t uart, void *buf, size_t len)
 	int bytes = 0;
 	DWORD pending_bytes;
 
+	ret = WaitForSingleObject(uart_ports[uart].tx_evt, 0);
+	if (uart_ports[uart].tx_pend && ret != WAIT_OBJECT_0) {
+		/* no event, go slow path */
+		return bytes;
+	}
 	if (uart_ports[uart].tx_pend) {
 		res = GetOverlappedResult(hdl,
 					  &uart_ports[uart].tx_olp,
@@ -161,6 +167,7 @@ failure:
 int uart_read(uart_t uart, void *buf, size_t len)
 {
 	DWORD err;
+	DWORD ret;
 	BOOL res;
 	DWORD cb;
 	HANDLE hdl = uart_ports[uart].hdl;
@@ -168,6 +175,11 @@ int uart_read(uart_t uart, void *buf, size_t len)
 	DWORD pending_bytes;
 
 success:
+	ret = WaitForSingleObject(uart_ports[uart].rx_evt, 0);
+	if (uart_ports[uart].rx_pend && ret != WAIT_OBJECT_0) {
+		/* no event, go slow path */
+		return bytes;
+	}
 	if (uart_ports[uart].rx_pend) {
 		res = GetOverlappedResult(hdl,
 					  &uart_ports[uart].rx_olp,
