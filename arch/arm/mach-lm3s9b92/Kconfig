@@ -127,33 +127,6 @@ config GPIO_LM3S9B92_AHB
 
 endif
 
-menuconfig KBD_LM3S9B92
-	bool "TI LM3S9B92 keyboard controller support"
-	depends GPIO
-	depends KBD
-	default n
-	help
-	  This driver can only support four independent keyboard, when the
-	  button is pressed, it be pulled up to the external VCC and the
-	  button is released, it be pulled down to the internal GND.
-
-if KBD_LM3S9B92
-choice
-	prompt "Layout"
-	default n
-
-config KBD_LM3S9B92_SINGLE_PORT
-	bool "PORTA PIN7~4"
-	depends !ARCH_HAS_SPI
-
-config KBD_LM3S9B92_DOUBLE_PORT
-	bool "PORTA PIN7~6 and PORTB PIN3~2"
-	depends !ARCH_HAS_I2C
-
-endchoice
-
-endif
-
 menuconfig GPT_LM3S9B92
 	bool "TI LM3S9B92 general purpose timer support"
 	depends TIMER

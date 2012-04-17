@@ -2,10 +2,10 @@
 #include <target/gpio.h>
 #include <target/delay.h>
 
-#ifdef CONFIG_KBD_LM3S9B92_SINGLE_PORT
+#ifdef CONFIG_KBD_LM3S3826_SINGLE_PORT
 #define KBD_MAX_IRQ	1
 #endif
-#ifdef CONFIG_KBD_LM3S9B92_DOUBLE_PORT
+#ifdef CONFIG_KBD_LM3S3826_DOUBLE_PORT
 #define KBD_MAX_IRQ	2
 #endif
 
@@ -26,10 +26,10 @@ static uint8_t __kbd_hw_get_status(void)
 	uint8_t status = 0x0;
 
 	if (KBD_MAX_IRQ == 1) {
-		status = __kbd_hw_read_port(GPIOA, 0xf<<4);
+		status = (__kbd_hw_read_port(GPIOA, 0xf<<4))>>4;
 	} else if (KBD_MAX_IRQ == 2) {
-		status = __kbd_hw_read_port(GPIOB, 0x3<<2) |
-			(__kbd_hw_read_port(GPIOA, 0x3<<6) << 2);
+		status = (__kbd_hw_read_port(GPIOB, 0x3<<2))>>2 |
+			(__kbd_hw_read_port(GPIOA, 0x3<<6)>>4);
 	}
 	return status;
 }
@@ -60,7 +60,7 @@ static void __kbd_hw_scan_async(void)
 
 	status = __kbd_hw_get_status();
 	/* bouncing filter according to data sheet */
-	mdelay(10);
+        mdelay(10);
 	status &= __kbd_hw_get_status();
 	__kbd_hw_handle_status(status);
 }
@@ -114,14 +114,15 @@ static void __kbd_hw_clear_irq(void)
 	status = gpio_irq_status(GPIOA);
 	if (!status) {
 		status = gpio_irq_status(GPIOB);
-		status = (status >> 2) & 0x3;
+		status = ((status >> 2) & 0x3) << 2;
 		gpio_clear_irq(GPIOB, __ffs8(status));
 	} else {
 		if (KBD_MAX_IRQ == 1) {
-			status = (status >> 4) & 0xf;
+			status = ((status >> 4) & 0xf) << 4;
 		} else if (KBD_MAX_IRQ == 2) {
-			status = (status >> 6) & 0x3;
+			status = ((status >> 6) & 0x3) << 6;
 		}
+		gpio_clear_irq(GPIOA, __ffs8(status));
 	}
 }
 

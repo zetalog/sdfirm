@@ -12,6 +12,9 @@
 #ifdef CONFIG_KBD_LM3S9B92
 #include <asm/mach-lm3s9b92/kbd.h>
 #endif
+#ifdef CONFIG_KBD_LM3S3826
+#include <asm/mach-lm3s3826/kbd.h>
+#endif
 
 #ifndef ARCH_HAVE_KBD
 #define KBD_HW_COL_KEYS			2

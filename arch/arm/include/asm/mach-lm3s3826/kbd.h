@@ -1,5 +1,5 @@
-#ifndef __KBD_ATC8X5122_H_INCLUDE__
-#define __KBD_ATC8X5122_H_INCLUDE__
+#ifndef __KBD_LM3S3826_H_INCLUDE__
+#define __KBD_LM3S3826_H_INCLUDE__
 
 #include <target/config.h>
 #include <target/generic.h>
@@ -23,4 +23,4 @@ void kbd_hw_ctrl_init(void);
 void kbd_hw_scan_sync(uint8_t sec);
 
 
-#endif /* __KBD_LM3S9B92_H_INCLUDE__ */
+#endif /* __KBD_LM3S3826_H_INCLUDE__ */

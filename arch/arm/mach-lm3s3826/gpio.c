@@ -15,10 +15,8 @@ unsigned long __gpio_hw_port_reg(uint8_t port, unsigned short offset)
 
 	if (port < 4)
 		reg = GPIOA_BASE + ((port)<<12);
-	else if (port < 8)
-		reg = GPIOE_BASE + ((port-4)<<12);
 	else
-		reg = GPIOJ_BASE;
+		reg = GPIOE_BASE + ((port-4)<<12);
 
 	return reg+offset;
 }
