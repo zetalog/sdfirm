@@ -6,8 +6,8 @@
 menu "Appliance types"
 
 config LCD_EZIO
-	bool "EZIO-100 LCD/Keyboard module"
-	select LCD
+	bool "EZIO terminal (LCD/Keypad) module"
+	select TERM
 	select KBD
 	select UART
 

@@ -1,7 +1,6 @@
 #include <target/uart.h>
-#include <target/lcd.h>
-#include <target/kbd.h>
 #include <target/usb.h>
+#include <target/kbd.h>
 #include <target/term.h>
 
 #ifdef CONFIG_EZIO_DEBUG

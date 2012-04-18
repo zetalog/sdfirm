@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Apr 18 14:55:33 2012
+# Wed Apr 18 15:49:16 2012
 #
 CONFIG_ARM=y
 
@@ -114,7 +114,7 @@ CONFIG_GPIO=y
 #
 # Human interface devices support
 #
-CONFIG_LCD=y
+# CONFIG_LCD is not set
 CONFIG_KBD=y
 # CONFIG_LED is not set
 CONFIG_ARCH_HAS_UART=y
@@ -148,9 +148,6 @@ CONFIG_UART_MAX_PORTS=2
 #
 # LCD drivers
 #
-# CONFIG_LCD_HD44780U is not set
-# CONFIG_LCD_PCF2119X is not set
-# CONFIG_LCD_NHDC0216AZ is not set
 
 #
 # MTD memory drivers
