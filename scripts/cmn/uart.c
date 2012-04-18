@@ -77,9 +77,9 @@ failure:
 
 void __uart_close(uart_t uart)
 {
-	if (uart_ports[uart].hdl) {
+	if (uart_ports[uart].hdl != INVALID_HANDLE_VALUE) {
 		CloseHandle(uart_ports[uart].hdl);
-		uart_ports[uart].hdl = NULL;
+		uart_ports[uart].hdl = INVALID_HANDLE_VALUE;
 	}
 	if (uart_ports[uart].rx_evt) {
 		CloseHandle(uart_ports[uart].rx_evt);

@@ -5,6 +5,8 @@
 int ezio_sync_init(const char *port, const char *baudrate)
 {
 	if (ezio_init(port, baudrate) < 0) {
+		fprintf(stderr, "EZIO init failure - %d\n",
+			ezio_port);
 		return -1;
 	}
 	ezio_sync_display();
@@ -19,8 +21,6 @@ int main(int argc, char **argv)
 		return -1;
 
 	if (ezio_sync_init(argv[1], argv[2]) < 0) {
-		fprintf(stderr, "Open port %d failure\n",
-			ezio_port);
 		return -1;
 	}
 
@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 		ezio_keypad_scan();
 		res = ezio_async_read();
 		if (res < 0) {
-			fprintf(stderr, "Read port %d failure\n",
+			fprintf(stderr, "EZIO read failure - %d\n",
 				ezio_port);
 			goto end;
 		}
