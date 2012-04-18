@@ -136,12 +136,12 @@ typedef uint8_t term_t;
 #define TRM_INPUT_SIZE		\
 	(TRM_DEFAULT_WIDTH * sizeof (char))
 #define TRM_ATTRIB_SIZE		\
-	(TRM_DEFAULT_DEPTH * TRM_DEFAULT_WIDTH * sizeof (long))
+	(TRM_DEFAULT_DEPTH * TRM_DEFAULT_WIDTH * sizeof (uint32_t))
 
 struct terminal {
 	/* terminal screen / buffer stuff */
 	char output[TRM_OUTPUT_SIZE];
-	long attrib[TRM_ATTRIB_SIZE];
+	uint32_t attrib[TRM_ATTRIB_SIZE];
 	term_pos_t top, bottom;		/* circular buffer cursors */
 	term_pos_t depth;		/* circular buffer boundary */
 	term_pos_t screen;		/* terminal screen cursor */
@@ -159,8 +159,8 @@ struct terminal {
 	/* cursor stuff */
 	term_pos_t x, y;		/* cursor position on screen */
 	term_pos_t Px, Py;
-	long def_attrib, cur_attrib;
-	long Pattrib;
+	uint32_t def_attrib, cur_attrib;
+	uint32_t Pattrib;
 
 	/* edit stuff */
 	int mode;			/* insert / replace mode */
@@ -220,8 +220,8 @@ size_t term_get_index_by_Y(term_pos_t y);
 size_t term_get_index_by_XY(term_pos_t x, term_pos_t y);
 char term_get_text_at(term_pos_t x, term_pos_t y);
 void term_set_text_at(term_pos_t x, term_pos_t y, char output);
-long term_get_attr_at(term_pos_t x, term_pos_t y);
-void term_set_attr_at(term_pos_t x, term_pos_t y, long attrib);
+uint32_t term_get_attr_at(term_pos_t x, term_pos_t y);
+void term_set_attr_at(term_pos_t x, term_pos_t y, uint32_t attrib);
 
 void term_scroll_up(term_len_t lines);
 void term_scroll_down(term_len_t lines);

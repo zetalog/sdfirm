@@ -93,7 +93,7 @@ void term_init_buffer_line(term_pos_t line)
 {
 #if 0
 	char *text = term_info.output + line * term_info.width;
-	long *attrib = term_info.attrib + line * term_info.width;
+	uint32_t *attrib = term_info.attrib + line * term_info.width;
 #endif
 	term_pos_t i = 0;
 	size_t len = term_info.width + line * term_info.width;
@@ -196,14 +196,14 @@ void term_set_text_at(term_pos_t x, term_pos_t y, char output)
 	term_info.output[offset + x] = output;
 }
 
-long term_get_attr_at(term_pos_t x, term_pos_t y)
+uint32_t term_get_attr_at(term_pos_t x, term_pos_t y)
 {
 	size_t offset = mul16u((uint16_t)term_get_index_by_Y(y),
 			       (uint16_t)term_info.width);
 	return term_info.attrib[offset + x];
 }
 
-void term_set_attr_at(term_pos_t x, term_pos_t y, long attrib)
+void term_set_attr_at(term_pos_t x, term_pos_t y, uint32_t attrib)
 {
 	size_t offset = mul16u((uint16_t)term_get_index_by_Y(y),
 			       (uint16_t)term_info.width);
