@@ -9,7 +9,7 @@ void ezio_scan_thread(void *arg)
 again:
 	res = ezio_async_read();
 	if (res < 0) {
-		fprintf(stderr, "Read port %d failure\n",
+		fprintf(stderr, "EZIO read failure - %d\n",
 			ezio_port);
 		goto end;
 	}
@@ -23,6 +23,8 @@ end:
 int ezio_thread_init(const char *port, const char *baudrate)
 {
 	if (ezio_init(port, baudrate) < 0) {
+		fprintf(stderr, "EZIO init failure - %d\n",
+			ezio_port);
 		return -1;
 	}
 	_beginthread(ezio_scan_thread, 1024, NULL);
@@ -36,8 +38,6 @@ int main(int argc, char **argv)
 		return -1;
 
 	if (ezio_thread_init(argv[1], argv[2]) < 0) {
-		fprintf(stderr, "Open port %d failure\n",
-			ezio_port);
 		return -1;
 	}
 

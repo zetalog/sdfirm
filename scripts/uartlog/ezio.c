@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-uart_t ezio_uart;
+uart_t ezio_uart = -1;
 int ezio_port;
 unsigned char ezio_msg[EZIO_MAX_BUF];
 int ezio_state;
@@ -91,8 +91,18 @@ int ezio_init(const char *port, const char *baudrate)
 {
 	ezio_port = atoi(port);
 	ezio_uart = uart_open(ezio_port);
-	if (ezio_uart < 0) return -1;
-	uart_config(ezio_uart, atoi(baudrate));
+	if (ezio_uart < 0) {
+		fprintf(stderr,
+			"uart open failure - %d\r\n", ezio_port);
+		return -1;
+	}
+	if (uart_config(ezio_uart, atoi(baudrate)) < 0) {
+		fprintf(stderr,
+			"uart config failure - %d\r\n", ezio_port);
+		uart_close(ezio_uart);
+		ezio_uart = -1;
+		return -1;
+	}
 	ezio_rxlen = 0;
 	ezio_keys = 0x00;
 	ezio_async_display("");
@@ -107,6 +117,8 @@ int ezio_async_read(void)
 
 	res = uart_read(ezio_uart, ezio_rxbuf+ezio_rxlen, EZIO_MAX_BUF-ezio_rxlen);
 	if (res < 0) {
+		fprintf(stderr,
+			"uart read failure - %d\r\n", ezio_port);
 		return res;
 	}
 

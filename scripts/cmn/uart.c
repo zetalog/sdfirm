@@ -40,7 +40,8 @@ int uart_nr_used = 0;
 uart_t __uart_open(uart_t uart, int id)
 {
 	char port[MAX_PATH];
-	HANDLE hdl = NULL, rxevt = NULL, txevt = NULL;
+	HANDLE hdl = INVALID_HANDLE_VALUE;
+	HANDLE rxevt = NULL, txevt = NULL;
 
 	if (id > 9) {
 		sprintf(port, "\\\\.\\COM%d", id+1);
@@ -52,12 +53,12 @@ uart_t __uart_open(uart_t uart, int id)
 			 0/*FILE_FLAG_OVERLAPPED*/, 0);
 	rxevt = CreateEvent(NULL, FALSE, TRUE, NULL);
 	txevt = CreateEvent(NULL, FALSE, TRUE, NULL);
-	if (!hdl || !rxevt || !txevt)
+	if ((hdl == INVALID_HANDLE_VALUE) || !rxevt || !txevt)
 		goto failure;
 
 	uart_ports[uart].hdl = hdl;
-	uart_ports[uart].rx_evt = CreateEvent(NULL, FALSE, TRUE, NULL);
-	uart_ports[uart].tx_evt = CreateEvent(NULL, FALSE, TRUE, NULL);
+	uart_ports[uart].rx_evt = rxevt;
+	uart_ports[uart].tx_evt = txevt;
 	uart_ports[uart].rx_pend = FALSE;
 	uart_ports[uart].tx_pend = FALSE;
 	uart_ports[uart].rx_olp.hEvent = uart_ports[uart].rx_evt;
@@ -65,7 +66,7 @@ uart_t __uart_open(uart_t uart, int id)
 
 	return uart;
 failure:
-	if (hdl)
+	if (hdl != INVALID_HANDLE_VALUE)
 		CloseHandle(hdl);
 	if (rxevt)
 		CloseHandle(rxevt);
@@ -154,12 +155,12 @@ failure:
 	}
 	if (err == ERROR_IO_INCOMPLETE) {
 	//	CancelIo(uart_ports[uart].hdl);
-	//	printf("Canceling writes\r\n");
+	//	fprintf(stderr, "CancelIo write\r\n");
 		uart_ports[uart].tx_pend = FALSE;
 		goto again;
 	}
 	if (err == ERROR_OPERATION_ABORTED) {
-	//	printf("Aborting writes\r\n");
+	//	fprintf(stderr, "Aborting write\r\n");
 		uart_ports[uart].tx_pend = FALSE;
 		return bytes;
 	}
@@ -167,7 +168,6 @@ failure:
 #else
 	res = WriteFile(hdl, buf, len, &cb, NULL);
 	if (res) {
-		printf("Writing %d\r\n", cb);
 		return cb;
 	}
 	return -EINVAL;
@@ -236,11 +236,11 @@ failure:
 	if (err == ERROR_IO_INCOMPLETE) {
 		CancelIo(uart_ports[uart].hdl);
 		uart_ports[uart].tx_pend = FALSE;
-	//	printf("Canceling reads\r\n");
+	//	printf("CancelIo read\r\n");
 		goto again;
 	}
 	if (err == ERROR_OPERATION_ABORTED) {
-	//	printf("Aborting reads\r\n");
+	//	printf("Aborting read\r\n");
 		uart_ports[uart].rx_pend = FALSE;
 		return bytes;
 	}
@@ -248,7 +248,6 @@ failure:
 #else
 	res = ReadFile(hdl, buf, len, &cb, NULL);
 	if (res) {
-		printf("Reading %d\r\n", cb);
 		return cb;
 	}
 	return -EINVAL;
@@ -279,16 +278,17 @@ void uart_close(uart_t uart)
 }
 
 /* other parameters are 8N1 */
-void uart_config(uart_t uart, int baudr)
+int uart_config(uart_t uart, int baudr)
 {
 	int spd = -1;
 	DCB dcb;
-	HANDLE hdl = (HANDLE)uart;
+	HANDLE hdl = uart_ports[uart].hdl;
 	
 	ZeroMemory(&dcb, sizeof(DCB));
 	dcb.DCBlength = sizeof(DCB);
-	if (!GetCommState(hdl, &dcb))
-		return;
+	if (!GetCommState(hdl, &dcb)) {
+		return -1;
+	}
 
 	switch (baudr / 100) {
 	case 0:		spd = 0;	break;
@@ -308,8 +308,11 @@ void uart_config(uart_t uart, int baudr)
 	dcb.ByteSize = 8;
 	dcb.Parity = 0;
 	dcb.StopBits = 0;
-	if (!SetCommState(hdl, &dcb))
-		return;
+	if (!SetCommState(hdl, &dcb)) {
+		return -1;
+	}
+
+	return 0;
 }
 
 #else
@@ -346,7 +349,7 @@ void uart_set_hwflow(uart_t uart, int on)
 }
 
 /* other parameters are 8N1 */
-void uart_config(uart_t uart, int baudr)
+int uart_config(uart_t uart, int baudr)
 {
 	int spd = -1;
 	int newbaud;
@@ -450,5 +453,7 @@ void uart_config(uart_t uart, int baudr)
 #ifndef _DCDFLOW
 	uart_set_hwflow(uart, 0);
 #endif
+
+	return 0;
 }
 #endif

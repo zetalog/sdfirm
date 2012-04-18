@@ -80,11 +80,13 @@ void system_init(void)
 	main_debug(MAIN_DEBUG_INIT, 1);
 
 	while (1) {
+#if 0
 		while (!bh_resumed_any()) {
 			dbg_dump(0xAA);
 			wait_irq();
 		}
 		dbg_dump(0xAB);
+#endif
 		bh_run_all();
 	}
 }
@@ -714,11 +716,13 @@ void system_init(void)
 	irq_local_enable();
 
 	while (1) {
+#if 0
 		while (!bh_resumed_any()) {
 			dbg_dump(0xAA);
 			wait_irq();
 		}
 		dbg_dump(0xAB);
+#endif
 		bh_run_all();
 	}
 }
