@@ -5,24 +5,13 @@
 #include <target/types.h>
 #include <target/io.h>
 #include <target/bulk.h>
+#include <target/video.h>
 
 typedef uint8_t term_pos_t;
 typedef uint8_t term_len_t;
 
 #define NR_TERM_CONS	CONFIG_TERM_MAX_CONS
 typedef uint8_t term_t;
-
-typedef uint32_t video_rgb_t;
-#define RGB(r,g,b)	((video_rgb_t)(((uint8_t)(r)|((uint16_t)((uint8_t)(g))<<8))|(((uint16_t)(uint8_t)(b))<<16)))
-#define RGB_R(rgb)	((uint8_t)(rgb))
-#define RGB_G(rgb)	((uint8_t)(((uint16_t)(rgb)) >> 8))
-#define RGB_B(rgb)	((uint8_t)((rgb)>>16))
-
-struct video_rbg_triple {
-	uint8_t blue;
-	uint8_t green;
-	uint8_t red;
-};
 
 #ifdef CONFIG_TERM_WIDTH
 #define TRM_DEFAULT_WIDTH	CONFIG_TERM_WIDTH
