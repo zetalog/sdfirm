@@ -15,8 +15,79 @@ struct terminal term_info;
 	(term_info.bottom == term_info.top)
 
 #define term_draw_screen(x, y, w, h)
-#define term_draw_cursor(onoff)
-#define term_set_cursor_dot(x, y)
+#define term_draw_cursor(onoff, x, y)
+
+video_rgb_t term_cfg_palette[TRM_NUMBER_FGCOLOURS] = {
+	TRM_DEFAULT_FOREGROUND,
+	TRM_DEFAULT_BOLD_FOREGROUND,
+	TRM_DEFAULT_BACKGROUND,
+	TRM_DEFAULT_BOLD_BACKGROUND,
+	TRM_CURSOR_TEXT,
+	TRM_CURSOR_COLOUR,
+	TRM_ANSI_X364_BLACK,
+	TRM_ANSI_X364_BOLD_BLACK,
+	TRM_ANSI_X364_RED,
+	TRM_ANSI_X364_BOLD_RED,
+	TRM_ANSI_X364_GREEN,
+	TRM_ANSI_X364_BOLD_GREEN,
+	TRM_ANSI_X364_YELLOW,
+	TRM_ANSI_X364_BOLD_YELLOW,
+	TRM_ANSI_X364_BLUE,
+	TRM_ANSI_X364_BOLD_BLUE,
+	TRM_ANSI_X364_MAGENTA,
+	TRM_ANSI_X364_BOLD_MAGENTA,
+	TRM_ANSI_X364_CYAN,
+	TRM_ANSI_X364_BOLD_CYAN,
+	TRM_ANSI_X364_WHITE,
+	TRM_ANSI_X364_BOLD_WHITE,
+};
+
+/* Copy the colour from the configuration data into rgbt_def.
+ * This is non-trivial because the colour indices are different.
+ */
+void term_palette_from_ansi(void)
+{
+	uint8_t i;
+	static const uint16_t ww[] = {
+		256, 257, 258, 259, 260, 261,
+		0, 8, 1, 9, 2, 10, 3, 11,
+		4, 12, 5, 13, 6, 14, 7, 15
+	};
+	
+	for (i = 0; i < 22; i++) {
+		uint16_t w = ww[i];
+		term_info.rgbt_def[w].red = RGB_R(term_cfg_palette[i]);
+		term_info.rgbt_def[w].green = RGB_G(term_cfg_palette[i]);
+		term_info.rgbt_def[w].blue = RGB_B(term_cfg_palette[i]);
+	}
+	for (i = 0; i < TRM_NUMBER_NEXTCOLOURS; i++) {
+		if (i < 216) {
+			uint8_t r = i / 36, g = (i / 6) % 6, b = i % 6;
+			term_info.rgbt_def[i+16].red = r * 0x33;
+			term_info.rgbt_def[i+16].green = g * 0x33;
+			term_info.rgbt_def[i+16].blue = b * 0x33;
+		} else {
+			uint8_t shade = i - 216;
+			shade = (shade + 1) * 0xFF / (TRM_NUMBER_NEXTCOLOURS - 216 + 1);
+			term_info.rgbt_def[i+16].red =
+			term_info.rgbt_def[i+16].green =
+			term_info.rgbt_def[i+16].blue = shade;
+		}
+	}
+}
+
+/* Set up the colour palette */
+void term_palette_init(void)
+{
+	uint8_t i;
+	
+	term_palette_from_ansi();
+	for (i = 0; i < TRM_NUMBER_ALLCOLOURS; i++) {
+		term_info.palette[i] = RGB(term_info.rgbt_def[i].red,
+					   term_info.rgbt_def[i].green,
+					   term_info.rgbt_def[i].blue);
+	}
+}
 
 void term_init_buffer_line(term_pos_t line)
 {
@@ -64,17 +135,19 @@ void term_get_new_buffer_line(void)
 	term_init_buffer_line(term_info.bottom);
 }
 
-void term_clear_screen_tab(void)
+void term_table_clear(void)
 {
 	term_pos_t i = 0;
+
 	for (i = 0; i < term_info.width; i++)
 		term_info.tabs[i] = ' ';
 }
 
-void term_init_screen_tab(void)
+void term_table_init(void)
 {
 	term_pos_t i = 0;
-	term_clear_screen_tab();
+
+	term_table_clear();
 	for (i = 0; i < term_info.width; i += TRM_TAB_SPACE)
 		term_info.tabs[i] = 'x';
 	term_info.tabs[term_info.width - 1] = 'x';
@@ -170,6 +243,7 @@ void term_erase_to_EOS_line(term_pos_t y)
 void term_erase_to_EOL(void)
 {
 	term_pos_t i = 0;
+
 	for (i = term_info.x; i < term_info.width; i++) {
 		term_set_text_at(i, term_info.y, 0);
 		term_set_attr_at(i, term_info.y, TRM_ATTRIB_DEFAULT);
@@ -181,6 +255,7 @@ void term_erase_to_EOL(void)
 void term_erase_to_BOL(void)
 {
 	term_pos_t i = 0;
+
 	for (i = 0; i < term_info.x; i++) {
 		term_set_text_at(i, term_info.y, 0);
 		term_set_attr_at(i, term_info.y, TRM_ATTRIB_DEFAULT);
@@ -192,6 +267,7 @@ void term_erase_to_BOL(void)
 void term_erase_to_pos(void)
 {
 	term_pos_t i = 0;
+
 	for (i = 0; i < term_info.y; i++)
 		term_erase_line(i);
 }
@@ -206,6 +282,7 @@ void term_erase_to_EOS(void)
 void term_erase_line(term_pos_t line)
 {
 	term_pos_t i;
+
 	if (line < 0)
 		line = 0;
 	if (line > term_info.height - 1)
@@ -239,14 +316,16 @@ void term_cursor_on(void)
 
 	index_Y = (term_info.screen + term_info.y) % term_info.depth;
 	y = term_slot_lines(term_info.view, index_Y);
-	term_set_cursor_dot(term_info.x * term_info.cxChar,
-			    y * term_info.cyChar);
-	term_draw_cursor(true);
+	term_draw_cursor(true,
+			 term_info.x * term_info.cxChar,
+			 y * term_info.cyChar);
 }
 
 void term_cursor_off(void)
 {
-	term_draw_cursor(false);
+	term_draw_cursor(false,
+			 term_info.x * term_info.cxChar,
+			 y * term_info.cyChar);
 }
 
 void term_cursor_up(term_len_t len)
@@ -327,7 +406,7 @@ void term_screen_reset(void)
 	term_info.x = 0;
 	term_info.y = 0;
 	term_erase_screen();
-	term_init_screen_tab();
+	term_table_init();
 }
 
 void term_screen_recalc(void)
@@ -360,7 +439,7 @@ void term_screen_reset_mode(void)
 		term_info.decckm = 0;
 }
 
-void term_init_screen(void)
+void term_screen_init(void)
 {
 	/* output buffer */
 	term_info.x = term_info.y = 0;
@@ -392,5 +471,12 @@ void term_init_screen(void)
 	term_info.wrap_pending = 1;
 	term_info.decckm = 0;
 
-	term_init_screen_tab();
+	term_table_init();
+}
+
+void term_init(void)
+{
+	term_palette_init();
+	/* term_fonts_init(); */
+	term_screen_init();
 }
