@@ -4,15 +4,20 @@
 
 /* grapped from PuTTY for win32 serial console support */
 
-#define snew(type) ( (type *) malloc(sizeof(type)) )
-#define snewn(n, type) ( (type *) malloc((n) * sizeof(type)) )
-#define sresize(x, n, type) ( (type *) realloc((x), (n) * sizeof(type)) )
-#define sfree(x) ( free((x)) )
+#define snew(type)		\
+	((type *) malloc(sizeof(type)))
+#define snewn(n, type)		\
+	((type *) malloc((n) * sizeof(type)))
+#define sresize(x, n, type)	\
+	((type *) realloc((x), (n) * sizeof(type)))
+#define sfree(x)		\
+	(free((x)))
 
 struct bufchain_granule;
 typedef struct bufchain_tag {
 	struct bufchain_granule *head, *tail;
-	int buffersize;		       /* current amount of buffered data */
+	/* current amount of buffered data */
+	int buffersize;
 } bufchain;
 
 #define BUFFER_GRANULE  512
