@@ -303,6 +303,16 @@ config TERM_MAX_CONS
 	int "Number of terminal consoles"
 	range 1 255
 
+config TERM_WIDTH
+	int "Characters per row"
+	range 8 80
+	default 80
+
+config TERM_HEIGHT
+	int "Characters per column"
+	range 2 24
+	default 24
+
 endif
 
 endmenu

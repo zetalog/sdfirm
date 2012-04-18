@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Apr 17 17:58:10 2012
+# Wed Apr 18 14:55:33 2012
 #
 CONFIG_ARM=y
 
@@ -104,7 +104,10 @@ CONFIG_TEXT_RAM_BASE=0x20000000
 # CONFIG_HEAP is not set
 CONFIG_BULK=y
 CONFIG_BULK_MAX_CHANS=4
-# CONFIG_TERM is not set
+CONFIG_TERM=y
+CONFIG_TERM_MAX_CONS=1
+CONFIG_TERM_WIDTH=16
+CONFIG_TERM_HEIGHT=2
 CONFIG_ARCH_HAS_GPIO=y
 CONFIG_GPIO=y
 
@@ -196,7 +199,17 @@ CONFIG_MATH_MUL32=y
 #
 # CONFIG_CRC16_CCITT is not set
 # CONFIG_CRC32 is not set
-# CONFIG_FONTS is not set
+CONFIG_FONTS=y
+CONFIG_FONT_8x8=y
+# CONFIG_FONT_8x16 is not set
+# CONFIG_FONT_6x11 is not set
+# CONFIG_FONT_7x14 is not set
+# CONFIG_FONT_PEARL_8x8 is not set
+# CONFIG_FONT_ACORN_8x8 is not set
+# CONFIG_FONT_MINI_4x6 is not set
+# CONFIG_FONT_SUN8x16 is not set
+# CONFIG_FONT_SUN12x22 is not set
+# CONFIG_FONT_10x18 is not set
 
 #
 # Generic setup
