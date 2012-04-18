@@ -2,6 +2,7 @@
 #include <target/lcd.h>
 #include <target/kbd.h>
 #include <target/usb.h>
+#include <target/term.h>
 
 #ifdef CONFIG_EZIO_DEBUG
 #define ezio_debug(tag, val)		dbg_print((tag), (val))
@@ -207,20 +208,30 @@ static boolean ezio_cmd_execute(void)
 
 	switch (ezio_cmd.cmd) {
 	case EZIO_CMD_ClearScreen:
+		term_screen_reset();
 		break;
 	case EZIO_CMD_HomeCursor:
+		term_cursor_pos(0, 0);
 		break;
 	case EZIO_CMD_BlankDisplay:
+		term_erase_screen();
 		break;
 	case EZIO_CMD_HideCursor:
+		term_blink_disable();
+		term_cursor_off();
 		break;
 	case EZIO_CMD_TurnOn:
+		term_cursor_on();
+		term_blink_enable();
 		break;
 	case EZIO_CMD_ShowCursor:
+		term_cursor_on();
 		break;
 	case EZIO_CMD_MoveLeft:
+		term_cursor_left(1);
 		break;
 	case EZIO_CMD_MoveRight:
+		term_cursor_right(1);
 		break;
 	case EZIO_CMD_ScrollLeft:
 		break;
@@ -230,6 +241,8 @@ static boolean ezio_cmd_execute(void)
 		break;
 	case EZIO_CMD_SetDispAddr:
 		if (ezio_cmd_addrdisp_is_valid()) {
+			term_cursor_pos((ezio_cmd.addr & 0x40) >> 6,
+					ezio_cmd.addr & 0x0F);
 		}
 		break;
 	case EZIO_CMD_StartOfHEX:

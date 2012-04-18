@@ -249,6 +249,72 @@ void term_cursor_off(void)
 	term_draw_cursor(false);
 }
 
+void term_cursor_up(term_len_t len)
+{
+	/* cursor up (CUU) */
+	term_info.wrap_pending = 0;
+	term_draw_screen(term_info.x, term_info.y, 1, 1);
+	term_info.y -= len;
+	if (term_info.y < term_info.margin_top)
+		term_info.y = term_info.margin_top;
+	term_screen_recalc();
+	term_draw_screen(term_info.x, term_info.y, 1, 1);
+}
+
+void term_cursor_down(term_len_t len)
+{
+	/* cursor down (CUD) */
+	term_info.wrap_pending = 0;
+	term_draw_screen(term_info.x, term_info.y, 1, 1);
+	term_info.y += len;
+	if (term_info.y > term_info.margin_bottom)
+		term_info.y = term_info.margin_bottom;
+	term_screen_recalc();
+	term_draw_screen(term_info.x, term_info.y, 1, 1);
+}
+		
+void term_cursor_right(term_len_t len)
+{
+	/* cursor forward (right) (CUF) */
+	term_info.wrap_pending = 0;
+	term_draw_screen(term_info.x, term_info.y, 1, 1);
+	term_info.x += len;
+	term_screen_recalc();
+	term_draw_screen(term_info.x, term_info.y, 1, 1);
+}
+		
+void term_cursor_left(term_len_t len)
+{
+	/* cursor backward (left) (CUB) */
+	term_info.wrap_pending = 0;
+	term_draw_screen(term_info.x, term_info.y, 1, 1);
+	term_info.x -= len;
+	term_screen_recalc();
+	term_draw_screen(term_info.x, term_info.y, 1, 1);
+}
+
+void term_cursor_pos(term_pos_t y, term_pos_t x)
+{
+	/* horizontal & vertical position (HVP) */
+	term_info.wrap_pending = 0;
+	term_draw_screen(term_info.x, term_info.y, 1, 1);
+	term_info.y = y - 1;
+	term_info.x = x - 1;
+	term_screen_recalc();
+	term_draw_screen(term_info.x, term_info.y, 1, 1);
+}
+
+void term_blink_enable(void)
+{
+	term_info.cur_attrib |= TRM_ATTRIB_BLINK;
+	//term_blink_schedule();
+}
+
+void term_blink_disable(void)
+{
+	term_info.cur_attrib &= ~TRM_ATTRIB_BLINK;
+}
+
 void term_screen_reset(void)
 {
 	term_info.margin_top = 0;

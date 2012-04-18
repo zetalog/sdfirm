@@ -247,6 +247,14 @@ void term_cursor_on(void);
 void term_cursor_off(void);
 void term_cursor_restore(void);
 void term_cursor_save(void);
+void term_cursor_up(term_len_t len);
+void term_cursor_down(term_len_t len);
+void term_cursor_right(term_len_t len);
+void term_cursor_left(term_len_t len);
+void term_cursor_pos(term_pos_t y, term_pos_t x);
+
+void term_blink_enable(void);
+void term_blink_disable(void);
 
 void term_screen_reset(void);
 void term_screen_recalc(void);
