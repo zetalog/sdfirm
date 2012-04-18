@@ -1,6 +1,6 @@
 /* Acorn-like font definition, with PC graphics characters */
 
-#include <target/font.h>
+#include <target/video.h>
 
 static text_byte_t acorndata_8x8[] = {
 /* 00 */  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* ^@ */
@@ -261,7 +261,7 @@ static text_byte_t acorndata_8x8[] = {
 /* FF */  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-font_desc_t font_acorn_8x8 = {
+video_font_t font_acorn_8x8 = {
 	8,
 	8,
 	acorndata_8x8,

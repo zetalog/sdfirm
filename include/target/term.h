@@ -232,6 +232,9 @@ void term_screen_reset_mode(void);
 void term_get_new_buffer_line(void);
 void term_del_top_buffer_line(void);
 
+void term_table_clear(void);
+void term_table_init(void);
+
 void term_erase_to_pos(void);
 void term_erase_to_EOL(void);
 void term_erase_to_EOS_line(term_pos_t y);
@@ -255,5 +258,9 @@ void term_blink_disable(void);
 
 void term_screen_reset(void);
 void term_screen_recalc(void);
+void term_screen_init(void);
+
+void term_palette_init(void);
+void term_palette_from_ansi(void);
 
 #endif /* __TERM_H_INCLUDE__ */

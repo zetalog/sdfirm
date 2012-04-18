@@ -1,4 +1,4 @@
-#include <target/font.h>
+#include <target/video.h>
 
 #define FONTDATAMAX 11264
 
@@ -6150,7 +6150,7 @@ static text_byte_t fontdata_sun12x22[FONTDATAMAX] = {
 
 };
 
-font_desc_t font_sun_12x22 = {
+video_font_t font_sun_12x22 = {
 	12,
 	22,
 	fontdata_sun12x22,

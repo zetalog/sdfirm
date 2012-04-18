@@ -4,7 +4,7 @@
 /*                                            */
 /**********************************************/
 
-#include <target/font.h>
+#include <target/video.h>
 
 #define FONTDATAMAX 4096
 
@@ -4620,7 +4620,7 @@ static text_byte_t fontdata_8x16[FONTDATAMAX] = {
 
 };
 
-font_desc_t font_vga_8x16 = {
+video_font_t font_vga_8x16 = {
 	8,
 	16,
 	fontdata_8x16,

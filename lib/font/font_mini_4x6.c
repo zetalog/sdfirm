@@ -39,7 +39,7 @@ __END__;
    MSBit to LSBit = left to right.
  */
 
-#include <target/font.h>
+#include <target/video.h>
 
 #define FONTDATAMAX 1536
 
@@ -2147,7 +2147,7 @@ static text_byte_t fontdata_mini_4x6[FONTDATAMAX] = {
 	/*}*/
 };
 
-font_desc_t font_mini_4x6 = {
+video_font_t font_mini_4x6 = {
 	4,
 	6,
 	fontdata_mini_4x6,

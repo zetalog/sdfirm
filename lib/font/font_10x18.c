@@ -3,7 +3,7 @@
  * by Jurriaan Kalkman 06-2005  *
  ********************************/
 
-#include <target/font.h>
+#include <target/video.h>
 
 #define FONTDATAMAX 9216
 
@@ -5131,7 +5131,7 @@ static text_byte_t fontdata_10x18[FONTDATAMAX] = {
 
 };
 
-font_desc_t font_10x18 = {
+video_font_t font_10x18 = {
 	10,
 	18,
 	fontdata_10x18,
