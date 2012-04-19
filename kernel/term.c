@@ -325,7 +325,7 @@ void term_cursor_off(void)
 {
 	term_draw_cursor(false,
 			 term_info.x * term_info.cxChar,
-			 y * term_info.cyChar);
+			 term_info.y * term_info.cyChar);
 }
 
 void term_cursor_up(term_len_t len)
@@ -455,9 +455,9 @@ void term_screen_init(void)
 	/* input buffer */
 	term_info.size = term_info.columns;
 	term_info.head = term_info.tail = 0;
+	term_info.replace = 1;
 
 	/* terminal modes */
-	term_info.mode = TRM_MODE_REPLACE;
 #if 0
 	term_info.resizeable = 0;
 #endif
@@ -474,9 +474,23 @@ void term_screen_init(void)
 	term_table_init();
 }
 
+void term_fonts_init(void)
+{
+	term_info.cxChar = font->width;
+	term_info.cyChar = font->height;
+}
+
+void term_cursor_init(void)
+{
+	term_draw_cursor(true,
+			 term_info.x*term_info.cxChar,
+			 term_info.y*term_info.cyChar);
+}
+
 void term_init(void)
 {
 	term_palette_init();
-	/* term_fonts_init(); */
+	term_fonts_init();
 	term_screen_init();
+	term_cursor_init();
 }

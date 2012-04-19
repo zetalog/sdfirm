@@ -126,9 +126,6 @@ typedef uint8_t term_t;
 #define TRM_ANSI_X364_WHITE			RGB(187, 187, 187)
 #define TRM_ANSI_X364_BOLD_WHITE		RGB(255, 255, 255)
 
-#define TRM_MODE_INSERT		0x00000001U
-#define TRM_MODE_REPLACE	0x00000002U
-
 #define TRM_TAB_SPACE                   8
 
 #define TRM_OUTPUT_SIZE		\
@@ -163,28 +160,31 @@ struct terminal {
 	uint32_t Pattrib;
 
 	/* edit stuff */
-	int mode;			/* insert / replace mode */
 	uint8_t blinking : 1;		/* controlled by timer */
 	uint8_t alert : 1;
 	uint8_t decawm : 1;		/* AutoWrap mode 0=off */
 	uint8_t wrap_pending : 1;	/* AutoWrap mode is on - wrap on next character */
 	uint8_t decckm : 1;		/* Cursor key mode */
 	uint8_t decpam : 1;		/* keyPad Application mode */
+	uint8_t replace : 1;		/* insert / replace mode */
 
 #if 0
 	uint8_t resizeable : 1;
 #endif
-	int backspace;
-	int ctrl_backspace;
+	uint8_t backspace;
+	uint8_t ctrl_backspace;
 	char tabs[TRM_DEFAULT_WIDTH];
 
 	/* escape sequence stuff */
-	int esc_level;			/* current escape level */      
-	int esc_nargs;
-	int esc_parms[6];		/* ANSI params */
+	uint8_t esc_level;		/* current escape level */      
+	uint8_t esc_nargs;
+	uint8_t esc_parms[6];		/* ANSI params */
 
 	video_rgb_t palette[TRM_NUMBER_ALLCOLOURS];
 	struct video_rbg_triple rgbt_def[TRM_NUMBER_ALLCOLOURS];
+
+	/* font's dimensional size */
+	uint8_t cxChar, cyChar;
 };
 
 struct term_driver {
