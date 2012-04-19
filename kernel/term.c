@@ -1,5 +1,11 @@
 #include <target/term.h>
 #include <target/generic.h>
+#include <target/timer.h>
+
+#define TERM_TIMER_INTERVAL	128
+#define TERM_BLINK_INTERVAL	1024
+#define TERM_PAINT_INTERVAL	TERM_TIMER_INTERVAL
+#define TERM_INTERVAL_PER_BLINK	(TERM_BLINK_INTERVAL/TERM_TIMER_INTERVAL)
 
 struct terminal term_info;
 
@@ -14,8 +20,8 @@ struct terminal term_info;
 #define term_is_buffer_empty()		\
 	(term_info.bottom == term_info.top)
 
-#define term_draw_screen(x, y, w, h)
-#define term_draw_cursor(onoff, x, y)
+bh_t term_bh = INVALID_BH;
+tid_t term_tid = INVALID_TID;
 
 video_rgb_t term_cfg_palette[TRM_NUMBER_FGCOLOURS] = {
 	TRM_DEFAULT_FOREGROUND,
@@ -87,6 +93,43 @@ void term_palette_init(void)
 					   term_info.rgbt_def[i].green,
 					   term_info.rgbt_def[i].blue);
 	}
+}
+
+void term_draw_invalid(term_pos_t x, term_pos_t y,
+		       term_len_t w, term_len_t h)
+{
+	if (term_info.invalid) {
+		term_pos_t x2, y2;
+		term_pos_t inv_x2, inv_y2;
+
+		x2 = x + w;
+		y2 = y + h;
+		inv_x2 = term_info.inv_x + term_info.inv_width;
+		inv_y2 = term_info.inv_y + term_info.inv_height;
+		if (x < term_info.inv_x)
+			term_info.inv_x = x;
+		if (y < term_info.inv_y)
+			term_info.inv_y = y;
+		term_info.inv_width = max(x2, inv_x2) -
+				      term_info.inv_x;
+		term_info.inv_height = max(y2, inv_y2) -
+				       term_info.inv_y;
+	} else {
+		term_info.inv_x = x;
+		term_info.inv_y = y;
+		term_info.inv_width = w;
+		term_info.inv_height = h;
+		term_info.invalid = 1;
+	}
+}
+
+void term_draw_paint(void)
+{
+}
+
+void term_draw_init(void)
+{
+	term_info.invalid = 0;
 }
 
 void term_init_buffer_line(term_pos_t line)
@@ -237,7 +280,7 @@ void term_erase_to_EOS_line(term_pos_t y)
 		y = term_info.y;
 	term_get_new_buffer_line();
 	term_erase_line(y);
-	term_draw_screen(term_info.x, y, term_info.width, y + 1);
+	term_draw_invalid(term_info.x, y, term_info.width, y + 1);
 }
 
 void term_erase_to_EOL(void)
@@ -248,7 +291,7 @@ void term_erase_to_EOL(void)
 		term_set_text_at(i, term_info.y, 0);
 		term_set_attr_at(i, term_info.y, TRM_ATTRIB_DEFAULT);
 	}
-	term_draw_screen(term_info.x, term_info.y,
+	term_draw_invalid(term_info.x, term_info.y,
 			 term_info.width - term_info.x + 1, 1);
 }
 
@@ -260,7 +303,7 @@ void term_erase_to_BOL(void)
 		term_set_text_at(i, term_info.y, 0);
 		term_set_attr_at(i, term_info.y, TRM_ATTRIB_DEFAULT);
 	}
-	term_draw_screen(term_info.x, term_info.y,
+	term_draw_invalid(term_info.x, term_info.y,
 			 term_info.x + 1, 1);
 }
 
@@ -291,7 +334,7 @@ void term_erase_line(term_pos_t line)
 		term_set_text_at(i, line, 0);
 		term_set_attr_at(i, line, TRM_ATTRIB_DEFAULT);
 	}
-	term_draw_screen(term_info.x, term_info.y,
+	term_draw_invalid(term_info.x, term_info.y,
 			 term_info.width, 1);
 }
 
@@ -314,73 +357,71 @@ void term_cursor_on(void)
 	term_pos_t index_Y; 
 	term_len_t y;
 
+	term_info.cur_attrib |= TRM_ATTRIB_CURSOR;
 	index_Y = (term_info.screen + term_info.y) % term_info.depth;
 	y = term_slot_lines(term_info.view, index_Y);
-	term_draw_cursor(true,
-			 term_info.x * term_info.cxChar,
-			 y * term_info.cyChar);
+	term_draw_invalid(term_info.x, y, 1, 1);
 }
 
 void term_cursor_off(void)
 {
-	term_draw_cursor(false,
-			 term_info.x * term_info.cxChar,
-			 term_info.y * term_info.cyChar);
+	term_info.cur_attrib &= ~TRM_ATTRIB_CURSOR;
+	term_draw_invalid(term_info.x, term_info.y, 1, 1);
 }
 
 void term_cursor_up(term_len_t len)
 {
 	/* cursor up (CUU) */
 	term_info.wrap_pending = 0;
-	term_draw_screen(term_info.x, term_info.y, 1, 1);
+	term_draw_invalid(term_info.x, term_info.y, 1, 1);
 	term_info.y -= len;
 	if (term_info.y < term_info.margin_top)
 		term_info.y = term_info.margin_top;
 	term_screen_recalc();
-	term_draw_screen(term_info.x, term_info.y, 1, 1);
+	term_draw_invalid(term_info.x, term_info.y, 1, 1);
 }
 
 void term_cursor_down(term_len_t len)
 {
 	/* cursor down (CUD) */
 	term_info.wrap_pending = 0;
-	term_draw_screen(term_info.x, term_info.y, 1, 1);
+	term_draw_invalid(term_info.x, term_info.y, 1, 1);
 	term_info.y += len;
 	if (term_info.y > term_info.margin_bottom)
 		term_info.y = term_info.margin_bottom;
 	term_screen_recalc();
-	term_draw_screen(term_info.x, term_info.y, 1, 1);
+	term_draw_invalid(term_info.x, term_info.y, 1, 1);
 }
 		
 void term_cursor_right(term_len_t len)
 {
 	/* cursor forward (right) (CUF) */
 	term_info.wrap_pending = 0;
-	term_draw_screen(term_info.x, term_info.y, 1, 1);
+	term_draw_invalid(term_info.x, term_info.y, 1, 1);
 	term_info.x += len;
 	term_screen_recalc();
-	term_draw_screen(term_info.x, term_info.y, 1, 1);
+	term_draw_invalid(term_info.x, term_info.y, 1, 1);
 }
 		
 void term_cursor_left(term_len_t len)
 {
 	/* cursor backward (left) (CUB) */
 	term_info.wrap_pending = 0;
-	term_draw_screen(term_info.x, term_info.y, 1, 1);
+	term_draw_invalid(term_info.x, term_info.y, 1, 1);
 	term_info.x -= len;
 	term_screen_recalc();
-	term_draw_screen(term_info.x, term_info.y, 1, 1);
+	term_draw_invalid(term_info.x, term_info.y, 1, 1);
 }
 
 void term_cursor_pos(term_pos_t y, term_pos_t x)
 {
 	/* horizontal & vertical position (HVP) */
 	term_info.wrap_pending = 0;
-	term_draw_screen(term_info.x, term_info.y, 1, 1);
+	term_draw_invalid(term_info.x, term_info.y, 1, 1);
 	term_info.y = y - 1;
 	term_info.x = x - 1;
 	term_screen_recalc();
-	term_draw_screen(term_info.x, term_info.y, 1, 1);
+	term_draw_invalid(term_info.x, term_info.y, 1, 1);
 }
 
 void term_blink_enable(void)
@@ -476,19 +517,46 @@ void term_screen_init(void)
 
 void term_fonts_init(void)
 {
-	term_info.cxChar = font->width;
-	term_info.cyChar = font->height;
+	/* TODO: choose font */
 }
 
 void term_cursor_init(void)
 {
-	term_draw_cursor(true,
-			 term_info.x*term_info.cxChar,
-			 term_info.y*term_info.cyChar);
+	term_info.def_attrib |= TRM_ATTRIB_CURSOR;
+	term_cursor_on();
+}
+
+static void term_timer_handler(void)
+{
+	term_info.blink_count++;
+	if ((term_info.blink_count % TERM_INTERVAL_PER_BLINK) == 0) {
+		if (term_info.blink_flash)
+			term_info.blink_flash = false;
+		else
+			term_info.blink_flash = true;
+	}
+	term_draw_paint();
+	timer_schedule_shot(term_tid, TERM_TIMER_INTERVAL);
+}
+
+static void term_handler(uint8_t event)
+{
+	switch (event) {
+	case BH_TIMEOUT:
+		term_timer_handler();
+		break;
+	default:
+		BUG();
+		break;
+	}
 }
 
 void term_init(void)
 {
+	term_bh = bh_register_handler(term_handler);
+	term_tid = timer_register(term_bh, TIMER_DELAYABLE);
+	timer_schedule_shot(term_tid, TERM_TIMER_INTERVAL);
+
 	term_palette_init();
 	term_fonts_init();
 	term_screen_init();

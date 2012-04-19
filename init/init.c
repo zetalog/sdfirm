@@ -118,31 +118,44 @@ void task_init(void);
 #define task_init()
 #endif
 
+#ifdef CONFIG_TERM
+void term_init(void);
+#else
+#define term_init()
+#endif
+
 void modules_init(void)
 {
-	/* normal subsys */
+	/* buses */
 	uart_init();
-	net_init();
-	mtd_init();
-	led_init();
-	usb_init();
-	scsi_init();
-	kbd_init();
 	i2c_init();
-	lcd_init();
 	spi_init();
-	ifd_init();
-	scs_slot_init();
+	net_init();
+	usb_init();
+	mtd_init();
 
-	/* modules */
+	/* subsys */
+	scsi_init();
+	kbd_init();	/* on GPIO */
+	lcd_init();	/* on mem/GPIO */
+	led_init();	/* on GPIO */
+	ifd_init();	/* on uart */
+
+	/* keymods */
+	term_init();	/* for console */
+	scs_slot_init();/* for security */
+
+	/* busmods */
 	flash_init();
 	dataflash_init();
 	hid_init();
 	msd_init();
-	scd_init();
-	usb_pn53x_init();
-	cos_init();
 	dfu_init();
+	scd_init();
+	cos_init();
+
+	/* apps */
+	usb_pn53x_init();
 
 	task_init();
 }

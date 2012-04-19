@@ -41,7 +41,7 @@ typedef uint8_t term_t;
  *
  * The meaning of fields used in the attributes are as follows:
  *   +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
- *   |            Reserved           | N | W | L | R | U | B |      ->
+ *   |            Reserved       | C | N | W | L | R | U | B |      ->
  *   +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
  *   <-Background Colour         |         Foreground Colour         |
  *   +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
@@ -54,6 +54,7 @@ typedef uint8_t term_t;
  *  U:  Under line
  *  B:  ANSI Bold colour
  *======================================================================*/
+#define TRM_ATTRIB_CURSOR	0x01000000U
 #define TRM_ATTRIB_NARROW	0x00800000U
 #define TRM_ATTRIB_WIDE		0x00400000U
 #define TRM_ATTRIB_BLINK	0x00200000U
@@ -167,6 +168,12 @@ struct terminal {
 	uint8_t decckm : 1;		/* Cursor key mode */
 	uint8_t decpam : 1;		/* keyPad Application mode */
 	uint8_t replace : 1;		/* insert / replace mode */
+	uint8_t invalid : 1;		/* screen invalid */
+
+	/* terminal draw boundary */
+	term_len_t inv_width, inv_height;
+	/* terminal draw position */
+	term_pos_t inv_x, inv_y;
 
 #if 0
 	uint8_t resizeable : 1;
@@ -184,7 +191,10 @@ struct terminal {
 	struct video_rbg_triple rgbt_def[TRM_NUMBER_ALLCOLOURS];
 
 	/* font's dimensional size */
-	uint8_t cxChar, cyChar;
+	/* uint8_t cxChar, cyChar; */
+
+	uint8_t blink_count;
+	uint8_t blink_flash;
 };
 
 struct term_driver {
