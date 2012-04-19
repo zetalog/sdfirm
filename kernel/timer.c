@@ -186,7 +186,7 @@ void timer_schedule_shot(tid_t tid, timeout_t tout_ms)
 void timer_handler(uint8_t event)
 {
 	BUG_ON(event != BH_WAKEUP);
-	timer_run(TIMER_DELAYABLE);
+	timer_run(TIMER_BH);
 	timer_restart();
 }
 

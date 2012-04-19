@@ -554,11 +554,12 @@ static void term_handler(uint8_t event)
 void term_init(void)
 {
 	term_bh = bh_register_handler(term_handler);
-	term_tid = timer_register(term_bh, TIMER_DELAYABLE);
+	term_tid = timer_register(term_bh, TIMER_BH);
 	timer_schedule_shot(term_tid, TERM_TIMER_INTERVAL);
 
 	term_palette_init();
 	term_fonts_init();
 	term_screen_init();
 	term_cursor_init();
+	term_draw_init();
 }

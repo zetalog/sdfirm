@@ -79,7 +79,7 @@ void ifd_hw_stop_wtc(void)
 
 void ifd_hw_start_wtc(void)
 {
-	/* timer_register(__ifd_hw_wt_expire, ifd_wt_value, TIMER_INTERRUPT); */
+	/* timer_register(__ifd_hw_wt_expire, ifd_wt_value, TIMER_IRQ); */
 }
 
 void ifd_hw_delay_wt(uint32_t wt, boolean blk)

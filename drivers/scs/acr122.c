@@ -325,8 +325,7 @@ static void acr122_handler(uint8_t event)
 {
 	switch (event) {
 	case BH_TIMEOUT:
-		if (timer_timeout_raised(acr122_tid,
-					 TIMER_DELAYABLE)) {
+		if (timer_timeout_raised(acr122_tid, TIMER_BH)) {
 			if (acr122_poll > 0)
 				acr122_poll_ready();
 			timer_schedule_shot(acr122_tid, ACR122_POLL_TIMEOUT);
@@ -343,6 +342,6 @@ void acr122_init(void)
 	pn53x_ctrl_init();
 	acr122_set_state(ACR122_XCHG_STATE_CMD, 0);
 	acr122_bh = bh_register_handler(acr122_handler);
-	acr122_tid = timer_register(acr122_bh, TIMER_DELAYABLE);
+	acr122_tid = timer_register(acr122_bh, TIMER_BH);
 	timer_schedule_shot(acr122_tid, ACR122_POLL_TIMEOUT);
 }

@@ -32,7 +32,7 @@ void usb_wakeup_state(void)
 
 tid_t usb_timer_register(void)
 {
-	return timer_register(usb_bh, TIMER_DELAYABLE);
+	return timer_register(usb_bh, TIMER_BH);
 }
 
 #if defined(CONFIG_USB_DEV) && defined(CONFIG_USB_HCD)

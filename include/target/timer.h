@@ -2,7 +2,7 @@
 #define __TIMER_H_INCLUDE__
 
 /* TODO:
- 1. promptly timer TIMER_INTERRUPT.
+ * 1. promptly timer TIMER_IRQ.
  */
 #include <target/config.h>
 #include <target/generic.h>
@@ -19,17 +19,15 @@ typedef uint8_t tid_t;
 #endif
 #define INVALID_TID				NR_TIMERS
 
-/* TIMER_DELAYABLE: Background running timers, which should be delayed to
- *                  the process context.  No interrupt masking is required
- *                  for such timers.  This is also known as generic
- *                  timers.
- * TIMER_INTERRUPT: Foreground running timers, which should be handled in
- *                  the interrupt context without delay to ensure that it
- *                  can be handled in time.  This is also known as
- *                  realtime timers.
+/* TIMER_BH: Background running timers, which should be delayed to the
+ *           process context.  No interrupt masking is required for such
+ *           timers.  This is also known as generic timers.
+ * TIMER_IRQ: Foreground running timers, which should be handled in the
+ *            interrupt context without delay to ensure that it can be
+ *            handled in time.  This is also known as realtime timers.
  */
-#define TIMER_DELAYABLE				0x01
-#define TIMER_INTERRUPT				0x02
+#define TIMER_BH	0x01
+#define TIMER_IRQ	0x02
 
 #ifdef CONFIG_TIMER
 tid_t timer_register(bh_t bh, uint8_t type);

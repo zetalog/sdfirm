@@ -2459,13 +2459,13 @@ __near__ tid_t ifd_tid = INVALID_TID;
 
 static void ifd_pres_init(void)
 {
-	ifd_tid = timer_register(ifd_bh, TIMER_DELAYABLE);
+	ifd_tid = timer_register(ifd_bh, TIMER_BH);
 	timer_schedule_shot(ifd_tid, IFD_PRES_POLL_TIMEOUT);
 }
 
 static void ifd_pres_handler(void)
 {
-	if (timer_timeout_raised(ifd_tid, TIMER_DELAYABLE)) {
+	if (timer_timeout_raised(ifd_tid, TIMER_BH)) {
 		if (ifd_hw_icc_present()) {
 			ifd_detect_icc_in();
 		} else {

@@ -58,7 +58,7 @@ void task_handler(uint8_t event)
 {
 	switch (event) {
 	case BH_TIMEOUT:
-		if (timer_timeout_raised(task_tid, TIMER_DELAYABLE)) {
+		if (timer_timeout_raised(task_tid, TIMER_BH)) {
 			task_schedule();
 			timer_schedule_shot(task_tid, TASK_SLICE);
 		}
@@ -74,7 +74,7 @@ void task_init(void)
 	struct task_entry *task;
 
 	task_bh = bh_register_handler(task_handler);
-	task_tid = timer_register(task_bh, TIMER_DELAYABLE);
+	task_tid = timer_register(task_bh, TIMER_BH);
 
 	task = INIT_TASK;
 	task->pid = INIT_PID;

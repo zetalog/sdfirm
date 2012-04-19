@@ -145,7 +145,7 @@ static void flash_restart_timer(void)
 static void flash_start_timer(void)
 {
 	timer_init();
-	porting_tid = timer_register(porting_bh, TIMER_DELAYABLE);
+	porting_tid = timer_register(porting_bh, TIMER_BH);
 	timer_schedule_shot(porting_tid, 0);
 }
 #else
@@ -258,7 +258,7 @@ void porting_init(void)
 {
 	timer_init();
 	porting_bh = bh_register_handler(porting_handler);
-	porting_tid = timer_register(porting_bh, TIMER_DELAYABLE);
+	porting_tid = timer_register(porting_bh, TIMER_BH);
 	timer_schedule_shot(porting_tid, 0);
 }
 #endif
