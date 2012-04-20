@@ -38,10 +38,8 @@ __TEXT_TYPE__(const struct timer_desc, timer_desc_t);
 tid_t timer_register(timer_desc_t *timer);
 void timer_schedule_shot(tid_t tid, timeout_t tout_ms);
 void timer_run(uint8_t type);
-boolean timer_timeout_raised(tid_t tid, uint8_t type);
 #else
 #define timer_register(timer)			INVALID_TID
-#define timer_timeout_raised(tid, type)		false
 #define timer_schedule_shot(tid, tout_ms)
 #define timer_run(type)
 #endif

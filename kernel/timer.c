@@ -54,12 +54,6 @@ tid_t timer_register(timer_desc_t *timer)
 	return tid;
 }
 
-/* only if the tid equals to the running tid */
-boolean timer_timeout_raised(tid_t tid, uint8_t type)
-{
-	return tid == timer_running_tid;
-}
-
 #ifdef CONFIG_TICK
 tick_t timer_last_tick = 0;
 
