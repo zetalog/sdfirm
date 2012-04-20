@@ -10,7 +10,6 @@ struct task_entry task_entries[NR_TASKS];
 pid_t task_nr_regs = INIT_PID+1;
 struct task_entry *task_current = INIT_TASK;
 
-bh_t task_bh = INVALID_BH;
 tid_t task_tid = INVALID_TID;
 
 pid_t task_create(task_call_cb call, void *priv,
@@ -53,33 +52,26 @@ void task_schedule(void)
 	irq_local_restore(flags);
 }
 
-void task_handler(uint8_t event)
+void task_timer_handler(void)
 {
-	switch (event) {
-	case BH_TIMEOUT:
-		if (timer_timeout_raised(task_tid, TIMER_BH)) {
-			task_schedule();
-			timer_schedule_shot(task_tid, TASK_SLICE);
-		}
-		break;
-	default:
-		BUG();
-		break;
-	}
+	task_schedule();
+	timer_schedule_shot(task_tid, TASK_SLICE);
 }
+
+timer_desc_t task_timer = {
+	TIMER_BH,
+	task_timer_handler,
+};
 
 void task_init(void)
 {
 	struct task_entry *task;
 
-	task_bh = bh_register_handler(task_handler);
-	task_tid = timer_register(task_bh, TIMER_BH);
-
+	task_tid = timer_register(&task_timer);
 	task = INIT_TASK;
 	task->pid = INIT_PID;
 	task->stack_size = INIT_STACK_SIZE;
 	task->stack_bottom = INIT_STACK - INIT_STACK_SIZE;
 	task->sp = INIT_STACK;
-
 	timer_schedule_shot(task_tid, TASK_SLICE);
 }

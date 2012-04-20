@@ -1,7 +1,7 @@
 /* USB HCD/OTG A and DEV/OTG B dispatcher */
 
 #include <target/usb.h>
-#include <target/timer.h>
+#include <target/bh.h>
 #include <target/irq.h>
 
 #ifdef CONFIG_USB_DEV
@@ -29,11 +29,6 @@ __near__ bh_t usb_bh = INVALID_BH;
 void usb_wakeup_state(void)
 {
 	bh_resume(usb_bh);
-}
-
-tid_t usb_timer_register(void)
-{
-	return timer_register(usb_bh, TIMER_BH);
 }
 
 #if defined(CONFIG_USB_DEV) && defined(CONFIG_USB_HCD)

@@ -20,7 +20,6 @@ struct terminal term_info;
 #define term_is_buffer_empty()		\
 	(term_info.bottom == term_info.top)
 
-bh_t term_bh = INVALID_BH;
 tid_t term_tid = INVALID_TID;
 
 video_rgb_t term_cfg_palette[TRM_NUMBER_FGCOLOURS] = {
@@ -539,22 +538,14 @@ static void term_timer_handler(void)
 	timer_schedule_shot(term_tid, TERM_TIMER_INTERVAL);
 }
 
-static void term_handler(uint8_t event)
-{
-	switch (event) {
-	case BH_TIMEOUT:
-		term_timer_handler();
-		break;
-	default:
-		BUG();
-		break;
-	}
-}
+timer_desc_t term_timer = {
+	TIMER_BH,
+	term_timer_handler,
+};
 
 void term_init(void)
 {
-	term_bh = bh_register_handler(term_handler);
-	term_tid = timer_register(term_bh, TIMER_BH);
+	term_tid = timer_register(&term_timer);
 	timer_schedule_shot(term_tid, TERM_TIMER_INTERVAL);
 
 	term_palette_init();

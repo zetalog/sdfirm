@@ -390,6 +390,4 @@ void usb_set_mode(uint8_t mode);
 void usb_switch_mode(uint8_t mode);
 void usb_wakeup_state(void);
 
-tid_t usb_timer_register(void);
-
 #endif /* __USB_H_INCLUDE__ */

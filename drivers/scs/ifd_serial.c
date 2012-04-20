@@ -72,14 +72,20 @@ static void __ifd_hw_wt_expire(void)
 	ifd_wt_expired = true;
 }
 
+timer_desc_t ifds_timer = {
+	TIMER_IRQ,
+	__ifd_hw_wt_expire,
+};
+tid_t ifds_tid;
+
 void ifd_hw_stop_wtc(void)
 {
-	/* timer_unregister(__ifd_hw_wt_expire); */
+	/* timer_unregister(ifds_tid); */
 }
 
 void ifd_hw_start_wtc(void)
 {
-	/* timer_register(__ifd_hw_wt_expire, ifd_wt_value, TIMER_IRQ); */
+	/* ifds_tid = timer_register(&ifds_timer); */
 }
 
 void ifd_hw_delay_wt(uint32_t wt, boolean blk)

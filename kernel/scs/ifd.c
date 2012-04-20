@@ -2457,22 +2457,24 @@ ifd_sid_t ifd_sid_save(ifd_sid_t sid)
 
 __near__ tid_t ifd_tid = INVALID_TID;
 
-static void ifd_pres_init(void)
+static void ifd_pres_handler(void)
 {
-	ifd_tid = timer_register(ifd_bh, TIMER_BH);
+	if (ifd_hw_icc_present()) {
+		ifd_detect_icc_in();
+	} else {
+		ifd_detect_icc_out();
+	}
 	timer_schedule_shot(ifd_tid, IFD_PRES_POLL_TIMEOUT);
 }
 
-static void ifd_pres_handler(void)
-{
-	if (timer_timeout_raised(ifd_tid, TIMER_BH)) {
-		if (ifd_hw_icc_present()) {
-			ifd_detect_icc_in();
-		} else {
-			ifd_detect_icc_out();
-		}
-	}
+timer_desc_t ifd_pres_timer = {
+	TIMER_BH,
+	ifd_pres_handler,
+};
 
+static void ifd_pres_init(void)
+{
+	ifd_tid = timer_register(&ifd_pres_timer);
 	timer_schedule_shot(ifd_tid, IFD_PRES_POLL_TIMEOUT);
 }
 #else
@@ -2480,7 +2482,7 @@ static void ifd_pres_handler(void)
 #define ifd_pres_handler()
 #endif
 
-static void ifd_state_handler(void)
+static void ifd_bh_handler(void)
 {
 	uint8_t sid, ssid;
 	for (sid = 0; sid < NR_IFD_SLOTS; sid++) {
@@ -2492,27 +2494,12 @@ static void ifd_state_handler(void)
 	}
 }
 
-static void ifd_handler(uint8_t event)
-{
-	switch (event) {
-	case BH_WAKEUP:
-		ifd_state_handler();
-		break;
-	case BH_TIMEOUT:
-		ifd_pres_handler();
-		break;
-	default:
-		BUG();
-		break;
-	}
-}
-
 void ifd_init(void)
 {
 	ifd_sid_t sid, ssid;
 
 	DEVICE_FUNC(DEVICE_FUNC_IFD);
-	ifd_bh = bh_register_handler(ifd_handler);
+	ifd_bh = bh_register_handler(ifd_bh_handler);
 
 	/* only one IFD is allowed */
 	ifd_hw_ctrl_init();

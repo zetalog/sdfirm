@@ -1,4 +1,5 @@
 #include <target/timer.h>
+#include <target/bh.h>
 #include <target/gpt.h>
 #include <target/jiffies.h>
 
@@ -10,12 +11,12 @@
 #define TIMER_TIME(timeout)		((timeout_t)((timeout_t)(timeout) >> 1))
 #define TIMER_MAKE(shot, time)		((shot) | ((timeout_t)(time) << 1))
 
-typedef struct timer_t {
-	bh_t bh;
+struct timer_entry {
 	timeout_t timeout;
-} timer_t;
+};
 
-timer_t timer_entries[NR_TIMERS];
+timer_desc_t *timer_descs[NR_TIMERS];
+struct timer_entry timer_entries[NR_TIMERS];
 uint8_t timer_nr_regs = 0;
 bh_t timer_bh = INVALID_BH;
 tid_t timer_running_tid = INVALID_TID;
@@ -26,19 +27,13 @@ void __timer_reset_timeout(tid_t tid, timeout_t tout_ms)
 	timer_entries[tid].timeout = TIMER_MAKE(TIMER_FLAG_SHOT, tout_ms);
 }
 
-bh_t timer_tid2bh(tid_t tid)
-{
-	BUG_ON(tid >= NR_TIMERS);
-	return timer_entries[tid].bh;
-}
-
 void __timer_run(tid_t tid)
 {
-	bh_t bh;
+	timer_desc_t *timer = timer_descs[tid];
 
+	BUG_ON(!timer || !timer->handler);
 	timer_running_tid = tid;
-	bh = timer_tid2bh(tid);
-	__bh_run(bh, BH_TIMEOUT);
+	timer->handler();
 	timer_running_tid = INVALID_TID;
 }
 
@@ -48,11 +43,11 @@ void __timer_run(tid_t tid)
  * IN timeout: the period that will be delayed
  * OUT tid: return NR_TIMERS on error
  */
-tid_t timer_register(bh_t bh, uint8_t type)
+tid_t timer_register(timer_desc_t *timer)
 {
 	tid_t tid = timer_nr_regs;
 	BUG_ON(tid == NR_TIMERS);
-	timer_entries[tid].bh = bh;
+	timer_descs[tid] = timer;
 	timer_entries[tid].timeout = TIMER_IDLE;
 	timer_nr_regs++;
 	timer_running_tid = tid;

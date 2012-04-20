@@ -135,40 +135,55 @@ extern void led_init(void);
 led_no_t porting_led_light;
 uint8_t porting_led_count;
 
-#ifdef CONFIG_PORTING_LED_TIMER
-static void flash_restart_timer(void)
-{
-	timer_schedule_shot(porting_tid, 125);
-}
-
-static void flash_start_timer(void)
-{
-	timer_init();
-	porting_tid = timer_register(porting_bh, TIMER_BH);
-	timer_schedule_shot(porting_tid, 0);
-}
-#else
-static void flash_restart_timer(void)
-{
-	mdelay(250);
-	bh_resume(porting_bh);
-}
-
-void flash_start_timer(void)
-{
-	delay_init();
-}
-#endif
-
-void porting_led_run(void)
+void __porting_led_run(void)
 {
 	porting_led_count++;
 	if (porting_led_count & 0x01)
 		led_light_on(porting_led_light, 0);
 	else
 		led_light_off(porting_led_light);
-	flash_restart_timer();
 }
+
+void __porting_led_init(void)
+{
+	led_init();
+	porting_led_light = led_claim_light();
+}
+
+#ifdef CONFIG_PORTING_LED_TIMER
+void porting_timer_handler(void)
+{
+	__porting_led_run();
+	timer_schedule_shot(porting_tid, 125);
+}
+
+timer_desc_t porting_timer = {
+	TIMER_BH,
+	porting_timer_handler,
+};
+
+static void porting_led_init(void)
+{
+	timer_init();
+	__porting_led_init();
+	porting_tid = timer_register(&porting_timer);
+	timer_schedule_shot(porting_tid, 0);
+}
+#else
+void porting_bh_handler(void)
+{
+	__porting_led_run();
+	mdelay(250);
+	bh_resume(porting_bh);
+}
+
+static void porting_led_init(void)
+{
+	delay_init();
+	__porting_led_init();
+	porting_bh = bh_register_handler(porting_handler);
+}
+#endif
 
 void porting_led_init(void)
 {
@@ -183,8 +198,6 @@ void porting_handler(uint8_t event)
 
 void porting_init(void)
 {
-	led_init();
-	porting_bh = bh_register_handler(porting_handler);
 	porting_led_init();
 }
 #endif
@@ -238,7 +251,7 @@ void porting_init(void)
 uint8_t porting_byte = 0;
 uint8_t porting_ticks = 0;
 
-void porting_handler(uint8_t event)
+void porting_timer_handler(void)
 {
 #ifdef CONFIG_TIMER_16BIT
 	dbg_dump(porting_byte++);
@@ -253,17 +266,21 @@ void porting_handler(uint8_t event)
 #endif
 }
 
+timer_desc_t porting_timer = {
+	TIMER_BH,
+	porting_timer_handler,
+};
+
 void porting_init(void)
 {
 	timer_init();
-	porting_bh = bh_register_handler(porting_handler);
-	porting_tid = timer_register(porting_bh, TIMER_BH);
+	porting_tid = timer_register(&porting_timer);
 	timer_schedule_shot(porting_tid, 0);
 }
 #endif
 
 #ifdef CONFIG_PORTING_DELAY
-void porting_handler(uint8_t event)
+void porting_bh_handler(uint8_t event)
 {
 #ifdef CONFIG_LPS_32BITS
 	dbg_dump(HIBYTE(HIWORD(loops_per_ms)));
@@ -281,7 +298,7 @@ void porting_handler(uint8_t event)
 void porting_init(void)
 {
 	delay_init();
-	porting_bh = bh_register_handler(porting_handler);
+	porting_bh = bh_register_handler(porting_bh_handler);
 	bh_resume(porting_bh);
 }
 #endif
