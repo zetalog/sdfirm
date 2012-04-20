@@ -1,5 +1,4 @@
 #include <target/task.h>
-#include <target/state.h>
 #include <target/timer.h>
 #include <target/heap.h>
 #include <target/irq.h>

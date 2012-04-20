@@ -42,7 +42,7 @@ void __timer_run(tid_t tid)
 	timer_running_tid = INVALID_TID;
 }
 
-/* Reister a timer delay to execute the state machine
+/* Register a timer delay to execute the state machine
  *
  * IN bh: the state machine will be executed when the timer is due
  * IN timeout: the period that will be delayed

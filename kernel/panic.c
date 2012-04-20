@@ -1,5 +1,5 @@
 #include <target/generic.h>
-#include <target/state.h>
+#include <target/bh.h>
 #include <target/uart.h>
 
 #ifdef CONFIG_DEBUG_PRINT

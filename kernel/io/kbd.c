@@ -1,5 +1,5 @@
 #include <target/kbd.h>
-#include <target/state.h>
+#include <target/bh.h>
 
 static void kbd_default_capture(uint8_t scancode, uint8_t event);
 

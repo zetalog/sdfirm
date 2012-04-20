@@ -1,5 +1,5 @@
 #include <target/scs_slot.h>
-#include <target/state.h>
+#include <target/bh.h>
 
 scs_cmpl_cb scs_slot_completion = NULL;
 

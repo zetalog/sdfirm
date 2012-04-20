@@ -29,10 +29,6 @@ void bh_resume(bh_t bh);
 boolean bh_resumed_any(void); 
 bh_t bh_register_handler(bh_cb handler);
 
-/* irq pollers */
-void poll_register(bh_t bh);
-void poll_run(bh_t bh);
-
 void bh_init(void);
 
 #endif /* __BH_H_INCLUDE__ */

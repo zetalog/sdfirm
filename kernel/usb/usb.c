@@ -2,6 +2,7 @@
 
 #include <target/usb.h>
 #include <target/timer.h>
+#include <target/irq.h>
 
 #ifdef CONFIG_USB_DEV
 extern void usbd_init(void);
@@ -50,7 +51,7 @@ void usb_set_mode(uint8_t mode)
 #endif
 
 #ifdef SYS_REALTIME
-#define usb_poll_init()	poll_register(usb_bh)
+#define usb_poll_init()	irq_register_poller(usb_bh)
 
 static void usb_poll_handler(uint8_t event)
 {

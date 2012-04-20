@@ -40,7 +40,7 @@
  */
 
 #include <target/scsi.h>
-#include <target/state.h>
+#include <target/bh.h>
 
 scsi_lun_t scsi_nr_luns = 0;
 scsi_device_t *scsi_devices[NR_SCSI_UNITS];

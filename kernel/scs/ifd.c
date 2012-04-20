@@ -74,7 +74,7 @@
  */
 #include "ifd_priv.h"
 #include <target/lcd.h>
-#include <target/state.h>
+#include <target/bh.h>
 #include <target/delay.h>
 #include <target/jiffies.h>
 #include <target/timer.h>

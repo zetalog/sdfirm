@@ -57,6 +57,19 @@ void irq_register_vector(uint8_t nr, irq_handler h)
 #endif
 #endif
 
+DECLARE_BITMAP(irq_poll_regs, NR_BHS);
+
+void irq_poll_bh(bh_t bh)
+{
+	if (test_bit(bh, irq_poll_regs))
+		bh_run(bh, BH_POLLIRQ);
+}
+
+void irq_register_poller(bh_t bh)
+{
+	set_bit(bh, irq_poll_regs);
+}
+
 void irq_init(void)
 {
 	irq_vectors_init();

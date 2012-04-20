@@ -5,8 +5,8 @@
 obj-y:=
 
 obj-y += panic.rel
-obj-y += irq.rel
 obj-y += bh.rel
+obj-y += irq.rel
 obj-y += delay.rel
 obj-$(CONFIG_TASK) += task.rel
 obj-$(CONFIG_TICK) += tick.rel

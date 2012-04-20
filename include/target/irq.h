@@ -3,6 +3,7 @@
 
 #include <target/config.h>
 #include <target/generic.h>
+#include <target/bh.h>
 #include <asm/irq.h>
 
 #include <driver/vic.h>
@@ -21,6 +22,10 @@ void irq_vectors_init(void);
 #define irq_register_vector(nr, isr)
 #define irq_vectors_init()
 #endif
+
+/* irq pollers */
+void irq_register_poller(bh_t bh);
+void irq_poll_bh(bh_t bh);
 
 void irq_hw_flags_enable(void);
 void irq_hw_flags_disable(void);

@@ -6,7 +6,7 @@
  */
 #include <target/config.h>
 #include <target/generic.h>
-#include <target/state.h>
+#include <target/bh.h>
 #include <target/gpt.h>
 
 typedef uint8_t tid_t;

@@ -2,7 +2,6 @@
 #include <target/generic.h>
 #include <target/arch.h>
 #include <target/irq.h>
-#include <target/state.h>
 
 __near__ uint32_t system_device_id = 0;
 text_char_t system_vendor_name[] = CONFIG_VENDOR_NAME;
@@ -120,7 +119,7 @@ void system_resume(void)
 #include <target/jiffies.h>
 #include <target/delay.h>
 #include <target/timer.h>
-#include <target/state.h>
+#include <target/bh.h>
 #include <target/task.h>
 
 bh_t porting_bh = INVALID_BH;

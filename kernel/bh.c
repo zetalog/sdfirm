@@ -1,10 +1,8 @@
-#include <target/state.h>
 #include <target/irq.h>
 
 DECLARE_BITMAP(bh_awakes, NR_BHS);
 struct bh_entry bh_entries[NR_BHS];
 bh_t bh_nr_regs = 0;
-DECLARE_BITMAP(poll_regs, NR_BHS);
 
 /* big background lock */
 #ifdef SYS_REALTIME
@@ -34,17 +32,6 @@ DECLARE_BITMAP(poll_regs, NR_BHS);
 #define lock_bh()			irq_local_disable()
 #define unlock_bh()			irq_local_enable()
 #endif
-
-void poll_run(bh_t bh)
-{
-	if (test_bit(bh, poll_regs))
-		bh_run(bh, BH_POLLIRQ);
-}
-
-void poll_register(bh_t bh)
-{
-	set_bit(bh, poll_regs);
-}
 
 void __bh_run(bh_t bh, uint8_t event)
 {
@@ -93,7 +80,7 @@ void bh_run_all(void)
 			bh_suspend(bh);
 			bh_run(bh, BH_WAKEUP);
 		}
-		poll_run(bh);
+		irq_poll_bh(bh);
 	}
 }
 

@@ -4,7 +4,7 @@
  */
 #include <target/ifd.h>
 #include <target/delay.h>
-#include <target/state.h>
+#include <target/bh.h>
 
 #define __IFD_HW_DEBOUNSING_DELAY	20
 

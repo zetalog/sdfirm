@@ -39,7 +39,7 @@
  * $Id: pcd.c,v 1.1 2011-11-14 09:00:01 zhenglv Exp $
  */
 #include "pcd_priv.h"
-#include <target/state.h>
+#include <target/bh.h>
 #include <target/delay.h>
 #include <target/timer.h>
 
