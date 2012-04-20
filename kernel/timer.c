@@ -20,11 +20,52 @@ struct timer_entry timer_entries[NR_TIMERS];
 uint8_t timer_nr_regs = 0;
 bh_t timer_bh = INVALID_BH;
 tid_t timer_running_tid = INVALID_TID;
+tid_t timer_orders[NR_TIMERS];
+
+void __timer_del(tid_t tid)
+{
+	tid_t i;
+
+	for (i = 0; i < NR_TIMERS; i++) {
+		if (timer_orders[i] != tid)
+			break;
+	}
+	for (; i < NR_TIMERS-1; i++) {
+		if (timer_orders[i] != INVALID_TID) {
+			timer_orders[i] = timer_orders[i+1];
+			timer_orders[i+1] = INVALID_TID;
+		}
+	}
+}
+
+void __timer_add(tid_t tid)
+{
+	tid_t i, t;
+
+	for (i = 0; i < NR_TIMERS; i++) {
+		t = timer_orders[NR_TIMERS-i-1];
+		/* should be already deleted */
+		BUG_ON(t == tid);
+		if (t != INVALID_TID) {
+			/* should not exceed NR_TIMERS */
+			BUG_ON(i == 0);
+			if (TIMER_TIME(timer_entries[t].timeout) >
+			    TIMER_TIME(timer_entries[tid].timeout)) {
+				timer_orders[NR_TIMERS-i] = t;
+			} else {
+				timer_orders[NR_TIMERS-i] = tid;
+				break;
+			}
+		}
+	}
+}
 
 void __timer_reset_timeout(tid_t tid, timeout_t tout_ms)
 {
 	BUG_ON(tout_ms > MAX_TIMEOUT);
 	timer_entries[tid].timeout = TIMER_MAKE(TIMER_FLAG_SHOT, tout_ms);
+	__timer_del(tid);
+	__timer_add(tid);
 }
 
 void __timer_run(tid_t tid)
@@ -33,6 +74,7 @@ void __timer_run(tid_t tid)
 
 	BUG_ON(!timer || !timer->handler);
 	timer_running_tid = tid;
+	__timer_del(tid);
 	timer->handler();
 	timer_running_tid = INVALID_TID;
 }
@@ -181,6 +223,9 @@ void timer_handler(uint8_t event)
 
 void timer_init(void)
 {
+	tid_t tid;
+	for (tid = 0; tid < NR_TIMERS; tid++)
+		timer_orders[tid] = INVALID_TID;
 	timer_bh = bh_register_handler(timer_handler);
 	timer_start();
 }
