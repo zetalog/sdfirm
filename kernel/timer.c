@@ -79,6 +79,7 @@ void __timer_run(tid_t tid)
 {
 	timer_desc_t *timer = timer_descs[tid];
 
+	idle_debug(IDLE_DEBUG_TID, tid);
 	BUG_ON(!timer || !timer->handler);
 	timer_running_tid = tid;
 	__timer_del(tid);
@@ -115,7 +116,7 @@ void timer_unregister(tid_t tid)
 #ifdef CONFIG_TICK
 tick_t timer_last_tick = 0;
 
-void timer_run(uint8_t type)
+void timer_bh_timeout(void)
 {
 	tid_t tid, i;
 	timeout_t span;
@@ -131,7 +132,6 @@ void timer_run(uint8_t type)
 			timeout_t tid_tout = TIMER_TIME(timer_entries[tid].timeout);
 			if (span >= tid_tout) {
 				timer_entries[tid].timeout = TIMER_IDLE;
-				idle_debug(IDLE_DEBUG_TID, tid);
 				__timer_run(tid);
 			} else {
 				timer_entries[tid].timeout = TIMER_MAKE(TIMER_FLAG_SHOT, tid_tout-span);
@@ -146,30 +146,9 @@ void timer_run(uint8_t type)
 timeout_t timer_timeout = TIMER_MAKE(TIMER_FLAG_SHOT, 0);
 timeout_t timer_unshot_timeout = 0;
 
-void timer_run(uint8_t type)
+void timer_recalc_timeout(void)
 {
 	tid_t tid, i;
-	timeout_t tout;
-
-	BUG_ON(TIMER_SHOT(timer_timeout) != TIMER_FLAG_SHOT);
-	tout = TIMER_TIME(timer_timeout);
-
-	for (i = 0; i < NR_TIMERS; i++) {
-		tid = timer_orders[i];
-		if (tid == INVALID_TID)
-			break;
-		if (TIMER_SHOT(timer_entries[tid].timeout)) {
-			timeout_t tid_tout = TIMER_TIME(timer_entries[tid].timeout);
-			if (tout >= tid_tout) {
-				timer_entries[tid].timeout = TIMER_IDLE;
-				idle_debug(IDLE_DEBUG_TID, tid);
-				__timer_run(tid);
-			} else {
-				tid_tout -= tout;
-				timer_entries[tid].timeout = TIMER_MAKE(TIMER_FLAG_SHOT, tid_tout);
-			}
-		}
-	}
 
 	timer_timeout = TIMER_IDLE;
 	for (i = 0; i < NR_TIMERS; i++) {
@@ -187,13 +166,31 @@ void timer_run(uint8_t type)
 	}
 }
 
+void timer_bh_timeout(void)
+{
+	tid_t tid, i;
+	timeout_t tout;
+
+	BUG_ON(TIMER_SHOT(timer_timeout) != TIMER_FLAG_SHOT);
+	tout = TIMER_TIME(timer_timeout);
+	for (i = 0; i < NR_TIMERS; i++) {
+		tid = timer_orders[i];
+		if (tid == INVALID_TID)
+			break;
+		if (timer_entries[tid].timeout == TIMER_IDLE) {
+			__timer_run(tid);
+		}
+	}
+
+	timer_recalc_timeout();
+}
+
 void timer_shot_timeout(timeout_t to_shot)
 {
-	if (to_shot == 0) {
-		/* do not run GPT on 0 timeout shot value */
-		bh_resume(timer_bh);
-	} else if (to_shot < GPT_MAX_TIMEOUT) {
+	if (to_shot < GPT_MAX_TIMEOUT) {
 		timer_unshot_timeout = 0;
+		if (to_shot == 0)
+			to_shot = 1;
 		gpt_oneshot_timeout(to_shot);
 	} else {
 		timer_unshot_timeout = to_shot - GPT_MAX_TIMEOUT;
@@ -216,7 +213,7 @@ void timer_execute_shot(void)
 void timer_start(void)
 {
 	gpt_hw_ctrl_init();
-	timer_execute_shot();
+	bh_resume(timer_bh);
 }
 
 void timer_restart(void)
@@ -224,12 +221,49 @@ void timer_restart(void)
 	timer_execute_shot();
 }
 
+void timer_irq_timeout(void)
+{
+	tid_t tid, i;
+	timeout_t tout;
+	timer_desc_t *timer;
+	boolean recalc_irq = false, recalc_bh = false;
+
+	BUG_ON(TIMER_SHOT(timer_timeout) != TIMER_FLAG_SHOT);
+	tout = TIMER_TIME(timer_timeout);
+	for (i = 0; i < NR_TIMERS; i++) {
+		tid = timer_orders[i];
+		if (tid == INVALID_TID)
+			break;
+		timer = timer_descs[tid];
+		if (TIMER_SHOT(timer_entries[tid].timeout)) {
+			timeout_t tid_tout = TIMER_TIME(timer_entries[tid].timeout);
+			if (tout >= tid_tout) {
+				timer_entries[tid].timeout = TIMER_IDLE;
+				if (timer->flags & TIMER_IRQ) {
+					__timer_run(tid);
+					if (TIMER_SHOT(timer_entries[tid].timeout))
+						recalc_irq = true;
+				} else {
+					recalc_bh = true;
+					bh_resume(timer_bh);
+				}
+			} else {
+				tid_tout -= tout;
+				timer_entries[tid].timeout = TIMER_MAKE(TIMER_FLAG_SHOT, tid_tout);
+			}
+		}
+	}
+
+	if (recalc_irq || !recalc_bh)
+		timer_recalc_timeout();
+}
+
 void tick_handler(void)
 {
 	if (timer_unshot_timeout)
 		timer_shot_timeout(timer_unshot_timeout);
 	else
-		bh_resume(timer_bh);
+		timer_irq_timeout();
 }
 #endif
 
@@ -242,7 +276,7 @@ void timer_schedule_shot(tid_t tid, timeout_t tout_ms)
 void timer_bh_handler(uint8_t event)
 {
 	BUG_ON(event != BH_WAKEUP);
-	timer_run(TIMER_BH);
+	timer_bh_timeout();
 	timer_restart();
 }
 
