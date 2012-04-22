@@ -28,16 +28,4 @@ typedef void (*iordwr_cb)(uint8_t *c);
 typedef boolean (*iobyte_cb)(uint8_t *c);
 typedef size_t (*iobulk_cb)(uint8_t *buf, size_t len);
 
-#ifdef CONFIG_INPUT_NONE
-#define io_getchar()	0
-#else
-uint8_t io_getchar(void);
-#endif
-
-#ifdef CONFIG_OUTPUT_NONE
-#define io_putchar(val)
-#else
-void io_putchar(uint8_t val);
-#endif
-
 #endif /* __IO_H_INCLUDE__ */

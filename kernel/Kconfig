@@ -183,6 +183,7 @@ menuconfig TIMER
 	bool "Timing facility (timer) support"
 	default y
 	select TIMER_ONESHOT if !TICK
+	select BIT_FIND_CLEAR
 
 if TIMER
 
