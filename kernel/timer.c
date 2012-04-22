@@ -105,9 +105,11 @@ tid_t timer_register(timer_desc_t *timer)
 
 void timer_unregister(tid_t tid)
 {
+	BUG_ON(tid != timer_running_tid);
 	__timer_del(tid);
 	timer_descs[tid] = NULL;
 	clear_bit(tid, timer_regs);
+	timer_running_tid = INVALID_TID;
 }
 
 #ifdef CONFIG_TICK
@@ -303,16 +305,20 @@ void timer_test(void)
 	BUG_ON(timer_orders[1] != tid_2);
 	BUG_ON(timer_orders[2] != tid_3);
 
+	timer_running_tid = tid_1;
 	timer_unregister(tid_1);
 	BUG_ON(timer_orders[0] != tid_2);
 	BUG_ON(timer_orders[1] != tid_3);
 	BUG_ON(timer_orders[2] != INVALID_TID);
+
+	timer_running_tid = tid_2;
 	timer_unregister(tid_2);
 	BUG_ON(timer_orders[0] != tid_3);
 	BUG_ON(timer_orders[1] != INVALID_TID);
 	BUG_ON(timer_orders[2] != INVALID_TID);
-	timer_unregister(tid_3);
 
+	timer_running_tid = tid_3;
+	timer_unregister(tid_3);
 	BUG_ON(find_first_clear_bit(timer_regs, NR_TIMERS) != 0);
 	BUG_ON(timer_orders[0] != INVALID_TID);
 	BUG_ON(timer_orders[1] != INVALID_TID);
