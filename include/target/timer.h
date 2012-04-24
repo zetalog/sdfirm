@@ -21,8 +21,12 @@ typedef uint8_t tid_t;
  *            interrupt context without delay to ensure that it can be
  *            handled in time.  This is also known as realtime timers.
  */
-#define TIMER_BH		0x01
-#define TIMER_IRQ		0x02
+#define TIMER_BH		0x00
+#ifdef CONFIG_TICK
+#define TIMER_IRQ		TIMER_BH
+#else
+#define TIMER_IRQ		0x01
+#endif
 
 struct timer_desc {
 	uint8_t type;

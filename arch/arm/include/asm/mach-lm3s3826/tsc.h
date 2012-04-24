@@ -6,6 +6,7 @@
 #include <asm/reg.h>
 #include <asm/mach/mem.h>
 #include <asm/mach/clk.h>
+#include <asm/mach/pm.h>
 #include <asm/mach/tick.h>
 #include <asm/mach/timer.h>
 

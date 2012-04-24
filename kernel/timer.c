@@ -11,12 +11,8 @@
 #define TIMER_TIME(timeout)		((timeout_t)((timeout_t)(timeout) >> 1))
 #define TIMER_MAKE(shot, time)		((shot) | ((timeout_t)(time) << 1))
 
-struct timer_entry {
-	timeout_t timeout;
-};
-
 timer_desc_t *timer_descs[NR_TIMERS];
-struct timer_entry timer_entries[NR_TIMERS];
+timeout_t timer_timeouts[NR_TIMERS];
 DECLARE_BITMAP(timer_regs, NR_TIMERS);
 bh_t timer_bh = INVALID_BH;
 tid_t timer_running_tid = INVALID_TID;
@@ -53,8 +49,8 @@ void __timer_add(tid_t tid)
 		if (t != INVALID_TID) {
 			/* should not exceed NR_TIMERS */
 			BUG_ON(i == 0);
-			if (TIMER_TIME(timer_entries[t].timeout) >
-			    TIMER_TIME(timer_entries[tid].timeout)) {
+			if (TIMER_TIME(timer_timeouts[t]) >
+			    TIMER_TIME(timer_timeouts[tid])) {
 				timer_orders[NR_TIMERS-i] = t;
 				timer_orders[NR_TIMERS-i-1] = INVALID_TID;
 			} else {
@@ -65,14 +61,6 @@ void __timer_add(tid_t tid)
 	}
 	BUG_ON(timer_orders[0] != INVALID_TID);
 	timer_orders[0] = tid;
-}
-
-void __timer_reset_timeout(tid_t tid, timeout_t tout_ms)
-{
-	BUG_ON(tout_ms > MAX_TIMEOUT);
-	timer_entries[tid].timeout = TIMER_MAKE(TIMER_FLAG_SHOT, tout_ms);
-	__timer_del(tid);
-	__timer_add(tid);
 }
 
 void __timer_run(tid_t tid)
@@ -87,6 +75,37 @@ void __timer_run(tid_t tid)
 	timer_running_tid = INVALID_TID;
 }
 
+void timer_run_timeout(uint8_t type)
+{
+	tid_t tid;
+	timer_desc_t *timer;
+
+	/* Only run the top most timed out timer, in such a way, the other
+	 * timers can be unregistered or rescheduled from the top most timer's
+	 * timeout handler.
+	 */
+	do {
+		tid = timer_orders[0];
+		timer = timer_descs[tid];
+		if ((tid == INVALID_TID) ||
+		    (timer_timeouts[tid] != TIMER_IDLE)) {
+			break;
+		}
+		BUG_ON((type == TIMER_BH) && (timer->type != type));
+		if (timer->type == type) {
+			__timer_run(tid);
+		}
+	} while (1);
+}
+
+void __timer_reset_timeout(tid_t tid, timeout_t tout_ms)
+{
+	BUG_ON(tout_ms > MAX_TIMEOUT);
+	timer_timeouts[tid] = TIMER_MAKE(TIMER_FLAG_SHOT, tout_ms);
+	__timer_del(tid);
+	__timer_add(tid);
+}
+
 /* Register a timer delay to execute the state machine
  *
  * IN bh: the state machine will be executed when the timer is due
@@ -95,12 +114,15 @@ void __timer_run(tid_t tid)
  */
 tid_t timer_register(timer_desc_t *timer)
 {
-	tid_t tid = find_first_clear_bit(timer_regs, NR_TIMERS);
+	tid_t tid;
+
+	tid = find_first_clear_bit(timer_regs, NR_TIMERS);
 	BUG_ON(tid == NR_TIMERS);
 	timer_descs[tid] = timer;
-	timer_entries[tid].timeout = TIMER_IDLE;
+	timer_timeouts[tid] = TIMER_IDLE;
 	set_bit(tid, timer_regs);
 	timer_running_tid = tid;
+
 	return tid;
 }
 
@@ -120,24 +142,31 @@ void timer_bh_timeout(void)
 {
 	tid_t tid, i;
 	timeout_t span;
+	timer_desc_t *timer;
+	boolean run_bh = false;
 	
 	span = (timeout_t)(jiffies - timer_last_tick);
 	timer_last_tick = jiffies;
-
 	for (i = 0; i < NR_TIMERS; i++) {
 		tid = timer_orders[i];
 		if (tid == INVALID_TID)
 			break;
-		if (TIMER_SHOT(timer_entries[tid].timeout)) {
-			timeout_t tid_tout = TIMER_TIME(timer_entries[tid].timeout);
+		timer = timer_descs[tid];
+		if (TIMER_SHOT(timer_timeouts[tid])) {
+			timeout_t tid_tout;
+
+			tid_tout = TIMER_TIME(timer_timeouts[tid]);
 			if (span >= tid_tout) {
-				timer_entries[tid].timeout = TIMER_IDLE;
-				__timer_run(tid);
+				timer_timeouts[tid] = TIMER_IDLE;
+				BUG_ON(timer->type != TIMER_BH);
+				run_bh = true;
 			} else {
-				timer_entries[tid].timeout = TIMER_MAKE(TIMER_FLAG_SHOT, tid_tout-span);
+				timer_timeouts[tid] = TIMER_MAKE(TIMER_FLAG_SHOT, tid_tout-span);
 			}
 		}
 	}
+	if (run_bh)
+		timer_run_timeout(TIMER_BH);
 }
 
 #define timer_start()		bh_resume(timer_bh)
@@ -185,41 +214,18 @@ void timer_recalc_timeout(void)
 		tid = timer_orders[i];
 		if (tid == INVALID_TID)
 			break;
-		if (TIMER_SHOT(timer_entries[tid].timeout)) {
+		if (TIMER_SHOT(timer_timeouts[tid])) {
 			if (!TIMER_SHOT(timer_timeout)) {
-				timer_timeout = timer_entries[tid].timeout;
+				timer_timeout = timer_timeouts[tid];
 			} else {
-				if (TIMER_TIME(timer_entries[tid].timeout) <
+				if (TIMER_TIME(timer_timeouts[tid]) <
 				    TIMER_TIME(timer_timeout)) {
-					timer_timeout = timer_entries[tid].timeout;
+					timer_timeout = timer_timeouts[tid];
 				}
 			}
 		}
 	}
 	timer_restart();
-}
-
-void timer_run_timeout(uint8_t type)
-{
-	tid_t tid;
-	timer_desc_t *timer;
-
-	/* Only run the top most timed out timer, in such a way, the other
-	 * timers can be unregistered or rescheduled from the top most timer's
-	 * timeout handler.
-	 */
-	do {
-		tid = timer_orders[0];
-		timer = timer_descs[tid];
-		if ((tid == INVALID_TID) ||
-		    (timer_entries[tid].timeout != TIMER_IDLE)) {
-			break;
-		}
-		BUG_ON((type == TIMER_BH) && (timer->type != type));
-		if (timer->type == type) {
-			__timer_run(tid);
-		}
-	} while (1);
 }
 
 void timer_bh_timeout(void)
@@ -248,10 +254,10 @@ void timer_irq_timeout(void)
 		if (tid == INVALID_TID)
 			break;
 		timer = timer_descs[tid];
-		if (TIMER_SHOT(timer_entries[tid].timeout)) {
-			timeout_t tid_tout = TIMER_TIME(timer_entries[tid].timeout);
+		if (TIMER_SHOT(timer_timeouts[tid])) {
+			timeout_t tid_tout = TIMER_TIME(timer_timeouts[tid]);
 			if (tout >= tid_tout) {
-				timer_entries[tid].timeout = TIMER_IDLE;
+				timer_timeouts[tid] = TIMER_IDLE;
 				if (timer->type != TIMER_IRQ) {
 					run_bh = true;
 					bh_resume(timer_bh);
@@ -260,11 +266,10 @@ void timer_irq_timeout(void)
 				}
 			} else {
 				tid_tout -= tout;
-				timer_entries[tid].timeout = TIMER_MAKE(TIMER_FLAG_SHOT, tid_tout);
+				timer_timeouts[tid] = TIMER_MAKE(TIMER_FLAG_SHOT, tid_tout);
 			}
 		}
 	}
-
 	if (run_irq)
 		timer_run_timeout(TIMER_IRQ);
 	if (!run_bh)
@@ -378,6 +383,7 @@ void timer_test(void)
 void timer_init(void)
 {
 	tid_t tid;
+
 	for (tid = 0; tid < NR_TIMERS; tid++)
 		timer_orders[tid] = INVALID_TID;
 	timer_bh = bh_register_handler(timer_bh_handler);
