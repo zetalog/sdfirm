@@ -146,45 +146,6 @@ void timer_bh_timeout(void)
 timeout_t timer_timeout = TIMER_MAKE(TIMER_FLAG_SHOT, 0);
 timeout_t timer_unshot_timeout = 0;
 
-void timer_recalc_timeout(void)
-{
-	tid_t tid, i;
-
-	timer_timeout = TIMER_IDLE;
-	for (i = 0; i < NR_TIMERS; i++) {
-		tid = timer_orders[i];
-		if (tid == INVALID_TID)
-			break;
-		if (TIMER_SHOT(timer_entries[tid].timeout)) {
-			if (!TIMER_SHOT(timer_timeout)) {
-				timer_timeout = timer_entries[tid].timeout;
-			} else {
-				if (TIMER_TIME(timer_entries[tid].timeout) < TIMER_TIME(timer_timeout))
-					timer_timeout = timer_entries[tid].timeout;
-			}
-		}
-	}
-}
-
-void timer_bh_timeout(void)
-{
-	tid_t tid, i;
-	timeout_t tout;
-
-	BUG_ON(TIMER_SHOT(timer_timeout) != TIMER_FLAG_SHOT);
-	tout = TIMER_TIME(timer_timeout);
-	for (i = 0; i < NR_TIMERS; i++) {
-		tid = timer_orders[i];
-		if (tid == INVALID_TID)
-			break;
-		if (timer_entries[tid].timeout == TIMER_IDLE) {
-			__timer_run(tid);
-		}
-	}
-
-	timer_recalc_timeout();
-}
-
 void timer_shot_timeout(timeout_t to_shot)
 {
 	if (to_shot < GPT_MAX_TIMEOUT) {
@@ -210,15 +171,66 @@ void timer_execute_shot(void)
 	}
 }
 
+void timer_restart(void)
+{
+	timer_execute_shot();
+}
+
+void timer_recalc_timeout(void)
+{
+	tid_t tid, i;
+
+	timer_timeout = TIMER_IDLE;
+	for (i = 0; i < NR_TIMERS; i++) {
+		tid = timer_orders[i];
+		if (tid == INVALID_TID)
+			break;
+		if (TIMER_SHOT(timer_entries[tid].timeout)) {
+			if (!TIMER_SHOT(timer_timeout)) {
+				timer_timeout = timer_entries[tid].timeout;
+			} else {
+				if (TIMER_TIME(timer_entries[tid].timeout) < TIMER_TIME(timer_timeout))
+					timer_timeout = timer_entries[tid].timeout;
+			}
+		}
+	}
+	timer_restart();
+}
+
+boolean timer_run_timeout(uint8_t type)
+{
+	tid_t i, tid;
+	timer_desc_t *timer;
+	boolean recalc = false;
+
+	for (i = 0; i < NR_TIMERS; i++) {
+		tid = timer_orders[i];
+		timer = timer_descs[tid];
+		if ((tid == INVALID_TID) ||
+		    (timer_entries[tid].timeout != TIMER_IDLE))
+			break;
+		BUG_ON((type == TIMER_BH) && (timer->type != type));
+		if (timer->type == type) {
+			__timer_run(tid);
+			if (TIMER_SHOT(timer_entries[tid].timeout))
+				recalc = true;
+		}
+	}
+
+	return recalc;
+}
+
+void timer_bh_timeout(void)
+{
+	BUG_ON(TIMER_SHOT(timer_timeout) != TIMER_FLAG_SHOT);
+	timer_run_timeout(TIMER_BH);
+	timer_recalc_timeout();
+}
+
 void timer_start(void)
 {
 	gpt_hw_ctrl_init();
 	bh_resume(timer_bh);
-}
-
-void timer_restart(void)
-{
-	timer_execute_shot();
 }
 
 void timer_irq_timeout(void)
@@ -226,7 +238,7 @@ void timer_irq_timeout(void)
 	tid_t tid, i;
 	timeout_t tout;
 	timer_desc_t *timer;
-	boolean recalc_irq = false, recalc_bh = false;
+	boolean run_irq = false, recalc_bh = false;
 
 	BUG_ON(TIMER_SHOT(timer_timeout) != TIMER_FLAG_SHOT);
 	tout = TIMER_TIME(timer_timeout);
@@ -239,13 +251,11 @@ void timer_irq_timeout(void)
 			timeout_t tid_tout = TIMER_TIME(timer_entries[tid].timeout);
 			if (tout >= tid_tout) {
 				timer_entries[tid].timeout = TIMER_IDLE;
-				if (timer->flags & TIMER_IRQ) {
-					__timer_run(tid);
-					if (TIMER_SHOT(timer_entries[tid].timeout))
-						recalc_irq = true;
-				} else {
+				if (timer->type != TIMER_IRQ) {
 					recalc_bh = true;
 					bh_resume(timer_bh);
+				} else {
+					run_irq = true;
 				}
 			} else {
 				tid_tout -= tout;
@@ -254,7 +264,7 @@ void timer_irq_timeout(void)
 		}
 	}
 
-	if (recalc_irq || !recalc_bh)
+	if ((run_irq && timer_run_timeout(TIMER_IRQ)) || !recalc_bh)
 		timer_recalc_timeout();
 }
 
