@@ -40,7 +40,6 @@ void gpt_hw_oneshot_timeout(timeout_t tout_ms)
 void DEFINE_ISR(timer_isr(void), IRQ_GPT)
 {
 	tick_handler();
-	//io_putchar(0x00);
 }
 
 void gpt_hw_ctrl_init(void)
