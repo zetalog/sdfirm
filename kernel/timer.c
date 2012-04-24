@@ -201,20 +201,21 @@ void timer_recalc_timeout(void)
 
 void timer_run_timeout(uint8_t type)
 {
-	tid_t i, tid;
+	tid_t tid;
 	timer_desc_t *timer;
 
-	for (i = 0; i < NR_TIMERS; i++) {
-		tid = timer_orders[i];
+	do {
+		tid = timer_orders[0];
 		timer = timer_descs[tid];
 		if ((tid == INVALID_TID) ||
-		    (timer_entries[tid].timeout != TIMER_IDLE))
+		    (timer_entries[tid].timeout != TIMER_IDLE)) {
 			break;
+		}
 		BUG_ON((type == TIMER_BH) && (timer->type != type));
 		if (timer->type == type) {
 			__timer_run(tid);
 		}
-	}
+	} while (1);
 }
 
 void timer_bh_timeout(void)
