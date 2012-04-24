@@ -214,7 +214,7 @@ void timer_schedule_shot(tid_t tid, timeout_t tout_ms)
 	__timer_reset_timeout(tid, tout_ms);
 }
 
-void timer_handler(uint8_t event)
+void timer_bh_handler(uint8_t event)
 {
 	BUG_ON(event != BH_WAKEUP);
 	timer_run(TIMER_BH);
@@ -226,6 +226,6 @@ void timer_init(void)
 	tid_t tid;
 	for (tid = 0; tid < NR_TIMERS; tid++)
 		timer_orders[tid] = INVALID_TID;
-	timer_bh = bh_register_handler(timer_handler);
+	timer_bh = bh_register_handler(timer_bh_handler);
 	timer_start();
 }

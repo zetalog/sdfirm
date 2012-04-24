@@ -12,11 +12,11 @@ typedef uint8_t tid_t;
 
 /* The max timers that can be registered */
 #ifdef CONFIG_MAX_TIMERS
-#define NR_TIMERS				CONFIG_MAX_TIMERS
+#define NR_TIMERS	CONFIG_MAX_TIMERS
 #else
-#define NR_TIMERS				NR_BHS
+#define NR_TIMERS	NR_BHS
 #endif
-#define INVALID_TID				NR_TIMERS
+#define INVALID_TID	NR_TIMERS
 
 /* TIMER_BH: Background running timers, which should be delayed to the
  *           process context.  No interrupt masking is required for such

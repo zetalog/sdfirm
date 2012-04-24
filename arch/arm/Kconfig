@@ -29,7 +29,7 @@ config ARCH_LM3S9B92
 config ARCH_LM3S3826
 	bool "Luminary Stellaris LM3S3826"
 	select CPU_CORTEXM3
-	select GPT_LM3S9B92 if TIMER
+	select GPT_LM3S3826 if TIMER
 	select ARCH_IS_TICKLESS if !TICK_LM3S3826_PERIODIC
 	select ARCH_HAS_TSC
 	select ARCH_HAS_GPIO
