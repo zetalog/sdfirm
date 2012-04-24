@@ -189,19 +189,20 @@ void timer_recalc_timeout(void)
 			if (!TIMER_SHOT(timer_timeout)) {
 				timer_timeout = timer_entries[tid].timeout;
 			} else {
-				if (TIMER_TIME(timer_entries[tid].timeout) < TIMER_TIME(timer_timeout))
+				if (TIMER_TIME(timer_entries[tid].timeout) <
+				    TIMER_TIME(timer_timeout)) {
 					timer_timeout = timer_entries[tid].timeout;
+				}
 			}
 		}
 	}
 	timer_restart();
 }
 
-boolean timer_run_timeout(uint8_t type)
+void timer_run_timeout(uint8_t type)
 {
 	tid_t i, tid;
 	timer_desc_t *timer;
-	boolean recalc = false;
 
 	for (i = 0; i < NR_TIMERS; i++) {
 		tid = timer_orders[i];
@@ -212,17 +213,12 @@ boolean timer_run_timeout(uint8_t type)
 		BUG_ON((type == TIMER_BH) && (timer->type != type));
 		if (timer->type == type) {
 			__timer_run(tid);
-			if (TIMER_SHOT(timer_entries[tid].timeout))
-				recalc = true;
 		}
 	}
-
-	return recalc;
 }
 
 void timer_bh_timeout(void)
 {
-	BUG_ON(TIMER_SHOT(timer_timeout) != TIMER_FLAG_SHOT);
 	timer_run_timeout(TIMER_BH);
 	timer_recalc_timeout();
 }
@@ -238,7 +234,7 @@ void timer_irq_timeout(void)
 	tid_t tid, i;
 	timeout_t tout;
 	timer_desc_t *timer;
-	boolean run_irq = false, recalc_bh = false;
+	boolean run_irq = false, run_bh = false;
 
 	BUG_ON(TIMER_SHOT(timer_timeout) != TIMER_FLAG_SHOT);
 	tout = TIMER_TIME(timer_timeout);
@@ -252,7 +248,7 @@ void timer_irq_timeout(void)
 			if (tout >= tid_tout) {
 				timer_entries[tid].timeout = TIMER_IDLE;
 				if (timer->type != TIMER_IRQ) {
-					recalc_bh = true;
+					run_bh = true;
 					bh_resume(timer_bh);
 				} else {
 					run_irq = true;
@@ -264,7 +260,9 @@ void timer_irq_timeout(void)
 		}
 	}
 
-	if ((run_irq && timer_run_timeout(TIMER_IRQ)) || !recalc_bh)
+	if (run_irq)
+		timer_run_timeout(TIMER_IRQ);
+	if (!run_bh)
 		timer_recalc_timeout();
 }
 

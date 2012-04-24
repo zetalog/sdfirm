@@ -25,7 +25,7 @@ typedef uint8_t tid_t;
 #define TIMER_IRQ		0x02
 
 struct timer_desc {
-	uint8_t flags;
+	uint8_t type;
 	void (*handler)(void);
 };
 __TEXT_TYPE__(const struct timer_desc, timer_desc_t);
