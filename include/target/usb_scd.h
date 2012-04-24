@@ -131,6 +131,38 @@ typedef struct scd_desc {
 
 typedef uint8_t					scd_qid_t;
 
+struct scd_cmd {
+	uint8_t  bMessageType;
+	scs_size_t dwLength;
+	uint8_t  bSlot;
+	uint8_t  bSeq;
+	uint8_t  abRFU[3];
+};
+
+struct scd_resp {
+	uint8_t  bMessageType;
+	scs_size_t dwLength;
+	/* Slot Status Register */
+	uint8_t bStatus;
+	/* Slot Error Register */
+	uint8_t bError;
+	uint8_t abRFU3;
+};
+
+/* SCD_PC2RDR_XFRBLOCK parameters */
+struct scd_xb_param {
+	scs_err_t dwIccOutErr;
+	urb_size_t dwIccOutCnt;
+	urb_size_t dwIccExpCnt;
+	uint8_t bIccWaitInt;
+};
+
+/* SCD_RDR2PC_DATABLOCK parameters */
+struct scd_db_param {
+	urb_size_t dwIccOutIter;
+	scs_err_t dwIccOutErr;
+};
+
 #ifdef CONFIG_SCD_CCID
 #include <target/scd_ccid.h>
 #endif
@@ -184,24 +216,6 @@ scd_qid_t scd_qid_save(scd_qid_t qid);
 #define SCD_CMD_STATUS_TIME_EXT			(0x02 << 6)
 #define SCD_CMD_STATUS_MASK			(0xc0)
 
-struct scd_cmd {
-	uint8_t  bMessageType;
-	scs_size_t dwLength;
-	uint8_t  bSlot;
-	uint8_t  bSeq;
-	uint8_t  abRFU[3];
-};
-
-struct scd_resp {
-	uint8_t  bMessageType;
-	scs_size_t dwLength;
-	/* Slot Status Register */
-	uint8_t bStatus;
-	/* Slot Error Register */
-	uint8_t bError;
-	uint8_t abRFU3;
-};
-
 #define SCD_PC2RDR_SETPARAMETERS		0x61
 #define SCD_PC2RDR_ICCPOWERON			0x62
 #define SCD_PC2RDR_ICCPOWEROFF			0x63
@@ -214,20 +228,6 @@ struct scd_resp {
 #define SCD_RDR2PC_SLOTSTATUS			0x81
 #define SCD_RDR2PC_PARAMETERS			0x82
 #define SCD_RDR2PC_ESCAPE			0x83
-
-/* SCD_PC2RDR_XFRBLOCK parameters */
-struct scd_xb_param {
-	scs_err_t dwIccOutErr;
-	urb_size_t dwIccOutCnt;
-	urb_size_t dwIccExpCnt;
-	uint8_t bIccWaitInt;
-};
-
-/* SCD_RDR2PC_DATABLOCK parameters */
-struct scd_db_param {
-	urb_size_t dwIccOutIter;
-	scs_err_t dwIccOutErr;
-};
 
 struct scd_t0_param {
 	uint8_t bmFindexDindex;

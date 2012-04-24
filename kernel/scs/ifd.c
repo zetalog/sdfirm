@@ -2482,9 +2482,11 @@ static void ifd_pres_init(void)
 #define ifd_pres_handler()
 #endif
 
-static void ifd_bh_handler(void)
+static void ifd_bh_handler(uint8_t event)
 {
 	uint8_t sid, ssid;
+
+	BUG_ON(event != BH_WAKEUP);
 	for (sid = 0; sid < NR_IFD_SLOTS; sid++) {
 		ssid = ifd_sid_save(sid);
 		/*scs_debug(SCS_DEBUG_SLOT, sid);*/

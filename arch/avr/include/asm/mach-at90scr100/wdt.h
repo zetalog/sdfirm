@@ -32,5 +32,6 @@
 #define wdr()  __asm__ __volatile__ ("wdr" ::)
 
 void wdt_hw_ctrl_start(uint8_t value);
+void wdt_hw_ctrl_stop(void);
 
 #endif /* __WDT_AT90SCR100_H_INCLUDE__ */

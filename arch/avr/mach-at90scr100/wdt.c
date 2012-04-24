@@ -1,4 +1,5 @@
 #include <target/wdt.h>
+#include <target/irq.h>
 
 #define __wdt_hw_ctrl_enable(tout)					\
 	do {								\

@@ -155,4 +155,6 @@ void ccid_Parameters_cmp(scs_err_t err);
 void ccid_display_slot(void);
 void ccid_display_default(void);
 
+#include <target/ccid_spe.h>
+
 #endif /* __SCD_CCID_H_INCLUDE__ */
