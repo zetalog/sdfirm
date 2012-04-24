@@ -204,6 +204,10 @@ void timer_run_timeout(uint8_t type)
 	tid_t tid;
 	timer_desc_t *timer;
 
+	/* Only run the top most timed out timer, in such a way, the other
+	 * timers can be unregistered or rescheduled from the top most timer's
+	 * timeout handler.
+	 */
 	do {
 		tid = timer_orders[0];
 		timer = timer_descs[tid];
