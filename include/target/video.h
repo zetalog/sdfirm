@@ -4,6 +4,8 @@
 #include <target/config.h>
 #include <target/types.h>
 
+typedef uint16_t video_pt_t;
+
 typedef uint32_t video_rgb_t;
 #define RGB(r,g,b)	((video_rgb_t)(((uint8_t)(r)|((uint16_t)((uint8_t)(g))<<8))|(((uint16_t)(uint8_t)(b))<<16)))
 #define RGB_R(rgb)	((uint8_t)(rgb))

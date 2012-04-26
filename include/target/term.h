@@ -100,6 +100,7 @@ typedef uint8_t term_t;
 #define TRM_NUMBER_FGCOLOURS	22
 #define TRM_NUMBER_NEXTCOLOURS	240
 #define TRM_NUMBER_ALLCOLOURS	(TRM_NUMBER_FGCOLOURS + TRM_NUMBER_NEXTCOLOURS)
+typedef uint16_t term_colour_t;
 
 /*======================================================================*
  * ANSI colour definitions

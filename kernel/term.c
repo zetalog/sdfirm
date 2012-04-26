@@ -1,6 +1,6 @@
 #include <target/term.h>
 #include <target/generic.h>
-#include <target/timer.h>
+#include <target/bh.h>
 
 #define TERM_TIMER_INTERVAL	128
 #define TERM_BLINK_INTERVAL	1024
@@ -20,7 +20,7 @@ struct terminal term_info;
 #define term_is_buffer_empty()		\
 	(term_info.bottom == term_info.top)
 
-tid_t term_tid = INVALID_TID;
+bh_t term_bh = INVALID_BH;
 
 video_rgb_t term_cfg_palette[TRM_NUMBER_FGCOLOURS] = {
 	TRM_DEFAULT_FOREGROUND,
@@ -119,11 +119,86 @@ void term_draw_invalid(term_pos_t x, term_pos_t y,
 		term_info.inv_width = w;
 		term_info.inv_height = h;
 		term_info.invalid = 1;
+		bh_resume(term_bh);
 	}
 }
 
 void term_draw_paint(void)
 {
+	term_pos_t x = 0, y = 0;
+	term_pos_t left = 0, right = 0, top = 0, bottom = 0;
+	term_pos_t i;
+	term_len_t len;
+	uint32_t attrib;
+	char text;
+	term_colour_t nfg, nbg;
+	video_rgb_t fg, bg;
+	
+	top = term_info.inv_y;
+	bottom = term_info.inv_y + term_info.inv_height - 1;
+	if (top < 0)
+		top = 0;
+	if (bottom > term_info.height - 1)
+		bottom = term_info.height - 1;
+	
+	left = term_info.inv_x;
+	right = term_info.inv_x + term_info.inv_width - 1;
+	if (left < 0)
+		left = 0;
+	if (right > term_info.width - 1)
+		right = term_info.width - 1;
+	
+	for (y = top; y <= bottom; y++) {
+		for (x = left; x <= right; x++)	{
+			text = term_get_text_at(x, y);
+			attrib = term_get_attr_at( x, y);
+			if (!text)
+				continue;
+			nfg = TRM_ATTRIB_FGCOLOUR(attrib);
+			nbg = TRM_ATTRIB_BGCOLOUR(attrib);
+			if (TRM_ATTRIB_ISREVERSE(attrib)) {
+				int t = nfg;
+				nfg = nbg;
+				nbg = t;
+			}
+			if (TRM_ATTRIB_ISBLINK(attrib)) {
+				if (term_info.blinking)
+					nfg = nbg;
+			}
+			if (TRM_ATTRIB_ISBOLD(attrib)) {
+				if (nfg == 256 || nfg == 258)
+					nfg++;
+				else
+					nfg += 8;
+			}
+#if 0
+			if (TRM_ATTRIB_ISUNDER(attrib))
+				video_set_underline();
+			else
+				video_clear_underline();
+#endif
+			fg = term_info.palette[nfg];
+			bg = term_info.palette[nbg];
+#if 0
+			vedio_set_foreground(fg);
+			vedio_set_background(bg);
+#endif
+			len = 1;
+			for (i = x + 1; i <= right; i++) {
+				if (term_get_attr_at(i, y) != attrib)
+					break;
+				if (!term_get_text_at(i, y))
+					break;
+				len++;
+			}
+#if 0
+			video_draw_text(x*font->width, y*font->height,
+					&term_info.output[term_get_index_by_XY(x, y)],
+					len);
+#endif
+			x += len - 1;
+		}
+	}
 }
 
 void term_draw_init(void)
@@ -525,7 +600,7 @@ void term_cursor_init(void)
 	term_cursor_on();
 }
 
-static void term_timer_handler(void)
+static void term_bh_handler(uint8_t event)
 {
 	term_info.blink_count++;
 	if ((term_info.blink_count % TERM_INTERVAL_PER_BLINK) == 0) {
@@ -535,18 +610,11 @@ static void term_timer_handler(void)
 			term_info.blink_flash = true;
 	}
 	term_draw_paint();
-	timer_schedule_shot(term_tid, TERM_TIMER_INTERVAL);
 }
-
-timer_desc_t term_timer = {
-	TIMER_BH,
-	term_timer_handler,
-};
 
 void term_init(void)
 {
-	term_tid = timer_register(&term_timer);
-	timer_schedule_shot(term_tid, TERM_TIMER_INTERVAL);
+	term_bh = bh_register_handler(term_bh_handler);
 
 	term_palette_init();
 	term_fonts_init();
