@@ -27,4 +27,8 @@ __TEXT_TYPE__(const struct video_font, video_font_t);
 
 video_font_t *font;
 
+#include <driver/video.h>
+
+#define video_draw_pixel(x, y, rgb)	video_hw_draw_pixel(x, y, rgb)
+
 #endif /* __VIDEO_H_INCLUDE__ */

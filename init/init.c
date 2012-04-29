@@ -57,6 +57,11 @@ void kbd_init(void);
 #else
 #define kbd_init()
 #endif
+#ifdef CONFIG_VIDEO
+void video_init(void);
+#else
+#define video_init()
+#endif
 
 #ifdef CONFIG_IFD
 void ifd_init(void);
@@ -135,10 +140,11 @@ void modules_init(void)
 	mtd_init();
 
 	/* subsys */
-	scsi_init();
+	led_init();	/* on GPIO */
 	kbd_init();	/* on GPIO */
 	lcd_init();	/* on mem/GPIO */
-	led_init();	/* on GPIO */
+	video_init();
+	scsi_init();
 	ifd_init();	/* on uart */
 
 	/* keymods */

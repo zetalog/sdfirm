@@ -1,0 +1,17 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "Video drivers"
+
+config VIDEO_HX8347G
+	bool "Himax HX8347-G TFT controller support"
+	select GPIO
+	depends VIDEO
+
+if VIDEO_HX8347G
+
+endif
+
+endmenu

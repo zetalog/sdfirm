@@ -7,5 +7,6 @@ obj-y:=
 obj-y += driver.rel
 
 obj-$(CONFIG_LCD) += lcd/
+obj-$(CONFIG_VIDEO) += video/
 obj-$(CONFIG_MTD) += mtd/
 obj-y += scs/

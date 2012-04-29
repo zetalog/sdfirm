@@ -5,6 +5,7 @@
 menu "Driver setup"
 
 source drivers/lcd/Kconfig
+source drivers/video/Kconfig
 source drivers/mtd/Kconfig
 source drivers/scs/Kconfig
 
