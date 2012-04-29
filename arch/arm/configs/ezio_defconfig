@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Apr 18 15:49:16 2012
+# Sun Apr 29 09:03:34 2012
 #
 CONFIG_ARM=y
 
@@ -19,7 +19,6 @@ CONFIG_CPU_32v7M=y
 CONFIG_ARM_THUMB2=y
 CONFIG_ARM_ASM_UNIFIED=y
 CONFIG_ARM_EABI=y
-CONFIG_GPT_LM3S9B92=y
 
 #
 # TI LM3S3826 board options
@@ -139,7 +138,7 @@ CONFIG_UART_MAX_PORTS=2
 # CONFIG_MTD is not set
 # CONFIG_SCSI is not set
 # CONFIG_NET is not set
-# CONFIG_VIDEO is not set
+CONFIG_VIDEO=y
 
 #
 # Driver setup
@@ -148,6 +147,11 @@ CONFIG_UART_MAX_PORTS=2
 #
 # LCD drivers
 #
+
+#
+# Video drivers
+#
+CONFIG_VIDEO_HX8347G=y
 
 #
 # MTD memory drivers
