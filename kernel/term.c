@@ -171,18 +171,14 @@ void term_draw_paint(void)
 				else
 					nfg += 8;
 			}
-#if 0
 			if (TRM_ATTRIB_ISUNDER(attrib))
 				video_set_underline();
 			else
 				video_clear_underline();
-#endif
 			fg = term_info.palette[nfg];
 			bg = term_info.palette[nbg];
-#if 0
-			vedio_set_foreground(fg);
-			vedio_set_background(bg);
-#endif
+			video_set_foreground(fg);
+			video_set_background(bg);
 			len = 1;
 			for (i = x + 1; i <= right; i++) {
 				if (term_get_attr_at(i, y) != attrib)
@@ -191,11 +187,9 @@ void term_draw_paint(void)
 					break;
 				len++;
 			}
-#if 0
 			video_draw_text(x*font->width, y*font->height,
 					&term_info.output[term_get_index_by_XY(x, y)],
 					len);
-#endif
 			x += len - 1;
 		}
 	}

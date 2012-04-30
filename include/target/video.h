@@ -31,4 +31,11 @@ video_font_t *font;
 
 #define video_draw_pixel(x, y, rgb)	video_hw_draw_pixel(x, y, rgb)
 
+/* text drawing */
+void video_set_underline(void);
+void video_clear_underline(void);
+void video_set_foreground(video_rgb_t fg);
+void video_set_background(video_rgb_t bg);
+void video_draw_text(video_pt_t x, video_pt_t y, const char *string, int len);
+
 #endif /* __VIDEO_H_INCLUDE__ */

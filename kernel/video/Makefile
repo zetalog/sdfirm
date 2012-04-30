@@ -4,5 +4,5 @@
 
 obj-y:=
 
-obj-y += video_mem.rel
+obj-y += video_core.rel
 
