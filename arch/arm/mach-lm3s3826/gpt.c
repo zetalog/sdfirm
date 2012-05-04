@@ -73,18 +73,6 @@ static void __gpt_hw_periodic_init(void)
 #else
 LM3S3826_GPT_32BIT(0)
 
-void gpt_hw_oneshot_timeout(timeout_t tout_ms)
-{
-	BUG_ON(tout_ms > GPT_MAX_TIMEOUT);
-
-	__timer0_hw_ctrl_disable();
-	__timer0_hw_config_type(__TIMER_HW_TYPE_GPT32);
-	__timer0a_hw_config_mode(__TIMER_HW_MODE_ONESHOT|__TIMER_HW_MODE_COUNT_DOWN);
-	__timer0a_hw_write_reload((uint32_t)mul32u(GPT_COUNT_PER_MS, tout_ms));
-	__timer0_hw_irq_enable(TATO);
-	__timer0a_hw_ctrl_enable();
-}
-
 static void __gpt_hw_handle_irq(void)
 {
 	if (__timer0_hw_irq_raw(TATO)) {
@@ -99,19 +87,34 @@ void gpt_hw_irq_poll(void)
 	__gpt_hw_handle_irq();
 }
 
+#define gpt_hw_irq_enable()
 #define gpt_hw_irq_init()
 #else
-void gpt_hw_irq_poll(void)
+#define gpt_hw_irq_enable()	__timer0_hw_irq_enable(TATO)
+
+void gpt_hw_irq_init(void)
 {
 	vic_hw_register_irq(IRQ_GPT0A, __gpt_hw_handle_irq);
 	vic_hw_irq_enable(IRQ_GPT0A);
 }
 #endif
 
+void gpt_hw_oneshot_timeout(timeout_t tout_ms)
+{
+	BUG_ON(tout_ms > GPT_MAX_TIMEOUT);
+
+	__timer0_hw_ctrl_disable();
+	__timer0_hw_config_type(__TIMER_HW_TYPE_GPT32);
+	__timer0a_hw_config_mode(__TIMER_HW_MODE_ONESHOT|__TIMER_HW_MODE_COUNT_DOWN);
+	__timer0a_hw_write_reload((uint32_t)mul32u(GPT_COUNT_PER_MS, tout_ms));
+	gpt_hw_irq_enable();
+	__timer0a_hw_ctrl_enable();
+}
+
 static void __gpt_hw_oneshot_init(void)
 {
 	pm_hw_resume_device(DEV_TIMER0, DEV_MODE_ON);
-	gpt_hw_irq_poll();
+	gpt_hw_irq_init();
 }
 
 #define __gpt_hw_periodic_init()

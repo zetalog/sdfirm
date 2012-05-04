@@ -48,11 +48,6 @@ config SYS_TASK
 	  offer better software realtime responsiveness than the
 	  "Polling states with various IRQs" architecture.
 
-config SYS_TASK_RT
-	bool "Multiple tasking with realtime IRQs"
-	select TASK
-	depends EXPERIMENTAL
-
 endchoice
 
 config ARCH_HAS_VIC
@@ -111,7 +106,7 @@ endmenu
 menuconfig TASK
 	bool "Scheduling facility (task) support"
 	depends EXPERIMENTAL
-	depends SYS_TASK || SYS_TASK_RT
+	depends SYS_TASK
 #	select HEAP
 
 if TASK
