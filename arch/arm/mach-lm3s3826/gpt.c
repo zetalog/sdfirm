@@ -87,15 +87,31 @@ void gpt_hw_oneshot_timeout(timeout_t tout_ms)
 
 static void __gpt_hw_handle_irq(void)
 {
-	__timer0_hw_irq_clear(TATO);
-	tick_handler();
+	if (__timer0_hw_irq_raw(TATO)) {
+		__timer0_hw_irq_clear(TATO);
+		tick_handler();
+	}
 }
+
+#ifdef SYS_BOOTLOAD
+void gpt_hw_irq_poll(void)
+{
+	__gpt_hw_handle_irq();
+}
+
+#define gpt_hw_irq_init()
+#else
+void gpt_hw_irq_poll(void)
+{
+	vic_hw_register_irq(IRQ_GPT0A, __gpt_hw_handle_irq);
+	vic_hw_irq_enable(IRQ_GPT0A);
+}
+#endif
 
 static void __gpt_hw_oneshot_init(void)
 {
 	pm_hw_resume_device(DEV_TIMER0, DEV_MODE_ON);
-	vic_hw_register_irq(IRQ_GPT0A, __gpt_hw_handle_irq);
-	vic_hw_irq_enable(IRQ_GPT0A);
+	gpt_hw_irq_poll();
 }
 
 #define __gpt_hw_periodic_init()

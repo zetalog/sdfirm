@@ -128,6 +128,7 @@ menu "Timing facility (jiffy) support"
 config TICK
 	bool "Enable tick device support"
 	depends !ARCH_IS_TICKLESS
+	depends !SYS_NOIRQ
 	default y
 	help
 	  A "jiffies" variable will get compiled into the firmware and
