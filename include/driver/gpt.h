@@ -25,6 +25,9 @@ void gpt_hw_periodic_restart(void);
 #ifndef GPT_MAX_TIMEOUT
 #define GPT_MAX_TIMEOUT 250
 #endif
+#ifdef SYS_BOOTLOAD
+void gpt_hw_irq_poll(void);
+#endif
 void gpt_hw_oneshot_timeout(timeout_t tout_ms);
 #endif
 

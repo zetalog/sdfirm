@@ -171,9 +171,28 @@ void timer_bh_timeout(void)
 
 #define timer_start()		bh_resume(timer_bh)
 #define timer_restart()		timer_start()
+#define timer_poll_handler()
 #else
 timeout_t timer_timeout = TIMER_MAKE(TIMER_FLAG_SHOT, 0);
 timeout_t timer_unshot_timeout = 0;
+
+#ifdef SYS_BOOTLOAD
+boolean timer_polling = false;
+#define timer_poll_start()	(timer_polling = true)
+#define timer_poll_stop()	(timer_polling = false)
+#define timer_poll_init()	(irq_register_poller(timer_bh))
+
+static void timer_poll_handler(void)
+{
+	if (timer_polling)
+		gpt_hw_irq_poll();
+}
+#else
+#define timer_poll_init()
+#define timer_poll_start()
+#define timer_poll_stop()
+#define timer_poll_handler()
+#endif
 
 void timer_shot_timeout(timeout_t to_shot)
 {
@@ -181,6 +200,7 @@ void timer_shot_timeout(timeout_t to_shot)
 		timer_unshot_timeout = 0;
 		if (to_shot == 0)
 			to_shot = 1;
+		timer_poll_start();
 		gpt_oneshot_timeout(to_shot);
 	} else {
 		timer_unshot_timeout = to_shot - GPT_MAX_TIMEOUT;
@@ -189,6 +209,7 @@ void timer_shot_timeout(timeout_t to_shot)
 		 * if GPT_MAX_TIMEOUT > max of timeout_t, following code
 		 * could not get reached, so its safe to force it here
 		 */
+		timer_poll_start();
 		gpt_oneshot_timeout((timeout_t)GPT_MAX_TIMEOUT);
 	}
 }
@@ -238,6 +259,7 @@ void timer_start(void)
 {
 	gpt_hw_ctrl_init();
 	bh_resume(timer_bh);
+	timer_poll_init();
 }
 
 void timer_irq_timeout(void)
@@ -278,6 +300,7 @@ void timer_irq_timeout(void)
 
 void tick_handler(void)
 {
+	timer_poll_stop();
 	if (timer_unshot_timeout)
 		timer_shot_timeout(timer_unshot_timeout);
 	else
@@ -293,9 +316,12 @@ void timer_schedule_shot(tid_t tid, timeout_t tout_ms)
 
 void timer_bh_handler(uint8_t event)
 {
-	BUG_ON(event != BH_WAKEUP);
-	timer_bh_timeout();
-	timer_restart();
+	if (event == BH_WAKEUP) {
+		timer_bh_timeout();
+		timer_restart();
+	} else if (event == BH_POLLIRQ) {
+		timer_poll_handler();
+	}
 }
 
 #ifdef CONFIG_TIMER_TEST

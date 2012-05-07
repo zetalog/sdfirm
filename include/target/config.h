@@ -18,7 +18,7 @@
 #if defined(CONFIG_SYS_NOIRQ) || defined(CONFIG_SYS_POLL_RT)
 #define SYS_REALTIME 1 /* realtime work is the most priority thing */
 #endif
-#if defined(CONFIG_SYS_TASK) || defined(CONFIG_SYS_TASK_RT)
+#if defined(CONFIG_SYS_TASK)
 #define SYS_FAIRNESS 1 /* task fairness is the most priority thing */
 #endif
 
