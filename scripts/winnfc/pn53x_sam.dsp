@@ -50,7 +50,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib advapi32.lib /nologo /subsystem:console /machine:I386
-# ADD LINK32 kernel32.lib advapi32.lib winscard.lib /nologo /subsystem:console /machine:I386
+# ADD LINK32 kernel32.lib advapi32.lib winscard.lib ws2_32.lib user32.lib /nologo /subsystem:console /machine:I386
 
 !ELSEIF  "$(CFG)" == "pn53x_sam - Win32 Debug"
 
@@ -75,7 +75,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib advapi32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib advapi32.lib winscard.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
+# ADD LINK32 kernel32.lib advapi32.lib winscard.lib ws2_32.lib user32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
 
 !ENDIF 
 
