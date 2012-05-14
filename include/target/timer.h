@@ -11,7 +11,11 @@
 typedef uint8_t tid_t;
 
 /* The max timers that can be registered */
+#ifdef CONFIG_MAX_TIMERS
 #define NR_TIMERS		CONFIG_MAX_TIMERS
+#else
+#define NR_TIMERS		0
+#endif
 #define INVALID_TID		NR_TIMERS
 
 /* TIMER_BH: Background running timers, which should be delayed to the

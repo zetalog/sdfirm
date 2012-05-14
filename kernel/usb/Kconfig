@@ -35,7 +35,7 @@ menuconfig USB
 if USB
 
 config USB_DEV
-	bool "USB device controller (USBD) support"
+	bool "USB device controller (DEV) support"
 	depends ARCH_HAS_USB_DEV || ARCH_HAS_USB_OTG
 	select USBD_XFR_ASYNC if !USBD_XFR_SYNC
 	select USBD_XFR_ADAPT if (USBD_XFR_SYNC && USBD_XFR_ASYNC)
