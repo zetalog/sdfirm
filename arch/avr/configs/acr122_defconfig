@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Feb 21 15:21:32 2012
+# Mon May 14 13:39:30 2012
 #
 CONFIG_AVR=y
 
@@ -43,10 +43,14 @@ CONFIG_TSC_AT90USB1287_FREQ_125K=y
 # CONFIG_TSC_AT90USB1287_FREQ_8M is not set
 CONFIG_GPT_AT90USB1287=y
 CONFIG_UART_AT90USB1287=y
-CONFIG_SPI_AT90USB1287=y
 CONFIG_USB_AT90USB1287=y
 CONFIG_USB_AT90USB1287_DEV=y
-CONFIG_USB_AT90USB1287_MAX_ENDPS=5
+CONFIG_USB_AT90USB1287_MAX_ENDPS=7
+
+#
+# Appliance types
+#
+# CONFIG_LCD_EZIO is not set
 
 #
 # Feature setup
@@ -61,6 +65,7 @@ CONFIG_SYS_POLL=y
 # CONFIG_SYS_TASK is not set
 CONFIG_ARCH_HAS_GPT=y
 CONFIG_ARCH_HAS_TSC=y
+CONFIG_ARCH_HAS_WDT=y
 CONFIG_ARCH_IS_TICKLESS=y
 
 #
@@ -69,7 +74,7 @@ CONFIG_ARCH_IS_TICKLESS=y
 CONFIG_MAX_VECTORS=3
 
 #
-# Scheduling facility (poll) support
+# Scheduling facility (bh) support
 #
 CONFIG_MAX_BHS=3
 
@@ -96,21 +101,30 @@ CONFIG_TEXT_ROM_BASE=0x0
 CONFIG_TEXT_RAM_BASE=0x0
 # CONFIG_HEAP is not set
 # CONFIG_BULK is not set
+# CONFIG_TERM is not set
 
 #
-# Input / Output support
+# Human interface devices support
 #
-CONFIG_ARCH_HAS_UART=y
-CONFIG_ARCH_HAS_SPI=y
-# CONFIG_UART is not set
-# CONFIG_I2C is not set
-CONFIG_SPI=y
-CONFIG_SPI_MASTER=y
-# CONFIG_SPI_SLAVE is not set
-CONFIG_SPI_MAX_DEVICES=2
 # CONFIG_LCD is not set
 # CONFIG_KBD is not set
 # CONFIG_LED is not set
+CONFIG_ARCH_HAS_UART=y
+
+#
+# Universal asynchronous RX/TX (UART) support
+#
+# CONFIG_UART_230400 is not set
+# CONFIG_UART_115200 is not set
+# CONFIG_UART_57600 is not set
+CONFIG_UART_38400=y
+# CONFIG_UART_19200 is not set
+# CONFIG_UART_9600 is not set
+# CONFIG_UART_4800 is not set
+# CONFIG_UART_2400 is not set
+# CONFIG_UART is not set
+# CONFIG_SPI is not set
+# CONFIG_I2C is not set
 CONFIG_ARCH_HAS_USB=y
 CONFIG_ARCH_HAS_USB_OTG=y
 CONFIG_USB=y
@@ -146,21 +160,10 @@ CONFIG_ACR122_SLOT=y
 # CONFIG_IFD is not set
 # CONFIG_PCD is not set
 # CONFIG_COS is not set
-CONFIG_MTD=y
-CONFIG_MTD_MAX_CHIPS=2
-CONFIG_MTD_MAX_DEVS=3
-CONFIG_MTD_CONCAT=y
-CONFIG_MTD_BLOCK_RW=y
-CONFIG_MTD_MAX_CONCATS=1
-CONFIG_MTD_CONCAT_PAGE=y
-# CONFIG_MTD_CONCAT_CHIP is not set
-# CONFIG_MTD_FLASH is not set
-CONFIG_MTD_DATAFLASH=y
-CONFIG_DATAFLASH_MAX_BANKS=2
-# CONFIG_DATAFLASH_WRITE_VERIFY is not set
-# CONFIG_DATAFLASH_OTP is not set
+# CONFIG_MTD is not set
 # CONFIG_SCSI is not set
 # CONFIG_NET is not set
+# CONFIG_VIDEO is not set
 
 #
 # Driver setup
@@ -171,9 +174,12 @@ CONFIG_DATAFLASH_MAX_BANKS=2
 #
 
 #
+# Video drivers
+#
+
+#
 # MTD memory drivers
 #
-CONFIG_DATAFLASH_AT45DB642D=y
 CONFIG_PN53X=y
 # CONFIG_PN53X_SPI is not set
 CONFIG_PN53X_STUB=y
@@ -199,7 +205,7 @@ CONFIG_BIT_ROUNDUP16=y
 #
 # Bitmap operations
 #
-# CONFIG_BIT_FIND_CLEAR is not set
+CONFIG_BIT_FIND_CLEAR=y
 
 #
 # Mathematic operations
@@ -220,6 +226,7 @@ CONFIG_BIT_ROUNDUP16=y
 #
 # CONFIG_CRC16_CCITT is not set
 # CONFIG_CRC32 is not set
+# CONFIG_FONTS is not set
 
 #
 # Generic setup
