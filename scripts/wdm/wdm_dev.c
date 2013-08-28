@@ -1,3 +1,46 @@
+/*
+ * ZETALOG's Personal COPYRIGHT v2
+ *
+ * Copyright (c) 2013
+ *    ZETALOG - "Lv ZHENG".  All rights reserved.
+ *    Author: Lv "Zetalog" Zheng
+ *    Internet: zetalog@gmail.com
+ *
+ * This COPYRIGHT used to protect Personal Intelligence Rights.
+ * Redistribution and use in source and binary forms with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 1. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *    This product includes software developed by the Lv "Zetalog" ZHENG.
+ * 2. Permission of reuse of souce code only granted to ZETALOG and the
+ *    developer(s) in the companies ZETALOG worked and has redistributed this
+ *    software to.  Permission of redistribution of source code only granted
+ *    to ZETALOG.
+ * 3. Permission of redistribution and/or reuse of binary fully granted
+ *    to ZETALOG and the companies ZETALOG worked and has redistributed this
+ *    software to.
+ * 4. Any modification of this software in the redistributed companies need
+ *    not be published to ZETALOG.
+ * 5. All source code modifications linked/included this software and modified
+ *    by ZETALOG are of ZETALOG's personal COPYRIGHT unless the above COPYRIGHT
+ *    is no long disclaimed.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE ZETALOG AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE ZETALOG OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * @(#)wdm_dev.c: WDM dependent device driver functions
+ * $Id: wdm_dev.c,v 1.315 2011-10-17 01:40:34 zhenglv Exp $
+ */
 
 #include <initguid.h>
 #include <wdm/os_dev.h>
@@ -3537,7 +3580,9 @@ NTSTATUS __wdm_dev_add_device(PDRIVER_OBJECT driver,
 	PDEVICE_OBJECT dev = NULL;
 	struct wdm_device *priv;
 	char id[256];
+#ifdef CONFIG_DEV_ENUM
 	int i;
+#endif
 	WCHAR tmp_name[128];
 	UNICODE_STRING dev_name;
 	
@@ -3549,6 +3594,7 @@ NTSTATUS __wdm_dev_add_device(PDRIVER_OBJECT driver,
 		if (!NT_SUCCESS(status)) return STATUS_NO_SUCH_DEVICE;
 		os_dbg(OS_DBG_INFO, "Device Name: %s\n", id);
 
+#ifdef CONFIG_DEV_ENUM
 		for (i = 1; i < 256; i++) {
 			RtlStringCchPrintfW(tmp_name,
 					    sizeof(tmp_name)/sizeof(WCHAR),
@@ -3568,6 +3614,24 @@ NTSTATUS __wdm_dev_add_device(PDRIVER_OBJECT driver,
 			}
 			dev = NULL;
 		}
+#else
+		RtlStringCchPrintfW(tmp_name,
+				    sizeof(tmp_name)/sizeof(WCHAR),
+				    L"%s", OS_DRIVER_FDO_NAME);
+		RtlInitUnicodeString(&dev_name, tmp_name);
+		status = IoCreateDevice(driver,
+					sizeof(struct wdm_device) + objsize,
+					&dev_name,
+					OS_DRIVER_FDO_TYPE,
+					OS_DRIVER_FDO_CHAR,
+					FALSE, &dev);
+		if (NT_SUCCESS(status)) {
+			os_dbg(OS_DBG_INFO, "IoCreateDevice - success\n");
+			os_dbg(OS_DBG_DEBUG, "Device Name - %ws\n", dev_name.Buffer);
+		}
+
+		return status;
+#endif
 	} else {
 		/* PDO must have a name. You should let the system auto
 		 * generate a name by specifying
@@ -3608,7 +3672,11 @@ NTSTATUS __wdm_dev_add_device(PDRIVER_OBJECT driver,
 	RtlStringCbCopyNA(priv->id, 256, id, 256);
 
 	if (priv->is_fdo) {
+#ifdef CONFIG_DEV_ENUM
 		priv->minor = i;
+#else
+		priv->minor = 0;
+#endif
 		priv->attached_dev = IoAttachDeviceToDeviceStack(dev, pdo);
 		if (NULL == priv->attached_dev) {
 			os_dbg(OS_DBG_ERR, "IoAttachDeviceToDeviceStack - failure\n");
