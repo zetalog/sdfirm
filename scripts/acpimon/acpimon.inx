@@ -1,0 +1,54 @@
+[Version]
+Signature = "$CHICAGO$"
+Class = ACPI
+ClassGUID = {06327F3B-2C0C-436b-B180-EC3808A69230}
+Provider = %INTL%
+DriverVer = 08/27/2013,1.0.0.0
+
+[SourceDisksNames.$ARCH$]
+1 = %Disk_Description%,,,
+
+[SourceDisksFiles]
+ACPIMON.sys = 1
+
+[Manufacturer]
+$ARCH$ = ""
+;%Generic.Mfg% = Generic
+%Intel.Mfg% = Intel
+
+;[Generic]
+;%GenericMON.DeviceDesc% = ACPIMON, ROOT\ACPIMON
+
+[Intel]
+%IntelMON.DeviceDesc% = ACPIMON, USB\ACPIMON
+
+[ACPIMON.NT]
+CopyFiles = ACPIMON.CopyList
+
+[ACPIMON.CopyList]
+ACPIMON.sys
+
+[DestinationDirs]
+ACPIMON.CopyList = 10, system32\drivers
+
+[ACPIMON.NT.Services]
+Addservice = ACPIMON, 0x00000002, ACPIMON.AddService
+
+[ACPIMON.AddReg]
+HKR,,DriverFlags,0x00010001,0x00000002
+
+[ACPIMON.AddService]
+DisplayName    = %GenericMON.DeviceDesc%
+ServiceType    = 1
+StartType      = 3
+ErrorControl   = 1
+ServiceBinary  = %12%\ACPIMON.sys
+
+[Strings]
+INTL 			= "Intel"
+Disk_Description 	= "ACPI Monitor Installation Disk"
+;Generic.Mfg 		= "Compatible ACPI Interpreter Monitor"
+;GenericMON.DeviceDesc 	= "ACPI Interpreter Monitor"
+Intel.Mfg		= "Intel Corporation"
+IntelMON.DeviceDesc = "Intel ACPI Interpreter Monitor"
+

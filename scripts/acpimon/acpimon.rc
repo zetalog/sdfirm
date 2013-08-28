@@ -1,0 +1,12 @@
+#include <windows.h>
+#include <ntverp.h>
+
+#define VER_FILETYPE			VFT_DRV
+#define VER_FILESUBTYPE			VFT2_DRV_SYSTEM
+#define VER_FILEDESCRIPTION_STR		"ACPI Interpreter Monitor Driver"
+#define VER_INTERNALNAME_STR		"acpimon.sys"
+#define VER_ORIGINALFILENAME_STR	"acpimon.sys"
+
+#include "common.ver"
+
+MofResourceName MOFDATA acpimon.bmf
