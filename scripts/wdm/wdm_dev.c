@@ -1088,6 +1088,7 @@ NTSTATUS wdm_dev_io_write(PDEVICE_OBJECT dev, PIRP irp)
 	os_file *file;
 	NTSTATUS status;
 	const char *buf;
+	loff_t offset = 0;
 	size_t count = 0;
 
 	if (!filp || !wdm_file_priv(filp) || !priv->drv->write) {
@@ -1097,8 +1098,9 @@ NTSTATUS wdm_dev_io_write(PDEVICE_OBJECT dev, PIRP irp)
 	file = wdm_file_priv(filp);
 
 	buf = irp->AssociatedIrp.SystemBuffer;
+	offset = (loff_t)stack->Parameters.Write.ByteOffset.QuadPart;
 	count = stack->Parameters.Write.Length;
-	status = priv->drv->write(dev, file, buf, &count);
+	status = priv->drv->write(dev, file, buf, offset, &count);
 	if (!NT_SUCCESS(status)) goto failure;
 	ASSERT(status != STATUS_PENDING);
 	irp->IoStatus.Status = status;
@@ -1116,6 +1118,7 @@ NTSTATUS wdm_dev_io_read(PDEVICE_OBJECT dev, PIRP irp)
 	os_file *file;
 	NTSTATUS status;
 	char *buf;
+	loff_t offset = 0;
 	size_t count = 0;
 
 	if (!filp || !wdm_file_priv(filp) || !priv->drv->read) {
@@ -1125,8 +1128,9 @@ NTSTATUS wdm_dev_io_read(PDEVICE_OBJECT dev, PIRP irp)
 	file = wdm_file_priv(filp);
 
 	buf = irp->AssociatedIrp.SystemBuffer;
+	offset = (loff_t)stack->Parameters.Read.ByteOffset.QuadPart;
 	count = stack->Parameters.Read.Length;
-	status = priv->drv->read(dev, file, buf, &count);
+	status = priv->drv->read(dev, file, buf, offset, &count);
 	if (!NT_SUCCESS(status)) goto failure;
 	ASSERT(status != STATUS_PENDING);
 	irp->IoStatus.Status = status;

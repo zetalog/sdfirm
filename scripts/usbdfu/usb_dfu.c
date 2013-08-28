@@ -1065,7 +1065,7 @@ again:
 }
 
 status_t dfu_read_file(struct os_usb_file *file,
-		       char *buf, size_t *count)
+		       char *buf, loff_t offset, size_t *count)
 {
 	status_t status = STATUS_SUCCESS;
 	struct dfu_file *dfu_file = usb_file_priv(file);
@@ -1102,7 +1102,7 @@ end:
 }
 
 status_t dfu_write_file(struct os_usb_file *file,
-			const char *buf, size_t *count)
+			const char *buf, loff_t offset, size_t *count)
 {
 	status_t status = STATUS_SUCCESS;
 	struct dfu_file *dfu_file = usb_file_priv(file);

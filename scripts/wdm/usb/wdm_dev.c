@@ -1679,12 +1679,12 @@ end:
 }
 
 status_t os_usb_read_file(os_device dev, os_file *file,
-			  char *buf, size_t *count)
+			  char *buf, loff_t offset, size_t *count)
 {
 	os_usbif *usb = dev_priv(dev);
 	status_t status = STATUS_SUCCESS;
 	if (usb->usb_driver->read && file_priv(file)) {
-		return usb->usb_driver->read(file_priv(file), buf, count);
+		return usb->usb_driver->read(file_priv(file), buf, offset, count);
 	} else {
 		*count = 0;
 		return STATUS_INVALID_PARAMETER;
@@ -1692,12 +1692,12 @@ status_t os_usb_read_file(os_device dev, os_file *file,
 }
 
 status_t os_usb_write_file(os_device dev, os_file *file,
-			   const char *buf, size_t *count)
+			   const char *buf, loff_t offset, size_t *count)
 {
 	os_usbif *usb = dev_priv(dev);
 	status_t status = STATUS_SUCCESS;
 	if (usb->usb_driver->read && file_priv(file)) {
-		return usb->usb_driver->write(file_priv(file), buf, count);
+		return usb->usb_driver->write(file_priv(file), buf, offset, count);
 	} else {
 		*count = 0;
 		return STATUS_INVALID_PARAMETER;

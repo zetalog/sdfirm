@@ -66,9 +66,9 @@ struct os_driver {
 			  unsigned long code, void *arg,
 			  int *length);
 	status_t (*read)(os_device dev, os_file *file,
-			 char *buf, size_t *count);
+			 char *buf, loff_t offset, size_t *count);
 	status_t (*write)(os_device dev, os_file *file,
-			  const char *buf, size_t *count);
+			  const char *buf, loff_t offset, size_t *count);
 };
 
 #ifdef CONFIG_DEBUG

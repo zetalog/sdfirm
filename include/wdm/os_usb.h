@@ -24,9 +24,9 @@ struct os_usb_driver {
 	status_t (*open)(struct os_usb_file *file);
 	void (*close)(struct os_usb_file *file);
 	status_t (*read)(struct os_usb_file *file,
-			 char *buf, size_t *count);
+			 char *buf, loff_t offset, size_t *count);
 	status_t (*write)(struct os_usb_file *file,
-			  const char *buf, size_t *count);
+			  const char *buf, loff_t offset, size_t *count);
 	status_t (*ioctl)(struct os_usb_file *file,
 			  unsigned long code, void *arg, int *length);
 
