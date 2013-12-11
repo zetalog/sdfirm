@@ -15,4 +15,10 @@ typedef unsigned char		boolean;
 #define inline __inline
 #endif
 
+#ifdef WIN32
+#define ULL(num)	num##UI64
+#else
+#define ULL(num)	num##ULL
+#endif
+
 #endif /* __HOST_TYPES_H_INCLUDE__ */

@@ -119,13 +119,23 @@ uint8_t bitrev8(uint8_t byte);
 uint8_t hweight8(uint8_t byte);
 uint8_t hweight16(uint16_t word);
 
-#define swap16(x)			\
-	((((x) >> 8) & 0x00FF) | (((x) << 8) & 0xFF00))
-#define swap32(x)			\
-	((((x) >> 24) & 0x000000FF) |	\
-	 (((x) >>  8) & 0x0000FF00) |	\
-	 (((x) << 24) & 0xFF000000) |	\
-	 (((x) <<  8) & 0x00FF0000))
+#define swap16(x) ((uint16_t)(						\
+	(((uint16_t)(x) & (uint16_t)0x00ffU) << 8) |			\
+	(((uint16_t)(x) & (uint16_t)0xff00U) >> 8)))
+#define swap32(x) ((uint32_t)(						\
+	(((uint32_t)(x) & (uint32_t)0x000000ffUL) << 24) |		\
+	(((uint32_t)(x) & (uint32_t)0x0000ff00UL) <<  8) |		\
+	(((uint32_t)(x) & (uint32_t)0x00ff0000UL) >>  8) |		\
+	(((uint32_t)(x) & (uint32_t)0xff000000UL) >> 24)))
+#define swap64(x) ((uint64_t)(						\
+	(((uint64_t)(x) & (uint64_t)ULL(0x00000000000000ff)) << 56) |	\
+	(((uint64_t)(x) & (uint64_t)ULL(0x000000000000ff00)) << 40) |	\
+	(((uint64_t)(x) & (uint64_t)ULL(0x0000000000ff0000)) << 24) |	\
+	(((uint64_t)(x) & (uint64_t)ULL(0x00000000ff000000)) <<  8) |	\
+	(((uint64_t)(x) & (uint64_t)ULL(0x000000ff00000000)) >>  8) |	\
+	(((uint64_t)(x) & (uint64_t)ULL(0x0000ff0000000000)) >> 24) |	\
+	(((uint64_t)(x) & (uint64_t)ULL(0x00ff000000000000)) >> 40) |	\
+	(((uint64_t)(x) & (uint64_t)ULL(0xff00000000000000)) >> 56)))
 #define swapb(d, bit)			\
 	 ((d) ^ ((uint8_t)0x01 << (bit)))
 
@@ -142,6 +152,12 @@ uint8_t hweight16(uint16_t word);
 #endif
 #ifndef HIWORD
 #define HIWORD(w)			((uint16_t)((w)>>16))
+#endif
+#ifndef LODWORD
+#define LODWORD(w)			((uint32_t)w)
+#endif
+#ifndef HIDWORD
+#define HIDWORD(w)			((uint32_t)((w)>>32))
 #endif
 #define MAKEBYTE(a, b)			((uint8_t)(((a) & 0x0F) | (((b) & 0x0F) << 4))) 
 #ifndef MAKEWORD
