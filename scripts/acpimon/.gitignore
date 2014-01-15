@@ -1,0 +1,5 @@
+objchk_*
+objfre_*
+*.log
+*.wrn
+*.err
