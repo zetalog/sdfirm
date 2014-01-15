@@ -3,6 +3,13 @@
 
 #include <host/types.h>
 
+#ifndef INT_MAX
+#define INT_MAX		((int)(~0U>>1))
+#endif
+#ifndef INT_MIN
+#define INT_MIN		(-INT_MAX - 1)
+#endif
+
 typedef uint32_t bits_t;
 
 #define BITS_PER_UNIT			32
@@ -17,6 +24,8 @@ typedef uint32_t bits_t;
 
 #define ALIGN(x,a)		__ALIGN_MASK(x,(a)-1)
 #define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
+
+#define ARRAY_SIZE(arr)		(sizeof(arr) / sizeof((arr)[0]))
 
 void set_bit(uint8_t nr, bits_t *addr);
 void clear_bit(uint8_t nr, bits_t *addr);
@@ -94,7 +103,9 @@ uint32_t bitrev32(uint32_t x);
 #ifndef MAKELONG
 #define MAKELONG(a, b)			((uint32_t)((a) | ((uint32_t)(b)) << 16))
 #endif
-#define MAKELLONG(a, b)			((uint64_t)((a) | ((uint64_t)(b)) << 32)) 
+#ifndef MAKELLONG
+#define MAKELLONG(a, b)			((uint64_t)((a) | ((uint64_t)(b)) << 32))
+#endif
 
 #define raise_bits(i, bits)		((i) |= (bits))
 #define unraise_bits(i, bits)		((i) &= ~(bits))

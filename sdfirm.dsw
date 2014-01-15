@@ -315,6 +315,18 @@ Package=<4>
 
 ###############################################################################
 
+Project: "winacpi"=.\scripts\winacpi\winacpi.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "windfu"=.\scripts\windfu\windfu.dsp - Package Owner=<4>
 
 Package=<5>

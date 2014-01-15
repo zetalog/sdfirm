@@ -168,8 +168,10 @@ uint8_t hweight16(uint16_t word);
 #define MAKELONG(a, b)			((uint32_t)(((uint32_t)(a)) | \
 						    ((uint32_t)(b)) << 16))
 #endif
+#ifndef MAKELLONG
 #define MAKELLONG(a, b)			((uint64_t)(((uint64_t)(a)) | \
 						    ((uint64_t)(b)) << 32))
+#endif
 
 #define raise_bits(i, bits)		((i) |= (bits))
 #define unraise_bits(i, bits)		((i) &= ~(bits))

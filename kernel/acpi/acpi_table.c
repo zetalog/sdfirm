@@ -1,0 +1,686 @@
+#include <target/acpi.h>
+
+#define ACPI_TABLE_LIST_INCREMENT	4
+#define ACPI_TABLE_LIST_FIXED		2
+
+static struct acpi_table_list acpi_gbl_table_list;
+uint8_t acpi_gbl_integer_bit_width = 64;
+
+static void acpi_table_lock(void)
+{
+}
+
+static void acpi_table_unlock(void)
+{
+}
+
+boolean acpi_table_contains_aml(struct acpi_table_header *table)
+{
+	return ACPI_NAMECMP(ACPI_SIG_DSDT, table->signature) ||
+	       ACPI_NAMECMP(ACPI_SIG_PSDT, table->signature) ||
+	       ACPI_NAMECMP(ACPI_SIG_SSDT, table->signature);
+}
+
+uint32_t acpi_table_get_length(struct acpi_table_header *table)
+{
+	if (ACPI_RSDP_SIG_CMP(ACPI_CAST_RSDP(table)->signature))
+		return ACPI_DECODE32(&(ACPI_CAST_RSDP(table)->length));
+	else
+		return ACPI_DECODE8(&(table->length));
+}
+
+/*=========================================================================
+ * Non-RSDP table checksums
+ *=======================================================================*/
+static void __acpi_table_calc_checksum(struct acpi_table_header *table)
+{
+	ACPI_ENCODE8(&table->checksum, 0);
+	ACPI_ENCODE8(&table->checksum,
+		     acpi_checksum_calc(table, acpi_table_get_length(table)));
+}
+
+boolean __acpi_table_checksum_valid(struct acpi_table_header *table)
+{
+	if (ACPI_NAMECMP(ACPI_SIG_S3PT, table->signature) ||
+	    ACPI_NAMECMP(ACPI_SIG_FACS, table->signature))
+		return true;
+
+	return acpi_checksum_calc(table, acpi_table_get_length(table)) == 0;
+}
+
+boolean acpi_table_checksum_valid(struct acpi_table_header *table)
+{
+	if (ACPI_RSDP_SIG_CMP(table->signature))
+		return acpi_rsdp_checksum_valid(ACPI_CAST_RSDP(table));
+	else
+		return __acpi_table_checksum_valid(table);
+}
+
+void acpi_table_calc_checksum(struct acpi_table_header *table)
+{
+	if (ACPI_RSDP_SIG_CMP(table->signature))
+		acpi_rsdp_calc_checksum(ACPI_CAST_RSDP(table));
+	else
+		__acpi_table_calc_checksum(table);
+}
+
+static acpi_status_t acpi_table_list_resize(void)
+{
+	struct acpi_table_desc *tables;
+	uint32_t table_count;
+
+	if (!(acpi_gbl_table_list.flags & ACPI_ROOT_ALLOW_RESIZE))
+		return AE_SUPPORT;
+
+	if (acpi_gbl_table_list.flags & ACPI_ROOT_ORIGIN_ALLOCATED)
+		table_count = acpi_gbl_table_list.max_table_count;
+	else
+		table_count = acpi_gbl_table_list.cur_table_count;
+
+	tables = heap_calloc((table_count + ACPI_TABLE_LIST_INCREMENT) *
+			     sizeof (struct acpi_table_desc));
+	if (!tables)
+		return AE_NO_MEMORY;
+
+	if (acpi_gbl_table_list.tables) {
+		memcpy(tables, acpi_gbl_table_list.tables,
+		       table_count * sizeof (struct acpi_table_desc));
+		if (acpi_gbl_table_list.flags & ACPI_ROOT_ORIGIN_ALLOCATED)
+			heap_free(acpi_gbl_table_list.tables);
+	}
+
+	acpi_gbl_table_list.tables = tables;
+	acpi_gbl_table_list.max_table_count = table_count +
+					      ACPI_TABLE_LIST_INCREMENT;
+	acpi_gbl_table_list.flags |= ACPI_ROOT_ORIGIN_ALLOCATED;
+
+	return AE_OK;
+}
+
+acpi_status_t acpi_reallocate_root_table(void)
+{
+	acpi_status_t status;
+
+	if (acpi_gbl_table_list.flags & ACPI_ROOT_ORIGIN_ALLOCATED)
+		return AE_SUPPORT;
+
+	acpi_gbl_table_list.flags |= ACPI_ROOT_ALLOW_RESIZE;
+	status = acpi_table_list_resize();
+
+	return AE_OK;
+}
+
+acpi_status_t acpi_table_list_allocate(uint32_t initialial_table_count)
+{
+	acpi_status_t status;
+
+	acpi_gbl_table_list.max_table_count = initialial_table_count;
+	acpi_gbl_table_list.flags = ACPI_ROOT_ALLOW_RESIZE;
+	status = acpi_table_list_resize();
+
+	return status;
+}
+
+static acpi_status_t acpi_table_list_acquire(acpi_ddb_t *ddb_handle)
+{
+	acpi_status_t status;
+
+	if (acpi_gbl_table_list.cur_table_count >= acpi_gbl_table_list.max_table_count) {
+		status = acpi_table_list_resize();
+		if (ACPI_FAILURE(status))
+			return status;
+	}
+
+	*ddb_handle = acpi_gbl_table_list.cur_table_count;
+	acpi_gbl_table_list.cur_table_count++;
+
+	return AE_OK;
+}
+
+static acpi_status_t acpi_table_acquire(struct acpi_table_desc *table_desc,
+					struct acpi_table_header **table_ptr,
+					uint32_t *table_len,
+					acpi_table_flags_t *table_flags)
+{
+	struct acpi_table_header *table = NULL;
+
+	switch (table_desc->flags & ACPI_TABLE_ORIGIN_MASK) {
+	case ACPI_TABLE_INTERNAL_PHYSICAL:
+		table = acpi_os_map_memory(table_desc->address, table_desc->length);
+		break;
+	case ACPI_TABLE_EXTERNAL_VIRTUAL:
+	case ACPI_TABLE_INTERNAL_VIRTUAL:
+		table = ACPI_CAST_PTR(struct acpi_table_header,
+				      ACPI_PHYSADDR_TO_PTR(table_desc->address));
+		break;
+	}
+	if (!table)
+		return AE_NO_MEMORY;
+
+	*table_ptr = table;
+	*table_len = table_desc->length;
+	*table_flags = table_desc->flags;
+
+	return AE_OK;
+}
+
+static void acpi_table_release(struct acpi_table_header *table,
+			       uint32_t table_len,
+			       acpi_table_flags_t table_flags)
+{
+	switch (table_flags & ACPI_TABLE_ORIGIN_MASK) {
+	case ACPI_TABLE_INTERNAL_PHYSICAL:
+		acpi_os_unmap_memory(table, table_len);
+		break;
+	case ACPI_TABLE_EXTERNAL_VIRTUAL:
+	case ACPI_TABLE_INTERNAL_VIRTUAL:
+	default:
+		break;
+	}
+}
+
+static acpi_status_t acpi_table_validate(struct acpi_table_desc *table_desc)
+{
+	acpi_status_t status = AE_OK;
+
+	if (!table_desc->pointer)
+		status = acpi_table_acquire(table_desc,
+					    &table_desc->pointer,
+					    &table_desc->length,
+					    &table_desc->flags);
+
+	return status;
+}
+
+static void acpi_table_invalidate(struct acpi_table_desc *table_desc)
+{
+	if (!table_desc->pointer)
+		return;
+
+	acpi_table_release(table_desc->pointer, table_desc->length,
+			   table_desc->flags);
+	table_desc->pointer = NULL;
+}
+
+static acpi_status_t acpi_table_verify(struct acpi_table_desc *table_desc,
+				       acpi_tag_t signature)
+{
+	acpi_status_t status;
+
+	status = acpi_table_validate(table_desc);
+	if (ACPI_FAILURE(status))
+		return status;
+	if (!ACPI_NAMECMP(signature, ACPI_NULL_NAME) &&
+	    !ACPI_NAMECMP(signature, table_desc->signature))
+		return AE_BAD_SIGNATURE;
+	if (!__acpi_table_checksum_valid(table_desc->pointer))
+		return AE_BAD_CHECKSUM;
+
+	return AE_OK;
+}
+
+static void __acpi_table_install(struct acpi_table_desc *table_desc,
+				 acpi_addr_t address, acpi_table_flags_t flags,
+				 struct acpi_table_header *table_header)
+{
+	memset(table_desc, 0, sizeof (struct acpi_table_desc));
+	table_desc->address = address;
+	table_desc->length = acpi_table_get_length(table_header);
+	table_desc->flags = flags;
+	ACPI_NAMECPY(ACPI_NAME2TAG(table_header->signature), table_desc->signature);
+}
+
+static acpi_status_t acpi_table_install(struct acpi_table_desc *table_desc,
+					acpi_addr_t address, acpi_table_flags_t flags)
+{
+	struct acpi_table_header *table_header;
+
+	switch (flags & ACPI_TABLE_ORIGIN_MASK) {
+	case ACPI_TABLE_INTERNAL_PHYSICAL:
+		table_header = acpi_os_map_memory(address, sizeof (struct acpi_table_header));
+		if (!table_header)
+			return AE_NO_MEMORY;
+		__acpi_table_install(table_desc, address, flags, table_header);
+		acpi_os_unmap_memory(table_header, sizeof (struct acpi_table_header));
+		return AE_OK;
+	case ACPI_TABLE_INTERNAL_VIRTUAL:
+	case ACPI_TABLE_EXTERNAL_VIRTUAL:
+		table_header = ACPI_CAST_PTR(struct acpi_table_header, address);
+		__acpi_table_install(table_desc, address, flags, table_header);
+		return AE_OK;
+	}
+
+	return AE_NO_MEMORY;
+}
+
+static void acpi_table_uninstall(struct acpi_table_desc *table_desc)
+{
+	if (!table_desc->address)
+		return;
+
+	acpi_table_invalidate(table_desc);
+	if ((table_desc->flags & ACPI_TABLE_ORIGIN_MASK) == ACPI_TABLE_INTERNAL_VIRTUAL)
+		heap_free(ACPI_CAST_PTR(void, table_desc->address));
+	table_desc->address = ACPI_PTR_TO_PHYSADDR(NULL);
+}
+
+static void acpi_table_override(struct acpi_table_desc *old_table_desc)
+{
+	acpi_status_t status;
+	char *override_type;
+	struct acpi_table_desc new_table_desc;
+	struct acpi_table_header *table;
+#if 0
+	acpi_addr_t address;
+	uint32_t length;
+#endif
+
+	/* (1) Attempt logical override (returns a logical address) */
+	status = acpi_os_table_override(old_table_desc->pointer,
+					&table);
+	if (ACPI_SUCCESS(status) && table) {
+		acpi_table_install(&new_table_desc,
+				   ACPI_PTR_TO_PHYSADDR(table),
+				   ACPI_TABLE_EXTERNAL_VIRTUAL);
+		override_type = "Logical";
+		goto out_succ;
+	}
+
+#if 0
+	/* (2) Attempt physical override (returns a physical address) */
+	status = acpi_os_physical_table_override(old_table_desc->pointer,
+						 &address, &length);
+	if (ACPI_SUCCESS (status) && address && length) {
+		acpi_table_install(&new_table_desc, address, ACPI_TABLE_INTERNAL_PHYSICAL);
+		override_type = "Physical";
+		goto out_succ;
+	}
+#endif
+	return;
+
+out_succ:
+	status = acpi_table_verify(&new_table_desc, ACPI_TAG_NULL);
+	if (ACPI_FAILURE(status))
+		return;
+
+	acpi_table_uninstall(old_table_desc);
+	__acpi_table_install(old_table_desc, new_table_desc.address,
+			     new_table_desc.flags, new_table_desc.pointer);
+	acpi_table_validate(old_table_desc);
+	acpi_table_uninstall(&new_table_desc);
+}
+
+static void acpi_determine_integer_width(uint8_t revision)
+{
+	if (revision < 2)
+		acpi_gbl_integer_bit_width = 32;
+	else
+		acpi_gbl_integer_bit_width = 64;
+}
+
+static void acpi_table_install_and_override(struct acpi_table_desc *new_table_desc,
+					    acpi_ddb_t ddb)
+{
+	if (ddb >= acpi_gbl_table_list.cur_table_count)
+		return;
+
+	acpi_table_override(new_table_desc);
+
+	__acpi_table_install(&acpi_gbl_table_list.tables[ddb],
+			     new_table_desc->address, new_table_desc->flags,
+			     new_table_desc->pointer);
+
+	if (ddb == ACPI_DDB_HANDLE_DSDT)
+		acpi_determine_integer_width(ACPI_DECODE8(&new_table_desc->pointer->revision));
+}
+
+acpi_status_t acpi_table_install_fixed(acpi_addr_t address,
+				       acpi_tag_t signature,
+				       acpi_ddb_t ddb)
+{
+	struct acpi_table_desc new_table_desc;
+	acpi_status_t status;
+
+	if (!address) {
+		acpi_err("[0x%X]: Null physical address for ACPI table", signature);
+		return AE_NO_MEMORY;
+	}
+
+	status = acpi_table_install(&new_table_desc, address, ACPI_TABLE_INTERNAL_PHYSICAL);
+	if (ACPI_FAILURE(status)) {
+		acpi_err("[0x%X]: Could not acquire table length at %p", signature,
+			 ACPI_CAST_PTR(void, address));
+		return status;
+	}
+
+	status = acpi_table_verify(&new_table_desc, signature);
+	if (ACPI_FAILURE(status))
+		goto err_inst;
+
+	acpi_table_lock();
+	acpi_table_install_and_override(&new_table_desc, ddb);
+	acpi_table_unlock();
+
+err_inst:
+	acpi_table_uninstall(&new_table_desc);
+	return status;
+}
+
+acpi_status_t acpi_table_install_non_fixed(acpi_addr_t address,
+					   acpi_table_flags_t flags,
+					   boolean reload,
+					   acpi_ddb_t *ddb_handle)
+{
+	acpi_ddb_t ddb;
+	acpi_status_t status;
+	struct acpi_table_desc new_table_desc;
+
+	status = acpi_table_install(&new_table_desc, address, flags);
+	if (ACPI_FAILURE(status))
+		return status;
+
+	status = acpi_table_verify(&new_table_desc, ACPI_TAG_NULL);
+	if (ACPI_FAILURE(status))
+		return status;
+
+	acpi_table_lock();
+	if (reload) {
+		for (ddb = 0; ddb < acpi_gbl_table_list.cur_table_count; ddb++) {
+			/* TODO: Match and reload table */
+		}
+	}
+
+	status = acpi_table_list_acquire(&ddb);
+	if (ACPI_FAILURE(status))
+		goto err_lock;
+
+	*ddb_handle = ddb;
+	acpi_table_install_and_override(&new_table_desc, ddb);
+
+err_lock:
+	acpi_table_unlock();
+	acpi_table_uninstall(&new_table_desc);
+	return status;
+}
+
+boolean acpi_table_is_loaded(acpi_ddb_t ddb)
+{
+	if (ddb >= acpi_gbl_table_list.cur_table_count)
+		return false;
+	if (acpi_gbl_table_list.tables[ddb].flags & ACPI_TABLE_IS_LOADED)
+		return true;
+	return false;
+}
+
+void acpi_table_set_loaded(acpi_ddb_t ddb, boolean is_loaded)
+{
+	if (ddb < acpi_gbl_table_list.cur_table_count) {
+		if (is_loaded) {
+			acpi_reference_inc(&acpi_gbl_table_list.tables[ddb].reference_count);
+			acpi_gbl_table_list.tables[ddb].flags |= ACPI_TABLE_IS_LOADED;
+		} else {
+			acpi_reference_dec(&acpi_gbl_table_list.tables[ddb].reference_count);
+			/* TODO: Wait for table unloads */
+			acpi_gbl_table_list.tables[ddb].flags &= ~ACPI_TABLE_IS_LOADED;
+		}
+	}
+}
+
+acpi_status_t acpi_table_parse(acpi_ddb_t ddb,
+			       struct acpi_namespace_node *start_node)
+{
+	acpi_status_t status;
+
+	/*
+	 * AML Parse, pass 1
+	 *
+	 * In this pass, we load most of the namespace. Control methods
+	 * are not parsed until later. A parse tree is not created.
+	 * Instead, each Parser Op subtree is deleted when it is finished.
+	 * This saves a great deal of memory, and allows a small cache of
+	 * parse objects to service the entire parse. The second pass of
+	 * the parse then performs another complete parse of the AML.
+	 */
+	status = acpi_parse_once(ACPI_IMODE_LOAD_PASS1, ddb, start_node);
+	if (ACPI_FAILURE(status))
+		return status;
+
+	/*
+	 * AML Parse, pass 2
+	 *
+	 * In this pass, we resolve forward references and other things
+	 * that could not be completed during the first pass.
+	 * Another complete parse of the AML is performed, but the
+	 * overhead of this is compensated for by the fact that the
+	 * parse objects are all cached.
+	 */
+	return acpi_parse_once(ACPI_IMODE_LOAD_PASS2, ddb, start_node);
+}
+
+acpi_status_t __acpi_load_table(acpi_ddb_t ddb,
+				struct acpi_namespace_node *node)
+{
+	acpi_status_t status = AE_OK;
+	struct acpi_table_header *table;
+
+	if (acpi_table_is_loaded(ddb))
+		return AE_ALREADY_EXISTS;
+
+	status = acpi_get_table(ddb, &table);
+	if (ACPI_FAILURE(status))
+		return status;
+	acpi_table_unlock();
+	status = acpi_table_parse(ddb, node);
+	acpi_table_lock();
+	acpi_put_table(ddb, table);
+	if (ACPI_SUCCESS(status))
+		acpi_table_set_loaded(ddb, true);
+
+	return status;
+	/* return AcpiDsInitializeObjects(ddb, node); */
+}
+
+static acpi_status_t __acpi_get_table(acpi_ddb_t ddb,
+				      struct acpi_table_header **out_table)
+{
+	acpi_status_t status;
+	struct acpi_table_desc *table_desc;
+	struct acpi_table_header *table;
+	uint32_t table_len;
+	acpi_table_flags_t table_flags;
+
+	table_desc = &acpi_gbl_table_list.tables[ddb];
+	acpi_reference_inc(&table_desc->reference_count);
+	if (table_desc->pointer) {
+		*out_table = table_desc->pointer;
+		status = AE_OK;
+	} else {
+		acpi_table_unlock();
+		status = acpi_table_acquire(table_desc,
+					    &table,
+					    &table_len,
+					    &table_flags);
+		acpi_table_lock();
+		acpi_reference_dec(&table_desc->reference_count);
+		if (ACPI_SUCCESS(status))
+			*out_table = table;
+	}
+
+	return status;
+}
+
+acpi_status_t acpi_get_table(acpi_ddb_t ddb, struct acpi_table_header **out_table)
+{
+	acpi_status_t status;
+
+	if (!out_table)
+		return AE_BAD_PARAMETER;
+	*out_table = NULL;
+
+	acpi_table_lock();
+	if (ddb >= acpi_gbl_table_list.cur_table_count) {
+		status = AE_NOT_FOUND;
+		goto err_lock;
+	}
+
+	status = __acpi_get_table(ddb, out_table);
+
+err_lock:
+	acpi_table_unlock();
+	return status;
+}
+
+acpi_status_t acpi_put_table(acpi_ddb_t ddb, struct acpi_table_header *table)
+{
+	acpi_status_t status = AE_OK;
+	struct acpi_table_desc *table_desc;
+
+	acpi_table_lock();
+	if (ddb >= acpi_gbl_table_list.cur_table_count) {
+		status = AE_LIMIT;
+		goto err_lock;
+	}
+
+	table_desc = &acpi_gbl_table_list.tables[ddb];
+	acpi_reference_inc(&table_desc->reference_count);
+	if (table_desc->pointer)
+		acpi_reference_dec(&table_desc->reference_count);
+	else {
+		acpi_table_unlock();
+		acpi_table_release(table, table_desc->length, table_desc->flags);
+		acpi_table_lock();
+	}
+	acpi_reference_dec(&table_desc->reference_count);
+
+err_lock:
+	acpi_table_unlock();
+	return status;
+}
+
+acpi_status_t acpi_get_table_by_inst(acpi_tag_t sig, uint32_t instance,
+				     acpi_ddb_t *ddb_handle,
+				     struct acpi_table_header **out_table)
+{
+	acpi_status_t status = AE_NOT_FOUND;
+	acpi_ddb_t ddb;
+	uint32_t j;
+	struct acpi_table_desc *table_desc;
+
+	if (ACPI_NAMECMP(sig,  ACPI_NULL_NAME) ||
+	    !ddb_handle || !out_table)
+		return AE_BAD_PARAMETER;
+	*out_table = NULL;
+
+	acpi_table_lock();
+	for (ddb = 0, j = 0; ddb < acpi_gbl_table_list.cur_table_count; ddb++) {
+		table_desc = &acpi_gbl_table_list.tables[ddb];
+
+		if (!ACPI_NAMECMP(sig, table_desc->signature))
+			continue;
+		if (++j < instance)
+			continue;
+
+		*ddb_handle = ddb;
+		status = __acpi_get_table(ddb, out_table);
+		break;
+	}
+	acpi_table_unlock();
+
+	return status;
+}
+
+acpi_status_t acpi_get_table_by_name(acpi_tag_t sig, char *oem_id, char *oem_table_id,
+				     acpi_ddb_t *ddb_handle,
+				     struct acpi_table_header **out_table)
+{
+	acpi_status_t status = AE_NOT_FOUND;
+	acpi_ddb_t ddb;
+	struct acpi_table_desc *table_desc;
+
+	if (ACPI_NAMECMP(sig,  ACPI_NULL_NAME) ||
+	    !oem_id || !oem_table_id || !ddb_handle || !out_table)
+		return AE_BAD_PARAMETER;
+	*out_table = NULL;
+
+	acpi_table_lock();
+	for (ddb = 0; ddb < acpi_gbl_table_list.cur_table_count; ddb++) {
+		table_desc = &acpi_gbl_table_list.tables[ddb];
+
+		if (!ACPI_NAMECMP(sig, table_desc->signature) &&
+		    !ACPI_OEMCMP(oem_id, table_desc->oem_id, ACPI_OEM_ID_SIZE) &&
+		    !ACPI_OEMCMP(oem_table_id, table_desc->oem_table_id, ACPI_OEM_TABLE_ID_SIZE))
+			continue;
+
+		*ddb_handle = ddb;
+		status = __acpi_get_table(ddb, out_table);
+		break;
+	}
+	acpi_table_unlock();
+
+	return status;
+}
+
+acpi_status_t acpi_load_tables(void)
+{
+	acpi_status_t status;
+	acpi_ddb_t ddb = ACPI_DDB_HANDLE_DSDT;
+
+	acpi_table_lock();
+	if (!acpi_gbl_table_list.cur_table_count ||
+	    !ACPI_NAMECMP(ACPI_SIG_DSDT, acpi_gbl_table_list.tables[ddb].signature)||
+	    ACPI_FAILURE(acpi_table_validate(&acpi_gbl_table_list.tables[ddb]))) {
+		status = AE_NO_ACPI_TABLES;
+		goto err_lock;
+	}
+
+	status = __acpi_load_table(ddb, acpi_gbl_root_node);
+	if (ACPI_FAILURE(status))
+		goto err_lock;
+
+	for (ddb = 0; ddb < acpi_gbl_table_list.cur_table_count; ++ddb) {
+		if ((!ACPI_NAMECMP(ACPI_SIG_SSDT,
+				   acpi_gbl_table_list.tables[ddb].signature) &&
+		     !ACPI_NAMECMP(ACPI_SIG_PSDT,
+				   acpi_gbl_table_list.tables[ddb].signature)) ||
+		    ACPI_FAILURE(acpi_table_validate(&acpi_gbl_table_list.tables[ddb])))
+			continue;
+
+		(void)__acpi_load_table(ddb, acpi_gbl_root_node);
+	}
+
+err_lock:
+	acpi_table_unlock();
+	return status;
+}
+
+acpi_status_t acpi_initialize_tables(struct acpi_table_desc *initial_table_array,
+				     uint32_t initial_table_count,
+				     boolean allow_resize)
+{
+	acpi_addr_t rsdp_address;
+	int status;
+
+	rsdp_address = acpi_os_get_root_pointer();
+	if (!rsdp_address)
+		return AE_NOT_FOUND;
+
+	acpi_table_lock();
+	if (!initial_table_array) {
+		status = acpi_table_list_allocate(initial_table_count);
+		if (status)
+			return status;
+	} else {
+		memset(initial_table_array, 0,
+		       initial_table_count * sizeof (struct acpi_table_desc));
+
+		acpi_gbl_table_list.tables = initial_table_array;
+		acpi_gbl_table_list.max_table_count = initial_table_count;
+		acpi_gbl_table_list.flags = ACPI_ROOT_ORIGIN_UNKNOWN;
+		if (allow_resize)
+			acpi_gbl_table_list.flags |= ACPI_ROOT_ALLOW_RESIZE;
+	}
+	acpi_gbl_table_list.cur_table_count = ACPI_TABLE_LIST_FIXED;
+	acpi_table_unlock();
+
+	return acpi_rsdp_parse(rsdp_address);
+}

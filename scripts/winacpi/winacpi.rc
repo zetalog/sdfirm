@@ -1,0 +1,304 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "winres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Chinese (P.R.C.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+#ifdef _WIN32
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""winres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Chinese (P.R.C.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_WIZARDINTRO DIALOG DISCARDABLE  0, 0, 300, 150
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Introduction"
+FONT 9, "MS Sans Serif"
+BEGIN
+    CONTROL         "",IDC_WIZBITMAP,"Static",SS_BITMAP,0,0,15,14
+    LTEXT           "Welcome!",IDC_HEADER,116,0,184,25
+    LTEXT           "Introduction will be displayed here.",IDC_INTRODUCTION,
+                    115,29,185,114
+END
+
+IDD_ABOUT DIALOG DISCARDABLE  0, 0, 250, 200
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About WinDFU"
+FONT 9, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,193,179,50,14
+    ICON            IDI_MAINFRAME,IDC_STATIC,13,13,20,20
+    LTEXT           "Windows Device Firmware Upgrade",IDC_STATIC,134,7,109,8
+    LTEXT           "Copyright (C) by ZETALOG, 2011. Released under GPL.",
+                    IDC_STATIC,77,24,166,8
+    CONTROL         "",IDC_STATIC,"Static",SS_GRAYFRAME | SS_SUNKEN,7,38,236,
+                    1
+    EDITTEXT        IDC_DFU_LICENSE,7,47,236,126,ES_MULTILINE | 
+                    ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_READONLY
+END
+
+IDD_WIZARDDONE DIALOG DISCARDABLE  0, 0, 300, 150
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Done"
+FONT 9, "MS Sans Serif"
+BEGIN
+    CONTROL         "",IDC_WIZBITMAP,"Static",SS_BITMAP,0,0,11,11
+    LTEXT           "Congretulations!",IDC_HEADER,116,0,184,25
+    LTEXT           "Now you can click complete to exit.",IDC_STATIC,116,29,
+                    184,12
+END
+
+IDD_PROGRESS DIALOG DISCARDABLE  0, 0, 300, 50
+STYLE DS_MODALFRAME | WS_POPUP
+FONT 9, "MS Sans Serif"
+BEGIN
+    LTEXT           "Please wait for processing.",IDC_MESSAGE,7,7,286,8
+    CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,7,
+                    20,286,6
+    PUSHBUTTON      "Cancel",IDCANCEL,125,29,50,14
+END
+
+IDD_WIZARDFIRM DIALOG DISCARDABLE  0, 0, 300, 150
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Browse"
+FONT 9, "MS Sans Serif"
+BEGIN
+    CONTROL         "",IDC_WIZBITMAP,"Static",SS_BITMAP,0,0,11,11
+    LTEXT           "Preparation...",IDC_HEADER,116,0,184,25
+    LTEXT           "Please enter the path of the firmware file.",IDC_STATIC,
+                    116,29,184,12
+    EDITTEXT        IDC_FIRMWARE,116,57,130,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Browse",IDC_BROWSE,250,57,50,14
+END
+
+IDD_WIZARDPROG DIALOGEX 0, 0, 300, 150
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Programming"
+FONT 9, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_WIZBITMAP,"Static",SS_BITMAP,0,0,11,11
+    LTEXT           "Programing...",IDC_HEADER,116,0,184,25
+    LTEXT           "Please confirm following program information then click the ""Program"" button.",
+                    IDC_STATIC,116,29,184,28
+    CONTROL         "Progress1",IDC_PROGRAM,"msctls_progress32",WS_BORDER,
+                    116,116,184,6
+    PUSHBUTTON      "&Start",IDC_START,116,94,50,14
+    LTEXT           "Device:",IDC_STATIC,116,62,24,8
+    LTEXT           "Firmware:",IDC_STATIC,116,78,30,8
+    LTEXT           "",IDC_DEVICE,167,62,133,8
+    LTEXT           "",IDC_FIRMWARE,167,79,133,8
+    PUSHBUTTON      "Sto&p",IDC_STOP,176,94,50,14
+    EDITTEXT        IDC_ERROR,165,130,135,14,ES_AUTOHSCROLL | ES_READONLY | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_SEQUENCE,116,130,40,14,ES_AUTOHSCROLL | ES_READONLY | 
+                    NOT WS_BORDER
+END
+
+IDD_WIZARDSIGN DIALOG DISCARDABLE  0, 0, 300, 150
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "DFU Suffix"
+FONT 9, "MS Sans Serif"
+BEGIN
+    CONTROL         "",IDC_WIZBITMAP,"Static",SS_BITMAP,0,0,11,11
+    LTEXT           "Versioning...",IDC_HEADER,116,0,184,25
+    LTEXT           "Please specify the firmware signatures here.\r\nThese parameters will be passed to the DFU facility when firmwares are to be downloaded.",
+                    IDC_STATIC,116,29,184,28
+    LTEXT           "Vendor ID:",IDC_STATIC,140,69,33,8
+    EDITTEXT        IDC_VENDOR,180,69,40,14,ES_UPPERCASE | ES_AUTOHSCROLL
+    LTEXT           "Product ID:",IDC_STATIC,140,89,34,8
+    EDITTEXT        IDC_PRODUCT,180,89,40,14,ES_UPPERCASE | ES_AUTOHSCROLL
+    LTEXT           "Device ID:",IDC_STATIC,140,109,32,8
+    EDITTEXT        IDC_DEVICE,180,111,40,14,ES_UPPERCASE | ES_AUTOHSCROLL
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDM_MAINFRAME MENU DISCARDABLE 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "E&xit WinACPI",               ID_APP_EXIT
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "View &Status Bar",            ID_VIEW_STATUSBAR
+        MENUITEM "View &Tool Bar",              ID_VIEW_TOOLBAR
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About WinACPI...",           ID_APP_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDA_MAINFRAME ACCELERATORS DISCARDABLE 
+BEGIN
+    VK_F5,          ID_APP_REFRESH,         VIRTKEY, NOINVERT
+    "X",            ID_APP_EXIT,            VIRTKEY, CONTROL, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_TOOLBAR4BIT         BITMAP  DISCARDABLE     "res\\toolbar4bit.bmp"
+IDB_WIZARD              BITMAP  DISCARDABLE     "res\\wizard.bmp"
+IDB_HEADER              BITMAP  DISCARDABLE     "res\\header.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_MAINFRAME           ICON    DISCARDABLE     "res\\winacpi.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_ABOUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 243
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 193
+    END
+
+    IDD_PROGRESS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 293
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 43
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_APP_TITLE           "Windows ACPI Viewer"
+    IDS_APP_NAME            "Windows ACPI Viewer"
+    IDS_APP_CLASS           "WinDFU"
+    IDS_READY               "Ready"
+    IDS_POSITION            "SOFTWARE\\Zetalog\\windfu\\Position"
+    IDS_PLACEMENT           "Placement"
+    IDS_MENUFLAGS           "MenuFlags"
+    IDS_ERROR_FILE_BROWSE   "Failed to browse file, please check original path."
+    IDS_SUCCESS             "Success"
+    IDS_FAILURE             "Failure"
+    IDS_ERROR               "Error"
+    IDS_CONTEXT             "SOFTWARE\\Zetalog\\windfu\\Context"
+    IDS_FIRMWARE            "Firmware"
+    IDS_INFORMATION         "Information"
+    IDS_WARNING             "Warning"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_STATUSBAR       "View/hide status bar"
+    ID_VIEW_TOOLBAR         "View/hide toolbar"
+    ID_APP_ABOUT            "View about informations"
+    ID_APP_EXIT             "Exit application"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SIGNATURE           "Signature"
+    IDS_VENDOR              "Vendor"
+    IDS_PRODUCT             "Product"
+    IDS_DEVICE              "Device"
+    IDS_ERROR_INIT_APPLICATION "Failed to initialize the DFU application."
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

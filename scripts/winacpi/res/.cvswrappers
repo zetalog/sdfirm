@@ -1,0 +1,5 @@
+# Resource Files are BINARY
+
+*.cur -k 'b'
+*.bmp -k 'b'
+*.ico -k 'b'
