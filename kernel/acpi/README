@@ -1,0 +1,14 @@
+The sdfirm ACPI implementation is written to offer Windows kernel modules
+to dump ACPI tables (acpimon) and an GUI utility to view the dumped tables
+(winacpi).
+
+In the future, this software might be extended to be able to execute ACPI
+control methods and help to build binaries running in EFI shells.  Thus
+the code that might also be able to be used by firmwares are put in this
+folder.
+
+This folder contains source code that is totally rewritten during my spare
+time while the interface of this software (header files) is copied from
+Linux kernel so that in the future it might be possible for this software
+to act as a replacement of ACPICA in the OSPMs that have already adopted
+with ACPICA to offer a real test environment for this implementation.
