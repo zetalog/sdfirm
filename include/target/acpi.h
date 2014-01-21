@@ -781,7 +781,7 @@ acpi_addr_t acpi_os_get_root_pointer(void);
 void *acpi_os_map_memory(acpi_addr_t where, acpi_size_t length);
 void acpi_os_unmap_memory(void *where, acpi_size_t length);
 acpi_status_t acpi_os_table_override(struct acpi_table_header *existing_table,
-				     struct acpi_table_header **new_table);
+				     acpi_addr_t *address, acpi_table_flags_t *flags);
 acpi_status_t acpi_os_create_semaphore(uint32_t max_units,
 				       uint32_t initial_units,
 				       acpi_handle_t *out_handle);
@@ -791,6 +791,8 @@ acpi_status_t acpi_os_wait_semaphore(acpi_handle_t handle,
 				     uint16_t timeout);
 acpi_status_t acpi_os_signal_semaphore(acpi_handle_t handle,
 				       uint32_t units);
+void acpi_os_sleep(uint32_t msecs);
+
 void acpi_reference_set(struct acpi_reference *reference, int count);
 int acpi_reference_get(struct acpi_reference *reference);
 void acpi_reference_inc(struct acpi_reference *reference);
@@ -838,6 +840,9 @@ acpi_status_t acpi_xsdt_verify(acpi_addr_t xsdt_address);
 uint32_t acpi_fadt_flag_is_set(uint32_t mask);
 void acpi_fadt_parse(struct acpi_table_header *table);
 
+/*=========================================================================
+ * Table initialization
+ *=======================================================================*/
 acpi_status_t acpi_table_list_allocate(uint32_t initialial_table_count);
 acpi_status_t acpi_initialize_tables(struct acpi_table_desc *initial_table_array,
 				     uint32_t initial_table_count,
@@ -846,6 +851,9 @@ acpi_status_t acpi_reallocate_root_table(void);
 acpi_status_t acpi_initialize_subsystem(void);
 acpi_status_t acpi_load_tables(void);
 
+/*=========================================================================
+ * Table interfaces
+ *=======================================================================*/
 acpi_status_t acpi_get_table_by_inst(acpi_tag_t sig, uint32_t instance,
 				     acpi_ddb_t *ddb_handle,
 				     struct acpi_table_header **out_table);
@@ -858,5 +866,27 @@ acpi_status_t acpi_put_table(acpi_ddb_t ddb, struct acpi_table_header *table);
 acpi_status_t acpi_parse_once(acpi_interpreter_mode pass_number,
 			      uint32_t table_index,
 			      struct acpi_namespace_node *start_node);
+
+/*=========================================================================
+ * Table event handler
+ *=======================================================================*/
+#define ACPI_EVENT_TABLE_INSTALL	0x0
+#define ACPI_EVENT_TABLE_UNINSTALL	0x1
+#define ACPI_EVENT_TABLE_VALIDATE	0x2
+#define ACPI_EVENT_TABLE_INVALIDATE	0x3
+#define ACPI_EVENT_TABLE_LOAD		0x4
+#define ACPI_EVENT_TABLE_UNLOAD		0x5
+#define ACPI_NR_TABLE_EVENTS		(ACPI_EVENT_TABLE_UNLOAD+1)
+
+typedef acpi_status_t (*acpi_event_table_cb)(struct acpi_table_desc *table,
+					     acpi_ddb_t ddb,
+					     uint32_t event,
+					     void *context);
+
+acpi_status_t acpi_event_register_table_handler(acpi_event_table_cb handler,
+						void *context);
+void acpi_event_unregister_table_handler(acpi_event_table_cb handler);
+void acpi_event_table_notify(struct acpi_table_desc *table_desc,
+			     acpi_ddb_t ddb, uint32_t event);
 
 #endif /* __ACPI_H_INCLUDE__ */

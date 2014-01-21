@@ -262,14 +262,16 @@ void acpi_os_unmap_memory(void *where, acpi_size_t length)
 }
 
 acpi_status_t acpi_os_table_override(struct acpi_table_header *existing_table,
-				     struct acpi_table_header **new_table)
+				     acpi_addr_t *address, acpi_table_flags_t *flags)
 {
-	if (!existing_table || !new_table)
+	if (!existing_table || !address || !flags)
 		return AE_BAD_PARAMETER;
-	*new_table = NULL;
+	*address = ACPI_PTR_TO_PHYSADDR(NULL);
 
-	if (ACPI_NAMECMP(ACPI_SIG_DSDT, existing_table->signature))
-		*new_table = acpi_emu_dsdt_override;
+	if (ACPI_NAMECMP(ACPI_SIG_DSDT, existing_table->signature)) {
+		*address = ACPI_PTR_TO_PHYSADDR(acpi_emu_dsdt_override);
+		*flags = ACPI_TABLE_EXTERNAL_VIRTUAL;
+	}
 	return AE_OK;
 }
 
@@ -430,6 +432,11 @@ void acpi_os_release_lock(acpi_spinlock_t handle, acpi_cpuflags_t flags)
 void acpi_os_initialize(void)
 {
 	memset(acpi_emu_semaphores, 0x00, sizeof (acpi_emu_semaphores));
+}
+
+void acpi_os_sleep(uint32_t msecs)
+{
+	Sleep(msecs);
 }
 
 void acpi_emu_init(void)

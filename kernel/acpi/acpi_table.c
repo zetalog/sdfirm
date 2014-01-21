@@ -4,14 +4,27 @@
 #define ACPI_TABLE_LIST_FIXED		2
 
 static struct acpi_table_list acpi_gbl_table_list;
+acpi_mutex_t acpi_gbl_table_mutex;
 uint8_t acpi_gbl_integer_bit_width = 64;
 
 static void acpi_table_lock(void)
 {
+	(void)acpi_os_acquire_mutex(&acpi_gbl_table_mutex, ACPI_WAIT_FOREVER);
 }
 
 static void acpi_table_unlock(void)
 {
+	acpi_os_release_mutex(&acpi_gbl_table_mutex);
+}
+
+static void acpi_table_notify(struct acpi_table_desc *table_desc,
+			      acpi_ddb_t ddb, uint32_t event)
+{
+	acpi_reference_inc(&table_desc->reference_count);
+	acpi_table_unlock();
+	acpi_event_table_notify(table_desc, ddb, event);
+	acpi_table_lock();
+	acpi_reference_dec(&table_desc->reference_count);
 }
 
 boolean acpi_table_contains_aml(struct acpi_table_header *table)
@@ -269,33 +282,17 @@ static void acpi_table_override(struct acpi_table_desc *old_table_desc)
 	acpi_status_t status;
 	char *override_type;
 	struct acpi_table_desc new_table_desc;
-	struct acpi_table_header *table;
-#if 0
 	acpi_addr_t address;
-	uint32_t length;
-#endif
+	acpi_table_flags_t flags;
 
-	/* (1) Attempt logical override (returns a logical address) */
 	status = acpi_os_table_override(old_table_desc->pointer,
-					&table);
-	if (ACPI_SUCCESS(status) && table) {
-		acpi_table_install(&new_table_desc,
-				   ACPI_PTR_TO_PHYSADDR(table),
-				   ACPI_TABLE_EXTERNAL_VIRTUAL);
+					&address, &flags);
+	if (ACPI_SUCCESS(status) && address) {
+		acpi_table_install(&new_table_desc, address, flags);
 		override_type = "Logical";
 		goto out_succ;
 	}
 
-#if 0
-	/* (2) Attempt physical override (returns a physical address) */
-	status = acpi_os_physical_table_override(old_table_desc->pointer,
-						 &address, &length);
-	if (ACPI_SUCCESS (status) && address && length) {
-		acpi_table_install(&new_table_desc, address, ACPI_TABLE_INTERNAL_PHYSICAL);
-		override_type = "Physical";
-		goto out_succ;
-	}
-#endif
 	return;
 
 out_succ:
@@ -329,6 +326,9 @@ static void acpi_table_install_and_override(struct acpi_table_desc *new_table_de
 	__acpi_table_install(&acpi_gbl_table_list.tables[ddb],
 			     new_table_desc->address, new_table_desc->flags,
 			     new_table_desc->pointer);
+
+	acpi_table_notify(&acpi_gbl_table_list.tables[ddb], ddb,
+			  ACPI_EVENT_TABLE_INSTALL);
 
 	if (ddb == ACPI_DDB_HANDLE_DSDT)
 		acpi_determine_integer_width(ACPI_DECODE8(&new_table_desc->pointer->revision));
@@ -431,29 +431,10 @@ acpi_status_t acpi_table_parse(acpi_ddb_t ddb,
 {
 	acpi_status_t status;
 
-	/*
-	 * AML Parse, pass 1
-	 *
-	 * In this pass, we load most of the namespace. Control methods
-	 * are not parsed until later. A parse tree is not created.
-	 * Instead, each Parser Op subtree is deleted when it is finished.
-	 * This saves a great deal of memory, and allows a small cache of
-	 * parse objects to service the entire parse. The second pass of
-	 * the parse then performs another complete parse of the AML.
-	 */
 	status = acpi_parse_once(ACPI_IMODE_LOAD_PASS1, ddb, start_node);
 	if (ACPI_FAILURE(status))
 		return status;
 
-	/*
-	 * AML Parse, pass 2
-	 *
-	 * In this pass, we resolve forward references and other things
-	 * that could not be completed during the first pass.
-	 * Another complete parse of the AML is performed, but the
-	 * overhead of this is compensated for by the fact that the
-	 * parse objects are all cached.
-	 */
 	return acpi_parse_once(ACPI_IMODE_LOAD_PASS2, ddb, start_node);
 }
 
@@ -633,6 +614,8 @@ acpi_status_t acpi_load_tables(void)
 		goto err_lock;
 	}
 
+	acpi_table_notify(&acpi_gbl_table_list.tables[ddb], ddb,
+			  ACPI_EVENT_TABLE_VALIDATE);
 	status = __acpi_load_table(ddb, acpi_gbl_root_node);
 	if (ACPI_FAILURE(status))
 		goto err_lock;
@@ -645,6 +628,8 @@ acpi_status_t acpi_load_tables(void)
 		    ACPI_FAILURE(acpi_table_validate(&acpi_gbl_table_list.tables[ddb])))
 			continue;
 
+		acpi_table_notify(&acpi_gbl_table_list.tables[ddb], ddb,
+				  ACPI_EVENT_TABLE_VALIDATE);
 		(void)__acpi_load_table(ddb, acpi_gbl_root_node);
 	}
 
@@ -658,7 +643,11 @@ acpi_status_t acpi_initialize_tables(struct acpi_table_desc *initial_table_array
 				     boolean allow_resize)
 {
 	acpi_addr_t rsdp_address;
-	int status;
+	acpi_status_t status;
+
+	status = acpi_os_create_mutex(&acpi_gbl_table_mutex);
+	if (ACPI_FAILURE(status))
+		return status;
 
 	rsdp_address = acpi_os_get_root_pointer();
 	if (!rsdp_address)
