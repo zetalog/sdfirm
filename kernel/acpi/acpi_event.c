@@ -2,7 +2,7 @@
 
 struct acpi_event_table {
 	uint8_t flags;
-#define ACPI_TABLE_EVENT_GC	0x00
+#define ACPI_EVENT_TABLE_GARBAGE	0x01
 	uint8_t invokings;
 	acpi_event_table_cb handler;
 	void *context;
@@ -26,7 +26,7 @@ void acpi_event_table_notify(struct acpi_table_desc *table_desc,
 {
 	acpi_event_lock();
 	if (!acpi_gbl_event_table.handler ||
-	    acpi_gbl_event_table.flags & ACPI_TABLE_EVENT_GC)
+	    acpi_gbl_event_table.flags & ACPI_EVENT_TABLE_GARBAGE)
 		goto err_lock;
 	acpi_gbl_event_table.invokings++;
 	acpi_event_unlock();
@@ -74,10 +74,10 @@ void acpi_event_unregister_table_handler(acpi_event_table_cb handler)
 	acpi_event_lock();
 
 	if (handler != acpi_gbl_event_table.handler ||
-	    acpi_gbl_event_table.flags & ACPI_TABLE_EVENT_GC)
+	    acpi_gbl_event_table.flags & ACPI_EVENT_TABLE_GARBAGE)
 		goto err_lock;
 	acpi_gbl_event_table.invokings++;
-	acpi_gbl_event_table.flags |= ACPI_TABLE_EVENT_GC;
+	acpi_gbl_event_table.flags |= ACPI_EVENT_TABLE_GARBAGE;
 	acpi_event_unlock();
 
 	while (acpi_gbl_event_table.invokings != 1)
