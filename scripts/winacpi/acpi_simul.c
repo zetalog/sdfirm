@@ -441,6 +441,6 @@ void acpi_os_sleep(uint32_t msecs)
 
 void acpi_emu_init(void)
 {
-	acpi_emu_read_table("e:\\workspace\\acpica\\54841\\facp1.dat");
+	/* acpi_emu_read_table("e:\\workspace\\acpica\\54841\\facp1.dat"); */
 	acpi_emu_build_tables(acpi_emu_table_list);
 }

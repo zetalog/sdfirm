@@ -35,8 +35,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)windfu.c: device firmware upgrade windows user interface
- * $Id: windfu.c,v 1.87 2011-10-17 01:40:34 zhenglv Exp $
+ * @(#)winacpi.c: ACPI object viewer windows user interface
+ * $Id: winacpi.c,v 1.87 2011-10-17 01:40:34 zhenglv Exp $
  */
 #include <initguid.h>
 #include "winacpi.h"
@@ -143,12 +143,107 @@ VOID DispatchNotifications(LPACPIWNDDATA lpWD, WPARAM wParam, LPARAM lParam)
 	}
 }
 
+acpi_status_t AcpiHandleTableEvents(struct acpi_table_desc *table,
+				    acpi_ddb_t ddb, uint32_t event,
+				    void *context)
+{
+	LPACPIWNDDATA lpWD = (LPACPIWNDDATA)context;
+
+	switch (event) {
+	case ACPI_EVENT_TABLE_INSTALL:
+		break;
+	case ACPI_EVENT_TABLE_UNINSTALL:
+		break;
+	case ACPI_EVENT_TABLE_VALIDATE:
+		break;
+	case ACPI_EVENT_TABLE_INVALIDATE:
+		break;
+	}
+
+	return AE_OK;
+}
+
+VOID ACPIInitApplication(LPACPIWNDDATA lpWD)
+{
+	acpi_event_register_table_handler(AcpiHandleTableEvents, lpWD);
+	acpi_emu_init();
+	acpi_ospm_init();
+}
+
+VOID ACPIExitApplication(LPACPIWNDDATA lpWD)
+{
+	acpi_event_unregister_table_handler(AcpiHandleTableEvents);
+}
+
+void ACPIBuildTableTitles(LPACPIWNDDATA lpWD)
+{
+	LVCOLUMN lvc;
+	TCHAR tsz[64] = TEXT("");
+	HBITMAP hBitmap;
+	HIMAGELIST hImageList;
+
+#define BITMAP_NUM_TABLETYPES	4
+#define SIGNATUREWIDTH		100
+#define OEMIDWIDTH		120
+#define OEMTABLEIDWIDTH		160
+#define REVISIONWIDTH		50
+#define OEMREVISIONWIDTH	50
+	
+	/*
+	hImageList = ImageList_Create(16, 16, ILC_COLOR|ILC_MASK, BITMAP_NUM, 0); 
+	hBitmap = LoadBitmap(_DllInstance, MAKEINTRESOURCE(IDB_FACILITY));
+	ImageList_AddMasked(hImageList, hBitmap, RGB(255, 0, 255));
+	DeleteObject(hBitmap);
+	lpWD->hFacility = hImageList;
+	*/
+	
+	hImageList = ImageList_Create(16, 16, ILC_COLOR|ILC_MASK, BITMAP_NUM_TABLETYPES, 0); 
+	hBitmap = LoadBitmap(_hInstance, MAKEINTRESOURCE(IDB_TABLETYPE4BIT));
+	ImageList_AddMasked(hImageList, hBitmap, RGB(255, 0, 255));
+	DeleteObject(hBitmap);
+	lpWD->himgTableTypes = hImageList;
+	
+	// some stuff will not be changed
+	lvc.mask = LVCF_FMT | LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
+	lvc.pszText = tsz;
+	lvc.fmt = LVCFMT_LEFT;
+	
+	lvc.iSubItem = 0;
+	
+	lvc.cx = SIGNATUREWIDTH;
+	LoadString(_hInstance, IDS_TABLE_SIGNATURE, tsz, sizeof (tsz));
+	lvc.cchTextMax = _tcslen(tsz);
+	ListView_InsertColumn(lpWD->hwndListView, 2, &lvc);
+	
+	lvc.cx = OEMIDWIDTH;
+	LoadString(_hInstance, IDS_TABLE_OEMID, tsz, sizeof (tsz));
+	lvc.cchTextMax = _tcslen(tsz);
+	ListView_InsertColumn(lpWD->hwndListView, 3, &lvc);
+	
+	lvc.cx = OEMTABLEIDWIDTH;
+	LoadString(_hInstance, IDS_TABLE_OEMTABLEID, tsz, sizeof (tsz));
+	lvc.cchTextMax = _tcslen(tsz);
+	ListView_InsertColumn(lpWD->hwndListView, 4, &lvc);
+	
+	lvc.cx = REVISIONWIDTH;
+	LoadString(_hInstance, IDS_TABLE_REVISION, tsz, sizeof (tsz));
+	lvc.cchTextMax = _tcslen(tsz);
+	ListView_InsertColumn(lpWD->hwndListView, 5, &lvc);
+	
+	lvc.cx = OEMREVISIONWIDTH;
+	LoadString(_hInstance, IDS_TABLE_OEMREVISION, tsz, sizeof (tsz));
+	lvc.cchTextMax = _tcslen(tsz);
+	ListView_InsertColumn(lpWD->hwndListView, 6, &lvc);
+	
+	ListView_SetImageList(lpWD->hwndListView, hImageList, LVSIL_SMALL);
+}
+
 BOOL ACPICreateWindow(LPACPIWNDDATA lpWD)
 {
 	HWND hWnd;
 
 	hWnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTVIEW, 
-			      "DfuListView",
+			      "AcpiTableListView",
 			      WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS,
 			      0, 0, 0, 0,
 			      lpWD->hWnd,
@@ -162,11 +257,15 @@ BOOL ACPICreateWindow(LPACPIWNDDATA lpWD)
 	ListView_SetExtendedListViewStyle(lpWD->hwndListView, 
 					  LVS_EX_FULLROWSELECT/* |
 					  LVS_EX_GRIDLINES*/);
+	ACPIBuildTableTitles(lpWD);
+
+	ACPIInitApplication(lpWD);
 	return TRUE;
 }
 
 VOID ACPIDestroyWindow(LPACPIWNDDATA lpWD)
 {
+	ACPIExitApplication(lpWD);
 	DestroyWindow(lpWD->hwndListView);
 }
 
@@ -279,8 +378,6 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
 			DestroyWindow(hWnd);
 			break;
 		case ID_APP_ABOUT:
-			acpi_emu_init();
-			acpi_ospm_init();
 			DisplayVersion(hWnd);
 			break;
 		case ID_VIEW_STATUSBAR:
@@ -304,6 +401,8 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
 			CheckMenuItem(GetMenu(hWnd), ID_VIEW_TOOLBAR, _fMenuFlags & VIEW_TOOLBAR ?
 				      (MF_CHECKED | MF_BYCOMMAND) : (MF_UNCHECKED | MF_BYCOMMAND));
 			RecalcLayout(hWnd);
+			break;
+		case ID_TABLE_LOAD:
 			break;
 		default:
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);

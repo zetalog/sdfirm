@@ -22,6 +22,11 @@
 #define IDS_PRODUCT                     18
 #define IDS_DEVICE                      19
 #define IDS_ERROR_INIT_APPLICATION      20
+#define IDS_TABLE_SIGNATURE             21
+#define IDS_TABLE_OEMID                 22
+#define IDS_TABLE_OEMTABLEID            23
+#define IDS_TABLE_REVISION              24
+#define IDS_TABLE_OEMREVISION           25
 #define IDM_MAINFRAME                   101
 #define IDA_MAINFRAME                   102
 #define IDB_TOOLBAR4BIT                 103
@@ -35,6 +40,7 @@
 #define IDD_WIZARDFIRM                  116
 #define IDD_WIZARDPROG                  117
 #define IDD_WIZARDSIGN                  120
+#define IDB_TABLETYPE4BIT               121
 #define IDC_DFU_LICENSE                 1000
 #define IDC_PROGRESS                    1001
 #define IDC_FIRMWARE                    1001
@@ -60,13 +66,15 @@
 #define ID_APP_ABOUT                    40003
 #define ID_APP_EXIT                     40004
 #define ID_APP_REFRESH                  40005
+#define ID_TABLE_LOAD                   40013
+#define ID_TABLE_UNLOAD                 40014
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        121
-#define _APS_NEXT_COMMAND_VALUE         40013
+#define _APS_NEXT_RESOURCE_VALUE        122
+#define _APS_NEXT_COMMAND_VALUE         40015
 #define _APS_NEXT_CONTROL_VALUE         1017
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

@@ -175,6 +175,9 @@ IDM_MAINFRAME MENU DISCARDABLE
 BEGIN
     POPUP "&File"
     BEGIN
+        MENUITEM "&Load table...",              ID_TABLE_LOAD
+        MENUITEM "&Unload table...",            ID_TABLE_UNLOAD
+        MENUITEM SEPARATOR
         MENUITEM "E&xit WinACPI",               ID_APP_EXIT
     END
     POPUP "&View"
@@ -209,6 +212,7 @@ END
 IDB_TOOLBAR4BIT         BITMAP  DISCARDABLE     "res\\toolbar4bit.bmp"
 IDB_WIZARD              BITMAP  DISCARDABLE     "res\\wizard.bmp"
 IDB_HEADER              BITMAP  DISCARDABLE     "res\\header.bmp"
+IDB_TABLETYPE4BIT       BITMAP  DISCARDABLE     "res\\tabletype4bit.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -276,6 +280,8 @@ BEGIN
     ID_VIEW_TOOLBAR         "View/hide toolbar"
     ID_APP_ABOUT            "View about informations"
     ID_APP_EXIT             "Exit application"
+    ID_TABLE_LOAD           "Load an ACPI table"
+    ID_TABLE_UNLOAD         "Unload the selected table"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -284,7 +290,12 @@ BEGIN
     IDS_VENDOR              "Vendor"
     IDS_PRODUCT             "Product"
     IDS_DEVICE              "Device"
-    IDS_ERROR_INIT_APPLICATION "Failed to initialize the DFU application."
+    IDS_ERROR_INIT_APPLICATION "Failed to initialize the ACPI application."
+    IDS_TABLE_SIGNATURE     "Signature"
+    IDS_TABLE_OEMID         "OEM ID"
+    IDS_TABLE_OEMTABLEID    "OEM Table ID"
+    IDS_TABLE_REVISION      "Revision"
+    IDS_TABLE_OEMREVISION   "OEM Revision"
 END
 
 #endif    // English (U.S.) resources

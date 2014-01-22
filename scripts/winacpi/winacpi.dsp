@@ -192,6 +192,10 @@ SOURCE=.\res\header.bmp
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\tabletype4bit.bmp
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\toolbar4bit.bmp
 # End Source File
 # Begin Source File

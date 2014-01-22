@@ -23,6 +23,7 @@ typedef struct tagACPIWNDDATA {
 	HWND hwndToolbar;
 	HWND hwndStatusbar;
 	HWND hwndListView;
+	HIMAGELIST himgTableTypes;
 } ACPIWNDDATA, *LPACPIWNDDATA;
 
 #define WinACPI_GetPtr(hWnd)			\
