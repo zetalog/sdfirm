@@ -676,17 +676,19 @@ struct acpi_table_desc {
 	struct acpi_table_header *pointer;
 };
 
-#define ACPI_TABLE_EXTERNAL_VIRTUAL	((acpi_table_flags_t)0)
-#define ACPI_TABLE_INTERNAL_PHYSICAL	((acpi_table_flags_t)1)
-#define ACPI_TABLE_INTERNAL_VIRTUAL	((acpi_table_flags_t)2)
-#define ACPI_TABLE_ORIGIN_MASK		(7)
-#define ACPI_TABLE_IS_LOADED		(8)
-#define ACPI_TABLE_IS_UNLOADED		(16)
+#define ACPI_TABLE_EXTERNAL_VIRTUAL	((acpi_table_flags_t)0x00)
+#define ACPI_TABLE_INTERNAL_PHYSICAL	((acpi_table_flags_t)0x01)
+#define ACPI_TABLE_INTERNAL_VIRTUAL	((acpi_table_flags_t)0x02)
+#define ACPI_TABLE_ORIGIN_MASK		(0x03)
+#define ACPI_TABLE_IS_LOADED		(0x04)
+#define ACPI_TABLE_IS_UNLOADED		(0x08)
+#define ACPI_TABLE_IS_GARBAGE		(0x10)
 
 struct acpi_table_list {
 	struct acpi_table_desc *tables;
-	uint32_t cur_table_count;
+	uint32_t use_table_count;
 	uint32_t max_table_count;
+	struct acpi_reference all_table_count;
 	uint8_t flags;
 };
 #define ACPI_ROOT_ORIGIN_UNKNOWN        (0)     /* ~ORIGIN_ALLOCATED */
@@ -814,7 +816,6 @@ void acpi_encode_generic_address(struct acpi_generic_address *generic_address,
 				 uint64_t address64,
 				 uint16_t bit_width);
 
-boolean acpi_table_contains_aml(struct acpi_table_header *table);
 /* All types of tables */
 boolean __acpi_table_checksum_valid(struct acpi_table_header *table);
 void acpi_table_calc_checksum(struct acpi_table_header *table);
@@ -849,7 +850,8 @@ acpi_status_t acpi_initialize_tables(struct acpi_table_desc *initial_table_array
 				     boolean allow_resize);
 acpi_status_t acpi_reallocate_root_table(void);
 acpi_status_t acpi_initialize_subsystem(void);
-acpi_status_t acpi_load_tables(void);
+void acpi_load_tables(void);
+void acpi_finalize_tables(void);
 
 /*=========================================================================
  * Table interfaces
@@ -861,7 +863,15 @@ acpi_status_t acpi_get_table_by_name(acpi_tag_t sig, char *oem_id, char *oem_tab
 				     acpi_ddb_t *ddb_handle,
 				     struct acpi_table_header **out_table);
 acpi_status_t acpi_get_table(acpi_ddb_t ddb, struct acpi_table_header **out_table);
-acpi_status_t acpi_put_table(acpi_ddb_t ddb, struct acpi_table_header *table);
+void acpi_put_table(acpi_ddb_t ddb, struct acpi_table_header *table);
+void acpi_table_increment(acpi_ddb_t ddb);
+void acpi_table_decrement(acpi_ddb_t ddb);
+boolean acpi_table_is_loaded(acpi_ddb_t ddb);
+boolean acpi_table_contains_aml(struct acpi_table_header *table);
+acpi_status_t acpi_install_table(struct acpi_table_header *table,
+				 acpi_table_flags_t flags,
+				 acpi_ddb_t *ddb_handle);
+void acpi_uninstall_table(acpi_ddb_t ddb);
 
 acpi_status_t acpi_parse_once(acpi_interpreter_mode pass_number,
 			      uint32_t table_index,
@@ -872,11 +882,10 @@ acpi_status_t acpi_parse_once(acpi_interpreter_mode pass_number,
  *=======================================================================*/
 #define ACPI_EVENT_TABLE_INSTALL	0x0
 #define ACPI_EVENT_TABLE_UNINSTALL	0x1
-#define ACPI_EVENT_TABLE_VALIDATE	0x2
-#define ACPI_EVENT_TABLE_INVALIDATE	0x3
-#define ACPI_EVENT_TABLE_LOAD		0x4
-#define ACPI_EVENT_TABLE_UNLOAD		0x5
-#define ACPI_NR_TABLE_EVENTS		(ACPI_EVENT_TABLE_UNLOAD+1)
+#define ACPI_EVENT_TABLE_LOAD		0x2
+#define ACPI_EVENT_TABLE_UNLOAD		0x3
+#define ACPI_EVENT_TABLE_MAX		0x3
+#define ACPI_NR_TABLE_EVENTS		(ACPI_EVENT_TABLE_MAX+1)
 
 typedef acpi_status_t (*acpi_event_table_cb)(struct acpi_table_desc *table,
 					     acpi_ddb_t ddb,

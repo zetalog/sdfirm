@@ -36,5 +36,8 @@ typedef struct tagACPIWNDDATA {
 
 extern void acpi_emu_init(void);
 extern void acpi_ospm_init(void);
+extern void acpi_ospm_exit(void);
+
+extern acpi_status_t acpi_emu_load_table(const char *file);
 
 #endif /* __WINACPI_H_INCLUDE__ */

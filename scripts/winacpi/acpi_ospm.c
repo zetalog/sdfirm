@@ -16,3 +16,9 @@ void acpi_ospm_init(void)
 	acpi_initialize_objects(ACPI_FULL_INITIALIZATION);
 #endif
 }
+
+void acpi_ospm_exit(void)
+{
+	acpi_finalize_tables();
+}
+

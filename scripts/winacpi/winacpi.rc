@@ -176,7 +176,7 @@ BEGIN
     POPUP "&File"
     BEGIN
         MENUITEM "&Load table...",              ID_TABLE_LOAD
-        MENUITEM "&Unload table...",            ID_TABLE_UNLOAD
+        MENUITEM "&Unload table",               ID_TABLE_UNLOAD
         MENUITEM SEPARATOR
         MENUITEM "E&xit WinACPI",               ID_APP_EXIT
     END

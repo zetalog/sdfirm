@@ -28,7 +28,7 @@ static boolean acpi_emu_debug_timeout = false;
 
 static unsigned char acpi_emu_default_dsdt[] = {
 	0x44,0x53,0x44,0x54,0x24,0x00,0x00,0x00,  /* 00000000    "DSDT$..." */
-	0x02,0x6F,0x49,0x6E,0x74,0x65,0x6C,0x00,  /* 00000008    ".oIntel." */
+	0x00,0x71,0x49,0x6E,0x74,0x65,0x6C,0x00,  /* 00000008    ".oIntel." */
 	0x4E,0x75,0x6C,0x6C,0x44,0x53,0x44,0x54,  /* 00000010    "NullDSDT" */
 	0x01,0x00,0x00,0x00,0x49,0x4E,0x54,0x4C,  /* 00000018    "....INTL" */
 	0x04,0x12,0x08,0x20,
@@ -99,6 +99,18 @@ err_exit:
 	fclose(fp);
 	*table = local_table;
 	return status;
+}
+
+acpi_status_t acpi_emu_load_table(const char *file)
+{
+	int ret;
+	struct acpi_table_header *table;
+	acpi_ddb_t ddb;
+
+	ret = acpi_table_read_file(file, 0, ACPI_NULL_NAME, &table);
+	if (ret)
+		return AE_NOT_FOUND;
+	return acpi_install_table(table, ACPI_TABLE_INTERNAL_VIRTUAL, &ddb);
 }
 
 acpi_status_t acpi_emu_read_table(const char *file)
@@ -441,6 +453,5 @@ void acpi_os_sleep(uint32_t msecs)
 
 void acpi_emu_init(void)
 {
-	/* acpi_emu_read_table("e:\\workspace\\acpica\\54841\\facp1.dat"); */
 	acpi_emu_build_tables(acpi_emu_table_list);
 }

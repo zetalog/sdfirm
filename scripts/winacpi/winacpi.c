@@ -53,6 +53,9 @@ static LRESULT WINAPI About_DlgProc(HWND hDlg, UINT uMsg,
 				    WPARAM wParam, LPARAM lParam);
 static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
 				    WPARAM wParam, LPARAM lParam);
+static VOID ACPIAppendTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb);
+static VOID ACPIRemoveTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb);
+static acpi_ddb_t ACPIGetSelectedTable(LPACPIWNDDATA lpWD);
 
 static BYTE hex2byte(const char *hex)
 {
@@ -131,6 +134,14 @@ void DisplayVersion(HWND hwndParent)
 
 void MainUpdateCommands(LPACPIWNDDATA lpWD)
 {
+	acpi_ddb_t ddb = ACPIGetSelectedTable(lpWD);
+	BOOL valid_ddb = (ddb != ACPI_DDB_HANDLE_INVALID);
+
+	SendMessage(lpWD->hwndToolbar, TB_ENABLEBUTTON, ID_TABLE_UNLOAD,
+		    MAKELONG(valid_ddb, 0));
+
+	EnableMenuItem(GetMenu(lpWD->hWnd), ID_TABLE_UNLOAD,
+		       valid_ddb ? MF_ENABLED : MF_GRAYED);
 }
 
 VOID DispatchNotifications(LPACPIWNDDATA lpWD, WPARAM wParam, LPARAM lParam)
@@ -151,12 +162,14 @@ acpi_status_t AcpiHandleTableEvents(struct acpi_table_desc *table,
 
 	switch (event) {
 	case ACPI_EVENT_TABLE_INSTALL:
+		ACPIAppendTable(lpWD, ddb);
 		break;
 	case ACPI_EVENT_TABLE_UNINSTALL:
+		ACPIRemoveTable(lpWD, ddb);
 		break;
-	case ACPI_EVENT_TABLE_VALIDATE:
+	case ACPI_EVENT_TABLE_LOAD:
 		break;
-	case ACPI_EVENT_TABLE_INVALIDATE:
+	case ACPI_EVENT_TABLE_UNLOAD:
 		break;
 	}
 
@@ -172,7 +185,79 @@ VOID ACPIInitApplication(LPACPIWNDDATA lpWD)
 
 VOID ACPIExitApplication(LPACPIWNDDATA lpWD)
 {
+	acpi_ospm_exit();
 	acpi_event_unregister_table_handler(AcpiHandleTableEvents);
+}
+
+static VOID ACPIAppendTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb)
+{
+	LVITEM lvi = { 0 };
+	int nIndex;
+	HWND hwndList = lpWD->hwndListView;
+	CHAR tmpstring[10];
+	char name[ACPI_NAME_SIZE+1];
+	struct acpi_table_header *table;
+
+	if (ACPI_FAILURE(acpi_get_table(ddb, &table)))
+		return;
+
+	memset(name, 0, sizeof (name));
+	ACPI_NAMECPY(ACPI_NAME2TAG(table->signature), name);
+
+	lvi.iItem = 0;
+	lvi.iSubItem = 0;
+	lvi.mask = LVIF_IMAGE | LVIF_PARAM | LVIF_TEXT;
+	lvi.iImage = (acpi_table_contains_aml(table) ? 0x00 : 0x01) |
+		     (acpi_table_is_loaded(ddb) ? 0x00: 0x02);
+	lvi.lParam = (LPARAM)ddb;
+	lvi.pszText = name;
+	lvi.cchTextMax = _tcslen(name) ? _tcslen(name) : 0;
+	nIndex = ListView_InsertItem(hwndList, &lvi);
+
+	if (nIndex != -1) {
+		sprintf(tmpstring, "%6.6s", table->oem_id);
+		ListView_SetItemText(hwndList, nIndex, 1, tmpstring);
+		sprintf(tmpstring, "%8.8s", table->oem_table_id);
+		ListView_SetItemText(hwndList, nIndex, 2, tmpstring);
+		sprintf(tmpstring, "0x%02X", table->revision);
+		ListView_SetItemText(hwndList, nIndex, 3, tmpstring);
+		sprintf(tmpstring, "0x%08X", table->oem_revision);
+		ListView_SetItemText(hwndList, nIndex, 4, tmpstring);
+	}
+
+	acpi_put_table(ddb, table);
+}
+
+static VOID ACPIRemoveTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb)
+{
+	LV_FINDINFO lvfi;
+	int nIndex;
+	HWND hwndList = lpWD->hwndListView;
+
+	lvfi.flags = LVFI_PARAM;
+	lvfi.lParam = (LPARAM)ddb;
+	nIndex = ListView_FindItem(hwndList, -1, &lvfi);
+	if (nIndex != -1)
+		ListView_DeleteItem(hwndList, nIndex);
+}
+
+acpi_ddb_t ACPIGetSelectedTable(LPACPIWNDDATA lpWD)
+{
+	int nIndex;
+	HWND hwndList = lpWD->hwndListView;
+	LVITEM lvi = { 0 };
+
+	nIndex = ListView_GetNextItem(hwndList, -1, LVNI_SELECTED);
+	if (nIndex == -1)
+		return ACPI_DDB_HANDLE_INVALID;
+
+	lvi.iItem = nIndex;
+	lvi.iSubItem = 0;
+	lvi.mask = LVIF_PARAM;
+	if (!ListView_GetItem(hwndList, &lvi))
+		return ACPI_DDB_HANDLE_INVALID;
+
+	return (acpi_ddb_t)lvi.lParam;
 }
 
 void ACPIBuildTableTitles(LPACPIWNDDATA lpWD)
@@ -187,15 +272,7 @@ void ACPIBuildTableTitles(LPACPIWNDDATA lpWD)
 #define OEMIDWIDTH		120
 #define OEMTABLEIDWIDTH		160
 #define REVISIONWIDTH		50
-#define OEMREVISIONWIDTH	50
-	
-	/*
-	hImageList = ImageList_Create(16, 16, ILC_COLOR|ILC_MASK, BITMAP_NUM, 0); 
-	hBitmap = LoadBitmap(_DllInstance, MAKEINTRESOURCE(IDB_FACILITY));
-	ImageList_AddMasked(hImageList, hBitmap, RGB(255, 0, 255));
-	DeleteObject(hBitmap);
-	lpWD->hFacility = hImageList;
-	*/
+#define OEMREVISIONWIDTH	100
 	
 	hImageList = ImageList_Create(16, 16, ILC_COLOR|ILC_MASK, BITMAP_NUM_TABLETYPES, 0); 
 	hBitmap = LoadBitmap(_hInstance, MAKEINTRESOURCE(IDB_TABLETYPE4BIT));
@@ -324,8 +401,14 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
 {
 	int wmId, wmEvent;
 	TCHAR szBuffer[1024];
+	char szFile[MAX_PATH] = "";
 	LPCREATESTRUCT lpcs;
 	LPACPIWNDDATA lpWD = WinACPI_GetPtr(hWnd);
+	char szSuffix[] = "*.*";
+	char szName[] = "All Files (*.*)";
+	char *pSuffix[1] = { szSuffix };
+	char *pName[1] = { szName };
+	acpi_status_t status;
 	
 	if (lpWD == NULL) {
 		if (uMsg == WM_NCCREATE) {
@@ -403,6 +486,14 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
 			RecalcLayout(hWnd);
 			break;
 		case ID_TABLE_LOAD:
+			if (DlgBrowseFile(hWnd,
+					  szFile, MAX_PATH,
+					  pName, pSuffix, 1,
+					  FALSE)) {
+				status = acpi_emu_load_table(szFile);
+				if (ACPI_FAILURE(status)) {
+				}
+			}
 			break;
 		default:
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
@@ -475,7 +566,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	MSG msg;
 	HACCEL hAccelTable;
 	INITCOMMONCONTROLSEX iccex;
-	
+
 	LoadString(hInstance, IDS_APP_TITLE, _szTitle, MAX_LOADSTRING);
 	LoadString(hInstance, IDS_APP_CLASS, _szWindowClass, MAX_LOADSTRING);
 	
