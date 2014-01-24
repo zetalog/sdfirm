@@ -33,17 +33,17 @@ RSC=rc.exe
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
-# PROP BASE Output_Dir "../../bin/release/utils"
-# PROP BASE Intermediate_Dir "../../obj/release/winacpi"
+# PROP BASE Output_Dir "../../../bin/release/utils"
+# PROP BASE Intermediate_Dir "../../../obj/release/winacpi"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "../../bin/release/utils"
-# PROP Intermediate_Dir "../../obj/release/winacpi"
+# PROP Output_Dir "../../../bin/release/utils"
+# PROP Intermediate_Dir "../../../obj/release/winacpi"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "..\..\include\\" /I "..\..\include\host\missing" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I "..\..\..\include\\" /I "..\..\..\include\host\missing" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x804 /d "NDEBUG"
@@ -59,17 +59,17 @@ LINK32=link.exe
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
-# PROP BASE Output_Dir "../../bin/debug/utils"
-# PROP BASE Intermediate_Dir "../../obj/debug/winacpi"
+# PROP BASE Output_Dir "../../../bin/debug/utils"
+# PROP BASE Intermediate_Dir "../../../obj/debug/winacpi"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "../../bin/debug/utils"
-# PROP Intermediate_Dir "../../obj/debug/winacpi"
+# PROP Output_Dir "../../../bin/debug/utils"
+# PROP Intermediate_Dir "../../../obj/debug/winacpi"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\..\include\\" /I "..\..\include\host\missing" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\..\..\include\\" /I "..\..\..\include\host\missing" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x804 /d "_DEBUG"
@@ -92,19 +92,19 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=..\..\kernel\acpi\acpi_core.c
+SOURCE=..\..\..\kernel\acpi\acpi_core.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\kernel\acpi\acpi_error.c
+SOURCE=..\..\..\kernel\acpi\acpi_error.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\kernel\acpi\acpi_event.c
+SOURCE=..\..\..\kernel\acpi\acpi_event.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\kernel\acpi\acpi_fadt.c
+SOURCE=..\..\..\kernel\acpi\acpi_fadt.c
 # End Source File
 # Begin Source File
 
@@ -112,11 +112,11 @@ SOURCE=.\acpi_ospm.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\kernel\acpi\acpi_parse.c
+SOURCE=..\..\..\kernel\acpi\acpi_parse.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\kernel\acpi\acpi_rsdp.c
+SOURCE=..\..\..\kernel\acpi\acpi_rsdp.c
 # End Source File
 # Begin Source File
 
@@ -124,19 +124,19 @@ SOURCE=.\acpi_simul.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\kernel\acpi\acpi_space.c
+SOURCE=..\..\..\kernel\acpi\acpi_space.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\kernel\acpi\acpi_table.c
+SOURCE=..\..\..\kernel\acpi\acpi_table.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\kernel\acpi\acpi_utils.c
+SOURCE=..\..\..\kernel\acpi\acpi_utils.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\kernel\acpi\acpi_xsdt.c
+SOURCE=..\..\..\kernel\acpi\acpi_xsdt.c
 # End Source File
 # Begin Source File
 
@@ -160,11 +160,11 @@ SOURCE=.\winacpi.rc
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=..\..\include\host\acpi.h
+SOURCE=..\..\..\include\host\acpi.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\target\acpi.h
+SOURCE=..\..\..\include\target\acpi.h
 # End Source File
 # Begin Source File
 

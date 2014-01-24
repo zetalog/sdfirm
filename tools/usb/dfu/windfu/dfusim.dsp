@@ -33,15 +33,15 @@ RSC=rc.exe
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
 # PROP BASE Output_Dir "."
-# PROP BASE Intermediate_Dir "../../obj/release/dfusim"
+# PROP BASE Intermediate_Dir "../../../../obj/release/dfusim"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
 # PROP Output_Dir "."
-# PROP Intermediate_Dir "../../obj/release/dfusim"
+# PROP Intermediate_Dir "../../../../obj/release/dfusim"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\include\" /I "..\..\include\host\missing" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D _WIN32_WINNT=0x0500 /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\include\" /I "..\..\..\..\include\host\missing" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D _WIN32_WINNT=0x0500 /YX /FD /c
 # ADD BASE RSC /l 0x804 /d "NDEBUG"
 # ADD RSC /l 0x804 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -56,15 +56,15 @@ LINK32=link.exe
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
 # PROP BASE Output_Dir "."
-# PROP BASE Intermediate_Dir "../../obj/debug/dfusim"
+# PROP BASE Intermediate_Dir "../../../../obj/debug/dfusim"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
 # PROP Output_Dir "."
-# PROP Intermediate_Dir "../../obj/debug/dfusim"
+# PROP Intermediate_Dir "../../../../obj/debug/dfusim"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "." /I "..\..\include\" /I "..\..\include\host\missing" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D _WIN32_WINNT=0x0500 /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "." /I "..\..\..\..\include\" /I "..\..\..\..\include\host\missing" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D _WIN32_WINNT=0x0500 /YX /FD /GZ /c
 # ADD BASE RSC /l 0x804 /d "_DEBUG"
 # ADD RSC /l 0x804 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -85,7 +85,7 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=..\cmn\bitops.c
+SOURCE=..\..\lib\cmn\bitops.c
 # End Source File
 # Begin Source File
 
@@ -93,7 +93,7 @@ SOURCE=.\dfusim.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\cmn\wdmsim.c
+SOURCE=..\..\lib\cmn\wdmsim.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -101,11 +101,11 @@ SOURCE=..\cmn\wdmsim.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=..\..\include\host\bitops.h
+SOURCE=..\..\..\..\include\host\bitops.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\host\circbf.h
+SOURCE=..\..\..\..\include\host\circbf.h
 # End Source File
 # Begin Source File
 
@@ -113,19 +113,19 @@ SOURCE=.\dfusim.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\host\usbd.h
+SOURCE=..\..\..\..\include\host\usbd.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\host\usbdfu.h
+SOURCE=..\..\..\..\include\host\usbdfu.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\host\wdm.h
+SOURCE=..\..\..\..\include\host\wdm.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\host\wdmsim.h
+SOURCE=..\..\..\..\include\host\wdmsim.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
