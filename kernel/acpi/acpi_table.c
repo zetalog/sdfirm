@@ -177,7 +177,7 @@ static acpi_status_t acpi_table_list_acquire(acpi_ddb_t *ddb_handle,
 out_succ:
 	acpi_reference_inc(&acpi_gbl_table_list.all_table_count);
 	*ddb_handle = ddb;
-	acpi_gbl_table_list.flags = 0;
+	acpi_gbl_table_list.tables[ddb].flags = 0;
 	return AE_OK;
 }
 
@@ -418,11 +418,12 @@ boolean acpi_table_is_same(struct acpi_table_desc *table_desc, acpi_tag_t sig,
 			   char *oem_id, char *oem_table_id)
 {
 	if (ACPI_NAMECMP(ACPI_SIG_DSDT, table_desc->signature) ||
+	    ACPI_NAMECMP(ACPI_SIG_FADT, table_desc->signature) ||
 	    !acpi_table_has_header(table_desc->signature))
 		return ACPI_NAMECMP(sig, table_desc->signature) ? true: false;
 
 	return ((ACPI_NAMECMP(sig, table_desc->signature) &&
-		 ACPI_OEMCMP(oem_id, table_desc->oem_id, ACPI_OEM_ID_SIZE) &&
+		 ACPI_OEMCMP(oem_id, table_desc->oem_id, ACPI_OEM_ID_SIZE)&&
 		 ACPI_OEMCMP(oem_table_id, table_desc->oem_table_id, ACPI_OEM_TABLE_ID_SIZE)) ?
 		true : false);
 }
@@ -471,7 +472,7 @@ acpi_status_t acpi_table_install_non_fixed(acpi_addr_t address,
 	if (reload &&
 	    (ACPI_NAMECMP(ACPI_SIG_DSDT, new_table_desc.signature) ||
 	     ACPI_NAMECMP(ACPI_SIG_FACS, new_table_desc.signature))) {
-		while (!(acpi_gbl_table_list.tables[ddb].flags && ACPI_TABLE_IS_GARBAGE))
+		while (acpi_reference_get(&acpi_gbl_table_list.tables[ddb].reference_count))
 			acpi_os_sleep(10);
 	}
 

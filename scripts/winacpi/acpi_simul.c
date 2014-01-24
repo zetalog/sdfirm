@@ -222,7 +222,7 @@ acpi_status_t acpi_emu_build_tables(struct acpi_table_desc *table_list)
 		ACPI_ENCODE32(&acpi_emu_local_fadt.header.length,
 			      sizeof (struct acpi_table_fadt));
 		if (!acpi_emu_reduced_hardware) {
-			ACPI_ENCODE8(&acpi_emu_local_fadt.header.revision, 3);
+			ACPI_ENCODE8(&acpi_emu_local_fadt.header.revision, 0);
 			ACPI_ENCODE32(&acpi_emu_local_fadt.facs, 0);
 			ACPI_ENCODE64(&acpi_emu_local_fadt.Xfacs,
 				      ACPI_PTR_TO_PHYSADDR(&acpi_emu_local_facs));

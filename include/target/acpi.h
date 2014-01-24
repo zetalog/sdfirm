@@ -454,7 +454,7 @@ typedef char acpi_name_t[ACPI_NAME_SIZE];
 #define ACPI_RSDP_SIG_CPY(name)		ACPI_PUT64((name), ACPI_SIG_RSDPTR)
 
 #define ACPI_OEMCMP(__id1, __id2, __len)		\
-	strncmp((__id1), (__id2), __len)
+	(strncmp((__id1), (__id2), __len) == 0)
 #define ACPI_OEMCPY(__from, __to, __len)		\
 	strncpy((__to), (__from), __len)
 
