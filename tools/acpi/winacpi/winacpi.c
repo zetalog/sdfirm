@@ -49,6 +49,26 @@ USHORT _usProduct = 0;
 USHORT _usDevice = 0;
 HINSTANCE _hInstance;
 
+INT _nIdMappings[MAX_LAYOUT_IDS] = {
+	ID_MAINFRAME,
+	IDS_POSITION,
+	IDS_MENUFLAGS,
+	IDS_PLACEMENT,
+	ID_VIEW_TOOLBAR,
+	ID_VIEW_STATUSBAR,
+	ID_STATUS,
+	ID_REBAR,
+	ID_TOOLBAR,
+	IDB_TOOLBAR4BIT,
+	IDS_READY,
+};
+#define TOOLBARNUM		1
+#define IDX_EXITAPP		0
+
+WINTOOLBARITEM _ToolbarItems[TOOLBARNUM] = {
+	{ FALSE, IDX_EXITAPP, ID_APP_EXIT },
+};
+
 static LRESULT WINAPI About_DlgProc(HWND hDlg, UINT uMsg,
 				    WPARAM wParam, LPARAM lParam);
 static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
@@ -447,7 +467,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
 		lpWD->hWnd = hWnd;
 		if (!ACPICreateWindow(lpWD))
 			return FALSE;
-		lpWD->hwndToolbar = BuildRebar(hWnd);
+		lpWD->hwndToolbar = BuildRebar(hWnd, TOOLBARNUM, _ToolbarItems);
 		lpWD->hwndStatusbar = BuildStatus(hWnd);
 		LoadString(_hInstance, IDS_READY, szBuffer, CCHMAX(szBuffer));
 		DisplayStatus(GetDlgItem(hWnd, ID_STATUS), TEXT("%s"), szBuffer);

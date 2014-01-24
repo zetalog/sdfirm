@@ -39,35 +39,37 @@
  * $Id: layout.c,v 1.7 2011-08-23 04:01:51 zhenglv Exp $
  */
 
-#include "winacpi.h"
+#include <host/winlayout.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <malloc.h>
+#include <memory.h>
+#include <tchar.h>
 
 ULONG _fMenuFlags;
 DWORD _dwRebarSide;
 
 #define STATUSNUM	2
-#define TOOLBARNUM	1
 #define SPERATORNUM     1
 #define CX_BITMAP       16
 #define CY_BITMAP       16
 #define CX_SPERATOR     20
 
-#define IDX_EXITAPP		0
-
-static BOOL ToolbarSeparator[TOOLBARNUM] = {0};
-
 void MoveMainFrame(HWND hWnd, RECT *lpRect)
 {
 	RECT rcList;
 	int x, y, cx, cy;
+	int nID = _nIdMappings[LAYOUT_MAINFRAME];
 	
-	GetWindowRect(GetDlgItem(hWnd, ID_MAINFRAME), &rcList);
+	GetWindowRect(GetDlgItem(hWnd, nID), &rcList);
 	
 	x = lpRect->left;
 	y = lpRect->top;
 	cx = lpRect->right - lpRect->left;
 	cy = lpRect->bottom - lpRect->top;
 	
-	MoveWindow(GetDlgItem(hWnd, ID_MAINFRAME), x, y, cx, cy, TRUE);
+	MoveWindow(GetDlgItem(hWnd, nID), x, y, cx, cy, TRUE);
 }
 
 void RegSaveString(UINT nKey, UINT nVal, LPCSTR pszVal)
@@ -176,22 +178,26 @@ VOID RestoreWindowPosition(HWND hWnd)
 	WINDOWPLACEMENT	wndpl;
 	HKEY hkey = NULL;
 	INT bShow = FALSE;
+	INT nID;
 	
 	wndpl.showCmd = SW_SHOWNORMAL;
-	if (RegOpenKeyEx(HKEY_CURRENT_USER, StringFromIDS(IDS_POSITION),
+	nID = _nIdMappings[LAYOUT_POSITION];
+	if (RegOpenKeyEx(HKEY_CURRENT_USER, StringFromIDS(nID),
 			 0, KEY_READ, &hkey)) {
 		_fMenuFlags = VIEW_TOOLBAR | VIEW_STATUSBAR;
 		goto err;
 	}
 	
 	cb = sizeof (_fMenuFlags);
-	if (RegQueryValueEx(hkey, StringFromIDS(IDS_MENUFLAGS), 0, 0,
+	nID = _nIdMappings[LAYOUT_MENUFLAGS];
+	if (RegQueryValueEx(hkey, StringFromIDS(nID), 0, 0,
 			    (LPBYTE)&_fMenuFlags, &cb)) {
 		_fMenuFlags = VIEW_TOOLBAR | VIEW_STATUSBAR;
 	}
 	
 	cb = sizeof (wndpl);
-	if (!RegQueryValueEx(hkey, StringFromIDS(IDS_PLACEMENT), 0, 0,
+	nID = _nIdMappings[LAYOUT_PLACEMENT];
+	if (!RegQueryValueEx(hkey, StringFromIDS(nID), 0, 0,
 			     (LPBYTE)&wndpl, &cb)) {
 		if (wndpl.length == sizeof (wndpl)) {
 			int cmd;
@@ -212,13 +218,17 @@ VOID RestoreWindowPosition(HWND hWnd)
 err:
 	if (!bShow)
 		ShowWindow(hWnd, SW_SHOWNORMAL);
-	CheckMenuItem(GetMenu(hWnd), ID_VIEW_TOOLBAR, _fMenuFlags & VIEW_TOOLBAR ?
+	CheckMenuItem(GetMenu(hWnd), _nIdMappings[LAYOUT_VIEW_TOOLBAR],
+		      _fMenuFlags & VIEW_TOOLBAR ?
 		      (MF_CHECKED | MF_BYCOMMAND) : (MF_UNCHECKED | MF_BYCOMMAND));
-	CheckMenuItem(GetMenu(hWnd), ID_VIEW_STATUSBAR, _fMenuFlags & VIEW_STATUSBAR ?
+	CheckMenuItem(GetMenu(hWnd), _nIdMappings[LAYOUT_VIEW_STATUSBAR],
+		      _fMenuFlags & VIEW_STATUSBAR ?
 		      (MF_CHECKED | MF_BYCOMMAND) : (MF_UNCHECKED | MF_BYCOMMAND));
 	ShowWindow(hWnd, wndpl.showCmd);
-	ShowWindow(GetDlgItem(hWnd, ID_STATUS), _fMenuFlags & VIEW_STATUSBAR ? SW_SHOW : SW_HIDE);
-	ShowWindow(GetDlgItem(hWnd, ID_REBAR), _fMenuFlags & VIEW_TOOLBAR ? SW_SHOW : SW_HIDE);
+	ShowWindow(GetDlgItem(hWnd, _nIdMappings[LAYOUT_STATUS]),
+		   _fMenuFlags & VIEW_STATUSBAR ? SW_SHOW : SW_HIDE);
+	ShowWindow(GetDlgItem(hWnd, _nIdMappings[LAYOUT_REBAR]),
+		   _fMenuFlags & VIEW_TOOLBAR ? SW_SHOW : SW_HIDE);
 	RecalcLayout(hWnd);
 }
 
@@ -246,18 +256,22 @@ VOID SaveWindowPosition(HWND hWnd)
 {
 	WINDOWPLACEMENT	wndpl;
 	HKEY hkey;
+	INT nID;
 
 	wndpl.length = sizeof (wndpl);
 	GetWindowPlacement(hWnd, &wndpl);
 	// for some reason, GetWindowPlacement resets the length part??
 	wndpl.length = sizeof (wndpl);
 	
-	if (!RegCreateKeyEx(HKEY_CURRENT_USER, StringFromIDS(IDS_POSITION),
-			    0, StringFromIDS(IDS_POSITION), 0,
+	nID = _nIdMappings[LAYOUT_POSITION];
+	if (!RegCreateKeyEx(HKEY_CURRENT_USER, StringFromIDS(nID),
+			    0, StringFromIDS(nID), 0,
 			    KEY_READ | KEY_WRITE, 0, &hkey, NULL)) {
-		RegSetValueEx(hkey, StringFromIDS(IDS_PLACEMENT), 0, REG_BINARY,
+		nID = _nIdMappings[LAYOUT_PLACEMENT];
+		RegSetValueEx(hkey, StringFromIDS(nID), 0, REG_BINARY,
 			      (LPBYTE)&wndpl, sizeof (wndpl));
-		RegSetValueEx(hkey, StringFromIDS(IDS_MENUFLAGS), 0, REG_DWORD,
+		nID = _nIdMappings[LAYOUT_MENUFLAGS];
+		RegSetValueEx(hkey, StringFromIDS(nID), 0, REG_DWORD,
 			     (LPBYTE)&_fMenuFlags, sizeof (_fMenuFlags));
 		RegCloseKey(hkey);
 	}
@@ -271,13 +285,14 @@ LRESULT CommandSelected(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam)
 	UINT   uCmd    = GET_WM_MENUSELECT_CMD(wParam, lParam);
 	HMENU  hMenu   = GET_WM_MENUSELECT_HMENU(wParam, lParam);
 	//int iPlugin;
+	INT    nID = _nIdMappings[LAYOUT_READY_STRING];
 	
 	szBuffer[0] = 0;
 	nStringID = 0;
 	
 	if (fuFlags == 0xffff && hMenu == NULL) {
 		/* Menu has been closed */
-		nStringID = IDS_READY;
+		nStringID = nID;
 	} else if (fuFlags & MFT_SEPARATOR) {
 		/* Ignore separators */
 		nStringID = 0;
@@ -285,7 +300,7 @@ LRESULT CommandSelected(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam)
 		/* Popup menu */
 		/* System menu */
 		if (fuFlags & MF_SYSMENU);
-		nStringID = IDS_READY;
+		nStringID = nID;
 	} else {
 		/* Must be a command item */
 		nStringID = uCmd;   /* String ID == Command ID */
@@ -305,9 +320,10 @@ LRESULT CommandSelected(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam)
 		}
 	}
 	
-	if (hWnd && GetDlgItem(hWnd, ID_STATUS)) {
+	if (hWnd && GetDlgItem(hWnd, _nIdMappings[LAYOUT_STATUS])) {
 		/* Finally... send the string to the status bar */
-		DisplayStatus(GetDlgItem(hWnd, ID_STATUS), TEXT("%s"), szBuffer);
+		DisplayStatus(GetDlgItem(hWnd, _nIdMappings[LAYOUT_STATUS]),
+			      TEXT("%s"), szBuffer);
 	}
 	return 0;
 }
@@ -317,19 +333,24 @@ void DestroyToolbar(HWND hwndParent)
 	HIMAGELIST hImageList;
 	HWND hwndToolbar;
 
-	hwndToolbar = GetDlgItem(hwndParent, ID_TOOLBAR);
+	hwndToolbar = GetDlgItem(hwndParent, _nIdMappings[LAYOUT_TOOLBAR]);
         hImageList = (HIMAGELIST)SendMessage(hwndToolbar, TB_SETIMAGELIST, 0, (LPARAM)NULL);
 	if (hImageList) ImageList_Destroy(hImageList);
 }
 
-HWND BuildToolbar(HWND hwndParent)
+HWND BuildToolbar(HWND hwndParent, INT nTools, LPWINTOOLBARITEM pTools)
 {
 	HWND hwndToolbar;
-	TBBUTTON tbArray[TOOLBARNUM];
+	TBBUTTON *tbArray;
 	HDC hDC;
 	INT i, num_bits, bitmap_index;
 	HBITMAP hBitmap;
 	HIMAGELIST hImageList;
+	INT nID = _nIdMappings[LAYOUT_TOOLBAR];
+
+	tbArray = malloc(sizeof(TBBUTTON) * nTools);
+	if (!tbArray)
+		return NULL;
 	
 	hwndToolbar = CreateWindowEx(WS_EX_TOOLWINDOW,
 				     TOOLBARCLASSNAME,
@@ -339,9 +360,9 @@ HWND BuildToolbar(HWND hwndParent)
 				     CCS_NOPARENTALIGN | CCS_NORESIZE | 
 				     TBSTYLE_FLAT | TBSTYLE_TOOLTIPS, 
 				     0, 0,
-				     (TOOLBARNUM)*(CX_BITMAP+4),
+				     (nTools)*(CX_BITMAP+4),
 				     CY_BITMAP+8, 
-				     hwndParent, (HMENU)ID_TOOLBAR,
+				     hwndParent, (HMENU)nID,
 				     _hInstance, NULL);
 	
 	if (hwndToolbar) {
@@ -365,8 +386,9 @@ HWND BuildToolbar(HWND hwndParent)
 		{
 			hImageList = ImageList_Create(CX_BITMAP, CY_BITMAP,
 						      ILC_COLOR|ILC_MASK,
-						      TOOLBARNUM, 0); 
-			hBitmap = LoadBitmap(_hInstance, MAKEINTRESOURCE(IDB_TOOLBAR4BIT));
+						      nTools, 0); 
+			hBitmap = LoadBitmap(_hInstance,
+					     MAKEINTRESOURCE(_nIdMappings[LAYOUT_TOOLBAR4BIT]));
 			ImageList_AddMasked(hImageList, hBitmap, RGB(255, 0, 255));
 			DeleteObject(hBitmap);
 		}
@@ -384,13 +406,13 @@ HWND BuildToolbar(HWND hwndParent)
 		
 		/* Loop to fill the array of TBBUTTON structures. */
 		bitmap_index = 0;
-		for (i = 0; i < TOOLBARNUM; i++) {
+		for (i = 0; i < nTools; i++) {
 			tbArray[i].iBitmap   = bitmap_index;
 			tbArray[i].idCommand = 0;
 			tbArray[i].fsStyle   = TBSTYLE_BUTTON;
 			tbArray[i].dwData    = 0;
 			tbArray[i].iString   = bitmap_index;
-			if (ToolbarSeparator[i]) {
+			if (pTools[i].bSeperator) {
 				tbArray[i].fsState = 0;
 				tbArray[i].fsStyle = TBSTYLE_SEP;
 			} else {
@@ -400,12 +422,16 @@ HWND BuildToolbar(HWND hwndParent)
 			}
 		}
 		
-		tbArray[IDX_EXITAPP].idCommand = ID_APP_EXIT;
+		for (i = 0; i < nTools; i++) {
+			tbArray[pTools[i].nIndex].idCommand = pTools[i].nID;
+		}
 		
 		/* add the buttons */
 		SendMessage(hwndToolbar, TB_ADDBUTTONS,
-			    (UINT)TOOLBARNUM, (LPARAM)tbArray);
+			    (UINT)nTools, (LPARAM)tbArray);
 	}
+
+	free(tbArray);
 	
 	return hwndToolbar;
 }
@@ -424,11 +450,12 @@ VOID GetToolbarText(HWND hwndToolbar, LPTOOLTIPTEXT lpttt)
 	lpttt->lpszText = szText;
 }
 
-HWND BuildRebar(HWND hwndParent)
+HWND BuildRebar(HWND hwndParent, INT nTools, LPWINTOOLBARITEM pTools)
 {
 	HWND hwndRebar = NULL;
 	LRESULT lResult;
 	HWND hwndChild;
+	INT nID = _nIdMappings[LAYOUT_TOOLBAR];
 	
 	_dwRebarSide = TOP;
 	
@@ -451,7 +478,7 @@ HWND BuildRebar(HWND hwndParent)
 				   200, 
 				   32, 
 				   hwndParent, 
-				   (HMENU)ID_REBAR, 
+				   (HMENU)_nIdMappings[LAYOUT_REBAR], 
 				   _hInstance, 
 				   NULL);
 	
@@ -459,7 +486,7 @@ HWND BuildRebar(HWND hwndParent)
 		REBARBANDINFO  rbbi;
 		RECT           rc;
 		
-		hwndChild = BuildToolbar(hwndRebar);
+		hwndChild = BuildToolbar(hwndRebar, nTools, pTools);
 		
 		GetWindowRect(hwndChild, &rc);
 		
@@ -480,7 +507,7 @@ HWND BuildRebar(HWND hwndParent)
 				    RBBS_FIXEDBMP |
 				    RBBS_GRIPPERALWAYS |
 				    0;
-		rbbi.wID          = ID_TOOLBAR;
+		rbbi.wID          = nID;
 		rbbi.hwndChild    = hwndChild;
 		rbbi.lpText       = NULL;
 		
@@ -501,7 +528,7 @@ void MoveRebar(HWND hWnd, RECT *lpRect)
 	if (!(_fMenuFlags & VIEW_TOOLBAR))
 		return;
 	
-	GetWindowRect(GetDlgItem(hWnd, ID_REBAR), &rcRebar);
+	GetWindowRect(GetDlgItem(hWnd, _nIdMappings[LAYOUT_REBAR]), &rcRebar);
 	
 	switch (_dwRebarSide) {
 	default:
@@ -546,7 +573,7 @@ void MoveRebar(HWND hWnd, RECT *lpRect)
 		break;
 	}
 	
-	MoveWindow(GetDlgItem(hWnd, ID_REBAR), x, y, cx, cy, TRUE);
+	MoveWindow(GetDlgItem(hWnd, _nIdMappings[LAYOUT_REBAR]), x, y, cx, cy, TRUE);
 }
 
 HWND BuildStatus(HWND hwndParent)
@@ -556,19 +583,20 @@ HWND BuildStatus(HWND hwndParent)
 	DWORD dwStyle;
 	HLOCAL hLocal;
 	LPINT lpParts;
+	INT nID = _nIdMappings[LAYOUT_STATUS];
 	
 	dwStyle = WS_VISIBLE | WS_CHILD | WS_TABSTOP | WS_BORDER | WS_GROUP;
 	/* Create the status bar. */
-	hwndStatus = CreateWindowEx(0,                      /* no extended styles */
-				    STATUSCLASSNAME,        /* name of status bar class */
-				    (LPCTSTR) NULL,         /* no text when first created */
-				    WS_VISIBLE |            /* visible */
-				    WS_CHILD,               /* creates a child window */
-				    0, 0, 0, 0,             /* ignores size and position */
-				    hwndParent,             /* handle to parent window */
-				    (HMENU)ID_STATUS,       /* child window identifier */
-				    _hInstance,             /* handle to application instance */
-				    NULL);                  /* no window creation data */
+	hwndStatus = CreateWindowEx(0,			/* no extended styles */
+				    STATUSCLASSNAME,	/* name of status bar class */
+				    (LPCTSTR) NULL,	/* no text when first created */
+				    WS_VISIBLE |	/* visible */
+				    WS_CHILD,		/* creates a child window */
+				    0, 0, 0, 0,		/* ignores size and position */
+				    hwndParent,		/* handle to parent window */
+				    (HMENU)nID,		/* child window identifier */
+				    _hInstance,		/* handle to application instance */
+				    NULL);		/* no window creation data */
 	
 	/* Get the coordinates of the parent window's client area. */
 	GetClientRect(hwndParent, &rc); 
@@ -611,11 +639,12 @@ void MoveStatus(HWND hWnd, RECT *lpRect)
 	int x, y, cx, cy;
 	HLOCAL hloc;
 	LPINT lpParts;
+	INT nID = _nIdMappings[LAYOUT_STATUS];
 	
 	if (!(_fMenuFlags & VIEW_STATUSBAR))
 		return;
 	
-	GetWindowRect(GetDlgItem(hWnd, ID_STATUS), &rcStatus);
+	GetWindowRect(GetDlgItem(hWnd, nID), &rcStatus);
 	
 	//align the rebar along the top of the window
 	x = lpRect->left;
@@ -623,7 +652,7 @@ void MoveStatus(HWND hWnd, RECT *lpRect)
 	cx = lpRect->right - lpRect->left;
 	cy = rcStatus.bottom-rcStatus.top;
 	
-	MoveWindow(GetDlgItem(hWnd, ID_STATUS), x, y, cx, cy, TRUE);
+	MoveWindow(GetDlgItem(hWnd, nID), x, y, cx, cy, TRUE);
 	
 	lpRect->bottom = (y>lpRect->top?y:lpRect->top);
 	/* Allocate an array for holding the right edge coordinates. */
@@ -637,7 +666,7 @@ void MoveStatus(HWND hWnd, RECT *lpRect)
 	lpParts[0] = lpRect->right - 46;
 	
 	/* Tell the status bar to create the window parts. */
-	SendMessage(GetDlgItem(hWnd, ID_STATUS), SB_SETPARTS,
+	SendMessage(GetDlgItem(hWnd, nID), SB_SETPARTS,
                     (WPARAM)STATUSNUM, (LPARAM)lpParts);
 	
 	//    XPStatu_Paint(status->handle, QMCP_STATUS_NUM);

@@ -1,5 +1,10 @@
-#ifndef __LAYOUT_H_INCLUDE__
-#define __LAYOUT_H_INCLUDE__
+#ifndef __WIN_LAYOUT_H_INCLUDE__
+#define __WIN_LAYOUT_H_INCLUDE__
+
+#include <windows.h>
+#include <windowsx.h>
+#include <commctrl.h>
+#include <prsht.h>
 
 #define MAX_LOADSTRING	100
 #define TOP		0x00
@@ -28,6 +33,12 @@ typedef struct tagWINPROPERTYPAGE {
 	DLGPROC lpfnPageProc;
 } WINPROPERTYPAGE, *LPWINPROPERTYPAGE;
 
+typedef struct tagWINTOOLBARITEM {
+	BOOL bSeperator;
+	INT nIndex;
+	INT nID;
+} WINTOOLBARITEM, *LPWINTOOLBARITEM;
+
 #define DLG_WIZARD_TITLE_NONE		-1
 VOID WINAPI DlgPaintWizard(HWND hWnd, LPWINWIZARDINFO wi);
 INT WINAPI DlgLaunchWizard(HWND hwndParent, UINT nIntro, UINT nIcon, 
@@ -44,10 +55,24 @@ BOOL WINAPI DlgBrowseFile(HWND hwndParent, LPSTR pszFile, UINT nSize,
 			  BOOL bSave);
 VOID WINAPI DlgDisplayError(HWND hwndParent, UINT uCaption, DWORD dwError);
 
+#define LAYOUT_MAINFRAME	0
+#define LAYOUT_POSITION		1
+#define LAYOUT_MENUFLAGS	2
+#define LAYOUT_PLACEMENT	3
+#define LAYOUT_VIEW_TOOLBAR	4
+#define LAYOUT_VIEW_STATUSBAR	5
+#define LAYOUT_STATUS		6
+#define LAYOUT_REBAR		7
+#define LAYOUT_TOOLBAR		8
+#define LAYOUT_TOOLBAR4BIT	9
+#define LAYOUT_READY_STRING	10
+#define MAX_LAYOUT_IDS		11
+
 extern HINSTANCE _hInstance;
 extern TCHAR _szTitle[MAX_LOADSTRING];
 extern TCHAR _szWindowClass[MAX_LOADSTRING];
 extern ULONG _fMenuFlags;
+extern INT _nIdMappings[MAX_LAYOUT_IDS];
 
 /* Maxmum string length for MessageIDBox */
 #define MAX_MESSAGE     1024
@@ -65,9 +90,9 @@ void RecalcLayout(HWND hWnd);
 VOID SaveWindowPosition(HWND hWnd);
 LRESULT CommandSelected(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam);
 void DestroyToolbar(HWND hwndParent);
-HWND BuildToolbar(HWND hwndParent);
+HWND BuildToolbar(HWND hwndParent, INT nTools, LPWINTOOLBARITEM pTools);
 VOID GetToolbarText(HWND hwndToolbar, LPTOOLTIPTEXT lpttt);
-HWND BuildRebar(HWND hwndParent);
+HWND BuildRebar(HWND hwndParent, INT nTools, LPWINTOOLBARITEM pTools);
 void MoveRebar(HWND hWnd, RECT *lpRect);
 HWND BuildStatus(HWND hwndParent);
 void MoveStatus(HWND hWnd, RECT *lpRect);
@@ -75,4 +100,4 @@ VOID DisplayStatus(HWND hwndStatus, LPCTSTR lpszFormat, ...);
 int MessageIDBox(HWND hWnd, UINT uMessage, UINT uCaption, UINT uType);
 void WINAPI CenterChild(HWND hwndChild, HWND hwndParent);
 
-#endif /* __LAYOUT_H_INCLUDE__ */
+#endif /* __WIN_LAYOUT_H_INCLUDE__ */

@@ -14,9 +14,9 @@
 #include <assert.h>
 #include <devioctl.h>
 #include <target/acpi.h>
+#include <host/winlayout.h>
 
 #include "resource.h"
-#include "layout.h"
 
 typedef struct tagACPIWNDDATA {
 	HWND hWnd;

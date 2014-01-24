@@ -140,11 +140,11 @@ SOURCE=..\..\..\kernel\acpi\acpi_xsdt.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\dialogs.c
+SOURCE=..\..\lib\win\dialogs.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\layout.c
+SOURCE=..\..\lib\win\layout.c
 # End Source File
 # Begin Source File
 
@@ -168,15 +168,15 @@ SOURCE=..\..\..\include\target\acpi.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\layout.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\resource.h
 # End Source File
 # Begin Source File
 
 SOURCE=.\winacpi.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\include\host\winlayout.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
