@@ -41,7 +41,7 @@ static acpi_status_t acpi_table_read_file(const char *path, loff_t offset,
 	FILE *fp;
 	struct acpi_table_header header;
 	struct acpi_table_header *local_table = NULL;
-	uint32_t table_length;
+	uint32_t table_length, file_length;
 	int count;
 	uint32_t total = 0;
 	acpi_status_t status = 0;
@@ -49,6 +49,8 @@ static acpi_status_t acpi_table_read_file(const char *path, loff_t offset,
 	fp = fopen(path, "rb");
 	if (!fp)
 		return AE_NOT_FOUND;
+	fseek(fp, 0, SEEK_END);
+	file_length = ftell(fp);
 	fseek(fp, offset, SEEK_SET);
 
 	count = fread(&header, 1, sizeof (struct acpi_table_header), fp);
@@ -72,7 +74,7 @@ static acpi_status_t acpi_table_read_file(const char *path, loff_t offset,
 	}
 
 	table_length = acpi_table_get_length(&header);
-	if (table_length == 0) {
+	if (table_length == 0 || table_length > (file_length - offset)) {
 		status = AE_BAD_HEADER;
 		goto err_exit;
 	}
