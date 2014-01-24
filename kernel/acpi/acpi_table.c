@@ -528,7 +528,6 @@ acpi_status_t __acpi_load_table(acpi_ddb_t ddb,
 	}
 
 	return status;
-	/* return AcpiDsInitializeObjects(ddb, node); */
 }
 
 void acpi_table_increment(acpi_ddb_t ddb)

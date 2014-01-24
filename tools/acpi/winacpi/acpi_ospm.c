@@ -21,4 +21,3 @@ void acpi_ospm_exit(void)
 {
 	acpi_finalize_tables();
 }
-
