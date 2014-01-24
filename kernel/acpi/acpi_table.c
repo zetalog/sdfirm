@@ -138,7 +138,8 @@ void acpi_table_calc_checksum(struct acpi_table_header *table)
 static acpi_status_t acpi_table_list_resize(void)
 {
 	struct acpi_table_desc *tables;
-	uint32_t table_count;
+	uint32_t table_count, total_count;
+	acpi_ddb_t ddb;
 
 	if (!(acpi_gbl_table_list.flags & ACPI_ROOT_ALLOW_RESIZE))
 		return AE_SUPPORT;
@@ -147,15 +148,17 @@ static acpi_status_t acpi_table_list_resize(void)
 		table_count = acpi_gbl_table_list.max_table_count;
 	else
 		table_count = acpi_gbl_table_list.use_table_count;
+	total_count= table_count + ACPI_TABLE_LIST_INCREMENT;
 
-	tables = heap_calloc((table_count + ACPI_TABLE_LIST_INCREMENT) *
-			     sizeof (struct acpi_table_desc));
+	tables = heap_calloc(total_count * sizeof (struct acpi_table_desc));
 	if (!tables)
 		return AE_NO_MEMORY;
 
 	if (acpi_gbl_table_list.tables) {
 		memcpy(tables, acpi_gbl_table_list.tables,
 		       table_count * sizeof (struct acpi_table_desc));
+		for (ddb = table_count; ddb < total_count; ddb++)
+			tables[ddb].flags = ACPI_TABLE_IS_GARBAGE;
 		if (acpi_gbl_table_list.flags & ACPI_ROOT_ORIGIN_ALLOCATED)
 			heap_free(acpi_gbl_table_list.tables);
 	}
@@ -597,6 +600,7 @@ void acpi_table_decrement(acpi_ddb_t ddb)
 		table_desc->flags |= ACPI_TABLE_IS_GARBAGE;
 		__acpi_table_uninstall(table_desc);
 		acpi_reference_dec(&acpi_gbl_table_list.all_table_count);
+		table_desc = NULL;
 	}
 }
 
@@ -792,6 +796,7 @@ acpi_status_t acpi_initialize_tables(struct acpi_table_desc *initial_table_array
 {
 	acpi_addr_t rsdp_address;
 	acpi_status_t status;
+	acpi_ddb_t ddb;
 
 	status = acpi_os_create_mutex(&acpi_gbl_table_mutex);
 	if (ACPI_FAILURE(status))
@@ -809,6 +814,9 @@ acpi_status_t acpi_initialize_tables(struct acpi_table_desc *initial_table_array
 	} else {
 		memset(initial_table_array, 0,
 		       initial_table_count * sizeof (struct acpi_table_desc));
+
+		for (ddb = 0; ddb < initial_table_count; ddb++)
+			initial_table_array[ddb].flags = ACPI_TABLE_IS_GARBAGE;
 
 		acpi_gbl_table_list.tables = initial_table_array;
 		acpi_gbl_table_list.max_table_count = initial_table_count;
