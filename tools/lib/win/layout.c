@@ -51,7 +51,6 @@ ULONG _fMenuFlags;
 DWORD _dwRebarSide;
 
 #define STATUSNUM	2
-#define SPERATORNUM     1
 #define CX_BITMAP       16
 #define CY_BITMAP       16
 #define CX_SPERATOR     20

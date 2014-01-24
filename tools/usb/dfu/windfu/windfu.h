@@ -17,7 +17,6 @@
 #include <host/usbdfu.h>
 
 #include "resource.h"
-#include "layout.h"
 
 typedef struct tagDFUDEVICE {
 	struct dfu_info info;

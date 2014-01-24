@@ -92,11 +92,11 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=.\dialogs.c
+SOURCE=..\..\..\lib\win\dialogs.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\layout.c
+SOURCE=..\..\..\lib\win\layout.c
 # End Source File
 # Begin Source File
 

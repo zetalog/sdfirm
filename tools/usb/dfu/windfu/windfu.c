@@ -39,6 +39,7 @@
  * $Id: windfu.c,v 1.87 2011-10-17 01:40:34 zhenglv Exp $
  */
 #include <initguid.h>
+#include <host/winlayout.h>
 #include "windfu.h"
 
 TCHAR _szTitle[MAX_LOADSTRING];
@@ -48,6 +49,39 @@ USHORT _usVendor = 0;
 USHORT _usProduct = 0;
 USHORT _usDevice = 0;
 HINSTANCE _hInstance;
+
+INT _nIdMappings[MAX_LAYOUT_IDS] = {
+	ID_MAINFRAME,
+	IDS_POSITION,
+	IDS_MENUFLAGS,
+	IDS_PLACEMENT,
+	ID_VIEW_TOOLBAR,
+	ID_VIEW_STATUSBAR,
+	ID_STATUS,
+	ID_REBAR,
+	ID_TOOLBAR,
+	IDB_TOOLBAR4BIT,
+	IDS_READY,
+};
+
+#define IDX_EXITAPP		0
+#define IDX_DFUSUFFIX		1
+#define IDX_DFUDETACH		2
+#define IDX_DFUABORT		3
+#define IDX_DFUDNLOAD		4
+#define IDX_DFUUPLOAD		5
+#define IDX_DFUCYCLE		6
+#define TOOLBARNUM		7
+
+WINTOOLBARITEM _ToolbarItems[TOOLBARNUM] = {
+	{ FALSE, IDX_EXITAPP, ID_APP_EXIT },
+	{ FALSE, IDX_DFUSUFFIX, ID_DFU_SUFFIX },
+	{ FALSE, IDX_DFUDETACH, ID_DFU_DETACH },
+	{ FALSE, IDX_DFUABORT, ID_DFU_ABORT },
+	{ FALSE, IDX_DFUDNLOAD, ID_DFU_DNLOAD },
+	{ FALSE, IDX_DFUUPLOAD, ID_DFU_UPLOAD },
+	{ FALSE, IDX_DFUCYCLE, ID_DFU_CYCLE },
+};
 
 static LRESULT WINAPI DlgWizardBrowseProc(HWND hWnd, UINT uMsg,
 					  WPARAM wParam, LPARAM lParam);
@@ -1647,7 +1681,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
 		lpWD->hWnd = hWnd;
 		if (!DFUCreateWindow(lpWD))
 			return FALSE;
-		lpWD->hwndToolbar = BuildRebar(hWnd);
+		lpWD->hwndToolbar = BuildRebar(hWnd, TOOLBARNUM, _ToolbarItems);
 		lpWD->hwndStatusbar = BuildStatus(hWnd);
 		LoadString(_hInstance, IDS_READY, szBuffer, CCHMAX(szBuffer));
 		DisplayStatus(GetDlgItem(hWnd, ID_STATUS), TEXT("%s"), szBuffer);
