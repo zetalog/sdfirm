@@ -29,5 +29,5 @@ NTSTATUS wdm_dev_dispatch_ioctl_int(PDEVICE_OBJECT dev, PIRP irp)
 	return wdm_dev_io_cmpl(dev, irp, STATUS_NOT_SUPPORTED, 0);
 }
 
-#include "../wdm/wdm_dbg.c"
-#include "../wdm/wdm_dev.c"
+#include "../../lib/wdm/wdm_dbg.c"
+#include "../../lib/wdm/wdm_dev.c"

@@ -13,8 +13,8 @@ C_DEFINES = /DVERSION_MAJOR=0 \
 
 INCLUDES = $(DDKROOT)\private\ntos\inc; \
            ..\..\inc; \
-           ..\..\include; \
-           ..\..\include\host\missing
+           ..\..\..\..\include; \
+           ..\..\..\..\include\host\missing
 
 TARGETLIBS = $(DDK_LIB_PATH)\usbd.lib
 

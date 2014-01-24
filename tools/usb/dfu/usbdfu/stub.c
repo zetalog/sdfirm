@@ -29,12 +29,12 @@ NTSTATUS wdm_dev_dispatch_ioctl_int(PDEVICE_OBJECT dev, PIRP irp)
 	return wdm_dev_io_cmpl(dev, irp, STATUS_NOT_SUPPORTED, 0);
 }
 
-#include "../wdm/wdm_dbg.c"
-#include "../wdm/wdm_dev.c"
-#include "../wdm/usb/usb_core.c"
-#include "../wdm/usb/wdm_core.c"
-#include "../wdm/usb/usb_dev.c"
-#include "../wdm/usb/wdm_dev.c"
+#include "../../../lib/wdm/wdm_dbg.c"
+#include "../../../lib/wdm/wdm_dev.c"
+#include "../../../lib/wdm/usb/usb_core.c"
+#include "../../../lib/wdm/usb/wdm_core.c"
+#include "../../../lib/wdm/usb/usb_dev.c"
+#include "../../../lib/wdm/usb/wdm_dev.c"
 
-#include "../cmn/bitops.c"
-#include "../cmn/crc32.c"
+#include "../../../lib/cmn/bitops.c"
+#include "../../../lib/cmn/crc32.c"

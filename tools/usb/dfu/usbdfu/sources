@@ -6,8 +6,8 @@ C_DEFINES = $(C_DEFINES) -DWMI_SUPPORT -DUSB2
 
 INCLUDES = $(DDKROOT)\private\ntos\inc; \
            ..\..\inc; \
-           ..\..\include; \
-           ..\..\include\host\missing
+           ..\..\..\..\include; \
+           ..\..\..\..\include\host\missing
 
 TARGETLIBS = $(DDK_LIB_PATH)\wdmsec.lib \
 	     $(DDK_LIB_PATH)\ntstrsafe.lib \
