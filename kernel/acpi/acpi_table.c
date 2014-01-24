@@ -449,9 +449,14 @@ acpi_status_t acpi_table_install_fixed(acpi_addr_t address,
 		goto err_inst;
 
 	acpi_table_lock();
-	acpi_table_install_and_override(&new_table_desc, ddb, true);
-	acpi_table_unlock();
 
+	status = acpi_table_list_acquire(&ddb, new_table_desc.signature);
+	if (ACPI_FAILURE(status))
+		goto err_lock;
+	acpi_table_install_and_override(&new_table_desc, ddb, true);
+
+err_lock:
+	acpi_table_unlock();
 err_inst:
 	acpi_table_uninstall_temporal(&new_table_desc);
 	return status;
@@ -811,8 +816,7 @@ acpi_status_t acpi_initialize_tables(struct acpi_table_desc *initial_table_array
 		if (allow_resize)
 			acpi_gbl_table_list.flags |= ACPI_ROOT_ALLOW_RESIZE;
 	}
-	acpi_reference_set(&acpi_gbl_table_list.all_table_count,
-			   ACPI_TABLE_LIST_FIXED);
+	acpi_reference_set(&acpi_gbl_table_list.all_table_count, 0);
 	acpi_gbl_table_list.use_table_count = ACPI_TABLE_LIST_FIXED;
 	acpi_table_unlock();
 
