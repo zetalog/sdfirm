@@ -842,7 +842,7 @@ acpi_status_t acpi_table_install_fixed(acpi_addr_t address,
 				       acpi_ddb_t ddb);
 acpi_status_t acpi_table_install_non_fixed(acpi_addr_t address,
 					   acpi_table_flags_t flags,
-					   boolean reload,
+					   boolean override,
 					   acpi_ddb_t *ddb_handle);
 
 acpi_status_t acpi_rsdp_parse(acpi_addr_t rsdp_address);

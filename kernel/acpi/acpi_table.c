@@ -430,7 +430,7 @@ boolean acpi_table_is_same(struct acpi_table_desc *table_desc, acpi_tag_t sig,
 
 acpi_status_t acpi_table_install_non_fixed(acpi_addr_t address,
 					   acpi_table_flags_t flags,
-					   boolean reload,
+					   boolean override,
 					   acpi_ddb_t *ddb_handle)
 {
 	acpi_ddb_t ddb;
@@ -447,21 +447,19 @@ acpi_status_t acpi_table_install_non_fixed(acpi_addr_t address,
 		return status;
 
 	acpi_table_lock();
-	if (reload) {
-		foreach_table_handle(ddb, 0) {
-			table_desc = &acpi_gbl_table_list.tables[ddb];
-			if (!acpi_table_is_same(table_desc,
-						ACPI_NAME2TAG(new_table_desc.signature),
-						new_table_desc.oem_id,
-						new_table_desc.oem_table_id))
-				continue;
-			if (new_table_desc.revision <= table_desc->revision) {
-				status = AE_ALREADY_EXISTS;
-				goto err_lock;
-			}
-
-			acpi_uninstall_table(ddb);
+	foreach_table_handle(ddb, 0) {
+		table_desc = &acpi_gbl_table_list.tables[ddb];
+		if (!acpi_table_is_same(table_desc,
+					ACPI_NAME2TAG(new_table_desc.signature),
+					new_table_desc.oem_id,
+					new_table_desc.oem_table_id))
+			continue;
+		if (new_table_desc.revision <= table_desc->revision) {
+			status = AE_ALREADY_EXISTS;
+			goto err_lock;
 		}
+
+		acpi_uninstall_table(ddb);
 	}
 
 	status = acpi_table_list_acquire(&ddb, new_table_desc.signature);
@@ -469,15 +467,11 @@ acpi_status_t acpi_table_install_non_fixed(acpi_addr_t address,
 		goto err_lock;
 
 	/* Wait until uninstall completes, for FACS and DSDT reloading */
-	if (reload &&
-	    (ACPI_NAMECMP(ACPI_SIG_DSDT, new_table_desc.signature) ||
-	     ACPI_NAMECMP(ACPI_SIG_FACS, new_table_desc.signature))) {
-		while (acpi_reference_get(&acpi_gbl_table_list.tables[ddb].reference_count))
-			acpi_os_sleep(10);
-	}
+	while (acpi_reference_get(&acpi_gbl_table_list.tables[ddb].reference_count))
+		acpi_os_sleep(10);
 
 	*ddb_handle = ddb;
-	acpi_table_install_and_override(&new_table_desc, ddb, (boolean)!reload);
+	acpi_table_install_and_override(&new_table_desc, ddb, override);
 
 err_lock:
 	acpi_table_unlock();
@@ -698,7 +692,7 @@ acpi_status_t acpi_install_table(struct acpi_table_header *table,
 		return AE_BAD_PARAMETER;
 	
 	status = acpi_table_install_non_fixed(ACPI_PTR_TO_PHYSADDR(table),
-					      flags, true, ddb_handle);
+					      flags, false, ddb_handle);
 	return status;
 }
 

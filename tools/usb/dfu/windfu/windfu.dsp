@@ -116,10 +116,6 @@ SOURCE=.\windfu.rc
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=.\layout.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\resource.h
 # End Source File
 # Begin Source File
@@ -129,6 +125,10 @@ SOURCE=..\..\..\..\include\host\usbdfu.h
 # Begin Source File
 
 SOURCE=.\windfu.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\include\host\winlayout.h
 # End Source File
 # Begin Source File
 

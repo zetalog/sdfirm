@@ -39,7 +39,8 @@
  * $Id: dialogs.c,v 1.5 2011-07-26 10:11:27 zhenglv Exp $
  */
 
-#include "winacpi.h"
+#include <host/winlayout.h>
+#include <assert.h>
 
 static LRESULT WINAPI DlgWizardDoneProc(HWND hWnd, UINT uMsg,
 					WPARAM wParam, LPARAM lParam);
@@ -175,8 +176,10 @@ LRESULT WINAPI DlgWizardDoneProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 		case PSN_SETACTIVE:
 			SendMessage(lpwi->hwndWizard, PSM_SETWIZBUTTONS,
 				    0, PSWIZB_BACK | PSWIZB_FINISH);
-			SendDlgItemMessage(hWnd, IDC_WIZBITMAP, STM_SETIMAGE,
-					   IMAGE_BITMAP, (LPARAM) lpwi->hBitmap);
+			SendDlgItemMessage(hWnd,
+					   _nIdMappings[LAYOUT_WIZBITMAP],
+					   STM_SETIMAGE, IMAGE_BITMAP,
+					   (LPARAM) lpwi->hBitmap);
 			return 0;
 		case PSN_WIZFINISH:
 			SetWindowLong(hWnd, DWL_MSGRESULT, lpwi->nResult);
@@ -214,7 +217,8 @@ LRESULT WINAPI DlgWizardIntroProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		CenterChild(lpwi->hwndWizard, lpwi->hwndParent);
 		lpwi->nResult = FALSE;
 		SetWindowLong(hWnd, DWL_MSGRESULT, lpwi->nResult);
-		SetDlgItemText(hWnd, IDC_INTRODUCTION, lpwi->lpszIntro);
+		SetDlgItemText(hWnd, _nIdMappings[LAYOUT_INTRODUCTION],
+			       lpwi->lpszIntro);
 		result = TRUE;
 		break;
 	case WM_NOTIFY:
@@ -222,8 +226,10 @@ LRESULT WINAPI DlgWizardIntroProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		switch (pnmh->code) {
 		case PSN_SETACTIVE:
 			SendMessage(lpwi->hwndWizard, PSM_SETWIZBUTTONS, 0, PSWIZB_NEXT);
-			SendDlgItemMessage(hWnd, IDC_WIZBITMAP, STM_SETIMAGE,
-					   IMAGE_BITMAP, (LPARAM) lpwi->hBitmap);
+			SendDlgItemMessage(hWnd,
+					   _nIdMappings[LAYOUT_WIZBITMAP],
+					   STM_SETIMAGE, IMAGE_BITMAP,
+					   (LPARAM) lpwi->hBitmap);
 			return 0;
 		case PSN_KILLACTIVE:
 			result = FALSE;
@@ -291,11 +297,11 @@ int WINAPI DlgLaunchWizard(HWND hwndParent, UINT nIntro, UINT nIcon,
 	hDC = GetDC(NULL);	 // DC for desktop
 	iNumBits = GetDeviceCaps(hDC, BITSPIXEL) * GetDeviceCaps(hDC, PLANES);
 	if (iNumBits <= 1)
-		iBitmap = IDB_WIZARD;
+		iBitmap = _nIdMappings[LAYOUT_WIZARD];
 	else if (iNumBits <= 4)
-		iBitmap = IDB_WIZARD;
+		iBitmap = _nIdMappings[LAYOUT_WIZARD];
 	else
-		iBitmap = IDB_WIZARD;
+		iBitmap = _nIdMappings[LAYOUT_WIZARD];
 	
 	wi.hBitmap = LoadResourceBitmap(_hInstance, MAKEINTRESOURCE(iBitmap), &wi.hPalette);
 	wi.hfontIntro = LoadHeadingFont(_hInstance, FALSE, hDC);
@@ -316,7 +322,7 @@ int WINAPI DlgLaunchWizard(HWND hwndParent, UINT nIntro, UINT nIcon,
 		pspWiz[index].pcRefParent = NULL;
 	}
 	// Set up the intro page
-	pspWiz[0].pszTemplate = MAKEINTRESOURCE(IDD_WIZARDINTRO);
+	pspWiz[0].pszTemplate = MAKEINTRESOURCE(_nIdMappings[LAYOUT_WIZARDINTRO]);
 	pspWiz[0].pfnDlgProc = (DLGPROC)DlgWizardIntroProc;
 	
 	// Set module dependent pages here
@@ -336,7 +342,8 @@ int WINAPI DlgLaunchWizard(HWND hwndParent, UINT nIntro, UINT nIcon,
 	}
 	
 	// Set up the done page
-	pspWiz[iModPages+DLG_WIZARD_CUSTOM].pszTemplate = MAKEINTRESOURCE(IDD_WIZARDDONE);
+	pspWiz[iModPages+DLG_WIZARD_CUSTOM].pszTemplate =
+		MAKEINTRESOURCE(_nIdMappings[LAYOUT_WIZARDDONE]);
 	pspWiz[iModPages+DLG_WIZARD_CUSTOM].pfnDlgProc = (DLGPROC)DlgWizardDoneProc;
 	
 	// Create the header
@@ -350,8 +357,8 @@ int WINAPI DlgLaunchWizard(HWND hwndParent, UINT nIntro, UINT nIcon,
 	pshWiz.nStartPage	= DLG_WIZARD_INTRO;
 	pshWiz.ppsp		= pspWiz;
 	pshWiz.pfnCallback	= NULL;
-	pshWiz.pszbmWatermark   = MAKEINTRESOURCE(IDB_WIZARD);
-	pshWiz.pszbmHeader      = MAKEINTRESOURCE(IDB_HEADER);
+	pshWiz.pszbmWatermark   = MAKEINTRESOURCE(_nIdMappings[LAYOUT_WIZARD]);
+	pshWiz.pszbmHeader      = MAKEINTRESOURCE(_nIdMappings[LAYOUT_HEADER]);
 	
 	nResult = PropertySheet(&pshWiz);
 	
@@ -463,7 +470,10 @@ BOOL WINAPI DlgBrowseFile(HWND hwndParent, LPSTR pszFile, UINT nSize,
 		DWORD dwError = CommDlgExtendedError();
 
 		if (dwError)
-			MessageIDBox(hwndParent, IDS_ERROR_FILE_BROWSE, IDS_ERROR, MB_OK);
+			MessageIDBox(hwndParent,
+				     _nIdMappings[LAYOUT_BROWSE_STRING],
+				     _nIdMappings[LAYOUT_ERROR_STRING],
+				     MB_OK);
 	}
 
 	free(pszFilter);
@@ -513,7 +523,8 @@ DWORD WINAPI DlgShowProgressThread(LPWINPROGRESSDLG lppd)
 
 VOID WINAPI DlgShowStatus(LPWINPROGRESSDLG lppd, LPTSTR szMessage)
 {
-	SetWindowText(GetDlgItem(lppd->hwndDialog, IDC_MESSAGE), szMessage);
+	SetWindowText(GetDlgItem(lppd->hwndDialog,
+				  _nIdMappings[LAYOUT_MESSAGE]), szMessage);
 }
 
 LRESULT WINAPI DlgProgressDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -528,8 +539,8 @@ LRESULT WINAPI DlgProgressDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 		lppd = (LPWINPROGRESSDLG)lParam;
 		SetWindowLong(hWnd, GWL_USERDATA, (LPARAM)lppd);
 		
-		lppd->hwndStatus = GetDlgItem(hWnd, IDC_MESSAGE);
-		lppd->hwndProgress = GetDlgItem(hWnd, IDC_PROGRESS);
+		lppd->hwndStatus = GetDlgItem(hWnd, _nIdMappings[LAYOUT_MESSAGE]);
+		lppd->hwndProgress = GetDlgItem(hWnd, _nIdMappings[LAYOUT_PROGRESS]);
 		
 		lppd->hwndDialog = hWnd;
 		SendMessage(lppd->hwndProgress, PBM_SETRANGE, 0, MAKELPARAM(0, lppd->nSteps));
@@ -582,8 +593,9 @@ BOOL WINAPI DlgShowProgress(HWND hWnd, UINT nSteps, WINPROGRESSCB pfnProgress, L
 	pDlg->pData = pData;
 	pDlg->bCancel = FALSE;
 	
-	nID = DialogBoxParam(_hInstance, MAKEINTRESOURCE(IDD_PROGRESS), hWnd,
-			     (DLGPROC)DlgProgressDialogProc, (LPARAM)pDlg);
+	nID = DialogBoxParam(_hInstance,
+			     MAKEINTRESOURCE(_nIdMappings[LAYOUT_PROGRESS]),
+			     hWnd, (DLGPROC)DlgProgressDialogProc, (LPARAM)pDlg);
 	
 	if (nID == IDCANCEL)
 		return FALSE;
