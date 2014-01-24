@@ -396,6 +396,21 @@ VOID RestoreWindowContext(HWND hWnd)
 	RegCloseKey(hkey);
 }
 
+static INT ACPIDisplayStatus(HWND hWnd, UINT uMessage, UINT uCaption, UINT uType,
+			     acpi_status_t status)
+{
+	TCHAR szMessage[MAX_MESSAGE];
+	TCHAR szCaption[MAX_CAPTION];
+	TCHAR szText[MAX_MESSAGE];
+
+	LoadString(_hInstance, uMessage, szMessage, MAX_MESSAGE);
+	LoadString(_hInstance, uCaption, szCaption, MAX_CAPTION);
+
+	sprintf(szText, szMessage, acpi_error_string(status, true));
+	
+	return MessageBox(hWnd, szText, szCaption, MB_ICONQUESTION | uType);
+}
+
 static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
 				    WPARAM wParam, LPARAM lParam)
 {
@@ -491,9 +506,13 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
 					  pName, pSuffix, 1,
 					  FALSE)) {
 				status = acpi_emu_load_table(szFile);
-				if (ACPI_FAILURE(status)) {
-				}
+				if (ACPI_FAILURE(status))
+					ACPIDisplayStatus(hWnd, IDS_ERROR_LOAD_TABLE,
+							  IDS_ERROR, MB_OK, status);
 			}
+			break;
+		case ID_TABLE_UNLOAD:
+			acpi_uninstall_table(ACPIGetSelectedTable(lpWD));
 			break;
 		default:
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);

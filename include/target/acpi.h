@@ -217,6 +217,19 @@ typedef void *acpi_handle_t;
 
 #define AE_CODE_CTRL_MAX                0x000D
 
+struct acpi_exception_info {
+	char *name;
+#ifdef CONFIG_ACPI_ERROR_DETAILS
+	char *description;
+#endif
+};
+
+#ifdef CONFIG_ACPI_ERROR_DETAILS
+#define EXCEP_TXT(name, description)	{name, description}
+#else
+#define EXCEP_TXT(name, description)	{name}
+#endif
+
 /* ============================================================ *
  * power of two handling
  * ============================================================ */
@@ -778,6 +791,7 @@ static inline void acpi_err(const char *fmt, ...) {}
 static inline void acpi_warn_bios(const char *fmt, ...) {}
 static inline void acpi_err_bios(const char *fmt, ...) {}
 #endif
+const char *acpi_error_string(acpi_status_t status, boolean detail);
 
 acpi_addr_t acpi_os_get_root_pointer(void);
 void *acpi_os_map_memory(acpi_addr_t where, acpi_size_t length);

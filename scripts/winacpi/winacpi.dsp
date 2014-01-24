@@ -96,6 +96,10 @@ SOURCE=..\..\kernel\acpi\acpi_core.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\kernel\acpi\acpi_error.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\kernel\acpi\acpi_event.c
 # End Source File
 # Begin Source File

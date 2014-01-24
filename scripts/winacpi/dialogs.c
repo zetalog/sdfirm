@@ -47,8 +47,6 @@ static LRESULT WINAPI DlgWizardIntroProc(HWND hWnd, UINT uMsg,
 					 WPARAM wParam, LPARAM lParam);
 static void DlgDestroyWizard(LPWINWIZARDINFO wi);
 
-#define MAX_MESSAGE     1024
-#define MAX_CAPTION     64
 #define MAX_IDS         200
 
 int MessageIDBox(HWND hWnd, UINT uMessage, UINT uCaption, UINT uType)

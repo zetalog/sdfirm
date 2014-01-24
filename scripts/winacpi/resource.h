@@ -27,6 +27,7 @@
 #define IDS_TABLE_OEMTABLEID            23
 #define IDS_TABLE_REVISION              24
 #define IDS_TABLE_OEMREVISION           25
+#define IDS_ERROR_LOAD_TABLE            26
 #define IDM_MAINFRAME                   101
 #define IDA_MAINFRAME                   102
 #define IDB_TOOLBAR4BIT                 103

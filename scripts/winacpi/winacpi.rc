@@ -296,6 +296,7 @@ BEGIN
     IDS_TABLE_OEMTABLEID    "OEM Table ID"
     IDS_TABLE_REVISION      "Revision"
     IDS_TABLE_OEMREVISION   "OEM Revision"
+    IDS_ERROR_LOAD_TABLE    "Failed to load ACPI table.\n\nStatus:\n%s."
 END
 
 #endif    // English (U.S.) resources

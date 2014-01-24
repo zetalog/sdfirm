@@ -49,6 +49,10 @@ extern TCHAR _szTitle[MAX_LOADSTRING];
 extern TCHAR _szWindowClass[MAX_LOADSTRING];
 extern ULONG _fMenuFlags;
 
+/* Maxmum string length for MessageIDBox */
+#define MAX_MESSAGE     1024
+#define MAX_CAPTION     64
+
 void MoveMainFrame(HWND hWnd, RECT *lpRect);
 void RegSaveString(UINT nKey, UINT nVal, LPCSTR pszVal);
 void RegDeleteString(UINT nKey, UINT nVal);
