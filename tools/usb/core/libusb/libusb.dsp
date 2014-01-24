@@ -32,16 +32,16 @@ RSC=rc.exe
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
-# PROP BASE Output_Dir "../../bin/release/utils"
-# PROP BASE Intermediate_Dir "../../obj/release/libusb"
+# PROP BASE Output_Dir "../../../../bin/release/utils"
+# PROP BASE Intermediate_Dir "../../../../obj/release/libusb"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "../../bin/release/utils"
-# PROP Intermediate_Dir "../../obj/release/libusb"
+# PROP Output_Dir "../../../../bin/release/utils"
+# PROP Intermediate_Dir "../../../../obj/release/libusb"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "../../include" /I "../../include/host/missing" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I "../../../../include" /I "../../../../include/host/missing" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD BASE RSC /l 0x804 /d "NDEBUG"
 # ADD RSC /l 0x804 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -55,16 +55,16 @@ LIB32=link.exe -lib
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
-# PROP BASE Output_Dir "../../bin/debug/utils"
-# PROP BASE Intermediate_Dir "../../obj/debug/libusb"
+# PROP BASE Output_Dir "../../../../bin/debug/utils"
+# PROP BASE Intermediate_Dir "../../../../obj/debug/libusb"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "../../bin/debug/utils"
-# PROP Intermediate_Dir "../../obj/debug/libusb"
+# PROP Output_Dir "../../../../bin/debug/utils"
+# PROP Intermediate_Dir "../../../../obj/debug/libusb"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "../../include" /I "../../include/host/missing" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "../../../../include" /I "../../../../include/host/missing" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x804 /d "_DEBUG"
 # ADD RSC /l 0x804 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -117,11 +117,11 @@ SOURCE=.\usb_win32.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=..\..\include\host\libusb.h
+SOURCE=..\..\..\..\include\host\libusb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\host\usb_err.h
+SOURCE=..\..\..\..\include\host\usb_err.h
 # End Source File
 # Begin Source File
 
@@ -141,31 +141,31 @@ SOURCE=.\usb_win32.h
 # PROP Default_Filter "h;c"
 # Begin Source File
 
-SOURCE=..\cmn\daytime.c
+SOURCE=..\..\..\lib\cmn\daytime.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\cmn\dirent.c
+SOURCE=..\..\..\lib\cmn\dirent.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\host\missing\dirent.h
+SOURCE=..\..\..\..\include\host\missing\dirent.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\cmn\poll.c
+SOURCE=..\..\..\lib\cmn\poll.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\host\missing\sys\poll.h
+SOURCE=..\..\..\..\include\host\missing\sys\poll.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\host\missing\stdint.h
+SOURCE=..\..\..\..\include\host\missing\stdint.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\host\missing\sys\time.h
+SOURCE=..\..\..\..\include\host\missing\sys\time.h
 # End Source File
 # End Group
 # End Target

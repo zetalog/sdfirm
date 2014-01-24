@@ -56,6 +56,12 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name libusb
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name inf_wizard
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name usbstub
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -84,7 +90,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "inf_wizard"=.\scripts\libusb\inf_wizard.dsp - Package Owner=<4>
+Project: "inf_wizard"=.\tools\usb\core\libusb\inf_wizard.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -114,7 +120,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "libusb"=.\scripts\libusb\libusb.dsp - Package Owner=<4>
+Project: "libusb"=.\tools\usb\core\libusb\libusb.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -291,7 +297,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "usbstub"=.\scripts\libusb\usbstub.dsp - Package Owner=<4>
+Project: "usbstub"=.\tools\usb\core\libusb\usbstub.dsp - Package Owner=<4>
 
 Package=<5>
 {{{

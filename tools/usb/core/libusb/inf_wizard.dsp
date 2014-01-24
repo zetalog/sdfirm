@@ -33,17 +33,17 @@ RSC=rc.exe
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
-# PROP BASE Output_Dir "../../bin/release/utils"
-# PROP BASE Intermediate_Dir "../../obj/release/inf_wizard"
+# PROP BASE Output_Dir "../../../../bin/release/utils"
+# PROP BASE Intermediate_Dir "../../../../obj/release/inf_wizard"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "../../bin/release/utils"
-# PROP Intermediate_Dir "../../obj/release/inf_wizard"
+# PROP Output_Dir "../../../../bin/release/utils"
+# PROP Intermediate_Dir "../../../../obj/release/inf_wizard"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "../../include/host" /I "../../include/host/missing" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D RC_VERSION=0.1.12.1 /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I "../../../../include/host" /I "../../../../include/host/missing" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D RC_VERSION=0.1.12.1 /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x804 /d "NDEBUG"
@@ -59,17 +59,17 @@ LINK32=link.exe
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
-# PROP BASE Output_Dir "../../bin/debug/utils"
-# PROP BASE Intermediate_Dir "../../obj/debug/inf_wizard"
+# PROP BASE Output_Dir "../../../../bin/debug/utils"
+# PROP BASE Intermediate_Dir "../../../../obj/debug/inf_wizard"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "../../bin/debug/utils"
-# PROP Intermediate_Dir "../../obj/debug/inf_wizard"
+# PROP Output_Dir "../../../../bin/debug/utils"
+# PROP Intermediate_Dir "../../../../obj/debug/inf_wizard"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "../../include/host" /I "../../include/host/missing" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D RC_VERSION=0.1.12.1 /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "../../../../include/host" /I "../../../../include/host/missing" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D RC_VERSION=0.1.12.1 /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x804 /d "_DEBUG"
