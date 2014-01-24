@@ -18,24 +18,6 @@ Package=<4>
     Project_Dep_Name wuartdbg
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name inf_wizard
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name libusb
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name usbstub
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name dfu_suffix
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name windfu
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name libnfc
-    End Project Dependency
-    Begin Project Dependency
     Project_Dep_Name nfc_anticol
     End Project Dependency
     Begin Project Dependency
@@ -67,6 +49,12 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name pn53x_tamashell
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libnfc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libusb
     End Project Dependency
 }}}
 
@@ -111,7 +99,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "libnfc"=.\scripts\libnfc\libnfc.dsp - Package Owner=<4>
+Project: "libnfc"=.\tools\nfc\libnfc\libnfc.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -138,7 +126,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "nfc_anticol"=.\scripts\winnfc\nfc_anticol.dsp - Package Owner=<4>
+Project: "nfc_anticol"=.\tools\nfc\winnfc\nfc_anticol.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -153,7 +141,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "nfc_dep_initiator"=.\scripts\winnfc\nfc_dep_initiator.dsp - Package Owner=<4>
+Project: "nfc_dep_initiator"=.\tools\nfc\winnfc\nfc_dep_initiator.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -168,7 +156,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "nfc_dep_target"=.\scripts\winnfc\nfc_dep_target.dsp - Package Owner=<4>
+Project: "nfc_dep_target"=.\tools\nfc\winnfc\nfc_dep_target.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -183,7 +171,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "nfc_list"=.\scripts\winnfc\nfc_list.dsp - Package Owner=<4>
+Project: "nfc_list"=.\tools\nfc\winnfc\nfc_list.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -198,7 +186,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "nfc_mfclassic"=.\scripts\winnfc\nfc_mfclassic.dsp - Package Owner=<4>
+Project: "nfc_mfclassic"=.\tools\nfc\winnfc\nfc_mfclassic.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -213,7 +201,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "nfc_mfsetuid"=.\scripts\winnfc\nfc_mfsetuid.dsp - Package Owner=<4>
+Project: "nfc_mfsetuid"=.\tools\nfc\winnfc\nfc_mfsetuid.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -228,7 +216,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "nfc_mfultralight"=.\scripts\winnfc\nfc_mfultralight.dsp - Package Owner=<4>
+Project: "nfc_mfultralight"=.\tools\nfc\winnfc\nfc_mfultralight.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -243,7 +231,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "nfc_poll"=.\scripts\winnfc\nfc_poll.dsp - Package Owner=<4>
+Project: "nfc_poll"=.\tools\nfc\winnfc\nfc_poll.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -258,7 +246,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "pn53x_diagnose"=.\scripts\winnfc\pn53x_diagnose.dsp - Package Owner=<4>
+Project: "pn53x_diagnose"=.\tools\nfc\winnfc\pn53x_diagnose.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -273,7 +261,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "pn53x_sam"=.\scripts\winnfc\pn53x_sam.dsp - Package Owner=<4>
+Project: "pn53x_sam"=.\tools\nfc\winnfc\pn53x_sam.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -288,7 +276,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "pn53x_tamashell"=.\scripts\winnfc\pn53x_tamashell.dsp - Package Owner=<4>
+Project: "pn53x_tamashell"=.\tools\nfc\winnfc\pn53x_tamashell.dsp - Package Owner=<4>
 
 Package=<5>
 {{{

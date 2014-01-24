@@ -32,17 +32,17 @@ RSC=rc.exe
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
-# PROP BASE Output_Dir "../../bin/release/utils"
-# PROP BASE Intermediate_Dir "../../obj/release/nfc_poll"
+# PROP BASE Output_Dir "../../../bin/release/utils"
+# PROP BASE Intermediate_Dir "../../../obj/release/nfc_poll"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "../../bin/release/utils"
-# PROP Intermediate_Dir "../../obj/release/nfc_poll"
+# PROP Output_Dir "../../../bin/release/utils"
+# PROP Intermediate_Dir "../../../obj/release/nfc_poll"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "..\..\include" /I "..\..\include\host\missing" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I "..\..\..\include" /I "..\..\..\include\host\missing" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
 # ADD BASE RSC /l 0x804 /d "NDEBUG"
 # ADD RSC /l 0x804 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -56,17 +56,17 @@ LINK32=link.exe
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
-# PROP BASE Output_Dir "../../bin/debug/utils"
-# PROP BASE Intermediate_Dir "../../obj/debug/nfc_poll"
+# PROP BASE Output_Dir "../../../bin/debug/utils"
+# PROP BASE Intermediate_Dir "../../../obj/debug/nfc_poll"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "../../bin/debug/utils"
-# PROP Intermediate_Dir "../../obj/debug/nfc_poll"
+# PROP Output_Dir "../../../bin/debug/utils"
+# PROP Intermediate_Dir "../../../obj/debug/nfc_poll"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\include" /I "..\..\include\host\missing" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\..\include" /I "..\..\..\include\host\missing" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
 # SUBTRACT CPP /Fr
 # ADD BASE RSC /l 0x804 /d "_DEBUG"
 # ADD RSC /l 0x804 /d "_DEBUG"

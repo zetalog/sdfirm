@@ -1,24 +1,24 @@
-# Microsoft Developer Studio Project File - Name="nfc_mfsetuid" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="nfc_emulate_tag" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Console Application" 0x0103
 
-CFG=nfc_mfsetuid - Win32 Debug
+CFG=nfc_emulate_tag - Win32 Debug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
-!MESSAGE NMAKE /f "nfc_mfsetuid.mak".
+!MESSAGE NMAKE /f "nfc_emulate_tag.mak".
 !MESSAGE 
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "nfc_mfsetuid.mak" CFG="nfc_mfsetuid - Win32 Debug"
+!MESSAGE NMAKE /f "nfc_emulate_tag.mak" CFG="nfc_emulate_tag - Win32 Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "nfc_mfsetuid - Win32 Release" (based on "Win32 (x86) Console Application")
-!MESSAGE "nfc_mfsetuid - Win32 Debug" (based on "Win32 (x86) Console Application")
+!MESSAGE "nfc_emulate_tag - Win32 Release" (based on "Win32 (x86) Console Application")
+!MESSAGE "nfc_emulate_tag - Win32 Debug" (based on "Win32 (x86) Console Application")
 !MESSAGE 
 
 # Begin Project
@@ -28,21 +28,21 @@ CFG=nfc_mfsetuid - Win32 Debug
 CPP=cl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "nfc_mfsetuid - Win32 Release"
+!IF  "$(CFG)" == "nfc_emulate_tag - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
-# PROP BASE Output_Dir "../../bin/release/utils"
-# PROP BASE Intermediate_Dir "../../obj/release/nfc_mfsetuid"
+# PROP BASE Output_Dir "../../../bin/release/utils"
+# PROP BASE Intermediate_Dir "../../../obj/release/nfc_emulate_tag"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "../../bin/release/utils"
-# PROP Intermediate_Dir "../../obj/release/nfc_mfsetuid"
+# PROP Output_Dir "../../../bin/release/utils"
+# PROP Intermediate_Dir "../../../obj/release/nfc_emulate_tag"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "..\..\include" /I "..\..\include\host\missing" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I "..\..\..\include" /I "..\..\..\include\host\missing" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
 # ADD BASE RSC /l 0x804 /d "NDEBUG"
 # ADD RSC /l 0x804 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -52,21 +52,21 @@ LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib advapi32.lib /nologo /subsystem:console /machine:I386
 # ADD LINK32 kernel32.lib advapi32.lib winscard.lib ws2_32.lib user32.lib /nologo /subsystem:console /machine:I386
 
-!ELSEIF  "$(CFG)" == "nfc_mfsetuid - Win32 Debug"
+!ELSEIF  "$(CFG)" == "nfc_emulate_tag - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
-# PROP BASE Output_Dir "../../bin/debug/utils"
-# PROP BASE Intermediate_Dir "../../obj/debug/nfc_mfsetuid"
+# PROP BASE Output_Dir "../../../bin/debug/utils"
+# PROP BASE Intermediate_Dir "../../../obj/debug/nfc_emulate_tag"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "../../bin/debug/utils"
-# PROP Intermediate_Dir "../../obj/debug/nfc_mfsetuid"
+# PROP Output_Dir "../../../bin/debug/utils"
+# PROP Intermediate_Dir "../../../obj/debug/nfc_emulate_tag"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\include" /I "..\..\include\host\missing" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\..\include" /I "..\..\..\include\host\missing" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
 # SUBTRACT CPP /Fr
 # ADD BASE RSC /l 0x804 /d "_DEBUG"
 # ADD RSC /l 0x804 /d "_DEBUG"
@@ -81,8 +81,8 @@ LINK32=link.exe
 
 # Begin Target
 
-# Name "nfc_mfsetuid - Win32 Release"
-# Name "nfc_mfsetuid - Win32 Debug"
+# Name "nfc_emulate_tag - Win32 Release"
+# Name "nfc_emulate_tag - Win32 Debug"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
@@ -92,7 +92,7 @@ SOURCE=".\nfc-utils.c"
 # End Source File
 # Begin Source File
 
-SOURCE=.\nfc_mfsetuid.c
+SOURCE=.\nfc_emulate_tag.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
