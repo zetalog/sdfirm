@@ -105,25 +105,25 @@ err_exit:
 
 acpi_status_t acpi_emu_load_table(const char *file)
 {
-	int ret;
 	struct acpi_table_header *table;
 	acpi_ddb_t ddb;
+	acpi_status_t status;
 
-	ret = acpi_table_read_file(file, 0, ACPI_NULL_NAME, &table);
-	if (ret)
-		return AE_NOT_FOUND;
+	status = acpi_table_read_file(file, 0, ACPI_NULL_NAME, &table);
+	if (ACPI_FAILURE(status))
+		return status;
 	return acpi_install_table(table, ACPI_TABLE_INTERNAL_VIRTUAL, &ddb);
 }
 
 acpi_status_t acpi_emu_read_table(const char *file)
 {
-	int ret;
 	struct acpi_table_header *table;
 	struct acpi_table_desc *table_desc;
+	acpi_status_t status;
 
-	ret = acpi_table_read_file(file, 0, ACPI_NULL_NAME, &table);
-	if (ret)
-		return AE_NOT_FOUND;
+	status = acpi_table_read_file(file, 0, ACPI_NULL_NAME, &table);
+	if (ACPI_FAILURE(status))
+		return status;
 
 	/* Ignore FADT since we'll build it */
 	if (!ACPI_NAMECMP(ACPI_SIG_FADT, table->signature)) {
@@ -257,7 +257,7 @@ acpi_status_t acpi_emu_build_tables(struct acpi_table_desc *table_list)
 	ACPI_ENCODE32(&acpi_emu_local_facs.length, sizeof (struct acpi_table_facs));
 	ACPI_ENCODE32(&acpi_emu_local_facs.global_lock, 0x11AA0011);
 	
-	return (AE_OK);
+	return AE_OK;
 }
 
 acpi_addr_t acpi_os_get_root_pointer(void)
@@ -267,7 +267,7 @@ acpi_addr_t acpi_os_get_root_pointer(void)
 
 void *acpi_os_map_memory(acpi_addr_t where, acpi_size_t length)
 {
-	return (ACPI_TO_POINTER(where));
+	return ACPI_TO_POINTER(where);
 }
 
 void acpi_os_unmap_memory(void *where, acpi_size_t length)
