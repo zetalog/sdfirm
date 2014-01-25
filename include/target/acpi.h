@@ -694,8 +694,8 @@ struct acpi_table_desc {
 #define ACPI_TABLE_INTERNAL_VIRTUAL	((acpi_table_flags_t)0x02)
 #define ACPI_TABLE_ORIGIN_MASK		(0x03)
 #define ACPI_TABLE_IS_LOADED		(0x04)
-#define ACPI_TABLE_IS_UNLOADED		(0x08)
-#define ACPI_TABLE_IS_GARBAGE		(0x10)
+#define ACPI_TABLE_IS_UNINSTALLING	(0x08)
+#define ACPI_TABLE_IS_UNINSTALLED	(0x10)
 
 struct acpi_table_list {
 	struct acpi_table_desc *tables;
@@ -881,6 +881,8 @@ acpi_status_t acpi_get_table(acpi_ddb_t ddb, struct acpi_table_header **out_tabl
 void acpi_put_table(acpi_ddb_t ddb, struct acpi_table_header *table);
 void acpi_table_increment(acpi_ddb_t ddb);
 void acpi_table_decrement(acpi_ddb_t ddb);
+boolean acpi_table_is_installed(acpi_ddb_t ddb);
+boolean acpi_table_is_uninstalled(acpi_ddb_t ddb);
 boolean acpi_table_is_loaded(acpi_ddb_t ddb);
 boolean acpi_table_contains_aml(struct acpi_table_header *table);
 acpi_status_t acpi_install_table(struct acpi_table_header *table,
