@@ -289,8 +289,11 @@ void acpi_fadt_parse(struct acpi_table_header *table)
 	acpi_table_install((acpi_addr_t)ACPI_DECODE64(&acpi_gbl_FADT.Xdsdt),
 			   ACPI_SIG_DSDT, ACPI_TABLE_INTERNAL_PHYSICAL,
 			   false, &ddb);
+
 	if (acpi_fadt_flag_is_set(ACPI_FADT_HW_REDUCED))
-		acpi_table_install((acpi_addr_t)ACPI_DECODE64(&acpi_gbl_FADT.Xfacs),
-				   ACPI_SIG_FACS, ACPI_TABLE_INTERNAL_PHYSICAL,
-				   false, &ddb);
+		return;
+
+	acpi_table_install((acpi_addr_t)ACPI_DECODE64(&acpi_gbl_FADT.Xfacs),
+			   ACPI_SIG_FACS, ACPI_TABLE_INTERNAL_PHYSICAL,
+			   false, &ddb);
 }
