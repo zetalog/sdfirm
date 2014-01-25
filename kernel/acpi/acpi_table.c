@@ -440,7 +440,8 @@ boolean acpi_table_is_same(struct acpi_table_desc *table_desc, acpi_tag_t sig,
 }
 
 acpi_status_t acpi_table_install(acpi_addr_t address, acpi_tag_t signature,
-				 acpi_table_flags_t flags, boolean override,
+				 acpi_table_flags_t flags,
+				 boolean override, boolean versioning,
 				 acpi_ddb_t *ddb_handle)
 {
 	acpi_ddb_t ddb;
@@ -472,7 +473,7 @@ acpi_status_t acpi_table_install(acpi_addr_t address, acpi_tag_t signature,
 					new_table_desc.oem_id,
 					new_table_desc.oem_table_id))
 			continue;
-		if (new_table_desc.revision <= table_desc->revision) {
+		if (versioning && new_table_desc.revision <= table_desc->revision) {
 			status = AE_ALREADY_EXISTS;
 			goto err_lock;
 		}
@@ -720,6 +721,7 @@ acpi_status_t acpi_get_table_by_name(acpi_tag_t sig, char *oem_id, char *oem_tab
 
 acpi_status_t acpi_install_table(struct acpi_table_header *table,
 				 acpi_table_flags_t flags,
+				 boolean versioning,
 				 acpi_ddb_t *ddb_handle)
 {
 	acpi_status_t status;
@@ -728,8 +730,8 @@ acpi_status_t acpi_install_table(struct acpi_table_header *table,
 	if (!table || !ddb_handle)
 		return AE_BAD_PARAMETER;
 	
-	status = acpi_table_install(ACPI_PTR_TO_PHYSADDR(table),
-				    ACPI_TAG_NULL, flags, false, &ddb);
+	status = acpi_table_install(ACPI_PTR_TO_PHYSADDR(table), ACPI_TAG_NULL,
+				    flags, false, versioning, &ddb);
 	if (ACPI_FAILURE(status))
 		return status;
 

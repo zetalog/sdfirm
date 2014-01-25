@@ -839,7 +839,8 @@ boolean acpi_table_checksum_valid(struct acpi_table_header *table);
 uint32_t acpi_table_get_length(struct acpi_table_header *table);
 
 acpi_status_t acpi_table_install(acpi_addr_t address, acpi_tag_t signature,
-				 acpi_table_flags_t flags, boolean override,
+				 acpi_table_flags_t flags,
+				 boolean override, boolean versioning,
 				 acpi_ddb_t *ddb_handle);
 
 acpi_status_t acpi_rsdp_parse(acpi_addr_t rsdp_address);
@@ -881,8 +882,10 @@ boolean acpi_table_is_installed(acpi_ddb_t ddb);
 boolean acpi_table_is_uninstalled(acpi_ddb_t ddb);
 boolean acpi_table_is_loaded(acpi_ddb_t ddb);
 boolean acpi_table_contains_aml(struct acpi_table_header *table);
+boolean acpi_table_has_header(acpi_name_t signature);
 acpi_status_t acpi_install_table(struct acpi_table_header *table,
 				 acpi_table_flags_t flags,
+				 boolean versioning,
 				 acpi_ddb_t *ddb_handle);
 void acpi_uninstall_table(acpi_ddb_t ddb);
 

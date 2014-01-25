@@ -245,14 +245,16 @@ static VOID ACPIAppendTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb)
 	nIndex = ListView_InsertItem(hwndList, &lvi);
 
 	if (nIndex != -1) {
-		sprintf(tmpstring, "%6.6s", table->oem_id);
-		ListView_SetItemText(hwndList, nIndex, 1, tmpstring);
-		sprintf(tmpstring, "%8.8s", table->oem_table_id);
-		ListView_SetItemText(hwndList, nIndex, 2, tmpstring);
-		sprintf(tmpstring, "0x%02X", table->revision);
-		ListView_SetItemText(hwndList, nIndex, 3, tmpstring);
-		sprintf(tmpstring, "0x%08X", table->oem_revision);
-		ListView_SetItemText(hwndList, nIndex, 4, tmpstring);
+		if (acpi_table_has_header(name)) {
+			sprintf(tmpstring, "%6.6s", table->oem_id);
+			ListView_SetItemText(hwndList, nIndex, 1, tmpstring);
+			sprintf(tmpstring, "%8.8s", table->oem_table_id);
+			ListView_SetItemText(hwndList, nIndex, 2, tmpstring);
+			sprintf(tmpstring, "0x%02X", table->revision);
+			ListView_SetItemText(hwndList, nIndex, 3, tmpstring);
+			sprintf(tmpstring, "0x%08X", table->oem_revision);
+			ListView_SetItemText(hwndList, nIndex, 4, tmpstring);
+		}
 	}
 
 	acpi_put_table(ddb, table);

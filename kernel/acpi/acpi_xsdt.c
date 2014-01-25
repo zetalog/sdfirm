@@ -90,7 +90,7 @@ acpi_status_t acpi_xsdt_parse(acpi_addr_t xsdt_address, uint32_t table_entry_siz
 								table_entry_size),
 					    ACPI_TAG_NULL,
 					    ACPI_TABLE_INTERNAL_PHYSICAL,
-					    true, &ddb);
+					    true, true, &ddb);
 		if (ACPI_SUCCESS(status)) {
 			acpi_get_table(ddb, &table);
 			if (ACPI_NAMECMP(ACPI_SIG_FADT, table->signature))

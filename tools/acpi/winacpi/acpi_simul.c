@@ -25,10 +25,13 @@ static struct acpi_table_header *acpi_emu_dsdt_override;
 static boolean acpi_emu_reduced_hardware = false;
 static struct acpi_semaphore_info acpi_emu_semaphores[ACPI_OS_MAX_SEMAPHORES];
 static boolean acpi_emu_debug_timeout = false;
+static boolean acpi_emu_dsdt_reloaded = false;
+static boolean acpi_emu_facs_reloaded = false;
+static boolean acpi_emu_fadt_reloaded = false;
 
 static unsigned char acpi_emu_default_dsdt[] = {
 	0x44,0x53,0x44,0x54,0x24,0x00,0x00,0x00,  /* 00000000    "DSDT$..." */
-	0x00,0x71,0x49,0x6E,0x74,0x65,0x6C,0x00,  /* 00000008    ".oIntel." */
+	0x02,0x6F,0x49,0x6E,0x74,0x65,0x6C,0x00,  /* 00000008    ".oIntel." */
 	0x4E,0x75,0x6C,0x6C,0x44,0x53,0x44,0x54,  /* 00000010    "NullDSDT" */
 	0x01,0x00,0x00,0x00,0x49,0x4E,0x54,0x4C,  /* 00000018    "....INTL" */
 	0x04,0x12,0x08,0x20,
@@ -108,11 +111,27 @@ acpi_status_t acpi_emu_load_table(const char *file)
 	struct acpi_table_header *table;
 	acpi_ddb_t ddb;
 	acpi_status_t status;
+	boolean versioning = true;
 
 	status = acpi_table_read_file(file, 0, ACPI_NULL_NAME, &table);
 	if (ACPI_FAILURE(status))
 		return status;
-	status = acpi_install_table(table, ACPI_TABLE_INTERNAL_VIRTUAL, &ddb);
+
+	if (ACPI_NAMECMP(ACPI_SIG_DSDT, table->signature)) {
+		versioning = acpi_emu_dsdt_reloaded ? true : false;
+		acpi_emu_dsdt_reloaded = true;
+	}
+	if (ACPI_NAMECMP(ACPI_SIG_FACS, table->signature)) {
+		versioning = acpi_emu_facs_reloaded ? true : false;
+		acpi_emu_facs_reloaded = true;
+	}
+	if (ACPI_NAMECMP(ACPI_SIG_FADT, table->signature)){
+		versioning = acpi_emu_fadt_reloaded ? true : false;
+		acpi_emu_fadt_reloaded = true;
+	}
+
+	status = acpi_install_table(table, ACPI_TABLE_INTERNAL_VIRTUAL,
+				    versioning, &ddb);
 	if (ACPI_SUCCESS(status))
 		acpi_table_decrement(ddb);
 
