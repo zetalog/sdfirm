@@ -710,6 +710,7 @@ struct acpi_table_list {
 
 #define ACPI_DDB_HANDLE_DSDT		((acpi_ddb_t)0)
 #define ACPI_DDB_HANDLE_FACS		((acpi_ddb_t)1)
+#define ACPI_DDB_HANDLE_NON_FIXED	2
 #define ACPI_DDB_HANDLE_INVALID		((acpi_ddb_t)0xFFFFFFFF)
 
 typedef uint8_t acpi_object_type;

@@ -44,13 +44,12 @@
 #include <target/acpi.h>
 
 #define ACPI_TABLE_LIST_INCREMENT	4
-#define ACPI_TABLE_LIST_FIXED		2
 
-#define foreach_table_handle_garbage(ddb)			\
-	for (ddb = ACPI_TABLE_LIST_FIXED;			\
+#define foreach_garbage_ddb(ddb, start)				\
+	for (ddb = start;					\
 	     ddb < acpi_gbl_table_list.use_table_count; ddb++)	\
 		if (acpi_gbl_table_list.tables[ddb].flags & ACPI_TABLE_IS_GARBAGE)
-#define foreach_table_handle(ddb, start)			\
+#define foreach_non_garbage_ddb(ddb, start)			\
 	for (ddb = start;					\
 	     ddb < acpi_gbl_table_list.use_table_count; ddb++)	\
 		if (!(acpi_gbl_table_list.tables[ddb].flags & ACPI_TABLE_IS_GARBAGE))
@@ -209,7 +208,7 @@ static acpi_status_t acpi_table_list_acquire(acpi_ddb_t *ddb_handle,
 		ddb = ACPI_DDB_HANDLE_FACS;
 		goto out_succ;
 	}
-	foreach_table_handle_garbage(ddb)
+	foreach_garbage_ddb(ddb, ACPI_DDB_HANDLE_NON_FIXED)
 		goto out_succ;
 
 	if (acpi_gbl_table_list.use_table_count >= acpi_gbl_table_list.max_table_count) {
@@ -498,7 +497,7 @@ acpi_status_t acpi_table_install_non_fixed(acpi_addr_t address,
 		return status;
 
 	acpi_table_lock();
-	foreach_table_handle(ddb, 0) {
+	foreach_non_garbage_ddb(ddb, 0) {
 		table_desc = &acpi_gbl_table_list.tables[ddb];
 		if (!acpi_table_is_same(table_desc,
 					ACPI_NAME2TAG(new_table_desc.signature),
@@ -687,7 +686,7 @@ acpi_status_t acpi_get_table_by_inst(acpi_tag_t sig, uint32_t instance,
 	*out_table = NULL;
 
 	acpi_table_lock();
-	foreach_table_handle(ddb, 0) {
+	foreach_non_garbage_ddb(ddb, 0) {
 		table_desc = &acpi_gbl_table_list.tables[ddb];
 
 		if (!ACPI_NAMECMP(sig, table_desc->signature))
@@ -718,7 +717,7 @@ acpi_status_t acpi_get_table_by_name(acpi_tag_t sig, char *oem_id, char *oem_tab
 	*out_table = NULL;
 
 	acpi_table_lock();
-	foreach_table_handle(ddb, 0) {
+	foreach_non_garbage_ddb(ddb, 0) {
 		table_desc = &acpi_gbl_table_list.tables[ddb];
 
 		if (!acpi_table_is_same(table_desc, sig, oem_id, oem_table_id))
@@ -753,7 +752,7 @@ void acpi_load_tables(void)
 
 	acpi_table_lock();
 
-	foreach_table_handle(ddb, 0) {
+	foreach_non_garbage_ddb(ddb, 0) {
 		if ((!ACPI_NAMECMP(ACPI_SIG_DSDT,
 				   acpi_gbl_table_list.tables[ddb].signature) &&
 		     !ACPI_NAMECMP(ACPI_SIG_SSDT,
@@ -825,7 +824,7 @@ acpi_status_t acpi_initialize_tables(struct acpi_table_desc *initial_table_array
 			acpi_gbl_table_list.flags |= ACPI_ROOT_ALLOW_RESIZE;
 	}
 	acpi_reference_set(&acpi_gbl_table_list.all_table_count, 0);
-	acpi_gbl_table_list.use_table_count = ACPI_TABLE_LIST_FIXED;
+	acpi_gbl_table_list.use_table_count = ACPI_DDB_HANDLE_NON_FIXED;
 	acpi_table_unlock();
 
 	return acpi_rsdp_parse(rsdp_address);
@@ -837,7 +836,7 @@ void acpi_finalize_tables(void)
 
 	acpi_table_lock();
 	acpi_gbl_table_finalizing = true;
-	foreach_table_handle(ddb, 0) {
+	foreach_non_garbage_ddb(ddb, 0) {
 		acpi_table_increment(ddb);
 		acpi_table_unlock();
 		acpi_uninstall_table(ddb);
