@@ -112,18 +112,22 @@ acpi_status_t acpi_emu_load_table(const char *file)
 	status = acpi_table_read_file(file, 0, ACPI_NULL_NAME, &table);
 	if (ACPI_FAILURE(status))
 		return status;
-	return acpi_install_table(table, ACPI_TABLE_INTERNAL_VIRTUAL, &ddb);
+	status = acpi_install_table(table, ACPI_TABLE_INTERNAL_VIRTUAL, &ddb);
+	if (ACPI_SUCCESS(status))
+		acpi_table_decrement(ddb);
+
+	return status;
 }
 
 acpi_status_t acpi_emu_read_table(const char *file)
 {
+	int ret;
 	struct acpi_table_header *table;
 	struct acpi_table_desc *table_desc;
-	acpi_status_t status;
 
-	status = acpi_table_read_file(file, 0, ACPI_NULL_NAME, &table);
-	if (ACPI_FAILURE(status))
-		return status;
+	ret = acpi_table_read_file(file, 0, ACPI_NULL_NAME, &table);
+	if (ret)
+		return AE_NOT_FOUND;
 
 	/* Ignore FADT since we'll build it */
 	if (!ACPI_NAMECMP(ACPI_SIG_FADT, table->signature)) {

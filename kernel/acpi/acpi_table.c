@@ -490,6 +490,7 @@ acpi_status_t acpi_table_install(acpi_addr_t address, acpi_tag_t signature,
 
 	*ddb_handle = ddb;
 	acpi_table_install_and_override(&new_table_desc, ddb, override);
+	acpi_table_increment(ddb);
 
 err_lock:
 	acpi_table_unlock();
@@ -722,13 +723,24 @@ acpi_status_t acpi_install_table(struct acpi_table_header *table,
 				 acpi_ddb_t *ddb_handle)
 {
 	acpi_status_t status;
+	acpi_ddb_t ddb;
 	
 	if (!table || !ddb_handle)
 		return AE_BAD_PARAMETER;
 	
 	status = acpi_table_install(ACPI_PTR_TO_PHYSADDR(table),
-				    ACPI_TAG_NULL, flags, false, ddb_handle);
-	return status;
+				    ACPI_TAG_NULL, flags, false, &ddb);
+	if (ACPI_FAILURE(status))
+		return status;
+
+	status = __acpi_load_table(ddb, acpi_gbl_root_node);
+	if (ACPI_FAILURE(status)) {
+		acpi_table_decrement(ddb);
+		return status;
+	}
+
+	*ddb_handle = ddb;
+	return AE_OK;
 }
 
 void acpi_load_tables(void)
