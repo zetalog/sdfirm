@@ -138,7 +138,6 @@ static acpi_status_t acpi_table_list_resize(void)
 {
 	struct acpi_table_desc *tables;
 	uint32_t table_count, total_count;
-	acpi_ddb_t ddb;
 
 	if (!(acpi_gbl_table_list.flags & ACPI_ROOT_ALLOW_RESIZE))
 		return AE_SUPPORT;
@@ -156,8 +155,6 @@ static acpi_status_t acpi_table_list_resize(void)
 	if (acpi_gbl_table_list.tables) {
 		memcpy(tables, acpi_gbl_table_list.tables,
 		       table_count * sizeof (struct acpi_table_desc));
-		for (ddb = table_count; ddb < total_count; ddb++)
-			tables[ddb].flags = ACPI_TABLE_IS_UNINSTALLED;
 		if (acpi_gbl_table_list.flags & ACPI_ROOT_ORIGIN_ALLOCATED)
 			heap_free(acpi_gbl_table_list.tables);
 	}
@@ -418,6 +415,7 @@ static void acpi_table_install_and_override(struct acpi_table_desc *new_table_de
 	__acpi_table_install(&acpi_gbl_table_list.tables[ddb],
 			     new_table_desc->address, new_table_desc->flags,
 			     new_table_desc->pointer);
+	acpi_gbl_table_list.tables[ddb].flags |= ACPI_TABLE_IS_INSTALLED;
 	/* Acquire the MANAGED reference */
 	acpi_table_increment(ddb);
 	acpi_table_notify(&acpi_gbl_table_list.tables[ddb], ddb,
@@ -510,8 +508,8 @@ boolean acpi_table_is_loaded(acpi_ddb_t ddb)
 boolean acpi_table_is_installed(acpi_ddb_t ddb)
 {
 	if (ddb < acpi_gbl_table_list.use_table_count &&
-	    !(acpi_gbl_table_list.tables[ddb].flags &
-	     (ACPI_TABLE_IS_UNINSTALLING | ACPI_TABLE_IS_UNINSTALLED)))
+	    acpi_gbl_table_list.tables[ddb].flags & ACPI_TABLE_IS_INSTALLED &&
+	    !(acpi_gbl_table_list.tables[ddb].flags & ACPI_TABLE_IS_UNINSTALLING))
 		return true;
 	return false;
 }
@@ -519,7 +517,7 @@ boolean acpi_table_is_installed(acpi_ddb_t ddb)
 boolean acpi_table_is_uninstalled(acpi_ddb_t ddb)
 {
 	if (ddb < acpi_gbl_table_list.use_table_count &&
-	    acpi_gbl_table_list.tables[ddb].flags & ACPI_TABLE_IS_UNINSTALLED)
+	    !(acpi_gbl_table_list.tables[ddb].flags & ACPI_TABLE_IS_INSTALLED))
 		return true;
 	return false;
 }
@@ -583,9 +581,9 @@ void acpi_table_decrement(acpi_ddb_t ddb)
 	table_desc = &acpi_gbl_table_list.tables[ddb];
 	if (table_desc &&
 	    acpi_reference_dec_and_test(&table_desc->reference_count) == 0) {
-		table_desc->flags |= ACPI_TABLE_IS_UNINSTALLED;
-		__acpi_table_uninstall(table_desc);
 		table_desc->flags &= ~ACPI_TABLE_IS_UNINSTALLING;
+		__acpi_table_uninstall(table_desc);
+		table_desc->flags &= ~ACPI_TABLE_IS_INSTALLED;
 		acpi_reference_dec(&acpi_gbl_table_list.all_table_count);
 	}
 }
@@ -784,7 +782,6 @@ acpi_status_t acpi_initialize_tables(struct acpi_table_desc *initial_table_array
 {
 	acpi_addr_t rsdp_address;
 	acpi_status_t status;
-	acpi_ddb_t ddb;
 
 	status = acpi_os_create_mutex(&acpi_gbl_table_mutex);
 	if (ACPI_FAILURE(status))
@@ -802,8 +799,6 @@ acpi_status_t acpi_initialize_tables(struct acpi_table_desc *initial_table_array
 	} else {
 		memset(initial_table_array, 0,
 		       initial_table_count * sizeof (struct acpi_table_desc));
-		for (ddb = 0; ddb < initial_table_count; ddb++)
-			initial_table_array[ddb].flags = ACPI_TABLE_IS_UNINSTALLED;
 		acpi_gbl_table_list.tables = initial_table_array;
 		acpi_gbl_table_list.max_table_count = initial_table_count;
 		acpi_gbl_table_list.flags = ACPI_ROOT_ORIGIN_UNKNOWN;

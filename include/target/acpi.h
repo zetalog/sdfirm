@@ -694,8 +694,8 @@ struct acpi_table_desc {
 #define ACPI_TABLE_INTERNAL_VIRTUAL	((acpi_table_flags_t)0x02)
 #define ACPI_TABLE_ORIGIN_MASK		(0x03)
 #define ACPI_TABLE_IS_LOADED		(0x04)
-#define ACPI_TABLE_IS_UNINSTALLING	(0x08)
-#define ACPI_TABLE_IS_UNINSTALLED	(0x10)
+#define ACPI_TABLE_IS_INSTALLED		(0x08)
+#define ACPI_TABLE_IS_UNINSTALLING	(0x10)
 
 struct acpi_table_list {
 	struct acpi_table_desc *tables;
