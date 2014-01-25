@@ -427,43 +427,6 @@ static void acpi_table_install_and_override(struct acpi_table_desc *new_table_de
 		acpi_determine_integer_width(ACPI_DECODE8(&new_table_desc->pointer->revision));
 }
 
-acpi_status_t acpi_table_install_fixed(acpi_addr_t address,
-				       acpi_tag_t signature,
-				       acpi_ddb_t ddb)
-{
-	struct acpi_table_desc new_table_desc;
-	acpi_status_t status;
-
-	if (!address) {
-		acpi_err("[0x%X]: Null physical address for ACPI table", signature);
-		return AE_NO_MEMORY;
-	}
-
-	status = acpi_table_install_temporal(&new_table_desc, address, ACPI_TABLE_INTERNAL_PHYSICAL);
-	if (ACPI_FAILURE(status)) {
-		acpi_err("[0x%X]: Could not acquire table length at %p", signature,
-			 ACPI_CAST_PTR(void, address));
-		return status;
-	}
-
-	status = acpi_table_verify(&new_table_desc, signature);
-	if (ACPI_FAILURE(status))
-		goto err_inst;
-
-	acpi_table_lock();
-
-	status = acpi_table_list_acquire(&ddb, new_table_desc.signature);
-	if (ACPI_FAILURE(status))
-		goto err_lock;
-	acpi_table_install_and_override(&new_table_desc, ddb, true);
-
-err_lock:
-	acpi_table_unlock();
-err_inst:
-	acpi_table_uninstall_temporal(&new_table_desc);
-	return status;
-}
-
 boolean acpi_table_is_same(struct acpi_table_desc *table_desc, acpi_tag_t sig,
 			   char *oem_id, char *oem_table_id)
 {
@@ -478,21 +441,28 @@ boolean acpi_table_is_same(struct acpi_table_desc *table_desc, acpi_tag_t sig,
 		true : false);
 }
 
-acpi_status_t acpi_table_install_non_fixed(acpi_addr_t address,
-					   acpi_table_flags_t flags,
-					   boolean override,
-					   acpi_ddb_t *ddb_handle)
+acpi_status_t acpi_table_install(acpi_addr_t address, acpi_tag_t signature,
+				 acpi_table_flags_t flags, boolean override,
+				 acpi_ddb_t *ddb_handle)
 {
 	acpi_ddb_t ddb;
 	acpi_status_t status;
 	struct acpi_table_desc new_table_desc;
 	struct acpi_table_desc *table_desc;
 
-	status = acpi_table_install_temporal(&new_table_desc, address, flags);
-	if (ACPI_FAILURE(status))
-		return status;
+	if (!address) {
+		acpi_err("[0x%X]: Null physical address for ACPI table", signature);
+		return AE_NO_MEMORY;
+	}
 
-	status = acpi_table_verify(&new_table_desc, ACPI_TAG_NULL);
+	status = acpi_table_install_temporal(&new_table_desc, address, flags);
+	if (ACPI_FAILURE(status)) {
+		acpi_err("[0x%X]: Could not acquire table length at %p", signature,
+			 ACPI_CAST_PTR(void, address));
+		return status;
+	}
+
+	status = acpi_table_verify(&new_table_desc, signature);
 	if (ACPI_FAILURE(status))
 		return status;
 
@@ -758,8 +728,8 @@ acpi_status_t acpi_install_table(struct acpi_table_header *table,
 	if (!table || !ddb_handle)
 		return AE_BAD_PARAMETER;
 	
-	status = acpi_table_install_non_fixed(ACPI_PTR_TO_PHYSADDR(table),
-					      flags, false, ddb_handle);
+	status = acpi_table_install(ACPI_PTR_TO_PHYSADDR(table),
+				    ACPI_TAG_NULL, flags, false, ddb_handle);
 	return status;
 }
 

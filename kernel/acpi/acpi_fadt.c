@@ -277,6 +277,7 @@ static void acpi_fadt_copy_local(struct acpi_table_header *table)
 void acpi_fadt_parse(struct acpi_table_header *table)
 {
 	uint32_t length;
+	acpi_ddb_t ddb;
 
 	if (!table)
 		return;
@@ -285,9 +286,11 @@ void acpi_fadt_parse(struct acpi_table_header *table)
 	acpi_fadt_copy_local(table);
 
 	/* Obtain the DSDT and FACS tables via their addresses within the FADT */
-	acpi_table_install_fixed((acpi_addr_t)ACPI_DECODE64(&acpi_gbl_FADT.Xdsdt),
-				 ACPI_SIG_DSDT, ACPI_DDB_HANDLE_DSDT);
+	acpi_table_install((acpi_addr_t)ACPI_DECODE64(&acpi_gbl_FADT.Xdsdt),
+			   ACPI_SIG_DSDT, ACPI_TABLE_INTERNAL_PHYSICAL,
+			   false, &ddb);
 	if (acpi_fadt_flag_is_set(ACPI_FADT_HW_REDUCED))
-		acpi_table_install_fixed((acpi_addr_t)ACPI_DECODE64(&acpi_gbl_FADT.Xfacs),
-					 ACPI_SIG_FACS, ACPI_DDB_HANDLE_FACS);
+		acpi_table_install((acpi_addr_t)ACPI_DECODE64(&acpi_gbl_FADT.Xfacs),
+				   ACPI_SIG_FACS, ACPI_TABLE_INTERNAL_PHYSICAL,
+				   false, &ddb);
 }

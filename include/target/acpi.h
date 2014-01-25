@@ -838,13 +838,9 @@ void acpi_table_calc_checksum(struct acpi_table_header *table);
 boolean acpi_table_checksum_valid(struct acpi_table_header *table);
 uint32_t acpi_table_get_length(struct acpi_table_header *table);
 
-acpi_status_t acpi_table_install_fixed(acpi_addr_t address,
-				       acpi_tag_t signature,
-				       acpi_ddb_t ddb);
-acpi_status_t acpi_table_install_non_fixed(acpi_addr_t address,
-					   acpi_table_flags_t flags,
-					   boolean override,
-					   acpi_ddb_t *ddb_handle);
+acpi_status_t acpi_table_install(acpi_addr_t address, acpi_tag_t signature,
+				 acpi_table_flags_t flags, boolean override,
+				 acpi_ddb_t *ddb_handle);
 
 acpi_status_t acpi_rsdp_parse(acpi_addr_t rsdp_address);
 void acpi_rsdp_calc_checksum(struct acpi_table_rsdp *rsdp);
