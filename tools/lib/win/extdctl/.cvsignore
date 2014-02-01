@@ -1,0 +1,15 @@
+*.aps
+*.plg
+*.ncb
+*.opt
+*.suo
+*.c
+*.rc
+*.def
+*.dsp
+*.vcproj
+SPLIntern.h
+ECRes.h
+ECIntern.h
+res
+ref

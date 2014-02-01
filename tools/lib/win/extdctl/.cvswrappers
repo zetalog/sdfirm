@@ -1,0 +1,8 @@
+# VC++ Files are BINARY
+
+*.dsp -k 'b'
+*.dsw -k 'b'
+*.sln -k 'b'
+*.vcproj -k 'b'
+*.lib -k 'b'
+*.dll -k 'b'

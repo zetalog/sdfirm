@@ -99,6 +99,18 @@ Package=<4>
 
 ###############################################################################
 
+Project: "extdctl"=.\tools\lib\win\extdctl\extdctl.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "inf_wizard"=.\tools\usb\core\libusb\inf_wizard.dsp - Package Owner=<4>
 
 Package=<5>
@@ -326,6 +338,9 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name extdctl
+    End Project Dependency
 }}}
 
 ###############################################################################

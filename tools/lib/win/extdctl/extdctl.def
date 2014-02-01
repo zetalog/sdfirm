@@ -1,0 +1,8 @@
+LIBRARY	extdctl	BASE=0x66000000
+EXPORTS
+
+    InitExtendedControls
+	InitExtendedControlsEx
+
+	InitSplitterControl
+	InitTreeListControl
