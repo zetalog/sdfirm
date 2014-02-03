@@ -223,7 +223,7 @@ static VOID ACPIAppendTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb)
 {
 	LVITEM lvi = { 0 };
 	int nIndex;
-	HWND hwndList = lpWD->hwndListView;
+	HWND hwndList = lpWD->hwndTableList;
 	CHAR tmpstring[10];
 	char name[ACPI_NAME_SIZE+1];
 	struct acpi_table_header *table;
@@ -264,7 +264,7 @@ static VOID ACPIRemoveTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb)
 {
 	LV_FINDINFO lvfi;
 	int nIndex;
-	HWND hwndList = lpWD->hwndListView;
+	HWND hwndList = lpWD->hwndTableList;
 
 	lvfi.flags = LVFI_PARAM;
 	lvfi.lParam = (LPARAM)ddb;
@@ -276,7 +276,7 @@ static VOID ACPIRemoveTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb)
 acpi_ddb_t ACPIGetSelectedTable(LPACPIWNDDATA lpWD)
 {
 	int nIndex;
-	HWND hwndList = lpWD->hwndListView;
+	HWND hwndList = lpWD->hwndTableList;
 	LVITEM lvi = { 0 };
 
 	nIndex = ListView_GetNextItem(hwndList, -1, LVNI_SELECTED);
@@ -322,51 +322,135 @@ void ACPIBuildTableTitles(LPACPIWNDDATA lpWD)
 	lvc.cx = SIGNATUREWIDTH;
 	LoadString(_hInstance, IDS_TABLE_SIGNATURE, tsz, sizeof (tsz));
 	lvc.cchTextMax = _tcslen(tsz);
-	ListView_InsertColumn(lpWD->hwndListView, 2, &lvc);
+	ListView_InsertColumn(lpWD->hwndTableList, 2, &lvc);
 	
 	lvc.cx = OEMIDWIDTH;
 	LoadString(_hInstance, IDS_TABLE_OEMID, tsz, sizeof (tsz));
 	lvc.cchTextMax = _tcslen(tsz);
-	ListView_InsertColumn(lpWD->hwndListView, 3, &lvc);
+	ListView_InsertColumn(lpWD->hwndTableList, 3, &lvc);
 	
 	lvc.cx = OEMTABLEIDWIDTH;
 	LoadString(_hInstance, IDS_TABLE_OEMTABLEID, tsz, sizeof (tsz));
 	lvc.cchTextMax = _tcslen(tsz);
-	ListView_InsertColumn(lpWD->hwndListView, 4, &lvc);
+	ListView_InsertColumn(lpWD->hwndTableList, 4, &lvc);
 	
 	lvc.cx = REVISIONWIDTH;
 	LoadString(_hInstance, IDS_TABLE_REVISION, tsz, sizeof (tsz));
 	lvc.cchTextMax = _tcslen(tsz);
-	ListView_InsertColumn(lpWD->hwndListView, 5, &lvc);
+	ListView_InsertColumn(lpWD->hwndTableList, 5, &lvc);
 	
 	lvc.cx = OEMREVISIONWIDTH;
 	LoadString(_hInstance, IDS_TABLE_OEMREVISION, tsz, sizeof (tsz));
 	lvc.cchTextMax = _tcslen(tsz);
-	ListView_InsertColumn(lpWD->hwndListView, 6, &lvc);
+	ListView_InsertColumn(lpWD->hwndTableList, 6, &lvc);
 	
-	ListView_SetImageList(lpWD->hwndListView, hImageList, LVSIL_SMALL);
+	ListView_SetImageList(lpWD->hwndTableList, hImageList, LVSIL_SMALL);
+}
+
+void ACPIBuildObjectTitles(LPACPIWNDDATA lpWD)
+{
+	LVCOLUMN lvc;
+	TCHAR tsz[64] = TEXT("");
+
+#define ATTRIBWIDTH		50
+#define VALUEWIDTH		60
+	
+	// some stuff will not be changed
+	lvc.mask = LVCF_FMT | LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
+	lvc.pszText = tsz;
+	lvc.fmt = LVCFMT_LEFT;
+	
+	lvc.iSubItem = 0;
+	
+	lvc.cx = ATTRIBWIDTH;
+	LoadString(_hInstance, IDS_OBJECT_ATTRIBUTE, tsz, sizeof (tsz));
+	lvc.cchTextMax = _tcslen(tsz);
+	ListView_InsertColumn(lpWD->hwndNamespaceList, 2, &lvc);
+	
+	lvc.cx = VALUEWIDTH;
+	LoadString(_hInstance, IDS_OBJECT_VALUE, tsz, sizeof (tsz));
+	lvc.cchTextMax = _tcslen(tsz);
+	ListView_InsertColumn(lpWD->hwndNamespaceList, 3, &lvc);
 }
 
 BOOL ACPICreateWindow(LPACPIWNDDATA lpWD)
 {
-	HWND hWnd;
+	SPLCREATESTRUCT splcs;
+	SPLPANEINFO sppi;
+	DWORD dwStyle;
 
-	hWnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTVIEW, 
-			      "AcpiTableListView",
-			      WS_VISIBLE | WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS,
-			      0, 0, 0, 0,
-			      lpWD->hWnd,
-			      (HMENU)ID_MAINFRAME, _hInstance, NULL);
-	if (!hWnd) {
-		MessageIDBox(NULL, IDS_ERROR_INIT_APPLICATION,
-			     IDS_ERROR, MB_OK | MB_ICONERROR);
+	memset(&splcs, 0, sizeof (splcs));
+	splcs.hInstance = _hInstance;
+	splcs.lpszClass = _szWindowClass;
+	splcs.hwndParent = lpWD->hWnd;
+	splcs.dwStyle = WS_CHILD | WS_VISIBLE;
+	splcs.nID = EC_IDW_PANE_FIRST;
+	splcs.nRows = 1;
+	splcs.nCols = 3;
+	splcs.sizeMin.cx = 16;
+	splcs.sizeMin.cy = 16;
+	splcs.nMaxCols = 0;
+	splcs.nMaxRows = 0;
+	
+	dwStyle = WS_VISIBLE | WS_CHILD | WS_BORDER |
+		  WS_TABSTOP | WS_GROUP;
+	lpWD->hwndSplitter = CreateWindowEx(WS_EX_CLIENTEDGE, WC_SPLITTER,
+					    TEXT("ACPIMainFrame"), dwStyle,
+					    0, 0, 0, 0, lpWD->hWnd,
+					    (HMENU)ID_MAINFRAME,
+					    _hInstance, &splcs);
+	
+	splcs.lpszClass = WC_LISTVIEW;
+	splcs.lpszName = TEXT("ACPITables");
+	splcs.dwStyle = LVS_REPORT | LVS_SHOWSELALWAYS;
+	splcs.nRows = 0;
+	splcs.nCols = 0;
+	splcs.sizeMin.cx = 60;
+	splcs.sizeMin.cy = 0;
+	if (!Splitter_CreateView(lpWD->hwndSplitter, &splcs))
 		return FALSE;
-	}
-	lpWD->hwndListView = hWnd;
-	ListView_SetExtendedListViewStyle(lpWD->hwndListView, 
+	
+	splcs.lpszClass = WC_TREEVIEW;
+	splcs.lpszName = TEXT("ACPINamespace");
+	splcs.dwStyle = TVS_HASLINES | TVS_LINESATROOT | TVS_HASBUTTONS | TVS_SHOWSELALWAYS;
+	splcs.nRows = 0;
+	splcs.nCols = 1;
+	splcs.sizeMin.cx = 500;
+	splcs.sizeMin.cy = 0;
+	if (!Splitter_CreateView(lpWD->hwndSplitter, &splcs))
+		return FALSE;
+	
+	splcs.lpszClass = WC_LISTVIEW;
+	splcs.lpszName = TEXT("ACPIObjects");
+	splcs.dwStyle = LVS_REPORT | LVS_SHOWSELALWAYS;
+	splcs.nRows = 0;
+	splcs.nCols = 2;
+	splcs.sizeMin.cx = 120;
+	splcs.sizeMin.cy = 0;
+	if (!Splitter_CreateView(lpWD->hwndSplitter, &splcs))
+		return FALSE;
+	
+	sppi.col = 0;
+	sppi.row = 0;
+	lpWD->hwndTableList = Splitter_GetPane(lpWD->hwndSplitter, &sppi);
+	ListView_SetExtendedListViewStyle(lpWD->hwndTableList, 
 					  LVS_EX_FULLROWSELECT/* |
 					  LVS_EX_GRIDLINES*/);
 	ACPIBuildTableTitles(lpWD);
+
+	sppi.col = 1;
+	sppi.row = 0;
+	lpWD->hwndNamespaceTree = Splitter_GetPane(lpWD->hwndSplitter, &sppi);
+
+	sppi.col = 2;
+	sppi.row = 0;
+	lpWD->hwndNamespaceList = Splitter_GetPane(lpWD->hwndSplitter, &sppi);
+	ListView_SetExtendedListViewStyle(lpWD->hwndNamespaceList, 
+					  LVS_EX_FULLROWSELECT/* |
+					  LVS_EX_GRIDLINES*/);
+	ACPIBuildObjectTitles(lpWD);
+
+	ShowWindow(lpWD->hwndSplitter, SW_SHOW);
 
 	ACPIInitApplication(lpWD);
 	return TRUE;
@@ -375,7 +459,10 @@ BOOL ACPICreateWindow(LPACPIWNDDATA lpWD)
 VOID ACPIDestroyWindow(LPACPIWNDDATA lpWD)
 {
 	ACPIExitApplication(lpWD);
-	DestroyWindow(lpWD->hwndListView);
+	DestroyWindow(lpWD->hwndNamespaceList);
+	DestroyWindow(lpWD->hwndNamespaceTree);
+	DestroyWindow(lpWD->hwndTableList);
+	DestroyWindow(lpWD->hwndSplitter);
 }
 
 VOID SaveWindowContext(HWND hWnd)
@@ -625,6 +712,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	iccex.dwICC = ICC_COOL_CLASSES;
 	InitCommonControlsEx(&iccex);
 	
+	InitExtendedControls();
 	RegisterAppClass(hInstance);
 	
 	if (!InitInstance(hInstance, nShowCmd)) 

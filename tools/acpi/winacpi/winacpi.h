@@ -5,6 +5,8 @@
 #include <windowsx.h>
 #include <commctrl.h>
 #include <prsht.h>
+#include <host/winlayout.h>
+#include <host/extdctrl.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -14,7 +16,6 @@
 #include <assert.h>
 #include <devioctl.h>
 #include <target/acpi.h>
-#include <host/winlayout.h>
 
 #include "resource.h"
 
@@ -22,7 +23,10 @@ typedef struct tagACPIWNDDATA {
 	HWND hWnd;
 	HWND hwndToolbar;
 	HWND hwndStatusbar;
-	HWND hwndListView;
+	HWND hwndSplitter;
+	HWND hwndTableList;
+	HWND hwndNamespaceTree;
+	HWND hwndNamespaceList;
 	HIMAGELIST himgTableTypes;
 } ACPIWNDDATA, *LPACPIWNDDATA;
 

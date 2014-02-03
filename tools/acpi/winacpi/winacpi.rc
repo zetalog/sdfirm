@@ -297,6 +297,8 @@ BEGIN
     IDS_TABLE_REVISION      "Revision"
     IDS_TABLE_OEMREVISION   "OEM Revision"
     IDS_ERROR_LOAD_TABLE    "Failed to load ACPI table.\n\nStatus:\n%s."
+    IDS_OBJECT_ATTRIBUTE    "Attribute"
+    IDS_OBJECT_VALUE        "Value"
 END
 
 #endif    // English (U.S.) resources
