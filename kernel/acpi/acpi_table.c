@@ -250,7 +250,7 @@ acpi_status_t acpi_reallocate_root_table(void)
 	return AE_OK;
 }
 
-acpi_status_t acpi_table_list_allocate(uint32_t initialial_table_count)
+static acpi_status_t acpi_table_list_allocate(uint32_t initialial_table_count)
 {
 	acpi_status_t status;
 
@@ -619,14 +619,14 @@ acpi_status_t acpi_table_parse(acpi_ddb_t ddb,
 	return acpi_parse_once(ACPI_IMODE_LOAD_PASS2, ddb, start_node);
 }
 
-acpi_status_t __acpi_load_table(acpi_ddb_t ddb,
-				struct acpi_namespace_node *node)
+static acpi_status_t acpi_table_load(acpi_ddb_t ddb, struct acpi_namespace_node *node)
 {
 	acpi_status_t status = AE_OK;
 
 	if (acpi_table_is_loaded(ddb))
 		return AE_ALREADY_EXISTS;
 
+	/* Invoking the parser */
 	status = acpi_table_parse(ddb, node);
 	if (ACPI_SUCCESS(status)) {
 		acpi_table_set_loaded(ddb, true);
@@ -805,7 +805,7 @@ acpi_status_t acpi_install_table(struct acpi_table_header *table,
 	if (ACPI_FAILURE(status))
 		return status;
 
-	status = __acpi_load_table(ddb, acpi_gbl_root_node);
+	status = acpi_table_load(ddb, acpi_gbl_root_node);
 	if (ACPI_FAILURE(status)) {
 		acpi_table_decrement(ddb);
 		return status;
@@ -833,7 +833,7 @@ void acpi_load_tables(void)
 
 		acpi_table_increment(ddb);
 		acpi_table_unlock();
-		(void)__acpi_load_table(ddb, acpi_gbl_root_node);
+		(void)acpi_table_load(ddb, acpi_gbl_root_node);
 		acpi_table_decrement(ddb);
 		acpi_table_lock();
 	}

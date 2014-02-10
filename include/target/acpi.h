@@ -831,33 +831,28 @@ void acpi_encode_generic_address(struct acpi_generic_address *generic_address,
 				 uint64_t address64,
 				 uint16_t bit_width);
 
-/* All types of tables */
-boolean __acpi_table_checksum_valid(struct acpi_table_header *table);
-void acpi_table_calc_checksum(struct acpi_table_header *table);
-/* Non RSDP tables */
-boolean acpi_table_checksum_valid(struct acpi_table_header *table);
-uint32_t acpi_table_get_length(struct acpi_table_header *table);
-
+/*=========================================================================
+ * Table internals
+ *=======================================================================*/
+/* exported for internal table installation */
 acpi_status_t acpi_table_install(acpi_addr_t address, acpi_tag_t signature,
 				 acpi_table_flags_t flags,
 				 boolean override, boolean versioning,
 				 acpi_ddb_t *ddb_handle);
+/* exported for interfacing with event callbacks */
 void acpi_table_notify_existing(void);
-
+/* exported for internal table initialization */
 acpi_status_t acpi_rsdp_parse(acpi_addr_t rsdp_address);
-void acpi_rsdp_calc_checksum(struct acpi_table_rsdp *rsdp);
-boolean acpi_rsdp_checksum_valid(struct acpi_table_rsdp *rsdp);
-
 acpi_status_t acpi_xsdt_parse(acpi_addr_t xsdt_address, uint32_t table_entry_size);
 acpi_status_t acpi_xsdt_verify(acpi_addr_t xsdt_address);
-
-uint32_t acpi_fadt_flag_is_set(uint32_t mask);
 void acpi_fadt_parse(struct acpi_table_header *table);
+/* checksum validation for RSDP tables */
+void acpi_rsdp_calc_checksum(struct acpi_table_rsdp *rsdp);
+boolean acpi_rsdp_checksum_valid(struct acpi_table_rsdp *rsdp);
 
 /*=========================================================================
  * Table initialization
  *=======================================================================*/
-acpi_status_t acpi_table_list_allocate(uint32_t initialial_table_count);
 acpi_status_t acpi_initialize_tables(struct acpi_table_desc *initial_table_array,
 				     uint32_t initial_table_count,
 				     boolean allow_resize);
@@ -867,8 +862,14 @@ void acpi_load_tables(void);
 void acpi_finalize_tables(void);
 
 /*=========================================================================
- * Table interfaces
+ * Table externals
  *=======================================================================*/
+acpi_status_t acpi_install_table(struct acpi_table_header *table,
+				 acpi_table_flags_t flags,
+				 boolean versioning,
+				 acpi_ddb_t *ddb_handle);
+void acpi_uninstall_table(acpi_ddb_t ddb);
+/* references with mappings */
 acpi_status_t acpi_get_table_by_inst(acpi_tag_t sig, uint32_t instance,
 				     acpi_ddb_t *ddb_handle,
 				     struct acpi_table_header **out_table);
@@ -877,19 +878,27 @@ acpi_status_t acpi_get_table_by_name(acpi_tag_t sig, char *oem_id, char *oem_tab
 				     struct acpi_table_header **out_table);
 acpi_status_t acpi_get_table(acpi_ddb_t ddb, struct acpi_table_header **out_table);
 void acpi_put_table(acpi_ddb_t ddb, struct acpi_table_header *table);
+/* references without mappings */
 void acpi_table_increment(acpi_ddb_t ddb);
 void acpi_table_decrement(acpi_ddb_t ddb);
+/* flag testing */
 boolean acpi_table_is_installed(acpi_ddb_t ddb);
 boolean acpi_table_is_uninstalled(acpi_ddb_t ddb);
 boolean acpi_table_is_loaded(acpi_ddb_t ddb);
 boolean acpi_table_contains_aml(struct acpi_table_header *table);
 boolean acpi_table_has_header(acpi_name_t signature);
-acpi_status_t acpi_install_table(struct acpi_table_header *table,
-				 acpi_table_flags_t flags,
-				 boolean versioning,
-				 acpi_ddb_t *ddb_handle);
-void acpi_uninstall_table(acpi_ddb_t ddb);
+/* checksum validation for all types of tables */
+boolean __acpi_table_checksum_valid(struct acpi_table_header *table);
+void acpi_table_calc_checksum(struct acpi_table_header *table);
+/* checksum validation for non RSDP tables */
+boolean acpi_table_checksum_valid(struct acpi_table_header *table);
+uint32_t acpi_table_get_length(struct acpi_table_header *table);
+/* FADT flag testing */
+uint32_t acpi_fadt_flag_is_set(uint32_t mask);
 
+/*=========================================================================
+ * Parser externals
+ *=======================================================================*/
 acpi_status_t acpi_parse_once(acpi_interpreter_mode pass_number,
 			      uint32_t table_index,
 			      struct acpi_namespace_node *start_node);
