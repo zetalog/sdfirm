@@ -103,6 +103,10 @@ acpi_status_t acpi_event_register_table_handler(acpi_event_table_cb handler,
 	acpi_gbl_event_table.invokings = 0;
 	acpi_gbl_event_table.flags = 0;
 
+	acpi_event_unlock();
+	acpi_table_notify_existing();
+	acpi_event_lock();
+
 err_lock:
 	acpi_event_unlock();
 

@@ -55,7 +55,8 @@
 		if (acpi_table_is_installed(ddb))
 
 static struct acpi_table_list acpi_gbl_table_list;
-static boolean 	acpi_gbl_table_finalizing = false;
+static boolean acpi_gbl_table_module_dead = false;
+static boolean acpi_gbl_table_module_busy = false;
 acpi_mutex_t acpi_gbl_table_mutex;
 uint8_t acpi_gbl_integer_bit_width = 64;
 
@@ -69,6 +70,56 @@ static void acpi_table_unlock(void)
 	acpi_os_release_mutex(&acpi_gbl_table_mutex);
 }
 
+static boolean acpi_table_is_module_busy(void)
+{
+	return acpi_gbl_table_module_busy;
+}
+
+static boolean acpi_table_is_module_dead(void)
+{
+	return acpi_gbl_table_module_dead;
+}
+
+static boolean acpi_table_lock_dead(void)
+{
+retry:
+	acpi_table_lock();
+	if (acpi_table_is_module_dead()) {
+		acpi_table_unlock();
+		return false;
+	}
+	if (acpi_table_is_module_busy()) {
+		acpi_table_unlock();
+		acpi_os_sleep(10);
+		goto retry;
+	}
+	acpi_gbl_table_module_dead = true;
+	return true;
+}
+
+static boolean acpi_table_lock_busy(void)
+{
+retry:
+	acpi_table_lock();
+	if (acpi_table_is_module_dead()) {
+		acpi_table_unlock();
+		return false;
+	}
+	if (acpi_table_is_module_busy()) {
+		acpi_table_unlock();
+		acpi_os_sleep(10);
+		goto retry;
+	}
+	acpi_gbl_table_module_busy = true;
+	return true;
+}
+
+static void acpi_table_unlock_busy(void)
+{
+	acpi_gbl_table_module_busy = false;
+	acpi_table_unlock();
+}
+
 static void acpi_table_notify(struct acpi_table_desc *table_desc,
 			      acpi_ddb_t ddb, uint32_t event)
 {
@@ -77,6 +128,25 @@ static void acpi_table_notify(struct acpi_table_desc *table_desc,
 	acpi_event_table_notify(table_desc, ddb, event);
 	acpi_table_lock();
 	acpi_table_decrement(ddb);
+}
+
+void acpi_table_notify_existing(void)
+{
+	acpi_ddb_t ddb;
+
+	if (!acpi_table_lock_busy())
+		return;
+	acpi_foreach_installed_ddb(ddb, 0) {
+		acpi_table_increment(ddb);
+		acpi_table_notify(&acpi_gbl_table_list.tables[ddb], ddb,
+				  ACPI_EVENT_TABLE_INSTALL);
+		/* TODO: Ordered LOAD/UNLOAD event support */
+		if (acpi_table_is_loaded(ddb))
+			acpi_table_notify(&acpi_gbl_table_list.tables[ddb], ddb,
+					  ACPI_EVENT_TABLE_LOAD);
+		acpi_table_decrement(ddb);
+	}
+	acpi_table_unlock_busy();
 }
 
 boolean acpi_table_contains_aml(struct acpi_table_header *table)
@@ -403,7 +473,7 @@ static void acpi_determine_integer_width(uint8_t revision)
 static void acpi_table_install_and_override(struct acpi_table_desc *new_table_desc,
 					    acpi_ddb_t ddb, boolean override)
 {
-	if (acpi_gbl_table_finalizing)
+	if (acpi_table_is_module_dead())
 		return;
 
 	if (ddb >= acpi_gbl_table_list.use_table_count)
@@ -830,8 +900,8 @@ void acpi_finalize_tables(void)
 {
 	acpi_ddb_t ddb;
 
-	acpi_table_lock();
-	acpi_gbl_table_finalizing = true;
+	if (!acpi_table_lock_dead())
+		return;
 	acpi_foreach_installed_ddb(ddb, 0) {
 		acpi_table_increment(ddb);
 		acpi_table_unlock();
