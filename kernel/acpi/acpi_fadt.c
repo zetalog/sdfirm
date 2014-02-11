@@ -1,4 +1,4 @@
-#include <target/acpi.h>
+#include "acpi_int.h"
 
 struct acpi_fadt_info {
 	char *name;

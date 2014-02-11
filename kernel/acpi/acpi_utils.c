@@ -1,4 +1,4 @@
-#include <target/acpi.h>
+#include "acpi_int.h"
 
 int acpi_compare_name(acpi_name_t name1, acpi_name_t name2)
 {

@@ -1,4 +1,4 @@
-#include <target/acpi.h>
+#include "acpi_int.h"
 
 acpi_addr_t acpi_xsdt_get_entry(uint8_t *table_entry, uint32_t table_entry_size)
 {

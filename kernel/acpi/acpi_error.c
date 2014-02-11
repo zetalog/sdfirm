@@ -1,4 +1,17 @@
-#include <target/acpi.h>
+#include "acpi_int.h"
+
+struct acpi_exception_info {
+	char *name;
+#ifdef CONFIG_ACPI_ERROR_DETAILS
+	char *description;
+#endif
+};
+
+#ifdef CONFIG_ACPI_ERROR_DETAILS
+#define EXCEP_TXT(name, description)	{name, description}
+#else
+#define EXCEP_TXT(name, description)	{name}
+#endif
 
 /*
  * String versions of the exception codes above

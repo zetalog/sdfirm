@@ -1,1 +1,1 @@
-#include <target/acpi.h>
+#include "acpi_int.h"

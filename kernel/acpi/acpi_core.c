@@ -41,7 +41,7 @@
  * @(#)acpi_core.c: ACPI locking and synchronization implementation
  * $Id: acpi_core.c,v 1.87 2011-10-17 01:40:34 zhenglv Exp $
  */
-#include <target/acpi.h>
+#include "acpi_int.h"
 
 static struct acpi_namespace_node acpi_gbl_root = {
 	ACPI_ROOT_NAME,

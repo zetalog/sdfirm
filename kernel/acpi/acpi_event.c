@@ -41,7 +41,7 @@
  * @(#)acpi_event.c: ACPI event management implementation
  * $Id: acpi_event.c,v 1.87 2011-10-17 01:40:34 zhenglv Exp $
  */
-#include <target/acpi.h>
+#include "acpi_int.h"
 
 struct acpi_event_table {
 	uint8_t flags;

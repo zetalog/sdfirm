@@ -1,4 +1,4 @@
-#include <target/acpi.h>
+#include "acpi_int.h"
 
 boolean acpi_rsdp_checksum_valid(struct acpi_table_rsdp *rsdp)
 {

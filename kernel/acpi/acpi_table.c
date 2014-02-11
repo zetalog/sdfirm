@@ -41,7 +41,18 @@
  * @(#)acpi_table.c: ACPI table management implementation
  * $Id: acpi_table.c,v 1.87 2011-10-17 01:40:34 zhenglv Exp $
  */
-#include <target/acpi.h>
+#include "acpi_int.h"
+
+struct acpi_table_list {
+	struct acpi_table_desc *tables;
+	uint32_t use_table_count;
+	uint32_t max_table_count;
+	struct acpi_reference all_table_count;
+	uint8_t flags;
+};
+#define ACPI_ROOT_ORIGIN_UNKNOWN        (0)     /* ~ORIGIN_ALLOCATED */
+#define ACPI_ROOT_ORIGIN_ALLOCATED      (1)
+#define ACPI_ROOT_ALLOW_RESIZE          (2)
 
 #define ACPI_TABLE_LIST_INCREMENT	4
 

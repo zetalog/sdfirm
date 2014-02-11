@@ -217,19 +217,6 @@ typedef void *acpi_handle_t;
 
 #define AE_CODE_CTRL_MAX                0x000D
 
-struct acpi_exception_info {
-	char *name;
-#ifdef CONFIG_ACPI_ERROR_DETAILS
-	char *description;
-#endif
-};
-
-#ifdef CONFIG_ACPI_ERROR_DETAILS
-#define EXCEP_TXT(name, description)	{name, description}
-#else
-#define EXCEP_TXT(name, description)	{name}
-#endif
-
 /* ============================================================ *
  * power of two handling
  * ============================================================ */
@@ -267,20 +254,17 @@ typedef acpi_uint_t acpi_addr_t;
 typedef acpi_uint_t acpi_size_t;
 typedef void *acpi_uintptr_t;
 
-typedef uint32_t acpi_ddb_t;
-
 #define ACPI_CAST_PTR(t, p)             ((t *)(acpi_uintptr_t)(p))
-#define ACPI_CAST_INDIRECT_PTR(t, p)    ((t **)(acpi_uintptr_t)(p))
+#define ACPI_CAST_RSDP(table)		ACPI_CAST_PTR(struct acpi_table_rsdp, table)
 #define ACPI_ADD_PTR(t, a, b)           ACPI_CAST_PTR(t, (ACPI_CAST_PTR(uint8_t, (a)) + (acpi_size_t)(b)))
 #define ACPI_PTR_DIFF(a, b)             (ACPI_CAST_PTR(uint8_t, (a)) - ACPI_CAST_PTR(uint8_t, (b)))
-
-#define ACPI_CAST_RSDP(table)		ACPI_CAST_PTR(struct acpi_table_rsdp, table)
-
 #define ACPI_TO_POINTER(i)              ACPI_ADD_PTR(void, NULL,(acpi_size_t)i)
 #define ACPI_TO_INTEGER(p)              ACPI_PTR_DIFF(p, NULL)
-#define ACPI_OFFSET(d, f)               ACPI_PTR_DIFF(&(((d *)0)->f), NULL)
 #define ACPI_PHYSADDR_TO_PTR(i)         ACPI_TO_POINTER(i)
 #define ACPI_PTR_TO_PHYSADDR(i)         ACPI_TO_INTEGER(i)
+#define ACPI_OFFSET(d, f)               ACPI_PTR_DIFF(&(((d *)0)->f), NULL)
+
+typedef uint32_t acpi_ddb_t;
 
 /* Unalignment support */
 #ifndef ACPI_MISALIGNMENT_NOT_SUPPORTED
@@ -486,28 +470,6 @@ struct acpi_reference {
 #define ACPI_WAIT_FOREVER		0xFFFF  /* UINT16, as per ACPI spec */
 #define ACPI_DO_NOT_WAIT		0
 
-/*
- * Predefined handles for the mutex objects used within the subsystem
- * All mutex objects are automatically created by AcpiUtMutexInitialize.
- *
- * The acquire/release ordering protocol is implied via this list. Mutexes
- * with a lower value must be acquired before mutexes with a higher value.
- *
- * NOTE: any changes here must be reflected in the AcpiGbl_MutexNames
- * table below also!
- */
-#define ACPI_MTX_INTERPRETER		0   /* AML Interpreter, main lock */
-#define ACPI_MTX_NAMESPACE		1   /* ACPI Namespace */
-#define ACPI_MTX_TABLES			2   /* Data for ACPI tables */
-#define ACPI_MTX_EVENTS			3   /* Data for ACPI events */
-#define ACPI_MTX_CACHES			4   /* Internal caches, general purposes */
-#define ACPI_MTX_MEMORY			5   /* Debug memory tracking lists */
-#define ACPI_MTX_DEBUG_CMD_COMPLETE	6   /* AML debugger */
-#define ACPI_MTX_DEBUG_CMD_READY	7   /* AML debugger */
-
-#define ACPI_MAX_MUTEX			7
-#define ACPI_NUM_MUTEX			ACPI_MAX_MUTEX+1
-
 /* ============================================================ *
  * table handling
  * ============================================================ */
@@ -673,7 +635,6 @@ struct acpi_table_facs {
 #pragma pack()
 
 typedef uint16_t	acpi_table_flags_t;
-
 struct acpi_table_desc {
 	acpi_addr_t address;
 	uint32_t length;
@@ -696,17 +657,6 @@ struct acpi_table_desc {
 #define ACPI_TABLE_IS_LOADED		(0x04)
 #define ACPI_TABLE_IS_INSTALLED		(0x08)
 #define ACPI_TABLE_IS_UNINSTALLING	(0x10)
-
-struct acpi_table_list {
-	struct acpi_table_desc *tables;
-	uint32_t use_table_count;
-	uint32_t max_table_count;
-	struct acpi_reference all_table_count;
-	uint8_t flags;
-};
-#define ACPI_ROOT_ORIGIN_UNKNOWN        (0)     /* ~ORIGIN_ALLOCATED */
-#define ACPI_ROOT_ORIGIN_ALLOCATED      (1)
-#define ACPI_ROOT_ALLOW_RESIZE          (2)
 
 #define ACPI_DDB_HANDLE_DSDT		((acpi_ddb_t)0)
 #define ACPI_DDB_HANDLE_FACS		((acpi_ddb_t)1)
@@ -810,45 +760,27 @@ acpi_status_t acpi_os_signal_semaphore(acpi_handle_t handle,
 				       uint32_t units);
 void acpi_os_sleep(uint32_t msecs);
 
+acpi_status_t acpi_os_create_lock(acpi_spinlock_t *phandle);
+void acpi_os_delete_lock(acpi_spinlock_t handle);
+acpi_cpuflags_t acpi_os_acquire_lock(acpi_spinlock_t handle);
+void acpi_os_release_lock(acpi_spinlock_t handle, acpi_cpuflags_t flags);
+
+/*=========================================================================
+ * Utility external
+ *=======================================================================*/
 void acpi_reference_set(struct acpi_reference *reference, int count);
 int acpi_reference_get(struct acpi_reference *reference);
 void acpi_reference_inc(struct acpi_reference *reference);
 void acpi_reference_dec(struct acpi_reference *reference);
 int acpi_reference_dec_and_test(struct acpi_reference *reference);
 
-acpi_status_t acpi_os_create_lock(acpi_spinlock_t *phandle);
-void acpi_os_delete_lock(acpi_spinlock_t handle);
-acpi_cpuflags_t acpi_os_acquire_lock(acpi_spinlock_t handle);
-void acpi_os_release_lock(acpi_spinlock_t handle, acpi_cpuflags_t flags);
-
 const char *acpi_mutex_name(uint32_t mutex_id);
 
-int acpi_compare_name(acpi_name_t name1, acpi_name_t name2);
 int acpi_compare_sig_name(acpi_tag_t sig, acpi_name_t name);
-uint8_t acpi_checksum_calc(void *buffer, uint32_t length);
 void acpi_encode_generic_address(struct acpi_generic_address *generic_address,
 				 uint8_t space_id,
 				 uint64_t address64,
 				 uint16_t bit_width);
-
-/*=========================================================================
- * Table internals
- *=======================================================================*/
-/* exported for internal table installation */
-acpi_status_t acpi_table_install(acpi_addr_t address, acpi_tag_t signature,
-				 acpi_table_flags_t flags,
-				 boolean override, boolean versioning,
-				 acpi_ddb_t *ddb_handle);
-/* exported for interfacing with event callbacks */
-void acpi_table_notify_existing(void);
-/* exported for internal table initialization */
-acpi_status_t acpi_rsdp_parse(acpi_addr_t rsdp_address);
-acpi_status_t acpi_xsdt_parse(acpi_addr_t xsdt_address, uint32_t table_entry_size);
-acpi_status_t acpi_xsdt_verify(acpi_addr_t xsdt_address);
-void acpi_fadt_parse(struct acpi_table_header *table);
-/* checksum validation for RSDP tables */
-void acpi_rsdp_calc_checksum(struct acpi_table_rsdp *rsdp);
-boolean acpi_rsdp_checksum_valid(struct acpi_table_rsdp *rsdp);
 
 /*=========================================================================
  * Table initialization
@@ -887,14 +819,22 @@ boolean acpi_table_is_uninstalled(acpi_ddb_t ddb);
 boolean acpi_table_is_loaded(acpi_ddb_t ddb);
 boolean acpi_table_contains_aml(struct acpi_table_header *table);
 boolean acpi_table_has_header(acpi_name_t signature);
+/* FADT flag testing */
+uint32_t acpi_fadt_flag_is_set(uint32_t mask);
+
+/*=========================================================================
+ * Checksum validations
+ *=======================================================================*/
+uint8_t acpi_checksum_calc(void *buffer, uint32_t length);
 /* checksum validation for all types of tables */
 boolean __acpi_table_checksum_valid(struct acpi_table_header *table);
 void acpi_table_calc_checksum(struct acpi_table_header *table);
 /* checksum validation for non RSDP tables */
 boolean acpi_table_checksum_valid(struct acpi_table_header *table);
 uint32_t acpi_table_get_length(struct acpi_table_header *table);
-/* FADT flag testing */
-uint32_t acpi_fadt_flag_is_set(uint32_t mask);
+/* checksum validation for RSDP tables */
+void acpi_rsdp_calc_checksum(struct acpi_table_rsdp *rsdp);
+boolean acpi_rsdp_checksum_valid(struct acpi_table_rsdp *rsdp);
 
 /*=========================================================================
  * Parser externals
@@ -904,7 +844,7 @@ acpi_status_t acpi_parse_once(acpi_interpreter_mode pass_number,
 			      struct acpi_namespace_node *start_node);
 
 /*=========================================================================
- * Table event handler
+ * Event (callback handler) externals
  *=======================================================================*/
 #define ACPI_EVENT_TABLE_INSTALL	0x0
 #define ACPI_EVENT_TABLE_UNINSTALL	0x1
