@@ -168,6 +168,10 @@ SOURCE=..\..\..\include\target\acpi.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\kernel\acpi\acpi_int.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\resource.h
 # End Source File
 # Begin Source File
