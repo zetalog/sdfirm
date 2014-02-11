@@ -665,12 +665,6 @@ struct acpi_table_desc {
 
 typedef uint8_t acpi_object_type;
 
-typedef enum {
-	ACPI_IMODE_LOAD_PASS1 = 0x01,
-	ACPI_IMODE_LOAD_PASS2 = 0x02,
-	ACPI_IMODE_EXECUTE = 0x03
-} acpi_interpreter_mode;
-
 #define ACPI_OBJECT_COMMON_HEADER \
 	union acpi_operand_object *next_object;
 	uint8_t descriptor_type;
@@ -843,13 +837,6 @@ uint32_t acpi_table_get_length(struct acpi_table_header *table);
 /* checksum validation for RSDP tables */
 void acpi_rsdp_calc_checksum(struct acpi_table_rsdp *rsdp);
 boolean acpi_rsdp_checksum_valid(struct acpi_table_rsdp *rsdp);
-
-/*=========================================================================
- * Parser externals
- *=======================================================================*/
-acpi_status_t acpi_parse_once(acpi_interpreter_mode pass_number,
-			      uint32_t table_index,
-			      struct acpi_namespace_node *start_node);
 
 /*=========================================================================
  * Event (callback handler) externals

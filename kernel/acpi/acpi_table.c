@@ -622,12 +622,26 @@ acpi_status_t acpi_table_parse(acpi_ddb_t ddb,
 			       struct acpi_namespace_node *start_node)
 {
 	acpi_status_t status;
+	struct acpi_table_header *table;
+	uint32_t aml_length;
+	uint8_t *aml_start;
 
-	status = acpi_parse_once(ACPI_IMODE_LOAD_PASS1, ddb, start_node);
+	status = acpi_get_table(ddb, &table);
 	if (ACPI_FAILURE(status))
 		return status;
 
-	return acpi_parse_once(ACPI_IMODE_LOAD_PASS2, ddb, start_node);
+	BUG_ON(table->length < sizeof (struct acpi_table_header));
+
+	aml_start = (uint8_t *)table + sizeof (struct acpi_table_header);
+	aml_length = table->length - sizeof (struct acpi_table_header);
+
+	status = acpi_parse_aml(aml_start, aml_length, start_node);
+	if (ACPI_FAILURE(status))
+		goto err_ref;
+
+err_ref:
+	acpi_put_table(ddb, table);
+	return status;
 }
 
 static acpi_status_t acpi_table_load(acpi_ddb_t ddb, struct acpi_namespace_node *node)

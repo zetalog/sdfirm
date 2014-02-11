@@ -62,4 +62,11 @@ void acpi_fadt_parse(struct acpi_table_header *table);
 
 int acpi_compare_name(acpi_name_t name1, acpi_name_t name2);
 
+/*=========================================================================
+ * Parser internals
+ *=======================================================================*/
+acpi_status_t acpi_parse_aml(uint8_t *aml_start,
+			     uint32_t aml_length,
+			     struct acpi_namespace_node *start_node);
+
 #endif /* __ACPI_INT_H_INCLUDE__ */
