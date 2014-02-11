@@ -56,12 +56,12 @@ static struct acpi_event_table acpi_gbl_event_table = { 0, 0, NULL, NULL };
 
 static void acpi_event_lock(void)
 {
-	(void)acpi_os_acquire_mutex(&acpi_gbl_event_mutex, ACPI_WAIT_FOREVER);
+	(void)acpi_os_acquire_mutex(acpi_gbl_event_mutex, ACPI_WAIT_FOREVER);
 }
 
 static void acpi_event_unlock(void)
 {
-	acpi_os_release_mutex(&acpi_gbl_event_mutex);
+	acpi_os_release_mutex(acpi_gbl_event_mutex);
 }
 
 void acpi_event_table_notify(struct acpi_table_desc *table_desc,
@@ -138,4 +138,15 @@ void acpi_event_unregister_table_handler(acpi_event_table_cb handler)
 
 err_lock:
 	acpi_event_unlock();
+}
+
+acpi_status_t acpi_initialize_events(void)
+{
+	acpi_status_t status;
+
+	status = acpi_os_create_mutex(&acpi_gbl_event_mutex);
+	if (ACPI_FAILURE(status))
+		return status;
+
+	return status;
 }

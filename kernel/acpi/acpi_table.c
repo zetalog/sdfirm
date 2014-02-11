@@ -73,12 +73,12 @@ uint8_t acpi_gbl_integer_bit_width = 64;
 
 static void acpi_table_lock(void)
 {
-	(void)acpi_os_acquire_mutex(&acpi_gbl_table_mutex, ACPI_WAIT_FOREVER);
+	(void)acpi_os_acquire_mutex(acpi_gbl_table_mutex, ACPI_WAIT_FOREVER);
 }
 
 static void acpi_table_unlock(void)
 {
-	acpi_os_release_mutex(&acpi_gbl_table_mutex);
+	acpi_os_release_mutex(acpi_gbl_table_mutex);
 }
 
 static boolean acpi_table_is_module_busy(void)
@@ -640,9 +640,11 @@ static acpi_status_t acpi_table_load(acpi_ddb_t ddb, struct acpi_namespace_node 
 	/* Invoking the parser */
 	status = acpi_table_parse(ddb, node);
 	if (ACPI_SUCCESS(status)) {
+		acpi_table_lock();
 		acpi_table_set_loaded(ddb, true);
 		acpi_table_notify(&acpi_gbl_table_list.tables[ddb], ddb,
 				  ACPI_EVENT_TABLE_LOAD);
+		acpi_table_unlock();
 	}
 
 	return status;

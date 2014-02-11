@@ -375,7 +375,7 @@ acpi_status_t acpi_os_wait_semaphore(acpi_handle_t handle,
 
 	if (index >= ACPI_OS_MAX_SEMAPHORES || !acpi_emu_semaphores[index].handle)
 		return AE_BAD_PARAMETER;
-	
+
 	if (units > 1) {
 		acpi_err("WaitSemaphore: Attempt to receive %u units\n", units);
 		return AE_NOT_IMPLEMENTED;
@@ -391,7 +391,8 @@ acpi_status_t acpi_os_wait_semaphore(acpi_handle_t handle,
 		/* Add 10ms to account for clock tick granularity */
 		wait_timeout += 10;
 	}
-	
+
+	acpi_dbg("%d locked", index);
 	wait_status = WaitForSingleObject(acpi_emu_semaphores[index].handle, wait_timeout);
 	if (wait_status == WAIT_TIMEOUT) {
 		if (acpi_emu_debug_timeout) {
@@ -402,8 +403,8 @@ acpi_status_t acpi_os_wait_semaphore(acpi_handle_t handle,
 	}
 	
 	if (acpi_emu_semaphores[index].current_units == 0) {
-		acpi_err("%s - No unit received. Timeout 0x%X, OS_Status 0x%X",
-			 acpi_mutex_name(index), timeout, wait_status);
+		acpi_err("No unit received. Timeout 0x%X, OS_Status 0x%X",
+			 timeout, wait_status);
 		return AE_OK;
 	}
 	
@@ -440,6 +441,8 @@ acpi_status_t acpi_os_signal_semaphore(acpi_handle_t handle,
 	}
 	
 	acpi_emu_semaphores[index].current_units++;
+
+	acpi_dbg("%d unlocked", index);
 	ReleaseSemaphore(acpi_emu_semaphores[index].handle, units, NULL);
 	
 	return AE_OK;
@@ -474,6 +477,19 @@ void acpi_os_initialize(void)
 void acpi_os_sleep(uint32_t msecs)
 {
 	Sleep(msecs);
+}
+
+void acpi_os_debug_print(const char *fmt, ...)
+{
+	va_list	arglist;
+	char output[400] = "ACPI: ";
+
+	va_start(arglist, fmt);
+	wvsprintfA(&output[6], fmt, arglist);
+	va_end(arglist);
+
+	lstrcatA(output, "\r\n");
+	OutputDebugStringA(output);
 }
 
 void acpi_emu_init(void)

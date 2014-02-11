@@ -759,11 +759,25 @@ acpi_status_t acpi_os_wait_semaphore(acpi_handle_t handle,
 acpi_status_t acpi_os_signal_semaphore(acpi_handle_t handle,
 				       uint32_t units);
 void acpi_os_sleep(uint32_t msecs);
+void acpi_os_debug_print(const char *fmt, ...);
 
 acpi_status_t acpi_os_create_lock(acpi_spinlock_t *phandle);
 void acpi_os_delete_lock(acpi_spinlock_t handle);
 acpi_cpuflags_t acpi_os_acquire_lock(acpi_spinlock_t handle);
 void acpi_os_release_lock(acpi_spinlock_t handle, acpi_cpuflags_t flags);
+
+/*=========================================================================
+ * Initialization/Finalization
+ *=======================================================================*/
+acpi_status_t acpi_initialize_tables(struct acpi_table_desc *initial_table_array,
+				     uint32_t initial_table_count,
+				     boolean allow_resize);
+acpi_status_t acpi_reallocate_root_table(void);
+acpi_status_t acpi_initialize_subsystem(void);
+void acpi_load_tables(void);
+acpi_status_t acpi_initialize_events(void);
+
+void acpi_finalize_tables(void);
 
 /*=========================================================================
  * Utility external
@@ -782,16 +796,10 @@ void acpi_encode_generic_address(struct acpi_generic_address *generic_address,
 				 uint64_t address64,
 				 uint16_t bit_width);
 
-/*=========================================================================
- * Table initialization
- *=======================================================================*/
-acpi_status_t acpi_initialize_tables(struct acpi_table_desc *initial_table_array,
-				     uint32_t initial_table_count,
-				     boolean allow_resize);
-acpi_status_t acpi_reallocate_root_table(void);
-acpi_status_t acpi_initialize_subsystem(void);
-void acpi_load_tables(void);
-void acpi_finalize_tables(void);
+#define acpi_err		acpi_os_debug_print
+#define acpi_warn		acpi_os_debug_print
+#define acpi_info		acpi_os_debug_print
+#define acpi_dbg		acpi_os_debug_print
 
 /*=========================================================================
  * Table externals

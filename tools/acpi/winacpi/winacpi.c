@@ -208,9 +208,9 @@ acpi_status_t AcpiHandleTableEvents(struct acpi_table_desc *table,
 
 VOID ACPIInitApplication(LPACPIWNDDATA lpWD)
 {
-	acpi_event_register_table_handler(AcpiHandleTableEvents, lpWD);
 	acpi_emu_init();
 	acpi_ospm_init();
+	acpi_event_register_table_handler(AcpiHandleTableEvents, lpWD);
 }
 
 VOID ACPIExitApplication(LPACPIWNDDATA lpWD)
