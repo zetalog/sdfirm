@@ -356,8 +356,7 @@ acpi_status_t acpi_os_delete_semaphore(acpi_handle_t handle)
 {
 	uint32_t index = (uint32_t)handle;
 
-	if (index >= ACPI_OS_MAX_SEMAPHORES || !acpi_emu_semaphores[index].handle)
-		return AE_BAD_PARAMETER;
+	BUG_ON(index >= ACPI_OS_MAX_SEMAPHORES || !acpi_emu_semaphores[index].handle);
 
 	CloseHandle(acpi_emu_semaphores[index].handle);
 	acpi_emu_semaphores[index].handle = NULL;
@@ -373,8 +372,7 @@ acpi_status_t acpi_os_wait_semaphore(acpi_handle_t handle,
 	uint32_t wait_status;
 	uint32_t wait_timeout = timeout;
 
-	if (index >= ACPI_OS_MAX_SEMAPHORES || !acpi_emu_semaphores[index].handle)
-		return AE_BAD_PARAMETER;
+	BUG_ON(index >= ACPI_OS_MAX_SEMAPHORES || !acpi_emu_semaphores[index].handle);
 
 	if (units > 1) {
 		acpi_err("WaitSemaphore: Attempt to receive %u units\n", units);
@@ -417,10 +415,7 @@ acpi_status_t acpi_os_signal_semaphore(acpi_handle_t handle,
 {
 	uint32_t index = (uint32_t)handle;
 
-	if (index >= ACPI_EMU_DEBUG_TIMEOUT) {
-		acpi_err("SignalSemaphore: Index/Handle out of range: %2.2X\n", index);
-		return AE_BAD_PARAMETER;
-	}
+	BUG_ON(index >= ACPI_OS_MAX_SEMAPHORES || !acpi_emu_semaphores[index].handle);
 	
 	if (!acpi_emu_semaphores[index].handle) {
 		acpi_err("SignalSemaphore: Null OS handle, Index %2.2X\n", index);
