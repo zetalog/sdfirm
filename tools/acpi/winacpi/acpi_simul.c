@@ -507,49 +507,64 @@ void acpi_os_free(void *mem)
 	heap_free(mem);
 }
 
-boolean acpi_emu_UTTableUnload_started = false;
+struct acpi_test_TableUnload {
+	int iterations;
+	char filename[MAX_PATH];
+};
 
-DWORD WINAPI acpi_emu_UTTableUnload_thread(void *args)
+boolean acpi_test_TableUnload_started = false;
+struct acpi_reference acpi_test_TableUnload_count;
+
+DWORD WINAPI acpi_test_TableUnload_thread(void *args)
 {
-	char *file = (char *)args;
+	struct acpi_test_TableUnload *param = (struct acpi_test_TableUnload *)args;
 	acpi_ddb_t ddb;
 	int count = 20;
 
-	while (acpi_emu_UTTableUnload_started && count--) {
-		acpi_emu_load_table(file, &ddb);
-		acpi_os_sleep(10);
+	while (param->iterations--) {
+		if (!acpi_test_TableUnload_started)
+			break;
+		acpi_emu_load_table(param->filename, &ddb);
+		acpi_os_sleep(1000);
 		acpi_uninstall_table(ddb);
 	}
 
-	free(file);
+	free(param);
+	acpi_reference_dec(&acpi_test_TableUnload_count);
 	return 0;
 }
 
-void acpi_emu_UTTableUnload_start(const char *path, int nr_threads)
+void acpi_test_TableUnload_start(const char *path,
+				  int nr_threads, int iterations)
 {
 	HANDLE thread;
 	int i;
 	DIR *dirp;
 	struct direct *entry = (struct direct *)0;
-	char file[MAX_PATH];
+	struct acpi_test_TableUnload *param;
 
-	if (!acpi_emu_UTTableUnload_started && path) {
+	if (!acpi_test_TableUnload_started && path) {
 		dirp = opendir(path);
 		if (!dirp) {
 			acpi_err("can't open directory `%s'.\n", path);
 			return;
 		}
 
-		acpi_emu_UTTableUnload_started = true;
+		acpi_test_TableUnload_started = true;
 
 		i = 0;
 		while ((entry = readdir(dirp)) != NULL && i < nr_threads) {
 			if (strstr(entry->d_name, ".dat")) {
-				sprintf(file, "%s\\%s", path, entry->d_name);
-				acpi_dbg("> %s\n", file);
+				param = acpi_os_allocate_zeroed(sizeof (struct acpi_test_TableUnload));
+				if (!param)
+					continue;
+				param->iterations = iterations;
+				sprintf(param->filename, "%s\\%s", path, entry->d_name);
+				acpi_dbg("> %s\n", param->filename);
 				thread = CreateThread(NULL, 0,
-						      acpi_emu_UTTableUnload_thread,
-						      (void *)strdup(file), 0, NULL);
+						      acpi_test_TableUnload_thread,
+						      (void *)param, 0, NULL);
+				acpi_reference_inc(&acpi_test_TableUnload_count);
 				i++;
 			}
 		}
@@ -557,9 +572,22 @@ void acpi_emu_UTTableUnload_start(const char *path, int nr_threads)
 	closedir(dirp);
 }
 
-void acpi_emu_UTTableUnload_stop(void)
+void acpi_test_TableUnload_stop(void)
 {
-	acpi_emu_UTTableUnload_started = false;
+	while (acpi_reference_get(&acpi_test_TableUnload_count) != 0) {
+		acpi_test_TableUnload_started = false;
+		acpi_os_sleep(1000);
+	}
+}
+
+void acpi_test_init(void)
+{
+	acpi_reference_set(&acpi_test_TableUnload_count, 0);
+}
+
+void acpi_test_exit(void)
+{
+	acpi_test_TableUnload_stop();
 }
 
 void acpi_emu_init(void)

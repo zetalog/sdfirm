@@ -210,11 +210,13 @@ VOID ACPIInitApplication(LPACPIWNDDATA lpWD)
 {
 	acpi_emu_init();
 	acpi_ospm_init();
+	acpi_test_init();
 	acpi_event_register_table_handler(AcpiHandleTableEvents, lpWD);
 }
 
 VOID ACPIExitApplication(LPACPIWNDDATA lpWD)
 {
+	acpi_test_exit();
 	acpi_ospm_exit();
 	acpi_event_unregister_table_handler(AcpiHandleTableEvents);
 }
@@ -629,10 +631,10 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
 					ACPIDisplayStatus(hWnd, IDS_ERROR_LOAD_TABLE,
 							  IDS_ERROR, MB_OK, status);
 			}
-			acpi_emu_UTTableUnload_start("E:\\workspace\\acpica\\kernel-bugs\\36932", 10);
+			acpi_test_TableUnload_start("E:\\workspace\\acpica\\kernel-bugs\\36932", 10, 100);
 			break;
 		case ID_TABLE_UNLOAD:
-			acpi_emu_UTTableUnload_stop();
+			acpi_test_TableUnload_stop();
 			acpi_uninstall_table(ACPIGetSelectedTable(lpWD));
 			break;
 		default:
