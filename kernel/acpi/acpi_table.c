@@ -872,6 +872,9 @@ void acpi_uninstall_table(acpi_ddb_t ddb)
 {
 	struct acpi_table_desc *table_desc = &acpi_gbl_table_list.tables[ddb];
 
+	if (!acpi_table_is_installed(ddb))
+		return;
+
 	table_desc->flags |= ACPI_TABLE_IS_UNINSTALLING;
 
 	if (acpi_table_is_loaded(ddb)) {
@@ -881,9 +884,10 @@ void acpi_uninstall_table(acpi_ddb_t ddb)
 		acpi_table_set_loaded(ddb, false);
 	}
 
-	/* Release the MANAGED reference */
 	acpi_table_notify(&acpi_gbl_table_list.tables[ddb], ddb,
 			  ACPI_EVENT_TABLE_UNINSTALL);
+
+	/* Release the MANAGED reference */
 	acpi_table_decrement(ddb);
 }
 
@@ -930,11 +934,7 @@ void acpi_finalize_tables(void)
 	if (!acpi_table_lock_dead())
 		return;
 	acpi_foreach_installed_ddb(ddb, 0) {
-		acpi_table_increment(ddb);
-		acpi_table_unlock();
 		acpi_uninstall_table(ddb);
-		acpi_table_decrement(ddb);
-		acpi_table_lock();
 	}
 
 	while (acpi_reference_get(&acpi_gbl_table_list.all_table_count) != 0) {
