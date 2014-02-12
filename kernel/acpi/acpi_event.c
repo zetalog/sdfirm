@@ -51,26 +51,22 @@ struct acpi_event_table {
 	void *context;
 };
 
-acpi_mutex_t acpi_gbl_event_register_mutex;
-acpi_spinlock_t acpi_gbl_event_notify_spinlock;
+acpi_mutex_t acpi_gbl_event_mutex;
 static struct acpi_event_table acpi_gbl_event_table = { 0, 0, NULL, NULL };
 
 static void acpi_event_lock(void)
 {
-	(void)acpi_os_acquire_mutex(acpi_gbl_event_register_mutex, ACPI_WAIT_FOREVER);
+	(void)acpi_os_acquire_mutex(acpi_gbl_event_mutex, ACPI_WAIT_FOREVER);
 }
 
 static void acpi_event_unlock(void)
 {
-	acpi_os_release_mutex(acpi_gbl_event_register_mutex);
+	acpi_os_release_mutex(acpi_gbl_event_mutex);
 }
 
 void acpi_event_table_notify(struct acpi_table_desc *table_desc,
 			     acpi_ddb_t ddb, uint32_t event)
 {
-	acpi_cpuflags_t flags;
-
-	flags = acpi_os_acquire_lock(acpi_gbl_event_notify_spinlock);
 	acpi_event_lock();
 	if (!acpi_gbl_event_table.handler ||
 	    acpi_gbl_event_table.flags & ACPI_EVENT_TABLE_GARBAGE)
@@ -86,7 +82,6 @@ void acpi_event_table_notify(struct acpi_table_desc *table_desc,
 	acpi_gbl_event_table.invokings--;
 err_lock:
 	acpi_event_unlock();
-	acpi_os_release_lock(acpi_gbl_event_notify_spinlock, flags);
 }
 
 acpi_status_t acpi_event_register_table_handler(acpi_event_table_cb handler,
@@ -149,10 +144,7 @@ acpi_status_t acpi_initialize_events(void)
 {
 	acpi_status_t status;
 
-	status = acpi_os_create_mutex(&acpi_gbl_event_register_mutex);
-	if (ACPI_FAILURE(status))
-		return status;
-	status = acpi_os_create_lock(&acpi_gbl_event_notify_spinlock);
+	status = acpi_os_create_mutex(&acpi_gbl_event_mutex);
 	if (ACPI_FAILURE(status))
 		return status;
 

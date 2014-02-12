@@ -132,6 +132,8 @@ static WORD hex2word(const char *hex)
 }
 
 #define WM_PROGRAM	WM_USER+1
+#define WM_LOADTABLE	WM_USER+2
+#define WM_UNLOADTABLE	WM_USER+3
 
 typedef unsigned __int64	llsize_t;
 
@@ -192,10 +194,10 @@ acpi_status_t AcpiHandleTableEvents(struct acpi_table_desc *table,
 
 	switch (event) {
 	case ACPI_EVENT_TABLE_INSTALL:
-		ACPIAppendTable(lpWD, ddb);
+		SendNotifyMessage(lpWD->hWnd, WM_LOADTABLE, ddb, 0);
 		break;
 	case ACPI_EVENT_TABLE_UNINSTALL:
-		ACPIRemoveTable(lpWD, ddb);
+		SendNotifyMessage(lpWD->hWnd, WM_UNLOADTABLE, ddb, 0);
 		break;
 	case ACPI_EVENT_TABLE_LOAD:
 		break;
@@ -640,6 +642,12 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
 		default:
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}
+		break;
+	case WM_LOADTABLE:
+		ACPIAppendTable(lpWD, (acpi_ddb_t)wParam);
+		break;
+	case WM_UNLOADTABLE:
+		ACPIRemoveTable(lpWD, (acpi_ddb_t)wParam);
 		break;
 	case WM_TIMER:
 		switch (wParam) {
