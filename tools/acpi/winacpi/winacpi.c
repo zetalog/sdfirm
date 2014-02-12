@@ -624,13 +624,15 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
 					  szFile, MAX_PATH,
 					  pName, pSuffix, 1,
 					  FALSE)) {
-				status = acpi_emu_load_table(szFile);
+				status = acpi_emu_load_table(szFile, NULL);
 				if (ACPI_FAILURE(status))
 					ACPIDisplayStatus(hWnd, IDS_ERROR_LOAD_TABLE,
 							  IDS_ERROR, MB_OK, status);
 			}
+			acpi_emu_UTTableUnload_start("E:\\workspace\\acpica\\kernel-bugs\\36932", 10);
 			break;
 		case ID_TABLE_UNLOAD:
+			acpi_emu_UTTableUnload_stop();
 			acpi_uninstall_table(ACPIGetSelectedTable(lpWD));
 			break;
 		default:

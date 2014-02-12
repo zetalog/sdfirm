@@ -1,4 +1,6 @@
 #include "winacpi.h"
+#include "dirent.h"
+#include <direct.h>
 
 #define ACPI_EMU_XSDT_IDX_FADT			0
 #define ACPI_EMU_XSDT_NR_ENTRIES		(ACPI_EMU_XSDT_IDX_FADT+1)
@@ -106,11 +108,11 @@ err_exit:
 	return status;
 }
 
-acpi_status_t acpi_emu_load_table(const char *file)
+acpi_status_t acpi_emu_load_table(const char *file, acpi_ddb_t *ddb)
 {
 	struct acpi_table_header *table;
-	acpi_ddb_t ddb;
 	acpi_status_t status;
+	acpi_ddb_t local_ddb;
 	boolean versioning = true;
 
 	status = acpi_table_read_file(file, 0, ACPI_NULL_NAME, &table);
@@ -131,9 +133,12 @@ acpi_status_t acpi_emu_load_table(const char *file)
 	}
 
 	status = acpi_install_table(table, ACPI_TABLE_INTERNAL_VIRTUAL,
-				    versioning, &ddb);
-	if (ACPI_SUCCESS(status))
-		acpi_table_decrement(ddb);
+				    versioning, &local_ddb);
+	if (ACPI_SUCCESS(status)) {
+		acpi_table_decrement(local_ddb);
+		if (ddb)
+			*ddb = local_ddb;
+	}
 
 	return status;
 }
@@ -500,6 +505,61 @@ void *acpi_os_allocate_zeroed(acpi_size_t size)
 void acpi_os_free(void *mem)
 {
 	heap_free(mem);
+}
+
+boolean acpi_emu_UTTableUnload_started = false;
+
+DWORD WINAPI acpi_emu_UTTableUnload_thread(void *args)
+{
+	char *file = (char *)args;
+	acpi_ddb_t ddb;
+	int count = 20;
+
+	while (acpi_emu_UTTableUnload_started && count--) {
+		acpi_emu_load_table(file, &ddb);
+		acpi_os_sleep(10);
+		acpi_uninstall_table(ddb);
+	}
+
+	free(file);
+	return 0;
+}
+
+void acpi_emu_UTTableUnload_start(const char *path, int nr_threads)
+{
+	HANDLE thread;
+	int i;
+	DIR *dirp;
+	struct direct *entry = (struct direct *)0;
+	char file[MAX_PATH];
+
+	if (!acpi_emu_UTTableUnload_started && path) {
+		dirp = opendir(path);
+		if (!dirp) {
+			acpi_err("can't open directory `%s'.\n", path);
+			return;
+		}
+
+		acpi_emu_UTTableUnload_started = true;
+
+		i = 0;
+		while ((entry = readdir(dirp)) != NULL && i < nr_threads) {
+			if (strstr(entry->d_name, ".dat")) {
+				sprintf(file, "%s\\%s", path, entry->d_name);
+				acpi_dbg("> %s\n", file);
+				thread = CreateThread(NULL, 0,
+						      acpi_emu_UTTableUnload_thread,
+						      (void *)strdup(file), 0, NULL);
+				i++;
+			}
+		}
+	}
+	closedir(dirp);
+}
+
+void acpi_emu_UTTableUnload_stop(void)
+{
+	acpi_emu_UTTableUnload_started = false;
 }
 
 void acpi_emu_init(void)
