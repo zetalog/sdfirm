@@ -663,7 +663,73 @@ struct acpi_table_desc {
 #define ACPI_DDB_HANDLE_NON_FIXED	2
 #define ACPI_DDB_HANDLE_INVALID		((acpi_ddb_t)0xFFFFFFFF)
 
+/*
+ * Types associated with ACPI names and objects. The first group of
+ * values (up to ACPI_TYPE_EXTERNAL_MAX) correspond to the definition
+ * of the ACPI ObjectType() operator (See the ACPI Spec). Therefore,
+ * only add to the first group if the spec changes.
+ *
+ * NOTE: Types must be kept in sync with the global AcpiNsProperties
+ * and AcpiNsTypeNames arrays.
+ */
 typedef uint8_t acpi_object_type;
+
+#define ACPI_TYPE_ANY			(acpi_object_type)0x00
+#define ACPI_TYPE_INTEGER		(acpi_object_type)0x01 /* Byte/Word/Dword/Zero/One/Ones */
+#define ACPI_TYPE_STRING		(acpi_object_type)0x02
+#define ACPI_TYPE_BUFFER		(acpi_object_type)0x03
+#define ACPI_TYPE_PACKAGE		(acpi_object_type)0x04 /* ByteConst, multiple DataTerm/Constant/SuperName */
+#define ACPI_TYPE_FIELD_UNIT		(acpi_object_type)0x05
+#define ACPI_TYPE_DEVICE		(acpi_object_type)0x06 /* Name, multiple Node */
+#define ACPI_TYPE_EVENT			(acpi_object_type)0x07
+#define ACPI_TYPE_METHOD		(acpi_object_type)0x08 /* Name, ByteConst, multiple Code */
+#define ACPI_TYPE_MUTEX			(acpi_object_type)0x09
+#define ACPI_TYPE_REGION		(acpi_object_type)0x0A
+#define ACPI_TYPE_POWER			(acpi_object_type)0x0B /* Name,ByteConst,WordConst,multi Node */
+#define ACPI_TYPE_PROCESSOR		(acpi_object_type)0x0C /* Name,ByteConst,DWordConst,ByteConst,multi NmO */
+#define ACPI_TYPE_THERMAL		(acpi_object_type)0x0D /* Name, multiple Node */
+#define ACPI_TYPE_BUFFER_FIELD		(acpi_object_type)0x0E
+#define ACPI_TYPE_DDB_HANDLE		(acpi_object_type)0x0F
+#define ACPI_TYPE_DEBUG_OBJECT		(acpi_object_type)0x10
+
+#define ACPI_TYPE_EXTERNAL_MAX		(acpi_object_type)0x10
+
+/*
+ * These are object types that do not map directly to the ACPI
+ * ObjectType() operator. They are used for various internal purposes only.
+ * If new predefined ACPI_TYPEs are added (via the ACPI specification), these
+ * internal types must move upwards. (There is code that depends on these
+ * values being contiguous with the external types above.)
+ */
+#define ACPI_TYPE_LOCAL_REGION_FIELD	(acpi_object_type)0x11
+#define ACPI_TYPE_LOCAL_BANK_FIELD	(acpi_object_type)0x12
+#define ACPI_TYPE_LOCAL_INDEX_FIELD	(acpi_object_type)0x13
+#define ACPI_TYPE_LOCAL_REFERENCE	(acpi_object_type)0x14 /* Arg#, Local#, Name, Debug, RefOf, Index */
+#define ACPI_TYPE_LOCAL_ALIAS		(acpi_object_type)0x15
+#define ACPI_TYPE_LOCAL_METHOD_ALIAS	(acpi_object_type)0x16
+#define ACPI_TYPE_LOCAL_NOTIFY		(acpi_object_type)0x17
+#define ACPI_TYPE_LOCAL_ADDRESS_HANDLER	(acpi_object_type)0x18
+#define ACPI_TYPE_LOCAL_RESOURCE	(acpi_object_type)0x19
+#define ACPI_TYPE_LOCAL_RESOURCE_FIELD	(acpi_object_type)0x1A
+#define ACPI_TYPE_LOCAL_SCOPE		(acpi_object_type)0x1B /* 1 Name, multiple ObjectList Nodes */
+
+#define ACPI_TYPE_NS_NODE_MAX		(acpi_object_type)0x1B /* Last typecode used within a NS Node */
+
+/*
+ * These are special object types that never appear in
+ * a Namespace node, only in an object of ACPI_OPERAND_OBJECT
+ */
+#define ACPI_TYPE_LOCAL_EXTRA		(acpi_object_type)0x1C
+#define ACPI_TYPE_LOCAL_DATA		(acpi_object_type)0x1D
+
+#define ACPI_TYPE_LOCAL_MAX		(acpi_object_type)0x1D
+
+/* All types above here are invalid */
+
+#define ACPI_TYPE_INVALID		(acpi_object_type)0x1E
+#define ACPI_TYPE_NOT_FOUND		(acpi_object_type)0xFF
+
+#define ACPI_NUM_NS_TYPES		(ACPI_TYPE_INVALID + 1)
 
 #define ACPI_OBJECT_COMMON_HEADER \
 	union acpi_operand_object *next_object;
@@ -683,25 +749,9 @@ union acpi_operand_object {
 struct acpi_namespace_node {
 	acpi_name_t name;
 	uint8_t descriptor_type;
-#define ACPI_DESC_TYPE_NAMED            0x0F
+#define ACPI_DESC_TYPE_NAMED            0x01
+#define ACPI_DESC_TYPE_OPCODE		0x02
 	acpi_object_type object_type;
-#define ACPI_TYPE_ANY			0x00
-#define ACPI_TYPE_INTEGER		0x01  /* Byte/Word/Dword/Zero/One/Ones */
-#define ACPI_TYPE_STRING		0x02
-#define ACPI_TYPE_BUFFER		0x03
-#define ACPI_TYPE_PACKAGE		0x04  /* ByteConst, multiple DataTerm/Constant/SuperName */
-#define ACPI_TYPE_FIELD_UNIT		0x05
-#define ACPI_TYPE_DEVICE		0x06  /* Name, multiple Node */
-#define ACPI_TYPE_EVENT			0x07
-#define ACPI_TYPE_METHOD		0x08  /* Name, ByteConst, multiple Code */
-#define ACPI_TYPE_MUTEX			0x09
-#define ACPI_TYPE_REGION		0x0A
-#define ACPI_TYPE_POWER			0x0B  /* Name,ByteConst,WordConst,multi Node */
-#define ACPI_TYPE_PROCESSOR		0x0C  /* Name,ByteConst,DWordConst,ByteConst,multi NmO */
-#define ACPI_TYPE_THERMAL		0x0D  /* Name, multiple Node */
-#define ACPI_TYPE_BUFFER_FIELD		0x0E
-#define ACPI_TYPE_DDB_HANDLE		0x0F
-#define ACPI_TYPE_DEBUG_OBJECT		0x10
 	struct acpi_namespace_node *parent;
 	struct acpi_namespace_node *child;
 	struct acpi_namespace_node *peer;

@@ -108,6 +108,10 @@ SOURCE=..\..\..\kernel\acpi\acpi_fadt.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\kernel\acpi\acpi_opcode.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\acpi_ospm.c
 # End Source File
 # Begin Source File
@@ -165,6 +169,10 @@ SOURCE=..\..\..\include\host\acpi.h
 # Begin Source File
 
 SOURCE=..\..\..\include\target\acpi.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\kernel\acpi\acpi_aml.h
 # End Source File
 # Begin Source File
 
