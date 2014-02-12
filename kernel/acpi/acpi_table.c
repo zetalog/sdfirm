@@ -229,7 +229,7 @@ static acpi_status_t acpi_table_list_resize(void)
 		table_count = acpi_gbl_table_list.use_table_count;
 	total_count= table_count + ACPI_TABLE_LIST_INCREMENT;
 
-	tables = heap_calloc(total_count * sizeof (struct acpi_table_desc));
+	tables = acpi_os_allocate_zeroed(total_count * sizeof (struct acpi_table_desc));
 	if (!tables)
 		return AE_NO_MEMORY;
 
@@ -237,7 +237,7 @@ static acpi_status_t acpi_table_list_resize(void)
 		memcpy(tables, acpi_gbl_table_list.tables,
 		       table_count * sizeof (struct acpi_table_desc));
 		if (acpi_gbl_table_list.flags & ACPI_ROOT_ORIGIN_ALLOCATED)
-			heap_free(acpi_gbl_table_list.tables);
+			acpi_os_free(acpi_gbl_table_list.tables);
 	}
 
 	acpi_gbl_table_list.tables = tables;
@@ -439,7 +439,7 @@ static void __acpi_table_uninstall(struct acpi_table_desc *table_desc)
 
 	acpi_table_invalidate(table_desc);
 	if ((table_desc->flags & ACPI_TABLE_ORIGIN_MASK) == ACPI_TABLE_INTERNAL_VIRTUAL)
-		heap_free(ACPI_CAST_PTR(void, table_desc->address));
+		acpi_os_free(ACPI_CAST_PTR(void, table_desc->address));
 	table_desc->address = ACPI_PTR_TO_PHYSADDR(NULL);
 }
 
@@ -944,7 +944,7 @@ void acpi_finalize_tables(void)
 	}
 
 	if (acpi_gbl_table_list.flags & ACPI_ROOT_ORIGIN_ALLOCATED)
-		heap_free(acpi_gbl_table_list.tables);
+		acpi_os_free(acpi_gbl_table_list.tables);
 	acpi_gbl_table_list.tables = NULL;
 	acpi_gbl_table_list.flags = 0;
 	acpi_gbl_table_list.use_table_count = 0;

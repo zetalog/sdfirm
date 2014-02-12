@@ -82,7 +82,7 @@ static acpi_status_t acpi_table_read_file(const char *path, loff_t offset,
 		goto err_exit;
 	}
 
-	local_table = heap_calloc(table_length);
+	local_table = acpi_os_allocate_zeroed(table_length);
 	if (!local_table) {
 		status = AE_NO_MEMORY;
 		goto err_exit;
@@ -150,13 +150,13 @@ acpi_status_t acpi_emu_read_table(const char *file)
 
 	/* Ignore FADT since we'll build it */
 	if (!ACPI_NAMECMP(ACPI_SIG_FADT, table->signature)) {
-		table_desc = heap_alloc(sizeof (struct acpi_table_desc));
+		table_desc = acpi_os_allocate_zeroed(sizeof (struct acpi_table_desc));
 		table_desc->pointer = table;
 		table_desc->next = acpi_emu_table_list;
 		acpi_emu_table_list = table_desc;
 		acpi_emu_table_count++;
 	} else
-		heap_free(table);
+		acpi_os_free(table);
 
 	return AE_OK;
 }
@@ -180,7 +180,7 @@ acpi_status_t acpi_emu_build_tables(struct acpi_table_desc *table_list)
 
 	/* build XSDT */
 	xsdt_size = ACPI_EMU_XSDT_LENGTH + (table_count * sizeof (uint64_t));
-	acpi_emu_local_xsdt = heap_calloc(xsdt_size);
+	acpi_emu_local_xsdt = acpi_os_allocate_zeroed(xsdt_size);
 	if (!acpi_emu_local_xsdt)
 		return AE_NO_MEMORY;
 	ACPI_NAMECPY(ACPI_SIG_XSDT, acpi_emu_local_xsdt->header.signature);
@@ -485,6 +485,21 @@ void acpi_os_debug_print(const char *fmt, ...)
 
 	lstrcatA(output, "\r\n");
 	OutputDebugStringA(output);
+}
+
+void *acpi_os_allocate(acpi_size_t size)
+{
+	return (void *)heap_alloc((size_t)size);
+}
+
+void *acpi_os_allocate_zeroed(acpi_size_t size)
+{
+	return heap_calloc((size_t)size);
+}
+
+void acpi_os_free(void *mem)
+{
+	heap_free(mem);
 }
 
 void acpi_emu_init(void)

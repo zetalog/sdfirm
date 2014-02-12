@@ -755,6 +755,10 @@ acpi_status_t acpi_os_signal_semaphore(acpi_handle_t handle,
 void acpi_os_sleep(uint32_t msecs);
 void acpi_os_debug_print(const char *fmt, ...);
 
+void *acpi_os_allocate(acpi_size_t size);
+void *acpi_os_allocate_zeroed(acpi_size_t size);
+void acpi_os_free(void *mem);
+
 acpi_status_t acpi_os_create_lock(acpi_spinlock_t *phandle);
 void acpi_os_delete_lock(acpi_spinlock_t handle);
 acpi_cpuflags_t acpi_os_acquire_lock(acpi_spinlock_t handle);
