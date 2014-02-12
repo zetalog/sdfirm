@@ -148,6 +148,10 @@ SOURCE=..\..\lib\win\dialogs.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\lib\cmn\dirent.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\lib\win\layout.c
 # End Source File
 # Begin Source File
