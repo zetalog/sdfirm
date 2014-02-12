@@ -131,9 +131,8 @@ static WORD hex2word(const char *hex)
 	return (Hi<<8) | Lo; 
 }
 
-#define WM_PROGRAM	WM_USER+1
-#define WM_LOADTABLE	WM_USER+2
-#define WM_UNLOADTABLE	WM_USER+3
+#define WM_LOADTABLE	WM_LAYOUTUSER+1
+#define WM_UNLOADTABLE	WM_LAYOUTUSER+2
 
 typedef unsigned __int64	llsize_t;
 

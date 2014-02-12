@@ -14,6 +14,9 @@
 #define VIEW_TOOLBAR	0x00000001
 #define VIEW_STATUSBAR	0x00000002
 
+#define WM_PROGRESS	WM_USER+1
+#define WM_LAYOUTUSER	WM_USER+1
+
 #define CCHMAX(sz)      (sizeof (sz) / sizeof (TCHAR))
 
 typedef struct tagWINWIZARDINFO {
