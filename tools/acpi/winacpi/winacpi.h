@@ -19,6 +19,12 @@
 
 #include "resource.h"
 
+typedef struct tagACPITESTTABLEUNLOAD {
+	char szPath[MAX_PATH];
+	int nThreads;
+	int nIterations;
+} ACPITESTTABLEUNLOAD, *LPACPITESTTABLEUNLOAD;
+
 typedef struct tagACPIWNDDATA {
 	HWND hWnd;
 	HWND hwndToolbar;
@@ -28,6 +34,7 @@ typedef struct tagACPIWNDDATA {
 	HWND hwndNamespaceTree;
 	HWND hwndNamespaceList;
 	HIMAGELIST himgTableTypes;
+	ACPITESTTABLEUNLOAD utTableUnload;
 } ACPIWNDDATA, *LPACPIWNDDATA;
 
 #define WinACPI_GetPtr(hWnd)			\

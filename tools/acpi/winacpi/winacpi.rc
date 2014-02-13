@@ -165,6 +165,28 @@ BEGIN
     EDITTEXT        IDC_DEVICE,180,111,40,14,ES_UPPERCASE | ES_AUTOHSCROLL
 END
 
+IDD_TABLEUNLOAD_TEST DIALOG DISCARDABLE  0, 0, 201, 121
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "TEST: Table Loading/Unloading"
+FONT 9, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,38,100,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,112,100,50,14
+    EDITTEXT        IDC_TABLEUNLOAD_PATH,7,20,124,14,ES_AUTOHSCROLL | 
+                    ES_READONLY
+    LTEXT           "Please select a folder including .dat suffix ACPI table files:",
+                    IDC_STATIC,7,7,182,8
+    PUSHBUTTON      "&Browse...",IDC_BROWSE,144,20,50,14
+    EDITTEXT        IDC_TABLEUNLOAD_THREADS,131,47,63,14,ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    EDITTEXT        IDC_TABLEUNLOAD_ITERS,131,74,63,14,ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "Specify number of testing threads:",IDC_STATIC,7,47,108,
+                    8
+    LTEXT           "Specify number of test iterations:",IDC_STATIC,7,74,103,
+                    8
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -177,6 +199,7 @@ BEGIN
     BEGIN
         MENUITEM "&Load table...",              ID_TABLE_LOAD
         MENUITEM "&Unload table",               ID_TABLE_UNLOAD
+        MENUITEM "Test table unloading...",     ID_TEST_TABLE_UNLOAD
         MENUITEM SEPARATOR
         MENUITEM "E&xit WinACPI",               ID_APP_EXIT
     END
@@ -246,6 +269,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 43
     END
+
+    IDD_TABLEUNLOAD_TEST, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 194
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 114
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -282,6 +313,7 @@ BEGIN
     ID_APP_EXIT             "Exit application"
     ID_TABLE_LOAD           "Load an ACPI table"
     ID_TABLE_UNLOAD         "Unload the selected table"
+    ID_TEST_TABLE_UNLOAD    "Testing table unloading"
 END
 
 STRINGTABLE DISCARDABLE 

@@ -568,8 +568,8 @@ void acpi_test_TableUnload_start(const char *path,
 				i++;
 			}
 		}
+		closedir(dirp);
 	}
-	closedir(dirp);
 }
 
 void acpi_test_TableUnload_stop(void)

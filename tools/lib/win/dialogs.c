@@ -41,6 +41,7 @@
 
 #include <host/winlayout.h>
 #include <assert.h>
+#include <shlobj.h>
 
 static LRESULT WINAPI DlgWizardDoneProc(HWND hWnd, UINT uMsg,
 					WPARAM wParam, LPARAM lParam);
@@ -599,3 +600,26 @@ BOOL WINAPI DlgShowProgress(HWND hWnd, UINT nSteps, WINPROGRESSCB pfnProgress, L
 		return FALSE;
 	return TRUE;
 }
+
+BOOL DlgBrowseDirectory(HWND hWnd, char *szPath, UINT nSize)
+{
+	BROWSEINFO bf;
+	LPITEMIDLIST lpitem;
+	char szBuffer[MAX_PATH];
+
+	memset(&bf, 0, sizeof (BROWSEINFO));
+	strncpy(szBuffer, szPath, MAX_PATH);
+
+	bf.hwndOwner = hWnd;
+	bf.pszDisplayName = szBuffer;
+	bf.lpszTitle = "Browse Directory";
+	bf.ulFlags = BIF_RETURNONLYFSDIRS;
+	lpitem = SHBrowseForFolder(&bf);
+
+	if (lpitem == NULL)
+		return FALSE;
+	SHGetPathFromIDList(lpitem, szBuffer);
+	strncpy(szPath, szBuffer, nSize);
+
+	return TRUE;
+}   

@@ -72,11 +72,17 @@ INT _nIdMappings[MAX_LAYOUT_IDS] = {
 	IDS_ERROR,
 	IDS_ERROR_FILE_BROWSE,
 };
-#define TOOLBARNUM		1
+#define TOOLBARNUM		4
 #define IDX_EXITAPP		0
+#define IDX_ACPI_TABLELOAD	1
+#define IDX_ACPI_TABLEUNLOAD	2
+#define IDX_ACPI_TABLETEST	3
 
 WINTOOLBARITEM _ToolbarItems[TOOLBARNUM] = {
 	{ FALSE, IDX_EXITAPP, ID_APP_EXIT },
+	{ FALSE, IDX_ACPI_TABLELOAD, ID_TABLE_LOAD },
+	{ FALSE, IDX_ACPI_TABLEUNLOAD, ID_TABLE_UNLOAD },
+	{ FALSE, IDX_ACPI_TABLETEST, ID_TEST_TABLE_UNLOAD },
 };
 
 static LRESULT WINAPI About_DlgProc(HWND hDlg, UINT uMsg,
@@ -161,6 +167,62 @@ void DisplayVersion(HWND hwndParent)
 	DialogBox(_hInstance,
 		  MAKEINTRESOURCE(IDD_ABOUT),
 		  hwndParent, (DLGPROC)About_DlgProc);
+}
+
+static LRESULT WINAPI TableUnloadTest_DlgProc(HWND hDlg, UINT uMsg,
+					      WPARAM wParam, LPARAM lParam)
+{
+	LPACPITESTTABLEUNLOAD pTableUnload;
+
+	if (uMsg == WM_INITDIALOG) {
+		pTableUnload = (LPACPITESTTABLEUNLOAD)lParam;
+		SetWindowLong(hDlg, GWL_USERDATA, (LPARAM)pTableUnload);
+	} else {
+		pTableUnload = (LPACPITESTTABLEUNLOAD)GetWindowLong(hDlg, GWL_USERDATA);
+	}
+
+	switch (uMsg) {
+	case WM_INITDIALOG:
+		SetDlgItemText(hDlg, IDC_TABLEUNLOAD_PATH, pTableUnload->szPath);
+		SetDlgItemInt(hDlg, IDC_TABLEUNLOAD_THREADS, pTableUnload->nThreads, FALSE);
+		SetDlgItemInt(hDlg, IDC_TABLEUNLOAD_ITERS, pTableUnload->nIterations, FALSE);
+		CenterChild(hDlg, GetParent(hDlg));
+		break;
+	case WM_COMMAND:
+		switch (LOWORD(wParam)) {
+		case IDOK:
+		case IDCANCEL:
+			EndDialog(hDlg, IDOK);
+			break;
+		case IDC_TABLEUNLOAD_PATH:
+		case IDC_TABLEUNLOAD_THREADS:
+		case IDC_TABLEUNLOAD_ITERS:
+			break;
+		case IDC_BROWSE:
+			if (DlgBrowseDirectory(hDlg, pTableUnload->szPath,
+					       sizeof (pTableUnload->szPath)))
+				SetDlgItemText(hDlg, IDC_TABLEUNLOAD_PATH, pTableUnload->szPath);
+			break;
+		}
+		break;
+	}
+	return 0L;
+}
+
+void StartTableUnloadTest(LPACPIWNDDATA lpWD)
+{
+	LPACPITESTTABLEUNLOAD pTableUnload;
+
+	pTableUnload = (LPACPITESTTABLEUNLOAD)&lpWD->utTableUnload;
+	if (IDOK == DialogBoxParam(_hInstance,
+				   MAKEINTRESOURCE(IDD_TABLEUNLOAD_TEST),
+				   lpWD->hWnd, (DLGPROC)TableUnloadTest_DlgProc,
+				   (LPARAM)pTableUnload)) {
+		acpi_test_TableUnload_start(pTableUnload->szPath,
+					    pTableUnload->nThreads,
+					    pTableUnload->nIterations);
+		//"E:\\workspace\\acpica\\kernel-bugs\\36932", 10, 100);
+	}
 }
 
 void MainUpdateCommands(LPACPIWNDDATA lpWD)
@@ -454,6 +516,9 @@ BOOL ACPICreateWindow(LPACPIWNDDATA lpWD)
 	ACPIBuildObjectTitles(lpWD);
 
 	ShowWindow(lpWD->hwndSplitter, SW_SHOW);
+	memset(&lpWD->utTableUnload, 0, sizeof (ACPITESTTABLEUNLOAD));
+	lpWD->utTableUnload.nThreads = 10;
+	lpWD->utTableUnload.nIterations = 10;
 
 	ACPIInitApplication(lpWD);
 	return TRUE;
@@ -632,11 +697,12 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
 					ACPIDisplayStatus(hWnd, IDS_ERROR_LOAD_TABLE,
 							  IDS_ERROR, MB_OK, status);
 			}
-			acpi_test_TableUnload_start("E:\\workspace\\acpica\\kernel-bugs\\36932", 10, 100);
 			break;
 		case ID_TABLE_UNLOAD:
-			acpi_test_TableUnload_stop();
 			acpi_uninstall_table(ACPIGetSelectedTable(lpWD));
+			break;
+		case ID_TEST_TABLE_UNLOAD:
+			StartTableUnloadTest(lpWD);
 			break;
 		default:
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);

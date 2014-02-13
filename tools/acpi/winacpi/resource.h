@@ -44,6 +44,7 @@
 #define IDD_WIZARDPROG                  117
 #define IDD_WIZARDSIGN                  120
 #define IDB_TABLETYPE4BIT               121
+#define IDD_TABLEUNLOAD_TEST            122
 #define IDC_DFU_LICENSE                 1000
 #define IDC_PROGRESS                    1001
 #define IDC_FIRMWARE                    1001
@@ -60,6 +61,9 @@
 #define IDC_PRODUCT                     1011
 #define IDC_ERROR                       1014
 #define IDC_SEQUENCE                    1016
+#define IDC_TABLEUNLOAD_PATH            1017
+#define IDC_TABLEUNLOAD_THREADS         1019
+#define IDC_TABLEUNLOAD_ITERS           1020
 #define ID_MAINFRAME                    10001
 #define ID_TOOLBAR                      10002
 #define ID_REBAR                        10003
@@ -71,14 +75,15 @@
 #define ID_APP_REFRESH                  40005
 #define ID_TABLE_LOAD                   40013
 #define ID_TABLE_UNLOAD                 40014
+#define ID_TEST_TABLE_UNLOAD            40015
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        122
-#define _APS_NEXT_COMMAND_VALUE         40015
-#define _APS_NEXT_CONTROL_VALUE         1017
+#define _APS_NEXT_RESOURCE_VALUE        123
+#define _APS_NEXT_COMMAND_VALUE         40016
+#define _APS_NEXT_CONTROL_VALUE         1021
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif
