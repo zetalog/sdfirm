@@ -15,6 +15,7 @@
 #include <devioctl.h>
 #include <host/winusb.h>
 #include <host/usbdfu.h>
+#include <host/winlayout.h>
 
 #include "resource.h"
 
