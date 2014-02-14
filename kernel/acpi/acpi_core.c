@@ -65,8 +65,12 @@ static void acpi_reference_update(struct acpi_reference *reference,
 
 	flags = acpi_os_acquire_lock(acpi_gbl_reference_lock);
 	switch (action) {
-	case REF_INCREMENT:
+	case REF_INCREMENT_FORCE:
 		reference->count++;
+		break;
+	case REF_INCREMENT:
+		if (reference->count > 0)
+			reference->count++;
 		break;
 	case REF_DECREMENT:
 		reference->count--;
@@ -81,12 +85,19 @@ static void acpi_reference_update(struct acpi_reference *reference,
 
 void acpi_reference_inc(struct acpi_reference *reference)
 {
-	acpi_reference_update(reference, REF_INCREMENT, NULL);
+	acpi_reference_update(reference, REF_INCREMENT_FORCE, NULL);
 }
 
 void acpi_reference_dec(struct acpi_reference *reference)
 {
 	acpi_reference_update(reference, REF_DECREMENT, NULL);
+}
+
+int acpi_reference_test_and_inc(struct acpi_reference *reference)
+{
+	int count;
+	acpi_reference_update(reference, REF_INCREMENT, &count);
+	return count;
 }
 
 int acpi_reference_dec_and_test(struct acpi_reference *reference)

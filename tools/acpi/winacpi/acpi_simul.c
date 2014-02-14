@@ -132,13 +132,14 @@ acpi_status_t acpi_emu_load_table(const char *file, acpi_ddb_t *ddb)
 		acpi_emu_fadt_reloaded = true;
 	}
 
+	acpi_dbg("[%4.4s] enter acpi_install_table %d", table->signature,
+		 GetCurrentThreadId());
 	status = acpi_install_table(table, ACPI_TABLE_INTERNAL_VIRTUAL,
 				    versioning, &local_ddb);
-	if (ACPI_SUCCESS(status)) {
-		acpi_table_decrement(local_ddb);
-		if (ddb)
-			*ddb = local_ddb;
-	}
+	acpi_dbg("[%4.4s] exit acpi_install_table %d", table->signature,
+		 GetCurrentThreadId());
+	if (ACPI_SUCCESS(status) && ddb)
+		*ddb = local_ddb;
 
 	return status;
 }
@@ -395,7 +396,6 @@ acpi_status_t acpi_os_wait_semaphore(acpi_handle_t handle,
 		wait_timeout += 10;
 	}
 
-	acpi_dbg("%d locked", index);
 	wait_status = WaitForSingleObject(acpi_emu_semaphores[index].handle, wait_timeout);
 	if (wait_status == WAIT_TIMEOUT) {
 		if (acpi_emu_debug_timeout) {
@@ -442,7 +442,6 @@ acpi_status_t acpi_os_signal_semaphore(acpi_handle_t handle,
 	
 	acpi_emu_semaphores[index].current_units++;
 
-	acpi_dbg("%d unlocked", index);
 	ReleaseSemaphore(acpi_emu_semaphores[index].handle, units, NULL);
 	
 	return AE_OK;
@@ -513,6 +512,7 @@ struct acpi_test_TableUnload {
 };
 
 boolean acpi_test_TableUnload_started = false;
+boolean acpi_test_TableUnload_stopped = false;
 struct acpi_reference acpi_test_TableUnload_count;
 
 DWORD WINAPI acpi_test_TableUnload_thread(void *args)
@@ -520,17 +520,28 @@ DWORD WINAPI acpi_test_TableUnload_thread(void *args)
 	struct acpi_test_TableUnload *param = (struct acpi_test_TableUnload *)args;
 	acpi_ddb_t ddb;
 	int count = 20;
+	acpi_status_t status;
+	struct acpi_table_header *table;
 
 	while (param->iterations--) {
 		if (!acpi_test_TableUnload_started)
 			break;
 		acpi_emu_load_table(param->filename, &ddb);
-		acpi_os_sleep(1000);
-		acpi_uninstall_table(ddb);
+		status = acpi_get_table(ddb, &table);
+		if (ACPI_SUCCESS(status)) {
+			acpi_os_sleep(1000);
+			acpi_dbg("[%4.4s] enter acpi_uninstall_table %d",
+				 table->signature, GetCurrentThreadId());
+			acpi_uninstall_table(ddb);
+			acpi_dbg("[%4.4s] exit acpi_uninstall_table %d",
+				 table->signature, GetCurrentThreadId());
+			acpi_put_table(ddb, table);
+		}
 	}
 
 	free(param);
-	acpi_reference_dec(&acpi_test_TableUnload_count);
+	if (acpi_reference_dec_and_test(&acpi_test_TableUnload_count) == 0)
+		acpi_test_TableUnload_stopped = true;
 	return 0;
 }
 
@@ -543,10 +554,11 @@ void acpi_test_TableUnload_start(const char *path,
 	struct direct *entry = (struct direct *)0;
 	struct acpi_test_TableUnload *param;
 
-	if (!acpi_test_TableUnload_started && path) {
+	if ((!acpi_test_TableUnload_started ||
+	     acpi_test_TableUnload_stopped) && path) {
 		dirp = opendir(path);
 		if (!dirp) {
-			acpi_err("can't open directory `%s'.\n", path);
+			acpi_err("can't open directory `%s'.", path);
 			return;
 		}
 
@@ -560,7 +572,7 @@ void acpi_test_TableUnload_start(const char *path,
 					continue;
 				param->iterations = iterations;
 				sprintf(param->filename, "%s\\%s", path, entry->d_name);
-				acpi_dbg("> %s\n", param->filename);
+				acpi_dbg("> %s", param->filename);
 				thread = CreateThread(NULL, 0,
 						      acpi_test_TableUnload_thread,
 						      (void *)param, 0, NULL);
@@ -574,7 +586,7 @@ void acpi_test_TableUnload_start(const char *path,
 
 void acpi_test_TableUnload_stop(void)
 {
-	while (acpi_reference_get(&acpi_test_TableUnload_count) != 0) {
+	while (acpi_test_TableUnload_started && !acpi_test_TableUnload_stopped) {
 		acpi_test_TableUnload_started = false;
 		acpi_os_sleep(1000);
 	}

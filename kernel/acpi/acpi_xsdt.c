@@ -92,11 +92,11 @@ acpi_status_t acpi_xsdt_parse(acpi_addr_t xsdt_address, uint32_t table_entry_siz
 					    ACPI_TABLE_INTERNAL_PHYSICAL,
 					    true, true, &ddb);
 		if (ACPI_SUCCESS(status)) {
-			acpi_get_table(ddb, &table);
-			if (ACPI_NAMECMP(ACPI_SIG_FADT, table->signature))
-				acpi_fadt_parse(table);
-			acpi_put_table(ddb, table);
-			acpi_table_decrement(ddb);
+			if (ACPI_SUCCESS(acpi_get_table(ddb, &table))) {
+				if (ACPI_NAMECMP(ACPI_SIG_FADT, table->signature))
+					acpi_fadt_parse(table);
+				acpi_put_table(ddb, table);
+			}
 		}
 		table_entry += table_entry_size;
 	}

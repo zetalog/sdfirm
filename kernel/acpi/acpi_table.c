@@ -134,28 +134,35 @@ static void acpi_table_unlock_busy(void)
 static void acpi_table_notify(struct acpi_table_desc *table_desc,
 			      acpi_ddb_t ddb, uint32_t event)
 {
+	acpi_dbg("[%4.4s] INC(NOTIFY)", table_desc->signature);
 	acpi_table_increment(ddb);
 	acpi_table_unlock();
 	acpi_event_table_notify(table_desc, ddb, event);
-	acpi_table_lock();
+	acpi_dbg("[%4.4s] DEC(NOTIFY)", table_desc->signature);
 	acpi_table_decrement(ddb);
+	acpi_table_lock();
 }
 
 void acpi_table_notify_existing(void)
 {
 	acpi_ddb_t ddb;
+	struct acpi_table_desc *table_desc;
 
 	if (!acpi_table_lock_busy())
 		return;
 	acpi_foreach_installed_ddb(ddb, 0) {
+		table_desc = &acpi_gbl_table_list.tables[ddb];
+		acpi_dbg("[%4.4s] INC(NOTIFY_EXIST)", table_desc->signature);
 		acpi_table_increment(ddb);
-		acpi_table_notify(&acpi_gbl_table_list.tables[ddb], ddb,
-				  ACPI_EVENT_TABLE_INSTALL);
+		acpi_table_notify(table_desc, ddb, ACPI_EVENT_TABLE_INSTALL);
 		/* TODO: Ordered LOAD/UNLOAD event support */
 		if (acpi_table_is_loaded(ddb))
-			acpi_table_notify(&acpi_gbl_table_list.tables[ddb], ddb,
+			acpi_table_notify(table_desc, ddb,
 					  ACPI_EVENT_TABLE_LOAD);
+		acpi_dbg("[%4.4s] DEC(NOTIFY_EXIST)", table_desc->signature);
+		acpi_table_unlock();
 		acpi_table_decrement(ddb);
+		acpi_table_lock();
 	}
 	acpi_table_unlock_busy();
 }
@@ -277,6 +284,7 @@ static acpi_status_t acpi_table_list_acquire(acpi_ddb_t *ddb_handle,
 {
 	acpi_status_t status;
 	acpi_ddb_t ddb;
+	struct acpi_table_desc *table_desc;
 
 	if (ACPI_NAMECMP(ACPI_SIG_DSDT, name)) {
 		ddb = ACPI_DDB_HANDLE_DSDT;
@@ -298,10 +306,24 @@ static acpi_status_t acpi_table_list_acquire(acpi_ddb_t *ddb_handle,
 	acpi_gbl_table_list.use_table_count++;
 
 out_succ:
+	table_desc = &acpi_gbl_table_list.tables[ddb];
+	if (table_desc->flags & ACPI_TABLE_STATE_MASK)
+		return AE_NOT_FOUND;
 	acpi_reference_inc(&acpi_gbl_table_list.all_table_count);
+	acpi_dbg("[%4.4s] INC(all_table_count %d)", name,
+		 acpi_reference_get(&acpi_gbl_table_list.all_table_count));
 	*ddb_handle = ddb;
-	acpi_gbl_table_list.tables[ddb].flags = 0;
+	BUG_ON(acpi_reference_get(&table_desc->reference_count));
+	memset(table_desc, 0, sizeof (struct acpi_table_desc));
+	table_desc->flags = ACPI_TABLE_IS_INSTALLED;
 	return AE_OK;
+}
+
+void acpi_table_list_release(acpi_ddb_t ddb)
+{
+	acpi_gbl_table_list.tables[ddb].flags &= ~ACPI_TABLE_IS_INSTALLED;
+	BUG_ON(acpi_gbl_table_list.tables[ddb].flags & ACPI_TABLE_STATE_MASK);
+	acpi_reference_dec(&acpi_gbl_table_list.all_table_count);
 }
 
 static acpi_status_t acpi_table_acquire(struct acpi_table_desc *table_desc,
@@ -390,10 +412,9 @@ static void __acpi_table_install(struct acpi_table_desc *table_desc,
 				 acpi_addr_t address, acpi_table_flags_t flags,
 				 struct acpi_table_header *table_header)
 {
-	memset(table_desc, 0, sizeof (struct acpi_table_desc));
 	table_desc->address = address;
 	table_desc->length = acpi_table_get_length(table_header);
-	table_desc->flags = flags;
+	table_desc->flags |= flags;
 	ACPI_NAMECPY(ACPI_NAME2TAG(table_header->signature), table_desc->signature);
 	if (acpi_table_has_header(table_header->signature)) {
 		ACPI_OEMCPY(table_header->oem_id,
@@ -419,12 +440,14 @@ static acpi_status_t acpi_table_install_temporal(struct acpi_table_desc *table_d
 		table_header = acpi_os_map_memory(address, sizeof (struct acpi_table_header));
 		if (!table_header)
 			return AE_NO_MEMORY;
+		memset(table_desc, 0, sizeof (struct acpi_table_desc));
 		__acpi_table_install(table_desc, address, flags, table_header);
 		acpi_os_unmap_memory(table_header, sizeof (struct acpi_table_header));
 		return AE_OK;
 	case ACPI_TABLE_INTERNAL_VIRTUAL:
 	case ACPI_TABLE_EXTERNAL_VIRTUAL:
 		table_header = ACPI_CAST_PTR(struct acpi_table_header, address);
+		memset(table_desc, 0, sizeof (struct acpi_table_desc));
 		__acpi_table_install(table_desc, address, flags, table_header);
 		return AE_OK;
 	}
@@ -441,6 +464,8 @@ static void __acpi_table_uninstall(struct acpi_table_desc *table_desc)
 	if ((table_desc->flags & ACPI_TABLE_ORIGIN_MASK) == ACPI_TABLE_INTERNAL_VIRTUAL)
 		acpi_os_free(ACPI_CAST_PTR(void, table_desc->address));
 	table_desc->address = ACPI_PTR_TO_PHYSADDR(NULL);
+	table_desc->length = 0;
+	table_desc->flags &= ~ACPI_TABLE_ORIGIN_MASK;
 }
 
 static void acpi_table_override(struct acpi_table_desc *old_table_desc)
@@ -484,23 +509,25 @@ static void acpi_determine_integer_width(uint8_t revision)
 static void acpi_table_install_and_override(struct acpi_table_desc *new_table_desc,
 					    acpi_ddb_t ddb, boolean override)
 {
+	struct acpi_table_desc *table_desc;
+
 	if (acpi_table_is_module_dead())
 		return;
 
-	if (ddb >= acpi_gbl_table_list.use_table_count)
-		return;
+	BUG_ON(ddb >= acpi_gbl_table_list.use_table_count);
 
 	if (override)
 		acpi_table_override(new_table_desc);
 
-	__acpi_table_install(&acpi_gbl_table_list.tables[ddb],
+	table_desc = &acpi_gbl_table_list.tables[ddb];
+	__acpi_table_install(table_desc,
 			     new_table_desc->address, new_table_desc->flags,
 			     new_table_desc->pointer);
-	acpi_gbl_table_list.tables[ddb].flags |= ACPI_TABLE_IS_INSTALLED;
 	/* Acquire the MANAGED reference */
-	acpi_table_increment(ddb);
-	acpi_table_notify(&acpi_gbl_table_list.tables[ddb], ddb,
-			  ACPI_EVENT_TABLE_INSTALL);
+	acpi_dbg("[%4.4s] INC(MANAGED)", table_desc->signature);
+	BUG_ON(acpi_reference_get(&table_desc->reference_count) != 0);
+	acpi_reference_set(&table_desc->reference_count, 1);
+	acpi_table_notify(table_desc, ddb, ACPI_EVENT_TABLE_INSTALL);
 
 	if (ddb == ACPI_DDB_HANDLE_DSDT)
 		acpi_determine_integer_width(ACPI_DECODE8(&new_table_desc->pointer->revision));
@@ -523,23 +550,29 @@ boolean acpi_table_is_same(struct acpi_table_desc *table_desc, acpi_tag_t sig,
 void acpi_table_set_loaded(acpi_ddb_t ddb, boolean is_loaded)
 {
 	if (ddb < acpi_gbl_table_list.use_table_count) {
+		struct acpi_table_desc *table_desc;
+
+		table_desc = &acpi_gbl_table_list.tables[ddb];
 		if (is_loaded) {
+			acpi_dbg("[%4.4s] INC(LOADED)", table_desc->signature);
 			acpi_table_increment(ddb);
-			acpi_gbl_table_list.tables[ddb].flags |= ACPI_TABLE_IS_LOADED;
+			table_desc->flags |= ACPI_TABLE_IS_LOADED;
 		} else {
+			acpi_dbg("[%4.4s] DEC(LOADED)", table_desc->signature);
 			acpi_table_decrement(ddb);
-			acpi_gbl_table_list.tables[ddb].flags &= ~ACPI_TABLE_IS_LOADED;
+			table_desc->flags &= ~ACPI_TABLE_IS_LOADED;
 		}
 	}
 }
 
 static void acpi_table_uninstall(acpi_ddb_t ddb)
 {
-	struct acpi_table_desc *table_desc = &acpi_gbl_table_list.tables[ddb];
+	struct acpi_table_desc *table_desc;
 
 	if (!acpi_table_is_installed(ddb))
 		return;
 
+	table_desc = &acpi_gbl_table_list.tables[ddb];
 	table_desc->flags |= ACPI_TABLE_IS_UNINSTALLING;
 
 	if (acpi_table_is_loaded(ddb)) {
@@ -549,11 +582,13 @@ static void acpi_table_uninstall(acpi_ddb_t ddb)
 		acpi_table_set_loaded(ddb, false);
 	}
 
-	acpi_table_notify(&acpi_gbl_table_list.tables[ddb], ddb,
-			  ACPI_EVENT_TABLE_UNINSTALL);
+	acpi_table_notify(table_desc, ddb, ACPI_EVENT_TABLE_UNINSTALL);
 
 	/* Release the MANAGED reference */
+	acpi_dbg("[%4.4s] DEC(MANAGED)", table_desc->signature);
+	acpi_table_unlock();
 	acpi_table_decrement(ddb);
+	acpi_table_lock();
 }
 
 acpi_status_t acpi_table_install(acpi_addr_t address, acpi_tag_t signature,
@@ -585,6 +620,7 @@ acpi_status_t acpi_table_install(acpi_addr_t address, acpi_tag_t signature,
 	acpi_table_lock();
 	acpi_foreach_installed_ddb(ddb, 0) {
 		table_desc = &acpi_gbl_table_list.tables[ddb];
+
 		if (!acpi_table_is_same(table_desc,
 					ACPI_NAME2TAG(new_table_desc.signature),
 					new_table_desc.oem_id,
@@ -596,19 +632,21 @@ acpi_status_t acpi_table_install(acpi_addr_t address, acpi_tag_t signature,
 		}
 
 		acpi_table_uninstall(ddb);
+
+		/* Wait until uninstall completes, for FACS and DSDT reloading */
+		while (acpi_gbl_table_list.tables[ddb].flags & ACPI_TABLE_IS_INSTALLED) {
+			acpi_table_unlock();
+			acpi_os_sleep(10);
+			acpi_table_lock();
+		}
 	}
 
 	status = acpi_table_list_acquire(&ddb, new_table_desc.signature);
 	if (ACPI_FAILURE(status))
 		goto err_lock;
 
-	/* Wait until uninstall completes, for FACS and DSDT reloading */
-	while (acpi_reference_get(&acpi_gbl_table_list.tables[ddb].reference_count))
-		acpi_os_sleep(10);
-
 	*ddb_handle = ddb;
 	acpi_table_install_and_override(&new_table_desc, ddb, override);
-	acpi_table_increment(ddb);
 
 err_lock:
 	acpi_table_unlock();
@@ -627,7 +665,8 @@ boolean acpi_table_is_loaded(acpi_ddb_t ddb)
 boolean acpi_table_is_installed(acpi_ddb_t ddb)
 {
 	if (ddb < acpi_gbl_table_list.use_table_count &&
-	    acpi_gbl_table_list.tables[ddb].flags & ACPI_TABLE_IS_INSTALLED &&
+	    /*acpi_gbl_table_list.tables[ddb].flags & ACPI_TABLE_IS_INSTALLED &&*/
+	    acpi_reference_get(&acpi_gbl_table_list.tables[ddb].reference_count) > 0 &&
 	    !(acpi_gbl_table_list.tables[ddb].flags & ACPI_TABLE_IS_UNINSTALLING))
 		return true;
 	return false;
@@ -687,13 +726,20 @@ static acpi_status_t acpi_table_load(acpi_ddb_t ddb, struct acpi_namespace_node 
 	return status;
 }
 
-void acpi_table_increment(acpi_ddb_t ddb)
+acpi_ddb_t acpi_table_increment(acpi_ddb_t ddb)
 {
 	struct acpi_table_desc *table_desc;
 
 	BUG_ON(ddb >= acpi_gbl_table_list.use_table_count);
 	table_desc = &acpi_gbl_table_list.tables[ddb];
-	acpi_reference_inc(&table_desc->reference_count);
+	if (table_desc->flags & ACPI_TABLE_IS_INSTALLED &&
+	    acpi_reference_test_and_inc(&table_desc->reference_count)) {
+		acpi_dbg("[%4.4s] acpi_table_increment", table_desc->signature);
+		return ddb;
+	}
+
+	BUG();
+	return ACPI_DDB_HANDLE_INVALID;
 }
 
 void acpi_table_decrement(acpi_ddb_t ddb)
@@ -701,12 +747,19 @@ void acpi_table_decrement(acpi_ddb_t ddb)
 	struct acpi_table_desc *table_desc;
 
 	table_desc = &acpi_gbl_table_list.tables[ddb];
-	if (table_desc &&
-	    acpi_reference_dec_and_test(&table_desc->reference_count) == 0) {
-		table_desc->flags &= ~ACPI_TABLE_IS_UNINSTALLING;
-		__acpi_table_uninstall(table_desc);
-		table_desc->flags &= ~ACPI_TABLE_IS_INSTALLED;
-		acpi_reference_dec(&acpi_gbl_table_list.all_table_count);
+	if (table_desc) {
+		acpi_dbg("[%4.4s] acpi_table_decrement", table_desc->signature);
+		acpi_table_lock();
+		if (acpi_reference_dec_and_test(&table_desc->reference_count) == 0) {
+			table_desc->flags &= ~ACPI_TABLE_IS_UNINSTALLING;
+			acpi_table_unlock();
+			acpi_dbg("[%4.4s] DEC(all_table_count %d)", table_desc->signature,
+				 acpi_reference_get(&acpi_gbl_table_list.all_table_count));
+			__acpi_table_uninstall(table_desc);
+			acpi_table_lock();
+			acpi_table_list_release(ddb);
+		}
+		acpi_table_unlock();
 	}
 }
 
@@ -719,28 +772,30 @@ static acpi_status_t __acpi_get_table(acpi_ddb_t ddb,
 	uint32_t table_len;
 	acpi_table_flags_t table_flags;
 
-	acpi_table_increment(ddb);
+	if (!acpi_table_is_installed(ddb))
+		return AE_NOT_FOUND;
+
 	table_desc = &acpi_gbl_table_list.tables[ddb];
+	acpi_dbg("[%4.4s] INC(GET)", table_desc->signature);
+	acpi_table_increment(ddb);
 	acpi_table_unlock();
 
-	if (!acpi_table_is_installed(ddb))
-		status = AE_NOT_FOUND;
-	else {
-		if (table_desc->pointer) {
-			*out_table = table_desc->pointer;
-			status = AE_OK;
-		} else {
-			status = acpi_table_acquire(table_desc,
-						    &table,
-						    &table_len,
-						    &table_flags);
-			if (ACPI_SUCCESS(status))
-				*out_table = table;
-		}
+	if (table_desc->pointer) {
+		*out_table = table_desc->pointer;
+		status = AE_OK;
+	} else {
+		status = acpi_table_acquire(table_desc,
+					    &table,
+					    &table_len,
+					    &table_flags);
+		if (ACPI_SUCCESS(status))
+			*out_table = table;
 	}
 
-	if (ACPI_FAILURE(status))
+	if (ACPI_FAILURE(status)) {
+		acpi_dbg("[%4.4s] DEC(GET_FAILURE)", table_desc->signature);
 		acpi_table_decrement(ddb);
+	}
 	acpi_table_lock();
 
 	return status;
@@ -775,6 +830,7 @@ void acpi_put_table(acpi_ddb_t ddb, struct acpi_table_header *table)
 
 	if (!table_desc->pointer)
 		acpi_table_release(table, table_desc->length, table_desc->flags);
+	acpi_dbg("[%4.4s] DEC(PUT)", table_desc->signature);
 	acpi_table_decrement(ddb);
 }
 
@@ -849,17 +905,17 @@ acpi_status_t acpi_install_table(struct acpi_table_header *table,
 	
 	if (!table || !ddb_handle)
 		return AE_BAD_PARAMETER;
-	
+
 	status = acpi_table_install(ACPI_PTR_TO_PHYSADDR(table), ACPI_TAG_NULL,
 				    flags, false, versioning, &ddb);
 	if (ACPI_FAILURE(status))
 		return status;
 
+#if 0
 	status = acpi_table_load(ddb, acpi_gbl_root_node);
-	if (ACPI_FAILURE(status)) {
-		acpi_table_decrement(ddb);
+#endif
+	if (ACPI_FAILURE(status))
 		return status;
-	}
 
 	*ddb_handle = ddb;
 	return AE_OK;
@@ -868,22 +924,28 @@ acpi_status_t acpi_install_table(struct acpi_table_header *table,
 void acpi_load_tables(void)
 {
 	acpi_ddb_t ddb;
+	struct acpi_table_desc *table_desc;
 
 	acpi_table_lock();
 
 	acpi_foreach_installed_ddb(ddb, 0) {
+		table_desc = &acpi_gbl_table_list.tables[ddb];
 		if ((!ACPI_NAMECMP(ACPI_SIG_DSDT,
-				   acpi_gbl_table_list.tables[ddb].signature) &&
+				   table_desc->signature) &&
 		     !ACPI_NAMECMP(ACPI_SIG_SSDT,
-				   acpi_gbl_table_list.tables[ddb].signature) &&
+				   table_desc->signature) &&
 		     !ACPI_NAMECMP(ACPI_SIG_PSDT,
-				   acpi_gbl_table_list.tables[ddb].signature)) ||
-		    ACPI_FAILURE(acpi_table_validate(&acpi_gbl_table_list.tables[ddb])))
+				   table_desc->signature)) ||
+		    ACPI_FAILURE(acpi_table_validate(table_desc)))
 			continue;
 
+		acpi_dbg("[%4.4s] INC(LOAD)", table_desc->signature);
 		acpi_table_increment(ddb);
 		acpi_table_unlock();
+#if 0
 		(void)acpi_table_load(ddb, acpi_gbl_root_node);
+#endif
+		acpi_dbg("[%4.4s] DEC(LOAD)", table_desc->signature);
 		acpi_table_decrement(ddb);
 		acpi_table_lock();
 	}

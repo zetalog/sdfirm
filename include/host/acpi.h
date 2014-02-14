@@ -10,7 +10,18 @@
 #include <host/bitops.h>
 
 #ifndef BUG_ON
-#define BUG_ON(expr)	assert(!(expr))
+#define BUG_ON(expr)							\
+	do {								\
+		if (expr) {						\
+			acpi_os_debug_print("%s:%d: %s",		\
+					    __FILE__, __LINE__, #expr);	\
+			assert(!(expr));				\
+			while (1);					\
+		}							\
+	} while (0)
+#endif
+#ifndef BUG
+#define BUG()		BUG_ON(false)
 #endif
 
 #ifndef INT_MAX

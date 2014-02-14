@@ -466,6 +466,7 @@ struct acpi_reference {
 };
 #define REF_INCREMENT			0
 #define REF_DECREMENT			1
+#define REF_INCREMENT_FORCE		2
 
 #define ACPI_WAIT_FOREVER		0xFFFF  /* UINT16, as per ACPI spec */
 #define ACPI_DO_NOT_WAIT		0
@@ -657,6 +658,7 @@ struct acpi_table_desc {
 #define ACPI_TABLE_IS_LOADED		(0x04)
 #define ACPI_TABLE_IS_INSTALLED		(0x08)
 #define ACPI_TABLE_IS_UNINSTALLING	(0x10)
+#define ACPI_TABLE_STATE_MASK		(0x1C)
 
 #define ACPI_DDB_HANDLE_DSDT		((acpi_ddb_t)0)
 #define ACPI_DDB_HANDLE_FACS		((acpi_ddb_t)1)
@@ -835,6 +837,7 @@ int acpi_reference_get(struct acpi_reference *reference);
 void acpi_reference_inc(struct acpi_reference *reference);
 void acpi_reference_dec(struct acpi_reference *reference);
 int acpi_reference_dec_and_test(struct acpi_reference *reference);
+int acpi_reference_test_and_inc(struct acpi_reference *reference);
 
 const char *acpi_mutex_name(uint32_t mutex_id);
 
@@ -867,7 +870,7 @@ acpi_status_t acpi_get_table_by_name(acpi_tag_t sig, char *oem_id, char *oem_tab
 acpi_status_t acpi_get_table(acpi_ddb_t ddb, struct acpi_table_header **out_table);
 void acpi_put_table(acpi_ddb_t ddb, struct acpi_table_header *table);
 /* references without mappings */
-void acpi_table_increment(acpi_ddb_t ddb);
+acpi_ddb_t acpi_table_increment(acpi_ddb_t ddb);
 void acpi_table_decrement(acpi_ddb_t ddb);
 /* flag testing */
 boolean acpi_table_is_installed(acpi_ddb_t ddb);
