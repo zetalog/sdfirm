@@ -169,10 +169,31 @@ void DisplayVersion(HWND hwndParent)
 		  hwndParent, (DLGPROC)About_DlgProc);
 }
 
+static VOID ACPITableUnloadTestValidateInput(HWND hDlg, int nIDDlgItem,
+					     LPACPITESTTABLEUNLOAD pTableUnload)
+{
+	UINT nValue;
+	BOOL bTranslated;
+
+	switch (nIDDlgItem) {
+	case IDC_TABLEUNLOAD_THREADS:
+		nValue = GetDlgItemInt(hDlg, nIDDlgItem, &bTranslated, FALSE);
+		if (bTranslated)
+			pTableUnload->nThreads = nValue;
+		break;
+	case IDC_TABLEUNLOAD_ITERS:
+		nValue = GetDlgItemInt(hDlg, nIDDlgItem, &bTranslated, FALSE);
+		if (bTranslated)
+			pTableUnload->nIterations = nValue;
+		break;
+	}
+}
+
 static LRESULT WINAPI TableUnloadTest_DlgProc(HWND hDlg, UINT uMsg,
 					      WPARAM wParam, LPARAM lParam)
 {
 	LPACPITESTTABLEUNLOAD pTableUnload;
+	int wmId, wmEvent;
 
 	if (uMsg == WM_INITDIALOG) {
 		pTableUnload = (LPACPITESTTABLEUNLOAD)lParam;
@@ -189,6 +210,8 @@ static LRESULT WINAPI TableUnloadTest_DlgProc(HWND hDlg, UINT uMsg,
 		CenterChild(hDlg, GetParent(hDlg));
 		break;
 	case WM_COMMAND:
+		wmId    = LOWORD(wParam);
+		wmEvent = HIWORD(wParam);
 		switch (LOWORD(wParam)) {
 		case IDOK:
 		case IDCANCEL:
@@ -197,6 +220,9 @@ static LRESULT WINAPI TableUnloadTest_DlgProc(HWND hDlg, UINT uMsg,
 		case IDC_TABLEUNLOAD_PATH:
 		case IDC_TABLEUNLOAD_THREADS:
 		case IDC_TABLEUNLOAD_ITERS:
+			if (wmEvent == EN_CHANGE) {
+				ACPITableUnloadTestValidateInput(hDlg, wmId, pTableUnload);
+			}
 			break;
 		case IDC_BROWSE:
 			if (DlgBrowseDirectory(hDlg, pTableUnload->szPath,
