@@ -134,8 +134,11 @@ acpi_status_t acpi_emu_load_table(const char *file, acpi_ddb_t *ddb)
 
 	status = acpi_install_table(table, ACPI_TABLE_INTERNAL_VIRTUAL,
 				    versioning, &local_ddb);
-	if (ACPI_SUCCESS(status) && ddb)
-		*ddb = local_ddb;
+	if (ACPI_SUCCESS(status)) {
+		acpi_table_decrement(local_ddb);
+		if (ddb)
+			*ddb = local_ddb;
+	}
 
 	return status;
 }
@@ -392,6 +395,7 @@ acpi_status_t acpi_os_wait_semaphore(acpi_handle_t handle,
 		wait_timeout += 10;
 	}
 
+	acpi_dbg("%d locked", index);
 	wait_status = WaitForSingleObject(acpi_emu_semaphores[index].handle, wait_timeout);
 	if (wait_status == WAIT_TIMEOUT) {
 		if (acpi_emu_debug_timeout) {
@@ -438,6 +442,7 @@ acpi_status_t acpi_os_signal_semaphore(acpi_handle_t handle,
 	
 	acpi_emu_semaphores[index].current_units++;
 
+	acpi_dbg("%d unlocked", index);
 	ReleaseSemaphore(acpi_emu_semaphores[index].handle, units, NULL);
 	
 	return AE_OK;
@@ -515,25 +520,13 @@ DWORD WINAPI acpi_test_TableUnload_thread(void *args)
 	struct acpi_test_TableUnload *param = (struct acpi_test_TableUnload *)args;
 	acpi_ddb_t ddb;
 	int count = 20;
-	int i = 1;
-	acpi_status_t status;
-	struct acpi_table_header *table;
 
 	while (param->iterations--) {
 		if (!acpi_test_TableUnload_started)
 			break;
 		acpi_emu_load_table(param->filename, &ddb);
-		status = acpi_get_table(ddb, &table);
-		if (ACPI_SUCCESS(status)) {
-			acpi_os_sleep(1000);
-			acpi_dbg("[%4.4s] enter acpi_uninstall_table %d",
-				 table->signature, i);
-			acpi_uninstall_table(ddb);
-			acpi_dbg("[%4.4s] exit acpi_uninstall_table %d",
-				 table->signature, i);
-			acpi_put_table(ddb, table);
-		}
-		i++;
+		acpi_os_sleep(1000);
+		acpi_uninstall_table(ddb);
 	}
 
 	free(param);
@@ -553,7 +546,7 @@ void acpi_test_TableUnload_start(const char *path,
 	if (!acpi_test_TableUnload_started && path) {
 		dirp = opendir(path);
 		if (!dirp) {
-			acpi_err("can't open directory `%s'.", path);
+			acpi_err("can't open directory `%s'.\n", path);
 			return;
 		}
 
@@ -567,7 +560,7 @@ void acpi_test_TableUnload_start(const char *path,
 					continue;
 				param->iterations = iterations;
 				sprintf(param->filename, "%s\\%s", path, entry->d_name);
-				acpi_dbg("> %s", param->filename);
+				acpi_dbg("> %s\n", param->filename);
 				thread = CreateThread(NULL, 0,
 						      acpi_test_TableUnload_thread,
 						      (void *)param, 0, NULL);

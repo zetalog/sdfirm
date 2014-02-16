@@ -296,7 +296,6 @@ static VOID ACPIAppendTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb)
 	if (ACPI_FAILURE(acpi_get_table(ddb, &table)))
 		return;
 
-	acpi_dbg("[%4.4s] ACPIAppendTable begine", table->signature);
 	memset(name, 0, sizeof (name));
 	ACPI_NAMECPY(ACPI_NAME2TAG(table->signature), name);
 
@@ -323,7 +322,6 @@ static VOID ACPIAppendTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb)
 		}
 	}
 
-	acpi_dbg("[%4.4s] ACPIAppendTable end", table->signature);
 	acpi_put_table(ddb, table);
 }
 
@@ -332,24 +330,12 @@ static VOID ACPIRemoveTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb)
 	LV_FINDINFO lvfi;
 	int nIndex;
 	HWND hwndList = lpWD->hwndTableList;
-	acpi_status_t status;
-	struct acpi_table_header *table = NULL;
-
-	status = acpi_get_table(ddb, &table);
-
-	if (ACPI_SUCCESS(status))
-		acpi_dbg("[%4.4s] ACPIRemoveTable begine", table->signature);
 
 	lvfi.flags = LVFI_PARAM;
 	lvfi.lParam = (LPARAM)ddb;
 	nIndex = ListView_FindItem(hwndList, -1, &lvfi);
 	if (nIndex != -1)
 		ListView_DeleteItem(hwndList, nIndex);
-
-	if ACPI_SUCCESS(status) {
-		acpi_dbg("[%4.4s] ACPIRemoveTable end", table->signature);
-		acpi_put_table(ddb, table);
-	}
 }
 
 acpi_ddb_t ACPIGetSelectedTable(LPACPIWNDDATA lpWD)
