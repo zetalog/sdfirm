@@ -71,7 +71,7 @@ static acpi_status_t acpi_table_read_file(const char *path, loff_t offset,
 				goto err_exit;
 			}
 		} else {
-			if (!ACPI_NAMECMP((acpi_tag_t)signature, header.signature)) {
+			if (!ACPI_NAMECMP(ACPI_NAME2TAG(signature), header.signature)) {
 				status = AE_BAD_SIGNATURE;
 				goto err_exit;
 			}
@@ -92,7 +92,7 @@ static acpi_status_t acpi_table_read_file(const char *path, loff_t offset,
 	fseek (fp, offset, SEEK_SET);
 
 	while (!feof(fp) && total < table_length) {
-		count = fread(local_table, 1, table_length-total, fp);
+		count = fread(local_table+total, 1, table_length-total, fp);
 		if (count < 0) {
 			status = AE_INVALID_TABLE_LENGTH;
 			goto err_exit;
