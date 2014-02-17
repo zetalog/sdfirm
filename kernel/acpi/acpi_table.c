@@ -1121,11 +1121,10 @@ again:
 		__acpi_uninstall_table(ddb);
 	}
 
-	while (acpi_reference_get(&acpi_gbl_table_list.all_table_count) != 0) {
-		acpi_table_unlock_dead();
-		acpi_os_sleep(10);
+	acpi_table_unlock_dead();
+	acpi_os_sleep(1000);
+	if (acpi_reference_get(&acpi_gbl_table_list.all_table_count) != 0)
 		goto again;
-	}
 
 	if (acpi_gbl_table_list.flags & ACPI_ROOT_ORIGIN_ALLOCATED)
 		acpi_os_free(acpi_gbl_table_list.tables);
