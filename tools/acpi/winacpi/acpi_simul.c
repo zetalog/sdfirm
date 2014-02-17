@@ -134,8 +134,8 @@ acpi_status_t acpi_emu_load_table(const char *file, acpi_ddb_t *ddb)
 
 	acpi_dbg("[%4.4s] enter acpi_install_table %d", table->signature,
 		 GetCurrentThreadId());
-	status = acpi_install_table(table, ACPI_TABLE_INTERNAL_VIRTUAL,
-				    versioning, &local_ddb);
+	status = acpi_install_and_load_table(table, ACPI_TABLE_INTERNAL_VIRTUAL,
+					     versioning, &local_ddb);
 	acpi_dbg("[%4.4s] exit acpi_install_table %d", table->signature,
 		 GetCurrentThreadId());
 	if (ACPI_SUCCESS(status) && ddb)
@@ -562,7 +562,6 @@ void acpi_test_TableUnload_start(const char *path,
 			return;
 		}
 
-		acpi_test_TableUnload_started = true;
 
 		i = 0;
 		while ((entry = readdir(dirp)) != NULL && i < nr_threads) {
@@ -576,8 +575,11 @@ void acpi_test_TableUnload_start(const char *path,
 				thread = CreateThread(NULL, 0,
 						      acpi_test_TableUnload_thread,
 						      (void *)param, 0, NULL);
-				acpi_reference_inc(&acpi_test_TableUnload_count);
-				i++;
+				if (thread) {
+					acpi_reference_inc(&acpi_test_TableUnload_count);
+					acpi_test_TableUnload_started = true;
+					i++;
+				}
 			}
 		}
 		closedir(dirp);

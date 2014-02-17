@@ -103,7 +103,7 @@ struct acpi_parser_state {
  * Table internals
  *=======================================================================*/
 /* exported for internal table installation */
-acpi_status_t acpi_table_install(acpi_addr_t address, acpi_tag_t signature,
+acpi_status_t acpi_install_table(acpi_addr_t address, acpi_tag_t signature,
 				 acpi_table_flags_t flags,
 				 boolean override, boolean versioning,
 				 acpi_ddb_t *ddb_handle);
@@ -114,6 +114,9 @@ acpi_status_t acpi_rsdp_parse(acpi_addr_t rsdp_address);
 acpi_status_t acpi_xsdt_parse(acpi_addr_t xsdt_address, uint32_t table_entry_size);
 acpi_status_t acpi_xsdt_verify(acpi_addr_t xsdt_address);
 void acpi_fadt_parse(struct acpi_table_header *table);
+/* references without mappings */
+acpi_ddb_t acpi_table_increment(acpi_ddb_t ddb);
+void acpi_table_decrement(acpi_ddb_t ddb);
 
 int acpi_compare_name(acpi_name_t name1, acpi_name_t name2);
 

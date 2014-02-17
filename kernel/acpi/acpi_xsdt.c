@@ -86,7 +86,7 @@ acpi_status_t acpi_xsdt_parse(acpi_addr_t xsdt_address, uint32_t table_entry_siz
 				 table_entry_size);
 	table_entry = ACPI_ADD_PTR(uint8_t, table, sizeof (struct acpi_table_header));
 	for (i = 0; i < table_count; i++) {
-		status = acpi_table_install(acpi_xsdt_get_entry(table_entry,
+		status = acpi_install_table(acpi_xsdt_get_entry(table_entry,
 								table_entry_size),
 					    ACPI_TAG_NULL,
 					    ACPI_TABLE_INTERNAL_PHYSICAL,

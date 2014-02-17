@@ -855,10 +855,10 @@ void acpi_encode_generic_address(struct acpi_generic_address *generic_address,
 /*=========================================================================
  * Table externals
  *=======================================================================*/
-acpi_status_t acpi_install_table(struct acpi_table_header *table,
-				 acpi_table_flags_t flags,
-				 boolean versioning,
-				 acpi_ddb_t *ddb_handle);
+acpi_status_t acpi_install_and_load_table(struct acpi_table_header *table,
+					  acpi_table_flags_t flags,
+					  boolean versioning,
+					  acpi_ddb_t *ddb_handle);
 void acpi_uninstall_table(acpi_ddb_t ddb);
 /* references with mappings */
 acpi_status_t acpi_get_table_by_inst(acpi_tag_t sig, uint32_t instance,
@@ -869,9 +869,6 @@ acpi_status_t acpi_get_table_by_name(acpi_tag_t sig, char *oem_id, char *oem_tab
 				     struct acpi_table_header **out_table);
 acpi_status_t acpi_get_table(acpi_ddb_t ddb, struct acpi_table_header **out_table);
 void acpi_put_table(acpi_ddb_t ddb, struct acpi_table_header *table);
-/* references without mappings */
-acpi_ddb_t acpi_table_increment(acpi_ddb_t ddb);
-void acpi_table_decrement(acpi_ddb_t ddb);
 /* flag testing */
 boolean acpi_table_is_installed(acpi_ddb_t ddb);
 boolean acpi_table_is_uninstalled(acpi_ddb_t ddb);
