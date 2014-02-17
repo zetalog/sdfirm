@@ -50,6 +50,7 @@
 #include <target/types.h>
 #include <target/bitops.h>
 #include <target/heap.h>
+#include <target/list.h>
 #endif
 
 #define ACPI_UINT32_MAX			(uint32_t)(~((uint32_t)0)) /* 0xFFFFFFFF         */
@@ -819,7 +820,7 @@ void acpi_os_release_lock(acpi_spinlock_t handle, acpi_cpuflags_t flags);
 /*=========================================================================
  * Initialization/Finalization
  *=======================================================================*/
-acpi_status_t acpi_initialize_tables(struct acpi_table_desc *initial_table_array,
+acpi_status_t acpi_initialize_tables(struct acpi_table_desc **initial_table_array,
 				     uint32_t initial_table_count,
 				     boolean allow_resize);
 acpi_status_t acpi_reallocate_root_table(void);
@@ -870,8 +871,6 @@ acpi_status_t acpi_get_table_by_name(acpi_tag_t sig, char *oem_id, char *oem_tab
 acpi_status_t acpi_get_table(acpi_ddb_t ddb, struct acpi_table_header **out_table);
 void acpi_put_table(acpi_ddb_t ddb, struct acpi_table_header *table);
 /* flag testing */
-boolean acpi_table_is_installed(acpi_ddb_t ddb);
-boolean acpi_table_is_uninstalled(acpi_ddb_t ddb);
 boolean acpi_table_is_loaded(acpi_ddb_t ddb);
 boolean acpi_table_contains_aml(struct acpi_table_header *table);
 boolean acpi_table_has_header(acpi_name_t signature);

@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <assert.h>
 #include <host/bitops.h>
+#include <host/list.h>
 
 #ifndef BUG_ON
 #define BUG_ON(expr)							\

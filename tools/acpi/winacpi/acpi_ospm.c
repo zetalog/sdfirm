@@ -2,11 +2,16 @@
 
 #define ACPI_MAX_TABLES		128
 static struct acpi_table_desc acpi_gbl_initial_tables[ACPI_MAX_TABLES];
+static struct acpi_table_desc *acpi_gbl_initial_tables_ids[ACPI_MAX_TABLES];
 
 void acpi_ospm_init(void)
 {
+	int i;
+
 	acpi_initialize_subsystem();
-	acpi_initialize_tables(acpi_gbl_initial_tables, ACPI_MAX_TABLES, true);
+	for (i = 0; i < ACPI_MAX_TABLES; i++)
+		acpi_gbl_initial_tables_ids[i] = &acpi_gbl_initial_tables[i];
+	acpi_initialize_tables(acpi_gbl_initial_tables_ids, ACPI_MAX_TABLES, false);
 	acpi_reallocate_root_table();
 	acpi_load_tables();
 #if 0
