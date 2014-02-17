@@ -66,20 +66,24 @@ static void acpi_reference_update(struct acpi_reference *reference,
 	flags = acpi_os_acquire_lock(acpi_gbl_reference_lock);
 	switch (action) {
 	case REF_INCREMENT_FORCE:
+		if (new_count)
+			*new_count = reference->count;
 		reference->count++;
 		break;
 	case REF_INCREMENT:
+		if (new_count)
+			*new_count = reference->count;
 		if (reference->count > 0)
 			reference->count++;
 		break;
 	case REF_DECREMENT:
 		reference->count--;
+		if (new_count)
+			*new_count = reference->count;
 		break;
 	default:
 		return;
 	}
-	if (new_count)
-		*new_count = reference->count;
 	acpi_os_release_lock(acpi_gbl_reference_lock, flags);
 }
 

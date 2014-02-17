@@ -225,8 +225,8 @@ static LRESULT WINAPI TableUnloadTest_DlgProc(HWND hDlg, UINT uMsg,
 			}
 			break;
 		case IDC_BROWSE:
-			if (DlgBrowseDirectory(hDlg, pTableUnload->szPath,
-					       sizeof (pTableUnload->szPath)))
+			if (DlgBrowseDirectory(hDlg, IDS_BROWSE_TABLES_FOLDER,
+					       pTableUnload->szPath, MAX_PATH))
 				SetDlgItemText(hDlg, IDC_TABLEUNLOAD_PATH, pTableUnload->szPath);
 			break;
 		}
@@ -322,7 +322,7 @@ static VOID ACPIAppendTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb)
 	if (ACPI_FAILURE(acpi_get_table(ddb, &table)))
 		return;
 
-	acpi_dbg("[%4.4s] ACPIAppendTable begine", table->signature);
+	acpi_dbg("[%4.4s %d] ACPIAppendTable begine", table->signature, ddb);
 	memset(name, 0, sizeof (name));
 	ACPI_NAMECPY(ACPI_NAME2TAG(table->signature), name);
 
@@ -349,7 +349,7 @@ static VOID ACPIAppendTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb)
 		}
 	}
 
-	acpi_dbg("[%4.4s] ACPIAppendTable end", table->signature);
+	acpi_dbg("[%4.4s %d] ACPIAppendTable end", table->signature, ddb);
 	acpi_put_table(ddb, table);
 }
 
@@ -363,7 +363,7 @@ static VOID ACPIRemoveTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb)
 
 	status = acpi_get_table(ddb, &table);
 	if (ACPI_SUCCESS(status))
-		acpi_dbg("[%4.4s] ACPIRemoveTable begine", table->signature);
+		acpi_dbg("[%4.4s %d] ACPIRemoveTable begine", table->signature, ddb);
 
 	lvfi.flags = LVFI_PARAM;
 	lvfi.lParam = (LPARAM)ddb;
@@ -373,7 +373,7 @@ static VOID ACPIRemoveTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb)
 	}
 
 	if (ACPI_SUCCESS(status)) {
-		acpi_dbg("[%4.4s] ACPIRemoveTable end", table->signature);
+		acpi_dbg("[%4.4s %d] ACPIRemoveTable end", table->signature, ddb);
 		acpi_put_table(ddb, table);
 	}
 }

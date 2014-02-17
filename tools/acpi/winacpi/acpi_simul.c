@@ -132,12 +132,11 @@ acpi_status_t acpi_emu_load_table(const char *file, acpi_ddb_t *ddb)
 		acpi_emu_fadt_reloaded = true;
 	}
 
-	acpi_dbg("[%4.4s] enter acpi_install_table %d", table->signature,
-		 GetCurrentThreadId());
+	acpi_dbg("[%4.4s %d] enter acpi_install_table", table->signature,
+		 ACPI_DDB_HANDLE_INVALID);
 	status = acpi_install_and_load_table(table, ACPI_TABLE_INTERNAL_VIRTUAL,
 					     versioning, &local_ddb);
-	acpi_dbg("[%4.4s] exit acpi_install_table %d", table->signature,
-		 GetCurrentThreadId());
+	acpi_dbg("[%4.4s %d] exit acpi_install_table", table->signature, local_ddb);
 	if (ACPI_SUCCESS(status) && ddb)
 		*ddb = local_ddb;
 
@@ -481,14 +480,16 @@ void acpi_os_sleep(uint32_t msecs)
 void acpi_os_debug_print(const char *fmt, ...)
 {
 #define MAX_DEBUG_BUFFER	512
-#define MAX_DEBUG_PREFIX	6
 #define MAX_DEBUG_SUFFIX	2
 	va_list	arglist;
-	char output[MAX_DEBUG_BUFFER+1] = "ACPI: ";
+	char output[MAX_DEBUG_BUFFER+1];
+	int prefix_len;
 
+	snprintf(output, MAX_DEBUG_BUFFER, "ACPI(%d): ", GetCurrentThreadId());
 	va_start(arglist, fmt);
-	vsnprintf(&output[MAX_DEBUG_PREFIX],
-		  MAX_DEBUG_BUFFER-MAX_DEBUG_PREFIX-MAX_DEBUG_SUFFIX,
+	prefix_len = strlen(output);
+	vsnprintf(output+prefix_len,
+		  MAX_DEBUG_BUFFER-prefix_len-MAX_DEBUG_SUFFIX,
 		  fmt, arglist);
 	va_end(arglist);
 
@@ -527,7 +528,6 @@ DWORD WINAPI acpi_test_TableUnload_thread(void *args)
 	int count = 20;
 	acpi_status_t status;
 	struct acpi_table_header *table;
-	DWORD tid = GetCurrentThreadId();
 
 	while (param->iterations--) {
 		if (!acpi_test_TableUnload_started)
@@ -536,11 +536,11 @@ DWORD WINAPI acpi_test_TableUnload_thread(void *args)
 		status = acpi_get_table(ddb, &table);
 		if (ACPI_SUCCESS(status)) {
 			acpi_os_sleep(1000);
-			acpi_dbg("[%4.4s] enter acpi_uninstall_table %d",
-				 table->signature, tid);
+			acpi_dbg("[%4.4s %d] enter acpi_uninstall_table",
+				 table->signature, ddb);
 			acpi_uninstall_table(ddb);
-			acpi_dbg("[%4.4s] exit acpi_uninstall_table %d",
-				 table->signature, tid);
+			acpi_dbg("[%4.4s %d] exit acpi_uninstall_table",
+				 table->signature, ddb);
 			acpi_put_table(ddb, table);
 		}
 	}
