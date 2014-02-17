@@ -601,18 +601,21 @@ BOOL WINAPI DlgShowProgress(HWND hWnd, UINT nSteps, WINPROGRESSCB pfnProgress, L
 	return TRUE;
 }
 
-BOOL DlgBrowseDirectory(HWND hWnd, char *szPath, UINT nSize)
+BOOL DlgBrowseDirectory(HWND hWnd, UINT uHint, char *szPath, UINT nSize)
 {
 	BROWSEINFO bf;
 	LPITEMIDLIST lpitem;
-	char szBuffer[MAX_PATH];
+	char szBuffer[MAX_PATH+1];
+	TCHAR szText[MAX_MESSAGE];
+	
+	LoadString(_hInstance, uHint, szText, MAX_MESSAGE);
 
 	memset(&bf, 0, sizeof (BROWSEINFO));
 	strncpy(szBuffer, szPath, MAX_PATH);
 
 	bf.hwndOwner = hWnd;
 	bf.pszDisplayName = szBuffer;
-	bf.lpszTitle = "Browse Directory";
+	bf.lpszTitle = szText;
 	bf.ulFlags = BIF_RETURNONLYFSDIRS;
 	lpitem = SHBrowseForFolder(&bf);
 

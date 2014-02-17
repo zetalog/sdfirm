@@ -331,6 +331,8 @@ BEGIN
     IDS_ERROR_LOAD_TABLE    "Failed to load ACPI table.\n\nStatus:\n%s."
     IDS_OBJECT_ATTRIBUTE    "Attribute"
     IDS_OBJECT_VALUE        "Value"
+    IDS_BROWSE_TABLES_FOLDER 
+                            "Please select a folder that contains multiple "".dat"" ACPI table binary files extracted from an acpidump."
 END
 
 #endif    // English (U.S.) resources

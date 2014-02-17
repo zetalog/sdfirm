@@ -30,6 +30,7 @@
 #define IDS_ERROR_LOAD_TABLE            26
 #define IDS_OBJECT_ATTRIBUTE            27
 #define IDS_OBJECT_VALUE                28
+#define IDS_BROWSE_TABLES_FOLDER        29
 #define IDM_MAINFRAME                   101
 #define IDA_MAINFRAME                   102
 #define IDB_TOOLBAR4BIT                 103

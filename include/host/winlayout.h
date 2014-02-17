@@ -56,7 +56,7 @@ VOID WINAPI DlgShowStatus(WINPROGRESSHANDLE hHandle, LPTSTR szMessage);
 BOOL WINAPI DlgBrowseFile(HWND hwndParent, LPSTR pszFile, UINT nSize,
 			  LPSTR *pszName, LPSTR *pszSufix, UINT nSufix,
 			  BOOL bSave);
-BOOL DlgBrowseDirectory(HWND hWnd, char *szPath, UINT nSize);
+BOOL DlgBrowseDirectory(HWND hWnd, UINT uHint, char *szPath, UINT nSize);
 VOID WINAPI DlgDisplayError(HWND hwndParent, UINT uCaption, DWORD dwError);
 
 #define LAYOUT_MAINFRAME	0
