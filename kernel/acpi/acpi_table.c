@@ -314,19 +314,19 @@ again:
 	acpi_table_lock();
 	if (!new_array)
 		return AE_NO_MEMORY;
+
+	if (acpi_gbl_table_list.use_table_count != old_id_count) {
+		acpi_table_unlock();
+		acpi_os_free(new_array);
+		acpi_os_sleep(10);
+		acpi_table_lock();
+		goto again;
+	}
 	new_table_ids = ACPI_ADD_PTR(struct acpi_table_desc *, new_array,
 				     sizeof (struct acpi_table_array) +
 				     new_count * sizeof (struct acpi_table_desc));
 	INIT_LIST_HEAD(&new_array->link);
 	list_add(&new_array->link, &acpi_gbl_table_arrays);
-
-	if (acpi_gbl_table_list.use_table_count != old_id_count) {
-		acpi_table_unlock();
-		acpi_os_free(new_table_ids);
-		acpi_os_sleep(10);
-		acpi_table_lock();
-		goto again;
-	}
 
 	if (acpi_gbl_table_list.flags & ACPI_ROOT_ORIGIN_ALLOCATED) {
 		old_table_ids = acpi_gbl_table_list.tables;

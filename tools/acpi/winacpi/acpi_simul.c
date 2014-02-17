@@ -112,7 +112,7 @@ acpi_status_t acpi_emu_load_table(const char *file, acpi_ddb_t *ddb)
 {
 	struct acpi_table_header *table;
 	acpi_status_t status;
-	acpi_ddb_t local_ddb;
+	acpi_ddb_t local_ddb = ACPI_DDB_HANDLE_INVALID;
 	boolean versioning = true;
 
 	status = acpi_table_read_file(file, 0, ACPI_NULL_NAME, &table);
@@ -133,7 +133,7 @@ acpi_status_t acpi_emu_load_table(const char *file, acpi_ddb_t *ddb)
 	}
 
 	acpi_dbg("[%4.4s %d] enter acpi_install_table", table->signature,
-		 ACPI_DDB_HANDLE_INVALID);
+		 local_ddb);
 	status = acpi_install_and_load_table(table, ACPI_TABLE_INTERNAL_VIRTUAL,
 					     versioning, &local_ddb);
 	acpi_dbg("[%4.4s %d] exit acpi_install_table", table->signature, local_ddb);
