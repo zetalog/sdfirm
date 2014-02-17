@@ -480,11 +480,16 @@ void acpi_os_sleep(uint32_t msecs)
 
 void acpi_os_debug_print(const char *fmt, ...)
 {
+#define MAX_DEBUG_BUFFER	512
+#define MAX_DEBUG_PREFIX	6
+#define MAX_DEBUG_SUFFIX	2
 	va_list	arglist;
-	char output[400] = "ACPI: ";
+	char output[MAX_DEBUG_BUFFER+1] = "ACPI: ";
 
 	va_start(arglist, fmt);
-	wvsprintfA(&output[6], fmt, arglist);
+	vsnprintf(&output[MAX_DEBUG_PREFIX],
+		  MAX_DEBUG_BUFFER-MAX_DEBUG_PREFIX-MAX_DEBUG_SUFFIX,
+		  fmt, arglist);
 	va_end(arglist);
 
 	lstrcatA(output, "\r\n");
@@ -508,7 +513,7 @@ void acpi_os_free(void *mem)
 
 struct acpi_test_TableUnload {
 	int iterations;
-	char filename[MAX_PATH];
+	char filename[MAX_PATH+1];
 };
 
 boolean acpi_test_TableUnload_started = false;
@@ -522,6 +527,7 @@ DWORD WINAPI acpi_test_TableUnload_thread(void *args)
 	int count = 20;
 	acpi_status_t status;
 	struct acpi_table_header *table;
+	DWORD tid = GetCurrentThreadId();
 
 	while (param->iterations--) {
 		if (!acpi_test_TableUnload_started)
@@ -531,10 +537,10 @@ DWORD WINAPI acpi_test_TableUnload_thread(void *args)
 		if (ACPI_SUCCESS(status)) {
 			acpi_os_sleep(1000);
 			acpi_dbg("[%4.4s] enter acpi_uninstall_table %d",
-				 table->signature, GetCurrentThreadId());
+				 table->signature, tid);
 			acpi_uninstall_table(ddb);
 			acpi_dbg("[%4.4s] exit acpi_uninstall_table %d",
-				 table->signature, GetCurrentThreadId());
+				 table->signature, tid);
 			acpi_put_table(ddb, table);
 		}
 	}

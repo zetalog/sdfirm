@@ -643,7 +643,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
 {
 	int wmId, wmEvent;
 	TCHAR szBuffer[1024];
-	char szFile[MAX_PATH] = "";
+	char szFile[MAX_PATH+1] = "";
 	LPCREATESTRUCT lpcs;
 	LPACPIWNDDATA lpWD = WinACPI_GetPtr(hWnd);
 	char szSuffix[] = "*.*";

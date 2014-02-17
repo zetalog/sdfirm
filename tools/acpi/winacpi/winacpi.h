@@ -20,7 +20,7 @@
 #include "resource.h"
 
 typedef struct tagACPITESTTABLEUNLOAD {
-	char szPath[MAX_PATH];
+	char szPath[MAX_PATH+1];
 	int nThreads;
 	int nIterations;
 } ACPITESTTABLEUNLOAD, *LPACPITESTTABLEUNLOAD;

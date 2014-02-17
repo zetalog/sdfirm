@@ -46,5 +46,6 @@ typedef void *			caddr_t;
 #define heap_calloc(size)	calloc(1, size)
 #define heap_realloc(ptr, size)	realloc(ptr, size)
 #define heap_free(ptr)		free(ptr)
+#define vsnprintf		_vsnprintf
 
 #endif /* __HOST_ACPI_H_INCLUDE__ */
