@@ -43,6 +43,17 @@
  */
 #include "acpi_int.h"
 
+/*
+ * NOTE: Function Naming Rules
+ *
+ * 1. For functions that should be invoked without lock, no prefix is added.
+ * 2. For functions that should be invoked with lock, "__" prefix is added.
+ * 3. For functions that do not care about the invocation environment, no
+ *    prefix is added if there is no naming conflict with the above 2 rules,
+ *    or "____" prefix is added if there is a naming conflict in order to
+ *    follow the above 2 rules.
+ */
+
 struct acpi_table_list {
 	struct acpi_table_desc **tables;
 	uint32_t use_table_count;
@@ -91,6 +102,24 @@ static void acpi_table_unlock(void)
 	acpi_os_release_mutex(acpi_gbl_table_mutex);
 }
 
+/*
+ * NOTE: Indirect Table Pointer Manager
+ *
+ * Due to the following reasons:
+ * 1. acpi_table_header is referenced using acpi_ddb_t which is the index
+ *    to acpi_gbl_table_list.tables array.
+ * 2. acpi_table_desc pointers dereferenced from acpi_gbl_table_list
+ *    should not reallocated and copied as the user side will be running
+ *    in parallel.
+ * 3. while we need to reallocate acpi_ddb_t array when number of tables
+ *    grows.can be reallocated when needed.
+ *
+ * The ACPI_TABLE_SOLVE_INDIRECT is implemented and must be used to
+ * replace any code to dereference a pointer of acpi_table_desc from
+ * acpi_gbl_table_list.  There should not be additional pieces of code
+ * including "acpi_gbl_table_list.tables" execpt this macro and the
+ * code to implement the alloc/free of the table list.
+ */
 #define ACPI_TABLE_SOLVE_INDIRECT(ddb)	(acpi_gbl_table_list.tables[(ddb)])
 
 static struct acpi_table_desc *acpi_table_solve_indirect(acpi_ddb_t ddb)
@@ -102,182 +131,6 @@ static struct acpi_table_desc *acpi_table_solve_indirect(acpi_ddb_t ddb)
 	acpi_table_unlock();
 
 	return table_desc;
-}
-
-static boolean acpi_table_is_module_busy(void)
-{
-	return acpi_gbl_table_module_busy;
-}
-
-static boolean acpi_table_is_module_dead(void)
-{
-	return acpi_gbl_table_module_dead;
-}
-
-static boolean acpi_table_lock_dead(void)
-{
-retry:
-	acpi_table_lock();
-	if (acpi_table_is_module_dead()) {
-		acpi_table_unlock();
-		return false;
-	}
-	if (acpi_table_is_module_busy()) {
-		acpi_table_unlock();
-		acpi_os_sleep(10);
-		goto retry;
-	}
-	acpi_gbl_table_module_dead = true;
-	return true;
-}
-
-static boolean acpi_table_lock_busy(void)
-{
-retry:
-	acpi_table_lock();
-	if (acpi_table_is_module_dead()) {
-		acpi_table_unlock();
-		return false;
-	}
-	if (acpi_table_is_module_busy()) {
-		acpi_table_unlock();
-		acpi_os_sleep(10);
-		goto retry;
-	}
-	acpi_gbl_table_module_busy = true;
-	return true;
-}
-
-static void acpi_table_unlock_busy(void)
-{
-	acpi_gbl_table_module_busy = false;
-	acpi_table_unlock();
-}
-
-static void acpi_table_unlock_dead(void)
-{
-	acpi_gbl_table_module_dead = false;
-	acpi_table_unlock();
-}
-
-static boolean __acpi_table_is_installed(acpi_ddb_t ddb)
-{
-	struct acpi_table_desc *table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
-
-	if (ddb < acpi_gbl_table_list.use_table_count &&
-	    acpi_reference_get(&table_desc->reference_count) > 0 &&
-	    !(table_desc->flags & ACPI_TABLE_IS_UNINSTALLING))
-		return true;
-	return false;
-}
-
-boolean __acpi_table_is_uninstalled(acpi_ddb_t ddb)
-{
-	struct acpi_table_desc *table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
-
-	if (ddb < acpi_gbl_table_list.use_table_count &&
-	    !(table_desc->flags & ACPI_TABLE_IS_ACQUIRED))
-		return true;
-	return false;
-}
-
-static boolean __acpi_table_is_loaded(acpi_ddb_t ddb)
-{
-	struct acpi_table_desc *table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
-
-	if (ddb < acpi_gbl_table_list.use_table_count &&
-	    table_desc->flags & ACPI_TABLE_IS_LOADED)
-		return true;
-	return false;
-}
-
-static void __acpi_table_notify(struct acpi_table_desc *table_desc,
-				acpi_ddb_t ddb, uint32_t event)
-{
-	acpi_dbg("[%4.4s %d] INC(NOTIFY)", table_desc->signature, ddb);
-	__acpi_table_increment(ddb);
-	acpi_table_unlock();
-	acpi_event_table_notify(table_desc, ddb, event);
-	acpi_table_lock();
-	acpi_dbg("[%4.4s %d] DEC(NOTIFY)", table_desc->signature, ddb);
-	__acpi_table_decrement(ddb);
-}
-
-void acpi_table_notify_existing(void)
-{
-	acpi_ddb_t ddb;
-	struct acpi_table_desc *table_desc;
-
-	if (!acpi_table_lock_busy())
-		return;
-	acpi_foreach_installed_ddb(ddb, 0) {
-		table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
-		acpi_dbg("[%4.4s %d] INC(NOTIFY_EXIST)", table_desc->signature, ddb);
-		__acpi_table_increment(ddb);
-		__acpi_table_notify(table_desc, ddb, ACPI_EVENT_TABLE_INSTALL);
-		/* TODO: Ordered LOAD/UNLOAD event support */
-		if (__acpi_table_is_loaded(ddb))
-			__acpi_table_notify(table_desc, ddb,
-					    ACPI_EVENT_TABLE_LOAD);
-		acpi_dbg("[%4.4s %d] DEC(NOTIFY_EXIST)", table_desc->signature, ddb);
-		__acpi_table_decrement(ddb);
-	}
-	acpi_table_unlock_busy();
-}
-
-boolean acpi_table_contains_aml(struct acpi_table_header *table)
-{
-	return ACPI_NAMECMP(ACPI_SIG_DSDT, table->signature) ||
-	       ACPI_NAMECMP(ACPI_SIG_PSDT, table->signature) ||
-	       ACPI_NAMECMP(ACPI_SIG_SSDT, table->signature);
-}
-
-uint32_t acpi_table_get_length(struct acpi_table_header *table)
-{
-	if (ACPI_RSDP_SIG_CMP(ACPI_CAST_RSDP(table)->signature))
-		return ACPI_DECODE32(&(ACPI_CAST_RSDP(table)->length));
-	else
-		return ACPI_DECODE32(&(table->length));
-}
-
-/*=========================================================================
- * Non-RSDP table checksums
- *=======================================================================*/
-static void __acpi_table_calc_checksum(struct acpi_table_header *table)
-{
-	ACPI_ENCODE8(&table->checksum, 0);
-	ACPI_ENCODE8(&table->checksum,
-		     acpi_checksum_calc(table, acpi_table_get_length(table)));
-}
-
-boolean acpi_table_has_header(acpi_name_t signature)
-{
-	return (!ACPI_NAMECMP(ACPI_SIG_S3PT, signature) &&
-		!ACPI_NAMECMP(ACPI_SIG_FACS, signature));
-}
-
-boolean __acpi_table_checksum_valid(struct acpi_table_header *table)
-{
-	if (!acpi_table_has_header(table->signature))
-		return true;
-
-	return acpi_checksum_calc(table, acpi_table_get_length(table)) == 0;
-}
-
-boolean acpi_table_checksum_valid(struct acpi_table_header *table)
-{
-	if (ACPI_RSDP_SIG_CMP(table->signature))
-		return acpi_rsdp_checksum_valid(ACPI_CAST_RSDP(table));
-	else
-		return __acpi_table_checksum_valid(table);
-}
-
-void acpi_table_calc_checksum(struct acpi_table_header *table)
-{
-	if (ACPI_RSDP_SIG_CMP(table->signature))
-		acpi_rsdp_calc_checksum(ACPI_CAST_RSDP(table));
-	else
-		__acpi_table_calc_checksum(table);
 }
 
 static acpi_status_t __acpi_table_list_resize(void)
@@ -398,6 +251,231 @@ static acpi_status_t __acpi_table_list_allocate(uint32_t initialial_table_count)
 	return status;
 }
 
+/*
+ * NOTE: BUSY/DEAD Locking Facility
+ *
+ * This facility is used to accelerate the process of
+ * acpi_finalize_tables() as it can reduce period waited in this
+ * function.
+ * The DEAD flag is set only when BUSY flag is not set so that the code
+ * locked with BUSY flag can safely access the installed tables, for
+ * example, the code pieces iterating the acpi_gbl_table_list and are
+ * triggered from a module external to ACPI.
+ * The BUSY flag must also be locked for the code pieces that have
+ * conflicts with the acpi_finalize_tables(), for example, the
+ * installation process will add tables to the acpi_gbl_table_list thus
+ * can cause longer wait period.
+ * The DEAD flag must not be unset in order to break the BUSY lock
+ * waiters, it should be unset by some module text segment protection
+ * mechanism.
+ * Unlocking and re-locking inside of DEAD/BUSY locks are simple
+ * acpi_table_unlock()/acpi_table_lock().
+ * Note that all DEAD/BUSY locked operations are serialized.
+ */
+static boolean acpi_table_is_module_busy(void)
+{
+	return acpi_gbl_table_module_busy;
+}
+
+static boolean acpi_table_is_module_dead(void)
+{
+	return acpi_gbl_table_module_dead;
+}
+
+static boolean acpi_table_lock_dead(void)
+{
+retry:
+	acpi_table_lock();
+	if (acpi_table_is_module_dead()) {
+		acpi_table_unlock();
+		return false;
+	}
+	if (acpi_table_is_module_busy()) {
+		acpi_table_unlock();
+		acpi_os_sleep(10);
+		goto retry;
+	}
+	acpi_gbl_table_module_dead = true;
+	return true;
+}
+
+static boolean acpi_table_lock_busy(void)
+{
+retry:
+	acpi_table_lock();
+	if (acpi_table_is_module_dead()) {
+		acpi_table_unlock();
+		return false;
+	}
+	if (acpi_table_is_module_busy()) {
+		acpi_table_unlock();
+		acpi_os_sleep(10);
+		goto retry;
+	}
+	acpi_gbl_table_module_busy = true;
+	return true;
+}
+
+static void acpi_table_unlock_busy(void)
+{
+	acpi_gbl_table_module_busy = false;
+	acpi_table_unlock();
+}
+
+static void acpi_table_unlock_dead(void)
+{
+	acpi_gbl_table_module_dead = false;
+	acpi_table_unlock();
+}
+
+/*
+ * NOTE: INSTALLED/UNINSTALLED States
+ *
+ * Note that __acpi_table_is_installed(ddb) doesn't equal to
+ * !__acpi_table_is_uninstalled(ddb).  There are cases that a table
+ * descriptor is neither installed nor uninstalled.  In this state, there
+ * wouldn't be any newly issued operations on such a table descriptor, it
+ * is simply dying.
+ */
+static boolean __acpi_table_is_installed(acpi_ddb_t ddb)
+{
+	struct acpi_table_desc *table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
+
+	if (ddb < acpi_gbl_table_list.use_table_count &&
+	    acpi_reference_get(&table_desc->reference_count) > 0 &&
+	    !(table_desc->flags & ACPI_TABLE_IS_UNINSTALLING))
+		return true;
+	return false;
+}
+
+boolean __acpi_table_is_uninstalled(acpi_ddb_t ddb)
+{
+	struct acpi_table_desc *table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
+
+	if (ddb < acpi_gbl_table_list.use_table_count &&
+	    !(table_desc->flags & ACPI_TABLE_IS_ACQUIRED))
+		return true;
+	return false;
+}
+
+static boolean __acpi_table_is_loaded(acpi_ddb_t ddb)
+{
+	struct acpi_table_desc *table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
+
+	if (ddb < acpi_gbl_table_list.use_table_count &&
+	    table_desc->flags & ACPI_TABLE_IS_LOADED)
+		return true;
+	return false;
+}
+
+/*
+ * NOTE: Unlocked Table Notification
+ *
+ * ACPI table notification is implemented in the way that the callback
+ * to listen such events is invoked without any lock held.  It ensures
+ * that the pointer of the table descriptor will not be freed while being
+ * accessed inside of the callback.  The code to implement the event
+ * listener may invoke acpi_get_table()/acpi_table_indrement() to obtain a
+ * reference of such table descriptors.  There are possiblities that the
+ * acpi_get_table() failed due to a concurrent uninstalltion, so the
+ * return value of acpi_get_table() must be checked.
+ * The reversals to release the reference are acpi_put_table() and
+ * acpi_table_decrement().
+ */
+static void __acpi_table_notify(struct acpi_table_desc *table_desc,
+				acpi_ddb_t ddb, uint32_t event)
+{
+	acpi_dbg("[%4.4s %d] INC(NOTIFY)", table_desc->signature, ddb);
+	__acpi_table_increment(ddb);
+	acpi_table_unlock();
+	acpi_event_table_notify(table_desc, ddb, event);
+	acpi_table_lock();
+	acpi_dbg("[%4.4s %d] DEC(NOTIFY)", table_desc->signature, ddb);
+	__acpi_table_decrement(ddb);
+}
+
+void acpi_table_notify_existing(void)
+{
+	acpi_ddb_t ddb;
+	struct acpi_table_desc *table_desc;
+
+	if (!acpi_table_lock_busy())
+		return;
+	acpi_foreach_installed_ddb(ddb, 0) {
+		table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
+		acpi_dbg("[%4.4s %d] INC(NOTIFY_EXIST)", table_desc->signature, ddb);
+		__acpi_table_increment(ddb);
+		__acpi_table_notify(table_desc, ddb, ACPI_EVENT_TABLE_INSTALL);
+		/* TODO: Ordered LOAD/UNLOAD event support */
+		if (__acpi_table_is_loaded(ddb))
+			__acpi_table_notify(table_desc, ddb,
+					    ACPI_EVENT_TABLE_LOAD);
+		acpi_dbg("[%4.4s %d] DEC(NOTIFY_EXIST)", table_desc->signature, ddb);
+		__acpi_table_decrement(ddb);
+	}
+	acpi_table_unlock_busy();
+}
+
+boolean acpi_table_contains_aml(struct acpi_table_header *table)
+{
+	return ACPI_NAMECMP(ACPI_SIG_DSDT, table->signature) ||
+	       ACPI_NAMECMP(ACPI_SIG_PSDT, table->signature) ||
+	       ACPI_NAMECMP(ACPI_SIG_SSDT, table->signature);
+}
+
+uint32_t acpi_table_get_length(struct acpi_table_header *table)
+{
+	if (ACPI_RSDP_SIG_CMP(ACPI_CAST_RSDP(table)->signature))
+		return ACPI_DECODE32(&(ACPI_CAST_RSDP(table)->length));
+	else
+		return ACPI_DECODE32(&(table->length));
+}
+
+/*=========================================================================
+ * Non-RSDP table checksums
+ *=======================================================================*/
+static void __acpi_table_calc_checksum(struct acpi_table_header *table)
+{
+	ACPI_ENCODE8(&table->checksum, 0);
+	ACPI_ENCODE8(&table->checksum,
+		     acpi_checksum_calc(table, acpi_table_get_length(table)));
+}
+
+boolean acpi_table_has_header(acpi_name_t signature)
+{
+	/*
+	 * NOTE: No Normal Header
+	 *
+	 * Note that S3PT and FACS do not have normal ACPI table headers.
+	 */
+	return (!ACPI_NAMECMP(ACPI_SIG_S3PT, signature) &&
+		!ACPI_NAMECMP(ACPI_SIG_FACS, signature));
+}
+
+boolean __acpi_table_checksum_valid(struct acpi_table_header *table)
+{
+	if (!acpi_table_has_header(table->signature))
+		return true;
+
+	return acpi_checksum_calc(table, acpi_table_get_length(table)) == 0;
+}
+
+boolean acpi_table_checksum_valid(struct acpi_table_header *table)
+{
+	if (ACPI_RSDP_SIG_CMP(table->signature))
+		return acpi_rsdp_checksum_valid(ACPI_CAST_RSDP(table));
+	else
+		return __acpi_table_checksum_valid(table);
+}
+
+void acpi_table_calc_checksum(struct acpi_table_header *table)
+{
+	if (ACPI_RSDP_SIG_CMP(table->signature))
+		acpi_rsdp_calc_checksum(ACPI_CAST_RSDP(table));
+	else
+		__acpi_table_calc_checksum(table);
+}
+
 static acpi_status_t __acpi_table_list_acquire(acpi_ddb_t *ddb_handle,
 					       acpi_name_t name)
 {
@@ -485,6 +563,17 @@ static void acpi_table_release(struct acpi_table_header *table,
 	}
 }
 
+/*
+ * NOTE: INSTALLED/VALIDATED/INVALIDATED/UNINSTALLED States
+ *
+ * During OSPM early boot stages, the memory mapping mechanism should not
+ * be used in the late boot stages.  So this is ensured by the INSTALLED
+ * but not VALIDATED state during early boot stages.
+ * INSTALLED: .address is valid
+ * VALIDATED: .pointer is valid as long as the .address
+ * INVALIDATED: .pointer is not valid
+ * UNINSTALLED: .address is not valid as long as .pointer
+ */
 static acpi_status_t ____acpi_table_validate(struct acpi_table_desc *table_desc)
 {
 	acpi_status_t status = AE_OK;
@@ -594,6 +683,15 @@ static void ____acpi_table_install(struct acpi_table_desc *table_desc,
 	}
 }
 
+/*
+ * NOTE: Install/Uninstall Temporal Table
+ *
+ * The temporal function only used during the table installation period,
+ * where the .address member is valid and .pointer member is not touched.
+ * This is used to temporary store a table descriptor that is not managed
+ * by acpi_gbl_table_list.  This file uses new_table_desc/old_table_desc
+ * to indicate such temporal table descriptors.
+ */
 static void acpi_table_uninstall_temporal(struct acpi_table_desc *table_desc)
 {
 	____acpi_table_invalidate(table_desc);
