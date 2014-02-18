@@ -165,7 +165,7 @@ static boolean __acpi_table_is_installed(acpi_ddb_t ddb)
 	struct acpi_table_desc *table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
 
 	if (ddb < acpi_gbl_table_list.use_table_count &&
-	    /*table_desc->flags & ACPI_TABLE_IS_INSTALLED &&*/
+	    /*table_desc->flags & ACPI_TABLE_IS_ACQUIRED &&*/
 	    acpi_reference_get(&table_desc->reference_count) > 0 &&
 	    !(table_desc->flags & ACPI_TABLE_IS_UNINSTALLING))
 		return true;
@@ -177,7 +177,7 @@ boolean __acpi_table_is_uninstalled(acpi_ddb_t ddb)
 	struct acpi_table_desc *table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
 
 	if (ddb < acpi_gbl_table_list.use_table_count &&
-	    !(table_desc->flags & ACPI_TABLE_IS_INSTALLED))
+	    !(table_desc->flags & ACPI_TABLE_IS_ACQUIRED))
 		return true;
 	return false;
 }
@@ -426,7 +426,7 @@ out_succ:
 	*ddb_handle = ddb;
 	BUG_ON(acpi_reference_get(&table_desc->reference_count));
 	memset(table_desc, 0, sizeof (struct acpi_table_desc));
-	table_desc->flags = ACPI_TABLE_IS_INSTALLED;
+	table_desc->flags = ACPI_TABLE_IS_ACQUIRED;
 	return AE_OK;
 }
 
@@ -434,7 +434,7 @@ void __acpi_table_list_release(acpi_ddb_t ddb, acpi_name_t name)
 {
 	struct acpi_table_desc *table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
 
-	table_desc->flags &= ~ACPI_TABLE_IS_INSTALLED;
+	table_desc->flags &= ~ACPI_TABLE_IS_ACQUIRED;
 	acpi_reference_dec(&acpi_gbl_table_list.all_table_count);
 	acpi_dbg("[%4.4s %d] DEC(all_table_count %d)", name, ddb,
 		 acpi_reference_get(&acpi_gbl_table_list.all_table_count));
@@ -912,7 +912,7 @@ acpi_ddb_t __acpi_table_increment(acpi_ddb_t ddb)
 	BUG_ON(ddb >= acpi_gbl_table_list.use_table_count);
 	table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
 	count = acpi_reference_test_and_inc(&table_desc->reference_count);
-	if (table_desc->flags & ACPI_TABLE_IS_INSTALLED && count) {
+	if (table_desc->flags & ACPI_TABLE_IS_ACQUIRED && count) {
 		acpi_dbg("[%4.4s %d] acpi_table_increment %d",
 			 table_desc->signature, ddb, count);
 		return ddb;
