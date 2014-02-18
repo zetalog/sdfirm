@@ -529,6 +529,7 @@ DWORD WINAPI acpi_test_TableUnload_thread(void *args)
 	acpi_status_t status;
 	struct acpi_table_header *table;
 
+	acpi_dbg(">>>>> %s <<<<<", param->filename);
 	while (param->iterations--) {
 		if (!acpi_test_TableUnload_started)
 			break;
@@ -577,7 +578,6 @@ void acpi_test_TableUnload_start(const char *path,
 					continue;
 				param->iterations = iterations;
 				sprintf(param->filename, "%s\\%s", path, entry->d_name);
-				acpi_dbg("> %s", param->filename);
 				thread = CreateThread(NULL, 0,
 						      acpi_test_TableUnload_thread,
 						      (void *)param, 0, NULL);
