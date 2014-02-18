@@ -817,7 +817,9 @@ acpi_status_t acpi_install_table(acpi_addr_t address, acpi_tag_t signature,
 	if (ACPI_FAILURE(status))
 		return status;
 
-	acpi_table_lock();
+	if (!acpi_table_lock_busy())
+		return AE_NOT_FOUND;
+
 	acpi_foreach_installed_ddb(ddb, 0) {
 		table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
 
@@ -853,7 +855,7 @@ acpi_status_t acpi_install_table(acpi_addr_t address, acpi_tag_t signature,
 	__acpi_table_install_and_override(&new_table_desc, ddb, override);
 
 err_lock:
-	acpi_table_unlock();
+	acpi_table_unlock_busy();
 	acpi_table_uninstall_temporal(&new_table_desc);
 	return status;
 }
@@ -1183,17 +1185,19 @@ void acpi_finalize_tables(void)
 	acpi_ddb_t ddb;
 	struct acpi_table_array *pos, *array;
 
-again:
 	if (!acpi_table_lock_dead())
 		return;
+again:
 	acpi_foreach_installed_ddb(ddb, 0) {
 		__acpi_uninstall_table(ddb);
 	}
 
-	acpi_table_unlock_dead();
+	acpi_table_unlock();
 	acpi_os_sleep(1000);
-	if (acpi_reference_get(&acpi_gbl_table_list.all_table_count) != 0)
+	if (acpi_reference_get(&acpi_gbl_table_list.all_table_count) != 0) {
+		acpi_table_lock();
 		goto again;
+	}
 
 	if (acpi_gbl_table_list.flags & ACPI_ROOT_ORIGIN_ALLOCATED) {
 		list_for_each_entry_safe(struct acpi_table_array, array, pos, &acpi_gbl_table_arrays, link) {
@@ -1205,5 +1209,5 @@ again:
 	acpi_gbl_table_list.flags = 0;
 	acpi_gbl_table_list.use_table_count = 0;
 	acpi_gbl_table_list.max_table_count = 0;
-	acpi_table_unlock_dead();
+	acpi_table_unlock();
 }
