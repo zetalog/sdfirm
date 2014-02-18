@@ -165,7 +165,6 @@ static boolean __acpi_table_is_installed(acpi_ddb_t ddb)
 	struct acpi_table_desc *table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
 
 	if (ddb < acpi_gbl_table_list.use_table_count &&
-	    /*table_desc->flags & ACPI_TABLE_IS_ACQUIRED &&*/
 	    acpi_reference_get(&table_desc->reference_count) > 0 &&
 	    !(table_desc->flags & ACPI_TABLE_IS_UNINSTALLING))
 		return true;
@@ -356,7 +355,14 @@ again:
 
 	if (old_table_ids) {
 		acpi_table_unlock();
-		/* acpi_os_free(old_table_ids); */
+		/*
+		 * NOTE: The old_table_ids includes old_tables which
+		 *       should not be freed.
+		 * Please uncomment the following line if the design has
+		 * been changed.
+		 *
+		 * acpi_os_free(old_table_ids);
+		 */
 		acpi_table_lock();
 	}
 
@@ -1202,7 +1208,9 @@ again:
 	if (acpi_gbl_table_list.flags & ACPI_ROOT_ORIGIN_ALLOCATED) {
 		list_for_each_entry_safe(struct acpi_table_array, array, pos, &acpi_gbl_table_arrays, link) {
 			list_del(&array->link);
+			acpi_table_unlock();
 			acpi_os_free(array);
+			acpi_table_lock();
 		}
 	}
 	acpi_gbl_table_list.tables = NULL;

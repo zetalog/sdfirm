@@ -247,7 +247,6 @@ void StartTableUnloadTest(LPACPIWNDDATA lpWD)
 		acpi_test_TableUnload_start(pTableUnload->szPath,
 					    pTableUnload->nThreads,
 					    pTableUnload->nIterations);
-		//"E:\\workspace\\acpica\\kernel-bugs\\36932", 10, 100);
 	}
 }
 
