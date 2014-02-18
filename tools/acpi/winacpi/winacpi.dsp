@@ -43,7 +43,8 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "..\..\..\include\\" /I "..\..\..\include\host\missing" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "ACPI_MISALIGNMENT_NOT_SUPPORTED" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\include\\" /I "..\..\..\include\host\missing" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "ACPI_MISALIGNMENT_NOT_SUPPORTED" /YX /FD /c
+# SUBTRACT CPP /Z<none>
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x804 /d "NDEBUG"
@@ -53,7 +54,8 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib /nologo /subsystem:windows /machine:I386
-# ADD LINK32 setupapi.lib comctl32.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
+# ADD LINK32 setupapi.lib comctl32.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib /nologo /subsystem:windows /machine:I386 /pdbtype:sept
+# SUBTRACT LINK32 /debug
 
 !ELSEIF  "$(CFG)" == "winacpi - Win32 Debug"
 

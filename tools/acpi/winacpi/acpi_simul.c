@@ -48,20 +48,34 @@ static acpi_status_t acpi_table_read_file(const char *path, loff_t offset,
 	struct acpi_table_header *local_table = NULL;
 	uint32_t table_length, file_length;
 	int count;
-	uint32_t total = 0;
-	acpi_status_t status = 0;
+	uint32_t total;
+	acpi_status_t status = AE_OK;
 
 	fp = fopen(path, "rb");
 	if (!fp)
 		return AE_NOT_FOUND;
-	fseek(fp, 0, SEEK_END);
-	file_length = ftell(fp);
-	fseek(fp, offset, SEEK_SET);
-
-	count = fread(&header, 1, sizeof (struct acpi_table_header), fp);
-	if (count != sizeof (struct acpi_table_header)) {
-		status = AE_BAD_HEADER;
+	if (fseek(fp, 0, SEEK_END)) {
+		acpi_err("[%s]: fseek error.", path);
+		status = AE_BUFFER_OVERFLOW;
 		goto err_exit;
+	}
+	file_length = ftell(fp);
+	if (fseek(fp, offset, SEEK_SET)) {
+		acpi_err("[%s]: fseek error.", path);
+		status = AE_BUFFER_OVERFLOW;
+		goto err_exit;
+	}
+
+	total = 0;
+	while (!feof(fp) && total < sizeof (struct acpi_table_header)) {
+		count = fread(ACPI_ADD_PTR(uint8_t, &header, total),
+			      1, sizeof (struct acpi_table_header), fp);
+		if (count <= 0) {
+			acpi_err("[%s]: fread(table_header) error, %d.", path, count);
+			status = AE_BAD_HEADER;
+			goto err_exit;
+		}
+		total += count;
 	}
 
 	if (!ACPI_NAMECMP(ACPI_TAG_NULL, signature)) {
@@ -89,12 +103,18 @@ static acpi_status_t acpi_table_read_file(const char *path, loff_t offset,
 		status = AE_NO_MEMORY;
 		goto err_exit;
 	}
-	fseek(fp, offset, SEEK_SET);
+	if (fseek(fp, offset, SEEK_SET)) {
+		acpi_err("[%s]: fseek error.", path);
+		status = AE_BUFFER_OVERFLOW;
+		goto err_exit;
+	}
 
+	total = 0;
 	while (!feof(fp) && total < table_length) {
-		count = fread(ACPI_ADD_PTR(char, local_table, total),
+		count = fread(ACPI_ADD_PTR(uint8_t, local_table, total),
 			      1, table_length-total, fp);
-		if (count < 0) {
+		if (count <= 0) {
+			acpi_err("[%s]: fread(table) error.", path);
 			status = AE_INVALID_TABLE_LENGTH;
 			goto err_exit;
 		}

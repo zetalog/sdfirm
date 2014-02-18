@@ -44,7 +44,7 @@
 typedef void *			caddr_t;
 
 #define heap_alloc(size)	malloc(size)
-#define heap_calloc(size)	calloc(1, size)
+#define heap_calloc(size)	calloc(size, 1)
 #define heap_realloc(ptr, size)	realloc(ptr, size)
 #define heap_free(ptr)		free(ptr)
 #define vsnprintf		_vsnprintf
