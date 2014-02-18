@@ -483,6 +483,9 @@ static acpi_status_t __acpi_table_list_acquire(acpi_ddb_t *ddb_handle,
 	acpi_ddb_t ddb;
 	struct acpi_table_desc *table_desc;
 
+	if (acpi_table_is_module_dead())
+		return AE_NOT_FOUND;
+
 	if (ACPI_NAMECMP(ACPI_SIG_DSDT, name)) {
 		ddb = ACPI_DDB_HANDLE_DSDT;
 		goto out_succ;
@@ -804,9 +807,6 @@ static void __acpi_table_install_and_override(struct acpi_table_desc *new_table_
 {
 	struct acpi_table_desc *table_desc;
 
-	if (acpi_table_is_module_dead())
-		return;
-
 	BUG_ON(ddb >= acpi_gbl_table_list.use_table_count);
 
 	if (override)
@@ -921,8 +921,7 @@ acpi_status_t acpi_install_table(acpi_addr_t address, acpi_tag_t signature,
 	if (ACPI_FAILURE(status))
 		return status;
 
-	if (!acpi_table_lock_busy())
-		return AE_NOT_FOUND;
+	acpi_table_lock();
 
 	acpi_foreach_installed_ddb(ddb, 0) {
 		table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
@@ -959,7 +958,7 @@ acpi_status_t acpi_install_table(acpi_addr_t address, acpi_tag_t signature,
 	__acpi_table_install_and_override(&new_table_desc, ddb, override);
 
 err_lock:
-	acpi_table_unlock_busy();
+	acpi_table_unlock();
 	acpi_table_uninstall_temporal(&new_table_desc);
 	return status;
 }
