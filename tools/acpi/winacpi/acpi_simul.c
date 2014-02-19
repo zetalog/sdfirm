@@ -138,7 +138,7 @@ acpi_status_t acpi_emu_load_table(const char *file, acpi_ddb_t *ddb)
 
 	status = acpi_table_read_file(file, 0, ACPI_NULL_NAME, &table);
 	if (ACPI_FAILURE(status))
-		return status;
+		goto out_exit;
 
 	if (ACPI_NAMECMP(ACPI_SIG_DSDT, table->signature)) {
 		versioning = acpi_emu_dsdt_reloaded ? true : false;
@@ -158,9 +158,10 @@ acpi_status_t acpi_emu_load_table(const char *file, acpi_ddb_t *ddb)
 	status = acpi_install_and_load_table(table, ACPI_TABLE_INTERNAL_VIRTUAL,
 					     versioning, &local_ddb);
 	acpi_dbg("[%4.4s %d] exit acpi_install_table", table->signature, local_ddb);
-	if (ACPI_SUCCESS(status) && ddb)
-		*ddb = local_ddb;
 
+out_exit:
+	if (ddb)
+		*ddb = local_ddb;
 	return status;
 }
 
@@ -548,22 +549,25 @@ DWORD WINAPI acpi_test_TableUnload_thread(void *args)
 	acpi_ddb_t ddb;
 	int count = 20;
 	acpi_status_t status;
-	struct acpi_table_header *table;
+	struct acpi_table table;
 
 	acpi_dbg(">>>>> %s <<<<<", param->filename);
 	while (param->iterations--) {
 		if (!acpi_test_TableUnload_started)
 			break;
-		acpi_emu_load_table(param->filename, &ddb);
+		status = acpi_emu_load_table(param->filename, &ddb);
+		if (ACPI_FAILURE(status))
+			continue;
+
 		status = acpi_get_table(ddb, &table);
 		if (ACPI_SUCCESS(status)) {
 			acpi_os_sleep(1000);
 			acpi_dbg("[%4.4s %d] enter acpi_uninstall_table",
-				 table->signature, ddb);
+				 table.pointer->signature, ddb);
 			acpi_uninstall_table(ddb);
 			acpi_dbg("[%4.4s %d] exit acpi_uninstall_table",
-				 table->signature, ddb);
-			acpi_put_table(ddb, table);
+				 table.pointer->signature, ddb);
+			acpi_put_table(&table);
 		}
 	}
 

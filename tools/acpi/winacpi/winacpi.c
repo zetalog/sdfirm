@@ -316,19 +316,20 @@ static VOID ACPIAppendTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb)
 	HWND hwndList = lpWD->hwndTableList;
 	CHAR tmpstring[10];
 	char name[ACPI_NAME_SIZE+1];
-	struct acpi_table_header *table;
+	struct acpi_table table;
 
 	if (ACPI_FAILURE(acpi_get_table(ddb, &table)))
 		return;
 
-	acpi_dbg("[%4.4s %d] ACPIAppendTable begine", table->signature, ddb);
+	acpi_dbg("[%4.4s %d] ACPIAppendTable begine",
+		 table.pointer->signature, ddb);
 	memset(name, 0, sizeof (name));
-	ACPI_NAMECPY(ACPI_NAME2TAG(table->signature), name);
+	ACPI_NAMECPY(ACPI_NAME2TAG(table.pointer->signature), name);
 
 	lvi.iItem = 0;
 	lvi.iSubItem = 0;
 	lvi.mask = LVIF_IMAGE | LVIF_PARAM | LVIF_TEXT;
-	lvi.iImage = acpi_table_contains_aml(table) ? 0x00 : 0x01;
+	lvi.iImage = acpi_table_contains_aml(table.pointer) ? 0x00 : 0x01;
 	lvi.lParam = (LPARAM)ddb;
 	lvi.pszText = name;
 	lvi.cchTextMax = _tcslen(name) ? _tcslen(name) : 0;
@@ -336,19 +337,20 @@ static VOID ACPIAppendTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb)
 
 	if (nIndex != -1) {
 		if (acpi_table_has_header(name)) {
-			sprintf(tmpstring, "%6.6s", table->oem_id);
+			sprintf(tmpstring, "%6.6s", table.pointer->oem_id);
 			ListView_SetItemText(hwndList, nIndex, 1, tmpstring);
-			sprintf(tmpstring, "%8.8s", table->oem_table_id);
+			sprintf(tmpstring, "%8.8s", table.pointer->oem_table_id);
 			ListView_SetItemText(hwndList, nIndex, 2, tmpstring);
-			sprintf(tmpstring, "0x%02X", table->revision);
+			sprintf(tmpstring, "0x%02X", table.pointer->revision);
 			ListView_SetItemText(hwndList, nIndex, 3, tmpstring);
-			sprintf(tmpstring, "0x%08X", table->oem_revision);
+			sprintf(tmpstring, "0x%08X", table.pointer->oem_revision);
 			ListView_SetItemText(hwndList, nIndex, 4, tmpstring);
 		}
 	}
 
-	acpi_dbg("[%4.4s %d] ACPIAppendTable end", table->signature, ddb);
-	acpi_put_table(ddb, table);
+	acpi_dbg("[%4.4s %d] ACPIAppendTable end",
+		 table.pointer->signature, ddb);
+	acpi_put_table(&table);
 }
 
 static VOID ACPIRemoveTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb)
@@ -357,11 +359,12 @@ static VOID ACPIRemoveTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb)
 	int nIndex;
 	HWND hwndList = lpWD->hwndTableList;
 	acpi_status_t status;
-	struct acpi_table_header *table = NULL;
+	struct acpi_table table;
 
 	status = acpi_get_table(ddb, &table);
 	if (ACPI_SUCCESS(status))
-		acpi_dbg("[%4.4s %d] ACPIRemoveTable begine", table->signature, ddb);
+		acpi_dbg("[%4.4s %d] ACPIRemoveTable begine",
+			 table.pointer->signature, ddb);
 
 	lvfi.flags = LVFI_PARAM;
 	lvfi.lParam = (LPARAM)ddb;
@@ -371,8 +374,9 @@ static VOID ACPIRemoveTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb)
 	}
 
 	if (ACPI_SUCCESS(status)) {
-		acpi_dbg("[%4.4s %d] ACPIRemoveTable end", table->signature, ddb);
-		acpi_put_table(ddb, table);
+		acpi_dbg("[%4.4s %d] ACPIRemoveTable end",
+			 table.pointer->signature, ddb);
+		acpi_put_table(&table);
 	}
 }
 

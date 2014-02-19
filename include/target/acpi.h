@@ -652,6 +652,12 @@ struct acpi_table_desc {
 	struct acpi_table_header *pointer;
 };
 
+struct acpi_table {
+	struct acpi_table_header *pointer;
+	uint32_t length;
+	acpi_table_flags_t flags;
+};
+
 #define ACPI_TABLE_EXTERNAL_VIRTUAL	((acpi_table_flags_t)0x00)
 #define ACPI_TABLE_INTERNAL_PHYSICAL	((acpi_table_flags_t)0x01)
 #define ACPI_TABLE_INTERNAL_VIRTUAL	((acpi_table_flags_t)0x02)
@@ -863,13 +869,11 @@ acpi_status_t acpi_install_and_load_table(struct acpi_table_header *table,
 void acpi_uninstall_table(acpi_ddb_t ddb);
 /* references with mappings */
 acpi_status_t acpi_get_table_by_inst(acpi_tag_t sig, uint32_t instance,
-				     acpi_ddb_t *ddb_handle,
-				     struct acpi_table_header **out_table);
+				     struct acpi_table *out_table);
 acpi_status_t acpi_get_table_by_name(acpi_tag_t sig, char *oem_id, char *oem_table_id,
-				     acpi_ddb_t *ddb_handle,
-				     struct acpi_table_header **out_table);
-acpi_status_t acpi_get_table(acpi_ddb_t ddb, struct acpi_table_header **out_table);
-void acpi_put_table(acpi_ddb_t ddb, struct acpi_table_header *table);
+				     struct acpi_table *out_table);
+acpi_status_t acpi_get_table(acpi_ddb_t ddb, struct acpi_table *out_table);
+void acpi_put_table(struct acpi_table *table);
 /* flag testing */
 boolean acpi_table_contains_aml(struct acpi_table_header *table);
 boolean acpi_table_has_header(acpi_name_t signature);
