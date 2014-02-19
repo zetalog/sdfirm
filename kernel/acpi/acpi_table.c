@@ -1297,10 +1297,9 @@ again:
 
 	acpi_table_unlock();
 	acpi_os_sleep(1000);
-	if (acpi_reference_get(&acpi_gbl_table_list.all_table_count) != 0) {
-		acpi_table_lock();
+	acpi_table_lock();
+	if (acpi_reference_get(&acpi_gbl_table_list.all_table_count) != 0)
 		goto again;
-	}
 
 	if (acpi_gbl_table_list.flags & ACPI_ROOT_ORIGIN_ALLOCATED) {
 		list_for_each_entry_safe(struct acpi_table_array, array, pos, &acpi_gbl_table_arrays, link) {
