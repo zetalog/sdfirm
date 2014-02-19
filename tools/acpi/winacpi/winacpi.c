@@ -328,8 +328,7 @@ static VOID ACPIAppendTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb)
 	lvi.iItem = 0;
 	lvi.iSubItem = 0;
 	lvi.mask = LVIF_IMAGE | LVIF_PARAM | LVIF_TEXT;
-	lvi.iImage = (acpi_table_contains_aml(table) ? 0x00 : 0x01) |
-		     (acpi_table_is_loaded(ddb) ? 0x00: 0x02);
+	lvi.iImage = acpi_table_contains_aml(table) ? 0x00 : 0x01;
 	lvi.lParam = (LPARAM)ddb;
 	lvi.pszText = name;
 	lvi.cchTextMax = _tcslen(name) ? _tcslen(name) : 0;

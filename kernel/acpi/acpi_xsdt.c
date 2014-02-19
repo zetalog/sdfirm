@@ -91,11 +91,11 @@ acpi_status_t acpi_xsdt_parse(acpi_addr_t xsdt_address, uint32_t table_entry_siz
 					    ACPI_TAG_NULL,
 					    ACPI_TABLE_INTERNAL_PHYSICAL,
 					    true, true, &ddb);
-		if (ACPI_SUCCESS(status)) {
-			if (ACPI_SUCCESS(acpi_get_table(ddb, &table))) {
+		if (ACPI_SUCCESS(status) && ACPI_SUCCESS(acpi_validate_table(ddb))) {
+			if (ACPI_SUCCESS(acpi_table_increment_validated(ddb, &table))) {
 				if (ACPI_NAMECMP(ACPI_SIG_FADT, table->signature))
 					acpi_fadt_parse(table);
-				acpi_put_table(ddb, table);
+				acpi_table_decrement(ddb);
 			}
 		}
 		table_entry += table_entry_size;

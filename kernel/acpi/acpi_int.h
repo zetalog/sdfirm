@@ -107,6 +107,7 @@ acpi_status_t acpi_install_table(acpi_addr_t address, acpi_tag_t signature,
 				 acpi_table_flags_t flags,
 				 boolean override, boolean versioning,
 				 acpi_ddb_t *ddb_handle);
+acpi_status_t acpi_validate_table(acpi_ddb_t ddb);
 /* exported for interfacing with event callbacks */
 void acpi_table_notify_existing(void);
 /* exported for internal table initialization */
@@ -117,7 +118,8 @@ void acpi_fadt_parse(struct acpi_table_header *table);
 /* references without mappings */
 acpi_ddb_t acpi_table_increment(acpi_ddb_t ddb);
 void acpi_table_decrement(acpi_ddb_t ddb);
-
+acpi_status_t acpi_table_increment_validated(acpi_ddb_t ddb,
+					     struct acpi_table_header **out_table);
 int acpi_compare_name(acpi_name_t name1, acpi_name_t name2);
 
 /*=========================================================================

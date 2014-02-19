@@ -871,7 +871,6 @@ acpi_status_t acpi_get_table_by_name(acpi_tag_t sig, char *oem_id, char *oem_tab
 acpi_status_t acpi_get_table(acpi_ddb_t ddb, struct acpi_table_header **out_table);
 void acpi_put_table(acpi_ddb_t ddb, struct acpi_table_header *table);
 /* flag testing */
-boolean acpi_table_is_loaded(acpi_ddb_t ddb);
 boolean acpi_table_contains_aml(struct acpi_table_header *table);
 boolean acpi_table_has_header(acpi_name_t signature);
 /* FADT flag testing */
