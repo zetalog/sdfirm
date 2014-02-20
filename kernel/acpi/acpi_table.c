@@ -89,8 +89,8 @@ static acpi_status_t acpi_table_install_temporal(struct acpi_table_desc *table_d
 static void acpi_table_uninstall_temporal(struct acpi_table_desc *table_desc);
 
 static struct acpi_table_list acpi_gbl_table_list;
-static boolean acpi_gbl_table_module_dead = false;
-static boolean acpi_gbl_table_module_busy = false;
+static boolean acpi_gbl_table_module_exit = false;
+static boolean acpi_gbl_table_module_init = false;
 acpi_mutex_t acpi_gbl_table_mutex;
 uint8_t acpi_gbl_integer_bit_width = 64;
 static LIST_HEAD(acpi_gbl_table_arrays);
@@ -258,79 +258,80 @@ static acpi_status_t __acpi_table_list_allocate(uint32_t initialial_table_count)
 }
 
 /*
- * NOTE: BUSY/DEAD Locking Facility
+ * NOTE: INIT/EXIT Locking Facility
  *
  * This facility is used to accelerate the process of
  * acpi_finalize_tables() as it can reduce period waited in this
  * function.
- * The DEAD flag is set only when BUSY flag is not set so that the code
- * locked with BUSY flag can safely access the installed tables, for
+ * The EXIT flag is set only when INIT flag is not set so that the code
+ * locked with INIT flag can safely access the installed tables, for
  * example, the code pieces iterating the acpi_gbl_table_list and are
  * triggered from a module external to ACPI.
- * The BUSY flag must also be locked for the code pieces that have
+ * The INIT flag must also be locked for the code pieces that have
  * conflicts with the acpi_finalize_tables(), for example, the
  * installation process will add tables to the acpi_gbl_table_list thus
  * can cause longer wait period.
- * The DEAD flag must not be unset in order to break the BUSY lock
+ * The EXIT flag must not be unset in order to break the INIT lock
  * waiters, it should be unset by some module text segment protection
  * mechanism.
- * Unlocking and re-locking inside of DEAD/BUSY locks are simple
+ * Unlocking and re-locking inside of INIT/EXIT locks are simple
  * acpi_table_unlock()/acpi_table_lock().
- * Note that all DEAD/BUSY locked operations are serialized.
+ * Note that all INIT/EXIT locked operations are serialized.
  */
-static boolean acpi_table_is_module_busy(void)
+static boolean acpi_table_is_module_init(void)
 {
-	return acpi_gbl_table_module_busy;
+	return acpi_gbl_table_module_init;
 }
 
-static boolean acpi_table_is_module_dead(void)
+static boolean acpi_table_is_module_exit(void)
 {
-	return acpi_gbl_table_module_dead;
+	return acpi_gbl_table_module_exit;
 }
 
-static boolean acpi_table_lock_dead(void)
+static boolean acpi_table_lock_exit(void)
 {
-retry:
 	acpi_table_lock();
-	if (acpi_table_is_module_dead()) {
+	if (acpi_table_is_module_exit()) {
 		acpi_table_unlock();
 		return false;
 	}
-	if (acpi_table_is_module_busy()) {
+	acpi_gbl_table_module_exit = true;
+retry:
+	if (acpi_table_is_module_init()) {
+		acpi_table_unlock();
+		acpi_os_sleep(10);
+		acpi_table_lock();
+		goto retry;
+	}
+	return true;
+}
+
+static boolean acpi_table_lock_init(void)
+{
+retry:
+	acpi_table_lock();
+	if (acpi_table_is_module_exit()) {
+		acpi_table_unlock();
+		return false;
+	}
+	if (acpi_table_is_module_init()) {
 		acpi_table_unlock();
 		acpi_os_sleep(10);
 		goto retry;
 	}
-	acpi_gbl_table_module_dead = true;
+	acpi_gbl_table_module_init = true;
 	return true;
 }
 
-static boolean acpi_table_lock_busy(void)
+static void acpi_table_unlock_init(void)
 {
-retry:
-	acpi_table_lock();
-	if (acpi_table_is_module_dead()) {
-		acpi_table_unlock();
-		return false;
-	}
-	if (acpi_table_is_module_busy()) {
-		acpi_table_unlock();
-		acpi_os_sleep(10);
-		goto retry;
-	}
-	acpi_gbl_table_module_busy = true;
-	return true;
-}
-
-static void acpi_table_unlock_busy(void)
-{
-	acpi_gbl_table_module_busy = false;
+	acpi_gbl_table_module_init = false;
 	acpi_table_unlock();
 }
 
-static void acpi_table_unlock_dead(void)
+static void acpi_table_unlock_exit(void)
 {
-	acpi_gbl_table_module_dead = false;
+	acpi_gbl_table_module_exit = false;
 	acpi_table_unlock();
 }
 
@@ -453,8 +454,7 @@ void acpi_table_notify_existing(void)
 	acpi_ddb_t ddb;
 	struct acpi_table_desc *table_desc;
 
-	if (!acpi_table_lock_busy())
-		return;
+	acpi_table_lock();
 	acpi_foreach_installed_ddb(ddb, 0) {
 		table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
 		acpi_dbg("[%4.4s %d] INC(NOTIFY_EXIST)", table_desc->signature, ddb);
@@ -467,7 +467,7 @@ void acpi_table_notify_existing(void)
 		acpi_dbg("[%4.4s %d] DEC(NOTIFY_EXIST)", table_desc->signature, ddb);
 		__acpi_table_decrement(ddb);
 	}
-	acpi_table_unlock_busy();
+	acpi_table_unlock();
 }
 
 boolean acpi_table_contains_aml(struct acpi_table_header *table)
@@ -536,9 +536,6 @@ static acpi_status_t __acpi_table_list_acquire(acpi_ddb_t *ddb_handle,
 	acpi_status_t status;
 	acpi_ddb_t ddb;
 	struct acpi_table_desc *table_desc;
-
-	if (acpi_table_is_module_dead())
-		return AE_NOT_FOUND;
 
 	if (ACPI_NAMECMP(ACPI_SIG_DSDT, name)) {
 		ddb = ACPI_DDB_HANDLE_DSDT;
@@ -960,7 +957,8 @@ acpi_status_t acpi_install_table(acpi_addr_t address, acpi_tag_t signature,
 	if (ACPI_FAILURE(status))
 		return status;
 
-	acpi_table_lock();
+	if (!acpi_table_lock_init())
+		return AE_NOT_FOUND;
 
 	acpi_foreach_installed_ddb(ddb, 0) {
 		table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
@@ -997,7 +995,7 @@ acpi_status_t acpi_install_table(acpi_addr_t address, acpi_tag_t signature,
 	__acpi_table_install_and_override(&new_table_desc, ddb, override);
 
 err_lock:
-	acpi_table_unlock();
+	acpi_table_unlock_init();
 	acpi_table_uninstall_temporal(&new_table_desc);
 	return status;
 }
@@ -1371,7 +1369,7 @@ void acpi_finalize_tables(void)
 	acpi_ddb_t ddb;
 	struct acpi_table_array *pos, *array;
 
-	if (!acpi_table_lock_dead())
+	if (!acpi_table_lock_exit())
 		return;
 again:
 	acpi_foreach_installed_ddb(ddb, 0) {
