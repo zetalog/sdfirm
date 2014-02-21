@@ -54,6 +54,7 @@ static struct acpi_namespace_node acpi_gbl_root = {
 };
 struct acpi_namespace_node *acpi_gbl_root_node = &acpi_gbl_root;
 static acpi_spinlock_t acpi_gbl_reference_lock;
+boolean acpi_gbl_early_stage = true;
 
 static void acpi_reference_update(struct acpi_reference *reference,
 				  int action, int *new_count)

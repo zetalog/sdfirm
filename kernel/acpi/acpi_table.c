@@ -1189,6 +1189,8 @@ static acpi_status_t acpi_load_table(acpi_ddb_t ddb, struct acpi_namespace_node 
 	struct acpi_table_desc *table_desc;
 	struct acpi_table_header *table;
 
+	acpi_gbl_early_stage = false;
+
 	if (ACPI_FAILURE(acpi_validate_table(ddb)))
 		return AE_NOT_FOUND;
 	if (ACPI_FAILURE(acpi_table_increment_validated(ddb, &table)))
@@ -1246,22 +1248,25 @@ static acpi_status_t __acpi_get_table(acpi_ddb_t ddb,
 	acpi_status_t status;
 	struct acpi_table_desc *table_desc;
 	acpi_addr_t address;
+	boolean allocation;
 
 	if (!__acpi_table_is_installed(ddb))
 		return AE_NOT_FOUND;
 
 	table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
+
 	acpi_dbg("[%4.4s %d] INC(GET)", table_desc->signature, ddb);
-	__acpi_table_increment(ddb);
+	out_table->ddb = __acpi_table_increment(ddb);
 
 	out_table->length = table_desc->length;
 	out_table->flags = table_desc->flags;
 	address = table_desc->address;
 
 	acpi_table_unlock();
+	allocation = (boolean)(acpi_gbl_early_stage ? false : true);
 	status = acpi_table_acquire(&out_table->pointer, address,
 				    out_table->length, out_table->flags,
-				    true);
+				    allocation);
 	acpi_table_lock();
 
 	if (!__acpi_table_is_installed(ddb)) {
@@ -1269,13 +1274,16 @@ static acpi_status_t __acpi_get_table(acpi_ddb_t ddb,
 		acpi_table_unlock();
 		acpi_table_release(out_table->pointer,
 				   out_table->length, out_table->flags,
-				   true);
+				   allocation);
 		acpi_table_lock();
 		out_table->pointer = NULL;
 	}
 
-	acpi_dbg("[%4.4s %d] DEC(GET)", table_desc->signature, ddb);
-	__acpi_table_decrement(ddb);
+	if (!acpi_gbl_early_stage || ACPI_FAILURE(status)) {
+		acpi_dbg("[%4.4s %d] DEC(GET)", table_desc->signature, ddb);
+		__acpi_table_decrement(ddb);
+	}
+
 	return status;
 }
 
@@ -1295,10 +1303,18 @@ acpi_status_t acpi_get_table(acpi_ddb_t ddb, struct acpi_table *out_table)
 
 void acpi_put_table(struct acpi_table *table)
 {
-	acpi_dbg("[%4.4s %d] DEC(PUT)",
-		 table->pointer->signature, ACPI_DDB_HANDLE_INVALID);
+	boolean allocation;
+
+	if (acpi_gbl_early_stage) {
+		acpi_dbg("[%4.4s %d] DEC(PUT)",
+			 table->pointer->signature, table->ddb);
+		__acpi_table_decrement(table->ddb);
+	}
+
+	allocation = (boolean)(acpi_gbl_early_stage ? false : true);
 	acpi_table_release(table->pointer,
-			   table->length, table->flags, true);
+			   table->length, table->flags,
+			   allocation);
 }
 
 acpi_status_t acpi_get_table_by_inst(acpi_tag_t sig, uint32_t instance,

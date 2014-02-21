@@ -653,6 +653,7 @@ struct acpi_table_desc {
 };
 
 struct acpi_table {
+	acpi_ddb_t ddb;
 	struct acpi_table_header *pointer;
 	uint32_t length;
 	acpi_table_flags_t flags;
@@ -777,6 +778,7 @@ struct acpi_generic_address acpi_gbl_xpm1b_status;
 boolean acpi_gbl_fadt_use_default_register_width;
 boolean acpi_gbl_fadt_use_32bit_addresses;
 struct acpi_namespace_node *acpi_gbl_root_node;
+boolean acpi_gbl_early_stage;
 
 #define ACPI_FORMAT_UINT64(i)           HIDWORD(i), LODWORD(i)
 #if ACPI_MACHINE_WIDTH == 64
