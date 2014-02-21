@@ -974,7 +974,7 @@ static acpi_status_t __acpi_uninstall_table(acpi_ddb_t ddb)
 		table_desc->flags |= ACPI_TABLE_IS_UNLOADING;
 		__acpi_table_notify(table_desc, ddb,
 				    ACPI_EVENT_TABLE_UNLOAD);
-		/* acpi_unparse_table(ddb); */
+		acpi_unparse_table(table_desc->pointer, acpi_gbl_root_node);
 		__acpi_table_set_loaded(ddb, false);
 		table_desc->flags &= ~ACPI_TABLE_IS_UNLOADING;
 	}
@@ -1173,27 +1173,7 @@ void acpi_table_decrement(acpi_ddb_t ddb)
 	acpi_table_unlock();
 }
 
-acpi_status_t acpi_parse_table(struct acpi_table_header *table,
-			       struct acpi_namespace_node *start_node)
-{
-	acpi_status_t status;
-	uint32_t aml_length;
-	uint8_t *aml_start;
-
-	BUG_ON(table->length < sizeof (struct acpi_table_header));
-
-	aml_start = (uint8_t *)table + sizeof (struct acpi_table_header);
-	aml_length = table->length - sizeof (struct acpi_table_header);
-
-	status = acpi_parse_aml(aml_start, aml_length, start_node);
-	if (ACPI_FAILURE(status))
-		goto err_ref;
-
-err_ref:
-	return status;
-}
-
-static acpi_status_t acpi_load_table(acpi_ddb_t ddb, struct acpi_namespace_node *node)
+static acpi_status_t acpi_load_table(acpi_ddb_t ddb)
 {
 	acpi_status_t status = AE_OK;
 	struct acpi_table_desc *table_desc;
@@ -1216,7 +1196,7 @@ static acpi_status_t acpi_load_table(acpi_ddb_t ddb, struct acpi_namespace_node 
 	table = table_desc->pointer;
 
 	/* Invoking the parser */
-	/* status = acpi_parse_table(table, node); */
+	status = acpi_parse_table(table, acpi_gbl_root_node);
 	if (ACPI_SUCCESS(status)) {
 		__acpi_table_set_loaded(ddb, true);
 		__acpi_table_notify(table_desc, ddb, ACPI_EVENT_TABLE_LOAD);
@@ -1244,7 +1224,7 @@ acpi_status_t acpi_install_and_load_table(struct acpi_table_header *table,
 	if (ACPI_FAILURE(status))
 		return status;
 
-	status = acpi_load_table(ddb, acpi_gbl_root_node);
+	status = acpi_load_table(ddb);
 	if (ACPI_FAILURE(status))
 		return status;
 
@@ -1401,7 +1381,7 @@ void acpi_load_tables(void)
 			continue;
 
 		acpi_table_unlock();
-		(void)acpi_load_table(ddb, acpi_gbl_root_node);
+		(void)acpi_load_table(ddb);
 		acpi_table_lock();
 	}
 

@@ -131,5 +131,9 @@ const struct acpi_opcode_info *acpi_opcode_get_info(uint16_t opcode);
 acpi_status_t acpi_parse_aml(uint8_t *aml_start,
 			     uint32_t aml_length,
 			     struct acpi_namespace_node *start_node);
+acpi_status_t acpi_parse_table(struct acpi_table_header *table,
+			       struct acpi_namespace_node *start_node);
+void acpi_unparse_table(struct acpi_table_header *table,
+			struct acpi_namespace_node *start_node);
 
 #endif /* __ACPI_INT_H_INCLUDE__ */
