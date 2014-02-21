@@ -988,6 +988,22 @@ static acpi_status_t __acpi_uninstall_table(acpi_ddb_t ddb)
 	return AE_OK;
 }
 
+#ifndef CONFIG_ACPI_TABLE_RELOAD_NOWAIT
+static void __acpi_table_wait_reload(struct acpi_table_desc *table_desc)
+{
+	/* Wait until uninstall completes, for FACS and DSDT reloading */
+	while (table_desc->flags & ACPI_TABLE_IS_UNINSTALLING) {
+		acpi_table_unlock();
+		acpi_os_sleep(10);
+		acpi_table_lock();
+	}
+}
+#else
+static inline void __acpi_table_wait_reload(struct acpi_table_desc *table_desc)
+{
+}
+#endif
+
 acpi_status_t acpi_install_table(acpi_addr_t address, acpi_tag_t signature,
 				 acpi_table_flags_t flags,
 				 boolean override, boolean versioning,
@@ -1034,13 +1050,7 @@ acpi_status_t acpi_install_table(acpi_addr_t address, acpi_tag_t signature,
 		if (ACPI_FAILURE(status))
 			goto err_lock;
 
-		/* Wait until uninstall completes, for FACS and DSDT reloading */
-		while (table_desc->flags & ACPI_TABLE_IS_UNINSTALLING) {
-			acpi_table_unlock();
-			acpi_os_sleep(10);
-			acpi_table_lock();
-		}
-
+		__acpi_table_wait_reload(table_desc);
 		break;
 	}
 
