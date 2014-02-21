@@ -445,8 +445,8 @@ static boolean ____acpi_table_is_unloaded(acpi_ddb_t ddb)
 	if (table_desc &&
 	    !(table_desc->flags & ACPI_TABLE_IS_LOADED) &&
 	    !(table_desc->flags & ACPI_TABLE_IS_UNLOADING))
-		return false;
-	return true;
+		return true;
+	return false;
 }
 
 static boolean __acpi_table_can_load(acpi_ddb_t ddb)
@@ -1197,7 +1197,7 @@ static acpi_status_t acpi_load_table(acpi_ddb_t ddb, struct acpi_namespace_node 
 		return AE_NOT_FOUND;
 
 	acpi_table_lock();
-	if (__acpi_table_can_load(ddb)) {
+	if (!__acpi_table_can_load(ddb)) {
 		status = AE_OK;
 		goto err_ref;
 	}
