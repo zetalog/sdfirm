@@ -155,7 +155,6 @@ static acpi_status_t __acpi_table_list_resize(void)
 	    acpi_gbl_table_list.use_table_count < acpi_gbl_table_list.max_table_count)
 		return AE_OK;
 
-again:
 	old_id_count = acpi_gbl_table_list.use_table_count;
 	if (acpi_gbl_table_list.flags & ACPI_ROOT_ORIGIN_ALLOCATED) {
 		new_id_count = acpi_gbl_table_list.max_table_count + ACPI_TABLE_LIST_INCREMENT;
@@ -173,13 +172,8 @@ again:
 	if (!new_array)
 		return AE_NO_MEMORY;
 
-	if (acpi_gbl_table_list.use_table_count != old_id_count) {
-		acpi_table_unlock();
-		acpi_os_free(new_array);
-		acpi_os_sleep(10);
-		acpi_table_lock();
-		goto again;
-	}
+	/* Note: This should have been ensured by the INIT/DEAD locking. */
+	BUG_ON(acpi_gbl_table_list.use_table_count != old_id_count);
 	new_table_ids = ACPI_ADD_PTR(struct acpi_table_desc *, new_array,
 				     sizeof (struct acpi_table_array) +
 				     new_count * sizeof (struct acpi_table_desc));
