@@ -227,39 +227,24 @@
  * Opcode information
  */
 
-/* Opcode flags */
+/*=========================================================================
+ * opcode classes
+ *=======================================================================*/
+#define AML_CLASS_EXECUTE           0x00
+#define AML_CLASS_CREATE            0x01
+#define AML_CLASS_ARGUMENT          0x02
+#define AML_CLASS_NAMED_OBJECT      0x03
+#define AML_CLASS_CONTROL           0x04
+#define AML_CLASS_ASCII             0x05
+#define AML_CLASS_PREFIX            0x06
+#define AML_CLASS_INTERNAL          0x07
+#define AML_CLASS_RETURN_VALUE      0x08
+#define AML_CLASS_METHOD_CALL       0x09
+#define AML_CLASS_UNKNOWN           0x0A
 
-#define AML_LOGICAL                 0x0001
-#define AML_LOGICAL_NUMERIC         0x0002
-#define AML_MATH                    0x0004
-#define AML_CREATE                  0x0008
-#define AML_FIELD                   0x0010
-#define AML_DEFER                   0x0020
-#define AML_NAMED                   0x0040
-#define AML_NSNODE                  0x0080
-#define AML_NSOPCODE                0x0100
-#define AML_NSOBJECT                0x0200
-#define AML_HAS_RETVAL              0x0400
-#define AML_HAS_TARGET              0x0800
-#define AML_HAS_ARGS                0x1000
-#define AML_CONSTANT                0x2000
-#define AML_NO_OPERAND_RESOLVE      0x4000
-
-/* Convenient flag groupings */
-
-#define AML_FLAGS_EXEC_0A_0T_1R		AML_HAS_RETVAL
-#define AML_FLAGS_EXEC_1A_0T_0R		AML_HAS_ARGS /* Monadic1  */
-#define AML_FLAGS_EXEC_1A_0T_1R		AML_HAS_ARGS | AML_HAS_RETVAL /* Monadic2  */
-#define AML_FLAGS_EXEC_1A_1T_0R		AML_HAS_ARGS | AML_HAS_TARGET
-#define AML_FLAGS_EXEC_1A_1T_1R		AML_HAS_ARGS | AML_HAS_TARGET | AML_HAS_RETVAL /* monadic2_r */
-#define AML_FLAGS_EXEC_2A_0T_0R		AML_HAS_ARGS /* Dyadic1   */
-#define AML_FLAGS_EXEC_2A_0T_1R		AML_HAS_ARGS | AML_HAS_RETVAL /* Dyadic2   */
-#define AML_FLAGS_EXEC_2A_1T_1R		AML_HAS_ARGS | AML_HAS_TARGET | AML_HAS_RETVAL /* dyadic2_r  */
-#define AML_FLAGS_EXEC_2A_2T_1R		AML_HAS_ARGS | AML_HAS_TARGET | AML_HAS_RETVAL
-#define AML_FLAGS_EXEC_3A_0T_0R		AML_HAS_ARGS
-#define AML_FLAGS_EXEC_3A_1T_1R		AML_HAS_ARGS | AML_HAS_TARGET | AML_HAS_RETVAL
-#define AML_FLAGS_EXEC_6A_0T_1R		AML_HAS_ARGS | AML_HAS_RETVAL
-
+/*=========================================================================
+ * opcode types
+ *=======================================================================*/
 /*
  * The opcode Type is used in a dispatch table, do not change
  * without updating the table.
@@ -285,11 +270,9 @@
 #define AML_TYPE_DATA_TERM          0x0F
 
 /* Generic for an op that returns a value */
-
 #define AML_TYPE_METHOD_CALL        0x10
 
 /* Misc */
-
 #define AML_TYPE_CREATE_FIELD       0x11
 #define AML_TYPE_CREATE_OBJECT      0x12
 #define AML_TYPE_CONTROL            0x13
@@ -302,36 +285,39 @@
 #define AML_TYPE_UNDEFINED          0x19
 #define AML_TYPE_BOGUS              0x1A
 
-/* AML Package Length encodings */
+/*=========================================================================
+ * opcode flags
+ *=======================================================================*/
+#define AML_LOGICAL                 0x0001
+#define AML_LOGICAL_NUMERIC         0x0002
+#define AML_MATH                    0x0004
+#define AML_CREATE                  0x0008
+#define AML_FIELD                   0x0010
+#define AML_DEFER                   0x0020
+#define AML_NAMED                   0x0040
+#define AML_NSNODE                  0x0080
+#define AML_NSOPCODE                0x0100
+#define AML_NSOBJECT                0x0200
+#define AML_HAS_RETVAL              0x0400
+#define AML_HAS_TARGET              0x0800
+#define AML_HAS_ARGS                0x1000
+#define AML_CONSTANT                0x2000
+#define AML_NO_OPERAND_RESOLVE      0x4000
 
-#define ACPI_AML_PACKAGE_TYPE1      0x40
-#define ACPI_AML_PACKAGE_TYPE2      0x4000
-#define ACPI_AML_PACKAGE_TYPE3      0x400000
-#define ACPI_AML_PACKAGE_TYPE4      0x40000000
+/* Convenient flag groupings */
+#define AML_FLAGS_EXEC_0A_0T_1R		AML_HAS_RETVAL
+#define AML_FLAGS_EXEC_1A_0T_0R		AML_HAS_ARGS /* Monadic1  */
+#define AML_FLAGS_EXEC_1A_0T_1R		AML_HAS_ARGS | AML_HAS_RETVAL /* Monadic2  */
+#define AML_FLAGS_EXEC_1A_1T_0R		AML_HAS_ARGS | AML_HAS_TARGET
+#define AML_FLAGS_EXEC_1A_1T_1R		AML_HAS_ARGS | AML_HAS_TARGET | AML_HAS_RETVAL /* monadic2_r */
+#define AML_FLAGS_EXEC_2A_0T_0R		AML_HAS_ARGS /* Dyadic1   */
+#define AML_FLAGS_EXEC_2A_0T_1R		AML_HAS_ARGS | AML_HAS_RETVAL /* Dyadic2   */
+#define AML_FLAGS_EXEC_2A_1T_1R		AML_HAS_ARGS | AML_HAS_TARGET | AML_HAS_RETVAL /* dyadic2_r  */
+#define AML_FLAGS_EXEC_2A_2T_1R		AML_HAS_ARGS | AML_HAS_TARGET | AML_HAS_RETVAL
+#define AML_FLAGS_EXEC_3A_0T_0R		AML_HAS_ARGS
+#define AML_FLAGS_EXEC_3A_1T_1R		AML_HAS_ARGS | AML_HAS_TARGET | AML_HAS_RETVAL
+#define AML_FLAGS_EXEC_6A_0T_1R		AML_HAS_ARGS | AML_HAS_RETVAL
 
-/*
- * Opcode classes
- */
-#define AML_CLASS_EXECUTE           0x00
-#define AML_CLASS_CREATE            0x01
-#define AML_CLASS_ARGUMENT          0x02
-#define AML_CLASS_NAMED_OBJECT      0x03
-#define AML_CLASS_CONTROL           0x04
-#define AML_CLASS_ASCII             0x05
-#define AML_CLASS_PREFIX            0x06
-#define AML_CLASS_INTERNAL          0x07
-#define AML_CLASS_RETURN_VALUE      0x08
-#define AML_CLASS_METHOD_CALL       0x09
-#define AML_CLASS_UNKNOWN           0x0A
-
-/* Opcode object flags */
-
-#define ACPI_OPCODE_GENERIC		0x01
-#define ACPI_OPCODE_NAMED		0x02
-#define ACPI_OPCODE_DEFERRED		0x04
-#define ACPI_OPCODE_BYTELIST		0x08
-#define ACPI_OPCODE_IN_STACK		0x10
-#define ACPI_OPCODE_TARGET		0x20
-#define ACPI_OPCODE_IN_CACHE		0x80
+#define AML_FLAGS_EXEC_MASKS		(AML_HAS_RETVAL | AML_HAS_ARGS | AML_HAS_TARGET)
 
 #endif /* __ACPI_AML_H_INCLUDE__ */

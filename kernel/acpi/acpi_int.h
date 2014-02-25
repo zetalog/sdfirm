@@ -72,6 +72,15 @@ union acpi_parser_value {
 	union acpi_parser_value value; /* Value or args associated with the opcode */\
 	uint8_t nr_args; /* Number of elements in the arg list */
 
+/* Opcode object flags */
+#define ACPI_OPCODE_GENERIC		0x01
+#define ACPI_OPCODE_NAMED		0x02
+#define ACPI_OPCODE_DEFERRED		0x04
+#define ACPI_OPCODE_BYTELIST		0x08
+#define ACPI_OPCODE_IN_STACK		0x10
+#define ACPI_OPCODE_TARGET		0x20
+#define ACPI_OPCODE_IN_CACHE		0x80
+
 struct acpi_opcode_common {
 	ACPI_PARSER_COMMON
 };
