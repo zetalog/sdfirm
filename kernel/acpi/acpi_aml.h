@@ -17,13 +17,6 @@
 #define AML_PACKAGE_OP			(uint16_t)0x12
 #define AML_VAR_PACKAGE_OP		(uint16_t)0x13 /* ACPI 2.0 */
 #define AML_METHOD_OP			(uint16_t)0x14
-#define AML_DUAL_NAME_PREFIX		(uint16_t)0x2e
-#define AML_MULTI_NAME_PREFIX_OP	(uint16_t)0x2f
-#define AML_NAME_CHAR_SUBSEQ		(uint16_t)0x30
-#define AML_NAME_CHAR_FIRST		(uint16_t)0x41
-#define AML_EXTENDED_OP_PREFIX		(uint16_t)0x5b
-#define AML_ROOT_PREFIX			(uint16_t)0x5c
-#define AML_PARENT_PREFIX		(uint16_t)0x5e
 #define AML_LOCAL_OP			(uint16_t)0x60
 #define AML_LOCAL0			(uint16_t)0x60
 #define AML_LOCAL1			(uint16_t)0x61
@@ -127,6 +120,14 @@
 #define AML_INDEX_FIELD_OP		(uint16_t)0x5b86
 #define AML_BANK_FIELD_OP		(uint16_t)0x5b87
 #define AML_DATA_REGION_OP		(uint16_t)0x5b88 /* ACPI 2.0 */
+
+#define AML_DUAL_NAME_PREFIX		(uint16_t)0x2e
+#define AML_MULTI_NAME_PREFIX_OP	(uint16_t)0x2f
+#define AML_NAME_CHAR_SUBSEQ		(uint16_t)0x30
+#define AML_NAME_CHAR_FIRST		(uint16_t)0x41
+#define AML_EXTENDED_OP_PREFIX		(uint16_t)0x5b
+#define AML_ROOT_PREFIX			(uint16_t)0x5c
+#define AML_PARENT_PREFIX		(uint16_t)0x5e
 
 /*
  * Argument types for the AML Parser
