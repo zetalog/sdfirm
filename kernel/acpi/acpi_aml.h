@@ -2,9 +2,12 @@
 #define __ACPI_AML_H_INCLUDE__
 
 /* primary opcodes */
+
 #define AML_NULL_CHAR			(uint16_t)0x00
+
 #define AML_ZERO_OP			(uint16_t)0x00
 #define AML_ONE_OP			(uint16_t)0x01
+#define AML_UNASSIGNED			(uint16_t)0x02
 #define AML_ALIAS_OP			(uint16_t)0x06
 #define AML_NAME_OP			(uint16_t)0x08
 #define AML_BYTE_OP			(uint16_t)0x0a
@@ -97,9 +100,13 @@
 #define AML_ONES_OP			(uint16_t)0xff
 
 /* prefixed opcodes */
+
 #define AML_EXTENDED_OPCODE		(uint16_t)0x5b00 /* prefix for 2-byte opcodes */
+
 #define AML_MUTEX_OP			(uint16_t)0x5b01
 #define AML_EVENT_OP			(uint16_t)0x5b02
+#define AML_SHIFT_RIGHT_BIT_OP		(uint16_t)0x5b10
+#define AML_SHIFT_LEFT_BIT_OP		(uint16_t)0x5b11
 #define AML_COND_REF_OF_OP		(uint16_t)0x5b12
 #define AML_CREATE_FIELD_OP		(uint16_t)0x5b13
 #define AML_LOAD_TABLE_OP		(uint16_t)0x5b1f /* ACPI 2.0 */
@@ -128,31 +135,155 @@
 #define AML_BANK_FIELD_OP		(uint16_t)0x5b87
 #define AML_DATA_REGION_OP		(uint16_t)0x5b88 /* ACPI 2.0 */
 
+
 /*
- * Argument types for the AML Parser
- * Each field in the ArgTypes UINT32 is 5 bits, allowing for a maximum of 6 arguments.
- * There can be up to 31 unique argument types
- * Zero is reserved as end-of-list indicator
+ * Combination opcodes (actually two one-byte opcodes)
+ * Used by the disassembler and iASL compiler
  */
-#define AML_NONE		0x00
-#define AML_BYTEDATA		0x01
-#define AML_BYTELIST		0x02
-#define AML_CHARLIST		0x03
-#define AML_DATAOBJ		0x04
-#define AML_DATAOBJLIST		0x05
-#define AML_DWORDDATA		0x06
-#define AML_FIELDLIST		0x07
-#define AML_NAME		0x08
-#define AML_NAMESTRING		0x09
-#define AML_OBJLIST		0x0A
-#define AML_PKGLENGTH		0x0B
-#define AML_SUPERNAME		0x0C
-#define AML_TARGET		0x0D
-#define AML_TERMARG		0x0E
-#define AML_TERMLIST		0x0F
-#define AML_WORDDATA		0x10
-#define AML_QWORDDATA		0x11
-#define AML_SIMPLENAME		0x12
+#define AML_LGREATEREQUAL_OP		(uint16_t)0x9295
+#define AML_LLESSEQUAL_OP		(uint16_t)0x9294
+#define AML_LNOTEQUAL_OP		(uint16_t)0x9293
+
+
+/*
+ * Opcodes for "Field" operators
+ */
+#define AML_FIELD_OFFSET_OP		(uint8_t)0x00
+#define AML_FIELD_ACCESS_OP		(uint8_t)0x01
+#define AML_FIELD_CONNECTION_OP		(uint8_t)0x02 /* ACPI 5.0 */
+#define AML_FIELD_EXT_ACCESS_OP		(uint8_t)0x03 /* ACPI 5.0 */
+
+
+/*
+ * Internal opcodes
+ * Use only "Unknown" AML opcodes, don't attempt to use
+ * any valid ACPI ASCII values (A-Z, 0-9, '-')
+ */
+#define AML_INT_NAMEPATH_OP		(uint16_t)0x002d
+#define AML_INT_NAMEDFIELD_OP		(uint16_t)0x0030
+#define AML_INT_RESERVEDFIELD_OP	(uint16_t)0x0031
+#define AML_INT_ACCESSFIELD_OP		(uint16_t)0x0032
+#define AML_INT_BYTELIST_OP		(uint16_t)0x0033
+#define AML_INT_STATICSTRING_OP		(uint16_t)0x0034
+#define AML_INT_METHODCALL_OP		(uint16_t)0x0035
+#define AML_INT_RETURN_VALUE_OP		(uint16_t)0x0036
+#define AML_INT_EVAL_SUBTREE_OP		(uint16_t)0x0037
+#define AML_INT_CONNECTION_OP		(uint16_t)0x0038
+#define AML_INT_EXTACCESSFIELD_OP	(uint16_t)0x0039
+
+#define ARG_NONE			0x0
+
+/*
+ * Resolved argument types for the AML Interpreter
+ * Each field in the ArgTypes UINT32 is 5 bits, allowing for a maximum of 6 arguments.
+ * There can be up to 31 unique argument types (0 is end-of-arg-list indicator)
+ *
+ * Note1: These values are completely independent from the ACPI_TYPEs
+ *        i.e., ARGI_INTEGER != ACPI_TYPE_INTEGER
+ *
+ * Note2: If and when 5 bits becomes insufficient, it would probably be best
+ * to convert to a 6-byte array of argument types, allowing 8 bits per argument.
+ */
+
+/* Single, simple types */
+
+#define ARGI_ANYTYPE			0x01 /* Don't care */
+#define ARGI_PACKAGE			0x02
+#define ARGI_EVENT			0x03
+#define ARGI_MUTEX			0x04
+#define ARGI_DDBHANDLE			0x05
+
+/* Interchangeable types (via implicit conversion) */
+
+#define ARGI_INTEGER			0x06
+#define ARGI_STRING			0x07
+#define ARGI_BUFFER			0x08
+#define ARGI_BUFFER_OR_STRING		0x09 /* Used by MID op only */
+#define ARGI_COMPUTEDATA		0x0A /* Buffer, String, or Integer */
+
+/* Reference objects */
+
+#define ARGI_INTEGER_REF		0x0B
+#define ARGI_OBJECT_REF			0x0C
+#define ARGI_DEVICE_REF			0x0D
+#define ARGI_REFERENCE			0x0E
+#define ARGI_TARGETREF			0x0F /* Target, subject to implicit conversion */
+#define ARGI_FIXED_TARGET		0x10 /* Target, no implicit conversion */
+#define ARGI_SIMPLE_TARGET		0x11 /* Name, Local, Arg -- no implicit conversion */
+
+/* Multiple/complex types */
+
+#define ARGI_DATAOBJECT			0x12 /* Buffer, String, package or reference to a Node - Used only by SizeOf operator*/
+#define ARGI_COMPLEXOBJ			0x13 /* Buffer, String, or package (Used by INDEX op only) */
+#define ARGI_REF_OR_STRING		0x14 /* Reference or String (Used by DEREFOF op only) */
+#define ARGI_REGION_OR_BUFFER		0x15 /* Used by LOAD op only */
+#define ARGI_DATAREFOBJ			0x16
+
+/* Note: types above can expand to 0x1F maximum */
+
+#define ARGI_INVALID_OPCODE		0xFFFFFFFF
+
+/*
+ * Opcode information
+ */
+
+/*=========================================================================
+ * opcode classes
+ *=======================================================================*/
+#define AML_CLASS_EXECUTE           0x00
+#define AML_CLASS_CREATE            0x01
+#define AML_CLASS_ARGUMENT          0x02
+#define AML_CLASS_NAMED_OBJECT      0x03
+#define AML_CLASS_CONTROL           0x04
+#define AML_CLASS_ASCII             0x05
+#define AML_CLASS_PREFIX            0x06
+#define AML_CLASS_INTERNAL          0x07
+#define AML_CLASS_RETURN_VALUE      0x08
+#define AML_CLASS_METHOD_CALL       0x09
+#define AML_CLASS_UNKNOWN           0x0A
+
+/*=========================================================================
+ * opcode types
+ *=======================================================================*/
+/*
+ * The opcode Type is used in a dispatch table, do not change
+ * without updating the table.
+ */
+#define AML_TYPE_EXEC_0A_0T_1R      0x00
+#define AML_TYPE_EXEC_1A_0T_0R      0x01	/* Monadic1  */
+#define AML_TYPE_EXEC_1A_0T_1R      0x02	/* Monadic2  */
+#define AML_TYPE_EXEC_1A_1T_0R      0x03
+#define AML_TYPE_EXEC_1A_1T_1R      0x04	/* monadic2_r */
+#define AML_TYPE_EXEC_2A_0T_0R      0x05	/* Dyadic1   */
+#define AML_TYPE_EXEC_2A_0T_1R      0x06	/* Dyadic2   */
+#define AML_TYPE_EXEC_2A_1T_1R      0x07	/* dyadic2_r  */
+#define AML_TYPE_EXEC_2A_2T_1R      0x08
+#define AML_TYPE_EXEC_3A_0T_0R      0x09
+#define AML_TYPE_EXEC_3A_1T_1R      0x0A
+#define AML_TYPE_EXEC_6A_0T_1R      0x0B
+/* End of types used in dispatch table */
+
+#define AML_TYPE_LITERAL            0x0B
+#define AML_TYPE_CONSTANT           0x0C
+#define AML_TYPE_METHOD_ARGUMENT    0x0D
+#define AML_TYPE_LOCAL_VARIABLE     0x0E
+#define AML_TYPE_DATA_TERM          0x0F
+
+/* Generic for an op that returns a value */
+#define AML_TYPE_METHOD_CALL        0x10
+
+/* Misc */
+#define AML_TYPE_CREATE_FIELD       0x11
+#define AML_TYPE_CREATE_OBJECT      0x12
+#define AML_TYPE_CONTROL            0x13
+#define AML_TYPE_NAMED_NO_OBJ       0x14
+#define AML_TYPE_NAMED_FIELD        0x15
+#define AML_TYPE_NAMED_SIMPLE       0x16
+#define AML_TYPE_NAMED_COMPLEX      0x17
+#define AML_TYPE_RETURN             0x18
+
+#define AML_TYPE_UNDEFINED          0x19
+#define AML_TYPE_BOGUS              0x1A
 
 /*=========================================================================
  * opcode flags
