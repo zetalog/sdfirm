@@ -1172,6 +1172,7 @@ static acpi_status_t acpi_load_table(acpi_ddb_t ddb)
 	acpi_status_t status = AE_OK;
 	struct acpi_table_desc *table_desc;
 	struct acpi_table_header *table;
+	struct acpi_namespace_node *ns_root;
 
 	acpi_gbl_early_stage = false;
 
@@ -1180,24 +1181,32 @@ static acpi_status_t acpi_load_table(acpi_ddb_t ddb)
 	if (ACPI_FAILURE(acpi_table_increment_validated(ddb, &table)))
 		return AE_NOT_FOUND;
 
+	/* Validate root node */
+	ns_root = acpi_space_get_node(NULL);
+	if (!ns_root) {
+		status = AE_NOT_FOUND;
+		goto err_ref;
+	}
+
 	acpi_table_lock();
 	if (!__acpi_table_can_load(ddb)) {
 		status = AE_OK;
-		goto err_ref;
+		goto err_lock;
 	}
 
 	table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
 	table = table_desc->pointer;
 
 	/* Invoking the parser */
-	status = acpi_parse_table(table, acpi_gbl_root_node);
+	status = acpi_parse_table(table, ns_root);
 	if (ACPI_SUCCESS(status)) {
 		__acpi_table_set_loaded(ddb, true);
 		__acpi_table_notify(table_desc, ddb, ACPI_EVENT_TABLE_LOAD);
 	}
 
-err_ref:
+err_lock:
 	acpi_table_unlock();
+err_ref:
 	acpi_table_decrement(ddb);
 	return status;
 }

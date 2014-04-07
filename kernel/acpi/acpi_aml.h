@@ -252,22 +252,4 @@
 	 (AML_TARGET_MASK << AML_TARGET_OFFSET) |	\
 	 (AML_RETURN_MASK << AML_RETURN_OFFSET))
 
-boolean acpi_opcode_is_opcode(uint16_t opcode);
-boolean acpi_opcode_is_namestring(uint16_t opcode);
-boolean acpi_opcode_is_namespacemodifierobj(uint16_t opcode);
-boolean acpi_opcode_is_namedobj(uint16_t opcode);
-boolean acpi_opcode_is_computationaldata(uint16_t opcode);
-boolean acpi_opcode_is_dataobject(uint16_t opcode);
-boolean acpi_opcode_is_debugobj(uint16_t opcode);
-boolean acpi_opcode_is_argobj(uint16_t opcode);
-boolean acpi_opcode_is_localobj(uint16_t opcode);
-boolean acpi_opcode_is_userterm(uint16_t opcode);
-boolean acpi_opcode_is_type1opcode(uint16_t opcode);
-boolean acpi_opcode_is_type2opcode(uint16_t opcode);
-boolean acpi_opcode_is_type6opcode(uint16_t opcode);
-boolean acpi_opcode_is_simplename(uint16_t opcode);
-boolean acpi_opcode_is_termarg(uint16_t opcode);
-boolean acpi_opcode_is_termobj(uint16_t opcode);
-boolean acpi_opcode_is_supername(uint16_t opcode);
-
 #endif /* __ACPI_AML_H_INCLUDE__ */

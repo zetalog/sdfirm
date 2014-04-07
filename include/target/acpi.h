@@ -742,32 +742,40 @@ typedef uint8_t acpi_object_type;
 
 #define ACPI_NUM_NS_TYPES		(ACPI_TYPE_INVALID + 1)
 
-#define ACPI_OBJECT_COMMON_HEADER \
-	union acpi_operand_object *next_object;
-	uint8_t descriptor_type;
-	acpi_object_type type;
-	struct acpi_reference reference_count;
-	uint8_t flags;
+#define ACPI_DESC_TYPE_NAMED		0x01
+#define ACPI_DESC_TYPE_TERM		0x02
 
-struct acpi_object_common {
-	ACPI_OBJECT_COMMON_HEADER
+#define ACPI_OBJECT_HEADER			\
+	uint8_t descriptor_type;		\
+	struct acpi_reference reference_count;
+
+struct acpi_object {
+	ACPI_OBJECT_HEADER
 };
 
-union acpi_operand_object {
-	struct acpi_object_common common;
+union acpi_value {
+	uint64_t integer;
+	char string[1];
+	uint8_t buffer[1];
+};
+#define ACPI_DEFAULT_OPERAND_SIZE	(sizeof (union acpi_value))
+
+union acpi_data {
+	struct acpi_object common;
+	acpi_object_type object_type;
+	acpi_size_t size;
+	union acpi_value default_val;
+	union acpi_value *current_val;
 };
 
 struct acpi_namespace_node {
+	struct acpi_object common;
 	acpi_name_t name;
-	uint8_t descriptor_type;
-#define ACPI_DESC_TYPE_NAMED            0x01
-#define ACPI_DESC_TYPE_OPCODE		0x02
 	acpi_object_type object_type;
 	struct acpi_namespace_node *parent;
 	struct acpi_namespace_node *child;
 	struct acpi_namespace_node *peer;
-	union acpi_operand_object *object;
-	uint8_t flags;
+	union acpi_operand *operand;
 };
 
 uint8_t acpi_gbl_integer_bit_width;

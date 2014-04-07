@@ -72,12 +72,6 @@
 #define AML_NUM_OPCODES			\
 	(NUM_PRIMARY_OPCODES + NUM_EXTENDED_OPCODES + NUM_RESERVED_OPCODES)
 
-struct acpi_opcode_info {
-	char *name;
-	uint32_t args;
-	uint16_t flags;
-};
-
 #define ACPI_OP(name, args, flags)		\
 	{ (name), (uint32_t)(args), (uint32_t)(flags) }
 
@@ -450,28 +444,27 @@ const struct acpi_opcode_info *acpi_opcode_get_info(uint16_t opcode)
 	return (&acpi_gbl_opcode_info[op_index]);
 }
 
-union acpi_opcode *acpi_opcode_alloc(uint16_t opcode)
+union acpi_term *acpi_term_alloc(uint16_t opcode)
 {
-	union acpi_opcode *op;
+	union acpi_term *op;
 	const struct acpi_opcode_info *op_info;
 
 	op_info = acpi_opcode_get_info(opcode);
 
 	/* Allocate the minimum required size object */
 	if (op_info->flags & AML_NAMED_OBJ)
-		op = acpi_os_allocate_zeroed(sizeof (struct acpi_opcode_named));
+		op = acpi_os_allocate_zeroed(sizeof (struct acpi_named_obj));
 	else
-		op = acpi_os_allocate_zeroed(sizeof (struct acpi_opcode_common));
+		op = acpi_os_allocate_zeroed(sizeof (struct acpi_term_obj));
 	if (op) {
-		op->common.descriptor_type = ACPI_DESC_TYPE_OPCODE;
+		op->common.descriptor_type = ACPI_DESC_TYPE_TERM;
 		op->common.aml_opcode = opcode;
-		op->common.flags = flags;
 	}
 	
 	return op;
 }
 
-void acpi_opcode_free(union acpi_opcode *op)
+void acpi_term_free(union acpi_term *op)
 {
 	acpi_os_free(op);
 }

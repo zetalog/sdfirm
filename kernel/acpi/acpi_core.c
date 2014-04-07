@@ -43,16 +43,6 @@
  */
 #include "acpi_int.h"
 
-static struct acpi_namespace_node acpi_gbl_root = {
-	ACPI_ROOT_NAME,
-	ACPI_DESC_TYPE_NAMED,
-	ACPI_TYPE_DEVICE,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-};
-struct acpi_namespace_node *acpi_gbl_root_node = &acpi_gbl_root;
 static acpi_spinlock_t acpi_gbl_reference_lock;
 boolean acpi_gbl_early_stage = true;
 
