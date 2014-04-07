@@ -918,4 +918,10 @@ void acpi_event_unregister_table_handler(acpi_event_table_cb handler);
 void acpi_event_table_notify(struct acpi_table_desc *table_desc,
 			     acpi_ddb_t ddb, uint32_t event);
 
+#ifdef CONFIG_ACPI_TESTS
+void acpi_opcode_tests(void);
+#else
+#define acpi_opcode_tests()
+#endif
+
 #endif /* __ACPI_H_INCLUDE__ */
