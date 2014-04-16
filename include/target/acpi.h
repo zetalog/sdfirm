@@ -54,6 +54,7 @@
 #endif
 
 #define ACPI_UINT32_MAX			(uint32_t)(~((uint32_t)0)) /* 0xFFFFFFFF         */
+#define ACPI_UINT64_MAX			(uint64_t)(~((uint64_t)0)) /* 0xFFFFFFFFFFFFFFFF */
 
 typedef int acpi_status_t;
 typedef void *acpi_handle_t;
@@ -742,41 +743,15 @@ typedef uint8_t acpi_object_type;
 
 #define ACPI_NUM_NS_TYPES		(ACPI_TYPE_INVALID + 1)
 
-#define ACPI_DESC_TYPE_NAMED		0x01
-#define ACPI_DESC_TYPE_TERM		0x02
-
-#define ACPI_OBJECT_HEADER			\
-	uint8_t descriptor_type;		\
-	struct acpi_reference reference_count;
-
-struct acpi_object {
-	ACPI_OBJECT_HEADER
-};
-
 union acpi_value {
 	uint64_t integer;
-	char string[1];
-	uint8_t buffer[1];
+	char *string;
+	struct {
+		uint8_t len;
+		uint8_t *ptr;
+	} buffer;
 };
 #define ACPI_DEFAULT_OPERAND_SIZE	(sizeof (union acpi_value))
-
-union acpi_data {
-	struct acpi_object common;
-	acpi_object_type object_type;
-	acpi_size_t size;
-	union acpi_value default_val;
-	union acpi_value *current_val;
-};
-
-struct acpi_namespace_node {
-	struct acpi_object common;
-	acpi_name_t name;
-	acpi_object_type object_type;
-	struct acpi_namespace_node *parent;
-	struct acpi_namespace_node *child;
-	struct acpi_namespace_node *peer;
-	union acpi_operand *operand;
-};
 
 uint8_t acpi_gbl_integer_bit_width;
 struct acpi_generic_address acpi_gbl_xpm1a_enable;

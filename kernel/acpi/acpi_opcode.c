@@ -43,45 +43,16 @@
  */
 #include "acpi_int.h"
 
-/*
- * Numbers of opcodes are extracted from LastIndex+1 of
- * acpi_gbl_opcode_info.
- */
-#define NUM_PRIMARY_OPCODES		0x53
-#define NUM_EXTENDED_OPCODES		0x1D
-
-#define MAX_PRIMARY_OPCODE		0xFF
-#define MAX_EXTENDED_OPCODE		0x88
-#define NUM_PRIMARY_OPCODE		(MAX_PRIMARY_OPCODE + 1)
-#define NUM_EXTENDED_OPCODE		(MAX_EXTENDED_OPCODE + 1)
-
-/* Used for non-assigned opcodes */
-#define _UNK				(NUM_PRIMARY_OPCODES + NUM_EXTENDED_OPCODES)
-
-/*
- * Reserved ASCII characters. Do not use any of these for
- * internal opcodes, since they are used to differentiate
- * name strings from AML opcodes
- */
-#define _ASC				(_UNK+1)
-#define _PFX				(_UNK+2)
-
-#define NUM_RESERVED_OPCODES		(0x03)
-
-/* Total number of aml opcodes defined */
-#define AML_NUM_OPCODES			\
-	(NUM_PRIMARY_OPCODES + NUM_EXTENDED_OPCODES + NUM_RESERVED_OPCODES)
-
 #define ACPI_OP(name, args, flags)		\
-	{ (name), (uint32_t)(args), (uint32_t)(flags) }
+	{ (name), (uint64_t)(args), (uint32_t)(flags) }
 
-#define AML_TYPE_WIDTH			5
-#define AML_ARG_1(x)			((uint32_t)(x))
-#define AML_ARG_2(x)			((uint32_t)(x) << (1 * AML_TYPE_WIDTH))
-#define AML_ARG_3(x)			((uint32_t)(x) << (2 * AML_TYPE_WIDTH))
-#define AML_ARG_4(x)			((uint32_t)(x) << (3 * AML_TYPE_WIDTH))
-#define AML_ARG_5(x)			((uint32_t)(x) << (4 * AML_TYPE_WIDTH))
-#define AML_ARG_6(x)			((uint32_t)(x) << (5 * AML_TYPE_WIDTH))
+#define AML_ARG_1(x)			((uint64_t)(x))
+#define AML_ARG_2(x)			((uint64_t)(x) << (1 * AML_TYPE_WIDTH))
+#define AML_ARG_3(x)			((uint64_t)(x) << (2 * AML_TYPE_WIDTH))
+#define AML_ARG_4(x)			((uint64_t)(x) << (3 * AML_TYPE_WIDTH))
+#define AML_ARG_5(x)			((uint64_t)(x) << (4 * AML_TYPE_WIDTH))
+#define AML_ARG_6(x)			((uint64_t)(x) << (5 * AML_TYPE_WIDTH))
+#define AML_ARG_7(x)			((uint64_t)(x) << (6 * AML_TYPE_WIDTH))
 
 #define AML_ARGS1(a)			(AML_ARG_1(a))
 #define AML_ARGS2(a, b)			(AML_ARG_1(a)|AML_ARG_2(b))
@@ -89,8 +60,7 @@
 #define AML_ARGS4(a, b, c, d)		(AML_ARG_1(a)|AML_ARG_2(b)|AML_ARG_3(c)|AML_ARG_4(d))
 #define AML_ARGS5(a, b, c, d, e)	(AML_ARG_1(a)|AML_ARG_2(b)|AML_ARG_3(c)|AML_ARG_4(d)|AML_ARG_5(e))
 #define AML_ARGS6(a, b, c, d, e, f)	(AML_ARG_1(a)|AML_ARG_2(b)|AML_ARG_3(c)|AML_ARG_4(d)|AML_ARG_5(e)|AML_ARG_6(f))
-
-#define AML_GET_ARG_TYPE(args, index)	((uint8_t)(((args) >> ((uint32_t)AML_TYPE_WIDTH * (index))) & ((uint32_t) 0x1F)))
+#define AML_ARGS7(a, b, c, d, e, f, g)	(AML_ARG_1(a)|AML_ARG_2(b)|AML_ARG_3(c)|AML_ARG_4(d)|AML_ARG_5(e)|AML_ARG_6(f)|AML_ARG_7(f))
 
 /*
  * All AML opcodes and the parse-time arguments for each. Used by the AML
@@ -104,7 +74,7 @@
 #define AML_BYTE_ARGS			AML_ARGS1(AML_BYTEDATA)
 #define AML_WORD_ARGS			AML_ARGS1(AML_WORDDATA)
 #define AML_DWORD_ARGS			AML_ARGS1(AML_DWORDDATA)
-#define AML_STRING_ARGS			AML_ARGS2(AML_ASCIICHARLIST, AML_NULLCHAR)
+#define AML_STRING_ARGS			AML_ARGS1(AML_ASCIICHARLIST)
 #define AML_SCOPE_ARGS			AML_ARGS3(AML_PKGLENGTH, AML_NAMESTRING, AML_TERMLIST)
 #define AML_BUFFER_ARGS			AML_ARGS3(AML_PKGLENGTH, AML_LENGTH, AML_BYTELIST)
 #define AML_PACKAGE_ARGS		AML_ARGS3(AML_PKGLENGTH, AML_BYTEDATA, AML_PACKAGELEMENTLIST)
@@ -207,10 +177,10 @@
 #define AML_FATAL_ARGS			AML_ARGS3(AML_BYTEDATA, AML_DWORDDATA, AML_INDEX)
 #define AML_REGION_ARGS			AML_ARGS4(AML_NAMESTRING, AML_BYTEDATA, AML_INDEX, AML_LENGTH)
 #define AML_FIELD_ARGS			AML_ARGS4(AML_PKGLENGTH, AML_NAMESTRING, AML_BYTEDATA, AML_FIELDLIST)
-#define AML_DEVICE_ARGS			AML_ARGS3(AML_PKGLENGTH, AML_NAMESTRING, AML_OBJLIST)
-#define AML_PROCESSOR_ARGS		AML_ARGS6(AML_PKGLENGTH, AML_NAMESTRING, AML_BYTEDATA, AML_DWORDDATA, AML_BYTEDATA, AML_OBJLIST)
-#define AML_POWER_RES_ARGS		AML_ARGS5(AML_PKGLENGTH, AML_NAMESTRING, AML_BYTEDATA, AML_WORDDATA, AML_OBJLIST)
-#define AML_THERMAL_ZONE_ARGS		AML_ARGS3(AML_PKGLENGTH, AML_NAMESTRING, AML_OBJLIST)
+#define AML_DEVICE_ARGS			AML_ARGS3(AML_PKGLENGTH, AML_NAMESTRING, AML_OBJECTLIST)
+#define AML_PROCESSOR_ARGS		AML_ARGS6(AML_PKGLENGTH, AML_NAMESTRING, AML_BYTEDATA, AML_DWORDDATA, AML_BYTEDATA, AML_OBJECTLIST)
+#define AML_POWER_RES_ARGS		AML_ARGS5(AML_PKGLENGTH, AML_NAMESTRING, AML_BYTEDATA, AML_WORDDATA, AML_OBJECTLIST)
+#define AML_THERMAL_ZONE_ARGS		AML_ARGS3(AML_PKGLENGTH, AML_NAMESTRING, AML_OBJECTLIST)
 #define AML_INDEX_FIELD_ARGS		AML_ARGS5(AML_PKGLENGTH, AML_NAMESTRING, AML_NAMESTRING, AML_BYTEDATA, AML_FIELDLIST)
 #define AML_BANK_FIELD_ARGS		AML_ARGS6(AML_PKGLENGTH, AML_NAMESTRING, AML_NAMESTRING, AML_INDEX, AML_BYTEDATA, AML_FIELDLIST)
 #define AML_LOAD_TABLE_ARGS		AML_ARGS6(AML_TERMARG(ANY), AML_TERMARG(ANY), AML_TERMARG(ANY), AML_TERMARG(ANY), AML_TERMARG(ANY), AML_TERMARG(ANY))
@@ -232,10 +202,17 @@ const struct acpi_opcode_info acpi_gbl_opcode_info[AML_NUM_OPCODES] =
 /* 01 */ ACPI_OP("One",                    AML_ONE_ARGS,                AML_DATA_OBJECT | AML_COMPUTATIONAL_DATA | AML_FLAGS_EXEC_0A_0T_1R),
 /* 02 */ ACPI_OP("Alias",                  AML_ALIAS_ARGS,              AML_NAMESPACE_MODIFIER_OBJ | AML_FLAGS_EXEC_2A_0T_0R),
 /* 03 */ ACPI_OP("Name",                   AML_NAME_ARGS,               AML_NAMESPACE_MODIFIER_OBJ | AML_FLAGS_EXEC_2A_0T_0R),
+#ifdef CONFIG_ACPI_AML_COMPUTATIONAL_DATA_SIMPLE
+/* 04 */ ACPI_OP("ByteConst",              AML_NONE,                    AML_DATA_OBJECT | AML_COMPUTATIONAL_DATA | AML_FLAGS_EXEC_0A_0T_1R),
+/* 05 */ ACPI_OP("WordConst",              AML_NONE,                    AML_DATA_OBJECT | AML_COMPUTATIONAL_DATA | AML_FLAGS_EXEC_0A_0T_1R),
+/* 06 */ ACPI_OP("DwordConst",             AML_NONE,                    AML_DATA_OBJECT | AML_COMPUTATIONAL_DATA | AML_FLAGS_EXEC_0A_0T_1R),
+/* 07 */ ACPI_OP("String",                 AML_NONE,                    AML_DATA_OBJECT | AML_COMPUTATIONAL_DATA | AML_FLAGS_EXEC_0A_0T_1R),
+#else
 /* 04 */ ACPI_OP("ByteConst",              AML_BYTE_ARGS,               AML_DATA_OBJECT | AML_COMPUTATIONAL_DATA | AML_FLAGS_EXEC_1A_0T_1R),
 /* 05 */ ACPI_OP("WordConst",              AML_WORD_ARGS,               AML_DATA_OBJECT | AML_COMPUTATIONAL_DATA | AML_FLAGS_EXEC_1A_0T_1R),
 /* 06 */ ACPI_OP("DwordConst",             AML_DWORD_ARGS,              AML_DATA_OBJECT | AML_COMPUTATIONAL_DATA | AML_FLAGS_EXEC_1A_0T_1R),
-/* 07 */ ACPI_OP("String",                 AML_STRING_ARGS,             AML_DATA_OBJECT | AML_COMPUTATIONAL_DATA | AML_FLAGS_EXEC_2A_0T_1R),
+/* 07 */ ACPI_OP("String",                 AML_STRING_ARGS,             AML_DATA_OBJECT | AML_COMPUTATIONAL_DATA | AML_FLAGS_EXEC_1A_0T_1R),
+#endif
 /* 08 */ ACPI_OP("Scope",                  AML_SCOPE_ARGS,              AML_NAMESPACE_MODIFIER_OBJ | AML_FLAGS_EXEC_3A_0T_0R),
 /* 09 */ ACPI_OP("Buffer",                 AML_BUFFER_ARGS,             AML_TYPE2_OPCODE | AML_COMPUTATIONAL_DATA | AML_DATA_OBJECT | AML_FLAGS_EXEC_3A_0T_1R),
 /* 0A */ ACPI_OP("Package",                AML_PACKAGE_ARGS,            AML_TYPE2_OPCODE | AML_DATA_OBJECT | AML_FLAGS_EXEC_3A_0T_1R),
@@ -299,7 +276,11 @@ const struct acpi_opcode_info acpi_gbl_opcode_info[AML_NUM_OPCODES] =
 /* 44 */ ACPI_OP("BreakPoint",             AML_BREAK_POINT_ARGS,        AML_TYPE1_OPCODE),
 /* 45 */ ACPI_OP("Ones",                   AML_ONES_ARGS,               AML_DATA_OBJECT | AML_COMPUTATIONAL_DATA | AML_FLAGS_EXEC_0A_0T_1R),
 /* ACPI 2.0 opcodes */
+#ifdef CONFIG_ACPI_AML_COMPUTATIONAL_DATA_SIMPLE
+/* 46 */ ACPI_OP("QwordConst",             AML_NONE,                    AML_DATA_OBJECT | AML_COMPUTATIONAL_DATA | AML_FLAGS_EXEC_0A_0T_1R),
+#else
 /* 46 */ ACPI_OP("QwordConst",             AML_QWORD_ARGS,              AML_DATA_OBJECT | AML_COMPUTATIONAL_DATA | AML_FLAGS_EXEC_1A_0T_1R),
+#endif
 /* 47 */ ACPI_OP("Package", /* Var */      AML_VAR_PACKAGE_ARGS,        AML_TYPE2_OPCODE | AML_DATA_OBJECT | AML_FLAGS_EXEC_3A_0T_1R),
 /* 48 */ ACPI_OP("ConcatenateResTemplate", AML_CONCAT_RES_ARGS,         AML_TYPE2_OPCODE | AML_FLAGS_EXEC_2A_1T_1R),
 /* 49 */ ACPI_OP("Mod",                    AML_MOD_ARGS,                AML_TYPE2_OPCODE | AML_FLAGS_EXEC_2A_1T_1R),
@@ -348,9 +329,8 @@ const struct acpi_opcode_info acpi_gbl_opcode_info[AML_NUM_OPCODES] =
 /* 1C */ ACPI_OP("Timer",                  AML_TIMER_ARGS,              AML_TYPE2_OPCODE | AML_FLAGS_EXEC_0A_0T_1R),
 
 /* Internal indexed information */
-/* 01 */ ACPI_OP("--Unknown--",            0,                           0),
-/* 02 */ ACPI_OP("--ASCII--",              0,                           0),
-/* 03 */ ACPI_OP("--Prefix--",             0,                           0),
+/* 01 */ ACPI_OP("-Unknown-",              AML_ARGS1(AML_TERMLIST),     AML_FLAGS_EXEC_1A_0T_1R),
+/* 02 */ ACPI_OP("-NameString-",           AML_ARGS1(AML_TERMARGLIST),  AML_FLAGS_EXEC_VA_0T_1R),
 };
 
 /*
@@ -366,13 +346,13 @@ const uint8_t acpi_gbl_short_opcode_indexes[256] =
 /* 0x10 */    0x08, 0x09, 0x0a, 0x47, 0x0b, _UNK, _UNK, _UNK,
 /* 0x18 */    _UNK, _UNK, _UNK, _UNK, _UNK, _UNK, _UNK, _UNK,
 /* 0x20 */    _UNK, _UNK, _UNK, _UNK, _UNK, _UNK, _UNK, _UNK,
-/* 0x28 */    _UNK, _UNK, _UNK, _UNK, _UNK, _UNK, _PFX, _PFX,
+/* 0x28 */    _UNK, _UNK, _UNK, _UNK, _UNK, _UNK, _NAM, _NAM,
 /* 0x30 */    _UNK, _UNK, _UNK, _UNK, _UNK, _UNK, _UNK, 0x7D,
 /* 0x38 */    0x7F, 0x80, _UNK, _UNK, _UNK, _UNK, _UNK, _UNK,
-/* 0x40 */    _UNK, _ASC, _ASC, _ASC, _ASC, _ASC, _ASC, _ASC,
-/* 0x48 */    _ASC, _ASC, _ASC, _ASC, _ASC, _ASC, _ASC, _ASC,
-/* 0x50 */    _ASC, _ASC, _ASC, _ASC, _ASC, _ASC, _ASC, _ASC,
-/* 0x58 */    _ASC, _ASC, _ASC, _UNK, _PFX, _UNK, _PFX, _ASC,
+/* 0x40 */    _UNK, _NAM, _NAM, _NAM, _NAM, _NAM, _NAM, _NAM,
+/* 0x48 */    _NAM, _NAM, _NAM, _NAM, _NAM, _NAM, _NAM, _NAM,
+/* 0x50 */    _NAM, _NAM, _NAM, _NAM, _NAM, _NAM, _NAM, _NAM,
+/* 0x58 */    _NAM, _NAM, _NAM, _UNK, _NAM, _UNK, _NAM, _NAM,
 /* 0x60 */    0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13,
 /* 0x68 */    0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, _UNK,
 /* 0x70 */    0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20, 0x21, 0x22,
@@ -429,10 +409,15 @@ static boolean acpi_opcode_info_index(uint16_t opcode)
 
 	if (!(opcode & 0xFF00))
 		op_index = acpi_gbl_short_opcode_indexes[(uint8_t)opcode];
-	if ((opcode & 0xFF00) == AML_EXTENDED_OPCODE &&
-	    (opcode & 0x00FF) <= MAX_EXTENDED_OPCODE)
-		op_index = acpi_gbl_long_opcode_indexes[(uint8_t)(opcode & 0x00FF)] +
-			   NUM_PRIMARY_OPCODES;
+	if (opcode == AML_EXTENDED_OP)
+		op_index = acpi_gbl_long_opcode_indexes[0];
+	if ((opcode & 0xFF00) == AML_EXTENDED_OP) {
+		if ((opcode & 0x00FF) == 0)
+			op_index = acpi_gbl_long_opcode_indexes[0];
+		else if ((opcode & 0x00FF) <= MAX_EXTENDED_OPCODE)
+			op_index = acpi_gbl_long_opcode_indexes[(uint8_t)(opcode & 0x00FF)] +
+				   NUM_PRIMARY_OPCODES;
+	}
 
 	return op_index;
 }
@@ -444,29 +429,54 @@ const struct acpi_opcode_info *acpi_opcode_get_info(uint16_t opcode)
 	return (&acpi_gbl_opcode_info[op_index]);
 }
 
-union acpi_term *acpi_term_alloc(uint16_t opcode)
+union acpi_term *acpi_term_alloc(uint16_t opcode, uint8_t *aml,
+				 uint32_t length)
 {
-	union acpi_term *op;
+	union acpi_term *term;
 	const struct acpi_opcode_info *op_info;
 
 	op_info = acpi_opcode_get_info(opcode);
 
 	/* Allocate the minimum required size object */
-	if (op_info->flags & AML_NAMED_OBJ)
-		op = acpi_os_allocate_zeroed(sizeof (struct acpi_named_obj));
-	else
-		op = acpi_os_allocate_zeroed(sizeof (struct acpi_term_obj));
-	if (op) {
-		op->common.descriptor_type = ACPI_DESC_TYPE_TERM;
-		op->common.aml_opcode = opcode;
+	if (op_info->flags & AML_NAMED_OBJ ||
+	    op_info->flags & AML_NAMESPACE_MODIFIER_OBJ) {
+		term = acpi_os_allocate_zeroed(sizeof (struct acpi_named_obj));
+		if (term)
+			term->common.object_type = ACPI_AML_NAMED_OBJ;
+	} else {
+		term = acpi_os_allocate_zeroed(sizeof (struct acpi_term_obj));
+		if (term)
+			term->common.object_type = ACPI_AML_TERM_OBJ;
+	}
+	if (term) {
+		term->common.descriptor_type = ACPI_DESC_TYPE_TERM;
+		term->common.aml_opcode = opcode;
+		term->common.aml_offset = aml;
+		term->common.aml_length = length;
 	}
 	
-	return op;
+	return term;
 }
 
-void acpi_term_free(union acpi_term *op)
+void acpi_term_free(union acpi_term *term)
 {
-	acpi_os_free(op);
+	acpi_os_free(term);
+}
+
+union acpi_term *acpi_term_alloc_TermList(uint8_t *aml_begin,
+					  uint8_t *aml_end)
+{
+	union acpi_term *term_list;
+
+	term_list = acpi_term_alloc(AML_UNKNOWN_OP, aml_begin,
+				    aml_end - aml_begin);
+	if (!term_list)
+		return NULL;
+
+	term_list->common.object_type = AML_TERMLIST;
+	ACPI_NAMECPY(ACPI_ROOT_TAG, term_list->named_obj.name);
+
+	return term_list;
 }
 
 static boolean acpi_opcode_is_type(uint16_t opcode, uint16_t type)
@@ -482,7 +492,7 @@ boolean acpi_opcode_is_opcode(uint16_t opcode)
 {
 	uint8_t op_index = acpi_opcode_info_index(opcode);
 
-	return (op_index == _UNK || op_index == _ASC || op_index == _PFX) ?
+	return (op_index == _UNK || op_index == _NAM) ?
 	       false : true;
 }
 
@@ -490,10 +500,10 @@ boolean acpi_opcode_is_namestring(uint16_t opcode)
 {
 	uint8_t op_index = acpi_opcode_info_index(opcode);
 
-	return (op_index == _ASC || op_index == _PFX) ? true : false;
+	return (op_index == _NAM) ? true : false;
 }
 
-boolean acpi_opcode_is_namedobj(uint16_t opcode)
+static boolean acpi_opcode_is_namedobj(uint16_t opcode)
 {
 	if (acpi_opcode_is_type(opcode, AML_NAMED_OBJ))
 		return true;
@@ -501,7 +511,7 @@ boolean acpi_opcode_is_namedobj(uint16_t opcode)
 	return false;
 }
 
-boolean acpi_opcode_is_namespacemodifierobj(uint16_t opcode)
+static boolean acpi_opcode_is_namespacemodifierobj(uint16_t opcode)
 {
 	if (acpi_opcode_is_type(opcode, AML_NAMESPACE_MODIFIER_OBJ))
 		return true;
@@ -509,7 +519,7 @@ boolean acpi_opcode_is_namespacemodifierobj(uint16_t opcode)
 	return false;
 }
 
-boolean acpi_opcode_is_computationaldata(uint16_t opcode)
+static boolean acpi_opcode_is_computationaldata(uint16_t opcode)
 {
 	if (acpi_opcode_is_type(opcode, AML_COMPUTATIONAL_DATA))
 		return true;
@@ -517,7 +527,7 @@ boolean acpi_opcode_is_computationaldata(uint16_t opcode)
 	return false;
 }
 
-boolean acpi_opcode_is_dataobject(uint16_t opcode)
+static boolean acpi_opcode_is_dataobject(uint16_t opcode)
 {
 	if (acpi_opcode_is_type(opcode, AML_DATA_OBJECT))
 		return true;
@@ -525,7 +535,27 @@ boolean acpi_opcode_is_dataobject(uint16_t opcode)
 	return false;
 }
 
-boolean acpi_opcode_is_debugobj(uint16_t opcode)
+static boolean acpi_opcode_is_objectreference(uint16_t opcode)
+{
+	return acpi_opcode_is_namestring(opcode);
+}
+
+static boolean acpi_opcode_is_ddbhandle(uint16_t opcode)
+{
+	return acpi_opcode_is_namestring(opcode);
+}
+
+static boolean acpi_opcode_is_datarefobject(uint16_t opcode)
+{
+	if (acpi_opcode_is_dataobject(opcode) ||
+	    acpi_opcode_is_objectreference(opcode) ||
+	    acpi_opcode_is_ddbhandle(opcode))
+		return true;
+
+	return false;
+}
+
+static boolean acpi_opcode_is_debugobj(uint16_t opcode)
 {
 	if (acpi_opcode_is_type(opcode, AML_DEBUG_OBJ))
 		return true;
@@ -533,7 +563,7 @@ boolean acpi_opcode_is_debugobj(uint16_t opcode)
 	return false;
 }
 
-boolean acpi_opcode_is_argobj(uint16_t opcode)
+static boolean acpi_opcode_is_argobj(uint16_t opcode)
 {
 	if (acpi_opcode_is_type(opcode, AML_ARG_OBJ))
 		return true;
@@ -541,7 +571,7 @@ boolean acpi_opcode_is_argobj(uint16_t opcode)
 	return false;
 }
 
-boolean acpi_opcode_is_localobj(uint16_t opcode)
+static boolean acpi_opcode_is_localobj(uint16_t opcode)
 {
 	if (acpi_opcode_is_type(opcode, AML_LOCAL_OBJ))
 		return true;
@@ -549,7 +579,7 @@ boolean acpi_opcode_is_localobj(uint16_t opcode)
 	return false;
 }
 
-boolean acpi_opcode_is_type1opcode(uint16_t opcode)
+static boolean acpi_opcode_is_type1opcode(uint16_t opcode)
 {
 	if (acpi_opcode_is_type(opcode, AML_TYPE1_OPCODE))
 		return true;
@@ -557,7 +587,12 @@ boolean acpi_opcode_is_type1opcode(uint16_t opcode)
 	return false;
 }
 
-boolean acpi_opcode_is_type2opcode(uint16_t opcode)
+static boolean acpi_opcode_is_userterm(uint16_t opcode)
+{
+	return acpi_opcode_is_namestring(opcode);
+}
+
+static boolean acpi_opcode_is_type2opcode(uint16_t opcode)
 {
 	if (acpi_opcode_is_type(opcode, AML_TYPE2_OPCODE) ||
 	    acpi_opcode_is_userterm(opcode))
@@ -566,7 +601,7 @@ boolean acpi_opcode_is_type2opcode(uint16_t opcode)
 	return false;
 }
 
-boolean acpi_opcode_is_type6opcode(uint16_t opcode)
+static boolean acpi_opcode_is_type6opcode(uint16_t opcode)
 {
 	if (acpi_opcode_is_type(opcode, AML_TYPE6_OPCODE) ||
 	    acpi_opcode_is_userterm(opcode))
@@ -575,7 +610,7 @@ boolean acpi_opcode_is_type6opcode(uint16_t opcode)
 	return false;
 }
 
-boolean acpi_opcode_is_simplename(uint16_t opcode)
+static boolean acpi_opcode_is_simplename(uint16_t opcode)
 {
 	if (acpi_opcode_is_namestring(opcode) ||
 	    acpi_opcode_is_argobj(opcode) ||
@@ -585,12 +620,7 @@ boolean acpi_opcode_is_simplename(uint16_t opcode)
 	return false;
 }
 
-boolean acpi_opcode_is_userterm(uint16_t opcode)
-{
-	return acpi_opcode_is_namestring(opcode);
-}
-
-boolean acpi_opcode_is_supername(uint16_t opcode)
+static boolean acpi_opcode_is_supername(uint16_t opcode)
 {
 	if (acpi_opcode_is_type6opcode(opcode) ||
 	    acpi_opcode_is_simplename(opcode) ||
@@ -600,7 +630,7 @@ boolean acpi_opcode_is_supername(uint16_t opcode)
 	return false;
 }
 
-boolean acpi_opcode_is_termarg(uint16_t opcode)
+static boolean acpi_opcode_is_termarg(uint16_t opcode)
 {
 	if (acpi_opcode_is_type2opcode(opcode) ||
 	    acpi_opcode_is_dataobject(opcode) ||
@@ -611,7 +641,7 @@ boolean acpi_opcode_is_termarg(uint16_t opcode)
 	return false;
 }
 
-boolean acpi_opcode_is_termobj(uint16_t opcode)
+static boolean acpi_opcode_is_termobj(uint16_t opcode)
 {
 	if (acpi_opcode_is_namespacemodifierobj(opcode) ||
 	    acpi_opcode_is_namedobj(opcode) ||
@@ -620,6 +650,52 @@ boolean acpi_opcode_is_termobj(uint16_t opcode)
 		return true;
 
 	return false;
+}
+
+boolean acpi_opcode_match_type(uint16_t opcode, uint16_t arg_type)
+{
+	switch (arg_type) {
+	case AML_NONE:
+		return opcode == AML_NULL_CHAR ? true : false;
+	case AML_TERMOBJ:
+		return acpi_opcode_is_termobj(opcode);
+	case AML_BYTEDATA:
+	case AML_WORDDATA:
+	case AML_DWORDDATA:
+	case AML_QWORDDATA:
+	case AML_ASCIICHARLIST:
+		return true;
+	case AML_NAMESTRING:
+		return acpi_opcode_is_namestring(opcode);
+	case AML_SIMPLENAME:
+		return acpi_opcode_is_simplename(opcode);
+	case AML_OBJECTREFERENCE:
+		return acpi_opcode_is_objectreference(opcode);
+	case AML_DATAREFOBJECT:
+		return acpi_opcode_is_datarefobject(opcode);
+	case AML_SUPERNAME(ANY):
+	case AML_TARGET:
+	case AML_DEVICE:
+		return acpi_opcode_is_supername(opcode);
+	case AML_TERMARG(ANY):
+	case AML_INTEGERARG:
+	case AML_BUFFERARG:
+	case AML_PACKAGEARG:
+	case AML_OBJECTARG:
+	case AML_DATA:
+	case AML_BUFFSTR:
+	case AML_BUFFPKGSTR:
+	case AML_BYTEARG:
+		return acpi_opcode_is_termarg(opcode);
+	case AML_TERMLIST:
+	case AML_OBJECTLIST:
+	case AML_FIELDLIST:
+	case AML_PACKAGELEMENTLIST:
+	case AML_TERMARGLIST:
+		return true;
+	default:
+		return true;
+	}
 }
 
 acpi_status_t acpi_opcode_get_args(uint16_t opcode, int16_t *nr_arguments,
@@ -645,13 +721,45 @@ acpi_status_t acpi_opcode_get_args(uint16_t opcode, int16_t *nr_arguments,
 	return AE_OK;
 }
 
+uint8_t acpi_opcode_num_arguments(uint16_t opcode)
+{
+	int16_t nr_arguments;
+	acpi_status_t status;
+
+	status = acpi_opcode_get_args(opcode, &nr_arguments, NULL, NULL);
+	if (ACPI_FAILURE(status))
+		return 0;
+
+	return nr_arguments > 0 ? (uint8_t)nr_arguments : 0;
+}
+
+uint8_t acpi_opcode_num_targets(uint16_t opcode)
+{
+	int16_t nr_targets;
+	acpi_status_t status;
+
+	status = acpi_opcode_get_args(opcode, NULL, &nr_targets, NULL);
+	if (ACPI_FAILURE(status))
+		return 0;
+
+	return nr_targets > 0 ? (uint8_t)nr_targets : 0;
+}
+
 #ifdef CONFIG_ACPI_TESTS
-static const char *acpi_argument_type_name(uint8_t arg_type)
+static const char *acpi_argument_type_name(uint16_t arg_type)
 {
 	switch (arg_type) {
 	default:
 	case AML_NONE:
 		return "";
+	case AML_TERMOBJ:
+		return "TermObj";
+	case AML_OBJECT:
+		return "Object";
+	case AML_FIELDELEMENT:
+		return "FieldElement";
+	case AML_PACKAGEELEMENT:
+		return "PackageElement";
 	case AML_BYTEDATA:
 		return "ByteData";
 	case AML_WORDDATA:
@@ -662,28 +770,28 @@ static const char *acpi_argument_type_name(uint8_t arg_type)
 		return "QWordData";
 	case AML_ASCIICHARLIST:
 		return "AsciiCharList";
-	case AML_NULLCHAR:
-		return "NullChar";
-	case AML_BYTELIST:
-		return "ByteList";
 	case AML_NAMESTRING:
 		return "NameString";
 	case AML_PKGLENGTH:
 		return "PkgLength";
-	case AML_PACKAGELEMENTLIST:
-		return "PackageElementList";
-	case AML_SIMPLENAME:
-		return "SimpleName";
-	case AML_TERMLIST:
-		return "TermList";
 	case AML_DATAREFOBJECT:
 		return "DataRefObject";
 	case AML_OBJECTREFERENCE:
 		return "ObjectReference";
+	case AML_SIMPLENAME:
+		return "SimpleName";
+	case AML_TERMLIST:
+		return "TermList";
+	case AML_OBJECTLIST:
+		return "ObjectList";
 	case AML_FIELDLIST:
 		return "FieldList";
-	case AML_OBJLIST:
-		return "ObjList";
+	case AML_PACKAGELEMENTLIST:
+		return "PackageElementList";
+	case AML_BYTELIST:
+		return "ByteList";
+	case AML_TERMARGLIST:
+		return "TermArgList";
 	case AML_SUPERNAME(ANY):
 		return "SuperName";
 	case AML_TARGET:
@@ -711,7 +819,7 @@ static const char *acpi_argument_type_name(uint8_t arg_type)
 	}
 }
 
-static const char *acpi_opcode_argument_name(uint32_t args, uint8_t index)
+static const char *acpi_opcode_argument_name(uint64_t args, uint8_t index)
 {
 	return acpi_argument_type_name(AML_GET_ARG_TYPE(args, index));
 }
@@ -727,7 +835,7 @@ void acpi_opcode_test(char *str, uint16_t opcode)
 				   &nr_targets,
 				   &nr_returns);
 
-	acpi_dbg("%s: %s(%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s) %d %d %d", str,
+	acpi_dbg("%s: %s(%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s) %d %d %d", str,
 		 info->name,
 		 (nr_arguments > 0) ? acpi_opcode_argument_name(info->args, 0) : "",
 		 (nr_arguments > 1) ? ", " : "",
@@ -740,6 +848,8 @@ void acpi_opcode_test(char *str, uint16_t opcode)
 		 (nr_arguments > 4) ? acpi_opcode_argument_name(info->args, 4) : "",
 		 (nr_arguments > 5) ? ", " : "",
 		 (nr_arguments > 5) ? acpi_opcode_argument_name(info->args, 5) : "",
+		 (nr_arguments > 6) ? ", " : "",
+		 (nr_arguments > 6) ? acpi_opcode_argument_name(info->args, 5) : "",
 		 (nr_targets > 0) ? ", " : "",
 		 (nr_targets > 0) ? acpi_opcode_argument_name(info->args, (uint8_t)(nr_arguments+0)) : "",
 		 (nr_targets > 1) ? ", " : "",
@@ -864,5 +974,7 @@ void acpi_opcode_tests(void)
 	ACPI_OPCODE_TEST(AML_LOAD_TABLE_OP);
 	ACPI_OPCODE_TEST(AML_DATA_REGION_OP);
 	ACPI_OPCODE_TEST(AML_TIMER_OP);
+	ACPI_OPCODE_TEST(AML_UNKNOWN_OP);
+	ACPI_OPCODE_TEST(AML_NAMESTRING_OP);
 }
 #endif

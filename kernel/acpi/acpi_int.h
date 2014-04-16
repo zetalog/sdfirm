@@ -45,57 +45,121 @@
 #include <target/acpi.h>
 #include "acpi_aml.h"
 
-#define ACPI_TERM_OBJ_HEADER			\
-	ACPI_OBJECT_HEADER			\
-	union acpi_term *parent;		\
-	union acpi_term *sibling;		\
-	uint16_t aml_opcode;			\
-	uint8_t *aml_offset;			\
-	uint8_t nr_args;
+typedef void (*acpi_release_cb)(struct acpi_object_header *);
 
-/* Opcode object flags */
-#define ACPI_NAMED_OBJ		0x01
-#define ACPI_TERM_USER		0x02
+#define ACPI_DESC_TYPE_NAMED			0x01
+#define ACPI_DESC_TYPE_TERM			0x02
+#define ACPI_DESC_TYPE_STATE			0x03
 
-struct acpi_term_obj {
-	ACPI_TERM_OBJ_HEADER
+#define ACPI_OBJECT_HEADER			\
+	uint8_t descriptor_type;		\
+	struct acpi_reference reference_count;	\
+	acpi_release_cb release;
+
+struct acpi_object_header {
+	ACPI_OBJECT_HEADER
 };
 
-struct acpi_user_term {
-	ACPI_TERM_OBJ_HEADER
-	acpi_tag_t name; /* 4-byte name or zero if no name */
+struct acpi_data {
+	struct acpi_object_header common;
+	acpi_object_type object_type;
+	acpi_size_t size;
+	union acpi_value default_val;
+	union acpi_value *current_val;
+};
+
+struct acpi_namespace_node {
+	struct acpi_object_header common;
+	acpi_name_t name;
+	acpi_object_type object_type;
+	struct acpi_namespace_node *parent;
+	struct acpi_namespace_node *child;
+	struct acpi_namespace_node *peer;
+	union acpi_operand *operand;
+};
+
+#define ACPI_AML_TERM_OBJ		0x01
+#define ACPI_AML_NAMED_OBJ		0x02
+
+#define ACPI_TERM_HEADER			\
+	ACPI_OBJECT_HEADER			\
+	union acpi_term *parent;		\
+	union acpi_term *children;		\
+	union acpi_term *next;			\
+	uint16_t aml_opcode;			\
+	uint8_t *aml_offset;			\
+	uint32_t aml_length;			\
+	uint16_t object_type;			\
+	union acpi_value value;			\
+	uint8_t arg_count;
+
+struct acpi_term_header {
+	ACPI_TERM_HEADER
+};
+
+struct acpi_term_obj {
+	ACPI_TERM_HEADER
 };
 
 struct acpi_named_obj {
-	ACPI_TERM_OBJ_HEADER
-	acpi_tag_t name; /* 4-byte name or zero if no name */
+	ACPI_TERM_HEADER
+	acpi_name_t name; /* 4-byte name or zero if no name */
 };
 
 union acpi_term {
-	struct acpi_term_obj common;
-	struct acpi_user_term user_term;
+	struct acpi_term_header common;
+	struct acpi_term_obj term_obj;
 	struct acpi_named_obj named_obj;
 };
 
 struct acpi_opcode_info {
 	char *name;
-	uint32_t args;
+	uint64_t args;
 	uint16_t flags;
+};
+
+#define ACPI_STATE_PARSER		0x01
+
+#define ACPI_STATE_HEADER		\
+	ACPI_OBJECT_HEADER		\
+	uint8_t object_type;		\
+	acpi_release_cb release_state;	\
+	void *next;
+
+struct acpi_state_header {
+	ACPI_STATE_HEADER
+};
+
+struct acpi_parser {
+	ACPI_STATE_HEADER
+	uint8_t *aml;
+	uint8_t *aml_begin;
+	uint8_t *aml_end;
+	uint8_t *pkg_end;
+	uint8_t *aml_last_while;
+	struct acpi_interp *interp;
+	struct acpi_namespace_node *parent_node;
+	union acpi_term *parent_term;
+	struct acpi_namespace_node *node;
+	union acpi_term *term;
+	uint16_t opcode;
+	const struct acpi_opcode_info *op_info;
+	boolean next_opcode;
+	uint8_t arg_index;
+	uint64_t arg_types;
+};
+
+union acpi_state {
+	struct acpi_state_header common;
+	struct acpi_parser parser;
 };
 
 struct acpi_interp {
 	uint8_t *aml_begin;	/* first AML byte */
 	uint8_t *aml_end;	/* (last + 1) AML byte */
-	struct acpi_namespace_node *start_node;
-	union acpi_term *start_term;
 
-	/* Walking state */
-	uint8_t *aml;		/* current AML byte */
-	union acpi_term *parent_term;
-	uint16_t opcode;
-	const struct acpi_opcode_info *op_info;
-	uint8_t arg_count;
-	uint8_t arg_index;
+	/* Parser state */
+	struct acpi_parser *parser;
 };
 
 /*=========================================================================
@@ -124,41 +188,64 @@ int acpi_compare_name(acpi_name_t name1, acpi_name_t name2);
 /*=========================================================================
  * Parser internals
  *=======================================================================*/
-union acpi_term *acpi_term_alloc(uint16_t opcode);
+struct acpi_parser *acpi_parser_init(struct acpi_interp *interp,
+				     uint8_t *aml_begin,
+				     uint8_t *aml_end,
+				     struct acpi_namespace_node *node,
+				     union acpi_term *term);
+void acpi_parser_exit(struct acpi_parser *parser);
+acpi_status_t acpi_parser_push(struct acpi_parser *last_parser,
+			       struct acpi_parser **next_parser);
+acpi_status_t acpi_parser_pop(struct acpi_parser *last_parser,
+			      struct acpi_parser **next_parser);
+
+union acpi_term *acpi_term_alloc(uint16_t opcode, uint8_t *aml,
+				 uint32_t op_length);
 void acpi_term_free(union acpi_term *op);
 
+acpi_status_t acpi_parse_aml(struct acpi_interp *interp,
+			     struct acpi_namespace_node *node,
+			     union acpi_term *term);
+
 const struct acpi_opcode_info *acpi_opcode_get_info(uint16_t opcode);
-acpi_status_t acpi_parse_aml(uint8_t *aml_start,
-			     uint32_t aml_length,
-			     struct acpi_namespace_node *start_node);
+uint8_t acpi_opcode_num_arguments(uint16_t opcode);
+uint8_t acpi_opcode_num_targets(uint16_t opcode);
+boolean acpi_opcode_match_type(uint16_t opcode, uint16_t arg_type);
+boolean acpi_opcode_is_opcode(uint16_t opcode);
+boolean acpi_opcode_is_namestring(uint16_t opcode);
+
+union acpi_term *acpi_term_alloc_TermList(uint8_t *aml_begin,
+					  uint8_t *aml_end);
+
+/*=========================================================================
+ * Interpreter internals
+ *=======================================================================*/
+acpi_status_t acpi_interpret_aml(uint8_t *aml_begin,
+				 uint32_t aml_length,
+				 struct acpi_namespace_node *start_node);
 acpi_status_t acpi_parse_table(struct acpi_table_header *table,
 			       struct acpi_namespace_node *start_node);
 void acpi_unparse_table(struct acpi_table_header *table,
 			struct acpi_namespace_node *start_node);
-
-const struct acpi_opcode_info *acpi_opcode_get_info(uint16_t opcode);
-boolean acpi_opcode_is_opcode(uint16_t opcode);
-boolean acpi_opcode_is_namestring(uint16_t opcode);
-boolean acpi_opcode_is_namespacemodifierobj(uint16_t opcode);
-boolean acpi_opcode_is_namedobj(uint16_t opcode);
-boolean acpi_opcode_is_computationaldata(uint16_t opcode);
-boolean acpi_opcode_is_dataobject(uint16_t opcode);
-boolean acpi_opcode_is_debugobj(uint16_t opcode);
-boolean acpi_opcode_is_argobj(uint16_t opcode);
-boolean acpi_opcode_is_localobj(uint16_t opcode);
-boolean acpi_opcode_is_userterm(uint16_t opcode);
-boolean acpi_opcode_is_type1opcode(uint16_t opcode);
-boolean acpi_opcode_is_type2opcode(uint16_t opcode);
-boolean acpi_opcode_is_type6opcode(uint16_t opcode);
-boolean acpi_opcode_is_simplename(uint16_t opcode);
-boolean acpi_opcode_is_termarg(uint16_t opcode);
-boolean acpi_opcode_is_termobj(uint16_t opcode);
-boolean acpi_opcode_is_supername(uint16_t opcode);
 
 /*=========================================================================
  * Namespace internals
  *=======================================================================*/
 struct acpi_namespace_node *acpi_space_get_node(const char *name);
 void acpi_space_put_node(struct acpi_namespace_node *node);
+
+/*=========================================================================
+ * Utility internals
+ *=======================================================================*/
+struct acpi_object_header *acpi_object_create(uint8_t type,
+					      acpi_size_t size,
+					      acpi_release_cb release);
+void acpi_object_delete(struct acpi_object_header *object);
+void acpi_state_push(union acpi_state **head, union acpi_state *state);
+union acpi_state *acpi_state_pop(union acpi_state **head);
+union acpi_state *acpi_state_create(uint8_t type,
+				    acpi_size_t size,
+				    acpi_release_cb release);
+void acpi_state_delete(union acpi_state *state);
 
 #endif /* __ACPI_INT_H_INCLUDE__ */

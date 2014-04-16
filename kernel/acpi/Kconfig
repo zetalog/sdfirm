@@ -1,0 +1,29 @@
+#
+# ACPI Firmware Interfaces
+#
+
+config ARCH_HAS_ACPI
+	bool
+
+menuconfig ACPI
+	bool "Advanced Configuration Power Management Interface (ACPI) support"
+
+if ACPI
+
+config ACPI_AML_PREFIX_SIMPLE
+	bool "Allow AML_NONE ByteConst/WordConst/DwordConst/QwordConst/String encoding"
+	help
+	  The ComputationalData opcode argument will be parsed along with
+	  the creations of the opcode.  Which means following encodings:
+	    ByteData
+	    WordData
+	    DwordData
+	    QwordData
+	    AsciiCharList NullChar
+	  will be defined as:
+	    Nothing
+	  And the content will be parsed along with the prefix.
+
+	  If unsure, say "N" here.
+
+endif

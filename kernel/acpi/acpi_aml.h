@@ -118,49 +118,59 @@
 #define AML_DATA_REGION_OP		(uint16_t)0x5b88 /* ACPI 2.0 */
 #define AML_TIMER_OP			(uint16_t)0x5b33 /* ACPI 3.0 */
 
-#define AML_EXTENDED_OPCODE		(uint16_t)0x5b00 /* prefix for 2-byte opcodes */
+#define AML_EXTENDED_OP			(uint16_t)0x5b00 /* prefix for 2-byte opcodes */
 #define AML_DUAL_NAME_PFX		(uint16_t)0x2e
 #define AML_MULTI_NAME_PFX		(uint16_t)0x2f
-#define AML_ROOT_PFX			(uint16_t)0x5c
-#define AML_PARENT_PFX			(uint16_t)0x5e
 #define AML_NAME_DIGIT_FIRST		(uint16_t)0x30
 #define AML_NAME_DIGIT_LAST		(uint16_t)0x39
 #define AML_NAME_CHAR_FIRST		(uint16_t)0x41
 #define AML_NAME_CHAR_LAST		(uint16_t)0x5a
+#define AML_ROOT_PFX			(uint16_t)0x5c
+#define AML_PARENT_PFX			(uint16_t)0x5e
+#define AML_NAMESTRING_PAD		(uint16_t)0x5f
 #define AML_EXTENDED_OP_PFX		(uint16_t)0x5b
 
+#define AML_UNKNOWN_OP			AML_EXTENDED_OP
+#define AML_NAMESTRING_OP		AML_NAMESTRING_PAD
+
 /*
- * Argument types for the AML Parser
- * Each field in the args is 5 bits, allowing for a maximum of 6 arguments.
- * There can be up to 31 unique argument types
+ * Term types used for arguments.
+ * Each field in the args is 9 bits, allowing for a maximum of 7 arguments.
  * Zero is reserved as end-of-list indicator
  */
-#define AML_NONE			0x00
-#define AML_BYTEDATA			0x01
-#define AML_DWORDDATA			0x02
-#define AML_WORDDATA			0x03
-#define AML_QWORDDATA			0x04
-#define AML_ASCIICHARLIST		0x05
-#define AML_NULLCHAR			0x06
-#define AML_BYTELIST			0x07
-#define AML_NAMESTRING			0x08
-#define AML_PKGLENGTH			0x09
-#define AML_PACKAGELEMENTLIST		0x0A
-#define AML_SIMPLENAME			0x0B
-#define AML_TERMLIST			0x0C
-#define AML_DATAREFOBJECT		0x0D
-#define AML_OBJECTREFERENCE		0x0E
-#define AML_FIELDLIST			0x0F
-#define AML_OBJLIST			0x10
+#define AML_TYPE_WIDTH			9
+#define AML_TYPE_MASK			((uint16_t)((1<<AML_TYPE_WIDTH)-1))
 
-#define AML_SUPERNAME(x)		(0x12 + AML_SUPERNAME_##x)
+#define AML_NONE			0x00
+/* Variable list types */
+#define AML_TERMOBJ			0x01
+#define AML_OBJECT			0x02
+#define AML_FIELDELEMENT		0x03
+#define AML_PACKAGEELEMENT		0x04
+#define AML_BYTEDATA			0x05
+/* Other types */
+#define AML_WORDDATA			0x10
+#define AML_DWORDDATA			0x11
+#define AML_QWORDDATA			0x12
+#define AML_ASCIICHARLIST		0x13
+#define AML_BYTELIST			0x14
+#define AML_NAMESTRING			0x15
+#define AML_PKGLENGTH			0x16
+#define AML_DATAREFOBJECT		0x17
+#define AML_OBJECTREFERENCE		0x18
+#define AML_SIMPLENAME			0x19
+
+#define AML_SUPERNAME(x)		(0x20 + AML_SUPERNAME_##x)
 #define AML_SUPERNAME_ANY		0
-#define AML_SUPERNAME_TARGET		0x1
-#define AML_SUPERNAME_DEVICE		0x2
+#define AML_SUPERNAME_TARGET		1
+#define AML_SUPERNAME_DEVICE		2
 #define AML_TARGET			AML_SUPERNAME(TARGET)
 #define AML_DEVICE			AML_SUPERNAME(DEVICE)
 
-#define AML_TERMARG(x)			(0x16 + AML_TERMARG_##x)
+#define AML_SUPERNAME_MIN		0
+#define AML_SUPERNAME_MAX		2
+
+#define AML_TERMARG(x)			(0xFF - AML_TERMARG_##x)
 #define AML_TERMARG_ANY			0
 #define AML_TERMARG_INTEGER		1
 #define AML_TERMARG_BUFFER		2
@@ -170,6 +180,9 @@
 #define AML_TERMARG_BUFFSTR		6
 #define AML_TERMARG_BUFFPKGSTR		7
 #define AML_TERMARG_BYTEDATA		8
+#define AML_TERMARG_MIN			0
+#define AML_TERMARG_MAX			8
+
 #define AML_INTEGERARG			AML_TERMARG(INTEGER)
 #define AML_BUFFERARG			AML_TERMARG(BUFFER)
 #define AML_PACKAGEARG			AML_TERMARG(PACKAGE)
@@ -188,6 +201,25 @@
 #define AML_EVENT			AML_TERMARG(ANY)
 #define AML_DDBHANDLE			AML_TERMARG(ANY)
 #define AML_BCD				AML_INTEGERARG
+
+#define AML_VARTYPE(x)			(0x100 | (x))
+#define AML_TERMLIST			AML_VARTYPE(AML_TERMOBJ)
+#define AML_OBJECTLIST			AML_VARTYPE(AML_OBJECT)
+#define AML_FIELDLIST			AML_VARTYPE(AML_FIELDELEMENT)
+#define AML_PACKAGELEMENTLIST		AML_VARTYPE(AML_PACKAGEELEMENT)
+#define AML_TERMARGLIST			AML_VARTYPE(AML_TERMARG(ANY))
+
+#define AML_IS_VARTYPE(x)		((x) & 0x100)
+
+/* Term types not used by the argument types */
+#define AML_USERTERM			0x30
+#define AML_DATAOBJECT			0x31
+#define AML_COMPUTATIONALDATA		0x32
+#define AML_NAMESPACEMODIFIEROBJ	0x33
+#define AML_NAMEDOBJ			0x34
+#define AML_TYPE1OPCODE			0x35
+#define AML_TYPE2OPCODE			0x36
+#define AML_TYPE6OPCODE			0x37
 
 /*=========================================================================
  * opcode flags
@@ -246,10 +278,42 @@
 #define AML_FLAGS_EXEC_5A_0T_0R			AML_HAS_ARGUMENT(5)
 #define AML_FLAGS_EXEC_6A_0T_0R			AML_HAS_ARGUMENT(6)
 #define AML_FLAGS_EXEC_6A_0T_1R			AML_HAS_ARGUMENT(6) | AML_HAS_RETURN(1)
+#define AML_FLAGS_EXEC_VA_0T_1R			AML_HAS_ARGUMENT(7) | AML_HAS_RETURN(1)
 
 #define AML_FLAGS_EXEC_MASKS				\
 	((AML_ARGUMENT_MASK << AML_ARGUMENT_OFFSET) |	\
 	 (AML_TARGET_MASK << AML_TARGET_OFFSET) |	\
 	 (AML_RETURN_MASK << AML_RETURN_OFFSET))
+
+/*
+ * Numbers of opcodes are extracted from LastIndex+1 of
+ * acpi_gbl_opcode_info.
+ */
+#define NUM_PRIMARY_OPCODES		0x53
+#define NUM_EXTENDED_OPCODES		0x1D
+
+#define MAX_PRIMARY_OPCODE		0xFF
+#define MAX_EXTENDED_OPCODE		0x88
+#define NUM_PRIMARY_OPCODE		(MAX_PRIMARY_OPCODE + 1)
+#define NUM_EXTENDED_OPCODE		(MAX_EXTENDED_OPCODE + 1)
+
+/* Used for non-assigned opcodes */
+#define _UNK				(NUM_PRIMARY_OPCODES + NUM_EXTENDED_OPCODES)
+
+/*
+ * Reserved ASCII characters. Do not use any of these for
+ * internal opcodes, since they are used to differentiate
+ * name strings from AML opcodes
+ */
+#define _NAM				(_UNK+1)
+
+#define NUM_RESERVED_OPCODES		(0x02)
+
+/* Total number of aml opcodes defined */
+#define AML_NUM_OPCODES			\
+	(NUM_PRIMARY_OPCODES + NUM_EXTENDED_OPCODES + NUM_RESERVED_OPCODES)
+
+#define AML_GET_ARG_TYPE(args, index)	\
+	((uint16_t)(((args) >> ((uint64_t)AML_TYPE_WIDTH * (index))) & ((uint64_t)AML_TYPE_MASK)))
 
 #endif /* __ACPI_AML_H_INCLUDE__ */
