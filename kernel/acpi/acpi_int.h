@@ -214,8 +214,9 @@ boolean acpi_opcode_match_type(uint16_t opcode, uint16_t arg_type);
 boolean acpi_opcode_is_opcode(uint16_t opcode);
 boolean acpi_opcode_is_namestring(uint16_t opcode);
 
-union acpi_term *acpi_term_alloc_TermList(uint8_t *aml_begin,
-					  uint8_t *aml_end);
+union acpi_term *acpi_term_alloc_aml(acpi_tag_t tag,
+				     uint8_t *aml_begin,
+				     uint8_t *aml_end);
 
 /*=========================================================================
  * Interpreter internals

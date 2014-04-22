@@ -584,18 +584,14 @@ acpi_status_t acpi_parser_get_pkg_length(struct acpi_parser *parser)
 
 acpi_status_t acpi_parser_get_term_list(struct acpi_parser *parser)
 {
-	uint16_t opcode;
 	uint32_t length;
 	union acpi_term *arg;
-	uint8_t *aml = parser->aml;
 
-	opcode = AML_UNKNOWN_OP;
-	arg = acpi_term_alloc(opcode, aml, 0);
+	arg = acpi_term_alloc_aml(ACPI_NAME2TAG(parser->node->name),
+				  parser->aml, parser->pkg_end);
 	if (!arg)
 		return AE_NO_MEMORY;
-	arg->named_obj.aml_offset = aml;
 	length = parser->pkg_end - parser->aml;
-	arg->named_obj.aml_length = length;
 
 	/* Consume opcode */
 	parser->aml += length;
@@ -661,13 +657,14 @@ acpi_status_t acpi_parser_get_argument(struct acpi_parser *parser,
 			parser->next_opcode = true;
 		return AE_OK;
 	case AML_TERMLIST:
-		if (!parser->parent_term) {
-			/* Execute the start term. */
-			if (parser->aml < parser->pkg_end)
+		if (parser->aml < parser->pkg_end) {
+			if (!parser->parent_term) {
+				/* Execute the start term. */
 				parser->next_opcode = true;
-		} else {
-			/* Do not execute the non start term. */
-			return acpi_parser_get_term_list(parser);
+			} else {
+				/* Do not execute the non start term. */
+				return acpi_parser_get_term_list(parser);
+			}
 		}
 		return AE_OK;
 	default:

@@ -463,8 +463,9 @@ void acpi_term_free(union acpi_term *term)
 	acpi_os_free(term);
 }
 
-union acpi_term *acpi_term_alloc_TermList(uint8_t *aml_begin,
-					  uint8_t *aml_end)
+union acpi_term *acpi_term_alloc_aml(acpi_tag_t tag,
+				     uint8_t *aml_begin,
+				     uint8_t *aml_end)
 {
 	union acpi_term *term_list;
 
@@ -474,7 +475,7 @@ union acpi_term *acpi_term_alloc_TermList(uint8_t *aml_begin,
 		return NULL;
 
 	term_list->common.object_type = AML_TERMLIST;
-	ACPI_NAMECPY(ACPI_ROOT_TAG, term_list->named_obj.name);
+	ACPI_NAMECPY(tag, term_list->named_obj.name);
 
 	return term_list;
 }

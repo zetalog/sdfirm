@@ -10,7 +10,7 @@ acpi_status_t acpi_interpret_aml(uint8_t *aml_begin,
 	uint8_t *aml_end = aml_begin + aml_length;
 
 	/* AML is a TermList */
-	start_term = acpi_term_alloc_TermList(aml_begin, aml_end);
+	start_term = acpi_term_alloc_aml(ACPI_ROOT_TAG, aml_begin, aml_end);
 	if (!start_term)
 		return AE_NO_MEMORY;
 
