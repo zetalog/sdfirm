@@ -582,6 +582,28 @@ acpi_status_t acpi_parser_get_pkg_length(struct acpi_parser *parser)
 	return AE_OK;
 }
 
+acpi_status_t acpi_parser_get_term_list(struct acpi_parser *parser)
+{
+	uint16_t opcode;
+	uint32_t length;
+	union acpi_term *arg;
+	uint8_t *aml = parser->aml;
+
+	opcode = AML_UNKNOWN_OP;
+	arg = acpi_term_alloc(opcode, aml, 0);
+	if (!arg)
+		return AE_NO_MEMORY;
+	arg->named_obj.aml_offset = aml;
+	length = parser->pkg_end - parser->aml;
+	arg->named_obj.aml_length = length;
+
+	/* Consume opcode */
+	parser->aml += length;
+	acpi_term_add_arg(parser->term, arg);
+
+	return AE_OK;
+}
+
 acpi_status_t acpi_parser_get_argument(struct acpi_parser *parser,
 				       uint16_t arg_type)
 {
@@ -631,13 +653,22 @@ acpi_status_t acpi_parser_get_argument(struct acpi_parser *parser,
 	case AML_BYTEARG:
 		parser->next_opcode = true;
 		return AE_OK;
-	case AML_TERMLIST:
 	case AML_OBJECTLIST:
 	case AML_FIELDLIST:
 	case AML_PACKAGELEMENTLIST:
 	case AML_TERMARGLIST:
 		if (parser->aml < parser->pkg_end)
 			parser->next_opcode = true;
+		return AE_OK;
+	case AML_TERMLIST:
+		if (!parser->parent_term) {
+			/* Execute the start term. */
+			if (parser->aml < parser->pkg_end)
+				parser->next_opcode = true;
+		} else {
+			/* Do not execute the non start term. */
+			return acpi_parser_get_term_list(parser);
+		}
 		return AE_OK;
 	default:
 		acpi_err("Invalid argument type: 0x%X", arg_type);
