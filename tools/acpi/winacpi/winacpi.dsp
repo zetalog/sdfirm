@@ -109,6 +109,14 @@ SOURCE=..\..\..\kernel\acpi\acpi_fadt.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\kernel\acpi\acpi_fixed.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\kernel\acpi\acpi_generic.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\kernel\acpi\acpi_interp.c
 # End Source File
 # Begin Source File
