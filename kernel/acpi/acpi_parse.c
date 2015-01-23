@@ -585,10 +585,30 @@ acpi_status_t acpi_parser_get_pkg_length(struct acpi_parser *parser)
 acpi_status_t acpi_parser_get_term_list(struct acpi_parser *parser)
 {
 	uint32_t length;
+	union acpi_term *namearg;
 	union acpi_term *arg;
+	acpi_tag_t tag;
 
-	arg = acpi_term_alloc_aml(ACPI_NAME2TAG(parser->node->name),
-				  parser->aml, parser->pkg_end);
+	switch (parser->opcode) {
+	case AML_WHILE_OP:
+	case AML_ELSE_OP:
+	case AML_IF_OP:
+		/* TODO: find a suitable tag to search conditions */
+		tag = ACPI_ROOT_TAG;
+		break;
+	case AML_METHOD_OP:
+	case AML_SCOPE_OP:
+		namearg = acpi_term_get_arg(parser->term, 0);
+		if (!namearg || namearg->common.aml_opcode != AML_NAMESTRING_OP)
+			return AE_AML_OPERAND_TYPE;
+		tag = ACPI_NAME2TAG(namearg->common.value.string);
+		break;
+	default:
+		tag = ACPI_ROOT_TAG;
+		break;
+	}
+
+	arg = acpi_term_alloc_aml(tag, parser->aml, parser->pkg_end);
 	if (!arg)
 		return AE_NO_MEMORY;
 	length = parser->pkg_end - parser->aml;
