@@ -42,3 +42,72 @@
  * $Id: acpi_generic.c,v 1.87 2011-10-17 01:40:34 zhenglv Exp $
  */
 #include "acpi_int.h"
+
+static struct acpi_namespace_node *acpi_gbl_fadt_gpe_device = NULL;
+
+void acpi_generic_lock(void)
+{
+}
+
+void acpi_generic_unlock(void)
+{
+}
+
+int acpi_genhw_init(void)
+{
+#if 0
+	uint8_t count0 = 0;
+	uint8_t count1 = 0;
+	uint16_t gpe_no = 0;
+	acpi_status_t status;
+
+	acpi_generic_lock();
+	if (acpi_gbl_FADT.gpe0_block_length && acpi_gbl_FADT.xgpe0_block.address) {
+		count0 = acpi_gbl_FADT.gpe0_block_length / 2;
+		gpe_no = (count0 * ACPI_GPE_REGISTER_WIDTH) - 1;
+		status = acpi_ev_create_gpe_block(acpi_gbl_fadt_gpe_device,
+						  &acpi_gbl_FADT.xgpe0_block,
+						  count0, 0,
+						  acpi_gbl_FADT.sci_interrupt,
+						  &acpi_gbl_gpe_fadt_blocks[0]);
+		if (ACPI_FAILURE(status))
+			acpi_err("Could not create GPE Block 0");
+	}
+	if (acpi_gbl_FADT.gpe1_block_length && acpi_gbl_FADT.xgpe1_block.address) {
+		count1 = acpi_gbl_FADT.gpe1_block_length / 2;
+		if ((count0) && (gpe_no >= acpi_gbl_FADT.gpe1_base)) {
+			acpi_err("GPE0 block (GPE 0 to %u) overlaps the GPE1 block "
+				 "(GPE %u to %u) - Ignoring GPE1",
+				 gpe_no, acpi_gbl_FADT.gpe1_base,
+				 acpi_gbl_FADT.gpe1_base +
+				 ((count1 * ACPI_GPE_REGISTER_WIDTH) - 1));
+			count1 = 0;
+		} else {
+			status = acpi_ev_create_gpe_block(acpi_gbl_fadt_gpe_device,
+							  &acpi_gbl_FADT.xgpe1_block,
+							  count1,
+							  acpi_gbl_FADT.gpe1_base,
+							  acpi_gbl_FADT.
+							  sci_interrupt,
+							  &acpi_gbl_gpe_fadt_blocks[1]);
+			if (ACPI_FAILURE(status))
+				acpi_err("Could not create GPE Block 1");
+			gpe_no = acpi_gbl_FADT.gpe1_base + (count1 * ACPI_GPE_REGISTER_WIDTH) - 1;
+		}
+	}
+	if ((count0 + count1) == 0) {
+		acpi_info("There are no GPE blocks defined in the FADT\n");
+		status = AE_OK;
+		goto cleanup;
+	}
+	if (gpe_no > ACPI_GPE_MAX) {
+		acpi_err("Maximum GPE number from FADT is too large: 0x%X", gpe_no);
+		status = AE_BAD_VALUE;
+		goto cleanup;
+	}
+
+cleanup:
+	acpi_generic_unlock();
+#endif
+	return 0;
+}

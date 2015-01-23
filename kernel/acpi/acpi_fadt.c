@@ -20,7 +20,7 @@ struct acpi_fadt_pm_info {
 #define ACPI_FADT_REQUIRED		1
 #define ACPI_FADT_SEPARATE_LENGTH	2
 
-static struct acpi_table_fadt acpi_gbl_FADT;
+struct acpi_table_fadt acpi_gbl_FADT;
 boolean acpi_gbl_fadt_use_default_register_width = true;
 boolean acpi_gbl_fadt_use_32bit_addresses = false;
 

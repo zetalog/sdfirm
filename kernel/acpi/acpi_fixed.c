@@ -42,3 +42,8 @@
  * $Id: acpi_fixed.c,v 1.87 2011-10-17 01:40:34 zhenglv Exp $
  */
 #include "acpi_int.h"
+
+int acpi_fixhw_init(void)
+{
+	return 0;
+}

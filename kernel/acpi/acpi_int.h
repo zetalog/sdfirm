@@ -185,6 +185,8 @@ acpi_status_t acpi_table_increment_validated(acpi_ddb_t ddb,
 					     struct acpi_table_header **out_table);
 int acpi_compare_name(acpi_name_t name1, acpi_name_t name2);
 
+extern struct acpi_table_fadt acpi_gbl_FADT;
+
 /*=========================================================================
  * Parser internals
  *=======================================================================*/

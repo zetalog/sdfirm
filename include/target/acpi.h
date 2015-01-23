@@ -247,6 +247,8 @@ typedef void *acpi_handle_t;
 #define ACPI_ROUND_UP(value, boundary)		\
 	((((acpi_size_t)(value)) + (((acpi_size_t)boundary)-1)) & (~(((acpi_size_t)boundary)-1)))
 
+#define ACPI_GPE_MAX			255
+
 /* ============================================================ *
  * size/addr handling
  * ============================================================ */
