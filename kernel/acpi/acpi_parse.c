@@ -317,115 +317,9 @@ void aml_decode_computation_data(union acpi_term *term, uint8_t *aml,
 
 boolean acpi_parser_completed(struct acpi_parser *parser)
 {
-	return (boolean)((parser->aml >= parser->pkg_end ||
-			 !AML_PARSER_GET_ARG_TYPE(parser)));
-}
+	uint16_t arg_type = AML_PARSER_GET_ARG_TYPE(parser);
 
-union acpi_term *acpi_term_get_arg(union acpi_term *term, uint32_t argn)
-{
-	union acpi_term *arg = NULL;
-
-	if (!acpi_opcode_num_arguments(term->common.aml_opcode) &&
-	    !acpi_opcode_num_targets(term->common.aml_opcode))
-		return NULL;
-
-	arg = term->common.children;
-	while (arg && argn) {
-		argn--;
-		arg = arg->common.next;
-	}
-
-	return arg;
-}
-
-void acpi_term_add_arg(union acpi_term *term, union acpi_term *arg)
-{
-	union acpi_term *prev_arg;
-
-	if (!term)
-		return;
-
-	if (!acpi_opcode_num_arguments(term->common.aml_opcode) &&
-	    !acpi_opcode_num_targets(term->common.aml_opcode))
-		return;
-
-	if (term->common.children) {
-		prev_arg = term->common.children;
-		while (prev_arg->common.next)
-			prev_arg = prev_arg->common.next;
-		prev_arg->common.next = arg;
-	} else {
-		term->common.children = arg;
-	}
-
-	while (arg) {
-		arg->common.parent = term;
-		arg = arg->common.next;
-		term->common.arg_count++;
-	}
-}
-
-static void acpi_parser_delete_tree(union acpi_term *subtree_root)
-{
-	union acpi_term *term = subtree_root;
-	union acpi_term *next = NULL;
-	union acpi_term *parent = NULL;
-
-	while (term) {
-		if (term != parent) {
-			next = acpi_term_get_arg(term, 0);
-			if (next) {
-				term = next;
-				continue;
-			}
-		}
-		next = term->common.next;
-		parent = term->common.parent;
-		acpi_term_free(term);
-		if (term == subtree_root)
-			return;
-		if (next)
-			term = next;
-		else
-			term = parent;
-	}
-}
-
-acpi_status_t acpi_complete_term(struct acpi_parser *parser,
-				 union acpi_term *term)
-{
-	union acpi_term *prev, *next;
-	const struct acpi_opcode_info *parent_info;
-	acpi_status_t status = AE_OK;
-
-	if (!term)
-		return AE_OK;
-
-	if (term->common.parent) {
-		prev = term->common.parent->common.children;
-		if (!prev)
-			goto cleanup;
-		parent_info = acpi_opcode_get_info(term->common.parent->common.aml_opcode);
-		if (parent_info->flags & AML_NAMESPACE_MODIFIER_OBJ) {
-		} else if (parent_info->flags & AML_NAMED_OBJ) {
-		} else {
-		}
-
-		if (prev == term) {
-			term->common.parent->common.children = term->common.next;
-		} else while (prev) {
-			next = prev->common.next;
-			if (next == term) {
-				prev->common.next = term->common.next;
-				next = NULL;
-			}
-			prev = next;
-		}
-	}
-
-cleanup:
-	acpi_parser_delete_tree(term);
-	return status;
+	return (boolean)((parser->aml >= parser->pkg_end) || !arg_type);
 }
 
 static acpi_status_t acpi_parser_begin_term(struct acpi_parser *parser)
@@ -435,6 +329,8 @@ static acpi_status_t acpi_parser_begin_term(struct acpi_parser *parser)
 	uint8_t *aml = parser->aml;
 	uint16_t opcode;
 	uint32_t length;
+
+	BUG_ON(parser->term);
 
 	opcode = aml_opcode_peek(aml);
 	length = aml_opcode_size(aml, opcode);
@@ -468,27 +364,16 @@ static acpi_status_t acpi_parser_begin_term(struct acpi_parser *parser)
 static acpi_status_t acpi_parser_end_term(struct acpi_parser *parser,
 					  acpi_status_t parser_status)
 {
-	acpi_status_t status;
 	union acpi_term *term = parser->term;
-	struct acpi_interp *interp = parser->interp;
 
-	status = acpi_complete_term(parser, term);
-	if (ACPI_FAILURE(status))
-		return status;
-	parser->term = NULL;
-	switch (parser_status) {
-	case AE_OK:
-		break;
-	default:
-		do {
-			if (term) {
-				status = acpi_complete_term(parser, term);
-				if (ACPI_FAILURE(status))
-					return status;
-			}
-			acpi_parser_pop(parser, &parser);
-		} while (term);
-		return status;
+	if (term) {
+		/*
+		 * TODO: we may create a result term to replace the deleted
+		 *       one.
+		 */
+		acpi_term_remove_arg(term);
+		acpi_term_free(term);
+		parser->term = NULL;
 	}
 
 	return AE_OK;
@@ -709,6 +594,7 @@ static acpi_status_t acpi_parser_get_arguments(struct acpi_parser *parser)
 	uint8_t *aml = parser->aml;
 	uint16_t opcode = term->common.aml_opcode;
 	uint32_t length;
+	uint16_t arg_type;
 
 	switch (opcode) {
 #ifndef CONFIG_ACPI_AML_PREFIX_SIMPLE
@@ -722,12 +608,13 @@ static acpi_status_t acpi_parser_get_arguments(struct acpi_parser *parser)
 		break;
 #endif
 	default:
-		while (AML_PARSER_GET_ARG_TYPE(parser) && !parser->next_opcode) {
-			status = acpi_parser_get_argument(parser,
-							  AML_PARSER_GET_ARG_TYPE(parser));
+		arg_type = AML_PARSER_GET_ARG_TYPE(parser);
+		while (arg_type && !parser->next_opcode) {
+			status = acpi_parser_get_argument(parser, arg_type);
 			if (ACPI_FAILURE(status))
 				return status;
 			parser->arg_index++;
+			arg_type = AML_PARSER_GET_ARG_TYPE(parser);
 		}
 		break;
 	}
@@ -788,9 +675,13 @@ acpi_status_t acpi_parse_aml(struct acpi_interp *interp,
 			}
 			continue;
 		}
-#if 0
-		status = parser->execute(parser);
-#endif
+
+		if (parser->interp->callback)
+			status = parser->interp->callback(parser->interp,
+							  parser->term);
+		else
+			status = AE_OK;
+
 		status = acpi_parser_end_term(parser, status);
 		if (ACPI_FAILURE(status))
 			return status;

@@ -154,9 +154,14 @@ union acpi_state {
 	struct acpi_parser parser;
 };
 
+typedef
+acpi_status_t (*acpi_term_cb)(struct acpi_interp *interp,
+			      union acpi_term *term);
+
 struct acpi_interp {
 	uint8_t *aml_begin;	/* first AML byte */
 	uint8_t *aml_end;	/* (last + 1) AML byte */
+	acpi_term_cb callback;
 
 	/* Parser state */
 	struct acpi_parser *parser;
@@ -203,7 +208,13 @@ acpi_status_t acpi_parser_pop(struct acpi_parser *last_parser,
 
 union acpi_term *acpi_term_alloc(uint16_t opcode, uint8_t *aml,
 				 uint32_t op_length);
+union acpi_term *acpi_term_alloc_aml(acpi_tag_t tag,
+				     uint8_t *aml_begin,
+				     uint8_t *aml_end);
 void acpi_term_free(union acpi_term *op);
+union acpi_term *acpi_term_get_arg(union acpi_term *term, uint32_t argn);
+void acpi_term_add_arg(union acpi_term *term, union acpi_term *arg);
+void acpi_term_remove_arg(union acpi_term *arg);
 
 acpi_status_t acpi_parse_aml(struct acpi_interp *interp,
 			     struct acpi_namespace_node *node,
@@ -216,16 +227,17 @@ boolean acpi_opcode_match_type(uint16_t opcode, uint16_t arg_type);
 boolean acpi_opcode_is_opcode(uint16_t opcode);
 boolean acpi_opcode_is_namestring(uint16_t opcode);
 
-union acpi_term *acpi_term_alloc_aml(acpi_tag_t tag,
-				     uint8_t *aml_begin,
-				     uint8_t *aml_end);
-
 /*=========================================================================
  * Interpreter internals
  *=======================================================================*/
 acpi_status_t acpi_interpret_aml(uint8_t *aml_begin,
 				 uint32_t aml_length,
+				 acpi_term_cb callback,
 				 struct acpi_namespace_node *start_node);
+acpi_status_t acpi_interpret_load(struct acpi_interp *interp,
+				  union acpi_term *term);
+acpi_status_t acpi_interpret_execute(struct acpi_interp *interp,
+				     union acpi_term *term);
 acpi_status_t acpi_parse_table(struct acpi_table_header *table,
 			       struct acpi_namespace_node *start_node);
 void acpi_unparse_table(struct acpi_table_header *table,

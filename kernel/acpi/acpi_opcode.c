@@ -71,9 +71,17 @@
 #define AML_ONE_ARGS			AML_NONE
 #define AML_ALIAS_ARGS			AML_ARGS2(AML_NAMESTRING, AML_NAMESTRING)
 #define AML_NAME_ARGS			AML_ARGS2(AML_NAMESTRING, AML_DATAREFOBJECT)
+#ifndef CONFIG_ACPI_AML_PREFIX_SIMPLE
+#define AML_BYTE_ARGS			AML_NONE
+#define AML_WORD_ARGS			AML_NONE
+#define AML_DWORD_ARGS			AML_NONE
+#define AML_QWORD_ARGS			AML_NONE
+#else
 #define AML_BYTE_ARGS			AML_ARGS1(AML_BYTEDATA)
 #define AML_WORD_ARGS			AML_ARGS1(AML_WORDDATA)
 #define AML_DWORD_ARGS			AML_ARGS1(AML_DWORDDATA)
+#define AML_QWORD_ARGS			AML_ARGS1(AML_QWORDDATA)
+#endif
 #define AML_STRING_ARGS			AML_ARGS1(AML_ASCIICHARLIST)
 #define AML_SCOPE_ARGS			AML_ARGS3(AML_PKGLENGTH, AML_NAMESTRING, AML_TERMLIST)
 #define AML_BUFFER_ARGS			AML_ARGS3(AML_PKGLENGTH, AML_LENGTH, AML_BYTELIST)
@@ -137,7 +145,6 @@
 #define AML_BREAK_ARGS			AML_NONE
 #define AML_BREAK_POINT_ARGS		AML_NONE
 #define AML_ONES_ARGS			AML_NONE
-#define AML_QWORD_ARGS			AML_ARGS1(AML_QWORDDATA)
 #define AML_VAR_PACKAGE_ARGS		AML_ARGS3(AML_PKGLENGTH, AML_LENGTH, AML_PACKAGELEMENTLIST)
 #define AML_CONCAT_RES_ARGS		AML_ARGS3(AML_BUFFERARG, AML_BUFFERARG, AML_TARGET)
 #define AML_MOD_ARGS			AML_ARGS3(AML_OPERAND, AML_OPERAND, AML_TARGET)
@@ -458,7 +465,7 @@ union acpi_term *acpi_term_alloc(uint16_t opcode, uint8_t *aml,
 	return term;
 }
 
-void acpi_term_free(union acpi_term *term)
+static void __acpi_term_free(union acpi_term *term)
 {
 	acpi_os_free(term);
 }
@@ -478,6 +485,108 @@ union acpi_term *acpi_term_alloc_aml(acpi_tag_t tag,
 	ACPI_NAMECPY(tag, term_list->named_obj.name);
 
 	return term_list;
+}
+
+union acpi_term *acpi_term_get_arg(union acpi_term *term, uint32_t argn)
+{
+	union acpi_term *arg = NULL;
+
+	if (!acpi_opcode_num_arguments(term->common.aml_opcode) &&
+	    !acpi_opcode_num_targets(term->common.aml_opcode))
+		return NULL;
+
+	arg = term->common.children;
+	while (arg && argn) {
+		argn--;
+		arg = arg->common.next;
+	}
+
+	return arg;
+}
+
+void acpi_term_add_arg(union acpi_term *term, union acpi_term *arg)
+{
+	union acpi_term *prev_arg;
+
+	if (!term)
+		return;
+
+	if (!acpi_opcode_num_arguments(term->common.aml_opcode) &&
+	    !acpi_opcode_num_targets(term->common.aml_opcode))
+		return;
+
+	arg->common.parent = term;
+	term->common.arg_count++;
+
+	if (term->common.children) {
+		prev_arg = term->common.children;
+		while (prev_arg->common.next)
+			prev_arg = prev_arg->common.next;
+		prev_arg->common.next = arg;
+	} else {
+		term->common.children = arg;
+	}
+
+	while (arg) {
+		BUG_ON(arg->common.parent != term);
+		arg = arg->common.next;
+	}
+}
+
+void acpi_term_remove_arg(union acpi_term *arg)
+{
+	union acpi_term *prev_arg, *next_arg, *curr_arg;
+	union acpi_term *term;
+
+	BUG_ON(!arg);
+	if (!arg->common.parent)
+		return;
+
+	term = arg->common.parent;
+	prev_arg = NULL;
+	curr_arg = term->common.children;
+	while (curr_arg) {
+		next_arg = curr_arg->common.next;
+		if (curr_arg == arg)
+			break;
+		prev_arg = curr_arg;
+		curr_arg = next_arg;
+	}
+	if (prev_arg)
+		prev_arg->common.next = next_arg;
+	else
+		term->common.children = next_arg;
+	term->common.arg_count--;
+}
+
+/*
+ * NOTE: This function is implemented to avoid recurisive invocations
+ *       happened for the deletion.
+ */
+void acpi_term_free(union acpi_term *op)
+{
+	union acpi_term *term = op;
+	union acpi_term *next = NULL;
+	union acpi_term *parent = NULL;
+
+	while (term) {
+		if (term != parent) {
+			next = acpi_term_get_arg(term, 0);
+			if (next) {
+				term = next;
+				continue;
+			}
+		}
+		next = term->common.next;
+		parent = term->common.parent;
+		__acpi_term_free(term);
+		if (term == op)
+			return;
+		if (next)
+			term = next;
+		else
+			term = parent;
+	}
 }
 
 static boolean acpi_opcode_is_type(uint16_t opcode, uint16_t type)
