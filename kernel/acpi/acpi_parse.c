@@ -605,34 +605,15 @@ acpi_status_t acpi_parser_get_argument(struct acpi_parser *parser,
 static acpi_status_t acpi_parser_get_arguments(struct acpi_parser *parser)
 {
 	acpi_status_t status;
-	struct acpi_environ *environ = &parser->environ;
-	union acpi_term *term = environ->term;
-	uint8_t *aml = parser->aml;
-	uint16_t opcode = term->common.aml_opcode;
-	uint32_t length;
 	uint16_t arg_type;
 
-	switch (opcode) {
-#ifndef CONFIG_ACPI_AML_PREFIX_SIMPLE
-	case AML_BYTE_PFX:
-	case AML_WORD_PFX:
-	case AML_DWORD_PFX:
-	case AML_QWORD_PFX:
-	case AML_STRING_PFX:
-		aml_decode_computation_data(term, aml, opcode, &length);
-		parser->aml += length;
-		break;
-#endif
-	default:
+	arg_type = AML_PARSER_GET_ARG_TYPE(parser);
+	while (arg_type && !parser->next_opcode) {
+		status = acpi_parser_get_argument(parser, arg_type);
+		if (ACPI_FAILURE(status))
+			return status;
+		parser->arg_index++;
 		arg_type = AML_PARSER_GET_ARG_TYPE(parser);
-		while (arg_type && !parser->next_opcode) {
-			status = acpi_parser_get_argument(parser, arg_type);
-			if (ACPI_FAILURE(status))
-				return status;
-			parser->arg_index++;
-			arg_type = AML_PARSER_GET_ARG_TYPE(parser);
-		}
-		break;
 	}
 
 	return AE_OK;
