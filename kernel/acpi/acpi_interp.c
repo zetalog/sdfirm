@@ -1,25 +1,36 @@
 #include "acpi_int.h"
 
 acpi_status_t acpi_interpret_load(struct acpi_interp *interp,
-				  union acpi_term *term)
+				  struct acpi_environ *environ)
 {
-	const struct acpi_opcode_info *op_info = interp->parser->op_info;
-	uint16_t opcode = term->common.aml_opcode;
+	uint16_t opcode = environ->opcode;
+	const struct acpi_opcode_info *op_info = environ->op_info;
 
-	op_info = acpi_opcode_get_info(opcode);
-	acpi_dbg("Executing %s", op_info->name);
-	switch (term->common.aml_opcode) {
+	acpi_dbg("Loading %s", op_info->name);
+	switch (opcode) {
 	case AML_NAME_OP:
 		break;
 	case AML_METHOD_OP:
 		break;
 	}
+
 	return AE_OK;
 }
 
-acpi_status_t acpi_interpret_execute(struct acpi_interp *interp,
-				     union acpi_term *term)
+acpi_status_t acpi_interpret_exec(struct acpi_interp *interp,
+				  struct acpi_environ *environ)
 {
+	uint16_t opcode = environ->opcode;
+	const struct acpi_opcode_info *op_info = environ->op_info;
+
+	acpi_dbg("Executing %s", op_info->name);
+	switch (opcode) {
+	case AML_NAME_OP:
+		break;
+	case AML_METHOD_OP:
+		break;
+	}
+
 	return AE_OK;
 }
 
@@ -38,11 +49,9 @@ acpi_status_t acpi_interpret_aml(uint8_t *aml_begin,
 	if (!start_term)
 		return AE_NO_MEMORY;
 
-	interp.aml_begin = aml_begin;
-	interp.aml_end = aml_end;
 	interp.callback = callback;
 
-	status = acpi_parse_aml(&interp, start_node, start_term);
+	status = acpi_parse_aml(&interp, aml_begin, aml_end, start_node, start_term);
 
 	return status;
 }

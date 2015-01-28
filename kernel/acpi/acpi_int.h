@@ -130,6 +130,15 @@ struct acpi_state_header {
 	ACPI_STATE_HEADER
 };
 
+struct acpi_environ {
+	union acpi_term *parent_term;
+	struct acpi_namespace_node *parent_node;
+	struct acpi_namespace_node *node;
+	union acpi_term *term;
+	uint16_t opcode;
+	const struct acpi_opcode_info *op_info;
+};
+
 struct acpi_parser {
 	ACPI_STATE_HEADER
 	uint8_t *aml;
@@ -137,16 +146,13 @@ struct acpi_parser {
 	uint8_t *aml_end;
 	uint8_t *pkg_end;
 	uint8_t *aml_last_while;
-	struct acpi_interp *interp;
-	struct acpi_namespace_node *parent_node;
-	union acpi_term *parent_term;
-	struct acpi_namespace_node *node;
-	union acpi_term *term;
-	uint16_t opcode;
-	const struct acpi_opcode_info *op_info;
 	boolean next_opcode;
 	uint8_t arg_index;
 	uint64_t arg_types;
+
+	struct acpi_interp *interp;
+	/* Executable domain built by parser, executed by interpreter */
+	struct acpi_environ environ;
 };
 
 union acpi_state {
@@ -156,15 +162,14 @@ union acpi_state {
 
 typedef
 acpi_status_t (*acpi_term_cb)(struct acpi_interp *interp,
-			      union acpi_term *term);
+			      struct acpi_environ *exec_environ);
 
 struct acpi_interp {
-	uint8_t *aml_begin;	/* first AML byte */
-	uint8_t *aml_end;	/* (last + 1) AML byte */
-	acpi_term_cb callback;
-
 	/* Parser state */
 	struct acpi_parser *parser;
+
+	/* Executer state */
+	acpi_term_cb callback;
 };
 
 /*=========================================================================
@@ -217,6 +222,7 @@ void acpi_term_add_arg(union acpi_term *term, union acpi_term *arg);
 void acpi_term_remove_arg(union acpi_term *arg);
 
 acpi_status_t acpi_parse_aml(struct acpi_interp *interp,
+			     uint8_t *aml_begin, uint8_t *aml_end,
 			     struct acpi_namespace_node *node,
 			     union acpi_term *term);
 
@@ -235,9 +241,9 @@ acpi_status_t acpi_interpret_aml(uint8_t *aml_begin,
 				 acpi_term_cb callback,
 				 struct acpi_namespace_node *start_node);
 acpi_status_t acpi_interpret_load(struct acpi_interp *interp,
-				  union acpi_term *term);
-acpi_status_t acpi_interpret_execute(struct acpi_interp *interp,
-				     union acpi_term *term);
+				  struct acpi_environ *environ);
+acpi_status_t acpi_interpret_exec(struct acpi_interp *interp,
+				  struct acpi_environ *environ);
 acpi_status_t acpi_parse_table(struct acpi_table_header *table,
 			       struct acpi_namespace_node *start_node);
 void acpi_unparse_table(struct acpi_table_header *table,

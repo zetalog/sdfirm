@@ -13,11 +13,14 @@ static void __acpi_parser_init(struct acpi_parser *parser,
 			       struct acpi_namespace_node *node,
 			       union acpi_term *term)
 {
+	struct acpi_environ *environ = &parser->environ;
+
 	parser->interp = interp;
 	parser->aml_begin = aml_begin;
 	parser->aml_end = aml_end;
-	parser->parent_node = /* acpi_namespace_get( */node/* ) */;
-	parser->parent_term = term;
+
+	environ->parent_node = /* acpi_namespace_get( */node/* ) */;
+	environ->parent_term = term;
 }
 
 static void acpi_parser_release(struct acpi_object_header *object)
@@ -58,13 +61,17 @@ struct acpi_parser *acpi_parser_init(struct acpi_interp *interp,
 {
 	struct acpi_parser *parser = acpi_parser_create(interp, aml_begin, aml_end,
 							NULL, NULL);
+	struct acpi_environ *environ;
+
 	if (parser) {
+		environ = &parser->environ;
+		environ->node = node;
+		environ->term = term;
+		environ->op_info = acpi_opcode_get_info(AML_UNKNOWN_OP);
+
 		parser->aml = parser->aml_begin;
 		parser->pkg_end = parser->aml_end;
-		parser->node = node;
-		parser->term = term;
-		parser->op_info = acpi_opcode_get_info(AML_UNKNOWN_OP);
-		parser->arg_types = parser->op_info->args;
+		parser->arg_types = environ->op_info->args;
 		parser->next_opcode = false;
 	}
 
@@ -81,6 +88,7 @@ acpi_status_t acpi_parser_push(struct acpi_parser *last_parser,
 {
 	struct acpi_interp *interp = last_parser->interp;
 	struct acpi_parser *next_state;
+	struct acpi_environ *last_environ = &last_parser->environ;
 	uint8_t *aml_end;
 
 	BUG_ON(last_parser != interp->parser);
@@ -92,7 +100,7 @@ acpi_status_t acpi_parser_push(struct acpi_parser *last_parser,
 
 	next_state = acpi_parser_create(interp,
 					last_parser->aml, aml_end,
-					last_parser->node, last_parser->term);
+					last_environ->node, last_environ->term);
 	if (!next_state) {
 		*next_parser = last_parser;
 		return AE_NO_MEMORY;
@@ -107,8 +115,8 @@ acpi_status_t acpi_parser_push(struct acpi_parser *last_parser,
 
 	BUG_ON(next_state->aml > next_state->aml_end);
 
-	next_state->parent_node = last_parser->node;
-	next_state->parent_term = last_parser->term;
+	next_state->environ.parent_node = last_environ->node;
+	next_state->environ.parent_term = last_environ->term;
 
 	*next_parser = interp->parser;
 
@@ -329,8 +337,9 @@ static acpi_status_t acpi_parser_begin_term(struct acpi_parser *parser)
 	uint8_t *aml = parser->aml;
 	uint16_t opcode;
 	uint32_t length;
+	struct acpi_environ *environ = &parser->environ;
 
-	BUG_ON(parser->term);
+	BUG_ON(environ->term);
 
 	opcode = aml_opcode_peek(aml);
 	length = aml_opcode_size(aml, opcode);
@@ -339,7 +348,6 @@ static acpi_status_t acpi_parser_begin_term(struct acpi_parser *parser)
 		return AE_NO_MEMORY;
 
 	/* Consume opcode */
-	parser->opcode = opcode;
 	parser->aml += length;
 
 #ifdef CONFIG_ACPI_AML_PREFIX_SIMPLE
@@ -351,12 +359,14 @@ static acpi_status_t acpi_parser_begin_term(struct acpi_parser *parser)
 	if (opcode == AML_UNKNOWN_OP)
 		return AE_CTRL_PARSE_CONTINUE;
 
-	acpi_term_add_arg(parser->parent_term, term);
+	acpi_term_add_arg(environ->parent_term, term);
 
-	parser->op_info = acpi_opcode_get_info(parser->opcode);
-	parser->arg_types = parser->op_info->args;
+	environ->opcode = opcode;
+	environ->op_info = acpi_opcode_get_info(environ->opcode);
+	environ->term = term;
+
+	parser->arg_types = environ->op_info->args;
 	parser->next_opcode = false;
-	parser->term = term;
 
 	return status;
 }
@@ -364,7 +374,8 @@ static acpi_status_t acpi_parser_begin_term(struct acpi_parser *parser)
 static acpi_status_t acpi_parser_end_term(struct acpi_parser *parser,
 					  acpi_status_t parser_status)
 {
-	union acpi_term *term = parser->term;
+	struct acpi_environ *environ = &parser->environ;
+	union acpi_term *term = environ->term;
 
 	if (term) {
 		/*
@@ -373,7 +384,7 @@ static acpi_status_t acpi_parser_end_term(struct acpi_parser *parser,
 		 */
 		acpi_term_remove_arg(term);
 		acpi_term_free(term);
-		parser->term = NULL;
+		environ->term = NULL;
 	}
 
 	return AE_OK;
@@ -385,6 +396,7 @@ acpi_status_t acpi_parser_get_simple_arg(struct acpi_parser *parser,
 	union acpi_term *arg = NULL;
 	uint32_t length = 0;
 	uint8_t *aml = parser->aml;
+	struct acpi_environ *environ = &parser->environ;
 
 	switch (arg_type) {
 	case AML_BYTEDATA:
@@ -427,7 +439,7 @@ acpi_status_t acpi_parser_get_simple_arg(struct acpi_parser *parser,
 
 	/* Consume opcode */
 	parser->aml += (arg->common.aml_length + length);
-	acpi_term_add_arg(parser->term, arg);
+	acpi_term_add_arg(environ->term, arg);
 
 	return AE_OK;
 }
@@ -439,6 +451,7 @@ acpi_status_t acpi_parser_get_simple_name(struct acpi_parser *parser,
 	uint32_t length;
 	union acpi_term *arg;
 	uint8_t *aml = parser->aml;
+	struct acpi_environ *environ = &parser->environ;
 
 	opcode = AML_NAMESTRING_OP;
 	arg = acpi_term_alloc(opcode, aml, 0);
@@ -448,7 +461,7 @@ acpi_status_t acpi_parser_get_simple_name(struct acpi_parser *parser,
 
 	/* Consume opcode */
 	parser->aml += length;
-	acpi_term_add_arg(parser->term, arg);
+	acpi_term_add_arg(environ->term, arg);
 
 	return AE_OK;
 }
@@ -473,8 +486,9 @@ acpi_status_t acpi_parser_get_term_list(struct acpi_parser *parser)
 	union acpi_term *namearg;
 	union acpi_term *arg;
 	acpi_tag_t tag;
+	struct acpi_environ *environ = &parser->environ;
 
-	switch (parser->opcode) {
+	switch (environ->opcode) {
 	case AML_WHILE_OP:
 	case AML_ELSE_OP:
 	case AML_IF_OP:
@@ -483,7 +497,7 @@ acpi_status_t acpi_parser_get_term_list(struct acpi_parser *parser)
 		break;
 	case AML_METHOD_OP:
 	case AML_SCOPE_OP:
-		namearg = acpi_term_get_arg(parser->term, 0);
+		namearg = acpi_term_get_arg(environ->term, 0);
 		if (!namearg || namearg->common.aml_opcode != AML_NAMESTRING_OP)
 			return AE_AML_OPERAND_TYPE;
 		tag = ACPI_NAME2TAG(namearg->common.value.string);
@@ -500,7 +514,7 @@ acpi_status_t acpi_parser_get_term_list(struct acpi_parser *parser)
 
 	/* Consume opcode */
 	parser->aml += length;
-	acpi_term_add_arg(parser->term, arg);
+	acpi_term_add_arg(environ->term, arg);
 
 	return AE_OK;
 }
@@ -512,6 +526,7 @@ acpi_status_t acpi_parser_get_argument(struct acpi_parser *parser,
 	uint8_t *aml = parser->aml;
 	uint16_t opcode = AML_UNKNOWN_OP;
 	uint32_t length = 0;
+	struct acpi_environ *environ = &parser->environ;
 
 	opcode = aml_opcode_peek(aml);
 	if (!acpi_opcode_match_type(opcode, arg_type))
@@ -563,7 +578,7 @@ acpi_status_t acpi_parser_get_argument(struct acpi_parser *parser,
 		return AE_OK;
 	case AML_TERMLIST:
 		if (parser->aml < parser->pkg_end) {
-			if (!parser->parent_term) {
+			if (!environ->parent_term) {
 				/* Execute the start term. */
 				parser->next_opcode = true;
 			} else {
@@ -582,7 +597,7 @@ acpi_status_t acpi_parser_get_argument(struct acpi_parser *parser,
 
 	/* Consume opcode */
 	parser->aml += arg->common.aml_length;
-	acpi_term_add_arg(parser->term, arg);
+	acpi_term_add_arg(environ->term, arg);
 
 	return AE_OK;
 }
@@ -590,7 +605,8 @@ acpi_status_t acpi_parser_get_argument(struct acpi_parser *parser,
 static acpi_status_t acpi_parser_get_arguments(struct acpi_parser *parser)
 {
 	acpi_status_t status;
-	union acpi_term *term = parser->term;
+	struct acpi_environ *environ = &parser->environ;
+	union acpi_term *term = environ->term;
 	uint8_t *aml = parser->aml;
 	uint16_t opcode = term->common.aml_opcode;
 	uint32_t length;
@@ -623,23 +639,21 @@ static acpi_status_t acpi_parser_get_arguments(struct acpi_parser *parser)
 }
 
 acpi_status_t acpi_parse_aml(struct acpi_interp *interp,
+			     uint8_t *aml_begin, uint8_t *aml_end,
 			     struct acpi_namespace_node *node,
 			     union acpi_term *term)
 {
 	acpi_status_t status = AE_OK;
 	struct acpi_parser *parser = interp->parser;
-	uint8_t *aml_end = interp->aml_end;
 	uint16_t curr_arg, last_arg;
 
-	parser = acpi_parser_init(interp,
-				  interp->aml_begin, interp->aml_end,
-				  node, term);
+	parser = acpi_parser_init(interp, aml_begin, aml_end, node, term);
 	if (!parser)
 		return AE_NO_MEMORY;
 	interp->parser = parser;
 
-	while (parser && ((parser->aml < aml_end) || parser->term)) {
-		if (!parser->term) {
+	while (parser && ((parser->aml < aml_end) || parser->environ.term)) {
+		if (!parser->environ.term) {
 			status = acpi_parser_begin_term(parser);
 			if (ACPI_FAILURE(status)) {
 				if (status == AE_CTRL_PARSE_CONTINUE)
@@ -678,7 +692,7 @@ acpi_status_t acpi_parse_aml(struct acpi_interp *interp,
 
 		if (parser->interp->callback)
 			status = parser->interp->callback(parser->interp,
-							  parser->term);
+							  &parser->environ);
 		else
 			status = AE_OK;
 
