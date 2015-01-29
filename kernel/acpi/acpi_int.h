@@ -80,6 +80,13 @@ struct acpi_namespace_node {
 
 #define ACPI_AML_TERM_OBJ		0x01
 #define ACPI_AML_NAMED_OBJ		0x02
+#define ACPI_AML_USERTERM_OBJ		0x03
+
+struct acpi_opcode_info {
+	char *name;
+	uint64_t args;
+	uint16_t flags;
+};
 
 #define ACPI_TERM_HEADER			\
 	ACPI_OBJECT_HEADER			\
@@ -101,21 +108,25 @@ struct acpi_term_obj {
 	ACPI_TERM_HEADER
 };
 
+#define ACPI_TERM_NAMED_HEADER			\
+	ACPI_TERM_HEADER			\
+	acpi_name_t name;
+
 struct acpi_named_obj {
-	ACPI_TERM_HEADER
-	acpi_name_t name; /* 4-byte name or zero if no name */
+	ACPI_TERM_NAMED_HEADER
+};
+
+struct acpi_userterm_obj {
+	ACPI_TERM_NAMED_HEADER
+	struct acpi_namespace_node *node;
+	struct acpi_opcode_info *op_info;
 };
 
 union acpi_term {
 	struct acpi_term_header common;
 	struct acpi_term_obj term_obj;
 	struct acpi_named_obj named_obj;
-};
-
-struct acpi_opcode_info {
-	char *name;
-	uint64_t args;
-	uint16_t flags;
+	struct acpi_userterm_obj userterm_obj;
 };
 
 #define ACPI_STATE_PARSER		0x01
@@ -211,8 +222,8 @@ acpi_status_t acpi_parser_push(struct acpi_parser *last_parser,
 acpi_status_t acpi_parser_pop(struct acpi_parser *last_parser,
 			      struct acpi_parser **next_parser);
 
-union acpi_term *acpi_term_alloc(uint16_t opcode, uint8_t *aml,
-				 uint32_t op_length);
+union acpi_term *acpi_term_alloc(uint16_t opcode, boolean possible_userterm,
+				 uint8_t *aml, uint32_t op_length);
 union acpi_term *acpi_term_alloc_aml(acpi_tag_t tag,
 				     uint8_t *aml_begin,
 				     uint8_t *aml_end);
@@ -227,6 +238,8 @@ acpi_status_t acpi_parse_aml(struct acpi_interp *interp,
 			     union acpi_term *term);
 
 const struct acpi_opcode_info *acpi_opcode_get_info(uint16_t opcode);
+struct acpi_opcode_info *acpi_opcode_alloc_info(acpi_name_t name,
+						uint8_t argc);
 uint8_t acpi_opcode_num_arguments(uint16_t opcode);
 uint8_t acpi_opcode_num_targets(uint16_t opcode);
 boolean acpi_opcode_match_type(uint16_t opcode, uint16_t arg_type);
@@ -252,8 +265,10 @@ void acpi_unparse_table(struct acpi_table_header *table,
 /*=========================================================================
  * Namespace internals
  *=======================================================================*/
-struct acpi_namespace_node *acpi_space_get_node(const char *name);
+struct acpi_namespace_node *acpi_space_lookup_node(const char *name,
+						   uint32_t length);
 void acpi_space_put_node(struct acpi_namespace_node *node);
+struct acpi_namespace_node *acpi_space_get_node(struct acpi_namespace_node *node);
 
 /*=========================================================================
  * Utility internals

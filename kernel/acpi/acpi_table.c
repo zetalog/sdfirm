@@ -1182,7 +1182,7 @@ static acpi_status_t acpi_load_table(acpi_ddb_t ddb)
 		return AE_NOT_FOUND;
 
 	/* Validate root node */
-	ns_root = acpi_space_get_node(NULL);
+	ns_root = acpi_space_lookup_node(NULL, 0);
 	if (!ns_root) {
 		status = AE_NOT_FOUND;
 		goto err_ref;

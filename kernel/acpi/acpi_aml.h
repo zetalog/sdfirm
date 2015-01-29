@@ -130,7 +130,12 @@
 #define AML_NAMESTRING_PAD		(uint16_t)0x5f
 #define AML_EXTENDED_OP_PFX		(uint16_t)0x5b
 
+/*
+ * 0x5b00 can never appear as an opcode, so we use it to indicate the
+ * reset of the parser.
+ */
 #define AML_UNKNOWN_OP			AML_EXTENDED_OP
+#define AML_AMLCODE_OP			AML_EXTENDED_OP
 #define AML_NAMESTRING_OP		AML_NAMESTRING_PAD
 
 /*
@@ -315,5 +320,10 @@
 
 #define AML_GET_ARG_TYPE(args, index)	\
 	((uint16_t)(((args) >> ((uint64_t)AML_TYPE_WIDTH * (index))) & ((uint64_t)AML_TYPE_MASK)))
+
+void aml_decode_namestring(union acpi_term *term, uint8_t *aml,
+			   uint32_t *name_len);
+void aml_decode_last_nameseg(acpi_name_t name,
+			     char *aml, uint32_t length);
 
 #endif /* __ACPI_AML_H_INCLUDE__ */

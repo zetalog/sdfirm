@@ -10,7 +10,8 @@ void acpi_space_unlock(void)
 {
 }
 
-struct acpi_namespace_node *acpi_space_get_node(const char *name)
+struct acpi_namespace_node *acpi_space_lookup_node(const char *name,
+						   uint32_t length)
 {
 	struct acpi_namespace_node *node = NULL;
 
@@ -32,7 +33,7 @@ struct acpi_namespace_node *acpi_space_get_node(const char *name)
 		} else {
 			node = acpi_gbl_root_node;
 		}
-		acpi_reference_inc(&node->common.reference_count);
+		(void)acpi_space_get_node(node);
 	}
 
 err_lock:
@@ -40,11 +41,17 @@ err_lock:
 	return node;
 }
 
+struct acpi_namespace_node *acpi_space_get_node(struct acpi_namespace_node *node)
+{
+	if (node)
+		acpi_reference_inc(&node->common.reference_count);
+	return node;
+}
+
 void acpi_space_put_node(struct acpi_namespace_node *node)
 {
-	if (node) {
-		if (acpi_reference_dec_and_test(&node->common.reference_count)) {
-			acpi_os_free(node);
-		}
-	}
+	if (!node)
+		return;
+	if (acpi_reference_dec_and_test(&node->common.reference_count))
+		acpi_os_free(node);
 }

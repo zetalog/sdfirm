@@ -67,7 +67,7 @@ struct acpi_parser *acpi_parser_init(struct acpi_interp *interp,
 		environ = &parser->environ;
 		environ->node = node;
 		environ->term = term;
-		environ->op_info = acpi_opcode_get_info(AML_UNKNOWN_OP);
+		environ->op_info = acpi_opcode_get_info(AML_AMLCODE_OP);
 
 		parser->aml = parser->aml_begin;
 		parser->pkg_end = parser->aml_end;
@@ -167,6 +167,9 @@ uint16_t aml_opcode_peek(uint8_t *aml)
 
 uint32_t aml_opcode_size(uint8_t *aml, uint16_t opcode)
 {
+	/* The NameString/SimpleName will be parsed in acpi_term_alloc() */
+	if (opcode == AML_NAMESTRING_OP)
+		return 0;
 	return (opcode > 0x00FF) ? 2 : 1;
 }
 
@@ -262,7 +265,7 @@ void aml_decode_byte_list(union acpi_term *term,
 
 	term->common.value.buffer.len = length;
 	term->common.value.buffer.ptr = aml;
-	term->common.aml_length = length;
+	term->common.aml_length += length;
 }
 
 void aml_decode_namestring(union acpi_term *term, uint8_t *aml,
@@ -296,7 +299,52 @@ void aml_decode_namestring(union acpi_term *term, uint8_t *aml,
 		*name_len = length;
 
 	term->common.value.string = ACPI_CAST_PTR(char, begin);
-	term->common.aml_length = length;
+	term->common.aml_length += length;
+}
+
+void aml_decode_last_nameseg(acpi_name_t name, char *pathname, uint32_t length)
+{
+	char *path = pathname;
+	int nr_carats, nr_segs;
+
+	if (!pathname) {
+		nr_segs = 0;
+		path = "";
+	} else {
+		if (*path == AML_ROOT_PFX)
+			path++;
+		else {
+			nr_carats = 0;
+			while (*path == AML_PARENT_PFX) {
+				path++;
+				nr_carats++;
+			}
+		}
+		switch (*path) {
+		case 0:
+			nr_segs = 0;
+			break;
+		case AML_DUAL_NAME_PFX:
+			nr_segs = 2;
+			path++;
+			break;
+		case AML_MULTI_NAME_PFX:
+			path++;
+			nr_segs = (uint32_t)(uint8_t)*path;
+			path++;
+			break;
+		default:
+			nr_segs = 1;
+			break;
+		}
+	}
+	while (nr_segs) {
+		if (nr_segs == 1)
+			break;
+		nr_segs--;
+	        path += ACPI_NAME_SIZE;
+        }
+	ACPI_NAMECPY(ACPI_NAME2TAG(path), name);
 }
 
 void aml_decode_computation_data(union acpi_term *term, uint8_t *aml,
@@ -343,12 +391,12 @@ static acpi_status_t acpi_parser_begin_term(struct acpi_parser *parser)
 
 	opcode = aml_opcode_peek(aml);
 	length = aml_opcode_size(aml, opcode);
-	term = acpi_term_alloc(opcode, aml, length);
+	term = acpi_term_alloc(opcode, true, aml, length);
 	if (!term)
 		return AE_NO_MEMORY;
 
 	/* Consume opcode */
-	parser->aml += length;
+	parser->aml += term->common.aml_length;
 
 #ifdef CONFIG_ACPI_AML_PREFIX_SIMPLE
 	aml_decode_computation_data(term, parser->aml, opcode, &length);
@@ -362,7 +410,10 @@ static acpi_status_t acpi_parser_begin_term(struct acpi_parser *parser)
 	acpi_term_add_arg(environ->parent_term, term);
 
 	environ->opcode = opcode;
-	environ->op_info = acpi_opcode_get_info(environ->opcode);
+	if (term->common.object_type == ACPI_AML_USERTERM_OBJ)
+		environ->op_info = term->userterm_obj.op_info;
+	else
+		environ->op_info = acpi_opcode_get_info(environ->opcode);
 	environ->term = term;
 
 	parser->arg_types = environ->op_info->args;
@@ -399,37 +450,37 @@ acpi_status_t acpi_parser_get_simple_arg(struct acpi_parser *parser,
 
 	switch (arg_type) {
 	case AML_BYTEDATA:
-		arg = acpi_term_alloc(AML_BYTE_PFX, aml, 1);
+		arg = acpi_term_alloc(AML_BYTE_PFX, false, aml, 1);
 		if (!arg)
 			return AE_NO_MEMORY;
 		aml_decode_computation_data(arg, aml, AML_BYTE_PFX, &length);
 		break;
 	case AML_WORDDATA:
-		arg = acpi_term_alloc(AML_WORD_PFX, aml, 1);
+		arg = acpi_term_alloc(AML_WORD_PFX, false, aml, 1);
 		if (!arg)
 			return AE_NO_MEMORY;
 		aml_decode_computation_data(arg, aml, AML_WORD_PFX, &length);
 		break;
 	case AML_DWORDDATA:
-		arg = acpi_term_alloc(AML_DWORD_PFX, aml, 1);
+		arg = acpi_term_alloc(AML_DWORD_PFX, false, aml, 1);
 		if (!arg)
 			return AE_NO_MEMORY;
 		aml_decode_computation_data(arg, aml, AML_DWORD_PFX, &length);
 		break;
 	case AML_QWORDDATA:
-		arg = acpi_term_alloc(AML_QWORD_PFX, aml, length);
+		arg = acpi_term_alloc(AML_QWORD_PFX, false, aml, length);
 		if (!arg)
 			return AE_NO_MEMORY;
 		aml_decode_computation_data(arg, aml, AML_QWORD_PFX, &length);
 		break;
 	case AML_ASCIICHARLIST:
-		arg = acpi_term_alloc(AML_STRING_PFX, aml, 1);
+		arg = acpi_term_alloc(AML_STRING_PFX, false, aml, 1);
 		if (!arg)
 			return AE_NO_MEMORY;
 		aml_decode_computation_data(arg, aml, AML_STRING_PFX, &length);
 		break;
 	case AML_BYTELIST:
-		arg = acpi_term_alloc(AML_BUFFER_OP, aml, 0);
+		arg = acpi_term_alloc(AML_BUFFER_OP, false, aml, 0);
 		if (!arg)
 			return AE_NO_MEMORY;
 		aml_decode_byte_list(arg, aml, parser->pkg_end, &length);
@@ -451,19 +502,18 @@ acpi_status_t acpi_parser_get_simple_name(struct acpi_parser *parser,
 					  uint16_t arg_type)
 {
 	uint16_t opcode;
-	uint32_t length;
 	union acpi_term *arg;
 	uint8_t *aml = parser->aml;
 	struct acpi_environ *environ = &parser->environ;
+	boolean is_userterm = (arg_type == AML_NAMESTRING) ? false : true;
 
 	opcode = AML_NAMESTRING_OP;
-	arg = acpi_term_alloc(opcode, aml, 0);
+	arg = acpi_term_alloc(opcode, is_userterm, aml, 0);
 	if (!arg)
 		return AE_NO_MEMORY;
-	aml_decode_namestring(arg, aml, &length);
 
 	/* Consume opcode */
-	parser->aml += length;
+	parser->aml += arg->common.aml_length;
 	acpi_term_add_arg(environ->term, arg);
 
 	return AE_OK;

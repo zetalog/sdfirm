@@ -6,7 +6,10 @@ acpi_status_t acpi_interpret_load(struct acpi_interp *interp,
 	uint16_t opcode = environ->opcode;
 	const struct acpi_opcode_info *op_info = environ->op_info;
 
-	acpi_dbg("Loading %s", op_info->name);
+	if (op_info->flags & AML_USERTERM)
+		acpi_dbg("Loading %4.4s", op_info->name);
+	else
+		acpi_dbg("Loading %s", op_info->name);
 	switch (opcode) {
 	case AML_NAME_OP:
 		break;
@@ -23,7 +26,10 @@ acpi_status_t acpi_interpret_exec(struct acpi_interp *interp,
 	uint16_t opcode = environ->opcode;
 	const struct acpi_opcode_info *op_info = environ->op_info;
 
-	acpi_dbg("Executing %s", op_info->name);
+	if (op_info->flags & AML_USERTERM)
+		acpi_dbg("Executing %4.4s", op_info->name);
+	else
+		acpi_dbg("Executing %s", op_info->name);
 	switch (opcode) {
 	case AML_NAME_OP:
 		break;

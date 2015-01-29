@@ -336,7 +336,7 @@ const struct acpi_opcode_info acpi_gbl_opcode_info[AML_NUM_OPCODES] =
 /* 1C */ ACPI_OP("Timer",                  AML_TIMER_ARGS,              AML_TYPE2_OPCODE | AML_FLAGS_EXEC_0A_0T_1R),
 
 /* Internal indexed information */
-/* 01 */ ACPI_OP("-Unknown-",              AML_ARGS1(AML_TERMLIST),     AML_FLAGS_EXEC_1A_0T_1R),
+/* 01 */ ACPI_OP("-AMLCode-",              AML_ARGS1(AML_TERMLIST),     AML_FLAGS_EXEC_1A_0T_1R),
 /* 02 */ ACPI_OP("-NameString-",           AML_ARGS1(AML_TERMARGLIST),  AML_FLAGS_EXEC_VA_0T_1R),
 };
 
@@ -436,20 +436,43 @@ const struct acpi_opcode_info *acpi_opcode_get_info(uint16_t opcode)
 	return (&acpi_gbl_opcode_info[op_index]);
 }
 
-union acpi_term *acpi_term_alloc(uint16_t opcode, uint8_t *aml,
-				 uint32_t length)
+struct acpi_opcode_info *acpi_opcode_alloc_info(acpi_name_t name, uint8_t argc)
+{
+	struct acpi_opcode_info *op_info;
+	uint8_t i;
+
+	op_info = acpi_os_allocate_zeroed(sizeof (struct acpi_opcode_info));
+	if (op_info) {
+		op_info->flags = AML_USERTERM;
+		op_info->name = name;
+		for (i = 0; i < argc; i++) {
+			op_info->args <<= AML_TYPE_WIDTH;
+			op_info->args |= AML_TERMARG(ANY);
+		}
+	}
+
+	return op_info;
+}
+
+union acpi_term *acpi_term_alloc(uint16_t opcode, boolean possible_userterm,
+				 uint8_t *aml, uint32_t length)
 {
 	union acpi_term *term;
-	const struct acpi_opcode_info *op_info;
-
-	op_info = acpi_opcode_get_info(opcode);
+	struct acpi_opcode_info *op_info;
+	struct acpi_namespace_node *node;
+	uint8_t argc = 0;
 
 	/* Allocate the minimum required size object */
-	if (op_info->flags & AML_NAMED_OBJ ||
-	    op_info->flags & AML_NAMESPACE_MODIFIER_OBJ) {
-		term = acpi_os_allocate_zeroed(sizeof (struct acpi_named_obj));
-		if (term)
-			term->common.object_type = ACPI_AML_NAMED_OBJ;
+	if (opcode == AML_NAMESTRING_OP) {
+		if (possible_userterm) {
+			term = acpi_os_allocate_zeroed(sizeof (struct acpi_userterm_obj));
+			if (term)
+				term->common.object_type = ACPI_AML_USERTERM_OBJ;
+		} else {
+			term = acpi_os_allocate_zeroed(sizeof (struct acpi_named_obj));
+			if (term)
+				term->common.object_type = ACPI_AML_NAMED_OBJ;
+		}
 	} else {
 		term = acpi_os_allocate_zeroed(sizeof (struct acpi_term_obj));
 		if (term)
@@ -460,6 +483,22 @@ union acpi_term *acpi_term_alloc(uint16_t opcode, uint8_t *aml,
 		term->common.aml_opcode = opcode;
 		term->common.aml_offset = aml;
 		term->common.aml_length = length;
+		if (opcode == AML_NAMESTRING_OP) {
+			BUG_ON(length);
+			aml_decode_namestring(term, aml, &length);
+			aml_decode_last_nameseg(term->named_obj.name, aml, length);
+			if (possible_userterm) {
+				node = acpi_space_lookup_node(term->common.value.string,
+							       term->common.aml_length);
+				if (node) {
+					/* TODO: obtain argc here */
+				}
+				op_info = acpi_opcode_alloc_info(term->named_obj.name, argc);
+
+				term->userterm_obj.node = node;
+				term->userterm_obj.op_info = op_info;
+			}
+		}
 	}
 	
 	return term;
@@ -467,6 +506,12 @@ union acpi_term *acpi_term_alloc(uint16_t opcode, uint8_t *aml,
 
 static void __acpi_term_free(union acpi_term *term)
 {
+	if (term->common.object_type == ACPI_AML_USERTERM_OBJ) {
+		if (term->userterm_obj.node)
+			acpi_space_put_node(term->userterm_obj.node);
+		if (term->userterm_obj.op_info)
+			acpi_os_free(term->userterm_obj.op_info);
+	}
 	acpi_os_free(term);
 }
 
@@ -476,8 +521,8 @@ union acpi_term *acpi_term_alloc_aml(acpi_tag_t tag,
 {
 	union acpi_term *term_list;
 
-	term_list = acpi_term_alloc(AML_UNKNOWN_OP, aml_begin,
-				    aml_end - aml_begin);
+	term_list = acpi_term_alloc(AML_AMLCODE_OP, false,
+				    aml_begin, aml_end - aml_begin);
 	if (!term_list)
 		return NULL;
 
@@ -1084,7 +1129,7 @@ void acpi_opcode_tests(void)
 	ACPI_OPCODE_TEST(AML_LOAD_TABLE_OP);
 	ACPI_OPCODE_TEST(AML_DATA_REGION_OP);
 	ACPI_OPCODE_TEST(AML_TIMER_OP);
-	ACPI_OPCODE_TEST(AML_UNKNOWN_OP);
+	ACPI_OPCODE_TEST(AML_AMLCODE_OP);
 	ACPI_OPCODE_TEST(AML_NAMESTRING_OP);
 }
 #endif
