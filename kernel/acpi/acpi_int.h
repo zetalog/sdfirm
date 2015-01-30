@@ -78,9 +78,11 @@ struct acpi_namespace_node {
 	union acpi_operand *operand;
 };
 
-#define ACPI_AML_TERM_OBJ		0x01
-#define ACPI_AML_NAMED_OBJ		0x02
-#define ACPI_AML_USERTERM_OBJ		0x03
+#define ACPI_AML_TERMOBJ		0x01
+#define ACPI_AML_TERMLIST		0x02
+#define ACPI_AML_NAMESTRING		0x03
+#define ACPI_AML_SIMPLENAME		0x04
+#define ACPI_AML_SUPERNAME		0x05
 
 struct acpi_opcode_info {
 	char *name;
@@ -88,7 +90,7 @@ struct acpi_opcode_info {
 	uint16_t flags;
 };
 
-#define ACPI_TERM_HEADER			\
+#define ACPI_TERMOBJ_HEADER			\
 	ACPI_OBJECT_HEADER			\
 	union acpi_term *parent;		\
 	union acpi_term *children;		\
@@ -101,32 +103,45 @@ struct acpi_opcode_info {
 	uint8_t arg_count;
 
 struct acpi_term_header {
-	ACPI_TERM_HEADER
+	ACPI_TERMOBJ_HEADER
 };
 
 struct acpi_term_obj {
-	ACPI_TERM_HEADER
+	ACPI_TERMOBJ_HEADER
 };
 
-#define ACPI_TERM_NAMED_HEADER			\
-	ACPI_TERM_HEADER			\
+struct acpi_term_list {
+	ACPI_TERMOBJ_HEADER
+};
+
+#define ACPI_NAMESTRING_HEADER			\
+	ACPI_TERMOBJ_HEADER			\
 	acpi_name_t name;
 
-struct acpi_named_obj {
-	ACPI_TERM_NAMED_HEADER
+#define ACPI_SIMPLENAME_HEADER			\
+	ACPI_NAMESTRING_HEADER			\
+	struct acpi_namespace_node *node;
+
+struct acpi_name_string {
+	ACPI_NAMESTRING_HEADER
 };
 
-struct acpi_userterm_obj {
-	ACPI_TERM_NAMED_HEADER
-	struct acpi_namespace_node *node;
+struct acpi_simple_name {
+	ACPI_SIMPLENAME_HEADER
+};
+
+struct acpi_super_name {
+	ACPI_SIMPLENAME_HEADER
 	struct acpi_opcode_info *op_info;
 };
 
 union acpi_term {
 	struct acpi_term_header common;
 	struct acpi_term_obj term_obj;
-	struct acpi_named_obj named_obj;
-	struct acpi_userterm_obj userterm_obj;
+	struct acpi_term_list term_list;
+	struct acpi_name_string name_string;
+	struct acpi_simple_name simple_name;
+	struct acpi_super_name super_name;
 };
 
 #define ACPI_STATE_PARSER		0x01
@@ -148,6 +163,7 @@ struct acpi_environ {
 	union acpi_term *term;
 	uint16_t opcode;
 	const struct acpi_opcode_info *op_info;
+	uint16_t arg_type;
 };
 
 struct acpi_parser {
@@ -222,11 +238,12 @@ acpi_status_t acpi_parser_push(struct acpi_parser *last_parser,
 acpi_status_t acpi_parser_pop(struct acpi_parser *last_parser,
 			      struct acpi_parser **next_parser);
 
-union acpi_term *acpi_term_alloc(uint16_t opcode, boolean possible_userterm,
-				 uint8_t *aml, uint32_t op_length);
+union acpi_term *acpi_term_alloc_op(uint16_t opcode,
+				    uint8_t *aml, uint32_t length);
 union acpi_term *acpi_term_alloc_aml(acpi_tag_t tag,
 				     uint8_t *aml_begin,
 				     uint8_t *aml_end);
+union acpi_term *acpi_term_alloc_name(uint16_t arg_type, uint8_t *aml);
 void acpi_term_free(union acpi_term *op);
 union acpi_term *acpi_term_get_arg(union acpi_term *term, uint32_t argn);
 void acpi_term_add_arg(union acpi_term *term, union acpi_term *arg);

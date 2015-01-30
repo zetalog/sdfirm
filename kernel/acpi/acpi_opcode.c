@@ -122,7 +122,7 @@
 #define AML_FIND_SET_LEFT_BIT_ARGS	AML_ARGS2(AML_OPERAND, AML_TARGET)
 #define AML_FIND_SET_RIGHT_BIT_ARGS	AML_ARGS2(AML_OPERAND, AML_TARGET)
 #define AML_DEREF_OF_ARGS		AML_ARGS1(AML_OBJECTREFERENCE)
-#define AML_NOTIFY_ARGS			AML_ARGS2(AML_DEVICE, AML_INDEX)
+#define AML_NOTIFY_ARGS			AML_ARGS2(AML_NOTIFYOBJECT, AML_INDEX)
 #define AML_SIZE_OF_ARGS		AML_ARGS1(AML_SUPERNAME(ANY))
 #define AML_INDEX_ARGS			AML_ARGS3(AML_BUFFPKGSTR, AML_INDEX, AML_TARGET)
 #define AML_MATCH_ARGS			AML_ARGS6(AML_PACKAGEARG, AML_BYTEDATA, AML_OPERAND, AML_BYTEDATA, AML_OPERAND, AML_INDEX)
@@ -454,51 +454,47 @@ struct acpi_opcode_info *acpi_opcode_alloc_info(acpi_name_t name, uint8_t argc)
 	return op_info;
 }
 
-union acpi_term *acpi_term_alloc(uint16_t opcode, boolean possible_userterm,
-				 uint8_t *aml, uint32_t length)
+/*
+ * __acpi_term_alloc() - allocate a TermObj
+ * @object_type: object type
+ * @opcode: detected opcode
+ * @aml: pointer to the AML containing the opcode
+ * @length: length in the "aml" of the opcode, 0 for AML_NAMESTRING_OP
+ *
+ * This function creates an AML TermObj descriptor. It distiguishes
+ * NameString, SimpleName, SuperName, TermList from normal AML TermObj.
+ */
+static union acpi_term *__acpi_term_alloc(uint16_t object_type,
+					  uint16_t opcode,
+					  uint8_t *aml, uint32_t length)
 {
 	union acpi_term *term;
-	struct acpi_opcode_info *op_info;
-	struct acpi_namespace_node *node;
-	uint8_t argc = 0;
 
 	/* Allocate the minimum required size object */
-	if (opcode == AML_NAMESTRING_OP) {
-		if (possible_userterm) {
-			term = acpi_os_allocate_zeroed(sizeof (struct acpi_userterm_obj));
-			if (term)
-				term->common.object_type = ACPI_AML_USERTERM_OBJ;
-		} else {
-			term = acpi_os_allocate_zeroed(sizeof (struct acpi_named_obj));
-			if (term)
-				term->common.object_type = ACPI_AML_NAMED_OBJ;
-		}
-	} else {
+	switch (object_type) {
+	case ACPI_AML_TERMOBJ:
 		term = acpi_os_allocate_zeroed(sizeof (struct acpi_term_obj));
-		if (term)
-			term->common.object_type = ACPI_AML_TERM_OBJ;
+		break;
+	case ACPI_AML_TERMLIST:
+		term = acpi_os_allocate_zeroed(sizeof (struct acpi_term_list));
+		break;
+	case ACPI_AML_NAMESTRING:
+		term = acpi_os_allocate_zeroed(sizeof (struct acpi_name_string));
+		break;
+	case ACPI_AML_SIMPLENAME:
+		term = acpi_os_allocate_zeroed(sizeof (struct acpi_simple_name));
+		break;
+	case ACPI_AML_SUPERNAME:
+		term = acpi_os_allocate_zeroed(sizeof (struct acpi_super_name));
+		break;
 	}
 	if (term) {
 		term->common.descriptor_type = ACPI_DESC_TYPE_TERM;
+		term->common.object_type = object_type;
 		term->common.aml_opcode = opcode;
 		term->common.aml_offset = aml;
+		/* Consume initial opcode length */
 		term->common.aml_length = length;
-		if (opcode == AML_NAMESTRING_OP) {
-			BUG_ON(length);
-			aml_decode_namestring(term, aml, &length);
-			aml_decode_last_nameseg(term->named_obj.name, aml, length);
-			if (possible_userterm) {
-				node = acpi_space_lookup_node(term->common.value.string,
-							       term->common.aml_length);
-				if (node) {
-					/* TODO: obtain argc here */
-				}
-				op_info = acpi_opcode_alloc_info(term->named_obj.name, argc);
-
-				term->userterm_obj.node = node;
-				term->userterm_obj.op_info = op_info;
-			}
-		}
 	}
 	
 	return term;
@@ -506,30 +502,103 @@ union acpi_term *acpi_term_alloc(uint16_t opcode, boolean possible_userterm,
 
 static void __acpi_term_free(union acpi_term *term)
 {
-	if (term->common.object_type == ACPI_AML_USERTERM_OBJ) {
-		if (term->userterm_obj.node)
-			acpi_space_put_node(term->userterm_obj.node);
-		if (term->userterm_obj.op_info)
-			acpi_os_free(term->userterm_obj.op_info);
+	if (term->common.object_type == ACPI_AML_SUPERNAME) {
+		if (term->super_name.op_info)
+			acpi_os_free(term->super_name.op_info);
+	}
+	if (term->common.object_type == ACPI_AML_SIMPLENAME ||
+	    term->common.object_type == ACPI_AML_SUPERNAME) {
+		if (term->super_name.node)
+			acpi_space_put_node(term->super_name.node);
 	}
 	acpi_os_free(term);
 }
 
+/*
+ * acpi_term_alloc_op() - allocate a TermObj for recognizable opcode
+ * @opcode: detected opcode
+ * @aml: pointer to the AML containing the opcode
+ * @length: length in the "aml" of the opcode, 0 for AML_NAMESTRING_OP
+ *
+ * This function creates an AML TermObj descriptor for recognizable
+ * opcodes.
+ */
+union acpi_term *acpi_term_alloc_op(uint16_t opcode,
+				    uint8_t *aml, uint32_t length)
+{
+	return __acpi_term_alloc(ACPI_AML_TERMOBJ, opcode, aml, length);
+}
+
+/*
+ * acpi_term_alloc_aml() - allocate a TermObj for unrecognizable opcode
+ * @tag: the name of the AML code (scope name or unknown)
+ * @aml_begin: pointer to beginning the AML code
+ * @aml_end: pointer to end the AML code
+ *
+ * This function creates an AML TermObj descriptor for unrecognizable
+ * opcodes.
+ */
 union acpi_term *acpi_term_alloc_aml(acpi_tag_t tag,
 				     uint8_t *aml_begin,
 				     uint8_t *aml_end)
 {
 	union acpi_term *term_list;
 
-	term_list = acpi_term_alloc(AML_AMLCODE_OP, false,
-				    aml_begin, aml_end - aml_begin);
+	term_list = __acpi_term_alloc(ACPI_AML_TERMLIST, AML_AMLCODE_OP,
+				      aml_begin, aml_end - aml_begin);
 	if (!term_list)
 		return NULL;
-
-	term_list->common.object_type = AML_TERMLIST;
-	ACPI_NAMECPY(tag, term_list->named_obj.name);
+	ACPI_NAMECPY(tag, term_list->name_string.name);
 
 	return term_list;
+}
+
+/*
+ * acpi_term_alloc_name() - parse NameString and allocate a TermObj
+ * @arg_type: argument type, can be NameString, SimpleName or SuperName
+ * @aml: pointer to the AML containing the name string
+ *
+ * This function is responsible for parsing the name of the
+ * NameString/SimpleName/SuperName objects (AML_NAMESTRING_OP).
+ */
+union acpi_term *acpi_term_alloc_name(uint16_t arg_type, uint8_t *aml)
+{
+	union acpi_term *term;
+	struct acpi_opcode_info *op_info;
+	struct acpi_namespace_node *node;
+	uint8_t argc = 0;
+	uint16_t object_type;
+	uint32_t length;
+
+	if (arg_type == AML_NAMESTRING)
+		object_type = ACPI_AML_NAMESTRING;
+	else if (arg_type == AML_SIMPLENAME)
+		object_type = ACPI_AML_SIMPLENAME;
+	else
+		object_type = ACPI_AML_SUPERNAME;
+
+	term = __acpi_term_alloc(object_type, AML_NAMESTRING_OP,
+				 aml, 0);
+	if (!term)
+		return NULL;
+
+	aml_decode_namestring(term, aml, &length);
+	aml_decode_last_nameseg(term->name_string.name, aml, length);
+	if ((object_type == ACPI_AML_SIMPLENAME) ||
+	    (object_type == ACPI_AML_SUPERNAME)) {
+		node = acpi_space_lookup_node(term->common.value.string,
+					       term->common.aml_length);
+		if (node) {
+			/* TODO: obtain argc here */
+		}
+		term->simple_name.node = node;
+	}
+	if (object_type == ACPI_AML_SUPERNAME) {
+		op_info = acpi_opcode_alloc_info(term->name_string.name, argc);
+		term->super_name.op_info = op_info;
+	}
+
+	return term;
 }
 
 union acpi_term *acpi_term_get_arg(union acpi_term *term, uint32_t argn)
@@ -813,13 +882,12 @@ boolean acpi_opcode_match_type(uint16_t opcode, uint16_t arg_type)
 	case AML_NONE:
 		return opcode == AML_NULL_CHAR ? true : false;
 	case AML_TERMOBJ:
+	case AML_TERMLIST:
 		return acpi_opcode_is_termobj(opcode);
-	case AML_BYTEDATA:
-	case AML_WORDDATA:
-	case AML_DWORDDATA:
-	case AML_QWORDDATA:
-	case AML_ASCIICHARLIST:
-		return true;
+#if 0
+	case AML_OBJECT:
+		return acpi_opcode_is_object(opcode);
+#endif
 	case AML_NAMESTRING:
 		return acpi_opcode_is_namestring(opcode);
 	case AML_SIMPLENAME:
@@ -828,27 +896,17 @@ boolean acpi_opcode_match_type(uint16_t opcode, uint16_t arg_type)
 		return acpi_opcode_is_objectreference(opcode);
 	case AML_DATAREFOBJECT:
 		return acpi_opcode_is_datarefobject(opcode);
-	case AML_SUPERNAME(ANY):
-	case AML_TARGET:
-	case AML_DEVICE:
-		return acpi_opcode_is_supername(opcode);
-	case AML_TERMARG(ANY):
-	case AML_INTEGERARG:
-	case AML_BUFFERARG:
-	case AML_PACKAGEARG:
-	case AML_OBJECTARG:
-	case AML_DATA:
-	case AML_BUFFSTR:
-	case AML_BUFFPKGSTR:
-	case AML_BYTEARG:
-		return acpi_opcode_is_termarg(opcode);
-	case AML_TERMLIST:
-	case AML_OBJECTLIST:
-	case AML_FIELDLIST:
-	case AML_PACKAGELEMENTLIST:
-	case AML_TERMARGLIST:
-		return true;
 	default:
+		if (AML_IS_SUPERNAME(arg_type))
+			return acpi_opcode_is_supername(opcode);
+		if (AML_IS_TERMARG(arg_type))
+			return acpi_opcode_is_termarg(opcode);
+#if 0
+		if (AML_IS_SIMPLEDATA(arg_type))
+			return true;
+		if (AML_IS_VARTYPE(arg_type))
+			return true;
+#endif
 		return true;
 	}
 }
@@ -925,28 +983,18 @@ static const char *acpi_argument_type_name(uint16_t arg_type)
 		return "QWordData";
 	case AML_ASCIICHARLIST:
 		return "AsciiCharList";
-	case AML_NAMESTRING:
-		return "NameString";
+	case AML_BYTELIST:
+		return "ByteList";
 	case AML_PKGLENGTH:
 		return "PkgLength";
 	case AML_DATAREFOBJECT:
 		return "DataRefObject";
 	case AML_OBJECTREFERENCE:
 		return "ObjectReference";
+	case AML_NAMESTRING:
+		return "NameString";
 	case AML_SIMPLENAME:
 		return "SimpleName";
-	case AML_TERMLIST:
-		return "TermList";
-	case AML_OBJECTLIST:
-		return "ObjectList";
-	case AML_FIELDLIST:
-		return "FieldList";
-	case AML_PACKAGELEMENTLIST:
-		return "PackageElementList";
-	case AML_BYTELIST:
-		return "ByteList";
-	case AML_TERMARGLIST:
-		return "TermArgList";
 	case AML_SUPERNAME(ANY):
 		return "SuperName";
 	case AML_TARGET:
@@ -971,6 +1019,16 @@ static const char *acpi_argument_type_name(uint16_t arg_type)
 		return "TermArg => Buffer,Package,String";
 	case AML_BYTEARG:
 		return "TermArg => ByteData";
+	case AML_TERMLIST:
+		return "TermList";
+	case AML_OBJECTLIST:
+		return "ObjectList";
+	case AML_FIELDLIST:
+		return "FieldList";
+	case AML_PACKAGELEMENTLIST:
+		return "PackageElementList";
+	case AML_TERMARGLIST:
+		return "TermArgList";
 	}
 }
 

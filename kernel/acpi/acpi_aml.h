@@ -152,28 +152,43 @@
 #define AML_OBJECT			0x02
 #define AML_FIELDELEMENT		0x03
 #define AML_PACKAGEELEMENT		0x04
-#define AML_BYTEDATA			0x05
+
 /* Other types */
-#define AML_WORDDATA			0x10
-#define AML_DWORDDATA			0x11
-#define AML_QWORDDATA			0x12
-#define AML_ASCIICHARLIST		0x13
-#define AML_BYTELIST			0x14
-#define AML_NAMESTRING			0x15
+#define AML_BYTEDATA			0x10
+#define AML_WORDDATA			0x11
+#define AML_DWORDDATA			0x12
+#define AML_QWORDDATA			0x13
+#define AML_ASCIICHARLIST		0x14
+#define AML_BYTELIST			0x15
+#define AML_IS_SIMPLEDATA(arg_type)	\
+	((arg_type) >= AML_BYTEDATA && (arg_type) <= AML_BYTELIST)
+
 #define AML_PKGLENGTH			0x16
+
 #define AML_DATAREFOBJECT		0x17
 #define AML_OBJECTREFERENCE		0x18
-#define AML_SIMPLENAME			0x19
 
-#define AML_SUPERNAME(x)		(0x20 + AML_SUPERNAME_##x)
+#define AML_NAMESTRING			0x20
+#define AML_SIMPLENAME			0x21
+#define AML_SUPERNAME(x)		(0x22 + AML_SUPERNAME_##x)
 #define AML_SUPERNAME_ANY		0
 #define AML_SUPERNAME_TARGET		1
 #define AML_SUPERNAME_DEVICE		2
 #define AML_TARGET			AML_SUPERNAME(TARGET)
 #define AML_DEVICE			AML_SUPERNAME(DEVICE)
+#define AML_DDBHANDLE			AML_SUPERNAME(ANY)
+#define AML_NOTIFYOBJECT		AML_DEVICE
+#define AML_MUTEX			AML_SUPERNAME(ANY)
+#define AML_EVENT			AML_SUPERNAME(ANY)
 
 #define AML_SUPERNAME_MIN		0
 #define AML_SUPERNAME_MAX		2
+
+#define AML_IS_SUPERNAME(arg_type)	\
+	((arg_type) >= AML_SUPERNAME(MIN) && (arg_type) <= AML_SUPERNAME(MAX))
+
+#define AML_IS_SIMPLENAME(arg_type)	\
+	((arg_type) == AML_SIMPLENAME && AML_IS_SUPERNAME(arg_type))
 
 #define AML_TERMARG(x)			(0xFF - AML_TERMARG_##x)
 #define AML_TERMARG_ANY			0
@@ -185,8 +200,8 @@
 #define AML_TERMARG_BUFFSTR		6
 #define AML_TERMARG_BUFFPKGSTR		7
 #define AML_TERMARG_BYTEDATA		8
-#define AML_TERMARG_MIN			0
-#define AML_TERMARG_MAX			8
+#define AML_TERMARG_MIN			8
+#define AML_TERMARG_MAX			0
 
 #define AML_INTEGERARG			AML_TERMARG(INTEGER)
 #define AML_BUFFERARG			AML_TERMARG(BUFFER)
@@ -202,10 +217,10 @@
 #define AML_PREDICATE			AML_INTEGERARG
 #define AML_USECTIME			AML_BYTEARG
 #define AML_MSECTIME			AML_INTEGERARG
-#define AML_MUTEX			AML_TERMARG(ANY)
-#define AML_EVENT			AML_TERMARG(ANY)
-#define AML_DDBHANDLE			AML_TERMARG(ANY)
 #define AML_BCD				AML_INTEGERARG
+
+#define AML_IS_TERMARG(arg_type)	\
+	((arg_type) >= AML_TERMARG(MIN) && (arg_type) <= AML_TERMARG(MAX))
 
 #define AML_VARTYPE(x)			(0x100 | (x))
 #define AML_TERMLIST			AML_VARTYPE(AML_TERMOBJ)
@@ -214,7 +229,7 @@
 #define AML_PACKAGELEMENTLIST		AML_VARTYPE(AML_PACKAGEELEMENT)
 #define AML_TERMARGLIST			AML_VARTYPE(AML_TERMARG(ANY))
 
-#define AML_IS_VARTYPE(x)		((x) & 0x100)
+#define AML_IS_VARTYPE(arg_type)	((arg_type) & 0x100)
 
 /* Term types not used by the argument types */
 #define AML_USERTERM			0x30
@@ -320,6 +335,14 @@
 
 #define AML_GET_ARG_TYPE(args, index)	\
 	((uint16_t)(((args) >> ((uint64_t)AML_TYPE_WIDTH * (index))) & ((uint64_t)AML_TYPE_MASK)))
+
+
+#define AML_IS_LOCALOBJ(opcode)		\
+	(((opcode) >= AML_LOCAL0 && (opcode) <= AML_LOCAL7) ? true : false)
+#define AML_IS_ARGOBJ(opcode)		\
+	(((opcode) >= AML_ARG0 && (opcode) <= AML_ARG6) ? true : false)
+#define AML_IS_LOCAL_OR_ARG(opcode)	\
+	(AML_IS_LOCALOBJ(opcode) || AML_IS_ARGOBJ(opcode))
 
 void aml_decode_namestring(union acpi_term *term, uint8_t *aml,
 			   uint32_t *name_len);

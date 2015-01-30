@@ -72,6 +72,11 @@ struct acpi_parser *acpi_parser_init(struct acpi_interp *interp,
 		parser->aml = parser->aml_begin;
 		parser->pkg_end = parser->aml_end;
 		parser->arg_types = environ->op_info->args;
+
+		/*
+		 * Initialize the next_opcode, let it to be determined by
+		 * the TermList parsing.
+		 */
 		parser->next_opcode = false;
 	}
 
@@ -117,6 +122,7 @@ acpi_status_t acpi_parser_push(struct acpi_parser *last_parser,
 
 	next_state->environ.parent_node = last_environ->node;
 	next_state->environ.parent_term = last_environ->term;
+	next_state->environ.arg_type = AML_PARSER_GET_ARG_TYPE(last_parser);
 
 	*next_parser = interp->parser;
 
@@ -140,6 +146,10 @@ acpi_status_t acpi_parser_pop(struct acpi_parser *last_parser,
 		next_state->aml = last_parser->aml;
 		if (next_state->aml == next_state->pkg_end)
 			next_state->pkg_end = next_state->aml_end;
+		/*
+		 * Reinitialize the next_opcode, let it to be determined
+		 * by the argument parsing.
+		 */
 		next_state->next_opcode = false;
 		BUG_ON(next_state->aml > next_state->aml_end);
 	}
@@ -159,15 +169,18 @@ uint16_t aml_opcode_peek(uint8_t *aml)
 		opcode = ACPI_DECODE16(aml);
 	if (acpi_opcode_is_namestring(opcode))
 		opcode = AML_NAMESTRING_OP;
-	else if (!acpi_opcode_is_opcode(opcode))
-		opcode = AML_UNKNOWN_OP;
 
 	return opcode;
 }
 
 uint32_t aml_opcode_size(uint8_t *aml, uint16_t opcode)
 {
-	/* The NameString/SimpleName will be parsed in acpi_term_alloc() */
+	BUG_ON(opcode == AML_UNKNOWN_OP);
+
+	/*
+	 * NOTE: Recognized a NameString, returning 0 because it will be
+	 *       parsed in acpi_term_alloc_name().
+	 */
 	if (opcode == AML_NAMESTRING_OP)
 		return 0;
 	return (opcode > 0x00FF) ? 2 : 1;
@@ -386,12 +399,18 @@ static acpi_status_t acpi_parser_begin_term(struct acpi_parser *parser)
 	uint16_t opcode;
 	uint32_t length;
 	struct acpi_environ *environ = &parser->environ;
+	uint16_t arg_type;
 
 	BUG_ON(environ->term);
 
 	opcode = aml_opcode_peek(aml);
 	length = aml_opcode_size(aml, opcode);
-	term = acpi_term_alloc(opcode, true, aml, length);
+
+	if (opcode == AML_NAMESTRING_OP) {
+		arg_type = environ->arg_type;
+		term = acpi_term_alloc_name(arg_type, aml);
+	} else
+		term = acpi_term_alloc_op(opcode, aml, length);
 	if (!term)
 		return AE_NO_MEMORY;
 
@@ -403,20 +422,23 @@ static acpi_status_t acpi_parser_begin_term(struct acpi_parser *parser)
 	/* Consume computational data value */
 	parser->aml += length;
 #endif
-
-	if (opcode == AML_UNKNOWN_OP)
-		return AE_CTRL_PARSE_CONTINUE;
+	if (!acpi_opcode_is_opcode(opcode))
+		opcode = AE_CTRL_PARSE_CONTINUE;
 
 	acpi_term_add_arg(environ->parent_term, term);
 
 	environ->opcode = opcode;
-	if (term->common.object_type == ACPI_AML_USERTERM_OBJ)
-		environ->op_info = term->userterm_obj.op_info;
+	if (term->common.object_type == ACPI_AML_SUPERNAME)
+		environ->op_info = term->super_name.op_info;
 	else
 		environ->op_info = acpi_opcode_get_info(environ->opcode);
 	environ->term = term;
 
 	parser->arg_types = environ->op_info->args;
+	/*
+	 * Reinitialize the next_opcode, let it to be determined by the
+	 * argument parsing.
+	 */
 	parser->next_opcode = false;
 
 	return status;
@@ -450,37 +472,37 @@ acpi_status_t acpi_parser_get_simple_arg(struct acpi_parser *parser,
 
 	switch (arg_type) {
 	case AML_BYTEDATA:
-		arg = acpi_term_alloc(AML_BYTE_PFX, false, aml, 1);
+		arg = acpi_term_alloc_op(AML_BYTE_PFX, aml, 1);
 		if (!arg)
 			return AE_NO_MEMORY;
 		aml_decode_computation_data(arg, aml, AML_BYTE_PFX, &length);
 		break;
 	case AML_WORDDATA:
-		arg = acpi_term_alloc(AML_WORD_PFX, false, aml, 1);
+		arg = acpi_term_alloc_op(AML_WORD_PFX, aml, 1);
 		if (!arg)
 			return AE_NO_MEMORY;
 		aml_decode_computation_data(arg, aml, AML_WORD_PFX, &length);
 		break;
 	case AML_DWORDDATA:
-		arg = acpi_term_alloc(AML_DWORD_PFX, false, aml, 1);
+		arg = acpi_term_alloc_op(AML_DWORD_PFX, aml, 1);
 		if (!arg)
 			return AE_NO_MEMORY;
 		aml_decode_computation_data(arg, aml, AML_DWORD_PFX, &length);
 		break;
 	case AML_QWORDDATA:
-		arg = acpi_term_alloc(AML_QWORD_PFX, false, aml, length);
+		arg = acpi_term_alloc_op(AML_QWORD_PFX, aml, length);
 		if (!arg)
 			return AE_NO_MEMORY;
 		aml_decode_computation_data(arg, aml, AML_QWORD_PFX, &length);
 		break;
 	case AML_ASCIICHARLIST:
-		arg = acpi_term_alloc(AML_STRING_PFX, false, aml, 1);
+		arg = acpi_term_alloc_op(AML_STRING_PFX, aml, 1);
 		if (!arg)
 			return AE_NO_MEMORY;
 		aml_decode_computation_data(arg, aml, AML_STRING_PFX, &length);
 		break;
 	case AML_BYTELIST:
-		arg = acpi_term_alloc(AML_BUFFER_OP, false, aml, 0);
+		arg = acpi_term_alloc_op(AML_BUFFER_OP, aml, 0);
 		if (!arg)
 			return AE_NO_MEMORY;
 		aml_decode_byte_list(arg, aml, parser->pkg_end, &length);
@@ -498,17 +520,14 @@ acpi_status_t acpi_parser_get_simple_arg(struct acpi_parser *parser,
 	return AE_OK;
 }
 
-acpi_status_t acpi_parser_get_simple_name(struct acpi_parser *parser,
+acpi_status_t acpi_parser_get_name_string(struct acpi_parser *parser,
 					  uint16_t arg_type)
 {
-	uint16_t opcode;
 	union acpi_term *arg;
 	uint8_t *aml = parser->aml;
 	struct acpi_environ *environ = &parser->environ;
-	boolean is_userterm = (arg_type == AML_NAMESTRING) ? false : true;
 
-	opcode = AML_NAMESTRING_OP;
-	arg = acpi_term_alloc(opcode, is_userterm, aml, 0);
+	arg = acpi_term_alloc_name(arg_type, aml);
 	if (!arg)
 		return AE_NO_MEMORY;
 
@@ -580,67 +599,100 @@ acpi_status_t acpi_parser_get_argument(struct acpi_parser *parser,
 	struct acpi_environ *environ = &parser->environ;
 
 	switch (arg_type) {
-	case AML_BYTEDATA:
-	case AML_WORDDATA:
-	case AML_DWORDDATA:
-	case AML_QWORDDATA:
-	case AML_ASCIICHARLIST:
-	case AML_BYTELIST:
-		return acpi_parser_get_simple_arg(parser, arg_type);
 	case AML_PKGLENGTH:
 		return acpi_parser_get_pkg_length(parser);
 	case AML_NAMESTRING:
-		return acpi_parser_get_simple_name(parser, arg_type);
+		return acpi_parser_get_name_string(parser, arg_type);
 	case AML_SIMPLENAME:
 		opcode = aml_opcode_peek(parser->aml);
 		if (opcode == AML_NAMESTRING_OP)
-			return acpi_parser_get_simple_name(parser, AML_SIMPLENAME);
-		else
-			parser->next_opcode = true;
+			return acpi_parser_get_name_string(parser, arg_type);
+		else {
+			/*
+			 * TODO: LocalObj and ArgObj can be handled
+			 *       directly here.
+			 */
+			if (AML_IS_LOCAL_OR_ARG(opcode))
+				parser->next_opcode = true;
+		}
 		return AE_OK;
+	case AML_OBJECT:
+		/*
+		 * Object can be NameSpaceModifierObj or NamedObj, which
+		 * contains opcode.
+		 */
 	case AML_DATAREFOBJECT:
+		/*
+		 * DataRefObject can be DataObject, which contains opcode.
+		 */
 	case AML_OBJECTREFERENCE:
-		/* SuperName */
-	case AML_SUPERNAME(ANY):
-	case AML_TARGET:
-	case AML_DEVICE:
-		/* TermArg */
-	case AML_TERMARG(ANY):
-	case AML_INTEGERARG:
-	case AML_BUFFERARG:
-	case AML_PACKAGEARG:
-	case AML_OBJECTARG:
-	case AML_DATA:
-	case AML_BUFFSTR:
-	case AML_BUFFPKGSTR:
-	case AML_BYTEARG:
+		/*
+		 * This actually should be a SuperName.
+		 */
 		parser->next_opcode = true;
-		return AE_OK;
-	case AML_OBJECTLIST:
-	case AML_FIELDLIST:
-	case AML_PACKAGELEMENTLIST:
-	case AML_TERMARGLIST:
-		if (parser->aml < parser->pkg_end)
-			parser->next_opcode = true;
 		return AE_OK;
 	case AML_TERMLIST:
 		if (parser->aml < parser->pkg_end) {
-			if (!environ->parent_term) {
-				/* Execute the start term. */
+			/*
+			 * TermObj can be a UserTemObj because of
+			 * Type2Opcode.
+			 */
+			if (!environ->parent_term ||
+			    (environ->term->common.aml_opcode != AML_METHOD_OP)) {
+				/*
+				 * Evaluate the entrance UserTermObj and
+				 * none Method opcodes.
+				 */
 				parser->next_opcode = true;
 			} else {
-				/* Do not execute the non start term. */
+				/*
+				 * Do not evaluate the non entrance
+				 * UserTermObj.
+				 */
 				return acpi_parser_get_term_list(parser);
 			}
 		}
 		return AE_OK;
 	default:
+		if (AML_IS_SIMPLEDATA(arg_type))
+			return acpi_parser_get_simple_arg(parser, arg_type);
+		if (AML_IS_VARTYPE(arg_type)) {
+			/*
+			 * All variable argument need to be built with a
+			 * sub-arguments list.
+			 */
+			if (parser->aml < parser->pkg_end)
+				parser->next_opcode = true;
+			return AE_OK;
+		}
+		if (AML_IS_TERMARG(arg_type)) {
+			/*
+			 * TermArg can be a UserTermObj because of
+			 * Type2Opcode.
+			 */
+			/*
+			 * TODO: LocalObj and ArgObj can be handled
+			 *       directly here.
+			 */
+			if (AML_IS_LOCAL_OR_ARG(opcode))
+				parser->next_opcode = true;
+			else
+				parser->next_opcode = true;
+			return AE_OK;
+		}
+		if (AML_IS_SUPERNAME(arg_type)) {
+			/*
+			 * SuperName can be a UserTermObj because of
+			 * Type6Opcode.
+			 */
+			parser->next_opcode = true;
+			return AE_OK;
+		}
 		acpi_err("Invalid argument type: 0x%X", arg_type);
 		return AE_AML_OPERAND_TYPE;
 	}
 
-	if (opcode == AML_UNKNOWN_OP)
-		return AE_CTRL_PARSE_CONTINUE;
+	BUG_ON(opcode == AML_UNKNOWN_OP);
 
 	/* Consume opcode */
 	parser->aml += arg->common.aml_length;
