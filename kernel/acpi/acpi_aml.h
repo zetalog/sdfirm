@@ -282,6 +282,17 @@
 #define AML_TERM_ARG				\
 	(AML_TYPE2_OPCODE | AML_DATA_OBJECT | AML_ARG_OBJ | AML_LOCAL_OBJ)
 
+#if 0
+#define AML_USER_TERM_OBJ_OFFSET		10
+#define AML_USER_TERM_OBJ			(1 << AML_USER_TERM_OBJ_OFFSET)
+#else
+/* We have run out of the flag bits, so UserTermObj is very special */
+#define AML_USER_TERM_OBJ			\
+	(AML_TYPE6_OPCODE | AML_TYPE2_OPCODE)
+#define AML_IS_USER_TERM_OBJ(op_info)		\
+	(((op_info)->flags & AML_USER_TERM_OBJ) == AML_USER_TERM_OBJ)
+#endif
+
 #define AML_FLAGS_EXEC_0A_0T_1R			AML_HAS_RETURN(1)
 #define AML_FLAGS_EXEC_1A_0T_0R			AML_HAS_ARGUMENT(1)
 #define AML_FLAGS_EXEC_1A_0T_1R			AML_HAS_ARGUMENT(1) | AML_HAS_RETURN(1)

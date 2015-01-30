@@ -443,7 +443,7 @@ struct acpi_opcode_info *acpi_opcode_alloc_info(acpi_name_t name, uint8_t argc)
 
 	op_info = acpi_os_allocate_zeroed(sizeof (struct acpi_opcode_info));
 	if (op_info) {
-		op_info->flags = AML_USERTERM;
+		op_info->flags = AML_USER_TERM_OBJ;
 		op_info->name = name;
 		for (i = 0; i < argc; i++) {
 			op_info->args <<= AML_TYPE_WIDTH;
