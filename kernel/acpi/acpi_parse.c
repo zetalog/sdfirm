@@ -166,7 +166,7 @@ uint16_t aml_opcode_peek(uint8_t *aml)
 
 	opcode = (uint16_t)ACPI_DECODE8(aml);
 	if (opcode == AML_EXTENDED_OP_PFX)
-		opcode = ACPI_DECODE16(aml);
+		opcode = (uint16_t)((opcode << 8) | (uint16_t)ACPI_DECODE8(aml + 1));
 	if (acpi_opcode_is_namestring(opcode))
 		opcode = AML_NAMESTRING_OP;
 
@@ -423,7 +423,7 @@ static acpi_status_t acpi_parser_begin_term(struct acpi_parser *parser)
 	parser->aml += length;
 #endif
 	if (!acpi_opcode_is_opcode(opcode))
-		opcode = AE_CTRL_PARSE_CONTINUE;
+		return AE_CTRL_PARSE_CONTINUE;
 
 	acpi_term_add_arg(environ->parent_term, term);
 
@@ -640,14 +640,14 @@ acpi_status_t acpi_parser_get_argument(struct acpi_parser *parser,
 			if (!environ->parent_term ||
 			    (environ->term->common.aml_opcode != AML_METHOD_OP)) {
 				/*
-				 * Evaluate the entrance UserTermObj and
+				 * Evaluate the entrance AMLCode and
 				 * none Method opcodes.
 				 */
 				parser->next_opcode = true;
 			} else {
 				/*
 				 * Do not evaluate the non entrance
-				 * UserTermObj.
+				 * AMLCode.
 				 */
 				return acpi_parser_get_term_list(parser);
 			}
@@ -662,7 +662,15 @@ acpi_status_t acpi_parser_get_argument(struct acpi_parser *parser,
 			 * sub-arguments list.
 			 */
 			if (parser->aml < parser->pkg_end)
+#if 0
 				parser->next_opcode = true;
+#else
+				/*
+				 * NYI: Hacking to make parser running for
+				 * AML_OBJECT/AML_FIELDELEMENT/AML_PACKAGEELEMENT
+				 */
+				return acpi_parser_get_term_list(parser);
+#endif
 			return AE_OK;
 		}
 		if (AML_IS_TERMARG(arg_type)) {
