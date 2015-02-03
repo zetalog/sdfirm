@@ -11,6 +11,7 @@ void acpi_ospm_init(void)
 	acpi_initialize_subsystem();
 	for (i = 0; i < ACPI_MAX_TABLES; i++)
 		acpi_gbl_initial_tables_ids[i] = &acpi_gbl_initial_tables[i];
+	acpi_initialize_namespace();
 	acpi_initialize_tables(acpi_gbl_initial_tables_ids, ACPI_MAX_TABLES, false);
 	acpi_reallocate_root_table();
 	acpi_load_tables();

@@ -821,6 +821,7 @@ acpi_status_t acpi_reallocate_root_table(void);
 acpi_status_t acpi_initialize_subsystem(void);
 void acpi_load_tables(void);
 acpi_status_t acpi_initialize_events(void);
+acpi_status_t acpi_initialize_namespace(void);
 
 void acpi_finalize_tables(void);
 
