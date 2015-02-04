@@ -124,6 +124,8 @@ static const struct acpi_exception_info acpi_gbl_exception_names_aml[] =
 	EXCEP_TXT(NULL, NULL),
 	EXCEP_TXT("AE_AML_BAD_OPCODE",
 		  "Invalid AML opcode encountered"),
+	EXCEP_TXT("AE_AML_INCOMPLETE_TERM",
+		  "AML term not completed"),
 	EXCEP_TXT("AE_AML_NO_OPERAND",
 		  "A required operand is missing"),
 	EXCEP_TXT("AE_AML_OPERAND_TYPE",

@@ -748,7 +748,11 @@ next_parser:
 			acpi_parser_pop(parser, &parser);
 	}
 
-	BUG_ON(parser);
+	if (parser) {
+		status = AE_AML_INCOMPLETE_TERM;
+		while (parser)
+			acpi_parser_pop(parser, &parser);
+	}
 
 	return status;
 }
