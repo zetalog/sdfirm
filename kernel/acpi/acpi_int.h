@@ -265,7 +265,7 @@ struct acpi_opcode_info *acpi_opcode_alloc_info(acpi_name_t name,
 uint8_t acpi_opcode_num_arguments(uint16_t opcode);
 uint8_t acpi_opcode_num_targets(uint16_t opcode);
 boolean acpi_opcode_match_type(uint16_t opcode, uint16_t arg_type);
-boolean acpi_opcode_is_opcode(uint16_t opcode);
+boolean acpi_opcode_is_term(uint16_t opcode);
 boolean acpi_opcode_is_namestring(uint16_t opcode);
 
 /*=========================================================================

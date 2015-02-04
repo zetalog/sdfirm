@@ -715,12 +715,11 @@ static boolean acpi_opcode_is_type(uint16_t opcode, uint16_t type)
 	return (op_info && op_info->flags & type) ? true : false;
 }
 
-boolean acpi_opcode_is_opcode(uint16_t opcode)
+boolean acpi_opcode_is_term(uint16_t opcode)
 {
 	uint8_t op_index = acpi_opcode_info_index(opcode);
 
-	return (op_index == _UNK || op_index == _NAM) ?
-	       false : true;
+	return (op_index == _UNK) ? false : true;
 }
 
 boolean acpi_opcode_is_namestring(uint16_t opcode)
@@ -914,15 +913,13 @@ boolean acpi_opcode_match_type(uint16_t opcode, uint16_t arg_type)
 	}
 }
 
-acpi_status_t acpi_opcode_get_args(uint16_t opcode, int16_t *nr_arguments,
-				   int16_t *nr_targets, int16_t *nr_returns)
+void acpi_opcode_get_args(uint16_t opcode, int16_t *nr_arguments,
+			  int16_t *nr_targets, int16_t *nr_returns)
 {
 	const struct acpi_opcode_info *info;
 
 	info = acpi_opcode_get_info(opcode);
-
-	if (!info)
-		return AE_AML_BAD_OPCODE;
+	BUG_ON(!info);
 
 	if (nr_arguments)
 		*nr_arguments = (info->flags >> AML_ARGUMENT_OFFSET) &
@@ -933,31 +930,21 @@ acpi_status_t acpi_opcode_get_args(uint16_t opcode, int16_t *nr_arguments,
 	if (nr_returns)
 		*nr_returns = (info->flags >> AML_RETURN_OFFSET) &
 			      AML_RETURN_MASK;
-
-	return AE_OK;
 }
 
 uint8_t acpi_opcode_num_arguments(uint16_t opcode)
 {
 	int16_t nr_arguments;
-	acpi_status_t status;
 
-	status = acpi_opcode_get_args(opcode, &nr_arguments, NULL, NULL);
-	if (ACPI_FAILURE(status))
-		return 0;
-
+	acpi_opcode_get_args(opcode, &nr_arguments, NULL, NULL);
 	return nr_arguments > 0 ? (uint8_t)nr_arguments : 0;
 }
 
 uint8_t acpi_opcode_num_targets(uint16_t opcode)
 {
 	int16_t nr_targets;
-	acpi_status_t status;
 
-	status = acpi_opcode_get_args(opcode, NULL, &nr_targets, NULL);
-	if (ACPI_FAILURE(status))
-		return 0;
-
+	acpi_opcode_get_args(opcode, NULL, &nr_targets, NULL);
 	return nr_targets > 0 ? (uint8_t)nr_targets : 0;
 }
 
@@ -1046,10 +1033,8 @@ void acpi_opcode_test(char *str, uint16_t opcode)
 	int16_t nr_arguments = -1, nr_targets = -1, nr_returns = -1;
 
 	info = acpi_opcode_get_info(opcode);
-	(void)acpi_opcode_get_args(opcode,
-				   &nr_arguments,
-				   &nr_targets,
-				   &nr_returns);
+	acpi_opcode_get_args(opcode, &nr_arguments,
+			     &nr_targets, &nr_returns);
 
 	acpi_dbg("%s: %s(%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s) %d %d %d", str,
 		 info->name,

@@ -377,8 +377,8 @@ static acpi_status_t acpi_parser_begin_term(struct acpi_parser *parser)
 	/* Consume computational data value */
 	parser->aml += length;
 #endif
-	if (!acpi_opcode_is_opcode(opcode))
-		return AE_CTRL_PARSE_CONTINUE;
+	if (!acpi_opcode_is_term(opcode))
+		return AE_AML_UNKNOWN_TERM;
 
 	acpi_term_add_arg(environ->parent_term, term);
 

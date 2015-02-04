@@ -166,7 +166,7 @@ typedef void *acpi_handle_t;
  * AML exceptions. These are caused by problems with
  * the actual AML byte stream
  */
-#define AE_AML_BAD_OPCODE               EXCEP_AML(0x0001)
+#define AE_AML_UNKNOWN_TERM             EXCEP_AML(0x0001)
 #define AE_AML_INCOMPLETE_TERM          EXCEP_AML(0x0002)
 #define AE_AML_NO_OPERAND               EXCEP_AML(0x0003)
 #define AE_AML_OPERAND_TYPE             EXCEP_AML(0x0004)
