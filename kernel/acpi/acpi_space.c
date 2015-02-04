@@ -5,12 +5,12 @@ acpi_mutex_t acpi_gbl_space_mutex;
 
 void acpi_space_lock(void)
 {
-	//(void)acpi_os_acquire_mutex(acpi_gbl_space_mutex, ACPI_WAIT_FOREVER);
+	(void)acpi_os_acquire_mutex(acpi_gbl_space_mutex, ACPI_WAIT_FOREVER);
 }
 
 void acpi_space_unlock(void)
 {
-	//acpi_os_release_mutex(acpi_gbl_space_mutex);
+	acpi_os_release_mutex(acpi_gbl_space_mutex);
 }
 
 struct acpi_namespace_node *acpi_space_lookup_node(const char *name,
