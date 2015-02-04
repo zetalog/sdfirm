@@ -10,36 +10,36 @@ int acpi_compare_sig_name(acpi_tag_t sig, acpi_name_t name)
 	return ACPI_NAME2TAG(name) - sig;
 }
 
-void aml_decode_last_nameseg(acpi_name_t name, char *pathname, uint32_t length)
+void acpi_path_split(acpi_path_t path, acpi_path_t *parent, acpi_name_t name)
 {
-	char *path = pathname;
+	char *iter = path.names;
 	int nr_carats, nr_segs;
 
-	if (!pathname) {
+	if (!path.names) {
 		nr_segs = 0;
-		path = "";
+		iter = "";
 	} else {
-		if (*path == AML_ROOT_PFX)
-			path++;
+		if (*iter == AML_ROOT_PFX)
+			iter++;
 		else {
 			nr_carats = 0;
-			while (*path == AML_PARENT_PFX) {
-				path++;
+			while (*iter == AML_PARENT_PFX) {
+				iter++;
 				nr_carats++;
 			}
 		}
-		switch (*path) {
+		switch (*iter) {
 		case 0:
 			nr_segs = 0;
 			break;
 		case AML_DUAL_NAME_PFX:
 			nr_segs = 2;
-			path++;
+			iter++;
 			break;
 		case AML_MULTI_NAME_PFX:
-			path++;
-			nr_segs = (uint32_t)(uint8_t)*path;
-			path++;
+			iter++;
+			nr_segs = (uint32_t)(uint8_t)*iter;
+			iter++;
 			break;
 		default:
 			nr_segs = 1;
@@ -50,7 +50,12 @@ void aml_decode_last_nameseg(acpi_name_t name, char *pathname, uint32_t length)
 		if (nr_segs == 1)
 			break;
 		nr_segs--;
-	        path += ACPI_NAME_SIZE;
+	        iter += ACPI_NAME_SIZE;
         }
-	ACPI_NAMECPY(ACPI_NAME2TAG(path), name);
+	if (name)
+		ACPI_NAMECPY(ACPI_NAME2TAG(iter), name);
+	if (parent) {
+		parent->names = path.names;
+		parent->length = iter - path.names;
+	}
 }

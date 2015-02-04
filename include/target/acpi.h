@@ -413,6 +413,10 @@ typedef uint32_t acpi_ddb_t;
 typedef uint32_t acpi_tag_t;
 #define ACPI_NAME_SIZE		4
 typedef char acpi_name_t[ACPI_NAME_SIZE];
+typedef struct acpi_path {
+	char *names;
+	uint32_t length;
+} acpi_path_t;
 
 #define ACPI_NAME2TAG(name)				\
 	((acpi_tag_t)ACPI_GET32_PAD((name), '_'))

@@ -227,8 +227,7 @@ extern struct acpi_table_fadt acpi_gbl_FADT;
  * Name internals
  *=======================================================================*/
 int acpi_compare_name(acpi_name_t name1, acpi_name_t name2);
-void aml_decode_last_nameseg(acpi_name_t name,
-			     char *aml, uint32_t length);
+void acpi_path_split(acpi_path_t path, acpi_path_t *parent, acpi_name_t name);
 
 /*=========================================================================
  * Parser internals

@@ -569,6 +569,7 @@ union acpi_term *acpi_term_alloc_name(uint16_t arg_type, uint8_t *aml)
 	uint8_t argc = 0;
 	uint16_t object_type;
 	uint32_t length;
+	acpi_path_t path;
 
 	if (arg_type == AML_NAMESTRING)
 		object_type = ACPI_AML_NAMESTRING;
@@ -583,7 +584,9 @@ union acpi_term *acpi_term_alloc_name(uint16_t arg_type, uint8_t *aml)
 		return NULL;
 
 	aml_decode_namestring(term, aml, &length);
-	aml_decode_last_nameseg(term->name_string.name, aml, length);
+	path.names = aml;
+	path.length = length;
+	acpi_path_split(path, NULL, term->name_string.name);
 	if ((object_type == ACPI_AML_SIMPLENAME) ||
 	    (object_type == ACPI_AML_SUPERNAME)) {
 		node = acpi_space_lookup_node(term->common.value.string,
