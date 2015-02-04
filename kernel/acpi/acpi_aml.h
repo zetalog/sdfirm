@@ -357,7 +357,5 @@
 
 void aml_decode_namestring(union acpi_term *term, uint8_t *aml,
 			   uint32_t *name_len);
-void aml_decode_last_nameseg(acpi_name_t name,
-			     char *aml, uint32_t length);
 
 #endif /* __ACPI_AML_H_INCLUDE__ */

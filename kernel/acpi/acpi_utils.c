@@ -1,15 +1,5 @@
 #include "acpi_int.h"
 
-int acpi_compare_name(acpi_name_t name1, acpi_name_t name2)
-{
-	return ACPI_NAME2TAG(name2) - ACPI_NAME2TAG(name2);
-}
-
-int acpi_compare_sig_name(acpi_tag_t sig, acpi_name_t name)
-{
-	return ACPI_NAME2TAG(name) - sig;
-}
-
 uint8_t acpi_checksum_calc(uint8_t *buffer, uint32_t length)
 {
 	uint8_t sum = 0;

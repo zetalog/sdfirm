@@ -121,6 +121,10 @@ SOURCE=..\..\..\kernel\acpi\acpi_interp.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\kernel\acpi\acpi_name.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\kernel\acpi\acpi_opcode.c
 # End Source File
 # Begin Source File

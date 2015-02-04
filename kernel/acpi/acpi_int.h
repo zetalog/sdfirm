@@ -220,9 +220,15 @@ acpi_ddb_t acpi_table_increment(acpi_ddb_t ddb);
 void acpi_table_decrement(acpi_ddb_t ddb);
 acpi_status_t acpi_table_increment_validated(acpi_ddb_t ddb,
 					     struct acpi_table_header **out_table);
-int acpi_compare_name(acpi_name_t name1, acpi_name_t name2);
 
 extern struct acpi_table_fadt acpi_gbl_FADT;
+
+/*=========================================================================
+ * Name internals
+ *=======================================================================*/
+int acpi_compare_name(acpi_name_t name1, acpi_name_t name2);
+void aml_decode_last_nameseg(acpi_name_t name,
+			     char *aml, uint32_t length);
 
 /*=========================================================================
  * Parser internals
