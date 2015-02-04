@@ -558,10 +558,12 @@ union acpi_term *acpi_term_alloc_aml(acpi_tag_t tag,
  * @arg_type: argument type, can be NameString, SimpleName or SuperName
  * @aml: pointer to the AML containing the name string
  *
+ * Return AE_AML_UNKNOWN_TERM if the UserTermObj cannot be found.
  * This function is responsible for parsing the name of the
  * NameString/SimpleName/SuperName objects (AML_NAMESTRING_OP).
  */
-union acpi_term *acpi_term_alloc_name(uint16_t arg_type, uint8_t *aml)
+acpi_status_t acpi_term_alloc_name(uint16_t arg_type, uint8_t *aml,
+				   union acpi_term **pterm)
 {
 	union acpi_term *term;
 	struct acpi_opcode_info *op_info;
@@ -581,7 +583,7 @@ union acpi_term *acpi_term_alloc_name(uint16_t arg_type, uint8_t *aml)
 	term = __acpi_term_alloc(object_type, AML_NAMESTRING_OP,
 				 aml, 0);
 	if (!term)
-		return NULL;
+		return AE_NO_MEMORY;
 
 	aml_decode_namestring(term, aml, &length);
 	path.names = aml;
@@ -591,9 +593,16 @@ union acpi_term *acpi_term_alloc_name(uint16_t arg_type, uint8_t *aml)
 	    (object_type == ACPI_AML_SUPERNAME)) {
 		node = acpi_space_lookup_node(term->common.value.string,
 					       term->common.aml_length);
-		if (node) {
-			/* TODO: obtain argc here */
+		if (!node) {
+			/*
+			 * TBD: Parser Continuation
+			 * Should we allow some bad AML tables and return
+			 * AE_CTRL_PARSE_CONTINUE here?
+			 */
+			__acpi_term_free(term);
+			return AE_AML_UNKNOWN_TERM;
 		}
+		/* TODO: obtain argc here */
 		term->simple_name.node = node;
 	}
 	if (object_type == ACPI_AML_SUPERNAME) {
@@ -601,7 +610,8 @@ union acpi_term *acpi_term_alloc_name(uint16_t arg_type, uint8_t *aml)
 		term->super_name.op_info = op_info;
 	}
 
-	return term;
+	*pterm = term;
+	return AE_OK;
 }
 
 union acpi_term *acpi_term_get_arg(union acpi_term *term, uint32_t argn)

@@ -361,13 +361,25 @@ static acpi_status_t acpi_parser_begin_term(struct acpi_parser *parser)
 	opcode = aml_opcode_peek(aml);
 	length = aml_opcode_size(aml, opcode);
 
+	/*
+	 * TBD: Parser Continuation
+	 * Should we allow some bad AML tables and return
+	 * AE_CTRL_PARSE_CONTINUE here?
+	 */
+	if (!acpi_opcode_is_term(opcode))
+		return AE_AML_UNKNOWN_TERM;
+
 	if (opcode == AML_NAMESTRING_OP) {
 		arg_type = environ->arg_type;
-		term = acpi_term_alloc_name(arg_type, aml);
-	} else
+		status = acpi_term_alloc_name(arg_type, aml, &term);
+		if (ACPI_FAILURE(status))
+			return status;
+	} else {
 		term = acpi_term_alloc_op(opcode, aml, length);
-	if (!term)
-		return AE_NO_MEMORY;
+		if (!term)
+			return AE_NO_MEMORY;
+	}
+	BUG_ON(!term);
 
 	/* Consume opcode */
 	parser->aml += term->common.aml_length;
@@ -377,8 +389,6 @@ static acpi_status_t acpi_parser_begin_term(struct acpi_parser *parser)
 	/* Consume computational data value */
 	parser->aml += length;
 #endif
-	if (!acpi_opcode_is_term(opcode))
-		return AE_AML_UNKNOWN_TERM;
 
 	acpi_term_add_arg(environ->parent_term, term);
 
@@ -406,7 +416,7 @@ static acpi_status_t acpi_parser_end_term(struct acpi_parser *parser,
 	union acpi_term *term = environ->term;
 
 	if (!term)
-		return AE_OK;
+		return parser_status;
 	/*
 	 * TODO: we may create a result term to replace the deleted one.
 	 */
@@ -481,10 +491,11 @@ acpi_status_t acpi_parser_get_name_string(struct acpi_parser *parser,
 	union acpi_term *arg;
 	uint8_t *aml = parser->aml;
 	struct acpi_environ *environ = &parser->environ;
+	acpi_status_t status;
 
-	arg = acpi_term_alloc_name(arg_type, aml);
-	if (!arg)
-		return AE_NO_MEMORY;
+	status = acpi_term_alloc_name(arg_type, aml, &arg);
+	if (ACPI_FAILURE(status))
+		return status;
 
 	/* Consume opcode */
 	parser->aml += arg->common.aml_length;
@@ -707,7 +718,7 @@ acpi_status_t acpi_parse_aml(struct acpi_interp *interp,
 					return status;
 				status = acpi_parser_end_term(parser, status);
 				if (ACPI_FAILURE(status))
-					return status;
+					break;
 				goto next_parser;
 			}
 		}
@@ -717,7 +728,7 @@ acpi_status_t acpi_parse_aml(struct acpi_interp *interp,
 			if (ACPI_FAILURE(status)) {
 				status = acpi_parser_end_term(parser, status);
 				if (ACPI_FAILURE(status))
-					return status;
+					break;
 				goto next_parser;
 			}
 		}
@@ -727,7 +738,7 @@ acpi_status_t acpi_parse_aml(struct acpi_interp *interp,
 			if (ACPI_FAILURE(status)) {
 				status = acpi_parser_end_term(parser, status);
 				if (ACPI_FAILURE(status))
-					return status;
+					break;
 				goto next_parser;
 			}
 			continue;
@@ -741,7 +752,7 @@ acpi_status_t acpi_parse_aml(struct acpi_interp *interp,
 
 		status = acpi_parser_end_term(parser, status);
 		if (ACPI_FAILURE(status))
-			return status;
+			break;
 
 next_parser:
 		if (acpi_parser_completed(parser))
@@ -749,7 +760,8 @@ next_parser:
 	}
 
 	if (parser) {
-		status = AE_AML_INCOMPLETE_TERM;
+		if (ACPI_SUCCESS(status))
+			status = AE_AML_INCOMPLETE_TERM;
 		while (parser)
 			acpi_parser_pop(parser, &parser);
 	}

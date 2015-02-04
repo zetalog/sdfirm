@@ -248,7 +248,8 @@ union acpi_term *acpi_term_alloc_op(uint16_t opcode,
 union acpi_term *acpi_term_alloc_aml(acpi_tag_t tag,
 				     uint8_t *aml_begin,
 				     uint8_t *aml_end);
-union acpi_term *acpi_term_alloc_name(uint16_t arg_type, uint8_t *aml);
+acpi_status_t acpi_term_alloc_name(uint16_t arg_type, uint8_t *aml,
+				   union acpi_term **pterm);
 void acpi_term_free(union acpi_term *op);
 union acpi_term *acpi_term_get_arg(union acpi_term *term, uint32_t argn);
 void acpi_term_add_arg(union acpi_term *term, union acpi_term *arg);
