@@ -346,6 +346,23 @@ boolean acpi_parser_completed(struct acpi_parser *parser)
 	return (boolean)((parser->aml >= parser->pkg_end) || !arg_type);
 }
 
+static acpi_status_t acpi_parser_consume_arg(struct acpi_parser *parser,
+					     union acpi_term *term,
+					     union acpi_term *arg)
+{
+	uint32_t length = arg->common.aml_length;
+
+	if ((parser->aml + length) > parser->pkg_end) {
+		acpi_term_free(arg);
+		return AE_AML_INCOMPLETE_TERM;
+	}
+	/* Consume opcode */
+	parser->aml += length;
+	acpi_term_add_arg(term, arg);
+
+	return AE_OK;
+}
+
 static acpi_status_t acpi_parser_begin_term(struct acpi_parser *parser)
 {
 	acpi_status_t status = AE_OK;
@@ -381,16 +398,14 @@ static acpi_status_t acpi_parser_begin_term(struct acpi_parser *parser)
 	}
 	BUG_ON(!term);
 
-	/* Consume opcode */
-	parser->aml += term->common.aml_length;
-
 #ifdef CONFIG_ACPI_AML_PREFIX_SIMPLE
 	aml_decode_computation_data(term, parser->aml, opcode, &length);
-	/* Consume computational data value */
-	parser->aml += length;
 #endif
 
-	acpi_term_add_arg(environ->parent_term, term);
+	status = acpi_parser_consume_arg(parser,
+					 environ->parent_term, term);
+	if (ACPI_FAILURE(status))
+		return status;
 
 	environ->opcode = opcode;
 	if (term->common.object_type == ACPI_AML_SUPERNAME)
@@ -437,31 +452,31 @@ acpi_status_t acpi_parser_get_simple_arg(struct acpi_parser *parser,
 
 	switch (arg_type) {
 	case AML_BYTEDATA:
-		arg = acpi_term_alloc_op(AML_BYTE_PFX, aml, 1);
+		arg = acpi_term_alloc_op(AML_BYTE_PFX, aml, 0);
 		if (!arg)
 			return AE_NO_MEMORY;
 		aml_decode_computation_data(arg, aml, AML_BYTE_PFX, &length);
 		break;
 	case AML_WORDDATA:
-		arg = acpi_term_alloc_op(AML_WORD_PFX, aml, 1);
+		arg = acpi_term_alloc_op(AML_WORD_PFX, aml, 0);
 		if (!arg)
 			return AE_NO_MEMORY;
 		aml_decode_computation_data(arg, aml, AML_WORD_PFX, &length);
 		break;
 	case AML_DWORDDATA:
-		arg = acpi_term_alloc_op(AML_DWORD_PFX, aml, 1);
+		arg = acpi_term_alloc_op(AML_DWORD_PFX, aml, 0);
 		if (!arg)
 			return AE_NO_MEMORY;
 		aml_decode_computation_data(arg, aml, AML_DWORD_PFX, &length);
 		break;
 	case AML_QWORDDATA:
-		arg = acpi_term_alloc_op(AML_QWORD_PFX, aml, length);
+		arg = acpi_term_alloc_op(AML_QWORD_PFX, aml, 0);
 		if (!arg)
 			return AE_NO_MEMORY;
 		aml_decode_computation_data(arg, aml, AML_QWORD_PFX, &length);
 		break;
 	case AML_ASCIICHARLIST:
-		arg = acpi_term_alloc_op(AML_STRING_PFX, aml, 1);
+		arg = acpi_term_alloc_op(AML_STRING_PFX, aml, 0);
 		if (!arg)
 			return AE_NO_MEMORY;
 		aml_decode_computation_data(arg, aml, AML_STRING_PFX, &length);
@@ -474,15 +489,13 @@ acpi_status_t acpi_parser_get_simple_arg(struct acpi_parser *parser,
 		break;
 	}
 
-	/* Consume opcode */
 	/*
 	 * The following length consumption is used for
 	 * CONFIG_ACPI_AML_PREFIX_SIMPLE=n environment.
+	 *
+	 * FIXME: We have problem in dealing with byte_list here.
 	 */
-	parser->aml += length;
-	acpi_term_add_arg(environ->term, arg);
-
-	return AE_OK;
+	return acpi_parser_consume_arg(parser, environ->term, arg);
 }
 
 acpi_status_t acpi_parser_get_name_string(struct acpi_parser *parser,
@@ -497,11 +510,7 @@ acpi_status_t acpi_parser_get_name_string(struct acpi_parser *parser,
 	if (ACPI_FAILURE(status))
 		return status;
 
-	/* Consume opcode */
-	parser->aml += arg->common.aml_length;
-	acpi_term_add_arg(environ->term, arg);
-
-	return AE_OK;
+	return acpi_parser_consume_arg(parser, environ->term, arg);
 }
 
 acpi_status_t acpi_parser_get_pkg_length(struct acpi_parser *parser)
@@ -520,7 +529,6 @@ acpi_status_t acpi_parser_get_pkg_length(struct acpi_parser *parser)
 
 acpi_status_t acpi_parser_get_term_list(struct acpi_parser *parser)
 {
-	uint32_t length;
 	union acpi_term *namearg;
 	union acpi_term *arg;
 	acpi_tag_t tag;
@@ -548,13 +556,8 @@ acpi_status_t acpi_parser_get_term_list(struct acpi_parser *parser)
 	arg = acpi_term_alloc_aml(tag, parser->aml, parser->pkg_end);
 	if (!arg)
 		return AE_NO_MEMORY;
-	length = parser->pkg_end - parser->aml;
 
-	/* Consume opcode */
-	parser->aml += length;
-	acpi_term_add_arg(environ->term, arg);
-
-	return AE_OK;
+	return acpi_parser_consume_arg(parser, environ->term, arg);
 }
 
 acpi_status_t acpi_parser_get_argument(struct acpi_parser *parser,
@@ -668,11 +671,7 @@ acpi_status_t acpi_parser_get_argument(struct acpi_parser *parser,
 
 	BUG_ON(opcode == AML_UNKNOWN_OP);
 
-	/* Consume opcode */
-	parser->aml += arg->common.aml_length;
-	acpi_term_add_arg(environ->term, arg);
-
-	return AE_OK;
+	return acpi_parser_consume_arg(parser, environ->term, arg);
 }
 
 static acpi_status_t acpi_parser_get_arguments(struct acpi_parser *parser)

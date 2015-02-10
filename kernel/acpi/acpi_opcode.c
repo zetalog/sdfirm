@@ -549,6 +549,7 @@ union acpi_term *acpi_term_alloc_aml(acpi_tag_t tag,
 	if (!term_list)
 		return NULL;
 	ACPI_NAMECPY(tag, term_list->name_string.name);
+	term_list->common.aml_length = aml_end - aml_begin;
 
 	return term_list;
 }
@@ -592,7 +593,7 @@ acpi_status_t acpi_term_alloc_name(uint16_t arg_type, uint8_t *aml,
 	if ((object_type == ACPI_AML_SIMPLENAME) ||
 	    (object_type == ACPI_AML_SUPERNAME)) {
 		node = acpi_space_lookup_node(term->common.value.string,
-					       term->common.aml_length);
+					      term->common.aml_length);
 		if (!node) {
 			/*
 			 * TBD: Parser Continuation
