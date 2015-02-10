@@ -566,6 +566,7 @@ acpi_status_t acpi_parser_get_argument(struct acpi_parser *parser,
 	union acpi_term *arg = NULL;
 	uint16_t opcode = AML_UNKNOWN_OP;
 	struct acpi_environ *environ = &parser->environ;
+	acpi_status_t status;
 
 	switch (arg_type) {
 	case AML_PKGLENGTH:
@@ -601,6 +602,17 @@ acpi_status_t acpi_parser_get_argument(struct acpi_parser *parser,
 		parser->next_opcode = true;
 		return AE_OK;
 	case AML_TERMLIST:
+		/*
+		 * Opcodes containing an element list need to be executed
+		 * earlier.
+		 */
+		if (parser->interp->callback) {
+			status = parser->interp->callback(parser->interp,
+							  &parser->environ,
+							  ACPI_AML_OPEN);
+			if (ACPI_FAILURE(status))
+				return status;
+		}
 		if (parser->aml < parser->pkg_end) {
 			/*
 			 * TermObj can be a UserTemObj because of
@@ -626,6 +638,17 @@ acpi_status_t acpi_parser_get_argument(struct acpi_parser *parser,
 		if (AML_IS_SIMPLEDATA(arg_type))
 			return acpi_parser_get_simple_arg(parser, arg_type);
 		if (AML_IS_VARTYPE(arg_type)) {
+			/*
+			 * Opcodes containing an element list need to be
+			 * executed earlier.
+			 */
+			if (parser->interp->callback) {
+				status = parser->interp->callback(parser->interp,
+								  &parser->environ,
+								  ACPI_AML_OPEN);
+				if (ACPI_FAILURE(status))
+					return status;
+			}
 			/*
 			 * All variable argument need to be built with a
 			 * sub-arguments list.
@@ -745,7 +768,8 @@ acpi_status_t acpi_parse_aml(struct acpi_interp *interp,
 
 		if (parser->interp->callback)
 			status = parser->interp->callback(parser->interp,
-							  &parser->environ);
+							  &parser->environ,
+							  ACPI_AML_CLOSE);
 		else
 			status = AE_OK;
 

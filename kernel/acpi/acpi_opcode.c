@@ -1071,7 +1071,7 @@ void acpi_opcode_test(char *str, uint16_t opcode)
 
 #define ACPI_OPCODE_TEST(op)	acpi_opcode_test(#op, op)
 
-void acpi_opcode_tests(void)
+void acpi_dump_opcode_info(void)
 {
 	ACPI_OPCODE_TEST(AML_ZERO_OP);
 	ACPI_OPCODE_TEST(AML_ONE_OP);
@@ -1188,5 +1188,14 @@ void acpi_opcode_tests(void)
 	ACPI_OPCODE_TEST(AML_TIMER_OP);
 	ACPI_OPCODE_TEST(AML_AMLCODE_OP);
 	ACPI_OPCODE_TEST(AML_NAMESTRING_OP);
+}
+
+void acpi_debug_opcode_info(const struct acpi_opcode_info *op_info,
+			    const char *hint)
+{
+	if (AML_IS_USER_TERM_OBJ(op_info))
+		acpi_dbg("%s %4.4s", hint, op_info->name);
+	else
+		acpi_dbg("%s %s", hint, op_info->name);
 }
 #endif

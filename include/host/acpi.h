@@ -50,4 +50,6 @@ typedef void *			caddr_t;
 #define vsnprintf		_vsnprintf
 #define snprintf		_snprintf
 
+#define CONFIG_ACPI_DEBUG 1
+
 #endif /* __HOST_ACPI_H_INCLUDE__ */

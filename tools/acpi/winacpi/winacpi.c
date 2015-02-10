@@ -824,7 +824,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	HACCEL hAccelTable;
 	INITCOMMONCONTROLSEX iccex;
 
-	acpi_opcode_tests();
+	acpi_dump_opcode_info();
 
 	LoadString(hInstance, IDS_APP_TITLE, _szTitle, MAX_LOADSTRING);
 	LoadString(hInstance, IDS_APP_CLASS, _szWindowClass, MAX_LOADSTRING);

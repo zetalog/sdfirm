@@ -187,9 +187,21 @@ union acpi_state {
 	struct acpi_parser parser;
 };
 
+/*
+ * When the TermList is about to be parsed, we invoke acpi_term_cb using
+ * this type.
+ */
+#define ACPI_AML_OPEN	0x01
+/*
+ * When all child TermObj elements are parsed, we invoke acpi_term_cb using
+ * this type.
+ */
+#define ACPI_AML_CLOSE	0x02
+
 typedef
 acpi_status_t (*acpi_term_cb)(struct acpi_interp *interp,
-			      struct acpi_environ *exec_environ);
+			      struct acpi_environ *exec_environ,
+			      uint8_t type);
 
 struct acpi_interp {
 	/* Parser state */
@@ -276,10 +288,9 @@ acpi_status_t acpi_interpret_aml(uint8_t *aml_begin,
 				 uint32_t aml_length,
 				 acpi_term_cb callback,
 				 struct acpi_namespace_node *start_node);
-acpi_status_t acpi_interpret_load(struct acpi_interp *interp,
-				  struct acpi_environ *environ);
 acpi_status_t acpi_interpret_exec(struct acpi_interp *interp,
-				  struct acpi_environ *environ);
+				  struct acpi_environ *environ,
+				  uint8_t type);
 acpi_status_t acpi_parse_table(struct acpi_table_header *table,
 			       struct acpi_namespace_node *start_node);
 void acpi_unparse_table(struct acpi_table_header *table,

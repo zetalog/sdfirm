@@ -909,10 +909,16 @@ void acpi_event_unregister_table_handler(acpi_event_table_cb handler);
 void acpi_event_table_notify(struct acpi_table_desc *table_desc,
 			     acpi_ddb_t ddb, uint32_t event);
 
-#ifdef CONFIG_ACPI_TESTS
-void acpi_opcode_tests(void);
+#ifdef CONFIG_ACPI_DEBUG
+void acpi_debug_opcode_info(const struct acpi_opcode_info *op_info,
+			    const char *hint);
+void acpi_dump_opcode_info(void);
 #else
-#define acpi_opcode_tests()
+static inline void acpi_debug_opcode_info(const struct acpi_opcode_info *op_info,
+					  const char *hint)
+{
+}
+#define acpi_dump_opcode_info()
 #endif
 
 #endif /* __ACPI_H_INCLUDE__ */

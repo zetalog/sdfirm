@@ -1,36 +1,20 @@
 #include "acpi_int.h"
 
-acpi_status_t acpi_interpret_load(struct acpi_interp *interp,
-				  struct acpi_environ *environ)
-{
-	uint16_t opcode = environ->opcode;
-	const struct acpi_opcode_info *op_info = environ->op_info;
-
-	if (AML_IS_USER_TERM_OBJ(op_info))
-		acpi_dbg("Loading %4.4s", op_info->name);
-	else
-		acpi_dbg("Loading %s", op_info->name);
-	switch (opcode) {
-	case AML_NAME_OP:
-		break;
-	case AML_METHOD_OP:
-		break;
-	}
-
-	return AE_OK;
-}
-
 acpi_status_t acpi_interpret_exec(struct acpi_interp *interp,
-				  struct acpi_environ *environ)
+				  struct acpi_environ *environ,
+				  uint8_t type)
 {
 	uint16_t opcode = environ->opcode;
 	const struct acpi_opcode_info *op_info = environ->op_info;
 
-	if (AML_IS_USER_TERM_OBJ(op_info))
-		acpi_dbg("Executing %4.4s", op_info->name);
+	if (type == ACPI_AML_OPEN)
+		acpi_dbg_opcode_info(op_info, "Open:");
 	else
-		acpi_dbg("Executing %s", op_info->name);
+		acpi_dbg_opcode_info(op_info, "Close:");
+
 	switch (opcode) {
+	case AML_SCOPE_OP:
+		break;
 	case AML_NAME_OP:
 		break;
 	case AML_METHOD_OP:
@@ -75,7 +59,7 @@ acpi_status_t acpi_parse_table(struct acpi_table_header *table,
 	aml_length = table->length - sizeof (struct acpi_table_header);
 
 	status = acpi_interpret_aml(aml_start, aml_length,
-				    acpi_interpret_load, start_node);
+				    acpi_interpret_exec, start_node);
 	if (ACPI_FAILURE(status))
 		goto err_ref;
 
