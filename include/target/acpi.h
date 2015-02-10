@@ -824,7 +824,7 @@ acpi_status_t acpi_initialize_tables(struct acpi_table_desc **initial_table_arra
 				     boolean allow_resize);
 acpi_status_t acpi_reallocate_root_table(void);
 acpi_status_t acpi_initialize_subsystem(void);
-void acpi_load_tables(void);
+acpi_status_t acpi_load_tables(void);
 acpi_status_t acpi_initialize_events(void);
 acpi_status_t acpi_initialize_namespace(void);
 

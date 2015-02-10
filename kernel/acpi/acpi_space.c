@@ -13,46 +13,42 @@ void acpi_space_unlock(void)
 	acpi_os_release_mutex(acpi_gbl_space_mutex);
 }
 
-struct acpi_namespace_node *acpi_space_lookup_node(const char *name,
-						   uint32_t length)
+struct acpi_namespace_node *acpi_node_create(struct acpi_namespace_node *parent,
+					      acpi_tag_t tag,
+					      acpi_object_type object_type)
 {
-	struct acpi_namespace_node *node = NULL;
+	struct acpi_namespace_node *node;
 
-	acpi_space_lock();
-	if (!name) {
-		if (!acpi_gbl_root_node) {
-			node = acpi_os_allocate_zeroed(sizeof (struct acpi_namespace_node));
-			if (!node)
-				goto err_lock;
+	node = acpi_os_allocate_zeroed(sizeof (struct acpi_namespace_node));
+	if (!node)
+		return NULL;
 
-			node->common.descriptor_type = ACPI_DESC_TYPE_NAMED;
-			acpi_reference_set(&node->common.reference_count, 1);
-			node->object_type = ACPI_TYPE_DEVICE;
-			ACPI_NAMECPY(ACPI_ROOT_TAG, node->name);
-			node->parent = NULL;
-			node->child = NULL;
-			node->peer = NULL;
-			acpi_gbl_root_node = node;
-		} else {
-			node = acpi_gbl_root_node;
-		}
+	node->common.descriptor_type = ACPI_DESC_TYPE_NAMED;
+	acpi_reference_set(&node->common.reference_count, 1);
+	node->object_type = object_type;
+	ACPI_NAMECPY(tag, node->name);
+	INIT_LIST_HEAD(&node->sibling);
+	INIT_LIST_HEAD(&node->children);
+
+	if (!parent) {
+		BUG_ON(acpi_gbl_root_node);
+		acpi_gbl_root_node = node;
 	} else {
+		node->parent = parent;
+		list_add(&node->sibling, &parent->children);
 	}
-	(void)acpi_space_get_node(node);
 
-err_lock:
-	acpi_space_unlock();
 	return node;
 }
 
-struct acpi_namespace_node *acpi_space_get_node(struct acpi_namespace_node *node)
+struct acpi_namespace_node *acpi_node_get(struct acpi_namespace_node *node)
 {
 	if (node)
 		acpi_reference_inc(&node->common.reference_count);
 	return node;
 }
 
-void acpi_space_put_node(struct acpi_namespace_node *node)
+void acpi_node_put(struct acpi_namespace_node *node)
 {
 	if (!node)
 		return;
@@ -60,13 +56,36 @@ void acpi_space_put_node(struct acpi_namespace_node *node)
 		acpi_os_free(node);
 }
 
+struct acpi_namespace_node *acpi_space_lookup(const char *name, uint32_t length)
+{
+	struct acpi_namespace_node *node = NULL;
+
+	acpi_space_lock();
+	if (!name) {
+		node = acpi_gbl_root_node;
+	} else {
+	}
+
+	acpi_space_unlock();
+	return acpi_node_get(node);
+}
+
 acpi_status_t acpi_initialize_namespace(void)
 {
 	acpi_status_t status;
+	struct acpi_namespace_node *node = NULL;
 
 	status = acpi_os_create_mutex(&acpi_gbl_space_mutex);
 	if (ACPI_FAILURE(status))
 		return status;
+
+	acpi_space_lock();
+	node = acpi_node_create(NULL, ACPI_ROOT_TAG, ACPI_TYPE_DEVICE);
+	if (!node) {
+		acpi_space_unlock();
+		return AE_NO_MEMORY;
+	}
+	acpi_space_unlock();
 
 	return AE_OK;
 }

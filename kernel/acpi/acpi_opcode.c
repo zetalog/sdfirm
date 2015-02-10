@@ -509,7 +509,7 @@ static void __acpi_term_free(union acpi_term *term)
 	if (term->common.object_type == ACPI_AML_SIMPLENAME ||
 	    term->common.object_type == ACPI_AML_SUPERNAME) {
 		if (term->super_name.node)
-			acpi_space_put_node(term->super_name.node);
+			acpi_node_put(term->super_name.node);
 	}
 	acpi_os_free(term);
 }
@@ -592,8 +592,8 @@ acpi_status_t acpi_term_alloc_name(uint16_t arg_type, uint8_t *aml,
 	acpi_path_split(path, NULL, term->name_string.name);
 	if ((object_type == ACPI_AML_SIMPLENAME) ||
 	    (object_type == ACPI_AML_SUPERNAME)) {
-		node = acpi_space_lookup_node(term->common.value.string,
-					      term->common.aml_length);
+		node = acpi_space_lookup(term->common.value.string,
+					 term->common.aml_length);
 		if (!node) {
 			/*
 			 * TBD: Parser Continuation

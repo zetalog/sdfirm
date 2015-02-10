@@ -1182,7 +1182,7 @@ static acpi_status_t acpi_load_table(acpi_ddb_t ddb)
 		return AE_NOT_FOUND;
 
 	/* Validate root node */
-	ns_root = acpi_space_lookup_node(NULL, 0);
+	ns_root = acpi_space_lookup(NULL, 0);
 	if (!ns_root) {
 		status = AE_NOT_FOUND;
 		goto err_ref;
@@ -1366,13 +1366,12 @@ acpi_status_t acpi_get_table_by_name(acpi_tag_t sig, char *oem_id, char *oem_tab
 	return status;
 }
 
-void acpi_load_tables(void)
+acpi_status_t acpi_load_tables(void)
 {
 	acpi_ddb_t ddb;
 	struct acpi_table_desc *table_desc;
 
 	acpi_table_lock();
-
 	acpi_foreach_installed_ddb(ddb, 0) {
 		table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
 		if ((!ACPI_NAMECMP(ACPI_SIG_DSDT,
@@ -1389,6 +1388,7 @@ void acpi_load_tables(void)
 	}
 
 	acpi_table_unlock();
+	return AE_OK;
 }
 
 acpi_status_t acpi_initialize_tables(struct acpi_table_desc **initial_table_array,

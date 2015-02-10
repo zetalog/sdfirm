@@ -73,8 +73,8 @@ struct acpi_namespace_node {
 	acpi_name_t name;
 	acpi_object_type object_type;
 	struct acpi_namespace_node *parent;
-	struct acpi_namespace_node *child;
-	struct acpi_namespace_node *peer;
+	struct list_head children;
+	struct list_head sibling;
 	union acpi_operand *operand;
 };
 
@@ -299,10 +299,13 @@ void acpi_unparse_table(struct acpi_table_header *table,
 /*=========================================================================
  * Namespace internals
  *=======================================================================*/
-struct acpi_namespace_node *acpi_space_lookup_node(const char *name,
-						   uint32_t length);
-void acpi_space_put_node(struct acpi_namespace_node *node);
-struct acpi_namespace_node *acpi_space_get_node(struct acpi_namespace_node *node);
+struct acpi_namespace_node *acpi_node_create(struct acpi_namespace_node *parent,
+					      acpi_tag_t tag,
+					      acpi_object_type object_type);
+void acpi_node_put(struct acpi_namespace_node *node);
+struct acpi_namespace_node *acpi_node_get(struct acpi_namespace_node *node);
+
+struct acpi_namespace_node *acpi_space_lookup(const char *name, uint32_t length);
 
 /*=========================================================================
  * Utility internals
