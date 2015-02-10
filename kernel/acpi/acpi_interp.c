@@ -8,9 +8,9 @@ acpi_status_t acpi_interpret_exec(struct acpi_interp *interp,
 	const struct acpi_opcode_info *op_info = environ->op_info;
 
 	if (type == ACPI_AML_OPEN)
-		acpi_dbg_opcode_info(op_info, "Open:");
+		acpi_debug_opcode_info(op_info, "Open:");
 	else
-		acpi_dbg_opcode_info(op_info, "Close:");
+		acpi_debug_opcode_info(op_info, "Close:");
 
 	switch (opcode) {
 	case AML_SCOPE_OP:
