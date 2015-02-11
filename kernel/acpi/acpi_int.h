@@ -260,7 +260,8 @@ union acpi_term *acpi_term_alloc_op(uint16_t opcode,
 union acpi_term *acpi_term_alloc_aml(acpi_tag_t tag,
 				     uint8_t *aml_begin,
 				     uint8_t *aml_end);
-acpi_status_t acpi_term_alloc_name(uint16_t arg_type, uint8_t *aml,
+acpi_status_t acpi_term_alloc_name(struct acpi_parser *parser,
+				   uint16_t arg_type, uint8_t *aml,
 				   union acpi_term **pterm);
 void acpi_term_free(union acpi_term *op);
 union acpi_term *acpi_term_get_arg(union acpi_term *term, uint32_t argn);
@@ -302,10 +303,16 @@ void acpi_unparse_table(struct acpi_table_header *table,
 struct acpi_namespace_node *acpi_node_create(struct acpi_namespace_node *parent,
 					      acpi_tag_t tag,
 					      acpi_object_type object_type);
-void acpi_node_put(struct acpi_namespace_node *node);
-struct acpi_namespace_node *acpi_node_get(struct acpi_namespace_node *node);
+struct acpi_namespace_node *acpi_node_lookup(struct acpi_namespace_node *scope,
+					     const char *name, uint32_t length,
+					     boolean create);
+void acpi_node_put(struct acpi_namespace_node *node, const char *hint);
+struct acpi_namespace_node *acpi_node_get(struct acpi_namespace_node *node,
+					  const char *hint);
 
-struct acpi_namespace_node *acpi_space_lookup(const char *name, uint32_t length);
+struct acpi_namespace_node *acpi_space_get_node(struct acpi_namespace_node *scope,
+						const char *name, uint32_t length,
+						const char *hint);
 
 /*=========================================================================
  * Utility internals

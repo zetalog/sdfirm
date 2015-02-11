@@ -70,7 +70,7 @@ void acpi_object_delete(struct acpi_object_header *object)
 	if (!object)
 		return;
 
-	if (acpi_reference_dec_and_test(&object->reference_count)) {
+	if (!acpi_reference_dec_and_test(&object->reference_count)) {
 		if (object->release)
 			object->release(object);
 		acpi_os_free(object);

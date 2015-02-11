@@ -502,14 +502,18 @@ static union acpi_term *__acpi_term_alloc(uint16_t object_type,
 
 static void __acpi_term_free(union acpi_term *term)
 {
+	uint16_t object_type = term->common.object_type;
+
+	if ((object_type == ACPI_AML_SIMPLENAME) ||
+	    (object_type == ACPI_AML_SUPERNAME)) {
+		if (term->simple_name.node) {
+			acpi_node_put(term->simple_name.node, "name");
+			term->simple_name.node = NULL;
+		}
+	}
 	if (term->common.object_type == ACPI_AML_SUPERNAME) {
 		if (term->super_name.op_info)
 			acpi_os_free(term->super_name.op_info);
-	}
-	if (term->common.object_type == ACPI_AML_SIMPLENAME ||
-	    term->common.object_type == ACPI_AML_SUPERNAME) {
-		if (term->super_name.node)
-			acpi_node_put(term->super_name.node);
 	}
 	acpi_os_free(term);
 }
@@ -556,6 +560,7 @@ union acpi_term *acpi_term_alloc_aml(acpi_tag_t tag,
 
 /*
  * acpi_term_alloc_name() - parse NameString and allocate a TermObj
+ * @parser: the parser context
  * @arg_type: argument type, can be NameString, SimpleName or SuperName
  * @aml: pointer to the AML containing the name string
  *
@@ -563,12 +568,12 @@ union acpi_term *acpi_term_alloc_aml(acpi_tag_t tag,
  * This function is responsible for parsing the name of the
  * NameString/SimpleName/SuperName objects (AML_NAMESTRING_OP).
  */
-acpi_status_t acpi_term_alloc_name(uint16_t arg_type, uint8_t *aml,
+acpi_status_t acpi_term_alloc_name(struct acpi_parser *parser,
+				   uint16_t arg_type, uint8_t *aml,
 				   union acpi_term **pterm)
 {
 	union acpi_term *term;
 	struct acpi_opcode_info *op_info;
-	struct acpi_namespace_node *node;
 	uint8_t argc = 0;
 	uint16_t object_type;
 	uint32_t length;
@@ -592,9 +597,11 @@ acpi_status_t acpi_term_alloc_name(uint16_t arg_type, uint8_t *aml,
 	acpi_path_split(path, NULL, term->name_string.name);
 	if ((object_type == ACPI_AML_SIMPLENAME) ||
 	    (object_type == ACPI_AML_SUPERNAME)) {
-		node = acpi_space_lookup(term->common.value.string,
-					 term->common.aml_length);
-		if (!node) {
+		term->simple_name.node =
+			acpi_space_get_node(parser->environ.node,
+					    term->common.value.string,
+					    term->common.aml_length, "name");
+		if (!term->simple_name.node) {
 			/*
 			 * TBD: Parser Continuation
 			 * Should we allow some bad AML tables and return
@@ -604,7 +611,6 @@ acpi_status_t acpi_term_alloc_name(uint16_t arg_type, uint8_t *aml,
 			return AE_AML_UNKNOWN_TERM;
 		}
 		/* TODO: obtain argc here */
-		term->simple_name.node = node;
 	}
 	if (object_type == ACPI_AML_SUPERNAME) {
 		op_info = acpi_opcode_alloc_info(term->name_string.name, argc);

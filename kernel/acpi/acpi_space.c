@@ -41,33 +41,56 @@ struct acpi_namespace_node *acpi_node_create(struct acpi_namespace_node *parent,
 	return node;
 }
 
-struct acpi_namespace_node *acpi_node_get(struct acpi_namespace_node *node)
+struct acpi_namespace_node *acpi_node_lookup(struct acpi_namespace_node *scope,
+					     const char *name, uint32_t length,
+					     boolean create)
 {
-	if (node)
-		acpi_reference_inc(&node->common.reference_count);
+	struct acpi_namespace_node *node;
+
+	BUG_ON(!scope);
+
+	if (!name) {
+	}
 	return node;
 }
 
-void acpi_node_put(struct acpi_namespace_node *node)
+struct acpi_namespace_node *acpi_node_get(struct acpi_namespace_node *node,
+					  const char *hint)
+{
+	if (node) {
+		acpi_dbg("[NS-%p] INC(%s)", node, hint);
+		acpi_reference_inc(&node->common.reference_count);
+	}
+	return node;
+}
+
+void acpi_node_put(struct acpi_namespace_node *node, const char *hint)
 {
 	if (!node)
 		return;
-	if (acpi_reference_dec_and_test(&node->common.reference_count))
+	acpi_dbg("[NS-%p] DEC(%s)", node, hint);
+	if (!acpi_reference_dec_and_test(&node->common.reference_count))
 		acpi_os_free(node);
 }
 
-struct acpi_namespace_node *acpi_space_lookup(const char *name, uint32_t length)
+struct acpi_namespace_node *acpi_space_get_node(struct acpi_namespace_node *scope,
+						const char *name, uint32_t length,
+						const char *hint)
 {
 	struct acpi_namespace_node *node = NULL;
 
 	acpi_space_lock();
 	if (!name) {
 		node = acpi_gbl_root_node;
-	} else {
+		goto exit_lock;
 	}
 
+	if (*name == AML_ROOT_PFX) {
+	}
+
+exit_lock:
 	acpi_space_unlock();
-	return acpi_node_get(node);
+	return acpi_node_get(node, hint);
 }
 
 acpi_status_t acpi_initialize_namespace(void)

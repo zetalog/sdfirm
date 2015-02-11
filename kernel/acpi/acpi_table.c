@@ -1182,10 +1182,10 @@ static acpi_status_t acpi_load_table(acpi_ddb_t ddb)
 		return AE_NOT_FOUND;
 
 	/* Validate root node */
-	ns_root = acpi_space_lookup(NULL, 0);
+	ns_root = acpi_space_get_node(NULL, NULL, 0, "table");
 	if (!ns_root) {
 		status = AE_NOT_FOUND;
-		goto err_ref;
+		goto err_table;
 	}
 
 	acpi_table_lock();
@@ -1206,7 +1206,8 @@ static acpi_status_t acpi_load_table(acpi_ddb_t ddb)
 
 err_lock:
 	acpi_table_unlock();
-err_ref:
+	acpi_node_put(ns_root, "table");
+err_table:
 	acpi_table_decrement(ddb);
 	return status;
 }
