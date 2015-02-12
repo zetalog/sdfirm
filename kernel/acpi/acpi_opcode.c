@@ -600,7 +600,8 @@ acpi_status_t acpi_term_alloc_name(struct acpi_parser *parser,
 		term->simple_name.node =
 			acpi_space_get_node(parser->environ.node,
 					    term->common.value.string,
-					    term->common.aml_length, "name");
+					    term->common.aml_length,
+					    false, "name");
 		if (!term->simple_name.node) {
 			/*
 			 * TBD: Parser Continuation

@@ -70,7 +70,7 @@ struct acpi_data {
 
 struct acpi_namespace_node {
 	struct acpi_object_header common;
-	acpi_name_t name;
+	acpi_tag_t tag;
 	acpi_object_type object_type;
 	struct acpi_namespace_node *parent;
 	struct list_head children;
@@ -304,7 +304,8 @@ struct acpi_namespace_node *acpi_node_create(struct acpi_namespace_node *parent,
 					      acpi_tag_t tag,
 					      acpi_object_type object_type);
 struct acpi_namespace_node *acpi_node_lookup(struct acpi_namespace_node *scope,
-					     const char *name, uint32_t length,
+					     acpi_tag_t tag,
+					     acpi_object_type object_type,
 					     boolean create);
 void acpi_node_put(struct acpi_namespace_node *node, const char *hint);
 struct acpi_namespace_node *acpi_node_get(struct acpi_namespace_node *node,
@@ -312,7 +313,7 @@ struct acpi_namespace_node *acpi_node_get(struct acpi_namespace_node *node,
 
 struct acpi_namespace_node *acpi_space_get_node(struct acpi_namespace_node *scope,
 						const char *name, uint32_t length,
-						const char *hint);
+						boolean create, const char *hint);
 
 /*=========================================================================
  * Utility internals
