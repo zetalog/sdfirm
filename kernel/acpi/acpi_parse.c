@@ -60,7 +60,7 @@ static struct acpi_parser *acpi_parser_create(struct acpi_interp *interp,
 
 static void acpi_parser_delete(struct acpi_parser *parser)
 {
-	acpi_object_delete(ACPI_CAST_PTR(struct acpi_object_header, parser));
+	acpi_object_close(ACPI_CAST_PTR(struct acpi_object_header, parser));
 }
 
 struct acpi_parser *acpi_parser_init(struct acpi_interp *interp,

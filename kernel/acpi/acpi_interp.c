@@ -24,7 +24,25 @@ acpi_status_t acpi_interpret_exec(struct acpi_interp *interp,
 	return AE_OK;
 }
 
-acpi_status_t acpi_interpret_aml(uint8_t *aml_begin,
+static void __acpi_interpret_init(struct acpi_interp *interp,
+				  acpi_ddb_t ddb, acpi_term_cb callback)
+{
+	if (ddb != ACPI_DDB_HANDLE_INVALID)
+		acpi_table_increment(ddb);
+	interp->ddb = ddb;
+	interp->callback = callback;
+}
+
+static void __acpi_interpret_exit(struct acpi_interp *interp)
+{
+	if (interp->ddb != ACPI_DDB_HANDLE_INVALID) {
+		acpi_table_decrement(interp->ddb);
+		interp->ddb = ACPI_DDB_HANDLE_INVALID;
+	}
+}
+
+acpi_status_t acpi_interpret_aml(acpi_ddb_t ddb,
+				 uint8_t *aml_begin,
 				 uint32_t aml_length,
 				 acpi_term_cb callback,
 				 struct acpi_namespace_node *start_node)
@@ -35,18 +53,23 @@ acpi_status_t acpi_interpret_aml(uint8_t *aml_begin,
 	uint8_t *aml_end = aml_begin + aml_length;
 
 	/* AML is a TermList */
-	start_term = acpi_term_alloc_aml(ACPI_ROOT_TAG, aml_begin, aml_end);
-	if (!start_term)
-		return AE_NO_MEMORY;
+	__acpi_interpret_init(&interp, ddb, callback);
 
-	interp.callback = callback;
+	start_term = acpi_term_alloc_aml(ACPI_ROOT_TAG, aml_begin, aml_end);
+	if (!start_term) {
+		status = AE_NO_MEMORY;
+		goto err_ref;
+	}
 
 	status = acpi_parse_aml(&interp, aml_begin, aml_end, start_node, start_term);
 
+err_ref:
+	__acpi_interpret_exit(&interp);
 	return status;
 }
 
-acpi_status_t acpi_parse_table(struct acpi_table_header *table,
+acpi_status_t acpi_parse_table(acpi_ddb_t ddb,
+			       struct acpi_table_header *table,
 			       struct acpi_namespace_node *start_node)
 {
 	acpi_status_t status;
@@ -58,7 +81,7 @@ acpi_status_t acpi_parse_table(struct acpi_table_header *table,
 	aml_start = (uint8_t *)table + sizeof (struct acpi_table_header);
 	aml_length = table->length - sizeof (struct acpi_table_header);
 
-	status = acpi_interpret_aml(aml_start, aml_length,
+	status = acpi_interpret_aml(ddb, aml_start, aml_length,
 				    acpi_interpret_exec, start_node);
 	if (ACPI_FAILURE(status))
 		goto err_ref;
@@ -67,7 +90,8 @@ err_ref:
 	return status;
 }
 
-void acpi_unparse_table(struct acpi_table_header *table,
+void acpi_unparse_table(acpi_ddb_t ddb,
+			struct acpi_table_header *table,
 			struct acpi_namespace_node *start_node)
 {
 }

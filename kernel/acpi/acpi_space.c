@@ -13,34 +13,72 @@ void acpi_space_unlock(void)
 	acpi_os_release_mutex(acpi_gbl_space_mutex);
 }
 
-struct acpi_namespace_node *acpi_node_create(struct acpi_namespace_node *parent,
-					     acpi_tag_t tag, acpi_object_type object_type)
+static void __acpi_node_init(struct acpi_namespace_node *node,
+			     acpi_ddb_t ddb,
+			     struct acpi_namespace_node *parent,
+			     acpi_tag_t tag, acpi_object_type object_type)
 {
-	struct acpi_namespace_node *node;
-
-	node = acpi_os_allocate_zeroed(sizeof (struct acpi_namespace_node));
-	if (!node)
-		return NULL;
-
-	node->common.descriptor_type = ACPI_DESC_TYPE_NAMED;
 	acpi_reference_set(&node->common.reference_count, 1);
-	node->object_type = object_type;
-	node->tag = tag;
 	INIT_LIST_HEAD(&node->sibling);
 	INIT_LIST_HEAD(&node->children);
+
+	node->common.descriptor_type = ACPI_DESC_TYPE_NAMED;
+	node->object_type = object_type;
+
+	if (ddb != ACPI_DDB_HANDLE_INVALID)
+		acpi_table_increment(ddb);
+	node->ddb = ddb;
+	node->tag = tag;
 
 	if (!parent) {
 		BUG_ON(acpi_gbl_root_node);
 		acpi_gbl_root_node = node;
 	} else {
-		node->parent = parent;
+		node->parent = acpi_node_get(parent, "object");
 		list_add(&node->sibling, &parent->children);
 	}
+}
+
+static void acpi_node_release(struct acpi_object_header *object)
+{
+	struct acpi_namespace_node *node =
+		ACPI_CAST_PTR(struct acpi_namespace_node, object);
+
+	if (node->parent) {
+		acpi_node_put(node->parent, "object");
+		node->parent = NULL;
+	}
+	if (node->ddb != ACPI_DDB_HANDLE_INVALID) {
+		acpi_table_decrement(node->ddb);
+		node->ddb = ACPI_DDB_HANDLE_INVALID;
+	}
+}
+
+struct acpi_namespace_node *acpi_node_open(acpi_ddb_t ddb,
+					   struct acpi_namespace_node *parent,
+					   acpi_tag_t tag,
+					   acpi_object_type object_type)
+{
+	struct acpi_namespace_node *node;
+	struct acpi_object_header *object;
+
+	object = acpi_object_open(ACPI_DESC_TYPE_NAMED,
+				  sizeof (struct acpi_namespace_node),
+				  acpi_node_release);
+	node = ACPI_CAST_PTR(struct acpi_namespace_node, object);
+	if (node)
+		__acpi_node_init(node, ddb, parent, tag, object_type);
 
 	return node;
 }
 
-struct acpi_namespace_node *acpi_node_lookup(struct acpi_namespace_node *scope,
+void acpi_node_close(struct acpi_namespace_node *node)
+{
+	acpi_object_close(ACPI_CAST_PTR(struct acpi_object_header, node));
+}
+
+struct acpi_namespace_node *acpi_node_lookup(acpi_ddb_t ddb,
+					     struct acpi_namespace_node *scope,
 					     acpi_tag_t tag,
 					     acpi_object_type object_type,
 					     boolean create)
@@ -54,17 +92,16 @@ struct acpi_namespace_node *acpi_node_lookup(struct acpi_namespace_node *scope,
 			return node;
 	}
 	if (create)
-		acpi_node_create(scope, tag, object_type);
+		acpi_node_open(ddb, scope, tag, object_type);
 	return node;
 }
 
 struct acpi_namespace_node *acpi_node_get(struct acpi_namespace_node *node,
 					  const char *hint)
 {
-	if (node) {
+	if (node)
 		acpi_dbg("[NS-%p] INC(%s)", node, hint);
-		acpi_reference_inc(&node->common.reference_count);
-	}
+	acpi_object_get(ACPI_CAST_PTR(struct acpi_object_header, node));
 	return node;
 }
 
@@ -72,12 +109,13 @@ void acpi_node_put(struct acpi_namespace_node *node, const char *hint)
 {
 	if (!node)
 		return;
+
 	acpi_dbg("[NS-%p] DEC(%s)", node, hint);
-	if (!acpi_reference_dec_and_test(&node->common.reference_count))
-		acpi_os_free(node);
+	acpi_object_put(ACPI_CAST_PTR(struct acpi_object_header, node));
 }
 
-struct acpi_namespace_node *acpi_space_get_node(struct acpi_namespace_node *scope,
+struct acpi_namespace_node *acpi_space_get_node(acpi_ddb_t ddb,
+						struct acpi_namespace_node *scope,
 						const char *name, uint32_t length,
 						boolean create, const char *hint)
 {
@@ -124,7 +162,7 @@ struct acpi_namespace_node *acpi_space_get_node(struct acpi_namespace_node *scop
 		break;
 	}
 	while ((length > 0) && nr_segs && scope_node) {
-		node = acpi_node_lookup(scope_node, ACPI_NAME2TAG(name),
+		node = acpi_node_lookup(ddb, scope_node, ACPI_NAME2TAG(name),
 					ACPI_TYPE_ANY, create);
 		name += ACPI_NAME_SIZE, length -= ACPI_NAME_SIZE;
 		acpi_node_put(scope_node, "lookup");
@@ -149,7 +187,8 @@ acpi_status_t acpi_initialize_namespace(void)
 		return status;
 
 	acpi_space_lock();
-	node = acpi_node_create(NULL, ACPI_ROOT_TAG, ACPI_TYPE_DEVICE);
+	node = acpi_node_open(ACPI_DDB_HANDLE_INVALID, NULL,
+			      ACPI_ROOT_TAG, ACPI_TYPE_DEVICE);
 	if (!node) {
 		acpi_space_unlock();
 		return AE_NO_MEMORY;

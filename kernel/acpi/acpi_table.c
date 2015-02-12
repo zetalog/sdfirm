@@ -968,7 +968,7 @@ static acpi_status_t __acpi_uninstall_table(acpi_ddb_t ddb)
 		table_desc->flags |= ACPI_TABLE_IS_UNLOADING;
 		__acpi_table_notify(table_desc, ddb,
 				    ACPI_EVENT_TABLE_UNLOAD);
-		acpi_unparse_table(table_desc->pointer, acpi_gbl_root_node);
+		acpi_unparse_table(ddb, table_desc->pointer, acpi_gbl_root_node);
 		__acpi_table_set_loaded(ddb, false);
 		table_desc->flags &= ~ACPI_TABLE_IS_UNLOADING;
 	}
@@ -1182,7 +1182,8 @@ static acpi_status_t acpi_load_table(acpi_ddb_t ddb)
 		return AE_NOT_FOUND;
 
 	/* Validate root node */
-	ns_root = acpi_space_get_node(NULL, NULL, 0, false, "table");
+	ns_root = acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, NULL, NULL,
+				      0, false, "table");
 	if (!ns_root) {
 		status = AE_NOT_FOUND;
 		goto err_table;
@@ -1198,7 +1199,9 @@ static acpi_status_t acpi_load_table(acpi_ddb_t ddb)
 	table = table_desc->pointer;
 
 	/* Invoking the parser */
-	status = acpi_parse_table(table, ns_root);
+	acpi_table_unlock();
+	status = acpi_parse_table(ddb, table, ns_root);
+	acpi_table_lock();
 	if (ACPI_SUCCESS(status)) {
 		__acpi_table_set_loaded(ddb, true);
 		__acpi_table_notify(table_desc, ddb, ACPI_EVENT_TABLE_LOAD);

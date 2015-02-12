@@ -71,6 +71,7 @@ struct acpi_data {
 struct acpi_namespace_node {
 	struct acpi_object_header common;
 	acpi_tag_t tag;
+	acpi_ddb_t ddb;
 	acpi_object_type object_type;
 	struct acpi_namespace_node *parent;
 	struct list_head children;
@@ -208,6 +209,7 @@ struct acpi_interp {
 	struct acpi_parser *parser;
 
 	/* Executer state */
+	acpi_ddb_t ddb;
 	acpi_term_cb callback;
 };
 
@@ -285,25 +287,31 @@ boolean acpi_opcode_is_namestring(uint16_t opcode);
 /*=========================================================================
  * Interpreter internals
  *=======================================================================*/
-acpi_status_t acpi_interpret_aml(uint8_t *aml_begin,
+acpi_status_t acpi_interpret_aml(acpi_ddb_t ddb,
+				 uint8_t *aml_begin,
 				 uint32_t aml_length,
 				 acpi_term_cb callback,
 				 struct acpi_namespace_node *start_node);
 acpi_status_t acpi_interpret_exec(struct acpi_interp *interp,
 				  struct acpi_environ *environ,
 				  uint8_t type);
-acpi_status_t acpi_parse_table(struct acpi_table_header *table,
+acpi_status_t acpi_parse_table(acpi_ddb_t ddb,
+			       struct acpi_table_header *table,
 			       struct acpi_namespace_node *start_node);
-void acpi_unparse_table(struct acpi_table_header *table,
+void acpi_unparse_table(acpi_ddb_t ddb,
+			struct acpi_table_header *table,
 			struct acpi_namespace_node *start_node);
 
 /*=========================================================================
  * Namespace internals
  *=======================================================================*/
-struct acpi_namespace_node *acpi_node_create(struct acpi_namespace_node *parent,
-					      acpi_tag_t tag,
-					      acpi_object_type object_type);
-struct acpi_namespace_node *acpi_node_lookup(struct acpi_namespace_node *scope,
+struct acpi_namespace_node *acpi_node_open(acpi_ddb_t ddb,
+					   struct acpi_namespace_node *parent,
+					   acpi_tag_t tag,
+					   acpi_object_type object_type);
+void acpi_node_close(struct acpi_namespace_node *parent);
+struct acpi_namespace_node *acpi_node_lookup(acpi_ddb_t ddb,
+					     struct acpi_namespace_node *scope,
 					     acpi_tag_t tag,
 					     acpi_object_type object_type,
 					     boolean create);
@@ -311,17 +319,21 @@ void acpi_node_put(struct acpi_namespace_node *node, const char *hint);
 struct acpi_namespace_node *acpi_node_get(struct acpi_namespace_node *node,
 					  const char *hint);
 
-struct acpi_namespace_node *acpi_space_get_node(struct acpi_namespace_node *scope,
+struct acpi_namespace_node *acpi_space_get_node(acpi_ddb_t ddb,
+						struct acpi_namespace_node *scope,
 						const char *name, uint32_t length,
 						boolean create, const char *hint);
 
 /*=========================================================================
  * Utility internals
  *=======================================================================*/
-struct acpi_object_header *acpi_object_create(uint8_t type,
-					      acpi_size_t size,
-					      acpi_release_cb release);
-void acpi_object_delete(struct acpi_object_header *object);
+struct acpi_object_header *acpi_object_open(uint8_t type,
+					    acpi_size_t size,
+					    acpi_release_cb release);
+void acpi_object_close(struct acpi_object_header *object);
+void acpi_object_get(struct acpi_object_header *object);
+void acpi_object_put(struct acpi_object_header *object);
+
 void acpi_state_push(union acpi_state **head, union acpi_state *state);
 union acpi_state *acpi_state_pop(union acpi_state **head);
 union acpi_state *acpi_state_create(uint8_t type,
