@@ -111,9 +111,8 @@ static void acpi_state_release(struct acpi_object_header *object)
 		state->common.release_state(object);
 }
 
-union acpi_state *acpi_state_create(uint8_t type,
-				    acpi_size_t size,
-				    acpi_release_cb release)
+union acpi_state *acpi_state_open(uint8_t type, acpi_size_t size,
+				  acpi_release_cb release)
 {
 	struct acpi_object_header *object;
 	union acpi_state *state = NULL;
@@ -125,4 +124,9 @@ union acpi_state *acpi_state_create(uint8_t type,
 		__acpi_state_init(state, type, release);
 
 	return state;
+}
+
+void acpi_state_close(union acpi_state *state)
+{
+	acpi_object_close(ACPI_CAST_PTR(struct acpi_object_header, state));
 }

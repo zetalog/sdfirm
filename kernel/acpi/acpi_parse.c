@@ -38,18 +38,17 @@ static void __acpi_parser_exit(struct acpi_object_header *object)
 	}
 }
 
-static struct acpi_parser *acpi_parser_create(struct acpi_interp *interp,
-					      uint8_t *aml_begin,
-					      uint8_t *aml_end,
-					      struct acpi_namespace_node *node,
-					      union acpi_term *term)
+static struct acpi_parser *acpi_parser_open(struct acpi_interp *interp,
+					    uint8_t *aml_begin, uint8_t *aml_end,
+					    struct acpi_namespace_node *node,
+					    union acpi_term *term)
 {
 	union acpi_state *state;
 	struct acpi_parser *parser = NULL;
 
-	state = acpi_state_create(ACPI_STATE_PARSER,
-				  sizeof (struct acpi_parser),
-				  __acpi_parser_exit);
+	state = acpi_state_open(ACPI_STATE_PARSER,
+				sizeof (struct acpi_parser),
+				__acpi_parser_exit);
 	parser = ACPI_CAST_PTR(struct acpi_parser, state);
 	if (parser)
 		__acpi_parser_init(parser, interp, aml_begin, aml_end,
@@ -58,9 +57,9 @@ static struct acpi_parser *acpi_parser_create(struct acpi_interp *interp,
 	return parser;
 }
 
-static void acpi_parser_delete(struct acpi_parser *parser)
+static void acpi_parser_close(struct acpi_parser *parser)
 {
-	acpi_object_close(ACPI_CAST_PTR(struct acpi_object_header, parser));
+	acpi_state_close(ACPI_CAST_PTR(union acpi_state, parser));
 }
 
 struct acpi_parser *acpi_parser_init(struct acpi_interp *interp,
@@ -69,10 +68,10 @@ struct acpi_parser *acpi_parser_init(struct acpi_interp *interp,
 				     struct acpi_namespace_node *node,
 				     union acpi_term *term)
 {
-	struct acpi_parser *parser = acpi_parser_create(interp, aml_begin, aml_end,
-							NULL, NULL);
+	struct acpi_parser *parser;
 	struct acpi_environ *environ;
 
+	parser = acpi_parser_open(interp, aml_begin, aml_end, NULL, NULL);
 	if (parser) {
 		environ = &parser->environ;
 		environ->node = acpi_node_get(node, "environ");
@@ -114,9 +113,9 @@ acpi_status_t acpi_parser_push(struct acpi_parser *last_parser,
 	else
 		aml_end = last_parser->pkg_end;
 
-	next_state = acpi_parser_create(interp,
-					last_parser->aml, aml_end,
-					last_environ->node, last_environ->term);
+	next_state = acpi_parser_open(interp,
+				      last_parser->aml, aml_end,
+				      last_environ->node, last_environ->term);
 	if (!next_state) {
 		*next_parser = last_parser;
 		return AE_NO_MEMORY;
@@ -165,7 +164,7 @@ acpi_status_t acpi_parser_pop(struct acpi_parser *last_parser,
 		BUG_ON(next_state->aml > next_state->aml_end);
 	}
 
-	acpi_parser_delete(last_parser);
+	acpi_parser_close(last_parser);
 	*next_parser = next_state;
 
 	return AE_OK;

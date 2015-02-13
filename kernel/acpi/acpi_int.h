@@ -336,9 +336,8 @@ void acpi_object_put(struct acpi_object_header *object);
 
 void acpi_state_push(union acpi_state **head, union acpi_state *state);
 union acpi_state *acpi_state_pop(union acpi_state **head);
-union acpi_state *acpi_state_create(uint8_t type,
-				    acpi_size_t size,
-				    acpi_release_cb release);
-void acpi_state_delete(union acpi_state *state);
+union acpi_state *acpi_state_open(uint8_t type, acpi_size_t size,
+				  acpi_release_cb release);
+void acpi_state_close(union acpi_state *state);
 
 #endif /* __ACPI_INT_H_INCLUDE__ */
