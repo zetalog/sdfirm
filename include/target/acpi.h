@@ -902,12 +902,20 @@ typedef acpi_status_t (*acpi_event_table_cb)(struct acpi_table_desc *table,
 					     acpi_ddb_t ddb,
 					     uint32_t event,
 					     void *context);
+typedef acpi_status_t (*acpi_event_space_cb)(struct acpi_namespace_node *node,
+					     uint32_t event,
+					     void *context);
 
 acpi_status_t acpi_event_register_table_handler(acpi_event_table_cb handler,
 						void *context);
 void acpi_event_unregister_table_handler(acpi_event_table_cb handler);
 void acpi_event_table_notify(struct acpi_table_desc *table_desc,
 			     acpi_ddb_t ddb, uint32_t event);
+
+acpi_status_t acpi_event_register_space_handler(acpi_event_space_cb handler,
+						void *context);
+void acpi_event_unregister_space_handler(acpi_event_space_cb handler);
+void acpi_event_space_notify(struct acpi_namespace_node *node, uint32_t event);
 
 #ifdef CONFIG_ACPI_DEBUG
 void acpi_debug_opcode_info(const struct acpi_opcode_info *op_info,
