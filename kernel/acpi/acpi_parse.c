@@ -164,6 +164,17 @@ acpi_status_t acpi_parser_pop(struct acpi_parser *last_parser,
 		BUG_ON(next_state->aml > next_state->aml_end);
 	}
 
+	/*
+	 * NOTE: Closing Parser Right After Popping
+	 *
+	 * This implies that the APIs are used in the following way:
+	 * acpi_parser_init()
+	 * * acpi_parser_push()
+	 * * acpi_parser_pop()
+	 * acpi_parser_exit()
+	 * Where "*" indicates that the API can be invoked for multiple
+	 * times.
+	 */
 	acpi_parser_close(last_parser);
 	*next_parser = next_state;
 
