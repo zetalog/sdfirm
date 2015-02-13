@@ -108,14 +108,14 @@ static void __acpi_event_unregister_handler(struct acpi_event *event,
 
 static acpi_event_cb __acpi_event_lock_notify(struct acpi_event *event)
 {
-	acpi_event_cb handler;
+	acpi_event_cb handler = NULL;
 
 	acpi_event_lock();
 	if (event->handler && !(event->flags & ACPI_EVENT_GARBAGE)) {
 		event->invokings++;
 		handler = event->handler;
 	}
-	acpi_event_lock();
+	acpi_event_unlock();
 
 	return handler;
 }
