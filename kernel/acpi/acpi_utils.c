@@ -70,6 +70,8 @@ void acpi_object_close(struct acpi_object_header *object)
 	if (!object)
 		return;
 
+	if (!acpi_object_is_closing(object))
+		object->closing = true;
 	if (!acpi_reference_dec_and_test(&object->reference_count)) {
 		if (object->release)
 			object->release(object);
@@ -81,6 +83,21 @@ void acpi_object_get(struct acpi_object_header *object)
 {
 	if (object)
 		acpi_reference_inc(&object->reference_count);
+}
+
+boolean acpi_object_is_closing(struct acpi_object_header *object)
+{
+	return object->closing ? true : false;
+}
+
+struct acpi_object_header *acpi_object_get_graceful(struct acpi_object_header *object)
+{
+	if (object && !acpi_object_is_closing(object)) {
+		acpi_reference_inc(&object->reference_count);
+		return object;
+	}
+
+	return NULL;
 }
 
 void acpi_object_put(struct acpi_object_header *object)
@@ -102,7 +119,7 @@ static void __acpi_state_init(union acpi_state *state, uint8_t type,
 	state->common.release_state = release;
 }
 
-static void acpi_state_release(struct acpi_object_header *object)
+static void __acpi_state_exit(struct acpi_object_header *object)
 {
 	union acpi_state *state =
 		ACPI_CAST_PTR(union acpi_state, object);
@@ -118,7 +135,7 @@ union acpi_state *acpi_state_open(uint8_t type, acpi_size_t size,
 	union acpi_state *state = NULL;
 
 	object = acpi_object_open(ACPI_DESC_TYPE_STATE, size,
-				  acpi_state_release);
+				  __acpi_state_exit);
 	state = ACPI_CAST_PTR(union acpi_state, object);
 	if (state)
 		__acpi_state_init(state, type, release);

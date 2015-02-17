@@ -53,6 +53,7 @@ typedef void (*acpi_release_cb)(struct acpi_object_header *);
 
 #define ACPI_OBJECT_HEADER			\
 	uint8_t descriptor_type;		\
+	boolean closing;			\
 	struct acpi_reference reference_count;	\
 	acpi_release_cb release;
 
@@ -318,6 +319,8 @@ struct acpi_namespace_node *acpi_node_lookup(acpi_ddb_t ddb,
 void acpi_node_put(struct acpi_namespace_node *node, const char *hint);
 struct acpi_namespace_node *acpi_node_get(struct acpi_namespace_node *node,
 					  const char *hint);
+struct acpi_namespace_node *acpi_node_get_graceful(struct acpi_namespace_node *node,
+						   const char *hint);
 
 struct acpi_namespace_node *acpi_space_get_node(acpi_ddb_t ddb,
 						struct acpi_namespace_node *scope,
@@ -331,8 +334,10 @@ struct acpi_object_header *acpi_object_open(uint8_t type,
 					    acpi_size_t size,
 					    acpi_release_cb release);
 void acpi_object_close(struct acpi_object_header *object);
+boolean acpi_object_is_closing(struct acpi_object_header *object);
 void acpi_object_get(struct acpi_object_header *object);
 void acpi_object_put(struct acpi_object_header *object);
+struct acpi_object_header *acpi_object_get_graceful(struct acpi_object_header *object);
 
 void acpi_state_push(union acpi_state **head, union acpi_state *state);
 union acpi_state *acpi_state_pop(union acpi_state **head);

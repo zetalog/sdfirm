@@ -875,6 +875,19 @@ boolean acpi_table_has_header(acpi_name_t signature);
 uint32_t acpi_fadt_flag_is_set(uint32_t mask);
 
 /*=========================================================================
+ * Namespace externals
+ *=======================================================================*/
+typedef boolean (*acpi_space_cb)(struct acpi_namespace_node *scope,
+				 void *context);
+
+void acpi_space_walk_depth_first(struct acpi_namespace_node *scope,
+				 acpi_object_type object_type,
+				 uint32_t max_depth,
+				 acpi_space_cb descending_callback,
+				 acpi_space_cb ascending_callback,
+				 void *context);
+
+/*=========================================================================
  * Checksum validations
  *=======================================================================*/
 uint8_t acpi_checksum_calc(void *buffer, uint32_t length);
@@ -897,6 +910,11 @@ boolean acpi_rsdp_checksum_valid(struct acpi_table_rsdp *rsdp);
 #define ACPI_EVENT_TABLE_UNLOAD		0x3
 #define ACPI_EVENT_TABLE_MAX		0x3
 #define ACPI_NR_TABLE_EVENTS		(ACPI_EVENT_TABLE_MAX+1)
+
+#define ACPI_EVENT_SPACE_CREATE		0x0
+#define ACPI_EVENT_SPACE_DELETE		0x1
+#define ACPI_EVENT_SPACE_MAX		0x1
+#define ACPI_NR_SPACE_EVENTS		(ACPI_EVENT_SPACE_MAX+1)
 
 typedef acpi_status_t (*acpi_event_table_cb)(struct acpi_table_desc *table,
 					     acpi_ddb_t ddb,
@@ -921,12 +939,14 @@ void acpi_event_space_notify(struct acpi_namespace_node *node, uint32_t event);
 void acpi_debug_opcode_info(const struct acpi_opcode_info *op_info,
 			    const char *hint);
 void acpi_dump_opcode_info(void);
+void acpi_space_test_nodes(void);
 #else
 static inline void acpi_debug_opcode_info(const struct acpi_opcode_info *op_info,
 					  const char *hint)
 {
 }
 #define acpi_dump_opcode_info()
+#define acpi_space_test_nodes()
 #endif
 
 #endif /* __ACPI_H_INCLUDE__ */

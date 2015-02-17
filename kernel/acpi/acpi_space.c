@@ -39,10 +39,14 @@ static void __acpi_node_init(struct acpi_namespace_node *node,
 	}
 }
 
-static void acpi_node_release(struct acpi_object_header *object)
+static void __acpi_node_exit(struct acpi_object_header *object)
 {
 	struct acpi_namespace_node *node =
 		ACPI_CAST_PTR(struct acpi_namespace_node, object);
+
+	acpi_space_lock();
+	list_del(&node->sibling);
+	acpi_space_unlock();
 
 	if (node->parent) {
 		acpi_node_put(node->parent, "object");
@@ -64,16 +68,19 @@ struct acpi_namespace_node *acpi_node_open(acpi_ddb_t ddb,
 
 	object = acpi_object_open(ACPI_DESC_TYPE_NAMED,
 				  sizeof (struct acpi_namespace_node),
-				  acpi_node_release);
+				  __acpi_node_exit);
 	node = ACPI_CAST_PTR(struct acpi_namespace_node, object);
-	if (node)
+	if (node) {
 		__acpi_node_init(node, ddb, parent, tag, object_type);
+		acpi_event_space_notify(node, ACPI_EVENT_SPACE_CREATE);
+	}
 
 	return node;
 }
 
 void acpi_node_close(struct acpi_namespace_node *node)
 {
+	acpi_event_space_notify(node, ACPI_EVENT_SPACE_DELETE);
 	acpi_object_close(ACPI_CAST_PTR(struct acpi_object_header, node));
 }
 
@@ -88,11 +95,11 @@ struct acpi_namespace_node *acpi_node_lookup(acpi_ddb_t ddb,
 	BUG_ON(!scope);
 
 	list_for_each_entry(struct acpi_namespace_node, node, &scope->children, sibling) {
-		if (node->tag == tag)
+		if (!acpi_object_is_closing(&node->common) && (node->tag == tag))
 			return node;
 	}
 	if (create)
-		acpi_node_open(ddb, scope, tag, object_type);
+		node = acpi_node_open(ddb, scope, tag, object_type);
 	return node;
 }
 
@@ -105,6 +112,17 @@ struct acpi_namespace_node *acpi_node_get(struct acpi_namespace_node *node,
 	return node;
 }
 
+struct acpi_namespace_node *acpi_node_get_graceful(struct acpi_namespace_node *node,
+						   const char *hint)
+{
+	struct acpi_object_header *object;
+
+	if (node && !acpi_object_is_closing(&node->common))
+		acpi_dbg("[NS-%p] INC(%s)", node, hint);
+	object = acpi_object_get_graceful(ACPI_CAST_PTR(struct acpi_object_header, node));
+	return ACPI_CAST_PTR(struct acpi_namespace_node, object);
+}
+
 void acpi_node_put(struct acpi_namespace_node *node, const char *hint)
 {
 	if (!node)
@@ -112,6 +130,122 @@ void acpi_node_put(struct acpi_namespace_node *node, const char *hint)
 
 	acpi_dbg("[NS-%p] DEC(%s)", node, hint);
 	acpi_object_put(ACPI_CAST_PTR(struct acpi_object_header, node));
+}
+
+static struct acpi_namespace_node *acpi_space_walk_next(struct acpi_namespace_node *scope,
+							struct acpi_namespace_node *iter)
+{
+	struct acpi_namespace_node *next;
+
+	if (iter)
+		next = list_entry(iter->sibling.next, struct acpi_namespace_node, sibling);
+	else
+		next = list_entry(scope->children.next, struct acpi_namespace_node, sibling);
+	if (&next->sibling == &scope->children)
+		return NULL;
+	else
+		return next;
+}
+
+static struct acpi_namespace_node *acpi_space_walk_prev(struct acpi_namespace_node *scope,
+							struct acpi_namespace_node *iter)
+{
+	struct acpi_namespace_node *prev;
+
+	if (iter)
+		prev = list_entry(iter->sibling.prev, struct acpi_namespace_node, sibling);
+	else
+		prev = list_entry(scope->children.prev, struct acpi_namespace_node, sibling);
+	if (&prev->sibling == &scope->children)
+		return NULL;
+	else
+		return prev;
+}
+
+static boolean __acpi_space_walk_call(struct acpi_namespace_node *node,
+				      acpi_object_type object_type,
+				      acpi_space_cb callback, void *context)
+{
+	boolean terminated = false;
+
+	if (callback && node &&
+	    (object_type == ACPI_TYPE_ANY ||
+	     object_type == node->object_type)) {
+		if (!acpi_object_is_closing(&node->common)) {
+			acpi_node_get(node, "depth");
+			acpi_space_unlock();
+			terminated = callback(node, context);
+			acpi_space_lock();
+			acpi_node_put(node, "depth");
+		}
+	}
+
+	return terminated;
+}
+
+#define __ACPI_SPACE_WALK_CALL(_n, _t, _cb, _ctx, _b)	\
+	_b = __acpi_space_walk_call(_n, _t, _cb, _ctx);	\
+	if (_b)						\
+		break;
+
+void acpi_space_walk_depth_first(struct acpi_namespace_node *scope,
+				 acpi_object_type object_type,
+				 uint32_t max_depth,
+				 acpi_space_cb descending_callback,
+				 acpi_space_cb ascending_callback,
+				 void *context)
+{
+	struct acpi_namespace_node *child, *parent, *node;
+	struct acpi_namespace_node *scope_node;
+	boolean terminated = false;
+	uint32_t level;
+
+	if (scope)
+		scope_node = acpi_node_get(scope, "walk");
+	else
+		scope_node = acpi_node_get(acpi_gbl_root_node, "walk");
+	BUG_ON(!scope_node);
+
+	acpi_space_lock();
+	parent = scope_node;
+	child = NULL;
+	level = 1;
+
+	while (parent) {
+		node = child = acpi_space_walk_prev(parent, child);
+		while (child && level < max_depth) {
+			__ACPI_SPACE_WALK_CALL(child, object_type,
+					       descending_callback,
+					       context, terminated);
+			child = acpi_space_walk_prev(node, NULL);
+			if (child) {
+				parent = node;
+				node = child;
+				level++;
+			}
+		}
+		if (!terminated) {
+			if (node) {
+				__ACPI_SPACE_WALK_CALL(node, object_type,
+						       ascending_callback,
+						       context, terminated);
+				child = node;
+			} else {
+				if (parent == scope_node)
+					break;
+				__ACPI_SPACE_WALK_CALL(parent, object_type,
+						       ascending_callback,
+						       context, terminated);
+				parent = acpi_space_walk_prev(parent->parent, parent);
+				__ACPI_SPACE_WALK_CALL(parent, object_type,
+						       descending_callback,
+						       context, terminated);
+			}
+		}
+	}
+
+	acpi_node_put(scope_node, "walk");
+	acpi_space_unlock();
 }
 
 struct acpi_namespace_node *acpi_space_get_node(acpi_ddb_t ddb,
@@ -135,7 +269,7 @@ struct acpi_namespace_node *acpi_space_get_node(acpi_ddb_t ddb,
 		}
 	} else {
 		scope_node = acpi_node_get(scope, "lookup");
-		while ((length > 0) && (*name == AML_PARENT_PFX)) {
+		while (scope_node && (length > 0) && (*name == AML_PARENT_PFX)) {
 			acpi_node_put(scope_node, "lookup");
 			scope_node = acpi_node_get(scope_node->parent, "lookup");
 			name++, length--;
@@ -172,10 +306,62 @@ struct acpi_namespace_node *acpi_space_get_node(acpi_ddb_t ddb,
 exit_ref:
 	acpi_node_put(scope_node, "lookup");
 exit_lock:
-	node = acpi_node_get(scope_node, hint);
+	node = acpi_node_get_graceful(scope_node, hint);
 	acpi_space_unlock();
 	return node;
 }
+
+#ifdef CONFIG_ACPI_DEBUG
+static boolean acpi_space_descend_test(struct acpi_namespace_node *node,
+				       void *unused)
+{
+	acpi_name_t name;
+
+	ACPI_NAMECPY(node->tag, name);
+	acpi_dbg("Descending [%4.4s]", name);
+	return false;
+}
+
+static boolean acpi_space_ascend_test(struct acpi_namespace_node *node,
+				      void *unused)
+{
+	acpi_name_t name;
+
+	ACPI_NAMECPY(node->tag, name);
+	acpi_dbg("Ascending [%4.4s]", name);
+	return false;
+}
+
+void acpi_space_test_nodes(void)
+{
+	struct acpi_namespace_node *node1, *node2;
+	struct acpi_namespace_node *node11, *node12;
+	struct acpi_namespace_node *node21, *node22;
+
+	BUG_ON(!acpi_gbl_root_node);
+
+	node1 = acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, acpi_gbl_root_node,
+				    "N001", 4, true, "test");
+	node2 = acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, acpi_gbl_root_node,
+				    "N002", 4, true, "test");
+	node11 = acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, node1,
+				     "N011", 4, true, "test");
+	node12 = acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, node1,
+				     "N012", 4, true, "test");
+	node21 = acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, node2,
+				     "N021", 4, true, "test");
+	node22 = acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, node2,
+				     "N022", 4, true, "test");
+
+	acpi_space_walk_depth_first(NULL, ACPI_TYPE_ANY, 3,
+				    acpi_space_descend_test,
+				    acpi_space_ascend_test,
+				    NULL);
+
+	acpi_node_put(node1, "test");
+	acpi_node_put(node2, "test");
+}
+#endif
 
 acpi_status_t acpi_initialize_namespace(void)
 {
@@ -194,6 +380,8 @@ acpi_status_t acpi_initialize_namespace(void)
 		return AE_NO_MEMORY;
 	}
 	acpi_space_unlock();
+
+	acpi_space_test_nodes();
 
 	return AE_OK;
 }
