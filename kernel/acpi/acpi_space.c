@@ -313,6 +313,29 @@ exit_lock:
 	return node;
 }
 
+struct acpi_namespace_node *acpi_space_open(acpi_ddb_t ddb,
+					    struct acpi_namespace_node *scope,
+					    const char *name, uint32_t length,
+					    boolean create_node)
+{
+	BUG_ON(create_node && ACPI_DDB_HANDLE_INVALID == ddb);
+	return acpi_space_get_node(ddb, scope, name, length, create_node, "space");
+}
+
+struct acpi_namespace_node *__acpi_space_open(struct acpi_namespace_node *scope,
+					      const char *name, uint32_t length)
+{
+	return acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, scope, name,
+				   length, false, "space");
+}
+
+void acpi_space_close(struct acpi_namespace_node *node, boolean delete_node)
+{
+	if (delete_node)
+		acpi_node_close(node);
+	acpi_node_put(node, "space");
+}
+
 #ifdef CONFIG_ACPI_DEBUG
 static boolean acpi_space_descend_test(struct acpi_namespace_node *node,
 				       void *unused)
@@ -334,6 +357,13 @@ static boolean acpi_space_ascend_test(struct acpi_namespace_node *node,
 	return false;
 }
 
+struct acpi_namespace_node *acpi_space_open_test(struct acpi_namespace_node *scope,
+						 const char *name, uint32_t length)
+{
+	return acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, scope, name,
+				   length, true, "space");
+}
+
 void acpi_space_test_nodes(void)
 {
 	struct acpi_namespace_node *node1, *node2;
@@ -342,30 +372,29 @@ void acpi_space_test_nodes(void)
 
 	BUG_ON(!acpi_gbl_root_node);
 
-	node1 = acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, acpi_gbl_root_node,
-				    "N001", 4, true, "test");
-	node2 = acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, acpi_gbl_root_node,
-				    "N002", 4, true, "test");
-	node11 = acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, node1,
-				     "N011", 4, true, "test");
-	node12 = acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, node1,
-				     "N012", 4, true, "test");
-	node21 = acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, node2,
-				     "N021", 4, true, "test");
-	node22 = acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, node2,
-				     "N022", 4, true, "test");
+	node1 = acpi_space_open_test(acpi_gbl_root_node, "N001", 4);
+	node2 = acpi_space_open_test(acpi_gbl_root_node, "N002", 4);
+	node11 = acpi_space_open_test(node1, "N011", 4);
+	node12 = acpi_space_open_test(node1, "N012", 4);
+	node21 = acpi_space_open_test(node2, "N021", 4);
+	node22 = acpi_space_open_test(node2, "N022", 4);
 
 	acpi_space_walk_depth_first(NULL, ACPI_TYPE_ANY, 3,
 				    acpi_space_descend_test,
+				    NULL, NULL);
+	acpi_space_walk_depth_first(NULL, ACPI_TYPE_ANY, 3, NULL,
 				    acpi_space_ascend_test,
 				    NULL);
 
-	acpi_node_put(node1, "test");
-	acpi_node_put(node11, "test");
-	acpi_node_put(node12, "test");
-	acpi_node_put(node2, "test");
-	acpi_node_put(node21, "test");
-	acpi_node_put(node22, "test");
+	acpi_space_close(node1, true);
+	acpi_space_close(node11, true);
+	acpi_space_close(node12, true);
+	acpi_space_close(node21, true);
+	acpi_space_close(node22, true);
+	acpi_space_close(node2, true);
+
+	BUG_ON(__acpi_space_open(acpi_gbl_root_node, "N001", 4));
+	BUG_ON(__acpi_space_open(acpi_gbl_root_node, "N002", 4));
 }
 #endif
 
