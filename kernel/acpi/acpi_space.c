@@ -35,7 +35,7 @@ static void __acpi_node_init(struct acpi_namespace_node *node,
 		acpi_gbl_root_node = node;
 	} else {
 		node->parent = acpi_node_get(parent, "object");
-		list_add(&node->sibling, &parent->children);
+		list_add_tail(&node->sibling, &parent->children);
 	}
 }
 
@@ -147,6 +147,7 @@ static struct acpi_namespace_node *acpi_space_walk_next(struct acpi_namespace_no
 		return next;
 }
 
+#if 0
 static struct acpi_namespace_node *acpi_space_walk_prev(struct acpi_namespace_node *scope,
 							struct acpi_namespace_node *iter)
 {
@@ -161,6 +162,7 @@ static struct acpi_namespace_node *acpi_space_walk_prev(struct acpi_namespace_no
 	else
 		return prev;
 }
+#endif
 
 static boolean __acpi_space_walk_call(struct acpi_namespace_node *node,
 				      acpi_object_type object_type,
@@ -212,12 +214,12 @@ void acpi_space_walk_depth_first(struct acpi_namespace_node *scope,
 	level = 1;
 
 	while (parent) {
-		node = child = acpi_space_walk_prev(parent, child);
+		node = child = acpi_space_walk_next(parent, child);
 		while (child && level < max_depth) {
 			__ACPI_SPACE_WALK_CALL(child, object_type,
 					       descending_callback,
 					       context, terminated);
-			child = acpi_space_walk_prev(node, NULL);
+			child = acpi_space_walk_next(node, NULL);
 			if (child) {
 				parent = node;
 				node = child;
@@ -236,7 +238,7 @@ void acpi_space_walk_depth_first(struct acpi_namespace_node *scope,
 				__ACPI_SPACE_WALK_CALL(parent, object_type,
 						       ascending_callback,
 						       context, terminated);
-				parent = acpi_space_walk_prev(parent->parent, parent);
+				parent = acpi_space_walk_next(parent->parent, parent);
 				__ACPI_SPACE_WALK_CALL(parent, object_type,
 						       descending_callback,
 						       context, terminated);
@@ -359,7 +361,11 @@ void acpi_space_test_nodes(void)
 				    NULL);
 
 	acpi_node_put(node1, "test");
+	acpi_node_put(node11, "test");
+	acpi_node_put(node12, "test");
 	acpi_node_put(node2, "test");
+	acpi_node_put(node21, "test");
+	acpi_node_put(node22, "test");
 }
 #endif
 
