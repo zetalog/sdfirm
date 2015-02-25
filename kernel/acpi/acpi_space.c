@@ -322,17 +322,22 @@ struct acpi_namespace_node *acpi_space_open(acpi_ddb_t ddb,
 	return acpi_space_get_node(ddb, scope, name, length, create_node, "space");
 }
 
-struct acpi_namespace_node *__acpi_space_open(struct acpi_namespace_node *scope,
-					      const char *name, uint32_t length)
+void acpi_space_close(struct acpi_namespace_node *node, boolean delete_node)
+{
+	if (delete_node)
+		acpi_node_close(node);
+	acpi_node_put(node, "space");
+}
+
+struct acpi_namespace_node *acpi_space_open_exist(struct acpi_namespace_node *scope,
+						  const char *name, uint32_t length)
 {
 	return acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, scope, name,
 				   length, false, "space");
 }
 
-void acpi_space_close(struct acpi_namespace_node *node, boolean delete_node)
+void acpi_space_close_exist(struct acpi_namespace_node *node)
 {
-	if (delete_node)
-		acpi_node_close(node);
 	acpi_node_put(node, "space");
 }
 
@@ -393,8 +398,8 @@ void acpi_space_test_nodes(void)
 	acpi_space_close(node22, true);
 	acpi_space_close(node2, true);
 
-	BUG_ON(__acpi_space_open(acpi_gbl_root_node, "N001", 4));
-	BUG_ON(__acpi_space_open(acpi_gbl_root_node, "N002", 4));
+	BUG_ON(acpi_space_open_exist(acpi_gbl_root_node, "N001", 4));
+	BUG_ON(acpi_space_open_exist(acpi_gbl_root_node, "N002", 4));
 }
 #endif
 

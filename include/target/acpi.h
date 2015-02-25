@@ -886,13 +886,14 @@ void acpi_space_walk_depth_first(struct acpi_namespace_node *scope,
 				 acpi_space_cb descending_callback,
 				 acpi_space_cb ascending_callback,
 				 void *context);
-struct acpi_namespace_node *__acpi_space_open(struct acpi_namespace_node *scope,
-					      const char *name, uint32_t length);
 struct acpi_namespace_node *acpi_space_open(acpi_ddb_t ddb,
 					    struct acpi_namespace_node *scope,
 					    const char *name, uint32_t length,
 					    boolean create_node);
 void acpi_space_close(struct acpi_namespace_node *node, boolean delete_node);
+struct acpi_namespace_node *acpi_space_open_exist(struct acpi_namespace_node *scope,
+						  const char *name, uint32_t length);
+void acpi_space_close_exist(struct acpi_namespace_node *node);
 
 /*=========================================================================
  * Checksum validations
