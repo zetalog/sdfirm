@@ -411,12 +411,26 @@ typedef uint32_t acpi_ddb_t;
 /* ============================================================ *
  * table signature/method name handling
  * ============================================================ */
-typedef uint32_t acpi_tag_t;
 #define ACPI_NAME_SIZE		4
+#define ACPI_AML_PATH_SIZE	1278
+#define ACPI_ASL_PATH_SIZE	1530
+#define ACPI_MAX_NAME_SEGS	255
+
+typedef uint32_t acpi_tag_t;
+/*
+ * Maximum AML path size is:
+ * 255 * 4 (seg names) + [255 (parents) | 1 (root)] +
+ * 1 (multi-name or dual-name) + 1 (seg count) + 1 (trailing null)
+ *
+ * Maximum ASL path size is:
+ * [1 (root) | 255 (parents)] + 255 * 4 (seg names) + 254 (dots) +
+ * 1 (trailing null)
+ */
+typedef uint16_t acpi_path_len_t;
 typedef char acpi_name_t[ACPI_NAME_SIZE];
 typedef struct acpi_path {
-	char *names;
-	uint32_t length;
+	acpi_path_len_t length;
+	uint8_t *names;
 } acpi_path_t;
 
 #define ACPI_NAME2TAG(name)				\

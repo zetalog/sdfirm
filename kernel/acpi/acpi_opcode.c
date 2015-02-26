@@ -576,7 +576,7 @@ acpi_status_t acpi_term_alloc_name(struct acpi_parser *parser,
 	struct acpi_opcode_info *op_info;
 	uint8_t argc = 0;
 	uint16_t object_type;
-	uint32_t length;
+	acpi_path_len_t length;
 	acpi_path_t path;
 	struct acpi_environ *environ = &parser->environ;
 

@@ -303,11 +303,11 @@ void aml_decode_byte_list(union acpi_term *term,
 }
 
 void aml_decode_namestring(union acpi_term *term, uint8_t *aml,
-			   uint32_t *name_len)
+			   acpi_path_len_t *name_len)
 {
 	uint8_t *begin = aml;
 	uint8_t *end = aml;
-	uint32_t length;
+	acpi_path_len_t length;
 
 	while (*end == AML_ROOT_PFX || *end == AML_PARENT_PFX)
 		end++;
