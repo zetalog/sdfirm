@@ -77,27 +77,24 @@ acpi_path_len_t acpi_path_encode(const char *name, acpi_path_t *path)
 	uint8_t seg_bytes;
 	boolean leading;
 
-#define ACPI_PATH_WRITE_BYTE(path, byte, index)				\
+#define ACPI_PATH_PUT8(path, byte, index)				\
 	do {								\
-		if (path && path->names) {				\
-			if ((index) < (path)->length)			\
-				(path)->names[(index)++] = (byte);	\
-			else						\
-				return 0;				\
-		} else							\
+		if (path && path->names && (index) < (path)->length)	\
+			(path)->names[(index)++] = (byte);		\
+		else							\
 			(index)++;					\
 	} while (0)
 
 	iter = name;
 	nr_segs = 0;
 	if (*iter == AML_ROOT_PFX) {
-		ACPI_PATH_WRITE_BYTE(path, AML_ROOT_PFX, length);
+		ACPI_PATH_PUT8(path, AML_ROOT_PFX, length);
 		while (*iter == AML_ROOT_PFX)
 			iter++;
 	} else {
 		while (*iter == AML_PARENT_PFX) {
 			if (nr_segs < ACPI_MAX_NAME_SEGS) {
-				ACPI_PATH_WRITE_BYTE(path, AML_PARENT_PFX, length);
+				ACPI_PATH_PUT8(path, AML_PARENT_PFX, length);
 				nr_segs++;
 			} else
 				return 0;
@@ -129,36 +126,41 @@ acpi_path_len_t acpi_path_encode(const char *name, acpi_path_t *path)
 	}
 	if (nr_segs > 1) {
 		if (nr_segs > 2) {
-			ACPI_PATH_WRITE_BYTE(path, AML_MULTI_NAME_PFX, length);
-			ACPI_PATH_WRITE_BYTE(path, nr_segs, length);
+			ACPI_PATH_PUT8(path, AML_MULTI_NAME_PFX, length);
+			ACPI_PATH_PUT8(path, nr_segs, length);
 		} else
-			ACPI_PATH_WRITE_BYTE(path, AML_DUAL_NAME_PFX, length);
+			ACPI_PATH_PUT8(path, AML_DUAL_NAME_PFX, length);
 	}
 
-	if (path && path->names) {
-		iter = saved_name;
-		seg_bytes = 4;
-		while (*iter) {
-			if (*iter == AML_DUAL_NAME_PFX) {
+	iter = saved_name;
+	seg_bytes = 4;
+	while (*iter) {
+		if (*iter == AML_DUAL_NAME_PFX) {
+			if (seg_bytes != 4) {
 				while (seg_bytes) {
-					ACPI_PATH_WRITE_BYTE(path, '_', length);
+					ACPI_PATH_PUT8(path, '_', length);
 					seg_bytes--;
 				}
 				seg_bytes = 4;
-			} else {
-				if (seg_bytes == 4) {
-					BUG_ON(!nr_segs);
-					nr_segs--;
-				}
-				BUG_ON(seg_bytes == 0);
-				ACPI_PATH_WRITE_BYTE(path, *iter, length);
-				seg_bytes--;
 			}
-			iter++;
+		} else {
+			if (seg_bytes == 4) {
+				BUG_ON(!nr_segs);
+				nr_segs--;
+			}
+			BUG_ON(seg_bytes == 0);
+			ACPI_PATH_PUT8(path, *iter, length);
+			seg_bytes--;
 		}
-	} else
-		length += ACPI_NAME_SIZE * nr_segs;
-	ACPI_PATH_WRITE_BYTE(path, 0, length);
+		iter++;
+	}
+	if (seg_bytes != 4) {
+		while (seg_bytes) {
+			ACPI_PATH_PUT8(path, '_', length);
+			seg_bytes--;
+		}
+	}
+	ACPI_PATH_PUT8(path, 0, length);
 
 	return length;
 }

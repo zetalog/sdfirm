@@ -378,7 +378,7 @@ void acpi_space_test_nodes(void)
 	acpi_path_len_t len1, len2;
 	acpi_path_t path = { ACPI_AML_PATH_SIZE, buf };
 
-#define _N9			"ZYXW.VUTS.RQPO.NMLK.JIHG.FEDC.BA98.7654.3210"
+#define _N9			"ZYX9.WVU8.TSR7.QPO6.NML5.KJI4.HGF3.EDC2.BA10"
 #define _R4			"\\\\\\\\"
 #define _P4			"^^^^"
 #define _P16			_P4 _P4 _P4 _P4
@@ -388,19 +388,40 @@ void acpi_space_test_nodes(void)
 
 #define ACPI_NAME_OK1		_R4 _N9
 #define ACPI_NAME_OK2		_P4 _N9
+#define ACPI_NAME_OK3		"ZYX"
+#define ACPI_NAME_OK4		"ZYX9..WVU8"
+#define ACPI_NAME_OK5		"..ZYX9..WVU8"
+#define ACPI_NAME_OK6		"ZYX.."
 #define ACPI_NAME_NG1		_P64 _P64 _P64 _P64 _N9
 #define ACPI_NAME_NG2		_N72 _N72 _N72 _N72
-#define ACPI_NAME_NG3		"ZYXWV"
+#define ACPI_NAME_NG3		"ZYX9W"
 #define ACPI_NAME_NG4		"ZYX\\"
 #define ACPI_NAME_NG5		"ZYX^"
 
 	BUG_ON(!acpi_gbl_root_node);
 
+	path.length = 1;
+	len1 = acpi_path_encode(ACPI_NAME_OK1, NULL);
+	len2 = acpi_path_encode(ACPI_NAME_OK1, &path);
+	BUG_ON(len1 != len2);
+	path.length = ACPI_AML_PATH_SIZE;
 	len1 = acpi_path_encode(ACPI_NAME_OK1, NULL);
 	len2 = acpi_path_encode(ACPI_NAME_OK1, &path);
 	BUG_ON(len1 != len2);
 	len1 = acpi_path_encode(ACPI_NAME_OK2, NULL);
 	len2 = acpi_path_encode(ACPI_NAME_OK2, &path);
+	BUG_ON(len1 != len2);
+	len1 = acpi_path_encode(ACPI_NAME_OK3, NULL);
+	len2 = acpi_path_encode(ACPI_NAME_OK3, &path);
+	BUG_ON(len1 != len2);
+	len1 = acpi_path_encode(ACPI_NAME_OK4, NULL);
+	len2 = acpi_path_encode(ACPI_NAME_OK4, &path);
+	BUG_ON(len1 != len2);
+	len1 = acpi_path_encode(ACPI_NAME_OK5, NULL);
+	len2 = acpi_path_encode(ACPI_NAME_OK5, &path);
+	BUG_ON(len1 != len2);
+	len1 = acpi_path_encode(ACPI_NAME_OK6, NULL);
+	len2 = acpi_path_encode(ACPI_NAME_OK6, &path);
 	BUG_ON(len1 != len2);
 	len1 = acpi_path_encode(ACPI_NAME_NG1, NULL);
 	BUG_ON(len1 != 0);
