@@ -417,6 +417,8 @@ typedef uint32_t acpi_ddb_t;
 #define ACPI_MAX_NAME_SEGS	255
 
 typedef uint32_t acpi_tag_t;
+typedef char acpi_name_t[ACPI_NAME_SIZE];
+
 /*
  * Maximum AML path size is:
  * 255 * 4 (seg names) + [255 (parents) | 1 (root)] +
@@ -427,7 +429,13 @@ typedef uint32_t acpi_tag_t;
  * 1 (trailing null)
  */
 typedef uint16_t acpi_path_len_t;
-typedef char acpi_name_t[ACPI_NAME_SIZE];
+
+/*
+ * The acpi_path_t could be used for both ASL path and AML path. It could
+ * contain the trailing null or not. Users may use
+ * acpi_path_has_trailing_null() to check if the trailing null is
+ * contained.
+ */
 typedef struct acpi_path {
 	acpi_path_len_t length;
 	uint8_t *names;
@@ -856,7 +864,6 @@ int acpi_reference_test_and_inc(struct acpi_reference *reference);
 
 const char *acpi_mutex_name(uint32_t mutex_id);
 
-int acpi_compare_sig_name(acpi_tag_t sig, acpi_name_t name);
 void acpi_encode_generic_address(struct acpi_generic_address *generic_address,
 				 uint8_t space_id,
 				 uint64_t address64,
@@ -866,6 +873,14 @@ void acpi_encode_generic_address(struct acpi_generic_address *generic_address,
 #define acpi_warn		acpi_os_debug_print
 #define acpi_info		acpi_os_debug_print
 #define acpi_dbg		acpi_os_debug_print
+
+/*=========================================================================
+ * Name externals
+ *=======================================================================*/
+int acpi_compare_name(acpi_name_t name1, acpi_name_t name2);
+int acpi_compare_sig_name(acpi_tag_t sig, acpi_name_t name);
+boolean acpi_path_has_trailing_null(acpi_path_t *path);
+acpi_path_len_t acpi_path_encode(const char *name, acpi_path_t *path);
 
 /*=========================================================================
  * Table externals

@@ -69,6 +69,25 @@ static boolean acpi_path_valid_byte(uint8_t byte, boolean leading)
 	return false;
 }
 
+boolean acpi_path_has_trailing_null(acpi_path_t *path)
+{
+	BUG_ON(!path || !path->names);
+	return (path->names[path->length - 1] == '\0') ? true : false;
+}
+
+/*
+ * acpi_path_encode() - convert ASL namespace path into AML namespace path
+ * @name: namespace path in ASL format
+ * @path: namespace path in AML format
+ *
+ * Return 0 if the ASL path is in wrong format, 1 if the ASL path is
+ * empty, otherwise returning (length of AML path + 1) which means the
+ * path->names contains a trailing null.
+ * Note that if the path->names isn't large enough to contain the length
+ * of encoded AML path, the actual required buffer length is returned,
+ * which should be greater than path->length. So callers may check the
+ * returning value if the buffer size of path->names cannot be determined.
+ */
 acpi_path_len_t acpi_path_encode(const char *name, acpi_path_t *path)
 {
 	const char *iter, *saved_name;
@@ -124,13 +143,11 @@ acpi_path_len_t acpi_path_encode(const char *name, acpi_path_t *path)
 		}
 		iter++;
 	}
-	if (nr_segs > 1) {
-		if (nr_segs > 2) {
-			ACPI_PATH_PUT8(path, AML_MULTI_NAME_PFX, length);
-			ACPI_PATH_PUT8(path, nr_segs, length);
-		} else
-			ACPI_PATH_PUT8(path, AML_DUAL_NAME_PFX, length);
-	}
+	if (nr_segs > 2) {
+		ACPI_PATH_PUT8(path, AML_MULTI_NAME_PFX, length);
+		ACPI_PATH_PUT8(path, nr_segs, length);
+	} else if (nr_segs > 1)
+		ACPI_PATH_PUT8(path, AML_DUAL_NAME_PFX, length);
 
 	iter = saved_name;
 	seg_bytes = 4;
