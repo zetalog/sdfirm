@@ -341,6 +341,67 @@ void acpi_space_close_exist(struct acpi_namespace_node *node)
 	acpi_node_put(node, "space");
 }
 
+/*
+ * acpi_space_get_full_path() - obtain namespace node's full path
+ * @node: namespace node
+ * @fullpath: namespace path in ASL format
+ * @size: buffer size of ASL namespace path
+ *
+ * Return 1 if the AML path is empty, otherwise returning (length of ASL
+ * path + 1) which means the 'fullpath' contains a trailing null.
+ * Note that if the size of 'fullpath' isn't large enough to contain the
+ * namespace node's ASL path, the actual required buffer length is
+ * returned, which should be greater than 'size'. So callers may check the
+ * returning value if the buffer size of 'fullpath' cannot be determined.
+ */
+acpi_path_len_t acpi_space_get_full_path(struct acpi_namespace_node *node,
+					 char *fullpath, acpi_path_len_t size)
+{
+	acpi_path_len_t length = 0, i;
+	acpi_name_t name;
+	boolean trailing;
+	char c, *left, *right;
+
+	while (node) {
+		ACPI_NAMECPY(node->tag, name);
+		trailing = true;
+		for (i = 0; i < 4; i++) {
+			c = name[4-i-1];
+			if (c != '_')
+				trailing = false;
+			if (!trailing || c != '_') {
+				if (fullpath && size > length)
+					fullpath[length] = c;
+				length++;
+			}
+		}
+		node = node->parent;
+		if (node && node != acpi_gbl_root_node) {
+			if (fullpath && size > length)
+				fullpath[length] = AML_DUAL_NAME_PFX;
+			length++;
+		}
+	}
+
+	/* reverse the path string */
+	if (length <= size) {
+		left = fullpath;
+		right = fullpath+length-1;
+		while (left < right) {
+			c = *left;
+			*left++ = *right;
+			*right-- = c;
+		}
+	}
+
+	/* append the trailing null */
+	if (fullpath && size > length)
+		fullpath[length] = '\0';
+	length++;
+
+	return length;
+}
+
 #ifdef CONFIG_ACPI_DEBUG
 static boolean acpi_space_descend_test(struct acpi_namespace_node *node,
 				       void *unused)
@@ -466,6 +527,10 @@ void acpi_space_test_nodes(void)
 	node12 = acpi_space_open_test(node1, "N012", 4);
 	node21 = acpi_space_open_test(node2, "N021", 4);
 	node22 = acpi_space_open_test(node2, "N022", 4);
+
+	len1 = acpi_space_get_full_path(node22, NULL, 0);
+	len2 = acpi_space_get_full_path(node22, asl_path, ACPI_ASL_PATH_SIZE);
+	BUG_ON(len1 != len2);
 
 	acpi_space_walk_depth_first(NULL, ACPI_TYPE_ANY, 3,
 				    acpi_space_descend_test,

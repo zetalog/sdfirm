@@ -83,10 +83,10 @@ boolean acpi_path_has_trailing_null(acpi_path_t *path)
  * Return 0 if the ASL path is in wrong format, 1 if the ASL path is
  * empty, otherwise returning (length of AML path + 1) which means the
  * path->names contains a trailing null.
- * Note that if the path->names isn't large enough to contain the length
- * of encoded AML path, the actual required buffer length is returned,
- * which should be greater than path->length. So callers may check the
- * returning value if the buffer size of path->names cannot be determined.
+ * Note that if the path->names isn't large enough to contain the encoded
+ * AML path, the actual required buffer length is returned, which should
+ * be greater than path->length. So callers may check the returning value
+ * if the buffer size of path->names cannot be determined.
  */
 acpi_path_len_t acpi_path_encode(const char *name, acpi_path_t *path)
 {
@@ -194,9 +194,9 @@ acpi_path_len_t acpi_path_encode(const char *name, acpi_path_t *path)
  * empty, otherwise returning (length of ASL path + 1) which means the
  * 'name' contains a trailing null.
  * Note that if the size of 'name' isn't large enough to contain the
- * length of decoded ASL path, the actual required buffer length is
- * returned, which should be greater than 'size'. So callers may check the
- * returning value if the buffer size of 'name' cannot be determined.
+ * decoded ASL path, the actual required buffer length is returned, which
+ * should be greater than 'size'. So callers may check the returning value
+ * if the buffer size of 'name' cannot be determined.
  */
 acpi_path_len_t acpi_path_decode(acpi_path_t *path,
 				 char *name, acpi_path_len_t size)
