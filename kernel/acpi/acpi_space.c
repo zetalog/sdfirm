@@ -374,9 +374,10 @@ void acpi_space_test_nodes(void)
 	struct acpi_namespace_node *node1, *node2;
 	struct acpi_namespace_node *node11, *node12;
 	struct acpi_namespace_node *node21, *node22;
-	uint8_t buf[ACPI_AML_PATH_SIZE];
+	uint8_t aml_path[ACPI_AML_PATH_SIZE];
+	uint8_t asl_path[ACPI_ASL_PATH_SIZE];
 	acpi_path_len_t len1, len2;
-	acpi_path_t path = { ACPI_AML_PATH_SIZE, buf };
+	acpi_path_t path = { ACPI_AML_PATH_SIZE, aml_path };
 
 #define _N9			"ZYX9.WVU8.TSR7.QPO6.NML5.KJI4.HGF3.EDC2.BA10"
 #define _R4			"\\\\\\\\"
@@ -405,24 +406,49 @@ void acpi_space_test_nodes(void)
 	len2 = acpi_path_encode(ACPI_NAME_OK1, &path);
 	BUG_ON(len1 != len2);
 	path.length = ACPI_AML_PATH_SIZE;
+
 	len1 = acpi_path_encode(ACPI_NAME_OK1, NULL);
 	len2 = acpi_path_encode(ACPI_NAME_OK1, &path);
 	BUG_ON(len1 != len2);
+	len1 = acpi_path_decode(&path, NULL, 0);
+	len2 = acpi_path_decode(&path, asl_path, ACPI_ASL_PATH_SIZE);
+	BUG_ON(len1 != len2);
+
 	len1 = acpi_path_encode(ACPI_NAME_OK2, NULL);
 	len2 = acpi_path_encode(ACPI_NAME_OK2, &path);
 	BUG_ON(len1 != len2);
+	len1 = acpi_path_decode(&path, NULL, 0);
+	len2 = acpi_path_decode(&path, asl_path, ACPI_ASL_PATH_SIZE);
+	BUG_ON(len1 != len2);
+
 	len1 = acpi_path_encode(ACPI_NAME_OK3, NULL);
 	len2 = acpi_path_encode(ACPI_NAME_OK3, &path);
 	BUG_ON(len1 != len2);
+	len1 = acpi_path_decode(&path, NULL, 0);
+	len2 = acpi_path_decode(&path, asl_path, ACPI_ASL_PATH_SIZE);
+	BUG_ON(len1 != len2);
+
 	len1 = acpi_path_encode(ACPI_NAME_OK4, NULL);
 	len2 = acpi_path_encode(ACPI_NAME_OK4, &path);
 	BUG_ON(len1 != len2);
+	len1 = acpi_path_decode(&path, NULL, 0);
+	len2 = acpi_path_decode(&path, asl_path, ACPI_ASL_PATH_SIZE);
+	BUG_ON(len1 != len2);
+
 	len1 = acpi_path_encode(ACPI_NAME_OK5, NULL);
 	len2 = acpi_path_encode(ACPI_NAME_OK5, &path);
 	BUG_ON(len1 != len2);
+	len1 = acpi_path_decode(&path, NULL, 0);
+	len2 = acpi_path_decode(&path, asl_path, ACPI_ASL_PATH_SIZE);
+	BUG_ON(len1 != len2);
+
 	len1 = acpi_path_encode(ACPI_NAME_OK6, NULL);
 	len2 = acpi_path_encode(ACPI_NAME_OK6, &path);
 	BUG_ON(len1 != len2);
+	len1 = acpi_path_decode(&path, NULL, 0);
+	len2 = acpi_path_decode(&path, asl_path, ACPI_ASL_PATH_SIZE);
+	BUG_ON(len1 != len2);
+
 	len1 = acpi_path_encode(ACPI_NAME_NG1, NULL);
 	BUG_ON(len1 != 0);
 	len1 = acpi_path_encode(ACPI_NAME_NG2, NULL);

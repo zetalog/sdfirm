@@ -881,6 +881,8 @@ int acpi_compare_name(acpi_name_t name1, acpi_name_t name2);
 int acpi_compare_sig_name(acpi_tag_t sig, acpi_name_t name);
 boolean acpi_path_has_trailing_null(acpi_path_t *path);
 acpi_path_len_t acpi_path_encode(const char *name, acpi_path_t *path);
+acpi_path_len_t acpi_path_decode(acpi_path_t *path,
+				 char *name, acpi_path_len_t size);
 
 /*=========================================================================
  * Table externals

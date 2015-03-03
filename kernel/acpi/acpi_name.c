@@ -179,5 +179,103 @@ acpi_path_len_t acpi_path_encode(const char *name, acpi_path_t *path)
 	}
 	ACPI_PATH_PUT8(path, 0, length);
 
+#undef ACPI_PATH_PUT8
+
+	return length;
+}
+
+/*
+ * acpi_path_decode() - convert AML namespace path into ASL namespace path
+ * @path: namespace path in AML format
+ * @name: namespace path in ASL format
+ * @size: buffer size of ASL namespace path
+ *
+ * Return 0 if the AML path is in wrong format, 1 if the AML path is
+ * empty, otherwise returning (length of ASL path + 1) which means the
+ * 'name' contains a trailing null.
+ * Note that if the size of 'name' isn't large enough to contain the
+ * length of decoded ASL path, the actual required buffer length is
+ * returned, which should be greater than 'size'. So callers may check the
+ * returning value if the buffer size of 'name' cannot be determined.
+ */
+acpi_path_len_t acpi_path_decode(acpi_path_t *path,
+				 char *name, acpi_path_len_t size)
+{
+	const char *iter;
+	acpi_path_len_t length = 0;
+	uint8_t nr_segs;
+	uint8_t seg_bytes, i;
+	boolean leading;
+
+#define ACPI_PATH_PUT8(name, size, byte, index)		\
+	do {						\
+		if ((name) && (index) < (size))		\
+			(name)[(index)++] = (byte);	\
+		else					\
+			(index)++;			\
+		if ((name) && (index) < (size))		\
+			(name)[(index)] = '\0';		\
+	} while (0)
+#define ACPI_PATH_UNPUT8(index)				\
+	do {						\
+		(index)--;				\
+	} while (0)
+
+	if (!path || !path->names)
+		return 0;
+
+	iter = path->names;
+	nr_segs = 0;
+	if (*iter == AML_ROOT_PFX) {
+		ACPI_PATH_PUT8(name, size, AML_ROOT_PFX, length);
+		while (*iter == AML_ROOT_PFX)
+			iter++;
+	} else {
+		while (*iter == AML_PARENT_PFX) {
+			if (nr_segs < ACPI_MAX_NAME_SEGS) {
+				ACPI_PATH_PUT8(name, size, AML_PARENT_PFX, length);
+				nr_segs++;
+			} else
+				return 0;
+			iter++;
+		}
+	}
+	if (*iter == AML_MULTI_NAME_PFX) {
+		iter++;
+		nr_segs = *iter;
+		iter++;
+	} else if (*iter == AML_DUAL_NAME_PFX) {
+		nr_segs = 2;
+		iter++;
+	} else
+		nr_segs = 1;
+
+	seg_bytes = 0;
+	while (*iter) {
+		if (seg_bytes == 4) {
+			nr_segs--;
+			if (nr_segs == 0)
+				break;
+			seg_bytes = 0;
+			ACPI_PATH_PUT8(name, size, AML_DUAL_NAME_PFX, length);
+		}
+		leading = (seg_bytes == 0) ? true : false;
+		if (!acpi_path_valid_byte(*iter, leading))
+			return 0;
+		ACPI_PATH_PUT8(name, size, *iter, length);
+		seg_bytes++;
+		if (seg_bytes == 4) {
+			for (i = 0; i < 4; i++) {
+				if (*(iter - i) == '_')
+					ACPI_PATH_UNPUT8(length);
+			}
+		}
+		iter++;
+	}
+	ACPI_PATH_PUT8(name, size, 0, length);
+
+#undef ACPI_PATH_PUT8
+#undef ACPI_PATH_UNPUT8
+
 	return length;
 }
