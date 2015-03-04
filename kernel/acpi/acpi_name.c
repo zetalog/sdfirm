@@ -92,28 +92,31 @@ acpi_path_len_t acpi_path_encode(const char *name, acpi_path_t *path)
 {
 	const char *iter, *saved_name;
 	uint8_t nr_segs;
-	acpi_path_len_t length = 0;
+	acpi_path_len_t length = 0, size;
 	uint8_t seg_bytes;
 	boolean leading;
 
-#define ACPI_PATH_PUT8(path, byte, index)				\
-	do {								\
-		if (path && path->names && (index) < (path)->length)	\
-			(path)->names[(index)++] = (byte);		\
-		else							\
-			(index)++;					\
+#define ACPI_PATH_PUT8(path, size, byte, index)			\
+	do {							\
+		if ((index) < (size))				\
+			(path)->names[(index)] = (byte);	\
+		(index)++;					\
 	} while (0)
 
+	if (!path || !path->names)
+		size = 0;
+	else
+		size = path->length;
 	iter = name;
 	nr_segs = 0;
 	if (*iter == AML_ROOT_PFX) {
-		ACPI_PATH_PUT8(path, AML_ROOT_PFX, length);
+		ACPI_PATH_PUT8(path, size, AML_ROOT_PFX, length);
 		while (*iter == AML_ROOT_PFX)
 			iter++;
 	} else {
 		while (*iter == AML_PARENT_PFX) {
 			if (nr_segs < ACPI_MAX_NAME_SEGS) {
-				ACPI_PATH_PUT8(path, AML_PARENT_PFX, length);
+				ACPI_PATH_PUT8(path, size, AML_PARENT_PFX, length);
 				nr_segs++;
 			} else
 				return 0;
@@ -144,10 +147,10 @@ acpi_path_len_t acpi_path_encode(const char *name, acpi_path_t *path)
 		iter++;
 	}
 	if (nr_segs > 2) {
-		ACPI_PATH_PUT8(path, AML_MULTI_NAME_PFX, length);
-		ACPI_PATH_PUT8(path, nr_segs, length);
+		ACPI_PATH_PUT8(path, size, AML_MULTI_NAME_PFX, length);
+		ACPI_PATH_PUT8(path, size, nr_segs, length);
 	} else if (nr_segs > 1)
-		ACPI_PATH_PUT8(path, AML_DUAL_NAME_PFX, length);
+		ACPI_PATH_PUT8(path, size, AML_DUAL_NAME_PFX, length);
 
 	iter = saved_name;
 	seg_bytes = 4;
@@ -155,7 +158,7 @@ acpi_path_len_t acpi_path_encode(const char *name, acpi_path_t *path)
 		if (*iter == AML_DUAL_NAME_PFX) {
 			if (seg_bytes != 4) {
 				while (seg_bytes) {
-					ACPI_PATH_PUT8(path, '_', length);
+					ACPI_PATH_PUT8(path, size, '_', length);
 					seg_bytes--;
 				}
 				seg_bytes = 4;
@@ -166,18 +169,18 @@ acpi_path_len_t acpi_path_encode(const char *name, acpi_path_t *path)
 				nr_segs--;
 			}
 			BUG_ON(seg_bytes == 0);
-			ACPI_PATH_PUT8(path, *iter, length);
+			ACPI_PATH_PUT8(path, size, *iter, length);
 			seg_bytes--;
 		}
 		iter++;
 	}
 	if (seg_bytes != 4) {
 		while (seg_bytes) {
-			ACPI_PATH_PUT8(path, '_', length);
+			ACPI_PATH_PUT8(path, size, '_', length);
 			seg_bytes--;
 		}
 	}
-	ACPI_PATH_PUT8(path, 0, length);
+	ACPI_PATH_PUT8(path, size, 0, length);
 
 #undef ACPI_PATH_PUT8
 
@@ -209,12 +212,9 @@ acpi_path_len_t acpi_path_decode(acpi_path_t *path,
 
 #define ACPI_PATH_PUT8(name, size, byte, index)		\
 	do {						\
-		if ((name) && (index) < (size))		\
-			(name)[(index)++] = (byte);	\
-		else					\
-			(index)++;			\
-		if ((name) && (index) < (size))		\
-			(name)[(index)] = '\0';		\
+		if ((index) < (size))			\
+			(name)[(index)] = (byte);	\
+		(index)++;				\
 	} while (0)
 #define ACPI_PATH_UNPUT8(index)				\
 	do {						\
@@ -223,6 +223,8 @@ acpi_path_len_t acpi_path_decode(acpi_path_t *path,
 
 	if (!path || !path->names)
 		return 0;
+	if (!name)
+		size = 0;
 
 	end = path->names + path->length;
 	iter = path->names;

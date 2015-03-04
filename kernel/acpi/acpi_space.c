@@ -362,6 +362,16 @@ acpi_path_len_t acpi_space_get_full_path(struct acpi_namespace_node *node,
 	boolean trailing;
 	char c, *left, *right;
 
+#define ACPI_PATH_PUT8(name, size, byte, index)		\
+	do {						\
+		if ((index) < (size))			\
+			(name)[(index)] = (byte);	\
+		(index)++;				\
+	} while (0)
+
+	if (!fullpath)
+		size = 0;
+
 	while (node) {
 		ACPI_NAMECPY(node->tag, name);
 		trailing = true;
@@ -369,18 +379,12 @@ acpi_path_len_t acpi_space_get_full_path(struct acpi_namespace_node *node,
 			c = name[4-i-1];
 			if (c != '_')
 				trailing = false;
-			if (!trailing || c != '_') {
-				if (fullpath && size > length)
-					fullpath[length] = c;
-				length++;
-			}
+			if (!trailing || c != '_')
+				ACPI_PATH_PUT8(fullpath, size, c, length);
 		}
 		node = node->parent;
-		if (node && node != acpi_gbl_root_node) {
-			if (fullpath && size > length)
-				fullpath[length] = AML_DUAL_NAME_PFX;
-			length++;
-		}
+		if (node && node != acpi_gbl_root_node)
+			ACPI_PATH_PUT8(fullpath, size, AML_DUAL_NAME_PFX, length);
 	}
 
 	/*
@@ -401,9 +405,9 @@ acpi_path_len_t acpi_space_get_full_path(struct acpi_namespace_node *node,
 	}
 
 	/* append the trailing null */
-	if (fullpath && size > length)
-		fullpath[length] = '\0';
-	length++;
+	ACPI_PATH_PUT8(fullpath, size, '\0', length);
+
+#undef ACPI_PATH_PUT8
 
 	return length;
 }
