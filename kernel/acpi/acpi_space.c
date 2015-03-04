@@ -449,6 +449,9 @@ void acpi_space_test_nodes(void)
 	uint8_t asl_path[ACPI_ASL_PATH_SIZE];
 	acpi_path_len_t len1, len2, saved_len;
 	acpi_path_t path = { ACPI_AML_PATH_SIZE, aml_path };
+	acpi_name_t name;
+	uint8_t parent_aml_path[ACPI_AML_PATH_SIZE];
+	acpi_path_t parent = { ACPI_AML_PATH_SIZE, parent_aml_path };
 
 #define _N9			"ZYX9.WVU8.TSR7.QPO6.NML5.KJI4.HGF3.EDC2.BA10"
 #define _R4			"\\\\\\\\"
@@ -491,14 +494,19 @@ void acpi_space_test_nodes(void)
 	len1 = acpi_path_encode(ACPI_NAME_OK1, NULL);
 	len2 = acpi_path_encode(ACPI_NAME_OK1, &path);
 	BUG_ON(len1 != len2);
+	ACPI_PATH_LEN_SAVE(&path, saved_len, len2-1);
+	len1 = acpi_path_split(&path, &parent, name);
+	ACPI_PATH_LEN_RESTORE(&path, saved_len);
+	BUG_ON(len2 != (len1 + ACPI_NAME_SIZE));
+
 	len1 = acpi_path_decode(&path, NULL, 0);
 	len2 = acpi_path_decode(&path, asl_path, ACPI_ASL_PATH_SIZE);
 	BUG_ON(len1 != len2);
 	BUG_ON(len1 == 0);
 	ACPI_PATH_LEN_SAVE(&path, saved_len, strlen(path.names)-3);
 	len2 = acpi_path_decode(&path, asl_path, ACPI_ASL_PATH_SIZE);
-	BUG_ON(len2 != 0);
 	ACPI_PATH_LEN_RESTORE(&path, saved_len);
+	BUG_ON(len2 != 0);
 
 	len1 = acpi_path_encode(ACPI_NAME_OK2, NULL);
 	len2 = acpi_path_encode(ACPI_NAME_OK2, &path);

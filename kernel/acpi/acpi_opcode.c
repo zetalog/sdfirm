@@ -595,7 +595,7 @@ acpi_status_t acpi_term_alloc_name(struct acpi_parser *parser,
 	aml_decode_namestring(term, aml, &length);
 	path.names = aml;
 	path.length = length;
-	acpi_path_split(path, NULL, term->name_string.name);
+	acpi_path_split(&path, NULL, term->name_string.name);
 	if ((object_type == ACPI_AML_SIMPLENAME) ||
 	    (object_type == ACPI_AML_SUPERNAME)) {
 		term->simple_name.node =

@@ -241,7 +241,8 @@ extern struct acpi_table_fadt acpi_gbl_FADT;
 /*=========================================================================
  * Name internals
  *=======================================================================*/
-void acpi_path_split(acpi_path_t path, acpi_path_t *parent, acpi_name_t name);
+acpi_path_len_t acpi_path_split(acpi_path_t *path,
+				acpi_path_t *parent, acpi_name_t name);
 
 /*=========================================================================
  * Parser internals

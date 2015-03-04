@@ -10,54 +10,102 @@ int acpi_compare_sig_name(acpi_tag_t sig, acpi_name_t name)
 	return ACPI_NAME2TAG(name) - sig;
 }
 
-void acpi_path_split(acpi_path_t path, acpi_path_t *parent, acpi_name_t name)
+/*
+ * acpi_path_split() - split AML namespace path into parent AML namespace
+ *                     path and child AML namespace name
+ * @path: namespace path in AML format
+ * @parent: parent namespace path in AML format
+ * @name: child namespace name in AML format
+ *
+ * Return 0 if the AML path is in wrong format, 1 if the AML path is
+ * empty, otherwise returning (length of parent AML path + 1) which means
+ * the parent->names contains a trailing null.
+ * Note that if the parent->names isn't large enough to contain the split
+ * AML path, the actual required buffer length is returned, which should
+ * be greater than parent->length. So callers may check the returning
+ * value if the buffer size of parent->names cannot be determined.
+ */
+acpi_path_len_t acpi_path_split(acpi_path_t *path,
+				acpi_path_t *parent, acpi_name_t name)
 {
-	char *iter = path.names;
-	int nr_carats, nr_segs;
+	char *iter, *end;
+	int nr_segs;
+	acpi_path_len_t length = 0, size, i;
 
-	if (!path.names) {
+#define ACPI_PATH_PUT8(path, size, byte, index)			\
+	do {							\
+		if ((index) < (size))				\
+			(path)->names[(index)] = (byte);	\
+		(index)++;					\
+	} while (0)
+
+	if (!parent || !parent->names)
+		size = 0;
+	else
+		size = parent->length;
+
+	if (!path || !path->names) {
 		nr_segs = 0;
-		iter = "";
+		iter = ACPI_NULL_NAME;
+		end = iter + ACPI_NAME_SIZE;
 	} else {
-		if (*iter == AML_ROOT_PFX)
-			iter++;
-		else {
-			nr_carats = 0;
-			while (*iter == AML_PARENT_PFX) {
+		end = path->names + path->length;
+		iter = path->names;
+		if (iter < end && *iter == AML_ROOT_PFX) {
+			ACPI_PATH_PUT8(parent, size, AML_ROOT_PFX, length);
+			while (iter < end && *iter == AML_ROOT_PFX)
 				iter++;
-				nr_carats++;
+		}
+		else {
+			while (iter < end && *iter == AML_PARENT_PFX) {
+				ACPI_PATH_PUT8(parent, size, AML_PARENT_PFX, length);
+				iter++;
 			}
 		}
-		switch (*iter) {
-		case 0:
-			nr_segs = 0;
-			break;
-		case AML_DUAL_NAME_PFX:
-			nr_segs = 2;
-			iter++;
-			break;
-		case AML_MULTI_NAME_PFX:
-			iter++;
-			nr_segs = (uint32_t)(uint8_t)*iter;
-			iter++;
-			break;
-		default:
-			nr_segs = 1;
-			break;
+		if (iter < end) {
+			switch (*iter) {
+			case 0:
+				nr_segs = 0;
+				break;
+			case AML_DUAL_NAME_PFX:
+				nr_segs = 2;
+				iter++;
+				break;
+			case AML_MULTI_NAME_PFX:
+				iter++;
+				if (iter < end) {
+					nr_segs = (uint32_t)(uint8_t)*iter;
+					iter++;
+					if (nr_segs > 4) {
+						ACPI_PATH_PUT8(parent, size, AML_MULTI_NAME_PFX, length);
+						ACPI_PATH_PUT8(parent, size, nr_segs - 1, length);
+					} else if (nr_segs > 3)
+						ACPI_PATH_PUT8(parent, size, AML_DUAL_NAME_PFX, length);
+				} else
+					return 0;
+				break;
+			default:
+				nr_segs = 1;
+				break;
+			}
 		}
 	}
-	while (nr_segs) {
-		if (nr_segs == 1)
-			break;
+	while ((end - iter) >= ACPI_NAME_SIZE && nr_segs > 1) {
 		nr_segs--;
-	        iter += ACPI_NAME_SIZE;
+		for (i = 0; i < ACPI_NAME_SIZE; i++) {
+			ACPI_PATH_PUT8(parent, size, *iter, length);
+			iter++;
+		}
         }
+	ACPI_PATH_PUT8(parent, size, '\0', length);
+	if ((end - iter) != ACPI_NAME_SIZE || nr_segs != 1)
+		return 0;
 	if (name)
 		ACPI_NAMECPY(ACPI_NAME2TAG(iter), name);
-	if (parent) {
-		parent->names = path.names;
-		parent->length = iter - path.names;
-	}
+
+#undef ACPI_PATH_PUT8
+
+	return length;
 }
 
 static boolean acpi_path_valid_byte(uint8_t byte, boolean leading)
@@ -229,12 +277,12 @@ acpi_path_len_t acpi_path_decode(acpi_path_t *path,
 	end = path->names + path->length;
 	iter = path->names;
 	nr_segs = 0;
-	if (*iter == AML_ROOT_PFX) {
+	if (iter < end && *iter == AML_ROOT_PFX) {
 		ACPI_PATH_PUT8(name, size, AML_ROOT_PFX, length);
-		while (*iter == AML_ROOT_PFX)
+		while (iter < end && *iter == AML_ROOT_PFX)
 			iter++;
 	} else {
-		while (*iter == AML_PARENT_PFX) {
+		while (iter < end && *iter == AML_PARENT_PFX) {
 			if (nr_segs < ACPI_MAX_NAME_SEGS) {
 				ACPI_PATH_PUT8(name, size, AML_PARENT_PFX, length);
 				nr_segs++;
@@ -243,15 +291,17 @@ acpi_path_len_t acpi_path_decode(acpi_path_t *path,
 			iter++;
 		}
 	}
-	if (*iter == AML_MULTI_NAME_PFX) {
+	nr_segs = 1;
+	if (iter < end && *iter == AML_MULTI_NAME_PFX) {
 		iter++;
-		nr_segs = *iter;
-		iter++;
-	} else if (*iter == AML_DUAL_NAME_PFX) {
+		if (iter < end) {
+			nr_segs = *iter;
+			iter++;
+		}
+	} else if (iter < end && *iter == AML_DUAL_NAME_PFX) {
 		nr_segs = 2;
 		iter++;
-	} else
-		nr_segs = 1;
+	}
 
 	seg_bytes = 0;
 	while (iter < end && *iter) {
