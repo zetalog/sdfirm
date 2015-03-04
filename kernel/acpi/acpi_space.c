@@ -485,7 +485,7 @@ void acpi_space_test_nodes(void)
 	len2 = acpi_path_decode(&path, asl_path, ACPI_ASL_PATH_SIZE);
 	BUG_ON(len1 != len2);
 	BUG_ON(len1 == 0);
-	ACPI_PATH_LEN_SAVE(&path, saved_len, strlen(path.names-3));
+	ACPI_PATH_LEN_SAVE(&path, saved_len, strlen(path.names)-3);
 	len2 = acpi_path_decode(&path, asl_path, ACPI_ASL_PATH_SIZE);
 	BUG_ON(len2 != 0);
 	ACPI_PATH_LEN_RESTORE(&path, saved_len);

@@ -201,7 +201,7 @@ acpi_path_len_t acpi_path_encode(const char *name, acpi_path_t *path)
 acpi_path_len_t acpi_path_decode(acpi_path_t *path,
 				 char *name, acpi_path_len_t size)
 {
-	const char *iter;
+	const char *iter, *end;
 	acpi_path_len_t length = 0;
 	uint8_t nr_segs;
 	uint8_t seg_bytes, i;
@@ -224,6 +224,7 @@ acpi_path_len_t acpi_path_decode(acpi_path_t *path,
 	if (!path || !path->names)
 		return 0;
 
+	end = path->names + path->length;
 	iter = path->names;
 	nr_segs = 0;
 	if (*iter == AML_ROOT_PFX) {
@@ -251,7 +252,7 @@ acpi_path_len_t acpi_path_decode(acpi_path_t *path,
 		nr_segs = 1;
 
 	seg_bytes = 0;
-	while (*iter && path->length > length) {
+	while (iter < end && *iter) {
 		if (seg_bytes == 4) {
 			seg_bytes = 0;
 			ACPI_PATH_PUT8(name, size, AML_DUAL_NAME_PFX, length);
