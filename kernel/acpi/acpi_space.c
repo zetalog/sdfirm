@@ -383,6 +383,12 @@ acpi_path_len_t acpi_space_get_full_path(struct acpi_namespace_node *node,
 		}
 	}
 
+	/*
+	 * NOTE: No need to append AML_ROOT_PFX here because our
+	 * ACPI_ROOT_NAME, so mark it to catch future changes.
+	 */
+	BUG_ON(strcmp(ACPI_ROOT_NAME, "\\___"));
+
 	/* reverse the path string */
 	if (length <= size) {
 		left = fullpath;
