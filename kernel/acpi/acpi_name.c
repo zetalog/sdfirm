@@ -251,11 +251,8 @@ acpi_path_len_t acpi_path_decode(acpi_path_t *path,
 		nr_segs = 1;
 
 	seg_bytes = 0;
-	while (*iter) {
+	while (*iter && path->length > length) {
 		if (seg_bytes == 4) {
-			nr_segs--;
-			if (nr_segs == 0)
-				break;
 			seg_bytes = 0;
 			ACPI_PATH_PUT8(name, size, AML_DUAL_NAME_PFX, length);
 		}
@@ -269,9 +266,14 @@ acpi_path_len_t acpi_path_decode(acpi_path_t *path,
 				if (*(iter - i) == '_')
 					ACPI_PATH_UNPUT8(length);
 			}
+			nr_segs--;
+			if (nr_segs == 0)
+				break;
 		}
 		iter++;
 	}
+	if (seg_bytes != 4 || nr_segs > 0)
+		return 0;
 	ACPI_PATH_PUT8(name, size, 0, length);
 
 #undef ACPI_PATH_PUT8
