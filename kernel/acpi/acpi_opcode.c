@@ -579,6 +579,7 @@ acpi_status_t acpi_term_alloc_name(struct acpi_parser *parser,
 	acpi_path_len_t length;
 	acpi_path_t path;
 	struct acpi_environ *environ = &parser->environ;
+	struct acpi_interp *interp = parser->interp;
 
 	if (arg_type == AML_NAMESTRING)
 		object_type = ACPI_AML_NAMESTRING;
@@ -600,7 +601,7 @@ acpi_status_t acpi_term_alloc_name(struct acpi_parser *parser,
 	    (object_type == ACPI_AML_SUPERNAME)) {
 		term->simple_name.node =
 			acpi_space_get_node(ACPI_DDB_HANDLE_INVALID,
-					    environ->node,
+					    interp->node,
 					    term->common.value.string,
 					    term->common.aml_length,
 					    false, "name");

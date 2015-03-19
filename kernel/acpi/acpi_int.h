@@ -160,8 +160,6 @@ struct acpi_state_header {
 
 struct acpi_environ {
 	union acpi_term *parent_term;
-	struct acpi_namespace_node *parent_node;
-	struct acpi_namespace_node *node;
 	union acpi_term *term;
 	uint16_t opcode;
 	const struct acpi_opcode_info *op_info;
@@ -208,6 +206,8 @@ acpi_status_t (*acpi_term_cb)(struct acpi_interp *interp,
 struct acpi_interp {
 	/* Parser state */
 	struct acpi_parser *parser;
+	/* current scope */
+	struct acpi_namespace_node *node;
 
 	/* Executer state */
 	acpi_ddb_t ddb;

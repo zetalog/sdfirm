@@ -25,11 +25,14 @@ acpi_status_t acpi_interpret_exec(struct acpi_interp *interp,
 }
 
 static void __acpi_interpret_init(struct acpi_interp *interp,
-				  acpi_ddb_t ddb, acpi_term_cb callback)
+				  acpi_ddb_t ddb,
+				  struct acpi_namespace_node *node,
+				  acpi_term_cb callback)
 {
 	if (ddb != ACPI_DDB_HANDLE_INVALID)
 		acpi_table_increment(ddb);
 	interp->ddb = ddb;
+	interp->node = acpi_node_get(node, "interp");
 	interp->callback = callback;
 }
 
@@ -38,6 +41,10 @@ static void __acpi_interpret_exit(struct acpi_interp *interp)
 	if (interp->ddb != ACPI_DDB_HANDLE_INVALID) {
 		acpi_table_decrement(interp->ddb);
 		interp->ddb = ACPI_DDB_HANDLE_INVALID;
+	}
+	if (interp->node) {
+		acpi_node_put(interp->node, "interp");
+		interp->node = NULL;
 	}
 }
 
@@ -53,7 +60,7 @@ acpi_status_t acpi_interpret_aml(acpi_ddb_t ddb,
 	uint8_t *aml_end = aml_begin + aml_length;
 
 	/* AML is a TermList */
-	__acpi_interpret_init(&interp, ddb, callback);
+	__acpi_interpret_init(&interp, ddb, start_node, callback);
 
 	start_term = acpi_term_alloc_aml(ACPI_ROOT_TAG, aml_begin, aml_end);
 	if (!start_term) {
