@@ -1,27 +1,72 @@
 #include "acpi_int.h"
 
-acpi_status_t acpi_interpret_exec(struct acpi_interp *interp,
-				  struct acpi_environ *environ,
-				  uint8_t type)
+static acpi_status_t acpi_interpret_open(struct acpi_interp *interp,
+					 struct acpi_environ *environ)
 {
 	uint16_t opcode = environ->opcode;
 	const struct acpi_opcode_info *op_info = environ->op_info;
 
-	if (type == ACPI_AML_OPEN)
-		acpi_debug_opcode_info(op_info, "Open:");
-	else
-		acpi_debug_opcode_info(op_info, "Close:");
+	acpi_debug_opcode_info(op_info, "Open:");
 
 	switch (opcode) {
 	case AML_SCOPE_OP:
 		break;
+	case AML_IF_OP:
+		break;
+	case AML_ELSE_OP:
+		break;
+	case AML_WHILE_OP:
+		break;
+	}
+	return AE_OK;
+}
+
+static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
+					  struct acpi_environ *environ)
+{
+	union acpi_term *namearg;
+	union acpi_term *valuearg;
+	uint16_t opcode = environ->opcode;
+	const struct acpi_opcode_info *op_info = environ->op_info;
+	struct acpi_namespace_node *node;
+	acpi_status_t status = AE_OK;
+
+	acpi_debug_opcode_info(op_info, "Close:");
+
+	switch (opcode) {
 	case AML_NAME_OP:
+		namearg = acpi_term_get_arg(environ->term, 0);
+		if (!namearg || namearg->common.aml_opcode != AML_NAMESTRING_OP)
+			return AE_AML_OPERAND_TYPE;
+		node = acpi_space_open(interp->ddb,
+				       interp->node,
+				       namearg->common.value.string,
+				       namearg->name_string.aml_length,
+				       true);
+
+		valuearg = acpi_term_get_arg(environ->term, 1);
+		if (!valuearg)
+			status = AE_AML_OPERAND_TYPE;
+		else {
+		}
+
+		acpi_space_close(node, false);
 		break;
 	case AML_METHOD_OP:
 		break;
 	}
 
-	return AE_OK;
+	return status;
+}
+
+acpi_status_t acpi_interpret_exec(struct acpi_interp *interp,
+				  struct acpi_environ *environ,
+				  uint8_t type)
+{
+	if (type == ACPI_AML_OPEN)
+		return acpi_interpret_open(interp, environ);
+	else
+		return acpi_interpret_close(interp, environ);
 }
 
 static void __acpi_interpret_init(struct acpi_interp *interp,
