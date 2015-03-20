@@ -239,12 +239,6 @@ acpi_status_t acpi_table_increment_validated(acpi_ddb_t ddb,
 extern struct acpi_table_fadt acpi_gbl_FADT;
 
 /*=========================================================================
- * Name internals
- *=======================================================================*/
-acpi_path_len_t acpi_path_split(acpi_path_t *path,
-				acpi_path_t *parent, acpi_name_t name);
-
-/*=========================================================================
  * Parser internals
  *=======================================================================*/
 struct acpi_parser *acpi_parser_init(struct acpi_interp *interp,

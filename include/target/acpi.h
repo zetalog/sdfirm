@@ -883,6 +883,8 @@ boolean acpi_path_has_trailing_null(acpi_path_t *path);
 acpi_path_len_t acpi_path_encode(const char *name, acpi_path_t *path);
 acpi_path_len_t acpi_path_decode(acpi_path_t *path,
 				 char *name, acpi_path_len_t size);
+acpi_path_len_t acpi_path_split(acpi_path_t *path,
+				acpi_path_t *parent, acpi_name_t name);
 
 /*=========================================================================
  * Table externals

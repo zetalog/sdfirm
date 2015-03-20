@@ -92,6 +92,8 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
 static VOID ACPIAppendTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb);
 static VOID ACPIRemoveTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb);
 static acpi_ddb_t ACPIGetSelectedTable(LPACPIWNDDATA lpWD);
+static VOID ACPICreateNode(LPACPIWNDDATA lpWD, acpi_handle_t node);
+static VOID ACPIDeleteNode(LPACPIWNDDATA lpWD, acpi_handle_t node);
 
 static BYTE hex2byte(const char *hex)
 {
@@ -139,6 +141,8 @@ static WORD hex2word(const char *hex)
 
 #define WM_LOADTABLE	WM_LAYOUTUSER+1
 #define WM_UNLOADTABLE	WM_LAYOUTUSER+2
+#define WM_CREATENODE	WM_LAYOUTUSER+3
+#define WM_DELETENODE	WM_LAYOUTUSER+4
 
 typedef unsigned __int64	llsize_t;
 
@@ -294,18 +298,39 @@ acpi_status_t AcpiHandleTableEvents(struct acpi_table_desc *table,
 	return AE_OK;
 }
 
+acpi_status_t AcpiHandleSpaceEvents(struct acpi_namespace_node *node,
+				    uint32_t event, void *context)
+{
+	LPACPIWNDDATA lpWD = (LPACPIWNDDATA)context;
+
+	switch (event) {
+	case ACPI_EVENT_SPACE_CREATE:
+		acpi_space_increment(node);
+		SendNotifyMessage(lpWD->hWnd, WM_CREATENODE, (WPARAM)node, 0);
+		break;
+	case ACPI_EVENT_SPACE_DELETE:
+		acpi_space_increment(node);
+		SendNotifyMessage(lpWD->hWnd, WM_DELETENODE, (WPARAM)node, 0);
+		break;
+	}
+
+	return AE_OK;
+}
+
 VOID ACPIInitApplication(LPACPIWNDDATA lpWD)
 {
 	acpi_emu_init();
 	acpi_ospm_init();
 	acpi_test_init();
 	acpi_event_register_table_handler(AcpiHandleTableEvents, lpWD);
+	acpi_event_register_space_handler(AcpiHandleSpaceEvents, lpWD);
 }
 
 VOID ACPIExitApplication(LPACPIWNDDATA lpWD)
 {
 	acpi_test_exit();
 	acpi_ospm_exit();
+	acpi_event_unregister_space_handler(AcpiHandleSpaceEvents);
 	acpi_event_unregister_table_handler(AcpiHandleTableEvents);
 }
 
@@ -452,6 +477,169 @@ void ACPIBuildTableTitles(LPACPIWNDDATA lpWD)
 	ListView_InsertColumn(lpWD->hwndTableList, 6, &lvc);
 	
 	ListView_SetImageList(lpWD->hwndTableList, hImageList, LVSIL_SMALL);
+}
+
+static acpi_path_len_t ACPISplitPath(char *FullPath, acpi_name_t Name,
+				     char *ParentPath, acpi_path_len_t PathSize)
+{
+	acpi_path_len_t len;
+	acpi_path_t path = { 0, NULL };
+	acpi_path_t parent_path = { 0, NULL };
+	char *buf1 = NULL;
+	char *buf2 = NULL;
+
+	len = acpi_path_encode(FullPath, &path);
+	if (len == 0)
+		goto err_exit;
+	buf1 = calloc(len, 1);
+	if (!buf1) {
+		len = 0;
+		goto err_exit;
+	}
+	path.length = len;
+	path.names = buf1;
+	acpi_path_encode(FullPath, &path);
+
+	len = acpi_path_split(&path, &parent_path, Name);
+	if (len == 0)
+		goto err_exit;
+	buf2 = calloc(len, 1);
+	if (!buf2) {
+		len = 0;
+		goto err_exit;
+	}
+	parent_path.length = len;
+	parent_path.names = buf2;
+	acpi_path_split(&path, &parent_path, Name);
+
+	len = acpi_path_decode(&parent_path, ParentPath, PathSize);
+
+err_exit:
+	if (buf1)
+		free(buf1);
+	if (buf2)
+		free(buf2);
+	return len;
+}
+
+static HTREEITEM ACPIFindNode(LPACPIWNDDATA lpWD, char *path)
+{
+	char *parent_path = NULL;
+	acpi_name_t name;
+	acpi_path_len_t len;
+	HWND hwndTree = lpWD->hwndNamespaceTree;
+	HTREEITEM hParent;
+	HTREEITEM hChild = NULL;
+	TV_ITEM tvi;
+
+	if (strcmp(path, "\\") == 0)
+		return NULL;
+
+	len = ACPISplitPath(path, name, parent_path, 0);
+	if (len == 0)
+		goto err_exit;
+	parent_path = calloc(len, 1);
+	if (!path)
+		goto err_exit;
+	ACPISplitPath(path, name, parent_path, len);
+	hParent = ACPIFindNode(lpWD, parent_path);
+
+	hChild = TreeView_GetChild(hwndTree, hParent);
+	while (hChild) {
+		tvi.mask = TVIF_PARAM;
+		tvi.hItem = hChild;
+		TreeView_GetItem(hwndTree, &tvi);
+		if (tvi.lParam == (LPARAM)ACPI_NAME2TAG(name))
+			break;
+		hChild = TreeView_GetNextSibling(hwndTree, hChild);
+	}
+
+err_exit:
+	if (parent_path)
+		free(parent_path);
+	return hChild;
+}
+
+static VOID ACPICreateNode(LPACPIWNDDATA lpWD, acpi_handle_t node)
+{
+	HWND hwndTree = lpWD->hwndNamespaceTree;
+	char *path = NULL;
+	char *parent_path = NULL;
+	acpi_name_t name;
+	acpi_path_len_t len;
+	char lpszText[ACPI_NAME_SIZE+1];
+	HTREEITEM hParent;
+	TVITEM tvi;
+	TVINSERTSTRUCT tvins;
+	HTREEITEM hWndNewItem;
+
+	len = acpi_space_get_full_path(node, path, 0);
+	if (len == 0)
+		goto err_exit;
+	path = calloc(len, 1);
+	if (!path)
+		goto err_exit;
+	acpi_space_get_full_path(node, path, len);
+
+	len = ACPISplitPath(path, name, parent_path, 0);
+	if (len == 0)
+		goto err_exit;
+	parent_path = calloc(len, 1);
+	if (!path)
+		goto err_exit;
+	ACPISplitPath(path, name, parent_path, len);
+
+	hParent = ACPIFindNode(lpWD, parent_path);
+
+	tvi.mask = TVIF_TEXT | TVIF_PARAM;
+
+	/* Set the text of the item. */
+	memcpy(lpszText, name, ACPI_NAME_SIZE);
+	lpszText[ACPI_NAME_SIZE] = '\0';
+	tvi.pszText = lpszText;
+	tvi.cchTextMax = ACPI_NAME_SIZE;
+	tvi.lParam = (LPARAM)ACPI_NAME2TAG(name);
+	tvins.item = tvi;
+	tvins.hInsertAfter = TVI_LAST;
+
+	/* Set the parent item based on the specified level. */
+	tvins.hParent = hParent;
+
+	/* Add the item to the tree view control. */
+	hWndNewItem = TreeView_InsertItem(hwndTree, &tvins);
+
+	acpi_dbg("[%s] ACPICreateNode end", path);
+
+err_exit:
+	if (path)
+		free(path);
+	if (parent_path)
+		free(parent_path);
+}
+
+static VOID ACPIDeleteNode(LPACPIWNDDATA lpWD, acpi_handle_t node)
+{
+	HWND hwndTree = lpWD->hwndNamespaceTree;
+	char *path = NULL;
+	acpi_path_len_t len;
+	HTREEITEM hItem;
+
+	len = acpi_space_get_full_path(node, path, 0);
+	if (len == 0)
+		goto err_exit;
+	path = calloc(len, 1);
+	if (!path)
+		goto err_exit;
+	acpi_space_get_full_path(node, path, len);
+
+	hItem = ACPIFindNode(lpWD, path);
+	if (hItem)
+		TreeView_DeleteItem(hwndTree, hItem);
+
+	acpi_dbg("[%s] ACPIDeleteNode end", path);
+err_exit:
+	if (path)
+		free(path);
 }
 
 void ACPIBuildObjectTitles(LPACPIWNDDATA lpWD)
@@ -653,6 +841,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
 	char *pSuffix[1] = { szSuffix };
 	char *pName[1] = { szName };
 	acpi_status_t status;
+	acpi_handle_t node;
 	
 	if (lpWD == NULL) {
 		if (uMsg == WM_NCCREATE) {
@@ -755,6 +944,16 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
 		break;
 	case WM_UNLOADTABLE:
 		ACPIRemoveTable(lpWD, (acpi_ddb_t)wParam);
+		break;
+	case WM_CREATENODE:
+		node = (acpi_handle_t)wParam;
+		ACPICreateNode(lpWD, node);
+		acpi_space_decrement(node);
+		break;
+	case WM_DELETENODE:
+		node = (acpi_handle_t)wParam;
+		ACPIDeleteNode(lpWD, node);
+		acpi_space_decrement(node);
 		break;
 	case WM_TIMER:
 		switch (wParam) {
