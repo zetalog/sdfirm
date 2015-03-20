@@ -822,6 +822,29 @@ err_lock:
 	return status;
 }
 
+acpi_status_t acpi_table_increment_loaded(acpi_ddb_t ddb,
+					  struct acpi_table_header **out_table)
+{
+	struct acpi_table_desc *table_desc;
+	acpi_status_t status = AE_OK;
+
+	if (!out_table)
+		return AE_BAD_PARAMETER;
+	*out_table = NULL;
+	acpi_table_lock();
+	if (!__acpi_table_is_loaded(ddb)) {
+		status = AE_ALREADY_EXISTS;
+		goto err_lock;
+	}
+	__acpi_table_increment(ddb);
+	table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
+	*out_table = table_desc->pointer;
+
+err_lock:
+	acpi_table_unlock();
+	return status;
+}
+
 static void ____acpi_table_install(struct acpi_table_desc *table_desc,
 				   acpi_addr_t address, acpi_table_flags_t flags,
 				   struct acpi_table_header *table_header)
@@ -952,120 +975,6 @@ boolean acpi_table_is_same(struct acpi_table_desc *table_desc, acpi_tag_t sig,
 		 ACPI_OEMCMP(oem_id, table_desc->oem_id, ACPI_OEM_ID_SIZE)&&
 		 ACPI_OEMCMP(oem_table_id, table_desc->oem_table_id, ACPI_OEM_TABLE_ID_SIZE)) ?
 		true : false);
-}
-
-static acpi_status_t __acpi_uninstall_table(acpi_ddb_t ddb)
-{
-	struct acpi_table_desc *table_desc;
-
-	if (!__acpi_table_is_installed(ddb))
-		return AE_NOT_FOUND;
-
-	table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
-	table_desc->flags |= ACPI_TABLE_IS_UNINSTALLING;
-
-	if (__acpi_table_is_loaded(ddb)) {
-		table_desc->flags |= ACPI_TABLE_IS_UNLOADING;
-		__acpi_table_notify(table_desc, ddb,
-				    ACPI_EVENT_TABLE_UNLOAD);
-		acpi_unparse_table(ddb, table_desc->pointer, acpi_gbl_root_node);
-		__acpi_table_set_loaded(ddb, false);
-		table_desc->flags &= ~ACPI_TABLE_IS_UNLOADING;
-	}
-
-	__acpi_table_notify(table_desc, ddb, ACPI_EVENT_TABLE_UNINSTALL);
-
-	/* Release the MANAGED reference */
-	acpi_dbg("[%4.4s %d] DEC(MANAGED)", table_desc->signature, ddb);
-	__acpi_table_decrement(ddb);
-
-	return AE_OK;
-}
-
-#ifndef CONFIG_ACPI_TABLE_RELOAD_NOWAIT
-static void __acpi_table_wait_reload(struct acpi_table_desc *table_desc)
-{
-	/* Wait until uninstall completes, for FACS and DSDT reloading */
-	while (table_desc->flags & ACPI_TABLE_IS_UNINSTALLING) {
-		acpi_table_unlock();
-		acpi_os_sleep(10);
-		acpi_table_lock();
-	}
-}
-#else
-static inline void __acpi_table_wait_reload(struct acpi_table_desc *table_desc)
-{
-}
-#endif
-
-acpi_status_t acpi_install_table(acpi_addr_t address, acpi_tag_t signature,
-				 acpi_table_flags_t flags,
-				 boolean override, boolean versioning,
-				 acpi_ddb_t *ddb_handle)
-{
-	acpi_ddb_t ddb;
-	acpi_status_t status;
-	struct acpi_table_desc new_table_desc;
-	struct acpi_table_desc *table_desc;
-
-	if (!address) {
-		acpi_err("[0x%X]: Null physical address for ACPI table", signature);
-		return AE_NO_MEMORY;
-	}
-
-	status = acpi_table_install_temporal(&new_table_desc, address, flags);
-	if (ACPI_FAILURE(status)) {
-		acpi_err("[0x%X]: Could not acquire table length at %p", signature,
-			 ACPI_CAST_PTR(void, address));
-		return status;
-	}
-
-	status = acpi_table_verify(&new_table_desc, signature);
-	if (ACPI_FAILURE(status))
-		return status;
-
-	if (!acpi_table_lock_init())
-		return AE_NOT_FOUND;
-
-	acpi_foreach_installed_ddb(ddb, 0) {
-		table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
-
-		if (!acpi_table_is_same(table_desc,
-					ACPI_NAME2TAG(new_table_desc.signature),
-					new_table_desc.oem_id,
-					new_table_desc.oem_table_id))
-			continue;
-		if (versioning && new_table_desc.revision <= table_desc->revision) {
-			status = AE_ALREADY_EXISTS;
-			goto err_lock;
-		}
-
-		status = __acpi_uninstall_table(ddb);
-		if (ACPI_FAILURE(status))
-			goto err_lock;
-
-		__acpi_table_wait_reload(table_desc);
-		break;
-	}
-
-	status = __acpi_table_list_acquire(&ddb, new_table_desc.signature);
-	if (ACPI_FAILURE(status))
-		goto err_lock;
-
-	*ddb_handle = ddb;
-	__acpi_table_install_and_override(&new_table_desc, ddb, override);
-
-err_lock:
-	acpi_table_unlock_init();
-	acpi_table_uninstall_temporal(&new_table_desc);
-	return status;
-}
-
-void acpi_uninstall_table(acpi_ddb_t ddb)
-{
-	acpi_table_lock();
-	__acpi_uninstall_table(ddb);
-	acpi_table_unlock();
 }
 
 /*
@@ -1213,6 +1122,145 @@ err_lock:
 err_table:
 	acpi_table_decrement(ddb);
 	return status;
+}
+
+static void __acpi_unload_table(acpi_ddb_t ddb)
+{
+	struct acpi_table_desc *table_desc;
+
+	table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
+	if (__acpi_table_is_loaded(ddb)) {
+		table_desc->flags |= ACPI_TABLE_IS_UNLOADING;
+		__acpi_table_notify(table_desc, ddb,
+				    ACPI_EVENT_TABLE_UNLOAD);
+		acpi_table_unlock();
+		acpi_unparse_table(ddb, table_desc->pointer, acpi_gbl_root_node);
+		acpi_table_lock();
+		__acpi_table_set_loaded(ddb, false);
+		table_desc->flags &= ~ACPI_TABLE_IS_UNLOADING;
+	}
+}
+
+static acpi_status_t acpi_unload_table(acpi_ddb_t ddb)
+{
+	struct acpi_table_header *table;
+
+	if (ACPI_FAILURE(acpi_table_increment_loaded(ddb, &table)))
+		return AE_NOT_FOUND;
+
+	acpi_table_lock();
+	__acpi_unload_table(ddb);
+	acpi_table_unlock();
+
+	acpi_table_decrement(ddb);
+
+	return AE_OK;
+}
+
+static acpi_status_t __acpi_uninstall_table(acpi_ddb_t ddb)
+{
+	struct acpi_table_desc *table_desc;
+
+	if (!__acpi_table_is_installed(ddb))
+		return AE_NOT_FOUND;
+
+	__acpi_unload_table(ddb);
+
+	table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
+	table_desc->flags |= ACPI_TABLE_IS_UNINSTALLING;
+	__acpi_table_notify(table_desc, ddb, ACPI_EVENT_TABLE_UNINSTALL);
+
+	/* Release the MANAGED reference */
+	acpi_dbg("[%4.4s %d] DEC(MANAGED)", table_desc->signature, ddb);
+	__acpi_table_decrement(ddb);
+
+	return AE_OK;
+}
+
+#ifndef CONFIG_ACPI_TABLE_RELOAD_NOWAIT
+static void __acpi_table_wait_reload(struct acpi_table_desc *table_desc)
+{
+	/* Wait until uninstall completes, for FACS and DSDT reloading */
+	while (table_desc->flags & ACPI_TABLE_IS_UNINSTALLING) {
+		acpi_table_unlock();
+		acpi_os_sleep(10);
+		acpi_table_lock();
+	}
+}
+#else
+static inline void __acpi_table_wait_reload(struct acpi_table_desc *table_desc)
+{
+}
+#endif
+
+acpi_status_t acpi_install_table(acpi_addr_t address, acpi_tag_t signature,
+				 acpi_table_flags_t flags,
+				 boolean override, boolean versioning,
+				 acpi_ddb_t *ddb_handle)
+{
+	acpi_ddb_t ddb;
+	acpi_status_t status;
+	struct acpi_table_desc new_table_desc;
+	struct acpi_table_desc *table_desc;
+
+	if (!address) {
+		acpi_err("[0x%X]: Null physical address for ACPI table", signature);
+		return AE_NO_MEMORY;
+	}
+
+	status = acpi_table_install_temporal(&new_table_desc, address, flags);
+	if (ACPI_FAILURE(status)) {
+		acpi_err("[0x%X]: Could not acquire table length at %p", signature,
+			 ACPI_CAST_PTR(void, address));
+		return status;
+	}
+
+	status = acpi_table_verify(&new_table_desc, signature);
+	if (ACPI_FAILURE(status))
+		return status;
+
+	if (!acpi_table_lock_init())
+		return AE_NOT_FOUND;
+
+	acpi_foreach_installed_ddb(ddb, 0) {
+		table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
+
+		if (!acpi_table_is_same(table_desc,
+					ACPI_NAME2TAG(new_table_desc.signature),
+					new_table_desc.oem_id,
+					new_table_desc.oem_table_id))
+			continue;
+		if (versioning && new_table_desc.revision <= table_desc->revision) {
+			status = AE_ALREADY_EXISTS;
+			goto err_lock;
+		}
+
+		status = __acpi_uninstall_table(ddb);
+		if (ACPI_FAILURE(status))
+			goto err_lock;
+
+		__acpi_table_wait_reload(table_desc);
+		break;
+	}
+
+	status = __acpi_table_list_acquire(&ddb, new_table_desc.signature);
+	if (ACPI_FAILURE(status))
+		goto err_lock;
+
+	*ddb_handle = ddb;
+	__acpi_table_install_and_override(&new_table_desc, ddb, override);
+
+err_lock:
+	acpi_table_unlock_init();
+	acpi_table_uninstall_temporal(&new_table_desc);
+	return status;
+}
+
+void acpi_uninstall_table(acpi_ddb_t ddb)
+{
+	acpi_table_lock();
+	__acpi_uninstall_table(ddb);
+	acpi_table_unlock();
 }
 
 acpi_status_t acpi_install_and_load_table(struct acpi_table_header *table,

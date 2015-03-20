@@ -92,12 +92,10 @@ boolean acpi_object_is_closing(struct acpi_object_header *object)
 
 struct acpi_object_header *acpi_object_get_graceful(struct acpi_object_header *object)
 {
-	if (object && !acpi_object_is_closing(object)) {
-		acpi_reference_inc(&object->reference_count);
-		return object;
-	}
-
-	return NULL;
+	if (!object || acpi_object_is_closing(object))
+		return NULL;
+	acpi_object_get(object);
+	return object;
 }
 
 void acpi_object_put(struct acpi_object_header *object)

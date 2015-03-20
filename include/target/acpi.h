@@ -911,20 +911,23 @@ uint32_t acpi_fadt_flag_is_set(uint32_t mask);
 typedef boolean (*acpi_space_cb)(struct acpi_namespace_node *scope,
 				 void *context);
 
-void acpi_space_walk_depth_first(struct acpi_namespace_node *scope,
+void acpi_space_walk_depth_first(acpi_handle_t scope,
 				 acpi_object_type object_type,
 				 uint32_t max_depth,
 				 acpi_space_cb descending_callback,
 				 acpi_space_cb ascending_callback,
 				 void *context);
-struct acpi_namespace_node *acpi_space_open(acpi_ddb_t ddb,
-					    struct acpi_namespace_node *scope,
-					    const char *name, uint32_t length,
-					    boolean create_node);
-void acpi_space_close(struct acpi_namespace_node *node, boolean delete_node);
-struct acpi_namespace_node *acpi_space_open_exist(struct acpi_namespace_node *scope,
-						  const char *name, uint32_t length);
-void acpi_space_close_exist(struct acpi_namespace_node *node);
+acpi_handle_t acpi_space_open(acpi_ddb_t ddb, acpi_handle_t scope,
+			      const char *name, uint32_t length,
+			      boolean create_node);
+void acpi_space_close(acpi_handle_t node, boolean delete_node);
+acpi_handle_t acpi_space_open_exist(acpi_handle_t scope,
+				    const char *name, uint32_t length);
+void acpi_space_close_exist(acpi_handle_t node);
+void acpi_space_increment(acpi_handle_t node);
+void acpi_space_decrement(acpi_handle_t node);
+acpi_path_len_t acpi_space_get_full_path(acpi_handle_t node,
+					 char *path, acpi_path_len_t size);
 
 /*=========================================================================
  * Checksum validations

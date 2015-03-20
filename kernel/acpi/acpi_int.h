@@ -326,8 +326,6 @@ struct acpi_namespace_node *acpi_space_get_node(acpi_ddb_t ddb,
 						struct acpi_namespace_node *scope,
 						const char *name, uint32_t length,
 						boolean create, const char *hint);
-acpi_path_len_t acpi_space_get_full_path(struct acpi_namespace_node *node,
-					 char *path, acpi_path_len_t size);
 
 /*=========================================================================
  * Utility internals

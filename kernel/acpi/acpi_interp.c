@@ -139,11 +139,28 @@ acpi_status_t acpi_parse_table(acpi_ddb_t ddb,
 		goto err_ref;
 
 err_ref:
+	/* Ignore module level execution failure */
+	status = AE_OK;
+	if (ACPI_FAILURE(status))
+		acpi_unparse_table(ddb, table, start_node);
 	return status;
+}
+
+static boolean acpi_unparse_table_node(struct acpi_namespace_node *node,
+				       void *pddb)
+{
+	acpi_ddb_t ddb = *(acpi_ddb_t *)pddb;
+
+	if (node->ddb == ddb)
+		acpi_node_close(node);
+	return false;
 }
 
 void acpi_unparse_table(acpi_ddb_t ddb,
 			struct acpi_table_header *table,
 			struct acpi_namespace_node *start_node)
 {
+	acpi_space_walk_depth_first(NULL, ACPI_TYPE_ANY, 3, NULL,
+				    acpi_unparse_table_node,
+				    (void *)&ddb);
 }
