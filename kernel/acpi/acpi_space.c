@@ -109,9 +109,15 @@ struct acpi_namespace_node *acpi_node_lookup(acpi_ddb_t ddb,
 struct acpi_namespace_node *acpi_node_get(struct acpi_namespace_node *node,
 					  const char *hint)
 {
+	acpi_name_t name;
+
+	if (node) {
+		ACPI_NAMECPY(node->tag, name);
+		acpi_dbg("[NS-%p-%d-%4.4s] INC(%s)", node,
+			 node->common.reference_count.count+1,
+			 name, hint);
+	}
 	acpi_object_get(ACPI_CAST_PTR(struct acpi_object_header, node));
-	if (node)
-		acpi_dbg("[NS-%p-%d] INC(%s)", node, node->common.reference_count, hint);
 	return node;
 }
 
@@ -125,11 +131,14 @@ struct acpi_namespace_node *acpi_node_get_graceful(struct acpi_namespace_node *n
 
 void acpi_node_put(struct acpi_namespace_node *node, const char *hint)
 {
+	acpi_name_t name;
+
 	if (!node)
 		return;
-
+	ACPI_NAMECPY(node->tag, name);
+	acpi_dbg("[NS-%p-%d-%4.4s] DEC(%s)", node,
+		 node->common.reference_count.count-1, name, hint);
 	acpi_object_put(ACPI_CAST_PTR(struct acpi_object_header, node));
-	acpi_dbg("[NS-%p-%d] DEC(%s)", node, node->common.reference_count, hint);
 }
 
 static struct acpi_namespace_node *acpi_space_walk_next(struct acpi_namespace_node *scope,
@@ -262,6 +271,10 @@ void acpi_space_walk_depth_first(acpi_handle_t scope,
 						       context, terminated);
 			}
 		}
+	}
+	if (defer_node) {
+		acpi_node_put(defer_node, "defer");
+		defer_node = NULL;
 	}
 
 	acpi_node_put(scope_node, "walk");

@@ -67,11 +67,10 @@ struct acpi_object_header *acpi_object_open(uint8_t type,
 
 void acpi_object_close(struct acpi_object_header *object)
 {
-	if (!object)
+	if (!object || acpi_object_is_closing(object))
 		return;
 
-	if (!acpi_object_is_closing(object))
-		object->closing = true;
+	object->closing = true;
 	if (!acpi_reference_dec_and_test(&object->reference_count)) {
 		if (object->release)
 			object->release(object);
