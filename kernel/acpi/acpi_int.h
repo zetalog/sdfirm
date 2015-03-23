@@ -300,26 +300,38 @@ void acpi_unparse_table(acpi_ddb_t ddb,
 /*=========================================================================
  * Namespace internals
  *=======================================================================*/
-struct acpi_namespace_node *acpi_node_open(acpi_ddb_t ddb,
-					   struct acpi_namespace_node *parent,
-					   acpi_tag_t tag,
-					   acpi_object_type object_type);
-void acpi_node_close(struct acpi_namespace_node *parent);
-struct acpi_namespace_node *acpi_node_lookup(acpi_ddb_t ddb,
-					     struct acpi_namespace_node *scope,
+/*
+ * The following functions MUST be invoked with acpi_gbl_space_mutex
+ * acquired.
+ */
+struct acpi_namespace_node *__acpi_node_open(acpi_ddb_t ddb,
+					     struct acpi_namespace_node *parent,
 					     acpi_tag_t tag,
-					     acpi_object_type object_type,
-					     boolean create);
-void acpi_node_put(struct acpi_namespace_node *node, const char *hint);
+					     acpi_object_type object_type);
+void __acpi_node_close(struct acpi_namespace_node *parent);
+struct acpi_namespace_node *__acpi_node_lookup(acpi_ddb_t ddb,
+					       struct acpi_namespace_node *scope,
+					       acpi_tag_t tag,
+					       acpi_object_type object_type,
+					       boolean create);
+struct acpi_namespace_node *__acpi_node_get_graceful(struct acpi_namespace_node *node,
+						     const char *hint);
+
+/*
+ * The following functions MAY be invoked without acpi_gbl_space_mutex
+ * acquired.
+ * Especially, for acpi_node_put(), if it may lead to a destruction of the
+ * node, it MUST be invoked without acpi_gbl_space_mutex acquired.
+ */
 struct acpi_namespace_node *acpi_node_get(struct acpi_namespace_node *node,
 					  const char *hint);
-struct acpi_namespace_node *acpi_node_get_graceful(struct acpi_namespace_node *node,
-						   const char *hint);
+void acpi_node_put(struct acpi_namespace_node *node, const char *hint);
 
 struct acpi_namespace_node *acpi_space_get_node(acpi_ddb_t ddb,
 						struct acpi_namespace_node *scope,
 						const char *name, uint32_t length,
 						boolean create, const char *hint);
+void acpi_space_close_node(acpi_handle_t node);
 
 /*=========================================================================
  * Utility internals

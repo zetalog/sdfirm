@@ -18,7 +18,6 @@ static void __acpi_node_init(struct acpi_namespace_node *node,
 			     struct acpi_namespace_node *parent,
 			     acpi_tag_t tag, acpi_object_type object_type)
 {
-	acpi_reference_set(&node->common.reference_count, 1);
 	INIT_LIST_HEAD(&node->sibling);
 	INIT_LIST_HEAD(&node->children);
 
@@ -58,10 +57,10 @@ static void __acpi_node_exit(struct acpi_object_header *object)
 	}
 }
 
-struct acpi_namespace_node *acpi_node_open(acpi_ddb_t ddb,
-					   struct acpi_namespace_node *parent,
-					   acpi_tag_t tag,
-					   acpi_object_type object_type)
+struct acpi_namespace_node *__acpi_node_open(acpi_ddb_t ddb,
+					     struct acpi_namespace_node *parent,
+					     acpi_tag_t tag,
+					     acpi_object_type object_type)
 {
 	struct acpi_namespace_node *node;
 	struct acpi_object_header *object;
@@ -78,7 +77,7 @@ struct acpi_namespace_node *acpi_node_open(acpi_ddb_t ddb,
 	return node;
 }
 
-void acpi_node_close(struct acpi_namespace_node *node)
+void __acpi_node_close(struct acpi_namespace_node *node)
 {
 	struct acpi_object_header *object = ACPI_CAST_PTR(struct acpi_object_header, node);
 
@@ -87,11 +86,11 @@ void acpi_node_close(struct acpi_namespace_node *node)
 	acpi_object_close(object);
 }
 
-struct acpi_namespace_node *acpi_node_lookup(acpi_ddb_t ddb,
-					     struct acpi_namespace_node *scope,
-					     acpi_tag_t tag,
-					     acpi_object_type object_type,
-					     boolean create)
+struct acpi_namespace_node *__acpi_node_lookup(acpi_ddb_t ddb,
+					       struct acpi_namespace_node *scope,
+					       acpi_tag_t tag,
+					       acpi_object_type object_type,
+					       boolean create)
 {
 	struct acpi_namespace_node *node;
 
@@ -102,7 +101,7 @@ struct acpi_namespace_node *acpi_node_lookup(acpi_ddb_t ddb,
 			return node;
 	}
 	if (create)
-		node = acpi_node_open(ddb, scope, tag, object_type);
+		node = __acpi_node_open(ddb, scope, tag, object_type);
 	return node;
 }
 
@@ -121,8 +120,8 @@ struct acpi_namespace_node *acpi_node_get(struct acpi_namespace_node *node,
 	return node;
 }
 
-struct acpi_namespace_node *acpi_node_get_graceful(struct acpi_namespace_node *node,
-						   const char *hint)
+struct acpi_namespace_node *__acpi_node_get_graceful(struct acpi_namespace_node *node,
+						     const char *hint)
 {
 	if (!node || acpi_object_is_closing(&node->common))
 		return NULL;
@@ -272,13 +271,13 @@ void acpi_space_walk_depth_first(acpi_handle_t scope,
 			}
 		}
 	}
+	acpi_space_unlock();
+
 	if (defer_node) {
 		acpi_node_put(defer_node, "defer");
 		defer_node = NULL;
 	}
-
 	acpi_node_put(scope_node, "walk");
-	acpi_space_unlock();
 }
 
 struct acpi_namespace_node *acpi_space_get_node(acpi_ddb_t ddb,
@@ -292,8 +291,8 @@ struct acpi_namespace_node *acpi_space_get_node(acpi_ddb_t ddb,
 
 	acpi_space_lock();
 	if (!name) {
-		scope_node = acpi_gbl_root_node;
-		goto exit_lock;
+		scope_node = acpi_node_get(acpi_gbl_root_node, "lookup");
+		goto exit_ref;
 	}
 	if (*name == AML_ROOT_PFX) {
 		if (length > 0) {
@@ -303,8 +302,9 @@ struct acpi_namespace_node *acpi_space_get_node(acpi_ddb_t ddb,
 	} else {
 		scope_node = acpi_node_get(scope, "lookup");
 		while (scope_node && (length > 0) && (*name == AML_PARENT_PFX)) {
+			node = acpi_node_get(scope_node->parent, "lookup");
 			acpi_node_put(scope_node, "lookup");
-			scope_node = acpi_node_get(scope_node->parent, "lookup");
+			scope_node = node;
 			name++, length--;
 		}
 	}
@@ -329,18 +329,18 @@ struct acpi_namespace_node *acpi_space_get_node(acpi_ddb_t ddb,
 		break;
 	}
 	while ((length > 0) && nr_segs && scope_node) {
-		node = acpi_node_lookup(ddb, scope_node, ACPI_NAME2TAG(name),
-					ACPI_TYPE_ANY, create);
+		node = __acpi_node_lookup(ddb, scope_node, ACPI_NAME2TAG(name),
+					  ACPI_TYPE_ANY, create);
 		name += ACPI_NAME_SIZE, length -= ACPI_NAME_SIZE;
+		node = acpi_node_get(node, "lookup");
 		acpi_node_put(scope_node, "lookup");
-		scope_node = acpi_node_get(node, "lookup");
+		scope_node = node;
 	}
 
 exit_ref:
-	acpi_node_put(scope_node, "lookup");
-exit_lock:
-	node = acpi_node_get_graceful(scope_node, hint);
+	node = __acpi_node_get_graceful(scope_node, hint);
 	acpi_space_unlock();
+	acpi_node_put(scope_node, "lookup");
 	return node;
 }
 
@@ -352,10 +352,17 @@ acpi_handle_t acpi_space_open(acpi_ddb_t ddb, acpi_handle_t scope,
 	return acpi_space_get_node(ddb, scope, name, length, create_node, "space");
 }
 
+void acpi_space_close_node(acpi_handle_t node)
+{
+	acpi_space_lock();
+	__acpi_node_close(node);
+	acpi_space_unlock();
+}
+
 void acpi_space_close(acpi_handle_t node, boolean delete_node)
 {
 	if (delete_node)
-		acpi_node_close(node);
+		acpi_space_close_node(node);
 	acpi_node_put(node, "space");
 }
 
@@ -640,8 +647,8 @@ acpi_status_t acpi_initialize_namespace(void)
 		return status;
 
 	acpi_space_lock();
-	node = acpi_node_open(ACPI_DDB_HANDLE_INVALID, NULL,
-			      ACPI_ROOT_TAG, ACPI_TYPE_DEVICE);
+	node = __acpi_node_open(ACPI_DDB_HANDLE_INVALID, NULL,
+				ACPI_ROOT_TAG, ACPI_TYPE_DEVICE);
 	if (!node) {
 		acpi_space_unlock();
 		return AE_NO_MEMORY;

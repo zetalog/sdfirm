@@ -319,9 +319,6 @@ acpi_status_t AcpiHandleSpaceEvents(struct acpi_namespace_node *node,
 
 VOID ACPIInitApplication(LPACPIWNDDATA lpWD)
 {
-	acpi_emu_init();
-	acpi_ospm_init();
-	acpi_test_init();
 	acpi_event_register_table_handler(AcpiHandleTableEvents, lpWD);
 	acpi_event_register_space_handler(AcpiHandleSpaceEvents, lpWD);
 }
@@ -1023,6 +1020,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	HACCEL hAccelTable;
 	INITCOMMONCONTROLSEX iccex;
 
+	acpi_emu_init();
+	acpi_ospm_init();
+	acpi_test_init();
 	acpi_dump_opcode_info();
 
 	LoadString(hInstance, IDS_APP_TITLE, _szTitle, MAX_LOADSTRING);

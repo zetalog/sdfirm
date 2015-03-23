@@ -152,7 +152,7 @@ static boolean acpi_unparse_table_node(struct acpi_namespace_node *node,
 	acpi_ddb_t ddb = *(acpi_ddb_t *)pddb;
 
 	if (node->ddb == ddb)
-		acpi_node_close(node);
+		acpi_space_close_node(node);
 	return false;
 }
 
