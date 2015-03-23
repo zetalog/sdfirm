@@ -100,6 +100,7 @@ struct acpi_namespace_node *__acpi_node_lookup(acpi_ddb_t ddb,
 		if (!acpi_object_is_closing(&node->common) && (node->tag == tag))
 			return node;
 	}
+	node = NULL;
 	if (create)
 		node = __acpi_node_open(ddb, scope, tag, object_type);
 	return node;

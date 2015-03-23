@@ -515,7 +515,7 @@ void acpi_os_debug_print(const char *fmt, ...)
 		  fmt, arglist);
 	va_end(arglist);
 
-	lstrcatA(output, "\r\n");
+	strcat(output, "\r\n");
 	OutputDebugStringA(output);
 }
 
