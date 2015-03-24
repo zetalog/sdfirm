@@ -38,7 +38,7 @@ static void __acpi_node_init(struct acpi_namespace_node *node,
 	}
 }
 
-static void __acpi_node_exit(struct acpi_object_header *object)
+static void __acpi_node_exit(struct acpi_object *object)
 {
 	struct acpi_namespace_node *node =
 		ACPI_CAST_PTR(struct acpi_namespace_node, object);
@@ -63,7 +63,7 @@ struct acpi_namespace_node *__acpi_node_open(acpi_ddb_t ddb,
 					     acpi_object_type object_type)
 {
 	struct acpi_namespace_node *node;
-	struct acpi_object_header *object;
+	struct acpi_object *object;
 
 	object = acpi_object_open(ACPI_DESC_TYPE_NAMED,
 				  sizeof (struct acpi_namespace_node),
@@ -79,7 +79,7 @@ struct acpi_namespace_node *__acpi_node_open(acpi_ddb_t ddb,
 
 void __acpi_node_close(struct acpi_namespace_node *node)
 {
-	struct acpi_object_header *object = ACPI_CAST_PTR(struct acpi_object_header, node);
+	struct acpi_object *object = ACPI_CAST_PTR(struct acpi_object, node);
 
 	if (!acpi_object_is_closing(object))
 		acpi_event_space_notify(node, ACPI_EVENT_SPACE_DELETE);
@@ -117,7 +117,7 @@ struct acpi_namespace_node *acpi_node_get(struct acpi_namespace_node *node,
 			 node->common.reference_count.count+1,
 			 name, hint);
 	}
-	acpi_object_get(ACPI_CAST_PTR(struct acpi_object_header, node));
+	acpi_object_get(ACPI_CAST_PTR(struct acpi_object, node));
 	return node;
 }
 
@@ -138,7 +138,7 @@ void acpi_node_put(struct acpi_namespace_node *node, const char *hint)
 	ACPI_NAMECPY(node->tag, name);
 	acpi_dbg("[NS-%p-%d-%4.4s] DEC(%s)", node,
 		 node->common.reference_count.count-1, name, hint);
-	acpi_object_put(ACPI_CAST_PTR(struct acpi_object_header, node));
+	acpi_object_put(ACPI_CAST_PTR(struct acpi_object, node));
 }
 
 static struct acpi_namespace_node *acpi_space_walk_next(struct acpi_namespace_node *scope,

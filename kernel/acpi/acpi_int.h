@@ -45,7 +45,7 @@
 #include <target/acpi.h>
 #include "acpi_aml.h"
 
-typedef void (*acpi_release_cb)(struct acpi_object_header *);
+typedef void (*acpi_release_cb)(struct acpi_object *);
 
 #define ACPI_DESC_TYPE_NAMED			0x01
 #define ACPI_DESC_TYPE_TERM			0x02
@@ -57,12 +57,12 @@ typedef void (*acpi_release_cb)(struct acpi_object_header *);
 	struct acpi_reference reference_count;	\
 	acpi_release_cb release;
 
-struct acpi_object_header {
+struct acpi_object {
 	ACPI_OBJECT_HEADER
 };
 
 struct acpi_data {
-	struct acpi_object_header common;
+	struct acpi_object common;
 	acpi_object_type object_type;
 	acpi_size_t size;
 	union acpi_value default_val;
@@ -70,7 +70,7 @@ struct acpi_data {
 };
 
 struct acpi_namespace_node {
-	struct acpi_object_header common;
+	struct acpi_object common;
 	acpi_tag_t tag;
 	acpi_ddb_t ddb;
 	acpi_object_type object_type;
@@ -336,14 +336,13 @@ void acpi_space_close_node(acpi_handle_t node);
 /*=========================================================================
  * Utility internals
  *=======================================================================*/
-struct acpi_object_header *acpi_object_open(uint8_t type,
-					    acpi_size_t size,
-					    acpi_release_cb release);
-void acpi_object_close(struct acpi_object_header *object);
-boolean acpi_object_is_closing(struct acpi_object_header *object);
-void acpi_object_get(struct acpi_object_header *object);
-void acpi_object_put(struct acpi_object_header *object);
-struct acpi_object_header *acpi_object_get_graceful(struct acpi_object_header *object);
+struct acpi_object *acpi_object_open(uint8_t type, acpi_size_t size,
+				     acpi_release_cb release);
+void acpi_object_close(struct acpi_object *object);
+boolean acpi_object_is_closing(struct acpi_object *object);
+void acpi_object_get(struct acpi_object *object);
+void acpi_object_put(struct acpi_object *object);
+struct acpi_object *acpi_object_get_graceful(struct acpi_object *object);
 
 void acpi_state_push(union acpi_state **head, union acpi_state *state);
 union acpi_state *acpi_state_pop(union acpi_state **head);

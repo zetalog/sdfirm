@@ -21,7 +21,7 @@ static void __acpi_parser_init(struct acpi_parser *parser,
 	environ->parent_term = term;
 }
 
-static void __acpi_parser_exit(struct acpi_object_header *object)
+static void __acpi_parser_exit(struct acpi_object *object)
 {
 #if 0
 	struct acpi_parser *parser = ACPI_CAST_PTR(struct acpi_parser, object);
