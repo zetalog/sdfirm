@@ -576,7 +576,7 @@ struct acpi_term_list *acpi_term_alloc_aml(acpi_tag_t tag,
  */
 acpi_status_t acpi_term_alloc_name(struct acpi_parser *parser,
 				   uint16_t arg_type, uint8_t *aml,
-				   struct acpi_term **pterm)
+				   struct acpi_name_string **pterm)
 {
 	struct acpi_term *term;
 	struct acpi_simple_name *simple_name;
@@ -633,7 +633,7 @@ acpi_status_t acpi_term_alloc_name(struct acpi_parser *parser,
 		super_name->op_info = op_info;
 	}
 
-	*pterm = term;
+	*pterm = ACPI_CAST_PTR(struct acpi_name_string, term);
 	return AE_OK;
 }
 

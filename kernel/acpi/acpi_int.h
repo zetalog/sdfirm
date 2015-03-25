@@ -237,7 +237,7 @@ struct acpi_term_list *acpi_term_alloc_aml(acpi_tag_t tag,
 					   uint8_t *aml_end);
 acpi_status_t acpi_term_alloc_name(struct acpi_parser *parser,
 				   uint16_t arg_type, uint8_t *aml,
-				   struct acpi_term **pterm);
+				   struct acpi_name_string **pterm);
 void acpi_term_free(struct acpi_term *op);
 struct acpi_term *acpi_term_get_arg(struct acpi_term *term, uint32_t argn);
 void acpi_term_add_arg(struct acpi_term *term, struct acpi_term *arg);

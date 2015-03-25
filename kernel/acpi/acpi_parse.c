@@ -399,7 +399,8 @@ static acpi_status_t acpi_parser_begin_term(struct acpi_parser *parser)
 
 	if (opcode == AML_NAMESTRING_OP) {
 		arg_type = environ->arg_type;
-		status = acpi_term_alloc_name(parser, arg_type, aml, &term);
+		status = acpi_term_alloc_name(parser, arg_type, aml,
+					      ACPI_CAST_PTR(struct acpi_name_string *, &term));
 		if (ACPI_FAILURE(status))
 			return status;
 	} else {
@@ -513,16 +514,17 @@ acpi_status_t acpi_parser_get_simple_arg(struct acpi_parser *parser,
 acpi_status_t acpi_parser_get_name_string(struct acpi_parser *parser,
 					  uint16_t arg_type)
 {
-	struct acpi_term *arg;
+	struct acpi_name_string *name_string;
 	uint8_t *aml = parser->aml;
 	struct acpi_environ *environ = &parser->environ;
 	acpi_status_t status;
 
-	status = acpi_term_alloc_name(parser, arg_type, aml, &arg);
+	status = acpi_term_alloc_name(parser, arg_type, aml, &name_string);
 	if (ACPI_FAILURE(status))
 		return status;
 
-	return acpi_parser_consume_arg(parser, environ->term, arg);
+	return acpi_parser_consume_arg(parser, environ->term,
+				       ACPI_CAST_PTR(struct acpi_term, name_string));
 }
 
 acpi_status_t acpi_parser_get_pkg_length(struct acpi_parser *parser)
