@@ -24,8 +24,8 @@ static acpi_status_t acpi_interpret_open(struct acpi_interp *interp,
 static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 					  struct acpi_environ *environ)
 {
-	union acpi_term *namearg;
-	union acpi_term *valuearg;
+	struct acpi_term *namearg;
+	struct acpi_term *valuearg;
 	uint16_t opcode = environ->opcode;
 	const struct acpi_opcode_info *op_info = environ->op_info;
 	struct acpi_namespace_node *node;
@@ -36,12 +36,12 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 	switch (opcode) {
 	case AML_NAME_OP:
 		namearg = acpi_term_get_arg(environ->term, 0);
-		if (!namearg || namearg->common.aml_opcode != AML_NAMESTRING_OP)
+		if (!namearg || namearg->aml_opcode != AML_NAMESTRING_OP)
 			return AE_AML_OPERAND_TYPE;
 		node = acpi_space_open(interp->ddb,
 				       interp->node,
-				       namearg->common.value.string,
-				       namearg->name_string.aml_length,
+				       namearg->value.string,
+				       namearg->aml_length,
 				       true);
 
 		valuearg = acpi_term_get_arg(environ->term, 1);
@@ -100,7 +100,7 @@ acpi_status_t acpi_interpret_aml(acpi_ddb_t ddb,
 				 struct acpi_namespace_node *start_node)
 {
 	struct acpi_interp interp;
-	union acpi_term *start_term = NULL;
+	struct acpi_term_list *start_term = NULL;
 	acpi_status_t status;
 	uint8_t *aml_end = aml_begin + aml_length;
 

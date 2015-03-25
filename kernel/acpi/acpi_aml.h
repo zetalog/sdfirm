@@ -355,7 +355,7 @@
 #define AML_IS_LOCAL_OR_ARG(opcode)	\
 	(AML_IS_LOCALOBJ(opcode) || AML_IS_ARGOBJ(opcode))
 
-void aml_decode_namestring(union acpi_term *term, uint8_t *aml,
+void aml_decode_namestring(struct acpi_term *term, uint8_t *aml,
 			   acpi_path_len_t *name_len);
 
 #endif /* __ACPI_AML_H_INCLUDE__ */

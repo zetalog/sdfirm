@@ -464,11 +464,11 @@ struct acpi_opcode_info *acpi_opcode_alloc_info(acpi_name_t name, uint8_t argc)
  * This function creates an AML TermObj descriptor. It distiguishes
  * NameString, SimpleName, SuperName, TermList from normal AML TermObj.
  */
-static union acpi_term *__acpi_term_alloc(uint16_t object_type,
-					  uint16_t opcode,
-					  uint8_t *aml, uint32_t length)
+static struct acpi_term *__acpi_term_alloc(uint16_t object_type,
+					   uint16_t opcode,
+					   uint8_t *aml, uint32_t length)
 {
-	union acpi_term *term;
+	struct acpi_term *term;
 
 	/* Allocate the minimum required size object */
 	switch (object_type) {
@@ -489,31 +489,35 @@ static union acpi_term *__acpi_term_alloc(uint16_t object_type,
 		break;
 	}
 	if (term) {
-		term->common.descriptor_type = ACPI_DESC_TYPE_TERM;
-		term->common.object_type = object_type;
-		term->common.aml_opcode = opcode;
-		term->common.aml_offset = aml;
+		term->descriptor_type = ACPI_DESC_TYPE_TERM;
+		term->object_type = object_type;
+		term->aml_opcode = opcode;
+		term->aml_offset = aml;
 		/* Consume initial opcode length */
-		term->common.aml_length = length;
+		term->aml_length = length;
 	}
 	
 	return term;
 }
 
-static void __acpi_term_free(union acpi_term *term)
+static void __acpi_term_free(struct acpi_term *term)
 {
-	uint16_t object_type = term->common.object_type;
+	struct acpi_simple_name *simple_name =
+		ACPI_CAST_PTR(struct acpi_simple_name, term);
+	struct acpi_super_name *super_name =
+		ACPI_CAST_PTR(struct acpi_super_name, term);
+	uint16_t object_type = term->object_type;
 
 	if ((object_type == ACPI_AML_SIMPLENAME) ||
 	    (object_type == ACPI_AML_SUPERNAME)) {
-		if (term->simple_name.node) {
-			acpi_node_put(term->simple_name.node, "name");
-			term->simple_name.node = NULL;
+		if (simple_name->node) {
+			acpi_node_put(simple_name->node, "name");
+			simple_name->node = NULL;
 		}
 	}
-	if (term->common.object_type == ACPI_AML_SUPERNAME) {
-		if (term->super_name.op_info)
-			acpi_os_free(term->super_name.op_info);
+	if (term->object_type == ACPI_AML_SUPERNAME) {
+		if (super_name->op_info)
+			acpi_os_free(super_name->op_info);
 	}
 	acpi_os_free(term);
 }
@@ -527,8 +531,8 @@ static void __acpi_term_free(union acpi_term *term)
  * This function creates an AML TermObj descriptor for recognizable
  * opcodes.
  */
-union acpi_term *acpi_term_alloc_op(uint16_t opcode,
-				    uint8_t *aml, uint32_t length)
+struct acpi_term *acpi_term_alloc_op(uint16_t opcode,
+				     uint8_t *aml, uint32_t length)
 {
 	return __acpi_term_alloc(ACPI_AML_TERMOBJ, opcode, aml, length);
 }
@@ -542,18 +546,20 @@ union acpi_term *acpi_term_alloc_op(uint16_t opcode,
  * This function creates an AML TermObj descriptor for unrecognizable
  * opcodes.
  */
-union acpi_term *acpi_term_alloc_aml(acpi_tag_t tag,
-				     uint8_t *aml_begin,
-				     uint8_t *aml_end)
+struct acpi_term_list *acpi_term_alloc_aml(acpi_tag_t tag,
+					   uint8_t *aml_begin,
+					   uint8_t *aml_end)
 {
-	union acpi_term *term_list;
+	struct acpi_term_list *term_list;
+	struct acpi_term *term;
 
-	term_list = __acpi_term_alloc(ACPI_AML_TERMLIST, AML_AMLCODE_OP,
-				      aml_begin, aml_end - aml_begin);
-	if (!term_list)
+	term = __acpi_term_alloc(ACPI_AML_TERMLIST, AML_AMLCODE_OP,
+				 aml_begin, aml_end - aml_begin);
+	if (!term)
 		return NULL;
-	ACPI_NAMECPY(tag, term_list->name_string.name);
-	term_list->common.aml_length = aml_end - aml_begin;
+	term_list = ACPI_CAST_PTR(struct acpi_term_list, term);
+	ACPI_NAMECPY(tag, term_list->name);
+	term->aml_length = aml_end - aml_begin;
 
 	return term_list;
 }
@@ -570,9 +576,11 @@ union acpi_term *acpi_term_alloc_aml(acpi_tag_t tag,
  */
 acpi_status_t acpi_term_alloc_name(struct acpi_parser *parser,
 				   uint16_t arg_type, uint8_t *aml,
-				   union acpi_term **pterm)
+				   struct acpi_term **pterm)
 {
-	union acpi_term *term;
+	struct acpi_term *term;
+	struct acpi_simple_name *simple_name;
+	struct acpi_super_name *super_name;
 	struct acpi_opcode_info *op_info;
 	uint8_t argc = 0;
 	uint16_t object_type;
@@ -594,18 +602,22 @@ acpi_status_t acpi_term_alloc_name(struct acpi_parser *parser,
 		return AE_NO_MEMORY;
 
 	aml_decode_namestring(term, aml, &length);
+
+	simple_name = ACPI_CAST_PTR(struct acpi_simple_name, term);
+	super_name = ACPI_CAST_PTR(struct acpi_super_name, term);
+
 	path.names = aml;
 	path.length = length;
-	acpi_path_split(&path, NULL, term->name_string.name);
+	acpi_path_split(&path, NULL, simple_name->name);
 	if ((object_type == ACPI_AML_SIMPLENAME) ||
 	    (object_type == ACPI_AML_SUPERNAME)) {
-		term->simple_name.node =
+		simple_name->node =
 			acpi_space_get_node(ACPI_DDB_HANDLE_INVALID,
 					    interp->node,
-					    term->common.value.string,
-					    term->common.aml_length,
+					    term->value.string,
+					    term->aml_length,
 					    false, "name");
-		if (!term->simple_name.node) {
+		if (!simple_name->node) {
 			/*
 			 * TBD: Parser Continuation
 			 * Should we allow some bad AML tables and return
@@ -617,95 +629,95 @@ acpi_status_t acpi_term_alloc_name(struct acpi_parser *parser,
 		/* TODO: obtain argc here */
 	}
 	if (object_type == ACPI_AML_SUPERNAME) {
-		op_info = acpi_opcode_alloc_info(term->name_string.name, argc);
-		term->super_name.op_info = op_info;
+		op_info = acpi_opcode_alloc_info(super_name->name, argc);
+		super_name->op_info = op_info;
 	}
 
 	*pterm = term;
 	return AE_OK;
 }
 
-union acpi_term *acpi_term_get_arg(union acpi_term *term, uint32_t argn)
+struct acpi_term *acpi_term_get_arg(struct acpi_term *term, uint32_t argn)
 {
-	union acpi_term *arg = NULL;
+	struct acpi_term *arg = NULL;
 
-	if (!acpi_opcode_num_arguments(term->common.aml_opcode) &&
-	    !acpi_opcode_num_targets(term->common.aml_opcode))
+	if (!acpi_opcode_num_arguments(term->aml_opcode) &&
+	    !acpi_opcode_num_targets(term->aml_opcode))
 		return NULL;
 
-	arg = term->common.children;
+	arg = term->children;
 	while (arg && argn) {
 		argn--;
-		arg = arg->common.next;
+		arg = arg->next;
 	}
 
 	return arg;
 }
 
-void acpi_term_add_arg(union acpi_term *term, union acpi_term *arg)
+void acpi_term_add_arg(struct acpi_term *term, struct acpi_term *arg)
 {
-	union acpi_term *prev_arg;
+	struct acpi_term *prev_arg;
 
 	if (!term)
 		return;
 
-	if (!acpi_opcode_num_arguments(term->common.aml_opcode) &&
-	    !acpi_opcode_num_targets(term->common.aml_opcode))
+	if (!acpi_opcode_num_arguments(term->aml_opcode) &&
+	    !acpi_opcode_num_targets(term->aml_opcode))
 		return;
 
-	arg->common.parent = term;
-	term->common.arg_count++;
+	arg->parent = term;
+	term->arg_count++;
 
-	if (term->common.children) {
-		prev_arg = term->common.children;
-		while (prev_arg->common.next)
-			prev_arg = prev_arg->common.next;
-		prev_arg->common.next = arg;
+	if (term->children) {
+		prev_arg = term->children;
+		while (prev_arg->next)
+			prev_arg = prev_arg->next;
+		prev_arg->next = arg;
 	} else {
-		term->common.children = arg;
+		term->children = arg;
 	}
 
 	while (arg) {
-		BUG_ON(arg->common.parent != term);
-		arg = arg->common.next;
+		BUG_ON(arg->parent != term);
+		arg = arg->next;
 	}
 }
 
-void acpi_term_remove_arg(union acpi_term *arg)
+void acpi_term_remove_arg(struct acpi_term *arg)
 {
-	union acpi_term *prev_arg, *next_arg, *curr_arg;
-	union acpi_term *term;
+	struct acpi_term *prev_arg, *next_arg, *curr_arg;
+	struct acpi_term *term;
 
 	BUG_ON(!arg);
-	if (!arg->common.parent)
+	if (!arg->parent)
 		return;
 
-	term = arg->common.parent;
+	term = arg->parent;
 	prev_arg = NULL;
-	curr_arg = term->common.children;
+	curr_arg = term->children;
 	while (curr_arg) {
-		next_arg = curr_arg->common.next;
+		next_arg = curr_arg->next;
 		if (curr_arg == arg)
 			break;
 		prev_arg = curr_arg;
 		curr_arg = next_arg;
 	}
 	if (prev_arg)
-		prev_arg->common.next = next_arg;
+		prev_arg->next = next_arg;
 	else
-		term->common.children = next_arg;
-	term->common.arg_count--;
+		term->children = next_arg;
+	term->arg_count--;
 }
 
 /*
  * NOTE: This function is implemented to avoid recurisive invocations
  *       happened for the deletion.
  */
-void acpi_term_free(union acpi_term *op)
+void acpi_term_free(struct acpi_term *op)
 {
-	union acpi_term *term = op;
-	union acpi_term *next = NULL;
-	union acpi_term *parent = NULL;
+	struct acpi_term *term = op;
+	struct acpi_term *next = NULL;
+	struct acpi_term *parent = NULL;
 
 	while (term) {
 		if (term != parent) {
@@ -715,8 +727,8 @@ void acpi_term_free(union acpi_term *op)
 				continue;
 			}
 		}
-		next = term->common.next;
-		parent = term->common.parent;
+		next = term->next;
+		parent = term->parent;
 		__acpi_term_free(term);
 		if (term == op)
 			return;

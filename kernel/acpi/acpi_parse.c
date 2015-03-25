@@ -10,7 +10,7 @@ static void __acpi_parser_init(struct acpi_parser *parser,
 			       struct acpi_interp *interp,
 			       uint8_t *aml_begin,
 			       uint8_t *aml_end,
-			       union acpi_term *term)
+			       struct acpi_term *term)
 {
 	struct acpi_environ *environ = &parser->environ;
 
@@ -33,7 +33,7 @@ static void __acpi_parser_exit(struct acpi_object *object)
 
 static struct acpi_parser *acpi_parser_open(struct acpi_interp *interp,
 					    uint8_t *aml_begin, uint8_t *aml_end,
-					    union acpi_term *term)
+					    struct acpi_term *term)
 {
 	struct acpi_state *state;
 	struct acpi_parser *parser = NULL;
@@ -57,7 +57,7 @@ struct acpi_parser *acpi_parser_init(struct acpi_interp *interp,
 				     uint8_t *aml_begin,
 				     uint8_t *aml_end,
 				     struct acpi_namespace_node *node,
-				     union acpi_term *term)
+				     struct acpi_term_list *term_list)
 {
 	struct acpi_parser *parser;
 	struct acpi_environ *environ;
@@ -65,7 +65,7 @@ struct acpi_parser *acpi_parser_init(struct acpi_interp *interp,
 	parser = acpi_parser_open(interp, aml_begin, aml_end, NULL);
 	if (parser) {
 		environ = &parser->environ;
-		environ->term = term;
+		environ->term = ACPI_CAST_PTR(struct acpi_term, term_list);
 		environ->op_info = acpi_opcode_get_info(AML_AMLCODE_OP);
 
 		parser->aml = parser->aml_begin;
@@ -196,7 +196,7 @@ uint32_t aml_opcode_size(uint8_t *aml, uint16_t opcode)
 	return (opcode > 0x00FF) ? 2 : 1;
 }
 
-void aml_decode_integer(union acpi_term *term, uint8_t *aml,
+void aml_decode_integer(struct acpi_term *term, uint8_t *aml,
 			uint16_t arg_type, uint32_t *value_len)
 {
 	uint32_t length;
@@ -205,22 +205,22 @@ void aml_decode_integer(union acpi_term *term, uint8_t *aml,
 	switch (arg_type) {
 	case AML_BYTEDATA:
 		opcode = AML_BYTE_PFX;
-		term->common.value.integer = (uint64_t)ACPI_DECODE8(aml);
+		term->value.integer = (uint64_t)ACPI_DECODE8(aml);
 		length = 1;
 		break;
 	case AML_WORDDATA:
 		opcode = AML_WORD_PFX;
-		term->common.value.integer = (uint64_t)ACPI_DECODE16(aml);
+		term->value.integer = (uint64_t)ACPI_DECODE16(aml);
 		length = 2;
 		break;
 	case AML_DWORDDATA:
 		opcode = AML_DWORD_PFX;
-		term->common.value.integer = (uint64_t)ACPI_DECODE32(aml);
+		term->value.integer = (uint64_t)ACPI_DECODE32(aml);
 		length = 4;
 		break;
 	case AML_QWORDDATA:
 		opcode = AML_QWORD_PFX;
-		term->common.value.integer = (uint64_t)ACPI_DECODE64(aml);
+		term->value.integer = (uint64_t)ACPI_DECODE64(aml);
 		length = 8;
 		break;
 	default:
@@ -229,22 +229,22 @@ void aml_decode_integer(union acpi_term *term, uint8_t *aml,
 	}
 	if (value_len)
 		*value_len = length;
-	term->common.aml_length += length;
+	term->aml_length += length;
 }
 
-void aml_decode_string(union acpi_term *term, uint8_t *aml, uint32_t *str_len)
+void aml_decode_string(struct acpi_term *term, uint8_t *aml, uint32_t *str_len)
 {
 	uint16_t opcode = AML_STRING_PFX;
 	uint32_t length;
 
-	term->common.value.string = ACPI_CAST_PTR(char, aml);
+	term->value.string = ACPI_CAST_PTR(char, aml);
 	length = 0;
 	while (aml[length])
 		length++;
 	length++;
 	if (str_len)
 		*str_len = length;
-	term->common.aml_length += length;
+	term->aml_length += length;
 }
 
 uint32_t aml_decode_pkg_length(uint8_t *aml, uint32_t *length)
@@ -280,18 +280,18 @@ uint32_t aml_decode_pkg_length(uint8_t *aml, uint32_t *length)
 	return pkg_length;
 }
 
-void aml_decode_byte_list(union acpi_term *term,
+void aml_decode_byte_list(struct acpi_term *term,
 			  uint8_t *aml, uint8_t *aml_end,
 			  uint32_t *buf_len)
 {
 	uint8_t length = ACPI_PTR_DIFF(aml_end, aml);
 
-	term->common.value.buffer.len = length;
-	term->common.value.buffer.ptr = aml;
-	term->common.aml_length += length;
+	term->value.buffer.len = length;
+	term->value.buffer.ptr = aml;
+	term->aml_length += length;
 }
 
-void aml_decode_namestring(union acpi_term *term, uint8_t *aml,
+void aml_decode_namestring(struct acpi_term *term, uint8_t *aml,
 			   acpi_path_len_t *name_len)
 {
 	uint8_t *begin = aml;
@@ -321,11 +321,11 @@ void aml_decode_namestring(union acpi_term *term, uint8_t *aml,
 	if (name_len)
 		*name_len = length;
 
-	term->common.value.string = ACPI_CAST_PTR(char, begin);
-	term->common.aml_length += length;
+	term->value.string = ACPI_CAST_PTR(char, begin);
+	term->aml_length += length;
 }
 
-void aml_decode_computation_data(union acpi_term *term, uint8_t *aml,
+void aml_decode_computation_data(struct acpi_term *term, uint8_t *aml,
 				 uint16_t opcode, uint32_t *length)
 {
 	*length = 0;
@@ -357,10 +357,10 @@ boolean acpi_parser_completed(struct acpi_parser *parser)
 }
 
 static acpi_status_t acpi_parser_consume_arg(struct acpi_parser *parser,
-					     union acpi_term *term,
-					     union acpi_term *arg)
+					     struct acpi_term *term,
+					     struct acpi_term *arg)
 {
-	uint32_t length = arg->common.aml_length;
+	uint32_t length = arg->aml_length;
 
 	if ((parser->aml + length) > parser->pkg_end) {
 		acpi_term_free(arg);
@@ -376,12 +376,13 @@ static acpi_status_t acpi_parser_consume_arg(struct acpi_parser *parser,
 static acpi_status_t acpi_parser_begin_term(struct acpi_parser *parser)
 {
 	acpi_status_t status = AE_OK;
-	union acpi_term *term;
+	struct acpi_term *term;
 	uint8_t *aml = parser->aml;
 	uint16_t opcode;
 	uint32_t length;
 	struct acpi_environ *environ = &parser->environ;
 	uint16_t arg_type;
+	struct acpi_super_name *super_name;
 
 	BUG_ON(environ->term);
 
@@ -418,9 +419,10 @@ static acpi_status_t acpi_parser_begin_term(struct acpi_parser *parser)
 		return status;
 
 	environ->opcode = opcode;
-	if (term->common.object_type == ACPI_AML_SUPERNAME)
-		environ->op_info = term->super_name.op_info;
-	else
+	if (term->object_type == ACPI_AML_SUPERNAME) {
+		super_name = ACPI_CAST_PTR(struct acpi_super_name, term);
+		environ->op_info = super_name->op_info;
+	} else
 		environ->op_info = acpi_opcode_get_info(environ->opcode);
 	environ->term = term;
 
@@ -438,7 +440,7 @@ static acpi_status_t acpi_parser_end_term(struct acpi_parser *parser,
 					  acpi_status_t parser_status)
 {
 	struct acpi_environ *environ = &parser->environ;
-	union acpi_term *term = environ->term;
+	struct acpi_term *term = environ->term;
 
 	if (!term)
 		return parser_status;
@@ -455,7 +457,7 @@ static acpi_status_t acpi_parser_end_term(struct acpi_parser *parser,
 acpi_status_t acpi_parser_get_simple_arg(struct acpi_parser *parser,
 					 uint16_t arg_type)
 {
-	union acpi_term *arg = NULL;
+	struct acpi_term *arg = NULL;
 	uint32_t length = 0;
 	uint8_t *aml = parser->aml;
 	struct acpi_environ *environ = &parser->environ;
@@ -511,7 +513,7 @@ acpi_status_t acpi_parser_get_simple_arg(struct acpi_parser *parser,
 acpi_status_t acpi_parser_get_name_string(struct acpi_parser *parser,
 					  uint16_t arg_type)
 {
-	union acpi_term *arg;
+	struct acpi_term *arg;
 	uint8_t *aml = parser->aml;
 	struct acpi_environ *environ = &parser->environ;
 	acpi_status_t status;
@@ -539,8 +541,8 @@ acpi_status_t acpi_parser_get_pkg_length(struct acpi_parser *parser)
 
 acpi_status_t acpi_parser_get_term_list(struct acpi_parser *parser)
 {
-	union acpi_term *namearg;
-	union acpi_term *arg;
+	struct acpi_term *namearg;
+	struct acpi_term_list *term_list;
 	acpi_tag_t tag;
 	struct acpi_environ *environ = &parser->environ;
 
@@ -554,26 +556,27 @@ acpi_status_t acpi_parser_get_term_list(struct acpi_parser *parser)
 	case AML_METHOD_OP:
 	case AML_SCOPE_OP:
 		namearg = acpi_term_get_arg(environ->term, 0);
-		if (!namearg || namearg->common.aml_opcode != AML_NAMESTRING_OP)
+		if (!namearg || namearg->aml_opcode != AML_NAMESTRING_OP)
 			return AE_AML_OPERAND_TYPE;
-		tag = ACPI_NAME2TAG(namearg->common.value.string);
+		tag = ACPI_NAME2TAG(namearg->value.string);
 		break;
 	default:
 		tag = ACPI_ROOT_TAG;
 		break;
 	}
 
-	arg = acpi_term_alloc_aml(tag, parser->aml, parser->pkg_end);
-	if (!arg)
+	term_list = acpi_term_alloc_aml(tag, parser->aml, parser->pkg_end);
+	if (!term_list)
 		return AE_NO_MEMORY;
 
-	return acpi_parser_consume_arg(parser, environ->term, arg);
+	return acpi_parser_consume_arg(parser, environ->term,
+				       ACPI_CAST_PTR(struct acpi_term, term_list));
 }
 
 acpi_status_t acpi_parser_get_argument(struct acpi_parser *parser,
 				       uint16_t arg_type)
 {
-	union acpi_term *arg = NULL;
+	struct acpi_term *arg = NULL;
 	uint16_t opcode = AML_UNKNOWN_OP;
 	struct acpi_environ *environ = &parser->environ;
 	acpi_status_t status;
@@ -629,7 +632,7 @@ acpi_status_t acpi_parser_get_argument(struct acpi_parser *parser,
 			 * Type2Opcode.
 			 */
 			if (!environ->parent_term ||
-			    (environ->term->common.aml_opcode != AML_METHOD_OP)) {
+			    (environ->term->aml_opcode != AML_METHOD_OP)) {
 				/*
 				 * Evaluate the entrance AMLCode and
 				 * none Method opcodes.
@@ -728,12 +731,12 @@ static acpi_status_t acpi_parser_get_arguments(struct acpi_parser *parser)
 acpi_status_t acpi_parse_aml(struct acpi_interp *interp,
 			     uint8_t *aml_begin, uint8_t *aml_end,
 			     struct acpi_namespace_node *node,
-			     union acpi_term *term)
+			     struct acpi_term_list *term_list)
 {
 	acpi_status_t status = AE_OK;
 	struct acpi_parser *parser = interp->parser;
 
-	parser = acpi_parser_init(interp, aml_begin, aml_end, node, term);
+	parser = acpi_parser_init(interp, aml_begin, aml_end, node, term_list);
 	if (!parser)
 		return AE_NO_MEMORY;
 	interp->parser = parser;
