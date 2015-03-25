@@ -35,7 +35,7 @@ static struct acpi_parser *acpi_parser_open(struct acpi_interp *interp,
 					    uint8_t *aml_begin, uint8_t *aml_end,
 					    union acpi_term *term)
 {
-	union acpi_state *state;
+	struct acpi_state *state;
 	struct acpi_parser *parser = NULL;
 
 	state = acpi_state_open(ACPI_STATE_PARSER,
@@ -50,7 +50,7 @@ static struct acpi_parser *acpi_parser_open(struct acpi_interp *interp,
 
 static void acpi_parser_close(struct acpi_parser *parser)
 {
-	acpi_state_close(ACPI_CAST_PTR(union acpi_state, parser));
+	acpi_state_close(ACPI_CAST_PTR(struct acpi_state, parser));
 }
 
 struct acpi_parser *acpi_parser_init(struct acpi_interp *interp,
@@ -111,8 +111,8 @@ acpi_status_t acpi_parser_push(struct acpi_parser *last_parser,
 		return AE_NO_MEMORY;
 	}
 
-	acpi_state_push(&ACPI_CAST_PTR(union acpi_state, interp->parser),
-			ACPI_CAST_PTR(union acpi_state, next_state));
+	acpi_state_push(&ACPI_CAST_PTR(struct acpi_state, interp->parser),
+			ACPI_CAST_PTR(struct acpi_state, next_state));
 	BUG_ON(next_state != interp->parser);
 
 	next_state->aml = last_parser->aml;
@@ -132,12 +132,12 @@ acpi_status_t acpi_parser_pop(struct acpi_parser *last_parser,
 			      struct acpi_parser **next_parser)
 {
 	struct acpi_interp *interp = last_parser->interp;
-	union acpi_state *last_state;
+	struct acpi_state *last_state;
 	struct acpi_parser *next_state;
 
 	BUG_ON(last_parser != interp->parser);
 
-	last_state = acpi_state_pop(&ACPI_CAST_PTR(union acpi_state,
+	last_state = acpi_state_pop(&ACPI_CAST_PTR(struct acpi_state,
 				    interp->parser));
 
 	next_state = interp->parser;

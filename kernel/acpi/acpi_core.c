@@ -202,58 +202,58 @@ void acpi_object_put(struct acpi_object *object)
 /*=========================================================================
  * Stacked states
  *=======================================================================*/
-void acpi_state_push(union acpi_state **head, union acpi_state *state)
+void acpi_state_push(struct acpi_state **head, struct acpi_state *state)
 {
-	state->common.next = *head;
+	state->next = *head;
 	*head = state;
 
 	return;
 }
 
-union acpi_state *acpi_state_pop(union acpi_state **head)
+struct acpi_state *acpi_state_pop(struct acpi_state **head)
 {
-	union acpi_state *state;
+	struct acpi_state *state;
 
 	state = *head;
 	if (state)
-		*head = state->common.next;
+		*head = state->next;
 
 	return state;
 }
 
-static void __acpi_state_init(union acpi_state *state, uint8_t type,
+static void __acpi_state_init(struct acpi_state *state, uint8_t type,
 			      acpi_release_cb release)
 {
-	state->common.object_type = type;
-	state->common.next = NULL;
-	state->common.release_state = release;
+	state->object_type = type;
+	state->next = NULL;
+	state->release_state = release;
 }
 
 static void __acpi_state_exit(struct acpi_object *object)
 {
-	union acpi_state *state =
-		ACPI_CAST_PTR(union acpi_state, object);
+	struct acpi_state *state =
+		ACPI_CAST_PTR(struct acpi_state, object);
 
-	if (state->common.release_state)
-		state->common.release_state(object);
+	if (state->release_state)
+		state->release_state(object);
 }
 
-union acpi_state *acpi_state_open(uint8_t type, acpi_size_t size,
-				  acpi_release_cb release)
+struct acpi_state *acpi_state_open(uint8_t type, acpi_size_t size,
+				   acpi_release_cb release)
 {
 	struct acpi_object *object;
-	union acpi_state *state = NULL;
+	struct acpi_state *state = NULL;
 
 	object = acpi_object_open(ACPI_DESC_TYPE_STATE, size,
 				  __acpi_state_exit);
-	state = ACPI_CAST_PTR(union acpi_state, object);
+	state = ACPI_CAST_PTR(struct acpi_state, object);
 	if (state)
 		__acpi_state_init(state, type, release);
 
 	return state;
 }
 
-void acpi_state_close(union acpi_state *state)
+void acpi_state_close(struct acpi_state *state)
 {
 	acpi_object_close(ACPI_CAST_PTR(struct acpi_object, state));
 }

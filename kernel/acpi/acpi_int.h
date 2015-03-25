@@ -148,14 +148,11 @@ union acpi_term {
 
 #define ACPI_STATE_PARSER		0x01
 
-#define ACPI_STATE_HEADER		\
-	ACPI_OBJECT_HEADER		\
-	uint8_t object_type;		\
-	acpi_release_cb release_state;	\
+struct acpi_state {
+	struct acpi_object common;
+	uint8_t object_type;
+	acpi_release_cb release_state;
 	void *next;
-
-struct acpi_state_header {
-	ACPI_STATE_HEADER
 };
 
 struct acpi_environ {
@@ -167,7 +164,7 @@ struct acpi_environ {
 };
 
 struct acpi_parser {
-	ACPI_STATE_HEADER
+	struct acpi_state common;
 	uint8_t *aml;
 	uint8_t *aml_begin;
 	uint8_t *aml_end;
@@ -180,11 +177,6 @@ struct acpi_parser {
 	struct acpi_interp *interp;
 	/* Executable domain built by parser, executed by interpreter */
 	struct acpi_environ environ;
-};
-
-union acpi_state {
-	struct acpi_state_header common;
-	struct acpi_parser parser;
 };
 
 /*
@@ -344,10 +336,10 @@ void acpi_object_get(struct acpi_object *object);
 void acpi_object_put(struct acpi_object *object);
 struct acpi_object *acpi_object_get_graceful(struct acpi_object *object);
 
-void acpi_state_push(union acpi_state **head, union acpi_state *state);
-union acpi_state *acpi_state_pop(union acpi_state **head);
-union acpi_state *acpi_state_open(uint8_t type, acpi_size_t size,
-				  acpi_release_cb release);
-void acpi_state_close(union acpi_state *state);
+void acpi_state_push(struct acpi_state **head, struct acpi_state *state);
+struct acpi_state *acpi_state_pop(struct acpi_state **head);
+struct acpi_state *acpi_state_open(uint8_t type, acpi_size_t size,
+				   acpi_release_cb release);
+void acpi_state_close(struct acpi_state *state);
 
 #endif /* __ACPI_INT_H_INCLUDE__ */
