@@ -320,6 +320,8 @@ acpi_path_len_t acpi_path_decode(acpi_path_t *path,
 			for (i = 0; i < 4; i++) {
 				if (*(iter - i) == '_')
 					ACPI_PATH_UNPUT8(length);
+				else
+					break;
 			}
 			nr_segs--;
 			if (nr_segs == 0)
