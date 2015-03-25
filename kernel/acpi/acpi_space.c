@@ -426,9 +426,9 @@ acpi_path_len_t acpi_space_get_full_path(acpi_handle_t node,
 		trailing = true;
 		for (i = 0; i < 4; i++) {
 			c = name[4-i-1];
-			if (c != '_')
+			if (trailing && c != '_')
 				trailing = false;
-			if (!trailing || c != '_')
+			if (!trailing)
 				ACPI_PATH_PUT8(fullpath, size, c, length);
 		}
 		namespace_node = namespace_node->parent;
@@ -494,6 +494,7 @@ void acpi_space_test_nodes(void)
 	struct acpi_namespace_node *node1, *node2;
 	struct acpi_namespace_node *node11, *node12;
 	struct acpi_namespace_node *node21, *node22;
+	struct acpi_namespace_node *node3;
 	uint8_t aml_path[ACPI_AML_PATH_SIZE];
 	uint8_t asl_path[ACPI_ASL_PATH_SIZE];
 	acpi_path_len_t len1, len2, saved_len;
@@ -614,9 +615,13 @@ void acpi_space_test_nodes(void)
 	node12 = acpi_space_open_test(node1, "N012", 4);
 	node21 = acpi_space_open_test(node2, "N021", 4);
 	node22 = acpi_space_open_test(node2, "N022", 4);
+	node3 = acpi_space_open_test(acpi_gbl_root_node, "__03", 4);
 
 	len1 = acpi_space_get_full_path(node22, NULL, 0);
 	len2 = acpi_space_get_full_path(node22, asl_path, ACPI_ASL_PATH_SIZE);
+	BUG_ON(len1 != len2);
+	len1 = acpi_space_get_full_path(node3, NULL, 0);
+	len2 = acpi_space_get_full_path(node3, asl_path, ACPI_ASL_PATH_SIZE);
 	BUG_ON(len1 != len2);
 
 	acpi_space_walk_depth_first(NULL, ACPI_TYPE_ANY, 3,
@@ -632,6 +637,7 @@ void acpi_space_test_nodes(void)
 	acpi_space_close(node21, true);
 	acpi_space_close(node22, true);
 	acpi_space_close(node2, true);
+	acpi_space_close(node3, true);
 
 	BUG_ON(acpi_space_open_exist(acpi_gbl_root_node, "N001", 4));
 	BUG_ON(acpi_space_open_exist(acpi_gbl_root_node, "N002", 4));
