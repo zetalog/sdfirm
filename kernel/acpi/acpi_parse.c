@@ -660,7 +660,8 @@ acpi_status_t acpi_parser_get_argument(struct acpi_parser *parser,
 			 * Opcodes containing an element list need to be
 			 * executed earlier.
 			 */
-			if (parser->interp->callback) {
+			if (!parser->pkg_begin && parser->interp->callback) {
+				parser->pkg_begin = parser->aml;
 				status = parser->interp->callback(parser->interp,
 								  &parser->environ,
 								  ACPI_AML_OPEN);
