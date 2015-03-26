@@ -69,6 +69,7 @@ struct acpi_parser *acpi_parser_init(struct acpi_interp *interp,
 		environ->op_info = acpi_opcode_get_info(AML_AMLCODE_OP);
 
 		parser->aml = parser->aml_begin;
+		parser->pkg_begin = NULL;
 		parser->pkg_end = parser->aml_end;
 		parser->arg_types = environ->op_info->args;
 
@@ -533,6 +534,7 @@ acpi_status_t acpi_parser_get_pkg_length(struct acpi_parser *parser)
 	uint32_t pkg_length;
 
 	pkg_length = aml_decode_pkg_length(parser->aml, &length);
+	parser->pkg_begin = NULL;
 	parser->pkg_end = parser->aml + pkg_length;
 
 	/* Consume opcode */
@@ -621,7 +623,8 @@ acpi_status_t acpi_parser_get_argument(struct acpi_parser *parser,
 		 * Opcodes containing an element list need to be executed
 		 * earlier.
 		 */
-		if (parser->interp->callback) {
+		if (!parser->pkg_begin && parser->interp->callback) {
+			parser->pkg_begin = parser->aml;
 			status = parser->interp->callback(parser->interp,
 							  &parser->environ,
 							  ACPI_AML_OPEN);

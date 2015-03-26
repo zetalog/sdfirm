@@ -154,6 +154,7 @@ struct acpi_parser {
 	uint8_t *aml;
 	uint8_t *aml_begin;
 	uint8_t *aml_end;
+	uint8_t *pkg_begin;
 	uint8_t *pkg_end;
 	uint8_t *aml_last_while;
 	boolean next_opcode;
