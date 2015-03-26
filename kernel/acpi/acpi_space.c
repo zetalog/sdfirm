@@ -199,6 +199,9 @@ static boolean __acpi_space_walk_call(struct acpi_namespace_node *node,
 	if (_b)						\
 		break;
 
+#define __ACPI_SPACE_VALID_DEPTH(__cur, __max)		\
+	(__max == ACPI_SPACE_DEPTH_INFINITE || __cur < __max)
+
 void acpi_space_walk_depth_first(acpi_handle_t scope,
 				 acpi_object_type object_type,
 				 uint32_t max_depth,
@@ -206,12 +209,14 @@ void acpi_space_walk_depth_first(acpi_handle_t scope,
 				 acpi_space_cb ascending_callback,
 				 void *context)
 {
-	struct acpi_namespace_node *child, *parent, *node;
+	struct acpi_namespace_node *child, *parent;
 	struct acpi_namespace_node *scope_node;
+	struct acpi_namespace_node *defer_node;
 	boolean terminated = false;
 	uint32_t level;
-	struct acpi_namespace_node *defer_node;
+	boolean ascending = false;
 
+	defer_node = NULL;
 	if (scope)
 		scope_node = acpi_node_get(scope, "walk");
 	else
@@ -220,65 +225,53 @@ void acpi_space_walk_depth_first(acpi_handle_t scope,
 
 	acpi_space_lock();
 	parent = scope_node;
-	child = NULL;
-	defer_node = NULL;
+	child = acpi_space_walk_next(parent, NULL);
 	level = 1;
 
-	while (parent) {
-		node = child = acpi_space_walk_next(parent, child);
-		while (child && level < max_depth) {
+	while (level > 0 && child) {
+		if (defer_node) {
+			acpi_space_unlock();
+			acpi_node_put(defer_node, "defer");
+			defer_node = NULL;
+			acpi_space_lock();
+		}
+		if (!ascending) {
 			__ACPI_SPACE_WALK_CALL(child, object_type,
 					       descending_callback,
 					       context, terminated);
-			child = acpi_space_walk_next(node, NULL);
-			if (child) {
-				parent = node;
-				node = child;
+		} else {
+			defer_node = acpi_node_get(child, "defer");
+			__ACPI_SPACE_WALK_CALL(child, object_type,
+					       ascending_callback,
+					       context, terminated);
+		}
+		if (!ascending && __ACPI_SPACE_VALID_DEPTH(level, max_depth)) {
+			if (!list_empty(&child->children)) {
 				level++;
+				parent = child;
+				child = acpi_space_walk_next(parent, NULL);
+				continue;
 			}
 		}
-		acpi_space_unlock();
-		if (defer_node) {
-			acpi_node_put(defer_node, "defer");
-			defer_node = NULL;
+		if (!ascending) {
+			ascending = true;
+			continue;
 		}
-		acpi_space_lock();
-		if (!terminated) {
-			if (node) {
-				/*
-				 * Node might be deleted in the
-				 * ascending_callback.
-				 */
-				defer_node = acpi_node_get(node, "defer");
-				__ACPI_SPACE_WALK_CALL(node, object_type,
-						       ascending_callback,
-						       context, terminated);
-				child = node;
-			} else {
-				if (parent == scope_node)
-					break;
-				/*
-				 * Node might be deleted in the
-				 * ascending_callback.
-				 */
-				defer_node = acpi_node_get(parent, "defer");
-				__ACPI_SPACE_WALK_CALL(parent, object_type,
-						       ascending_callback,
-						       context, terminated);
-				parent = acpi_space_walk_next(parent->parent, parent);
-				__ACPI_SPACE_WALK_CALL(parent, object_type,
-						       descending_callback,
-						       context, terminated);
-			}
+		child = acpi_space_walk_next(parent, child);
+		if (child)
+			ascending = false;
+		else {
+			level--;
+			child = parent;
+			parent = parent->parent;
+			ascending = true;
 		}
 	}
 	acpi_space_unlock();
 
-	if (defer_node) {
-		acpi_node_put(defer_node, "defer");
-		defer_node = NULL;
-	}
 	acpi_node_put(scope_node, "walk");
+	if (defer_node)
+		acpi_node_put(defer_node, "defer");
 }
 
 struct acpi_namespace_node *acpi_space_get_node(acpi_ddb_t ddb,

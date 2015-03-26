@@ -913,6 +913,8 @@ uint32_t acpi_fadt_flag_is_set(uint32_t mask);
 typedef boolean (*acpi_space_cb)(struct acpi_namespace_node *scope,
 				 void *context);
 
+#define ACPI_SPACE_DEPTH_INFINITE	0XFFFFFFFF
+
 void acpi_space_walk_depth_first(acpi_handle_t scope,
 				 acpi_object_type object_type,
 				 uint32_t max_depth,
