@@ -76,10 +76,10 @@ acpi_path_len_t acpi_path_split(acpi_path_t *path,
 				if (iter < end) {
 					nr_segs = (uint32_t)(uint8_t)*iter;
 					iter++;
-					if (nr_segs > 4) {
+					if (nr_segs > 3) {
 						ACPI_PATH_PUT8(parent, size, AML_MULTI_NAME_PFX, length);
 						ACPI_PATH_PUT8(parent, size, nr_segs - 1, length);
-					} else if (nr_segs > 3)
+					} else if (nr_segs > 2)
 						ACPI_PATH_PUT8(parent, size, AML_DUAL_NAME_PFX, length);
 				} else
 					return 0;
