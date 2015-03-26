@@ -604,6 +604,7 @@ static VOID ACPICreateNode(LPACPIWNDDATA lpWD, acpi_handle_t node)
 
 	/* Add the item to the tree view control. */
 	hWndNewItem = TreeView_InsertItem(hwndTree, &tvins);
+	TreeView_Expand(hwndTree, hParent, TVE_EXPAND);
 
 	acpi_dbg("[%s] ACPICreateNode end", path);
 

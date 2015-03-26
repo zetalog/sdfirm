@@ -5,11 +5,26 @@ static acpi_status_t acpi_interpret_open(struct acpi_interp *interp,
 {
 	uint16_t opcode = environ->opcode;
 	const struct acpi_opcode_info *op_info = environ->op_info;
+	struct acpi_namespace_node *node;
+	struct acpi_term *namearg;
+	struct acpi_namespace_node *curr_scope;
 
 	acpi_debug_opcode_info(op_info, "Open:");
 
 	switch (opcode) {
 	case AML_SCOPE_OP:
+		namearg = acpi_term_get_arg(environ->term, 0);
+		if (!namearg || namearg->aml_opcode != AML_NAMESTRING_OP)
+			return AE_AML_OPERAND_TYPE;
+		node = acpi_space_open(interp->ddb,
+				       interp->node,
+				       namearg->value.string,
+				       namearg->aml_length,
+				       true);
+		curr_scope = interp->node;
+		interp->node = acpi_node_get(node, "scope");
+		acpi_node_put(curr_scope, "scope");
+		acpi_space_close(node, false);
 		break;
 	case AML_IF_OP:
 		break;
@@ -29,11 +44,17 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 	uint16_t opcode = environ->opcode;
 	const struct acpi_opcode_info *op_info = environ->op_info;
 	struct acpi_namespace_node *node;
+	struct acpi_namespace_node *curr_scope;
 	acpi_status_t status = AE_OK;
 
 	acpi_debug_opcode_info(op_info, "Close:");
 
 	switch (opcode) {
+	case AML_SCOPE_OP:
+		curr_scope = interp->node;
+		interp->node = acpi_node_get(curr_scope->parent, "scope");
+		acpi_node_put(curr_scope, "scope");
+		break;
 	case AML_NAME_OP:
 		namearg = acpi_term_get_arg(environ->term, 0);
 		if (!namearg || namearg->aml_opcode != AML_NAMESTRING_OP)
@@ -77,7 +98,7 @@ static void __acpi_interpret_init(struct acpi_interp *interp,
 	if (ddb != ACPI_DDB_HANDLE_INVALID)
 		acpi_table_increment(ddb);
 	interp->ddb = ddb;
-	interp->node = acpi_node_get(node, "interp");
+	interp->node = acpi_node_get(node, "scope");
 	interp->callback = callback;
 }
 
@@ -88,7 +109,7 @@ static void __acpi_interpret_exit(struct acpi_interp *interp)
 		interp->ddb = ACPI_DDB_HANDLE_INVALID;
 	}
 	if (interp->node) {
-		acpi_node_put(interp->node, "interp");
+		acpi_node_put(interp->node, "scope");
 		interp->node = NULL;
 	}
 }
