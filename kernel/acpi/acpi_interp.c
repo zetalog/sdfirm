@@ -57,7 +57,8 @@ static void __acpi_method_exit(struct acpi_object *object)
 		acpi_table_decrement(method->ddb);
 }
 
-struct acpi_method *acpi_method_open(acpi_ddb_t ddb, uint8_t flags)
+struct acpi_method *acpi_method_open(acpi_ddb_t ddb, uint8_t *aml,
+				     uint32_t length, uint8_t flags)
 {
 	struct acpi_method *method;
 	struct acpi_operand *operand;
@@ -72,6 +73,8 @@ struct acpi_method *acpi_method_open(acpi_ddb_t ddb, uint8_t flags)
 	method->method_flags = flags;
 	acpi_table_increment(ddb);
 	method->ddb = ddb;
+	method->aml_start = aml;
+	method->aml_length = length;
 
 	return method;
 }
@@ -125,6 +128,7 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 {
 	struct acpi_term *namearg;
 	struct acpi_term *valuearg;
+	struct acpi_term *amlarg;
 	uint16_t opcode = environ->opcode;
 	const struct acpi_opcode_info *op_info = environ->op_info;
 	struct acpi_namespace_node *node;
@@ -158,14 +162,20 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 				       namearg->aml_length,
 				       object_type, true);
 		valuearg = acpi_term_get_arg(environ->term, 1);
-		if (!valuearg ||
-		    (opcode == AML_METHOD_OP && valuearg->aml_opcode != AML_BYTE_PFX)) {
+		if (opcode == AML_METHOD_OP)
+			amlarg = acpi_term_get_arg(environ->term, 2);
+		if ((opcode == AML_METHOD_OP &&
+		     (!amlarg || !valuearg ||
+		      valuearg->aml_opcode != AML_BYTE_PFX ||
+		      amlarg->aml_opcode != AML_UNKNOWN_OP))) {
 			status = AE_AML_OPERAND_TYPE;
 		} else {
 			if (opcode == AML_METHOD_OP) {
 				struct acpi_method *method;
 
 				method = acpi_method_open(interp->ddb,
+							  amlarg->aml_offset,
+							  amlarg->aml_length,
 							  (uint8_t)valuearg->value.integer);
 				node->operand = ACPI_CAST_PTR(struct acpi_operand, method);
 			}

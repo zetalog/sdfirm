@@ -75,7 +75,7 @@ struct acpi_method {
 	ACPI_OPERAND_HEADER
 	acpi_ddb_t ddb;
 	uint8_t method_flags;
-	uint8_t aml_start;
+	uint8_t *aml_start;
 	uint32_t aml_length;
 };
 
@@ -294,7 +294,8 @@ struct acpi_operand *acpi_operand_get(struct acpi_operand *operand,
 				      const char *hint);
 void acpi_operand_put(struct acpi_operand *operand, const char *hint);
 
-struct acpi_method *acpi_method_open(acpi_ddb_t ddb, uint8_t flags);
+struct acpi_method *acpi_method_open(acpi_ddb_t ddb, uint8_t *aml,
+				     uint32_t length, uint8_t flags);
 
 /*=========================================================================
  * Namespace internals
