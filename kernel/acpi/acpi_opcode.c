@@ -616,7 +616,7 @@ acpi_status_t acpi_term_alloc_name(struct acpi_parser *parser,
 					    interp->node,
 					    term->value.string,
 					    term->aml_length,
-					    false, "name");
+					    ACPI_TYPE_ANY, false, "name");
 		if (!simple_name->node) {
 			/*
 			 * TBD: Parser Continuation

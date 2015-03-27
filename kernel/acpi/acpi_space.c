@@ -16,7 +16,7 @@ void acpi_space_unlock(void)
 static void __acpi_node_init(struct acpi_namespace_node *node,
 			     acpi_ddb_t ddb,
 			     struct acpi_namespace_node *parent,
-			     acpi_tag_t tag, acpi_object_type object_type)
+			     acpi_tag_t tag, acpi_type_t object_type)
 {
 	INIT_LIST_HEAD(&node->sibling);
 	INIT_LIST_HEAD(&node->children);
@@ -60,7 +60,7 @@ static void __acpi_node_exit(struct acpi_object *object)
 struct acpi_namespace_node *__acpi_node_open(acpi_ddb_t ddb,
 					     struct acpi_namespace_node *parent,
 					     acpi_tag_t tag,
-					     acpi_object_type object_type)
+					     acpi_type_t object_type)
 {
 	struct acpi_namespace_node *node;
 	struct acpi_object *object;
@@ -89,7 +89,7 @@ void __acpi_node_close(struct acpi_namespace_node *node)
 struct acpi_namespace_node *__acpi_node_lookup(acpi_ddb_t ddb,
 					       struct acpi_namespace_node *scope,
 					       acpi_tag_t tag,
-					       acpi_object_type object_type,
+					       acpi_type_t object_type,
 					       boolean create)
 {
 	struct acpi_namespace_node *node;
@@ -174,7 +174,7 @@ static struct acpi_namespace_node *acpi_space_walk_prev(struct acpi_namespace_no
 #endif
 
 static boolean __acpi_space_walk_call(struct acpi_namespace_node *node,
-				      acpi_object_type object_type,
+				      acpi_type_t object_type,
 				      acpi_space_cb callback, void *context)
 {
 	boolean terminated = false;
@@ -203,7 +203,7 @@ static boolean __acpi_space_walk_call(struct acpi_namespace_node *node,
 	(__max == ACPI_SPACE_DEPTH_INFINITE || __cur < __max)
 
 void acpi_space_walk_depth_first(acpi_handle_t scope,
-				 acpi_object_type object_type,
+				 acpi_type_t object_type,
 				 uint32_t max_depth,
 				 acpi_space_cb descending_callback,
 				 acpi_space_cb ascending_callback,
@@ -277,6 +277,7 @@ void acpi_space_walk_depth_first(acpi_handle_t scope,
 struct acpi_namespace_node *acpi_space_get_node(acpi_ddb_t ddb,
 						struct acpi_namespace_node *scope,
 						const char *name, uint32_t length,
+						acpi_type_t object_type,
 						boolean create, const char *hint)
 {
 	struct acpi_namespace_node *node = NULL;
@@ -324,7 +325,7 @@ struct acpi_namespace_node *acpi_space_get_node(acpi_ddb_t ddb,
 	}
 	while ((length > 0) && nr_segs && scope_node) {
 		node = __acpi_node_lookup(ddb, scope_node, ACPI_NAME2TAG(name),
-					  ACPI_TYPE_ANY, create);
+					  object_type, create);
 		name += ACPI_NAME_SIZE, length -= ACPI_NAME_SIZE;
 		node = acpi_node_get(node, "lookup");
 		acpi_node_put(scope_node, "lookup");
@@ -340,10 +341,12 @@ exit_ref:
 
 acpi_handle_t acpi_space_open(acpi_ddb_t ddb, acpi_handle_t scope,
 			      const char *name, uint32_t length,
+			      acpi_type_t object_type,
 			      boolean create_node)
 {
 	BUG_ON(create_node && ACPI_DDB_HANDLE_INVALID == ddb);
-	return acpi_space_get_node(ddb, scope, name, length, create_node, "space");
+	return acpi_space_get_node(ddb, scope, name, length,
+				   object_type, create_node, "space");
 }
 
 void acpi_space_close_node(acpi_handle_t node)
@@ -363,8 +366,8 @@ void acpi_space_close(acpi_handle_t node, boolean delete_node)
 acpi_handle_t acpi_space_open_exist(acpi_handle_t scope,
 				    const char *name, uint32_t length)
 {
-	return acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, scope, name,
-				   length, false, "space");
+	return acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, scope, name, length,
+				   ACPI_TYPE_ANY, false, "space");
 }
 
 void acpi_space_close_exist(acpi_handle_t node)
@@ -478,8 +481,8 @@ static boolean acpi_space_ascend_test(struct acpi_namespace_node *node,
 struct acpi_namespace_node *acpi_space_open_test(struct acpi_namespace_node *scope,
 						 const char *name, uint32_t length)
 {
-	return acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, scope, name,
-				   length, true, "space");
+	return acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, scope, name, length,
+				   ACPI_TYPE_ANY, true, "space");
 }
 
 void acpi_space_test_nodes(void)

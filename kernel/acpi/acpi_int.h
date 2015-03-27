@@ -63,7 +63,7 @@ struct acpi_object {
 
 struct acpi_data {
 	struct acpi_object common;
-	acpi_object_type object_type;
+	acpi_type_t object_type;
 	acpi_size_t size;
 	union acpi_value default_val;
 	union acpi_value *current_val;
@@ -73,7 +73,7 @@ struct acpi_namespace_node {
 	struct acpi_object common;
 	acpi_tag_t tag;
 	acpi_ddb_t ddb;
-	acpi_object_type object_type;
+	acpi_type_t object_type;
 	struct acpi_namespace_node *parent;
 	struct list_head children;
 	struct list_head sibling;
@@ -286,12 +286,12 @@ void acpi_unparse_table(acpi_ddb_t ddb,
 struct acpi_namespace_node *__acpi_node_open(acpi_ddb_t ddb,
 					     struct acpi_namespace_node *parent,
 					     acpi_tag_t tag,
-					     acpi_object_type object_type);
+					     acpi_type_t object_type);
 void __acpi_node_close(struct acpi_namespace_node *parent);
 struct acpi_namespace_node *__acpi_node_lookup(acpi_ddb_t ddb,
 					       struct acpi_namespace_node *scope,
 					       acpi_tag_t tag,
-					       acpi_object_type object_type,
+					       acpi_type_t object_type,
 					       boolean create);
 struct acpi_namespace_node *__acpi_node_get_graceful(struct acpi_namespace_node *node,
 						     const char *hint);
@@ -309,6 +309,7 @@ void acpi_node_put(struct acpi_namespace_node *node, const char *hint);
 struct acpi_namespace_node *acpi_space_get_node(acpi_ddb_t ddb,
 						struct acpi_namespace_node *scope,
 						const char *name, uint32_t length,
+						acpi_type_t object_type,
 						boolean create, const char *hint);
 void acpi_space_close_node(acpi_handle_t node);
 

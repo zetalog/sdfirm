@@ -713,27 +713,27 @@ struct acpi_table {
  * NOTE: Types must be kept in sync with the global AcpiNsProperties
  * and AcpiNsTypeNames arrays.
  */
-typedef uint8_t acpi_object_type;
+typedef uint8_t acpi_type_t;
 
-#define ACPI_TYPE_ANY			(acpi_object_type)0x00
-#define ACPI_TYPE_INTEGER		(acpi_object_type)0x01 /* Byte/Word/Dword/Zero/One/Ones */
-#define ACPI_TYPE_STRING		(acpi_object_type)0x02
-#define ACPI_TYPE_BUFFER		(acpi_object_type)0x03
-#define ACPI_TYPE_PACKAGE		(acpi_object_type)0x04 /* ByteConst, multiple DataTerm/Constant/SuperName */
-#define ACPI_TYPE_FIELD_UNIT		(acpi_object_type)0x05
-#define ACPI_TYPE_DEVICE		(acpi_object_type)0x06 /* Name, multiple Node */
-#define ACPI_TYPE_EVENT			(acpi_object_type)0x07
-#define ACPI_TYPE_METHOD		(acpi_object_type)0x08 /* Name, ByteConst, multiple Code */
-#define ACPI_TYPE_MUTEX			(acpi_object_type)0x09
-#define ACPI_TYPE_REGION		(acpi_object_type)0x0A
-#define ACPI_TYPE_POWER			(acpi_object_type)0x0B /* Name,ByteConst,WordConst,multi Node */
-#define ACPI_TYPE_PROCESSOR		(acpi_object_type)0x0C /* Name,ByteConst,DWordConst,ByteConst,multi NmO */
-#define ACPI_TYPE_THERMAL		(acpi_object_type)0x0D /* Name, multiple Node */
-#define ACPI_TYPE_BUFFER_FIELD		(acpi_object_type)0x0E
-#define ACPI_TYPE_DDB_HANDLE		(acpi_object_type)0x0F
-#define ACPI_TYPE_DEBUG_OBJECT		(acpi_object_type)0x10
+#define ACPI_TYPE_ANY			(acpi_type_t)0x00
+#define ACPI_TYPE_INTEGER		(acpi_type_t)0x01 /* Byte/Word/Dword/Zero/One/Ones */
+#define ACPI_TYPE_STRING		(acpi_type_t)0x02
+#define ACPI_TYPE_BUFFER		(acpi_type_t)0x03
+#define ACPI_TYPE_PACKAGE		(acpi_type_t)0x04 /* ByteConst, multiple DataTerm/Constant/SuperName */
+#define ACPI_TYPE_FIELD_UNIT		(acpi_type_t)0x05
+#define ACPI_TYPE_DEVICE		(acpi_type_t)0x06 /* Name, multiple Node */
+#define ACPI_TYPE_EVENT			(acpi_type_t)0x07
+#define ACPI_TYPE_METHOD		(acpi_type_t)0x08 /* Name, ByteConst, multiple Code */
+#define ACPI_TYPE_MUTEX			(acpi_type_t)0x09
+#define ACPI_TYPE_REGION		(acpi_type_t)0x0A
+#define ACPI_TYPE_POWER			(acpi_type_t)0x0B /* Name,ByteConst,WordConst,multi Node */
+#define ACPI_TYPE_PROCESSOR		(acpi_type_t)0x0C /* Name,ByteConst,DWordConst,ByteConst,multi NmO */
+#define ACPI_TYPE_THERMAL		(acpi_type_t)0x0D /* Name, multiple Node */
+#define ACPI_TYPE_BUFFER_FIELD		(acpi_type_t)0x0E
+#define ACPI_TYPE_DDB_HANDLE		(acpi_type_t)0x0F
+#define ACPI_TYPE_DEBUG_OBJECT		(acpi_type_t)0x10
 
-#define ACPI_TYPE_EXTERNAL_MAX		(acpi_object_type)0x10
+#define ACPI_TYPE_EXTERNAL_MAX		(acpi_type_t)0x10
 
 /*
  * These are object types that do not map directly to the ACPI
@@ -742,33 +742,33 @@ typedef uint8_t acpi_object_type;
  * internal types must move upwards. (There is code that depends on these
  * values being contiguous with the external types above.)
  */
-#define ACPI_TYPE_LOCAL_REGION_FIELD	(acpi_object_type)0x11
-#define ACPI_TYPE_LOCAL_BANK_FIELD	(acpi_object_type)0x12
-#define ACPI_TYPE_LOCAL_INDEX_FIELD	(acpi_object_type)0x13
-#define ACPI_TYPE_LOCAL_REFERENCE	(acpi_object_type)0x14 /* Arg#, Local#, Name, Debug, RefOf, Index */
-#define ACPI_TYPE_LOCAL_ALIAS		(acpi_object_type)0x15
-#define ACPI_TYPE_LOCAL_METHOD_ALIAS	(acpi_object_type)0x16
-#define ACPI_TYPE_LOCAL_NOTIFY		(acpi_object_type)0x17
-#define ACPI_TYPE_LOCAL_ADDRESS_HANDLER	(acpi_object_type)0x18
-#define ACPI_TYPE_LOCAL_RESOURCE	(acpi_object_type)0x19
-#define ACPI_TYPE_LOCAL_RESOURCE_FIELD	(acpi_object_type)0x1A
-#define ACPI_TYPE_LOCAL_SCOPE		(acpi_object_type)0x1B /* 1 Name, multiple ObjectList Nodes */
+#define ACPI_TYPE_LOCAL_REGION_FIELD	(acpi_type_t)0x11
+#define ACPI_TYPE_LOCAL_BANK_FIELD	(acpi_type_t)0x12
+#define ACPI_TYPE_LOCAL_INDEX_FIELD	(acpi_type_t)0x13
+#define ACPI_TYPE_LOCAL_REFERENCE	(acpi_type_t)0x14 /* Arg#, Local#, Name, Debug, RefOf, Index */
+#define ACPI_TYPE_LOCAL_ALIAS		(acpi_type_t)0x15
+#define ACPI_TYPE_LOCAL_METHOD_ALIAS	(acpi_type_t)0x16
+#define ACPI_TYPE_LOCAL_NOTIFY		(acpi_type_t)0x17
+#define ACPI_TYPE_LOCAL_ADDRESS_HANDLER	(acpi_type_t)0x18
+#define ACPI_TYPE_LOCAL_RESOURCE	(acpi_type_t)0x19
+#define ACPI_TYPE_LOCAL_RESOURCE_FIELD	(acpi_type_t)0x1A
+#define ACPI_TYPE_LOCAL_SCOPE		(acpi_type_t)0x1B /* 1 Name, multiple ObjectList Nodes */
 
-#define ACPI_TYPE_NS_NODE_MAX		(acpi_object_type)0x1B /* Last typecode used within a NS Node */
+#define ACPI_TYPE_NS_NODE_MAX		(acpi_type_t)0x1B /* Last typecode used within a NS Node */
 
 /*
  * These are special object types that never appear in
  * a Namespace node, only in an object of ACPI_OPERAND_OBJECT
  */
-#define ACPI_TYPE_LOCAL_EXTRA		(acpi_object_type)0x1C
-#define ACPI_TYPE_LOCAL_DATA		(acpi_object_type)0x1D
+#define ACPI_TYPE_LOCAL_EXTRA		(acpi_type_t)0x1C
+#define ACPI_TYPE_LOCAL_DATA		(acpi_type_t)0x1D
 
-#define ACPI_TYPE_LOCAL_MAX		(acpi_object_type)0x1D
+#define ACPI_TYPE_LOCAL_MAX		(acpi_type_t)0x1D
 
 /* All types above here are invalid */
 
-#define ACPI_TYPE_INVALID		(acpi_object_type)0x1E
-#define ACPI_TYPE_NOT_FOUND		(acpi_object_type)0xFF
+#define ACPI_TYPE_INVALID		(acpi_type_t)0x1E
+#define ACPI_TYPE_NOT_FOUND		(acpi_type_t)0xFF
 
 #define ACPI_NUM_NS_TYPES		(ACPI_TYPE_INVALID + 1)
 
@@ -916,13 +916,14 @@ typedef boolean (*acpi_space_cb)(struct acpi_namespace_node *scope,
 #define ACPI_SPACE_DEPTH_INFINITE	0XFFFFFFFF
 
 void acpi_space_walk_depth_first(acpi_handle_t scope,
-				 acpi_object_type object_type,
+				 acpi_type_t object_type,
 				 uint32_t max_depth,
 				 acpi_space_cb descending_callback,
 				 acpi_space_cb ascending_callback,
 				 void *context);
 acpi_handle_t acpi_space_open(acpi_ddb_t ddb, acpi_handle_t scope,
 			      const char *name, uint32_t length,
+			      acpi_type_t object_type,
 			      boolean create_node);
 void acpi_space_close(acpi_handle_t node, boolean delete_node);
 acpi_handle_t acpi_space_open_exist(acpi_handle_t scope,

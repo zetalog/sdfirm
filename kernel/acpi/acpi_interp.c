@@ -20,7 +20,7 @@ static acpi_status_t acpi_interpret_open(struct acpi_interp *interp,
 				       interp->node,
 				       namearg->value.string,
 				       namearg->aml_length,
-				       true);
+				       ACPI_TYPE_DEVICE, true);
 		curr_scope = interp->node;
 		interp->node = acpi_node_get(node, "scope");
 		acpi_node_put(curr_scope, "scope");
@@ -46,6 +46,7 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 	struct acpi_namespace_node *node;
 	struct acpi_namespace_node *curr_scope;
 	acpi_status_t status = AE_OK;
+	acpi_type_t object_type = ACPI_TYPE_ANY;
 
 	acpi_debug_opcode_info(op_info, "Close:");
 
@@ -56,6 +57,12 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 		acpi_node_put(curr_scope, "scope");
 		break;
 	case AML_NAME_OP:
+	case AML_METHOD_OP:
+		if (opcode == AML_METHOD_OP)
+			object_type = ACPI_TYPE_METHOD;
+		else {
+			/* TODO: obtain the object type from the argument type */
+		}
 		namearg = acpi_term_get_arg(environ->term, 0);
 		if (!namearg || namearg->aml_opcode != AML_NAMESTRING_OP)
 			return AE_AML_OPERAND_TYPE;
@@ -63,7 +70,7 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 				       interp->node,
 				       namearg->value.string,
 				       namearg->aml_length,
-				       true);
+				       object_type, true);
 
 		valuearg = acpi_term_get_arg(environ->term, 1);
 		if (!valuearg)
@@ -72,8 +79,6 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 		}
 
 		acpi_space_close(node, false);
-		break;
-	case AML_METHOD_OP:
 		break;
 	}
 
