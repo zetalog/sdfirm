@@ -355,6 +355,10 @@
 #define AML_IS_LOCAL_OR_ARG(opcode)	\
 	(AML_IS_LOCALOBJ(opcode) || AML_IS_ARGOBJ(opcode))
 
+#define AML_METHOD_ARG_COUNT(flags)		((flags) & 0x07)
+#define AML_METHOD_SERIALIZED(flags)		((flags) & 0x08)
+#define AML_METHOD_SYNC_LEVEL(flags)		(((flags) & 0xF0) >> 4)
+
 void aml_decode_namestring(struct acpi_term *term, uint8_t *aml,
 			   acpi_path_len_t *name_len);
 

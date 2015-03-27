@@ -50,6 +50,7 @@ typedef void (*acpi_release_cb)(struct acpi_object *);
 #define ACPI_DESC_TYPE_NAMED			0x01
 #define ACPI_DESC_TYPE_TERM			0x02
 #define ACPI_DESC_TYPE_STATE			0x03
+#define ACPI_DESC_TYPE_OPERAND			0x04
 
 #define ACPI_OBJECT_HEADER			\
 	uint8_t descriptor_type;		\
@@ -61,12 +62,21 @@ struct acpi_object {
 	ACPI_OBJECT_HEADER
 };
 
-struct acpi_data {
-	struct acpi_object common;
-	acpi_type_t object_type;
-	acpi_size_t size;
-	union acpi_value default_val;
-	union acpi_value *current_val;
+#define ACPI_OPERAND_HEADER			\
+	struct acpi_object common;		\
+	acpi_type_t object_type;		\
+	acpi_release_cb release;
+
+struct acpi_operand {
+	ACPI_OPERAND_HEADER
+};
+
+struct acpi_method {
+	ACPI_OPERAND_HEADER
+	acpi_ddb_t ddb;
+	uint8_t method_flags;
+	uint8_t aml_start;
+	uint32_t aml_length;
 };
 
 struct acpi_namespace_node {
@@ -77,7 +87,7 @@ struct acpi_namespace_node {
 	struct acpi_namespace_node *parent;
 	struct list_head children;
 	struct list_head sibling;
-	union acpi_operand *operand;
+	struct acpi_operand *operand;
 };
 
 #define ACPI_AML_TERMOBJ		0x01
@@ -275,6 +285,16 @@ acpi_status_t acpi_parse_table(acpi_ddb_t ddb,
 void acpi_unparse_table(acpi_ddb_t ddb,
 			struct acpi_table_header *table,
 			struct acpi_namespace_node *start_node);
+
+struct acpi_operand *acpi_operand_open(acpi_type_t object_type,
+				       acpi_size_t size,
+				       acpi_release_cb release_operand);
+void acpi_operand_close(struct acpi_operand *operand);
+struct acpi_operand *acpi_operand_get(struct acpi_operand *operand,
+				      const char *hint);
+void acpi_operand_put(struct acpi_operand *operand, const char *hint);
+
+struct acpi_method *acpi_method_open(acpi_ddb_t ddb, uint8_t flags);
 
 /*=========================================================================
  * Namespace internals

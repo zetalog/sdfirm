@@ -55,6 +55,10 @@ static void __acpi_node_exit(struct acpi_object *object)
 		acpi_table_decrement(node->ddb);
 		node->ddb = ACPI_DDB_HANDLE_INVALID;
 	}
+	if (node->operand) {
+		acpi_operand_close(node->operand);
+		node->operand = NULL;
+	}
 }
 
 struct acpi_namespace_node *__acpi_node_open(acpi_ddb_t ddb,

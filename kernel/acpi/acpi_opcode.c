@@ -588,6 +588,7 @@ acpi_status_t acpi_term_alloc_name(struct acpi_parser *parser,
 	acpi_path_t path;
 	struct acpi_environ *environ = &parser->environ;
 	struct acpi_interp *interp = parser->interp;
+	struct acpi_namespace_node *node;
 
 	if (arg_type == AML_NAMESTRING)
 		object_type = ACPI_AML_NAMESTRING;
@@ -611,13 +612,14 @@ acpi_status_t acpi_term_alloc_name(struct acpi_parser *parser,
 	acpi_path_split(&path, NULL, simple_name->name);
 	if ((object_type == ACPI_AML_SIMPLENAME) ||
 	    (object_type == ACPI_AML_SUPERNAME)) {
-		simple_name->node =
-			acpi_space_get_node(ACPI_DDB_HANDLE_INVALID,
-					    interp->node,
-					    term->value.string,
-					    term->aml_length,
-					    ACPI_TYPE_ANY, false, "name");
-		if (!simple_name->node) {
+		struct acpi_method *method;
+
+		node = acpi_space_get_node(ACPI_DDB_HANDLE_INVALID,
+					   interp->node,
+					   term->value.string,
+					   term->aml_length,
+					   ACPI_TYPE_ANY, false, "name");
+		if (!node) {
 			/*
 			 * TBD: Parser Continuation
 			 * Should we allow some bad AML tables and return
@@ -626,7 +628,11 @@ acpi_status_t acpi_term_alloc_name(struct acpi_parser *parser,
 			__acpi_term_free(term);
 			return AE_AML_UNKNOWN_TERM;
 		}
-		/* TODO: obtain argc here */
+		simple_name->node = node;
+		if (node->operand && node->operand->object_type == ACPI_TYPE_METHOD) {
+			method = ACPI_CAST_PTR(struct acpi_method, node->operand);
+			argc = AML_METHOD_ARG_COUNT(method->method_flags);
+		}
 	}
 	if (object_type == ACPI_AML_SUPERNAME) {
 		op_info = acpi_opcode_alloc_info(super_name->name, argc);

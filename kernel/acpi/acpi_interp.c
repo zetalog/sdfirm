@@ -1,5 +1,89 @@
 #include "acpi_int.h"
 
+struct acpi_operand *acpi_operand_get(struct acpi_operand *operand,
+				      const char *hint)
+{
+	if (operand) {
+		acpi_dbg("[OP-%p-%d] INC(%s)", operand,
+			 operand->common.reference_count.count+1, hint);
+	}
+	acpi_object_get(ACPI_CAST_PTR(struct acpi_object, operand));
+	return operand;
+}
+
+void acpi_operand_put(struct acpi_operand *operand, const char *hint)
+{
+	if (!operand)
+		return;
+	acpi_dbg("[OP-%p-%d] DEC(%s)", operand,
+		 operand->common.reference_count.count-1, hint);
+	acpi_object_put(ACPI_CAST_PTR(struct acpi_object, operand));
+}
+
+static void __acpi_operand_exit(struct acpi_object *object)
+{
+	struct acpi_operand *operand =
+		ACPI_CAST_PTR(struct acpi_operand, object);
+
+	if (operand->release)
+		operand->release(object);
+}
+
+struct acpi_operand *acpi_operand_open(acpi_type_t object_type,
+				       acpi_size_t size,
+				       acpi_release_cb release_operand)
+{
+	struct acpi_operand *operand;
+	struct acpi_object *object;
+
+	BUG_ON(size < sizeof (struct acpi_operand));
+
+	object = acpi_object_open(ACPI_DESC_TYPE_OPERAND, size,
+				  __acpi_operand_exit);
+	operand = ACPI_CAST_PTR(struct acpi_operand, object);
+	if (operand) {
+		operand->object_type = object_type;
+		operand->release = release_operand;
+	}
+
+	return acpi_operand_get(operand, "interp");
+}
+
+static void __acpi_method_exit(struct acpi_object *object)
+{
+	struct acpi_method *method = ACPI_CAST_PTR(struct acpi_method, object);
+
+	if (method)
+		acpi_table_decrement(method->ddb);
+}
+
+struct acpi_method *acpi_method_open(acpi_ddb_t ddb, uint8_t flags)
+{
+	struct acpi_method *method;
+	struct acpi_operand *operand;
+
+	operand = acpi_operand_open(ACPI_TYPE_METHOD,
+				    sizeof (struct acpi_method),
+				    __acpi_method_exit);
+	if (!operand)
+		return NULL;
+
+	method = ACPI_CAST_PTR(struct acpi_method, operand);
+	method->method_flags = flags;
+	acpi_table_increment(ddb);
+	method->ddb = ddb;
+
+	return method;
+}
+
+void acpi_operand_close(struct acpi_operand *operand)
+{
+	struct acpi_object *object = ACPI_CAST_PTR(struct acpi_object, operand);
+
+	acpi_object_close(object);
+	acpi_operand_put(operand, "interp");
+}
+
 static acpi_status_t acpi_interpret_open(struct acpi_interp *interp,
 					 struct acpi_environ *environ)
 {
@@ -64,18 +148,27 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 			/* TODO: obtain the object type from the argument type */
 		}
 		namearg = acpi_term_get_arg(environ->term, 0);
-		if (!namearg || namearg->aml_opcode != AML_NAMESTRING_OP)
-			return AE_AML_OPERAND_TYPE;
+		if (!namearg || namearg->aml_opcode != AML_NAMESTRING_OP) {
+			status = AE_AML_OPERAND_TYPE;
+			break;
+		}
 		node = acpi_space_open(interp->ddb,
 				       interp->node,
 				       namearg->value.string,
 				       namearg->aml_length,
 				       object_type, true);
-
 		valuearg = acpi_term_get_arg(environ->term, 1);
-		if (!valuearg)
+		if (!valuearg ||
+		    (opcode == AML_METHOD_OP && valuearg->aml_opcode != AML_BYTE_PFX)) {
 			status = AE_AML_OPERAND_TYPE;
-		else {
+		} else {
+			if (opcode == AML_METHOD_OP) {
+				struct acpi_method *method;
+
+				method = acpi_method_open(interp->ddb,
+							  (uint8_t)valuearg->value.integer);
+				node->operand = ACPI_CAST_PTR(struct acpi_operand, method);
+			}
 		}
 
 		acpi_space_close(node, false);
