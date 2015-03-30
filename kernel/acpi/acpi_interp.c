@@ -135,6 +135,7 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 	struct acpi_namespace_node *curr_scope;
 	acpi_status_t status = AE_OK;
 	acpi_type_t object_type = ACPI_TYPE_ANY;
+	struct acpi_method *method;
 
 	acpi_debug_opcode_info(op_info, "Close:");
 
@@ -145,14 +146,33 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 		acpi_node_put(curr_scope, "scope");
 		break;
 	case AML_NAME_OP:
-	case AML_METHOD_OP:
-		if (opcode == AML_METHOD_OP)
-			object_type = ACPI_TYPE_METHOD;
-		else {
-			/* TODO: obtain the object type from the argument type */
-		}
 		namearg = acpi_term_get_arg(environ->term, 0);
-		if (!namearg || namearg->aml_opcode != AML_NAMESTRING_OP) {
+		valuearg = acpi_term_get_arg(environ->term, 1);
+		if (!namearg || !valuearg ||
+		    namearg->aml_opcode != AML_NAMESTRING_OP) {
+			status = AE_AML_OPERAND_TYPE;
+			break;
+		}
+		/* TODO: obtain the object type from the argument type */
+		node = acpi_space_open(interp->ddb,
+				       interp->node,
+				       namearg->value.string,
+				       namearg->aml_length,
+				       object_type, true);
+		if (!node) {
+			status = AE_NO_MEMORY;
+			break;
+		}
+		acpi_space_close(node, false);
+		break;
+	case AML_METHOD_OP:
+		namearg = acpi_term_get_arg(environ->term, 0);
+		valuearg = acpi_term_get_arg(environ->term, 1);
+		amlarg = acpi_term_get_arg(environ->term, 2);
+		if (!namearg || !amlarg || !valuearg ||
+		    namearg->aml_opcode != AML_NAMESTRING_OP ||
+		    valuearg->aml_opcode != AML_BYTE_PFX ||
+		    amlarg->aml_opcode != AML_UNKNOWN_OP) {
 			status = AE_AML_OPERAND_TYPE;
 			break;
 		}
@@ -160,27 +180,16 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 				       interp->node,
 				       namearg->value.string,
 				       namearg->aml_length,
-				       object_type, true);
-		valuearg = acpi_term_get_arg(environ->term, 1);
-		if (opcode == AML_METHOD_OP)
-			amlarg = acpi_term_get_arg(environ->term, 2);
-		if ((opcode == AML_METHOD_OP &&
-		     (!amlarg || !valuearg ||
-		      valuearg->aml_opcode != AML_BYTE_PFX ||
-		      amlarg->aml_opcode != AML_UNKNOWN_OP))) {
-			status = AE_AML_OPERAND_TYPE;
-		} else {
-			if (opcode == AML_METHOD_OP) {
-				struct acpi_method *method;
-
-				method = acpi_method_open(interp->ddb,
-							  amlarg->aml_offset,
-							  amlarg->aml_length,
-							  (uint8_t)valuearg->value.integer);
-				node->operand = ACPI_CAST_PTR(struct acpi_operand, method);
-			}
+				       ACPI_TYPE_METHOD, true);
+		if (!node) {
+			status = AE_NO_MEMORY;
+			break;
 		}
-
+		method = acpi_method_open(interp->ddb,
+					  amlarg->aml_offset,
+					  amlarg->aml_length,
+					  (uint8_t)valuearg->value.integer);
+		node->operand = ACPI_CAST_PTR(struct acpi_operand, method);
 		acpi_space_close(node, false);
 		break;
 	}
