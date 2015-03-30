@@ -243,6 +243,9 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 		status = acpi_interpret_close_Method(interp, environ);
 		break;
 	case AML_BYTE_PFX:
+	case AML_WORD_PFX:
+	case AML_DWORD_PFX:
+	case AML_QWORD_PFX:
 		status = acpi_interpret_close_integer(interp, environ);
 		break;
 	}
