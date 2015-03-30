@@ -62,8 +62,11 @@ struct acpi_object {
 	ACPI_OBJECT_HEADER
 };
 
+#define ACPI_OPERAND_NAMED			0x01
+
 #define ACPI_OPERAND_HEADER			\
 	struct acpi_object common;		\
+	uint8_t flags;				\
 	acpi_type_t object_type;		\
 	acpi_release_cb release;
 
@@ -309,6 +312,7 @@ void acpi_operand_put(struct acpi_operand *operand, const char *hint);
 struct acpi_method *acpi_method_open(acpi_ddb_t ddb, uint8_t *aml,
 				     uint32_t length, uint8_t flags);
 struct acpi_integer *acpi_integer_open(uint64_t value);
+void acpi_operand_close_stacked(struct acpi_operand *operand);
 
 /*=========================================================================
  * Namespace internals

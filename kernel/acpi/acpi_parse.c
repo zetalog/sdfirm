@@ -33,7 +33,7 @@ static void __acpi_parser_exit(struct acpi_object *object)
 
 	/* Nothing need to be freed currently */
 	for (i = 0; i < parser->nr_arguments; i++) {
-		acpi_operand_close(parser->arguments[i]);
+		acpi_operand_close_stacked(parser->arguments[i]);
 		parser->arguments[i] = NULL;
 	}
 	parser->nr_arguments = 0;

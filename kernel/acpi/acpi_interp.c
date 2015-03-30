@@ -101,7 +101,20 @@ void acpi_operand_close(struct acpi_operand *operand)
 	struct acpi_object *object = ACPI_CAST_PTR(struct acpi_object, operand);
 
 	acpi_object_close(object);
-	acpi_operand_put(operand, "interp");
+	if (operand->flags & ACPI_OPERAND_NAMED)
+		acpi_operand_put(operand, "named");
+	else
+		acpi_operand_put(operand, "interp");
+}
+
+void acpi_operand_close_stacked(struct acpi_operand *operand)
+{
+	if (operand) {
+		if (operand->flags & ACPI_OPERAND_NAMED)
+			acpi_operand_put(operand, "interp");
+		else
+			acpi_operand_close(operand);
+	}
 }
 
 static acpi_status_t acpi_interpret_open(struct acpi_interp *interp,
@@ -149,8 +162,7 @@ static acpi_status_t acpi_interpret_close_Name(struct acpi_interp *interp,
 	struct acpi_parser *parser = interp->parser;
 
 	namearg = acpi_term_get_arg(environ->term, 0);
-	operand = parser->arguments[0];
-	parser->arguments[0] = NULL;
+	operand = acpi_operand_get(parser->arguments[0], "named");
 	if (!namearg || !operand || namearg->aml_opcode != AML_NAMESTRING_OP)
 		return AE_AML_OPERAND_TYPE;
 	node = acpi_space_open(interp->ddb,
@@ -158,9 +170,12 @@ static acpi_status_t acpi_interpret_close_Name(struct acpi_interp *interp,
 			       namearg->value.string,
 			       namearg->aml_length,
 			       operand->object_type, true);
-	if (!node)
+	if (!node) {
+		acpi_operand_put(operand, "named");
 		return AE_NO_MEMORY;
+	}
 	node->operand = operand;
+	operand->flags |= ACPI_OPERAND_NAMED;
 	acpi_space_close(node, false);
 	return AE_OK;
 }
@@ -173,6 +188,7 @@ static acpi_status_t acpi_interpret_close_Method(struct acpi_interp *interp,
 	struct acpi_term *amlarg;
 	struct acpi_namespace_node *node;
 	struct acpi_method *method;
+	struct acpi_operand *operand;
 
 	namearg = acpi_term_get_arg(environ->term, 0);
 	valuearg = acpi_term_get_arg(environ->term, 1);
@@ -193,7 +209,14 @@ static acpi_status_t acpi_interpret_close_Method(struct acpi_interp *interp,
 				  amlarg->aml_offset,
 				  amlarg->aml_length,
 				  (uint8_t)valuearg->value.integer);
-	node->operand = ACPI_CAST_PTR(struct acpi_operand, method);
+	if (!method) {
+		acpi_space_close(node, true);
+		return AE_NO_MEMORY;
+	}
+	operand = ACPI_CAST_PTR(struct acpi_operand, method);
+	method->flags |= ACPI_OPERAND_NAMED;
+	node->operand = acpi_operand_get(operand, "named");
+	acpi_operand_close_stacked(operand);
 	acpi_space_close(node, false);
 	return AE_OK;
 }
@@ -216,7 +239,7 @@ static acpi_status_t acpi_interpret_close_integer(struct acpi_interp *interp,
 		return AE_NO_MEMORY;
 	operand = ACPI_CAST_PTR(struct acpi_operand, integer);
 	interp->result = operand;
-	interp->targets[interp->nr_targets++] = acpi_operand_get(operand, "target");
+	interp->targets[interp->nr_targets++] = acpi_operand_get(operand, "interp");
 	return AE_OK;
 }
 
@@ -247,6 +270,8 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 	case AML_DWORD_PFX:
 	case AML_QWORD_PFX:
 		status = acpi_interpret_close_integer(interp, environ);
+		break;
+	case AML_RETURN_OP:
 		break;
 	}
 
@@ -295,12 +320,12 @@ static void __acpi_interpret_exit(struct acpi_interp *interp)
 	}
 	for (i = 0; i < interp->nr_targets; i++) {
 		if (interp->targets[i]) {
-			acpi_operand_close(interp->targets[i]);
+			acpi_operand_close_stacked(interp->targets[i]);
 			interp->targets[i] = NULL;
 		}
 	}
 	if (interp->result) {
-		acpi_operand_close(interp->result);
+		acpi_operand_close_stacked(interp->result);
 		interp->result = NULL;
 	}
 }
