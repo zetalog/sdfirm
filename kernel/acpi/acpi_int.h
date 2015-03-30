@@ -79,6 +79,11 @@ struct acpi_method {
 	uint32_t aml_length;
 };
 
+struct acpi_integer {
+	ACPI_OPERAND_HEADER
+	uint64_t value;
+};
+
 struct acpi_namespace_node {
 	struct acpi_object common;
 	acpi_tag_t tag;
@@ -171,6 +176,9 @@ struct acpi_parser {
 	uint8_t arg_index;
 	uint64_t arg_types;
 
+	struct acpi_operand *arguments[AML_MAX_ARGUMENTS];
+	uint8_t nr_arguments;
+
 	struct acpi_interp *interp;
 	/* Executable domain built by parser, executed by interpreter */
 	struct acpi_environ environ;
@@ -197,6 +205,10 @@ struct acpi_interp {
 	struct acpi_parser *parser;
 	/* current scope */
 	struct acpi_namespace_node *node;
+
+	struct acpi_operand *result;
+	struct acpi_operand *targets[AML_MAX_TARGETS];
+	uint8_t nr_targets;
 
 	/* Executer state */
 	acpi_ddb_t ddb;
@@ -279,12 +291,12 @@ acpi_status_t acpi_interpret_aml(acpi_ddb_t ddb,
 acpi_status_t acpi_interpret_exec(struct acpi_interp *interp,
 				  struct acpi_environ *environ,
 				  uint8_t type);
-acpi_status_t acpi_parse_table(acpi_ddb_t ddb,
-			       struct acpi_table_header *table,
-			       struct acpi_namespace_node *start_node);
-void acpi_unparse_table(acpi_ddb_t ddb,
-			struct acpi_table_header *table,
-			struct acpi_namespace_node *start_node);
+acpi_status_t acpi_interpret_table(acpi_ddb_t ddb,
+				   struct acpi_table_header *table,
+				   struct acpi_namespace_node *start_node);
+void acpi_uninterpret_table(acpi_ddb_t ddb,
+			    struct acpi_table_header *table,
+			    struct acpi_namespace_node *start_node);
 
 struct acpi_operand *acpi_operand_open(acpi_type_t object_type,
 				       acpi_size_t size,
@@ -296,6 +308,7 @@ void acpi_operand_put(struct acpi_operand *operand, const char *hint);
 
 struct acpi_method *acpi_method_open(acpi_ddb_t ddb, uint8_t *aml,
 				     uint32_t length, uint8_t flags);
+struct acpi_integer *acpi_integer_open(uint64_t value);
 
 /*=========================================================================
  * Namespace internals

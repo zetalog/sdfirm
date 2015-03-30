@@ -13,22 +13,30 @@ static void __acpi_parser_init(struct acpi_parser *parser,
 			       struct acpi_term *term)
 {
 	struct acpi_environ *environ = &parser->environ;
+	int i;
 
 	parser->interp = interp;
 	parser->aml_begin = aml_begin;
 	parser->aml_end = aml_end;
+	parser->nr_arguments = 0;
+	for (i = 0; i < AML_MAX_ARGUMENTS; i++)
+		parser->arguments[i] = NULL;
 
 	environ->parent_term = term;
 }
 
 static void __acpi_parser_exit(struct acpi_object *object)
 {
-#if 0
 	struct acpi_parser *parser = ACPI_CAST_PTR(struct acpi_parser, object);
 	struct acpi_environ *environ = &parser->environ;
-#endif
+	int i;
 
 	/* Nothing need to be freed currently */
+	for (i = 0; i < parser->nr_arguments; i++) {
+		acpi_operand_close(parser->arguments[i]);
+		parser->arguments[i] = NULL;
+	}
+	parser->nr_arguments = 0;
 }
 
 static struct acpi_parser *acpi_parser_open(struct acpi_interp *interp,
@@ -135,6 +143,7 @@ acpi_status_t acpi_parser_pop(struct acpi_parser *last_parser,
 	struct acpi_interp *interp = last_parser->interp;
 	struct acpi_state *last_state;
 	struct acpi_parser *next_state;
+	int i;
 
 	BUG_ON(last_parser != interp->parser);
 
@@ -152,6 +161,14 @@ acpi_status_t acpi_parser_pop(struct acpi_parser *last_parser,
 		 */
 		next_state->next_opcode = false;
 		BUG_ON(next_state->aml > next_state->aml_end);
+		if (interp->result) {
+			next_state->arguments[next_state->nr_arguments++] = interp->result;
+			interp->result = NULL;
+		}
+		for (i = 0; i < interp->nr_targets; i++) {
+			acpi_operand_put(interp->targets[i], "target");
+			interp->targets[i] = NULL;
+		}
 	}
 
 	/*

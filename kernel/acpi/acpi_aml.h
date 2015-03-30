@@ -276,6 +276,9 @@
 #define AML_HAS_TARGET(x)			((x) << AML_TARGET_OFFSET)
 #define AML_HAS_RETURN(x)			((x) << AML_RETURN_OFFSET)
 
+#define AML_MAX_ARGUMENTS			0x07
+#define AML_MAX_TARGETS				0x02
+
 /* Convenient flag groupings */
 #define AML_TERM_OBJ				\
 	(AML_NAMESPACE_MODIFIER_OBJ | AML_NAMED_OBJ | AML_TYPE1_OPCODE | AML_TYPE2_OPCODE)

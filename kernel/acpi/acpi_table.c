@@ -1109,7 +1109,7 @@ static acpi_status_t acpi_load_table(acpi_ddb_t ddb)
 
 	/* Invoking the parser */
 	acpi_table_unlock();
-	status = acpi_parse_table(ddb, table, ns_root);
+	status = acpi_interpret_table(ddb, table, ns_root);
 	acpi_table_lock();
 	if (ACPI_SUCCESS(status)) {
 		__acpi_table_set_loaded(ddb, true);
@@ -1134,7 +1134,7 @@ static void __acpi_unload_table(acpi_ddb_t ddb)
 		__acpi_table_notify(table_desc, ddb,
 				    ACPI_EVENT_TABLE_UNLOAD);
 		acpi_table_unlock();
-		acpi_unparse_table(ddb, table_desc->pointer, acpi_gbl_root_node);
+		acpi_uninterpret_table(ddb, table_desc->pointer, acpi_gbl_root_node);
 		acpi_table_lock();
 		__acpi_table_set_loaded(ddb, false);
 		table_desc->flags &= ~ACPI_TABLE_IS_UNLOADING;

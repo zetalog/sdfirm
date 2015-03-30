@@ -79,6 +79,23 @@ struct acpi_method *acpi_method_open(acpi_ddb_t ddb, uint8_t *aml,
 	return method;
 }
 
+struct acpi_integer *acpi_integer_open(uint64_t value)
+{
+	struct acpi_integer *integer;
+	struct acpi_operand *operand;
+
+	operand = acpi_operand_open(ACPI_TYPE_INTEGER,
+				    sizeof (struct acpi_integer),
+				    NULL);
+	if (!operand)
+		return NULL;
+
+	integer = ACPI_CAST_PTR(struct acpi_integer, operand);
+	integer->value = value;
+
+	return integer;
+}
+
 void acpi_operand_close(struct acpi_operand *operand)
 {
 	struct acpi_object *object = ACPI_CAST_PTR(struct acpi_object, operand);
@@ -123,19 +140,93 @@ static acpi_status_t acpi_interpret_open(struct acpi_interp *interp,
 	return AE_OK;
 }
 
-static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
-					  struct acpi_environ *environ)
+static acpi_status_t acpi_interpret_close_Name(struct acpi_interp *interp,
+					       struct acpi_environ *environ)
+{
+	struct acpi_term *namearg;
+	struct acpi_namespace_node *node;
+	struct acpi_operand *operand;
+	struct acpi_parser *parser = interp->parser;
+
+	namearg = acpi_term_get_arg(environ->term, 0);
+	operand = parser->arguments[0];
+	parser->arguments[0] = NULL;
+	if (!namearg || !operand || namearg->aml_opcode != AML_NAMESTRING_OP)
+		return AE_AML_OPERAND_TYPE;
+	node = acpi_space_open(interp->ddb,
+			       interp->node,
+			       namearg->value.string,
+			       namearg->aml_length,
+			       operand->object_type, true);
+	if (!node)
+		return AE_NO_MEMORY;
+	node->operand = operand;
+	acpi_space_close(node, false);
+	return AE_OK;
+}
+
+static acpi_status_t acpi_interpret_close_Method(struct acpi_interp *interp,
+						 struct acpi_environ *environ)
 {
 	struct acpi_term *namearg;
 	struct acpi_term *valuearg;
 	struct acpi_term *amlarg;
+	struct acpi_namespace_node *node;
+	struct acpi_method *method;
+
+	namearg = acpi_term_get_arg(environ->term, 0);
+	valuearg = acpi_term_get_arg(environ->term, 1);
+	amlarg = acpi_term_get_arg(environ->term, 2);
+	if (!namearg || !amlarg || !valuearg ||
+	    namearg->aml_opcode != AML_NAMESTRING_OP ||
+	    valuearg->aml_opcode != AML_BYTE_PFX ||
+	    amlarg->aml_opcode != AML_UNKNOWN_OP)
+		return AE_AML_OPERAND_TYPE;
+	node = acpi_space_open(interp->ddb,
+			       interp->node,
+			       namearg->value.string,
+			       namearg->aml_length,
+			       ACPI_TYPE_METHOD, true);
+	if (!node)
+		return AE_NO_MEMORY;
+	method = acpi_method_open(interp->ddb,
+				  amlarg->aml_offset,
+				  amlarg->aml_length,
+				  (uint8_t)valuearg->value.integer);
+	node->operand = ACPI_CAST_PTR(struct acpi_operand, method);
+	acpi_space_close(node, false);
+	return AE_OK;
+}
+
+static acpi_status_t acpi_interpret_close_integer(struct acpi_interp *interp,
+						  struct acpi_environ *environ)
+{
+	struct acpi_term *valuearg;
+	struct acpi_integer *integer;
+	struct acpi_operand *operand;
+	struct acpi_parser *parser = interp->parser;
+
+	BUG_ON(interp->nr_targets > 0 || interp->result);
+
+	valuearg = acpi_term_get_arg(environ->term, 0);
+	if (!valuearg)
+		return AE_AML_OPERAND_TYPE;
+	integer = acpi_integer_open(valuearg->value.integer);
+	if (!integer)
+		return AE_NO_MEMORY;
+	operand = ACPI_CAST_PTR(struct acpi_operand, integer);
+	interp->result = operand;
+	interp->targets[interp->nr_targets++] = acpi_operand_get(operand, "target");
+	return AE_OK;
+}
+
+static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
+					  struct acpi_environ *environ)
+{
 	uint16_t opcode = environ->opcode;
 	const struct acpi_opcode_info *op_info = environ->op_info;
-	struct acpi_namespace_node *node;
 	struct acpi_namespace_node *curr_scope;
 	acpi_status_t status = AE_OK;
-	acpi_type_t object_type = ACPI_TYPE_ANY;
-	struct acpi_method *method;
 
 	acpi_debug_opcode_info(op_info, "Close:");
 
@@ -146,51 +237,13 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 		acpi_node_put(curr_scope, "scope");
 		break;
 	case AML_NAME_OP:
-		namearg = acpi_term_get_arg(environ->term, 0);
-		valuearg = acpi_term_get_arg(environ->term, 1);
-		if (!namearg || !valuearg ||
-		    namearg->aml_opcode != AML_NAMESTRING_OP) {
-			status = AE_AML_OPERAND_TYPE;
-			break;
-		}
-		/* TODO: obtain the object type from the argument type */
-		node = acpi_space_open(interp->ddb,
-				       interp->node,
-				       namearg->value.string,
-				       namearg->aml_length,
-				       object_type, true);
-		if (!node) {
-			status = AE_NO_MEMORY;
-			break;
-		}
-		acpi_space_close(node, false);
+		status = acpi_interpret_close_Name(interp, environ);
 		break;
 	case AML_METHOD_OP:
-		namearg = acpi_term_get_arg(environ->term, 0);
-		valuearg = acpi_term_get_arg(environ->term, 1);
-		amlarg = acpi_term_get_arg(environ->term, 2);
-		if (!namearg || !amlarg || !valuearg ||
-		    namearg->aml_opcode != AML_NAMESTRING_OP ||
-		    valuearg->aml_opcode != AML_BYTE_PFX ||
-		    amlarg->aml_opcode != AML_UNKNOWN_OP) {
-			status = AE_AML_OPERAND_TYPE;
-			break;
-		}
-		node = acpi_space_open(interp->ddb,
-				       interp->node,
-				       namearg->value.string,
-				       namearg->aml_length,
-				       ACPI_TYPE_METHOD, true);
-		if (!node) {
-			status = AE_NO_MEMORY;
-			break;
-		}
-		method = acpi_method_open(interp->ddb,
-					  amlarg->aml_offset,
-					  amlarg->aml_length,
-					  (uint8_t)valuearg->value.integer);
-		node->operand = ACPI_CAST_PTR(struct acpi_operand, method);
-		acpi_space_close(node, false);
+		status = acpi_interpret_close_Method(interp, environ);
+		break;
+	case AML_BYTE_PFX:
+		status = acpi_interpret_close_integer(interp, environ);
 		break;
 	}
 
@@ -212,15 +265,23 @@ static void __acpi_interpret_init(struct acpi_interp *interp,
 				  struct acpi_namespace_node *node,
 				  acpi_term_cb callback)
 {
+	int i;
+
 	if (ddb != ACPI_DDB_HANDLE_INVALID)
 		acpi_table_increment(ddb);
 	interp->ddb = ddb;
 	interp->node = acpi_node_get(node, "scope");
 	interp->callback = callback;
+	interp->nr_targets = 0;
+	for (i = 0; i < AML_MAX_TARGETS; i++)
+		interp->targets[i] = NULL;
+	interp->result = NULL;
 }
 
 static void __acpi_interpret_exit(struct acpi_interp *interp)
 {
+	int i;
+
 	if (interp->ddb != ACPI_DDB_HANDLE_INVALID) {
 		acpi_table_decrement(interp->ddb);
 		interp->ddb = ACPI_DDB_HANDLE_INVALID;
@@ -228,6 +289,16 @@ static void __acpi_interpret_exit(struct acpi_interp *interp)
 	if (interp->node) {
 		acpi_node_put(interp->node, "scope");
 		interp->node = NULL;
+	}
+	for (i = 0; i < interp->nr_targets; i++) {
+		if (interp->targets[i]) {
+			acpi_operand_close(interp->targets[i]);
+			interp->targets[i] = NULL;
+		}
+	}
+	if (interp->result) {
+		acpi_operand_close(interp->result);
+		interp->result = NULL;
 	}
 }
 
@@ -258,9 +329,9 @@ err_ref:
 	return status;
 }
 
-acpi_status_t acpi_parse_table(acpi_ddb_t ddb,
-			       struct acpi_table_header *table,
-			       struct acpi_namespace_node *start_node)
+acpi_status_t acpi_interpret_table(acpi_ddb_t ddb,
+				   struct acpi_table_header *table,
+				   struct acpi_namespace_node *start_node)
 {
 	acpi_status_t status;
 	uint32_t aml_length;
@@ -280,12 +351,12 @@ err_ref:
 	/* Ignore module level execution failure */
 	status = AE_OK;
 	if (ACPI_FAILURE(status))
-		acpi_unparse_table(ddb, table, start_node);
+		acpi_uninterpret_table(ddb, table, start_node);
 	return status;
 }
 
-static boolean acpi_unparse_table_node(struct acpi_namespace_node *node,
-				       void *pddb)
+static boolean acpi_uninterpret_table_node(struct acpi_namespace_node *node,
+					   void *pddb)
 {
 	acpi_ddb_t ddb = *(acpi_ddb_t *)pddb;
 
@@ -294,11 +365,11 @@ static boolean acpi_unparse_table_node(struct acpi_namespace_node *node,
 	return false;
 }
 
-void acpi_unparse_table(acpi_ddb_t ddb,
-			struct acpi_table_header *table,
-			struct acpi_namespace_node *start_node)
+void acpi_uninterpret_table(acpi_ddb_t ddb,
+			    struct acpi_table_header *table,
+			    struct acpi_namespace_node *start_node)
 {
 	acpi_space_walk_depth_first(NULL, ACPI_TYPE_ANY, 3, NULL,
-				    acpi_unparse_table_node,
+				    acpi_uninterpret_table_node,
 				    (void *)&ddb);
 }
