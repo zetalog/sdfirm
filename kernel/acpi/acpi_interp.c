@@ -221,26 +221,35 @@ static acpi_status_t acpi_interpret_close_Method(struct acpi_interp *interp,
 	return AE_OK;
 }
 
-static acpi_status_t acpi_interpret_close_integer(struct acpi_interp *interp,
-						  struct acpi_environ *environ)
+static acpi_status_t __acpi_interpret_close_integer(struct acpi_interp *interp,
+						    struct acpi_environ *environ,
+						    uint64_t integer_value)
 {
-	struct acpi_term *valuearg;
 	struct acpi_integer *integer;
 	struct acpi_operand *operand;
 	struct acpi_parser *parser = interp->parser;
 
 	BUG_ON(interp->nr_targets > 0 || interp->result);
 
-	valuearg = acpi_term_get_arg(environ->term, 0);
-	if (!valuearg)
-		return AE_AML_OPERAND_TYPE;
-	integer = acpi_integer_open(valuearg->value.integer);
+	integer = acpi_integer_open(integer_value);
 	if (!integer)
 		return AE_NO_MEMORY;
 	operand = ACPI_CAST_PTR(struct acpi_operand, integer);
 	interp->result = operand;
 	interp->targets[interp->nr_targets++] = acpi_operand_get(operand, "interp");
 	return AE_OK;
+}
+
+static acpi_status_t acpi_interpret_close_integer(struct acpi_interp *interp,
+						  struct acpi_environ *environ)
+{
+	struct acpi_term *valuearg;
+
+	valuearg = acpi_term_get_arg(environ->term, 0);
+	if (!valuearg)
+		return AE_AML_OPERAND_TYPE;
+	return __acpi_interpret_close_integer(interp, environ,
+					      valuearg->value.integer);
 }
 
 static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
@@ -270,6 +279,15 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 	case AML_DWORD_PFX:
 	case AML_QWORD_PFX:
 		status = acpi_interpret_close_integer(interp, environ);
+		break;
+	case AML_ZERO_OP:
+		status = __acpi_interpret_close_integer(interp, environ, 0);
+		break;
+	case AML_ONE_OP:
+		status = __acpi_interpret_close_integer(interp, environ, 1);
+		break;
+	case AML_ONES_OP:
+		status = __acpi_interpret_close_integer(interp, environ, (uint64_t)-1);
 		break;
 	case AML_RETURN_OP:
 		break;
