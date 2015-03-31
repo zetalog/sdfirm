@@ -246,10 +246,10 @@ extern struct acpi_table_fadt acpi_gbl_FADT;
  * Parser internals
  *=======================================================================*/
 struct acpi_parser *acpi_parser_init(struct acpi_interp *interp,
+				     acpi_tag_t tag,
 				     uint8_t *aml_begin,
 				     uint8_t *aml_end,
-				     struct acpi_namespace_node *node,
-				     struct acpi_term_list *term_list);
+				     struct acpi_namespace_node *node);
 void acpi_parser_exit(struct acpi_parser *parser);
 acpi_status_t acpi_parser_push(struct acpi_parser *last_parser,
 			       struct acpi_parser **next_parser);
@@ -269,10 +269,9 @@ struct acpi_term *acpi_term_get_arg(struct acpi_term *term, uint32_t argn);
 void acpi_term_add_arg(struct acpi_term *term, struct acpi_term *arg);
 void acpi_term_remove_arg(struct acpi_term *arg);
 
-acpi_status_t acpi_parse_aml(struct acpi_interp *interp,
+acpi_status_t acpi_parse_aml(struct acpi_interp *interp, acpi_tag_t tag,
 			     uint8_t *aml_begin, uint8_t *aml_end,
-			     struct acpi_namespace_node *node,
-			     struct acpi_term_list *term_list);
+			     struct acpi_namespace_node *node);
 
 const struct acpi_opcode_info *acpi_opcode_get_info(uint16_t opcode);
 struct acpi_opcode_info *acpi_opcode_alloc_info(acpi_name_t name,

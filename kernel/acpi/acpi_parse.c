@@ -62,32 +62,43 @@ static void acpi_parser_close(struct acpi_parser *parser)
 }
 
 struct acpi_parser *acpi_parser_init(struct acpi_interp *interp,
+				     acpi_tag_t tag,
 				     uint8_t *aml_begin,
 				     uint8_t *aml_end,
-				     struct acpi_namespace_node *node,
-				     struct acpi_term_list *term_list)
+				     struct acpi_namespace_node *node)
 {
 	struct acpi_parser *parser;
 	struct acpi_environ *environ;
+	struct acpi_term_list *term_list;
+	struct acpi_term *term = NULL;
 
+	term_list = acpi_term_alloc_aml(tag, aml_begin, aml_end);
+	if (!term_list)
+		return NULL;
+	term = ACPI_CAST_PTR(struct acpi_term, term_list);
 	parser = acpi_parser_open(interp, aml_begin, aml_end, NULL);
-	if (parser) {
-		environ = &parser->environ;
-		environ->term = ACPI_CAST_PTR(struct acpi_term, term_list);
-		environ->op_info = acpi_opcode_get_info(AML_AMLCODE_OP);
+	if (!parser)
+		goto err_exit;
 
-		parser->aml = parser->aml_begin;
-		parser->pkg_begin = NULL;
-		parser->pkg_end = parser->aml_end;
-		parser->arg_types = environ->op_info->args;
+	environ = &parser->environ;
+	environ->term = term;
+	term = NULL;
+	environ->op_info = acpi_opcode_get_info(AML_AMLCODE_OP);
 
-		/*
-		 * Initialize the next_opcode, let it to be determined by
-		 * the TermList parsing.
-		 */
-		parser->next_opcode = false;
-	}
+	parser->aml = parser->aml_begin;
+	parser->pkg_begin = NULL;
+	parser->pkg_end = parser->aml_end;
+	parser->arg_types = environ->op_info->args;
 
+	/*
+	 * Initialize the next_opcode, let it to be determined by
+	 * the TermList parsing.
+	 */
+	parser->next_opcode = false;
+
+err_exit:
+	if (term)
+		acpi_term_free(term);
 	return parser;
 }
 
@@ -751,15 +762,14 @@ static acpi_status_t acpi_parser_get_arguments(struct acpi_parser *parser)
 	return AE_OK;
 }
 
-acpi_status_t acpi_parse_aml(struct acpi_interp *interp,
+acpi_status_t acpi_parse_aml(struct acpi_interp *interp, acpi_tag_t tag,
 			     uint8_t *aml_begin, uint8_t *aml_end,
-			     struct acpi_namespace_node *node,
-			     struct acpi_term_list *term_list)
+			     struct acpi_namespace_node *node)
 {
 	acpi_status_t status = AE_OK;
 	struct acpi_parser *parser = interp->parser;
 
-	parser = acpi_parser_init(interp, aml_begin, aml_end, node, term_list);
+	parser = acpi_parser_init(interp, tag, aml_begin, aml_end, node);
 	if (!parser)
 		return AE_NO_MEMORY;
 	interp->parser = parser;

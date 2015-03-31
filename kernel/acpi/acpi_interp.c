@@ -343,17 +343,9 @@ acpi_status_t acpi_interpret_aml(acpi_ddb_t ddb,
 
 	/* AML is a TermList */
 	__acpi_interpret_init(&interp, ddb, start_node, callback);
-
-	start_term = acpi_term_alloc_aml(ACPI_ROOT_TAG, aml_begin, aml_end);
-	if (!start_term) {
-		status = AE_NO_MEMORY;
-		goto err_ref;
-	}
-
-	status = acpi_parse_aml(&interp, aml_begin, aml_end, start_node, start_term);
-
-err_ref:
+	status = acpi_parse_aml(&interp, ACPI_ROOT_TAG, aml_begin, aml_end, start_node);
 	__acpi_interpret_exit(&interp);
+
 	return status;
 }
 
