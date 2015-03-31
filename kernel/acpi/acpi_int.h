@@ -257,11 +257,6 @@ boolean acpi_opcode_is_namestring(uint16_t opcode);
 /*=========================================================================
  * Interpreter internals
  *=======================================================================*/
-acpi_status_t acpi_interpret_aml(acpi_ddb_t ddb,
-				 uint8_t *aml_begin,
-				 uint32_t aml_length,
-				 acpi_term_cb callback,
-				 struct acpi_namespace_node *start_node);
 acpi_status_t acpi_interpret_exec(struct acpi_interp *interp,
 				  struct acpi_environ *environ,
 				  uint8_t type);

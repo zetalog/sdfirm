@@ -153,6 +153,14 @@ static acpi_status_t acpi_interpret_open(struct acpi_interp *interp,
 	return AE_OK;
 }
 
+void acpi_space_assign_operand(struct acpi_namespace_node *node,
+			       struct acpi_operand *operand)
+{
+	BUG_ON(node->operand);
+	node->operand = acpi_operand_get(operand, "space");
+	operand->flags |= ACPI_OPERAND_NAMED;
+}
+
 static acpi_status_t acpi_interpret_close_Name(struct acpi_interp *interp,
 					       struct acpi_environ *environ)
 {
@@ -162,7 +170,7 @@ static acpi_status_t acpi_interpret_close_Name(struct acpi_interp *interp,
 	struct acpi_parser *parser = interp->parser;
 
 	namearg = acpi_term_get_arg(environ->term, 0);
-	operand = acpi_operand_get(parser->arguments[0], "named");
+	operand = acpi_operand_get(parser->arguments[0], "interp");
 	if (!namearg || !operand || namearg->aml_opcode != AML_NAMESTRING_OP)
 		return AE_AML_OPERAND_TYPE;
 	node = acpi_space_open(interp->ddb,
@@ -174,8 +182,8 @@ static acpi_status_t acpi_interpret_close_Name(struct acpi_interp *interp,
 		acpi_operand_put(operand, "named");
 		return AE_NO_MEMORY;
 	}
-	node->operand = operand;
-	operand->flags |= ACPI_OPERAND_NAMED;
+	acpi_space_assign_operand(node, operand);
+	acpi_operand_close_stacked(operand);
 	acpi_space_close(node, false);
 	return AE_OK;
 }
@@ -214,8 +222,7 @@ static acpi_status_t acpi_interpret_close_Method(struct acpi_interp *interp,
 		return AE_NO_MEMORY;
 	}
 	operand = ACPI_CAST_PTR(struct acpi_operand, method);
-	method->flags |= ACPI_OPERAND_NAMED;
-	node->operand = acpi_operand_get(operand, "named");
+	acpi_space_assign_operand(node, operand);
 	acpi_operand_close_stacked(operand);
 	acpi_space_close(node, false);
 	return AE_OK;
@@ -362,11 +369,14 @@ static void __acpi_interpret_exit(struct acpi_interp *interp)
 	}
 }
 
-acpi_status_t acpi_interpret_aml(acpi_ddb_t ddb,
+acpi_status_t acpi_interpret_aml(acpi_ddb_t ddb, acpi_tag_t tag,
 				 uint8_t *aml_begin,
 				 uint32_t aml_length,
+				 uint8_t nr_arguments,
+				 struct acpi_operand **arguments,
 				 acpi_term_cb callback,
-				 struct acpi_namespace_node *start_node)
+				 struct acpi_namespace_node *start_node,
+				 struct acpi_operand **result)
 {
 	struct acpi_interp interp;
 	struct acpi_term_list *start_term = NULL;
@@ -375,8 +385,11 @@ acpi_status_t acpi_interpret_aml(acpi_ddb_t ddb,
 
 	/* AML is a TermList */
 	__acpi_interpret_init(&interp, ddb, start_node, callback);
-	status = acpi_parse_aml(&interp, ACPI_ROOT_TAG, aml_begin, aml_end,
-				start_node, 0, NULL);
+	status = acpi_parse_aml(&interp, tag, aml_begin, aml_end,
+				start_node,
+				nr_arguments, arguments);
+	if (ACPI_SUCCESS(status) && result)
+		*result = acpi_operand_get(interp.result, "interp");
 	__acpi_interpret_exit(&interp);
 
 	return status;
@@ -395,8 +408,11 @@ acpi_status_t acpi_interpret_table(acpi_ddb_t ddb,
 	aml_start = (uint8_t *)table + sizeof (struct acpi_table_header);
 	aml_length = table->length - sizeof (struct acpi_table_header);
 
-	status = acpi_interpret_aml(ddb, aml_start, aml_length,
-				    acpi_interpret_exec, start_node);
+	status = acpi_interpret_aml(ddb, ACPI_ROOT_TAG,
+				    aml_start, aml_length,
+				    0, NULL,
+				    acpi_interpret_exec,
+				    start_node, NULL);
 	if (ACPI_FAILURE(status))
 		goto err_ref;
 
@@ -440,7 +456,6 @@ acpi_status_t acpi_evaluate_object(acpi_handle_t handle, char *name,
 	struct acpi_operand *return_value = NULL;
 	struct acpi_operand *operand = NULL;
 	struct acpi_method *method = NULL;
-	struct acpi_interp interp;
 
 	len = acpi_path_encode_alloc(name, &path);
 	if (len == 0) {
@@ -468,21 +483,18 @@ acpi_status_t acpi_evaluate_object(acpi_handle_t handle, char *name,
 	method = ACPI_CAST_PTR(struct acpi_method, operand);
 	scope = acpi_node_get(node->parent, "evaluate");
 
-	__acpi_interpret_init(&interp, ACPI_DDB_HANDLE_INVALID,
-			      scope, acpi_interpret_exec);
-	status = acpi_parse_aml(&interp, node->tag,
-				method->aml_start,
-				method->aml_start+method->aml_length,
-				scope, nr_arguments, arguments);
-	if (ACPI_SUCCESS(status))
-		return_value = acpi_operand_get(interp.result, "evaluate");
-	__acpi_interpret_exit(&interp);
+	status = acpi_interpret_aml(ACPI_DDB_HANDLE_INVALID, node->tag,
+				    method->aml_start,
+				    method->aml_length,
+				    nr_arguments, arguments,
+				    acpi_interpret_exec,
+				    scope, &return_value);
 
 err_exit:
-	if (result)
+	if (result && return_value)
 		*result = return_value;
 	else
-		acpi_operand_put(return_value, "evaluate");
+		acpi_operand_close_stacked(operand);
 	if (method)
 		acpi_operand_put(operand, "evaluate");
 	if (node)
