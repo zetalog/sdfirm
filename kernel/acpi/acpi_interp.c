@@ -375,7 +375,8 @@ acpi_status_t acpi_interpret_aml(acpi_ddb_t ddb,
 
 	/* AML is a TermList */
 	__acpi_interpret_init(&interp, ddb, start_node, callback);
-	status = acpi_parse_aml(&interp, ACPI_ROOT_TAG, aml_begin, aml_end, start_node);
+	status = acpi_parse_aml(&interp, ACPI_ROOT_TAG, aml_begin, aml_end,
+				start_node, 0, NULL);
 	__acpi_interpret_exit(&interp);
 
 	return status;
@@ -424,4 +425,71 @@ void acpi_uninterpret_table(acpi_ddb_t ddb,
 	acpi_space_walk_depth_first(NULL, ACPI_TYPE_ANY, 3, NULL,
 				    acpi_uninterpret_table_node,
 				    (void *)&ddb);
+}
+
+acpi_status_t acpi_evaluate_object(acpi_handle_t handle, char *name,
+				   uint8_t nr_arguments,
+				   struct acpi_operand **arguments,
+				   struct acpi_operand **result)
+{
+	acpi_status_t status = AE_OK;
+	struct acpi_namespace_node *scope = NULL;
+	struct acpi_namespace_node *node = NULL;
+	acpi_path_len_t len;
+	acpi_path_t path = { 0, NULL };
+	struct acpi_operand *return_value = NULL;
+	struct acpi_operand *operand = NULL;
+	struct acpi_method *method = NULL;
+	struct acpi_interp interp;
+
+	len = acpi_path_encode_alloc(name, &path);
+	if (len == 0) {
+		status = AE_BAD_PARAMETER;
+		goto err_exit;
+	}
+	if (!path.names) {
+		status = AE_NO_MEMORY;
+		goto err_exit;
+	}
+
+	node = acpi_space_open_exist(handle, path.names, path.length);
+	if (!node) {
+		status = AE_NOT_EXIST;
+		goto err_exit;
+	}
+
+	operand = acpi_operand_get(node->operand, "evaluate");
+	if (node->object_type != ACPI_TYPE_METHOD) {
+		return_value = operand;
+		operand = NULL;
+		goto err_exit;
+	}
+
+	method = ACPI_CAST_PTR(struct acpi_method, operand);
+	scope = acpi_node_get(node->parent, "evaluate");
+
+	__acpi_interpret_init(&interp, ACPI_DDB_HANDLE_INVALID,
+			      scope, acpi_interpret_exec);
+	status = acpi_parse_aml(&interp, node->tag,
+				method->aml_start,
+				method->aml_start+method->aml_length,
+				scope, nr_arguments, arguments);
+	if (ACPI_SUCCESS(status))
+		return_value = acpi_operand_get(interp.result, "evaluate");
+	__acpi_interpret_exit(&interp);
+
+err_exit:
+	if (result)
+		*result = return_value;
+	else
+		acpi_operand_put(return_value, "evaluate");
+	if (method)
+		acpi_operand_put(operand, "evaluate");
+	if (node)
+		acpi_space_close_exist(node);
+	if (scope)
+		acpi_node_put(scope, "evaluate");
+	if (path.names)
+		acpi_os_free(path.names);
+	return status;
 }

@@ -45,48 +45,6 @@
 #include <target/acpi.h>
 #include "acpi_aml.h"
 
-typedef void (*acpi_release_cb)(struct acpi_object *);
-
-#define ACPI_DESC_TYPE_NAMED			0x01
-#define ACPI_DESC_TYPE_TERM			0x02
-#define ACPI_DESC_TYPE_STATE			0x03
-#define ACPI_DESC_TYPE_OPERAND			0x04
-
-#define ACPI_OBJECT_HEADER			\
-	uint8_t descriptor_type;		\
-	boolean closing;			\
-	struct acpi_reference reference_count;	\
-	acpi_release_cb release;
-
-struct acpi_object {
-	ACPI_OBJECT_HEADER
-};
-
-#define ACPI_OPERAND_NAMED			0x01
-
-#define ACPI_OPERAND_HEADER			\
-	struct acpi_object common;		\
-	uint8_t flags;				\
-	acpi_type_t object_type;		\
-	acpi_release_cb release;
-
-struct acpi_operand {
-	ACPI_OPERAND_HEADER
-};
-
-struct acpi_method {
-	ACPI_OPERAND_HEADER
-	acpi_ddb_t ddb;
-	uint8_t method_flags;
-	uint8_t *aml_start;
-	uint32_t aml_length;
-};
-
-struct acpi_integer {
-	ACPI_OPERAND_HEADER
-	uint64_t value;
-};
-
 struct acpi_namespace_node {
 	struct acpi_object common;
 	acpi_tag_t tag;
@@ -109,6 +67,16 @@ struct acpi_opcode_info {
 	uint64_t args;
 	uint16_t flags;
 };
+
+union acpi_value {
+	uint64_t integer;
+	char *string;
+	struct {
+		uint8_t len;
+		uint8_t *ptr;
+	} buffer;
+};
+#define ACPI_DEFAULT_OPERAND_SIZE	(sizeof (union acpi_value))
 
 struct acpi_term {
 	ACPI_OBJECT_HEADER
@@ -249,7 +217,9 @@ struct acpi_parser *acpi_parser_init(struct acpi_interp *interp,
 				     acpi_tag_t tag,
 				     uint8_t *aml_begin,
 				     uint8_t *aml_end,
-				     struct acpi_namespace_node *node);
+				     struct acpi_namespace_node *node,
+				     uint8_t nr_arguments,
+				     struct acpi_operand **arguments);
 void acpi_parser_exit(struct acpi_parser *parser);
 acpi_status_t acpi_parser_push(struct acpi_parser *last_parser,
 			       struct acpi_parser **next_parser);
@@ -271,7 +241,9 @@ void acpi_term_remove_arg(struct acpi_term *arg);
 
 acpi_status_t acpi_parse_aml(struct acpi_interp *interp, acpi_tag_t tag,
 			     uint8_t *aml_begin, uint8_t *aml_end,
-			     struct acpi_namespace_node *node);
+			     struct acpi_namespace_node *node,
+			     uint8_t nr_arguments,
+			     struct acpi_operand **arguments);
 
 const struct acpi_opcode_info *acpi_opcode_get_info(uint16_t opcode);
 struct acpi_opcode_info *acpi_opcode_alloc_info(acpi_name_t name,
@@ -304,13 +276,8 @@ struct acpi_operand *acpi_operand_open(acpi_type_t object_type,
 				       acpi_size_t size,
 				       acpi_release_cb release_operand);
 void acpi_operand_close(struct acpi_operand *operand);
-struct acpi_operand *acpi_operand_get(struct acpi_operand *operand,
-				      const char *hint);
-void acpi_operand_put(struct acpi_operand *operand, const char *hint);
-
 struct acpi_method *acpi_method_open(acpi_ddb_t ddb, uint8_t *aml,
 				     uint32_t length, uint8_t flags);
-struct acpi_integer *acpi_integer_open(uint64_t value);
 void acpi_operand_close_stacked(struct acpi_operand *operand);
 
 /*=========================================================================

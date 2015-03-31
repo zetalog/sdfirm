@@ -772,15 +772,47 @@ typedef uint8_t acpi_type_t;
 
 #define ACPI_NUM_NS_TYPES		(ACPI_TYPE_INVALID + 1)
 
-union acpi_value {
-	uint64_t integer;
-	char *string;
-	struct {
-		uint8_t len;
-		uint8_t *ptr;
-	} buffer;
+typedef void (*acpi_release_cb)(struct acpi_object *);
+
+#define ACPI_DESC_TYPE_NAMED			0x01
+#define ACPI_DESC_TYPE_TERM			0x02
+#define ACPI_DESC_TYPE_STATE			0x03
+#define ACPI_DESC_TYPE_OPERAND			0x04
+
+#define ACPI_OBJECT_HEADER			\
+	uint8_t descriptor_type;		\
+	boolean closing;			\
+	struct acpi_reference reference_count;	\
+	acpi_release_cb release;
+
+struct acpi_object {
+	ACPI_OBJECT_HEADER
 };
-#define ACPI_DEFAULT_OPERAND_SIZE	(sizeof (union acpi_value))
+
+#define ACPI_OPERAND_NAMED			0x01
+
+#define ACPI_OPERAND_HEADER			\
+	struct acpi_object common;		\
+	uint8_t flags;				\
+	acpi_type_t object_type;		\
+	acpi_release_cb release;
+
+struct acpi_operand {
+	ACPI_OPERAND_HEADER
+};
+
+struct acpi_method {
+	ACPI_OPERAND_HEADER
+	acpi_ddb_t ddb;
+	uint8_t method_flags;
+	uint8_t *aml_start;
+	uint32_t aml_length;
+};
+
+struct acpi_integer {
+	ACPI_OPERAND_HEADER
+	uint64_t value;
+};
 
 uint8_t acpi_gbl_integer_bit_width;
 struct acpi_generic_address acpi_gbl_xpm1a_enable;
@@ -885,6 +917,7 @@ acpi_path_len_t acpi_path_decode(acpi_path_t *path,
 				 char *name, acpi_path_len_t size);
 acpi_path_len_t acpi_path_split(acpi_path_t *path,
 				acpi_path_t *parent, acpi_name_t name);
+acpi_path_len_t acpi_path_encode_alloc(const char *name, acpi_path_t *path);
 
 /*=========================================================================
  * Table externals
@@ -933,6 +966,19 @@ void acpi_space_increment(acpi_handle_t node);
 void acpi_space_decrement(acpi_handle_t node);
 acpi_path_len_t acpi_space_get_full_path(acpi_handle_t node,
 					 char *path, acpi_path_len_t size);
+
+/*=========================================================================
+ * Interpreter externals
+ *=======================================================================*/
+struct acpi_operand *acpi_operand_get(struct acpi_operand *operand,
+				      const char *hint);
+void acpi_operand_put(struct acpi_operand *operand, const char *hint);
+struct acpi_integer *acpi_integer_open(uint64_t value);
+
+acpi_status_t acpi_evaluate_object(acpi_handle_t handle, char *path,
+				   uint8_t nr_arguments,
+				   struct acpi_operand **arguments,
+				   struct acpi_operand **result);
 
 /*=========================================================================
  * Checksum validations

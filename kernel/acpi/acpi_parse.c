@@ -65,7 +65,9 @@ struct acpi_parser *acpi_parser_init(struct acpi_interp *interp,
 				     acpi_tag_t tag,
 				     uint8_t *aml_begin,
 				     uint8_t *aml_end,
-				     struct acpi_namespace_node *node)
+				     struct acpi_namespace_node *node,
+				     uint8_t nr_arguments,
+				     struct acpi_operand **arguments)
 {
 	struct acpi_parser *parser;
 	struct acpi_environ *environ;
@@ -765,12 +767,15 @@ static acpi_status_t acpi_parser_get_arguments(struct acpi_parser *parser)
 
 acpi_status_t acpi_parse_aml(struct acpi_interp *interp, acpi_tag_t tag,
 			     uint8_t *aml_begin, uint8_t *aml_end,
-			     struct acpi_namespace_node *node)
+			     struct acpi_namespace_node *node,
+			     uint8_t nr_arguments,
+			     struct acpi_operand **arguments)
 {
 	acpi_status_t status = AE_OK;
 	struct acpi_parser *parser = interp->parser;
 
-	parser = acpi_parser_init(interp, tag, aml_begin, aml_end, node);
+	parser = acpi_parser_init(interp, tag, aml_begin, aml_end,
+				  node, nr_arguments, arguments);
 	if (!parser)
 		return AE_NO_MEMORY;
 	interp->parser = parser;

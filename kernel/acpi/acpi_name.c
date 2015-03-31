@@ -235,6 +235,27 @@ acpi_path_len_t acpi_path_encode(const char *name, acpi_path_t *path)
 	return length;
 }
 
+acpi_path_len_t acpi_path_encode_alloc(const char *name, acpi_path_t *path)
+{
+	acpi_path_len_t len;
+	char *buf = NULL;
+
+	BUG_ON(path->names && path->length);
+
+	len = acpi_path_encode(name, path);
+	if (len == 0)
+		goto err_exit;
+	buf = acpi_os_allocate_zeroed(len);
+	if (!buf)
+		goto err_exit;
+	path->length = len;
+	path->names = buf;
+	acpi_path_encode(name, path);
+
+err_exit:
+	return len;
+}
+
 /*
  * acpi_path_decode() - convert AML namespace path into ASL namespace path
  * @path: namespace path in AML format
