@@ -330,7 +330,7 @@ struct acpi_namespace_node *acpi_space_get_node(acpi_ddb_t ddb,
 	while ((length > 0) && nr_segs && scope_node) {
 		node = __acpi_node_lookup(ddb, scope_node, ACPI_NAME2TAG(name),
 					  object_type, create);
-		name += ACPI_NAME_SIZE, length -= ACPI_NAME_SIZE;
+		name += ACPI_NAME_SIZE, length -= ACPI_NAME_SIZE, nr_segs--;
 		node = acpi_node_get(node, "lookup");
 		acpi_node_put(scope_node, "lookup");
 		scope_node = node;
