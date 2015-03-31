@@ -94,18 +94,28 @@ struct acpi_namespace_node *__acpi_node_lookup(acpi_ddb_t ddb,
 					       struct acpi_namespace_node *scope,
 					       acpi_tag_t tag,
 					       acpi_type_t object_type,
-					       boolean create)
+					       uint8_t open_type)
 {
 	struct acpi_namespace_node *node;
 
 	BUG_ON(!scope);
 
 	list_for_each_entry(struct acpi_namespace_node, node, &scope->children, sibling) {
-		if (!acpi_object_is_closing(&node->common) && (node->tag == tag))
-			return node;
+		if (!acpi_object_is_closing(&node->common) && (node->tag == tag)) {
+			switch (open_type) {
+			case ACPI_SPACE_OPEN_EXIST:
+				return node;
+			case ACPI_SPACE_OPEN_REPLACE:
+				__acpi_node_close(node);
+				goto finish_walk;
+			case ACPI_SPACE_OPEN_CREATE:
+				return NULL;
+			}
+		}
 	}
+finish_walk:
 	node = NULL;
-	if (create)
+	if (open_type == ACPI_SPACE_OPEN_CREATE)
 		node = __acpi_node_open(ddb, scope, tag, object_type);
 	return node;
 }
@@ -282,7 +292,7 @@ struct acpi_namespace_node *acpi_space_get_node(acpi_ddb_t ddb,
 						struct acpi_namespace_node *scope,
 						const char *name, uint32_t length,
 						acpi_type_t object_type,
-						boolean create, const char *hint)
+						uint8_t open_type, const char *hint)
 {
 	struct acpi_namespace_node *node = NULL;
 	struct acpi_namespace_node *scope_node = NULL;
@@ -329,7 +339,7 @@ struct acpi_namespace_node *acpi_space_get_node(acpi_ddb_t ddb,
 	}
 	while ((length > 0) && nr_segs && scope_node) {
 		node = __acpi_node_lookup(ddb, scope_node, ACPI_NAME2TAG(name),
-					  object_type, create);
+					  object_type, open_type);
 		name += ACPI_NAME_SIZE, length -= ACPI_NAME_SIZE, nr_segs--;
 		node = acpi_node_get(node, "lookup");
 		acpi_node_put(scope_node, "lookup");
@@ -345,12 +355,11 @@ exit_ref:
 
 acpi_handle_t acpi_space_open(acpi_ddb_t ddb, acpi_handle_t scope,
 			      const char *name, uint32_t length,
-			      acpi_type_t object_type,
-			      boolean create_node)
+			      acpi_type_t object_type, uint8_t open_type)
 {
-	BUG_ON(create_node && ACPI_DDB_HANDLE_INVALID == ddb);
+	BUG_ON((open_type != ACPI_SPACE_OPEN_EXIST) && ACPI_DDB_HANDLE_INVALID == ddb);
 	return acpi_space_get_node(ddb, scope, name, length,
-				   object_type, create_node, "space");
+				   object_type, open_type, "space");
 }
 
 void acpi_space_close_node(acpi_handle_t node)
@@ -371,7 +380,7 @@ acpi_handle_t acpi_space_open_exist(acpi_handle_t scope,
 				    const char *name, uint32_t length)
 {
 	return acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, scope, name, length,
-				   ACPI_TYPE_ANY, false, "space");
+				   ACPI_TYPE_ANY, ACPI_SPACE_OPEN_EXIST, "space");
 }
 
 void acpi_space_close_exist(acpi_handle_t node)
@@ -387,6 +396,14 @@ void acpi_space_increment(acpi_handle_t node)
 void acpi_space_decrement(acpi_handle_t node)
 {
 	acpi_node_put(node, "reference");
+}
+
+void acpi_space_assign_operand(struct acpi_namespace_node *node,
+			       struct acpi_operand *operand)
+{
+	BUG_ON(node->operand);
+	node->operand = acpi_operand_get(operand, "space");
+	operand->flags |= ACPI_OPERAND_NAMED;
 }
 
 /*
@@ -461,6 +478,21 @@ acpi_path_len_t acpi_space_get_full_path(acpi_handle_t node,
 	return length;
 }
 
+static boolean __acpi_space_notify(struct acpi_namespace_node *node,
+				   void *unused)
+{
+	acpi_event_space_notify(node, ACPI_EVENT_SPACE_CREATE);
+	return false;
+}
+
+void acpi_space_notify_existing(void)
+{
+	acpi_space_walk_depth_first(NULL,
+				    ACPI_TYPE_ANY,
+				    ACPI_SPACE_DEPTH_INFINITE,
+				    __acpi_space_notify, NULL, NULL);
+}
+
 #ifdef CONFIG_ACPI_DEBUG
 static boolean acpi_space_descend_test(struct acpi_namespace_node *node,
 				       void *unused)
@@ -486,7 +518,7 @@ struct acpi_namespace_node *acpi_space_open_test(struct acpi_namespace_node *sco
 						 const char *name, uint32_t length)
 {
 	return acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, scope, name, length,
-				   ACPI_TYPE_ANY, true, "space");
+				   ACPI_TYPE_ANY, ACPI_SPACE_OPEN_CREATE, "space");
 }
 
 void acpi_space_test_nodes(void)
@@ -660,6 +692,22 @@ acpi_status_t acpi_initialize_namespace(void)
 		acpi_space_unlock();
 		return AE_NO_MEMORY;
 	}
+	__acpi_node_open(ACPI_DDB_HANDLE_INVALID, node,
+			 ACPI_NAME2TAG("_SB_"), ACPI_TYPE_DEVICE);
+	__acpi_node_open(ACPI_DDB_HANDLE_INVALID, node,
+			 ACPI_NAME2TAG("_TZ_"), ACPI_TYPE_DEVICE);
+	__acpi_node_open(ACPI_DDB_HANDLE_INVALID, node,
+			 ACPI_NAME2TAG("_PR_"), ACPI_TYPE_DEVICE);
+	__acpi_node_open(ACPI_DDB_HANDLE_INVALID, node,
+			 ACPI_NAME2TAG("_SI_"), ACPI_TYPE_DEVICE);
+	__acpi_node_open(ACPI_DDB_HANDLE_INVALID, node,
+			 ACPI_NAME2TAG("_GPE"), ACPI_TYPE_DEVICE);
+	__acpi_node_open(ACPI_DDB_HANDLE_INVALID, node,
+			 ACPI_NAME2TAG("_REV"), ACPI_TYPE_INTEGER);
+	__acpi_node_open(ACPI_DDB_HANDLE_INVALID, node,
+			 ACPI_NAME2TAG("_GL_"), ACPI_TYPE_MUTEX);
+	__acpi_node_open(ACPI_DDB_HANDLE_INVALID, node,
+			 ACPI_NAME2TAG("_OS_"), ACPI_TYPE_STRING);
 	acpi_space_unlock();
 
 	acpi_space_test_nodes();

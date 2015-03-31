@@ -74,6 +74,7 @@ struct acpi_parser *acpi_parser_init(struct acpi_interp *interp,
 	struct acpi_term_list *term_list;
 	struct acpi_term *term = NULL;
 
+	/* AML is a TermList */
 	term_list = acpi_term_alloc_aml(tag, aml_begin, aml_end);
 	if (!term_list)
 		return NULL;
@@ -166,8 +167,10 @@ acpi_status_t acpi_parser_pop(struct acpi_parser *last_parser,
 	next_state = interp->parser;
 	if (next_state) {
 		next_state->aml = last_parser->aml;
+#if 0
 		if (next_state->aml == next_state->pkg_end)
 			next_state->pkg_end = next_state->aml_end;
+#endif
 		/*
 		 * Reinitialize the next_opcode, let it to be determined
 		 * by the argument parsing.
@@ -484,7 +487,7 @@ static acpi_status_t acpi_parser_end_term(struct acpi_parser *parser,
 	acpi_term_free(term);
 	environ->term = NULL;
 
-	return AE_OK;
+	return parser_status;
 }
 
 acpi_status_t acpi_parser_get_simple_arg(struct acpi_parser *parser,

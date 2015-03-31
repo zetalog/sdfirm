@@ -182,7 +182,7 @@ acpi_status_t acpi_event_register_space_handler(acpi_event_space_cb handler,
 	if (ACPI_FAILURE(status))
 		goto err_lock;
 	acpi_event_unlock();
-	/* acpi_space_notify_existing(); */
+	acpi_space_notify_existing();
 	acpi_event_lock();
 
 err_lock:

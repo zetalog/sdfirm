@@ -1092,7 +1092,8 @@ static acpi_status_t acpi_load_table(acpi_ddb_t ddb)
 
 	/* Validate root node */
 	ns_root = acpi_space_get_node(ACPI_DDB_HANDLE_INVALID, NULL, NULL, 0,
-				      ACPI_TYPE_DEVICE, false, "table");
+				      ACPI_TYPE_DEVICE, ACPI_SPACE_OPEN_EXIST,
+				      "table");
 	if (!ns_root) {
 		status = AE_NOT_FOUND;
 		goto err_table;

@@ -291,7 +291,7 @@ struct acpi_namespace_node *__acpi_node_lookup(acpi_ddb_t ddb,
 					       struct acpi_namespace_node *scope,
 					       acpi_tag_t tag,
 					       acpi_type_t object_type,
-					       boolean create);
+					       uint8_t open_type);
 struct acpi_namespace_node *__acpi_node_get_graceful(struct acpi_namespace_node *node,
 						     const char *hint);
 
@@ -309,8 +309,11 @@ struct acpi_namespace_node *acpi_space_get_node(acpi_ddb_t ddb,
 						struct acpi_namespace_node *scope,
 						const char *name, uint32_t length,
 						acpi_type_t object_type,
-						boolean create, const char *hint);
+						uint8_t open_type, const char *hint);
 void acpi_space_close_node(acpi_handle_t node);
+void acpi_space_assign_operand(struct acpi_namespace_node *node,
+			       struct acpi_operand *operand);
+void acpi_space_notify_existing(void);
 
 /*=========================================================================
  * Utility internals

@@ -948,6 +948,10 @@ typedef boolean (*acpi_space_cb)(struct acpi_namespace_node *scope,
 
 #define ACPI_SPACE_DEPTH_INFINITE	0XFFFFFFFF
 
+#define ACPI_SPACE_OPEN_EXIST		0x00
+#define ACPI_SPACE_OPEN_CREATE		0x01
+#define ACPI_SPACE_OPEN_REPLACE		0x02
+
 void acpi_space_walk_depth_first(acpi_handle_t scope,
 				 acpi_type_t object_type,
 				 uint32_t max_depth,
@@ -956,8 +960,7 @@ void acpi_space_walk_depth_first(acpi_handle_t scope,
 				 void *context);
 acpi_handle_t acpi_space_open(acpi_ddb_t ddb, acpi_handle_t scope,
 			      const char *name, uint32_t length,
-			      acpi_type_t object_type,
-			      boolean create_node);
+			      acpi_type_t object_type, uint8_t open_type);
 void acpi_space_close(acpi_handle_t node, boolean delete_node);
 acpi_handle_t acpi_space_open_exist(acpi_handle_t scope,
 				    const char *name, uint32_t length);

@@ -133,11 +133,28 @@ static acpi_status_t acpi_interpret_open(struct acpi_interp *interp,
 		namearg = acpi_term_get_arg(environ->term, 0);
 		if (!namearg || namearg->aml_opcode != AML_NAMESTRING_OP)
 			return AE_AML_OPERAND_TYPE;
+		node = acpi_space_open_exist(interp->node,
+					     namearg->value.string,
+					     namearg->aml_length);
+		if (!node)
+			return AE_NOT_FOUND;
+		curr_scope = interp->node;
+		interp->node = acpi_node_get(node, "scope");
+		acpi_node_put(curr_scope, "scope");
+		acpi_space_close_exist(node);
+		break;
+	case AML_DEVICE_OP:
+		namearg = acpi_term_get_arg(environ->term, 0);
+		if (!namearg || namearg->aml_opcode != AML_NAMESTRING_OP)
+			return AE_AML_OPERAND_TYPE;
 		node = acpi_space_open(interp->ddb,
 				       interp->node,
 				       namearg->value.string,
 				       namearg->aml_length,
-				       ACPI_TYPE_DEVICE, true);
+				       ACPI_TYPE_DEVICE,
+				       ACPI_SPACE_OPEN_CREATE);
+		if (!node)
+			return AE_NO_MEMORY;
 		curr_scope = interp->node;
 		interp->node = acpi_node_get(node, "scope");
 		acpi_node_put(curr_scope, "scope");
@@ -151,14 +168,6 @@ static acpi_status_t acpi_interpret_open(struct acpi_interp *interp,
 		break;
 	}
 	return AE_OK;
-}
-
-void acpi_space_assign_operand(struct acpi_namespace_node *node,
-			       struct acpi_operand *operand)
-{
-	BUG_ON(node->operand);
-	node->operand = acpi_operand_get(operand, "space");
-	operand->flags |= ACPI_OPERAND_NAMED;
 }
 
 static acpi_status_t acpi_interpret_close_Name(struct acpi_interp *interp,
@@ -177,7 +186,8 @@ static acpi_status_t acpi_interpret_close_Name(struct acpi_interp *interp,
 			       interp->node,
 			       namearg->value.string,
 			       namearg->aml_length,
-			       operand->object_type, true);
+			       operand->object_type,
+			       ACPI_SPACE_OPEN_CREATE);
 	if (!node) {
 		acpi_operand_put(operand, "named");
 		return AE_NO_MEMORY;
@@ -210,7 +220,8 @@ static acpi_status_t acpi_interpret_close_Method(struct acpi_interp *interp,
 			       interp->node,
 			       namearg->value.string,
 			       namearg->aml_length,
-			       ACPI_TYPE_METHOD, true);
+			       ACPI_TYPE_METHOD,
+			       ACPI_SPACE_OPEN_CREATE);
 	if (!node)
 		return AE_NO_MEMORY;
 	method = acpi_method_open(interp->ddb,
@@ -284,6 +295,11 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 
 	switch (opcode) {
 	case AML_SCOPE_OP:
+		curr_scope = interp->node;
+		interp->node = acpi_node_get(curr_scope->parent, "scope");
+		acpi_node_put(curr_scope, "scope");
+		break;
+	case AML_DEVICE_OP:
 		curr_scope = interp->node;
 		interp->node = acpi_node_get(curr_scope->parent, "scope");
 		acpi_node_put(curr_scope, "scope");
@@ -383,7 +399,6 @@ acpi_status_t acpi_interpret_aml(acpi_ddb_t ddb, acpi_tag_t tag,
 	acpi_status_t status;
 	uint8_t *aml_end = aml_begin + aml_length;
 
-	/* AML is a TermList */
 	__acpi_interpret_init(&interp, ddb, start_node, callback);
 	status = acpi_parse_aml(&interp, tag, aml_begin, aml_end,
 				start_node,
