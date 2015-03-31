@@ -180,6 +180,7 @@ acpi_status_t acpi_parser_pop(struct acpi_parser *last_parser,
 			acpi_operand_put(interp->targets[i], "target");
 			interp->targets[i] = NULL;
 		}
+		interp->nr_targets = 0;
 	}
 
 	/*

@@ -252,6 +252,19 @@ static acpi_status_t acpi_interpret_close_integer(struct acpi_interp *interp,
 					      valuearg->value.integer);
 }
 
+static acpi_status_t acpi_interpret_close_Return(struct acpi_interp *interp,
+						 struct acpi_environ *environ)
+{
+	struct acpi_operand *operand;
+	struct acpi_parser *parser = interp->parser;
+
+	operand = acpi_operand_get(parser->arguments[0], "return");
+	if (!operand)
+		return AE_AML_OPERAND_TYPE;
+	interp->result = operand;
+	return AE_OK;
+}
+
 static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 					  struct acpi_environ *environ)
 {
@@ -290,6 +303,7 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 		status = __acpi_interpret_close_integer(interp, environ, (uint64_t)-1);
 		break;
 	case AML_RETURN_OP:
+		status = acpi_interpret_close_Return(interp, environ);
 		break;
 	}
 
