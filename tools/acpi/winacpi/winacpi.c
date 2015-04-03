@@ -48,6 +48,7 @@ USHORT _usVendor = 0;
 USHORT _usProduct = 0;
 USHORT _usDevice = 0;
 HINSTANCE _hInstance;
+HANDLE _hWindow;
 
 INT _nIdMappings[MAX_LAYOUT_IDS] = {
 	ID_MAINFRAME,
@@ -72,17 +73,21 @@ INT _nIdMappings[MAX_LAYOUT_IDS] = {
 	IDS_ERROR,
 	IDS_ERROR_FILE_BROWSE,
 };
-#define TOOLBARNUM		4
-#define IDX_EXITAPP		0
-#define IDX_ACPI_TABLELOAD	1
-#define IDX_ACPI_TABLEUNLOAD	2
-#define IDX_ACPI_TABLETEST	3
+#define TOOLBARNUM			6
+#define IDX_EXITAPP			0
+#define IDX_ACPI_TABLELOAD		1
+#define IDX_ACPI_TABLEUNLOAD		2
+#define IDX_ACPI_TABLETEST		3
+#define IDX_ACPI_METHODTEST		4
+#define IDX_ACPI_STOPTESTS		5
 
 WINTOOLBARITEM _ToolbarItems[TOOLBARNUM] = {
 	{ FALSE, IDX_EXITAPP, ID_APP_EXIT },
 	{ FALSE, IDX_ACPI_TABLELOAD, ID_TABLE_LOAD },
 	{ FALSE, IDX_ACPI_TABLEUNLOAD, ID_TABLE_UNLOAD },
 	{ FALSE, IDX_ACPI_TABLETEST, ID_TEST_TABLE_UNLOAD },
+	{ FALSE, IDX_ACPI_METHODTEST, ID_TEST_METHOD_EXEC },
+	{ FALSE, IDX_ACPI_STOPTESTS, ID_TEST_STOP_ALL },
 };
 
 static LRESULT WINAPI About_DlgProc(HWND hDlg, UINT uMsg,
@@ -139,10 +144,11 @@ static WORD hex2word(const char *hex)
 	return (Hi<<8) | Lo; 
 }
 
-#define WM_LOADTABLE	WM_LAYOUTUSER+1
-#define WM_UNLOADTABLE	WM_LAYOUTUSER+2
-#define WM_CREATENODE	WM_LAYOUTUSER+3
-#define WM_DELETENODE	WM_LAYOUTUSER+4
+#define WM_LOADTABLE		WM_LAYOUTUSER+1
+#define WM_UNLOADTABLE		WM_LAYOUTUSER+2
+#define WM_CREATENODE		WM_LAYOUTUSER+3
+#define WM_DELETENODE		WM_LAYOUTUSER+4
+#define WM_DISPLAYSTATUS	WM_LAYOUTUSER+5
 
 typedef unsigned __int64	llsize_t;
 
@@ -251,6 +257,59 @@ void StartTableUnloadTest(LPACPIWNDDATA lpWD)
 		acpi_test_TableUnload_start(pTableUnload->szPath,
 					    pTableUnload->nThreads,
 					    pTableUnload->nIterations);
+	}
+}
+
+static LRESULT WINAPI MethodExecTest_DlgProc(HWND hDlg, UINT uMsg,
+					     WPARAM wParam, LPARAM lParam)
+{
+	LPACPITESTMETHODEXEC pMethodExec;
+	int wmId, wmEvent;
+
+	if (uMsg == WM_INITDIALOG) {
+		pMethodExec = (LPACPITESTMETHODEXEC)lParam;
+		SetWindowLong(hDlg, GWL_USERDATA, (LPARAM)pMethodExec);
+	} else {
+		pMethodExec = (LPACPITESTMETHODEXEC)GetWindowLong(hDlg, GWL_USERDATA);
+	}
+
+	switch (uMsg) {
+	case WM_INITDIALOG:
+		SetDlgItemText(hDlg, IDC_METHODEXEC_NAME, pMethodExec->szName);
+		CenterChild(hDlg, GetParent(hDlg));
+		break;
+	case WM_COMMAND:
+		wmId    = LOWORD(wParam);
+		wmEvent = HIWORD(wParam);
+		switch (LOWORD(wParam)) {
+		case IDOK:
+		case IDCANCEL:
+			EndDialog(hDlg, IDOK);
+			break;
+		case IDC_METHODEXEC_NAME:
+			if (wmEvent == EN_CHANGE) {
+				GetDlgItemText(hDlg, IDC_METHODEXEC_NAME,
+					       pMethodExec->szName,
+					       ACPI_ASL_PATH_SIZE);
+			}
+			break;
+		}
+		break;
+	}
+	return 0L;
+}
+
+void StartMethodExecTest(LPACPIWNDDATA lpWD)
+{
+	LPACPITESTMETHODEXEC pMethodExec;
+
+	pMethodExec = (LPACPITESTMETHODEXEC)&lpWD->utMethodExec;
+	if (IDOK == DialogBoxParam(_hInstance,
+				   MAKEINTRESOURCE(IDD_METHODEXEC_TEST),
+				   lpWD->hWnd,
+				   (DLGPROC)MethodExecTest_DlgProc,
+				   (LPARAM)pMethodExec)) {
+		acpi_test_MethodExec_start(pMethodExec->szName);
 	}
 }
 
@@ -747,6 +806,7 @@ BOOL ACPICreateWindow(LPACPIWNDDATA lpWD)
 	memset(&lpWD->utTableUnload, 0, sizeof (ACPITESTTABLEUNLOAD));
 	lpWD->utTableUnload.nThreads = 10;
 	lpWD->utTableUnload.nIterations = 10;
+	memset(&lpWD->utMethodExec, 0, sizeof (ACPITESTMETHODEXEC));
 
 	ACPIInitApplication(lpWD);
 	return TRUE;
@@ -824,6 +884,11 @@ static INT ACPIDisplayStatus(HWND hWnd, UINT uMessage, UINT uCaption, UINT uType
 	sprintf(szText, szMessage, acpi_error_string(status, true));
 	
 	return MessageBox(hWnd, szText, szCaption, MB_ICONQUESTION | uType);
+}
+
+extern void acpi_test_display(const char *msg)
+{
+	PostMessage(_hWindow, WM_DISPLAYSTATUS, (WPARAM)msg, 0);
 }
 
 static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
@@ -933,6 +998,13 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
 		case ID_TEST_TABLE_UNLOAD:
 			StartTableUnloadTest(lpWD);
 			break;
+		case ID_TEST_METHOD_EXEC:
+			StartMethodExecTest(lpWD);
+			break;
+		case ID_TEST_STOP_ALL:
+			acpi_test_TableUnload_stop();
+			acpi_test_MethodExec_stop();
+			break;
 		default:
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}
@@ -952,6 +1024,9 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
 		node = (acpi_handle_t)wParam;
 		ACPIDeleteNode(lpWD, node);
 		acpi_space_decrement(node);
+		break;
+	case WM_DISPLAYSTATUS:
+		DisplayStatus(lpWD->hwndStatusbar, (LPCSTR)wParam);
 		break;
 	case WM_TIMER:
 		switch (wParam) {
@@ -999,18 +1074,16 @@ ATOM RegisterAppClass(HINSTANCE hInstance)
 
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
-	HWND hWnd;
-	
 	_hInstance = hInstance;
 	
-	hWnd = CreateWindow(_szWindowClass, _szTitle, WS_OVERLAPPEDWINDOW,
-			    CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL,
-			    hInstance, NULL);
+	_hWindow = CreateWindow(_szWindowClass, _szTitle, WS_OVERLAPPEDWINDOW,
+				CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL,
+				hInstance, NULL);
 	
-	if (!hWnd) return FALSE;
+	if (!_hWindow) return FALSE;
 	
-	ShowWindow(hWnd, nCmdShow);
-	UpdateWindow(hWnd);
+	ShowWindow(_hWindow, nCmdShow);
+	UpdateWindow(_hWindow);
 	return TRUE;
 }
 

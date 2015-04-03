@@ -187,6 +187,20 @@ BEGIN
                     8
 END
 
+IDD_METHODEXEC_TEST DIALOG DISCARDABLE  0, 0, 201, 116
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "TEST: Method evaluation"
+FONT 9, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_METHODEXEC_NAME,7,34,187,14,ES_AUTOHSCROLL
+    LTEXT           "Please specify the full path of the method to evaluate, no argument is supported right now:",
+                    IDC_STATIC,7,7,187,22
+    LTEXT           "The method will be continously executed in a thread and it's result will be posted to the status bar of the main window. The test thread will also post the error to the status bar and try again evaluation later.",
+                    IDC_STATIC,7,56,187,37
+    DEFPUSHBUTTON   "OK",IDOK,38,95,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,112,95,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -200,6 +214,8 @@ BEGIN
         MENUITEM "&Load table...",              ID_TABLE_LOAD
         MENUITEM "&Unload table",               ID_TABLE_UNLOAD
         MENUITEM "Test table unloading...",     ID_TEST_TABLE_UNLOAD
+        MENUITEM "Test method execution...",    ID_TEST_METHOD_EXEC
+        MENUITEM "&Stop all tests",             ID_TEST_STOP_ALL
         MENUITEM SEPARATOR
         MENUITEM "E&xit WinACPI",               ID_APP_EXIT
     END
@@ -277,6 +293,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 114
     END
+
+    IDD_METHODEXEC_TEST, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 194
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 109
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -333,6 +357,12 @@ BEGIN
     IDS_OBJECT_VALUE        "Value"
     IDS_BROWSE_TABLES_FOLDER 
                             "Please select a folder that contains multiple "".dat"" ACPI table binary files extracted from an acpidump."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_TEST_METHOD_EXEC     "Testing method executing"
+    ID_TEST_STOP_ALL        "Stop all running tests"
 END
 
 #endif    // English (U.S.) resources

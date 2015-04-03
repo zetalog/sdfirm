@@ -625,6 +625,71 @@ void acpi_test_TableUnload_stop(void)
 	}
 }
 
+boolean acpi_test_MethodExec_started = false;
+boolean acpi_test_MethodExec_stopped = false;
+char acpi_test_MethodExec_msg[1024];
+
+DWORD WINAPI acpi_test_MethodExec_thread(void *args)
+{
+	struct acpi_operand *result = NULL;
+	struct acpi_integer *integer = NULL;
+	acpi_status_t status;
+	char *name = (char *)args;
+
+	while (acpi_test_MethodExec_started) {
+		status = acpi_evaluate_object(NULL, name, 0, NULL, &result);
+		if (ACPI_SUCCESS(status)) {
+			if (result->object_type != ACPI_TYPE_INTEGER) {
+				snprintf(acpi_test_MethodExec_msg,
+					 sizeof (acpi_test_MethodExec_msg),
+					 "Unsupported object type: %d",
+					 result->object_type);
+			} else {
+				integer = ACPI_CAST_PTR(struct acpi_integer, result);
+				snprintf(acpi_test_MethodExec_msg,
+					 sizeof (acpi_test_MethodExec_msg),
+					 "Integer: %d", integer->value);
+			}
+		} else {
+			snprintf(acpi_test_MethodExec_msg,
+				 sizeof (acpi_test_MethodExec_msg),
+				 "Evaluation failure: %s",
+				 acpi_error_string(status, true));
+		}
+		acpi_test_display(acpi_test_MethodExec_msg);
+		acpi_operand_put(result, "evaluate");
+		acpi_os_sleep(10);
+	}
+
+	if (name)
+		free(name);
+	acpi_test_MethodExec_stopped = true;
+	return 0;
+}
+
+void acpi_test_MethodExec_start(const char *name)
+{
+	HANDLE thread;
+	void *param = NULL;
+	
+	if (name)
+		param = (void *)strdup(name);
+
+	thread = CreateThread(NULL, 0,
+			      acpi_test_MethodExec_thread,
+			      param, 0, NULL);
+	if (thread)
+		acpi_test_MethodExec_started = true;
+}
+
+void acpi_test_MethodExec_stop(void)
+{
+	while (acpi_test_MethodExec_started && !acpi_test_MethodExec_stopped) {
+		acpi_test_MethodExec_started = false;
+		acpi_os_sleep(1000);
+	}
+}
+
 void acpi_test_init(void)
 {
 	acpi_reference_set(&acpi_test_TableUnload_count, 0);
@@ -633,6 +698,7 @@ void acpi_test_init(void)
 void acpi_test_exit(void)
 {
 	acpi_test_TableUnload_stop();
+	acpi_test_MethodExec_stop();
 }
 
 void acpi_emu_init(void)

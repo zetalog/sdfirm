@@ -498,6 +498,11 @@ acpi_status_t acpi_evaluate_object(acpi_handle_t handle, char *name,
 	method = ACPI_CAST_PTR(struct acpi_method, operand);
 	scope = acpi_node_get(node->parent, "evaluate");
 
+	if (!method || !scope) {
+		status = AE_NOT_EXIST;
+		goto err_exit;
+	}
+
 	status = acpi_interpret_aml(ACPI_DDB_HANDLE_INVALID, node->tag,
 				    method->aml_start,
 				    method->aml_length,

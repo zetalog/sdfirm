@@ -25,6 +25,10 @@ typedef struct tagACPITESTTABLEUNLOAD {
 	int nIterations;
 } ACPITESTTABLEUNLOAD, *LPACPITESTTABLEUNLOAD;
 
+typedef struct tagACPITESTMETHODEXEC {
+	char szName[ACPI_ASL_PATH_SIZE+1];
+} ACPITESTMETHODEXEC, *LPACPITESTMETHODEXEC;
+
 typedef struct tagACPIWNDDATA {
 	HWND hWnd;
 	HWND hwndToolbar;
@@ -35,6 +39,7 @@ typedef struct tagACPIWNDDATA {
 	HWND hwndNamespaceList;
 	HIMAGELIST himgTableTypes;
 	ACPITESTTABLEUNLOAD utTableUnload;
+	ACPITESTMETHODEXEC utMethodExec;
 } ACPIWNDDATA, *LPACPIWNDDATA;
 
 #define WinACPI_GetPtr(hWnd)			\
@@ -51,9 +56,15 @@ extern void acpi_test_init(void);
 extern void acpi_ospm_exit(void);
 extern void acpi_test_exit(void);
 
+extern boolean acpi_test_MethodExec_started;
+extern boolean acpi_test_MethodExec_stopped;
+
 extern acpi_status_t acpi_emu_load_table(const char *file, acpi_ddb_t *ddb);
 extern void acpi_test_TableUnload_start(const char *path,
 					int nr_threads, int iterations);
 extern void acpi_test_TableUnload_stop(void);
+extern void acpi_test_MethodExec_start(const char *name);
+extern void acpi_test_MethodExec_stop(void);
+extern void acpi_test_display(const char *msg);
 
 #endif /* __WINACPI_H_INCLUDE__ */
