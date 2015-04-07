@@ -86,6 +86,7 @@ struct acpi_parser *acpi_parser_init(struct acpi_interp *interp,
 	environ = &parser->environ;
 	environ->term = term;
 	term = NULL;
+	environ->opcode = AML_AMLCODE_OP;
 	environ->op_info = acpi_opcode_get_info(AML_AMLCODE_OP);
 
 	parser->aml = parser->aml_begin;

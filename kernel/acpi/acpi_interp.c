@@ -325,6 +325,7 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 	case AML_ONES_OP:
 		status = __acpi_interpret_close_integer(interp, environ, (uint64_t)-1);
 		break;
+	case AML_AMLCODE_OP:
 	case AML_RETURN_OP:
 		status = acpi_interpret_close_Return(interp, environ);
 		break;
