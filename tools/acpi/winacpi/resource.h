@@ -31,6 +31,7 @@
 #define IDS_OBJECT_ATTRIBUTE            27
 #define IDS_OBJECT_VALUE                28
 #define IDS_BROWSE_TABLES_FOLDER        29
+#define IDS_ERROR_PATCH_TABLE           30
 #define IDM_MAINFRAME                   101
 #define IDA_MAINFRAME                   102
 #define IDB_TOOLBAR4BIT                 103
@@ -81,13 +82,14 @@
 #define ID_TEST_TABLE_UNLOAD            40015
 #define ID_TEST_METHOD_EXEC             40016
 #define ID_TEST_STOP_ALL                40017
+#define ID_TABLE_PATCH                  40018
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        123
-#define _APS_NEXT_COMMAND_VALUE         40018
+#define _APS_NEXT_COMMAND_VALUE         40019
 #define _APS_NEXT_CONTROL_VALUE         1023
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

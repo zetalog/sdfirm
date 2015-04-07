@@ -213,6 +213,7 @@ BEGIN
     BEGIN
         MENUITEM "&Load table...",              ID_TABLE_LOAD
         MENUITEM "&Unload table",               ID_TABLE_UNLOAD
+        MENUITEM "Patch table...",              ID_TABLE_PATCH
         MENUITEM "Test table unloading...",     ID_TEST_TABLE_UNLOAD
         MENUITEM "Test method execution...",    ID_TEST_METHOD_EXEC
         MENUITEM "&Stop all tests",             ID_TEST_STOP_ALL
@@ -357,12 +358,14 @@ BEGIN
     IDS_OBJECT_VALUE        "Value"
     IDS_BROWSE_TABLES_FOLDER 
                             "Please select a folder that contains multiple "".dat"" ACPI table binary files extracted from an acpidump."
+    IDS_ERROR_PATCH_TABLE   "Failed to patch ACPI table.\n\nStatus:\n%s."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_TEST_METHOD_EXEC     "Testing method executing"
     ID_TEST_STOP_ALL        "Stop all running tests"
+    ID_TABLE_PATCH          "Patch an existing ACPI table"
 END
 
 #endif    // English (U.S.) resources

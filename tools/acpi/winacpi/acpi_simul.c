@@ -165,6 +165,28 @@ out_exit:
 	return status;
 }
 
+acpi_status_t acpi_emu_patch_table(const char *file, acpi_ddb_t *ddb)
+{
+	struct acpi_table_header *table;
+	acpi_status_t status;
+	acpi_ddb_t local_ddb = ACPI_DDB_HANDLE_INVALID;
+
+	status = acpi_table_read_file(file, 0, ACPI_NULL_NAME, &table);
+	if (ACPI_FAILURE(status))
+		goto out_exit;
+
+	acpi_dbg("[%4.4s %d] enter acpi_patch_table", table->signature,
+		 local_ddb);
+	status = acpi_install_and_load_table(table, ACPI_TABLE_INTERNAL_VIRTUAL,
+					     false, &local_ddb);
+	acpi_dbg("[%4.4s %d] exit acpi_install_table", table->signature, local_ddb);
+
+out_exit:
+	if (ddb)
+		*ddb = local_ddb;
+	return status;
+}
+
 acpi_status_t acpi_emu_read_table(const char *file)
 {
 	int ret;

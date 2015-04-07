@@ -60,6 +60,7 @@ extern boolean acpi_test_MethodExec_started;
 extern boolean acpi_test_MethodExec_stopped;
 
 extern acpi_status_t acpi_emu_load_table(const char *file, acpi_ddb_t *ddb);
+extern acpi_status_t acpi_emu_patch_table(const char *file, acpi_ddb_t *ddb);
 extern void acpi_test_TableUnload_start(const char *path,
 					int nr_threads, int iterations);
 extern void acpi_test_TableUnload_stop(void);

@@ -73,18 +73,20 @@ INT _nIdMappings[MAX_LAYOUT_IDS] = {
 	IDS_ERROR,
 	IDS_ERROR_FILE_BROWSE,
 };
-#define TOOLBARNUM			6
+#define TOOLBARNUM			7
 #define IDX_EXITAPP			0
 #define IDX_ACPI_TABLELOAD		1
 #define IDX_ACPI_TABLEUNLOAD		2
-#define IDX_ACPI_TABLETEST		3
-#define IDX_ACPI_METHODTEST		4
-#define IDX_ACPI_STOPTESTS		5
+#define IDX_ACPI_TABLEPATCH		3
+#define IDX_ACPI_TABLETEST		4
+#define IDX_ACPI_METHODTEST		5
+#define IDX_ACPI_STOPTESTS		6
 
 WINTOOLBARITEM _ToolbarItems[TOOLBARNUM] = {
 	{ FALSE, IDX_EXITAPP, ID_APP_EXIT },
 	{ FALSE, IDX_ACPI_TABLELOAD, ID_TABLE_LOAD },
 	{ FALSE, IDX_ACPI_TABLEUNLOAD, ID_TABLE_UNLOAD },
+	{ FALSE, IDX_ACPI_TABLEPATCH, ID_TABLE_PATCH },
 	{ FALSE, IDX_ACPI_TABLETEST, ID_TEST_TABLE_UNLOAD },
 	{ FALSE, IDX_ACPI_METHODTEST, ID_TEST_METHOD_EXEC },
 	{ FALSE, IDX_ACPI_STOPTESTS, ID_TEST_STOP_ALL },
@@ -994,6 +996,17 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg,
 			break;
 		case ID_TABLE_UNLOAD:
 			acpi_uninstall_table(ACPIGetSelectedTable(lpWD));
+			break;
+		case ID_TABLE_PATCH:
+			if (DlgBrowseFile(hWnd,
+					  szFile, MAX_PATH,
+					  pName, pSuffix, 1,
+					  FALSE)) {
+				status = acpi_emu_patch_table(szFile, NULL);
+				if (ACPI_FAILURE(status))
+					ACPIDisplayStatus(hWnd, IDS_ERROR_PATCH_TABLE,
+							  IDS_ERROR, MB_OK, status);
+			}
 			break;
 		case ID_TEST_TABLE_UNLOAD:
 			StartTableUnloadTest(lpWD);
