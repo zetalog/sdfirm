@@ -615,7 +615,7 @@ acpi_status_t acpi_term_alloc_name(struct acpi_parser *parser,
 		struct acpi_method *method;
 
 		node = acpi_space_get_node(ACPI_DDB_HANDLE_INVALID,
-					   interp->node,
+					   interp->scope->node,
 					   term->value.string,
 					   term->aml_length,
 					   ACPI_TYPE_ANY,

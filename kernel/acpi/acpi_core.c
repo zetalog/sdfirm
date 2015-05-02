@@ -271,3 +271,79 @@ acpi_status_t acpi_initialize_subsystem(void)
 
 	return AE_OK;
 }
+
+/*=========================================================================
+ * Stacked scopes
+ *=======================================================================*/
+static void __acpi_scope_init(struct acpi_scope *scope,
+			      struct acpi_namespace_node *node)
+{
+	scope->node = acpi_node_get(node, "scope");
+}
+
+static void __acpi_scope_exit(struct acpi_object *object)
+{
+	struct acpi_scope *scope =
+		ACPI_CAST_PTR(struct acpi_scope, object);
+
+	if (scope->node) {
+		acpi_node_put(scope->node, "scope");
+		scope->node = NULL;
+	}
+}
+
+struct acpi_scope *acpi_scope_open(struct acpi_namespace_node *node)
+{
+	struct acpi_state *state;
+	struct acpi_scope *scope = NULL;
+
+	state = acpi_state_open(ACPI_STATE_SCOPE,
+				sizeof (struct acpi_scope),
+				__acpi_scope_exit);
+	scope = ACPI_CAST_PTR(struct acpi_scope, state);
+	if (scope)
+		__acpi_scope_init(scope, node);
+
+	return scope;
+}
+
+void acpi_scope_close(struct acpi_scope *scope)
+{
+	acpi_state_close(ACPI_CAST_PTR(struct acpi_state, scope));
+}
+
+struct acpi_scope *acpi_scope_init(struct acpi_namespace_node *node)
+{
+	return acpi_scope_open(node);
+}
+
+void acpi_scope_exit(struct acpi_scope *scope)
+{
+	while (scope)
+		acpi_scope_pop(&scope);
+}
+
+acpi_status_t acpi_scope_push(struct acpi_scope **curr_scope,
+			      struct acpi_namespace_node *node)
+{
+	struct acpi_scope *next_state;
+
+	next_state = acpi_scope_open(node);
+	if (!next_state)
+		return AE_NO_MEMORY;
+
+	acpi_state_push(ACPI_CAST_PTR(struct acpi_state *, curr_scope),
+			ACPI_CAST_PTR(struct acpi_state, next_state));
+	BUG_ON(next_state != *curr_scope);
+	return AE_OK;
+}
+
+void acpi_scope_pop(struct acpi_scope **curr_scope)
+{
+	struct acpi_state *last_state;
+
+	last_state = acpi_state_pop(ACPI_CAST_PTR(struct acpi_state *,
+				    curr_scope));
+	if (last_state)
+		acpi_scope_close(ACPI_CAST_PTR(struct acpi_scope, last_state));
+}

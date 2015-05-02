@@ -119,6 +119,7 @@ struct acpi_super_name {
 };
 
 #define ACPI_STATE_PARSER		0x01
+#define ACPI_STATE_SCOPE		0x02
 
 struct acpi_state {
 	struct acpi_object common;
@@ -155,6 +156,14 @@ struct acpi_parser {
 	struct acpi_environ environ;
 };
 
+#define ACPI_SCOPE_DYNAMIC	0x01
+
+struct acpi_scope {
+	struct acpi_state common;
+	struct acpi_namespace_node *node;
+	uint8_t flags;
+};
+
 /*
  * When the TermList is about to be parsed, we invoke acpi_term_cb using
  * this type.
@@ -175,7 +184,7 @@ struct acpi_interp {
 	/* Parser state */
 	struct acpi_parser *parser;
 	/* current scope */
-	struct acpi_namespace_node *node;
+	struct acpi_scope *scope;
 
 	struct acpi_operand *result;
 	struct acpi_operand *targets[AML_MAX_TARGETS];
@@ -314,6 +323,14 @@ void acpi_space_close_node(acpi_handle_t node);
 void acpi_space_assign_operand(struct acpi_namespace_node *node,
 			       struct acpi_operand *operand);
 void acpi_space_notify_existing(void);
+
+struct acpi_scope *acpi_scope_init(struct acpi_namespace_node *node);
+void acpi_scope_exit(struct acpi_scope *scope);
+struct acpi_scope *acpi_scope_open(struct acpi_namespace_node *node);
+void acpi_scope_close(struct acpi_scope *scope);
+acpi_status_t acpi_scope_push(struct acpi_scope **curr_scope,
+			      struct acpi_namespace_node *node);
+void acpi_scope_pop(struct acpi_scope **curr_scope);
 
 /*=========================================================================
  * Utility internals
