@@ -156,7 +156,10 @@ struct acpi_parser {
 	struct acpi_environ environ;
 };
 
-#define ACPI_SCOPE_DYNAMIC	0x01
+struct acpi_parser_stack {
+	struct acpi_parser *top;
+	struct acpi_parser init;
+};
 
 struct acpi_scope {
 	struct acpi_state common;
@@ -182,7 +185,7 @@ acpi_status_t (*acpi_term_cb)(struct acpi_interp *interp,
 
 struct acpi_interp {
 	/* Parser state */
-	struct acpi_parser *parser;
+	struct acpi_parser_stack parser;
 	/* current scope */
 	struct acpi_scope *scope;
 
@@ -194,6 +197,8 @@ struct acpi_interp {
 	acpi_ddb_t ddb;
 	acpi_term_cb callback;
 };
+
+#define acpi_interp_parser(interp)	((interp)->parser.top)
 
 /*=========================================================================
  * Table internals
@@ -222,18 +227,15 @@ extern struct acpi_table_fadt acpi_gbl_FADT;
 /*=========================================================================
  * Parser internals
  *=======================================================================*/
-struct acpi_parser *acpi_parser_init(struct acpi_interp *interp,
-				     acpi_tag_t tag,
-				     uint8_t *aml_begin,
-				     uint8_t *aml_end,
-				     struct acpi_namespace_node *node,
-				     uint8_t nr_arguments,
-				     struct acpi_operand **arguments);
-void acpi_parser_exit(struct acpi_parser *parser);
-acpi_status_t acpi_parser_push(struct acpi_parser *last_parser,
-			       struct acpi_parser **next_parser);
-acpi_status_t acpi_parser_pop(struct acpi_parser *last_parser,
-			      struct acpi_parser **next_parser);
+acpi_status_t acpi_parser_init(struct acpi_parser_stack *parser_stack,
+			       struct acpi_interp *interp, acpi_tag_t tag,
+			       uint8_t *aml_begin, uint8_t *aml_end,
+			       struct acpi_namespace_node *node,
+			       uint8_t nr_arguments,
+			       struct acpi_operand **arguments);
+void acpi_parser_exit(struct acpi_parser_stack *parser_stack);
+struct acpi_parser *acpi_parser_push(struct acpi_parser_stack *parser_stack);
+struct acpi_parser *acpi_parser_pop(struct acpi_parser_stack *parser_stack);
 
 struct acpi_term *acpi_term_alloc_op(uint16_t opcode,
 				    uint8_t *aml, uint32_t length);

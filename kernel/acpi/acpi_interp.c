@@ -172,7 +172,7 @@ static acpi_status_t acpi_interpret_close_Name(struct acpi_interp *interp,
 	struct acpi_term *namearg;
 	struct acpi_namespace_node *node;
 	struct acpi_operand *operand;
-	struct acpi_parser *parser = interp->parser;
+	struct acpi_parser *parser = acpi_interp_parser(interp);
 
 	namearg = acpi_term_get_arg(environ->term, 0);
 	operand = acpi_operand_get(parser->arguments[0], "interp");
@@ -241,7 +241,7 @@ static acpi_status_t __acpi_interpret_close_integer(struct acpi_interp *interp,
 {
 	struct acpi_integer *integer;
 	struct acpi_operand *operand;
-	struct acpi_parser *parser = interp->parser;
+	struct acpi_parser *parser = acpi_interp_parser(interp);
 
 	BUG_ON(interp->nr_targets > 0 || interp->result);
 
@@ -270,7 +270,7 @@ static acpi_status_t acpi_interpret_close_Return(struct acpi_interp *interp,
 						 struct acpi_environ *environ)
 {
 	struct acpi_operand *operand;
-	struct acpi_parser *parser = interp->parser;
+	struct acpi_parser *parser = acpi_interp_parser(interp);
 
 	operand = acpi_operand_get(parser->arguments[0], "return");
 	if (!operand)

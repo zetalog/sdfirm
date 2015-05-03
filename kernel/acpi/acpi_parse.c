@@ -61,31 +61,31 @@ static void acpi_parser_close(struct acpi_parser *parser)
 	acpi_state_close(ACPI_CAST_PTR(struct acpi_state, parser));
 }
 
-struct acpi_parser *acpi_parser_init(struct acpi_interp *interp,
-				     acpi_tag_t tag,
-				     uint8_t *aml_begin,
-				     uint8_t *aml_end,
-				     struct acpi_namespace_node *node,
-				     uint8_t nr_arguments,
-				     struct acpi_operand **arguments)
+acpi_status_t acpi_parser_init(struct acpi_parser_stack *parser_stack,
+			       struct acpi_interp *interp, acpi_tag_t tag,
+			       uint8_t *aml_begin, uint8_t *aml_end,
+			       struct acpi_namespace_node *node,
+			       uint8_t nr_arguments,
+			       struct acpi_operand **arguments)
 {
 	struct acpi_parser *parser;
 	struct acpi_environ *environ;
 	struct acpi_term_list *term_list;
 	struct acpi_term *term = NULL;
 
+	parser_stack->top = NULL;
+
 	/* AML is a TermList */
 	term_list = acpi_term_alloc_aml(tag, aml_begin, aml_end);
 	if (!term_list)
-		return NULL;
+		return AE_NO_MEMORY;
 	term = ACPI_CAST_PTR(struct acpi_term, term_list);
-	parser = acpi_parser_open(interp, aml_begin, aml_end, NULL);
-	if (!parser)
-		goto err_exit;
+	parser = &parser_stack->init;
+	memset(parser, 0, sizeof (struct acpi_parser));
+	__acpi_parser_init(parser, interp, aml_begin, aml_end, term);
 
 	environ = &parser->environ;
 	environ->term = term;
-	term = NULL;
 	environ->opcode = AML_AMLCODE_OP;
 	environ->op_info = acpi_opcode_get_info(AML_AMLCODE_OP);
 
@@ -100,74 +100,75 @@ struct acpi_parser *acpi_parser_init(struct acpi_interp *interp,
 	 */
 	parser->next_opcode = false;
 
-err_exit:
-	if (term)
-		acpi_term_free(term);
-	return parser;
+	parser_stack->top = &parser_stack->init;
+	return AE_OK;
 }
 
-void acpi_parser_exit(struct acpi_parser *parser)
+void acpi_parser_exit(struct acpi_parser_stack *parser_stack)
 {
-	while (parser)
-		acpi_parser_pop(parser, &parser);
+	struct acpi_parser *parser = parser_stack->top;
+
+	while (parser != &parser_stack->init)
+		parser = acpi_parser_pop(parser_stack);
+
+	if (parser->environ.term) {
+		acpi_term_free(parser->environ.term);
+		parser->environ.term = NULL;
+	}
 }
 
-acpi_status_t acpi_parser_push(struct acpi_parser *last_parser,
-			       struct acpi_parser **next_parser)
+struct acpi_parser *acpi_parser_push(struct acpi_parser_stack *parser_stack)
 {
-	struct acpi_interp *interp = last_parser->interp;
+	struct acpi_parser *curr_parser = parser_stack->top;
+	struct acpi_interp *interp = curr_parser->interp;
 	struct acpi_parser *next_state;
-	struct acpi_environ *last_environ = &last_parser->environ;
+	struct acpi_environ *last_environ = &curr_parser->environ;
 	uint8_t *aml_end;
 
-	BUG_ON(last_parser != interp->parser);
+	BUG_ON(curr_parser != acpi_interp_parser(interp));
 
-	if (last_parser->pkg_end < last_parser->aml_end)
-		aml_end = last_parser->pkg_end;
+	if (curr_parser->pkg_end < curr_parser->aml_end)
+		aml_end = curr_parser->pkg_end;
 	else
-		aml_end = last_parser->pkg_end;
+		aml_end = curr_parser->pkg_end;
 
 	next_state = acpi_parser_open(interp,
-				      last_parser->aml, aml_end,
+				      curr_parser->aml, aml_end,
 				      last_environ->term);
-	if (!next_state) {
-		*next_parser = last_parser;
-		return AE_NO_MEMORY;
-	}
+	if (!next_state)
+		return NULL;
 
-	acpi_state_push(&ACPI_CAST_PTR(struct acpi_state, interp->parser),
+	acpi_state_push(&ACPI_CAST_PTR(struct acpi_state, parser_stack->top),
 			ACPI_CAST_PTR(struct acpi_state, next_state));
-	BUG_ON(next_state != interp->parser);
+	BUG_ON(next_state != acpi_interp_parser(interp));
 
-	next_state->aml = last_parser->aml;
-	next_state->pkg_end = last_parser->aml_end;
+	next_state->aml = curr_parser->aml;
+	next_state->pkg_end = curr_parser->aml_end;
 
 	BUG_ON(next_state->aml > next_state->aml_end);
 
 	BUG_ON(next_state->environ.parent_term != last_environ->term);
-	next_state->environ.arg_type = AML_PARSER_GET_ARG_TYPE(last_parser);
+	next_state->environ.arg_type = AML_PARSER_GET_ARG_TYPE(curr_parser);
 
-	*next_parser = interp->parser;
-
-	return AE_OK;
+	return next_state;
 }
 
-acpi_status_t acpi_parser_pop(struct acpi_parser *last_parser,
-			      struct acpi_parser **next_parser)
+struct acpi_parser *acpi_parser_pop(struct acpi_parser_stack *parser_stack)
 {
-	struct acpi_interp *interp = last_parser->interp;
+	struct acpi_parser *curr_parser = parser_stack->top;
+	struct acpi_interp *interp = curr_parser->interp;
 	struct acpi_state *last_state;
 	struct acpi_parser *next_state;
 	int i;
 
-	BUG_ON(last_parser != interp->parser);
+	BUG_ON(curr_parser != acpi_interp_parser(interp));
 
 	last_state = acpi_state_pop(&ACPI_CAST_PTR(struct acpi_state,
-				    interp->parser));
+				    acpi_interp_parser(interp)));
 
-	next_state = interp->parser;
+	next_state = acpi_interp_parser(interp);
 	if (next_state) {
-		next_state->aml = last_parser->aml;
+		next_state->aml = curr_parser->aml;
 #if 0
 		if (next_state->aml == next_state->pkg_end)
 			next_state->pkg_end = next_state->aml_end;
@@ -200,10 +201,9 @@ acpi_status_t acpi_parser_pop(struct acpi_parser *last_parser,
 	 * Where "*" indicates that the API can be invoked for multiple
 	 * times.
 	 */
-	acpi_parser_close(last_parser);
-	*next_parser = next_state;
+	acpi_parser_close(curr_parser);
 
-	return AE_OK;
+	return next_state;
 }
 
 uint16_t aml_opcode_peek(uint8_t *aml)
@@ -776,13 +776,14 @@ acpi_status_t acpi_parse_aml(struct acpi_interp *interp, acpi_tag_t tag,
 			     struct acpi_operand **arguments)
 {
 	acpi_status_t status = AE_OK;
-	struct acpi_parser *parser = interp->parser;
+	struct acpi_parser *parser;
 
-	parser = acpi_parser_init(interp, tag, aml_begin, aml_end,
+	status = acpi_parser_init(&interp->parser, interp, tag,
+				  aml_begin, aml_end,
 				  node, nr_arguments, arguments);
-	if (!parser)
-		return AE_NO_MEMORY;
-	interp->parser = parser;
+	if (ACPI_FAILURE(status))
+		return status;
+	parser = acpi_interp_parser(interp);
 
 	while (parser && ((parser->aml < aml_end) || parser->environ.term)) {
 		if (!parser->environ.term) {
@@ -812,9 +813,9 @@ acpi_status_t acpi_parse_aml(struct acpi_interp *interp, acpi_tag_t tag,
 		}
 
 		if (parser->next_opcode) {
-			status = acpi_parser_push(parser, &parser);
-			if (ACPI_FAILURE(status)) {
-				status = acpi_parser_end_term(parser, status);
+			parser = acpi_parser_push(&interp->parser);
+			if (!parser) {
+				status = acpi_parser_end_term(parser, AE_NO_MEMORY);
 				if (ACPI_FAILURE(status))
 					break;
 				goto next_parser;
@@ -835,12 +836,12 @@ acpi_status_t acpi_parse_aml(struct acpi_interp *interp, acpi_tag_t tag,
 
 next_parser:
 		if (acpi_parser_completed(parser))
-			acpi_parser_pop(parser, &parser);
+			parser = acpi_parser_pop(&interp->parser);
 	}
 
 	if (parser && ACPI_SUCCESS(status))
 		status = AE_AML_INCOMPLETE_TERM;
-	acpi_parser_exit(parser);
+	acpi_parser_exit(&interp->parser);
 
 	return status;
 }
