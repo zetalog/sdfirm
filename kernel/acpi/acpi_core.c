@@ -292,7 +292,7 @@ static void __acpi_scope_exit(struct acpi_object *object)
 	}
 }
 
-struct acpi_scope *acpi_scope_open(struct acpi_namespace_node *node)
+static struct acpi_scope *acpi_scope_open(struct acpi_namespace_node *node)
 {
 	struct acpi_state *state;
 	struct acpi_scope *scope = NULL;
@@ -307,23 +307,28 @@ struct acpi_scope *acpi_scope_open(struct acpi_namespace_node *node)
 	return scope;
 }
 
-void acpi_scope_close(struct acpi_scope *scope)
+static void acpi_scope_close(struct acpi_scope *scope)
 {
 	acpi_state_close(ACPI_CAST_PTR(struct acpi_state, scope));
 }
 
-struct acpi_scope *acpi_scope_init(struct acpi_namespace_node *node)
+void acpi_scope_init(struct acpi_scope_stack *scope_stack,
+		     struct acpi_namespace_node *node)
 {
-	return acpi_scope_open(node);
+	memset(scope_stack, 0, sizeof (struct acpi_scope_stack));
+	__acpi_scope_init(&scope_stack->init, node);
+	scope_stack->top = &scope_stack->init;
 }
 
-void acpi_scope_exit(struct acpi_scope *scope)
+void acpi_scope_exit(struct acpi_scope_stack *scope_stack)
 {
-	while (scope)
-		acpi_scope_pop(&scope);
+	while (scope_stack->top != &scope_stack->init)
+		acpi_scope_pop(scope_stack);
+	__acpi_scope_exit(ACPI_CAST_PTR(struct acpi_object,
+			  &scope_stack->init));
 }
 
-acpi_status_t acpi_scope_push(struct acpi_scope **curr_scope,
+acpi_status_t acpi_scope_push(struct acpi_scope_stack *scope_stack,
 			      struct acpi_namespace_node *node)
 {
 	struct acpi_scope *next_state;
@@ -332,18 +337,18 @@ acpi_status_t acpi_scope_push(struct acpi_scope **curr_scope,
 	if (!next_state)
 		return AE_NO_MEMORY;
 
-	acpi_state_push(ACPI_CAST_PTR(struct acpi_state *, curr_scope),
+	acpi_state_push(ACPI_CAST_PTR(struct acpi_state *, &scope_stack->top),
 			ACPI_CAST_PTR(struct acpi_state, next_state));
-	BUG_ON(next_state != *curr_scope);
+	BUG_ON(next_state != scope_stack->top);
 	return AE_OK;
 }
 
-void acpi_scope_pop(struct acpi_scope **curr_scope)
+void acpi_scope_pop(struct acpi_scope_stack *scope_stack)
 {
 	struct acpi_state *last_state;
 
 	last_state = acpi_state_pop(ACPI_CAST_PTR(struct acpi_state *,
-				    curr_scope));
+				    &scope_stack->top));
 	if (last_state)
 		acpi_scope_close(ACPI_CAST_PTR(struct acpi_scope, last_state));
 }

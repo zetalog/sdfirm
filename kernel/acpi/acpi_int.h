@@ -164,7 +164,11 @@ struct acpi_parser_stack {
 struct acpi_scope {
 	struct acpi_state common;
 	struct acpi_namespace_node *node;
-	uint8_t flags;
+};
+
+struct acpi_scope_stack {
+	struct acpi_scope *top;
+	struct acpi_scope init;
 };
 
 /*
@@ -187,7 +191,7 @@ struct acpi_interp {
 	/* Parser state */
 	struct acpi_parser_stack parser;
 	/* current scope */
-	struct acpi_scope *scope;
+	struct acpi_scope_stack scope;
 
 	struct acpi_operand *result;
 	struct acpi_operand *targets[AML_MAX_TARGETS];
@@ -199,6 +203,7 @@ struct acpi_interp {
 };
 
 #define acpi_interp_parser(interp)	((interp)->parser.top)
+#define acpi_interp_scope(interp)	((interp)->scope.top->node)
 
 /*=========================================================================
  * Table internals
@@ -326,13 +331,12 @@ void acpi_space_assign_operand(struct acpi_namespace_node *node,
 			       struct acpi_operand *operand);
 void acpi_space_notify_existing(void);
 
-struct acpi_scope *acpi_scope_init(struct acpi_namespace_node *node);
-void acpi_scope_exit(struct acpi_scope *scope);
-struct acpi_scope *acpi_scope_open(struct acpi_namespace_node *node);
-void acpi_scope_close(struct acpi_scope *scope);
-acpi_status_t acpi_scope_push(struct acpi_scope **curr_scope,
+void acpi_scope_init(struct acpi_scope_stack *scope_stack,
+		     struct acpi_namespace_node *node);
+void acpi_scope_exit(struct acpi_scope_stack *scope_stack);
+acpi_status_t acpi_scope_push(struct acpi_scope_stack *scope_stack,
 			      struct acpi_namespace_node *node);
-void acpi_scope_pop(struct acpi_scope **curr_scope);
+void acpi_scope_pop(struct acpi_scope_stack *scope_stack);
 
 /*=========================================================================
  * Utility internals
