@@ -143,9 +143,16 @@ static void __acpi_object_init(struct acpi_object *object,
 	object->release = release;
 }
 
+void acpi_object_init(struct acpi_object *object, uint8_t type,
+		      acpi_size_t size, acpi_release_cb release)
+{
+	memset(object, 0, (size_t)size);
+	__acpi_object_init(object, type, release);
+}
+
 struct acpi_object *acpi_object_open(uint8_t type,
-					    acpi_size_t size,
-					    acpi_release_cb release)
+				     acpi_size_t size,
+				     acpi_release_cb release)
 {
 	struct acpi_object *object;
 
@@ -154,6 +161,19 @@ struct acpi_object *acpi_object_open(uint8_t type,
 		__acpi_object_init(object, type, release);
 
 	return object;
+}
+
+void acpi_object_exit(struct acpi_object *object, acpi_size_t size)
+{
+	if (!object || acpi_object_is_closing(object))
+		return;
+
+	object->closing = true;
+	if (!acpi_reference_dec_and_test(&object->reference_count)) {
+		if (object->release)
+			object->release(object);
+		memset(object, 0, (size_t)size);
+	}
 }
 
 void acpi_object_close(struct acpi_object *object)
@@ -238,6 +258,20 @@ static void __acpi_state_exit(struct acpi_object *object)
 		state->release_state(object);
 }
 
+void acpi_state_init(struct acpi_state *state,
+		     uint8_t type, acpi_size_t size,
+		     acpi_release_cb release)
+{
+	acpi_object_init(ACPI_CAST_PTR(struct acpi_object, state),
+			 ACPI_DESC_TYPE_STATE, size, __acpi_state_exit);
+	__acpi_state_init(state, type, release);
+}
+
+void acpi_state_exit(struct acpi_state *state, acpi_size_t size)
+{
+	acpi_object_exit(ACPI_CAST_PTR(struct acpi_object, state), size);
+}
+
 struct acpi_state *acpi_state_open(uint8_t type, acpi_size_t size,
 				   acpi_release_cb release)
 {
@@ -315,7 +349,11 @@ static void acpi_scope_close(struct acpi_scope *scope)
 void acpi_scope_init(struct acpi_scope_stack *scope_stack,
 		     struct acpi_namespace_node *node)
 {
-	memset(scope_stack, 0, sizeof (struct acpi_scope_stack));
+	struct acpi_scope *scope = &scope_stack->init;
+
+	acpi_state_init(ACPI_CAST_PTR(struct acpi_state, scope),
+			ACPI_STATE_SCOPE, sizeof (struct acpi_scope),
+			__acpi_scope_exit);
 	__acpi_scope_init(&scope_stack->init, node);
 	scope_stack->top = &scope_stack->init;
 }
@@ -324,8 +362,8 @@ void acpi_scope_exit(struct acpi_scope_stack *scope_stack)
 {
 	while (scope_stack->top != &scope_stack->init)
 		acpi_scope_pop(scope_stack);
-	__acpi_scope_exit(ACPI_CAST_PTR(struct acpi_object,
-			  &scope_stack->init));
+	acpi_state_exit(ACPI_CAST_PTR(struct acpi_state, scope_stack->top),
+			sizeof (struct acpi_scope));
 }
 
 acpi_status_t acpi_scope_push(struct acpi_scope_stack *scope_stack,

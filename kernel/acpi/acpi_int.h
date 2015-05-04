@@ -341,6 +341,9 @@ void acpi_scope_pop(struct acpi_scope_stack *scope_stack);
 /*=========================================================================
  * Utility internals
  *=======================================================================*/
+void acpi_object_init(struct acpi_object *object, uint8_t type,
+		      acpi_size_t size, acpi_release_cb release);
+void acpi_object_exit(struct acpi_object *object, acpi_size_t size);
 struct acpi_object *acpi_object_open(uint8_t type, acpi_size_t size,
 				     acpi_release_cb release);
 void acpi_object_close(struct acpi_object *object);
@@ -351,6 +354,10 @@ struct acpi_object *acpi_object_get_graceful(struct acpi_object *object);
 
 void acpi_state_push(struct acpi_state **head, struct acpi_state *state);
 struct acpi_state *acpi_state_pop(struct acpi_state **head);
+void acpi_state_init(struct acpi_state *state,
+		     uint8_t type, acpi_size_t size,
+		     acpi_release_cb release);
+void acpi_state_exit(struct acpi_state *state, acpi_size_t size);
 struct acpi_state *acpi_state_open(uint8_t type, acpi_size_t size,
 				   acpi_release_cb release);
 void acpi_state_close(struct acpi_state *state);

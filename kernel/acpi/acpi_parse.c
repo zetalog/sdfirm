@@ -81,7 +81,9 @@ acpi_status_t acpi_parser_init(struct acpi_parser_stack *parser_stack,
 		return AE_NO_MEMORY;
 	term = ACPI_CAST_PTR(struct acpi_term, term_list);
 	parser = &parser_stack->init;
-	memset(parser, 0, sizeof (struct acpi_parser));
+	acpi_state_init(ACPI_CAST_PTR(struct acpi_state, parser),
+			ACPI_STATE_PARSER, sizeof (struct acpi_parser),
+			__acpi_parser_exit);
 	__acpi_parser_init(parser, interp, aml_begin, aml_end, term);
 
 	environ = &parser->environ;
@@ -111,10 +113,17 @@ void acpi_parser_exit(struct acpi_parser_stack *parser_stack)
 	while (parser != &parser_stack->init)
 		parser = acpi_parser_pop(parser_stack);
 
+	acpi_state_exit(ACPI_CAST_PTR(struct acpi_state, parser),
+			sizeof (struct acpi_parser));
+
+	/* The term should have already been ended in the parser loop */
+	BUG_ON(parser->environ.term);
+#if 0
 	if (parser->environ.term) {
 		acpi_term_free(parser->environ.term);
 		parser->environ.term = NULL;
 	}
+#endif
 }
 
 struct acpi_parser *acpi_parser_push(struct acpi_parser_stack *parser_stack)
