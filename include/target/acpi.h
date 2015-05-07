@@ -53,6 +53,8 @@
 #include <target/list.h>
 #endif
 
+#define ACPI_REVISION			0x00000001
+
 #define ACPI_UINT32_MAX			(uint32_t)(~((uint32_t)0)) /* 0xFFFFFFFF         */
 #define ACPI_UINT64_MAX			(uint64_t)(~((uint64_t)0)) /* 0xFFFFFFFFFFFFFFFF */
 
@@ -814,6 +816,17 @@ struct acpi_integer {
 	uint64_t value;
 };
 
+struct acpi_string {
+	ACPI_OPERAND_HEADER
+	char *value;
+};
+
+struct acpi_buffer {
+	ACPI_OPERAND_HEADER
+	acpi_size_t length;
+	char *value;
+};
+
 uint8_t acpi_gbl_integer_bit_width;
 struct acpi_generic_address acpi_gbl_xpm1a_enable;
 struct acpi_generic_address acpi_gbl_xpm1b_enable;
@@ -977,6 +990,8 @@ struct acpi_operand *acpi_operand_get(struct acpi_operand *operand,
 				      const char *hint);
 void acpi_operand_put(struct acpi_operand *operand, const char *hint);
 struct acpi_integer *acpi_integer_open(uint64_t value);
+struct acpi_string *acpi_string_open(const char *value);
+struct acpi_buffer *acpi_buffer_open(const uint8_t *value, acpi_size_t length);
 
 acpi_status_t acpi_evaluate_object(acpi_handle_t handle, char *path,
 				   uint8_t nr_arguments,

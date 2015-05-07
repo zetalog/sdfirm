@@ -96,6 +96,73 @@ struct acpi_integer *acpi_integer_open(uint64_t value)
 	return integer;
 }
 
+static void __acpi_string_exit(struct acpi_object *object)
+{
+	struct acpi_string *string =
+		ACPI_CAST_PTR(struct acpi_string, object);
+
+	if (string->value) {
+		acpi_os_free(string->value);
+		string->value = NULL;
+	}
+}
+
+struct acpi_string *acpi_string_open(const char *value)
+{
+	struct acpi_string *string;
+	struct acpi_operand *operand;
+
+	operand = acpi_operand_open(ACPI_TYPE_STRING,
+				    sizeof (struct acpi_string),
+				    __acpi_string_exit);
+	if (!operand)
+		return NULL;
+
+	string = ACPI_CAST_PTR(struct acpi_string, operand);
+	if (value)
+		string->value = strdup(value);
+	else
+		string->value = NULL;
+
+	return string;
+}
+
+static void __acpi_buffer_exit(struct acpi_object *object)
+{
+	struct acpi_buffer *buffer =
+		ACPI_CAST_PTR(struct acpi_buffer, object);
+
+	if (buffer->value) {
+		acpi_os_free(buffer->value);
+		buffer->value = NULL;
+	}
+}
+
+struct acpi_buffer *acpi_buffer_open(const uint8_t *value, acpi_size_t length)
+{
+	struct acpi_buffer *buffer;
+	struct acpi_operand *operand;
+
+	operand = acpi_operand_open(ACPI_TYPE_BUFFER,
+				    sizeof (struct acpi_string),
+				    __acpi_buffer_exit);
+	if (!operand)
+		return NULL;
+
+	buffer = ACPI_CAST_PTR(struct acpi_buffer, operand);
+	if (value) {
+		buffer->value = acpi_os_allocate(length);
+		if (buffer->value) {
+			memcpy(buffer->value, value, (size_t)length);
+			buffer->length = length;
+		}
+	} else {
+		buffer->value = NULL;
+	}
+
+	return buffer;
+}
+
 void acpi_operand_close(struct acpi_operand *operand)
 {
 	struct acpi_object *object = ACPI_CAST_PTR(struct acpi_object, operand);
@@ -266,6 +333,70 @@ static acpi_status_t acpi_interpret_close_integer(struct acpi_interp *interp,
 					      valuearg->value.integer);
 }
 
+static acpi_status_t __acpi_interpret_close_string(struct acpi_interp *interp,
+						   struct acpi_environ *environ,
+						   const char *string_value)
+{
+	struct acpi_string *string;
+	struct acpi_operand *operand;
+	struct acpi_parser *parser = acpi_interp_parser(interp);
+
+	BUG_ON(interp->nr_targets > 0 || interp->result);
+
+	string = acpi_string_open(string_value);
+	if (!string)
+		return AE_NO_MEMORY;
+	operand = ACPI_CAST_PTR(struct acpi_operand, string);
+	interp->result = operand;
+	interp->targets[interp->nr_targets++] = acpi_operand_get(operand, "interp");
+	return AE_OK;
+}
+
+static acpi_status_t acpi_interpret_close_string(struct acpi_interp *interp,
+						 struct acpi_environ *environ)
+{
+	struct acpi_term *valuearg;
+
+	valuearg = acpi_term_get_arg(environ->term, 0);
+	if (!valuearg)
+		return AE_AML_OPERAND_TYPE;
+	return __acpi_interpret_close_string(interp, environ,
+					     valuearg->value.string);
+}
+
+static acpi_status_t __acpi_interpret_close_buffer(struct acpi_interp *interp,
+						   struct acpi_environ *environ,
+						   const uint8_t *buffer_value,
+						   acpi_size_t buffer_size)
+{
+	struct acpi_buffer *buffer;
+	struct acpi_operand *operand;
+	struct acpi_parser *parser = acpi_interp_parser(interp);
+
+	BUG_ON(interp->nr_targets > 0 || interp->result);
+
+	buffer = acpi_buffer_open(buffer_value, buffer_size);
+	if (!buffer)
+		return AE_NO_MEMORY;
+	operand = ACPI_CAST_PTR(struct acpi_operand, buffer);
+	interp->result = operand;
+	interp->targets[interp->nr_targets++] = acpi_operand_get(operand, "interp");
+	return AE_OK;
+}
+
+static acpi_status_t acpi_interpret_close_buffer(struct acpi_interp *interp,
+						 struct acpi_environ *environ)
+{
+	struct acpi_term *valuearg;
+
+	valuearg = acpi_term_get_arg(environ->term, 0);
+	if (!valuearg)
+		return AE_AML_OPERAND_TYPE;
+	return __acpi_interpret_close_buffer(interp, environ,
+					     valuearg->value.buffer.ptr,
+					     valuearg->value.buffer.len);
+}
+
 static acpi_status_t acpi_interpret_close_Return(struct acpi_interp *interp,
 						 struct acpi_environ *environ)
 {
@@ -289,6 +420,7 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 	acpi_debug_opcode_info(op_info, "Close:");
 
 	switch (opcode) {
+	/* Named objects */
 	case AML_SCOPE_OP:
 	case AML_DEVICE_OP:
 		acpi_scope_pop(&interp->scope);
@@ -299,6 +431,8 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 	case AML_METHOD_OP:
 		status = acpi_interpret_close_Method(interp, environ);
 		break;
+
+	/* Computational data */
 	case AML_BYTE_PFX:
 	case AML_WORD_PFX:
 	case AML_DWORD_PFX:
@@ -314,6 +448,17 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 	case AML_ONES_OP:
 		status = __acpi_interpret_close_integer(interp, environ, (uint64_t)-1);
 		break;
+	case AML_REVISION_OP:
+		status = __acpi_interpret_close_integer(interp, environ, ACPI_REVISION);
+		break;
+	case AML_STRING_PFX:
+		status = acpi_interpret_close_string(interp, environ);
+		break;
+	case AML_BUFFER_OP:
+		status = acpi_interpret_close_buffer(interp, environ);
+		break;
+
+	/* Return values */
 	case AML_AMLCODE_OP:
 	case AML_RETURN_OP:
 		status = acpi_interpret_close_Return(interp, environ);
