@@ -79,7 +79,7 @@ void system_init(void)
 	main_debug(MAIN_DEBUG_INIT, 1);
 
 	while (1) {
-#if 0
+#ifdef CONFIG_IDLE
 		while (!bh_resumed_any()) {
 			dbg_dump(0xAA);
 			wait_irq();
@@ -732,7 +732,7 @@ void system_init(void)
 	irq_local_enable();
 
 	while (1) {
-#if 0
+#ifdef CONFIG_IDLE
 		while (!bh_resumed_any()) {
 			dbg_dump(0xAA);
 			wait_irq();

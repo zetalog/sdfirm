@@ -65,6 +65,9 @@ config ARCH_HAS_WDT
 config ARCH_IS_TICKLESS
 	bool
 
+config ARCH_HAS_IDLE
+	bool
+
 menu "Scheduling facility (irq) support"
 	depends !SYS_NOIRQ
 
@@ -273,6 +276,14 @@ config ALLOC_TRIM
 config ALLOC_CHECK
 	bool "Enable allocation check support"
 	depends HEAP_DLMALLOC
+
+endif
+
+menuconfig IDLE
+	bool "Power management model (idle) support"
+	depends on ARCH_HAS_IDLE
+
+if IDLE
 
 endif
 

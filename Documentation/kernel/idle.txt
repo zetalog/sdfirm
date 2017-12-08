@@ -1,0 +1,88 @@
+
+
+                    High Idle Residency Firmware
+
+
+sdfirm is designed to be a high idle residency firmware. When a firmware
+is implemented without multi-threading supported:
+1. It executes hardware event handling state machines in the task context
+   by polling the underlying hardware IRQ status. Let's call such state
+   machines as F-STM (foreground state machines), some firmware
+   architectures may call them as DSRs (deferred IRQ service routines). In
+   sdfirm, it is represented as bh (kernel/bh.c).
+2. It executes hardware event handling state machine in the IRQ context by
+   being interrupted by the IRQs. Let's call such state machines as B-STM
+   (background state machines), some firmware architectures may call them
+   as ISRs (interrupted IRQ service rountines). In sdfirm, it is
+   represented as irq (kernel/irq.c).
+
+In order to demonstrate the idle model, let's consider a block chart of a
+USB controller:
+
+   +-----------------------+
+   | IRQ flag in CPU flags |
+   +-----------------------+
+            /|\
+         AND +-------------------------------------+
+             |                                     |
+   +------------------------------+  +------------------------------+
+   | IRQ status in IRQ controller |  | IRQ enable in IRQ controller |
+   +------------------------------+  +------------------------------+
+            /|\
+   +-----------------------------+
+   | IRQ flags in USB controller |
+   +-----------------------------+
+
+Each of the USB controller IRQ flags will cause USB IRQ status flagged in
+the IRQ controller and when the USB IRQ is enabled, the CPU IRQ flag will
+be set and result in the invocation of the USB IRQ handler.
+
+What's the difference between F-STM and B-STM in a basic firmware
+architecture?
+1. F-STM handles software events triggered by another B-STM.
+   e.x., USB F-STM handles a CCID completion event triggered by ISO7816
+   B-STM.
+2. F-STM can poll hardware events of its corresponding B-STM.
+   e.x., USB F-STM polls endpoint buffer empty/full hardware indications in
+   order to advance USB F-STM itself.
+3. B-STM can only handle hardware events.
+   e.x., USB B-STM handles endpoint IRQs and triggers USB F-STM IRQ polling
+   code if firmware is configured to handle IRQs in a deferred way, or USB
+   B-STM invokes IRQ polling code directly in IRQ context.
+
+But let's dig a little deeper. We found that: the software events are
+actually triggered by another hardware events in firmware (there is no
+user applications in firmware). Considering a event handled by ISO-7816
+B-STM. If the B-STM invokes USB F-STM directly instead of flagging a
+software event to trigger an invocation of the deferred USB F-STM, we
+actually chain USB F-STM into ISO-7816 B-STM in the IRQ context. And we
+seem can chain all software event handling F-STMs together and execute them
+until they really need to wait hardware events.
+
+The only problem is: if we chain state machines together, invoking the
+entire chain is really a stack consumption work and seems not possible. But
+sdfirm has a special IO modeling in dealing with the stack consumption.
+sdfirm defined a 3-stage general IO modeling - poll/data/done:
+1. poll: when a hardware is ready (e.x., buffer is empty for being written
+         or buffer is full for being read), poll stage is entered.
+2. done: when a hardware transfer is completed (e.x., buffer is empty again
+         after a write or buffer is empty again after a read), done stage
+         is entered.
+3. data: during this stage, F/B-STMs can write/read data to/from software
+         or hardware IO buffers.
+sdfirm then carefully tunes the STMs to make poll/data/done callbacks
+always invoked on the top of the stack and always chain another STM in the
+stack-top callbacks.
+
+Now the sdfirm can run everything in the IRQ context! However there are
+special hardware that do not generate IRQs and we still need to poll them
+in the task context. But it's beyond of the scope of this document and can
+be deemed as a failure of the hardware design.
+
+Then by injecting idle instructions (halt/mwait on x86, wfi on arm, ...)
+between F-STMs invoking cycles, we'll find that there is only idle
+instructions executed in the task context. This makes sdfirm the ultimate
+high idle residency firmware system and the feature can be enabled by
+configuring CONFIG_IDLE=y.
+
+                                                                by Lv Zheng

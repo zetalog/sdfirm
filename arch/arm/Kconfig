@@ -23,6 +23,7 @@ config ARCH_LM3S9B92
 	select ARCH_IS_TICKLESS if !TICK_LM3S9B92_PERIODIC
 	select ARCH_HAS_TSC
 	select ARCH_HAS_GPIO
+	select ARCH_HAS_IDLE
 	help
 	  This enables support for systems based on LM3S9B92.
 
@@ -33,6 +34,7 @@ config ARCH_LM3S3826
 	select ARCH_IS_TICKLESS if !TICK_LM3S3826_PERIODIC
 	select ARCH_HAS_TSC
 	select ARCH_HAS_GPIO
+	select ARCH_HAS_IDLE
 
 endchoice
 
