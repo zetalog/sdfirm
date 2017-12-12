@@ -1,5 +1,6 @@
 
 obj-y :=
+obj-$(CONFIG_ARM_M) += vic.o
 
 obj-y += entry.rel
 

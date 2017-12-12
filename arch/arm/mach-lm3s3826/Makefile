@@ -6,7 +6,6 @@ obj-y += cpu.rel
 obj-y += clk.rel
 obj-y += pm.rel
 obj-y += irq.rel
-obj-y += vic.rel
 obj-y += tsc.rel
 
 obj-$(CONFIG_GPT_LM3S3826) += gpt.rel

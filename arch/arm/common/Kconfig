@@ -1,4 +1,19 @@
 choice
+	prompt "ARM processor series"
+	default ARM_M
+
+config ARM_A
+	bool "A series - application processor"
+
+config ARM_R
+	bool "R series - embedded realtime processor"
+
+config ARM_M
+	bool "M series - embedded processor"
+
+endchoice
+
+choice
 	prompt "Processor type"
 
 # Cortex-M3
@@ -46,6 +61,7 @@ config CPU_32v6M
 
 config CPU_32v7
 	bool
+	select ARM_M
 
 config CPU_32v7M
 	bool
