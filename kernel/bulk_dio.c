@@ -1,4 +1,8 @@
 #include <target/bulk.h>
+#include <target/bitops.h>
+#include <target/circbf.h>
+#include <target/panic.h>
+#include <target/muldiv.h>
 
 struct bulk_block_writer {
 	iobulk_cb write;
