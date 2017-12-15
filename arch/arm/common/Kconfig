@@ -61,11 +61,11 @@ config CPU_32v6M
 
 config CPU_32v7
 	bool
-	select ARM_M
 
 config CPU_32v7M
 	bool
 	select ARM_THUMB2
+	select ARM_M
 
 config CPU_BIG_ENDIAN
 	bool "Build big-endian kernel"
