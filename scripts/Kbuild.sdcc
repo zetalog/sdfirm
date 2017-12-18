@@ -10,5 +10,5 @@ OBJCOPY		= $(CROSS_COMPILE)packihx
 CPPFLAGS        := -D__KERNEL__ $(TARGETINCLUDE)
 CFLAGS          := -DKBUILD_CONF $(TARGETINCLUDE) --stack-auto --model-small
 AFLAGS          := -D__ASSEMBLY__
-SYMLINK		:= cp -rf
-#SYMLINK	:= ln -fsn
+SYMLINK		:= ln -fsn
+#SYMLINK		:= cp -rf

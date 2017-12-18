@@ -61,7 +61,7 @@ boot := arch/mcs51/boot
 include/asm/mach: $(wildcard include/config/arch/*.h) \
 		include/config/auto.conf include/asm
 	@echo '  SYMLINK include/asm/mach -> include/asm/$(INCDIR)'
-	$(Q)$(SYMLINK) include/asm/$(INCDIR) $@
+	$(Q)$(SYMLINK) $(TOPDIR)/include/asm/$(INCDIR) $@
 
 archprepare: maketools
 

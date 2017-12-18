@@ -9,5 +9,5 @@ OBJCOPY		= $(CROSS_COMPILE)objcopy
 CPPFLAGS        := -D__KERNEL__ $(TARGETINCLUDE)
 CFLAGS          := -Wall -DKBUILD_CONF $(TARGETINCLUDE)
 AFLAGS          := -D__ASSEMBLY__
-SYMLINK		:= cp -rf
-#SYMLINK	:= ln -fsn
+SYMLINK		:= ln -fsn
+#SYMLINK		:= cp -rf

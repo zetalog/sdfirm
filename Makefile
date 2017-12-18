@@ -643,7 +643,7 @@ export CPPFLAGS_sdfirm.lds += -P -C -U$(ARCH)
 include/asm:
 	@echo '  SYMLINK $@ -> arch/$(ARCH)/include/asm'
 	$(Q)if [ ! -d include ]; then mkdir -p include; fi;
-	@$(SYMLINK) arch/$(ARCH)/include/asm $@
+	@$(SYMLINK) $(TOPDIR)/arch/$(ARCH)/include/asm $@
 
 # Generate some files
 # ---------------------------------------------------------------------------
