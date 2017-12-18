@@ -1,29 +1,15 @@
-choice
-	prompt "ARM processor series"
-	default ARM_M
-
-config ARM_A
-	bool "A series - application processor"
-
-config ARM_R
-	bool "R series - embedded realtime processor"
-
-config ARM_M
-	bool "M series - embedded processor"
-
-endchoice
-
-choice
-	prompt "Processor type"
-
 # Cortex-M3
 config CPU_CORTEXM3
-	bool "Support Cortex-M3 processor"
+	bool
 	select CPU_32v7M
 	select ARCH_HAS_VIC
 	help
 
-endchoice
+# Cortex-A9
+config CPU_CORTEXA9
+	bool
+	select CPU_32v7A
+	help
 
 # Figure out what processor architecture version we should be using.
 # This defines the compiler instruction set which depends on the machine type.
@@ -65,7 +51,12 @@ config CPU_32v7
 config CPU_32v7M
 	bool
 	select ARM_THUMB2
-	select ARM_M
+
+config CPU_32v7R
+	bool
+
+config CPU_32v7A
+	bool
 
 config CPU_BIG_ENDIAN
 	bool "Build big-endian kernel"

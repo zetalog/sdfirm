@@ -44,7 +44,7 @@ menu "Compiler options"
 
 config ARM_THUMB2
 	bool "Compile the firmware in thumb mode"
-	depends on CPU_32v7M || CPU32v6M || CPU32v6T || CPU32v5T || CPU32v4T || CPU32v3M
+	depends on CPU_32v7M || CPU32_v6M || CPU_32v6T || CPU_32v5T || CPU_32v4T || CPU_32v3M
 	select ARM_EABI
 	select ARM_ASM_UNIFIED
 	help
