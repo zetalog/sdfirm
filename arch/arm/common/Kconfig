@@ -1,8 +1,16 @@
+config NVIC
+	bool "Nested Vectored Interrupt Controller (NVIC) support"
+	select ARCH_HAS_VIC
+	help
+	  The NVIC provides configurable interrupt handling abilities to the
+	  Cortex M processors, facilitates low-latency exception and interrupt
+	  handling, and controls power management.
+
 # Cortex-M3
 config CPU_CORTEXM3
 	bool
 	select CPU_32v7M
-	select ARCH_HAS_VIC
+	select NVIC
 	help
 
 # Cortex-A9
