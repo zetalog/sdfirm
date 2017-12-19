@@ -79,7 +79,11 @@ AFLAGS		+=$(CFLAGS_ABI) $(AFLAGS_ISA) $(arch-y) $(tune-y) -include asm/unified.h
 CHECKFLAGS	+= -D__arm__
 
 # Default program entry
-head-y		:= arch/arm/common/head.rel
+ifeq ($(CONFIG_ARM_THUMB2),y)
+ head-y		:= arch/arm/common/head-thumb.rel
+else
+ head-y		:= arch/arm/common/head-arm.rel
+endif
 
 ifeq ($(CONFIG_ARCH_LM3S9B92),y)
  machine-$(CONFIG_ARCH_LM3S9B92)   := lm3s9b92

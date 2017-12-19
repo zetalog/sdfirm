@@ -11,8 +11,7 @@
 #define __vec_fin		__hivec
 #endif
 
- ARM(	.arm					)		@ ARM
- THUMB(	.thumb					)		@ THUMB
+	.thumb							@ THUMB
 
 	__LOVEC
 	.align 4
@@ -21,55 +20,46 @@ ENTRY(__lovec)
 	.word RAMEND						@ SP
 #ifdef CONFIG_XIP
 	.word BSYM(stext)					@ reset handler
-#ifdef CONFIG_CPU_32v7M
-	@ generic CORTEX-M device exception table
-    	.word BSYM(__bad_interrupt)				@ NMI
-    	.word BSYM(__bad_interrupt)				@ hard fault
-    	.word BSYM(handle_mpu_fault)				@ MPU
-    	.word BSYM(handle_bus_fault)				@ BUS fault
-    	.word BSYM(handle_usage_fault)				@ usage fault
-    	.word BSYM(__bad_interrupt)				@ reserved
-    	.word BSYM(__bad_interrupt)				@ reserved
-    	.word BSYM(__bad_interrupt)				@ reserved
-    	.word BSYM(__bad_interrupt)				@ reserved
-    	.word BSYM(__bad_interrupt)				@ SVCall
-    	.word BSYM(__bad_interrupt)				@ debug
-    	.word BSYM(__bad_interrupt)				@ reserved
-    	.word BSYM(__bad_interrupt)				@ PendSV
-    	.word BSYM(handle_sys_tick)				@ SysTick
-#endif
+	.word BSYM(__bad_interrupt)				@ NMI
+	.word BSYM(__bad_interrupt)				@ hard fault
+	.word BSYM(handle_mpu_fault)				@ MPU
+	.word BSYM(handle_bus_fault)				@ BUS fault
+	.word BSYM(handle_usage_fault)				@ usage fault
+	.word BSYM(__bad_interrupt)				@ reserved
+	.word BSYM(__bad_interrupt)				@ reserved
+	.word BSYM(__bad_interrupt)				@ reserved
+	.word BSYM(__bad_interrupt)				@ reserved
+	.word BSYM(__bad_interrupt)				@ SVCall
+	.word BSYM(__bad_interrupt)				@ debug
+	.word BSYM(__bad_interrupt)				@ reserved
+	.word BSYM(__bad_interrupt)				@ PendSV
+	.word BSYM(handle_sys_tick)				@ SysTick
 #else
 	.word stext - CONFIG_TEXT_RAM_BASE			@ reset
-#ifdef CONFIG_CPU_32v7M
-	@ generic CORTEX-M device exception table
-    	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ NMI
-    	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ hard fault
-    	.word BSYM(handle_mpu_fault) - CONFIG_TEXT_RAM_BASE	@ MPU
-    	.word BSYM(handle_bus_fault) - CONFIG_TEXT_RAM_BASE	@ BUS fault
-    	.word BSYM(handle_usage_fault) - CONFIG_TEXT_RAM_BASE	@ usage fault
-    	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ reserved
-    	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ reserved
-    	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ reserved
-    	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ reserved
-    	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ SVCall
-    	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ debug
-    	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ reserved
-    	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ PendSV
-    	.word BSYM(handle_sys_tick) - CONFIG_TEXT_RAM_BASE	@ SysTick
-#endif
+	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ NMI
+	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ hard fault
+	.word BSYM(handle_mpu_fault) - CONFIG_TEXT_RAM_BASE	@ MPU
+	.word BSYM(handle_bus_fault) - CONFIG_TEXT_RAM_BASE	@ BUS fault
+	.word BSYM(handle_usage_fault) - CONFIG_TEXT_RAM_BASE	@ usage fault
+	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ reserved
+	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ reserved
+	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ reserved
+	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ reserved
+	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ SVCall
+	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ debug
+	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ reserved
+	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ PendSV
+	.word BSYM(handle_sys_tick) - CONFIG_TEXT_RAM_BASE	@ SysTick
 #endif
 	.size __lovec, . - __lovec
 
 	__HEAD
 ENTRY(stext)
 	cpsid	i
-#ifdef CONFIG_CPU_32v7M
 	mov	r0, #0x0
 	mrs	r0, CONTROL
 	bic	r0, r0, #1
 	msr	CONTROL, r0					@ non-privileged
-	isb
-#endif
 
 	adr	r3, __startup_info
 #ifndef CONFIG_XIP
@@ -157,20 +147,16 @@ ENTRY(__display_long)
 ENDPROC(__display_long)
 
 ENTRY(__display_stacked_pc)
-#ifdef CONFIG_CPU_32v7M
 	@ display fault address
 	tst	lr, #0x02
 	bne	BSYM(1f)
 	mrs	r0, msp
 	b	BSYM(2f)
 1:
-	mrs	r0, psp 
+	mrs	r0, psp
 2:
 	add	r0, r0, #0x18
 	bl	BSYM(__display_long)
-#else
-	b	.
-#endif
 ENDPROC(__display_stacked_pc)
 
 ENTRY(handle_mpu_fault)
