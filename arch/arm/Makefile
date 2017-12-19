@@ -41,20 +41,17 @@ comma = ,
 # Note that GCC does not numerically define an architecture version
 # macro, but instead defines a whole series of macros which makes
 # testing for a specific architecture or later rather impossible.
-arch-$(CONFIG_CPU_32v7M)	:=-D__LINUX_ARM_ARCH__=7 -D__LINUX_ARM_M_ARCH__ $(call cc-option,-march=armv7-m -Wa$(comma)-march=armv7-m)
-arch-$(CONFIG_CPU_32v7A)	:=-D__LINUX_ARM_ARCH__=7 $(call cc-option,-march=armv7-a,-march=armv5t -Wa$(comma)-march=armv7-a)
+arch-$(CONFIG_CPU_32v7M)	:=-D__LINUX_ARM_ARCH__=7 -march=armv7-m -Wa,-march=armv7-m
 arch-$(CONFIG_CPU_32v7)		:=-D__LINUX_ARM_ARCH__=7 $(call cc-option,-march=armv7-a,-march=armv5t -Wa$(comma)-march=armv7-a)
-arch-$(CONFIG_CPU_32v6)		:=-D__LINUX_ARM_ARCH__=6 $(call cc-option,-march=armv6,-march=armv5t -Wa$(comma)-march=armv6)
-# Only override the compiler option if ARMv6. The ARMv6K extensions are
-# always available in ARMv7
-ifeq ($(CONFIG_CPU_32v6),y)
+arch-$(CONFIG_CPU_32v6KZ)	:=-D__LINUX_ARM_ARCH__=6 $(call cc-option,-march=armv6kz,-march=armv5t -Wa$(comma)-march=armv6kz)
+arch-$(CONFIG_CPU_32v6T2)	:=-D__LINUX_ARM_ARCH__=6 -march=armv6t -Wa,-march=armv6t2
 arch-$(CONFIG_CPU_32v6K)	:=-D__LINUX_ARM_ARCH__=6 $(call cc-option,-march=armv6k,-march=armv5t -Wa$(comma)-march=armv6k)
-endif
-arch-$(CONFIG_CPU_32v5)		:=-D__LINUX_ARM_ARCH__=5 $(call cc-option,-march=armv5te,-march=armv4t)
+arch-$(CONFIG_CPU_32v6)		:=-D__LINUX_ARM_ARCH__=6 $(call cc-option,-march=armv6,-march=armv5t -Wa$(comma)-march=armv6)
+arch-$(CONFIG_CPU_32v5TEJ)	:=-D__LINUX_ARM_ARCH__=5 $(call cc-option,-march=armv5te,-march=armv4t)
+arch-$(CONFIG_CPU_32v5TE)	:=-D__LINUX_ARM_ARCH__=5 $(call cc-option,-march=armv5te,-march=armv4t)
+arch-$(CONFIG_CPU_32v5T)	:=-D__LINUX_ARM_ARCH__=5 $(call cc-option,-march=armv5t,-march=armv4t)
 arch-$(CONFIG_CPU_32v4T)	:=-D__LINUX_ARM_ARCH__=4 -march=armv4t
 arch-$(CONFIG_CPU_32v4)		:=-D__LINUX_ARM_ARCH__=4 -march=armv4
-arch-$(CONFIG_CPU_32v3M)	:=-D__LINUX_ARM_ARCH__=3 -march=armv3m
-arch-$(CONFIG_CPU_32v3)		:=-D__LINUX_ARM_ARCH__=3 -march=armv3
 
 # This selects how we optimise for the processor.
 tune-$(CONFIG_CPU_CORTEXM3)	:=-mcpu=cortex-m3

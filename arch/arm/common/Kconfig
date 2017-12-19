@@ -16,42 +16,58 @@ config CPU_CORTEXM3
 # Cortex-A9
 config CPU_CORTEXA9
 	bool
-	select CPU_32v7A
+	select CPU_32v7
 	help
 
 # Figure out what processor architecture version we should be using.
 # This defines the compiler instruction set which depends on the machine type.
-config CPU_32v3
-	bool
-
-config CPU_32v3M
-	bool
-	select ARM_THUMB2
-
 config CPU_32v4
 	bool
+	help
+	  Includes only the ARM instruction set.
 
 config CPU_32v4T
 	bool
-
-config CPU_32v5
-	bool
+	help
+	  Adds the Thumb instruction set.
 
 config CPU_32v5T
 	bool
+	help
+	  Adds CLZ and BKPT.
+
+config CPU_32v5TE
+	bool
+	help
+	  Adds PLD, LDRD, STRD, MCRR, MRRC, enhances DSP algorithms.
+
+config CPU_32v5TEJ
+	bool
+	help
+	  Adds BXJ and Jazelle architecture extension.
 
 config CPU_32v6
 	bool
-
-config CPU_32v6T
-	bool
+	help
+	  Adds many new instructions to ARM instruction set and formalizes and
+	  revises the memory model and the Debug architecture.
 
 config CPU_32v6K
 	bool
+	help
+	  Adds multi-processing instructions and extra memory model features.
 
-config CPU_32v6M
-	bool
+config CPU_32v6T2
 	select ARM_THUMB2
+	bool
+	help
+	  Introduces Thumb-2 technology.
+
+config CPU_32v6KZ
+	select ARM_TRUSTZONE
+	bool
+	help
+	  ARMv6K with optional Security Extension.
 
 config CPU_32v7
 	bool
@@ -59,12 +75,6 @@ config CPU_32v7
 config CPU_32v7M
 	bool
 	select ARM_THUMB2
-
-config CPU_32v7R
-	bool
-
-config CPU_32v7A
-	bool
 
 config CPU_BIG_ENDIAN
 	bool "Build big-endian kernel"

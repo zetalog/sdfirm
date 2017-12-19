@@ -44,7 +44,7 @@ menu "Compiler options"
 
 config ARM_THUMB2
 	bool "Compile the firmware in thumb mode"
-	depends on CPU_32v7M || CPU32_v6M || CPU_32v6T || CPU_32v5T || CPU_32v4T || CPU_32v3M
+	depends on CPU_32v7 || CPU_32v7M || CPU32_v6T2
 	select ARM_EABI
 	select ARM_ASM_UNIFIED
 	help
@@ -52,6 +52,11 @@ config ARM_THUMB2
 	  thumb mode. A compiler/assembler that understand the unified
 	  ARM-thumb syntax is needed.
 	  If unsure, say N.
+
+config ARM_TRUSTZONE
+	bool "Security extension (TrustZone) support"
+	depends on CPU_32v6KZ || CPU_32v7A
+	help
 
 config ARM_ASM_UNIFIED
 	bool

@@ -7,7 +7,7 @@
 
 typedef uint32_t irq_flags_t;
 
-#ifdef __LINUX_ARM_M_ARCH__
+#ifdef CONFIG_CPU_32v7M
 #define irq_hw_flags_save(x)					\
 	({							\
 	__asm__ __volatile__(					\
