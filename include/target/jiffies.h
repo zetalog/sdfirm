@@ -3,6 +3,7 @@
 
 #include <target/config.h>
 #include <target/generic.h>
+#include <target/tsc.h>
 
 typedef uint32_t tick_t;
 
