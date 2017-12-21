@@ -19,6 +19,10 @@ typedef uint16_t tsc_count_t;
 typedef uint32_t tsc_count_t;
 #define __tsc_div	div32u
 #define __tsc_mul	mul32u
+#elif TSC_MAX <= 0xFFFFFFFFFFFFFFFFULL
+#define __tsc_div	div64u
+#define __tsc_mul	mul64u
+typedef uint64_t tsc_count_t;
 #endif
 
 /* XXX:Allow ARCH Specific Definition
