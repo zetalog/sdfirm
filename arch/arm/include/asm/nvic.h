@@ -8,7 +8,7 @@
 #ifndef ARCH_HAVE_VIC
 #define ARCH_HAVE_VIC			1
 #else
-#error "Multiple NVIC controller defined"
+#error "Multiple VIC controller defined"
 #endif
 
 /* Nested Vectored Intrrupt Controller (NVIC) registers */

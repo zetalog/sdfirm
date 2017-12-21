@@ -1,10 +1,45 @@
-config NVIC
-	bool "Nested Vectored Interrupt Controller (NVIC) support"
+config ARM_TRUSTZONE
+	bool
+	depends on CPU_32v6KZ || CPU_32v7
+	help
+
+choice
+	prompt "Security system type (TrustZone)"
+	default ARM_UNTRUSTED
+
+config ARM_MONITOR
+	bool "Secure monitor" if ARM_TRUSTZONE
+
+config ARM_TRUSTED
+	bool "Secure world system" if ARM_TRUSTZONE
+
+config ARM_UNTRUSTED
+	bool "Normal world system"
+
+endchoice
+
+choice
+	prompt "Interrupt controller"
+
+config GIC
+	bool "Generic Interrupt Controller (GIC)"
 	select ARCH_HAS_VIC
+	depends on CPU_32v7
+	help
+	  The GIC architecture describes an interrupt controller for use with
+	  one or more processors that comply with ARM A or R architecture
+	  profiles.
+
+config NVIC
+	bool "Nested Vectored Interrupt Controller (NVIC)"
+	select ARCH_HAS_VIC
+	depends on CPU_32v6T2 || CPU_32v7M
 	help
 	  The NVIC provides configurable interrupt handling abilities to the
 	  Cortex M processors, facilitates low-latency exception and interrupt
 	  handling, and controls power management.
+
+endchoice
 
 # Cortex-M3
 config CPU_CORTEXM3
@@ -17,6 +52,7 @@ config CPU_CORTEXM3
 config CPU_CORTEXA9
 	bool
 	select CPU_32v7
+	select GIC
 	help
 
 # Figure out what processor architecture version we should be using.

@@ -36,6 +36,14 @@ config ARCH_LM3S3826
 	select ARCH_HAS_GPIO
 	select ARCH_HAS_IDLE
 
+config ARCH_VEXPRESSA9
+	bool "ARM Versatile Express for Cortex-A9"
+	select CPU_CORTEXA9
+	select ARCH_HAS_TSC
+	help
+	  Can be found in QEMU, a combination of Motherboard Express uATX and
+	  CoreTile Express A9.
+
 endchoice
 
 source arch/arm/common/Kconfig
@@ -45,6 +53,7 @@ menu "Compiler options"
 config ARM_THUMB2
 	bool "Compile the firmware in thumb mode"
 	depends on CPU_32v7 || CPU_32v7M || CPU32_v6T2
+	select ARCH_HAS_DIV
 	select ARM_EABI
 	select ARM_ASM_UNIFIED
 	help
@@ -52,11 +61,6 @@ config ARM_THUMB2
 	  thumb mode. A compiler/assembler that understand the unified
 	  ARM-thumb syntax is needed.
 	  If unsure, say N.
-
-config ARM_TRUSTZONE
-	bool "Security extension (TrustZone) support"
-	depends on CPU_32v6KZ || CPU_32v7A
-	help
 
 config ARM_ASM_UNIFIED
 	bool
@@ -73,6 +77,7 @@ endmenu
 
 source "arch/arm/mach-lm3s9b92/Kconfig"
 source "arch/arm/mach-lm3s3826/Kconfig"
+source "arch/arm/mach-vexpressa9/Kconfig"
 
 source "appl/Kconfig"
 source "kernel/Kconfig"

@@ -2,6 +2,7 @@
 #include <target/const.h>
 #include <asm-generic/sdfirm.lds.h>
 
+OUTPUT_FORMAT("elf32-littlearm", "elf32-littlearm", "elf32-littlearm")
 OUTPUT_ARCH(arm)
 ENTRY(stext)
 
