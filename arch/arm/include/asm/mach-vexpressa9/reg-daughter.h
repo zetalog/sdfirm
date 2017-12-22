@@ -19,10 +19,6 @@
 
 /* Cortex-A9 MPCore Multiprocessor Private Memory Region */
 #define MPCORE_PERIPH(ao)	(MPCORE_PRIV + ((ao) << 8))
-#define MPCORE_SCU		MPCORE_PERIPH(0)	/* Snoop Control Unit */
-#define MPCORE_INTRC		MPCORE_PERIPH(1)	/* Interrupt Controller */
-#define MPCORE_GTMR		MPCORE_PERIPH(2)	/* Global Timer */
-#define MPCORE_PTMR		MPCORE_PERIPH(6)	/* Private timer and watchdog */
-#define MPCORE_INTRD		MPCORE_PERIPH(16)	/* Interrupt Distributor */
+#include <asm/mach/reg-mpcore.h>
 
 #endif /* __REG_DAUGHTER_VEXPRESSA9_H_INCLUDE__ */
