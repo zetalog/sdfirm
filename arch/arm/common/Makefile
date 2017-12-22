@@ -1,6 +1,6 @@
 
 obj-y :=
-obj-$(CONFIG_NVIC) += nvic.o
+obj-$(CONFIG_NVIC) += vic_nvic.o
 
 obj-y += entry.rel
 

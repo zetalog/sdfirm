@@ -5,12 +5,6 @@
 #include <target/generic.h>
 #include <asm/reg.h>
 
-#ifndef ARCH_HAVE_VIC
-#define ARCH_HAVE_VIC			1
-#else
-#error "Multiple VIC controller defined"
-#endif
-
 /* Nested Vectored Intrrupt Controller (NVIC) registers */
 #define EN0			CORTEXM3(0x100)
 #define EN1			CORTEXM3(0x104)
@@ -38,31 +32,46 @@
 #define PRI13			CORTEXM3(0x434)
 #define SWTRIG			CORTEXM3(0xF00)
 
-#define __VIC_HW_PRIO_MAX	7
-#define __VIC_HW_PRIO_TRAP_MIN	TRAP_MPU /* minimum priority configurable trap */
+#define NVIC_HW_PRIO_MAX	7
+#define NVIC_HW_PRIO_TRAP_MIN	TRAP_MPU /* minimum priority configurable trap */
 
-typedef void (*irq_handler)(void);
+#define NVIC_TRIG_MASK			0x1F
+#define NVIC_TRIG_A(__a, __vi)		((__a)+(((__vi) & ~NVIC_TRIG_MASK) >> 3))
+#define NVIC_TRIG_V(__vi)		(1<<((__vi) & NVIC_TRIG_MASK))
+#define NVIC_PRIO_MASK			0x03
+#define NVIC_PRIO_A(__a, __vi)		((__a)+((__vi) & ~NVIC_PRIO_MASK))
+#define NVIC_PRIO_V(__v, __vi)		((__v << 5) << (((__vi) & NVIC_PRIO_MASK) << 3))
 
-void vic_hw_register_irq(uint8_t nr, irq_handler h);
-void vic_hw_register_trap(uint8_t nr, irq_handler h);
-void vic_hw_vectors_init(void);
+#define nvic_hw_irq_enable(irq)		\
+	__raw_setl(NVIC_TRIG_V(irq), NVIC_TRIG_A(EN0, irq))
+#define nvic_hw_irq_disable(irq)	\
+	__raw_setl(NVIC_TRIG_V(irq), NVIC_TRIG_A(DIS0, irq))
+#define nvic_hw_irq_trigger(irq)	\
+	__raw_writel(irq, SWTRIG)
 
-#define VIC_TRIG_MASK			0x1F
-#define VIC_TRIG_A(__a, __vi)		((__a)+(((__vi) & ~VIC_TRIG_MASK) >> 3))
-#define VIC_TRIG_V(__vi)		(1<<((__vi) & VIC_TRIG_MASK))
-#define VIC_PRIO_MASK			0x03
-#define VIC_PRIO_A(__a, __vi)		((__a)+((__vi) & ~VIC_PRIO_MASK))
-#define VIC_PRIO_V(__v, __vi)		((__v << 5) << (((__vi) & VIC_PRIO_MASK) << 3))
+#define nvic_hw_irq_priority(irq, prio)			\
+	do {						\
+		__raw_clearl(NVIC_PRIO_V(7, irq),	\
+			     NVIC_PRIO_A(PRI0, irq));	\
+		__raw_setl(NVIC_PRIO_V(prio, irq),	\
+			   NVIC_PRIO_A(PRI0, irq));	\
+	} while (0)
 
-#define vic_hw_irq_enable(irq)		__raw_setl(VIC_TRIG_V(irq), VIC_TRIG_A(EN0, irq))
-#define vic_hw_irq_disable(irq)		__raw_setl(VIC_TRIG_V(irq), VIC_TRIG_A(DIS0, irq))
-#define vic_hw_irq_trigger(irq)		__raw_writel(irq, SWTRIG)
-void vic_hw_irq_priority(uint8_t irq, uint8_t prio);
-void vic_hw_trap_priority(uint8_t trap, uint8_t prio);
+#define nvic_hw_trap_priority(trap, prio)			\
+	do {							\
+		__raw_clearl(NVIC_PRIO_V(7, trap),		\
+			     NVIC_PRIO_A(SYSPRI1-4, trap));	\
+		__raw_setl(NVIC_PRIO_V(prio, trap),		\
+			   NVIC_PRIO_A(SYSPRI1-4, trap));	\
+	} while (0)
 
-#define vic_hw_irq_set_pending(irq)	__raw_setl(VIC_TRIG_V(irq), VIC_TRIG_A(PEND0, irq))
-#define vic_hw_irq_clear_pending(irq)	__raw_setl(VIC_TRIG_V(irq), VIC_TRIG_A(UNPEND0, irq))
-#define vic_hw_irq_test_pending(irq)	__raw_testl(VIC_TRIG_V(irq), VIC_TRIG_A(PEND0, irq))
-#define vic_hw_irq_active(irq)		__raw_testl(VIC_TRIG_V(irq), VIC_TRIG_A(ACTIVE0, irq))
+#define nvic_hw_irq_set_pending(irq)	\
+	__raw_setl(NVIC_TRIG_V(irq), NVIC_TRIG_A(PEND0, irq))
+#define nvic_hw_irq_clear_pending(irq)	\
+	__raw_setl(NVIC_TRIG_V(irq), NVIC_TRIG_A(UNPEND0, irq))
+#define nvic_hw_irq_test_pending(irq)	\
+	__raw_testl(NVIC_TRIG_V(irq), NVIC_TRIG_A(PEND0, irq))
+#define nvic_hw_irq_active(irq)		\
+	__raw_testl(NVIC_TRIG_V(irq), NVIC_TRIG_A(ACTIVE0, irq))
 
 #endif /* __NVIC_ARM_H_INCLUDE__ */

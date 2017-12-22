@@ -28,16 +28,14 @@ void vic_hw_irq_priority(uint8_t irq, uint8_t prio)
 {
 	BUG_ON(irq >= NR_IRQS);
 	BUG_ON(prio > __VIC_HW_PRIO_MAX);
-	__raw_clearl(VIC_PRIO_V(7, irq), VIC_PRIO_A(PRI0, irq));
-	__raw_setl(VIC_PRIO_V(prio, irq), VIC_PRIO_A(PRI0, irq));
+	nvic_hw_irq_priority(irq, prio);
 }
 
 void vic_hw_trap_priority(uint8_t trap, uint8_t prio)
 {
 	BUG_ON(trap < __VIC_HW_PRIO_TRAP_MIN || trap >= NR_TRAPS);
 	BUG_ON(prio > __VIC_HW_PRIO_MAX);
-	__raw_clearl(VIC_PRIO_V(7, trap), VIC_PRIO_A(SYSPRI1-4, trap));
-	__raw_setl(VIC_PRIO_V(prio, trap), VIC_PRIO_A(SYSPRI1-4, trap));
+	nvic_hw_trap_priority(trap, prio);
 }
 
 void vic_hw_vectors_init(void)
