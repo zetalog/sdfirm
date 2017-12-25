@@ -30,6 +30,17 @@ config GIC
 	  one or more processors that comply with ARM A or R architecture
 	  profiles.
 
+if GIC
+
+config GIC_IRQ_GROUPING
+	bool "Interrupt grouping"
+	depends on ARM_TRUSTZONE
+	help
+	  Interrupt grouping is present in GICv2 implementations and in GICv1
+	  implementations that include the GIC security extensions.
+
+endif
+
 config NVIC
 	bool "Nested Vectored Interrupt Controller (NVIC)"
 	select ARCH_HAS_VIC
