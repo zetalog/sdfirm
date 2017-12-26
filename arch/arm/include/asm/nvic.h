@@ -32,8 +32,8 @@
 #define PRI13			CORTEXM3(0x434)
 #define SWTRIG			CORTEXM3(0xF00)
 
-#define NVIC_HW_PRIO_MAX	7
-#define NVIC_HW_PRIO_TRAP_MIN	TRAP_MPU /* minimum priority configurable trap */
+#define NVIC_PRIO_MAX		7
+#define NVIC_PRIO_TRAP_MIN	TRAP_MPU /* minimum priority configurable trap */
 
 #define NVIC_TRIG_MASK			0x1F
 #define NVIC_TRIG_A(__a, __vi)		((__a)+(((__vi) & ~NVIC_TRIG_MASK) >> 3))
@@ -42,14 +42,14 @@
 #define NVIC_PRIO_A(__a, __vi)		((__a)+((__vi) & ~NVIC_PRIO_MASK))
 #define NVIC_PRIO_V(__v, __vi)		((__v << 5) << (((__vi) & NVIC_PRIO_MASK) << 3))
 
-#define nvic_hw_irq_enable(irq)		\
+#define nvic_irq_enable_irq(irq)	\
 	__raw_setl(NVIC_TRIG_V(irq), NVIC_TRIG_A(EN0, irq))
-#define nvic_hw_irq_disable(irq)	\
+#define nvic_irq_disable_irq(irq)	\
 	__raw_setl(NVIC_TRIG_V(irq), NVIC_TRIG_A(DIS0, irq))
-#define nvic_hw_irq_trigger(irq)	\
+#define nvic_irq_trigger_irq(irq)	\
 	__raw_writel(irq, SWTRIG)
 
-#define nvic_hw_irq_priority(irq, prio)			\
+#define nvic_irq_set_priority(irq, prio)		\
 	do {						\
 		__raw_clearl(NVIC_PRIO_V(7, irq),	\
 			     NVIC_PRIO_A(PRI0, irq));	\
@@ -57,21 +57,21 @@
 			   NVIC_PRIO_A(PRI0, irq));	\
 	} while (0)
 
-#define nvic_hw_trap_priority(trap, prio)			\
+#define nvic_irq_set_pending(irq)	\
+	__raw_setl(NVIC_TRIG_V(irq), NVIC_TRIG_A(PEND0, irq))
+#define nvic_irq_clear_pending(irq)	\
+	__raw_setl(NVIC_TRIG_V(irq), NVIC_TRIG_A(UNPEND0, irq))
+#define nvic_irq_is_pending(irq)	\
+	__raw_testl(NVIC_TRIG_V(irq), NVIC_TRIG_A(PEND0, irq))
+#define nvic_irq_is_active(irq)		\
+	__raw_testl(NVIC_TRIG_V(irq), NVIC_TRIG_A(ACTIVE0, irq))
+
+#define nvic_trap_set_priority(trap, prio)			\
 	do {							\
 		__raw_clearl(NVIC_PRIO_V(7, trap),		\
 			     NVIC_PRIO_A(SYSPRI1-4, trap));	\
 		__raw_setl(NVIC_PRIO_V(prio, trap),		\
 			   NVIC_PRIO_A(SYSPRI1-4, trap));	\
 	} while (0)
-
-#define nvic_hw_irq_set_pending(irq)	\
-	__raw_setl(NVIC_TRIG_V(irq), NVIC_TRIG_A(PEND0, irq))
-#define nvic_hw_irq_clear_pending(irq)	\
-	__raw_setl(NVIC_TRIG_V(irq), NVIC_TRIG_A(UNPEND0, irq))
-#define nvic_hw_irq_test_pending(irq)	\
-	__raw_testl(NVIC_TRIG_V(irq), NVIC_TRIG_A(PEND0, irq))
-#define nvic_hw_irq_active(irq)		\
-	__raw_testl(NVIC_TRIG_V(irq), NVIC_TRIG_A(ACTIVE0, irq))
 
 #endif /* __NVIC_ARM_H_INCLUDE__ */

@@ -12,14 +12,14 @@
 #error "Multiple VIC controller defined"
 #endif
 
-#define __VIC_HW_PRIO_MAX	NVIC_HW_PRIO_MAX
-#define __VIC_HW_PRIO_TRAP_MIN	NVIC_HW_PRIO_TRAP_MIN
+#define __VIC_HW_PRIO_MAX	NVIC_PRIO_MAX
+#define __VIC_HW_PRIO_TRAP_MIN	NVIC_PRIO_TRAP_MIN
 
 typedef void (*irq_handler)(void);
 
-#define vic_hw_irq_enable(irq)		nvic_hw_irq_enable(irq)
-#define vic_hw_irq_disable(irq)		nvic_hw_irq_disable(irq)
-#define vic_hw_irq_trigger(irq)		nvic_hw_irq_trigger(irq)
+#define vic_hw_irq_enable(irq)		nvic_irq_enable_irq(irq)
+#define vic_hw_irq_disable(irq)		nvic_irq_disable_irq(irq)
+#define vic_hw_irq_trigger(irq)		nvic_irq_trigger_irq(irq)
 void vic_hw_irq_priority(uint8_t irq, uint8_t prio);
 void vic_hw_trap_priority(uint8_t trap, uint8_t prio);
 void vic_hw_register_irq(uint8_t nr, irq_handler h);
