@@ -41,7 +41,7 @@
 #define GICD_FV(name, value)		GIC_FV(GICD_##name, value)
 #define GICDn_FV(n, name, value)	GICn_FV(n, GICD_##name, value)
 
-#define GICD_CTRL			GICD_REG(0x000)
+#define GICD_CTLR			GICD_REG(0x000)
 #define GICD_TYPER			GICD_REG(0x004)
 #define GICD_IIDR			GICD_REG(0x004)
 
@@ -64,7 +64,7 @@
 
 #define GICD_ICPIDR2			GICD_REG(0xFE8) /* Peripheral ID2 */
 
-/* GICD_CTRL */
+/* GICD_CTLR */
 #define GICD_ENABLE_GRP0		_BV(0)
 #define GICD_ENABLE_GRP1		_BV(1)
 
@@ -164,7 +164,7 @@
 #define GICC_FV(name, value)		GIC_FV(GICC_##name, value)
 #define GICCn_FV(n, name, value)	GICn_FV(n, GICC_##name, value)
 
-#define GICC_CTRL			GICC_OFFSET(0x000)
+#define GICC_CTLR			GICC_OFFSET(0x000)
 #define GICC_PMR			GICC_OFFSET(0x004)
 #define GICC_BPR			GICC_OFFSET(0x008)
 #define GICC_IAR			GICC_OFFSET(0x00C)
@@ -176,11 +176,11 @@
 #define GICC_AEOIR			GICC_OFFSET(0x024)
 #define GICC_AHPPIR			GICC_OFFSET(0x028)
 #define GICC_APR(n)			GIC_1BIT_REG(0x0D0, n)
-#define GICC_NAPR(n)			GIC_1BIT_REG(0x0E0, n)
+#define GICC_NSAPR(n)			GIC_1BIT_REG(0x0E0, n)
 #define GICC_IIDR			GICC_OFFSET(0x0FC)
 #define GICC_DIR			GICC_OFFSET(0x100)
 
-/* GICC_CTRL */
+/* GICC_CTLR */
 #define GICC_ENABLE			0
 
 /* GICC_PMR/GICC_RPR */
@@ -201,7 +201,7 @@
 #define GICC_CPUID_MASK			GIC_3BIT_MASK
 #define GICC_CPUID(value)		GICC_FV(CPUID, value)
 
-/* GICC_APR/GICC_NAPR */
+/* GICC_APR/GICC_NSAPR */
 #define GICC_ACTIVE_PRIORITY_OFFSET(n)	GIC_1BIT_OFFSET(n)
 #define GICC_ACTIVE_PRIORITY_MASK	GIC_1BIT_MASK
 #define GICC_ACTIVE_PRIORITY(n, value)	GICCn_FV(n, ACTIVE_PRIORITY, value)
