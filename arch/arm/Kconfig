@@ -53,7 +53,6 @@ menu "Compiler options"
 config ARM_THUMB2
 	bool "Compile the firmware in thumb mode"
 	depends on CPU_32v7 || CPU_32v7M || CPU32_v6T2
-	select ARCH_HAS_DIV
 	select ARM_EABI
 	select ARM_ASM_UNIFIED
 	help
