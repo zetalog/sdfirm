@@ -140,7 +140,7 @@ gconf-objs	:= gconf.o kconfig_load.o zconf.tab.o
 endif
 
 clean-files	:= lkc_defs.h qconf.moc .tmp_qtcheck \
-		   .tmp_gtkcheck zconf.tab.c lex.zconf.c zconf.hash.c
+		   .tmp_gtkcheck zconf.tab.c lex.zconf.c
 clean-files     += mconf qconf gconf
 
 # Needed for systems without gettext
@@ -161,7 +161,7 @@ HOSTCXXFLAGS_qconf.o	= $(KC_QT_CFLAGS) -D LKC_DIRECT_LINK
 
 HOSTLOADLIBES_gconf	= `pkg-config --libs gtk+-2.0 gmodule-2.0 libglade-2.0`
 HOSTCFLAGS_gconf.o	= `pkg-config --cflags gtk+-2.0 gmodule-2.0 libglade-2.0` \
-                          -D LKC_DIRECT_LINK
+                          -D LKC_DIRECT_LINK -Wno-missing-prototypes
 
 $(obj)/qconf.o: $(obj)/.tmp_qtcheck
 
@@ -268,7 +268,7 @@ ifdef LKC_GENPARSER
 
 $(obj)/zconf.tab.c: $(src)/zconf.y
 $(obj)/lex.zconf.c: $(src)/zconf.l
-$(obj)/zconf.hash.c: $(src)/zconf.gperf
+#$(obj)/zconf.hash.c: $(src)/zconf.gperf
 
 %.tab.c: %.y
 	bison -l -b $* -p $(notdir $*) $<
@@ -278,8 +278,8 @@ lex.%.c: %.l
 	flex -L -P$(notdir $*) -o$@ $<
 	cp $@ $@_shipped
 
-%.hash.c: %.gperf
-	gperf < $< > $@
-	cp $@ $@_shipped
+#%.hash.c: %.gperf
+#	gperf < $< > $@
+#	cp $@ $@_shipped
 
 endif
