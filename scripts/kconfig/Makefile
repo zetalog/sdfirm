@@ -153,8 +153,8 @@ HOSTCFLAGS	+= -DKBUILD_NO_NLS
 endif
 
 # generated files seem to need this to find local include files
-HOSTCFLAGS_lex.zconf.o	:= -I$(src)
-HOSTCFLAGS_zconf.tab.o	:= -I$(src)
+HOSTCFLAGS_lex.zconf.o	:= -I$(src) -DYY_NO_INPUT
+HOSTCFLAGS_zconf.tab.o	:= -I$(src) -DYY_NO_INPUT
 
 HOSTLOADLIBES_qconf	= $(KC_QT_LIBS) -ldl
 HOSTCXXFLAGS_qconf.o	= $(KC_QT_CFLAGS) -D LKC_DIRECT_LINK
