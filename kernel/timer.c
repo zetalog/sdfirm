@@ -16,7 +16,7 @@ timeout_t timer_timeouts[NR_TIMERS];
 DECLARE_BITMAP(timer_regs, NR_TIMERS);
 bh_t timer_bh = INVALID_BH;
 tid_t timer_running_tid = INVALID_TID;
-tid_t timer_orders[NR_TIMERS];
+tid_t timer_orders[NR_TIMERS+1];
 
 void __timer_del(tid_t tid)
 {
@@ -28,13 +28,14 @@ void __timer_del(tid_t tid)
 		if (timer_orders[i] == tid)
 			break;
 	}
-	for (; i < NR_TIMERS-1; i++) {
+	for (; i < NR_TIMERS; i++) {
 		if (timer_orders[i] != INVALID_TID) {
 			tid_t swp = timer_orders[i+1];
 			timer_orders[i+1] = timer_orders[i];
 			timer_orders[i] = swp;
 		}
 	}
+	/* This ensures timer_orders[NR_TIMERS] always INVALID_TID */
 	timer_orders[i] = INVALID_TID;
 }
 
@@ -410,7 +411,8 @@ void timer_init(void)
 {
 	tid_t tid;
 
-	for (tid = 0; tid < NR_TIMERS; tid++)
+	/* The last timer order indexing value is always INVALID_TID */
+	for (tid = 0; tid < NR_TIMERS+1; tid++)
 		timer_orders[tid] = INVALID_TID;
 	timer_bh = bh_register_handler(timer_bh_handler);
 	timer_start();
