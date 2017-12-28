@@ -52,6 +52,17 @@ config NVIC
 
 endchoice
 
+menu "CoreLink peripherals"
+
+config UART_PL01X
+	bool "PrimeCell UART (PL01x)"
+	select ARCH_HAS_UART
+	help
+	  PrimeCell UART (PL010/PL011) offers similar functionality to the
+	  industry-standard 16C550 UART.
+
+endmenu
+
 # Cortex-M3
 config CPU_CORTEXM3
 	bool

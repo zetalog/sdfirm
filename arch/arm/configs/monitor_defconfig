@@ -16,6 +16,11 @@ CONFIG_ARCH_VEXPRESSA9=y
 CONFIG_ARM_UNTRUSTED=y
 CONFIG_GIC=y
 # CONFIG_NVIC is not set
+
+#
+# CoreLink peripherals
+#
+CONFIG_UART_PL01X=y
 CONFIG_CPU_CORTEXA9=y
 CONFIG_CPU_32v7=y
 
@@ -28,6 +33,7 @@ CONFIG_ARM_EABI=y
 #
 # Versatile express for Cortex-A9 board options
 #
+CONFIG_UART_VEXPRESSA9=y
 
 #
 # Appliance types
@@ -86,6 +92,7 @@ CONFIG_TEXT_RAM_BASE=0x80000000
 # CONFIG_LCD is not set
 # CONFIG_KBD is not set
 # CONFIG_LED is not set
+CONFIG_ARCH_HAS_UART=y
 
 #
 # Universal asynchronous RX/TX (UART) support

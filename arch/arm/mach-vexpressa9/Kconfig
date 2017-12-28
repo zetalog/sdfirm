@@ -7,6 +7,18 @@ if ARCH_VEXPRESSA9
 
 menu "Versatile express for Cortex-A9 board options"
 
+config UART_VEXPRESSA9
+	bool "ARM Versatile express A9 UART controller support"
+	select UART_PL01X
+	depends UART || DEBUG_PRINT
+	default y
+	help
+	  PrimeCell (PL011) UART.
+
+if UART_VEXPRESSA9
+
+endif
+
 endmenu
 
 endif
