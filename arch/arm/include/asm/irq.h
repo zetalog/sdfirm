@@ -54,10 +54,20 @@ typedef uint32_t irq_flags_t;
 #endif
 
 #if __LINUX_ARM_ARCH__ >= 6
-#define sei()  __asm__("cpsie i	@ __sti" : : : "memory", "cc")
-#define cli() __asm__("cpsid i	@ __cli" : : : "memory", "cc")
+#define irq_hw_flags_enable()					\
+	__asm__(						\
+	"cpsie i	@ __sti"				\
+	:							\
+	:							\
+	: "memory", "cc")
+#define irq_hw_flags_disable()					\
+	__asm__(						\
+	"cpsid i	@ __cli"				\
+	:							\
+	:							\
+	: "memory", "cc")
 #else
-#define sei()							\
+#define irq_hw_flags_enable()					\
 	({							\
 		unsigned long temp;				\
 	__asm__ __volatile__(					\
@@ -68,7 +78,7 @@ typedef uint32_t irq_flags_t;
 	:							\
 	: "memory", "cc");					\
 	})
-#define cli()							\
+#define irq_hw_flags_disable()					\
 	({							\
 		unsigned long temp;				\
 	__asm__ __volatile__(					\
@@ -80,6 +90,7 @@ typedef uint32_t irq_flags_t;
 	: "memory", "cc");					\
 	})
 #endif
+#define irq_hw_ctrl_init()
 
 #ifndef CONFIG_CC_ISR_VECTOR
 #define _VECTOR(N)	(N)

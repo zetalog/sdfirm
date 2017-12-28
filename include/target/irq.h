@@ -27,8 +27,14 @@ void irq_vectors_init(void);
 void irq_register_poller(bh_t bh);
 void irq_poll_bh(bh_t bh);
 
+#ifndef irq_hw_flags_enable
 void irq_hw_flags_enable(void);
+#endif
+#ifndef irq_hw_flags_disable
 void irq_hw_flags_disable(void);
+#endif
+#ifndef irq_hw_ctrl_init
 void irq_hw_ctrl_init(void);
+#endif
 
 #endif /* __IRQ_H_INCLUDE__ */
