@@ -122,13 +122,14 @@ config CPU_32v6T2
 	  Introduces Thumb-2 technology.
 
 config CPU_32v6KZ
-	select ARM_TRUSTZONE
 	bool
+	select ARM_TRUSTZONE
 	help
 	  ARMv6K with optional Security Extension.
 
 config CPU_32v7
 	bool
+	select ARM_TRUSTZONE
 
 config CPU_32v7M
 	bool

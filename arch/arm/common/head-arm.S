@@ -103,7 +103,6 @@ zero_bss_loop:
 	bcc	BSYM(1b)
 
 #if BOOTING
-	bl	BSYM(__display_init)
 	ldr	r0, =welcome_msg_ram
 	bl	BSYM(__display_string)
 #endif
@@ -125,7 +124,7 @@ ENTRY(__startup_info)
 ENDOBJ(__startup_info)
 
 welcome_msg_rom:
-	.asciz	"Welcome to sdfirm ROM - by ZETALOG.\n"
+	.asciz	"\r\nWelcome to sdfirm ROM."
 
 ENTRY(__display_long)
 	push    {r3, r4, r5, lr}
@@ -186,5 +185,5 @@ ENDPROC(__bad_interrupt)
 
 	.pushsection	.data
 ENTRY(welcome_msg_ram)
-	.asciz	"Welcome to sdfirm RAM - by ZETALOG.\n"
+	.asciz	"\r\nWelcome to sdfirm RAM.\r\n===== By ZETALOG =====\r\n"
 	.popsection
