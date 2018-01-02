@@ -67,6 +67,7 @@ boolean bulk_dump_save(boolean dbg);
 /* bulk channel ID */
 typedef uint8_t bulk_cid_t;
 typedef uint16_t bulk_size_t;
+typedef size_t (*iobulk_cb)(uint8_t *buf, bulk_size_t len);
 
 struct bulk_channel {
 	/* io flags defined in the io.h */

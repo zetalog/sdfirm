@@ -26,6 +26,5 @@ typedef void (*io_cb)(void);
 typedef boolean (*iotest_cb)(void);
 typedef void (*iordwr_cb)(uint8_t *c);
 typedef boolean (*iobyte_cb)(uint8_t *c);
-typedef size_t (*iobulk_cb)(uint8_t *buf, size_t len);
 
 #endif /* __IO_H_INCLUDE__ */
