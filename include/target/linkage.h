@@ -88,6 +88,12 @@
   END(name)
 #endif
 
+#ifndef ENDOBJ
+#define ENDOBJ(name) \
+  .type name, #object; \
+  END(name)
+#endif
+
 #endif
 
 #define NORET_TYPE    /**/
