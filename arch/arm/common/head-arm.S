@@ -3,6 +3,7 @@
 #include <target/init.h>
 #include <asm/reg.h>
 #include <asm/assembler.h>
+#include <asm/asm-offsets.h>
 
 #define	BOOTING		1	/* Defining this to 0 after booting */
 #define BOOTING_UART	0	/* Defining this to 0 after preparing UART0 */

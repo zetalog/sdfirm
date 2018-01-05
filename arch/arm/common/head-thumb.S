@@ -3,6 +3,7 @@
 #include <target/init.h>
 #include <asm/reg.h>
 #include <asm/assembler.h>
+#include <asm/asm-offsets.h>
 
 #define __vec_ini		__lovec
 #ifdef CONFIG_XIP
