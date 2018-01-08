@@ -72,8 +72,7 @@
 #define GIC_4BIT_OFFSET(n)		(((n) &  7) << 2)
 #define GIC_8BIT_OFFSET(n)		(((n) &  3) << 3)
 
-#define GIC_FV(name, value)		\
-	(((value) & (name##_MASK)) << (name##_OFFSET))
+#define GIC_FV(name, value)		_FV(name, value)
 #define GICn_FV(n, name, value)		\
 	(((value) & (name##_MASK)) << (name##_OFFSET(n)))
 

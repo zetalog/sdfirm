@@ -35,6 +35,8 @@ typedef int32_t			loff_t;
 #define true			!false
 
 #define _BV(bit)		(1 << (bit))
+#define _FV(name, value)	\
+	(((value) & (name##_MASK)) << (name##_OFFSET))
 
 __TEXT_TYPE__(char, text_char_t);
 __TEXT_TYPE__(const uint8_t, text_byte_t);

@@ -50,7 +50,7 @@
 #define UART_REG(n, offset)	\
 	(UART_BASE+((n)<<UART_BLOCK_SHIFT)+(offset))
 #define UART_FV(name, value)	\
-	(((value) & (UART_##name##_MASK)) << (UART_##name##_OFFSET))
+	_FV(UART_##name, value)
 
 /* Register map */
 #define UARTDR(n)		UART_REG(n, 0x000)
