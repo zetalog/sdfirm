@@ -34,6 +34,13 @@ typedef int32_t			loff_t;
 #define false			(unsigned char)0
 #define true			!false
 
+#undef offsetof
+#ifdef __compiler_offsetof
+#define offsetof(TYPE, MEMBER)	__compiler_offsetof(TYPE, MEMBER)
+#else
+#define offsetof(TYPE, MEMBER)	((size_t)&((TYPE *)0)->MEMBER)
+#endif
+
 #define _BV(bit)		(1 << (bit))
 #define _FV(name, value)	\
 	(((value) & (name##_MASK)) << (name##_OFFSET))

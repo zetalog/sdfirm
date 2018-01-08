@@ -32,7 +32,8 @@
 
 #define ULL(x)		x##ULL
 
-#define __packed	__attribute__((packed))
-#define __always_inline	inline __attribute__((always_inline))
+#define __packed			__attribute__((packed))
+#define __always_inline			inline __attribute__((always_inline))
+#define __compiler_offsetof(a, b)	 __builtin_offsetof(a, b)
 
 #endif  /* __COMPILER_GCC_H_INCLUDE__ */
