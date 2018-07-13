@@ -26,7 +26,8 @@ extern __near__ uint32_t system_device_id;
 
 #define DEVICE_ARCH_MCS51	0x01000000
 #define DEVICE_ARCH_AVR		0x02000000
-#define DEVICE_ARCH_ARM		0x04000000
+#define DEVICE_ARCH_ARM		0x03000000
+#define DEVICE_ARCH_ARM64	0x04000000
 
 #define DEVICE_ARCH(arch)	\
 	(system_device_id |= ((arch) & DEVICE_ARCH_MASK))

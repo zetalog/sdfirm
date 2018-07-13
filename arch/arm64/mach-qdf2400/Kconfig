@@ -1,0 +1,36 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+if ARCH_QDF2400
+
+menu "Qualcomm Centriq 2400 board options"
+
+config UART_QUART
+	bool "Qualcomm QUART UART controller support"
+	select UART_PL01X
+	depends UART || DEBUG_PRINT
+	default y
+	help
+	  PrimeCell (PL011) UART.
+
+if UART_QUART
+
+endif
+
+config UART_AUART
+	bool "Qualcomm AUART UART controller support"
+	select UART_PL01X
+	depends UART || DEBUG_PRINT
+	default y
+	help
+	  PrimeCell (PL011) UART.
+
+if UART_AUART
+
+endif
+
+endmenu
+
+endif

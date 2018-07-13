@@ -11,7 +11,11 @@
 #include <target/config.h>
 #include <target/tsc.h>
 
-#ifdef CONFIG_LPS_32BITS
+#ifdef CONFIG_LPS_64BITS
+typedef uint64_t lps_t;
+#define __lps_div	div64u
+#define __lps_mul	mul64u
+#elif defined(CONFIG_LPS_32BITS)
 typedef uint32_t lps_t;
 #define __lps_div	div32u
 #define __lps_mul	mul32u

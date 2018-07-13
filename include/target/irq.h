@@ -6,6 +6,12 @@
 #include <target/bh.h>
 #include <asm/irq.h>
 
+#if NR_IRQS <= 256
+typedef uint8_t irq_t;
+#elif NR_IRQS <= 65536
+typedef uint16_t irq_t;
+#endif
+
 #include <driver/vic.h>
 
 #define irq_local_enable()		irq_hw_flags_enable()
@@ -16,7 +22,7 @@
 void irq_init(void);
 
 #ifndef CONFIG_CC_ISR_VECTOR
-void irq_register_vector(uint8_t nr, irq_handler isr);
+void irq_register_vector(irq_t nr, irq_handler isr);
 void irq_vectors_init(void);
 #else
 #define irq_register_vector(nr, isr)

@@ -9,13 +9,13 @@
 #endif
 
 irq_handler irq_handlers[MAX_VECTORS];
-uint8_t irq_nr_table[MAX_VECTORS];
+irq_t irq_nr_table[MAX_VECTORS];
 uint8_t irq_nr_regs = 0;
 
 extern void __bad_interrupt(void);
 
 /* 0 ~ NR_IRQS-1 is allowed. */
-void irq_register_vector(uint8_t nr, irq_handler h)
+void irq_register_vector(irq_t nr, irq_handler h)
 {
 	uint8_t curr = irq_nr_regs;
 
@@ -26,7 +26,7 @@ void irq_register_vector(uint8_t nr, irq_handler h)
 	irq_handlers[curr] = h;
 }
 
-void do_IRQ(uint8_t nr)
+void do_IRQ(irq_t nr)
 {
 	uint8_t curr;
 
@@ -50,7 +50,7 @@ void irq_vectors_init(void)
 	vic_hw_vectors_init();
 }
 
-void irq_register_vector(uint8_t nr, irq_handler h)
+void irq_register_vector(irq_t nr, irq_handler h)
 {
 	vic_hw_register_irq(nr, h);
 }

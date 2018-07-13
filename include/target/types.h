@@ -1,6 +1,7 @@
 #ifndef __TYPES_H_INCLUDE__
 #define __TYPES_H_INCLUDE__
 
+#ifndef __ASSEMBLY__
 typedef signed char		int8_t;
 typedef unsigned char		uint8_t;
 typedef signed short		int16_t;
@@ -40,14 +41,17 @@ typedef int32_t			loff_t;
 #else
 #define offsetof(TYPE, MEMBER)	((size_t)&((TYPE *)0)->MEMBER)
 #endif
+#endif /* __ASSEMBLY__ */
 
 #define _BV(bit)		(1 << (bit))
 #define _FV(name, value)	\
 	(((value) & (name##_MASK)) << (name##_OFFSET))
 
+#ifndef __ASSEMBLY__
 __TEXT_TYPE__(char, text_char_t);
 __TEXT_TYPE__(const uint8_t, text_byte_t);
 __TEXT_TYPE__(uint16_t, text_word_t);
 __TEXT_TYPE__(uint32_t, text_quad_t);
+#endif /* __ASSEMBLY__ */
 
 #endif /* __TYPES_H_INCLUDE__ */

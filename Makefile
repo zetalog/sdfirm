@@ -141,7 +141,8 @@ export srctree objtree VPATH TOPDIR
 # then ARCH is assigned, getting whatever value it gets normally, and 
 # SUBARCH is subsequently ignored.
 
-SUBARCH := avr
+SUBARCH := arm64
+SUBCROSS := aarch64-linux-gnu-
 
 # Cross compiling and selecting different set of gcc/bin-utils
 # ---------------------------------------------------------------------------
@@ -163,7 +164,7 @@ SUBARCH := avr
 # Note: Some architectures assign CROSS_COMPILE in their arch/*/Makefile
 
 ARCH		?= $(SUBARCH)
-CROSS_COMPILE	?=
+CROSS_COMPILE	?= $(SUBCROSS)
 
 # Architecture as present in compile.h
 UTS_MACHINE := $(ARCH)

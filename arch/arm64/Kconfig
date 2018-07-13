@@ -1,0 +1,239 @@
+#
+# For a description of the syntax of this configuration file,
+# see Documentation/kbuild/kconfig-language.txt.
+#
+
+mainmenu "Open Kernel Lab L4 Kernel Configuration"
+
+config ARM64
+	bool
+	default y
+	help
+
+menu "ARM64 system options"
+
+choice
+	prompt "ARM64 system type"
+	default ARCH_QDF2400
+
+config ARCH_QDF2400
+	bool "Qualcomm Centriq 2400"
+	select CPU_QDF2400
+	select ARCH_IS_TICKLESS
+	select ARCH_HAS_TSC
+	select ARCH_HAS_GPIO
+	select ARCH_HAS_IDLE
+	help
+	  This enables support for Qualcomm server platforms.
+
+endchoice
+
+source arch/arm64/common/Kconfig
+
+menu "Compiler options"
+
+config ARM64_ERRATUM_826319
+	bool "Cortex-A53: 826319: System might deadlock if a write cannot complete until read data is accepted"
+	default y
+	help
+	  This option adds an alternative code sequence to work around ARM
+	  erratum 826319 on Cortex-A53 parts up to r0p2 with an AMBA 4 ACE or
+	  AXI master interface and an L2 cache.
+
+	  If a Cortex-A53 uses an AMBA AXI4 ACE interface to other processors
+	  and is unable to accept a certain write via this interface, it will
+	  not progress on read data presented on the read data channel and the
+	  system can deadlock.
+
+	  The workaround promotes data cache clean instructions to
+	  data cache clean-and-invalidate.
+	  Please note that this does not necessarily enable the workaround,
+	  as it depends on the alternative framework, which will only patch
+	  the kernel if an affected CPU is detected.
+
+	  If unsure, say Y.
+
+config ARM64_ERRATUM_827319
+	bool "Cortex-A53: 827319: Data cache clean instructions might cause overlapping transactions to the interconnect"
+	default y
+	help
+	  This option adds an alternative code sequence to work around ARM
+	  erratum 827319 on Cortex-A53 parts up to r0p2 with an AMBA 5 CHI
+	  master interface and an L2 cache.
+
+	  Under certain conditions this erratum can cause a clean line eviction
+	  to occur at the same time as another transaction to the same address
+	  on the AMBA 5 CHI interface, which can cause data corruption if the
+	  interconnect reorders the two transactions.
+
+	  The workaround promotes data cache clean instructions to
+	  data cache clean-and-invalidate.
+	  Please note that this does not necessarily enable the workaround,
+	  as it depends on the alternative framework, which will only patch
+	  the kernel if an affected CPU is detected.
+
+	  If unsure, say Y.
+
+config ARM64_ERRATUM_824069
+	bool "Cortex-A53: 824069: Cache line might not be marked as clean after a CleanShared snoop"
+	default y
+	help
+	  This option adds an alternative code sequence to work around ARM
+	  erratum 824069 on Cortex-A53 parts up to r0p2 when it is connected
+	  to a coherent interconnect.
+
+	  If a Cortex-A53 processor is executing a store or prefetch for
+	  write instruction at the same time as a processor in another
+	  cluster is executing a cache maintenance operation to the same
+	  address, then this erratum might cause a clean cache line to be
+	  incorrectly marked as dirty.
+
+	  The workaround promotes data cache clean instructions to
+	  data cache clean-and-invalidate.
+	  Please note that this option does not necessarily enable the
+	  workaround, as it depends on the alternative framework, which will
+	  only patch the kernel if an affected CPU is detected.
+
+	  If unsure, say Y.
+
+config ARM64_ERRATUM_819472
+	bool "Cortex-A53: 819472: Store exclusive instructions might cause data corruption"
+	default y
+	help
+	  This option adds an alternative code sequence to work around ARM
+	  erratum 819472 on Cortex-A53 parts up to r0p1 with an L2 cache
+	  present when it is connected to a coherent interconnect.
+
+	  If the processor is executing a load and store exclusive sequence at
+	  the same time as a processor in another cluster is executing a cache
+	  maintenance operation to the same address, then this erratum might
+	  cause data corruption.
+
+	  The workaround promotes data cache clean instructions to
+	  data cache clean-and-invalidate.
+	  Please note that this does not necessarily enable the workaround,
+	  as it depends on the alternative framework, which will only patch
+	  the kernel if an affected CPU is detected.
+
+	  If unsure, say Y.
+
+config ARM64_ERRATUM_832075
+	bool "Cortex-A57: 832075: possible deadlock on mixing exclusive memory accesses with device loads"
+	default y
+	help
+	  This option adds an alternative code sequence to work around ARM
+	  erratum 832075 on Cortex-A57 parts up to r1p2.
+
+	  Affected Cortex-A57 parts might deadlock when exclusive load/store
+	  instructions to Write-Back memory are mixed with Device loads.
+
+	  The workaround is to promote device loads to use Load-Acquire
+	  semantics.
+	  Please note that this does not necessarily enable the workaround,
+	  as it depends on the alternative framework, which will only patch
+	  the kernel if an affected CPU is detected.
+
+	  If unsure, say Y.
+
+config ARM64_ERRATUM_834220
+	bool "Cortex-A57: 834220: Stage 2 translation fault might be incorrectly reported in presence of a Stage 1 fault"
+	#depends on KVM
+	default y
+	help
+	  This option adds an alternative code sequence to work around ARM
+	  erratum 834220 on Cortex-A57 parts up to r1p2.
+
+	  Affected Cortex-A57 parts might report a Stage 2 translation
+	  fault as the result of a Stage 1 fault for load crossing a
+	  page boundary when there is a permission or device memory
+	  alignment fault at Stage 1 and a translation fault at Stage 2.
+
+	  The workaround is to verify that the Stage 1 translation
+	  doesn't generate a fault before handling the Stage 2 fault.
+	  Please note that this does not necessarily enable the workaround,
+	  as it depends on the alternative framework, which will only patch
+	  the kernel if an affected CPU is detected.
+
+	  If unsure, say Y.
+
+config ARM64_ERRATUM_845719
+	bool "Cortex-A53: 845719: a load might read incorrect data"
+	#depends on COMPAT
+	default y
+	help
+	  This option adds an alternative code sequence to work around ARM
+	  erratum 845719 on Cortex-A53 parts up to r0p4.
+
+	  When running a compat (AArch32) userspace on an affected Cortex-A53
+	  part, a load at EL0 from a virtual address that matches the bottom 32
+	  bits of the virtual address used by a recent load at (AArch64) EL1
+	  might return incorrect data.
+
+	  The workaround is to write the contextidr_el1 register on exception
+	  return to a 32-bit task.
+	  Please note that this does not necessarily enable the workaround,
+	  as it depends on the alternative framework, which will only patch
+	  the kernel if an affected CPU is detected.
+
+	  If unsure, say Y.
+
+config ARM64_ERRATUM_843419
+	bool "Cortex-A53: 843419: A load or store might access an incorrect address"
+	default y
+	#select ARM64_MODULE_CMODEL_LARGE if MODULES
+	help
+	  This option links the kernel with '--fix-cortex-a53-843419' and
+	  builds modules using the large memory model in order to avoid the use
+	  of the ADRP instruction, which can cause a subsequent memory access
+	  to use an incorrect address on Cortex-A53 parts up to r0p4.
+
+	  If unsure, say Y.
+
+config QCOM_FALKOR_ERRATUM_1003
+	bool "Falkor E1003: Incorrect translation due to ASID change"
+	default y
+	#select ARM64_PAN if ARM64_SW_TTBR0_PAN
+	help
+	  On Falkor v1, an incorrect ASID may be cached in the TLB when ASID
+	  and BADDR are changed together in TTBRx_EL1. The workaround for this
+	  issue is to use a reserved ASID in cpu_do_switch_mm() before
+	  switching to the new ASID. Saying Y here selects ARM64_PAN if
+	  ARM64_SW_TTBR0_PAN is selected. This is done because implementing and
+	  maintaining the E1003 workaround in the software PAN emulation code
+	  would be an unnecessary complication. The affected Falkor v1 CPU
+	  implements ARMv8.1 hardware PAN support and using hardware PAN
+	  support versus software PAN emulation is mutually exclusive at
+	  runtime.
+
+	  If unsure, say Y.
+
+config QCOM_FALKOR_ERRATUM_1009
+	bool "Falkor E1009: Prematurely complete a DSB after a TLBI"
+	default y
+	help
+	  On Falkor v1, the CPU may prematurely complete a DSB following a
+	  TLBI xxIS invalidate maintenance operation. Repeat the TLBI operation
+	  one more time to fix the issue.
+
+	  If unsure, say Y.
+
+config QCOM_QDF2400_ERRATUM_0065
+	bool "QDF2400 E0065: Incorrect GITS_TYPER.ITT_Entry_size"
+	default y
+	help
+	  On Qualcomm Datacenter Technologies QDF2400 SoC, ITS hardware reports
+	  ITE size incorrectly. The GITS_TYPER.ITT_Entry_size field should have
+	  been indicated as 16Bytes (0xf), not 8Bytes (0x7).
+
+	  If unsure, say Y.
+
+endmenu
+
+endmenu
+
+source "arch/arm64/mach-qdf2400/Kconfig"
+
+source "kernel/Kconfig"
+source "drivers/Kconfig"
+source "lib/Kconfig"
+source "init/Kconfig"

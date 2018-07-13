@@ -45,12 +45,12 @@ irq_handler __vic_hw_vector_table[NR_IRQS];
 
 extern void __bad_interrupt(void);
 
-void vic_hw_register_irq(uint8_t nr, irq_handler h)
+void vic_hw_register_irq(irq_t nr, irq_handler h)
 {
 	BUG_ON(nr >= NR_IRQS);
 }
 
-void vic_hw_irq_priority(uint8_t irq, uint8_t prio)
+void vic_hw_irq_priority(irq_t irq, uint8_t prio)
 {
 	BUG_ON(irq >= NR_IRQS);
 	BUG_ON(prio > GIC_PRIORITY_MAX);

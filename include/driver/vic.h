@@ -12,7 +12,7 @@ typedef void (*irq_handler)(void);
 
 #define vic_hw_vectors_init()
 #define vic_hw_register_irq(nr, h)
-void do_IRQ(uint8_t nr);
+void do_IRQ(irq_t nr);
 #endif
 
 #endif /* __VIC_DRIVER_H_INCLUDE__ */

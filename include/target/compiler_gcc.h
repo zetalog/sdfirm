@@ -30,7 +30,13 @@
 #define ISR_NAKED      __attribute__((naked))
 #define ISR_ALIASOF(v) __attribute__((alias(__STRINGIFY(v))))
 
+#ifdef __ASSEMBLY__
+#define ULL(x)		x
+#define UL(x)		x
+#else
 #define ULL(x)		x##ULL
+#define UL(x)		x##UL
+#endif
 
 #define __packed			__attribute__((packed))
 #define __always_inline			inline __attribute__((always_inline))

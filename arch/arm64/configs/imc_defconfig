@@ -1,0 +1,194 @@
+#
+# Automatically generated make config: don't edit
+# Small Device version: 1.0.0.0
+# Fri Jul 13 10:49:13 2018
+#
+CONFIG_ARM64=y
+
+#
+# ARM64 system options
+#
+CONFIG_ARCH_QDF2400=y
+CONFIG_CPU_QDF2400=y
+CONFIG_CPU_64v8=y
+CONFIG_NR_CPUS=48
+# CONFIG_GIC is not set
+CONFIG_ARM_DCC=y
+
+#
+# CoreLink peripherals
+#
+# CONFIG_UART_PL01X is not set
+
+#
+# Compiler options
+#
+CONFIG_ARM64_ERRATUM_826319=y
+CONFIG_ARM64_ERRATUM_827319=y
+CONFIG_ARM64_ERRATUM_824069=y
+CONFIG_ARM64_ERRATUM_819472=y
+CONFIG_ARM64_ERRATUM_832075=y
+CONFIG_ARM64_ERRATUM_834220=y
+CONFIG_ARM64_ERRATUM_845719=y
+CONFIG_ARM64_ERRATUM_843419=y
+CONFIG_QCOM_FALKOR_ERRATUM_1003=y
+CONFIG_QCOM_FALKOR_ERRATUM_1009=y
+CONFIG_QCOM_QDF2400_ERRATUM_0065=y
+
+#
+# Qualcomm Centriq 2400 board options
+#
+
+#
+# Feature setup
+#
+
+#
+# Generic kernel features
+#
+# CONFIG_SYS_NOIRQ is not set
+CONFIG_SYS_POLL=y
+# CONFIG_SYS_POLL_RT is not set
+# CONFIG_SYS_TASK is not set
+CONFIG_ARCH_HAS_TSC=y
+CONFIG_ARCH_IS_TICKLESS=y
+CONFIG_ARCH_HAS_IDLE=y
+
+#
+# Scheduling facility (irq) support
+#
+CONFIG_MAX_VECTORS=4
+
+#
+# Scheduling facility (bh) support
+#
+CONFIG_MAX_BHS=4
+
+#
+# Timing facility (jiffy) support
+#
+
+#
+# Timing facility (delay) support
+#
+# CONFIG_LPS_32BITS is not set
+CONFIG_LPS_WEIGHT=8
+# CONFIG_LPS_PRESET is not set
+CONFIG_TIMER=y
+# CONFIG_TIMER_16BIT is not set
+CONFIG_TIMER_ONESHOT=y
+CONFIG_MAX_TIMERS=1
+
+#
+# Address space layout (.text) support
+#
+# CONFIG_XIP is not set
+CONFIG_TEXT_ROM_BASE=0
+CONFIG_TEXT_RAM_BASE=0xFF6F800000
+# CONFIG_HEAP is not set
+CONFIG_IDLE=y
+# CONFIG_BULK is not set
+# CONFIG_TERM is not set
+CONFIG_ARCH_HAS_GPIO=y
+# CONFIG_GPIO is not set
+
+#
+# Human interface devices support
+#
+# CONFIG_LCD is not set
+# CONFIG_KBD is not set
+# CONFIG_LED is not set
+CONFIG_ARCH_HAS_UART=y
+
+#
+# Universal asynchronous RX/TX (UART) support
+#
+CONFIG_UART_230400=y
+# CONFIG_UART_115200 is not set
+# CONFIG_UART_57600 is not set
+# CONFIG_UART_38400 is not set
+# CONFIG_UART_19200 is not set
+# CONFIG_UART_9600 is not set
+# CONFIG_UART_4800 is not set
+# CONFIG_UART_2400 is not set
+# CONFIG_UART is not set
+# CONFIG_SPI is not set
+# CONFIG_I2C is not set
+# CONFIG_USB is not set
+# CONFIG_SCS is not set
+# CONFIG_MTD is not set
+# CONFIG_SCSI is not set
+# CONFIG_NET is not set
+# CONFIG_VIDEO is not set
+
+#
+# Driver setup
+#
+
+#
+# LCD drivers
+#
+
+#
+# Video drivers
+#
+
+#
+# MTD memory drivers
+#
+# CONFIG_PN53X is not set
+# CONFIG_ACR122 is not set
+
+#
+# Library setup
+#
+
+#
+# Bit-wise operations
+#
+# CONFIG_BIT_FLS8 is not set
+# CONFIG_BIT_FLS16 is not set
+# CONFIG_BIT_FFS16 is not set
+# CONFIG_BIT_FLS32 is not set
+# CONFIG_BIT_FFS32 is not set
+# CONFIG_BIT_ROUNDUP16 is not set
+# CONFIG_BIT_ROUNDDOWN16 is not set
+# CONFIG_BIT_ROUNDUP32 is not set
+# CONFIG_BIT_ROUNDDOWN32 is not set
+
+#
+# Bitmap operations
+#
+CONFIG_BIT_FIND_CLEAR=y
+
+#
+# Mathematic operations
+#
+# CONFIG_MATH_MOD32 is not set
+# CONFIG_MATH_MUL32 is not set
+# CONFIG_MATH_DIV64 is not set
+# CONFIG_MATH_MOD64 is not set
+
+#
+# Atomic operations
+#
+# CONFIG_ATOMIC_SUB_RETURN is not set
+# CONFIG_ATOMIC_ADD_RETURN is not set
+
+#
+# Checksum algorithms
+#
+# CONFIG_CRC16_CCITT is not set
+# CONFIG_CRC32 is not set
+# CONFIG_FONTS is not set
+
+#
+# Generic setup
+#
+CONFIG_VENDOR_NAME="HXT Shanghai"
+CONFIG_PRODUCT_NAME="HXT TestOS"
+CONFIG_VENDOR_ID=990
+CONFIG_PRODUCT_ID=0
+CONFIG_SERIAL_NO=0
+# CONFIG_EXPERIMENTAL is not set
+CONFIG_CC_OPT_SIZE=y

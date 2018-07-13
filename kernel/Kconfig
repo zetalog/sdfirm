@@ -148,15 +148,23 @@ endmenu
 
 menu "Timing facility (delay) support"
 
+config LPS_64BITS
+	bool "Enable 64 bit loops/jiffy support"
+	select MATH_MUL64
+	select MATH_DIV64
+
 config LPS_32BITS
 	bool "Enable 32 bit loops/jiffy support"
+	depends !LPS_64BITS
 	select MATH_MUL32
+	select MATH_DIV32
 
 config LPS_WEIGHT
 	int "Initail loops/jiffy weight"
 	default 8
-	range 0 15 if !LPS_32BITS
+	range 0 15 if (!LPS_32BITS && !LPS_64BITS)
 	range 0 31 if LPS_32BITS
+	range 0 64 if LPS_64BITS
 	help
 	  Correct initial LPS weight can help firmware to boot faster.
 	  Incorrect initial LPS weight may result in calibrate delay

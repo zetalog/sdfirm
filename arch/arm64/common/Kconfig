@@ -1,0 +1,86 @@
+# QDF2400
+config CPU_QDF2400
+	bool
+	select CPU_64v8
+	select GIC
+	help
+	  1 Cortex-A53 + many Cortex-A57.
+
+# Figure out what processor architecture version we should be using.
+# This defines the compiler instruction set which depends on the machine type.
+
+config CPU_64v8
+	bool
+
+config CPU_BIG_ENDIAN
+	bool "Build big-endian kernel"
+	depends on ARCH_SUPPORTS_BIG_ENDIAN
+	help
+	  Say Y if you plan on running a kernel in big-endian mode.
+
+config NR_CPUS
+	int "Maximum number of CPUs (1-4096)"
+	range 1 4096
+	# These have to remain sorted largest to smallest
+	default "48"
+
+choice
+	prompt "Interrupt controller"
+
+config GIC
+	bool "Generic Interrupt Controller (GIC)"
+	select ARCH_HAS_VIC
+	depends on CPU_32v7
+	help
+	  The GIC architecture describes an interrupt controller for use with
+	  one or more processors that comply with ARM A or R architecture
+	  profiles.
+
+if GIC
+
+config GIC_IRQ_GROUPING
+	bool "Interrupt grouping"
+	depends on ARM_TRUSTZONE
+	help
+	  Interrupt grouping is present in GICv2 implementations and in GICv1
+	  implementations that include the GIC security extensions.
+
+endif
+
+endchoice
+
+config ARM_DCC
+	bool "Debug Communications Channel"
+	select ARCH_HAS_UART
+	help
+	  The Debug Communications Channel, DCC, is a channel for passing
+	  data between the PE and an external agent, such as a debugger.
+	  The DCC provides a communications channel between:
+	  * An external debugger, described as the debug host.
+	  * The debug implementation on the PE, described as the debug
+	    target.
+	  The DCC can be used:
+	  * As a 32-bit full-duplex channel.
+	  * As a 64-bit half-duplex channel.
+	  The DCC is an essential part of Debug state operation and can
+	  also be used in Non-debug state.
+
+menu "CoreLink peripherals"
+
+config UART_PL01X
+	bool "PrimeCell UART (PL01x)"
+	select ARCH_HAS_UART
+	help
+	  PrimeCell UART (PL010/PL011) offers similar functionality to the
+	  industry-standard 16C550 UART.
+
+endmenu
+
+config CPU_BIG_ENDIAN
+	bool "Build big-endian kernel"
+	depends on ARCH_SUPPORTS_BIG_ENDIAN
+	help
+	  Say Y if you plan on running a kernel in big-endian mode.
+	  Note that your board must be properly built and your board
+	  port must properly enable any big-endian related features
+	  of your chipset/board/processor.
