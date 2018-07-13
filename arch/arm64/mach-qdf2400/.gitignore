@@ -13,5 +13,3 @@
 *.mem
 *.swp
 *.bak
-*.lds
-asm-offsets.s

@@ -4,6 +4,9 @@
 
 menu "Library setup"
 
+config STDLIB
+	bool "Standard C library support
+
 menu "Bit-wise operations"
 
 config BIT_FLS8

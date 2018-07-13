@@ -5,6 +5,8 @@
 #define __near__
 #define __far__
 
+#define UINTPTR_MAX	UINT64_MAX
+
 #define __TEXT_TYPE__(type, name)	\
 	typedef type name
 

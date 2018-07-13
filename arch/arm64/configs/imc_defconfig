@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Jul 13 10:49:13 2018
+# Fri Jul 13 17:39:13 2018
 #
 CONFIG_ARM64=y
 
@@ -71,8 +71,8 @@ CONFIG_MAX_BHS=4
 #
 # Timing facility (delay) support
 #
-# CONFIG_LPS_32BITS is not set
-CONFIG_LPS_WEIGHT=8
+CONFIG_LPS_64BITS=y
+CONFIG_LPS_WEIGHT=10
 # CONFIG_LPS_PRESET is not set
 CONFIG_TIMER=y
 # CONFIG_TIMER_16BIT is not set
@@ -83,7 +83,7 @@ CONFIG_MAX_TIMERS=1
 # Address space layout (.text) support
 #
 # CONFIG_XIP is not set
-CONFIG_TEXT_ROM_BASE=0
+CONFIG_TEXT_ROM_BASE=0xFF6F800000
 CONFIG_TEXT_RAM_BASE=0xFF6F800000
 # CONFIG_HEAP is not set
 CONFIG_IDLE=y
@@ -142,6 +142,7 @@ CONFIG_UART_230400=y
 #
 # Library setup
 #
+CONFIG_STDLIB=y
 
 #
 # Bit-wise operations
@@ -165,8 +166,8 @@ CONFIG_BIT_FIND_CLEAR=y
 # Mathematic operations
 #
 # CONFIG_MATH_MOD32 is not set
-# CONFIG_MATH_MUL32 is not set
-# CONFIG_MATH_DIV64 is not set
+CONFIG_MATH_MUL32=y
+CONFIG_MATH_DIV64=y
 # CONFIG_MATH_MOD64 is not set
 
 #
@@ -191,4 +192,4 @@ CONFIG_VENDOR_ID=990
 CONFIG_PRODUCT_ID=0
 CONFIG_SERIAL_NO=0
 # CONFIG_EXPERIMENTAL is not set
-CONFIG_CC_OPT_SIZE=y
+# CONFIG_CC_OPT_SIZE is not set

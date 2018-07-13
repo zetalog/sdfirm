@@ -1,5 +1,5 @@
 
 obj-y :=
 
-obj-y += mach.o
-obj-y += timer.o
+obj-y += mach.rel
+obj-y += timer.rel
