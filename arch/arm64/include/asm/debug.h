@@ -7,8 +7,8 @@
  * D.7.3 Debug registers
  * ================================================================= */
 /* D.7.3.16 MDCCSR_EL0, Monitor DCC Status Register */
-#define MDCCSR_RXFULL		_BV(29)
-#define MDCCSR_TXFULL		_BV(30)
+#define MDCCSR_TXFULL		_BV(29)
+#define MDCCSR_RXFULL		_BV(30)
 
 unsigned long __dcc_status(void);
 void __dcc_write(unsigned long dbg_data);
