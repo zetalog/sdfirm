@@ -6,13 +6,20 @@
 #include <target/bh.h>
 #include <asm/irq.h>
 
+#define IRQ_LEVEL_TRIGGERED	0
+#define IRQ_EDGE_TRIGGERED	1
+
 #if NR_IRQS <= 256
 typedef uint8_t irq_t;
 #elif NR_IRQS <= 65536
 typedef uint16_t irq_t;
 #endif
 
+#ifdef CONFIG_ARCH_HAS_VIC
 #include <driver/vic.h>
+#else
+#include <driver/irqc.h>
+#endif
 
 #define irq_local_enable()		irq_hw_flags_enable()
 #define irq_local_disable()		irq_hw_flags_disable()
@@ -29,6 +36,8 @@ void irq_vectors_init(void);
 #define irq_vectors_init()
 #endif
 
+boolean do_IRQ(irq_t nr);
+
 /* irq pollers */
 void irq_register_poller(bh_t bh);
 void irq_poll_bh(bh_t bh);
@@ -42,5 +51,6 @@ void irq_hw_flags_disable(void);
 #ifndef irq_hw_ctrl_init
 void irq_hw_ctrl_init(void);
 #endif
+void irq_hw_handle_irq(void);
 
 #endif /* __IRQ_H_INCLUDE__ */

@@ -88,7 +88,7 @@ __irq_prologue:
 
 	; store irq_nr(r24) as the parameter and then call do_IRQ(nr)
 	mov	r24, r16
-	XCALL	do_IRQ
+	XCALL	irq_hw_handle_irq
 
 __irq_epilogue:
 #ifdef CONFIG_FRAME_POINTER

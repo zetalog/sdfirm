@@ -5,7 +5,7 @@
 menu "Library setup"
 
 config STDLIB
-	bool "Standard C library support
+	bool "Standard C library support"
 
 menu "Bit-wise operations"
 
@@ -59,6 +59,12 @@ config MATH_MOD32
 
 config MATH_MUL32
 	bool "mul32u"
+
+config MATH_MUL64
+	bool "mul64u"
+
+config MATH_DIV32
+	bool "div32u"
 
 config MATH_DIV64
 	bool "div64u"

@@ -1,6 +1,6 @@
 
 obj-y :=
-
+obj-$(CONFIG_GIC) += gic.rel
 obj-$(CONFIG_ARM_DCC) += dcc/
 
 obj-y += timer.rel

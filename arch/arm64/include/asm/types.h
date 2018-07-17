@@ -10,9 +10,9 @@
 #define __TEXT_TYPE__(type, name)	\
 	typedef type name
 
-typedef uint64_t	caddr_t;
+typedef unsigned long	caddr_t;
 #define ARCH_HAVE_CADDR_T 1
-typedef uint64_t	size_t;
+typedef unsigned long	size_t;
 #define ARCH_HAVE_SIZE_T 1
 typedef caddr_t		uintptr_t;
 

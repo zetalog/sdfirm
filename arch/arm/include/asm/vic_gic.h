@@ -54,8 +54,6 @@
 
 #include <asm/gic.h>
 
-typedef void (*irq_handler)(void);
-
 void vic_hw_register_irq(irq_t nr, irq_handler h);
 void vic_hw_register_trap(irq_t nr, irq_handler h);
 void vic_hw_vectors_init(void);

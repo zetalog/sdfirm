@@ -6,26 +6,27 @@ typedef signed char		int8_t;
 typedef unsigned char		uint8_t;
 typedef signed short		int16_t;
 typedef unsigned short		uint16_t;
-typedef signed long		int32_t;
-typedef unsigned long		uint32_t;
-typedef signed long long	int64_t;
-typedef unsigned long long	uint64_t;
 
 #include <asm/types.h>
 
 typedef uint8_t			boolean;
-typedef unsigned short		wchar_t;
+typedef uint16_t		wchar_t;
+#ifndef ARCH_HAVE_UINT32_T
+typedef signed int		int32_t;
+typedef unsigned int		uint32_t;
+#endif
 #ifndef ARCH_HAVE_UINT64_T
+typedef signed long long	int64_t;
 typedef unsigned long long	uint64_t;
 #endif
 #ifndef ARCH_HAVE_CADDR_T
-typedef uint16_t		caddr_t;
+typedef unsigned long		caddr_t;
 #endif
 #ifndef ARCH_HAVE_SIZE_T
-typedef uint32_t		size_t;
+typedef unsigned long		size_t;
 #endif
 #ifndef ARCH_HAVE_LOFF_T
-typedef int32_t			loff_t;
+typedef unsigned long		loff_t;
 #endif
 
 #ifndef NULL
@@ -44,8 +45,14 @@ typedef int32_t			loff_t;
 #endif /* __ASSEMBLY__ */
 
 #define _BV(bit)		(1 << (bit))
-#define _FV(name, value)	\
+#define _SET_FV(name, value)	\
 	(((value) & (name##_MASK)) << (name##_OFFSET))
+#define _GET_FV(name, value)	\
+	(((value) >> (name##_OFFSET)) & (name##_MASK))
+/* Default to _SET_FV() as by default _FV() is used to generate field
+ * values to be written to the registers.
+ */
+#define _FV(name, value)	_SET_FV(name, value)
 
 #ifndef __ASSEMBLY__
 __TEXT_TYPE__(char, text_char_t);

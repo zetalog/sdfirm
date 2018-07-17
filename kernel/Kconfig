@@ -53,6 +53,9 @@ endchoice
 config ARCH_HAS_VIC
 	bool
 
+config ARCH_HAS_IRQC
+	bool
+
 config ARCH_HAS_GPT
 	bool
 

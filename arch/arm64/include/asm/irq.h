@@ -26,10 +26,6 @@ typedef uint64_t irq_flags_t;
 	: : : "memory")
 #define irq_hw_ctrl_init()
 
-#define _VECTOR(N)	(N)
-#define DEFINE_ISR(vector)	\
-	void vector##_isr(void)
-
 #include <asm/mach/irq.h>
 
 #endif /* __IRQ_ARM64_H_INCLUDE__ */

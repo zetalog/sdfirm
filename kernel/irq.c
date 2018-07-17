@@ -26,7 +26,7 @@ void irq_register_vector(irq_t nr, irq_handler h)
 	irq_handlers[curr] = h;
 }
 
-void do_IRQ(irq_t nr)
+boolean do_IRQ(irq_t nr)
 {
 	uint8_t curr;
 
@@ -34,8 +34,10 @@ void do_IRQ(irq_t nr)
 	for (curr = 0; curr < irq_nr_regs; curr++) {
 		if (nr == irq_nr_table[curr]) {
 			irq_handlers[curr]();
+			return true;
 		}
 	}
+	return false;
 }
 
 void irq_vectors_init(void)
@@ -43,6 +45,7 @@ void irq_vectors_init(void)
 	uint8_t i;
 	for (i = 0; i < MAX_VECTORS; i++)
 		irq_handlers[i] = __bad_interrupt;
+	irqc_hw_ctrl_init();
 }
 #else
 void irq_vectors_init(void)

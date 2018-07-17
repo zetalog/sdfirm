@@ -35,34 +35,64 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)vic_nvic.h: nested vectored interrupt controller interfaces
- * $Id: vic_nvic.h,v 1.279 2011-10-19 10:19:18 zhenglv Exp $
+ * @(#)vic_gic.c: generic interrupt controller implementation
+ * $Id: vic_gic.c,v 1.279 2011-10-19 10:19:18 zhenglv Exp $
  */
 
-#ifndef __VIC_NVIC_H_INCLUDE__
-#define __VIC_NVIC_H_INCLUDE__
+#include <target/irq.h>
 
-#include <asm/nvic.h>
-#include <asm/mach/mem.h>
-#include <asm/mach/irq.h>
-#include <asm/mach/scb.h>
+static void irqc_hw_begin_irq(irq_t *irq, uint8_t *cpu)
+{
+	uint32_t iar = __raw_readl(GICC_IAR);
 
-#ifndef ARCH_HAVE_VIC
-#define ARCH_HAVE_VIC			1
-#else
-#error "Multiple VIC controller defined"
-#endif
+	*irq = GICC_GET_IRQ(iar);
+	*cpu = GICC_GET_CPU(iar);
+}
 
-#define __VIC_HW_PRIO_MAX	NVIC_PRIO_MAX
-#define __VIC_HW_PRIO_TRAP_MIN	NVIC_PRIO_TRAP_MIN
+static void irqc_hw_end_irq(irq_t irq, uint8_t cpu)
+{
+	__raw_writel(GICC_SET_IRQ(irq) | GICC_SET_CPU(cpu), GICC_EOIR);
+}
 
-#define vic_hw_irq_enable(irq)		nvic_irq_enable_irq(irq)
-#define vic_hw_irq_disable(irq)		nvic_irq_disable_irq(irq)
-#define vic_hw_irq_trigger(irq)		nvic_irq_trigger_irq(irq)
-void vic_hw_irq_priority(uint8_t irq, uint8_t prio);
-void vic_hw_trap_priority(uint8_t trap, uint8_t prio);
-void vic_hw_register_irq(uint8_t nr, irq_handler h);
-void vic_hw_register_trap(uint8_t nr, irq_handler h);
-void vic_hw_vectors_init(void);
+void irqc_hw_ack_irq(irq_t irq)
+{
+	/* CPU ID is 0 */
+	irqc_hw_end_irq(irq, 0);
+}
 
-#endif /* __VIC_NVIC_H_INCLUDE__ */
+void irqc_hw_handle_irq(void)
+{
+	irq_t irq;
+	uint8_t cpu;
+
+	irqc_hw_begin_irq(&irq, &cpu);
+	if (irq >= NR_IRQS) {
+		irqc_hw_end_irq(irq, cpu);
+		return;
+	}
+	if (!do_IRQ(irq)) {
+		irqc_hw_disable_irq(irq);
+		irqc_hw_end_irq(irq, cpu);
+	}
+}
+
+void irqc_hw_configure_irq(irq_t irq, uint8_t prio,
+			   uint8_t trigger)
+{
+	uint32_t cfg;
+
+	__raw_writel_mask(GICD_PRIORITY(irq, prio),
+			  GICD_PRIORITY_MASK,
+			  GICD_IPRIORITYR(irq));
+	cfg = GICD_MODEL(GICD_MODEL_1_N);
+	if (trigger == IRQ_LEVEL_TRIGGERED)
+		cfg |= GICD_TRIGGER(GICD_TRIGGER_LEVEL);
+	else
+		cfg |= GICD_TRIGGER(GICD_TRIGGER_EDGE);
+	__raw_writel(GICD_INT_CONFIG(irq, cfg), GICD_ICFGR(irq));
+}
+
+void irqc_hw_ctrl_init(void)
+{
+	gic_hw_ctrl_init();
+}

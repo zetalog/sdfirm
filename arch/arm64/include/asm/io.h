@@ -2,17 +2,18 @@
 #define __IO_ARM64_H_INCLUDE__
 
 #include <target/config.h>
+#include <target/types.h>
 #include <asm/mach/io.h>
 
-#define __raw_writeb(v,a)	(*(volatile unsigned char  *)(a) = (v))
-#define __raw_writew(v,a)	(*(volatile unsigned short *)(a) = (v))
-#define __raw_writel(v,a)	(*(volatile unsigned int   *)(a) = (v))
-#define __raw_writeq(v,a)	(*(volatile unsigned long  *)(a) = (v))
+#define __raw_writeb(v,a)	(*(volatile uint8_t  *)(a) = (v))
+#define __raw_writew(v,a)	(*(volatile uint16_t *)(a) = (v))
+#define __raw_writel(v,a)	(*(volatile uint32_t *)(a) = (v))
+#define __raw_writeq(v,a)	(*(volatile uint64_t *)(a) = (v))
 
-#define __raw_readb(a)		(*(volatile unsigned char  *)(a))
-#define __raw_readw(a)		(*(volatile unsigned short *)(a))
-#define __raw_readl(a)		(*(volatile unsigned int   *)(a))
-#define __raw_readq(a)		(*(volatile unsigned long  *)(a))
+#define __raw_readb(a)		(*(volatile uint8_t  *)(a))
+#define __raw_readw(a)		(*(volatile uint16_t *)(a))
+#define __raw_readl(a)		(*(volatile uint32_t *)(a))
+#define __raw_readq(a)		(*(volatile uint64_t *)(a))
 
 /* XXX: Atomic Register Access
  *
@@ -21,57 +22,57 @@
  */
 #define __raw_setb(v,a)					\
 	do {						\
-		unsigned char __v = __raw_readb(a);	\
+		uint8_t __v = __raw_readb(a);		\
 		__v |= (v);				\
 		__raw_writeb(__v, (a));			\
 	} while (0)
 #define __raw_setw(v, a)				\
 	do {						\
-		unsigned short __v = __raw_readw(a);	\
+		uint16_t __v = __raw_readw(a);		\
 		__v |= (v);				\
 		__raw_writew(__v, (a));			\
 	} while (0)
 #define __raw_setl(v,a)					\
 	do {						\
-		unsigned long __v = __raw_readl(a);	\
+		uint32_t __v = __raw_readl(a);		\
 		__v |= (v);				\
 		__raw_writel(__v, (a));			\
 	} while (0)
 #define __raw_clearb(v,a)				\
 	do {						\
-		unsigned char __v = __raw_readb(a);	\
+		uint8_t __v = __raw_readb(a);		\
 		__v &= ~(v);				\
 		__raw_writeb(__v, (a));			\
 	} while(0)
 #define __raw_clearw(v,a)				\
 	do {						\
-		unsigned short __v = __raw_readw(a);	\
+		uint16_t __v = __raw_readw(a);		\
 		__v &= ~(v);				\
 		__raw_writew(__v, (a));			\
 	} while(0)
 #define __raw_clearl(v,a)				\
 	do {						\
-		unsigned long __v = __raw_readl(a);	\
+		uint32_t __v = __raw_readl(a);		\
 		__v &= ~(v);				\
 		__raw_writel(__v, (a));			\
 	} while (0)
 #define __raw_writeb_mask(v,m,a)			\
 	do {						\
-		unsigned char __v = __raw_readb(a);	\
+		uint8_t __v = __raw_readb(a);		\
 		__v &= ~(m);				\
 		__v |= (v);				\
 		__raw_writeb(__v, (a));			\
 	} while (0)
 #define __raw_writew_mask(v,m,a)			\
 	do {						\
-		unsigned short __v = __raw_readw(a);	\
+		uint16_t __v = __raw_readw(a);		\
 		__v &= ~(m);				\
 		__v |= (v);				\
 		__raw_writew(__v, (a));			\
 	} while (0)
 #define __raw_writel_mask(v,m,a)			\
 	do {						\
-		unsigned long __v = __raw_readl(a);	\
+		uint32_t __v = __raw_readl(a);		\
 		__v &= ~(m);				\
 		__v |= (v);				\
 		__raw_writel(__v, (a));			\
@@ -86,37 +87,37 @@
 #ifndef ARCH_HAVE_IO_ATOMIC
 #define __raw_setb_atomic(b, a)				\
 	do {						\
-		unsigned char __v = __raw_readb(a);	\
+		uint8_t __v = __raw_readb(a);		\
 		__v |= _BV(b);				\
 		__raw_writeb(__v, (a));			\
 	} while (0)
 #define __raw_setw_atomic(b, a)				\
 	do {						\
-		unsigned short __v = __raw_readw(a);	\
+		uint16_t __v = __raw_readw(a);		\
 		__v |= _BV(b);				\
 		__raw_writew(__v, (a));			\
 	} while (0)
 #define __raw_setl_atomic(b, a)				\
 	do {						\
-		unsigned long __v = __raw_readl(a);	\
+		uint32_t __v = __raw_readl(a);		\
 		__v |= _BV(b);				\
 		__raw_writel(__v, (a));			\
 	} while (0)
 #define __raw_clearb_atomic(b, a)			\
 	do {						\
-		unsigned char __v = __raw_readb(a);	\
+		uint8_t __v = __raw_readb(a);		\
 		__v &= ~_BV(b);				\
 		__raw_writeb(__v, (a));			\
 	} while(0)
 #define __raw_clearw_atomic(b, a)			\
 	do {						\
-		unsigned short __v = __raw_readw(a);	\
+		uint16_t __v = __raw_readw(a);		\
 		__v &= ~_BV(b);				\
 		__raw_writew(__v, (a));			\
 	} while(0)
 #define __raw_clearl_atomic(b, a)			\
 	do {						\
-		unsigned long __v = __raw_readl(a);	\
+		uint32_t __v = __raw_readl(a);		\
 		__v &= ~_BV(b);				\
 		__raw_writel(__v, (a));			\
 	} while(0)

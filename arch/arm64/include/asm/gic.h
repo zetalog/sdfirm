@@ -1,0 +1,322 @@
+/*
+ * ZETALOG's Personal COPYRIGHT
+ *
+ * Copyright (c) 2018
+ *    ZETALOG - "Lv ZHENG".  All rights reserved.
+ *    Author: Lv "Zetalog" Zheng
+ *    Internet: zhenglv@hotmail.com
+ *
+ * This COPYRIGHT used to protect Personal Intelligence Rights.
+ * Redistribution and use in source and binary forms with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *    This product includes software developed by the Lv "Zetalog" ZHENG.
+ * 3. Neither the name of this software nor the names of its developers may
+ *    be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ * 4. Permission of redistribution and/or reuse of souce code partially only
+ *    granted to the developer(s) in the companies ZETALOG worked.
+ * 5. Any modification of this software should be published to ZETALOG unless
+ *    the above copyright notice is no longer declaimed.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE ZETALOG AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE ZETALOG OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * @(#)gic.h: generic interrupt controller definitions
+ * $Id: gic.h,v 1.279 2011-10-19 10:19:18 zhenglv Exp $
+ */
+
+#ifndef __GIC_ARM64_H_INCLUDE__
+#define __GIC_ARM64_H_INCLUDE__
+
+#include <target/config.h>
+#include <target/generic.h>
+#include <asm/reg.h>
+
+#ifndef ARCH_HAVE_IRQC
+#define ARCH_HAVE_IRQC
+#else
+#error "Multiple IRQ controller defined"
+#endif
+
+/* ARM Generic Interrupt Controller Architecture Specification v2 */
+
+/* base address and bit offset generator for bits-registers */
+#define GIC_1BIT_MASK			0x001
+#define GIC_2BIT_MASK			0x003
+#define GIC_3BIT_MASK			0x007
+#define GIC_4BIT_MASK			0x00F
+#define GIC_5BIT_MASK			0x01F
+#define GIC_6BIT_MASK			0x03F
+#define GIC_7BIT_MASK			0x07F
+#define GIC_8BIT_MASK			0x0FF
+#define GIC_9BIT_MASK			0x1FF
+#define GIC_10BIT_MASK			0x3FF
+#define GIC_11BIT_MASK			0x7FF
+#define GIC_12BIT_MASK			0xFFF
+
+#define GIC_1BIT_REG(base, n)		(((caddr_t)base)+(((n) & (~31)) >> 3))
+#define GIC_2BIT_REG(base, n)		(((caddr_t)base)+(((n) & (~15)) >> 2))
+#define GIC_4BIT_REG(base, n)		(((caddr_t)base)+(((n) & (~7 )) >> 1))
+#define GIC_8BIT_REG(base, n)		(((caddr_t)base)+(((n) & (~3 )) >> 0))
+
+#define GIC_1BIT_OFFSET(n)		(((n) & 31) << 0)
+#define GIC_2BIT_OFFSET(n)		(((n) & 15) << 1)
+#define GIC_4BIT_OFFSET(n)		(((n) &  7) << 2)
+#define GIC_8BIT_OFFSET(n)		(((n) &  3) << 3)
+
+#define GIC_GET_FV(name, value)		_GET_FV(name, value)
+#define GIC_SET_FV(name, value)		_SET_FV(name, value)
+#define GICn_GET_FV(n, name, value)	\
+	(((value) >> (name##_OFFSET(n))) & (name##_MASK))
+#define GICn_SET_FV(n, name, value)	\
+	(((value) & (name##_MASK)) << (name##_OFFSET(n)))
+
+/* Distributor register map */
+#define GICD_REG(offset)		(GICD_BASE+(offset))
+#define GICD_1BIT_REG(offset, n)	GIC_1BIT_REG(GICD_BASE+(offset), n)
+#define GICD_2BIT_REG(offset, n)	GIC_2BIT_REG(GICD_BASE+(offset), n)
+#define GICD_8BIT_REG(offset, n)	GIC_8BIT_REG(GICD_BASE+(offset), n)
+#define GICD_GET_FV(name, value)	GIC_GET_FV(GICD_##name, value)
+#define GICD_SET_FV(name, value)	GIC_SET_FV(GICD_##name, value)
+#define GICDn_GET_FV(n, name, value)	GICn_GET_FV(n, GICD_##name, value)
+#define GICDn_SET_FV(n, name, value)	GICn_SET_FV(n, GICD_##name, value)
+
+/* 4.3.1 Distributor Control Register, GICD_CTLR */
+#define GICD_CTLR			GICD_REG(0x000)
+/* 4.3.2 Interrupt Controller Type Register, GICD_TYPER */
+#define GICD_TYPER			GICD_REG(0x004)
+#define GICD_IIDR			GICD_REG(0x008)
+/* 4.3.4 Interrupt Group Registers, GICD_IGROUPRn */
+#define GICD_IGROUPR(n)			GICD_1BIT_REG(0x080, n)
+/* 4.3.5 Interrupt Set-Enable Registers, GICD_ISENABLERn */
+#define GICD_ISENABLER(n)		GICD_1BIT_REG(0x100, n)
+/* 4.3.6 Interrupt Clear-Enable Registers, GICD_ICENABLERn */
+#define GICD_ICENABLER(n)		GICD_1BIT_REG(0x180, n)
+/* 4.3.7 Interrupt Set-Pending Registers, GICD_ISPENDRn */
+#define GICD_ISPENDR(n)			GICD_1BIT_REG(0x200, n)
+/* 4.3.8 Interrupt Clear-Pending Registers, GICD_ICPENDRn */
+#define GICD_ICPENDR(n)			GICD_1BIT_REG(0x280, n)
+/* 4.3.9 Interrupt Set-Active Registers, GICD_ISACTIVERn */
+#define GICD_ISACTIVER(n)		GICD_1BIT_REG(0x300, n)
+/* 4.3.10 Interrupt Clear-Active Registers, GICD_ICACTIVERn */
+#define GICD_ICACTIVER(n)		GICD_1BIT_REG(0x380, n)
+/* 4.3.11 Interrupt Priority Registers, GICD_IPRIORITYRn */
+#define GICD_IPRIORITYR(n)		GICD_8BIT_REG(0x400, n)
+#define GICD_ITARGETSR(n)		GICD_8BIT_REG(0x800, n)
+/* 4.3.13 Interrupt Configuration Registers, GICD_ICFGRn */
+#define GICD_ICFGR(n)			GICD_2BIT_REG(0xC00, n)
+#define GICD_NSACR(n)			GICD_2BIT_REG(0xE00, n)
+#define GICD_SGIR			GICD_REG(0xF00)
+#define GICD_CPENDSGIR(n)		GICD_8BIT_REG(0xF10, n)
+#define GICD_SPENDSGIR(n)		GICD_8BIT_REG(0xF20, n)
+#define GICD_ICPIDR2			GICD_REG(0xFE8) /* Peripheral ID2 */
+
+/* GICD_CTLR */
+#define GICD_CTLR_ENABLE		_BV(0)
+#define GICD_ENABLE_GRP0		_BV(0)
+#define GICD_ENABLE_GRP1		_BV(1)
+
+/* GICD_TYPER */
+#define GICD_IT_LINES_NUMBER_OFFSET	0
+#define GICD_IT_LINES_NUMBER_MASK	GIC_5BIT_MASK
+#define GICD_IT_LINES_NUMBER(value)	GICD_GET_FV(IT_LINES_NUMBER, value)
+#define GICD_CPU_NUMBER_OFFSET		5
+#define GICD_CPU_NUMBER_MASK		GIC_3BIT_MASK
+#define GICD_CPU_NUMBER(value)		GICD_GET_FV(CPU_NUMBER, value)
+#define GICD_SECURITY_EXTN		_BV(10)
+#define GICD_LSPI_OFFSET		11
+#define GICD_LSPI_MASK			GIC_5BIT_MASK
+#define GICD_LSPI(value)		GICD_GET_FV(LSPI, value)
+
+/* GICD_IIDR */
+#define GICD_IMPLEMENTER_OFFSET		0
+#define GICD_IMPLEMENTER_MASK		GIC_12BIT_MASK
+#define GICD_IMPLEMENTER(value)		GICD_GET_FV(IMPLEMENTER, value)
+#define GICD_REVISION_OFFSET		12
+#define GICD_REVISION_MASK		GIC_4BIT_MASK
+#define GICD_REVISION(value)		GICD_GET_FV(REVISION, value)
+#define GICD_VARIANT_OFFSET		16
+#define GICD_VARIANT_MASK		GIC_4BIT_MASK
+#define GICD_VARIANT(value)		GICD_GET_FV(VARIANT, value)
+#define GICD_PRODUCT_ID_OFFSET		24
+#define GICD_PRODUCT_ID_MASK		GIC_8BIT_MASK
+#define GICD_PRODUCT_ID(value)		GICD_GET_FV(PRODUCT_ID, value)
+
+/* GICD_IGROUPR */
+#define GICD_GROUP_STATUS(n)		_BV(GIC_1BIT_OFFSET(n))
+
+/* GICD_ISENABLER/GICD_ICENABLER
+ * GICD_ISPENDR/GICD_ICPENDR
+ * GICD_ISACTIVER/GICD_ICACTIVER
+ */
+#define GICD_INTERRUPT_ID(n)		_BV(GIC_1BIT_OFFSET(n))
+
+/* GICD_IPRORITYR */
+#define GICD_PRIORITY_OFFSET(n)		GIC_8BIT_OFFSET(n)
+#define GICD_PRIORITY_MASK		GIC_8BIT_MASK
+#define GICD_PRIORITY(n, value)		GICDn_SET_FV(n, PRIORITY, value)
+
+/* GICD_ITARGETSR */
+#define GICD_CPU_TARGETS_OFFSET(n)	GIC_8BIT_OFFSET(n)
+#define GICD_CPU_TARGETS_MASK		GIC_8BIT_MASK
+#define GICD_CPU_TARGETS(n, value)	GICDn_SET_FV(n, CPU_TARGETS, value)
+#define GICD_CPU_TARGETS_MAX		0xFF
+
+/* GICD_ICFGR */
+#define GICD_INT_CONFIG_OFFSET(n)	GIC_2BIT_OFFSET(n)
+#define GICD_INT_CONFIG_MASK		GIC_2BIT_MASK
+#define GICD_INT_CONFIG(n, value)	GICDn_SET_FV(n, INT_CONFIG, value)
+#define GICD_TRIGGER(value)		((value & 1) << 1)
+#define GICD_TRIGGER_LEVEL		0
+#define GICD_TRIGGER_EDGE		1
+#define GICD_MODEL(value)		((value & 1) << 0)
+#define GICD_MODEL_N_N			0
+#define GICD_MODEL_1_N			1
+
+/* GICD_NSACR */
+#define GICD_NS_ACCESS_OFFSET(n)	GIC_2BIT_OFFSET(n)
+#define GICD_NS_ACCESS_MASK		GIC_2BIT_MASK
+#define GICD_NS_ACCESS(n, value)	GICDn_SET_FV(n, NS_ACCESS, value)
+#define GICD_NSAC_ALL			0
+#define GICD_NSAC_WSPEND_WSGI		1
+#define GICD_NSAC_WCPEND_RXACTIVE	2
+#define GICD_NSAC_RWTARGETS		3
+
+/* GICD_SGIR */
+#define GICD_SGIINTID_OFFSET		0
+#define GICD_SGIINTID_MASK		GIC_4BIT_MASK
+#define GICD_SGIINTID(value)		GICD_SET_FV(SGIINTID, value)
+#define GICD_NSATT			_BV(15)
+#define GICD_CPU_TARGET_LIST_OFFSET	16
+#define GICD_CPU_TARGET_LIST_MASK	GIC_8BIT_MASK
+#define GICD_CPU_TARGET_LIST(value)	GICD_SET_FV(CPU_TARGET_LIST, value)
+#define GICD_TARGET_LIST_FILTER_OFFSET	24
+#define GICD_TARGET_LIST_FILTER_MASK	GIC_2BIT_MASK
+#define GICD_TARGET_LIST_FILTER(value)	GICD_SET_FV(TARGET_LIST_FILTER, value)
+
+/* GICD_CPENDSGIR/GICD_SPENDSGIR */
+#define GICD_SGI_PENDING_OFFSET(n)	GIC_8BIT_OFFSET(n)
+#define GICD_SGI_PENDING_MASK		GIC_8BIT_MASK
+#define GICD_SGI_PENDING(n, value)	GICDn_SET_FV(n, SGI_PENDING, value)
+
+/* GICD_ICPIDR2 */
+#define GICD_ARCH_REV_OFFSET		4
+#define GICD_ARCH_REV_MASK		GIC_4BIT_MASK
+#define GICD_ARCH_REV(value)		GICD_GET_FV(ARCH_REV, value)
+
+/* CPU interface register map */
+#define GICC_REG(offset)		(GICC_BASE+(offset))
+#define GICC_1BIT_REG(offset, n)	GIC_1BIT_REG(GICC_BASE+(offset), n)
+#define GICC_GET_FV(name, value)	GIC_GET_FV(GICC_##name, value)
+#define GICC_SET_FV(name, value)	GIC_SET_FV(GICC_##name, value)
+#define GICCn_GET_FV(n, name, value)	GICn_GET_FV(n, GICC_##name, value)
+#define GICCn_SET_FV(n, name, value)	GICn_SET_FV(n, GICC_##name, value)
+
+/* 4.4.1 CPU Interface Control Register, GICC_CTLR */
+#define GICC_CTLR			GICC_REG(0x000)
+/* 4.4.2 Interrupt Priority Mask Register, GICC_PMR */
+#define GICC_PMR			GICC_REG(0x004)
+/* 4.4.3 Binary Point Register, GICC_BPR */
+#define GICC_BPR			GICC_REG(0x008)
+/* 4.4.4 Interrupt Acknowledge Register, GICC_IAR */
+#define GICC_IAR			GICC_REG(0x00C)
+/* 4.4.5 End of Interrupt Register, GICC_EOIR */
+#define GICC_EOIR			GICC_REG(0x010)
+#define GICC_RPR			GICC_REG(0x014)
+#define GICC_HPPIR			GICC_REG(0x018)
+#define GICC_ABPR			GICC_REG(0x01C)
+#define GICC_AIAR			GICC_REG(0x020)
+#define GICC_AEOIR			GICC_REG(0x024)
+#define GICC_AHPPIR			GICC_REG(0x028)
+#define GICC_APR(n)			GICC_1BIT_REG(0x0D0, n)
+#define GICC_NSAPR(n)			GICC_1BIT_REG(0x0E0, n)
+#define GICC_IIDR			GICC_REG(0x0FC)
+#define GICC_DIR			GICC_REG(0x100)
+
+/* GICC_CTLR */
+#define GICC_CTLR_ENABLE		_BV(0)
+#define GICC_ENABLE_GRP1		_BV(0)
+#define GICC_FIQ_BYP_DIS_GRP1		_BV(5)
+#define GICC_IRQ_BYP_DIS_GRP1		_BV(6)
+#define GICC_EOI_MODE_NS		_BV(9)
+
+/* GICC_PMR/GICC_RPR */
+#define GICC_PRIORITY_OFFSET		0
+#define GICC_PRIORITY_MASK		GIC_8BIT_MASK
+#define GICC_PRIORITY(value)		GICC_SET_FV(PRIORITY, value)
+#define GICC_PRIORITY_16_MASK		0xF0
+#define GICC_PRIORITY_32_MASK		0xF8
+#define GICC_PRIORITY_64_MASK		0xFC
+#define GICC_PRIORITY_128_MASK		0xFE
+#define GICC_PRIORITY_256_MASK		GICC_PRIORITY_MASK
+
+/* GICC_BPR/GICC_ABPR */
+#define GICC_BINARY_POINT_OFFSET	0
+#define GICC_BINARY_POINT_MASK		GIC_3BIT_MASK
+#define GICC_BINARY_POINT(value)	GICC_SET_FV(BINARY_POINT, value)
+
+/* GICC_IAR/GICC_EOIR/GICC_HPPIR/GICC_AIAR/GICC_AEOIR/GICC_AHPIR/GICC_DIR */
+#define GICC_IRQ_ID_OFFSET		0
+#define GICC_IRQ_ID_MASK		GIC_10BIT_MASK
+#define GICC_GET_IRQ(value)		GICC_GET_FV(IRQ_ID, value)
+#define GICC_SET_IRQ(value)		GICC_SET_FV(IRQ_ID, value)
+#define GICC_CPU_ID_OFFSET		10
+#define GICC_CPU_ID_MASK		GIC_3BIT_MASK
+#define GICC_GET_CPU(value)		GICC_GET_FV(CPU_ID, value)
+#define GICC_SET_CPU(value)		GICC_SET_FV(CPU_ID, value)
+
+/* GICC_APR/GICC_NSAPR */
+#define GICC_ACTIVE_PRIORITY_OFFSET(n)	GIC_1BIT_OFFSET(n)
+#define GICC_ACTIVE_PRIORITY_MASK	GIC_1BIT_MASK
+#define GICC_ACTIVE_PRIORITY(n, value)	GICCn_SET_FV(n, ACTIVE_PRIORITY, value)
+
+/* GICC_IIDR */
+#define GICC_IMPLEMENTER_OFFSET		0
+#define GICC_IMPLEMENTER_MASK		GIC_12BIT_MASK
+#define GICC_IMPLEMENTER(value)		GICC_GET_FV(IMPLEMENTER, value)
+#define GICC_REVISION_OFFSET		12
+#define GICC_REVISION_MASK		GIC_4BIT_MASK
+#define GICC_REVISION(value)		GICC_GET_FV(REVISION, value)
+#define GICC_ARCH_REV_OFFSET		16
+#define GICC_ARCH_REV_MASK		GIC_4BIT_MASK
+#define GICC_ARCH_REV(value)		GICC_GET_FV(ARCH_REV, value)
+#define GICC_PRODUCT_ID_OFFSET		20
+#define GICC_PRODUCT_ID_MASK		GIC_12BIT_MASK
+#define GICC_PRODUCT_ID(value)		GICC_GET_FV(PRODUCT_ID, value)
+
+#include <asm/mach/gic.h>
+
+/* Generic values */
+#define GIC_PRIORITY_MAX		0xFF
+
+/* Allow implementation specific initialization */
+void irqc_hw_ctrl_init(void);
+void gic_hw_ctrl_init(void);
+
+#define irqc_hw_enable_irq(irq)		\
+	__raw_writel(GICD_INTERRUPT_ID(irq), GICD_ISENABLER(irq))
+#define irqc_hw_disable_irq(irq)	\
+	__raw_setl(GICD_INTERRUPT_ID(irq), GICD_ICENABLER(irq))
+#define irqc_hw_trigger_irq(irq)	\
+	__raw_setl(GICD_INTERRUPT_ID(irq), GICD_ISPENDR(irq))
+#define irqc_hw_clear_irq(irq)		\
+	__raw_setl(GICD_INTERRUPT_ID(irq), GICD_ICPENDR(irq))
+void irqc_hw_configure_irq(irq_t irq, uint8_t prio,
+			   uint8_t trigger);
+void irqc_hw_ack_irq(irq_t irq);
+
+#endif /* __GIC_ARM64_H_INCLUDE__ */

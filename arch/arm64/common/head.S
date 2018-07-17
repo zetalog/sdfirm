@@ -7,7 +7,10 @@
 
 	__HEAD
 
-#ifndef CONFIG_XIP
+#ifdef CONFIG_XIP
+	.fill 0x850
+#endif
+
 ENTRY(stext)
 	# Enable cache and stack alignment check
 	# Disable MMU, alignment check, write XN
@@ -51,12 +54,9 @@ bss_init_loop:
 	ldr	x0, =RAMEND
 	mov	sp, x0
 	bl	system_init
-ENTRY(vectors)
-#else
-	.fill 0x850
+ENDPIPROC(stext)
 
-ENTRY(stext)
-#endif
+ENTRY(vectors)
 	b		__bad_interrupt		// reset, PIT
 	b		__bad_interrupt		// undefined instruction
 #ifdef CONFIG_ARM_MONITOR
@@ -69,8 +69,8 @@ ENTRY(stext)
 	b		__bad_interrupt
 	b		__bad_interrupt		// IRQ
 	b		__bad_interrupt		// FIQ
-END(stext)
+ENDPIPROC(vectors)
 
 ENTRY(__bad_interrupt)
 	b	.
-ENDPROC(__bad_interrupt)
+ENDPIPROC(__bad_interrupt)
