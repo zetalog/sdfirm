@@ -3,6 +3,7 @@
 
 #include <target/config.h>
 #include <asm/reg.h>
+#include <asm/timer.h>
 
 #define TSC_FREQ	20000
 #define TSC_MAX		((ULL(1) << 56) - 1)

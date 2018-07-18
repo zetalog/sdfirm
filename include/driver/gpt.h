@@ -4,7 +4,7 @@
 #include <target/config.h>
 #include <target/generic.h>
 
-#ifdef CONFIG_TIMER_16BIT
+#if defined(CONFIG_TIMER_16BIT)
 typedef uint16_t timeout_t;
 #define MAX_TIMEOUT	0x7FFF
 #else

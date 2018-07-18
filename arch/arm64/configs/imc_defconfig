@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Jul 16 15:44:41 2018
+# Wed Jul 18 14:21:08 2018
 #
 CONFIG_ARM64=y
 
@@ -50,7 +50,8 @@ CONFIG_QCOM_QDF2400_ERRATUM_0065=y
 CONFIG_SYS_POLL=y
 # CONFIG_SYS_POLL_RT is not set
 # CONFIG_SYS_TASK is not set
-CONFIG_ARCH_HAS_VIC=y
+CONFIG_ARCH_HAS_IRQC=y
+CONFIG_ARCH_HAS_GPT=y
 CONFIG_ARCH_HAS_TSC=y
 CONFIG_ARCH_IS_TICKLESS=y
 CONFIG_ARCH_HAS_IDLE=y
@@ -58,6 +59,7 @@ CONFIG_ARCH_HAS_IDLE=y
 #
 # Scheduling facility (irq) support
 #
+CONFIG_MAX_VECTORS=8
 
 #
 # Scheduling facility (bh) support
@@ -75,9 +77,9 @@ CONFIG_LPS_64BITS=y
 CONFIG_LPS_WEIGHT=10
 # CONFIG_LPS_PRESET is not set
 CONFIG_TIMER=y
-# CONFIG_TIMER_16BIT is not set
+CONFIG_TIMER_16BIT=y
 CONFIG_TIMER_ONESHOT=y
-CONFIG_MAX_TIMERS=1
+CONFIG_MAX_TIMERS=3
 
 #
 # Address space layout (.text) support
@@ -167,6 +169,8 @@ CONFIG_BIT_FIND_CLEAR=y
 #
 # CONFIG_MATH_MOD32 is not set
 CONFIG_MATH_MUL32=y
+CONFIG_MATH_MUL64=y
+CONFIG_MATH_DIV32=y
 CONFIG_MATH_DIV64=y
 # CONFIG_MATH_MOD64 is not set
 

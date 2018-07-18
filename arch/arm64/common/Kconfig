@@ -30,6 +30,7 @@ choice
 config GIC
 	bool "Generic Interrupt Controller (GIC)"
 	depends on CPU_64v8
+	select ARCH_HAS_IRQC
 	help
 	  The GIC architecture describes an interrupt controller for use with
 	  one or more processors that comply with ARM A or R architecture

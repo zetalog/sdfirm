@@ -1,7 +1,7 @@
 #include <target/gpt.h>
 #include <target/tsc.h>
-#include <asm/timer.h>
-#include <asm/mach/mpm.h>
+#include <target/jiffies.h>
+#include <target/irq.h>
 
 boolean qdf2400_gblct_initialized = false;
 
@@ -29,10 +29,19 @@ void gpt_hw_oneshot_timeout(timeout_t tout_ms)
 	BUG_ON(tout_ms > GPT_MAX_TIMEOUT);
 
 	__systick_set_timeout(tout_ms);
-	/* gpt_hw_irq_enable(); */
+	__systick_unmask_irq();
+}
+
+static void gpt_hw_handle_irq(void)
+{
+	__systick_mask_irq();
+	tick_handler();
 }
 
 void gpt_hw_ctrl_init(void)
 {
 	qdf2400_gblct_init();
+	irqc_configure_irq(IRQ_TIMER, IRQ_LEVEL_TRIGGERED, 0);
+	irq_register_vector(IRQ_TIMER, gpt_hw_handle_irq);
+	irqc_enable_irq(IRQ_TIMER);
 }

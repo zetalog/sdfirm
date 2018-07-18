@@ -6,8 +6,6 @@
 #include <asm/reg.h>
 #include <asm/sysreg.h>
 
-#include <asm/mach/timer.h>
-
 /* =================================================================
  * D.7.5 Generic Timer registers
  * ================================================================= */
@@ -59,8 +57,13 @@
 #define CNTX_CTL_IMASK		_BV(1)
 #define CNTX_CTL_ISTATUS	_BV(2)
 
-#define TICKS_TO_MICROSECONDS  (ARCH_TIMER_FREQUENCY / UL(1000000))
+#define TICKS_TO_MICROSECONDS	(SYSTICK_HW_FREQUENCY / UL(1000000))
+#define TICKS_TO_MILISECONDS	(TICKS_TO_MICROSECONDS / 1000)
 
+#include <asm/mach/timer.h>
+
+void __systick_mask_irq(void);
+void __systick_unmask_irq(void);
 uint64_t __systick_read(void);
 void __systick_set_timeout(timeout_t match_val);
 void __systick_init(void);

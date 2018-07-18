@@ -51,7 +51,8 @@ static void irqc_hw_begin_irq(irq_t *irq, uint8_t *cpu)
 
 static void irqc_hw_end_irq(irq_t irq, uint8_t cpu)
 {
-	__raw_writel(GICC_SET_IRQ(irq) | GICC_SET_CPU(cpu), GICC_EOIR);
+	__raw_writel(GICC_SET_IRQ(irq) | GICC_SET_CPU(cpu),
+		     GICC_EOIR);
 }
 
 void irqc_hw_ack_irq(irq_t irq)
