@@ -65,6 +65,9 @@ config ARCH_HAS_GPT
 config ARCH_HAS_TSC
 	bool
 
+config ARCH_HAS_TSC_CONST
+	bool
+
 config ARCH_HAS_WDT
 	bool
 
@@ -154,6 +157,12 @@ endmenu
 
 menu "Timing facility (delay) support"
 
+config LPS_NO_LPS
+	bool "Use constant TSC instead of calibrated loops/jiffy"
+	depends ARCH_HAS_TSC_CONST && !TICK
+
+if !LPS_NO_LPS
+
 config LPS_64BITS
 	bool "Enable 64 bit loops/jiffy support"
 	select MATH_MUL64
@@ -189,6 +198,8 @@ config LPS_PRESET_MS
 	depends LPS_PRESET
 	range 1 65535 if !LPS_32BITS
 	range 1 4294967296 if LPS_32BITS
+
+endif
 
 endmenu
 

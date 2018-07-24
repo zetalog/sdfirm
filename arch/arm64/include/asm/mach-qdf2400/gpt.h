@@ -5,6 +5,9 @@
 #include <asm/reg.h>
 #include <asm/timer.h>
 
-#define GPT_MAX_TIMEOUT		(((ULL(1) << 56) - 1) / TICKS_TO_MILISECONDS)
+/* msec based */
+#define GPT_MAX_TIMEOUT					\
+	(SYSTICK_HW_COUNTER(ULL(0xFFFFFFFFFFFFFFFF)) /	\
+	 TICKS_TO_MILISECONDS)
 
 #endif /* __GPT_QDF2400_H_INCLUDE__ */

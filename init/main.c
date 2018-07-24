@@ -2,6 +2,7 @@
 #include <target/generic.h>
 #include <target/arch.h>
 #include <target/irq.h>
+#include <target/delay.h>
 #include <stdio.h>
 
 __near__ uint32_t system_device_id = 0;
@@ -71,6 +72,14 @@ void system_init(void)
 	bh_init();
 	tick_init();
 	delay_init();
+#ifdef CONFIG_PORTING_DELAY
+	while (1) {
+		printf("%llx\r\n", tsc_read_counter());
+		printf("%llx\r\n", tsc_read_counter());
+		printf("=====\r\n");
+		delay(5);
+	}
+#endif
 	timer_init();
 	heap_init();
 	bulk_init();

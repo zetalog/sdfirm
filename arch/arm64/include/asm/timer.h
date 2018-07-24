@@ -57,9 +57,6 @@
 #define CNTX_CTL_IMASK		_BV(1)
 #define CNTX_CTL_ISTATUS	_BV(2)
 
-#define TICKS_TO_MICROSECONDS	(SYSTICK_HW_FREQUENCY / UL(1000000))
-#define TICKS_TO_MILISECONDS	(TICKS_TO_MICROSECONDS / 1000)
-
 #include <asm/mach/timer.h>
 
 void __systick_mask_irq(void);

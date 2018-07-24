@@ -40,6 +40,7 @@ typedef uint16_t lps_t;
 	} while (0)
 #endif
 
+void delay(uint8_t s);
 void mdelay(uint8_t ms);
 void udelay(uint8_t us);
 

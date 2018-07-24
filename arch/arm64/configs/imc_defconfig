@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Jul 24 15:17:07 2018
+# Tue Jul 24 16:46:29 2018
 #
 CONFIG_ARM64=y
 
@@ -204,5 +204,6 @@ CONFIG_DEBUG=y
 # CONFIG_PORTING is not set
 CONFIG_CONSOLE=y
 CONFIG_CONSOLE_OUTPUT=y
+CONFIG_CONSOLE_PRINT_BUFFER_SIZE=64
 CONFIG_CONSOLE_INPUT=y
 # CONFIG_DEBUG_PRINT is not set

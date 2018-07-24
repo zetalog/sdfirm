@@ -22,6 +22,7 @@ config ARCH_QDF2400
 	select CPU_QDF2400
 	select ARCH_IS_TICKLESS
 	select ARCH_HAS_TSC
+	select ARCH_HAS_TSC_CONST
 	select ARCH_HAS_GPT
 	select ARCH_HAS_GPIO
 	select ARCH_HAS_IDLE

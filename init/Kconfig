@@ -224,6 +224,11 @@ if CONSOLE
 config CONSOLE_OUTPUT
 	bool "Enable console output"
 
+config CONSOLE_PRINT_BUFFER_SIZE
+	int "Configure console print buffer size"
+	default 64
+	range 32 512
+
 config CONSOLE_INPUT
 	bool "Enable console input"
 

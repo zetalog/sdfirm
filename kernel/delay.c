@@ -42,7 +42,24 @@
 #include <target/jiffies.h>
 #include <target/irq.h>
 
-#ifdef CONFIG_LPS_PRESET
+/* XXX: Wrap Over of "Delay Tick Elapsed"
+ *
+ * The simpler version of the "delay_ticks_elapsed" macro could be:
+ * ============================================================
+ * #define delay_ticks_elapsed(o, n)	\
+ *	((tsc_count_t)(((n)-(o)) & (DELAY_TICKS_MAX-1)))
+ * ============================================================
+ * Almost all of the time systems use such elapsed time determination
+ * algorithm.  This can only work when the wrap over value of the time is
+ * (DELAY_TICKS_MAX+1)/2.  Notice that the simpler version would introduce
+ * 1 count error if a wrap over value is (DELAY_TICKS_MAX+1).  Only the
+ * above macro can cover those smallest bit width tick counters if a wrap
+ * over value of (DELAY_TICKS_MAX+1) is expected.
+ */
+#define delay_ticks_elapsed(o, n)	\
+	((tsc_count_t)((n>=o) ? (n-o) : (DELAY_TICKS_MAX-o+n+1)))
+
+#if defined(CONFIG_NO_LPS) || defined(CONFIG_LPS_PRESET)
 #define calibrate_delay_start()
 #define calibrate_delay_stop()
 #define __calibrate_delay()
@@ -70,21 +87,6 @@ typedef tsc_count_t lps_count_t;
 #define calibrate_delay_start()		tsc_hw_ctrl_init()
 #define calibrate_delay_stop()
 #endif
-#define delay_ticks_elapsed(o, n)	((tsc_count_t)((n>=o) ? (n-o) : (DELAY_TICKS_MAX-o+n+1)))
-/* XXX: Wrap Over of "Delay Tick Elapsed"
- *
- * The simpler version of the "delay_ticks_elapsed" macro could be:
- * ============================================================
- * #define delay_ticks_elapsed(o, n)	\
- *	((tsc_count_t)(((n)-(o)) & (DELAY_TICKS_MAX-1)))
- * ============================================================
- * Almost all of the time systems use such elapsed time determination
- * algorithm.  This can only work when the wrap over value of the time is
- * (DELAY_TICKS_MAX+1)/2.  Notice that the simpler version would introduce
- * 1 count error if a wrap over value is (DELAY_TICKS_MAX+1).  Only the
- * above macro can cover those smallest bit width tick counters if a wrap
- * over value of (DELAY_TICKS_MAX+1) is expected.
- */
 
 #ifdef CONFIG_LPS_WEIGHT
 #define LPS_INIT		CONFIG_LPS_WEIGHT
@@ -200,6 +202,25 @@ static void __calibrate_delay(void)
 }
 #endif
 
+#ifdef CONFIG_NO_LPS
+void udelay(uint8_t us)
+{
+	tsc_count_t tsc = tsc_read_counter();
+
+	while (delay_ticks_elapsed(tsc, tsc_read_count()) <
+	       TICKS_TO_MICROSECONDS * us);
+}
+
+void mdelay(uint8_t ms)
+{
+	while (ms--) {
+		udelay(250);
+		udelay(250);
+		udelay(250);
+		udelay(250);
+	}
+}
+#else
 void mdelay(uint8_t ms)
 {
 	while (ms--) {
@@ -211,6 +232,17 @@ void udelay(uint8_t us)
 {
 	while (us--) {
 		__delay(loops_per_us);
+	}
+}
+#endif
+
+void delay(uint8_t s)
+{
+	while (s--) {
+		mdelay(250);
+		mdelay(250);
+		mdelay(250);
+		mdelay(250);
 	}
 }
 

@@ -16,7 +16,7 @@ void qdf2400_gblct_init(void)
 
 tsc_count_t tsc_hw_read_counter(void)
 {
-	return TSC_MAX - (tsc_count_t)__systick_read();
+	return (tsc_count_t)__systick_read();
 }
 
 void tsc_hw_ctrl_init(void)
