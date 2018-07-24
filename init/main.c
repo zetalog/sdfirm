@@ -2,6 +2,7 @@
 #include <target/generic.h>
 #include <target/arch.h>
 #include <target/irq.h>
+#include <stdio.h>
 
 __near__ uint32_t system_device_id = 0;
 text_char_t system_vendor_name[] = CONFIG_VENDOR_NAME;
@@ -65,6 +66,7 @@ void system_init(void)
 	board_init();
 	gpio_init();
 	debug_init();
+	printf("Welcome to sdfirm\r\n");
 	irq_init();
 	bh_init();
 	tick_init();

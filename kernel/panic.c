@@ -2,6 +2,13 @@
 #include <target/bh.h>
 #include <target/uart.h>
 
+#ifdef CONFIG_CONSOLE_OUTPUT
+void con_putchar(uint8_t val)
+{
+	uart_hw_con_write(val);
+}
+#endif
+
 #ifdef CONFIG_DEBUG_PRINT
 void dbg_putchar(uint8_t val)
 {

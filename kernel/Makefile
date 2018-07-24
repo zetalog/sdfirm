@@ -8,6 +8,7 @@ obj-y += panic.rel
 obj-y += bh.rel
 obj-y += irq.rel
 obj-y += delay.rel
+obj-$(CONFIG_CONSOLE) += console.rel
 obj-$(CONFIG_TASK) += task.rel
 obj-$(CONFIG_TICK) += tick.rel
 obj-$(CONFIG_TIMER) += timer.rel

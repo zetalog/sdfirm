@@ -29,6 +29,13 @@ __TEXT_TYPE__(const struct uart_port, uart_port_t);
 #define uart_hw_dbg_write(byte)
 #define uart_hw_dbg_config(params, baudrate)
 #endif
+#ifdef CONFIG_CONSOLE_OUTPUT
+#define uart_hw_con_write(byte)
+#endif
+#ifdef CONFIG_CONSOLE_INPUT
+#define uart_hw_con_read()	-1
+#define uart_hw_con_poll()	false
+#endif
 #ifdef CONFIG_UART
 #define uart_hw_ctrl_init()
 #endif

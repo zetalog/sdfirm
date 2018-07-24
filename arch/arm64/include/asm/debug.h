@@ -3,6 +3,14 @@
 
 #include <asm/reg.h>
 
+#ifdef CONFIG_ARM_DCC
+#ifndef ARCH_HAVE_UART
+#define ARCH_HAVE_UART		1
+#else
+#error "Multiple UART controller defined"
+#endif
+#endif
+
 /* =================================================================
  * D.7.3 Debug registers
  * ================================================================= */
@@ -20,5 +28,13 @@ unsigned long __dcc_read(void);
 
 int dcc_getchar(void);
 int dcc_putchar(int c);
+
+#ifdef CONFIG_CONSOLE_OUTPUT
+#define uart_hw_con_write(byte)	dcc_putchar(byte)
+#endif
+#ifdef CONFIG_CONSOLE_INPUT
+#define uart_hw_con_read()	dcc_getchar()
+#define uart_hw_con_poll()	dcc_poll()
+#endif
 
 #endif /* __DCC_ARM64_H_INCLUDE__ */
