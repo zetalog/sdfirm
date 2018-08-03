@@ -34,6 +34,12 @@ uint64_t mod64u(uint64_t x, uint64_t y);
 uint64_t div64u(uint64_t x, uint64_t y);
 #endif
 
+#ifdef CONFIG_MATH_GCD32
+uint32_t gcd32u(uint32_t n, uint32_t m);
+#else
+#define gcd32u(n, m)	1
+#endif
+
 #ifndef min
 #define min(x, y)	((x)<(y)?(x):(y))
 #endif

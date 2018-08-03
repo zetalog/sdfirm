@@ -2,6 +2,20 @@
 
 #define MSB_IS_SET(x)	((boolean)(x>>((sizeof(x)<<3)-1))&1)
 
+#ifdef CONFIG_MATH_GCD32
+uint32_t gcd32u(uint32_t n, uint32_t m)
+{
+	uint32_t t;
+
+	while (m) {
+		t = n % m;
+		n = m;
+		m = t;
+	}
+	return  n;
+}
+#endif
+
 #ifndef ARCH_HAVE_DIV16U
 uint16_t div16u(uint16_t x, uint16_t y)
 {

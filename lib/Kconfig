@@ -51,6 +51,9 @@ endmenu
 
 menu "Mathematic operations"
 
+config MATH_GCD32
+	bool "gcd32u"
+
 config MATH_MOD32
 	bool "mod32u"
 
