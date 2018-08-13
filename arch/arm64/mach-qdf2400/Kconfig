@@ -70,6 +70,15 @@ config QUART_BLSP3_3
 
 endchoice
 
+config QUART_AMPLIFIED_BAUDRATE
+	bool "Enable amplified baudrate mode"
+	help
+	  Emulators actually hook UART register reads/writes to implement
+	  UART consoles, thus an amplified baudrate can help them to
+	  perform faster.
+	  By selecting this configuration, QUART driver will try to use
+	  a clock source that have the highest frequency.
+
 endif
 
 endmenu
