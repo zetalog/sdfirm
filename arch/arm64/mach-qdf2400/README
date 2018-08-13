@@ -1,0 +1,16 @@
+This folder only contains necessary drivers to demonstrate a minimal
+sdfirm running on QDF2400 IMC CPU (Cortex A-53 ARM64 processor):
+1. ARM generic timer (implemented by QDF2400 global counter)
+2. QDF2400 BAM uart controller
+3. ARM generic interrupt controller (implemented by QDF2400 GICv2
+   controller)
+4. QDF2400 peripheral clock controller
+5. QDF2400 top level module multiplexer
+6. QDF2400 EMAC controller
+So that developers can derive from them to implement their own ARCH/MACH
+code to boot their own ARM64 system.
+This folder doesn't ensure fully functional QDF2400 system, especially the
+functionalties that are required for QDF2400 APC CPUs (HMSS, or Cortex A-57
+ARM64 processors). In order to extend sdfirm to create a system software
+that can run full QDF2400 functionalities, please buy Qualcomm server chips
+and use Qualcomm createpoint website for technical supports.

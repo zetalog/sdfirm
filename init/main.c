@@ -49,6 +49,9 @@ void gpio_init(void);
 #else
 #define gpio_init()
 #endif
+#ifdef CONFIG_CONSOLE
+void console_init(void);
+#endif
 #ifdef CONFIG_DEBUG_PRINT
 void debug_init(void);
 #else
@@ -67,6 +70,7 @@ void system_init(void)
 	board_init();
 	gpio_init();
 	debug_init();
+	console_init();
 	printf("Welcome to sdfirm\r\n");
 	irq_init();
 	bh_init();

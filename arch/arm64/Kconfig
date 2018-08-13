@@ -8,7 +8,6 @@ mainmenu "Open Kernel Lab L4 Kernel Configuration"
 config ARM64
 	bool
 	default y
-	select ARCH_HAS_CON
 	help
 
 menu "ARM64 system options"

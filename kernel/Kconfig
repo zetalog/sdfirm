@@ -50,9 +50,6 @@ config SYS_TASK
 
 endchoice
 
-config ARCH_HAS_CON
-	bool
-
 config ARCH_HAS_VIC
 	bool
 

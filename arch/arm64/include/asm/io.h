@@ -5,15 +5,15 @@
 #include <target/types.h>
 #include <asm/mach/io.h>
 
-#define __raw_writeb(v,a)	(*(volatile uint8_t  *)(a) = (v))
-#define __raw_writew(v,a)	(*(volatile uint16_t *)(a) = (v))
-#define __raw_writel(v,a)	(*(volatile uint32_t *)(a) = (v))
-#define __raw_writeq(v,a)	(*(volatile uint64_t *)(a) = (v))
+#define __raw_writeb(v,a)	(*(volatile uint8_t  *)(caddr_t)(a) = (v))
+#define __raw_writew(v,a)	(*(volatile uint16_t *)(caddr_t)(a) = (v))
+#define __raw_writel(v,a)	(*(volatile uint32_t *)(caddr_t)(a) = (v))
+#define __raw_writeq(v,a)	(*(volatile uint64_t *)(caddr_t)(a) = (v))
 
-#define __raw_readb(a)		(*(volatile uint8_t  *)(a))
-#define __raw_readw(a)		(*(volatile uint16_t *)(a))
-#define __raw_readl(a)		(*(volatile uint32_t *)(a))
-#define __raw_readq(a)		(*(volatile uint64_t *)(a))
+#define __raw_readb(a)		(*(volatile uint8_t  *)(caddr_t)(a))
+#define __raw_readw(a)		(*(volatile uint16_t *)(caddr_t)(a))
+#define __raw_readl(a)		(*(volatile uint32_t *)(caddr_t)(a))
+#define __raw_readq(a)		(*(volatile uint64_t *)(caddr_t)(a))
 
 /* XXX: Atomic Register Access
  *

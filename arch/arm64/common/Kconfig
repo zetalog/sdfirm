@@ -50,7 +50,7 @@ endif
 endchoice
 
 config ARM_DCC
-	bool "Debug Communications Channel"
+	bool "Debug Communications Channel (DCC)"
 	select ARCH_HAS_UART
 	help
 	  The Debug Communications Channel, DCC, is a channel for passing

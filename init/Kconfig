@@ -217,7 +217,7 @@ endif
 
 menuconfig CONSOLE
 	bool "Enable console on UART0"
-	depends ARCH_HAS_CON
+	depends ARCH_HAS_UART
 
 if CONSOLE
 
@@ -231,6 +231,38 @@ config CONSOLE_PRINT_BUFFER_SIZE
 
 config CONSOLE_INPUT
 	bool "Enable console input"
+
+choice
+	prompt "Console UART baud rate"
+	help
+	  This setting lets you define what baudrate is for the serial
+	  port.
+
+config CONSOLE_230400
+	bool "230400"
+
+config CONSOLE_115200
+	bool "115200"
+
+config CONSOLE_57600
+	bool "57600"
+
+config CONSOLE_38400
+	bool "38400"
+
+config CONSOLE_19200
+	bool "19200"
+
+config CONSOLE_9600
+	bool "9600"
+
+config CONSOLE_4800
+	bool "4800"
+
+config CONSOLE_2400
+	bool "2400"
+
+endchoice
 
 endif
 

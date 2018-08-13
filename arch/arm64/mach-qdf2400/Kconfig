@@ -8,26 +8,63 @@ if ARCH_QDF2400
 menu "Qualcomm Centriq 2400 board options"
 
 config UART_QUART
-	bool "Qualcomm QUART UART controller support"
-	select UART_PL01X
-	depends UART || DEBUG_PRINT
+	bool "Qualcomm QUART (dragonfly) controller support"
+	depends !ARM_DCC
+	select ARCH_HAS_UART
 	default y
 	help
-	  PrimeCell (PL011) UART.
+	  QDF2400 contains 8 Qualcomm UART controllers instantiated in BAM
+	  Low-Speed Peripheral devices.
 
 if UART_QUART
 
-endif
-
-config UART_AUART
-	bool "Qualcomm AUART UART controller support"
-	select UART_PL01X
-	depends UART || DEBUG_PRINT
+config QUART_BLSP0
+	bool "QUARTs in BAM Low-Speed Peripheral (BLSP) 0"
 	default y
-	help
-	  PrimeCell (PL011) UART.
 
-if UART_AUART
+config QUART_BLSP3
+	bool "QUARTs in BAM Low-Speed Peripheral (BLSP) 3"
+	default y
+
+choice
+	prompt "UART for debug consoles"
+	help
+	  Select UART port used for DEBUG_PRINT and CONSOLE.
+
+config QUART_BLSP0_0
+	bool "QUART0 (I0_BLSP UART0)"
+	depends QUART_BLSP0
+
+config QUART_BLSP0_1
+	bool "BLSP0 UART1"
+	depends QUART_BLSP0
+
+config QUART_BLSP0_2
+	bool "BLSP0 UART2"
+	depends QUART_BLSP0
+	default y
+
+config QUART_BLSP0_3
+	bool "BLSP0 UART3"
+	depends QUART_BLSP0
+
+config QUART_BLSP3_0
+	bool "BLSP3 UART0"
+	depends QUART_BLSP3
+
+config QUART_BLSP3_1
+	bool "BLSP3 UART1"
+	depends QUART_BLSP3
+
+config QUART_BLSP3_2
+	bool "BLSP3 UART2"
+	depends QUART_BLSP3
+
+config QUART_BLSP3_3
+	bool "BLSP3 UART3"
+	depends QUART_BLSP3
+
+endchoice
 
 endif
 

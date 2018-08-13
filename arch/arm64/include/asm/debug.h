@@ -29,12 +29,15 @@ unsigned long __dcc_read(void);
 int dcc_getchar(void);
 int dcc_putchar(int c);
 
+#ifdef CONFIG_CONSOLE
+#define uart_hw_con_init()
 #ifdef CONFIG_CONSOLE_OUTPUT
 #define uart_hw_con_write(byte)	dcc_putchar(byte)
 #endif
 #ifdef CONFIG_CONSOLE_INPUT
 #define uart_hw_con_read()	dcc_getchar()
 #define uart_hw_con_poll()	dcc_poll()
+#endif
 #endif
 
 #endif /* __DCC_ARM64_H_INCLUDE__ */
