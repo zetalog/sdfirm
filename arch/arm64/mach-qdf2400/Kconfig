@@ -7,10 +7,14 @@ if ARCH_QDF2400
 
 menu "Qualcomm Centriq 2400 board options"
 
+config GPIO_TLMM
+	bool "Qualcomm Top Level Module Multiplexer (TLMM) support"
+
 config UART_QUART
 	bool "Qualcomm QUART (dragonfly) controller support"
 	depends !ARM_DCC
 	select ARCH_HAS_UART
+	select GPIO_TLMM
 	default y
 	help
 	  QDF2400 contains 8 Qualcomm UART controllers instantiated in BAM
