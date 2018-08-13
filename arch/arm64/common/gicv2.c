@@ -35,47 +35,36 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)vic_gic.c: generic interrupt controller implementation
- * $Id: vic_gic.c,v 1.279 2011-10-19 10:19:18 zhenglv Exp $
+ * @(#)gicv2.c: generic interrupt controller v2 implementation
+ * $Id: gicv2.c,v 1.279 2011-10-19 10:19:18 zhenglv Exp $
  */
 
 #include <target/irq.h>
 
-void irqc_hw_ack_irq(irq_t irq)
-{
-	/* CPU ID is 0 */
-	gic_end_irq(irq, 0);
-}
-
-void irqc_hw_handle_irq(void)
+void gicv2_init_gicd(void)
 {
 	irq_t irq;
-	uint8_t cpu;
 
-	gic_begin_irq(irq, cpu);
-	if (irq >= NR_IRQS) {
-		gic_end_irq(irq, cpu);
-		return;
+	/* Disable distributor */
+	__raw_clearl(GICD_ENABLE_GRP0 | GICD_ENABLE_GRP1, GICD_CTLR);
+	/* Disable all IRQs */
+	for (irq = 0; irq < NR_IRQS; irq += 32) {
+		__raw_writel(0xFFFFFFFF, GICD_ICENABLER(irq));
+		__raw_setl(GICD_MODEL(GICD_MODEL_1_N), GICD_ICFGR(irq));
 	}
-	if (!do_IRQ(irq)) {
-		irqc_hw_disable_irq(irq);
-		gic_end_irq(irq, cpu);
-	}
+	/* Enable distributor */
+	__raw_setl(GICD_ENABLE_GRP0 | GICD_ENABLE_GRP1, GICD_CTLR);
 }
 
-void irqc_hw_configure_irq(irq_t irq, uint8_t prio,
-			   uint8_t trigger)
+void gicv2_init_gicc(void)
 {
-	uint32_t cfg;
-
-	__raw_writel_mask(GIC_PRIORITY(irq, prio),
-			  GIC_PRIORITY_MASK,
-			  GICD_IPRIORITYR(irq));
-	if (trigger == IRQ_LEVEL_TRIGGERED)
-		cfg = GIC_TRIGGER(GIC_TRIGGER_LEVEL);
-	else
-		cfg = GIC_TRIGGER(GIC_TRIGGER_EDGE);
-	__raw_writel_mask(GIC_INT_CONFIG(irq, cfg),
-			  GIC_INT_CONFIG_MASK,
-			  GICD_ICFGR(irq));
+	/* Enable CPU interface */
+	__raw_setl(GICC_ENABLE_GRP1, GICC_CTLR);
+	/* Set priority mask to the lowest to allow all interrupts. */
+	__raw_writel(GICC_PRIORITY(GIC_PRIORITY_MAX), GICC_PMR);
+	/* Set the binary point register to indicate that every priority
+	 * level is it's own priority group. See table 3-2 in the ARM GIC
+	 * specification.
+	 */
+	__raw_writel(GICC_BINARY_POINT(2), GICC_BPR);
 }

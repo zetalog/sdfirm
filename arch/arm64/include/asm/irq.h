@@ -5,6 +5,10 @@
 #include <target/generic.h>
 #include <asm/reg.h>
 
+#define IRQ_SGI_BASE   0
+#define IRQ_PPI_BASE   16
+#define IRQ_SPI_BASE   32
+
 typedef uint64_t irq_flags_t;
 
 #define irq_hw_flags_save(x)					\

@@ -7,6 +7,21 @@ if ARCH_QDF2400
 
 menu "Qualcomm Centriq 2400 board options"
 
+choice
+	prompt "Programmed CPUs"
+	help
+	  Selects CPUs that compiled sdfirm should run against.
+
+config QDF2400_IMC
+	bool "IMC"
+	select ARCH_HAS_GICv2
+
+config QDF2400_APC
+	bool "APC"
+	select ARCH_HAS_GICv3
+
+endchoice
+
 config GPIO_TLMM
 	bool "Qualcomm Top Level Module Multiplexer (TLMM) support"
 
@@ -46,7 +61,6 @@ config QUART_BLSP0_1
 config QUART_BLSP0_2
 	bool "BLSP0 UART2"
 	depends QUART_BLSP0
-	default y
 
 config QUART_BLSP0_3
 	bool "BLSP0 UART3"

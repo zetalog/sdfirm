@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Aug  3 09:07:47 2018
+# Mon Aug 13 11:30:37 2018
 #
 CONFIG_ARM64=y
 
@@ -13,6 +13,8 @@ CONFIG_CPU_QDF2400=y
 CONFIG_CPU_64v8=y
 CONFIG_NR_CPUS=48
 CONFIG_GIC=y
+CONFIG_GICv2=y
+# CONFIG_GICv3 is not set
 # CONFIG_ARM_DCC is not set
 
 #
@@ -34,6 +36,8 @@ CONFIG_ARM64_ERRATUM_843419=y
 CONFIG_QCOM_FALKOR_ERRATUM_1003=y
 CONFIG_QCOM_FALKOR_ERRATUM_1009=y
 CONFIG_QCOM_QDF2400_ERRATUM_0065=y
+CONFIG_QDF2400_IMC=y
+# CONFIG_QDF2400_APC is not set
 
 #
 # Qualcomm Centriq 2400 board options
@@ -168,11 +172,11 @@ CONFIG_STDLIB=y
 # CONFIG_BIT_FLS8 is not set
 CONFIG_BIT_FLS16=y
 # CONFIG_BIT_FFS16 is not set
-# CONFIG_BIT_FLS32 is not set
+CONFIG_BIT_FLS32=y
 # CONFIG_BIT_FFS32 is not set
 # CONFIG_BIT_ROUNDUP16 is not set
 # CONFIG_BIT_ROUNDDOWN16 is not set
-# CONFIG_BIT_ROUNDUP32 is not set
+CONFIG_BIT_ROUNDUP32=y
 # CONFIG_BIT_ROUNDDOWN32 is not set
 
 #

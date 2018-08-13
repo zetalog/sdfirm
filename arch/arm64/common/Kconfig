@@ -2,9 +2,8 @@
 config CPU_QDF2400
 	bool
 	select CPU_64v8
-	select GIC
 	help
-	  1 Cortex-A53 + many Cortex-A57.
+	  1 Cortex-A53 (IMC) + many Cortex-A57 (APC).
 
 # Figure out what processor architecture version we should be using.
 # This defines the compiler instruction set which depends on the machine type.
@@ -36,7 +35,34 @@ config GIC
 	  one or more processors that comply with ARM A or R architecture
 	  profiles.
 
+endchoice
+
 if GIC
+
+menu "Generic Interrupt Controller (GIC) options"
+
+config ARCH_HAS_GICv2
+	bool
+
+config ARCH_HAS_GICv3
+	bool
+
+choice
+	prompt "GIC architecture"
+
+config GICv2
+	bool "GICv2"
+	depends ARCH_HAS_GICv2
+	help
+	  GIC v2 (IHI0028B) architecture specification.
+
+config GICv3
+	bool "GICv3"
+	depends ARCH_HAS_GICv3
+	help
+	  GIC v3 (IHI0069D) architecture specification.
+
+endchoice
 
 config GIC_IRQ_GROUPING
 	bool "Interrupt grouping"
@@ -45,9 +71,9 @@ config GIC_IRQ_GROUPING
 	  Interrupt grouping is present in GICv2 implementations and in GICv1
 	  implementations that include the GIC security extensions.
 
-endif
+endmenu
 
-endchoice
+endif
 
 config ARM_DCC
 	bool "Debug Communications Channel (DCC)"
