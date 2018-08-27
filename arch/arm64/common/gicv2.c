@@ -48,8 +48,8 @@ void gicv2_init_gicd(void)
 	/* Disable distributor */
 	__raw_clearl(GICD_ENABLE_GRP0 | GICD_ENABLE_GRP1, GICD_CTLR);
 	/* Disable all IRQs */
+	gicd_disable_all_irqs();
 	for (irq = 0; irq < NR_IRQS; irq += 32) {
-		__raw_writel(0xFFFFFFFF, GICD_ICENABLER(irq));
 		__raw_setl(GICD_MODEL(GICD_MODEL_1_N), GICD_ICFGR(irq));
 	}
 	/* Enable distributor */

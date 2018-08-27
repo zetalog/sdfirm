@@ -51,9 +51,6 @@
 /* 4.3.18 Identification registers - Peripheral ID2 Register, ICPIDR2 */
 #define GICD_ICPIDR2			GICD_REG(0xFE8) /* Peripheral ID2 */
 
-/* GICD_CTLR */
-#define GICD_ENABLE_GRP1		_BV(1)
-
 /* GICD_ICFGR */
 #define GICD_MODEL(value)		((value & 1) << 0)
 #define GICD_MODEL_N_N			0
@@ -82,15 +79,25 @@
 #define GICC_IAR			GICC_REG(0x00C)
 /* 4.4.5 End of Interrupt Register, GICC_EOIR */
 #define GICC_EOIR			GICC_REG(0x010)
+/* 4.4.6 Running Priority Register, GICC_RPR */
 #define GICC_RPR			GICC_REG(0x014)
+/* 4.4.7 Highest Priority Pending Interrupt Register, GICC_HPPIR */
 #define GICC_HPPIR			GICC_REG(0x018)
+/* 4.4.8 Aliased Binary Point Register, GICC_ABPR */
 #define GICC_ABPR			GICC_REG(0x01C)
+/* 4.4.9 Aliased Interrupt Acknowledge Register, GICC_AIAR */
 #define GICC_AIAR			GICC_REG(0x020)
+/* 4.4.10 Aliased End of Interrupt Register, GICC_AEOIR */
 #define GICC_AEOIR			GICC_REG(0x024)
+/* 4.4.11 Aliased Highest Priority Pending Interrupt Register, GICC_AHPPIR */
 #define GICC_AHPPIR			GICC_REG(0x028)
+/* 4.4.12 Active Priorities Registers, GICC_APRn */
 #define GICC_APR(n)			GICC_1BIT_REG(0x0D0, n)
+/* 4.4.13 Non-secure Active Priorities Registers, GICC_NSAPRn */
 #define GICC_NSAPR(n)			GICC_1BIT_REG(0x0E0, n)
+/* 4.4.14 CPU Interface Identification Register, GICC_IIDR */
 #define GICC_IIDR			GICC_REG(0x0FC)
+/* 4.4.15 Deactivate Interrupt Register, GICC_DIR */
 #define GICC_DIR			GICC_REG(0x100)
 
 /* GICC_CTLR */
@@ -100,7 +107,7 @@
 #define GICC_EOI_MODE_NS		_BV(9)
 
 /* GICC_PMR/GICC_RPR */
-#define GICC_PRIORITY(value)		GIC_PRIORITY(0, value)
+#define GICC_PRIORITY(value)		GIC_PRIORITY0(value)
 
 /* GICC_BPR/GICC_ABPR */
 #define GICC_BINARY_POINT_OFFSET	0
@@ -148,6 +155,13 @@
 			     GICC_SET_CPU(cpu),		\
 			     GICC_EOIR);		\
 	} while (0)
+
+#define irqc_hw_enable_irq(irq)		gicd_hw_enable_irq(irq)
+#define irqc_hw_disable_irq(irq)	gicd_hw_disable_irq(irq)
+#define irqc_hw_trigger_irq(irq)	gicd_hw_trigger_irq(irq)
+#define irqc_hw_clear_irq(irq)		gicd_hw_clear_irq(irq)
+#define irqc_hw_configure_irq(irq, priority, trigger)	\
+	gicd_configure_irq(irq, priority, trigger)
 
 void gicv2_init_gicd(void);
 void gicv2_init_gicc(void);

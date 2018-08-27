@@ -62,20 +62,3 @@ void irqc_hw_handle_irq(void)
 		gic_end_irq(irq, cpu);
 	}
 }
-
-void irqc_hw_configure_irq(irq_t irq, uint8_t prio,
-			   uint8_t trigger)
-{
-	uint32_t cfg;
-
-	__raw_writel_mask(GIC_PRIORITY(irq, prio),
-			  GIC_PRIORITY_MASK,
-			  GICD_IPRIORITYR(irq));
-	if (trigger == IRQ_LEVEL_TRIGGERED)
-		cfg = GIC_TRIGGER(GIC_TRIGGER_LEVEL);
-	else
-		cfg = GIC_TRIGGER(GIC_TRIGGER_EDGE);
-	__raw_writel_mask(GIC_INT_CONFIG(irq, cfg),
-			  GIC_INT_CONFIG_MASK,
-			  GICD_ICFGR(irq));
-}

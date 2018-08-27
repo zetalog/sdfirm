@@ -10,4 +10,6 @@ void irqc_hw_ctrl_init(void)
 	__raw_setl(GICC_ENABLE_GRP1_NS, GICC_CTLR);
 	for (irq = 0; irq < NR_IRQS; irq += 32)
 		__raw_writel(0xFFFFFFFF, GICD_ISR(irq));
+	/* Allow NS access to GICD_CGCR via GICD_ANSACR */
+	__raw_writel(GICD_GICD_CGCR, GICD_ANSACR);
 }

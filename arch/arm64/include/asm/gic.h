@@ -67,11 +67,12 @@
 #define GIC_10BIT_MASK			0x3FF
 #define GIC_11BIT_MASK			0x7FF
 #define GIC_12BIT_MASK			0xFFF
+#define GIC_24BIT_MASK			0xFFFFFF
 
-#define GIC_1BIT_REG(base, n)		(((caddr_t)base)+(((n) & (~31)) >> 3))
-#define GIC_2BIT_REG(base, n)		(((caddr_t)base)+(((n) & (~15)) >> 2))
-#define GIC_4BIT_REG(base, n)		(((caddr_t)base)+(((n) & (~7 )) >> 1))
-#define GIC_8BIT_REG(base, n)		(((caddr_t)base)+(((n) & (~3 )) >> 0))
+#define GIC_1BIT_REG(base, n)		((base)+(((n) & (~31)) >> 3))
+#define GIC_2BIT_REG(base, n)		((base)+(((n) & (~15)) >> 2))
+#define GIC_4BIT_REG(base, n)		((base)+(((n) & (~7 )) >> 1))
+#define GIC_8BIT_REG(base, n)		((base)+(((n) & (~3 )) >> 0))
 
 #define GIC_1BIT_OFFSET(n)		(((n) & 31) << 0)
 #define GIC_2BIT_OFFSET(n)		(((n) & 15) << 1)
@@ -173,6 +174,7 @@
 
 /* GICD_CTLR */
 #define GICD_ENABLE_GRP0		_BV(0)
+#define GICD_ENABLE_GRP1		_BV(1)
 
 /* GICD_TYPER */
 #define GICD_IT_LINES_NUMBER_OFFSET	0
@@ -214,6 +216,7 @@
 #define GIC_PRIORITY_MASK		GIC_8BIT_MASK
 #define GIC_PRIORITY(n, value)		\
 	GICn_SET_FV(n, GIC_PRIORITY, (value) << GIC_PRIORITY_SHIFT)
+#define GIC_PRIORITY_IDLE		GIC_PRIORITY_MASK
 
 /* GICD/R_ITARGETSR */
 #define GIC_CPU_TARGETS_OFFSET(n)	GIC_8BIT_OFFSET(n)
@@ -256,22 +259,50 @@
 #define GICD_SGI_PENDING(n, value)	GICDn_SET_FV(n, SGI_PENDING, value)
 
 /* Generic values */
+#define GIC_PRIORITY0(value)		GIC_PRIORITY(0, value)
 #define GIC_PRIORITY_MAX		(0xFF >> GIC_PRIORITY_SHIFT)
 
 /* Allow implementation specific initialization */
 void irqc_hw_ctrl_init(void);
 void gic_hw_ctrl_init(void);
 
-#define irqc_hw_enable_irq(irq)		\
+#define gicd_hw_enable_irq(irq)		\
 	__raw_writel(GIC_INTERRUPT_ID(irq), GICD_ISENABLER(irq))
-#define irqc_hw_disable_irq(irq)	\
+#define gicd_hw_disable_irq(irq)	\
 	__raw_setl(GIC_INTERRUPT_ID(irq), GICD_ICENABLER(irq))
-#define irqc_hw_trigger_irq(irq)	\
+#define gicd_hw_trigger_irq(irq)	\
 	__raw_setl(GIC_INTERRUPT_ID(irq), GICD_ISPENDR(irq))
-#define irqc_hw_clear_irq(irq)		\
+#define gicd_hw_clear_irq(irq)		\
 	__raw_setl(GIC_INTERRUPT_ID(irq), GICD_ICPENDR(irq))
-void irqc_hw_configure_irq(irq_t irq, uint8_t prio,
-			   uint8_t trigger);
+#define gicd_configure_irq(irq, priority, trigger)			\
+	do {								\
+		uint32_t cfg;						\
+		__raw_writel_mask(GIC_PRIORITY(irq, priority),		\
+				  GIC_PRIORITY(irq, GIC_PRIORITY_MASK),	\
+				  GICD_IPRIORITYR(irq));		\
+		if (trigger == IRQ_LEVEL_TRIGGERED)			\
+			cfg = GIC_TRIGGER(GIC_TRIGGER_LEVEL);		\
+		else							\
+			cfg = GIC_TRIGGER(GIC_TRIGGER_EDGE);		\
+		__raw_writel_mask(GIC_INT_CONFIG(irq, cfg),		\
+				  GIC_INT_CONFIG(irq,			\
+						 GIC_INT_CONFIG_MASK),	\
+				  GICD_ICFGR(irq));			\
+	} while (0)
+#define gicd_enable_all_irqs(max_irq)					\
+	do {								\
+		irq_t irq;						\
+		for (irq = 0; irq <= NR_IRQS; irq += 32) {		\
+			__raw_writel(0xFFFFFFFF, GICD_ISENABLER(irq));	\
+		}							\
+	} while (0)
+#define gicd_disable_all_irqs(max_irq)					\
+	do {								\
+		irq_t irq;						\
+		for (irq = 0; irq <= NR_IRQS; irq += 32) {		\
+			__raw_writel(0xFFFFFFFF, GICD_ICENABLER(irq));	\
+		}							\
+	} while (0)
 void irqc_hw_ack_irq(irq_t irq);
 
 #endif /* __GIC_ARM64_H_INCLUDE__ */
