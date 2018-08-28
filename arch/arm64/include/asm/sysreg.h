@@ -3,19 +3,21 @@
 
 #include <target/types.h>
 
-#define read_sysreg(r) ({					\
-	uint64_t __val;						\
-	asm volatile("mrs %0, " #r : "=r" (__val));		\
-	__val;							\
+/* Unlike read_cpuid, calls to read_sysreg are never expected to be
+ * optimized away or replaced with synthetic values.
+ */
+#define read_sysreg(r) ({						\
+	uint64_t __val;							\
+	asm volatile("mrs %0, " __stringify(r) : "=r" (__val));		\
+	__val;								\
 })
 
-/*
- * "Z" normally means zero immediate, it means XZR when it is combined with
+/* "Z" normally means zero immediate, it means XZR when it is combined with
  * "%x0" template.
  */
-#define write_sysreg(v, r) do {					\
-	uint64_t __val = (uint64_t)v;				\
-	asm volatile("msr " #r ", %x0" : : "rZ" (__val));	\
+#define write_sysreg(v, r) do {						\
+	uint64_t __val = (uint64_t)v;					\
+	asm volatile("msr " __stringify(r) ", %x0" : : "rZ" (__val));	\
 } while (0)
 
 #endif /* __SYSREG_ARM64_H_INCLUDE__ */

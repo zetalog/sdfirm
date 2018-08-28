@@ -262,17 +262,21 @@
 #define GIC_PRIORITY0(value)		GIC_PRIORITY(0, value)
 #define GIC_PRIORITY_MAX		(0xFF >> GIC_PRIORITY_SHIFT)
 
+#define GIC_GROUP0		0
+#define GIC_GROUP1S		1
+#define GIC_GROUP1NS		2
+
 /* Allow implementation specific initialization */
 void irqc_hw_ctrl_init(void);
 void gic_hw_ctrl_init(void);
 
-#define gicd_hw_enable_irq(irq)		\
+#define gicd_enable_irq(irq)		\
 	__raw_writel(GIC_INTERRUPT_ID(irq), GICD_ISENABLER(irq))
-#define gicd_hw_disable_irq(irq)	\
+#define gicd_disable_irq(irq)		\
 	__raw_setl(GIC_INTERRUPT_ID(irq), GICD_ICENABLER(irq))
-#define gicd_hw_trigger_irq(irq)	\
+#define gicd_trigger_irq(irq)		\
 	__raw_setl(GIC_INTERRUPT_ID(irq), GICD_ISPENDR(irq))
-#define gicd_hw_clear_irq(irq)		\
+#define gicd_clear_irq(irq)		\
 	__raw_setl(GIC_INTERRUPT_ID(irq), GICD_ICPENDR(irq))
 #define gicd_configure_irq(irq, priority, trigger)			\
 	do {								\
@@ -292,14 +296,14 @@ void gic_hw_ctrl_init(void);
 #define gicd_enable_all_irqs(max_irq)					\
 	do {								\
 		irq_t irq;						\
-		for (irq = 0; irq <= NR_IRQS; irq += 32) {		\
+		for (irq = 0; irq < NR_IRQS; irq += 32) {		\
 			__raw_writel(0xFFFFFFFF, GICD_ISENABLER(irq));	\
 		}							\
 	} while (0)
 #define gicd_disable_all_irqs(max_irq)					\
 	do {								\
 		irq_t irq;						\
-		for (irq = 0; irq <= NR_IRQS; irq += 32) {		\
+		for (irq = 0; irq < NR_IRQS; irq += 32) {		\
 			__raw_writel(0xFFFFFFFF, GICD_ICENABLER(irq));	\
 		}							\
 	} while (0)

@@ -39,7 +39,30 @@
  * $Id: vic_gic.c,v 1.279 2011-10-19 10:19:18 zhenglv Exp $
  */
 
+#include <stdio.h>
 #include <target/irq.h>
+
+static inline boolean gic_sanitize_acked_irq(irq_t irq)
+{
+	if (irq == IRQ_ACK_SEL1) {
+		printf("IRQ should be handled in "
+		       "Secure EL1\n");
+		return false;
+	}
+	if (irq == IRQ_ACK_NSEL1) {
+		printf("IRQ should be handled in "
+		       "Non-secure EL1\n");
+		return false;
+	}
+	if (irq == IRQ_ACK_NONE) {
+		printf("No pending IRQ with sufficient "
+		       "priority or the highest pending IRQ "
+		       "is appropriate for the current secure "
+		       "state or the associated IRQ group\n");
+		return false;
+	}
+	return true;
+}
 
 void irqc_hw_ack_irq(irq_t irq)
 {
@@ -53,7 +76,7 @@ void irqc_hw_handle_irq(void)
 	uint8_t cpu;
 
 	gic_begin_irq(irq, cpu);
-	if (irq >= NR_IRQS) {
+	if (!gic_sanitize_acked_irq(irq) || irq >= NR_IRQS) {
 		gic_end_irq(irq, cpu);
 		return;
 	}

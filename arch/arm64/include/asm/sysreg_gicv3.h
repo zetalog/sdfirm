@@ -48,38 +48,36 @@
  */
 
 /* 8.2 AArch64 System register descriptions */
-#define ICC_PMR_EL1			sys_reg(3, 0, 4, 6, 0)
-#define ICC_IAR0_EL1			sys_reg(3, 0, 12, 8, 0)
-#define ICC_EOIR0_EL1			sys_reg(3, 0, 12, 8, 1)
-#define ICC_HPPIR0_EL1			sys_reg(3, 0, 12, 8, 2)
-#define ICC_BPR0_EL1			sys_reg(3, 0, 12, 8, 3)
-#define __AP0Rn_EL1(n)			sys_reg(3, 0, 12, 8, (n)+4)
-#define ICC_AP0R0_EL1			__AP0Rn_EL1(0)
-#define ICC_AP0R1_EL1			__AP0Rn_EL1(1)
-#define ICC_AP0R2_EL1			__AP0Rn_EL1(2)
-#define ICC_AP0R3_EL1			__AP0Rn_EL1(3)
-#define __AP1Rn_EL1(n)			sys_reg(3, 0, 12, 9, (n))
-#define ICC_AP1R0_EL1			__AP1Rn_EL1(0)
-#define ICC_AP1R1_EL1			__AP1Rn_EL1(1)
-#define ICC_AP1R2_EL1			__AP1Rn_EL1(2)
-#define ICC_AP1R3_EL1			__AP1Rn_EL1(3)
-#define ICC_DIR_EL1			sys_reg(3, 0, 12, 11, 1)
-#define ICC_RPR_EL1			sys_reg(3, 0, 12, 11, 3)
-#define ICC_SGI1R_EL1			sys_reg(3, 0, 12, 11, 5)
-#define ICC_AGI1R_EL1			sys_reg(3, 0, 12, 11, 6)
-#define ICC_SGI0R_EL1			sys_reg(3, 0, 12, 11, 7)
-#define ICC_IAR1_EL1			sys_reg(3, 0, 12, 12, 0)
-#define ICC_EOIR1_EL1			sys_reg(3, 0, 12, 12, 1)
-#define ICC_HPPIR1_EL1			sys_reg(3, 0, 12, 12, 2)
-#define ICC_BPR1_EL1			sys_reg(3, 0, 12, 12, 3)
-#define ICC_CTLR_EL1			sys_reg(3, 0, 12, 12, 4)
-#define ICC_SRE_EL1			sys_reg(3, 0, 12, 12, 5)
-#define ICC_GRPEN0_EL1			sys_reg(3, 0, 12, 12, 6)
-#define ICC_GRPEN1_EL1			sys_reg(3, 0, 12, 12, 7)
-#define ICC_SRE_EL2			sys_reg(3, 4, 12, 9, 5)
-#define ICC_CTLR_EL3			sys_reg(3, 6, 12, 12, 4)
-#define ICC_SRE_EL3			sys_reg(3, 5, 12, 12, 5)
-#define ICC_IGRPEN1_EL3			sys_reg(3, 5, 12, 12, 7)
+#define ICC_PMR_EL1			S3_0_C4_C6_0
+#define ICC_IAR0_EL1			S3_0_C12_C8_0
+#define ICC_EOIR0_EL1			S3_0_C12_C8_1
+#define ICC_HPPIR0_EL1			S3_0_C12_C8_2
+#define ICC_BPR0_EL1			S3_0_C12_C8_3
+#define ICC_AP0R0_EL1			S3_0_C12_C8_4
+#define ICC_AP0R1_EL1			S3_0_C12_C8_5
+#define ICC_AP0R2_EL1			S3_0_C12_C8_6
+#define ICC_AP0R3_EL1			S3_0_C12_C8_7
+#define ICC_AP1R0_EL1			S3_0_C12_C9_0
+#define ICC_AP1R1_EL1			S3_0_C12_C9_1
+#define ICC_AP1R2_EL1			S3_0_C12_C9_1
+#define ICC_AP1R3_EL1			S3_0_C12_C9_3
+#define ICC_DIR_EL1			S3_0_C12_C11_1
+#define ICC_RPR_EL1			S3_0_C12_C11_3
+#define ICC_SGI1R_EL1			S3_0_C12_C11_5
+#define ICC_AGI1R_EL1			S3_0_C12_C11_6
+#define ICC_SGI0R_EL1			S3_0_C12_C11_7
+#define ICC_IAR1_EL1			S3_0_C12_C12_0
+#define ICC_EOIR1_EL1			S3_0_C12_C12_1
+#define ICC_HPPIR1_EL1			S3_0_C12_C12_2
+#define ICC_BPR1_EL1			S3_0_C12_C12_3
+#define ICC_CTLR_EL1			S3_0_C12_C12_4
+#define ICC_SRE_EL1			S3_0_C12_C12_5
+#define ICC_IGRPEN0_EL1			S3_0_C12_C12_6
+#define ICC_IGRPEN1_EL1			S3_0_C12_C12_7
+#define ICC_SRE_EL2			S3_4_C12_C9_5
+#define ICC_CTLR_EL3			S3_6_C12_C12_4
+#define ICC_SRE_EL3			S3_6_C12_C12_5
+#define ICC_IGRPEN1_EL3			S3_6_C12_C12_7
 
 /* 8.3 AArch64 System register descriptions of the virtual registers
  *
@@ -89,42 +87,35 @@
  */
 
 /* 8.4 AArch64 virtualization control System registers */
-#define __AP0Rn_EL2(n)			sys_reg(3, 4, 12, 8, (n))
-#define ICH_AP0R0_EL2			__AP0Rn_EL2(0)
-#define ICH_AP0R1_EL2			__AP0Rn_EL2(1)
-#define ICH_AP0R2_EL2			__AP0Rn_EL2(2)
-#define ICH_AP0R3_EL2			__AP0Rn_EL2(3)
-#define __AP1Rn_EL2(n)			sys_reg(3, 4, 12, 9, (n))
-#define ICH_AP1R0_EL2			__AP1Rn_EL2(0)
-#define ICH_AP1R1_EL2			__AP1Rn_EL2(1)
-#define ICH_AP1R2_EL2			__AP1Rn_EL2(2)
-#define ICH_AP1R3_EL2			__AP1Rn_EL2(3)
-#define ICH_HCR_EL2			sys_reg(3, 4, 12, 11, 0)
-#define ICH_VTR_EL2			sys_reg(3, 4, 12, 11, 1)
-#define ICH_MISR_EL2			sys_reg(3, 4, 12, 11, 2)
-#define ICH_EISR_EL2			sys_reg(3, 4, 12, 11, 3)
-#define ICH_ELRSR_EL2			sys_reg(3, 4, 12, 11, 5)
-#define ICH_VMCR_EL2			sys_reg(3, 4, 12, 11, 7)
-#define __LR0_EL2(x)			sys_reg(3, 4, 12, 12, x)
-#define __LR8_EL2(x)			sys_reg(3, 4, 12, 13, x)
-#define ICH_LR0_EL2			__LR0_EL2(0)
-#define ICH_LR1_EL2			__LR0_EL2(1)
-#define ICH_LR2_EL2			__LR0_EL2(2)
-#define ICH_LR3_EL2			__LR0_EL2(3)
-#define ICH_LR4_EL2			__LR0_EL2(4)
-#define ICH_LR5_EL2			__LR0_EL2(5)
-#define ICH_LR6_EL2			__LR0_EL2(6)
-#define ICH_LR7_EL2			__LR0_EL2(7)
-#define ICH_LR8_EL2			__LR8_EL2(0)
-#define ICH_LR9_EL2			__LR8_EL2(1)
-#define ICH_LR10_EL2			__LR8_EL2(2)
-#define ICH_LR11_EL2			__LR8_EL2(3)
-#define ICH_LR12_EL2			__LR8_EL2(4)
-#define ICH_LR13_EL2			__LR8_EL2(5)
-#define ICH_LR14_EL2			__LR8_EL2(6)
-#define ICH_LR15_EL2			__LR8_EL2(7)
-
-#define read_gicreg			read_sysreg_s
-#define write_gicreg			write_sysreg_s
+#define ICH_AP0R0_EL2			S3_4_C12_C8_0
+#define ICH_AP0R1_EL2			S3_4_C12_C8_1
+#define ICH_AP0R2_EL2			S3_4_C12_C8_2
+#define ICH_AP0R3_EL2			S3_4_C12_C8_3
+#define ICH_AP1R0_EL2			S3_4_C12_C9_0
+#define ICH_AP1R1_EL2			S3_4_C12_C9_1
+#define ICH_AP1R2_EL2			S3_4_C12_C9_2
+#define ICH_AP1R3_EL2			S3_4_C12_C9_3
+#define ICH_HCR_EL2			S3_4_C12_C11_0
+#define ICH_VTR_EL2			S3_4_C12_C11_1
+#define ICH_MISR_EL2			S3_4_C12_C11_2
+#define ICH_EISR_EL2			S3_4_C12_C11_3
+#define ICH_ELRSR_EL2			S3_4_C12_C11_5
+#define ICH_VMCR_EL2			S3_4_C12_C11_7
+#define ICH_LR0_EL2			S3_4_C12_C12_0
+#define ICH_LR1_EL2			S3_4_C12_C12_1
+#define ICH_LR2_EL2			S3_4_C12_C12_2
+#define ICH_LR3_EL2			S3_4_C12_C12_3
+#define ICH_LR4_EL2			S3_4_C12_C12_4
+#define ICH_LR5_EL2			S3_4_C12_C12_5
+#define ICH_LR6_EL2			S3_4_C12_C12_6
+#define ICH_LR7_EL2			S3_4_C12_C12_7
+#define ICH_LR8_EL2			S3_4_C12_C13_0
+#define ICH_LR9_EL2			S3_4_C12_C13_1
+#define ICH_LR10_EL2			S3_4_C12_C13_2
+#define ICH_LR11_EL2			S3_4_C12_C13_3
+#define ICH_LR12_EL2			S3_4_C12_C13_4
+#define ICH_LR13_EL2			S3_4_C12_C13_5
+#define ICH_LR14_EL2			S3_4_C12_C13_6
+#define ICH_LR15_EL2			S3_4_C12_C13_7
 
 #endif /* __SYSREG_GICV3_ARM64_H_INCLUDE__ */

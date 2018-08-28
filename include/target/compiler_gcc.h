@@ -42,4 +42,7 @@
 #define __always_inline			inline __attribute__((always_inline))
 #define __compiler_offsetof(a, b)	 __builtin_offsetof(a, b)
 
+#define __stringify_1(x...)	#x
+#define __stringify(x...)	__stringify_1(x)
+
 #endif  /* __COMPILER_GCC_H_INCLUDE__ */

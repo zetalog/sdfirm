@@ -12,5 +12,5 @@ void irqc_hw_ctrl_init(void)
 	gicv3_init_gicd();
 	gicv3_init_gits();
 	gicv3_init_gicr(cpu);
-	gicv3_init_gicc(cpu);
+	gicv3_init_gicc();
 }

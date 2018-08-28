@@ -49,8 +49,7 @@
 
 /* ARM Generic Interrupt Controller Architecture Specification v3 and v4 */
 
-#include <asm/sysreg_gicv3.h>
-
+/* Distributor interface register map */
 /* 8.9.23 GICD_STATUSR, Error Reporting Status Register */
 #define GICD_STATUSR		GICD_REG(0x0010)
 /* 8.9.19 GICD_SETSPI_NSR, Set Non-secure SPI Pending Register */
@@ -90,25 +89,25 @@
 #define GICD_WROD		_BV(3)
 
 /* GICD_SETSPI_NSR/GICD_CLRSPI_NSR/GICD_SETSPI_SR/GICD_CLRSPI_SR */
-#define GICD_INTID_OFFSET	0
-#define GICD_INTID_MASK		0x3FF
-#define GICD_INTID(value)	GICD_SET_FV(INTID, value)
+#define GICD_SPI_OFFSET		0
+#define GICD_SPI_MASK		GIC_10BIT_MASK
+#define GICD_SPI(value)		GICD_SET_FV(SPI, value)
 
 /* GICD_IROUTER */
 #define GICD_AFF0_OFFSET	0
-#define GICD_AFF0_MASK		0xFF
+#define GICD_AFF0_MASK		GIC_8BIT_MASK
 #define GICD_AFF0(value)	GICD_SET_FV(AFF0, value)
 #define GICD_AFF1_OFFSET	8
-#define GICD_AFF1_MASK		0xFF
+#define GICD_AFF1_MASK		GIC_8BIT_MASK
 #define GICD_AFF1(value)	GICD_SET_FV(AFF1, value)
 #define GICD_AFF2_OFFSET	16
-#define GICD_AFF2_MASK		0xFF
+#define GICD_AFF2_MASK		GIC_8BIT_MASK
 #define GICD_AFF2(value)	GICD_SET_FV(AFF2, value)
 #define GICD_AFF3_OFFSET	32
-#define GICD_AFF3_MASK		0xFF
+#define GICD_AFF3_MASK		GIC_8BIT_MASK
 #define GICD_AFF3(value)	GICD_SET_FV(AFF3, value)
 #define GICD_IRQ_ROUTING_MODE_OFFSET	31
-#define GICD_IRQ_ROUTING_MODE_MASK	0x01
+#define GICD_IRQ_ROUTING_MODE_MASK	GIC_1BIT_MASK
 #define GICD_IRQ_ROUTING_MODE(value)	GICD_SET_FV(IRQ_ROUTING_MODE, value)
 #define GICD_IRQ_ROUTING_DIRECT		0x00
 #define GICD_IRQ_ROUTING_1_OF_N		0x01
@@ -119,27 +118,27 @@
 #define GIC_PRIORITY_S_LOW(max_prio)	(GIC_PRIORITY_NS_HIGH(max_prio) - 1)
 #define GIC_PRIORITY_NS_LOW(max_prio)	((max_prio) - 1)
 
-/* Redistributor register map */
-#define GICR_REG(cpu, offset)				\
-	(GICR_BASE+((cpu)<<GICR_CPU_SHIFT)+(offset))
-#define GICR_BASE_REG(cpu, base, offset)		\
-	(GICR_BASE+ ((cpu)<<GICR_CPU_SHIFT)+		\
+/* Redistributor interface register map */
+#define GICR_REG(cpu, offset)					\
+	(GICR_BASE+(((uint32_t)(cpu))<<GICR_CPU_SHIFT)+(offset))
+#define GICR_BASE_REG(cpu, base, offset)			\
+	(GICR_BASE+ (((uint32_t)(cpu))<<GICR_CPU_SHIFT)+	\
 	 (base)+(offset))
-#define GICR_2BIT_BASE_REG(cpu, base, offset, n)	\
-	(GIC_2BIT_REG(GICR_BASE+			\
-		      ((cpu)<<GICR_CPU_SHIFT)+		\
+#define GICR_2BIT_BASE_REG(cpu, base, offset, n)		\
+	(GIC_2BIT_REG(GICR_BASE+				\
+		      (((uint32_t)(cpu))<<GICR_CPU_SHIFT)+	\
 		      (base)+(offset), n))
-#define GICR_8BIT_BASE_REG(cpu, base, offset, n)	\
-	(GIC_8BIT_REG(GICR_BASE+			\
-		      ((cpu)<<GICR_CPU_SHIFT)+		\
+#define GICR_8BIT_BASE_REG(cpu, base, offset, n)		\
+	(GIC_8BIT_REG(GICR_BASE+				\
+		      (((uint32_t)(cpu))<<GICR_CPU_SHIFT)+	\
 		      (base)+(offset), n))
 #define GICR_SET_FV(name, value)	GIC_SET_FV(GICR_##name, value)
 #define GICR_GET_FV(name, value)	GIC_GET_FV(GICR_##name, value)
 #define GICRn_SET_FV(n, name, value)	GICn_SET_FV(n, GICR_##name, value)
 #define GICRn_GET_FV(n, name, value)	GICn_GET_FV(n, GICR_##name, value)
 
-#define GICR_SPI_BASE			(1 << 0x10)
-#define GICR_VLPI_BASE			(2 << 0x10)
+#define GICR_SPI_BASE			(ULL(1) << 0x10)
+#define GICR_VLPI_BASE			(ULL(2) << 0x10)
 
 /* 8.11.2 GICR_CTLR, Redistributor Control Register */
 #define GICR_CTLR(cpu)			GICR_REG(cpu, 0x0000)
@@ -220,15 +219,255 @@
 #define GICR_CHILDREN_ASLEEP	_BV(2)
 #define GICR_PROCESSOR_SLEEP	_BV(1)
 
-#define gic_begin_irq(irq, cpu)
-#define gic_end_irq(irq, cpu)
+/* CPU interface register map */
+#define ICC_SET_FV(name, value)		GIC_SET_FV(ICC_##name, value)
+#define ICC_GET_FV(name, value)		GIC_GET_FV(ICC_##name, value)
+#define ICCn_SET_FV(n, name, value)	GICn_SET_FV(n, ICC_##name, value)
+#define ICCn_GET_FV(n, name, value)	GICn_GET_FV(n, ICC_##name, value)
+
+#include <asm/sysreg_gicv3.h>
+
+/* ICC_PMR_EL1/ICC_RPR_EL1 */
+#define ICC_PRI(value)		GIC_PRIORITY(0, value)
+
+/* ICC_IAR0/1_EL1/ICC_EOIR0/1_EL1/ICC_HPPIR0/1_EL1/ICC_DIR_EL1 */
+#define ICC_IRQ_OFFSET		0
+#define ICC_IRQ_MASK		GIC_24BIT_MASK
+#define ICC_SET_IRQ(value)	ICC_SET_FV(IRQ, value)
+#define ICC_GET_IRQ(value)	ICC_GET_FV(IRQ, value)
+
+/* ICC_BPR0/1_EL1 */
+#define ICC_BINARY_POINT_OFFSET	0
+#define ICC_BINARY_POINT_MASK	GIC_3BIT_MASK
+#define ICC_BINARY_POINT(value)	ICC_SET_FV(BINARY_POINT, value)
+
+/* ICC_SGI1R_EL1/ICC_ASGI1R_EL1/ICC_SGI0R_EL1 */
+#define ICC_TARGET_LIST_OFFSET	0
+#define ICC_TARGET_LIST_MASK	GIC_16BIT_MASK
+#define ICC_TARGET_LIST(value)	ICC_SET_FV(TARGET_LIST, value)
+#define ICC_AFF1_OFFSET		16
+#define ICC_AFF1_MASK		GIC_8BIT_MASK
+#define ICC_AFF1(value)		ICC_SET_FV(AFF1, value)
+#define ICC_INTID_OFFSET	24
+#define ICC_INTID_MASK		GIC_4BIT_MASK
+#define ICC_INTID(value)	ICC_SET_FV(INTID, value)
+#define ICC_AFF2_OFFSET		32
+#define ICC_AFF2_MASK		GIC_8BIT_MASK
+#define ICC_AFF2(value)		ICC_SET_FV(AFF2, value)
+#define ICC_IRM			_BV(40)
+#define ICC_RS_OFFSET		44
+#define ICC_RS_MASK		GIC_4BIT_MASK
+#define ICC_RS(value)		ICC_SET_FV(RS, value)
+#define ICC_AFF3_OFFSET		48
+#define ICC_AFF3_MASK		GIC_8BIT_MASK
+#define ICC_AFF3(value)		ICC_SET_FV(AFF3, value)
+
+/* ICC_CTLR_EL1/3 */
+#define ICC_RSS			_BV(18)
+#define ICC_A3V			_BV(15)
+#define ICC_SEIS		_BV(14)
+#define ICC_ID_BITS_OFFSET	11
+#define ICC_ID_BITS_MASK	GIC_3BIT_MASK
+#define ICC_ID_BITS(value)	ICC_SET_FV(ID_BITS, value)
+#define ICC_PRI_BITS_OFFSET	8
+#define ICC_PRI_BITS_MASK	GIC_3BIT_MASK
+#define ICC_PRI_BITS(value)	ICC_SET_FV(PRI_BITS, value)
+#define ICC_PMHE		_BV(6)
+
+/* ICC_CTLR_EL1 */
+#define ICC_EOI_MODE		_BV(1)
+#define ICC_CBPR		_BV(0)
+
+/* ICC_CTLR_EL3 */
+#define ICC_NDS			_BV(17)
+#define ICC_RM			_BV(5)
+#define ICC_EOI_MODE_EL1NS	_BV(4)
+#define ICC_EOI_MODE_EL1S	_BV(3)
+#define ICC_EOI_MODE_EL3	_BV(2)
+#define ICC_CBPR_EL1NS		_BV(1)
+#define ICC_CBPR_EL1S		_BV(0)
+
+/* ICC_SRE_EL1/2/3 */
+#define ICC_SRE			_BV(0)
+#define ICC_DFB			_BV(1)
+#define ICC_DIB			_BV(2)
+#define ICC_SRE_ENABLE		_BV(4)
+
+/* ICC_IGRPEN0/1_EL1 */
+#define ICC_ENABLE_GRP		_BV(0)
+
+/* ICC_IGRPEN1_EL3 */
+#define ICC_ENABLE_GRP1_NS	ICC_ENABLE_GRP
+#define ICC_ENABLE_GRP1_S	_BV(1)
+
+#define gicd_wait_rwp()						\
+	while (__raw_readl(GICD_CTLR) & GICD_RWP)
+#define gicd_clear_ctlr(value)					\
+	do {							\
+		__raw_clearl(value, GICD_CTLR);			\
+		/* RWP tracks GICD_CTLR[2:0, 7:4] */		\
+		gicd_wait_rwp();				\
+	} while (0)
+#define gicd_set_ctlr(value)					\
+	do {							\
+		__raw_setl(value, GICD_CTLR);			\
+		/* RWP tracks GICD_CTLR[2:0, 7:4] */		\
+		gicd_wait_rwp();				\
+	} while (0)
+#define gicd_set_spi(irq, secure)				\
+	do {							\
+		if (secure)					\
+			__raw_writel(GICD_SPI(irq),		\
+				     GICD_SETSPI_SR);		\
+		else						\
+			__raw_writel(GICD_SPI(irq),		\
+				     GICD_SETSPI_NSR);		\
+	} while (0)
+#define gicd_clear_spi(irq, secure)				\
+	do {							\
+		if (secure)					\
+			__raw_writel(GICD_SPI(irq),		\
+				     GICD_CLRSPI_SR);		\
+		else						\
+			__raw_writel(GICD_SPI(irq),		\
+				     GICD_CLRSPI_NSR);		\
+	} while (0)
+
+/* UWP tracks communication (SGI gen) to GICD */
+#define gicr_wait_uwp(cpu)					\
+	while (__raw_readl(GICR_CTLR(cpu)) & GICR_UWP)
+#define gicr_wait_rwp(cpu)					\
+	while (__raw_readl(GICR_CTLR(cpu)) & GICR_RWP)
+#define gicr_clear_ctlr(cpu, value)				\
+	do {							\
+		__raw_clearl(value, GICR_CTLR(cpu));		\
+		/* RWP tracks GICR_CTLR[26:24, 0] clears */	\
+		gicr_wait_rwp(cpu);				\
+	} while (0)
+#define gicr_set_ctlr(cpu, value)				\
+	do {							\
+		__raw_setl(value, GICR_CTLR(cpu));		\
+		/* RWP tracks GICR_CTLR[26:24] sets */		\
+		gicr_wait_rwp(cpu);				\
+	} while (0)
+#define gicr_configure_group(cpu, irq, group)				\
+	do {								\
+		if (group == GIC_GROUP1NS)				\
+			__raw_setl(GIC_GROUP1(irq),			\
+				   GICR_IGROUPR0(cpu));			\
+		else {							\
+			__raw_clearl(GIC_GROUP1(irq),			\
+				     GICR_IGROUPR0(cpu));		\
+			if (group == GIC_GROUP1S)			\
+				__raw_setl(GIC_GROUP1(irq),		\
+					   GICR_IGRPMODR0(cpu));	\
+			else						\
+				__raw_clearl(GIC_GROUP1(irq),		\
+					     GICR_IGRPMODR0(cpu));	\
+		}							\
+	} while (0)
+#define gicr_enable_lpis(cpu)					\
+	__raw_setl(GICR_ENABLE_LPIS, GICR_CTLR(cpu))
+#define gicr_is_asleep(cpu)					\
+	(!!(__raw_readl(GICR_WAKER(cpu)) & GICR_CHILDREN_ASLEEP))
+#define gicr_enable_irq(cpu, irq)				\
+	__raw_setl(GIC_INTERRUPT_ID(irq), GICR_ISENABLER0(cpu))
+#define gicr_disable_irq(cpu, irq)				\
+	do {							\
+		__raw_setl(GIC_INTERRUPT_ID(irq),		\
+			   GICR_ICENABLER0(cpu));		\
+		/* RWP tracks GICR_ICENABLER0 */		\
+		gicr_wait_rwp(cpu);				\
+	} while (0)
+#define gicr_enable_all_irqs(cpu)				\
+	__raw_writel(~0, GICR_ISENABLER0(cpu))
+#define gicr_disable_all_irqs(cpu)				\
+	do {							\
+		__raw_writel(~0, GICR_ICENABLER0(cpu));		\
+		/* RWP tracks GICR_ICENABLER0 */		\
+		gicr_wait_rwp(cpu);				\
+	} while (0)
+#define gicr_mark_awake(cpu)					\
+	do {							\
+		if (gicr_is_asleep(cpu)) {			\
+			__raw_clearl(GICR_PROCESSOR_SLEEP,	\
+				     GICR_WAKER(cpu));		\
+			while (gicr_is_asleep(cpu));		\
+		}						\
+	} while (0)
+#define gicr_mark_asleep(cpu)					\
+	do {							\
+		__raw_setl(GICR_PROCESSOR_SLEEP,		\
+			   GICR_WAKER(cpu));			\
+		while (!gicr_is_asleep(cpu));			\
+	} while (0)
+#define gicr_configure_irq(cpu, irq, priority, trigger)			\
+	do {								\
+		uint32_t cfg;						\
+		__raw_writel_mask(GIC_PRIORITY(irq, priority),		\
+				  GIC_PRIORITY(irq,			\
+					       GIC_PRIORITY_MASK),	\
+				  GICR_IPRIORITYR(cpu, irq));		\
+		cfg = GIC_TRIGGER(GIC_TRIGGER_EDGE);			\
+		/* Only PPI can be configured as level triggered */	\
+		if (trigger == IRQ_LEVEL_TRIGGERED &&			\
+		    irq >= IRQ_PPI_BASE)				\
+			cfg = GIC_TRIGGER(GIC_TRIGGER_LEVEL);		\
+		__raw_writel_mask(GIC_INT_CONFIG(irq, cfg),		\
+				  GIC_INT_CONFIG(irq,			\
+						 GIC_INT_CONFIG_MASK),	\
+				  GICR_ICFGR(cpu, irq));		\
+	} while (0)
+
+#ifndef smp_processor_id
+#define smp_processor_id()	0
+#endif
+#ifndef isb
+#define isb()
+#endif
+
+#define irqc_hw_enable_irq(irq)						\
+	do {								\
+		if (irq < IRQ_SPI_BASE)					\
+			gicr_enable_irq(smp_processor_id(), irq);	\
+		else							\
+			gicd_enable_irq(irq);				\
+	} while (0)
+#define irqc_hw_disable_irq(irq)					\
+	do {								\
+		if (irq < IRQ_SPI_BASE)					\
+			gicr_disable_irq(smp_processor_id(), irq);	\
+		else							\
+			gicd_disable_irq(irq);				\
+	} while (0)
+#define irqc_hw_configure_irq(irq, priority, trigger)			\
+	do {								\
+		uint8_t cpu = smp_processor_id();			\
+		gicr_configure_group(cpu, irq, GIC_GROUP1S);		\
+		if (irq < IRQ_SPI_BASE)					\
+			gicr_configure_irq(cpu, irq, priority, trigger);\
+		else							\
+			gicd_configure_irq(irq, priority, trigger);	\
+	} while (0)
+
+#define gic_begin_irq(irq, cpu)					\
+	do {							\
+		uint32_t iar = read_sysreg(ICC_IAR1_EL1);	\
+		irq = ICC_GET_IRQ(iar);				\
+		cpu = smp_processor_id();			\
+	} while (0)
+#define gic_end_irq(irq, cpu)					\
+	write_sysreg(ICC_SET_IRQ(irq), ICC_EOIR1_EL1)
+
+void gicv3_ack_irq(irq_t irq);
+void gicv3_handle_irq(void);
+
+void gicc_enable_priority_mask(uint8_t priority);
+void gicc_disable_priority_mask(void);
 
 void gicv3_init_gicd(void);
 void gicv3_init_gits(void);
 void gicv3_init_gicr(uint8_t cpu);
-void gicv3_init_gicc(uint8_t cpu);
-
-uint32_t gicv3_hw_init_spis(void);
-uint32_t gicv3_hw_init_sgis(uint8_t cpu);	/* PPIs and SGIs */
+void gicv3_init_gicc(void);
 
 #endif /* __GICV3_ARM64_H_INCLUDE__ */
