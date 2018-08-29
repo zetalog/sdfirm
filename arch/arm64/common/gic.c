@@ -64,12 +64,6 @@ static inline boolean gic_sanitize_acked_irq(irq_t irq)
 	return true;
 }
 
-void irqc_hw_ack_irq(irq_t irq)
-{
-	/* CPU ID is 0 */
-	gic_end_irq(irq, 0);
-}
-
 void irqc_hw_handle_irq(void)
 {
 	irq_t irq;
@@ -80,8 +74,7 @@ void irqc_hw_handle_irq(void)
 		gic_end_irq(irq, cpu);
 		return;
 	}
-	if (!do_IRQ(irq)) {
+	if (!do_IRQ(irq))
 		irqc_hw_disable_irq(irq);
-		gic_end_irq(irq, cpu);
-	}
+	gic_end_irq(irq, cpu);
 }

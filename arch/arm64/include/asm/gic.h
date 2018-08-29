@@ -307,6 +307,5 @@ void gic_hw_ctrl_init(void);
 			__raw_writel(0xFFFFFFFF, GICD_ICENABLER(irq));	\
 		}							\
 	} while (0)
-void irqc_hw_ack_irq(irq_t irq);
 
 #endif /* __GIC_ARM64_H_INCLUDE__ */

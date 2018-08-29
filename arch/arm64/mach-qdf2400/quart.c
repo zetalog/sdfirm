@@ -71,7 +71,6 @@ static inline void __uart##n##_dm_handle_irq(void)			\
 {									\
 	irq_t uart_irq = UART_DM_IRQ(n);				\
 	/* TODO: handle UART RX IRQ here */				\
-	irqc_ack_irq(uart_irq);						\
 }									\
 static inline void __uart##n##_dm_config_irq(void)			\
 {									\
