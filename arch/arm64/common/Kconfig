@@ -100,6 +100,15 @@ config UART_PL01X
 	  PrimeCell UART (PL010/PL011) offers similar functionality to the
 	  industry-standard 16C550 UART.
 
+if UART_PL01X
+
+config UART_PL01X_SBSA
+	bool "PL01X server base system architecture (SBSA) subset"
+	help
+	  Select this to exclude non-SBSA required features.
+
+endif
+
 endmenu
 
 config CPU_BIG_ENDIAN

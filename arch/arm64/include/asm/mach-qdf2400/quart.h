@@ -80,6 +80,8 @@
 	(UART_DM_REG(n, 0x100) + ((x)-1) * 0x004)
 #define UART_DM_RF(n, x)		\
 	(UART_DM_REG(n, 0x140) + ((x)-1) * 0x004)
+#define UART_DM_BCR(n)			UART_DM_REG(n, 0x0C8)
+#define UART_DM_RX_TRANS_CTRL(n)	UART_DM_REG(n, 0x0CC)
 
 #define UART_DM_MISR_MODE(n)		UART_DM_REG(n, 0x060)
 #define UART_DM_MISR_RESET(n)		UART_DM_REG(n, 0x064)
@@ -87,8 +89,6 @@
 #define UART_DM_MISR_VAL(n)		UART_DM_REG(n, 0x06C)
 #define UART_DM_WWT_TIMEOUT(n)		UART_DM_REG(n, 0x0C0)
 #define UART_DM_CLK_CTRL(n)		UART_DM_REG(n, 0x0C4)
-#define UART_DM_BCR(n)			UART_DM_REG(n, 0x0C8)
-#define UART_DM_RX_TRANS_CTRL(n)	UART_DM_REG(n, 0x0CC)
 #define UART_DM_FSM_STATUS(n)		UART_DM_REG(n, 0x0D4)
 #define UART_DM_HW_VERSION(n)		UART_DM_REG(n, 0x0D8)
 #define UART_DM_GENERICS(n)		UART_DM_REG(n, 0x0DC)
@@ -111,8 +111,15 @@
 #define UART_DM_RX_RDY_CTL		_BV(7)
 #define UART_DM_CTS_CTL			_BV(6)
 #define UART_DM_AUTO_RFR_LEVEL0_OFFSET	0
-#define UART_DM_AUTO_RFR_LEVEL0_MASK	0x1F
+#define UART_DM_AUTO_RFR_LEVEL0_SHIFT	6
+#define UART_DM_AUTO_RFR_LEVEL0_MASK	\
+	((1 << UART_DM_AUTO_RFR_LEVEL0_SHIFT) - 1)
 #define UART_DM_AUTO_RFR_LEVEL0(value)	UART_DM_SET_FV(AUTO_RFR_LEVEL0, value)
+#define UART_DM_AUTO_RFR_LEVEL(value)			\
+	UART_DM_AUTO_RFR_LEVEL0(((uint32_t)(value))) |	\
+	UART_DM_AUTO_RFR_LEVEL1((((uint32_t)(value)) >>	\
+	UART_DM_AUTO_RFR_LEVEL0_SHIFT) <<		\
+	UART_DM_AUTO_RFR_LEVEL1_OFFSET)
 
 /* 2.25.b.x.3.2. UART_DM_MR2 (0x0FF 79XX 0004) */
 #define UART_DM_ARM_UART_BUSY_FIX	_BV(11)
@@ -149,15 +156,20 @@
 #define UART_DM_SAMPLE_DATA			_BV(6)
 #define UART_DM_MASK_BUSY_FIX			_BV(5)
 #define UART_DM_STALE_TIMEOUT_LSB_OFFSET	0
-#define UART_DM_STALE_TIMEOUT_LSB_MASK		0x1F
+#define UART_DM_STALE_TIMEOUT_LSB_SHIFT		5
+#define UART_DM_STALE_TIMEOUT_LSB_MASK		\
+	((1 << UART_DM_STALE_TIMEOUT_LSB_SHIFT) - 1)
 #define UART_DM_STALE_TIMEOUT_LSB(value)	\
 	UART_DM_SET_FV(STALE_TIMEOUT_LSB, value)
 #define UART_DM_STALE_TIMEOUT(value)		\
-	((UART_DM_STALE_TIMEOUT_MSB((value) &	\
-	  UART_DM_STALE_TIMEOUT_MSB_MASK) >>	\
-	  UART_DM_STALE_TIMEOUT_MSB_OFFSET) |	\
-	 (UART_DM_STALE_TIMEOUT_LSB((value) &	\
-	  UART_DM_STALE_TIMEOUT_LSB_MASK)))
+	(UART_DM_STALE_TIMEOUT_MSB((value) >>	\
+	 UART_DM_STALE_TIMEOUT_LSB_SHIFT) |	\
+	 UART_DM_STALE_TIMEOUT_LSB(value))
+#define UART_DM_STALE_TIMEOUT_MASK		\
+	(UART_DM_STALE_TIMEOUT_MSB_MASK <<	\
+	 UART_DM_STALE_TIMEOUT_MSB_OFFSET) |	\
+	(UART_DM_STALE_TIMEOUT_LSB_MASK <<	\
+	 UART_DM_STALE_TIMEOUT_LSB_OFFSET)
 
 /* 2.25.b.x.3.12. UART_DM_DMEN (0x0FF 79XX 003C) */
 #define UART_DM_RX_SC_ENABLE		_BV(5)
@@ -184,9 +196,15 @@
 #define UART_DM_FIFO_STATE_LSB_MASK	0x7F
 #define UART_DM_FIFO_STATE_LSB(value)	UART_DM_GET_FV(FIFO_STATE_LSB, value)
 
-/* 12: not 6 to avoid drain FIFO, fixes HW bugs */
-#define UART_DM_FIFO_STATE(value)		\
-	(UART_DM_FIFO_STATE_MSB(value) << 12 |	\
+/* HW bug: If the packing buffer and the RXFIFO are both empty when a stale
+ * event occurs then the SNAP register will be updated but the ISR_RXSTALE
+ * bit will not be set and future stale events will not be detected.
+ * To avoid this scenario we must make sure we do not empty the RXFIFO
+ * unless we are at the end of an RX transfer.
+ */
+#define UART_DM_FIFO_STATE(value)			\
+	((UART_DM_FIFO_STATE_MSB(value) <<		\
+	  (UART_DM_FIFO_STATE_MSB_OFFSET - 2)) |	\
 	 UART_DM_FIFO_STATE_LSB(value))
 
 /* 2.25.b.x.3.26. UART_DM_SIM_CFG (0x0FF 79XX 0080) */
@@ -212,6 +230,7 @@
 #define UART_DM_TX_CLK_SEL_OFFSET	0
 #define UART_DM_TX_CLK_SEL_MASK		0x0F
 #define UART_DM_TX_CLK_SEL(value)	UART_DM_SET_FV(TX_CLK_SEL, value)
+#define UART_DM_CLK_SEL_DIV_MIN		16
 
 /* 2.25.b.x.3.32. UART_DM_SR (0x0FF 79XX 00A4) */
 #define UART_DM_TRANS_END_TRIGGER_OFFSET	10
@@ -325,11 +344,27 @@
 #define UART_DM_GENERIC_RAM_ADDR_WIDTH(value)	\
 	UART_DM_GET_FV(GENERIC_RAM_ADDR_WIDTH, value)
 
-#define __uart_dm_begin_reset(n)					\
+/* 2.25.b.4.3.41. UART_DM_BCR (0x0FF 792D 00C8) */
+#define UART_DM_RX_DMRX_1BYTE_RES_EN		_BV(5)
+#define UART_DM_RX_STALE_IRQ_DMRX_EQUAL		_BV(4)
+#define UART_DM_RESERVED_3			_BV(3)
+#define UART_DM_RX_DMRX_LOW_EN			_BV(2)
+#define UART_DM_STALE_IRQ_EMPTY			_BV(1)
+#define UART_DM_TX_BREAK_DISABLE		_BV(0)
+
+/* 2.25.b.4.3.42. UART_DM_RX_TRANS_CTRL (0x0FF 792D 00CC) */
+#define UART_DM_RX_DMRX_CYCLIC_EN		_BV(2)
+#define UART_DM_RX_TRANS_AUTO_RE_ACTIVATE	_BV(1)
+#define UART_DM_RX_STALE_AUTO_RE_EN		_BV(0)
+
+#define __uart_dm_init_racc(n)						\
 	do {								\
 		__raw_writel(						\
 			UART_DM_CMD_GENERAL(CR_PROTECTION_ENABLE),	\
 			UART_DM_CR(n));					\
+	} while (0)
+#define __uart_dm_begin_reset(n)					\
+	do {								\
 		__raw_writel(UART_DM_CMD_CHANNEL(RESET_RFR),		\
 			     UART_DM_CR(n));				\
 		__raw_writel(UART_DM_CMD_CHANNEL(RESET_RX),		\
@@ -348,9 +383,27 @@
 		__raw_writel(0, UART_DM_IRDA(n));			\
 		__raw_writel(0, UART_DM_HCR(n));			\
 	} while (0)
+#define __uart_dm_stale_enable(n)					\
+	do {								\
+		__raw_writel(UART_DM_CMD_CHANNEL(CLEAR_STALE_IRQ),	\
+			     UART_DM_CR(n));				\
+		__raw_writel(UART_DM_CMD_GENERAL(ENABLE_STALE_IRQ),	\
+			     UART_DM_CR(n));				\
+		__raw_setl(UART_DM_RX_STALE_AUTO_RE_EN,			\
+			   UART_DM_RX_TRANS_CTRL(n));			\
+	} while (0)
+#define __uart_dm_stale_disable(n)					\
+	do {								\
+		__raw_clearl(UART_DM_RX_STALE_AUTO_RE_EN,		\
+			     UART_DM_RX_TRANS_CTRL(n));			\
+		__raw_writel(UART_DM_CMD_GENERAL(DISABLE_STALE_IRQ),	\
+			     UART_DM_CR(n));				\
+	} while (0)
 #define __uart_dm_uart_enable(n)				\
 	do {							\
 		__raw_writel(UART_DM_CMD_CHANNEL(RESET_RX),	\
+			     UART_DM_CR(n));			\
+		__raw_writel(UART_DM_CMD_CHANNEL(RESET_TX),	\
 			     UART_DM_CR(n));			\
 		__raw_writel(UART_DM_RX_EN, UART_DM_CR(n));	\
 		__raw_writel(UART_DM_TX_EN, UART_DM_CR(n));	\
@@ -381,9 +434,17 @@
 #define uart_dm_write_full(n)	(__raw_readw(UARTFR(n)) & UART_TXFF)
 #define uart_dm_read_empty(n)	(__raw_readw(UARTFR(n)) & UART_RXFE)
 
-void uart_dm_irq_init(uint8_t n);
 void uart_dm_uart_init(uint8_t n);
+void uart_dm_ctrl_init(void);
 void uart_dm_config_baudrate(uint8_t n, uint32_t baudrate);
 void uart_dm_config_params(uint8_t n, uint8_t params);
+
+void uart_dm_write_byte(uint8_t byte);
+uint8_t uart_dm_read_byte(void);
+boolean uart_dm_read_poll(void);
+void uart_dm_irq_init(void);
+void uart_dm_irq_ack(void);
+void uart_dm_ctrl_init(void);
+void __uart_dm_ctrl_init(uint8_t n);
 
 #endif /* __UART_DRAGONFLY_H_INCLUDE__ */

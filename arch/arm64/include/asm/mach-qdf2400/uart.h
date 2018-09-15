@@ -11,10 +11,10 @@
 #include <asm/debug.h>
 #else /* CONFIG_ARM_DCC */
 /* Only support BLSP0 and BLSP3 on Qualcomm boards:
- * UART 0-3:  BLSP0
+ * UART 0-3:  BLSP0 QUART
  * UART 4-5:  BLSP1 <- not implemented
  * UART 6-7:  BLSP2 <- not implemented
- * UART 8-11: BLSP3
+ * UART 8-11: BLSP3 ACUART
  */
 #define QUART_BLSP0_BASE	ULL(0x0FF792D0000)
 #define QUART_BLSP0_ID0		0
@@ -78,6 +78,9 @@
 #define QUART_GPIO_RTS_UART11	126
 #define QUART_GPIO_CTS_UART11	127
 
+#define QUART_ACUART_BASE	8
+
+/* Definitions to implement QUART */
 #define UART_DM_BLOCK_SHIFT	16
 #define UART_DM_ID(n)				\
 	((n) < 4 ? ((n) - QUART_BLSP0_ID0) :	\
@@ -96,8 +99,14 @@
 #define UART_DM_GPIO_CTS_UART(n)	QUART_GPIO_CTS_UART##n
 #define UART_DM_IRQ(n)			IRQ_UART##n
 
+/* Definitions to implement ACUART */
+#define UART_BASE(n)			(UART_DM_BASE(n) + 0x1000)
+#define UART_IRQ(n)			IRQ_UART##n
+#define UART_CON_IRQ			(IRQ_UART8+UART_CON_ID-QUART_BLSP3_ID0)
+
 #if defined(CONFIG_QUART_BLSP0) || defined(CONFIG_QUART_BLSP3)
 #include <asm/mach/quart.h>
+#include <asm/uart_pl01x.h>
 #ifndef ARCH_HAVE_UART
 #define ARCH_HAVE_UART		1
 #else

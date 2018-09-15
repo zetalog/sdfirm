@@ -13,7 +13,7 @@ void gicv3_init_gicd(void)
 	/* Enable affinity routing */
 	gicd_set_ctlr(GICD_ARE_S | GICD_ARE_NS);
 	/* SPIs default to group1, NS, level triggerred */
-	for (irq = IRQ_SPI_BASE; irq < NR_IRQ; irq++) {
+	for (irq = IRQ_SPI_BASE; irq < NR_IRQS; irq++) {
 		__raw_setl(GIC_GROUP1(irq), GICD_IGROUPR(irq));
 		gicd_configure_irq(irq, ns_prio,
 				   IRQ_LEVEL_TRIGGERED);

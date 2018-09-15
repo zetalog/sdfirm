@@ -5,14 +5,16 @@
 #include <target/panic.h>
 #include <asm/mach/clk.h>
 
-#define UART_DM_TX_FIFO_SIZE		256
+#define UART_DM_QUART_TX_FIFO_SIZE	256
+#define UART_DM_ACUART_TX_FIFO_SIZE	64
 
 #define UART_DM_CLK_SRC0_FREQ		UL(20000000)
 #define UART_DM_CLK_SRC1_FREQ		UL(1000000000)
 #ifdef CONFIG_QUART_AMPLIFIED_BAUDRATE
-#define UART_DM_CLK_SRC_FREQ		UART_DM_CLK_SRC1_FREQ
+#define UART_DM_BAUDRATE		\
+	(UART_DM_CLK_SRC1_FREQ/UART_DM_CLK_SEL_DIV_MIN)
 #else
-#define UART_DM_CLK_SRC_FREQ		UART_DM_CLK_SRC0_FREQ
+#define UART_DM_BAUDRATE		UART_CON_BAUDRATE
 #endif
 
 #define UART_DM_NR_CLOCK_DIVISORS	16
@@ -36,21 +38,6 @@ uint16_t uart_dm_clk_divs[UART_DM_NR_CLOCK_DIVISORS] = {
 	16,
 };
 
-uint8_t __uart_dm_clk_div2sel(uint16_t d)
-{
-       if (d <= 64)
-               return 16 - (d / 16);
-       else if (d <= 128)
-               return 12 - ((d - 64) / 32);
-       else if (d <= 256)
-               return 10 - ((d - 128) / 64);
-       else if (d <= 512)
-               return 8 - ((d - 256) / 128);
-       else if (d <= 768)
-               return 7 - ((d - 256) / 256);
-       return 5 - __ilog2_u16(d / 768);
-}
-
 static uint8_t __uart_dm_select_div(uint32_t baudrate, uint32_t hz)
 {
 	uint8_t i, idiv = UART_DM_NR_CLOCK_DIVISORS;
@@ -67,31 +54,33 @@ static uint8_t __uart_dm_select_div(uint32_t baudrate, uint32_t hz)
 }
 
 #define QDF2400_UART(n)							\
+static inline void __uart##n##_dm_ack_irq(void)				\
+{									\
+	irq_t uart_irq = UART_DM_IRQ(n);				\
+	irqc_enable_irq(uart_irq);					\
+}									\
 static inline void __uart##n##_dm_handle_irq(void)			\
 {									\
 	irq_t uart_irq = UART_DM_IRQ(n);				\
-	/* TODO: handle UART RX IRQ here */				\
+	irqc_disable_irq(uart_irq);					\
+	/* debug_handle_irq(); */					\
 }									\
 static inline void __uart##n##_dm_config_irq(void)			\
 {									\
 	irq_t uart_irq = UART_DM_IRQ(n);				\
-	irqc_configure_irq(uart_irq, IRQ_LEVEL_TRIGGERED, 0);		\
+	irqc_configure_irq(uart_irq, 0, IRQ_LEVEL_TRIGGERED);		\
 	irq_register_vector(uart_irq, __uart##n##_dm_handle_irq);	\
 	irqc_enable_irq(uart_irq);					\
 }									\
 static inline void __uart##n##_dm_config_clock(uint32_t __hz,		\
-					       boolean __amplified)	\
+					       uint32_t __input_hz)	\
 {									\
 	uint8_t __mode, __clk;						\
-	uint32_t __input_hz;						\
-	__clk_enable_branch(UART_DM_PCC_BLSP(n));			\
-	if (__amplified) {						\
+	if (__input_hz == UART_DM_CLK_SRC1_FREQ) {			\
 		__clk = 1;						\
-		__input_hz = UART_DM_CLK_SRC1_FREQ;			\
 		__mode = RCG_MODE_BYPASS;				\
 	} else {							\
 		__clk = 0;						\
-		__input_hz = UART_DM_CLK_SRC0_FREQ;			\
 		__mode = RCG_MODE_DUAL_EDGE;				\
 	}								\
 	__clk_generate_root(PCC_UART_CMD_RCGR(UART_DM_PCC_UART(n)),	\
@@ -99,15 +88,16 @@ static inline void __uart##n##_dm_config_clock(uint32_t __hz,		\
 	__clk_enable_root(PCC_UART_CMD_RCGR(UART_DM_PCC_UART(n)));	\
 	__clk_update_root(PCC_UART_CMD_RCGR(UART_DM_PCC_UART(n)));	\
 }									\
-static inline void __uart##n##_dm_config_baudrate(uint32_t __baudrate,	\
-						  uint32_t __hz)	\
+static inline void __uart##n##_dm_config_baudrate(uint32_t __baudrate)	\
 {									\
 	uint8_t __sel;							\
+	uint32_t __hz = UART_DM_CLK_SRC0_FREQ;				\
+	if (__baudrate > __hz)						\
+		__hz = UART_DM_CLK_SRC1_FREQ;				\
 	__sel = __uart_dm_select_div(__baudrate, __hz);			\
 	__uart##n##_dm_config_clock(__baudrate *			\
 				    uart_dm_clk_divs[__sel],		\
-				    __hz != UART_DM_CLK_SRC0_FREQ ?	\
-				    true : false);			\
+				    __hz);				\
 	__raw_writel(UART_DM_RX_CLK_SEL(__sel) |			\
 		     UART_DM_TX_CLK_SEL(__sel),				\
 		     UART_DM_CSR(n));					\
@@ -115,23 +105,23 @@ static inline void __uart##n##_dm_config_baudrate(uint32_t __baudrate,	\
 static inline void __uart##n##_dm_config_gpio(void)			\
 {									\
 	__uart_dm_config_pad(UART_DM_GPIO_TX_UART(n),			\
-			     GPIO_PAD_NO_PULL,				\
+			     GPIO_PAD_PULL_DOWN,			\
 			     UART_DM_GPIO_MUX_UART(n));			\
 	__uart_dm_config_pad(UART_DM_GPIO_RX_UART(n),			\
 			     GPIO_PAD_PULL_DOWN,			\
 			     UART_DM_GPIO_MUX_UART(n));			\
 	__uart_dm_config_pad(UART_DM_GPIO_RTS_UART(n),			\
-			     GPIO_PAD_NO_PULL,				\
+			     GPIO_PAD_PULL_UP,				\
 			     UART_DM_GPIO_MUX_UART(n));			\
 	__uart_dm_config_pad(UART_DM_GPIO_CTS_UART(n),			\
-			     GPIO_PAD_PULL_DOWN,			\
+			     GPIO_PAD_PULL_UP,				\
 			     UART_DM_GPIO_MUX_UART(n));			\
 }
 
 static inline void __uart_dm_config_pad(uint8_t gpio, uint8_t pad,
 					uint8_t func)
 {
-	gpio_config_pad(GPIO_HW_PORT, gpio, pad, 2);
+	gpio_config_pad(GPIO_HW_PORT, gpio, pad, 8);
 	gpio_config_mux(GPIO_HW_PORT, gpio, func);
 }
 
@@ -144,33 +134,64 @@ QDF2400_UART(9);
 QDF2400_UART(10);
 QDF2400_UART(11);
 
-static void __uart_dm_config_baudrate(uint8_t n, uint32_t baudrate,
-				      uint32_t hz)
+static void __uart_dm_config_baudrate(uint8_t n, uint32_t baudrate)
 {
 	switch (n) {
 	case 0:
-		__uart0_dm_config_baudrate(baudrate, hz);
+		__uart0_dm_config_baudrate(baudrate);
 		break;
 	case 1:
-		__uart1_dm_config_baudrate(baudrate, hz);
+		__uart1_dm_config_baudrate(baudrate);
 		break;
 	case 2:
-		__uart2_dm_config_baudrate(baudrate, hz);
+		__uart2_dm_config_baudrate(baudrate);
 		break;
 	case 3:
-		__uart3_dm_config_baudrate(baudrate, hz);
+		__uart3_dm_config_baudrate(baudrate);
 		break;
 	case 8:
-		__uart8_dm_config_baudrate(baudrate, hz);
+		__uart8_dm_config_baudrate(baudrate);
 		break;
 	case 9:
-		__uart9_dm_config_baudrate(baudrate, hz);
+		__uart9_dm_config_baudrate(baudrate);
 		break;
 	case 10:
-		__uart10_dm_config_baudrate(baudrate, hz);
+		__uart10_dm_config_baudrate(baudrate);
 		break;
 	case 11:
-		__uart11_dm_config_baudrate(baudrate, hz);
+		__uart11_dm_config_baudrate(baudrate);
+		break;
+	default:
+		break;
+	}
+}
+
+static void __uart_dm_ack_irq(uint8_t n)
+{
+	switch (n) {
+	case 0:
+		__uart0_dm_ack_irq();
+		break;
+	case 1:
+		__uart1_dm_ack_irq();
+		break;
+	case 2:
+		__uart2_dm_ack_irq();
+		break;
+	case 3:
+		__uart3_dm_ack_irq();
+		break;
+	case 8:
+		__uart8_dm_ack_irq();
+		break;
+	case 9:
+		__uart9_dm_ack_irq();
+		break;
+	case 10:
+		__uart10_dm_ack_irq();
+		break;
+	case 11:
+		__uart11_dm_ack_irq();
 		break;
 	default:
 		break;
@@ -209,10 +230,8 @@ static void __uart_dm_gpio_init(uint8_t n)
 	}
 }
 
-void uart_dm_irq_init(uint8_t n)
+static void __uart_dm_init_irq(uint8_t n)
 {
-	__uart_dm_disable_all_irqs(n);
-	__uart_dm_enable_irqs(n, UART_DM_RXLEV_IRQ | UART_DM_RXSTALE_IRQ);
 	switch (n) {
 	case 0:
 		__uart0_dm_config_irq();
@@ -241,14 +260,22 @@ void uart_dm_irq_init(uint8_t n)
 	}
 }
 
-static void __uart_dm_config_params(uint8_t n, uint8_t params)
+static void __uart_dm_config_params(uint8_t n, uint8_t params,
+				    uint32_t fifosize,
+				    boolean break_zero_char_off,
+				    uint32_t stale_timeout)
 {
-	unsigned long cfg;
+	unsigned long cfg = 0;
 
-	/* disable RTS/CTS due to sdfirm requirement */
-	__raw_writel(0, UART_DM_MR1(n));
+	/* Enable RX auto flow control only
+	 * trigger @ 58 words(90%) of 64-word RX FIFO
+	 */
+	__raw_writel(UART_DM_AUTO_RFR_LEVEL(fifosize * 9 / 10) |
+		     UART_DM_RX_RDY_CTL, UART_DM_MR1(n));
 
-	cfg = UART_DM_RX_BREAK_ZERO_CHAR_OFF;
+	if (break_zero_char_off)
+		cfg |= UART_DM_RX_BREAK_ZERO_CHAR_OFF;
+
 	cfg |= UART_DM_BITS_PER_CHAR(UART_DM_ENUM_BITS(uart_bits(params)));
 	switch (uart_parity(params)) {
 	case UART_PARITY_EVEN:
@@ -271,39 +298,74 @@ static void __uart_dm_config_params(uint8_t n, uint8_t params)
 	}
 	__raw_writel(cfg, UART_DM_MR2(n));
 	/* 15 characters until stale timeout */
-	__raw_writel(UART_DM_STALE_TIMEOUT(15), UART_DM_IPR(n));
+	__raw_writel_mask(UART_DM_STALE_TIMEOUT(stale_timeout),
+			  UART_DM_STALE_TIMEOUT_MASK,
+			  UART_DM_IPR(n));
 	/* Enable RX/TX single character mode */
 	__raw_writel(UART_DM_RX_SC_ENABLE | UART_DM_TX_SC_ENABLE,
 		     UART_DM_DMEN(n));
 }
 
-#define __uart_dm_fifo_size(n)				\
-	(4 * (UL(1) << UART_DM_GENERIC_RAM_ADDR_WIDTH(	\
-	__raw_readl(UART_DM_GENERICS(n)))))
-
-void __uart_dm_config_fifo(uint8_t n)
+uint32_t __uart_dm_fifo_size(uint8_t n)
 {
-	/* Configure TX/RX watermark to 0 */
-	__raw_writel(0, UART_DM_TFWR(n));
-	__raw_writel(0, UART_DM_RFWR(n));
-	/* Ensure there is room for RX FIFO */
-	BUG_ON(__uart_dm_fifo_size(n) <= UART_DM_TX_FIFO_SIZE);
-	__raw_writel(UART_DM_TX_FIFO_SIZE, UART_DM_BADR(n));
+	uint32_t generics = __raw_readl(UART_DM_GENERICS(n));
+	return 4 * (UL(1) << UART_DM_GENERIC_RAM_ADDR_WIDTH(generics));
 }
 
-void __uart_dm_ctrl_init(uint8_t n, uint32_t hz)
+void __uart_dm_config_fifo(uint8_t n,
+			   uint32_t fifosize, uint32_t watermark)
 {
+	/* Configure TX/RX watermark to 0 */
+	__raw_writel(watermark, UART_DM_TFWR(n));
+	__raw_writel(watermark, UART_DM_RFWR(n));
+	/* Ensure there is room for RX FIFO */
+	BUG_ON(__uart_dm_fifo_size(n) <= fifosize);
+	__raw_writel(fifosize, UART_DM_BADR(n));
+}
+
+void __uart_dm_quart_init(uint8_t n)
+{
+	__uart_dm_init_racc(n);
 	__uart_dm_begin_reset(n);
 	__uart_dm_uart_init(n);
-	__uart_dm_config_params(n, UART_DEF_PARAMS);
-	__uart_dm_config_baudrate(n, UART_CON_BAUDRATE, hz);
-	__uart_dm_config_fifo(n);
+	__uart_dm_config_fifo(n, UART_DM_QUART_TX_FIFO_SIZE, 0);
+	__uart_dm_config_params(n, UART_DEF_PARAMS,
+				UART_DM_QUART_TX_FIFO_SIZE, true, 15);
+	__uart_dm_config_baudrate(n, UART_DM_BAUDRATE);
 	__uart_dm_uart_enable(n);
 	__uart_dm_end_reset(n);
 }
 
+/* Implement SBSA using ACUART */
+/* Differentiated ACUART configurations */
+static void __uart_dm_acuart_variant(uint8_t n)
+{
+	__raw_writel(UART_DM_RX_DMRX_1BYTE_RES_EN |
+		     UART_DM_RX_STALE_IRQ_DMRX_EQUAL |
+		     UART_DM_RESERVED_3 |
+		     UART_DM_RX_DMRX_LOW_EN |
+		     UART_DM_STALE_IRQ_EMPTY |
+		     UART_DM_TX_BREAK_DISABLE,
+		     UART_DM_BCR(n));
+	/* This is critical for QDF2400 */
+	__raw_setl(UART_DM_ARM_UART_BUSY_FIX, UART_DM_MR2(n));
+}
+
+void __uart_dm_acuart_init(uint8_t n)
+{
+	__uart_dm_init_racc(n);
+	__uart_dm_uart_init(n);
+	__uart_dm_config_fifo(n, UART_DM_ACUART_TX_FIFO_SIZE, 0);
+	__uart_dm_config_baudrate(n, UART_DM_BAUDRATE);
+	__uart_dm_config_params(n, UART_DEF_PARAMS,
+				UART_DM_ACUART_TX_FIFO_SIZE, false, 4);
+	__uart_dm_acuart_variant(n);
+	__uart_dm_uart_enable(n);
+	__uart_dm_stale_enable(n);
+}
+
 #ifdef CONFIG_CONSOLE_OUTPUT
-void uart_hw_con_write(uint8_t byte)
+void uart_dm_write_byte(uint8_t byte)
 {
 	while (!(__raw_readl(UART_DM_ISR(UART_CON_ID)) & UART_DM_TXLEV_IRQ));
 	__raw_writel(1, UART_DM_NO_CHARS_FOR_TX(UART_CON_ID));
@@ -325,7 +387,7 @@ void uart_hw_con_write(uint8_t byte)
 	} while (0)
 
 /* Must be greater and equal to RX_FIFO_SIZE */
-static uint16_t uart_dm_rx_fifo_size = 4096;
+#define UART_DM_RX_XFER_SIZE	4096
 static uint32_t uart_dm_rx_bytes_left = 0;
 static uint8_t ring_buffer[RING_SIZE];
 static uint32_t read_index = 0;
@@ -333,10 +395,10 @@ static uint32_t write_index = 0;
 
 static void __uart_dm_rx_start(uint8_t n)
 {
-	__raw_writel(uart_dm_rx_fifo_size, UART_DM_DMRX(n));
+	__raw_writel(UART_DM_RX_XFER_SIZE, UART_DM_DMRX(n));
 	__raw_writel(UART_DM_CMD_GENERAL(ENABLE_STALE_IRQ),
 		     UART_DM_CR(n));
-	uart_dm_rx_bytes_left = uart_dm_rx_fifo_size;
+	uart_dm_rx_bytes_left = UART_DM_RX_XFER_SIZE;
 }
 
 static void __uart_dm_rx_service(uint8_t n)
@@ -355,7 +417,7 @@ static void __uart_dm_rx_service(uint8_t n)
 			__raw_writel(UART_DM_CMD_CHANNEL(CLEAR_STALE_IRQ),
 				     UART_DM_CR(n));
 			snap = __raw_readl(UART_DM_RX_TOTAL_SNAP(n));
-			uart_dm_rx_bytes_left = uart_dm_rx_fifo_size - snap;
+			uart_dm_rx_bytes_left = UART_DM_RX_XFER_SIZE - snap;
 		}
 		words_in_fifo = UART_DM_FIFO_STATE(rxfs);
 		if (words_in_fifo == 0)
@@ -379,13 +441,13 @@ static void __uart_dm_rx_service(uint8_t n)
 	}
 }
 
-boolean uart_hw_con_poll(void)
+boolean uart_dm_read_poll(void)
 {
 	__uart_dm_rx_service(UART_CON_ID);
 	return !!(BYTES_IN_RING() > 0);
 }
 
-uint8_t uart_hw_con_read(void)
+uint8_t uart_dm_read_byte(void)
 {
 	while (1) {
 		__uart_dm_rx_service(UART_CON_ID);
@@ -395,14 +457,31 @@ uint8_t uart_hw_con_read(void)
 }
 #endif
 
-#ifdef CONFIG_CONSOLE
-void uart_hw_con_init(void)
+void uart_dm_irq_init(void)
 {
-	__uart_dm_gpio_init(UART_CON_ID);
-	__uart_dm_ctrl_init(UART_CON_ID, UART_DM_CLK_SRC_FREQ);
-#if 0
-	/* TODO: interruptible UART console */
-	uart_dm_irq_init(UART_CON_ID);
-#endif
+	uint8_t n = UART_CON_ID;
+
+	__uart_dm_disable_all_irqs(n);
+	__uart_dm_enable_irqs(n, UART_DM_RXLEV_IRQ | UART_DM_RXSTALE_IRQ);
+	__uart_dm_init_irq(n);
 }
-#endif
+
+void uart_dm_irq_ack(void)
+{
+	__uart_dm_ack_irq(UART_CON_ID);
+}
+
+void __uart_dm_ctrl_init(uint8_t n)
+{
+	__clk_enable_branch(UART_DM_PCC_BLSP(n));
+	__uart_dm_gpio_init(n);
+	if (n < QUART_ACUART_BASE)
+		__uart_dm_quart_init(n);
+	else
+		__uart_dm_acuart_init(n);
+}
+
+void uart_dm_ctrl_init(void)
+{
+	__uart_dm_ctrl_init(UART_CON_ID);
+}
