@@ -11,12 +11,11 @@ chain to assure the efficiency that "ZETALOG" may be required to provide in
 his new career roles, these files have to retain the ability for being
 re-used by "ZETALOG" across all companies that hire him. In the other word,
 "ZETALOG" has to convince his new employers that these files can be
-re-licensed to any of their expected license without the worry about the
-copyrights that may still be claimed by his previous employer. These source
-files are hence released under a special license known as "ZETALOG"
-license.
+re-licensed to any of their expected license without the worry the his
+previous employers may still claim their copyrights. These source files are
+hence released under a special license known as "ZETALOG" license.
 
-The "ZETALOG" license basically GPLv2, with one exception.
+The "ZETALOG" license is basically a GPLv2, with one exception.
 1. When the source code in this project is used and re-used by a company or
    an individual that has nothing to do with ZETALOG's business, the
    project and its souce code can be simply considered released under
@@ -31,16 +30,16 @@ The "ZETALOG" license basically GPLv2, with one exception.
 not be sufficiently clear to explain what a company or an individual should
 be aware of when they consider to import "ZETALOG" licensed software to
 their business. The following tries to explain "ZETALOG" terms in a simple
-way:
+way to dispel employers' misgivings:
 1. The company or the individual can re-license this project and its source
    code into any expected license without informing "ZETALOG". However,
    when the source code is going to be published as open source, it has to
    be re-licensed to "ZETALOG" license.
-2. "ZETALOG" has the right to keep some source code related to the
-   technology owned by the company or the individual in an open source
+2. "ZETALOG" has the right to keep some source code related to
+   technology created by the company or the individual in an open source
    style to make sure this project can demonstrate its ability to run the
    hardware created on top of that technology. Such souce code is only
-   limitted to those components that are required to boot this project
+   limited to those components that are required to boot this project
    (clock, gpio, power, uart, timer) or can be found open source
    implementations in the community. Be aware that the company and the
    individual always has the right to ask "ZETALOG" to stop publishing what
@@ -50,15 +49,16 @@ So the "ZETALOG" terms are just an example double-win terms:
    also means you have bought the entire career accumulation of ZETALOG.
 2. When you stop hiring "ZETALOG", please don't bother that "ZETALOG" may
    use same career skills demonstrated in this project to other his
-   employers.
+   employers. These skills are considered basic skills for ZETALOG to
+   full fill his system software engieering role.
 The above can be considered a fair employment terms between the employer of
 "ZETALOG" and "ZETALOG". You didn't buy the entire life of "ZETALOG", you
 shouldn't stop "ZETALOG" from using his career skills to earn a living.
 3. If you want to freely use this software, please open source the least
    boot requirement to contribute it.
-4. Since everything should have already known in the community and are only
-   related to boot the "sdfirm", there is nothing you can potentially lose.
-   On the contrary, you'll have an additional open source community
+4. Since everything should have already been known in the community and are
+   only related to boot the "sdfirm", there is nothing you can potentially
+   lose. On the contrary, you'll have an additional open source community
    solution and you'll automatically become an invester of this software.
 The above can be considered a fair software usage terms between sdfirm and
 who uses it. You want to import sdfirm, then do not try to conceal the fact
