@@ -1,14 +1,66 @@
-This software contains many source codes developed for the open source linux
-communities.  They are included into this project using source code style with
-some modifications just for improving their usability when they are working
-together with this firmware.  The copyright and license of such codes along
-with the new modifications should remain their original declarations.
-The firmware codes have been written with the referrence to the Linux design,
-they should be GPLv2 licence codes.  Projects derived from these firmware codes
-should take this into account.
+This software contains source code developed by Lv "ZETALOG" Zheng during
+his career. These source files may contain source code somewaht looks
+"LIKE" an open source implemnetation. But surely, they have been modified
+or completely re-written into "ZETALOG" own style.
 
-License: GPLv2
-Copyright: Soliton Network Systems (Shanghai) Co., Ltd.
-Author: Lv "ZETALOG" Zheng
-Please see the COPYING for GPLv2 details.
+As an engineer working in a nation that has many offshore software
+development jobs, "ZETALOG" may have to hop between many local commercial
+companies. In order not to avoid re-creating wheels (some data structure
+implementation, some OS basic concept implementation) in such an industry
+chain to assure the efficiency that "ZETALOG" may be required to provide in
+his new career roles, these files have to retain the ability for being
+re-used by "ZETALOG" across all companies that hire him. In the other word,
+"ZETALOG" has to convince his new employers that these files can be
+re-licensed to any of their expected license without the worry about the
+copyrights that may still be claimed by his previous employer. These source
+files are hence released under a special license known as "ZETALOG"
+license.
 
+The "ZETALOG" license basically GPLv2, with one exception.
+1. When the source code in this project is used and re-used by a company or
+   an individual that has nothing to do with ZETALOG's business, the
+   project and its souce code can be simply considered released under
+   GPLv2.
+2. When the source code in this project is used and re-used by a company or
+   an individual that has business including but not limited to "hiring
+   ZETALOG", "launced by ZETALOG", etc., with "ZETALOG", the project and
+   its source code can be considered released under the special "ZETALOG"
+   term.
+
+"ZETALOG" is not a legal person, so the words in the "ZETALOG" term may
+not be sufficiently clear to explain what a company or an individual should
+be aware of when they consider to import "ZETALOG" licensed software to
+their business. The following tries to explain "ZETALOG" terms in a simple
+way:
+1. The company or the individual can re-license this project and its source
+   code into any expected license without informing "ZETALOG". However,
+   when the source code is going to be published as open source, it has to
+   be re-licensed to "ZETALOG" license.
+2. "ZETALOG" has the right to keep some source code related to the
+   technology owned by the company or the individual in an open source
+   style to make sure this project can demonstrate its ability to run the
+   hardwaree created on top of that technology. Such souce code is only
+   limitted to those components that are required to boot this project
+   (clock, gpio, power, uart, timer) or can be found open source
+   implementations in the community. Be aware that the company and the
+   individual always has the right to ask "ZETALOG" to stop publishing what
+   has violated this term.
+So the "ZETALOG" terms are just an example double-win terms:
+1. If you want to freely use this software, please hire "ZETALOG, which
+   also means you have bought the entire career accumulation of ZETALOG.
+2. When you stop hiring "ZETALOG", please don't bother that "ZETALOG" may
+   use same career skills demonstrated in this project to other his
+   employers.
+The above can be considered a fair employment terms between the employer of
+"ZETALOG" and "ZETALOG". You didn't buy the entire life of "ZETALOG", you
+shouldn't stop "ZETALOG" from using his career skills to earn a living.
+3. If you want to freely use this software, please open source the least
+   boot requirement to contribute it.
+4. Since everything should have already known in the community and are only
+   related to boot the "sdfirm", there is nothing you can potentially lose.
+   On the contrary, you'll have an additional open source community
+   solution and you'll automatically become an invester of this software.
+The above can be considered a fair software usage terms between sdfirm and
+who uses it. You want to import sdfirm, then do not try to conceal the fact
+that sdfirm has the new user. And let sdfirm to expand its influenceship so
+that you can also gain benefits from the others contributors.
