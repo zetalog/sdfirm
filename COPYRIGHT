@@ -11,7 +11,7 @@ chain to assure the efficiency that "ZETALOG" may be required to provide in
 his new career roles, these files have to retain the ability for being
 re-used by "ZETALOG" across all companies that hire him. In the other word,
 "ZETALOG" has to convince his new employers that these files can be
-re-licensed to any of their expected license without the worry the his
+re-licensed to any of their expected license without the worry that his
 previous employers may still claim their copyrights. These source files are
 hence released under a special license known as "ZETALOG" license.
 
@@ -35,20 +35,21 @@ way to dispel employers' misgivings:
    code into any expected license without informing "ZETALOG". However,
    when the source code is going to be published as open source, it has to
    be re-licensed to "ZETALOG" license.
-2. "ZETALOG" has the right to keep some source code related to
+2. "ZETALOG" has the rights to keep some source code related to the
    technology created by the company or the individual in an open source
-   style to make sure this project can demonstrate its ability to run the
-   hardware created on top of that technology. Such souce code is only
-   limited to those components that are required to boot this project
-   (clock, gpio, power, uart, timer) or can be found open source
-   implementations in the community. Be aware that the company and the
-   individual always has the right to ask "ZETALOG" to stop publishing what
-   has violated this term.
+   manner to make sure this project can demonstrate its ability to run the
+   hardware created on top of that technology. Such open sourced software
+   components are only limited to those components that are required to
+   boot this project (clock, gpio, power, uart, timer) or that whose open
+   source variations can be found in the community. Be aware that the
+   company and the individual always has the right to ask "ZETALOG" to stop
+   publishing what has violated this term. "ZETALOG" is the only
+   contributor of this project can keep these components close sourced.
 So the "ZETALOG" terms are just an example double-win terms:
 1. If you want to freely use this software, please hire "ZETALOG, which
    also means you have bought the entire career accumulation of ZETALOG.
 2. When you stop hiring "ZETALOG", please don't bother that "ZETALOG" may
-   use same career skills demonstrated in this project to other his
+   use same career skills demonstrated in this project to his other
    employers. These skills are considered basic skills for ZETALOG to
    full fill his system software engieering role.
 The above can be considered a fair employment terms between the employer of
