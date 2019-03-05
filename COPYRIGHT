@@ -1,19 +1,22 @@
 This software contains source code developed by Lv "ZETALOG" Zheng during
-his career. These source files may contain source code somewaht looks
+his career. These source files may contain source code somewhat looks
 "LIKE" an open source implemnetation. But surely, they have been modified
-or completely re-written into "ZETALOG" own style.
+or thoroughly re-written into "ZETALOG" own style.
 
 As an engineer working in a nation that has many offshore software
-development jobs, "ZETALOG" may have to hop between many local commercial
+development jobs, "ZETALOG" may have to hop between the local commercial
 companies. In order to avoid re-creating wheels (some data structure
-implementation, some OS basic concept implementation) in such an industry
-chain to assure the efficiency that "ZETALOG" may be required to provide in
-his new career roles, these files have to retain the ability for being
-re-used by "ZETALOG" across all companies that hire him. In the other word,
-"ZETALOG" has to convince his new employers that these files can be
-re-licensed to any of their expected license without the worry that his
-previous employers may still claim their copyrights. These source files are
-hence released under a special license known as "ZETALOG" license.
+implementation, some OS basic concept implementation), which is essential
+for sdfirm engineering as "ZETALOG" conceptually believe that software
+trends to converge to one single implementation for a pre-defined set of
+functionalities and sdfirm is trying to become the implementation, in such
+an industry chain to assure the efficiency that "ZETALOG" may be required
+to provide in his new career roles, these files have to retain the ability
+for being re-used by "ZETALOG" across all companies that hire him. In the
+other word, "ZETALOG" has to convince his new employers that these files
+can be re-licensed to any of their expected license without the worry that
+his previous employers may still claim their copyrights. These source files
+are hence released under a special license known as "ZETALOG" license.
 
 The "ZETALOG" license is basically a GPLv2, with one exception.
 1. When the source code in this project is used and re-used by a company or
@@ -22,9 +25,9 @@ The "ZETALOG" license is basically a GPLv2, with one exception.
    GPLv2.
 2. When the source code in this project is used and re-used by a company or
    an individual that has business including but not limited to "hiring
-   ZETALOG", "launced by ZETALOG", etc., with "ZETALOG", the project and
-   its source code can be considered released under the special "ZETALOG"
-   terms.
+   ZETALOG", "being launced by ZETALOG", etc., with "ZETALOG", the project
+   and its source code can be considered released under the special
+   "ZETALOG" terms. The following paragraph describes "ZETALOG" terms.
 
 "ZETALOG" is not a legal person, so the words in the "ZETALOG" terms may
 not be sufficiently clear to explain what a company or an individual should
@@ -40,11 +43,12 @@ way to dispel employers' misgivings:
    manner to make sure this project can demonstrate its ability to run the
    hardware created on top of that technology. Such open sourced software
    components are only limited to those components that are required to
-   boot this project (clock, gpio, power, uart, timer) or that whose open
+   boot this project (clock, power, pin serial, timer) or that whose open
    source variations can be found in the community. Be aware that the
    company and the individual always has the right to ask "ZETALOG" to stop
    publishing what has violated this term. "ZETALOG" is the only
-   contributor of this project can keep these components close sourced.
+   contributor now of this project that can keep the components in the
+   above list in a closed source style with sdfirm.
 So the "ZETALOG" terms are just an example double-win terms:
 1. If you want to freely use this software, please hire "ZETALOG, which
    also means you have bought the entire career accumulation of ZETALOG.
