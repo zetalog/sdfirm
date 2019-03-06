@@ -1,10 +1,10 @@
 This software contains source code developed by Lv "ZETALOG" Zheng during
 his career. These source files may contain source code somewhat looks
-"LIKE" an open source implemnetation. But surely, they have been modified
-or thoroughly re-written into "ZETALOG" own style.
+"LIKE" an open source implementation. But surely, they have been modified
+or thoroughly re-written and become into "ZETALOG" own style.
 
 As an engineer working in a nation that has many offshore software
-development jobs, "ZETALOG" may have to hop between the local commercial
+development jobs, "ZETALOG" has to hop between the local commercial
 companies. In order to avoid re-creating wheels (some data structure
 implementation, some OS basic concept implementation), which is essential
 for sdfirm engineering as "ZETALOG" conceptually believe that software
@@ -12,7 +12,7 @@ trends to converge to one single implementation for a pre-defined set of
 functionalities and sdfirm is trying to become the implementation, in such
 an industry chain to assure the efficiency that "ZETALOG" may be required
 to provide in his new career roles, these files have to retain the ability
-for being re-used by "ZETALOG" across all companies that hire him. In the
+for being re-used by "ZETALOG" through all companies that hire him. In the
 other word, "ZETALOG" has to convince his new employers that these files
 can be re-licensed to any of their expected license without the worry that
 his previous employers may still claim their copyrights. These source files
@@ -29,11 +29,13 @@ The "ZETALOG" license is basically a GPLv2, with one exception.
    and its source code can be considered released under the special
    "ZETALOG" terms. The following paragraph describes "ZETALOG" terms.
 
-"ZETALOG" is not a legal person, so the words in the "ZETALOG" terms may
-not be sufficiently clear to explain what a company or an individual should
-be aware of when they consider to import "ZETALOG" licensed software to
-their business. The following tries to explain "ZETALOG" terms in a simple
-way to dispel employers' misgivings:
+"ZETALOG" is not a legal person, so the wording used in the "ZETALOG" terms
+may not be sufficiently clear to explain what a company or an individual
+should be aware of when they consider to import "ZETALOG" licensed software
+to their business. There is also a Chinese version of this COPYRIGHT notice
+that has been reviewed by legal persons, please check it for reference. The
+following tries to explain "ZETALOG" terms in a simple way to dispel
+employers' misgivings:
 1. The company or the individual can re-license this project and its source
    code into any expected license without informing "ZETALOG". However,
    when the source code is going to be published as open source, it has to
@@ -43,33 +45,34 @@ way to dispel employers' misgivings:
    manner to make sure this project can demonstrate its ability to run the
    hardware created on top of that technology. Such open sourced software
    components are only limited to those components that are required to
-   boot this project (clock, power, pin serial, timer) or that whose open
-   source variations can be found in the community. Be aware that the
-   company and the individual always has the right to ask "ZETALOG" to stop
-   publishing what has violated this term. "ZETALOG" is the only
-   contributor now of this project that can keep the components in the
-   above list in a closed source style with sdfirm.
-So the "ZETALOG" terms are just an example double-win terms:
-1. If you want to freely use this software, please hire "ZETALOG, which
+   boot this project (clock, power, pin, serial, timer) or that whose open
+   source variations can be found in the community.
+   Be aware that the company or the individual always has the right to ask
+   "ZETALOG" to stop publishing what has violated this term. And "ZETALOG"
+   is the only contributor now in this project that can keep the components
+   listed above close sourced while can still stay not violating this term.
+So the "ZETALOG" terms are just an example of double-win terms:
+1. If you want to use this software freely, please hire "ZETALOG, which
    also means you have bought the entire career accumulation of ZETALOG.
 2. When you stop hiring "ZETALOG", please don't bother that "ZETALOG" may
    use same career skills demonstrated in this project to his other
    employers. These skills are considered basic skills for ZETALOG to
-   full fill his system software engieering role.
+   fullfill his system software engineering role.
 The above can be considered a fair employment terms between the employer of
 "ZETALOG" and "ZETALOG". You didn't buy the entire life of "ZETALOG", you
 shouldn't stop "ZETALOG" from using his career skills to earn a living.
-3. If you want to freely use this software, please open source the least
+3. If you want to use this software freely, please open source the least
    boot requirement to contribute it.
-4. Since everything should have already been known in the community and are
-   only related to boot the "sdfirm", there is nothing you can potentially
-   lose. On the contrary, you'll have an additional open source community
-   solution and you'll automatically become an invester of this software.
+4. Components beyond the boot requirements should have already been known
+   in the community, thus there is nothing you can potentially lose. On the
+   contrary, you'll have an additional open source community solution and
+   you'll automatically become an investor of this software.
 The above can be considered a fair software usage terms between sdfirm and
-who uses it. You want to import sdfirm, then do not try to conceal the fact
-that sdfirm has the new user. And let sdfirm to expand its influenceship so
-that you can also gain benefits from the others contributors.
-Actually "ZETALOG" uses the latter term to protect his own intellectual
+the person who uses it. You want to import sdfirm, then do not try to
+conceal the fact that sdfirm has the new user. And let sdfirm to expand its
+influenceship so that you can also gain benefits from the others
+contributors.
+Actually "ZETALOG" can use the latter term to protect his own intellectual
 property within a company. "ZETALOG" may not be hired as an owner of an
 engineering task, and his knowledge might be stolen by the owners. While
 when the least required parts are open sourced, there is no doubt that
