@@ -70,6 +70,7 @@
 
 #include <driver/gpio.h>
 
+#define NR_GPIOS		GPIO_HW_MAX_PINS
 #define gpio_read_pin(port, pin)			\
 	gpio_hw_read_pin(port, pin)
 #define gpio_write_pin(port, pin, val)			\

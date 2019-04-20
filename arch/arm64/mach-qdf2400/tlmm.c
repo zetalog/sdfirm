@@ -66,5 +66,22 @@ void tlmm_config_pad(uint8_t gpio, uint8_t pad, uint8_t drv)
 		cfg |= TLMM_GPIO_OE;
 		cfg |= TLMM_DRV_STRENGTH(TLMM_MA_TO_DRV_STRENGTH(drv));
 	}
-	tlmm_write_config(gpio, cfg);
+	__raw_writel_mask(cfg, TLMM_GPIO_CFG_PAD_MASK,
+			  TLMM_GPIO_CFG(gpio));
+}
+
+void tlmm_config_irq(uint8_t gpio, uint32_t mode)
+{
+	uint32_t cfg;
+
+	if (gpio >= NR_GPIOS)
+		return;
+
+	cfg = (mode & GPIO_TLMM_MASK) | TLMM_INTR_RAW_STATUS_EN;
+	if (mode & GPIO_IRQ_HIGH)
+		cfg |= TLMM_INTR_POL_CTL;
+	if ((mode & GPIO_IRQ_LEVEL_TRIG) == GPIO_IRQ_EDGE_TRIG)
+		cfg |= TLMM_INTR_DECT_CTL(TLMM_INTR_POS_EDGE);
+	__raw_writel_mask(cfg, TLMM_GPIO_INTR_CFG_IRQ_MASK,
+			  TLMM_GPIO_INTR_CFG(gpio));
 }
