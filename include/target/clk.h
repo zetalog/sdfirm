@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2018
+ * Copyright (c) 2019
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,46 +35,17 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)vic_gic.c: generic interrupt controller implementation
- * $Id: vic_gic.c,v 1.279 2011-10-19 10:19:18 zhenglv Exp $
+ * @(#)clk.h: clock tree framework interface
+ * $Id: clk.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
  */
 
-#include <stdio.h>
-#include <target/irq.h>
+#ifndef __CLK_H_INCLUDE__
+#define __CLK_H_INCLUDE__
 
-static inline bool gic_sanitize_acked_irq(irq_t irq)
-{
-	if (irq == IRQ_ACK_SEL1) {
-		printf("IRQ should be handled in "
-		       "Secure EL1\n");
-		return false;
-	}
-	if (irq == IRQ_ACK_NSEL1) {
-		printf("IRQ should be handled in "
-		       "Non-secure EL1\n");
-		return false;
-	}
-	if (irq == IRQ_ACK_NONE) {
-		printf("No pending IRQ with sufficient "
-		       "priority or the highest pending IRQ "
-		       "is appropriate for the current secure "
-		       "state or the associated IRQ group\n");
-		return false;
-	}
-	return true;
-}
+#include <target/generic.h>
 
-void irqc_hw_handle_irq(void)
-{
-	irq_t irq;
-	uint8_t cpu;
+typedef uint16_t clk_t;
 
-	gic_begin_irq(irq, cpu);
-	if (!gic_sanitize_acked_irq(irq) || irq >= NR_IRQS) {
-		gic_end_irq(irq, cpu);
-		return;
-	}
-	if (!do_IRQ(irq))
-		irqc_hw_disable_irq(irq);
-	gic_end_irq(irq, cpu);
-}
+#include <asm/mach/clk.h>
+
+#endif /* __CLK_H_INCLUDE__ */

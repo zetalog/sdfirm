@@ -1,6 +1,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 #define SIGN			0x01
@@ -19,7 +20,7 @@ static char *format_number(char *string, char *end, uint64_t number,
 			   uint8_t base, int32_t width,
 			   int32_t precision, uint8_t type);
 static char *put_number(char *string, uint64_t number,
-			uint8_t base, boolean upper);
+			uint8_t base, bool upper);
 static const char *scan_number(const char *string, uint64_t *number_ptr);
 
 static size_t bound_string_length(const char *string, size_t count)
@@ -46,7 +47,7 @@ static char *bound_string_output(char *string, const char *end, char c)
 }
 
 static char *put_number(char *string, uint64_t number,
-			uint8_t base, boolean upper)
+			uint8_t base, bool upper)
 {
 	const char *digits;
 	const char *lower_hex_digits = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -91,8 +92,8 @@ static char *format_number(char *string, char *end, uint64_t number,
 	char *pos;
 	char sign;
 	char zero;
-	boolean need_prefix;
-	boolean upper;
+	bool need_prefix;
+	bool upper;
 	int32_t i;
 	char reversed_string[66];
 

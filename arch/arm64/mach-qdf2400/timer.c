@@ -3,7 +3,7 @@
 #include <target/jiffies.h>
 #include <target/irq.h>
 
-boolean qdf2400_gblct_initialized = false;
+bool qdf2400_gblct_initialized = false;
 
 void qdf2400_gblct_init(void)
 {

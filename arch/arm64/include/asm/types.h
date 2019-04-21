@@ -1,6 +1,9 @@
 #ifndef __TYPES_ARM64_H_INCLUDE__
 #define __TYPES_ARM64_H_INCLUDE__
 
+#include <stdbool.h>
+#define ARCH_HAS_BOOL	1
+
 #define __text__	const
 #define __near__
 #define __far__

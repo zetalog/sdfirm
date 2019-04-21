@@ -2,8 +2,8 @@
 #include <target/bitops.h>
 #include <target/irq.h>
 #include <target/gpio.h>
+#include <target/clk.h>
 #include <target/panic.h>
-#include <asm/mach/clk.h>
 
 #define UART_DM_QUART_TX_FIFO_SIZE	256
 #define UART_DM_ACUART_TX_FIFO_SIZE	64
@@ -43,9 +43,10 @@ static uint8_t __uart_dm_select_div(uint32_t baudrate, uint32_t hz)
 	uint8_t i, idiv = UART_DM_NR_CLOCK_DIVISORS;
 
 	for (i = UART_DM_NR_CLOCK_DIVISORS; i > 0; i--) {
+		/* MND div_max is same as MND_MASK */
 		if ((hz / uart_dm_clk_divs[i - 1] >= baudrate) &&
 		    ((hz / (baudrate * uart_dm_clk_divs[i - 1])) <=
-		     (RCG_HID_DIV_MAX * RCG_MND_DIV_MAX))) {
+		     (RCG_HID_DIV_MAX * PCC_UART_MND_MASK))) {
 			idiv = i - 1;
 			break;
 		}
@@ -83,8 +84,9 @@ static inline void __uart##n##_dm_config_clock(uint32_t __hz,		\
 		__clk = 0;						\
 		__mode = RCG_MODE_DUAL_EDGE;				\
 	}								\
-	__clk_generate_root(PCC_UART_CMD_RCGR(UART_DM_PCC_UART(n)),	\
-			    __mode, __clk, __input_hz, __hz);		\
+	__clk_generate_mnd(PCC_UART_CMD_RCGR(UART_DM_PCC_UART(n)),	\
+			   __clk, __input_hz, __hz,			\
+			   __mode, PCC_UART_MND_MASK);			\
 	__clk_enable_root(PCC_UART_CMD_RCGR(UART_DM_PCC_UART(n)));	\
 	__clk_update_root(PCC_UART_CMD_RCGR(UART_DM_PCC_UART(n)));	\
 }									\

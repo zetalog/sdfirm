@@ -29,3 +29,5 @@ cscope*
 *.ncb
 obj
 bin
+patches
+.pc

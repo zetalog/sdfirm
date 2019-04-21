@@ -4,8 +4,7 @@
 #include <target/config.h>
 #include <target/generic.h>
 #include <target/gpio.h>
-#include <asm/reg.h>
-#include <asm/mach/clk.h>
+#include <target/clk.h>
 
 #ifdef CONFIG_ARM_DCC
 #include <asm/debug.h>

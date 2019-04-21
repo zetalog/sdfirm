@@ -1,6 +1,8 @@
 #ifndef __COMPILER_GCC_H_INCLUDE__
 #define __COMPILER_GCC_H_INCLUDE__
 
+#define ULL(x)		x##ULL
+
 #ifdef __CHECKER__
 # define __safe		__attribute__((safe))
 # define __force	__attribute__((force))

@@ -7,7 +7,7 @@ uint64_t __systick_read(void)
 	return read_sysreg(CNTPCT_EL0);
 }
 
-boolean __systick_poll(void)
+bool __systick_poll(void)
 {
 	uint64_t val;
 

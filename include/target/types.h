@@ -7,9 +7,17 @@ typedef unsigned char		uint8_t;
 typedef signed short		int16_t;
 typedef unsigned short		uint16_t;
 
+#include <errno.h>
 #include <asm/types.h>
 
+#ifdef ARCH_HAS_BOOL
+typedef bool			boolean;
+#else
 typedef uint8_t			boolean;
+typedef boolean			bool;
+#define false			(boolean)0
+#define true			(!FALSE)
+#endif
 typedef uint16_t		wchar_t;
 #ifndef ARCH_HAVE_UINT32_T
 typedef signed int		int32_t;
@@ -32,9 +40,6 @@ typedef unsigned long		loff_t;
 #ifndef NULL
 #define	NULL			((void *)0L)
 #endif /* NULL */
-
-#define false			(unsigned char)0
-#define true			!false
 
 #undef offsetof
 #ifdef __compiler_offsetof
