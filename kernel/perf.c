@@ -35,22 +35,77 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cpus.h: CPU/LLC partial goods interfaces
- * $Id: cpus.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)perf.c: performance counting implementation
+ * $Id: perf.c,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
  */
 
-#ifndef __CPUS_H_INCLUDE__
-#define __CPUS_H_INCLUDE__
+#include <target/perf.h>
+#include <target/smp.h>
 
-#include <asm/mach/cpus.h>
+struct perf_event {
+	perf_evt_t hw_event_id;
+	perf_cnt_t hw_counter;
+};
 
-#define CPU_TO_MASK(cpu)	(1ULL << (cpu))
-#define LLC_TO_MASK(llc)	(1ULL << (llc))
+struct perf_desc {
+	struct perf_event events[NR_PERF_EVTS];
+	perf_evt_t max_counters;
+	perf_evt_t next_event;
+} __cache_aligned;
 
-#ifdef CONFIG_SMP
-extern uint8_t cpus_boot_cpu;
-#else
-#define cpus_boot_cpu		0
-#endif
+struct perf_desc perf_descs[NR_CPUS+NR_EXTRA_CPU];
 
-#endif /* __CPUS_H_INCLUDE__ */
+int perf_event_id(perf_evt_t event)
+{
+	uint8_t cpu = hmp_processor_id();
+	int evt;
+
+	for (evt = 0; evt < perf_descs[cpu].next_event; evt++) {
+		if (perf_descs[cpu].events[evt].hw_event_id == event)
+			return evt;
+	}
+	return INVALID_PERF_EVT;
+}
+
+void perf_unregister_all_events(void)
+{
+	uint8_t cpu = hmp_processor_id();
+	perf_evt_t event;
+	int evt;
+
+	for (evt = 0; evt < perf_descs[cpu].next_event; evt++) {
+		event = perf_descs[cpu].events[evt].hw_event_id;
+		perf_hw_disable_event(event);
+		perf_hw_configure_event(PERF_HW_DEFAULT_EVENT);
+		perf_descs[cpu].events[evt].hw_event_id = INVALID_PERF_EVT;
+		perf_descs[cpu].events[evt].hw_counter = 0;
+	}
+}
+
+int perf_register_event(perf_evt_t event)
+{
+	uint8_t cpu = hmp_processor_id();
+	int evt;
+
+	if (perf_descs[cpu].next_event >= perf_descs[cpu].max_counters)
+		return INVALID_PERF_EVT;
+
+	evt = perf_descs[cpu].next_event;
+	perf_descs[cpu].events[evt].hw_event_id = event;
+	perf_descs[cpu].next_event++;
+	perf_hw_configure_event(event);
+	perf_hw_enable_event(event);
+	return evt;
+}
+
+int perf_init(void)
+{
+	uint8_t cpu = hmp_processor_id();
+
+	if (cpu >= MAX_CPU_NUM || cpu == cpus_boot_cpu) {
+		perf_unregister_all_events();
+		perf_hw_ctrl_init();
+	}
+	perf_descs[cpu].max_counters = perf_hw_get_counters();
+	return 0;
+}

@@ -35,22 +35,52 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cpus.h: CPU/LLC partial goods interfaces
- * $Id: cpus.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)smp.h: machine specific SMP interface
+ * $Id: smp.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
  */
 
-#ifndef __CPUS_H_INCLUDE__
-#define __CPUS_H_INCLUDE__
+#ifndef __QDF2400_SMP_H_INCLUDE__
+#define __QDF2400_SMP_H_INCLUDE__
 
-#include <asm/mach/cpus.h>
-
-#define CPU_TO_MASK(cpu)	(1ULL << (cpu))
-#define LLC_TO_MASK(llc)	(1ULL << (llc))
+#include <target/linkage.h>
 
 #ifdef CONFIG_SMP
-extern uint8_t cpus_boot_cpu;
+#ifdef __ASSEMBLY__
+#ifndef LINKER_SCRIPT
+.macro asm_smp_processor_id _tmp:req, _res=x0
+	mov	\_res, sp
+	ldr	\_tmp, =PERCPU_STACKS_START
+	sub	\_res, \_res, \_tmp
+	ubfx	\_res, \_res, #PERCPU_STACK_SHIFT, #(32 - PERCPU_STACK_SHIFT)
+.endm
+#endif
 #else
-#define cpus_boot_cpu		0
+static inline uint8_t __smp_processor_id(void)
+{
+	unsigned int t;
+
+	asm volatile ("mov %0, sp\n\t" : "=r" (t));
+	t -= (PERCPU_STACKS_START + 1);
+	return (uint8_t)(t >> 12);
+}
+
+static inline uint8_t __hmp_processor_id(void)
+{
+	uint8_t cpu = __smp_processor_id();
+
+	return cpu >= NR_CPUS ? NR_CPUS : cpu;
+}
+
+static inline uintptr_t __smp_processor_stack_top(void)
+{
+	uintptr_t t;
+
+	asm volatile ("mov %0, sp\n\t" : "=r" (t));
+	return ALIGN_UP(t, PERCPU_STACK_SIZE);
+}
+
+unsigned int plat_my_core_pos(void);
+#endif
 #endif
 
-#endif /* __CPUS_H_INCLUDE__ */
+#endif /* __QDF2400_SMP_H_INCLUDE__ */

@@ -35,22 +35,21 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cpus.h: CPU/LLC partial goods interfaces
- * $Id: cpus.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)cache.h: cache flush interfaces
+ * $Id: cache.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
  */
 
-#ifndef __CPUS_H_INCLUDE__
-#define __CPUS_H_INCLUDE__
+#ifndef __CACHE_H_INCLUDE__
+#define __CACHE_H_INCLUDE__
 
-#include <asm/mach/cpus.h>
+#include <asm/cache.h>
 
-#define CPU_TO_MASK(cpu)	(1ULL << (cpu))
-#define LLC_TO_MASK(llc)	(1ULL << (llc))
+#define flush_dcache_area(addr, size)	__flush_dcache_area(addr, size)
+#define clean_dcache_area(addr, size)	__clean_dcache_area(addr, size)
+#define inval_dcache_area(addr, size)	__inval_dcache_area(addr, size)
 
-#ifdef CONFIG_SMP
-extern uint8_t cpus_boot_cpu;
-#else
-#define cpus_boot_cpu		0
-#endif
+#define flush_dcache_addr(addr)		__flush_dcache_addr(addr)
+#define clean_dcache_addr(addr)		__clean_dcache_addr(addr)
+#define inval_dcache_addr(addr)		__inval_dcache_addr(addr)
 
-#endif /* __CPUS_H_INCLUDE__ */
+#endif /* __CACHE_H_INCLUDE__ */

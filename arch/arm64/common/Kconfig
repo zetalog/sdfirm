@@ -91,6 +91,24 @@ config ARM_DCC
 	  The DCC is an essential part of Debug state operation and can
 	  also be used in Non-debug state.
 
+config PMU
+	bool "Performance Monitor Unit (PMU)"
+	depends on CPU_64v8
+	select ARCH_HAS_PMU
+
+if PMU
+
+choice
+	prompt "PMU architecture"
+	default PMUv3
+
+config PMUv3
+	bool "PMUv3"
+
+endchoice
+
+endif
+
 menu "CoreLink peripherals"
 
 config UART_PL01X

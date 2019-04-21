@@ -35,22 +35,46 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cpus.h: CPU/LLC partial goods interfaces
- * $Id: cpus.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)cache.h: QDF2400 specific cache maintenance defintions
+ * $Id: cache.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
  */
 
-#ifndef __CPUS_H_INCLUDE__
-#define __CPUS_H_INCLUDE__
+#ifndef __QDF2400_CACHE_H_INCLUDE__
+#define __QDF2400_CACHE_H_INCLUDE__
 
-#include <asm/mach/cpus.h>
+#include <asm/mach/arch.h>
 
-#define CPU_TO_MASK(cpu)	(1ULL << (cpu))
-#define LLC_TO_MASK(llc)	(1ULL << (llc))
+#define L1_LINE_SHIFT		6
+#define L1_CACHE_BYTES		(1 << L1_LINE_SHIFT)
+#define L1_INTERLEAVE_BYTES	128
+#define L1_CACHE_WAYS		8
+#define L1_CACHE_SIZE		0x8000
 
-#ifdef CONFIG_SMP
-extern uint8_t cpus_boot_cpu;
-#else
-#define cpus_boot_cpu		0
-#endif
+#define L2_LINE_SHIFT		7
+#define L2_CACHE_BYTES		(1 << L2_LINE_SHIFT)
+#define L2_INTERLEAVE_BYTES	128
+#define L2_CACHE_WAYS		8
 
-#endif /* __CPUS_H_INCLUDE__ */
+#define L3_LINE_SHIFT		6
+#define L3_CACHE_BYTES		(1 << L3_LINE_SHIFT)
+#define L3_INTERLEAVE_BYTES	128
+#define L3_CACHE_WAYS		20
+#define L2_CACHE_SIZE		0x80000
+
+/* 2.5MB per interleave */
+#define L3_INTERLEAVE_SIZE		0x280000
+#define L3_INTERLEAVES_PER_BLOCK	2
+#define L3_CACHE_INTERLEAVES		MAX_LLC_NUM
+#define L3_CACHE_BLOCKS			\
+	(L3_CACHE_INTERLEAVES / L3_INTERLEAVES_PER_BLOCK)
+#define L3_BLOCK_SIZE			\
+	(L3_INTERLEAVE_SIZE * L3_INTERLEAVES_PER_BLOCK)
+#define L3_BLOCK_SHIFT			8
+#define L3_BLOCK_MASK			(0xF)
+#define L3_BLOCK(phys)			\
+	(((phys) & (L3_BLOCK_MASK << L3_BLOCK_SHIFT)) >> L3_BLOCK_SHIFT)
+#define L3_CACHE_SIZE			(L3_CACHE_BLOCKS * L3_BLOCK_SIZE)
+
+#define __SMP_CACHE_SHIFT	7
+
+#endif /* __QDF2400_CACHE_H_INCLUDE__ */

@@ -35,22 +35,60 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cpus.h: CPU/LLC partial goods interfaces
- * $Id: cpus.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)pmuv3.c: ARM64 performance monitor unit v3 (PMUv3) implementation
+ * $Id: pmuv3.c,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
  */
 
-#ifndef __CPUS_H_INCLUDE__
-#define __CPUS_H_INCLUDE__
+#include <stdio.h>
+#include <target/perf.h>
+#include <target/irq.h>
+#include <asm/reg.h>
 
-#include <asm/mach/cpus.h>
+#ifndef CONFIG_IRQ_POLLING
+void pmu_handle_irq(void)
+{
+	uint32_t ovs = read_sysreg(PMOVSCLR_EL0);
+	int evt;
 
-#define CPU_TO_MASK(cpu)	(1ULL << (cpu))
-#define LLC_TO_MASK(llc)	(1ULL << (llc))
+	for (evt = 0; evt < PERF_HW_MAX_COUNTERS; evt++) {
+		if (ovs & PMOVS_P(evt))
+			printf("Event %d counter overflow\n", evt);
+	}
+	write_sysreg(ovs, PMOVSCLR_EL0);
+}
 
-#ifdef CONFIG_SMP
-extern uint8_t cpus_boot_cpu;
+int pmu_irq_init(void)
+{
+	irqc_configure_irq(IRQ_PMU, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(IRQ_PMU, pmu_handle_irq);
+	irqc_enable_irq(IRQ_PMU);
+	return 0;
+}
 #else
-#define cpus_boot_cpu		0
+static inline int pmu_irq_init(void)
+{
+	return 0;
+}
 #endif
 
-#endif /* __CPUS_H_INCLUDE__ */
+void pmu_reset(void)
+{
+	perf_hw_reset_events();
+}
+
+int pmu_init(void)
+{
+	uint32_t reg;
+
+	write_sysreg(read_sysreg(PMUSERENR_EL0) | PMUSERENR_EN,
+		     PMUSERENR_EL0);
+	reg = read_sysreg(PMCR_EL0);
+	reg &= ~(PMCR_LC | PMCR_DP | PMCR_D);
+	write_sysreg(reg | PMCR_E | PMCR_X, PMCR_EL0);
+	write_sysreg(read_sysreg(MDCR_EL3) | MDCR_SPME, MDCR_EL3);
+	write_sysreg(read_sysreg(MDCR_EL3) | ~MDCR_TPM, MDCR_EL3);
+	write_sysreg(read_sysreg(MDCR_EL2) | ~MDCR_TPM, MDCR_EL2);
+
+	pmu_irq_init();
+	return 0;
+}

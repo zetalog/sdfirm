@@ -35,22 +35,30 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cpus.h: CPU/LLC partial goods interfaces
- * $Id: cpus.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)cache.h: ARM64 cache flush interfaces
+ * $Id: cache.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
  */
 
-#ifndef __CPUS_H_INCLUDE__
-#define __CPUS_H_INCLUDE__
+#ifndef __ARM64_CACHE_H_INCLUDE__
+#define __ARM64_CACHE_H_INCLUDE__
 
-#include <asm/mach/cpus.h>
+#include <asm/mach/cache.h>
 
-#define CPU_TO_MASK(cpu)	(1ULL << (cpu))
-#define LLC_TO_MASK(llc)	(1ULL << (llc))
+#ifndef __SMP_CACHE_SHIFT
+#define __SMP_CACHE_SHIFT	7
+#endif
+#define __SMP_CACHE_BYTES	(1 << __SMP_CACHE_SHIFT)
 
-#ifdef CONFIG_SMP
-extern uint8_t cpus_boot_cpu;
-#else
-#define cpus_boot_cpu		0
+#ifndef __ASSEMBLY__
+#include <asm/sysop.h>
+
+void __flush_dcache_area(void *addr, size_t size);
+void __clean_dcache_area_poc(void *addr, size_t size);
+void __inval_dcache_area_poc(void *addr, size_t size);
+
+#define __flush_dcache_addr(addr)	dc_civac((uint64_t)(addr))
+#define __clean_dcache_addr(addr)	dc_cvac((uint64_t)(addr))
+#define __inval_dcache_addr(addr)	dc_ivac((uint64_t)(addr))
 #endif
 
-#endif /* __CPUS_H_INCLUDE__ */
+#endif /* __ARM64_CACHE_H_INCLUDE__ */

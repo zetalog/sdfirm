@@ -35,22 +35,57 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cpus.h: CPU/LLC partial goods interfaces
- * $Id: cpus.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)perf.h: performance measurement mechanism
+ * $Id: perf.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
  */
 
-#ifndef __CPUS_H_INCLUDE__
-#define __CPUS_H_INCLUDE__
+#ifndef __PERF_H_INCLUDE__
+#define __PERF_H_INCLUDE__
 
-#include <asm/mach/cpus.h>
+#include <errno.h>
+#include <stdint.h>
+#include <asm/perf.h>
 
-#define CPU_TO_MASK(cpu)	(1ULL << (cpu))
-#define LLC_TO_MASK(llc)	(1ULL << (llc))
+#define NR_PERF_EVTS		PERF_HW_MAX_COUNTERS
+#define INVALID_PERF_EVT	NR_PERF_EVTS
 
-#ifdef CONFIG_SMP
-extern uint8_t cpus_boot_cpu;
+#if NR_PERF_COUNTERS < 256
+typedef uint8_t perf_evt_t;
+#endif
+typedef uint64_t perf_cnt_t;
+
+#ifdef CONFIG_PERF
+#define perf_event_count(event)	\
+	perf_hw_get_event_count(event)
+
+int perf_event_id(perf_evt_t event);
+int perf_register_event(perf_evt_t event);
+void perf_unregister_all_events(void);
+int perf_init(void);
 #else
-#define cpus_boot_cpu		0
+static inline int perf_event_count(perf_evt_t event)
+{
+	return 0;
+}
+
+static inline int perf_event_id(perf_evt_t event)
+{
+	return -1;
+}
+
+static inline int perf_register_event(perf_evt_t event)
+{
+	return -ENODEV;
+}
+
+static inline void perf_unregister_all_events(void)
+{
+}
+
+static inline int perf_init(void)
+{
+	return 0;
+}
 #endif
 
-#endif /* __CPUS_H_INCLUDE__ */
+#endif /* __PERF_H_INCLUDE__ */

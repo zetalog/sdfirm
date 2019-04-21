@@ -35,22 +35,34 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cpus.h: CPU/LLC partial goods interfaces
- * $Id: cpus.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)smp.h: symmetric multi-processing interfaces
+ * $Id: smp.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
  */
 
-#ifndef __CPUS_H_INCLUDE__
-#define __CPUS_H_INCLUDE__
+#ifndef __SMP_H_INCLUDE__
+#define __SMP_H_INCLUDE__
 
-#include <asm/mach/cpus.h>
+#include <target/compiler.h>
+#include <target/cache.h>
+#include <target/cpus.h>
 
-#define CPU_TO_MASK(cpu)	(1ULL << (cpu))
-#define LLC_TO_MASK(llc)	(1ULL << (llc))
+#define NR_CPUS		MAX_CPU_NUM
+
+#include <asm/smp.h>
 
 #ifdef CONFIG_SMP
-extern uint8_t cpus_boot_cpu;
+#define smp_processor_id()	__smp_processor_id()
+#define hmp_processor_id()	__hmp_processor_id()
 #else
-#define cpus_boot_cpu		0
+#define smp_processor_id()	0
+#define hmp_processor_id()	0
 #endif
 
-#endif /* __CPUS_H_INCLUDE__ */
+#define SMP_CACHE_BYTES		__SMP_CACHE_BYTES
+#define __cache_aligned		__align(SMP_CACHE_BYTES)
+
+#ifndef __ASSEMBLY__
+unsigned int plat_my_core_pos(void);
+#endif
+
+#endif /* __SMP_H_INCLUDE__ */

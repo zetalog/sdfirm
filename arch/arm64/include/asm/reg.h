@@ -7,9 +7,17 @@
 #include <asm/mach/reg.h>
 
 /* =================================================================
- * D.7.2 General system control registers
+ * DDI0487B_b ARMv8 ARM
+ * ARM Architecture Reference Manual - ARMv8, for ARMv8-A
+ * architecture profile
  * ================================================================= */
-/* D.7.2.18 CPTR_EL2/3, Architectural Feature Trap Register */
+
+/* =================================================================
+ * D.10.2 General system control registers
+ * ================================================================= */
+/* D.10.2.19 CPTR_EL2, Architectural Feature Trap Register (EL2)
+ * D.10.2.20 CPTR_EL3, Architectural Feature Trap Register (EL3)
+ */
 #define CPTR_TFP		_BV(10)
 #define CPTR_TTA		_BV(20)
 #define CPTR_TCPAC		_BV(31)
@@ -26,7 +34,7 @@
 #define CPTR_EL3_RES0				\
 	(CPTR_EL2_RES0|CPTR_EL2_RES1)
 
-/* D.7.2.33 HCR_EL2, Hypervisor Configuration Register */
+/* D.10.2.34 HCR_EL2, Hypervisor Configuration Register */
 #define	HCR_FV(name, value)	_FV(HCR_##name, value)
 
 #define HCR_VM			_BV(0) /* Enable virtualization */
@@ -82,7 +90,56 @@
 	 _BV(39)|_BV(37)|_BV(36)|_BV(35)|	\
 	 _BV(34))
 
-/* D.7.2.73/74/75 RMR_EL1/2/3, Reset Management Register */
+/* D10.2.74 MIDR_EL1, Main ID Register */
+#define MIDR_IMPL_OFFSET	24
+#define MIDR_IMPL_MASK		0xFF
+#define MIDR_IMPL(value)	_GET_FV(MIDR_IMPL, value)
+
+#define MIDR_IMPL_ARM		0x41 /* A */
+#define MIDR_IMPL_BROADCOM	0x42 /* B */
+#define MIDR_IMPL_CAVIUM	0x43 /* C */
+#define MIDR_IMPL_DEC		0x44 /* D */
+#define MIDR_IMPL_INFINEON	0x49 /* I */
+#define MIDR_IMPL_MOTOROLA	0x4D /* M */
+#define MIDR_IMPL_NVIDIA	0x4E /* N */
+#define MIDR_IMPL_APPLE		0x50 /* P */
+#define MIDR_IMPL_QUALCOMM	0x51 /* Q */
+#define MIDR_IMPL_MARVELL	0x56 /* V */
+#define MIDR_IMPL_HXT		0x68 /* h */
+#define MIDR_IMPL_INTEL		0x69 /* i */
+
+#define MIDR_VAR_OFFSET		20
+#define MIDR_VAR_MASK		0x0F
+#define MIDR_VAR(value)		_GET_FV(MIDR_VAR, value)
+
+#define MIDR_ARCH_OFFSET	16
+#define MIDR_ARCH_MASK		0x0F
+#define MIDR_ARCH(value)	_GET_FV(MIDR_ARCH, value)
+
+#define MIDR_ARCH_ARMV4		0x01
+#define MIDR_ARCH_ARMV4T	0x02
+#define MIDR_ARCH_ARMV5		0x03
+#define MIDR_ARCH_ARMV5T	0x04
+#define MIDR_ARCH_ARMV5TE	0x05
+#define MIDR_ARCH_ARMV5TEJ	0x06
+#define MIDR_ARCH_ARMV6		0x07
+
+#define MIDR_PN_OFFSET		4
+#define MIDR_PN_MASK		0x0FFF
+#define MIDR_PN(value)		_GET_FV(MIDR_PN, value)
+
+#define MIDR_PN_QCOM_FALKOR	0x0800
+#define MIDR_PN_QCOM_FALKOR_V2	0x0C00
+#define MIDR_PN_HXT_1		0x0000
+
+#define MIDR_REV_OFFSET		0
+#define MIDR_REV_MASK		0x0F
+#define MIDR_REV(value)		_GET_FV(MIDR_REV, value)
+
+/* D.10.2.81 RMR_EL1, Reset Management Register (EL1)
+ * D.10.2.82 RMR_EL2, Reset Management Register (EL2)
+ * D.10.2.83 RMR_EL3, Reset Management Register (EL3)
+ */
 #define RMR_AA64		_BV(0)
 #define RMR_RR			_BV(1)
 #define RMR_RES0		\
@@ -98,7 +155,7 @@
 #define RMR_EL2_RES0		RMR_RES0
 #define RMR_EL3_RES0		RMR_RES0
 
-/* D.7.20.80 SCR_EL3, Secure Configuration Register */
+/* D.10.2.88 SCR_EL3, Secure Configuration Register */
 #define SCR_NS			_BV(0) /* Non-secure */
 #define SCR_IRQ			_BV(1) /* Physical IRQ routing */
 #define SCR_FIQ			_BV(2) /* Physical FIQ routing */
@@ -119,7 +176,10 @@
 	 _BV(15)|_BV(14)|_BV(6))
 #define SCR_EL3_RES1		(_BV(5)|_BV(4))
 
-/* D.7.2.81/82/83 SCTLR_EL1/2/3, System Control Register */
+/* D.10.2.89 SCTLR_EL1, System Control Register (EL1)
+ * D.10.2.90 SCTLR_EL2, System Control Register (EL2)
+ * D.10.2.91 SCTLR_EL3, System Control Register (EL3)
+ */
 /* EL1 only: */
 #define SCTLR_SA0		_BV(4)	/* Check EL0 stack alignment */
 #define SCTLR_CP16BEN		_BV(5)	/* Enable CP15 memory barrier */
@@ -160,5 +220,79 @@
 #define SCTLR_EL2_RES1		SCTLR_RES1
 #define SCTLR_EL3_RES0		SCTLR_RES0
 #define SCTLR_EL3_RES1		SCTLR_RES1
+
+/* =================================================================
+ * D.10.3 Debug registers
+ * ================================================================= */
+/* D.10.3.16 MDCCSR_EL0, Monitor DCC Status Register */
+#define MDCCSR_TXFULL		_BV(29)
+#define MDCCSR_RXFULL		_BV(30)
+
+/* D10.3.18 MDCR_EL3, Monitor Debug Configuration Register (EL3)
+ */
+#define MDCR_EPMAD		_BV(21)
+#define MDCR_EDAD		_BV(20)
+#define MDCR_SPME		_BV(17)
+#define MDCR_SDD		_BV(16)
+#define MDCR_SPD32_OFFSET	14
+#define MDCR_SPD32_MASK		0x03
+#define MDCR_SPD32(value)	_FV(MDCR_SPD32, value)
+#define MDCR_NSPB_OFFSET	12
+#define MDCR_NSPB_MASK		0x03
+#define MDCR_NSPB(value)	_FV(MDCR_NSPB, value)
+#define MDCR_TDOSA		_BV(10)
+#define MDCR_TDA		_BV(9)
+#define MDCR_TPM		_BV(6)
+
+/* =================================================================
+ * D.10.6 Generic Timer registers
+ * ================================================================= */
+/* D.10.6.2 CNTHCTL_EL2, Counter-timer Hypervisor Control register */
+#define CNTHCTL_EL1PCTEN	_BV(0)
+#define CNTHCTL_EL1PCEN		_BV(1)
+
+#define CNTHCTL_EL2_RES0			\
+	(_BV(31)|_BV(30)|_BV(29)|_BV(28)|	\
+	 _BV(27)|_BV(26)|_BV(25)|_BV(24)|	\
+	 _BV(23)|_BV(21)|_BV(20)|_BV(19)|	\
+	 _BV(18)|_BV(17)|_BV(16)|_BV(15)|	\
+	 _BV(14)|_BV(13)|_BV(12)|_BV(11)|	\
+	 _BV(10)|_BV(9)_BV(8))
+
+/* D10.6.9 CNTKCTL_EL1, Conter-timer Kernel Control register */
+#define CNTKCTL_EL0PCTEN	_BV(0)
+#define CNTKCTL_EL0VCTEN	_BV(1)
+#define CNTKCTL_EL0VTEN		_BV(8)
+#define CNTKCTL_EL0PTEN		_BV(9)
+
+#define CNTKCTL_EL1_RES0			\
+	(_BV(31)|_BV(30)|_BV(29)|_BV(28)|	\
+	 _BV(27)|_BV(26)|_BV(25)|_BV(24)|	\
+	 _BV(23)|_BV(21)|_BV(20)|_BV(19)|	\
+	 _BV(18)|_BV(17)|_BV(16)|_BV(15)|	\
+	 _BV(14)|_BV(13)|_BV(12)|_BV(11)|	\
+	 _BV(10))
+
+/* Fields common to CNTHCTL_EL2/CNTKCTL_EL1 */
+#define	CNTXCTL_FV(name, value)	_FV(CNTXCTL_##name, value)
+
+#define CNTXCTL_EVNTEN		_BV(2)
+#define CNTXCTL_EVNTDIR		_BV(3)
+#define CNTXCTL_EVNTI_OFFSET	4
+#define CNTXCTL_EVNTI_MASK	0x0F
+#define CNTXCTL_EVNTI(value)	CNTXCTL_FV(EVNTI, value)
+
+/* D10.6.3  CNTHP_CTL_EL2,
+ *          Counter-timer Hypervisor Physical Timer Control register
+ * D10.6.6  CNTHV_CTL_EL2,
+ *          Counter-timer Virtual Timer Control register (EL2)
+ * D10.6.10 CNTP_CTL_EL0,
+ *          Counter-timer Physical Timer Control register
+ * D10.6.14 CNTPS_CTL_EL1,
+ *          Counter-timer Physical Secure Timer Control register
+ */
+#define CNTX_CTL_ENABLE		_BV(0)
+#define CNTX_CTL_IMASK		_BV(1)
+#define CNTX_CTL_ISTATUS	_BV(2)
 
 #endif /* __REG_ARM64_H_INCLUDE__ */

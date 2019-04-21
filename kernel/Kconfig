@@ -365,4 +365,10 @@ source kernel/scsi/Kconfig
 source kernel/net/Kconfig
 source kernel/video/Kconfig
 
+config ARCH_HAS_PMU
+
+config PERF
+	bool "Performance counting (perf) support"
+	depends ARCH_HAS_PMU
+
 endmenu

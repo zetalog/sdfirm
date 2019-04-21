@@ -35,22 +35,24 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cpus.h: CPU/LLC partial goods interfaces
- * $Id: cpus.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)perf.h: ARM64 specific perf implementation
+ * $Id: perf.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
  */
 
-#ifndef __CPUS_H_INCLUDE__
-#define __CPUS_H_INCLUDE__
+#ifndef __ARM64_PERF_H_INCLUDE__
+#define __ARM64_PERF_H_INCLUDE__
 
-#include <asm/mach/cpus.h>
+#include <asm/pmu.h>
 
-#define CPU_TO_MASK(cpu)	(1ULL << (cpu))
-#define LLC_TO_MASK(llc)	(1ULL << (llc))
+#define PERF_HW_MAX_COUNTERS		31
+#define PERF_HW_DEFAULT_EVENT		ARMV8_PMUV3_SW_INCR
 
-#ifdef CONFIG_SMP
-extern uint8_t cpus_boot_cpu;
-#else
-#define cpus_boot_cpu		0
-#endif
+#define perf_hw_ctrl_init()		pmu_init()
+#define perf_hw_reset_events()		pmu_reset_events()
+#define perf_hw_get_counters()		pmu_get_counters()
+#define perf_hw_enable_event(event)	pmu_enable_event(event)
+#define perf_hw_disable_event(event)	pmu_disable_event(event)
+#define perf_hw_configure_event(event)	pmu_configure_event(event)
+#define perf_hw_get_event_count(event)	pmu_get_event_count(event)
 
-#endif /* __CPUS_H_INCLUDE__ */
+#endif /* __ARM64_PERF_H_INCLUDE__ */

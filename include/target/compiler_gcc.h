@@ -41,6 +41,7 @@
 #endif
 
 #define __packed			__attribute__((packed))
+#define __align(a)			__attribute__((__aligned__(a)))
 #define __always_inline			inline __attribute__((always_inline))
 #define __compiler_offsetof(a, b)	 __builtin_offsetof(a, b)
 

@@ -35,22 +35,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cpus.h: CPU/LLC partial goods interfaces
- * $Id: cpus.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)smp.h: ARM64 specific symmetric multi-processing interfaces
+ * $Id: smp.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
  */
 
-#ifndef __CPUS_H_INCLUDE__
-#define __CPUS_H_INCLUDE__
+#ifndef __ARM64_SMP_H_INCLUDE__
+#define __ARM64_SMP_H_INCLUDE__
 
-#include <asm/mach/cpus.h>
+#include <asm/mach/smp.h>
 
-#define CPU_TO_MASK(cpu)	(1ULL << (cpu))
-#define LLC_TO_MASK(llc)	(1ULL << (llc))
-
-#ifdef CONFIG_SMP
-extern uint8_t cpus_boot_cpu;
-#else
-#define cpus_boot_cpu		0
-#endif
-
-#endif /* __CPUS_H_INCLUDE__ */
+#endif /* __ARM64_SMP_H_INCLUDE__ */
