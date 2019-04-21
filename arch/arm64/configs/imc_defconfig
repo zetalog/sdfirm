@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Aug 13 11:30:37 2018
+# Sun Apr 21 16:07:18 2019
 #
 CONFIG_ARM64=y
 
@@ -13,6 +13,11 @@ CONFIG_CPU_QDF2400=y
 CONFIG_CPU_64v8=y
 CONFIG_NR_CPUS=48
 CONFIG_GIC=y
+
+#
+# Generic Interrupt Controller (GIC) options
+#
+CONFIG_ARCH_HAS_GICv2=y
 CONFIG_GICv2=y
 # CONFIG_GICv3 is not set
 # CONFIG_ARM_DCC is not set
@@ -20,7 +25,8 @@ CONFIG_GICv2=y
 #
 # CoreLink peripherals
 #
-# CONFIG_UART_PL01X is not set
+CONFIG_UART_PL01X=y
+CONFIG_UART_PL01X_SBSA=y
 
 #
 # Compiler options
@@ -36,12 +42,22 @@ CONFIG_ARM64_ERRATUM_843419=y
 CONFIG_QCOM_FALKOR_ERRATUM_1003=y
 CONFIG_QCOM_FALKOR_ERRATUM_1009=y
 CONFIG_QCOM_QDF2400_ERRATUM_0065=y
-CONFIG_QDF2400_IMC=y
-# CONFIG_QDF2400_APC is not set
 
 #
 # Qualcomm Centriq 2400 board options
 #
+CONFIG_QDF2400_IMC=y
+# CONFIG_QDF2400_APC is not set
+
+#
+# Pseudo partial good settings
+#
+# CONFIG_QDF2400_PSEUDO_CPU_MASK is not set
+# CONFIG_QDF2400_PSEUDO_LLC_MASK is not set
+CONFIG_QDF2400_PSEUDO_DDR_MASK=y
+CONFIG_QDF2400_DDR_12_SLOTS=y
+CONFIG_QDF2400_DDR_MASK=0xFFF
+# CONFIG_QDF2400_PSEUDO_PERIPH_MASK is not set
 CONFIG_GPIO_TLMM=y
 CONFIG_UART_QUART=y
 CONFIG_QUART_BLSP0=y

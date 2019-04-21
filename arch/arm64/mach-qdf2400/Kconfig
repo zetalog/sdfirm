@@ -22,6 +22,98 @@ config QDF2400_APC
 
 endchoice
 
+menu "Pseudo partial good settings"
+
+config QDF2400_PSEUDO_CPU_MASK
+	bool "Enable pseudo CPU mask"
+
+if QDF2400_PSEUDO_CPU_MASK
+
+choice
+	prompt "Pseudo CPU mask"
+	default QDF2400_CPU_6_CORES
+
+config QDF2400_CPU_48_CORES
+	bool "48 CPU cores"
+
+config QDF2400_CPU_6_CORES
+	bool "6 CPU cores"
+
+config QDF2400_CPU_USER_CORES
+	bool "User defined"
+
+endchoice
+
+config QDF2400_CPU_MASK
+	hex "CPU mask"
+	depends QDF2400_CPU_USER_CORES
+	default 0xFFFFFFFFFFFF
+
+endif
+
+config QDF2400_PSEUDO_LLC_MASK
+	bool "Enable pseudo L3 mask"
+
+if QDF2400_PSEUDO_LLC_MASK
+
+choice
+	prompt "Pseudo L3 mask"
+	default QDF2400_L3_24_INTERLEAVES
+
+config QDF2400_LLC_24_INTERLEAVES
+	bool "24 L3 interleaves"
+
+config QDF2400_LLC_USER_INTERLEAVES
+	bool "User defined"
+
+endchoice
+
+config QDF2400_LLC_MASK
+	hex "L3 mask"
+	depends QDF2400_LLC_USER_INTERLEAVES
+	default 0xFFFFFF
+
+endif
+
+config QDF2400_PSEUDO_DDR_MASK
+	bool "Enable pseudo DDR mask"
+	depends !DDR
+
+if QDF2400_PSEUDO_DDR_MASK
+
+config QDF2400_DDR_12_SLOTS
+	bool "12 DDR slots"
+	default y
+
+config QDF2400_DDR_MASK
+	hex "DDR mask" if !QDF2400_DDR_12_SLOTS
+	default 0xFFF
+
+endif
+
+config QDF2400_PSEUDO_PERIPH_MASK
+	bool "Enable pseudo peripheral mask"
+	help
+	  System fabric is always enabled, and not configurable.
+
+if QDF2400_PSEUDO_PERIPH_MASK
+
+config QDF2400_PERIPH_PCIE0
+	bool "PCIe 0"
+
+config QDF2400_PERIPH_PCIE1
+	bool "PCIe 1"
+
+config QDF2400_PERIPH_HDMA
+	bool "HiDMA"
+
+config QDF2400_PERIPH_SATA
+	bool "SATA"
+
+endif
+
+endmenu
+
 config GPIO_TLMM
 	bool "Qualcomm Top Level Module Multiplexer (TLMM) support"
 
