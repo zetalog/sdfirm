@@ -189,6 +189,18 @@ config QUART_AMPLIFIED_BAUDRATE
 
 endif
 
+if RAS
+
+menu "QDF2400 RAS options"
+
+config RAS_IMEM
+	bool "Enable IMEM ECC RAS"
+	depends QDF2400_IMC
+
+endmenu
+
+endif
+
 endmenu
 
 endif

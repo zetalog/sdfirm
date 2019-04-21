@@ -16,6 +16,16 @@
 #define IRQ_UART10	132
 #define IRQ_UART11	133
 
+/* IMEM error capture */
+#define IRQ_SYS_IMEM	167
+#define IRQ_MSG_IMEM	283
+#define IRQ_RAM_0_IMEM	320
+#define IRQ_RAM_1_IMEM	322
+#define IRQ_RAM_2_IMEM	324
+#define IRQ_RAM_3_IMEM	439
+#define IRQ_RAM_4_IMEM	441
+#define IRQ_RAM_5_IMEM	446
+
 #define NR_IRQS		512
 #endif
 

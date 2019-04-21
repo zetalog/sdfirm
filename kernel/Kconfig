@@ -365,7 +365,11 @@ source kernel/scsi/Kconfig
 source kernel/net/Kconfig
 source kernel/video/Kconfig
 
+config RAS
+	bool "Reliability Availability Serviceability (RAS) support"
+
 config ARCH_HAS_PMU
+	bool
 
 config PERF
 	bool "Performance counting (perf) support"

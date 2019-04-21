@@ -1,6 +1,8 @@
 #ifndef __TIME_H_INCLUDE__
 #define __TIME_H_INCLUDE__
 
+typedef unsigned long time_t;
+
 #define TIME_OVERFLOW_HALF		((1<<((sizeof(time_t)*BITS_PER_UNIT)-1))-1)
 
 #define time_after(t, u)					\
