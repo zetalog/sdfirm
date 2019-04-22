@@ -63,7 +63,12 @@ SECTIONS
 	__data_loc = _etext_loc;		/* data location in ROM */
 	_edata_loc = __data_loc + _edata - _sdata;
 
-	BSS_SECTION(8, 8)
+	.bss (NOLOAD) : ALIGN(8) {
+		__bss_start = .;
+		*(.bss .bss.*)
+	}
+	. = ALIGN(8);
+	__bss_stop = .;
 }
 
 /*

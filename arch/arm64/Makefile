@@ -14,6 +14,33 @@ OBJCOPYFLAGS	:=-O binary -R .note -R .note.gnu.build-id -R .comment -S
 CFLAGS		+=-g
 AFLAGS		+=-g
 LDFLAGS_sdfirm	:=--gc-sections -p --no-undefined -X
+CFLAGS		+= \
+	-mtune=cortex-a53 \
+	-mstrict-align \
+	-mcmodel=large \
+	-mlittle-endian \
+	-emit-cp-at-end \
+	-fno-jump-tables \
+	-ffunction-sections \
+	-fdata-sections \
+	-fshort-wchar \
+	-funsigned-char \
+	-fno-strict-aliasing \
+	-fno-common \
+	-fno-short-enums \
+	-fverbose-asm \
+	-fomit-frame-pointer \
+	-fno-builtin \
+	-fno-asynchronous-unwind-tables \
+	-fstack-protector \
+	-ffixed-x18\
+	-Werror \
+	-Wno-array-bounds \
+	-Wno-address \
+	-Wno-unused-parameter \
+	-Wno-unused-function \
+	-Wno-return-type \
+	-Wno-unused-but-set-variable
 
 ifeq ($(CONFIG_ARM64_ERRATUM_843419),y)
   ifeq ($(call ld-option, --fix-cortex-a53-843419),)

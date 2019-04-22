@@ -257,4 +257,6 @@
 		}							\
 	} while (0)
 
+void qdf2400_gblct_init(void);
+
 #endif /* __ARCH_QDF2400_INCLUDE__ */

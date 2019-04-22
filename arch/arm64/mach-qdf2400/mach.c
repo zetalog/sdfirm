@@ -14,6 +14,7 @@ void mem_init(void)
 
 void board_init(void)
 {
+	qdf2400_gblct_init();
 	mem_init();
 
 	DEVICE_ARCH(DEVICE_ARCH_ARM);
