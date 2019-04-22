@@ -114,6 +114,33 @@ endif
 
 endmenu
 
+if CLK
+
+menu "Clock tree options"
+
+config QDF2400_CLK_FREQPLAN
+	bool "Enable default clock frequency plan"
+	default y
+	select QDF2400_CLK_DEF_PERIPH_BLSP_FREQ
+	help
+	  With clock tree support, clocks can be enabled on demand.
+	  While this option allows programs like bootloader to configure
+	  all clocks by default.
+	  If unsure, say 'Y'.
+
+config QDF2400_CLK_DEF_PERIPH_BLSP_FREQ
+	bool "Use peripheral frequency as default BLSP frequency"
+	help
+	  I2C/SPI defaults to 50MHz, and UART defaults to 64MHz. Enabling
+	  this option allows to apply the frequencies of the peripherals
+	  that are linked to these host controllers by default which is
+	  a useful option for BIOSen.
+	  If unsure, say 'N'.
+
+endmenu
+
+endif
+
 config GPIO_TLMM
 	bool "Qualcomm Top Level Module Multiplexer (TLMM) support"
 

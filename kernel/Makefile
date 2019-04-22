@@ -9,6 +9,7 @@ obj-y += bh.rel
 obj-y += irq.rel
 obj-y += delay.rel
 obj-y += stack.rel
+obj-$(CONFIG_CLK) += clk.rel
 obj-$(CONFIG_CONSOLE) += console.rel
 obj-$(CONFIG_TASK) += task.rel
 obj-$(CONFIG_TICK) += tick.rel

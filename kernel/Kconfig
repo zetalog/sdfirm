@@ -354,6 +354,20 @@ config GPIO
 	bool "General purpose Input/Output (GPIO) support"
 	depends ARCH_HAS_GPIO
 
+config ARCH_HAS_CLK
+	bool
+
+config CLK
+	bool "Clock tree framework support"
+
+if CLK
+
+config CLK_MAX_DRIVERS
+	int "Maximum clock drivers"
+	range 1 10
+
+endif
+
 source kernel/io/Kconfig
 source kernel/uart/Kconfig
 source kernel/spi/Kconfig

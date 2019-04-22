@@ -3,6 +3,7 @@
 #include <target/arch.h>
 #include <target/irq.h>
 #include <target/delay.h>
+#include <target/clk.h>
 #include <stdio.h>
 
 __near__ uint32_t system_device_id = 0;
@@ -84,6 +85,7 @@ void system_init(void)
 		delay(5);
 	}
 #endif
+	clk_init();
 	timer_init();
 	heap_init();
 	bulk_init();
