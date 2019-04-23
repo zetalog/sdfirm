@@ -142,7 +142,7 @@ export srctree objtree VPATH TOPDIR
 # SUBARCH is subsequently ignored.
 
 SUBARCH := arm64
-SUBCROSS := aarch64-linux-
+SUBCROSS := aarch64-linux-gnu-
 
 # Cross compiling and selecting different set of gcc/bin-utils
 # ---------------------------------------------------------------------------

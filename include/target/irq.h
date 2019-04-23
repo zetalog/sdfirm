@@ -53,4 +53,7 @@ void irq_hw_ctrl_init(void);
 #endif
 void irq_hw_handle_irq(void);
 
+typedef void (*trap_handler)(const char *msg);
+void trap_handler_vector(trap_handler handler);
+
 #endif /* __IRQ_H_INCLUDE__ */

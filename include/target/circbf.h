@@ -62,10 +62,12 @@
 	} name
 #define ASSIGN_CIRCBF32(name, buf)				\
 	ASSIGN_CIRCBF32_MEMBER(name) = CIRCBF_INIT_ASSIGN(buf)
+#define ASSIGN_CIRCBF32_REF(name, ref, val)			\
+	struct circbf_b_##name *ref = val			\
 
 /* Space between the cursors. */
-#define __CIRCBF_CALC(stop, start, size)			\
-	(((stop) - (start)) & ((size)-1))
+#define __CIRCBF_CALC(__stop__, __start__, __size__)		\
+	(((__stop__) - (__start__)) & ((__size__)-1))
 /* Advance the cursor. */
 #define ____CIRCBF_GROW(cursor, size, n)			\
 	((cursor) = ((cursor)+n) & ((size)-1))
@@ -73,8 +75,8 @@
 	((cursor) = ((cursor)+1) & ((size)-1))
 
 /* Return count in buffer.  */
-#define circbf_count(circ, size)				\
-	__CIRCBF_CALC((circ)->head, (circ)->tail, (size))
+#define circbf_count(__circ__, __size__)			\
+	__CIRCBF_CALC((__circ__)->head, (__circ__)->tail, (__size__))
 /* Return space available, 0..size-1.
  * We always leave one free char as a completely full buffer has
  * head == tail, which is the same as empty.
@@ -94,12 +96,14 @@
 	min((size) - ((circ)->head),				\
 	    ((size) - 1 - ((circ)->head) + ((circ)->tail)) & ((size)-1))
 
-#define circbf_wpos(circ)	(&(circ)->buffer[(circ)->head])
-#define circbf_rpos(circ)	(&(circ)->buffer[(circ)->tail])
+#define circbf_woff(__circ__)	((__circ__)->head)
+#define circbf_roff(__circ__)	((__circ__)->tail)
+#define circbf_wpos(__circ__)	(&(__circ__)->buffer[(__circ__)->head])
+#define circbf_rpos(__circ__)	(&(__circ__)->buffer[(__circ__)->tail])
 #define circbf_write(circ, size, n)				\
-	____CIRCBF_GROW(circ->head, size, n)
+	____CIRCBF_GROW((circ)->head, size, n)
 #define circbf_read(circ, size, n)				\
-	____CIRCBF_GROW(circ->tail, size, n)
+	____CIRCBF_GROW((circ)->tail, size, n)
 
 #define circbf_in(circ, size, byte)				\
 	do {							\

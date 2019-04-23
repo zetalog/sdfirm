@@ -5,6 +5,8 @@
 #define __near__
 #define __far__
 
+#define __WORDSIZE	64
+
 #define __TEXT_TYPE__(type, name)	\
 	typedef type name
 

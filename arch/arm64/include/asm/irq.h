@@ -48,4 +48,13 @@ typedef uint64_t irq_flags_t;
 
 #include <asm/mach/irq.h>
 
+#define FALKOR_MIDR	0x510fc000
+
+struct pt_regs {
+	unsigned long x0;
+	unsigned long spsr;
+	unsigned long elr;
+	unsigned long regs[31];
+};
+
 #endif /* __IRQ_ARM64_H_INCLUDE__ */

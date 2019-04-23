@@ -25,5 +25,6 @@ size_t strlen(const char *);
 size_t strnlen(const char *, size_t);
 size_t strlcat (char *, const char *, size_t);
 size_t strlcpy (char *, const char *, size_t);
+size_t strtoul(const char *, char **, int);
 
 #endif	/* __STD_STRING_H_INCLUDE__ */

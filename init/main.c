@@ -4,6 +4,7 @@
 #include <target/irq.h>
 #include <target/delay.h>
 #include <target/clk.h>
+#include <target/cmdline.h>
 #include <stdio.h>
 
 __near__ uint32_t system_device_id = 0;
@@ -90,6 +91,7 @@ void system_init(void)
 	heap_init();
 	bulk_init();
 
+	cmd_init();
 	modules_init();
 	appl_init();
 	irq_local_enable();

@@ -3,7 +3,7 @@
 #include <target/irq.h>
 #include <target/gpio.h>
 #include <target/clk.h>
-#include <target/panic.h>
+#include <target/console.h>
 
 #define UART_DM_QUART_TX_FIFO_SIZE	256
 #define UART_DM_ACUART_TX_FIFO_SIZE	64
@@ -64,7 +64,7 @@ static inline void __uart##n##_dm_handle_irq(void)			\
 {									\
 	irq_t uart_irq = UART_DM_IRQ(n);				\
 	irqc_disable_irq(uart_irq);					\
-	/* debug_handle_irq(); */					\
+	console_handle_irq();						\
 }									\
 static inline void __uart##n##_dm_config_irq(void)			\
 {									\

@@ -12,6 +12,8 @@ int vsprintf(char *, const char *, va_list);
 int vsnprintf(char *, size_t, const char *, va_list);
 int getchar(void);
 int putchar(int c);
+#define putch(c)	putchar(c)
+#define getch()		getchar()
 #ifdef CONFIG_CONSOLE_OUTPUT
 int puts(const char *s);
 int printf(const char *format, ...);

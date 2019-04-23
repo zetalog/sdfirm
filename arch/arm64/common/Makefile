@@ -10,6 +10,7 @@ obj-$(CONFIG_UART_PL01X) += uart_pl01x.rel
 
 obj-y += cache.rel
 obj-y += timer.rel
+obj-y += except.rel
 obj-y += entry.rel
 head-y += head.rel
 

@@ -9,6 +9,8 @@ typedef unsigned short		uint16_t;
 
 #include <errno.h>
 #include <asm/types.h>
+#include <limits.h>
+#include <ctype.h>
 
 #ifdef ARCH_HAS_BOOL
 typedef bool			boolean;

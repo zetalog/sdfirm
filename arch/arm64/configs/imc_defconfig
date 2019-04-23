@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sun Apr 21 16:21:51 2019
+# Tue Apr 23 18:21:08 2019
 #
 CONFIG_ARM64=y
 
@@ -21,6 +21,7 @@ CONFIG_ARCH_HAS_GICv2=y
 CONFIG_GICv2=y
 # CONFIG_GICv3 is not set
 # CONFIG_ARM_DCC is not set
+# CONFIG_PMU is not set
 
 #
 # CoreLink peripherals
@@ -85,8 +86,8 @@ CONFIG_QUART_BLSP0_2=y
 #
 # Generic kernel features
 #
-# CONFIG_SYS_NOIRQ is not set
-CONFIG_SYS_POLL=y
+CONFIG_SYS_NOIRQ=y
+# CONFIG_SYS_POLL is not set
 # CONFIG_SYS_POLL_RT is not set
 # CONFIG_SYS_TASK is not set
 CONFIG_ARCH_HAS_IRQC=y
@@ -95,11 +96,6 @@ CONFIG_ARCH_HAS_TSC=y
 CONFIG_ARCH_HAS_TSC_CONST=y
 CONFIG_ARCH_IS_TICKLESS=y
 CONFIG_ARCH_HAS_IDLE=y
-
-#
-# Scheduling facility (irq) support
-#
-CONFIG_MAX_VECTORS=8
 
 #
 # Scheduling facility (bh) support
@@ -166,6 +162,7 @@ CONFIG_UART_230400=y
 # CONFIG_SCSI is not set
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
+# CONFIG_RAS is not set
 
 #
 # Driver setup
@@ -247,9 +244,10 @@ CONFIG_DEBUG=y
 # CONFIG_DEBUG_PANIC is not set
 # CONFIG_PORTING is not set
 CONFIG_CONSOLE=y
+CONFIG_CONSOLE_COMMAND=y
 CONFIG_CONSOLE_OUTPUT=y
 CONFIG_CONSOLE_PRINT_BUFFER_SIZE=64
-# CONFIG_CONSOLE_INPUT is not set
+CONFIG_CONSOLE_INPUT=y
 # CONFIG_CONSOLE_230400 is not set
 CONFIG_CONSOLE_115200=y
 # CONFIG_CONSOLE_57600 is not set

@@ -47,7 +47,7 @@
 #include <asm/reg.h>
 
 #ifndef ARCH_HAVE_VIC
-#define ARCH_HAVE_VIC			1
+#define ARCH_HAVE_VIC
 #else
 #error "Multiple VIC controller defined"
 #endif

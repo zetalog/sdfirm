@@ -8,6 +8,7 @@
 #define __near__
 #define __far__
 
+#define __WORDSIZE	64
 #define UINTPTR_MAX	UINT64_MAX
 
 #define __TEXT_TYPE__(type, name)	\

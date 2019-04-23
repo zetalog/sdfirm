@@ -35,7 +35,7 @@ __TEXT_TYPE__(const struct uart_port, uart_port_t);
 #ifdef CONFIG_CONSOLE_OUTPUT
 #define uart_hw_con_write(byte)
 #endif
-#ifdef CONFIG_CONSOLE_INPUT
+#ifndef CONFIG_CONSOLE_INPUT
 #define uart_hw_con_read()	-1
 #define uart_hw_con_poll()	false
 #endif

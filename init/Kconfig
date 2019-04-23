@@ -221,6 +221,10 @@ menuconfig CONSOLE
 
 if CONSOLE
 
+config CONSOLE_COMMAND
+	bool "Enable command line support"
+	select CONSOLE_INPUT
+
 config CONSOLE_OUTPUT
 	bool "Enable console output"
 

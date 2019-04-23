@@ -3,37 +3,6 @@
 
 #include <target/config.h>
 
-#ifdef CONFIG_CONSOLE
-#ifdef CONFIG_CONSOLE_115200
-#define UART_CON_BAUDRATE	115200
-#endif
-#ifdef CONFIG_CONSOLE_57600
-#define UART_CON_BAUDRATE	57600
-#endif
-#ifdef CONFIG_CONSOLE_38400
-#define UART_CON_BAUDRATE	38400
-#endif
-#ifdef CONFIG_CONSOLE_19200
-#define UART_CON_BAUDRATE	19200
-#endif
-#ifdef CONFIG_CONSOLE_9600
-#define UART_CON_BAUDRATE	9600
-#endif
-#ifdef CONFIG_CONSOLE_4800
-#define UART_CON_BAUDRATE	4800
-#endif
-#ifdef CONFIG_CONSOLE_2400
-#define UART_CON_BAUDRATE	2400
-#endif
-#ifndef UART_CON_BAUDRATE
-#define UART_CON_BAUDRATE	115200
-#endif
-
-void console_init(void);
-#else
-#define console_init()
-#endif
-
 #ifdef CONFIG_DEBUG_PRINT
 #ifdef CONFIG_DEBUG_115200
 #define UART_DBG_BAUDRATE	115200

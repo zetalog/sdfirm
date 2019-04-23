@@ -1,3 +1,4 @@
+#include <target/generic.h>
 #include <target/uart.h>
 
 #ifdef CONFIG_CONSOLE_OUTPUT

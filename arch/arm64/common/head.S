@@ -55,22 +55,3 @@ bss_init_loop:
 	mov	sp, x0
 	bl	system_init
 ENDPIPROC(stext)
-
-ENTRY(vectors)
-	b		__bad_interrupt		// reset, PIT
-	b		__bad_interrupt		// undefined instruction
-#ifdef CONFIG_ARM_MONITOR
-	b		__bad_interrupt		// SMC
-#else
-	b		__bad_interrupt		// SVC
-#endif
-	b		__bad_interrupt		// prefetch abort
-	b		__bad_interrupt		// data abort
-	b		__bad_interrupt
-	b		__bad_interrupt		// IRQ
-	b		__bad_interrupt		// FIQ
-ENDPIPROC(vectors)
-
-ENTRY(__bad_interrupt)
-	b	.
-ENDPIPROC(__bad_interrupt)
