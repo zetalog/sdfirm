@@ -101,9 +101,9 @@
 #define GICC_DIR			GICC_REG(0x100)
 
 /* GICC_CTLR */
-#define GICC_ENABLE_GRP1		_BV(0)
-#define GICC_FIQ_BYP_DIS_GRP1		_BV(5)
-#define GICC_IRQ_BYP_DIS_GRP1		_BV(6)
+#define GICC_ENABLE			_BV(0)
+#define GICC_FIQ_BYP_DIS		_BV(5)
+#define GICC_IRQ_BYP_DIS		_BV(6)
 #define GICC_EOI_MODE_NS		_BV(9)
 
 /* GICC_PMR/GICC_RPR */
@@ -142,6 +142,12 @@
 #define GICC_PRODUCT_ID_OFFSET		20
 #define GICC_PRODUCT_ID_MASK		GIC_12BIT_MASK
 #define GICC_PRODUCT_ID(value)		GICC_GET_FV(PRODUCT_ID, value)
+
+/* Group0 is secure and group1 is non-secure */
+#define gicd_group_secure_irq(irq)	\
+	__raw_clearl(GIC_INTERRUPT_ID(irq), GICD_IGROUPR(irq))
+#define gicd_group_nonsecure_irq(irq)	\
+	__raw_setl(GIC_INTERRUPT_ID(irq), GICD_IGROUPR(irq))
 
 #define gic_begin_irq(irq, cpu)				\
 	do {						\

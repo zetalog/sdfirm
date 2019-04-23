@@ -30,7 +30,7 @@ typedef uint64_t irq_flags_t;
 #define irq_hw_flags_save(x)					\
 	__asm__ __volatile__(					\
 	"mrs	%0, daif		// local_irq_save\n"	\
-	"msr	daifset, #2"					\
+	"msr	daifset, #3"					\
 	: "=r" (x) : : "memory")
 #define irq_hw_flags_restore(x)					\
 	__asm__ __volatile__(					\
@@ -38,11 +38,11 @@ typedef uint64_t irq_flags_t;
 	: : "r" (x) : "memory")
 #define irq_hw_flags_enable()					\
 	__asm__ __volatile__(					\
-	"msr	daifclr, #2		// local_irq_enable\n"	\
+	"msr	daifclr, #3		// local_irq_enable\n"	\
 	: : : "memory")
 #define irq_hw_flags_disable()					\
 	__asm__ __volatile__(					\
-	"msr	daifset, #2		// local_irq_disable\n"	\
+	"msr	daifset, #3		// local_irq_disable\n"	\
 	: : : "memory")
 #define irq_hw_ctrl_init()
 

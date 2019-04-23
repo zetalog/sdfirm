@@ -1,4 +1,4 @@
-﻿1. 配置菜单入口
+1. 配置菜单入口
 scripts/kconfig/Makefile
 menuconfig/config/oldconfig target:
 	$< arch/$ARCH/Kconfig
@@ -53,8 +53,8 @@ state
 tick -> GPT驱动
 
 重要选项：
-SYS_POLL_RT选项：
-SYS_POLL选项：
+SYS_RT选项：
+SYS_IRQ选项：
 
 	kernel/io/Kconfig
 

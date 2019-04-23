@@ -64,6 +64,10 @@ config GICv3
 
 endchoice
 
+config GICv2_IRQ_NS
+	bool "Enable non-secure IRQ"
+	depends GICv2
+
 config GIC_IRQ_GROUPING
 	bool "Interrupt grouping"
 	depends on ARM_TRUSTZONE

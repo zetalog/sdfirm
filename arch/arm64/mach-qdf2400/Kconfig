@@ -15,10 +15,12 @@ choice
 config QDF2400_IMC
 	bool "IMC"
 	select ARCH_HAS_GICv2
+	select QGICv2 if GICv2
 
 config QDF2400_APC
 	bool "APC"
 	select ARCH_HAS_GICv3
+	select QGICv3 if GICv3
 
 endchoice
 
@@ -143,6 +145,23 @@ endif
 
 config GPIO_TLMM
 	bool "Qualcomm Top Level Module Multiplexer (TLMM) support"
+
+menu "Qualcomm specific GIC options"
+
+choice
+	prompt "GIC version"
+
+config QGICv2
+	bool "Qualcomm GICv2 support"
+	depends QDF2400_IMC
+
+config QGICv3
+	bool "Qualcomm GICv3 support"
+	depends QDF2400_APC
+
+endchoice
+
+endmenu
 
 config UART_QUART
 	bool "Qualcomm QUART (dragonfly) controller support"

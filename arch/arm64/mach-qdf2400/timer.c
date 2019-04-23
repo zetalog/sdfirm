@@ -53,7 +53,7 @@ void gpt_hw_irq_poll(void)
 
 void gpt_hw_irq_init(void)
 {
-	irqc_configure_irq(IRQ_TIMER, IRQ_LEVEL_TRIGGERED, 0);
+	irqc_configure_irq(IRQ_TIMER, 0, IRQ_LEVEL_TRIGGERED);
 	irq_register_vector(IRQ_TIMER, gpt_hw_handle_irq);
 	irqc_enable_irq(IRQ_TIMER);
 }

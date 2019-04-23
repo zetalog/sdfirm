@@ -27,8 +27,7 @@ ENTRY(stext)
 	# Permit non-secure secure instruction fetch
 	# Lower EL is AARCH64 and non-secure
 	ldr	x0, =(SCR_EL3_RES1 | SCR_NS | SCR_RW | \
-		      SCR_EA | SCR_IRQ| SCR_FIQ | \
-		      SCR_ST | SCR_RW | SCR_NS)
+		      SCR_EA | SCR_IRQ| SCR_FIQ | SCR_ST)
 	msr	SCR_EL3, x0
 
 	# No feature trap

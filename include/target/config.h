@@ -15,7 +15,7 @@
 #if defined(CONFIG_SYS_NOIRQ)
 #define SYS_BOOTLOAD 1 /* run on non-VIC system to boot something */
 #endif
-#if defined(CONFIG_SYS_NOIRQ) || defined(CONFIG_SYS_POLL_RT)
+#if defined(CONFIG_SYS_NOIRQ) || defined(CONFIG_SYS_RT)
 #define SYS_REALTIME 1 /* realtime work is the most priority thing */
 #endif
 #if defined(CONFIG_SYS_TASK)

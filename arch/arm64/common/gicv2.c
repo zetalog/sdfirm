@@ -41,25 +41,37 @@
 
 #include <target/irq.h>
 
+#ifdef CONFIG_GICv2_IRQ_NS
+#define gicd_config_irq_security(irq)	gicd_group_nonsecure_irq(irq)
+#else
+#define gicd_config_irq_security(irq)	gicd_group_secure_irq(irq)
+#endif
+
 void gicv2_init_gicd(void)
 {
 	irq_t irq;
 
 	/* Disable distributor */
-	__raw_clearl(GICD_ENABLE_GRP0 | GICD_ENABLE_GRP1, GICD_CTLR);
+	__raw_clearl(GICD_ENABLE_NS, GICD_CTLR);
+	__raw_clearl(GICD_ENABLE, GICD_CTLR);
 	/* Disable all IRQs */
 	gicd_disable_all_irqs();
 	for (irq = 0; irq < NR_IRQS; irq += 32) {
 		__raw_setl(GICD_MODEL(GICD_MODEL_1_N), GICD_ICFGR(irq));
+		gicd_config_irq_security(irq);
 	}
 	/* Enable distributor */
-	__raw_setl(GICD_ENABLE_GRP0 | GICD_ENABLE_GRP1, GICD_CTLR);
+	__raw_setl(GICD_ENABLE, GICD_CTLR);
+	__raw_setl(GICD_ENABLE_NS, GICD_CTLR);
 }
 
 void gicv2_init_gicc(void)
 {
 	/* Enable CPU interface */
-	__raw_setl(GICC_ENABLE_GRP1, GICC_CTLR);
+	__raw_clearl(GICC_ENABLE, GICC_CTLR);
+	/* Disable IRQ/FIQ bypass */
+	__raw_setl(GICC_IRQ_BYP_DIS, GICC_CTLR);
+	__raw_setl(GICC_FIQ_BYP_DIS, GICC_CTLR);
 	/* Set priority mask to the lowest to allow all interrupts. */
 	__raw_writel(GICC_PRIORITY(GIC_PRIORITY_MAX), GICC_PMR);
 	/* Set the binary point register to indicate that every priority
@@ -67,4 +79,6 @@ void gicv2_init_gicc(void)
 	 * specification.
 	 */
 	__raw_writel(GICC_BINARY_POINT(2), GICC_BPR);
+	/* Enable CPU interface */
+	__raw_setl(GICC_ENABLE, GICC_CTLR);
 }

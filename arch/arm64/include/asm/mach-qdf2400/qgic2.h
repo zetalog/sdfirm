@@ -22,11 +22,8 @@
 /* 2.16.1.7.3.6. GICD_HW_VERSION (0x0FF 6FA4 0030) */
 #define GICD_HW_VERSION			GICD_REG(0x030)
 
-/* 2.16.1.7.3.7. GICD_ISR%n% (0xFF6FA40000 + 0x80+0x4 * n (n=[0..18-1])) */
-#define GICD_ISR(n)			GICD_1BIT_REG(0x80, n)
-
 /* 2.16.1.7.3.41. GICC_CTLR (0x0FF 6FA4 2000) */
-#define GICC_ENABLE_GRP1_NS		_BV(1)
+#define GICC_ENABLE_NS			_BV(1)
 #define GICC_ACKCTL			_BV(2)
 #define GICC_S_DEST			_BV(3)
 #define GICC_SBPR			_BV(4)
