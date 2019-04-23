@@ -59,6 +59,7 @@
 
 #include <asm/mach/timer.h>
 
+bool __systick_poll(void);
 void __systick_mask_irq(void);
 void __systick_unmask_irq(void);
 uint64_t __systick_read(void);

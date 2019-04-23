@@ -3,7 +3,7 @@
 #ifndef CONFIG_CC_ISR_VECTOR
 #ifndef ARCH_HAVE_VIC
 #ifndef CONFIG_MAX_VECTORS
-#define MAX_VECTORS	NR_IRQS
+#define MAX_VECTORS	0
 #else
 #define MAX_VECTORS	CONFIG_MAX_VECTORS
 #endif
@@ -61,6 +61,7 @@ void irq_register_vector(irq_t nr, irq_handler h)
 #endif
 
 DECLARE_BITMAP(irq_poll_regs, NR_BHS);
+boolean irq_is_polling = false;
 
 void irq_poll_bh(bh_t bh)
 {
@@ -71,6 +72,7 @@ void irq_poll_bh(bh_t bh)
 void irq_register_poller(bh_t bh)
 {
 	set_bit(bh, irq_poll_regs);
+	irq_is_polling = true;
 }
 
 void irq_init(void)

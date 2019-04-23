@@ -1,6 +1,7 @@
 #include <target/timer.h>
 #include <target/bh.h>
 #include <target/gpt.h>
+#include <target/irq.h>
 #include <target/jiffies.h>
 
 /* use the lowest bit to allow the maximum timeout values */

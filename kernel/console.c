@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <target/uart.h>
 #include <target/bh.h>
+#include <target/irq.h>
 #include <target/console.h>
 #include <target/readline.h>
 #include <target/circbf.h>
@@ -67,25 +68,11 @@ int console_input_init(void)
 	return 0;
 }
 
-int console_irq_init(void)
-{
-	uart_hw_irq_init();
-	return 0;
-}
-
-void console_irq_ack(void)
-{
-	uart_hw_irq_ack();
-}
-
 void console_input_handler(void)
 {
 	while (console_console_poll() && console_console_handler)
 		console_console_handler();
 }
-#else
-#define console_irq_ack()
-#define console_irq_init()
 #endif
 
 int console_register_handler(console_handler handler)
@@ -100,7 +87,16 @@ int console_register_handler(console_handler handler)
 static int console_bh;
 static uint8_t console_events;
 
-#define CONSOLE_POLL		0x01
+#ifdef SYS_BOOTLOAD
+#define console_poll_init()	(irq_register_poller(console_bh))
+#define console_irq_ack()
+#define console_irq_init()
+#else
+#define console_poll_init()
+#define console_irq_init()	uart_hw_irq_init()
+#define console_irq_ack()	uart_hw_irq_ack()
+#endif
+
 #define CONSOLE_IRQ		0x02
 
 void console_raise_event(uint8_t event)
@@ -116,15 +112,11 @@ void console_handle_irq(void)
 
 static void console_bh_handler(uint8_t events)
 {
-	events = console_events;
-	console_events = 0;
-
-	if (events & CONSOLE_POLL) {
+	if (events == BH_POLLIRQ) {
 		console_output_handler();
 		console_input_handler();
-		console_raise_event(CONSOLE_POLL);
-	}
-	if (events & CONSOLE_IRQ) {
+	} else if (events == CONSOLE_IRQ) {
+		console_events = 0;
 		console_input_handler();
 		console_irq_ack();
 	}
@@ -148,9 +140,6 @@ void console_init(void)
 	console_output_init();
 	console_input_init();
 	console_bh = bh_register_handler(console_bh_handler);
-#ifndef CONFIG_SYS_POLL
-	console_raise_event(CONSOLE_POLL);
-#else
 	console_irq_init();
-#endif
+	console_poll_init();
 }

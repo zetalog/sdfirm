@@ -58,7 +58,8 @@ void bh_resume(bh_t bh)
 
 boolean bh_resumed_any(void)
 {
-	return NR_BHS != find_next_set_bit(bh_awakes, NR_BHS, 0);
+	return irq_is_polling ||
+	       NR_BHS != find_next_set_bit(bh_awakes, NR_BHS, 0);
 }
 
 bh_t bh_register_handler(bh_cb handler)

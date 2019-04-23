@@ -34,14 +34,32 @@ void gpt_hw_oneshot_timeout(timeout_t tout_ms)
 
 static void gpt_hw_handle_irq(void)
 {
-	__systick_mask_irq();
-	tick_handler();
+	if (__systick_poll()) {
+		__systick_mask_irq();
+		tick_handler();
+	}
 }
+
+#ifdef SYS_BOOTLOAD
+void gpt_hw_irq_poll(void)
+{
+	gpt_hw_handle_irq();
+}
+
+#define gpt_hw_irq_enable()
+#define gpt_hw_irq_init()
+#else
+#define gpt_hw_irq_enable()	__systick_unmask_irq()
+
+void gpt_hw_irq_init(void)
+{
+	irqc_configure_irq(IRQ_TIMER, IRQ_LEVEL_TRIGGERED, 0);
+	irq_register_vector(IRQ_TIMER, gpt_hw_handle_irq);
+	irqc_enable_irq(IRQ_TIMER);
+}
+#endif
 
 void gpt_hw_ctrl_init(void)
 {
 	qdf2400_gblct_init();
-	irqc_configure_irq(IRQ_TIMER, IRQ_LEVEL_TRIGGERED, 0);
-	irq_register_vector(IRQ_TIMER, gpt_hw_handle_irq);
-	irqc_enable_irq(IRQ_TIMER);
 }
