@@ -61,6 +61,24 @@ typedef unsigned long		loff_t;
  */
 #define _FV(name, value)	_SET_FV(name, value)
 
+#define REG_1BIT_MASK		0x001
+#define REG_2BIT_MASK		0x003
+#define REG_3BIT_MASK		0x007
+#define REG_4BIT_MASK		0x00F
+#define REG_5BIT_MASK		0x01F
+#define REG_6BIT_MASK		0x03F
+#define REG_7BIT_MASK		0x07F
+#define REG_8BIT_MASK		0x0FF
+#define REG_9BIT_MASK		0x1FF
+#define REG_10BIT_MASK		0x3FF
+#define REG_11BIT_MASK		0x7FF
+#define REG_12BIT_MASK		0xFFF
+#define REG_13BIT_MASK		0x1FFF
+#define REG_16BIT_MASK		0xFFFF
+#define REG_17BIT_MASK		0x1FFFF
+#define REG_20BIT_MASK		0xFFFFF
+#define REG_24BIT_MASK		0xFFFFFF
+
 #ifndef __ASSEMBLY__
 __TEXT_TYPE__(char, text_char_t);
 __TEXT_TYPE__(const uint8_t, text_byte_t);

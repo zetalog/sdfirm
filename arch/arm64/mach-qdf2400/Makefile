@@ -12,6 +12,11 @@ obj-y += clk_ctl.rel
 obj-y += freqplan10.rel
 obj-y += freqplan11.rel
 obj-y += freqplan20.rel
+obj-y += agera.rel
+
+obj-y += hmss_periph.rel
+obj-y += falkor.rel
+obj-y += cbf.rel
 
 obj-$(CONFIG_QGICv2) += qgic2.rel
 obj-$(CONFIG_QGICv3) += qgic3.rel

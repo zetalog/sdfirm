@@ -115,6 +115,9 @@ static inline uint16_t get_apr_mask(uint32_t apc_mask)
 /* PARTIAL_GOOD_L3_REG */
 #define PARTIAL_GOOD_REG_SELECT		_BV(31)
 
+/* TODO: use monaco definitions */
+#define DDR_MAX_NUM_CHANS		6
+
 /* Fused PG */
 void ____set_cpu_mask(uint64_t cpu_mask);
 uint64_t ____get_cpu_mask(void);

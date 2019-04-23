@@ -1685,9 +1685,7 @@
 #include <asm/mach/pciecc.h>
 #include <asm/mach/clk_ctl.h>
 #include <asm/mach/fabia.h>
-#if 0
 #include <asm/mach/agera.h>
-#endif
 
 typedef struct clk_mux {
 	clk_t output_clk;

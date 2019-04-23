@@ -1,9 +1,11 @@
 #ifndef __TIME_H_INCLUDE__
 #define __TIME_H_INCLUDE__
 
-typedef unsigned long time_t;
+#include <target/types.h>
 
-#define TIME_OVERFLOW_HALF		((1<<((sizeof(time_t)*BITS_PER_UNIT)-1))-1)
+typedef uint64_t time_t;
+
+#define TIME_OVERFLOW_HALF	((ULL(1)<<((sizeof(time_t)*BITS_PER_UNIT)-1))-1)
 
 #define time_after(t, u)					\
 	((t > u) ||						\

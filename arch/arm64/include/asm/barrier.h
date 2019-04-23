@@ -35,15 +35,33 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cpus.h: QDF2400 specific APCS power management interface
- * $Id: cpus.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)barrier.h: ARM64 specific memory barrier interface
+ * $Id: barrier.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
  */
 
-#ifndef __QDF2400_CPUS_H_INCLUDE__
-#define __QDF2400_CPUS_H_INCLUDE__
+#ifndef __ARM64_BARRIER_H_INCLUDE__
+#define __ARM64_BARRIER_H_INCLUDE__
 
-#include <asm/mach/arch.h>
-#include <asm/mach/falkor.h>
-#include <asm/mach/cbf.h>
+#define __nops(n)	".rept	" #n "\nnop\n.endr\n"
+#define nops(n)		asm volatile(__nops(n))
 
-#endif /* __QDF2400_CPUS_H_INCLUDE__ */
+#define sev()		asm volatile("sev" : : : "memory")
+#define wfe()		asm volatile("wfe" : : : "memory")
+#define wfi()		asm volatile("wfi" : : : "memory")
+
+#define isb()		asm volatile("isb" : : : "memory")
+#define dmb(opt)	asm volatile("dmb " #opt : : : "memory")
+#define dsb(opt)	asm volatile("dsb " #opt : : : "memory")
+
+#define __mb()		dsb(sy)
+#define __rmb()		dsb(ld)
+#define __wmb()		dsb(st)
+
+#define __dma_rmb()	dmb(oshld)
+#define __dma_wmb()	dmb(oshst)
+
+#define __smp_mb()	dmb(ish)
+#define __smp_rmb()	dmb(ishld)
+#define __smp_wmb()	dmb(ishst)
+
+#endif /* __ARM64_BARRIER_H_INCLUDE__ */

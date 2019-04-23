@@ -35,15 +35,79 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cpus.h: QDF2400 specific APCS power management interface
- * $Id: cpus.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)barrier.h: memory barrier interface
+ * $Id: barrier.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
  */
 
-#ifndef __QDF2400_CPUS_H_INCLUDE__
-#define __QDF2400_CPUS_H_INCLUDE__
+#ifndef __BARRIER_H_INCLUDE__
+#define __BARRIER_H_INCLUDE__
 
-#include <asm/mach/arch.h>
-#include <asm/mach/falkor.h>
-#include <asm/mach/cbf.h>
+#include <target/compiler.h>
 
-#endif /* __QDF2400_CPUS_H_INCLUDE__ */
+#define barrier()	__barrier()
+
+#include <asm/barrier.h>
+
+#ifndef mb
+#define mb()		__mb()
+#endif
+
+#ifndef rmb
+#define rmb()		__rmb()
+#endif
+
+#ifndef wmb
+#define wmb()		__wmb()
+#endif
+
+#ifndef __smp_mb
+#define __smp_mb()	mb()
+#endif
+
+#ifndef __smp_rmb
+#define __smp_rmb()	rmb()
+#endif
+
+#ifndef __smp_wmb
+#define __smp_wmb()	wmb()
+#endif
+
+#ifndef dma_rmb
+#define dma_rmb()	__dma_rmb()
+#endif
+
+#ifndef dma_wmb
+#define dma_wmb()	__dma_wmb()
+#endif
+
+#ifdef CONFIG_SMP
+
+#ifndef smp_mb
+#define smp_mb()	__smp_mb()
+#endif
+
+#ifndef smp_rmb
+#define smp_rmb()	__smp_rmb()
+#endif
+
+#ifndef smp_wmb
+#define smp_wmb()	__smp_wmb()
+#endif
+
+#else	/* !CONFIG_SMP */
+
+#ifndef smp_mb
+#define smp_mb()	barrier()
+#endif
+
+#ifndef smp_rmb
+#define smp_rmb()	barrier()
+#endif
+
+#ifndef smp_wmb
+#define smp_wmb()	barrier()
+#endif
+
+#endif	/* CONFIG_SMP */
+
+#endif /* __BARRIER_H_INCLUDE__ */

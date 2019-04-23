@@ -35,15 +35,20 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cpus.h: QDF2400 specific APCS power management interface
- * $Id: cpus.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)cbf.h: CBF power clamp reset interfaces
+ * $Id: cbf.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
  */
 
-#ifndef __QDF2400_CPUS_H_INCLUDE__
-#define __QDF2400_CPUS_H_INCLUDE__
+#ifndef __QDF2400_CBF_H_INCLUDE__
+#define __QDF2400_CBF_H_INCLUDE__
 
-#include <asm/mach/arch.h>
-#include <asm/mach/falkor.h>
-#include <asm/mach/cbf.h>
+#include <target/cache.h>
+#include <asm/mach/hmss_periph.h>
 
-#endif /* __QDF2400_CPUS_H_INCLUDE__ */
+void cbf_initialization(void);
+void cbf_l3_block_initialization(uint32_t block_number);
+void cbf_init(void);
+
+extern const uint64_t apcs_pm_cbf_l3u_pwr_ctl[L3_CACHE_BLOCKS];
+
+#endif /* __QDF2400_CBF_H_INCLUDE__ */
