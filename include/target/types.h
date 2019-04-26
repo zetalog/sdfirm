@@ -32,6 +32,9 @@ typedef unsigned long long	uint64_t;
 #ifndef ARCH_HAVE_CADDR_T
 typedef unsigned long		caddr_t;
 #endif
+#ifndef ARCH_HAVE_UINTPTR_T
+typedef unsigned long		uintptr_t;
+#endif
 #ifndef ARCH_HAVE_SIZE_T
 typedef unsigned long		size_t;
 #endif

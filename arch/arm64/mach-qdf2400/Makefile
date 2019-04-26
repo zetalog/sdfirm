@@ -23,3 +23,4 @@ obj-$(CONFIG_QGICv3) += qgic3.rel
 obj-$(CONFIG_UART_QUART) += quart.rel uart.rel
 obj-$(CONFIG_GPIO_TLMM) += tlmm.rel
 obj-$(CONFIG_RAS_IMEM) += imem.rel
+obj-$(CONFIG_QDSS) += qdss/

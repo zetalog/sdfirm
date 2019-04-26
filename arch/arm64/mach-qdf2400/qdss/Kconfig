@@ -1,0 +1,38 @@
+
+config QDSS
+	bool "Qualcomm Debug Subsystem (QDSS) support"
+
+if QDSS
+
+config QDSS_CTI
+	bool "Qualcomm Cross Trigger Interface (QCOM CTI) support"
+
+config QDSS_PMU
+	bool "Qualcomm Performance Monitor Unit (QCOM PMU) support"
+
+config QDSS_DBG
+	bool "Qualcomm Debug component support"
+	help
+	  DEVTYPE.major=4, DEVTYPE.sub=0.
+
+config QDSS_TPDA
+	bool "Trace, Performance Monitoring & Diagnostics Aggregator (TPDA) support"
+
+config QDSS_TPDM
+	bool "Trace, Profiling & Diagnostics Monitor (TPDM) support"
+
+config QDSS_SWITCH_DBG
+	bool "Qualcomm switch debugger support"
+
+config QDSS_SWITCH_PMU
+	bool "Qualcomm switch performance monitor support"
+
+config QDSS_SWITCH_CFG
+	bool "Qualcomm switch configuration support"
+	help
+	  DFTSU config.
+
+config QDSS_SKITTER_CFG
+	bool "Qualcomm skitter configuration support"
+
+endif

@@ -44,6 +44,7 @@
 #define __align(a)			__attribute__((__aligned__(a)))
 #define __always_inline			inline __attribute__((always_inline))
 #define __compiler_offsetof(a, b)	 __builtin_offsetof(a, b)
+#define __section(S)			__attribute__((__section__(#S)))
 
 #define __stringify_1(x...)	#x
 #define __stringify(x...)	__stringify_1(x)

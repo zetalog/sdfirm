@@ -13,9 +13,11 @@
 #define MAX_DDR_SIZE 0x200000000
 #define SIZE_1M  0x100000
 
-#ifdef CONFIG_CONSOLE_COMMAND
-static cmd_tbl cmd_start[0] __attribute__((unused,section(".init_array.cmd_list1")));
-static cmd_tbl cmd_end[0] __attribute__((unused,section(".init_array.cmd_list3")));
+#define __cmdbegin	__section(init_array.cmd_list1)
+#define __cmdend	__section(init_array.cmd_list1)
+
+__cmdbegin cmd_tbl cmd_start[0];
+__cmdend cmd_tbl cmd_end[0];
 
 #define foreach_cmd(cmdp) for (cmdp = cmd_start; cmdp < cmd_end; cmdp++)
 #define MAXARGS  10
@@ -211,14 +213,14 @@ static int do_mem_display(int argc, char * argv[])
     return 1;
 }
 
-MK_CMD(mem, do_mem_display, "Display memory contents",
+DEFINE_COMMAND(mem, do_mem_display, "Display memory contents",
     "    -display mem\n"
     "help command ...\n"
     "     mem b|w|l|q addr [len]"
     "\n"
 );
 
-MK_CMD(help, do_help, "Print command description/usage",
+DEFINE_COMMAND(help, do_help, "Print command description/usage",
     "    - print brief description of all commands\n"
     "help command ...\n"
     "    - print detailed usage of 'command'"
@@ -261,189 +263,3 @@ int cmd_init(void)
 	puts("sdfirm> ");
 	return 0;
 }
-#endif
-
-#if 0
-MK_CMD(dog, do_wdt, "some watchdog features",
-    "{reset}\n"
-    "    - watchdog expired causes a debug reset\n"
-    "dog {enable}\n"
-    "    - enable the IMC watchdog\n"
-    "dog {disable}\n"
-    "    - disable the IMC watchdog\n"
-    "dog {kick}\n"
-    "    - kick the IMC watchdog\n"
-);
-
-int ddr_test(uint64_t star_addr, uint64_t end_addr, uint64_t length, uint64_t offset)
-{
-    uint64_t *p;
-    uint64_t i = 0;
-    uint64_t temp_star,temp_end;
-    uint64_t test_size = 0;
-
-    test_size = length / SIZE_1M;
-    p = (uint64_t *)star_addr;
-    temp_star = star_addr;
-    temp_end = temp_star + length;
-    printf("\nddr test begin \n");
-
-    while(temp_star < end_addr) {
-        i = 0;
-        p = (uint64_t *)temp_star;
-
-        printf("0x%010x - 0x%010x:\n", temp_star, temp_end);
-        while ((uint64_t)p < temp_end) {
-            *p++ = i++;
-        }
-        printf("write success \n");
-
-        i = 0;
-        p = (uint64_t *)temp_star;
-        while ((uint64_t)p < temp_end) {
-            if (*p++ != i++) {
-                printf("ddr read failure %p(%d) on \n",p, i);
-                return -1;
-            }
-        }
-        printf("read success\n");
-        printf("-----------------------------------%d M test completed\n",test_size);
-        temp_star = temp_star + offset + length;
-        temp_end =  temp_star + length;
-
-        if(temp_end > end_addr)
-            temp_end = end_addr;
-        test_size += ((temp_end - temp_star)/SIZE_1M);
-    }
-    printf("===========ddr test complete ============\n");
-    return 0;
-}
-
-static int do_ddr_test(int argc, char * argv[])
-{
-    uint64_t star_addr = 0;
-    uint64_t end_addr = 0;
-    uint64_t offset = 0;
-    uint64_t length = 0;
-    uint64_t size = 0;
-
-    switch (argc) {
-        case 3:
-            length = SIZE_1M;
-            offset = 0;
-            break;
-        case 5:
-            length = strtoul(argv[3], NULL, 0) * SIZE_1M;
-            offset = strtoul(argv[4], NULL, 0) * SIZE_1M;
-            break;
-        default:
-            printf("The num of argument is not correct \n");
-            return -1;
-            break;
-    }
-
-    star_addr = strtoul(argv[1], NULL, 0);
-    size = strtoul(argv[2], NULL, 0) * SIZE_1M;
-
-    if(((star_addr < 0) || (star_addr > MAX_DDR_SIZE)) || (star_addr % 0x1000 != 0)) {
-        printf("ERROR:The star_addr is invalid, check if it over the max ddr size or not aline with 4K \n");
-        return -1;
-    }
-
-    if(size < 0) {
-        printf("ERROR:The size is invalid \n");
-        return -1;
-    }
-
-    if(star_addr + size > MAX_DDR_SIZE) {
-        printf("WARNING:The test region is over the max ddr size,change the end point to the max ddr addr \n");
-        end_addr = MAX_DDR_SIZE;
-    } else
-        end_addr = star_addr + size;
-
-    if(length > size){
-        printf("ERROR:the length is bigger than the size you want to test.\n");
-        return -1;
-    }
-    if(offset < 0) {
-        printf("ERROR:the offset is invalid \n");
-        return -1;
-    }
-
-    ddr_test(star_addr, end_addr, length, offset);
-
-    return 0;
-}
-
-
-MK_CMD(tsens, do_tsens, "configure controllers and sensors before get temperature",
-    "\n"
-    "tsens T {MIN|LOWER|CRITICAL|UPPER|MAX} <-50-150>\n"
-    "  -set tsens {MIN|LOWER|CRITICAL|UPPER|MAX} Threshold from -50 to 150\n"
-    "  -this command will work after tsens init finishs\n"
-    "tsens init [1-11]\n"
-    "  -configure [1-11] controller and sensors(default init all contollers)\n"
-    "tsens <0-99>\n"
-    "  -read temprature of [0-99] sensors\n"
-    "tsens all\n"
-    "  -read temprature of 99 sensors\n"
-    "tsens max\n"
-    "  -read max temprature in all alive sensors\n"
-    "tsens fuse\n"
-    "  -read tsens fuses\n"
-);
-
-MK_CMD(avsbus, do_avsbus, "avsbus initialization, set or get voltage, get temp or power",
-    "avsbus init\n"
-    "    - avsbus initialization\n"
-    "avsbus APC voltage\n"
-    "    - set APC rail voltage(mV)\n"
-    "avsbus CBF voltage\n"
-    "    - set CBF rail voltage(mV)\n"
-    "avsbus temp\n"
-    "    - read apc and cbf rail temp\n"
-    "avsbus power\n"
-    "    - read apc and cbf rail power\n"
-);
-
-MK_CMD(getfuse, do_get_fuse, "print command description/usage",
-    " getfuse \n"
-    "    -get the fuse data\n"
-);
-
-MK_CMD(ddr, do_ddr_enable, "raw_info",
-    " ddr init \n"
-    "    -ddr enable. \n"
-);
-
-MK_CMD(apm, do_apm_switch, "raw_info",
-     " apm -a \n"
-    "    -switch to apc rail \n"
-     " apm -m  \n"
-    "    -switch to mx rail \n"
-);
-
-MK_CMD(cpr, do_cpr_measurement, "get the cpr result",
-    " get the cpr result \n"
-    " cpr all : measure all domains \n"
-    " ----get all domain cpr counter result \n"
-    " cpr {apr0~7| cx | mx | vnd | vds | cbf} \n"
-    " ----get the target domain cpr count result \n"
-);
-
-MK_CMD(spinor, do_spinor, "use spi master to read/write spinor flash",
-    "\n"
-    " spinor {init} \n"
-    "    -Initialize the spinor flash  \n"
-    " spinor {burn} \n"
-    "    -Burn the sigleimage into the spinor flash \n"
-);
-
-MK_CMD(ddr_test, do_ddr_test, "test the ddr",
-    " test the ddr\n"
-    " ddr_test {star_addr} {size(M)} [length(M)] [step_offset(M)]\n"
-    " test the target the ddr from the star_addr to star_addr + sizet ,test the length size and then interval a step_offset."
-    " ddr_test {star_addr} {size(M)}\n"
-    " Continuous testing of a complete range from star_addr to star_addr + sizet."
-);
-#endif

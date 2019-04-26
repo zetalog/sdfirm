@@ -133,6 +133,8 @@ endif
 
 endmenu
 
+source "arch/arm64/common/coresight/Kconfig"
+
 config CPU_BIG_ENDIAN
 	bool "Build big-endian kernel"
 	depends on ARCH_SUPPORTS_BIG_ENDIAN

@@ -235,6 +235,8 @@ config QUART_AMPLIFIED_BAUDRATE
 
 endif
 
+source "arch/arm64/mach-qdf2400/qdss/Kconfig"
+
 if RAS
 
 menu "QDF2400 RAS options"
