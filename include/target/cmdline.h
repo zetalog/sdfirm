@@ -4,11 +4,13 @@
 #include <errno.h>
 #include <target/compiler.h>
 
-#define DEFINE_COMMAND(name, cmd, help, usage) \
-	int cmd(int, char *[]); \
-	static cmd_tbl cmd_list2_##name \
-	__attribute__((used,section(".init_array.cmd_list2_"#name))) \
-	= {#name, cmd, help, usage}
+#define __cmd	__section(.cmd.text)
+
+#define DEFINE_COMMAND(name, cmd, help, usage)		\
+	int cmd(int, char *[]);				\
+	static cmd_tbl __cmd_##name __used __cmd = {	\
+		#name, cmd, help, usage			\
+	}
 
 typedef struct {
 	char *name;

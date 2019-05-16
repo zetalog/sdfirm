@@ -304,11 +304,77 @@ endif
 config ARCH_HAS_MMU
 	bool
 
+config ARCH_HAS_MMU_4K
+	bool
+
+config ARCH_HAS_MMU_64K
+	bool
+
+config ARCH_HAS_MMU_4M
+	bool
+
+config ARCH_HAS_MMU_1L
+	bool
+
+config ARCH_HAS_MMU_2L
+	bool
+
+config ARCH_HAS_MMU_3L
+	bool
+
+config ARCH_HAS_MMU_4L
+	bool
+
+config ARCH_HAS_MMU_5L
+	bool
+
 menuconfig MMU
-	bool "Memory management unit (MMU) support"
+	bool "Memory Management Unit (MMU) support"
 	depends ARCH_HAS_MMU
 
 if MMU
+
+choice
+	prompt "Page size"
+
+config MMU_4K_PAGE
+	bool "4K size"
+	depends ARCH_HAS_MMU_4K
+
+config MMU_64K_PAGE
+	bool "64K size"
+	depends ARCH_HAS_MMU_64K
+
+config MMU_4M_PAGE
+	bool "4M size"
+	depends ARCH_HAS_MMU_4M
+
+endchoice
+
+choice
+	prompt "Page table levels"
+
+config MMU_1L_TABLE
+	bool "1 level"
+	depends ARCH_HAS_MMU_1L
+
+config MMU_2L_TABLE
+	bool "2 levels"
+	depends ARCH_HAS_MMU_2L
+
+config MMU_3L_TABLE
+	bool "3 levels"
+	depends ARCH_HAS_MMU_3L
+
+config MMU_4L_TABLE
+	bool "4 levels"
+	depends ARCH_HAS_MMU_4L
+
+config MMU_5L_TABLE
+	bool "5 levels"
+	depends ARCH_HAS_MMU_5L
+
+endchoice
 
 endif
 

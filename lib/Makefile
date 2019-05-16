@@ -7,6 +7,7 @@ obj-y:=
 obj-y += bitops.rel
 obj-y += muldiv.rel
 obj-y += string.rel
+obj-y += errno.rel
 obj-y += atomic.rel
 obj-y += vsnprintf.rel
 obj-$(CONFIG_CONSOLE_OUTPUT) += printf.rel

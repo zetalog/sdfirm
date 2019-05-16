@@ -81,6 +81,10 @@ endif
 
 menuconfig VMSA
 	bool "Virtual Memory System Architecture (VMSA) support"
+	select ARCH_HAS_MMU_4K
+	select ARCH_HAS_MMU_64K
+	select ARCH_HAS_MMU_3L if MMU_64K_PAGE
+	select ARCH_HAS_MMU_4L if MMU_4K_PAGE
 
 if VMSA
 

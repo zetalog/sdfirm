@@ -31,8 +31,13 @@ SECTIONS
 		__init_text_end = .;
 	}
 
+	_text = .;			/* address in RAM or ROM */
+	.cmd_array ALIGN(8) : {
+		__cmd_start = .;
+		*(.cmd.text)
+		__cmd_end = .;
+	}
 	.text : {
-		_text = .;			/* address in RAM or ROM */
 		TEXT_TEXT
 	}
 
