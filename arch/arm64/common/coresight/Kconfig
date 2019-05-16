@@ -1,5 +1,5 @@
 
-config CORESIGHT
+menuconfig CORESIGHT
 	bool "ARM CoreSight architecture support"
 
 if CORESIGHT

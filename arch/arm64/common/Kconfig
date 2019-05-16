@@ -27,7 +27,7 @@ choice
 	prompt "Interrupt controller"
 
 config GIC
-	bool "Generic Interrupt Controller (GIC)"
+	bool "GIC"
 	depends on CPU_64v8
 	select ARCH_HAS_IRQC
 	help
@@ -39,7 +39,7 @@ endchoice
 
 if GIC
 
-menu "Generic Interrupt Controller (GIC) options"
+menu "Generic Interrupt Controller (GIC) support"
 
 config ARCH_HAS_GICv2
 	bool
@@ -79,8 +79,17 @@ endmenu
 
 endif
 
+menuconfig VMSA
+	bool "Virtual Memory System Architecture (VMSA) support"
+
+if VMSA
+
+endif
+
+menu "External Debug support"
+
 config ARM_DCC
-	bool "Debug Communications Channel (DCC)"
+	bool "Debug Communications Channel (DCC) support"
 	select ARCH_HAS_UART
 	help
 	  The Debug Communications Channel, DCC, is a channel for passing
@@ -95,8 +104,10 @@ config ARM_DCC
 	  The DCC is an essential part of Debug state operation and can
 	  also be used in Non-debug state.
 
-config PMU
-	bool "Performance Monitor Unit (PMU)"
+endmenu
+
+menuconfig PMU
+	bool "Performance Monitor Unit (PMU) support"
 	depends on CPU_64v8
 	select ARCH_HAS_PMU
 
@@ -113,10 +124,12 @@ endchoice
 
 endif
 
-menu "CoreLink peripherals"
+source "arch/arm64/common/coresight/Kconfig"
+
+menu "ARM CoreLink peripheral support"
 
 config UART_PL01X
-	bool "PrimeCell UART (PL01x)"
+	bool "PrimeCell UART (PL01x) support"
 	select ARCH_HAS_UART
 	help
 	  PrimeCell UART (PL010/PL011) offers similar functionality to the
@@ -125,15 +138,13 @@ config UART_PL01X
 if UART_PL01X
 
 config UART_PL01X_SBSA
-	bool "PL01X server base system architecture (SBSA) subset"
+	bool "PL01X Server Base System Architecture (SBSA) subset"
 	help
 	  Select this to exclude non-SBSA required features.
 
 endif
 
 endmenu
-
-source "arch/arm64/common/coresight/Kconfig"
 
 config CPU_BIG_ENDIAN
 	bool "Build big-endian kernel"

@@ -3,10 +3,12 @@
 # see Documentation/kbuild/kconfig-language.txt.
 #
 
-mainmenu "Open Kernel Lab L4 Kernel Configuration"
+mainmenu "Small Device Firmware Configuration"
 
 config ARM64
 	bool
+	select ARCH_HAS_MMU
+	select VMSA if MMU
 	default y
 	help
 

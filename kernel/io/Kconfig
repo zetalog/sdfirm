@@ -2,7 +2,7 @@
 # Input/Output Devices
 #
 
-menu "Human interface devices support"
+menu "Human Interface Devices (HID) support"
 
 config LCD
 	bool "Liquid crystal display (LCD) output support"

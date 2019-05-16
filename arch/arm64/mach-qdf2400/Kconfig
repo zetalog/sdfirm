@@ -163,7 +163,7 @@ endchoice
 
 endmenu
 
-config UART_QUART
+menuconfig UART_QUART
 	bool "Qualcomm QUART (dragonfly) controller support"
 	depends !ARM_DCC
 	select ARCH_HAS_UART

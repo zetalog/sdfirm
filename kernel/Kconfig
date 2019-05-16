@@ -301,6 +301,17 @@ config ALLOC_CHECK
 
 endif
 
+config ARCH_HAS_MMU
+	bool
+
+menuconfig MMU
+	bool "Memory management unit (MMU) support"
+	depends ARCH_HAS_MMU
+
+if MMU
+
+endif
+
 menuconfig IDLE
 	bool "Power management model (idle) support"
 	depends on ARCH_HAS_IDLE

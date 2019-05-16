@@ -1,5 +1,5 @@
 
-config QDSS
+menuconfig QDSS
 	bool "Qualcomm Debug Subsystem (QDSS) support"
 
 if QDSS
