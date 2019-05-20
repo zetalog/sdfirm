@@ -3,9 +3,26 @@
 
 #include <target/config.h>
 #include <target/generic.h>
+#include <asm/page.h>
 
 typedef uint16_t page_size_t;
 
-#define PAGE_SIZE		4096
+#ifndef PAGE_SHIFT
+#define PAGE_SHIFT		12
+#endif
+#define PAGE_SIZE		(1 << PAGE_SHIFT)
+
+#define pfn_to_page(pfn)	\
+	((struct page *)(((uintptr_t)(pfn)) << PAGE_SHIFT))
+#define page_to_pfn(page)	\
+	((int)((uintptr_t)(page) >> PAGE_SHIFT))
+
+struct page {
+	struct page *next;
+};
+
+caddr_t page_alloc(void);
+void page_free(caddr_t address);
+void page_init(caddr_t base, int nr_pages);
 
 #endif /* __PAGE_H_INCLUDE__ */

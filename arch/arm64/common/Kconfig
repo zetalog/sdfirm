@@ -1,7 +1,7 @@
 # QDF2400
 config CPU_QDF2400
 	bool
-	select CPU_64v8
+	select CPU_64v8_1
 	help
 	  1 Cortex-A53 (IMC) + many Cortex-A57 (APC).
 
@@ -9,7 +9,170 @@ config CPU_QDF2400
 # This defines the compiler instruction set which depends on the machine type.
 
 config CPU_64v8
+	select CPU_64v8_TZ
 	bool
+
+config CPU_64v8_0
+	bool
+	select CPU_64v8
+
+config CPU_64v8_1
+	bool
+	select CPU_64v8_0
+	select CPU_64v8_1_ATOMICS
+	select CPU_64v8_1_SIMD
+	select CPU_64v8_1_LOR
+	select CPU_64v8_1_HPD
+	select CPU_64v8_1_PAN
+	select CPU_64v8_1_VHE
+
+config CPU_64v8_2
+	bool
+	select CPU_64v8_1
+	select CPU_64v8_RAS
+	select CPU_64v8_2_ATS1E1
+	select CPU_64v8_2_UAO
+	select CPU_64v8_2_DCPoP
+	select CPU_64v8_2_TTCNP
+	select CPU_64v8_2_TTS2UXN
+	select CPU_64v8_2_IESB
+
+# TrustZone
+config CPU_64v8_TZ
+	bool
+	depends CPU_64v8
+
+# Reliability Availability and Serviceability Extension
+config CPU_64v8_RAS
+	bool
+	depends CPU_64v8
+
+# CAS atomics support
+config CPU_64v8_1_ATOMICS
+	bool
+	depends CPU_64v8_1
+
+config CPU_64v8_1_SIMD
+	bool
+	depends CPU_64v8_1
+
+# Limited ordering regions
+config CPU_64v8_1_LOR
+	bool
+	depends CPU_64v8_1
+
+# Hierarchical permission disable
+config CPU_64v8_1_HPD
+	bool
+	depends CPU_64v8_1
+
+# Hardware management of Access flag and Dirty state
+config CPU_64v8_1_TTHM
+	bool
+	depends CPU_64v8_1
+
+# Privileged access never
+config CPU_64v8_1_PAN
+	bool
+	depends CPU_64v8_1
+
+# 16-bit VMID
+config CPU_64v8_1_VMID16
+	bool
+	depends CPU_64v8_1
+
+# Virtualization Host Extensions
+config CPU_64v8_1_VHE
+	bool
+	depends CPU_64v8_1
+
+# ARMv8.1 PMU Extension
+config CPU_64v8_1_PMU
+	bool
+	depends CPU_64v8_1
+
+# Statistical Profiling Extension
+config CPU_64v8_2_SPE
+	bool
+	select CPU_64v8_2
+
+# Scalable Vector Extension
+config CPU_64v8_2_SVE
+	bool
+	select CPU_64v8_2
+
+config CPU_64v8_2_ATS1E1
+	bool
+	depends CPU_64v8_2
+
+# SIMD Dot Product
+config CPU_64v8_2_DotProd
+	bool
+	depends CPU_64v8_2
+
+# Half-precision floating-point data processing
+config CPU_64v8_2_FP16
+	bool
+	depends CPU_64v8_2
+
+# Load/Store Multiple atomicity and ordering controls
+config CPU_64v8_2_LSMAOC
+	bool
+	depends CPU_64v8_2
+
+# PSTATE override of Unprivileged Load/Store
+config CPU_64v8_2_UAO
+	bool
+	depends CPU_64v8_2
+
+# Data cache clean to Point of Persistence
+config CPU_64v8_2_DCPoP
+	bool
+	depends CPU_64v8_2
+
+# VMID-aware PIPT instruction cache
+config CPU_64v8_2_VPIPT
+	bool
+	depends CPU_64v8_2
+
+# Translation table page-based hardware attributes
+config CPU_64v8_2_TTPBHA
+	bool
+	depends CPU_64v8_2
+
+# Large VA (LVA) support
+config CPU_64v8_2_LVA
+	bool
+	depends CPU_64v8_2
+
+# Large PA (LPA) support
+config CPU_64v8_2_LPA
+	bool
+	depends CPU_64v8_2
+
+# Translation table Common not private translations
+config CPU_64v8_2_TTCNP
+	bool
+	depends CPU_64v8_2
+
+# Translation table stage 2 Unprivileged Execute-never
+config CPU_64v8_2_TTS2UXN
+	bool
+	depends CPU_64v8_2
+
+config CPU_64v8_2_DEBUG
+	bool
+	depends CPU_64v8_2
+
+# PC Sample-based Profiling
+config CPU_64v8_2_PC_SAMPLE
+	bool
+	depends CPU_64v8_2
+
+# Implicit error synchronization event
+config CPU_64v8_2_IESB
+	bool
+	depends CPU_64v8_2
 
 config CPU_BIG_ENDIAN
 	bool "Build big-endian kernel"
@@ -22,6 +185,48 @@ config NR_CPUS
 	range 1 4096
 	# These have to remain sorted largest to smallest
 	default "48"
+
+choice
+	prompt "System security (TrustZone)"
+	default TZ_NORMAL
+
+config TZ_SECURE
+	bool "Secure world" if CPU_64v8_TZ
+
+config TZ_NORMAL
+	bool "Normal world"
+
+endchoice
+
+choice
+	prompt "System priviledge"
+	default SYS_KERNEL if TZ_NORMAL
+	default SYS_MONITOR if TZ_SECURE
+
+config SYS_USER
+	bool "User mode"
+
+config SYS_KERNEL
+	bool "Privileged (kernel) mode"
+
+config SYS_MONITOR
+	bool "Monitor mode"
+	depends TZ_SECURE
+
+endchoice
+
+choice
+	prompt "Virtual machine type"
+	depends CPU_64v8_1_VHE && TZ_NORMAL && SYS_KERNEL
+	default VM_GUEST
+
+config VM_HYPERVISOR
+	bool "Hypervisor mode"
+
+config VM_GUEST
+	bool "Guest mode"
+
+endchoice
 
 choice
 	prompt "Interrupt controller"
@@ -87,6 +292,9 @@ menuconfig VMSA
 	select ARCH_HAS_MMU_4L if MMU_4K_PAGE
 
 if VMSA
+
+config VMSA_ADDRESS_TAGGING
+	bool "Address tagging support"
 
 endif
 

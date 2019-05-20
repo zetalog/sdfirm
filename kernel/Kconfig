@@ -301,6 +301,13 @@ config ALLOC_CHECK
 
 endif
 
+menuconfig PAGE
+	bool "Address space layout (page) support"
+
+if PAGE
+
+endif
+
 config ARCH_HAS_MMU
 	bool
 
@@ -329,8 +336,9 @@ config ARCH_HAS_MMU_5L
 	bool
 
 menuconfig MMU
-	bool "Memory Management Unit (MMU) support"
+	bool "Address space layout (paging) support"
 	depends ARCH_HAS_MMU
+	select PAGE
 
 if MMU
 
