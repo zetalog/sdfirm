@@ -54,7 +54,9 @@ typedef unsigned long		loff_t;
 #endif
 #endif /* __ASSEMBLY__ */
 
-#define _BV(bit)		(1 << (bit))
+#define _BV_UL(bit)		(UL(1) << (bit))
+#define _BV_ULL(bit)		(ULL(1) << (bit))
+#define _BV(bit)		_BV_UL(bit)
 #define _SET_FV(name, value)	\
 	(((value) & (name##_MASK)) << (name##_OFFSET))
 #define _GET_FV(name, value)	\

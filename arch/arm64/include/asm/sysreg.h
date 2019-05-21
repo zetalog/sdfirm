@@ -15,9 +15,9 @@
 /* "Z" normally means zero immediate, it means XZR when it is combined with
  * "%x0" template.
  */
-#define write_sysreg(v, r) do {						\
+#define write_sysreg(v, r) ({						\
 	uint64_t __val = (uint64_t)v;					\
 	asm volatile("msr " __stringify(r) ", %x0" : : "rZ" (__val));	\
-} while (0)
+})
 
 #endif /* __SYSREG_ARM64_H_INCLUDE__ */

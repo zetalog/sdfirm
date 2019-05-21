@@ -7,8 +7,14 @@
 
 typedef uint16_t page_size_t;
 
-#ifndef PAGE_SHIFT
+#ifdef CONFIG_MMU_4K_PAGE
 #define PAGE_SHIFT		12
+#endif
+#ifdef CONFIG_MMU_16K_PAGE
+#define PAGE_SHIFT		14
+#endif
+#ifdef CONFIG_MMU_64K_PAGE
+#define PAGE_SHIFT		16
 #endif
 #define PAGE_SIZE		(1 << PAGE_SHIFT)
 

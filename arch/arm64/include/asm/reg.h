@@ -11,6 +11,20 @@
  * ARM Architecture Reference Manual - ARMv8, for ARMv8-A
  * architecture profile
  * ================================================================= */
+/* Exception level */
+#define ARM_EL0			0
+#define ARM_EL1			1
+#define ARM_EL2			2
+#define ARM_EL3			3
+
+/* Address size */
+#define ARM_4GB			0
+#define ARM_64GB		1
+#define ARM_1TB			2
+#define ARM_4TB			3
+#define ARM_16TB		4
+#define ARM_256TB		5 /* default value */
+#define ARM_4PB			6
 
 /* =================================================================
  * C.5.2 Special-purpose registers
@@ -19,10 +33,6 @@
 #define CURRENT_EL_OFFSET	1
 #define CURRENT_EL_MASK		REG_2BIT_MASK
 #define CURRENT_EL(value)	_GET_FV(CURRENT_EL, value)
-#define ARM_EL0			0
-#define ARM_EL1			1
-#define ARM_EL2			2
-#define ARM_EL3			3
 
 /* =================================================================
  * D.10.2 General system control registers
@@ -79,7 +89,7 @@
 #define HCR_TIDCP		_BV(20) /* Trap implementation defined functionality */
 #define HCR_TACR		_BV(21) /* Trap Auxiliary Control Register */
 #define HCR_TSW			_BV(22) /* Trap data or cache maintenance by set/way */
-#define HCR_TPC			_BV(23) /* Trap data or cache maintenance of POC */
+#define HCR_TPCP		_BV(23) /* Trap data or cache maintenance of POC */
 #define HCR_TPU			_BV(24) /* Trap cache maintenance */
 #define HCR_TTLB		_BV(25) /* Trap TLB maintenance */
 #define HCR_TVM			_BV(26) /* Trap virtual memory controls */
@@ -90,6 +100,10 @@
 #define HCR_RW			_BV(31) /* Execution state for lower level */
 #define HCR_CD			_BV(32) /* Disable data cache */
 #define HCR_ID			_BV(33) /* Disable instruction cache */
+#define HCR_E2H			_BV(34) /* EL2 Host */
+#define HCR_TLOR		_BV(35) /* Trap LOR registers */
+#define HCR_TERR		_BV(36) /* Trap Error record accesses */
+#define HCR_TEA			_BV(37) /* Route synchronous External abort */
 #define HCR_MIOCNCE		_BV(38) /* Enable mismatched Inner/Outer Cacheable Non-Coherency */
 
 #define HCR_EL2_RES0				\
@@ -235,59 +249,18 @@
 
 /* D10.2.92 TCR_EL1, Translation Control Register (EL1)
  * D10.2.93 TCR_EL2, Translation Control Register (EL2)
+ * D10.2.94 TCR_EL3, Translation Control Register (EL3)
+ * TCR_EL1, TCR_EL2, or TCR_EL3
  */
-/* TCR_EL1 or TCR_EL2 when HCR_EL2.E2H=1 */
-/* ARMv8.2+ */
-/* present if Scalable Vector Extension (SVE) */
-#define TCR_NFD1		_BV(54) /* Non-fault table walk Disable */
-#define TCR_NFD0		_BV(53)
-
-/* ARMv8.1+ */
-/* present if Hierarchical permission disables (HPD) */
-#define TCR_HPD1		_BV(42) /* Hierarchical Permisiion Disable */
-#define TCR_HPD0		_BV(41)
-/* present if Hardware Management of the Access flag and dirty state (TTHM) */
-#define TCR_HDx			_BV(40) /* Hardware management of Dirty state */
-#define TCR_HAx			_BV(39) /* Hardware Access flag update */
-
-/* ARMv8 */
-#define TCR_TBI1		_BV(38) /* Top Byte Ignored */
-#define TCR_TBI0		_BV(37)
-#define TCR_AS			_BV(36) /* ASID Size */
-#define TCR_IPS_OFFSET		32 /* Intermediate Physical Address Size */
-#define TCR_IPS_MASK		REG_3BIT_MASK
-#define TCR_IPS(value)		_GET_FV(TCR_IPS, value)
-#define TCR_PS_4GB		0
-#define TCR_PS_64GB		1
-#define TCR_PS_1TB		2
-#define TCR_PS_4TB		3
-#define TCR_PS_16TB		4
-#define TCR_PS_256TB		5 /* default value */
-#define TCR_PS_4PB		6
-#define TCR_TG1_OFFSET		30 /* Granule for TTBR1_EL1 */
-#define TCR_TG1_MASK		REG_2BIT_MASK
-#define TCR_TG1(value)		_SET_FV(TCR_TG1, value)
-#define TCR_TG1_16KB		1
-#define TCR_TG1_4KB		2
-#define TCR_TG1_64KB		3
-#define TCR_SH1_OFFSET		28 /* Shareability for TTBR1_EL1 walk */
-#define TCR_SH1_MASK		REG_2BIT_MASK
-#define TCR_SH1(value)		_SET_FV(TCR_SH1, value)
 #define TCR_SH0_OFFSET		12 /* Shareability for TTBR0_EL1 walk */
 #define TCR_SH0_MASK		REG_2BIT_MASK
 #define TCR_SH0(value)		_SET_FV(TCR_SH0, value)
 #define TCR_SH_NON		0
 #define TCR_SH_OUTER		2
 #define TCR_SH_INNER		3
-#define TCR_ORGN1_OFFSET	26 /* Outer cacheability for TTBR1_EL1 walk */
-#define TCR_ORGN1_MASK		REG_2BIT_MASK
-#define TCR_ORGN1(value)	_SET_FV(TCR_ORGN1, value)
 #define TCR_ORGN0_OFFSET	10 /* Outer cacheability for TTBR0_EL1 walk */
 #define TCR_ORGN0_MASK		REG_2BIT_MASK
 #define TCR_ORGN0(value)	_SET_FV(TCR_ORGN0, value)
-#define TCR_IRGN1_OFFSET	24 /* Inner cacheability for TTBR1_EL1 walk */
-#define TCR_IRGN1_MASK		REG_2BIT_MASK
-#define TCR_IRGN1(value)	_SET_FV(TCR_IRGN1, value)
 #define TCR_IRGN0_OFFSET	8 /* Inner cacheability for TTBR0_EL1 walk */
 #define TCR_IRGN0_MASK		REG_2BIT_MASK
 #define TCR_IRGN0(value)	_SET_FV(TCR_IRGN0, value)
@@ -298,6 +271,48 @@
 #define TCR_RGN_WT_NWA		2
 /* Write-Back Read-Allocate No Write-Allocate Cacheable */
 #define TCR_RGN_WB_NWA		3
+/* Size offset of memory region addressed by TTBR0_EL1 */
+#define TCR_T0SZ_OFFSET		0
+#define TCR_T0SZ_MASK		REG_6BIT_MASK
+#define TCR_T0SZ(value)		_SET_FV(TCR_T0SZ, value)
+
+/* D10.2.92 TCR_EL1, Translation Control Register (EL1)
+ * D10.2.93 TCR_EL2, Translation Control Register (EL2)
+ * TCR_EL1, or TCR_EL2 when HCR_EL2.E2H=1 (EL2 Host)
+ */
+/* ARMv8.2+ */
+/* present if Scalable Vector Extension (SVE) */
+#define TCR_NFD1		_BV(54) /* Non-fault table walk Disable */
+#define TCR_NFD0		_BV(53)
+/* ARMv8.1+ */
+/* present if Hierarchical permission disables (HPD) */
+#define TCR_HPD1		_BV(42) /* Hierarchical Permisiion Disable */
+#define TCR_HPD0		_BV(41)
+/* present if Hardware Management of the Access flag and dirty state (TTHM) */
+#define TCR_HDx			_BV(40) /* Hardware management of Dirty state */
+#define TCR_HAx			_BV(39) /* Hardware Access flag update */
+/* ARMv8 */
+#define TCR_TBI1		_BV(38) /* Top Byte Ignored */
+#define TCR_TBI0		_BV(37)
+#define TCR_AS			_BV(36) /* ASID Size */
+#define TCR_IPS_OFFSET		32 /* Intermediate Physical Address Size */
+#define TCR_IPS_MASK		REG_3BIT_MASK
+#define TCR_IPS(value)		_GET_FV(TCR_IPS, value)
+#define TCR_TG1_OFFSET		30 /* Granule for TTBR1_EL1 */
+#define TCR_TG1_MASK		REG_2BIT_MASK
+#define TCR_TG1(value)		_SET_FV(TCR_TG1, value)
+#define TCR_TG1_16KB		1
+#define TCR_TG1_4KB		2
+#define TCR_TG1_64KB		3
+#define TCR_SH1_OFFSET		28 /* Shareability for TTBR1_EL1 walk */
+#define TCR_SH1_MASK		REG_2BIT_MASK
+#define TCR_SH1(value)		_SET_FV(TCR_SH1, value)
+#define TCR_ORGN1_OFFSET	26 /* Outer cacheability for TTBR1_EL1 walk */
+#define TCR_ORGN1_MASK		REG_2BIT_MASK
+#define TCR_ORGN1(value)	_SET_FV(TCR_ORGN1, value)
+#define TCR_IRGN1_OFFSET	24 /* Inner cacheability for TTBR1_EL1 walk */
+#define TCR_IRGN1_MASK		REG_2BIT_MASK
+#define TCR_IRGN1(value)	_SET_FV(TCR_IRGN1, value)
 /* TTBR1_EL1/TTBR0_EL1 table walk disable on TLB miss */
 #define TCR_EPD1		_BV(23)
 #define TCR_EPD0		_BV(7)
@@ -313,12 +328,10 @@
 #define TCR_TG0_4KB		0
 #define TCR_TG0_64KB		1
 #define TCR_TG0_16KB		2
-/* Size offset of memory region addressed by TTBR0_EL1 */
-#define TCR_T0SZ_OFFSET		0
-#define TCR_T0SZ_MASK		REG_6BIT_MASK
-#define TCR_T0SZ(value)		_SET_FV(TCR_T0SZ, value)
+
 /* D10.2.93 TCR_EL2, Translation Control Register (EL2)
  * D10.2.94 TCR_EL3, Translation Control Register (EL3)
+ * TCR_EL2 when HCR_EL2.E2H=0 (EL2 Hypervisor), or TCR_EL3
  */
 /* ARMv8.1+ */
 /* present if Hierarchical permission disables (HPD) */

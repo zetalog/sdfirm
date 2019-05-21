@@ -314,6 +314,9 @@ config ARCH_HAS_MMU
 config ARCH_HAS_MMU_4K
 	bool
 
+config ARCH_HAS_MMU_16K
+	bool
+
 config ARCH_HAS_MMU_64K
 	bool
 
@@ -348,6 +351,10 @@ choice
 config MMU_4K_PAGE
 	bool "4K size"
 	depends ARCH_HAS_MMU_4K
+
+config MMU_16K_PAGE
+	bool "16K size"
+	depends ARCH_HAS_MMU_16K
 
 config MMU_64K_PAGE
 	bool "64K size"

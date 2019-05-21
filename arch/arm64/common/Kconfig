@@ -8,9 +8,19 @@ config CPU_QDF2400
 # Figure out what processor architecture version we should be using.
 # This defines the compiler instruction set which depends on the machine type.
 
-config CPU_64v8
-	select CPU_64v8_TZ
+config CPU_64v7
 	bool
+	select CPU_64v7_VE
+
+# Virtualization extension
+config CPU_64v7_VE
+	bool
+	depends CPU_64v7
+
+config CPU_64v8
+	bool
+	select CPU_64v7
+	select CPU_64v8_TZ
 
 config CPU_64v8_0
 	bool
@@ -208,6 +218,7 @@ config SYS_USER
 
 config SYS_KERNEL
 	bool "Privileged (kernel) mode"
+	select SYS_GUEST if !SYS_HYPERVISOR
 
 config SYS_MONITOR
 	bool "Monitor mode"
@@ -215,18 +226,22 @@ config SYS_MONITOR
 
 endchoice
 
-choice
-	prompt "Virtual machine type"
-	depends CPU_64v8_1_VHE && TZ_NORMAL && SYS_KERNEL
-	default VM_GUEST
+config SYS_GUEST
+	bool
+	depends !SYS_HYPERVISOR && SYS_KERNEL
 
-config VM_HYPERVISOR
-	bool "Hypervisor mode"
+menuconfig SYS_HYPERVISOR
+	bool "Hypervisor optimization support"
+	depends TZ_NORMAL && SYS_KERNEL
+	depends CPU_64v7_VE
 
-config VM_GUEST
-	bool "Guest mode"
+if SYS_HYPERVISOR
 
-endchoice
+config SYS_HOST
+	bool "Host OS optimization support"
+	depends CPU_64v8_1_VHE
+
+endif
 
 choice
 	prompt "Interrupt controller"
@@ -287,14 +302,60 @@ endif
 menuconfig VMSA
 	bool "Virtual Memory System Architecture (VMSA) support"
 	select ARCH_HAS_MMU_4K
+	select ARCH_HAS_MMU_16K
 	select ARCH_HAS_MMU_64K
-	select ARCH_HAS_MMU_3L if MMU_64K_PAGE
-	select ARCH_HAS_MMU_4L if MMU_4K_PAGE
+	select ARCH_HAS_MMU_4L if MMU_4K_PAGE && VMSA_VA_4GB
+	select ARCH_HAS_MMU_4L if MMU_4K_PAGE && VMSA_VA_64GB
+	select ARCH_HAS_MMU_5L if MMU_4K_PAGE && VMSA_VA_1TB
+	select ARCH_HAS_MMU_5L if MMU_4K_PAGE && VMSA_VA_16TB
+	select ARCH_HAS_MMU_5L if MMU_4K_PAGE && VMSA_VA_256TB
+	select ARCH_HAS_MMU_3L if MMU_16K_PAGE && VMSA_VA_4GB
+	select ARCH_HAS_MMU_3L if MMU_16K_PAGE && VMSA_VA_64GB
+	select ARCH_HAS_MMU_4L if MMU_16K_PAGE && VMSA_VA_1TB
+	select ARCH_HAS_MMU_4L if MMU_16K_PAGE && VMSA_VA_16TB
+	select ARCH_HAS_MMU_5L if MMU_16K_PAGE && VMSA_VA_256TB
+	select ARCH_HAS_MMU_3L if MMU_64K_PAGE && VMSA_VA_4GB
+	select ARCH_HAS_MMU_3L if MMU_64K_PAGE && VMSA_VA_64GB
+	select ARCH_HAS_MMU_3L if MMU_64K_PAGE && VMSA_VA_1TB
+	select ARCH_HAS_MMU_4L if MMU_64K_PAGE && VMSA_VA_16TB
+	select ARCH_HAS_MMU_4L if MMU_64K_PAGE && VMSA_VA_256TB
+	select ARCH_HAS_MMU_4L if MMU_64K_PAGE && VMSA_VA_4PB
 
 if VMSA
 
+choice
+	prompt "Maximum input address size"
+	default VMSA_VA_256TB
+	help
+	  This option defines stage 1 translation input address size.
+
+config VMSA_VA_4GB
+	bool "<=4GB"
+
+config VMSA_VA_64GB
+	bool "<=64GB"
+
+config VMSA_VA_1TB
+	bool "<=1TB"
+
+config VMSA_VA_16TB
+	bool "<=16TB"
+
+config VMSA_VA_256TB
+	bool "<=256TB"
+
+config VMSA_VA_4PB
+	bool "<=4PB"
+	depends MMU_64K_PAGE && CPU_64v8_2_LVA
+
+endchoice
+
 config VMSA_ADDRESS_TAGGING
 	bool "Address tagging support"
+
+config VMSA_VA_2_RANGES
+	bool "Two VA ranges support"
+	depends (SYS_KERNEL && !SYS_HYPERVISOR) || SYS_HOST
 
 endif
 

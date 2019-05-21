@@ -24,7 +24,7 @@ obj-$(CONFIG_GPIO) += gpio.rel
 obj-$(CONFIG_HEAP) += heap.rel
 obj-$(CONFIG_HEAP_DLMALLOC) += heap_dlmalloc.rel
 obj-$(CONFIG_PAGE) += page.rel
-obj-$(CONFIG_PAGING) += paging.rel
+obj-$(CONFIG_MMU) += paging.rel
 
 obj-y += io/
 obj-y += uart/
