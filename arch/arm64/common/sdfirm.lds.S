@@ -1,5 +1,6 @@
 #include <target/config.h>
 #include <target/const.h>
+#include <target/page.h>
 #include <asm-generic/sdfirm.lds.h>
 
 OUTPUT_FORMAT("elf64-littleaarch64", "elf64-bigaarch64", "elf64-littleaarch64")
@@ -74,6 +75,10 @@ SECTIONS
 	}
 	. = ALIGN(8);
 	__bss_stop = .;
+
+	. = ALIGN(PAGE_SIZE);
+	mmu_pg_dir = .;
+	. += PGDIR_BYTES;
 }
 
 /*

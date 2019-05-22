@@ -46,6 +46,21 @@
 #include <asm/reg.h>
 #include <asm/sysreg.h>
 
+/*===========================================================================
+ * sdfirm specific definitions
+ *===========================================================================*/
+/* Acronym translations between sdfirm and linux:
+ *
+ * PGT: page table
+ * PTR: page table pointer
+ *
+ * P1D: Linux PTE
+ * P2D: Linux PMD
+ * P3D: Linux PUD
+ * P4D: Linux P4D
+ * PGD: Linux PGDIR
+ */
+
 #ifdef VMSA_VA_4PB
 #define VMSA_VA_SIZE_SHIFT	52
 #endif
@@ -132,34 +147,121 @@ static inline void write_ttbr(caddr_t tbl, uint8_t el, bool top)
 	}
 }
 
-#define PTRS_BITS		(PAGE_SHIFT - 3)
-#define PTRS_PER_PTE		(1 << PTRS_BITS)
+/* PTE is 8(2^3)-bytes sized,
+ * number of PTE in PT is 2^(PAGE_SHIFT-PTE_SIZE_SHIFT)
+ * All MMU is implemented in this way, while we still keep the code
+ * architecture specific.
+ */
+#define PTR_SIZE_BITS		3
+#define PTRS_PER_PGT_BITS	(PAGE_SHIFT - PTR_SIZE_BITS)
+#define PTRS_PER_PGT		(1 << PTRS_PER_PGT_BITS)
+
+/*===========================================================================
+ * linux style definitions
+ *===========================================================================*/
+/* Using linux style definitions makes the world easier for the linux kernel
+ * developers.
+ */
+typedef uint64_t pteval_t;
+typedef uint64_t pmdval_t;
+typedef uint64_t pudval_t;
+typedef uint64_t pgdval_t;
+
+#undef STRICT_MM_TYPECHECKS
+
+#ifdef STRICT_MM_TYPECHECKS
+
+/*
+ * These are used to make use of C type-checking..
+ */
+typedef struct { pteval_t pte; } pte_t;
+#define pte_val(x)	((x).pte)
+#define __pte(x)	((pte_t) { (x) } )
+
+#if PGTABLE_LEVELS > 2
+typedef struct { pmdval_t pmd; } pmd_t;
+#define pmd_val(x)	((x).pmd)
+#define __pmd(x)	((pmd_t) { (x) } )
+#endif
+
+#if PGTABLE_LEVELS > 3
+typedef struct { pudval_t pud; } pud_t;
+#define pud_val(x)	((x).pud)
+#define __pud(x)	((pud_t) { (x) } )
+#endif
+
+typedef struct { pgdval_t pgd; } pgd_t;
+#define pgd_val(x)	((x).pgd)
+#define __pgd(x)	((pgd_t) { (x) } )
+
+typedef struct { pteval_t pgprot; } pgprot_t;
+#define pgprot_val(x)	((x).pgprot)
+#define __pgprot(x)	((pgprot_t) { (x) } )
+
+#else	/* !STRICT_MM_TYPECHECKS */
+
+typedef pteval_t pte_t;
+#define pte_val(x)	(x)
+#define __pte(x)	(x)
+
+#if PGTABLE_LEVELS > 2
+typedef pmdval_t pmd_t;
+#define pmd_val(x)	(x)
+#define __pmd(x)	(x)
+#endif
+
+#if PGTABLE_LEVELS > 3
+typedef pudval_t pud_t;
+#define pud_val(x)	(x)
+#define __pud(x)	(x)
+#endif
+
+typedef pgdval_t pgd_t;
+#define pgd_val(x)	(x)
+#define __pgd(x)	(x)
+
+typedef pteval_t pgprot_t;
+#define pgprot_val(x)	(x)
+#define __pgprot(x)	(x)
+
+#endif /* STRICT_MM_TYPECHECKS */
+
+#if PGTABLE_LEVELS == 2
+#include <target/paging-nop2d.h>
+#elif PGTABLE_LEVELS == 3
+#include <target/paging-nop3d.h>
+#endif
+
+#define VA_BITS			VMSA_VA_SIZE_SHIFT
+
+#define PTRS_PER_PTE		PTRS_PER_PGT
 
 /*
  * PMD_SHIFT determines the size a level 2 page table entry can map.
  */
 #if PGTABLE_LEVEL > 2
-#define PMD_SHIFT		(PTRS_BITS * 2 + 3)
+#define PMD_SHIFT		(PTRS_PER_PGT_BITS + PAGE_SHIFT)
 #define PMD_SIZE		(_AC(1, UL) << PMD_SHIFT)
 #define PMD_MASK		(~(PMD_SIZE-1))
-#define PTRS_PER_PMD		PTRS_PER_PTE
+#define PTRS_PER_PMD		PTRS_PER_PGT
 #endif
 
 /*
  * PUD_SHIFT determines the size a level 1 page table entry can map.
  */
 #if PGTABLE_LEVEL > 3
-#define PUD_SHIFT		(PTRS_BITS * 3 + 3)
+#define PUD_SHIFT		(PTRS_PER_PGT_BITS * 2 + PAGE_SHIFT)
 #define PUD_SIZE		(_AC(1, UL) << PUD_SHIFT)
 #define PUD_MASK		(~(PUD_SIZE-1))
-#define PTRS_PER_PUD		PTRS_PER_PTE
+#define PTRS_PER_PUD		PTRS_PER_PGT
 #endif
 
 /*
  * PGDIR_SHIFT determines the size a top-level page table entry can map
  * (depending on the configuration, this level can be 0, 1 or 2).
  */
-#define PGDIR_SHIFT		((PAGE_SHIFT - 3) * PGTABLE_LEVELS + 3)
+#define PGDIR_SHIFT		\
+	(PTRS_PER_PGT_BITS * (PGTABLE_LEVELS - 1) + PAGE_SHIFT)
 #define PGDIR_SIZE		(_AC(1, UL) << PGDIR_SHIFT)
 #define PGDIR_MASK		(~(PGDIR_SIZE-1))
 #define PTRS_PER_PGD		(1 << (VA_BITS - PGDIR_SHIFT))
@@ -172,7 +274,7 @@ static inline void write_ttbr(caddr_t tbl, uint8_t el, bool top)
 #else
 #define PHYS_MASK_SHIFT		48
 #endif
-#define PHYS_MASK		((UL(1) << PHYS_MASK_SHIFT) - 1)
+#define PHYS_MASK		((_AC(1, UL) << PHYS_MASK_SHIFT) - 1)
 
 #define mmu_hw_ctrl_init()
 

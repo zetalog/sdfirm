@@ -5,8 +5,6 @@
 #include <target/generic.h>
 #include <asm/page.h>
 
-typedef uint16_t page_size_t;
-
 #ifdef CONFIG_MMU_4K_PAGE
 #define PAGE_SHIFT		12
 #endif
@@ -18,6 +16,19 @@ typedef uint16_t page_size_t;
 #endif
 #define PAGE_SIZE		(1 << PAGE_SHIFT)
 
+#ifdef CONFIG_MMU_2L_TABLE
+#define PGTABLE_LEVELS		2
+#endif
+#ifdef CONFIG_MMU_3L_TABLE
+#define PGTABLE_LEVELS		3
+#endif
+#ifdef CONFIG_MMU_4L_TABLE
+#define PGTABLE_LEVELS		4
+#endif
+
+#define PGDIR_BYTES		(PGTABLE_LEVELS * PAGE_SIZE)
+
+#ifndef __ASSEMBLY__
 #define pfn_to_page(pfn)	\
 	((struct page *)(((uintptr_t)(pfn)) << PAGE_SHIFT))
 #define page_to_pfn(page)	\
@@ -30,5 +41,6 @@ struct page {
 caddr_t page_alloc(void);
 void page_free(caddr_t address);
 void page_init(caddr_t base, int nr_pages);
+#endif /* __ASSEMBLY__ */
 
 #endif /* __PAGE_H_INCLUDE__ */

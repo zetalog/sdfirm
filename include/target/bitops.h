@@ -178,4 +178,4 @@ uint8_t hweight16(uint16_t word);
 #define bits_raised(i, bits)		(((i) & (bits)) == (bits))
 #define bits_raised_any(i, bits)	((i) & (bits))
 
-#endif
+#endif /* __BITOPS_H_INCLUDE__ */

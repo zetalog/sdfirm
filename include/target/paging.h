@@ -3,18 +3,9 @@
 
 #include <target/page.h>
 
-#ifdef CONFIG_MMU_2L_TABLE
-#define PGTABLE_LEVEL	2
-#endif
-#ifdef CONFIG_MMU_3L_TABLE
-#define PGTABLE_LEVEL	3
-#endif
-#ifdef CONFIG_MMU_4L_TABLE
-#define PGTABLE_LEVEL	4
-#endif
-
 #ifdef CONFIG_ARCH_HAS_MMU
 #include <driver/mmu.h>
+extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
 #endif
 
 #endif /* __PAGING_H_INCLUDE__ */

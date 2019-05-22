@@ -4,13 +4,15 @@
 #include <target/config.h>
 #include <target/compiler.h>
 #include <target/types.h>
+#include <target/const.h>
+
+#ifndef __ASSEMBLY__
 #include <target/bitops.h>
 #include <target/list.h>
 #include <target/string.h>
 #include <target/panic.h>
 #include <target/muldiv.h>
 #include <target/version.h>
-#include <target/const.h>
 #include <target/atomic.h>
 #include <target/circbf.h>
 
@@ -26,5 +28,6 @@ void system_resume(void);
 
 #define OPEN_READ		0x00
 #define OPEN_WRITE		0x01
+#endif /* __ASSEMBLY__ */
 
 #endif /* __GENERIC_H_INCLUDE__ */
