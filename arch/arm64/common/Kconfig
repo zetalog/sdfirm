@@ -301,25 +301,25 @@ endif
 
 menuconfig VMSA
 	bool "Virtual Memory System Architecture (VMSA) support"
-	select ARCH_HAS_MMU_4K
-	select ARCH_HAS_MMU_16K
-	select ARCH_HAS_MMU_64K
-	select ARCH_HAS_MMU_4L if MMU_4K_PAGE && VMSA_VA_4GB
-	select ARCH_HAS_MMU_4L if MMU_4K_PAGE && VMSA_VA_64GB
-	select ARCH_HAS_MMU_5L if MMU_4K_PAGE && VMSA_VA_1TB
-	select ARCH_HAS_MMU_5L if MMU_4K_PAGE && VMSA_VA_16TB
-	select ARCH_HAS_MMU_5L if MMU_4K_PAGE && VMSA_VA_256TB
-	select ARCH_HAS_MMU_3L if MMU_16K_PAGE && VMSA_VA_4GB
-	select ARCH_HAS_MMU_3L if MMU_16K_PAGE && VMSA_VA_64GB
-	select ARCH_HAS_MMU_4L if MMU_16K_PAGE && VMSA_VA_1TB
-	select ARCH_HAS_MMU_4L if MMU_16K_PAGE && VMSA_VA_16TB
-	select ARCH_HAS_MMU_5L if MMU_16K_PAGE && VMSA_VA_256TB
-	select ARCH_HAS_MMU_3L if MMU_64K_PAGE && VMSA_VA_4GB
-	select ARCH_HAS_MMU_3L if MMU_64K_PAGE && VMSA_VA_64GB
-	select ARCH_HAS_MMU_3L if MMU_64K_PAGE && VMSA_VA_1TB
-	select ARCH_HAS_MMU_4L if MMU_64K_PAGE && VMSA_VA_16TB
-	select ARCH_HAS_MMU_4L if MMU_64K_PAGE && VMSA_VA_256TB
-	select ARCH_HAS_MMU_4L if MMU_64K_PAGE && VMSA_VA_4PB
+	select ARCH_HAS_MMU_4K	# bits = level * 9 + 12
+	select ARCH_HAS_MMU_16K	# bits = level * 11 + 14
+	select ARCH_HAS_MMU_64K	# bits = level * 13 + 16
+	select ARCH_HAS_MMU_3L if MMU_4K_PAGE && VMSA_VA_4GB	# 32-bits
+	select ARCH_HAS_MMU_3L if MMU_4K_PAGE && VMSA_VA_64GB	# 36-bits
+	select ARCH_HAS_MMU_4L if MMU_4K_PAGE && VMSA_VA_1TB	# 40-bits
+	select ARCH_HAS_MMU_4L if MMU_4K_PAGE && VMSA_VA_16TB	# 44-bits
+	select ARCH_HAS_MMU_4L if MMU_4K_PAGE && VMSA_VA_256TB	# 48-bits
+	select ARCH_HAS_MMU_2L if MMU_16K_PAGE && VMSA_VA_4GB	# 32-bits
+	select ARCH_HAS_MMU_2L if MMU_16K_PAGE && VMSA_VA_64GB	# 36-bits
+	select ARCH_HAS_MMU_3L if MMU_16K_PAGE && VMSA_VA_1TB	# 40-bits
+	select ARCH_HAS_MMU_3L if MMU_16K_PAGE && VMSA_VA_16TB	# 44-bits
+	select ARCH_HAS_MMU_4L if MMU_16K_PAGE && VMSA_VA_256TB	# 48-bits
+	select ARCH_HAS_MMU_2L if MMU_64K_PAGE && VMSA_VA_4GB	# 32-bits
+	select ARCH_HAS_MMU_2L if MMU_64K_PAGE && VMSA_VA_64GB	# 36-bits
+	select ARCH_HAS_MMU_2L if MMU_64K_PAGE && VMSA_VA_1TB	# 40-bits
+	select ARCH_HAS_MMU_3L if MMU_64K_PAGE && VMSA_VA_16TB	# 44-bits
+	select ARCH_HAS_MMU_3L if MMU_64K_PAGE && VMSA_VA_256TB	# 48-bits
+	select ARCH_HAS_MMU_3L if MMU_64K_PAGE && VMSA_VA_4PB	# 52-bits
 
 if VMSA
 

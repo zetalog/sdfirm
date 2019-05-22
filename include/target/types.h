@@ -1,6 +1,8 @@
 #ifndef __TYPES_H_INCLUDE__
 #define __TYPES_H_INCLUDE__
 
+#include <target/compiler.h>
+
 #ifndef __ASSEMBLY__
 typedef signed char		int8_t;
 typedef unsigned char		uint8_t;

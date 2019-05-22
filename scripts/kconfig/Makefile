@@ -268,7 +268,7 @@ ifdef LKC_GENPARSER
 
 $(obj)/zconf.tab.c: $(src)/zconf.y
 $(obj)/lex.zconf.c: $(src)/zconf.l
-#$(obj)/zconf.hash.c: $(src)/zconf.gperf
+$(obj)/zconf.hash.c: $(src)/zconf.gperf
 
 %.tab.c: %.y
 	bison -l -b $* -p $(notdir $*) $<
