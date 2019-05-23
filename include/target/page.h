@@ -15,6 +15,7 @@
 #define PAGE_SHIFT		16
 #endif
 #define PAGE_SIZE		(1 << PAGE_SHIFT)
+#define PAGE_MASK		(~(PAGE_SIZE-1))
 
 #ifdef CONFIG_MMU_2L_TABLE
 #define PGTABLE_LEVELS		2
