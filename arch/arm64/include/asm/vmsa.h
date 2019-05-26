@@ -78,7 +78,6 @@
 #else
 #define VMSA_PA_SIZE_SHIFT	48
 #endif
-typedef uint64_t		phys_addr_t;
 
 /* #include <asm/mach/arch.h> */
 #ifndef PHYS_OFFSET
@@ -127,6 +126,7 @@ typedef uint64_t		phys_addr_t;
 #endif
 #define write_ttbr_el3(tbl, top)	 write_sysreg(tbl, TTBR0_EL3)
 
+#ifndef __ASSEMBLY__
 static inline void write_ttbr(caddr_t tbl, uint8_t el, bool top)
 {
 	switch (el) {
@@ -143,5 +143,6 @@ static inline void write_ttbr(caddr_t tbl, uint8_t el, bool top)
 		break;
 	}
 }
+#endif
 
 #endif /* __VMSA_ARM64_H_INCLUDE__ */

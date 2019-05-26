@@ -26,7 +26,7 @@ caddr_t page_alloc_zeroed(void)
 	caddr_t page = page_alloc();
 
 	if (page)
-		memset((uint8_t *)page, 0, PAGE_SIZE);
+		memory_set(page, 0, PAGE_SIZE);
 	return page;
 }
 

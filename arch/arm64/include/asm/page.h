@@ -43,13 +43,16 @@
 /* Highest possible physical address supported */
 #define PHYS_MASK_SHIFT		VMSA_PA_SIZE_SHIFT
 #define PHYS_MASK		((PTR_VAL_ONE << PHYS_MASK_SHIFT) - 1)
+
+#ifndef __ASSEMBLY__
 typedef uint64_t		phys_addr_t;
 
-static inline page_wmb(void)
+static inline void page_wmb(void)
 {
 	dsb(ishst);
 	isb();
 }
+#endif
 
 #define ARCH_HAVE_SET_PTE 1
 #define set_pte(ptep, pte)	((*(ptep) = (pte)), page_wmb())
