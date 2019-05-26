@@ -1,13 +1,13 @@
 #include <target/paging.h>
 
-static void alloc_init_pte(pmd_t *pmd, unsigned long addr,
-			   unsigned long end, unsigned long pfn,
+static void alloc_init_pte(pmd_t *pmd, caddr_t addr,
+			   caddr_t end, caddr_t pfn,
 			   pgprot_t prot)
 {
 	pte_t *pte;
 
 	if (pmd_none(*pmd)) {
-		pte = (pte_t *)page_alloc();
+		pte = (pte_t *)early_page_alloc_zeroed();
 		__pmd_populate(pmd, __pa(pte), PMD_TYPE_TABLE);
 	}
 	BUG_ON(pmd_bad(*pmd));
@@ -19,12 +19,12 @@ static void alloc_init_pte(pmd_t *pmd, unsigned long addr,
 	} while (pte++, addr += PAGE_SIZE, addr != end);
 }
 
-static void alloc_init_pmd(pud_t *pud, unsigned long addr,
-			   unsigned long end, phys_addr_t phys,
+static void alloc_init_pmd(pud_t *pud, caddr_t addr,
+			   caddr_t end, phys_addr_t phys,
 			   int map_io)
 {
 	pmd_t *pmd;
-	unsigned long next;
+	caddr_t next;
 	pmdval_t prot_sect;
 	pgprot_t prot_pte;
 
@@ -40,7 +40,7 @@ static void alloc_init_pmd(pud_t *pud, unsigned long addr,
 	 * Check for initial section mappings in the pgd/pud and remove them.
 	 */
 	if (pud_none(*pud) || pud_bad(*pud)) {
-		pmd = (pmd_t *)page_alloc();
+		pmd = (pmd_t *)early_page_alloc_zeroed();
 		pud_populate(pud, pmd);
 	}
 
@@ -58,22 +58,22 @@ static void alloc_init_pmd(pud_t *pud, unsigned long addr,
 			if (!pmd_none(old_pmd))
 				flush_tlb_all();
 		} else {
-			alloc_init_pte(pmd, addr, next, __phys_to_pfn(phys),
+			alloc_init_pte(pmd, addr, next, phys_to_pfn(phys),
 				       prot_pte);
 		}
 		phys += next - addr;
 	} while (pmd++, addr = next, addr != end);
 }
 
-static void alloc_init_pud(pgd_t *pgd, unsigned long addr,
-			   unsigned long end, phys_addr_t phys,
+static void alloc_init_pud(pgd_t *pgd, caddr_t addr,
+			   caddr_t end, phys_addr_t phys,
 			   int map_io)
 {
 	pud_t *pud;
-	unsigned long next;
+	caddr_t next;
 
 	if (pgd_none(*pgd)) {
-		pud = (pud_t *)page_alloc();
+		pud = (pud_t *)early_page_alloc_zeroed();
 		pgd_populate(&init_mm, pgd, pud);
 	}
 	BUG_ON(pgd_bad(*pgd));
@@ -99,7 +99,7 @@ static void alloc_init_pud(pgd_t *pgd, unsigned long addr,
 			 */
 			if (!pud_none(old_pud)) {
 				phys_addr_t table = __pa(pmd_offset(&old_pud, 0));
-				page_free(table);
+				early_page_free(table);
 				flush_tlb_all();
 			}
 		} else {
@@ -114,10 +114,10 @@ static void alloc_init_pud(pgd_t *pgd, unsigned long addr,
  * mapping specified by 'md'.
  */
 static void __create_mapping(pgd_t *pgd, phys_addr_t phys,
-			     unsigned long virt, phys_addr_t size,
+			     caddr_t virt, phys_addr_t size,
 			     int map_io)
 {
-	unsigned long addr, length, end, next;
+	caddr_t addr, length, end, next;
 
 	addr = virt & PAGE_MASK;
 	length = PAGE_ALIGN(size + (virt & ~PAGE_MASK));
@@ -130,7 +130,7 @@ static void __create_mapping(pgd_t *pgd, phys_addr_t phys,
 	} while (pgd++, addr = next, addr != end);
 }
 
-void mmu_hw_create_mapping(phys_addr_t phys, unsigned long virt,
+void mmu_hw_create_mapping(phys_addr_t phys, caddr_t virt,
 			   phys_addr_t size)
 {
 #if 0
