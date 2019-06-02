@@ -7,7 +7,7 @@ static void alloc_init_pte(pmd_t *pmd, caddr_t addr,
 	pte_t *pte;
 
 	if (pmd_none(*pmd)) {
-		pte = (pte_t *)early_page_alloc_zeroed();
+		pte = (pte_t *)page_alloc_zeroed();
 		__pmd_populate(pmd, __pa(pte), PMD_TYPE_TABLE);
 	}
 	BUG_ON(pmd_bad(*pmd));
@@ -40,7 +40,7 @@ static void alloc_init_pmd(pud_t *pud, caddr_t addr,
 	 * Check for initial section mappings in the pgd/pud and remove them.
 	 */
 	if (pud_none(*pud) || pud_bad(*pud)) {
-		pmd = (pmd_t *)early_page_alloc_zeroed();
+		pmd = (pmd_t *)page_alloc_zeroed();
 		pud_populate(pud, pmd);
 	}
 
@@ -73,7 +73,7 @@ static void alloc_init_pud(pgd_t *pgd, caddr_t addr,
 	caddr_t next;
 
 	if (pgd_none(*pgd)) {
-		pud = (pud_t *)early_page_alloc_zeroed();
+		pud = (pud_t *)page_alloc_zeroed();
 		pgd_populate(&init_mm, pgd, pud);
 	}
 	BUG_ON(pgd_bad(*pgd));
@@ -99,7 +99,7 @@ static void alloc_init_pud(pgd_t *pgd, caddr_t addr,
 			 */
 			if (!pud_none(old_pud)) {
 				phys_addr_t table = __pa(pmd_offset(&old_pud, 0));
-				early_page_free(table);
+				page_free(table);
 				flush_tlb_all();
 			}
 		} else {
@@ -144,55 +144,18 @@ void mmu_hw_create_mapping(phys_addr_t phys, caddr_t virt,
 }
 
 #if 0
-static void __init map_mem(void)
+void __init mmap_init(void)
 {
-	struct memblock_region *reg;
-	phys_addr_t limit;
+	struct memory_region *reg;
 
-	/*
-	 * Temporarily limit the memblock range. We need to do this as
-	 * create_mapping requires puds, pmds and ptes to be allocated from
-	 * memory addressable from the initial direct kernel mapping.
-	 *
-	 * The initial direct kernel mapping, located at swapper_pg_dir, gives
-	 * us PUD_SIZE (4K pages) or PMD_SIZE (64K pages) memory starting from
-	 * PHYS_OFFSET (which must be aligned to 2MB as per
-	 * Documentation/arm64/booting.txt).
-	 */
-	if (IS_ENABLED(CONFIG_ARM64_64K_PAGES))
-		limit = PHYS_OFFSET + PMD_SIZE;
-	else
-		limit = PHYS_OFFSET + PUD_SIZE;
-	memblock_set_current_limit(limit);
-
-	/* map all the memory banks */
+	/* map all the memory regions */
 	for_each_memblock(memory, reg) {
 		phys_addr_t start = reg->base;
 		phys_addr_t end = start + reg->size;
 
 		if (start >= end)
 			break;
-
-#ifndef CONFIG_ARM64_64K_PAGES
-		/*
-		 * For the first memory bank align the start address and
-		 * current memblock limit to prevent create_mapping() from
-		 * allocating pte page tables from unmapped memory.
-		 * When 64K pages are enabled, the pte page table for the
-		 * first PGDIR_SIZE is already present in swapper_pg_dir.
-		 */
-		if (start < limit)
-			start = ALIGN(start, PMD_SIZE);
-		if (end < limit) {
-			limit = end & PMD_MASK;
-			memblock_set_current_limit(limit);
-		}
-#endif
-
 		create_mapping(start, __phys_to_virt(start), end - start);
 	}
-
-	/* Limit no longer required. */
-	memblock_set_current_limit(MEMBLOCK_ALLOC_ANYWHERE);
 }
 #endif

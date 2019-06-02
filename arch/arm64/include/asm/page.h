@@ -17,15 +17,21 @@
   * P3D: Linux PUD
   * P4D: Linux P4D
   * PGD: Linux PGDIR
+  *
+  *                   ->|PTR|<-
+  * +---------+---------+---+
+  * +---------+---------+---+
+  * |<- PxD ->|<--- PTE --->|
   */
  /* PTE is 8(2^3)-bytes sized,
   * number of PTE in PT is 2^(PAGE_SHIFT-PTE_SIZE_SHIFT)
   * All MMU is implemented in this way, while we still keep the code
   * architecture specific.
   */
-#define PTR_SIZE_BITS		3
-#define PTRS_PER_PGT_BITS	(PAGE_SHIFT - PTR_SIZE_BITS)
-#define PTRS_PER_PGT		(1 << PTRS_PER_PGT_BITS)
+#define PAGE_PTR_BITS		3
+#define PAGE_PTE_BITS		PAGE_SHIFT
+#define PAGE_PXD_BITS		(PAGE_SHIFT - PAGE_PTR_BITS)
+typedef uint64_t pfn_t;
 
 /*===========================================================================
  * linux style definitions

@@ -2,6 +2,7 @@
 
 struct page *page_empty = NULL;
 struct page **page_free_list = &page_empty;
+bool page_early = true;
 
 void page_free(caddr_t address)
 {
@@ -30,11 +31,18 @@ caddr_t page_alloc_zeroed(void)
 	return page;
 }
 
-void page_init(caddr_t base, int nr_pages)
+void page_late_init(void)
 {
-	int pfn, pfn_start = page_to_pfn(base);
+	/* TODO: convert page allocator to VA based */
+	page_early = false;
+}
+
+void page_early_init(caddr_t base, pfn_t nr_pages)
+{
+	pfn_t pfn, pfn_start = page_to_pfn(base);
 	struct page **last_page, *page;
 
+	/* The lower pages are used for early page table allocation. */
 	last_page = page_free_list;
 	for (pfn = 0; pfn < nr_pages; pfn++) {
 		page = pfn_to_page(pfn + pfn_start);

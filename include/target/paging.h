@@ -1,6 +1,7 @@
 #ifndef __PAGING_H_INCLUDE__
 #define __PAGING_H_INCLUDE__
 
+#include <target/generic.h>
 #include <target/page.h>
 #include <target/tlb.h>
 
@@ -14,7 +15,7 @@
 #define __va(x)			phys_to_virt((phys_addr_t)(x))
 
 /* Convert a physical address to a Page Frame Number and back */
-#define phys_to_pfn(paddr)	((uintptr_t)((paddr) >> PAGE_SHIFT))
+#define phys_to_pfn(paddr)	((pfn_t)((paddr) >> PAGE_SHIFT))
 #define pfn_to_phys(pfn)	((phys_addr_t)(pfn) << PAGE_SHIFT)
 
 /* Convert a page to/from a physical address */
@@ -40,24 +41,24 @@
 #define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
 #define	virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
 
-#if PTR_SIZE_BITS == 3
+#if PAGE_PTR_BITS == 3
 #define PTR_VAL_ONE		_AC(1, ULL)
 #define PTR_VAL_ZERO		_AC(0, ULL)
-#elif PTR_SIZE_BITS == 2
+#elif PAGE_PTR_BITS == 2
 #define PTR_VAL_ONE		_AC(1, UL)
 #define PTR_VAL_ZERO		_AC(0, UL)
 #endif
 
 #ifndef __ASSEMBLY__
 typedef struct page *pgtable_t;
-typedef caddr_t pteval_t;
-typedef caddr_t pmdval_t;
-typedef caddr_t pudval_t;
-typedef caddr_t pgdval_t;
+typedef uint64_t pteval_t;
+typedef uint64_t pmdval_t;
+typedef uint64_t pudval_t;
+typedef uint64_t pgdval_t;
 
 typedef pteval_t pte_t;
-#define pte_val(x)		(x)
-#define __pte(x)		(x)
+#define pte_val(x)	(x)
+#define __pte(x)	(x)
 #if PGTABLE_LEVELS > 2
 typedef pmdval_t pmd_t;
 #define pmd_val(x)	(x)
@@ -76,7 +77,7 @@ typedef pteval_t pgprot_t;
 #define __pgprot(x)	(x)
 #endif /* !__ASSEMBLY__ */
 
-#define PTRS_PER_PTE		PTRS_PER_PGT
+#define PTRS_PER_PTE		PAGE_MAX_TABLE_ENTRIES
 
 #define pte_pfn(pte)		((pte_val(pte) & PHYS_MASK) >> PAGE_SHIFT)
 #define pfn_pte(pfn, prot)	__pte(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
@@ -124,7 +125,7 @@ typedef pteval_t pgprot_t;
  * (depending on the configuration, this level can be 0, 1 or 2).
  */
 #define PGDIR_SHIFT	\
-	(PTRS_PER_PGT_BITS * (PGTABLE_LEVELS - 1) + PAGE_SHIFT)
+	(PAGE_PXD_BITS * (PGTABLE_LEVELS - 1) + PAGE_SHIFT)
 #define PGDIR_SIZE	(PTR_VAL_ONE << PGDIR_SHIFT)
 #define PGDIR_MASK	(~(PGDIR_SIZE-1))
 #define PTRS_PER_PGD	(PTR_VAL_ONE << (VA_BITS - PGDIR_SHIFT))
@@ -136,10 +137,10 @@ typedef pteval_t pgprot_t;
 #include <target/paging-nop2d.h>
 #else /* PGTABLE_LEVELS > 2 */
 /* PMD_SHIFT determines the size a level 2 page table entry can map. */
-#define PMD_SHIFT	(PTRS_PER_PGT_BITS + PAGE_SHIFT)
+#define PMD_SHIFT	(PAGE_PXD_BITS + PAGE_SHIFT)
 #define PMD_SIZE	(PTR_VAL_ONE << PMD_SHIFT)
 #define PMD_MASK	(~(PMD_SIZE-1))
-#define PTRS_PER_PMD	PTRS_PER_PGT
+#define PTRS_PER_PMD	PAGE_MAX_TABLE_ENTRIES
 
 /* Find an entry in the second-level page table. */
 #define __pmd_index(addr)		(((addr) >> PMD_SHIFT) & (PTRS_PER_PMD - 1))
@@ -170,10 +171,10 @@ static inline caddr_t pmd_addr_end(caddr_t addr, caddr_t end)
 #include <target/paging-nop3d.h>
 #else /* PGTABLE_LEVELS > 3 */
 /* PUD_SHIFT determines the size a level 1 page table entry can map. */
-#define PUD_SHIFT	(PTRS_PER_PGT_BITS * 2 + PAGE_SHIFT)
+#define PUD_SHIFT	(PAGE_PXD_BITS * 2 + PAGE_SHIFT)
 #define PUD_SIZE	(PTR_VAL_ONE << PUD_SHIFT)
 #define PUD_MASK	(~(PUD_SIZE-1))
-#define PTRS_PER_PUD	PTRS_PER_PGT
+#define PTRS_PER_PUD	PAGE_MAX_TABLE_ENTRIES
 
 /* Find an entry in the frst-level page table. */
 #define __pud_index(addr)	(((addr) >> PUD_SHIFT) & (PTRS_PER_PUD - 1))
@@ -209,6 +210,8 @@ static inline caddr_t pgd_addr_end(caddr_t addr, caddr_t end)
 }
 
 extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
+
+void mmap_init(void);
 #endif
 
 #endif /* __PAGING_H_INCLUDE__ */

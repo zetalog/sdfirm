@@ -17,6 +17,17 @@
 #define PAGE_SIZE		(1 << PAGE_SHIFT)
 #define PAGE_MASK		(~(PAGE_SIZE-1))
 
+#ifndef PAGE_PTR_BITS
+#define PAGE_PTR_BITS		BITS_PER_LONG
+#endif
+#ifndef PAGE_PTE_BITS
+#define PAGE_PTE_BITS		PAGE_SHIFT
+#endif
+#ifndef PAGE_PXD_BITS
+#define PAGE_PXD_BITS		(PAGE_SHIFT - PAGE_PTR_BITS)
+#endif
+#define PAGE_MAX_TABLE_ENTRIES	(1 << PAGE_PXD_BITS)
+
 #ifdef CONFIG_MMU_2L_TABLE
 #define PGTABLE_LEVELS		2
 #endif
@@ -31,9 +42,9 @@
 
 #ifndef __ASSEMBLY__
 #define pfn_to_page(pfn)	\
-	((struct page *)(((uintptr_t)(pfn)) << PAGE_SHIFT))
+	((struct page *)(((pfn_t)(pfn)) << PAGE_SHIFT))
 #define page_to_pfn(page)	\
-	(((uintptr_t)(page) >> PAGE_SHIFT))
+	(((pfn_t)(page) >> PAGE_SHIFT))
 
 struct page {
 	struct page *next;
@@ -42,10 +53,8 @@ struct page {
 caddr_t page_alloc(void);
 caddr_t page_alloc_zeroed(void);
 void page_free(caddr_t address);
-void page_init(caddr_t base, int nr_pages);
-
-#define early_page_alloc_zeroed()	page_alloc_zeroed()
-#define early_page_free(addr)		page_free(addr)
+void page_early_init(caddr_t base, pfn_t nr_pages);
+void page_late_init(void);
 #endif /* __ASSEMBLY__ */
 
 #endif /* __PAGE_H_INCLUDE__ */
