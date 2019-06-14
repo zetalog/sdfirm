@@ -35,77 +35,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)clk.h: clock tree framework interface
- * $Id: clk.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)cpus.h: GEM5 VExpress_EMM64 specific CPU interface
+ * $Id: cpus.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
  */
 
-#ifndef __CLK_H_INCLUDE__
-#define __CLK_H_INCLUDE__
+#ifndef __CPUS_GEM5_H_INCLUDE__
+#define __CPUS_GEM5_H_INCLUDE__
 
-#include <target/generic.h>
+#include <asm/mach/arch.h>
 
-#ifdef CONFIG_CLK_MAX_DRIVERS
-#define MAX_CLK_DRIVERS		CONFIG_CLK_MAX_DRIVERS
-#endif
-
-typedef uint16_t clk_t;
-typedef uint8_t clk_cat_t;
-typedef uint8_t clk_clk_t;
-
-#define clkid(cat, clk)		((clk_t)MAKEWORD(clk, cat))
-#define clk_clk(clkid)		LOBYTE(clkid)
-#define clk_cat(clkid)		HIBYTE(clkid)
-
-#define INVALID_FREQ		((uint32_t)0)
-
-struct clk_driver {
-	clk_clk_t max_clocks;
-	int (*enable)(clk_clk_t clk);
-	void (*disable)(clk_clk_t clk);
-	uint32_t (*get_freq)(clk_clk_t clk);
-	int (*set_freq)(clk_clk_t clk, uint32_t freq);
-	void (*select)(clk_clk_t clk, clk_t src);
-};
-
-#ifdef CONFIG_CLK
-#include <asm/mach/clk.h>
-
-uint32_t clk_get_frequency(clk_t clk);
-int clk_set_frequency(clk_t clk, uint32_t freq);
-int clk_enable(clk_t clk);
-void clk_disable(clk_t clk);
-void clk_select_source(clk_t clk, clk_t src);
-
-int clk_register_driver(clk_cat_t category, struct clk_driver *clkd);
-int clk_init(void);
-#else
-static inline uint32_t clk_get_frequency(clk_t clk)
-{
-	return 0;
-}
-
-static inline int clk_set_frequency(clk_t clk, uint32_t freq)
-{
-	return -ENODEV;
-}
-
-static inline int clk_enable(clk_t clk)
-{
-	return -ENODEV;
-}
-
-static inline void clk_disable(clk_t clk)
-{
-}
-
-static inline void clk_select_source(clk_t clk, clk_t src)
-{
-}
-
-static inline int clk_init(void)
-{
-	return 0;
-}
-#endif
-
-#endif /* __CLK_H_INCLUDE__ */
+#endif /* __CPUS_GEM5_H_INCLUDE__ */

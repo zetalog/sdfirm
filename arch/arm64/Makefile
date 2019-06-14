@@ -104,6 +104,10 @@ ifeq ($(CONFIG_ARCH_QDF2400),y)
  machine-$(CONFIG_ARCH_QDF2400)    := qdf2400
  incdir-$(CONFIG_ARCH_QDF2400)	   := qdf2400
 endif
+ifeq ($(CONFIG_ARCH_GEM5),y)
+ machine-$(CONFIG_ARCH_GEM5)       := gem5
+ incdir-$(CONFIG_ARCH_GEM5)	   := gem5
+endif
 
 ifeq ($(incdir-y),)
 incdir-y := $(machine-y)

@@ -33,6 +33,20 @@ config ARCH_QDF2400
 	help
 	  This enables support for Qualcomm server platforms.
 
+config ARCH_GEM5
+	bool "GEM5 ARM64 Board (VExpress_EMM64)"
+	select CPU_VEXPRESS
+	select ARCH_IS_TICKLESS
+	select ARCH_HAS_TSC
+	select ARCH_HAS_TSC_CONST
+	select ARCH_HAS_GPT
+	select ARCH_HAS_GICv2
+	select ARCH_HAS_IDLE
+	select MATH_GCD32
+	select BIT_ROUNDUP32
+	help
+	  This enables support of ARM versatile express platform.
+
 endchoice
 
 source arch/arm64/common/Kconfig
@@ -239,6 +253,7 @@ endmenu
 endmenu
 
 source "arch/arm64/mach-qdf2400/Kconfig"
+source "arch/arm64/mach-gem5/Kconfig"
 
 source "kernel/Kconfig"
 source "drivers/Kconfig"

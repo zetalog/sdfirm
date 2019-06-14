@@ -1,0 +1,21 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+if ARCH_GEM5
+
+menu "GEM5 VExpress_EMM64 board options"
+
+config UART_AMBA
+	bool "AMBA PL011 uart controller support"
+	depends !ARM_DCC
+	select ARCH_HAS_UART
+	select UART_PL01X
+	select UART_PL01X_SBSA
+	default y
+	help
+
+endmenu
+
+endif
