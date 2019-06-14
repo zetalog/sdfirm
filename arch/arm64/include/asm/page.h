@@ -31,7 +31,6 @@
 #define PAGE_PTR_BITS		3
 #define PAGE_PTE_BITS		PAGE_SHIFT
 #define PAGE_PXD_BITS		(PAGE_SHIFT - PAGE_PTR_BITS)
-typedef uint64_t pfn_t;
 
 /*===========================================================================
  * linux style definitions
@@ -51,6 +50,7 @@ typedef uint64_t pfn_t;
 #define PHYS_MASK		((PTR_VAL_ONE << PHYS_MASK_SHIFT) - 1)
 
 #ifndef __ASSEMBLY__
+typedef uint64_t		pfn_t;
 typedef uint64_t		phys_addr_t;
 
 static inline void page_wmb(void)
