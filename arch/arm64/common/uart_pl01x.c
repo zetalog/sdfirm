@@ -42,7 +42,7 @@
 #include <target/irq.h>
 #include <target/uart.h>
 
-#ifndef CONFIG_PL01X_SBSA
+#ifndef CONFIG_UART_PL01X_SBSA
 /* compute the baud rate divisor
  * BRDDIV = BRDi + BRDf = CLK_UART / (16 * baudrate)
  *
@@ -86,6 +86,11 @@ void pl01x_config_params(uint8_t n, uint8_t params)
 	if (uart_stopb(params))
 		cfg |= UART_STP2;
 	__raw_writeb_mask(cfg, 0xEE, UARTLCR_H(n));
+}
+
+void pl01x_con_init(void)
+{
+	pl01x_uart_enable(UART_CON_ID);
 }
 #endif
 

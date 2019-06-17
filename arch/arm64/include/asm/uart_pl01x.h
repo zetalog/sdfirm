@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2018
+ * Copyright (c) 2018-2019
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -46,23 +46,23 @@
 #include <target/generic.h>
 #include <target/muldiv.h>
 
-/* PrimeCell UART (PL011) Technical Reference Manual */
 #define UART_REG(n, offset)	(UART_BASE(n)+(offset))
 #define UART_FV(name, value)	_FV(UART_##name, value)
 
-/* Register map */
-/* ARM Server Base Architecture 5.0 Platform Design Document (DEN_0029B)
+/* PrimeCell UART (PL010/PL011) Technical Reference Manual
+ * ARM Server Base Architecture 5.0 Platform Design Document (DEN_0029B)
  * B.2 Generic UART register frame
  */
+
+/* ===========================================================================
+ * PL010/PL011 common
+ * =========================================================================== */
+/* Register map */
 #define UARTDR(n)		UART_REG(n, 0x000)
 #define UARTDER(n)		(UARTDR(n)+1)	/* Error part of UARTDR */
 #define UARTRSR(n)		UART_REG(n, 0x004)
 #define UARTECR(n)		UART_REG(n, 0x004)
 #define UARTFR(n)		UART_REG(n, 0x018)
-#define UARTRIS(n)		UART_REG(n, 0x03C)
-#define UARTMIS(n)		UART_REG(n, 0x040)
-#define UARTIMSC(n)		UART_REG(n, 0x038)
-#define UARTICR(n)		UART_REG(n, 0x044)
 
 /* Register field values */
 /* UARTER/UARTRSR/UARTECR */
@@ -78,15 +78,6 @@
 #define UART_RXFF		_BV(6)
 #define UART_TXFE		_BV(7)
 
-/* UARTIMSC/UARTRIS/UARTMIS/UARTICR */
-#define UART_RXI		_BV(4)
-#define UART_TXI		_BV(5)
-#define UART_RTI		_BV(6)
-#define UART_FEI		_BV(7)
-#define UART_PEI		_BV(8)
-#define UART_BEI		_BV(9)
-#define UART_OEI		_BV(10)
-
 #define pl01x_read_data(n)	__raw_readb(UARTDR(n))
 #define pl01x_write_data(n, v)	__raw_writeb(v, UARTDR(n))
 #define pl01x_read_error(n)	__raw_readb(UARTRSR(n))
@@ -98,6 +89,94 @@
 #define pl01x_write_full(n)	(__raw_readw(UARTFR(n)) & UART_TXFF)
 #define pl01x_write_empty(n)	(__raw_readw(UARTFR(n)) & UART_TXFE)
 #define pl01x_read_empty(n)	(__raw_readw(UARTFR(n)) & UART_RXFE)
+
+/* ---------------------------------------------------------------------------
+ * SBSA excluded
+ * --------------------------------------------------------------------------- */
+#ifndef CONFIG_UART_PL01X_SBSA
+/* Register field values */
+/* UARTFR */
+#define UART_CTS		_BV(0)
+#define UART_DSR		_BV(1)
+#define UART_DCD		_BV(2)
+
+/* UARTLCR_H */
+#define UART_BRK		_BV(0)
+#define UART_PEN		_BV(1)
+#define UART_EPS		_BV(2)
+#define UART_STP2		_BV(3)
+#define UART_FEN		_BV(4)
+#define UART_WLEN_OFFSET	5
+#define UART_WLEN_MASK		0x03
+#define UART_WLEN(value)	UART_FV(WLEN, value)
+
+/* UARTCR */
+#define UART_EN			_BV(0)
+#define UART_SIREN		_BV(1)
+#define UART_SIRLP		_BV(2)
+#define UART_LBE		_BV(7)
+
+#define pl01x_ctrl_enable(n)					\
+	do {							\
+		__raw_setw(UART_FEN, UARTLCR_H(n));		\
+		__raw_setw(UART_EN, UARTCR(n));			\
+	} while (0)
+#define pl01x_ctrl_disable(n)					\
+	do {							\
+		__raw_clearw(UART_EN, UARTCR(n));		\
+		while (__raw_readw(UARTFR(n)) & UART_BUSY);	\
+		__raw_clearw(UART_FEN, UARTLCR_H(n));		\
+	} while (0)
+#define pl01x_ctrl_disable_all(n)	__raw_writew(0, UARTCR(n))
+#define pl01x_uart_enable(n)	__raw_setw(UART_TXE | UART_RXE, UARTCR(n))
+#define pl01x_uart_disable(n)	__raw_clearw(UART_TXE | UART_RXE, UARTCR(n))
+
+void pl01x_config_baudrate(uint8_t n, uint32_t src_clk, uint32_t baudrate);
+void pl01x_config_params(uint8_t n, uint8_t params);
+void pl01x_con_init(void);
+#endif /* !CONFIG_UART_PL01X_SBSA */
+
+/* ===========================================================================
+ * PL010 specific
+ * =========================================================================== */
+#ifdef CONFIG_UART_PL010
+/* Register map */
+#define UARTLCR_H(n)		UART_REG(n, 0x008)
+#define UARTLCR_M(n)		UART_REG(n, 0x00C)
+#define UARTLCR_L(n)		UART_REG(n, 0x010)
+#define UARTCR(n)		UART_REG(n, 0x014)
+#define UARTIIR(n)		UART_REG(n, 0x01C)
+#define UARTICR(n)		UART_REG(n, 0x01C)
+#define UARTILPR(n)		UART_REG(n, 0x020)
+
+/* Register field values */
+/* UARTCR */
+#define UARTCR_MSIE		_BV(3)
+#define UARTCR_RIE		_BV(4)
+#define UARTCR_TIE		_BV(5)
+#define UARTCR_RTIE		_BV(6)
+#endif
+
+/* ===========================================================================
+ * PL011 specific
+ * =========================================================================== */
+#ifdef CONFIG_UART_PL011
+/* Register map */
+#define UARTIMSC(n)		UART_REG(n, 0x038)
+#define UARTRIS(n)		UART_REG(n, 0x03C)
+#define UARTMIS(n)		UART_REG(n, 0x040)
+#define UARTICR(n)		UART_REG(n, 0x044)
+
+/* Register field values */
+/* UARTIMSC/UARTRIS/UARTMIS/UARTICR */
+#define UART_RXI		_BV(4)
+#define UART_TXI		_BV(5)
+#define UART_RTI		_BV(6)
+#define UART_FEI		_BV(7)
+#define UART_PEI		_BV(8)
+#define UART_BEI		_BV(9)
+#define UART_OEI		_BV(10)
+
 #define pl01x_enable_irq(n, irq)	__raw_setw(irq, UARTIMSC(n))
 #define pl01x_disable_irq(n, irq)	__raw_clearw(irq, UARTIMSC(n))
 #define pl01x_mask_irq(n, irq)		__raw_setw(irq, UARTMIS(n))
@@ -106,8 +185,11 @@
 #define pl01x_irq_status(n)		__raw_readw(irq, UARTRIS(n))
 #define pl01x_disable_all_irqs(n)	__raw_writew(0, UARTIMSC(n))
 
-/* PrimeCell UART (PL011) Revision r1p5 Technical Reference Manual */
-#ifndef CONFIG_PL01X_SBSA
+/* ---------------------------------------------------------------------------
+ * SBSA excluded
+ * --------------------------------------------------------------------------- */
+#ifndef CONFIG_UART_PL01X_SBSA
+/* Register map */
 #define UARTILPR(n)		UART_REG(n, 0x020)
 #define UARTIBRD(n)		UART_REG(n, 0x024)
 #define UARTFBRD(n)		UART_REG(n, 0x028)
@@ -127,27 +209,12 @@
 
 /* Register field values */
 /* UARTFR */
-#define UART_CTS		_BV(0)
-#define UART_DSR		_BV(1)
-#define UART_DCD		_BV(2)
 #define UART_RI			_BV(8)
 
 /* UARTLCR_H */
-#define UART_BRK		_BV(0)
-#define UART_PEN		_BV(1)
-#define UART_EPS		_BV(2)
-#define UART_STP2		_BV(3)
-#define UART_FEN		_BV(4)
-#define UART_WLEN_OFFSET	5
-#define UART_WLEN_MASK		0x03
-#define UART_WLEN(value)	UART_FV(WLEN, value)
 #define UART_SPS		_BV(7)
 
 /* UARTCR */
-#define UART_EN			_BV(0)
-#define UART_SIREN		_BV(1)
-#define UART_SIRLP		_BV(2)
-#define UART_LBE		_BV(7)
 #define UART_TXE		_BV(8)
 #define UART_RXE		_BV(9)
 #define UART_DTR		_BV(10)
@@ -175,25 +242,8 @@
 #define UART_RXDMAE		_BV(0)
 #define UART_TXDMAE		_BV(1)
 #define UART_DMAONERR		_BV(2)
-
-#define pl01x_ctrl_enable(n)					\
-	do {							\
-		__raw_setw(UART_FEN, UARTLCR_H(n));		\
-		__raw_setw(UART_EN, UARTCR(n));			\
-	} while (0)
-#define pl01x_ctrl_disable(n)					\
-	do {							\
-		__raw_clearw(UART_EN, UARTCR(n));		\
-		while (__raw_readw(UARTFR(n)) & UART_BUSY);	\
-		__raw_clearw(UART_FEN, UARTLCR_H(n));		\
-	} while (0)
-#define pl01x_ctrl_disable_all(n)	__raw_writew(0, UARTCR(n))
-#define pl01x_uart_enable(n)	__raw_setw(UART_TXE | UART_RXE, UARTCR(n))
-#define pl01x_uart_disable(n)	__raw_clearw(UART_TXE | UART_RXE, UARTCR(n))
-
-void pl01x_config_baudrate(uint8_t n, uint32_t src_clk, uint32_t baudrate);
-void pl01x_config_params(uint8_t n, uint8_t params);
-#endif /* CONFIG_PL01X_SBSA */
+#endif /* !CONFIG_UART_PL01X_SBSA */
+#endif
 
 boolean pl01x_read_poll(void);
 uint8_t pl01x_read_byte(void);

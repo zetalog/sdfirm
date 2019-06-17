@@ -127,7 +127,7 @@ exception_exit:
 	b	\label
 .endm
 
-.globl vectors
+.globl vectors_el3
 .align 11, 0
 vectors:
 	/* -----------------------------------------------------------

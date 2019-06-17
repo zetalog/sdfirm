@@ -5,41 +5,80 @@
 #include <asm/asm-offsets.h>
 #include <asm/reg.h>
 
+#define ARM_ROM_OFFSET	0x850
+
 	__HEAD
 
+#ifdef CONFIG_ROM
+.org 0
+ENTRY(stext)
+	b	__arm_reset
+.org 0x080
+	b	.
+.org 0x100
+	b	.
+.org 0x180
+	b	.
+.org 0x200
+	b	.
+.org 0x280
+	b	.
+.org 0x300
+	b	.
+.org 0x380
+	b	.
+.org 0x400
+	b	__psci_handler
+.org 0x480
+	b	.
+.org 0x500
+	b	.
+.org 0x580
+	b	.
+.org 0x600
+	b	.
+#else
 #ifdef CONFIG_XIP
-	.fill 0x850
+	.fill ARM_ROM_OFFSET
 #endif
 
 ENTRY(stext)
-	# Enable cache and stack alignment check
-	# Disable MMU, alignment check, write XN
-	# Keep endianness unchanged
-	ldr	x0, =(SCTLR_EL3_RES1 | SCTLR_I | SCTLR_C | SCTLR_SA)
-	msr	SCTLR_EL3, x0
-	# Make sure we throw away anything fetched before the
-	# MMU/Caches were in a known state
-	dsb	sy
-	isb
+#endif
 
-	# Do not trap WFE/WFI/SMC/HVC
-	# Route SError and External Aborts, IRQ, FIQ
-	# Permit non-secure secure instruction fetch
-	# Lower EL is AARCH64 and non-secure
-	ldr	x0, =(SCR_EL3_RES1 | SCR_NS | SCR_RW | \
-		      SCR_EA | SCR_IRQ| SCR_FIQ | SCR_ST)
-	msr	SCR_EL3, x0
-
-	# No feature trap
-	msr	CPTR_EL3, xzr
-
-	# Disable VM and VM traps
-	# Lower EL is AARCH64
-	ldr	x0, =HCR_RW
-	msr	HCR_EL2, x0
-
-	ldr	x0, =vectors
-	msr	VBAR_EL3, x0
+__arm_reset:
+#ifdef CONFIG_SYS_MONITOR
+	mov	x0, xzr
+	mov	x1, xzr
+	mov	x2, xzr
+	mov	x3, xzr
+	mov	x4, xzr
+	mov	x5, xzr
+	mov	x6, xzr
+	mov	x7, xzr
+	mov	x8, xzr
+	mov	x9, xzr
+	mov	x10, xzr
+	mov	x11, xzr
+	mov	x12, xzr
+	mov	x13, xzr
+	mov	x14, xzr
+	mov	x15, xzr
+	mov	x16, xzr
+	mov	x17, xzr
+	mov	x18, xzr
+	mov	x19, xzr
+	mov	x20, xzr
+	mov	x21, xzr
+	mov	x22, xzr
+	mov	x23, xzr
+	mov	x24, xzr
+	mov	x25, xzr
+	mov	x26, xzr
+	mov	x27, xzr
+	mov	x28, xzr
+	mov	x29, xzr
+	mov	x30, xzr
+#endif
 
 	/* zero init BSS region */
 	ldr	x0, =__bss_start
@@ -50,7 +89,108 @@ bss_init_loop:
 	cmp	x0, x1
 	blt	bss_init_loop
 
+	# Temporal stack
 	ldr	x0, =RAMEND
 	mov	sp, x0
+
+	# switch different EL entries
+	mrs	x0, CurrentEL
+	cmp	x0, #0xc
+	b.ne	stext_el1
+
+stext_el3:
+#ifdef CONFIG_SYS_MONITOR
+	# Enable cache and stack alignment check
+	# Disable MMU, alignment check, write XN
+	# Keep endianness unchanged
+	ldr	x0, =(SCTLR_EL3_RES1 | SCTLR_I | SCTLR_C | SCTLR_SA)
+	msr	SCTLR_EL3, x0
+	# Make sure we throw away anything fetched before the
+	# MMU/Caches were in a known state
+	dsb	sy
+	isb
+
+	ldr	x0, =vectors_el3
+	msr	VBAR_EL3, x0
+
+	# Do not trap WFE/WFI/SMC/HVC
+	# Route SError and External Aborts, IRQ, FIQ
+	# Permit non-secure secure instruction fetch
+#define SCR_EL3_DEFAULT	(SCR_EA | SCR_IRQ | SCR_FIQ | SCR_ST)
+#else
+#define SCR_EL3_DEFAULT	SCR_HCE
+#endif
+	# Lower EL is AARCH64 and non-secure
+	ldr	x0, =(SCR_EL3_RES1 | SCR_NS | SCR_RW | \
+		      SCR_EL3_DEFAULT)
+	msr	SCR_EL3, x0
+
+	# No feature trap
+	msr	CPTR_EL3, xzr
+
+stext_el2:
+#ifndef CONFIG_SYS_HYPERVISOR
+	# Disable VM and VM traps
+	# Lower EL is AARCH64
+	ldr	x0, =HCR_RW
+	msr	HCR_EL2, x0
+
+	msr	SCTLR_EL2, xzr
+#endif
+
+#ifdef CONFIG_SYS_KERNEL
+	# EL3/EL2 kernel bootloader
+	# early delay initialization
+	bl	delay_init
+
+	# Only proceed on boot CPU
+	mrs	x0, MPIDR_EL1
+	tst     x0, #0xf
+1:
+	b.ne	1b
+	# early GICD initialization
+	bl	irq_init
+
+	# Linux requirement - exit to EL2h */
+	ldr	x0, =stext_el1
+	mov	x1, #(SPSR_E | SPSR_A | SPSR_I | SPSR_F | SPSR_MODE_EL2h)
+	msr	ELR_EL3, x0
+	msr	SPSR_EL3, x1
+	eret
+#endif
+
+stext_el1:
+	mov	x0, xzr
+	mov	x1, xzr
+	mov	x2, xzr
+	mov	x3, xzr
+
+	# Only proceed on boot CPU
+	mrs	x4, MPIDR_EL1
+	tst	x4, #0xf
+	b.eq    3f
+2:
+	wfe
+	# Check if non-boot CPUs can jump
+	ldr	x4, =0x8000fff8
+	ldr	x4, [x4]
+	cbz	x4, 2b
+	br	x4
+
+	# early console initialization
+3:
+	bl	console_init
+
+#ifdef CONFIG_SYS_MONITOR
 	bl	system_init
+#else
+	ldr	x0, =0x88000000
+	ldr	x6, =0x80080000
+	br	x6
+#endif
 ENDPIPROC(stext)
+
+	.pushsection	.data
+ENTRY(welcome_msg_ram)
+	.asciz	"\r\nWelcome to sdfirm.\r\n===== By ZETALOG =====\r\n"
+	.popsection

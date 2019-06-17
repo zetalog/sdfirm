@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Jun 14 17:34:51 2019
+# Mon Jun 17 19:24:56 2019
 #
 CONFIG_ARM64=y
 
@@ -53,7 +53,10 @@ CONFIG_GICv2_IRQ_NS=y
 # ARM CoreLink peripheral support
 #
 CONFIG_UART_PL01X=y
-CONFIG_UART_PL01X_SBSA=y
+CONFIG_ARCH_IS_UART_PL011=y
+# CONFIG_UART_PL010 is not set
+CONFIG_UART_PL011=y
+# CONFIG_UART_PL01X_SBSA is not set
 
 #
 # Compiler options
@@ -105,10 +108,7 @@ CONFIG_MAX_BHS=4
 #
 # Timing facility (delay) support
 #
-# CONFIG_LPS_NO_LPS is not set
-CONFIG_LPS_64BITS=y
-CONFIG_LPS_WEIGHT=8
-# CONFIG_LPS_PRESET is not set
+CONFIG_LPS_NO_LPS=y
 # CONFIG_TIMER is not set
 
 #
@@ -236,10 +236,10 @@ CONFIG_DEBUG=y
 # CONFIG_DEBUG_PANIC is not set
 # CONFIG_PORTING is not set
 CONFIG_CONSOLE=y
-CONFIG_CONSOLE_COMMAND=y
+# CONFIG_CONSOLE_COMMAND is not set
 CONFIG_CONSOLE_OUTPUT=y
 CONFIG_CONSOLE_PRINT_BUFFER_SIZE=64
-CONFIG_CONSOLE_INPUT=y
+# CONFIG_CONSOLE_INPUT is not set
 # CONFIG_CONSOLE_230400 is not set
 CONFIG_CONSOLE_115200=y
 # CONFIG_CONSOLE_57600 is not set

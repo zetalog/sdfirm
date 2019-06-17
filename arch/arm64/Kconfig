@@ -42,6 +42,7 @@ config ARCH_GEM5
 	select ARCH_HAS_GPT
 	select ARCH_HAS_GICv2
 	select ARCH_HAS_IDLE
+	select ARCH_IS_UART_PL011
 	select MATH_GCD32
 	select BIT_ROUNDUP32
 	help

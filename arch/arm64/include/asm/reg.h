@@ -6,6 +6,22 @@
 #include <asm/io.h>
 #include <asm/mach/reg.h>
 
+#if defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
+/* Macro to switch to label based on current el */
+.macro asm_switch_el xreg label1 label2 label3
+	mrs	\xreg, CurrentEL
+	/* Currently at EL1 */
+	cmp	\xreg, #(ARM_EL1 << CURRENT_EL_OFFSET)
+	b.eq	\label1
+	/* Currently at EL2 */
+	cmp	\xreg, #(ARM_EL2 << CURRENT_EL_OFFSET)
+	b.eq	\label2
+	/* Currently at EL3 */
+	cmp	\xreg, #(ARM_EL3 << CURRENT_EL_OFFSET)
+	b.eq	\label3
+.endm
+#endif
+
 /* =================================================================
  * DDI0487B_b ARMv8 ARM
  * ARM Architecture Reference Manual - ARMv8, for ARMv8-A
@@ -33,6 +49,81 @@
 #define CURRENT_EL_OFFSET	1
 #define CURRENT_EL_MASK		REG_2BIT_MASK
 #define CURRENT_EL(value)	_GET_FV(CURRENT_EL, value)
+
+/* C5.2.17 SPSR_abt, Saved Program Status Register (Abort mode)
+ * C5.2.18 SPSR_EL1, Saved Program Status Register (EL1)
+ * C5.2.19 SPSR_EL2, Saved Program Status Register (EL2)
+ * C5.2.20 SPSR_EL3, Saved Program Status Register (EL3)
+ */
+/* AARCH64/AARCH32 common */
+#define SPSR_N			_BV(31)
+#define SPSR_Z			_BV(30)
+#define SPSR_C			_BV(29)
+#define SPSR_V			_BV(28)
+#define SPSR_SS			_BV(21)
+#define SPSR_IL			_BV(20)
+#define SPSR_A			_BV(8)
+#define SPSR_I			_BV(7)
+#define SPSR_F			_BV(6)
+#define SPSR_M			_BV(4)
+#define SPSR_MODE_OFFSET	0
+#define SPSR_MODE_MASK		REG_4BIT_MASK
+#define SPSR_MODE(value)	_GET_FV(SPSR_MODE, value)
+#define SPSR_PAN		_BV(22)
+#ifdef CONFIG_CPU_64v8_1_PAN
+#define SPSR_PAN_RES0		0
+#else
+#define SPSR_PAN_RES0		SPSR_PAN
+#endif
+/* AARCH64 specific */
+#define SPSR_D			_BV(9)
+#define SPSR_UAO		_BV(23)
+#ifdef CONFIG_CPU_64v8_2_UAO
+#define SPSR_UAO_RES0		0
+#else
+#define SPSR_UAO_RES0		SPSR_UAO
+#endif
+/* AARCH64 specific SPSR_MODE */
+#define SPSR_MODE_EL0t		0x0
+#define SPSR_MODE_EL1t		0x4
+#define SPSR_MODE_EL1h		0x5
+#define SPSR_MODE_EL2t		0x8
+#define SPSR_MODE_EL2h		0x9
+#define SPSR_MODE_EL3t		0xC
+#define SPSR_MODE_EL3h		0xD
+#define SPSR_AARCH64_RES0	(_BV(27) | _BV(26) | _BV(25) | _BV(24) | \
+				 SPSR_UAO_RES0 | SPSR_PAN_RES0 | \
+				 _BV(19）| _BV(18) | _BV(17) | _BV(16) | \
+				 _BV(15) | _BV(14) | _BV(13) | _BV(12) | _BV(11) | _BV(10) \
+				 _BV(5))
+
+/* AARCH32 specific */
+#define SPSR_Q			_BV(27)
+#define SPSR_IT_lo_OFFSET	25
+#define SPSR_IT_lo_MASK		REG_2BIT_MASK
+#define SPSR_IT_lo(value)	_GET_FV(SPSR_IT_lo, value)
+#define SPSR_J			_BV(24)
+#define SPSR_GE_OFFSET		16
+#define SPSR_GE_MASK		REG_4BIT_MASK
+#define SPSR_GE(value)		_GET_FV(SPSR_GE, value)
+#define SPSR_IT_hi_OFFSET	10
+#define SPSR_IT_hi_MASK		REG_6BIT_MASK
+#define SPSR_IT_hi(value)	_GET_FV(SPSR_IT_hi, value)
+#define SPSR_IT(value)		\
+	(SPSR_IT_lo(value) | (SPSR_IT_hi(value) << SPSR_IT_lo_OFFSET))
+#define SPSR_E			_BV(9)
+#define SPSR_T			_BV(5)
+/* AARCH32 specific SPSR_MODE */
+#define SPSR_MODE_USR		0x0
+#define SPSR_MODE_FIQ		0x1
+#define SPSR_MODE_IRQ		0x2
+#define SPSR_MODE_SVC		0x3
+#define SPSR_MODE_ABT		0x7
+#define SPSR_MODE_HYP		0xA
+#define SPSR_MODE_UND		0xB
+#define SPSR_MODE_SYS		0xF
+#define SPSR_ABT_RES0		(_BV(23) | SPSR_PAN_RES0 | _BV(21))
+#define SPSR_AARCH32_RES0	(_BV(23) | SPSR_PAN_RES0)
 
 /* =================================================================
  * D.10.2 General system control registers

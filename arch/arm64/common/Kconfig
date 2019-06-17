@@ -417,8 +417,28 @@ config UART_PL01X
 
 if UART_PL01X
 
+config ARCH_IS_UART_PL010
+	bool
+
+config ARCH_IS_UART_PL011
+	bool
+
+choice
+	prompt "PL01x architecture"
+
+config UART_PL010
+	bool "PL010"
+	depends ARCH_IS_UART_PL010
+
+config UART_PL011
+	bool "PL011"
+	depends ARCH_IS_UART_PL011
+
+endchoice
+
 config UART_PL01X_SBSA
 	bool "PL01X Server Base System Architecture (SBSA) subset"
+	select ARCH_IS_UART_PL011
 	help
 	  Select this to exclude non-SBSA required features.
 

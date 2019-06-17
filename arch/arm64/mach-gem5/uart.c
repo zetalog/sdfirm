@@ -32,4 +32,13 @@ void uart_hw_irq_ack(void)
 
 void uart_hw_con_init(void)
 {
+	pl01x_con_init();
+
+	/* initialize gpio controller */
+	asm volatile(
+		"ldr	x4, =0x1c010000\n"
+		"ldr	w5, =0xc0700000\n"
+		"str	wzr, [x4, #160]\n"
+		"str	w5, [x4, #164]\n"
+	);
 }

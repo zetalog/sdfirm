@@ -39,25 +39,34 @@ int console_output_space(void);
 void console_input_handler(void);
 int console_input_init(void);
 #else
-#define console_input_handler()
-#define console_input_init()	0
+#define console_input_handler()		do { } while (0)
+static inline int console_input_init(void)
+{
+	return 0;
+}
 #endif
 
 #ifdef CONFIG_CONSOLE_OUTPUT
 void console_output_handler(void);
 int console_output_init(void);
 #else
-#define console_output_handler()
-#define console_output_init()	0
-#define console_output_space()	1
+#define console_output_handler()	do { } while (0)
+static inline int console_output_init(void)
+{
+	return 0;
+}
+static inline int console_output_space(void)
+{
+	return 1;
+}
 #endif
 
 void console_handle_irq(void);
 void console_init(void);
 void console_late_init(void);
 #else
-#define console_init()
-#define console_late_init()
+#define console_init()			do { } while (0)
+#define console_late_init()		do { } while (0)
 #endif
 
 #endif /* __CONSOLE_H_INCLUDE__ */
