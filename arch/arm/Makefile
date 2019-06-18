@@ -13,7 +13,7 @@
 OBJCOPYFLAGS	:=-O binary -R .note -R .note.gnu.build-id -R .comment -S
 CFLAGS		+=-ffixed-r8
 AFLAGS		+=
-LDFLAGS_sdfirm	:=--gc-sections -p --no-undefined -X
+LDFLAGS_sdfirm	:=-p --no-undefined -X
 
 # Never generate .eh_frame
 CFLAGS		+= $(call cc-option,-fno-dwarf2-cfi-asm)

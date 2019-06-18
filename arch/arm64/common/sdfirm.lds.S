@@ -1,6 +1,7 @@
 #include <target/config.h>
 #include <target/const.h>
 #include <target/page.h>
+#include <target/cmdline.h>
 #include <asm-generic/sdfirm.lds.h>
 
 OUTPUT_FORMAT("elf64-littleaarch64", "elf64-bigaarch64", "elf64-littleaarch64")
@@ -29,15 +30,12 @@ SECTIONS
 		*/
 		INIT_CALLS
 		INIT_DATA
+		. = ALIGN((8));
 		__init_text_end = .;
 	}
+	CMD_LINE_SECTION(8)
 
 	_text = .;			/* address in RAM or ROM */
-	.cmd_array ALIGN(8) : {
-		__cmd_start = .;
-		*(.cmd.text)
-		__cmd_end = .;
-	}
 	.text : {
 		TEXT_TEXT
 	}

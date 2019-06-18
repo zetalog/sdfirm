@@ -9,7 +9,12 @@ void gblct_init(void)
 {
 	if (!gblct_initialized) {
 		gblct_initialized = true;
+#if 0
+		/* GEM5 is EL1 based, configuring global counter is not
+		 * allowed.
+		 */
 		__systick_init();
+#endif
 	}
 }
 

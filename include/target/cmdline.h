@@ -4,13 +4,21 @@
 #include <errno.h>
 #include <target/compiler.h>
 
-#define __cmd	__section(.cmd.text)
+#define CMD_LINE_SECTION(align)				\
+	. = ALIGN((align));				\
+	__cmd_start = .;				\
+	.cmd.text : {					\
+		*(.cmd.text)				\
+	}						\
+	__cmd_end = .;
 
+
+#ifndef __ASSEMBLY__
 #define DEFINE_COMMAND(name, cmd, help, usage)		\
 	int cmd(int, char *[]);				\
-	static cmd_tbl __cmd_##name __used __cmd = {	\
-		#name, cmd, help, usage			\
-	}
+	static cmd_tbl __cmd_##name			\
+	__attribute__((used,__section__(".cmd.text")))	\
+	= { #name, cmd, help, usage }
 
 typedef struct {
 	char *name;
@@ -37,5 +45,6 @@ static inline int cmd_init(void)
 	return -ENODEV;
 }
 #endif
+#endif /* __ASSEMBLY__ */
 
 #endif /* __CMDLINE_H_INCLUDE__ */

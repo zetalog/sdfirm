@@ -32,6 +32,7 @@
 #define TEXT_TEXT						\
 	ALIGN_FUNCTION();					\
 	*(.text)						\
+	*(.text.*)						\
 	*(.ref.text)
 #define DATA_DATA						\
 	*(.data)						\

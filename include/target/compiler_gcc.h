@@ -38,11 +38,11 @@
 #define UL(x)		x##UL
 #endif
 
-#define __packed			__attribute__((packed))
-#define __used				__attribute__((used))
-#define __unused			__attribute__((unused))
+#define __packed			__attribute__((__packed__))
+#define __used				__attribute__((__used__))
+#define __unused			__attribute__((__unused__))
 #define __align(a)			__attribute__((__aligned__(a)))
-#define __always_inline			inline __attribute__((always_inline))
+#define __always_inline			inline __attribute__((__always_inline__))
 #define __compiler_offsetof(a, b)	 __builtin_offsetof(a, b)
 #define __section(S)			__attribute__((__section__(#S)))
 

@@ -13,7 +13,7 @@
 OBJCOPYFLAGS	:=-O binary -R .note -R .note.gnu.build-id -R .comment -S
 CFLAGS		+=-g
 AFLAGS		+=-g
-LDFLAGS_sdfirm	:=--gc-sections -p --no-undefined -X
+LDFLAGS_sdfirm	:=-p --no-undefined -X
 CFLAGS		+= \
 	-mtune=cortex-a53 \
 	-mstrict-align \

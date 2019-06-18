@@ -12,8 +12,8 @@
 
 #define SIZE_1M		0x100000
 
-__cmd cmd_tbl __cmd_start[0];
-__cmd cmd_tbl __cmd_end[0];
+extern cmd_tbl __cmd_start[0];
+extern cmd_tbl __cmd_end[0];
 
 #define foreach_cmd(cmdp)		\
 	for (cmdp = __cmd_start; cmdp < __cmd_end; cmdp++)
