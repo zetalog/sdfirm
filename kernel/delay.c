@@ -60,7 +60,14 @@
 	((tsc_count_t)((n>=o) ? (n-o) : (DELAY_TICKS_MAX-o+n+1)))
 
 #if defined(CONFIG_NO_LPS) || defined(CONFIG_LPS_PRESET)
+/* Stub calibrate_delay_start() as tick_init() should have already been
+ * invoked.
+ */
+#ifdef CONFIG_TICK
 #define calibrate_delay_start()
+#else
+#define calibrate_delay_start()		tsc_hw_ctrl_init()
+#endif
 #define calibrate_delay_stop()
 #define __calibrate_delay()
 #else
