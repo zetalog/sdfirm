@@ -57,6 +57,7 @@ menu "Bootloader options"
 
 config BOOT_LINUX
 	bool "Linux boot protocol"
+	select CONSOLE
 
 config BOOT_ROM
 	bool "Silicon boot ROM"

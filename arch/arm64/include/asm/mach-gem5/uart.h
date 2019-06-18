@@ -17,7 +17,7 @@
 #define UART_CON_IRQ			IRQ_UART0
 #define UART_CON_ID			0
 
-#if defined(CONFIG_UART_AMBA)
+#if defined(CONFIG_UART_GEM5)
 #include <asm/uart_pl01x.h>
 #ifndef ARCH_HAVE_UART
 #define ARCH_HAVE_UART		1
