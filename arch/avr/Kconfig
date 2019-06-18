@@ -10,6 +10,8 @@ config AVR
 	default y
 	help
 
+source "init/Kconfig"
+
 menu "AVR system options"
 
 choice
@@ -56,5 +58,4 @@ source "appl/Kconfig"
 source "kernel/Kconfig"
 source "drivers/Kconfig"
 source "lib/Kconfig"
-source "init/Kconfig"
-
+source "init/Kconfig.debug"

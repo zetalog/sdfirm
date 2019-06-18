@@ -1,0 +1,291 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu 'Development options'
+
+config EXPERIMENTAL
+	bool "Prompt for development"
+	help
+	  Some of the various things that SDFirm supports can be in a state
+	  of development where the functionality, stability, or the level of
+	  testing is not yet high enough for general use. This is usually
+	  known as the "alpha-test" phase among developers. If a feature is
+	  currently in alpha-test, then the developers usually discourage
+	  uninformed widespread use of this feature by the general public to
+	  avoid "Why doesn't this work?" type mail messages. However, active
+	  testing and use of these systems is welcomed. Just be aware that it
+	  may not meet the normal level of reliability or it may fail to work
+	  in some special cases. Detailed bug reports from people familiar
+	  with the kernel internals are usually welcomed by the developers
+	  This option will also make obsoleted drivers available. These are
+	  drivers that have been replaced by something else, and/or are
+	  scheduled to be removed in a future kernel release.
+	  Unless you intend to help test and develop a feature or driver that
+	  falls into this category, or you have a situation that requires
+	  using these features, you should probably say N here, which will
+	  cause the configurator to present you with fewer choices. If
+	  you say Y here, you will be offered the choice of using features or
+	  drivers that are currently considered to be in the alpha-test phase.
+
+config CC_OPT_SIZE
+	bool "Optimize for size"
+	default y
+	help
+	  Enabling this option will pass "--opt-code-size" instead of
+	  "--opt-code-speed" to sdcc resulting in a smaller kernel.
+	  If unsure, say N.
+
+menuconfig DEBUG
+	bool 'Debugging options'
+	depends EXPERIMENTAL
+
+if DEBUG
+
+config CC_GEN_DEBUG
+	bool "Compile with debug info"
+	help
+	  Say Y here if you wish to examine internals while applets are
+	  running.  This increases the size of the binary considerably, and
+	  should only be used when doing development.  If you are doing
+	  development and want to debug, answer Y.
+	  Most people should answer N.
+
+config DEBUG_PANIC
+	bool "Enable debug panic output"
+	select PANIC_DEBUG if DEBUG_PRINT
+
+menuconfig PORTING
+	bool "Run porting initialization steps"
+	select DEBUG_PRINT
+
+if PORTING
+
+choice
+	prompt "Porting step"
+
+config PORTING_LOAD
+	bool "load"
+	select DEBUG_PRINT
+	help
+	  Testing whether self loader is correctly working.  Self loader
+	  is implemented in the arch/$ARCH/common/head.S for every
+	  architecture.
+
+config PORTING_HEAP
+	bool "heap"
+	select HEAP
+
+config PORTING_GPIO
+	bool "GPIO"
+	select GPIO
+
+config PORTING_UART
+	bool "UART"
+
+config PORTING_SPI
+	bool "SPI"
+	select SPI
+
+config PORTING_TASK
+	bool "task"
+	select TASK
+
+config PORTING_LED
+	bool "LED"
+	select LED
+
+config PORTING_TSC
+	bool "TSC"
+
+config PORTING_GPT
+	bool "GPT"
+	depends !TIMER && !TICK
+
+config PORTING_DELAY
+	bool "delay"
+
+config PORTING_TIMER
+	bool "timer"
+	select TIMER
+
+endchoice
+
+choice
+	prompt "Select IO mode"
+	depends PORTING_UART || PORTING_SPI
+
+config PORTING_SYNC
+	bool "SYNC"
+
+config PORTING_ASYNC
+	bool "ASYNC"
+	select UART if PORTING_UART
+
+endchoice
+
+choice
+	prompt "Select direction"
+	depends PORTING_GPIO || PORTING_UART
+	default PORTING_OUT
+
+config PORTING_OUT
+	bool "OUT"
+
+config PORTING_IN
+	bool "IN"
+
+endchoice
+
+choice
+	prompt "Select pad type"
+	depends PORTING_GPIO
+
+config PORTING_GPIO_PP
+	bool "Push pull"
+
+config PORTING_GPIO_OD
+	bool "Open drain"
+
+config PORTING_GPIO_KB
+	bool "Low speed for keyboard"
+
+endchoice
+
+choice
+	prompt "Select pull resistor"
+	depends PORTING_GPIO
+
+config PORTING_GPIO_NP
+	bool "No pull"
+
+config PORTING_GPIO_WU
+	bool "Weak pull up"
+
+config PORTING_GPIO_WD
+	bool "Weak pull down"
+
+endchoice
+
+config PORTING_MINOR
+	int "Select minor number"
+	depends PORTING_GPIO || PORTING_UART
+	range 0 15 if !PORTING_UART
+	range 1 15 if PORTING_UART
+
+config PORTING_GPIO_PIN
+	int "Select pin number"
+	depends PORTING_GPIO
+	range 0 7
+
+config PORTING_SIZE
+	int "Configure frame size"
+	depends PORTING_ASYNC && (PORTING_UART)
+	default 32
+	range 1 4096
+
+config PORTING_LED_TIMER
+	bool "LED flashed by timer"
+	depends PORTING_LED
+	select TIMER
+
+endif
+
+menuconfig DEBUG_PRINT
+	bool "Enable debug messages on UART0"
+
+if DEBUG_PRINT
+
+choice
+	prompt "Debug UART baud rate"
+	help
+	  This setting lets you define what baudrate is for the serial
+	  port.
+
+config DEBUG_230400
+	bool "230400"
+
+config DEBUG_115200
+	bool "115200"
+
+config DEBUG_57600
+	bool "57600"
+
+config DEBUG_38400
+	bool "38400"
+
+config DEBUG_19200
+	bool "19200"
+
+config DEBUG_9600
+	bool "9600"
+
+config DEBUG_4800
+	bool "4800"
+
+config DEBUG_2400
+	bool "2400"
+
+endchoice
+
+config PANIC_DEBUG
+	bool "Panic debug message support"
+
+config IDLE_DEBUG
+	bool "Task/timer debug message support"
+
+config IO_DEBUG
+	bool "Input/output debug message support"
+	depends KBD
+
+config BULK_DEBUG
+	bool "Bulk IO debug message support"
+	depends BULK
+
+config USB_DEBUG
+	bool "USB debug message support"
+	depends USB
+
+config USB_DEBUG_CALL
+	bool "USB callback debug messages support"
+	depends USB_DEBUG
+
+config UART_DEBUG
+	bool "UART debug message support"
+	depends UART
+
+config HID_DEBUG
+	bool "HID debug message support"
+	depends USB_HID
+
+config SCD_DEBUG
+	bool "SCD debug message support"
+	depends USB_SCD
+
+config SCS_DEBUG
+	bool "Smart card debug message support"
+	depends SCS
+	select BIT_FFS16
+
+config MSD_DEBUG
+	bool "Mass storage device debug message support"
+	depends USB_MSD
+
+config DFU_DEBUG
+	bool "Device firmware update debug message support"
+	depends USB_DFU
+
+config PN53X_DEBUG
+	bool "PN53x device debug message support"
+	depends PN53X
+
+config EZIO_DEBUG
+	bool "EZIO lcd debug message support"
+	depends LCD_EZIO
+
+endif
+
+endif
+
+endmenu

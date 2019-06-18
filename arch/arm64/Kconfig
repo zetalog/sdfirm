@@ -12,6 +12,8 @@ config ARM64
 	default y
 	help
 
+source "init/Kconfig"
+
 menu "ARM64 system options"
 
 choice
@@ -259,4 +261,4 @@ source "arch/arm64/mach-gem5/Kconfig"
 source "kernel/Kconfig"
 source "drivers/Kconfig"
 source "lib/Kconfig"
-source "init/Kconfig"
+source "init/Kconfig.debug"

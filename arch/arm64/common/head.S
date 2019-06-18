@@ -9,7 +9,7 @@
 
 	__HEAD
 
-#ifdef CONFIG_ROM
+#ifdef CONFIG_BOOT_ROM
 .org 0
 ENTRY(stext)
 	b	__arm_reset
@@ -46,7 +46,7 @@ ENTRY(stext)
 #endif
 
 __arm_reset:
-#ifdef CONFIG_SYS_MONITOR
+#ifdef CONFIG_BOOT_ROM
 	mov	x0, xzr
 	mov	x1, xzr
 	mov	x2, xzr
@@ -129,16 +129,14 @@ stext_el3:
 	msr	CPTR_EL3, xzr
 
 stext_el2:
-#ifndef CONFIG_SYS_HYPERVISOR
 	# Disable VM and VM traps
 	# Lower EL is AARCH64
 	ldr	x0, =HCR_RW
 	msr	HCR_EL2, x0
 
 	msr	SCTLR_EL2, xzr
-#endif
 
-#ifdef CONFIG_SYS_KERNEL
+#ifdef CONFIG_BOOT_LINUX
 	# EL3/EL2 kernel bootloader
 	# early delay initialization
 	bl	delay_init
@@ -150,8 +148,10 @@ stext_el2:
 	b.ne	1b
 	# early GICD initialization
 	bl	irq_init
+#endif
 
-	# Linux requirement - exit to EL2h */
+#ifdef CONFIG_SYS_KERNEL
+	# Linux requirement - exit to EL2h
 	ldr	x0, =stext_el1
 	mov	x1, #(SPSR_E | SPSR_A | SPSR_I | SPSR_F | SPSR_MODE_EL2h)
 	msr	ELR_EL3, x0
@@ -160,11 +160,14 @@ stext_el2:
 #endif
 
 stext_el1:
+#ifdef CONFIG_BOOT_ROM
 	mov	x0, xzr
 	mov	x1, xzr
 	mov	x2, xzr
 	mov	x3, xzr
+#endif
 
+#ifdef CONFIG_BOOT_LINUX
 	# Only proceed on boot CPU
 	mrs	x4, MPIDR_EL1
 	tst	x4, #0xf
@@ -177,16 +180,15 @@ stext_el1:
 	cbz	x4, 2b
 	br	x4
 
-	# early console initialization
 3:
+	# early console initialization
 	bl	console_init
 
-#ifdef CONFIG_SYS_MONITOR
-	bl	system_init
-#else
 	ldr	x0, =0x88000000
 	ldr	x6, =0x80080000
 	br	x6
+#else
+	bl	system_init
 #endif
 ENDPIPROC(stext)
 

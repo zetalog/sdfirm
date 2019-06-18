@@ -10,6 +10,8 @@ config MCS51
 	default y
 	select CC_ISR_VECTOR
 
+source "init/Kconfig"
+
 menu "MCS51 system options"
 
 choice
@@ -42,4 +44,4 @@ source "appl/Kconfig"
 source "kernel/Kconfig"
 source "drivers/Kconfig"
 source "lib/Kconfig"
-source "init/Kconfig"
+source "init/Kconfig.debug"
