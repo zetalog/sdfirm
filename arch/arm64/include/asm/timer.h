@@ -59,11 +59,13 @@
 
 #include <asm/mach/timer.h>
 
+#ifndef __ASSEMBLY__
 bool __systick_poll(void);
 void __systick_mask_irq(void);
 void __systick_unmask_irq(void);
 uint64_t __systick_read(void);
 void __systick_set_timeout(timeout_t match_val);
 void __systick_init(void);
+#endif /* __ASSEMBLY__ */
 
 #endif /* __TIMER_ARM64_H_INCLUDE__ */

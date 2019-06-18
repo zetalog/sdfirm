@@ -1,5 +1,7 @@
 obj-y :=
 
+obj-$(CONFIG_PSCI) += psci_entry.rel
+obj-$(CONFIG_PSCI) += psci.rel
 obj-$(CONFIG_GIC) += gic.rel
 obj-$(CONFIG_GICv2) += gicv2.rel
 obj-$(CONFIG_GICv3) += gicv3.rel

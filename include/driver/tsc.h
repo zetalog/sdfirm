@@ -7,6 +7,7 @@
 #include <asm/mach/tsc.h>
 #endif
 
+#ifndef __ASSEMBLY__
 #if TSC_MAX <= 0xFF
 typedef uint8_t tsc_count_t;
 #define __tsc_div(a, b)	(a/b)
@@ -34,5 +35,6 @@ typedef uint64_t tsc_count_t;
 tsc_count_t tsc_hw_read_counter(void);
 #endif
 void tsc_hw_ctrl_init(void);
+#endif /* __ASSEMBLY__ */
 
 #endif /* __TSC_DRIVER_H_INCLUDE__ */

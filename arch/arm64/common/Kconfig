@@ -253,6 +253,10 @@ config SYS_HOST
 
 endif
 
+config PSCI
+	bool "Power State Coordination Interface (PSCI) support"
+	depends SYS_MONITOR || BOOT_LINUX
+
 choice
 	prompt "Interrupt controller"
 

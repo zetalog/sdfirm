@@ -35,16 +35,52 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)arch.h: machine specific definitions
- * $Id: arch.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)smp.h: machine specific SMP interface
+ * $Id: smp.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
  */
 
-#ifndef __ARCH_GEM5_H_INCLUDE__
-#define __ARCH_GEM5_H_INCLUDE__
+#ifndef __GEM5_SMP_H_INCLUDE__
+#define __GEM5_SMP_H_INCLUDE__
 
-#include <asm/io.h>
+#include <target/linkage.h>
 
-#define MAX_CPU_NUM		4
-#define ARCH_CPU_MASK		0x0000000F
+#ifdef CONFIG_SMP
+#ifdef __ASSEMBLY__
+#ifndef LINKER_SCRIPT
+.macro asm_smp_processor_id _tmp:req, _res=x0
+	mov	\_res, sp
+	ldr	\_tmp, =PERCPU_STACKS_START
+	sub	\_res, \_res, \_tmp
+	ubfx	\_res, \_res, #PERCPU_STACK_SHIFT, #(32 - PERCPU_STACK_SHIFT)
+.endm
+#endif
+#else
+static inline uint8_t __smp_processor_id(void)
+{
+	unsigned int t;
 
-#endif /* __ARCH_GEM5_INCLUDE__ */
+	asm volatile ("mov %0, sp\n\t" : "=r" (t));
+	t -= (PERCPU_STACKS_START + 1);
+	return (uint8_t)(t >> 12);
+}
+
+static inline uint8_t __hmp_processor_id(void)
+{
+	uint8_t cpu = __smp_processor_id();
+
+	return cpu >= NR_CPUS ? NR_CPUS : cpu;
+}
+
+static inline uintptr_t __smp_processor_stack_top(void)
+{
+	uintptr_t t;
+
+	asm volatile ("mov %0, sp\n\t" : "=r" (t));
+	return ALIGN_UP(t, PERCPU_STACK_SIZE);
+}
+
+unsigned int plat_my_core_pos(void);
+#endif
+#endif
+
+#endif /* __GEM5_SMP_H_INCLUDE__ */

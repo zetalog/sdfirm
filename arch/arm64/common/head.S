@@ -37,16 +37,8 @@ ENTRY(stext)
 	b	.
 .org 0x600
 	b	.
-#else
-#ifdef CONFIG_XIP
-	.fill ARM_ROM_OFFSET
-#endif
-
-ENTRY(stext)
-#endif
 
 __arm_reset:
-#ifdef CONFIG_BOOT_ROM
 	mov	x0, xzr
 	mov	x1, xzr
 	mov	x2, xzr
@@ -78,9 +70,14 @@ __arm_reset:
 	mov	x28, xzr
 	mov	x29, xzr
 	mov	x30, xzr
+#else
+#ifdef CONFIG_XIP
+	.fill ARM_ROM_OFFSET
 #endif
 
-	/* zero init BSS region */
+ENTRY(stext)
+#endif
+	# zero init BSS region
 	ldr	x0, =__bss_start
 	ldr	x1, =__bss_stop
 	mov	x2, xzr
@@ -125,6 +122,13 @@ stext_el3:
 		      SCR_EL3_DEFAULT)
 	msr	SCR_EL3, x0
 
+	# Enable hardware coherency between cores via
+	# CPUECTLR_EL1.SMPEN
+        mrs	x0, S3_1_c15_c2_1
+        orr	x0, x0, #(1 << 6)
+        msr	S3_1_c15_c2_1, x0
+        isb
+
 	# No feature trap
 	msr	CPTR_EL3, xzr
 
@@ -146,14 +150,20 @@ stext_el2:
 	tst     x0, #0xf
 1:
 	b.ne	1b
-	# early GICD initialization
+	# early GICD/GICR initialization
 	bl	irq_init
 #endif
 
-#ifdef CONFIG_SYS_KERNEL
 	# Linux requirement - exit to EL2h
+#if defined(CONFIG_BOOT_LINUX) || defined(CONFIG_SYS_HYPERVISOR)
+#define SPSR_MODE_KERNEL	SPSR_MODE_EL2h
+#else
+#define SPSR_MODE_KERNEL	SPSR_MODE_EL1h
+#endif
+
+#ifdef CONFIG_SYS_KERNEL
 	ldr	x0, =stext_el1
-	mov	x1, #(SPSR_E | SPSR_A | SPSR_I | SPSR_F | SPSR_MODE_EL2h)
+	mov	x1, #(SPSR_E | SPSR_A | SPSR_I | SPSR_F | SPSR_MODE_KERNEL)
 	msr	ELR_EL3, x0
 	msr	SPSR_EL3, x1
 	eret
@@ -191,8 +201,3 @@ stext_el1:
 	bl	system_init
 #endif
 ENDPIPROC(stext)
-
-	.pushsection	.data
-ENTRY(welcome_msg_ram)
-	.asciz	"\r\nWelcome to sdfirm.\r\n===== By ZETALOG =====\r\n"
-	.popsection

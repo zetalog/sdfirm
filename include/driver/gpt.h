@@ -4,6 +4,7 @@
 #include <target/config.h>
 #include <target/generic.h>
 
+#ifndef __ASSEMBLY__
 #if defined(CONFIG_TIMER_16BIT)
 typedef uint16_t timeout_t;
 #define MAX_TIMEOUT	0x7FFF
@@ -30,5 +31,6 @@ void gpt_hw_irq_poll(void);
 #endif
 void gpt_hw_oneshot_timeout(timeout_t tout_ms);
 #endif
+#endif /* __ASSEMBLY__ */
 
 #endif /* __GPT_DRIVER_H_INCLUDE__ */
