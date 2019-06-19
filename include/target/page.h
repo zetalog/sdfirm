@@ -50,11 +50,16 @@ struct page {
 	struct page *next;
 };
 
+#ifdef CONFIG_PAGE
 caddr_t page_alloc(void);
 caddr_t page_alloc_zeroed(void);
 void page_free(caddr_t address);
-void page_early_init(caddr_t base, pfn_t nr_pages);
+void page_early_init(void);
 void page_late_init(void);
+#else
+#define page_early_init()	do { } while (0)
+#define page_late_init()	do { } while (0)
+#endif
 #endif /* __ASSEMBLY__ */
 
 #endif /* __PAGE_H_INCLUDE__ */

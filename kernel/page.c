@@ -1,4 +1,7 @@
-#include <target/page.h>
+#include <stdio.h>
+#include <string.h>
+#include <target/arch.h>
+#include <target/cmdline.h>
 
 struct page *page_empty = NULL;
 struct page **page_free_list = &page_empty;
@@ -37,7 +40,7 @@ void page_late_init(void)
 	page_early = false;
 }
 
-void page_early_init(caddr_t base, pfn_t nr_pages)
+void page_alloc_init(caddr_t base, pfn_t nr_pages)
 {
 	pfn_t pfn, pfn_start = page_to_pfn(base);
 	struct page **last_page, *page;
@@ -50,4 +53,39 @@ void page_early_init(caddr_t base, pfn_t nr_pages)
 		*last_page = page;
 		last_page = &page->next;
 	}
+}
+
+static int do_page(int argc, char **argv)
+{
+	struct page *page;
+	caddr_t addr;
+	int nr_pages;
+
+	printf("Allocating page...\n");
+	addr = page_alloc();
+	printf("alloc = %016llx", addr);
+	printf("Freeing page...\n");
+	page_free(addr);
+
+	if (argc > 1) {
+		nr_pages = strtoul(argv[1], 0, 0);
+		for (page = *page_free_list;
+		     nr_pages-- && page != NULL; page = page->next)
+			printf("%d - %016llx\n",
+			       page_to_pfn(page), (uintptr_t)page);
+	}
+	return 0;
+}
+
+DEFINE_COMMAND(page, do_page, "Display free pages",
+	"    -test page allocator and display first N free pages\n"
+	"help command ...\n"
+	"     page [N]"
+	"\n"
+);
+
+void page_early_init(void)
+{
+	page_alloc_init(PAGEABLE_START,
+			(PAGEABLE_END - PAGEABLE_START) / PAGE_SIZE);
 }

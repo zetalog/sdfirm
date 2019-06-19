@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Jun 19 14:32:38 2019
+# Wed Jun 19 17:14:44 2019
 #
 CONFIG_ARM64=y
 
@@ -143,7 +143,7 @@ CONFIG_LPS_NO_LPS=y
 CONFIG_TEXT_ROM_BASE=0x00000000
 CONFIG_TEXT_RAM_BASE=0x0
 # CONFIG_HEAP is not set
-# CONFIG_PAGE is not set
+CONFIG_PAGE=y
 CONFIG_ARCH_HAS_MMU=y
 # CONFIG_MMU is not set
 # CONFIG_IDLE is not set

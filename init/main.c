@@ -88,6 +88,7 @@ void system_init(void)
 #endif
 	clk_init();
 	timer_init();
+	page_early_init();
 	heap_init();
 	bulk_init();
 

@@ -79,6 +79,9 @@ SECTIONS
 	mmu_pg_dir = .;
 	. += PGDIR_BYTES;
 #endif
+
+	. = ALIGN(PAGE_SIZE);
+	__pageable_start = .;
 }
 
 /*
