@@ -79,6 +79,10 @@ config CONSOLE_COMMAND
 config CONSOLE_OUTPUT
 	bool "Enable console output"
 
+config CONSOLE_OUTPUT_CR
+	bool "Append CR before LN"
+	depends CONSOLE_OUTPUT
+
 config CONSOLE_PRINT_BUFFER_SIZE
 	int "Configure console print buffer size"
 	default 64

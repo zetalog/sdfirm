@@ -29,8 +29,19 @@ static console_handler console_console_handler = NULL;
 #define __getchar(c)	0x00
 #endif
 
+#ifdef CONFIG_CONSOLE_OUTPUT_CR
+void append_cr(int c)
+{
+	if (c == '\n')
+		__putchar('\r');
+}
+#else
+#define append_cr(c)	do { } while (0)
+#endif
+
 int putchar(int c)
 {
+	append_cr(c);
 	__putchar(c);
 	return 1;
 }

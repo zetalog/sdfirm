@@ -63,7 +63,7 @@ static int do_page(int argc, char **argv)
 
 	printf("Allocating page...\n");
 	addr = page_alloc();
-	printf("alloc = %016llx", addr);
+	printf("alloc = %016llx\n", addr);
 	printf("Freeing page...\n");
 	page_free(addr);
 
