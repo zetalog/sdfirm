@@ -8,7 +8,7 @@
 	. = ALIGN((align));				\
 	__cmd_start = .;				\
 	.cmd.text : {					\
-		*(.cmd.text)				\
+		KEEP(*(SORT(.cmd.text)))		\
 	}						\
 	__cmd_end = .;
 

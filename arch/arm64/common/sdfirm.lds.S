@@ -75,8 +75,12 @@ SECTIONS
 	__bss_stop = .;
 
 	. = ALIGN(PAGE_SIZE);
+#ifdef CONFIG_MMU
 	mmu_pg_dir = .;
 	. += PGDIR_BYTES;
+#endif
+
+	__stack_bottom = .;
 }
 
 /*
