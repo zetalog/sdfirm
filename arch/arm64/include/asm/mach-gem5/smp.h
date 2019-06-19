@@ -76,7 +76,7 @@ static inline uintptr_t __smp_processor_stack_top(void)
 	uintptr_t t;
 
 	asm volatile ("mov %0, sp\n\t" : "=r" (t));
-	return ALIGN_UP(t, PERCPU_STACK_SIZE);
+	return ALIGN(t, PERCPU_STACK_SIZE);
 }
 
 unsigned int plat_my_core_pos(void);

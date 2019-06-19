@@ -6,8 +6,6 @@
 #include <target/readline.h>
 #include <target/cmdline.h>
 #include <target/timer.h>
-#include <target/cpus.h>
-#include <target/arch.h>
 #include <target/console.h>
 
 #define SIZE_1M		0x100000

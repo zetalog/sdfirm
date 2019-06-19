@@ -127,6 +127,13 @@ config MAX_TASKS
 
 endif
 
+menuconfig SMP
+	bool "Scheduling facility (SMP) support"
+
+if SMP
+
+endif
+
 menu "Timing facility (jiffy) support"
 
 config TICK

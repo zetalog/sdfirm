@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Jun 18 18:50:16 2019
+# Wed Jun 19 14:32:38 2019
 #
 CONFIG_ARM64=y
 
@@ -124,6 +124,7 @@ CONFIG_ARCH_HAS_IDLE=y
 # Scheduling facility (bh) support
 #
 CONFIG_MAX_BHS=4
+CONFIG_SMP=y
 
 #
 # Timing facility (jiffy) support

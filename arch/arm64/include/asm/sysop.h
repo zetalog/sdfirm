@@ -68,7 +68,6 @@ static inline void _op ## _ ## _type(uint64_t v)	\
 #ifndef __ASSEMBLY__
 
 SYSOP_FUNC(yield)
-SYSOP_FUNC(nop)
 
 /*
  * System instructions for cache maintenance

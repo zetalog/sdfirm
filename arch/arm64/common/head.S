@@ -1,9 +1,10 @@
 #include <target/config.h>
 #include <target/linkage.h>
 #include <target/init.h>
+#include <target/arch.h>
+#include <target/smp.h>
 #include <asm/assembler.h>
 #include <asm/asm-offsets.h>
-#include <asm/reg.h>
 
 #define ARM_ROM_OFFSET	0x850
 
@@ -86,9 +87,23 @@ bss_init_loop:
 	cmp	x0, x1
 	blt	bss_init_loop
 
-	# Temporal stack
-	ldr	x0, =RAMEND
+#ifdef CONFIG_SMP
+	# Using one page for each CPU stack:
+	mrs	x0, MPIDR_EL1
+	and	x1, x0, #0xff
+	and	x0, x0, #0xff00
+	lsr	x0, x0, #7
+	add	x0, x0, x1
+
+	add	x0, x0, #1
+	lsl	x0, x0, #PERCPU_STACK_SHIFT
+	ldr	x3, =PERCPU_STACKS_START
+	add	x0, x3, x0
 	mov	sp, x0
+#else
+	ldr	x0, =PERCPU_STACKS_END
+	mov	sp, x0
+#endif
 
 	# switch different EL entries
 	mrs	x0, CurrentEL

@@ -48,7 +48,9 @@
 #define LLC_TO_MASK(llc)	(1ULL << (llc))
 
 #ifdef CONFIG_SMP
+#ifndef __ASSEMBLY__
 extern uint8_t cpus_boot_cpu;
+#endif
 #else
 #define cpus_boot_cpu		0
 #endif

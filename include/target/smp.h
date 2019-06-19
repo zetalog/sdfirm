@@ -44,19 +44,19 @@
 
 #include <target/compiler.h>
 #include <target/cache.h>
-#include <target/cpus.h>
-
-#define NR_CPUS		MAX_CPU_NUM
-
-#include <asm/smp.h>
+#include <target/arch.h>
 
 #ifdef CONFIG_SMP
 #define smp_processor_id()	__smp_processor_id()
 #define hmp_processor_id()	__hmp_processor_id()
+#define NR_CPUS		MAX_CPU_NUM
 #else
 #define smp_processor_id()	0
 #define hmp_processor_id()	0
+#define NR_CPUS			1
 #endif
+
+#include <asm/smp.h>
 
 #define SMP_CACHE_BYTES		__SMP_CACHE_BYTES
 #define __cache_aligned		__align(SMP_CACHE_BYTES)
