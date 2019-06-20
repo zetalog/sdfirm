@@ -74,7 +74,7 @@ static void alloc_init_pud(pgd_t *pgd, caddr_t addr,
 
 	if (pgd_none(*pgd)) {
 		pud = (pud_t *)page_alloc_zeroed();
-		pgd_populate(&init_mm, pgd, pud);
+		pgd_populate(pgd, pud);
 	}
 	BUG_ON(pgd_bad(*pgd));
 

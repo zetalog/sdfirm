@@ -50,8 +50,13 @@
 #define PHYS_MASK		((PTR_VAL_ONE << PHYS_MASK_SHIFT) - 1)
 
 #ifndef __ASSEMBLY__
-typedef uint64_t		pfn_t;
-typedef uint64_t		phys_addr_t;
+typedef uint64_t pfn_t;
+typedef uint64_t phys_addr_t;
+typedef uint64_t pteval_t;
+typedef uint64_t pmdval_t;
+typedef uint64_t pudval_t;
+typedef uint64_t pgdval_t;
+
 
 static inline void page_wmb(void)
 {

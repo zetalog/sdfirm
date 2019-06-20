@@ -54,76 +54,80 @@
  * C5.2.18 SPSR_EL1, Saved Program Status Register (EL1)
  * C5.2.19 SPSR_EL2, Saved Program Status Register (EL2)
  * C5.2.20 SPSR_EL3, Saved Program Status Register (EL3)
+ * G7.2.31 CPSR, Current Program Status Register
  */
 /* AARCH64/AARCH32 common */
-#define SPSR_N			_BV(31)
-#define SPSR_Z			_BV(30)
-#define SPSR_C			_BV(29)
-#define SPSR_V			_BV(28)
-#define SPSR_SS			_BV(21)
-#define SPSR_IL			_BV(20)
-#define SPSR_A			_BV(8)
-#define SPSR_I			_BV(7)
-#define SPSR_F			_BV(6)
-#define SPSR_M			_BV(4)
-#define SPSR_MODE_OFFSET	0
-#define SPSR_MODE_MASK		REG_4BIT_MASK
-#define SPSR_MODE(value)	_GET_FV(SPSR_MODE, value)
-#define SPSR_PAN		_BV(22)
+#define PSR_N			_BV(31)
+#define PSR_Z			_BV(30)
+#define PSR_C			_BV(29)
+#define PSR_V			_BV(28)
+#define PSR_SS			_BV(21)
+#define PSR_IL			_BV(20)
+#define PSR_A			_BV(8)
+#define PSR_I			_BV(7)
+#define PSR_F			_BV(6)
+#define PSR_M			_BV(4)
+#define PSR_MODE_OFFSET		0
+#define PSR_MODE_MASK		REG_4BIT_MASK
+#define PSR_MODE(value)		_GET_FV(PSR_MODE, value)
+#define PSR_PAN			_BV(22)
 #ifdef CONFIG_CPU_64v8_1_PAN
-#define SPSR_PAN_RES0		0
+#define PSR_PAN_RES0		0
 #else
-#define SPSR_PAN_RES0		SPSR_PAN
+#define PSR_PAN_RES0		PSR_PAN
 #endif
+#define CPSR_RES0		(_BV(23) | _BV(21) | _BV(20))
+#define CPSR_RES1		_BV(4)
+
 /* AARCH64 specific */
-#define SPSR_D			_BV(9)
-#define SPSR_UAO		_BV(23)
+#define PSR_D			_BV(9)
+#define PSR_UAO			_BV(23)
 #ifdef CONFIG_CPU_64v8_2_UAO
-#define SPSR_UAO_RES0		0
+#define PSR_UAO_RES0		0
 #else
-#define SPSR_UAO_RES0		SPSR_UAO
+#define PSR_UAO_RES0		PSR_UAO
 #endif
-/* AARCH64 specific SPSR_MODE */
-#define SPSR_MODE_EL0t		0x0
-#define SPSR_MODE_EL1t		0x4
-#define SPSR_MODE_EL1h		0x5
-#define SPSR_MODE_EL2t		0x8
-#define SPSR_MODE_EL2h		0x9
-#define SPSR_MODE_EL3t		0xC
-#define SPSR_MODE_EL3h		0xD
+/* AARCH64 specific PSR_MODE */
+#define PSR_MODE_EL0t		0x0
+#define PSR_MODE_EL1t		0x4
+#define PSR_MODE_EL1h		0x5
+#define PSR_MODE_EL2t		0x8
+#define PSR_MODE_EL2h		0x9
+#define PSR_MODE_EL3t		0xC
+#define PSR_MODE_EL3h		0xD
 #define SPSR_AARCH64_RES0	(_BV(27) | _BV(26) | _BV(25) | _BV(24) | \
-				 SPSR_UAO_RES0 | SPSR_PAN_RES0 | \
+				 PSR_UAO_RES0 | PSR_PAN_RES0 | \
 				 _BV(19）| _BV(18) | _BV(17) | _BV(16) | \
 				 _BV(15) | _BV(14) | _BV(13) | _BV(12) | _BV(11) | _BV(10) \
 				 _BV(5))
 
 /* AARCH32 specific */
-#define SPSR_Q			_BV(27)
-#define SPSR_IT_lo_OFFSET	25
-#define SPSR_IT_lo_MASK		REG_2BIT_MASK
-#define SPSR_IT_lo(value)	_GET_FV(SPSR_IT_lo, value)
-#define SPSR_J			_BV(24)
-#define SPSR_GE_OFFSET		16
-#define SPSR_GE_MASK		REG_4BIT_MASK
-#define SPSR_GE(value)		_GET_FV(SPSR_GE, value)
-#define SPSR_IT_hi_OFFSET	10
-#define SPSR_IT_hi_MASK		REG_6BIT_MASK
-#define SPSR_IT_hi(value)	_GET_FV(SPSR_IT_hi, value)
-#define SPSR_IT(value)		\
-	(SPSR_IT_lo(value) | (SPSR_IT_hi(value) << SPSR_IT_lo_OFFSET))
-#define SPSR_E			_BV(9)
-#define SPSR_T			_BV(5)
-/* AARCH32 specific SPSR_MODE */
-#define SPSR_MODE_USR		0x0
-#define SPSR_MODE_FIQ		0x1
-#define SPSR_MODE_IRQ		0x2
-#define SPSR_MODE_SVC		0x3
-#define SPSR_MODE_ABT		0x7
-#define SPSR_MODE_HYP		0xA
-#define SPSR_MODE_UND		0xB
-#define SPSR_MODE_SYS		0xF
-#define SPSR_ABT_RES0		(_BV(23) | SPSR_PAN_RES0 | _BV(21))
-#define SPSR_AARCH32_RES0	(_BV(23) | SPSR_PAN_RES0)
+#define PSR_Q			_BV(27)
+#define PSR_IT_lo_OFFSET	25
+#define PSR_IT_lo_MASK		REG_2BIT_MASK
+#define PSR_IT_lo(value)	_GET_FV(PSR_IT_lo, value)
+#define PSR_J			_BV(24)
+#define PSR_GE_OFFSET		16
+#define PSR_GE_MASK		REG_4BIT_MASK
+#define PSR_GE(value)		_GET_FV(PSR_GE, value)
+#define PSR_IT_hi_OFFSET	10
+#define PSR_IT_hi_MASK		REG_6BIT_MASK
+#define PSR_IT_hi(value)	_GET_FV(PSR_IT_hi, value)
+#define PSR_IT(value)		\
+	(PSR_IT_lo(value) | (PSR_IT_hi(value) << PSR_IT_lo_OFFSET))
+#define PSR_E			_BV(9)
+#define PSR_T			_BV(5)
+/* AARCH32 specific PSR_MODE */
+#define PSR_MODE_USR		0x0
+#define PSR_MODE_FIQ		0x1
+#define PSR_MODE_IRQ		0x2
+#define PSR_MODE_SVC		0x3
+#define PSR_MODE_ABT		0x7
+#define PSR_MODE_HYP		0xA
+#define PSR_MODE_UND		0xB
+#define PSR_MODE_SYS		0xF
+#define PSR_ABT_RES0		(_BV(23) | PSR_PAN_RES0 | _BV(21))
+#define SPSR_AARCH32_RES0	(_BV(23) | PSR_PAN_RES0)
 
 /* =================================================================
  * D.10.2 General system control registers

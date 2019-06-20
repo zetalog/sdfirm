@@ -5,6 +5,7 @@
 #include <target/delay.h>
 #include <target/clk.h>
 #include <target/cmdline.h>
+#include <target/paging.h>
 #include <stdio.h>
 
 __near__ uint32_t system_device_id = 0;
@@ -89,6 +90,8 @@ void system_init(void)
 	clk_init();
 	timer_init();
 	page_early_init();
+	paging_init();
+	page_late_init();
 	heap_init();
 	bulk_init();
 

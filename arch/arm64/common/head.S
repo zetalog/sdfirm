@@ -171,14 +171,14 @@ stext_el2:
 
 	# Linux requirement - exit to EL2h
 #if defined(CONFIG_BOOT_LINUX) || defined(CONFIG_SYS_HYPERVISOR)
-#define SPSR_MODE_KERNEL	SPSR_MODE_EL2h
+#define PSR_MODE_KERNEL		PSR_MODE_EL2h
 #else
-#define SPSR_MODE_KERNEL	SPSR_MODE_EL1h
+#define PSR_MODE_KERNEL		PSR_MODE_EL1h
 #endif
 
 #ifdef CONFIG_SYS_KERNEL
 	ldr	x0, =stext_el1
-	mov	x1, #(SPSR_E | SPSR_A | SPSR_I | SPSR_F | SPSR_MODE_KERNEL)
+	mov	x1, #(PSR_E | PSR_A | PSR_I | PSR_F | PSR_MODE_KERNEL)
 	msr	ELR_EL3, x0
 	msr	SPSR_EL3, x1
 	eret

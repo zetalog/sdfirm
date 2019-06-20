@@ -51,10 +51,6 @@
 
 #ifndef __ASSEMBLY__
 typedef struct page *pgtable_t;
-typedef uint64_t pteval_t;
-typedef uint64_t pmdval_t;
-typedef uint64_t pudval_t;
-typedef uint64_t pgdval_t;
 
 typedef pteval_t pte_t;
 #define pte_val(x)	(x)
@@ -190,11 +186,15 @@ static inline caddr_t pmd_addr_end(caddr_t addr, caddr_t end)
 #define pgd_populate(pgd, pud)	set_pgd(pgd, __pgd(__pa(pud) | PUD_TYPE_TABLE))
 #define pgd_page_vaddr(pgd)	\
 	((pud_t *)__va(pgd_val(pgd) & PHYS_MASK & (int32_t)PAGE_MASK))
-static inline pud_addr_end(caddr_t addr, caddr_t end)
+static inline caddr_t pud_addr_end(caddr_t addr, caddr_t end)
 {
 	caddr_t __boundary = (addr + PUD_SIZE) & PUD_MASK;
 	return (__boundary - 1 < end - 1) ? __boundary : end;
 }
+
+#ifndef ARCH_HAVE_SET_PGD
+#define set_pgd(pgdp, pgd)	(*(pgdp) = (pgd))
+#endif
 #endif
 
 #include <driver/mmu.h>
@@ -210,8 +210,12 @@ static inline caddr_t pgd_addr_end(caddr_t addr, caddr_t end)
 }
 
 extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
-
-void mmap_init(void);
 #endif
+
+#ifdef CONFIG_MMU
+void paging_init(void);
+#else
+#define paging_init()		do { } while (0)
+#endif /* CONFIG_MMU */
 
 #endif /* __PAGING_H_INCLUDE__ */
