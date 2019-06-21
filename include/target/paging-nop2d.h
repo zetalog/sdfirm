@@ -12,7 +12,7 @@
  * us to conceptually access the pud entry that this pmd is folded into
  * without casting.
  */
-typedef pud_t pud pmd_t;
+typedef pud_t pmd_t;
 #define pmd_val(x)	pud_val((x))
 #define __pmd(x)	((pmd_t)__pud(x))
 
@@ -47,6 +47,10 @@ typedef pud_t pud pmd_t;
  * but the define is needed for a generic inline function.)
  */
 #define set_pud(pudptr, pudval)			set_pmd((pmd_t *)(pudptr), (pmd_t)pudval)
+
+#define pmd_set_fixmap(addr)			NULL
+#define pmd_set_fixmap_offset(pudp, addr)	((pmd_t *)pudp)
+#define pmd_clear_fixmap()
 #endif /* __ASSEMBLY__ */
 
 #endif /* __PAGING_NOP2D_H_INCLUDE__ */

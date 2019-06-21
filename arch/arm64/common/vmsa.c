@@ -1,5 +1,6 @@
 #include <target/paging.h>
 
+#if 0
 static void alloc_init_pte(pmd_t *pmd, caddr_t addr,
 			   caddr_t end, caddr_t pfn,
 			   pgprot_t prot)
@@ -140,7 +141,7 @@ void mmu_hw_create_mapping(phys_addr_t phys, caddr_t virt,
 		return;
 	}
 #endif
-	__create_mapping(pgd_offset_k(virt & PAGE_MASK), phys, virt, size, 0);
+	__create_mapping(pgd_offset(virt & PAGE_MASK), phys, virt, size, 0);
 }
 
 #if 0
@@ -158,4 +159,5 @@ void __init mmap_init(void)
 		create_mapping(start, __phys_to_virt(start), end - start);
 	}
 }
+#endif
 #endif

@@ -49,4 +49,14 @@
 #define __stringify_1(x...)	#x
 #define __stringify(x...)	__stringify_1(x)
 
+#define RELOC_HIDE(ptr, off)				\
+	({						\
+		unsigned long __ptr;			\
+		__asm__ ("" : "=r"(__ptr) : "0"(ptr));	\
+		(typeof(ptr)) (__ptr + (off));		\
+	})
+
+#define READ_ONCE(x)		(x)
+#define WRITE_ONCE(x, val)	((x) = (val))
+
 #endif  /* __COMPILER_GCC_H_INCLUDE__ */

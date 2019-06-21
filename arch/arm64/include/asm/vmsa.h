@@ -79,11 +79,11 @@
 #define VMSA_PA_SIZE_SHIFT	48
 #endif
 
-/* #include <asm/mach/arch.h> */
-#ifndef PHYS_OFFSET
-#define PHYS_OFFSET		0
+#ifdef CONFIG_VMSA_PHYS_OFFSET
+#define PHYS_OFFSET		CONFIG_VMSA_PHYS_OFFSET
 #endif
 
+/* #include <asm/mach/arch.h> */
 #ifdef CONFIG_VMSA_VA_2_RANGES
 #define VMSA_VA_BASE_HI		(ULL(0) - (ULL(1) << VMSA_VA_SIZE_SHIFT))
 #define VMSA_VA_BASE_LO		ULL(0x0000000000000000)

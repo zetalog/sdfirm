@@ -33,8 +33,10 @@ static inline int vprintf(const char *format, va_list arg)
 }
 #endif /* CONFIG_CONSOLE_OUTPUT */
 #else /* __ASSEMBLY__ */
+#ifndef LINKER_SCRIPT
 .extern getchar
 .extern putchar
+#endif
 #endif /* __ASSEMBLY__ */
 
 #endif /* __STD_STDIO_H_INCLUDE__ */

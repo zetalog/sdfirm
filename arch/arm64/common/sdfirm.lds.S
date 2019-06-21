@@ -10,12 +10,9 @@ ENTRY(stext)
 
 SECTIONS
 {
-#ifdef CONFIG_XIP
-	. = CONFIG_TEXT_ROM_BASE;
-#else
-	. = CONFIG_TEXT_RAM_BASE;
-#endif
+	. = PAGE_OFFSET + TEXT_OFFSET;
 	_stext = .;				/* begin of text and rodata sections */
+	__stext = .;				/* begin of text sections */
 	.init : {
 		__init_text_begin = .;
 		HEAD_TEXT
@@ -35,10 +32,11 @@ SECTIONS
 	}
 	CMD_LINE_SECTION(8)
 
-	_text = .;			/* address in RAM or ROM */
+	_text = .;				/* address in RAM or ROM */
 	.text : {
 		TEXT_TEXT
 	}
+	__etext = .;				/* end of text sections */
 
 	RO_DATA_SECTION(8)
 
@@ -52,7 +50,8 @@ SECTIONS
 	. = CONFIG_TEXT_RAM_BASE;		/* ensure address followups in RAM */
 #endif
 
-	_sdata = .;				/* begin of data sections */
+	_sdata = .;				/* begin of data and bss sections */
+	__sdata = .;				/* begin of data sections */
 	.data : AT(_etext) {
 		_data = .;			/* address in RAM */
 #ifdef CONFIG_XIP
@@ -62,17 +61,18 @@ SECTIONS
 #endif
 		DATA_DATA
 	}
-	_edata = .;				/* end of data sections */
+	__edata = .;				/* end of data sections */
 
 	__data_loc = _etext_loc;		/* data location in ROM */
 	_edata_loc = __data_loc + _edata - _sdata;
 
 	.bss (NOLOAD) : ALIGN(8) {
-		__bss_start = .;
+		__bss_start = .;		/* begin of bss sections */
 		*(.bss .bss.*)
 	}
 	. = ALIGN(8);
-	__bss_stop = .;
+	__bss_stop = .;				/* end of bss sections */
+	_edata = .;				/* end of data and bss sections */
 
 #ifdef CONFIG_MMU
 	. = ALIGN(PAGE_SIZE);

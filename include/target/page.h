@@ -3,7 +3,6 @@
 
 #include <target/config.h>
 #include <target/generic.h>
-#include <asm/page.h>
 
 #if defined(CONFIG_MMU_64K_PAGE)
 #define PAGE_SHIFT		16
@@ -17,6 +16,18 @@
 #define PAGE_SIZE		(1 << PAGE_SHIFT)
 #define PAGE_MASK		(~(PAGE_SIZE-1))
 
+#if defined(CONFIG_MMU_4L_TABLE)
+#define PGTABLE_LEVELS		4
+#elif defined(CONFIG_MMU_3L_TABLE)
+#define PGTABLE_LEVELS		3
+#elif defined(CONFIG_MMU_2L_TABLE)
+#define PGTABLE_LEVELS		2
+#else
+#define PGTABLE_LEVELS		2
+#endif
+
+#include <asm/page.h>
+
 #ifndef PAGE_PTR_BITS
 #define PAGE_PTR_BITS		BITS_PER_LONG
 #endif
@@ -27,16 +38,6 @@
 #define PAGE_PXD_BITS		(PAGE_SHIFT - PAGE_PTR_BITS)
 #endif
 #define PAGE_MAX_TABLE_ENTRIES	(1 << PAGE_PXD_BITS)
-
-#if defined(CONFIG_MMU_4L_TABLE)
-#define PGTABLE_LEVELS		4
-#elif defined(CONFIG_MMU_3L_TABLE)
-#define PGTABLE_LEVELS		3
-#elif defined(CONFIG_MMU_2L_TABLE)
-#define PGTABLE_LEVELS		2
-#else
-#define PGTABLE_LEVELS		2
-#endif
 
 #define PGDIR_BYTES		(PGTABLE_LEVELS * PAGE_SIZE)
 

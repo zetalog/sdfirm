@@ -1,8 +1,6 @@
 #ifndef __STD_STDINT_H_INCLUDE__
 #define __STD_STDINT_H_INCLUDE__
 
-#include <target/types.h>
-
 #define INT8_MIN	(-1-0x7f)
 #define INT16_MIN	(-1-0x7fff)
 #define INT32_MIN	(-1-0x7fffffff)
@@ -41,5 +39,18 @@
 #define INTMAX_C(c)	LL(c)
 #define UINTMAX_C(c)	ULL(c)
 #endif
+
+#ifndef __ASSEMBLY__
+typedef signed char		int8_t;
+typedef unsigned char		uint8_t;
+typedef signed short		int16_t;
+typedef unsigned short		uint16_t;
+typedef signed int		int32_t;
+typedef unsigned int		uint32_t;
+typedef signed long long	int64_t;
+typedef unsigned long long	uint64_t;
+#endif /* __ASSEMBLY__ */
+
+#include <target/types.h>
 
 #endif /* __STD_STDINT_H_INCLUDE__ */

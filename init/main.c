@@ -90,6 +90,7 @@ void system_init(void)
 	clk_init();
 	timer_init();
 	page_early_init();
+	early_fixmap_init();
 	paging_init();
 	page_late_init();
 	heap_init();

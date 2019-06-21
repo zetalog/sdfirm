@@ -4,15 +4,11 @@
 #include <target/compiler.h>
 
 #ifndef __ASSEMBLY__
-typedef signed char		int8_t;
-typedef unsigned char		uint8_t;
-typedef signed short		int16_t;
-typedef unsigned short		uint16_t;
-
 #include <errno.h>
 #include <asm/types.h>
 #include <limits.h>
 #include <ctype.h>
+#include <stdint.h>
 
 #ifdef ARCH_HAS_BOOL
 typedef bool			boolean;

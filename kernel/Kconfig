@@ -398,6 +398,10 @@ config MMU_5L_TABLE
 
 endchoice
 
+config MMU_PAGE_OFFSET
+	bool "Enable kernel offset support"
+	depends !BOOTLOADER
+
 endif
 
 menuconfig IDLE

@@ -35,7 +35,8 @@ typedef pgd_t pud_t;
 #define pgd_bad(pgd)				0
 #define pgd_present(pgd)			1
 #define pgd_clear(pgdptr)			do { } while (0)
-#define pgd_populate(mm, pgd, pud)		do { } while (0)
+#define __pgd_populate(pgd, pudp, prot)		do { } while (0)
+#define pgd_populate(pgd, pud)			do { } while (0)
 #define pgd_page(pgd)				pud_page((pud_t)pgd)
 #define pgd_page_vaddr(pgd)			pud_page_vaddr((pud_t)pgd)
 
@@ -44,6 +45,10 @@ typedef pgd_t pud_t;
  * but the define is needed for a generic inline function.)
  */
 #define set_pgd(pgdptr, pgdval)			set_pud((pud_t *)(pgdptr), (pud_t)pgdval)
+
+#define pud_set_fixmap(addr)			NULL
+#define pud_set_fixmap_offset(pgdp, addr)	((pud_t *)pgdp)
+#define pud_clear_fixmap()
 #endif /* __ASSEMBLY__ */
 
 #endif /* __PAGING_NOP3D_H_INCLUDE__ */

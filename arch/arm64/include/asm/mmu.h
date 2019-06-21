@@ -43,6 +43,7 @@
 #define __MMU_ARM64_H_INCLUDE__
 
 #include <target/barrier.h>
+#include <target/sizes.h>
 #include <asm/vmsa.h>
 
 /* Memory types */
@@ -106,8 +107,18 @@
 #define PTE_SHARED		(_AT(pteval_t, 3) << 8)		/* SH[1:0], inner shareable */
 #define PTE_AF			(_AT(pteval_t, 1) << 10)	/* Access Flag */
 #define PTE_NG			(_AT(pteval_t, 1) << 11)	/* nG */
+#define PTE_DBM			(_AT(pteval_t, 1) << 51)	/* Dirty Bit Management */
+#define PTE_CONT		(_AT(pteval_t, 1) << 52)	/* Contiguous range */
 #define PTE_PXN			(_AT(pteval_t, 1) << 53)	/* Privileged XN */
 #define PTE_UXN			(_AT(pteval_t, 1) << 54)	/* User XN */
+
+#define PTE_ADDR_LOW		(((_AT(pteval_t, 1) << (48 - PAGE_SHIFT)) - 1) << PAGE_SHIFT)
+#ifdef CONFIG_CPU_64v8_2_LPA
+#define PTE_ADDR_HIGH		(_AT(pteval_t, 0xf) << 12)
+#define PTE_ADDR_MASK		(PTE_ADDR_LOW | PTE_ADDR_HIGH)
+#else
+#define PTE_ADDR_MASK		PTE_ADDR_LOW
+#endif
 
 /* AttrIndx[2:0] encoding
  * (mapping attributes defined in the MAIR* registers).
@@ -158,6 +169,8 @@
 #define _PAGE_DEFAULT		(PROT_DEFAULT | PTE_ATTRINDX(MT_NORMAL))
 
 #define PAGE_KERNEL		__pgprot(_PAGE_DEFAULT | PTE_PXN | PTE_UXN | PTE_DIRTY | PTE_WRITE)
+#define PAGE_KERNEL_RO		__pgprot((PROT_NORMAL & ~PTE_WRITE) | PTE_RDONLY)
+#define PAGE_KERNEL_ROX		__pgprot((PROT_NORMAL & ~(PTE_WRITE | PTE_PXN)) | PTE_RDONLY)
 #define PAGE_KERNEL_EXEC	__pgprot(_PAGE_DEFAULT | PTE_UXN | PTE_DIRTY | PTE_WRITE)
 
 #define PAGE_HYP		__pgprot(_PAGE_DEFAULT | PTE_HYP)
@@ -312,10 +325,9 @@ static inline void set_pte_at(caddr_t addr, pte_t *ptep, pte_t pte)
 #define mk_pte(page,prot)	pfn_pte(page_to_pfn(page),prot)
 
 /* to find an entry in a page-table-directory */
-#define pgd_index(addr)		(((addr) >> PGDIR_SHIFT) & (PTRS_PER_PGD - 1))
-#define pgd_offset(addr)	(mmu_pg_dir+pgd_index(addr))
-/* to find an entry in a kernel page-table-directory */
-#define pgd_offset_k(addr)	pgd_offset(addr)
+#define pgd_index(addr)			(((addr) >> PGDIR_SHIFT) & (PTRS_PER_PGD - 1))
+#define pgd_offset_raw(pgd, addr)	((pgd) + pgd_index(addr))
+#define pgd_offset(addr)		(mmu_pg_dir+pgd_index(addr))
 
 static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 {
@@ -327,10 +339,18 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 
 #define pmd_modify(pmd, newprot)	\
 	pte_pmd(pte_modify(pmd_pte(pmd), newprot))
-#endif /* !__ASSEMBLY__ */
 
-#define mmu_hw_ctrl_init()
+/* To include device specific fixmaps */
+#include <asm/mach/mmu.h>
+
+#define FIXADDR_START	(FIXADDR_END - FIXADDR_SIZE)
+#define FIXMAP_PAGE_IO	__pgprot(PROT_DEVICE_nGnRE)
+
+extern void __set_fixmap(enum fixed_addresses idx, phys_addr_t phys, pgprot_t prot);
+
+#define mmu_hw_ctrl_init()		do { } while (0)
 void mmu_hw_create_mapping(phys_addr_t phys, caddr_t virt,
 			   phys_addr_t size);
+#endif /* !__ASSEMBLY__ */
 
 #endif /* __MMU_ARM64_H_INCLUDE__ */

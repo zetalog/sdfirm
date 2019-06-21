@@ -334,6 +334,7 @@ menuconfig VMSA
 	select ARCH_HAS_MMU_3L if MMU_64K_PAGE && VMSA_VA_16TB	# 44-bits
 	select ARCH_HAS_MMU_3L if MMU_64K_PAGE && VMSA_VA_256TB	# 48-bits
 	select ARCH_HAS_MMU_3L if MMU_64K_PAGE && VMSA_VA_4PB	# 52-bits
+	select VMSA_VA_2_RANGES if MMU_PAGE_OFFSET
 
 if VMSA
 
@@ -370,6 +371,11 @@ config VMSA_ADDRESS_TAGGING
 config VMSA_VA_2_RANGES
 	bool "Two VA ranges support"
 	depends (SYS_KERNEL && !SYS_HYPERVISOR) || SYS_HOST
+	depends MMU_PAGE_OFFSET
+
+config VMSA_PHYS_OFFSET
+	hex "Physical memory start address"
+	default 0
 
 endif
 

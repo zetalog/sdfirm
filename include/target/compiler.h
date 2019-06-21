@@ -3,6 +3,10 @@
 
 /* compiler specific */
 
+#include <stdint.h>
+
+#define __barrier()	__asm__ __volatile__("": : :"memory")
+
 #ifdef __GNUC__
 #include <target/compiler_gcc.h>
 #elif SDCC

@@ -3,6 +3,7 @@
 #include <target/init.h>
 #include <target/arch.h>
 #include <target/smp.h>
+#include <target/paging.h>
 #include <asm/assembler.h>
 #include <asm/asm-offsets.h>
 
@@ -10,9 +11,9 @@
 
 	__HEAD
 
+__head:
 #ifdef CONFIG_BOOT_ROM
 .org 0
-ENTRY(stext)
 	b	__arm_reset
 .org 0x080
 	b	.
@@ -75,9 +76,9 @@ __arm_reset:
 #ifdef CONFIG_XIP
 	.fill ARM_ROM_OFFSET
 #endif
+#endif
 
 ENTRY(stext)
-#endif
 	# zero init BSS region
 	ldr	x0, =__bss_start
 	ldr	x1, =__bss_stop
@@ -85,7 +86,7 @@ ENTRY(stext)
 bss_init_loop:
 	stp	x2, x2, [x0], #16
 	cmp	x0, x1
-	blt	bss_init_loop
+	b.lt	bss_init_loop
 
 #ifdef CONFIG_SMP
 	# Using one page for each CPU stack:

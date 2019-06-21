@@ -17,8 +17,8 @@
 # define asmregparm
 #endif
 
-#define __page_aligned_data	__section(.data..page_aligned) __aligned(PAGE_SIZE)
-#define __page_aligned_bss	__section(.bss..page_aligned) __aligned(PAGE_SIZE)
+#define __page_aligned_data	__section(.data..page_aligned) __align(PAGE_SIZE)
+#define __page_aligned_bss	__section(.bss..page_aligned) __align(PAGE_SIZE)
 
 /*
  * For assembly routines.
