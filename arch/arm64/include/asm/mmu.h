@@ -346,8 +346,6 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 #define FIXADDR_START	(FIXADDR_END - FIXADDR_SIZE)
 #define FIXMAP_PAGE_IO	__pgprot(PROT_DEVICE_nGnRE)
 
-extern void __set_fixmap(enum fixed_addresses idx, phys_addr_t phys, pgprot_t prot);
-
 #define mmu_hw_ctrl_init()		do { } while (0)
 void mmu_hw_create_mapping(phys_addr_t phys, caddr_t virt,
 			   phys_addr_t size);
