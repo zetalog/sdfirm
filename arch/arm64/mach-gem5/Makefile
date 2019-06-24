@@ -2,6 +2,7 @@
 obj-y :=
 
 obj-y += mach.rel
+obj-y += mem.rel
 obj-y += timer.rel
 #obj-y += pg.rel
 

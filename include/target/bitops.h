@@ -30,6 +30,9 @@ uint8_t find_next_clear_bit(const bits_t *addr,
 
 #define ALIGN(x,a)		__ALIGN_MASK(x,(a)-1)
 #define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
+#define __round_mask(x, y) 	((y)-1)
+#define round_up(x, y)		((((x)-1) | __round_mask(x, y))+1)
+#define round_down(x, y)	((x) & ~__round_mask(x, y))
 
 uint8_t __ffs8(uint8_t word);
 uint8_t __ffs16(uint16_t word);

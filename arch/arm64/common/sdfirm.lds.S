@@ -4,9 +4,15 @@
 #include <target/arch.h>
 #include <asm-generic/sdfirm.lds.h>
 
+#define IDMAP_TEXT			\
+	. = ALIGN(SZ_4K);		\
+	__idmap_text_start = .;		\
+	*(.idmap.text)			\
+	__idmap_text_end = .;
+
 OUTPUT_FORMAT("elf64-littleaarch64", "elf64-bigaarch64", "elf64-littleaarch64")
 OUTPUT_ARCH(aarch64)
-ENTRY(stext)
+ENTRY(__start)
 
 SECTIONS
 {
@@ -35,6 +41,7 @@ SECTIONS
 	_text = .;				/* address in RAM or ROM */
 	.text : {
 		TEXT_TEXT
+		IDMAP_TEXT
 	}
 	__etext = .;				/* end of text sections */
 
@@ -76,12 +83,14 @@ SECTIONS
 
 #ifdef CONFIG_MMU
 	. = ALIGN(PAGE_SIZE);
+	mmu_id_map = .;
+	. += IDMAP_DIR_SIZE;
 	mmu_pg_dir = .;
-	. += PGDIR_BYTES;
+	. += BPGT_DIR_SIZE;
 #endif
 
 	. = ALIGN(PAGE_SIZE);
-	__pageable_start = .;
+	__end = .;
 }
 
 /*

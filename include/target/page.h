@@ -25,6 +25,8 @@
 #else
 #define PGTABLE_LEVELS		2
 #endif
+#define __PGTABLE_LEVELS(va_bits)	\
+	(((va_bits) - PAGE_PTR_BITS - 1) / (PAGE_SHIFT - PAGE_PTR_BITS))
 
 #include <asm/page.h>
 

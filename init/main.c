@@ -5,6 +5,7 @@
 #include <target/delay.h>
 #include <target/clk.h>
 #include <target/cmdline.h>
+#include <target/mem.h>
 #include <target/paging.h>
 #include <stdio.h>
 
@@ -70,6 +71,8 @@ void timer_init(void);
 void system_init(void)
 {
 	main_debug(MAIN_DEBUG_INIT, 0);
+	mem_init();
+	early_fixmap_init();
 	board_init();
 	gpio_init();
 	debug_init();
@@ -90,7 +93,6 @@ void system_init(void)
 	clk_init();
 	timer_init();
 	page_early_init();
-	early_fixmap_init();
 	paging_init();
 	page_late_init();
 	heap_init();

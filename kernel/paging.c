@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <target/mem.h>
 #include <target/paging.h>
 #include <target/arch.h>
 #include <target/linkage.h>
@@ -10,7 +11,7 @@ static phys_addr_t early_pgtable_alloc(int shift)
 	phys_addr_t phys;
 	void *ptr;
 
-	phys = page_alloc();
+	phys = mem_alloc(PAGE_SIZE, PAGE_SIZE);
 	if (!phys) {
 		printf("Failed to allocate page table page\n");
 		BUG();
@@ -189,12 +190,12 @@ static void map_kernel(pgd_t *pgdp)
 		READ_ONCE(*pgd_offset(FIXADDR_START)));
 }
 
-static pte_t bm_pte[PTRS_PER_PTE] __page_aligned_bss;
+static pte_t bm_pte[PTRS_PER_PTE] __page_aligned_bss __unused;
 #if PGTABLE_LEVELS > 2
-static pmd_t bm_pmd[PTRS_PER_PMD] __page_aligned_bss;
+static pmd_t bm_pmd[PTRS_PER_PMD] __page_aligned_bss __unused;
 #endif
 #if PGTABLE_LEVES > 3
-static pud_t bm_pud[PTRS_PER_PUD] __page_aligned_bss;
+static pud_t bm_pud[PTRS_PER_PUD] __page_aligned_bss __unused;
 #endif
 
 static inline pud_t *fixmap_pud(caddr_t addr)
@@ -302,7 +303,7 @@ void paging_init(void)
 #endif
 	pgd_clear_fixmap();
 #if 0
-	cpu_replace_ttbr1(lm_alias(swapper_pg_dir));
+	cpu_replace_ttbr1(mmu_pg_dir);
 	mmu_hw_ctrl_init();
 #endif
 }

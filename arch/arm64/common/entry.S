@@ -127,9 +127,8 @@ exception_exit:
 	b	\label
 .endm
 
-.globl vectors_el3
-.align 11, 0
-vectors:
+.align 11
+ENTRY(vectors_el3)
 	/* -----------------------------------------------------------
 	 * Current EL with SP_EL0 : 0x0 - 0x200
 	 * ----------------------------------------------------------- */
@@ -174,6 +173,11 @@ fiq_aarch32:
 	ventry _bad_mode, 2
 serror_aarch32:
 	ventry _bad_mode, 3
+END(vectors_el3)
+
+.align 11
+ENTRY(vectors_el1)
+END(vectors_el1)
 
 ENTRY(__bad_interrupt)
 	b	.

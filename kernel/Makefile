@@ -4,6 +4,7 @@
 
 obj-y:=
 
+obj-y += mem.rel
 obj-y += panic.rel
 obj-y += bh.rel
 obj-y += irq.rel

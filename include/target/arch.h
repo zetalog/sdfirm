@@ -22,9 +22,10 @@ extern uintptr_t __start_rodata[];
 extern uintptr_t __end_rodata[];
 extern uintptr_t __bss_start[];
 extern uintptr_t __bss_stop[];
-extern uintptr_t __pageable_start[];
+extern uintptr_t __end[];
 
-#define PAGEABLE_START	((uint64_t)(&__pageable_start))
+#define SDFIRM_END	((uint64_t)(&__end))
+#define PAGEABLE_START	SDFIRM_END
 #define PAGEABLE_END	PERCPU_STACKS_START
 #endif /* !__ASSEMBLY__ */
 

@@ -263,7 +263,7 @@ config TEXT_RAM_BASE
 endmenu
 
 menuconfig HEAP
-	bool "Address space layout (heap) support"
+	bool "Address space allocator (heap) support"
 	help
 	  Heap will start aligned from data/bss end.
 
@@ -308,8 +308,22 @@ config ALLOC_CHECK
 
 endif
 
+menuconfig MEM
+	bool "Address space allocator (bootmem) support"
+	depends MMU
+
+if MEM
+
+config MEM_RESIZE
+	bool "Enable resizable memory region array support"
+
+config MEM_DEBUG
+	bool "Enable memory allocator debugging support"
+
+endif
+
 menuconfig PAGE
-	bool "Address space layout (page) support"
+	bool "Address space allocator (page) support"
 
 if PAGE
 
@@ -348,6 +362,7 @@ config ARCH_HAS_MMU_5L
 menuconfig MMU
 	bool "Address space layout (paging) support"
 	depends ARCH_HAS_MMU
+	select MEM
 	select PAGE
 
 if MMU

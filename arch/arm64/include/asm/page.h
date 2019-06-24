@@ -2,7 +2,9 @@
 #define __PAGE_ARM64_H_INCLUDE__
 
 #include <stdio.h>
+#include <target/const.h>
 #include <target/barrier.h>
+#include <target/mem.h>
 #include <asm/vmsa.h>
 
 /*===========================================================================
@@ -52,7 +54,6 @@
 
 #ifndef __ASSEMBLY__
 typedef uint64_t pfn_t;
-typedef uint64_t phys_addr_t;
 typedef uint64_t pteval_t;
 typedef uint64_t pmdval_t;
 typedef uint64_t pudval_t;
@@ -101,5 +102,34 @@ static inline void set_pgd(pgdval_t *pgdp, pgdval_t pgd)
 /* #define set_pgd(pgdp, pgd)	((*(pgdp) = (pgd)), page_wmb()) */
 #endif /* PGTABLE_LEVELS > 3 */
 #endif
+
+/*===========================================================================
+ * boot page table (bpgt)
+ *===========================================================================*/
+/* The idmap and boot page tables need some space reserved in the kernel
+ * image. Both require pgd, pud (4 levels only) and pmd tables to (section)
+ * map the kernel. With the 64K page configuration, swapper and idmap need to
+ * map to pte level. Note that the number of ID map translation levels could
+ * be increased on the fly if system RAM is out of reach for the default VA
+ * range, so pages required to map highest possible PA are reserved in all
+ * cases.
+ */
+#define BPGT_DIR_SIZE		(PGTABLE_LEVELS * PAGE_SIZE)
+#define IDMAP_PGTABLE_LEVELS	(__PGTABLE_LEVELS(PHYS_MASK_SHIFT))
+#define IDMAP_DIR_SIZE		(IDMAP_PGTABLE_LEVELS * PAGE_SIZE)
+
+/* Initial memory map size */
+#define BPGT_BLOCK_SHIFT	PAGE_SHIFT
+#define BPGT_BLOCK_SIZE	PAGE_SIZE
+#define BPGT_TABLE_SHIFT	PMD_SHIFT
+
+/* The size of the initial kernel direct mapping */
+#define BPGT_INIT_MAP_SIZE	(_AC(1, UL) << BPGT_TABLE_SHIFT)
+
+/* Initial memory map attributes. */
+#define BPGT_PTE_FLAGS		(PTE_TYPE_PAGE | PTE_AF | PTE_SHARED)
+#define BPGT_PMD_FLAGS		(PMD_TYPE_SECT | PMD_SECT_AF | PMD_SECT_S)
+
+#define BPGT_MM_MMUFLAGS	(PMD_ATTRINDX(MT_NORMAL) | BPGT_PMD_FLAGS)
 
 #endif /* __PAGE_ARM64_H_INCLUDE__ */

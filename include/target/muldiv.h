@@ -41,10 +41,13 @@ uint32_t gcd32u(uint32_t n, uint32_t m);
 #endif
 
 #ifndef min
-#define min(x, y)	((x)<(y)?(x):(y))
+#define min(x, y)		((x)<(y)?(x):(y))
 #endif
 #ifndef max
-#define max(x, y)	((x)>(y)?(x):(y))
+#define max(x, y)		((x)>(y)?(x):(y))
+#endif
+#ifndef clamp
+#define clamp(val, lo, hi)	min(max(val, lo), hi)
 #endif
 
 #endif /* __MULDIV_H_INCLUDE__ */
