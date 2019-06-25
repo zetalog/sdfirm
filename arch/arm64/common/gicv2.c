@@ -52,6 +52,7 @@ void gicv2_init_gicd(void)
 	irq_t irq;
 
 	/* Disable distributor */
+	printf("GICD_CTLR: %016llx\n", GICD_CTLR);
 	__raw_clearl(GICD_ENABLE_NS, GICD_CTLR);
 	__raw_clearl(GICD_ENABLE, GICD_CTLR);
 	/* Disable all IRQs */

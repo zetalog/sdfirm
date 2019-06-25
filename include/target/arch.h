@@ -4,7 +4,7 @@
 #include <asm/arch.h>
 #include <target/cpus.h>
 #include <target/cache.h>
-#include <target/page.h>
+#include <target/paging.h>
 #include <target/smp.h>
 
 #ifdef CONFIG_XIP
@@ -25,6 +25,11 @@ extern uintptr_t __bss_stop[];
 extern uintptr_t __end[];
 
 #define SDFIRM_END	((uint64_t)(&__end))
+#ifndef FIXADDR_END
+#define FIXADDR_END	(PAGE_OFFSET)
+#endif
+#define FIXADDR_START	(FIXADDR_END - FIXADDR_SIZE)
+
 #define PAGEABLE_START	SDFIRM_END
 #define PAGEABLE_END	PERCPU_STACKS_START
 #endif /* !__ASSEMBLY__ */

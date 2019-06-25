@@ -82,31 +82,31 @@ typedef pteval_t pgprot_t;
 
 #define PTRS_PER_PTE		PAGE_MAX_TABLE_ENTRIES
 
-#define __pte_to_phys(pte)	(pte_val(pte) & PTE_ADDR_MASK)
-#define __phys_to_pte_val(phys)	(phys)
 #define pte_pfn(pte)		((pte_val(pte) & PHYS_MASK) >> PAGE_SHIFT)
 #define pfn_pte(pfn, prot)	__pte(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
 
 #define pte_none(pte)		(!pte_val(pte))
 #define pte_clear(addr, ptep)	set_pte(ptep, __pte(0))
-#define pte_page(pte)		pfn_to_page(pte_pfn(pte))
+
+#if 0
 #define pte_alloc_one_kernel(addr)	((pte_t *)page_alloc_zeroed())
 #define pte_free_kernel(pte)		page_free((caddr_t)pte)
 #define pte_alloc_one(addr)		((pte_t *)page_alloc_zeroed())
 #define pte_free(pte)			page_free((caddr_t)pte)
+#endif
 
 #define pmd_page_paddr(pmd)		(pmd_val(pmd) & PHYS_MASK & PAGE_MASK)
+#define pmd_page_vaddr(pmd)		((pte_t *)__va(pmd_page_paddr(pmd)))
+
 /* Find an entry in the third-level page table. */
 #define pte_index(addr)			(((addr) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
-#define pte_offset_phys(dir,addr)	(pmd_page_paddr(*(dir)) + pte_index(addr) * sizeof(pte_t))
+#define pte_offset_phys(dir, addr)	(pmd_page_paddr(*(dir)) + pte_index(addr) * sizeof(pte_t))
 
 #ifndef ARCH_HAVE_SET_PTE
 #define set_pte(ptep, pte)	(*(ptep) = (pte))
 #endif
 
-#define __pmd_to_phys(pmd)	__pte_to_phys(pmd_pte(pmd))
-#define __phys_to_pmd_val(phys)	__phys_to_pte_val(phys)
-#define pmd_pfn(pmd)		(((pmd_val(pmd) & PMD_MASK) & PHYS_MASK) >> PAGE_SHIFT)
+#define pmd_pfn(pmd)		(pmd_page_paddr(pmd) >> PAGE_SHIFT)
 #define pfn_pmd(pfn,prot)	__pmd(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
 
 #define pmd_none(pmd)		(!pmd_val(pmd))
@@ -114,30 +114,13 @@ typedef pteval_t pgprot_t;
 #define pmd_present(pmd)	pmd_val(pmd)
 #define pmd_clear(pmdp)		set_pmd(pmdp, __pmd(0))
 
-#define pmd_page_vaddr(pmd)	\
-	((pte_t *)__va(pmd_val(pmd) & PHYS_MASK & (int32_t)PAGE_MASK))
-#define pmd_page(pmd)		pfn_to_page(__phys_to_pfn(pmd_val(pmd) & PHYS_MASK))
+#define pmd_page(pmd)		pfn_to_page(phys_to_pfn(pmd_val(pmd) & PHYS_MASK))
 
 #define __pmd_populate(pmdp, pte, prot)	set_pmd(pmdp, __pmd(pte | prot))
-/*
- * Populate the pmdp entry with a pointer to the pte.  This pmd is part
- * of the mm address space.
- *
- * The pmd must be loaded with the physical address of the PTE table.
- */
-#define pmd_populate_kernel(pmdp, ptep)		\
-	__pmd_populate(pmdp, __pa(ptep), PMD_TYPE_TABLE)
-#define pmd_populate(pmdp, ptep)		\
-	__pmd_populate(pmdp, page_to_phys(ptep), PMD_TYPE_TABLE);
-#define pmd_pgtable(pmd) pmd_page(pmd)
+#define pmd_populate(pmdp, ptep)	__pmd_populate(pmdp, __pa(ptep), PMD_TYPE_TABLE)
 
-#define __pud_to_phys(pud)	__pte_to_phys(pud_pte(pud))
-#define __phys_to_pud_val(phys)	__phys_to_pte_val(phys)
-#define pud_page_paddr(pud)	__pud_to_phys(pud)
-#define pud_pfn(pud)		(((pud_val(pud) & PUD_MASK) & PHYS_MASK) >> PAGE_SHIFT)
-
-#define __pgd_to_phys(pgd)	__pte_to_phys(pgd_pte(pgd))
-#define __phys_to_pgd_val(phys)	__phys_to_pte_val(phys)
+#define pud_page_paddr(pud)	(pud_val(pud) & PHYS_MASK & PAGE_MASK)
+#define pud_page_vaddr(pud)	((pmd_t *)__va(pud_page_paddr(pud)))
 
 /* PGDIR_SHIFT determines the size a top-level page table entry can map
  * (depending on the configuration, this level can be 0, 1 or 2).
@@ -148,8 +131,14 @@ typedef pteval_t pgprot_t;
 #define PGDIR_MASK	(~(PGDIR_SIZE-1))
 #define PTRS_PER_PGD	(PTR_VAL_ONE << (VA_BITS - PGDIR_SHIFT))
 
+#define pgd_index(addr)			(((addr) >> PGDIR_SHIFT) & (PTRS_PER_PGD - 1))
+#define pgd_offset_raw(pgd, addr)	((pgd) + pgd_index(addr))
+#define pgd_offset(addr)		(mmu_pg_dir+pgd_index(addr))
+
+#if 0
 #define pgd_alloc()	(BUG_ON(0), (pgd_t *)NULL)
 #define pgd_free(pgd)	BUG_ON(0)
+#endif
 
 #define pgd_set_fixmap(addr)			((pgd_t *)set_fixmap_offset(FIX_PGD, addr))
 #define pgd_clear_fixmap()			clear_fixmap(FIX_PGD)
@@ -176,12 +165,10 @@ static inline caddr_t pte_addr_end(caddr_t addr, caddr_t end)
 #define PTRS_PER_PMD	PAGE_MAX_TABLE_ENTRIES
 
 /* Find an entry in the second-level page table. */
-#define __pmd_index(addr)		(((addr) >> PMD_SHIFT) & (PTRS_PER_PMD - 1))
 #define pmd_index(addr)			(((addr) >> PMD_SHIFT) & (PTRS_PER_PMD - 1))
-
-#define pmd_offset_phys(pud, addr)	(pud_page_paddr(READ_ONCE(*(pud))) + pmd_index(addr) * sizeof(pmd_t))
+#define pmd_offset_phys(dir, addr)	(pud_page_paddr(*(dir)) + pmd_index(addr) * sizeof(pmd_t))
 #define pmd_offset(pud, addr)		\
-	((pmd_t *)pud_page_vaddr(*(pud)) + __pmd_index(addr))
+	((pmd_t *)pud_page_vaddr(*(pud)) + pmd_index(addr))
 
 #define pmd_set_fixmap(addr)			((pmd_t *)set_fixmap_offset(FIX_PMD, addr))
 #define pmd_set_fixmap_offset(pud, addr)	pmd_set_fixmap(pmd_offset_phys(pud, addr))
@@ -194,19 +181,19 @@ static inline caddr_t pmd_addr_end(caddr_t addr, caddr_t end)
 	return (__boundary - 1 < end - 1) ? __boundary : end;
 }
 #endif /* !__ASSEMBLY__ */
+#if 0
 #define pmd_alloc_one(addr)	((pmd_t *)page_alloc_zeroed())
 #define pmd_free(pmd)		page_free((caddr_t)pmd)
+#endif
 
 #define pud_none(pud)		(!pud_val(pud))
 #define pud_bad(pud)		(!(pud_val(pud) & 2))
 #define pud_present(pud)	(pud_val(pud))
 #define pud_clear(pudp)		set_pud(pudp, __pud(0))
-#define __pud_populate(pud, pmd, prot)	\
-	set_pud(pud, __pud(__phys_to_pud_val(pmd) | prot))
-#define pud_populate(pud, pmd)	set_pud(pud, __pud(__pa(pmd) | PMD_TYPE_TABLE))
+
+#define __pud_populate(pudp, pmd, prot)	set_pud(pudp, __pud((pmd) | prot))
+#define pud_populate(pudp, pmd)		__pud_populate(pudp, __pa(pmd), PMD_TYPE_TABLE)
 #define pud_page(pud)		pmd_page(pud_pmd(pud))
-#define pud_page_vaddr(pud)	\
-	((pmd_t *)__va(pud_val(pud) & PHYS_MASK & (int32_t)PAGE_MASK))
 
 #ifndef ARCH_HAVE_SET_PUD
 #define set_pud(pudp, pud)	(*(pudp) = (pud))
@@ -222,26 +209,28 @@ static inline caddr_t pmd_addr_end(caddr_t addr, caddr_t end)
 #define PTRS_PER_PUD	PAGE_MAX_TABLE_ENTRIES
 
 /* Find an entry in the frst-level page table. */
-#define __pud_index(addr)	(((addr) >> PUD_SHIFT) & (PTRS_PER_PUD - 1))
-#define pud_offset(pgd, addr)	\
-	((pud_t *)pgd_page_vaddr(*(pgd)) + __pud_index(addr))
+#define pud_index(addr)			(((addr) >> PUD_SHIFT) & (PTRS_PER_PUD - 1))
+#define pud_offset_phys(dir, addr)	(pgd_page_paddr(*(dir)) + pud_index(addr) * sizeof(pud_t))
+#define pud_offset(pgd, addr)		((pud_t *)pgd_page_vaddr(*(pgd)) + pud_index(addr))
+
+#if 0
 #define pud_alloc_one(addr)	((pud_t *)page_alloc_zeroed())
 #define pud_free(pud)		page_free((caddr_t)pud)
+#endif
+
+#define pud_set_fixmap(addr)			((pud_t *)set_fixmap_offset(FIX_PUD, addr))
+#define pud_set_fixmap_offset(pgd, addr)	pud_set_fixmap(pud_offset_phys(pgd, addr))
+#define pud_clear_fixmap()			clear_fixmap(FIX_PUD)
 
 #define pgd_none(pgd)		(!pgd_val(pgd))
 #define pgd_bad(pgd)		(!(pgd_val(pgd) & 2))
 #define pgd_present(pgd)	pgd_val(pgd)
 #define pgd_clear(pgdp)		set_pgd(pgdp, __pgd(0))
 
-#define __pgd_populate(pgd, pud, prot)	\
-	set_pgd(pgd, __pgd(__phys_to_pgd_val(pud) | prot))
-#define pgd_populate(pgd, pud)	set_pgd(pgd, __pgd(__pa(pud) | PUD_TYPE_TABLE))
-#define pgd_page_vaddr(pgd)	\
-	((pud_t *)__va(pgd_val(pgd) & PHYS_MASK & (int32_t)PAGE_MASK))
-
-#define pud_set_fixmap(addr)			((pud_t *)set_fixmap_offset(FIX_PUD, addr))
-#define pud_set_fixmap_offset(pgd, addr)	pud_set_fixmap(pud_offset_phys(pgd, addr))
-#define pud_clear_fixmap()			clear_fixmap(FIX_PUD)
+#define __pgd_populate(pgdp, pud, prot)	set_pgd(pgdp, __pgd((pud) | prot))
+#define pgd_populate(pgdp, pud)		__pgd_populate(pgdp, __pa(pud), PUD_TYPE_TABLE)
+#define pgd_page_paddr(pgd)	(pgd_val(pgd) & PHYS_MASK & PAGE_MASK)
+#define pgd_page_vaddr(pgd)	__va(pgd_page_paddr(pgd))
 
 #ifndef __ASSEMBLY__
 static inline caddr_t pud_addr_end(caddr_t addr, caddr_t end)

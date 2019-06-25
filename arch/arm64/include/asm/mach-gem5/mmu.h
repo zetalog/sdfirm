@@ -20,7 +20,7 @@ enum fixed_addresses {
 	FIX_UART2,
 	FIX_UART3,
 	FIX_GICD,
-	FIX_GICR,
+	FIX_GICC,
 	FIX_GPIO,
 
 	__end_of_permanent_fixed_addresses,

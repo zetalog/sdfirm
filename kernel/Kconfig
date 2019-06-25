@@ -417,6 +417,10 @@ config MMU_PAGE_OFFSET
 	bool "Enable kernel offset support"
 	depends !BOOTLOADER
 
+config MMU_IDMAP_DEVICE
+	bool "Enable early device identity mapping"
+	depends EXPERIMENTAL
+
 endif
 
 menuconfig IDLE

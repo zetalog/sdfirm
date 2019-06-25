@@ -313,11 +313,6 @@ static inline void set_pte_at(caddr_t addr, pte_t *ptep, pte_t pte)
  */
 #define mk_pte(page,prot)	pfn_pte(page_to_pfn(page),prot)
 
-/* to find an entry in a page-table-directory */
-#define pgd_index(addr)			(((addr) >> PGDIR_SHIFT) & (PTRS_PER_PGD - 1))
-#define pgd_offset_raw(pgd, addr)	((pgd) + pgd_index(addr))
-#define pgd_offset(addr)		(mmu_pg_dir+pgd_index(addr))
-
 static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 {
 	const pteval_t mask = PTE_USER | PTE_PXN | PTE_UXN | PTE_RDONLY |
@@ -332,7 +327,7 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 /* To include device specific fixmaps */
 #include <asm/mach/mmu.h>
 
-#define FIXADDR_START	(FIXADDR_END - FIXADDR_SIZE)
+#define FIXADDR_END	VMSA_VA_BASE_HI
 #define FIXMAP_PAGE_IO	__pgprot(PROT_DEVICE_nGnRE)
 
 #define mmu_hw_ctrl_init()		do { } while (0)

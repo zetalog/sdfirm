@@ -46,7 +46,11 @@
  * VA_BITS - the maximum number of bits for virtual addresses.
  */
 #define VA_BITS			VMSA_VA_SIZE_SHIFT
+#ifdef CONFIG_VMSA_VA_2_RANGES
 #define PAGE_OFFSET		VMSA_VA_BASE_HI
+#else
+#define PAGE_OFFSET		0
+#endif
 
 /* Highest possible physical address supported */
 #define PHYS_MASK_SHIFT		VMSA_PA_SIZE_SHIFT
@@ -131,5 +135,6 @@ static inline void set_pgd(pgdval_t *pgdp, pgdval_t pgd)
 #define BPGT_PMD_FLAGS		(PMD_TYPE_SECT | PMD_SECT_AF | PMD_SECT_S)
 
 #define BPGT_MM_MMUFLAGS	(PMD_ATTRINDX(MT_NORMAL) | BPGT_PMD_FLAGS)
+#define BPGT_MM_DEVFLAGS	(PMD_ATTRINDX(MT_DEVICE_nGnRnE) | BPGT_PMD_FLAGS)
 
 #endif /* __PAGE_ARM64_H_INCLUDE__ */

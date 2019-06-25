@@ -46,6 +46,8 @@ void uart_hw_con_init(void)
 #ifdef CONFIG_MMU
 void uart_hw_mmu_init(void)
 {
-	set_fixmap_io(FIX_UART0, UART_BASE_PA(0) & PAGE_MASK);
+	set_fixmap_io(FIX_GPIO, 0x1c010000 & PAGE_MASK);
+	set_fixmap_io(FIX_UART0, __UART_BASE(0) & PAGE_MASK);
+	uart_hw_con_init();
 }
 #endif

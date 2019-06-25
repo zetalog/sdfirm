@@ -3,7 +3,7 @@
 
 #include <target/config.h>
 #include <target/generic.h>
-#include <target/page.h>	/* page size */
+#include <target/paging.h>	/* page size */
 
 /* This allocator is written by Doug Lea and released to the public.
  * VERSION 2.6.6  Sun Mar  5 19:10:03 2000  Doug Lea  (dl at gee)

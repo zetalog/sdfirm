@@ -9,6 +9,10 @@
 
 #define ARM_ROM_OFFSET	0x850
 
+#define SDFIRM_START	__stext
+#define SDFIRM_END	__end
+#define __PHYS_OFFSET	(SDFIRM_START - TEXT_OFFSET)
+
 	__HEAD
 
 __head:
@@ -105,6 +109,7 @@ ENTRY(__start)
 	eret
 #endif
 init_lo_el:
+	adrp	x24, __PHYS_OFFSET
 	bl	__create_page_tables
 
 #ifdef CONFIG_SYS_MONITOR
@@ -220,8 +225,6 @@ ENTRY(__linux_boot_el2)
 	ret
 ENDPROC(__linux_boot_el2)
 #endif
-
-#define SDFIRM_END	__end
 
 # Macro to create a table entry to the next page.
 #	tbl:	page table address
@@ -345,6 +348,17 @@ ENTRY(__create_page_tables)
 	mov	x5, x3				// __pa(__idmap_text_start)
 	adr_l	x6, __idmap_text_end		// __pa(__idmap_text_end)
 	create_block_map x0, x7, x3, x5, x6
+
+#ifdef CONFIG_MMU_IDMAP_DEVICE
+	# Map device area for early console
+	mov	x0, x25
+	mov	x5, #DEV_BASE
+	create_pgd_entry x0, x5, x3, x6
+	mov	x6, #DEVEND
+	mov	x3, x5
+	ldr	x7, =BPGT_MM_DEVFLAGS
+	create_block_map x0, x7, x3, x5, x6
+#endif
 
 	# Map the sdfirm image (starting with PHYS_OFFSET).
 	mov	x0, x26				// mmu_pg_dir

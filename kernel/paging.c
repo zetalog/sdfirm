@@ -6,7 +6,7 @@
 #include <target/linkage.h>
 #include <target/compiler.h>
 
-#if 0
+#ifdef CONFIG_MMU_IDMAP_DEVICE
 #define fix_dbg		printf
 #else
 #define fix_dbg(...)
@@ -259,7 +259,7 @@ static pte_t bm_pte[PTRS_PER_PTE] __page_aligned_bss __unused;
 #if PGTABLE_LEVELS > 2
 static pmd_t bm_pmd[PTRS_PER_PMD] __page_aligned_bss __unused;
 #endif
-#if PGTABLE_LEVES > 3
+#if PGTABLE_LEVELS > 3
 static pud_t bm_pud[PTRS_PER_PUD] __page_aligned_bss __unused;
 #endif
 
@@ -331,10 +331,11 @@ void early_fixmap_init(void)
 	fix_dbg("PGD: %016llx\n", mmu_pg_dir);
 	pgd = pgd_offset(addr);
 	pgd_populate(pgd, bm_pud);
+	printf("set pgd to bm_pud\n");
 	pud = pud_offset(pgd, addr);
 	pud_populate(pud, bm_pmd);
 	pmd = pmd_offset(pud, addr);
-	pmd_populate_kernel(pmd, bm_pte);
+	pmd_populate(pmd, bm_pte);
 
 	/* The boot-ioremap range spans multiple pmds, for which
 	 * we are not preparted:
@@ -360,7 +361,7 @@ void early_fixmap_init(void)
 
 void paging_init(void)
 {
-	phys_addr_t pgd_phys = early_pgtable_alloc();
+	phys_addr_t pgd_phys = __pa_symbol(mmu_pg_dir);
 	pgd_t *pgdp = pgd_set_fixmap(__pa_symbol(pgd_phys));
 
 	map_kernel(pgdp);
@@ -373,7 +374,6 @@ void paging_init(void)
 #endif
 
 	pgd_clear_fixmap();
-	early_pgtable_free(pgd_phys);
 #if 0
 	mmu_hw_ctrl_init();
 #endif

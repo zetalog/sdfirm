@@ -13,11 +13,11 @@
 #define UART0_BASE			0x1C090000
 
 /* Definitions to implement AMBA UART */
-#ifdef CONFIG_MMU
-#define UART_BASE_PA(n)			(UART0_BASE + ((n) * 0x10000))
+#define __UART_BASE(n)			(UART0_BASE + ((n) * 0x10000))
+#if defined(CONFIG_MMU) && !defined(CONFIG_MMU_IDMAP_DEVICE)
 #define UART_BASE(n)			fix_to_virt(FIX_UART0+(n))
 #else
-#define UART_BASE(n)			(UART0_BASE + ((n) * 0x10000))
+#define UART_BASE(n)			__UART_BASE(n)
 #endif
 #define UART_IRQ(n)			IRQ_UART##n
 #define UART_CON_IRQ			IRQ_UART0

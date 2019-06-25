@@ -65,14 +65,21 @@ void timer_init(void);
 #define timer_init()
 #endif
 
+#ifdef CONFIG_MMU_IDMAP_DEVICE
+#define idmap_early_init()	console_init()
+#define idmap_late_init()
+#else
+#define idmap_early_init()
+#define idmap_late_init()	early_console_init()
+#endif
+
 #ifndef CONFIG_PORTING
 void system_init(void)
 {
-#if 0
+	idmap_early_init();
 	mem_init();
 	early_fixmap_init();
-	early_console_init();
-#endif
+	idmap_late_init();
 	main_debug(MAIN_DEBUG_INIT, 0);
 	board_init();
 	gpio_init();
@@ -94,8 +101,10 @@ void system_init(void)
 	clk_init();
 	timer_init();
 	paging_init();
+#ifndef CONFIG_MMU_IDMAP_DEVICE
 	page_early_init();
 	page_late_init();
+#endif
 	heap_init();
 	bulk_init();
 

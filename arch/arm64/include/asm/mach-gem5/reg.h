@@ -14,6 +14,9 @@
 #define RAMEND			0x4000000
 #endif
 
+#define DEV_BASE		0x10000000
+#define DEVEND			0x30000000
+
 /* APC stack/heap:
  *
  * SYS IMEM can be used to synchronize between IMC/APC, while stack
@@ -26,7 +29,5 @@
 #define PERCPU_STACK_SHIFT              PAGE_SHIFT
 #define PERCPU_STACK_SIZE               PAGE_SIZE
 #define PERCPU_STACK_START(x)           (PERCPU_STACKS_START + (x) * PERCPU_STACK_SIZE)
-
-#define FIXADDR_END			VMSA_VA_BASE_HI
 
 #endif /* __REG_GEM5_H_INCLUDE__ */

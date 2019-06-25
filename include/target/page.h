@@ -43,6 +43,8 @@
 
 #define PGDIR_BYTES		(PGTABLE_LEVELS * PAGE_SIZE)
 
+#define PAGE_PTR_BYTES		(1 << PAGE_PTR_BITS)
+
 #ifndef __ASSEMBLY__
 #define pfn_to_page(pfn)	\
 	((struct page *)(((pfn_t)(pfn)) << PAGE_SHIFT))
