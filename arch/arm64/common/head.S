@@ -124,8 +124,13 @@ init_lo_el:
 
 #ifdef CONFIG_MMU
 	ldr     x27, =stext		// address to jump to after
+#if 0
 	# MMU has been enabled
 	adr_l	lr, __enable_mmu	// return (PIC) address
+#else
+	bl	__enable_mmu
+#endif
+	b	.
 	bl	__cpu_setup
 #endif
 	bl	stext

@@ -119,9 +119,6 @@ typedef pteval_t pgprot_t;
 #define __pmd_populate(pmdp, pte, prot)	set_pmd(pmdp, __pmd(pte | prot))
 #define pmd_populate(pmdp, ptep)	__pmd_populate(pmdp, __pa(ptep), PMD_TYPE_TABLE)
 
-#define pud_page_paddr(pud)	(pud_val(pud) & PHYS_MASK & PAGE_MASK)
-#define pud_page_vaddr(pud)	((pmd_t *)__va(pud_page_paddr(pud)))
-
 /* PGDIR_SHIFT determines the size a top-level page table entry can map
  * (depending on the configuration, this level can be 0, 1 or 2).
  */
@@ -158,6 +155,9 @@ static inline caddr_t pte_addr_end(caddr_t addr, caddr_t end)
 #if PGTABLE_LEVELS == 2
 #include <target/paging-nop2d.h>
 #else /* PGTABLE_LEVELS > 2 */
+#define pud_page_paddr(pud)	(pud_val(pud) & PHYS_MASK & PAGE_MASK)
+#define pud_page_vaddr(pud)	((pmd_t *)__va(pud_page_paddr(pud)))
+
 /* PMD_SHIFT determines the size a level 2 page table entry can map. */
 #define PMD_SHIFT	(PAGE_PXD_BITS + PAGE_SHIFT)
 #define PMD_SIZE	(PTR_VAL_ONE << PMD_SHIFT)
@@ -262,8 +262,6 @@ extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
 
 #include <driver/mmu.h>
 
-#ifndef __ASSEMBLY__
-#ifdef CONFIG_MMU
 #define fix_to_virt(x)		(FIXADDR_END - ((x) << PAGE_SHIFT))
 #define virt_to_fix(x)		((FIXADDR_END - ((x)&PAGE_MASK)) >> PAGE_SHIFT)
 
@@ -291,12 +289,10 @@ extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
 #define set_fixmap(idx, phys)				\
 	__set_fixmap(idx, phys, FIXMAP_PAGE_NORMAL)
 #endif
-
 #ifndef clear_fixmap
 #define clear_fixmap(idx)			\
 	__set_fixmap(idx, 0, FIXMAP_PAGE_CLEAR)
 #endif
-
 /* Return a pointer with offset calculated */
 #define __set_fixmap_offset(idx, phys, flags)				\
 ({									\
@@ -307,25 +303,26 @@ extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
 })
 #define set_fixmap_offset(idx, phys) \
 	__set_fixmap_offset(idx, phys, FIXMAP_PAGE_NORMAL)
-
 /* Some hardware wants to get fixmapped without caching. */
 #define set_fixmap_nocache(idx, phys) \
 	__set_fixmap(idx, phys, FIXMAP_PAGE_NOCACHE)
 #define set_fixmap_offset_nocache(idx, phys) \
 	__set_fixmap_offset(idx, phys, FIXMAP_PAGE_NOCACHE)
-
 /* Some fixmaps are for IO */
 #define set_fixmap_io(idx, phys) \
 	__set_fixmap(idx, phys, FIXMAP_PAGE_IO)
 #define set_fixmap_offset_io(idx, phys) \
 	__set_fixmap_offset(idx, phys, FIXMAP_PAGE_IO)
 
+#ifndef __ASSEMBLY__
+#ifdef CONFIG_MMU
 void __set_fixmap(enum fixed_addresses idx,
 		  phys_addr_t phys, pgprot_t prot);
 
 void early_fixmap_init(void);
 void paging_init(void);
 #else
+#define __set_fixmap(idx, phys, prot)		do { } while (0)
 #define early_fixmap_init()			do { } while (0)
 #define paging_init()				do { } while (0)
 #endif /* CONFIG_MMU */

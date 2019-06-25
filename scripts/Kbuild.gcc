@@ -8,6 +8,6 @@ STRIP		= $(CROSS_COMPILE)strip
 OBJCOPY		= $(CROSS_COMPILE)objcopy
 CPPFLAGS        := -D__KERNEL__ $(TARGETINCLUDE)
 CFLAGS          := -Wall -DKBUILD_CONF $(TARGETINCLUDE)
-AFLAGS          := -D__ASSEMBLY__
+AFLAGS          := -D__ASSEMBLY__ $(TARGETINCLUDE)
 SYMLINK		:= ln -fsn
 #SYMLINK		:= cp -rf

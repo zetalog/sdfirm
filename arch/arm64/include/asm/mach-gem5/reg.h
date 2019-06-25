@@ -14,7 +14,7 @@
 #define RAMEND			0x4000000
 #endif
 
-#define DEV_BASE		0x10000000
+#define DEV_BASE		0x1A000000
 #define DEVEND			0x30000000
 
 /* APC stack/heap:
