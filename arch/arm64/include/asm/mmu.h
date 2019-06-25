@@ -46,17 +46,6 @@
 #include <target/sizes.h>
 #include <asm/vmsa.h>
 
-/* Memory types */
-#define MT_DEVICE_nGnRnE	0
-#define MT_DEVICE_nGnRE		1
-#define MT_DEVICE_GRE		2
-#define MT_NORMAL_NC		3
-#define MT_NORMAL		4
-
-/* Memory types for Stage-2 translation */
-#define MT_S2_NORMAL		0xf
-#define MT_S2_DEVICE_nGnRE	0x1
-
 /*---------------------------------------------------------------------------
  * Hardware MMU definitions
  *---------------------------------------------------------------------------*/

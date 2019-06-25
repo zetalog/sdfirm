@@ -42,3 +42,10 @@ void uart_hw_con_init(void)
 		"str	w5, [x4, #164]\n"
 	);
 }
+
+#ifdef CONFIG_MMU
+void uart_hw_mmu_init(void)
+{
+	set_fixmap_io(FIX_UART0, UART_BASE_PA(0) & PAGE_MASK);
+}
+#endif

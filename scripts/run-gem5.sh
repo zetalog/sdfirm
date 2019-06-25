@@ -30,4 +30,5 @@ cp ${SDFIRM_SRC}/sdfirm.strip ${GEM5_SRC}/fs_images/arm/binaries/boot_emm.arm64
 		--machine-type=VExpress_EMM64 \
 		--dtb-file=vexpress.aarch64.20140821.dtb \
 		--disk-image=linaro-minimal-aarch64.img
+	cat ${GEM5_SRC}/m5out/system.terminal
 )

@@ -15,16 +15,16 @@
 #define MEM_ALLOC_ANYWHERE		(~(phys_addr_t)0)
 #define MEM_ALLOC_ACCESSIBLE		0
 
-static struct mem_region mem_init_free[NR_MEM_REGIONS];
-static struct mem_region mem_init_alloc[NR_MEM_REGIONS];
+static struct mem_region mem_init_memory[NR_MEM_REGIONS];
+static struct mem_region mem_init_reserved[NR_MEM_REGIONS];
 
-static struct mem_type mem_free_regions = {
-	.regions = mem_init_free,
+static struct mem_type mem_memory_regions = {
+	.regions = mem_init_memory,
 	.cnt = 1,	/* empty dummy entry */
 	.max = NR_MEM_REGIONS,
 };
-static struct mem_type mem_alloc_regions = {
-	.regions = mem_init_alloc,
+static struct mem_type mem_reserved_regions = {
+	.regions = mem_init_reserved,
 	.cnt = 1,	/* empty dummy entry */
 	.max = NR_MEM_REGIONS,
 };
@@ -46,11 +46,11 @@ static phys_addr_t mem_current_limit = MEM_ALLOC_ANYWHERE;
 	     __next_mem_range_rev(&i, type_a, type_b,		\
 				  p_start, p_end))
 #define for_each_free_mem_range(i, p_start, p_end)		\
-	for_each_mem_range(i, &mem_free_regions,		\
-			   &mem_alloc_regions, p_start, p_end)
+	for_each_mem_range(i, &mem_memory_regions,		\
+			   &mem_reserved_regions, p_start, p_end)
 #define for_each_free_mem_range_reverse(i, p_start, p_end)	\
-	for_each_mem_range_rev(i, &mem_free_regions,		\
-			       &mem_alloc_regions,		\
+	for_each_mem_range_rev(i, &mem_memory_regions,		\
+			       &mem_reserved_regions,		\
 			       p_start, p_end)
 #define for_each_reserved_mem_region(i, p_start, p_end)		\
 	for (i = 0UL,						\
@@ -62,12 +62,38 @@ static phys_addr_t mem_current_limit = MEM_ALLOC_ANYWHERE;
 	rgn = &type->regions[idx];		\
 	for (idx = 0; idx < type->cnt;		\
 	     idx++,rgn = &type->regions[idx])
+#define for_each_memblock(memblock_type, region)			\
+	for (region = memblock_type.regions;				\
+	     region < (memblock_type.regions + memblock_type.cnt);	\
+	     region++)
+
+void mem_walk_memory(bool (*iter)(struct mem_region *, void *),
+		     void *data)
+{
+	struct mem_region *rgn;
+
+	for_each_memblock(mem_memory_regions, rgn) {
+		if (!iter(rgn, data))
+			break;
+	}
+}
+
+void mem_walk_reserved(bool (*iter)(struct mem_region *, void *),
+		       void *data)
+{
+	struct mem_region *rgn;
+
+	for_each_memblock(mem_reserved_regions, rgn) {
+		if (!iter(rgn, data))
+			break;
+	}
+}
 
 static const char *mem_type_name(struct mem_type *type)
 {
-	if (type == &mem_free_regions)
+	if (type == &mem_memory_regions)
 		return "memory";
-	else if (type == &mem_alloc_regions)
+	else if (type == &mem_reserved_regions)
 		return "reserved";
 	else
 		return "unknown";
@@ -208,7 +234,7 @@ void __next_reserved_mem_region(uint64_t *idx,
 				phys_addr_t *out_start,
 				phys_addr_t *out_end)
 {
-	struct mem_type *type = &mem_alloc_regions;
+	struct mem_type *type = &mem_reserved_regions;
 
 	if (*idx >= 0 && *idx < type->cnt) {
 		struct mem_region *r = &type->regions[*idx];
@@ -372,7 +398,7 @@ static int mem_double_array(struct mem_type *type,
 	 * is active for memory hotplug operations
 	 */
 	/* only exclude range when trying to double reserved.regions */
-	if (type != &mem_alloc_regions)
+	if (type != &mem_reserved_regions)
 		new_area_start = new_area_size = 0;
 
 	addr = mem_find_in_range(new_area_start + new_area_size,
@@ -405,7 +431,7 @@ static int mem_double_array(struct mem_type *type,
 	type->max <<= 1;
 
 	/* Free old array. We needn't free it if the array is the static one */
-	if (old_array != mem_init_free && old_array != mem_init_alloc)
+	if (old_array != mem_init_memory && old_array != mem_init_reserved)
 		mem_free(__pa(old_array), old_alloc_size);
 
 	/* Reserve the new array if that comes from the memblock. Otherwise, we
@@ -508,7 +534,7 @@ static void mem_remove_range(struct mem_type *type,
 
 void mem_remove(phys_addr_t base, phys_addr_t size)
 {
-	mem_remove_range(&mem_alloc_regions, base, size);
+	mem_remove_range(&mem_reserved_regions, base, size);
 }
 
 void mem_free(phys_addr_t base, phys_addr_t size)
@@ -516,7 +542,7 @@ void mem_free(phys_addr_t base, phys_addr_t size)
 	mem_dbg("mem_free: [%#016llx-%#016llx]\n",
 		(unsigned long long)base,
 		(unsigned long long)base + size - 1);
-	mem_remove_range(&mem_alloc_regions, base, size);
+	mem_remove_range(&mem_reserved_regions, base, size);
 }
 
 void mem_add_range(struct mem_type *type, phys_addr_t base, phys_addr_t size)
@@ -596,7 +622,7 @@ repeat:
 
 void mem_add(phys_addr_t base, phys_addr_t size)
 {
-	struct mem_type *type = &mem_free_regions;
+	struct mem_type *type = &mem_memory_regions;
 
 	mem_dbg("mem_add: [%#016llx-%#016llx]\n",
 		(unsigned long long)base,
@@ -606,7 +632,7 @@ void mem_add(phys_addr_t base, phys_addr_t size)
 
 void mem_reserve(phys_addr_t base, phys_addr_t size)
 {
-	struct mem_type *type = &mem_alloc_regions;
+	struct mem_type *type = &mem_reserved_regions;
 
 	mem_dbg("mem_reserve: [%#016llx-%#016llx]\n",
 		(unsigned long long)base,

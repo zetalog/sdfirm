@@ -92,6 +92,16 @@
 #define VMSA_VA_BASE_LO		ULL(0x0000000000000000)
 #endif
 
+#define MAIR(attr, mt)		((attr) << ((mt) * 8))
+/* Encoding index */
+#define MT_DEVICE_nGnRnE	0
+#define MT_DEVICE_nGnRE		1
+#define MT_DEVICE_GRE		2
+#define MT_NORMAL_NC		3
+#define MT_NORMAL		4
+#define MT_NORMAL_WT		5
+#define MT_DEVICE_nGRE		6
+
 #ifdef CONFIG_VMSA_ADDRESS_TAGGING
 #if (EL_RUNTIME == ARM_EL3)
 #define is_tbi(address)		(!!(read_sysreg(TCR_EL3) & TCR_TBI))

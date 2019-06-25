@@ -3,6 +3,7 @@
 
 #include <target/config.h>
 #include <target/generic.h>
+#include <target/paging.h>
 #include <target/gpio.h>
 #include <target/clk.h>
 
@@ -12,7 +13,12 @@
 #define UART0_BASE			0x1C090000
 
 /* Definitions to implement AMBA UART */
+#ifdef CONFIG_MMU
+#define UART_BASE_PA(n)			(UART0_BASE + ((n) * 0x10000))
+#define UART_BASE(n)			fix_to_virt(FIX_UART0+(n))
+#else
 #define UART_BASE(n)			(UART0_BASE + ((n) * 0x10000))
+#endif
 #define UART_IRQ(n)			IRQ_UART##n
 #define UART_CON_IRQ			IRQ_UART0
 #define UART_CON_ID			0
@@ -32,6 +38,12 @@ void uart_hw_dbg_start(void);
 void uart_hw_dbg_stop(void);
 void uart_hw_dbg_write(uint8_t byte);
 void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
+#endif
+
+#ifdef CONFIG_MMU
+void uart_hw_mmu_init(void);
+#else
+#define uart_hw_mmu_init()	do { } while (0)
 #endif
 
 #ifdef CONFIG_CONSOLE

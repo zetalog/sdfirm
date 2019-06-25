@@ -275,28 +275,10 @@ extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
 
 #ifndef __ASSEMBLY__
 #ifdef CONFIG_MMU
-#define __fix_to_virt(x)	(FIXADDR_END - ((x) << PAGE_SHIFT))
-#define __virt_to_fix(x)	((FIXADDR_END - ((x)&PAGE_MASK)) >> PAGE_SHIFT)
+#define fix_to_virt(x)		(FIXADDR_END - ((x) << PAGE_SHIFT))
+#define virt_to_fix(x)		((FIXADDR_END - ((x)&PAGE_MASK)) >> PAGE_SHIFT)
 
-/*
- * 'index to address' translation. If anyone tries to use the idx
- * directly without translation, we catch the bug with a NULL-deference
- * kernel oops. Illegal ranges of incoming indices are caught too.
- */
-static inline unsigned long fix_to_virt(const unsigned int idx)
-{
-	BUG_ON(idx >= __end_of_fixed_addresses);
-	return __fix_to_virt(idx);
-}
-
-static inline unsigned long virt_to_fix(const unsigned long vaddr)
-{
-	BUG_ON(vaddr >= FIXADDR_TOP || vaddr < FIXADDR_START);
-	return __virt_to_fix(vaddr);
-}
-
-/*
- * Provide some reasonable defaults for page flags.
+/* Provide some reasonable defaults for page flags.
  * Not all architectures use all of these different types and some
  * architectures use different names.
  */

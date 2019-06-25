@@ -7,6 +7,7 @@
 #include <target/cmdline.h>
 #include <target/mem.h>
 #include <target/paging.h>
+#include <target/console.h>
 #include <stdio.h>
 
 __near__ uint32_t system_device_id = 0;
@@ -53,9 +54,6 @@ void gpio_init(void);
 #else
 #define gpio_init()
 #endif
-#ifdef CONFIG_CONSOLE
-void console_init(void);
-#endif
 #ifdef CONFIG_DEBUG_PRINT
 void debug_init(void);
 #else
@@ -70,9 +68,12 @@ void timer_init(void);
 #ifndef CONFIG_PORTING
 void system_init(void)
 {
-	main_debug(MAIN_DEBUG_INIT, 0);
+#if 0
 	mem_init();
 	early_fixmap_init();
+	early_console_init();
+#endif
+	main_debug(MAIN_DEBUG_INIT, 0);
 	board_init();
 	gpio_init();
 	debug_init();
@@ -92,8 +93,8 @@ void system_init(void)
 #endif
 	clk_init();
 	timer_init();
-	page_early_init();
 	paging_init();
+	page_early_init();
 	page_late_init();
 	heap_init();
 	bulk_init();

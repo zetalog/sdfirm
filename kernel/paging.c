@@ -6,14 +6,20 @@
 #include <target/linkage.h>
 #include <target/compiler.h>
 
-static phys_addr_t early_pgtable_alloc(int shift)
+#if 0
+#define fix_dbg		printf
+#else
+#define fix_dbg(...)
+#endif
+
+static phys_addr_t early_pgtable_alloc(void)
 {
 	phys_addr_t phys;
 	void *ptr;
 
 	phys = mem_alloc(PAGE_SIZE, PAGE_SIZE);
 	if (!phys) {
-		printf("Failed to allocate page table page\n");
+		fix_dbg("Failed to allocate page table page\n");
 		BUG();
 	}
 
@@ -22,7 +28,7 @@ static phys_addr_t early_pgtable_alloc(int shift)
 	 * initialise any level of table.
 	 */
 	ptr = pte_set_fixmap(phys);
-	printf("ALLOC: %016llx\n", ptr);
+	fix_dbg("ALLOC: P=%016llx, V=%016llx\n", phys, ptr);
 	memory_set((caddr_t)ptr, 0, PAGE_SIZE);
 
 	/* Implicit barriers also ensure the zeroed page is visible to the
@@ -32,10 +38,16 @@ static phys_addr_t early_pgtable_alloc(int shift)
 	return phys;
 }
 
+static void early_pgtable_free(phys_addr_t phys)
+{
+	fix_dbg("FREE: %016llx\n", phys);
+	mem_free(phys, PAGE_SIZE);
+}
+
 static void alloc_init_pte(pmd_t *pmdp, caddr_t addr,
 			   caddr_t end, phys_addr_t phys,
 			   pgprot_t prot,
-			   phys_addr_t (*pgtable_alloc)(int))
+			   phys_addr_t (*pgtable_alloc)(void))
 {
 	caddr_t next;
 	pmd_t pmd = READ_ONCE(*pmdp);
@@ -45,7 +57,7 @@ static void alloc_init_pte(pmd_t *pmdp, caddr_t addr,
 	if (pmd_none(pmd)) {
 		phys_addr_t pte_phys;
 		BUG_ON(!pgtable_alloc);
-		pte_phys = pgtable_alloc(PAGE_SHIFT);
+		pte_phys = pgtable_alloc();
 		__pmd_populate(pmdp, pte_phys, PMD_TYPE_TABLE);
 		pmd = READ_ONCE(*pmdp);
 	}
@@ -63,7 +75,7 @@ static void alloc_init_pte(pmd_t *pmdp, caddr_t addr,
 static void alloc_init_pmd(pud_t *pudp, caddr_t addr,
 			   caddr_t end, phys_addr_t phys,
 			   pgprot_t prot,
-			   phys_addr_t (*pgtable_alloc)(int))
+			   phys_addr_t (*pgtable_alloc)(void))
 {
 	caddr_t next;
 	pud_t pud = READ_ONCE(*pudp);
@@ -74,14 +86,14 @@ static void alloc_init_pmd(pud_t *pudp, caddr_t addr,
 	if (pud_none(pud)) {
 		phys_addr_t pmd_phys;
 		BUG_ON(!pgtable_alloc);
-		pmd_phys = pgtable_alloc(PMD_SHIFT);
+		pmd_phys = pgtable_alloc();
 		__pud_populate(pudp, pmd_phys, PUD_TYPE_TABLE);
 		pud = READ_ONCE(*pudp);
 	}
 	BUG_ON(pud_bad(pud));
 
 	pmdp = pmd_set_fixmap_offset(pudp, addr);
-	printf("PMD: %016llx\n", pmdp);
+	fix_dbg("PMD: %016llx\n", pmdp);
 	do {
 		next = pmd_addr_end(addr, end);
 		alloc_init_pte(pmdp, addr, next, phys,
@@ -94,7 +106,7 @@ static void alloc_init_pmd(pud_t *pudp, caddr_t addr,
 
 static void alloc_init_pud(pgd_t *pgdp, caddr_t addr, caddr_t end,
 			   phys_addr_t phys, pgprot_t prot,
-			   phys_addr_t (*pgtable_alloc)(int))
+			   phys_addr_t (*pgtable_alloc)(void))
 {
 	caddr_t next;
 	pud_t *pudp;
@@ -103,14 +115,14 @@ static void alloc_init_pud(pgd_t *pgdp, caddr_t addr, caddr_t end,
 	if (pgd_none(pgd)) {
 		phys_addr_t pud_phys;
 		BUG_ON(!pgtable_alloc);
-		pud_phys = pgtable_alloc(PUD_SHIFT);
+		pud_phys = pgtable_alloc();
 		__pgd_populate(pgdp, pud_phys, PUD_TYPE_TABLE);
 		pgd = READ_ONCE(*pgdp);
 	}
 	BUG_ON(pgd_bad(pgd));
 
 	pudp = pud_set_fixmap_offset(pgdp, addr);
-	printf("PUD: %016llx\n", pudp);
+	fix_dbg("PUD: %016llx\n", pudp);
 	do {
 		next = pud_addr_end(addr, end);
 		alloc_init_pmd(pudp, addr, next, phys, prot,
@@ -125,14 +137,14 @@ static void alloc_init_pud(pgd_t *pgdp, caddr_t addr, caddr_t end,
 static void __create_pgd_mapping(pgd_t *pgdir, phys_addr_t phys,
 				 caddr_t virt, phys_addr_t size,
 				 pgprot_t prot,
-				 phys_addr_t (*pgtable_alloc)(int))
+				 phys_addr_t (*pgtable_alloc)(void))
 {
 	caddr_t addr, length, end, next;
 	pgd_t *pgdp = pgd_offset_raw(pgdir, virt);
 
-	printf("MAP: phys: %016llx\n", phys);
-	printf("MAP: virt: %016llx\n", virt);
-	printf("MAP: size: %016llx\n", size);
+	fix_dbg("MAP: phys: %016llx\n", phys);
+	fix_dbg("MAP: virt: %016llx\n", virt);
+	fix_dbg("MAP: size: %016llx\n", size);
 
 	/* If the virtual and physical address don't have the same offset
 	 * within a page, we cannot map the region as the caller expects.
@@ -161,6 +173,59 @@ static void map_kernel_segment(pgd_t *pgdp, void *va_start, void *va_end,
 
 	__create_pgd_mapping(pgdp, pa_start, (caddr_t)va_start, size, prot,
 			     early_pgtable_alloc);
+}
+
+static void __map_mem_region(pgd_t *pgd, phys_addr_t start, phys_addr_t end)
+{
+
+	unsigned long kernel_start = __pa(__stext);
+	unsigned long kernel_end = __pa(__end);
+
+	/* The kernel itself is mapped at page granularity. Map all other
+	 * memory, making sure we don't overwrite the existing kernel mappings.
+	 */
+
+	/* No overlap with the kernel. */
+	if (end < kernel_start || start >= kernel_end) {
+		__create_pgd_mapping(pgd, start, phys_to_virt(start),
+				     end - start, PAGE_KERNEL,
+				     early_pgtable_alloc);
+		return;
+	}
+
+	/* This block overlaps the kernel mapping. Map the portion(s) which
+	 * don't overlap.
+	 */
+	if (start < kernel_start)
+		__create_pgd_mapping(pgd, start,
+				     phys_to_virt(start),
+				     kernel_start - start, PAGE_KERNEL,
+				     early_pgtable_alloc);
+	if (kernel_end < end)
+		__create_pgd_mapping(pgd, kernel_end,
+				     phys_to_virt(kernel_end),
+				     end - kernel_end, PAGE_KERNEL,
+				     early_pgtable_alloc);
+}
+
+static bool __map_mem(struct mem_region *rgn, void *data)
+{
+	pgd_t *pgdp = (pgd_t *)data;
+	phys_addr_t start = rgn->base;
+	phys_addr_t end = start + rgn->size;
+
+	if (start >= end)
+		return -EINTR;
+#if 0
+	if (mem_is_nomap(rgn))
+		return 0;
+#endif
+	__map_mem_region(pgdp, start, end);
+}
+
+static void map_mem(pgd_t *pgdp)
+{
+	mem_walk_memory(__map_mem, pgdp);
 }
 
 static void map_kernel(pgd_t *pgdp)
@@ -240,7 +305,7 @@ static inline pte_t *fixmap_pte(caddr_t addr)
 void __set_fixmap(enum fixed_addresses idx,
 		  phys_addr_t phys, pgprot_t flags)
 {
-	caddr_t addr = __fix_to_virt(idx);
+	caddr_t addr = fix_to_virt(idx);
 	pte_t *ptep;
 
 	BUG_ON(idx <= FIX_HOLE || idx >= __end_of_fixed_addresses);
@@ -262,8 +327,8 @@ void early_fixmap_init(void)
 	pmd_t *pmd;
 	caddr_t addr = FIXADDR_START;
 
-	printf("FIX: %016llx - %016llx\n", FIXADDR_START, FIXADDR_END);
-	printf("PGD: %016llx\n", mmu_pg_dir);
+	fix_dbg("FIX: %016llx - %016llx\n", FIXADDR_START, FIXADDR_END);
+	fix_dbg("PGD: %016llx\n", mmu_pg_dir);
 	pgd = pgd_offset(addr);
 	pgd_populate(pgd, bm_pud);
 	pud = pud_offset(pgd, addr);
@@ -274,36 +339,42 @@ void early_fixmap_init(void)
 	/* The boot-ioremap range spans multiple pmds, for which
 	 * we are not preparted:
 	 */
-	BUG_ON((__fix_to_virt(FIX_BTMAP_BEGIN) >> PMD_SHIFT)
-	       != (__fix_to_virt(FIX_BTMAP_END) >> PMD_SHIFT));
+	BUG_ON((fix_to_virt(FIX_BTMAP_BEGIN) >> PMD_SHIFT)
+	       != (fix_to_virt(FIX_BTMAP_END) >> PMD_SHIFT));
 
 	if ((pmd != fixmap_pmd(fix_to_virt(FIX_BTMAP_BEGIN))) ||
 	    pmd != fixmap_pmd(fix_to_virt(FIX_BTMAP_END))) {
 		BUG();
-		printf("pmd %p != %p, %p\n",
+		fix_dbg("pmd %p != %p, %p\n",
 		       pmd, fixmap_pmd(fix_to_virt(FIX_BTMAP_BEGIN)),
 		       fixmap_pmd(fix_to_virt(FIX_BTMAP_END)));
-		printf("fix_to_virt(FIX_BTMAP_BEGIN): %08lx\n",
+		fix_dbg("fix_to_virt(FIX_BTMAP_BEGIN): %08lx\n",
 		       fix_to_virt(FIX_BTMAP_BEGIN));
-		printf("fix_to_virt(FIX_BTMAP_END):   %08lx\n",
+		fix_dbg("fix_to_virt(FIX_BTMAP_END):   %08lx\n",
 		       fix_to_virt(FIX_BTMAP_END));
 
-		printf("FIX_BTMAP_END:       %d\n", FIX_BTMAP_END);
-		printf("FIX_BTMAP_BEGIN:     %d\n", FIX_BTMAP_BEGIN);
+		fix_dbg("FIX_BTMAP_END:       %d\n", FIX_BTMAP_END);
+		fix_dbg("FIX_BTMAP_BEGIN:     %d\n", FIX_BTMAP_BEGIN);
 	}
 }
 
 void paging_init(void)
 {
-        pgd_t *pgdp = pgd_set_fixmap(__pa_symbol(mmu_pg_dir));
+	phys_addr_t pgd_phys = early_pgtable_alloc();
+	pgd_t *pgdp = pgd_set_fixmap(__pa_symbol(pgd_phys));
 
 	map_kernel(pgdp);
-#if 0
 	map_mem(pgdp);
-#endif
-	pgd_clear_fixmap();
+
 #if 0
+	cpu_replace_ttbr1(__va(pgd_phys));
+	memcpy(mmu_pg_dir, pgdp, PAGE_SIZE);
 	cpu_replace_ttbr1(mmu_pg_dir);
+#endif
+
+	pgd_clear_fixmap();
+	early_pgtable_free(pgd_phys);
+#if 0
 	mmu_hw_ctrl_init();
 #endif
 }

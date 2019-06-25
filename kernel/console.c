@@ -146,6 +146,11 @@ void console_late_init(void)
 }
 #endif
 
+void early_console_init(void)
+{
+	uart_hw_mmu_init();
+}
+
 void console_init(void)
 {
 	console_output_init();

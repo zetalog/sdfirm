@@ -211,6 +211,36 @@
 	 _BV(39)|_BV(37)|_BV(36)|_BV(35)|	\
 	 _BV(34))
 
+/* D10.2.71 MAIR_EL1, Memory Attribute Indirection Register (EL1)
+ * D10.2.72 MAIR_EL2, Memory Attribute Indirection Register (EL2)
+ * D10.2.73 MAIR_EL3, Memory Attribute Indirection Register (EL3)
+ */
+/* When ATTR[7:4] is 0x0 */
+#define MAIR_ATTR_DEVICE_nGnRnE		0x00
+#define MAIR_ATTR_DEVICE_nGnRE		0x04
+#define MAIR_ATTR_DEVICE_nGRE		0x08
+#define MAIR_ATTR_DEVICE_GRE		0x0C
+/* When ATTR[7:4] is not 0x0, ATTR[7:4] is outer, ATTR[3:0] is inner */
+#define MAIR_ATTR_WTT		0x3 /* write-through transient */
+#define MAIR_ATTR_NC		0x4 /* non-cacheable */
+#define MAIR_ATTR_WBT		0x7 /* write-back transient */
+#define MAIR_ATTR_WTnT		0xB /* write-through non-transient */
+#define MAIR_ATTR_WBnT		0xF /* write-back non-transient */
+#define MAIR_ATTR_NORMAL(outer, ineer)	((outer) << 4 | (ineer))
+#define MAIR_ATTR_NORMAL_NC		\
+	MAIR_ATTR_NORMAL(MAIR_ATTR_NC, MAIR_ATTR_NC)
+#ifdef CONFIG_VMSA_MAIR_NORMAL_TRANSIENT
+#define MAIR_ATTR_NORMAL_WT		\
+	MAIR_ATTR_NORMAL(MAIR_ATTR_WTT, MAIR_ATTR_WTT)
+#define MAIR_ATTR_NORMAL_WB		\
+	MAIR_ATTR_NORMAL(MAIR_ATTR_WBT, MAIR_ATTR_WBT)
+#else
+#define MAIR_ATTR_NORMAL_WT		\
+	MAIR_ATTR_NORMAL(MAIR_ATTR_WTnT, MAIR_ATTR_WTnT)
+#define MAIR_ATTR_NORMAL_WB		\
+	MAIR_ATTR_NORMAL(MAIR_ATTR_WBnT, MAIR_ATTR_WBnT)
+#endif
+
 /* D10.2.74 MIDR_EL1, Main ID Register */
 #define MIDR_IMPL_OFFSET	24
 #define MIDR_IMPL_MASK		0xFF
@@ -361,11 +391,11 @@
 #define TCR_IRGN0(value)	_SET_FV(TCR_IRGN0, value)
 #define TCR_RGN_NC		0 /* Non-Cacheable */
 /* Write-Back Read-Allocate Write-Allocate Cacheable */
-#define TCR_RGN_WB_WA		1
+#define TCR_RGN_WBWA		1
 /* Write-Through Read-Allocate No Write-Allocate Cacheable */
-#define TCR_RGN_WT_NWA		2
+#define TCR_RGN_WTnWA		2
 /* Write-Back Read-Allocate No Write-Allocate Cacheable */
-#define TCR_RGN_WB_NWA		3
+#define TCR_RGN_WBnWA		3
 /* Size offset of memory region addressed by TTBR0_EL1 */
 #define TCR_T0SZ_OFFSET		0
 #define TCR_T0SZ_MASK		REG_6BIT_MASK
@@ -438,6 +468,49 @@
 #define TCR_PS_OFFSET		16 /* Physical Address Size */
 #define TCR_PS_MASK		REG_3BIT_MASK
 #define TCR_PS(value)		_SET_FV(TCR_PS, value)
+
+/* Helpers */
+#define TCR_TxSZ(x)		(TCR_T0SZ(x) | TCR_T1SZ(x))
+#define TCR_TxSZ_WIDTH		6
+#define TCR_TG_4KB		\
+	TCR_TG0(TCR_TG0_4KB) | TCR_TG1(TCR_TG1_4KB)
+#define TCR_TG_16KB		\
+	TCR_TG0(TCR_TG0_16KB) | TCR_TG1(TCR_TG1_16KB)
+#define TCR_TG_64KB		\
+	TCR_TG0(TCR_TG0_64KB) | TCR_TG1(TCR_TG1_64KB)
+#define TCR_ORGN_NC		\
+	TCR_ORGN0(TCR_RGN_NC) | TCR_ORGN1(TCR_RGN_NC)
+#define TCR_ORGN_WBWA		\
+	TCR_ORGN0(TCR_RGN_WBWA) | TCR_ORGN1(TCR_RGN_WBWA)
+#define TCR_ORGN_WTnWA		\
+	TCR_ORGN0(TCR_RGN_WTnWA) | TCR_ORGN1(TCR_RGN_WTnWA)
+#define TCR_ORGN_WBnWA		\
+	TCR_ORGN0(TCR_RGN_WBnWA) | TCR_ORGN1(TCR_RGN_WBnWA)
+#define TCR_IRGN_NC		\
+	TCR_IRGN0(TCR_RGN_NC) | TCR_IRGN1(TCR_RGN_NC)
+#define TCR_IRGN_WBWA		\
+	TCR_IRGN0(TCR_RGN_WBWA) | TCR_IRGN1(TCR_RGN_WBWA)
+#define TCR_IRGN_WTnWA		\
+	TCR_IRGN0(TCR_RGN_WTnWA) | TCR_IRGN1(TCR_RGN_WTnWA)
+#define TCR_IRGN_WBnWA		\
+	TCR_IRGN0(TCR_RGN_WBnWA) | TCR_IRGN1(TCR_RGN_WBnWA)
+
+/* System default settings */
+#ifdef CONFIG_MMU_64K_PAGE
+#define TCR_TG_FLAGS		TCR_TG_64KB
+#elif defined(CONFIG_MMU_16K_PAGE)
+#define TCR_TG_FLAGS		TCR_TG_16KB
+#else /* CONFIG_MMU_4K_PAGE */
+#define TCR_TG_FLAGS		TCR_TG_4KB
+#endif
+#define TCR_SHARED_NONE		\
+	(TCR_SH0(TCR_SH_NON) | TCR_SH1(TCR_SH_NON))
+#define TCR_SHARED_OUTER	\
+	(TCR_SH0(TCR_SH_OUTER) | TCR_SH1(TCR_SH_OUTER))
+#define TCR_SHARED_INNER	\
+	(TCR_SH0(TCR_SH_INNER) | TCR_SH1(TCR_SH_INNER))
+#define TCR_SMP_FLAGS		TCR_SHARED_INNER
+#define TCR_CACHE_FLAGS		TCR_IRGN_WBWA | TCR_ORGN_WBWA
 
 /* =================================================================
  * D.10.3 Debug registers

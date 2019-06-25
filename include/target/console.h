@@ -61,10 +61,12 @@ static inline int console_output_space(void)
 }
 #endif
 
+void early_console_init(void);
 void console_handle_irq(void);
 void console_init(void);
 void console_late_init(void);
 #else
+#define early_console_init()		do { } while (0)
 #define console_init()			do { } while (0)
 #define console_late_init()		do { } while (0)
 #endif

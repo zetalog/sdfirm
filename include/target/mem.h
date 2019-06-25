@@ -65,10 +65,14 @@ struct mem_type {
 	struct mem_region *regions;
 };
 
-#ifdef CONFIG_MMU
+#ifdef CONFIG_MEM
 void mem_add(phys_addr_t base, phys_addr_t size);
 void mem_reserve(phys_addr_t base, phys_addr_t size);
 void mem_remove(phys_addr_t base, phys_addr_t size);
+void mem_walk_memory(bool (*iter)(struct mem_region *, void *),
+		     void *data);
+void mem_walk_reserved(bool (*iter)(struct mem_region *, void *),
+		       void *data);
 #else
 #define mem_add(base, size)	do { } while (0)
 #define mem_reserve(base, size)	do { } while (0)

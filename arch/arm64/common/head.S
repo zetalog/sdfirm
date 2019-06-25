@@ -79,24 +79,7 @@ __arm_reset:
 #endif
 
 ENTRY(__start)
-#ifdef CONFIG_SMP
-	# Using one page for each CPU stack:
-	mrs	x0, MPIDR_EL1
-	and	x1, x0, #0xff
-	and	x0, x0, #0xff00
-	lsr	x0, x0, #7
-	add	x0, x0, x1
-
-	add	x0, x0, #1
-	lsl	x0, x0, #PERCPU_STACK_SHIFT
-	ldr	x3, =PERCPU_STACKS_START
-	add	x0, x3, x0
-	mov	sp, x0
-#else
-	ldr	x0, =PERCPU_STACKS_END
-	mov	sp, x0
-#endif
-
+	init_sp_early
 	bl	__init_exception_level
 
 	# Exit to suitable exception level
@@ -135,42 +118,15 @@ init_lo_el:
 #endif
 
 #ifdef CONFIG_MMU
-        ldr     x27, =stext		// address to jump to after
+	ldr     x27, =stext		// address to jump to after
 	# MMU has been enabled
-        bl	__enable_mmu		// return (PIC) address
+	adr_l	lr, __enable_mmu	// return (PIC) address
+	bl	__cpu_setup
 #endif
 	bl	stext
 ENDPROC(__start)
 
 ENTRY(stext)
-	# zero init BSS region
-	adr_l	x0, __bss_start
-	adr_l	x1, __bss_stop
-	mov	x2, xzr
-bss_init_loop:
-	stp	x2, x2, [x0], #16
-	cmp	x0, x1
-	b.lt	bss_init_loop
-	dsb	ishst
-
-#ifdef CONFIG_SMP
-	# Using one page for each CPU stack:
-	mrs	x0, MPIDR_EL1
-	and	x1, x0, #0xff
-	and	x0, x0, #0xff00
-	lsr	x0, x0, #7
-	add	x0, x0, x1
-
-	add	x0, x0, #1
-	lsl	x0, x0, #PERCPU_STACK_SHIFT
-	ldr	x3, =PERCPU_STACKS_START
-	add	x0, x3, x0
-	mov	sp, x0
-#else
-	ldr	x0, =PERCPU_STACKS_END
-	mov	sp, x0
-#endif
-
 	bl	__linux_boot_el2
 	bl	system_init
 ENDPIPROC(stext)
@@ -218,6 +174,8 @@ ENDPROC(__init_exception_level)
 
 #ifdef CONFIG_BOOT_LINUX
 ENTRY(__linux_boot_el3)
+	init_bss
+
 	# EL3/EL2 kernel bootloader
 	# early delay initialization
 	bl	delay_init
@@ -258,6 +216,7 @@ ENTRY(__linux_boot_el3)
 	ret
 ENDPROC(__linux_boot_el3)
 ENTRY(__linux_boot_el2)
+	init_bss
 	ret
 ENDPROC(__linux_boot_el2)
 #endif
@@ -408,6 +367,83 @@ ENTRY(__create_page_tables)
 	ret
 ENDPROC(__create_page_tables)
 	.ltorg
+
+ENTRY(__cpu_setup)
+	tlbi	vmalle1				// Invalidate local TLB
+	dsb	nsh
+
+	# Enable FP/ASIMD
+	mov	x0, #3 << 20
+	msr	CPACR_EL1, x0
+	# Reset mdscr_el1 and disable
+	# access to the DCC from EL0
+	mov	x0, #1 << 12
+	msr	MDSCR_EL1, x0
+	# Memory region attributes for LPAE:
+	#   n = AttrIndx[2:0]
+	#			n	MAIR
+	#   DEVICE_nGnRnE	000	00000000
+	#   DEVICE_nGnRE	001	00000100
+	#   DEVICE_GRE		010	00001100
+	#   NORMAL_NC		011	01000100
+	#   NORMAL		100	11111111
+	#   NORMAL_WT		101	10111011
+	ldr	x5, =MAIR(MAIR_ATTR_DEVICE_nGnRnE, MT_DEVICE_nGnRnE) | \
+		     MAIR(MAIR_ATTR_DEVICE_nGnRE, MT_DEVICE_nGnRE) | \
+		     MAIR(MAIR_ATTR_DEVICE_GRE, MT_DEVICE_GRE) | \
+		     MAIR(MAIR_ATTR_NORMAL_NC, MT_NORMAL_NC) | \
+		     MAIR(MAIR_ATTR_NORMAL_WB, MT_NORMAL) | \
+		     MAIR(MAIR_ATTR_NORMAL_WT, MT_NORMAL_WT) | \
+		     MAIR(MAIR_ATTR_DEVICE_nGRE, MT_DEVICE_nGRE)
+	msr	MAIR_EL1, x5
+	# Prepare SCTLR
+	adr	x5, crval
+	ldp	w5, w6, [x5]
+	mrs	x0, SCTLR_EL1
+	bic	x0, x0, x5			// clear bits
+	orr	x0, x0, x6			// set bits
+	# Set/prepare TCR and TTBR. We use 512GB (39-bit) address range for
+	# both user and kernel.
+	ldr	x10, =TCR_TxSZ(VA_BITS) | \
+		      TCR_CACHE_FLAGS | TCR_SMP_FLAGS | \
+		      TCR_TG_FLAGS | TCR_AS | TCR_TBI0
+	tcr_set_idmap_t0sz	x10, x9
+
+	# Read the PARange bits from ID_AA64MMFR0_EL1 and set the IPS bits in
+	# TCR_EL1.
+	mrs	x9, ID_AA64MMFR0_EL1
+	bfi	x10, x9, #32, #3
+#ifdef CONFIG_CPU_64v8_1_TTHM
+	# Hardware update of the Access and Dirty bits.
+	mrs	x9, ID_AA64MMFR1_EL1
+	and	x9, x9, #0xf
+	cbz	x9, 2f
+	cmp	x9, #2
+	b.lt	1f
+	orr	x10, x10, #TCR_HD		// hardware Dirty flag update
+1:	orr	x10, x10, #TCR_HA		// hardware Access flag update
+2:
+#endif
+	msr	TCR_EL1, x10
+	ret					// return to head.S
+ENDPROC(__cpu_setup)
+
+	/*
+	 * We set the desired value explicitly, including those of the
+	 * reserved bits. The values of bits EE & E0E were set early in
+	 * el2_setup, which are left untouched below.
+	 *
+	 *                 n n            T
+	 *       U E      WT T UD     US IHBS
+	 *       CE0      XWHW CZ     ME TEEA S
+	 * .... .IEE .... NEAI TE.I ..AD DEN0 ACAM
+	 * 0011 0... 1101 ..0. ..0. 10.. .0.. .... < hardware reserved
+	 * .... .1.. .... 01.1 11.1 ..01 0.01 1101 < software settings
+	 */
+	.type	crval, #object
+crval:
+	.word	0xfcffffff			// clear
+	.word	0x34d5d91d			// set
 
 # Enable the MMU.
 #  x0  = SCTLR_EL1 value for turning on the MMU.
