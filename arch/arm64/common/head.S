@@ -509,7 +509,7 @@ ENTRY(__enable_mmu)
 	isb
 #elif defined(CONFIG_SYS_HYPERVISOR)
 #elif defined(CONFIG_SYS_KERNEL)
-	ldr	x5, =vectors_el1
+	ldr	x5, =vectors_el3
 	msr	VBAR_EL1, x5
 	msr	TTBR0_EL1, x25			// load TTBR0
 	msr	TTBR1_EL1, x26			// load TTBR1

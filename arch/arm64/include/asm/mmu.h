@@ -44,7 +44,6 @@
 
 #include <target/barrier.h>
 #include <target/sizes.h>
-#include <target/page.h>
 
 /*---------------------------------------------------------------------------
  * Hardware MMU definitions
