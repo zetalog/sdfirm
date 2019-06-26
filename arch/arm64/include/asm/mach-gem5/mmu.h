@@ -25,8 +25,7 @@ enum fixed_addresses {
 
 	__end_of_permanent_fixed_addresses,
 
-	/*
-	 * Temporary boot-time mappings, used by early_ioremap(),
+	/* Temporary boot-time mappings, used by early_ioremap(),
 	 * before ioremap() is functional.
 	 */
 #define NR_FIX_BTMAPS		(SZ_256K / PAGE_SIZE)
@@ -36,8 +35,7 @@ enum fixed_addresses {
 	FIX_BTMAP_END = __end_of_permanent_fixed_addresses,
 	FIX_BTMAP_BEGIN = FIX_BTMAP_END + TOTAL_FIX_BTMAPS - 1,
 
-	/*
-	 * Used for kernel page table creation, so unmapped memory may be used
+	/* Used for kernel page table creation, so unmapped memory may be used
 	 * for tables.
 	 */
 	FIX_PTE,

@@ -17,17 +17,4 @@
 #define DEV_BASE		0x1A000000
 #define DEVEND			0x30000000
 
-/* APC stack/heap:
- *
- * SYS IMEM can be used to synchronize between IMC/APC, while stack
- * variables needn't be synchronized. Considering the rarity of SYS IMC
- * (only 256K), the PERCPU stacks are put in the IMC internal RAM.
- */
-#define PERCPU_STACKS_START             (PERCPU_STACKS_END - PERCPU_STACKS_SIZE)
-#define PERCPU_STACKS_END               RAMEND
-#define PERCPU_STACKS_SIZE              (PERCPU_STACK_SIZE * NR_CPUS)
-#define PERCPU_STACK_SHIFT              PAGE_SHIFT
-#define PERCPU_STACK_SIZE               PAGE_SIZE
-#define PERCPU_STACK_START(x)           (PERCPU_STACKS_START + (x) * PERCPU_STACK_SIZE)
-
 #endif /* __REG_GEM5_H_INCLUDE__ */

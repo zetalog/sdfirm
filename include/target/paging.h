@@ -262,6 +262,8 @@ extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
 
 #include <driver/mmu.h>
 
+#define FIXMAP_PAGE_IO	__pgprot(PROT_DEVICE_nGnRE)
+
 #define fix_to_virt(x)		(FIXADDR_END - ((x) << PAGE_SHIFT))
 #define virt_to_fix(x)		((FIXADDR_END - ((x)&PAGE_MASK)) >> PAGE_SHIFT)
 

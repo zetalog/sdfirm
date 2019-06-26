@@ -328,10 +328,9 @@ void early_fixmap_init(void)
 	caddr_t addr = FIXADDR_START;
 
 	fix_dbg("FIX: %016llx - %016llx\n", FIXADDR_START, FIXADDR_END);
-	fix_dbg("PGD: %016llx\n", mmu_pg_dir);
+	fix_dbg("PGDIR: %016llx\n", mmu_pg_dir);
 	pgd = pgd_offset(addr);
 	pgd_populate(pgd, bm_pud);
-	printf("set pgd to bm_pud\n");
 	pud = pud_offset(pgd, addr);
 	pud_populate(pud, bm_pmd);
 	pmd = pmd_offset(pud, addr);
@@ -349,9 +348,9 @@ void early_fixmap_init(void)
 		fix_dbg("pmd %p != %p, %p\n",
 		       pmd, fixmap_pmd(fix_to_virt(FIX_BTMAP_BEGIN)),
 		       fixmap_pmd(fix_to_virt(FIX_BTMAP_END)));
-		fix_dbg("fix_to_virt(FIX_BTMAP_BEGIN): %08lx\n",
+		fix_dbg("fix_to_virt(FIX_BTMAP_BEGIN): %016llx\n",
 		       fix_to_virt(FIX_BTMAP_BEGIN));
-		fix_dbg("fix_to_virt(FIX_BTMAP_END):   %08lx\n",
+		fix_dbg("fix_to_virt(FIX_BTMAP_END):   %016llx\n",
 		       fix_to_virt(FIX_BTMAP_END));
 
 		fix_dbg("FIX_BTMAP_END:       %d\n", FIX_BTMAP_END);

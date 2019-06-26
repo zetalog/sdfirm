@@ -69,36 +69,6 @@
 	bfi	\valreg, \tmpreg, #TCR_T0SZ_OFFSET, #TCR_TxSZ_WIDTH
 #endif
 	.endm
-
-	.macro	init_sp_early
-#ifdef CONFIG_SMP
-	mrs	x0, MPIDR_EL1
-	and	x1, x0, #0xff
-	and	x0, x0, #0xff00
-	lsr	x0, x0, #7
-	add	x0, x0, x1
-
-	add	x0, x0, #1
-	lsl	x0, x0, #PERCPU_STACK_SHIFT
-	ldr	x3, =PERCPU_STACKS_START
-	add	x0, x3, x0
-	mov	sp, x0
-#else
-	ldr	x0, =PERCPU_STACKS_END
-	mov	sp, x0
-#endif
-	.endm
-
-	.macro	init_bss
-	adr_l	x0, __bss_start
-	adr_l	x1, __bss_stop
-	mov	x2, xzr
-bss_init_loop:
-	stp	x2, x2, [x0], #16
-	cmp	x0, x1
-	b.lt	bss_init_loop
-	dsb	ishst
-	.endm
 #endif
 
 #endif /* __ARM64_ASSEMBLER_H_INCLUDE__ */

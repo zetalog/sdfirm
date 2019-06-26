@@ -2,16 +2,18 @@
 #include <target/linkage.h>
 #include <target/init.h>
 #include <target/arch.h>
-#include <target/smp.h>
-#include <target/paging.h>
 #include <asm/assembler.h>
 #include <asm/asm-offsets.h>
 
 #define ARM_ROM_OFFSET	0x850
 
 #define SDFIRM_START	__stext
-#define SDFIRM_END	__end
 #define __PHYS_OFFSET	(SDFIRM_START - TEXT_OFFSET)
+#ifdef CONFIG_VMSA_VA_2_RANGES
+#define mmu_lo_dir	mmu_id_map
+#else
+#define mmu_lo_dir	mmu_pg_dir
+#endif
 
 	__HEAD
 
@@ -82,6 +84,25 @@ __arm_reset:
 #endif
 #endif
 
+	.macro	init_sp_early
+#ifdef CONFIG_SMP
+	mrs	x0, MPIDR_EL1
+	and	x1, x0, #0xff
+	and	x0, x0, #0xff00
+	lsr	x0, x0, #7
+	add	x0, x0, x1
+
+	add	x0, x0, #1
+	lsl	x0, x0, #PERCPU_STACK_SHIFT
+	ldr	x3, =PERCPU_STACKS_START
+	add	x0, x3, x0
+	mov	sp, x0
+#else
+	ldr	x0, =PERCPU_STACKS_END
+	mov	sp, x0
+#endif
+	.endm
+
 ENTRY(__start)
 	init_sp_early
 	bl	__init_exception_level
@@ -99,7 +120,7 @@ ENTRY(__start)
 #ifdef CONFIG_SYS_KERNEL
 	# switch different EL entries
 	mrs	x0, CurrentEL
-	cmp	x0, #0xc
+	cmp	x0, #CURRENT_EL3
 	b.ne	init_lo_el
 
 	ldr	x0, =init_lo_el
@@ -109,29 +130,23 @@ ENTRY(__start)
 	eret
 #endif
 init_lo_el:
-	adrp	x24, __PHYS_OFFSET
 	bl	__create_page_tables
 
 #ifdef CONFIG_SYS_MONITOR
-	# Enable cache and stack alignment check
-	# Disable MMU, alignment check, write XN
-	# Keep endianness unchanged
+	# Enable cache and stack alignment check Disable MMU, alignment
+	# check, write XN, keep endianness unchanged
 	ldr	x0, =(SCTLR_EL3_RES1 | SCTLR_I | SCTLR_C | SCTLR_SA)
-#endif
-#ifdef CONFIG_SYS_KERNEL
-	# TODO: configure SCTLR_EL1
 #endif
 
 #ifdef CONFIG_MMU
-	ldr     x27, =stext		// address to jump to after
+	# Address to jump to after MMU has been enabled
+	ldr     x27, =stext
 #if 0
-	# MMU has been enabled
-	adr_l	lr, __enable_mmu	// return (PIC) address
-#else
-	bl	__enable_mmu
+	# return (PIC) address
+	adr_l	lr, __enable_mmu
 #endif
-	b	.
 	bl	__cpu_setup
+	bl	__enable_mmu
 #endif
 	bl	stext
 ENDPROC(__start)
@@ -144,7 +159,7 @@ ENDPIPROC(stext)
 ENTRY(__init_exception_level)
 	# switch different EL entries
 	mrs	x0, CurrentEL
-	cmp	x0, #0xc
+	cmp	x0, #CURRENT_EL3
 	b.ne	init_el1
 
 init_el3:
@@ -181,6 +196,17 @@ init_el1:
 	isb
 	ret
 ENDPROC(__init_exception_level)
+
+.macro init_bss
+	adr_l	x0, __bss_start
+	adr_l	x1, __bss_stop
+	mov	x2, xzr
+bss_init_loop:
+	stp	x2, x2, [x0], #16
+	cmp	x0, x1
+	b.lt	bss_init_loop
+	dsb	ishst
+.endm
 
 #ifdef CONFIG_BOOT_LINUX
 ENTRY(__linux_boot_el3)
@@ -287,7 +313,8 @@ ENDPROC(__linux_boot_el2)
 #     has been enabled
 ENTRY(__create_page_tables)
 #ifdef CONFIG_MMU
-	adrp	x25, mmu_id_map
+	adrp	x24, __PHYS_OFFSET
+	adrp	x25, mmu_lo_dir
 	adrp	x26, mmu_pg_dir
 	mov	x27, lr
 
@@ -309,11 +336,12 @@ ENTRY(__create_page_tables)
 
 	ldr	x7, =BPGT_MM_MMUFLAGS
 
+#ifdef CONFIG_VMSA_VA_2_RANGES
 	# Create the identity mapping.
-	mov	x0, x25				// idmap_pg_dir
+	mov	x0, x25				// mmu_id_map
 	adrp	x3, __idmap_text_start		// __pa(__idmap_text_start)
 
-#if VMSA_VA_SIZE_SHIFT != 48
+#if VA_BITS != 48
 #define EXTRA_SHIFT	(PGDIR_SHIFT + PAGE_SHIFT - 3)
 #define EXTRA_PTRS	(1 << (48 - EXTRA_SHIFT))
 
@@ -344,7 +372,6 @@ ENTRY(__create_page_tables)
 	str	x5, [x6]
 	dmb	sy
 	dc	ivac, x6		// Invalidate potentially stale cache line
-
 	create_table_entry x0, x3, EXTRA_SHIFT, EXTRA_PTRS, x5, x6
 1:
 #endif
@@ -353,10 +380,20 @@ ENTRY(__create_page_tables)
 	mov	x5, x3				// __pa(__idmap_text_start)
 	adr_l	x6, __idmap_text_end		// __pa(__idmap_text_end)
 	create_block_map x0, x7, x3, x5, x6
+#endif
+
+	# Map the sdfirm image (starting with PHYS_OFFSET).
+	mov	x0, x26				/* mmu_pg_dir */
+	mov	x5, #PAGE_OFFSET
+	create_pgd_entry x0, x5, x3, x6
+	ldr	x6, =SDFIRM_END			// __va(SDFIRM_END)
+	add	x6, x6, #PERCPU_STACKS_SIZE
+	mov	x3, x24				// PHYS_OFFSET
+	create_block_map x0, x7, x3, x5, x6
 
 #ifdef CONFIG_MMU_IDMAP_DEVICE
 	# Map device area for early console
-	mov	x0, x25
+	mov	x0, x25				// mmu_lo_dir
 	mov	x5, #DEV_BASE
 	create_pgd_entry x0, x5, x3, x6
 	mov	x6, #DEVEND
@@ -364,14 +401,6 @@ ENTRY(__create_page_tables)
 	ldr	x7, =BPGT_MM_DEVFLAGS
 	create_block_map x0, x7, x3, x5, x6
 #endif
-
-	# Map the sdfirm image (starting with PHYS_OFFSET).
-	mov	x0, x26				// mmu_pg_dir
-	mov	x5, #PAGE_OFFSET
-	create_pgd_entry x0, x5, x3, x6
-	ldr	x6, =SDFIRM_END			// __va(SDFIRM_END)
-	mov	x3, x24				// phys offset
-	create_block_map x0, x7, x3, x5, x6
 
 	# Since the page tables have been populated with non-cacheable
 	# accesses (MMU disabled), invalidate the idmap and swapper page
@@ -484,6 +513,8 @@ ENTRY(__enable_mmu)
 	msr	VBAR_EL1, x5
 	msr	TTBR0_EL1, x25			// load TTBR0
 	msr	TTBR1_EL1, x26			// load TTBR1
+#ifdef CONFIG_VMSA_VA_2_RANGES
+#endif
 	isb
 	msr	SCTLR_EL1, x0
 	isb

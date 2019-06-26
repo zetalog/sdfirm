@@ -47,9 +47,13 @@
  */
 #define VA_BITS			VMSA_VA_SIZE_SHIFT
 #ifdef CONFIG_VMSA_VA_2_RANGES
-#define PAGE_OFFSET		VMSA_VA_BASE_HI
+#define PAGE_OFFSET		(ULL(0xFFFFFFFFFFFFFFFF) << (VA_BITS - 1))
+#define FIXADDR_END		PAGE_OFFSET
 #else
-#define PAGE_OFFSET		0
+/* Every address range is linear */
+#define FIXADDR_END		(ULL(0x1) << VA_BITS)
+/*#define FIXADDR_END		PAGE_OFFSET*/
+#define PAGE_OFFSET		ULL(0x0)
 #endif
 
 /* Highest possible physical address supported */
@@ -110,6 +114,18 @@ static inline void set_pgd(pgdval_t *pgdp, pgdval_t pgd)
 /*===========================================================================
  * boot page table (bpgt)
  *===========================================================================*/
+/*
+ * The linear mapping and the start of memory are both 2M aligned (per
+ * the arm64 booting.txt requirements). Hence we can use section mapping
+ * with 4K (section size = 2M) but not with 16K (section size = 32M) or
+ * 64K (section size = 512M).
+ */
+#ifdef CONFIG_MMU_4K_PAGE
+#define BPGT_USES_SECTION_MAPS	1
+#else
+#define BPGT_USES_SECTION_MAPS	0
+#endif
+
 /* The idmap and boot page tables need some space reserved in the kernel
  * image. Both require pgd, pud (4 levels only) and pmd tables to (section)
  * map the kernel. With the 64K page configuration, swapper and idmap need to
@@ -118,14 +134,25 @@ static inline void set_pgd(pgdval_t *pgdp, pgdval_t pgd)
  * range, so pages required to map highest possible PA are reserved in all
  * cases.
  */
-#define BPGT_DIR_SIZE		(PGTABLE_LEVELS * PAGE_SIZE)
+#if BPGT_USES_SECTION_MAPS
+#define BPGT_PGTABLE_LEVELS	(PGTABLE_LEVELS - 1)
+#define IDMAP_PGTABLE_LEVELS	(__PGTABLE_LEVELS(PHYS_MASK_SHIFT) - 1)
+#else
+#define BPGT_PGTABLE_LEVELS	(PGTABLE_LEVELS)
 #define IDMAP_PGTABLE_LEVELS	(__PGTABLE_LEVELS(PHYS_MASK_SHIFT))
+#endif
 #define IDMAP_DIR_SIZE		(IDMAP_PGTABLE_LEVELS * PAGE_SIZE)
 
 /* Initial memory map size */
+#if ARM64_SWAPPER_USES_SECTION_MAPS
+#define BPGT_BLOCK_SHIFT	SECTION_SHIFT
+#define BPGT_BLOCK_SIZE		SECTION_SIZE
+#define BPGT_TABLE_SHIFT	PUD_SHIFT
+#else
 #define BPGT_BLOCK_SHIFT	PAGE_SHIFT
-#define BPGT_BLOCK_SIZE	PAGE_SIZE
+#define BPGT_BLOCK_SIZE		PAGE_SIZE
 #define BPGT_TABLE_SHIFT	PMD_SHIFT
+#endif
 
 /* The size of the initial kernel direct mapping */
 #define BPGT_INIT_MAP_SIZE	(_AC(1, UL) << BPGT_TABLE_SHIFT)
@@ -134,7 +161,12 @@ static inline void set_pgd(pgdval_t *pgdp, pgdval_t pgd)
 #define BPGT_PTE_FLAGS		(PTE_TYPE_PAGE | PTE_AF | PTE_SHARED)
 #define BPGT_PMD_FLAGS		(PMD_TYPE_SECT | PMD_SECT_AF | PMD_SECT_S)
 
+#if BPGT_USES_SECTION_MAPS
 #define BPGT_MM_MMUFLAGS	(PMD_ATTRINDX(MT_NORMAL) | BPGT_PMD_FLAGS)
 #define BPGT_MM_DEVFLAGS	(PMD_ATTRINDX(MT_DEVICE_nGnRnE) | BPGT_PMD_FLAGS)
+#else
+#define BPGT_MM_MMUFLAGS	(PTE_ATTRINDX(MT_NORMAL) | BPGT_PTE_FLAGS)
+#define BPGT_MM_DEVFLAGS	(PMD_ATTRINDX(MT_DEVICE_nGnRnE) | BPGT_PTE_FLAGS)
+#endif
 
 #endif /* __PAGE_ARM64_H_INCLUDE__ */

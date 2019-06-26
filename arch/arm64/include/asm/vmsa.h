@@ -46,26 +46,26 @@
 #include <asm/reg.h>
 #include <asm/sysreg.h>
 
-#ifdef VMSA_VA_4PB
+#ifdef CONFIG_VMSA_VA_4PB
 #define VMSA_VA_SIZE_SHIFT	52
 #endif
-#ifdef VMSA_VA_256TB
+#ifdef CONFIG_VMSA_VA_256TB
 #define VMSA_VA_SIZE_SHIFT	48
 #endif
-#ifdef VMSA_VA_16TB
+#ifdef CONFIG_VMSA_VA_16TB
 #define VMSA_VA_SIZE_SHIFT	44
 #endif
-#ifdef VMSA_VA_1TB
+#ifdef CONFIG_VMSA_VA_1TB
 #define VMSA_VA_SIZE_SHIFT	40
 #endif
-#ifdef VMSA_VA_64GB
+#ifdef CONFIG_VMSA_VA_64GB
 #define VMSA_VA_SIZE_SHIFT	36
 #endif
-#ifdef VMSA_VA_4GB
+#ifdef CONFIG_VMSA_VA_4GB
 #define VMSA_VA_SIZE_SHIFT	32
 #endif
 
-#ifndef VMSA_VA_SHIFT_SIZE
+#ifndef VMSA_VA_SIZE_SHIFT
 #ifdef CONFIG_CPU_64v8_2_LVA
 #define VMSA_VA_SIZE_SHIFT	52
 #else
@@ -83,13 +83,11 @@
 #define PHYS_OFFSET		CONFIG_VMSA_PHYS_OFFSET
 #endif
 
-/* #include <asm/mach/arch.h> */
+#define VMSA_VA_BASE_LO		ULL(0x0000000000000000)
+#define VMSA_VA_END_LO		(ULL(1) << VMSA_VA_SIZE_SHIFT)
 #ifdef CONFIG_VMSA_VA_2_RANGES
-#define VMSA_VA_BASE_HI		(ULL(0) - (ULL(1) << VMSA_VA_SIZE_SHIFT))
-#define VMSA_VA_BASE_LO		ULL(0x0000000000000000)
-#else
-#define VMSA_VA_BASE_HI		(ULL(1) << VMSA_VA_SIZE_SHIFT)
-#define VMSA_VA_BASE_LO		ULL(0x0000000000000000)
+#define VMSA_VA_BASE_HI		(ULL(0xFFFFFFFFFFFFFFFF) << VMSA_VA_SIZE_SHIFT)
+#define VMSA_VA_END_LO		ULL(0x0000000000000000)
 #endif
 
 #define MAIR(attr, mt)		((attr) << ((mt) * 8))

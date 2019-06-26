@@ -83,8 +83,10 @@ SECTIONS
 
 #ifdef CONFIG_MMU
 	. = ALIGN(PAGE_SIZE);
+#ifdef CONFIG_CPU_64v8_2_LPA
 	mmu_id_map = .;
 	. += IDMAP_DIR_SIZE;
+#endif /* CONFIG_CPU_64v8_2_LPA */
 	mmu_pg_dir = .;
 	. += BPGT_DIR_SIZE;
 #endif

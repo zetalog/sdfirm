@@ -665,7 +665,8 @@ phys_addr_t mem_alloc(phys_addr_t size, phys_addr_t align)
 void mem_init(void)
 {
 	mem_hw_range_init();
-	mem_reserve(PHYS_OFFSET + TEXT_OFFSET, __pa_symbol(__end));
+	mem_reserve(PHYS_OFFSET + TEXT_OFFSET,
+		    __pa_symbol(__end) + PERCPU_STACKS_START);
 }
 #else
 extern caddr_t __end[];

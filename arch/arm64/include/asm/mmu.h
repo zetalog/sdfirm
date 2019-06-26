@@ -44,7 +44,7 @@
 
 #include <target/barrier.h>
 #include <target/sizes.h>
-#include <asm/vmsa.h>
+#include <target/page.h>
 
 /*---------------------------------------------------------------------------
  * Hardware MMU definitions
@@ -326,9 +326,6 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 
 /* To include device specific fixmaps */
 #include <asm/mach/mmu.h>
-
-#define FIXADDR_END	VMSA_VA_BASE_HI
-#define FIXMAP_PAGE_IO	__pgprot(PROT_DEVICE_nGnRE)
 
 #define mmu_hw_ctrl_init()		do { } while (0)
 void mmu_hw_create_mapping(phys_addr_t phys, caddr_t virt,

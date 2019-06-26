@@ -9,8 +9,8 @@ while getopts "imrs:ux" opt
 do
 	case $opt in
 	i) GEM5_DBG=${GEM5_DBG},Faults,GIC;;
-	m) GEM5_DBG=${GEM5_DBG},MMU,TLB,AddrRanges;;
-	r) GEM5_DBG=${GEM5_DBG},Registers,-IntRegs,-CCRegs;;
+	m) GEM5_DBG=${GEM5_DBG},AddrRanges;;
+	r) GEM5_DBG=${GEM5_DBG},MiscRegs;;
 	x) GEM5_DBG=${GEM5_DBG},Exec;;
 	s) GEM5_SRC=$OPTARG;;
 	u) GEM5_IMG=aarch64-ubuntu-trusty-headless.img;;
@@ -23,6 +23,7 @@ shift $(($OPTIND - 1))
 SDFIRM_SRC=`(cd ${SCRIPT}/..; pwd)`
 GEM5_SRC=`(cd ${GEM5_SRC}; pwd)`
 
+rm -f ${GEM5_SRC}/fs_images/arm/binaries/boot_emm.arm64
 cp ${SDFIRM_SRC}/sdfirm.strip ${GEM5_SRC}/fs_images/arm/binaries/boot_emm.arm64
 
 (
