@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Jun 25 19:45:30 2019
+# Thu Jun 27 17:51:59 2019
 #
 CONFIG_ARM64=y
 
@@ -68,12 +68,12 @@ CONFIG_GICv2_IRQ_NS=y
 CONFIG_VMSA=y
 # CONFIG_VMSA_VA_4GB is not set
 # CONFIG_VMSA_VA_64GB is not set
-CONFIG_VMSA_VA_1TB=y
+# CONFIG_VMSA_VA_1TB is not set
 # CONFIG_VMSA_VA_16TB is not set
-# CONFIG_VMSA_VA_256TB is not set
+CONFIG_VMSA_VA_256TB=y
 # CONFIG_VMSA_VA_4PB is not set
 # CONFIG_VMSA_ADDRESS_TAGGING is not set
-CONFIG_VMSA_PHYS_OFFSET=0
+CONFIG_VMSA_PHYS_OFFSET=0x0
 
 #
 # External Debug support

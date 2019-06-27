@@ -287,6 +287,16 @@ ENDPROC(__linux_boot_el2)
 #endif
 	.endm
 
+	.macro	locate_pgd_entry, tbl
+	add	\tbl, \tbl, #PAGE_SIZE		// next level table page
+#if BPGT_PGTABLE_LEVELS > 3
+	add	\tbl, \tbl, #PAGE_SIZE		// next level table page
+#endif
+#if BPGT_PGTABLE_LEVELS > 2
+	add	\tbl, \tbl, #PAGE_SIZE		// next level table page
+#endif
+	.endm
+
 # Macro to populate block entries in the page table for the start..end
 # virtual range (inclusive).
 # Preserves:	tbl, flags
@@ -340,7 +350,7 @@ ENTRY(__create_page_tables)
 	mov	x0, x25				// mmu_id_map
 	adrp	x3, __idmap_text_start		// __pa(__idmap_text_start)
 
-#if VA_BITS != 48
+#ifndef CONFIG_VMSA_VA_256TB
 #define EXTRA_SHIFT	(PGDIR_SHIFT + PAGE_SHIFT - 3)
 #define EXTRA_PTRS	(1 << (48 - EXTRA_SHIFT))
 
@@ -393,8 +403,10 @@ ENTRY(__create_page_tables)
 #ifdef CONFIG_MMU_IDMAP_DEVICE
 	# Map device area for early console
 	mov	x0, x25				// mmu_lo_dir
-	mov	x3, #DEV_BASE
+	mov	x5, #DEV_BASE
+	locate_pgd_entry x0
 	mov	x6, #DEVEND
+	mov	x3, x5
 	ldr	x7, =BPGT_MM_DEVFLAGS
 	create_block_map x0, x7, x3, x5, x6
 #endif
