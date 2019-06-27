@@ -4,6 +4,7 @@
 #include <target/arch.h>
 #include <asm/assembler.h>
 #include <asm/asm-offsets.h>
+#include <asm/sysreg.h>
 
 #define ARM_ROM_OFFSET	0x850
 
@@ -139,16 +140,21 @@ init_lo_el:
 #endif
 
 #ifdef CONFIG_MMU
+#if 0
 	# Address to jump to after MMU has been enabled
 	ldr     x27, =stext
-#if 0
 	# return (PIC) address
 	adr_l	lr, __enable_mmu
-#endif
+	bl	__cpu_setup
+#else
 	bl	__cpu_setup
 	bl	__enable_mmu
-#endif
 	bl	stext
+#endif
+#else
+	ldr     x27, =stext
+	br	x27
+#endif
 ENDPROC(__start)
 
 ENTRY(stext)
@@ -179,7 +185,7 @@ init_el3:
 	# No feature trap
 	msr	CPTR_EL3, xzr
 
-	bl	__linux_boot_el3
+	call_l	__linux_boot_el3
 
 init_el2:
 	# Disable VM and VM traps
@@ -190,9 +196,9 @@ init_el2:
 init_el1:
 	# Enable hardware coherency between cores via
 	# CPUECTLR_EL1.SMPEN
-	mrs	x0, S3_1_c15_c2_1
+	mrs	x0, CPUECTLR_EL1
 	orr	x0, x0, #(1 << 6)
-	msr	S3_1_c15_c2_1, x0
+	msr	CPUECTLR_EL1, x0
 	isb
 	ret
 ENDPROC(__init_exception_level)
@@ -214,7 +220,7 @@ ENTRY(__linux_boot_el3)
 
 	# EL3/EL2 kernel bootloader
 	# early delay initialization
-	bl	delay_init
+	call_l	delay_init
 
 	# Only proceed on boot CPU
 	mrs	x0, MPIDR_EL1
@@ -222,7 +228,7 @@ ENTRY(__linux_boot_el3)
 1:
 	b.ne	1b
 	# early GICD/GICR initialization
-	bl	irq_init
+	call_l	irq_init
 	ret
 ENDPROC(__linux_boot_el3)
 ENTRY(__linux_boot_el2)
@@ -240,12 +246,11 @@ ENTRY(__linux_boot_el2)
 
 3:
 	# early console initialization
-	bl	console_init
+	call_l	console_init
 
 	ldr	x0, =0x88000000
 	ldr	x6, =0x80080000
 	br	x6
-	ret
 ENDPROC(__linux_boot_el2)
 #else
 ENTRY(__linux_boot_el3)
@@ -322,7 +327,7 @@ ENTRY(__create_page_tables)
 	# dirty cache lines being evicted.
 	mov	x0, x25
 	add	x1, x26, #BPGT_DIR_SIZE
-	bl	__inval_dcache_area
+	call_l	__inval_dcache_area
 
 	# Clear the idmap and boot page tables.
 	mov	x0, x25
@@ -394,10 +399,8 @@ ENTRY(__create_page_tables)
 #ifdef CONFIG_MMU_IDMAP_DEVICE
 	# Map device area for early console
 	mov	x0, x25				// mmu_lo_dir
-	mov	x5, #DEV_BASE
-	create_pgd_entry x0, x5, x3, x6
+	mov	x3, #DEV_BASE
 	mov	x6, #DEVEND
-	mov	x3, x5
 	ldr	x7, =BPGT_MM_DEVFLAGS
 	create_block_map x0, x7, x3, x5, x6
 #endif
@@ -408,7 +411,7 @@ ENTRY(__create_page_tables)
 	mov	x0, x25
 	add	x1, x26, #BPGT_DIR_SIZE
 	dmb	sy
-	bl	__inval_dcache_area
+	call_l	__inval_dcache_area
 
 	mov	lr, x27
 #endif

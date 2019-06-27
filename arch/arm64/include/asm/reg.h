@@ -51,7 +51,7 @@
 #define CURRENT_EL(value)	_GET_FV(CURRENT_EL, value)
 #define CURRENT_EL1		(ARM_EL1 << CURRENT_EL_OFFSET)
 #define CURRENT_EL2		(ARM_EL2 << CURRENT_EL_OFFSET)
-#define CURRENT_EL3		(ARM_EL2 << CURRENT_EL_OFFSET)
+#define CURRENT_EL3		(ARM_EL3 << CURRENT_EL_OFFSET)
 
 /* C5.2.17 SPSR_abt, Saved Program Status Register (Abort mode)
  * C5.2.18 SPSR_EL1, Saved Program Status Register (EL1)

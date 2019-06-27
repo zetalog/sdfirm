@@ -20,4 +20,6 @@
 	asm volatile("msr " __stringify(r) ", %x0" : : "rZ" (__val));	\
 })
 
+#define CPUECTLR_EL1		S3_1_C15_C2_1
+
 #endif /* __SYSREG_ARM64_H_INCLUDE__ */

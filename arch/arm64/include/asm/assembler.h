@@ -58,6 +58,12 @@
 	adrp	\tmp, \sym
 	str	\src, [\tmp, :lo12:\sym]
 	.endm
+
+	.macro	call_l, sym, tmp=x27
+        mov     \tmp, lr
+	bl      \sym
+	mov     lr, \tmp
+	.endm
 #endif
 
 #endif /* __ARM64_ASSEMBLER_H_INCLUDE__ */
