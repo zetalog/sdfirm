@@ -4,6 +4,9 @@ SCRIPT=`(cd \`dirname $0\`; pwd)`
 GEM5_SRC=~/workspace/gem5
 GEM5_DBG=Minor
 GEM5_IMG=linaro-minimal-aarch64.img
+GEM5_KERN=vmlinux.aarch64.20140821
+GEM5_DTB=vexpress.aarch64.20140821.dtb
+#GEM5_KERN=vmlinux.aarch64.local
 
 while getopts "imrs:ux" opt
 do
@@ -32,9 +35,9 @@ cp ${SDFIRM_SRC}/sdfirm.strip ${GEM5_SRC}/fs_images/arm/binaries/boot_emm.arm64
 
 	./build/ARM/gem5.opt --debug-flags=${GEM5_DBG} \
 		configs/example/fs.py \
-		--kernel=vmlinux.aarch64.20140821 \
+		--kernel=${GEM5_KERN} \
 		--machine-type=VExpress_EMM64 \
-		--dtb-file=vexpress.aarch64.20140821.dtb \
+		--dtb-file=${GEM5_DTB} \
 		--disk-image=${GEM5_IMG}
 	cat ${GEM5_SRC}/m5out/system.terminal
 )

@@ -280,10 +280,10 @@ ENDPROC(__linux_boot_el2)
 # Corrupts:	tmp1, tmp2
 	.macro	create_pgd_entry, tbl, virt, tmp1, tmp2
 	create_table_entry \tbl, \virt, PGDIR_SHIFT, PTRS_PER_PGD, \tmp1, \tmp2
-#if PGTABLE_LEVELS > 3
+#if BPGT_PGTABLE_LEVELS > 3
 	create_table_entry \tbl, \virt, PUD_SHIFT, PTRS_PER_PUD, \tmp1, \tmp2
 #endif
-#if PGTABLE_LEVELS > 2
+#if BPGT_PGTABLE_LEVELS > 2
 	create_table_entry \tbl, \virt, BPGT_TABLE_SHIFT, PTRS_PER_PTE, \tmp1, \tmp2
 #endif
 	.endm
@@ -415,6 +415,17 @@ ENTRY(__create_page_tables)
 	ret
 ENDPROC(__create_page_tables)
 	.ltorg
+
+	/* tcr_set_idmap_t0sz - update TCR.T0SZ so that we can load the ID
+	 * map
+	 */
+	.macro	tcr_set_idmap_t0sz, valreg, tmpreg
+#if (defined(CONFIG_CPU_64v8_2_LVA) && (VMSA_VA_SIZE_SHIFT != 52)) || \
+    (!defined(CONFIG_CPU_64v8_2_LVA) && (VMSA_VA_SIZE_SHIFT != 48))
+	ldr_l	\tmpreg, idmap_t0sz
+	bfi	\valreg, \tmpreg, #TCR_T0SZ_OFFSET, #TCR_TxSZ_WIDTH
+#endif
+	.endm
 
 ENTRY(__cpu_setup)
 	tlbi	vmalle1				// Invalidate local TLB

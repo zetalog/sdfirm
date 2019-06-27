@@ -58,17 +58,6 @@
 	adrp	\tmp, \sym
 	str	\src, [\tmp, :lo12:\sym]
 	.endm
-
-	/* tcr_set_idmap_t0sz - update TCR.T0SZ so that we can load the ID
-	 * map
-	 */
-	.macro	tcr_set_idmap_t0sz, valreg, tmpreg
-#if (defined(CONFIG_CPU_64v8_2_LVA) && (VMSA_VA_SIZE_SHIFT != 52)) || \
-    (!defined(CONFIG_CPU_64v8_2_LVA) && (VMSA_VA_SIZE_SHIFT != 48))
-	ldr_l	\tmpreg, idmap_t0sz
-	bfi	\valreg, \tmpreg, #TCR_T0SZ_OFFSET, #TCR_TxSZ_WIDTH
-#endif
-	.endm
 #endif
 
 #endif /* __ARM64_ASSEMBLER_H_INCLUDE__ */
