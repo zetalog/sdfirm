@@ -1,6 +1,6 @@
 #include <target/paging.h>
 
-uint64_t idmap_t0sz = TCR_T0SZ(VA_BITS);
+uint64_t idmap_t0sz = TCR_T0SZ(64 - VA_BITS);
 
 #if 0
 static void alloc_init_pte(pmd_t *pmd, caddr_t addr,

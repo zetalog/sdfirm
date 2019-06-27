@@ -140,17 +140,11 @@ init_lo_el:
 #endif
 
 #ifdef CONFIG_MMU
-#if 0
 	# Address to jump to after MMU has been enabled
 	ldr     x27, =stext
 	# return (PIC) address
 	adr_l	lr, __enable_mmu
-	bl	__cpu_setup
-#else
-	bl	__cpu_setup
-	bl	__enable_mmu
-	bl	stext
-#endif
+	b	__cpu_setup
 #else
 	ldr     x27, =stext
 	br	x27
@@ -370,7 +364,7 @@ ENTRY(__create_page_tables)
 	# the physical address of __idmap_text_end.
 	adrp	x5, __idmap_text_end
 	clz	x5, x5
-	cmp	x5, TCR_T0SZ(VA_BITS)	// default T0SZ small enough?
+	cmp	x5, TCR_T0SZ(64 - VA_BITS)	// default T0SZ small enough?
 	b.ge	1f			// .. then skip additional level
 
 	adr_l	x6, idmap_t0sz
@@ -466,7 +460,7 @@ ENTRY(__cpu_setup)
 	orr	x0, x0, x6			// set bits
 	# Set/prepare TCR and TTBR. We use 512GB (39-bit) address range for
 	# both user and kernel.
-	ldr	x10, =TCR_TxSZ(VA_BITS) | \
+	ldr	x10, =TCR_TxSZ(64 - VA_BITS) | \
 		      TCR_CACHE_FLAGS | TCR_SMP_FLAGS | \
 		      TCR_TG_FLAGS | TCR_AS | TCR_TBI0
 	tcr_set_idmap_t0sz	x10, x9
@@ -539,4 +533,5 @@ ENTRY(__enable_mmu)
 	ic	iallu
 	dsb	nsh
 	isb
+	br	x27
 ENDPROC(__enable_mmu)
