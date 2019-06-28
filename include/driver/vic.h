@@ -8,8 +8,6 @@
 #endif
 
 #ifndef ARCH_HAVE_VIC
-typedef void (*irq_handler)(void);
-
 #define vic_hw_vectors_init()
 #define vic_hw_register_irq(nr, h)
 #endif

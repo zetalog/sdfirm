@@ -15,13 +15,12 @@
 enum fixed_addresses {
 	FIX_HOLE,
 
+	FIX_GICD,
+	FIX_GICC,
 	FIX_UART0,
 	FIX_UART1,
 	FIX_UART2,
 	FIX_UART3,
-	FIX_GICD,
-	FIX_GICC,
-	FIX_GPIO,
 
 	__end_of_permanent_fixed_addresses,
 

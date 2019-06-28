@@ -10,7 +10,6 @@ menu "GEM5 VExpress_EMM64 board options"
 config UART_GEM5
 	bool "AMBA PL011 uart controller support"
 	depends !ARM_DCC
-	select ARCH_HAS_UART
 	select UART_PL01X
 	select UART_PL011
 	default y

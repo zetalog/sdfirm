@@ -7,7 +7,6 @@
 #define __GICD_BASE		0x2C001000
 #define __GICC_BASE		0x2C002000
 #ifdef CONFIG_MMU
-//#if defined(CONFIG_MMU) && !defined(CONFIG_MMU_IDMAP_DEVICE)
 #define GICD_BASE		fix_to_virt(FIX_GICD)
 #define GICC_BASE		fix_to_virt(FIX_GICC)
 #else

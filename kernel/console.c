@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <target/uart.h>
+#include <target/gpio.h>
 #include <target/bh.h>
 #include <target/irq.h>
 #include <target/console.h>
@@ -148,6 +149,7 @@ void console_late_init(void)
 
 void early_console_init(void)
 {
+	gpio_hw_mmu_init();
 	uart_hw_mmu_init();
 }
 

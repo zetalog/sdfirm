@@ -115,9 +115,7 @@ uint8_t pl01x_read_byte(void)
 
 static void pl01x_handle_irq(void)
 {
-	irq_t uart_irq = UART_CON_IRQ;
-
-	irqc_disable_irq(uart_irq);
+	irqc_disable_irq(UART_CON_IRQ);
 	pl01x_mask_irq(UART_CON_ID, UART_RXI);
 	/* TODO: handle RX IRQ:
 	 * debug_handle_irq();
@@ -126,28 +124,22 @@ static void pl01x_handle_irq(void)
 
 void pl01x_irq_ack(void)
 {
-	irq_t uart_irq = UART_CON_IRQ;
-
 	pl01x_unmask_irq(UART_CON_ID, UART_RXI);
-	irqc_enable_irq(uart_irq);
+	irqc_enable_irq(UART_CON_IRQ);
 }
 
 void pl01x_irq_init(void)
 {
-	irq_t uart_irq = UART_CON_IRQ;
-
 	pl01x_disable_all_irqs(UART_CON_ID);
-	irqc_configure_irq(uart_irq, 0, IRQ_LEVEL_TRIGGERED);
-	irq_register_vector(uart_irq, pl01x_handle_irq);
-	irqc_enable_irq(uart_irq);
+	irqc_configure_irq(UART_CON_IRQ, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(UART_CON_IRQ, pl01x_handle_irq);
+	irqc_enable_irq(UART_CON_IRQ);
 	pl01x_enable_irq(UART_CON_ID, UART_RXI);
 }
 
 void pl01x_irq_exit(void)
 {
-	irq_t uart_irq = UART_CON_IRQ;
-
 	pl01x_disable_all_irqs(UART_CON_ID);
-	irqc_disable_irq(uart_irq);
-	irqc_configure_irq(uart_irq, GIC_PRIORITY_IDLE, IRQ_LEVEL_TRIGGERED);
+	irqc_disable_irq(UART_CON_IRQ);
+	irqc_configure_irq(UART_CON_IRQ, GIC_PRIORITY_IDLE, IRQ_LEVEL_TRIGGERED);
 }

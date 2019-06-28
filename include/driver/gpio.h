@@ -20,6 +20,7 @@
  */
 #define gpio_hw_config_pad(port, pin, dir, pad, ma)
 #define gpio_hw_config_mux(port, pin, mux)
+#define gpio_hw_mmu_init()
 #endif
 
 #endif /* __GPIO_DRIVER_H_INCLUDE__ */

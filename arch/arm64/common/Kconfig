@@ -262,7 +262,7 @@ choice
 
 config GIC
 	bool "GIC"
-	depends on CPU_64v8
+	depends on CPU_64v8 && !SYS_NOIRQ
 	select ARCH_HAS_IRQC
 	help
 	  The GIC architecture describes an interrupt controller for use with

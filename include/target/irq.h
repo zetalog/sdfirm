@@ -14,6 +14,7 @@ typedef uint8_t irq_t;
 #elif NR_IRQS <= 65536
 typedef uint16_t irq_t;
 #endif
+typedef void (*irq_handler)(void);
 
 #ifdef CONFIG_ARCH_HAS_VIC
 #include <driver/vic.h>
@@ -49,10 +50,10 @@ void irq_hw_flags_enable(void);
 #ifndef irq_hw_flags_disable
 void irq_hw_flags_disable(void);
 #endif
+void irq_hw_handle_irq(void);
 #ifndef irq_hw_ctrl_init
 void irq_hw_ctrl_init(void);
 #endif
-void irq_hw_handle_irq(void);
 
 typedef void (*trap_handler)(const char *msg);
 void trap_handler_vector(trap_handler handler);
