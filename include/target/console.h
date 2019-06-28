@@ -34,7 +34,6 @@ typedef void (*console_handler)(void);
 
 #ifdef CONFIG_CONSOLE
 int console_register_handler(console_handler);
-int console_output_space(void);
 #ifdef CONFIG_CONSOLE_INPUT
 void console_input_handler(void);
 int console_input_init(void);
@@ -47,6 +46,7 @@ static inline int console_input_init(void)
 #endif
 
 #ifdef CONFIG_CONSOLE_OUTPUT
+int console_output_space(void);
 void console_output_handler(void);
 int console_output_init(void);
 #else
