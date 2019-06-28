@@ -71,4 +71,14 @@ void console_late_init(void);
 #define console_late_init()		do { } while (0)
 #endif
 
+#ifdef CONFIG_MMU_IDMAP_DEVICE
+#define idmap_early_con_init()		console_init()
+#define fixmap_early_con_init()		early_console_init()
+#define fixmap_late_con_init()
+#else
+#define idmap_early_con_init()
+#define fixmap_early_con_init()		early_console_init()
+#define fixmap_late_con_init()		console_init()
+#endif
+
 #endif /* __CONSOLE_H_INCLUDE__ */

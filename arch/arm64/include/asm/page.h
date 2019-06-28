@@ -76,7 +76,7 @@ static inline void page_wmb(void)
 #define ARCH_HAVE_SET_PTE 1
 static inline void set_pte(pteval_t *ptep, pteval_t pte)
 {
-	printf("PTE: %016llx: %016llx\n", ptep, pte);
+	mmu_dbg("PTE: %016llx: %016llx\n", ptep, pte);
 	*ptep = pte;
 	page_wmb();
 }
@@ -84,7 +84,7 @@ static inline void set_pte(pteval_t *ptep, pteval_t pte)
 #define ARCH_HAVE_SET_PMD 1
 static inline void set_pmd(pmdval_t *pmdp, pmdval_t pmd)
 {
-	printf("PMD: %016llx: %016llx\n", pmdp, pmd);
+	mmu_dbg("PMD: %016llx: %016llx\n", pmdp, pmd);
 	*pmdp = pmd;
        	page_wmb();
 }
@@ -93,7 +93,7 @@ static inline void set_pmd(pmdval_t *pmdp, pmdval_t pmd)
 #define ARCH_HAVE_SET_PUD 1
 static inline void set_pud(pudval_t *pudp, pudval_t pud)
 {
-	printf("PUD: %016llx: %016llx\n", pudp, pud);
+	mmu_dbg("PUD: %016llx: %016llx\n", pudp, pud);
 	*pudp = pud;
        	page_wmb();
 }
@@ -103,7 +103,7 @@ static inline void set_pud(pudval_t *pudp, pudval_t pud)
 #define ARCH_HAVE_SET_PGD 1
 static inline void set_pgd(pgdval_t *pgdp, pgdval_t pgd)
 {
-	printf("PGD: %016llx: %016llx\n", pgdp, pgd);
+	mmu_dbg("PGD: %016llx: %016llx\n", pgdp, pgd);
 	*pgdp = pgd;
 	page_wmb();
 }

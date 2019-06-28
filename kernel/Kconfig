@@ -420,6 +420,14 @@ config MMU_PAGE_OFFSET
 config MMU_IDMAP_DEVICE
 	bool "Enable early device identity mapping"
 	depends EXPERIMENTAL
+	help
+	  If there is a board specific definition of IDMAP_DEV_BASE, create
+	  mappings for it in the boot page table. This is normally useful
+	  for enabling very early consoles (earlier before the readiness of
+	  the fixmap mechanism which requires the readiness of the early
+	  memory resource allocator, so it is only useful for debugging the
+	  memory resource allocator and the fixmap machanisms).
+	  If unsure, say 'N'.
 
 endif
 

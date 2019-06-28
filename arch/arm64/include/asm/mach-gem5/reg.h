@@ -14,7 +14,7 @@
 #define RAMEND			0x4000000
 #endif
 
-#define DEV_BASE		0x1A000000
-#define DEVEND			0x30000000
+#define IDMAP_DEV_BASE		0x1C090000
+#define IDMAP_DEVEND		PAGE_SIZE
 
 #endif /* __REG_GEM5_H_INCLUDE__ */

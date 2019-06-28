@@ -6,7 +6,7 @@
 #include <target/paging.h>
 
 #ifdef CONFIG_MEM
-#ifdef CONFIG_MEM_DEBUG
+#if defined(CONFIG_MEM_DEBUG) && defined(CONFIG_MMU_IDMAP_DEVICE)
 #define mem_dbg			printf
 #else
 #define mem_dbg(fmt, ...)

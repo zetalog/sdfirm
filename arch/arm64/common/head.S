@@ -400,12 +400,12 @@ ENTRY(__create_page_tables)
 	mov	x3, x24				// PHYS_OFFSET
 	create_block_map x0, x7, x3, x5, x6
 
-#ifdef CONFIG_MMU_IDMAP_DEVICE
-	# Map device area for early console
+#if defined(CONFIG_MMU_IDMAP_DEVICE) && defined(IDMAP_DEV_BASE)
+	# Map identity device area for early console
 	mov	x0, x25				// mmu_lo_dir
-	mov	x5, #DEV_BASE
+	mov	x5, #IDMAP_DEV_BASE
 	locate_pgd_entry x0
-	mov	x6, #DEVEND
+	mov	x6, #IDMAP_DEVEND
 	mov	x3, x5
 	ldr	x7, =BPGT_MM_DEVFLAGS
 	create_block_map x0, x7, x3, x5, x6

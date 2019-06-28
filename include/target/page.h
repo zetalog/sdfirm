@@ -1,6 +1,7 @@
 #ifndef __PAGE_H_INCLUDE__
 #define __PAGE_H_INCLUDE__
 
+#include <stdio.h>
 #include <target/config.h>
 #include <target/generic.h>
 
@@ -27,6 +28,12 @@
 #endif
 #define __PGTABLE_LEVELS(va_bits)	\
 	(((va_bits) - PAGE_PTR_BITS - 1) / (PAGE_SHIFT - PAGE_PTR_BITS))
+
+#ifdef CONFIG_MMU_IDMAP_DEVICE
+#define mmu_dbg		printf
+#else
+#define mmu_dbg(...)
+#endif
 
 #include <asm/page.h>
 

@@ -6,12 +6,6 @@
 #include <target/linkage.h>
 #include <target/compiler.h>
 
-#ifdef CONFIG_MMU_IDMAP_DEVICE
-#define fix_dbg		printf
-#else
-#define fix_dbg(...)
-#endif
-
 static phys_addr_t early_pgtable_alloc(void)
 {
 	phys_addr_t phys;
@@ -19,7 +13,7 @@ static phys_addr_t early_pgtable_alloc(void)
 
 	phys = mem_alloc(PAGE_SIZE, PAGE_SIZE);
 	if (!phys) {
-		fix_dbg("Failed to allocate page table page\n");
+		mmu_dbg("Failed to allocate page table page\n");
 		BUG();
 	}
 
@@ -28,7 +22,7 @@ static phys_addr_t early_pgtable_alloc(void)
 	 * initialise any level of table.
 	 */
 	ptr = pte_set_fixmap(phys);
-	fix_dbg("ALLOC: P=%016llx, V=%016llx\n", phys, ptr);
+	mmu_dbg("ALLOC: P=%016llx, V=%016llx\n", phys, ptr);
 	memory_set((caddr_t)ptr, 0, PAGE_SIZE);
 
 	/* Implicit barriers also ensure the zeroed page is visible to the
@@ -40,7 +34,7 @@ static phys_addr_t early_pgtable_alloc(void)
 
 static void early_pgtable_free(phys_addr_t phys)
 {
-	fix_dbg("FREE: %016llx\n", phys);
+	mmu_dbg("FREE: %016llx\n", phys);
 	mem_free(phys, PAGE_SIZE);
 }
 
@@ -93,7 +87,7 @@ static void alloc_init_pmd(pud_t *pudp, caddr_t addr,
 	BUG_ON(pud_bad(pud));
 
 	pmdp = pmd_set_fixmap_offset(pudp, addr);
-	fix_dbg("PMD: %016llx\n", pmdp);
+	mmu_dbg("PMD: %016llx\n", pmdp);
 	do {
 		next = pmd_addr_end(addr, end);
 		alloc_init_pte(pmdp, addr, next, phys,
@@ -122,7 +116,7 @@ static void alloc_init_pud(pgd_t *pgdp, caddr_t addr, caddr_t end,
 	BUG_ON(pgd_bad(pgd));
 
 	pudp = pud_set_fixmap_offset(pgdp, addr);
-	fix_dbg("PUD: %016llx\n", pudp);
+	mmu_dbg("PUD: %016llx\n", pudp);
 	do {
 		next = pud_addr_end(addr, end);
 		alloc_init_pmd(pudp, addr, next, phys, prot,
@@ -142,9 +136,9 @@ static void __create_pgd_mapping(pgd_t *pgdir, phys_addr_t phys,
 	caddr_t addr, length, end, next;
 	pgd_t *pgdp = pgd_offset_raw(pgdir, virt);
 
-	fix_dbg("MAP: phys: %016llx\n", phys);
-	fix_dbg("MAP: virt: %016llx\n", virt);
-	fix_dbg("MAP: size: %016llx\n", size);
+	mmu_dbg("MAP: phys: %016llx\n", phys);
+	mmu_dbg("MAP: virt: %016llx\n", virt);
+	mmu_dbg("MAP: size: %016llx\n", size);
 
 	/* If the virtual and physical address don't have the same offset
 	 * within a page, we cannot map the region as the caller expects.
@@ -327,8 +321,8 @@ void early_fixmap_init(void)
 	pmd_t *pmd;
 	caddr_t addr = FIXADDR_START;
 
-	fix_dbg("FIX: %016llx - %016llx\n", FIXADDR_START, FIXADDR_END);
-	fix_dbg("PGDIR: %016llx\n", mmu_pg_dir);
+	mmu_dbg("FIX: %016llx - %016llx\n", FIXADDR_START, FIXADDR_END);
+	mmu_dbg("PGDIR: %016llx\n", mmu_pg_dir);
 	pgd = pgd_offset(addr);
 	pgd_populate(pgd, bm_pud);
 	pud = pud_offset(pgd, addr);
@@ -345,16 +339,16 @@ void early_fixmap_init(void)
 	if ((pmd != fixmap_pmd(fix_to_virt(FIX_BTMAP_BEGIN))) ||
 	    pmd != fixmap_pmd(fix_to_virt(FIX_BTMAP_END))) {
 		BUG();
-		fix_dbg("pmd %p != %p, %p\n",
+		mmu_dbg("pmd %p != %p, %p\n",
 		       pmd, fixmap_pmd(fix_to_virt(FIX_BTMAP_BEGIN)),
 		       fixmap_pmd(fix_to_virt(FIX_BTMAP_END)));
-		fix_dbg("fix_to_virt(FIX_BTMAP_BEGIN): %016llx\n",
+		mmu_dbg("fix_to_virt(FIX_BTMAP_BEGIN): %016llx\n",
 		       fix_to_virt(FIX_BTMAP_BEGIN));
-		fix_dbg("fix_to_virt(FIX_BTMAP_END):   %016llx\n",
+		mmu_dbg("fix_to_virt(FIX_BTMAP_END):   %016llx\n",
 		       fix_to_virt(FIX_BTMAP_END));
 
-		fix_dbg("FIX_BTMAP_END:       %d\n", FIX_BTMAP_END);
-		fix_dbg("FIX_BTMAP_BEGIN:     %d\n", FIX_BTMAP_BEGIN);
+		mmu_dbg("FIX_BTMAP_END:       %d\n", FIX_BTMAP_END);
+		mmu_dbg("FIX_BTMAP_BEGIN:     %d\n", FIX_BTMAP_BEGIN);
 	}
 }
 
@@ -364,9 +358,8 @@ void paging_init(void)
 	pgd_t *pgdp = pgd_set_fixmap(__pa_symbol(pgd_phys));
 
 	map_kernel(pgdp);
-	map_mem(pgdp);
-
 #if 0
+	map_mem(pgdp);
 	cpu_replace_ttbr1(__va(pgd_phys));
 	memcpy(mmu_pg_dir, pgdp, PAGE_SIZE);
 	cpu_replace_ttbr1(mmu_pg_dir);

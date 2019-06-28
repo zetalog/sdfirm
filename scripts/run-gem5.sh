@@ -33,6 +33,7 @@ cp ${SDFIRM_SRC}/sdfirm.strip ${GEM5_SRC}/fs_images/arm/binaries/boot_emm.arm64
 	cd ${GEM5_SRC}
 	export M5_PATH="${GEM5_SRC}/fs_images/arm/"
 
+	rm -f ${GEM5_SRC}/m5out/system.terminal
 	./build/ARM/gem5.opt --debug-flags=${GEM5_DBG} \
 		configs/example/fs.py \
 		--kernel=${GEM5_KERN} \

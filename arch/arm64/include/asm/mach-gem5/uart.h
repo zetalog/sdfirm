@@ -14,8 +14,11 @@
 
 /* Definitions to implement AMBA UART */
 #define __UART_BASE(n)			(UART0_BASE + ((n) * 0x10000))
-#if defined(CONFIG_MMU) && !defined(CONFIG_MMU_IDMAP_DEVICE)
-#define UART_BASE(n)			fix_to_virt(FIX_UART0+(n))
+#define UART_HW_MAX_PORTS		4
+
+#ifdef CONFIG_MMU
+#define UART_BASE(n)			uart_hw_reg_base[n]
+extern caddr_t uart_hw_reg_base[UART_HW_MAX_PORTS];
 #else
 #define UART_BASE(n)			__UART_BASE(n)
 #endif
