@@ -2,7 +2,6 @@
 #define __PAGE_H_INCLUDE__
 
 #include <stdio.h>
-#include <stdarg.h>
 #include <target/config.h>
 #include <target/generic.h>
 
@@ -29,16 +28,6 @@
 #endif
 #define __PGTABLE_LEVELS(va_bits)	\
 	(((va_bits) - PAGE_PTR_BITS - 1) / (PAGE_SHIFT - PAGE_PTR_BITS))
-
-#ifdef CONFIG_MMU_DEBUG
-#ifndef __ASSEMBLY__
-void mmu_dbg(const char *fmt, ...);
-void mmu_dbg_enable(void);
-#endif
-#else
-#define mmu_dbg(...)
-#define mmu_dbg_enable()
-#endif
 
 #include <asm/page.h>
 

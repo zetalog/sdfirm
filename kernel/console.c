@@ -134,6 +134,24 @@ static void console_bh_handler(uint8_t events)
 	}
 }
 
+#ifdef CONFIG_MMU_IDMAP_DEVICE
+bool console_enabled = true;
+#else
+bool console_enabled = false;
+#endif
+
+void con_dbg(const char *fmt, ...)
+{
+	va_list arg;
+
+	if (!console_enabled)
+		return;
+
+	va_start(arg, fmt);
+	vprintf(fmt, arg);
+	va_end(arg);
+}
+
 #ifdef CONFIG_CONSOLE_COMMAND
 void console_uart_handler(void)
 {
@@ -151,6 +169,7 @@ void early_console_init(void)
 {
 	gpio_hw_mmu_init();
 	uart_hw_mmu_init();
+	console_enabled = true;
 }
 
 void console_init(void)

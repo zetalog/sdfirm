@@ -1,7 +1,9 @@
 #ifndef __CONSOLE_H_INCLUDE__
 #define __CONSOLE_H_INCLUDE__
 
-#ifdef CONFIG_CONSOLE
+#ifndef __ASSEMBLY__
+#include <stdarg.h>
+
 #ifdef CONFIG_CONSOLE_115200
 #define UART_CON_BAUDRATE	115200
 #endif
@@ -25,7 +27,6 @@
 #endif
 #ifndef UART_CON_BAUDRATE
 #define UART_CON_BAUDRATE	115200
-#endif
 #endif
 
 #define CONSOLE_BUFFER_SIZE	512
@@ -61,14 +62,21 @@ static inline int console_output_space(void)
 }
 #endif
 
-void early_console_init(void);
-void console_handle_irq(void);
-void console_init(void);
+/* Console command line related */
 void console_late_init(void);
+void console_handle_irq(void);
+
+void early_console_init(void);
+void console_init(void);
 #else
 #define early_console_init()		do { } while (0)
 #define console_init()			do { } while (0)
-#define console_late_init()		do { } while (0)
+#endif
+
+#ifdef CONFIG_CONSOLE_DEBUG
+void con_dbg(const char *fmt, ...);
+#else
+#define con_dbg(fmt, ...)		do { } while (0)
 #endif
 
 #ifdef CONFIG_MMU_IDMAP_DEVICE
@@ -80,5 +88,6 @@ void console_late_init(void);
 #define fixmap_early_con_init()		early_console_init()
 #define fixmap_late_con_init()		console_init()
 #endif
+#endif /* !__ASSEMBLY__ */
 
 #endif /* __CONSOLE_H_INCLUDE__ */

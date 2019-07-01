@@ -317,10 +317,6 @@ if MEM
 config MEM_RESIZE
 	bool "Enable resizable memory region array support"
 
-config MEM_DEBUG
-	bool "Enable memory allocator debugging support"
-	depends EXPERIMENTAL
-
 endif
 
 menuconfig PAGE
@@ -429,10 +425,6 @@ config MMU_IDMAP_DEVICE
 	  memory resource allocator, so it is only useful for debugging the
 	  memory resource allocator and the fixmap machanisms).
 	  If unsure, say 'N'.
-
-config MMU_DEBUG
-	bool "Enable paging debugging support"
-	depends EXPERIMENTAL
 
 endif
 

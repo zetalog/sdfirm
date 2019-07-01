@@ -123,6 +123,10 @@ config CONSOLE_2400
 
 endchoice
 
+config CONSOLE_DEBUG
+	bool "Enable console debugging messages"
+	depends EXPERIMENTAL
+
 endif
 
 endmenu

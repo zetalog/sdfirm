@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Jul  1 08:58:57 2019
+# Mon Jul  1 09:27:29 2019
 #
 CONFIG_ARM64=y
 
@@ -30,6 +30,7 @@ CONFIG_CONSOLE_230400=y
 # CONFIG_CONSOLE_9600 is not set
 # CONFIG_CONSOLE_4800 is not set
 # CONFIG_CONSOLE_2400 is not set
+CONFIG_CONSOLE_DEBUG=y
 
 #
 # ARM64 system options
@@ -146,7 +147,6 @@ CONFIG_TEXT_RAM_BASE=0x0
 # CONFIG_HEAP is not set
 CONFIG_MEM=y
 # CONFIG_MEM_RESIZE is not set
-# CONFIG_MEM_DEBUG is not set
 CONFIG_PAGE=y
 CONFIG_ARCH_HAS_MMU=y
 CONFIG_ARCH_HAS_MMU_4K=y
@@ -165,7 +165,6 @@ CONFIG_MMU_4L_TABLE=y
 # CONFIG_MMU_5L_TABLE is not set
 # CONFIG_MMU_PAGE_OFFSET is not set
 # CONFIG_MMU_IDMAP_DEVICE is not set
-CONFIG_MMU_DEBUG=y
 # CONFIG_IDLE is not set
 # CONFIG_BULK is not set
 # CONFIG_TERM is not set

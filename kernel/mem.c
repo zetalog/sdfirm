@@ -1,17 +1,12 @@
 #include <string.h>
 #include <limits.h>
+#include <target/console.h>
 #include <target/mem.h>
 #include <target/arch.h>
 #include <target/heap.h>
 #include <target/paging.h>
 
 #ifdef CONFIG_MEM
-#if defined(CONFIG_MEM_DEBUG) && defined(CONFIG_MMU_IDMAP_DEVICE)
-#define mem_dbg			printf
-#else
-#define mem_dbg(fmt, ...)
-#endif
-
 #define MEM_ALLOC_ANYWHERE		(~(phys_addr_t)0)
 #define MEM_ALLOC_ACCESSIBLE		0
 
@@ -416,7 +411,7 @@ static int mem_double_array(struct mem_type *type,
 		return -1;
 	}
 
-	mem_dbg("mem: %s is doubled to %ld at [%#010llx-%#010llx]",
+	con_dbg("mem: %s is doubled to %ld at [%#010llx-%#010llx]",
 		mem_type_name(type), type->max * 2, (uint64_t)addr,
 		(uint64_t)addr + new_size - 1);
 
@@ -539,7 +534,7 @@ void mem_remove(phys_addr_t base, phys_addr_t size)
 
 void mem_free(phys_addr_t base, phys_addr_t size)
 {
-	mem_dbg("mem_free: [%#016llx-%#016llx]\n",
+	con_dbg("mem_free: [%#016llx-%#016llx]\n",
 		(unsigned long long)base,
 		(unsigned long long)base + size - 1);
 	mem_remove_range(&mem_reserved_regions, base, size);
@@ -624,7 +619,7 @@ void mem_add(phys_addr_t base, phys_addr_t size)
 {
 	struct mem_type *type = &mem_memory_regions;
 
-	mem_dbg("mem_add: [%#016llx-%#016llx]\n",
+	con_dbg("mem_add: [%#016llx-%#016llx]\n",
 		(unsigned long long)base,
 		(unsigned long long)base + size - 1);
 	mem_add_range(type, base, size);
@@ -634,7 +629,7 @@ void mem_reserve(phys_addr_t base, phys_addr_t size)
 {
 	struct mem_type *type = &mem_reserved_regions;
 
-	mem_dbg("mem_reserve: [%#016llx-%#016llx]\n",
+	con_dbg("mem_reserve: [%#016llx-%#016llx]\n",
 		(unsigned long long)base,
 		(unsigned long long)base + size - 1);
 	mem_add_range(type, base, size);
