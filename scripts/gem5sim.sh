@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # COPYRIGHT: 
 #   Copyright (c) 2019 - 2019 by ZETALOG, All rights reserved.
@@ -14,18 +14,19 @@
 #                [-b binary] [-d disk]
 #
 # DESCRIPTION:
-#     This scripts makes simpoint based gem5 simulation easier. The
-#     simulation steps can be specified by [-s] and are ordered as:
+#     This script makes SimPoint based GEM5 simulation operations easier.
+#     The simulation steps can be specified by [-s] and should be executed
+#     in the following order:
 #     gem5bbv:
-#       Generate basic block vectors using gem5.
+#       Generate basic block vectors using GEM5.
 #     simpoint:
-#       Generate simulation checkpoints using SimPoint, it accepts gem5
+#       Generate simulation checkpoints using SimPoint, it accepts GEM5
 #       generated basic block vectors.
 #     gem5cpt:
-#       Generate gem5 checkpoints using gem5, it accepts SimPoint generated
+#       Generate GEM5 checkpoints using GEM5, it accepts SimPoint generated
 #       simulation checkpoints.
 #     gem5sim:
-#       Simulate checkpoint using gem5, it accepts gem5 generated
+#       Simulate checkpoint using GEM5, it accepts GEM5 generated
 #       checkpoints.
 #
 # EXAMPLES:
@@ -84,33 +85,34 @@ usage()
 	echo "  [-b binary] [-d disk]"
 	echo "Where:"
 	echo "GEM5 global options:"
-	echo "        -w: specify gem5 home source, also working directory"
+	echo "        -w: specify GEM5 home source, also working directory"
 	echo "            default ${GEM5_SRC}"
 	echo "        -x: add GEM5 debug flags, special flags include:"
-       	echo "            Help: to list all debug flags"
-	echo "        -f: use full speed mode"
+	echo "            Help: to list all debug flags"
+	echo "        -f: use GEM5 full system (fs.py) mode"
+	echo "            default syscall emulation (se.py) mode"
 	echo "GEM5 simpoint options:"
 	echo "        -s: specify GEM5 simulation step, the steps are ordered as:"
-       	echo "            gem5bbv: to generate basic block vectors w/ gem5"
-       	echo "            simpoint: to generate simpoints w/ gem5 generated bbv"
-       	echo "            gem5cpt: to generate simpoint checkpoints w/ gem5"
-       	echo "            gem5sim: to simulate checkpoint w/ gem5"
-	echo "        -c: specify GEM5 checkpoint for gem5sim mode"
-       	echo "            Help: to list all simulatable checkpoints"
-	echo "        -i: specify simpoint interval, for gem5bbv/gem5cpt modes"
+	echo "            gem5bbv: to generate basic block vectors w/ GEM5"
+	echo "            simpoint: to generate simpoints w/ GEM5 generated bbv"
+	echo "            gem5cpt: to generate simpoint checkpoints w/ GEM5"
+	echo "            gem5sim: to simulate checkpoint w/ GEM5"
+	echo "        -c: specify GEM5 checkpoint for gem5sim step"
+	echo "            Help: to list all simulatable checkpoints"
+	echo "        -i: specify simpoint interval, for gem5bbv/gem5cpt steps"
 	echo "            default ${SIM_INTERVAL}"
-	echo "        -k: Specify K for K's best"
+	echo "        -k: Specify K for K's best for simpoint step"
 	echo "            default ${SIM_K_BEST}"
 	echo "GEM5 syscall emulation options:"
 	echo "        -a: specify architecture where test program is located"
-       	echo "            Help: to list all program architectures"
+	echo "            Help: to list all program architectures"
 	echo "        -p: specify test program, special progs include"
-       	echo "            Help: to list all test programs"
+	echo "            Help: to list all test programs"
 	echo "GEM5 full system options:"
 	echo "        -b: specify system binary, special binary include"
-       	echo "            Help: to list all binaries"
+	echo "            Help: to list all binaries"
 	echo "        -d: specify disk image, special images include"
-       	echo "            Help: to list all disk images"
+	echo "            Help: to list all disk images"
 	exit $1
 }
 
@@ -190,6 +192,35 @@ gem5_arch()
 	gem5_one_arch riscv "${SE_ARCH_RISCV}"
 }
 
+simpoints()
+{
+	n=0
+	while read w c;
+	do
+		weights[$n]=$w
+		checkpoints[$n]=$c
+		let n++
+	done < ${GEM5_ARCH}.weights
+
+	n=0;
+	while read b c;
+	do
+		simpoints[$n]=$b
+		if [ ${checkpoints[$n]} != $c ]; then
+			echo "Wrong simpoints at $n"
+		fi
+		let n++
+	done < ${GEM5_ARCH}.simpts
+
+	echo 'Checkpoint Weight BBV'
+	n=0
+	while [ $n -lt ${#checkpoints[*]} ]
+	do
+		echo "${checkpoints[$n]} ${weights[$n]} ${simpoints[$n]}"
+		let n++
+	done
+}
+
 GEM5_ARCH=`gem5_ARCH`
 FS_ARCH=`gem5_arch`
 GEM5=./build/${GEM5_ARCH}/gem5.opt
@@ -227,7 +258,10 @@ fi
 		exit 0
 	fi
 	if [ ! -z $SIM_LIST_CHECKPOINTS ]; then
-		(cd ${GEM5_SRC}/m5out; echo "Weight Checkpoint"; cat ${GEM5_ARCH}.weights)
+		(
+			cd ${GEM5_SRC}/m5out
+			simpoints
+		)
 		exit 0
 	fi
 
