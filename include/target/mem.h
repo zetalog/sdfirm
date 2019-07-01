@@ -73,15 +73,15 @@ void mem_walk_memory(bool (*iter)(struct mem_region *, void *),
 		     void *data);
 void mem_walk_reserved(bool (*iter)(struct mem_region *, void *),
 		       void *data);
+phys_addr_t mem_alloc(phys_addr_t size, phys_addr_t align);
+void mem_free(phys_addr_t base, phys_addr_t size);
+void mem_init(void);
 #else
 #define mem_add(base, size)	do { } while (0)
 #define mem_reserve(base, size)	do { } while (0)
 #define mem_remove(base, size)	do { } while (0)
+#define mem_init()		do { } while (0)
 #endif
-
-phys_addr_t mem_alloc(phys_addr_t size, phys_addr_t align);
-void mem_free(phys_addr_t base, phys_addr_t size);
-void mem_init(void);
-#endif
+#endif /* __ASSEMBLY__ */
 
 #endif /* __MEM_H_INCLUDE__ */

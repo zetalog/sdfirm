@@ -7,6 +7,7 @@
 #define CONSOLE_PRINT_BUFFER_SIZE	128
 #endif
 
+#ifdef CONFIG_PRINT_VPRINTF
 int vprintf(const char *fmt, va_list arg)
 {
 	int len, i, space;
@@ -20,7 +21,9 @@ int vprintf(const char *fmt, va_list arg)
 	}
 	return len;
 }
+#endif
 
+#ifdef CONFIG_PRINT_PRINTF
 int printf(const char *fmt, ...)
 {
 	va_list arg;
@@ -31,6 +34,7 @@ int printf(const char *fmt, ...)
 	va_end(arg);
 	return len;
 }
+#endif
 
 int puts(const char *s)
 {

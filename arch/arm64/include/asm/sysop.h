@@ -42,7 +42,7 @@
 #ifndef __ARM64_SYSOP_H_INCLUDE__
 #define __ARM64_SYSOP_H_INCLUDE__
 
-#include <stdint.h>
+#include <target/types.h>
 
 /* Define function for simple system instruction */
 #define SYSOP_FUNC(_op)					\

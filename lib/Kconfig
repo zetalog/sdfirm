@@ -94,6 +94,33 @@ config CRC32
 
 endmenu
 
+menu "Print operations"
+
+config PRINT_VSNPRINTF
+	bool "vsnprintf"
+
+config PRINT_SNPRINTF
+	bool "snprintf"
+	select PRINT_VSNPRINTF
+
+config PRINT_VPRINTF
+	bool "vprintf"
+	select PRINT_VSNPRINTF
+
+config PRINT_SPRINTF
+	bool "sprintf"
+	select PRINT_VSNPRINTF
+
+config PRINT_VPRINTF
+	bool "vprintf"
+	select PRINT_VSNPRINTF
+
+config PRINT_PRINTF
+	bool "printf"
+	select PRINT_VPRINTF
+
+endmenu
+
 source lib/font/Kconfig
 
 endmenu

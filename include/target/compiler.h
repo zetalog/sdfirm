@@ -3,8 +3,6 @@
 
 /* compiler specific */
 
-#include <stdint.h>
-
 #define __barrier()	__asm__ __volatile__("": : :"memory")
 
 #ifdef __GNUC__

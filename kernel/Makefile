@@ -4,12 +4,12 @@
 
 obj-y:=
 
-obj-y += mem.rel
 obj-y += panic.rel
 obj-y += bh.rel
 obj-y += irq.rel
 obj-y += delay.rel
 obj-y += stack.rel
+obj-$(CONFIG_MEM) += mem.rel
 obj-$(CONFIG_CLK) += clk.rel
 obj-$(CONFIG_CONSOLE) += console.rel
 obj-$(CONFIG_CONSOLE_INPUT) += readline.rel

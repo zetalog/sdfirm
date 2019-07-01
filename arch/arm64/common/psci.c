@@ -1,4 +1,4 @@
-#include <stdint.h>
+#include <target/types.h>
 #include <target/barrier.h>
 #include <target/smp.h>
 

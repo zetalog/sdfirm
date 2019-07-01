@@ -34,6 +34,7 @@
 #define ULL(x)		x
 #define UL(x)		x
 #else
+typedef __builtin_va_list va_list;
 #define ULL(x)		x##ULL
 #define UL(x)		x##UL
 #endif

@@ -1,8 +1,6 @@
-#include <ctype.h>
+#include <target/types.h>
 #include <string.h>
 #include <stdarg.h>
-#include <stdbool.h>
-#include <stdint.h>
 
 #define SIGN			0x01
 #define SIGN_PLUS		0x02
@@ -805,11 +803,14 @@ int vsnprintf(char *string, size_t size, const char *format, va_list args)
 	return (int)(pos - string);
 }
 
+#ifdef CONFIG_PRINT_VSPRINTF
 int vsprintf(char *buf, const char *fmt, va_list args)
 {
 	return vsnprintf(buf, UINT32_MAX, fmt, args);
 }
+#endif
 
+#ifdef CONFIG_PRINT_SNPRINTF
 int snprintf(char *buf, size_t size, const char *fmt, ...)
 {
 	va_list args;
@@ -821,7 +822,9 @@ int snprintf(char *buf, size_t size, const char *fmt, ...)
 
 	return len;
 }
+#endif
 
+#ifdef CONFIG_PRINT_SPRINTF
 int sprintf(char *buf, const char *fmt, ...)
 {
 	va_list args;
@@ -833,3 +836,4 @@ int sprintf(char *buf, const char *fmt, ...)
 
 	return len;
 }
+#endif

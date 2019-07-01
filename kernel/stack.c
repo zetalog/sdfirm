@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#ifdef __GNUC__
 const char __stack_chk_fmt_fail[] = \
 	"STACK FAULT: Buffer Overflow in function %a.\n";
 
@@ -17,3 +18,4 @@ void __stack_chk_fail(void)
 {
 	printf(__stack_chk_fmt_fail, __builtin_return_address(0));
 }
+#endif

@@ -1,8 +1,7 @@
 #include <string.h>
-#include <ctype.h>
 #include <stdio.h>
 #include <errno.h>
-#include <stdint.h>
+#include <target/types.h>
 #include <target/readline.h>
 #include <target/cmdline.h>
 #include <target/timer.h>

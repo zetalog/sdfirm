@@ -9,6 +9,7 @@
 #include <limits.h>
 #include <ctype.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifdef ARCH_HAS_BOOL
 typedef bool			boolean;
@@ -16,17 +17,9 @@ typedef bool			boolean;
 typedef uint8_t			boolean;
 typedef boolean			bool;
 #define false			(boolean)0
-#define true			(!FALSE)
+#define true			(!false)
 #endif
 typedef uint16_t		wchar_t;
-#ifndef ARCH_HAVE_UINT32_T
-typedef signed int		int32_t;
-typedef unsigned int		uint32_t;
-#endif
-#ifndef ARCH_HAVE_UINT64_T
-typedef signed long long	int64_t;
-typedef unsigned long long	uint64_t;
-#endif
 #ifndef ARCH_HAVE_CADDR_T
 typedef unsigned long		caddr_t;
 #endif

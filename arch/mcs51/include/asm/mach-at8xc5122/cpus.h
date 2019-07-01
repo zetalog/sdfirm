@@ -1,0 +1,5 @@
+#ifndef __AT8XC5122_CPUS_H_INCLUDE__
+#define __AT8XC5122_CPUS_H_INCLUDE__
+
+
+#endif /* __AT8XC5122_CPUS_H_INCLUDE__ */
