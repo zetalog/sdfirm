@@ -2,4 +2,5 @@
 ifeq ($(COMPILER),)
 COMPILER	:= sdcc
 endif
+CROSS_COMPILE	=
 
