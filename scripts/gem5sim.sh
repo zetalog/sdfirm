@@ -42,13 +42,13 @@
 #   $ ./gem5sim.sh -s simpoint
 #   $ ./gem5sim.sh -s gem5cpt -i 1000
 #   $ ./gem5sim.sh -s gem5sim -c Help
-#   Weight Checkpoint
-#   0.0810811 0
-#   0.027027 1
-#   0.027027 2
-#   0.810811 3
-#   0.027027 5
-#   0.027027 6
+#   Checkpoint Simpoint(BBV) Weight ClusterLabel
+#   1 0 0.027027 1
+#   2 1 0.027027 2
+#   3 2 0.027027 5
+#   4 3 0.027027 6
+#   5 5 0.810811 3
+#   6 14 0.0810811 0
 #
 #   To simulate the best checkpoint (3 in the above example):
 #   $ ./gem5sim.sh -s gem5sim -x Exec -c 3
@@ -203,21 +203,50 @@ simpoints()
 	done < ${GEM5_ARCH}.weights
 
 	n=0;
+	max_s=-1
+	min_s=-1
 	while read b c;
 	do
 		simpoints[$n]=$b
+		if [ $max_s -lt 0 -o $max_s -lt ${simpoints[$n]} ]; then
+			max_s=${simpoints[$n]}
+		fi
+		if [ $min_s -lt 0 -o $min_s -gt ${simpoints[$n]} ]; then
+			min_s=${simpoints[$n]}
+		fi
 		if [ ${checkpoints[$n]} != $c ]; then
 			echo "Wrong simpoints at $n"
 		fi
 		let n++
 	done < ${GEM5_ARCH}.simpts
+	max_n=$n
 
-	echo 'Checkpoint Weight BBV'
+	echo 'Checkpoint Simpoint(BBV) Weight ClusterLabel'
+	c=$min_s
 	n=0
-	while [ $n -lt ${#checkpoints[*]} ]
+	while [ $n -lt $max_n ]
 	do
-		echo "${checkpoints[$n]} ${weights[$n]} ${simpoints[$n]}"
+		m=0
+		while [ $m -lt $max_n ]
+		do
+			if [ ${simpoints[$m]} -eq $c ]; then
+				break
+			fi
+			let m++
+		done
+		echo "$((n+1)) ${simpoints[$m]} ${weights[$m]} ${checkpoints[$m]}"
 		let n++
+		x=$c
+		c=$max_s
+		m=0
+		while [ $m -lt $max_n ]
+		do
+			v=${simpoints[$m]}
+			if [ $v -gt $x -a $v -lt $c ]; then
+				c=$v
+			fi
+			let m++
+		done
 	done
 }
 
