@@ -42,7 +42,7 @@
 #ifndef __CPUS_H_INCLUDE__
 #define __CPUS_H_INCLUDE__
 
-#include <asm/mach/cpus.h>
+#include <asm/cpus.h>
 
 #define CPU_TO_MASK(cpu)	(1ULL << (cpu))
 #define LLC_TO_MASK(llc)	(1ULL << (llc))
