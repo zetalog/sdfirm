@@ -52,5 +52,6 @@ void uart_hw_mmu_init(void)
 	       __UART_BASE(0), fix_to_virt(FIX_UART0));
 	printf("UART_REG0: %016llx\n", UART_REG(0, 0x000));
 	printf("UART_REG0: %016llx\n", UART_REG(0, 0x000));
+	mmu_dbg_enable();
 }
 #endif

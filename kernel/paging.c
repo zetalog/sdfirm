@@ -6,6 +6,33 @@
 #include <target/linkage.h>
 #include <target/compiler.h>
 
+#ifdef CONFIG_MMU_DEBUG
+#ifdef CONFIG_MMU_IDMAP_DEVICE
+#define MMU_DBG_DEFAULT	true
+#else
+#define MMU_DBG_DEFAULT	false
+#endif
+
+bool mmu_dbg_enabled = MMU_DBG_DEFAULT;
+
+void mmu_dbg(const char *fmt, ...)
+{
+	va_list arg;
+
+	if (!mmu_dbg_enabled)
+		return;
+
+	va_start(arg, fmt);
+	vprintf(fmt, arg);
+	va_end(arg);
+}
+
+void mmu_dbg_enable(void)
+{
+	mmu_dbg_enabled = true;
+}
+#endif
+
 static phys_addr_t early_pgtable_alloc(void)
 {
 	phys_addr_t phys;
