@@ -9,7 +9,7 @@
 #
 # SYNOPSIS:
 #     gem5sim.sh [-w gem5] [-f] [-x flag]
-#                [-s step] [-c checkpoint] [-i interval]
+#                [-s step] [-c checkpoint] [-i interval] [-m]
 #                [-a architecture] [-p program]
 #                [-b binary] [-d disk]
 #
@@ -64,6 +64,7 @@ SIM_INTERVAL=1000000
 SIM_CHEPOINT=0
 SIM_K_BEST=30
 SIM_LIST_CHECKPOINTS=
+SIM_MICRO_OP=
 SE_ARCH=arm
 SE_PROG=hello
 SE_LIST_PROGS=
@@ -80,7 +81,7 @@ usage()
 {
 	echo "Usage:"
 	echo "`basename $0` [-w gem5] [-x flag] [-f]"
-	echo "  [-s step] [-c checkpoint] [-i interval] [-k best]"
+	echo "  [-s step] [-c checkpoint] [-i interval] [-k best] [-m]"
 	echo "  [-a architecture] [-p program]"
 	echo "  [-b binary] [-d disk]"
 	echo "Where:"
@@ -103,6 +104,7 @@ usage()
 	echo "            default ${SIM_INTERVAL}"
 	echo "        -k: Specify K for K's best for simpoint step"
 	echo "            default ${SIM_K_BEST}"
+	echo "        -m: Allow to take checkpoint at middle of micro opcode"
 	echo "GEM5 syscall emulation options:"
 	echo "        -a: specify architecture where test program is located"
 	echo "            Help: to list all program architectures"
@@ -122,7 +124,7 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "a:b:c:d:fhi:k:p:s:w:x:" opt
+while getopts "a:b:c:d:fhi:k:mp:s:w:x:" opt
 do
 	case $opt in
 	w) GEM5_SRC=$OPTARG;;
@@ -162,6 +164,7 @@ do
 	   else
 		FS_KERN=${OPTARG}
 	   fi;;
+	m) SIM_MICRO_OP=true;;
 	h) usage 0;;
 	?) fatal_usage "Invalid option";;
 	esac
@@ -202,12 +205,15 @@ sanity_bbv()
 
 sanity_simpoints()
 {
-	if [ ! -f ${GEM5_ARCH}.weights ]; then
-		fatal_usage "${GEM5_ARCH}.weights not found, execute -s simpoint first"
-	fi
-	if [ ! -f ${GEM5_ARCH}.simpts ]; then
-		fatal_usage "${GEM5_ARCH}.simpts not found, execute -s simpoint first"
-	fi
+	(
+		cd ${GEM5_SRC}/m5out
+		if [ ! -f ${GEM5_ARCH}.weights ]; then
+			fatal_usage "${GEM5_ARCH}.weights not found, execute -s simpoint first"
+		fi
+		if [ ! -f ${GEM5_ARCH}.simpts ]; then
+			fatal_usage "${GEM5_ARCH}.simpts not found, execute -s simpoint first"
+		fi
+	)
 }
 
 sanity_cpt()
@@ -306,6 +312,21 @@ if [ ! -z $SIM_LIST_CHECKPOINTS ]; then
 fi
 
 SIMPOINT_OPTS="--cpu-type=NonCachingSimpleCPU"
+# --at-instruction:
+# It actually might be no use other than psychological comfort in simpoint
+# simulation. We actually want to avoid the following checkpoint where a
+# partial uop is bumped up at the beginning of a checkpoint:
+#  info: Entering event queue @ 2958500.  Starting simulation...
+#  2959000: system.switch_cpus T0 : @_IO_file_xsputn+380.1  :   addxi_uop   sp, sp, #64  : IntAlu :  D=0x0000007ffffefc80
+#  2959500: system.switch_cpus T0 : @_IO_file_xsputn+384    :   ret                      : IntAlu :
+if [ -z ${SIM_MICRO_OP} ]; then
+	echo "WARN: --at-instruction may not work with --restore-simpoint-checkpoint."
+	# NOTE: The option of restore-simpoint-checkpoint requires a
+	#       special GEM5 fix to enable --at-instruction option.
+	# if [ ${SIM_STEP} != "gem5sim" ]; then
+		SIMPOINT_OPTS="${SIMPOINT_OPTS} --at-instruction"
+	# fi
+fi
 if [ ${SIM_STEP} = "gem5bbv" ]; then
 	SIMPOINT_OPTS="${SIMPOINT_OPTS} --simpoint-profile --simpoint-interval ${SIM_INTERVAL}"
 elif [ ${SIM_STEP} = "gem5cpt" ]; then
@@ -342,6 +363,7 @@ fi
 			${SIMPOINT_OPTS}
 	else
 		echo "FS mode: ${FS_ARCH} ${FS_KERN}"
+		# So we only supports ARM64
 		${GEM5} ${GEM5_DEBUG_FLAGS} \
 			configs/example/fs.py \
 			--machine-type=VExpress_EMM64 \
