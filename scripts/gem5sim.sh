@@ -9,7 +9,7 @@
 #
 # SYNOPSIS:
 #     gem5sim.sh [-w gem5] [-f] [-x flag]
-#                [-s step] [-c cpt] [-i interval]
+#                [-s step] [-c checkpoint] [-i interval]
 #                [-a architecture] [-p program]
 #                [-b binary] [-d disk]
 #
@@ -20,11 +20,11 @@
 #     gem5bbv:
 #       Generate basic block vectors using GEM5.
 #     simpoint:
-#       Generate simulation checkpoints using SimPoint, it accepts GEM5
+#       Generate simulation simpoints using SimPoint, it accepts GEM5
 #       generated basic block vectors.
 #     gem5cpt:
 #       Generate GEM5 checkpoints using GEM5, it accepts SimPoint generated
-#       simulation checkpoints.
+#       simulation simpoints.
 #     gem5sim:
 #       Simulate checkpoint using GEM5, it accepts GEM5 generated
 #       checkpoints.
@@ -38,9 +38,9 @@
 #     ${GEM5_SRC}/tests/test-progs/hello/src/hello.c
 #
 #   To generate simpoint:
-#   $ ./gem5sim.sh -s gem5bbv -i 1000 -p hello -a arm64
+#   $ ./gem5sim.sh -s gem5bbv -a arm64 -p hello -i 1000
 #   $ ./gem5sim.sh -s simpoint
-#   $ ./gem5sim.sh -s gem5cpt -i 1000
+#   $ ./gem5sim.sh -s gem5cpt -a arm64 -p hello -i 1000
 #   $ ./gem5sim.sh -s gem5sim -c Help
 #   Checkpoint Simpoint(BBV) Weight ClusterLabel
 #   1 0 0.027027 1
@@ -50,8 +50,8 @@
 #   5 5 0.810811 3
 #   6 14 0.0810811 0
 #
-#   To simulate the best checkpoint (3 in the above example):
-#   $ ./gem5sim.sh -s gem5sim -x Exec -c 3
+#   To simulate the highest weight checkpoint (5 in the above example):
+#   $ ./gem5sim.sh -s gem5sim -a arm64 -p hello -c 5 -x Exec
 
 SCRIPT=`(cd \`dirname $0\`; pwd)`
 GEM5_SRC=~/workspace/gem5
@@ -72,8 +72,8 @@ FS_DISK=linaro-minimal-aarch64.img
 FS_KERN=vmlinux.aarch64.20140821
 FS_LIST_DISKS=
 FS_LIST_KERNS=
-SE_ARCH_ARM="arm arm64"
-SE_ARCH_X86="i386 x86 x86_64"
+SE_ARCH_X86="x86 i386 x86_64"
+SE_ARCH_ARM="arm arm32 arm64"
 SE_ARCH_RISCV="riscv rv32 rv64"
 
 usage()
@@ -81,7 +81,7 @@ usage()
 	echo "Usage:"
 	echo "`basename $0` [-w gem5] [-x flag] [-f]"
 	echo "  [-s step] [-c checkpoint] [-i interval] [-k best]"
-	echo "  [-a arch] [-p prog]"
+	echo "  [-a architecture] [-p program]"
 	echo "  [-b binary] [-d disk]"
 	echo "Where:"
 	echo "GEM5 global options:"
@@ -128,14 +128,14 @@ do
 	w) GEM5_SRC=$OPTARG;;
 	f) GEM5_FULL_SYSTEM=true;;
 	x) if [ "x$OPTARG" = "xHelp" ]; then
-		GEM5_DEBUG_HELP=true;
+		GEM5_DEBUG_HELP=true
 	   elif [ -z $GEM5_DBG ]; then
 		GEM5_DBG=${OPTARG}
 	   else
 		GEM5_DBG=${GEM5_DBG},${OPTARG}
 	   fi;;
 	c) if [ "x$OPTARG" = "xHelp" ]; then
-		SIM_LIST_CHECKPOINTS=true;
+		SIM_LIST_CHECKPOINTS=true
 	   else
 		SIM_CHECKPOINT=${OPTARG}
 	   fi;;
@@ -143,22 +143,22 @@ do
 	i) SIM_INTERVAL=$OPTARG;;
 	k) SIM_K_BEST=$OPTARG;;
 	a) if [ "x$OPTARG" = "xHelp" ]; then
-		SE_LIST_ARCHS=true;
+		SE_LIST_ARCHS=true
 	   else
 		SE_ARCH=${OPTARG}
 	   fi;;
 	p) if [ "x$OPTARG" = "xHelp" ]; then
-		SE_LIST_PROGS=true;
+		SE_LIST_PROGS=true
 	   else
 		SE_PROG=${OPTARG}
 	   fi;;
 	d) if [ "x$OPTARG" = "xHelp" ]; then
-		FS_LIST_DISKS=true;
+		FS_LIST_DISKS=true
 	   else
 		FS_DISK=${OPTARG}
 	   fi;;
 	b) if [ "x$OPTARG" = "xHelp" ]; then
-		FS_LIST_KERNS=true;
+		FS_LIST_KERNS=true
 	   else
 		FS_KERN=${OPTARG}
 	   fi;;
@@ -174,6 +174,7 @@ gem5_one_arch()
 	do
 		if [ $arch = $SE_ARCH ]; then
 			echo $1
+			break
 		fi
 	done
 }
