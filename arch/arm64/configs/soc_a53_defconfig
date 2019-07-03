@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Jun 28 11:27:52 2019
+# Wed Jul  3 09:38:02 2019
 #
 CONFIG_ARM64=y
 
@@ -17,14 +17,6 @@ CONFIG_SERIAL_NO=0
 CONFIG_FIRMWARE=y
 # CONFIG_EMBEDDED is not set
 # CONFIG_CONSOLE is not set
-# CONFIG_CONSOLE_230400 is not set
-# CONFIG_CONSOLE_115200 is not set
-# CONFIG_CONSOLE_57600 is not set
-# CONFIG_CONSOLE_38400 is not set
-# CONFIG_CONSOLE_19200 is not set
-# CONFIG_CONSOLE_9600 is not set
-# CONFIG_CONSOLE_4800 is not set
-# CONFIG_CONSOLE_2400 is not set
 
 #
 # ARM64 system options
@@ -97,6 +89,10 @@ CONFIG_UART_PL011=y
 #
 # GEM5 VExpress_EMM64 board options
 #
+# CONFIG_GEM5_ROM_AS_RAM is not set
+# CONFIG_GEM5_RAM_DEFAULT is not set
+CONFIG_GEM5_RAM_BASE=0x0
+CONFIG_GEM5_RAM_BITS=0x24
 CONFIG_UART_GEM5=y
 
 #
@@ -141,7 +137,6 @@ CONFIG_TEXT_RAM_BASE=0x0
 # CONFIG_HEAP is not set
 CONFIG_MEM=y
 # CONFIG_MEM_RESIZE is not set
-# CONFIG_MEM_DEBUG is not set
 CONFIG_PAGE=y
 CONFIG_ARCH_HAS_MMU=y
 CONFIG_ARCH_HAS_MMU_4K=y
@@ -258,6 +253,15 @@ CONFIG_MATH_DIV64=y
 #
 # CONFIG_CRC16_CCITT is not set
 # CONFIG_CRC32 is not set
+
+#
+# Print operations
+#
+# CONFIG_PRINT_VSNPRINTF is not set
+# CONFIG_PRINT_SNPRINTF is not set
+# CONFIG_PRINT_VPRINTF is not set
+# CONFIG_PRINT_SPRINTF is not set
+# CONFIG_PRINT_PRINTF is not set
 # CONFIG_FONTS is not set
 
 #

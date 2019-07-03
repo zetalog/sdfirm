@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Jul  1 09:27:29 2019
+# Wed Jul  3 09:40:33 2019
 #
 CONFIG_ARM64=y
 
@@ -103,6 +103,8 @@ CONFIG_UART_PL011=y
 #
 # GEM5 VExpress_EMM64 board options
 #
+CONFIG_GEM5_ROM_AS_RAM=y
+CONFIG_GEM5_RAM_DEFAULT=y
 CONFIG_UART_GEM5=y
 
 #
@@ -141,7 +143,7 @@ CONFIG_LPS_NO_LPS=y
 #
 # Address space layout (.text) support
 #
-# CONFIG_XIP is not set
+CONFIG_XIP=y
 CONFIG_TEXT_ROM_BASE=0x00000000
 CONFIG_TEXT_RAM_BASE=0x0
 # CONFIG_HEAP is not set
@@ -263,6 +265,15 @@ CONFIG_MATH_GCD32=y
 #
 # CONFIG_CRC16_CCITT is not set
 # CONFIG_CRC32 is not set
+
+#
+# Print operations
+#
+CONFIG_PRINT_VSNPRINTF=y
+# CONFIG_PRINT_SNPRINTF is not set
+CONFIG_PRINT_VPRINTF=y
+# CONFIG_PRINT_SPRINTF is not set
+CONFIG_PRINT_PRINTF=y
 # CONFIG_FONTS is not set
 
 #

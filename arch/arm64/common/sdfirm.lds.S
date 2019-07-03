@@ -53,7 +53,7 @@ SECTIONS
 	__text_loc = CONFIG_TEXT_ROM_BASE;	/* text location in ROM */
 	_etext_loc = __text_loc + _etext - _stext;
 
-#ifdef CONFIG_XIP
+#if defined(CONFIG_XIP) && (CONFIG_TEXT_RAM_BASE != CONFIG_TEXT_ROM_BASE)
 	. = CONFIG_TEXT_RAM_BASE;		/* ensure address followups in RAM */
 #endif
 

@@ -7,6 +7,46 @@ if ARCH_GEM5
 
 menu "GEM5 VExpress_EMM64 board options"
 
+config GEM5_ROM_AS_RAM
+	bool "Use VExpress_EMM64 ROM as RAM"
+	select XIP
+	help
+	  As VExpress_EMM64 ROM (0x0000000-0x4000000) supports XIP, this
+	  option stops firmware from re-locating from ROM to RAM and allows
+	  page allocator to allocate from ROM. So it is only suitable for
+	  simulation environment.
+
+config GEM5_RAM_DEFAULT
+	bool "Enable default VExpress_EMM64 RAM"
+	help
+	  VExpress_EMM64 RAM resides at 0x80000000-0xA0000000. Enable this
+	  option allows page allocator to allocate from this region. This
+	  option also forces firmware to re-locate from ROM to RAM if
+	  GEM5_ROM_AS_RAM is not selected.
+
+if !GEM5_RAM_DEFAULT && !GEM5_ROM_AS_RAM
+
+config GEM5_RAM_BASE
+	hex "Base physical address of RAM"
+	default 0
+	depends !GEM5_RAM_DEFAULT
+	help
+	  This option is useful for RTL simulation environment where the
+	  RTL simulation configuration may differ from the default GEM5
+	  VExpress_EMM64 configuration. Note that if RAM base is not set to
+	  0, 0 based region will be treated as ROM and XIP, firmware may
+	  still boot from ROM and is re-located to RAM, and page allocator
+	  won't allocate from ROM region.
+
+config GEM5_RAM_BITS
+	hex "Physical memory bits of RAM"
+	default 24
+	help
+	  This option is useful for RTL simulation environment.
+	  Bit shift N of RAM memory size. Memory size will be 2^N.
+
+endif
+
 config UART_GEM5
 	bool "AMBA PL011 uart controller support"
 	depends !ARM_DCC
