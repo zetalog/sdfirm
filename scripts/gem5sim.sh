@@ -255,6 +255,35 @@ GEM5_ARCH=`gem5_ARCH`
 FS_ARCH=`gem5_arch`
 GEM5=./build/${GEM5_ARCH}/gem5.opt
 
+if [ ! -z $SIM_LIST_CHECKPOINTS ]; then
+	(
+		cd ${GEM5_SRC}/m5out
+		simpoints
+	)
+	exit 0
+fi
+export M5_PATH="${GEM5_SRC}/fs_images/${FS_ARCH}/"
+if [ ! -z $GEM5_DEBUG_HELP ]; then
+	(cd $GEM5_SRC; ${GEM5} --debug-help)
+	exit 0
+fi
+if [ ! -z $SE_LIST_PROGS ]; then
+	(cd $GEM5_SRC; ls tests/test-progs)
+	exit 0
+fi
+if [ ! -z $SE_LIST_ARCHS ]; then
+	(cd $GEM5_SRC; ls tests/test-progs/${SE_PROG}/bin)
+	exit 0
+fi
+if [ ! -z $FS_LIST_DISKS ]; then
+	(cd $GEM5_SRC; ls ${M5_PATH}/disks)
+	exit 0
+fi
+if [ ! -z $FS_LIST_KERNS ]; then
+	(cd ${M5_PATH}/binaries; ls vmlinux.*)
+	exit 0
+fi
+
 SIMPOINT_OPTS="--cpu-type=NonCachingSimpleCPU"
 if [ ${SIM_STEP} = "gem5bbv" ]; then
 	SIMPOINT_OPTS="${SIMPOINT_OPTS} --simpoint-profile --simpoint-interval ${SIM_INTERVAL}"
@@ -281,42 +310,14 @@ fi
 
 (
 	cd ${GEM5_SRC}
-	export M5_PATH="${GEM5_SRC}/fs_images/${FS_ARCH}/"
-
-	if [ ! -z $GEM5_DEBUG_HELP ]; then
-		${GEM5} --debug-help
-		exit 0
-	fi
-	if [ ! -z $SIM_LIST_CHECKPOINTS ]; then
-		(
-			cd ${GEM5_SRC}/m5out
-			simpoints
-		)
-		exit 0
-	fi
+	#export M5_PATH="${GEM5_SRC}/fs_images/${FS_ARCH}/"
 
 	if [ -z $GEM5_FULL_SYSTEM ]; then
-		if [ ! -z $SE_LIST_PROGS ]; then
-			ls tests/test-progs
-			exit 0
-		fi
-		if [ ! -z $SE_LIST_ARCHS ]; then
-			ls tests/test-progs/${SE_PROG}/bin
-			exit 0
-		fi
 		${GEM5} ${GEM5_DEBUG_FLAGS} \
 			configs/example/se.py \
 			-c tests/test-progs/${SE_PROG}/bin/${SE_ARCH}/linux/${SE_PROG} \
 			${SIMPOINT_OPTS}
 	else
-		if [ ! -z $FS_LIST_DISKS ]; then
-			ls ${M5_PATH}/disks
-			exit 0
-		fi
-		if [ ! -z $FS_LIST_KERNS ]; then
-			(cd ${M5_PATH}/binaries; ls vmlinux.*)
-			exit 0
-		fi
 		${GEM5} ${GEM5_DEBUG_FLAGS} \
 			configs/example/fs.py \
 			--machine-type=VExpress_EMM64 \
