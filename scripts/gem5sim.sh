@@ -41,7 +41,7 @@
 #   $ ./gem5sim.sh -s gem5bbv -a arm64 -p hello -i 1000
 #   $ ./gem5sim.sh -s simpoint
 #   $ ./gem5sim.sh -s gem5cpt -a arm64 -p hello -i 1000
-#   $ ./gem5sim.sh -s gem5sim -c Help
+#   $ ./gem5sim.sh -c Help
 #   Checkpoint Simpoint(BBV) Weight ClusterLabel
 #   1 0 0.027027 1
 #   2 1 0.027027 2
@@ -73,7 +73,7 @@ FS_KERN=vmlinux.aarch64.20140821
 FS_LIST_DISKS=
 FS_LIST_KERNS=
 SE_ARCH_X86="x86 i386 x86_64"
-SE_ARCH_ARM="arm arm32 arm64"
+SE_ARCH_ARM="arm thumb arm32 arm64 aarch32 aarch64"
 SE_ARCH_RISCV="riscv rv32 rv64"
 
 usage()
@@ -193,8 +193,32 @@ gem5_arch()
 	gem5_one_arch riscv "${SE_ARCH_RISCV}"
 }
 
+sanity_bbv()
+{
+	if [ ! -f simpoint.bb.gz ]; then
+		fatal_usage "simpoints not found, execute -s gem5bbv first"
+	fi
+}
+
+sanity_simpoints()
+{
+	if [ ! -f ${GEM5_ARCH}.weights ]; then
+		fatal_usage "${GEM5_ARCH}.weights not found, execute -s simpoint first"
+	fi
+	if [ ! -f ${GEM5_ARCH}.simpts ]; then
+		fatal_usage "${GEM5_ARCH}.simpts not found, execute -s simpoint first"
+	fi
+}
+
+sanity_cpt()
+{
+	sanity_simpoints
+	# TODO: NYI, leave it for gem5 exceptions
+}
+
 simpoints()
 {
+	sanity_simpoints
 	n=0
 	while read w c;
 	do
@@ -254,15 +278,8 @@ simpoints()
 GEM5_ARCH=`gem5_ARCH`
 FS_ARCH=`gem5_arch`
 GEM5=./build/${GEM5_ARCH}/gem5.opt
+M5_PATH="${GEM5_SRC}/fs_images/${FS_ARCH}"
 
-if [ ! -z $SIM_LIST_CHECKPOINTS ]; then
-	(
-		cd ${GEM5_SRC}/m5out
-		simpoints
-	)
-	exit 0
-fi
-export M5_PATH="${GEM5_SRC}/fs_images/${FS_ARCH}/"
 if [ ! -z $GEM5_DEBUG_HELP ]; then
 	(cd $GEM5_SRC; ${GEM5} --debug-help)
 	exit 0
@@ -283,17 +300,24 @@ if [ ! -z $FS_LIST_KERNS ]; then
 	(cd ${M5_PATH}/binaries; ls vmlinux.*)
 	exit 0
 fi
+if [ ! -z $SIM_LIST_CHECKPOINTS ]; then
+	(cd ${GEM5_SRC}/m5out; simpoints)
+	exit 0
+fi
 
 SIMPOINT_OPTS="--cpu-type=NonCachingSimpleCPU"
 if [ ${SIM_STEP} = "gem5bbv" ]; then
 	SIMPOINT_OPTS="${SIMPOINT_OPTS} --simpoint-profile --simpoint-interval ${SIM_INTERVAL}"
 elif [ ${SIM_STEP} = "gem5cpt" ]; then
+	sanity_simpoints
 	SIMPOINT_OPTS="${SIMPOINT_OPTS} --take-simpoint-checkpoint=m5out/${GEM5_ARCH}.simpts,m5out/${GEM5_ARCH}.weights,${SIM_INTERVAL},0"
 elif [ ${SIM_STEP} = "gem5sim" ]; then
+	sanity_cpt
 	SIMPOINT_OPTS="${SIMPOINT_OPTS} --restore-simpoint-checkpoint --checkpoint-dir m5out/ -r ${SIM_CHECKPOINT}"
 elif [ ${SIM_STEP} = "simpoint" ]; then
 	(
 		cd ${GEM5_SRC}/m5out
+		sanity_bbv
 		simpoint -loadFVFile simpoint.bb.gz -inputVectorsGzipped \
 			-maxK ${SIM_K_BEST} \
 			-saveSimpoints ${GEM5_ARCH}.simpts \
@@ -310,14 +334,14 @@ fi
 
 (
 	cd ${GEM5_SRC}
-	#export M5_PATH="${GEM5_SRC}/fs_images/${FS_ARCH}/"
-
 	if [ -z $GEM5_FULL_SYSTEM ]; then
+		echo "SE mode: ${SE_ARCH} ${SE_PROG}"
 		${GEM5} ${GEM5_DEBUG_FLAGS} \
 			configs/example/se.py \
 			-c tests/test-progs/${SE_PROG}/bin/${SE_ARCH}/linux/${SE_PROG} \
 			${SIMPOINT_OPTS}
 	else
+		echo "FS mode: ${FS_ARCH} ${FS_KERN}"
 		${GEM5} ${GEM5_DEBUG_FLAGS} \
 			configs/example/fs.py \
 			--machine-type=VExpress_EMM64 \
