@@ -334,7 +334,7 @@ elif [ ${SIM_STEP} = "gem5cpt" ]; then
 	SIMPOINT_OPTS="${SIMPOINT_OPTS} --take-simpoint-checkpoint=m5out/${GEM5_ARCH}.simpts,m5out/${GEM5_ARCH}.weights,${SIM_INTERVAL},0"
 elif [ ${SIM_STEP} = "gem5sim" ]; then
 	sanity_cpt
-	SIMPOINT_OPTS="${SIMPOINT_OPTS} --restore-simpoint-checkpoint --checkpoint-dir m5out/ -r ${SIM_CHECKPOINT}"
+	SIMPOINT_OPTS="${SIMPOINT_OPTS} --enable-simpoint-slicing --restore-simpoint-checkpoint --checkpoint-dir m5out/ -r ${SIM_CHECKPOINT}"
 elif [ ${SIM_STEP} = "simpoint" ]; then
 	(
 		cd ${GEM5_SRC}/m5out
