@@ -1,0 +1,27 @@
+
+if FIRMWARE
+
+menu "Firmware options"
+
+config GEM5
+	bool "Run embedded GEM5 SimPoint slice support"
+
+if GEM5
+
+config GEM5_PATH
+	string "GEM5 source code path"
+	default "../gem5"
+
+config GEM5_PROGRAM
+	string "Test program"
+	default "hello"
+
+config GEM5_CHECKPOINT
+	int "Checkpoint index (1-N)"
+	default 1
+
+endif
+
+endmenu
+
+endif

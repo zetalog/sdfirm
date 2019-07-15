@@ -9,6 +9,7 @@
 #
 # SYNOPSIS:
 #     gem5sim.sh [-w gem5] [-f] [-x flag]
+#                [-g simpoint_slice.gem5] [-o simpoint_slice.S]
 #                [-s step] [-c checkpoint] [-i interval] [-m]
 #                [-a architecture] [-p program]
 #                [-b binary] [-d disk]
@@ -54,6 +55,7 @@
 #   $ ./gem5sim.sh -s gem5sim -a arm64 -p hello -c 5 -x Exec
 
 SCRIPT=`(cd \`dirname $0\`; pwd)`
+SDFIRM=`(cd ${SCRIPT}/..; pwd)`
 GEM5_SRC=~/workspace/gem5
 GEM5_DBG=
 GEM5_DEBUG_HELP=
@@ -61,7 +63,7 @@ GEM5_DEBUG_FLAGS=
 GEM5_FULL_SYSTEM=
 SIM_STEP=gem5sim
 SIM_INTERVAL=1000000
-SIM_CHEPOINT=0
+SIM_CHECKPOINT=0
 SIM_K_BEST=30
 SIM_LIST_CHECKPOINTS=
 SIM_MICRO_OP=
@@ -76,11 +78,13 @@ FS_LIST_KERNS=
 SE_ARCH_X86="x86 i386 x86_64"
 SE_ARCH_ARM="arm thumb arm32 arm64 aarch32 aarch64"
 SE_ARCH_RISCV="riscv rv32 rv64"
+SIMPOINT_SLICE_FILE=${SDFIRM}/init/gem5/simpoint_slice.S
 
 usage()
 {
 	echo "Usage:"
 	echo "`basename $0` [-w gem5] [-x flag] [-f]"
+	echo "	[-g .gem5_file] [-o .S_file]"
 	echo "  [-s step] [-c checkpoint] [-i interval] [-k best] [-m]"
 	echo "  [-a architecture] [-p program]"
 	echo "  [-b binary] [-d disk]"
@@ -92,6 +96,10 @@ usage()
 	echo "            Help: to list all debug flags"
 	echo "        -f: use GEM5 full system (fs.py) mode"
 	echo "            default syscall emulation (se.py) mode"
+	echo "GEM5 sdfirm build options:"
+	echo "        -g: use kconfig generated simpoint_slice.gem5"
+	echo "        -o: output path of generated simpoint slice"
+	echo "            default path is init/gem5/simpoint_slice.S"
 	echo "GEM5 simpoint options:"
 	echo "        -s: specify GEM5 simulation step, the steps are ordered as:"
 	echo "            gem5bbv: to generate basic block vectors w/ GEM5"
@@ -124,7 +132,7 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "a:b:c:d:fhi:k:mp:s:w:x:" opt
+while getopts "a:b:c:d:fg:hi:k:mo:p:s:w:x:" opt
 do
 	case $opt in
 	w) GEM5_SRC=$OPTARG;;
@@ -136,6 +144,8 @@ do
 	   else
 		GEM5_DBG=${GEM5_DBG},${OPTARG}
 	   fi;;
+	g) source $OPTARG;;
+	o) SIMPOINT_SLICE_FILE=$OPTARG;;
 	c) if [ "x$OPTARG" = "xHelp" ]; then
 		SIM_LIST_CHECKPOINTS=true
 	   else
@@ -373,3 +383,11 @@ fi
 			${SIMPOINT_OPTS}
 	fi
 )
+
+if [ ${SIM_STEP} = "gem5sim" ]; then
+	if [ ! -z ${SIMPOINT_SLICE_FILE} ]; then
+		let SIM_CHECKPOINT--
+		source_file=`ls ${GEM5_SRC}/m5out/cpt.simpoint_0${SIM_CHECKPOINT}*/simpoint_slice.S`
+		cp -f ${source_file} ${SIMPOINT_SLICE_FILE}
+	fi
+fi

@@ -153,6 +153,9 @@ ENDPROC(__start)
 
 ENTRY(stext)
 	bl	__linux_boot_el2
+#ifdef CONFIG_GEM5
+	bl	simpoint_entry
+#endif
 	bl	system_init
 ENDPIPROC(stext)
 

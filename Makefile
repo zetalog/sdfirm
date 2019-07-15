@@ -624,6 +624,7 @@ endif
 prepare2: prepare3 outputmakefile
 
 prepare1: prepare2 include/target/version.h include/target/utsrelease.h \
+                   init/gem5/simpoint_slice.gem5 \
                    include/asm include/config/auto.conf
 
 archprepare: prepare1 scripts_basic
@@ -670,6 +671,27 @@ define filechk_version.h
 	echo '#define KERNEL_VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c))';)
 endef
 
+# Generate gem5 options
+ifeq ($(CONFIG_GEM5),y)
+quiet_cmd_simpoint_slice_gem5 = GEN     init/gem5/simpoint_slice.gem5
+      cmd_simpoint_slice_gem5 = set -e;				\
+        echo "GEM5_SRC=$(CONFIG_GEM5_PATH)" >			\
+		init/gem5/simpoint_slice.gem5;			\
+        echo "SE_ARCH=$(ARCH)" >>				\
+		init/gem5/simpoint_slice.gem5;			\
+        echo "SE_PROG=$(CONFIG_GEM5_PROGRAM)" >>		\
+		init/gem5/simpoint_slice.gem5;			\
+        echo "SIM_CHECKPOINT=$(CONFIG_GEM5_CHECKPOINT)" >>	\
+		init/gem5/simpoint_slice.gem5;
+else
+quiet_cmd_simpoint_slice_gem5 = GEN     init/gem5/simpoint_slice.gem5
+      cmd_simpoint_slice_gem5 = set -e				\
+	echo GEM5_DISABLE > init/gem5/simpoint_slice.gem5
+endif
+
+init/gem5/simpoint_slice.gem5: .config $(srctree)/Makefile $(srctree)/scripts/gem5sim.sh
+	$(call cmd,simpoint_slice_gem5)
+
 include/target/version.h: $(srctree)/Makefile FORCE
 	$(call filechk,version.h)
 
@@ -690,7 +712,7 @@ export INSTALL_HDR_PATH
 HDRARCHES=$(filter-out generic,$(patsubst $(srctree)/include/asm-%/Kbuild,%,$(wildcard $(srctree)/include/asm-*/Kbuild)))
 
 PHONY += headers_install_all
-headers_install_all: include/target/version.h scripts_basic FORCE
+headers_install_all: include/target/version.h scripts_basic init/gem5/simpoint_slice.gem5 FORCE
 	$(Q)$(MAKE) $(build)=scripts scripts/unifdef
 	$(Q)for arch in $(HDRARCHES); do \
 	 $(MAKE) ARCH=$$arch -f $(srctree)/scripts/Makefile.headersinst obj=include BIASMDIR=-bi-$$arch ;\

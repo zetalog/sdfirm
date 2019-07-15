@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Jul  3 09:40:33 2019
+# Mon Jul 15 14:53:52 2019
 #
 CONFIG_ARM64=y
 
@@ -16,6 +16,14 @@ CONFIG_SERIAL_NO=0
 # CONFIG_BOOTLOADER is not set
 CONFIG_FIRMWARE=y
 # CONFIG_EMBEDDED is not set
+
+#
+# Firmware options
+#
+CONFIG_GEM5=y
+CONFIG_GEM5_PATH="../gem5"
+CONFIG_GEM5_PROGRAM="hello"
+CONFIG_GEM5_CHECKPOINT=5
 CONFIG_CONSOLE=y
 CONFIG_CONSOLE_COMMAND=y
 CONFIG_CONSOLE_OUTPUT=y

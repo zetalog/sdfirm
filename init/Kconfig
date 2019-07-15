@@ -66,6 +66,8 @@ endmenu
 
 endif
 
+source init/gem5/Kconfig
+
 menuconfig CONSOLE
 	bool "Enable console on UART0"
 	depends ARCH_HAS_UART
