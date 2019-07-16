@@ -140,6 +140,7 @@ bool console_enabled = true;
 bool console_enabled = false;
 #endif
 
+#ifdef CONFIG_CONSOLE_DEBUG
 void con_dbg(const char *fmt, ...)
 {
 	va_list arg;
@@ -151,6 +152,7 @@ void con_dbg(const char *fmt, ...)
 	vprintf(fmt, arg);
 	va_end(arg);
 }
+#endif
 
 #ifdef CONFIG_CONSOLE_COMMAND
 void console_uart_handler(void)

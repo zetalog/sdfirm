@@ -26,7 +26,12 @@ shift $(($OPTIND - 1))
 SDFIRM_SRC=`(cd ${SCRIPT}/..; pwd)`
 GEM5_SRC=`(cd ${GEM5_SRC}; pwd)`
 
-rm -f ${GEM5_SRC}/fs_images/arm/binaries/boot_emm.arm64
+if [ ! -f "${GEM5_SRC}/fs_images/arm/binaries/boot_emm.arm64.orig" ]; then
+	echo "Backing up original boot_emm.arm64..."
+	mv -i \
+	${GEM5_SRC}/fs_images/arm/binaries/boot_emm.arm64 \
+	${GEM5_SRC}/fs_images/arm/binaries/boot_emm.arm64.orig
+fi
 cp ${SDFIRM_SRC}/sdfirm.strip ${GEM5_SRC}/fs_images/arm/binaries/boot_emm.arm64
 
 (
