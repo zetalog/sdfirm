@@ -63,11 +63,12 @@ static inline int console_output_space(void)
 #endif
 
 /* Console command line related */
-void console_late_init(void);
 void console_handle_irq(void);
 
 void early_console_init(void);
+void late_console_init(void);
 void console_init(void);
+void console_late_init(void);
 #else
 #define early_console_init()		do { } while (0)
 #define console_init()			do { } while (0)
@@ -82,11 +83,15 @@ void con_dbg(const char *fmt, ...);
 #ifdef CONFIG_MMU_IDMAP_DEVICE
 #define idmap_early_con_init()		console_init()
 #define fixmap_early_con_init()		early_console_init()
-#define fixmap_late_con_init()
+#define fixmap_late_con_init()		late_console_init()
 #else
 #define idmap_early_con_init()
 #define fixmap_early_con_init()		early_console_init()
-#define fixmap_late_con_init()		console_init()
+#define fixmap_late_con_init()		\
+	do {				\
+		console_init();		\
+		late_console_init();	\
+	} while (0)
 #endif
 #endif /* !__ASSEMBLY__ */
 

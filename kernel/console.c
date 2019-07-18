@@ -177,6 +177,10 @@ void early_console_init(void)
 void console_init(void)
 {
 	console_output_init();
+}
+
+void late_console_init(void)
+{
 	console_input_init();
 	console_bh = bh_register_handler(console_bh_handler);
 	console_irq_init();

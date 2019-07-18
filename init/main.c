@@ -76,9 +76,9 @@ void system_init(void)
 	board_init();
 	gpio_init();
 	debug_init();
+	irq_init();
 	fixmap_late_con_init();
 	printf("Welcome to sdfirm\r\n");
-	irq_init();
 	bh_init();
 	tick_init();
 	delay_init();
