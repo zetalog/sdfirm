@@ -185,4 +185,5 @@ void late_console_init(void)
 	console_bh = bh_register_handler(console_bh_handler);
 	console_irq_init();
 	console_poll_init();
+	printf("Welcome to sdfirm\n");
 }

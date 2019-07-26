@@ -78,7 +78,6 @@ void system_init(void)
 	debug_init();
 	irq_init();
 	fixmap_late_con_init();
-	printf("Welcome to sdfirm\r\n");
 	bh_init();
 	tick_init();
 	delay_init();

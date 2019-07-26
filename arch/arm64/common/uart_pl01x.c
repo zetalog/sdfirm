@@ -90,6 +90,8 @@ void pl01x_config_params(uint8_t n, uint8_t params)
 
 void pl01x_con_init(void)
 {
+	pl01x_config_params(UART_CON_ID, UART_DEF_PARAMS);
+	pl01x_ctrl_enable(UART_CON_ID);
 	pl01x_uart_enable(UART_CON_ID);
 }
 #endif

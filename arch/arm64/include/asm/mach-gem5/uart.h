@@ -35,6 +35,9 @@ extern caddr_t uart_hw_reg_base[UART_HW_MAX_PORTS];
 #endif
 #endif
 
+/* TODO: not sure if this is correct */
+#define UART_CLK_SRC_FREQ		UL(20000000)
+
 #ifdef CONFIG_DEBUG_PRINT
 void uart_hw_dbg_init(void);
 void uart_hw_dbg_start(void);

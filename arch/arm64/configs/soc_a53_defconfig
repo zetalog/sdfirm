@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Jul  3 09:38:02 2019
+# Fri Jul 26 10:18:20 2019
 #
 CONFIG_ARM64=y
 
@@ -16,7 +16,26 @@ CONFIG_SERIAL_NO=0
 # CONFIG_BOOTLOADER is not set
 CONFIG_FIRMWARE=y
 # CONFIG_EMBEDDED is not set
-# CONFIG_CONSOLE is not set
+
+#
+# Firmware options
+#
+# CONFIG_GEM5 is not set
+CONFIG_CONSOLE=y
+CONFIG_CONSOLE_COMMAND=y
+CONFIG_CONSOLE_OUTPUT=y
+CONFIG_CONSOLE_OUTPUT_CR=y
+CONFIG_CONSOLE_PRINT_BUFFER_SIZE=64
+CONFIG_CONSOLE_INPUT=y
+# CONFIG_CONSOLE_230400 is not set
+CONFIG_CONSOLE_115200=y
+# CONFIG_CONSOLE_57600 is not set
+# CONFIG_CONSOLE_38400 is not set
+# CONFIG_CONSOLE_19200 is not set
+# CONFIG_CONSOLE_9600 is not set
+# CONFIG_CONSOLE_4800 is not set
+# CONFIG_CONSOLE_2400 is not set
+# CONFIG_CONSOLE_DEBUG is not set
 
 #
 # ARM64 system options
@@ -257,11 +276,11 @@ CONFIG_MATH_DIV64=y
 #
 # Print operations
 #
-# CONFIG_PRINT_VSNPRINTF is not set
+CONFIG_PRINT_VSNPRINTF=y
 # CONFIG_PRINT_SNPRINTF is not set
-# CONFIG_PRINT_VPRINTF is not set
+CONFIG_PRINT_VPRINTF=y
 # CONFIG_PRINT_SPRINTF is not set
-# CONFIG_PRINT_PRINTF is not set
+CONFIG_PRINT_PRINTF=y
 # CONFIG_FONTS is not set
 
 #

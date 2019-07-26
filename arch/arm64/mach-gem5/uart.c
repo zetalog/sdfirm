@@ -32,6 +32,7 @@ void uart_hw_irq_ack(void)
 
 void uart_hw_con_init(void)
 {
+	pl01x_config_baudrate(UART_CON_ID, UART_CLK_SRC_FREQ, UART_CON_BAUDRATE);
 	pl01x_con_init();
 }
 
