@@ -11,14 +11,19 @@
 # Copyright (C) 2009 Lv Zheng
 #
 
-sdfirm := sdfirm.bin
-
-quiet_cmd_strip     = STRIP   $@
-      cmd_strip     = $(STRIP) -R .comment -R .note $< -o $@
-
-sdfirm.strip: sdfirm FORCE
-	$(call if_changed,strip)
+sdfirm := sdfirm.bin sdfirm.srec sdfirm.vhx
 
 $(obj)/sdfirm.bin: sdfirm.strip FORCE
 	$(call if_changed,objcopy)
+	@echo '  Small Device Firmware: $@ is ready'
+$(obj)/sdfirm.srec: sdfirm.strip FORCE
+	$(call if_changed,objcopy)
+	@echo '  Small Device Firmware: $@ is ready'
+OBJCOPYFLAGS_sdfirm.bin		+=-O binary
+OBJCOPYFLAGS_sdfirm.srec	+=-O srec
+
+quiet_cmd_bin2vhx   = BIN2VHX $@
+      cmd_bin2vhx   = $(BIN2VHX) --width=128 $< $@
+$(obj)/sdfirm.vhx: $(obj)/sdfirm.bin FORCE
+	$(call if_changed,bin2vhx)
 	@echo '  Small Device Firmware: $@ is ready'

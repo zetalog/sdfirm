@@ -522,6 +522,12 @@ sdfirm: $(sdfirm-lds) $(sdfirm-init) $(sdfirm-main) FORCE
 	$(call if_changed_rule,sdfirm)
 	$(Q)rm -f .old_version
 
+quiet_cmd_strip     = STRIP   $@
+      cmd_strip     = $(STRIP) -R .comment -R .note $< -o $@
+
+sdfirm.strip: sdfirm FORCE
+	$(call if_changed,strip)
+
 # The actual objects are generated when descending, 
 # make sure no implicit rule kicks in
 $(sort $(sdfirm-init) $(sdfirm-main) $(sdfirm-lds)): $(sdfirm-dirs) ;

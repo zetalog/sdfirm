@@ -255,6 +255,7 @@ ENTRY(__linux_boot_el3)
 ENDPROC(__linux_boot_el3)
 ENTRY(__linux_boot_el2)
 	init_bss
+	init_sp_early
 	ret
 ENDPROC(__linux_boot_el2)
 #endif

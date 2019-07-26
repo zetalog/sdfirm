@@ -10,7 +10,7 @@
 #
 # Copyright (C) 2018 by Lv Zetalog Zheng
 
-OBJCOPYFLAGS	:=-O binary -R .note -R .note.gnu.build-id -R .comment -S
+OBJCOPYFLAGS	:=-R .note -R .note.gnu.build-id -R .comment -S
 CFLAGS		+=-g
 AFLAGS		+=-g
 LDFLAGS_sdfirm	:=--gc-sections -p --no-undefined -X
@@ -130,7 +130,7 @@ core-y				+= arch/arm64/common/
 drivers-y			+= $(MACHINE)
 
 # Default target when executing plain make
-KBUILD_IMAGE := sdfirm.bin
+KBUILD_IMAGE := sdfirm.bin sdfirm.srec sdfirm.vhx
 
 all:	$(KBUILD_IMAGE)
 
@@ -147,7 +147,11 @@ include/asm/mach: $(wildcard include/config/arch/*.h) \
 
 archprepare: maketools
 
-sdfirm.bin: sdfirm
+sdfirm.bin: sdfirm.strip
+	$(Q)$(MAKE) $(build)=$(boot) MACHINE=$(MACHINE) $(boot)/$@
+sdfirm.srec: sdfirm.strip
+	$(Q)$(MAKE) $(build)=$(boot) MACHINE=$(MACHINE) $(boot)/$@
+sdfirm.vhx: sdfirm.bin
 	$(Q)$(MAKE) $(build)=$(boot) MACHINE=$(MACHINE) $(boot)/$@
 
 PHONY += maketools FORCE
@@ -162,4 +166,5 @@ archclean:
 
 define archhelp
   echo  '  sdfirm.bin      - Binary image (arch/$(ARCH)/boot/sdfirm.bin)'
+  echo  '  sdfirm.vhx      - Verilog hexas (arch/$(ARCH)/boot/sdfirm.vhx)'
 endef
