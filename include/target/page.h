@@ -29,6 +29,12 @@
 #define __PGTABLE_LEVELS(va_bits)	\
 	(((va_bits) - PAGE_PTR_BITS - 1) / (PAGE_SHIFT - PAGE_PTR_BITS))
 
+#ifdef CONFIG_MMU_DEBUG_TABLE
+#define mmu_dbg_tbl		con_dbg
+#else
+#define mmu_dbg_tbl(fmt, ...)	do { } while (0)
+#endif
+
 #include <asm/page.h>
 
 #ifndef PAGE_PTR_BITS

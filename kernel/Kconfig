@@ -430,6 +430,10 @@ config MMU_IDMAP_DEVICE
 	  memory resource allocator and the fixmap machanisms).
 	  If unsure, say 'N'.
 
+config MMU_DEBUG_TABLE
+	bool "Debugging table entry population"
+	depends CONSOLE_DEBUG
+
 endif
 
 menuconfig IDLE

@@ -23,7 +23,7 @@ static phys_addr_t early_pgtable_alloc(void)
 	 * initialise any level of table.
 	 */
 	ptr = pte_set_fixmap(phys);
-	con_dbg("ALLOC: P=%016llx, V=%016llx\n", phys, ptr);
+	mmu_dbg_tbl("ALLOC: P=%016llx, V=%016llx\n", phys, ptr);
 	memory_set((caddr_t)ptr, 0, PAGE_SIZE);
 
 	/* Implicit barriers also ensure the zeroed page is visible to the
@@ -35,7 +35,7 @@ static phys_addr_t early_pgtable_alloc(void)
 
 static void early_pgtable_free(phys_addr_t phys)
 {
-	con_dbg("FREE: %016llx\n", phys);
+	mmu_dbg_tbl("FREE: %016llx\n", phys);
 	mem_free(phys, PAGE_SIZE);
 }
 
@@ -88,7 +88,7 @@ static void alloc_init_pmd(pud_t *pudp, caddr_t addr,
 	BUG_ON(pud_bad(pud));
 
 	pmdp = pmd_set_fixmap_offset(pudp, addr);
-	con_dbg("PMD: %016llx\n", pmdp);
+	mmu_dbg_tbl("PMD: %016llx\n", pmdp);
 	do {
 		next = pmd_addr_end(addr, end);
 		alloc_init_pte(pmdp, addr, next, phys,
@@ -117,7 +117,7 @@ static void alloc_init_pud(pgd_t *pgdp, caddr_t addr, caddr_t end,
 	BUG_ON(pgd_bad(pgd));
 
 	pudp = pud_set_fixmap_offset(pgdp, addr);
-	con_dbg("PUD: %016llx\n", pudp);
+	mmu_dbg_tbl("PUD: %016llx\n", pudp);
 	do {
 		next = pud_addr_end(addr, end);
 		alloc_init_pmd(pudp, addr, next, phys, prot,
@@ -137,9 +137,7 @@ static void __create_pgd_mapping(pgd_t *pgdir, phys_addr_t phys,
 	caddr_t addr, length, end, next;
 	pgd_t *pgdp = pgd_offset_raw(pgdir, virt);
 
-	con_dbg("MAP: phys: %016llx\n", phys);
-	con_dbg("MAP: virt: %016llx\n", virt);
-	con_dbg("MAP: size: %016llx\n", size);
+	con_dbg("LOWMAP: %016llx -> %016llx: %016llx\n", phys, virt, size);
 
 	/* If the virtual and physical address don't have the same offset
 	 * within a page, we cannot map the region as the caller expects.
@@ -325,8 +323,8 @@ void early_fixmap_init(void)
 	pmd_t *pmd;
 	caddr_t addr = FIXADDR_START;
 
-	con_dbg("FIX: %016llx - %016llx\n", FIXADDR_START, FIXADDR_END);
-	con_dbg("PGDIR: %016llx\n", mmu_pg_dir);
+	con_dbg("FIXMAP: %016llx - %016llx\n", FIXADDR_START, FIXADDR_END);
+	mmu_dbg_tbl("PGDIR: %016llx\n", mmu_pg_dir);
 	pgd = pgd_offset(addr);
 	pgd_populate(pgd, bm_pud);
 	pud = pud_offset(pgd, addr);
