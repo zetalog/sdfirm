@@ -5,6 +5,7 @@
 #include <target/arch.h>
 #include <target/heap.h>
 #include <target/paging.h>
+#include <target/cmdline.h>
 
 #ifdef CONFIG_MEM
 #define MEM_ALLOC_ANYWHERE		(~(phys_addr_t)0)
@@ -52,7 +53,7 @@ static phys_addr_t mem_current_limit = MEM_ALLOC_ANYWHERE;
 	     __next_reserved_mem_region(&i, p_start, p_end);	\
 	     i != (uint64_t)ULLONG_MAX;				\
 	     __next_reserved_mem_region(&i, p_start, p_end))
-#define for_each_memblock_type(type, rgn)	\
+#define for_each_memblock_type(idx, type, rgn)	\
 	idx = 0;				\
 	rgn = &type->regions[idx];		\
 	for (idx = 0; idx < type->cnt;		\
@@ -465,7 +466,7 @@ static void mem_isolate_range(struct mem_type *type,
 		}
 	}
 
-	for_each_memblock_type(type, rgn) {
+	for_each_memblock_type(idx, type, rgn) {
 		phys_addr_t rbase = rgn->base;
 		phys_addr_t rend = rbase + rgn->size;
 
@@ -569,7 +570,7 @@ repeat:
 	base = obase;
 	nr_new = 0;
 
-	for_each_memblock_type(type, rgn) {
+	for_each_memblock_type(idx, type, rgn) {
 		rbase = rgn->base;
 		rend = rbase + rgn->size;
 
@@ -657,6 +658,39 @@ phys_addr_t mem_alloc(phys_addr_t size, phys_addr_t align)
 	return mem_alloc_range(size, align, 0, MEM_ALLOC_ACCESSIBLE);
 }
 
+phys_addr_t mem_start(void)
+{
+	return mem_memory_regions.regions[0].base;
+}
+
+phys_addr_t mem_end(void)
+{
+	int idx = mem_memory_regions.cnt - 1;
+
+	return (mem_memory_regions.regions[idx].base +
+		mem_memory_regions.regions[idx].size);
+}
+
+static void mem_dump(struct mem_type *type)
+{
+	phys_addr_t base, end, size;
+	struct mem_region *rgn;
+	int idx;
+
+	printf(" %s.size  = %llx\n",
+	       mem_type_name(type), type->total_size);
+	printf(" %s.count = 0x%lx\n",
+	       mem_type_name(type), type->cnt);
+
+	for_each_memblock_type(idx, type, rgn) {
+		base = rgn->base;
+		size = rgn->size;
+		end = base + size - 1;
+		printf(" %.8s [%p-%p], %p bytes\n",
+		       mem_type_name(type), base, end, size);
+	}
+}
+
 void mem_init(void)
 {
 	mem_hw_range_init();
@@ -665,6 +699,10 @@ void mem_init(void)
 }
 #else
 extern caddr_t __end[];
+
+static void mem_dump(struct mem_type *type)
+{
+}
 
 void mem_free(phys_addr_t base, phys_addr_t size)
 {
@@ -685,3 +723,139 @@ void mem_init(void)
 	heap_range_init((caddr_t)__end);
 }
 #endif
+
+void mem_dump_all(void)
+{
+	printf("Memory configuration:\n");
+	printf(" start: %llx\n", mem_start());
+	printf(" end:   %llx\n", mem_end());
+
+	mem_dump(&mem_memory_regions);
+	mem_dump(&mem_reserved_regions);
+}
+
+static int do_mem_dump(int argc, char **argv)
+{
+	mem_dump_all();
+}
+
+int get_data_size(char *arg, int default_size)
+{
+	switch (arg[0]) {
+	case 'b':
+		return 1;
+	case 'w':
+		return 2;
+	case 'l':
+		return 4;
+	case 'q':
+		return 8;
+	default:
+		return -1;
+	}
+	return default_size;
+}
+
+#define DEFAULT_LINE_LENGTH_BYTES	16
+#define MAX_LINE_LENGTH_BYTES		64
+#define DISP_LINE_LEN			16
+
+static int print_buffer(unsigned long addr, const void *data,
+			unsigned int width, unsigned int count,
+			unsigned int linelen)
+{
+	/* linebuf as a union causes proper alignment */
+	union linebuf {
+		uint64_t uq[MAX_LINE_LENGTH_BYTES/sizeof(uint64_t) + 1];
+		uint32_t ui[MAX_LINE_LENGTH_BYTES/sizeof(uint32_t) + 1];
+		uint16_t us[MAX_LINE_LENGTH_BYTES/sizeof(uint16_t) + 1];
+		uint8_t  uc[MAX_LINE_LENGTH_BYTES/sizeof(uint8_t) + 1];
+	} lb;
+	int i;
+	uint64_t x;
+
+	if (linelen*width > MAX_LINE_LENGTH_BYTES)
+		linelen = MAX_LINE_LENGTH_BYTES / width;
+	if (linelen < 1)
+		linelen = DEFAULT_LINE_LENGTH_BYTES / width;
+
+	while (count) {
+		unsigned int thislinelen = linelen;
+		printf("%08lx:", addr);
+
+		/* check for overflow condition */
+		if (count < thislinelen)
+			thislinelen = count;
+
+		/* Copy from memory into linebuf and print hex values */
+		for (i = 0; i < thislinelen; i++) {
+			if (width == 4)
+				x = lb.ui[i] = *(volatile uint32_t *)data;
+			else if (width == 8)
+				x = lb.uq[i] = *(volatile uint64_t *)data;
+			else if (width == 2)
+				x = lb.us[i] = *(volatile uint16_t *)data;
+			else
+				x = lb.uc[i] = *(volatile uint8_t *)data;
+			printf(" %0*llx", width * 2, (long long)x);
+			data += width;
+		}
+
+		while (thislinelen < linelen) {
+			/* fill line with whitespace for nice ASCII print */
+			for (i = 0; i < width*2+1; i++)
+				printf(" ");
+			linelen--;
+		}
+
+		/* Print data in ASCII characters */
+		for (i = 0; i < thislinelen * width; i++) {
+			if (!isprint(lb.uc[i]) || lb.uc[i] >= 0x80)
+				lb.uc[i] = '.';
+		}
+		lb.uc[i] = '\0';
+		printf("    %s\n", lb.uc);
+
+		/* update references */
+		addr += thislinelen * width;
+		count -= thislinelen;
+	}
+	return 0;
+}
+
+static int do_mem_display(int argc, char * argv[])
+{
+	int size;
+	unsigned long addr = 0;
+	unsigned long length = 0;
+	void *buf = NULL;
+
+	if ((size = get_data_size(argv[1], 4)) < 0)
+		return -EINVAL;
+
+	addr = strtoul(argv[2], 0, 0);
+	if (argc > 2)
+		length = strtoul(argv[3], NULL, 0);
+
+	buf = (void *)(unsigned long)addr;
+	return print_buffer(addr, buf, size, length, DISP_LINE_LEN / size);
+}
+
+static int do_mem(int argc, char * argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+
+	if (strcmp(argv[1], "dump") == 0)
+		return do_mem_dump(argc, argv);
+	else
+		return do_mem_display(argc, argv);
+}
+
+DEFINE_COMMAND(mem, do_mem, "Display memory",
+	"mem b|w|l|q addr [len]\n"
+	"    -display mem content\n"
+	"mem dump\n"
+	"    -display mem regions\n"
+	"\n"
+);

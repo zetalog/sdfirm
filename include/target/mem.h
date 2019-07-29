@@ -66,6 +66,8 @@ struct mem_type {
 };
 
 #ifdef CONFIG_MEM
+phys_addr_t mem_start(void);
+phys_addr_t mem_end(void);
 void mem_add(phys_addr_t base, phys_addr_t size);
 void mem_reserve(phys_addr_t base, phys_addr_t size);
 void mem_remove(phys_addr_t base, phys_addr_t size);
@@ -76,7 +78,10 @@ void mem_walk_reserved(bool (*iter)(struct mem_region *, void *),
 phys_addr_t mem_alloc(phys_addr_t size, phys_addr_t align);
 void mem_free(phys_addr_t base, phys_addr_t size);
 void mem_init(void);
+void mem_dump_all(void);
 #else
+#define mem_start()		RAM_START
+#define mem_end()		RAMEND
 #define mem_add(base, size)	do { } while (0)
 #define mem_reserve(base, size)	do { } while (0)
 #define mem_remove(base, size)	do { } while (0)

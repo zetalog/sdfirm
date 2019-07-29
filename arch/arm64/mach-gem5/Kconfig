@@ -24,8 +24,6 @@ config GEM5_RAM_DEFAULT
 	  option also forces firmware to re-locate from ROM to RAM if
 	  GEM5_ROM_AS_RAM is not selected.
 
-if !GEM5_RAM_DEFAULT && !GEM5_ROM_AS_RAM
-
 config GEM5_RAM_BASE
 	hex "Base physical address of RAM"
 	default 0
@@ -44,8 +42,6 @@ config GEM5_RAM_BITS
 	help
 	  This option is useful for RTL simulation environment.
 	  Bit shift N of RAM memory size. Memory size will be 2^N.
-
-endif
 
 config UART_GEM5
 	bool "AMBA PL011 uart controller support"
