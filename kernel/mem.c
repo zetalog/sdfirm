@@ -671,6 +671,27 @@ phys_addr_t mem_end(void)
 		mem_memory_regions.regions[idx].size);
 }
 
+static void reserve_bootmem_region(phys_addr_t start, phys_addr_t end)
+{
+}
+
+void mem_free_all(void)
+{
+	uint64_t i;
+	phys_addr_t start, end;
+	pfn_t start_pfn, end_pfn;
+
+	for_each_reserved_mem_region(i, &start, &end) {
+		reserve_bootmem_region(start, end);
+	}
+	for_each_free_mem_range(i, &start, &end) {
+		con_dbg("PAGE: %016llx - %016llx\n", start, end);
+		start_pfn = PFN_UP(start);
+		end_pfn = PFN_DOWN(end);
+		page_alloc_init(start, end_pfn - start_pfn);
+	}
+}
+
 static void mem_dump(struct mem_type *type)
 {
 	phys_addr_t base, end, size;

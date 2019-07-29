@@ -58,6 +58,12 @@
 #define page_to_pfn(page)	\
 	(((pfn_t)(page) >> PAGE_SHIFT))
 
+#define PFN_ALIGN(x)	(((pfn_t)(x) + (PAGE_SIZE - 1)) & PAGE_MASK)
+#define PFN_UP(x)	(((x) + PAGE_SIZE-1) >> PAGE_SHIFT)
+#define PFN_DOWN(x)	((x) >> PAGE_SHIFT)
+#define PFN_PHYS(x)	((phys_addr_t)(x) << PAGE_SHIFT)
+#define PHYS_PFN(x)	((pfn_t)((x) >> PAGE_SHIFT))
+
 struct page {
 	struct page *next;
 };
@@ -66,11 +72,9 @@ struct page {
 caddr_t page_alloc(void);
 caddr_t page_alloc_zeroed(void);
 void page_free(caddr_t address);
-void page_early_init(void);
-void page_late_init(void);
+void page_alloc_init(caddr_t base, pfn_t nr_pages);
 #else
-#define page_early_init()	do { } while (0)
-#define page_late_init()	do { } while (0)
+#define page_alloc_init()	do { } while (0)
 #endif
 #endif /* __ASSEMBLY__ */
 

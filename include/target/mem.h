@@ -78,6 +78,7 @@ void mem_walk_reserved(bool (*iter)(struct mem_region *, void *),
 phys_addr_t mem_alloc(phys_addr_t size, phys_addr_t align);
 void mem_free(phys_addr_t base, phys_addr_t size);
 void mem_init(void);
+void mem_free_all(void);
 void mem_dump_all(void);
 #else
 #define mem_start()		RAM_START

@@ -1,5 +1,6 @@
 obj-y :=
 
+obj-$(CONFIG_MMU) += mmu.rel
 obj-$(CONFIG_PSCI) += psci_entry.rel
 obj-$(CONFIG_PSCI) += psci.rel
 obj-$(CONFIG_GIC) += gic.rel

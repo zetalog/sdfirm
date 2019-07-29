@@ -326,9 +326,9 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 /* To include device specific fixmaps */
 #include <asm/mach/mmu.h>
 
-#define mmu_hw_ctrl_init()		do { } while (0)
 void mmu_hw_create_mapping(phys_addr_t phys, caddr_t virt,
 			   phys_addr_t size);
+void mmu_hw_ctrl_init(void);
 #endif /* !__ASSEMBLY__ */
 
 #endif /* __MMU_ARM64_H_INCLUDE__ */

@@ -92,10 +92,6 @@ void system_init(void)
 	clk_init();
 	timer_init();
 	paging_init();
-#if 0 /* not enabled */
-	page_early_init();
-	page_late_init();
-#endif
 	heap_init();
 	bulk_init();
 

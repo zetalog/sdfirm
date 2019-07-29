@@ -361,14 +361,9 @@ void paging_init(void)
 
 	map_kernel(pgdp);
 	map_mem(pgdp);
-#if 0
-	cpu_replace_ttbr1(__va(pgd_phys));
-	memcpy(mmu_pg_dir, pgdp, PAGE_SIZE);
-	cpu_replace_ttbr1(mmu_pg_dir);
-#endif
-
 	pgd_clear_fixmap();
-#if 0
 	mmu_hw_ctrl_init();
+#if 0
+	mem_free_all();
 #endif
 }

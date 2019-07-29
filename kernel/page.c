@@ -5,7 +5,6 @@
 
 struct page *page_empty = NULL;
 struct page **page_free_list = &page_empty;
-bool page_early = true;
 
 void page_free(caddr_t address)
 {
@@ -34,12 +33,6 @@ caddr_t page_alloc_zeroed(void)
 	return page;
 }
 
-void page_late_init(void)
-{
-	/* TODO: convert page allocator to VA based */
-	page_early = false;
-}
-
 void page_alloc_init(caddr_t base, pfn_t nr_pages)
 {
 	pfn_t pfn, pfn_start = page_to_pfn(base);
@@ -52,6 +45,7 @@ void page_alloc_init(caddr_t base, pfn_t nr_pages)
 		page->next = NULL;
 		*last_page = page;
 		last_page = &page->next;
+		printf("%016llx\n", PFN_PHYS(pfn + pfn_start));
 	}
 }
 
@@ -82,9 +76,3 @@ DEFINE_COMMAND(page, do_page, "Display free pages",
 	"    -test page allocator and display first N free pages\n"
 	"\n"
 );
-
-void page_early_init(void)
-{
-	page_alloc_init(PAGEABLE_START,
-			(PAGEABLE_END - PAGEABLE_START) / PAGE_SIZE);
-}
