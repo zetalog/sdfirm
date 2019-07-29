@@ -4,11 +4,15 @@
 void mem_hw_range_init(void)
 {
 #ifdef CONFIG_GEM5_ROM_AS_RAM
+#if (ROMEND <= RAMEND)
 	mem_add(ROM_BASE, ROMEND - ROM_BASE);
+#else
+	mem_add(ROM_BASE, RAMEND - ROM_BASE);
+#endif
 #endif
 #if (RAM_BASE >= ROMEND)
 	mem_add(RAM_BASE, RAMEND - RAM_BASE);
-#else
+#elif (RAMEND > ROMEND)
 	mem_add(ROMEND, RAMEND - ROMEND);
 #endif
 }

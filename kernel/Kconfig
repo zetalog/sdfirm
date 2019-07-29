@@ -314,6 +314,10 @@ menuconfig MEM
 
 if MEM
 
+config MEM_MAX_REGIONS
+	int "Maximum region banks"
+	default 3
+
 config MEM_RESIZE
 	bool "Enable resizable memory region array support"
 

@@ -50,7 +50,7 @@
 #ifdef CONFIG_MEM_MAX_REGIONS
 #define NR_MEM_REGIONS		CONFIG_MEM_MAX_REGIONS
 #else
-#define NR_MEM_REGIONS		4
+#define NR_MEM_REGIONS		3 /* In case RAM/ROM overlaps */
 #endif /* CONFIG_MEM_MAX_REGIONS */
 
 struct mem_region {

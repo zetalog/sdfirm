@@ -26,7 +26,7 @@ config GEM5_RAM_DEFAULT
 
 config GEM5_RAM_BASE
 	hex "Base physical address of RAM"
-	default 0
+	default 0x0
 	depends !GEM5_RAM_DEFAULT
 	help
 	  This option is useful for RTL simulation environment where the
@@ -37,7 +37,7 @@ config GEM5_RAM_BASE
 	  won't allocate from ROM region.
 
 config GEM5_RAM_BITS
-	hex "Physical memory bits of RAM"
+	int "Physical memory bits of RAM"
 	default 24
 	help
 	  This option is useful for RTL simulation environment.

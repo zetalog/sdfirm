@@ -172,9 +172,8 @@ static void map_kernel_segment(pgd_t *pgdp, void *va_start, void *va_end,
 
 static void __map_mem_region(pgd_t *pgd, phys_addr_t start, phys_addr_t end)
 {
-
-	unsigned long kernel_start = __pa(__stext);
-	unsigned long kernel_end = __pa(__end);
+	phys_addr_t kernel_start = __pa(SDFIRM_START);
+	phys_addr_t kernel_end = __pa(SDFIRM_END);
 
 	/* The kernel itself is mapped at page granularity. Map all other
 	 * memory, making sure we don't overwrite the existing kernel mappings.
@@ -210,12 +209,13 @@ static bool __map_mem(struct mem_region *rgn, void *data)
 	phys_addr_t end = start + rgn->size;
 
 	if (start >= end)
-		return -EINTR;
+		return false;
 #if 0
 	if (mem_is_nomap(rgn))
-		return 0;
+		return true;
 #endif
 	__map_mem_region(pgdp, start, end);
+	return true;
 }
 
 static void map_mem(pgd_t *pgdp)
@@ -240,7 +240,10 @@ static void map_kernel(pgd_t *pgdp)
 	 */
 	map_kernel_segment(pgdp, __stext, __etext, PAGE_TEXT_PROT);
 	map_kernel_segment(pgdp, __start_rodata, __end_rodata, PAGE_KERNEL);
-	map_kernel_segment(pgdp, __sdata, __edata, PAGE_KERNEL);
+	map_kernel_segment(pgdp, _sdata, _edata, PAGE_KERNEL);
+	/* Map stacks */
+	map_kernel_segment(pgdp, (void *)PERCPU_STACKS_START, (void *)PERCPU_STACKS_END,
+			   PAGE_KERNEL);
 
 	/* The fixmap falls in a separate pgd to the kernel, and doesn't live
 	 * in the carveout for the mmu_pg_dir. We can simply re-use the
@@ -359,8 +362,8 @@ void paging_init(void)
 	pgd_t *pgdp = pgd_set_fixmap(__pa_symbol(pgd_phys));
 
 	map_kernel(pgdp);
-#if 0
 	map_mem(pgdp);
+#if 0
 	cpu_replace_ttbr1(__va(pgd_phys));
 	memcpy(mmu_pg_dir, pgdp, PAGE_SIZE);
 	cpu_replace_ttbr1(mmu_pg_dir);

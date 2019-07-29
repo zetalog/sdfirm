@@ -14,22 +14,31 @@
 
 /* Virtual address space */
 #ifdef __ASSEMBLY__
-#define SDFIRM_END	__end
+#define SDFIRM_START	_start
+#define SDFIRM_END	_end
+#define __SDFIRM_START	_stext
+#define __SDFIRM_END	_edata
 #else /* !__ASSEMBLY__ */
+extern uintptr_t _start[];
+extern uintptr_t _end[];
+extern uintptr_t _stext[];
+extern uintptr_t _edata[];
+
 extern uintptr_t __stext[];
 extern uintptr_t __etext[];
-extern uintptr_t __sdata[];
-extern uintptr_t __edata[];
+extern uintptr_t _sdata[];
+extern uintptr_t _edata[];
 extern uintptr_t __start_rodata[];
 extern uintptr_t __end_rodata[];
-extern uintptr_t __bss_start[];
-extern uintptr_t __bss_stop[];
-extern uintptr_t __end[];
-#define SDFIRM_END	((uint64_t)(&__end))
+
+#define SDFIRM_START	((caddr_t)(&_start))
+#define SDFIRM_END	((caddr_t)(&_end))
+#define __SDFIRM_START	((caddr_t)(&_stext))
+#define __SDFIRM_END	((caddr_t)(&_edata))
 #endif /* __ASSEMBLY__ */
 
 /* CPU initial stacks, assign 1 page for each CPU as stack */
-#define PERCPU_STACKS_START		SDFIRM_END
+#define PERCPU_STACKS_START		__SDFIRM_END
 #define PERCPU_STACKS_SIZE		(PERCPU_STACK_SIZE * NR_CPUS)
 #define PERCPU_STACKS_END		(PERCPU_STACKS_START + PERCPU_STACKS_SIZE)
 #define PERCPU_STACK_SHIFT		PAGE_SHIFT

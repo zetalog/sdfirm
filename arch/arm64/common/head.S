@@ -8,7 +8,6 @@
 
 #define ARM_ROM_OFFSET	0x850
 
-#define SDFIRM_START	__stext
 #define __PHYS_OFFSET	(SDFIRM_START - TEXT_OFFSET)
 #ifdef CONFIG_VMSA_VA_2_RANGES
 #define mmu_lo_dir	mmu_id_map
@@ -399,7 +398,7 @@ ENTRY(__create_page_tables)
 	mov	x0, x26				/* mmu_pg_dir */
 	mov	x5, #PAGE_OFFSET
 	create_pgd_entry x0, x5, x3, x6
-	ldr	x6, =SDFIRM_END			// __va(SDFIRM_END)
+	ldr	x6, =SDFIRM_END			// __pa(_edata)
 	add	x6, x6, #PERCPU_STACKS_SIZE
 	mov	x3, x24				// PHYS_OFFSET
 	create_block_map x0, x7, x3, x5, x6

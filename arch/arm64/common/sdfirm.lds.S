@@ -17,6 +17,7 @@ ENTRY(__start)
 SECTIONS
 {
 	. = PAGE_OFFSET + TEXT_OFFSET;
+	_start = .;				/* begin of sdfirm */
 	_stext = .;				/* begin of text and rodata sections */
 	__stext = .;				/* begin of text sections */
 	.init : {
@@ -79,8 +80,8 @@ SECTIONS
 	}
 	. = ALIGN(8);
 	__bss_stop = .;				/* end of bss sections */
-	_edata = .;				/* end of data and bss sections */
 
+	/* No direct mapping to the early pgtable */
 #ifdef CONFIG_MMU
 	. = ALIGN(PAGE_SIZE);
 #ifdef CONFIG_CPU_64v8_2_LPA
@@ -90,9 +91,12 @@ SECTIONS
 	mmu_pg_dir = .;
 	. += BPGT_DIR_SIZE;
 #endif
-
 	. = ALIGN(PAGE_SIZE);
-	__end = .;
+	_edata = .;				/* end of data and bss sections */
+
+	. += PERCPU_STACKS_SIZE;
+	__end = .;				/* end of sdfirm */
+	_end = .;				/* end of sdfirm */
 }
 
 /*
