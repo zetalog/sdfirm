@@ -68,6 +68,8 @@ typedef uint64_t pmdval_t;
 typedef uint64_t pudval_t;
 typedef uint64_t pgdval_t;
 
+extern unsigned long empty_zero_page[PAGE_SIZE / sizeof (unsigned long)];
+
 static inline void page_wmb(void)
 {
 	dsb(ishst);
@@ -169,6 +171,12 @@ static inline void set_pgd(pgdval_t *pgdp, pgdval_t pgd)
 #else
 #define BPGT_MM_MMUFLAGS	(PTE_ATTRINDX(MT_NORMAL) | BPGT_PTE_FLAGS)
 #define BPGT_MM_DEVFLAGS	(PMD_ATTRINDX(MT_DEVICE_nGnRnE) | BPGT_PTE_FLAGS)
+#endif
+
+#ifdef CONFIG_CPU_64v8_2_LPA
+#define phys_to_ttbr(addr)	(((addr) | ((addr) >> 46)) & TTBR_BADDR_MASK_52)
+#else
+#define phys_to_ttbr(addr)	(addr)
 #endif
 
 #endif /* __PAGE_ARM64_H_INCLUDE__ */

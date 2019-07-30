@@ -68,6 +68,8 @@
 #ifndef VMSA_VA_SIZE_SHIFT
 #ifdef CONFIG_CPU_64v8_2_LVA
 #define VMSA_VA_SIZE_SHIFT	52
+#define TTBR1_BADDR_4852_OFFSET	(((UL(1) << (52 - PGDIR_SHIFT)) - \
+				 (UL(1) << (48 - PGDIR_SHIFT))) * 8
 #else
 #define VMSA_VA_SIZE_SHIFT	48
 #endif
@@ -75,6 +77,7 @@
 
 #ifdef CONFIG_CPU_64v8_2_LPA
 #define VMSA_PA_SIZE_SHIFT	52
+#define TTBR_BADDR_MASK_52	(((UL(1) << 46) - 1) << 2)
 #else
 #define VMSA_PA_SIZE_SHIFT	48
 #endif
@@ -135,7 +138,9 @@
 #define write_ttbr_el3(tbl, top)	 write_sysreg(tbl, TTBR0_EL3)
 
 #ifndef __ASSEMBLY__
-static inline void write_ttbr(caddr_t tbl, uint8_t el, bool top)
+typedef void (ttbr_replace_func)(phys_addr_t);
+
+static inline void write_ttbr(phys_addr_t tbl, uint8_t el, bool top)
 {
 	switch (el) {
 	case ARM_EL1:
@@ -151,6 +156,12 @@ static inline void write_ttbr(caddr_t tbl, uint8_t el, bool top)
 		break;
 	}
 }
+
+extern uint64_t idmap_t0sz;
+extern caddr_t mmu_id_map;
+
+ttbr_replace_func idmap_cpu_replace_ttbr1;
+void cpu_replace_ttbr1(caddr_t ttbr);
 #endif
 
 #endif /* __VMSA_ARM64_H_INCLUDE__ */

@@ -2,164 +2,75 @@
 
 uint64_t idmap_t0sz = TCR_T0SZ(64 - VA_BITS);
 
+static void cpu_set_reserved_ttbr0(void)
+{
+	phys_addr_t ttbr = phys_to_ttbr(__pa_symbol(empty_zero_page));
+	write_sysreg(ttbr, ttbr0_el1);
+	isb();
+}
+
+static void cpu_switch_pgd(pgd_t *pgd)
+{
+	BUG_ON(pgd == mmu_pg_dir);
+	cpu_set_reserved_ttbr0();
 #if 0
-static void alloc_init_pte(pmd_t *pmd, caddr_t addr,
-			   caddr_t end, caddr_t pfn,
-			   pgprot_t prot)
-{
-	pte_t *pte;
-
-	if (pmd_none(*pmd)) {
-		pte = (pte_t *)page_alloc_zeroed();
-		__pmd_populate(pmd, __pa(pte), PMD_TYPE_TABLE);
-	}
-	BUG_ON(pmd_bad(*pmd));
-
-	pte = pte_offset_kernel(pmd, addr);
-	do {
-		set_pte(pte, pfn_pte(pfn, prot));
-		pfn++;
-	} while (pte++, addr += PAGE_SIZE, addr != end);
+	cpu_do_switch_pgd(virt_to_phys(pgd));
+#endif
 }
 
-static void alloc_init_pmd(pud_t *pud, caddr_t addr,
-			   caddr_t end, phys_addr_t phys,
-			   int map_io)
+#if VA_BITS == 52
+static inline bool __cpu_uses_extended_idmap(void)
 {
-	pmd_t *pmd;
-	caddr_t next;
-	pmdval_t prot_sect;
-	pgprot_t prot_pte;
-
-	if (map_io) {
-		prot_sect = PROT_SECT_DEVICE_nGnRE;
-		prot_pte = __pgprot(PROT_DEVICE_nGnRE);
-	} else {
-		prot_sect = PROT_SECT_NORMAL_EXEC;
-		prot_pte = PAGE_KERNEL_EXEC;
-	}
-
-	/*
-	 * Check for initial section mappings in the pgd/pud and remove them.
-	 */
-	if (pud_none(*pud) || pud_bad(*pud)) {
-		pmd = (pmd_t *)page_alloc_zeroed();
-		pud_populate(pud, pmd);
-	}
-
-	pmd = pmd_offset(pud, addr);
-	do {
-		next = pmd_addr_end(addr, end);
-		/* try section mapping first */
-		if (((addr | next | phys) & ~SECTION_MASK) == 0) {
-			pmd_t old_pmd =*pmd;
-			set_pmd(pmd, __pmd(phys | prot_sect));
-			/*
-			 * Check for previous table entries created during
-			 * boot (__create_page_tables) and flush them.
-			 */
-			if (!pmd_none(old_pmd))
-				flush_tlb_all();
-		} else {
-			alloc_init_pte(pmd, addr, next, phys_to_pfn(phys),
-				       prot_pte);
-		}
-		phys += next - addr;
-	} while (pmd++, addr = next, addr != end);
+	return false;
 }
-
-static void alloc_init_pud(pgd_t *pgd, caddr_t addr,
-			   caddr_t end, phys_addr_t phys,
-			   int map_io)
+#else
+static inline bool __cpu_uses_extended_idmap(void)
 {
-	pud_t *pud;
-	caddr_t next;
-
-	if (pgd_none(*pgd)) {
-		pud = (pud_t *)page_alloc_zeroed();
-		pgd_populate(pgd, pud);
-	}
-	BUG_ON(pgd_bad(*pgd));
-
-	pud = pud_offset(pgd, addr);
-	do {
-		next = pud_addr_end(addr, end);
-
-		/*
-		 * For 4K granule only, attempt to put down a 1GB block
-		 */
-		if (!map_io && (PAGE_SHIFT == 12) &&
-		    ((addr | next | phys) & ~PUD_MASK) == 0) {
-			pud_t old_pud = *pud;
-			set_pud(pud, __pud(phys | PROT_SECT_NORMAL_EXEC));
-
-			/*
-			 * If we have an old value for a pud, it will
-			 * be pointing to a pmd table that we no longer
-			 * need (from swapper_pg_dir).
-			 *
-			 * Look up the old pmd table and free it.
-			 */
-			if (!pud_none(old_pud)) {
-				phys_addr_t table = __pa(pmd_offset(&old_pud, 0));
-				page_free(table);
-				flush_tlb_all();
-			}
-		} else {
-			alloc_init_pmd(pud, addr, next, phys, map_io);
-		}
-		phys += next - addr;
-	} while (pud++, addr = next, addr != end);
+	return idmap_t0sz != TCR_T0SZ(VA_BITS);
 }
+#endif
 
-/*
- * Create the page directory entries and any necessary page tables for the
- * mapping specified by 'md'.
- */
-static void __create_mapping(pgd_t *pgd, phys_addr_t phys,
-			     caddr_t virt, phys_addr_t size,
-			     int map_io)
+static void __cpu_set_tcr_t0sz(unsigned long t0sz)
 {
-	caddr_t addr, length, end, next;
+	unsigned long tcr;
 
-	addr = virt & PAGE_MASK;
-	length = PAGE_ALIGN(size + (virt & ~PAGE_MASK));
-
-	end = addr + length;
-	do {
-		next = pgd_addr_end(addr, end);
-		alloc_init_pud(pgd, addr, next, phys, map_io);
-		phys += next - addr;
-	} while (pgd++, addr = next, addr != end);
-}
-
-void mmu_hw_create_mapping(phys_addr_t phys, caddr_t virt,
-			   phys_addr_t size)
-{
-#if 0
-	if (virt < VMALLOC_START) {
-		printf("BUG: not creating mapping for %pa at 0x%016lx - outside kernel range\n",
-			&phys, virt);
+	if (!__cpu_uses_extended_idmap())
 		return;
-	}
-#endif
-	__create_mapping(pgd_offset(virt & PAGE_MASK), phys, virt, size, 0);
+
+	tcr = read_sysreg(tcr_el1);
+	tcr &= ~TCR_T0SZ_MASK;
+	tcr |= t0sz << TCR_T0SZ_OFFSET;
+	write_sysreg(tcr, tcr_el1);
+	isb();
 }
 
-#if 0
-void __init mmap_init(void)
+#define cpu_set_default_tcr_t0sz()	__cpu_set_tcr_t0sz(TCR_T0SZ(VA_BITS))
+#define cpu_set_idmap_tcr_t0sz()	__cpu_set_tcr_t0sz(idmap_t0sz)
+
+static void cpu_uninstall_idmap(void)
 {
-	struct memory_region *reg;
-
-	/* map all the memory regions */
-	for_each_memblock(memory, reg) {
-		phys_addr_t start = reg->base;
-		phys_addr_t end = start + reg->size;
-
-		if (start >= end)
-			break;
-		create_mapping(start, __phys_to_virt(start), end - start);
-	}
+	cpu_set_reserved_ttbr0();
+	local_flush_tlb_all();
+	cpu_set_default_tcr_t0sz();
 }
-#endif
-#endif
+
+static void cpu_install_idmap(void)
+{
+	cpu_set_reserved_ttbr0();
+	local_flush_tlb_all();
+	cpu_set_idmap_tcr_t0sz();
+
+	cpu_switch_pgd((pgd_t *)mmu_id_map);
+}
+
+void cpu_replace_ttbr1(caddr_t ttbr)
+{
+	pgd_t *pgdp = (pgd_t *)ttbr;
+	phys_addr_t ttbr1 = phys_to_ttbr(virt_to_phys(pgdp));
+	ttbr_replace_func *replace_phys =
+	       (void *)__pa_symbol(idmap_cpu_replace_ttbr1);
+
+	cpu_install_idmap();
+	replace_phys(ttbr1);
+	cpu_uninstall_idmap();
+}

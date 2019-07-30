@@ -2,6 +2,7 @@
 #define __ARM64_ASSEMBLER_H_INCLUDE__
 
 #include <target/config.h>
+#include <asm/vmsa.h>
 
 #ifdef __ASSEMBLY__
 #define ENDPIPROC(x)			\
@@ -10,6 +11,38 @@
 	.set	__pi_##x, x;		\
 	.size	__pi_##x, . - x;	\
 	ENDPROC(x)
+
+	.macro save_and_disable_daif, flags
+	mrs	\flags, daif
+	msr	daifset, #0xf
+	.endm
+
+	.macro disable_daif
+	msr	daifset, #0xf
+	.endm
+
+	.macro enable_daif
+	msr	daifclr, #0xf
+	.endm
+
+	.macro	restore_daif, flags:req
+	msr	daif, \flags
+	.endm
+
+	.macro	offset_ttbr1, ttbr
+#ifdef CONFIG_CPU_64v8_2_LVA
+	orr	\ttbr, \ttbr, #TTBR1_BADDR_4852_OFFSET
+#endif
+	.endm
+
+	.macro	phys_to_ttbr, ttbr, phys
+#ifdef CONFIG_CPU_64v8_2_LVA
+	orr	\ttbr, \phys, \phys, lsr #46
+	and	\ttbr, \ttbr, #TTBR_BADDR_MASK_52
+#else
+	mov	\ttbr, \phys
+#endif
+	.endm
 
 /*
  * Pseudo-ops for PC-relative adr/ldr/str <reg>, <symbol> where

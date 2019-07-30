@@ -1,10 +1,8 @@
 #include <target/paging.h>
 
+unsigned long empty_zero_page[PAGE_SIZE / sizeof (unsigned long)] __align(PAGE_SIZE);
+
 void mmu_hw_ctrl_init(void)
 {
-#if 0
-	cpu_replace_ttbr1(__va(pgd_phys));
-	memcpy(mmu_pg_dir, pgdp, PAGE_SIZE);
-	cpu_replace_ttbr1(mmu_pg_dir);
-#endif
+	cpu_replace_ttbr1((caddr_t)mmu_pg_dir);
 }

@@ -79,19 +79,19 @@ SECTIONS
 		*(.bss .bss.*)
 	}
 	. = ALIGN(8);
-	__bss_stop = .;				/* end of bss sections */
 
 	/* No direct mapping to the early pgtable */
 #ifdef CONFIG_MMU
 	. = ALIGN(PAGE_SIZE);
-#ifdef CONFIG_CPU_64v8_2_LPA
 	mmu_id_map = .;
+#ifdef CONFIG_VMSA_VA_2_RANGES
 	. += IDMAP_DIR_SIZE;
-#endif /* CONFIG_CPU_64v8_2_LPA */
+#endif
 	mmu_pg_dir = .;
 	. += BPGT_DIR_SIZE;
 #endif
 	. = ALIGN(PAGE_SIZE);
+	__bss_stop = .;				/* end of bss sections */
 	_edata = .;				/* end of data and bss sections */
 
 	. += PERCPU_STACKS_SIZE;

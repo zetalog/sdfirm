@@ -260,6 +260,7 @@ static inline caddr_t pgd_addr_end(caddr_t addr, caddr_t end)
 }
 
 extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
+#define mmu_init_dir	mmu_pg_dir
 #endif /* !__ASSEMBLY__ */
 #endif
 

@@ -9,11 +9,7 @@
 #define ARM_ROM_OFFSET	0x850
 
 #define __PHYS_OFFSET	(SDFIRM_START - TEXT_OFFSET)
-#ifdef CONFIG_VMSA_VA_2_RANGES
-#define mmu_lo_dir	mmu_id_map
-#else
-#define mmu_lo_dir	mmu_pg_dir
-#endif
+#define mmu_init_dir	mmu_pg_dir
 
 	__HEAD
 
@@ -84,7 +80,7 @@ __arm_reset:
 #endif
 #endif
 
-	.macro	init_sp_early
+	.macro	init_sp
 #ifdef CONFIG_SMP
 	mrs	x0, MPIDR_EL1
 	and	x1, x0, #0xff
@@ -103,8 +99,20 @@ __arm_reset:
 #endif
 	.endm
 
+.macro init_bss
+	adr_l	x0, __bss_start
+	adr_l	x1, __bss_stop
+	mov	x2, xzr
+bss_init_loop:
+	stp	x2, x2, [x0], #16
+	cmp	x0, x1
+	b.lt	bss_init_loop
+	dsb	ishst
+.endm
+
 ENTRY(__start)
-	init_sp_early
+	init_sp
+	init_bss
 	bl	__init_exception_level
 
 	# Exit to suitable exception level
@@ -199,17 +207,6 @@ init_el1:
 	ret
 ENDPROC(__init_exception_level)
 
-.macro init_bss
-	adr_l	x0, __bss_start
-	adr_l	x1, __bss_stop
-	mov	x2, xzr
-bss_init_loop:
-	stp	x2, x2, [x0], #16
-	cmp	x0, x1
-	b.lt	bss_init_loop
-	dsb	ishst
-.endm
-
 #ifdef CONFIG_BOOT_LINUX
 ENTRY(__linux_boot_el3)
 	init_bss
@@ -253,8 +250,7 @@ ENTRY(__linux_boot_el3)
 	ret
 ENDPROC(__linux_boot_el3)
 ENTRY(__linux_boot_el2)
-	init_bss
-	init_sp_early
+	init_sp
 	ret
 ENDPROC(__linux_boot_el2)
 #endif
@@ -326,8 +322,8 @@ ENDPROC(__linux_boot_el2)
 ENTRY(__create_page_tables)
 #ifdef CONFIG_MMU
 	adrp	x24, __PHYS_OFFSET
-	adrp	x25, mmu_lo_dir
-	adrp	x26, mmu_pg_dir
+	adrp	x25, mmu_id_map
+	adrp	x26, mmu_init_dir
 	mov	x27, lr
 
 	# Invalidate the idmap and swapper page tables to avoid potential
@@ -395,7 +391,7 @@ ENTRY(__create_page_tables)
 #endif
 
 	# Map the sdfirm image (starting with PHYS_OFFSET).
-	mov	x0, x26				/* mmu_pg_dir */
+	mov	x0, x26				/* mmu_init_dir */
 	mov	x5, #PAGE_OFFSET
 	create_pgd_entry x0, x5, x3, x6
 	ldr	x6, =SDFIRM_END			// __pa(_edata)
@@ -405,7 +401,7 @@ ENTRY(__create_page_tables)
 
 #if defined(CONFIG_MMU_IDMAP_DEVICE) && defined(IDMAP_DEV_BASE)
 	# Map identity device area for early console
-	mov	x0, x25				// mmu_lo_dir
+	mov	x0, x25				// mmu_id_map
 	mov	x5, #IDMAP_DEV_BASE
 	locate_pgd_entry x0
 	mov	x6, #IDMAP_DEVEND
@@ -550,3 +546,22 @@ ENTRY(__enable_mmu)
 	isb
 	br	x27
 ENDPROC(__enable_mmu)
+
+.macro	__idmap_cpu_set_reserved_ttbr1, tmp1, tmp2
+	adrp	\tmp1, empty_zero_page
+	phys_to_ttbr			\tmp2, \tmp1
+	offset_ttbr1			\tmp2
+	msr	ttbr1_el1, \tmp2
+	isb
+	tlbi	vmalle1
+	dsb	nsh
+	isb
+.endm
+ENTRY(idmap_cpu_replace_ttbr1)
+	save_and_disable_daif		flags=x2
+	__idmap_cpu_set_reserved_ttbr1	x1, x3
+	offset_ttbr1			x0
+	isb
+	restore_daif			x2
+	ret
+ENDPROC(idmap_cpu_replace_ttbr1)

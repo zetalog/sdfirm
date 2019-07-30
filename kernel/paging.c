@@ -10,6 +10,10 @@
 #define NO_BLOCK_MAPPINGS	_BV(0)
 #define NO_CONT_MAPPINGS	_BV(1)
 
+#if 0
+pgd_t mmu_pg_dir[PTRS_PER_PGD] __align(PAGE_SIZE);
+#endif
+
 static phys_addr_t early_pgtable_alloc(void)
 {
 	phys_addr_t phys;
@@ -66,6 +70,7 @@ int pud_set_huge(pud_t *pudp, phys_addr_t phys, pgprot_t prot)
 				   pud_val(new_pud)))
 		return 0;
 
+	printf("PUD huge: %016llx=%016llx\n", pudp, new_pud);
 	BUG_ON(phys & ~PUD_MASK);
 	set_pud(pudp, new_pud);
 	return 1;
@@ -80,6 +85,7 @@ int pmd_set_huge(pmd_t *pmdp, phys_addr_t phys, pgprot_t prot)
 				   pmd_val(new_pmd)))
 		return 0;
 
+	printf("PMD huge: %016llx=%016llx\n", pmdp, new_pmd);
 	BUG_ON(phys & ~PMD_MASK);
 	set_pmd(pmdp, new_pmd);
 	return 1;
@@ -93,6 +99,7 @@ static void init_pte(pmd_t *pmdp, caddr_t addr, caddr_t end,
 	ptep = pte_set_fixmap_offset(pmdp, addr);
 	do {
 		pte_t old_pte = READ_ONCE(*ptep);
+		printf("PTE: %016llx, addr=%016llx\n", ptep, addr);
 		set_pte(ptep, pfn_pte(phys_to_pfn(phys), prot));
 		/* After the PTE entry has been populated once, we
 		 * only allow updates to the permission attributes.
@@ -115,6 +122,7 @@ static void alloc_init_cont_pte(pmd_t *pmdp, caddr_t addr,
 	caddr_t next;
 	pmd_t pmd = READ_ONCE(*pmdp);
 
+	printf("PMD: %016llx=%016llx\n", pmdp, pmd);
 	BUG_ON(pmd_sect(pmd));
 	if (pmd_none(pmd)) {
 		phys_addr_t pte_phys;
@@ -128,11 +136,14 @@ static void alloc_init_cont_pte(pmd_t *pmdp, caddr_t addr,
 	do {
 		pgprot_t __prot = prot;
 		next = pte_cont_addr_end(addr, end);
+		printf("PTE: cont=%016llx\n", addr);
 
 		/* Use a contiguous mapping if the range is suitably aligned */
 		if ((((addr | next | phys) & ~CONT_PTE_MASK) == 0) &&
-		    (flags & NO_CONT_MAPPINGS) == 0)
+		    (flags & NO_CONT_MAPPINGS) == 0) {
+			BUG();
 			__prot = __pgprot(pgprot_val(prot) | PTE_CONT);
+		}
 		init_pte(pmdp, addr, next, phys, __prot);
 		phys += next - addr;
 	} while (addr = next, addr != end);
@@ -149,6 +160,7 @@ static void init_pmd(pud_t *pudp, caddr_t addr, caddr_t end,
 	do {
 		pmd_t old_pmd = READ_ONCE(*pmdp);
 		next = pmd_addr_end(addr, end);
+		printf("PMD: %016llx, addr=%016llx\n", pmdp, addr);
 
 		/* try section mapping first */
 		if (((addr | next | phys) & ~SECTION_MASK) == 0 &&
@@ -196,6 +208,7 @@ static void alloc_init_cont_pmd(pud_t *pudp, caddr_t addr,
 	do {
 		pgprot_t __prot = prot;
 		next = pmd_cont_addr_end(addr, end);
+		printf("PMD: cont=%016llx\n", addr);
 
 		/* Use a contiguous mapping if the range is suitably aligned */
 		if ((((addr | next | phys) & ~CONT_PMD_MASK) == 0) &&
@@ -235,10 +248,10 @@ static void alloc_init_pud(pgd_t *pgdp, caddr_t addr, caddr_t end,
 	BUG_ON(pgd_bad(pgd));
 
 	pudp = pud_set_fixmap_offset(pgdp, addr);
-	mmu_dbg_tbl("PUD: %016llx\n", pudp);
 	do {
 		pud_t old_pud = READ_ONCE(*pudp);
 		next = pud_addr_end(addr, end);
+		printf("PUD: %016llx, addr=%016llx\n", pudp, addr);
 
 		/* For 4K granule only, try 1GB block */
 		if (use_1G_block(addr, next, phys) &&
@@ -400,7 +413,7 @@ static void map_kernel(pgd_t *pgdp)
 	 * existing dir for the fixmap.
 	 */
 	set_pgd(pgd_offset_raw(pgdp, FIXADDR_START),
-		READ_ONCE(*pgd_offset(FIXADDR_START)));
+		READ_ONCE(*pgd_offset_raw(mmu_init_dir, FIXADDR_START)));
 }
 
 static pte_t bm_pte[PTRS_PER_PTE] __page_aligned_bss __unused;
@@ -413,7 +426,7 @@ static pud_t bm_pud[PTRS_PER_PUD] __page_aligned_bss __unused;
 
 static inline pud_t *fixmap_pud(caddr_t addr)
 {
-	pgd_t *pgdp = pgd_offset(addr);
+	pgd_t *pgdp = pgd_offset_raw(mmu_init_dir, addr);
 #ifdef CONFIG_DEBUG_PANIC
 	pgd_t pgd = READ_ONCE(*pgdp);
 #endif
@@ -476,8 +489,8 @@ void early_fixmap_init(void)
 	caddr_t addr = FIXADDR_START;
 
 	con_dbg("FIXMAP: %016llx - %016llx\n", FIXADDR_START, FIXADDR_END);
-	mmu_dbg_tbl("PGDIR: %016llx\n", mmu_pg_dir);
-	pgd = pgd_offset(addr);
+	mmu_dbg_tbl("PGDIR: %016llx\n", mmu_init_dir);
+	pgd = pgd_offset_raw(mmu_init_dir, addr);
 	pgd_populate(pgd, bm_pud);
 	pud = pud_offset(pgd, addr);
 	pud_populate(pud, bm_pmd);
@@ -508,10 +521,10 @@ void early_fixmap_init(void)
 
 void paging_init(void)
 {
-	pgd_t *pgdp = pgd_set_fixmap(__pa_symbol(mmu_pg_dir));
+	pgd_t *pgdp = pgd_set_fixmap(__pa_symbol(mmu_init_dir));
 
 	map_kernel(pgdp);
 	map_mem(pgdp);
 	pgd_clear_fixmap();
-	mmu_hw_ctrl_init();
+//	mmu_hw_ctrl_init();
 }
