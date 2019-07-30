@@ -51,7 +51,9 @@ void page_alloc_init(caddr_t base, pfn_t nr_pages)
 
 void page_init(void)
 {
+#if !defined(CONFIG_MMU) || defined(CONFIG_MMU_MAP_MEM)
 	mem_free_all();
+#endif
 }
 
 static int do_page(int argc, char **argv)

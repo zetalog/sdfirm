@@ -259,10 +259,10 @@ static inline caddr_t pgd_addr_end(caddr_t addr, caddr_t end)
 	return (__boundary - 1 < end - 1) ? __boundary : (end);
 }
 
-#if 1
-#define mmu_pg_dir	mmu_boot_map
-#else
+#ifdef CONFIG_MMU_BOOT_MAP
 extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
+#else
+#define mmu_pg_dir	mmu_boot_map
 #endif
 #endif /* !__ASSEMBLY__ */
 #endif

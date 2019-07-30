@@ -10,7 +10,7 @@
 #define NO_BLOCK_MAPPINGS	_BV(0)
 #define NO_CONT_MAPPINGS	_BV(1)
 
-#if 0
+#ifdef CONFIG_MMU_BOOT_MAP
 pgd_t mmu_pg_dir[PTRS_PER_PGD] __page_align_bss;
 #endif
 
@@ -525,7 +525,11 @@ void paging_init(void)
 	pgd_t *pgdp = pgd_set_fixmap(__pa_symbol(mmu_pg_dir));
 
 	map_kernel(pgdp);
+#ifdef CONFIG_MMU_MAP_MEM
 	map_mem(pgdp);
+#endif
 	pgd_clear_fixmap();
-	/* mmu_hw_ctrl_init(); */
+#ifdef CONFIG_MMU_BOOT_MAP
+	mmu_hw_ctrl_init();
+#endif
 }
