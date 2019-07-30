@@ -158,6 +158,9 @@ static inline caddr_t pte_addr_end(caddr_t addr, caddr_t end)
 #define pud_page_paddr(pud)	(pud_val(pud) & PHYS_MASK & PAGE_MASK)
 #define pud_page_vaddr(pud)	((pmd_t *)__va(pud_page_paddr(pud)))
 
+#define pfn_pmd(pfn,prot)	__pmd(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
+#define pfn_pud(pfn, prot)	__pud(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
+
 /* PMD_SHIFT determines the size a level 2 page table entry can map. */
 #define PMD_SHIFT	(PAGE_PXD_BITS + PAGE_SHIFT)
 #define PMD_SIZE	(PTR_VAL_ONE << PMD_SHIFT)
@@ -261,6 +264,28 @@ extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
 #endif
 
 #include <driver/mmu.h>
+
+#ifndef __ASSEMBLY__
+static inline caddr_t pte_cont_addr_end(caddr_t addr, caddr_t end)
+{
+	caddr_t __boundary = ((addr) + CONT_PTE_SIZE) & CONT_PTE_MASK;
+	return (__boundary - 1 < end - 1) ? __boundary : end;
+}
+
+static inline caddr_t pmd_cont_addr_end(caddr_t addr, caddr_t end)
+{
+	caddr_t __boundary = ((addr) + CONT_PMD_SIZE) & CONT_PMD_MASK;
+	return (__boundary - 1 < end - 1) ? __boundary : end;
+}
+
+static inline pgprot_t mk_pud_sect_prot(pgprot_t prot)
+{
+	return __pgprot((pgprot_val(prot) & ~PUD_TABLE_BIT) | PUD_TYPE_SECT);}
+
+static inline pgprot_t mk_pmd_sect_prot(pgprot_t prot)
+{
+	return __pgprot((pgprot_val(prot) & ~PMD_TABLE_BIT) | PMD_TYPE_SECT);}
+#endif
 
 #define FIXMAP_PAGE_IO	__pgprot(PROT_DEVICE_nGnRE)
 
