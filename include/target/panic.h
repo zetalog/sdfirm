@@ -48,24 +48,18 @@ void debug_init(void);
  * Expression shouldn't be executed when PANIC is disabled? Use BUG_ON.
  */
 void dbg_panic(const text_char_t *file, int line);
-#ifndef BUG
 #define BUG()						\
 	dbg_panic(__FILE__, __LINE__)
-#endif
-#ifndef BUG_ON
 #define BUG_ON(expr)					\
 	do {						\
-		if (expr)				\
-			dbg_panic(__FILE__, __LINE__);	\
+		if (expr) {				\
+			con_dbg("PANIC: " #expr);	\
+			BUG();				\
+		}					\
 	} while (0)
-#endif
 #else
-#ifndef BUG
 #define BUG()
-#endif
-#ifndef BUG_ON
 #define BUG_ON(expr)
-#endif
 #endif
 
 #include <target/dbg_event.h>

@@ -158,7 +158,6 @@ static inline void write_ttbr(phys_addr_t tbl, uint8_t el, bool top)
 }
 
 extern uint64_t idmap_t0sz;
-extern caddr_t mmu_id_map;
 
 ttbr_replace_func idmap_cpu_replace_ttbr1;
 void cpu_replace_ttbr1(caddr_t ttbr);

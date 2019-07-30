@@ -5,11 +5,11 @@
 #include <asm/assembler.h>
 #include <asm/asm-offsets.h>
 #include <asm/sysreg.h>
+#include <target/paging.h>
 
 #define ARM_ROM_OFFSET	0x850
 
 #define __PHYS_OFFSET	(SDFIRM_START - TEXT_OFFSET)
-#define mmu_init_dir	mmu_pg_dir
 
 	__HEAD
 
@@ -322,8 +322,8 @@ ENDPROC(__linux_boot_el2)
 ENTRY(__create_page_tables)
 #ifdef CONFIG_MMU
 	adrp	x24, __PHYS_OFFSET
-	adrp	x25, mmu_id_map
-	adrp	x26, mmu_init_dir
+	ldr	x25, =mmu_id_map
+	ldr	x26, =mmu_boot_map
 	mov	x27, lr
 
 	# Invalidate the idmap and swapper page tables to avoid potential
@@ -346,7 +346,7 @@ ENTRY(__create_page_tables)
 
 #ifdef CONFIG_VMSA_VA_2_RANGES
 	# Create the identity mapping.
-	mov	x0, x25				// mmu_id_map
+	mov	x0, x25				// idmap
 	adrp	x3, __idmap_text_start		// __pa(__idmap_text_start)
 
 #ifndef CONFIG_VMSA_VA_256TB
@@ -391,7 +391,7 @@ ENTRY(__create_page_tables)
 #endif
 
 	# Map the sdfirm image (starting with PHYS_OFFSET).
-	mov	x0, x26				/* mmu_init_dir */
+	mov	x0, x26				/* bpgt */
 	mov	x5, #PAGE_OFFSET
 	create_pgd_entry x0, x5, x3, x6
 	ldr	x6, =SDFIRM_END			// __pa(_edata)
@@ -401,7 +401,7 @@ ENTRY(__create_page_tables)
 
 #if defined(CONFIG_MMU_IDMAP_DEVICE) && defined(IDMAP_DEV_BASE)
 	# Map identity device area for early console
-	mov	x0, x25				// mmu_id_map
+	mov	x0, x25				// idmap
 	mov	x5, #IDMAP_DEV_BASE
 	locate_pgd_entry x0
 	mov	x6, #IDMAP_DEVEND

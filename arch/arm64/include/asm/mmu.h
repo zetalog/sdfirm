@@ -354,4 +354,22 @@ void mmu_hw_create_mapping(phys_addr_t phys, caddr_t virt,
 void mmu_hw_ctrl_init(void);
 #endif /* !__ASSEMBLY__ */
 
+#ifndef LINKER_SCRIPT
+#ifdef __ASSEMBLY__
+.extern mmu_id_map
+#ifdef CONFIG_VMSA_VA_2_RANGES
+.extern mmu_boot_map
+#else
+#define mmu_boot_map	mmu_id_map
+#endif
+#else
+extern pgd_t mmu_id_map[IDMAP_DIR_SIZE / sizeof (pgd_t)];
+#ifdef CONFIG_VMSA_VA_2_RANGES
+extern pgd_t mmu_boot_map[BPGT_DIR_SIZE / sizeof (pgd_t)];
+#else
+#define mmu_boot_map	mmu_id_map
+#endif
+#endif
+#endif
+
 #endif /* __MMU_ARM64_H_INCLUDE__ */

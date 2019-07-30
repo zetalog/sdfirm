@@ -58,6 +58,7 @@ SECTIONS
 	. = CONFIG_TEXT_RAM_BASE;		/* ensure address followups in RAM */
 #endif
 
+	. = ALIGN(PAGE_SIZE);
 	_sdata = .;				/* begin of data and bss sections */
 	__sdata = .;				/* begin of data sections */
 	.data : AT(_etext) {
@@ -79,19 +80,8 @@ SECTIONS
 		*(.bss .bss.*)
 	}
 	. = ALIGN(8);
-
-	/* No direct mapping to the early pgtable */
-#ifdef CONFIG_MMU
-	. = ALIGN(PAGE_SIZE);
-	mmu_id_map = .;
-#ifdef CONFIG_VMSA_VA_2_RANGES
-	. += IDMAP_DIR_SIZE;
-#endif
-	mmu_pg_dir = .;
-	. += BPGT_DIR_SIZE;
-#endif
-	. = ALIGN(PAGE_SIZE);
 	__bss_stop = .;				/* end of bss sections */
+	. = ALIGN(PAGE_SIZE);
 	_edata = .;				/* end of data and bss sections */
 
 	. += PERCPU_STACKS_SIZE;
