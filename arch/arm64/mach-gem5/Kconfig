@@ -39,6 +39,7 @@ config GEM5_RAM_BASE
 config GEM5_RAM_BITS
 	int "Physical memory bits of RAM"
 	default 24
+	depends !GEM5_RAM_DEFAULT
 	help
 	  This option is useful for RTL simulation environment.
 	  Bit shift N of RAM memory size. Memory size will be 2^N.

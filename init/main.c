@@ -92,6 +92,7 @@ void system_init(void)
 	clk_init();
 	timer_init();
 	paging_init();
+	page_init();
 	heap_init();
 	bulk_init();
 

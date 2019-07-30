@@ -682,10 +682,11 @@ void mem_free_all(void)
 	pfn_t start_pfn, end_pfn;
 
 	for_each_reserved_mem_region(i, &start, &end) {
+		con_dbg("reserved: %016llx - %016llx\n", start, end);
 		reserve_bootmem_region(start, end);
 	}
 	for_each_free_mem_range(i, &start, &end) {
-		con_dbg("PAGE: %016llx - %016llx\n", start, end);
+		con_dbg("memory: %016llx - %016llx\n", start, end);
 		start_pfn = PFN_UP(start);
 		end_pfn = PFN_DOWN(end);
 		page_alloc_init(start, end_pfn - start_pfn);

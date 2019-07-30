@@ -45,8 +45,13 @@ void page_alloc_init(caddr_t base, pfn_t nr_pages)
 		page->next = NULL;
 		*last_page = page;
 		last_page = &page->next;
-		printf("%016llx\n", PFN_PHYS(pfn + pfn_start));
+		/*printf("Free Page: %016llx\n", (uint64_t)page);*/
 	}
+}
+
+void page_init(void)
+{
+	mem_free_all();
 }
 
 static int do_page(int argc, char **argv)

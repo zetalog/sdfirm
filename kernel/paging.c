@@ -514,5 +514,4 @@ void paging_init(void)
 	map_mem(pgdp);
 	pgd_clear_fixmap();
 	mmu_hw_ctrl_init();
-	mem_free_all();
 }

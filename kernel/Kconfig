@@ -325,6 +325,7 @@ endif
 
 menuconfig PAGE
 	bool "Address space allocator (page) support"
+	select MEM
 
 if PAGE
 
