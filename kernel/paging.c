@@ -524,6 +524,9 @@ void paging_init(void)
 {
 	pgd_t *pgdp = pgd_set_fixmap(__pa_symbol(mmu_pg_dir));
 
+	printf("==============================================================\n");
+	printf("PGTABLE_LEVES=%d\n", PGTABLE_LEVELS);
+	printf("BPGT_PGTABLE_LEVES=%d\n", BPGT_PGTABLE_LEVELS);
 	map_kernel(pgdp);
 #ifdef CONFIG_MMU_MAP_MEM
 	map_mem(pgdp);

@@ -265,10 +265,11 @@ extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
 #define mmu_pg_dir	mmu_boot_map
 #endif
 #endif /* !__ASSEMBLY__ */
-#endif
+#endif /* CONFIG_ARCH_HAS_MMU */
 
 #include <driver/mmu.h>
 
+#ifdef CONFIG_ARCH_HAS_MMU
 #ifndef __ASSEMBLY__
 static inline caddr_t pte_cont_addr_end(caddr_t addr, caddr_t end)
 {
@@ -290,6 +291,7 @@ static inline pgprot_t mk_pmd_sect_prot(pgprot_t prot)
 {
 	return __pgprot((pgprot_val(prot) & ~PMD_TABLE_BIT) | PMD_TYPE_SECT);}
 #endif
+#endif /* CONFIG_ARCH_HAS_MMU */
 
 #define FIXMAP_PAGE_IO	__pgprot(PROT_DEVICE_nGnRE)
 

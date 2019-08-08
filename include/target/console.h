@@ -72,6 +72,7 @@ void console_late_init(void);
 #else
 #define early_console_init()		do { } while (0)
 #define console_init()			do { } while (0)
+#define late_console_init()		do { } while (0)
 #endif
 
 #ifdef CONFIG_CONSOLE_DEBUG

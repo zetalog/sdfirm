@@ -314,6 +314,9 @@ menuconfig MEM
 
 if MEM
 
+config MMU_MAP_MEM
+	bool "Map memories"
+
 config MEM_MAX_REGIONS
 	int "Maximum region banks"
 	default 3
