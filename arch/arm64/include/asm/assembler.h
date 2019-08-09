@@ -97,6 +97,11 @@
 	bl      \sym
 	mov     lr, \tmp
 	.endm
+
+	/*
+	 * Register aliases.
+	 */
+	lr	.req	x30		// link register
 #endif
 
 #endif /* __ARM64_ASSEMBLER_H_INCLUDE__ */
