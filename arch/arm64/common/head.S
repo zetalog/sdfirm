@@ -209,8 +209,6 @@ ENDPROC(__init_exception_level)
 
 #ifdef CONFIG_BOOT_LINUX
 ENTRY(__linux_boot_el3)
-	init_bss
-
 	# EL3/EL2 kernel bootloader
 	# early delay initialization
 	call_l	delay_init
