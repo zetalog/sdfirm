@@ -72,6 +72,22 @@
 #define __smp_wmb()	wmb()
 #endif
 
+#ifndef __dma_mb
+#define __dma_mb	mb()
+#endif
+
+#ifndef __dma_rmb
+#define __dma_rmb()	rmb()
+#endif
+
+#ifndef __dma_wmb
+#define __dma_wmb()	wmb()
+#endif
+
+#ifndef dma_mb
+#define dma_mb()	__dma_mb()
+#endif
+
 #ifndef dma_rmb
 #define dma_rmb()	__dma_rmb()
 #endif

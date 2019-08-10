@@ -57,6 +57,7 @@
 #define __rmb()		dsb(ld)
 #define __wmb()		dsb(st)
 
+#define __dma_mb()	dmb(osh)
 #define __dma_rmb()	dmb(oshld)
 #define __dma_wmb()	dmb(oshst)
 

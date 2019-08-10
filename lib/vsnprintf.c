@@ -724,7 +724,7 @@ int vsnprintf(char *string, size_t size, const char *format, va_list args)
 			}
 
 			p = va_arg(args, void *);
-			pos = format_number(pos, end, (uint64_t)p,
+			pos = format_number(pos, end, (caddr_t)p,
 					    16, width, precision, type);
 			continue;
 
