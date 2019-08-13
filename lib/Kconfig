@@ -123,6 +123,13 @@ config PRINT_PRINTF
 
 endmenu
 
+menu "Advanced string operations"
+
+config STRING_STRTOUL
+	bool "strtoul"
+
+endmenu
+
 source lib/font/Kconfig
 
 endmenu
