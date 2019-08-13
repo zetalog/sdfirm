@@ -21,19 +21,17 @@ typedef struct {
 	char *usage; /* long description */
 } cmd_tbl;
 
-#ifdef CONFIG_CONSOLE_COMMAND
 #define DEFINE_COMMAND(name, cmd, help, usage)		\
 	int cmd(int, char *[]);				\
 	static cmd_tbl __cmd_##name			\
 	__attribute__((used,__section__(".cmd.text")))	\
 	= { #name, cmd, help, usage }
 
+#ifdef CONFIG_CONSOLE_COMMAND
 int cmd_help(char *cmd);
 int cmd_loop(void);
 int cmd_init(void);
 #else
-#define DEFINE_COMMAND(name, cmd, help, usage)
-
 static inline int cmd_help(char *cmd)
 {
 	return -ENODEV;

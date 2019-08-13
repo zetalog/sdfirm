@@ -1,4 +1,5 @@
 #include <target/types.h>
+#include <target/muldiv.h>
 #include <string.h>
 #include <stdarg.h>
 
@@ -60,8 +61,8 @@ static char *put_number(char *string, uint64_t number,
 		*(pos++) = '0';
 	} else {
 		while (number) {
-			digit_index = number % base;
-			number /= base;
+			digit_index = mod64u(number, base);
+			number = div64u(number, base);
 			*(pos++) = digits[digit_index];
 		}
 	}

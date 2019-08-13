@@ -1,0 +1,53 @@
+#
+# For a description of the syntax of this configuration file,
+# see Documentation/kbuild/kconfig-language.txt.
+#
+
+mainmenu "Small Device Firmware Configuration"
+
+config 128BIT
+	bool
+
+config 64BIT
+	bool
+
+config 32BIT
+	bool
+
+config RISCV
+	def_bool y
+	# even on 32-bit, physical (and DMA) addresses are > 32-bits
+
+source "init/Kconfig"
+
+menu "RISCV system options"
+
+choice
+	prompt "RISCV system type"
+	default ARCH_VEGA
+
+config ARCH_VEGA
+	bool "Open-ISA VEGA-Lite (RV32M1)"
+	select ARCH_IS_TICKLESS
+	select ARCH_HAS_TSC
+	select ARCH_HAS_TSC_CONST
+	select ARCH_HAS_GPT
+	select ARCH_HAS_GPIO
+	select ARCH_HAS_IDLE
+	#select MATH_GCD32
+	#select BIT_ROUNDUP32
+	#select CLK
+	help
+	  This enables support for Qualcomm server platforms.
+
+endchoice
+
+source "arch/riscv/common/Kconfig"
+
+endmenu
+
+source "arch/riscv/mach-vega/Kconfig"
+source "kernel/Kconfig"
+source "drivers/Kconfig"
+source "lib/Kconfig"
+source "init/Kconfig.debug"

@@ -98,6 +98,8 @@ menu "Print operations"
 
 config PRINT_VSNPRINTF
 	bool "vsnprintf"
+	select MATH_MOD64
+	select MATH_DIV64
 
 config PRINT_SNPRINTF
 	bool "snprintf"

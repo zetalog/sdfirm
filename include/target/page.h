@@ -54,9 +54,9 @@
 
 #ifndef __ASSEMBLY__
 #define pfn_to_page(pfn)	\
-	((struct page *)(((pfn_t)(pfn)) << PAGE_SHIFT))
+	((struct page *)((caddr_t)(((pfn_t)(pfn)) << PAGE_SHIFT)))
 #define page_to_pfn(page)	\
-	(((pfn_t)(page) >> PAGE_SHIFT))
+	(((pfn_t)((caddr_t)(page)) >> PAGE_SHIFT))
 
 #define PFN_ALIGN(x)	(((pfn_t)(x) + (PAGE_SIZE - 1)) & PAGE_MASK)
 #define PFN_UP(x)	(((x) + PAGE_SIZE-1) >> PAGE_SHIFT)

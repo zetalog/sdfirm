@@ -1,0 +1,31 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+if ARCH_VEGA
+
+menu "Open-ISA VEGA-Lite (RV32M1) board options"
+
+choice
+	prompt "RISCV boot CPU"
+	default VEGA_RI5CY
+
+config VEGA_RI5CY
+	bool "RI5CY"
+	select CPU_RI5CY
+	select ARCH_HAS_HIVEC
+
+config VEGA_0RISCY
+	bool "Zero RISCY"
+	select CPU_0RISCY
+
+endchoice
+
+config VEGA_BOOT_CPU
+	bool "Configured as boot CPU"
+	default y
+
+endmenu
+
+endif

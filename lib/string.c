@@ -92,7 +92,6 @@ int strcmp(const char *cs, const char *ct)
 	return 0;
 }
 
-#ifdef CONFIG_CONSOLE_COMMAND
 size_t strtoul(const char *nptr, char **endptr, int base)
 {
 	const char *s;
@@ -164,4 +163,3 @@ noconv:
 		*endptr = (char *)(any ? s - 1 : nptr);
 	return acc;
 }
-#endif

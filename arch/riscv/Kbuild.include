@@ -1,0 +1,8 @@
+
+ifeq ($(COMPILER),)
+COMPILER	:= gcc
+endif
+ifeq ($(CROSS_COMPILE),)
+CROSS_COMPILE	:= riscv32-linux-
+endif
+BIN2VHX		:= $(srctree)/scripts/bin2vhx.pl

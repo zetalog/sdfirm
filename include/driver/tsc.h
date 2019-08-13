@@ -34,7 +34,9 @@ typedef uint64_t tsc_count_t;
 #ifndef tsc_hw_read_counter
 tsc_count_t tsc_hw_read_counter(void);
 #endif
+#ifndef tsc_hw_ctrl_init
 void tsc_hw_ctrl_init(void);
+#endif
 #endif /* __ASSEMBLY__ */
 
 #endif /* __TSC_DRIVER_H_INCLUDE__ */

@@ -50,6 +50,12 @@ config SYS_TASK
 
 endchoice
 
+config ARCH_HAS_LOVEC
+	bool
+
+config ARCH_HAS_HIVEC
+	bool
+
 config ARCH_HAS_VIC
 	bool
 

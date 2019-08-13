@@ -756,6 +756,7 @@ void mem_dump_all(void)
 static int do_mem_dump(int argc, char **argv)
 {
 	mem_dump_all();
+	return 0;
 }
 
 int get_data_size(char *arg, int default_size)

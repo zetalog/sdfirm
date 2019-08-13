@@ -1,0 +1,263 @@
+# RI5CY
+config CPU_RI5CY
+	bool
+	select CPU_32I
+	select CPU_M
+	select CPU_C
+
+# ZERO RISCY
+config CPU_0RISCY
+	bool
+	select CPU_32I
+	select CPU_32E
+	select CPU_M
+	select CPU_C
+
+config CPU_32G
+	bool
+	select CPU_32I
+	select CPU_ZIFENCEI
+	select CPU_ZICSR
+	select CPU_M
+	select CPU_A
+	select CPU_F
+	select CPU_D
+
+config CPU_64G
+	bool
+	select CPU_64I
+	select CPU_ZIFENCEI
+	select CPU_ZICSR
+	select CPU_M
+	select CPU_A
+	select CPU_F
+	select CPU_D
+
+config CPU_WMO
+	bool
+
+config CPU_32I
+	bool
+
+config CPU_64I
+	bool
+
+config CPU_32E
+	bool
+
+config CPU_128I
+	bool
+
+choice
+	prompt "Base ISA"
+	default RISCV_32I
+	help
+	  This selects the base ISA that this kernel will target and must match
+	  the target platform.
+
+config RISCV_WMO
+	bool "Weak memory ordering (RVWMO)"
+	depends CPU_WMO
+	select 32BIT
+
+config RISCV_32I
+	bool "RV32I"
+	depends CPU_32I
+	select 32BIT
+
+config RISCV_64I
+	bool "RV64I"
+	depends CPU_64I
+	select 64BIT
+
+config RISCV_32E
+	bool "RV32E"
+	depends CPU_32E
+	select 32BIT
+
+config RISCV_128I
+	bool "RV128I"
+	depends CPU_128I
+	select 128BIT
+
+endchoice
+
+menu "ISA extensions"
+
+config CPU_ZIFENCEI
+	bool
+
+config CPU_ZICSR
+	bool
+
+config CPU_M
+	bool
+
+config CPU_A
+	bool
+
+config CPU_F
+	bool
+
+config CPU_D
+	bool
+
+config CPU_Q
+	bool
+
+config CPU_C
+	bool
+
+config CPU_ZTSO
+	bool
+
+config CPU_COUNTERS
+	bool
+
+config CPU_L
+	bool
+
+config CPU_B
+	bool
+
+config CPU_J
+	bool
+
+config CPU_T
+	bool
+
+config CPU_P
+	bool
+
+config CPU_V
+	bool
+
+config CPU_N
+	bool
+
+config CPU_ZAM
+	bool
+
+config RISCV_M
+	bool "Multiplication and division (M) support"
+	depends CPU_M
+	default y
+
+config RISCV_A
+	bool "Atomic instructions (A) support"
+	depends CPU_A
+	default y
+
+config RISCV_F
+	bool "Single-precision floating-point (F) support"
+	depends CPU_F
+
+config RISCV_D
+	bool "Double-precision floating-point (D) support"
+	depends CPU_D
+
+config RISCV_Q
+	bool "Quad-precision floating-point (Q) support"
+	depends CPU_Q
+
+config RISCV_L
+	bool "Decimal floating-point (L) support"
+	depends CPU_L
+
+config RISCV_C
+	bool "Compressed instructions (C) support"
+	depends CPU_C
+	default y
+
+config RISCV_ZTSO
+	bool "Total store ordering (TSO) support"
+	depends CPU_ZTSO
+	default y
+
+config RISCV_COUNTERS
+	bool "Performance counters and timer support"
+	depends CPU_COUNTERS
+	default y
+
+config RISCV_B
+	bool "Bit manipulation (B) support"
+	depends CPU_B
+	default y
+
+config RISCV_J
+	bool "Dynamically translated languages (J) support"
+	depends CPU_J
+
+config RISCV_T
+	bool "Transactional memory (T) support"
+	depends CPU_T
+	default y
+
+config RISCV_P
+	bool "Packed-SIMD instructions (P) support"
+	depends CPU_P
+
+config RISCV_V
+	bool "Vector operations (V) support"
+	depends CPU_V
+
+config RISCV_N
+	bool "User-level interrupts (N) support"
+	depends CPU_N
+	default y
+
+config RISCV_ZAM
+	bool "Misaligned atomics (Zam) support"
+	depends CPU_ZAM
+	default y
+
+endmenu
+
+# We must be able to map all physical memory into the kernel, but the compiler
+# is still a bit more efficient when generating code if it's setup in a manner
+# such that it can only map 2GiB of memory.
+choice
+	prompt "Program code model (-mcmodel)"
+	default CMODEL_MEDLOW if 32BIT
+	default CMODEL_MEDANY if 64BIT
+
+config CMODEL_MEDLOW
+	bool "medium low code model"
+
+config CMODEL_MEDANY
+	bool "medium any code model"
+
+endchoice
+
+choice
+	prompt "CPU Tuning"
+	default TUNE_GENERIC
+
+config TUNE_GENERIC
+	bool "generic"
+
+endchoice
+
+choice
+	prompt "Maximum Physical Memory"
+	default MAXPHYSMEM_2GB if 32BIT
+	default MAXPHYSMEM_2GB if 64BIT && CMODEL_MEDLOW
+	default MAXPHYSMEM_128GB if 64BIT && CMODEL_MEDANY
+
+config MAXPHYSMEM_2GB
+	bool "2GiB"
+
+config MAXPHYSMEM_128GB
+	depends on 64BIT && CMODEL_MEDANY
+	bool "128GiB"
+
+endchoice
+
+config CPU_SMP
+	bool
+
+config NR_CPUS
+	int "Maximum number of CPUs (2-32)"
+	range 2 32
+	depends on CPU_SMP
+	default "8"

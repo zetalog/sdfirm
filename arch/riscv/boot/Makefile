@@ -1,0 +1,29 @@
+#
+# arch/arm64/boot/Makefile
+#
+# This file is included by the global makefile so that you can add your own
+# architecture-specific flags and dependencies.
+#
+# This file is subject to the terms and conditions of the GNU General Public
+# License.  See the file "COPYING" in the main directory of this archive
+# for more details.
+#
+# Copyright (C) 2009 Lv Zheng
+#
+
+sdfirm := sdfirm.bin sdfirm.srec sdfirm.vhx
+
+$(obj)/sdfirm.bin: sdfirm.strip FORCE
+	$(call if_changed,objcopy)
+	@echo '  Small Device Firmware: $@ is ready'
+$(obj)/sdfirm.srec: sdfirm.strip FORCE
+	$(call if_changed,objcopy)
+	@echo '  Small Device Firmware: $@ is ready'
+OBJCOPYFLAGS_sdfirm.bin		+=-O binary
+OBJCOPYFLAGS_sdfirm.srec	+=-O srec
+
+quiet_cmd_bin2vhx   = BIN2VHX $@
+      cmd_bin2vhx   = $(BIN2VHX) --width=32 $< $@
+$(obj)/sdfirm.vhx: $(obj)/sdfirm.bin FORCE
+	$(call if_changed,bin2vhx)
+	@echo '  Small Device Firmware: $@ is ready'

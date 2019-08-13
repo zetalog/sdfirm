@@ -12,6 +12,8 @@
 /* to align the pointer to the (next) page boundary */
 #define PAGE_ALIGN(addr)	ALIGN(addr, PAGE_SIZE)
 
+#define __pa_symbol(x)		__pa(RELOC_HIDE((caddr_t)(x), 0))
+
 #ifdef CONFIG_ARCH_HAS_MMU
 #define __PA(x)			((x) - PAGE_OFFSET + PHYS_OFFSET)
 #define __VA(x)			((x) - PHYS_OFFSET + PAGE_OFFSET)
@@ -19,7 +21,6 @@
 #define phys_to_virt(x)		((caddr_t)((x) - PHYS_OFFSET + PAGE_OFFSET))
 #define __pa(x)			virt_to_phys((caddr_t)(x))
 #define __va(x)			phys_to_virt((phys_addr_t)(x))
-#define __pa_symbol(x)		__pa(RELOC_HIDE((caddr_t)(x), 0))
 
 /* Convert a physical address to a Page Frame Number and back */
 #define phys_to_pfn(paddr)	((pfn_t)((paddr) >> PAGE_SHIFT))
@@ -265,6 +266,9 @@ extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
 #define mmu_pg_dir	mmu_boot_map
 #endif
 #endif /* !__ASSEMBLY__ */
+#else
+#define __pa(x)			((phys_addr_t)(x))
+#define __va(x)			((caddr_t)(x))
 #endif /* CONFIG_ARCH_HAS_MMU */
 
 #include <driver/mmu.h>

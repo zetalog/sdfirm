@@ -1,11 +1,31 @@
 /* Align . to a 8 byte boundary equals to maximum function alignment. */
 #define ALIGN_FUNCTION() . = ALIGN(8)
 
+#ifdef CONFIG_ARCH_HAS_LOVEC
+#define LOVEC_TEXT						\
+	__vectors = .;						\
+	*(.lovec.text)
+#else
+#define LOVEC_TEXT
+#endif
+#ifdef CONFIG_ARCH_HAS_HIVEC
+#define HIVEC_TEXT						\
+	__vectors = .;						\
+	*(.hivec.text)
+#else
+#define HIVEC_TEXT
+#endif
+
 #define HEAD_TEXT						\
 	*(.head.text)
-#define HEAD_TEXT_SECTION					\
-	.head.text : AT(ADDR(.head.text)) {			\
+#define HEAD_TEXT_SECTION(align)				\
+	.head.text : AT(ADDR(.head.text)) ALIGN(align) {	\
+		LOVEC_TEXT					\
 		HEAD_TEXT					\
+	}
+#define TAIL_TEXT_SECTION(align)				\
+	.tail.text : ALIGN(align) {				\
+		HIVEC_TEXT					\
 	}
 #define INIT_DATA						\
 	*(.init.data)						\
