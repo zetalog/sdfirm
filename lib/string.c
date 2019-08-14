@@ -92,7 +92,7 @@ int strcmp(const char *cs, const char *ct)
 	return 0;
 }
 
-#ifdef CONFIG_STRTOUL
+#ifdef CONFIG_STRING_STRTOUL
 size_t strtoul(const char *nptr, char **endptr, int base)
 {
 	const char *s;

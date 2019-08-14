@@ -35,8 +35,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)counters.h: RISCV specific counters interface
- * $Id: counters.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)counters.h: RISCV counters architecture extension interface
+ * $Id: counters.h,v 1.1 2019-08-14 09:42:00 zhenglv Exp $
  */
 
 #ifndef __COUNTERS_RISCV_H_INCLUDE__
@@ -44,6 +44,10 @@
 
 #include <target/config.h>
 #include <target/types.h>
+
+/* This file uses hardware specification naming - RISCV counters extension,
+ * can be used in the tsc/pmu implementation.
+ */
 
 #ifdef CONFIG_RISCV_COUNTERS
 #ifdef CONFIG_64BIT

@@ -35,41 +35,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)smp.h: machine specific SMP interface
- * $Id: smp.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)assembler.h: MCS51 assembler header
+ * $Id: assembler.h,v 1.1 2019-08-14 11:18:00 zhenglv Exp $
  */
 
-#ifndef __VEGA_SMP_H_INCLUDE__
-#define __VEGA_SMP_H_INCLUDE__
+#ifndef __ASSEMBLER_MCS51_H_INLCUDE__
+#define __ASSEMBLER_MCS51_H_INCLUDE__
 
-#include <target/linkage.h>
+/* This file is intended for being included by the all of theassemblies, so
+ * generic assembly macros, C/ASM portable definitions can be found here.
+ */
 
-#ifdef CONFIG_SMP
-#ifndef __ASSEMBLY__
-static inline uint8_t __smp_processor_id(void)
-{
-	unsigned int t;
-
-	asm volatile ("mov %0, sp\n\t" : "=r" (t));
-	t -= (PERCPU_STACKS_START + 1);
-	return (uint8_t)(t >> 12);
-}
-
-static inline uint8_t __hmp_processor_id(void)
-{
-	uint8_t cpu = __smp_processor_id();
-
-	return cpu >= NR_CPUS ? NR_CPUS : cpu;
-}
-
-static inline uintptr_t __smp_processor_stack_top(void)
-{
-	uintptr_t t;
-
-	asm volatile ("mov %0, sp\n\t" : "=r" (t));
-	return ALIGN(t, PERCPU_STACK_SIZE);
-}
-#endif
-#endif
-
-#endif /* __VEGA_SMP_H_INCLUDE__ */
+#endif /* __ASSEMBLER_MCS51_H_INCLUDE__ */

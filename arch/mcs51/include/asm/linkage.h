@@ -35,12 +35,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)irqc.c: RV32M1 (VEGA) specific interrupt controller implementation
- * $Id: irqc.c,v 1.1 2019-08-14 16:11:00 zhenglv Exp $
+ * @(#)linkage.h: MCS51 linker header
+ * $Id: linkage.h,v 1.1 2019-09-14 11:19:00 zhenglv Exp $
  */
 
-#include <target/irq.h>
+#ifndef __MCS51_LINKAGE_H_INCLUDE__
+#define __MCS51_LINKAGE_H_INCLUDE__
 
-void irqc_hw_handle_irq(void)
-{
-}
+/* This file is intended for being included by the linker script. Can put
+ * architecture specific linkable sections here.
+ */
+
+#endif /* __MCS51_LINKAGE_H_INCLUDE__ */

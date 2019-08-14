@@ -35,19 +35,19 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)arch.h: machine specific definitions
- * $Id: arch.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)arch.h: RV32M1 (VEGA) machine specific definitions
+ * $Id: arch.h,v 1.1 2019-08-14 15:06:00 zhenglv Exp $
  */
 
 #ifndef __ARCH_VEGA_H_INCLUDE__
 #define __ARCH_VEGA_H_INCLUDE__
 
+/* This file is intended to be used for implementing SoC specific
+ * instructions, registers.
+ */
+
 #include <target/init.h>
-#include <asm/io.h>
 
 #define __VEC			__HIVEC
-
-#define MAX_CPU_NUM		1
-#define ARCH_CPU_MASK		0x00000001
 
 #endif /* __ARCH_VEGA_INCLUDE__ */

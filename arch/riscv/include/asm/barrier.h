@@ -36,14 +36,15 @@
  * SUCH DAMAGE.
  *
  * @(#)barrier.h: RISCV specific memory barrier interface
- * $Id: barrier.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * $Id: barrier.h,v 1.1 2019-08-14 09:36:00 zhenglv Exp $
  */
 
 #ifndef __RISCV_BARRIER_H_INCLUDE__
 #define __RISCV_BARRIER_H_INCLUDE__
 
-#define nop()			asm volatile("nop")
-#define wfi()			asm volatile("wfi")
+/* This file includes architecture specific memory barrier primitive
+ * implementations.
+ */
 
 #define fence(p, s)		\
 	asm volatile("fence " #p "," #s : : : "memory")

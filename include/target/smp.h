@@ -49,7 +49,7 @@
 #ifdef CONFIG_SMP
 #define smp_processor_id()	__smp_processor_id()
 #define hmp_processor_id()	__hmp_processor_id()
-#define NR_CPUS		MAX_CPU_NUM
+#define NR_CPUS			MAX_CPU_NUM
 #else
 #define smp_processor_id()	0
 #define hmp_processor_id()	0

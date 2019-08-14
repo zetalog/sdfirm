@@ -2,6 +2,7 @@
 #define __TYPES_H_INCLUDE__
 
 #include <target/compiler.h>
+#include <target/const.h>
 
 #ifndef __ASSEMBLY__
 #include <errno.h>

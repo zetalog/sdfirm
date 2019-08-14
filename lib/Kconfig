@@ -4,9 +4,6 @@
 
 menu "Library setup"
 
-config STDLIB
-	bool "Standard C library support"
-
 menu "Bit-wise operations"
 
 config BIT_FLS8
@@ -94,10 +91,14 @@ config CRC32
 
 endmenu
 
+config STDLIB
+	bool
+
 menu "Print operations"
 
 config PRINT_VSNPRINTF
 	bool "vsnprintf"
+	select STDLIB
 	select MATH_MOD64
 	select MATH_DIV64
 
@@ -123,9 +124,10 @@ config PRINT_PRINTF
 
 endmenu
 
-menu "Advanced string operations"
+menu "String operations"
 
 config STRING_STRTOUL
+	select STDLIB
 	bool "strtoul"
 
 endmenu

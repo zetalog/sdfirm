@@ -35,13 +35,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cpus.h: VEGA lite specific CPU interface
- * $Id: cpus.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)cpus.h: VEGA lite specific CPU definitions
+ * $Id: cpus.h,v 1.1 2019-08-14 15:08:00 zhenglv Exp $
  */
 
 #ifndef __CPUS_VEGA_H_INCLUDE__
 #define __CPUS_VEGA_H_INCLUDE__
 
-#include <asm/mach/arch.h>
+#define MAX_CPU_NUM		1
+#define ARCH_CPU_MASK		0x00000001
 
 #endif /* __CPUS_VEGA_H_INCLUDE__ */

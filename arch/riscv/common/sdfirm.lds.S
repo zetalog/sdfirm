@@ -1,14 +1,8 @@
 #include <target/config.h>
-#include <target/const.h>
-#include <target/cmdline.h>
 #include <target/arch.h>
+#include <target/cmdline.h>
+#include <target/compiler.h>
 #include <asm-generic/sdfirm.lds.h>
-
-#ifdef CONFIG_64BIT
-#define WORD_SIZE	8
-#else
-#define WORD_SIZE	4
-#endif
 
 #define IDMAP_TEXT			\
 	. = ALIGN(SZ_4K);		\

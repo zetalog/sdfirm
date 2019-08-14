@@ -36,12 +36,40 @@
  * SUCH DAMAGE.
  *
  * @(#)smp.h: RISCV specific symmetric multi-processing interfaces
- * $Id: smp.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * $Id: smp.h,v 1.1 2019-08-14 14:01:00 zhenglv Exp $
  */
 
 #ifndef __RISCV_SMP_H_INCLUDE__
 #define __RISCV_SMP_H_INCLUDE__
 
-#include <asm/mach/smp.h>
+#include <target/config.h>
+
+#ifdef CONFIG_SMP
+#ifndef __ASSEMBLY__
+static inline uint8_t __smp_processor_id(void)
+{
+	unsigned int t;
+
+	asm volatile ("mv	sp, %0\n" : "=r" (t));
+	t -= (PERCPU_STACKS_START + 1);
+	return (uint8_t)(t >> 12);
+}
+
+static inline uint8_t __hmp_processor_id(void)
+{
+	uint8_t cpu = __smp_processor_id();
+
+	return cpu >= NR_CPUS ? NR_CPUS : cpu;
+}
+
+static inline uintptr_t __smp_processor_stack_top(void)
+{
+	uintptr_t t;
+
+	asm volatile ("mv	sp, %0\n" : "=r" (t));
+	return ALIGN(t, PERCPU_STACK_SIZE);
+}
+#endif
+#endif
 
 #endif /* __RISCV_SMP_H_INCLUDE__ */

@@ -35,8 +35,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)irq.h: RV32M1 (VEGA) IRQ definitions
- * $Id: irq.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)irq.h: RV32M1 (VEGA) specific IRQ assignments
+ * $Id: irq.h,v 1.1 2019-08-14 16:00:00 zhenglv Exp $
  */
 
 #ifndef __IRQ_VEGA_H_INCLUDE__

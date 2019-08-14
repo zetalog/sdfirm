@@ -35,8 +35,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)muldiv.h: RISCV specific multiplication/division interface
- * $Id: muldiv.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)muldiv.h: RISCV extension M (multiplication/division) interface
+ * $Id: muldiv.h,v 1.1 2019-08-14 10:53:00 zhenglv Exp $
  */
 
 #ifndef __MULDIV_RISCV_H_INCLUDE__
@@ -44,6 +44,11 @@
 
 #include <target/config.h>
 #include <target/types.h>
+
+/* This file implements architecture specific multiplication/division support
+ * for integer calculations.
+ * In RISCV world, this is covered by M extension.
+ */
 
 #ifdef CONFIG_RISCV_M
 static inline uint16_t div16u(uint16_t x, uint16_t y)

@@ -84,7 +84,8 @@ ENTRY(__handle_irq)
 	sw	x1, 0x54(x2)
 	jal	x1, enter_exception
 	la	x1, exit_exception
-	jal	x0, irqc_hw_handle_irq
+	csrr	a0, mcause
+	jal	x0, irq_hw_handle_irq
 ENDPROC(__handle_irq)
 
 ENTRY(__unhandled_except)

@@ -36,7 +36,7 @@
  * SUCH DAMAGE.
  *
  * @(#)io.h: RISCV specific input/output interface
- * $Id: io.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * $Id: io.h,v 1.1 2019-08-14 11:06:00 zhenglv Exp $
  */
 
 #ifndef __IO_RISCV_H_INCLUDE__

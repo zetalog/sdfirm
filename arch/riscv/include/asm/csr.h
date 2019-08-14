@@ -35,15 +35,20 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)csr.h: RISCV specific control register interface
- * $Id: csr.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)csr.h: RISCV architecture extension csr interface
+ * $Id: csr.h,v 1.1 2019-08-14 09:53:00 zhenglv Exp $
  */
 
 #ifndef __CSR_RISCV_H_INCLUDE__
 #define __CSR_RISCV_H_INCLUDE__
 
+#include <target/config.h>
 #include <target/const.h>
 #include <asm/assembler.h>
+
+/* This file is intended for being included by architecture specific
+ * register header.
+ */
 
 /* Status register flags */
 #define SR_SIE		_AC(0x00000002, UL) /* Supervisor Interrupt Enable */
@@ -126,67 +131,52 @@
 #define CSR_INSTRETH		0xc82
 
 #ifndef __ASSEMBLY__
-
 #define csr_swap(csr, val)					\
 ({								\
 	unsigned long __v = (unsigned long)(val);		\
-	__asm__ __volatile__ ("csrrw %0, " __ASM_STR(csr) ", %1"\
-			      : "=r" (__v) : "rK" (__v)		\
-			      : "memory");			\
+	asm volatile("csrrw	%0, " __ASM_STR(csr) ", %1"	\
+		     : "=r" (__v) : "rK" (__v)	: "memory");	\
 	__v;							\
 })
-
 #define csr_read(csr)						\
 ({								\
 	register unsigned long __v;				\
-	__asm__ __volatile__ ("csrr %0, " __ASM_STR(csr)	\
-			      : "=r" (__v) :			\
-			      : "memory");			\
+	asm volatile("csrr	%0, " __ASM_STR(csr)		\
+		     : "=r" (__v) : : "memory");		\
 	__v;							\
 })
-
 #define csr_write(csr, val)					\
 ({								\
 	unsigned long __v = (unsigned long)(val);		\
-	__asm__ __volatile__ ("csrw " __ASM_STR(csr) ", %0"	\
-			      : : "rK" (__v)			\
-			      : "memory");			\
+	asm volatile("csrw	" __ASM_STR(csr) ", %0"		\
+		     : : "rK" (__v) : "memory");		\
 })
-
 #define csr_read_set(csr, val)					\
 ({								\
 	unsigned long __v = (unsigned long)(val);		\
-	__asm__ __volatile__ ("csrrs %0, " __ASM_STR(csr) ", %1"\
-			      : "=r" (__v) : "rK" (__v)		\
-			      : "memory");			\
+	asm volatile("csrrs	%0, " __ASM_STR(csr) ", %1"	\
+		     : "=r" (__v) : "rK" (__v)	: "memory");	\
 	__v;							\
 })
-
 #define csr_set(csr, val)					\
 ({								\
 	unsigned long __v = (unsigned long)(val);		\
-	__asm__ __volatile__ ("csrs " __ASM_STR(csr) ", %0"	\
-			      : : "rK" (__v)			\
-			      : "memory");			\
+	asm volatile("csrs	" __ASM_STR(csr) ", %0"		\
+		     : : "rK" (__v) : "memory");		\
 })
-
 #define csr_read_clear(csr, val)				\
 ({								\
 	unsigned long __v = (unsigned long)(val);		\
-	__asm__ __volatile__ ("csrrc %0, " __ASM_STR(csr) ", %1"\
-			      : "=r" (__v) : "rK" (__v)		\
-			      : "memory");			\
+	asm volatile("csrrc	%0, " __ASM_STR(csr) ", %1"	\
+		     : "=r" (__v) : "rK" (__v) : "memory");	\
 	__v;							\
 })
-
 #define csr_clear(csr, val)					\
 ({								\
 	unsigned long __v = (unsigned long)(val);		\
-	__asm__ __volatile__ ("csrc " __ASM_STR(csr) ", %0"	\
-			      : : "rK" (__v)			\
-			      : "memory");			\
+	asm volatile("csrc	" __ASM_STR(csr) ", %0"		\
+		     : : "rK" (__v) : "memory");		\
 })
-
 #endif /* __ASSEMBLY__ */
 
 #endif /* __CSR_RISCV_H_INCLUDE__ */

@@ -35,46 +35,23 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cache.h: VEGA specific cache maintenance defintions
- * $Id: cache.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)cache.h: RV32M1 (VEGA) specific cache maintenance defintions
+ * $Id: cache.h,v 1.1 2019-08-14 15:59:00 zhenglv Exp $
  */
 
 #ifndef __VEGA_CACHE_H_INCLUDE__
 #define __VEGA_CACHE_H_INCLUDE__
 
-#include <asm/mach/arch.h>
-
-#define L1_LINE_SHIFT		6
+#ifdef CONFIG_VEGA_0RISCY
+#define L1_LINE_SHIFT		5
+#endif
+#ifdef CONFIG_VEGA_RI5CY
+#define L1_LINE_SHIFT		7
+#endif
 #define L1_CACHE_BYTES		(1 << L1_LINE_SHIFT)
-#define L1_INTERLEAVE_BYTES	128
 #define L1_CACHE_WAYS		8
-#define L1_CACHE_SIZE		0x8000
+#define L1_CACHE_SIZE		0x800
 
-#define L2_LINE_SHIFT		7
-#define L2_CACHE_BYTES		(1 << L2_LINE_SHIFT)
-#define L2_INTERLEAVE_BYTES	128
-#define L2_CACHE_WAYS		8
-
-#define L3_LINE_SHIFT		6
-#define L3_CACHE_BYTES		(1 << L3_LINE_SHIFT)
-#define L3_INTERLEAVE_BYTES	128
-#define L3_CACHE_WAYS		20
-#define L2_CACHE_SIZE		0x80000
-
-/* 2.5MB per interleave */
-#define L3_INTERLEAVE_SIZE		0x280000
-#define L3_INTERLEAVES_PER_BLOCK	2
-#define L3_CACHE_INTERLEAVES		MAX_LLC_NUM
-#define L3_CACHE_BLOCKS			\
-	(L3_CACHE_INTERLEAVES / L3_INTERLEAVES_PER_BLOCK)
-#define L3_BLOCK_SIZE			\
-	(L3_INTERLEAVE_SIZE * L3_INTERLEAVES_PER_BLOCK)
-#define L3_BLOCK_SHIFT			8
-#define L3_BLOCK_MASK			(0xF)
-#define L3_BLOCK(phys)			\
-	(((phys) & (L3_BLOCK_MASK << L3_BLOCK_SHIFT)) >> L3_BLOCK_SHIFT)
-#define L3_CACHE_SIZE			(L3_CACHE_BLOCKS * L3_BLOCK_SIZE)
-
-#define __SMP_CACHE_SHIFT	7
+#define __SMP_CACHE_SHIFT	L1_LINE_SHIFT
 
 #endif /* __VEGA_CACHE_H_INCLUDE__ */

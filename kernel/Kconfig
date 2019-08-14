@@ -316,7 +316,6 @@ endif
 
 menuconfig MEM
 	bool "Address space allocator (bootmem) support"
-	depends MMU
 	select STRING_STRTOUL
 
 if MEM

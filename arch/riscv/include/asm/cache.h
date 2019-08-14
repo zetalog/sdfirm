@@ -35,13 +35,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cache.h: RISCV cache flush interfaces
- * $Id: cache.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)cache.h: RISCV cache flush/alignment interfaces
+ * $Id: cache.h,v 1.1 2019-08-14 09:37:00 zhenglv Exp $
  */
 
 #ifndef __CACHE_RISCV_H_INCLUDE__
 #define __CACHE_RISCV_H_INCLUDE__
 
+/* This file includes architecture specific cache alignment/flush primitive
+ * implementations which should be SMP specific.
+ */
+
+/* Locate real machine specific SMP cache alignments */
 #include <asm/mach/cache.h>
 
 #ifndef __SMP_CACHE_SHIFT
