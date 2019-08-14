@@ -103,10 +103,12 @@ __arm_reset:
 	adr_l	x0, __bss_start
 	adr_l	x1, __bss_stop
 	mov	x2, xzr
-bss_init_loop:
+	b	init_bss_loop
+1:
 	stp	x2, x2, [x0], #16
+init_bss_loop:
 	cmp	x0, x1
-	b.lt	bss_init_loop
+	b.lt	1b
 	dsb	ishst
 .endm
 

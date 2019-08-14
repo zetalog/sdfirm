@@ -2,9 +2,8 @@
 #define __ARM64_ASSEMBLER_H_INCLUDE__
 
 #include <target/config.h>
-#include <asm/vmsa.h>
 
-#ifdef __ASSEMBLY__
+#if defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
 #define ENDPIPROC(x)			\
 	.globl	__pi_##x;		\
 	.type 	__pi_##x, %function;	\
