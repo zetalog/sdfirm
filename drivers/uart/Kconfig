@@ -1,0 +1,15 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "Debugging console drivers"
+
+config DBG_SEGGER_RTT
+	bool "SEGGER Real-Time Transfer (RTT) support"
+	help
+	  Implementation of SEGGER real-time transfer (RTT) whichallows
+          real-time communication on targets which support debugger memory
+          accesses while the CPU is running.
+
+endmenu

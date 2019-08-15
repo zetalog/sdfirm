@@ -6,6 +6,7 @@ obj-y:=
 
 obj-y += driver.rel
 
+obj-y += uart/
 obj-$(CONFIG_LCD) += lcd/
 obj-$(CONFIG_VIDEO) += video/
 obj-$(CONFIG_MTD) += mtd/

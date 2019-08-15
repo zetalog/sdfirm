@@ -4,6 +4,7 @@
 
 menu "Driver setup"
 
+source drivers/uart/Kconfig
 source drivers/lcd/Kconfig
 source drivers/video/Kconfig
 source drivers/mtd/Kconfig
