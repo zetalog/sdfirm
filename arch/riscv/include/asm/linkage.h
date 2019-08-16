@@ -42,6 +42,8 @@
 #ifndef __RISCV_LINKAGE_H_INCLUDE__
 #define __RISCV_LINKAGE_H_INCLUDE__
 
+#include <target/config.h>
+
 /* This file is intended for being included by the linker script. Can put
  * architecture specific linkable sections here.
  */

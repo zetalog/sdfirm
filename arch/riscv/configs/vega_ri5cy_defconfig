@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Aug 14 13:11:03 2019
+# Fri Aug 16 09:39:28 2019
 #
 CONFIG_32BIT=y
 CONFIG_RISCV=y
@@ -22,6 +22,21 @@ CONFIG_FIRMWARE=y
 # Firmware options
 #
 # CONFIG_GEM5 is not set
+CONFIG_CONSOLE=y
+CONFIG_CONSOLE_COMMAND=y
+CONFIG_CONSOLE_OUTPUT=y
+# CONFIG_CONSOLE_OUTPUT_CR is not set
+CONFIG_CONSOLE_PRINT_BUFFER_SIZE=256
+CONFIG_CONSOLE_INPUT=y
+# CONFIG_CONSOLE_230400 is not set
+CONFIG_CONSOLE_115200=y
+# CONFIG_CONSOLE_57600 is not set
+# CONFIG_CONSOLE_38400 is not set
+# CONFIG_CONSOLE_19200 is not set
+# CONFIG_CONSOLE_9600 is not set
+# CONFIG_CONSOLE_4800 is not set
+# CONFIG_CONSOLE_2400 is not set
+# CONFIG_CONSOLE_DEBUG is not set
 
 #
 # RISCV system options
@@ -54,6 +69,7 @@ CONFIG_MAXPHYSMEM_2GB=y
 CONFIG_VEGA_RI5CY=y
 # CONFIG_VEGA_0RISCY is not set
 CONFIG_VEGA_BOOT_CPU=y
+CONFIG_LPUART=y
 
 #
 # Feature setup
@@ -86,7 +102,11 @@ CONFIG_SMP=y
 #
 # Timing facility (delay) support
 #
-CONFIG_LPS_NO_LPS=y
+# CONFIG_LPS_NO_LPS is not set
+# CONFIG_LPS_64BITS is not set
+# CONFIG_LPS_32BITS is not set
+CONFIG_LPS_WEIGHT=8
+# CONFIG_LPS_PRESET is not set
 # CONFIG_TIMER is not set
 
 #
@@ -101,11 +121,11 @@ CONFIG_MEM=y
 CONFIG_MEM_MAX_REGIONS=1
 CONFIG_MEM_RESIZE=y
 CONFIG_PAGE=y
-CONFIG_IDLE=y
+# CONFIG_IDLE is not set
 # CONFIG_BULK is not set
 # CONFIG_TERM is not set
 CONFIG_ARCH_HAS_GPIO=y
-CONFIG_GPIO=y
+# CONFIG_GPIO is not set
 # CONFIG_CLK is not set
 
 #
@@ -114,6 +134,7 @@ CONFIG_GPIO=y
 # CONFIG_LCD is not set
 # CONFIG_KBD is not set
 # CONFIG_LED is not set
+CONFIG_ARCH_HAS_UART=y
 
 #
 # Universal asynchronous RX/TX (UART) support
@@ -140,6 +161,11 @@ CONFIG_UART_115200=y
 #
 # Driver setup
 #
+
+#
+# Debugging console drivers
+#
+CONFIG_DBG_SEGGER_RTT=y
 
 #
 # LCD drivers
@@ -185,8 +211,8 @@ CONFIG_UART_115200=y
 # CONFIG_MATH_MUL32 is not set
 # CONFIG_MATH_MUL64 is not set
 # CONFIG_MATH_DIV32 is not set
-# CONFIG_MATH_DIV64 is not set
-# CONFIG_MATH_MOD64 is not set
+CONFIG_MATH_DIV64=y
+CONFIG_MATH_MOD64=y
 
 #
 # Atomic operations
@@ -204,11 +230,11 @@ CONFIG_STDLIB=y
 #
 # Print operations
 #
-# CONFIG_PRINT_VSNPRINTF is not set
+CONFIG_PRINT_VSNPRINTF=y
 # CONFIG_PRINT_SNPRINTF is not set
-# CONFIG_PRINT_VPRINTF is not set
+CONFIG_PRINT_VPRINTF=y
 # CONFIG_PRINT_SPRINTF is not set
-# CONFIG_PRINT_PRINTF is not set
+CONFIG_PRINT_PRINTF=y
 
 #
 # String operations

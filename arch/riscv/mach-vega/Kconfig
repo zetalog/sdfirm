@@ -26,6 +26,11 @@ config VEGA_BOOT_CPU
 	bool "Configured as boot CPU"
 	default y
 
+config LPUART
+	bool "Low Power UART (LPUART) module support"
+	select ARCH_HAS_UART
+	select GPIO
+
 endmenu
 
 endif

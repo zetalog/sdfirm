@@ -33,9 +33,9 @@ config ARCH_VEGA
 	select ARCH_HAS_TSC_CONST
 	select ARCH_HAS_GPT
 	select ARCH_HAS_GPIO
+	select ARCH_HAS_UART
 	select ARCH_HAS_IDLE
-	#select MATH_GCD32
-	#select BIT_ROUNDUP32
+	select LPUART if UART
 	#select CLK
 	help
 	  This enables support for Qualcomm server platforms.

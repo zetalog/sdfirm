@@ -69,7 +69,7 @@
 	j	zero_sect_loop
 1:
 	sw	zero, 0(a0)
-	addi	a0, a0, 4
+	addi	a0, a0, WORD_SIZE
 zero_sect_loop:
 	bltu	a0, a1, 1b
 	.endm
@@ -82,8 +82,8 @@ zero_sect_loop:
 1:
 	lw	a3, 0(a2)
 	sw	a3, 0(a0)
-	addi	a2, a2, 4
-	addi	a0, a0, 4
+	addi	a2, a2, WORD_SIZE
+	addi	a0, a0, WORD_SIZE
 copy_sect_loop:
 	bltu	a0, a1, 1b
 	.endm

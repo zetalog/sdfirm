@@ -35,37 +35,46 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)gpio.h: required GPIO driver specific abstraction
- * $Id: gpio.h,v 1.1 2019-08-16 09:57:00 zhenglv Exp $
+ * @(#)uart.h: RV32M1 (VEGA) specific UART defintions
+ * $Id: uart.h,v 1.1 2019-08-16 09:46:00 zhenglv Exp $
  */
 
-#ifndef __GPIO_DRIVER_H_INCLUDE__
-#define __GPIO_DRIVER_H_INCLUDE__
+#ifndef __UART_VEGA_H_INCLUDE__
+#define __UART_VEGA_H_INCLUDE__
 
 #include <target/config.h>
 #include <target/generic.h>
-
-#ifdef CONFIG_ARCH_HAS_GPIO
-#include <asm/mach/gpio.h>
-#endif
-
-#ifndef ARCH_HAVE_GPIO
-#define gpio_hw_ctrl_init()				do { } while (0)
-#define gpio_hw_read_pin(port, pin)			0
-#define gpio_hw_write_pin(port, pin, val)		do { } while (0)
-#define gpio_hw_read_port(port, mask)			0
-#define gpio_hw_write_port(port, val)			do { } while (0)
-/* NOTE: No Pad/Mux Interfaces
- *
- * driver are allowed not to provide following functions for convinience.
- */
-#define gpio_hw_config_pad(port, pin, dir, pad, ma)	do { } while (0)
-#define gpio_hw_config_mux(port, pin, mux)		do { } while (0)
-#define gpio_hw_mmu_init()				do { } while (0)
+#include <target/gpio.h>
+#include <target/clk.h>
+#include <asm/mach/lpuart.h>
+#ifndef ARCH_HAVE_UART
+#define ARCH_HAVE_UART		1
 #else
-#ifndef CONFIG_MMU
-#define gpio_hw_mmu_init()				do { } while (0)
-#endif /* CONFIG_MMU */
+#error "Multiple UART controller defined"
 #endif
 
-#endif /* __GPIO_DRIVER_H_INCLUDE__ */
+#ifdef CONFIG_DEBUG_PRINT
+void uart_hw_dbg_init(void);
+void uart_hw_dbg_start(void);
+void uart_hw_dbg_stop(void);
+void uart_hw_dbg_write(uint8_t byte);
+void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
+#endif
+
+#ifdef CONFIG_CONSOLE
+void uart_hw_con_init(void);
+#endif
+#ifdef CONFIG_CONSOLE_OUTPUT
+void uart_hw_con_write(uint8_t byte);
+#endif
+#ifdef CONFIG_CONSOLE_INPUT
+uint8_t uart_hw_con_read(void);
+bool uart_hw_con_poll(void);
+void uart_hw_irq_ack(void);
+void uart_hw_irq_init(void);
+#else
+#define uart_hw_con_read()	-1
+#define uart_hw_con_poll()	false
+#endif
+
+#endif /* __UART_VEGA_H_INCLUDE__ */
