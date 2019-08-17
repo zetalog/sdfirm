@@ -42,6 +42,8 @@
 #ifndef __GPIO_VEGA_H_INCLUDE__
 #define __GPIO_VEGA_H_INCLUDE__
 
+#include <asm/io.h>
+
 #ifdef CONFIG_GPIO
 #ifndef ARCH_HAVE_GPIO
 #define ARCH_HAVE_GPIO		1
@@ -68,7 +70,9 @@
 #define PDIR(port)		GPIO_REG(port, 0x10)
 #define PDDR(port)		GPIO_REG(port, 0x14)
 
-#define gpio_data_output(port, pin, val)	\
+#define gpio_get_output(port, pin)		\
+	((__raw_readl(PDOR(port)) >> (pin)) & 1)
+#define gpio_write_output(port, pin, val)	\
 	((val) ?				\
 	 __raw_setl(_BV(pin), PDOR(port)) :	\
 	 __raw_clearl(_BV(pin), PDOR(port)))
@@ -78,12 +82,16 @@
 	__raw_writel(_BV(pin), PCOR(port))
 #define gpio_toggle_output(port, pin)		\
 	__raw_writel(_BV(pin), PTOR(port))
-#define gpio_data_input(port, pin)		\
+#define gpio_get_input(port, pin)		\
 	((__raw_readl(PDIR(port)) >> (pin)) & 1)
+#define gpio_read_input(port, pin)		\
+	gpio_get_input(port, pin)
 #define gpio_direct_input(port, pin)		\
 	__raw_clearl(_BV(pin), PDDR(port))
-#define gpio_direct_ooutput(port, pin)		\
+#define gpio_direct_output(port, pin)		\
 	__raw_setl(_BV(pin), PDDR(port))
+#define gpio_is_output(port, pin)		\
+	((__raw_readl(PDDR(port)) >> (pin)) & 1)
 #endif /* CONFIG_VEGA_RI5CY */
 
 /* Chapter 24 Port Control and Interrupts (PORT) */
@@ -108,17 +116,21 @@
 #define PCR_IRQC_MASK		REG_4BIT_MASK
 #define PCR_IRQC(value)		_SET_FV(PCR_IRQC, value)
 #define PCR_IRQC_DISABLED	0
+/* ISF DMA request */
 #define PCR_IRQC_ISF_DMA_HIGH	1
 #define PCR_IRQC_ISF_DMA_LOW	2
 #define PCR_IRQC_ISF_DMA_BOTH	3
+/* IRQC flags */
 #define PCR_IRQC_FLAG_HIGH	5
 #define PCR_IRQC_FLAG_LOW	6
 #define PCR_IRQC_FLAG_BOTH	7
+/* ISF IRQ */
 #define PCR_IRQC_ISF_IRQ_0	8
 #define PCR_IRQC_ISF_IRQ_HIGH	9
 #define PCR_IRQC_ISF_IRQ_LOW	10
 #define PCR_IRQC_ISF_IRQ_BOTH	11
 #define PCR_IRQC_ISF_IRQ_1	12
+/* IRQ trigger */
 #define PCR_IRQC_ACTIVE_HIGH	13
 #define PCR_IRQC_ACTIVE_LOW	14
 #define PCR_LK			_BV(15)
@@ -507,7 +519,7 @@
 #define PTD10_MUX_TPM2_CH1		6
 #define PTD10_MUX_FXIO0_D30		7
 /* PIN R11 */
-#define PTD10_MUX_DEFAULT		PTD11_MUX_LPADC0_SE14
+#define PTD11_MUX_DEFAULT		PTD11_MUX_LPADC0_SE14
 #define PTD11_MUX_LPADC0_SE14		PCR_MUX_ANALOG
 #define PTD11_SDHC0_D2			2
 #define PTD11_USB0_SOF_OUT		3
@@ -718,6 +730,132 @@
 #define PTA9_MUX_FB_A23			5
 #define PTA9_MUX_RV_JTAG_TCLK		7
 /* PIN A9 */
+#define PTA10_MUX_DEFAULT		PTA10_MUX_RV_JTAG_TDI
+#define PTA10_MUX_LPI2C2_SCLS		2
+#define PTA10_MUX_LPSPI3_SOUT		3
+#define PTA10_MUX_FB_A22		5
+#define PTA10_MUX_RV_JTAG_TDI		7
+/* PIN E8 */
+#define PTA14_MUX_DEFAULT		PTA14_MUX_RV_JTAG_TDO
+#define PTA14_MUX_LPI2C2_SDA		2
+#define PTA14_MUX_FB_AD23		5
+#define PTA14_MUX_LPCMP0_OUT		6
+#define PTA14_MUX_RV_JTAG_TDO		7
+/* PIN A7 */
+#define PTA15_MUX_DEFAULT		PTA15_MUX_RV_JTAG_TMS
+#define PTA15_MUX_LPI2C2_SCL		2
+#define PTA15_MUX_FB_AD22		5
+#define PTA15_MUX_RV_JTAG_TMS		7
+/* PIN F7 */
+#define PTA17_MUX_DEFAULT		PCR_MUX_DISABLED
+#define PTA17_MUX_LPI2C2_HREQ		2
+#define PTA17_MUX_LPSPI3_PCS1		3
+#define PTA17_MUX_EMVSIM0_CLK		4
+#define PTA17_MUX_FB_AD21		5
+/* PIN D8 */
+#define PTA18_MUX_DEFAULT		PCR_MUX_DISABLED
+#define PTA18_MUX_LPSPI2_PCS1		2
+#define PTA18_MUX_LPSPI3_PCS3		3
+#define PTA18_MUX_EMVSIM0_RST		4
+#define PTA18_MUX_FB_AD20		5
+/* PIN D7 */
+#define PTA19_MUX_DEFAULT		PCR_MUX_DISABLED
+#define PTA19_MUX_LPSPI2_PCS3		2
+#define PTA19_MUX_LPSPI3_SCK		3
+#define PTA19_MUX_EMVSIM0_VCCEN		4
+#define PTA19_MUX_FB_AD19		5
+#define PTA19_MUX_TPM2_CH5		6
+/* PIN C7 */
+#define PTA20_MUX_DEFAULT		PCR_MUX_DISABLED
+#define PTA20_MUX_LPSPI2_SCK		2
+#define PTA20_MUX_LPSPI1_PCS1		3
+#define PTA20_MUX_EMVSIM0_IO		4
+#define PTA20_MUX_FB_AD18		5
+#define PTA20_MUX_TPM2_CH4		6
+/* PIN B7 */
+#define PTA21_MUX_DEFAULT		PCR_MUX_DISABLED
+#define PTA21_MUX_LPSPI2_SOUT		2
+#define PTA21_MUX_EMVSIM0_PD		4
+#define PTA21_MUX_FB_AD17		5
+#define PTA21_MUX_TPM2_CH3		6
+/* PIN B6 */
+#define PTA22_MUX_DEFAULT		PCR_MUX_DISABLED
+#define PTA22_MUX_LLWU_P2		PCR_MUX_GPIO
+#define PTA22_MUX_LPSPI2_PCS2		2
+#define PTA22_MUX_LPI2C2_HREQ		4
+#define PTA22_MUX_FB_AD16		5
+#define PTA22_MUX_TPM2_CH2		6
+/* PIN E6 */
+#define PTA23_MUX_DEFAULT		PCR_MUX_DISABLED
+#define PTA23_MUX_LPSPI2_SIN		2
+#define PTA23_MUX_LPSPI1_PCS3		3
+#define PTA23_MUX_LPI2C2_SDA		4
+#define PTA23_MUX_FB_AD15		5
+#define PTA23_MUX_TPM2_CH1		6
+/* PIN D6 */
+#define PTA24_MUX_DEFAULT		PCR_MUX_DISABLED
+#define PTA24_MUX_LPSPI2_PCS0		2
+#define PTA24_MUX_LPSPI1_SCK		3
+#define PTA24_MUX_LPI2C2_SCL		4
+#define PTA24_MUX_FB_OE_b		5
+#define PTA24_MUX_TPM2_CH0		6
+/* PIN B5 */
+#define PTA25_MUX_DEFAULT		PCR_MUX_DISABLED
+#define PTA25_MUX_LPUART1_RX		2
+#define PTA25_MUX_LPSPI3_SOUT		3
+#define PTA25_MUX_LPI2C2_SDAS		4
+#define PTA25_MUX_FB_AD31		5
+/* PIN A5 */
+#define PTA26_MUX_DEFAULT		PCR_MUX_DISABLED
+#define PTA26_MUX_LPUART1_TX		2
+#define PTA26_MUX_LPSPI3_PCS2		3
+#define PTA26_MUX_LPI2C2_SCLS		4
+#define PTA26_MUX_FB_AD30		5
+/* PIN A3 */
+#define PTA27_MUX_DEFAULT		PCR_MUX_DISABLED
+#define PTA27_MUX_LPUART1_CTS		2
+#define PTA27_MUX_LPSPI3_SIN		3
+#define PTA27_MUX_FB_AD29		5
+/* PIN A1 */
+#define PTA30_MUX_DEFAULT		PCR_MUX_DISABLED
+#define PTA30_MUX_LLWU_P3		PCR_MUX_GPIO
+#define PTA30_MUX_LPUART2_CTS		2
+#define PTA30_MUX_LPSPI1_SOUT		3
+#define PTA30_MUX_FB_AD14		5
+#define PTA30_MUX_TPM1_CH0		6
+#define PTA30_MUX_LPTMR2_ALT2		7
+/* PIN C4 */
+#define PTA31_MUX_DEFAULT		PCR_MUX_DISABLED
+#define PTA31_MUX_LPUART2_RTS		2
+#define PTA31_MUX_LPSPI1_PCS2		3
+#define PTA31_MUX_FB_AD13		5
+#define PTA31_MUX_TPM1_CH1		6
+/* PIN B3 */
+#define PTB0_MUX_DEFAULT		PCR_MUX_DISABLED
+#define PTB0_MUX_LPUART2_TX		2
+#define PTB0_MUX_LPSPI1_SIN		3
+#define PTB0_MUX_USB0_SOF_OUT		4
+#define PTB0_MUX_CLKOUT			5
+#define PTB0_MUX_TPM1_CLKIN		6
+/* PIN C3 */
+#define PTB1_MUX_DEFAULT		PCR_MUX_DISABLED
+#define PTB1_MUX_LLWU_P4		PCR_MUX_GPIO
+#define PTB1_MUX_LPUART2_RX		2
+#define PTB1_MUX_LPSPI1_PCS0		3
+#define PTB1_MUX_I2S0_TXD1		4
+#define PTB1_MUX_FB_AD12		5
+#define PTB1_MUX_LPTMR1_ALT3		7
+/* PIN B1 */
+#define PTB2_MUX_DEFAULT		PCR_MUX_DISABLED
+#define PTB2_MUX_LLWU_P5		PCR_MUX_GPIO
+#define PTB2_MUX_RF0_RFOSC_EN		PCR_MUX_GPIO
+#define PTB2_MUX_LPSPI0_PCS1		2
+#define PTB2_MUX_LPUART1_RX		3
+#define PTB2_MUX_I2S0_TXD0		4
+#define PTB2_MUX_FB_AD11		5
+#define PTB2_MUX_TPM0_CH0		6
+/* PIN B2 */
+/* Same as PIN A1? RM BUG? */
 
 #define PCR_DSE			_BV(6) /* Drive Strength Enable */
 #define PCR_ODE			_BV(5) /* Open Drain Enable */
@@ -725,6 +863,8 @@
 #define PCR_SRE			_BV(2) /* Slew Rate Enable */
 #define PCR_PE			_BV(1) /* Pull Enable */
 #define PCR_PS			_BV(0) /* Pull Select */
+#define PCR_PAD_MASK		\
+	(PCR_DSE | PCR_ODE | PCR_PFE | PCR_SRE | PCR_PE | PCR_PS)
 
 #define port_config_mux(port, pin, mux)			\
 	__raw_writel_mask(PCR_MUX((mux) < 2 ?		\
@@ -732,21 +872,25 @@
 			  PCR_MUX(REG_3BIT_MASK),	\
 			  PCR(port, pin))
 
+/* GPIO abstraction */
 #define GPIO_HW_MAX_PORTS	5
 #define GPIO_HW_MAX_PINS	32
 
 #define gpio_hw_read_pin(port, pin)		\
-	gpio_data_input(port, pin)
+	(gpio_is_output(port, pin) ?		\
+	 gpio_get_output(port, pin) :		\
+	 gpio_get_input(port, pin))
 #define gpio_hw_write_pin(port, pin, val)	\
 	((val) ?				\
 	 gpio_set_output(port, pin) :		\
 	 gpio_clear_output(port, pin))
 #define gpio_hw_config_mux(port, pin, mux)	\
-	port_config_mux(pin, mux)
+	port_config_mux(port, pin, mux)
 #define gpio_hw_config_pad(port, pin, pad, drv)	\
 	port_config_pad(port, pin, pad, drv)
+#define gpio_hw_ctrl_init()		do { } while (0)
 
-void port_config_pad(uint8_t port, uint8_t gpio,
+void port_config_pad(uint8_t port, uint8_t pin,
 		     uint8_t pad, uint8_t drv);
 
 #endif /* __GPIO_VEGA_H_INCLUDE__ */

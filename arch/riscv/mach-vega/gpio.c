@@ -35,13 +35,39 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)uart.c: RV32M1 (VEGA) specific UART implementation
- * $Id: uart.c,v 1.1 2019-08-16 23:03:00 zhenglv Exp $
+ * @(#)gpio.c: RV32M1 (VEGA) specific GPIO implementation
+ * $Id: gpio.c,v 1.1 2019-08-17 07:23:00 zhenglv Exp $
  */
 
-#include <target/uart.h>
+#include <target/gpio.h>
 
-void uart_hw_con_init(void)
+void port_config_pad(uint8_t port, uint8_t pin, uint8_t pad, uint8_t drv)
 {
-	lpuart_ctrl_init();
+	uint32_t cfg = 0;
+
+	if (port >= GPIO_HW_MAX_PORTS ||
+	    pin >= GPIO_HW_MAX_PINS)
+		return;
+
+	if (drv == GPIO_DRIVE_IN) {
+		gpio_direct_input(port, pin);
+		if (pad & GPIO_PAD_DIGITAL_IO) {
+			if (pad & GPIO_PAD_OPEN_DRAIN)
+				cfg |= PCR_ODE;
+			if (pad & GPIO_PAD_SLEW_RATE)
+				cfg |= PCR_SRE;
+			if (drv > 2 || !(pad & GPIO_PAD_WEAK_PULL))
+				cfg |= PCR_DSE;
+		}
+	} else {
+		gpio_direct_output(port, pin);
+		if (pad & GPIO_PAD_DIGITAL_IO) {
+			if (!(pad & GPIO_PAD_NO_PULL)) {
+				if (pad & GPIO_PAD_PULL_UP)
+					cfg |= PCR_PS;
+				cfg |= PCR_PE;
+			}
+		}
+	}
+	__raw_writel_mask(cfg, PCR_PAD_MASK, PCR(port, pin));
 }
