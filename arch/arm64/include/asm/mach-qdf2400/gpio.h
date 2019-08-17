@@ -189,6 +189,7 @@
 /* GPIO149: Reserved for PCI link up/down interrupt */
 
 #define GPIO_HW_PORT			0x00
+#define GPIO_HW_MAX_PORTS		1
 #define GPIO_HW_MAX_PINS		TLMM_NR_GPIOS
 
 #define gpio_hw_read_pin(port, pin)		\

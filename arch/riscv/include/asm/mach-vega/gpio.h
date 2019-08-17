@@ -117,19 +117,19 @@
 #define PCR_IRQC(value)		_SET_FV(PCR_IRQC, value)
 #define PCR_IRQC_DISABLED	0
 /* ISF DMA request */
-#define PCR_IRQC_ISF_DMA_HIGH	1
-#define PCR_IRQC_ISF_DMA_LOW	2
-#define PCR_IRQC_ISF_DMA_BOTH	3
+#define PCR_IRQC_DMA_HIGH	1
+#define PCR_IRQC_DMA_LOW	2
+#define PCR_IRQC_DMA_BOTH	3
 /* IRQC flags */
 #define PCR_IRQC_FLAG_HIGH	5
 #define PCR_IRQC_FLAG_LOW	6
 #define PCR_IRQC_FLAG_BOTH	7
 /* ISF IRQ */
-#define PCR_IRQC_ISF_IRQ_0	8
-#define PCR_IRQC_ISF_IRQ_HIGH	9
-#define PCR_IRQC_ISF_IRQ_LOW	10
-#define PCR_IRQC_ISF_IRQ_BOTH	11
-#define PCR_IRQC_ISF_IRQ_1	12
+#define PCR_IRQC_IRQ_LEVEL_LOW	8
+#define PCR_IRQC_IRQ_EDGE_HIGH	9
+#define PCR_IRQC_IRQ_EDGE_LOW	10
+#define PCR_IRQC_IRQ_EDGE_BOTH	11
+#define PCR_IRQC_IRQ_LEVEL_HIGH	12
 /* IRQ trigger */
 #define PCR_IRQC_ACTIVE_HIGH	13
 #define PCR_IRQC_ACTIVE_LOW	14
@@ -871,6 +871,16 @@
 			  1 : (mux)),			\
 			  PCR_MUX(REG_3BIT_MASK),	\
 			  PCR(port, pin))
+#define port_set_irqc(port, pin, irqc)			\
+	__raw_writel_mask(PCR_IRQC(irqc),		\
+			  PCR_IRQC(PCR_IRQC_MASK),	\
+			  PCR(port, pin))
+#define port_set_isf(port, pin)			\
+	__raw_setl(PCR_ISF, PCR(port, pin))
+#define port_get_isf(port, pin)			\
+	(!!(__raw_readl(PCR(port, pin)) & PCR_ISF))
+#define port_set_lk(port, pin)			\
+	__raw_setl(PCR_LK, PCR(port, pin))
 
 /* GPIO abstraction */
 #define GPIO_HW_MAX_PORTS	5
@@ -888,9 +898,20 @@
 	port_config_mux(port, pin, mux)
 #define gpio_hw_config_pad(port, pin, pad, drv)	\
 	port_config_pad(port, pin, pad, drv)
+#define gpio_hw_config_irq(port, pin, mode)	\
+	port_config_irq(port, pin, mode)
+#define gpio_hw_enable_irq(port, pin)
+#define gpio_hw_disable_irq(port, pin)		\
+	port_set_irqc(port, pin, PCR_IRQC_DISABLED)
+#define gpio_hw_clear_irq(port, pin)		\
+	port_set_isf(port, pin)
+#define gpio_hw_trigger_irq(port, pin)
+#define gpio_hw_irq_status(port, pin)		\
+	port_get_isf(port, pin)
 #define gpio_hw_ctrl_init()		do { } while (0)
 
 void port_config_pad(uint8_t port, uint8_t pin,
 		     uint8_t pad, uint8_t drv);
+void port_config_irq(uint8_t port, uint8_t pin, uint32_t mode);
 
 #endif /* __GPIO_VEGA_H_INCLUDE__ */

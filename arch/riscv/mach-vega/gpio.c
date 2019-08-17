@@ -71,3 +71,25 @@ void port_config_pad(uint8_t port, uint8_t pin, uint8_t pad, uint8_t drv)
 	}
 	__raw_writel_mask(cfg, PCR_PAD_MASK, PCR(port, pin));
 }
+
+void port_config_irq(uint8_t port, uint8_t pin, uint32_t mode)
+{
+	uint32_t cfg;
+
+	if (port >= GPIO_HW_MAX_PORTS ||
+	    pin >= GPIO_HW_MAX_PINS)
+		return;
+
+	if ((mode & GPIO_IRQ_LEVEL_TRIG) == GPIO_IRQ_EDGE_TRIG) {
+		if (mode & GPIO_IRQ_HIGH)
+			cfg = PCR_IRQC_IRQ_EDGE_HIGH;
+		else
+			cfg = PCR_IRQC_IRQ_EDGE_LOW;
+	} else {
+		if (mode & GPIO_IRQ_HIGH)
+			cfg = PCR_IRQC_IRQ_LEVEL_HIGH;
+		else
+			cfg = PCR_IRQC_IRQ_LEVEL_LOW;
+	}
+	port_set_irqc(port, pin, cfg);
+}
