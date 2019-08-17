@@ -35,22 +35,24 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cbf.h: CBF power clamp reset interfaces
- * $Id: cbf.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)cpus.h: ARM CPU number/primitive interfaces
+ * $Id: cpus.h,v 1.1 2019-08-14 09:37:00 zhenglv Exp $
  */
 
-#ifndef __QDF2400_CBF_H_INCLUDE__
-#define __QDF2400_CBF_H_INCLUDE__
+#ifndef __ARM_CPUS_H_INCLUDE__
+#define __ARM_CPUS_H_INCLUDE__
 
-#include <target/cache.h>
-#include <asm/mach/hmss_periph.h>
+/* Instruction naming identical APIs */
+#define nop()			asm volatile("nop")
+#define wfi()			asm volatile("wfi")
 
-#ifndef __ASSEMBLY__
-void cbf_initialization(void);
-void cbf_l3_block_initialization(uint32_t block_number);
-void cbf_init(void);
+/* Architecture specific CPU primitives */
+#define cpu_relax()		nop() /* Non-fairness cpu_relax() */
+#define wait_irq()		wfi()
+/* No WFE supports */
+#define wait_cpu()		cpu_relax()
+#define wake_cpu()
 
-extern const uint64_t apcs_pm_cbf_l3u_pwr_ctl[L3_CACHE_BLOCKS];
-#endif /* __ASSEMBLY__ */
+#include <asm/mach/cpus.h>
 
-#endif /* __QDF2400_CBF_H_INCLUDE__ */
+#endif /* __ARM_CPUS_H_INCLUDE__ */

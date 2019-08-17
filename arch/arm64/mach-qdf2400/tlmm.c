@@ -48,7 +48,7 @@ void tlmm_config_pad(uint8_t gpio, uint8_t pad, uint8_t drv)
 	if (gpio >= TLMM_NR_GPIOS)
 		return;
 
-	switch (pad) {
+	switch (pad & GPIO_PAD_PULL_MASK) {
 	case GPIO_PAD_NO_PULL:
 		cfg |= TLMM_GPIO_PULL(TLMM_NO_PULL);
 		break;

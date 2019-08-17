@@ -35,22 +35,29 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cbf.h: CBF power clamp reset interfaces
- * $Id: cbf.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)cache.h: ARM cache flush/alignment interfaces
+ * $Id: cache.h,v 1.1 2019-08-14 09:37:00 zhenglv Exp $
  */
 
-#ifndef __QDF2400_CBF_H_INCLUDE__
-#define __QDF2400_CBF_H_INCLUDE__
+#ifndef __CACHE_ARM_H_INCLUDE__
+#define __CACHE_ARM_H_INCLUDE__
 
-#include <target/cache.h>
-#include <asm/mach/hmss_periph.h>
+/* Locate real machine specific SMP cache alignments */
+#include <asm/mach/cache.h>
+
+#ifndef __SMP_CACHE_SHIFT
+#define __SMP_CACHE_SHIFT	7
+#endif
+#define __SMP_CACHE_BYTES	(1 << __SMP_CACHE_SHIFT)
 
 #ifndef __ASSEMBLY__
-void cbf_initialization(void);
-void cbf_l3_block_initialization(uint32_t block_number);
-void cbf_init(void);
+#define __flush_dcache_area(addr, size)		do { } while (0)
+#define __clean_dcache_area_poc(addr, size)	do { } while (0)
+#define __inval_dcache_area_poc(addr, size)	do { } while (0)
 
-extern const uint64_t apcs_pm_cbf_l3u_pwr_ctl[L3_CACHE_BLOCKS];
-#endif /* __ASSEMBLY__ */
+#define __flush_dcache_addr(addr)		do { } while (0)
+#define __clean_dcache_addr(addr)		do { } while (0)
+#define __inval_dcache_addr(addr)		do { } while (0)
+#endif
 
-#endif /* __QDF2400_CBF_H_INCLUDE__ */
+#endif /* __CACHE_ARM_H_INCLUDE__ */

@@ -1,7 +1,7 @@
 #include <target/kbuild.h>
 #include <target/compiler.h>
 #include <target/types.h>
-#include <target/context.h>
+#include <target/task.h>
 
 /*
  * GCC 3.0, 3.1: general bad code generation.

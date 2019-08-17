@@ -35,22 +35,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cbf.h: CBF power clamp reset interfaces
- * $Id: cbf.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)cache.h: VExpress specific cache maintenance defintions
+ * $Id: cache.h,v 1.1 2019-08-14 15:59:00 zhenglv Exp $
  */
 
-#ifndef __QDF2400_CBF_H_INCLUDE__
-#define __QDF2400_CBF_H_INCLUDE__
+#ifndef __VEXPRESS_CACHE_H_INCLUDE__
+#define __VEXPRESS_CACHE_H_INCLUDE__
 
-#include <target/cache.h>
-#include <asm/mach/hmss_periph.h>
+#define L1_LINE_SHIFT		7
+#define L1_CACHE_BYTES		(1 << L1_LINE_SHIFT)
+#define L1_CACHE_WAYS		8
+#define L1_CACHE_SIZE		0x800
 
-#ifndef __ASSEMBLY__
-void cbf_initialization(void);
-void cbf_l3_block_initialization(uint32_t block_number);
-void cbf_init(void);
+#define __SMP_CACHE_SHIFT	L1_LINE_SHIFT
 
-extern const uint64_t apcs_pm_cbf_l3u_pwr_ctl[L3_CACHE_BLOCKS];
-#endif /* __ASSEMBLY__ */
-
-#endif /* __QDF2400_CBF_H_INCLUDE__ */
+#endif /* __VEXPRESS_CACHE_H_INCLUDE__ */

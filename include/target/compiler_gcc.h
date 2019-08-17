@@ -44,7 +44,6 @@ typedef __builtin_va_list va_list;
 #define __unused			__attribute__((__unused__))
 #define __align(a)			__attribute__((__aligned__(a)))
 #define __always_inline			inline __attribute__((__always_inline__))
-#define __compiler_offsetof(a, b)	 __builtin_offsetof(a, b)
 #define __section(S)			__attribute__((__section__(#S)))
 
 #define __stringify_1(x...)	#x

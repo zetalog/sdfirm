@@ -39,6 +39,7 @@
  * $Id: gicv2.c,v 1.279 2011-10-19 10:19:18 zhenglv Exp $
  */
 
+#include <stdio.h>
 #include <target/irq.h>
 
 #ifdef CONFIG_GICv2_IRQ_NS

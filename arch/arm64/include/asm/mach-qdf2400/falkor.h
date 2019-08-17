@@ -44,6 +44,7 @@
 
 #include <asm/mach/hmss_periph.h>
 
+#ifndef __ASSEMBLY__
 #define FALKOR_RESPECTABLE_DELAY_US		10 /* 10000 */
 /* Such delays are supposed to be software delay to help TZ-IMC to
  * reach the sync point. Unless IMC changes its mind to have longer
@@ -104,5 +105,6 @@ extern const uint64_t apcs_apc_cpu_sw_spm_event[MAX_CPU_NUM];
 extern const uint64_t saw4_avs_sts[MAX_CPU_RAILS];
 extern const uint64_t saw4_vctl[MAX_CPU_RAILS];
 extern const uint64_t apcs_apr_war[MAX_CPU_RAILS];
+#endif /* __ASSEMBLY__ */
 
 #endif /* __QDF2400_FALKOR_H_INCLUDE__ */

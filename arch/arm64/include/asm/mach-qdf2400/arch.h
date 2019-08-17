@@ -243,6 +243,7 @@
 /* #define PBL_SKIP_ECC_SCRUB_IMEM		_BV(2) */
 #define PBL_JUMP_WDOG_DEBUG		_BV(0)
 
+#ifndef __ASSEMBLY__
 #include <asm/mach/pg.h>
 
 #define soc_get_version(major, minor)					\
@@ -258,5 +259,6 @@
 	} while (0)
 
 void qdf2400_gblct_init(void);
+#endif /* __ASSEMBLY__ */
 
 #endif /* __ARCH_QDF2400_INCLUDE__ */
