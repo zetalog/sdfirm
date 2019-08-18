@@ -44,4 +44,12 @@
 
 #include <asm/mach/event.h>
 
+#define irqc_hw_ctrl_init()		event_init_ctrl()
+#define irqc_hw_enable_irq(irq)		event_enable_irq(irq)
+#define irqc_hw_disable_irq(irq)	event_disable_irq(irq)
+#define irqc_hw_clear_irq(irq)		event_clear_irq(irq)
+#define irqc_hw_trigger_irq(irq)	event_set_irq(irq)
+#define irqc_hw_configure_irq(irq, priority, trigger)	\
+	event_configure_irq(irq, priority, trigger)
+
 #endif /* __IRQC_VEGA_H_INCLUDE__ */

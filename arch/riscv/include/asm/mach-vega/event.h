@@ -42,6 +42,12 @@
 #ifndef __EVENT_VEGA_H_INCLUDE__
 #define __EVENT_VEGA_H_INCLUDE__
 
+#ifndef ARCH_HAVE_IRQC
+#define ARCH_HAVE_IRQC
+#else
+#error "Multiple IRQ controller defined"
+#endif
+
 /* RI5CY and ZERO-RISCY core both have an event unit to support vectorized
  * interrupts of up to 32 lines and event triggering of up to 32 input
  * lines. The interrupt and event lines are separately masked and buffered.
@@ -53,8 +59,8 @@
 #define EVENT_BASE		UL(0x4101F000)
 #endif
 #define EVENT_REG(off)		(EVENT_BASE + (off))
-#define EVENT_1BIT_REG(off, n)	REG_1BIT_REG(EVENT_BASE+(off), n)
-#define EVENT_4BIT_REG(off, n)	REG_4BIT_REG(EVENT_BASE+(off), n)
+#define EVENT_1BIT_REG(off, n)	REG_1BIT_ADDR(EVENT_BASE+(off), n)
+#define EVENT_4BIT_REG(off, n)	REG_4BIT_ADDR(EVENT_BASE+(off), n)
 
 #define EVENT_INTPTEN(n)	EVENT_1BIT_REG(0x00, n)
 #define EVENT_INTPTPEND		EVENT_REG(0x04)
@@ -95,7 +101,7 @@
  * 3.4.2.12-15 Interrupt Active Priority 0-3 Register (EVENTx_INTACTPRI0-3)
  */
 #define EVENT_PRI_MAX			7
-#define EVENT_PRI_MASK(n)		REG_4BIT_MASK
+#define EVENT_PRI_MASK			REG_4BIT_MASK
 #define EVENT_PRI_OFFSET(n)		REG_4BIT_OFFSET(n)
 #define EVENT_PRI(n, value)		\
 	_SET_FVn(n, EVENT_PRI, (value) & EVENT_PRI_MAX)
@@ -119,5 +125,23 @@
 /* The sleep ctrl/stat value */
 #define EVENT_SLP_SLEEP_ENABLE		0x1
 #define EVENT_SLP_DEEP_SLEEP_ENABLE	0x2
+
+#define event_enable_irq(irq)	\
+	__raw_setl(EVENT_IRQ(irq), EVENT_INTPTEN(irq))
+#define event_disable_irq(irq)	\
+	__raw_clearl(EVENT_IRQ(irq), EVENT_IRQPTENz(irq))
+#define event_clear_irq(irq)	\
+	__raw_setl(EVENT_IRQ(irq), EVENT_INTPTPENDCLEAR(irq))
+#define event_set_irq(irq)	\
+	__raw_setl(EVENT_IRQ(ira), EVENT_INTPTPENDSET(irq))
+#define event_irq_pending(irq)				\
+	((__raw_readl(EVENT_INTPTPEND(irq)) >>		\
+	  EVENT_IRQ_OFFSET(irq)) & 0x1)
+#define event_irq_active(irq)				\
+	((__raw_readl(EVENT_INTPTENACTIVE(irq)) >>	\
+	  EVENT_IRQ_OFFSET(irq)) & 0x1)
+
+void event_init_ctrl(void);
+void event_configure_irq(irq_t irq, uint8_t pri, uint8_t trigger);
 
 #endif /* __EVENT_VEGA_H_INCLUDE__ */

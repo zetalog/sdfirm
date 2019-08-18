@@ -8,6 +8,7 @@
 
 	__VEC
 
+__vectors:
 	jal	x0, __handle_irq
 	jal	x0, __handle_irq
 	jal	x0, __handle_irq
@@ -117,6 +118,12 @@ ENTRY(__start)
 #endif
 	init_data
 	init_bss
+
+	la	t0, __vectors
+	csrw	0x305, t0
+	csrw	0x005, t0
+//	csrw	mtvec, t0
+//	csrw	utvec, t0
 
 	jal	ra, system_init
 ENDPROC(__start)

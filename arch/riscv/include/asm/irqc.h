@@ -35,12 +35,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)irqc.c: RV32M1 (VEGA) specific interrupt controller implementation
- * $Id: irqc.c,v 1.1 2019-08-14 16:11:00 zhenglv Exp $
+ * @(#)irqc.h: RISCV IRQ controller interfaces
+ * $Id: irqc.h,v 1.1 2019-08-18 21:39:00 zhenglv Exp $
  */
 
-#include <target/irq.h>
+#ifndef __IRQC_RISCV_H_INCLUDE__
+#define __IRQC_RISCV_H_INCLUDE__
 
-void irqc_hw_handle_irq(void)
-{
-}
+/* RISCV allows embedded IRQ controllers */
+#include <asm/mach/irqc.h>
+
+#endif /* __IRQC_RISCV_H_INCLUDE__ */

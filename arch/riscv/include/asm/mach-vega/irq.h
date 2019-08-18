@@ -42,7 +42,8 @@
 #ifndef __IRQ_VEGA_H_INCLUDE__
 #define __IRQ_VEGA_H_INCLUDE__
 
-/* MCU IRQs */
+#ifdef CONFIG_VEGA_RI5CY
+/* RISCY EVENT IRQ sources */
 #define IRQ_DMA0_0	0
 #define IRQ_DMA0_1	1
 #define IRQ_DMA0_2	2
@@ -75,6 +76,7 @@
 #define IRQ_INTMUX0_5	29
 #define IRQ_INTMUX0_6	30
 #define IRQ_INTMUX0_7	31
+/* RISCY INTMUX sources */
 #define IRQ_EWM		32
 #define IRQ_FTFE_CC	33 /* Command complete */
 #define IRQ_FTFE_RC	34 /* Read collision */
@@ -108,5 +110,6 @@
 #define IRQ_RF_1	62
 
 #define NR_IRQS		64
+#endif /* CONFIG_VEGA_RI5CY */
 
 #endif  /* __IRQ_VEGA_H_INCLUDE__ */

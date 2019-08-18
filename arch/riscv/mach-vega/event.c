@@ -35,23 +35,24 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)arch.h: RV32M1 (VEGA) machine specific definitions
- * $Id: arch.h,v 1.1 2019-08-14 15:06:00 zhenglv Exp $
+ * @(#)event.c: RISCV event unit IRQ controller implementation
+ * $Id: event.c,v 1.1 2019-08-18 22:04:00 zhenglv Exp $
  */
 
-#ifndef __ARCH_VEGA_H_INCLUDE__
-#define __ARCH_VEGA_H_INCLUDE__
+#include <target/irq.h>
 
-/* This file is intended to be used for implementing SoC specific
- * instructions, registers.
- */
+void event_configure_irq(irq_t irq, uint8_t pri, uint8_t trigger)
+{
+	__raw_writel_mask(EVENT_PRI(irq, pri),
+			  EVENT_PRI(irq, EVENT_PRI_MASK),
+			  EVENT_INTPTPRI(irq));
+}
 
-#include <target/init.h>
-
-#define __VEC			__HIVEC
-
-void board_reset(void);
-void board_suspend(void);
-void board_hibernate(void);
-
-#endif /* __ARCH_VEGA_INCLUDE__ */
+void event_init_ctrl(void)
+{
+	/* Clear all pending flags */
+	__raw_writel(0xFFFFFFFF, EVENT_INTPTPENDCLEAR);
+	__raw_writel(0xFFFFFFFF, EVENT_EVTPENDCLEAR);
+	/* Set all interrupt as secure interrupt */
+	__raw_writel(0xFFFFFFFF, EVENT_INTPTSECURE);
+}

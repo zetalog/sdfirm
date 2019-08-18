@@ -88,9 +88,9 @@ ENTRY(__handle_irq)
 	jal	x0, irq_hw_handle_irq
 ENDPROC(__handle_irq)
 
-ENTRY(__unhandled_except)
+ENTRY(__bad_interrupt)
 	j	.
-ENDPROC(__unhandled_except)
+ENDPROC(__bad_interrupt)
 
 	.macro define_exception_entry entry_name handler_name
 	.weak \entry_name
@@ -102,6 +102,6 @@ ENDPROC(__unhandled_except)
 	jal	x0, \handler_name
 	.endm
 
-define_exception_entry __handle_illegal_instr __unhandled_except
-define_exception_entry __handle_ecall __unhandled_except
-define_exception_entry __handle_lsu __unhandled_except
+define_exception_entry __handle_illegal_instr __bad_interrupt
+define_exception_entry __handle_ecall __bad_interrupt
+define_exception_entry __handle_lsu __bad_interrupt
