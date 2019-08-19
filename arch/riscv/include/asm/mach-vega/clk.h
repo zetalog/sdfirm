@@ -45,6 +45,16 @@
 #include <asm/mach/scg.h>
 #include <asm/mach/pcc.h>
 
+#define invalid_clk		clkid(0xFF, 0xFF)
+
+/* Padring reference clocks */
+/* clk_cat_t */
+#define CLK_CONST		((clk_cat_t)0)
+/* clk_clk_t */
+#define LPOSC_CLK		((clk_clk_t)1)
+#define NR_CONST_CLKS		(LPOSC_CLK + 1)
+#define FREQ_LPOSC_CLK		1000
+
 int clk_hw_ctrl_init(void);
 
 #endif /* __CLK_VEGA_H_INCLUDE__ */
