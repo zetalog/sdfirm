@@ -50,8 +50,10 @@
 
 #define __VEC			__HIVEC
 
+#ifndef __ASSEMBLY__
 void board_reset(void);
 void board_suspend(void);
 void board_hibernate(void);
+#endif /* __ASSEMBLY__ */
 
 #endif /* __ARCH_VEGA_INCLUDE__ */

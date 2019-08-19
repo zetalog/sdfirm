@@ -45,7 +45,7 @@
 #include <target/irq.h>
 #include <target/clk.h>
 #include <target/heap.h>
-#include <target/irq.h>
+#include <asm/mach/event.h>
 
 bool board_in_irq(void)
 {

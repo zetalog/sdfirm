@@ -42,12 +42,6 @@
 #ifndef __EVENT_VEGA_H_INCLUDE__
 #define __EVENT_VEGA_H_INCLUDE__
 
-#ifndef ARCH_HAVE_IRQC
-#define ARCH_HAVE_IRQC
-#else
-#error "Multiple IRQ controller defined"
-#endif
-
 /* RI5CY and ZERO-RISCY core both have an event unit to support vectorized
  * interrupts of up to 32 lines and event triggering of up to 32 input
  * lines. The interrupt and event lines are separately masked and buffered.

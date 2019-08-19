@@ -42,6 +42,12 @@
 #ifndef __IRQC_VEGA_H_INCLUDE__
 #define __IRQC_VEGA_H_INCLUDE__
 
+#ifndef ARCH_HAVE_IRQC
+#define ARCH_HAVE_IRQC
+#else
+#error "Multiple IRQ controller defined"
+#endif
+
 #include <asm/mach/event.h>
 
 #define irqc_hw_ctrl_init()		event_init_ctrl()
