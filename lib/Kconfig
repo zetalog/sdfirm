@@ -50,6 +50,7 @@ menu "Mathematic operations"
 
 config MATH_GCD32
 	bool "gcd32u"
+	select MATH_MOD32
 
 config MATH_MOD32
 	bool "mod32u"

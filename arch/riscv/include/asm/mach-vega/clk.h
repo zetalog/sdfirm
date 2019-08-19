@@ -45,4 +45,6 @@
 #include <asm/mach/scg.h>
 #include <asm/mach/pcc.h>
 
+int clk_hw_ctrl_init(void);
+
 #endif /* __CLK_VEGA_H_INCLUDE__ */

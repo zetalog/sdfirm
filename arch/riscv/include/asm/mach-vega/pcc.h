@@ -42,6 +42,8 @@
 #ifndef __PCC_VEGA_H_INCLUDE__
 #define __PCC_VEGA_H_INCLUDE__
 
+#include <asm/io.h>
+
 #define PCC0_BASE			UL(0x4002B000)
 #define PCC1_BASE			UL(0x41027000)
 #define PCC_REG(n, offset)		(PCC##n##_BASE + (offset))
@@ -115,9 +117,8 @@
 #define PCC_PCD_OFFSET			0
 #define PCC_PCD_MASK			REG_3BIT_MASK
 #define PCC_PCD(value)			_SET_FV(PCC_PCD, value)
-/* Divide by 1, 2, 3, 4, 5, 6, 7, 8 */
-#define PCC_PCD_DIV(div)		PCD_PCD((div) - 1)
-#define PCD_FRAC			_BV(3)
+#define PCC_PCD_DIV_MAX			8
+#define PCC_FRAC			_BV(3)
 
 /* PCS: Peripheral Clock Select
  * The following peripherals support PCS fields:
@@ -175,5 +176,14 @@
 	((PCC_##reg <= PCC1_BASE) ?			\
 	 CLK_PCC0_BASE + ((PCC_##reg - PCC0_BASE) / 4) :\
 	 CLK_PCC1_BASE + ((PCC_##reg - PCC1_BASE) / 4))
+
+#define pcc_enable_clk(reg)		__raw_setl(PCC_CGC, reg)
+#define pcc_disable_clk(reg)		__raw_clearl(PCC_CGC, reg)
+#define pcc_clk_present(reg)		(!!(__raw_readl(reg) & PCC_PR))
+#define pcc_clk_inuse(reg)		(!!(__raw_readl(reg) & PCC_INUSE))
+
+void pcc_select_source(caddr_t reg, uint8_t src);
+void pcc_config_divider(caddr_t reg,
+			uint32_t input_hz, uint32_t output_hz);
 
 #endif /* __PCC_VEGA_H_INCLUDE__ */

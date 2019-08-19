@@ -35,17 +35,76 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)lpuart.c: RV32M1 (VEGA) low power UART implementation
- * $Id: lpuart.c,v 1.1 2019-08-16 23:02:00 zhenglv Exp $
+ * @(#)pcc.c: RV32M1 (VEGA) PCC (peripheral clock controller) driver
+ * $Id: pcc.c,v 1.1 2019-08-19 16:43:00 zhenglv Exp $
  */
 
-#include <target/uart.h>
-#include <target/gpio.h>
 #include <target/clk.h>
+#include <target/muldiv.h>
 
-void lpuart_ctrl_init(void)
+void pcc_select_source(caddr_t reg, uint8_t src)
 {
-	pcc_enable_clk(PCC_PORTC);
-	gpio_config_mux(3, 7, PTC7_MUX_LPUART0_RX);
-	gpio_config_mux(3, 8, PTC8_MUX_LPUART0_TX);
+	if (!pcc_clk_present(reg) || pcc_clk_inuse(reg))
+		return;
+
+	pcc_disable_clk(reg);
+	__raw_writel_mask(PCC_PCS(src), PCC_PCS(PCC_PCS_MASK), reg);
+	pcc_enable_clk(reg);
+}
+
+void pcc_config_divider(caddr_t reg,
+			uint32_t input_hz, uint32_t output_hz)
+{
+	uint8_t try_div, try_frac;
+	uint8_t div, frac;
+	uint32_t quo, rem, calc_hz;
+	uint32_t last_err_quo, last_err_rem;
+
+	if (!pcc_clk_present(reg) || pcc_clk_inuse(reg))
+		return;
+	/* When dividing by 1 (PCD = 000), do not set the FRAC bit;
+	 * otherwise, the output clock is disabled.
+	 * That means: PCC is not a clock multiplexer.
+	 */
+	if (output_hz > input_hz)
+		return;
+
+	div = frac = 0;
+	last_err_quo = input_hz - output_hz;
+	last_err_rem = 0;
+	try_frac = 0;
+again:
+	for (try_div = 0; try_div < PCC_PCD_DIV_MAX; try_div++) {
+		calc_hz = div32u(input_hz, (try_div + 1));
+		rem = mod32u(input_hz, (try_div + 1));
+		quo = calc_hz < output_hz ?
+		      output_hz - calc_hz :
+		      calc_hz - output_hz;
+		if (quo < last_err_quo ||
+		    (quo == last_err_quo && rem < last_err_rem)) {
+			frac = try_frac;
+			div = try_div;
+			last_err_quo = quo;
+			last_err_rem = rem;
+			if (last_err_quo == 0 && last_err_rem == 0)
+				goto exit_calib;
+		}
+	}
+
+	if (!try_frac) {
+		input_hz <<= 1;
+		try_frac++;
+		if (output_hz <= input_hz)
+			goto again;
+	}
+
+exit_calib:
+	pcc_disable_clk(reg);
+	if (frac)
+		__raw_setl(PCC_FRAC, reg);
+	else
+		__raw_clearl(PCC_FRAC, reg);
+	__raw_writel_mask(PCC_PCD(div),
+			  PCC_PCD(PCC_PCD_MASK), reg);
+	pcc_enable_clk(reg);
 }

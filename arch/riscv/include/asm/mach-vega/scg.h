@@ -1163,6 +1163,7 @@ void BOARD_BootClockRUN(void);
 void BOARD_BootClockHSRUN(void);
 void BOARD_BootClockVLPR(void);
 
+#if 0
 /* Boot clocks */
 extern const scg_sys_clk_config_t g_sysClkConfig_BOARD_BootClockRUN;
 extern const scg_sosc_config_t g_scgSysOscConfig_BOARD_BootClockRUN;
@@ -1183,5 +1184,6 @@ extern const scg_sosc_config_t g_scgSysOscConfig_BOARD_BootClockVLPR;
 extern const scg_sirc_config_t g_scgSircConfig_BOARD_BootClockVLPR;
 extern const scg_firc_config_t g_scgFircConfigBOARD_BootClockVLPR;
 extern const scg_lpfll_config_t g_scgLpFllConfigBOARD_BootClockVLPR;
+#endif
 
 #endif /* __SCG_VEGA_H_INCLUDE__ */
