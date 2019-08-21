@@ -117,6 +117,128 @@ struct output_clk output_clks[] = {
 	},
 };
 
+struct interface_clk {
+	clk_t intfc;	/* bus interface clock */
+	caddr_t pcc;
+};
+
+struct interface_clk interface_clks[] = {
+	[MSMC_CLK] = {
+		.intfc = slow_clk,
+		.pcc = PCC_MSCM,
+	},
+	[AXBS_CLK] = {
+		.intfc = plat_clk,
+		.pcc = PCC_AXBS0,
+	},
+	[DMA0_CLK] = {
+		.intfc = sys_clk,
+		.pcc = PCC_DMA0,
+	},
+	[XRDC_MGR_CLK] = {
+		.intfc = plat_clk,
+		.pcc = PCC_XRDC_MGR,
+	},
+	[XRDC_PAC_CLK] = {
+		.intfc = plat_clk,
+		.pcc = PCC_XRDC_PAC,
+	},
+	[XRDC_MRC_CLK] = {
+		.intfc = plat_clk,
+		.pcc = PCC_XRDC_MRC,
+	},
+	[SEMA42_0_CLK] = {
+		.intfc = plat_clk,
+		.pcc = PCC_SEMA42_0,
+	},
+	[DMAMUX0_CLK] = {
+		.intfc = bus_clk,
+		.pcc = PCC_DMAMUX0,
+	},
+	[EWM_CLK] = {
+		.intfc = slow_clk,
+		.pcc = PCC_EWM,
+	},
+	[MUA_CLK] = {
+		.intfc = slow_clk,
+		.pcc = PCC_MUA,
+	},
+	[CRC_CLK] = {
+		.intfc = bus_clk,
+		.pcc = PCC_CRC0,
+	},
+	[PORTA_CLK] = {
+		.intfc = slow_clk,
+		.pcc = PCC_PORTA,
+	},
+	[PORTB_CLK] = {
+		.intfc = slow_clk,
+		.pcc = PCC_PORTB,
+	},
+	[PORTC_CLK] = {
+		.intfc = slow_clk,
+		.pcc = PCC_PORTC,
+	},
+	[PORTD_CLK] = {
+		.intfc = slow_clk,
+		.pcc = PCC_PORTD,
+	},
+	[LPDAC_CLK] = {
+		.intfc = bus_clk,
+		.pcc = PCC_LPDAC0,
+	},
+	[VREF_CLK] = {
+		.intfc = slow_clk,
+		.pcc = PCC_VREF,
+	},
+	[DMA1_CLK] = {
+		.intfc = sys_clk,
+		.pcc = PCC_DMA1,
+	},
+	[GPIOE_CLK] = {
+		.intfc = plat_clk,
+		.pcc = PCC_GPIOE,
+	},
+	[SEMA42_1_CLK] = {
+		.intfc = plat_clk,
+		.pcc = PCC_SEMA42_1,
+	},
+	[DMAMUX1_CLK] = {
+		.intfc = bus_clk,
+		.pcc = PCC_DMAMUX1,
+	},
+	[INTMUX1_CLK] = {
+		.intfc = bus_clk,
+		.pcc = PCC_INTMUX1,
+	},
+	[MUB_CLK] = {
+		.intfc = slow_clk,
+		.pcc = PCC_MUB,
+	},
+	[CAU3_CLK] = {
+		.intfc = sys_clk,
+		.pcc = PCC_CAU3,
+	},
+	[TRNG_CLK] = {
+		.intfc = bus_clk,
+		.pcc = PCC_TRNG,
+	},
+	[PORTE_CLK] = {
+		.intfc = slow_clk,
+		.pcc = PCC_PORTE,
+	},
+#if 0
+	[MTB_CLK] = {
+		.intfc = sys_clk,
+		.pcc = PCC_MTB,
+	},
+	[EXT_CLK_CLK] = {
+		.intfc = ext_clk,
+		.pcc = PCC_EXT_CLK,
+	},
+#endif
+};
+
 uint8_t sys_mode = SYS_MODE_RUN;
 clk_t scs_clk = sirc_clk;
 clk_t scs_clkout = sirc_clk;
@@ -187,6 +309,7 @@ struct clk_driver clk_input = {
 void apply_system_clk(uint8_t mode, clk_t src)
 {
 	BUG_ON(mode >= NR_SCG_MODES);
+	clk_enable(src);
 	scg_clock_select(mode, __freqplan_clk2scs(src));
 }
 
@@ -296,6 +419,38 @@ struct clk_driver clk_output = {
 	.disable = disable_output_clk,
 	.get_freq = get_output_clk_freq,
 	.set_freq = set_output_clk_freq,
+};
+
+static int enable_interface_clk(clk_clk_t clk)
+{
+	if (clk >= NR_INTERFACE_CLKS)
+		return -EINVAL;
+	clk_enable(interface_clks[clk].intfc);
+	pcc_enable_clk(interface_clks[clk].pcc);
+	return 0;
+}
+
+static void disable_interface_clk(clk_clk_t clk)
+{
+	if (clk >= NR_INTERFACE_CLKS)
+		return;
+	pcc_disable_clk(interface_clks[clk].pcc);
+	return;
+}
+
+static uint32_t get_interface_clk_freq(clk_clk_t clk)
+{
+	if (clk >= NR_INTERFACE_CLKS)
+		return -EINVAL;
+	return clk_get_frequency(interface_clks[clk].intfc);
+}
+
+struct clk_driver clk_interface = {
+	.max_clocks = NR_INTERFACE_CLKS,
+	.enable = enable_interface_clk,
+	.disable = disable_interface_clk,
+	.get_freq = get_interface_clk_freq,
+	.set_freq = NULL,
 };
 
 clk_t freqplan_scs2clk(void)
@@ -486,6 +641,7 @@ int clk_hw_ctrl_init(void)
 	clk_register_driver(CLK_INPUT, &clk_input);
 	clk_register_driver(CLK_SYSTEM, &clk_system);
 	clk_register_driver(CLK_OUTPUT, &clk_output);
+	clk_register_driver(CLK_INTERFACE, &clk_interface);
 	freqplan_config_run();
 	return 0;
 }

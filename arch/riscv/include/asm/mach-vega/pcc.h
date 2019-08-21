@@ -48,15 +48,13 @@
 #define PCC1_BASE			UL(0x41027000)
 #define PCC_REG(n, offset)		(PCC##n##_BASE + (offset))
 
-/* PCC 0 */
+/* PCC 0, controls CM4F/RI5CY domain */
 #define PCC_MSCM			PCC_REG(0, 0x004)
 /* #define PCC_SYSPM			PCC_REG(0, 0x00C) */
 #define PCC_AXBS0			PCC_REG(0, 0x010)
 #define PCC_DMA0			PCC_REG(0, 0x020)
 #define PCC_FLEXBUS			PCC_REG(0, 0x030)
 #define PCC_XRDC_MGR			PCC_REG(0, 0x050)
-#define PCC0_XRDC_PAC			PCC_REG(0, 0x058)
-#define PCC0_XRDC_MRC			PCC_REG(0, 0x05C)
 #define PCC_SEMA42_0			PCC_REG(0, 0x06C)
 #define PCC_DMAMUX0			PCC_REG(0, 0x084)
 #define PCC_EWM				PCC_REG(0, 0x088)
@@ -90,11 +88,9 @@
 /* #define PCC_ATX			PCC_REG(0, 0x138) */
 /* #define PCC_INTMUX0			PCC_REG(0, 0x13C) */
 #define PCC_TRACE			PCC_REG(0, 0x200)
-/* PCC 1 */
+/* PCC 1, controls CM0+/ZERO-RISCY domain */
 #define PCC_DMA1			PCC_REG(1, 0x020)
 #define PCC_GPIOE			PCC_REG(1, 0x03C)
-#define PCC1_XRDC_PAC			PCC_REG(1, 0x058)
-#define PCC1_XRDC_MRC			PCC_REG(1, 0x05C)
 #define PCC_SEMA42_1			PCC_REG(1, 0x06C)
 #define PCC_DMAMUX1			PCC_REG(1, 0x084)
 #define PCC_INTMUX1			PCC_REG(1, 0x088)
@@ -109,6 +105,15 @@
 #define PCC_PORTE			PCC_REG(1, 0x0DC)
 #define PCC_MTB				PCC_REG(1, 0x200)
 #define PCC_EXT_CLK			PCC_REG(1, 0x204)
+
+#ifdef CONFIG_VEGA_RI5CY
+#define PCC_XRDC_PAC			PCC_REG(0, 0x058)
+#define PCC_XRDC_MRC			PCC_REG(0, 0x05C)
+#endif
+#ifdef CONFIG_VEGA_0RISCY
+#define PCC_XRDC_PAC			PCC_REG(1, 0x058)
+#define PCC_XRDC_MRC			PCC_REG(1, 0x05C)
+#endif
 
 /* The following peripherals support PCD/FRAC fields:
  * 30.5.1.36 PCC LPADC0 Register (PCC_LPADC0)
