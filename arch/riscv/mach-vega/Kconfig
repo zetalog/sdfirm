@@ -7,8 +7,10 @@ if ARCH_VEGA
 
 menu "Open-ISA VEGA-Lite (RV32M1) board options"
 
+menu "CPU configuration"
+
 choice
-	prompt "RISCV boot CPU"
+	prompt "RISCV CPU"
 	default VEGA_RI5CY
 
 config VEGA_RI5CY
@@ -25,6 +27,36 @@ endchoice
 config VEGA_BOOT_CPU
 	bool "Configured as boot CPU"
 	default y
+
+endmenu
+
+menu "Clock configuration"
+
+config SCG_SOSC
+	bool "Use external System OSC (RF OSC)"
+	default y
+
+if SCG_SOSC
+
+choice
+	prompt "Systme OSC frequency"
+	default SCG_SOSC_32MHZ
+
+config SCG_SOSC_32MHZ
+	bool "32MHz"
+
+config SCG_SOSC_26MHZ
+	bool "26MHz"
+
+endchoice
+
+endif
+
+config SCG_ROSC
+	bool "Use external 32.768KHz RTC OSC"
+	default y
+
+endmenu
 
 config LPUART
 	bool "Low Power UART (LPUART) module support"

@@ -50,6 +50,11 @@
 
 #define __VEC			__HIVEC
 
+#define SYS_MODE_RUN			0
+#define SYS_MODE_VLPR			1
+#define SYS_MODE_HSRUN			2
+#define NR_SYS_MODES			(SYS_MODE_HSRUN + 1)
+
 #ifndef __ASSEMBLY__
 void board_reset(void);
 void board_suspend(void);

@@ -42,8 +42,32 @@
 #ifndef __SCG_VEGA_H_INCLUDE__
 #define __SCG_VEGA_H_INCLUDE__
 
+#include <errno.h>
+#include <stdbool.h>
 #include <target/types.h>
 #include <target/bitops.h>
+#include <target/arch.h>
+
+/* system power modes */
+#define SCG_CLKOUT			NR_SYS_MODES
+#define NR_SCG_MODES			(SCG_CLKOUT + 1)
+/* system clock source IDs */
+#define SCG_SCS_EXT			0
+#define SCG_SCS_SOSC			1
+#define SCG_SCS_SIRC			2
+#define SCG_SCS_FIRC			3
+#define SCG_SCS_ROSC			4
+#define SCG_SCS_LPFLL			5
+#define NR_SCG_CLOCKS			6
+/* system clock divider IDs */
+#define SCG_DIVSLOW			0
+#define SCG_DIVBUS			1
+#define SCG_DIVEXT			2
+#define SCG_DIVCORE			4
+/* clock divider IDs */
+#define SCG_DIV1			0
+#define SCG_DIV2			1
+#define SCG_DIV3			2
 
 #define SCG_BASE			UL(0x4002C000)
 #define SCG_REG(offset)			(SCG_BASE + (offset))
@@ -72,6 +96,15 @@
 #define SCG_LPFLLTCFG			SCG_REG(0x50C)
 #define SCG_LPFLLSTAT			SCG_REG(0x514)
 
+/* system power mode registers */
+#define SCG_MODEREG(mode)		(SCG_RCCR + (mode) * 4)
+/* system clock source registers */
+#define SCG_SCSREG(scs, off)		(SCG_REG(0x100 * (scs)) + (off))
+#define SCG_SCSCSR(scs)			SCG_SCSREG(scs, 0x00)
+#define SCG_SCSDIV(scs)			SCG_SCSREG(scs, 0x04)
+#define SCG_SCSCFG(scs)			SCG_SCSREG(scs, 0x08)
+#define SCG_SCSTCFG(scs)		SCG_SCSREG(scs, 0x0C)
+
 /* 29.3.1.3 Parameter Register (PARAM) */
 #define SCG_DIVPRES_OFFSET		27
 #define SCG_DIVPRES_MASK		REG_5BIT_MASK
@@ -95,35 +128,23 @@
  * 29.3.1.7 HSRUN Clock Control Register (HCCR)
  * 29.3.1.8 SCG CLKOUT Configuration Register (CLKOUTCNFG)
  */
-#define SCG_DIVSLOW_OFFSET		0
-#define SCG_DIVSLOW_MASK		REG_4BIT_MASK
-#define SCG_GET_DIVSLOW(value)		_GET_FV(SCG_DIVSLOW, value)
-#define SCG_SET_DIVSLOW(value)		_SET_FV(SCG_DIVSLOW, value)
-#define SCG_DIVBUS_OFFSET		4
-#define SCG_DIVBUS_MASK			REG_4BIT_MASK
-#define SCG_GET_DIVBUS(value)		_GET_FV(SCG_DIVBUS, value)
-#define SCG_SET_DIVBUS(value)		_SET_FV(SCG_DIVBUS, value)
-#define SCG_DIVEXT_OFFSET		8
-#define SCG_DIVEXT_MASK			REG_4BIT_MASK
-#define SCG_GET_DIVEXT(value)		_GET_FV(SCG_DIVEXT, value)
-#define SCG_SET_DIVEXT(value)		_SET_FV(SCG_DIVEXT, value)
-#define SCG_DIVCORE_OFFSET		16
-#define SCG_DIVCORE_MASK		REG_4BIT_MASK
-#define SCG_GET_DIVCORE(value)		_GET_FV(SCG_DIVCORE, value)
-#define SCG_SET_DIVCORE(value)		_SET_FV(SCG_DIVCORE, value)
-#define SCG_CSR_DIV_MAX			16
-#define SCG_CSR_DIV2VAL(div)		((div) - 1)
-#define SCG_CSR_VAL2DIV(val)		((val) + 1)
+#define SCG_CCR_DIV2VAL(div)		((div) - 1)
+#define SCG_CCR_VAL2DIV(val)		((val) + 1)
+#define SCG_CCR_DIV_MASK		REG_4BIT_MASK
+/* DIV values */
+#define SCG_CCR_DIV_MAX			16
+#define SCG_CCR_DIV_SET(id, div)	\
+	(((div) & SCG_CCR_DIV_MASK) << ((id) * 4))
+#define SCG_CCR_DIV_GET(id, val)	\
+	(((val) >> ((id) * 4)) & SCG_CCR_DIV_MASK)
+#define SCG_CCR_DIV_MSK(id)		\
+	(SCG_CCR_DIV_MASK << ((id) * 4))
+
+/* use input clock IDs */
 #define SCG_SCS_OFFSET			24
 #define SCG_SCS_MASK			REG_4BIT_MASK
 #define SCG_GET_SCS(value)		_GET_FV(SCG_SCS, value)
 #define SCG_SET_SCS(value)		_SET_FV(SCG_SCS, value)
-#define SCG_SCS_EXT			0
-#define SCG_SCS_SOSC			1
-#define SCG_SCS_SIRC			2
-#define SCG_SCS_FIRC			3
-#define SCG_SCS_ROSC			4
-#define SCG_SCS_LPFLL			5
 
 /* 29.3.1.9 System OSC Control Status Register (SOSCCSR)
  * 29.3.1.11 Slow IRC Control Status Register (SIRCCSR)
@@ -150,34 +171,38 @@
  * 29.3.1.15 Fast IRC Divide Register (FIRCDIV)
  * 29.3.1.21 Low Power FLL Divide Register (LPFLLDIV)
  */
-#define SCG_DIV1_OFFSET			0
-#define SCG_DIV1_MASK			REG_3BIT_MASK
-#define SCG_DIV1(value)			_SET_FV(SCG_DIV1, value)
-#define SCG_DIV2_OFFSET			8
-#define SCG_DIV2_MASK			REG_3BIT_MASK
-#define SCG_DIV2(value)			_SET_FV(SCG_DIV2, value)
-#define SCG_DIV3_OFFSET			16
-#define SCG_DIV3_MASK			REG_3BIT_MASK
-#define SCG_DIV3(value)			_SET_FV(SCG_DIV3, value)
+#define SCG_DIV_DIV2VAL(div)		((div) ? __ilog2_u16(div) + 1 : 0)
+#define SCG_DIV_VAL2DIV(val)		((val) ? (1 << ((val) - 1)) : 0)
+#define SCG_DIV_DIV_MASK		REG_3BIT_MASK
+/* DIV values */
 #define SCG_DIV_DIV_MAX			64
-#define SCG_DIV_DIV2VAL(div)		ilog2_const(div)
-#define SCG_DIV_VAL2DIV(val)		(1 << (val))
+#define SCG_DIV_DIV_DISABLED		0
+#define SCG_DIV_DIV_SET(id, div)	\
+	(((div) & SCG_DIV_DIV_MASK) << ((id) * 8))
+#define SCG_DIV_DIV_GET(id, val)	\
+	(((val) >> ((id) * 8)) & SCG_DIV_DIV_MASK)
+#define SCG_DIV_DIV_MSK(id)		\
+	(SCG_DIV_DIV_MASK << ((id) * 8))
 
-/* 29.3.1.13 Slow IRC Configuration Register (SIRCCFG) */
-#define SCG_SIRC_RANGE_OFFSET		0
-#define SCG_SIRC_RANGE_MASK		REG_1BIT_MASK
-#define SCG_SIRC_RANGE(value)		_SET_FV(SCG_SIRC_RANGE, value)
+/* 29.3.1.13 Slow IRC Configuration Register (SIRCCFG)
+ * 29.3.1.16 Fast IRC Configuration Register (FIRCCFG)
+ * 29.3.1.22 Low Power FLL Configuration Register (LPFLLCFG)
+ */
+#define SCG_RANGE_OFFSET		0
+#define SCG_RANGE_MASK			REG_1BIT_MASK
+#define SCG_GET_RANGE(value)		_GET_FV(SCG_RANGE, value)
+#define SCG_SET_RANGE(value)		_SET_FV(SCG_RANGE, value)
 #define SCG_SIRC_2MHZ			0
 #define SCG_SIRC_8MHZ			1
-
-/* 29.3.1.16 Fast IRC Configuration Register (FIRCCFG) */
-#define SCG_FIRC_RANGE_OFFSET		0
-#define SCG_FIRC_RANGE_MASK		1
-#define SCG_FIRC_RANGE(value)		_SET_FV(SCG_FIRC_RANGE, value)
+#define SCG_SIRC_RANGE_MAX		2
 #define SCG_FIRC_48MHZ			0
 #define SCG_FIRC_52MHZ			1
 #define SCG_FIRC_56MHZ			2
 #define SCG_FIRC_60MHZ			3
+#define SCG_FIRC_RANGE_MAX		4
+#define SCG_LPFLL_48MHZ			0
+#define SCG_LPFLL_72MHZ			1
+#define SCG_LPFLL_FSEL_MAX		2
 
 /* 29.3.1.17 Fast IRC Trim Configuration Register (FIRCTCFG) */
 #define SCG_FIRC_TRIMSRC_OFFSET		0
@@ -200,13 +225,6 @@
 #define SCG_FIRC_TRIMCOAR_OFFSET	8
 #define SCG_FIRC_TRIMCOAR_MASK		REG_6BIT_MASK
 #define SCG_FIRC_TRIMCOAR(value)	_SET_FV(SCG_FIRC_TRIMCOAR, value)
-
-/* 29.3.1.22 Low Power FLL Configuration Register (LPFLLCFG) */
-#define SCG_LPFLL_FSEL_OFFSET		0
-#define SCG_LPFLL_FSEL_MASK		REG_2BIT_MASK
-#define SCG_LPFLL_FSEL(value)		_SET_FV(SCG_LPFLL_FSEL, value)
-#define SCG_LPFLL_48MHZ			0
-#define SCG_LPFLL_72MHZ			1
 
 /* 29.3.1.23 Low Power FLL Trim Configuration Register (LPFLLTCFG) */
 #define SCG_LPFLL_TRIMSRC_OFFSET	0
@@ -233,36 +251,55 @@
 #define SCG_LPFLL_AUTOTRIM_MASK		REG_8BIT_MASK
 #define SCG_LPFLL_AUTOTRIM(value)	_SET_FV(SCG_LPFLL_AUTOTRIM, value)
 
-#define BOARD_BOOTCLOCKRUN_CORE_CLOCK		U(48000000)
-#define BOARD_BOOTCLOCKHSRUN_CORE_CLOCK		U(72000000)
-#define BOARD_BOOTCLOCKVLPR_CORE_CLOCK		U(4000000)
-
-void BOARD_InitBootClocks(void);
-void BOARD_BootClockRUN(void);
-void BOARD_BootClockHSRUN(void);
-void BOARD_BootClockVLPR(void);
-
-#if 0
-/* Boot clocks */
-extern const scg_sys_clk_config_t g_sysClkConfig_BOARD_BootClockRUN;
-extern const scg_sosc_config_t g_scgSysOscConfig_BOARD_BootClockRUN;
-extern const scg_sirc_config_t g_scgSircConfig_BOARD_BootClockRUN;
-extern const scg_firc_config_t g_scgFircConfigBOARD_BootClockRUN;
-extern const scg_lpfll_config_t g_scgLpFllConfigBOARD_BootClockRUN;
-
-/* HS clocks */
-extern const scg_sys_clk_config_t g_sysClkConfig_BOARD_BootClockHSRUN;
-extern const scg_sosc_config_t g_scgSysOscConfig_BOARD_BootClockHSRUN;
-extern const scg_sirc_config_t g_scgSircConfig_BOARD_BootClockHSRUN;
-extern const scg_firc_config_t g_scgFircConfigBOARD_BootClockHSRUN;
-extern const scg_lpfll_config_t g_scgLpFllConfigBOARD_BootClockHSRUN;
-
-/* LPR clocks */
-extern const scg_sys_clk_config_t g_sysClkConfig_BOARD_BootClockVLPR;
-extern const scg_sosc_config_t g_scgSysOscConfig_BOARD_BootClockVLPR;
-extern const scg_sirc_config_t g_scgSircConfig_BOARD_BootClockVLPR;
-extern const scg_firc_config_t g_scgFircConfigBOARD_BootClockVLPR;
-extern const scg_lpfll_config_t g_scgLpFllConfigBOARD_BootClockVLPR;
+/* external crystals */
+#ifdef CONFIG_SCG_SOSC_32MHZ
+#define SCG_SOSC_FREQ			320000000
 #endif
+#ifdef CONFIG_SCG_SOSC_26MHZ
+#define SCG_SOSC_FREQ			260000000
+#endif
+#ifndef SCG_SOSC_FREQ
+#define SCG_SOSC_FREQ			0
+#endif
+#ifdef CONFIG_SCG_ROSC
+#define SCG_ROSC_FREQ			32768
+#else
+#define SCG_ROSC_FREQ			0
+#endif
+
+#define scg_clock_valid(scs)		\
+	(!!(__raw_readl(SCG_SCSCSR(scs)) & SCG_VLD))
+#define scg_clock_selected(scs)		\
+	(!!(__raw_readl(SCG_SCSCSR(scs)) & SCG_SEL))
+#define scg_clock_locked(scs)		\
+	(!!(__raw_readl(SCG_SCSCSR(scs)) & SCG_LK))
+#define scg_clock_get_range(scs)	\
+	SCG_GET_RANGE(__raw_readl(SCG_SCSCFG(scs)))
+#define scg_clock_set_range(scs, range)			\
+	__raw_writel_mask(SCG_SET_RANGE(range),		\
+			  SCG_SET_RANGE(SCG_RANGE_MASK),\
+			  SCG_SCSCFG(scs))
+#define scg_clock_set_source(mode, scs)			\
+	__raw_writel_mask(SCG_SET_SCS(scs),		\
+			  SCG_SET_SCS(SCG_SCS_MASK),	\
+			  SCG_MODEREG(mode))
+#define scg_clock_get_source(mode)			\
+	SCG_GET_SCS(__raw_readl(SCG_MODEREG(mode)))
+#define __scg_clock_get_source()			\
+	SCG_GET_SCS(__raw_readl(SCG_CSR))
+
+int scg_input_disable(uint8_t scs);
+int scg_input_enable(uint8_t scs, uint32_t freq, uint32_t flags);
+uint32_t scg_input_get_freq(uint8_t scs);
+void scg_input_set_freq(uint8_t scs, uint32_t freq);
+
+void scg_output_disable(uint8_t scs, uint8_t id);
+void scg_output_enable(uint8_t scs, uint8_t id, uint8_t div);
+uint32_t scg_output_get_freq(uint8_t scs, uint8_t id);
+void scg_output_set_freq(uint8_t scs, uint8_t id, uint32_t freq);
+
+void scg_clock_select(uint8_t mode, uint8_t src);
+void scg_system_set_freq(uint8_t mode, uint8_t id, uint32_t freq);
+uint32_t scg_system_get_freq(uint8_t mode, uint8_t id);
 
 #endif /* __SCG_VEGA_H_INCLUDE__ */

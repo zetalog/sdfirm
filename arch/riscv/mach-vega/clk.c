@@ -35,7 +35,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)clk.c: RV32M1 (VEGA) specific clock tree framework driver
+ * @(#)clk.c: RV32M1 (VEGA) specific clock tree driver
  * $Id: clk.c,v 1.1 2019-08-19 14:24:00 zhenglv Exp $
  */
 
@@ -46,7 +46,84 @@ static uint32_t const_clks[] = {
 	[LPOSC_CLK] = FREQ_LPOSC_CLK,
 };
 
-static uint32_t get_const_freq(clk_clk_t clk)
+struct input_clk {
+	uint32_t freq;
+	uint32_t flags;
+};
+
+struct input_clk input_clks[] = {
+	[SOSC_CLK] = {
+		.freq = SCG_SOSC_FREQ,
+		.flags = SCG_EN,
+	},
+	[SIRC_CLK] = {
+		.freq = CORE_CLK_FREQ_VLPR * 2,
+		.flags = SCG_EN | SCG_LPEN,
+	},
+	[FIRC_CLK] = {
+		.freq = CORE_CLK_FREQ_RUN,
+		.flags = SCG_EN,
+	},
+	[ROSC_CLK] = {
+		.freq = SCG_ROSC_FREQ,
+		.flags = 0,
+	},
+	[LPFLL_CLK] = {
+		.freq = 72000000,
+		.flags = SCG_EN,
+	},
+};
+
+struct output_clk {
+	uint32_t freq;
+};
+
+struct output_clk output_clks[] = {
+	[SOSCDIV1_CLK] = {
+		.freq = INVALID_FREQ,
+	},
+	[SOSCDIV2_CLK] = {
+		.freq = INVALID_FREQ,
+	},
+	[SOSCDIV3_CLK] = {
+		.freq = INVALID_FREQ,
+	},
+	[SIRCDIV1_CLK] = {
+		.freq = INVALID_FREQ,
+	},
+	[SIRCDIV2_CLK] = {
+		.freq = INVALID_FREQ,
+	},
+	[SIRCDIV3_CLK] = {
+		.freq = INVALID_FREQ,
+	},
+	[FIRCDIV1_CLK] = {
+		.freq = INVALID_FREQ,
+	},
+	[FIRCDIV2_CLK] = {
+		.freq = INVALID_FREQ,
+	},
+	[FIRCDIV3_CLK] = {
+		.freq = INVALID_FREQ,
+	},
+	[LPFLLDIV1_CLK] = {
+		.freq = INVALID_FREQ,
+	},
+	[LPFLLDIV2_CLK] = {
+		.freq = INVALID_FREQ,
+	},
+	[LPFLLDIV3_CLK] = {
+		.freq = INVALID_FREQ,
+	},
+};
+
+uint8_t sys_mode = SYS_MODE_RUN;
+clk_t scs_clk = sirc_clk;
+clk_t scs_clkout = sirc_clk;
+
+static uint8_t __freqplan_clk2scs(clk_t src);
+
+static uint32_t get_const_clk_freq(clk_clk_t clk)
 {
 	if (clk >= NR_CONST_CLKS)
 		return INVALID_FREQ;
@@ -57,12 +134,358 @@ struct clk_driver clk_const = {
 	.max_clocks = NR_CONST_CLKS,
 	.enable = NULL,
 	.disable = NULL,
-	.get_freq = get_const_freq,
+	.get_freq = get_const_clk_freq,
 	.set_freq = NULL,
 };
+
+static void apply_input_clk(clk_clk_t clk)
+{
+	BUG_ON(clk >= NR_INPUT_CLKS);
+	scg_input_enable(CLK_SCG_SCS(clk), input_clks[clk].freq,
+			 input_clks[clk].flags);
+}
+
+static int enable_input_clk(clk_clk_t clk)
+{
+	if (clk >= NR_INPUT_CLKS)
+		return -EINVAL;
+	apply_input_clk(clk);
+	return 0;
+}
+
+static void disable_input_clk(clk_clk_t clk)
+{
+	if (clk >= NR_INPUT_CLKS)
+		return;
+	scg_input_disable(CLK_SCG_SCS(clk));
+}
+
+static int set_input_clk_freq(clk_clk_t clk, uint32_t freq)
+{
+	if (clk >= NR_INPUT_CLKS)
+		return -EINVAL;
+	input_clks[clk].freq = freq;
+	apply_input_clk(clk);
+	return 0;
+}
+
+static uint32_t get_input_clk_freq(clk_clk_t clk)
+{
+	if (clk >= NR_INPUT_CLKS)
+		return INVALID_FREQ;
+	return scg_input_get_freq(CLK_SCG_SCS(clk));
+}
+
+struct clk_driver clk_input = {
+	.max_clocks = NR_INPUT_CLKS,
+	.enable = enable_input_clk,
+	.disable = disable_input_clk,
+	.get_freq = get_input_clk_freq,
+	.set_freq = set_input_clk_freq,
+};
+
+void apply_system_clk(uint8_t mode, clk_t src)
+{
+	BUG_ON(mode >= NR_SCG_MODES);
+	scg_clock_select(mode, __freqplan_clk2scs(src));
+}
+
+static int enable_system_clk(clk_clk_t clk)
+{
+	if (clk == SYS_CLK_SRC)
+		apply_system_clk(sys_mode, scs_clk);
+	if (clk == CLKOUT_CLK)
+		apply_system_clk(SCG_CLKOUT, scs_clkout);
+	return 0;
+}
+
+static void disable_system_clk(clk_clk_t clk)
+{
+	if (clk == SYS_CLK_SRC)
+		freqplan_config_boot();
+	if (clk == CLKOUT_CLK)
+		scg_clock_select(SCG_CLKOUT, SCG_SCS_EXT);
+}
+
+static uint32_t get_system_clk_freq(clk_clk_t clk)
+{
+	if (clk == SYS_CLK_SRC)
+		return clk_get_frequency(scs_clk);
+	return INVALID_FREQ;
+}
+
+struct clk_driver clk_system = {
+	.max_clocks = NR_SYSTEM_CLKS,
+	.enable = enable_system_clk,
+	.disable = disable_system_clk,
+	.get_freq = get_system_clk_freq,
+	.set_freq = NULL,
+};
+
+static int apply_output_clk(clk_clk_t clk)
+{
+	uint32_t src_freq;
+	clk_t src;
+	uint32_t freq;
+
+	freq = output_clks[clk].freq;
+	if (freq == INVALID_FREQ)
+		return -EINVAL;
+	if (clk < NR_OUTPUT_CCRS) {
+		if (clk == CORE_CLK)
+			src = freqplan_clk2scs();
+		else
+			src = core_clk;
+	} else
+		src = CLK_DIV_CLKID(clk);
+	src_freq = clk_get_frequency(src);
+	if (src_freq == INVALID_FREQ)
+		clk_enable(src);
+	src_freq = clk_get_frequency(src);
+	if (src_freq == INVALID_FREQ)
+		return -EINVAL;
+
+	if (clk < NR_OUTPUT_CCRS)
+		scg_system_set_freq(sys_mode, CLK_CCR_DIVID(clk), freq);
+	else
+		scg_output_set_freq(src, CLK_DIV_DIVID(clk), freq);
+	return 0;
+}
+
+static int enable_output_clk(clk_clk_t clk)
+{
+	if (clk >= NR_OUTPUT_CLKS)
+		return -EINVAL;
+	return apply_output_clk(clk);
+}
+
+static void disable_output_clk(clk_clk_t clk)
+{
+	if (clk >= NR_OUTPUT_CLKS)
+		return;
+	if (clk < NR_OUTPUT_CCRS)
+		freqplan_config_boot();
+	else
+		scg_output_disable(CLK_DIV_SCS(clk),
+				   CLK_DIV_DIVID(clk));
+}
+
+static int set_output_clk_freq(clk_clk_t clk, uint32_t freq)
+{
+	if (clk >= NR_OUTPUT_CLKS)
+		return -EINVAL;
+	output_clks[clk].freq = freq;
+	return apply_output_clk(clk);
+}
+
+static uint32_t get_output_clk_freq(clk_clk_t clk)
+{
+	if (clk >= NR_OUTPUT_CLKS)
+		return INVALID_FREQ;
+	if (clk < NR_OUTPUT_CCRS)
+		return scg_system_get_freq(sys_mode,
+					   CLK_CCR_DIVID(clk));
+	else
+		return scg_output_get_freq(CLK_DIV_SCS(clk),
+					   CLK_DIV_DIVID(clk));
+}
+
+struct clk_driver clk_output = {
+	.max_clocks = NR_OUTPUT_CLKS,
+	.enable = enable_output_clk,
+	.disable = disable_output_clk,
+	.get_freq = get_output_clk_freq,
+	.set_freq = set_output_clk_freq,
+};
+
+clk_t freqplan_scs2clk(void)
+{
+	uint8_t scs = __scg_clock_get_source();
+	if (scs == SCG_SCS_EXT || scs >= NR_SCG_CLOCKS)
+		scs = SCG_SCS_SOSC;
+	return clkid(CLK_INPUT, scs - 1);
+}
+
+static uint8_t __freqplan_clk2scs(clk_t src)
+{
+	uint8_t clk = clk_clk(src);
+	if (clk < NR_INPUT_CLKS)
+		return clk + 1;
+	return SCG_SCS_EXT;
+}
+
+uint8_t freqplan_clk2scs(void)
+{
+	return __freqplan_clk2scs(scs_clk);
+}
+
+#ifdef CONFIG_VEGA_BOOT_CPU
+struct clk_src {
+	clk_t clk;
+	uint32_t freq;
+};
+
+struct clk_src freqplan_run[] = {
+	{
+		.clk = sirc_clk,
+		.freq = 8000000,
+	}, {
+		.clk = firc_clk,
+		.freq = 48000000,
+	}, {
+		.clk = fircdiv1_clk,
+		.freq = 48000000,
+	}, {
+		.clk = fircdiv2_clk,
+		.freq = 48000000,
+	}, {
+		.clk = fircdiv3_clk,
+		.freq = 48000000,
+	}, {
+		.clk = sircdiv3_clk,
+		.freq = 8000000,
+	}, {
+		.clk = core_clk,
+		.freq = 48000000,
+	}, {
+		.clk = bus_clk,
+		.freq = 48000000,
+	}, {
+		.clk = slow_clk,
+		.freq = 24000000,
+	}, {
+		.clk = invalid_clk,
+		.freq = INVALID_FREQ,
+	},
+};
+
+struct clk_src freqplan_vlpr[] = {
+	{
+		.clk = sirc_clk,
+		.freq = 8000000,
+	}, {
+		.clk = firc_clk,
+		.freq = 48000000,
+	}, {
+		.clk = sircdiv1_clk,
+		.freq = 8000000,
+	}, {
+		.clk = sircdiv2_clk,
+		.freq = 8000000,
+	}, {
+		.clk = sircdiv3_clk,
+		.freq = 8000000,
+	}, {
+		.clk = fircdiv1_clk,
+		.freq = 48000000,
+	}, {
+		.clk = core_clk,
+		.freq = 4000000,
+	}, {
+		.clk = bus_clk,
+		.freq = 2000000,
+	}, {
+		.clk = slow_clk,
+		.freq = 4000000 / 9,
+	}, {
+		.clk = invalid_clk,
+		.freq = INVALID_FREQ,
+	},
+};
+
+struct clk_src freqplan_hsrun[] = {
+	{
+		.clk = sirc_clk,
+		.freq = 8000000,
+	}, {
+		.clk = firc_clk,
+		.freq = 48000000,
+	}, {
+		.clk = lpfll_clk,
+		.freq = 72000000,
+	}, {
+		.clk = sircdiv3_clk,
+		.freq = 8000000,
+	}, {
+		.clk = fircdiv1_clk,
+		.freq = 48000000,
+	}, {
+		.clk = fircdiv2_clk,
+		.freq = 48000000,
+	}, {
+		.clk = fircdiv3_clk,
+		.freq = 48000000,
+	}, {
+		.clk = core_clk,
+		.freq = 72000000,
+	}, {
+		.clk = bus_clk,
+		.freq = 72000000,
+	}, {
+		.clk = slow_clk,
+		.freq = 8000000,
+	}, {
+		.clk = invalid_clk,
+		.freq = INVALID_FREQ,
+	},
+};
+
+void freqplan_config_boot(void)
+{
+	uint32_t freq = CORE_CLK_FREQ_VLPR * 2;
+
+	/* configure SIRC as boot clock */
+	scg_input_disable(SCG_SCS_SIRC);
+	scg_output_disable(SCG_SCS_SIRC, SCG_DIV1);
+	scg_output_set_freq(SCG_SCS_SIRC, SCG_DIV2, freq / 2);
+	scg_output_set_freq(SCG_SCS_SIRC, SCG_DIV3, freq);
+	scg_input_enable(SCG_SCS_SIRC, freq, SCG_EN);
+
+	/* configure runtime clock */
+	scg_clock_select(SYS_MODE_RUN, SCG_SCS_SIRC);
+	scg_system_set_freq(SYS_MODE_RUN, SCG_DIVCORE, freq);
+	scg_system_set_freq(SYS_MODE_RUN, SCG_DIVBUS, freq);
+	scg_system_set_freq(SYS_MODE_RUN, SCG_DIVSLOW, freq / 4);
+}
+
+void freqplan_apply(struct clk_src *plan)
+{
+	while (plan && plan->clk != invalid_clk) {
+		clk_set_frequency(plan->clk, plan->freq);
+		plan++;
+	}
+}
+
+void freqplan_config_run(void)
+{
+	freqplan_config_boot();
+	sys_mode = SYS_MODE_RUN;
+	scs_clk = firc_clk;
+	freqplan_apply(freqplan_run);
+}
+
+void freqplan_config_vlpr(void)
+{
+	sys_mode = SYS_MODE_VLPR;
+	scs_clk = sirc_clk;
+	freqplan_apply(freqplan_vlpr);
+}
+
+void freqplan_config_hsrun(void)
+{
+	freqplan_config_boot();
+	sys_mode = SYS_MODE_HSRUN;
+	scs_clk = lpfll_clk;
+	freqplan_apply(freqplan_hsrun);
+}
+#endif
 
 int clk_hw_ctrl_init(void)
 {
 	clk_register_driver(CLK_CONST, &clk_const);
+	clk_register_driver(CLK_INPUT, &clk_input);
+	clk_register_driver(CLK_SYSTEM, &clk_system);
+	clk_register_driver(CLK_OUTPUT, &clk_output);
+	freqplan_config_run();
 	return 0;
 }
