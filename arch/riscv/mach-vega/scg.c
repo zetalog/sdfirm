@@ -266,8 +266,6 @@ uint32_t scg_system_get_freq(uint8_t mode, uint8_t id)
 	return div32u(src_freq, div);
 }
 
-#define smc_power_select(mode)		do { } while (0)
-
 void scg_clock_select(uint8_t mode, uint8_t scs)
 {
 	scg_clock_set_source(mode, scs);

@@ -44,6 +44,7 @@
 
 #include <asm/mach/scg.h>
 #include <asm/mach/pcc.h>
+#include <asm/mach/msmc.h>
 
 #define NR_FREQPLANS		3
 #define FREQPLAN_RUN		0
