@@ -84,20 +84,24 @@ static void lpuart_clear_fifo_irqs(lpuart_irq_t irqs)
 
 static void lpuart_fifo_init(void)
 {
-	__raw_setl(LPUART_TXFE, LPUART_FIFO(UART_CON_ID));
-	__raw_setl(LPUART_RXFE, LPUART_FIFO(UART_CON_ID));
+	lpuart_config_fifo(UART_CON_ID, 0, 0);
+	lpuart_enable_fifo(UART_CON_ID);
 }
+
+#define lpuart_tx_fifo_empty()		\
+	(!!(lpuart_tx_count(UART_CON_ID) == 0))
+#define lpuart_rx_fifo_empty()		\
+	(!!(lpuart_rx_count(UART_CON_ID) == 0))
 #else
+#define lpuart_fifo_init()		lpuart_disable_fifo(UART_CON_ID)
 #define lpuart_enable_fifo_irqs(irqs)	do { } while (0)
 #define lpuart_disable_fifo_irqs()	do { } while (0)
 #define lpuart_fifo_irqs_status()	0
 #define lpuart_clear_fifo_irqs(irqs)	do { } while (0)
-
-static void lpuart_fifo_init(void)
-{
-	__raw_clearl(LPUART_TXFE, LPUART_FIFO(UART_CON_ID));
-	__raw_clearl(LPUART_RXFE, LPUART_FIFO(UART_CON_ID));
-}
+#define lpuart_tx_fifo_empty()		\
+	(!!(lpuart_irqs_status() & LPUART_TDREI))
+#define lpuart_rx_fifo_empty()		\
+	(!(lpuart_irqs_status() & LPUART_RDRF))
 #endif
 
 void lpuart_enable_irqs(lpuart_irq_t irqs)
@@ -175,32 +179,37 @@ void lpuart_clear_irqs(lpuart_irq_t irqs)
 
 void lpuart_write_byte(uint8_t byte)
 {
-	while (!(lpuart_irqs_status() & LPUART_TDREI));
+	while (!lpuart_tx_fifo_empty());
 	__raw_writel(byte, LPUART_DATA(UART_CON_ID));
 }
 
 #ifdef CONFIG_LPUART_7BIT
-uint8_t lpuart_read_byte(void)
+bool lpuart_7bit_enabled(void)
 {
 	uint32_t ctrl = __raw_readl(LPUART_CTRL(UART_CON_ID));
 
 	if ((ctrl & LPUART_M7) ||
 	    ((!(ctrl & LPUART_M7)) && (!(ctrl & LPUART_M)) &&
 	     (ctrl & LPUART_PE)))
-		return __raw_readl(LPUART_DATA(UART_CON_ID)) & 0x7F;
+		return true;
 	else
-		return __raw_readl(LPUART_DATA(UART_CON_ID));
+		return false;
 }
 #else
+#define lpuart_7bit_enabled()	false
+#endif
+
 uint8_t lpuart_read_byte(void)
 {
-	return __raw_readl(LPUART_DATA(UART_CON_ID));
+	uint8_t data = __raw_readl(LPUART_DATA(UART_CON_ID));
+	if (lpuart_7bit_enabled())
+		data &= 0x7F;
+	return data;
 }
-#endif
 
 bool lpuart_ctrl_poll(void)
 {
-	return !!(lpuart_irqs_status() & LPUART_RDRF);
+	return !lpuart_rx_fifo_empty();
 }
 
 void lpuart_ctrl_init(void)
@@ -208,5 +217,9 @@ void lpuart_ctrl_init(void)
 	clk_enable(portc_clk);
 	gpio_config_mux(3, 7, PTC7_MUX_LPUART0_RX);
 	gpio_config_mux(3, 8, PTC8_MUX_LPUART0_TX);
+	clk_enable(lpuart0_clk);
+	lpuart_reset_uart(UART_CON_ID);
+	lpuart_disable_uart(UART_CON_ID);
 	lpuart_fifo_init();
+	lpuart_enable_uart(UART_CON_ID);
 }

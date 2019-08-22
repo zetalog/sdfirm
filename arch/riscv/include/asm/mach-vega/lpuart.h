@@ -295,6 +295,33 @@
 #define LPUART_RXCOUNT_MASK		REG_4BIT_MASK
 #define LPUART_RXCOUNT(value)		_GET_FV(LPUART_TXCOUNT, value)
 
+#define lpuart_config_fifo(id, txw, rxw)			\
+	__raw_writel_mask(LPUART_TXWATER(txw) |			\
+			  LPUART_RXWATER(rxw),			\
+			  LPUART_TXWATER(LPUART_TXWATER_MASK) |	\
+			  LPUART_RXWATER(LPUART_RXWATER_MASK),	\
+			  LPUART_WATER(id));
+#define lpuart_rx_count(id)					\
+	LPUART_RXCOUNT(__raw_readl(LPUART_WATER(id)))
+#define lpuart_tx_count(id)					\
+	LPUART_TXCOUNT(__raw_readl(LPUART_WATER(id)))
+#define lpuart_enable_fifo(id)				\
+	__raw_writel_mask(LPUART_TXFE | LPUART_RXFE,	\
+			  LPUART_TXFE | LPUART_RXFE,	\
+			  LPUART_FIFO(id))
+#define lpuart_disable_fifo(id)				\
+	__raw_writel_mask(0, LPUART_TXFE | LPUART_RXFE,	\
+			  LPUART_FIFO(id))
+#define lpuart_enable_uart(id)				\
+	__raw_writel_mask(LPUART_TE | LPUART_RE,	\
+			  LPUART_TE | LPUART_RE,	\
+			  LPUART_CTRL(id))
+#define lpuart_disable_uart(id)				\
+	__raw_writel_mask(0, LPUART_TE | LPUART_RE,	\
+			  LPUART_CTRL(id))
+#define lpuart_reset_uart(id)				\
+	__raw_setl(LPUART_RST, LPUART_GLOBAL(id))
+
 /* ======================================================================
  * LPUART IRQs
  * ====================================================================== */
