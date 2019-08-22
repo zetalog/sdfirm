@@ -59,9 +59,15 @@
 #define CLK_CONST		((clk_cat_t)0)
 /* clk_clk_t */
 #define LPOSC_CLK		((clk_clk_t)0)
-#define NR_CONST_CLKS		(LPOSC_CLK + 1)
+#define SAI_MCLK		((clk_clk_t)1)
+#define LPADCIRC_CLK		((clk_clk_t)2)
+#define NR_CONST_CLKS		(LPADCIRC_CLK + 1)
 #define FREQ_LPOSC_CLK		1000
+#define FREQ_LPADCIRC_CLK	2000000
+#define FREQ_IRC48_CLK		48000000
 #define lposc_clk		clkid(CLK_CONST, LPOSC_CLK)
+#define sai_mclk		clkid(CLK_CONST, SAI_MCLK)
+#define lpadcirc_clk		clkid(CLK_CONST, LPADCIRC_CLK)
 
 #define CLK_INPUT		((clk_cat_t)1)
 #define SOSC_CLK		((clk_clk_t)0)
@@ -75,6 +81,7 @@
 #define XTAL32_CLK		ROSC_CLK
 #define RFOSC_CLK		SOSC_CLK
 #define RTCOSC_CLK		ROSC_CLK
+#define IRC48M_CLK		FIRC_CLK
 #define sosc_clk		clkid(CLK_INPUT, SOSC_CLK)
 #define sirc_clk		clkid(CLK_INPUT, SIRC_CLK)
 #define firc_clk		clkid(CLK_INPUT, FIRC_CLK)
@@ -84,6 +91,7 @@
 #define xtal32_clk		rosc_clk
 #define rfosc_clk		sosc_clk
 #define rtcosc_clk		rosc_clk
+#define irc48m_clk		firc_clk
 
 #define CLK_SYSTEM		((clk_cat_t)2)
 #define SYS_CLK_SRC		((clk_clk_t)0)
@@ -122,6 +130,7 @@
 #define CLK_DIV_DIVID(clk)	((clk) & 0x03)
 #define SYS_CLK			CORE_CLK
 #define PLAT_CLK		CORE_CLK
+#define SDHC_DCLK		BUS_CLK
 #define slow_clk		clkid(CLK_OUTPUT, SLOW_CLK)
 #define bus_clk			clkid(CLK_OUTPUT, BUS_CLK)
 #define ext_clk			clkid(CLK_OUTPUT, EXT_CLK)
@@ -140,6 +149,7 @@
 #define lpflldiv3_clk		clkid(CLK_OUTPUT, LPFLLDIV3_CLK)
 #define sys_clk			core_clk
 #define plat_clk		core_clk
+#define sdhc_dclk		bus_clk
 
 /* peripheral interface clock, controlled by CGC */
 #define CLK_INTERFACE		((clk_cat_t)4)

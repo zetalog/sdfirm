@@ -164,10 +164,12 @@
  */
 #define PCC_PCS_OFF			0
 #define PCC_PCS_EXT			0
-#define PCC_PCS_SYS_OSC			1
+#define PCC_PCS_SOSC			1
 #define PCC_PCS_SIRC			2
 #define PCC_PCS_FIRC			3
 #define PCC_PCS_LPFLL			6
+#define NR_PCC_PCS_CLOCKS		8
+#define INVALID_PCC_PCS			0xB0
 
 #define PCC_INUSE			_BV(29)
 #define PCC_CGC				_BV(30)

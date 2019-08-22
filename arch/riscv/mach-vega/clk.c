@@ -118,8 +118,8 @@ struct output_clk output_clks[] = {
 };
 
 struct interface_clk {
-	clk_t intfc;	/* bus interface clock */
 	caddr_t pcc;
+	clk_t intfc;	/* bus interface clock */
 };
 
 struct interface_clk interface_clks[] = {
@@ -237,6 +237,213 @@ struct interface_clk interface_clks[] = {
 		.pcc = PCC_EXT_CLK,
 	},
 #endif
+};
+
+struct functional_clk {
+	caddr_t pcc;
+	clk_t *funcs;
+	uint8_t pcs;
+	uint32_t freq;
+};
+
+clk_t div1_funcs[NR_PCC_PCS_CLOCKS] = {
+	[PCC_PCS_EXT] = invalid_clk,
+	[PCC_PCS_SOSC] = soscdiv1_clk,
+	[PCC_PCS_SIRC] = sircdiv1_clk,
+	[PCC_PCS_FIRC] = fircdiv1_clk,
+	[PCC_PCS_LPFLL] = lpflldiv1_clk,
+};
+
+clk_t div2_funcs[NR_PCC_PCS_CLOCKS] = {
+	[PCC_PCS_EXT] = invalid_clk,
+	[PCC_PCS_SOSC] = soscdiv2_clk,
+	[PCC_PCS_SIRC] = sircdiv2_clk,
+	[PCC_PCS_FIRC] = fircdiv2_clk,
+	[PCC_PCS_LPFLL] = lpflldiv2_clk,
+};
+
+clk_t div3_funcs[NR_PCC_PCS_CLOCKS] = {
+	[PCC_PCS_EXT] = invalid_clk,
+	[PCC_PCS_SOSC] = soscdiv3_clk,
+	[PCC_PCS_SIRC] = sircdiv3_clk,
+	[PCC_PCS_FIRC] = fircdiv3_clk,
+	[PCC_PCS_LPFLL] = lpflldiv3_clk,
+};
+
+clk_t rtcosc_funcs[NR_PCC_PCS_CLOCKS] = {
+	[PCC_PCS_EXT] = rtcosc_clk,
+	[PCC_PCS_SOSC] = soscdiv2_clk,
+	[PCC_PCS_SIRC] = sircdiv2_clk,
+	[PCC_PCS_FIRC] = fircdiv2_clk,
+	[PCC_PCS_LPFLL] = lpflldiv2_clk,
+};
+
+clk_t sai_m_funcs[NR_PCC_PCS_CLOCKS] = {
+	[PCC_PCS_EXT] = sai_mclk,
+	[PCC_PCS_SOSC] = soscdiv2_clk,
+	[PCC_PCS_SIRC] = sircdiv2_clk,
+	[PCC_PCS_FIRC] = fircdiv2_clk,
+	[PCC_PCS_LPFLL] = lpflldiv2_clk,
+};
+
+clk_t sdhc_d_funcs[NR_PCC_PCS_CLOCKS] = {
+	[PCC_PCS_EXT] = sdhc_dclk,
+	[PCC_PCS_SOSC] = soscdiv1_clk,
+	[PCC_PCS_SIRC] = sircdiv1_clk,
+	[PCC_PCS_FIRC] = fircdiv1_clk,
+	[PCC_PCS_LPFLL] = lpflldiv1_clk,
+};
+
+clk_t irc48m_funcs[NR_PCC_PCS_CLOCKS] = {
+	[PCC_PCS_EXT] = irc48m_clk,
+	[PCC_PCS_SOSC] = soscdiv1_clk,
+	[PCC_PCS_SIRC] = sircdiv1_clk,
+	[PCC_PCS_FIRC] = fircdiv1_clk,
+	[PCC_PCS_LPFLL] = lpflldiv1_clk,
+};
+
+clk_t lpadcirc_funcs[NR_PCC_PCS_CLOCKS] = {
+	[PCC_PCS_EXT] = lpadcirc_clk,
+	[PCC_PCS_SOSC] = soscdiv2_clk,
+	[PCC_PCS_SIRC] = sircdiv2_clk,
+	[PCC_PCS_FIRC] = fircdiv2_clk,
+	[PCC_PCS_LPFLL] = lpflldiv2_clk,
+};
+
+clk_t sys_funcs[NR_PCC_PCS_CLOCKS] = {
+	[PCC_PCS_EXT] = sys_clk,
+	[PCC_PCS_SOSC] = soscdiv1_clk,
+	[PCC_PCS_SIRC] = sircdiv1_clk,
+	[PCC_PCS_FIRC] = fircdiv1_clk,
+	[PCC_PCS_LPFLL] = lpflldiv1_clk,
+};
+
+struct functional_clk functional_clks[] = {
+	[LPIT0_CLK] = {
+		.pcc = PCC_LPIT0,
+		.funcs = div3_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[LPIT1_CLK] = {
+		.pcc = PCC_LPIT1,
+		.funcs = div3_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[TPM0_CLK] = {
+		.pcc = PCC_TPM0,
+		.funcs = div2_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[TPM1_CLK] = {
+		.pcc = PCC_TPM1,
+		.funcs = div2_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[TPM2_CLK] = {
+		.pcc = PCC_TPM2,
+		.funcs = div2_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[TPM3_CLK] = {
+		.pcc = PCC_TPM3,
+		.funcs = div2_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[LPI2C0_CLK] = {
+		.pcc = PCC_LPI2C0,
+		.funcs = div2_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[LPI2C1_CLK] = {
+		.pcc = PCC_LPI2C1,
+		.funcs = div2_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[LPI2C2_CLK] = {
+		.pcc = PCC_LPI2C2,
+		.funcs = div2_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[LPI2C3_CLK] = {
+		.pcc = PCC_LPI2C3,
+		.funcs = div2_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[LPSPI0_CLK] = {
+		.pcc = PCC_LPSPI0,
+		.funcs = div2_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[LPSPI1_CLK] = {
+		.pcc = PCC_LPSPI1,
+		.funcs = div2_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[LPSPI2_CLK] = {
+		.pcc = PCC_LPSPI2,
+		.funcs = div2_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[LPSPI3_CLK] = {
+		.pcc = PCC_LPSPI3,
+		.funcs = div2_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[LPUART0_CLK] = {
+		.pcc = PCC_LPUART0,
+		.funcs = div2_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[LPUART1_CLK] = {
+		.pcc = PCC_LPUART1,
+		.funcs = div2_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[LPUART2_CLK] = {
+		.pcc = PCC_LPUART2,
+		.funcs = div2_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[LPUART3_CLK] = {
+		.pcc = PCC_LPUART3,
+		.funcs = div2_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[EMVSIM_CLK] = {
+		.pcc = PCC_EMVSIM0,
+		.funcs = rtcosc_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[FLEXIO_CLK] = {
+		.pcc = PCC_FLEXIO0,
+		.funcs = div2_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[LPI2S_CLK] = {
+		.pcc = PCC_I2S0,
+		.funcs = sai_m_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[USDHC_CLK] = {
+		.pcc = PCC_USDHC0,
+		.funcs = sdhc_d_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[USB_CLK] = {
+		.pcc = PCC_USB0,
+		.funcs = irc48m_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[LPADC_CLK] = {
+		.pcc = PCC_LPADC0,
+		.funcs = lpadcirc_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
+	[TRACE_CLK] = {
+		.pcc = PCC_TRACE,
+		.funcs = sys_funcs,
+		.pcs = PCC_PCS_EXT,
+	},
 };
 
 uint8_t sys_mode = SYS_MODE_RUN;
@@ -453,6 +660,83 @@ struct clk_driver clk_interface = {
 	.set_freq = NULL,
 };
 
+clk_t get_functional_pcs_clk(clk_clk_t clk)
+{
+	uint8_t pcs;
+
+	if (clk >= NR_FUNCTIONAL_CLKS)
+		return invalid_clk;
+	pcs = functional_clks[clk].pcs;
+	if (pcs >= NR_PCC_PCS_CLOCKS ||
+	    (1 << pcs) & INVALID_PCC_PCS)
+		return invalid_clk;
+
+	return functional_clks[clk].funcs[pcs];
+}
+
+static int enable_functional_clk(clk_clk_t clk)
+{
+	int ret;
+	clk_t src_clk;
+
+	src_clk = get_functional_pcs_clk(clk);
+	if (src_clk == invalid_clk)
+		return -EINVAL;
+	ret = clk_enable(src_clk);
+	if (ret)
+		return ret;
+	pcc_enable_clk(functional_clks[clk].pcc);
+	return 0;
+}
+
+static void disable_functional_clk(clk_clk_t clk)
+{
+	if (clk >= NR_FUNCTIONAL_CLKS)
+		return;
+	pcc_disable_clk(functional_clks[clk].pcc);
+}
+
+static int set_functional_clk_freq(clk_clk_t clk, uint32_t freq)
+{
+	uint32_t src_freq;
+	clk_t src_clk;
+
+	src_clk = get_functional_pcs_clk(clk);
+	if (src_clk == invalid_clk)
+		return -EINVAL;
+	src_freq = clk_get_frequency(src_clk);
+	if (src_freq < freq || freq == 0)
+		return -EINVAL;
+	if (clk == LPADC_CLK || clk == TRACE_CLK) {
+		functional_clks[clk].freq = freq;
+		pcc_config_divider(functional_clks[clk].pcc,
+				   src_freq, freq);
+	}
+	return 0;
+}
+
+static uint32_t get_functional_clk_freq(clk_clk_t clk)
+{
+	uint32_t src_freq;
+	clk_t src_clk;
+
+	src_clk = get_functional_pcs_clk(clk);
+	if (src_clk == invalid_clk)
+		return -EINVAL;
+	src_freq = clk_get_frequency(src_clk);
+	if (clk != LPADC_CLK && clk != TRACE_CLK)
+		return src_freq;
+	return functional_clks[clk].freq;
+}
+
+struct clk_driver clk_functional = {
+	.max_clocks = NR_FUNCTIONAL_CLKS,
+	.enable = enable_functional_clk,
+	.disable = disable_functional_clk,
+	.get_freq = get_functional_clk_freq,
+	.set_freq = set_functional_clk_freq,
+};
+
 clk_t freqplan_scs2clk(void)
 {
 	uint8_t scs = __scg_clock_get_source();
@@ -642,6 +926,7 @@ int clk_hw_ctrl_init(void)
 	clk_register_driver(CLK_SYSTEM, &clk_system);
 	clk_register_driver(CLK_OUTPUT, &clk_output);
 	clk_register_driver(CLK_INTERFACE, &clk_interface);
+	clk_register_driver(CLK_FUNCTIONAL, &clk_functional);
 	freqplan_config_run();
 	return 0;
 }
