@@ -58,10 +58,38 @@ config SCG_ROSC
 
 endmenu
 
-config LPUART
+menuconfig LPUART
 	bool "Low Power UART (LPUART) module support"
 	select ARCH_HAS_UART
 	select GPIO
+
+if LPUART
+
+choice
+	prompt "Console port"
+	default LPUART_CON_0
+
+config LPUART_CON_0
+	bool "LPUART0"
+
+config LPUART_CON_1
+	bool "LPUART1"
+
+config LPUART_CON_2
+	bool "LPUART2"
+
+config LPUART_CON_3
+	bool "LPUART3"
+
+endchoice
+
+config LPUART_7BIT
+	bool "Enable 7-bit mode support"
+
+config LPUART_FIFO
+	bool "Enable FIFO support"
+
+endif
 
 config IRQC_EVENT
 	bool "Event unit support"

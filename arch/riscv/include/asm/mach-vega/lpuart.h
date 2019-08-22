@@ -107,6 +107,9 @@
 #define LPUART_SBNS		_BV(13)
 #define LPUART_RXEDGIE		_BV(14)
 #define LPUART_LBKDIE		_BV(15)
+#define LPUART_BAUDIE_OFFSET	15
+#define LPUART_BAUDIE_MASK	REG_2BIT_MASK
+#define LPUART_BAUDIE(value)	_SET_FV(LPUART_BAUDIE, value)
 #define LPUART_RESYNCDIS	_BV(16)
 #define LPUART_BOTHEDGE		_BV(17)
 #define LPUART_MATCFG_OFFSET	18
@@ -125,22 +128,38 @@
 /* 56.3.1.7 LPUART Status Register (STAT) */
 #define LPUART_MA2F		_BV(14)
 #define LPUART_MA1F		_BV(15)
+#define LPUART_CTRLIF1_OFFSET	14
+#define LPUART_CTRLIF1_MASK	REG_2BIT_MASK
+#define LPUART_CTRLIF1(value)	_GET_FV(LPUART_CTRLIF1, value)
+
 #define LPUART_PF		_BV(16)
 #define LPUART_FE		_BV(17)
 #define LPUART_NF		_BV(18)
 #define LPUART_OR		_BV(19)
+#define LPUART_CTRLIF3_OFFSET	16
+#define LPUART_CTRLIF3_MASK	REG_4BIT_MASK
+#define LPUART_CTRLIF3(value)	_GET_FV(LPUART_CTRLIF3, value)
+
 #define LPUART_IDLE		_BV(20)
 #define LPUART_RDRF		_BV(21)
 #define LPUART_TC		_BV(22)
 #define LPUART_TDRE		_BV(23)
+#define LPUART_CTRLIF2_OFFSET	20
+#define LPUART_CTRLIF2_MASK	REG_4BIT_MASK
+#define LPUART_CTRLIF2(value)	_GET_FV(LPUART_CTRLIF2, value)
+
 #define LPUART_RAF		_BV(24)
 #define LPUART_LBKDE		_BV(25)
 #define LPUART_BRK13		_BV(26)
 #define LPUART_RWUID		_BV(27)
 #define LPUART_RXINV		_BV(28)
 #define LPUART_MSBF		_BV(29)
+
 #define LPUART_RXEDGIF		_BV(30)
 #define LPUART_LBKDIF		_BV(31)
+#define LPUART_BAUDIF_OFFSET	30
+#define LPUART_BAUDIF_MASK	REG_2BIT_MASK
+#define LPUART_BAUDIF(value)	_GET_FV(LPUART_BAUDIF, value)
 
 /* 56.3.1.8 LPUART Control Register (CTRL) */
 #define LPUART_PT		_BV(0)
@@ -155,20 +174,34 @@
 #define LPUART_IDLECFG_MASK	REG_3BIT_MASK
 #define LPUART_IDLECFG(value)	_SET_FV(LPUART_IDLECFG, value)
 #define LPUART_M7		_BV(11)
+
 #define LPUART_MA2IE		_BV(14)
 #define LPUART_MA1IE		_BV(15)
+#define LPUART_CTRLIE1_OFFSET	14
+#define LPUART_CTRLIE1_MASK	REG_2BIT_MASK
+#define LPUART_CTRLIE1(value)	_SET_FV(LPUART_CTRLIE1, value)
+
 #define LPUART_SBK		_BV(16)
 #define LPUART_RWU		_BV(17)
 #define LPUART_RE		_BV(18)
 #define LPUART_TE		_BV(19)
+
 #define LPUART_ILIE		_BV(20)
 #define LPUART_RIE		_BV(21)
 #define LPUART_TCIE		_BV(22)
 #define LPUART_TIE		_BV(23)
+#define LPUART_CTRLIE2_OFFSET	20
+#define LPUART_CTRLIE2_MASK	REG_4BIT_MASK
+#define LPUART_CTRLIE2(value)	_SET_FV(LPUART_CTRLIE2, value)
+
 #define LPUART_PEIE		_BV(24)
 #define LPUART_FEIE		_BV(25)
 #define LPUART_NEIE		_BV(26)
 #define LPUART_ORIE		_BV(27)
+#define LPUART_CTRLIE3_OFFSET	24
+#define LPUART_CTRLIE3_MASK	REG_4BIT_MASK
+#define LPUART_CTRLIE3(value)	_SET_FV(LPUART_CTRLIE3, value)
+
 #define LPUART_TXINV		_BV(28)
 #define LPUART_TXDIR		_BV(29)
 #define LPUART_R9T8		_BV(30)
@@ -223,17 +256,30 @@
 #define LPUART_TXFIFOSIZE_MASK		REG_3BIT_MASK
 #define LPUART_TXFIFOSIZE(value)	_GET_FV(LPUART_TXFIFOSIZE, value)
 #define LPUART_TXFE			_BV(7)
+
 #define LPUART_RXUFE			_BV(8)
 #define LPUART_TXOFE			_BV(9)
+#define LPUART_FIFOIE1_OFFSET		8
+#define LPUART_FIFOIE1_MASK		REG_2BIT_MASK
+#define LPUART_FIFOIE1(value)		_SET_FV(LPUART_FIFOIE1, value)
+
 #define LPUART_RXIDEN_OFFSET		10
 #define LPUART_RXIDEN_MASK		REG_3BIT_MASK
 #define LPUART_RXIDEN(value)		_SET_FV(LPUART_RXIDEN, value)
 #define LPUART_RXFLUSH			_BV(14)
 #define LPUART_TXFLUSH			_BV(15)
+
 #define LPUART_RXUF			_BV(16)
 #define LPUART_TXOF			_BV(17)
+#define LPUART_FIFOIF1_OFFSET		16
+#define LPUART_FIFOIF1_MASK		REG_2BIT_MASK
+#define LPUART_FIFOIF1(value)		_GET_FV(LPUART_FIFOIF1, (value))
+
 #define LPUART_RXFIFOEMPT		_BV(22)
 #define LPUART_TXFIFOEMPT		_BV(23)
+#define LPUART_FIFOIF2_OFFSET		22
+#define LPUART_FIFOIF2_MASK		REG_2BIT_MASK
+#define LPUART_FIFOIF2(value)		_GET_FV(LPUART_FIFOIF2,	value)
 
 /* 56.3.1.13 LPUART Watermark Register (WATER) */
 #define LPUART_TXWATER_OFFSET		0
@@ -248,6 +294,88 @@
 #define LPUART_RXCOUNT_OFFSET		24
 #define LPUART_RXCOUNT_MASK		REG_4BIT_MASK
 #define LPUART_RXCOUNT(value)		_GET_FV(LPUART_TXCOUNT, value)
+
+/* ======================================================================
+ * LPUART IRQs
+ * ====================================================================== */
+/* XXX: LPUART IRQ flags are collected here.
+ *
+ * All LPUART_STAT STS flags use their original positions, all LPUART_CTRL
+ * EN flags are re-positioned to where the corresponding LPUART_STAT STS
+ * flags are.
+ * All LPUART_FIFO EN/STS flags are re-positioned in order not to overlap
+ * with LPUART_STAT STS flags.
+ */
+/* _BV(0):  F: LPUART_RXFIFOEMPTY, E: N/A */
+#define LPUART_RXEI			_BV(0)
+/* _BV(1):  F: LPUART_TXFIFOEMPTY, E: N/A */
+#define LPUART_TXEI			_BV(1)
+#define LPUART_FIFOI2_OFFSET		0
+#define LPUART_FIFOI2_MASK		REG_2BIT_MASK
+#define LPUART_GET_FIFOI2(value)	_GET_FV(LPUART_FIFOI2, value)
+#define LPUART_SET_FIFOI2(value)	_SET_FV(LPUART_FIFOI2, value)
+/* _BV(8):  F: LPUART_RXUF, E: LPUART_RXUFE
+ * _BV(9):  F: LPUART_TXOF, E: LPUART_TXOFE
+ */
+#define LPUART_RXUFI			LPUART_RXUFE
+#define LPUART_TXOFI			LPUART_TXOFE
+#define LPUART_FIFOI1_OFFSET		8
+#define LPUART_FIFOI1_MASK		REG_2BIT_MASK
+#define LPUART_GET_FIFOI1(value)	_GET_FV(LPUART_FIFOI1, value)
+#define LPUART_SET_FIFOI1(value)	_SET_FV(LPUART_FIFOI1, value)
+/* _BV(14): F: LPUART_MA2F, E: LPUART_MA2E
+ * _BV(15): F: LPUART_MA1F, E: LPUART_MA1E
+ */
+#define LPUART_MA2I			LPUART_MA2F
+#define LPUART_MA1I			LPUART_MA1F
+#define LPUART_CTRLI1_OFFSET		14
+#define LPUART_CTRLI1_MASK		REG_2BIT_MASK
+#define LPUART_GET_CTRLI1(value)	_GET_FV(LPUART_CTRLI1, value)
+#define LPUART_SET_CTRLI1(value)	_SET_FV(LPUART_CTRLI1, value)
+/* _BV(16): F: LPUART_PF, E: LPUART_PEIE
+ * _BV(17): F: LPUART_FE, E: LPUART_FEIE
+ * _BV(18): F: LPUART_NF, E: LPUART_NEIE
+ * _BV(19): F: LPUART_OR, E: LPUART_ORIE
+ */
+#define LPUART_PEI			LPUART_PF
+#define LPUART_FEI			LPUART_FE
+#define LPUART_NEI			LPUART_NF
+#define LPUART_ORI			LPUART_OR
+#define LPUART_CTRLI3_OFFSET		16
+#define LPUART_CTRLI3_MASK		REG_4BIT_MASK
+#define LPUART_GET_CTRLI3(value)	_GET_FV(LPUART_CTRLI3, value)
+#define LPUART_SET_CTRLI3(value)	_SET_FV(LPUART_CTRLI3, value)
+/* _BV(20): F: LPUART_IDLE, E: LPUART_ILIE
+ * _BV(21): F: LPUART_RDRF, E: LPUART_RIE
+ * _BV(22): F: LPUART_TC, E: LPUART_TCIE
+ * _BV(23): F: LPUART_TDRE, E: LPUART_TIE
+ */
+#define LPUART_ILI			LPUART_IDLE
+/* receive data register full */
+#define LPUART_RDRFI			LPUART_RDRF
+#define LPUART_TCI			LPUART_TC
+/* transmit data register empty */
+#define LPUART_TDREI			LPUART_TDRE
+#define LPUART_CTRLI2_OFFSET		16
+#define LPUART_CTRLI2_MASK		REG_4BIT_MASK
+#define LPUART_GET_CTRLI2(value)	_GET_FV(LPUART_CTRLI2, value)
+#define LPUART_SET_CTRLI2(value)	_SET_FV(LPUART_CTRLI2, value)
+/* _BV(30): F: LPUART_RXEDGIF, E: LPUART_RXEDGIE
+ * _BV(31): F: LPUART_LBKDIF, E: LPUART_LBKDIE
+ */
+#define LPUART_RXEDGI			LPUART_RXEDGIF
+#define LPUART_LBKDI			LPUART_LBKDIF
+#define LPUART_BAUDI1_OFFSET		30
+#define LPUART_BAUDI1_MASK		REG_2BIT_MASK
+#define LPUART_GET_BAUDI1(value)	_GET_FV(LPUART_BAUDI1, value)
+#define LPUART_SET_BAUDI1(value)	_SET_FV(LPUART_BAUDI1, value)
+
+typedef uint32_t lpuart_irq_t;
+
+void lpuart_enable_irqs(lpuart_irq_t irqs);
+void lpuart_disable_irqs(void);
+lpuart_irq_t lpuart_irqs_status(void);
+void lpuart_clear_irqs(lpuart_irq_t irqs);
 
 void lpuart_write_byte(uint8_t byte);
 uint8_t lpuart_read_byte(void);

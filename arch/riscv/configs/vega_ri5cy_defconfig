@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Aug 20 21:58:06 2019
+# Thu Aug 22 20:04:43 2019
 #
 CONFIG_32BIT=y
 CONFIG_RISCV=y
@@ -77,9 +77,17 @@ CONFIG_VEGA_BOOT_CPU=y
 #
 # Clock configuration
 #
-CONFIG_SCG_SOSC_FREQ=0
+CONFIG_SCG_SOSC=y
+CONFIG_SCG_SOSC_32MHZ=y
+# CONFIG_SCG_SOSC_26MHZ is not set
 CONFIG_SCG_ROSC=y
 CONFIG_LPUART=y
+CONFIG_LPUART_CON_0=y
+# CONFIG_LPUART_CON_1 is not set
+# CONFIG_LPUART_CON_2 is not set
+# CONFIG_LPUART_CON_3 is not set
+CONFIG_LPUART_7BIT=y
+# CONFIG_LPUART_FIFO is not set
 
 #
 # Feature setup
@@ -200,7 +208,7 @@ CONFIG_DBG_SEGGER_RTT=y
 # Bit-wise operations
 #
 # CONFIG_BIT_FLS8 is not set
-# CONFIG_BIT_FLS16 is not set
+CONFIG_BIT_FLS16=y
 # CONFIG_BIT_FFS16 is not set
 # CONFIG_BIT_FLS32 is not set
 # CONFIG_BIT_FFS32 is not set

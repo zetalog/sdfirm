@@ -53,6 +53,19 @@
 #error "Multiple UART controller defined"
 #endif
 
+#ifdef CONFIG_LPUART_CON_0
+#define UART_CON_ID	0
+#endif
+#ifdef CONFIG_LPUART_CON_1
+#define UART_CON_ID	1
+#endif
+#ifdef CONFIG_LPUART_CON_2
+#define UART_CON_ID	2
+#endif
+#ifdef CONFIG_LPUART_CON_3
+#define UART_CON_ID	3
+#endif
+
 #ifdef CONFIG_DEBUG_PRINT
 void uart_hw_dbg_init(void);
 void uart_hw_dbg_start(void);
