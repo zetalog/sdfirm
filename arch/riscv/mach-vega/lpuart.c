@@ -43,9 +43,23 @@
 #include <target/gpio.h>
 #include <target/clk.h>
 
+void lpuart_write_byte(uint8_t byte)
+{
+}
+
+uint8_t lpuart_read_byte(void)
+{
+	return 0;
+}
+
+bool lpuart_ctrl_poll(void)
+{
+	return false;
+}
+
 void lpuart_ctrl_init(void)
 {
-	pcc_enable_clk(PCC_PORTC);
+	clk_enable(portc_clk);
 	gpio_config_mux(3, 7, PTC7_MUX_LPUART0_RX);
 	gpio_config_mux(3, 8, PTC8_MUX_LPUART0_TX);
 }

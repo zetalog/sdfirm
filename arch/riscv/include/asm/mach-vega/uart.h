@@ -62,14 +62,14 @@ void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
 #endif
 
 #ifdef CONFIG_CONSOLE
-void uart_hw_con_init(void);
+#define uart_hw_con_init()	lpuart_ctrl_init()
 #endif
 #ifdef CONFIG_CONSOLE_OUTPUT
-void uart_hw_con_write(uint8_t byte);
+#define uart_hw_con_write(byte)	lpuart_write_byte(byte)
 #endif
 #ifdef CONFIG_CONSOLE_INPUT
-uint8_t uart_hw_con_read(void);
-bool uart_hw_con_poll(void);
+#define uart_hw_con_read()	lpuart_read_byte()
+#define uart_hw_con_poll()	lpuart_ctrl_poll()
 void uart_hw_irq_ack(void);
 void uart_hw_irq_init(void);
 #else
