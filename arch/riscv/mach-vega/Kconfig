@@ -71,15 +71,19 @@ choice
 
 config LPUART_CON_0
 	bool "LPUART0"
+	depends VEGA_RI5CY
 
 config LPUART_CON_1
 	bool "LPUART1"
+	depends VEGA_RI5CY
 
 config LPUART_CON_2
 	bool "LPUART2"
+	depends VEGA_RI5CY
 
 config LPUART_CON_3
 	bool "LPUART3"
+	depends VEGA_0RISCY
 
 endchoice
 

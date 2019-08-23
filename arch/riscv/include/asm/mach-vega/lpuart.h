@@ -42,12 +42,7 @@
 #ifndef __LPUART_VEGA_H_INCLUDE__
 #define __LPUART_VEGA_H_INCLUDE__
 
-#define LPUART0_BASE		UL(0x40042000)
-#define LPUART1_BASE		UL(0x40043000)
-#define LPUART2_BASE		UL(0x40044000)
-#define LPUART3_BASE		UL(0x41036000)
-
-#define LPUART_REG(n, offset)	(LPUART##n##_BASE + (offset))
+#define LPUART_REG(n, offset)	(LPUART_BASE(n) + (offset))
 
 #define LPUART_VERID(n)		LPUART_REG(n, 0x000)
 #define LPUART_PARAM(n)		LPUART_REG(n, 0x004)
@@ -399,14 +394,14 @@
 
 typedef uint32_t lpuart_irq_t;
 
-void lpuart_enable_irqs(lpuart_irq_t irqs);
-void lpuart_disable_irqs(void);
-lpuart_irq_t lpuart_irqs_status(void);
-void lpuart_clear_irqs(lpuart_irq_t irqs);
+void lpuart_enable_irqs(int id, lpuart_irq_t irqs);
+void lpuart_disable_irqs(int id);
+lpuart_irq_t lpuart_irqs_status(int id);
+void lpuart_clear_irqs(int id, lpuart_irq_t irqs);
 
-void lpuart_write_byte(uint8_t byte);
-uint8_t lpuart_read_byte(void);
-bool lpuart_ctrl_poll(void);
-void lpuart_ctrl_init(void);
+void lpuart_write_byte(int id, uint8_t byte);
+uint8_t lpuart_read_byte(int id);
+bool lpuart_ctrl_poll(int id);
+void lpuart_ctrl_init(int id);
 
 #endif /* __LPUART_VEGA_H_INCLUDE__ */

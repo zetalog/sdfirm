@@ -46,6 +46,18 @@
 #include <target/generic.h>
 #include <target/gpio.h>
 #include <target/clk.h>
+
+#ifdef CONFIG_VEGA_RI5CY
+#define LPUART0_BASE		UL(0x40042000)
+#define LPUART1_BASE		UL(0x40043000)
+#define LPUART2_BASE		UL(0x40044000)
+#define LPUART_BASE(n)		(LPUART0_BASE + (n) * 0x1000)
+#endif
+#ifdef CONFIG_VEGA_0RISCY
+#define LPUART3_BASE		UL(0x41036000)
+#define LPUART_BASE(n)		(LPUART3_BASE + ((n) - 3) * 0x1000)
+#endif
+
 #include <asm/mach/lpuart.h>
 #ifndef ARCH_HAVE_UART
 #define ARCH_HAVE_UART		1
@@ -75,14 +87,14 @@ void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
 #endif
 
 #ifdef CONFIG_CONSOLE
-#define uart_hw_con_init()	lpuart_ctrl_init()
+void uart_hw_con_init(void);
 #endif
 #ifdef CONFIG_CONSOLE_OUTPUT
-#define uart_hw_con_write(byte)	lpuart_write_byte(byte)
+#define uart_hw_con_write(byte)	lpuart_write_byte(UART_CON_ID, byte)
 #endif
 #ifdef CONFIG_CONSOLE_INPUT
-#define uart_hw_con_read()	lpuart_read_byte()
-#define uart_hw_con_poll()	lpuart_ctrl_poll()
+#define uart_hw_con_read()	lpuart_read_byte(UART_CON_ID)
+#define uart_hw_con_poll()	lpuart_ctrl_poll(UART_CON_ID)
 void uart_hw_irq_ack(void);
 void uart_hw_irq_init(void);
 #else
