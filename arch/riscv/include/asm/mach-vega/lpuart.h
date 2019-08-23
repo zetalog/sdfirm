@@ -317,6 +317,11 @@
 #define lpuart_reset_uart(id)				\
 	__raw_setl(LPUART_RST, LPUART_GLOBAL(id))
 
+#define lpuart_7bit_enabled(id)				\
+	(__raw_readl(LPUART_CTRL(id)) & LPUART_M7)
+#define lpuart_enable_7bit(id)	__raw_setl(LPUART_M7, LPUART_CTRL(id))
+#define lpuart_disable_7bit(id)	__raw_clearl(LPUART_M7, LPUART_CTRL(id))
+
 /* ======================================================================
  * LPUART IRQs
  * ====================================================================== */
@@ -392,16 +397,23 @@
 #define LPUART_GET_BAUDI1(value)	_GET_FV(LPUART_BAUDI1, value)
 #define LPUART_SET_BAUDI1(value)	_SET_FV(LPUART_BAUDI1, value)
 
+/* All clearable interrupt */
+#define LPUART_IRQS_ALL						\
+	(LPUART_RXEDGI | LPUART_LBKDI | LPUART_ILI |		\
+	 LPUART_PEI | LPUART_FEI | LPUART_NEI | LPUART_ORI |	\
+	 LPUART_MA1I | LPUART_MA2I)
+
 typedef uint32_t lpuart_irq_t;
 
-void lpuart_enable_irqs(int id, lpuart_irq_t irqs);
-void lpuart_disable_irqs(int id);
-lpuart_irq_t lpuart_irqs_status(int id);
-void lpuart_clear_irqs(int id, lpuart_irq_t irqs);
+void lpuart_enable_irqs(uint8_t id, lpuart_irq_t irqs);
+void lpuart_disable_irqs(uint8_t id);
+lpuart_irq_t lpuart_irqs_status(uint8_t id);
+void lpuart_clear_irqs(uint8_t id, lpuart_irq_t irqs);
 
-void lpuart_write_byte(int id, uint8_t byte);
-uint8_t lpuart_read_byte(int id);
-bool lpuart_ctrl_poll(int id);
-void lpuart_ctrl_init(int id);
+void lpuart_write_byte(uint8_t id, uint8_t byte);
+uint8_t lpuart_read_byte(uint8_t id);
+bool lpuart_ctrl_poll(uint8_t id);
+void lpuart_ctrl_init(uint8_t id, uint32_t src_freq,
+		      uint8_t params, uint32_t baud);
 
 #endif /* __LPUART_VEGA_H_INCLUDE__ */

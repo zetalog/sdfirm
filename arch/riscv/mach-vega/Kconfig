@@ -87,9 +87,6 @@ config LPUART_CON_3
 
 endchoice
 
-config LPUART_7BIT
-	bool "Enable 7-bit mode support"
-
 config LPUART_FIFO
 	bool "Enable FIFO support"
 

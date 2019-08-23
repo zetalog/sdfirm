@@ -69,7 +69,11 @@
 #define RAM_BASE		M4_DTCM_SRAM_BASE
 #define RAMEND			(M4_DTCM_SRAM_BASE + M4_DTCM_SRAM_SIZE)
 /* HIVEC */
+#ifdef CONFIG_XIP
 #define VEC_BASE		(ROMEND - 0x100)
+#else
+#define VEC_BASE		(RAMEND - 0x100)
+#endif
 #endif
 
 #ifdef CONFIG_VEGA_0RISCY

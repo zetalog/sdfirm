@@ -64,44 +64,44 @@ __vectors:
 	la	gp, _sdata
 	.endm
 
-	.macro	zero_sect, sva, eva
+	.macro	zero_sect, sva, eva, lab
 	la	a0, \sva
 	la	a1, \eva
-	j	zero_sect_loop
+	j	\lab
 1:
 	sw	zero, 0(a0)
 	addi	a0, a0, WORD_SIZE
-zero_sect_loop:
+\lab:
 	bltu	a0, a1, 1b
 	.endm
 
-	.macro	copy_sect, sva, eva, sla
+	.macro	copy_sect, sva, eva, sla, lab
 	la	a2, \sla
 	la	a0, \sva
 	la	a1, \eva
-	j	copy_sect_loop
+	j	\lab
 1:
 	lw	a3, 0(a2)
 	sw	a3, 0(a0)
 	addi	a2, a2, WORD_SIZE
 	addi	a0, a0, WORD_SIZE
-copy_sect_loop:
+\lab:
 	bltu	a0, a1, 1b
 	.endm
 
 	/* Handle only .data section */
 	.macro	init_data
-	copy_sect __data_loc, __sdata, __edata
+	copy_sect __data_loc, __sdata, __edata, copy_data_loop
 	.endm
 
 	/* Handle only .bss section */
 	.macro	init_bss
-	zero_sect __bss_start, __bss_stop
+	zero_sect __bss_start, __bss_stop, init_bss_loop
 	.endm
 
 	/* Handle both .text and .rodata sections */
 	.macro	init_text
-	copy_sect __text_loc, _stext, _etext
+	copy_sect __text_loc, _stext, _etext, init_text_loop
 	.endm
 
 	__HEAD
