@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sat Aug 24 10:59:19 2019
+# Sat Aug 24 13:41:45 2019
 #
 CONFIG_32BIT=y
 CONFIG_RISCV=y
@@ -135,7 +135,7 @@ CONFIG_TEXT_RAM_BASE=0x20000000
 # CONFIG_HEAP is not set
 CONFIG_MEM=y
 # CONFIG_MMU_MAP_MEM is not set
-CONFIG_MEM_MAX_REGIONS=1
+CONFIG_MEM_MAX_REGIONS=4
 CONFIG_MEM_RESIZE=y
 CONFIG_PAGE=y
 # CONFIG_IDLE is not set

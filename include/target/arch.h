@@ -14,10 +14,16 @@
 
 /* Virtual address space */
 #ifdef __ASSEMBLY__
-#define SDFIRM_START	_start
-#define SDFIRM_END	_end
-#define __SDFIRM_START	_stext
-#define __SDFIRM_END	_edata
+#ifdef CONFIG_XIP
+#define SDFIRM_XIP_START	_stext
+#define SDFIRM_XIP_END		_etext
+#define SDFIRM_START		_start
+#else
+#define SDFIRM_START		_sdata
+#endif
+#define SDFIRM_END		_end
+#define __SDFIRM_START		_stext
+#define __SDFIRM_END		_edata
 #else /* !__ASSEMBLY__ */
 extern uintptr_t _start[];
 extern uintptr_t _end[];
@@ -31,10 +37,16 @@ extern uintptr_t _edata[];
 extern uintptr_t __start_rodata[];
 extern uintptr_t __end_rodata[];
 
-#define SDFIRM_START	((caddr_t)(&_start))
-#define SDFIRM_END	((caddr_t)(&_end))
-#define __SDFIRM_START	((caddr_t)(&_stext))
-#define __SDFIRM_END	((caddr_t)(&_edata))
+#ifdef CONFIG_XIP
+#define SDFIRM_XIP_START	((caddr_t)(&_stext))
+#define SDFIRM_XIP_END		((caddr_t)(&_etext))
+#define SDFIRM_START		((caddr_t)(&_sdata))
+#else
+#define SDFIRM_START		((caddr_t)(&_start))
+#endif
+#define SDFIRM_END		((caddr_t)(&_end))
+#define __SDFIRM_START		((caddr_t)(&_stext))
+#define __SDFIRM_END		((caddr_t)(&_edata))
 #endif /* __ASSEMBLY__ */
 
 /* CPU initial stacks, assign 1 page for each CPU as stack */

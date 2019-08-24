@@ -716,7 +716,8 @@ static void mem_dump(struct mem_type *type)
 void mem_init(void)
 {
 	mem_hw_range_init();
-	mem_reserve(__pa_symbol(SDFIRM_START), __pa_symbol(SDFIRM_END));
+	mem_reserve(__pa_symbol(SDFIRM_START),
+		    __pa_symbol(SDFIRM_END) - __pa_symbol(SDFIRM_START));
 }
 #else
 static void mem_dump(struct mem_type *type)
