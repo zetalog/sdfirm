@@ -270,7 +270,7 @@
 #define CORE_CLK_FREQ_HSRUN	72000000
 
 clk_t freqplan_scs2clk(void);
-uint8_t freqplan_clk2scs(void);
+uint8_t freqplan_clk2scs(clk_t src);
 #ifdef CONFIG_VEGA_BOOT_CPU
 void freqplan_config_boot(void);
 void freqplan_config_run(void);

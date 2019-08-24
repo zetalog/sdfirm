@@ -74,6 +74,7 @@ void system_init(void)
 	fixmap_early_con_init();
 	main_debug(MAIN_DEBUG_INIT, 0);
 	board_init();
+	clk_init();
 	gpio_init();
 	debug_init();
 	irq_init();
@@ -89,7 +90,6 @@ void system_init(void)
 		delay(5);
 	}
 #endif
-	clk_init();
 	timer_init();
 	paging_init();
 	page_init();

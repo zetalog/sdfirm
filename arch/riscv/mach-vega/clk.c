@@ -450,8 +450,6 @@ uint8_t sys_mode = SYS_MODE_RUN;
 clk_t scs_clk = sirc_clk;
 clk_t scs_clkout = sirc_clk;
 
-static uint8_t __freqplan_clk2scs(clk_t src);
-
 static uint32_t get_const_clk_freq(clk_clk_t clk)
 {
 	if (clk >= NR_CONST_CLKS)
@@ -517,7 +515,7 @@ void apply_system_clk(uint8_t mode, clk_t src)
 {
 	BUG_ON(mode >= NR_SCG_MODES);
 	clk_enable(src);
-	scg_clock_select(mode, __freqplan_clk2scs(src));
+	scg_clock_select(mode, freqplan_clk2scs(src));
 }
 
 static int enable_system_clk(clk_clk_t clk)
@@ -539,8 +537,12 @@ static void disable_system_clk(clk_clk_t clk)
 
 static uint32_t get_system_clk_freq(clk_clk_t clk)
 {
-	if (clk == SYS_CLK_SRC)
+	if (clk == SYS_CLK_SRC &&
+	    freqplan_clk2scs(scs_clk) == scg_clock_get_source(sys_mode))
 		return clk_get_frequency(scs_clk);
+	if (clk == CLKOUT_CLK &&
+	    freqplan_clk2scs(scs_clkout) == scg_clock_get_source(SCG_SCS_EXT))
+		return clk_get_frequency(scs_clkout);
 	return INVALID_FREQ;
 }
 
@@ -563,22 +565,24 @@ static int apply_output_clk(clk_clk_t clk)
 		return -EINVAL;
 	if (clk < NR_OUTPUT_CCRS) {
 		if (clk == CORE_CLK)
-			src = freqplan_clk2scs();
+			src = sys_clk_src;
 		else
 			src = core_clk;
 	} else
 		src = CLK_DIV_CLKID(clk);
 	src_freq = clk_get_frequency(src);
-	if (src_freq == INVALID_FREQ)
+	if (src_freq == INVALID_FREQ) {
 		clk_enable(src);
-	src_freq = clk_get_frequency(src);
+		src_freq = clk_get_frequency(src);
+	}
 	if (src_freq == INVALID_FREQ)
 		return -EINVAL;
 
 	if (clk < NR_OUTPUT_CCRS)
 		scg_system_set_freq(sys_mode, CLK_CCR_DIVID(clk), freq);
 	else
-		scg_output_set_freq(src, CLK_DIV_DIVID(clk), freq);
+		scg_output_set_freq(CLK_DIV_SCS(clk),
+				   CLK_DIV_DIVID(clk), freq);
 	return 0;
 }
 
@@ -668,7 +672,7 @@ clk_t get_functional_pcs_clk(clk_clk_t clk)
 		return invalid_clk;
 	pcs = functional_clks[clk].pcs;
 	if (pcs >= NR_PCC_PCS_CLOCKS ||
-	    (1 << pcs) & INVALID_PCC_PCS)
+	    ((1 << pcs) & INVALID_PCC_PCS))
 		return invalid_clk;
 
 	return functional_clks[clk].funcs[pcs];
@@ -745,17 +749,12 @@ clk_t freqplan_scs2clk(void)
 	return clkid(CLK_INPUT, scs - 1);
 }
 
-static uint8_t __freqplan_clk2scs(clk_t src)
+uint8_t freqplan_clk2scs(clk_t src)
 {
 	uint8_t clk = clk_clk(src);
 	if (clk < NR_INPUT_CLKS)
-		return clk + 1;
+		return CLK_SCG_SCS(clk);
 	return SCG_SCS_EXT;
-}
-
-uint8_t freqplan_clk2scs(void)
-{
-	return __freqplan_clk2scs(scs_clk);
 }
 
 #ifdef CONFIG_VEGA_BOOT_CPU
@@ -875,10 +874,9 @@ void freqplan_config_boot(void)
 
 	/* configure SIRC as boot clock */
 	scg_input_disable(SCG_SCS_SIRC);
-	scg_output_disable(SCG_SCS_SIRC, SCG_DIV1);
+	scg_input_enable(SCG_SCS_SIRC, freq, SCG_EN);
 	scg_output_set_freq(SCG_SCS_SIRC, SCG_DIV2, freq / 2);
 	scg_output_set_freq(SCG_SCS_SIRC, SCG_DIV3, freq);
-	scg_input_enable(SCG_SCS_SIRC, freq, SCG_EN);
 
 	/* configure runtime clock */
 	scg_clock_select(SYS_MODE_RUN, SCG_SCS_SIRC);

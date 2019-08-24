@@ -200,14 +200,14 @@ void scg_output_set_freq(uint8_t scs, uint8_t id, uint32_t freq)
 	uint8_t div;
 	uint32_t src_freq;
 
-	if (id == SCG_DIVCORE)
-		src_freq = scg_input_get_freq(scs);
-	else
-		src_freq = scg_output_get_freq(scs, SCG_DIVCORE);
-
-	if (src_freq == INVALID_FREQ || src_freq < freq || freq == 0)
+	src_freq = scg_input_get_freq(scs);
+	if (src_freq == INVALID_FREQ || src_freq < freq)
 		return;
-	div = div32u(src_freq, freq);
+	/* Support disabling of this clock */
+	if (freq)
+		div = div32u(src_freq, freq);
+	else
+		div = 0;
 	if (div > SCG_DIV_DIV_MAX)
 		div = SCG_DIV_DIV_MAX;
 	scg_output_enable(scs, id, div);
@@ -218,15 +218,11 @@ uint32_t scg_output_get_freq(uint8_t scs, uint8_t id)
 	uint8_t val, div;
 	uint32_t src_freq;
 
-	if (id == SCG_DIVCORE)
-		src_freq = scg_input_get_freq(scs);
-	else
-		src_freq = scg_output_get_freq(scs, SCG_DIVCORE);
-
+	src_freq = scg_input_get_freq(scs);
 	val = SCG_DIV_DIV_GET(id, __raw_readl(SCG_SCSDIV(scs)));
-	div = SCG_DIV_VAL2DIV(val);
-	if (div == 0 || src_freq == INVALID_FREQ)
+	if (val == 0 || src_freq == INVALID_FREQ)
 		return INVALID_FREQ;
+	div = SCG_DIV_VAL2DIV(val);
 	return div32u(src_freq, div);
 }
 
@@ -239,9 +235,14 @@ void scg_system_set_freq(uint8_t mode, uint8_t id, uint32_t freq)
 	if (mode >= NR_SCG_MODES)
 		return;
 	scs = scg_clock_get_source(mode);
-	src_freq = scg_input_get_freq(scs);
-
-	if (src_freq == INVALID_FREQ || src_freq < freq || freq == 0)
+	if (id == SCG_DIVCORE)
+		src_freq = scg_input_get_freq(scs);
+	else
+		src_freq = scg_output_get_freq(scs, SCG_DIVCORE);
+	if (src_freq == INVALID_FREQ || src_freq < freq)
+		return;
+	/* Do not support disabling of this clock */
+	if (freq == 0)
 		return;
 	div = div32u(src_freq, freq);
 	if (div > SCG_CCR_DIV_MAX)
@@ -258,7 +259,10 @@ uint32_t scg_system_get_freq(uint8_t mode, uint8_t id)
 	if (mode >= NR_SCG_MODES)
 		return INVALID_FREQ;
 	scs = scg_clock_get_source(mode);
-	src_freq = scg_input_get_freq(scs);
+	if (id == SCG_DIVCORE)
+		src_freq = scg_input_get_freq(scs);
+	else
+		src_freq = scg_output_get_freq(scs, SCG_DIVCORE);
 	val = SCG_CCR_DIV_GET(id, __raw_readl(SCG_MODEREG(mode)));
 	div = SCG_CCR_VAL2DIV(val);
 	if (div == 0 || src_freq == INVALID_FREQ)
