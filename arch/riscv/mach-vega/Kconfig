@@ -28,6 +28,9 @@ config VEGA_BOOT_CPU
 	bool "Configured as boot CPU"
 	default y
 
+config VEGA_JTAG_DISABLED
+	bool "Disable JTAG PIN outs"
+
 endmenu
 
 menu "Clock configuration"
@@ -84,6 +87,72 @@ config LPUART_CON_2
 config LPUART_CON_3
 	bool "LPUART3"
 	depends VEGA_0RISCY
+
+endchoice
+
+choice
+	prompt "LPUART0 multiplexing"
+	depends LPUART_CON_0
+	default LPUART0_PTC_3
+
+config LPUART0_PTA_2
+	bool "PortA Mux 2"
+	depends !VEGA_JTAG_DISABLED
+
+config LPUART0_PTB_3
+	bool "PortB Mux 3"
+
+config LPUART0_PTC_3
+	bool "PortC Mux 3"
+
+endchoice
+
+choice
+	prompt "LPUART1 multiplexing"
+	depends LPUART_CON_1
+
+config LPUART1_PTA_4
+	bool "PortA Mux 4"
+	depends !VEGA_JTAG_DISABLED
+
+config LPUART1_PTA_2
+	bool "PortA Mux 2"
+
+config LPUART1_PTB_3
+	bool "PortB Mux 3"
+
+config LPUART1_PTC_2
+	bool "PortC Mux 2"
+
+endchoice
+
+choice
+	prompt "LPUART2 multiplexing"
+	depends LPUART_CON_2
+
+config LPUART2_PTA_2
+	bool "PortA Mux 2"
+
+config LPUART2_PTB_2
+	bool "PortB Mux 2"
+
+config LPUART2_PTB_3
+	bool "PortB Mux 3"
+
+endchoice
+
+choice
+	prompt "LPUART3 multiplexing"
+	depends LPUART_CON_3
+
+config LPUART3_PTB_3
+	bool "PortB Mux 3"
+
+config LPUART3_PTE_3
+	bool "PortE Mux 3"
+
+config LPUART3_PTE_2
+	bool "PortE Mux 2"
 
 endchoice
 

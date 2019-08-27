@@ -44,6 +44,7 @@
 
 #include <target/config.h>
 #include <target/generic.h>
+#include <target/bitops.h>
 #include <target/gpio.h>
 #include <target/clk.h>
 
@@ -65,18 +66,156 @@
 #error "Multiple UART controller defined"
 #endif
 
+#define UART_PIN(port, pin)	MAKEWORD(port, pin)
+#define UART_PIN_PORT(pin)	LOBYTE(pin)
+#define UART_PIN_PIN(pin)	HIBYTE(pin)
+
+#ifdef CONFIG_LPUART0_PTA_2
+#define uart0_clks	{porta_clk, invalid_clk, lpuart0_clk}
+#define UART0_PIN_CTS	UART_PIN(GPIO_PORTA, 1)
+#define UART0_PIN_RTS	UART_PIN(GPIO_PORTA, 4)
+#define UART0_PIN_RX	UART_PIN(GPIO_PORTA, 2)
+#define UART0_PIN_TX	UART_PIN(GPIO_PORTA, 3)
+#define UART0_MUX	2
+#endif /* CONFIG_LPUART0_PTA_2 */
+#ifdef CONFIG_LPUART0_PTB_3
+#define uart0_clks	{portb_clk, invalid_clk, lpuart0_clk}
+#define UART0_PIN_CTS	UART_PIN(GPIO_PORTB, 22)
+#define UART0_PIN_RTS	UART_PIN(GPIO_PORTB, 24)
+#define UART0_PIN_RX	UART_PIN(GPIO_PORTB, 25)
+#define UART0_PIN_TX	UART_PIN(GPIO_PORTB, 26)
+#define UART0_MUX	3
+#endif /* CONFIG_LPUART0_PTB_3 */
+#ifdef CONFIG_LPUART0_PTC_3
+#define uart0_clks	{portc_clk, invalid_clk, lpuart0_clk}
+#define UART0_PIN_CTS	UART_PIN(GPIO_PORTC, 9)
+#define UART0_PIN_RTS	UART_PIN(GPIO_PORTC, 10)
+#define UART0_PIN_RX	UART_PIN(GPIO_PORTC, 7)
+#define UART0_PIN_TX	UART_PIN(GPIO_PORTC, 8)
+#define UART0_MUX	3
+#endif /* CONFIG_LPUART0_PTB_3 */
+#ifdef CONFIG_LPUART1_PTA_4
+#define uart1_clks	{porta_clk, invalid_clk, lpuart1_clk}
+#define UART1_PIN_CTS	UART_PIN(GPIO_PORTA, 1)
+#define UART1_PIN_RTS	UART_PIN(GPIO_PORTA, 4)
+#define UART1_PIN_RX	UART_PIN(GPIO_PORTA, 2)
+#define UART1_PIN_TX	UART_PIN(GPIO_PORTA, 3)
+#define UART1_MUX	4
+#endif /* CONFIG_LPUART1_PTA_4 */
+#ifdef CONFIG_LPUART1_PTA_2
+#define uart1_clks	{porta_clk, invalid_clk, lpuart1_clk}
+#define UART1_PIN_CTS	UART_PIN(GPIO_PORTA, 27)
+#define UART1_PIN_RTS	UART_PIN(GPIO_PORTA, 28)
+#define UART1_PIN_RX	UART_PIN(GPIO_PORTA, 25)
+#define UART1_PIN_TX	UART_PIN(GPIO_PORTA, 26)
+#define UART1_MUX	2
+#endif /* CONFIG_LPUART1_PTA_2 */
+#ifdef CONFIG_LPUART1_PTB_3
+#define uart1_clks	{portb_clk, invalid_clk, lpuart1_clk}
+#define UART1_PIN_CTS	UART_PIN(GPIO_PORTB, 4)
+#define UART1_PIN_RTS	UART_PIN(GPIO_PORTB, 5)
+#define UART1_PIN_RX	UART_PIN(GPIO_PORTB, 2)
+#define UART1_PIN_TX	UART_PIN(GPIO_PORTB, 3)
+#define UART1_MUX	3
+#endif /* CONFIG_LPUART1_PTB_3 */
+#ifdef CONFIG_LPUART1_PTC_2
+#define uart1_clks	{portd_clk, portc_clk, lpuart1_clk}
+#define UART1_PIN_CTS	UART_PIN(GPIO_PORTD, 0)
+#define UART1_PIN_RTS	UART_PIN(GPIO_PORTD, 1)
+#define UART1_PIN_RX	UART_PIN(GPIO_PORTC, 29)
+#define UART1_PIN_TX	UART_PIN(GPIO_PORTC, 30)
+#define UART1_MUX	2
+#endif /* CONFIG_LPUART1_PTC_2 */
+#ifdef CONFIG_LPUART2_PTA_2
+#define uart2_clks	{porta_clk, portb_clk, lpuart2_clk}
+#define UART2_PIN_CTS	UART_PIN(GPIO_PORTA, 30)
+#define UART2_PIN_RTS	UART_PIN(GPIO_PORTA, 31)
+#define UART2_PIN_RX	UART_PIN(GPIO_PORTB, 1)
+#define UART2_PIN_TX	UART_PIN(GPIO_PORTB, 0)
+#define UART2_MUX	2
+#endif /* CONFIG_LPUART2_PTA_2 */
+#ifdef CONFIG_LPUART2_PTB_2
+#define uart2_clks	{portb_clk, invalid_clk, lpuart2_clk}
+#define UART2_PIN_CTS	UART_PIN(GPIO_PORTB, 13)
+#define UART2_PIN_RTS	UART_PIN(GPIO_PORTB, 14)
+#define UART2_PIN_RX	UART_PIN(GPIO_PORTB, 11)
+#define UART2_PIN_TX	UART_PIN(GPIO_PORTB, 12)
+#define UART2_MUX	2
+#endif /* CONFIG_LPUART2_PTB_2 */
+#ifdef CONFIG_LPUART2_PTB_3
+#define uart2_clks	{portb_clk, invalid_clk, lpuart2_clk}
+#define UART2_PIN_CTS	UART_PIN(GPIO_PORTB, 20)
+#define UART2_PIN_RTS	UART_PIN(GPIO_PORTB, 21)
+#define UART2_PIN_RX	UART_PIN(GPIO_PORTB, 18)
+#define UART2_PIN_TX	UART_PIN(GPIO_PORTB, 19)
+#define UART2_MUX	3
+#endif /* CONFIG_LPUART2_PTB_3 */
+/* NOTE: LPUART3_PTB_3 won't work for RI5CY/0RISCY as:
+ *       1. GPIOB is not accessible for 0RISCY;
+ *       2. UART3 is not accessible for RI5CY.
+ */
+#ifdef CONFIG_LPUART3_PTB_3
+#define uart3_clks	{portb_clk, invalid_clk, lpuart3_clk}
+#define UART3_PIN_CTS	UART_PIN(GPIO_PORTB, 16)
+#define UART3_PIN_RTS	UART_PIN(GPIO_PORTB, 17)
+#define UART3_PIN_RX	UART_PIN(GPIO_PORTB, 28)
+#define UART3_PIN_TX	UART_PIN(GPIO_PORTB, 29)
+#define UART3_MUX	3
+#endif /* CONFIG_LPUART3_PTB_3 */
+#ifdef CONFIG_LPUART3_PTE_3
+#define uart3_clks	{porte_clk, invalid_clk, lpuart3_clk}
+#define UART3_PIN_CTS	UART_PIN(GPIO_PORTE, 10)
+#define UART3_PIN_RTS	UART_PIN(GPIO_PORTE, 11)
+#define UART3_PIN_RX	UART_PIN(GPIO_PORTE, 8)
+#define UART3_PIN_TX	UART_PIN(GPIO_PORTE, 9)
+#define UART3_MUX	3
+#endif /* CONFIG_LPUART3_PTE_3 */
+#ifdef CONFIG_LPUART3_PTE_2
+#define uart3_clks	{porte_clk, invalid_clk, lpuart3_clk}
+#define UART3_PIN_CTS	UART_PIN(GPIO_PORTE, 27)
+#define UART3_PIN_RTS	UART_PIN(GPIO_PORTE, 28)
+#define UART3_PIN_RX	UART_PIN(GPIO_PORTE, 29)
+#define UART3_PIN_TX	UART_PIN(GPIO_PORTE, 30)
+#define UART3_MUX	2
+#endif /* CONFIG_LPUART3_PTE_2 */
+
 #ifdef CONFIG_LPUART_CON_0
 #define UART_CON_ID	0
+#define uart_clks	uart0_clks
+#define UART_MUX	UART0_MUX
+#define UART_PIN_CTS	UART0_PIN_CTS
+#define UART_PIN_RTS	UART0_PIN_RTS
+#define UART_PIN_RX	UART0_PIN_RX
+#define UART_PIN_TX	UART0_PIN_TX
 #endif
 #ifdef CONFIG_LPUART_CON_1
 #define UART_CON_ID	1
+#define uart_clks	uart1_clks
+#define UART_MUX	UART1_MUX
+#define UART_PIN_CTS	UART1_PIN_CTS
+#define UART_PIN_RTS	UART1_PIN_RTS
+#define UART_PIN_RX	UART1_PIN_RX
+#define UART_PIN_TX	UART1_PIN_TX
 #endif
 #ifdef CONFIG_LPUART_CON_2
 #define UART_CON_ID	2
+#define uart_clks	uart2_clks
+#define UART_MUX	UART2_MUX
+#define UART_PIN_CTS	UART2_PIN_CTS
+#define UART_PIN_RTS	UART2_PIN_RTS
+#define UART_PIN_RX	UART2_PIN_RX
+#define UART_PIN_TX	UART2_PIN_TX
 #endif
 #ifdef CONFIG_LPUART_CON_3
 #define UART_CON_ID	3
+#define uart_clks	uart3_clks
+#define UART_MUX	UART3_MUX
+#define UART_PIN_CTS	UART3_PIN_CTS
+#define UART_PIN_RTS	UART3_PIN_RTS
+#define UART_PIN_RX	UART3_PIN_RX
+#define UART_PIN_TX	UART3_PIN_TX
 #endif
+#define NR_UART_CLKS	3
 
 #ifdef CONFIG_DEBUG_PRINT
 void uart_hw_dbg_init(void);
