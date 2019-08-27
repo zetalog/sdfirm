@@ -383,7 +383,7 @@
 #define LPUART_TCI			LPUART_TC
 /* transmit data register empty */
 #define LPUART_TDREI			LPUART_TDRE
-#define LPUART_CTRLI2_OFFSET		16
+#define LPUART_CTRLI2_OFFSET		20
 #define LPUART_CTRLI2_MASK		REG_4BIT_MASK
 #define LPUART_GET_CTRLI2(value)	_GET_FV(LPUART_CTRLI2, value)
 #define LPUART_SET_CTRLI2(value)	_SET_FV(LPUART_CTRLI2, value)

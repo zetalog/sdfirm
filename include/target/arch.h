@@ -28,6 +28,7 @@
 extern uintptr_t _start[];
 extern uintptr_t _end[];
 extern uintptr_t _stext[];
+extern uintptr_t _etext[];
 extern uintptr_t _edata[];
 
 extern uintptr_t __stext[];

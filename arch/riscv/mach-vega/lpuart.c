@@ -300,14 +300,6 @@ void lpuart_ctrl_init(uint8_t id, uint32_t src_freq,
 	lpuart_disable_uart(id);
 	lpuart_config_baudrate(id, src_freq, baud);
 	lpuart_config_params(id, params);
-#if 0
-	/* Set bit count and parity mode. */
-		 LPUART_CTRL_M_MASK | LPUART_CTRL_ILT_MASK |
-		 LPUART_CTRL_IDLECFG_MASK);
-	temp |= 
-		LPUART_CTRL_IDLECFG(config->rxIdleConfig) |
-	       	LPUART_CTRL_ILT(config->rxIdleType);
-#endif
 	lpuart_fifo_init(id);
 	lpuart_clear_irqs(id, LPUART_IRQS_ALL);
 	lpuart_enable_uart(id);

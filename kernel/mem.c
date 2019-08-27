@@ -679,7 +679,6 @@ void mem_free_all(void)
 {
 	uint64_t i;
 	phys_addr_t start, end;
-	pfn_t start_pfn, end_pfn;
 
 	for_each_reserved_mem_region(i, &start, &end) {
 		con_dbg("reserved: %016llx - %016llx\n", start, end);
@@ -687,9 +686,8 @@ void mem_free_all(void)
 	}
 	for_each_free_mem_range(i, &start, &end) {
 		con_dbg("memory: %016llx - %016llx\n", start, end);
-		start_pfn = PFN_UP(start);
-		end_pfn = PFN_DOWN(end);
-		page_alloc_init(start, end_pfn - start_pfn);
+		page_alloc_init(PFN_UP(start),
+				PFN_DOWN(end) - PFN_UP(start));
 	}
 }
 
@@ -740,7 +738,7 @@ phys_addr_t mem_alloc(phys_addr_t size, phys_addr_t align)
 
 void mem_init(void)
 {
-	heap_range_init(SDFIRM_END);
+	heap_range_init(PERCPU_STACKS_END);
 }
 #endif
 

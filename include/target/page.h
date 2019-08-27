@@ -75,8 +75,8 @@ void page_free(caddr_t address);
 void page_alloc_init(caddr_t base, pfn_t nr_pages);
 void page_init(void);
 #else
-#define page_init()		do { } while (0)
-#define page_alloc_init()	do { } while (0)
+#define page_init()			do { } while (0)
+#define page_alloc_init(base, nr)	do { } while (0)
 #endif
 #endif /* __ASSEMBLY__ */
 
