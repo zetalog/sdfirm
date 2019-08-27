@@ -238,7 +238,6 @@ void lpuart_config_baudrate(uint8_t id, uint32_t src_freq, uint32_t baud)
 		if (err_tmp <= err) {
 			osr = o;
 			sbr = s;
-			break;
 			err = err_tmp;
 		}
 		if (err == 0)

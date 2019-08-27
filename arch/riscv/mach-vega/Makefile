@@ -1,4 +1,5 @@
 obj-y += mach.rel
+obj-y += wdog.rel
 obj-$(CONFIG_CLK) += clk.rel pcc.rel scg.rel
 obj-$(CONFIG_GPIO) += gpio.rel
 obj-$(CONFIG_MEM) += mem.rel

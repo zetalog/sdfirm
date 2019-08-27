@@ -35,45 +35,17 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)mach.c: RV32M1 (VEGA) specific board initialization
- * $Id: mach.c,v 1.1 2019-08-14 16:15:00 zhenglv Exp $
+ * @(#)wdog.c: RV32M1 (VEGA) watch dog (WDOG) implementation
+ * $Id: wdog.h,v 1.1 2019-08-27 17:58:00 zhenglv Exp $
  */
 
-#include <target/generic.h>
-#include <target/cpus.h>
 #include <target/arch.h>
-#include <target/irq.h>
-#include <target/clk.h>
-#include <target/heap.h>
-#include <asm/mach/event.h>
 #include <asm/mach/wdog.h>
 
-bool board_in_irq(void)
+void wdog_disable(void)
 {
-	return __raw_readl(EVENT_INTPTENACTIVE) != 0;
-}
-
-void board_reset(void)
-{
-	__raw_setl(SLPCTRL_SYSRSTREQST, EVENT_SLPCTRL);
-}
-
-void board_suspend(void)
-{
-	__raw_writel_mask(SLPCTRL_SLPCTRL(EVENT_SLP_SLEEP_ENABLE),
-			  SLPCTRL_SLPCTRL(SLPCTRL_SLPCTRL_MASK),
-			  EVENT_SLPCTRL);
-}
-
-void board_hibernate(void)
-{
-	__raw_writel_mask(SLPCTRL_SLPCTRL(EVENT_SLP_DEEP_SLEEP_ENABLE),
-			  SLPCTRL_SLPCTRL(SLPCTRL_SLPCTRL_MASK),
-			  EVENT_SLPCTRL);
-}
-
-void board_init(void)
-{
-	DEVICE_ARCH(DEVICE_ARCH_RISCV);
-	wdog_disable();
+	__raw_writel(0xD928C520, WDOG_CNT);
+	__raw_writel(0xFFFF, WDOG_TOVAL);
+	__raw_clearl(WDOG_EN, WDOG_CS);
+	__raw_setl(WDOG_UPDATE, WDOG_CS);
 }
