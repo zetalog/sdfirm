@@ -1,5 +1,3 @@
-#include <target/clk.h>
-#include <target/gpio.h>
 #include <target/uart.h>
 #include <target/console.h>
 

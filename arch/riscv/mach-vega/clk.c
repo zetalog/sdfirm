@@ -51,7 +51,7 @@ struct input_clk {
 	uint32_t flags;
 };
 
-struct input_clk input_clks[] = {
+struct input_clk input_clks[NR_INPUT_CLKS] = {
 	[SOSC_CLK] = {
 		.freq = SCG_SOSC_FREQ,
 		.flags = SCG_EN,
@@ -78,7 +78,7 @@ struct output_clk {
 	uint32_t freq;
 };
 
-struct output_clk output_clks[] = {
+struct output_clk output_clks[NR_OUTPUT_CLKS] = {
 	[SOSCDIV1_CLK] = {
 		.freq = INVALID_FREQ,
 	},
@@ -122,7 +122,7 @@ struct interface_clk {
 	clk_t intfc;	/* bus interface clock */
 };
 
-struct interface_clk interface_clks[] = {
+struct interface_clk interface_clks[NR_INTERFACE_CLKS] = {
 	[MSMC_CLK] = {
 		.intfc = slow_clk,
 		.pcc = PCC_MSCM,
@@ -318,7 +318,7 @@ clk_t sys_funcs[NR_PCC_PCS_CLOCKS] = {
 	[PCC_PCS_LPFLL] = lpflldiv1_clk,
 };
 
-struct functional_clk functional_clks[] = {
+struct functional_clk functional_clks[NR_FUNCTIONAL_CLKS] = {
 	[LPIT0_CLK] = {
 		.pcc = PCC_LPIT0,
 		.funcs = div3_funcs,
@@ -444,6 +444,10 @@ struct functional_clk functional_clks[] = {
 		.funcs = sys_funcs,
 		.pcs = PCC_PCS_EXT,
 	},
+};
+
+uint8_t functional_mux[NR_FUNCTIONAL_CLKS] = {
+	[LPUART0_CLK] = PCC_PCS_FIRC,
 };
 
 uint8_t sys_mode = SYS_MODE_RUN;
@@ -887,9 +891,16 @@ void freqplan_config_boot(void)
 
 void freqplan_apply(struct clk_src *plan)
 {
+	int i;
+
 	while (plan && plan->clk != invalid_clk) {
 		clk_set_frequency(plan->clk, plan->freq);
 		plan++;
+	}
+
+	for (i = 0; i < ARRAY_SIZE(functional_mux); i++) {
+		if (functional_mux[i] != PCC_PCS_OFF)
+			functional_clks[i].pcs = functional_mux[i];
 	}
 }
 
