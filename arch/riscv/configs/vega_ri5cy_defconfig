@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Aug 28 14:37:17 2019
+# Wed Aug 28 17:01:11 2019
 #
 CONFIG_32BIT=y
 CONFIG_RISCV=y
@@ -136,6 +136,7 @@ CONFIG_LPS_WEIGHT=8
 CONFIG_XIP=y
 CONFIG_TEXT_ROM_BASE=0x00000000
 CONFIG_TEXT_RAM_BASE=0x20000000
+# CONFIG_DATA_RAM_LOAD is not set
 # CONFIG_HEAP is not set
 CONFIG_MEM=y
 # CONFIG_MMU_MAP_MEM is not set

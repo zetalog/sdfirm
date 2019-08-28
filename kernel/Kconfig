@@ -266,6 +266,19 @@ config TEXT_RAM_BASE
 	  used in the linker script to determine the load address of the
 	  .data section.
 
+config DATA_RAM_LOAD
+	bool "Load .data sections from the ROM to the RAM"
+	depends XIP
+	help
+	  For XIP firmware, programmer may have already loaded the .data
+	  sections to the RAM due to their load addresses are RAM
+	  addresses, and hence there should be no .data sections flashed in
+	  the ROM.
+	  OTH, programmer may program entire flash with a binary, instead
+	  of loading .data sections to the RAM. In this case, sdfirm
+	  working as ROM bootloader, should load .data sections by itself
+	  by enabling this option.
+
 endmenu
 
 menuconfig HEAP

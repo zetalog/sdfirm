@@ -62,7 +62,7 @@ __vectors:
 	.endm
 
 	.macro	init_gp
-	la	gp, _sdata
+	la	gp, __global_pointer$
 	.endm
 
 	.macro	zero_sect, sva, eva, lab_exit, lab_loop
@@ -103,8 +103,10 @@ ENTRY(__start)
 	/* Handle both .text and .rodata sections */
 	copy_sect __text_loc, _stext, _etext, copy_text_exit, copy_text_loop
 #endif
+#ifdef CONFIG_DATA_RAM_LOAD
 	/* Handle .data section */
 	copy_sect __data_loc, __sdata, __edata, copy_data_exit, copy_data_loop
+#endif
 	/* Handle .bss section */
 	zero_sect __bss_start, __bss_stop, init_bss_exit, init_bss_loop
 

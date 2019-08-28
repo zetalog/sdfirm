@@ -53,6 +53,9 @@ SECTIONS
 	__etext = .;				/* end of text sections */
 
 	RO_DATA_SECTION(WORD_SIZE)
+	.srodata : {
+		*(.srodata .srodata.*)
+	}
 
 	. = ALIGN((WORD_SIZE));
 	_etext = .;				/* end of text and rodata sections */
@@ -77,6 +80,11 @@ SECTIONS
 #endif
 		DATA_DATA
 	}
+
+	.sdata : {
+		__global_pointer$ = . + 0x800;
+		*(.sdata .sdata.*)
+	}
 	__edata = .;				/* end of data sections */
 
 	__data_loc = _etext_loc;		/* data location in ROM */
@@ -84,6 +92,7 @@ SECTIONS
 
 	.bss (NOLOAD) : ALIGN(WORD_SIZE) {
 		__bss_start = .;		/* begin of bss sections */
+		*(.sbss .sbss.*)
 		*(.bss .bss.*)
 	}
 	. = ALIGN(WORD_SIZE);
