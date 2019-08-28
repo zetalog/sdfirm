@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>sdfirm_ri5cy_rv32m1_vega</name>
+	<name>sdfirm_ri5cy</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -25,179 +25,164 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>common</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>kernel</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>lib</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>mach-vega</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
 			<name>appl/appl.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/appl/appl.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/appl/appl.c</locationURI>
 		</link>
 		<link>
 			<name>common/entry.S</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/arch/riscv/common/entry.S</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/common/entry.S</locationURI>
 		</link>
 		<link>
 			<name>common/head.S</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/arch/riscv/common/head.S</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/common/head.S</locationURI>
 		</link>
 		<link>
 			<name>common/irq.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/arch/riscv/common/irq.c</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/common/irq.c</locationURI>
+		</link>
+		<link>
+			<name>init/init.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/init/init.c</locationURI>
+		</link>
+		<link>
+			<name>init/main.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/init/main.c</locationURI>
 		</link>
 		<link>
 			<name>kernel/bh.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/kernel/bh.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/kernel/bh.c</locationURI>
 		</link>
 		<link>
 			<name>kernel/clk.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/kernel/clk.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/kernel/clk.c</locationURI>
 		</link>
 		<link>
 			<name>kernel/cmdline.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/kernel/cmdline.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/kernel/cmdline.c</locationURI>
 		</link>
 		<link>
 			<name>kernel/console.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/kernel/console.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/kernel/console.c</locationURI>
 		</link>
 		<link>
 			<name>kernel/delay.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/kernel/delay.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/kernel/delay.c</locationURI>
 		</link>
 		<link>
 			<name>kernel/gpio.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/kernel/gpio.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/kernel/gpio.c</locationURI>
 		</link>
 		<link>
 			<name>kernel/irq.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/kernel/irq.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/kernel/irq.c</locationURI>
 		</link>
 		<link>
 			<name>kernel/mem.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/kernel/mem.c</locationURI>
-		</link>
-		<link>
-			<name>kernel/page.c</name>
-			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/kernel/page.c</locationURI>
-		</link>
-		<link>
-			<name>kernel/panic.c</name>
-			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/kernel/panic.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/kernel/mem.c</locationURI>
 		</link>
 		<link>
 			<name>kernel/readline.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/kernel/readline.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/kernel/readline.c</locationURI>
 		</link>
 		<link>
 			<name>kernel/stack.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/kernel/stack.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/kernel/stack.c</locationURI>
 		</link>
 		<link>
 			<name>lib/atomic.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/lib/atomic.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/lib/atomic.c</locationURI>
 		</link>
 		<link>
 			<name>lib/bitops.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/lib/bitops.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/lib/bitops.c</locationURI>
 		</link>
 		<link>
 			<name>lib/errno.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/lib/errno.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/lib/errno.c</locationURI>
 		</link>
 		<link>
 			<name>lib/muldiv.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/lib/muldiv.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/lib/muldiv.c</locationURI>
 		</link>
 		<link>
 			<name>lib/printf.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/lib/printf.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/lib/printf.c</locationURI>
 		</link>
 		<link>
 			<name>lib/string.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/lib/string.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/lib/string.c</locationURI>
 		</link>
 		<link>
 			<name>lib/vsnprintf.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/lib/vsnprintf.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/lib/vsnprintf.c</locationURI>
 		</link>
 		<link>
-			<name>mach-vega/clk.c</name>
+			<name>mach/clk.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/arch/riscv/mach-vega/clk.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/clk.c</locationURI>
 		</link>
 		<link>
-			<name>mach-vega/gpio.c</name>
+			<name>mach/gpio.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/arch/riscv/mach-vega/gpio.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/gpio.c</locationURI>
 		</link>
 		<link>
-			<name>mach-vega/lpuart.c</name>
+			<name>mach/lpuart.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/arch/riscv/mach-vega/lpuart.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/lpuart.c</locationURI>
 		</link>
 		<link>
-			<name>mach-vega/mach.c</name>
+			<name>mach/mach.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/arch/riscv/mach-vega/mach.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/mach.c</locationURI>
 		</link>
 		<link>
-			<name>mach-vega/mem.c</name>
+			<name>mach/mem.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/arch/riscv/mach-vega/mem.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/mem.c</locationURI>
 		</link>
 		<link>
-			<name>mach-vega/pcc.c</name>
+			<name>mach/pcc.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/arch/riscv/mach-vega/pcc.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/pcc.c</locationURI>
 		</link>
 		<link>
-			<name>mach-vega/scg.c</name>
+			<name>mach/scg.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/arch/riscv/mach-vega/scg.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/scg.c</locationURI>
 		</link>
 		<link>
-			<name>mach-vega/uart.c</name>
+			<name>mach/uart.c</name>
 			<type>1</type>
-			<locationURI>ECLIPSE_HOME/sdfirm/arch/riscv/mach-vega/uart.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/uart.c</locationURI>
+		</link>
+		<link>
+			<name>mach/wdog.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/wdog.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

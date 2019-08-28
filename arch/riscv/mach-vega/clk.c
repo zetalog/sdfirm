@@ -451,6 +451,7 @@ uint8_t functional_mux[NR_FUNCTIONAL_CLKS] = {
 };
 
 uint8_t sys_mode = SYS_MODE_RUN;
+uint8_t sys_new_mode = SYS_MODE_RUN;
 clk_t scs_clk = sirc_clk;
 clk_t scs_clkout = sirc_clk;
 
@@ -469,19 +470,32 @@ struct clk_driver clk_const = {
 	.set_freq = NULL,
 };
 
-static void apply_input_clk(clk_clk_t clk)
+static int apply_input_clk(clk_clk_t clk)
 {
+	int ret;
+	uint8_t scs;
+	uint32_t freq;
+
 	BUG_ON(clk >= NR_INPUT_CLKS);
-	scg_input_enable(CLK_SCG_SCS(clk), input_clks[clk].freq,
-			 input_clks[clk].flags);
+	scs = CLK_SCG_SCS(clk);
+	freq = input_clks[clk].freq;
+	if (scg_clock_selected(scs)) {
+		if (scg_input_get_freq(scs) == freq)
+			goto exit_flags;
+		return -EBUSY;
+	}
+	ret = scg_input_disable(scs);
+	if (ret)
+		return ret;
+exit_flags:
+	return scg_input_enable(scs, freq, input_clks[clk].flags);
 }
 
 static int enable_input_clk(clk_clk_t clk)
 {
 	if (clk >= NR_INPUT_CLKS)
 		return -EINVAL;
-	apply_input_clk(clk);
-	return 0;
+	return apply_input_clk(clk);
 }
 
 static void disable_input_clk(clk_clk_t clk)
@@ -496,8 +510,7 @@ static int set_input_clk_freq(clk_clk_t clk, uint32_t freq)
 	if (clk >= NR_INPUT_CLKS)
 		return -EINVAL;
 	input_clks[clk].freq = freq;
-	apply_input_clk(clk);
-	return 0;
+	return apply_input_clk(clk);
 }
 
 static uint32_t get_input_clk_freq(clk_clk_t clk)
@@ -515,20 +528,30 @@ struct clk_driver clk_input = {
 	.set_freq = set_input_clk_freq,
 };
 
-void apply_system_clk(uint8_t mode, clk_t src)
+int apply_system_clk(uint8_t mode, clk_t src)
 {
+	int ret;
+
 	BUG_ON(mode >= NR_SCG_MODES);
-	clk_enable(src);
+	ret = clk_enable(src);
+	if (ret)
+		return ret;
 	scg_clock_select(mode, freqplan_clk2scs(src));
+	return 0;
 }
 
 static int enable_system_clk(clk_clk_t clk)
 {
-	if (clk == SYS_CLK_SRC)
-		apply_system_clk(sys_mode, scs_clk);
+	int ret;
+
+	if (clk == SYS_CLK_SRC) {
+		ret = apply_system_clk(sys_new_mode, scs_clk);
+		if (ret == 0)
+			sys_mode = sys_new_mode;
+	}
 	if (clk == CLKOUT_CLK)
-		apply_system_clk(SCG_CLKOUT, scs_clkout);
-	return 0;
+		ret = apply_system_clk(SCG_CLKOUT, scs_clkout);
+	return ret;
 }
 
 static void disable_system_clk(clk_clk_t clk)
@@ -541,7 +564,7 @@ static void disable_system_clk(clk_clk_t clk)
 
 static uint32_t get_system_clk_freq(clk_clk_t clk)
 {
-	if (clk == SYS_CLK_SRC &&
+	if (clk == SYS_CLK_SRC && sys_mode == sys_new_mode &&
 	    freqplan_clk2scs(scs_clk) == scg_clock_get_source(sys_mode))
 		return clk_get_frequency(scs_clk);
 	if (clk == CLKOUT_CLK &&
@@ -872,21 +895,22 @@ struct clk_src freqplan_hsrun[] = {
 	},
 };
 
+#define FREQ_SIRC_CLK		8000000
+#define FREQ_FIRC_CLK		48000000
+
 void freqplan_config_boot(void)
 {
-	uint32_t freq = CORE_CLK_FREQ_VLPR * 2;
+	uint32_t freq = FREQ_SIRC_CLK;
 
+	/* No HSRUN/LP support now */
+	BUG_ON(sys_mode != SYS_MODE_RUN);
 	/* configure SIRC as boot clock */
-	scg_input_disable(SCG_SCS_SIRC);
-	scg_input_enable(SCG_SCS_SIRC, freq, SCG_EN);
-	scg_output_set_freq(SCG_SCS_SIRC, SCG_DIV2, freq / 2);
-	scg_output_set_freq(SCG_SCS_SIRC, SCG_DIV3, freq);
-
+	if (!scg_clock_selected(SCG_SCS_SIRC)) {
+		scg_input_disable(SCG_SCS_SIRC);
+		scg_input_enable(SCG_SCS_SIRC, freq, SCG_EN);
+	}
 	/* configure runtime clock */
 	scg_clock_select(SYS_MODE_RUN, SCG_SCS_SIRC);
-	scg_system_set_freq(SYS_MODE_RUN, SCG_DIVCORE, freq);
-	scg_system_set_freq(SYS_MODE_RUN, SCG_DIVBUS, freq);
-	scg_system_set_freq(SYS_MODE_RUN, SCG_DIVSLOW, freq / 4);
 }
 
 void freqplan_apply(struct clk_src *plan)
@@ -899,22 +923,25 @@ void freqplan_apply(struct clk_src *plan)
 	}
 
 	for (i = 0; i < ARRAY_SIZE(functional_mux); i++) {
-		if (functional_mux[i] != PCC_PCS_OFF)
+		if (functional_mux[i] != PCC_PCS_OFF) {
 			functional_clks[i].pcs = functional_mux[i];
+			pcc_select_source(functional_clks[i].pcc,
+					  functional_clks[i].pcs);
+		}
 	}
 }
 
 void freqplan_config_run(void)
 {
 	freqplan_config_boot();
-	sys_mode = SYS_MODE_RUN;
+	sys_new_mode = SYS_MODE_RUN;
 	scs_clk = firc_clk;
 	freqplan_apply(freqplan_run);
 }
 
 void freqplan_config_vlpr(void)
 {
-	sys_mode = SYS_MODE_VLPR;
+	sys_new_mode = SYS_MODE_VLPR;
 	scs_clk = sirc_clk;
 	freqplan_apply(freqplan_vlpr);
 }
@@ -922,7 +949,7 @@ void freqplan_config_vlpr(void)
 void freqplan_config_hsrun(void)
 {
 	freqplan_config_boot();
-	sys_mode = SYS_MODE_HSRUN;
+	sys_new_mode = SYS_MODE_HSRUN;
 	scs_clk = lpfll_clk;
 	freqplan_apply(freqplan_hsrun);
 }

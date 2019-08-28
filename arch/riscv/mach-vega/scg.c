@@ -131,8 +131,9 @@ void scg_input_set_freq(uint8_t scs, uint32_t freq)
 
 int scg_input_disable(uint8_t scs)
 {
-	if (scs == SCG_SCS_ROSC || scs == SCG_SCS_EXT ||
-	    scs >= NR_SCG_CLOCKS)
+	if (scs >= NR_SCG_CLOCKS)
+		return -EINVAL;
+	if (scs == SCG_SCS_ROSC || scs == SCG_SCS_EXT)
 		return 0;
 	if (scg_clock_selected(scs))
 		return -EBUSY;
@@ -147,17 +148,13 @@ int scg_input_disable(uint8_t scs)
 
 int scg_input_enable(uint8_t scs, uint32_t freq, uint32_t flags)
 {
-	int ret;
-	uint8_t en = SCG_EN;
-	uint8_t msk = SCG_EN | SCG_STEN | SCG_LPEN;
+	uint32_t en = SCG_EN;
+	uint32_t msk = SCG_EN | SCG_STEN | SCG_LPEN | SCG_TREN;
 
-	if (scs == SCG_SCS_ROSC || scs == SCG_SCS_EXT ||
-	    scs >= NR_SCG_CLOCKS)
+	if (scs >= NR_SCG_CLOCKS)
+		return -EINVAL;
+	if (scs == SCG_SCS_ROSC || scs == SCG_SCS_EXT)
 		return 0;
-	ret = scg_input_disable(scs);
-	if (ret)
-		return ret;
-
 	scg_input_set_freq(scs, freq);
 	if (flags & SCG_STEN)
 		en |= SCG_STEN;
@@ -171,6 +168,8 @@ int scg_input_enable(uint8_t scs, uint32_t freq, uint32_t flags)
 			en |= SCG_CMRE;
 	}
 	/* TODO: trim support */
+	if (scs == SCG_SCS_FIRC)
+		en |= SCG_TREN;
 	__raw_writel_mask(en, msk, SCG_SCSCSR(scs));
 	/* TODO: parallel enabling */
 	while (!scg_clock_valid(scs));
@@ -195,14 +194,16 @@ void scg_output_enable(uint8_t scs, uint8_t id, uint8_t div)
 			  SCG_DIV_DIV_MSK(id), SCG_SCSDIV(scs));
 }
 
-void scg_output_set_freq(uint8_t scs, uint8_t id, uint32_t freq)
+int scg_output_set_freq(uint8_t scs, uint8_t id, uint32_t freq)
 {
 	uint8_t div;
 	uint32_t src_freq;
 
 	src_freq = scg_input_get_freq(scs);
-	if (src_freq == INVALID_FREQ || src_freq < freq)
-		return;
+	if (src_freq == INVALID_FREQ)
+		return -EINVAL;
+	if (src_freq < freq)
+		return -EINVAL;
 	/* Support disabling of this clock */
 	if (freq)
 		div = div32u(src_freq, freq);
@@ -211,6 +212,7 @@ void scg_output_set_freq(uint8_t scs, uint8_t id, uint32_t freq)
 	if (div > SCG_DIV_DIV_MAX)
 		div = SCG_DIV_DIV_MAX;
 	scg_output_enable(scs, id, div);
+	return 0;
 }
 
 uint32_t scg_output_get_freq(uint8_t scs, uint8_t id)
@@ -226,43 +228,45 @@ uint32_t scg_output_get_freq(uint8_t scs, uint8_t id)
 	return div32u(src_freq, div);
 }
 
-void scg_system_set_freq(uint8_t mode, uint8_t id, uint32_t freq)
+int scg_system_set_freq(uint8_t mode, uint8_t id, uint32_t freq)
 {
 	uint8_t div;
-	uint8_t scs;
 	uint32_t src_freq;
 
 	if (mode >= NR_SCG_MODES)
-		return;
-	scs = scg_clock_get_source(mode);
-	if (id == SCG_DIVCORE)
+		return -EINVAL;
+	if (id == SCG_DIVCORE) {
+		uint8_t scs = scg_clock_get_source(mode);
 		src_freq = scg_input_get_freq(scs);
-	else
-		src_freq = scg_output_get_freq(scs, SCG_DIVCORE);
-	if (src_freq == INVALID_FREQ || src_freq < freq)
-		return;
+	} else
+		src_freq = scg_system_get_freq(mode, SCG_DIVCORE);
+	if (src_freq == INVALID_FREQ)
+		return -EINVAL;
+	if (src_freq < freq)
+		return -EINVAL;
 	/* Do not support disabling of this clock */
 	if (freq == 0)
-		return;
+		return -EINVAL;
 	div = div32u(src_freq, freq);
 	if (div > SCG_CCR_DIV_MAX)
 		div = SCG_CCR_DIV_MAX;
 	__raw_writel_mask(SCG_CCR_DIV_SET(id, SCG_CCR_DIV2VAL(div)),
 			  SCG_CCR_DIV_MSK(id), SCG_MODEREG(mode));
+	return 0;
 }
 
 uint32_t scg_system_get_freq(uint8_t mode, uint8_t id)
 {
-	uint8_t val, div, scs;
+	uint8_t val, div;
 	uint32_t src_freq;
 
 	if (mode >= NR_SCG_MODES)
 		return INVALID_FREQ;
-	scs = scg_clock_get_source(mode);
-	if (id == SCG_DIVCORE)
+	if (id == SCG_DIVCORE) {
+		uint8_t scs = scg_clock_get_source(mode);
 		src_freq = scg_input_get_freq(scs);
-	else
-		src_freq = scg_output_get_freq(scs, SCG_DIVCORE);
+	} else
+		src_freq = scg_system_get_freq(mode, SCG_DIVCORE);
 	val = SCG_CCR_DIV_GET(id, __raw_readl(SCG_MODEREG(mode)));
 	div = SCG_CCR_VAL2DIV(val);
 	if (div == 0 || src_freq == INVALID_FREQ)

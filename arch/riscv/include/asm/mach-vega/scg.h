@@ -134,11 +134,11 @@
 /* DIV values */
 #define SCG_CCR_DIV_MAX			16
 #define SCG_CCR_DIV_SET(id, div)	\
-	(((div) & SCG_CCR_DIV_MASK) << ((id) * 4))
+	(((uint32_t)((div) & SCG_CCR_DIV_MASK)) << ((id) * 4))
 #define SCG_CCR_DIV_GET(id, val)	\
 	(((val) >> ((id) * 4)) & SCG_CCR_DIV_MASK)
 #define SCG_CCR_DIV_MSK(id)		\
-	(SCG_CCR_DIV_MASK << ((id) * 4))
+	(((uint32_t)SCG_CCR_DIV_MASK) << ((id) * 4))
 
 /* use input clock IDs */
 #define SCG_SCS_OFFSET			24
@@ -178,11 +178,11 @@
 #define SCG_DIV_DIV_MAX			64
 #define SCG_DIV_DIV_DISABLED		0
 #define SCG_DIV_DIV_SET(id, div)	\
-	(((div) & SCG_DIV_DIV_MASK) << ((id) * 8))
+	(((uint32_t)((div) & SCG_DIV_DIV_MASK)) << ((id) * 8))
 #define SCG_DIV_DIV_GET(id, val)	\
 	(((val) >> ((id) * 8)) & SCG_DIV_DIV_MASK)
 #define SCG_DIV_DIV_MSK(id)		\
-	(SCG_DIV_DIV_MASK << ((id) * 8))
+	(((uint32_t)SCG_DIV_DIV_MASK) << ((id) * 8))
 
 /* 29.3.1.13 Slow IRC Configuration Register (SIRCCFG)
  * 29.3.1.16 Fast IRC Configuration Register (FIRCCFG)
@@ -296,10 +296,10 @@ void scg_input_set_freq(uint8_t scs, uint32_t freq);
 void scg_output_disable(uint8_t scs, uint8_t id);
 void scg_output_enable(uint8_t scs, uint8_t id, uint8_t div);
 uint32_t scg_output_get_freq(uint8_t scs, uint8_t id);
-void scg_output_set_freq(uint8_t scs, uint8_t id, uint32_t freq);
+int scg_output_set_freq(uint8_t scs, uint8_t id, uint32_t freq);
 
 void scg_clock_select(uint8_t mode, uint8_t src);
-void scg_system_set_freq(uint8_t mode, uint8_t id, uint32_t freq);
+int scg_system_set_freq(uint8_t mode, uint8_t id, uint32_t freq);
 uint32_t scg_system_get_freq(uint8_t mode, uint8_t id);
 
 #endif /* __SCG_VEGA_H_INCLUDE__ */
