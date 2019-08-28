@@ -314,8 +314,11 @@
 #define lpuart_disable_uart(id)				\
 	__raw_writel_mask(0, LPUART_TE | LPUART_RE,	\
 			  LPUART_CTRL(id))
-#define lpuart_reset_uart(id)				\
-	__raw_setl(LPUART_RST, LPUART_GLOBAL(id))
+#define lpuart_reset_uart(id)					\
+	do {							\
+		__raw_setl(LPUART_RST, LPUART_GLOBAL(id));	\
+		__raw_clearl(LPUART_RST, LPUART_GLOBAL(id));	\
+	} while (0)
 
 #define lpuart_7bit_enabled(id)				\
 	(__raw_readl(LPUART_CTRL(id)) & LPUART_M7)

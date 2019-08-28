@@ -46,7 +46,7 @@ typedef unsigned long			loff_t;
 #define _BV_ULL(bit)			(ULL(1) << (bit))
 #define _BV(bit)			_BV_UL(bit)
 #define _SET_FV(name, value)		\
-	(((value) & (name##_MASK)) << (name##_OFFSET))
+	((((size_t)value) & (name##_MASK)) << (name##_OFFSET))
 #define _GET_FV(name, value)		\
 	(((value) >> (name##_OFFSET)) & (name##_MASK))
 /* Default to _SET_FV() as by default _FV() is used to generate field

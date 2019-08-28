@@ -542,7 +542,7 @@ int apply_system_clk(uint8_t mode, clk_t src)
 
 static int enable_system_clk(clk_clk_t clk)
 {
-	int ret;
+	int ret = 0;
 
 	if (clk == SYS_CLK_SRC) {
 		ret = apply_system_clk(sys_new_mode, scs_clk);
@@ -716,7 +716,8 @@ static int enable_functional_clk(clk_clk_t clk)
 	ret = clk_enable(src_clk);
 	if (ret)
 		return ret;
-	pcc_enable_clk(functional_clks[clk].pcc);
+	pcc_select_source(functional_clks[clk].pcc,
+			  functional_clks[clk].pcs);
 	return 0;
 }
 
@@ -923,11 +924,8 @@ void freqplan_apply(struct clk_src *plan)
 	}
 
 	for (i = 0; i < ARRAY_SIZE(functional_mux); i++) {
-		if (functional_mux[i] != PCC_PCS_OFF) {
+		if (functional_mux[i] != PCC_PCS_OFF)
 			functional_clks[i].pcs = functional_mux[i];
-			pcc_select_source(functional_clks[i].pcc,
-					  functional_clks[i].pcs);
-		}
 	}
 }
 
