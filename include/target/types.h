@@ -45,8 +45,13 @@ typedef unsigned long			loff_t;
 #define _BV_UL(bit)			(UL(1) << (bit))
 #define _BV_ULL(bit)			(ULL(1) << (bit))
 #define _BV(bit)			_BV_UL(bit)
+#ifdef __ASSEMBLY__
+#define _SET_FV(name, value)		\
+	(((value) & (name##_MASK)) << (name##_OFFSET))
+#else
 #define _SET_FV(name, value)		\
 	((((size_t)value) & (name##_MASK)) << (name##_OFFSET))
+#endif
 #define _GET_FV(name, value)		\
 	(((value) >> (name##_OFFSET)) & (name##_MASK))
 /* Default to _SET_FV() as by default _FV() is used to generate field
@@ -83,6 +88,17 @@ typedef unsigned long			loff_t;
 	(((value) >> (name##_OFFSET(n))) & (name##_MASK))
 #define _SET_FVn(n, name, value)	\
 	(((value) & (name##_MASK)) << (name##_OFFSET(n)))
+
+/* Create a contiguous bitmask starting at bit position @l and ending at
+ * position @h. For example
+ * GENMASK_ULL(39, 21) gives us the 64bit vector 0x000000ffffe00000.
+ */
+#define GENMASK(h, l)				\
+	(((~UL(0)) - (UL(1) << (l)) + 1) &	\
+	 (~UL(0) >> (__WORDSIZE - 1 - (h))))
+#define GENMASK_ULL(h, l)			\
+	(((~ULL(0)) - (ULL(1) << (l)) + 1) &	\
+	 (~ULL(0) >> (__WORDSIZE - 1 - (h))))
 
 #ifndef __ASSEMBLY__
 __TEXT_TYPE__(char, text_char_t);

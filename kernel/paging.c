@@ -477,7 +477,7 @@ void __set_fixmap(enum fixed_addresses idx,
 		set_pte(ptep, pfn_pte(phys >> PAGE_SHIFT, flags));
 	} else {
 		pte_clear(addr, ptep);
-		/* flush_tlb_kernel_range(addr, addr+PAGE_SIZE); */
+		flush_tlb_range_kern(addr, addr+PAGE_SIZE);
 	}
 }
 

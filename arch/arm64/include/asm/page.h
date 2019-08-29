@@ -8,6 +8,10 @@
 #include <target/mem.h>
 #include <asm/vmsa.h>
 
+#define USER_ASID_BIT	48
+#define USER_ASID_FLAG	(UL(1) << USER_ASID_BIT)
+#define TTBR_ASID_MASK	(UL(0xffff) << 48)
+
 /*===========================================================================
  * sdfirm specific definitions
  *===========================================================================*/
@@ -70,47 +74,37 @@ typedef uint64_t pgdval_t;
 
 extern unsigned long empty_zero_page[PAGE_SIZE / sizeof (unsigned long)];
 
-static inline void page_wmb(void)
-{
-	dsb(ishst);
-	isb();
-}
-
 #define ARCH_HAVE_SET_PTE 1
 static inline void set_pte(pteval_t *ptep, pteval_t pte)
 {
 	mmu_dbg_tbl("PTE: %016llx: %016llx\n", ptep, pte);
-	*ptep = pte;
-	page_wmb();
+	__raw_writel(pte, ptep);
+	dsb(ishst);
 }
-/* #define set_pte(ptep, pte)	((*(ptep) = (pte)), page_wmb()) */
 #define ARCH_HAVE_SET_PMD 1
 static inline void set_pmd(pmdval_t *pmdp, pmdval_t pmd)
 {
 	mmu_dbg_tbl("PMD: %016llx: %016llx\n", pmdp, pmd);
-	*pmdp = pmd;
-       	page_wmb();
+	__raw_writel(pmd, pmdp);
+	dsb(ishst);
 }
-/* #define set_pmd(pmdp, pmd)	((*(pmdp) = (pmd)), page_wmb()) */
 #if PGTABLE_LEVELS > 2
 #define ARCH_HAVE_SET_PUD 1
 static inline void set_pud(pudval_t *pudp, pudval_t pud)
 {
 	mmu_dbg_tbl("PUD: %016llx: %016llx\n", pudp, pud);
-	*pudp = pud;
-       	page_wmb();
+	__raw_writel(pud, pudp);
+	dsb(ishst);
 }
-/* #define set_pud(pudp, pud)	((*(pudp) = (pud)), page_wmb()) */
 #endif /* PGTABLE_LEVELS > 2 */
 #if PGTABLE_LEVELS > 3
 #define ARCH_HAVE_SET_PGD 1
 static inline void set_pgd(pgdval_t *pgdp, pgdval_t pgd)
 {
 	mmu_dbg_tbl("PGD: %016llx: %016llx\n", pgdp, pgd);
-	*pgdp = pgd;
-	page_wmb();
+	__raw_writel(pgd, pgdp);
+	dsb(ishst);
 }
-/* #define set_pgd(pgdp, pgd)	((*(pgdp) = (pgd)), page_wmb()) */
 #endif /* PGTABLE_LEVELS > 3 */
 #endif
 
