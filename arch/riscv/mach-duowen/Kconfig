@@ -1,0 +1,39 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+if ARCH_DUOWEN
+
+menu "Emulated RISCV (Duowen) board options"
+
+choice
+	prompt "Programmed CPUs"
+	help
+	  Selects CPUs that compiled sdfirm should run against.
+
+config DUOWEN_IMC
+	bool "IMC"
+	select CPU_RI5CY
+	select ARCH_HAS_LOVEC
+
+config DUOWEN_APC
+	bool "APC"
+
+endchoice
+
+if DUOWEN_IMC
+
+config DUOWEN_IMC_RAM_SIZE
+	hex "IMC RAM Size"
+	range 0x40000 0x100000
+	default 0x40000
+
+config DUOWEN_IMC_RAM_BOOT
+	bool "Enable booting from RAM base"
+
+endif
+
+endmenu
+
+endif

@@ -44,6 +44,15 @@ config ARCH_VEGA
 	help
 	  This enables support for Qualcomm server platforms.
 
+config ARCH_DUOWEN
+	bool "Emulated RISCV platform"
+	select ARCH_IS_TICKLESS
+	select ARCH_HAS_TSC
+	select ARCH_HAS_TSC_CONST
+	select ARCH_HAS_GPT
+	help
+	  This enables support for emulated riscv platforms.
+
 endchoice
 
 source "arch/riscv/common/Kconfig"
@@ -51,6 +60,8 @@ source "arch/riscv/common/Kconfig"
 endmenu
 
 source "arch/riscv/mach-vega/Kconfig"
+source "arch/riscv/mach-duowen/Kconfig"
+
 source "kernel/Kconfig"
 source "drivers/Kconfig"
 source "lib/Kconfig"
