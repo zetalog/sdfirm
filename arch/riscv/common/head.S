@@ -99,7 +99,7 @@ ENTRY(__start)
 	init_sp
 	init_gp
 
-#ifndef CONFIG_XIP
+#ifdef CONFIG_TEXT_RAM_LOAD
 	/* Handle both .text and .rodata sections */
 	copy_sect __text_loc, _stext, _etext, copy_text_exit, copy_text_loop
 #endif
