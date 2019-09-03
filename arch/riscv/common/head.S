@@ -112,10 +112,9 @@ ENTRY(__start)
 
 	la	t0, __vectors
 	csrw	mtvec, t0
-#if 1
-	csrw	0x005, t0
-#else
-	csrw	utvec, t0
+#ifdef CONFIG_RISCV_N
+	/* csrw	utvec, t0 */
+	csrw	CSR_UTVEC, t0
 #endif
 
 	jal	ra, system_init

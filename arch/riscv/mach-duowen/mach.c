@@ -56,7 +56,16 @@ void board_hibernate(void)
 {
 }
 
+#ifdef CONFIG_DUOWEN_IMC
+static void imc_init(void)
+{
+}
+#else
+#define imc_init()		do { } while (0)
+#endif
+
 void board_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);
+	imc_init();
 }

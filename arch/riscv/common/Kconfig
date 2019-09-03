@@ -4,6 +4,7 @@ config CPU_RI5CY
 	select CPU_32I
 	select CPU_M
 	select CPU_C
+	select CPU_N
 
 # ZERO RISCY
 config CPU_0RISCY
