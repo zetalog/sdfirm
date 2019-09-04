@@ -5,4 +5,3 @@ endif
 ifeq ($(CROSS_COMPILE),)
 CROSS_COMPILE	:= aarch64-linux-
 endif
-BIN2VHX		:= $(srctree)/scripts/bin2vhx.pl

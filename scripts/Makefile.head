@@ -137,10 +137,14 @@ $(error No compiler is defined.)
 endif
 
 # Gzip
-# Gzip
 # ---------------------------------------------------------------------------
 
 quiet_cmd_gzip = GZIP    $@
 cmd_gzip = gzip -f -9 < $< > $@
 
+# SREC2VHX
+# ---------------------------------------------------------------------------
+#
+quiet_cmd_srec2vhx = SREC2VHX $@
+      cmd_srec2vhx = $(SREC2VHX) $(SREC2VHXFLAGS) $(SREC2VHXFLAGS_$(@F)) $< $@
 

@@ -43,38 +43,55 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdbool.h>
-#include <sys/stat.h>
- 
+
 /* An S-Record line is formatted as:
  * +-------------------//------//-------------+
  * | type | count | address | data | checksum |
  * +-------------------//------//-------------+
+ *
+ * This utility converts it to ARM VHX memory array format, with the load
+ * address information added. The ARM VHX conversion tool can be found in
+ * scripts/bin2vhx.pl, which works with "binary" format files.
  */
 #define SREC_LINE_BYTES		256
-#define SREC_LINE_SIZE		((256 * 2) + 2)
+#define SREC_LINE_SIZE		((SREC_LINE_BYTES * 2) + 2)
 #define SREC_MAX_TYPES		10
 #define SREC_MAX_BYTES		32
 #define SREC_IS_NOTE(type)	((type) == 0)
 #define SREC_IS_COUNT(type)	((type) == 5)
 #define SREC_IS_ENTRY(type)	((type) > 6 && (type) < 10)
 #define SREC_IS_DATA(type)	((type) > 0 && (type) < 4)
- 
-typedef unsigned long long dword;
-typedef unsigned int word;
-typedef unsigned char byte;
- 
+
+#define VHX_WIDTH_BITS		32
+
+#define IS_ALIGNED(x, a)	(((x) & (((dword)(a)) - 1)) == 0)
+#define ROUNDDOWN(x, a)		(((dword)(x)) & (~(((dword)(a)) - 1)))
+#define ROUNDUP(x, a)		((((dword)(x)) + (((dword)(a)) - 1)) &	\
+				 (~(((dword)(a)) - 1)))
+
+typedef uint64_t dword;
+typedef uint32_t word;
+typedef uint8_t byte;
+
 char infilename[PATH_MAX] = "";
 char outfilename[PATH_MAX] = "";
 FILE *infile, *outfile;
- 
+
 dword max_addr = 0;
 dword min_addr = 0;
+bool has_max = false;
+bool has_min = false;
 dword entry = 0;
 int data_count = 0;
- 
-char filler = 0xff;
+
 bool verbose = false;
+
+char filler = 0x00;
+bool bigendian = false;
+byte *byte_data;
+int byte_width = VHX_WIDTH_BITS / 8;
 
 int srec_addr_bytes[SREC_MAX_TYPES] = {
 	0,
@@ -84,15 +101,15 @@ int srec_addr_bytes[SREC_MAX_TYPES] = {
 	-1,
 	2,
 	-1,
-	2,
-	3,
 	4,
+	3,
+	2,
 };
- 
+
 int ctoh(char c)
 {
 	int res = 0;
- 
+
 	if (c >= '0' && c <= '9')
 		res = (c - '0');
 	else if (c >= 'A' && c <= 'F')
@@ -101,13 +118,13 @@ int ctoh(char c)
 		res = (c - 'a' + 10);
 	return res;
 }
- 
+
 dword atoh(char *s)
 {
 	int i;
 	char c;
 	dword res = 0;
- 
+
 	for (i = 0; i < strlen(s); i++) {
 		c = s[i];
 		res <<= 4;
@@ -115,16 +132,52 @@ dword atoh(char *s)
 	}
 	return res;
 }
- 
-dword file_size(FILE *f)
-{
-	struct stat st;
 
-	if (fstat(fileno(f), &st))
-		return 0;
-	return st.st_size;
+void pack(char b, int i)
+{
+	if (bigendian)
+		byte_data[i] = b;
+	else
+		byte_data[byte_width-i-1] = b;
 }
- 
+
+void unpack(void)
+{
+	int i;
+
+	for (i = 0; i < byte_width; i++)
+		fprintf(outfile, "%02x", byte_data[i]);
+	fprintf(outfile, "\n");
+}
+
+dword pad_last(dword address, dword index)
+{
+	int i = 0;
+
+	while (i < (ROUNDUP(address, byte_width) - address)) {
+		pack(filler, index % byte_width);
+		if (((index + 1) % byte_width) == 0)
+			unpack();
+		i++;
+		index++;
+	}
+	return index;
+}
+
+dword pad_next(dword address, dword index)
+{
+	int i = 0;
+
+	while (i < (address - ROUNDDOWN(address, byte_width))) {
+		pack(filler, index % byte_width);
+		if (((index + 1) % byte_width) == 0)
+			unpack();
+		i++;
+		index++;
+	}
+	return index;
+}
+
 void usage(void)
 {
 	printf("\nsrec2vhx- Convert Motorola S-Record to VCS HEX file.\n");
@@ -134,33 +187,46 @@ void usage(void)
 	printf("-b          Image is in big endian.\n");
 	printf("-w <width>  Width in bits of the target memory array.\n");
 	printf("            Default 32 and must be multiple of 32.\n");
+	printf("-v          Enable verbosity.\n");
 }
- 
-void parse(bool scan, dword *max, dword *min)
+
+int parse(bool scan)
 {
 	int i, j;
-	char line[SREC_LINE_SIZE] = "";
-	dword address;
+	dword index = 0;
+	char line[SREC_LINE_SIZE];
+	dword address, last_addr = 0, next_addr;
 	int addr_bytes;
 	int type, count;
 	byte c, buf[SREC_MAX_BYTES];
 	int line_num = 0;
- 
-	do {
+
+	while (!feof(infile)) {
 		line_num++;
-		if (!fgets(line, SREC_LINE_SIZE, infile))
+		if (!fgets(line, SREC_LINE_SIZE, infile)) {
+			if (!feof(infile)) {
+				fprintf(stderr,
+					"ERROR(%d): Read %s failure.\n",
+					line_num, infilename);
+				return 2;
+			}
 			break;
+		}
 
 		/* an S-record */
-		if (line[0] |= 'S')
+		if (line[0] != 'S')
 			continue;
+
+		if (verbose)
+			fprintf(stderr, "INFO(%d): %s.\n",
+				line_num, line);
 
 		type = line[1] - '0';
 		if (type < 0 || type >= SREC_MAX_TYPES ||
 		    srec_addr_bytes[type] < 0) {
 			fprintf(stderr, "ERROR(%d): Bad type S%d.\n",
 				line_num, type);
-			continue;
+			return 3;
 		}
 		addr_bytes = srec_addr_bytes[type];
 
@@ -172,14 +238,19 @@ void parse(bool scan, dword *max, dword *min)
 			address <<= 4;
 			address += ctoh(c);
 		}
+		if (verbose)
+			fprintf(stderr,
+				"INFO(%d): count=%d, address=%08lX.\n",
+				line_num, count, address);
 
 		if (SREC_IS_ENTRY(type)) {
-			if (count != addr_bytes)
+			if (count != 0) {
 				fprintf(stderr,
 					"ERROR(%d): Bad entry len %d.\n",
 					line_num, count);
-			else
-				entry = address;
+				return 3;
+			}
+			entry = address;
 			continue;
 		}
 		if (SREC_IS_NOTE(type))
@@ -188,7 +259,7 @@ void parse(bool scan, dword *max, dword *min)
 		if (SREC_IS_COUNT(type)) {
 			if (address != data_count)
 				fprintf(stderr,
-					"ERROR(%d): Bad record# %08llX.\n",
+					"ERROR(%d): Bad record# %08lX.\n",
 					line_num, address);
 			continue;
 		}
@@ -197,23 +268,27 @@ void parse(bool scan, dword *max, dword *min)
 			fprintf(stderr,
 				"ERROR(%d): Bad count %d.\n",
 				line_num, count);
-			continue;
+			return 3;
 		}
- 
+
 		/* data record */
 		if (scan) {
-			if (*min > address)
-				*min = address;
-			if (*max < (address + (count - 1)))
-				*max = address + (count - 1);
+			if (!has_min || min_addr > address) {
+				min_addr = address;
+				has_min = true;
+			}
+			if (!has_max || max_addr < (address + (count - 1))) {
+				has_max = true;
+				max_addr = address + (count - 1);
+			}
+			if (verbose)
+				fprintf(stderr,
+					"INFO(%d): min=%08lX, max=%08lX.\n",
+					line_num, min_addr, max_addr);
 			continue;
 		}
 
 		data_count++;
-		address -= min_addr;
-		if (verbose)
-			fprintf(stderr, "INFO: count=%d, address=%08llX\r",
-				count, address);
 		j = 0;
 		for (i = (addr_bytes * 2) + 4;
 		     i < (addr_bytes * 2) + (count * 2) + 4;
@@ -221,71 +296,96 @@ void parse(bool scan, dword *max, dword *min)
 			buf[j] = (ctoh(line[i]) << 4) + ctoh(line[i+1]);
 			j++;
 		}
-		fseek(outfile, address, SEEK_SET);
-		fwrite(buf, 1, count, outfile);
-	} while (!feof(infile));
+		if (last_addr != address) {
+			if (address < last_addr) {
+				fprintf(stderr,
+					"ERROR(%d): Address %08lX < %08lX\n",
+					line_num, address, last_addr);
+				return 3;
+			}
+			next_addr = ROUNDDOWN(address, byte_width);
+			if (next_addr <= last_addr) {
+				index = address % byte_width;
+				goto fill_last;
+			} else {
+				index = pad_last(last_addr, index);
+				fprintf(outfile, "@%08lX\n",
+					next_addr / byte_width);
+			}
+			index = pad_next(address, 0);
+		}
+fill_last:
+		for (i = 0; i < count; i++, index++) {
+			pack(buf[i], index % byte_width);
+			if (((index + 1) % byte_width) == 0)
+				unpack();
+		}
+		last_addr = address + count;
+	};
+	if (!scan)
+		index = pad_last(last_addr, index);
+	if (verbose)
+		fprintf(stderr, "INFO(%d): Parse complete.\n",
+			line_num);
 	rewind(infile);
+	return 0;
 }
- 
+
 int process(void)
 {
-	dword i;
-	dword blocks, remain, bytes;
-	dword pmax = 0;
-	dword pmin = 0xffffffffUL;
-	byte buf[SREC_MAX_BYTES];
- 
+	int ret;
+
 	if (verbose) {
 		fprintf(stderr, "Input Motorola S-Record file: %s\n",
 			infilename);
 		fprintf(stderr, "Output VCS HEX file: %s\n",
 			outfilename);
 	}
-	parse(true, &min_addr, &max_addr);
-	bytes = max_addr - min_addr + 1;
-	blocks = bytes / 32;
-	remain = bytes % 32;
+	ret = parse(true);
+	if (ret)
+		return ret;
 	if (verbose) {
-		fprintf(stderr, "Mimimum address  = %08llX\n", min_addr);
-		fprintf(stderr, "Maximum address  = %08llX\n", max_addr);
-		fprintf(stderr,
-			"Binary file size = %lld (%08llX) bytes.\n",
-			bytes, bytes);
+		fprintf(stderr, "Mimimum address  = %08lX\n", min_addr);
+		fprintf(stderr, "Maximum address  = %08lX\n", max_addr);
 	}
- 
-	outfile = fopen(outfilename, "wb");
+
+	outfile = fopen(outfilename, "w");
 	if (!outfile) {
 		fprintf(stderr,
 			"ERROR: Cant open output %s.\n",
 			outfilename);
 		return 2;
 	}
-
-	for (i = 0; i < SREC_MAX_BYTES; i++)
-		buf[i] = filler;
-	for (i = 0; i < blocks; i++)
-		fwrite(buf, 1, SREC_MAX_BYTES, outfile);
-	fwrite(buf, 1, remain, outfile);
-	parse(false, &pmax, &pmin);
+	ret = parse(false);
 	fclose(outfile);
-	if (verbose)
-		fprintf(stderr, "INFO: Processing complete.\n");
-	return 0;
+	return ret;
 }
- 
+
 int main(int argc, char *argv[])
 {
 	int i;
 	char tmp[16] = "";
 	int ret;
- 
+	int bit_width;
+
 	for (i = 1; i < argc; i++) {
 		if (!strcmp(argv[i], "-v")) {
 			verbose = true;
 			continue;
-		} else if (!strcmp(argv[i], "-f")) {
+		} if (!strcmp(argv[i], "-b")) {
+			bigendian = true;
+			continue;
+		} if (!strcmp(argv[i], "-w")) {
 			sscanf(argv[++i], "%s", tmp);
-			filler = atoh(tmp) & 0xff;
+			bit_width = atoi(tmp);
+			if (bit_width % VHX_WIDTH_BITS) {
+				fprintf(stderr,
+					"ERROR: Bad width %d.\n",
+					bit_width);
+				usage();
+				return 0;
+			}
+			byte_width = bit_width / 8;
 			continue;
 		} else if (!strncmp(argv[i], "-h", 2)) {
 			usage();
@@ -295,7 +395,7 @@ int main(int argc, char *argv[])
 			sscanf(argv[++i], "%s", outfilename);
 		}
 	}
- 
+
 	if (!strcmp(infilename, "")) {
 		usage();
 		fprintf(stderr, "ERROR: No input file specified.\n");
@@ -306,7 +406,13 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "ERROR: No output file specified.\n");
 		return 1;
 	}
-	infile = fopen(infilename, "rb");
+	byte_data = malloc(byte_width / 8);
+	if (!byte_data) {
+		fprintf(stderr, "ERROR: Cant malloc buffer %d.\n",
+			byte_width);
+		return 2;
+	}
+	infile = fopen(infilename, "r");
 	if (infile == NULL) {
 		fprintf(stderr, "ERROR: Cant open input %s.\n",
 			infilename);

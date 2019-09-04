@@ -15,6 +15,7 @@ typedef uint8_t bits_t;
 
 #define BITOP_MASK(nr)		((uint8_t)1 << ((nr) % BITS_PER_UNIT))
 #define BITOP_WORD(nr)		((uint8_t)(nr) / (uint8_t)BITS_PER_UNIT)
+#define IS_ALIGNED(x, a)	(((x) & ((a) - 1)) == 0)
 
 void set_bit(uint8_t nr, bits_t *addr);
 void clear_bit(uint8_t nr, bits_t *addr);
