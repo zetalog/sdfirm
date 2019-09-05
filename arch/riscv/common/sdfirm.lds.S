@@ -71,7 +71,11 @@ SECTIONS
 
 	_sdata = .;				/* begin of data and bss sections */
 	__sdata = .;				/* begin of data sections */
+#ifdef CONFIG_DATA_RAM_LOAD
 	.data : AT(_etext) {
+#else
+	.data : {
+#endif
 		_data = .;			/* address in RAM */
 #ifdef CONFIG_XIP
 		__init_data_begin = .;
