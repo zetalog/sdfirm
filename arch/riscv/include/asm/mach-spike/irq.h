@@ -35,11 +35,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)io.h: DUOWEN specific IO defintions
- * $Id: io.h,v 1.1 2019-09-02 11:10:00 zhenglv Exp $
+ * @(#)irq.h: SPIKE specific IRQ assignments
+ * $Id: irq.h,v 1.1 2019-09-05 15:13:00 zhenglv Exp $
  */
 
-#ifndef __IO_DUOWEN_H_INCLUDE__
-#define __IO_DUOWEN_H_INCLUDE__
+#ifndef __IRQ_SPIKE_H_INCLUDE__
+#define __IRQ_SPIKE_H_INCLUDE__
 
-#endif /* __IO_DUOWEN_H_INCLUDE__ */
+#define NR_IRQS		64
+
+#endif  /* __IRQ_SPIKE_H_INCLUDE__ */

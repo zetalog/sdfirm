@@ -35,11 +35,28 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)io.h: DUOWEN specific IO defintions
- * $Id: io.h,v 1.1 2019-09-02 11:10:00 zhenglv Exp $
+ * @(#)mach.c: SPIKE specific board initialization
+ * $Id: mach.c,v 1.1 2019-09-05 15:41:00 zhenglv Exp $
  */
 
-#ifndef __IO_DUOWEN_H_INCLUDE__
-#define __IO_DUOWEN_H_INCLUDE__
+#include <target/generic.h>
+#include <target/cpus.h>
+#include <target/arch.h>
+#include <target/irq.h>
 
-#endif /* __IO_DUOWEN_H_INCLUDE__ */
+void board_reset(void)
+{
+}
+
+void board_suspend(void)
+{
+}
+
+void board_hibernate(void)
+{
+}
+
+void board_init(void)
+{
+	DEVICE_ARCH(DEVICE_ARCH_RISCV);
+}

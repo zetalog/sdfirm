@@ -102,4 +102,4 @@ void board_suspend(void);
 void board_hibernate(void);
 #endif /* __ASSEMBLY__ */
 
-#endif /* __DUOWEN_VEGA_INCLUDE__ */
+#endif /* __ARCH_DUOWEN_H_INCLUDE__ */

@@ -35,11 +35,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)io.h: DUOWEN specific IO defintions
- * $Id: io.h,v 1.1 2019-09-02 11:10:00 zhenglv Exp $
+ * @(#)mem.h: SPIKE memory resource allocator interfaces
+ * $Id: mem.h,v 1.1 2019-09-05 15:07:00 zhenglv Exp $
  */
 
-#ifndef __IO_DUOWEN_H_INCLUDE__
-#define __IO_DUOWEN_H_INCLUDE__
+#ifndef __SPIKE_MEM_H_INCLUDE__
+#define __SPIKE_MEM_H_INCLUDE__
 
-#endif /* __IO_DUOWEN_H_INCLUDE__ */
+void mem_hw_range_init(void);
+
+#endif /* __SPIKE_MEM_H_INCLUDE__ */

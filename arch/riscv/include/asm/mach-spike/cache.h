@@ -35,11 +35,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)io.h: DUOWEN specific IO defintions
- * $Id: io.h,v 1.1 2019-09-02 11:10:00 zhenglv Exp $
+ * @(#)cache.h: SPIKE specific cache maintenance defintions
+ * $Id: cache.h,v 1.1 2019-09-05 13:56:00 zhenglv Exp $
  */
 
-#ifndef __IO_DUOWEN_H_INCLUDE__
-#define __IO_DUOWEN_H_INCLUDE__
+#ifndef __CACHE_SPIKE_H_INCLUDE__
+#define __CACHE_SPIKE_H_INCLUDE__
 
-#endif /* __IO_DUOWEN_H_INCLUDE__ */
+#define L1_LINE_SHIFT		7
+#define L1_CACHE_BYTES		(1 << L1_LINE_SHIFT)
+#define L1_CACHE_WAYS		8
+#define L1_CACHE_SIZE		0x800
+
+#define __SMP_CACHE_SHIFT	L1_LINE_SHIFT
+
+#endif /* __CACHE_SPIKE_H_INCLUDE__ */

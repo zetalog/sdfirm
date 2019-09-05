@@ -60,7 +60,11 @@ SECTIONS
 	. = ALIGN((WORD_SIZE));
 	_etext = .;				/* end of text and rodata sections */
 
+#ifdef CONFIG_ARCH_IS_RAM_ONLY
+	__text_loc = CONFIG_TEXT_RAM_BASE;	/* text location in RAM */
+#else
 	__text_loc = CONFIG_TEXT_ROM_BASE;	/* text location in ROM */
+#endif
 	_etext_loc = __text_loc + _etext - _stext;
 
 #if defined(CONFIG_XIP) && (CONFIG_TEXT_RAM_BASE != CONFIG_TEXT_ROM_BASE)

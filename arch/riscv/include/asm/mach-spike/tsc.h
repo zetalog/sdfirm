@@ -35,11 +35,43 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)io.h: DUOWEN specific IO defintions
- * $Id: io.h,v 1.1 2019-09-02 11:10:00 zhenglv Exp $
+ * @(#)tsc.h: SPIKE specific mandatory TSC driver
+ * $Id: tsc.h,v 1.1 2019-09-05 15:14:00 zhenglv Exp $
  */
 
-#ifndef __IO_DUOWEN_H_INCLUDE__
-#define __IO_DUOWEN_H_INCLUDE__
+#ifndef __TSC_SPIKE_H_INCLUDE__
+#define __TSC_SPIKE_H_INCLUDE__
 
-#endif /* __IO_DUOWEN_H_INCLUDE__ */
+/* CLINT:
+ *   clint@2000000 {
+ *     compatible = "riscv,clint0";
+ *     interrupts-extended = <&CPU0_intc 3 &CPU0_intc 7 >;
+ *     reg = <0x0 0x2000000 0x0 0xc0000>;
+ *   };
+ */
+#define CLINT_BASE		0x2000000
+#define CLINT_SIZE		0xC0000
+
+#include <asm/clint.h>
+
+/* Default RTC frequency in DTS:
+ *   timebase-frequency = <10000000>;
+ * Default CPU frequency in DTS:
+ *   clock-frequency = <1000000000>;
+ */
+#define FREQ_CPU		1000000000
+#define FREQ_RTC		10000000
+
+#ifdef CONFIG_PSEUDO_COUNTER_STEP
+#define PSEUDO_COUNTER_STEP	CONFIG_PSEUDO_COUNTER_STEP
+#else
+#define PSEUDO_COUNTER_STEP	1000
+#endif
+
+#define TSC_FREQ		(FREQ_RTC/1000)
+#define TSC_MAX			ULL(0xFFFFFFFFFFFFFFFF)
+
+#define tsc_hw_read_counter()	clint_read_mtime()
+#define tsc_hw_ctrl_init()
+
+#endif /* __TSC_SPIKE_H_INCLUDE__ */

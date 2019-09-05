@@ -42,8 +42,6 @@
 #ifndef __TSC_DUOWEN_H_INCLUDE__
 #define __TSC_DUOWEN_H_INCLUDE__
 
-/* The mandatory TSC driver is implemented via TSTMR */
-
 #define FREQ_RI5CY		250000000
 
 #ifdef CONFIG_PSEUDO_COUNTER_STEP

@@ -61,4 +61,4 @@ void board_suspend(void);
 void board_hibernate(void);
 #endif /* __ASSEMBLY__ */
 
-#endif /* __ARCH_VEGA_INCLUDE__ */
+#endif /* __ARCH_VEGA_H_INCLUDE__ */

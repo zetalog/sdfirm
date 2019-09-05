@@ -14,6 +14,17 @@ config CPU_0RISCY
 	select CPU_M
 	select CPU_C
 
+# SPIKE32
+config CPU_SPIKE32
+	bool
+	select CPU_32G
+	select CPU_C
+
+config CPU_SPIKE64
+	bool
+	select CPU_64G
+	select CPU_C
+
 config CPU_32G
 	bool
 	select CPU_32I
@@ -262,3 +273,10 @@ config NR_CPUS
 	range 2 32
 	depends on CPU_SMP
 	default "8"
+
+config ARCH_HAS_CLINT
+	bool
+
+config CLINT
+	bool "SiFive Core Local Interruptor (CLINT) support"
+	depends ARCH_HAS_CLINT

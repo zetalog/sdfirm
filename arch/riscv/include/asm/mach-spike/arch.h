@@ -35,11 +35,26 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)io.h: DUOWEN specific IO defintions
- * $Id: io.h,v 1.1 2019-09-02 11:10:00 zhenglv Exp $
+ * @(#)arch.h: SPIKE machine specific definitions
+ * $Id: arch.h,v 1.1 2019-09-05 11:26:00 zhenglv Exp $
  */
 
-#ifndef __IO_DUOWEN_H_INCLUDE__
-#define __IO_DUOWEN_H_INCLUDE__
+#ifndef __ARCH_SPIKE_H_INCLUDE__
+#define __ARCH_SPIKE_H_INCLUDE__
 
-#endif /* __IO_DUOWEN_H_INCLUDE__ */
+/* This file is intended to be used for implementing SoC specific
+ * instructions, registers.
+ */
+
+#include <target/init.h>
+#include <target/types.h>
+
+#define __VEC			__LOVEC
+
+#ifndef __ASSEMBLY__
+void board_reset(void);
+void board_suspend(void);
+void board_hibernate(void);
+#endif /* __ASSEMBLY__ */
+
+#endif /* __ARCH_SPIKE_H_INCLUDE__ */

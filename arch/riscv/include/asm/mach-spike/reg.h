@@ -35,11 +35,60 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)io.h: DUOWEN specific IO defintions
- * $Id: io.h,v 1.1 2019-09-02 11:10:00 zhenglv Exp $
+ * @(#)reg.h: SPIKE space and register definitions
+ * $Id: reg.h,v 1.1 2019-09-05 14:53:00 zhenglv Exp $
  */
 
-#ifndef __IO_DUOWEN_H_INCLUDE__
-#define __IO_DUOWEN_H_INCLUDE__
+#ifndef __REG_SPIKE_H_INCLUDE__
+#define __REG_SPIKE_H_INCLUDE__
 
-#endif /* __IO_DUOWEN_H_INCLUDE__ */
+#include <target/config.h>
+#include <target/sizes.h>
+
+/* MEM1 default:
+ *
+ * memory@80000000 {
+ *   device_type = "memory";
+ *   reg = <0x0 0x80000000 0x0 0x80000000>;
+ * };
+ * Can be specified via spike -m<n> or -m<a:m,b:n,...>.
+ */
+#define MEM1_BASE		CONFIG_SPIKE_MEM1_BASE
+#define MEM1_SIZE		CONFIG_SPIKE_MEM1_SIZE
+/* MEM2 and more memory banks can be specified via -m<a:m,b:n,...>
+ * However only MEM2 is used in case we need a ROM to test self loader.
+ */
+#ifdef CONFIG_SPIKE_MEM2
+#define MEM2_BASE		CONFIG_SPIKE_MEM2_BASE
+#define MEM2_SIZE		CONFIG_SPIKE_MEM2_SIZE
+#endif
+
+#ifdef CONFIG_SPIKE_MEM2_ROM
+/* Default ROM is hard coded in spike:
+ * Located in 0x0000_0000, contains the following instructions:
+ *  0x297			// auipc  t0,0x0
+ *  0x28593 + (ROM_SIZE << 20)	// addi   a1, t0, &dtb
+ *  0xf1402573			// csrr   a0, mhartid
+ *  32bit: 0x0182a283u		// lw     t0,24(t0)
+ *  64bit: 0x0182b283u		// ld     t0,24(t0)
+ *  0x28067			// jr     t0
+ *  0
+ *  HIWORD(entry)
+ *  LOWORD(entry)
+ */
+#define ROM_BASE		0x00000000
+#define ROM_SIZE		0x20
+#else
+#define ROM_BASE		MEM2_BASE
+#define ROMEND			(MEM2_BASE + MEM2_SIZE)
+#endif
+#define RAM_BASE		MEM1_BASE
+#define RAMEND			(MEM1_BASE + MEM1_SIZE)
+
+/* LOVEC:
+ * The actual reset address for SPIKE is 0x0000_0000.
+ * Here LOVEC is used for MTVEC.
+ */
+#define VEC_BASE		MEM1_BASE
+
+#endif /* __REG_SPIKE_H_INCLUDE__ */

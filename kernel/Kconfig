@@ -80,6 +80,9 @@ config ARCH_IS_TICKLESS
 config ARCH_HAS_IDLE
 	bool
 
+config ARCH_IS_RAM_ONLY
+	bool
+
 menu "Scheduling facility (irq) support"
 	depends !SYS_NOIRQ
 
@@ -247,9 +250,11 @@ menu "Address space layout (.text) support"
 
 config XIP
 	bool "Enable eXecute In Place (XIP) support"
+	depends !ARCH_IS_RAM_ONLY
 
 config TEXT_ROM_BASE
 	hex "Base offset of the .text section in the ROM"
+	depends !ARCH_IS_RAM_ONLY
 	default 0
 	help
 	  In XIP firmware, this could be used in the linker script to
@@ -268,8 +273,8 @@ config TEXT_RAM_BASE
 
 config TEXT_RAM_LOAD
 	bool "Load .text sections from the ROM to the RAM"
-	default y
 	depends !XIP
+	default y
 	help
 	  For non-XIP firmware, programmer may have already loaded the
 	  .text sections to the RAM due to their load addresses are RAM

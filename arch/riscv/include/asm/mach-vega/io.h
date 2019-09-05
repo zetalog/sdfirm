@@ -42,8 +42,4 @@
 #ifndef __IO_VEGA_H_INCLUDE__
 #define __IO_VEGA_H_INCLUDE__
 
-#define __I	volatile const	/* read only */
-#define __O	volatile	/* write only */
-#define __IO	volatile	/* read / write */
-
 #endif /* __IO_VEGA_H_INCLUDE__ */

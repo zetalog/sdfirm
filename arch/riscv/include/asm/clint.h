@@ -35,11 +35,20 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)io.h: DUOWEN specific IO defintions
- * $Id: io.h,v 1.1 2019-09-02 11:10:00 zhenglv Exp $
+ * @(#)clint.h: SiFive core local interruptor (CLINT) interface
+ * $Id: clint.h,v 1.1 2019-09-05 17:46:00 zhenglv Exp $
  */
 
-#ifndef __IO_DUOWEN_H_INCLUDE__
-#define __IO_DUOWEN_H_INCLUDE__
+#ifndef __CLINT_RISCV_H_INCLUDE__
+#define __CLINT_RISCV_H_INCLUDE__
 
-#endif /* __IO_DUOWEN_H_INCLUDE__ */
+#include <target/types.h>
+
+#define CLINT_REG(offset)	(CLINT_BASE + (offset))
+#define CLINT_MSIP(hart)	CLINT_REG((hart) << 2)
+#define CLINT_MTIMECMP(hart)	CLINT_REG(0x4000 + ((hart) << 3))
+#define CLINT_MTIME		CLINT_REG(0xBFF8)
+
+uint64_t clint_read_mtime(void);
+
+#endif /* __CLINT_RISCV_H_INCLUDE__ */

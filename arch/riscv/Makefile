@@ -71,6 +71,10 @@ ifeq ($(CONFIG_ARCH_DUOWEN),y)
  machine-$(CONFIG_ARCH_DUOWEN)	:= duowen
  incdir-$(CONFIG_ARCH_DUOWEN)	:= duowen
 endif
+ifeq ($(CONFIG_ARCH_SPIKE),y)
+ machine-$(CONFIG_ARCH_SPIKE)	:= spike
+ incdir-$(CONFIG_ARCH_SPIKE)	:= spike
+endif
 
 ifeq ($(incdir-y),)
 incdir-y := $(machine-y)

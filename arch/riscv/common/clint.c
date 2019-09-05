@@ -35,11 +35,23 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)io.h: DUOWEN specific IO defintions
- * $Id: io.h,v 1.1 2019-09-02 11:10:00 zhenglv Exp $
+ * @(#)clint.c: SiFive core local interruptor (CLINT) implementation
+ * $Id: clint.c,v 1.1 2019-09-05 18:04:00 zhenglv Exp $
  */
 
-#ifndef __IO_DUOWEN_H_INCLUDE__
-#define __IO_DUOWEN_H_INCLUDE__
+#include <target/tsc.h>
+#include <target/bitops.h>
+#include <asm/io.h>
 
-#endif /* __IO_DUOWEN_H_INCLUDE__ */
+uint64_t clint_read_mtime(void)
+{
+	uint32_t hi1, hi2;
+	uint32_t lo;
+
+	do {
+	     	hi1 = __raw_readl(CLINT_MTIME + 4);
+		lo = __raw_readl(CLINT_MTIME);
+		hi2 = __raw_readl(CLINT_MTIME + 4);
+	} while (hi1 != hi2);
+	return MAKELLONG(lo, hi1);
+}
