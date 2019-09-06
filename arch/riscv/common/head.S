@@ -55,14 +55,30 @@ __vectors:
 	jal	x0, __handle_lsu
 
 	.macro	init_sp
-#ifdef CONFIG_SMP
-#else
 	la	sp, PERCPU_STACKS_END
-#endif
 	.endm
 
 	.macro	init_gp
+	.option push
+	.option norelax
 	la	gp, __global_pointer$
+	.option pop
+	.endm
+
+	.macro	zerow regs
+#ifdef CONFIG_64BIT
+	sd	zero, 0(\regs)
+#else
+	sw	zero, 0(\regs)
+#endif
+	.endm
+
+	.macro	copyw regl, regs, regv
+#ifdef CONFIG_64BIT
+#else
+	lw	\regv, 0(\regl)
+	sw	\regv, 0(\regs)
+#endif
 	.endm
 
 	.macro	zero_sect, sva, eva, lab_exit, lab_loop
@@ -70,7 +86,7 @@ __vectors:
 	la	a1, \eva
 	j	\lab_exit
 \lab_loop:
-	sw	zero, 0(a0)
+	zerow	a0
 	addi	a0, a0, WORD_SIZE
 \lab_exit:
 	bltu	a0, a1, \lab_loop
@@ -82,8 +98,7 @@ __vectors:
 	la	a1, \eva
 	j	\lab_exit
 \lab_loop:
-	lw	a3, 0(a2)
-	sw	a3, 0(a0)
+	copyw	a2, a0, a3
 	addi	a2, a2, WORD_SIZE
 	addi	a0, a0, WORD_SIZE
 \lab_exit:

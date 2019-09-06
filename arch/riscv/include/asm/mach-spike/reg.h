@@ -76,8 +76,8 @@
  *  HIWORD(entry)
  *  LOWORD(entry)
  */
-#define ROM_BASE		0x00000000
-#define ROM_SIZE		0x20
+#define ROM_BASE		UL(0x00000000)
+#define ROM_SIZE		UL(0x20)
 #else
 #define ROM_BASE		MEM2_BASE
 #define ROMEND			(MEM2_BASE + MEM2_SIZE)
