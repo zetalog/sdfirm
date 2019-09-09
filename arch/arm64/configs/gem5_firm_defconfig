@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Aug 29 17:35:23 2019
+# Mon Sep  9 16:37:47 2019
 #
 CONFIG_ARM64=y
 
@@ -159,28 +159,24 @@ CONFIG_TEXT_RAM_BASE=0x0
 # CONFIG_DATA_RAM_LOAD is not set
 # CONFIG_HEAP is not set
 CONFIG_MEM=y
-CONFIG_MMU_MAP_MEM=y
+# CONFIG_MMU_MAP_MEM is not set
 CONFIG_MEM_MAX_REGIONS=3
 # CONFIG_MEM_RESIZE is not set
-CONFIG_PAGE=y
+# CONFIG_PAGE is not set
 CONFIG_ARCH_HAS_MMU=y
 CONFIG_ARCH_HAS_MMU_4K=y
 CONFIG_ARCH_HAS_MMU_16K=y
 CONFIG_ARCH_HAS_MMU_64K=y
-CONFIG_ARCH_HAS_MMU_4L=y
-CONFIG_MMU=y
-CONFIG_MMU_4K_PAGE=y
+# CONFIG_MMU is not set
+# CONFIG_MMU_4K_PAGE is not set
 # CONFIG_MMU_16K_PAGE is not set
 # CONFIG_MMU_64K_PAGE is not set
 # CONFIG_MMU_4M_PAGE is not set
 # CONFIG_MMU_1L_TABLE is not set
 # CONFIG_MMU_2L_TABLE is not set
 # CONFIG_MMU_3L_TABLE is not set
-CONFIG_MMU_4L_TABLE=y
+# CONFIG_MMU_4L_TABLE is not set
 # CONFIG_MMU_5L_TABLE is not set
-# CONFIG_MMU_PAGE_OFFSET is not set
-CONFIG_MMU_IDMAP_DEVICE=y
-# CONFIG_MMU_DEBUG_TABLE is not set
 # CONFIG_IDLE is not set
 # CONFIG_BULK is not set
 # CONFIG_TERM is not set
