@@ -92,12 +92,26 @@ cmd_gem5sim_S_gem5 = scripts/gem5sim.sh -s gem5sim -x Exec -g $<
 $(obj)/%.S: $(src)/%.gem5 FORCE
 	$(call if_changed_dep,gem5sim_S_gem5)
 
+quiet_cmd_gen_ris_cfg = GEN $(quiet_modtag) $@
+cmd_gen_ris_cfg = cp -f $(srctree)/init/ris/$(CONFIG_RIS_TEMPLATE) $@
+
+$(obj)/%.ris: $(src)/%.cfg FORCE
+	$(call cmd,gen_ris_cfg)
+
+quiet_cmd_rissim_S_ris = GEN $(quiet_modtag) $@
+cmd_gen_rissim_S_ris = scripts/rissim.py $< $@ >/dev/null
+
+$(obj)/%.S: $(src)/%.ris FORCE
+	$(call if_changed_dep,rissim_S_ris)
+
 quiet_cmd_cc_s_c = CC $(quiet_modtag)  $@
 ifeq ($(COMPILER), sdcc)
 cmd_cc_s_c       = $(CC) $(c_flags) -S -o $@ $<
-else ifeq ($(COMPILER), gcc)
+endif
+ifeq ($(COMPILER), gcc)
 cmd_cc_s_c       = $(CC) $(c_flags) -fverbose-asm -S -o $@ $<
-else ifeq ($(COMPILER),)
+endif
+ifeq ($(COMPILER),)
 $(error No compiler is defined.)
 endif
 
@@ -204,9 +218,11 @@ ifdef builtin-target
 quiet_cmd_link_o_target = LIB     $@
 ifeq ($(COMPILER), sdcc)
 include scripts/Kbuild.sdcc.ar
-else ifeq ($(COMPILER), gcc)
+endif
+ifeq ($(COMPILER), gcc)
 include scripts/Kbuild.gcc.ar
-else ifeq ($(COMPILER),)
+endif
+ifeq ($(COMPILER),)
 $(error No compiler is defined.)
 endif
 
@@ -231,9 +247,11 @@ $($(subst $(obj)/,,$(@:.rel=-y)))), $^)
 quiet_cmd_link_multi-y = LIB     $@
 ifeq ($(COMPILER), sdcc)
 cmd_link_multi-y = $(AR) $@ $(link_multi_deps)
-else ifeq ($(COMPILER), gcc)
+endif
+ifeq ($(COMPILER), gcc)
 cmd_link_multi-y = $(LD) $(ld_flags) -r -o $@ $(link_multi_deps)
-else ifeq ($(COMPILER),)
+endif
+ifeq ($(COMPILER),)
 $(error No compiler is defined.)
 endif
 

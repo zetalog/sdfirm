@@ -6,6 +6,7 @@ obj-y		:=
 obj-y           += main.rel
 obj-y           += init.rel
 obj-${CONFIG_GEM5}	+= gem5/
+obj-${CONFIG_RIS}	+= ris/
 
 # files to be removed upon make clean
 clean-files := ../include/target/compile.h

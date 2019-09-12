@@ -66,7 +66,16 @@ endmenu
 
 endif
 
+if FIRMWARE
+
+menu "Firmware options"
+
 source init/gem5/Kconfig
+source init/ris/Kconfig
+
+endmenu
+
+endif
 
 menuconfig CONSOLE
 	bool "Enable console on UART0"

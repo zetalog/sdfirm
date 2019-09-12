@@ -87,9 +87,11 @@ endif
 
 ifeq ($(COMPILER), sdcc)
 include scripts/Kbuild.sdcc.flags
-else ifeq ($(COMPILER), gcc)
+endif
+ifeq ($(COMPILER), gcc)
 include scripts/Kbuild.gcc.flags
-else ifeq ($(COMPILER),)
+endif
+ifeq ($(COMPILER),)
 $(error No compiler is defined.)
 endif
 
@@ -130,9 +132,11 @@ cmd_ld = $(LD) $(LDFLAGS) $(EXTRA_LDFLAGS) $(LDFLAGS_$(@F)) \
 quiet_cmd_objcopy = OBJCOPY $@
 ifeq ($(COMPILER), sdcc)
 include scripts/Kbuild.sdcc.objcopy
-else ifeq ($(COMPILER), gcc)
+endif
+ifeq ($(COMPILER), gcc)
 include scripts/Kbuild.gcc.objcopy
-else ifeq ($(COMPILER),)
+endif
+ifeq ($(COMPILER),)
 $(error No compiler is defined.)
 endif
 

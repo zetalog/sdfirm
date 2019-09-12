@@ -250,9 +250,11 @@ endif
 
 ifeq ($(COMPILER), sdcc)
 include $(srctree)/scripts/Kbuild.sdcc
-else ifeq ($(COMPILER), gcc)
+endif
+ifeq ($(COMPILER), gcc)
 include $(srctree)/scripts/Kbuild.gcc
-else ifeq ($(COMPILER),)
+endif
+ifeq ($(COMPILER),)
 $(error No compiler is defined.)
 endif
 AWK		= awk
@@ -421,9 +423,11 @@ all: sdfirm
 include $(srctree)/arch/$(ARCH)/Makefile
 ifeq ($(COMPILER), sdcc)
 include $(srctree)/scripts/Kbuild.sdcc.config
-else ifeq ($(COMPILER), gcc)
+endif
+ifeq ($(COMPILER), gcc)
 include $(srctree)/scripts/Kbuild.gcc.config
-else
+endif
+ifeq ($(COMPILER),)
 $(error No compiler specified.)
 endif
 
@@ -504,9 +508,11 @@ quiet_cmd_sdfirm_version = GEN     .version
 quiet_cmd_sdfirm = LD      $@
 ifeq ($(COMPILER), sdcc)
 include $(srctree)/scripts/Kbuild.sdcc.ld
-else ifeq ($(COMPILER), gcc)
+endif
+ifeq ($(COMPILER), gcc)
 include $(srctree)/scripts/Kbuild.gcc.ld
-else ifeq ($(COMPILER),)
+endif
+ifeq ($(COMPILER),)
 $(error No compiler is defined.)
 endif
 define rule_sdfirm

@@ -1,8 +1,4 @@
 
-if FIRMWARE
-
-menu "Firmware options"
-
 config GEM5
 	bool "Run embedded GEM5 SimPoint slice support"
 
@@ -19,9 +15,5 @@ config GEM5_PROGRAM
 config GEM5_CHECKPOINT
 	int "Checkpoint index (1-N)"
 	default 1
-
-endif
-
-endmenu
 
 endif

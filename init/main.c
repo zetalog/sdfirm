@@ -64,6 +64,11 @@ void timer_init(void);
 #else
 #define timer_init()
 #endif
+#ifdef CONFIG_RIS
+void ris_entry(void);
+#else
+#define ris_entry()	do { } while (0)
+#endif
 
 #ifndef CONFIG_PORTING
 void system_init(void)
@@ -79,6 +84,7 @@ void system_init(void)
 	debug_init();
 	irq_init();
 	fixmap_late_con_init();
+	ris_entry();
 	bh_init();
 	tick_init();
 	delay_init();

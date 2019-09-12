@@ -1,0 +1,11 @@
+
+config RIS
+	bool "Random instruction sequence (RIS) support"
+
+if RIS
+
+config RIS_TEMPLATE
+	string "RIS source template path"
+	default "demo.ris"
+
+endif
