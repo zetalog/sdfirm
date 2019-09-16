@@ -1,0 +1,241 @@
+#
+# Automatically generated make config: don't edit
+# Small Device version: 1.0.0.0
+# Mon Sep 16 21:41:43 2019
+#
+CONFIG_64BIT=y
+CONFIG_RISCV=y
+
+#
+# Generic setup
+#
+CONFIG_VENDOR_NAME="SmartCore"
+CONFIG_PRODUCT_NAME="SmartCore MCU TestBench"
+CONFIG_VENDOR_ID=990
+CONFIG_PRODUCT_ID=0
+CONFIG_SERIAL_NO=0
+# CONFIG_BOOTLOADER is not set
+CONFIG_FIRMWARE=y
+# CONFIG_EMBEDDED is not set
+
+#
+# Firmware options
+#
+# CONFIG_GEM5 is not set
+# CONFIG_RIS is not set
+
+#
+# RISCV system options
+#
+# CONFIG_ARCH_VEGA is not set
+CONFIG_ARCH_DUOWEN=y
+# CONFIG_ARCH_SPIKE is not set
+CONFIG_CPU_64G=y
+CONFIG_CPU_64I=y
+# CONFIG_RISCV_WMO is not set
+# CONFIG_RISCV_32I is not set
+CONFIG_RISCV_64I=y
+# CONFIG_RISCV_32E is not set
+# CONFIG_RISCV_128I is not set
+
+#
+# ISA extensions
+#
+CONFIG_CPU_ZIFENCEI=y
+CONFIG_CPU_ZICSR=y
+CONFIG_CPU_M=y
+CONFIG_CPU_A=y
+CONFIG_CPU_F=y
+CONFIG_CPU_D=y
+# CONFIG_RISCV_M is not set
+CONFIG_RISCV_A=y
+# CONFIG_RISCV_F is not set
+# CONFIG_RISCV_D is not set
+CONFIG_CMODEL_MEDLOW=y
+# CONFIG_CMODEL_MEDANY is not set
+CONFIG_TUNE_GENERIC=y
+CONFIG_MAXPHYSMEM_2GB=y
+# CONFIG_MAXPHYSMEM_128GB is not set
+
+#
+# Emulated RISCV (Duowen) board options
+#
+# CONFIG_DUOWEN_IMC is not set
+CONFIG_DUOWEN_APC=y
+CONFIG_DUOWEN_APC_RAM_SIZE=0x40000
+# CONFIG_DUOWEN_APC_RAM_BOOT is not set
+
+#
+# Feature setup
+#
+
+#
+# Generic kernel features
+#
+CONFIG_SYS_NOIRQ=y
+# CONFIG_SYS_IRQ is not set
+# CONFIG_SYS_RT is not set
+# CONFIG_SYS_TASK is not set
+CONFIG_ARCH_HAS_LOVEC=y
+CONFIG_ARCH_HAS_GPT=y
+CONFIG_ARCH_HAS_TSC=y
+CONFIG_ARCH_HAS_TSC_CONST=y
+CONFIG_ARCH_IS_TICKLESS=y
+
+#
+# Scheduling facility (bh) support
+#
+CONFIG_MAX_BHS=4
+# CONFIG_SMP is not set
+
+#
+# Timing facility (jiffy) support
+#
+
+#
+# Timing facility (delay) support
+#
+CONFIG_LPS_NO_LPS=y
+# CONFIG_TIMER is not set
+
+#
+# Address space layout (.text) support
+#
+# CONFIG_XIP is not set
+CONFIG_TEXT_ROM_BASE=0x0
+CONFIG_TEXT_RAM_BASE=0x0
+# CONFIG_TEXT_RAM_LOAD is not set
+# CONFIG_DATA_RAM_LOAD is not set
+# CONFIG_HEAP is not set
+CONFIG_MEM=y
+# CONFIG_MMU_MAP_MEM is not set
+CONFIG_MEM_MAX_REGIONS=4
+CONFIG_MEM_RESIZE=y
+# CONFIG_PAGE is not set
+# CONFIG_BULK is not set
+# CONFIG_TERM is not set
+# CONFIG_CLK is not set
+
+#
+# Human Interface Devices (HID) support
+#
+# CONFIG_LCD is not set
+# CONFIG_KBD is not set
+# CONFIG_LED is not set
+
+#
+# Universal asynchronous RX/TX (UART) support
+#
+# CONFIG_UART_230400 is not set
+CONFIG_UART_115200=y
+# CONFIG_UART_57600 is not set
+# CONFIG_UART_38400 is not set
+# CONFIG_UART_19200 is not set
+# CONFIG_UART_9600 is not set
+# CONFIG_UART_4800 is not set
+# CONFIG_UART_2400 is not set
+# CONFIG_UART is not set
+# CONFIG_SPI is not set
+# CONFIG_I2C is not set
+# CONFIG_USB is not set
+# CONFIG_SCS is not set
+# CONFIG_MTD is not set
+# CONFIG_SCSI is not set
+# CONFIG_NET is not set
+# CONFIG_VIDEO is not set
+# CONFIG_RAS is not set
+
+#
+# Driver setup
+#
+
+#
+# Debugging console drivers
+#
+# CONFIG_DBG_SEGGER_RTT is not set
+
+#
+# LCD drivers
+#
+
+#
+# Video drivers
+#
+
+#
+# MTD memory drivers
+#
+# CONFIG_PN53X is not set
+# CONFIG_ACR122 is not set
+
+#
+# Library setup
+#
+
+#
+# Bit-wise operations
+#
+# CONFIG_BIT_FLS8 is not set
+CONFIG_BIT_FLS16=y
+# CONFIG_BIT_FFS16 is not set
+# CONFIG_BIT_FLS32 is not set
+# CONFIG_BIT_FFS32 is not set
+# CONFIG_BIT_ROUNDUP16 is not set
+# CONFIG_BIT_ROUNDDOWN16 is not set
+# CONFIG_BIT_ROUNDUP32 is not set
+# CONFIG_BIT_ROUNDDOWN32 is not set
+
+#
+# Bitmap operations
+#
+# CONFIG_BIT_FIND_CLEAR is not set
+
+#
+# Mathematic operations
+#
+CONFIG_MATH_GCD32=y
+CONFIG_MATH_MOD32=y
+# CONFIG_MATH_MUL32 is not set
+# CONFIG_MATH_MUL64 is not set
+CONFIG_MATH_DIV32=y
+CONFIG_MATH_DIV64=y
+CONFIG_MATH_MOD64=y
+
+#
+# Atomic operations
+#
+# CONFIG_ATOMIC_SUB_RETURN is not set
+# CONFIG_ATOMIC_ADD_RETURN is not set
+
+#
+# Checksum algorithms
+#
+# CONFIG_CRC16_CCITT is not set
+# CONFIG_CRC32 is not set
+CONFIG_STDLIB=y
+
+#
+# Print operations
+#
+CONFIG_PRINT_VSNPRINTF=y
+# CONFIG_PRINT_SNPRINTF is not set
+CONFIG_PRINT_VPRINTF=y
+# CONFIG_PRINT_SPRINTF is not set
+CONFIG_PRINT_PRINTF=y
+
+#
+# String operations
+#
+CONFIG_STRING_STRTOUL=y
+# CONFIG_FONTS is not set
+
+#
+# Development options
+#
+CONFIG_EXPERIMENTAL=y
+# CONFIG_CC_OPT_SIZE is not set
+CONFIG_DEBUG=y
+# CONFIG_CC_GEN_DEBUG is not set
+# CONFIG_DEBUG_PANIC is not set
+# CONFIG_PORTING is not set
+# CONFIG_DEBUG_PRINT is not set

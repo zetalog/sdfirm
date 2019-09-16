@@ -45,6 +45,9 @@
 #ifdef CONFIG_DUOWEN_IMC
 #define L1_LINE_SHIFT		7
 #endif
+#ifdef CONFIG_DUOWEN_APC
+#define L1_LINE_SHIFT		7
+#endif
 #define L1_CACHE_BYTES		(1 << L1_LINE_SHIFT)
 #define L1_CACHE_WAYS		8
 #define L1_CACHE_SIZE		0x800

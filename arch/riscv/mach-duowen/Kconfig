@@ -19,6 +19,8 @@ config DUOWEN_IMC
 
 config DUOWEN_APC
 	bool "APC"
+	select CPU_64G
+	select ARCH_HAS_LOVEC
 
 endchoice
 
@@ -30,6 +32,18 @@ config DUOWEN_IMC_RAM_SIZE
 	default 0x40000
 
 config DUOWEN_IMC_RAM_BOOT
+	bool "Enable booting from RAM base"
+
+endif
+
+if DUOWEN_APC
+
+config DUOWEN_APC_RAM_SIZE
+	hex "APC RAM Size"
+	range 0x40000 0x100000
+	default 0x40000
+
+config DUOWEN_APC_RAM_BOOT
 	bool "Enable booting from RAM base"
 
 endif
