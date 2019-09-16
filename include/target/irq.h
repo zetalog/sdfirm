@@ -9,6 +9,7 @@
 #define IRQ_LEVEL_TRIGGERED	0
 #define IRQ_EDGE_TRIGGERED	1
 
+#ifndef __ASSEMBLY__
 #if NR_IRQS <= 256
 typedef uint8_t irq_t;
 #elif NR_IRQS <= 65536
@@ -57,5 +58,6 @@ void irq_hw_ctrl_init(void);
 
 typedef void (*trap_handler)(const char *msg);
 void trap_handler_vector(trap_handler handler);
+#endif /* __ASSEMBLY__ */
 
 #endif /* __IRQ_H_INCLUDE__ */

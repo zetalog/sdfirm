@@ -1,3 +1,4 @@
+obj-y += entry.rel
 obj-y += mach.rel
 obj-y += wdog.rel
 obj-$(CONFIG_CLK) += clk.rel pcc.rel scg.rel

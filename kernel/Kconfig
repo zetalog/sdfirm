@@ -50,6 +50,9 @@ config SYS_TASK
 
 endchoice
 
+config ARCH_HAS_NOVEC
+	bool
+
 config ARCH_HAS_LOVEC
 	bool
 

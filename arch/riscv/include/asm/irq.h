@@ -46,18 +46,24 @@
 #include <target/types.h>
 #include <asm/reg.h>
 
+#ifndef __ASSEMBLY__
 typedef uint32_t irq_flags_t;
+struct pt_regs {
+	unsigned long regs[31];
+};
 
 #define irq_hw_flags_save(x)	((x) = csr_read_clear(CSR_SSTATUS, SR_SIE))
 #define irq_hw_flags_restore(x)	csr_set(CSR_SSTATUS, (x) & SR_SIE)
 #define irq_hw_flags_enable()	csr_set(CSR_SSTATUS, SR_SIE)
 #define irq_hw_flags_disable()	csr_clear(CSR_SSTATUS, SR_SIE)
 #define irq_hw_ctrl_init()
+#endif /* __ASSEMBLY__ */
+
+#define IPI_SOFT	0x1
+#define IPI_FENCE_I	0x2
+#define IPI_SFENCE_VMA	0x4
+#define IPI_HALT	0x8
 
 #include <asm/mach/irq.h>
-
-struct pt_regs {
-	unsigned long regs[31];
-};
 
 #endif /* __IRQ_RISCV_H_INCLUDE__ */

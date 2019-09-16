@@ -6,54 +6,6 @@
 #include <asm/asm-offsets.h>
 #include <target/paging.h>
 
-	__VEC
-
-__vectors:
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-	jal	x0, __handle_irq
-
-	/* reset vector */
-	jal	x0, __start
-
-	/* Illegal instrution exception */
-	jal	x0, __handle_illegal_instr
-
-	/* ecall handler */
-	jal	x0, __handle_ecall
-
-	/* LSU error */
-	jal	x0, __handle_lsu
-
 	.macro	init_sp
 	la	sp, PERCPU_STACKS_END
 	.endm
@@ -66,19 +18,12 @@ __vectors:
 	.endm
 
 	.macro	zerow regs
-#ifdef CONFIG_64BIT
-	sd	zero, 0(\regs)
-#else
-	sw	zero, 0(\regs)
-#endif
+	REG_S	zero, 0(\regs)
 	.endm
 
 	.macro	copyw regl, regs, regv
-#ifdef CONFIG_64BIT
-#else
-	lw	\regv, 0(\regl)
-	sw	\regv, 0(\regs)
-#endif
+	REG_L	\regv, 0(\regl)
+	REG_S	\regv, 0(\regs)
 	.endm
 
 	.macro	zero_sect, sva, eva, lab_exit, lab_loop

@@ -4,6 +4,7 @@
 #include <target/config.h>
 #include <target/generic.h>
 
+#ifndef __ASSEMBLY__
 typedef uint8_t bh_t;
 
 typedef void (*bh_cb)(uint8_t event);
@@ -29,5 +30,6 @@ boolean bh_resumed_any(void);
 bh_t bh_register_handler(bh_cb handler);
 
 void bh_init(void);
+#endif /* __ASSEMBLY__ */
 
 #endif /* __BH_H_INCLUDE__ */

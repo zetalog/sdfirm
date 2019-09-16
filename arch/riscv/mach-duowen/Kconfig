@@ -20,7 +20,8 @@ config DUOWEN_IMC
 config DUOWEN_APC
 	bool "APC"
 	select CPU_64G
-	select ARCH_HAS_LOVEC
+	select ARCH_HAS_NOVEC
+	select ARCH_IS_RAM_ONLY
 
 endchoice
 

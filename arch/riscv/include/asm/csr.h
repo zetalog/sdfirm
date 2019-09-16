@@ -51,9 +51,17 @@
  */
 
 /* Status register flags */
+#define SR_UIE		_AC(0x00000001, UL) /* User Interrupt Enable */
 #define SR_SIE		_AC(0x00000002, UL) /* Supervisor Interrupt Enable */
-#define SR_SPIE		_AC(0x00000020, UL) /* Previous Supervisor IE */
+#define SR_HIE		_AC(0x00000004, UL) /* Hypervisor Interrupt Enable */
+#define SR_MIE		_AC(0x00000008, UL) /* Machine Interrupt Enable */
+#define SR_UPIE		_AC(0x00000010, UL) /* User Previous IE */
+#define SR_SPIE		_AC(0x00000020, UL) /* Supervisor Previous IE */
+#define SR_HPIE		_AC(0x00000040, UL) /* Hypervisor Previous IE */
+#define SR_MPIE		_AC(0x00000080, UL) /* Machine Previous IE */
 #define SR_SPP		_AC(0x00000100, UL) /* Previously Supervisor */
+#define SR_HPP		_AC(0x00000600, UL) /* Previously Hypervisor */
+#define SR_MPP		_AC(0x00001800, UL) /* Previously Machine */
 #define SR_SUM		_AC(0x00040000, UL) /* Supervisor User Memory Access */
 
 #define SR_FS		_AC(0x00006000, UL) /* Floating-point Status */
@@ -74,6 +82,16 @@
 #define SR_SD		_AC(0x8000000000000000, UL) /* FS/XS dirty */
 #endif
 
+#define SR_MPRV		_AC(0x00020000, UL)
+#define SR_MXR		_AC(0x00080000, UL)
+#define SR_TVM		_AC(0x00100000, UL)
+#define SR_TW		_AC(0x00200000, UL)
+#define SR_TSR		_AC(0x00400000, UL)
+#ifdef CONFIG_64BIT
+#define SR_UXL		_AC(0x0000000300000000, UL)
+#define SR_SXL		_AC(0x0000000C00000000, UL)
+#endif
+
 /* SATP flags */
 #ifndef CONFIG_64BIT
 #define SATP_PPN	_AC(0x003FFFFF, UL)
@@ -90,12 +108,15 @@
 
 #define IRQ_U_SOFT		0
 #define IRQ_S_SOFT		1
+#define IRQ_H_SOFT		2
 #define IRQ_M_SOFT		3
 #define IRQ_U_TIMER		4
 #define IRQ_S_TIMER		5
+#define IRQ_H_TIMER		6
 #define IRQ_M_TIMER		7
 #define IRQ_U_EXT		8
 #define IRQ_S_EXT		9
+#define IRQ_H_EXT		10
 #define IRQ_M_EXT		11
 
 #define EXC_INST_MISALIGNED	0
@@ -109,9 +130,18 @@
 #define EXC_STORE_PAGE_FAULT	15
 
 /* SIE (Interrupt Enable) and SIP (Interrupt Pending) flags */
+#define SIE_USIE		(_AC(0x1, UL) << IRQ_U_SOFT)
+#define SIE_UTIE		(_AC(0x1, UL) << IRQ_U_TIMER)
+#define SIE_UEIE		(_AC(0x1, UL) << IRQ_U_EXT)
 #define SIE_SSIE		(_AC(0x1, UL) << IRQ_S_SOFT)
 #define SIE_STIE		(_AC(0x1, UL) << IRQ_S_TIMER)
 #define SIE_SEIE		(_AC(0x1, UL) << IRQ_S_EXT)
+#define SIE_HSIE		(_AC(0x1, UL) << IRQ_H_SOFT)
+#define SIE_HTIE		(_AC(0x1, UL) << IRQ_H_TIMER)
+#define SIE_HEIE		(_AC(0x1, UL) << IRQ_H_EXT)
+#define SIE_MSIE		(_AC(0x1, UL) << IRQ_M_SOFT)
+#define SIE_MTIE		(_AC(0x1, UL) << IRQ_M_TIMER)
+#define SIE_MEIE		(_AC(0x1, UL) << IRQ_M_EXT)
 
 #define CSR_UTVEC		0x005
 #define CSR_CYCLE		0xc00
