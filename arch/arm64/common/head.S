@@ -99,22 +99,42 @@ __arm_reset:
 #endif
 	.endm
 
-.macro init_bss
-	adr_l	x0, __bss_start
-	adr_l	x1, __bss_stop
-	mov	x2, xzr
-	b	init_bss_loop
-1:
-	stp	x2, x2, [x0], #16
-init_bss_loop:
+.macro copy_sect, sla, sva, eva, lab_exit, lab_loop
+	adr_l	x2, \sla
+	adr_l	x0, \sva
+	adr_l	x1, \eva
+	b	\lab_exit
+\lab_loop:
+	ldp	x3, x4, [x2], #16
+	stp	x3, x4, [x0], #16
+\lab_exit:
 	cmp	x0, x1
-	b.lt	1b
+	b.lt	\lab_loop
+	dsb	ishst
+.endm
+
+.macro zero_sect, sva, eva, lab_exit, lab_loop
+	adr_l	x0, \sva
+	adr_l	x1, \eva
+	mov	x2, xzr
+	b	\lab_exit
+\lab_loop:
+	stp	x2, x2, [x0], #16
+\lab_exit:
+	cmp	x0, x1
+	b.lt	\lab_loop
 	dsb	ishst
 .endm
 
 ENTRY(__start)
 	init_sp
-	init_bss
+#ifdef CONFIG_TEXT_RAM_LOAD
+	copy_sect __text_loc, _stext, _etext, copy_text_exit, copy_text_loop
+#endif
+#ifdef CONFIG_DATA_RAM_LOAD
+	copy_sect __data_loc, __sdata, __edata, copy_data_exit, copy_data_loop
+#endif
+	zero_sect __bss_start, __bss_stop, init_bss_exit, init_bss_loop
 	bl	__init_exception_level
 
 	# Exit to suitable exception level

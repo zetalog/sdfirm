@@ -49,8 +49,6 @@
 #include <target/init.h>
 #include <target/types.h>
 
-#define __VEC			__LOVEC
-
 #ifndef __ASSEMBLY__
 void board_reset(void);
 void board_suspend(void);

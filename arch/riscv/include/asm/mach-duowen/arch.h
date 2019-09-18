@@ -49,7 +49,9 @@
 #include <target/init.h>
 #include <target/types.h>
 
+#ifdef CONFIG_DUOWEN_IMC
 #define __VEC			__LOVEC
+#endif
 
 #define CSR_BASE		UL(0x60300000)
 #define CSR_REG(offset)		(CSR_BASE + (offset))
