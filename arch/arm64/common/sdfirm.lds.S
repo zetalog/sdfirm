@@ -69,6 +69,13 @@ SECTIONS
 		__init_data_end = .;
 #endif
 		DATA_DATA
+
+#ifdef CONFIG_GEM5
+		. = ALIGN(PAGE_SIZE);
+		simpoint_heap_start = .;
+		*(.SIMPOINT_MEM_PAGES)
+		simpoint_heap_end = .;
+#endif
 	}
 	__edata = .;				/* end of data sections */
 
