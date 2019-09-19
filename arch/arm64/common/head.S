@@ -1,12 +1,8 @@
 #include <target/config.h>
-#include <target/linkage.h>
+#include <target/compiler.h>
 #include <target/init.h>
 #include <target/arch.h>
-#include <asm/assembler.h>
 #include <asm/asm-offsets.h>
-#include <asm/sysreg.h>
-#include <asm/page_utils.h>
-#include <target/paging.h>
 
 #define ARM_ROM_OFFSET	0x850
 
@@ -363,14 +359,16 @@ ENTRY(__create_page_tables)
 
 #ifdef CONFIG_GEM5
 	# Map memory pages of heap in SimPoint slice.
-	# - Function simpoint_heap_map_entry is defined in the slice source code.
-	# - Label simpoint_heap_map_exit is target of the branching at the end of
-	#   fucntion simpoint_heap_map_entry.
+	# - Function simpoint_heap_map_entry is defined in the slice source
+	#   code.
+	# - Label simpoint_heap_map_exit is target of the branching at the
+	#   end of fucntion simpoint_heap_map_entry.
+	# Use branch direct so that all registers are left for simpoint
+	# context restore usage.
 .global simpoint_heap_map_exit
 	b simpoint_heap_map_entry
 simpoint_heap_map_exit:
 #endif
-
 
 #if defined(CONFIG_MMU_IDMAP_DEVICE) && defined(IDMAP_DEV_BASE)
 	# Map identity device area for early console

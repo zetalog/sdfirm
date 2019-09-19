@@ -19,7 +19,7 @@
 #define ARRAY_ADDR(arr)		(&((arr)[0]))
 #define ARRAY_SIZE(arr)		(sizeof(arr) / sizeof((arr)[0]))
 
-#include <asm/assembler.h>
-#include <asm/linkage.h>
+#include <target/assembler.h>
+#include <target/linkage.h>
 
 #endif /* __COMPILER_H_INCLUDE__ */
