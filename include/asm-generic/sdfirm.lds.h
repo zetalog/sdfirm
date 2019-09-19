@@ -88,3 +88,13 @@
 	BSS(bss_align)						\
 	. = ALIGN(stop_align);					\
 	__bss_stop = .;
+
+#ifdef CONFIG_GEM5
+#define GEM5_HEAP			\
+	. = ALIGN(PAGE_SIZE);		\
+	simpoint_heap_start = .;	\
+	*(.SIMPOINT_MEM_PAGES)		\
+	simpoint_heap_end = .;
+#else
+#define GEM5_HEAP
+#endif

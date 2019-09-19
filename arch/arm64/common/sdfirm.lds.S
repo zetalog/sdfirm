@@ -77,6 +77,7 @@ SECTIONS
 		__init_data_end = .;
 #endif
 		DATA_DATA
+		GEM5_HEAP
 	}
 	__edata = .;				/* end of data sections */
 
