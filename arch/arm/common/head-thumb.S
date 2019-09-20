@@ -36,21 +36,21 @@ ENTRY(__lovec)
 	.word BSYM(__bad_interrupt)				@ PendSV
 	.word BSYM(handle_sys_tick)				@ SysTick
 #else
-	.word stext - CONFIG_TEXT_RAM_BASE			@ reset
-	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ NMI
-	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ hard fault
-	.word BSYM(handle_mpu_fault) - CONFIG_TEXT_RAM_BASE	@ MPU
-	.word BSYM(handle_bus_fault) - CONFIG_TEXT_RAM_BASE	@ BUS fault
-	.word BSYM(handle_usage_fault) - CONFIG_TEXT_RAM_BASE	@ usage fault
-	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ reserved
-	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ reserved
-	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ reserved
-	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ reserved
-	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ SVCall
-	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ debug
-	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ reserved
-	.word BSYM(__bad_interrupt) - CONFIG_TEXT_RAM_BASE	@ PendSV
-	.word BSYM(handle_sys_tick) - CONFIG_TEXT_RAM_BASE	@ SysTick
+	.word stext - CONFIG_LOAD_BASE				@ reset
+	.word BSYM(__bad_interrupt) - CONFIG_LOAD_BASE		@ NMI
+	.word BSYM(__bad_interrupt) - CONFIG_LOAD_BASE		@ hard fault
+	.word BSYM(handle_mpu_fault) - CONFIG_LOAD_BASE		@ MPU
+	.word BSYM(handle_bus_fault) - CONFIG_LOAD_BASE		@ BUS fault
+	.word BSYM(handle_usage_fault) - CONFIG_LOAD_BASE	@ usage fault
+	.word BSYM(__bad_interrupt) - CONFIG_LOAD_BASE		@ reserved
+	.word BSYM(__bad_interrupt) - CONFIG_LOAD_BASE		@ reserved
+	.word BSYM(__bad_interrupt) - CONFIG_LOAD_BASE		@ reserved
+	.word BSYM(__bad_interrupt) - CONFIG_LOAD_BASE		@ reserved
+	.word BSYM(__bad_interrupt) - CONFIG_LOAD_BASE		@ SVCall
+	.word BSYM(__bad_interrupt) - CONFIG_LOAD_BASE		@ debug
+	.word BSYM(__bad_interrupt) - CONFIG_LOAD_BASE		@ reserved
+	.word BSYM(__bad_interrupt) - CONFIG_LOAD_BASE		@ PendSV
+	.word BSYM(handle_sys_tick) - CONFIG_LOAD_BASE		@ SysTick
 #endif
 	.size __lovec, . - __lovec
 
@@ -74,7 +74,7 @@ copy_sp:
 copy_trap:
 	b	BSYM(copy_trap_loop)
 1:	ldmia	r4!, {r0}
-	add	r0, r0, #CONFIG_TEXT_RAM_BASE
+	add	r0, r0, #CONFIG_LOAD_BASE
 	stmia	r5!, {r0}
 copy_trap_loop:
 	cmp	r5, r7

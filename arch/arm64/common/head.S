@@ -125,10 +125,10 @@ __arm_reset:
 
 ENTRY(__start)
 	init_sp
-#ifdef CONFIG_TEXT_RAM_LOAD
+#ifdef CONFIG_LOAD_TEXT
 	copy_sect __text_loc, _stext, _etext, copy_text_exit, copy_text_loop
 #endif
-#ifdef CONFIG_DATA_RAM_LOAD
+#ifdef CONFIG_LOAD_DATA
 	copy_sect __data_loc, __sdata, __edata, copy_data_exit, copy_data_loop
 #endif
 	zero_sect __bss_start, __bss_stop, init_bss_exit, init_bss_loop

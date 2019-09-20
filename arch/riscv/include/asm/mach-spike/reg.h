@@ -64,7 +64,11 @@
 #endif
 
 #ifdef CONFIG_SPIKE_MEM2_ROM
-/* Default ROM is hard coded in spike:
+/* Use MEM2 as ROM to test some features */
+#define ROM_BASE		MEM2_BASE
+#define ROMEND			(MEM2_BASE + MEM2_SIZE)
+#else
+/* Default ROM is hard coded in spike and is not programmable.
  * Located in 0x0000_0000, contains the following instructions:
  *  0x297			// auipc  t0,0x0
  *  0x28593 + (ROM_SIZE << 20)	// addi   a1, t0, &dtb
@@ -78,17 +82,8 @@
  */
 #define ROM_BASE		UL(0x00000000)
 #define ROM_SIZE		UL(0x20)
-#else
-#define ROM_BASE		MEM2_BASE
-#define ROMEND			(MEM2_BASE + MEM2_SIZE)
 #endif
 #define RAM_BASE		MEM1_BASE
 #define RAMEND			(MEM1_BASE + MEM1_SIZE)
-
-/* LOVEC:
- * The actual reset address for SPIKE is 0x0000_0000.
- * Here LOVEC is used for MTVEC.
- */
-#define VEC_BASE		MEM1_BASE
 
 #endif /* __REG_SPIKE_H_INCLUDE__ */

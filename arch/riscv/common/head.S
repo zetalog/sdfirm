@@ -59,11 +59,11 @@ ENTRY(__start)
 	init_sp
 	init_gp
 
-#ifdef CONFIG_TEXT_RAM_LOAD
+#ifdef CONFIG_LOAD_TEXT
 	/* Handle both .text and .rodata sections */
 	copy_sect __text_loc, _stext, _etext, copy_text_exit, copy_text_loop
 #endif
-#ifdef CONFIG_DATA_RAM_LOAD
+#ifdef CONFIG_LOAD_DATA
 	/* Handle .data section */
 	copy_sect __data_loc, __sdata, __edata, copy_data_exit, copy_data_loop
 #endif

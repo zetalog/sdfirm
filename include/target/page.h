@@ -72,7 +72,7 @@ struct page {
 caddr_t page_alloc(void);
 caddr_t page_alloc_zeroed(void);
 void page_free(caddr_t address);
-void page_alloc_init(caddr_t base, pfn_t nr_pages);
+void page_alloc_init(caddr_t base, caddr_t size);
 void page_init(void);
 #else
 #define page_init()			do { } while (0)

@@ -71,7 +71,7 @@ copy_sp:
 copy_trap:
 	b	BSYM(copy_trap_loop)
 1:	ldmia	r4!, {r0}
-	add	r0, r0, #CONFIG_TEXT_RAM_BASE
+	add	r0, r0, #CONFIG_LOAD_BASE
 	stmia	r5!, {r0}
 copy_trap_loop:
 	cmp	r5, r7

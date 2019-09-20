@@ -33,9 +33,10 @@ caddr_t page_alloc_zeroed(void)
 	return page;
 }
 
-void page_alloc_init(caddr_t base, pfn_t nr_pages)
+void page_alloc_init(caddr_t base, caddr_t size)
 {
-	pfn_t pfn, pfn_start = page_to_pfn(base);
+	pfn_t pfn, pfn_start = PFN_UP(base);
+	pfn_t nr_pages = PFN_DOWN(base + size) - pfn_start;
 	struct page **last_page, *page;
 
 	/* The lower pages are used for early page table allocation. */
@@ -45,7 +46,7 @@ void page_alloc_init(caddr_t base, pfn_t nr_pages)
 		page->next = NULL;
 		*last_page = page;
 		last_page = &page->next;
-		/*printf("Free Page: %016llx\n", (uint64_t)page);*/
+		printf("Free Page: %016llx\n", (uint64_t)page);
 	}
 }
 

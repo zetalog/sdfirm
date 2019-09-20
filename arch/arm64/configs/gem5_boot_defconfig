@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Jun 18 18:29:35 2019
+# Fri Sep 20 16:07:14 2019
 #
 CONFIG_ARM64=y
 
@@ -25,6 +25,7 @@ CONFIG_BOOT_ROM=y
 CONFIG_CONSOLE=y
 # CONFIG_CONSOLE_COMMAND is not set
 CONFIG_CONSOLE_OUTPUT=y
+# CONFIG_CONSOLE_OUTPUT_CR is not set
 CONFIG_CONSOLE_PRINT_BUFFER_SIZE=64
 # CONFIG_CONSOLE_INPUT is not set
 # CONFIG_CONSOLE_230400 is not set
@@ -35,6 +36,7 @@ CONFIG_CONSOLE_115200=y
 # CONFIG_CONSOLE_9600 is not set
 # CONFIG_CONSOLE_4800 is not set
 # CONFIG_CONSOLE_2400 is not set
+# CONFIG_CONSOLE_DEBUG is not set
 
 #
 # ARM64 system options
@@ -61,15 +63,8 @@ CONFIG_SYS_KERNEL=y
 # CONFIG_SYS_MONITOR is not set
 CONFIG_SYS_GUEST=y
 CONFIG_PSCI=y
-CONFIG_GIC=y
-
-#
-# Generic Interrupt Controller (GIC) support
-#
+# CONFIG_GIC is not set
 CONFIG_ARCH_HAS_GICv2=y
-CONFIG_GICv2=y
-# CONFIG_GICv3 is not set
-CONFIG_GICv2_IRQ_NS=y
 # CONFIG_VMSA is not set
 
 #
@@ -106,6 +101,10 @@ CONFIG_UART_PL011=y
 #
 # GEM5 VExpress_EMM64 board options
 #
+# CONFIG_GEM5_ROM_AS_RAM is not set
+# CONFIG_GEM5_RAM_DEFAULT is not set
+CONFIG_GEM5_RAM_BASE=0x0
+CONFIG_GEM5_RAM_BITS=24
 CONFIG_UART_GEM5=y
 
 #
@@ -119,17 +118,18 @@ CONFIG_SYS_NOIRQ=y
 # CONFIG_SYS_IRQ is not set
 # CONFIG_SYS_RT is not set
 # CONFIG_SYS_TASK is not set
-CONFIG_ARCH_HAS_IRQC=y
 CONFIG_ARCH_HAS_GPT=y
 CONFIG_ARCH_HAS_TSC=y
 CONFIG_ARCH_HAS_TSC_CONST=y
 CONFIG_ARCH_IS_TICKLESS=y
 CONFIG_ARCH_HAS_IDLE=y
+CONFIG_ARCH_HAS_BOOT_LOAD=y
 
 #
 # Scheduling facility (bh) support
 #
 CONFIG_MAX_BHS=4
+# CONFIG_SMP is not set
 
 #
 # Timing facility (jiffy) support
@@ -142,12 +142,14 @@ CONFIG_LPS_NO_LPS=y
 # CONFIG_TIMER is not set
 
 #
-# Address space layout (.text) support
+# Address space layout (xip) support
 #
-# CONFIG_XIP is not set
-CONFIG_TEXT_ROM_BASE=0x00000000
-CONFIG_TEXT_RAM_BASE=0x0
+# CONFIG_BFM is not set
+CONFIG_XIP=y
+CONFIG_BOOT_BASE=0x00000000
+CONFIG_LOAD_BASE=0x0
 # CONFIG_HEAP is not set
+# CONFIG_MEM is not set
 # CONFIG_PAGE is not set
 CONFIG_ARCH_HAS_MMU=y
 # CONFIG_MMU is not set
@@ -191,6 +193,11 @@ CONFIG_UART_230400=y
 #
 
 #
+# Debugging console drivers
+#
+# CONFIG_DBG_SEGGER_RTT is not set
+
+#
 # LCD drivers
 #
 
@@ -207,7 +214,6 @@ CONFIG_UART_230400=y
 #
 # Library setup
 #
-CONFIG_STDLIB=y
 
 #
 # Bit-wise operations
@@ -231,12 +237,12 @@ CONFIG_BIT_FIND_CLEAR=y
 # Mathematic operations
 #
 CONFIG_MATH_GCD32=y
-# CONFIG_MATH_MOD32 is not set
+CONFIG_MATH_MOD32=y
 # CONFIG_MATH_MUL32 is not set
 CONFIG_MATH_MUL64=y
 # CONFIG_MATH_DIV32 is not set
 CONFIG_MATH_DIV64=y
-# CONFIG_MATH_MOD64 is not set
+CONFIG_MATH_MOD64=y
 
 #
 # Atomic operations
@@ -249,6 +255,21 @@ CONFIG_MATH_DIV64=y
 #
 # CONFIG_CRC16_CCITT is not set
 # CONFIG_CRC32 is not set
+CONFIG_STDLIB=y
+
+#
+# Print operations
+#
+CONFIG_PRINT_VSNPRINTF=y
+# CONFIG_PRINT_SNPRINTF is not set
+CONFIG_PRINT_VPRINTF=y
+# CONFIG_PRINT_SPRINTF is not set
+CONFIG_PRINT_PRINTF=y
+
+#
+# String operations
+#
+# CONFIG_STRING_STRTOUL is not set
 # CONFIG_FONTS is not set
 
 #

@@ -686,8 +686,7 @@ void mem_free_all(void)
 	}
 	for_each_free_mem_range(i, &start, &end) {
 		con_dbg("memory: %016llx - %016llx\n", start, end);
-		page_alloc_init(PFN_UP(start),
-				PFN_DOWN(end) - PFN_UP(start));
+		page_alloc_init(start, end - start);
 	}
 }
 

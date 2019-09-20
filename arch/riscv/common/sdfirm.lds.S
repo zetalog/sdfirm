@@ -45,7 +45,7 @@ SECTIONS
 	}
 	CMD_LINE_SECTION(WORD_SIZE)
 
-	_text = .;				/* address in RAM or ROM */
+	_text = .;
 	.text : {
 		TEXT_TEXT
 		IDMAP_TEXT
@@ -60,27 +60,23 @@ SECTIONS
 	. = ALIGN((WORD_SIZE));
 	_etext = .;				/* end of text and rodata sections */
 
-#ifdef CONFIG_ARCH_IS_RAM_ONLY
-	__text_loc = CONFIG_TEXT_RAM_BASE;	/* text location in RAM */
-#else
-	__text_loc = CONFIG_TEXT_ROM_BASE;	/* text location in ROM */
-#endif
+	__text_loc = CONFIG_BOOT_BASE;		/* text boot location */
 	_etext_loc = __text_loc + _etext - _stext;
 
-#if defined(CONFIG_XIP) && (CONFIG_TEXT_RAM_BASE != CONFIG_TEXT_ROM_BASE)
-	. = CONFIG_TEXT_RAM_BASE;		/* ensure address followups in RAM */
+#if defined(CONFIG_XIP) && (CONFIG_LOAD_BASE != CONFIG_BOOT_BASE)
+	. = CONFIG_LOAD_BASE;			/* ensure addresses followups are load addreses */
 #endif
 
 	. = ALIGN(PAGE_SIZE);
 
 	_sdata = .;				/* begin of data and bss sections */
 	__sdata = .;				/* begin of data sections */
-#ifdef CONFIG_DATA_RAM_LOAD
+#ifdef CONFIG_LOAD_DATA
 	.data : AT(_etext) {
 #else
 	.data : {
 #endif
-		_data = .;			/* address in RAM */
+		_data = .;
 #ifdef CONFIG_XIP
 		__init_data_begin = .;
 		INIT_DATA
@@ -95,7 +91,7 @@ SECTIONS
 	}
 	__edata = .;				/* end of data sections */
 
-	__data_loc = _etext_loc;		/* data location in ROM */
+	__data_loc = _etext_loc;		/* data boot location */
 	_edata_loc = __data_loc + _edata - _sdata;
 
 	.bss (NOLOAD) : ALIGN(WORD_SIZE) {

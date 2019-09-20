@@ -47,6 +47,7 @@ config ARCH_GEM5
 	select ARCH_IS_UART_PL011
 	select MATH_GCD32
 	select BIT_ROUNDUP32
+	select ARCH_HAS_BOOT_LOAD
 	help
 	  This enables support of ARM versatile express platform.
 

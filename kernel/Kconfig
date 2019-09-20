@@ -83,8 +83,9 @@ config ARCH_IS_TICKLESS
 config ARCH_HAS_IDLE
 	bool
 
-config ARCH_IS_RAM_ONLY
+config ARCH_HAS_BOOT_LOAD
 	bool
+	select XIP
 
 menu "Scheduling facility (irq) support"
 	depends !SYS_NOIRQ
@@ -249,34 +250,47 @@ config MAX_TIMERS
 
 endif
 
-menu "Address space layout (.text) support"
+menu "Address space layout (xip) support"
+
+config BFM
+	bool "Enable Boot From Memory (BFM) support"
+	depends ARCH_HAS_BOOT_LOAD
+	select XIP
 
 config XIP
 	bool "Enable eXecute In Place (XIP) support"
-	depends !ARCH_IS_RAM_ONLY
 
-config TEXT_ROM_BASE
-	hex "Base offset of the .text section in the ROM"
-	depends !ARCH_IS_RAM_ONLY
+config BOOT_BASE
+	hex "Boot address of the firmware"
 	default 0
 	help
-	  In XIP firmware, this could be used in the linker script to
-	  determine the load address of the .text section.  While in
-	  non-XIP firmware, this might be used to calculate the load
-	  address of the variables created in the linker script.
+	  The boot address of the firmware.
+	  In an XIP firmware, this equls to the load address of the .text
+	  section, and hence can be used in the linker script to determine
+	  the start address of the .text section. Note that this address
+	  can also be used to indicate the boot address of the .data
+	  section in the XIP firmware, sdfirm will self-loading .data
+	  section by copying data from this address + sizeof(.text) to the
+	  load address of the .data section.
+	  While in a non-XIP firmware, sdfirm will self-loading .text/.data
+	  section by copying data from this address to the load address of
+	  the .text/.data section.
 
-config TEXT_RAM_BASE
-	hex "Base offset of the .text section in the RAM"
+config LOAD_BASE
+	hex "Load address of the firmware"
 	default 0
 	help
-	  For non-XIP firmware, an offset might be needed to avoid
-	  system tables corss-over.  While in XIP firmware, this might be
-	  used in the linker script to determine the load address of the
-	  .data section.
+	  The load address of the firmware.
+	  In an XIP firmware, this equals to the load address of the .data
+	  section, sdfirm will self-loading .data section by copying data
+	  from the boot address + sizeof(.text) to this address.
+	  While in a non-XIP firmware, sdfirm will self-loading .text/.data
+	  section by copying data from the boot address of .text/.data
+	  section to this address.
 
-config TEXT_RAM_LOAD
-	bool "Load .text sections from the ROM to the RAM"
-	depends !XIP
+config LOAD_TEXT
+	bool "Copy .text sections from boot address to load address"
+	depends !XIP && !ARCH_HAS_BOOT_LOAD
 	default y
 	help
 	  For non-XIP firmware, programmer may have already loaded the
@@ -285,9 +299,10 @@ config TEXT_RAM_LOAD
 	  In this case, sdfirm shouldn't copy .text sections to itself
 	  by disabling this option.
 
-config DATA_RAM_LOAD
-	bool "Load .data sections from the ROM to the RAM"
+config LOAD_DATA
+	bool "Copy .data sections from boot address to load address"
 	default y
+	depends !ARCH_HAS_BOOT_LOAD
 	help
 	  Programmer may have already loaded the .data sections to the RAM
 	  due to their load addresses are RAM addresses, and hence there
@@ -351,6 +366,7 @@ if MEM
 
 config MMU_MAP_MEM
 	bool "Map memories"
+	depends MMU
 
 config MEM_MAX_REGIONS
 	int "Maximum region banks"

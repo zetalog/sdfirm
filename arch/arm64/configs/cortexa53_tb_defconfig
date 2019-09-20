@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Jul 29 22:09:41 2019
+# Fri Sep 20 16:17:52 2019
 #
 CONFIG_ARM64=y
 
@@ -21,6 +21,7 @@ CONFIG_FIRMWARE=y
 # Firmware options
 #
 # CONFIG_GEM5 is not set
+# CONFIG_RIS is not set
 CONFIG_CONSOLE=y
 CONFIG_CONSOLE_COMMAND=y
 CONFIG_CONSOLE_OUTPUT=y
@@ -130,6 +131,7 @@ CONFIG_ARCH_HAS_TSC=y
 CONFIG_ARCH_HAS_TSC_CONST=y
 CONFIG_ARCH_IS_TICKLESS=y
 CONFIG_ARCH_HAS_IDLE=y
+CONFIG_ARCH_HAS_BOOT_LOAD=y
 
 #
 # Scheduling facility (bh) support
@@ -148,13 +150,15 @@ CONFIG_LPS_NO_LPS=y
 # CONFIG_TIMER is not set
 
 #
-# Address space layout (.text) support
+# Address space layout (xip) support
 #
+CONFIG_BFM=y
 CONFIG_XIP=y
-CONFIG_TEXT_ROM_BASE=0x00000000
-CONFIG_TEXT_RAM_BASE=0x0
+CONFIG_BOOT_BASE=0x00000000
+CONFIG_LOAD_BASE=0x0
 # CONFIG_HEAP is not set
 CONFIG_MEM=y
+# CONFIG_MMU_MAP_MEM is not set
 CONFIG_MEM_MAX_REGIONS=1
 CONFIG_MEM_RESIZE=y
 CONFIG_PAGE=y
@@ -216,6 +220,11 @@ CONFIG_UART_230400=y
 #
 
 #
+# Debugging console drivers
+#
+# CONFIG_DBG_SEGGER_RTT is not set
+
+#
 # LCD drivers
 #
 
@@ -232,7 +241,6 @@ CONFIG_UART_230400=y
 #
 # Library setup
 #
-CONFIG_STDLIB=y
 
 #
 # Bit-wise operations
@@ -256,12 +264,12 @@ CONFIG_BIT_FIND_CLEAR=y
 # Mathematic operations
 #
 CONFIG_MATH_GCD32=y
-# CONFIG_MATH_MOD32 is not set
+CONFIG_MATH_MOD32=y
 # CONFIG_MATH_MUL32 is not set
 CONFIG_MATH_MUL64=y
 # CONFIG_MATH_DIV32 is not set
 CONFIG_MATH_DIV64=y
-# CONFIG_MATH_MOD64 is not set
+CONFIG_MATH_MOD64=y
 
 #
 # Atomic operations
@@ -274,6 +282,7 @@ CONFIG_MATH_DIV64=y
 #
 # CONFIG_CRC16_CCITT is not set
 # CONFIG_CRC32 is not set
+CONFIG_STDLIB=y
 
 #
 # Print operations
@@ -283,6 +292,11 @@ CONFIG_PRINT_VSNPRINTF=y
 CONFIG_PRINT_VPRINTF=y
 # CONFIG_PRINT_SPRINTF is not set
 CONFIG_PRINT_PRINTF=y
+
+#
+# String operations
+#
+CONFIG_STRING_STRTOUL=y
 # CONFIG_FONTS is not set
 
 #

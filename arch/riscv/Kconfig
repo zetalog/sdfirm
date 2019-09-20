@@ -60,7 +60,7 @@ config ARCH_SPIKE
 	select ARCH_HAS_TSC_CONST
 	select ARCH_HAS_GPT
 	select ARCH_HAS_NOVEC
-	select ARCH_IS_RAM_ONLY if !SPIKE_MEM1_ROM
+	select ARCH_HAS_BOOT_LOAD
 	select ARCH_HAS_CLINT
 	select CLINT
 	help

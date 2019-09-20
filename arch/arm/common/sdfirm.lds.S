@@ -9,9 +9,9 @@ ENTRY(stext)
 SECTIONS
 {
 #ifdef CONFIG_XIP
-	. = CONFIG_TEXT_ROM_BASE;
+	. = CONFIG_BOOT_BASE;			/* text load location */
 #else
-	. = CONFIG_TEXT_RAM_BASE;
+	. = CONFIG_LOAD_BASE;			/* text load location */
 #endif
 	_stext = .;				/* begin of text and rodata sections */
 	.init : {
@@ -44,11 +44,11 @@ SECTIONS
 	. = ALIGN((4));
 	_etext = .;				/* end of text and rodata sections */
 
-	__text_loc = CONFIG_TEXT_ROM_BASE;	/* text location in ROM */
+	__text_loc = CONFIG_BOOT_BASE;		/* text boot location */
 	_etext_loc = __text_loc + _etext - _stext;
 
 #ifdef CONFIG_XIP
-	. = CONFIG_TEXT_RAM_BASE;		/* ensure address followups in RAM */
+	. = CONFIG_LOAD_BASE;			/* ensure address followups in RAM */
 #endif
 
 	_sdata = .;				/* begin of data sections */

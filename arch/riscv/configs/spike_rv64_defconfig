@@ -89,7 +89,7 @@ CONFIG_ARCH_HAS_GPT=y
 CONFIG_ARCH_HAS_TSC=y
 CONFIG_ARCH_HAS_TSC_CONST=y
 CONFIG_ARCH_IS_TICKLESS=y
-CONFIG_ARCH_IS_RAM_ONLY=y
+CONFIG_ARCH_HAS_BOOT_LOAD=y
 
 #
 # Scheduling facility (bh) support
@@ -108,11 +108,13 @@ CONFIG_LPS_NO_LPS=y
 # CONFIG_TIMER is not set
 
 #
-# Address space layout (.text) support
+# Address space layout (xip) support
 #
-CONFIG_TEXT_RAM_BASE=0x80000000
-# CONFIG_TEXT_RAM_LOAD is not set
-# CONFIG_DATA_RAM_LOAD is not set
+CONFIG_XIP=y
+CONFIG_BOOT_BASE=0x80000000
+CONFIG_LOAD_BASE=0x80000000
+# CONFIG_LOAD_TEXT is not set
+# CONFIG_LOAD_DATA is not set
 # CONFIG_HEAP is not set
 CONFIG_MEM=y
 # CONFIG_MMU_MAP_MEM is not set

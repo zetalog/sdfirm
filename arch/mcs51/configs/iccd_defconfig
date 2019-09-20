@@ -79,8 +79,8 @@ CONFIG_MAX_TIMERS=1
 # Address space layout (.text) support
 #
 # CONFIG_XIP is not set
-CONFIG_TEXT_ROM_BASE=0x0
-CONFIG_TEXT_RAM_BASE=0x0
+CONFIG_BOOT_BASE=0x0
+CONFIG_LOAD_BASE=0x0
 # CONFIG_HEAP is not set
 # CONFIG_BULK is not set
 

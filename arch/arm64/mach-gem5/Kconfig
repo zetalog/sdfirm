@@ -9,11 +9,11 @@ menu "GEM5 VExpress_EMM64 board options"
 
 config GEM5_ROM_AS_RAM
 	bool "Use VExpress_EMM64 ROM as RAM"
-	select XIP
 	help
-	  As VExpress_EMM64 ROM (0x0000000-0x4000000) supports XIP, this
-	  option stops firmware from re-locating from ROM to RAM and allows
-	  page allocator to allocate from ROM. So it is only suitable for
+	  As VExpress_EMM64 ROM (0x0000000-0x4000000) supports XIP and is
+	  writeable in GEM5, this option stops firmware from re-locating
+	  from boot address to load address and allows page allocator to
+	  allocate from this ROM region. So it is only suitable for
 	  simulation environment.
 
 config GEM5_RAM_DEFAULT
