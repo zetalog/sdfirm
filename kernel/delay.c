@@ -59,7 +59,7 @@
 #define delay_ticks_elapsed(o, n)	\
 	((tsc_count_t)((n>=o) ? (n-o) : (DELAY_TICKS_MAX-o+n+1)))
 
-#if defined(CONFIG_NO_LPS) || defined(CONFIG_LPS_PRESET)
+#if defined(CONFIG_LPS_NO_LPS) || defined(CONFIG_LPS_PRESET)
 /* Stub calibrate_delay_start() as tick_init() should have already been
  * invoked.
  */
@@ -70,7 +70,8 @@
 #endif
 #define calibrate_delay_stop()
 #define __calibrate_delay()
-#else
+#define DELAY_TICKS_MAX			TSC_MAX
+#else /* !CONFIG_LPS_NO_LPS && !CONFIG_LPS_PRESET */
 #ifdef CONFIG_TICK_PERIODIC
 typedef tick_t lps_count_t;
 #define DELAY_TICKS_PER_CALIBRATION	1
@@ -79,7 +80,7 @@ typedef tick_t lps_count_t;
 #define calibrate_delay_start()		irq_local_enable()
 #define calibrate_delay_stop()		irq_local_disable()
 #define delay_calc(loops)		(loops_per_ms = loops)
-#else
+#else /* !CONFIG_TICK_PERIODIC */
 typedef tsc_count_t lps_count_t;
 #ifdef CALIBRATION_FREQ
 #define DELAY_TICKS_PER_CALIBRATION	((tsc_count_t)(TSC_FREQ/CALIBRATION_FREQ))
@@ -93,7 +94,7 @@ typedef tsc_count_t lps_count_t;
 #define delay_ticks()			tsc_read_counter()
 #define calibrate_delay_start()		tsc_hw_ctrl_init()
 #define calibrate_delay_stop()
-#endif
+#endif /* CONFIG_TICK_PERIODIC */
 
 #ifdef CONFIG_LPS_WEIGHT
 #define LPS_INIT		CONFIG_LPS_WEIGHT
@@ -209,12 +210,12 @@ static void __calibrate_delay(void)
 }
 #endif
 
-#ifdef CONFIG_NO_LPS
+#ifdef CONFIG_LPS_NO_LPS
 void udelay(uint8_t us)
 {
 	tsc_count_t tsc = tsc_read_counter();
 
-	while (delay_ticks_elapsed(tsc, tsc_read_count()) <
+	while (delay_ticks_elapsed(tsc, tsc_read_counter()) <
 	       TICKS_TO_MICROSECONDS * us);
 }
 

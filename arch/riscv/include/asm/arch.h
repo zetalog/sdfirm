@@ -52,4 +52,11 @@
 #include <asm/cache.h>
 #include <asm/reg.h>
 
+#ifdef CONFIG_ARCH_HAS_NOVEC
+#ifdef VEC_BASE
+#error "Arch has no specific vector while VEC_BASE defined!"
+#endif
+#define VEC_BASE	0
+#endif
+
 #endif /* __ARCH_RISCV_H_INCLUDE__ */
