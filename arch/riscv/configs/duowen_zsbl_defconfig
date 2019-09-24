@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Sep  5 15:24:21 2019
+# Tue Sep 24 16:03:33 2019
 #
 CONFIG_32BIT=y
 CONFIG_RISCV=y
@@ -22,6 +22,7 @@ CONFIG_FIRMWARE=y
 # Firmware options
 #
 # CONFIG_GEM5 is not set
+# CONFIG_RIS is not set
 
 #
 # RISCV system options
@@ -57,8 +58,8 @@ CONFIG_MAXPHYSMEM_2GB=y
 #
 CONFIG_DUOWEN_IMC=y
 # CONFIG_DUOWEN_APC is not set
-CONFIG_DUOWEN_IMC_RAM_SIZE=0x40000
-# CONFIG_DUOWEN_IMC_RAM_BOOT is not set
+CONFIG_DUOWEN_ZSBL=y
+# CONFIG_DUOWEN_FSBL is not set
 
 #
 # Feature setup
@@ -96,15 +97,12 @@ CONFIG_LPS_NO_LPS=y
 #
 # Address space layout (xip) support
 #
-CONFIG_ARCH_HAS_BOOT_LOAD=y
 CONFIG_XIP=y
-CONFIG_BOOT_BASE=0x60380000
-CONFIG_LOAD_BASE=0x60100000
-# CONFIG_LOAD_TEXT is not set
-# CONFIG_LOAD_DATA is not set
+CONFIG_BOOT_BASE=0x00010000
+CONFIG_LOAD_BASE=0x00100000
+CONFIG_LOAD_DATA=y
 # CONFIG_HEAP is not set
 CONFIG_MEM=y
-# CONFIG_MMU_MAP_MEM is not set
 CONFIG_MEM_MAX_REGIONS=4
 CONFIG_MEM_RESIZE=y
 # CONFIG_PAGE is not set

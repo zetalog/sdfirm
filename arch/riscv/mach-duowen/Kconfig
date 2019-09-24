@@ -15,8 +15,6 @@ choice
 config DUOWEN_IMC
 	bool "IMC"
 	select CPU_RI5CY
-	select ARCH_HAS_LOVEC
-	select ARCH_HAS_BOOT_LOAD
 
 config DUOWEN_APC
 	bool "APC"
@@ -28,13 +26,22 @@ endchoice
 
 if DUOWEN_IMC
 
-config DUOWEN_IMC_RAM_SIZE
-	hex "IMC RAM Size"
-	range 0x40000 0x100000
-	default 0x40000
+choice
+	prompt "Program type"
 
-config DUOWEN_IMC_RAM_BOOT
-	bool "Enable booting from RAM base"
+config DUOWEN_ZSBL
+	bool "0-stage ROM bootloader (ZSBL)"
+	select ARCH_HAS_LOVEC
+	select XIP
+	select LOAD_DATA
+
+config DUOWEN_FSBL
+	bool "1-stage programmable bootloader (FSBL)"
+	select ARCH_HAS_NOVEC
+	select ARCH_HAS_BOOT_LOAD
+	select XIP
+
+endchoice
 
 endif
 
