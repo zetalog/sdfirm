@@ -4,6 +4,7 @@
 
 menu "Driver setup"
 
+source drivers/timer/Kconfig
 source drivers/uart/Kconfig
 source drivers/lcd/Kconfig
 source drivers/video/Kconfig

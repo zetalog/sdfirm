@@ -1,0 +1,19 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "Timer drivers"
+
+config DW_TIMERS
+	bool "Synopsys DesignWare APB timers support"
+
+if DW_TIMERS
+
+config DW_TIMERS_COUNT
+	int "Number of timer instances"
+	range 1 8
+
+endif
+
+endmenu

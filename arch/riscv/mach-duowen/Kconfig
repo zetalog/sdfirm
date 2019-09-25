@@ -43,6 +43,14 @@ config DUOWEN_FSBL
 
 endchoice
 
+config DUOWEN_TSC_DW_TIMERS
+	bool "Use DesignWare counter as timestamp counter"
+	help
+	  The SoC always requires DW timers to be enabled to use timestamp
+	  features. However use can choose between csr_read(CSR_TIME) and
+	  dw_timers_counter(). Enable this option to switch to use
+	  dw_timers_counter().
+
 endif
 
 if DUOWEN_APC

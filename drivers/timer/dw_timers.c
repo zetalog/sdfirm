@@ -35,23 +35,27 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)tsc_pseudo.c: DUOWEN specific pseduo TSC implementation
- * $Id: tsc_pseudo.c,v 1.1 2019-09-02 15:15:00 zhenglv Exp $
+ * @(#)dw_timers.c: Synopsys DesignWare APB timers implementation
+ * $Id: dw_timers.c,v 1.1 2019-09-25 14:53:00 zhenglv Exp $
  */
 
 #include <target/tsc.h>
+#include <target/gpt.h>
 
-tsc_count_t pseudo_counter;
-
-tsc_count_t tsc_hw_read_counter(void)
+void dw_timers_tsc_init(int n)
 {
-	tsc_count_t cnt = pseudo_counter;
-
-	pseudo_counter += PSEUDO_COUNTER_STEP;
-	return cnt;
+	dw_timers_disable(n);
+	dw_timers_set_mode(n, TIMER_FREE_RUNNING);
+	dw_timers_mask_irq(n);
+	dw_timers_set_counter(n, DW_TIMERS_MAX);
+	dw_timers_enable(n);
 }
 
-void tsc_hw_ctrl_init(void)
+void dw_timers_gpt_init(int n)
 {
-	pseudo_counter = 0;
+	dw_timers_disable(n);
+	dw_timers_set_mode(n, TIMER_FREE_RUNNING);
+	dw_timers_unmask_irq(n);
+	dw_timers_set_counter(n, DW_TIMERS_MAX);
+	dw_timers_enable(n);
 }

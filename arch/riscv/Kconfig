@@ -49,7 +49,7 @@ config ARCH_DUOWEN
 	select ARCH_IS_TICKLESS
 	select ARCH_HAS_TSC
 	select ARCH_HAS_TSC_CONST
-	select ARCH_HAS_GPT
+	select DW_TIMERS
 	help
 	  This enables support for emulated riscv platforms.
 

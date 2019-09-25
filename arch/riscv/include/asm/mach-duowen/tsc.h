@@ -42,15 +42,24 @@
 #ifndef __TSC_DUOWEN_H_INCLUDE__
 #define __TSC_DUOWEN_H_INCLUDE__
 
+#include <target/arch.h>
+
+#define DW_TIMERS_BASE		IMC_TIMER_BASE
+#define DW_TIMERS_SIZE		0x14
+#define DW_TIMERS_WIDTH		32
+#define DW_TIMERS_TSC		0
+
+#include <driver/dw_timers.h>
+
 #define FREQ_RI5CY		250000000
+#define TSC_FREQ		(FREQ_RI5CY/2)
+#define TSC_MAX			((ULL(1) << DW_TIMERS_WIDTH) - 1)
 
-#ifdef CONFIG_PSEUDO_COUNTER_STEP
-#define PSEUDO_COUNTER_STEP	CONFIG_PSEUDO_COUNTER_STEP
+#define tsc_hw_ctrl_init()	dw_timers_tsc_init(DW_TIMERS_TSC)
+#ifdef CONFIG_DUOWEN_TSC_DW_TIMERS
+#define tsc_hw_read_counter()	dw_timers_get_counter(DW_TIMERS_TSC)
 #else
-#define PSEUDO_COUNTER_STEP	1000
+#define tsc_hw_read_counter()	csr_read(CSR_TIME)
 #endif
-
-#define TSC_FREQ		(FREQ_RI5CY/1000)
-#define TSC_MAX			((ULL(1) << 32) - 1)
 
 #endif /* __TSC_DUOWEN_H_INCLUDE__ */
