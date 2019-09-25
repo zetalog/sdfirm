@@ -87,8 +87,9 @@ dword entry = 0;
 int data_count = 0;
 
 bool verbose = false;
+dword prog_base = 0;
 
-char filler = 0x00;
+byte filler = 0xFF;
 bool bigendian = false;
 byte *byte_data;
 int byte_width = VHX_WIDTH_BITS / 8;
@@ -185,6 +186,10 @@ void usage(void)
 	printf("Usage: srec2vhx <options> INFILE OUTFILE\n\n");
 	printf("-h          Show this information.\n");
 	printf("-b          Image is in big endian.\n");
+	printf("-f <value>  Filling holes with value, default %02x.\n",
+	       filler);
+	printf("-p <addr>   Specify program base address, default %08lx.\n",
+	       prog_base);
 	printf("-w <width>  Width in bits of the target memory array.\n");
 	printf("            Default 32 and must be multiple of 32.\n");
 	printf("-v          Enable verbosity.\n");
@@ -195,7 +200,7 @@ int parse(bool scan)
 	int i, j;
 	dword index = 0;
 	char line[SREC_LINE_SIZE];
-	dword address, last_addr = 0, next_addr;
+	dword address, last_addr = prog_base, next_addr;
 	int addr_bytes;
 	int type, count;
 	byte c, buf[SREC_MAX_BYTES];
@@ -310,7 +315,7 @@ int parse(bool scan)
 			} else {
 				index = pad_last(last_addr, index);
 				fprintf(outfile, "@%08lX\n",
-					next_addr / byte_width);
+					(next_addr - prog_base) / byte_width);
 			}
 			index = pad_next(address, 0);
 		}
@@ -364,7 +369,6 @@ int process(void)
 int main(int argc, char *argv[])
 {
 	int i;
-	char tmp[16] = "";
 	int ret;
 	int bit_width;
 
@@ -372,12 +376,17 @@ int main(int argc, char *argv[])
 		if (!strcmp(argv[i], "-v")) {
 			verbose = true;
 			continue;
-		} if (!strcmp(argv[i], "-b")) {
+		} else if (!strcmp(argv[i], "-b")) {
 			bigendian = true;
 			continue;
-		} if (!strcmp(argv[i], "-w")) {
-			sscanf(argv[++i], "%s", tmp);
-			bit_width = atoi(tmp);
+		} else if (!strcmp(argv[i], "-f")) {
+			filler = strtoul(argv[++i], NULL, 0);
+			continue;
+		} else if (!strcmp(argv[i], "-p")) {
+			prog_base = strtoull(argv[++i], NULL, 0);
+			continue;
+		} else if (!strcmp(argv[i], "-w")) {
+			bit_width = strtoul(argv[++i], NULL, 0);
 			if (bit_width % VHX_WIDTH_BITS) {
 				fprintf(stderr,
 					"ERROR: Bad width %d.\n",
@@ -390,6 +399,10 @@ int main(int argc, char *argv[])
 		} else if (!strncmp(argv[i], "-h", 2)) {
 			usage();
 			return 0;
+		} else if (argc - i < 2) {
+			fprintf(stderr, "ERROR: Too few argument.\n");
+			usage();
+			return 1;
 		} else {
 			sscanf(argv[i], "%s", infilename);
 			sscanf(argv[++i], "%s", outfilename);
@@ -397,13 +410,13 @@ int main(int argc, char *argv[])
 	}
 
 	if (!strcmp(infilename, "")) {
-		usage();
 		fprintf(stderr, "ERROR: No input file specified.\n");
+		usage();
 		return 1;
 	}
 	if (!strcmp(outfilename, "")) {
-		usage();
 		fprintf(stderr, "ERROR: No output file specified.\n");
+		usage();
 		return 1;
 	}
 	byte_data = malloc(byte_width / 8);

@@ -152,3 +152,10 @@ cmd_gzip = gzip -f -9 < $< > $@
 quiet_cmd_srec2vhx = SREC2VHX $@
       cmd_srec2vhx = $(SREC2VHX) $(SREC2VHXFLAGS) $(SREC2VHXFLAGS_$(@F)) $< $@
 
+
+# BINC2VHX
+# ---------------------------------------------------------------------------
+#
+quiet_cmd_bin2vhx = BIN2VHX $@
+      cmd_bin2vhx = $(BIN2VHX) $< $@ $(BIN2VHXFLAGS) $(BIN2VHXFLAGS_$(@F))
+

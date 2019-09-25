@@ -11,21 +11,21 @@
 # Copyright (C) 2009 Lv Zheng
 #
 
-sdfirm := sdfirm.bin sdfirm.srec sdfirm.hex sdfirm.vhx
+sdfirm := sdfirm.bin sdfirm.srec sdfirm.rom sdfirm.ram
 
 $(obj)/sdfirm.bin: sdfirm.strip FORCE
-	$(call if_changed,objcopy)
-	@echo '  Small Device Firmware: $@ is ready'
-$(obj)/sdfirm.hex: sdfirm.strip FORCE
 	$(call if_changed,objcopy)
 	@echo '  Small Device Firmware: $@ is ready'
 $(obj)/sdfirm.srec: sdfirm.strip FORCE
 	$(call if_changed,objcopy)
 	@echo '  Small Device Firmware: $@ is ready'
-$(obj)/sdfirm.vhx: $(obj)/sdfirm.srec FORCE
+$(obj)/sdfirm.rom: $(obj)/sdfirm.bin FORCE
+	$(call if_changed,bin2vhx)
+	@echo '  Small Device Firmware: $@ is ready'
+$(obj)/sdfirm.ram: $(obj)/sdfirm.srec FORCE
 	$(call if_changed,srec2vhx)
 	@echo '  Small Device Firmware: $@ is ready'
 OBJCOPYFLAGS_sdfirm.bin		+=-O binary
 OBJCOPYFLAGS_sdfirm.srec	+=-O srec
-OBJCOPYFLAGS_sdfirm.hex		+=-O ihex
-SREC2VHXFLAGS_sdfirm.vhx	+=-w 32
+BIN2VHXFLAGS_sdfirm.rom		+=--width=32
+SREC2VHXFLAGS_sdfirm.ram	+=-w 32

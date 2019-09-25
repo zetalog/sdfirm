@@ -7,3 +7,5 @@
 *.bin
 *.srec
 *.vhx
+*.rom
+*.ram
