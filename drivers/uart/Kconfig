@@ -5,8 +5,123 @@
 
 menu "Debugging console drivers"
 
-config DBG_SEGGER_RTT
+config CON_DW_UART
+	bool
+
+config DBG_DW_UART
+	bool
+
+config ARCH_HAS_DW_AMBA_ADVANCED
+	bool
+
+menuconfig DW_UART
+	bool "Synopsys DesignWare UART support"
+	select CON_DW_UART if CONSOLE
+	select DBG_DW_UART if DEBUG_PRINT
+	select MATH_DIV32
+
+if DW_UART
+
+config DW_UART_16550_COMPATIBLE
+	bool "Enable 16550 compatible mode"
+	help
+	  Configure the peripheral to be fully 16550 compatible. This is
+	  achieved by not having the busy functionality implemented.
+
+config DW_UART_DLF
+	bool "Enable fractional baud rate divisor"
+	depends ARCH_HAS_DW_AMBA_ADVANCED
+
+config DW_UART_DLF_SIZE
+	int "Fractional divisor width"
+	depends DW_UART_DLF
+	default 4
+
+config DW_UART_9BIT_DATA
+	bool "Enable 9-bit mode"
+	depends ARCH_HAS_DW_AMBA_ADVANCED
+
+choice
+	prompt "FIFO depth"
+	default DW_UART_FIFO_16
+
+config DW_UART_FIFO_NONE
+	bool "0"
+
+config DW_UART_FIFO_16
+	bool "16"
+
+config DW_UART_FIFO_32
+	bool "32"
+
+config DW_UART_FIFO_64
+	bool "64"
+
+config DW_UART_FIFO_128
+	bool "128"
+
+config DW_UART_FIFO_256
+	bool "256"
+
+config DW_UART_FIFO_512
+	bool "512"
+
+config DW_UART_FIFO_1024
+	bool "1024"
+
+config DW_UART_FIFO_2048
+	bool "2048"
+
+endchoice
+
+choice
+	prompt "FIFO memory type"
+	default DW_UART_FIFO_MEM_INTERNAL
+
+config DW_UART_FIFO_MEM_EXTERNAL
+	bool "External"
+
+config DW_UART_FIFO_MEM_INTERNAL
+	bool "Internal"
+	depends !DW_UART_FIFO_2048 && !DW_UART_FIFO_1024 && !DW_UART_FIFO_512
+
+endchoice
+
+config DW_UART_SIR_MODE
+	bool "Enable IrDA 1.0 SIR infrared mode"
+
+config DW_UART_AFCE_MODE
+	bool "Enable 16750-compatible auto flow control mode"
+	depends !DW_UART_FIFO_NONE
+
+config DW_UART_FIFO_ACCESS
+	bool "Enable FIFO access test mode"
+
+config DW_UART_ADDITIONAL_FEATURES
+	bool "Enable additional registers"
+
+if DW_UART_ADDITIONAL_FEATURES
+
+config DW_UART_FIFO_STAT
+	bool "Enable FIFO status registers"
+	depends !DW_UART_FIFO_NONE
+
+config DW_UART_SHADOW
+	bool "Enable shadow registers"
+
+config DW_UART_ADD_ENCODED_PARAMS
+	bool "Enable configuration parameter register"
+
+endif
+
+endif
+
+config CON_SEGGER_RTT
+	bool
+
+config SEGGER_RTT
 	bool "SEGGER Real-Time Transfer (RTT) support"
+	select CON_SEGGER_RTT if CONSOLE
 	help
 	  Implementation of SEGGER real-time transfer (RTT) whichallows
           real-time communication on targets which support debugger memory

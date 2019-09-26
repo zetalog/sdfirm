@@ -105,6 +105,7 @@ config CONSOLE_INPUT
 
 choice
 	prompt "Console UART baud rate"
+	default CONSOLE_115200
 	help
 	  This setting lets you define what baudrate is for the serial
 	  port.

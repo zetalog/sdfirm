@@ -61,9 +61,6 @@ uint8_t uart_hw_con_read(void);
 bool uart_hw_con_poll(void);
 void uart_hw_irq_ack(void);
 void uart_hw_irq_init(void);
-#else
-#define uart_hw_con_read()	-1
-#define uart_hw_con_poll()	false
 #endif
 #endif /* CONFIG_ARM_DCC */
 

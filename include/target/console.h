@@ -2,6 +2,7 @@
 #define __CONSOLE_H_INCLUDE__
 
 #ifndef __ASSEMBLY__
+#include <driver/uart.h>
 #include <stdarg.h>
 
 #ifdef CONFIG_CONSOLE_115200

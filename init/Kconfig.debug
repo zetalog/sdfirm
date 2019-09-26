@@ -194,6 +194,7 @@ endif
 
 menuconfig DEBUG_PRINT
 	bool "Enable debug messages on UART0"
+	depends !CONSOLE
 
 if DEBUG_PRINT
 
