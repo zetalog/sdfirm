@@ -256,7 +256,11 @@
 #define dw_uart_read_poll(n)		\
 	(!!(__raw_readl(UART_LSR(n) & LSR_DR)))
 #define dw_uart_read_byte(n)		__raw_readl(UART_RBR(n))
-#define dw_uart_write_byte(n, byte)	__raw_writel((byte), UART_THR(n))
+#define dw_uart_write_byte(n, byte)			\
+	do {						\
+		while (!dw_uart_write_poll(n));		\
+		__raw_writel((byte), UART_THR(n));	\
+	} while (0)
 
 #ifdef CONFIG_CONSOLE
 void dw_uart_con_init(void);

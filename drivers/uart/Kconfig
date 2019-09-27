@@ -22,25 +22,6 @@ menuconfig DW_UART
 
 if DW_UART
 
-config DW_UART_16550_COMPATIBLE
-	bool "Enable 16550 compatible mode"
-	help
-	  Configure the peripheral to be fully 16550 compatible. This is
-	  achieved by not having the busy functionality implemented.
-
-config DW_UART_DLF
-	bool "Enable fractional baud rate divisor"
-	depends ARCH_HAS_DW_AMBA_ADVANCED
-
-config DW_UART_DLF_SIZE
-	int "Fractional divisor width"
-	depends DW_UART_DLF
-	default 4
-
-config DW_UART_9BIT_DATA
-	bool "Enable 9-bit mode"
-	depends ARCH_HAS_DW_AMBA_ADVANCED
-
 choice
 	prompt "FIFO depth"
 	default DW_UART_FIFO_16
@@ -87,12 +68,31 @@ config DW_UART_FIFO_MEM_INTERNAL
 
 endchoice
 
-config DW_UART_SIR_MODE
-	bool "Enable IrDA 1.0 SIR infrared mode"
+config DW_UART_9BIT_DATA
+	bool "Enable 9-bit mode"
+	depends ARCH_HAS_DW_AMBA_ADVANCED
+
+config DW_UART_DLF
+	bool "Enable fractional baud rate divisor"
+	depends ARCH_HAS_DW_AMBA_ADVANCED
+
+config DW_UART_DLF_SIZE
+	int "Fractional divisor width"
+	depends DW_UART_DLF
+	default 4
+
+config DW_UART_16550_COMPATIBLE
+	bool "Enable 16550-compatible mode"
+	help
+	  Configure the peripheral to be fully 16550 compatible. This is
+	  achieved by not having the busy functionality implemented.
 
 config DW_UART_AFCE_MODE
 	bool "Enable 16750-compatible auto flow control mode"
 	depends !DW_UART_FIFO_NONE
+
+config DW_UART_SIR_MODE
+	bool "Enable IrDA 1.0 SIR infrared mode"
 
 config DW_UART_FIFO_ACCESS
 	bool "Enable FIFO access test mode"
