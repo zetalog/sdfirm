@@ -44,6 +44,18 @@
 #include <target/arch.h>
 #include <target/irq.h>
 
+void imc_sfab_remap(int n, uint32_t in_addr, uint64_t out_addr,
+		    imc_at_attr_t attr)
+{
+	imc_sfab_set_invalid(n);
+	imc_sfab_set_addr_i(n, in_addr);
+	imc_sfab_set_addr_o(n, out_addr);
+	imc_sfab_set_attr(n, IMC_AT_ATTR_GET_BURST(attr),
+			  IMC_AT_ATTR_GET_CACHE(attr),
+			  IMC_AT_ATTR_GET_PROT(attr));
+	imc_sfab_set_valid(n);
+}
+
 void board_reset(void)
 {
 }
