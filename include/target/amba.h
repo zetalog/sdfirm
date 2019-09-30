@@ -52,12 +52,16 @@
 #define AXI_AXPROT_DATA			0
 
 #define AXI_AXCACHE_BUFFERABLE		_BV(0)
+#define AXI_AXCACHE_NON_BUFFERABLE	0
 #define AXI_AXCACHE_CACHEABLE		_BV(1)
+#define AXI_AXCACHE_NON_CACHEABLE	0
 #define AXI_AXCACHE_READ_ALLOCATE	_BV(2)
 #define AXI_AXCACHE_WRITE_ALLOCATE	_BV(3)
 
 #define AXI_AXBURST_FIXED		0
-#define AXI_AXBURST_INCR		1
-#define AXI_AXBURST_WRAP		2
+#define AXI_AXBURST_INCR		1 /* align cache line */
+#define AXI_AXBURST_WRAP		2 /* align AxSize */
+
+#define __bus_aligned			__align(AXI_AXSIZE_BYTES)
 
 #endif /* __AMBA_H_INCLUDE__ */
