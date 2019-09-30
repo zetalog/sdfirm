@@ -44,6 +44,7 @@
 
 #include <target/arch.h>
 #include <target/types.h>
+#include <target/amba.h>
 
 #define IMC_CSR_REG(offset)		(IMC_CSR_BASE + (offset))
 #define IMC_CSR_BOOT_ADDR		IMC_CSR_REG(0x00)
@@ -105,7 +106,7 @@
 #define IMC_AT_OUT_43_24_MASK		REG_20BIT_MASK
 #define IMC_AT_OUT_43_24(value)		_SET_FV(IMC_AT_OUT_43_24, value)
 
-/* IMC_AT attributes */
+/* IMC_AT attributes, see AXI_AXPROT/AXI_AXCACHE/AXBURST */
 #define IMC_AT_ATTR_PROT_OFFSET		0
 #define IMC_AT_ATTR_PROT_MASK		IMC_AT_PROT_MASK
 #define IMC_AT_ATTR_SET_PROT(value)	_SET_FV(IMC_AT_ATTR_PROT, value)
@@ -118,6 +119,10 @@
 #define IMC_AT_ATTR_BURST_MASK		IMC_AT_BURST_MASK
 #define IMC_AT_ATTR_SET_BURST(value)	_SET_FV(IMC_AT_ATTR_BURST, value)
 #define IMC_AT_ATTR_GET_BURST(value)	_GET_FV(IMC_AT_ATTR_BURST, value)
+#define IMC_AT_ATTR(burst, cache, prot)	\
+	(IMC_AT_ATTR_SET_BURST(burst) |	\
+	 IMC_AT_ATTR_SET_CACHE(cache) | \
+	 IMC_AT_ATTR_SET_PROT(prot))
 #define imc_sfab_set_valid(n)		\
 	__raw_setl(IMC_AT_VALID, IMC_ADDR_TRANS_HI(n));
 #define imc_sfab_set_invalid(n)		\
