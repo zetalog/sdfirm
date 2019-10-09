@@ -4,6 +4,12 @@
 
 menu "Driver setup"
 
+#
+# Common to all Synopsys AMBA advance peripherals
+#
+config ARCH_HAS_DW_AMBA_ADVANCED
+	bool
+
 source drivers/timer/Kconfig
 source drivers/uart/Kconfig
 source drivers/lcd/Kconfig

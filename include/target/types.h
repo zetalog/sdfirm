@@ -45,15 +45,16 @@ typedef unsigned long			loff_t;
 #define _BV_UL(bit)			(UL(1) << (bit))
 #define _BV_ULL(bit)			(ULL(1) << (bit))
 #define _BV(bit)			_BV_UL(bit)
-#ifdef __ASSEMBLY__
-#define _SET_FV(name, value)		\
-	(((value) & (name##_MASK)) << (name##_OFFSET))
-#else
-#define _SET_FV(name, value)		\
-	((((size_t)value) & (name##_MASK)) << (name##_OFFSET))
-#endif
-#define _GET_FV(name, value)		\
-	(((value) >> (name##_OFFSET)) & (name##_MASK))
+#define _SET_FV_UL(name, value)		\
+	((UL(0) + ((value) & (name##_MASK))) << (name##_OFFSET))
+#define _SET_FV_ULL(name, value)	\
+	((ULL(0) + ((value) & (name##_MASK))) << (name##_OFFSET))
+#define _SET_FV(name, value)		_SET_FV_UL(name, value)
+#define _GET_FV_UL(name, value)		\
+	((UL(0) + ((value) >> (name##_OFFSET))) & (name##_MASK))
+#define _GET_FV_ULL(name, value)	\
+	((ULL(0) + ((value) >> (name##_OFFSET))) & (name##_MASK))
+#define _GET_FV(name, value)		_GET_FV_UL(name, value)
 /* Default to _SET_FV() as by default _FV() is used to generate field
  * values to be written to the registers.
  */

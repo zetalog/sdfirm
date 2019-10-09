@@ -20,11 +20,15 @@ choice
 
 config ARCH_AT8XC5122
 	bool "Atmel AT8xC5122 based"
-	select TICK_PERIODIC if TICK
-	select GPT_AT8XC5122 if TIMER || TICK
 #	select ARCH_IS_TICKLESS
 	select ARCH_HAS_TSC
-	select ARCH_HAS_GPIO
+	select TICK_PERIODIC if TICK
+	select GPT_AT8XC5122 if TIMER || TICK
+	select GPIO_AT8XC5122 if GPIO
+	select UART_AT8XC5122 if DEBUG_PRINT || UART
+	select USB_AT8XC5122 if USB
+	select IFD_AT8XC5122 if SCS
+	select KBD_AT8XC5122 if KBD
 
 endchoice
 

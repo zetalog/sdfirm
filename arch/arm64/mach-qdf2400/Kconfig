@@ -145,6 +145,8 @@ endif
 
 config GPIO_TLMM
 	bool "Qualcomm Top Level Module Multiplexer (TLMM) support"
+	depends GPIO
+	select ARCH_HAS_GPIO
 
 menu "Qualcomm specific GIC options"
 
@@ -165,9 +167,10 @@ endmenu
 
 menuconfig UART_QUART
 	bool "Qualcomm QUART (dragonfly) controller support"
+	depends UART || DEBUG_PRINT || CONSOLE
 	depends !ARM_DCC
 	select ARCH_HAS_UART
-	select GPIO_TLMM
+	select GPIO
 	default y
 	help
 	  QDF2400 contains 8 Qualcomm UART controllers instantiated in BAM

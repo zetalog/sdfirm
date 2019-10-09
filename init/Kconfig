@@ -78,8 +78,7 @@ endmenu
 endif
 
 menuconfig CONSOLE
-	bool "Enable console on UART0"
-	depends ARCH_HAS_UART
+	bool "Enable console on (possibly) UART0"
 	select PRINT_PRINTF
 
 if CONSOLE

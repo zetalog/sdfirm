@@ -1,0 +1,63 @@
+#
+# MMC Devices
+#
+
+menuconfig MMC
+	bool "Multimedia card (MMC) interface support"
+
+if MMC
+
+config MMC_MAX_SLOTS
+	int "Number of memory card slots (1~8)"
+	range 1 8
+	default 1
+
+config SDHC
+	bool "Secure digital host controller (SDHC) support"
+
+if SDHC
+
+config SDHC4
+	bool "Enable host version 4 support"
+
+menu "DMA support"
+
+config SDHC_SDMA
+	bool "Single operation DMA (SDMA) support"
+
+config SDHC_ADMA
+	bool "Advanced DMA (ADMA) support"
+	depends SDHC4
+
+endmenu
+
+menuconfig UHSII
+	bool "UHS-II mode support"
+
+if UHSII
+
+config UHSII_CTS
+	bool "Enable command issuing during CTS"
+
+config UHSII_TID
+	bool "Enable support of TID check"
+
+endif
+
+config SDHC_PM
+	bool "Enable suspend/resume mechanism support"
+
+config SDHC_BUFFER
+	bool "Enable buffer control support"
+
+config SDHC_AUTO_CMD12
+	bool "Auto CMD12 support"
+
+config SDHC_AUTO_CMD23
+	bool "Auto CMD23 support"
+	depends SDHC4
+
+endif
+
+endif
+

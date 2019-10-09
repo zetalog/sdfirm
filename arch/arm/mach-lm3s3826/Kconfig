@@ -85,6 +85,7 @@ config TSC_LM3S3826_GPT1
 menuconfig GPIO_LM3S3826
 	bool "TI LM3S3826 general purpose IO support"
 	depends GPIO
+	select ARCH_HAS_GPIO
 	default y
 
 if GPIO_LM3S3826
@@ -106,8 +107,8 @@ endif
 
 menuconfig KBD_LM3S3826
 	bool "TI LM3S3826 keyboard controller support"
-	depends GPIO
 	depends KBD
+	select GPIO
 	default n
 	help
 	  This driver can only support four independent keyboard, when the
@@ -115,6 +116,7 @@ menuconfig KBD_LM3S3826
 	  button is released, it be pulled down to the internal GND.
 
 if KBD_LM3S3826
+
 choice
 	prompt "Layout"
 	default n
@@ -143,11 +145,11 @@ endif
 
 menuconfig UART_LM3S3826
 	bool "TI LM3S3826 UART controller support"
-	select GPIO
+	depends UART || DEBUG_PRINT || CONSOLE
 	select ARCH_HAS_UART
+	select GPIO
 	select MATH_MOD32
 	select MATH_MUL32
-	depends UART || DEBUG_PRINT
 	default y
 
 if UART_LM3S3826
@@ -193,9 +195,9 @@ endif
 menuconfig SSI_LM3S3826
 	bool "TI LM3S3826 SSI controller support"
 	depends SPI
+	select ARCH_HAS_SPI
 	select GPIO
 	select BIT_FLS16
-	select ARCH_HAS_SPI
 	default y
 
 if SSI_LM3S3826

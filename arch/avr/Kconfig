@@ -22,19 +22,29 @@ config ARCH_AT90USB1287
 	bool "Ateml AT90USB1287"
 	select CPU_ATMEGA128
 	select ARCH_IS_TICKLESS
-	select GPT_AT90USB1287 if TIMER
 	select ARCH_HAS_TSC
 	select ARCH_HAS_WDT
+	select GPT_AT90USB1287 if TIMER
+	select UART_AT90USB1287 if UART || DEBUG_PRINT || CONSOLE
+	select USB_AT90USB1287 if USB
+	select USB_AT90USB1287_DEV if USB_DEV
+	select SPI_AT90USB1287 if SPI
+	select LED_AT90USB1287 if LED
 	help
 	  This enables support for systems based on AT90USBKey.
 
 config ARCH_AT90SCR100
 	bool "Ateml AT90SCR100"
 	select CPU_ATMEGA128
-	select GPT_AT90SCR100 if TIMER
 	select ARCH_IS_TICKLESS
 	select ARCH_HAS_TSC
 	select ARCH_HAS_WDT
+	select GPT_AT90SCR100 if TIMER
+	select UART_AT90SCR100 if UART || DEBUG_PRINT || CONSOLE
+	select USB_AT90SCR100 if USB
+	select KBD_AT90SCR100 if KBD
+	select IFD_AT90SCR100 if SCS
+	select TWI_AT90SCR100 if I2C
 	help
 	  This enables support for systems based on AT90SCRdr.
 

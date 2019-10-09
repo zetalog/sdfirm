@@ -63,6 +63,7 @@ endmenu
 
 menuconfig LPUART
 	bool "Low Power UART (LPUART) module support"
+	depends UART || DEBUG_PRINT || CONSOLE
 	select ARCH_HAS_UART
 	select GPIO
 

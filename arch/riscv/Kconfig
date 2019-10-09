@@ -33,9 +33,8 @@ config ARCH_VEGA
 	select ARCH_HAS_TSC_CONST
 	select ARCH_HAS_GPT
 	select ARCH_HAS_GPIO
-	select ARCH_HAS_UART
 	select ARCH_HAS_IDLE
-	select LPUART if UART
+	select LPUART if UART || DEBUG_PRINT || CONSOLE
 	select IRQC_EVENT if !SYS_NOIRQ
 	select CLK
 	select MATH_DIV32
@@ -50,7 +49,6 @@ config ARCH_DUOWEN
 	select ARCH_HAS_TSC
 	select ARCH_HAS_TSC_CONST
 	select DW_TIMERS
-	select ARCH_HAS_UART
 	select DW_UART if CONSOLE || DEBUG_PRINT
 	help
 	  This enables support for emulated riscv platforms.

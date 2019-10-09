@@ -383,6 +383,7 @@ menu "External Debug support"
 
 config ARM_DCC
 	bool "Debug Communications Channel (DCC) support"
+	depends UART || DEBUG_PRINT || CONSOLE
 	select ARCH_HAS_UART
 	help
 	  The Debug Communications Channel, DCC, is a channel for passing

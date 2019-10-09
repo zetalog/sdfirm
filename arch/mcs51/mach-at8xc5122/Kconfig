@@ -57,19 +57,22 @@ menuconfig GPT_AT8XC5122
 	default y
 
 if GPT_AT8XC5122
+
 endif
 
 menuconfig GPIO_AT8XC5122
 	bool "Atmel AT8XC5122 general purpose IO support"
 	depends GPIO
+	select ARCH_HAS_GPIO
 	default y
 
 if GPIO_AT8XC5122
+
 endif
 
 menuconfig UART_AT8XC5122
 	bool "Atmel AT8XC5122 serial port support"
-	depends UART || DEBUG_PRINT
+	depends UART || DEBUG_PRINT || CONSOLE
 	select ARCH_HAS_UART
 	default y
 
@@ -95,6 +98,7 @@ menuconfig KBD_AT8XC5122
 	  (KBE).
 
 if KBD_AT8XC5122
+
 choice
 	prompt "Layout"
 	default KBD_AT8XC5122_ROW4_COL4
@@ -157,6 +161,7 @@ menuconfig USB_AT8XC5122
 	default y
 
 if USB_AT8XC5122
+
 config USB_AT8XC5122_MAX_ENDPS
 	int "Number of endpoints (1~7)"
 	range 1 7
@@ -164,6 +169,7 @@ config USB_AT8XC5122_MAX_ENDPS
 	default 7
 
 if USB_AT8XC5122
+
 endif
 
 endif
@@ -176,6 +182,7 @@ menuconfig IFD_AT8XC5122
 	default y
 
 if IFD_AT8XC5122
+
 config IFD_AT8XC5122_MAX_DATA
 	int "Maximum data baud rates in bps"
 	range 9600 921600

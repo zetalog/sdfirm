@@ -542,7 +542,6 @@ config ARCH_HAS_GPIO
 
 config GPIO
 	bool "General purpose Input/Output (GPIO) support"
-	depends ARCH_HAS_GPIO
 
 config ARCH_HAS_CLK
 	bool
@@ -568,6 +567,7 @@ source kernel/mtd/Kconfig
 source kernel/scsi/Kconfig
 source kernel/net/Kconfig
 source kernel/video/Kconfig
+source kernel/mmc/Kconfig
 
 config RAS
 	bool "Reliability Availability Serviceability (RAS) support"

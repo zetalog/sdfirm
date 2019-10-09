@@ -76,7 +76,7 @@ endif
 
 menuconfig UART_AT90SCR100
 	bool "Atmel AT90SCR100 serial port support"
-	depends UART || DEBUG_PRINT
+	depends UART || DEBUG_PRINT || CONSOLE
 	select ARCH_HAS_UART
 	default y
 
@@ -139,13 +139,11 @@ config KBD_AT90SCR100_ROW_OFFSET
 config KBD_AT90SCR100_MAX_ROWS
 	int "Number of key rows (1~4)"
 	range 1 4
-	depends KBD
 	default 4
 
 config KBD_AT90SCR100_MAX_COLS
 	int "Number of key columns (1~5)"
 	range 1 5
-	depends KBD
 	default 4
 
 endif
@@ -162,15 +160,14 @@ if USB_AT90SCR100
 config USB_AT90SCR100_MAX_ENDPS
 	int "Number of endpoints (1~7)"
 	range 1 7
-	depends USB
 	default 7
 
 endif
 
 menuconfig IFD_AT90SCR100
 	bool "Atmel AT90SCR100 smart card interface block (SCIB) support"
-	select ARCH_HAS_IFD
 	depends SCS
+	select ARCH_HAS_IFD
 	default y
 
 if IFD_AT90SCR100
