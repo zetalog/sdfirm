@@ -38,6 +38,7 @@ extern __near__ uint32_t system_device_id;
 	(system_device_id |= ((func) & DEVICE_FUNC_MASK))
 
 #define DEVICE_INTF_USB		0x00010000
+#define DEVICE_INTF_MMC		0x00020000
 
 #define DEVICE_FUNC_KBD		0x00000100
 #define DEVICE_FUNC_LCD		0x00000200

@@ -43,7 +43,6 @@
 #define __SDHC_H_INCLUDE__
 
 #include <target/config.h>
-#include <target/mmc.h>
 
 #ifndef SDHC_REG
 #define SDHC_REG(n, offset)		(SDHC##n##_BASE + (offset))
@@ -144,5 +143,13 @@
 #define UHSII_MSG_SELECT(n)		SDHC_REG(n, 0x0B4)
 #define UHSII_DEVICE_SELECT(n)		SDHC_REG(n, 0x0BE)
 #define UHSII_DEVICE_INTERRUPT_CODE(n)	SDHC_REG(n, 0x0BF)
+
+#ifdef CONFIG_MMC
+#define mmc_hw_ctrl_init()		sdhc_init()
+#endif
+
+#include <driver/sdhc.h>
+
+void sdhc_init(void);
 
 #endif /* __SDHC_H_INCLUDE__ */

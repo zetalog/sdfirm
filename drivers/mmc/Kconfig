@@ -1,0 +1,17 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "MMC host drivers"
+
+menuconfig DW_MSHC
+	bool "Synopsys DesignWare Mobile Storage Host (MSHC) support"
+	depends SDHC
+	select ARCH_HAS_SDHC
+
+if DW_MSHC
+
+endif
+
+endmenu

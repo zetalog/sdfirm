@@ -50,6 +50,8 @@
 #define MMC_MAX_SLOTS		CONFIG_MMC_MAX_SLOTS
 #endif
 
+#include <driver/mmc.h>
+
 /* This file is implemented according to the following standards:
  * JESD84-B41
  *  MultiMediaCard (MMC) Electrical Standard, Standard Capacity
@@ -291,11 +293,13 @@
 typedef struct {
 	uint8_t mid;	/* manuafacturer ID */
 	uint16_t oid;	/* OEM/application ID */
+#ifdef CONFIG_MMC_CID_ALL_FIELDS
 	uint8_t pnm[6];	/* product name */
 	uint8_t prv;	/* product revision */
 	uint32_t psn;	/* product serial number */
 	uint8_t mdt;	/* manuafacturing date */
 	uint8_t crc;
+#endif
 } __packed mmc_cid_t;
 typedef uint8_t mmc_raw_cid_t[16];
 
@@ -323,6 +327,72 @@ typedef uint8_t mmc_raw_cid_t[16];
 #define MMC_CSD3_TRAN_SPEED_OFFSET	0
 #define MMC_CSD3_TRAN_SPEED_MASK	REG_8BIT_MASK
 #define MMC_CSD3_TRAN_SPEED(value)	_GET_FV(MMC_CSD3_TRAN_SPEED, value)
+#define MMC_CSD21_CCC_OFFSET		52
+#define MMC_CSD21_CCC_MASK		REG_12BIT_MASK
+#define MMC_CSD21_CCC(value)		_GET_FV_ULL(MMC_CSD21_CCC, value)
+#define MMC_CSD21_READ_BL_LEN_OFFSET	48
+#define MMC_CSD21_READ_BL_LEN_MASK	REG_4BIT_MASK
+#define MMC_CSD21_READ_BL_LEN(value)	_GET_FV_ULL(MMC_CSD21_READ_BL_LEN, value)
+#define MMC_CSD21_READ_BL_PARTIAL	_BV_ULL(47)
+#define MMC_CSD21_WRITE_BLK_MISALIGN	_BV_ULL(46)
+#define MMC_CSD21_READ_BLK_MISALIGN	_BV_ULL(45)
+#define MMC_CSD21_DSR_IMP		_BV_ULL(44)
+#define MMC_CSD21_C_SIZE_OFFSET		30
+#define MMC_CSD21_C_SIZE_MASK		REG_12BIT_MASK
+#define MMC_CSD21_C_SIZE(value)		_GET_FV_ULL(MMC_CSD21_C_SIZE, value)
+#define MMC_CSD21_VDD_R_CURR_MIN_OFFSET	27
+#define MMC_CSD21_VDD_R_CURR_MIN_MASK	REG_3BIT_MASK
+#define MMC_CSD21_VDD_R_CURR_MIN(value)	_GET_FV_ULL(MMC_CSD21_VDD_R_CURR_MIN, value)
+#define MMC_CSD21_VDD_R_CURR_MAX_OFFSET	24
+#define MMC_CSD21_VDD_R_CURR_MAX_MASK	REG_3BIT_MASK
+#define MMC_CSD21_VDD_R_CURR_MAX(value)	_GET_FV_ULL(MMC_CSD21_VDD_R_CURR_MAX, value)
+#define MMC_CSD21_VDD_W_CURR_MIN_OFFSET	21
+#define MMC_CSD21_VDD_W_CURR_MIN_MASK	REG_3BIT_MASK
+#define MMC_CSD21_VDD_W_CURR_MIN(value)	_GET_FV_ULL(MMC_CSD21_VDD_W_CURR_MIN, value)
+#define MMC_CSD21_VDD_W_CURR_MAX_OFFSET	18
+#define MMC_CSD21_VDD_W_CURR_MAX_MASK	REG_3BIT_MASK
+#define MMC_CSD21_VDD_W_CURR_MAX(value)	_GET_FV_ULL(MMC_CSD21_VDD_W_CURR_MAX, value)
+#define MMC_CSD21_C_SIZE_MULT_OFFSET	15
+#define MMC_CSD21_C_SIZE_MULT_MASK	REG_3BIT_MASK
+#define MMC_CSD21_C_SIZE_MULT(value)	_GET_FV_ULL(MMC_CSD21_C_SIZE_MULT, value)
+#define MMC_CSD21_ERASE_GRP_SIZE_OFFSET	10
+#define MMC_CSD21_ERASE_GRP_SIZE_MASK	REG_5BIT_MASK
+#define MMC_CSD21_ERASE_GRP_SIZE(value)	_GET_FV_ULL(MMC_CSD21_ERASE_GRP_SIZE, value)
+#define MMC_CSD21_ERASE_GRP_MULT_OFFSET	5
+#define MMC_CSD21_ERASE_GRP_MULT_MASK	REG_5BIT_MASK
+#define MMC_CSD21_ERASE_GRP_MULT(value)	_GET_FV_ULL(MMC_CSD21_ERASE_GRP_MULT, value)
+#define MMC_CSD21_WP_GRP_SIZE_OFFSET	0
+#define MMC_CSD21_WP_GRP_SIZE_MASK	REG_5BIT_MASK
+#define MMC_CSD21_WP_GRP_SIZE(value)	_GET_FV_ULL(MMC_CSD21_WP_GRP_SIZE, value)
+#define MMC_CSD0_WP_GRP_ENABLE		_BV(31)
+#define MMC_CSD0_DEFAULT_ECC_OFFSET	29
+#define MMC_CSD0_DEFAULT_ECC_MASK	REG_2BIT_MASK
+#define MMC_CSD0_DEFAULT_ECC(value)	_GET_FV(MMC_CSD0_DEFAULT_ECC, value)
+#define MMC_CSD0_R2W_FACTOR_OFFSET	26
+#define MMC_CSD0_R2W_FACTOR_MASK	REG_3BIT_MASK
+#define MMC_CSD0_R2W_FACTOR(value)	_GET_FV(MMC_CSD0_R2W_FACTOR, value)
+#define MMC_CSD0_WRITE_BL_LEN_OFFSET	22
+#define MMC_CSD0_WRITE_BL_LEN_MASK	REG_4BIT_MASK
+#define MMC_CSD0_WRITE_BL_LEN(value)	_GET_FV(MMC_CSD0_WRITE_BL_LEN, value)
+#define MMC_CSD0_WRITE_BL_PARTIAL	_BV(21)
+/* R/W fields */
+#define MMC_CSD0_CONTENT_PROT_APP	_BV(16)
+#define MMC_CSD0_FILE_FORMAT_GRP	_BV(15)
+#define MMC_CSD0_COPY			_BV(14)
+#define MMC_CSD0_PERM_WRITE_PROTECT	_BV(13)
+#define MMC_CSD0_TMP_WRITE_PROTECT	_BV(12)
+#define MMC_CSD0_FILE_FORMAT_OFFSET	10
+#define MMC_CSD0_FILE_FORMAT_MASK	REG_2BIT_MASK
+#define MMC_CSD0_GET_FILE_FORMAT(value)	_GET_FV(MMC_CSD0_FILE_FORMAT, value)
+#define MMC_CSD0_SET_FILE_FORMAT(value)	_GET_FV(MMC_CSD0_FILE_FORMAT, value)
+#define MMC_CSD0_ECC_OFFSET		8
+#define MMC_CSD0_ECC_MASK		REG_2BIT_MASK
+#define MMC_CSD0_GET_ECC(value)		_GET_FV(MMC_CSD0_ECC, value)
+#define MMC_CSD0_SET_ECC(value)		_SET_FV(MMC_CSD0_ECC, value)
+#define MMC_CSD0_CRC_OFFSET		8
+#define MMC_CSD0_CRC_MASK		REG_7BIT_MASK
+#define MMC_CSD0_GET_CRC(value)		_GET_FV(MMC_CSD0_CRC, value)
+#define MMC_CSD0_SET_CRC(value)		_SET_FV(MMC_CSD0_CRC, value)
 
 typedef struct {
 	uint32_t csd3;

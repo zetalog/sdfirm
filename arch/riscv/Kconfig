@@ -50,6 +50,8 @@ config ARCH_DUOWEN
 	select ARCH_HAS_TSC_CONST
 	select DW_TIMERS
 	select DW_UART if CONSOLE || DEBUG_PRINT
+	select SDHC if MMC
+	select DW_MSHC if SDHC
 	help
 	  This enables support for emulated riscv platforms.
 

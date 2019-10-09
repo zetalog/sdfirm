@@ -16,5 +16,6 @@ source drivers/lcd/Kconfig
 source drivers/video/Kconfig
 source drivers/mtd/Kconfig
 source drivers/scs/Kconfig
+source drivers/mmc/Kconfig
 
 endmenu

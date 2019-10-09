@@ -2,6 +2,12 @@
 # MMC Devices
 #
 
+config ARCH_HAS_MMC
+	bool
+
+config ARCH_HAS_SDHC
+	bool
+
 menuconfig MMC
 	bool "Multimedia card (MMC) interface support"
 
@@ -12,8 +18,13 @@ config MMC_MAX_SLOTS
 	range 1 8
 	default 1
 
+config MMC_CID_ALL_FIELDS
+	bool "Enable storing of all CID register fields"
+
 config SDHC
 	bool "Secure digital host controller (SDHC) support"
+	depends MMC
+	select ARCH_HAS_MMC
 
 if SDHC
 
@@ -60,4 +71,3 @@ config SDHC_AUTO_CMD23
 endif
 
 endif
-

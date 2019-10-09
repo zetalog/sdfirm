@@ -68,6 +68,11 @@ void ifd_init(void);
 #else
 #define ifd_init()
 #endif
+#ifdef CONFIG_MMC
+void mmc_init(void);
+#else
+#define mmc_init()
+#endif
 #ifdef CONFIG_COS
 void cos_init(void);
 #else
@@ -136,6 +141,7 @@ void modules_init(void)
 	i2c_init();
 	spi_init();
 	net_init();
+	mmc_init();
 	usb_init();
 	mtd_init();
 

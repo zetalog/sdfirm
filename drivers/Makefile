@@ -11,4 +11,5 @@ obj-y += uart/
 obj-$(CONFIG_LCD) += lcd/
 obj-$(CONFIG_VIDEO) += video/
 obj-$(CONFIG_MTD) += mtd/
+obj-y += mmc/
 obj-y += scs/

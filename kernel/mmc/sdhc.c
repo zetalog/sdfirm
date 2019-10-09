@@ -39,5 +39,9 @@
  * $Id: sdhc.c,v 1.1 2019-10-08 18:46:00 zhenglv Exp $
  */
 
-#include <target/sdhc.h>
+#include <target/mmc.h>
 
+void sdhc_init(void)
+{
+	sdhc_hw_ctrl_init();
+}
