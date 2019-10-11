@@ -19,22 +19,11 @@
 DECLARE_CIRCBF16(console_output_buffer, CONSOLE_BUFFER_SIZE);
 static console_handler console_console_handler = NULL;
 
-#ifdef CONFIG_CONSOLE_OUTPUT
-#define __putchar(c)	uart_hw_con_write(c)
-#else
-#define __putchar(c)
-#endif
-#ifdef CONFIG_CONSOLE_INPUT
-#define __getchar(c)	uart_hw_con_read()
-#else
-#define __getchar(c)	0x00
-#endif
-
 #ifdef CONFIG_CONSOLE_OUTPUT_CR
 void append_cr(int c)
 {
 	if (c == '\n')
-		__putchar('\r');
+		uart_hw_con_write('\r');
 }
 #else
 #define append_cr(c)	do { } while (0)
@@ -43,13 +32,13 @@ void append_cr(int c)
 int putchar(int c)
 {
 	append_cr(c);
-	__putchar(c);
+	uart_hw_con_write(c);
 	return 1;
 }
 
 int getchar(void)
 {
-	return (int)__getchar();
+	return (int)uart_hw_con_read();
 }
 
 #ifdef CONFIG_CONSOLE_OUTPUT
