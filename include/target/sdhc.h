@@ -146,10 +146,12 @@
 
 #ifdef CONFIG_MMC
 #define mmc_hw_ctrl_init()		sdhc_init()
+#define mmc_hw_slot_select(sid)		sdhc_select(sid)
 #endif
 
 #include <driver/sdhc.h>
 
 void sdhc_init(void);
+void sdhc_select(mmc_sid_t sid);
 
 #endif /* __SDHC_H_INCLUDE__ */

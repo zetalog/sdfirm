@@ -105,3 +105,23 @@ void dw_uart_con_init(void)
 	dw_uart_reset_fifo(UART_CON_ID);
 }
 #endif
+
+#ifdef CONFIG_CONSOLE_OUTPUT
+void dw_uart_con_write(uint8_t byte)
+{
+	while (!dw_uart_write_poll(UART_CON_ID));
+	dw_uart_write_byte(UART_CON_ID, byte);
+}
+#endif
+
+#ifdef CONFIG_CONSOLE_INPUT
+uint8_t dw_uart_con_read(void)
+{
+	return dw_uart_read_byte(UART_CON_ID);
+}
+
+bool dw_uart_con_poll(void)
+{
+	return dw_uart_read_poll(UART_CON_ID);
+}
+#endif

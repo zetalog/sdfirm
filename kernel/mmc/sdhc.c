@@ -41,6 +41,13 @@
 
 #include <target/mmc.h>
 
+mmc_sid_t sdhc_mmc_sid;
+
+void sdhc_select(mmc_sid_t sid)
+{
+	sdhc_mmc_sid = sid;
+}
+
 void sdhc_init(void)
 {
 	sdhc_hw_ctrl_init();

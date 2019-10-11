@@ -78,11 +78,11 @@ void uart_hw_mmu_init(void);
 #define uart_hw_con_init()	dw_uart_con_init()
 #endif
 #ifdef CONFIG_CONSOLE_OUTPUT
-#define uart_hw_con_write(byte)	dw_uart_write_byte(UART_CON_ID, byte)
+#define uart_hw_con_write(byte)	dw_uart_con_write(byte)
 #endif
 #ifdef CONFIG_CONSOLE_INPUT
-#define uart_hw_con_read()	dw_uart_read_byte(UART_CON_ID)
-#define uart_hw_con_poll()	dw_uart_read_poll(UART_CON_ID)
+#define uart_hw_con_read()	dw_uart_con_read()
+#define uart_hw_con_poll()	dw_uart_con_poll()
 void uart_hw_irq_ack(void);
 void uart_hw_irq_init(void);
 #endif

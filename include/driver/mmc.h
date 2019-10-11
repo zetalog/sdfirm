@@ -50,6 +50,7 @@
 
 #ifndef ARCH_HAVE_MMC
 #define mmc_hw_ctrl_init()
+#define mmc_hw_slot_selet(sid)
 #endif
 
 #endif /* __MMC_DRIVER_H_INCLUDE__ */

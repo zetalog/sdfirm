@@ -46,9 +46,34 @@
 #include <target/compiler.h>
 #include <target/generic.h>
 
-#ifndef MMC_MAX_SLOTS
-#define MMC_MAX_SLOTS		CONFIG_MMC_MAX_SLOTS
+#ifdef CONFIG_MMC_DEBUG
+#define mmc_debug_state(state)					\
+	do {							\
+		if (state != mmc_state_get()) {			\
+			mmc_debug(MMC_DEBUG_STATE, state);	\
+		}						\
+	} while (0)
+#define mmc_debug_event(event)					\
+	do {							\
+		mmc_debug(MMC_DEBUG_EVENT, event);		\
+	} while (0)
+#define mmc_debug_cmd(cmd)					\
+	do {							\
+		mmc_debug(MMC_DEBUG_CMD, cmd);			\
+	} while (0)
+#else
+#define mmc_debug_state(state)
+#define mmc_debug_event(event)
+#define mmc_debug_cmd(cmd)
 #endif
+
+#ifndef NR_MMC_SLOTS
+#define NR_MMC_SLOTS		CONFIG_MMC_MAX_SLOTS
+#endif
+#define INVALID_MMC_SID		NR_MMC_SLOTS
+
+typedef uint8_t mmc_sid_t;
+typedef uint16_t mmc_event_t;
 
 #include <driver/mmc.h>
 
@@ -409,7 +434,31 @@ struct mmc_slot {
 	uint8_t state;
 };
 
+#ifdef CONFIG_DEBUG_PRINT
+#define mmc_debug(tag, val)	dbg_print((tag), (val))
+#endif
+#ifdef CONFIG_CONSOLE
+void mmc_debug(uint8_t tag, uint32_t val);
+#endif
+
+#if NR_MMC_SLOTS > 1
+mmc_sid_t mmc_sid_save(mmc_sid_t sid);
+void mmc_sid_restore(mmc_sid_t sid);
+extern mmc_sid_t mmc_slid;
+extern struct mmc_slot mmc_slots[NR_MMC_SLOTS];
+#define mmc_slot_ctrl mmc_slots[mmc_slid]
+#else
+#define mmc_sid_save(sid)		0
+#define mmc_sid_restore(sid)
+#define mmc_slid			0
+extern struct mmc_slot mmc_slot_ctrl;
+#endif
+
 mmc_cid_t mmc_decode_cid(mmc_raw_cid_t raw_cid);
 mmc_csd_t mmc_decode_csd(mmc_raw_csd_t raw_csd);
+uint8_t mmc_state_get(void);
+void mmc_state_set(uint8_t state);
+#define mmc_state_is(state)	(mmc_state_get() == MMC_STATE_##state)
+#define mmc_state_enter(state)	mmc_state_set(MMC_STATE_##state)
 
 #endif /* __MMC_H_INCLUDE__ */

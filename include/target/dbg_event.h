@@ -17,7 +17,8 @@
 #define DBG_SRC_UART		10
 #define DBG_SRC_BULK		11
 #define DBG_SRC_USER		12
-#define NR_DBG_SRCS		13
+#define DBG_SRC_MMC		13
+#define NR_DBG_SRCS		14
 /* XXX: Current DBG_SRCS Limitation
  * current NR_DBG_SRCS should not exceed 0x14, or 0x15 could not be used
  * as raw data in the UI
@@ -108,6 +109,12 @@
 #define EZIO_DEBUG_CMD		USER_DEBUG_BASE+4
 #define EZIO_DEBUG_STATE	USER_DEBUG_BASE+5
 #define NR_USER_EVENTS		(EZIO_DEBUG_STATE - USER_DEBUG_BASE + 1)
+
+#define MMC_DEBUG_BASE		(DBG_SRC_MMC<<4)
+#define MMC_DEBUG_CMD		MMC_DEBUG_BASE+0
+#define MMC_DEBUG_EVENT		MMC_DEBUG_BASE+1
+#define MMC_DEBUG_STATE		MMC_DEBUG_BASE+2
+#define NR_MMC_EVENTS		(MMC_DEBUG_STATE - MMC_DEBUG_BASE + 1)
 
 #define IDLE_DEBUG_BASE		(DBG_SRC_IDLE<<4)
 #define IDLE_DEBUG_SID		IDLE_DEBUG_BASE

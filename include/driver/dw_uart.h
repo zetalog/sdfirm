@@ -252,20 +252,21 @@
 #endif
 
 #define dw_uart_write_poll(n)		\
-	(!!(__raw_readl(UART_LSR(n) & LSR_TEMT)))
+	(!!(__raw_readl(UART_LSR(n)) & LSR_TEMT))
 #define dw_uart_read_poll(n)		\
-	(!!(__raw_readl(UART_LSR(n) & LSR_DR)))
+	(!!(__raw_readl(UART_LSR(n)) & LSR_DR))
 #define dw_uart_read_byte(n)		__raw_readl(UART_RBR(n))
-#define dw_uart_write_byte(n, byte)			\
-	do {						\
-		while (!dw_uart_write_poll(n));		\
-		__raw_writel((byte), UART_THR(n));	\
-	} while (0)
+#define dw_uart_write_byte(n, byte)	__raw_writel((byte), UART_THR(n))
 
 #ifdef CONFIG_CONSOLE
 void dw_uart_con_init(void);
-#else
-#define dw_uart_con_init()		do { } while (0)
+#endif
+#ifdef CONFIG_CONSOLE_OUTPUT
+void dw_uart_con_write(uint8_t byte);
+#endif
+#ifdef CONFIG_CONSOLE_INPUT
+uint8_t dw_uart_con_read(void);
+bool dw_uart_con_poll(void);
 #endif
 
 #endif /* __DW_UART_H_INCLUDE__ */

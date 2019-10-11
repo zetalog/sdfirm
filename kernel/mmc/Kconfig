@@ -21,6 +21,10 @@ config MMC_MAX_SLOTS
 config MMC_CID_ALL_FIELDS
 	bool "Enable storing of all CID register fields"
 
+config MMC_DEBUG
+	bool "MMC debug message support"
+	depends DEBUG_PRINT || CONSOLE
+
 config SDHC
 	bool "Secure digital host controller (SDHC) support"
 	depends MMC
