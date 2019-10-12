@@ -8,7 +8,7 @@
 # for more details.
 #
 
-OBJCOPYFLAGS    := -O binary
+OBJCOPYFLAGS    := -R .comment
 LDFLAGS_sdfirm	:=
 
 export BITS

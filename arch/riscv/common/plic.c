@@ -35,35 +35,26 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)irqc.h: IRQ controller driver abstraction
- * $Id: irqc.h,v 1.1 2019-08-18 22:03:00 zhenglv Exp $
+ * @(#)plic.c: platform level interrupt controller (PLIC) implementation
+ * $Id: plic.c,v 1.1 2019-10-11 15:50:00 zhenglv Exp $
  */
 
-#ifndef __IRQC_DRIVER_H_INCLUDE__
-#define __IRQC_DRIVER_H_INCLUDE__
+#include <target/irq.h>
+#include <target/smp.h>
 
-/* Most architectures contain architecture level IRQ controller, so
- * allow architecture to split it down to SoC level.
- */
-#ifdef CONFIG_ARCH_HAS_IRQC
-#include <asm/irqc.h>
-#endif
+void irqc_hw_handle_irq(void)
+{
+	irq_t irq;
+	uint8_t cpu = smp_processor_id();
 
-#ifdef ARCH_HAVE_IRQC
-#define irqc_enable_irq(irq)		irqc_hw_enable_irq(irq)
-#define irqc_disable_irq(irq)		irqc_hw_disable_irq(irq)
-#define irqc_clear_irq(irq)		irqc_hw_clear_irq(irq)
-#define irqc_trigger_irq(irq)		irqc_hw_trigger_irq(irq)
-#define irqc_configure_irq(irq, prio, trigger)	\
-	irqc_hw_configure_irq(irq, prio, trigger)
-#else
-#define irqc_hw_ctrl_init()		do { } while (0)
-#define irqc_enable_irq(irq)		do { } while (0)
-#define irqc_disable_irq(irq)		do { } while (0)
-#define irqc_clear_irq(irq)		do { } while (0)
-#define irqc_trigger_irq(irq)		do { } while (0)
-#define irqc_configure_irq(irq, prio, trigger)	\
-	do { } while (0)
-#endif
-
-#endif /* __IRQC_DRIVER_H_INCLUDE__ */
+	csr_clear(sie, SIE_SEIE);
+	irq = plic_claim_irq(cpu);
+	if (irq >= NR_IRQS) {
+		plic_irq_completion(cpu, irq);
+		return;
+	}
+	if (!do_IRQ(irq))
+		irqc_hw_disable_irq(irq);
+	plic_irq_completion(cpu, irq);
+	csr_set(sie, SIE_SEIE);
+}

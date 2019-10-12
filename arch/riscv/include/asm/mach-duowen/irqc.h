@@ -35,35 +35,28 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)irqc.h: IRQ controller driver abstraction
- * $Id: irqc.h,v 1.1 2019-08-18 22:03:00 zhenglv Exp $
+ * @(#)irqc.h: DUOWEN specific IRQ controller interfaces
+ * $Id: irqc.h,v 1.1 2019-10-12 11:20:00 zhenglv Exp $
  */
 
-#ifndef __IRQC_DRIVER_H_INCLUDE__
-#define __IRQC_DRIVER_H_INCLUDE__
+#ifndef __IRQC_DUOWEN_H_INCLUDE__
+#define __IRQC_DUOWEN_H_INCLUDE__
 
-/* Most architectures contain architecture level IRQ controller, so
- * allow architecture to split it down to SoC level.
- */
-#ifdef CONFIG_ARCH_HAS_IRQC
-#include <asm/irqc.h>
-#endif
-
-#ifdef ARCH_HAVE_IRQC
-#define irqc_enable_irq(irq)		irqc_hw_enable_irq(irq)
-#define irqc_disable_irq(irq)		irqc_hw_disable_irq(irq)
-#define irqc_clear_irq(irq)		irqc_hw_clear_irq(irq)
-#define irqc_trigger_irq(irq)		irqc_hw_trigger_irq(irq)
-#define irqc_configure_irq(irq, prio, trigger)	\
-	irqc_hw_configure_irq(irq, prio, trigger)
+#ifndef ARCH_HAVE_IRQC_
+#define ARCH_HAVE_IRQC		1
 #else
-#define irqc_hw_ctrl_init()		do { } while (0)
-#define irqc_enable_irq(irq)		do { } while (0)
-#define irqc_disable_irq(irq)		do { } while (0)
-#define irqc_clear_irq(irq)		do { } while (0)
-#define irqc_trigger_irq(irq)		do { } while (0)
-#define irqc_configure_irq(irq, prio, trigger)	\
-	do { } while (0)
+#error "Multiple IRQ controller defined"
 #endif
 
-#endif /* __IRQC_DRIVER_H_INCLUDE__ */
+#ifdef CONFIG_DUOWEN_IMC
+#define PLIC_BASE		IMC_PLIC_BASE
+#define PLIC_HW_PRI_MAX		31
+#endif
+
+#include <asm/plic.h>
+
+#define plic_hw_ctrl_init()	do { } while (0)
+#define plic_hw_configure_trigger(irq, trig)	\
+	do { } while (0)
+
+#endif /* __IRQC_DUOWEN_H_INCLUDE__ */

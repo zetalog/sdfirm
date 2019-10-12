@@ -48,10 +48,13 @@ config ARCH_DUOWEN
 	select ARCH_IS_TICKLESS
 	select ARCH_HAS_TSC
 	select ARCH_HAS_TSC_CONST
+	select ARCH_HAS_PLIC
+	select ARCH_HAS_IRQC
 	select DW_TIMERS
 	select DW_UART if CONSOLE || DEBUG_PRINT
 	select SDHC if MMC
 	select DW_MSHC if SDHC
+	select PLIC if !SYS_NOIRQ
 	help
 	  This enables support for emulated riscv platforms.
 

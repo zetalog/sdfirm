@@ -41,6 +41,7 @@
 
 #include <stdio.h>
 #include <target/irq.h>
+#include <target/smp.h>
 
 static inline bool gic_sanitize_acked_irq(irq_t irq)
 {
@@ -67,7 +68,7 @@ static inline bool gic_sanitize_acked_irq(irq_t irq)
 void irqc_hw_handle_irq(void)
 {
 	irq_t irq;
-	uint8_t cpu;
+	uint8_t cpu = smp_processor_id();
 
 	gic_begin_irq(irq, cpu);
 	if (!gic_sanitize_acked_irq(irq) || irq >= NR_IRQS) {

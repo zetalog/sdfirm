@@ -274,9 +274,20 @@ config NR_CPUS
 	depends on CPU_SMP
 	default "8"
 
+menu "System peripherals"
+
 config ARCH_HAS_CLINT
 	bool
 
 config CLINT
 	bool "SiFive Core Local Interruptor (CLINT) support"
 	depends ARCH_HAS_CLINT
+
+config ARCH_HAS_PLIC
+	bool
+
+config PLIC
+	bool "Platform level interrupt controller (PLIC) support"
+	depends ARCH_HAS_PLIC
+
+endmenu
