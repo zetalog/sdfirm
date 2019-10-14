@@ -49,15 +49,16 @@ SECTIONS
 	.text : {
 		TEXT_TEXT
 		IDMAP_TEXT
+		. = ALIGN((WORD_SIZE));
 	}
 	__etext = .;				/* end of text sections */
 
 	RO_DATA_SECTION(WORD_SIZE)
 	.srodata : {
 		*(.srodata .srodata.*)
+		. = ALIGN((WORD_SIZE));
 	}
 
-	. = ALIGN((WORD_SIZE));
 	_etext = .;				/* end of text and rodata sections */
 
 	__text_loc = CONFIG_BOOT_BASE;		/* text boot location */
@@ -83,11 +84,13 @@ SECTIONS
 		__init_data_end = .;
 #endif
 		DATA_DATA
+		. = ALIGN((WORD_SIZE));
 	}
 
 	.sdata : {
 		__global_pointer$ = . + 0x800;
 		*(.sdata .sdata.*)
+		. = ALIGN(WORD_SIZE);
 	}
 	__edata = .;				/* end of data sections */
 

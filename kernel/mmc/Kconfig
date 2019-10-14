@@ -25,7 +25,7 @@ config MMC_DEBUG
 	bool "MMC debug message support"
 	depends DEBUG_PRINT || CONSOLE
 
-config SDHC
+menuconfig SDHC
 	bool "Secure digital host controller (SDHC) support"
 	depends MMC
 	select ARCH_HAS_MMC
