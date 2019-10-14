@@ -156,7 +156,7 @@ typedef uint16_t mmc_event_t;
 #ifdef MMC_CLASS7
 #define MMC_CMD42			42
 #endif
-#ifdef MMC_ClASS8
+#ifdef MMC_CLASS8
 #define MMC_CMD55			55
 #define MMC_CMD56			56
 #endif
@@ -200,7 +200,7 @@ typedef uint16_t mmc_event_t;
 #ifdef MMC_CLASS9
 #define MMC_CMD_FAST_IO			MMC_CMD39
 #endif
-#ifdef MMC_ClASS8
+#ifdef MMC_CLASS8
 #define MMC_CMD_APP_CMD			MMC_CMD55
 #endif
 
@@ -232,8 +232,92 @@ typedef uint16_t mmc_event_t;
 #ifdef MMC_CLASS7
 #define MMC_CMD_LOCK_UNLOCK		MMC_CMD42
 #endif
-#ifdef MMC_ClASS8
+#ifdef MMC_CLASS8
 #define MMC_CMD_GEN_CMD			MMC_CMD56
+#endif
+
+#ifdef MMC_CLASS1
+#define mmc_cmd_is_rstr()	mmc_cmd_is(MMC_CMD_READ_DAT_UNTIL_STOP)
+#else
+#define mmc_cmd_is_rstr()	false
+#endif
+#ifdef MMC_CLASS3
+#define mmc_cmd_is_wstr()	mmc_cmd_is(MMC_CMD_WRITE_DATA_UNTIL_STOP)
+#else
+#define mmc_cmd_is_wstr()	false
+#endif
+#ifdef MMC_CLASS2
+#define mmc_cmd_is_rblk()				\
+	(mmc_cmd_is(MMC_CMD_READ_SINGLE_BLOCK) ||	\
+	 mmc_cmd_is(MMC_CMD_READ_MULTIPLE_BLOCK))
+#else
+#define mmc_cmd_is_rblk()	false
+#endif
+#if defined(MMC_CLASS2) || defined(MMC_CLASS4)
+#define mmc_cmd_is_blk_w()	mmc_cmd_is(MMC_CMD_WRITE_BLOCK)
+#else
+#define mmc_cmd_is_blk_w()	false
+#endif
+#ifdef MMC_CLASS4
+#define mmc_cmd_is_blk_wm()	mmc_cmd_is(MMC_CMD_WRITE_MULTIPLE_BLOCK)
+#define mmc_cmd_is_prg()	\
+	(mmc_cmd_is(MMC_CMD_PROGRAM_CID) || mmc_mc_is(MMC_CMD_PROGRAM_CSD))
+#else
+#define mmc_cmd_is_blk_wm()	false
+#define mmc_cmd_is_prg()	false
+#endif
+#define mmc_cmd_is_wblk()	\
+	(mmc_cmd_is_blk_w() || mmc_cmd_is_blk_wm())
+#if defined(MMC_CLASS2) || defined(MMC_CLASS4) || defined(MMC_CLASS7)
+#define mmc_cmd_is_blk_len()	mmc_cmd_is(MMC_CMD_SET_BLOCKLEN)
+#else
+#define mmc_cmd_is_blk_len()	false
+#endif
+
+#ifdef MMC_CLASS5
+#define mmc_cmd_is_grp_se()				\
+	(mmc_cmd_is(MMC_CMD_ERASE_GROUP_START) ||	\
+	 mmc_cmd_is(MMC_CMD_ERASE_GROUP_END))
+#define mmc_cmd_is_grp()	mmc_cmd_is(MMC_CMD_ERASE_GROUP)
+#else
+#define mmc_cmd_is_grp_se()	false
+#define mmc_cmd_is_grp()	false
+#endif
+
+#ifdef MMC_CLASS4
+#define mmc_cmd_is_prot_s()	mmc_cmd_is(MMC_CMD_SET_WRITE_PROT)
+#else
+#define mmc_cmd_is_prot_s()	false
+#endif
+#ifdef MMC_CLASS6
+#define mmc_cmd_is_prot_c()	mmc_cmd_is(MMC_CMD_CLR_WRITE_PROT)
+#define mmc_cmd_is_wprot()	mmc_cmd_is(MMC_CMD_SEND_WRITE_PROT)
+#else
+#define mmc_cmd_is_prot_c()	false
+#define mmc_cmd_is_wprot()	false
+#endif
+#define mmc_cmd_is_prot_sc()	\
+	(mmc_cmd_is_prot_s() || mmc_cmd_is_prot_c())
+
+#ifdef MMC_CLASS7
+#define mmc_cmd_is_lck()	mmc_cmd_is(MMC_CMD_LOCK_UNLOCK)
+#else
+#define mmc_cmd_is_lck()	false
+#endif
+
+#ifdef MMC_CLASS9
+#define mmc_cmd_is_fio()	mmc_cmd_is(MMC_CMD_FAST_IO)
+#define mmc_cmd_is_irq()	mmc_cmd_is(MMC_CMD_GO_IRQ_STATE)
+#else
+#define mmc_cmd_is_fio()	false
+#define mmc_cmd_is_irq()	false
+#endif
+#ifdef MMC_CLASS8
+#define mmc_cmd_is_app()	mmc_cmd_is(MMC_CMD_APP_CMD)
+#define mmc_cmd_is_gen()	mmc_cmd_is(MMC_CMD_GEN_CMD)
+#else
+#define mmc_cmd_is_app()	false
+#define mmc_cmd_is_gen()	false
 #endif
 
 /* 7.10 Responses */
@@ -432,7 +516,16 @@ struct mmc_slot {
 	mmc_cid_t cid;
 	mmc_csd_t csd;
 	uint8_t state;
+	uint8_t cmd;
+	uint8_t err;
 };
+#define mmc_cmd_is(_cmd)		(!!(mmc_slot_ctrl.cmd == (_cmd)))
+#define mmc_err_is(_err)		(!!(mmc_slot_ctrl.err == (_err)))
+
+#define MMC_ERR_CARD_IS_BUSY		0 /* card is busy */
+#define MMC_ERR_HOST_OMIT_VOLT		1 /* host omits voltage range */
+#define MMC_ERR_CARD_NON_COMP_VOLT	2 /* card with non compatible voltage range */
+#define MMC_ERR_CARD_LOOSE_BUS		3 /* card looses bus */
 
 #ifdef CONFIG_DEBUG_PRINT
 #define mmc_debug(tag, val)	dbg_print((tag), (val))
@@ -458,7 +551,13 @@ mmc_cid_t mmc_decode_cid(mmc_raw_cid_t raw_cid);
 mmc_csd_t mmc_decode_csd(mmc_raw_csd_t raw_csd);
 uint8_t mmc_state_get(void);
 void mmc_state_set(uint8_t state);
+void mmc_cmd_success(void);
+void mmc_cmd_failure(uint8_t err);
 #define mmc_state_is(state)	(mmc_state_get() == MMC_STATE_##state)
+#define mmc_state_gt(state)	(mmc_state_get() > MMC_STATE_##state)
+#define mmc_state_ge(state)	(mmc_state_get() >= MMC_STATE_##state)
+#define mmc_state_lt(state)	(mmc_state_get() < MMC_STATE_##state)
+#define mmc_state_le(state)	(mmc_state_get() <= MMC_STATE_##state)
 #define mmc_state_enter(state)	mmc_state_set(MMC_STATE_##state)
 
 #endif /* __MMC_H_INCLUDE__ */

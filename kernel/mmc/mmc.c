@@ -46,11 +46,12 @@
 #include <stdio.h>
 
 #define MMC_EVENT_POWER_ON	_BV(0)
-#define MMC_EVENT_SEND_OCR	_BV(1)
-#define MMC_EVENT_SEND_ALL_CID	_BV(2)
-#define MMC_EVENT_SEND_RCA	_BV(3)
-#define MMC_EVENT_SEND_CID	_BV(4)
-#define MMC_EVENT_SEND_CSD	_BV(5)
+#define MMC_EVENT_CMD_SUCCESS	_BV(1)
+#define MMC_EVENT_CMD_FAILURE	_BV(2)
+#define MMC_EVENT_CARD_IRQ	_BV(3)
+#define MMC_EVENT_NO_IRQ	_BV(4)
+#define MMC_EVENT_OP_COMPLETE	_BV(5)
+#define MMC_EVENT_TRANS_END	_BV(6)
 
 bh_t mmc_bh = INVALID_BH;
 
@@ -63,8 +64,6 @@ mmc_event_t mmc_slot_events[NR_MMC_SLOTS];
 struct mmc_slot mmc_slot_ctrl;
 mmc_event_t mmc_slot_event;
 #endif
-
-#define MMC_EVENT_POWER_ON	_BV(0)
 
 #if defined(CONFIG_CONSOLE) && defined(CONFIG_MMC_DEBUG)
 const char *mmc_state_names[] = {
@@ -94,11 +93,19 @@ const char *mmc_cmd_name(uint8_t cmd_index)
 	return "unk";
 }
 
+const char *mmc_event_name(mmc_event_t event)
+{
+	return "unk";
+}
+
 void mmc_debug(uint8_t tag, uint32_t val)
 {
 	switch (tag) {
 	case MMC_DEBUG_STATE:
 		printf("state %s\n", mmc_state_name(val));
+		break;
+	case MMC_DEBUG_EVENT:
+		printf("event %s\n", mmc_event_name(val));
 		break;
 	case MMC_DEBUG_CMD:
 		printf("cmd %s\n", mmc_cmd_name(val));
@@ -109,6 +116,10 @@ void mmc_debug(uint8_t tag, uint32_t val)
 	}
 }
 #endif
+
+void mmc_handle_slot_seq(void)
+{
+}
 
 void mmc_event_raise(mmc_event_t event)
 {
@@ -139,7 +150,7 @@ void mmc_state_set(uint8_t state)
 {
 	mmc_debug_state(state);
 	mmc_slot_ctrl.state = state;
-	//mmc_handle_slot_seq();
+	mmc_handle_slot_seq();
 }
 
 #if NR_MMC_SLOTS > 1
@@ -193,26 +204,176 @@ mmc_csd_t mmc_decode_csd(mmc_raw_csd_t raw_csd)
 	return csd;
 }
 
-static void mmc_async_handler(void)
+/* This function implements the state digrams in the following sections:
+ * 7.2 Card Identification Mode
+ * 7.3 Interrupt Mode
+ * 7.4 Data Transfer Mode
+ */
+static void mmc_handle_slot_state(void)
 {
-	mmc_event_t flags = mmc_event_save();
+	mmc_event_t flags;
 
-	if (flags & MMC_EVENT_SEND_OCR) {
-		if (mmc_state_is(idle))
-			mmc_state_enter(ready);
-		unraise_bits(flags, MMC_EVENT_SEND_OCR);
-	}
-	if (flags & MMC_EVENT_SEND_ALL_CID) {
-		if (mmc_state_is(ready))
-			mmc_state_enter(ident);
-		unraise_bits(flags, MMC_EVENT_SEND_ALL_CID);
-	}
-	if (flags & MMC_EVENT_SEND_RCA) {
-		if (mmc_state_is(ident))
+	flags = mmc_event_save();
+	if (flags & MMC_EVENT_POWER_ON) {
+		mmc_state_enter(idle);
+		unraise_bits(flags, MMC_EVENT_POWER_ON);
+	} else if (flags & MMC_EVENT_CMD_SUCCESS &&
+		   mmc_cmd_is(MMC_CMD_GO_INACTIVE_STATE) &&
+		   mmc_state_ge(stby)) {
+		mmc_state_enter(ina);
+		unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
+	} else if (flags & MMC_EVENT_CMD_SUCCESS &&
+		   mmc_cmd_is(MMC_CMD_GO_IDLE_STATE) &&
+		   !mmc_state_is(ina)) {
+		mmc_state_enter(idle);
+		unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
+	} else if (flags & MMC_EVENT_CMD_SUCCESS &&
+		   mmc_state_ge(stby) &&
+		   (mmc_cmd_is(MMC_CMD_SEND_STATUS) ||
+		    mmc_cmd_is_app())) {
+		/* No state transition in data transfer mode */
+		unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
+	/* identification mode */
+	} else if (mmc_state_is(idle)) {
+		if (flags & MMC_EVENT_CMD_SUCCESS) {
+			if (mmc_cmd_is(MMC_CMD_GO_IDLE_STATE));
+			if (mmc_cmd_is(MMC_CMD_SEND_OP_COND))
+				mmc_state_enter(ready);
+			unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
+		}
+		if (flags & MMC_EVENT_CMD_FAILURE) {
+			if (mmc_err_is(MMC_ERR_CARD_IS_BUSY));
+			if (mmc_err_is(MMC_ERR_HOST_OMIT_VOLT));
+			if (mmc_err_is(MMC_ERR_CARD_NON_COMP_VOLT))
+				mmc_state_enter(ina);
+			unraise_bits(flags, MMC_EVENT_CMD_FAILURE);
+		}
+	} else if (mmc_state_is(ready)) {
+		if (flags & MMC_EVENT_CMD_SUCCESS) {
+			if (mmc_cmd_is(MMC_CMD_ALL_SEND_CID))
+				mmc_state_enter(ident);
+			unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
+		}
+		if (flags & MMC_EVENT_CMD_FAILURE) {
+			if (mmc_err_is(MMC_ERR_CARD_LOOSE_BUS));
+			unraise_bits(flags, MMC_EVENT_CMD_FAILURE);
+		}
+	} else if (mmc_state_is(ident)) {
+		if (flags & MMC_EVENT_CMD_SUCCESS) {
+			if (mmc_cmd_is(MMC_CMD_SET_RELATIVE_ADDR))
+				mmc_state_enter(stby);
+			unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
+		}
+	/* irq mode */
+	} else if (mmc_state_is(irq)) {
+		if (flags & MMC_EVENT_NO_IRQ) {
 			mmc_state_enter(stby);
-		unraise_bits(flags, MMC_EVENT_SEND_RCA);
+			unraise_bits(flags, MMC_EVENT_NO_IRQ);
+		}
+		if (flags & MMC_EVENT_CARD_IRQ) {
+			mmc_state_enter(stby);
+			unraise_bits(flags, MMC_EVENT_CARD_IRQ);
+		}
+	/* data transfer mode */
+	} else if (mmc_state_is(stby)) {
+		if (flags & MMC_EVENT_CMD_SUCCESS) {
+			if (mmc_cmd_is(MMC_CMD_SET_DSR));
+			if (mmc_cmd_is(MMC_CMD_SEND_CSD));
+			if (mmc_cmd_is(MMC_CMD_SEND_CID));
+			if (mmc_cmd_is_fio());
+			if (mmc_cmd_is_irq())
+				mmc_state_enter(irq);
+			if (mmc_cmd_is(MMC_CMD_SELECT_CARD))
+				mmc_state_enter(tran);
+			unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
+		}
+	} else if (mmc_state_is(tran)) {
+		if (flags & MMC_EVENT_CMD_SUCCESS) {
+			if (mmc_cmd_is_grp_se());
+			if (mmc_cmd_is(MMC_CMD_SET_BLOCK_COUNT));
+			if (mmc_cmd_is_blk_len());
+			if (mmc_cmd_is(MMC_CMD_SELECT_CARD))
+				mmc_state_enter(stby);
+			if (mmc_cmd_is(MMC_CMD_SWITCH) ||
+			    mmc_cmd_is_prot_sc() ||
+			    mmc_cmd_is_grp())
+				mmc_state_enter(prg);
+			if (mmc_cmd_is(MMC_CMD_SEND_EXT_CSD) ||
+			    mmc_cmd_is_rstr() || mmc_cmd_is_rblk() ||
+			    mmc_cmd_is_wprot() || mmc_cmd_is_gen())
+				mmc_state_enter(data);
+			if (mmc_cmd_is_wstr() || mmc_cmd_is_wblk() ||
+			    mmc_cmd_is_prg() || mmc_cmd_is_lck() ||
+			    mmc_cmd_is_gen())
+				mmc_state_enter(rcv);
+			if (mmc_cmd_is(MMC_CMD_BUSTEST_W))
+				mmc_state_enter(btst);
+			unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
+		}
+	} else if (mmc_state_is(data)) {
+		if (flags & MMC_EVENT_CMD_SUCCESS) {
+			if (mmc_cmd_is(MMC_CMD_SELECT_CARD))
+				mmc_state_enter(stby);
+			if (mmc_cmd_is(MMC_CMD_STOP_TRANSMISSION))
+				mmc_state_enter(tran);
+			unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
+		}
+		if (flags & MMC_EVENT_OP_COMPLETE) {
+			mmc_state_enter(tran);
+			unraise_bits(flags, MMC_EVENT_OP_COMPLETE);
+		}
+	} else if (mmc_state_is(rcv)) {
+		if (flags & MMC_EVENT_CMD_SUCCESS) {
+			if (mmc_cmd_is(MMC_CMD_STOP_TRANSMISSION))
+				mmc_state_enter(prg);
+			unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
+		}
+		if (flags & MMC_EVENT_TRANS_END) {
+			mmc_state_enter(prg);
+			unraise_bits(flags, MMC_EVENT_TRANS_END);
+		}
+	} else if (mmc_state_is(prg)) {
+		if (flags & MMC_EVENT_CMD_SUCCESS) {
+			if (mmc_cmd_is(MMC_CMD_SELECT_CARD))
+				mmc_state_enter(dis);
+			if (mmc_cmd_is_wblk())
+				mmc_state_enter(rcv);
+			unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
+		}
+		if (flags & MMC_EVENT_OP_COMPLETE) {
+			mmc_state_enter(tran);
+			unraise_bits(flags, MMC_EVENT_OP_COMPLETE);
+		}
+	} else if (mmc_state_is(dis)) {
+		if (flags & MMC_EVENT_CMD_SUCCESS) {
+			if (mmc_cmd_is(MMC_CMD_SELECT_CARD))
+				mmc_state_enter(prg);
+			unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
+		}
+		if (flags & MMC_EVENT_OP_COMPLETE) {
+			mmc_state_enter(stby);
+			unraise_bits(flags, MMC_EVENT_OP_COMPLETE);
+		}
+	} else if (mmc_state_is(btst)) {
+		if (flags & MMC_EVENT_CMD_SUCCESS) {
+			if (mmc_cmd_is(MMC_CMD_BUSTEST_R))
+				mmc_state_enter(tran);
+			unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
+		}
 	}
 	mmc_event_restore(flags);
+}
+
+static void mmc_async_handler(void)
+{
+	mmc_sid_t sid;
+	__unused mmc_sid_t ssid;
+
+	for (sid = 0; sid < NR_MMC_SLOTS; sid++) {
+		ssid = mmc_sid_save(sid);
+		mmc_handle_slot_state();
+		mmc_sid_restore(ssid);
+	}
 }
 
 static void mmc_handler(uint8_t event)
@@ -228,6 +389,28 @@ static void mmc_handler(uint8_t event)
 	}
 }
 
+void mmc_cmd_success(void)
+{
+	mmc_event_raise(MMC_EVENT_CMD_SUCCESS);
+}
+
+void mmc_cmd_failure(uint8_t err)
+{
+	mmc_slot_ctrl.err = err;
+	mmc_event_raise(MMC_EVENT_CMD_FAILURE);
+}
+
+void mmc_send_cmd(uint8_t cmd)
+{
+	mmc_slot_ctrl.cmd = cmd;
+	mmc_hw_send_command(cmd);
+}
+
+void mmc_detect_card(void)
+{
+	mmc_event_raise(MMC_EVENT_POWER_ON);
+}
+
 void mmc_init(void)
 {
 	mmc_sid_t sid;
@@ -241,7 +424,7 @@ void mmc_init(void)
 		ssid = mmc_sid_save(sid);
 		/* MMC only handles states after powered on */
 		mmc_state_enter(idle);
-		//mmc_send_ocr();
+		mmc_detect_card();
 		mmc_sid_restore(ssid);
 	}
 }

@@ -48,6 +48,10 @@ void sdhc_select(mmc_sid_t sid)
 	sdhc_mmc_sid = sid;
 }
 
+void sdhc_send(uint8_t cmd)
+{
+}
+
 void sdhc_init(void)
 {
 	sdhc_hw_ctrl_init();

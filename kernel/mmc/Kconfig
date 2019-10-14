@@ -10,6 +10,7 @@ config ARCH_HAS_SDHC
 
 menuconfig MMC
 	bool "Multimedia card (MMC) interface support"
+	select CRC16_CCITT
 
 if MMC
 
@@ -20,6 +21,26 @@ config MMC_MAX_SLOTS
 
 config MMC_CID_ALL_FIELDS
 	bool "Enable storing of all CID register fields"
+	depends EXPRIMENTAL
+	help
+	  A card is identified by its CID number. This method requires the
+	  card to have an unique CID number. To ensure uniqueness of CIDs
+	  the CID register contains 24 bits (MID and OID fields) which are
+	  defined by the MMCA.
+	  This option needs to be enabled in order to have more CID
+	  register fields saved by sdfirm during rumtime. Be aware that
+	  these fields are still used for debugging purpose and not for
+	  improving the uniqueness of CIDs.
+	  If unsure, say 'N'.
+
+config MMC_ASYNC
+	bool "Enable asynchronous mode support"
+	help
+	  By default, do not use handshake signals (STB, ACK) but polling
+	  the state (busy/not busy), which is known as synchronous mode.
+	  This option allows sdfirm to enable asynchronous mode via the
+	  handshake signals.
+	  If unsure, say 'N'.
 
 config MMC_DEBUG
 	bool "MMC debug message support"
