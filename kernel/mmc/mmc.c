@@ -88,14 +88,97 @@ const char *mmc_state_name(uint32_t val)
 	return mmc_state_names[val];
 }
 
+const char *mmc_cmd_names[] = {
+	"GO_IDLE_STATE",
+	"SEND_OP_COND",
+	"ALL_SEND_CID",
+	"SET_RELATIVE_ADDR",
+	"SET_DSR",
+	NULL,
+	"SWITCH",
+	"SELECT_DESELECT_CARD",
+	"SEND_EXT_CSD",
+	"SEND_CSD",
+	"SEND_CID",
+	"READ_DAT_UNTIL_STOP",
+	"STOP_TRANSMISSION",
+	"SEND_STATUS",
+	"BUSTEST_R",
+	"GO_INACTIVE_STATE",
+	"SET_BLOCKLEN",
+	"READ_SINGLE_BLOCK",
+	"READ_MULTIPLE_BLOCK",
+	"BUSTEST_W",
+	"WRITE_DATA_UNTIL_STOP",
+	NULL,
+	NULL,
+	"SET_BLOCK_COUNT",
+	"WRITE_BLOCK",
+	"WRITE_MULTIPLE_BLOCK",
+	"PROGRAM_CID",
+	"PROGRAM_CSD",
+	"SET_WRITE_PROT",
+	"CLR_WRITE_PROT",
+	"SEND_WRITE_PROT",
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	"ERASE_GROUP_START",
+	"ERASE_GROUP_END",
+	NULL,
+	"ERASE",
+	"FAST_IO",
+	"GO_IRQ_STATE",
+	NULL,
+	"LOCK_UNLOCK",
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	"APP_CMD",
+	"GEN_CMD",
+};
+
 const char *mmc_cmd_name(uint8_t cmd_index)
 {
-	return "unk";
+	if (cmd_index >= ARRAY_SIZE(mmc_cmd_names))
+		return "UNDEF";
+	if (mmc_cmd_names[cmd_index])
+		return mmc_cmd_names[cmd_index];
+	else
+		return "NULL";
 }
+
+const char *mmc_event_names[] = {
+	"POWER_ON",
+	"CMD_SUCCESS",
+	"CMD_FAILURE",
+	"CARD_IRQ",
+	"NO_IRQ",
+	"OP_COMPLETE",
+	"TRANS_END",
+};
 
 const char *mmc_event_name(mmc_event_t event)
 {
-	return "unk";
+	int i, nr_evts = 0;
+
+	for (i = 0; i < ARRAY_SIZE(mmc_event_names); i++) {
+		if (_BV(i) & event) {
+			nr_evts++;
+			return mmc_event_names[i];
+		}
+	}
+	return "NONE";
 }
 
 void mmc_debug(uint8_t tag, uint32_t val)
