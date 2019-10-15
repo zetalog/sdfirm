@@ -82,8 +82,19 @@
 #define NR_MMC_SLOTS		CONFIG_MMC_MAX_SLOTS
 #endif
 #define INVALID_MMC_SID		NR_MMC_SLOTS
+#ifndef NR_MMC_CARDS
+#define NR_MMC_CARDS		CONFIG_MMC_MAX_CARDS
+#endif
+#define INVALID_MMC_CID		NR_MMC_CARDS
+#define INVALID_MMC_RCA		MMC_RCA(INVALID_MMC_CID, INVALID_MMC_SID)
 
-typedef uint8_t mmc_sid_t;
+#define MMC_RCA(slot, card)	MAKEWORD(card, slot)
+#define MMC_SLOT(rca)		HIBYTE(rca)
+#define MMC_CARD(rca)		LOBYTE(rca)
+
+typedef uint8_t mmc_slot_t;
+typedef uint8_t mmc_card_t;
+typedef uint16_t mmc_rca_t;
 typedef uint16_t mmc_event_t;
 
 #include <driver/mmc.h>
@@ -108,8 +119,8 @@ typedef uint16_t mmc_event_t;
 #define MMC_STATE_dis			8  /* disconnect */
 #define MMC_STATE_btst			9  /* bus test */
 /* The values cannot be used as the result of MMC_CURRENT_STATE */
-#define MMC_STATE_ina			10 /* inactive */
-#define MMC_STATE_irq			11 /* wait-irq */
+#define MMC_STATE_irq			10 /* wait-irq */
+#define MMC_STATE_ina			11 /* inactive */
 
 /* 7.8 commands */
 /* command index */
@@ -130,7 +141,7 @@ typedef uint16_t mmc_event_t;
 #define MMC_CMD13			13
 #define MMC_CMD14			14
 #define MMC_CMD15			15
-#if defined(MMC_CLASS2) || defined(MMC_CLASS4) || defined(MMC_CLASS7)
+#if defined(MMC_CLASS2) || defined(MMC_CLASS4)
 #define MMC_CMD16			16
 #endif
 #ifdef MMC_CLASS2
@@ -142,16 +153,14 @@ typedef uint16_t mmc_event_t;
 #define MMC_CMD20			20
 #endif
 #define MMC_CMD23			23
-#if defined(MMC_CLASS2) || defined(MMC_CLASS4)
-#define MMC_CMD24			24
-#endif
 #ifdef MMC_CLASS4
+#define MMC_CMD24			24
 #define MMC_CMD25			25
 #define MMC_CMD26			26
 #define MMC_CMD27			27
-#define MMC_CMD28			28
 #endif
 #ifdef MMC_CLASS6
+#define MMC_CMD28			28
 #define MMC_CMD29			29
 #define MMC_CMD30			30
 #endif
@@ -186,21 +195,18 @@ typedef uint16_t mmc_event_t;
 /* ac */
 #define MMC_CMD_SET_RELATIVE_ADDR	MMC_CMD3
 #define MMC_CMD_SWITCH			MMC_CMD6
-#define MMC_CMD_SELECT_CARD		MMC_CMD7
-#define MMC_CMD_DESELECT_CARD		MMC_CMD7
+#define MMC_CMD_SELECT_DESELECT_CARD	MMC_CMD7
 #define MMC_CMD_SEND_CSD		MMC_CMD9
 #define MMC_CMD_SEND_CID		MMC_CMD10
 #define MMC_CMD_STOP_TRANSMISSION	MMC_CMD12
 #define MMC_CMD_SEND_STATUS		MMC_CMD13
 #define MMC_CMD_GO_INACTIVE_STATE	MMC_CMD15
-#if defined(MMC_CLASS2) || defined(MMC_CLASS4) || defined(MMC_CLASS7)
+#if defined(MMC_CLASS2) || defined(MMC_CLASS4)
 #define MMC_CMD_SET_BLOCKLEN		MMC_CMD16
 #endif
 #define MMC_CMD_SET_BLOCK_COUNT		MMC_CMD23
-#ifdef MMC_CLASS4
-#define MMC_CMD_SET_WRITE_PROT		MMC_CMD28
-#endif
 #ifdef MMC_CLASS6
+#define MMC_CMD_SET_WRITE_PROT		MMC_CMD28
 #define MMC_CMD_CLR_WRITE_PROT		MMC_CMD29
 #endif
 #ifdef MMC_CLASS5
@@ -229,10 +235,8 @@ typedef uint16_t mmc_event_t;
 #ifdef MMC_CLASS3
 #define MMC_CMD_WRITE_DATA_UNTIL_STOP	MMC_CMD20
 #endif
-#if defined(MMC_CLASS2) || defined(MMC_CLASS4)
-#define MMC_CMD_WRITE_BLOCK		MMC_CMD24
-#endif
 #ifdef MMC_CLASS4
+#define MMC_CMD_WRITE_BLOCK		MMC_CMD24
 #define MMC_CMD_WRITE_MULTIPLE_BLOCK	MMC_CMD25
 #define MMC_CMD_PROGRAM_CID		MMC_CMD26
 #define MMC_CMD_PROGRAM_CSD		MMC_CMD27
@@ -250,72 +254,72 @@ typedef uint16_t mmc_event_t;
 #define MMC_CMD_INVALID			64
 
 #ifdef MMC_CLASS1
-#define mmc_cmd_is_rstr()	mmc_cmd_is(MMC_CMD_READ_DAT_UNTIL_STOP)
+#define mmc_cmd_is_read_stream()			\
+	mmc_cmd_is(MMC_CMD_READ_DAT_UNTIL_STOP)
 #else
-#define mmc_cmd_is_rstr()	false
+#define mmc_cmd_is_read_stream()			false
 #endif
+
 #ifdef MMC_CLASS3
-#define mmc_cmd_is_wstr()	mmc_cmd_is(MMC_CMD_WRITE_DATA_UNTIL_STOP)
+#define mmc_cmd_is_write_stream()			\
+	mmc_cmd_is(MMC_CMD_WRITE_DATA_UNTIL_STOP)
 #else
-#define mmc_cmd_is_wstr()	false
+#define mmc_cmd_is_write_stream()			false
 #endif
+
 #ifdef MMC_CLASS2
-#define mmc_cmd_is_rblk()				\
+#define mmc_cmd_is_read_block()				\
 	(mmc_cmd_is(MMC_CMD_READ_SINGLE_BLOCK) ||	\
 	 mmc_cmd_is(MMC_CMD_READ_MULTIPLE_BLOCK))
 #else
-#define mmc_cmd_is_rblk()	false
+#define mmc_cmd_is_read_block()				false
 #endif
-#if defined(MMC_CLASS2) || defined(MMC_CLASS4)
-#define mmc_cmd_is_blk_w()	mmc_cmd_is(MMC_CMD_WRITE_BLOCK)
-#else
-#define mmc_cmd_is_blk_w()	false
-#endif
+
 #ifdef MMC_CLASS4
-#define mmc_cmd_is_blk_wm()	mmc_cmd_is(MMC_CMD_WRITE_MULTIPLE_BLOCK)
-#define mmc_cmd_is_prg()	\
-	(mmc_cmd_is(MMC_CMD_PROGRAM_CID) || mmc_mc_is(MMC_CMD_PROGRAM_CSD))
+#define mmc_cmd_is_write_block()			\
+	(mmc_cmd_is(MMC_CMD_WRITE_BLOCK) ||		\
+	 mmc_cmd_is(MMC_CMD_WRITE_MULTIPLE_BLOCK))
+#define mmc_cmd_is_program()				\
+	(mmc_cmd_is(MMC_CMD_PROGRAM_CID) ||		\
+	 mmc_mc_is(MMC_CMD_PROGRAM_CSD))
 #else
-#define mmc_cmd_is_blk_wm()	false
-#define mmc_cmd_is_prg()	false
+#define mmc_cmd_is_write_block()			false
+#define mmc_cmd_is_program()				false
 #endif
-#define mmc_cmd_is_wblk()	\
-	(mmc_cmd_is_blk_w() || mmc_cmd_is_blk_wm())
-#if defined(MMC_CLASS2) || defined(MMC_CLASS4) || defined(MMC_CLASS7)
-#define mmc_cmd_is_blk_len()	mmc_cmd_is(MMC_CMD_SET_BLOCKLEN)
+
+#if defined(MMC_CLASS2) || defined(MMC_CLASS4)
+#define mmc_cmd_is_block_len()				\
+	mmc_cmd_is(MMC_CMD_SET_BLOCKLEN)
 #else
-#define mmc_cmd_is_blk_len()	false
+#define mmc_cmd_is_block_len()				false
 #endif
 
 #ifdef MMC_CLASS5
-#define mmc_cmd_is_grp_se()				\
+#define mmc_cmd_is_erase_group()			\
 	(mmc_cmd_is(MMC_CMD_ERASE_GROUP_START) ||	\
 	 mmc_cmd_is(MMC_CMD_ERASE_GROUP_END))
-#define mmc_cmd_is_grp()	mmc_cmd_is(MMC_CMD_ERASE_GROUP)
+#define mmc_cmd_is_erase()				\
+	mmc_cmd_is(MMC_CMD_ERASE)
 #else
-#define mmc_cmd_is_grp_se()	false
-#define mmc_cmd_is_grp()	false
+#define mmc_cmd_is_erase_group()			false
+#define mmc_cmd_is_erase()				false
 #endif
 
-#ifdef MMC_CLASS4
-#define mmc_cmd_is_prot_s()	mmc_cmd_is(MMC_CMD_SET_WRITE_PROT)
-#else
-#define mmc_cmd_is_prot_s()	false
-#endif
 #ifdef MMC_CLASS6
-#define mmc_cmd_is_prot_c()	mmc_cmd_is(MMC_CMD_CLR_WRITE_PROT)
-#define mmc_cmd_is_wprot()	mmc_cmd_is(MMC_CMD_SEND_WRITE_PROT)
+#define mmc_cmd_is_write_prot()				\
+	mmc_cmd_is(MMC_CMD_SEND_WRITE_PROT)
+#define mmc_cmd_is_write_prot_bit()			\
+	(mmc_cmd_is(MMC_CMD_SET_WRITE_PROT) ||		\
+	 mmc_cmd_is(MMC_CMD_CLR_WRITE_PROT))
 #else
-#define mmc_cmd_is_prot_c()	false
-#define mmc_cmd_is_wprot()	false
+#define mmc_cmd_is_write_prot()				false
+#define mmc_cmd_is_write_prot_bit()			false
 #endif
-#define mmc_cmd_is_prot_sc()	\
-	(mmc_cmd_is_prot_s() || mmc_cmd_is_prot_c())
 
 #ifdef MMC_CLASS7
-#define mmc_cmd_is_lck()	mmc_cmd_is(MMC_CMD_LOCK_UNLOCK)
+#define mmc_cmd_is_lock()	mmc_cmd_is(MMC_CMD_LOCK_UNLOCK)
 #else
-#define mmc_cmd_is_lck()	false
+#define mmc_cmd_is_lock()	false
 #endif
 
 #ifdef MMC_CLASS9
@@ -326,11 +330,15 @@ typedef uint16_t mmc_event_t;
 #define mmc_cmd_is_irq()	false
 #endif
 #ifdef MMC_CLASS8
+#define mmc_cmd_is_w()		(mmc_slot_ctrl.flags & MMC_SLOT_GEN_CMD_RDWR)
+#define mmc_cmd_is_r()		(!mmc_cmd_is_w())
 #define mmc_cmd_is_app()	mmc_cmd_is(MMC_CMD_APP_CMD)
-#define mmc_cmd_is_gen()	mmc_cmd_is(MMC_CMD_GEN_CMD)
+#define mmc_cmd_is_gen_w()	(mmc_cmd_is_w() && mmc_cmd_is(MMC_CMD_GEN_CMD))
+#define mmc_cmd_is_gen_r()	(mmc_cmd_is_r() && mmc_cmd_is(MMC_CMD_GEN_CMD))
 #else
 #define mmc_cmd_is_app()	false
-#define mmc_cmd_is_gen()	false
+#define mmc_cmd_is_gen_w()	false
+#define mmc_cmd_is_gen_r()	false
 #endif
 
 /* 7.10 Responses */
@@ -423,7 +431,6 @@ typedef struct {
 	uint8_t crc;
 #endif
 } __packed mmc_cid_t;
-typedef uint8_t mmc_raw_cid_t[16];
 
 /* 8.3 CSD register - Card Specific Data register
  *
@@ -521,23 +528,39 @@ typedef struct {
 	uint64_t csd21;
 	uint32_t csd0;
 } __packed mmc_csd_t;
-typedef uint8_t mmc_raw_csd_t[16];
+
+typedef uint8_t mmc_r1_t[4];
+typedef uint8_t mmc_r2_t[16];
+typedef uint8_t mmc_r3_t[4];
 
 /* 8.4 Extended CSD register */
 
 /*===========================================================================
  * MMC Slot
  *===========================================================================*/
-typedef void (*mmc_cmpl_cb)(void);
+typedef void (*mmc_cmpl_cb)(bool result);
 
 struct mmc_slot {
-	mmc_cid_t cid;
-	mmc_csd_t csd;
 	uint8_t state;
-	mmc_event_t event;
 	uint8_t cmd;
 	uint8_t err;
 	uint8_t op;
+	uint8_t flags;
+#define MMC_SLOT_CARD_STATUS_VALID	_BV(0) /* R1 */
+#define MMC_SLOT_CARD_IS_BUSY		_BV(1) /* R1b */
+#define MMC_SLOT_GEN_CMD_RDWR		_BV(2)
+	mmc_event_t event;
+	uint16_t block_cnt;
+	uint32_t block_len;
+	uint32_t address;
+	/* R1 */
+	uint32_t card_status;
+	/* R2 */
+	mmc_cid_t cid;
+	mmc_csd_t csd;
+	/* R3 */
+	uint32_t ocr;
+	uint16_t dsr;
 	mmc_cmpl_cb op_cb;
 };
 #define mmc_op_is(_op)			(!!(mmc_slot_ctrl.op == (_op)))
@@ -561,27 +584,31 @@ void mmc_debug(uint8_t tag, uint32_t val);
 #endif
 
 #if NR_MMC_SLOTS > 1
-mmc_sid_t mmc_sid_save(mmc_sid_t sid);
-void mmc_sid_restore(mmc_sid_t sid);
-extern mmc_sid_t mmc_slid;
+mmc_rca_t mmc_rca_save(mmc_rca_t rca);
+void mmc_rca_restore(mmc_rca_t rca);
+extern mmc_rca_t mmc_rca;
 extern struct mmc_slot mmc_slots[NR_MMC_SLOTS];
-#define mmc_slot_ctrl mmc_slots[mmc_slid]
+#define mmc_slot_ctrl mmc_slots[mmc_rca]
 #else
-#define mmc_sid_save(sid)		0
-#define mmc_sid_restore(sid)
-#define mmc_slid			0
+#define mmc_rca_save(sid)	0
+#define mmc_rca_restore(rca)
+#define mmc_rca			0
 extern struct mmc_slot mmc_slot_ctrl;
 #endif
 
 int mmc_start_op(uint8_t op, mmc_cmpl_cb cb);
+void mmc_op_complete(bool result);
+#define mmc_op_success()	mmc_op_complete(true)
+#define mmc_op_failure()	mmc_op_complete(false)
 #define mmc_identify_card()	mmc_start_op(MMC_OP_IDENTIFY_CARD, NULL)
 
-mmc_cid_t mmc_decode_cid(mmc_raw_cid_t raw_cid);
-mmc_csd_t mmc_decode_csd(mmc_raw_csd_t raw_csd);
+void mmc_send_cmd(uint8_t cmd);
+void mmc_cmd_complete(uint8_t err);
+#define mmc_cmd_success()	mmc_cmd_complete(MMC_ERR_NO_ERROR)
+#define mmc_cmd_failure(err)	mmc_cmd_complete(err)
+
 uint8_t mmc_state_get(void);
 void mmc_state_set(uint8_t state);
-void mmc_cmd_success(void);
-void mmc_cmd_failure(uint8_t err);
 #define mmc_state_is(state)	(mmc_state_get() == MMC_STATE_##state)
 #define mmc_state_gt(state)	(mmc_state_get() > MMC_STATE_##state)
 #define mmc_state_ge(state)	(mmc_state_get() >= MMC_STATE_##state)

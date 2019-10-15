@@ -146,15 +146,18 @@
 
 #ifdef CONFIG_MMC
 #define mmc_hw_ctrl_init()		sdhc_init()
-#define mmc_hw_slot_select(sid)		sdhc_select(sid)
-#define mmc_hw_send_command(cmd)	sdhc_send(cmd)
+#define mmc_hw_slot_select(rca)		sdhc_select(rca)
+#define mmc_hw_send_command(cmd, arg)	sdhc_send(cmd, arg)
+#define mmc_hw_recv_response(resp, len)	sdhc_recv(resp, len)
+#define mmc_hw_card_busy()		false
 #endif
 
 #include <driver/sdhc.h>
 
 void sdhc_init(void);
-void sdhc_select(mmc_sid_t sid);
-void sdhc_send(uint8_t cmd);
+void sdhc_select(mmc_rca_t rca);
+void sdhc_send(uint8_t cmd, uint32_t arg);
+void sdhc_recv(uint8_t *resp, uint16_t len);
 void sdhc_cmpl(void);
 
 #endif /* __SDHC_H_INCLUDE__ */

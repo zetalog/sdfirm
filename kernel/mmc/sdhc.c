@@ -41,14 +41,18 @@
 
 #include <target/mmc.h>
 
-mmc_sid_t sdhc_mmc_sid;
+mmc_rca_t sdhc_mmc_rca;
 
-void sdhc_select(mmc_sid_t sid)
+void sdhc_select(mmc_rca_t rca)
 {
-	sdhc_mmc_sid = sid;
+	sdhc_mmc_rca = rca;
 }
 
-void sdhc_send(uint8_t cmd)
+void sdhc_send(uint8_t cmd, uint32_t arg)
+{
+}
+
+void sdhc_recv(uint8_t *resp, uint16_t len)
 {
 }
 
