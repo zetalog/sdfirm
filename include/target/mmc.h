@@ -45,6 +45,7 @@
 #include <target/config.h>
 #include <target/compiler.h>
 #include <target/generic.h>
+#include <errno.h>
 
 #ifdef CONFIG_MMC_DEBUG
 #define mmc_debug_state(state)					\
@@ -57,14 +58,24 @@
 	do {							\
 		mmc_debug(MMC_DEBUG_EVENT, event);		\
 	} while (0)
+#define mmc_debug_error(error)					\
+	do {							\
+		mmc_debug(MMC_DEBUG_ERROR, error);		\
+	} while (0)
 #define mmc_debug_cmd(cmd)					\
 	do {							\
 		mmc_debug(MMC_DEBUG_CMD, cmd);			\
 	} while (0)
+#define mmc_debug_op(op)					\
+	do {							\
+		mmc_debug(MMC_DEBUG_OP, op);			\
+	} while (0)
 #else
 #define mmc_debug_state(state)
 #define mmc_debug_event(event)
+#define mmc_debug_error(error)
 #define mmc_debug_cmd(cmd)
+#define mmc_debug_op(op)
 #endif
 
 #ifndef NR_MMC_SLOTS
@@ -235,6 +246,8 @@ typedef uint16_t mmc_event_t;
 #ifdef MMC_CLASS8
 #define MMC_CMD_GEN_CMD			MMC_CMD56
 #endif
+
+#define MMC_CMD_INVALID			64
 
 #ifdef MMC_CLASS1
 #define mmc_cmd_is_rstr()	mmc_cmd_is(MMC_CMD_READ_DAT_UNTIL_STOP)
@@ -512,20 +525,33 @@ typedef uint8_t mmc_raw_csd_t[16];
 
 /* 8.4 Extended CSD register */
 
+/*===========================================================================
+ * MMC Slot
+ *===========================================================================*/
+typedef void (*mmc_cmpl_cb)(void);
+
 struct mmc_slot {
 	mmc_cid_t cid;
 	mmc_csd_t csd;
 	uint8_t state;
+	mmc_event_t event;
 	uint8_t cmd;
 	uint8_t err;
+	uint8_t op;
+	mmc_cmpl_cb op_cb;
 };
+#define mmc_op_is(_op)			(!!(mmc_slot_ctrl.op == (_op)))
 #define mmc_cmd_is(_cmd)		(!!(mmc_slot_ctrl.cmd == (_cmd)))
 #define mmc_err_is(_err)		(!!(mmc_slot_ctrl.err == (_err)))
 
-#define MMC_ERR_CARD_IS_BUSY		0 /* card is busy */
-#define MMC_ERR_HOST_OMIT_VOLT		1 /* host omits voltage range */
-#define MMC_ERR_CARD_NON_COMP_VOLT	2 /* card with non compatible voltage range */
-#define MMC_ERR_CARD_LOOSE_BUS		3 /* card looses bus */
+#define MMC_OP_NO_OP			0
+#define MMC_OP_IDENTIFY_CARD		1
+
+#define MMC_ERR_NO_ERROR		0
+#define MMC_ERR_CARD_IS_BUSY		1 /* card is busy */
+#define MMC_ERR_HOST_OMIT_VOLT		2 /* host omits voltage range */
+#define MMC_ERR_CARD_NON_COMP_VOLT	3 /* card with non compatible voltage range */
+#define MMC_ERR_CARD_LOOSE_BUS		4 /* card looses bus */
 
 #ifdef CONFIG_DEBUG_PRINT
 #define mmc_debug(tag, val)	dbg_print((tag), (val))
@@ -546,6 +572,9 @@ extern struct mmc_slot mmc_slots[NR_MMC_SLOTS];
 #define mmc_slid			0
 extern struct mmc_slot mmc_slot_ctrl;
 #endif
+
+int mmc_start_op(uint8_t op, mmc_cmpl_cb cb);
+#define mmc_identify_card()	mmc_start_op(MMC_OP_IDENTIFY_CARD, NULL)
 
 mmc_cid_t mmc_decode_cid(mmc_raw_cid_t raw_cid);
 mmc_csd_t mmc_decode_csd(mmc_raw_csd_t raw_csd);

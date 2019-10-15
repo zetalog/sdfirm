@@ -58,11 +58,8 @@ bh_t mmc_bh = INVALID_BH;
 #if NR_IFD_SLOTS > 1
 mmc_sid_t mmc_slid = INVALID_MMC_SID;
 struct mmc_slot mmc_slots[NR_MMC_SLOTS];
-mmc_event_t mmc_slot_events[NR_MMC_SLOTS];
-#define mmc_slot_event		mmc_slot_events[mmc_slid]
 #else
 struct mmc_slot mmc_slot_ctrl;
-mmc_event_t mmc_slot_event;
 #endif
 
 #if defined(CONFIG_CONSOLE) && defined(CONFIG_MMC_DEBUG)
@@ -181,6 +178,33 @@ const char *mmc_event_name(mmc_event_t event)
 	return "NONE";
 }
 
+const char *mmc_op_names[] = {
+	"NO_OP",
+	"IDENTIFY_CARD",
+};
+
+const char *mmc_op_name(uint8_t op)
+{
+	if (op >= ARRAY_SIZE(mmc_op_names))
+		return "NO-OP";
+	return mmc_op_names[op];
+}
+
+const char *mmc_error_names[] = {
+	"no error",
+	"card is busy",
+	"host omits voltage range",
+	"card is with non compatible voltage range",
+	"card looses bus",
+};
+
+const char *mmc_error_name(uint8_t error)
+{
+	if (error >= ARRAY_SIZE(mmc_error_names))
+		return "no error";
+	return mmc_error_names[error];
+}
+
 void mmc_debug(uint8_t tag, uint32_t val)
 {
 	switch (tag) {
@@ -190,8 +214,14 @@ void mmc_debug(uint8_t tag, uint32_t val)
 	case MMC_DEBUG_EVENT:
 		printf("event %s\n", mmc_event_name(val));
 		break;
+	case MMC_DEBUG_ERROR:
+		printf("error %s\n", mmc_error_name(val));
+		break;
 	case MMC_DEBUG_CMD:
 		printf("cmd %s\n", mmc_cmd_name(val));
+		break;
+	case MMC_DEBUG_OP:
+		printf("op %s\n", mmc_op_name(val));
 		break;
 	default:
 		printf("Unknown debug tag 0x%02x\n", tag);
@@ -202,26 +232,28 @@ void mmc_debug(uint8_t tag, uint32_t val)
 
 void mmc_handle_slot_seq(void)
 {
+	if (mmc_op_is(MMC_OP_IDENTIFY_CARD)) {
+	}
 }
 
 void mmc_event_raise(mmc_event_t event)
 {
 	mmc_debug_event(event);
-	mmc_slot_event |= event;
+	mmc_slot_ctrl.event |= event;
 	bh_resume(mmc_bh);
 }
 
 static mmc_event_t mmc_event_save(void)
 {
 	mmc_event_t events;
-	events = mmc_slot_event;
-	mmc_slot_event = 0;
+	events = mmc_slot_ctrl.event;
+	mmc_slot_ctrl.event = 0;
 	return events;
 }
 
 static void mmc_event_restore(mmc_event_t event)
 {
-	mmc_slot_event |= event;
+	mmc_slot_ctrl.event |= event;
 }
 
 uint8_t mmc_state_get(void)
@@ -480,18 +512,42 @@ void mmc_cmd_success(void)
 void mmc_cmd_failure(uint8_t err)
 {
 	mmc_slot_ctrl.err = err;
+	mmc_debug_error(err);
 	mmc_event_raise(MMC_EVENT_CMD_FAILURE);
 }
 
 void mmc_send_cmd(uint8_t cmd)
 {
 	mmc_slot_ctrl.cmd = cmd;
+	mmc_slot_ctrl.err = MMC_ERR_NO_ERROR;
+	mmc_debug_cmd(cmd);
 	mmc_hw_send_command(cmd);
 }
 
-void mmc_detect_card(void)
+int mmc_start_op(uint8_t op, mmc_cmpl_cb cb)
 {
-	mmc_event_raise(MMC_EVENT_POWER_ON);
+	if (mmc_slot_ctrl.op != MMC_OP_NO_OP)
+		return -EBUSY;
+
+	mmc_slot_ctrl.op = op;
+	mmc_slot_ctrl.op_cb = cb;
+	mmc_slot_ctrl.cmd = MMC_CMD_INVALID;
+	mmc_debug_op(op);
+
+	switch (op) {
+	case MMC_OP_IDENTIFY_CARD:
+		mmc_event_raise(MMC_EVENT_POWER_ON);
+		break;
+	}
+	return 0;
+}
+
+void mmc_reset_slot(void)
+{
+	mmc_slot_ctrl.op = MMC_OP_NO_OP;
+	mmc_slot_ctrl.state = MMC_STATE_idle;
+	mmc_slot_ctrl.event = 0;
+	mmc_identify_card();
 }
 
 void mmc_init(void)
@@ -505,9 +561,7 @@ void mmc_init(void)
 
 	for (sid = 0; sid < NR_MMC_SLOTS; sid++) {
 		ssid = mmc_sid_save(sid);
-		/* MMC only handles states after powered on */
-		mmc_state_enter(idle);
-		mmc_detect_card();
+		mmc_reset_slot();
 		mmc_sid_restore(ssid);
 	}
 }
