@@ -40,3 +40,49 @@
  */
 
 #include <target/gpio.h>
+
+void sifive_gpio_config_pad(uint8_t gpio, uint8_t pad, uint8_t drv)
+{
+	if (gpio >= GPIO_HW_MAX_PINS)
+		return;
+
+	if (drv == GPIO_DRIVE_IN) {
+		sifive_gpio_input_enable(gpio);
+		if (pad & GPIO_PAD_DIGITAL_IO) {
+			if (pad & GPIO_PAD_OPEN_DRAIN)
+				sifive_gpio_pullup_disable(gpio);
+			else
+				sifive_gpio_pullup_enable(gpio);
+		}
+	} else {
+		sifive_gpio_output_enable(gpio);
+	}
+}
+
+void sifive_gpio_config_irq(uint8_t gpio, uint32_t mode)
+{
+	if (gpio >= GPIO_HW_MAX_PINS)
+		return;
+
+	if ((mode & GPIO_IRQ_LEVEL_TRIG) == GPIO_IRQ_EDGE_TRIG) {
+		sifive_gpio_high_disable(gpio);
+		sifive_gpio_low_disable(gpio);
+		if (mode & GPIO_IRQ_HIGH) {
+			sifive_gpio_rise_enable(gpio);
+			sifive_gpio_fall_disable(gpio);
+		} else {
+			sifive_gpio_rise_disable(gpio);
+			sifive_gpio_fall_enable(gpio);
+		}
+	} else {
+		sifive_gpio_rise_disable(gpio);
+		sifive_gpio_fall_disable(gpio);
+		if (mode & GPIO_IRQ_HIGH) {
+			sifive_gpio_high_enable(gpio);
+			sifive_gpio_low_disable(gpio);
+		} else {
+			sifive_gpio_high_disable(gpio);
+			sifive_gpio_low_enable(gpio);
+		}
+	}
+}
