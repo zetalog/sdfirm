@@ -50,6 +50,9 @@
 
 #define invalid_clk		clkid(0xFF, 0xFF)
 
+#define TLCLK_FREQ		UL(500000000)
+/* #define TLCLK_FREQ		UL(750000000) */
+
 #define clk_hw_ctrl_init()	do { } while (0)
 
 #endif /* __CLK_UNLEASHED_H_INCLUDE__ */

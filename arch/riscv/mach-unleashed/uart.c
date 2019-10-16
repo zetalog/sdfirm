@@ -41,6 +41,18 @@
 
 #include <target/uart.h>
 
-void uart_hw_con_init(void)
+uint32_t sifive_uart_min_div(uint32_t baudrate)
 {
+	uint32_t quotient;
+
+	/* The nearest integer for UART_DIV requires rounding up as to not
+	 * exceed baudrate.
+	 *  div = ceil(Fin / Fbaud) - 1
+	 *      = floor((Fin - 1 + Fbaud) / Fbaud) - 1
+	 * This should not overflow as long as (Fin - 1 + Fbaud) does not
+	 * exceed 2^32 - 1.
+	 */
+	quotient = div32u(SIFIVE_UART_FREQ + baudrate - 1, baudrate);
+	/* Avoid underflow */
+	return quotient ? quotient - 1 : 0;
 }

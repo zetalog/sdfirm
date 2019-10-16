@@ -62,8 +62,20 @@ menuconfig SIFIVE_UART
 	select ARCH_HAS_UART
 	select GPIO
 	select CLK
+	select MATH_DIV32
 
 if SIFIVE_UART
+
+choice
+	prompt "Console port"
+
+config UNLEASHED_CON_UART0
+	bool "UART0"
+
+config UNLEASHED_CON_UART1
+	bool "UART1"
+
+endchoice
 
 endif
 
