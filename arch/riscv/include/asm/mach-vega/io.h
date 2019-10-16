@@ -42,4 +42,6 @@
 #ifndef __IO_VEGA_H_INCLUDE__
 #define __IO_VEGA_H_INCLUDE__
 
+/* Normally empty unless there is an SoC specific Bit Banging facility. */
+
 #endif /* __IO_VEGA_H_INCLUDE__ */

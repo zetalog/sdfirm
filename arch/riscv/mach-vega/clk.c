@@ -953,7 +953,7 @@ void freqplan_config_hsrun(void)
 }
 #endif
 
-int clk_hw_ctrl_init(void)
+void clk_hw_ctrl_init(void)
 {
 	clk_register_driver(CLK_CONST, &clk_const);
 	clk_register_driver(CLK_INPUT, &clk_input);
@@ -962,5 +962,4 @@ int clk_hw_ctrl_init(void)
 	clk_register_driver(CLK_INTERFACE, &clk_interface);
 	clk_register_driver(CLK_FUNCTIONAL, &clk_functional);
 	freqplan_config_run();
-	return 0;
 }

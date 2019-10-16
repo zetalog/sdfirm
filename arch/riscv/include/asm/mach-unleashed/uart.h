@@ -35,94 +35,47 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)clk.c: clock tree framework implementation
- * $Id: clk.c,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)uart.h: FU540 (unleashed) specific UART defintions
+ * $Id: uart.h,v 1.1 2019-10-16 15:25:00 zhenglv Exp $
  */
 
-#include <errno.h>
+#ifndef __UART_UNLEASHED_H_INCLUDE__
+#define __UART_UNLEASHED_H_INCLUDE__
+
+#include <target/config.h>
+#include <target/generic.h>
+#include <target/bitops.h>
+#include <target/gpio.h>
 #include <target/clk.h>
 
-struct clk_driver *clk_drivers[MAX_CLK_DRIVERS];
+#ifndef ARCH_HAVE_UART
+#define ARCH_HAVE_UART		1
+#else
+#error "Multiple UART controller defined"
+#endif
 
-uint32_t clk_get_frequency(clk_t clk)
-{
-	struct clk_driver *clkd;
-	clk_cat_t cat = clk_cat(clk);
+#ifdef CONFIG_DEBUG_PRINT
+void uart_hw_dbg_init(void);
+void uart_hw_dbg_start(void);
+void uart_hw_dbg_stop(void);
+void uart_hw_dbg_write(uint8_t byte);
+void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
+#endif
 
-	if (cat >= MAX_CLK_DRIVERS)
-		return -EINVAL;
-	clkd = clk_drivers[cat];
-	if (!clkd)
-		return -EINVAL;
-	BUG_ON(!clkd->get_freq);
-	return clkd->get_freq(clk_clk(clk));
-}
+#ifdef CONFIG_CONSOLE
+void uart_hw_con_init(void);
+#endif
+#ifdef CONFIG_CONSOLE_OUTPUT
+#define uart_hw_con_write(byte)
+#endif
+#ifdef CONFIG_CONSOLE_INPUT
+#define uart_hw_con_read()	0
+#define uart_hw_con_poll()	false
+void uart_hw_irq_ack(void);
+void uart_hw_irq_init(void);
+#else
+#define uart_hw_con_read()	-1
+#define uart_hw_con_poll()	false
+#endif
 
-int clk_enable(clk_t clk)
-{
-	struct clk_driver *clkd;
-	clk_cat_t cat = clk_cat(clk);
-	int ret = 0;
-
-	if (cat >= MAX_CLK_DRIVERS)
-		return -ENODEV;
-	clkd = clk_drivers[cat];
-	if (!clkd)
-		return -ENODEV;
-	if (clkd->enable)
-		ret = clkd->enable(clk_clk(clk));
-	return ret;
-}
-
-int clk_set_frequency(clk_t clk, uint32_t freq)
-{
-	struct clk_driver *clkd;
-	clk_cat_t cat = clk_cat(clk);
-
-	if (cat >= MAX_CLK_DRIVERS)
-		return -EINVAL;
-	clkd = clk_drivers[cat];
-	if (!clkd || !clkd->set_freq)
-		return -EINVAL;
-	return clkd->set_freq(clk_clk(clk), freq);
-}
-
-void clk_disable(clk_t clk)
-{
-	struct clk_driver *clkd;
-	clk_cat_t cat = clk_cat(clk);
-
-	if (cat >= MAX_CLK_DRIVERS)
-		return;
-	clkd = clk_drivers[cat];
-	if (!clkd || !clkd->disable)
-		return;
-	clkd->disable(clk_clk(clk));
-}
-
-void clk_select_source(clk_t clk, clk_t src)
-{
-	struct clk_driver *clkd;
-	clk_cat_t cat = clk_cat(clk);
-
-	if (cat >= MAX_CLK_DRIVERS)
-		return;
-	clkd = clk_drivers[cat];
-	if (!clkd)
-		return;
-	if (clkd->select)
-		clkd->select(clk_clk(clk), src);
-}
-
-int clk_register_driver(clk_cat_t category, struct clk_driver *clkd)
-{
-	if (clk_drivers[category])
-		return -EBUSY;
-	clk_drivers[category] = clkd;
-	return 0;
-}
-
-void clk_init(void)
-{
-	clk_hw_ctrl_init();
-}
+#endif /* __UART_UNLEASHED_H_INCLUDE__ */

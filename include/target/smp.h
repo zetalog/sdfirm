@@ -58,7 +58,15 @@
 
 #include <asm/smp.h>
 
+#ifdef CONFIG_SMP
 #define SMP_CACHE_BYTES		__SMP_CACHE_BYTES
+#else
+#ifndef __SMP_CACHE_BYTES
+#define SMP_CACHE_BYTES		1
+#else
+#define SMP_CACHE_BYTES		__SMP_CACHE_BYTES
+#endif
+#endif
 #define __cache_aligned		__align(SMP_CACHE_BYTES)
 
 #ifndef __ASSEMBLY__

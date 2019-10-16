@@ -33,7 +33,17 @@ config VEGA_JTAG_DISABLED
 
 endmenu
 
-menu "Clock configuration"
+menuconfig VEGA_CLOCK_DIST
+	bool "Clock distribution support"
+	select SCG
+	select PCC
+
+if VEGA_CLOCK_DIST
+
+config SCG
+	bool "System clock generator (SCG) support"
+
+if SCG
 
 config SCG_SOSC
 	bool "Use external System OSC (RF OSC)"
@@ -59,7 +69,12 @@ config SCG_ROSC
 	bool "Use external 32.768KHz RTC OSC"
 	default y
 
-endmenu
+endif
+
+config PCC
+	bool "Peripheral clock controller (PCC) support"
+
+endif
 
 menuconfig LPUART
 	bool "Low Power UART (LPUART) module support"

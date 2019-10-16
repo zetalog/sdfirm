@@ -45,6 +45,9 @@
 #include <target/types.h>
 #include <target/arch.h>
 
+/* Global IRQ0 is "no interrupt" */
+#define IRQ_NOIRQ			0
+
 #define PLIC_MAX_IRQS			1024
 #define PLIC_MAX_CONTEXTS		15872
 

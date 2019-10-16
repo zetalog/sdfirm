@@ -2510,12 +2510,12 @@ static inline int clk_freqplan_init(void)
 }
 #endif
 
-int clk_hw_ctrl_init(void)
+void clk_hw_ctrl_init(void)
 {
 	clk_register_driver(CLK_PADRING, &clk_padring);
 	clk_register_driver(CLK_FABIA_PLL, &clk_fabia_pll);
 	clk_register_driver(CLK_FABIA_PLLOUT, &clk_fabia_pllout);
 	clk_register_driver(CLK_ROOT_CLOCK, &clk_root_clock);
 	clk_register_driver(CLK_BRANCH_CLOCK, &clk_branch_clock);
-	return clk_freqplan_init();
+	clk_freqplan_init();
 }

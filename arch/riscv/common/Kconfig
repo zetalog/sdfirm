@@ -1,3 +1,21 @@
+# SiFive E51
+config CPU_E51
+	bool
+	select CPU_64I
+	select CPU_M
+	select CPU_A
+	select CPU_C
+
+# SiFive U54
+config CPU_U54
+	bool
+	select CPU_64I
+	select CPU_M
+	select CPU_A
+	select CPU_F
+	select CPU_D
+	select CPU_C
+
 # RI5CY
 config CPU_RI5CY
 	bool

@@ -1,0 +1,285 @@
+#
+# Automatically generated make config: don't edit
+# Small Device version: 1.0.0.0
+# Wed Oct 16 15:38:43 2019
+#
+CONFIG_64BIT=y
+CONFIG_RISCV=y
+
+#
+# Generic setup
+#
+CONFIG_VENDOR_NAME="SiFive"
+CONFIG_PRODUCT_NAME="Freedom E-SDK FSBL"
+CONFIG_VENDOR_ID=990
+CONFIG_PRODUCT_ID=0
+CONFIG_SERIAL_NO=0
+# CONFIG_BOOTLOADER is not set
+CONFIG_FIRMWARE=y
+# CONFIG_EMBEDDED is not set
+
+#
+# Firmware options
+#
+# CONFIG_GEM5 is not set
+# CONFIG_RIS is not set
+CONFIG_CONSOLE=y
+CONFIG_CONSOLE_COMMAND=y
+CONFIG_CONSOLE_OUTPUT=y
+CONFIG_CONSOLE_OUTPUT_CR=y
+CONFIG_CONSOLE_PRINT_BUFFER_SIZE=64
+CONFIG_CONSOLE_INPUT=y
+# CONFIG_CONSOLE_230400 is not set
+CONFIG_CONSOLE_115200=y
+# CONFIG_CONSOLE_57600 is not set
+# CONFIG_CONSOLE_38400 is not set
+# CONFIG_CONSOLE_19200 is not set
+# CONFIG_CONSOLE_9600 is not set
+# CONFIG_CONSOLE_4800 is not set
+# CONFIG_CONSOLE_2400 is not set
+# CONFIG_CONSOLE_DEBUG is not set
+
+#
+# RISCV system options
+#
+# CONFIG_ARCH_DUOWEN is not set
+CONFIG_ARCH_UNLEASHED=y
+# CONFIG_ARCH_VEGA is not set
+# CONFIG_ARCH_SPIKE is not set
+CONFIG_CPU_E51=y
+CONFIG_CPU_64I=y
+# CONFIG_RISCV_WMO is not set
+# CONFIG_RISCV_32I is not set
+CONFIG_RISCV_64I=y
+# CONFIG_RISCV_32E is not set
+# CONFIG_RISCV_128I is not set
+
+#
+# ISA extensions
+#
+CONFIG_CPU_M=y
+CONFIG_CPU_A=y
+CONFIG_CPU_C=y
+# CONFIG_RISCV_M is not set
+# CONFIG_RISCV_A is not set
+# CONFIG_RISCV_C is not set
+CONFIG_CMODEL_MEDLOW=y
+# CONFIG_CMODEL_MEDANY is not set
+CONFIG_TUNE_GENERIC=y
+CONFIG_MAXPHYSMEM_2GB=y
+# CONFIG_MAXPHYSMEM_128GB is not set
+
+#
+# System peripherals
+#
+CONFIG_ARCH_HAS_CLINT=y
+CONFIG_CLINT=y
+CONFIG_ARCH_HAS_PLIC=y
+CONFIG_PLIC=y
+
+#
+# SiFive HiFive Unleashed (FU540) board options
+#
+
+#
+# CPU configuration
+#
+CONFIG_UNLEASHED_E51=y
+# CONFIG_UNLEASHED_U54 is not set
+# CONFIG_UNLEASHED_ZSBL is not set
+CONFIG_UNLEASHED_FSBL=y
+# CONFIG_UNLEASHED_BBL is not set
+CONFIG_PRCI=y
+CONFIG_SIFIVE_UART=y
+
+#
+# Feature setup
+#
+
+#
+# Generic kernel features
+#
+CONFIG_SYS_NOIRQ=y
+# CONFIG_SYS_IRQ is not set
+# CONFIG_SYS_RT is not set
+# CONFIG_SYS_TASK is not set
+CONFIG_ARCH_HAS_NOVEC=y
+CONFIG_ARCH_HAS_IRQC=y
+CONFIG_ARCH_HAS_GPT=y
+CONFIG_ARCH_HAS_TSC=y
+CONFIG_ARCH_HAS_TSC_CONST=y
+CONFIG_ARCH_IS_TICKLESS=y
+CONFIG_ARCH_HAS_IDLE=y
+CONFIG_ARCH_HAS_BOOT_LOAD=y
+
+#
+# Scheduling facility (bh) support
+#
+CONFIG_MAX_BHS=4
+# CONFIG_SMP is not set
+
+#
+# Timing facility (jiffy) support
+#
+
+#
+# Timing facility (delay) support
+#
+CONFIG_LPS_NO_LPS=y
+# CONFIG_TIMER is not set
+
+#
+# Address space layout (xip) support
+#
+CONFIG_BFM=y
+CONFIG_XIP=y
+CONFIG_BOOT_BASE=0x00010000
+CONFIG_LOAD_BASE=0x00100000
+# CONFIG_HEAP is not set
+CONFIG_MEM=y
+CONFIG_MEM_MAX_REGIONS=4
+CONFIG_MEM_RESIZE=y
+# CONFIG_PAGE is not set
+CONFIG_IDLE=y
+# CONFIG_BULK is not set
+# CONFIG_TERM is not set
+CONFIG_ARCH_HAS_GPIO=y
+CONFIG_GPIO=y
+CONFIG_ARCH_HAS_CLK=y
+CONFIG_CLK=y
+CONFIG_CLK_MAX_DRIVERS=4
+
+#
+# Human Interface Devices (HID) support
+#
+# CONFIG_LCD is not set
+# CONFIG_KBD is not set
+# CONFIG_LED is not set
+CONFIG_ARCH_HAS_UART=y
+
+#
+# Universal asynchronous RX/TX (UART) support
+#
+# CONFIG_UART_230400 is not set
+CONFIG_UART_115200=y
+# CONFIG_UART_57600 is not set
+# CONFIG_UART_38400 is not set
+# CONFIG_UART_19200 is not set
+# CONFIG_UART_9600 is not set
+# CONFIG_UART_4800 is not set
+# CONFIG_UART_2400 is not set
+# CONFIG_UART is not set
+# CONFIG_SPI is not set
+# CONFIG_I2C is not set
+# CONFIG_USB is not set
+# CONFIG_SCS is not set
+# CONFIG_MTD is not set
+# CONFIG_SCSI is not set
+# CONFIG_NET is not set
+# CONFIG_VIDEO is not set
+# CONFIG_MMC is not set
+# CONFIG_RAS is not set
+
+#
+# Driver setup
+#
+
+#
+# Timer drivers
+#
+# CONFIG_DW_TIMERS is not set
+
+#
+# Debugging console drivers
+#
+# CONFIG_DW_UART is not set
+# CONFIG_SEGGER_RTT is not set
+
+#
+# LCD drivers
+#
+
+#
+# Video drivers
+#
+
+#
+# MTD memory drivers
+#
+# CONFIG_PN53X is not set
+# CONFIG_ACR122 is not set
+
+#
+# MMC host drivers
+#
+
+#
+# Library setup
+#
+
+#
+# Bit-wise operations
+#
+# CONFIG_BIT_FLS8 is not set
+# CONFIG_BIT_FLS16 is not set
+# CONFIG_BIT_FFS16 is not set
+# CONFIG_BIT_FLS32 is not set
+# CONFIG_BIT_FFS32 is not set
+# CONFIG_BIT_ROUNDUP16 is not set
+# CONFIG_BIT_ROUNDDOWN16 is not set
+# CONFIG_BIT_ROUNDUP32 is not set
+# CONFIG_BIT_ROUNDDOWN32 is not set
+
+#
+# Bitmap operations
+#
+# CONFIG_BIT_FIND_CLEAR is not set
+
+#
+# Mathematic operations
+#
+# CONFIG_MATH_GCD32 is not set
+# CONFIG_MATH_MOD32 is not set
+# CONFIG_MATH_MUL32 is not set
+# CONFIG_MATH_MUL64 is not set
+# CONFIG_MATH_DIV32 is not set
+CONFIG_MATH_DIV64=y
+CONFIG_MATH_MOD64=y
+
+#
+# Atomic operations
+#
+# CONFIG_ATOMIC_SUB_RETURN is not set
+# CONFIG_ATOMIC_ADD_RETURN is not set
+
+#
+# Checksum algorithms
+#
+# CONFIG_CRC16_CCITT is not set
+# CONFIG_CRC32 is not set
+CONFIG_STDLIB=y
+
+#
+# Print operations
+#
+CONFIG_PRINT_VSNPRINTF=y
+# CONFIG_PRINT_SNPRINTF is not set
+CONFIG_PRINT_VPRINTF=y
+# CONFIG_PRINT_SPRINTF is not set
+CONFIG_PRINT_PRINTF=y
+
+#
+# String operations
+#
+CONFIG_STRING_STRTOUL=y
+# CONFIG_FONTS is not set
+
+#
+# Development options
+#
+CONFIG_EXPERIMENTAL=y
+# CONFIG_CC_OPT_SIZE is not set
+CONFIG_DEBUG=y
+# CONFIG_CC_GEN_DEBUG is not set
+# CONFIG_DEBUG_PANIC is not set
+# CONFIG_PORTING is not set

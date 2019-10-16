@@ -77,35 +77,14 @@ void clk_disable(clk_t clk);
 void clk_select_source(clk_t clk, clk_t src);
 
 int clk_register_driver(clk_cat_t category, struct clk_driver *clkd);
-int clk_init(void);
+void clk_init(void);
 #else
-static inline uint32_t clk_get_frequency(clk_t clk)
-{
-	return 0;
-}
-
-static inline int clk_set_frequency(clk_t clk, uint32_t freq)
-{
-	return -ENODEV;
-}
-
-static inline int clk_enable(clk_t clk)
-{
-	return -ENODEV;
-}
-
-static inline void clk_disable(clk_t clk)
-{
-}
-
-static inline void clk_select_source(clk_t clk, clk_t src)
-{
-}
-
-static inline int clk_init(void)
-{
-	return 0;
-}
+#define clk_get_frequency(clk)		0
+#define clk_set_frequency(clk, freq)	(-ENODEV)
+#define clk_enable(clk)			(-ENODEV)
+#define clk_disable(clk)		do { } while (0)
+#define clk_select_source(clk, src)	do { } while (0)
+#define clk_init()			do { } while (0)
 #endif
 
 #endif /* __CLK_H_INCLUDE__ */

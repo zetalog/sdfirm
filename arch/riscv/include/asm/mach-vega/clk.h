@@ -283,6 +283,6 @@ void freqplan_config_hsrun(void);
 #define freqplan_config_hsrun()		do { } while (0)
 #endif
 
-int clk_hw_ctrl_init(void);
+void clk_hw_ctrl_init(void);
 
 #endif /* __CLK_VEGA_H_INCLUDE__ */

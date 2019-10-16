@@ -1705,6 +1705,6 @@ typedef struct freqplan_cfg {
 
 int freqplan_get_plan(void);
 freqplan_t *freqplan_get(void);
-int clk_hw_ctrl_init(void);
+void clk_hw_ctrl_init(void);
 
 #endif /* __CLK_QDF2400_H_INCLUDE__ */

@@ -62,17 +62,21 @@ CHECKFLAGS += -D__riscv -D__riscv_xlen=$(BITS)
 
 head-y := arch/riscv/common/head.rel
 
-ifeq ($(CONFIG_ARCH_VEGA),y)
- machine-$(CONFIG_ARCH_VEGA)	:= vega
- incdir-$(CONFIG_ARCH_VEGA)	:= vega
-endif
 ifeq ($(CONFIG_ARCH_DUOWEN),y)
- machine-$(CONFIG_ARCH_DUOWEN)	:= duowen
- incdir-$(CONFIG_ARCH_DUOWEN)	:= duowen
+ machine-$(CONFIG_ARCH_DUOWEN)		:= duowen
+ incdir-$(CONFIG_ARCH_DUOWEN)		:= duowen
+endif
+ifeq ($(CONFIG_ARCH_UNLEASHED),y)
+ machine-$(CONFIG_ARCH_UNLEASHED)	:= unleashed
+ incdir-$(CONFIG_ARCH_UNLEASHED)	:= unleashed
+endif
+ifeq ($(CONFIG_ARCH_VEGA),y)
+ machine-$(CONFIG_ARCH_VEGA)		:= vega
+ incdir-$(CONFIG_ARCH_VEGA)		:= vega
 endif
 ifeq ($(CONFIG_ARCH_SPIKE),y)
- machine-$(CONFIG_ARCH_SPIKE)	:= spike
- incdir-$(CONFIG_ARCH_SPIKE)	:= spike
+ machine-$(CONFIG_ARCH_SPIKE)		:= spike
+ incdir-$(CONFIG_ARCH_SPIKE)		:= spike
 endif
 
 ifeq ($(incdir-y),)

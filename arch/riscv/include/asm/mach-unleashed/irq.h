@@ -35,94 +35,29 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)clk.c: clock tree framework implementation
- * $Id: clk.c,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)irq.h: FU540 (unleashed) specific IRQ assignments
+ * $Id: irq.h,v 1.1 2019-10-16 11:18:00 zhenglv Exp $
  */
 
-#include <errno.h>
-#include <target/clk.h>
+#ifndef __IRQ_UNLEASHED_H_INCLUDE__
+#define __IRQ_UNLEASHED_H_INCLUDE__
 
-struct clk_driver *clk_drivers[MAX_CLK_DRIVERS];
+#define NR_IRQS		64
 
-uint32_t clk_get_frequency(clk_t clk)
-{
-	struct clk_driver *clkd;
-	clk_cat_t cat = clk_cat(clk);
+#define IRQ_L2_DIRE	1 /* L2 Cache ECC DirError */
+#define IRQ_L2_DATAE	2 /* L2 Cache ECC DataError */
+#define IRQ_L2_DATAF	3 /* L2 Cache ECC DataFail */
+#define IRQ_UART0	4
+#define IRQ_UART1	5
+#define IRQ_QSPI2	6
+#define IRQ_GPIO(n)	(7 + (n)) /* GPIO0-15 */
+#define IRQ_DMA(n)	(23 + (n)) /* DMA0-7 */
+#define IRQ_MSI		(32 + (n))
+#define IRQ_PWM0CMP(n)	(42 + (n)) /* PWMCMP0-3IP */
+#define IRQ_PWM1CMP(n)	(46 + (n)) /* PWMCMP0-3IP */
+#define IRQ_I2C		50
+#define IRQ_QSPI0	51
+#define IRQ_QSPI1	52
+#define IRQ_GBE		53 /* GigaBit Ethernet */
 
-	if (cat >= MAX_CLK_DRIVERS)
-		return -EINVAL;
-	clkd = clk_drivers[cat];
-	if (!clkd)
-		return -EINVAL;
-	BUG_ON(!clkd->get_freq);
-	return clkd->get_freq(clk_clk(clk));
-}
-
-int clk_enable(clk_t clk)
-{
-	struct clk_driver *clkd;
-	clk_cat_t cat = clk_cat(clk);
-	int ret = 0;
-
-	if (cat >= MAX_CLK_DRIVERS)
-		return -ENODEV;
-	clkd = clk_drivers[cat];
-	if (!clkd)
-		return -ENODEV;
-	if (clkd->enable)
-		ret = clkd->enable(clk_clk(clk));
-	return ret;
-}
-
-int clk_set_frequency(clk_t clk, uint32_t freq)
-{
-	struct clk_driver *clkd;
-	clk_cat_t cat = clk_cat(clk);
-
-	if (cat >= MAX_CLK_DRIVERS)
-		return -EINVAL;
-	clkd = clk_drivers[cat];
-	if (!clkd || !clkd->set_freq)
-		return -EINVAL;
-	return clkd->set_freq(clk_clk(clk), freq);
-}
-
-void clk_disable(clk_t clk)
-{
-	struct clk_driver *clkd;
-	clk_cat_t cat = clk_cat(clk);
-
-	if (cat >= MAX_CLK_DRIVERS)
-		return;
-	clkd = clk_drivers[cat];
-	if (!clkd || !clkd->disable)
-		return;
-	clkd->disable(clk_clk(clk));
-}
-
-void clk_select_source(clk_t clk, clk_t src)
-{
-	struct clk_driver *clkd;
-	clk_cat_t cat = clk_cat(clk);
-
-	if (cat >= MAX_CLK_DRIVERS)
-		return;
-	clkd = clk_drivers[cat];
-	if (!clkd)
-		return;
-	if (clkd->select)
-		clkd->select(clk_clk(clk), src);
-}
-
-int clk_register_driver(clk_cat_t category, struct clk_driver *clkd)
-{
-	if (clk_drivers[category])
-		return -EBUSY;
-	clk_drivers[category] = clkd;
-	return 0;
-}
-
-void clk_init(void)
-{
-	clk_hw_ctrl_init();
-}
+#endif  /* __IRQ_UNLEASHED_H_INCLUDE__ */

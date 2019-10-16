@@ -1,0 +1,72 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+if ARCH_UNLEASHED
+
+menu "SiFive HiFive Unleashed (FU540) board options"
+
+menu "CPU configuration"
+
+choice
+	prompt "RISCV CPU"
+	default CPU_E51
+
+config UNLEASHED_E51
+	bool "Monitor Core (E51)"
+	select CPU_E51
+
+config UNLEASHED_U54
+	bool "Application Cores (U54)"
+	select CPU_U54
+
+endchoice
+
+choice
+	prompt "Program type"
+
+config UNLEASHED_ZSBL
+	bool "Zeroth stage boot loader (ZSBL)"
+	depends UNLEASHED_E51
+	select ARCH_HAS_LOVEC
+	select XIP
+	select LOAD_DATA
+
+config UNLEASHED_FSBL
+	bool "First stage boot loader (FSBL)"
+	depends UNLEASHED_E51
+	select ARCH_HAS_NOVEC
+	select ARCH_HAS_BOOT_LOAD
+	select XIP
+
+config UNLEASHED_BBL
+	bool "Berkeley boot loader (BBL)"
+	depends UNLEASHED_U54
+
+endchoice
+
+endmenu
+
+menuconfig PRCI
+	bool "Power reset clocking interrupt (PRCI) support"
+	select ARCH_HAS_CLK
+	depends CLK
+
+if PRCI
+
+endif
+
+menuconfig SIFIVE_UART
+	bool "SiFive UART controller support"
+	select ARCH_HAS_UART
+	select GPIO
+	select CLK
+
+if SIFIVE_UART
+
+endif
+
+endmenu
+
+endif

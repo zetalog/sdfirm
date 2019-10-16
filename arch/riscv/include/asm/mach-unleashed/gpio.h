@@ -35,94 +35,31 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)clk.c: clock tree framework implementation
- * $Id: clk.c,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)gpio.h: FU540 (unleashed) specific GPIO pin defintions
+ * $Id: gpio.h,v 1.1 2019-10-16 14:32:00 zhenglv Exp $
  */
 
-#include <errno.h>
-#include <target/clk.h>
+#ifndef __GPIO_UNLEASHED_H_INCLUDE__
+#define __GPIO_UNLEASHED_H_INCLUDE__
 
-struct clk_driver *clk_drivers[MAX_CLK_DRIVERS];
+#include <asm/io.h>
 
-uint32_t clk_get_frequency(clk_t clk)
-{
-	struct clk_driver *clkd;
-	clk_cat_t cat = clk_cat(clk);
+#ifdef CONFIG_GPIO
+#ifndef ARCH_HAVE_GPIO
+#define ARCH_HAVE_GPIO		1
+#else
+#error "Multiple GPIO controller defined"
+#endif
+#endif
 
-	if (cat >= MAX_CLK_DRIVERS)
-		return -EINVAL;
-	clkd = clk_drivers[cat];
-	if (!clkd)
-		return -EINVAL;
-	BUG_ON(!clkd->get_freq);
-	return clkd->get_freq(clk_clk(clk));
-}
+/* GPIO abstraction */
+#define GPIO_HW_MAX_PORTS	5
+#define GPIO_HW_MAX_PINS	32
 
-int clk_enable(clk_t clk)
-{
-	struct clk_driver *clkd;
-	clk_cat_t cat = clk_cat(clk);
-	int ret = 0;
+#define gpio_hw_read_pin(port, pin)
+#define gpio_hw_write_pin(port, pin, val)
+#define gpio_hw_config_mux(port, pin, mux)
+#define gpio_hw_config_pad(port, pin, pad, drv)
+#define gpio_hw_ctrl_init()		do { } while (0)
 
-	if (cat >= MAX_CLK_DRIVERS)
-		return -ENODEV;
-	clkd = clk_drivers[cat];
-	if (!clkd)
-		return -ENODEV;
-	if (clkd->enable)
-		ret = clkd->enable(clk_clk(clk));
-	return ret;
-}
-
-int clk_set_frequency(clk_t clk, uint32_t freq)
-{
-	struct clk_driver *clkd;
-	clk_cat_t cat = clk_cat(clk);
-
-	if (cat >= MAX_CLK_DRIVERS)
-		return -EINVAL;
-	clkd = clk_drivers[cat];
-	if (!clkd || !clkd->set_freq)
-		return -EINVAL;
-	return clkd->set_freq(clk_clk(clk), freq);
-}
-
-void clk_disable(clk_t clk)
-{
-	struct clk_driver *clkd;
-	clk_cat_t cat = clk_cat(clk);
-
-	if (cat >= MAX_CLK_DRIVERS)
-		return;
-	clkd = clk_drivers[cat];
-	if (!clkd || !clkd->disable)
-		return;
-	clkd->disable(clk_clk(clk));
-}
-
-void clk_select_source(clk_t clk, clk_t src)
-{
-	struct clk_driver *clkd;
-	clk_cat_t cat = clk_cat(clk);
-
-	if (cat >= MAX_CLK_DRIVERS)
-		return;
-	clkd = clk_drivers[cat];
-	if (!clkd)
-		return;
-	if (clkd->select)
-		clkd->select(clk_clk(clk), src);
-}
-
-int clk_register_driver(clk_cat_t category, struct clk_driver *clkd)
-{
-	if (clk_drivers[category])
-		return -EBUSY;
-	clk_drivers[category] = clkd;
-	return 0;
-}
-
-void clk_init(void)
-{
-	clk_hw_ctrl_init();
-}
+#endif /* __GPIO_UNLEASHED_H_INCLUDE__ */
