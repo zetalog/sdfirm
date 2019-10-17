@@ -42,6 +42,7 @@
 #ifndef __CLK_UNLEASHED_H_INCLUDE__
 #define __CLK_UNLEASHED_H_INCLUDE__
 
+#include <target/arch.h>
 #include <asm/mach/prci.h>
 
 #define NR_FREQPLANS		1
@@ -50,9 +51,47 @@
 
 #define invalid_clk		clkid(0xFF, 0xFF)
 
-#define TLCLK_FREQ		UL(500000000)
-/* #define TLCLK_FREQ		UL(750000000) */
+#define FREQ_33MHZ		UL(33333333)
+#define HFCLK_FREQ		FREQ_33MHZ
+#ifdef CONFIG_UNLEASHED_CORECLK_FREQ_10GHZ
+#define CORECLK_FREQ		UL(1000000000)
+#endif
+#ifdef CONFIG_UNLEASHED_CORECLK_FREQ_15GHZ
+#define CORECLK_FREQ		UL(1500000000)
+#endif
+#define TLCLK_FREQ_FINAL	(CORECLK_FREQ/2)
+#define RTCCLK_FREQ		UL(1000000)
+#define DDRCTRLCLK_FREQ		UL(933333333)
+#define GEMGXLCLK_FREQ		UL(125000000)
 
-#define clk_hw_ctrl_init()	do { } while (0)
+#define I2C_FREQ		UL(400000)
+#define SPI_FREQ		UL(50000000)
+
+#define CLK_INPUT		((clk_cat_t)0)
+#define HFCLK			((clk_clk_t)0)
+#define RTCCLK			((clk_clk_t)1)
+#define NR_INPUT_CLKS		(RTCCLK + 1)
+#define hfclk			clkid(CLK_INPUT, HFCLK)
+#define rtcclk			clkid(CLK_INPUT, RTCCLK)
+
+#define CLK_PLL			((clk_cat_t)1)
+#define COREPLL			((clk_clk_t)PRCI_COREPLL)
+#define DDRPLL			((clk_clk_t)PRCI_DDRPLL)
+#define GEMGXLPLL		((clk_clk_t)PRCI_GEMGXLPLL)
+#define NR_PLL_CLKS		(GEMGXLPLL + 1)
+#define corepll			clkid(CLK_PLL, COREPLL)
+#define ddrpll			clkid(CLK_PLL, DDRPLL)
+#define gemgxlpll		clkid(CLK_PLL, GEMGXLPLL)
+#define ddrctrlclk		ddrpll
+#define gemgxlclk		gemgxlpll
+
+#define CLK_OUTPUT		((clk_cat_t)2)
+#define CORECLK			((clk_clk_t)0)
+#define TLCLK			((clk_clk_t)1)
+#define NR_OUTPUT_CLKS		(TLCLK + 1)
+#define coreclk			clkid(CLK_OUTPUT, CORECLK)
+#define tlclk			clkid(CLK_OUTPUT, TLCLK)
+
+void clk_hw_ctrl_init(void);
 
 #endif /* __CLK_UNLEASHED_H_INCLUDE__ */

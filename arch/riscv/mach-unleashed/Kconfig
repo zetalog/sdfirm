@@ -23,6 +23,10 @@ config UNLEASHED_U54
 
 endchoice
 
+endmenu
+
+menu "System configuration"
+
 choice
 	prompt "Program type"
 
@@ -46,6 +50,28 @@ config UNLEASHED_BBL
 
 endchoice
 
+choice
+	prompt "Console uart port"
+
+config UNLEASHED_CON_UART0
+	bool "UART0"
+
+config UNLEASHED_CON_UART1
+	bool "UART1"
+
+endchoice
+
+choice
+	prompt "Frequency of coreclk"
+
+config UNLEASHED_CORECLK_FREQ_10GHZ
+	bool "1.0 GHz"
+
+config UNLEASHED_CORECLK_FREQ_15GHZ
+	bool "1.5 GHz"
+
+endchoice
+
 endmenu
 
 menuconfig PRCI
@@ -65,17 +91,6 @@ menuconfig SIFIVE_UART
 	select MATH_DIV32
 
 if SIFIVE_UART
-
-choice
-	prompt "Console port"
-
-config UNLEASHED_CON_UART0
-	bool "UART0"
-
-config UNLEASHED_CON_UART1
-	bool "UART1"
-
-endchoice
 
 endif
 

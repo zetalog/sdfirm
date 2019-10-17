@@ -50,7 +50,6 @@
 #include <target/arch.h>
 
 #define SIFIVE_UART_BASE(n)		(UART0_BASE + 0x1000 * (n))
-#define SIFIVE_UART_FREQ		TLCLK_FREQ /* Fin */
 
 #ifdef CONFIG_UNLEASHED_CON_UART0
 #define UART_CON_ID			0
@@ -109,9 +108,10 @@
 		while (!sifive_uart_write_poll(n));		\
 		__raw_writel((uint32_t)(byte), UART_TXDATA(n));	\
 	} while (0)
-#define sifive_uart_ctrl_init(n, params, baudrate)		\
+#define sifive_uart_ctrl_init(n, params, input_freq, baudrate)	\
 	do {							\
-		uint32_t div = sifive_uart_min_div(baudrate);	\
+		uint32_t div = sifive_uart_min_div(input_freq,	\
+						   baudrate);	\
 		if (uart_stopb(params))				\
 			__raw_setl(UART_NSTOP, UART_TXCTRL(n));	\
 		__raw_writel(div, UART_DIV(n));			\
@@ -122,7 +122,7 @@
  *         div + 1
  * Thus UART_DIV = (Fin / Fbaud) - 1
  */
-uint32_t sifive_uart_min_div(uint32_t baudrate);
+uint32_t sifive_uart_min_div(uint32_t input_freq, uint32_t baudrate);
 
 #ifdef CONFIG_DEBUG_PRINT
 void uart_hw_dbg_init(void);
@@ -133,10 +133,14 @@ void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
 #endif
 
 #ifdef CONFIG_CONSOLE
-#define uart_hw_con_init()			\
-	sifive_uart_ctrl_init(UART_CON_ID,	\
-			      UART_DEF_PARAMS,	\
-			      UART_CON_BAUDRATE)
+#define uart_hw_con_init()					\
+	do {							\
+		board_init_clock();				\
+		sifive_uart_ctrl_init(UART_CON_ID,		\
+				      clk_get_frequency(tlclk),	\
+				      UART_DEF_PARAMS,		\
+				      UART_CON_BAUDRATE);	\
+	} while (0)
 #endif
 #ifdef CONFIG_CONSOLE_OUTPUT
 #define uart_hw_con_write(byte)	sifive_uart_write_byte(UART_CON_ID, byte)

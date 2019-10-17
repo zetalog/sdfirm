@@ -43,6 +43,7 @@
 #define __TSC_UNLEASHED_H_INCLUDE__
 
 #include <target/arch.h>
+#include <target/clk.h>
 
 /* CLINT:
  *   clint@2000000 {
@@ -59,10 +60,7 @@
  * Default CPU frequency in DTS:
  *   clock-frequency = <1000000000>;
  */
-#define FREQ_CPU		1000000000
-#define FREQ_RTC		10000000
-
-#define TSC_FREQ		(FREQ_RTC/1000)
+#define TSC_FREQ		(RTCCLK_FREQ/1000)
 #define TSC_MAX			ULL(0xFFFFFFFFFFFFFFFF)
 
 #define tsc_hw_read_counter()	clint_read_mtime()

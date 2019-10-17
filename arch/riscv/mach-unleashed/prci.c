@@ -40,3 +40,32 @@
  */
 
 #include <target/clk.h>
+
+void pll_config_freq(uint8_t pll, uint32_t output_freq)
+{
+	uint32_t cfg = (PLL_RANGE(PLL_RANGE_33MHZ) | PLL_FSE);
+	uint32_t f = div32u(output_freq, FREQ_33MHZ);
+	uint8_t q = 1;
+
+	if (f < 2) {
+		q += 5;
+		f <<= 5;
+	} else if (f < 4) {
+		q += 4;
+		f <<= 4;
+	} else if (f < 8) {
+		q += 3;
+		f <<= 3;
+	} else if (f < 16) {
+		q += 2;
+		f <<= 2;
+	} else if (f < 32) {
+		q += 1;
+		f <<= 1;
+	}
+	f -= 1;
+	cfg |= (PLL_DIVR(0) | PLL_DIVF(f) | PLL_DIVQ(q));
+	__raw_writel(cfg, PRCI_PLLCFG(pll));
+	while (!pll_config_locked(pll));
+	pll_output_enable(pll);
+}

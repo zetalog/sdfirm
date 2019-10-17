@@ -41,7 +41,7 @@
 
 #include <target/uart.h>
 
-uint32_t sifive_uart_min_div(uint32_t baudrate)
+uint32_t sifive_uart_min_div(uint32_t input_freq, uint32_t baudrate)
 {
 	uint32_t quotient;
 
@@ -52,7 +52,7 @@ uint32_t sifive_uart_min_div(uint32_t baudrate)
 	 * This should not overflow as long as (Fin - 1 + Fbaud) does not
 	 * exceed 2^32 - 1.
 	 */
-	quotient = div32u(SIFIVE_UART_FREQ + baudrate - 1, baudrate);
+	quotient = div32u(input_freq + baudrate - 1, baudrate);
 	/* Avoid underflow */
 	return quotient ? quotient - 1 : 0;
 }

@@ -49,4 +49,8 @@
 #include <target/init.h>
 #include <target/types.h>
 
+#ifndef __ASSEMBLY__
+void board_init_clock(void);
+#endif
+
 #endif /* __ARCH_UNLEASHED_H_INCLUDE__ */
