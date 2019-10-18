@@ -97,10 +97,35 @@
 #define UART_TXWM		_BV(0)
 #define UART_RXWM		_BV(1)
 
-#define sifive_uart_write_enable(n)				\
-	__raw_setl(UART_TXEN, UART_TXCTRL(n))
-#define sifive_uart_read_enable(n)				\
-	__raw_setl(UART_RXEN, UART_RXCTRL(n))
+#define sifive_uart_write_config(n, txcnt)			\
+	__raw_writel_mask(UART_TXEN | UART_TXCNT(txcnt),	\
+			  UART_TXEN |				\
+			  UART_TXCNT(UART_TXCNT_MASK),		\
+			  UART_TXCTRL(n))
+#define sifive_uart_read_config(n, rxcnt)			\
+	__raw_writel_mask(UART_RXEN | UART_RXCNT(rxcnt),	\
+			  UART_RXEN |				\
+			  UART_RXCNT(UART_RXCNT_MASK),		\
+			  UART_RXCTRL(n))
+#define __sifive_uart_enable_fifo(n, txcnt, rxcnt)		\
+	do {							\
+		sifive_uart_write_config(n, txcnt);		\
+		sifive_uart_read_config(n, txcnt);		\
+	} while (0)
+#define sifive_uart_enable_fifo(n)				\
+	do {							\
+		__raw_setl(UART_TXEN, UART_TXCTRL(n));		\
+		__raw_setl(UART_RXEN, UART_RXCTRL(n));		\
+	} while (0)
+#define sifive_uart_disable_fifo(n)				\
+	do {							\
+		__raw_clearl(UART_TXEN, UART_TXCTRL(n));	\
+		__raw_clearl(UART_RXEN, UART_RXCTRL(n));	\
+	} while (0)
+#define sifive_uart_disable_irqs(n)				\
+	__raw_writel(0, UART_IE(n))
+#define sifive_uart_enable_irqs(n)				\
+	__raw_writel(UART_TXWM | UART_RXWM, UART_IE(n))
 #define sifive_uart_write_poll(n)				\
 	(!(__raw_readl(UART_TXDATA(n)) & UART_FULL))
 #define sifive_uart_read_poll(n)				\
@@ -119,8 +144,7 @@
 		if (uart_stopb(params))				\
 			__raw_setl(UART_NSTOP, UART_TXCTRL(n));	\
 		__raw_writel(div, UART_DIV(n));			\
-		sifive_uart_read_enable(UART_CON_ID);		\
-		sifive_uart_write_enable(UART_CON_ID);		\
+		sifive_uart_enable_fifo(UART_CON_ID);		\
 	} while (0)
 
 /*          Fin

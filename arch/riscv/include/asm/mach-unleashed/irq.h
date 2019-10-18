@@ -42,8 +42,6 @@
 #ifndef __IRQ_UNLEASHED_H_INCLUDE__
 #define __IRQ_UNLEASHED_H_INCLUDE__
 
-#define NR_IRQS		64
-
 #define IRQ_L2_DIRE	1 /* L2 Cache ECC DirError */
 #define IRQ_L2_DATAE	2 /* L2 Cache ECC DataError */
 #define IRQ_L2_DATAF	3 /* L2 Cache ECC DataFail */
@@ -59,5 +57,6 @@
 #define IRQ_QSPI0	51
 #define IRQ_QSPI1	52
 #define IRQ_GBE		53 /* GigaBit Ethernet */
+#define NR_IRQS		53
 
 #endif  /* __IRQ_UNLEASHED_H_INCLUDE__ */

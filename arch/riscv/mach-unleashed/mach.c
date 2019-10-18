@@ -44,6 +44,18 @@
 #include <target/arch.h>
 #include <target/irq.h>
 
+#if 0
+void board_mask_all_irqs(void)
+{
+	irq_t irq;
+
+	for (irq = 1; irq < NR_IRQS; irq++) {
+		plic_configure_priority(irq, PLIC_PRI_NONE);
+		plic_disable_irq(irq);
+	}
+}
+#endif
+
 void board_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);

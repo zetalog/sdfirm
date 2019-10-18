@@ -5,6 +5,7 @@ config CPU_E51
 	select CPU_M
 	select CPU_A
 	select CPU_C
+	select ARCH_HAS_NOSEE
 
 # SiFive U54
 config CPU_U54
@@ -168,6 +169,15 @@ config CPU_N
 config CPU_ZAM
 	bool
 
+config CPU_H
+	bool
+
+config CPU_PMA
+	bool
+
+config CPU_PMP
+	bool
+
 config RISCV_M
 	bool "Multiplication and division (M) support"
 	depends CPU_M
@@ -241,6 +251,20 @@ config RISCV_ZAM
 	depends CPU_ZAM
 	default y
 
+config RISCV_PMA
+	bool "Physical address attributes (PMA) support"
+	depends CPU_PMA
+	default y
+
+config RISCV_PMP
+	bool "Physical address protection (PMP) support"
+	depends CPU_PMP
+	default y
+
+config RISCV_H
+	bool "Hypervisor extension support"
+	depends CPU_H
+
 endmenu
 
 # We must be able to map all physical memory into the kernel, but the compiler
@@ -291,6 +315,65 @@ config NR_CPUS
 	range 2 32
 	depends on CPU_SMP
 	default "8"
+
+config ARCH_HAS_NOSEE
+	bool
+
+choice
+	prompt "Privileged software stack"
+	default RISCV_AEE
+
+config RISCV_AEE
+	bool "AEE (Application)"
+	help
+	  Application execution environment.
+
+config RISCV_SEE
+	bool "SEE (Supervisor)"
+	depends !ARCH_HAS_NOSEE
+
+config RISCV_HEE
+	bool "HEE (Hypervisor)"
+	depends RISCV_H
+
+endchoice
+
+choice
+	prompt "System priviledge"
+	default SYS_KERNEL if RISCV_SEE || RISCV_HEE
+	default SYS_MONITOR if RISCV_AEE
+
+# Disabled for the firmware system
+#config SYS_USER
+#	bool "User mode"
+
+config SYS_KERNEL
+	bool "Privileged (kernel) mode"
+	depends RISCV_SEE || RISCV_HEE
+	select SYS_GUEST if !SYS_HYPERVISOR
+
+config SYS_MONITOR
+	bool "Monitor mode"
+	depends RISCV_AEE
+	depends !BOOTLOADER
+
+endchoice
+
+config SYS_GUEST
+	bool
+	depends !SYS_HYPERVISOR && SYS_KERNEL
+
+menuconfig SYS_HYPERVISOR
+	bool "Hypervisor optimization support"
+	depends RISCV_HEE && SYS_KERNEL
+	depends !BOOTLOADER
+
+if SYS_HYPERVISOR
+
+config SYS_HOST
+	bool "Host OS optimization support"
+
+endif
 
 menu "System peripherals"
 

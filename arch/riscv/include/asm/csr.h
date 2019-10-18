@@ -52,23 +52,29 @@
 
 /* Status register flags */
 #define SR_UIE		_AC(0x00000001, UL) /* User Interrupt Enable */
-#define SR_SIE		_AC(0x00000002, UL) /* Supervisor Interrupt Enable */
-#define SR_HIE		_AC(0x00000004, UL) /* Hypervisor Interrupt Enable */
-#define SR_MIE		_AC(0x00000008, UL) /* Machine Interrupt Enable */
 #define SR_UPIE		_AC(0x00000010, UL) /* User Previous IE */
-#define SR_SPIE		_AC(0x00000020, UL) /* Supervisor Previous IE */
-#define SR_HPIE		_AC(0x00000040, UL) /* Hypervisor Previous IE */
+#define SR_MIE		_AC(0x00000008, UL) /* Machine Interrupt Enable */
 #define SR_MPIE		_AC(0x00000080, UL) /* Machine Previous IE */
-#define SR_SPP		_AC(0x00000100, UL) /* Previously Supervisor */
-#define SR_HPP		_AC(0x00000600, UL) /* Previously Hypervisor */
 #define SR_MPP		_AC(0x00001800, UL) /* Previously Machine */
+#ifndef CONFIG_ARCH_HAS_NOSEE
+#define SR_SPIE		_AC(0x00000020, UL) /* Supervisor Previous IE */
+#define SR_SIE		_AC(0x00000002, UL) /* Supervisor Interrupt Enable */
+#define SR_SPP		_AC(0x00000100, UL) /* Previously Supervisor */
 #define SR_SUM		_AC(0x00040000, UL) /* Supervisor User Memory Access */
+#endif
+#ifdef CONFIG_CPU_H
+#define SR_HIE		_AC(0x00000004, UL) /* Hypervisor Interrupt Enable */
+#define SR_HPIE		_AC(0x00000040, UL) /* Hypervisor Previous IE */
+#define SR_HPP		_AC(0x00000600, UL) /* Previously Hypervisor */
+#endif
 
+#ifdef CONFIG_CPU_F
 #define SR_FS		_AC(0x00006000, UL) /* Floating-point Status */
 #define SR_FS_OFF	_AC(0x00000000, UL)
 #define SR_FS_INITIAL	_AC(0x00002000, UL)
 #define SR_FS_CLEAN	_AC(0x00004000, UL)
 #define SR_FS_DIRTY	_AC(0x00006000, UL)
+#endif
 
 #define SR_XS		_AC(0x00018000, UL) /* Extension Status */
 #define SR_XS_OFF	_AC(0x00000000, UL)
@@ -143,11 +149,33 @@
 #define SIE_MTIE		(_AC(0x1, UL) << IRQ_M_TIMER)
 #define SIE_MEIE		(_AC(0x1, UL) << IRQ_M_EXT)
 
+#ifdef CONFIG_CPU_N
+#define CSR_USTATUS		0x000
+#define CSR_UIE			0x004
 #define CSR_UTVEC		0x005
-#define CSR_CYCLE		0xc00
-#define CSR_TIME		0xc01
-#define CSR_INSTRET		0xc02
+#define CSR_USCRATCH		0x040
+#define CSR_UEPC		0x041
+#define CSR_UCAUSE		0x042
+#define CSR_UTVAL		0x043
+#define CSR_UIP			0x044
+#endif
+#ifdef CONFIG_CPU_F
+#define CSR_FFLAGS		0x001
+#define CSR_FRM			0x002
+#define CSR_FCSR		0x003
+#endif
+#define CSR_CYCLE		0xC00
+#define CSR_TIME		0xC01
+#define CSR_INSTRET		0xC02
+#define CSR_HPMCOUNTER(n)	(0xC00+(n)) /* n=3..31 */
+#define CSR_CYCLEH		0xC80
+#define CSR_TIMEH		0xC81
+#define CSR_INSTRETH		0xC82
+#define CSR_HPMCOUNTERH(n)	(0xC80+(n)) /* n=3..31 */
+#ifndef CONFIG_ARCH_HAS_NOSEE
 #define CSR_SSTATUS		0x100
+#define CSR_SEDELEG		0x102
+#define CSR_SIDELEG		0x103
 #define CSR_SIE			0x104
 #define CSR_STVEC		0x105
 #define CSR_SCOUNTEREN		0x106
@@ -157,9 +185,58 @@
 #define CSR_STVAL		0x143
 #define CSR_SIP			0x144
 #define CSR_SATP		0x180
-#define CSR_CYCLEH		0xc80
-#define CSR_TIMEH		0xc81
-#define CSR_INSTRETH		0xc82
+#endif
+#ifdef CONFIG_CPU_H
+#define CSR_HSTATUS		0xA00
+#define CSR_HEDELEG		0xA02
+#define CSR_HIDELEG		0xA03
+#define CSR_HGATP		0xA80
+#define CSR_BSSTATUS		0x200
+#define CSR_BSIE		0x204
+#define CSR_BSTVEC		0x205
+#define CSR_BSSCRATCH		0x240
+#define CSR_BSEPC		0x241
+#define CSR_BSCAUSE		0x242
+#define CSR_BSTVAL		0x243
+#define CSR_BSIP		0x244
+#define CSR_BSATP		0x280
+#endif
+#define CSR_MVENDORID		0xF11
+#define CSR_MARCHID		0xF12
+#define CSR_MIMPID		0xF13
+#define CSR_MHARTID		0xF14
+#define CSR_MSTATUS		0x300
+#define CSR_MISA		0x301
+#define CSR_MEDELEG		0x302
+#define CSR_MIDELEG		0x303
+#define CSR_MIE			0x304
+#define CSR_MTVEC		0x305
+#define CSR_MCOUNTEREN		0x306
+#define CSR_MSCRATCH		0x340
+#define CSR_MEPC		0x341
+#define CSR_MCAUSE		0x342
+#define CSR_MTVAL		0x343
+#define CSR_MIP			0x344
+#ifdef CONFIG_CPU_PMP
+#define CSR_PMPCFG(n)		(0x3A0+(n)) /* n=0..3 */
+#define CSR_PMPADDR(n)		(0x3B0+(n)) /* n=0..15 */
+#endif
+#define CSR_MCYCLE		0xB00
+#define CSR_MINSTRET		0xB02
+#define CSR_MHPMCOUNTER(n)	(0xB03+(n)) /* n=3..31 */
+#define CSR_MCYCLEH		0xB80
+#define CSR_MINSTRETH		0xB82
+#define CSR_MHPMCOUNTERH(n)	(0xB80+(n)) /* n=3..31 */
+#define CSR_MCOUNTINHIBIT	0x320
+#define CSR_MHPMEVENT(n)	(0x320+(n)) /* n=3..31 */
+#define CSR_TSELECT		0x7A0
+#define CSR_TDATA1		0x7A1
+#define CSR_TDATA2		0x7A2
+#define CSR_TDATA3		0x7A3
+#define CSR_DCSR		0x7B0
+#define CSR_DPC			0x7B1
+#define CSR_DSCRATCH0		0x7B2
+#define CSR_DSCRATCH1		0x7B3
 
 #ifndef __ASSEMBLY__
 #define csr_swap(csr, val)					\

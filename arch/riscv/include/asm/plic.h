@@ -98,14 +98,11 @@
 	__raw_setl(PLIC_IRQ(irq), PLIC_PENDINGR(irq))
 /* In case we only use 1 priority */
 #define plic_mask_irq(irq)		\
-	__raw_writel(PLIC_PRI_NONE, PLIC_PRIORITYR(irq))
+	plic_configure_priority(irq, PLIC_PRI_NONE)
 #define plic_unmask_irq(irq)		\
-	__raw_writel(PLIC_PRI_MIN, PLIC_PRIORITYR(irq))
+	plic_configure_priority(irq, PLIC_PRI_MIN)
 #define plic_configure_priority(irq, pri)		\
-	__raw_writel_mask(PLIC_PRI(pri < PLIC_PRI_MIN ?	\
-			  PLIC_PRI_MIN : pri),		\
-			  PLIC_PRI(PLIC_PRI_MASK),	\
-			  PLIC_PRIORITYR(irq))
+	__raw_writel(pri, PLIC_PRIORITYR(irq))
 #define plic_claim_irq(cpu)		\
 	__raw_readl(PLIC_CLAIMR(cpu))
 #define plic_irq_completion(cpu, irq)	\

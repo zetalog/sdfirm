@@ -1,6 +1,8 @@
 obj-y :=
 
 obj-y += entry.rel
+obj-y += trap.rel
+
 head-y += head.rel
 
 obj-y += irq.rel

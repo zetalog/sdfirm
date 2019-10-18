@@ -52,10 +52,17 @@ struct pt_regs {
 	unsigned long regs[31];
 };
 
+#ifdef CONFIG_SYS_MONITOR
+#define irq_hw_flags_save(x)	((x) = csr_read_clear(CSR_MSTATUS, SR_MIE))
+#define irq_hw_flags_restore(x)	csr_set(CSR_MSTATUS, (x) & SR_MIE)
+#define irq_hw_flags_enable()	csr_set(CSR_MSTATUS, SR_MIE)
+#define irq_hw_flags_disable()	csr_clear(CSR_MSTATUS, SR_MIE)
+#else
 #define irq_hw_flags_save(x)	((x) = csr_read_clear(CSR_SSTATUS, SR_SIE))
 #define irq_hw_flags_restore(x)	csr_set(CSR_SSTATUS, (x) & SR_SIE)
 #define irq_hw_flags_enable()	csr_set(CSR_SSTATUS, SR_SIE)
 #define irq_hw_flags_disable()	csr_clear(CSR_SSTATUS, SR_SIE)
+#endif
 #define irq_hw_ctrl_init()
 #endif /* __ASSEMBLY__ */
 

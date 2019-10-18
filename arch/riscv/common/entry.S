@@ -1,12 +1,11 @@
 #include <target/config.h>
-#include <target/linkage.h>
+#include <target/compiler.h>
 #include <target/init.h>
 #include <target/arch.h>
-#include <asm/assembler.h>
-#include <asm/asm-offsets.h>
 #include <target/paging.h>
 #include <target/irq.h>
 #include <target/task.h>
+#include <asm/asm-offsets.h>
 
 #ifdef CONFIG_ARCH_HAS_NOVEC
 #define BAD_TRAP_VECTOR			0
@@ -15,7 +14,6 @@
 	.data
 	.align 6
 trap_table:
-#if 0
 	.word bad_trap
 	.word pmp_trap
 	.word illegal_insn_trap
@@ -36,7 +34,6 @@ trap_table:
 	.word __trap_from_machine_mode
 	.word bad_trap
 	.word bad_trap
-#endif
 
 	.option norvc
 	__HEAD
@@ -195,19 +192,23 @@ restore_regs:
 	REG_L	t3, 28*SZREG(sp)
 	REG_L	t4, 29*SZREG(sp)
 	REG_L	t5, 30*SZREG(sp)
-	REG_L	t6,31*SZREG(sp)
+	REG_L	t6, 31*SZREG(sp)
 	REG_L	sp, 2*SZREG(sp)
 	mret
 
 .Ltrap_from_machine_mode:
 	csrr	sp, mscratch
 	addi	sp, sp, -INTEGER_CONTEXT_SIZE
-	REG_S	a0,10*SZREG(sp)
-	REG_S	a1,11*SZREG(sp)
+	REG_S	a0, 10*SZREG(sp)
+	REG_S	a1, 11*SZREG(sp)
 	li	a1, TRAP_FROM_MACHINE_MODE_VECTOR
 	j	.Lhandle_trap_in_machine_mode
 
 .Lbad_trap:
 	li	a1, BAD_TRAP_VECTOR
 	j	.Lhandle_trap_in_machine_mode
+
+__trap_from_machine_mode:
+	jal	trap_from_machine_mode
+	j	restore_regs
 #endif
