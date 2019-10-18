@@ -47,7 +47,7 @@ void irqc_hw_handle_irq(void)
 	irq_t irq;
 	uint8_t cpu = smp_processor_id();
 
-	csr_clear(sie, SIE_SEIE);
+	external_irq_disable();
 	irq = plic_claim_irq(cpu);
 	if (irq >= NR_IRQS) {
 		plic_irq_completion(cpu, irq);
@@ -56,5 +56,5 @@ void irqc_hw_handle_irq(void)
 	if (!do_IRQ(irq))
 		irqc_hw_disable_irq(irq);
 	plic_irq_completion(cpu, irq);
-	csr_set(sie, SIE_SEIE);
+	external_irq_enable();
 }

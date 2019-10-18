@@ -42,7 +42,17 @@
 #ifndef __IRQC_RISCV_H_INCLUDE__
 #define __IRQC_RISCV_H_INCLUDE__
 
+#include <target/arch.h>
+
 /* RISCV allows embedded IRQ controllers */
 #include <asm/mach/irqc.h>
+
+#ifdef CONFIG_SYS_MONITOR
+#define external_irq_disable()	csr_clear(CSR_MIE, IE_MEIE)
+#define external_irq_enable()	csr_set(CSR_MIE, IE_MEIE)
+#else
+#define external_irq_disable()	csr_clear(CSR_SIE, IE_SEIE)
+#define external_irq_enable()	csr_set(CSR_SIE, IE_SEIE)
+#endif
 
 #endif /* __IRQC_RISCV_H_INCLUDE__ */

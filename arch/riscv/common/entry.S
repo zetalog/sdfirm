@@ -49,6 +49,9 @@ __vectors:
 	bgez	a1, .Lhandle_trap_in_machine_mode
 
 	# This is an interrupt.  Discard the mcause MSB and decode the rest.
+	move	a0, sp /* pt_regs */
+	tail	irqc_hw_handle_irq
+
 	sll	a1, a1, 1
 
 	# Is it a machine timer interrupt?
@@ -56,9 +59,9 @@ __vectors:
 	bne	a0, a1, 1f
 
 	# Yes.  Simply clear MTIE and raise STIP.
-	li	a0, SIE_MTIE
+	li	a0, IE_MTIE
 	csrc	mie, a0
-	li	a0, SIE_STIE
+	li	a0, IE_STIE
 	csrs	mip, a0
 
 .Lmret:
@@ -88,7 +91,7 @@ __vectors:
 #endif
 	and	a1, a0, IPI_SOFT
 	beqz	a1, 1f
-	csrs	mip, SIE_SSIE
+	csrs	mip, IE_SSIE
 1:
 	andi	a1, a0, IPI_FENCE_I
 	beqz	a1, 1f

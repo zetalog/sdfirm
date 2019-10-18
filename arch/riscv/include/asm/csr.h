@@ -135,19 +135,19 @@
 #define EXC_LOAD_PAGE_FAULT	13
 #define EXC_STORE_PAGE_FAULT	15
 
-/* SIE (Interrupt Enable) and SIP (Interrupt Pending) flags */
-#define SIE_USIE		(_AC(0x1, UL) << IRQ_U_SOFT)
-#define SIE_UTIE		(_AC(0x1, UL) << IRQ_U_TIMER)
-#define SIE_UEIE		(_AC(0x1, UL) << IRQ_U_EXT)
-#define SIE_SSIE		(_AC(0x1, UL) << IRQ_S_SOFT)
-#define SIE_STIE		(_AC(0x1, UL) << IRQ_S_TIMER)
-#define SIE_SEIE		(_AC(0x1, UL) << IRQ_S_EXT)
-#define SIE_HSIE		(_AC(0x1, UL) << IRQ_H_SOFT)
-#define SIE_HTIE		(_AC(0x1, UL) << IRQ_H_TIMER)
-#define SIE_HEIE		(_AC(0x1, UL) << IRQ_H_EXT)
-#define SIE_MSIE		(_AC(0x1, UL) << IRQ_M_SOFT)
-#define SIE_MTIE		(_AC(0x1, UL) << IRQ_M_TIMER)
-#define SIE_MEIE		(_AC(0x1, UL) << IRQ_M_EXT)
+/* xIE (Interrupt Enable) and xIP (Interrupt Pending) flags */
+#define IE_USIE			(_AC(0x1, UL) << IRQ_U_SOFT)
+#define IE_UTIE			(_AC(0x1, UL) << IRQ_U_TIMER)
+#define IE_UEIE			(_AC(0x1, UL) << IRQ_U_EXT)
+#define IE_SSIE			(_AC(0x1, UL) << IRQ_S_SOFT)
+#define IE_STIE			(_AC(0x1, UL) << IRQ_S_TIMER)
+#define IE_SEIE			(_AC(0x1, UL) << IRQ_S_EXT)
+#define IE_HSIE			(_AC(0x1, UL) << IRQ_H_SOFT)
+#define IE_HTIE			(_AC(0x1, UL) << IRQ_H_TIMER)
+#define IE_HEIE			(_AC(0x1, UL) << IRQ_H_EXT)
+#define IE_MSIE			(_AC(0x1, UL) << IRQ_M_SOFT)
+#define IE_MTIE			(_AC(0x1, UL) << IRQ_M_TIMER)
+#define IE_MEIE			(_AC(0x1, UL) << IRQ_M_EXT)
 
 #ifdef CONFIG_CPU_N
 #define CSR_USTATUS		0x000

@@ -144,7 +144,7 @@
 		if (uart_stopb(params))				\
 			__raw_setl(UART_NSTOP, UART_TXCTRL(n));	\
 		__raw_writel(div, UART_DIV(n));			\
-		sifive_uart_enable_fifo(UART_CON_ID);		\
+		__sifive_uart_enable_fifo(UART_CON_ID, 0, 0);	\
 	} while (0)
 
 /*          Fin
