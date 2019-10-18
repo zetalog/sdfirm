@@ -97,6 +97,10 @@
 #define UART_TXWM		_BV(0)
 #define UART_RXWM		_BV(1)
 
+#define sifive_uart_write_enable(n)				\
+	__raw_setl(UART_TXEN, UART_TXCTRL(n))
+#define sifive_uart_read_enable(n)				\
+	__raw_setl(UART_RXEN, UART_RXCTRL(n))
 #define sifive_uart_write_poll(n)				\
 	(!(__raw_readl(UART_TXDATA(n)) & UART_FULL))
 #define sifive_uart_read_poll(n)				\
@@ -115,6 +119,8 @@
 		if (uart_stopb(params))				\
 			__raw_setl(UART_NSTOP, UART_TXCTRL(n));	\
 		__raw_writel(div, UART_DIV(n));			\
+		sifive_uart_read_enable(UART_CON_ID);		\
+		sifive_uart_write_enable(UART_CON_ID);		\
 	} while (0)
 
 /*          Fin
@@ -137,8 +143,8 @@ void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
 	do {							\
 		board_init_clock();				\
 		sifive_uart_ctrl_init(UART_CON_ID,		\
-				      clk_get_frequency(tlclk),	\
 				      UART_DEF_PARAMS,		\
+				      clk_get_frequency(tlclk),	\
 				      UART_CON_BAUDRATE);	\
 	} while (0)
 #endif

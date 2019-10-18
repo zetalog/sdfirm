@@ -134,7 +134,7 @@ void pll_config_freq(uint8_t pll, uint32_t output_freq);
 #define core_select_corepll()	__raw_clearl(CORECLKSEL, PRCI_CORECLKSEL)
 #define core_select_hfclk()	__raw_setl(CORECLKSEL, PRCI_CORECLKSEL)
 #define core_selected_corepll()	\
-	(!!(__raw_readl(PRCI_CORECLKSEL) & CORECLKSEL))
+	(!(__raw_readl(PRCI_CORECLKSEL) & CORECLKSEL))
 
 #define ddrc_reset()		__raw_setl(DDR_CTRL_RST_N, PRCI_DEVICESRESET)
 #define ddrc_axi_reset()	__raw_setl(DDR_AXI_RST_N, PRCI_DEVICESRESET)
