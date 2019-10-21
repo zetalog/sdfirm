@@ -1,5 +1,6 @@
 #include <target/irq.h>
 #include <target/panic.h>
+#include <target/arch.h>
 #include <stdio.h>
 
 void __attribute__((noreturn))
@@ -20,8 +21,8 @@ void redirect_trap(uintptr_t epc, uintptr_t mstatus, uintptr_t badaddr)
 
 	csr_write(CSR_STVAL, badaddr);
 	csr_write(CSR_SEPC, epc);
-	csr_write(CSR_SCAUSE, csr_read(MCAUSE));
-	csr_write(CSR_MEPC, csr_read(STVEC));
+	csr_write(CSR_SCAUSE, csr_read(CSR_MCAUSE));
+	csr_write(CSR_MEPC, csr_read(CSR_STVEC));
 
 	new_mstatus = mstatus & ~(SR_SPP | SR_SPIE | SR_SIE);
 	mpp_s = SR_MPP & (SR_MPP >> 1);

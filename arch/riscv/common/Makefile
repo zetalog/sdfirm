@@ -1,7 +1,7 @@
 obj-y :=
 
-obj-y += entry.rel
-obj-y += trap.rel
+obj-$(CONFIG_ARCH_HAS_NOVEC) += entry.rel
+obj-$(CONFIG_ARCH_HAS_NOVEC) += trap.rel
 
 head-y += head.rel
 

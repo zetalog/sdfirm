@@ -199,6 +199,16 @@ restore_regs:
 	REG_L	sp, 2*SZREG(sp)
 	mret
 
+.globl __redirect_trap
+__redirect_trap:
+	# reset sp to top of M-mode stack
+	li	t0, MACHINE_STACK_SIZE
+	add	sp, sp, t0
+	neg	t0, t0
+	and	sp, sp, t0
+	addi	sp, sp, -MENTRY_FRAME_SIZE
+	j	restore_mscratch
+
 .Ltrap_from_machine_mode:
 	csrr	sp, mscratch
 	addi	sp, sp, -INTEGER_CONTEXT_SIZE

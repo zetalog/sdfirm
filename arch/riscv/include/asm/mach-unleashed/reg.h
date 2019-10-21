@@ -45,6 +45,8 @@
 #include <target/config.h>
 #include <target/sizes.h>
 
+#define MSEL_BASE		UL(0x00001000)
+#define MSEL_SIZE		UL(0x00001000)
 #define MASK_ROM_BASE		UL(0x00010000)
 #define MASK_ROM_SIZE		0x8000
 #define E51_DTIM_BASE		UL(0x01000000)
