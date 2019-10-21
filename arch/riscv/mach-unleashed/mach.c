@@ -43,8 +43,12 @@
 #include <target/cpus.h>
 #include <target/arch.h>
 #include <target/irq.h>
+#include <asm/mach/pwm.h>
 
 void board_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);
+	/* Cleanup bootup problems */
+	pwm_disable(0);
+	pwm_disable(1);
 }

@@ -41,6 +41,8 @@
 
 #include <target/uart.h>
 
+uint32_t sifive_uart_rx;
+
 uint32_t sifive_uart_min_div(uint32_t input_freq, uint32_t baudrate)
 {
 	uint32_t quotient;

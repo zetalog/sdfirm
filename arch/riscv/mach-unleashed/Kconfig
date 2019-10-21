@@ -92,6 +92,16 @@ menuconfig SIFIVE_UART
 
 if SIFIVE_UART
 
+config SIFIVE_UART_STATUS
+	bool "Split TX/RX status from TX/RXDATA register"
+	help
+	  TXFULL/RXEMPTY bit is in the same register with TXDATA/RXDATA.
+	  Thus polling RX status may result in unexpected data FIFO
+	  draining. To avoid this, either prepare a software DWORD cache
+	  of RXDATA or split the RXDATA register reads. Enabling this
+	  option allows us to shrink the DWORD cache of RXDATA.
+	  If unsure, say 'N'.
+
 endif
 
 endmenu

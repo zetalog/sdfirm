@@ -77,11 +77,20 @@
 #define UART_IE(n)		UART_REG(n, 0x10)
 #define UART_IP(n)		UART_REG(n, 0x14)
 #define UART_DIV(n)		UART_REG(n, 0x18)
-
+#ifdef CONFIG_SIFIVE_UART_STATUS
+#define UART_TXSTAT(n)		UART_REG(n, 0x02)
+#define UART_RXSTAT(n)		UART_REG(n, 0x06)
+/* TXSTAT */
+#define UART_FULL		_BV(15)
+/* RXSTAT */
+#define UART_EMPTY		_BV(15)
+#else
 /* TXDATA */
 #define UART_FULL		_BV(31)
 /* RXDATA */
 #define UART_EMPTY		_BV(31)
+#endif
+
 /* TXCTRL */
 #define UART_TXEN		_BV(0)
 #define UART_NSTOP		_BV(1)
@@ -126,17 +135,26 @@
 	__raw_writel(0, UART_IE(n))
 #define sifive_uart_enable_irqs(n)				\
 	__raw_writel(UART_TXWM | UART_RXWM, UART_IE(n))
+#ifdef CONFIG_SIFIVE_UART_STATUS
+#define sifive_uart_write_poll(n)				\
+	(!(__raw_readw(UART_TXSTAT(n)) & UART_FULL))
+#define sifive_uart_read_poll(n)				\
+	(!(__raw_readw(UART_RXSTAT(n)) & UART_EMPTY))
+#define sifive_uart_write_byte(n, byte)				\
+	__raw_writeb(byte, UART_TXDATA(n))
+#define sifive_uart_read_byte(n)				\
+	__raw_readb(UART_RXDATA(n))
+#else
 #define sifive_uart_write_poll(n)				\
 	(!(__raw_readl(UART_TXDATA(n)) & UART_FULL))
 #define sifive_uart_read_poll(n)				\
-	(!(__raw_readl(UART_RXDATA(n)) & UART_EMPTY))
+	(sifive_uart_rx = __raw_readl(UART_RXDATA(n)),		\
+	 !(sifive_uart_rx & UART_EMPTY))
 #define sifive_uart_read_byte(n)				\
-	((uint8_t)__raw_readl(UART_RXDATA(n)))
+	(LOBYTE(sifive_uart_rx))
 #define sifive_uart_write_byte(n, byte)				\
-	do {							\
-		while (!sifive_uart_write_poll(n));		\
-		__raw_writel((uint32_t)(byte), UART_TXDATA(n));	\
-	} while (0)
+	__raw_writel((uint32_t)(byte), UART_TXDATA(n));
+#endif
 #define sifive_uart_ctrl_init(n, params, input_freq, baudrate)	\
 	do {							\
 		uint32_t div = sifive_uart_min_div(input_freq,	\
@@ -153,6 +171,8 @@
  * Thus UART_DIV = (Fin / Fbaud) - 1
  */
 uint32_t sifive_uart_min_div(uint32_t input_freq, uint32_t baudrate);
+
+extern uint32_t sifive_uart_rx;
 
 #ifdef CONFIG_DEBUG_PRINT
 void uart_hw_dbg_init(void);
@@ -173,7 +193,11 @@ void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
 	} while (0)
 #endif
 #ifdef CONFIG_CONSOLE_OUTPUT
-#define uart_hw_con_write(byte)	sifive_uart_write_byte(UART_CON_ID, byte)
+#define uart_hw_con_write(byte)					\
+	do {							\
+		while (!sifive_uart_write_poll(UART_CON_ID));	\
+		sifive_uart_write_byte(UART_CON_ID, byte);	\
+	} while (0)
 #endif
 #ifdef CONFIG_CONSOLE_INPUT
 #define uart_hw_con_read()	sifive_uart_read_byte(UART_CON_ID)
