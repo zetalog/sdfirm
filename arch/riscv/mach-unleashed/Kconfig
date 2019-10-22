@@ -36,6 +36,7 @@ config UNLEASHED_ZSBL
 	select ARCH_HAS_LOVEC
 	select XIP
 	select LOAD_DATA
+	select SPI
 
 config UNLEASHED_FSBL
 	bool "First stage boot loader (FSBL)"
@@ -43,10 +44,22 @@ config UNLEASHED_FSBL
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_BOOT_LOAD
 	select XIP
+	select SPI
 
 config UNLEASHED_BBL
 	bool "Berkeley boot loader (BBL)"
 	depends UNLEASHED_U54
+
+endchoice
+
+choice
+	prompt "Frequency of coreclk"
+
+config UNLEASHED_CORECLK_FREQ_10GHZ
+	bool "1.0 GHz"
+
+config UNLEASHED_CORECLK_FREQ_15GHZ
+	bool "1.5 GHz"
 
 endchoice
 
@@ -61,16 +74,36 @@ config UNLEASHED_CON_UART1
 
 endchoice
 
+menu "Boot flash device"
+
 choice
-	prompt "Frequency of coreclk"
+	prompt "Flash controller"
+	default UNLEASHED_FLASH_QSPI2
 
-config UNLEASHED_CORECLK_FREQ_10GHZ
-	bool "1.0 GHz"
+config UNLEASHED_FLASH_QSPI0
+	bool "QSPI0"
 
-config UNLEASHED_CORECLK_FREQ_15GHZ
-	bool "1.5 GHz"
+config UNLEASHED_FLASH_QSPI1
+	bool "QSPI1"
+
+config UNLEASHED_FLASH_QSPI2
+	bool "QSPI2"
 
 endchoice
+
+choice
+	prompt "Flash data width"
+	depends !UNLEASHED_FLASH_QSPI2
+
+config UNLEASHED_SPINOR_SINGLE
+	bool "Single"
+
+config UNLEASHED_SPINOR_QUAD
+	bool "Quad"
+
+endchoice
+
+endmenu
 
 endmenu
 
@@ -93,6 +126,27 @@ menuconfig SIFIVE_UART
 if SIFIVE_UART
 
 config SIFIVE_UART_STATUS
+	bool "Split TX/RX status from TX/RXDATA register"
+	help
+	  TXFULL/RXEMPTY bit is in the same register with TXDATA/RXDATA.
+	  Thus polling RX status may result in unexpected data FIFO
+	  draining. To avoid this, either prepare a software DWORD cache
+	  of RXDATA or split the RXDATA register reads. Enabling this
+	  option allows us to shrink the DWORD cache of RXDATA.
+	  If unsure, say 'N'.
+
+endif
+
+menuconfig SIFIVE_QSPI
+	bool "SiFive SPI controller support"
+	select PRINT_SNPRINTF
+	select GPIO
+	select CLK
+	select MATH_DIV32
+
+if SIFIVE_QSPI
+
+config SIFIVE_QSPI_STATUS
 	bool "Split TX/RX status from TX/RXDATA register"
 	help
 	  TXFULL/RXEMPTY bit is in the same register with TXDATA/RXDATA.

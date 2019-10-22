@@ -778,9 +778,8 @@ int get_data_size(char *arg, int default_size)
 #define MAX_LINE_LENGTH_BYTES		64
 #define DISP_LINE_LEN			16
 
-static int print_buffer(unsigned long addr, const void *data,
-			unsigned int width, unsigned int count,
-			unsigned int linelen)
+int mem_print_data(caddr_t addr, const void *data,
+		   uint8_t width, size_t count)
 {
 	/* linebuf as a union causes proper alignment */
 	union linebuf {
@@ -791,6 +790,7 @@ static int print_buffer(unsigned long addr, const void *data,
 	} lb;
 	int i;
 	uint64_t x;
+	size_t linelen = DISP_LINE_LEN / width;
 
 	if (linelen*width > MAX_LINE_LENGTH_BYTES)
 		linelen = MAX_LINE_LENGTH_BYTES / width;
@@ -856,7 +856,7 @@ static int do_mem_display(int argc, char * argv[])
 		length = strtoul(argv[3], NULL, 0);
 
 	buf = (void *)(unsigned long)addr;
-	return print_buffer(addr, buf, size, length, DISP_LINE_LEN / size);
+	return mem_print_data(addr, buf, size, length);
 }
 
 static int do_mem(int argc, char * argv[])

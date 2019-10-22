@@ -80,6 +80,8 @@ void mem_free(phys_addr_t base, phys_addr_t size);
 void mem_init(void);
 void mem_free_all(void);
 void mem_dump_all(void);
+int mem_print_data(caddr_t addr, const void *data,
+		   uint8_t width, size_t count);
 #else
 #define mem_start()		RAM_START
 #define mem_end()		RAMEND
