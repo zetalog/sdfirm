@@ -42,6 +42,7 @@
 #ifndef __EFI_TARGET_H_INCLUDE__
 #define __EFI_TARGET_H_INCLUDE__
 
+#include <target/compiler.h>
 #include <target/uuid.h>
 
 #define GPT_HEADER_LBA		1
@@ -66,7 +67,7 @@ typedef struct {
 	 * alignment of the maximum member size, i.e. an 8-byte alignment.
 	 */
 	uint32_t padding;
-} gpt_header;
+} __packed gpt_header;
 
 typedef struct {
 	uint64_t first_lba;
@@ -80,6 +81,6 @@ typedef struct {
 	uint64_t last_lba;
 	uint64_t attributes;
 	uint16_t name[36];  /* UTF-16 */
-} gpt_partition_entry;
+} __packed gpt_partition_entry;
 
 #endif /* __EFI_TARGET_H_INCLUDE__ */

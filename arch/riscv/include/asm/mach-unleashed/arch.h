@@ -52,12 +52,12 @@
 #ifndef __ASSEMBLY__
 void board_init_clock(void);
 
-#ifdef CONFIG_UNLEASHED_FLASH_SDCARD
+#ifdef CONFIG_UNLEASHED_SDCARD
 int board_sdcard_init(uint8_t spi);
 #else
 #define board_sdcard_init(spi)		0
 #endif
-#ifdef CONFIG_UNLEASHED_FLASH_SPINOR
+#ifdef CONFIG_UNLEASHED_SPINOR
 int board_spinor_init(uint8_t spi);
 #else
 #define board_spinor_init(spi)		0

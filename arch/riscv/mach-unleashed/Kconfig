@@ -33,11 +33,10 @@ choice
 config UNLEASHED_ZSBL
 	bool "Zeroth stage boot loader (ZSBL)"
 	depends UNLEASHED_E51
-	select ARCH_HAS_LOVEC
+	select ARCH_HAS_NOVEC
 	select XIP
 	select LOAD_DATA
-	select UNLEASHED_FLASH_SPINOR
-	select EFI
+	select UNLEASHED_SPINOR
 
 config UNLEASHED_FSBL
 	bool "First stage boot loader (FSBL)"
@@ -45,9 +44,8 @@ config UNLEASHED_FSBL
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_BOOT_LOAD
 	select XIP
-	select UNLEASHED_FLASH_SPINOR
-	select UNLEASHED_FLASH_SDCARD
-	select EFI
+	select UNLEASHED_SPINOR
+	select UNLEASHED_SDCARD
 
 config UNLEASHED_BBL
 	bool "Berkeley boot loader (BBL)"
@@ -84,41 +82,46 @@ config UNLEASHED_FLASH
 	select STRING_UUID
 	select SPI
 
-config UNLEASHED_FLASH_SDCARD
+config UNLEASHED_SDCARD
 	bool
 	select UNLEASHED_FLASH
 
-config UNLEASHED_FLASH_SPINOR
+config UNLEASHED_SPINOR
 	bool
 	select UNLEASHED_FLASH
 
 choice
 	prompt "Boot flash controller"
-	default UNLEASHED_FLASH_QSPI2 if UNLEASHED_FLASH_SDCARD
+	default UNLEASHED_FLASH_QSPI2 if UNLEASHED_SDCARD
 
 config UNLEASHED_FLASH_QSPI0
 	bool "QSPI0"
-	depends UNLEASHED_FLASH_SPINOR
+	depends UNLEASHED_SPINOR
 
 config UNLEASHED_FLASH_QSPI1
 	bool "QSPI1"
-	depends UNLEASHED_FLASH_SPINOR
+	depends UNLEASHED_SPINOR
 
 config UNLEASHED_FLASH_QSPI2
 	bool "QSPI2"
-	depends UNLEASHED_FLASH_SDCARD
+	depends UNLEASHED_SDCARD
 
 endchoice
 
+config UNLEASHED_SPINOR_RANDOM_ACCESS
+	bool "Enable random accesses"
+	depends UNLEASHED_SPINOR
+
 choice
 	prompt "SPI-NOR flash data width"
-	depends UNLEASHED_FLASH_SPINOR
+	depends UNLEASHED_SPINOR
 
 config UNLEASHED_SPINOR_SINGLE
 	bool "Single"
 
 config UNLEASHED_SPINOR_QUAD
 	bool "Quad"
+	depends UNLEASHED_SPINOR_RANDOM_ACCESS
 
 endchoice
 

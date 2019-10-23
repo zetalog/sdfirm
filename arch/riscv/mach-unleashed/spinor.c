@@ -41,6 +41,17 @@
 
 #include <target/spi.h>
 #include <target/barrier.h>
+#include <target/efi.h>
+#include <target/cmdline.h>
+#include <string.h>
+
+#define SPINOR_BLOCK_SIZE			512
+#ifdef CONFIG_UNLEASHED_FLASH_QSPI0
+#define SPINOR_BASE				QSPI0_FLASH_BASE
+#endif
+#ifdef CONFIG_UNLEASHED_FLASH_QSPI1
+#define SPINOR_BASE				QSPI1_FLASH_BASE
+#endif
 
 #define MICRON_SPI_FLASH_CMD_RESET_ENABLE	0x66
 #define MICRON_SPI_FLASH_CMD_MEMORY_RESET	0x99
@@ -69,7 +80,38 @@ struct spi_device spid_spinor = {
 };
 spi_t spi_spinor;
 
-int spi_copy(void *buf, uint32_t addr, uint32_t size)
+void __unleashed_spinor_init(uint8_t spi)
+{
+	sifive_qspi_disable_spinor(spi);
+	sifive_qspi_config_freq(spi, clk_get_frequency(tlclk), 10000000);
+	spi_txrx(MICRON_SPI_FLASH_CMD_RESET_ENABLE);
+	spi_txrx(MICRON_SPI_FLASH_CMD_MEMORY_RESET);
+}
+
+#ifdef CONFIG_UNLEASHED_SPINOR_RANDOM_ACCESS
+int unleashed_spinor_init(uint8_t spi)
+{
+	__unleashed_spinor_init(spi);
+	__raw_writel(SPINOR_CMD_EN | SPINOR_ADDR_LEN(3) |
+		     SPINOR_PAD_LEN_DEFAULT |
+		     SPINOR_CMD_PROTO(QSPI_PROTO_SINGLE) |
+		     SPINOR_ADDR_PROTO(QSPI_PROTO_SINGLE) |
+		     SPINOR_DATA_PROTO_DEFAULT | SPINOR_CMD_CODE_DEFAULT |
+		     SPINOR_PAD_CODE(0), QSPI_FFMT(spi));
+	sifive_qspi_enable_spinor(spi);
+	mb();
+	return 0;
+}
+
+int unleashed_spinor_copy(void *buf, uint32_t addr, uint32_t size)
+{
+	memcpy(buf, (const void *)SPINOR_BASE + addr, size);
+	return 0;
+}
+#else
+#define unleashed_spinor_init(spi)	__unleashed_spinor_init(spi)
+
+int unleashed_spinor_copy(void *buf, uint32_t addr, uint32_t size)
 {
 	uint8_t *buf_bytes = (uint8_t *)buf;
 	unsigned int i;
@@ -86,29 +128,60 @@ int spi_copy(void *buf, uint32_t addr, uint32_t size)
 	spi_deselect_device();
 	return 0;
 }
-
-static void board_flash_init(uint8_t spi)
-{
-	sifive_qspi_disable_spinor(spi);
-	sifive_qspi_config_freq(spi, clk_get_frequency(tlclk), 10000000);
-	spi_txrx(MICRON_SPI_FLASH_CMD_RESET_ENABLE);
-	spi_txrx(MICRON_SPI_FLASH_CMD_MEMORY_RESET);
-}
+#endif
 
 int board_spinor_init(uint8_t spi)
 {
 	board_init_clock();
 	spi_spinor = spi_register_device(&spid_spinor);
-
-	board_flash_init(spi);
-
-	__raw_writel(SPINOR_CMD_EN | SPINOR_ADDR_LEN(3) |
-		     SPINOR_PAD_LEN_DEFAULT |
-		     SPINOR_CMD_PROTO(QSPI_PROTO_SINGLE) |
-		     SPINOR_ADDR_PROTO(QSPI_PROTO_SINGLE) |
-		     SPINOR_DATA_PROTO_DEFAULT | SPINOR_CMD_CODE_DEFAULT |
-		     SPINOR_PAD_CODE(0), QSPI_FFMT(spi));
-	sifive_qspi_enable_spinor(spi);
-	mb();
+	unleashed_spinor_init(spi);
 	return 0;
 }
+
+static int do_spinor(int argc, char *argv[])
+{
+	uint8_t gpt_buf[SPINOR_BLOCK_SIZE];
+	gpt_header hdr;
+	uint64_t partition_entries_lba_end;
+	gpt_partition_entry *gpt_entries;
+	uint64_t i;
+	uint32_t j;
+	int err;
+	uint32_t num_entries;
+
+	if (SPI_FLASH_ID == 2) {
+		printf("SPI2 doesn't connect to an SPI-NOR flash!\n");
+		return -EINVAL;
+	}
+	printf("Reading SPI-NOR from SPI%d...\n", SPI_FLASH_ID);
+	err = unleashed_spinor_copy(&hdr,
+		GPT_HEADER_LBA * SPINOR_BLOCK_SIZE, GPT_HEADER_BYTES);
+	if (err)
+		return -EINVAL;
+	mem_print_data(0, &hdr, 1, sizeof (gpt_header));
+	partition_entries_lba_end = (hdr.partition_entries_lba +
+		(hdr.num_partition_entries * hdr.partition_entry_size +
+		 SPINOR_BLOCK_SIZE - 1) / SPINOR_BLOCK_SIZE);
+	for (i = hdr.partition_entries_lba;
+	     i < partition_entries_lba_end; i++) {
+		unleashed_spinor_copy(gpt_buf, i * SPINOR_BLOCK_SIZE,
+				      SPINOR_BLOCK_SIZE);
+		gpt_entries = (gpt_partition_entry *)gpt_buf;
+		num_entries = SPINOR_BLOCK_SIZE / hdr.partition_entry_size;
+		for (j = 0; j < num_entries; j++) {
+			printf("%s:\n",
+			       uuid_export(gpt_entries[j].partition_type_guid.u.uuid));
+			printf("%016llX - %016llX \n",
+			       gpt_entries[j].first_lba,
+			       gpt_entries[i].last_lba);
+		}
+	}
+	return 0;
+}
+
+DEFINE_COMMAND(spinor, do_spinor, "SiFive QSPI SPI-NOR commands",
+	"    - SiFive QSPI SPI NOR flash commands\n"
+	"gpt ...\n"
+	"    - print GPT entry information"
+	"\n"
+);

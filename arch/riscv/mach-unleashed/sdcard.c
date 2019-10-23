@@ -310,6 +310,11 @@ static int do_sdcard(int argc, char *argv[])
 	int err;
 	uint32_t num_entries;
 
+	if (SPI_FLASH_ID != 2) {
+		printf("Only SPI2 connects to an SDCard flash!\n");
+		return -EINVAL;
+	}
+	printf("Reading SDCard from SPI%d...\n", SPI_FLASH_ID);
 	err = sd_copy(&hdr, GPT_HEADER_LBA, 1);
 	if (err)
 		return -EINVAL;
