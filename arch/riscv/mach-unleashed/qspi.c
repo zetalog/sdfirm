@@ -128,7 +128,7 @@ static int sd_cmd(uint8_t cmd, uint32_t arg, uint8_t crc)
 	unsigned long n;
 	uint8_t r;
 
-	spi_select_device(spi_flash);
+	spi_select_device(spit_flash);
 	sd_dummy();
 	spi_txrx(cmd);
 	spi_txrx(arg >> 24);
@@ -315,34 +315,25 @@ int sifive_qspi_sdcard_init(uint8_t spi)
 	int i;
 
 	mdelay(1);
-	sifive_qspi_config_mode(spi, SPI_MODE_0 | SPI_MSB);
-	sifive_qspi_chip_select(spi, 0);
-	sifive_qspi_config_freq(spi, clk_get_frequency(tlclk),
-				UL(0x1000) * SPI_HW_MIN_FREQ);
-
 	sifive_qspi_chip_mode(spi, QSPI_MODE_OFF);
-	/* Set SD card pin DI high for 74+ cycles
+	sifive_qspi_chip_select(spi, 0);
+
+	/* Switch SDHC adapter to SPI mode:
+	 * Set SD card pin DI high for 74+ cycles
 	 * SD CMD pin is the same pin as SPI DI, so CMD = 0xff means assert
 	 * DI high for 8 cycles.
 	 */
+	spi_select_device(spit_flash);
 	for (i = 10; i > 0; i--)
 		sd_dummy();
-	sifive_qspi_chip_mode(spi, QSPI_MODE_AUTO);
-	/* Skip SD initialization commands if already done earlier and only
-	 * set the clock divider for data transfer.
-	 */
+	spi_deselect_device();
+
+	/* Initialize SDCard */
 	if (sd_cmd0()) return SD_INIT_ERROR_CMD0;
 	if (sd_cmd8()) return SD_INIT_ERROR_CMD8;
 	if (sd_acmd41()) return SD_INIT_ERROR_ACMD41;
 	if (sd_cmd58()) return SD_INIT_ERROR_CMD58;
 	if (sd_cmd16()) return SD_INIT_ERROR_CMD16;
-
-	/* Increase clock frequency after initialization for higher
-	 * performance.
-	 */
-	sifive_qspi_config_freq(SPI_FLASH_ID,
-				clk_get_frequency(tlclk),
-				UL(1000) * spid_sdcard.max_freq_khz);
 	return 0;
 }
 #else
@@ -363,7 +354,7 @@ int spi_copy(void *buf, uint32_t addr, uint32_t size)
 	uint8_t *buf_bytes = (uint8_t *)buf;
 	unsigned int i;
 
-	spi_select_device(spi_flash);
+	spi_select_device(spit_flash);
 	spi_txrx(MICRON_SPI_FLASH_CMD_READ);
 	spi_txrx((addr >> 16) & 0xff);
 	spi_txrx((addr >> 8) & 0xff);
@@ -378,8 +369,8 @@ int spi_copy(void *buf, uint32_t addr, uint32_t size)
 
 static void sifive_qspi_flash_init(uint8_t spi)
 {
-	sifive_qspi_config_freq(spi, clk_get_frequency(tlclk), 10000000);
 	sifive_qspi_disable_spinor(spi);
+	sifive_qspi_config_freq(spi, clk_get_frequency(tlclk), 10000000);
 	spi_txrx(MICRON_SPI_FLASH_CMD_RESET_ENABLE);
 	spi_txrx(MICRON_SPI_FLASH_CMD_MEMORY_RESET);
 }

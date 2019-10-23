@@ -59,7 +59,7 @@
 #define SPI_FLASH_ID			2
 #define spi_hw_flash_init()		sifive_qspi_sdcard_init(SPI_FLASH_ID)
 #define spid_flash			spid_sdcard
-#define spi_flash			spi_sdcard
+#define spit_flash			spi_sdcard
 #define spi_flash_copy(buf, addr, size)	sd_copy(buf, addr, size)
 extern struct spi_device spid_sdcard;
 extern spi_t spi_sdcard;
@@ -72,16 +72,12 @@ extern spi_t spi_sdcard;
 #endif
 #define spi_hw_flash_init()		sifive_qspi_spinor_init(SPI_FLASH_ID)
 #define spid_flash			spid_spinor
-#define spi_flash			spi_spinor
+#define spit_flash			spi_spinor
 #define spi_flash_copy(buf, addr, size)	spi_copy(buf, addr, size)
 extern struct spi_device spid_spinor;
 extern spi_t spi_spinor;
 #endif
 
-/* SD cards normally support reading/writing at 20MHz, but operating at
- * 400KHz during boot.
- */
-#define SPI_HW_MIN_FREQ	UL(400) /* 400KHz */
 #define SPI_HW_MAX_FREQ	(TLCLK_FREQ_FINAL / 2000) /* tlclk/2 in KHz */
 
 #define QSPI_BASE(n)		\
@@ -94,22 +90,25 @@ extern spi_t spi_spinor;
 #define spi_hw_ctrl_init()					\
 	do {							\
 		board_init_clock();				\
-		spi_flash = spi_register_device(&spid_flash);	\
+		spit_flash = spi_register_device(&spid_flash);	\
 		spi_hw_flash_init();				\
 	} while (0)
+
+/* select/deselect: should be implemented in vise versa way? */
 #define spi_hw_chip_select(chip)				\
 	sifive_qspi_chip_mode(SPI_FLASH_ID, QSPI_MODE_HOLD)
-#define spi_hw_deselect_chips()		\
+#define spi_hw_deselect_chips()					\
 	sifive_qspi_chip_mode(SPI_FLASH_ID, QSPI_MODE_AUTO)
-#define spi_hw_config_mode(mode)	\
+
+#define spi_hw_config_mode(mode)				\
 	sifive_qspi_config_mode(SPI_FLASH_ID, mode)
-#define spi_hw_config_freq(khz)		\
+#define spi_hw_config_freq(khz)					\
 	sifive_qspi_config_freq(SPI_FLASH_ID,			\
 				clk_get_frequency(tlclk),	\
 				UL(1000) * khz)
-#define spi_hw_ctrl_start()	\
+#define spi_hw_ctrl_start()					\
 	sifive_qspi_chip_mode(SPI_FLASH_ID, QSPI_MODE_AUTO)
-#define spi_hw_ctrl_stop()	\
+#define spi_hw_ctrl_stop()					\
 	sifive_qspi_chip_mode(SPI_FLASH_ID, QSPI_MODE_OFF)
 
 #endif /* __SPI_UNLEASHED_H_INCLUDE__ */

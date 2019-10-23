@@ -78,7 +78,7 @@
 #define QSPI_IE(n)		QSPI_REG(n, 0x70)
 #define QSPI_IP(n)		QSPI_REG(n, 0x74)
 
-/* SCKMODE */
+/* SCKMODE, exactly as spi_mode() */
 #define QSPI_PHA		_BV(0)
 #define QSPI_POL		_BV(1)
 /* CSMODE */
@@ -92,10 +92,13 @@
 #define QSPI_PROTO_OFFSET	0
 #define QSPI_PROTO_MASK		REG_2BIT_MASK
 #define QSPI_PROTO(value)	_SET_FV(QSPI_PROTO, value)
-#define QSPI_PROTO_SINGLE	0
-#define QSPI_PROTO_DUAL		1
-#define QSPI_PROTO_QUAD		2
-#define QSPI_ENDIAN		_BV(2)
+/* exactly as spi_flash() */
+#define QSPI_PROTO_SINGLE	SPI_FLASH_3WIRE
+#define QSPI_PROTO_DUAL		SPI_FLASH_4WIRE
+#define QSPI_PROTO_QUAD		SPI_FLASH_6WIRE
+#define QSPI_ENDIAN_OFFSET	2
+#define QSPI_ENDIAN_MASK	REG_1BIT_MASK
+#define QSPI_ENDIAN(value)	_SET_FV(QSPI_ENDIAN, value)
 #define QSPI_DIR		_BV(3) /* TX */
 #define QSPI_LEN_OFFSET		16
 #define QSPI_LEN_MASK		REG_4BIT_MASK
@@ -168,16 +171,22 @@ extern uint32_t sifive_qspi_rx;
 			max_output_freq);			\
 		__raw_writel(div, QSPI_SCKDIV(n));		\
 	} while (0)
+/* NOTE:
+ * sifive_qspi_config_mode() configures read mode (QSPI_DIR=0),
+ * sifive_qspi_config_read/write() switches the read/write mode.
+ */
 #define sifive_qspi_config_mode(n, mode)			\
 	do {							\
 		__raw_writel(spi_mode(mode), QSPI_SCKMODE(n));	\
-		__raw_writel(QSPI_PROTO(QSPI_PROTO_SINGLE) |	\
-			     QSPI_LEN(8) | spi_order(mode),	\
+		__raw_writel(QSPI_PROTO(spi_flash(mode)) |	\
+			     QSPI_LEN(8) |			\
+			     QSPI_ENDIAN(spi_order(mode)),	\
 			     QSPI_FMT(n));			\
 	} while (0)
-
-int sifive_qspi_sdcard_init(uint8_t spi);
-int sifive_qspi_spinor_init(uint8_t spi);
+#define sifive_qspi_config_write(n)				\
+	__raw_setl(QSPI_DIR, QSPI_FMT(n))
+#define sifive_qspi_config_read(n)				\
+	__raw_clearl(QSPI_DIR, QSPI_FMT(n))
 
 /*            Fin
  * Fsck = -------------
@@ -186,5 +195,7 @@ int sifive_qspi_spinor_init(uint8_t spi);
 uint32_t sifive_qspi_min_div(uint32_t input_freq, uint32_t max_output_freq);
 void sifive_qspi_tx(uint8_t spi, uint8_t byte);
 uint8_t sifive_qspi_rx(uint8_t spi);
+int sifive_qspi_sdcard_init(uint8_t spi);
+int sifive_qspi_spinor_init(uint8_t spi);
 
 #endif /* __QSPI_UNLEASHED_H_INCLUDE__ */
