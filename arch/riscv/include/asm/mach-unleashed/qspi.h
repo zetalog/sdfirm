@@ -195,7 +195,5 @@ extern uint32_t sifive_qspi_rx;
 uint32_t sifive_qspi_min_div(uint32_t input_freq, uint32_t max_output_freq);
 void sifive_qspi_tx(uint8_t spi, uint8_t byte);
 uint8_t sifive_qspi_rx(uint8_t spi);
-int sifive_qspi_sdcard_init(uint8_t spi);
-int sifive_qspi_spinor_init(uint8_t spi);
 
 #endif /* __QSPI_UNLEASHED_H_INCLUDE__ */

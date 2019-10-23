@@ -35,33 +35,45 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)arch.h: FU540 (unleashed) machine specific definitions
- * $Id: arch.h,v 1.1 2019-10-16 10:02:00 zhenglv Exp $
+ * @(#)uuid.c: universally unique identifier (UUID) implementation
+ * $Id: uuid.c,v 1.1 2019-10-23 10:10:00 zhenglv Exp $
  */
 
-#ifndef __ARCH_UNLEASHED_H_INCLUDE__
-#define __ARCH_UNLEASHED_H_INCLUDE__
+#include <target/uuid.h>
+#include <stdio.h>
 
-/* This file is intended to be used for implementing SoC specific
- * instructions, registers.
- */
+const char *uuid_export(uuid_t u)
+{
+	static char s[UUID_LEN_STR+1];
 
-#include <target/init.h>
-#include <target/types.h>
+	if (snprintf(s, UUID_LEN_STR+1,
+		     "%08lx-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+		     (unsigned long)u.time_low,
+		     (unsigned int)u.time_mid,
+		     (unsigned int)u.time_hi_and_version,
+		     (unsigned int)u.clock_seq_hi_and_reserved,
+		     (unsigned int)u.clock_seq_low,
+		     (unsigned int)u.node[0],
+		     (unsigned int)u.node[1],
+		     (unsigned int)u.node[2],
+		     (unsigned int)u.node[3],
+		     (unsigned int)u.node[4],
+		     (unsigned int)u.node[5]) != UUID_LEN_STR) {
+		return 0;
+	}
+	return s;
+}
 
-#ifndef __ASSEMBLY__
-void board_init_clock(void);
+#if 0
+bool guid_equal(const guid_t *a, const guid_t *b)
+{
+	int i;
 
-#ifdef CONFIG_UNLEASHED_FLASH_SDCARD
-int board_sdcard_init(uint8_t spi);
-#else
-#define board_sdcard_init(spi)		0
+	for (i = 0; i < GUID_SIZE; i++) {
+		if (a->u.bytes[i] != b->u.bytes[i]) {
+			return false;
+		}
+	}
+	return true;
+}
 #endif
-#ifdef CONFIG_UNLEASHED_FLASH_SPINOR
-int board_spinor_init(uint8_t spi);
-#else
-#define board_spinor_init(spi)		0
-#endif
-#endif
-
-#endif /* __ARCH_UNLEASHED_H_INCLUDE__ */

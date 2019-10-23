@@ -36,7 +36,8 @@ config UNLEASHED_ZSBL
 	select ARCH_HAS_LOVEC
 	select XIP
 	select LOAD_DATA
-	select SPI
+	select UNLEASHED_FLASH_SPINOR
+	select EFI
 
 config UNLEASHED_FSBL
 	bool "First stage boot loader (FSBL)"
@@ -44,7 +45,9 @@ config UNLEASHED_FSBL
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_BOOT_LOAD
 	select XIP
-	select SPI
+	select UNLEASHED_FLASH_SPINOR
+	select UNLEASHED_FLASH_SDCARD
+	select EFI
 
 config UNLEASHED_BBL
 	bool "Berkeley boot loader (BBL)"
@@ -76,24 +79,40 @@ endchoice
 
 menu "Boot flash device"
 
+config UNLEASHED_FLASH
+	bool
+	select STRING_UUID
+	select SPI
+
+config UNLEASHED_FLASH_SDCARD
+	bool
+	select UNLEASHED_FLASH
+
+config UNLEASHED_FLASH_SPINOR
+	bool
+	select UNLEASHED_FLASH
+
 choice
-	prompt "Flash controller"
-	default UNLEASHED_FLASH_QSPI2
+	prompt "Boot flash controller"
+	default UNLEASHED_FLASH_QSPI2 if UNLEASHED_FLASH_SDCARD
 
 config UNLEASHED_FLASH_QSPI0
 	bool "QSPI0"
+	depends UNLEASHED_FLASH_SPINOR
 
 config UNLEASHED_FLASH_QSPI1
 	bool "QSPI1"
+	depends UNLEASHED_FLASH_SPINOR
 
 config UNLEASHED_FLASH_QSPI2
 	bool "QSPI2"
+	depends UNLEASHED_FLASH_SDCARD
 
 endchoice
 
 choice
-	prompt "Flash data width"
-	depends !UNLEASHED_FLASH_QSPI2
+	prompt "SPI-NOR flash data width"
+	depends UNLEASHED_FLASH_SPINOR
 
 config UNLEASHED_SPINOR_SINGLE
 	bool "Single"
@@ -139,7 +158,6 @@ endif
 
 menuconfig SIFIVE_QSPI
 	bool "SiFive SPI controller support"
-	select PRINT_SNPRINTF
 	select GPIO
 	select CLK
 	select MATH_DIV32

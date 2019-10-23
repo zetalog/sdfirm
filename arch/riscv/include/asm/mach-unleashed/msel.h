@@ -48,27 +48,19 @@
 #define MSEL_SPI1_FLASH_XIP			2  /* 0010 -_-- */
 #define MSEL_CHIPLINK_TL_UH_XIP			3  /* 0011 __-- */
 #define MSEL_CHIPLINK_TL_C_XIP			4  /* 0100 --_- */
-#define MSEL_ZSBL_SPI0_MMAP			5  /* 0101 _-_- */
-#define MSEL_FSBL_SPI0_MMAP			5  /* 0101 _-_- */
-#define MSEL_ZSBL_SPI0_MMAP_QUAD		6  /* 0110 -__- */
-#define MSEL_FSBL_SPI0_MMAP_QUAD		6  /* 0110 -__- */
-#define MSEL_ZSBL_SPI1_MMAP_QUAD		7  /* 0111 ___- */
-#define MSEL_FSBL_SPI1_MMAP_QUAD		7  /* 0111 ___- */
-#define MSEL_ZSBL_SPI1_SDCARD			8  /* 1000 ---_ */
-#define MSEL_FSBL_SPI1_SDCARD			8  /* 1000 ---_ */
-#define MSEL_ZSBL_SPI2_FLASH			9  /* 1001 _--_ */
-#define MSEL_FSBL_SPI2_FLASH			9  /* 1001 _--_ */
-#define MSEL_ZSBL_SPI0_MMAP_QUAD		10 /* 1010 -_-_ */
-#define MSEL_FSBL_SPI1_SDCARD			10 /* 1010 -_-_ */
-#define MSEL_ZSBL_SPI2_SDCARD			11 /* 1011 __-_ */
-#define MSEL_FSBL_SPI2_SDCARD			11 /* 1011 __-_ */
-#define MSEL_ZSBL_SPI1_FLASH			12 /* 1100 --__ */
-#define MSEL_FSBL_SPI2_SDCARD			12 /* 1100 --__ */
-#define MSEL_ZSBL_SPI1_MMAP_QUAD		13 /* 1101 -_-- */
-#define MSEL_FSBL_SPI2_SDCARD			13 /* 1101 -_-- */
-#define MSEL_ZSBL_SPI0_FLASH			14 /* 1110 -___ */
-#define MSEL_FSBL_SPI2_SDCARD			14 /* 1110 -___ */
-#define MSEL_ZSBL_SPI0_MMAP_QUAD		15 /* 1111 ____ */
-#define MSEL_FSBL_SPI2_SDCARD			15 /* 1111 ____ */
+/* Both ZSBL/FSBL boot from */
+#define MSEL_xSBL_SPI0_MMAP			5  /* 0101 _-_- */
+#define MSEL_xSBL_SPI0_MMAP_QUAD		6  /* 0110 -__- */
+#define MSEL_xSBL_SPI1_MMAP_QUAD		7  /* 0111 ___- */
+#define MSEL_xSBL_SPI1_SDCARD			8  /* 1000 ---_ */
+#define MSEL_xSBL_SPI2_FLASH			9  /* 1001 _--_ */
+#define MSEL_xSBL_SPI2_SDCARD			11 /* 1011 __-_ */
+/* FSBL boots from SPI1 SDCARD */
+#define MSEL_FSBL1_ZSBL_SPI0_MMAP_QUAD		10 /* 1010 -_-_ */
+/* FSBL boots from SPI2 SDCARD */
+#define MSEL_FSBL2_ZSBL_SPI1_FLASH		12 /* 1100 --__ */
+#define MSEL_FSBL2_ZSBL_SPI1_MMAP_QUAD		13 /* 1101 -_-- */
+#define MSEL_FSBL2_ZSBL_SPI0_FLASH		14 /* 1110 -___ */
+#define MSEL_FSBL2_ZSBL_SPI0_MMAP_QUAD		15 /* 1111 ____ */
 
 #endif /* __MSEL_UNLEASHED_H_INCLUDE__ */

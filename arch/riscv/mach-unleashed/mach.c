@@ -44,6 +44,7 @@
 #include <target/arch.h>
 #include <target/irq.h>
 #include <asm/mach/pwm.h>
+#include <asm/mach/msel.h>
 
 void board_init(void)
 {
@@ -51,4 +52,14 @@ void board_init(void)
 	/* Cleanup bootup problems */
 	pwm_disable(0);
 	pwm_disable(1);
+
+#ifdef CONFIG_UNLEASHED_FLASH_QSPI0
+	board_spinor_init(0);
+#endif
+#ifdef CONFIG_UNLEASHED_FLASH_QSPI1
+	board_spinor_init(1);
+#endif
+#ifdef CONFIG_UNLEASHED_FLASH_QSPI2
+	board_sdcard_init(2);
+#endif
 }

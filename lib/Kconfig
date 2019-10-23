@@ -131,6 +131,10 @@ config STRING_STRTOUL
 	select STDLIB
 	bool "strtoul"
 
+config STRING_UUID
+	select PRINT_SNPRINTF
+	bool "uuid"
+
 endmenu
 
 source lib/font/Kconfig

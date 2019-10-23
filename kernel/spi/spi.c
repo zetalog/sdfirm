@@ -15,6 +15,12 @@ uint8_t spi_read_byte(void)
 	return spi_hw_read_byte();
 }
 
+uint8_t spi_txrx(uint8_t byte)
+{
+	spi_tx(byte);
+	return spi_rx();
+}
+
 spi_t spi_register_device(spi_device_t *dev)
 {
 	spi_t spi;

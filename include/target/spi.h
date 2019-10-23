@@ -56,6 +56,9 @@ typedef struct spi_device spi_device_t;
 
 void spi_write_byte(uint8_t byte);
 uint8_t spi_read_byte(void);
+#define spi_tx(byte)		spi_write_byte(byte)
+#define spi_rx()		spi_read_byte()
+uint8_t spi_txrx(uint8_t byte);
 
 spi_t spi_register_device(spi_device_t *dev);
 void spi_select_device(spi_t spi);

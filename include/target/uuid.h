@@ -35,33 +35,34 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)arch.h: FU540 (unleashed) machine specific definitions
- * $Id: arch.h,v 1.1 2019-10-16 10:02:00 zhenglv Exp $
+ * @(#)uuid.h: universally unique identifier (UUID) defintions
+ * $Id: uuid.h,v 1.1 2019-10-23 11:21:00 zhenglv Exp $
  */
 
-#ifndef __ARCH_UNLEASHED_H_INCLUDE__
-#define __ARCH_UNLEASHED_H_INCLUDE__
+#ifndef __UUID_TARGET_H_INCLUDE__
+#define __UUID_TARGET_H_INCLUDE__
 
-/* This file is intended to be used for implementing SoC specific
- * instructions, registers.
- */
+#include <target/generic.h>
 
-#include <target/init.h>
-#include <target/types.h>
+#define UUID_LEN_STR		36
 
-#ifndef __ASSEMBLY__
-void board_init_clock(void);
+typedef struct {
+	uint32_t  time_low;
+	uint16_t  time_mid;
+	uint16_t  time_hi_and_version;
+	uint8_t   clock_seq_hi_and_reserved;
+	uint8_t   clock_seq_low;
+	uint8_t   node[6];
+} uuid_t;
 
-#ifdef CONFIG_UNLEASHED_FLASH_SDCARD
-int board_sdcard_init(uint8_t spi);
-#else
-#define board_sdcard_init(spi)		0
-#endif
-#ifdef CONFIG_UNLEASHED_FLASH_SPINOR
-int board_spinor_init(uint8_t spi);
-#else
-#define board_spinor_init(spi)		0
-#endif
-#endif
+#define GUID_SIZE		16
+typedef struct {
+	union {
+		uint8_t bytes[GUID_SIZE];
+		uuid_t uuid;
+	} u;
+} guid_t;
 
-#endif /* __ARCH_UNLEASHED_H_INCLUDE__ */
+const char *uuid_export(uuid_t u);
+
+#endif /* __UUID_TARGET_H_INCLUDE__ */

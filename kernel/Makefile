@@ -40,3 +40,4 @@ obj-$(CONFIG_VIDEO) += video/
 obj-$(CONFIG_MMC) += mmc/
 
 obj-$(CONFIG_PERF) += perf.rel
+obj-$(CONFIG_EFI) += efi.rel

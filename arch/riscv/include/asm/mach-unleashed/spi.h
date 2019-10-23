@@ -55,27 +55,14 @@
 #error "Multiple SPI controller defined"
 #endif
 
-#ifdef CONFIG_UNLEASHED_FLASH_QSPI2
-#define SPI_FLASH_ID			2
-#define spi_hw_flash_init()		sifive_qspi_sdcard_init(SPI_FLASH_ID)
-#define spid_flash			spid_sdcard
-#define spit_flash			spi_sdcard
-#define spi_flash_copy(buf, addr, size)	sd_copy(buf, addr, size)
-extern struct spi_device spid_sdcard;
-extern spi_t spi_sdcard;
-#else
 #ifdef CONFIG_UNLEASHED_FLASH_QSPI0
 #define SPI_FLASH_ID			0
 #endif
 #ifdef CONFIG_UNLEASHED_FLASH_QSPI1
 #define SPI_FLASH_ID			1
 #endif
-#define spi_hw_flash_init()		sifive_qspi_spinor_init(SPI_FLASH_ID)
-#define spid_flash			spid_spinor
-#define spit_flash			spi_spinor
-#define spi_flash_copy(buf, addr, size)	spi_copy(buf, addr, size)
-extern struct spi_device spid_spinor;
-extern spi_t spi_spinor;
+#ifdef CONFIG_UNLEASHED_FLASH_QSPI2
+#define SPI_FLASH_ID			2
 #endif
 
 #define SPI_HW_MAX_FREQ	(TLCLK_FREQ_FINAL / 2000) /* tlclk/2 in KHz */
@@ -87,12 +74,7 @@ extern spi_t spi_spinor;
 
 #define spi_hw_write_byte(byte)		sifive_qspi_tx(SPI_FLASH_ID, (byte))
 #define spi_hw_read_byte()		sifive_qspi_rx(SPI_FLASH_ID)
-#define spi_hw_ctrl_init()					\
-	do {							\
-		board_init_clock();				\
-		spit_flash = spi_register_device(&spid_flash);	\
-		spi_hw_flash_init();				\
-	} while (0)
+#define spi_hw_ctrl_init()		board_init_clock()
 
 /* select/deselect: should be implemented in vise versa way? */
 #define spi_hw_chip_select(chip)				\

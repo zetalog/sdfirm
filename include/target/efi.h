@@ -35,33 +35,51 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)arch.h: FU540 (unleashed) machine specific definitions
- * $Id: arch.h,v 1.1 2019-10-16 10:02:00 zhenglv Exp $
+ * @(#)efi.h: extensible firmware interface (EFI) defintions
+ * $Id: efi.h,v 1.1 2019-10-23 11:22:00 zhenglv Exp $
  */
 
-#ifndef __ARCH_UNLEASHED_H_INCLUDE__
-#define __ARCH_UNLEASHED_H_INCLUDE__
+#ifndef __EFI_TARGET_H_INCLUDE__
+#define __EFI_TARGET_H_INCLUDE__
 
-/* This file is intended to be used for implementing SoC specific
- * instructions, registers.
- */
+#include <target/uuid.h>
 
-#include <target/init.h>
-#include <target/types.h>
+#define GPT_HEADER_LBA		1
+#define GPT_HEADER_BYTES	92
 
-#ifndef __ASSEMBLY__
-void board_init_clock(void);
+typedef struct {
+	uint64_t signature;
+	uint32_t revision;
+	uint32_t header_size;
+	uint32_t header_crc;
+	uint32_t reserved;
+	uint64_t current_lba;
+	uint64_t backup_lba;
+	uint64_t first_usable_lba;
+	uint64_t last_usable_lba;
+	guid_t disk_guid;
+	uint64_t partition_entries_lba;
+	uint32_t num_partition_entries;
+	uint32_t partition_entry_size;
+	uint32_t partition_array_crc;
+	/* gcc will pad this struct to an alignment the matches the
+	 * alignment of the maximum member size, i.e. an 8-byte alignment.
+	 */
+	uint32_t padding;
+} gpt_header;
 
-#ifdef CONFIG_UNLEASHED_FLASH_SDCARD
-int board_sdcard_init(uint8_t spi);
-#else
-#define board_sdcard_init(spi)		0
-#endif
-#ifdef CONFIG_UNLEASHED_FLASH_SPINOR
-int board_spinor_init(uint8_t spi);
-#else
-#define board_spinor_init(spi)		0
-#endif
-#endif
+typedef struct {
+	uint64_t first_lba;
+	uint64_t last_lba;	/* Inclusive */
+} gpt_partition_range;
 
-#endif /* __ARCH_UNLEASHED_H_INCLUDE__ */
+typedef struct {
+	guid_t partition_type_guid;
+	guid_t partition_guid;
+	uint64_t first_lba;
+	uint64_t last_lba;
+	uint64_t attributes;
+	uint16_t name[36];  /* UTF-16 */
+} gpt_partition_entry;
+
+#endif /* __EFI_TARGET_H_INCLUDE__ */
