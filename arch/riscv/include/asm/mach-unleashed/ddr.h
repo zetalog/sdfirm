@@ -35,43 +35,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)arch.h: FU540 (unleashed) machine specific definitions
- * $Id: arch.h,v 1.1 2019-10-16 10:02:00 zhenglv Exp $
+ * @(#)ddr.h: FU540 (unleashed) DDR subsystem definitions
+ * $Id: ddr.h,v 1.1 2019-10-23 15:03:00 zhenglv Exp $
  */
 
-#ifndef __ARCH_UNLEASHED_H_INCLUDE__
-#define __ARCH_UNLEASHED_H_INCLUDE__
+#ifndef __DDR_UNLEASHED_H_INCLUDE__
+#define __DDR_UNLEASHED_H_INCLUDE__
 
-/* This file is intended to be used for implementing SoC specific
- * instructions, registers.
- */
+#include <target/arch.h>
+#include <target/clk.h>
 
-#include <target/init.h>
-#include <target/types.h>
+#define DDR_REG(offset)		(DDRC_BASE + (offset))
 
-#ifndef __ASSEMBLY__
-void board_init_clock(void);
-
-#ifdef CONFIG_UNLEASHED_SDCARD
-int board_sdcard_init(uint8_t spi);
-#else
-#define board_sdcard_init(spi)		0
-#endif
-#ifdef CONFIG_UNLEASHED_SPINOR
-int board_spinor_init(uint8_t spi);
-#else
-#define board_spinor_init(spi)		0
-#endif
-#ifdef CONFIG_SIFIVE_DDR
-void board_ddr_init(void);
-#else
-#define board_ddr_init()		do { } while (0)
-#endif
-#ifdef CONFIG_SIFIVE_CACHE
-void board_cache_init(void);
-#else
-#define board_cache_init()		do { } while (0)
-#endif
-#endif
-
-#endif /* __ARCH_UNLEASHED_H_INCLUDE__ */
+#endif /* __DDR_UNLEASHED_H_INCLUDE__ */

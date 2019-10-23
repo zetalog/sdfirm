@@ -50,4 +50,37 @@
 #define __SMP_CACHE_SHIFT	L1_LINE_SHIFT
 #endif
 
+/*===========================================================================
+ * L2_CC
+ *===========================================================================*/
+/* Register offsets */
+#define CCACHE_INFO		0x000
+#define CCACHE_ENABLE		0x008
+#define CCACHE_INJECT		0x040
+#define CCACHE_META_FIX		0x100
+#define CCACHE_DATA_FIX		0x140
+#define CCACHE_DATA_FAIL	0x160
+#define CCACHE_FLUSH64		0x200
+#define CCACHE_FLUSH32		0x240
+#define CCACHE_WAYS		0x800
+
+/* Bytes inside the INFO field */
+#define CCACHE_INFO_BANKS		0
+#define CCACHE_INFO_WAYS		1
+#define CCACHE_INFO_LG_SETS		2
+#define CCACHE_INFO_LG_BLOCKBYTES	3
+
+/* INJECT types */
+#define	CCACHE_ECC_TOGGLE_DATA	0x00000
+#define CCACHE_ECC_TOGGLE_META	0x10000
+
+/* Offsets per FIX/FAIL */
+#define CCACHE_ECC_ADDR		0x0
+#define CCACHE_ECC_COUNT	0x8
+
+/* Interrupt Number offsets from Base */
+#define CCACHE_INT_META_FIX	0
+#define CCACHE_INT_DATA_FIX	1
+#define CCACHE_INT_DATA_FAIL	2
+
 #endif /* __CACHE_UNLEASHED_H_INCLUDE__ */

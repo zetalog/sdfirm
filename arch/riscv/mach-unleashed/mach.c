@@ -43,6 +43,7 @@
 #include <target/cpus.h>
 #include <target/arch.h>
 #include <target/irq.h>
+#include <target/clk.h>
 #include <asm/mach/pwm.h>
 #include <asm/mach/msel.h>
 
@@ -53,6 +54,11 @@ void board_init(void)
 	pwm_disable(0);
 	pwm_disable(1);
 
+	board_init_clock();
+	board_ddr_init();
+#ifdef CONFIG_UNLEASHED_FSBL
+	clk_enable(gemgxlclk);
+#endif
 #ifdef CONFIG_UNLEASHED_FLASH_QSPI0
 	board_spinor_init(0);
 #endif
@@ -62,4 +68,5 @@ void board_init(void)
 #ifdef CONFIG_UNLEASHED_FLASH_QSPI2
 	board_sdcard_init(2);
 #endif
+	board_cache_init();
 }

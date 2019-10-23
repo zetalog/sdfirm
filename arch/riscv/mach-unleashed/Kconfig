@@ -46,6 +46,8 @@ config UNLEASHED_FSBL
 	select XIP
 	select UNLEASHED_SPINOR
 	select UNLEASHED_SDCARD
+	select SIFIVE_DDR
+	select SIFIVE_CACHE
 
 config UNLEASHED_BBL
 	bool "Berkeley boot loader (BBL)"
@@ -176,6 +178,22 @@ config SIFIVE_QSPI_STATUS
 	  of RXDATA or split the RXDATA register reads. Enabling this
 	  option allows us to shrink the DWORD cache of RXDATA.
 	  If unsure, say 'N'.
+
+endif
+
+menuconfig SIFIVE_DDR
+	bool "Enable DDR subsystem support"
+	depends UNLEASHED_FSBL
+
+if SIFIVE_DDR
+
+endif
+
+menuconfig SIFIVE_CACHE
+	bool "Enable cache controller support"
+	depends UNLEASHED_FSBL
+
+if SIFIVE_CCACHE
 
 endif
 

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Oct 23 14:07:24 2019
+# Wed Oct 23 14:49:57 2019
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -121,6 +121,8 @@ CONFIG_SIFIVE_UART=y
 # CONFIG_SIFIVE_UART_STATUS is not set
 CONFIG_SIFIVE_QSPI=y
 CONFIG_SIFIVE_QSPI_STATUS=y
+CONFIG_SIFIVE_DDR=y
+CONFIG_SIFIVE_CACHE=y
 
 #
 # Feature setup
