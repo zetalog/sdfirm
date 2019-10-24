@@ -251,7 +251,8 @@ typedef uint16_t mmc_event_t;
 #define MMC_CMD_GEN_CMD			MMC_CMD56
 #endif
 
-#define MMC_CMD_INVALID			64
+#define MMC_CMD_NONE			64
+#define MMC_CMD_ARCH			65
 
 #ifdef MMC_CLASS1
 #define mmc_cmd_is_read_stream()			\
@@ -281,7 +282,7 @@ typedef uint16_t mmc_event_t;
 	 mmc_cmd_is(MMC_CMD_WRITE_MULTIPLE_BLOCK))
 #define mmc_cmd_is_program()				\
 	(mmc_cmd_is(MMC_CMD_PROGRAM_CID) ||		\
-	 mmc_mc_is(MMC_CMD_PROGRAM_CSD))
+	 mmc_cmd_is(MMC_CMD_PROGRAM_CSD))
 #else
 #define mmc_cmd_is_write_block()			false
 #define mmc_cmd_is_program()				false
@@ -569,6 +570,8 @@ struct mmc_slot {
 
 #define MMC_OP_NO_OP			0
 #define MMC_OP_IDENTIFY_CARD		1
+#define MMC_OP_READ_BLOCKS		2
+#define MMC_OP_WRITE_BLOCKS		3
 
 #define MMC_ERR_NO_ERROR		0
 #define MMC_ERR_CARD_IS_BUSY		1 /* card is busy */
@@ -595,6 +598,8 @@ extern struct mmc_slot mmc_slots[NR_MMC_SLOTS];
 #define mmc_rca			0
 extern struct mmc_slot mmc_slot_ctrl;
 #endif
+
+uint8_t mmc_crc7_update(uint8_t crc, uint8_t byte);
 
 int mmc_start_op(uint8_t op, mmc_cmpl_cb cb);
 void mmc_op_complete(bool result);

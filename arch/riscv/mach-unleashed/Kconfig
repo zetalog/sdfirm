@@ -87,6 +87,7 @@ config UNLEASHED_FLASH
 config UNLEASHED_SDCARD
 	bool
 	select UNLEASHED_FLASH
+	select MMC_SPI
 
 config UNLEASHED_SPINOR
 	bool

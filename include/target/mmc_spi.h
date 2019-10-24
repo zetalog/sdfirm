@@ -35,38 +35,55 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)arch.h: FU540 (unleashed) machine specific definitions
- * $Id: arch.h,v 1.1 2019-10-16 10:02:00 zhenglv Exp $
+ * @(#)mmc_spi.h: SPI mode MMC definitions
+ * $Id: mmc_spi.h,v 1.1 2019-10-24 16:00:00 zhenglv Exp $
  */
 
-#ifndef __ARCH_UNLEASHED_H_INCLUDE__
-#define __ARCH_UNLEASHED_H_INCLUDE__
+#ifndef __MMC_SPI_H_INCLUDE__
+#define __MMC_SPI_H_INCLUDE__
 
-/* This file is intended to be used for implementing SoC specific
- * instructions, registers.
+#include <target/config.h>
+
+#ifndef ARCH_HAVE_MMC
+#define ARCH_HAVE_MMC		1
+#else
+#error "Multiple MMC controller defined"
+#endif
+
+/* 9.5 SPI Bus Protocol:
+ * Only single and multiple block read/write operations are supported in
+ * SPI mode (sequential mode is not supported).
  */
+#define MMC_CLASS2 1
+#define MMC_CLASS4 1
 
-#include <target/init.h>
-#include <target/types.h>
+#define MMC_CMD59		59
+#define MMC_CMD0_ARG		UL(0x00000000)
+#define MMC_CMD0_CRC		0x95
+#define MMC_CMD_CRC_ON_OFF	MMC_CMD59
 
-#ifndef __ASSEMBLY__
-void board_init_clock(void);
+#define SD_RESPONSE_IDLE		0x1
+/* Data token for commands 17, 18, 24 */
+#define SD_DATA_TOKEN			0xfe
 
-#ifdef CONFIG_UNLEASHED_SPINOR
-int board_spinor_init(uint8_t spi);
-#else
-#define board_spinor_init(spi)		0
-#endif
-#ifdef CONFIG_SIFIVE_DDR
-void board_ddr_init(void);
-#else
-#define board_ddr_init()		do { } while (0)
-#endif
-#ifdef CONFIG_SIFIVE_CACHE
-void board_cache_init(void);
-#else
-#define board_cache_init()		do { } while (0)
-#endif
+#ifdef CONFIG_MMC_SPI
+#define mmc_hw_ctrl_init()		mmc_spi_init()
+#define mmc_hw_slot_select(rca)		mmc_spi_select(rca)
+#define mmc_hw_send_command(cmd, arg)	mmc_spi_send(cmd, arg)
+#define mmc_hw_recv_response(resp, len)	mmc_spi_recv(resp, len)
+#define mmc_hw_card_busy()		false
 #endif
 
-#endif /* __ARCH_UNLEASHED_H_INCLUDE__ */
+#include <driver/mmc.h>
+
+void mmc_spi_reset_success(void);
+void mmc_spi_init(void);
+void mmc_spi_select(mmc_rca_t rca);
+uint8_t __mmc_spi_send(uint8_t cmd, uint32_t arg);
+void mmc_spi_send(uint8_t cmd, uint32_t arg);
+void mmc_spi_recv(uint8_t *resp, uint16_t len);
+void mmc_spi_cmpl(void);
+
+extern uint8_t mmc_spi_resp;
+
+#endif /* __MMC_SPI_H_INCLUDE__ */

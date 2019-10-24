@@ -65,8 +65,5 @@ void board_init(void)
 #ifdef CONFIG_UNLEASHED_FLASH_QSPI1
 	board_spinor_init(1);
 #endif
-#ifdef CONFIG_UNLEASHED_FLASH_QSPI2
-	board_sdcard_init(2);
-#endif
 	board_cache_init();
 }

@@ -53,4 +53,8 @@
 #define mmc_hw_slot_selet(sid)
 #endif
 
+#ifndef ARCH_HAVE_MMC_SPI
+#define mmc_hw_spi_init()
+#endif
+
 #endif /* __MMC_DRIVER_H_INCLUDE__ */

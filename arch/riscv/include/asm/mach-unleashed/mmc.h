@@ -35,38 +35,28 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)arch.h: FU540 (unleashed) machine specific definitions
- * $Id: arch.h,v 1.1 2019-10-16 10:02:00 zhenglv Exp $
+ * @(#)mmc.h: FU540 (unleashed) specific MMC interface
+ * $Id: mmc.h,v 1.1 2019-10-24 16:09:00 zhenglv Exp $
  */
 
-#ifndef __ARCH_UNLEASHED_H_INCLUDE__
-#define __ARCH_UNLEASHED_H_INCLUDE__
+#ifndef __MMC_UNLEASHED_H_INCLUDE__
+#define __MMC_UNLEASHED_H_INCLUDE__
 
-/* This file is intended to be used for implementing SoC specific
- * instructions, registers.
- */
+#include <target/config.h>
+#include <target/generic.h>
 
-#include <target/init.h>
-#include <target/types.h>
+#define MMC_CLASS8		1
 
-#ifndef __ASSEMBLY__
-void board_init_clock(void);
-
-#ifdef CONFIG_UNLEASHED_SPINOR
-int board_spinor_init(uint8_t spi);
+#ifdef CONFIG_UNLEASHED_SDCARD
+#include <target/mmc_spi.h>
+#ifndef ARCH_HAVE_MMC_SPI
+#define ARCH_HAVE_MMC_SPI	1
 #else
-#define board_spinor_init(spi)		0
-#endif
-#ifdef CONFIG_SIFIVE_DDR
-void board_ddr_init(void);
-#else
-#define board_ddr_init()		do { } while (0)
-#endif
-#ifdef CONFIG_SIFIVE_CACHE
-void board_cache_init(void);
-#else
-#define board_cache_init()		do { } while (0)
+#error "Multiple MMC SPI controller defined"
 #endif
 #endif
 
-#endif /* __ARCH_UNLEASHED_H_INCLUDE__ */
+void mmc_hw_spi_init(void);
+void mmc_hw_spi_reset(void);
+
+#endif /* __MMC_UNLEASHED_H_INCLUDE__ */

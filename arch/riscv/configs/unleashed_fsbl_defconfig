@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Oct 23 14:49:57 2019
+# Thu Oct 24 20:37:00 2019
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -209,11 +209,23 @@ CONFIG_SPI_MAX_DEVICES=2
 # CONFIG_I2C is not set
 # CONFIG_USB is not set
 # CONFIG_SCS is not set
-# CONFIG_MTD is not set
+CONFIG_MTD=y
+CONFIG_MTD_MAX_CHIPS=1
+CONFIG_MTD_MAX_DEVS=1
+# CONFIG_MTD_CONCAT is not set
+CONFIG_MTD_BLOCK_RW=y
+# CONFIG_MTD_FLASH is not set
+# CONFIG_MTD_DATAFLASH is not set
 # CONFIG_SCSI is not set
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
-# CONFIG_MMC is not set
+CONFIG_ARCH_HAS_MMC=y
+CONFIG_MMC=y
+CONFIG_MMC_MAX_SLOTS=1
+# CONFIG_MMC_ASYNC is not set
+# CONFIG_MMC_DEBUG is not set
+CONFIG_MMC_SPI=y
+# CONFIG_SDHC is not set
 # CONFIG_RAS is not set
 
 #
@@ -291,7 +303,7 @@ CONFIG_MATH_MOD64=y
 #
 # Checksum algorithms
 #
-# CONFIG_CRC16_CCITT is not set
+CONFIG_CRC16_CCITT=y
 # CONFIG_CRC32 is not set
 CONFIG_STDLIB=y
 

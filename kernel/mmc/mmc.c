@@ -52,6 +52,7 @@
 #define MMC_EVENT_NO_IRQ	_BV(4)
 #define MMC_EVENT_OP_COMPLETE	_BV(5)
 #define MMC_EVENT_TRANS_END	_BV(6)
+#define MMC_EVENT_RESET_SUCCESS	_BV(7)
 
 bh_t mmc_bh = INVALID_BH;
 
@@ -163,6 +164,7 @@ const char *mmc_event_names[] = {
 	"NO_IRQ",
 	"OP_COMPLETE",
 	"TRANS_END",
+	"MMC_SPI: RESET_SUCCESS",
 };
 
 const char *mmc_event_name(mmc_event_t event)
@@ -218,7 +220,7 @@ void mmc_debug(uint8_t tag, uint32_t val)
 		printf("error %s\n", mmc_error_name(val));
 		break;
 	case MMC_DEBUG_CMD:
-		printf("cmd %s\n", mmc_cmd_name(val));
+		printf("cmd%d %s\n", val, mmc_cmd_name(val));
 		break;
 	case MMC_DEBUG_OP:
 		printf("op %s\n", mmc_op_name(val));
@@ -232,11 +234,16 @@ void mmc_debug(uint8_t tag, uint32_t val)
 
 void mmc_handle_identify_card(void)
 {
-	if (mmc_cmd_is(MMC_CMD_INVALID))
+	if (mmc_cmd_is(MMC_CMD_NONE))
 		mmc_send_cmd(MMC_CMD_GO_IDLE_STATE);
-	else if (mmc_state_is(idle))
+	else if (mmc_state_is(idle)) {
+#ifdef CONFIG_MMC_SPI
+		mmc_slot_ctrl.cmd = MMC_CMD_ARCH;
+		mmc_hw_spi_reset();
+#else
 		mmc_send_cmd(MMC_CMD_SEND_OP_COND);
-	else if (mmc_state_is(ready))
+#endif
+	} else if (mmc_state_is(ready))
 		mmc_send_cmd(MMC_CMD_ALL_SEND_CID);
 	else if (mmc_state_is(ident))
 		mmc_send_cmd(MMC_CMD_SET_RELATIVE_ADDR);
@@ -296,6 +303,32 @@ mmc_rca_t mmc_rca_save(mmc_rca_t rca)
 	mmc_rca_t o_rca = mmc_rca;
 	mmc_rca_restore(rca);
 	return o_rca;
+}
+#endif
+
+#if 1
+uint8_t mmc_crc7_update(uint8_t crc, uint8_t data)
+{
+	int i;
+
+	crc ^= data;
+	for (i = 0; i < 8; i++) {
+		if (crc & 0x80)
+			crc = (crc << 1) ^ 0x12;  /* 0x12 = 0x09<<(8-7) */
+		else
+			crc <<= 1;
+	}
+	return crc;
+}
+#else
+uint8_t mmc_crc7_update(uint8_t crc, uint8_t byte)
+{
+	/* CRC polynomial 0x89 */
+	uint8_t remainder = crc & byte;
+
+	remainder ^= (remainder >> 4) ^ (remainder >> 7);
+	remainder ^= remainder << 4;
+	return remainder & 0x7f;
 }
 #endif
 
@@ -375,13 +408,25 @@ static void mmc_handle_slot_state(void)
 		unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
 	/* identification mode */
 	} else if (mmc_state_is(idle)) {
+#ifdef CONFIG_MMC_SPI
+		if (flags & MMC_EVENT_RESET_SUCCESS)
+			mmc_state_enter(stby);
+#endif
 		if (flags & MMC_EVENT_CMD_SUCCESS) {
 			if (mmc_cmd_is(MMC_CMD_GO_IDLE_STATE));
+#ifdef CONFIG_MMC_SPI
+			else
+				mmc_hw_spi_reset();
+#else
 			if (mmc_cmd_is(MMC_CMD_SEND_OP_COND))
 				mmc_state_enter(ready);
+#endif
 			unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
 		}
 		if (flags & MMC_EVENT_CMD_FAILURE) {
+#ifdef CONFIG_MMC_SPI
+			mmc_state_enter(ina);
+#endif
 			if (mmc_err_is(MMC_ERR_CARD_IS_BUSY));
 			if (mmc_err_is(MMC_ERR_HOST_OMIT_VOLT));
 			if (mmc_err_is(MMC_ERR_CARD_NON_COMP_VOLT))
@@ -538,6 +583,11 @@ static void mmc_handler(uint8_t event)
 	}
 }
 
+void mmc_resp_r0(void)
+{
+	mmc_hw_recv_response(NULL, 0);
+}
+
 void mmc_resp_r1(void)
 {
 	mmc_r1_t r1;
@@ -667,10 +717,20 @@ void mmc_cmd_complete(uint8_t err)
 		mmc_resp_r5();
 		break;
 #endif
+	default:
+		mmc_resp_r0();
+		break;
 	}
 
 	mmc_event_raise(MMC_EVENT_CMD_SUCCESS);
 }
+
+#ifdef CONFIG_MMC_SPI
+void mmc_spi_reset_success(void)
+{
+	mmc_event_raise(MMC_EVENT_RESET_SUCCESS);
+}
+#endif
 
 void mmc_send_cmd(uint8_t cmd)
 {
@@ -759,7 +819,7 @@ void mmc_op_complete(bool result)
 
 	mmc_slot_ctrl.op = MMC_OP_NO_OP;
 	mmc_slot_ctrl.op_cb = NULL;
-	mmc_slot_ctrl.cmd = MMC_CMD_INVALID;
+	mmc_slot_ctrl.cmd = MMC_CMD_NONE;
 
 	if (cb)
 		cb(result);
@@ -772,7 +832,7 @@ int mmc_start_op(uint8_t op, mmc_cmpl_cb cb)
 
 	mmc_slot_ctrl.op = op;
 	mmc_slot_ctrl.op_cb = cb;
-	mmc_slot_ctrl.cmd = MMC_CMD_INVALID;
+	mmc_slot_ctrl.cmd = MMC_CMD_NONE;
 	mmc_debug_op(op);
 
 	switch (op) {
@@ -786,6 +846,7 @@ int mmc_start_op(uint8_t op, mmc_cmpl_cb cb)
 void mmc_reset_slot(void)
 {
 	mmc_slot_ctrl.op = MMC_OP_NO_OP;
+	mmc_slot_ctrl.cmd = MMC_CMD_NONE;
 	mmc_slot_ctrl.state = MMC_STATE_idle;
 	mmc_slot_ctrl.event = 0;
 	mmc_slot_ctrl.flags = 0;
