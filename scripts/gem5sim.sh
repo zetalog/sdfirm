@@ -11,7 +11,7 @@
 #     gem5sim.sh [-w gem5] [-f] [-x flag]
 #                [-g simpoint_slice.gem5] [-o simpoint_slice.S]
 #                [-s step] [-c checkpoint] [-i interval] [-m]
-#                [-a architecture] [-p program]
+#                [-a architecture] [-p program] [-O program-parameters]
 #                [-b binary] [-d disk]
 #
 # DESCRIPTION:
@@ -63,12 +63,13 @@ GEM5_DEBUG_FLAGS=
 GEM5_FULL_SYSTEM=
 SIM_STEP=gem5sim
 SIM_INTERVAL=1000000
-SIM_CHECKPOINT=0
+SIM_CHECKPOINT=00
 SIM_K_BEST=30
 SIM_LIST_CHECKPOINTS=
 SIM_MICRO_OP=
 SE_ARCH=arm
 SE_PROG=hello
+SE_OPTS=""
 SE_LIST_PROGS=
 SE_LIST_ARCHS=
 FS_DISK=linaro-minimal-aarch64.img
@@ -118,6 +119,7 @@ usage()
 	echo "            Help: to list all program architectures"
 	echo "        -p: specify test program, special progs include"
 	echo "            Help: to list all test programs"
+	echo "        -O: specify parameters for test programi, if any"
 	echo "GEM5 full system options:"
 	echo "        -b: specify system binary, special binary include"
 	echo "            Help: to list all binaries"
@@ -132,7 +134,7 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "a:b:c:d:fg:hi:k:mo:p:s:w:x:" opt
+while getopts "a:b:c:d:fg:hi:k:mo:O:p:s:w:x:" opt
 do
 	case $opt in
 	w) GEM5_SRC=$OPTARG;;
@@ -164,6 +166,7 @@ do
 	   else
 		SE_PROG=${OPTARG}
 	   fi;;
+	O) SE_OPTS=${OPTARG};;
 	d) if [ "x$OPTARG" = "xHelp" ]; then
 		FS_LIST_DISKS=true
 	   else
@@ -366,10 +369,16 @@ fi
 (
 	cd ${GEM5_SRC}
 	if [ -z $GEM5_FULL_SYSTEM ]; then
+		if [ "$SE_OPTS" = "" ]; then
+			CMD_SE_OPTIS=""
+		else
+			CMD_SE_OPTIS="-o $SE_OPTS"
+		fi
 		echo "SE mode: ${SE_ARCH} ${SE_PROG}"
 		${GEM5} ${GEM5_DEBUG_FLAGS} \
 			configs/example/se.py \
 			-c tests/test-progs/${SE_PROG}/bin/${SE_ARCH}/linux/${SE_PROG} \
+			$CMD_SE_OPTIS \
 			${SIMPOINT_OPTS}
 	else
 		echo "FS mode: ${FS_ARCH} ${FS_KERN}"
@@ -387,7 +396,10 @@ fi
 if [ ${SIM_STEP} = "gem5sim" ]; then
 	if [ ! -z ${SIMPOINT_SLICE_FILE} ]; then
 		let SIM_CHECKPOINT--
-		source_file=`ls ${GEM5_SRC}/m5out/cpt.simpoint_0${SIM_CHECKPOINT}*/simpoint_slice.S`
+		source_file=`ls ${GEM5_SRC}/m5out/cpt.simpoint_${SIM_CH}${SIM_CHECKPOINT}*/simpoint_slice.S`
+		if [ $? != 0 ] ; then
+			source_file=`ls ${GEM5_SRC}/m5out/cpt.simpoint_0${SIM_CH}${SIM_CHECKPOINT}*/simpoint_slice.S`
+		fi
 		cp -f ${source_file} ${SIMPOINT_SLICE_FILE}
 	fi
 fi
