@@ -4,7 +4,9 @@
 #include <target/arch.h>
 #include <asm/asm-offsets.h>
 
-#define ARM_ROM_OFFSET	0x850
+#ifndef ARM_ROM_OFFSET
+#define ARM_ROM_OFFSET	0
+#endif
 
 #define __PHYS_OFFSET	(SDFIRM_START - TEXT_OFFSET)
 

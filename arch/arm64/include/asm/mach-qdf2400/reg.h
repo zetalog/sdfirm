@@ -1,6 +1,8 @@
 #ifndef __REG_QDF2400_H_INCLUDE__
 #define __REG_QDF2400_H_INCLUDE__
 
+#define ARM_ROM_OFFSET		0x850
+
 /* Firmware only programs the system fabric region */
 #define SYS_FABRIC_START	0xFF00000000
 #define SYS_FABRIC_SIZE		0x0080000000
