@@ -1,6 +1,7 @@
 #include <target/generic.h>
 #include <target/uart.h>
 
+#ifdef CONFIG_UART_ACE
 #ifdef CONFIG_CONSOLE_OUTPUT
 void uart_hw_con_write(uint8_t byte)
 {
@@ -30,11 +31,13 @@ void uart_hw_irq_ack(void)
 	pl01x_irq_ack();
 }
 
+#ifdef CONFIG_CONSOLE
 void uart_hw_con_init(void)
 {
 	pl01x_config_baudrate(UART_CON_ID, UART_CLK_SRC_FREQ, UART_CON_BAUDRATE);
 	pl01x_con_init();
 }
+#endif
 
 #ifdef CONFIG_MMU
 caddr_t uart_hw_reg_base[UART_HW_MAX_PORTS] = {
@@ -53,3 +56,32 @@ void uart_hw_mmu_init(void)
 	uart_hw_con_init();
 }
 #endif
+#endif /* CONFIG_UART_ACE */
+
+#ifdef CONFIG_UART_APB
+#ifdef CONFIG_CONSOLE_OUTPUT
+void uart_hw_con_write(uint8_t byte)
+{
+	dw_uart_con_write(byte);
+}
+#endif
+
+#ifdef CONFIG_CONSOLE_INPUT
+bool uart_hw_con_poll(void)
+{
+	return dw_uart_con_poll();
+}
+
+uint8_t uart_hw_con_read(void)
+{
+	return dw_uart_con_read();
+}
+#endif
+
+#ifdef CONFIG_CONSOLE
+void uart_hw_con_init(void)
+{
+	dw_uart_con_init();
+}
+#endif
+#endif /* CONFIG_UART_APB */

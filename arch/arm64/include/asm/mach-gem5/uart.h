@@ -10,7 +10,13 @@
 #ifdef CONFIG_ARM_DCC
 #include <asm/debug.h>
 #else /* CONFIG_ARM_DCC */
+#ifdef CONFIG_UART_ACE
 #define UART0_BASE			0x1C090000
+#endif
+#ifdef CONFIG_UART_APB
+#define DW_UART0_BASE			ULL(0x400100000)
+#define DW_UART_FREQ			55555555
+#endif
 
 /* Definitions to implement AMBA UART */
 #define __UART_BASE(n)			(UART0_BASE + ((n) * 0x10000))
@@ -27,7 +33,12 @@ extern caddr_t uart_hw_reg_base[UART_HW_MAX_PORTS];
 #define UART_CON_ID			0
 
 #if defined(CONFIG_UART_GEM5)
+#ifdef CONFIG_UART_ACE
 #include <asm/uart_pl01x.h>
+#endif
+#ifdef CONFIG_UART_APB
+#include <driver/dw_uart.h>
+#endif
 #ifndef ARCH_HAVE_UART
 #define ARCH_HAVE_UART		1
 #else

@@ -46,7 +46,7 @@ void page_alloc_init(caddr_t base, caddr_t size)
 		page->next = NULL;
 		*last_page = page;
 		last_page = &page->next;
-		printf("Free Page: %016llx\n", (uint64_t)page);
+		con_dbg("Free Page: %016llx\n", (uint64_t)page);
 	}
 }
 

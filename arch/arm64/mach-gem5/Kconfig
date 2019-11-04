@@ -49,11 +49,27 @@ config UART_GEM5
 	depends UART || DEBUG_PRINT || CONSOLE
 	depends !ARM_DCC
 	select ARCH_HAS_UART
-	select ARCH_IS_UART_PL011
-	select UART_PL01X
-	select UART_PL011
 	default y
 	help
+
+if UART_GEM5
+
+choice
+	prompt "UART IP type"
+
+config UART_ACE
+	bool "ACE (ARM PL011)"
+	select ARCH_IS_UART_PL011
+	select UART_PL01X if CONSOLE || DEBUG_PRINT
+	select UART_PL011 if CONSOLE || DEBUG_PRINT
+
+config UART_APB
+	bool "APB (Synopsys DesignWare)"
+	select DW_UART if CONSOLE || DEBUG_PRINT
+
+endchoice
+
+endif
 
 endmenu
 
