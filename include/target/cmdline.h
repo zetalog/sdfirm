@@ -15,7 +15,7 @@
 
 #ifndef __ASSEMBLY__
 typedef struct {
-	char *name;
+	char name[16];
 	int (*cmd)(int, char *[]);
 	char *help;  /* short description */
 	char *usage; /* long description */
@@ -28,9 +28,13 @@ typedef struct {
 	= { #name, cmd, help, usage }
 
 #ifdef CONFIG_CONSOLE_COMMAND
+extern cmd_tbl __cmd_start[0];
+extern cmd_tbl __cmd_end[0];
+
 int cmd_help(char *cmd);
 int cmd_loop(void);
 int cmd_init(void);
+void cmd_dump_sect(void);
 #else
 static inline int cmd_help(char *cmd)
 {
@@ -43,6 +47,9 @@ static inline int cmd_loop(void)
 static inline int cmd_init(void)
 {
 	return -ENODEV;
+}
+static inline void cmd_dump_sect(void)
+{
 }
 #endif
 #endif /* __ASSEMBLY__ */

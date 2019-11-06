@@ -8,9 +8,6 @@
 
 #define SIZE_1M		0x100000
 
-extern cmd_tbl __cmd_start[0];
-extern cmd_tbl __cmd_end[0];
-
 #define foreach_cmd(cmdp)		\
 	for (cmdp = __cmd_start; cmdp < __cmd_end; cmdp++)
 #define MAXARGS				10
@@ -132,10 +129,18 @@ int cmd_console_handler(char *buf, int len)
 	return 0;
 }
 
+void cmd_dump_sect(void)
+{
+	mem_print_data((caddr_t)__cmd_start, (void *)__cmd_start, 8,
+		       (caddr_t)__cmd_end - (caddr_t)__cmd_start);
+}
+
 int cmd_init(void)
 {
 	console_late_init();
 	readline_register_handler(cmd_console_handler);
+	con_dbg("Command section: %016llx - %016llx\n",
+		__cmd_start, __cmd_end);
 	puts("sdfirm> ");
 	return 0;
 }

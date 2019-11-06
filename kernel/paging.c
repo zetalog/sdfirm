@@ -6,6 +6,7 @@
 #include <target/linkage.h>
 #include <target/console.h>
 #include <target/compiler.h>
+#include <target/cmdline.h>
 
 #define NO_BLOCK_MAPPINGS	_BV(0)
 #define NO_CONT_MAPPINGS	_BV(1)
@@ -380,7 +381,17 @@ static bool __map_mem(struct mem_region *rgn, void *data)
 	if (mem_is_nomap(rgn))
 		return true;
 #endif
+#ifdef CONFIG_CONSOLE_DEBUG
+	printf("==============================================================\n");
+	printf("before map mem: %016llx - %016llx\n", start, end);
+	cmd_dump_sect();
+#endif
 	__map_mem_region(pgdp, start, end, PAGE_KERNEL, flags);
+#ifdef CONFIG_CONSOLE_DEBUG
+	printf("==============================================================\n");
+	printf("after map mem: %016llx - %016llx\n", start, end);
+	cmd_dump_sect();
+#endif
 	return true;
 }
 
