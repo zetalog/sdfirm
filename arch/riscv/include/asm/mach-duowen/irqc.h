@@ -49,7 +49,6 @@
 #endif
 
 #ifdef CONFIG_DUOWEN_IMC
-#define PLIC_BASE		IMC_PLIC_BASE
 #define PLIC_HW_PRI_MAX		31
 #endif
 

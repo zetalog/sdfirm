@@ -49,7 +49,6 @@
  *      sequence, and may subject to change.
  */
 
-#define CRCNTL_BASE			UL(0x60000000)
 #define CRCNTL_REG(offset)		(CRCNTL_BASE + (offset))
 
 #define CRCNTL_PWRUP			CRCNTL_REG(0x0C)
