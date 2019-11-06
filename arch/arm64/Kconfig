@@ -262,5 +262,6 @@ source "arch/arm64/mach-gem5/Kconfig"
 
 source "kernel/Kconfig"
 source "drivers/Kconfig"
+source "tests/Kconfig"
 source "lib/Kconfig"
 source "init/Kconfig.debug"

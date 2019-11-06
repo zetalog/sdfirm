@@ -1,0 +1,74 @@
+
+menuconfig RAVEN
+	bool "ARM64 CPU verification (RAVEN)"
+	depends ARM64
+
+if RAVEN
+
+config RAVEN_GLOBAL_VAR
+	bool "Use global variables shared between CPUs"
+	help
+	  The test cases require to access shared global variables
+	  between CPUs to create cache hit/miss.
+	  Or the test cases are written with accessing shared global
+	  variables, and are supposed to change the variables to the
+	  same value on different CPUs, and the test results depend
+	  on whether reading the variables return the expected
+	  changed value.
+	  Either way, means the cases are required to be run on CPUs
+	  simultaneously.
+
+config RAVEN_EXEC_VAR
+	bool "Use global executable area"
+	select RAVEN_GLOBAL_VAR
+	help
+	  The IU test cases require to access shared global variables
+	  between CPUs that can be modified to contain executable
+	  instructions and will jump the address to execute.
+
+config RAVEN_PERCPU_VAR
+	bool "Use per-CPU global variables"
+	depends EXPERIMENTAL
+	help
+	  The test cases use per-cpu global variables to achieve
+	  parallelism between CPUs.
+
+config RAVEN_IU
+	bool "ARM64 CPU instruction unit (IU) tests"
+	depends ARM64
+
+config RAVEN_IU_EXEC
+	bool "ARM64 instruction unit (IU) executable tests"
+	depends RAVEN_IU
+	depends RAVEN_EXEC_VAR
+	select MMU_SELF_MODIFY
+
+config RAVEN_XU
+	bool "ARM64 CPU execution unit (XU) tests"
+	depends ARM64
+
+config RAVEN_XU_SYNC
+	bool "ARM64 execution unit (XU) synchronous tests"
+	depends RAVEN_XU
+	depends RAVEN_GLOBAL_VAR
+
+config RAVEN_SU
+	bool "ARM64 CPU storage unit (SU) tests"
+	depends ARM64
+
+config RAVEN_SU_SYNC
+	bool "ARM64 storage unit (SU) synchronous tests"
+	depends RAVEN_SU
+	depends RAVEN_GLOBAL_VAR
+
+config RAVEN_SU_PERCPU
+	bool "ARM64 storage unit (SU) parallelized tests"
+	depends RAVEN_SU
+	depends RAVEN_PERCPU_VAR
+
+config RAVEN_L2_SYNC
+	bool "ARM64 CPU L2 cache (L2) synchronous tests"
+	depends ARM64
+	depends RAVEN_GLOBAL_VAR
+
+endif

@@ -364,10 +364,6 @@ menuconfig MEM
 
 if MEM
 
-config MMU_MAP_MEM
-	bool "Map memories"
-	depends MMU
-
 config MEM_MAX_REGIONS
 	int "Maximum region banks"
 	default 3
@@ -484,6 +480,12 @@ config MMU_IDMAP_DEVICE
 	  memory resource allocator, so it is only useful for debugging the
 	  memory resource allocator and the fixmap machanisms).
 	  If unsure, say 'N'.
+
+config MMU_MAP_MEM
+	bool "Map memories"
+
+config MMU_SELF_MODIFY
+	bool
 
 config MMU_DEBUG_TABLE
 	bool "Debugging table entry population"

@@ -38,6 +38,11 @@ SECTIONS
 		__init_text_end = .;
 	}
 	CMD_LINE_SECTION(8)
+	.test_array ALIGN(8) : {
+		__testfn_start = .;
+		KEEP (*(.testfn))
+		__testfn_end = .;
+	}
 
 	_text = .;
 	.text : {

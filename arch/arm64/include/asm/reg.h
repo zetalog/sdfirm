@@ -290,6 +290,42 @@
 #define MIDR_REV_MASK		0x0F
 #define MIDR_REV(value)		_GET_FV(MIDR_REV, value)
 
+/*******************************************************************************
+ * MPIDR macros
+ ******************************************************************************/
+#define MPIDR_MT_MASK		(1 << 24)
+#define MPIDR_CPU_MASK		MPIDR_AFFLVL_MASK
+#define MPIDR_CLUSTER_MASK	MPIDR_AFFLVL_MASK << MPIDR_AFFINITY_BITS
+#define MPIDR_AFFINITY_BITS	8
+#define MPIDR_AFFLVL_MASK	0xff
+#define MPIDR_AFF0_SHIFT	0
+#define MPIDR_AFF1_SHIFT	8
+#define MPIDR_AFF2_SHIFT	16
+#define MPIDR_AFF3_SHIFT	32
+#define MPIDR_AFFINITY_MASK	0xff00ffffff
+#define MPIDR_AFFLVL_SHIFT	3
+#define MPIDR_AFFLVL0		0
+#define MPIDR_AFFLVL1		1
+#define MPIDR_AFFLVL2		2
+#define MPIDR_AFFLVL3		3
+#define MPIDR_AFFLVL0_VAL(mpidr) \
+	((mpidr >> MPIDR_AFF0_SHIFT) & MPIDR_AFFLVL_MASK)
+#define MPIDR_AFFLVL1_VAL(mpidr) \
+	((mpidr >> MPIDR_AFF1_SHIFT) & MPIDR_AFFLVL_MASK)
+#define MPIDR_AFFLVL2_VAL(mpidr) \
+	((mpidr >> MPIDR_AFF2_SHIFT) & MPIDR_AFFLVL_MASK)
+#define MPIDR_AFFLVL3_VAL(mpidr) \
+	((mpidr >> MPIDR_AFF3_SHIFT) & MPIDR_AFFLVL_MASK)
+/*
+ * The MPIDR_MAX_AFFLVL count starts from 0. Take care to
+ * add one while using this macro to define array sizes.
+ * TODO: Support only the first 3 affinity levels for now.
+ */
+#define MPIDR_MAX_AFFLVL	2
+
+/* Constant to highlight the assumption that MPIDR allocation starts from 0 */
+#define FIRST_MPIDR		0
+
 /* D.10.2.81 RMR_EL1, Reset Management Register (EL1)
  * D.10.2.82 RMR_EL2, Reset Management Register (EL2)
  * D.10.2.83 RMR_EL3, Reset Management Register (EL3)

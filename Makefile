@@ -390,6 +390,7 @@ scripts: scripts_basic include/config/auto.conf
 init-y		:= init/ appl/
 libs-y		:= lib/
 drivers-y	:= drivers/
+tests-y		:= tests/
 core-y		:=
 
 ifeq ($(dot-config),1)
@@ -451,17 +452,20 @@ core-y		+= kernel/
 sdfirm-dirs	:= $(patsubst %/,%,$(filter %/, $(init-y) $(init-m) \
 		     $(libs-y) $(libs-m) \
 		     $(core-y) $(core-m) \
+		     $(tests-y) $(tests-m) \
 		     $(drivers-y) $(drivers-m)))
 
 sdfirm-alldirs	:= $(sort $(sdfirm-dirs) $(patsubst %/,%,$(filter %/, \
 		     $(lib-n) $(lib-) \
 		     $(init-n) $(init-) \
 		     $(core-n) $(core-) \
+		     $(tests-n) $(tests-) \
 		     $(drivers-n) $(drivers-))))
 
 init-y		:= $(patsubst %/, %/built-in.lib, $(init-y))
 libs-y		:= $(patsubst %/, %/built-in.lib, $(libs-y))
 core-y		:= $(patsubst %/, %/built-in.lib, $(core-y))
+tests-y		:= $(patsubst %/, %/built-in.lib, $(tests-y))
 drivers-y	:= $(patsubst %/, %/built-in.lib, $(drivers-y))
 
 # Build kernel
@@ -488,7 +492,7 @@ drivers-y	:= $(patsubst %/, %/built-in.lib, $(drivers-y))
 # System.map is generated to document addresses of all kernel symbols
 
 sdfirm-init := $(head-y) $(init-y)
-sdfirm-main := $(core-y) $(libs-y) $(drivers-y)
+sdfirm-main := $(core-y) $(libs-y) $(tests-y) $(drivers-y)
 sdfirm-all  := $(sdfirm-init) $(sdfirm-main)
 sdfirm-lds  := arch/$(ARCH)/common/sdfirm.lds
 export KBUILD_VMLINUX_OBJS := $(sdfirm-all)
