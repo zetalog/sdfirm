@@ -33,6 +33,7 @@ config ARCH_DUOWEN
 	select ARCH_HAS_TSC_CONST
 	select ARCH_HAS_PLIC
 	select ARCH_HAS_IRQC
+	select ARCH_HAS_CLK
 	select DW_TIMERS
 	select DW_UART if CONSOLE || DEBUG_PRINT
 	select SDHC if MMC

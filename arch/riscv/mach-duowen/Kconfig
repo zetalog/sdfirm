@@ -47,9 +47,17 @@ config DUOWEN_TSC_DW_TIMERS
 	bool "Use DesignWare counter as timestamp counter"
 	help
 	  The SoC always requires DW timers to be enabled to use timestamp
-	  features. However use can choose between csr_read(CSR_TIME) and
+	  features. However user can choose between csr_read(CSR_TIME) and
 	  dw_timers_counter(). Enable this option to switch to use
 	  dw_timers_counter().
+
+config DUOWEN_CLK_TEST
+	bool "Use SoC/DDR PLL/clock power up sequence"
+	help
+	  Currently, there are RTL sequence ready for PLL/clock bring up.
+	  Enabling this option to move the sequence from RTL to C code.
+	  However, the sequence contains special cases that waiting on
+	  signals rather than on register values.
 
 endif
 

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Oct 11 10:35:41 2019
+# Wed Nov  6 10:53:23 2019
 #
 CONFIG_32BIT=y
 CONFIG_RISCV=y
@@ -42,8 +42,9 @@ CONFIG_CONSOLE_115200=y
 #
 # RISCV system options
 #
-# CONFIG_ARCH_VEGA is not set
 CONFIG_ARCH_DUOWEN=y
+# CONFIG_ARCH_UNLEASHED is not set
+# CONFIG_ARCH_VEGA is not set
 # CONFIG_ARCH_SPIKE is not set
 CONFIG_CPU_RI5CY=y
 CONFIG_CPU_32I=y
@@ -67,6 +68,17 @@ CONFIG_CMODEL_MEDLOW=y
 CONFIG_TUNE_GENERIC=y
 CONFIG_MAXPHYSMEM_2GB=y
 # CONFIG_MAXPHYSMEM_128GB is not set
+CONFIG_RISCV_AEE=y
+# CONFIG_RISCV_SEE is not set
+# CONFIG_RISCV_HEE is not set
+# CONFIG_SYS_KERNEL is not set
+CONFIG_SYS_MONITOR=y
+
+#
+# System peripherals
+#
+CONFIG_ARCH_HAS_PLIC=y
+# CONFIG_PLIC is not set
 
 #
 # Emulated RISCV (Duowen) board options
@@ -76,6 +88,7 @@ CONFIG_DUOWEN_IMC=y
 CONFIG_DUOWEN_ZSBL=y
 # CONFIG_DUOWEN_FSBL is not set
 CONFIG_DUOWEN_TSC_DW_TIMERS=y
+CONFIG_DUOWEN_CLK_TEST=y
 
 #
 # Feature setup
@@ -89,6 +102,7 @@ CONFIG_SYS_NOIRQ=y
 # CONFIG_SYS_RT is not set
 # CONFIG_SYS_TASK is not set
 CONFIG_ARCH_HAS_LOVEC=y
+CONFIG_ARCH_HAS_IRQC=y
 CONFIG_ARCH_HAS_TSC=y
 CONFIG_ARCH_HAS_TSC_CONST=y
 CONFIG_ARCH_IS_TICKLESS=y
@@ -124,7 +138,9 @@ CONFIG_MEM_RESIZE=y
 # CONFIG_BULK is not set
 # CONFIG_TERM is not set
 # CONFIG_GPIO is not set
-# CONFIG_CLK is not set
+CONFIG_ARCH_HAS_CLK=y
+CONFIG_CLK=y
+CONFIG_CLK_MAX_DRIVERS=4
 
 #
 # Human Interface Devices (HID) support
@@ -267,6 +283,7 @@ CONFIG_PRINT_PRINTF=y
 # String operations
 #
 CONFIG_STRING_STRTOUL=y
+# CONFIG_STRING_UUID is not set
 # CONFIG_FONTS is not set
 
 #
