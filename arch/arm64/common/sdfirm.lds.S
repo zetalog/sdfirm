@@ -21,8 +21,8 @@ SECTIONS
 	_stext = .;				/* begin of text and rodata sections */
 	__stext = .;				/* begin of text sections */
 	.init : {
-		__init_text_begin = .;
 		HEAD_TEXT
+		__init_text_begin = .;
 		INIT_TEXT
 		/*
 		__proc_info_begin = .;
@@ -37,23 +37,20 @@ SECTIONS
 		. = ALIGN((8));
 		__init_text_end = .;
 	}
+
 	CMD_LINE_SECTION(8)
 	.test_array ALIGN(8) : {
 		__testfn_start = .;
 		KEEP (*(.testfn))
 		__testfn_end = .;
 	}
-
-	_text = .;
 	.text : {
 		TEXT_TEXT
 		IDMAP_TEXT
 	}
 	__etext = .;				/* end of text sections */
 
-	RO_DATA_SECTION(8)
-
-	. = ALIGN((8));
+	RO_DATA_SECTION(PAGE_SIZE)
 	_etext = .;				/* end of text and rodata sections */
 
 	__text_loc = CONFIG_BOOT_BASE;		/* text boot location */

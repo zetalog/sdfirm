@@ -100,9 +100,15 @@ static void init_pte(pmd_t *pmdp, caddr_t addr, caddr_t end,
 	ptep = pte_set_fixmap_offset(pmdp, addr);
 	do {
 		pte_t old_pte = READ_ONCE(*ptep);
+		pteval_t new_pte;
+
+		new_pte = pfn_pte(phys_to_pfn(phys), prot);
 		con_dbg("PTE: %016llx=%016llx, addr=%016llx\n",
-			ptep, *ptep, addr);
-		set_pte(ptep, pfn_pte(phys_to_pfn(phys), prot));
+			ptep, new_pte, addr);
+		set_pte(ptep, new_pte);
+		if (strcmp((char *)__cmd_start, "mem") != 0)
+			printf("CMD FAIL: %016llx=%016llx %016llx-%016llx\n",
+			       ptep, new_pte, phys, addr);
 		/* After the PTE entry has been populated once, we
 		 * only allow updates to the permission attributes.
 		 */
@@ -356,16 +362,18 @@ static void __map_mem_region(pgd_t *pgdp, phys_addr_t start, phys_addr_t end,
 	/* This block overlaps the kernel mapping. Map the portion(s) which
 	 * don't overlap.
 	 */
-	if (start < kernel_start)
+	if (start < kernel_start) {
 		__create_pgd_mapping(pgdp, start,
 				     phys_to_virt(start),
 				     kernel_start - start, prot,
 				     early_pgtable_alloc, flags);
-	if (kernel_end < end)
+	}
+	if (kernel_end < end) {
 		__create_pgd_mapping(pgdp, kernel_end,
 				     phys_to_virt(kernel_end),
 				     end - kernel_end, prot,
 				     early_pgtable_alloc, flags);
+	}
 }
 
 static bool __map_mem(struct mem_region *rgn, void *data)
@@ -373,7 +381,7 @@ static bool __map_mem(struct mem_region *rgn, void *data)
 	pgd_t *pgdp = (pgd_t *)data;
 	phys_addr_t start = rgn->base;
 	phys_addr_t end = start + rgn->size;
-	int flags = 0;
+	int flags = NO_CONT_MAPPINGS;
 
 	if (start >= end)
 		return false;
@@ -381,17 +389,7 @@ static bool __map_mem(struct mem_region *rgn, void *data)
 	if (mem_is_nomap(rgn))
 		return true;
 #endif
-#ifdef CONFIG_CONSOLE_DEBUG
-	printf("==============================================================\n");
-	printf("before map mem: %016llx - %016llx\n", start, end);
-	cmd_dump_sect();
-#endif
 	__map_mem_region(pgdp, start, end, PAGE_KERNEL, flags);
-#ifdef CONFIG_CONSOLE_DEBUG
-	printf("==============================================================\n");
-	printf("after map mem: %016llx - %016llx\n", start, end);
-	cmd_dump_sect();
-#endif
 	return true;
 }
 
@@ -417,7 +415,7 @@ static void map_kernel(pgd_t *pgdp)
 	 */
 	map_kernel_segment(pgdp, __stext, __etext, PAGE_TEXT_PROT, 0);
 	map_kernel_segment(pgdp, __start_rodata, __end_rodata,
-			   PAGE_KERNEL, NO_CONT_MAPPINGS);
+			   PAGE_KERNEL_RO, NO_CONT_MAPPINGS);
 	map_kernel_segment(pgdp, _sdata, _edata, PAGE_KERNEL, 0);
 	/* Map stacks */
 	map_kernel_segment(pgdp, (void *)PERCPU_STACKS_START,
@@ -533,8 +531,9 @@ void early_fixmap_init(void)
 
 void paging_init(void)
 {
-	pgd_t *pgdp = pgd_set_fixmap(__pa_symbol(mmu_pg_dir));
+	pgd_t *pgdp;
 
+	pgdp = pgd_set_fixmap(__pa_symbol(mmu_pg_dir));
 	printf("==============================================================\n");
 	printf("PGTABLE_LEVES=%d\n", PGTABLE_LEVELS);
 	printf("BPGT_PGTABLE_LEVES=%d\n", BPGT_PGTABLE_LEVELS);

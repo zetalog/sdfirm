@@ -3,7 +3,6 @@
 
 #include <target/config.h>
 #include <target/generic.h>
-#include <target/paging.h>
 #include <target/gpio.h>
 #include <target/clk.h>
 

@@ -1,11 +1,11 @@
-#include <string.h>
-#include <limits.h>
 #include <target/console.h>
+#include <target/cmdline.h>
 #include <target/mem.h>
 #include <target/arch.h>
 #include <target/heap.h>
 #include <target/paging.h>
-#include <target/cmdline.h>
+#include <string.h>
+#include <limits.h>
 
 #ifdef CONFIG_MEM
 #define MEM_ALLOC_ANYWHERE		(~(phys_addr_t)0)

@@ -41,7 +41,7 @@ config RAVEN_IU_EXEC
 	bool "ARM64 instruction unit (IU) executable tests"
 	depends RAVEN_IU
 	depends RAVEN_EXEC_VAR
-	select MMU_SELF_MODIFY
+	select MMU_TEXT_MODIFY
 
 config RAVEN_XU
 	bool "ARM64 CPU execution unit (XU) tests"

@@ -1,9 +1,9 @@
 #ifndef __PAGE_H_INCLUDE__
 #define __PAGE_H_INCLUDE__
 
-#include <stdio.h>
 #include <target/config.h>
 #include <target/generic.h>
+#include <target/console.h>
 
 #if defined(CONFIG_MMU_64K_PAGE)
 #define PAGE_SHIFT		16

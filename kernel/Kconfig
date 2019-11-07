@@ -484,8 +484,11 @@ config MMU_IDMAP_DEVICE
 config MMU_MAP_MEM
 	bool "Map memories"
 
-config MMU_SELF_MODIFY
-	bool
+config MMU_TEXT_MODIFY
+	bool "Enable .text modification"
+	help
+	  This option is only prepared for SELF modification tests.
+	  If unsure, say 'N'.
 
 config MMU_DEBUG_TABLE
 	bool "Debugging table entry population"

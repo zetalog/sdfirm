@@ -1,12 +1,12 @@
 #ifndef __PAGE_ARM64_H_INCLUDE__
 #define __PAGE_ARM64_H_INCLUDE__
 
-#include <stdio.h>
 #include <target/const.h>
 #include <target/barrier.h>
 #include <target/console.h>
 #include <target/mem.h>
 #include <asm/vmsa.h>
+#include <stdio.h>
 
 #define USER_ASID_BIT	48
 #define USER_ASID_FLAG	(UL(1) << USER_ASID_BIT)
@@ -78,14 +78,14 @@ extern unsigned long empty_zero_page[PAGE_SIZE / sizeof (unsigned long)];
 static inline void set_pte(pteval_t *ptep, pteval_t pte)
 {
 	mmu_dbg_tbl("PTE: %016llx: %016llx\n", ptep, pte);
-	__raw_writel(pte, ptep);
+	__raw_writeq(pte, ptep);
 	dsb(ishst);
 }
 #define ARCH_HAVE_SET_PMD 1
 static inline void set_pmd(pmdval_t *pmdp, pmdval_t pmd)
 {
 	mmu_dbg_tbl("PMD: %016llx: %016llx\n", pmdp, pmd);
-	__raw_writel(pmd, pmdp);
+	__raw_writeq(pmd, pmdp);
 	dsb(ishst);
 }
 #if PGTABLE_LEVELS > 2
@@ -93,7 +93,7 @@ static inline void set_pmd(pmdval_t *pmdp, pmdval_t pmd)
 static inline void set_pud(pudval_t *pudp, pudval_t pud)
 {
 	mmu_dbg_tbl("PUD: %016llx: %016llx\n", pudp, pud);
-	__raw_writel(pud, pudp);
+	__raw_writeq(pud, pudp);
 	dsb(ishst);
 }
 #endif /* PGTABLE_LEVELS > 2 */
@@ -102,7 +102,7 @@ static inline void set_pud(pudval_t *pudp, pudval_t pud)
 static inline void set_pgd(pgdval_t *pgdp, pgdval_t pgd)
 {
 	mmu_dbg_tbl("PGD: %016llx: %016llx\n", pgdp, pgd);
-	__raw_writel(pgd, pgdp);
+	__raw_writeq(pgd, pgdp);
 	dsb(ishst);
 }
 #endif /* PGTABLE_LEVELS > 3 */

@@ -322,6 +322,8 @@ static inline pgprot_t mk_pmd_sect_prot(pgprot_t prot)
 #define FIXMAP_PAGE_CLEAR __pgprot(0)
 #endif
 
+#ifndef __ASSEMBLY__
+#ifdef CONFIG_MMU
 #ifndef set_fixmap
 #define set_fixmap(idx, phys)				\
 	__set_fixmap(idx, phys, FIXMAP_PAGE_NORMAL)
@@ -351,14 +353,12 @@ static inline pgprot_t mk_pmd_sect_prot(pgprot_t prot)
 #define set_fixmap_offset_io(idx, phys) \
 	__set_fixmap_offset(idx, phys, FIXMAP_PAGE_IO)
 
-#ifndef __ASSEMBLY__
-#ifdef CONFIG_MMU
 void __set_fixmap(enum fixed_addresses idx,
 		  phys_addr_t phys, pgprot_t prot);
 
 void early_fixmap_init(void);
 void paging_init(void);
-#else
+#else /* CONFIG_MMU */
 #define __set_fixmap(idx, phys, prot)		do { } while (0)
 #define early_fixmap_init()			do { } while (0)
 #define paging_init()				do { } while (0)

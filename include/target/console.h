@@ -2,8 +2,11 @@
 #define __CONSOLE_H_INCLUDE__
 
 #ifndef __ASSEMBLY__
-#include <driver/uart.h>
 #include <stdarg.h>
+
+void con_dbg(const char *fmt, ...);
+
+#include <driver/uart.h>
 
 #ifdef CONFIG_CONSOLE_115200
 #define UART_CON_BAUDRATE	115200
@@ -74,12 +77,6 @@ void console_late_init(void);
 #define early_console_init()		do { } while (0)
 #define console_init()			do { } while (0)
 #define late_console_init()		do { } while (0)
-#endif
-
-#ifdef CONFIG_CONSOLE_DEBUG
-void con_dbg(const char *fmt, ...);
-#else
-#define con_dbg(fmt, ...)		do { } while (0)
 #endif
 
 #ifdef CONFIG_MMU_IDMAP_DEVICE
