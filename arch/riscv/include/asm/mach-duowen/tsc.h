@@ -49,7 +49,9 @@
 #define DW_TIMERS_WIDTH		32
 #define DW_TIMERS_TSC		0
 
+#ifndef __ASSEMBLY__
 #include <driver/dw_timers.h>
+#endif
 
 #define FREQ_RI5CY		250000000
 #define TSC_FREQ		(FREQ_RI5CY/2)

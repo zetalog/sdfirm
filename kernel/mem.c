@@ -6,6 +6,7 @@
 #include <target/paging.h>
 #include <string.h>
 #include <limits.h>
+#include <stdio.h>
 
 #ifdef CONFIG_MEM
 #define MEM_ALLOC_ANYWHERE		(~(phys_addr_t)0)
