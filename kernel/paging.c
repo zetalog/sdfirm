@@ -11,9 +11,7 @@
 #define NO_BLOCK_MAPPINGS	_BV(0)
 #define NO_CONT_MAPPINGS	_BV(1)
 
-#ifdef CONFIG_MMU_BOOT_MAP
-pgd_t mmu_pg_dir[PTRS_PER_PGD] __page_align_bss;
-#endif
+pgd_t mmu_pg_dir[PTRS_PER_PGD] __page_aligned_bss;
 
 static phys_addr_t early_pgtable_alloc(void)
 {
@@ -381,7 +379,7 @@ static bool __map_mem(struct mem_region *rgn, void *data)
 	pgd_t *pgdp = (pgd_t *)data;
 	phys_addr_t start = rgn->base;
 	phys_addr_t end = start + rgn->size;
-	int flags = NO_CONT_MAPPINGS;
+	int flags = 0;
 
 	if (start >= end)
 		return false;
@@ -427,6 +425,18 @@ static void map_kernel(pgd_t *pgdp)
 	 */
 	set_pgd(pgd_offset_raw(pgdp, FIXADDR_START),
 		READ_ONCE(*pgd_offset_raw(mmu_boot_map, FIXADDR_START)));
+#ifndef CONFIG_MMU_BOOT_MAP
+	/* Expand BPGT to 4K page tables */
+	set_pgd(pgd_offset_raw(mmu_boot_map, (caddr_t)__stext),
+		READ_ONCE(*pgd_offset_raw(pgdp, (caddr_t)__stext)));
+	set_pgd(pgd_offset_raw(mmu_boot_map, (caddr_t)__start_rodata),
+		READ_ONCE(*pgd_offset_raw(pgdp, (caddr_t)__start_rodata)));
+	set_pgd(pgd_offset_raw(mmu_boot_map, (caddr_t)_sdata),
+		READ_ONCE(*pgd_offset_raw(pgdp, (caddr_t)_sdata)));
+	set_pgd(pgd_offset_raw(mmu_boot_map, (caddr_t)PERCPU_STACKS_START),
+		READ_ONCE(*pgd_offset_raw(pgdp,
+					  (caddr_t)PERCPU_STACKS_START)));
+#endif
 }
 
 static pte_t bm_pte[PTRS_PER_PTE] __page_aligned_bss __unused;
@@ -495,11 +505,12 @@ void early_fixmap_init(void)
 	pgd_t *pgd;
 	pud_t *pud;
 	pmd_t *pmd;
-	caddr_t addr = FIXADDR_START;
+	caddr_t addr;
 
 	con_dbg("FIXMAP: %016llx - %016llx\n", FIXADDR_START, FIXADDR_END);
 	mmu_dbg_tbl("PGDIR: %016llx %016llx %016llx\n",
 		    mmu_id_map, mmu_boot_map, mmu_pg_dir);
+	addr = FIXADDR_START;
 	pgd = pgd_offset_raw(mmu_boot_map, addr);
 	pgd_populate(pgd, bm_pud);
 	pud = pud_offset(pgd, addr);
@@ -533,15 +544,25 @@ void paging_init(void)
 {
 	pgd_t *pgdp;
 
-	pgdp = pgd_set_fixmap(__pa_symbol(mmu_pg_dir));
 	printf("==============================================================\n");
-	printf("PGTABLE_LEVES=%d\n", PGTABLE_LEVELS);
-	printf("BPGT_PGTABLE_LEVES=%d\n", BPGT_PGTABLE_LEVELS);
+	printf("BPGT_PGTABLE_LEVELS=%d\n", BPGT_PGTABLE_LEVELS);
+	printf("PGTABLE_LEVELS=%d\n", PGTABLE_LEVELS);
+	/* expand boot kernel mappings */
+	pgdp = pgd_set_fixmap(__pa_symbol(mmu_pg_dir));
 	map_kernel(pgdp);
-#ifdef CONFIG_MMU_MAP_MEM
-	map_mem(pgdp);
-#endif
 	pgd_clear_fixmap();
+
+#ifdef CONFIG_MMU_MAP_MEM
+	/* map memory */
+#ifdef CONFIG_MMU_BOOT_MAP
+	pgdp = pgd_set_fixmap(__pa_symbol(mmu_pg_dir));
+#else
+	pgdp = pgd_set_fixmap(__pa_symbol(mmu_boot_map));
+#endif
+	map_mem(pgdp);
+	pgd_clear_fixmap();
+#endif
+
 #ifdef CONFIG_MMU_BOOT_MAP
 	mmu_hw_ctrl_init();
 #endif

@@ -469,6 +469,9 @@ config MMU_PAGE_OFFSET
 	bool "Enable kernel offset support"
 	depends !BOOTLOADER
 
+config MMU_BOOT_MAP
+	bool "Enable seperate boot mapping"
+
 config MMU_IDMAP_DEVICE
 	bool "Enable early device identity mapping"
 	depends EXPERIMENTAL
