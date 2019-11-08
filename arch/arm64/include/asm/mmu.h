@@ -357,18 +357,10 @@ void mmu_hw_ctrl_init(void);
 #ifndef LINKER_SCRIPT
 #ifdef __ASSEMBLY__
 .extern mmu_id_map
-#ifdef CONFIG_VMSA_VA_2_RANGES
-.extern mmu_boot_map
-#else
-#define mmu_boot_map	mmu_id_map
-#endif
+.extern empty_zero_page
 #else
 extern pgd_t mmu_id_map[IDMAP_DIR_SIZE / sizeof (pgd_t)];
-#ifdef CONFIG_VMSA_VA_2_RANGES
-extern pgd_t mmu_boot_map[BPGT_DIR_SIZE / sizeof (pgd_t)];
-#else
-#define mmu_boot_map	mmu_id_map
-#endif
+extern unsigned long empty_zero_page[PAGE_SIZE / sizeof (unsigned long)];
 #endif
 #endif
 

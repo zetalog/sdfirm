@@ -3,9 +3,6 @@
 
 unsigned long empty_zero_page[PAGE_SIZE / sizeof (unsigned long)] __page_aligned_bss;
 pgd_t mmu_id_map[IDMAP_DIR_SIZE / sizeof (pgd_t)] __page_aligned_bss;
-#ifdef CONFIG_VMSA_VA_2_RANGES
-pgd_t mmu_boot_map[BPGT_DIR_SIZE / sizeof (pgd_t)] __page_aligned_bss;
-#endif
 
 void mmu_hw_ctrl_init(void)
 {

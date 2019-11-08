@@ -169,12 +169,12 @@ init_lo_el:
 
 #ifdef CONFIG_MMU
 	# Address to jump to after MMU has been enabled
-	ldr     x27, =stext
+	ldr	x27, =stext
 	# return (PIC) address
 	adr_l	lr, __enable_mmu
 	b	__cpu_setup
 #else
-	ldr     x27, =stext
+	ldr	x27, =stext
 	br	x27
 #endif
 ENDPROC(__start)
@@ -283,18 +283,17 @@ ENTRY(__create_page_tables)
 #ifdef CONFIG_MMU
 	adrp	x24, __PHYS_OFFSET
 	ldr	x25, =mmu_id_map
-	ldr	x26, =mmu_boot_map
 	mov	x27, lr
 
 	# Invalidate the idmap and swapper page tables to avoid potential
 	# dirty cache lines being evicted.
 	mov	x0, x25
-	add	x1, x26, #BPGT_DIR_SIZE
+	add	x1, x25, #BPGT_DIR_SIZE
 	call_l	__inval_dcache_area
 
 	# Clear the idmap and boot page tables.
 	mov	x0, x25
-	add	x6, x26, #BPGT_DIR_SIZE
+	add	x6, x25, #BPGT_DIR_SIZE
 1:	stp	xzr, xzr, [x0], #16
 	stp	xzr, xzr, [x0], #16
 	stp	xzr, xzr, [x0], #16
@@ -351,7 +350,7 @@ ENTRY(__create_page_tables)
 #endif
 
 	# Map the sdfirm image (starting with PHYS_OFFSET).
-	mov	x0, x26				/* bpgt */
+	mov	x0, x25				/* bpgt */
 	mov	x5, #PAGE_OFFSET
 	create_pgd_entry x0, x5, x3, x6
 	ldr	x6, =SDFIRM_END			// __pa(_edata)
@@ -387,7 +386,7 @@ simpoint_heap_map_exit:
 	# accesses (MMU disabled), invalidate the idmap and swapper page
 	# tables again to remove any speculatively loaded cache lines.
 	mov	x0, x25
-	add	x1, x26, #BPGT_DIR_SIZE
+	add	x1, x25, #BPGT_DIR_SIZE
 	dmb	sy
 	call_l	__inval_dcache_area
 
@@ -493,24 +492,14 @@ crval:
 # park the CPU.
 	.section	".idmap.text", "ax"
 ENTRY(__enable_mmu)
-#if defined(CONFIG_SYS_MONITOR)
 	ldr	x5, =vectors_el3
-	msr	VBAR_EL3, x5
-	msr	TTBR0_EL3, x26			// load TTBR0
-	msr	SCTLR_EL3, x0
+	msr	VBAR_KERN, x5
+	ldr	x26, =empty_zero_page
+	msr	TTBR_USER, x26			// load TTBR0
+	msr	TTBR_KERN, x25			// load TTBR1
 	isb
-#elif defined(CONFIG_SYS_HYPERVISOR)
-#elif defined(CONFIG_SYS_KERNEL)
-	ldr	x5, =vectors_el3
-	msr	VBAR_EL1, x5
-	msr	TTBR0_EL1, x25			// load TTBR0
-	msr	TTBR1_EL1, x26			// load TTBR1
-#ifdef CONFIG_VMSA_VA_2_RANGES
-#endif
+	msr	SCTLR_KERN, x0
 	isb
-	msr	SCTLR_EL1, x0
-	isb
-#endif
 	# Invalidate the local I-cache so that any instructions fetched
 	# speculatively from the PoC are discarded, since they may have
 	# been dynamically patched at the PoU.
@@ -520,20 +509,47 @@ ENTRY(__enable_mmu)
 	br	x27
 ENDPROC(__enable_mmu)
 
-.macro	__idmap_cpu_set_reserved_ttbr1, tmp1, tmp2
-	adrp	\tmp1, empty_zero_page
-	phys_to_ttbr			\tmp2, \tmp1
-	offset_ttbr1			\tmp2
-	msr	ttbr1_el1, \tmp2
+# cpu_do_switch_pgd(pgd_phys, tsk)
+# Set the translation table base pointer to be pgd_phys.
+#  - pgd_phys - physical address of new TTB
+ENTRY(cpu_do_switch_pgd)
+	mrs		x2, TTBR_USER
+	phys_to_ttbr	x3, x0
+
+#if 0
+	mmid		x1, x1			// get asid
+alternative_if ARM64_HAS_CNP
+	cbz		x1, 1f			// skip CNP for reserved ASID
+	orr		x3, x3, #TTBR_CNP_BIT
+1:
+alternative_else_nop_endif
+#ifdef CONFIG_CPU_64v8_1_PAN
+	bfi		x3, x1, #48, #16	// set the ASID field in TTBR0
+#endif
+	bfi		x2, x1, #48, #16	// set the ASID
+#endif
+	msr		TTBR_USER, x2		// in TTBR1 (since TCR.A1 is set)
 	isb
-	tlbi	vmalle1
-	dsb	nsh
+	msr		TTBR_KERN, x3		// now update TTBR0
+	isb
+	ret
+ENDPROC(cpu_do_switch_pgd)
+
+.macro	__cpu_set_reserved_ttbr_u, tmp1, tmp2
+	adrp		\tmp1, empty_zero_page
+	phys_to_ttbr	\tmp2, \tmp1
+	offset_ttbr1	\tmp2
+	msr		TTBR_USER, \tmp2
+	isb
+	tlbi		vmalle1
+	dsb		nsh
 	isb
 .endm
 ENTRY(idmap_cpu_replace_ttbr1)
 	save_and_disable_daif		flags=x2
-	__idmap_cpu_set_reserved_ttbr1	x1, x3
+	__cpu_set_reserved_ttbr_u	x1, x3
 	offset_ttbr1			x0
+	msr				TTBR_KERN, x0	// now update TTBR0
 	isb
 	restore_daif			x2
 	ret

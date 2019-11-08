@@ -424,16 +424,16 @@ static void map_kernel(pgd_t *pgdp)
 	 * existing dir for the fixmap.
 	 */
 	set_pgd(pgd_offset_raw(pgdp, FIXADDR_START),
-		READ_ONCE(*pgd_offset_raw(mmu_boot_map, FIXADDR_START)));
-#ifndef CONFIG_MMU_BOOT_MAP
+		READ_ONCE(*pgd_offset_raw(mmu_id_map, FIXADDR_START)));
+#ifndef CONFIG_MMU_IDMAP
 	/* Expand BPGT to 4K page tables */
-	set_pgd(pgd_offset_raw(mmu_boot_map, (caddr_t)__stext),
+	set_pgd(pgd_offset_raw(mmu_id_map, (caddr_t)__stext),
 		READ_ONCE(*pgd_offset_raw(pgdp, (caddr_t)__stext)));
-	set_pgd(pgd_offset_raw(mmu_boot_map, (caddr_t)__start_rodata),
+	set_pgd(pgd_offset_raw(mmu_id_map, (caddr_t)__start_rodata),
 		READ_ONCE(*pgd_offset_raw(pgdp, (caddr_t)__start_rodata)));
-	set_pgd(pgd_offset_raw(mmu_boot_map, (caddr_t)_sdata),
+	set_pgd(pgd_offset_raw(mmu_id_map, (caddr_t)_sdata),
 		READ_ONCE(*pgd_offset_raw(pgdp, (caddr_t)_sdata)));
-	set_pgd(pgd_offset_raw(mmu_boot_map, (caddr_t)PERCPU_STACKS_START),
+	set_pgd(pgd_offset_raw(mmu_id_map, (caddr_t)PERCPU_STACKS_START),
 		READ_ONCE(*pgd_offset_raw(pgdp,
 					  (caddr_t)PERCPU_STACKS_START)));
 #endif
@@ -449,7 +449,7 @@ static pud_t bm_pud[PTRS_PER_PUD] __page_aligned_bss __unused;
 
 static inline pud_t *fixmap_pud(caddr_t addr)
 {
-	pgd_t *pgdp = pgd_offset_raw(mmu_boot_map, addr);
+	pgd_t *pgdp = pgd_offset_raw(mmu_id_map, addr);
 	pgd_t pgd = READ_ONCE(*pgdp);
 
 	if (pgd_none(pgd) || pgd_bad(pgd))
@@ -508,10 +508,9 @@ void early_fixmap_init(void)
 	caddr_t addr;
 
 	con_dbg("FIXMAP: %016llx - %016llx\n", FIXADDR_START, FIXADDR_END);
-	mmu_dbg_tbl("PGDIR: %016llx %016llx %016llx\n",
-		    mmu_id_map, mmu_boot_map, mmu_pg_dir);
+	mmu_dbg_tbl("PGDIR: %016llx, %016llx\n", mmu_id_map, mmu_pg_dir);
 	addr = FIXADDR_START;
-	pgd = pgd_offset_raw(mmu_boot_map, addr);
+	pgd = pgd_offset_raw(mmu_id_map, addr);
 	pgd_populate(pgd, bm_pud);
 	pud = pud_offset(pgd, addr);
 	pud_populate(pud, bm_pmd);
@@ -554,16 +553,16 @@ void paging_init(void)
 
 #ifdef CONFIG_MMU_MAP_MEM
 	/* map memory */
-#ifdef CONFIG_MMU_BOOT_MAP
+#ifdef CONFIG_MMU_IDMAP
 	pgdp = pgd_set_fixmap(__pa_symbol(mmu_pg_dir));
 #else
-	pgdp = pgd_set_fixmap(__pa_symbol(mmu_boot_map));
+	pgdp = pgd_set_fixmap(__pa_symbol(mmu_id_map));
 #endif
 	map_mem(pgdp);
 	pgd_clear_fixmap();
 #endif
 
-#ifdef CONFIG_MMU_BOOT_MAP
+#ifdef CONFIG_MMU_IDMAP
 	mmu_hw_ctrl_init();
 #endif
 }

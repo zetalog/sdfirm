@@ -93,6 +93,40 @@
 #define VMSA_VA_END_LO		ULL(0x0000000000000000)
 #endif
 
+#if defined(CONFIG_SYS_MONITOR)
+#define TTBR_KERN		ttbr0_el3
+#define TTBR_USER		ttbr1_el3
+#define TCR_KERN		tcr_el3
+#define VBAR_KERN		vbar_el3
+#define SCTLR_KERN		sctlr_el3
+#elif defined(CONFIG_SYS_HYPERVISOR)
+#ifdef CONFIG_VMSA_VA_2_RANGES
+#define TTBR_KERN		ttbr1_el2
+#define TTBR_USER		ttbr0_el2
+#else
+#define TTBR_KERN		ttbr0_el2
+#define TTBR_USER		ttbr1_el2
+#endif
+#define TCR_KERN		tcr_el2
+#define VBAR_KERN		vbar_el2
+#define SCTLR_KERN		sctlr_el2
+#elif defined(CONFIG_SYS_KERNEL)
+#ifdef CONFIG_VMSA_VA_2_RANGES
+#define TTBR_KERN		ttbr1_el1
+#define TTBR_USER		ttbr0_el1
+#define ttbr_kern		"ttbr1"
+#define ttbr_user		"ttbr0"
+#else
+#define TTBR_KERN		ttbr0_el1
+#define TTBR_USER		ttbr1_el1
+#define ttbr_kern		"ttbr0"
+#define ttbr_user		"ttbr1"
+#endif
+#define TCR_KERN		tcr_el1
+#define VBAR_KERN		vbar_el1
+#define SCTLR_KERN		sctlr_el1
+#endif
+
 #define MAIR(attr, mt)		((attr) << ((mt) * 8))
 /* Encoding index */
 #define MT_DEVICE_nGnRnE	0
