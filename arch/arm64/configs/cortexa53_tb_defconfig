@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Nov  4 10:41:34 2019
+# Fri Nov  8 14:02:00 2019
 #
 CONFIG_ARM64=y
 
@@ -36,7 +36,7 @@ CONFIG_CONSOLE_115200=y
 # CONFIG_CONSOLE_9600 is not set
 # CONFIG_CONSOLE_4800 is not set
 # CONFIG_CONSOLE_2400 is not set
-CONFIG_CONSOLE_DEBUG=y
+# CONFIG_CONSOLE_DEBUG is not set
 
 #
 # ARM64 system options
@@ -160,7 +160,6 @@ CONFIG_BOOT_BASE=0x00000000
 CONFIG_LOAD_BASE=0x0
 # CONFIG_HEAP is not set
 CONFIG_MEM=y
-# CONFIG_MMU_MAP_MEM is not set
 CONFIG_MEM_MAX_REGIONS=1
 CONFIG_MEM_RESIZE=y
 CONFIG_PAGE=y
@@ -180,8 +179,10 @@ CONFIG_MMU_4K_PAGE=y
 CONFIG_MMU_4L_TABLE=y
 # CONFIG_MMU_5L_TABLE is not set
 # CONFIG_MMU_PAGE_OFFSET is not set
+# CONFIG_MMU_BOOT_MAP is not set
 CONFIG_MMU_IDMAP_DEVICE=y
-# CONFIG_MMU_DEBUG_TABLE is not set
+CONFIG_MMU_MAP_MEM=y
+# CONFIG_MMU_TEXT_MODIFY is not set
 # CONFIG_IDLE is not set
 # CONFIG_BULK is not set
 # CONFIG_TERM is not set
@@ -251,6 +252,12 @@ CONFIG_UART_230400=y
 #
 # MMC host drivers
 #
+
+#
+# Test setup
+#
+# CONFIG_TEST_VERBOSE is not set
+# CONFIG_RAVEN is not set
 
 #
 # Library setup
