@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Nov  6 14:12:16 2019
+# Mon Nov 11 12:20:16 2019
 #
 CONFIG_32BIT=y
 CONFIG_RISCV=y
@@ -78,7 +78,7 @@ CONFIG_SYS_MONITOR=y
 # System peripherals
 #
 CONFIG_ARCH_HAS_PLIC=y
-# CONFIG_PLIC is not set
+CONFIG_PLIC=y
 
 #
 # Emulated RISCV (Duowen) board options
@@ -103,7 +103,7 @@ CONFIG_SYS_NOIRQ=y
 # CONFIG_SYS_IRQ is not set
 # CONFIG_SYS_RT is not set
 # CONFIG_SYS_TASK is not set
-CONFIG_ARCH_HAS_LOVEC=y
+CONFIG_ARCH_HAS_NOVEC=y
 CONFIG_ARCH_HAS_IRQC=y
 CONFIG_ARCH_HAS_TSC=y
 CONFIG_ARCH_HAS_TSC_CONST=y

@@ -182,7 +182,9 @@
 #define ROMEND			(IMC_ROM_BASE + IMC_ROM_SIZE)
 #endif /* CONFIG_DUOWEN_BOOT_APC */
 /* LOVEC */
+#ifdef CONFIG_ARCH_HAS_LOVEC
 #define VEC_BASE		ROM_BASE
+#endif
 #endif /* CONFIG_DUOWEN_ZSBL */
 
 #ifdef CONFIG_DUOWEN_BOOT_APC

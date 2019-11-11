@@ -33,7 +33,8 @@ choice
 
 config DUOWEN_ZSBL
 	bool "0-stage ROM bootloader (ZSBL)"
-	select ARCH_HAS_LOVEC
+	select ARCH_HAS_LOVEC if !DUOWEN_SFAB
+	select ARCH_HAS_NOVEC if DUOWEN_SFAB
 	select XIP
 	select LOAD_DATA
 
