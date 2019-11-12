@@ -170,7 +170,7 @@
 #define UART0_CLK_SEL		_BV(8)
 #define SD_CCLK_RX_CLK_SEL	_BV(6)
 #define SD_CCLK_TX_CLK_SEL	_BV(5)
-#define SD_BCLK_SEL		_BV(4)
+#define SD_BCLK_CLK_SEL		_BV(4)
 #define IMC_CLK_SEL		_BV(2)
 #define CFGFAB_CLK_SEL		_BV(1)
 #define SYSFAB_CLK_SEL		_BV(0)

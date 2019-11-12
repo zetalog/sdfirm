@@ -306,6 +306,8 @@
 #define timer_23_16_apb_clk	clkid(CLK_OUTPUT, CRCNTL_TIMER_23_16_APB)
 #define timer_24_apb_clk	clkid(CLK_OUTPUT, CRCNTL_TIMER_24_APB)
 
+void periph_select_clock(clk_t clk);
+void periph_deselect_clock(clk_t clk);
 void clk_hw_ctrl_init(void);
 
 #endif /* __CLK_DUOWEN_H_INCLUDE__ */
