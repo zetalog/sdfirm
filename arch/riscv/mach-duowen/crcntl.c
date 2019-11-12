@@ -35,50 +35,67 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)mach.c: DUOWEN specific board initialization
- * $Id: mach.c,v 1.1 2019-09-02 15:13:00 zhenglv Exp $
+ * @(#)crcntl.c: DUOWEN clock/reset controller implementation
+ * $Id: crcntl.c,v 1.1 2019-11-12 13:17:00 zhenglv Exp $
  */
 
-#include <target/generic.h>
-#include <target/cpus.h>
-#include <target/arch.h>
-#include <target/irq.h>
+#include <target/clk.h>
+#include <target/delay.h>
+#include <target/panic.h>
 
-void imc_sfab_remap(int n, uint32_t in_addr, uint64_t out_addr,
-		    imc_at_attr_t attr)
+#define DWC_PLL5GHZ_REFCLK_FREQ		XO_CLK_FREQ
+
+void dwc_pll5ghz_tmffc12_enable(uint8_t pll, uint64_t fvco)
 {
-	imc_sfab_set_invalid(n);
-	imc_sfab_set_addr_i(n, in_addr);
-	imc_sfab_set_addr_o(n, out_addr);
-	imc_sfab_set_attr(n, IMC_AT_ATTR_GET_BURST(attr),
-			  IMC_AT_ATTR_GET_CACHE(attr),
-			  IMC_AT_ATTR_GET_PROT(attr));
-	imc_sfab_set_valid(n);
+	uint16_t mint, mfrac;
+	uint8_t prediv = 0;
+	uint32_t vco_cfg;
+	uint64_t fbdiv;
+
+	if (fvco <= ULL(3750000000))
+		vco_cfg = PLL_VCO_MODE | PLL_LOWFREQ;
+	else if (fvco >= ULL(4000000000))
+		vco_cfg = PLL_LOWFREQ;
+	else
+		vco_cfg = PLL_VCO_MODE;
+
+	do {
+		prediv++;
+		BUG_ON(prediv > 32);
+		fbdiv = div64u(fvco << 16,
+			       div32u(DWC_PLL5GHZ_REFCLK_FREQ, prediv));
+		mint = HIWORD(fbdiv);
+		mfrac = LOWORD(fbdiv);
+	} while (mint < 16);
+	__raw_writel(PLL_PREDIV(prediv - 1) |
+		     PLL_MINT(mint - 16) | PLL_MFRAC(mfrac),
+		     CRCNTL_PLL_CFG0(pll));
+
+	udelay(2);
+	__raw_writel(vco_cfg | PLL_GEAR_SHIFT, CRCNTL_PLL_CFG1(pll));
+	udelay(2);
+
+	/* step1: test_rst_n */
+	__raw_setl(PLL_TEST_RESET, CRCNTL_PLL_CFG1(pll));
+	udelay(2);
+	/* step2: pwron & rst_n */
+	__raw_setl(PLL_PWRON, CRCNTL_PLL_CFG1(pll));
+	udelay(2);
+	__raw_setl(PLL_RESET, CRCNTL_PLL_CFG1(pll));
+	/* step3: preset */
+	udelay(7);
+	/* step4: gearshift */
+	__raw_clearl(PLL_GEAR_SHIFT, CRCNTL_PLL_CFG1(pll));
+	/* step5: spo */
+	udelay(2);
+	/* step6: enp/enr */
+	__raw_setl(PLL_ENP, CRCNTL_PLL_CFG1(pll));
+	__raw_setl(PLL_ENR, CRCNTL_PLL_CFG1(pll));
+	/* step7: lock */
+	while (__raw_readl(CRCNTL_PLL_STATUS(pll)) != PLL_LOCKED);
 }
 
-void board_reset(void)
+void dwc_pll5ghz_tmffc12_disable(uint8_t pll)
 {
-}
-
-void board_suspend(void)
-{
-}
-
-void board_hibernate(void)
-{
-}
-
-#ifdef CONFIG_DUOWEN_IMC
-static void imc_init(void)
-{
-}
-#else
-#define imc_init()		do { } while (0)
-#endif
-
-void board_init(void)
-{
-	DEVICE_ARCH(DEVICE_ARCH_RISCV);
-	crcntl_power_up();
-	imc_init();
+	/* NYI: we don't use this function now */
 }

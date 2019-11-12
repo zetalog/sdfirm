@@ -57,13 +57,20 @@ config DUOWEN_TSC_DW_TIMERS
 	  dw_timers_counter(). Enable this option to switch to use
 	  dw_timers_counter().
 
+menuconfig CRCNTL
+	bool "Enable clock/reset controller (CRCNTL) support"
+
+if CRCNTL
+
 config DUOWEN_CLK_TEST
-	bool "Use SoC/DDR PLL/clock power up sequence"
+	bool "Enable test power up sequence"
 	help
 	  Currently, there are RTL sequence ready for PLL/clock bring up.
 	  Enabling this option to move the sequence from RTL to C code.
 	  However, the sequence contains special cases that waiting on
 	  signals rather than on register values.
+
+endif
 
 endmenu
 

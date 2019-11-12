@@ -42,47 +42,160 @@
 #include <target/clk.h>
 #include <target/delay.h>
 
-void pll_enable(uint8_t pll, uint8_t mint)
-{
-	__raw_writel(PLL_MINT(mint), CRCNTL_PLLDIV(pll));
-	udelay(2);
-	__raw_writel(PLL_VCO_MODE | PLL_LOWFREQ | PLL_GEAR_SHIFT,
-		     CRCNTL_PLLCFG1(pll));
-	udelay(2);
-
-	/* step1: test_rst_n */
-	__raw_setl(PLL_TEST_RESET, CRCNTL_PLLCFG1(pll));
-	udelay(2);
-	/* step2: pwron & rst_n */
-	__raw_setl(PLL_PWRON, CRCNTL_PLLCFG1(pll));
-	udelay(2);
-	__raw_setl(PLL_RESET, CRCNTL_PLLCFG1(pll));
-	/* step3: preset */
-	udelay(7);
-	/* step4: gearshift */
-	__raw_clearl(PLL_GEAR_SHIFT, CRCNTL_PLLCFG1(pll));
-	/* step5: spo */
-	udelay(2);
-	/* step6: enp/enr */
-	__raw_setl(PLL_ENP, CRCNTL_PLLCFG1(pll));
-	__raw_setl(PLL_ENR, CRCNTL_PLLCFG1(pll));
-	/* step7: lock */
-	while (__raw_readl(CRCNTL_PLLSTS(pll)) != PLL_LOCK);
-}
-
 #ifdef CONFIG_DUOWEN_CLK_TEST
 void clk_hw_ctrl_init(void)
 {
-	/* TODO: wait imc_rst_n */
-	sfab_power_up();
-	/* TODO: wait PS_HOLD */
-	ddrpll_enable();
-	socpll_enable();
-	pll_select();
-	enable_all_clocks();
+	int i;
+
+	crcntl_pll_enable(DDR_PLL, PLL_DDR_FREQ);
+	crcntl_pll_enable(SOC_PLL, PLL_SOC_FREQ);
+	__raw_writel(0, CRCNTL_CLK_SEL_CFG);
+	for (i = 0; i < 5; i++)
+		__raw_writel(0xFFFFFFFF, CRCNTL_CLK_EN_CFG(i));
 }
 #else
+struct output_clk {
+	uint32_t freq;
+	uint32_t sel;
+	clk_t parent_clk;
+	bool enabled;
+};
+
+static int enable_output_clk(clk_clk_t clk)
+{
+	if (clk >= NR_OUTPUT_CLKS)
+		return -EINVAL;
+	return 0;
+}
+
+static void disable_output_clk(clk_clk_t clk)
+{
+	if (clk >= NR_OUTPUT_CLKS)
+		return;
+}
+
+static uint32_t get_output_clk_freq(clk_clk_t clk)
+{
+	if (clk >= NR_OUTPUT_CLKS)
+		return INVALID_FREQ;
+	return INVALID_FREQ;
+}
+
+static int set_output_clk_freq(clk_clk_t clk, uint32_t freq)
+{
+	if (clk >= NR_OUTPUT_CLKS)
+		return -EINVAL;
+	return 0;
+}
+
+struct clk_driver clk_output = {
+	.max_clocks = NR_OUTPUT_CLKS,
+	.enable = enable_output_clk,
+	.disable = disable_output_clk,
+	.get_freq = get_output_clk_freq,
+	.set_freq = set_output_clk_freq,
+};
+
+struct pll_clk {
+	uint32_t freq;
+	bool enabled;
+};
+
+struct pll_clk pll_clks[NR_PLL_CLKS] = {
+	[SOC_PLL] = {
+		.freq = PLL_SOC_FREQ,
+		.enabled = false,
+	},
+	[DDR_PLL] = {
+		.freq = PLL_DDR_FREQ,
+		.enabled = false,
+	},
+};
+
+static void __enable_pll(clk_clk_t clk)
+{
+	if (!pll_clks[clk].enabled) {
+		crcntl_pll_enable(clk, pll_clks[clk].freq);
+		pll_clks[clk].enabled = true;
+	}
+}
+
+static int enable_pll(clk_clk_t clk)
+{
+	if (clk >= NR_PLL_CLKS)
+		return -EINVAL;
+	__enable_pll(clk);
+	return 0;
+}
+
+static void disable_pll(clk_clk_t clk)
+{
+	if (clk >= NR_PLL_CLKS)
+		return;
+	crcntl_pll_disable(clk);
+}
+
+static uint32_t get_pll_freq(clk_clk_t clk)
+{
+	if (clk >= NR_PLL_CLKS)
+		return INVALID_FREQ;
+	return pll_clks[clk].freq;
+}
+
+static int set_pll_freq(clk_clk_t clk, uint32_t freq)
+{
+	if (clk >= NR_PLL_CLKS)
+		return -EINVAL;
+
+	if (pll_clks[clk].freq != freq) {
+		pll_clks[clk].freq = freq;
+		pll_clks[clk].enabled = false;
+	}
+	__enable_pll(clk);
+	return 0;
+}
+
+struct clk_driver clk_pll = {
+	.max_clocks = NR_PLL_CLKS,
+	.enable = enable_pll,
+	.disable = disable_pll,
+	.get_freq = get_pll_freq,
+	.set_freq = set_pll_freq,
+};
+
+uint32_t input_clks[NR_INPUT_CLKS] = {
+	[XO_CLK] = XO_CLK_FREQ,
+};
+
+static uint32_t get_input_clk_freq(clk_clk_t clk)
+{
+	if (clk >= NR_INPUT_CLKS)
+		return INVALID_FREQ;
+	return input_clks[clk];
+}
+
+struct clk_driver clk_input = {
+	.max_clocks = NR_INPUT_CLKS,
+	.enable = NULL,
+	.disable = NULL,
+	.get_freq = get_input_clk_freq,
+	.set_freq = NULL,
+};
+
+static bool clk_hw_init = false;
+
+void board_init_clock(void)
+{
+	if (!clk_hw_init) {
+		clk_register_driver(CLK_INPUT, &clk_input);
+		clk_register_driver(CLK_PLL, &clk_pll);
+		clk_register_driver(CLK_OUTPUT, &clk_output);
+	}
+	clk_hw_init = true;
+}
+
 void clk_hw_ctrl_init(void)
 {
+	board_init_clock();
 }
 #endif

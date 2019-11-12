@@ -39,6 +39,7 @@ config ARCH_DUOWEN
 	select SDHC if MMC
 	select DW_MSHC if SDHC
 	select PLIC if !SYS_NOIRQ
+	select CRCNTL if CLK
 	help
 	  This enables support for emulated riscv platforms.
 
