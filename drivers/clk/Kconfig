@@ -1,0 +1,16 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "Clock drivers"
+
+menuconfig DW_PLL5GHZ
+	bool "Synopsys DesignWare 5GHz PLL (TSMC 12FFC) support"
+	depends CLK
+
+if DW_PLL5GHZ
+
+endif
+
+endmenu

@@ -35,10 +35,65 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)crcntl.c: DUOWEN clock/reset controller implementation
- * $Id: crcntl.c,v 1.1 2019-11-12 13:17:00 zhenglv Exp $
+ * @(#)dw_pll5ghz.c: DesignWare 5GHz PLL (TSMC 12FFC) implementation
+ * $Id: dw_pll5ghz.c,v 1.1 2019-11-14 09:12:00 zhenglv Exp $
  */
 
 #include <target/clk.h>
 #include <target/delay.h>
 #include <target/panic.h>
+
+void dwc_pll5ghz_tmffc12_enable(uint8_t pll, uint64_t fvco)
+{
+	uint16_t mint, mfrac;
+	uint8_t prediv = 0;
+	uint32_t vco_cfg;
+	uint64_t fbdiv;
+
+	if (fvco <= ULL(3750000000))
+		vco_cfg = PLL_VCO_MODE | PLL_LOWFREQ;
+	else if (fvco >= ULL(4000000000))
+		vco_cfg = PLL_LOWFREQ;
+	else
+		vco_cfg = PLL_VCO_MODE;
+
+	do {
+		prediv++;
+		BUG_ON(prediv > 32);
+		fbdiv = div64u(fvco << 16,
+			       div32u(DW_PLL5GHZ_REFCLK_FREQ, prediv));
+		mint = HIWORD(fbdiv);
+		mfrac = LOWORD(fbdiv);
+	} while (mint < 16);
+	__raw_writel(PLL_PREDIV(prediv - 1) |
+		     PLL_MINT(mint - 16) | PLL_MFRAC(mfrac),
+		     DW_PLL5GHZ_CFG0(pll));
+
+	udelay(2);
+	__raw_writel(vco_cfg | PLL_GEAR_SHIFT, DW_PLL5GHZ_CFG1(pll));
+	udelay(2);
+
+	/* step1: test_rst_n */
+	__raw_setl(PLL_TEST_RESET, DW_PLL5GHZ_CFG1(pll));
+	udelay(2);
+	/* step2: pwron & rst_n */
+	__raw_setl(PLL_PWRON, DW_PLL5GHZ_CFG1(pll));
+	udelay(2);
+	__raw_setl(PLL_RESET, DW_PLL5GHZ_CFG1(pll));
+	/* step3: preset */
+	udelay(7);
+	/* step4: gearshift */
+	__raw_clearl(PLL_GEAR_SHIFT, DW_PLL5GHZ_CFG1(pll));
+	/* step5: spo */
+	udelay(2);
+	/* step6: enp/enr */
+	__raw_setl(PLL_ENP, DW_PLL5GHZ_CFG1(pll));
+	__raw_setl(PLL_ENR, DW_PLL5GHZ_CFG1(pll));
+	/* step7: lock */
+	while (__raw_readl(DW_PLL5GHZ_STATUS(pll)) != PLL_LOCKED);
+}
+
+void dwc_pll5ghz_tmffc12_disable(uint8_t pll)
+{
+	/* NYI: we don't use this function now */
+}

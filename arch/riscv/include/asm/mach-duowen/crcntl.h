@@ -45,6 +45,14 @@
 #include <target/arch.h>
 #include <target/generic.h>
 
+#define DW_PLL5GHZ_REFCLK_FREQ		XO_CLK_FREQ
+#define DW_PLL5GHZ_CFG0(pll)		CRCNTL_PLL_CFG0(pll)
+#define DW_PLL5GHZ_CFG1(pll)		CRCNTL_PLL_CFG1(pll)
+#define DW_PLL5GHZ_CFG2(pll)		CRCNTL_PLL_CFG2(pll)
+#define DW_PLL5GHZ_STATUS(pll)		CRCNTL_PLL_STATUS(pll)
+
+#include <driver/dw_pll5ghz.h>
+
 /* XXX: This implementation is based on undocumented PLL RTL
  *      sequence, and may subject to change.
  * NOTE: all CRCNTL registers are only 32-bit accessiable.
@@ -346,9 +354,6 @@
 		__raw_writel(0xFFFFFFFF, CRCNTL_CLKGRP3);	\
 		__raw_writel(0xFFFFFFFF, CRCNTL_CLKGRP4);	\
 	} while (0)
-
-void dwc_pll5ghz_tmffc12_enable(uint8_t pll, uint64_t fvco);
-void dwc_pll5ghz_tmffc12_disable(uint8_t pll);
 
 #define crcntl_pll_enable(pll, freq)		\
 	dwc_pll5ghz_tmffc12_enable(pll, (uint64_t)freq)

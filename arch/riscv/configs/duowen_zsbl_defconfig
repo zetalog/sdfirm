@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Nov 12 19:00:20 2019
+# Thu Nov 14 09:18:16 2019
 #
 CONFIG_32BIT=y
 CONFIG_RISCV=y
@@ -226,6 +226,11 @@ CONFIG_DW_UART_AFCE_MODE=y
 #
 # MMC host drivers
 #
+
+#
+# Clock drivers
+#
+CONFIG_DW_PLL5GHZ=y
 
 #
 # Library setup
