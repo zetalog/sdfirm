@@ -43,7 +43,52 @@
 #include <target/delay.h>
 #include <target/panic.h>
 
-void dwc_pll5ghz_tmffc12_enable(uint8_t pll, uint64_t fvco)
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_GEAR
+static void dw_pll5ghz_tsmc12ffc_gear(uint8_t pll)
+{
+	/* The PLL only leaves the transition states and gets to normal
+	 * operation after gear_shift is set to low and lock flag is
+	 * asserted high. During the Fast Startup transition state the
+	 * gear_shift must be set to high during 1 minimum of 100 loops
+	 * comparison clock cycles or 3us.
+	 * NOTE: 3us includes 1us preset duration.
+	 */
+	/* t_prst: preset */
+	udelay(1);
+	/* t_gs: gearshift */
+	udelay(2);
+	__raw_clearl(PLL_GEAR_SHIFT, DW_PLL_CFG1(pll));
+}
+#else
+#define dw_pll5ghz_tsmc12ffc_gear(pll)	do { } while (0)
+#endif
+
+void dw_pll5ghz_tsmc12ffc_standby(uint8_t pll)
+{
+	__raw_writel(PLL_STANDBY | PLL_PWRON, DW_PLL_CFG1(pll));
+	while (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_STANDBYEFF));
+}
+
+void dw_pll5ghz_tsmc12ffc_relock(uint8_t pll)
+{
+	if (__raw_readl(DW_PLL_STATUS(pll)) & PLL_STANDBYEFF) {
+		__raw_writel_mask(PLL_RESET | PLL_PWRON | PLL_GEAR_SHIFT,
+				  PLL_RESET | PLL_STANDBY |
+				  PLL_PWRON | PLL_GEAR_SHIFT,
+				  DW_PLL_CFG1(pll));
+		dw_pll5ghz_tsmc12ffc_gear(pll);
+		while (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED));
+
+		/* P/R outputs:
+		 *  1'b0: Fclkout = 0 or Fclkref/(P|R)
+		 *  1'b1: Fclkout = PLL output
+		 */
+		__raw_setl(PLL_ENP, DW_PLL_CFG1(pll));
+		__raw_setl(PLL_ENR, DW_PLL_CFG1(pll));
+	}
+}
+
+void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
 {
 	uint16_t mint, mfrac;
 	uint8_t prediv = 0;
@@ -65,42 +110,40 @@ void dwc_pll5ghz_tmffc12_enable(uint8_t pll, uint64_t fvco)
 		prediv++;
 		BUG_ON(prediv > 32);
 		fbdiv = div64u(fvco << 16,
-			       div32u(DW_PLL5GHZ_REFCLK_FREQ, prediv));
+			       div32u(DW_PLL_REFCLK_FREQ, prediv));
 		mint = HIWORD(fbdiv);
 		mfrac = LOWORD(fbdiv);
 	} while (mint < 16);
 	__raw_writel(PLL_PREDIV(prediv - 1) |
 		     PLL_MINT(mint - 16) | PLL_MFRAC(mfrac),
-		     DW_PLL5GHZ_CFG0(pll));
+		     DW_PLL_CFG0(pll));
 
-	udelay(2);
-	__raw_writel(vco_cfg | PLL_GEAR_SHIFT, DW_PLL5GHZ_CFG1(pll));
-	udelay(2);
+	/* t_pwrstb */
+	udelay(1);
+	/* ndelay(500); */
+	__raw_setl(PLL_TEST_RESET, DW_PLL_CFG1(pll));
+	/* t_trst */
+	udelay(1);
+	/* ndelay(50); */
+	__raw_writel(vco_cfg | PLL_STARTUP | PLL_RESET,
+		     DW_PLL_CFG1(pll));
+	dw_pll5ghz_tsmc12ffc_gear();
+	while (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED));
 
-	/* step1: test_rst_n */
-	__raw_setl(PLL_TEST_RESET, DW_PLL5GHZ_CFG1(pll));
-	udelay(2);
-	/* step2: pwron & rst_n */
-	__raw_setl(PLL_PWRON, DW_PLL5GHZ_CFG1(pll));
-	udelay(2);
-	__raw_setl(PLL_RESET, DW_PLL5GHZ_CFG1(pll));
-	/* step3: preset */
-	udelay(7);
-	/* step4: gearshift */
-	__raw_clearl(PLL_GEAR_SHIFT, DW_PLL5GHZ_CFG1(pll));
-	/* step5: spo */
-	udelay(2);
-	/* step6: disable P/R outputs
+	/* P/R outputs:
 	 *  1'b0: Fclkout = 0 or Fclkref/(P|R)
 	 *  1'b1: Fclkout = PLL output
 	 */
-	__raw_setl(PLL_ENP, DW_PLL5GHZ_CFG1(pll));
-	__raw_setl(PLL_ENR, DW_PLL5GHZ_CFG1(pll));
-	/* step7: lock */
-	while (__raw_readl(DW_PLL5GHZ_STATUS(pll)) != PLL_LOCKED);
+	__raw_setl(PLL_ENP, DW_PLL_CFG1(pll));
+	__raw_setl(PLL_ENR, DW_PLL_CFG1(pll));
 }
 
-void dwc_pll5ghz_tmffc12_disable(uint8_t pll)
+void dw_pll5ghz_tsmc12ffc_pwrdn(uint8_t pll)
 {
-	/* NYI: we don't use this function now */
+	if (__raw_readl(DW_PLL_STATUS(pll)) & PLL_STANDBYEFF)
+		dw_pll5ghz_tsmc12ffc_relock(pll);
+	if (__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED) {
+		__raw_clearl(PLL_PWRON, DW_PLL_CFG1(pll));
+		while (__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED);
+	}
 }

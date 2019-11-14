@@ -45,11 +45,11 @@
 #include <target/arch.h>
 #include <target/generic.h>
 
-#define DW_PLL5GHZ_REFCLK_FREQ		XO_CLK_FREQ
-#define DW_PLL5GHZ_CFG0(pll)		CRCNTL_PLL_CFG0(pll)
-#define DW_PLL5GHZ_CFG1(pll)		CRCNTL_PLL_CFG1(pll)
-#define DW_PLL5GHZ_CFG2(pll)		CRCNTL_PLL_CFG2(pll)
-#define DW_PLL5GHZ_STATUS(pll)		CRCNTL_PLL_STATUS(pll)
+#define DW_PLL_REFCLK_FREQ		XO_CLK_FREQ
+#define DW_PLL_CFG0(pll)		CRCNTL_PLL_CFG0(pll)
+#define DW_PLL_CFG1(pll)		CRCNTL_PLL_CFG1(pll)
+#define DW_PLL_CFG2(pll)		CRCNTL_PLL_CFG2(pll)
+#define DW_PLL_STATUS(pll)		CRCNTL_PLL_STATUS(pll)
 
 #include <driver/dw_pll5ghz_tsmc12ffc.h>
 
@@ -356,8 +356,8 @@
 	} while (0)
 
 #define crcntl_pll_enable(pll, freq)		\
-	dwc_pll5ghz_tmffc12_enable(pll, (uint64_t)freq)
+	dw_pll5ghz_tsmc12ffc_pwron(pll, (uint64_t)freq)
 #define crcntl_pll_disable(pll)			\
-	dwc_pll5ghz_tmffc12_disable(pll)
+	dw_pll5ghz_tsmc12ffc_pwrdn(pll)
 
 #endif /* __CRCNTL_DUOWEN_H_INCLUDE__ */

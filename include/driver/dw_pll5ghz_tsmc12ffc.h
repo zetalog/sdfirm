@@ -102,13 +102,20 @@
 #define PLL_RANGE1	(PLL_VCO_MODE | PLL_LOWFREQ)
 #define PLL_RANGE2	(PLL_VCO_MODE)
 #define PLL_RANGE3	(PLL_LOWFREQ)
-#ifdef CONFIG_DW_PLL5GHZ_RANGE2
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_RANGE2
 #define PLL_RANGE23	PLL_RANGE2
 #else
 #define PLL_RANGE23	PLL_RANGE3
 #endif
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_GEAR
+#define PLL_STARTUP	(PLL_PWRON | PLL_GEAR_SHIFT)
+#else
+#define PLL_STARTUP	PLL_PWRON
+#endif
 
-void dwc_pll5ghz_tmffc12_enable(uint8_t pll, uint64_t fvco);
-void dwc_pll5ghz_tmffc12_disable(uint8_t pll);
+void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco);
+void dw_pll5ghz_tsmc12ffc_pwrdn(uint8_t pll);
+void dw_pll5ghz_tsmc12ffc_standby(uint8_t pll);
+void dw_pll5ghz_tsmc12ffc_relock(uint8_t pll);
 
 #endif /* __DW_PLL5GHZ_TSMC12FFC_H_INCLUDE__ */

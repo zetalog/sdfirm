@@ -20,6 +20,17 @@ config DW_PLL5GHZ_TSMC12FFC_RANGE2
 	  range 2 can also be preferred due to lower comsuption.
 	  If unsure, say 'N'.
 
+config DW_PLL5GHZ_TSMC12FFC_GEAR
+	bool "Enable fast startup transition"
+	help
+	  From Power-down to Normal operation the PLL can transition by a
+	  Fast Startup (gear) state when the gear_shift pin is high, or by
+	  a Slow Startup state when the gear_shift pin is low. The big
+	  difference between fast and slow startups is the time required
+	  to lock the phase of the loop (SPO). Fast PLL locking is achieved
+	  at the cost of less phase margin and more jitter during the gear
+	  state.
+
 endif
 
 endmenu
