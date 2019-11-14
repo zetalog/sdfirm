@@ -59,7 +59,7 @@ config DUOWEN_TSC_DW_TIMERS
 
 menuconfig CRCNTL
 	bool "Enable clock/reset controller (CRCNTL) support"
-	select DW_PLL5GHZ
+	select DW_PLL5GHZ_TSMC12FFC
 
 if CRCNTL
 

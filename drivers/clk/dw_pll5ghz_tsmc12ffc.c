@@ -42,6 +42,7 @@
 #include <target/clk.h>
 #include <target/delay.h>
 #include <target/panic.h>
+#include <target/bitops.h>
 
 #ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_GEAR
 static void dw_pll5ghz_tsmc12ffc_gear(uint8_t pll)
@@ -94,6 +95,10 @@ void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
 	uint8_t prediv = 0;
 	uint32_t vco_cfg = PLL_RANGE3;
 	uint64_t fbdiv;
+	uint8_t prstdur;
+
+	prstdur = __roundup8(div32u(DW_PLL_REFCLK_FREQ, 1000000));
+	dw_pll_write(pll, PLL_ANAREG7, PLL_PRSTDUR(prstdur));
 
 	if (fvco <= ULL(3750000000))
 		vco_cfg = PLL_RANGE1;

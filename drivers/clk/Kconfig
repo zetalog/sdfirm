@@ -8,6 +8,9 @@ menu "Clock drivers"
 menuconfig DW_PLL5GHZ_TSMC12FFC
 	bool "Synopsys DWC PLL5GHz TSMC12FFCNS support"
 	depends CLK
+	select BIT_ROUNDUP8
+	select MATH_DIV32
+	select MATH_DIV64
 
 if DW_PLL5GHZ_TSMC12FFC
 

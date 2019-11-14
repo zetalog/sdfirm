@@ -1355,6 +1355,25 @@ bool crcntl_clk_enabled(clk_t clkid)
 	return !!(__raw_readl(CRCNTL_CLK_EN_CFG(n)) & _BV(bit));
 }
 
+void crcntl_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val)
+{
+	__raw_writel(PLL_REG_WRITE | PLL_REG_SEL(reg) | PLL_REG_WDATA(val),
+		     CRCNTL_PLL_REG_ACCESS(pll));
+	while (!(__raw_readl(CRCNTL_PLL_REG_ACCESS(pll)) & PLL_REG_IDLE));
+}
+
+uint8_t crcntl_pll_reg_read(uint8_t pll, uint8_t reg)
+{
+	uint32_t val;
+
+	__raw_writel(PLL_REG_READ | PLL_REG_SEL(reg),
+		     CRCNTL_PLL_REG_ACCESS(pll));
+	do {
+		val = __raw_readl(CRCNTL_PLL_REG_ACCESS(pll));
+	} while (val & PLL_REG_IDLE);
+	return PLL_REG_RDATA(val);
+}
+
 static bool clk_hw_init = false;
 
 void board_init_clock(void)

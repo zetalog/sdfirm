@@ -50,6 +50,8 @@
 #define DW_PLL_CFG1(pll)		CRCNTL_PLL_CFG1(pll)
 #define DW_PLL_CFG2(pll)		CRCNTL_PLL_CFG2(pll)
 #define DW_PLL_STATUS(pll)		CRCNTL_PLL_STATUS(pll)
+#define dw_pll_read(pll, reg)		crcntl_pll_reg_read(pll, reg)
+#define dw_pll_write(pll, reg, val)	crcntl_pll_reg_write(pll, reg, val)
 
 #include <driver/dw_pll5ghz_tsmc12ffc.h>
 
@@ -325,6 +327,20 @@
 #define CRCNTL_TIMER_23_16_APB	155
 #define CRCNTL_TIMER_24_APB	156
 
+/* CRCNTL_PLL_REG_ACCESS */
+#define PLL_REG_IDLE		_BV(24)
+#define PLL_REG_RDATA_OFFSET	16
+#define PLL_REG_RDATA_MASK	REG_8BIT_MASK
+#define PLL_REG_RDATA(value)	_GET_FV(PLL_REG_RDATA, value)
+#define PLL_REG_WDATA_OFFSET	8
+#define PLL_REG_WDATA_MASK	REG_8BIT_MASK
+#define PLL_REG_WDATA(value)	_SET_FV(PLL_REG_WDATA, value)
+#define PLL_REG_SEL_OFFSET	2
+#define PLL_REG_SEL_MASK	REG_6BIT_MASK
+#define PLL_REG_SEL(value)	_SET_FV(PLL_REG_SEL, value)
+#define PLL_REG_WRITE		_BV(1)
+#define PLL_REG_READ		_BV(0)
+
 /* TODO: Wait imc_rst_n, wait PS_HOLD? */
 #define crcntl_power_up()						\
 	do {								\
@@ -344,20 +360,12 @@
 			     CRCNTL_FSM_DELAY_TIME);			\
 	} while (0)
 
-#define pll_select()		__raw_writel(0x0, CRCNTL_PLLSEL)
-
-#define enable_all_clocks()					\
-	do {							\
-		__raw_writel(0xFFFFFFFF, CRCNTL_CLKGRP0);	\
-		__raw_writel(0xFFFFFFFF, CRCNTL_CLKGRP1);	\
-		__raw_writel(0xFFFFFFFF, CRCNTL_CLKGRP2);	\
-		__raw_writel(0xFFFFFFFF, CRCNTL_CLKGRP3);	\
-		__raw_writel(0xFFFFFFFF, CRCNTL_CLKGRP4);	\
-	} while (0)
-
 #define crcntl_pll_enable(pll, freq)		\
 	dw_pll5ghz_tsmc12ffc_pwron(pll, (uint64_t)freq)
 #define crcntl_pll_disable(pll)			\
 	dw_pll5ghz_tsmc12ffc_pwrdn(pll)
+
+void crcntl_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val);
+uint8_t crcntl_pll_reg_read(uint8_t pll, uint8_t reg);
 
 #endif /* __CRCNTL_DUOWEN_H_INCLUDE__ */

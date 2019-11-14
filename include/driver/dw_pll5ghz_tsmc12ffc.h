@@ -47,7 +47,8 @@
 
 /* To use this driver, followings need to be defined:
  * 1. DW_PLL5GHZ_REFCLK_FREQ;
- * 2. PLL_CFG0/PLL_CFG1/PLL/CFG2/PLL_STATUS register addresses.
+ * 2. PLL_CFG0/PLL_CFG1/PLL_CFG2/PLL_STATUS register addresses;
+ * 3. dw_pll_read/dw_pll_write to access PLL registers.
  */
 
 /* PLL_CFG0 */
@@ -112,6 +113,14 @@
 #else
 #define PLL_STARTUP	PLL_PWRON
 #endif
+
+/* PLL control registers */
+#define PLL_ANAREG7	7
+
+/* ANAREG7 */
+#define PLL_PRSTDUR_OFFSET	5
+#define PLL_PRSTDUR_MASK	REG_3BIT_MASK
+#define PLL_PRSTDUR(value)	_SET_FV(PLL_PRSTDUR, value)
 
 void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco);
 void dw_pll5ghz_tsmc12ffc_pwrdn(uint8_t pll);

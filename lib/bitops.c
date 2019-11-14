@@ -265,6 +265,13 @@ uint8_t __fls32(uint32_t word)
 }
 #endif
 
+#ifdef CONFIG_BIT_ROUNDUP8
+uint8_t __roundup8(uint8_t n)
+{
+	return (uint8_t)1 << (__fls8((uint8_t)(n-1))+1);
+}
+#endif
+
 #ifdef CONFIG_BIT_ROUNDUP16
 uint16_t __roundup16(uint16_t n)
 {

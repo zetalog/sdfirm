@@ -45,6 +45,7 @@ uint8_t __fls32(uint32_t word);
 uint32_t __roundup32(uint32_t n);
 uint32_t __rounddown32(uint32_t n);
 uint16_t __roundup16(uint16_t n);
+uint8_t __roundup8(uint8_t n);
 #define __ilog2_u8(n)	__fls8(n)
 #define __ilog2_u16(n)	__fls16(n)
 #define __ilog2_u32(n)	__fls32(n)
