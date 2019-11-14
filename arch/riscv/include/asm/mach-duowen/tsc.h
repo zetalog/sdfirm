@@ -43,6 +43,7 @@
 #define __TSC_DUOWEN_H_INCLUDE__
 
 #include <target/arch.h>
+#include <target/clk.h>
 
 #define DW_TIMERS_BASE		IMC_TIMER_BASE
 #define DW_TIMERS_SIZE		0x14
@@ -53,8 +54,7 @@
 #include <driver/dw_timers.h>
 #endif
 
-#define FREQ_RI5CY		250000000
-#define TSC_FREQ		(FREQ_RI5CY/2)
+#define TSC_FREQ		XO_CLK_FREQ
 #define TSC_MAX			((ULL(1) << DW_TIMERS_WIDTH) - 1)
 
 #define tsc_hw_ctrl_init()	dw_timers_tsc_init(DW_TIMERS_TSC)

@@ -5,11 +5,20 @@
 
 menu "Clock drivers"
 
-menuconfig DW_PLL5GHZ
-	bool "Synopsys DesignWare 5GHz PLL (TSMC 12FFC) support"
+menuconfig DW_PLL5GHZ_TSMC12FFC
+	bool "Synopsys DWC PLL5GHz TSMC12FFCNS support"
 	depends CLK
 
-if DW_PLL5GHZ
+if DW_PLL5GHZ_TSMC12FFC
+
+config DW_PLL5GHZ_TSMC12FFC_RANGE2
+	bool "Enable range 2 preference"
+	help
+	  For 4G-5G range output frequency, both range2 (vco_mode=1) and
+	  range 3 (low_freq=1) can match. By default, range 3 is preferred
+	  due to lower jitter (high current => lower jitter), however,
+	  range 2 can also be preferred due to lower comsuption.
+	  If unsure, say 'N'.
 
 endif
 

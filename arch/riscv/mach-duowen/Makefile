@@ -3,4 +3,3 @@ obj-y += mach.rel
 obj-$(CONFIG_MEM) += mem.rel
 
 obj-$(CONFIG_CRCNTL) += crcntl.rel
-obj-$(CONFIG_CRCNTL) += clk.rel

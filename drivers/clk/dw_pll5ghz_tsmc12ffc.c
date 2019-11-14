@@ -35,8 +35,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)dw_pll5ghz.c: DesignWare 5GHz PLL (TSMC 12FFC) implementation
- * $Id: dw_pll5ghz.c,v 1.1 2019-11-14 09:12:00 zhenglv Exp $
+ * @(#)dw_pll5ghz_tsmc12ffc.c: DWC PLL5GHz TSMC12FFC implementation
+ * $Id: dw_pll5ghz_tsmc12ffc.c,v 1.1 2019-11-14 09:12:00 zhenglv Exp $
  */
 
 #include <target/clk.h>
@@ -47,15 +47,19 @@ void dwc_pll5ghz_tmffc12_enable(uint8_t pll, uint64_t fvco)
 {
 	uint16_t mint, mfrac;
 	uint8_t prediv = 0;
-	uint32_t vco_cfg;
+	uint32_t vco_cfg = PLL_RANGE3;
 	uint64_t fbdiv;
 
 	if (fvco <= ULL(3750000000))
-		vco_cfg = PLL_VCO_MODE | PLL_LOWFREQ;
-	else if (fvco >= ULL(4000000000))
-		vco_cfg = PLL_LOWFREQ;
+		vco_cfg = PLL_RANGE1;
+	else if (fvco > ULL(3750000000) && fvco <= ULL(4000000000))
+		vco_cfg = PLL_RANGE2;
+	else if (fvco > ULL(4000000000) && fvco <= ULL(5000000000))
+		vco_cfg = PLL_RANGE23;
+	else if (fvco <= ULL(6000000000))
+		vco_cfg = PLL_RANGE3;
 	else
-		vco_cfg = PLL_VCO_MODE;
+		BUG();
 
 	do {
 		prediv++;
@@ -86,7 +90,10 @@ void dwc_pll5ghz_tmffc12_enable(uint8_t pll, uint64_t fvco)
 	__raw_clearl(PLL_GEAR_SHIFT, DW_PLL5GHZ_CFG1(pll));
 	/* step5: spo */
 	udelay(2);
-	/* step6: enp/enr */
+	/* step6: disable P/R outputs
+	 *  1'b0: Fclkout = 0 or Fclkref/(P|R)
+	 *  1'b1: Fclkout = PLL output
+	 */
 	__raw_setl(PLL_ENP, DW_PLL5GHZ_CFG1(pll));
 	__raw_setl(PLL_ENR, DW_PLL5GHZ_CFG1(pll));
 	/* step7: lock */

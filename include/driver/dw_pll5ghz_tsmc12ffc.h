@@ -35,12 +35,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)dw_pll5ghz.h: DesignWare 5GHz PLL (TSMC 12FFC) definitions
- * $Id: dw_pll5ghz.h,v 1.1 2019-11-14 09:07:00 zhenglv Exp $
+ * @(#)dw_pll5ghz_tsmc12ffc.h: DWC PLL5GHz TSMC12FFC definitions
+ * $Id: dw_pll5ghz_tsmc12ffc.h,v 1.1 2019-11-14 09:07:00 zhenglv Exp $
  */
 
-#ifndef __DW_PLL5GHZ_H_INCLUDE__
-#define __DW_PLL5GHZ_H_INCLUDE__
+#ifndef __DW_PLL5GHZ_TSMC12FFC_H_INCLUDE__
+#define __DW_PLL5GHZ_TSMC12FFC_H_INCLUDE__
 
 #include <target/arch.h>
 #include <target/generic.h>
@@ -98,7 +98,17 @@
 #define PLL_STANDBYEFF		_BV(1)
 #define PLL_CNT_LOCKED		_BV(2)
 
+/* PLL ranges */
+#define PLL_RANGE1	(PLL_VCO_MODE | PLL_LOWFREQ)
+#define PLL_RANGE2	(PLL_VCO_MODE)
+#define PLL_RANGE3	(PLL_LOWFREQ)
+#ifdef CONFIG_DW_PLL5GHZ_RANGE2
+#define PLL_RANGE23	PLL_RANGE2
+#else
+#define PLL_RANGE23	PLL_RANGE3
+#endif
+
 void dwc_pll5ghz_tmffc12_enable(uint8_t pll, uint64_t fvco);
 void dwc_pll5ghz_tmffc12_disable(uint8_t pll);
 
-#endif /* __DW_PLL5GHZ_H_INCLUDE__ */
+#endif /* __DW_PLL5GHZ_TSMC12FFC_H_INCLUDE__ */

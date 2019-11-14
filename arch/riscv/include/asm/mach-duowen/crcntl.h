@@ -51,7 +51,7 @@
 #define DW_PLL5GHZ_CFG2(pll)		CRCNTL_PLL_CFG2(pll)
 #define DW_PLL5GHZ_STATUS(pll)		CRCNTL_PLL_STATUS(pll)
 
-#include <driver/dw_pll5ghz.h>
+#include <driver/dw_pll5ghz_tsmc12ffc.h>
 
 /* XXX: This implementation is based on undocumented PLL RTL
  *      sequence, and may subject to change.
@@ -292,7 +292,7 @@
 #define CRCNTL_SD_BCLK		122
 #define CRCNTL_SD_CCLK_TX	123
 #define CRCNTL_SD_CCLK_RX	124
-#define CRCNTL_SD_TM_RX		125
+#define CRCNTL_SD_TM_CLK	125
 
 /* SW_RST_CFG4/CLK_EN_CFG4 */
 #define CRCNTL_TIMER0		128

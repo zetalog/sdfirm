@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Nov 14 09:18:16 2019
+# Thu Nov 14 16:23:47 2019
 #
 CONFIG_32BIT=y
 CONFIG_RISCV=y
@@ -91,7 +91,7 @@ CONFIG_DUOWEN_ZSBL=y
 CONFIG_DUOWEN_SFAB=y
 CONFIG_DUOWEN_TSC_DW_TIMERS=y
 CONFIG_CRCNTL=y
-CONFIG_DUOWEN_CLK_TEST=y
+# CONFIG_DUOWEN_CLK_TEST is not set
 
 #
 # Feature setup
@@ -230,7 +230,8 @@ CONFIG_DW_UART_AFCE_MODE=y
 #
 # Clock drivers
 #
-CONFIG_DW_PLL5GHZ=y
+CONFIG_DW_PLL5GHZ_TSMC12FFC=y
+# CONFIG_DW_PLL5GHZ_TSMC12FFC_RANGE2 is not set
 
 #
 # Library setup
