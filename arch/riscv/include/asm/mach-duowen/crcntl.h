@@ -341,14 +341,11 @@
 #define PLL_REG_WRITE		_BV(1)
 #define PLL_REG_READ		_BV(0)
 
-/* TODO: Wait imc_rst_n, wait PS_HOLD? */
+/* TODO: Wait imc_rst_n, drive PS_HOLD, and wait for PMIC? */
 #define crcntl_power_up()						\
-	do {								\
-		__raw_setl(PWR_PS_HOLD, CRCNTL_PS_HOLD);		\
-		while (!(__raw_readl(CRCNTL_PS_HOLD) & PWR_PS_HOLD));	\
-	} while (0)
+	__raw_setl(PWR_PS_HOLD, CRCNTL_PS_HOLD)
 #define crcntl_power_down()						\
-	__raw_writel(PWR_SHUT_DN, CRCNTL_SHUTDOWN)
+	__raw_setl(PWR_SHUT_DN, CRCNTL_SHUTDOWN)
 #define crcntl_global_reset()						\
 	__raw_writel(PWR_GLOBAL_RST, CRCNTL_SW_GLOBAL_RST)
 #define crcntl_config_timing(wrst_detect, wrst_delay, shutdown_delay)	\
@@ -367,5 +364,10 @@
 
 void crcntl_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val);
 uint8_t crcntl_pll_reg_read(uint8_t pll, uint8_t reg);
+
+/* APIs here can be invoked w/o enabling clock tree core */
+bool crcntl_clk_enabled(clk_clk_t clk);
+void crcntl_clk_enable(clk_clk_t clk);
+void crcntl_clk_disable(clk_clk_t clk);
 
 #endif /* __CRCNTL_DUOWEN_H_INCLUDE__ */

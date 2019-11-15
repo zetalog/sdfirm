@@ -342,11 +342,13 @@
 #define ddr_high_clk		ddr_pll
 #define ddr_low_clk		ddr_pll_div4
 
+/* APIs here must be invoked w clock tree core enabled */
 bool crcntl_pll_enabled(clk_t clkid);
 bool crcntl_clk_selected(clk_t clkid);
 void crcntl_clk_select(clk_t clkid); /* select boot source */
 void crcntl_clk_deselect(clk_t clkid); /* select runtime source */
-bool crcntl_clk_enabled(clk_t clkid);
+
+/* Enable clock tree core */
 void clk_hw_ctrl_init(void);
 
 #endif /* __CLK_DUOWEN_H_INCLUDE__ */
