@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Nov 14 16:23:47 2019
+# Fri Nov 15 10:24:07 2019
 #
 CONFIG_32BIT=y
 CONFIG_RISCV=y
@@ -232,6 +232,8 @@ CONFIG_DW_UART_AFCE_MODE=y
 #
 CONFIG_DW_PLL5GHZ_TSMC12FFC=y
 # CONFIG_DW_PLL5GHZ_TSMC12FFC_RANGE2 is not set
+CONFIG_DW_PLL5GHZ_TSMC12FFC_GEAR=y
+# CONFIG_DW_PLL5GHZ_TSMC12FFC_PRSTDUR is not set
 
 #
 # Library setup
@@ -240,11 +242,12 @@ CONFIG_DW_PLL5GHZ_TSMC12FFC=y
 #
 # Bit-wise operations
 #
-# CONFIG_BIT_FLS8 is not set
+CONFIG_BIT_FLS8=y
 CONFIG_BIT_FLS16=y
 # CONFIG_BIT_FFS16 is not set
 # CONFIG_BIT_FLS32 is not set
 # CONFIG_BIT_FFS32 is not set
+# CONFIG_BIT_ROUNDUP8 is not set
 # CONFIG_BIT_ROUNDUP16 is not set
 # CONFIG_BIT_ROUNDDOWN16 is not set
 # CONFIG_BIT_ROUNDUP32 is not set

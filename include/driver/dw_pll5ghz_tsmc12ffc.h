@@ -85,9 +85,6 @@
 #define PLL_RESET		_BV(27)
 #define PLL_PWRON		_BV(28)
 #define PLL_TEST_RESET		_BV(29)
-#if 0 /* obtained from RTL */
-#define PLL_TEST_BYPASS		_BV(30)
-#endif
 
 /* PLL_CFG2 */
 #define PLL_LOCK_TIME_OFFSET	0
@@ -115,16 +112,73 @@
 #endif
 
 /* PLL control registers */
-#define PLL_ANAREG7	7
+#define PLL_LOOPCNT1		0
+#define PLL_LOOPCNT2		1
+#define PLL_CTM1		2
+#define PLL_CTM2		3
+#define PLL_ANAREG05		5
+#define PLL_ANAREG06		6
+#define PLL_ANAREG07		7
+#define PLL_ANAREG10		10
+#define PLL_ANAREG11		11
+#define PLL_LOCK_CONTROL	16
+#define PLL_LOCK_WINDOW		20
+#define PLL_UNLOCK_WINDOW	21
+#define PLL_LOCK_COUNTS		22
+#define PLL_UNLOCK_COUNTS	23
+#define PLL_SCFRAC_CNT		24
 
+/* LOOPCNT1 */
+#define PLL_INT_CNTRL_OFFSET		3
+#define PLL_INT_CNTRL_MASK		REG_5BIT_MASK
+#define PLL_INT_CNTRL(value)		_SET_FV(PLL_INT_CNTRL, value)
+/* LOOPCNT2 */
+#define PLL_PROP_CNTRL_OFFSET		4
+#define PLL_PROP_CNTRL_MASK		REG_4BIT_MASK
+#define PLL_PROP_CNTRL(value)		_SET_FV(PLL_PROP_CNTRL, value)
+/* CTM1 */
+#define PLL_CP_CNTRL_PROP		_BV(5)
+/* CTM2 */
+#define PLL_CP_INT_HALF			_BV(0)
+/* ANAREG5 */
+#define PLL_TEST_BYPASS			_BV(0)
+/* ANAREG6 */
+#define PLL_BYPASS_SYNC_R		_BV(3)
+#define PLL_BYPASS_SYNC_P		_BV(4)
 /* ANAREG7 */
-#define PLL_PRSTDUR_OFFSET	5
-#define PLL_PRSTDUR_MASK	REG_3BIT_MASK
-#define PLL_PRSTDUR(value)	_SET_FV(PLL_PRSTDUR, value)
+#define PLL_PRSTDUR_OFFSET		5
+#define PLL_PRSTDUR_MASK		REG_3BIT_MASK
+#define PLL_PRSTDUR(value)		_SET_FV(PLL_PRSTDUR, value)
+/* ANAREG10 */
+#define PLL_GS_INT_CNTRL_OFFSET		3
+#define PLL_GS_INT_CNTRL_MASK		REG_3BIT_MASK
+#define PLL_GS_INT_CNTRL(value)		_SET_FV(PLL_GS_INT_CNTRL, value)
+/* ANAREG11 */
+#define PLL_GS_PROP_CNTRL_OFFSET	4
+#define PLL_GS_PROP_CNTRL_MASK		REG_4BIT_MASK
+#define PLL_GS_PROP_CNTRL(value)	_SET_FV(PLL_GS_PROP_CNTRL, value)
+/* LOCK_CONTROL */
+#define PLL_LOCKCTR_OFFSET		0
+#define PLL_LOCKCTR_MASK		REG_3BIT_MASK
+#define PLL_LOCKCTR(value)		_SET_FV(PLL_LOCKCTR, value)
+#define PLL_OVR_LOCK			_BV(7)
+/* SCFRAC_CNT */
+#define PLL_FRAC_EN			_BV(0)
 
+/* PLL bypass modes */
+#define PLL_BYPASS_NONE			0
+#define PLL_BYPASS_CORE			1
+#define PLL_BYPASS_ALL			2
+
+/* configure bypass mode */
+void dw_pll5ghz_tsmc12ffc_bypass(uint8_t pll, uint8_t mode);
+/* power on sequence */
 void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco);
+/* power down sequence */
 void dw_pll5ghz_tsmc12ffc_pwrdn(uint8_t pll);
+/* enter standby sequence */
 void dw_pll5ghz_tsmc12ffc_standby(uint8_t pll);
+/* leave standby sequence */
 void dw_pll5ghz_tsmc12ffc_relock(uint8_t pll);
 
 #endif /* __DW_PLL5GHZ_TSMC12FFC_H_INCLUDE__ */

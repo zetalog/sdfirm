@@ -89,16 +89,24 @@ void dw_pll5ghz_tsmc12ffc_relock(uint8_t pll)
 	}
 }
 
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_PRSTDUR
+static void dw_pll5ghz_tsmc12ffc_prstdur(uint8_t pll)
+{
+	uint8_t prstdur;
+
+	prstdur = __fls8(div32u(DW_PLL_REFCLK_FREQ, 1000000) - 1) - 1;
+	dw_pll_write(pll, PLL_ANAREG07, PLL_PRSTDUR(prstdur));
+}
+#else
+#define dw_pll5ghz_tsmc12ffc_prstdur(pll)	do { } while (0)
+#endif
+
 void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
 {
 	uint16_t mint, mfrac;
 	uint8_t prediv = 0;
 	uint32_t vco_cfg = PLL_RANGE3;
 	uint64_t fbdiv;
-	uint8_t prstdur;
-
-	prstdur = __roundup8(div32u(DW_PLL_REFCLK_FREQ, 1000000));
-	dw_pll_write(pll, PLL_ANAREG7, PLL_PRSTDUR(prstdur));
 
 	if (fvco <= ULL(3750000000))
 		vco_cfg = PLL_RANGE1;
@@ -132,7 +140,7 @@ void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
 	/* ndelay(50); */
 	__raw_writel(vco_cfg | PLL_STARTUP | PLL_RESET,
 		     DW_PLL_CFG1(pll));
-	dw_pll5ghz_tsmc12ffc_gear();
+	dw_pll5ghz_tsmc12ffc_gear(pll);
 	while (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED));
 
 	/* P/R outputs:
@@ -150,5 +158,23 @@ void dw_pll5ghz_tsmc12ffc_pwrdn(uint8_t pll)
 	if (__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED) {
 		__raw_clearl(PLL_PWRON, DW_PLL_CFG1(pll));
 		while (__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED);
+	}
+}
+
+void dw_pll5ghz_tsmc12ffc_bypass(uint8_t pll, uint8_t mode)
+{
+	switch (mode) {
+	case PLL_BYPASS_CORE:
+		__raw_setl(PLL_BYPASS, DW_PLL_CFG1(pll));
+		dw_pll_write(pll, PLL_ANAREG05, 0);
+		break;
+	case PLL_BYPASS_ALL:
+		__raw_setl(PLL_BYPASS, DW_PLL_CFG1(pll));
+		dw_pll_write(pll, PLL_ANAREG05, PLL_TEST_BYPASS);
+		break;
+	case PLL_BYPASS_NONE:
+	default:
+		__raw_clearl(PLL_BYPASS, DW_PLL_CFG1(pll));
+		break;
 	}
 }

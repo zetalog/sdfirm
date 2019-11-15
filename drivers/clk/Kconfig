@@ -8,7 +8,7 @@ menu "Clock drivers"
 menuconfig DW_PLL5GHZ_TSMC12FFC
 	bool "Synopsys DWC PLL5GHz TSMC12FFCNS support"
 	depends CLK
-	select BIT_ROUNDUP8
+	select BIT_FLS8
 	select MATH_DIV32
 	select MATH_DIV64
 
@@ -33,6 +33,9 @@ config DW_PLL5GHZ_TSMC12FFC_GEAR
 	  to lock the phase of the loop (SPO). Fast PLL locking is achieved
 	  at the cost of less phase margin and more jitter during the gear
 	  state.
+
+config DW_PLL5GHZ_TSMC12FFC_PRSTDUR
+	bool "Enable preset duration adjustment"
 
 endif
 
