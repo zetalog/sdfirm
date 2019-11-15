@@ -35,35 +35,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)tsc.h: DUOWEN specific mandatory TSC driver
- * $Id: tsc.h,v 1.1 2019-09-02 14:52:00 zhenglv Exp $
+ * @(#)tsc.c: DUOWEN specific mandatory TSC implementation
+ * $Id: tsc.c,v 1.1 2019-11-15 12:47:00 zhenglv Exp $
  */
 
-#ifndef __TSC_DUOWEN_H_INCLUDE__
-#define __TSC_DUOWEN_H_INCLUDE__
+#include <target/delay.h>
 
-#include <target/arch.h>
-#include <target/clk.h>
+static bool tsc_hw_init = false;
 
-#define DW_TIMERS_BASE		IMC_TIMER_BASE
-#define DW_TIMERS_SIZE		0x14
-#define DW_TIMERS_WIDTH		32
-#define DW_TIMERS_TSC		0
-
-#define TSC_FREQ		XO_CLK_FREQ
-#define TSC_MAX			((ULL(1) << DW_TIMERS_WIDTH) - 1)
-
-#ifndef __ASSEMBLY__
-#include <driver/dw_timers.h>
-
-void board_init_timestamp(void);
-
-#define tsc_hw_ctrl_init()	board_init_timestamp()
-#ifdef CONFIG_DUOWEN_TSC_DW_TIMERS
-#define tsc_hw_read_counter()	dw_timers_get_counter(DW_TIMERS_TSC)
-#else
-#define tsc_hw_read_counter()	csr_read(CSR_TIME)
-#endif
-#endif /* __ASSEMBLY__ */
-
-#endif /* __TSC_DUOWEN_H_INCLUDE__ */
+void board_init_timestamp(void)
+{
+	if (!tsc_hw_init) {
+		dw_timers_tsc_init(DW_TIMERS_TSC);
+		tsc_hw_init = true;
+	}
+}

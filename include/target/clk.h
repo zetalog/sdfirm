@@ -48,6 +48,7 @@
 #define MAX_CLK_DRIVERS		CONFIG_CLK_MAX_DRIVERS
 #endif
 
+#ifndef __ASSEMBLY__
 typedef uint16_t clk_t;
 typedef uint8_t clk_cat_t;
 typedef uint8_t clk_clk_t;
@@ -86,5 +87,6 @@ void clk_init(void);
 #define clk_select_source(clk, src)	do { } while (0)
 #define clk_init()			do { } while (0)
 #endif
+#endif /* __ASSEMBLY__ */
 
 #endif /* __CLK_H_INCLUDE__ */
