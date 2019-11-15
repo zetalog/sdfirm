@@ -79,6 +79,7 @@ static void imc_init(void)
 void board_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);
+	board_init_timestamp();
 	crcntl_power_up();
 	imc_init();
 }

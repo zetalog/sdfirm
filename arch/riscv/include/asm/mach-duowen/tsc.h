@@ -57,7 +57,9 @@
 #define TSC_FREQ		XO_CLK_FREQ
 #define TSC_MAX			((ULL(1) << DW_TIMERS_WIDTH) - 1)
 
-#define tsc_hw_ctrl_init()	dw_timers_tsc_init(DW_TIMERS_TSC)
+void board_init_timestamp(void);
+
+#define tsc_hw_ctrl_init()	board_init_timestamp()
 #ifdef CONFIG_DUOWEN_TSC_DW_TIMERS
 #define tsc_hw_read_counter()	dw_timers_get_counter(DW_TIMERS_TSC)
 #else
