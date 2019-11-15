@@ -1074,6 +1074,7 @@ static int enable_output_clk(clk_clk_t clk)
 	}
 	if (output_clks[clk].flags & CLK_CLK_EN_F) {
 		crcntl_clk_enable(clk);
+		crcntl_clk_deassert(clk);
 		raise_bits(output_clks[clk].flags, CLK_ENABLED);
 	}
 	return 0;
@@ -1085,6 +1086,7 @@ static void disable_output_clk(clk_clk_t clk)
 		return;
 
 	if (output_clks[clk].flags & CLK_CLK_EN_F) {
+		crcntl_clk_assert(clk);
 		crcntl_clk_disable(clk);
 		unraise_bits(output_clks[clk].flags, CLK_ENABLED);
 	}
@@ -1342,10 +1344,23 @@ bool crcntl_clk_enabled(clk_clk_t clk)
 	return !!(__raw_readl(CRCNTL_CLK_EN_CFG(n)) & _BV(bit));
 }
 
+bool crcntl_clk_asserted(clk_clk_t clk)
+{
+	uint8_t n, bit;
+
+	if (!(output_clks[clk].flags & CLK_SW_RST_F))
+		return false;
+	bit = clk & REG_5BIT_MASK;
+	n = clk >> 5;
+	return !!(__raw_readl(CRCNTL_SW_RST_CFG(n)) & _BV(bit));
+}
+
 void crcntl_clk_enable(clk_clk_t clk)
 {
 	uint8_t n, bit;
 
+	if (!(output_clks[clk].flags & CLK_CLK_EN_F))
+		return;
 	if (!crcntl_clk_enabled(clk)) {
 		bit = clk & REG_5BIT_MASK;
 		n = clk >> 5;
@@ -1357,10 +1372,38 @@ void crcntl_clk_disable(clk_clk_t clk)
 {
 	uint8_t n, bit;
 
+	if (!(output_clks[clk].flags & CLK_CLK_EN_F))
+		return;
 	if (crcntl_clk_enabled(clk)) {
 		bit = clk & REG_5BIT_MASK;
 		n = clk >> 5;
 		__raw_clearl(_BV(bit), CRCNTL_CLK_EN_CFG(n));
+	}
+}
+
+void crcntl_clk_assert(clk_clk_t clk)
+{
+	uint8_t n, bit;
+
+	if (!(output_clks[clk].flags & CLK_SW_RST_F))
+		return;
+	if (!crcntl_clk_asserted(clk)) {
+		bit = clk & REG_5BIT_MASK;
+		n = clk >> 5;
+		__raw_setl(_BV(bit), CRCNTL_SW_RST_CFG(n));
+	}
+}
+
+void crcntl_clk_deassert(clk_clk_t clk)
+{
+	uint8_t n, bit;
+
+	if (!(output_clks[clk].flags & CLK_SW_RST_F))
+		return;
+	if (crcntl_clk_asserted(clk)) {
+		bit = clk & REG_5BIT_MASK;
+		n = clk >> 5;
+		__raw_clearl(_BV(bit), CRCNTL_SW_RST_CFG(n));
 	}
 }
 

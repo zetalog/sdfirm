@@ -369,5 +369,8 @@ uint8_t crcntl_pll_reg_read(uint8_t pll, uint8_t reg);
 bool crcntl_clk_enabled(clk_clk_t clk);
 void crcntl_clk_enable(clk_clk_t clk);
 void crcntl_clk_disable(clk_clk_t clk);
+bool crcntl_clk_asserted(clk_clk_t clk);
+void crcntl_clk_assert(clk_clk_t clk);
+void crcntl_clk_deassert(clk_clk_t clk);
 
 #endif /* __CRCNTL_DUOWEN_H_INCLUDE__ */
