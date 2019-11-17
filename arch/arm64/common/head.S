@@ -8,11 +8,19 @@
 #define ARM_ROM_OFFSET	0
 #endif
 
+#ifndef CONFIG_ARCH_HAS_BOOT0
+	.macro	boot0_hook
+	nop
+	.endm
+#endif
+
 #define __PHYS_OFFSET	(SDFIRM_START - TEXT_OFFSET)
 
 	__HEAD
 
 __head:
+	boot0_hook
+
 #ifdef CONFIG_BOOT_ROM
 .org 0
 	b	__arm_reset

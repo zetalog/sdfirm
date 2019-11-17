@@ -75,4 +75,6 @@ void dbg_panic(const text_char_t *file, int line);
 #define main_debug(tag, val)
 #endif
 
+#include <target/console.h>
+
 #endif /* __PANIC_H_INCLUDE__ */

@@ -253,6 +253,13 @@ config SYS_HOST
 
 endif
 
+if BOOTLOADER
+
+config ARCH_HAS_BOOT0
+	bool
+
+endif
+
 config PSCI
 	bool "Power State Coordination Interface (PSCI) support"
 	depends SYS_MONITOR || BOOT_LINUX

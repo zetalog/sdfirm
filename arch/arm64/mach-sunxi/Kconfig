@@ -1,0 +1,116 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+if ARCH_SUNXI
+
+config SUNXI_DE2
+	bool
+
+config SUN6I
+	bool
+
+config SUN8I
+	bool
+
+config SUN50I
+	bool
+	select SUNXI_DE2
+
+config SUNXI_H3_H5
+	bool
+	select SUN8I
+	select SUNXI_DE2
+
+config SUN50I_H5
+	bool
+	select SUNXI_H3_H5
+
+menu "Allwinnder ARM SoC options"
+
+config SUNXI_BOOT0_RMR
+	bool
+	select ARCH_HAS_BOOT0
+	help
+	  Insert some ARM32 code at the very beginning of the binary
+	  entry. Which uses an RMR register write to bring the core
+	  into AARCH64 mode.
+
+choice
+	prompt "SUNXI board"
+	help
+	  Selects CPUs that compiled sdfirm should run against.
+
+config SUNXI_H5_NANOPI
+	bool "NanoPi NEO2"
+	select SUN50I_H5
+
+endchoice
+
+choice
+	prompt "SUNXI program stage"
+	help
+	  Selects start point of the SUNXI firmware.
+
+config SUNXI_SPL
+	bool "Secondary program loader (SPL)"
+	select SUNXI_BOOT0_RMR
+	select ARCH_HAS_BOOT_LOAD
+	select BFM
+	help
+	  Enable behavior support of u-boot SPL.
+
+endchoice
+
+config SUNXI_CCU
+	bool "Clock control unit (CCU) support"
+
+config UART_SUNXI
+	bool "SUNXI uart controller support"
+	depends UART || DEBUG_PRINT || CONSOLE
+	depends !ARM_DCC
+	select ARCH_HAS_NS16550
+	select NS16550
+	default y
+	help
+
+if UART_SUNXI
+
+choice
+	prompt "UART console port"
+
+config UART_SUNXI_CON0
+	bool "UART0"
+
+config UART_SUNXI_CON1
+	bool "UART1"
+
+config UART_SUNXI_CON2
+	bool "UART2"
+
+config UART_SUNXI_CON3
+	bool "UART3"
+
+endchoice
+
+choice
+	prompt "UART compatibility"
+	default UART_SUNXI_16550
+
+config UART_SUNXI_16540
+	bool "16540"
+	select ARCH_HAS_NS16550_FIFO_0
+	select ARCH_HAS_NS16540
+
+config UART_SUNXI_16550
+	bool "16550"
+	select ARCH_HAS_NS16550_FIFO_64
+
+endchoice
+
+endif
+
+endmenu
+
+endif

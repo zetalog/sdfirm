@@ -5,6 +5,110 @@
 
 menu "Debugging console drivers"
 
+config CON_NS16550
+	bool
+
+config DBG_NS16550
+	bool
+
+config ARCH_HAS_NS16540
+	bool
+
+config ARCH_HAS_NS16550
+	bool
+
+config ARCH_HAS_NS16750
+	bool
+
+config ARCH_HAS_NS16550_FIFO_0
+	bool
+
+config ARCH_HAS_NS16550_FIFO_16
+	bool
+
+config ARCH_HAS_NS16550_FIFO_32
+	bool
+
+config ARCH_HAS_NS16550_FIFO_64
+	bool
+
+config ARCH_HAS_NS16550_FIFO_128
+	bool
+
+config ARCH_HAS_NS16550_FIFO_256
+	bool
+
+config ARCH_HAS_NS16550_FIFO_512
+	bool
+
+config ARCH_HAS_NS16550_FIFO_1024
+	bool
+
+config ARCH_HAS_NS16550_FIFO_2048
+	bool
+
+menuconfig NS16550
+	bool "National Semiconductor 16550 UART support"
+	depends ARCH_HAS_NS16550
+	select CON_NS16550 if CONSOLE
+	select DBG_NS16550 if DEBUG_PRINT
+	select ARCH_HAS_UART
+	select MATH_DIV32
+
+if NS16550
+
+choice
+	prompt "FIFO depth"
+	default NS16550_FIFO_64
+
+config NS16550_FIFO_NONE
+	bool "0"
+	depends ARCH_HAS_NS16550_FIFO_0
+
+config NS16550_FIFO_16
+	bool "16"
+	depends ARCH_HAS_NS16550_FIFO_16
+
+config NS16550_FIFO_32
+	bool "32"
+	depends ARCH_HAS_NS16550_FIFO_32
+
+config NS16550_FIFO_64
+	bool "64"
+	depends ARCH_HAS_NS16550_FIFO_64
+
+config NS16550_FIFO_128
+	bool "128"
+	depends ARCH_HAS_NS16550_FIFO_128
+
+config NS16550_FIFO_256
+	bool "256"
+	depends ARCH_HAS_NS16550_FIFO_256
+
+config NS16550_FIFO_512
+	bool "512"
+	depends ARCH_HAS_NS16550_FIFO_512
+
+config NS16550_FIFO_1024
+	bool "1024"
+	depends ARCH_HAS_NS16550_FIFO_1024
+
+config NS16550_FIFO_2048
+	bool "2048"
+	depends ARCH_HAS_NS16550_FIFO_2048
+
+endchoice
+
+config NS16540
+	bool "Enable 16540 compatible mode"
+	depends ARCH_HAS_16540
+
+config NS16750
+	bool "Enable 16750 compatible mode"
+	depends ARCH_HAS_16750
+
+endif
+
 config CON_DW_UART
 	bool
 

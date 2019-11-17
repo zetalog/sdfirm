@@ -52,6 +52,19 @@ config ARCH_GEM5
 	help
 	  This enables support of ARM versatile express platform.
 
+config ARCH_SUNXI
+	bool "Allwinner ARM SoC (SUNXI)"
+	select ARCH_IS_TICKLESS
+	select ARCH_HAS_TSC
+	select ARCH_HAS_TSC_CONST
+	select ARCH_HAS_GPT
+	select ARCH_HAS_IDLE
+	select ARCH_HAS_CLK
+	select NS16550 if CONSOLE || DEBUG_PRINT
+	select SUNXI_CCU if CLK
+	help
+	  This enables support of Allwinnder ARM SoC platforms.
+
 endchoice
 
 source arch/arm64/common/Kconfig
@@ -259,6 +272,7 @@ endmenu
 
 source "arch/arm64/mach-qdf2400/Kconfig"
 source "arch/arm64/mach-gem5/Kconfig"
+source "arch/arm64/mach-sunxi/Kconfig"
 
 source "kernel/Kconfig"
 source "drivers/Kconfig"

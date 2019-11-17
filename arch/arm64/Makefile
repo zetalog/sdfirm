@@ -101,12 +101,16 @@ CHECKFLAGS	+= -D__aarch64__ -m64
 head-y		:= arch/arm64/common/head.rel
 
 ifeq ($(CONFIG_ARCH_QDF2400),y)
- machine-$(CONFIG_ARCH_QDF2400)    := qdf2400
- incdir-$(CONFIG_ARCH_QDF2400)	   := qdf2400
+ machine-$(CONFIG_ARCH_QDF2400)	:= qdf2400
+ incdir-$(CONFIG_ARCH_QDF2400)	:= qdf2400
 endif
 ifeq ($(CONFIG_ARCH_GEM5),y)
- machine-$(CONFIG_ARCH_GEM5)       := gem5
- incdir-$(CONFIG_ARCH_GEM5)	   := gem5
+ machine-$(CONFIG_ARCH_GEM5)	:= gem5
+ incdir-$(CONFIG_ARCH_GEM5)	:= gem5
+endif
+ifeq ($(CONFIG_ARCH_SUNXI),y)
+ machine-$(CONFIG_ARCH_SUNXI)	:= sunxi
+ incdir-$(CONFIG_ARCH_SUNXI)	:= sunxi
 endif
 
 ifeq ($(incdir-y),)
