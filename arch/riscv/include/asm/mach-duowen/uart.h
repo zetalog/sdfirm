@@ -50,8 +50,8 @@
 #include <target/arch.h>
 
 #define UART_CLK_ID		uart0_clk
+#define UART_APB_CLK_ID		uart0_apb_clk
 #define DW_UART0_BASE		IMC_UART_BASE
-#define DW_UART_FREQ		55555555
 #define UART_CON_ID		0
 
 #if defined(CONFIG_DW_UART)
@@ -76,11 +76,12 @@ void uart_hw_mmu_init(void);
 #endif
 
 #ifdef CONFIG_CONSOLE
-#define uart_hw_con_init()		\
-	do {				\
-		board_init_clock();	\
-		clk_enable(uart0_clk);	\
-		dw_uart_con_init();	\
+#define uart_hw_con_init()						\
+	do {								\
+		board_init_clock();					\
+		clk_enable(UART_APB_CLK_ID);				\
+		clk_enable(UART_CLK_ID);				\
+		dw_uart_con_init(clk_get_frequency(UART_CLK_ID));	\
 	} while (0)
 #endif
 #ifdef CONFIG_CONSOLE_OUTPUT

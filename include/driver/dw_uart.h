@@ -259,7 +259,7 @@
 #define dw_uart_write_byte(n, byte)	__raw_writel((byte), UART_THR(n))
 
 #ifdef CONFIG_CONSOLE
-void dw_uart_con_init(void);
+void dw_uart_con_init(uint32_t freq);
 #endif
 #ifdef CONFIG_CONSOLE_OUTPUT
 void dw_uart_con_write(uint8_t byte);

@@ -42,7 +42,7 @@
 #include <target/uart.h>
 
 #ifdef CONFIG_DW_UART_DLF
-#define dw_uart_convert_baudrate(baudrate, div, frac)	\
+#define dw_uart_convert_baudrate(freq, baud, div, frac)	\
 	do {						\
 		div = 0;				\
 		frac = 0;				\
@@ -50,10 +50,10 @@
 #define dw_uart_config_frac(n, frac)			\
 	__raw_writel(frac, UART_DLF(n))
 #else
-#define dw_uart_convert_baudrate(baudrate, div, frac)	\
+#define dw_uart_convert_baudrate(freq, baud, div, frac)	\
 	do {						\
-		div = (uint16_t)div32u(DW_UART_FREQ,	\
-				       (baudrate) << 4);\
+		div = (uint16_t)div32u(freq,		\
+				       (baud) << 4);	\
 		frac = 0;				\
 	} while (0)
 #define dw_uart_config_frac(n, frac)			\
@@ -78,7 +78,7 @@ uint8_t dw_uart_convert_params(uint8_t params)
 }
 
 #ifdef CONFIG_CONSOLE
-void dw_uart_con_init(void)
+void dw_uart_con_init(uint32_t freq)
 {
 	uint16_t divisor;
 	uint8_t fraction;
@@ -92,7 +92,8 @@ void dw_uart_con_init(void)
 	__raw_setl(LCR_DLAB, UART_LCR(UART_CON_ID));
 	dw_uart_wait_busy(UART_CON_ID);
 	/* Configure baudrate */
-	dw_uart_convert_baudrate(UART_CON_BAUDRATE, divisor, fraction);
+	dw_uart_convert_baudrate(freq, UART_CON_BAUDRATE,
+				 divisor, fraction);
 	__raw_writel(LOBYTE(divisor), UART_DLL(UART_CON_ID));
 	__raw_writel(HIBYTE(divisor), UART_DLH(UART_CON_ID));
 	dw_uart_config_frac(UART_CON_ID, fraction);
