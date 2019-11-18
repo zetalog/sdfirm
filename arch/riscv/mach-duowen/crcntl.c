@@ -41,6 +41,9 @@
 
 #include <target/clk.h>
 #include <target/delay.h>
+#include <target/cmdline.h>
+#include <stdio.h>
+#include <string.h>
 
 struct output_clk {
 	uint32_t freq;
@@ -1649,3 +1652,49 @@ uint8_t crcntl_pll_reg_read(uint8_t pll, uint8_t reg)
 	} while (val & PLL_REG_IDLE);
 	return PLL_REG_RDATA(val);
 }
+
+static int do_crcntl_dump(int argc, char *argv[])
+{
+	int i;
+
+	printf("type id  %12s %12s\n", "name", "source");
+	for (i = 0; i < NR_PLL_CLKS; i++) {
+		if (pll_clk_names[i]) {
+			printf("pll  %3d %12s %12s\n",
+			       i, pll_clk_names[i], "xo_clk");
+		}
+	}
+	for (i = 0; i < NR_DIV_CLKS; i++) {
+		if (div_clk_names[i]) {
+			printf("div  %3d %12s %12s\n",
+			       i, div_clk_names[i],
+			       clk_get_mnemonic(div_clks[i].derived));
+		}
+	}
+	for (i = 0; i < NR_OUTPUT_CLKS; i++) {
+		if (output_clk_names[i]) {
+			printf("clk  %3d %12s %12s\n",
+			       i, output_clk_names[i],
+			       clk_get_mnemonic(output_clks[i].clk_sels[0]));
+			printf("%4s %3s %12s %12s\n", "", "", "",
+			       clk_get_mnemonic(output_clks[i].clk_sels[1]));
+		}
+	}
+	return 0;
+}
+
+static int do_crcntl(int argc, char *argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+
+	if (strcmp(argv[1], "dump") == 0)
+		return do_crcntl_dump(argc, argv);
+	return -ENODEV;
+}
+
+DEFINE_COMMAND(crcntl, do_crcntl, "Clock/reset controller (CRCNTL)",
+	"crcntl dump\n"
+	"    -display clock tree source multiplexing\n"
+	"\n"
+);

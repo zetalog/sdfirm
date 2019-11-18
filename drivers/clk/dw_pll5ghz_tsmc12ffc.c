@@ -44,6 +44,9 @@
 #include <target/panic.h>
 #include <target/bitops.h>
 #include <target/barrier.h>
+#include <target/cmdline.h>
+#include <stdio.h>
+#include <string.h>
 
 #ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_ACCEL
 #define dw_pll5ghz_tsmc12ffc_delay(us)	wmb()
@@ -198,3 +201,75 @@ void dw_pll5ghz_tsmc12ffc_bypass(uint8_t pll, uint8_t mode)
 		break;
 	}
 }
+
+static int do_pll_reg_access(int argc, char * argv[])
+{
+	int pll;
+	uint8_t reg;
+	uint8_t val;
+
+	if (argc < 4)
+		return -EINVAL;
+
+	pll = strtoul(argv[2], NULL, 0);
+	reg = strtoul(argv[3], NULL, 0);
+	if (argc > 4) {
+		val = strtoul(argv[4], NULL, 0);
+		dw_pll_write(pll, reg, val);
+		printf("done.\n");
+		return 0;
+	} else {
+		val = dw_pll_read(pll, reg);
+		return mem_print_data(reg, &val, 1, 1);
+	}
+}
+
+static int do_pll_operation(int argc, char * argv[])
+{
+	int pll;
+	uint32_t freq;
+
+	if (argc < 3)
+		return -EINVAL;
+
+	pll = strtoul(argv[2], NULL, 0);
+	if (strcmp(argv[1], "up")) {
+		if (argc < 4)
+			return -EINVAL;
+		freq = strtoul(argv[3], NULL, 0);
+		dw_pll5ghz_tsmc12ffc_pwron(pll, freq);
+	}
+	if (strcmp(argv[1], "down"))
+		dw_pll5ghz_tsmc12ffc_pwrdn(pll);
+	if (strcmp(argv[1], "standby"))
+		dw_pll5ghz_tsmc12ffc_standby(pll);
+	if (strcmp(argv[1], "relock"))
+		dw_pll5ghz_tsmc12ffc_relock(pll);
+	return -ENODEV;
+}
+
+static int do_pll(int argc, char *argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+
+	if (strcmp(argv[1], "access") == 0)
+		return do_pll_reg_access(argc, argv);
+	return do_pll_operation(argc, argv);
+}
+
+DEFINE_COMMAND(pll, do_pll, "Control DWC PLL5GHz TSMC12FFCNS",
+	"pll access pll reg\n"
+	"    -read pll register\n"
+	"pll access pll reg val\n"
+	"    -write pll register\n"
+	"pll up pll freq\n"
+	"    -power up pll with specified frequency\n"
+	"pll down pll\n"
+	"    -power down pll\n"
+	"pll standby pll\n"
+	"    -put pll into standby state\n"
+	"pll relock pll\n"
+	"    -get pll out of standby state\n"
+	"\n"
+);

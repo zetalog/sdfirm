@@ -132,6 +132,8 @@ const char *clk_get_mnemonic(clk_t clk)
 
 int clk_register_driver(clk_cat_t category, struct clk_driver *clkd)
 {
+	if (category >= MAX_CLK_DRIVERS)
+		return -EINVAL;
 	if (clk_drivers[category])
 		return -EBUSY;
 	clk_drivers[category] = clkd;
@@ -173,6 +175,7 @@ static int do_clk_dump(int argc, char *argv[])
 	clk_t clkid;
 	const char *name;
 
+	printf("%12s: %-10s\n", "clock", "frequency");
 	for (cat = 0; cat < MAX_CLK_DRIVERS; cat++) {
 		if (clk_drivers[cat]) {
 			clkd = clk_drivers[cat];
@@ -180,7 +183,7 @@ static int do_clk_dump(int argc, char *argv[])
 				clkid = clkid(cat, clk);
 				name = clk_get_mnemonic(clkid);
 				if (name)
-					printf("%s: \t%-10d\n", name,
+					printf("%12s: %-10d\n", name,
 					       clk_get_frequency(clkid));
 			}
 		}
@@ -188,7 +191,7 @@ static int do_clk_dump(int argc, char *argv[])
 	return 0;
 }
 
-static int do_clk_switch(int argc, char *argv[])
+static int do_clk_select(int argc, char *argv[])
 {
 	clk_t clkid;
 	clk_t srcid;
@@ -247,6 +250,38 @@ static int do_clk_disable(int argc, char *argv[])
 	return 0;
 }
 
+static int do_clk_freq(int argc, char *argv[])
+{
+	clk_t clkid;
+	uint32_t freq;
+	int ret;
+
+	if (argc < 3)
+		return -EINVAL;
+	clkid = clk_search_mnemonic(argv[2]);
+	if (clkid == invalid_clk) {
+		printf("invalid clock: %s.\n", argv[2]);
+		return -EINVAL;
+	}
+	if (argc > 3) {
+		freq = strtoul(argv[3], NULL, 0);
+		ret = clk_set_frequency(clkid, freq);
+		if (ret) {
+			printf("faiure: %s %10d.\n", argv[2], freq);
+			return ret;
+		}
+		printf("success.\n");
+	} else {
+		freq = clk_get_frequency(clkid);
+		if (freq == INVALID_FREQ) {
+			printf("faiure: %s.\n", argv[2]);
+			return -EINVAL;
+		}
+		printf("%12s: %-10d\n", argv[2], freq);
+	}
+	return 0;
+}
+
 static int do_clk(int argc, char *argv[])
 {
 	if (argc < 2)
@@ -254,23 +289,27 @@ static int do_clk(int argc, char *argv[])
 
 	if (strcmp(argv[1], "dump") == 0)
 		return do_clk_dump(argc, argv);
-	if (strcmp(argv[1], "switch") == 0)
-		return do_clk_switch(argc, argv);
+	if (strcmp(argv[1], "select") == 0)
+		return do_clk_select(argc, argv);
 	if (strcmp(argv[1], "enable") == 0)
 		return do_clk_enable(argc, argv);
 	if (strcmp(argv[1], "disable") == 0)
 		return do_clk_disable(argc, argv);
+	if (strcmp(argv[1], "freq") == 0)
+		return do_clk_freq(argc, argv);
 	return -ENODEV;
 }
 
 DEFINE_COMMAND(clk, do_clk, "Control clock tree",
 	"clk dump\n"
 	"    -display clock settings\n"
-	"clk switch clk src\n"
-	"    -switch clock source multiplexing\n"
+	"clk select clk src\n"
+	"    -select clock source multiplexing\n"
 	"clk enable clk\n"
 	"    -enable clock\n"
 	"clk disable clk\n"
 	"    -disable clock\n"
+	"clk freq clk [freq]\n"
+	"    -set/get clock frequency\n"
 	"\n"
 );
