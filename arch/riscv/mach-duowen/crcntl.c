@@ -42,18 +42,6 @@
 #include <target/clk.h>
 #include <target/delay.h>
 
-#ifdef CONFIG_DUOWEN_CLK_TEST
-void clk_hw_ctrl_init(void)
-{
-	int i;
-
-	crcntl_pll_enable(DDR_PLL, DDR_PLL_FREQ);
-	crcntl_pll_enable(SOC_PLL, SOC_PLL_FREQ);
-	__raw_writel(0, CRCNTL_CLK_SEL_CFG);
-	for (i = 0; i < 5; i++)
-		__raw_writel(0xFFFFFFFF, CRCNTL_CLK_EN_CFG(i));
-}
-#else
 struct output_clk {
 	uint32_t freq;
 	clk_t clk_sels[2];
@@ -592,7 +580,11 @@ struct output_clk output_clks[] = {
 			sysfab_clk_250,
 			xo_clk,
 		},
+#ifdef CONFIG_CRCNTL_IMC_BOOT
+		.flags = CLK_CR | CLK_SEL(IMC_CLK_SEL) | CLK_BOOT,
+#else
 		.flags = CLK_CR | CLK_SEL(IMC_CLK_SEL),
+#endif
 	},
 	[CRCNTL_CRCNTL] = {
 		.freq = XO_CLK_FREQ,
@@ -1345,7 +1337,6 @@ void clk_hw_ctrl_init(void)
 {
 	board_init_clock();
 }
-#endif
 
 /*===========================================================================
  * CRCNTL APIs

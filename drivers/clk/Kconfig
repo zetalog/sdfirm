@@ -37,6 +37,13 @@ config DW_PLL5GHZ_TSMC12FFC_GEAR
 config DW_PLL5GHZ_TSMC12FFC_PRSTDUR
 	bool "Enable preset duration adjustment"
 
+config DW_PLL5GHZ_TSMC12FFC_ACCEL
+	bool "Enable acceleration for emulation"
+	depends EXPERIMENTAL
+	help
+	  In emulation environment, t_pwrstb, t_trst and t_pwron can be
+	  omit to accelerate emulation.
+
 endif
 
 endmenu

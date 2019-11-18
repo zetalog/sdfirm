@@ -43,6 +43,13 @@
 #include <target/delay.h>
 #include <target/panic.h>
 #include <target/bitops.h>
+#include <target/barrier.h>
+
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_ACCEL
+#define dw_pll5ghz_tsmc12ffc_delay(us)	wmb()
+#else
+#define dw_pll5ghz_tsmc12ffc_delay(us)	udelay(us)
+#endif
 
 #ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_GEAR
 static void dw_pll5ghz_tsmc12ffc_gear(uint8_t pll)
@@ -134,22 +141,23 @@ void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
 	cfg |= PLL_GEAR_SHIFT;
 	__raw_writel(cfg, DW_PLL_CFG1(pll));
 	/* t_pwrstb */
-	udelay(1);
+	dw_pll5ghz_tsmc12ffc_delay(1);
 	/* ndelay(500); */
 	cfg |= PLL_TEST_RESET;
 	__raw_writel(cfg, DW_PLL_CFG1(pll));
 	/* t_trst */
-	udelay(1);
+	dw_pll5ghz_tsmc12ffc_delay(1);
 	/* ndelay(50); */
 	cfg |= PLL_PWRON;
 	__raw_writel(cfg, DW_PLL_CFG1(pll));
-	/* XXX: In the databook, PWRON and RST_N seem to be set
+	/* XXX: t_pwron
+	 *      In the databook, PWRON and RST_N seem to be set
 	 *      simultaneously, while the IP complains that PWRON must
-	 *      be enabled before setting RST_N. And the process taks
+	 *      be enabled before setting RST_N. And the process takes
 	 *      time, otherwise, RST_N setting and GEAR_SHIFT unsetting
 	 *      can go wrong.
 	 */
-	udelay(1);
+	dw_pll5ghz_tsmc12ffc_delay(1);
 	cfg |= PLL_RESET;
 	__raw_writel(cfg, DW_PLL_CFG1(pll));
 	dw_pll5ghz_tsmc12ffc_gear(pll);
