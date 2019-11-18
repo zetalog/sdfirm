@@ -107,54 +107,6 @@
 /* CRCNTL_SW_GLOBAL_RST */
 #define PWR_GLOBAL_RST		_BV(0)
 
-/* PLL_CFG0 */
-#define PLL_MFRAC_OFFSET	0
-#define PLL_MFRAC_MASK		REG_16BIT_MASK
-#define PLL_MFRAC(value)	_SET_FV(PLL_MFRAC, value)
-#define PLL_MINT_OFFSET		16
-#define PLL_MINT_MASK		REG_10BIT_MASK
-#define PLL_MINT(value)		_SET_FV(PLL_MINT, value)
-#define PLL_PREDIV_OFFSET	26
-#define PLL_PREDIV_MASK		REG_5BIT_MASK
-#define PLL_PREDIV(value)	_SET_FV(PLL_PREDIV, value)
-
-/* PLL_CFG1 */
-#define PLL_DIVVCOR_OFFSET	0
-#define PLL_DIVVCOR_MASK	REG_4BIT_MASK
-#define PLL_DIVVCOR(value)	_SET_FV(PLL_DIVVCOR, value)
-#define PLL_DIVVCOP_OFFSET	4
-#define PLL_DIVVCOP_MASK	REG_4BIT_MASK
-#define PLL_DIVVCOP(value)	_SET_FV(PLL_DIVVCOP, value)
-#define PLL_R_OFFSET		8
-#define PLL_R_MASK		REG_6BIT_MASK
-#define PLL_R(value)		_SET_FV(PLL_R, value)
-#define PLL_P_OFFSET		14
-#define PLL_P_MASK		REG_6BIT_MASK
-#define PLL_P(value)		_SET_FV(PLL_P, value)
-#define PLL_VCO_MODE		_BV(20)
-#define PLL_STANDBY		_BV(21)
-#define PLL_BYPASS		_BV(22)
-#define PLL_ENR			_BV(23)
-#define PLL_ENP			_BV(24)
-#define PLL_LOWFREQ		_BV(25)
-#define PLL_GEAR_SHIFT		_BV(26)
-#define PLL_RESET		_BV(27)
-#define PLL_PWRON		_BV(28)
-#define PLL_TEST_RESET		_BV(29)
-#if 0 /* obtained from RTL */
-#define PLL_TEST_BYPASS		_BV(30)
-#endif
-
-/* PLL_CFG2 */
-#define PLL_LOCK_TIME_OFFSET	0
-#define PLL_LOCK_TIME_MASK	REG_16BIT_MASK
-#define PLL_LOCK_TIME(value)	_SET_FV(PLL_LOCK_TIME, value)
-
-/* PLL_STATUS */
-#define PLL_LOCKED		_BV(0)
-#define PLL_STANDBYEFF		_BV(1)
-#define PLL_CNT_LOCKED		_BV(2)
-
 /* CLK_SEL_CFG */
 #define DDR_DFI_CLK_SEL		_BV(29)
 #define SPI_SLV_CLK_SEL		_BV(28)
@@ -366,6 +318,7 @@ void crcntl_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val);
 uint8_t crcntl_pll_reg_read(uint8_t pll, uint8_t reg);
 
 /* APIs here can be invoked w/o enabling clock tree core */
+bool crcntl_clk_selected(clk_clk_t clk);
 bool crcntl_clk_enabled(clk_clk_t clk);
 void crcntl_clk_enable(clk_clk_t clk);
 void crcntl_clk_disable(clk_clk_t clk);

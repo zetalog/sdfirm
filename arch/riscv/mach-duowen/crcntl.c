@@ -70,6 +70,7 @@ struct output_clk {
 #define CLK_R		CLK_SW_RST_F
 #define CLK_SELECTED	_BV(11)
 #define CLK_ENABLED	_BV(12)
+#define PCLK_ENABLED	_BV(13)
 };
 
 struct output_clk output_clks[] = {
@@ -1066,12 +1067,10 @@ static int enable_output_clk(clk_clk_t clk)
 	if (clk >= NR_OUTPUT_CLKS)
 		return -EINVAL;
 
-	if (output_clks[clk].flags & CLK_CLK_SEL_F) {
-		if (output_clks[clk].flags & CLK_SELECTED)
-			crcntl_clk_select(clkid);
-		else
-			crcntl_clk_deselect(clkid);
-	}
+	if (output_clks[clk].flags & CLK_SELECTED)
+		clk_hw_select_boot(clkid);
+	else
+		clk_hw_select_run(clkid);
 	if (output_clks[clk].flags & CLK_CLK_EN_F) {
 		crcntl_clk_enable(clk);
 		crcntl_clk_deassert(clk);
@@ -1094,14 +1093,24 @@ static void disable_output_clk(clk_clk_t clk)
 
 static uint32_t get_output_clk_freq(clk_clk_t clk)
 {
-	clk_t clkid = clkid(CLK_OUTPUT, clk);
+	uint32_t freq;
 
 	if (clk >= NR_OUTPUT_CLKS)
 		return INVALID_FREQ;
-	if (crcntl_clk_selected(clkid))
-		return clk_get_frequency(output_clks[clk].clk_sels[1]);
-	else
-		return clk_get_frequency(output_clks[clk].clk_sels[0]);
+	if (output_clks[clk].flags & CLK_CLK_SEL_F) {
+		if (crcntl_clk_selected(clk))
+			freq = clk_get_frequency(
+					output_clks[clk].clk_sels[1]);
+		else
+			freq = clk_get_frequency(
+					output_clks[clk].clk_sels[0]);
+	} else {
+		freq = clk_get_frequency(output_clks[clk].clk_sels[0]);
+		if (freq == INVALID_FREQ)
+			freq = clk_get_frequency(
+					output_clks[clk].clk_sels[1]);
+	}
+	return freq;
 }
 
 struct clk_driver clk_output = {
@@ -1265,80 +1274,96 @@ struct clk_driver clk_input = {
 	.set_freq = NULL,
 };
 
-bool crcntl_pll_enabled(clk_t clkid)
-{
-	clk_clk_t clk = clk_clk(clkid);
-	clk_cat_t cat = clk_cat(clkid);
-
-	if (cat == CLK_PLL) {
-		if (clk >= NR_PLL_CLKS)
-			return false;
-		return pll_clks[clk].enabled;
-	} else if (cat == CLK_DIV) {
-		if (clk >= NR_DIV_CLKS)
-			return false;
-		return crcntl_pll_enabled(div_clks[clk].derived);
-	}
-	return false;
-}
-
-bool crcntl_clk_selected(clk_t clkid)
+/*===========================================================================
+ * Clock tree APIs
+ *===========================================================================*/
+void clk_hw_select_boot(clk_t clkid)
 {
 	clk_clk_t clk;
 	uint8_t bit;
 
 	if (clk_cat(clkid) != CLK_OUTPUT)
-		return false;
-	clk = clk_clk(clkid);
-	if (output_clks[clk].flags & CLK_CLK_SEL_F) {
-		bit = clk_sel(output_clks[clk].flags);
-		return !!(__raw_readl(CRCNTL_CLK_SEL_CFG) & _BV(bit));
-	}
-	return crcntl_pll_enabled(output_clks[clk].clk_sels[0]);
-}
-
-void crcntl_clk_select(clk_t clkid)
-{
-	clk_clk_t clk;
-	uint8_t bit;
-
-	if (clk_cat(clkid) != CLK_OUTPUT)
-		return;
-	if (crcntl_clk_selected(clkid))
 		return;
 	clk = clk_clk(clkid);
 	if (output_clks[clk].flags & CLK_CLK_SEL_F) {
 		bit = clk_sel(output_clks[clk].flags);
 		clk_enable(output_clks[clk].clk_sels[1]);
 		__raw_setl(_BV(bit), CRCNTL_CLK_SEL_CFG);
-		clk_disable(output_clks[clk].clk_sels[0]);
+		if (output_clks[clk].flags & PCLK_ENABLED)
+			clk_disable(output_clks[clk].clk_sels[0]);
+	} else {
+		clk_enable(output_clks[clk].clk_sels[1]);
+		if (output_clks[clk].flags & PCLK_ENABLED)
+			clk_disable(output_clks[clk].clk_sels[0]);
 	}
+	output_clks[clk].flags |= PCLK_ENABLED;
 }
 
-void crcntl_clk_deselect(clk_t clkid)
+void clk_hw_select_run(clk_t clkid)
 {
 	clk_clk_t clk;
 	uint8_t bit;
 
 	if (clk_cat(clkid) != CLK_OUTPUT)
 		return;
-	if (!crcntl_clk_selected(clkid))
-		return;
 	clk = clk_clk(clkid);
 	if (output_clks[clk].flags & CLK_CLK_SEL_F) {
 		bit = clk_sel(output_clks[clk].flags);
 		clk_enable(output_clks[clk].clk_sels[0]);
 		__raw_clearl(_BV(bit), CRCNTL_CLK_SEL_CFG);
-		clk_disable(output_clks[clk].clk_sels[1]);
+		if (output_clks[clk].flags & PCLK_ENABLED)
+			clk_disable(output_clks[clk].clk_sels[1]);
+	} else {
+		clk_enable(output_clks[clk].clk_sels[0]);
+		if (output_clks[clk].flags & PCLK_ENABLED)
+			clk_disable(output_clks[clk].clk_sels[1]);
 	}
+	output_clks[clk].flags |= PCLK_ENABLED;
+}
+
+static bool clk_hw_init = false;
+
+void board_init_clock(void)
+{
+	if (!clk_hw_init) {
+		clk_register_driver(CLK_INPUT, &clk_input);
+		clk_register_driver(CLK_PLL, &clk_pll);
+		clk_register_driver(CLK_OUTPUT, &clk_output);
+		clk_register_driver(CLK_DIV, &clk_div);
+
+		/* Update the status of the default enabled clocks */
+		clk_enable(soc_pll);
+		clk_enable(brom_clk);
+		clk_enable(imc_clk);
+		clk_enable(timer24_clk);
+		clk_enable(crcntl_clk);
+	}
+	clk_hw_init = true;
+}
+
+void clk_hw_ctrl_init(void)
+{
+	board_init_clock();
+}
+#endif
+
+/*===========================================================================
+ * CRCNTL APIs
+ *===========================================================================*/
+bool crcntl_clk_selected(clk_clk_t clk)
+{
+	uint8_t bit;
+
+	BUG_ON(!(output_clks[clk].flags & CLK_CLK_SEL_F));
+	bit = clk_sel(output_clks[clk].flags);
+	return !!(__raw_readl(CRCNTL_CLK_SEL_CFG) & _BV(bit));
 }
 
 bool crcntl_clk_enabled(clk_clk_t clk)
 {
 	uint8_t n, bit;
 
-	if (!(output_clks[clk].flags & CLK_CLK_EN_F))
-		return false;
+	BUG_ON(!(output_clks[clk].flags & CLK_CLK_EN_F));
 	bit = clk & REG_5BIT_MASK;
 	n = clk >> 5;
 	return !!(__raw_readl(CRCNTL_CLK_EN_CFG(n)) & _BV(bit));
@@ -1348,8 +1373,7 @@ bool crcntl_clk_asserted(clk_clk_t clk)
 {
 	uint8_t n, bit;
 
-	if (!(output_clks[clk].flags & CLK_SW_RST_F))
-		return false;
+	BUG_ON(!(output_clks[clk].flags & CLK_SW_RST_F));
 	bit = clk & REG_5BIT_MASK;
 	n = clk >> 5;
 	return !!(__raw_readl(CRCNTL_SW_RST_CFG(n)) & _BV(bit));
@@ -1425,29 +1449,3 @@ uint8_t crcntl_pll_reg_read(uint8_t pll, uint8_t reg)
 	} while (val & PLL_REG_IDLE);
 	return PLL_REG_RDATA(val);
 }
-
-static bool clk_hw_init = false;
-
-void board_init_clock(void)
-{
-	if (!clk_hw_init) {
-		clk_register_driver(CLK_INPUT, &clk_input);
-		clk_register_driver(CLK_PLL, &clk_pll);
-		clk_register_driver(CLK_OUTPUT, &clk_output);
-		clk_register_driver(CLK_DIV, &clk_div);
-
-		/* Update the status of the default enabled clocks */
-		clk_enable(soc_pll);
-		clk_enable(brom_clk);
-		clk_enable(imc_clk);
-		clk_enable(timer24_clk);
-		clk_enable(crcntl_clk);
-	}
-	clk_hw_init = true;
-}
-
-void clk_hw_ctrl_init(void)
-{
-	board_init_clock();
-}
-#endif
