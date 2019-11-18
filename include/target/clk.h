@@ -66,6 +66,7 @@ struct clk_driver {
 	uint32_t (*get_freq)(clk_clk_t clk);
 	int (*set_freq)(clk_clk_t clk, uint32_t freq);
 	void (*select)(clk_clk_t clk, clk_t src);
+	const char *(*get_name)(clk_clk_t clk);
 };
 
 #ifdef CONFIG_CLK
@@ -76,6 +77,7 @@ int clk_set_frequency(clk_t clk, uint32_t freq);
 int clk_enable(clk_t clk);
 void clk_disable(clk_t clk);
 void clk_select_source(clk_t clk, clk_t src);
+const char *clk_get_mnemonic(clk_t clk);
 
 int clk_register_driver(clk_cat_t category, struct clk_driver *clkd);
 void clk_init(void);
@@ -85,6 +87,7 @@ void clk_init(void);
 #define clk_enable(clk)			(-ENODEV)
 #define clk_disable(clk)		do { } while (0)
 #define clk_select_source(clk, src)	do { } while (0)
+#define clk_get_mnemonic(clk)		NULL
 #define clk_init()			do { } while (0)
 #endif
 #endif /* __ASSEMBLY__ */

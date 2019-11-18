@@ -561,7 +561,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_TIC] = {
 		.freq = 0,
 		.clk_sels = {
-			tick_xclk,
+			tic_xclk,
 		},
 		.flags = CLK_CR,
 	},
@@ -1052,6 +1052,146 @@ struct output_clk output_clks[] = {
 	},
 };
 
+#ifdef CONFIG_CONSOLE_COMMAND
+const char *output_clk_names[] = {
+	[CRCNTL_DMA_MST] = "dma_mst_clk",
+	[CRCNTL_DMA_AHB] = "dma_ahb_clk",
+	[CRCNTL_PCIE_M] = "pcie_m_clk",
+	[CRCNTL_PCIE_S] = "pcie_s_clk",
+	[CRCNTL_PCIE_PHY_APB] = "pcie_phy_apb_clk",
+	[CRCNTL_PCIE_BUTTON] = "pcie_button_rst",
+	[CRCNTL_PCIE_POWER_UP] = "pcie_power_up_rst",
+	[CRCNTL_PCIE_TEST] = "pcie_test_rst",
+	[CRCNTL_DDRC0_SLAVE] = "ddrc0_slave_clk",
+	[CRCNTL_DDRC0_CORE] = "ddrc0_core_clk",
+	[CRCNTL_DDRC0_SBR] = "ddrc0_sbr_clk",
+	[CRCNTL_DDRP0_DFI] = "ddrp0_dfi_clk",
+	[CRCNTL_DDRP0] = "ddrp0_bypass_pclk",
+	[CRCNTL_DDRC0_APB] = "ddrc0_apb_clk",
+	[CRCNTL_DDRP0_APB] = "ddrp0_apb_clk",
+	[CRCNTL_DDRP0_DFICTL] = "ddrp0_dfictl_clk",
+	[CRCNTL_DDRP0_SCAN] = "ddrp0_scan_rst",
+	[CRCNTL_DDRC1_SLAVE] = "ddrc1_slave_clk",
+	[CRCNTL_DDRC1_CORE] = "ddrc1_core_clk",
+	[CRCNTL_DDRC1_SBR] = "ddrc1_sbr_clk",
+	[CRCNTL_DDRP1_DFI] = "ddrp1_dfi_clk",
+	[CRCNTL_DDRP1] = "ddrp1_bypass_pclk",
+	[CRCNTL_DDRC1_APB] = "ddrc1_apb_clk",
+	[CRCNTL_DDRP1_APB] = "ddrp1_apb_clk",
+	[CRCNTL_DDRP1_DFICTL] = "ddrp1_dfictl_clk",
+	[CRCNTL_DDRP1_SCAN] = "ddrp1_scan_rst",
+	[CRCNTL_COHFAB] = "cohfab_clk",
+	[CRCNTL_SYSFAB] = "sysfab_clk",
+	[CRCNTL_CFGFAB] = "cfgfab_clk",
+	[CRCNTL_SYSFAB_DBG] = "sysfab_dbg_clk",
+	[CRCNTL_SYSFAB_TIC] = "sysfab_tic_clk",
+	[CRCNTL_COHFAB_CFG] = "cohfab_cfg_clk",
+	[CRCNTL_COHFAB_PLL_CFG] = "cohfab_pll_cfg_clk",
+	[CRCNTL_CLUSTER0_AHB] = "cluster0_ahb_clk",
+	[CRCNTL_CLUSTER1_AHB] = "cluster1_ahb_clk",
+	[CRCNTL_CLUSTER2_AHB] = "cluster2_ahb_clk",
+	[CRCNTL_CLUSTER3_AHB] = "cluster3_ahb_clk",
+	[CRCNTL_CRCNTL_APB] = "crcntl_apb_clk",
+	[CRCNTL_WDT0_APB] = "wdt0_apb_clk",
+	[CRCNTL_WDT1_APB] = "wdt1_apb_clk",
+	[CRCNTL_UART0_APB] = "uart0_apb_clk",
+	[CRCNTL_UART1_APB] = "uart1_apb_clk",
+	[CRCNTL_UART2_APB] = "uart2_apb_clk",
+	[CRCNTL_UART3_APB] = "uart3_apb_clk",
+	[CRCNTL_I2C_MST0_APB] = "i2c_mst0_apb_clk",
+	[CRCNTL_I2C_MST1_APB] = "i2c_mst1_apb_clk",
+	[CRCNTL_I2C_MST2_APB] = "i2c_mst2_apb_clk",
+	[CRCNTL_I2C_MST3_APB] = "i2c_mst3_apb_clk",
+	[CRCNTL_I2C_MST4_APB] = "i2c_mst4_apb_clk",
+	[CRCNTL_I2C_MST5_APB] = "i2c_mst5_apb_clk",
+	[CRCNTL_I2C_MST6_APB] = "i2c_mst6_apb_clk",
+	[CRCNTL_I2C_MST7_APB] = "i2c_mst7_apb_clk",
+	[CRCNTL_I2C_SLV0_APB] = "i2c_slv0_apb_clk",
+	[CRCNTL_I2C_SLV1_APB] = "i2c_slv1_apb_clk",
+	[CRCNTL_I2C_SLV2_APB] = "i2c_slv2_apb_clk",
+	[CRCNTL_I2C_SLV3_APB] = "i2c_slv3_apb_clk",
+	[CRCNTL_SPI_MST0_APB] = "spi_mst0_apb_clk",
+	[CRCNTL_SPI_MST1_APB] = "spi_mst1_apb_clk",
+	[CRCNTL_SPI_MST2_APB] = "spi_mst2_apb_clk",
+	[CRCNTL_SPI_MST3_APB] = "spi_mst3_apb_clk",
+	[CRCNTL_SPI_SLV_APB] = "spi_slv_apb_clk",
+	[CRCNTL_GPIO_APB] = "gpio_apb_clk",
+	[CRCNTL_TLMM_APB] = "tlmm_apb_clk",
+	[CRCNTL_PLIC] = "plic_clk",
+	[CRCNTL_BROM] = "brom_clk",
+	/* [CRCNTL_TIC] = "tic_clk", */
+	[CRCNTL_CORESIGHT] = "coresight_clk",
+	[CRCNTL_IMC] = "imc_clk",
+	[CRCNTL_CRCNTL] = "crcntl_clk",
+	[CRCNTL_WDT0] = "wdt0_clk",
+	[CRCNTL_WDT1] = "wdt1_clk",
+	[CRCNTL_UART0] = "uart0_clk",
+	[CRCNTL_UART1] = "uart1_clk",
+	[CRCNTL_UART2] = "uart2_clk",
+	[CRCNTL_UART3] = "uart3_clk",
+	[CRCNTL_I2C_MST0] = "i2c_mst0_clk",
+	[CRCNTL_I2C_MST1] = "i2c_mst1_clk",
+	[CRCNTL_I2C_MST2] = "i2c_mst2_clk",
+	[CRCNTL_I2C_MST3] = "i2c_mst3_clk",
+	[CRCNTL_I2C_MST4] = "i2c_mst4_clk",
+	[CRCNTL_I2C_MST5] = "i2c_mst5_clk",
+	[CRCNTL_I2C_MST6] = "i2c_mst6_clk",
+	[CRCNTL_I2C_MST7] = "i2c_mst7_clk",
+	[CRCNTL_I2C_SLV0] = "i2c_slv0_clk",
+	[CRCNTL_I2C_SLV1] = "i2c_slv1_clk",
+	[CRCNTL_I2C_SLV2] = "i2c_slv2_clk",
+	[CRCNTL_I2C_SLV3] = "i2c_slv3_clk",
+	[CRCNTL_SPI_MST0] = "spi_mst0_clk",
+	[CRCNTL_SPI_MST1] = "spi_mst1_clk",
+	[CRCNTL_SPI_MST2] = "spi_mst2_clk",
+	[CRCNTL_SPI_MST3] = "spi_mst3_clk",
+	[CRCNTL_SPI_SLV] = "spi_slv_clk",
+	[CRCNTL_SD_HCLK] = "sd_hclk_clk",
+	[CRCNTL_SD_BCLK] = "sd_bclk_clk",
+	[CRCNTL_SD_CCLK_TX] = "sd_cclk_tx_clk",
+	[CRCNTL_SD_CCLK_RX] = "sd_cclk_rx_clk",
+	[CRCNTL_SD_TM_CLK] = "sd_tm_rx_clk",
+	[CRCNTL_TIMER0] = "timer0_clk",
+	[CRCNTL_TIMER1] = "timer1_clk",
+	[CRCNTL_TIMER2] = "timer2_clk",
+	[CRCNTL_TIMER3] = "timer3_clk",
+	[CRCNTL_TIMER4] = "timer4_clk",
+	[CRCNTL_TIMER5] = "timer5_clk",
+	[CRCNTL_TIMER6] = "timer6_clk",
+	[CRCNTL_TIMER7] = "timer7_clk",
+	[CRCNTL_TIMER8] = "timer8_clk",
+	[CRCNTL_TIMER9] = "timer9_clk",
+	[CRCNTL_TIMER10] = "timer10_clk",
+	[CRCNTL_TIMER11] = "timer11_clk",
+	[CRCNTL_TIMER12] = "timer12_clk",
+	[CRCNTL_TIMER13] = "timer13_clk",
+	[CRCNTL_TIMER14] = "timer14_clk",
+	[CRCNTL_TIMER15] = "timer15_clk",
+	[CRCNTL_TIMER16] = "timer16_clk",
+	[CRCNTL_TIMER17] = "timer17_clk",
+	[CRCNTL_TIMER18] = "timer18_clk",
+	[CRCNTL_TIMER19] = "timer19_clk",
+	[CRCNTL_TIMER20] = "timer20_clk",
+	[CRCNTL_TIMER21] = "timer21_clk",
+	[CRCNTL_TIMER22] = "timer22_clk",
+	[CRCNTL_TIMER23] = "timer23_clk",
+	[CRCNTL_TIMER24] = "timer24_clk",
+	[CRCNTL_TIMER_7_0_APB] = "timer_7_0_apb_clk",
+	[CRCNTL_TIMER_15_8_APB] = "timer_15_8_apb_clk",
+	[CRCNTL_TIMER_23_16_APB] = "timer_23_16_apb_clk",
+	[CRCNTL_TIMER_24_APB] = "timer_24_apb_clk",
+};
+
+static const char *get_output_clk_name(clk_clk_t clk)
+{
+	if (clk >= NR_OUTPUT_CLKS)
+		return NULL;
+	return output_clk_names[clk];
+}
+#else
+#define get_output_clk_name		NULL
+#endif
+
 static int enable_output_clk(clk_clk_t clk)
 {
 	clk_t clkid = clkid(CLK_OUTPUT, clk);
@@ -1107,12 +1247,14 @@ static uint32_t get_output_clk_freq(clk_clk_t clk)
 
 static void select_output_clk_src(clk_clk_t clk, clk_t src)
 {
+	clk_t clkid = clkid(CLK_OUTPUT, clk);
+
 	if (clk >= NR_OUTPUT_CLKS)
 		return;
 	if (src == output_clks[clk].clk_sels[0])
-		clk_hw_select_run(clk);
+		clk_hw_select_run(clkid);
 	if (src == output_clks[clk].clk_sels[1])
-		clk_hw_select_boot(clk);
+		clk_hw_select_boot(clkid);
 }
 
 struct clk_driver clk_output = {
@@ -1122,6 +1264,7 @@ struct clk_driver clk_output = {
 	.get_freq = get_output_clk_freq,
 	.set_freq = NULL,
 	.select = select_output_clk_src,
+	.get_name = get_output_clk_name,
 };
 
 struct pll_clk {
@@ -1139,6 +1282,22 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 		.enabled = false,
 	},
 };
+
+#ifdef CONFIG_CONSOLE_COMMAND
+const char *pll_clk_names[NR_PLL_CLKS] = {
+	[SOC_PLL] = "soc_pll",
+	[DDR_PLL] = "ddr_pll",
+};
+
+const char *get_pll_name(clk_clk_t clk)
+{
+	if (clk >= NR_PLL_CLKS)
+		return NULL;
+	return pll_clk_names[clk];
+}
+#else
+#define get_pll_name		NULL
+#endif
 
 static void __enable_pll(clk_clk_t clk)
 {
@@ -1197,6 +1356,8 @@ struct clk_driver clk_pll = {
 	.disable = disable_pll,
 	.get_freq = get_pll_freq,
 	.set_freq = set_pll_freq,
+	.select = NULL,
+	.get_name = get_pll_name,
 };
 
 struct div_clk {
@@ -1227,16 +1388,35 @@ struct div_clk div_clks[NR_DIV_CLKS] = {
 	},
 };
 
+#ifdef CONFIG_CONSOLE_COMMAND
+const char *div_clk_names[NR_DIV_CLKS] = {
+	[SOC_PLL_DIV4] = "sysfab_clk_250",
+	[SOC_PLL_DIV8] = "sysfab_clk_125",
+	[SOC_PLL_DIV10] = "soc_pll_div10",
+	[SD_TM_CLK] = "sd_tm_clk",
+	[DDR_PLL_DIV4] = "ddr_pll_div4",
+};
+
+static const char *get_pll_div_name(clk_clk_t clk)
+{
+	if (clk >= NR_DIV_CLKS)
+		return NULL;
+	return div_clk_names[clk];
+}
+#else
+#define get_pll_div_name	NULL
+#endif
+
 static int enable_pll_div(clk_clk_t clk)
 {
-	if (clk >= NR_PLL_CLKS)
+	if (clk >= NR_DIV_CLKS)
 		return -EINVAL;
 	return clk_enable(div_clks[clk].derived);
 }
 
 static void disable_pll_div(clk_clk_t clk)
 {
-	if (clk >= NR_PLL_CLKS)
+	if (clk >= NR_DIV_CLKS)
 		return;
 	clk_disable(div_clks[clk].derived);
 }
@@ -1255,12 +1435,28 @@ struct clk_driver clk_div = {
 	.disable = disable_pll_div,
 	.get_freq = get_pll_div_freq,
 	.set_freq = NULL,
+	.select = NULL,
+	.get_name = get_pll_div_name,
 };
-
 
 uint32_t input_clks[NR_INPUT_CLKS] = {
 	[XO_CLK] = XO_CLK_FREQ,
 };
+
+#ifdef CONFIG_CONSOLE_COMMAND
+const char *input_clk_names[NR_INPUT_CLKS] = {
+	[XO_CLK] = "xo_clk",
+};
+
+static const char *get_input_clk_name(clk_clk_t clk)
+{
+	if (clk >= NR_INPUT_CLKS)
+		return NULL;
+	return input_clk_names[clk];
+}
+#else
+#define get_input_clk_name	NULL
+#endif
 
 static uint32_t get_input_clk_freq(clk_clk_t clk)
 {
@@ -1275,6 +1471,8 @@ struct clk_driver clk_input = {
 	.disable = NULL,
 	.get_freq = get_input_clk_freq,
 	.set_freq = NULL,
+	.select = NULL,
+	.get_name = get_input_clk_name,
 };
 
 /*===========================================================================

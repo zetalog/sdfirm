@@ -39,8 +39,11 @@
  * $Id: clk.c,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
  */
 
-#include <errno.h>
 #include <target/clk.h>
+#include <target/cmdline.h>
+#include <errno.h>
+#include <string.h>
+#include <stdio.h>
 
 struct clk_driver *clk_drivers[MAX_CLK_DRIVERS];
 
@@ -114,6 +117,19 @@ void clk_select_source(clk_t clk, clk_t src)
 		clkd->select(clk_clk(clk), src);
 }
 
+const char *clk_get_mnemonic(clk_t clk)
+{
+	struct clk_driver *clkd;
+	clk_cat_t cat = clk_cat(clk);
+
+	if (cat >= MAX_CLK_DRIVERS)
+		return NULL;
+	clkd = clk_drivers[cat];
+	if (!clkd || !clkd->get_name)
+		return NULL;
+	return clkd->get_name(clk_clk(clk));
+}
+
 int clk_register_driver(clk_cat_t category, struct clk_driver *clkd)
 {
 	if (clk_drivers[category])
@@ -126,3 +142,135 @@ void clk_init(void)
 {
 	clk_hw_ctrl_init();
 }
+
+clk_t clk_search_mnemonic(const char *mnem)
+{
+	clk_cat_t cat;
+	clk_clk_t clk;
+	struct clk_driver *clkd;
+	clk_t clkid;
+	const char *name;
+
+	for (cat = 0; cat < MAX_CLK_DRIVERS; cat++) {
+		if (clk_drivers[cat]) {
+			clkd = clk_drivers[cat];
+			for (clk = 0; clk < clkd->max_clocks; clk++) {
+				clkid = clkid(cat, clk);
+				name = clk_get_mnemonic(clkid);
+				if (name && strcmp(name, mnem) == 0)
+					return clkid;
+			}
+		}
+	}
+	return invalid_clk;
+}
+
+static int do_clk_dump(int argc, char *argv[])
+{
+	clk_cat_t cat;
+	clk_clk_t clk;
+	struct clk_driver *clkd;
+	clk_t clkid;
+	const char *name;
+
+	for (cat = 0; cat < MAX_CLK_DRIVERS; cat++) {
+		if (clk_drivers[cat]) {
+			clkd = clk_drivers[cat];
+			for (clk = 0; clk < clkd->max_clocks; clk++) {
+				clkid = clkid(cat, clk);
+				name = clk_get_mnemonic(clkid);
+				if (name)
+					printf("%s: \t%-10d\n", name,
+					       clk_get_frequency(clkid));
+			}
+		}
+	}
+	return 0;
+}
+
+static int do_clk_switch(int argc, char *argv[])
+{
+	clk_t clkid;
+	clk_t srcid;
+
+	if (argc < 4)
+		return -EINVAL;
+	clkid = clk_search_mnemonic(argv[2]);
+	if (clkid == invalid_clk) {
+		printf("invalid clock: %s\n.", argv[2]);
+		return -EINVAL;
+	}
+	srcid = clk_search_mnemonic(argv[3]);
+	if (srcid == invalid_clk) {
+		printf("invalid clock: %s\n.", argv[3]);
+		return -EINVAL;
+	}
+	clk_select_source(clkid, srcid);
+	printf("done.\n");
+	return 0;
+}
+
+static int do_clk_enable(int argc, char *argv[])
+{
+	clk_t clkid;
+	int ret;
+
+	if (argc < 3)
+		return -EINVAL;
+	clkid = clk_search_mnemonic(argv[2]);
+	if (clkid == invalid_clk) {
+		printf("invalid clock: %s.\n", argv[2]);
+		return -EINVAL;
+	}
+	ret = clk_enable(clkid);
+	if (ret) {
+		printf("failure.\n");
+		return -EINVAL;
+	}
+	printf("success.\n");
+	return 0;
+}
+
+static int do_clk_disable(int argc, char *argv[])
+{
+	clk_t clkid;
+
+	if (argc < 3)
+		return -EINVAL;
+	clkid = clk_search_mnemonic(argv[2]);
+	if (clkid == invalid_clk) {
+		printf("invalid clock: %s.\n", argv[2]);
+		return -EINVAL;
+	}
+	clk_disable(clkid);
+	printf("done.\n");
+	return 0;
+}
+
+static int do_clk(int argc, char *argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+
+	if (strcmp(argv[1], "dump") == 0)
+		return do_clk_dump(argc, argv);
+	if (strcmp(argv[1], "switch") == 0)
+		return do_clk_switch(argc, argv);
+	if (strcmp(argv[1], "enable") == 0)
+		return do_clk_enable(argc, argv);
+	if (strcmp(argv[1], "disable") == 0)
+		return do_clk_disable(argc, argv);
+	return -ENODEV;
+}
+
+DEFINE_COMMAND(clk, do_clk, "Control clock tree",
+	"clk dump\n"
+	"    -display clock settings\n"
+	"clk switch clk src\n"
+	"    -switch clock source multiplexing\n"
+	"clk enable clk\n"
+	"    -enable clock\n"
+	"clk disable clk\n"
+	"    -disable clock\n"
+	"\n"
+);
