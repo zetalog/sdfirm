@@ -345,7 +345,6 @@
 /* APIs here must be invoked w clock tree core enabled */
 void clk_hw_select_boot(clk_t clkid); /* select boot source */
 void clk_hw_select_run(clk_t clkid); /* select runtime source */
-
 /* Enable clock tree core */
 void clk_hw_ctrl_init(void);
 

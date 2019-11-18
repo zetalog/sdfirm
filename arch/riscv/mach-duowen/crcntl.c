@@ -1105,12 +1105,23 @@ static uint32_t get_output_clk_freq(clk_clk_t clk)
 	return freq;
 }
 
+static void select_output_clk_src(clk_clk_t clk, clk_t src)
+{
+	if (clk >= NR_OUTPUT_CLKS)
+		return;
+	if (src == output_clks[clk].clk_sels[0])
+		clk_hw_select_run(clk);
+	if (src == output_clks[clk].clk_sels[1])
+		clk_hw_select_boot(clk);
+}
+
 struct clk_driver clk_output = {
 	.max_clocks = NR_OUTPUT_CLKS,
 	.enable = enable_output_clk,
 	.disable = disable_output_clk,
 	.get_freq = get_output_clk_freq,
 	.set_freq = NULL,
+	.select = select_output_clk_src,
 };
 
 struct pll_clk {
