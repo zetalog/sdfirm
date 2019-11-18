@@ -105,11 +105,6 @@
 #else
 #define PLL_RANGE23	PLL_RANGE3
 #endif
-#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_GEAR
-#define PLL_STARTUP	(PLL_PWRON | PLL_GEAR_SHIFT)
-#else
-#define PLL_STARTUP	PLL_PWRON
-#endif
 
 /* PLL control registers */
 #define PLL_LOOPCNT1		0

@@ -43,6 +43,7 @@
 #include <target/delay.h>
 #include <target/panic.h>
 #include <target/bitops.h>
+#include <target/barrier.h>
 
 #ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_GEAR
 static void dw_pll5ghz_tsmc12ffc_gear(uint8_t pll)
@@ -105,17 +106,17 @@ void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
 {
 	uint16_t mint, mfrac;
 	uint8_t prediv = 0;
-	uint32_t vco_cfg = PLL_RANGE3;
+	uint32_t cfg = PLL_RANGE3;
 	uint64_t fbdiv;
 
 	if (fvco <= ULL(3750000000))
-		vco_cfg = PLL_RANGE1;
+		cfg = PLL_RANGE1;
 	else if (fvco > ULL(3750000000) && fvco <= ULL(4000000000))
-		vco_cfg = PLL_RANGE2;
+		cfg = PLL_RANGE2;
 	else if (fvco > ULL(4000000000) && fvco <= ULL(5000000000))
-		vco_cfg = PLL_RANGE23;
+		cfg = PLL_RANGE23;
 	else if (fvco <= ULL(6000000000))
-		vco_cfg = PLL_RANGE3;
+		cfg = PLL_RANGE3;
 	else
 		BUG();
 
@@ -131,15 +132,21 @@ void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
 		     PLL_MINT(mint - 16) | PLL_MFRAC(mfrac),
 		     DW_PLL_CFG0(pll));
 
+	cfg |= PLL_GEAR_SHIFT;
+	__raw_writel(cfg, DW_PLL_CFG1(pll));
 	/* t_pwrstb */
 	udelay(1);
 	/* ndelay(500); */
-	__raw_setl(PLL_TEST_RESET, DW_PLL_CFG1(pll));
+	cfg |= PLL_TEST_RESET;
+	__raw_writel(cfg, DW_PLL_CFG1(pll));
 	/* t_trst */
 	udelay(1);
 	/* ndelay(50); */
-	__raw_writel(vco_cfg | PLL_STARTUP | PLL_RESET,
-		     DW_PLL_CFG1(pll));
+	cfg |= PLL_PWRON;
+	__raw_writel(cfg, DW_PLL_CFG1(pll));
+	wmb();
+	cfg |= PLL_RESET;
+	__raw_writel(cfg, DW_PLL_CFG1(pll));
 	dw_pll5ghz_tsmc12ffc_gear(pll);
 	while (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED));
 
