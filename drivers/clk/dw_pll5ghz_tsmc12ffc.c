@@ -217,11 +217,11 @@ static int do_pll_reg_access(int argc, char * argv[])
 		val = strtoul(argv[4], NULL, 0);
 		dw_pll_write(pll, reg, val);
 		printf("done.\n");
-		return 0;
 	} else {
 		val = dw_pll_read(pll, reg);
-		return mem_print_data(reg, &val, 1, 1);
+		printf("%02x: %02x\n", reg, val);
 	}
+	return 0;
 }
 
 static int do_pll_operation(int argc, char * argv[])
