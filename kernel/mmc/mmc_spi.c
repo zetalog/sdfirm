@@ -43,6 +43,7 @@
 #include <target/spi.h>
 #include <target/efi.h>
 #include <target/cmdline.h>
+#include <stdio.h>
 
 mmc_rca_t mmc_spi_rca;
 

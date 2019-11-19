@@ -42,6 +42,7 @@
 #include <target/arch.h>
 #include <asm/mach/ddr.h>
 #include <target/delay.h>
+#include <stdio.h>
 
 #define PHYSICAL_FILTER_CTRL_ADDR	UL(0x100B8000)
 #define _REG32(p, i)	(*(volatile uint32_t *)((p) + (i)))

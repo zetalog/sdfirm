@@ -49,6 +49,8 @@
 #define CLINT_MTIMECMP(hart)	CLINT_REG(0x4000 + ((hart) << 3))
 #define CLINT_MTIME		CLINT_REG(0xBFF8)
 
+#if !defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
 uint64_t clint_read_mtime(void);
+#endif
 
 #endif /* __CLINT_RISCV_H_INCLUDE__ */
