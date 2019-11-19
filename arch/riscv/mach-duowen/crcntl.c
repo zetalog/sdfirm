@@ -1678,12 +1678,15 @@ static int do_crcntl_dump(int argc, char *argv[])
 		}
 	}
 	for (i = 0; i < NR_OUTPUT_CLKS; i++) {
-		if (output_clk_names[i]) {
+		if (output_clk_names[i] &&
+		    output_clks[clk].flags & CLK_CLK_EN_F) {
 			printf("clk  %3d %20s %20s\n",
 			       i, output_clk_names[i],
 			       clk_get_mnemonic(output_clks[i].clk_sels[0]));
-			printf("%4s %3s %20s %20s\n", "", "", "",
-			       clk_get_mnemonic(output_clks[i].clk_sels[1]));
+			if (output_clks[i].clk_sels[1] != invalid_clk)
+				printf("%4s %3s %20s %20s\n", "", "", "",
+				       clk_get_mnemonic(
+					       output_clks[i].clk_sels[1]));
 		}
 	}
 	return 0;
