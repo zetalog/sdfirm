@@ -65,6 +65,14 @@ config CRCNTL_IMC_BOOT
 	  working during early development stage. Enabling this option
 	  allows to keep imc_clk sourcing from boot xo_clk.
 
+config CNCNTL_APB_SOC_PLL_DIV8
+	bool "Use soc_pll_div8 as apb_clk source"
+	help
+	  Switching sysfab_clk for APB clocks may cause IMC to stop
+	  working during early development stage. Enabling this option
+	  allows to keep APB clocks referencing SOC_PLL_DIV8 as the
+	  the source to prevent enabling of sysfab_clk.
+
 endif
 
 endmenu

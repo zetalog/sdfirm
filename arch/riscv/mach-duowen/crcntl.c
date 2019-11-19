@@ -64,6 +64,12 @@ struct output_clk {
 #define PCLK_ENABLED	_BV(13)
 };
 
+#ifdef CONFIG_CNCNTL_APB_SOC_PLL_DIV8
+#define apb_clk		soc_pll_div8
+#else
+#define apb_clk		sysfab_clk
+#endif
+
 struct output_clk output_clks[] = {
 	[CRCNTL_DMA_MST] = {
 		.freq = SOC_PLL_FREQ,
@@ -100,7 +106,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_PCIE_PHY_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			invalid_clk,
 		},
 		.flags = CLK_CR,
@@ -157,7 +163,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_DDRC0_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			invalid_clk,
 		},
 		.flags = CLK_CR,
@@ -165,7 +171,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_DDRP0_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			invalid_clk,
 		},
 		.flags = CLK_CR,
@@ -224,7 +230,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_DDRC1_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			invalid_clk,
 		},
 		.flags = CLK_CR,
@@ -232,7 +238,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_DDRP1_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			invalid_clk,
 		},
 		.flags = CLK_CR,
@@ -339,7 +345,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_CRCNTL_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -347,7 +353,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_WDT0_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -355,7 +361,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_WDT1_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -363,7 +369,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_UART0_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -371,7 +377,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_UART1_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -379,7 +385,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_UART2_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -387,7 +393,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_UART3_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -395,7 +401,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_I2C_MST0_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -403,7 +409,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_I2C_MST1_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -411,7 +417,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_I2C_MST2_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -419,7 +425,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_I2C_MST3_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -427,7 +433,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_I2C_MST4_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -435,7 +441,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_I2C_MST5_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -443,7 +449,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_I2C_MST6_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -451,7 +457,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_I2C_MST7_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -459,7 +465,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_I2C_SLV0_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -467,7 +473,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_I2C_SLV1_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -475,7 +481,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_I2C_SLV2_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -483,7 +489,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_I2C_SLV3_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -491,7 +497,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_SPI_MST0_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -499,7 +505,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_SPI_MST1_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -507,7 +513,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_SPI_MST2_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -515,7 +521,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_SPI_MST3_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -523,7 +529,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_SPI_SLV_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -531,7 +537,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_GPIO_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -539,7 +545,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_TLMM_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -1024,7 +1030,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_TIMER_7_0_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			invalid_clk,
 		},
 		.flags = CLK_CR,
@@ -1032,7 +1038,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_TIMER_15_8_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			invalid_clk,
 		},
 		.flags = CLK_CR,
@@ -1040,7 +1046,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_TIMER_23_16_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			invalid_clk,
 		},
 		.flags = CLK_CR,
@@ -1048,7 +1054,7 @@ struct output_clk output_clks[] = {
 	[CRCNTL_TIMER_24_APB] = {
 		.freq = SOC_PLL_DIV8_FREQ,
 		.clk_sels = {
-			sysfab_clk,
+			apb_clk,
 			xo_clk,
 		},
 		.flags = CLK_CR,
@@ -1657,26 +1663,26 @@ static int do_crcntl_dump(int argc, char *argv[])
 {
 	int i;
 
-	printf("type id  %12s %12s\n", "name", "source");
+	printf("type id  %20s %20s\n", "name", "source");
 	for (i = 0; i < NR_PLL_CLKS; i++) {
 		if (pll_clk_names[i]) {
-			printf("pll  %3d %12s %12s\n",
+			printf("pll  %3d %20s %20s\n",
 			       i, pll_clk_names[i], "xo_clk");
 		}
 	}
 	for (i = 0; i < NR_DIV_CLKS; i++) {
 		if (div_clk_names[i]) {
-			printf("div  %3d %12s %12s\n",
+			printf("div  %3d %20s %20s\n",
 			       i, div_clk_names[i],
 			       clk_get_mnemonic(div_clks[i].derived));
 		}
 	}
 	for (i = 0; i < NR_OUTPUT_CLKS; i++) {
 		if (output_clk_names[i]) {
-			printf("clk  %3d %12s %12s\n",
+			printf("clk  %3d %20s %20s\n",
 			       i, output_clk_names[i],
 			       clk_get_mnemonic(output_clks[i].clk_sels[0]));
-			printf("%4s %3s %12s %12s\n", "", "", "",
+			printf("%4s %3s %20s %20s\n", "", "", "",
 			       clk_get_mnemonic(output_clks[i].clk_sels[1]));
 		}
 	}

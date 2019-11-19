@@ -175,7 +175,7 @@ static int do_clk_dump(int argc, char *argv[])
 	clk_t clkid;
 	const char *name;
 
-	printf("%12s: %-10s\n", "clock", "frequency");
+	printf("%20s: %-10s\n", "clock", "frequency");
 	for (cat = 0; cat < MAX_CLK_DRIVERS; cat++) {
 		if (clk_drivers[cat]) {
 			clkd = clk_drivers[cat];
@@ -183,7 +183,7 @@ static int do_clk_dump(int argc, char *argv[])
 				clkid = clkid(cat, clk);
 				name = clk_get_mnemonic(clkid);
 				if (name)
-					printf("%12s: %-10d\n", name,
+					printf("%20s: %-10d\n", name,
 					       clk_get_frequency(clkid));
 			}
 		}
@@ -277,7 +277,7 @@ static int do_clk_freq(int argc, char *argv[])
 			printf("faiure: %s.\n", argv[2]);
 			return -EINVAL;
 		}
-		printf("%12s: %-10d\n", argv[2], freq);
+		printf("%20s: %-10d\n", argv[2], freq);
 	}
 	return 0;
 }
