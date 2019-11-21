@@ -35,23 +35,21 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)tsc.c: DUOWEN specific mandatory TSC implementation
- * $Id: tsc.c,v 1.1 2019-11-15 12:47:00 zhenglv Exp $
+ * @(#)tmr.c: DUOWEN specific timer controller (TMR) driver
+ * $Id: tmr.c,v 1.1 2019-11-21 13:22:00 zhenglv Exp $
  */
 
 #include <target/delay.h>
 
-static bool tsc_hw_init = false;
-
-void board_init_timestamp(void)
+uint64_t tmr_read_counter(void)
 {
-	if (!tsc_hw_init) {
-		crcntl_clk_enable(DW_TIMERS_APB_CLK);
-		crcntl_clk_deassert(DW_TIMERS_APB_CLK);
-		crcntl_clk_enable(DW_TIMERS_TSC_CLK);
-		crcntl_clk_deassert(DW_TIMERS_TSC_CLK);
-		__tsc_hw_ctrl_init();
-		tmr_enable_mtime();
-		tsc_hw_init = true;
-	}
+	uint32_t hi1, hi2;
+	uint32_t lo;
+
+	do {
+	     	hi1 = __raw_readl(TMR_CNT_HI);
+		lo = __raw_readl(TMR_CNT_LO);
+		hi2 = __raw_readl(TMR_CNT_HI);
+	} while (hi1 != hi2);
+	return MAKELLONG(lo, hi1);
 }

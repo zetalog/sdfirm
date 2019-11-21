@@ -35,23 +35,33 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)tsc.c: DUOWEN specific mandatory TSC implementation
- * $Id: tsc.c,v 1.1 2019-11-15 12:47:00 zhenglv Exp $
+ * @(#)tmr.h: DUOWEN specific timer controller (TMR) driver
+ * $Id: tmr.h,v 1.1 2019-11-21 12:32:00 zhenglv Exp $
  */
 
-#include <target/delay.h>
+#ifndef __TMR_DUOWEN_H_INCLUDE__
+#define __TMR_DUOWEN_H_INCLUDE__
 
-static bool tsc_hw_init = false;
+#include <target/arch.h>
 
-void board_init_timestamp(void)
-{
-	if (!tsc_hw_init) {
-		crcntl_clk_enable(DW_TIMERS_APB_CLK);
-		crcntl_clk_deassert(DW_TIMERS_APB_CLK);
-		crcntl_clk_enable(DW_TIMERS_TSC_CLK);
-		crcntl_clk_deassert(DW_TIMERS_TSC_CLK);
-		__tsc_hw_ctrl_init();
-		tmr_enable_mtime();
-		tsc_hw_init = true;
-	}
-}
+#define TMR_BASE		TIMER3_BASE
+#define TMR_REG(offset)		(TMR_BASE + (offset))
+
+#define TMR_CNT_CTRL		TMR_REG(0x00)
+#define TMR_CMP_CTRL(n)		REG_1BIT_ADDR(TMR_REG(0x04), n)
+#define TMR_INTR_EN(n)		REG_1BIT_ADDR(TMR_REG(0x10), n)
+#define TMR_INTR_STATUS(n)	REG_1BIT_ADDR(TMR_REG(0x14), n)
+#define TMR_CNT_LO		TMR_REG(0x40)
+#define TMR_CNT_HI		TMR_REG(0x44)
+#define TMR_CMP_LO(n)		TMR_REG(0x200 + (n) << 4)
+#define TMR_CMP_HI(n)		TMR_REG(0x204 + (n) << 4)
+#define TMR_VAL(n)		TMR_REG(0x208 + (n) << 4)
+
+/* TMR_CNT_CTRL */
+#define TMR_EN			_BV(0)
+#define TMR_HALT_ON_DEBUG	_BV(1)
+
+#define tmr_enable_mtime()	__raw_setl(TMR_EN, TMR_CNT_CTRL)
+uint64_t tmr_read_counter(void);
+
+#endif /* __TMR_DUOWEN_H_INCLUDE__ */

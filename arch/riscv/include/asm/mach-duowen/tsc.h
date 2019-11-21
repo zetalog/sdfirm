@@ -35,7 +35,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)tsc.h: DUOWEN specific mandatory TSC driver
+ * @(#)tsc.h: DUOWEN specific mandatory TSC definition
  * $Id: tsc.h,v 1.1 2019-09-02 14:52:00 zhenglv Exp $
  */
 
@@ -62,6 +62,7 @@
 
 #ifndef __ASSEMBLY__
 #include <driver/dw_timers.h>
+#include <asm/mach/tmr.h>
 
 void board_init_timestamp(void);
 
@@ -69,10 +70,14 @@ void board_init_timestamp(void);
 #ifdef CONFIG_DUOWEN_TSC_DW_TIMERS
 #define __tsc_hw_ctrl_init()	dw_timers_tsc_init(DW_TIMERS_TSC)
 #define tsc_hw_read_counter()	dw_timers_get_counter(DW_TIMERS_TSC)
-#else
+#else /* CONFIG_DUOWEN_TSC_DW_TIMERS */
 #define __tsc_hw_ctrl_init()	do { } while (0)
+#ifdef CONFIG_DUOWEN_TMR_MTIME
 #define tsc_hw_read_counter()	csr_read(CSR_TIME)
-#endif
+#else /* CONFIG_DUOWEN_TMR_MTIME */
+#define tsc_hw_read_counter()	tmr_read_counter()
+#endif /* CONFIG_DUOWEN_TMR_MTIME */
+#endif /* CONFIG_DUOWEN_TSC_DW_TIMERS */
 #endif /* __ASSEMBLY__ */
 
 #endif /* __TSC_DUOWEN_H_INCLUDE__ */
