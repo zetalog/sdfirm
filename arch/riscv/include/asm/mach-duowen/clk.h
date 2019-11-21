@@ -323,6 +323,7 @@
 #define timer_15_8_apb_clk	clkid(CLK_OUTPUT, CRCNTL_TIMER_15_8_APB)
 #define timer_23_16_apb_clk	clkid(CLK_OUTPUT, CRCNTL_TIMER_23_16_APB)
 #define timer_24_apb_clk	clkid(CLK_OUTPUT, CRCNTL_TIMER_24_APB)
+#define apb_clk			sysfab_clk
 
 #define CLK_DIV			((clk_cat_t)3)
 #define SOC_PLL_DIV4		((clk_clk_t)0)

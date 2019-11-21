@@ -64,12 +64,6 @@ struct output_clk {
 #define PCLK_ENABLED	_BV(13)
 };
 
-#ifdef CONFIG_CNCNTL_APB_SOC_PLL_DIV8
-#define apb_clk		soc_pll_div8
-#else
-#define apb_clk		sysfab_clk
-#endif
-
 struct output_clk output_clks[] = {
 	[CRCNTL_DMA_MST] = {
 		.freq = SOC_PLL_FREQ,
@@ -589,11 +583,7 @@ struct output_clk output_clks[] = {
 			sysfab_clk_250,
 			xo_clk,
 		},
-#ifdef CONFIG_CRCNTL_IMC_BOOT
-		.flags = CLK_CR | CLK_SEL(IMC_CLK_SEL) | CLK_BOOT,
-#else
 		.flags = CLK_CR | CLK_SEL(IMC_CLK_SEL),
-#endif
 	},
 	[CRCNTL_CRCNTL] = {
 		.freq = XO_CLK_FREQ,
