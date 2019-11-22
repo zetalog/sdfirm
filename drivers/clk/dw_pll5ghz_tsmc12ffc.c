@@ -202,6 +202,20 @@ void dw_pll5ghz_tsmc12ffc_bypass(uint8_t pll, uint8_t mode)
 	}
 }
 
+void dw_pll_write(uint8_t pll, uint8_t reg, uint8_t val)
+{
+	if (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_PWRON))
+		return;
+	__dw_pll_write(pll, reg, val);
+}
+
+uint8_t dw_pll_read(uint8_t pll, uint8_t reg)
+{
+	if (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_PWRON))
+		return 0;
+	return __dw_pll_read(pll, reg);
+}
+
 static int do_pll_reg_access(int argc, char * argv[])
 {
 	int pll;
@@ -212,6 +226,10 @@ static int do_pll_reg_access(int argc, char * argv[])
 		return -EINVAL;
 
 	pll = strtoul(argv[2], NULL, 0);
+	if (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_PWRON)) {
+		printf("PLL %d is not in PWRON state.\n", pll);
+		return -EINVAL;
+	}
 	reg = strtoul(argv[3], NULL, 0);
 	if (argc > 4) {
 		val = strtoul(argv[4], NULL, 0);

@@ -50,8 +50,8 @@
 #define DW_PLL_CFG1(pll)		CRCNTL_PLL_CFG1(pll)
 #define DW_PLL_CFG2(pll)		CRCNTL_PLL_CFG2(pll)
 #define DW_PLL_STATUS(pll)		CRCNTL_PLL_STATUS(pll)
-#define dw_pll_read(pll, reg)		crcntl_pll_reg_read(pll, reg)
-#define dw_pll_write(pll, reg, val)	crcntl_pll_reg_write(pll, reg, val)
+#define __dw_pll_read(pll, reg)		crcntl_pll_reg_read(pll, reg)
+#define __dw_pll_write(pll, reg, val)	crcntl_pll_reg_write(pll, reg, val)
 
 #include <driver/dw_pll5ghz_tsmc12ffc.h>
 

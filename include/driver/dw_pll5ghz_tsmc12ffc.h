@@ -48,7 +48,7 @@
 /* To use this driver, followings need to be defined:
  * 1. DW_PLL5GHZ_REFCLK_FREQ;
  * 2. PLL_CFG0/PLL_CFG1/PLL_CFG2/PLL_STATUS register addresses;
- * 3. dw_pll_read/dw_pll_write to access PLL registers.
+ * 3. __dw_pll_read/__dw_pll_write to access PLL registers.
  */
 
 /* PLL_CFG0 */
@@ -175,5 +175,8 @@ void dw_pll5ghz_tsmc12ffc_pwrdn(uint8_t pll);
 void dw_pll5ghz_tsmc12ffc_standby(uint8_t pll);
 /* leave standby sequence */
 void dw_pll5ghz_tsmc12ffc_relock(uint8_t pll);
+
+void dw_pll_write(uint8_t pll, uint8_t reg, uint8_t val);
+uint8_t dw_pll_read(uint8_t pll, uint8_t reg);
 
 #endif /* __DW_PLL5GHZ_TSMC12FFC_H_INCLUDE__ */
