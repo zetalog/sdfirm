@@ -60,8 +60,10 @@ config ARCH_SUNXI
 	select ARCH_HAS_GPT
 	select ARCH_HAS_IDLE
 	select ARCH_HAS_CLK
-	select NS16550 if CONSOLE || DEBUG_PRINT
+	select ARCH_HAS_GPIO
 	select SUNXI_CCU if CLK
+	select GPIO_SUNXI if GPIO
+	select UART_SUNXI if CONSOLE || DEBUG_PRINT
 	help
 	  This enables support of Allwinnder ARM SoC platforms.
 

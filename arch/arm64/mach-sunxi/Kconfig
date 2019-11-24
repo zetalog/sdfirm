@@ -66,12 +66,16 @@ endchoice
 config SUNXI_CCU
 	bool "Clock control unit (CCU) support"
 
+config GPIO_SUNXI
+	bool "SUNXI gpio controller support"
+
 config UART_SUNXI
 	bool "SUNXI uart controller support"
 	depends UART || DEBUG_PRINT || CONSOLE
 	depends !ARM_DCC
 	select ARCH_HAS_NS16550
 	select NS16550
+	select GPIO
 	default y
 	help
 

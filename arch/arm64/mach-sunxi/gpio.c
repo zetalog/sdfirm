@@ -35,79 +35,70 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)uart.h: SUNXI UART serial definitions
- * $Id: uart.h,v 1.1 2019-11-17 13:16:00 zhenglv Exp $
+ * @(#)gpio.c: SUNXI GPIO controller (GPIO) implementation
+ * $Id: gpio.c,v 1.1 2019-11-24 10:37:00 zhenglv Exp $
  */
 
-#ifndef __UART_SUNXI_H_INCLUDE__
-#define __UART_SUNXI_H_INCLUDE__
-
-#include <target/config.h>
-#include <target/generic.h>
+#include <target/arch.h>
 #include <target/gpio.h>
-#include <target/clk.h>
 
-#ifdef CONFIG_ARM_DCC
-#include <asm/debug.h>
-#else /* CONFIG_ARM_DCC */
-#if defined(CONFIG_UART_SUNXI)
-#define UART0_BASE		ULL(0x01C28000)
-#define UART1_BASE		ULL(0x01C28400)
-#define UART2_BASE		ULL(0x01C28800)
-#define UART3_BASE		ULL(0x01C28C00)
-#define R_UART_BASE		ULL(0x01F02800)
+void sunxi_gpio_set_cfgbank(struct sunxi_gpio *pio, int bank_offset, uint32_t val)
+{
+	uint32_t index = GPIO_CFG_INDEX(bank_offset);
+	uint32_t offset = GPIO_CFG_OFFSET(bank_offset);
 
-#define UART_FREQ		24000000
+	__raw_writel_mask(val << offset, 0xf << offset,
+			  &pio->cfg[0] + index);
+}
 
-#define UART_BASE(n)		(UART0_BASE + (n) * 0x400)
+void sunxi_gpio_set_cfgpin(uint32_t pin, uint32_t val)
+{
+	uint32_t bank = GPIO_BANK(pin);
+	struct sunxi_gpio *pio = BANK_TO_GPIO(bank);
 
-#ifdef CONFIG_UART_SUNXI_CON0
-#define UART_CON_ID		0
-#endif
-#ifdef CONFIG_UART_SUNXI_CON1
-#define UART_CON_ID		1
-#endif
-#ifdef CONFIG_UART_SUNXI_CON2
-#define UART_CON_ID		2
-#endif
-#ifdef CONFIG_UART_SUNXI_CON3
-#define UART_CON_ID		3
-#endif
+	sunxi_gpio_set_cfgbank(pio, pin, val);
+}
 
-#include <driver/ns16550.h>
-#ifndef ARCH_HAVE_UART
-#define ARCH_HAVE_UART		1
-#else
-#error "Multiple UART controller defined"
-#endif
-#endif
+int sunxi_gpio_get_cfgbank(struct sunxi_gpio *pio, int bank_offset)
+{
+	uint32_t index = GPIO_CFG_INDEX(bank_offset);
+	uint32_t offset = GPIO_CFG_OFFSET(bank_offset);
+	uint32_t cfg;
 
-#ifdef CONFIG_DEBUG_PRINT
-void uart_hw_dbg_init(void);
-void uart_hw_dbg_start(void);
-void uart_hw_dbg_stop(void);
-void uart_hw_dbg_write(uint8_t byte);
-void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
-#endif
+	cfg = __raw_readl(&pio->cfg[0] + index);
+	cfg >>= offset;
 
-#ifdef CONFIG_CONSOLE
-void sunxi_uart_gpio_init(void);
-#define uart_hw_con_init()		\
-	do {				\
-		sunxi_uart_gpio_init();	\
-		ns16550_con_init();	\
-	} while (0)
-#endif
-#ifdef CONFIG_CONSOLE_OUTPUT
-#define uart_hw_con_write(byte)		ns16550_con_write(byte)
-#endif
-#ifdef CONFIG_CONSOLE_INPUT
-#define uart_hw_con_read()		ns16550_con_read()
-#define uart_hw_con_poll()		ns16550_con_poll()
+	return cfg & 0xf;
+}
 
-void uart_hw_irq_ack(void);
-void uart_hw_irq_init(void);
-#endif
-#endif /* CONFIG_ARM_DCC */
+int sunxi_gpio_get_cfgpin(uint32_t pin)
+{
+	uint32_t bank = GPIO_BANK(pin);
+	struct sunxi_gpio *pio = BANK_TO_GPIO(bank);
 
-#endif /* __UART_SUNXI_H_INCLUDE__ */
+	return sunxi_gpio_get_cfgbank(pio, pin);
+}
+
+int sunxi_gpio_set_drv(uint32_t pin, uint32_t val)
+{
+	uint32_t bank = GPIO_BANK(pin);
+	uint32_t index = GPIO_DRV_INDEX(pin);
+	uint32_t offset = GPIO_DRV_OFFSET(pin);
+	struct sunxi_gpio *pio = BANK_TO_GPIO(bank);
+
+	__raw_writel_mask(val << offset, 0x3 << offset,
+			  &pio->drv[0] + index);
+	return 0;
+}
+
+int sunxi_gpio_set_pull(uint32_t pin, uint32_t val)
+{
+	uint32_t bank = GPIO_BANK(pin);
+	uint32_t index = GPIO_PULL_INDEX(pin);
+	uint32_t offset = GPIO_PULL_OFFSET(pin);
+	struct sunxi_gpio *pio = BANK_TO_GPIO(bank);
+
+	__raw_writel_mask(val << offset, 0x3 << offset,
+			  &pio->pull[0] + index);
+	return 0;
+}

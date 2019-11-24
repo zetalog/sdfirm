@@ -1,0 +1,36 @@
+_start: arch/arm/cpu/armv8/start.S
+reset
+lowlevel_init: arch/arm/cpu/armv8/lowlevel_init.S
+	s_init: arch/arm/mach-sunxi/board.c
+	set(_BV(15), SRAM_BASE+0x24)
+	HIWORD(SRAM_BASE+0x24)
+	clr(_BV(15), SRAM_BASE+0x24)
+	clock_init
+	timer_init
+	sunxi_gpio_set_cfgpin(SUNXI_GPA(4), SUN8I_H3_GPA_UART0)
+	sunxi_gpio_set_cfgpin(SUNXI_GPA(5), SUN8I_H3_GPA_UART0)
+	sunxi_gpio_set_pull(SUNXI_GPA(5), SUNXI_GPIO_PULL_UP)
+	i2c_init_board: board/sunxi/board.c
+		clock_twi_onoff(5, 1)
+		sunxi_gpio_set_cfgpin(SUNXI_GPL(0), SUN8I_H3_GPL_R_TWI)
+		sunxi_gpio_set_cfgpin(SUNXI_GPL(1), SUN8I_H3_GPL_R_TWI)
+	_main: arch/arm/lib/crt0_64.S
+		sp = CONFIG_SPL_STACK
+		board_init_f_alloc_reserve
+		board_init_f_init_reserve
+		board_init_f: arch/arm/mach-sunxi/board.c
+			spl_init: common/spl/spl.c
+			preloader_console_init: common/spl/spl.c
+				serial_init: drivers/serial/serial.c
+					get_current
+						default_serial_console: drivers/serial/serial_ns16550.c
+							eserial1_device
+			sunxi_board_init: board/sunxi/board.c
+				sunxi_dram_init: arch/arm/mach-sunxi/dram_sunxi_dw.c
+		c_runtime_cpu_setup
+		spl_relocate_stack_gd
+		board_init_r: common/spl/spl.c
+			spl_set_bd
+			board_boot_order
+				spl_boot_device: arch/arm/mach-sunxi/board.c
+					sunxi_get_boot_device
