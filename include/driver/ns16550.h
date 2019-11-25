@@ -1,240 +1,216 @@
 /*
- * ZETALOG's Personal COPYRIGHT
+ * NS16550 Serial Port
+ * originally from linux source (arch/powerpc/boot/ns16550.h)
  *
- * Copyright (c) 2019
- *    ZETALOG - "Lv ZHENG".  All rights reserved.
- *    Author: Lv "Zetalog" Zheng
- *    Internet: zhenglv@hotmail.com
+ * Cleanup and unification
+ * (C) 2009 by Detlev Zundel, DENX Software Engineering GmbH
  *
- * This COPYRIGHT used to protect Personal Intelligence Rights.
- * Redistribution and use in source and binary forms with or without
- * modification, are permitted provided that the following conditions are
- * met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *    This product includes software developed by the Lv "Zetalog" ZHENG.
- * 3. Neither the name of this software nor the names of its developers may
- *    be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- * 4. Permission of redistribution and/or reuse of souce code partially only
- *    granted to the developer(s) in the companies ZETALOG worked.
- * 5. Any modification of this software should be published to ZETALOG unless
- *    the above copyright notice is no longer declaimed.
+ * modified slightly to
+ * have addresses as offsets from CONFIG_SYS_ISA_BASE
+ * added a few more definitions
+ * added prototypes for ns16550.c
+ * reduced no of com ports to 2
+ * modifications (c) Rob Taylor, Flying Pig Systems. 2000.
  *
- * THIS SOFTWARE IS PROVIDED BY THE ZETALOG AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE ZETALOG OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * @(#)ns16550.h: National semiconductor 16550 UART interface
- * $Id: ns16550.h,v 1.1 2019-10-17 21:53:00 zhenglv Exp $
+ * added support for port on 64-bit bus
+ * by Richard Danter (richard.danter@windriver.com), (C) 2005 Wind River Systems
  */
 
-#ifndef __NS16550_H_INCLUDE__
-#define __NS16550_H_INCLUDE__
+/*
+ * Note that the following macro magic uses the fact that the compiler
+ * will not allocate storage for arrays of size 0
+ */
 
-#include <target/config.h>
+#ifndef __NS16550_UART_H_INCLUDE__
+#define __NS16550_UART_H_INCLUDE__
+
 #include <target/generic.h>
 
-/* Required implementation specific definitions:
+struct serial_device {
+	/* enough bytes to match alignment of following func pointer */
+	char	name[16];
+
+	int	(*start)(void);
+	int	(*stop)(void);
+	void	(*setbrg)(void);
+	int	(*getc)(void);
+	int	(*tstc)(void);
+	void	(*putc)(const char c);
+	void	(*puts)(const char *s);
+//	struct serial_device	*next;
+};
+
+#ifndef CONFIG_SYS_NS16550_REG_SIZE
+/*
+ * For driver model we always use one byte per register, and sort out the
+ * differences in the driver
+ */
+#define CONFIG_SYS_NS16550_REG_SIZE (-1)
+#endif
+
+#if !defined(CONFIG_SYS_NS16550_REG_SIZE) || (CONFIG_SYS_NS16550_REG_SIZE == 0)
+#error "Please define NS16550 registers size."
+#elif defined(CONFIG_SYS_NS16550_MEM32) && !defined(CONFIG_DM_SERIAL)
+#define UART_REG(x) uint32_t x
+#elif (CONFIG_SYS_NS16550_REG_SIZE > 0)
+#define UART_REG(x)						   \
+	unsigned char prepad_##x[CONFIG_SYS_NS16550_REG_SIZE - 1]; \
+	unsigned char x;
+#elif (CONFIG_SYS_NS16550_REG_SIZE < 0)
+#define UART_REG(x)							\
+	unsigned char x;						\
+	unsigned char postpad_##x[-CONFIG_SYS_NS16550_REG_SIZE - 1];
+#endif
+
+struct NS16550 {
+	UART_REG(rbr);		/* 0 */
+	UART_REG(ier);		/* 1 */
+	UART_REG(fcr);		/* 2 */
+	UART_REG(lcr);		/* 3 */
+	UART_REG(mcr);		/* 4 */
+	UART_REG(lsr);		/* 5 */
+	UART_REG(msr);		/* 6 */
+	UART_REG(spr);		/* 7 */
+	UART_REG(mdr1);		/* 8 */
+	UART_REG(reg9);		/* 9 */
+	UART_REG(regA);		/* A */
+	UART_REG(regB);		/* B */
+	UART_REG(regC);		/* C */
+	UART_REG(regD);		/* D */
+	UART_REG(regE);		/* E */
+	UART_REG(uasr);		/* F */
+	UART_REG(scr);		/* 10*/
+	UART_REG(ssr);		/* 11*/
+};
+
+#define thr rbr
+#define iir fcr
+#define dll rbr
+#define dlm ier
+
+typedef struct NS16550 *NS16550_t;
+
+/*
+ * These are the definitions for the FIFO Control Register
+ */
+#define UART_FCR_FIFO_EN	0x01 /* Fifo enable */
+#define UART_FCR_CLEAR_RCVR	0x02 /* Clear the RCVR FIFO */
+#define UART_FCR_CLEAR_XMIT	0x04 /* Clear the XMIT FIFO */
+#define UART_FCR_DMA_SELECT	0x08 /* For DMA applications */
+#define UART_FCR_TRIGGER_MASK	0xC0 /* Mask for the FIFO trigger range */
+#define UART_FCR_TRIGGER_1	0x00 /* Mask for trigger set at 1 */
+#define UART_FCR_TRIGGER_4	0x40 /* Mask for trigger set at 4 */
+#define UART_FCR_TRIGGER_8	0x80 /* Mask for trigger set at 8 */
+#define UART_FCR_TRIGGER_14	0xC0 /* Mask for trigger set at 14 */
+
+#define UART_FCR_RXSR		0x02 /* Receiver soft reset */
+#define UART_FCR_TXSR		0x04 /* Transmitter soft reset */
+
+/* Ingenic JZ47xx specific UART-enable bit. */
+#define UART_FCR_UME		0x10
+
+/* Clear & enable FIFOs */
+#define UART_FCR_DEFVAL (UART_FCR_FIFO_EN | \
+			UART_FCR_RXSR |	\
+			UART_FCR_TXSR)
+
+/*
+ * These are the definitions for the Modem Control Register
+ */
+#define UART_MCR_DTR	0x01		/* DTR   */
+#define UART_MCR_RTS	0x02		/* RTS   */
+#define UART_MCR_OUT1	0x04		/* Out 1 */
+#define UART_MCR_OUT2	0x08		/* Out 2 */
+#define UART_MCR_LOOP	0x10		/* Enable loopback test mode */
+#define UART_MCR_AFE	0x20		/* Enable auto-RTS/CTS */
+
+#define UART_MCR_DMA_EN	0x04
+#define UART_MCR_TX_DFR	0x08
+
+/*
+ * These are the definitions for the Line Control Register
  *
- * UARTx_BASE: the base address of the uart register block
- *  or
- * UART_REG: the algorithm used to obtain the base addresses
- * UART_FREQ: the frequency of UART clock
- * UART_CON_ID: console UART ID
- * UART_DBG_ID: debug print UART ID
+ * Note: if the word length is 5 bits (UART_LCR_WLEN5), then setting
+ * UART_LCR_STOP will select 1.5 stop bits, not 2 stop bits.
  */
+#define UART_LCR_WLS_MSK 0x03		/* character length select mask */
+#define UART_LCR_WLS_5	0x00		/* 5 bit character length */
+#define UART_LCR_WLS_6	0x01		/* 6 bit character length */
+#define UART_LCR_WLS_7	0x02		/* 7 bit character length */
+#define UART_LCR_WLS_8	0x03		/* 8 bit character length */
+#define UART_LCR_STB	0x04		/* # stop Bits, off=1, on=1.5 or 2) */
+#define UART_LCR_PEN	0x08		/* Parity eneble */
+#define UART_LCR_EPS	0x10		/* Even Parity Select */
+#define UART_LCR_STKP	0x20		/* Stick Parity */
+#define UART_LCR_SBRK	0x40		/* Set Break */
+#define UART_LCR_BKSE	0x80		/* Bank select enable */
+#define UART_LCR_DLAB	0x80		/* Divisor latch access bit */
 
-#ifdef CONFIG_NS16550_FIFO_NONE
-#define UART_FIFO_MODE	0
-#endif
-#ifdef CONFIG_NS16550_FIFO_16
-#define UART_FIFO_MODE	16
-#endif
-#ifdef CONFIG_NS16550_FIFO_32
-#define UART_FIFO_MODE	32
-#endif
-#ifdef CONFIG_NS16550_FIFO_64
-#define UART_FIFO_MODE	64
-#endif
-#ifdef CONFIG_NS16550_FIFO_128
-#define UART_FIFO_MODE	128
-#endif
-#ifdef CONFIG_NS16550_FIFO_256
-#define UART_FIFO_MODE	256
-#endif
-#ifdef CONFIG_NS16550_FIFO_512
-#define UART_FIFO_MODE	512
-#endif
-#ifdef CONFIG_NS16550_FIFO_1024
-#define UART_FIFO_MODE	1024
-#endif
-#ifdef CONFIG_NS16550_FIFO_2048
-#define UART_FIFO_MODE	2048
-#endif
-
-#ifndef UART_REG
-#define UART_REG(n, offset)	(UART##n##_BASE + (offset))
-#endif
-
-#define UART_RBR(n)		UART_REG(n, 0x00)
-#define UART_DLL(n)		UART_REG(n, 0x00)
-#define UART_THR(n)		UART_REG(n, 0x00)
-#define UART_DLH(n)		UART_REG(n, 0x04)
-#define UART_IER(n)		UART_REG(n, 0x04)
-#define UART_IIR(n)		UART_REG(n, 0x08)
-#define UART_LCR(n)		UART_REG(n, 0x0C)
-#define UART_MCR(n)		UART_REG(n, 0x10)
-#define UART_LSR(n)		UART_REG(n, 0x14)
-#define UART_MSR(n)		UART_REG(n, 0x18)
-#define UART_SCR(n)		UART_REG(n, 0x1C)
-#define UART_USR(n)		UART_REG(n, 0x7C)
-#define UART_HTX(n)		UART_REG(n, 0xA4)
-
-#ifndef CONFIG_UART_FIFO_NONE
-#define UART_FCR(n)		UART_REG(n, 0x08)
-#define UART_TFL(n)		UART_REG(n, 0x80)
-#define UART_RFL(n)		UART_REG(n, 0x84)
-
-/* FIFO Control Register - FCR */
-#define FCR_RT_OFFSET		6
-#define FCR_RT_MASK		REG_2BIT_MASK
-#define FCR_RT(value)		_SET_FV(FCR_RT, value)
-#define FCR_RT_CHAR_1		0
-#define FCR_RT_QUARTER_FULL	1
-#define FCR_RT_HAFL_FULL	2
-#define FCR_RT_2		3
-#define FCR_TET_OFFSET		4
-#define FCR_TET_MASK		REG_2BIT_MASK
-#define FCR_TET(value)		_SET_FV(FCR_TET, value)
-#define FCR_TET_EMPTY		0
-#define FCR_TET_CHAR_2		1
-#define FCR_TET_QUARTER_FULL	2
-#define FCR_TET_HALF_FULL	3
-#define FCR_DMAM		_BV(3)
-#define FCR_XFIFOR		_BV(2)
-#define FCR_RFIFOR		_BV(1)
-#define FCR_FIFOE		_BV(0)
-#define FCR_RESET_MASK		(FCR_XFIFOR | FCR_RFIFOR)
-
-/* UART Status Register - USR */
-#define USR_RFF			_BV(4) /* RX FIFO full */
-#define USR_RFNE		_BV(3) /* RX FIFO not empty */
-#define USR_TFE			_BV(2) /* TX FIFO empty */
-#define USR_TFNF		_BV(1) /* TX FIFO not full */
-
-#define ns16550_config_fifo(n)				\
-	do {						\
-		__raw_writel(FCR_FIFOE |		\
-			     FCR_RT(FCR_RT_CHAR_1) |	\
-			     FCR_TET(FCR_TET_EMPTY),	\
-			     UART_FCR(n));		\
-	} while (0)
-#define ns16550_reset_fifo(n)				\
-	__raw_writel_mask(FCR_RESET_MASK, FCR_RESET_MASK, UART_FCR(n))
-#else
-#define ns16550_config_fifo(n)
-#define ns16550_reset_fifo(n)
-#endif
-
-/* Modem Control Register - MCR */
-#define MCR_SIRE		_BV(6)
-#define MCR_AFCE		_BV(5)
-#define MCR_LOOPBACK		_BV(4)
-#define MCR_RTS			_BV(1)
-#define MCR_DTR			_BV(0)
-/* Line Control Register - LCR */
-#define LCR_DLAB		_BV(7) /* Divisor access latch */
-#define LCR_BC			_BV(6) /* Break control */
-#define LCR_SP			_BV(5) /* Stick parity */
-#define LCR_EPS			_BV(4) /* Even parity select */
-#define LCR_PEN			_BV(3) /* Parity enable */
-/* 0: 1 stop bit
- * 1: 1.5 stop bit if 5 data bits, otherwise 2 stop bit
+/*
+ * These are the definitions for the Line Status Register
  */
-#define LCR_STOP		_BV(2) /* Stop bit */
-#define LCR_DLS_OFFSET		0
-#define LCR_DLS_MASK		REG_2BIT_MASK
-#define LCR_DLS(value)		_SET_FV(LCR_DLS, value)
-#define LCR_DLS_CHAR_BITS(bit)	((bit) - 5)
-/* Line Status Register - LSR */
-#define LSR_RFE			_BV(7)
-#define LSR_TEMT		_BV(6)
-#define LSR_THRE		_BV(5)
-#define LSR_BI			_BV(4)
-#define LSR_FE			_BV(3)
-#define LSR_PE			_BV(2)
-#define LSR_OE			_BV(1)
-#define LSR_DR			_BV(0)
+#define UART_LSR_DR	0x01		/* Data ready */
+#define UART_LSR_OE	0x02		/* Overrun */
+#define UART_LSR_PE	0x04		/* Parity error */
+#define UART_LSR_FE	0x08		/* Framing error */
+#define UART_LSR_BI	0x10		/* Break */
+#define UART_LSR_THRE	0x20		/* Xmit holding register empty */
+#define UART_LSR_TEMT	0x40		/* Xmitter empty */
+#define UART_LSR_ERR	0x80		/* Error */
 
-#define MCR_MODEM_MASK		(MCR_RTS | MCR_DTR)
+#define UART_MSR_DCD	0x80		/* Data Carrier Detect */
+#define UART_MSR_RI	0x40		/* Ring Indicator */
+#define UART_MSR_DSR	0x20		/* Data Set Ready */
+#define UART_MSR_CTS	0x10		/* Clear to Send */
+#define UART_MSR_DDCD	0x08		/* Delta DCD */
+#define UART_MSR_TERI	0x04		/* Trailing edge ring indicator */
+#define UART_MSR_DDSR	0x02		/* Delta DSR */
+#define UART_MSR_DCTS	0x01		/* Delta CTS */
 
-#ifdef CONFIG_UART_SIR_MODE
-#define ns16550_irda_enable(n)		\
-	__raw_setl(MCR_SIRE, UART_MCR(n))
-#define ns16550_irda_disable(n)		\
-	__raw_clearl(MCR_SIRE, UART_MCR(n))
-#else
-#define ns16550_irda_enable(n)
-#define ns16550_irda_disable(n)
-#endif
-#define ns16550_loopback_enable(n)	\
-	__raw_setl(MCR_LOOPBACK, UART_MCR(n))
-#define ns16550_loopback_disable(n)	\
-	__raw_clearl(MCR_LOOPBACK, UART_MCR(n))
-#define ns16550_modem_enable(n)		\
-	__raw_writel_mask(MCR_MODEM_MASK, MCR_MODEM_MASK, UART_MCR(n))
-#define ns16550_modem_disable(n)		\
-	__raw_writel_mask(0, MCR_MODEM_MASK, UART_MCR(n))
+/*
+ * These are the definitions for the Interrupt Identification Register
+ */
+#define UART_IIR_NO_INT	0x01	/* No interrupts pending */
+#define UART_IIR_ID	0x06	/* Mask for the interrupt ID */
 
-#ifdef CONFIG_NS16540
-/* UART Status Register - USR */
-#define USR_BUSY		_BV(0) /* UART busy */
+#define UART_IIR_MSI	0x00	/* Modem status interrupt */
+#define UART_IIR_THRI	0x02	/* Transmitter holding register empty */
+#define UART_IIR_RDI	0x04	/* Receiver data interrupt */
+#define UART_IIR_RLSI	0x06	/* Receiver line status interrupt */
 
-#define ns16550_wait_busy(n)		\
-	while (__raw_readl(UART_USR(n)) & USR_BUSY)
-#define ns16550_wait_idle(n)		\
-	while (!(__raw_readl(UART_USR(n)) & USR_BUSY))
-#else
-#define ns16550_wait_busy(n)
-#define ns16550_wait_idle(n)
-#endif
-#ifdef CONFIG_NS16750
-#define ns16550_16750_enable(n)		\
-	__raw_setl(MCR_AFCE, UART_MCR(n))
-#define ns16550_16750_disable(n)	\
-	__raw_clearl(MCR_AFCE, UART_MCR(n))
-#else
-#define ns16550_16750_enable(n)		do { } while (0)
-#define ns16550_16750_disable(n)	do { } while (0)
-#endif
+/*
+ * These are the definitions for the Interrupt Enable Register
+ */
+#define UART_IER_MSI	0x08	/* Enable Modem status interrupt */
+#define UART_IER_RLSI	0x04	/* Enable receiver line status interrupt */
+#define UART_IER_THRI	0x02	/* Enable Transmitter holding register int. */
+#define UART_IER_RDI	0x01	/* Enable receiver data interrupt */
 
-#define ns16550_write_poll(n)		\
-	(!!(__raw_readl(UART_LSR(n)) & LSR_TEMT))
-#define ns16550_read_poll(n)		\
-	(!!(__raw_readl(UART_LSR(n)) & LSR_DR))
-#define ns16550_read_byte(n)		__raw_readl(UART_RBR(n))
-#define ns16550_write_byte(n, byte)	__raw_writel((byte), UART_THR(n))
+/* useful defaults for LCR */
+#define UART_LCR_8N1	0x03
 
-#ifdef CONFIG_CONSOLE
+void NS16550_init(NS16550_t com_port, int baud_divisor);
+void NS16550_putc(NS16550_t com_port, char c);
+char NS16550_getc(NS16550_t com_port);
+int NS16550_tstc(NS16550_t com_port);
+void NS16550_reinit(NS16550_t com_port, int baud_divisor);
+
+/**
+ * ns16550_calc_divisor() - calculate the divisor given clock and baud rate
+ *
+ * Given the UART input clock and required baudrate, calculate the divisor
+ * that should be used.
+ *
+ * @port:	UART port
+ * @clock:	UART input clock speed in Hz
+ * @baudrate:	Required baud rate
+ * @return baud rate divisor that should be used
+ */
+int ns16550_calc_divisor(NS16550_t port, int clock, int baudrate);
+
 void ns16550_con_init(void);
-#endif
-#ifdef CONFIG_CONSOLE_OUTPUT
 void ns16550_con_write(uint8_t byte);
-#endif
-#ifdef CONFIG_CONSOLE_INPUT
 uint8_t ns16550_con_read(void);
 bool ns16550_con_poll(void);
-#endif
 
-#endif /* __UART_H_INCLUDE__ */
+#endif /* __NS16550_UART_H_INCLUDE__ */

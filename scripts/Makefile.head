@@ -146,6 +146,14 @@ endif
 quiet_cmd_gzip = GZIP    $@
 cmd_gzip = gzip -f -9 < $< > $@
 
+
+# MKSUNXIBOOT
+# ---------------------------------------------------------------------------
+#
+quiet_cmd_mksunxiboot = MKSUNXIBOOT $@
+      cmd_mksunxiboot = $(MKSUNXIBOOT) $(MKSUNXIBOOTFLAGS) $(MKSUNXIBOOTFLAGS_$(@F)) $< $@
+
+
 # SREC2VHX
 # ---------------------------------------------------------------------------
 #

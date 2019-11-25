@@ -135,6 +135,9 @@ drivers-y			+= $(MACHINE)
 
 # Default target when executing plain make
 KBUILD_IMAGE := sdfirm.bin sdfirm.srec sdfirm.vhx
+ifdef CONFIG_SUNXI_SPL
+KBUILD_IMAGE += sunxi-spl.bin
+endif
 
 all:	$(KBUILD_IMAGE)
 
@@ -157,6 +160,10 @@ sdfirm.srec: sdfirm.strip
 	$(Q)$(MAKE) $(build)=$(boot) MACHINE=$(MACHINE) $(boot)/$@
 sdfirm.vhx: sdfirm.bin
 	$(Q)$(MAKE) $(build)=$(boot) MACHINE=$(MACHINE) $(boot)/$@
+ifdef CONFIG_SUNXI_SPL
+sunxi-spl.bin: sdfirm.bin
+	$(Q)$(MAKE) $(build)=$(boot) MACHINE=$(MACHINE) $(boot)/$@
+endif
 
 PHONY += maketools FORCE
 maketools: include/asm/mach FORCE

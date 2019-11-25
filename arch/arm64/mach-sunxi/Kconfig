@@ -5,6 +5,17 @@
 
 if ARCH_SUNXI
 
+config SUNXI_HIGH_SRAM
+	bool
+	default n
+	help
+	  Older Allwinner SoCs have their mask boot ROM mapped just below
+	  4GB, with the first SRAM region being located at address 0.
+	  Some newer SoCs map the boot ROM at address 0 instead and move
+	  the SRAM to 64KB, just behind the mask ROM.
+	  Chips using the latter setup are supposed to select this option
+	  to adjust the addresses accordingly.
+
 config SUNXI_DE2
 	bool
 
@@ -17,6 +28,7 @@ config SUN8I
 config SUN50I
 	bool
 	select SUNXI_DE2
+	select SUNXI_HIGH_SRAM
 
 config SUNXI_H3_H5
 	bool
@@ -26,6 +38,7 @@ config SUNXI_H3_H5
 config SUN50I_H5
 	bool
 	select SUNXI_H3_H5
+	select SUNXI_HIGH_SRAM
 
 menu "Allwinnder ARM SoC options"
 
