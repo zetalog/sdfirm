@@ -395,10 +395,9 @@ fi
 
 if [ ${SIM_STEP} = "gem5sim" ]; then
 	if [ ! -z ${SIMPOINT_SLICE_FILE} ]; then
-		let SIM_CHECKPOINT--
-		source_file=`ls ${GEM5_SRC}/m5out/cpt.simpoint_${SIM_CH}${SIM_CHECKPOINT}*/simpoint_slice.S`
+		source_file=`ls ${GEM5_SRC}/m5out/cpt.simpoint_$(($SIM_CHECKPOINT - 1))_*/simpoint_slice.S 2>&1`
 		if [ $? != 0 ] ; then
-			source_file=`ls ${GEM5_SRC}/m5out/cpt.simpoint_0${SIM_CH}${SIM_CHECKPOINT}*/simpoint_slice.S`
+			source_file=`ls ${GEM5_SRC}/m5out/cpt.simpoint_0$(($SIM_CHECKPOINT - 1))_*/simpoint_slice.S`
 		fi
 		cp -f ${source_file} ${SIMPOINT_SLICE_FILE}
 	fi
