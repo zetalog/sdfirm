@@ -42,9 +42,6 @@
 #ifndef __GICV2_ARM64_H_INCLUDE__
 #define __GICV2_ARM64_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
-#include <asm/reg.h>
 #include <asm/gic.h>
 
 /* Distributor interface register map */

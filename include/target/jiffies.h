@@ -1,8 +1,6 @@
 #ifndef __JIFFIES_H_INCLUDE__
 #define __JIFFIES_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
 #include <target/tsc.h>
 
 #ifndef __ASSEMBLY__

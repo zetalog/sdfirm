@@ -1,10 +1,8 @@
 #ifndef __DATAFLASH_H_INCLUDE__
 #define __DATAFLASH_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
-#include <target/spi.h>
 #include <target/mtd.h>
+#include <target/spi.h>
 
 typedef uint8_t dataflash_bid_t;
 

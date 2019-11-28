@@ -42,8 +42,6 @@
 #ifndef __RISCV_LINKAGE_H_INCLUDE__
 #define __RISCV_LINKAGE_H_INCLUDE__
 
-#include <target/config.h>
-
 /* This file is intended for being included by the linker script. Can put
  * architecture specific linkable sections here.
  */
@@ -57,5 +55,7 @@
 #ifdef CONFIG_64BIT
 #define WORD_SIZE	8
 #endif
+
+#include <asm-generic/sdfirm.lds.h>
 
 #endif /* __RISCV_LINKAGE_H_INCLUDE__ */

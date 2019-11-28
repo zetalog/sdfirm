@@ -42,9 +42,6 @@
 #ifndef __MULDIV_RISCV_H_INCLUDE__
 #define __MULDIV_RISCV_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/types.h>
-
 /* This file implements architecture specific multiplication/division support
  * for integer calculations.
  * In RISCV world, this is covered by M extension.

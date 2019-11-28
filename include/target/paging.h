@@ -1,7 +1,6 @@
 #ifndef __PAGING_H_INCLUDE__
 #define __PAGING_H_INCLUDE__
 
-#include <target/generic.h>
 #include <target/page.h>
 #include <target/tlb.h>
 

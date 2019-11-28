@@ -42,8 +42,6 @@
 #ifndef __USB_DFU_H_INCLUDE__
 #define __USB_DFU_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
 #include <target/usb.h>
 #include <target/jiffies.h>
 

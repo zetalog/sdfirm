@@ -1,7 +1,6 @@
 #ifndef __I2C_H_INCLUDE__
 #define __I2C_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/generic.h>
 
 #include <driver/i2c.h>

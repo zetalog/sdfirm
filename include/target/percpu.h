@@ -42,8 +42,6 @@
 #ifndef __PERCPU_H_INCLUDE__
 #define __PERCPU_H_INCLUDE__
 
-#include <stdint.h>
-#include <target/compiler.h>
 #include <target/smp.h>
 
 #define PERCPU_INPUT(cacheline)	\

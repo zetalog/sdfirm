@@ -42,7 +42,6 @@
 #ifndef __GPIO_H_INCLUDE__
 #define __GPIO_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/generic.h>
 
 /*=========================================================================

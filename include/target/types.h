@@ -5,12 +5,13 @@
 #include <target/const.h>
 
 #ifndef __ASSEMBLY__
-#include <errno.h>
 #include <asm/types.h>
+#include <errno.h>
 #include <limits.h>
 #include <ctype.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 
 #ifdef ARCH_HAS_BOOL
 typedef bool				boolean;

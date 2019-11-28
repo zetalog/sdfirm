@@ -42,9 +42,6 @@
 #ifndef __REG_GEM5_H_INCLUDE__
 #define __REG_GEM5_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/sizes.h>
-
 #define ROM_BASE		0x0000000
 #define ROMEND			0x4000000
 

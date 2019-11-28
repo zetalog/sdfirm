@@ -6,7 +6,7 @@
 
 void con_dbg(const char *fmt, ...);
 
-#include <driver/uart.h>
+#include <target/uart.h>
 
 #ifdef CONFIG_CONSOLE_115200
 #define UART_CON_BAUDRATE	115200

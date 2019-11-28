@@ -1,9 +1,6 @@
 #ifndef __UART_DRIVER_H_INCLUDE__
 #define __UART_DRIVER_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/bulk.h>
-
 #ifdef CONFIG_ARCH_HAS_UART
 #include <asm/mach/uart.h>
 #endif

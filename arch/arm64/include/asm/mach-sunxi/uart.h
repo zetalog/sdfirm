@@ -42,8 +42,6 @@
 #ifndef __UART_SUNXI_H_INCLUDE__
 #define __UART_SUNXI_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
 #include <target/gpio.h>
 #include <target/clk.h>
 

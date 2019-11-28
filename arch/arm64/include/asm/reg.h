@@ -1,8 +1,6 @@
 #ifndef __REG_ARM64_H_INCLUDE__
 #define __REG_ARM64_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/types.h>
 #include <asm/io.h>
 #include <asm/mach/reg.h>
 

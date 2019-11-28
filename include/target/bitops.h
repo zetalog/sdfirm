@@ -1,7 +1,6 @@
 #ifndef __BITOPS_H_INCLUDE__
 #define __BITOPS_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/types.h>
 
 typedef uint8_t bits_t;

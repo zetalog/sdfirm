@@ -7,8 +7,6 @@
 #ifndef	__SPL_SUNXI_H_INCLUDE__
 #define	__SPL_SUNXI_H_INCLUDE__
 
-#include <target/config.h>
-
 #define BOOT0_MAGIC		"eGON.BT0"
 #define SPL_SIGNATURE		"SPL" /* marks "sunxi" SPL header */
 #define SPL_HEADER_VERSION	2

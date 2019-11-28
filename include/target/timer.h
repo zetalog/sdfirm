@@ -4,8 +4,6 @@
 /* TODO:
  * 1. promptly timer TIMER_IRQ.
  */
-#include <target/config.h>
-#include <target/generic.h>
 #include <target/gpt.h>
 
 typedef uint8_t tid_t;

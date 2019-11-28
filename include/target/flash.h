@@ -1,8 +1,6 @@
 #ifndef __FLASH_H_INCLUDE__
 #define __FLASH_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
 #include <target/mtd.h>
 
 typedef uint8_t flash_bid_t;

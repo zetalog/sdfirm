@@ -1,8 +1,6 @@
 #ifndef __USB_SCD_H_INCLUDE__
 #define __USB_SCD_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
 #include <target/usb.h>
 #include <target/scs.h>
 

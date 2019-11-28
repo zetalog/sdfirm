@@ -42,9 +42,6 @@
 #ifndef __REG_SPIKE_H_INCLUDE__
 #define __REG_SPIKE_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/sizes.h>
-
 /* MEM1 default:
  *
  * memory@80000000 {

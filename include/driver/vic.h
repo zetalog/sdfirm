@@ -1,8 +1,6 @@
 #ifndef __VIC_DRIVER_H_INCLUDE__
 #define __VIC_DRIVER_H_INCLUDE__
 
-#include <target/config.h>
-
 #ifdef CONFIG_ARCH_HAS_VIC
 #include <asm/mach/vic.h>
 #endif

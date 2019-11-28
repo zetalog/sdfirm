@@ -42,8 +42,7 @@
 #ifndef __PERF_H_INCLUDE__
 #define __PERF_H_INCLUDE__
 
-#include <errno.h>
-#include <target/types.h>
+#include <target/generic.h>
 #include <asm/perf.h>
 
 #define NR_PERF_EVTS		PERF_HW_MAX_COUNTERS

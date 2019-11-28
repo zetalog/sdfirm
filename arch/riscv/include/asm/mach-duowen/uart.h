@@ -42,8 +42,6 @@
 #ifndef __UART_DUOWEN_H_INCLUDE__
 #define __UART_DUOWEN_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
 #include <target/paging.h>
 #include <target/gpio.h>
 #include <target/clk.h>

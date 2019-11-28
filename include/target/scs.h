@@ -42,7 +42,6 @@
 #ifndef __SCS_H_INCLUDE__
 #define __SCS_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/generic.h>
 
 #ifdef CONFIG_SCS_DEBUG

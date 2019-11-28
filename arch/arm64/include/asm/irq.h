@@ -1,10 +1,6 @@
 #ifndef __IRQ_ARM64_H_INCLUDE__
 #define __IRQ_ARM64_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
-#include <asm/reg.h>
-
 #define IRQ_SGI_BASE	0
 #define IRQ_PPI_BASE	16
 #define IRQ_SPI_BASE	32

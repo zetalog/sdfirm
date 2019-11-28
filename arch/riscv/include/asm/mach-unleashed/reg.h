@@ -42,9 +42,6 @@
 #ifndef __REG_UNLEASHED_H_INCLUDE__
 #define __REG_UNLEASHED_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/sizes.h>
-
 #define MSEL_BASE		UL(0x00001000)
 #define MSEL_SIZE		UL(0x00001000)
 #define MASK_ROM_BASE		UL(0x00010000)

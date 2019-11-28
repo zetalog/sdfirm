@@ -1,7 +1,6 @@
 #ifndef __MTD_H_INCLUDE__
 #define __MTD_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/generic.h>
 
 #ifdef CONFIG_MTD_MAX_CHIPS

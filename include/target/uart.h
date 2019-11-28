@@ -1,8 +1,6 @@
 #ifndef __UART_H_INCLUDE__
 #define __UART_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
 #include <target/bulk.h>
 
 #ifdef CONFIG_UART_DEBUG

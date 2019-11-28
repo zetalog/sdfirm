@@ -1,33 +1,93 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Apr 23 22:04:35 2019
+# Fri Nov 29 00:02:20 2019
 #
 CONFIG_ARM64=y
+
+#
+# Generic setup
+#
+CONFIG_VENDOR_NAME="HXT Shanghai"
+CONFIG_PRODUCT_NAME="HXT TestOS"
+CONFIG_VENDOR_ID=990
+CONFIG_PRODUCT_ID=0
+CONFIG_SERIAL_NO=0
+CONFIG_BOOTLOADER=y
+# CONFIG_FIRMWARE is not set
+# CONFIG_EMBEDDED is not set
+
+#
+# Bootloader options
+#
+# CONFIG_BOOT_LINUX is not set
+# CONFIG_BOOT_ROM is not set
+CONFIG_CONSOLE=y
+CONFIG_CONSOLE_COMMAND=y
+CONFIG_CONSOLE_OUTPUT=y
+# CONFIG_CONSOLE_OUTPUT_CR is not set
+CONFIG_CONSOLE_PRINT_BUFFER_SIZE=64
+CONFIG_CONSOLE_INPUT=y
+# CONFIG_CONSOLE_230400 is not set
+CONFIG_CONSOLE_115200=y
+# CONFIG_CONSOLE_57600 is not set
+# CONFIG_CONSOLE_38400 is not set
+# CONFIG_CONSOLE_19200 is not set
+# CONFIG_CONSOLE_9600 is not set
+# CONFIG_CONSOLE_4800 is not set
+# CONFIG_CONSOLE_2400 is not set
+# CONFIG_CONSOLE_DEBUG is not set
 
 #
 # ARM64 system options
 #
 CONFIG_ARCH_QDF2400=y
+# CONFIG_ARCH_GEM5 is not set
+# CONFIG_ARCH_SUNXI is not set
 CONFIG_CPU_QDF2400=y
+CONFIG_CPU_64v7=y
+CONFIG_CPU_64v7_VE=y
 CONFIG_CPU_64v8=y
+CONFIG_CPU_64v8_0=y
+CONFIG_CPU_64v8_1=y
+CONFIG_CPU_64v8_TZ=y
+CONFIG_CPU_64v8_1_ATOMICS=y
+CONFIG_CPU_64v8_1_SIMD=y
+CONFIG_CPU_64v8_1_LOR=y
+CONFIG_CPU_64v8_1_HPD=y
+CONFIG_CPU_64v8_1_PAN=y
+CONFIG_CPU_64v8_1_VHE=y
 CONFIG_NR_CPUS=48
+# CONFIG_TZ_SECURE is not set
+CONFIG_TZ_NORMAL=y
+CONFIG_SYS_KERNEL=y
+# CONFIG_SYS_MONITOR is not set
+CONFIG_SYS_GUEST=y
 CONFIG_GIC=y
 
 #
-# Generic Interrupt Controller (GIC) options
+# Generic Interrupt Controller (GIC) support
 #
 CONFIG_ARCH_HAS_GICv2=y
 CONFIG_GICv2=y
 # CONFIG_GICv3 is not set
 CONFIG_GICv2_IRQ_NS=y
-# CONFIG_ARM_DCC is not set
-# CONFIG_PMU is not set
+# CONFIG_VMSA is not set
 
 #
-# CoreLink peripherals
+# External Debug support
+#
+# CONFIG_ARM_DCC is not set
+# CONFIG_PMU is not set
+# CONFIG_CORESIGHT is not set
+
+#
+# ARM CoreLink peripheral support
 #
 CONFIG_UART_PL01X=y
+CONFIG_ARCH_IS_UART_PL011=y
+# CONFIG_UART_PL010 is not set
+CONFIG_UART_PL011=y
 CONFIG_UART_PL01X_SBSA=y
 
 #
@@ -85,6 +145,7 @@ CONFIG_QUART_BLSP0_2=y
 # CONFIG_QUART_BLSP3_2 is not set
 # CONFIG_QUART_BLSP3_3 is not set
 # CONFIG_QUART_AMPLIFIED_BAUDRATE is not set
+# CONFIG_QDSS is not set
 
 #
 # Feature setup
@@ -113,6 +174,7 @@ CONFIG_MAX_VECTORS=4
 # Scheduling facility (bh) support
 #
 CONFIG_MAX_BHS=4
+# CONFIG_SMP is not set
 
 #
 # Timing facility (jiffy) support
@@ -131,15 +193,20 @@ CONFIG_TIMER_ONESHOT=y
 CONFIG_MAX_TIMERS=3
 
 #
-# Address space layout (.text) support
+# Address space layout (xip) support
 #
 # CONFIG_XIP is not set
 CONFIG_BOOT_BASE=0xFF6F800000
 CONFIG_LOAD_BASE=0xFF6F800000
+CONFIG_LOAD_TEXT=y
+CONFIG_LOAD_DATA=y
 # CONFIG_HEAP is not set
+# CONFIG_MEM is not set
+# CONFIG_PAGE is not set
+CONFIG_ARCH_HAS_MMU=y
+# CONFIG_MMU is not set
 CONFIG_IDLE=y
-CONFIG_BULK=y
-CONFIG_BULK_MAX_CHANS=1
+# CONFIG_BULK is not set
 # CONFIG_TERM is not set
 CONFIG_ARCH_HAS_GPIO=y
 CONFIG_GPIO=y
@@ -147,7 +214,7 @@ CONFIG_CLK=y
 CONFIG_CLK_MAX_DRIVERS=5
 
 #
-# Human interface devices support
+# Human Interface Devices (HID) support
 #
 # CONFIG_LCD is not set
 # CONFIG_KBD is not set
@@ -174,11 +241,23 @@ CONFIG_UART_230400=y
 # CONFIG_SCSI is not set
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
+# CONFIG_MMC is not set
 # CONFIG_RAS is not set
 
 #
 # Driver setup
 #
+
+#
+# Timer drivers
+#
+# CONFIG_DW_TIMERS is not set
+
+#
+# Debugging console drivers
+#
+# CONFIG_DW_UART is not set
+# CONFIG_SEGGER_RTT is not set
 
 #
 # LCD drivers
@@ -195,9 +274,23 @@ CONFIG_UART_230400=y
 # CONFIG_ACR122 is not set
 
 #
+# MMC host drivers
+#
+
+#
+# Clock drivers
+#
+# CONFIG_DW_PLL5GHZ_TSMC12FFC is not set
+
+#
+# Test setup
+#
+# CONFIG_TEST_VERBOSE is not set
+# CONFIG_RAVEN is not set
+
+#
 # Library setup
 #
-CONFIG_STDLIB=y
 
 #
 # Bit-wise operations
@@ -207,6 +300,7 @@ CONFIG_BIT_FLS16=y
 # CONFIG_BIT_FFS16 is not set
 CONFIG_BIT_FLS32=y
 # CONFIG_BIT_FFS32 is not set
+# CONFIG_BIT_ROUNDUP8 is not set
 # CONFIG_BIT_ROUNDUP16 is not set
 # CONFIG_BIT_ROUNDDOWN16 is not set
 CONFIG_BIT_ROUNDUP32=y
@@ -221,12 +315,12 @@ CONFIG_BIT_FIND_CLEAR=y
 # Mathematic operations
 #
 CONFIG_MATH_GCD32=y
-# CONFIG_MATH_MOD32 is not set
+CONFIG_MATH_MOD32=y
 CONFIG_MATH_MUL32=y
 CONFIG_MATH_MUL64=y
 CONFIG_MATH_DIV32=y
 CONFIG_MATH_DIV64=y
-# CONFIG_MATH_MOD64 is not set
+CONFIG_MATH_MOD64=y
 
 #
 # Atomic operations
@@ -239,33 +333,30 @@ CONFIG_MATH_DIV64=y
 #
 # CONFIG_CRC16_CCITT is not set
 # CONFIG_CRC32 is not set
+CONFIG_STDLIB=y
+
+#
+# Print operations
+#
+CONFIG_PRINT_VSNPRINTF=y
+# CONFIG_PRINT_SNPRINTF is not set
+CONFIG_PRINT_VPRINTF=y
+# CONFIG_PRINT_SPRINTF is not set
+CONFIG_PRINT_PRINTF=y
+
+#
+# String operations
+#
+CONFIG_STRING_STRTOUL=y
+# CONFIG_STRING_UUID is not set
 # CONFIG_FONTS is not set
 
 #
-# Generic setup
+# Development options
 #
-CONFIG_VENDOR_NAME="HXT Shanghai"
-CONFIG_PRODUCT_NAME="HXT TestOS"
-CONFIG_VENDOR_ID=990
-CONFIG_PRODUCT_ID=0
-CONFIG_SERIAL_NO=0
 CONFIG_EXPERIMENTAL=y
 # CONFIG_CC_OPT_SIZE is not set
 CONFIG_DEBUG=y
 # CONFIG_CC_GEN_DEBUG is not set
 # CONFIG_DEBUG_PANIC is not set
 # CONFIG_PORTING is not set
-CONFIG_CONSOLE=y
-CONFIG_CONSOLE_COMMAND=y
-CONFIG_CONSOLE_OUTPUT=y
-CONFIG_CONSOLE_PRINT_BUFFER_SIZE=64
-CONFIG_CONSOLE_INPUT=y
-# CONFIG_CONSOLE_230400 is not set
-CONFIG_CONSOLE_115200=y
-# CONFIG_CONSOLE_57600 is not set
-# CONFIG_CONSOLE_38400 is not set
-# CONFIG_CONSOLE_19200 is not set
-# CONFIG_CONSOLE_9600 is not set
-# CONFIG_CONSOLE_4800 is not set
-# CONFIG_CONSOLE_2400 is not set
-# CONFIG_DEBUG_PRINT is not set

@@ -42,8 +42,6 @@
 #ifndef __MMC_H_INCLUDE__
 #define __MMC_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/compiler.h>
 #include <target/generic.h>
 #include <errno.h>
 

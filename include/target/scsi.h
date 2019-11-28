@@ -1,7 +1,6 @@
 #ifndef __SCSI_H_INCLUDE__
 #define __SCSI_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/generic.h>
 #include <target/bulk.h>
 

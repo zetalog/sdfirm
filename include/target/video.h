@@ -1,8 +1,7 @@
 #ifndef __VIDEO_H_INCLUDE__
 #define __VIDEO_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/types.h>
+#include <target/generic.h>
 
 typedef uint16_t video_pt_t;
 

@@ -43,7 +43,6 @@
 #define __CPUS_H_INCLUDE__
 
 #include <target/jiffies.h>
-#include <target/compiler.h>
 #include <asm/cpus.h>
 
 #define CPU_TO_MASK(cpu)	(1ULL << (cpu))

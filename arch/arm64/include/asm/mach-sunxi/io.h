@@ -42,9 +42,6 @@
 #ifndef __IO_SUNXI_H_INCLUDE__
 #define __IO_SUNXI_H_INCLUDE__
 
-#include <target/config.h>
-#include <asm/reg.h>
-
 /* Normally empty unless there is an architecture specific bit banging
  * mechanism.
  */

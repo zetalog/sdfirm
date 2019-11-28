@@ -42,9 +42,6 @@
 #ifndef __GICV3_ARM64_H_INCLUDE__
 #define __GICV3_ARM64_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
-#include <asm/reg.h>
 #include <asm/gic.h>
 
 /* ARM Generic Interrupt Controller Architecture Specification v3 and v4 */

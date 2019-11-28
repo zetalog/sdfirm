@@ -1,7 +1,6 @@
 #ifndef __NFC_H_INCLUDE__
 #define __NFC_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/generic.h>
 
 /* NFC target information in D.E.P. (Data Exchange Protocol) see

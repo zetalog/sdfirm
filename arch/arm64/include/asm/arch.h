@@ -1,7 +1,6 @@
 #ifndef __ARCH_ARM64_H_INCLUDE__
 #define __ARCH_ARM64_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/barrier.h>
 #include <asm/mach/arch.h>
 #include <asm/reg.h>

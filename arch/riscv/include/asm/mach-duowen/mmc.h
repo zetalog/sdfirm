@@ -42,8 +42,8 @@
 #ifndef __MMC_DUOWEN_H_INCLUDE__
 #define __MMC_DUOWEN_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
+#include <target/gpio.h>
+#include <target/clk.h>
 
 #ifdef CONFIG_DW_MSHC
 #include <target/sdhc.h>

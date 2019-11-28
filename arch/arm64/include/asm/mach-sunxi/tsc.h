@@ -42,8 +42,6 @@
 #ifndef __TSC_SUNXI_H_INCLUDE__
 #define __TSC_SUNXI_H_INCLUDE__
 
-#include <target/config.h>
-#include <asm/reg.h>
 #include <asm/timer.h>
 
 /* kHz based */

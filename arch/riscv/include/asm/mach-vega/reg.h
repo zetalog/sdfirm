@@ -42,9 +42,6 @@
 #ifndef __REG_VEGA_H_INCLUDE__
 #define __REG_VEGA_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/sizes.h>
-
 #define M4_FLASH_BASE		0x00000000
 #define M4_FLASH_SIZE		0x00100000 /* 1MB */
 

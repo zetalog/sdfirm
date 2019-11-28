@@ -1,10 +1,10 @@
 #ifndef __GENERIC_H_INCLUDE__
 #define __GENERIC_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/compiler.h>
 #include <target/types.h>
 #include <target/const.h>
+#include <target/sizes.h>
 
 #ifndef __ASSEMBLY__
 #include <target/bitops.h>

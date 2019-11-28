@@ -42,8 +42,6 @@
 #ifndef __UART_PL01X_H_INCLUDE__
 #define __UART_PL01X_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
 #include <target/muldiv.h>
 
 #define UART_REG(n, offset)	(UART_BASE(n)+(offset))

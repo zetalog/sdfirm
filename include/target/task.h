@@ -1,7 +1,6 @@
 #ifndef __TASK_H_INCLUDE__
 #define __TASK_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/generic.h>
 
 #ifndef __ASSEMBLY__

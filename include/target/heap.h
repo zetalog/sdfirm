@@ -1,7 +1,6 @@
 #ifndef __HEAP_H_INCLUDE__
 #define __HEAP_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/generic.h>
 #include <target/paging.h>	/* page size */
 

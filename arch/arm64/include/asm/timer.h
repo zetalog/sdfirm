@@ -1,9 +1,7 @@
 #ifndef __TIMER_ARM64_H_INCLUDE__
 #define __TIMER_ARM64_H_INCLUDE__
 
-#include <target/types.h>
 #include <target/gpt.h>
-#include <asm/reg.h>
 #include <asm/sysreg.h>
 
 /* =================================================================

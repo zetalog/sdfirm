@@ -42,9 +42,6 @@
 #ifndef __GPIO_DRIVER_H_INCLUDE__
 #define __GPIO_DRIVER_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
-
 #ifdef CONFIG_ARCH_HAS_GPIO
 #include <asm/mach/gpio.h>
 #endif

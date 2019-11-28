@@ -42,9 +42,7 @@
 #ifndef __GIC_ARM64_H_INCLUDE__
 #define __GIC_ARM64_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
-#include <asm/reg.h>
+#include <target/arch.h>
 
 #ifndef ARCH_HAVE_IRQC
 #define ARCH_HAVE_IRQC

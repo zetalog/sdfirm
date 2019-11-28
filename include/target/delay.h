@@ -8,7 +8,6 @@
  * header file.
  */
 
-#include <target/config.h>
 #include <target/tsc.h>
 
 #ifdef CONFIG_LPS_64BITS

@@ -1,9 +1,6 @@
 #ifndef __LCD_NHDC0216AZ_H_INCLUDE__
 #define __LCD_NHDC0216AZ_H_INCLUDE__
 
-#include <target/config.h>
-#include <asm/reg.h>
-
 #ifndef ARCH_HAVE_LCD
 #define ARCH_HAVE_LCD			1
 #else

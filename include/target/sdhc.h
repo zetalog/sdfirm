@@ -42,8 +42,6 @@
 #ifndef __SDHC_H_INCLUDE__
 #define __SDHC_H_INCLUDE__
 
-#include <target/config.h>
-
 #ifndef SDHC_REG
 #define SDHC_REG(n, offset)		(SDHC##n##_BASE + (offset))
 #endif

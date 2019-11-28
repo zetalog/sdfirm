@@ -42,9 +42,6 @@
 #ifndef __REG_SUNXI_H_INCLUDE__
 #define __REG_SUNXI_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/sizes.h>
-
 /* Allwinner H5 Datasheet - Quad-Core OTT Box Processor revision 1.0 */
 /* 4.1. Memory Mapping */
 #define N_BROM_BASE		ULL(0x0000000000000000)

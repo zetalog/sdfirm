@@ -1,7 +1,6 @@
 #ifndef __BH_H_INCLUDE__
 #define __BH_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/generic.h>
 
 #ifndef __ASSEMBLY__

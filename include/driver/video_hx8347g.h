@@ -1,7 +1,6 @@
 #ifndef __VIDEO_HX8347GT_H_INCLUDE__
 #define __VIDEO_HX8347GT_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/gpio.h>
 
 #ifndef ARCH_HAVE_VIDEO

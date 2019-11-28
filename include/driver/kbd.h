@@ -1,8 +1,6 @@
 #ifndef __KBD_DRIVER_H_INCLUDE__
 #define __KBD_DRIVER_H_INCLUDE__
 
-#include <target/config.h>
-
 #ifdef CONFIG_KBD_AT8XC5122
 #include <asm/mach-at8xc5122/kbd.h>
 #endif

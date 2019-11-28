@@ -1,11 +1,8 @@
-#include <target/config.h>
-#include <target/compiler.h>
 #include <target/init.h>
 #include <target/arch.h>
 #include <target/paging.h>
 #include <target/irq.h>
 #include <target/task.h>
-#include <asm/asm-offsets.h>
 
 #ifdef CONFIG_ARCH_HAS_NOVEC
 #define BAD_TRAP_VECTOR			0

@@ -42,9 +42,6 @@
 #ifndef __SDHC_DUOWEN_H_INCLUDE__
 #define __SDHC_DUOWEN_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
-
 #ifdef CONFIG_DW_MSHC
 #include <driver/dw_mshc.h>
 #ifndef ARCH_HAVE_SDHC

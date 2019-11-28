@@ -1,8 +1,6 @@
 #ifndef __PN53X_H_INCLUDE_
 #define __PN53X_H_INCLUDE_
 
-#include <target/config.h>
-#include <target/generic.h>
 #include <target/scs.h>
 #include <target/nfc.h>
 

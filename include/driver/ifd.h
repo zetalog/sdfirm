@@ -1,8 +1,6 @@
 #ifndef __IFD_DRIVER_H_INCLUDE__
 #define __IFD_DRIVER_H_INCLUDE__
 
-#include <target/config.h>
-
 #ifdef CONFIG_ARCH_HAS_IFD
 #include <asm/mach/ifd.h>
 #endif

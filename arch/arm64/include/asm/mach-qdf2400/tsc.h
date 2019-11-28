@@ -1,8 +1,6 @@
 #ifndef __TSC_QDF2400_H_INCLUDE__
 #define __TSC_QDF2400_H_INCLUDE__
 
-#include <target/config.h>
-#include <asm/reg.h>
 #include <asm/timer.h>
 
 /* kHz based */

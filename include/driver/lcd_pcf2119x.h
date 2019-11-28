@@ -1,7 +1,6 @@
 #ifndef __LCD_PCF2119X_H_INCLUDE__
 #define __LCD_PCF2119X_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/i2c.h>
 
 #ifndef ARCH_HAVE_LCD

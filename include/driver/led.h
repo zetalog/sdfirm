@@ -1,8 +1,6 @@
 #ifndef __LED_DRIVER_H_INCLUDE__
 #define __LED_DRIVER_H_INCLUDE__
 
-#include <target/config.h>
-
 #ifdef CONFIG_LED_AT90USB1287
 #include <asm/mach-at90usb1287/led.h>
 #endif

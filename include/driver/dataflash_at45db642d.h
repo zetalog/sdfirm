@@ -1,8 +1,6 @@
 #ifndef __DATAFLASH_AT45DB642D_H_INCLUDE__
 #define __DATAFLASH_AT45DB642D_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
 #include <target/spi.h>
 
 #ifndef ARCH_HAVE_DATAFLASH_CHIP

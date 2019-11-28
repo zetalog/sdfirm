@@ -42,8 +42,6 @@
 #ifndef __USB_H_INCLUDE__
 #define __USB_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
 #include <target/timer.h>
 #include <target/bulk.h>
 

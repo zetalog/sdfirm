@@ -1,7 +1,6 @@
 #ifndef __COS_H_INCLUDE__
 #define __COS_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/generic.h>
 #include <target/scs_slot.h>
 #include <target/usb.h>

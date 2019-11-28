@@ -42,10 +42,7 @@
 #ifndef __TLMM_QDF2400_H_INCLUDE__
 #define __TLMM_QDF2400_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/types.h>
 #include <target/generic.h>
-#include <asm/reg.h>
 
 #ifdef CONFIG_GPIO_TLMM
 #ifndef ARCH_HAVE_GPIO

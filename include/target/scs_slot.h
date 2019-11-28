@@ -1,8 +1,6 @@
 #ifndef __SCS_SLOT_H_INCLUDE__
 #define __SCS_SLOT_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
 #include <target/scs.h>
 
 /* slot identifier */

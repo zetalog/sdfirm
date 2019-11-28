@@ -34,3 +34,14 @@ lowlevel_init: arch/arm/cpu/armv8/lowlevel_init.S
 			board_boot_order
 				spl_boot_device: arch/arm/mach-sunxi/board.c
 					sunxi_get_boot_device
+			boot_from_devices
+				spl_mmc_load_image: common/spl/spl_mmc.c
+					spl_mmc_get_device_index
+					mmc_initialize: drivers/mmc/mmc.c
+						mmc_list_init
+						mmc_probe
+							board_mmc_init: board/sunxi/board.c
+								mmc_pinmux_setup(CONFIG_MMC_SUNXI_SLOT=0)
+								sunxi_mmc_init
+									mmc_create
+					find_mmc_device

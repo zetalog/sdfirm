@@ -42,10 +42,8 @@
 #ifndef __UART_DRAGONFLY_H_INCLUDE__
 #define __UART_DRAGONFLY_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/types.h>
+#include <target/arch.h>
 #include <target/muldiv.h>
-#include <asm/io.h>
 
 #define UART_DM_REG(n, offset)		\
 	(UART_DM_BASE(n)+		\

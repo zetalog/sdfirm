@@ -1,8 +1,6 @@
 #ifndef __COS_DRIVER_H_INCLUDE__
 #define __COS_DRIVER_H_INCLUDE__
 
-#include <target/config.h>
-
 #ifdef CONFIG_COS_SCOS
 #include <driver/scos.h>
 #endif

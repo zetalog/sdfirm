@@ -1,7 +1,6 @@
 #ifndef __SPI_H_INCLUDE__
 #define __SPI_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/generic.h>
 
 /* device ID */

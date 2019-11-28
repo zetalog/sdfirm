@@ -42,8 +42,6 @@
 #ifndef __MMC_SPI_H_INCLUDE__
 #define __MMC_SPI_H_INCLUDE__
 
-#include <target/config.h>
-
 #ifndef ARCH_HAVE_MMC
 #define ARCH_HAVE_MMC		1
 #else

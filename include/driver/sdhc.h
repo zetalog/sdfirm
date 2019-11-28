@@ -42,8 +42,6 @@
 #ifndef __SDHC_DRIVER_H_INCLUDE__
 #define __SDHC_DRIVER_H_INCLUDE__
 
-#include <target/config.h>
-
 #ifdef CONFIG_ARCH_HAS_SDHC
 #include <asm/mach/sdhc.h>
 #endif

@@ -42,9 +42,6 @@
 #ifndef __DW_MSHC_H_INCLUDE__
 #define __DW_MSHC_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
-
 #ifdef CONFIG_SDHC
 #define sdhc_hw_ctrl_init()		dw_mshc_init()
 #endif

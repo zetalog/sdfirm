@@ -42,8 +42,6 @@
 #ifndef __USB_HID_H_INCLUDE__
 #define __USB_HID_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
 #include <target/usb.h>
 #include <target/jiffies.h>
 

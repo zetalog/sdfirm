@@ -42,6 +42,7 @@
 #ifndef __CACHE_H_INCLUDE__
 #define __CACHE_H_INCLUDE__
 
+#include <target/generic.h>
 #include <asm/cache.h>
 
 #define flush_dcache_area(addr, size)	__flush_dcache_area(addr, size)

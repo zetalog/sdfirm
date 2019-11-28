@@ -1,8 +1,6 @@
 #ifndef __WDT_DRIVER_H_INCLUDE__
 #define __WDT_DRIVER_H_INCLUDE__
 
-#include <target/config.h>
-
 #ifdef CONFIG_ARCH_HAS_WDT
 #include <asm/mach/wdt.h>
 #endif

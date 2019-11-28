@@ -1,6 +1,8 @@
 #ifndef __COMPILER_H_INCLUDE__
 #define __COMPILER_H_INCLUDE__
 
+#include <target/config.h>
+
 /* compiler specific */
 
 #define __barrier()	asm volatile("": : :"memory")

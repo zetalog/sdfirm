@@ -1,8 +1,6 @@
 #ifndef __DATAFLASH_DRIVER_H_INCLUDE__
 #define __DATAFLASH_DRIVER_H_INCLUDE__
 
-#include <target/config.h>
-
 /* chip drivers */
 #ifdef CONFIG_DATAFLASH_AT45DB642D
 #include <driver/dataflash_at45db642d.h>

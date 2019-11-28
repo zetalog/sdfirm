@@ -42,8 +42,6 @@
 #ifndef __IFD_H_INCLUDE__
 #define __IFD_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
 #include <target/scs.h>
 
 typedef uint8_t ifd_sid_t;

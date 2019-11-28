@@ -1,7 +1,6 @@
 #ifndef __LED_H_INCLUDE__
 #define __LED_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/generic.h>
 
 #include <driver/led.h>

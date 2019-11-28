@@ -1,7 +1,6 @@
 #ifndef __MULDIV_ARM64_H_INCLUDE__
 #define __MULDIV_ARM64_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/types.h>
 
 static inline uint32_t mul16u(uint16_t x, uint16_t y)

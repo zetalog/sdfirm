@@ -1,9 +1,6 @@
 #ifndef __IFD_SERIAL_H_INCLUDE__
 #define __IFD_SERIAL_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
-
 #ifndef ARCH_HAVE_IFD
 #define ARCH_HAVE_IFD			1
 #else

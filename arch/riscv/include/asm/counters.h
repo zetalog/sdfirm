@@ -42,7 +42,6 @@
 #ifndef __COUNTERS_RISCV_H_INCLUDE__
 #define __COUNTERS_RISCV_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/types.h>
 
 /* This file uses hardware specification naming - RISCV counters extension,

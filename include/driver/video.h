@@ -1,8 +1,6 @@
 #ifndef __VIDEO_DRIVER_H_INCLUDE__
 #define __VIDEO_DRIVER_H_INCLUDE__
 
-#include <target/config.h>
-
 #ifdef CONFIG_VIDEO_HX8347G
 #include <driver/video_hx8347g.h>
 #endif

@@ -1,8 +1,7 @@
 #ifndef __TERM_H_INCLUDE__
 #define __TERM_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/types.h>
+#include <target/generic.h>
 #include <target/io.h>
 #include <target/bulk.h>
 #include <target/video.h>

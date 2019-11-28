@@ -42,7 +42,6 @@
 #ifndef __IO_RISCV_H_INCLUDE__
 #define __IO_RISCV_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/types.h>
 #include <asm/mach/io.h>
 

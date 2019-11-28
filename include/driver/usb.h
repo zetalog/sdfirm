@@ -1,8 +1,6 @@
 #ifndef __USB_DRIVER_H_INCLUDE__
 #define __USB_DRIVER_H_INCLUDE__
 
-#include <target/config.h>
-
 typedef uint8_t usb_cid_t;
 typedef uint8_t usb_iid_t;
 typedef uint8_t usb_addr_t;

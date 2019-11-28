@@ -556,6 +556,7 @@ config ARCH_HAS_CLK
 
 config CLK
 	bool "Clock tree framework support"
+	select STRING_STRTOUL
 
 if CLK
 

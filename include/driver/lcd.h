@@ -1,8 +1,6 @@
 #ifndef __LCD_DRIVER_H_INCLUDE__
 #define __LCD_DRIVER_H_INCLUDE__
 
-#include <target/config.h>
-
 #ifdef CONFIG_LCD_HD44780U
 #include <driver/lcd_hd44780u.h>
 #endif

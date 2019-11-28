@@ -1,8 +1,6 @@
 #ifndef __IRQ_H_INCLUDE__
 #define __IRQ_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
 #include <target/bh.h>
 #include <asm/irq.h>
 

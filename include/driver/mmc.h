@@ -42,8 +42,6 @@
 #ifndef __MMC_DRIVER_H_INCLUDE__
 #define __MMC_DRIVER_H_INCLUDE__
 
-#include <target/config.h>
-
 #ifdef CONFIG_ARCH_HAS_MMC
 #include <asm/mach/mmc.h>
 #endif

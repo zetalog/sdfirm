@@ -42,8 +42,6 @@
 #ifndef __RAVEN_H_INCLUDE__
 #define __RAVEN_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/compiler.h>
 #include <target/percpu.h>
 #include <target/cpus.h>
 #include <target/smp.h>

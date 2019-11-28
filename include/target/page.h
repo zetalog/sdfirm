@@ -1,7 +1,6 @@
 #ifndef __PAGE_H_INCLUDE__
 #define __PAGE_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/generic.h>
 #include <target/console.h>
 

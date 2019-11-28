@@ -42,11 +42,8 @@
 #ifndef __SD_H_INCLUDE__
 #define __SD_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/compiler.h>
-#include <target/generic.h>
-#include <errno.h>
 #include <target/mmc.h>
+#include <errno.h>
 
 /* 7.8 commands */
 /* command index */

@@ -1,8 +1,6 @@
-#include <target/config.h>
+#include <target/compiler.h>
 #include <target/arch.h>
 #include <target/cmdline.h>
-#include <target/compiler.h>
-#include <asm-generic/sdfirm.lds.h>
 
 #define IDMAP_TEXT			\
 	. = ALIGN(SZ_4K);		\

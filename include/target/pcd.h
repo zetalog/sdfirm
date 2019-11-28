@@ -42,8 +42,6 @@
 #ifndef __PCD_H_INCLUDE__
 #define __PCD_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
 #include <target/scs.h>
 
 /* #include <driver/pcd.h> */

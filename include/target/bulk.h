@@ -1,7 +1,7 @@
 #ifndef __BULK_H_INCLUDE__
 #define __BULK_H_INCLUDE__
 
-#include <target/config.h>
+#include <target/generic.h>
 #include <target/io.h>
 
 #ifdef CONFIG_DEBUG_PRINT

@@ -1,7 +1,3 @@
-#include <string.h>
-#include <stdio.h>
-#include <errno.h>
-#include <target/types.h>
 #include <target/mem.h>
 #include <target/readline.h>
 #include <target/cmdline.h>

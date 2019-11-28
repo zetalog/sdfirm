@@ -1,7 +1,6 @@
 #ifndef __NET_H_INCLUDE_H__
 #define __NET_H_INCLUDE_H__
 
-#include <target/config.h>
 #include <target/generic.h>
 
 typedef uint16_t dev_mtu_t;

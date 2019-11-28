@@ -1,7 +1,6 @@
 #ifndef __KBD_H_INCLUDE__
 #define __KBD_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/generic.h>
 
 #include <driver/kbd.h>

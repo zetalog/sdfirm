@@ -1,11 +1,10 @@
 #ifndef __ARCH_H_INCLUDE__
 #define __ARCH_H_INCLUDE__
 
-#include <target/config.h>
-#include <asm/arch.h>
 #include <target/cpus.h>
 #include <target/cache.h>
 #include <target/paging.h>
+#include <asm/arch.h>
 
 #ifdef CONFIG_XIP
 #define TEXT_OFFSET		CONFIG_BOOT_BASE

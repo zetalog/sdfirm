@@ -1,8 +1,7 @@
 #ifndef __TSC_GEM5_H_INCLUDE__
 #define __TSC_GEM5_H_INCLUDE__
 
-#include <target/config.h>
-#include <asm/reg.h>
+#include <target/arch.h>
 #include <asm/timer.h>
 
 /* kHz based */

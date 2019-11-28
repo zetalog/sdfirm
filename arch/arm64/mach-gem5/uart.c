@@ -81,7 +81,7 @@ uint8_t uart_hw_con_read(void)
 #ifdef CONFIG_CONSOLE
 void uart_hw_con_init(void)
 {
-	dw_uart_con_init();
+	dw_uart_con_init(UART_CLK_SRC_FREQ);
 }
 #endif
 #endif /* CONFIG_UART_APB */

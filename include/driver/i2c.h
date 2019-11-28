@@ -1,8 +1,6 @@
 #ifndef __I2C_DRIVER_H_INCLUDE__
 #define __I2C_DRIVER_H_INCLUDE__
 
-#include <target/config.h>
-
 #ifdef CONFIG_I2C_10BIT_ADDRESS
 typedef uint16_t i2c_addr_t;
 #else

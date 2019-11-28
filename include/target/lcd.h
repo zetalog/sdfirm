@@ -1,7 +1,6 @@
 #ifndef __LCD_H_INCLUDE__
 #define __LCD_H_INCLUDE__
 
-#include <target/config.h>
 #include <target/generic.h>
 
 typedef void (*lcd_init_cb)(void);

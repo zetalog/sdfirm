@@ -42,9 +42,6 @@
 #ifndef __UART_UNLEASHED_H_INCLUDE__
 #define __UART_UNLEASHED_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
-#include <target/bitops.h>
 #include <target/gpio.h>
 #include <target/clk.h>
 #include <target/arch.h>

@@ -42,9 +42,6 @@
 #ifndef __REG_DUOWEN_H_INCLUDE__
 #define __REG_DUOWEN_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/sizes.h>
-
 #ifdef CONFIG_DUOWEN_IMC
 #define SFAB_ROM_BASE		UL(0x7FF00000)
 #define SFAB_ROM_SIZE		0x100000

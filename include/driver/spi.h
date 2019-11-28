@@ -1,8 +1,6 @@
 #ifndef __SPI_DRIVER_H_INCLUDE__
 #define __SPI_DRIVER_H_INCLUDE__
 
-#include <target/config.h>
-
 #ifdef CONFIG_ARCH_HAS_SPI
 #include <asm/mach/spi.h>
 #endif
