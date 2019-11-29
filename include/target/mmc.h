@@ -43,7 +43,6 @@
 #define __MMC_H_INCLUDE__
 
 #include <target/generic.h>
-#include <errno.h>
 
 #ifdef CONFIG_MMC_DEBUG
 #define mmc_debug_state(state)					\

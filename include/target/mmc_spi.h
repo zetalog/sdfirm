@@ -72,8 +72,6 @@
 #define mmc_hw_card_busy()		false
 #endif
 
-#include <driver/mmc.h>
-
 void mmc_spi_reset_success(void);
 void mmc_spi_init(void);
 void mmc_spi_select(mmc_rca_t rca);
