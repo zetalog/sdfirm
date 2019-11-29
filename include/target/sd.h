@@ -43,7 +43,6 @@
 #define __SD_H_INCLUDE__
 
 #include <target/mmc.h>
-#include <errno.h>
 
 /* 7.8 commands */
 /* command index */

@@ -263,6 +263,5 @@ int sunxi_gpio_set_drv(uint32_t pin, uint32_t val);
 int sunxi_gpio_set_pull(uint32_t pin, uint32_t val);
 int sunxi_name_to_gpio_bank(const char *name);
 int sunxi_name_to_gpio(const char *name);
-#define name_to_gpio(name) sunxi_name_to_gpio(name)
 
 #endif /* __GPIO_SUNXI_H_INCLUDE__ */

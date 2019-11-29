@@ -102,3 +102,40 @@ int sunxi_gpio_set_pull(uint32_t pin, uint32_t val)
 			  &pio->pull[0] + index);
 	return 0;
 }
+
+int sunxi_name_to_gpio(const char *name)
+{
+	int group = 0;
+	int groupsize = 9 * 32;
+	long pin;
+	char *eptr;
+
+	if (*name == 'P' || *name == 'p')
+		name++;
+	if (*name >= 'A') {
+		group = *name - (*name > 'a' ? 'a' : 'A');
+		groupsize = 32;
+		name++;
+	}
+
+	pin = strtoul(name, &eptr, 10);
+	if (!*name || *eptr)
+		return -1;
+	if (pin < 0 || pin > groupsize || group >= 9)
+		return -1;
+	return group * 32 + pin;
+}
+
+int sunxi_name_to_gpio_bank(const char *name)
+{
+	int group = 0;
+
+	if (*name == 'P' || *name == 'p')
+		name++;
+	if (*name >= 'A') {
+		group = *name - (*name > 'a' ? 'a' : 'A');
+		return group;
+	}
+
+	return -1;
+}

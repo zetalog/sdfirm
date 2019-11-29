@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdarg.h>
 
 #ifdef ARCH_HAS_BOOL
 typedef bool				boolean;

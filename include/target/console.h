@@ -2,8 +2,6 @@
 #define __CONSOLE_H_INCLUDE__
 
 #ifndef __ASSEMBLY__
-#include <stdarg.h>
-
 void con_dbg(const char *fmt, ...);
 
 #include <target/uart.h>

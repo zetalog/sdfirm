@@ -81,6 +81,7 @@ config SUNXI_CCU
 
 config GPIO_SUNXI
 	bool "SUNXI gpio controller support"
+	select STRING_STRTOUL
 
 config UART_SUNXI
 	bool "SUNXI uart controller support"

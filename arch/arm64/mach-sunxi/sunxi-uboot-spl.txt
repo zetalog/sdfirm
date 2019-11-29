@@ -36,12 +36,57 @@ lowlevel_init: arch/arm/cpu/armv8/lowlevel_init.S
 					sunxi_get_boot_device
 			boot_from_devices
 				spl_mmc_load_image: common/spl/spl_mmc.c
-					spl_mmc_get_device_index
-					mmc_initialize: drivers/mmc/mmc.c
-						mmc_list_init
-						mmc_probe
-							board_mmc_init: board/sunxi/board.c
-								mmc_pinmux_setup(CONFIG_MMC_SUNXI_SLOT=0)
-								sunxi_mmc_init
+					spl_mmc_find_device
+						spl_mmc_get_device_index
+						mmc_initialize: drivers/mmc/mmc.c
+							mmc_list_init
+							mmc_probe
+								board_mmc_init: board/sunxi/board.c
+*									mmc_pinmux_setup(CONFIG_MMC_SUNXI_SLOT=0)
+									sunxi_mmc_init
 									mmc_create
-					find_mmc_device
+						find_mmc_device
+					mmc_init: drivers/mmc/mmc.c
+						mmc_start_init
+							mmc_getcd
+								sunxi_mmc_getcd_legacy: drivers/mmc/sunxi_mmc.c
+							mmc_power_init
+								board_mmc_power_init
+							sunxi_mmc_core_init: drivers/mmc/sunxi_mmc.c
+							mmc_set_bus_width
+								sunxi_mmc_set_ios_legacy
+							mmc_set_clock
+								sunxi_mmc_set_ios_legacy
+							mmc_go_idle
+								CMD_GO_IDLE_STATE
+							mmc_send_if_cond
+								CMD_SEND_IF_COND
+							sd_send_op_cond
+								CMD_APP_CMD
+								ACMD_SEND_OP_COND
+								CMD_APP_CMD
+								ACMD_SEND_OP_COND
+							X mmc_send_op_cond
+						mmc_complete_init
+							mmc_startup
+								CMD_ALL_SEND_CID
+								CMD_SEND_RELATIVE_ADDR
+								CMD_SEND_CSD
+								CMD_SELECT_CARD
+								CMD_APP_CMD
+								ACMD_SEND_SCR
+								CMD_SWITCH_FUNC
+								CMD_SWITCH_FUNC
+								CMD_APP_CMD
+								ACMD_SET_BUS_WIDTH
+								CMD_APP_CMD
+								ACMD_SD_STATUS
+					mmc_load_image_raw_sector(0x50)
+						blk_dread(1)
+							CMD_SET_BLOCKLEN
+							CMD_READ_SINGLE_BLOCK
+						spl_load_simple_fit: common/spl/spl_fit.c
+							CMD_SET_BLOCKLEN
+							CMD_READ_MULTIPLE_BLOCK
+							CMD_STOP_TRANSMISSION
+							...
