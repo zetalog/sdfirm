@@ -539,6 +539,13 @@ void early_fixmap_init(void)
 	}
 }
 
+#ifdef CONFIG_GEM5
+extern phys_addr_t *simpoint_pages_alloc(void);
+extern void simpoint_pages_map(pgd_t *pgdp, phys_addr_t *pages_list);
+extern void simpoint_mem_restore(void);
+phys_addr_t *pages_list = NULL;
+#endif
+
 void paging_init(void)
 {
 	pgd_t *pgdp;
@@ -558,7 +565,16 @@ void paging_init(void)
 #else
 	pgdp = pgd_set_fixmap(__pa_symbol(mmu_id_map));
 #endif
+#ifdef CONFIG_GEM5
+	con_printf("Simpoint: Start simpoint_pages_alloc\n");
+	pages_list = simpoint_pages_alloc();
+	con_printf("Simpoint: Start simpoint_pages_map\n");
+	simpoint_pages_map(pgdp, pages_list);
+	con_printf("Simpoint: Start simpoint_mem_restore\n");
+	simpoint_mem_restore();
+#else
 	map_mem(pgdp);
+#endif
 	pgd_clear_fixmap();
 #endif
 

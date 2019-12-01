@@ -2,6 +2,7 @@
 #define __CONSOLE_H_INCLUDE__
 
 #ifndef __ASSEMBLY__
+void con_printf(const char *fmt, ...);
 void con_dbg(const char *fmt, ...);
 
 #include <target/uart.h>
