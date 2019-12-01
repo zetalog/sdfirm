@@ -207,9 +207,6 @@ ENDPROC(__start)
 
 ENTRY(stext)
 	bl	__linux_boot_el2
-#ifdef CONFIG_GEM5
-	bl	simpoint_entry
-#endif
 	bl	system_init
 ENDPIPROC(stext)
 
@@ -391,19 +388,6 @@ ENTRY(__create_page_tables)
 	add	x6, x6, #PERCPU_STACKS_SIZE
 	mov	x3, x24				// PHYS_OFFSET
 	create_block_map x0, x7, x3, x5, x6
-
-#ifdef CONFIG_GEM5
-	# Map memory pages of heap in SimPoint slice.
-	# - Function simpoint_heap_map_entry is defined in the slice source
-	#   code.
-	# - Label simpoint_heap_map_exit is target of the branching at the
-	#   end of fucntion simpoint_heap_map_entry.
-	# Use branch direct so that all registers are left for simpoint
-	# context restore usage.
-.global simpoint_heap_map_exit
-	b simpoint_heap_map_entry
-simpoint_heap_map_exit:
-#endif
 
 #if defined(CONFIG_MMU_IDMAP_DEVICE) && defined(IDMAP_DEV_BASE)
 	# Map identity device area for early console

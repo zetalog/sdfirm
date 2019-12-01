@@ -80,6 +80,7 @@ SE_ARCH_X86="x86 i386 x86_64"
 SE_ARCH_ARM="arm thumb arm32 arm64 aarch32 aarch64"
 SE_ARCH_RISCV="riscv rv32 rv64"
 SIMPOINT_SLICE_FILE=${SDFIRM}/init/gem5/simpoint_slice.S
+SIMPOINT_FUNC_FILE=${SDFIRM}/init/gem5/simpoint_func.c
 
 usage()
 {
@@ -395,10 +396,16 @@ fi
 
 if [ ${SIM_STEP} = "gem5sim" ]; then
 	if [ ! -z ${SIMPOINT_SLICE_FILE} ]; then
-		source_file=`ls ${GEM5_SRC}/m5out/cpt.simpoint_$(($SIM_CHECKPOINT - 1))_*/simpoint_slice.S 2>&1`
+		slice_file=`ls ${GEM5_SRC}/m5out/cpt.simpoint_$(($SIM_CHECKPOINT - 1))_*/simpoint_slice.S 2>&1`
 		if [ $? != 0 ] ; then
-			source_file=`ls ${GEM5_SRC}/m5out/cpt.simpoint_0$(($SIM_CHECKPOINT - 1))_*/simpoint_slice.S`
+			slice_file=`ls ${GEM5_SRC}/m5out/cpt.simpoint_0$(($SIM_CHECKPOINT - 1))_*/simpoint_slice.S`
 		fi
-		cp -f ${source_file} ${SIMPOINT_SLICE_FILE}
+		cp -f ${slice_file} ${SIMPOINT_SLICE_FILE}
+		func_file=`ls ${GEM5_SRC}/m5out/cpt.simpoint_$(($SIM_CHECKPOINT - 1))_*/simpoint_func.c 2>&1`
+		if [ $? != 0 ] ; then
+			func_file=`ls ${GEM5_SRC}/m5out/cpt.simpoint_0$(($SIM_CHECKPOINT - 1))_*/simpoint_func.c`
+		fi
+		cp -f ${func_file} ${SIMPOINT_FUNC_FILE}
+		ls -l $SIMPOINT_SLICE_FILE $SIMPOINT_FUNC_FILE
 	fi
 fi

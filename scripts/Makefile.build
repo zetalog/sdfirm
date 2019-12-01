@@ -87,7 +87,8 @@ $(multi-objs-y)         : modname = $(modname-multi)
 $(multi-objs-y:.rel=.s) : modname = $(modname-multi)
 
 quiet_cmd_gem5sim_S_gem5  = GEN $(quiet_modtag) $@
-cmd_gem5sim_S_gem5 = scripts/gem5sim.sh -s gem5sim -x Exec -g $<
+#cmd_gem5sim_S_gem5 = scripts/gem5sim.sh -s gem5sim -x Exec -g $< > /dev/null
+cmd_gem5sim_S_gem5 = sleep 1
 
 $(obj)/%.S: $(src)/%.gem5 FORCE
 	$(call if_changed_dep,gem5sim_S_gem5)

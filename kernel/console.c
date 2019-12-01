@@ -129,6 +129,18 @@ bool console_enabled = true;
 bool console_enabled = false;
 #endif
 
+void con_printf(const char *fmt, ...)
+{
+	va_list arg;
+
+	if (!console_enabled)
+		return;
+
+	va_start(arg, fmt);
+	vprintf(fmt, arg);
+	va_end(arg);
+}
+
 #ifdef CONFIG_CONSOLE_DEBUG
 void con_dbg(const char *fmt, ...)
 {
