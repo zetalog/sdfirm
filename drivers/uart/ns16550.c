@@ -245,8 +245,8 @@ struct serial_device *default_serial_console(void)
 #define serial_out(x, y)	__raw_writel(x, y)
 #define serial_in(y)		__raw_readl(y)
 #else
-#define serial_out(x, y)	__raw_writeb(x, y)
-#define serial_in(y)		__raw_readb(y)
+#define serial_out(x, y)	__raw_writeb(x, (uintptr_t)y)
+#define serial_in(y)		__raw_readb((uintptr_t)y)
 #endif
 
 #ifndef CONFIG_SYS_NS16550_IER

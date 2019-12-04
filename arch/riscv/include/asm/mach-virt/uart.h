@@ -35,25 +35,55 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)clint.c: SiFive core local interruptor (CLINT) implementation
- * $Id: clint.c,v 1.1 2019-09-05 18:04:00 zhenglv Exp $
+ * @(#)dw_uart.h: Synopsys DesignWare UART interface
+ * $Id: dw_uart.h,v 1.1 2019-09-26 10:40:00 zhenglv Exp $
  */
 
-#include <target/tsc.h>
-#include <target/bitops.h>
-#include <asm/io.h>
-#include <asm/clint.h>
-#include <asm/irqc.h>
+#ifndef __UART_VIRT_H_INCLUDE__
+#define __UART_VIRT_H_INCLUDE__
 
-uint64_t clint_read_mtime(void)
-{
-	uint32_t hi1, hi2;
-	uint32_t lo;
+#include <target/config.h>
+#include <target/generic.h>
+#include <target/paging.h>
+#include <target/gpio.h>
+#include <target/clk.h>
+#include <target/arch.h>
 
-	do {
-	     	hi1 = __raw_readl(CLINT_MTIME + 4);
-		lo = __raw_readl(CLINT_MTIME);
-		hi2 = __raw_readl(CLINT_MTIME + 4);
-	} while (hi1 != hi2);
-	return MAKELLONG(lo, hi1);
-}
+#define UART_CON_ID		0
+#define UART0_BASE      0x10000000
+#define CONFIG_SYS_NS16550_CLK		3686400
+#define CONFIG_CONS_INDEX	1
+#define CONFIG_SYS_NS16550_COM1	UART0_BASE
+#define CONFIG_SYS_NS16550_REG_SIZE (1)
+
+#include <driver/ns16550.h>
+#ifndef ARCH_HAVE_UART
+#define ARCH_HAVE_UART		1
+#endif
+
+#ifdef CONFIG_DEBUG_PRINT
+void uart_hw_dbg_init(void);
+void uart_hw_dbg_start(void);
+void uart_hw_dbg_stop(void);
+void uart_hw_dbg_write(uint8_t byte);
+void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
+#endif
+
+#ifdef CONFIG_MMU
+void uart_hw_mmu_init(void);
+#endif
+
+#ifdef CONFIG_CONSOLE
+#define uart_hw_con_init()	ns16550_con_init()
+#endif
+#ifdef CONFIG_CONSOLE_OUTPUT
+#define uart_hw_con_write(byte)	ns16550_con_write(byte)
+#endif
+#ifdef CONFIG_CONSOLE_INPUT
+#define uart_hw_con_read()	ns16550_con_read()
+#define uart_hw_con_poll()	ns16550_con_poll()
+void uart_hw_irq_ack(void);
+void uart_hw_irq_init(void);
+#endif
+
+#endif /* __UART_VIRT_H_INCLUDE__ */

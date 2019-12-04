@@ -711,6 +711,11 @@ static void mem_dump(struct mem_type *type)
 	}
 }
 
+void __attribute__((weak)) mem_hw_range_init(void)
+{
+	mem_add(RAM_BASE, RAMEND - RAM_BASE);
+}
+
 void mem_init(void)
 {
 	mem_hw_range_init();

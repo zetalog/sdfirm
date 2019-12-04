@@ -35,25 +35,28 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)clint.c: SiFive core local interruptor (CLINT) implementation
- * $Id: clint.c,v 1.1 2019-09-05 18:04:00 zhenglv Exp $
+ * @(#)mach.c: SPIKE specific board initialization
+ * $Id: mach.c,v 1.1 2019-09-05 15:41:00 zhenglv Exp $
  */
 
-#include <target/tsc.h>
-#include <target/bitops.h>
-#include <asm/io.h>
-#include <asm/clint.h>
-#include <asm/irqc.h>
+#include <target/generic.h>
+#include <target/cpus.h>
+#include <target/arch.h>
+#include <target/irq.h>
 
-uint64_t clint_read_mtime(void)
+void board_reset(void)
 {
-	uint32_t hi1, hi2;
-	uint32_t lo;
+}
 
-	do {
-	     	hi1 = __raw_readl(CLINT_MTIME + 4);
-		lo = __raw_readl(CLINT_MTIME);
-		hi2 = __raw_readl(CLINT_MTIME + 4);
-	} while (hi1 != hi2);
-	return MAKELLONG(lo, hi1);
+void board_suspend(void)
+{
+}
+
+void board_hibernate(void)
+{
+}
+
+void board_init(void)
+{
+	DEVICE_ARCH(DEVICE_ARCH_RISCV);
 }

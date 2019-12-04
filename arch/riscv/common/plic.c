@@ -41,6 +41,7 @@
 
 #include <target/irq.h>
 #include <target/smp.h>
+#include <asm/irqc.h>
 
 void irqc_hw_handle_irq(void)
 {

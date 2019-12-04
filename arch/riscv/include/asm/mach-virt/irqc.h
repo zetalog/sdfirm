@@ -35,25 +35,27 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)clint.c: SiFive core local interruptor (CLINT) implementation
- * $Id: clint.c,v 1.1 2019-09-05 18:04:00 zhenglv Exp $
+ * @(#)irqc.h: FU540 (unleashed) specific IRQ controller interfaces
+ * $Id: irqc.h,v 1.1 2019-10-12 11:20:00 zhenglv Exp $
  */
 
-#include <target/tsc.h>
-#include <target/bitops.h>
-#include <asm/io.h>
-#include <asm/clint.h>
-#include <asm/irqc.h>
+#ifndef __IRQC_VIRT_H_INCLUDE__
+#define __IRQC_VIRT_H_INCLUDE__
 
-uint64_t clint_read_mtime(void)
-{
-	uint32_t hi1, hi2;
-	uint32_t lo;
+#include <target/arch.h>
 
-	do {
-	     	hi1 = __raw_readl(CLINT_MTIME + 4);
-		lo = __raw_readl(CLINT_MTIME);
-		hi2 = __raw_readl(CLINT_MTIME + 4);
-	} while (hi1 != hi2);
-	return MAKELLONG(lo, hi1);
-}
+#ifndef ARCH_HAVE_IRQC_
+#define ARCH_HAVE_IRQC		1
+#else
+#error "Multiple IRQ controller defined"
+#endif
+
+#define PLIC_HW_PRI_MAX		31
+
+#include <asm/plic.h>
+
+#define plic_hw_ctrl_init()	do { } while (0)
+#define plic_hw_configure_trigger(irq, trig)	\
+	do { } while (0)
+
+#endif /* __IRQC_VIRT_H_INCLUDE__ */
