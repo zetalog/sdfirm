@@ -99,6 +99,7 @@ config ARCH_SPIKE
 
 config ARCH_VIRT
 	bool "QEMU RISC-V VIRT platform"
+	select CPU_VIRT
 	select ARCH_IS_TICKLESS
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_TSC
@@ -107,7 +108,7 @@ config ARCH_VIRT
 	select ARCH_HAS_CLINT
 	select ARCH_HAS_PLIC
 	select CLINT
-	select PLIC
+	select PLIC if !SYS_NOIRQ
 	select ARCH_HAS_IRQC
 	select ARCH_HAS_NS16550
 	help

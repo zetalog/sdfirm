@@ -42,12 +42,10 @@
 #ifndef __UART_VIRT_H_INCLUDE__
 #define __UART_VIRT_H_INCLUDE__
 
-#include <target/config.h>
-#include <target/generic.h>
+#include <target/arch.h>
 #include <target/paging.h>
 #include <target/gpio.h>
 #include <target/clk.h>
-#include <target/arch.h>
 
 #define UART_CON_ID		0
 #define UART0_BASE      0x10000000
@@ -59,6 +57,8 @@
 #include <driver/ns16550.h>
 #ifndef ARCH_HAVE_UART
 #define ARCH_HAVE_UART		1
+#else
+#error "Multiple UART controller defined"
 #endif
 
 #ifdef CONFIG_DEBUG_PRINT

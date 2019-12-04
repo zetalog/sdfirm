@@ -46,8 +46,6 @@
  * instructions, registers.
  */
 
-#include <target/init.h>
-
 #define __VEC			__HIVEC
 
 #define SYS_MODE_RUN			0

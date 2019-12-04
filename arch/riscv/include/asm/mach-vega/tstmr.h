@@ -64,10 +64,12 @@
 #define TSTMR_HIGH_MASK		REG_24BIT_MASK
 #define TSTMR_HIGH(value)	_GET_FV(TSTMR_HIGH, value)
 
+#ifndef __ASSEMBLY__
 static inline uint32_t tstmr_read_counter_low(void)
 {
 	return __raw_readl(TSTMR_L(A));
 }
+
 static inline uint32_t tstmr_read_counter_high(void)
 {
 	uint32_t hi = __raw_readl(TSTMR_H(A));
@@ -86,5 +88,6 @@ static inline uint64_t tstmr_read_counter(void)
 	} while (hi != tmp);
 	return (uint64_t)hi << 32 | lo;
 }
+#endif
 
 #endif /* __TSTMR_VEGA_H_INCLUDE__ */

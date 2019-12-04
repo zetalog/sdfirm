@@ -41,9 +41,7 @@
 
 #include <target/tsc.h>
 #include <target/bitops.h>
-#include <asm/io.h>
-#include <asm/clint.h>
-#include <asm/irqc.h>
+#include <target/irq.h>
 
 uint64_t clint_read_mtime(void)
 {

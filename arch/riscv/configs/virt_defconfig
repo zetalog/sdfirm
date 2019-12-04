@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Dec  3 09:33:56 2019
+# Wed Dec  4 23:31:42 2019
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -89,6 +89,10 @@ CONFIG_ARCH_HAS_PLIC=y
 CONFIG_PLIC=y
 
 #
+# QEMU RISCV (VIRT) board options
+#
+
+#
 # Feature setup
 #
 
@@ -171,7 +175,6 @@ CONFIG_UART_115200=y
 # CONFIG_SCSI is not set
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
-# CONFIG_MMC is not set
 # CONFIG_RAS is not set
 
 #

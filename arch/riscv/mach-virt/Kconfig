@@ -1,3 +1,7 @@
 if ARCH_VIRT
 
+menu "QEMU RISCV (VIRT) board options"
+
+endmenu
+
 endif

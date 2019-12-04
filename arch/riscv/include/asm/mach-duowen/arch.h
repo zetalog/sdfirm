@@ -46,9 +46,6 @@
  * instructions, registers.
  */
 
-#include <target/init.h>
-#include <target/types.h>
-
 #ifdef CONFIG_DUOWEN_IMC
 #define __VEC			__LOVEC
 #endif

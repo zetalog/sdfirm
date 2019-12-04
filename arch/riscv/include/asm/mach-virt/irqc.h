@@ -35,7 +35,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)irqc.h: FU540 (unleashed) specific IRQ controller interfaces
+ * @(#)irqc.h: QEMU virt specific IRQ controller interfaces
  * $Id: irqc.h,v 1.1 2019-10-12 11:20:00 zhenglv Exp $
  */
 
