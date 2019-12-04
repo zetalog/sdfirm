@@ -78,6 +78,10 @@ ifeq ($(CONFIG_ARCH_SPIKE),y)
  machine-$(CONFIG_ARCH_SPIKE)		:= spike
  incdir-$(CONFIG_ARCH_SPIKE)		:= spike
 endif
+ifeq ($(CONFIG_ARCH_VIRT),y)
+ machine-$(CONFIG_ARCH_VIRT)		:= virt
+ incdir-$(CONFIG_ARCH_VIRT)		:= virt
+endif
 
 ifeq ($(incdir-y),)
 incdir-y := $(machine-y)

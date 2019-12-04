@@ -64,6 +64,16 @@ config CPU_64G
 	select CPU_F
 	select CPU_D
 
+config CPU_VIRT
+	prompt "Select VIRT CPU"
+	bool
+	select CPU_64I
+	select CPU_M
+	select CPU_A
+	select CPU_F
+	select CPU_D
+	select CPU_C
+
 config CPU_WMO
 	bool
 

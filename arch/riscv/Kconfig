@@ -96,6 +96,22 @@ config ARCH_SPIKE
 	help
 	  This enables support for simulated riscv platforms.
 
+config ARCH_VIRT
+	bool "QEMU RISC-V VIRT platform"
+	select ARCH_IS_TICKLESS
+	select ARCH_HAS_NOVEC
+	select ARCH_HAS_TSC
+	select ARCH_HAS_TSC_CONST
+	select ARCH_HAS_BOOT_LOAD
+	select ARCH_HAS_CLINT
+	select ARCH_HAS_PLIC
+	select CLINT
+	select PLIC
+	select ARCH_HAS_IRQC
+	select ARCH_HAS_NS16550
+	help
+	  This enables support for RISC-V VIRT platform.
+
 endchoice
 
 source "arch/riscv/common/Kconfig"
@@ -106,6 +122,7 @@ source "arch/riscv/mach-duowen/Kconfig"
 source "arch/riscv/mach-unleashed/Kconfig"
 source "arch/riscv/mach-vega/Kconfig"
 source "arch/riscv/mach-spike/Kconfig"
+source "arch/riscv/mach-virt/Kconfig"
 
 source "kernel/Kconfig"
 source "drivers/Kconfig"
