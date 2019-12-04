@@ -146,3 +146,14 @@ unsigned int clock_get_pll1(void)
 
 	return (24000000 * (n+1) * (k+1));
 }
+
+unsigned int clock_get_pll6(void)
+{
+	struct sunxi_ccm_reg *const ccm =
+		(struct sunxi_ccm_reg *)CCU_BASE;
+
+	uint32_t rval = __raw_readl(&ccm->pll6_cfg);
+	int n = ((rval & CCM_PLL6_CTRL_N_MASK) >> CCM_PLL6_CTRL_N_SHIFT) + 1;
+	int k = ((rval & CCM_PLL6_CTRL_K_MASK) >> CCM_PLL6_CTRL_K_SHIFT) + 1;
+	return 24000000 * n * k / 2;
+}

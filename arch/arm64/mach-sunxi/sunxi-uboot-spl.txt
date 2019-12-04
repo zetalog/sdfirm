@@ -44,7 +44,7 @@ lowlevel_init: arch/arm/cpu/armv8/lowlevel_init.S
 								board_mmc_init: board/sunxi/board.c
 *									mmc_pinmux_setup(CONFIG_MMC_SUNXI_SLOT=0)
 									sunxi_mmc_init
-									mmc_create
+										mmc_create
 						find_mmc_device
 					mmc_init: drivers/mmc/mmc.c
 						mmc_start_init

@@ -139,3 +139,16 @@ int sunxi_name_to_gpio_bank(const char *name)
 
 	return -1;
 }
+
+int sunxi_gpio_input(uint32_t pin)
+{
+	uint32_t dat;
+	uint32_t bank = GPIO_BANK(pin);
+	uint32_t num = GPIO_NUM(pin);
+	struct sunxi_gpio *pio = BANK_TO_GPIO(bank);
+
+	dat = __raw_readl(&pio->dat);
+	dat >>= num;
+
+	return dat & 0x1;
+}

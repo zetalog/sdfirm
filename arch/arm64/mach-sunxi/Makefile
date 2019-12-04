@@ -10,3 +10,4 @@ obj-$(CONFIG_SUNXI_CCU) += ccu.rel
 obj-$(CONFIG_ARCH_HAS_IRQC) += irqc.rel
 obj-$(CONFIG_UART_SUNXI) += uart.rel
 obj-$(CONFIG_GPIO_SUNXI) += gpio.rel
+obj-$(CONFIG_SMHC_SUNXI) += smhc.rel

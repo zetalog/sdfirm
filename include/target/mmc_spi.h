@@ -55,7 +55,6 @@
 #define MMC_CLASS2 1
 #define MMC_CLASS4 1
 
-#define MMC_CMD59		59
 #define MMC_CMD0_ARG		UL(0x00000000)
 #define MMC_CMD0_CRC		0x95
 #define MMC_CMD_CRC_ON_OFF	MMC_CMD59

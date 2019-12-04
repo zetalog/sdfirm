@@ -61,9 +61,11 @@ config ARCH_SUNXI
 	select ARCH_HAS_IDLE
 	select ARCH_HAS_CLK
 	select ARCH_HAS_GPIO
+	select ARCH_HAS_SD
 	select SUNXI_CCU if CLK
 	select GPIO_SUNXI if GPIO
 	select UART_SUNXI if CONSOLE || DEBUG_PRINT
+	select SMHC_SUNXI if MMCSD
 	help
 	  This enables support of Allwinnder ARM SoC platforms.
 

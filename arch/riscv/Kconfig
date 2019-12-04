@@ -56,10 +56,11 @@ config ARCH_UNLEASHED
 	select ARCH_HAS_PLIC
 	select ARCH_HAS_IRQC
 	select ARCH_HAS_SPI
+	select ARCH_HAS_SD
 	select PRCI if CLK
 	select SIFIVE_UART if UART || DEBUG_PRINT || CONSOLE
 	select SIFIVE_QSPI if SPI
-	select UNLEASHED_SDCARD if MMC
+	select UNLEASHED_SDCARD if MMCSD
 	select PLIC if !SYS_NOIRQ
 	select CLINT
 	help

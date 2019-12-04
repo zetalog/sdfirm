@@ -5,19 +5,53 @@
 config ARCH_HAS_MMC
 	bool
 
+config ARCH_HAS_SD
+	bool
+
 config ARCH_HAS_SDHC
 	bool
 
-menuconfig MMC
-	bool "Multimedia card (MMC) interface support"
+config MMC_CORE
+	bool
 	select CRC16_CCITT
 
-if MMC
+if ARCH_HAS_MMC || ARCH_HAS_SD
+
+menuconfig MMCSD
+	bool "MMC/SD/SDIO card support"
+
+if MMCSD
 
 config MMC_MAX_SLOTS
 	int "Number of memory card slots (1~8)"
 	range 1 8
 	default 1
+
+config MMC_MAX_CARDS
+	int "Number of memory cards (1~8)"
+	range 1 8
+	default 1
+
+config MMC_DEBUG
+	bool "MMC debug message support"
+	depends DEBUG_PRINT || CONSOLE
+
+choice
+	prompt "Physical layer"
+
+config MMC
+	bool "Multimedia card (MMC)"
+	depends ARCH_HAS_MMC
+	select MMC_CORE
+
+config SD
+	bool "Secure digital (SD) card"
+	depends ARCH_HAS_SD
+	select MMC_CORE
+
+endchoice
+
+if MMC
 
 config MMC_CID_ALL_FIELDS
 	bool "Enable storing of all CID register fields"
@@ -42,18 +76,41 @@ config MMC_ASYNC
 	  handshake signals.
 	  If unsure, say 'N'.
 
-config MMC_DEBUG
-	bool "MMC debug message support"
-	depends DEBUG_PRINT || CONSOLE
-
 config MMC_SPI
 	bool "SPI mode support"
-	select ARCH_HAS_MMC
+
+endif
+
+if SD
+
+config SD_PHY_VERSION
+	int "SD physical version"
+	range 1 6
+	default 6
+
+choice
+	prompt "Capacity"
+
+config SD_SDSC
+	bool "Standard (0~2GB)"
+
+config SD_SDHC
+	bool "High (2GB~32GB)"
+
+config SD_SDXC
+	bool "Extended (32GB~)"
+
+endchoice
+
+config SD_SPI
+	bool "SPI bus protocol support"
+
+config UHSII
+	bool "UHS-II bus protocol support"
 
 menuconfig SDHC
 	bool "Secure digital host controller (SDHC) support"
-	depends MMC
-	select ARCH_HAS_MMC
+	depends SD
 
 if SDHC
 
@@ -71,19 +128,6 @@ config SDHC_ADMA
 
 endmenu
 
-menuconfig UHSII
-	bool "UHS-II mode support"
-
-if UHSII
-
-config UHSII_CTS
-	bool "Enable command issuing during CTS"
-
-config UHSII_TID
-	bool "Enable support of TID check"
-
-endif
-
 config SDHC_PM
 	bool "Enable suspend/resume mechanism support"
 
@@ -96,6 +140,20 @@ config SDHC_AUTO_CMD12
 config SDHC_AUTO_CMD23
 	bool "Auto CMD23 support"
 	depends SDHC4
+
+if UHSII
+
+config UHSII_CTS
+	bool "Enable command issuing during CTS"
+
+config UHSII_TID
+	bool "Enable support of TID check"
+
+endif
+
+endif
+
+endif
 
 endif
 

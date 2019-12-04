@@ -206,7 +206,7 @@ static void mmc_spi_mode(void)
 {
 	int i;
 
-	/* Switch SDHC adapter to SPI mode:
+	/* Switch SD mode to SPI mode:
 	 * Set SD card pin DI high for 74+ cycles
 	 * SD CMD pin is the same pin as SPI DI, so CMD = 0xff means assert
 	 * DI high for 8 cycles.

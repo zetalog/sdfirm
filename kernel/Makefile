@@ -39,7 +39,7 @@ obj-$(CONFIG_MTD) += mtd/
 obj-$(CONFIG_SCSI) += scsi/
 obj-$(CONFIG_NET) += net/
 obj-$(CONFIG_VIDEO) += video/
-obj-$(CONFIG_MMC) += mmc/
+obj-y += mmc/
 
 obj-$(CONFIG_PERF) += perf.rel
 obj-$(CONFIG_EFI) += efi.rel

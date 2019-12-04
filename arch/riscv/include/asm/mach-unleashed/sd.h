@@ -35,31 +35,28 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)clk.h: SUNXI specific clock tree defintions
- * $Id: clk.h,v 1.1 2019-10-17 15:31:00 zhenglv Exp $
+ * @(#)sd.h: FU540 (unleashed) specific SD interface
+ * $Id: sd.h,v 1.1 2019-10-24 16:09:00 zhenglv Exp $
  */
 
-#ifndef __CLK_SUNXI_H_INCLUDE__
-#define __CLK_SUNXI_H_INCLUDE__
+#ifndef __SD_UNLEASHED_H_INCLUDE__
+#define __SD_UNLEASHED_H_INCLUDE__
 
-#define CCU_BASE		ULL(0x01C20000)
-#define PRCM_BASE		ULL(0x01F01400)
+#include <target/gpio.h>
+#include <target/clk.h>
 
-#include <asm/mach/ccu.h>
-#include <asm/mach/prcm.h>
+#ifdef CONFIG_UNLEASHED_SDCARD
+#include <target/sd_spi.h>
+#ifndef ARCH_HAVE_SD
+#define ARCH_HAVE_SD 1
+#else
+#error "Multiple SD controller defined"
+#endif
+#endif
 
-#define NR_FREQPLANS		1
-#define FREQPLAN_RUN		0
-#define INVALID_FREQPLAN	NR_FREQPLANS
+#define MMC_CLASS8		1
 
-#define invalid_clk		clkid(0xFF, 0xFF)
+void mmc_hw_spi_init(void);
+void mmc_hw_spi_reset(void);
 
-void clk_hw_ctrl_init(void);
-void clock_init_safe(void);
-void clock_init_sec(void);
-void clock_init_uart(void);
-void clock_set_pll1(unsigned int clk);
-unsigned int clock_get_pll1(void);
-unsigned int clock_get_pll6(void);
-
-#endif /* __CLK_SUNXI_H_INCLUDE__ */
+#endif /* __SD_UNLEASHED_H_INCLUDE__ */

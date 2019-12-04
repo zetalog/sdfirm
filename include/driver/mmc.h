@@ -45,13 +45,17 @@
 #ifdef CONFIG_ARCH_HAS_MMC
 #include <asm/mach/mmc.h>
 #endif
-
-#ifndef ARCH_HAVE_MMC
-#define mmc_hw_ctrl_init()
-#define mmc_hw_slot_selet(sid)
+#ifdef CONFIG_ARCH_HAS_SD
+#include <asm/mach/sd.h>
 #endif
 
-#ifndef ARCH_HAVE_MMC_SPI
+#if !defined(ARCH_HAVE_MMC) && !defined(ARCH_HAVE_SD)
+#define mmc_hw_ctrl_init()
+#define mmc_hw_slot_selet(sid)
+#define mmc_hw_send_command(cmd, arg)
+#define mmc_hw_recv_response(resp, len)
+#endif
+#if !defined(CONFIG_MMC_SPI) && !defined(CONFIG_SD_SPI)
 #define mmc_hw_spi_init()
 #endif
 

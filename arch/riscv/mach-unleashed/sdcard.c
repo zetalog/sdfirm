@@ -39,9 +39,11 @@
  * $Id: sdcard.c,v 1.1 2019-10-23 10:21:00 zhenglv Exp $
  */
 
-#include <target/sd.h>
+#include <target/mmc.h>
 #include <target/spi.h>
 #include <target/delay.h>
+/* hackish */
+#include <target/sd_phy.h>
 
 #if 0
 /* Read operation conditions register (OCR) to check for availability of
@@ -123,7 +125,7 @@ static int sd_cmd8(void)
 /* Send app command. Used as prefix to app commands (ACMD) */
 static void sd_cmd55(void)
 {
-	sd_cmd(SD_CMD_APP_CMD, 0);
+	sd_cmd(MMC_CMD_APP_CMD, 0);
 	mmc_spi_recv(NULL, 0);
 }
 

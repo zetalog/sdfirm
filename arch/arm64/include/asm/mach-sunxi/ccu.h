@@ -195,6 +195,7 @@ struct sunxi_ccm_reg {
 	uint32_t reserved26[11];
 	uint32_t pll_lock_ctrl;	/* 0x320 PLL lock control, R40 only */
 };
+#define SUNXI_CCU			((struct sunxi_ccm_reg *)CCU_BASE)
 
 /* apb2 bit field */
 #define APB2_CLK_SRC_LOSC		(0x0 << 24)

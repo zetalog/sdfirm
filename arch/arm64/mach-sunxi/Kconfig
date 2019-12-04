@@ -83,7 +83,7 @@ config GPIO_SUNXI
 	bool "SUNXI gpio controller support"
 	select STRING_STRTOUL
 
-config UART_SUNXI
+menuconfig UART_SUNXI
 	bool "SUNXI uart controller support"
 	depends UART || DEBUG_PRINT || CONSOLE
 	depends !ARM_DCC
@@ -126,6 +126,47 @@ config UART_SUNXI_16550
 	select ARCH_HAS_NS16550_FIFO_64
 
 endchoice
+
+endif
+
+menuconfig SMHC_SUNXI
+	bool "SUNXI SD/MMC host controller (SMHC) support"
+	select GPIO
+
+if SMHC_SUNXI
+
+config ARCH_HAS_SMHC_SUNXI_3
+	bool
+
+choice
+	prompt "Boot SMHC slot"
+
+config SMHC_SUNXI_BOOT_0
+	bool "SMHC0"
+
+config SMHC_SUNXI_BOOT_1
+	bool "SMHC1"
+
+config SMHC_SUNXI_BOOT_2
+	bool "SMHC2"
+
+config SMHC_SUNXI_BOOT_3
+	bool "SMHC3"
+	depends ARCH_HAS_SMHC_SUNXI_3
+
+endchoice
+
+config SMHC_1_PINS
+	string "SMHC1 pins"
+	depends SMHC_SUNXI_BOOT_1
+
+config SMHC_2_PINS
+	string "SMHC2 pins"
+	depends SMHC_SUNXI_BOOT_2
+
+config SMHC_3_PINS
+	string "SMHC3 pins"
+	depends SMHC_SUNXI_BOOT_3
 
 endif
 

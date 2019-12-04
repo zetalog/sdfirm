@@ -35,28 +35,29 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)mmc.h: FU540 (unleashed) specific MMC interface
- * $Id: mmc.h,v 1.1 2019-10-24 16:09:00 zhenglv Exp $
+ * @(#)sd_spi.h: secure digital (SD) SPI layer definitions
+ * $Id: sd_spi.h,v 1.1 2019-11-01 17:55:00 zhenglv Exp $
  */
 
-#ifndef __MMC_UNLEASHED_H_INCLUDE__
-#define __MMC_UNLEASHED_H_INCLUDE__
+#ifndef __SD_SPI_H_INCLUDE__
+#define __SD_SPI_H_INCLUDE__
 
-#include <target/gpio.h>
-#include <target/clk.h>
+#define SD_CLASS2		1
+#define SD_CLASS4		1
+#define SD_CLASS5		1
+#define SD_CLASS8		1
+#define SD_CLASS10		1
 
-#define MMC_CLASS8		1
-
-#ifdef CONFIG_UNLEASHED_SDCARD
 #include <target/mmc_spi.h>
-#ifndef ARCH_HAVE_MMC_SPI
-#define ARCH_HAVE_MMC_SPI	1
+
+#ifdef CONFIG_SD_SPI
+void sd_spi_send_cmd(void);
+void sd_spi_recv_rsp(void);
+#define sd_spi_mode		true
 #else
-#error "Multiple MMC SPI controller defined"
-#endif
+#define sd_spi_send_cmd()	do { } while (0)
+#define sd_spi_recv_rsp()	do { } while (0)
+extern bool sd_spi_mode;
 #endif
 
-void mmc_hw_spi_init(void);
-void mmc_hw_spi_reset(void);
-
-#endif /* __MMC_UNLEASHED_H_INCLUDE__ */
+#endif /* __SD_SPI_H_INCLUDE__ */
