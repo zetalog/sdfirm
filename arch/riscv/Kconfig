@@ -34,8 +34,9 @@ config ARCH_DUOWEN
 	select ARCH_HAS_PLIC
 	select ARCH_HAS_IRQC
 	select ARCH_HAS_CLK
+	select ARCH_HAS_SD
 	select DW_UART if CONSOLE || DEBUG_PRINT
-	select SDHC if MMC
+	select DUOWEN_SD if MMCSD
 	select DW_MSHC if SDHC
 	select PLIC if !SYS_NOIRQ
 	select CRCNTL if CLK

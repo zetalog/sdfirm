@@ -85,6 +85,14 @@ if CRCNTL
 
 endif
 
+menuconfig DUOWEN_SD
+	bool "MMC/SD Host Controller (MSHC) support"
+	select SDHCI
+
+if MSHC
+
+endif
+
 endmenu
 
 endif

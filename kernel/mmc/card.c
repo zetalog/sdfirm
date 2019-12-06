@@ -54,7 +54,7 @@ void mmc_card_complete_copy(mmc_rca_t rca, bool result)
 	mem_card_busy = false;
 }
 
-int mmc_card_copy(mmc_rca_t rca, uint64_t lba, size_t size)
+int mmc_card_copy(mmc_rca_t rca, caddr_t lba, size_t size)
 {
 	__unused mmc_slot_t sslot;
 	mmc_card_t i;
@@ -69,7 +69,8 @@ int mmc_card_copy(mmc_rca_t rca, uint64_t lba, size_t size)
 				mem_cards[i].busy = true;
 				sslot = mmc_slot_save(MMC_SLOT(rca));
 				mmc_read_blocks(mem_card_buf,
-						(mmc_lba_t)lba, size,
+						(mmc_lba_t)lba,
+						size,
 						mmc_card_complete_copy);
 				mmc_slot_restore(sslot);
 			}
@@ -102,7 +103,7 @@ static int do_card_dump(int argc, char *argv[])
 	rca = strtoul(argv[2], 0, 0);
 	if (argc > 3)
 		addr = strtoul(argv[3], 0, 0);
-	mmc_card_copy(rca, addr, MMC_DEF_BL_LEN);
+	mmc_card_copy(rca, (caddr_t)addr, MMC_DEF_BL_LEN);
 	return 0;
 }
 

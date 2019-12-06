@@ -14,4 +14,13 @@ if DW_MSHC
 
 endif
 
+menuconfig SDHCI
+	bool "Secure Digital Host Controller (SDHC) support"
+	select ARCH_HAS_SDHC
+	select BIT_FLS32
+
+if SDHCI
+
+endif
+
 endmenu

@@ -228,10 +228,11 @@ static void sd_handle_identify_card(void)
 
 static void sd_handle_select_card(void)
 {
-	if (!mmc_slot_ctrl.csd_valid) {
-		mmc_slot_ctrl.start_tick = tick_get_counter();
+	if (!mmc_slot_ctrl.csd_valid)
 		mmc_cmd(MMC_CMD_SEND_CSD);
-	} else if (mmc_state_is(stby))
+	else if (!mmc_slot_ctrl.scr_valid)
+		mmc_send_acmd(SD_ACMD_SEND_SCR);
+	else if (mmc_state_is(stby))
 		mmc_cmd(MMC_CMD_SELECT_DESELECT_CARD);
 	else if (mmc_state_is(tran))
 		mmc_op_success();
@@ -308,6 +309,33 @@ static mmc_csd_t sd_decode_csd(mmc_r2_t raw_csd)
 	}
 	csd.capacity = (csize + 1) << (cmult + 2);
 	return csd;
+}
+
+sd_scr_t sd_decode_scr(void)
+{
+	sd_scr_t scr;
+	uint32_t scr1;
+	uint8_t *buf = (uint8_t *)mmc_slot_ctrl.block_data;
+	uint8_t sd_specx;
+
+	scr1 = MAKELONG(MAKEWORD(buf[0], buf[1]),
+			MAKEWORD(buf[2], buf[3]));
+	scr.scr_structure = SD_SCR1_SCR_STRUCTURE(scr1);
+	sd_specx = SD_SCR1_SD_SPECX(scr1);
+	if (sd_specx)
+		scr.version = 4 + sd_specx;
+	else if (scr1 & SD_SCR1_SD_SPEC4)
+		scr.version = 4;
+	else if (scr1 & SD_SCR1_SD_SPEC3)
+		scr.version = 3;
+	else
+		scr.version = SD_SCR1_SD_SPEC(scr1);
+	scr.data_stat_after_erase = !!(SD_SCR1_DATA_STAT_AFTER_ERASE & scr1);
+	scr.sd_security = SD_SCR1_SD_SECURITY(scr1);
+	scr.ex_security = SD_SCR1_EX_SECURITY(scr1);
+	scr.bus_widths = 1 << SD_SCR1_SD_BUS_WIDTHS(scr1);
+	scr.cmd_support = SD_SCR1_CMD_SUPPORT(scr1);
+	return scr;
 }
 
 static uint32_t sd_decode_ocr(mmc_r3_t raw_ocr)
@@ -474,6 +502,18 @@ void sd_resp_r1(void)
 	raise_bits(mmc_slot_ctrl.flags, MMC_SLOT_CARD_STATUS_VALID);
 	mmc_slot_ctrl.csr = MAKELONG(MAKEWORD(r1[0], r1[1]),
 				     MAKEWORD(r1[2], r1[3]));
+	if (mmc_slot_ctrl.cmd == MMC_CMD_APP_CMD) {
+		switch (mmc_slot_ctrl.acmd) {
+		case SD_ACMD_SD_STATUS:
+			/* TODO: parse SD_STATUS */
+			break;
+		case SD_ACMD_SEND_SCR:
+			mmc_slot_ctrl.host_scr = sd_decode_scr();
+			mmc_slot_ctrl.scr_valid = true;
+			break;
+		}
+	} else {
+	}
 }
 
 void sd_resp_r1b(void)

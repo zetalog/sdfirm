@@ -161,6 +161,88 @@ typedef uint8_t sd_r7_t[4];
 #define SD_DET_FX_EVENT			_BV(6)
 #define SD_DET_AKE_SEQ_ERROR		_BV(3)
 
+/* 4.10.2 SSR register - SD Status */
+/* SSR15 */
+#define SD_SSR15_DATA_BUS_WIDTH_OFFSET	30
+#define SD_SSR15_DATA_BUS_WIDTH_MASK	REG_2BIT_MASK
+#define SD_SSR15_DATA_BUS_WIDTH(value)	_GET_FV(SD_SSR15_DATA_BUS_WIDTH, value)
+#define SD_SSR15_SECURE_MODE		_BV(29)
+#define SD_SSR15_SD_CARD_TYPE_OFFSET	0
+#define SD_SSR15_SD_CARD_TYPE_MASK	REG_16BIT_MASK
+#define SD_SSR15_SD_CARD_TYPE(value)	_GET_FV(SD_SSR15_SD_CARD_TYPE, value)
+/* SSR14 is SIZE_OFF_PROTECTED_AREA */
+/* SSR13 */
+#define SD_SSR13_SPEED_CLASS_OFFSET	24
+#define SD_SSR13_SPEED_CLASS_MASK	REG_8BIT_MASK
+#define SD_SSR13_SPEED_CLASS(value)	_GET_FV(SD_SSR13_SPEED_CLASS, value)
+#define SD_SSR13_PERFORMANCE_MOVE_OFFSET	16
+#define SD_SSR13_PERFORMANCE_MOVE_MASK		REG_8BIT_MASK
+#define SD_SSR13_PERFORMANCE_MOVE(value)	\
+	_GET_FV(SD_SSR13_PERFORMANCE_MOVE, value)
+#define SD_SSR13_ERASE_SIZE_HI_OFFSET	0
+#define SD_SSR13_ERASE_SIZE_HI_MASK	REG_8BIT_MASK
+#define SD_SSR13_ERASE_SIZE_HI(value)	_GET_FV(SD_SSR13_ERASE_SIZE_HI, value)
+/* SSR12 */
+#define SD_SSR12_ERASE_SIZE_LO_OFFSET	24
+#define SD_SSR12_ERASE_SIZE_LO_MASK	REG_8BIT_MASK
+#define SD_SSR12_ERASE_SIZE_LO(value)	_GET_FV(SD_SSR12_ERASE_SIZE_LO, value)
+#define SD_SSR12_ERASE_TIMEOUT_OFFSET	18
+#define SD_SSR12_ERASE_TIMEOUT_MASK	REG_6BIT_MASK
+#define SD_SSR12_ERASE_TIMEOUT(value)	_GET_FV(SD_SSR12_ERASE_TIMEOUT, value)
+#define SD_SSR12_ERASE_OFFSET_OFFSET	16
+#define SD_SSR12_ERASE_OFFSET_MASK	REG_2BIT_MASK
+#define SD_SSR12_ERASE_OFFSET(value)	_GET_FV(SD_SSR12_ERASE_OFFSET, value)
+#define SD_SSR12_UHS_SPEED_GRADE_OFFSET	12
+#define SD_SSR12_UHS_SPEED_GRADE_MASK	REG_4BIT_MASK
+#define SD_SSR12_UHS_SPEED_GRADE(value)	_GET_FV(SD_SSR12_UHS_SPEED_GRADE, value)
+#define SD_SSR12_UHS_AU_SIZE_OFFSET	8
+#define SD_SSR12_UHS_AU_SIZE_MASK	REG_4BIT_MASK
+#define SD_SSR12_UHS_AU_SIZE(value)	_GET_FV(SD_SSR12_UHS_AU_SIZE, value)
+#define SD_SSR12_VIDEO_SPEED_CLASS_OFFSET	\
+#define SD_SSR12_VIDEO_SPEED_CLASS_MASK		REG_8BIT_MASK
+#define SD_SSR12_VIDEO_SPEED_CLASS(value)	\
+	_GET_FV(SD_SSR12_VIDEO_SPEED_CLASS, value)
+/* SSR11 */
+#define SD_SSR11_VSC_AU_SIZE_OFFSET	16
+#define SD_SSR11_VSC_AU_SIZE_MASK	REG_10BIT_MASK
+#define SD_SSR11_VSC_AU_SIZE(value)	_GET_FV(SD_SSR11_VSC_AU_SIZE, value)
+#define SD_SSR11_SUS_ADDR_HI_OFFSET	0
+#define SD_SSR11_SUS_ADDR_HI_MASK	REG_16BIT_MASK
+#define SD_SSR11_SUS_ADDR_HI(value)	_GET_FV(SD_SSR11_SUS_ADDR_HI, value)
+/* SSR10 */
+#define SD_SSR10_SUS_ADDR_LO_OFFSET	26
+#define SD_SSR10_SUS_ADDR_LO_MASK	REG_6BIT_MASK
+#define SD_SSR10_SUS_ADDR_LO(value)	_GET_FV(SD_SSR10_SUS_ADDR_LO, value)
+#define SD_SSR10_APP_PERF_CLASS_OFFSET	16
+#define SD_SSR10_APP_PERF_CLASS_MASK	REG_4BIT_MASK
+#define SD_SSR10_APP_PERF_CLASS(value)	_GET_FV(SD_SSR10_APP_PERF_CLASS, value)
+#define SD_SSR10_PERFORMANCE_ENHANCE_OFFSET	8
+#define SD_SSR10_PERFORMANCE_ENHANCE_MASK	REG_8BIT_MASK
+#define SD_SSR10_PERFORMANCE_ENHANCE(value)	\
+	_GET(SD_SSR10_PERFORMANCE_ENHANCE, value)
+/* SSR9 */
+#define SD_SSR9_DISCARD_SUPPORT		_BV(25)
+#define SD_SSR9_FULE_SUPPORT		_BV(24)
+
+typedef struct {
+	uint16_t sd_card_type;
+	uint8_t speed_class;
+	uint8_t dat_bus_width : 2;
+	uint8_t au_size : 4;
+	uint32_t size_of_protected_area;
+	uint16_t erase_size;
+	uint8_t erase_timeout : 6;
+	uint8_t erase_offset : 2;
+	uint8_t uhs_speed_grade : 4;
+	uint8_t uhs_au_size : 4;
+	uint8_t performance_move;
+	uint8_t performance_enhance;
+	uint8_t app_perf_class : 4;
+	uint8_t secure_mode : 1;
+	uint8_t discard_support : 1;
+	uint8_t fule_support : 1;
+} sd_ssr_t;
+
 /* 5.1 OCR register - Operation Conditions register */
 #define SD_OCR_S18A			_BV(24)
 #define SD_OCR_UHSCS			_BV(29) /* UHS-II Card Status */
@@ -195,6 +277,55 @@ typedef struct {
 #define SD_CSD20_1_C_SIZE_MASK		REG_16BIT_MASK
 #define SD_CSD20_1_C_SIZE(value)	_GET_FV(SD_CSD20_1_C_SIZE, value)
 
+/* 5.6 SCR register (SD Card Configuration)
+ *
+ * The SCR is defined using the following field registers:
+ * | SCR1[32-bit] | SCR0[32-bit]
+ */
+#define SD_SCR1_SCR_STRUCTURE_OFFSET	28
+#define SD_SCR1_SCR_STRUCTURE_MASK	REG_4BIT_MASK
+#define SD_SCR1_SCR_STRUCTURE(value)	_GET_FV(SD_SCR1_SCR_STRUCTURE, value)
+#define SD_SCR1_SD_SPEC_OFFSET		24
+#define SD_SCR1_SD_SPEC_MASK		REG_4BIT_MASK
+#define SD_SCR1_SD_SPEC(value)		_GET_FV(SD_SCR1_SD_SPEC, value)
+#define SD_SCR1_DATA_STAT_AFTER_ERASE	_BV(23)
+#define SD_SCR1_SD_SECURITY_OFFSET	20
+#define SD_SCR1_SD_SECURITY_MASK	REG_3BIT_MASK
+#define SD_SCR1_SD_SECURITY(value)	_GET_FV(SD_SCR1_SD_SECURITY, value)
+#define SD_SCR1_SD_BUS_WIDTHS_OFFSET	16
+#define SD_SCR1_SD_BUS_WIDTHS_MASK	REG_4BIT_MASK
+#define SD_SCR1_SD_BUS_WIDTHS(value)	_GET_FV(SD_SCR1_SD_BUS_WIDTHS, value)
+#define SD_SCR1_SD_SPEC3		_BV(15)
+#define SD_SCR1_EX_SECURITY_OFFSET	11
+#define SD_SCR1_EX_SECURITY_MASK	REG_4BIT_MASK
+#define SD_SCR1_EX_SECURITY(value)	_GET_FV(SD_SCR1_EX_SECURITY, value)
+#define SD_SCR1_SD_SPEC4		_BV(10)
+#define SD_SCR1_SD_SPECX_OFFSET		6
+#define SD_SCR1_SD_SPECX_MASK		REG_4BIT_MASK
+#define SD_SCR1_SD_SPECX(value)		_GET_FV(SD_SCR1_SD_SPECX, value)
+#define SD_SCR1_CMD_SUPPORT_OFFSET	0
+#define SD_SCR1_CMD_SUPPORT_MASK	REG_4BIT_MASK
+#define SD_SCR1_CMD_SUPPORT(value)	_GET_FV(SD_SCR1_CMD_SUPPORT, value)
+
+#define SD_VERSION_1		0
+#define SD_VERSION_1_1		1
+#define SD_VERSION_2		2
+#define SD_VERSION_3		3
+#define SD_VERSION_4		4
+#define SD_VERSION_5		5
+#define SD_VERSION_6		6
+
+typedef struct {
+	uint8_t scr_structure : 4;
+	uint8_t version : 4;
+	uint8_t bus_widths : 4;
+	uint8_t cmd_support : 4;
+	uint8_t sd_security : 3;
+	uint8_t ex_security : 4;
+	uint8_t data_stat_after_erase : 1;
+} sd_scr_t;
+
+/* 4.13.2.8 Speed Class Control Command (CMD20) */
 #define SD_SPEED_CLASS_OFFSET	0
 #define SD_SPEED_CLASS_MASK	REG_28BIT_MASK
 #define SD_SPEED_CLASS(value)	_SET_FV(SD_SPEED_CLASS, value)
@@ -251,10 +382,21 @@ typedef struct {
 
 #define MMC_PHY_SLOT				\
 	sd_cid_t cid;				\
+	sd_scr_t host_scr;			\
+	sd_scr_t card_scr;			\
+	sd_ssr_t sd_status;			\
+	bool scr_valid;				\
+	bool ssr_valid;				\
 	uint8_t card_version;			\
 	uint32_t wr_blk_erase_count : 23;	\
 	sd_speed_t speed;			\
 	uint8_t bus_width;
+
+#ifndef CONFIG_SD_SPI
+#define sd_spi_send_cmd()	do { } while (0)
+#define sd_spi_recv_rsp()	do { } while (0)
+extern bool sd_spi_mode;
+#endif
 
 #if defined(CONFIG_CONSOLE) && defined(CONFIG_MMC_DEBUG)
 extern const char *mmc_phy_state_names[16];

@@ -575,6 +575,8 @@ struct mmc_slot {
 	bool csd_valid;
 	bool block_start;
 	bool block_stop;
+	uint32_t f_max;
+	uint32_t f_min;
 	/* R3 */
 	uint32_t card_ocr; /* card capacity */
 	uint32_t host_ocr; /* host capacity */

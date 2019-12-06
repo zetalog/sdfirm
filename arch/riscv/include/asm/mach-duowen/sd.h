@@ -35,20 +35,42 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)sdhc.h: duowen specific sd host controller interface
- * $Id: sdhc.h,v 1.1 2019-10-09 15:47:00 zhenglv Exp $
+ * @(#)sd.h: duowen specific secure digital controller interface
+ * $Id: sd.h,v 1.1 2019-10-09 15:47:00 zhenglv Exp $
  */
 
-#ifndef __SDHC_DUOWEN_H_INCLUDE__
-#define __SDHC_DUOWEN_H_INCLUDE__
+#ifndef __SD_DUOWEN_H_INCLUDE__
+#define __SD_DUOWEN_H_INCLUDE__
 
-#ifdef CONFIG_DW_MSHC
-#include <driver/dw_mshc.h>
-#ifndef ARCH_HAVE_SDHC
-#define ARCH_HAVE_SDHC		1
+#ifdef CONFIG_DUOWEN_SD
+#include <driver/sdhci.h>
+#ifndef ARCH_HAVE_SD
+#define ARCH_HAVE_SD		1
 #else
-#error "Multiple SDHC controller defined"
+#error "Multiple SD controller defined"
 #endif
 #endif
 
-#endif /* __SDHC_DUOWEN_H_INCLUDE__ */
+#define SD_CLASS2	1
+#define SD_CLASS5	1
+#define SD_CLASS8	1
+#define SD_CLASS10	1
+
+#define SD_FREQ_MIN	100000
+#define SD_FREQ_MAX	52000000
+
+#define mmc_hw_ctrl_init()				\
+	do {						\
+		sdhci_init(SD_FREQ_MIN, SD_FREQ_MAX);	\
+		sdhci_start();				\
+	} while (0)
+#define mmc_hw_slot_select(sid)		do { } while (0)
+#define mmc_hw_card_detect()		sdhci_detect_card()
+#define mmc_hw_set_clock(clock)		sdhci_set_clock(clock)
+#define mmc_hw_set_width(width)		sdhci_set_width(width)
+#define mmc_hw_card_busy()		false
+#define mmc_hw_send_command(cmd, arg)	sdhci_send_command(cmd, arg);
+#define mmc_hw_recv_response(resp, size)	\
+	sdhci_recv_response(resp, size)
+
+#endif /* __SD_DUOWEN_H_INCLUDE__ */

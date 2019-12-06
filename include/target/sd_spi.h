@@ -54,10 +54,6 @@
 void sd_spi_send_cmd(void);
 void sd_spi_recv_rsp(void);
 #define sd_spi_mode		true
-#else
-#define sd_spi_send_cmd()	do { } while (0)
-#define sd_spi_recv_rsp()	do { } while (0)
-extern bool sd_spi_mode;
 #endif
 
 #endif /* __SD_SPI_H_INCLUDE__ */

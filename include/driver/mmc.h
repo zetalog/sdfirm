@@ -50,10 +50,14 @@
 #endif
 
 #if !defined(ARCH_HAVE_MMC) && !defined(ARCH_HAVE_SD)
-#define mmc_hw_ctrl_init()
-#define mmc_hw_slot_selet(sid)
-#define mmc_hw_send_command(cmd, arg)
-#define mmc_hw_recv_response(resp, len)
+#define mmc_hw_ctrl_init()		do { } while (0)
+#define mmc_hw_slot_select(sid)		do { } while (0)
+#define mmc_hw_send_command(cmd, arg)	do { } while (0)
+#define mmc_hw_recv_response(resp, len)	do { } while (0)
+#define mmc_hw_card_detect()		false
+#define mmc_hw_set_clock(clock)		do { } while (0)
+#define mmc_hw_set_width(width)		do { } while (0)
+#define mmc_hw_card_busy()		false
 #endif
 #if !defined(CONFIG_MMC_SPI) && !defined(CONFIG_SD_SPI)
 #define mmc_hw_spi_init()
