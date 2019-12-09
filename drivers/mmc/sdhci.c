@@ -444,7 +444,7 @@ void sdhci_set_width(uint8_t width)
 	sdhci_writeb(host, ctrl, SDHCI_HOST_CONTROL);
 }
 
-void sdhci_init(uint32_t f_max, uint32_t f_min)
+void sdhci_init(uint32_t f_min, uint32_t f_max)
 {
 	struct sdhci_host *host = mmc2sdhci();
 	uint32_t caps, caps_1;
@@ -489,6 +489,9 @@ void sdhci_init(uint32_t f_max, uint32_t f_min)
 			mmc_slot_ctrl.f_min =
 				mmc_slot_ctrl.f_max / SDHCI_MAX_DIV_SPEC_200;
 	}
+	printf("clock: %dHz ~ %dHz\n",
+	       mmc_slot_ctrl.f_min, mmc_slot_ctrl.f_max);
+
 	if (caps & SDHCI_CAN_VDD_330)
 		mmc_slot_ctrl.host_ocr |= MMC_OCR_32_33 | MMC_OCR_33_34;
 	if (caps & SDHCI_CAN_VDD_300)

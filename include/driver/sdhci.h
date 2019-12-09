@@ -184,8 +184,11 @@
 #define   SDHCI_SPEC_100	0
 #define   SDHCI_SPEC_200	1
 #define   SDHCI_SPEC_300	2
+#define   SDHCI_SPEC_400	3
+#define   SDHCI_SPEC_410	4
+#define   SDHCI_SPEC_420	5
 
-#define SDHCI_GET_VERSION(x) (x->version & SDHCI_SPEC_VER_MASK)
+#define SDHCI_GET_VERSION(x)	((x)->version & SDHCI_SPEC_VER_MASK)
 
 /*
  * End of controller registers.
@@ -243,7 +246,7 @@ void sdhci_recv_response(uint8_t *resp, uint8_t size);
 bool sdhci_detect_card(void);
 bool sdhci_set_clock(uint32_t clock);
 void sdhci_set_width(uint8_t width);
-void sdhci_init(uint32_t f_max, uint32_t f_min);
+void sdhci_init(uint32_t f_min, uint32_t f_max);
 void sdhci_start(void);
 
 #endif /* __SDHCI_H_INCLUDE__ */

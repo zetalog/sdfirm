@@ -56,8 +56,8 @@
 #define SD_CLASS8	1
 #define SD_CLASS10	1
 
-#define SD_FREQ_MIN	100000
-#define SD_FREQ_MAX	52000000
+#define SD_FREQ_MIN	25000000
+#define SD_FREQ_MAX	25000000
 
 #define mmc_hw_ctrl_init()				\
 	do {						\
