@@ -37,7 +37,6 @@ config ARCH_DUOWEN
 	select ARCH_HAS_SD
 	select DW_UART if CONSOLE || DEBUG_PRINT
 	select DUOWEN_SD if MMCSD
-	select DW_MSHC if SDHC
 	select PLIC if !SYS_NOIRQ
 	select CRCNTL if CLK
 	select DW_TIMERS if DUOWEN_TSC_DW_TIMERS

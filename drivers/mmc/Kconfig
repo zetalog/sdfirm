@@ -7,10 +7,244 @@ menu "MMC host drivers"
 
 menuconfig DW_MSHC
 	bool "Synopsys DesignWare Mobile Storage Host (MSHC) support"
-	depends SDHC
-	select ARCH_HAS_SDHC
+	select SDHCI
 
 if DW_MSHC
+
+choice
+	prompt "Card interface type"
+
+config DW_MSHC_SD_UHSII
+	bool "SD + UHS-II"
+	select ARCH_HAS_SD
+	select ARCH_HAS_UHSII
+
+config DW_MSHC_SD
+	bool "SD"
+	select ARCH_HAS_SD
+
+config DW_MSHC_UHSII
+	bool "UHS-II"
+	select ARCH_HAS_UHSII
+
+config DW_MSHC_SD_EMMC
+	bool "SD + eMMC"
+	select ARCH_HAS_SD
+	select ARCH_HAS_EMMC
+
+config DW_MSHC_EMMC
+	bool "eMMC"
+	select ARCH_HAS_EMMC
+
+endchoice
+
+config DW_MSHC_UHSII_PHY_LINK_WIDTH_8BIT
+	bool "Enable UHS-II 8-bit PHY-LINK interface width"
+	depends ARCH_HAS_UHSII
+	help
+	  By default, UHS-II PHY-LINK interface width is 16-bit, this
+	  option enables 8-bit support.
+
+config DW_MSHC_SD_DAT_WIDTH_8BIT
+	bool "Enable SD/eMMC 8-bit data bus width"
+	default y if !SD
+	depends ARCH_HAS_SD || ARCH_HAS_EMMC
+	help
+	  It's recommended to use 4-bit data interface width for SD
+	  applications and 8-bit data interface width for eMMC
+	  applications. However, this is no restriction on using any width
+	  for an SD/eMMC application. By default, 4-bit data interface
+	  width is used. This option allows to switch to 8-bit data
+	  interface width.
+
+config DW_MSHC_LS_NO_PHY_MODE
+	bool "SD/eMMC low speed SDR only support"
+	depends !DW_MSHC_UHSII
+	help
+	  Indicates DWC_mshc is configured to support SD/eMMC low speed
+	  mode SDR upto 100MHz without PHY. When selected, MSHC provides a
+	  programmable option to launch sd_dat_out* and sd_cmd_out* with
+	  respect to negative edge of cclk_tx and a programmable option to
+	  sample sd_dat_in and sd_cmd_in with respect to negative edge of
+	  cclk_rx. Tuning of sampling clock is not supported.
+
+menu "DMA settings"
+
+config DW_MSHC_DMA
+	bool
+
+config DW_MSHC_SDMA
+	bool "Enable SDMA support"
+	select DW_MSHC_DMA
+
+config DW_MSHC_ADMA2
+	bool "Enable ADMA2 support"
+	select DW_MSHC_DMA
+
+config DW_MSHC_ADMA3
+	bool "Enable ADMA3 support"
+	select DW_MSHC_DMA
+
+if DW_MSHC_DMA
+
+choice
+	prompt "Packet buffer depth (external memory size)"
+	default DW_MSHC_PKT_BUF_DEPTH_512
+	help
+	  Sets the depth of the Packet Buffer.
+	  Packet buffer is a local storage used by DWC_mshc to store data
+	  packets while carrying out data transfer to and from the card.
+	  An external SPRAM is used as a packet buffer. The depth of
+	  external SPRAM must be same as value of this parameter.
+	  The depth of the packet buffer decides the number of blocks that
+	  can be pre-fetched during a card write or the number of blocks
+	  that can be stored before throttling the card interface during
+	  card read.
+	  The selected Master Interface data width decides the total
+	  Packet Buffer Size Packet Buffer Size (in bytes) =
+	  Packet Buffer Depth x AXI Data Width (in bytes)
+	  It is recommended to select the minimum size of the Packet Buffer
+	  as:
+	  * 2 x Maximum Block Size (for SD/eMMC)
+	  * 2 x Maximum N_FCU x Maximum Block Size (for UHS-II)
+	  Note: When CQE is enabled with extra rows in the packet buffer,
+	  you must select a higher depth than the minimum required.
+
+config DW_MSHC_PKT_BUF_DEPTH_256
+	bool "256"
+
+config DW_MSHC_PKT_BUF_DEPTH_512
+	bool "512"
+
+config DW_MSHC_PKT_BUF_DEPTH_1024
+	bool "1024"
+
+config DW_MSHC_PKT_BUF_DEPTH_2048
+	bool "2048"
+
+config DW_MSHC_PKT_BUF_DEPTH_4096
+	bool "4096"
+
+config DW_MSHC_PKT_BUF_DEPTH_8192
+	bool "8192"
+
+config DW_MSHC_PKT_BUF_DEPTH_16384
+	bool "16384"
+
+config DW_MSHC_PKT_BUF_DEPTH_32768
+	bool "32768"
+
+endchoice
+
+choice
+	prompt "Internal FIFO depth (DMA <-> external memory)"
+	default DW_MSHC_DMAQ_DEPTH
+
+config DW_MSHC_DMAQ_DEPTH_4
+	bool "4"
+
+config DW_MSHC_DMAQ_DEPTH_8
+	bool "8"
+
+config DW_MSHC_DMAQ_DEPTH_16
+	bool "16"
+
+endchoice
+
+endif
+
+endmenu
+
+if DW_MSHC_SD_EMMC && !DW_MSHC_LS_NO_PHY_MODE
+
+menu "SD/eMMC tuning"
+
+choice
+	prompt "Tuning modes"
+
+config DW_MSHC_RETUNE_MODE_1
+	bool "Mode 1"
+
+config DW_MSHC_RETUNE_MODE_3
+	bool "Mode 3"
+
+endchoice
+
+choice
+	prompt "Number of re-tuning timer"
+
+config DW_MSHC_RETUNE_TIMER_1
+	bool "1 second"
+
+config DW_MSHC_RETUNE_TIMER_2
+	bool "2 seconds"
+
+config DW_MSHC_RETUNE_TIMER_4
+	bool "4 seconds"
+
+config DW_MSHC_RETUNE_TIMER_8
+	bool "8 seconds"
+
+config DW_MSHC_RETUNE_TIMER_16
+	bool "16 seconds"
+
+config DW_MSHC_RETUNE_TIMER_32
+	bool "32 seconds"
+
+config DW_MSHC_RETUNE_TIMER_64
+	bool "64 seconds"
+
+config DW_MSHC_RETUNE_TIMER_128
+	bool "128 seconds"
+
+config DW_MSHC_RETUNE_TIMER_256
+	bool "256 seconds"
+
+config DW_MSHC_RETUNE_TIMER_512
+	bool "512 seconds"
+
+config DW_MSHC_RETUNE_TIMER_1024
+	bool "1024 seconds"
+
+endchoice
+
+config DW_MSHC_TUNE_SDR50
+	bool "Tuning required for SDR50"
+
+choice
+	prompt "Number of tuning clock phases"
+
+config DW_MSHC_DL_CW_8
+	bool "8"
+
+config DW_MSHC_DL_CW_16
+	bool "16"
+
+config DW_MSHC_DL_CW_32
+	bool "32"
+
+config DW_MSHC_DL_CW_64
+	bool "64"
+
+config DW_MSHC_DL_CW_128
+	bool "128"
+
+endchoice
+
+choice
+	prompt "Default tuning mode"
+
+config DW_MSHC_TUNE_WIN
+	bool "Large sampling window mode"
+
+config DW_MSHC_TUNE_TH
+	bool "Threshold based mode"
+
+endchoice
+
+endmenu
+
+endif
 
 endif
 

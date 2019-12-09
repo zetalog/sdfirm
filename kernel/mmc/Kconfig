@@ -8,6 +8,12 @@ config ARCH_HAS_MMC
 config ARCH_HAS_SD
 	bool
 
+config ARCH_HAS_UHSII
+	bool
+
+config ARCH_HAS_EMMC
+	bool
+
 config ARCH_HAS_SDHC
 	bool
 
@@ -107,6 +113,7 @@ config SD_SPI
 
 config UHSII
 	bool "UHS-II bus protocol support"
+	depends ARCH_HAS_UHSII
 
 menuconfig SDHC
 	bool "Secure digital host controller (SDHC) support"
