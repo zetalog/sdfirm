@@ -492,14 +492,14 @@ void sdhci_init(uint32_t f_min, uint32_t f_max)
 	printf("clock: %dHz ~ %dHz\n",
 	       mmc_slot_ctrl.f_min, mmc_slot_ctrl.f_max);
 
+	mmc_slot_ctrl.host_ocr = SD_OCR_HCS;
 	if (caps & SDHCI_CAN_VDD_330)
-		mmc_slot_ctrl.host_ocr |= MMC_OCR_32_33 | MMC_OCR_33_34;
+		mmc_slot_ctrl.host_ocr |= (MMC_OCR_32_33 | MMC_OCR_33_34);
 	if (caps & SDHCI_CAN_VDD_300)
-		mmc_slot_ctrl.host_ocr |= MMC_OCR_29_30 | MMC_OCR_30_31;
+		mmc_slot_ctrl.host_ocr |= (MMC_OCR_29_30 | MMC_OCR_30_31);
 	if (caps & SDHCI_CAN_VDD_180)
 		mmc_slot_ctrl.host_ocr |= MMC_OCR_170_195;
 
-	mmc_slot_ctrl.host_ocr = SD_OCR_HCS;
 	mmc_slot_ctrl.host_scr.bus_widths = 4;
 #if 0
 	MMC_MODE_HS_52MHz;
@@ -512,7 +512,8 @@ void sdhci_init(uint32_t f_min, uint32_t f_max)
 	}
 
 	sdhci_reset(SDHCI_RESET_ALL);
-	sdhci_set_power(__fls32(mmc_slot_ctrl.host_ocr));
+	sdhci_set_power(__fls32(
+			MMC_OCR_VOLTAGE_RANGE(mmc_slot_ctrl.host_ocr)));
 }
 
 void sdhci_start(void)
