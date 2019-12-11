@@ -42,10 +42,13 @@
 #ifndef __DW_MSHC_H_INCLUDE__
 #define __DW_MSHC_H_INCLUDE__
 
-#ifdef CONFIG_SDHC
-#define sdhc_hw_ctrl_init()		dw_mshc_init()
+#ifdef CONFIG_DW_MSHC_TUNE
+#define SD_CLASS2	1
 #endif
 
+#include <driver/sdhci.h>
+
+#define sdhc_hw_ctrl_init()		dw_mshc_init()
 void dw_mshc_init(void);
 
 #endif /* __DW_MSHC_H_INCLUDE__ */

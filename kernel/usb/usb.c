@@ -46,28 +46,19 @@ void usb_set_mode(uint8_t mode)
 #endif
 
 #ifdef SYS_REALTIME
-#define usb_poll_init()	irq_register_poller(usb_bh)
-
-static void usb_poll_handler(uint8_t event)
-{
-	if (event == BH_POLLIRQ) {
-		usb_hw_irq_poll();
-	}
-}
+#define usb_irq_init()		irq_register_poller(usb_bh)
+#define usb_irq_poll(event)	usb_hw_irq_poll();
 #else
-static void usb_poll_init(void)
-{
-	usb_hw_irq_init();
-}
-
-#define usb_poll_handler(event)
+#define usb_irq_init()		usb_hw_irq_init()
+#define usb_irq_poll(event)	do { } while (0)
 #endif
 
 void usb_handler(uint8_t event)
 {
-	usb_poll_handler(event);
 
-	if (event != BH_POLLIRQ) {
+	if (event == BH_POLLIRQ)
+		usb_irq_poll(event);
+	else {
 		if (usb_get_mode() == USB_MODE_DEVICE)
 			usbd_handler(event);
 		else
@@ -95,7 +86,7 @@ void usb_init(void)
 	DEVICE_INTF(DEVICE_INTF_USB);
 	usb_bh = bh_register_handler(usb_handler);
 	usb_hw_ctrl_init();
-	usb_poll_init();
+	usb_irq_init();
 	usbd_init();
 	hcd_init();
 	usb_switch_mode(USB_MODE_DEF);

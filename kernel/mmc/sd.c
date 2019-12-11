@@ -385,7 +385,9 @@ void mmc_phy_handle_stm(void)
 	mmc_event_t flags;
 
 	flags = mmc_event_save();
-	if (mmc_slot_ctrl.flags & MMC_SLOT_WAIT_APP_CMD &&
+	if (flags & MMC_EVENT_CARD_INSERT) {
+		mmc_identify_card();
+	} else if (mmc_slot_ctrl.flags & MMC_SLOT_WAIT_APP_CMD &&
 	    mmc_cmd_is(MMC_CMD_APP_CMD)) {
 		mmc_app_cmd_complete();
 		unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);

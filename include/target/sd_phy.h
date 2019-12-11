@@ -373,6 +373,87 @@ typedef struct {
 #define SD_OCR_HCS_MASK			REG_1BIT_MASK
 #define SD_OCR_HCS			_SET_FV(SD_OCR_HCS, SD_HCS)
 
+/* SD frequencies and voltages */
+#define SD_25MHZ		0x00
+#define SD_50MHZ		0x01
+#define SD_100MHZ		0x02
+#define SD_208MHZ		0x03
+#define SD_52MHZ		0x04
+#define SD_3_3V			0x00
+#define SD_1_8V			0x01
+#define SD_FD_B			0x02
+#define SD_HD_B			0x03
+#define SD_FD_C			0x04
+#define SD_FD_D			0x05
+#define SD_OP_MODE(freq, volt)	MAKEWORD(freq, volt)
+#define SD_IF_MODE(freq, range)	MAKEWORD(freq, range)
+
+#define UHSI_DS		SD_OP_MODE(SD_25MHZ, SD_3_3V)
+#define UHSI_HS		SD_OP_MODE(SD_50MHZ, SD_3_3V)
+
+#ifndef CONFIG_SD_SDSC
+/* Ultra High Speed Phase I (UHS-I) Card */
+/* UHS-I card operation modes */
+#define UHSI_SDR12	SD_OP_MODE(SD_25MHZ, SD_1_8V)
+#define UHSI_SDR25	SD_OP_MODE(SD_50MHZ, SD_1_8V)
+#define UHSI_SDR50	SD_OP_MODE(SD_100MHZ, SD_1_8V)
+#define UHSI_SDR104	SD_OP_MODE(SD_208MHZ, SD_1_8V)
+#define UHSI_DDR50	SD_OP_MODE(SD_50MHZ, SD_1_8V)
+
+/* UHS-I card types */
+#define UHS50		UHSI_SDR50
+#define UHS104		UHSI_SDR104
+
+/* UHS-I host types */
+#define UHS_HOST_SDR_FD	UHSI_SDR50	/* SDR, fixed delay */
+#define UHS_HOST_SDR_VD	UHSI_SDR104	/* SDR, variable delay */
+#define UHS_HOST_DDR	UHSI_DDR50	/* DDR */
+
+/* Ultra High Speed Phase II (UHS-II) Card */
+/* UHS-II interface modes */
+#define UHSII_FD156	SD_IF_MODE(SD_52MHZ, SD_FD_B)
+#define UHSII_HD312	SD_IF_MODE(SD_52MHZ, SD_HD_B)
+#define UHSII_FD312	SD_IF_MODE(SD_52MHZ, SD_FD_C)
+#define UHSII_FD624	SD_IF_MODE(SD_52MHZ, SD_FD_D)
+
+/* UHS-II card types */
+#define UHS156		UHSII_FD156
+#define UHS624		UHSII_FD624
+#endif /* !CONFIG_SD_SDSC */
+
+/* Bus speed mode option/mandatory
+ * +-----------+------+------------------+-----------------------+
+ * |           |NonUHS|UHS-I             |UHS-II                 |
+ * |           |      |                  +-----------+-----+-----+
+ * |           |      |                  |B          |C    |D    |
+ * +-----------+--+---+-----+------+-----+-----+-----+-----+-----+
+ * |Class      |DS|HS |SDR50|SDR104|DDR50|FD156|HD312|FD312|FD624|
+ * +-----------+--+---+-----+------+-----+-----+-----+-----+-----+
+ * |SDSC       |M |O  |N/A  |N/A   |N/A  |N/A  |N/A  |N/A  |N/A  |
+ * +----+------+--+---+-----+------+-----+-----+-----+-----+-----+
+ * |SDHC|NonUHS|M |O  |N/A  |N/A   |N/A  |N/A  |N/A  |N/A  |N/A  |
+ * |    +------+--+---+-----+------+-----+-----+-----+-----+-----+
+ * |    |UHS50 |M |M  |M    |N/A   |(1)  |N/A  |N/A  |N/A  |N/A  |
+ * |    +------+--+---+-----+------+-----+-----+-----+-----+-----+
+ * |    |UHS104|M |M  |M    |M     |(1)  |N/A  |N/A  |N/A  |N/A  |
+ * |    +------+--+---+-----+------+-----+-----+-----+-----+-----+
+ * |    |UHS156|M |M  |M    |O     |(1)  |M    |O    |N/A  |N/A  |
+ * |    +------+--+---+-----+------+-----+-----+-----+-----+-----+
+ * |    |UHS624|M |M  |M    |O     |(1)  |M    |O    |M    |M    |
+ * +----+------+--+---+-----+------+-----+-----+-----+-----+-----+
+ * |SDXC|NonUHS|M |O  |N/A  |N/A   |N/A  |N/A  |N/A  |N/A  |N/A  |
+ * |    +------+--+---+-----+------+-----+-----+-----+-----+-----+
+ * |    |UHS50 |M |M  |M    |N/A   |(1)  |N/A  |N/A  |N/A  |N/A  |
+ * |    +------+--+---+-----+------+-----+-----+-----+-----+-----+
+ * |    |UHS104|M |M  |M    |M     |(1)  |N/A  |N/A  |N/A  |N/A  |
+ * |    +------+--+---+-----+------+-----+-----+-----+-----+-----+
+ * |    |UHS156|M |M  |M    |O     |(1)  |M    |O    |N/A  |N/A  |
+ * |    +------+--+---+-----+------+-----+-----+-----+-----+-----+
+ * |    |UHS624|M |M  |M    |O     |(1)  |M    |O    |M    |M    |
+ * +----+------+--+---+-----+------+-----+-----+-----+-----+-----+
+ * (1): O (SD) and M (uSD).
+ */
+
 #define sd_state_is(state)	(mmc_state_get() == SD_STATE_##state)
 #define sd_state_gt(state)	(mmc_state_get() > SD_STATE_##state)
 #define sd_state_ge(state)	(mmc_state_get() >= SD_STATE_##state)

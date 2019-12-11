@@ -58,6 +58,8 @@
 #define mmc_hw_set_clock(clock)		do { } while (0)
 #define mmc_hw_set_width(width)		do { } while (0)
 #define mmc_hw_card_busy()		false
+#define mmc_hw_irq_init()		do { } while (0)
+#define mmc_hw_irq_poll()		do { } while (0)
 #endif
 #if !defined(CONFIG_MMC_SPI) && !defined(CONFIG_SD_SPI)
 #define mmc_hw_spi_init()

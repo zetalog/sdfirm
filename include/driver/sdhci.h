@@ -3,10 +3,11 @@
 
 #include <target/arch.h>
 
-/*
- * Controller registers
- */
+#ifndef SDHC_REG
+#define SDHC_REG(n, offset)	(SDHC##n##_BASE + (offset))
+#endif
 
+/* Controller registers */
 #define SDHCI_DMA_ADDRESS	0x00
 
 #define SDHCI_BLOCK_SIZE	0x04
@@ -42,17 +43,65 @@
 
 #define SDHCI_BUFFER		0x20
 
-#define SDHCI_PRESENT_STATE	0x24
-#define  SDHCI_CMD_INHIBIT	_BV(0)
-#define  SDHCI_DATA_INHIBIT	_BV(1)
-#define  SDHCI_DOING_WRITE	_BV(8)
-#define  SDHCI_DOING_READ	_BV(9)
-#define  SDHCI_SPACE_AVAILABLE	_BV(10)
-#define  SDHCI_DATA_AVAILABLE	_BV(11)
-#define  SDHCI_CARD_PRESENT	_BV(16)
-#define  SDHCI_CARD_STATE_STABLE	_BV(17)
-#define  SDHCI_CARD_DETECT_PIN_LEVEL	_BV(18)
-#define  SDHCI_WRITE_PROTECT	_BV(19)
+#define SDHC_PRESENT_STATE(n)	SDHC_REG(n, 0x24)
+
+/* 2.2.9 Present State Register (Cat.C Offset 024h) */
+#ifdef CONFIG_SDHC_UHSII
+#define SDHC_UHSII_IF_DETECTION			_BV(31)
+#define SDHC_LANE_SYNCHRONIZATION		_BV(30)
+#define SDHC_IN_DORMANT_STATUS			_BV(29)
+#endif
+#define SDHC_SUB_COMMAND_STATUS			_BV(28)
+#define SDHC_COMMAND_NOT_ISSUED_BY_ERROR	_BV(27)
+#ifdef CONFIG_SDHC_SPEC_4_10
+#define SDHC_HOST_REGULATOR_VOLTAGE_STABLE	_BV(26)
+#endif
+#ifdef CONFIG_SDHC_SD
+#define SDHC_CMD_LINE_SIGNAL_LEVEL		_BV(25)
+#define SDHC_DAT30_LINE_SIGNAL_LEVEL_OFFSET	20
+#define SDHC_DAT30_LINE_SIGNAL_LEVEL_MASK	REG_4BIT_MASK
+#define SDHC_DAT30_LINE_SIGNAL_LEVEL(value)	\
+	_GET_FV(SDHC_DAT30_LINE_SIGNAL_LEVEL, value)
+#define SDHC_DAT3_LINE_SIGNAL_LEVEL		_BV(23)
+#define SDHC_DAT2_LINE_SIGNAL_LEVEL		_BV(22)
+#define SDHC_DAT1_LINE_SIGNAL_LEVEL		_BV(21)
+#define SDHC_DAT0_LINE_SIGNAL_LEVEL		_BV(20)
+#endif
+#define SDHC_WRITE_PROTECT_SWITCH_PIN_LEVEL	_BV(19)
+#define SDHC_CARD_DETECT_PIN_LEVEL		_BV(18)
+#define SDHC_CARD_STATE_STABLE			_BV(17)
+#define SDHC_CARD_INSERTED			_BV(16)
+#define SDHC_BUFFER_READ_ENABLE			_BV(11)
+#define SDHC_BUFFER_WRITE_ENABLE		_BV(10)
+#ifdef CONFIG_SDHC_SD
+#define SDHC_READ_TRANSFER_ACTIVE		_BV(9)
+#define SDHC_WRITE_TRANSFER_ACTIVE		_BV(8)
+#endif
+#ifdef CONFIG_SDHC_EMMC
+#define SDHC_DAT74_LINE_SIGNAL_LEVEL_OFFSET	4
+#define SDHC_DAT74_LINE_SIGNAL_LEVEL_MASK	REG_4BIT_MASK
+#define SDHC_DAT74_LINE_SIGNAL_LEVEL(value)	\
+	_GET_FV(SDHC_DAT74_LINE_SIGNAL_LEVEL, value)
+#define SDHC_DAT7_LINE_SIGNAL_LEVEL		_BV(7)
+#define SDHC_DAT6_LINE_SIGNAL_LEVEL		_BV(6)
+#define SDHC_DAT5_LINE_SIGNAL_LEVEL		_BV(5)
+#define SDHC_DAT4_LINE_SIGNAL_LEVEL		_BV(4)
+#define SDHC_DAT_LINE_SIGNAL_LEVEL(value)	\
+	(SDHC_DAT30_LINE_SIGNAL_LEVEL(value) |	\
+	 (value) & SDHC_DAT74_LINE_SIGNAL_LEVEL_MASK)
+#endif
+#ifdef CONFIG_SDHC_UHSI
+#define SDHC_RETUNING_REQUEST			_BV(3)
+#endif
+#ifdef CONFIG_SDHC_SD
+#define SDHC_DAT_LINE_ACTIVE			_BV(2)
+#define SDHC_COMMAND_INHIBIT_DAT		_BV(1)
+#else
+#define SDHC_COMMAND_INHIBIT_DAT		0
+#endif
+#define SDHC_COMMAND_INHIBIT_CMD		_BV(0)
+#define SDHC_COMMAND_INHIBIT			\
+	(SDHC_COMMAND_INHIBIT_DAT | SDHC_COMMAND_INHIBIT_CMD)
 
 #define SDHCI_HOST_CONTROL	0x28
 #define  SDHCI_CTRL_LED		_BV(0)
@@ -98,41 +147,126 @@
 #define  SDHCI_RESET_CMD	0x02
 #define  SDHCI_RESET_DATA	0x04
 
-#define SDHCI_INT_STATUS	0x30
-#define SDHCI_INT_ENABLE	0x34
-#define SDHCI_SIGNAL_ENABLE	0x38
-#define  SDHCI_INT_RESPONSE	_BV(0)
-#define  SDHCI_INT_DATA_END	_BV(1)
-#define  SDHCI_INT_DMA_END	_BV(3)
-#define  SDHCI_INT_SPACE_AVAIL	_BV(4)
-#define  SDHCI_INT_DATA_AVAIL	_BV(5)
-#define  SDHCI_INT_CARD_INSERT	_BV(6)
-#define  SDHCI_INT_CARD_REMOVE	_BV(7)
-#define  SDHCI_INT_CARD_INT	_BV(8)
-#define  SDHCI_INT_ERROR	_BV(15)
-#define  SDHCI_INT_TIMEOUT	_BV(16)
-#define  SDHCI_INT_CRC		_BV(17)
-#define  SDHCI_INT_END_BIT	_BV(18)
-#define  SDHCI_INT_INDEX	_BV(19)
-#define  SDHCI_INT_DATA_TIMEOUT	_BV(20)
-#define  SDHCI_INT_DATA_CRC	_BV(21)
-#define  SDHCI_INT_DATA_END_BIT	_BV(22)
-#define  SDHCI_INT_BUS_POWER	_BV(23)
-#define  SDHCI_INT_ACMD12ERR	_BV(24)
-#define  SDHCI_INT_ADMA_ERROR	_BV(25)
+#define SDHC_NORMAL_INTERRUPT_STATUS(n)		SDHC_REG(n, 0x30) /* 16-bits */
+#define SDHC_ERROR_INTERRUPT_STATUS(n)		SDHC_REG(n, 0x32) /* 16-bits */
+#define SDHC_NORMAL_INTERRUPT_STATUS_ENABLE(n)	SDHC_REG(n, 0x34) /* 16-bits */
+#define SDHC_ERROR_INTERRUPT_STATUS_ENABLE(n)	SDHC_REG(n, 0x36) /* 16-bits */
+#define SDHC_NORMAL_INTERRUPT_SIGNAL_ENABLE(n)	SDHC_REG(n, 0x38) /* 16-bits */
+#define SDHC_ERROR_INTERRUPT_SIGNAL_ENABLE(n)	SDHC_REG(n, 0x3A) /* 16-bits */
+#define SDHC_INTERRUPT_STATUS(n)		SDHC_REG(n, 0x30) /* 32-bits */
+#define SDHC_INTERRUPT_ENABLE(n)		SDHC_REG(n, 0x34) /* 32-bits */
+#define SDHC_INTERRUPT_SIGNAL(n)		SDHC_REG(n, 0x34) /* 32-bits */
 
-#define  SDHCI_INT_NORMAL_MASK	0x00007FFF
-#define  SDHCI_INT_ERROR_MASK	0xFFFF8000
+#ifdef CONFIG_SDHC_SPEC_4_00
+#define SDHC_RESPONSE_ERROR		_BV(27)
+#endif
+#ifdef CONFIG_SDHC_UHSI
+#define SDHC_TUNING_ERROR		_BV(26)
+#endif
+#define SDHC_ADMA_ERROR			_BV(25)
+#ifdef CONFIG_SDHC_SD
+#define SDHC_AUTO_CMD_ERROR		_BV(24)
+#endif
+#define SDHC_CURRENT_LIMIT_ERROR	_BV(23)
+#ifdef CONFIG_SDHC_SD
+#define SDHC_DATA_END_BIT_ERROR		_BV(22)
+#define SDHC_DATA_CRC_ERROR		_BV(21)
+#define SDHC_DATA_TIMEOUT_ERROR		_BV(20)
+#define SDHC_COMMAND_INDEX_ERROR	_BV(19)
+#define SDHC_COMMAND_END_BIT_ERROR	_BV(18)
+#define SDHC_COMMAND_CRC_ERROR		_BV(17)
+#define SDHC_COMMAND_TIMEOUT_ERROR	_BV(16)
+#endif
+#define SDHC_ERROR_INTERRUPT		_BV(15)
+#ifdef CONFIG_SDHC_SPEC_4_10
+#define SDHC_FX_EVENT			_BV(13)
+#endif
+#ifdef CONFIG_SDHC_UHSI
+#define SDHC_RETUNING_EVENT		_BV(12)
+#endif
+#define SDHC_INT_C			_BV(11)
+#define SDHC_INT_B			_BV(10)
+#define SDHC_INT_A			_BV(9)
+#define SDHC_CARD_INTERRUPT		_BV(8)
+#define SDHC_CARD_REMOVAL		_BV(7)
+#define SDHC_CARD_INSERTION		_BV(6)
+#define SDHC_BUFFER_READ_READY		_BV(5)
+#define SDHC_BUFFER_WRITE_READY		_BV(4)
+#define SDHC_DMA_INTERRUPT		_BV(3)
+#define SDHC_BLOCK_GAP_EVENT		_BV(2)
+#define SDHC_TRANSFER_COMPLETE		_BV(1)
+#define SDHC_COMMAND_COMPLETE		_BV(0)
+#define SDHC_NORMAL_INTERRUPT_MASK	0x00007FFF
+#define SDHC_ERROR_INTERRUPT_MASK	0xFFFF8000
+#define SDHC_ALL_INTERRUPT_MASK		\
+	(SDHC_NORMAL_INTERRUPT_MASK | SDHC_ERROR_INTERRUPT_MASK)
+#define SDHC_TRANSFER_FAILURE					\
+	(SDHC_COMMAND_CRC_ERROR | SDHC_COMMAND_END_BIT_ERROR |	\
+         SDHC_DATA_CRC_ERROR | SDHC_DATA_END_BIT_ERROR)
+#define SDHC_TRANSFER_TIMEOUT					\
+	(SDHC_COMMAND_TIMEOUT_ERROR | SDHC_DATA_TIMEOUT_ERROR)
+#define SDHC_TRANSFER_SUCCESS					\
+	(SDHC_TRANSFER_COMPLETE | SDHC_COMMAND_COMPLETE)
 
-#define  SDHCI_INT_CMD_MASK	(SDHCI_INT_RESPONSE | SDHCI_INT_TIMEOUT | \
-		SDHCI_INT_CRC | SDHCI_INT_END_BIT | SDHCI_INT_INDEX)
-#define  SDHCI_INT_DATA_MASK	(SDHCI_INT_DATA_END | SDHCI_INT_DMA_END | \
-		SDHCI_INT_DATA_AVAIL | SDHCI_INT_SPACE_AVAIL | \
-		SDHCI_INT_DATA_TIMEOUT | SDHCI_INT_DATA_CRC | \
-		SDHCI_INT_DATA_END_BIT | SDHCI_INT_ADMA_ERROR)
-#define SDHCI_INT_ALL_MASK	((unsigned int)-1)
+/* 2.2.18 Normal Interrupt Status Register (Cat.C Offset 030h)
+ * 2.2.20 Normal Interrupt Status Enable Register (Cat.C Offset 036h)
+ * 2.2.22 Normal Interrupt Signal Enable Register (Cat.C Offset 038h)
+ */
+#define SDHC_NOR_ERROR_INTERRUPT	_BV(15)
+#ifdef CONFIG_SDHC_SPEC_4_10
+#define SDHC_NOR_FX_EVENT		_BV(13)
+#endif
+#ifdef CONFIG_SDHC_UHSI
+#define SDHC_NOR_RETUNING_EVENT		_BV(12)
+#endif
+#define SDHC_NOR_INT_C			_BV(11)
+#define SDHC_NOR_INT_B			_BV(10)
+#define SDHC_NOR_INT_A			_BV(9)
+#define SDHC_NOR_CARD_INTERRUPT		_BV(8)
+#define SDHC_NOR_CARD_REMOVAL		_BV(7)
+#define SDHC_NOR_CARD_INSERTION		_BV(6)
+#define SDHC_NOR_BUFFER_READ_READY	_BV(5)
+#define SDHC_NOR_BUFFER_WRITE_READY	_BV(4)
+#define SDHC_NOR_DMA_INTERRUPT		_BV(3)
+#define SDHC_NOR_BLOCK_GAP_EVENT	_BV(2)
+#define SDHC_NOR_TRANSFER_COMPLETE	_BV(1)
+#define SDHC_NOR_COMMAND_COMPLETE	_BV(0)
+/* 2.2.19 Error Interrupt Status Register (Cat.C Offset 032h)
+ * 2.2.21 Error Interrupt Status Enable Register (Cat.C Offset 036h)
+ * 2.2.23 Error Interrupt Signal Enable Register (Cat.C Offset 03Ah)
+ */
+#ifdef CONFIG_SDHC_SPEC_4_00
+#define SDHC_ERR_RESPONSE_ERROR		_BV(11)
+#endif
+#ifdef CONFIG_SDHC_UHSI
+#define SDHC_ERR_TUNING_ERROR		_BV(10)
+#endif
+#define SDHC_ERR_ADMA_ERROR		_BV(9)
+#ifdef CONFIG_SDHC_SD
+#define SDHC_ERR_AUTO_CMD_ERROR		_BV(8)
+#endif
+#define SDHC_ERR_CURRENT_LIMIT_ERROR	_BV(7)
+#ifdef CONFIG_SDHC_SD
+#define SDHC_ERR_DATA_END_BIT_ERROR	_BV(6)
+#define SDHC_ERR_DATA_CRC_ERROR		_BV(5)
+#define SDHC_ERR_DATA_TIMEOUT_ERROR	_BV(4)
+#define SDHC_ERR_COMMAND_INDEX_ERROR	_BV(3)
+#define SDHC_ERR_COMMAND_END_BIT_ERROR	_BV(2)
+#define SDHC_ERR_COMMAND_CRC_ERROR	_BV(1)
+#define SDHC_ERR_COMMAND_TIMEOUT_ERROR	_BV(0)
+#endif
 
-#define SDHCI_ACMD12_ERR	0x3C
+#define SDHC_COMMAND_MASK					\
+	(SDHC_COMMAND_COMPLETE | SDHC_COMMAND_TIMEOUT_ERROR |	\
+	 SDHC_COMMAND_CRC_ERROR | SDHC_COMMAND_END_BIT_ERROR |	\
+	 SDHC_COMMAND_INDEX_ERROR)
+#define SDHC_TRANSFER_MASK					\
+	(SDHC_TRANSFER_COMPLETE | SDHC_DMA_INTERRUPT |		\
+	 SDHC_BUFFER_READ_READY | SDHC_BUFFER_WRITE_READY |	\
+	 SDHC_DATA_TIMEOUT_ERROR | SDHC_DATA_CRC_ERROR |	\
+	 SDHC_DATA_END_BIT_ERROR | SDHC_ADMA_ERROR)
+#define SDHC_CARD_DETECTION_MASK				\
+	(SDHC_CARD_INSERTION | SDHC_CARD_REMOVAL)
 
 /* 3E-3F reserved */
 
@@ -241,12 +375,52 @@ struct sdhci_host {
 #define sdhci_readb(host, reg)		\
 	__raw_readb((uintptr_t)(host->ioaddr) + reg)
 
+#define __sdhc_enable_irq(mmc, irqs)	\
+	__raw_setl(irqs, SDHC_INTERRUPT_ENABLE(mmc))
+#define __sdhc_disable_irq(mmc, irqs)	\
+	__raw_clearl(irqs, SDHC_INTERRUPT_ENABLE(mmc))
+#ifdef SYS_REALTIME
+#define sdhc_enable_irq(mmc, irqs)		\
+	do {					\
+		__sdhc_enable_irq(mmc, irqs);	\
+		sdhc_mask_irq(mmc, irqs);	\
+	} while (0)
+#define sdhc_disable_irq(mmc, irqs)		\
+	__sdhc_disable_irq(mmc, irqs)
+#else
+#define sdhc_enable_irq(mmc, irqs)		\
+	do {					\
+		__sdhc_enable_irq(mmc, irqs);	\
+		sdhc_unmask_irq(mmc, irqs);	\
+	} while (0)
+#define sdhc_disable_irq(mmc, irqs)		\
+	do {					\
+		__sdhc_disable_irq(mmc, irqs);	\
+		sdhc_mask_irq(mmc, irqs);	\
+	} while (0)
+#endif
+#define sdhc_mask_irq(mmc, irqs)		\
+	__raw_clearl(irqs, SDHC_INTERRUPT_SIGNAL(mmc))
+#define sdhc_unmask_irq(mmc, irqs)		\
+	__raw_setl(irqs, SDHC_INTERRUPT_SIGNAL(mmc))
+#define sdhc_clear_irq(mmc, irqs)		\
+	__raw_setl(irqs, SDHC_INTERRUPT_STATUS(mmc))
+#define sdhc_irq_status(mmc)			\
+	__raw_readl(SDHC_INTERRUPT_STATUS(mmc))
+#define sdhc_mask_all_irqs(mmc)			\
+	__raw_writel(0, SDHC_INTERRUPT_SIGNAL(mmc))
+#define sdhc_clear_all_irqs(mmc)		\
+	__raw_writel(SDHC_ALL_INTERRUPT_MASK, SDHC_INTERRUPT_STATUS(mmc))
+
 void sdhci_send_command(uint8_t cmd, uint32_t arg);
 void sdhci_recv_response(uint8_t *resp, uint8_t size);
-bool sdhci_detect_card(void);
+void sdhci_detect_card(void);
 bool sdhci_set_clock(uint32_t clock);
 void sdhci_set_width(uint8_t width);
 void sdhci_init(uint32_t f_min, uint32_t f_max);
-void sdhci_start(void);
+void sdhci_irq_init(void);
+void sdhci_irq_poll(void);
+void sdhci_start_transfer(void);
+void sdhci_stop_transfer(void);
 
 #endif /* __SDHCI_H_INCLUDE__ */

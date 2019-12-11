@@ -607,6 +607,8 @@ struct mmc_slot {
 #define MMC_EVENT_OP_COMPLETE	_BV(5)
 #define MMC_EVENT_TRANS_END	_BV(6)
 #define MMC_EVENT_RESET_SUCCESS	_BV(7)
+#define MMC_EVENT_CARD_INSERT	_BV(8)
+#define MMC_EVENT_CARD_REMOVE	_BV(9)
 
 #define MMC_OP_NO_OP			0
 #define MMC_OP_IDENTIFY_CARD		1
@@ -622,7 +624,6 @@ struct mmc_slot {
 #define MMC_ERR_CARD_LOOSE_BUS		4 /* card looses bus */
 #define MMC_ERR_ILLEGAL_COMMAND		5 /* illegal command */
 #define MMC_ERR_CHECK_PATTERN		6 /* check pattern error */
-
 #define MMC_ERR_TIMEOUT			7 /* communication timeout */
 
 #ifdef CONFIG_DEBUG_PRINT

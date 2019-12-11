@@ -30,31 +30,6 @@ static void sdhci_reset(uint8_t mask)
 	}
 }
 
-static void sdhci_cmd_failure(uint32_t stat)
-{
-
-	if (stat & (SDHCI_INT_CRC | SDHCI_INT_END_BIT |
-		    SDHCI_INT_DATA_CRC | SDHCI_INT_DATA_END_BIT |
-		    SDHCI_INT_ERROR)) {
-		mmc_cmd_failure(MMC_ERR_CARD_LOOSE_BUS);
-		return;
-	}
-	if (stat & SDHCI_INT_INDEX) {
-		mmc_cmd_failure(MMC_ERR_ILLEGAL_COMMAND);
-		return;
-	}
-	if (stat & (SDHCI_INT_TIMEOUT | SDHCI_INT_DATA_TIMEOUT)) {
-		mmc_cmd_failure(MMC_ERR_TIMEOUT);
-		return;
-	}
-	if (stat & SDHCI_INT_BUS_POWER) {
-		mmc_cmd_failure(MMC_ERR_CARD_NON_COMP_VOLT);
-		return;
-	}
-	mmc_cmd_failure(MMC_ERR_ILLEGAL_COMMAND);
-	return;
-}
-
 static void sdhci_transfer_pio(uint32_t *block)
 {
 	struct sdhci_host *host = mmc2sdhci();
@@ -71,13 +46,14 @@ static void sdhci_transfer_pio(uint32_t *block)
 	}
 }
 
-static void sdhci_transfer_data(uint32_t start_addr)
+static void sdhci_transfer_data(void)
 {
-	struct sdhci_host *host = mmc2sdhci();
 	unsigned int stat, rdy, mask, timeout, block = 0;
 	bool transfer_done = false;
 	uint32_t *buf = (uint32_t *)mmc_slot_ctrl.block_data;
 #ifdef CONFIG_SDHCI_SDMA
+	struct sdhci_host *host = mmc2sdhci();
+	uint32_t start_addr = 0;
 	unsigned char ctrl;
 
 	ctrl = sdhci_readb(host, SDHCI_HOST_CONTROL);
@@ -86,20 +62,20 @@ static void sdhci_transfer_data(uint32_t start_addr)
 #endif
 
 	timeout = 1000000;
-	rdy = SDHCI_INT_SPACE_AVAIL | SDHCI_INT_DATA_AVAIL;
-	mask = SDHCI_DATA_AVAILABLE | SDHCI_SPACE_AVAILABLE;
+	rdy = SDHC_BUFFER_READ_READY | SDHC_BUFFER_WRITE_READY;
+	mask = SDHC_BUFFER_READ_ENABLE | SDHC_BUFFER_WRITE_ENABLE;
 	do {
-		stat = sdhci_readl(host, SDHCI_INT_STATUS);
-		if (stat & SDHCI_INT_ERROR) {
+		stat = sdhc_irq_status(mmc_sid);
+		if (stat & SDHC_ERROR_INTERRUPT) {
 			printf("%s: Error detected in status(0x%X)!\n",
 			       __func__, stat);
 			mmc_cmd_failure(MMC_ERR_CARD_LOOSE_BUS);
 			return;
 		}
 		if (!transfer_done && (stat & rdy)) {
-			if (!(sdhci_readl(host, SDHCI_PRESENT_STATE) & mask))
+			if (!(__raw_readl(SDHC_PRESENT_STATE(mmc_sid)) & mask))
 				continue;
-			sdhci_writel(host, rdy, SDHCI_INT_STATUS);
+			sdhc_clear_irq(mmc_sid, rdy);
 			sdhci_transfer_pio(buf);
 			block += mmc_slot_ctrl.block_len;
 			if (++block >= mmc_slot_ctrl.block_cnt) {
@@ -112,8 +88,8 @@ static void sdhci_transfer_data(uint32_t start_addr)
 			}
 		}
 #ifdef CONFIG_SDHCI_SDMA
-		if (!transfer_done && (stat & SDHCI_INT_DMA_END)) {
-			sdhci_writel(host, SDHCI_INT_DMA_END, SDHCI_INT_STATUS);
+		if (!transfer_done && (stat & SDHC_DMA_INTERRUPT)) {
+			sdhc_clear_irq(mmc_sid, SDHC_DMA_INTERRUPT);
 			start_addr &= ~(SDHCI_DEFAULT_BOUNDARY_SIZE - 1);
 			start_addr += SDHCI_DEFAULT_BOUNDARY_SIZE;
 			sdhci_writel(host, start_addr, SDHCI_DMA_ADDRESS);
@@ -126,7 +102,7 @@ static void sdhci_transfer_data(uint32_t start_addr)
 			mmc_cmd_failure(MMC_ERR_TIMEOUT);
 			return;
 		}
-	} while (!(stat & SDHCI_INT_DATA_END));
+	} while (!(stat & SDHC_TRANSFER_COMPLETE));
 }
 
 /* No command will be sent by driver if card is busy, so driver must wait
@@ -144,24 +120,19 @@ void sdhci_send_command(uint8_t cmd, uint32_t arg)
 	struct sdhci_host *host = mmc2sdhci();
 	uint8_t type = mmc_get_block_data();
 	__unused size_t trans_bytes;
-	unsigned int stat = 0;
 	uint32_t mask, flags, mode;
-	unsigned int time = 0, start_addr = 0;
-	tick_t start = tick_get_counter();
+	unsigned int time = 0;
 	uint8_t rsp = mmc_slot_ctrl.rsp;
 
 	/* Timeout unit - ms */
-	static unsigned int cmd_timeout = SDHCI_CMD_DEFAULT_TIMEOUT;
+	unsigned int cmd_timeout = SDHCI_CMD_DEFAULT_TIMEOUT;
 
-	sdhci_writel(host, SDHCI_INT_ALL_MASK, SDHCI_INT_STATUS);
-	mask = SDHCI_CMD_INHIBIT | SDHCI_DATA_INHIBIT;
-
+	mask = SDHC_COMMAND_INHIBIT;
 	/* We shouldn't wait for data inihibit for stop commands, even
 	   though they might use busy signaling */
 	if (cmd == MMC_CMD_STOP_TRANSMISSION)
-		mask &= ~SDHCI_DATA_INHIBIT;
-
-	while (sdhci_readl(host, SDHCI_PRESENT_STATE) & mask) {
+		mask &= ~SDHC_COMMAND_INHIBIT_DAT;
+	while (__raw_readl(SDHC_PRESENT_STATE(mmc_sid)) & mask) {
 		if (time >= cmd_timeout) {
 			printf("%s: MMC: %d busy ", __func__, mmc_sid);
 			if (2 * cmd_timeout <= SDHCI_CMD_MAX_TIMEOUT) {
@@ -178,7 +149,9 @@ void sdhci_send_command(uint8_t cmd, uint32_t arg)
 		mdelay(1);
 	}
 
-	mask = SDHCI_INT_RESPONSE;
+	sdhci_start_transfer();
+
+	mask = SDHC_COMMAND_COMPLETE;
 	if (!(rsp & MMC_RSP_PRESENT))
 		flags = SDHCI_CMD_RESP_NONE;
 	else if (rsp & MMC_RSP_136)
@@ -186,7 +159,7 @@ void sdhci_send_command(uint8_t cmd, uint32_t arg)
 	else if (rsp & MMC_RSP_BUSY) {
 		flags = SDHCI_CMD_RESP_SHORT_BUSY;
 		if (type)
-			mask |= SDHCI_INT_DATA_END;
+			mask |= SDHC_TRANSFER_COMPLETE;
 	} else
 		flags = SDHCI_CMD_RESP_SHORT;
 
@@ -227,35 +200,7 @@ void sdhci_send_command(uint8_t cmd, uint32_t arg)
 	}
 
 	sdhci_writel(host, arg, SDHCI_ARGUMENT);
-#ifdef CONFIG_SDHCI_SDMA
-	if (type) {
-		trans_bytes = ALIGN(trans_bytes, CONFIG_SYS_CACHELINE_SIZE);
-		dma_wmb(); /* flush_cache? */
-	}
-#endif
 	sdhci_writew(host, SDHCI_MAKE_CMD(cmd, flags), SDHCI_COMMAND);
-	start = tick_get_counter();
-	do {
-		stat = sdhci_readl(host, SDHCI_INT_STATUS);
-		if (stat & SDHCI_INT_ERROR)
-			break;
-
-		if ((tick_get_counter() - start) >=
-		    SDHCI_READ_STATUS_TIMEOUT) {
-			printf("%s: Timeout for status update!\n",
-			       __func__);
-			mmc_cmd_failure(MMC_ERR_TIMEOUT);
-			return;
-		}
-	} while ((stat & mask) != mask);
-
-	if ((stat & (SDHCI_INT_ERROR | mask)) != mask) {
-		sdhci_cmd_failure(stat);
-		return;
-	}
-	sdhci_writel(host, mask, SDHCI_INT_STATUS);
-	if (type)
-		sdhci_transfer_data(start_addr);
 }
 
 static void sdhci_decode_reg(uint8_t *resp, uint32_t reg)
@@ -288,10 +233,7 @@ void sdhci_recv_response(uint8_t *resp, uint8_t size)
 		sdhci_decode_reg(resp, reg);
 	}
 
-	sdhci_writel(host, SDHCI_INT_ALL_MASK, SDHCI_INT_STATUS);
-
-	sdhci_reset(SDHCI_RESET_CMD);
-	sdhci_reset(SDHCI_RESET_DATA);
+	sdhci_stop_transfer();
 }
 
 static void sdhci_set_power(uint8_t power)
@@ -332,8 +274,8 @@ bool sdhci_set_clock(uint32_t clock)
 
 	/* Wait max 20 ms */
 	timeout = 200;
-	while (sdhci_readl(host, SDHCI_PRESENT_STATE) &
-			   (SDHCI_CMD_INHIBIT | SDHCI_DATA_INHIBIT)) {
+	while (__raw_readl(SDHC_PRESENT_STATE(mmc_sid)) &
+	       SDHC_COMMAND_INHIBIT) {
 		if (timeout == 0) {
 			printf("%s: Timeout to wait cmd & data inhibit\n",
 			       __func__);
@@ -511,23 +453,92 @@ void sdhci_init(uint32_t f_min, uint32_t f_max)
 			mmc_slot_ctrl.host_scr.bus_widths = 8;
 	}
 
+	/* Mask all SDHC IRQ sources, let sdhci_irq_init() enables the
+	 * required IRQ sources.
+	 */
+	sdhc_mask_all_irqs(mmc_sid);
+
 	sdhci_reset(SDHCI_RESET_ALL);
 	sdhci_set_power(__fls32(
 			MMC_OCR_VOLTAGE_RANGE(mmc_slot_ctrl.host_ocr)));
 }
 
-void sdhci_start(void)
+void sdhc_handle_irq(void)
 {
-	struct sdhci_host *host = mmc2sdhci();
+	uint32_t irqs = sdhc_irq_status(mmc_sid);
+	uint8_t type = mmc_get_block_data();
 
-	/* Enable only interrupts served by the SD controller */
-	sdhci_writel(host, SDHCI_INT_DATA_MASK | SDHCI_INT_CMD_MASK,
-		     SDHCI_INT_ENABLE);
-	/* Mask all sdhci interrupt sources */
-	sdhci_writel(host, 0x0, SDHCI_SIGNAL_ENABLE);
+	if (irqs & SDHC_CARD_DETECTION_MASK) {
+		if (irqs & SDHC_CARD_INSERTION) {
+			sdhc_clear_irq(mmc_sid, SDHC_CARD_INSERTION);
+			mmc_event_raise(MMC_EVENT_CARD_INSERT);
+		}
+		if (irqs & SDHC_CARD_REMOVAL) {
+			sdhc_clear_irq(mmc_sid, SDHC_CARD_REMOVAL);
+			mmc_event_raise(MMC_EVENT_CARD_REMOVE);
+		}
+	}
+	/* Handle cmd/data IRQs */
+	if (irqs & SDHC_ERROR_INTERRUPT_MASK) {
+		if (irqs & SDHC_COMMAND_INDEX_ERROR)
+			mmc_cmd_failure(MMC_ERR_ILLEGAL_COMMAND);
+		else if (irqs & SDHC_CURRENT_LIMIT_ERROR)
+			mmc_cmd_failure(MMC_ERR_CARD_NON_COMP_VOLT);
+		else if (irqs & SDHC_TRANSFER_TIMEOUT)
+			mmc_cmd_failure(MMC_ERR_TIMEOUT);
+		else if (irqs & SDHC_TRANSFER_FAILURE)
+			mmc_cmd_failure(MMC_ERR_CARD_LOOSE_BUS);
+		else
+			mmc_cmd_failure(MMC_ERR_CARD_LOOSE_BUS);
+		sdhc_clear_irq(mmc_sid, SDHC_ERROR_INTERRUPT_MASK);
+		return;
+	}
+	if (irqs & SDHC_COMMAND_COMPLETE) {
+		if (type)
+			sdhci_transfer_data();
+		mmc_cmd_success();
+	}
 }
 
-bool sdhci_detect_card(void)
+void sdhc_irq_handler(void)
 {
-	return true;
+	mmc_slot_t slot;
+	__unused mmc_slot_t sslot;
+
+	sslot = mmc_slot_save(slot);
+	for (slot = 0; slot < NR_MMC_SLOTS; slot++) {
+		sslot = mmc_slot_save(slot);
+		sdhc_handle_irq();
+		mmc_slot_restore(sslot);
+	}
+}
+
+#ifdef SYS_REALTIME
+void sdhci_irq_poll(void)
+{
+	sdhc_irq_handler();
+}
+#else
+void sdhci_irq_init(void)
+{
+}
+#endif
+
+void sdhci_detect_card(void)
+{
+	sdhc_enable_irq(mmc_sid, SDHC_CARD_DETECTION_MASK);
+}
+
+void sdhci_start_transfer(void)
+{
+	sdhc_clear_all_irqs(mmc_sid);
+	sdhc_enable_irq(mmc_sid, SDHC_COMMAND_MASK | SDHC_TRANSFER_MASK);
+}
+
+void sdhci_stop_transfer(void)
+{
+	sdhc_disable_irq(mmc_sid, SDHC_COMMAND_MASK | SDHC_TRANSFER_MASK);
+	sdhc_clear_all_irqs(mmc_sid);
+	sdhci_reset(SDHCI_RESET_CMD);
+	sdhci_reset(SDHCI_RESET_DATA);
 }

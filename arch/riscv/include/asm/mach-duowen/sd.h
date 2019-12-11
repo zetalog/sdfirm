@@ -59,11 +59,9 @@
 #define SD_FREQ_MIN	25000000
 #define SD_FREQ_MAX	25000000
 
-#define mmc_hw_ctrl_init()				\
-	do {						\
-		sdhci_init(SD_FREQ_MIN, SD_FREQ_MAX);	\
-		sdhci_start();				\
-	} while (0)
+#define SDHC0_BASE	SD_BASE
+
+#define mmc_hw_ctrl_init()		sdhci_init(SD_FREQ_MIN, SD_FREQ_MAX)
 #define mmc_hw_slot_select(sid)		do { } while (0)
 #define mmc_hw_card_detect()		sdhci_detect_card()
 #define mmc_hw_set_clock(clock)		sdhci_set_clock(clock)
@@ -72,5 +70,7 @@
 #define mmc_hw_send_command(cmd, arg)	sdhci_send_command(cmd, arg);
 #define mmc_hw_recv_response(resp, size)	\
 	sdhci_recv_response(resp, size)
+#define mmc_hw_irq_init()		sdhci_irq_init()
+#define mmc_hw_irq_poll()		sdhci_irq_poll()
 
 #endif /* __SD_DUOWEN_H_INCLUDE__ */

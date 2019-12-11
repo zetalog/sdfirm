@@ -41,6 +41,7 @@
 
 #include <target/mmc.h>
 #include <target/bh.h>
+#include <target/irq.h>
 
 bh_t mmc_bh = INVALID_BH;
 
@@ -49,6 +50,14 @@ mmc_slot_t mmc_sid = INVALID_MMC_SID;
 struct mmc_slot mmc_slots[NR_MMC_SLOTS];
 #else
 struct mmc_slot mmc_slot_ctrl;
+#endif
+
+#ifdef SYS_REALTIME
+#define mmc_irq_init()		irq_register_poller(mmc_bh)
+#define mmc_irq_poll(event)	mmc_hw_irq_poll()
+#else
+#define mmc_irq_init()		mmc_hw_irq_init()
+#define mmc_irq_poll(event)	do { } while (0)
 #endif
 
 #if defined(CONFIG_CONSOLE) && defined(CONFIG_MMC_DEBUG)
@@ -92,6 +101,7 @@ const char *mmc_event_names[] = {
 	"OP_COMPLETE",
 	"TRANS_END",
 	"MMC_SPI: RESET_SUCCESS",
+	"CARD_DETECTED",
 };
 
 const char *mmc_event_name(mmc_event_t event)
@@ -251,7 +261,9 @@ static void mmc_async_handler(void)
 
 static void mmc_handler(uint8_t event)
 {
-	if (event != BH_POLLIRQ) {
+	if (event == BH_POLLIRQ)
+		mmc_irq_poll(event);
+	else {
 		switch (event) {
 		case BH_WAKEUP:
 			mmc_async_handler();
@@ -380,7 +392,7 @@ void mmc_reset_slot(void)
 	mmc_slot_ctrl.event = 0;
 	mmc_slot_ctrl.flags = 0;
 	mmc_phy_reset_slot();
-	mmc_identify_card();
+	mmc_hw_card_detect();
 }
 
 void mmc_set_block_data(uint8_t type)
@@ -428,16 +440,16 @@ uint32_t mmc_decode_tran_speed(uint8_t tran_speed)
 
 void mmcsd_init(void)
 {
-	mmc_rca_t slot;
+	mmc_slot_t slot;
 	__unused mmc_slot_t sslot;
 
 	DEVICE_INTF(DEVICE_INTF_MMC);
 	mmc_bh = bh_register_handler(mmc_handler);
 	mmc_hw_ctrl_init();
-
 	for (slot = 0; slot < NR_MMC_SLOTS; slot++) {
 		sslot = mmc_slot_save(slot);
 		mmc_reset_slot();
 		mmc_slot_restore(sslot);
 	}
+	mmc_irq_init();
 }

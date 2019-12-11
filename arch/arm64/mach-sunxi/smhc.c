@@ -374,14 +374,15 @@ static int sunxi_sd_getcd_gpio(int sdc)
         return -EINVAL;
 }
 
-int sunxi_sd_detect_card(uint8_t mmc_no)
+void sunxi_sd_detect_card(uint8_t mmc_no)
 {
 	int cd_pin;
 
 	cd_pin = sunxi_sd_getcd_gpio(mmc_no);
 	if (cd_pin < 0)
-		return 1;
-	return !sunxi_gpio_input(cd_pin);
+		return;
+	if (!sunxi_gpio_input(cd_pin))
+		mmc_event_raise(MMC_EVENT_CARD_INSERT);
 }
 
 void sunxi_sd_set_clock(uint8_t mmc_no, uint32_t clock)

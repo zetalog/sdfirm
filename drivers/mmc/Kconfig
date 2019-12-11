@@ -159,14 +159,19 @@ if DW_MSHC_SD_EMMC && !DW_MSHC_LS_NO_PHY_MODE
 
 menu "SD/eMMC tuning"
 
+config DW_MSHC_TUNE
+	bool
+
 choice
 	prompt "Tuning modes"
 
 config DW_MSHC_RETUNE_MODE_1
 	bool "Mode 1"
+	select DW_MSHC_TUNE
 
 config DW_MSHC_RETUNE_MODE_3
 	bool "Mode 3"
+	select DW_MSHC_TUNE
 
 endchoice
 
@@ -254,6 +259,16 @@ menuconfig SDHCI
 	select BIT_FLS32
 
 if SDHCI
+
+config SDHC_SD
+	bool "SD mode support"
+
+config SDHC_UHSI
+	bool "UHS-I mode support"
+	select SDHC_SD
+
+config SDHC_UHSII
+	bool "UHS-II mode support"
 
 endif
 
