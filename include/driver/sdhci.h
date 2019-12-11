@@ -43,7 +43,19 @@
 
 #define SDHCI_BUFFER		0x20
 
-#define SDHC_PRESENT_STATE(n)	SDHC_REG(n, 0x24)
+#define SDHC_PRESENT_STATE(n)			SDHC_REG(n, 0x24) /* 32-bits */
+#define SDHC_CLOCK_CONTROL(n)			SDHC_REG(n, 0x2C) /* 16-bits */
+#define SDHC_TIMEOUT_CONTROL(n)			SDHC_REG(n, 0x2E) /* 16-bits */
+#define SDHC_CLOCK_TIMEOUT_CONTROL(n)		SDHC_REG(n, 0x2C) /* 32-bits */
+#define SDHC_NORMAL_INTERRUPT_STATUS(n)		SDHC_REG(n, 0x30) /* 16-bits */
+#define SDHC_ERROR_INTERRUPT_STATUS(n)		SDHC_REG(n, 0x32) /* 16-bits */
+#define SDHC_NORMAL_INTERRUPT_STATUS_ENABLE(n)	SDHC_REG(n, 0x34) /* 16-bits */
+#define SDHC_ERROR_INTERRUPT_STATUS_ENABLE(n)	SDHC_REG(n, 0x36) /* 16-bits */
+#define SDHC_NORMAL_INTERRUPT_SIGNAL_ENABLE(n)	SDHC_REG(n, 0x38) /* 16-bits */
+#define SDHC_ERROR_INTERRUPT_SIGNAL_ENABLE(n)	SDHC_REG(n, 0x3A) /* 16-bits */
+#define SDHC_INTERRUPT_STATUS(n)		SDHC_REG(n, 0x30) /* 32-bits */
+#define SDHC_INTERRUPT_ENABLE(n)		SDHC_REG(n, 0x34) /* 32-bits */
+#define SDHC_INTERRUPT_SIGNAL(n)		SDHC_REG(n, 0x34) /* 32-bits */
 
 /* 2.2.9 Present State Register (Cat.C Offset 024h) */
 #ifdef CONFIG_SDHC_UHSII
@@ -129,33 +141,25 @@
 #define  SDHCI_WAKE_ON_INSERT	_BV(1)
 #define  SDHCI_WAKE_ON_REMOVE	_BV(2)
 
-#define SDHCI_CLOCK_CONTROL	0x2C
-#define  SDHCI_DIVIDER_SHIFT	8
-#define  SDHCI_DIVIDER_HI_SHIFT	6
-#define  SDHCI_DIV_MASK	0xFF
-#define  SDHCI_DIV_MASK_LEN	8
-#define  SDHCI_DIV_HI_MASK	0x300
-#define  SDHCI_PROG_CLOCK_MODE  _BV(5)
-#define  SDHCI_CLOCK_CARD_EN	_BV(2)
-#define  SDHCI_CLOCK_INT_STABLE	_BV(1)
-#define  SDHCI_CLOCK_INT_EN	_BV(0)
-
-#define SDHCI_TIMEOUT_CONTROL	0x2E
+/* 2.2.15 Clock Control Register (Cat.C Offset 02Ch) */
+#define SDHC_8BIT_DIVIDED_CLOCK_OFFSET		8
+#define SDHC_8BIT_DIVIDED_CLOCK_MASK		REG_8BIT_MASK
+#define SDHC_8BIT_DIVIDED_CLOCK(value)		\
+	_SET_FV(SDHC_8BIT_DIVIDED_CLOCK, value)
+#define SDHC_10BIT_DIVIDED_CLOCK_OFFSET		6
+#define SDHC_10BIT_DIVIDED_CLOCK_MASK		REG_10BIT_MASK
+#define SDHC_10BIT_DIVIDED_CLOCK(value)		\
+	_SET_FV(SDHC_10BIT_DIVIDED_CLOCK, value)
+#define SDHC_CLOCK_GENERATOR_SELECT		_BV(5)
+#define SDHC_PLL_ENABLE				_BV(3)
+#define SDHC_CLOCK_ENABLE			_BV(2)
+#define SDHC_INTERNAL_CLOCK_STABLE		_BV(1)
+#define SDHC_INTERNAL_CLOCK_ENABLE		_BV(0)
 
 #define SDHCI_SOFTWARE_RESET	0x2F
 #define  SDHCI_RESET_ALL	0x01
 #define  SDHCI_RESET_CMD	0x02
 #define  SDHCI_RESET_DATA	0x04
-
-#define SDHC_NORMAL_INTERRUPT_STATUS(n)		SDHC_REG(n, 0x30) /* 16-bits */
-#define SDHC_ERROR_INTERRUPT_STATUS(n)		SDHC_REG(n, 0x32) /* 16-bits */
-#define SDHC_NORMAL_INTERRUPT_STATUS_ENABLE(n)	SDHC_REG(n, 0x34) /* 16-bits */
-#define SDHC_ERROR_INTERRUPT_STATUS_ENABLE(n)	SDHC_REG(n, 0x36) /* 16-bits */
-#define SDHC_NORMAL_INTERRUPT_SIGNAL_ENABLE(n)	SDHC_REG(n, 0x38) /* 16-bits */
-#define SDHC_ERROR_INTERRUPT_SIGNAL_ENABLE(n)	SDHC_REG(n, 0x3A) /* 16-bits */
-#define SDHC_INTERRUPT_STATUS(n)		SDHC_REG(n, 0x30) /* 32-bits */
-#define SDHC_INTERRUPT_ENABLE(n)		SDHC_REG(n, 0x34) /* 32-bits */
-#define SDHC_INTERRUPT_SIGNAL(n)		SDHC_REG(n, 0x34) /* 32-bits */
 
 #ifdef CONFIG_SDHC_SPEC_4_00
 #define SDHC_RESPONSE_ERROR		_BV(27)
@@ -324,29 +328,14 @@
 
 #define SDHCI_GET_VERSION(x)	((x)->version & SDHCI_SPEC_VER_MASK)
 
-/*
- * End of controller registers.
- */
-
+/* Other definitions */
 #define SDHCI_MAX_DIV_SPEC_200	256
 #define SDHCI_MAX_DIV_SPEC_300	2046
 
-/*
- * quirks
- */
-#define SDHCI_QUIRK_32BIT_DMA_ADDR	(1 << 0)
-#define SDHCI_QUIRK_REG32_RW		(1 << 1)
-#define SDHCI_QUIRK_BROKEN_R1B		(1 << 2)
-#define SDHCI_QUIRK_NO_HISPD_BIT	(1 << 3)
-#define SDHCI_QUIRK_BROKEN_VOLTAGE	(1 << 4)
-#define SDHCI_QUIRK_WAIT_SEND_CMD	(1 << 6)
-#define SDHCI_QUIRK_USE_WIDE8		(1 << 8)
+#define SDHC_INTERNAL_CLOCK_STABLE_TOUT_MS	150
 
-/* to make gcc happy */
-struct sdhci_host;
-
-/*
- * Host SDMA buffer boundary. Valid values from 4K to 512K in powers of 2.
+/* Host SDMA buffer boundary.
+ * Valid values from 4K to 512K in powers of 2.
  */
 #define SDHCI_DEFAULT_BOUNDARY_SIZE	(512 * 1024)
 #define SDHCI_DEFAULT_BOUNDARY_ARG	(7)
@@ -411,6 +400,14 @@ struct sdhci_host {
 	__raw_writel(0, SDHC_INTERRUPT_SIGNAL(mmc))
 #define sdhc_clear_all_irqs(mmc)		\
 	__raw_writel(SDHC_ALL_INTERRUPT_MASK, SDHC_INTERRUPT_STATUS(mmc))
+
+#define sdhc_state_present(mmc, state)		\
+	(__raw_readl(SDHC_PRESENT_STATE(mmc)) & (state))
+
+#define sdhc_set_clock(mmc, step)		\
+	__raw_setw(step, SDHC_CLOCK_CONTROL(mmc))
+#define sdhc_clear_clock(mmc, step)		\
+	__raw_clearw(step, SDHC_CLOCK_CONTROL(mmc))
 
 void sdhci_send_command(uint8_t cmd, uint32_t arg);
 void sdhci_recv_response(uint8_t *resp, uint8_t size);

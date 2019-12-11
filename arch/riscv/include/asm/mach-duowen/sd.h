@@ -42,6 +42,15 @@
 #ifndef __SD_DUOWEN_H_INCLUDE__
 #define __SD_DUOWEN_H_INCLUDE__
 
+#define SDHC_REG(n, offset)	(SD_BASE + (offset))
+#define SD_FREQ_MIN	25000000
+#define SD_FREQ_MAX	25000000
+
+#define SD_CLASS2	1
+#define SD_CLASS5	1
+#define SD_CLASS8	1
+#define SD_CLASS10	1
+
 #ifdef CONFIG_DUOWEN_SD
 #include <driver/sdhci.h>
 #ifndef ARCH_HAVE_SD
@@ -50,16 +59,6 @@
 #error "Multiple SD controller defined"
 #endif
 #endif
-
-#define SD_CLASS2	1
-#define SD_CLASS5	1
-#define SD_CLASS8	1
-#define SD_CLASS10	1
-
-#define SD_FREQ_MIN	25000000
-#define SD_FREQ_MAX	25000000
-
-#define SDHC0_BASE	SD_BASE
 
 #define mmc_hw_ctrl_init()		sdhci_init(SD_FREQ_MIN, SD_FREQ_MAX)
 #define mmc_hw_slot_select(sid)		do { } while (0)

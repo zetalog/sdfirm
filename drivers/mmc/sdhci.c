@@ -73,7 +73,7 @@ static void sdhci_transfer_data(void)
 			return;
 		}
 		if (!transfer_done && (stat & rdy)) {
-			if (!(__raw_readl(SDHC_PRESENT_STATE(mmc_sid)) & mask))
+			if (!sdhc_state_present(mmc_sid, mask))
 				continue;
 			sdhc_clear_irq(mmc_sid, rdy);
 			sdhci_transfer_pio(buf);
@@ -111,9 +111,10 @@ static void sdhci_transfer_data(void)
  * increased twice but only if it doesn't exceed global defined maximum.
  * Each function call will use last timeout value.
  */
-#define SDHCI_CMD_MAX_TIMEOUT			3200
-#define SDHCI_CMD_DEFAULT_TIMEOUT		100
-#define SDHCI_READ_STATUS_TIMEOUT		1000
+static void sdhc_wait_transfer(void)
+{
+	while (sdhc_state_present(mmc_sic, SDHC_COMMAND_INHIBIT));
+}
 
 void sdhci_send_command(uint8_t cmd, uint32_t arg)
 {
@@ -121,34 +122,9 @@ void sdhci_send_command(uint8_t cmd, uint32_t arg)
 	uint8_t type = mmc_get_block_data();
 	__unused size_t trans_bytes;
 	uint32_t mask, flags, mode;
-	unsigned int time = 0;
 	uint8_t rsp = mmc_slot_ctrl.rsp;
 
-	/* Timeout unit - ms */
-	unsigned int cmd_timeout = SDHCI_CMD_DEFAULT_TIMEOUT;
-
-	mask = SDHC_COMMAND_INHIBIT;
-	/* We shouldn't wait for data inihibit for stop commands, even
-	   though they might use busy signaling */
-	if (cmd == MMC_CMD_STOP_TRANSMISSION)
-		mask &= ~SDHC_COMMAND_INHIBIT_DAT;
-	while (__raw_readl(SDHC_PRESENT_STATE(mmc_sid)) & mask) {
-		if (time >= cmd_timeout) {
-			printf("%s: MMC: %d busy ", __func__, mmc_sid);
-			if (2 * cmd_timeout <= SDHCI_CMD_MAX_TIMEOUT) {
-				cmd_timeout += cmd_timeout;
-				printf("timeout increasing to: %u ms.\n",
-				       cmd_timeout);
-			} else {
-				puts("timeout.\n");
-				mmc_cmd_failure(MMC_ERR_TIMEOUT);
-				return;
-			}
-		}
-		time++;
-		mdelay(1);
-	}
-
+	sdhc_wait_transfer();
 	sdhci_start_transfer();
 
 	mask = SDHC_COMMAND_COMPLETE;
@@ -173,12 +149,12 @@ void sdhci_send_command(uint8_t cmd, uint32_t arg)
 
 	/* Set Transfer mode regarding to data flag */
 	if (type) {
-		sdhci_writeb(host, 0xe, SDHCI_TIMEOUT_CONTROL);
+		__raw_writeb(0xE, SDHC_TIMEOUT_CONTROL(mmc_sid));
 		mode = SDHCI_TRNS_BLK_CNT_EN;
-		trans_bytes = mmc_slot_ctrl.block_cnt * mmc_slot_ctrl.block_len;
+		trans_bytes = mmc_slot_ctrl.block_cnt *
+			      mmc_slot_ctrl.block_len;
 		if (mmc_slot_ctrl.block_cnt > 1)
 			mode |= SDHCI_TRNS_MULTI;
-
 		if (type == MMC_SLOT_BLOCK_READ)
 			mode |= SDHCI_TRNS_READ;
 
@@ -196,7 +172,7 @@ void sdhci_send_command(uint8_t cmd, uint32_t arg)
 			     SDHCI_BLOCK_COUNT);
 		sdhci_writew(host, mode, SDHCI_TRANSFER_MODE);
 	} else if (rsp & MMC_RSP_BUSY) {
-		sdhci_writeb(host, 0xe, SDHCI_TIMEOUT_CONTROL);
+		__raw_writeb(0xE, SDHC_TIMEOUT_CONTROL(mmc_sid));
 	}
 
 	sdhci_writel(host, arg, SDHCI_ARGUMENT);
@@ -232,7 +208,6 @@ void sdhci_recv_response(uint8_t *resp, uint8_t size)
 		reg = sdhci_readl(host, SDHCI_RESPONSE);
 		sdhci_decode_reg(resp, reg);
 	}
-
 	sdhci_stop_transfer();
 }
 
@@ -266,45 +241,70 @@ static void sdhci_set_power(uint8_t power)
 	sdhci_writeb(host, pwr, SDHCI_POWER_CONTROL);
 }
 
-bool sdhci_set_clock(uint32_t clock)
+void sdhc_start_clock(void)
 {
-	struct sdhci_host *host = mmc2sdhci();
-	unsigned int div, clk = 0, timeout;
-	uint32_t ctrl;
+	sdhc_set_clock(mmc_sid, SDHC_CLOCK_ENABLE);
+}
 
-	/* Wait max 20 ms */
-	timeout = 200;
-	while (__raw_readl(SDHC_PRESENT_STATE(mmc_sid)) &
-	       SDHC_COMMAND_INHIBIT) {
+void sdhc_stop_clock(void)
+{
+	sdhc_wait_transfer();
+	sdhc_clear_clock(mmc_sid, SDHC_CLOCK_ENABLE);
+}
+
+static bool sdhc_clock_stabilised(void)
+{
+	tick_t timeout = SDHC_INTERNAL_CLOCK_STABLE_TOUT_MS;
+
+	do {
+		if (__raw_readw(SDHC_CLOCK_CONTROL(mmc_sid)) &
+		    SDHC_INTERNAL_CLOCK_STABLE)
+			break;
 		if (timeout == 0) {
-			printf("%s: Timeout to wait cmd & data inhibit\n",
-			       __func__);
+			printf("Internal clock not stabilised.\n");
 			return false;
 		}
 		timeout--;
-		udelay(100);
-	}
+		mdelay(1);
+	} while (1);
+	return true;
+}
 
-	sdhci_writew(host, 0, SDHCI_CLOCK_CONTROL);
-	if (clock == 0)
-		return 0;
+#ifdef CONFIG_SDHC_SPEC_4_10
+static void sdhc_enable_pll(void)
+{
+	sdhc_set_clock(mmc_sid, SDHC_PLL_ENABLE);
+	if (!sdhc_clock_stabilised())
+		return;
+}
+static void sdhc_disable_pll(void)
+{
+	sdhc_clear_clock(mmc_sid, SDHC_PLL_ENABLE);
+}
+#else
+#define sdhc_enable_pll()	do { } while (0)
+#define sdhc_disable_pll()	do { } while (0)
+#endif
 
+bool sdhci_set_clock(uint32_t clock)
+{
+	struct sdhci_host *host = mmc2sdhci();
+	uint32_t div, clk = 0;
+	uint32_t ctrl;
+
+	sdhc_stop_clock();
+	sdhc_disable_pll();
+
+	/* 1. calculate a divisor */
 	if (SDHCI_GET_VERSION(host) >= SDHCI_SPEC_300) {
-		/*
-		 * Check if the Host Controller supports Programmable Clock
-		 * Mode.
-		 */
+		/* Host Controller supports Programmable Clock Mode? */
 		if (host->clk_mul) {
 			for (div = 1; div <= 1024; div++) {
 				if ((host->max_clk / div) <= clock)
 					break;
 			}
 
-			/*
-			 * Set Programmable Clock Mode in the Clock
-			 * Control register.
-			 */
-			clk = SDHCI_PROG_CLOCK_MODE;
+			clk = SDHC_CLOCK_GENERATOR_SELECT;
 			div--;
 		} else {
 			/* Version 3.00 divisors must be a multiple of 2. */
@@ -320,6 +320,7 @@ bool sdhci_set_clock(uint32_t clock)
 			}
 			div >>= 1;
 		}
+		clk |= SDHC_10BIT_DIVIDED_CLOCK(div);
 	} else {
 		/* Version 2.00 divisors must be a power of 2. */
 		for (div = 1; div < SDHCI_MAX_DIV_SPEC_200; div *= 2) {
@@ -327,33 +328,27 @@ bool sdhci_set_clock(uint32_t clock)
 				break;
 		}
 		div >>= 1;
+		clk |= SDHC_8BIT_DIVIDED_CLOCK(div);
 	}
 
-#if 0
-	sdhc_hw_set_clock(div);
+	/* 2. set SDCLK/RCLK Frequency Select
+	 *    Preset Value Enable?
+	 */
+	__raw_writew(clk, SDHC_CLOCK_CONTROL(mmc_sid));
+
+	/* 3. set Internal Clock Enable */
+	sdhc_set_clock(mmc_sid, SDHC_INTERNAL_CLOCK_ENABLE);
+
+	/* 4. check Internal Clock Stable */
+	if (!sdhc_clock_stabilised())
+		return false;
+
+#ifdef CONFIG_SDHC_SPEC_4_10
+	/* 5. set PLL Enable */
+	sdhc_enable_pll();
 #endif
 
-	clk |= (div & SDHCI_DIV_MASK) << SDHCI_DIVIDER_SHIFT;
-	clk |= ((div & SDHCI_DIV_HI_MASK) >> SDHCI_DIV_MASK_LEN)
-		<< SDHCI_DIVIDER_HI_SHIFT;
-	clk |= SDHCI_CLOCK_INT_EN;
-	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
-
-	/* Wait max 20 ms */
-	timeout = 20;
-	while (!((clk = sdhci_readw(host, SDHCI_CLOCK_CONTROL))
-		& SDHCI_CLOCK_INT_STABLE)) {
-		if (timeout == 0) {
-			printf("%s: Internal clock never stabilised.\n",
-			       __func__);
-			return false;
-		}
-		timeout--;
-		mdelay(1);
-	}
-
-	clk |= SDHCI_CLOCK_CARD_EN;
-	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
+	sdhc_start_clock();
 
 	ctrl = sdhci_readb(host, SDHCI_HOST_CONTROL);
 	if (clock > 26000000)
@@ -471,11 +466,15 @@ void sdhc_handle_irq(void)
 	if (irqs & SDHC_CARD_DETECTION_MASK) {
 		if (irqs & SDHC_CARD_INSERTION) {
 			sdhc_clear_irq(mmc_sid, SDHC_CARD_INSERTION);
-			mmc_event_raise(MMC_EVENT_CARD_INSERT);
+			if (sdhc_state_present(mmc_sid,
+					       SDHC_CARD_INSERTED))
+				mmc_event_raise(MMC_EVENT_CARD_INSERT);
 		}
 		if (irqs & SDHC_CARD_REMOVAL) {
 			sdhc_clear_irq(mmc_sid, SDHC_CARD_REMOVAL);
-			mmc_event_raise(MMC_EVENT_CARD_REMOVE);
+			if (!sdhc_state_present(mmc_sid,
+						SDHC_CARD_INSERTED))
+				mmc_event_raise(MMC_EVENT_CARD_REMOVE);
 		}
 	}
 	/* Handle cmd/data IRQs */
