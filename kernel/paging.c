@@ -30,7 +30,9 @@ static phys_addr_t early_pgtable_alloc(void)
 	 */
 	ptr = pte_set_fixmap(phys);
 	mmu_dbg_tbl("ALLOC: P=%016llx, V=%016llx\n", phys, ptr);
+#ifndef CONFIG_GEM5_SKIP_SET_PGT
 	memory_set((caddr_t)ptr, 0, PAGE_SIZE);
+#endif
 
 	/* Implicit barriers also ensure the zeroed page is visible to the
 	 * page table walker.
@@ -540,10 +542,14 @@ void early_fixmap_init(void)
 }
 
 #ifdef CONFIG_GEM5
+phys_addr_t *pages_list = NULL;
+#ifdef CONFIG_GEM5_STATIC_PAGES
+extern phys_addr_t *simpoint_pages_dump(void);
+#else
 extern phys_addr_t *simpoint_pages_alloc(void);
+#endif
 extern void simpoint_pages_map(pgd_t *pgdp, phys_addr_t *pages_list);
 extern void simpoint_mem_restore(void);
-phys_addr_t *pages_list = NULL;
 #endif
 
 void paging_init(void)
@@ -566,12 +572,19 @@ void paging_init(void)
 	pgdp = pgd_set_fixmap(__pa_symbol(mmu_id_map));
 #endif
 #ifdef CONFIG_GEM5
+#ifdef CONFIG_GEM5_STATIC_PAGES
+	con_printf("Simpoint: Start simpoint_pages_dump\n");
+	pages_list = simpoint_pages_dump();
+#else
 	con_printf("Simpoint: Start simpoint_pages_alloc\n");
 	pages_list = simpoint_pages_alloc();
+#endif
 	con_printf("Simpoint: Start simpoint_pages_map\n");
 	simpoint_pages_map(pgdp, pages_list);
+#if defined(CONFIG_GEM5_NOT_RESTORE_MEM) || !defined(CONFIG_GEM5_STATIC_PAGES)
 	con_printf("Simpoint: Start simpoint_mem_restore\n");
 	simpoint_mem_restore();
+#endif
 #else
 	map_mem(pgdp);
 #endif
