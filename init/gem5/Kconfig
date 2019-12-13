@@ -4,16 +4,13 @@ config GEM5
 
 if GEM5
 
-config GEM5_PATH
-	string "GEM5 source code path"
-	default "../gem5"
+config GEM5_STATIC_PAGES
+	bool "Use static pages in data section"
 
-config GEM5_PROGRAM
-	string "Test program"
-	default "hello"
+config GEM5_SKIP_SET_PGT
+	bool "Do not set page table to zero in initialization"
 
-config GEM5_CHECKPOINT
-	int "Checkpoint index (1-N)"
-	default 1
+config GEM5_NOT_RESTORE_MEM
+	bool "Do not restore memory data for Simpoint slice"
 
 endif

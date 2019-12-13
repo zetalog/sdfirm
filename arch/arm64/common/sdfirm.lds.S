@@ -76,8 +76,8 @@ SECTIONS
 		__init_data_end = .;
 #endif
 		DATA_DATA
-		GEM5_HEAP
 	}
+	_edata = .;
 	__edata = .;				/* end of data sections */
 
 	__data_loc = _etext_loc;		/* data boot location */
