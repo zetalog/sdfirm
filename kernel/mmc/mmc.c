@@ -127,12 +127,7 @@ static void mmc_handle_identify_card(void)
 	if (mmc_cmd_is(MMC_CMD_NONE))
 		mmc_cmd(MMC_CMD_GO_IDLE_STATE);
 	else if (mmc_state_is(idle)) {
-#ifdef CONFIG_MMC_SPI
-		mmc_slot_ctrl.cmd = MMC_CMD_ARCH;
-		mmc_hw_spi_reset();
-#else
 		mmc_cmd(MMC_CMD_SEND_OP_COND);
-#endif
 	} else if (mmc_state_is(ready))
 		mmc_cmd(MMC_CMD_ALL_SEND_CID);
 	else if (mmc_state_is(ident))
@@ -225,25 +220,13 @@ void mmc_phy_handle_stm(void)
 		unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
 	/* identification mode */
 	} else if (mmc_state_is(idle)) {
-#ifdef CONFIG_MMC_SPI
-		if (flags & MMC_EVENT_RESET_SUCCESS)
-			mmc_state_enter(stby);
-#endif
 		if (flags & MMC_EVENT_CMD_SUCCESS) {
 			if (mmc_cmd_is(MMC_CMD_GO_IDLE_STATE));
-#ifdef CONFIG_MMC_SPI
-			else
-				mmc_hw_spi_reset();
-#else
 			if (mmc_cmd_is(MMC_CMD_SEND_OP_COND))
 				mmc_state_enter(ready);
-#endif
 			unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
 		}
 		if (flags & MMC_EVENT_CMD_FAILURE) {
-#ifdef CONFIG_MMC_SPI
-			mmc_state_enter(ina);
-#endif
 			if (mmc_err_is(MMC_ERR_CARD_IS_BUSY));
 			if (mmc_err_is(MMC_ERR_HOST_OMIT_VOLT));
 			if (mmc_err_is(MMC_ERR_CARD_NON_COMP_VOLT))

@@ -100,6 +100,9 @@ typedef uint16_t mmc_card_t;
 typedef uint32_t mmc_rca_t;
 typedef uint16_t mmc_event_t;
 typedef __align(4) uint8_t *mmc_lba_t;
+typedef uint8_t mmc_r1_t[4];
+typedef uint8_t mmc_r2_t[16];
+typedef uint8_t mmc_r3_t[4];
 
 #include <driver/mmc.h>
 
@@ -180,7 +183,6 @@ typedef __align(4) uint8_t *mmc_lba_t;
 #define MMC_CMD63			63
 
 #define MMC_CMD_NONE			64
-#define MMC_CMD_ARCH			65
 
 /* Application commands */
 #define MMC_ACMD6			6
@@ -192,7 +194,6 @@ typedef __align(4) uint8_t *mmc_lba_t;
 #define MMC_ACMD51			51
 
 #define MMC_ACMD_NONE			64
-#define MMC_ACMD_ARCH			65
 
 #ifdef CONFIG_MMC
 #include <target/mmc_phy.h>
@@ -328,10 +329,6 @@ typedef __align(4) uint8_t *mmc_lba_t;
 #define MMC_R4		(MMC_RSP_TYPE(4)|MMC_R_NC)
 /* IRQ */
 #define MMC_R5		(MMC_RSP_TYPE(5)|MMC_R_CS)
-
-typedef uint8_t mmc_r1_t[4];
-typedef uint8_t mmc_r2_t[16];
-typedef uint8_t mmc_r3_t[4];
 
 /* R1: Card status */
 #define MMC_DET_ADDRESS_OUT_OF_RANGE	_BV(31)
@@ -569,6 +566,7 @@ struct mmc_slot {
 	uint32_t block_len;
 	uint32_t *block_data;
 	tick_t start_tick;
+	tick_t start_busy;
 	/* erase/switch func */
 	uint32_t func;
 	/* R1 */
@@ -583,10 +581,12 @@ struct mmc_slot {
 	/* R3 */
 	uint32_t card_ocr; /* card capacity */
 	uint32_t host_ocr; /* host capacity */
+	bool ocr_valid;
 	uint16_t dsr;
 	mmc_card_t rca;
 	mmc_cmpl_cb op_cb;
 	MMC_PHY_SLOT
+	MMC_SPI_SLOT
 };
 #define mmc_op_is(_op)			(!!(mmc_slot_ctrl.op == (_op)))
 #define mmc_cmd_is(_cmd)		(!!(mmc_slot_ctrl.cmd == (_cmd)))
@@ -606,9 +606,9 @@ struct mmc_slot {
 #define MMC_EVENT_NO_IRQ	_BV(4)
 #define MMC_EVENT_OP_COMPLETE	_BV(5)
 #define MMC_EVENT_TRANS_END	_BV(6)
-#define MMC_EVENT_RESET_SUCCESS	_BV(7)
-#define MMC_EVENT_CARD_INSERT	_BV(8)
-#define MMC_EVENT_CARD_REMOVE	_BV(9)
+#define MMC_EVENT_CARD_INSERT	_BV(7)
+#define MMC_EVENT_CARD_REMOVE	_BV(8)
+#define MMC_EVENT_CARD_BUSY	_BV(9)
 
 #define MMC_OP_NO_OP			0
 #define MMC_OP_IDENTIFY_CARD		1
@@ -623,8 +623,9 @@ struct mmc_slot {
 #define MMC_ERR_CARD_NON_COMP_VOLT	3 /* card with non compatible voltage range */
 #define MMC_ERR_CARD_LOOSE_BUS		4 /* card looses bus */
 #define MMC_ERR_ILLEGAL_COMMAND		5 /* illegal command */
-#define MMC_ERR_CHECK_PATTERN		6 /* check pattern error */
-#define MMC_ERR_TIMEOUT			7 /* communication timeout */
+#define MMC_ERR_COM_CRC_ERROR		6 /* com CRC error */
+#define MMC_ERR_CHECK_PATTERN		7 /* check pattern error */
+#define MMC_ERR_TIMEOUT			8 /* communication timeout */
 
 #ifdef CONFIG_DEBUG_PRINT
 #define mmc_debug(tag, val)	dbg_print((tag), (val))
@@ -686,6 +687,7 @@ mmc_event_t mmc_event_save(void);
 void mmc_event_restore(mmc_event_t event);
 void mmc_set_block_data(uint8_t type);
 uint8_t mmc_get_block_data(void);
+void mmc_wait_busy(void);
 
 mmc_card_t mmc_register_card(mmc_rca_t rca);
 

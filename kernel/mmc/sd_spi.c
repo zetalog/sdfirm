@@ -41,26 +41,23 @@
 
 #include <target/mmc.h>
 
-static void sd_spi_resp_r0(void)
-{
-	/* mmc_hw_recv_response(NULL, 0); */
-}
-
 static void sd_spi_resp_r1(void)
 {
 	uint8_t r1;
 
 	mmc_hw_recv_response(&r1, 1);
+	if (mmc_slot_ctrl.cmd == MMC_CMD_APP_CMD &&
+	    mmc_slot_ctrl.acmd == SD_ACMD_SEND_OP_COND) {
+		if (!(r1 & MMC_R1_IN_IDLE_STATE))
+			mmc_slot_ctrl.op_cond_sent = true;
+	}
 	raise_bits(mmc_slot_ctrl.flags, MMC_SLOT_CARD_STATUS_VALID);
 }
 
 static void sd_spi_resp_r1b(void)
 {
 	sd_spi_resp_r1();
-	if (mmc_hw_card_busy())
-		raise_bits(mmc_slot_ctrl.flags, MMC_SLOT_CARD_IS_BUSY);
-	else
-		unraise_bits(mmc_slot_ctrl.flags, MMC_SLOT_CARD_IS_BUSY);
+	mmc_hw_card_busy();
 }
 
 static void sd_spi_resp_r2(void)
@@ -75,6 +72,12 @@ static bool sd_spi_resp_r3(void)
 	uint8_t r3[5];
 
 	mmc_hw_recv_response(r3, 5);
+	mmc_slot_ctrl.card_ocr = sd_decode_ocr(r3);
+	if (!(mmc_slot_ctrl.card_ocr & MMC_OCR_BUSY)) {
+		mmc_rsp_failure(MMC_ERR_CARD_IS_BUSY);
+		return false;
+	}
+	mmc_slot_ctrl.ocr_valid = true;
 	return true;
 }
 
@@ -83,20 +86,25 @@ static bool sd_spi_resp_r7(void)
 	uint8_t r7[5];
 
 	mmc_hw_recv_response(r7, 5);
+	if (r7[0] != SD_CHECK_PATTERN) {
+		mmc_rsp_failure(MMC_ERR_CHECK_PATTERN);
+		return false;
+	}
+	if (r7[1] != sd_get_vhs()) {
+		mmc_rsp_failure(MMC_ERR_CARD_NON_COMP_VOLT);
+		return false;
+	}
 	return true;
 }
 
 void sd_spi_recv_rsp(void)
 {
 	switch (mmc_slot_ctrl.rsp) {
-	case MMC_R0:
-		sd_spi_resp_r0();
+	case MMC_R1b:
+		sd_spi_resp_r1b();
 		break;
 	case MMC_R1:
 		sd_spi_resp_r1();
-		break;
-	case MMC_R1b:
-		sd_spi_resp_r1b();
 		break;
 	case MMC_R2:
 		sd_spi_resp_r2();
@@ -115,6 +123,38 @@ void sd_spi_recv_rsp(void)
 
 void sd_spi_send_acmd(void)
 {
+	uint32_t arg = 0;
+
+	switch (mmc_slot_ctrl.acmd) {
+	case SD_ACMD_SD_STATUS:
+		mmc_slot_ctrl.rsp = MMC_R2;
+		/* 512-bits SD status */
+		MMC_BLOCK(READ, 64, 1);
+		break;
+	case SD_ACMD_SEND_NUM_WR_BLOCKS:
+		mmc_slot_ctrl.rsp = MMC_R1;
+		break;
+	case SD_ACMD_SET_WR_BLK_ERASE_COUNT:
+		mmc_slot_ctrl.rsp = MMC_R1;
+		arg = sd_wr_blk_erase_count(mmc_slot_ctrl.wr_blk_erase_count);
+		break;
+	case SD_ACMD_SEND_OP_COND:
+		mmc_slot_ctrl.rsp = MMC_R1;
+		arg = mmc_slot_ctrl.host_ocr;
+		break;
+	case SD_ACMD_SET_CLR_CARD_DETECT:
+		mmc_slot_ctrl.rsp = MMC_R1;
+		arg = mmc_slot_ctrl.flags & MMC_SLOT_CARD_DETECT ? 1 : 0;
+		break;
+	case SD_ACMD_SEND_SCR:
+		mmc_slot_ctrl.rsp = MMC_R1;
+		/* 64-bits SCR register */
+		MMC_BLOCK(READ, 8, 1);
+		break;
+	default:
+		break;
+	}
+	mmc_hw_send_command(mmc_slot_ctrl.acmd, arg);
 }
 
 void sd_spi_send_cmd(void)
@@ -143,6 +183,7 @@ void sd_spi_send_cmd(void)
 		break;
 	case MMC_CMD_STOP_TRANSMISSION:
 		mmc_slot_ctrl.rsp = MMC_R1b;
+		mmc_wait_busy();
 		break;
 	case MMC_CMD_SEND_STATUS:
 		mmc_slot_ctrl.rsp = MMC_R2;
@@ -168,6 +209,7 @@ void sd_spi_send_cmd(void)
 	case MMC_CMD_SET_WRITE_PROT:
 	case MMC_CMD_CLR_WRITE_PROT:
 		mmc_slot_ctrl.rsp = MMC_R1b;
+		mmc_wait_busy();
 		arg = mmc_slot_ctrl.address;
 		break;
 	case MMC_CMD_SEND_WRITE_PROT:
@@ -182,6 +224,7 @@ void sd_spi_send_cmd(void)
 		break;
 	case MMC_CMD_ERASE:
 		mmc_slot_ctrl.rsp = MMC_R1b;
+		mmc_wait_busy();
 		break;
 #ifdef SD_CLASS7
 	case MMC_CMD_LOCK_UNLOCK:
@@ -211,4 +254,20 @@ void sd_spi_send_cmd(void)
 		break;
 	}
 	mmc_hw_send_command(mmc_slot_ctrl.cmd, arg);
+}
+
+void sd_spi_enter_ver(void)
+{
+	if (!mmc_slot_ctrl.op_cond_sent)
+		mmc_send_acmd(SD_ACMD_SEND_OP_COND);
+	else if (!mmc_slot_ctrl.ocr_valid)
+		mmc_cmd(SD_CMD_READ_OCR);
+}
+
+void sd_spi_handle_ver(void)
+{
+	if (mmc_slot_ctrl.op_cond_sent && mmc_slot_ctrl.ocr_valid)
+		mmc_state_enter(stby);
+	else
+		sd_state_enter(ver);
 }

@@ -48,6 +48,7 @@ config UNLEASHED_FSBL
 	select UNLEASHED_SDCARD
 	select SIFIVE_DDR
 	select SIFIVE_CACHE
+	select MMCSD
 
 config UNLEASHED_BBL
 	bool "Berkeley boot loader (BBL)"

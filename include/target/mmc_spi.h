@@ -48,6 +48,8 @@
 #error "Multiple MMC controller defined"
 #endif
 
+#include <target/spi.h>
+
 /* 9.5 SPI Bus Protocol:
  * Only single and multiple block read/write operations are supported in
  * SPI mode (sequential mode is not supported).
@@ -55,11 +57,28 @@
 #define MMC_CLASS2 1
 #define MMC_CLASS4 1
 
-#define MMC_CMD0_ARG		UL(0x00000000)
-#define MMC_CMD0_CRC		0x95
 #define MMC_CMD_CRC_ON_OFF	MMC_CMD59
 
-#define SD_RESPONSE_IDLE		0x1
+/* 9.5.2 Responses */
+/* Format R1 */
+#define MMC_R1_IN_IDLE_STATE		_BV(0)
+#define MMC_R1_ERASE_RESET		_BV(1)
+#define MMC_R1_ILLEGAL_COMMAND		_BV(2)
+#define MMC_R1_COM_CRC_ERROR		_BV(3)
+#define MMC_R1_ERASE_SEQUENCE_ERROR	_BV(4)
+#define MMC_R1_ADDRESS_MISALIGN		_BV(5)
+#define MMC_R1_ADDRESS_OUT_OF_RANGE	_BV(6)
+#define MMC_R1_ERRORS						\
+	(MMC_R1_ERASE_RESET | MMC_R1_ILLEGAL_COMMAND |		\
+	 MMC_R1_COM_CRC_ERROR | MMC_R1_ERASE_SEQUENCE_ERROR |	\
+	 MMC_R1_ADDRESS_MISALIGN | MMC_R1_ADDRESS_OUT_OF_RANGE)
+
+/* Command frame starts by asserting low and then high for first two clock
+ * edges.
+ */
+#define MMC_SPI_CMD(cmd)		(0x40 | (cmd))
+#define MMC_SPI_CRC(cmd)		(0x01 | (crc))
+
 /* Data token for commands 17, 18, 24 */
 #define SD_DATA_TOKEN			0xfe
 
@@ -68,15 +87,22 @@
 #define mmc_hw_slot_select(rca)		mmc_spi_select(rca)
 #define mmc_hw_send_command(cmd, arg)	mmc_spi_send(cmd, arg)
 #define mmc_hw_recv_response(resp, len)	mmc_spi_recv(resp, len)
-#define mmc_hw_card_busy()		false
+#define mmc_hw_card_busy()		mmc_spi_busy()
 #endif
 
-void mmc_spi_reset_success(void);
 void mmc_spi_init(void);
 void mmc_spi_select(mmc_rca_t rca);
-uint8_t __mmc_spi_send(uint8_t cmd, uint32_t arg);
 void mmc_spi_send(uint8_t cmd, uint32_t arg);
 void mmc_spi_recv(uint8_t *resp, uint16_t len);
+void mmc_spi_busy(void);
+
+/* Send dummy byte (all ones).
+ * Used in many cases to read one byte from SD card, since SPI is a
+ * full-duplex protocol and it is necessary to send a byte in order to read
+ * a byte.
+ */
+uint8_t mmc_spi_dummy(void);
+uint8_t mmc_spi_txrx(uint8_t tx);
 void mmc_spi_cmpl(void);
 
 extern uint8_t mmc_spi_resp;

@@ -100,8 +100,9 @@ const char *mmc_event_names[] = {
 	"NO_IRQ",
 	"OP_COMPLETE",
 	"TRANS_END",
-	"MMC_SPI: RESET_SUCCESS",
-	"CARD_DETECTED",
+	"CARD_INSERT",
+	"CARD_REMOVE",
+	"CARD_BUSY",
 };
 
 const char *mmc_event_name(mmc_event_t event)
@@ -162,10 +163,10 @@ void mmc_debug(uint8_t tag, uint32_t val)
 		printf("cmd%d %s\n", val, mmc_cmd_name(val));
 		break;
 	case MMC_DEBUG_OP:
-		//printf("op %s\n", mmc_op_name(val));
+		printf("op %s\n", mmc_op_name(val));
 		break;
 	case MMC_DEBUG_ACMD:
-		//printf("acmd%d %s\n", val, mmc_acmd_name(val));
+		printf("acmd%d %s\n", val, mmc_acmd_name(val));
 		break;
 	default:
 		BUG();
@@ -283,7 +284,6 @@ void mmc_rsp_complete(uint8_t err)
 		unraise_bits(mmc_slot_ctrl.flags, MMC_SLOT_WAIT_APP_ACMD);
 		return;
 	}
-	printf("cmd success\n");
 	mmc_event_raise(MMC_EVENT_CMD_SUCCESS);
 	unraise_bits(mmc_slot_ctrl.flags, MMC_SLOT_WAIT_APP_ACMD);
 }
@@ -299,19 +299,18 @@ void mmc_cmd_complete(uint8_t err)
 	mmc_phy_recv_rsp();
 }
 
-#ifdef CONFIG_MMC_SPI
-void mmc_spi_reset_success(void)
-{
-	mmc_event_raise(MMC_EVENT_RESET_SUCCESS);
-}
-#endif
-
 void mmc_cmd(uint8_t cmd)
 {
 	mmc_slot_ctrl.cmd = cmd;
 	mmc_slot_ctrl.err = MMC_ERR_NO_ERROR;
 	mmc_debug_cmd(cmd);
 	mmc_phy_send_cmd();
+}
+
+void mmc_wait_busy(void)
+{
+	mmc_slot_ctrl.start_busy = tick_get_counter();
+	raise_bits(mmc_slot_ctrl.flags, MMC_SLOT_CARD_IS_BUSY);
 }
 
 void mmc_send_acmd(uint8_t acmd)

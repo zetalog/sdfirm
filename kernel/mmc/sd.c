@@ -43,7 +43,9 @@
 #include <target/cmdline.h>
 #include <target/jiffies.h>
 
-#ifndef CONFIG_SD_SPI
+#ifdef CONFIG_SD_SPI
+bool sd_spi_mode = true;
+#else
 bool sd_spi_mode = false;
 #endif
 
@@ -126,7 +128,7 @@ const char *mmc_phy_cmd_names[64] = {
 	"APP_CMD",
 	"GEN_CMD",
 	"Function reserved",
-	"READ_EXTRA_MULTI",
+	"READ_EXTRA_MULTI | READ_OCR",
 	"WRITE_EXTRA_MULTI",
 	"Manufacturer reserved",
 	"Manufacturer reserved",
@@ -203,6 +205,36 @@ static bool sd_cap_voltage_switch(void)
 	return false;
 }
 
+static void sd_enter_ver(void)
+{
+	if (!mmc_slot_ctrl.ocr_valid)
+		mmc_send_acmd(SD_ACMD_SEND_OP_COND);
+	else if (sd_cap_voltage_switch() && !mmc_slot_ctrl.voltage_ready)
+		mmc_cmd(SD_CMD_VOLTAGE_SWITCH);
+}
+
+/* SD memory card initialization:
+ * SD:
+ *   CMD0:GO_IDLE_STATE
+ *  ->idle
+ *   CMD8:SEND_IF_COND
+ *  ->ver->
+ *   ACMD41:SEND_OP_COND
+ *   CMD11:SWITCH_FUNC (S18R S18A)
+ *  ->ready
+ *   CMD2:ALL_SEND_CID
+ *   CMD3:SEND_RELATIVE_ADDR
+ *  ->stby
+ * SD_SPI:
+ *   CMD0:GO_IDLE_STATE
+ *  ->idle
+ *   CMD8:SEND_IF_COND
+ *  ->ver->
+ *   [CMD58:READ_OCR]->voltage
+ *   ACMD41:SEND_OP_COND
+ *   CMD58:READ_OCR->capacity
+ *  ->stby
+ */
 static void sd_handle_identify_card(void)
 {
 	if (mmc_cmd_is(MMC_CMD_NONE)) {
@@ -210,14 +242,14 @@ static void sd_handle_identify_card(void)
 		mmc_cmd(MMC_CMD_GO_IDLE_STATE);
 	} else if (mmc_state_is(idle))
 		mmc_cmd(SD_CMD_SEND_IF_COND);
-	else if (sd_state_is(ver))
-		mmc_send_acmd(SD_ACMD_SEND_OP_COND);
-	else if (mmc_state_is(ready)) {
-		if (sd_cap_voltage_switch())
-			mmc_cmd(SD_CMD_VOLTAGE_SWITCH);
+	else if (sd_state_is(ver)) {
+		if (sd_spi_mode)
+			sd_spi_enter_ver();
 		else
-			mmc_cmd(MMC_CMD_ALL_SEND_CID);
-	} else if (mmc_state_is(ident))
+			sd_enter_ver();
+	} else if (mmc_state_is(ready))
+		mmc_cmd(MMC_CMD_ALL_SEND_CID);
+	else if (mmc_state_is(ident))
 		mmc_cmd(SD_CMD_SEND_RELATIVE_ADDR);
 	else if (mmc_state_is(stby)) {
 		mmc_op_success();
@@ -294,9 +326,11 @@ static mmc_csd_t sd_decode_csd(mmc_r2_t raw_csd)
 	csd.write_bl_len = MMC_CSD0_WRITE_BL_LEN(csd0);
 	csd.write_bl_partial = !!(MMC_CSD0_WRITE_BL_PARTIAL & csd0);
 	csd.write_blk_misalign = !!(MMC_CSD2_WRITE_BLK_MISALIGN & csd2);
+#ifdef CONFIG_MMC_DEBUG
 	if (csd.read_bl_len != csd.write_bl_len)
 		printf("Mismatched BL_LEN: READ - %d, WRITE - %d\n",
 		       csd.read_bl_len, csd.write_bl_len);
+#endif
 	csd.dsr_imp = !!(MMC_CSD2_DSR_IMP & csd2);
 	if (mmc_slot_ctrl.card_ocr & SD_OCR_HCS) {
 		csize = SD_CSD20_2_C_SIZE(csd2) << 16 |
@@ -338,7 +372,7 @@ sd_scr_t sd_decode_scr(void)
 	return scr;
 }
 
-static uint32_t sd_decode_ocr(mmc_r3_t raw_ocr)
+uint32_t sd_decode_ocr(mmc_r3_t raw_ocr)
 {
 	uint32_t ocr;
 
@@ -353,7 +387,7 @@ static uint32_t sd_encode_speed(sd_speed_t speed)
 	       SD_SPEED_CONTROL(speed.speed_control);
 }
 
-static uint8_t sd_get_vhs(void)
+uint8_t sd_get_vhs(void)
 {
 	if (mmc_slot_ctrl.host_ocr & MMC_OCR_HIGH_VOLTAGE)
 		return 1;
@@ -375,6 +409,15 @@ void sd_state_enter_idle(void)
 		sd_state_enter(ver);
 }
 
+static void sd_handle_ver(void)
+{
+	if (mmc_slot_ctrl.ocr_valid &&
+	    (!sd_cap_voltage_switch() || mmc_slot_ctrl.voltage_ready))
+		mmc_state_enter(ready);
+	else
+		sd_state_enter(ver);
+}
+
 /* This function implements the state digrams in the following sections:
  * 7.2 Card Identification Mode
  * 7.3 Interrupt Mode
@@ -387,8 +430,15 @@ void mmc_phy_handle_stm(void)
 	flags = mmc_event_save();
 	if (flags & MMC_EVENT_CARD_INSERT) {
 		mmc_identify_card();
-	} else if (mmc_slot_ctrl.flags & MMC_SLOT_WAIT_APP_CMD &&
-	    mmc_cmd_is(MMC_CMD_APP_CMD)) {
+		unraise_bits(flags, MMC_EVENT_CARD_INSERT);
+	} else if (flags & MMC_EVENT_CARD_BUSY &&
+		   mmc_slot_ctrl.flags & MMC_SLOT_CARD_IS_BUSY &&
+		   mmc_slot_ctrl.rsp & MMC_RSP_BUSY) {
+		mmc_hw_card_busy();
+		unraise_bits(flags, MMC_EVENT_CARD_BUSY);
+	} else if (flags & MMC_EVENT_CMD_SUCCESS &&
+		   mmc_slot_ctrl.flags & MMC_SLOT_WAIT_APP_CMD &&
+		   mmc_cmd_is(MMC_CMD_APP_CMD)) {
 		mmc_app_cmd_complete();
 		unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
 	} else if (flags & MMC_EVENT_POWER_ON) {
@@ -413,16 +463,12 @@ void mmc_phy_handle_stm(void)
 	/* identification mode */
 	} else if (mmc_state_is(idle)) {
 		if (flags & MMC_EVENT_CMD_SUCCESS) {
-			if (mmc_cmd_is(MMC_CMD_GO_IDLE_STATE));
-			if (mmc_cmd_is(SD_CMD_SEND_IF_COND))
-				sd_state_enter(ver);
+			sd_state_enter(ver);
 			unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
 		}
 		if (flags & MMC_EVENT_CMD_FAILURE) {
-			if (mmc_cmd_is(SD_CMD_SEND_IF_COND)) {
-				if (mmc_err_is(MMC_ERR_ILLEGAL_COMMAND))
-					sd_state_enter(ver);
-			}
+			if (mmc_err_is(MMC_ERR_ILLEGAL_COMMAND))
+				sd_state_enter(ver);
 			if (mmc_err_is(MMC_ERR_CHECK_PATTERN))
 				mmc_state_enter(ina);
 			if (mmc_err_is(MMC_ERR_CARD_NON_COMP_VOLT))
@@ -431,12 +477,21 @@ void mmc_phy_handle_stm(void)
 		}
 	} else if (sd_state_is(ver)) {
 		if (flags & MMC_EVENT_CMD_SUCCESS) {
-			mmc_state_enter(ready);
+			if (sd_spi_mode)
+				sd_spi_handle_ver();
+			else
+				sd_handle_ver();
 			unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
 		}
 		if (flags & MMC_EVENT_CMD_FAILURE) {
-			if (mmc_err_is(MMC_ERR_CARD_IS_BUSY))
-				sd_state_enter(ver);
+			/* OCR_BUSY */
+			if (mmc_err_is(MMC_ERR_CARD_IS_BUSY)) {
+				if (HZ > (tick_get_counter() -
+					  mmc_slot_ctrl.start_tick))
+					sd_state_enter(ver);
+				else
+					mmc_state_enter(ina);
+			}
 			if (mmc_err_is(MMC_ERR_HOST_OMIT_VOLT))
 				sd_state_enter(ver);
 			unraise_bits(flags, MMC_EVENT_CMD_FAILURE);
@@ -521,10 +576,7 @@ void sd_resp_r1(void)
 void sd_resp_r1b(void)
 {
 	sd_resp_r1();
-	if (mmc_hw_card_busy())
-		raise_bits(mmc_slot_ctrl.flags, MMC_SLOT_CARD_IS_BUSY);
-	else
-		unraise_bits(mmc_slot_ctrl.flags, MMC_SLOT_CARD_IS_BUSY);
+	mmc_hw_card_busy();
 }
 
 void sd_resp_r2(void)
@@ -546,12 +598,10 @@ bool sd_resp_r3(void)
 	mmc_hw_recv_response(r3, 4);
 	mmc_slot_ctrl.card_ocr = sd_decode_ocr(r3);
 	if (!(mmc_slot_ctrl.card_ocr & MMC_OCR_BUSY)) {
-		if (tick_get_counter() - mmc_slot_ctrl.start_tick < HZ)
-			mmc_rsp_failure(MMC_ERR_CARD_IS_BUSY);
-		else
-			mmc_rsp_failure(MMC_ERR_HOST_OMIT_VOLT);
+		mmc_rsp_failure(MMC_ERR_CARD_IS_BUSY);
 		return false;
 	}
+	mmc_slot_ctrl.ocr_valid = true;
 	return true;
 }
 
@@ -706,6 +756,7 @@ void sd_send_cmd(void)
 		break;
 	case MMC_CMD_SELECT_DESELECT_CARD:
 		mmc_slot_ctrl.rsp = MMC_R1b;
+		mmc_wait_busy();
 		arg = MAKELONG(0, mmc_slot_ctrl.rca);
 		break;
 	case SD_CMD_SEND_IF_COND:
@@ -723,6 +774,7 @@ void sd_send_cmd(void)
 		break;
 	case MMC_CMD_STOP_TRANSMISSION:
 		mmc_slot_ctrl.rsp = MMC_R1b;
+		mmc_wait_busy();
 		break;
 	case MMC_CMD_SEND_STATUS:
 		mmc_slot_ctrl.rsp = MMC_R1;
@@ -749,6 +801,7 @@ void sd_send_cmd(void)
 #if defined(SD_CLASS2) || defined(SD_CLASS4)
 	case SD_CMD_SPEED_CLASS_CONTROL:
 		mmc_slot_ctrl.rsp = MMC_R1b;
+		mmc_wait_busy();
 		arg = sd_encode_speed(mmc_slot_ctrl.speed);
 		break;
 	case MMC_CMD_SET_BLOCK_COUNT:
@@ -785,6 +838,7 @@ void sd_send_cmd(void)
 		break;
 	case MMC_CMD_ERASE:
 		mmc_slot_ctrl.rsp = MMC_R1b;
+		mmc_wait_busy();
 		arg = mmc_slot_ctrl.func;
 		break;
 #endif
@@ -828,6 +882,7 @@ void sd_send_cmd(void)
 #ifdef SD_CLASS1
 	case SD_CMD_Q_MANAGEMENT:
 		mmc_slot_ctrl.rsp = MMC_R1b;
+		mmc_wait_busy();
 		arg = mmc_slot_ctrl.func;
 		break;
 	case SD_CMD_Q_TASK_INFO_A:

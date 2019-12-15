@@ -110,6 +110,11 @@ endchoice
 
 config SD_SPI
 	bool "SPI bus protocol support"
+	select MMC_SPI
+
+if SD_SPI
+
+endif
 
 config UHSII
 	bool "UHS-II bus protocol support"

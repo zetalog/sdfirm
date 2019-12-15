@@ -40,166 +40,186 @@
  */
 
 #include <target/mmc.h>
-#include <target/spi.h>
-#include <target/efi.h>
-#include <target/cmdline.h>
-#include <stdio.h>
 
 mmc_rca_t mmc_spi_rca;
+spi_t spi_card;
+
+#ifdef CONFIG_MMC_DEBUG
+#define MMC_SPI_DEBUG_ENABLE	_BV(0)
+#define MMC_SPI_DEBUG_CMD	_BV(1)
+#define MMC_SPI_DEBUG_RSP	_BV(2)
+#define MMC_SPI_DEBUG_BUSY	_BV(3)
+#define MMC_SPI_DEBUG_WAIT	_BV(4)
+#define mmc_spi_debug_is_cmd()	(mmc_spi_debug & MMC_SPI_DEBUG_CMD)
+#define mmc_spi_debug_is_rsp()	(mmc_spi_debug & MMC_SPI_DEBUG_RSP)
+#define mmc_spi_debug_is_busy()	(mmc_spi_debug & MMC_SPI_DEBUG_BUSY)
+#define mmc_spi_debug_is_wait()	(mmc_spi_debug & MMC_SPI_DEBUG_WAIT)
+
+static uint8_t mmc_spi_debug;
+
+static void mmc_spi_debug_on(void)
+{
+	mmc_spi_debug = MMC_SPI_DEBUG_ENABLE;
+}
+
+static void mmc_spi_debug_off(void)
+{
+	if (mmc_spi_debug & MMC_SPI_DEBUG_ENABLE)
+		printf("\n");
+	mmc_spi_debug = 0;
+}
+
+static void mmc_spi_debug_cmd(void)
+{
+	if (mmc_spi_debug & MMC_SPI_DEBUG_ENABLE) {
+		if (!(mmc_spi_debug & MMC_SPI_DEBUG_WAIT))
+			mmc_spi_debug |= MMC_SPI_DEBUG_WAIT;
+	}
+}
+
+static void mmc_spi_debug_busy(uint8_t rx)
+{
+	if (mmc_spi_debug & MMC_SPI_DEBUG_ENABLE) {
+		if (!(mmc_spi_debug & MMC_SPI_DEBUG_BUSY)) {
+			printf("  BUSY: %02x", rx);
+			mmc_spi_debug |= MMC_SPI_DEBUG_BUSY;
+		} else
+			printf(" %02x", mmc_slot_ctrl.r1);
+	}
+}
+
+static void mmc_spi_debug_rsp(void)
+{
+	if (mmc_spi_debug & MMC_SPI_DEBUG_ENABLE) {
+		if (!(mmc_spi_debug & MMC_SPI_DEBUG_RSP))
+			printf("\n  RSP  : %02x", mmc_slot_ctrl.r1);
+		mmc_spi_debug |= MMC_SPI_DEBUG_RSP;
+	}
+}
+
+static void mmc_spi_debug_txrx(uint8_t tx, uint8_t rx)
+{
+	if (mmc_spi_debug & MMC_SPI_DEBUG_ENABLE) {
+		if (mmc_spi_debug_is_rsp())
+			printf(" %02x", rx);
+		else if (!mmc_spi_debug_is_cmd()) {
+			printf("  CMD%2d: %02x", (tx & 0x3f), tx);
+			mmc_spi_debug |= MMC_SPI_DEBUG_CMD;
+		} else if (!mmc_spi_debug_is_wait())
+			printf(" %02x", tx);
+	}
+}
+#else
+#define mmc_spi_debug_on()		do { } while (0)
+#define mmc_spi_debug_off()		do { } while (0)
+#define mmc_spi_debug_cmd()		do { } while (0)
+#define mmc_spi_debug_busy(rx)		do { } while (0)
+#define mmc_spi_debug_rsp()		do { } while (0)
+#define mmc_spi_debug_txrx(tx, rx)	do { } while (0)
+#endif
+
+uint8_t mmc_spi_txrx(uint8_t tx)
+{
+	uint8_t rx;
+
+	rx = spi_txrx(tx);
+	mmc_spi_debug_txrx(tx, rx);
+	return rx;
+}
 
 void mmc_spi_select(mmc_rca_t rca)
 {
 	mmc_spi_rca = rca;
 }
 
-#define SD_INIT_ERROR_CMD16	5
-#define SD_COPY_ERROR_CMD18	1
-#define SD_COPY_ERROR_CMD18_CRC	2
-
-/* Command frame starts by asserting low and then high for first two clock
- * edges.
- */
-#define SD_CMD(cmd)			(0x40 | (cmd))
-
-spi_t spi_card;
-
-/* Send dummy byte (all ones).
- *
- * Used in many cases to read one byte from SD card, since SPI is a
- * full-duplex protocol and it is necessary to send a byte in order to read
- * a byte.
- */
-static inline uint8_t sd_dummy(void)
+uint8_t mmc_spi_dummy(void)
 {
-	return spi_txrx(0xFF);
+	/* Responses are always led by R1, and 0x80 is illegal for R1 */
+	return mmc_spi_txrx(0xFF);
 }
 
-uint8_t __mmc_spi_send(uint8_t cmd, uint32_t arg)
+static void mmc_spi_handle_r1(uint8_t r)
+{
+	uint8_t type = mmc_get_block_data();
+
+	mmc_slot_ctrl.r1 = r;
+
+	if (r & MMC_R1_ERRORS) {
+		if (r & MMC_R1_ILLEGAL_COMMAND)
+			mmc_cmd_failure(MMC_ERR_ILLEGAL_COMMAND);
+		else
+			mmc_cmd_failure(MMC_ERR_CARD_LOOSE_BUS);
+	} else if (!type) {
+		mmc_cmd_success();
+	}
+}
+
+void mmc_spi_send(uint8_t cmd, uint32_t arg)
 {
 	uint8_t crc = 0;
 	uint16_t n;
 	uint8_t r;
 
 	spi_select_device(spi_card);
-	sd_dummy();
-	spi_txrx(SD_CMD(cmd));
-	if (cmd == MMC_CMD_GO_IDLE_STATE) {
-		spi_txrx(0x00);
-		spi_txrx(0x00);
-		spi_txrx(0x00);
-		spi_txrx(0x00);
-		spi_txrx(MMC_CMD0_CRC);
-	} else {
-		crc = mmc_crc7_update(crc, SD_CMD(cmd));
-		spi_txrx(arg >> 24);
-		crc = mmc_crc7_update(crc, arg >> 24);
-		spi_txrx(arg >> 16);
-		crc = mmc_crc7_update(crc, arg >> 16);
-		spi_txrx(arg >> 8);
-		crc = mmc_crc7_update(crc, arg >> 8);
-		spi_txrx(arg);
-		crc = mmc_crc7_update(crc, arg >> 0);
-		spi_txrx(crc);
-	}
+
+	mmc_spi_dummy();
+	mmc_spi_debug_on();
+	mmc_spi_txrx(MMC_SPI_CMD(cmd));
+	crc = mmc_crc7_update(crc, MMC_SPI_CMD(cmd));
+	mmc_spi_txrx(arg >> 24);
+	crc = mmc_crc7_update(crc, arg >> 24);
+	mmc_spi_txrx(arg >> 16);
+	crc = mmc_crc7_update(crc, arg >> 16);
+	mmc_spi_txrx(arg >> 8);
+	crc = mmc_crc7_update(crc, arg >> 8);
+	mmc_spi_txrx(arg);
+	crc = mmc_crc7_update(crc, arg >> 0);
+	mmc_spi_txrx(crc | 0x01);
+	mmc_spi_debug_cmd();
 
 	n = 1000;
 	do {
-		r = sd_dummy();
-		if (!(r & 0x80))
-			break;
+		r = mmc_spi_dummy();
+		if (!(r & 0x80)) {
+			mmc_spi_handle_r1(r);
+			return;
+		}
 	} while (--n > 0);
-	return r;
+	mmc_cmd_failure(MMC_ERR_CARD_LOOSE_BUS);
 }
 
-static inline void sd_cmd_end(void)
+void mmc_spi_busy(void)
 {
-	sd_dummy();
-	spi_deselect_device();
-}
+	uint8_t r;
 
-uint8_t mmc_spi_resp;
-
-void mmc_spi_send(uint8_t cmd, uint32_t arg)
-{
-	mmc_spi_resp = __mmc_spi_send(cmd, arg);
-	mmc_cmd_success();
+	if (mmc_slot_ctrl.rsp & MMC_RSP_BUSY) {
+		r = mmc_spi_dummy();
+		if (r == 0) {
+			mmc_spi_debug_busy(r);
+			mmc_event_raise(MMC_EVENT_CARD_BUSY);
+			return;
+		} else
+			unraise_bits(mmc_slot_ctrl.flags,
+				     MMC_SLOT_CARD_IS_BUSY);
+	}
 }
 
 void mmc_spi_recv(uint8_t *resp, uint16_t len)
 {
 	uint8_t r;
 
+	mmc_spi_debug_rsp();
+	resp[len-1] = mmc_slot_ctrl.r1;
+	len--;
 	while (len) {
-		r = sd_dummy();
-		*resp = r;
-		resp++;
+		r = mmc_spi_dummy();
+		resp[len-1] = r;
 		len--;
 	}
-	sd_cmd_end();
-}
+	mmc_spi_debug_off();
 
-static int sd_cmd(uint8_t cmd, uint32_t arg)
-{
-	return __mmc_spi_send(cmd, arg);
-}
-
-static int sd_cmd16(void)
-{
-	int rc;
-
-	rc = (sd_cmd(MMC_CMD_SET_BLOCKLEN, 0x200) != 0x00);
-	sd_cmd_end();
-	return rc;
-}
-
-static uint16_t crc16(uint16_t crc, uint8_t data)
-{
-	/* CRC polynomial 0x11021 */
-	crc = (uint8_t)(crc >> 8) | (crc << 8);
-	crc ^= data;
-	crc ^= (uint8_t)(crc >> 4) & 0xf;
-	crc ^= crc << 12;
-	crc ^= (crc & 0xff) << 5;
-	return crc;
-}
-
-int sd_copy(void *dst, uint32_t src_lba, size_t size)
-{
-	volatile uint8_t *p = dst;
-	long i = size;
-	int rc = 0;
-
-	if (sd_cmd16()) return SD_INIT_ERROR_CMD16;
-	if (sd_cmd(MMC_CMD_READ_MULTIPLE_BLOCK, src_lba) != 0x00) {
-		sd_cmd_end();
-		return SD_COPY_ERROR_CMD18;
-	}
-	do {
-		uint16_t crc, crc_exp;
-		long n;
-
-		crc = 0;
-		n = 512;
-		while (sd_dummy() != SD_DATA_TOKEN);
-		do {
-			uint8_t x = sd_dummy();
-			*p++ = x;
-			crc = crc16(crc, x);
-		} while (--n > 0);
-		crc_exp = ((uint16_t)sd_dummy() << 8);
-		crc_exp |= sd_dummy();
-		if (crc != crc_exp) {
-			rc = SD_COPY_ERROR_CMD18_CRC;
-			break;
-		}
-		if ((i % 2000) == 0) {
-			puts(".");
-		}
-	} while (--i > 0);
-
-	sd_cmd(MMC_CMD_STOP_TRANSMISSION, 0);
-	sd_cmd_end();
-	return rc;
+	mmc_spi_dummy();
+	spi_deselect_device();
 }
 
 static void mmc_spi_mode(void)
@@ -213,7 +233,7 @@ static void mmc_spi_mode(void)
 	 */
 	spi_select_device(spi_card);
 	for (i = 10; i > 0; i--)
-		sd_dummy();
+		mmc_spi_dummy();
 	spi_deselect_device();
 }
 
@@ -229,51 +249,3 @@ void mmc_spi_init(void)
 	spi_card = spi_register_device(&spid_mmc_spi);
 	mmc_spi_mode();
 }
-
-#define SD_BLOCK_SIZE		512
-
-static int do_mmc(int argc, char *argv[])
-{
-	uint8_t gpt_buf[SD_BLOCK_SIZE];
-	gpt_header hdr;
-	uint64_t partition_entries_lba_end;
-	gpt_partition_entry *gpt_entries;
-	uint64_t i;
-	uint32_t j;
-	int err;
-	uint32_t num_entries;
-
-	if (SPI_FLASH_ID != 2) {
-		printf("Only SPI2 connects to an SDCard flash!\n");
-		return -EINVAL;
-	}
-	printf("Reading SDCard from SPI%d...\n", SPI_FLASH_ID);
-	err = sd_copy(&hdr, GPT_HEADER_LBA, 1);
-	if (err)
-		return -EINVAL;
-	mem_print_data(0, &hdr, 1, sizeof (gpt_header));
-	partition_entries_lba_end = (hdr.partition_entries_lba +
-		(hdr.num_partition_entries * hdr.partition_entry_size +
-		 SD_BLOCK_SIZE - 1) / SD_BLOCK_SIZE);
-	for (i = hdr.partition_entries_lba;
-	     i < partition_entries_lba_end; i++) {
-		sd_copy(gpt_buf, i, 1);
-		gpt_entries = (gpt_partition_entry *)gpt_buf;
-		num_entries = SD_BLOCK_SIZE / hdr.partition_entry_size;
-		for (j = 0; j < num_entries; j++) {
-			printf("%s:\n",
-			       uuid_export(gpt_entries[j].partition_type_guid.u.uuid));
-			printf("%016llX - %016llX \n",
-			       gpt_entries[j].first_lba,
-			       gpt_entries[i].last_lba);
-		}
-	}
-	return 0;
-}
-
-DEFINE_COMMAND(mmc, do_mmc, "multimedia card commands",
-	"    - MMC commands\n"
-	"gpt ...\n"
-	"    - print GPT entry information"
-	"\n"
-);

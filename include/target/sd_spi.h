@@ -53,7 +53,8 @@
 #ifdef CONFIG_SD_SPI
 void sd_spi_send_cmd(void);
 void sd_spi_recv_rsp(void);
-#define sd_spi_mode		true
+void sd_spi_enter_ver(void);
+void sd_spi_handle_ver(void);
 #endif
 
 #endif /* __SD_SPI_H_INCLUDE__ */

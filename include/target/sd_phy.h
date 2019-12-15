@@ -468,15 +468,23 @@ typedef struct {
 	sd_ssr_t sd_status;			\
 	bool scr_valid;				\
 	bool ssr_valid;				\
+	bool voltage_ready;			\
 	uint8_t card_version;			\
 	uint32_t wr_blk_erase_count : 23;	\
 	sd_speed_t speed;			\
 	uint8_t bus_width;
 
-#ifndef CONFIG_SD_SPI
+#ifdef CONFIG_SD_SPI
+#define MMC_SPI_SLOT				\
+	uint8_t r1;				\
+	bool op_cond_sent;
+#else
+#define MMC_SPI_SLOT
 #define sd_spi_send_cmd()	do { } while (0)
 #define sd_spi_recv_rsp()	do { } while (0)
-extern bool sd_spi_mode;
+#define sd_spi_enter_ver()	do { } while (0)
+#define sd_spi_handle_ver()	do { } while (0)
+#define sd_spi_mode		false
 #endif
 
 #if defined(CONFIG_CONSOLE) && defined(CONFIG_MMC_DEBUG)
@@ -485,7 +493,11 @@ extern const char *mmc_phy_cmd_names[64];
 extern const char *mmc_phy_acmd_names[64];
 #endif
 
+extern bool sd_spi_mode;
+
 uint32_t sd_encode_if_cond(void);
+uint32_t sd_decode_ocr(mmc_r3_t raw_ocr);
+uint8_t sd_get_vhs(void);
 
 void mmc_phy_reset_slot(void);
 void mmc_phy_handle_seq(void);

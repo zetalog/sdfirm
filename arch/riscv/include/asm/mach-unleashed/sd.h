@@ -57,6 +57,12 @@
 #define MMC_CLASS8		1
 
 void mmc_hw_spi_init(void);
-void mmc_hw_spi_reset(void);
+void mmc_hw_card_detect(void);
+
+#ifdef SYS_REALTIME
+void mmc_hw_irq_poll(void);
+#else
+void mmc_hw_irq_init(void);
+#endif
 
 #endif /* __SD_UNLEASHED_H_INCLUDE__ */
