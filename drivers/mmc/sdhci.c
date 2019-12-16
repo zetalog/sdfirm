@@ -179,12 +179,16 @@ void sdhci_send_command(uint8_t cmd, uint32_t arg)
 	sdhci_writew(host, SDHCI_MAKE_CMD(cmd, flags), SDHCI_COMMAND);
 }
 
-static void sdhci_decode_reg(uint8_t *resp, uint32_t reg)
+static void sdhci_decode_reg(uint8_t *resp, uint8_t size, uint32_t reg)
 {
-	resp[3] = HIBYTE(HIWORD(reg));
-	resp[2] = LOBYTE(HIWORD(reg));
-	resp[1] = HIBYTE(LOWORD(reg));
-	resp[0] = LOBYTE(LOWORD(reg));
+	if (size > 0)
+		resp[3] = HIBYTE(HIWORD(reg));
+	if (size > 1)
+		resp[2] = LOBYTE(HIWORD(reg));
+	if (size > 2)
+		resp[1] = HIBYTE(LOWORD(reg));
+	if (size > 3)
+		resp[0] = LOBYTE(LOWORD(reg));
 }
 
 void sdhci_recv_response(uint8_t *resp, uint8_t size)
@@ -193,20 +197,24 @@ void sdhci_recv_response(uint8_t *resp, uint8_t size)
 	uint8_t rsp = mmc_slot_ctrl.rsp;
 	int i;
 	uint32_t reg;
+	uint8_t len;
 
 	if (rsp & MMC_RSP_136) {
 		/* CRC is stripped so we need to do some shifting. */
+		len = 0;
 		for (i = 0; i < 4; i++) {
+			len += 4;
 			reg = sdhci_readl(host,
 					  SDHCI_RESPONSE + (3-i)*4) << 8;
 			if (i != 3)
 				reg |= sdhci_readb(host,
 						   SDHCI_RESPONSE + (3-i)*4-1);
-			sdhci_decode_reg(resp + i, reg);
+			sdhci_decode_reg(resp + i,
+					 size >= len ? 4 : 0, reg);
 		}
 	} else {
 		reg = sdhci_readl(host, SDHCI_RESPONSE);
-		sdhci_decode_reg(resp, reg);
+		sdhci_decode_reg(resp, size, reg);
 	}
 	sdhci_stop_transfer();
 }
@@ -525,6 +533,8 @@ void sdhci_irq_init(void)
 
 void sdhci_detect_card(void)
 {
+	if (sdhc_state_present(mmc_sid, SDHC_CARD_INSERTED))
+		mmc_event_raise(MMC_EVENT_CARD_INSERT);
 	sdhc_enable_irq(mmc_sid, SDHC_CARD_DETECTION_MASK);
 }
 

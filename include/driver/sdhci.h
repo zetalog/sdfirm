@@ -46,16 +46,18 @@
 #define SDHC_PRESENT_STATE(n)			SDHC_REG(n, 0x24) /* 32-bits */
 #define SDHC_CLOCK_CONTROL(n)			SDHC_REG(n, 0x2C) /* 16-bits */
 #define SDHC_TIMEOUT_CONTROL(n)			SDHC_REG(n, 0x2E) /* 16-bits */
-#define SDHC_CLOCK_TIMEOUT_CONTROL(n)		SDHC_REG(n, 0x2C) /* 32-bits */
 #define SDHC_NORMAL_INTERRUPT_STATUS(n)		SDHC_REG(n, 0x30) /* 16-bits */
 #define SDHC_ERROR_INTERRUPT_STATUS(n)		SDHC_REG(n, 0x32) /* 16-bits */
 #define SDHC_NORMAL_INTERRUPT_STATUS_ENABLE(n)	SDHC_REG(n, 0x34) /* 16-bits */
 #define SDHC_ERROR_INTERRUPT_STATUS_ENABLE(n)	SDHC_REG(n, 0x36) /* 16-bits */
 #define SDHC_NORMAL_INTERRUPT_SIGNAL_ENABLE(n)	SDHC_REG(n, 0x38) /* 16-bits */
 #define SDHC_ERROR_INTERRUPT_SIGNAL_ENABLE(n)	SDHC_REG(n, 0x3A) /* 16-bits */
+
+/* Registers for aligned architecture */
+#define SDHC_CLOCK_TIMEOUT_CONTROL(n)		SDHC_REG(n, 0x2C) /* 32-bits */
 #define SDHC_INTERRUPT_STATUS(n)		SDHC_REG(n, 0x30) /* 32-bits */
 #define SDHC_INTERRUPT_ENABLE(n)		SDHC_REG(n, 0x34) /* 32-bits */
-#define SDHC_INTERRUPT_SIGNAL(n)		SDHC_REG(n, 0x34) /* 32-bits */
+#define SDHC_INTERRUPT_SIGNAL(n)		SDHC_REG(n, 0x38) /* 32-bits */
 
 /* 2.2.9 Present State Register (Cat.C Offset 024h) */
 #ifdef CONFIG_SDHC_UHSII
