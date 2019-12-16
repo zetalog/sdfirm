@@ -71,8 +71,8 @@
 	__init_rodata : AT(ADDR(__init_rodata)) {		\
 		*(.ref.rodata)					\
 	}							\
-	__end_rodata = .;					\
-	. = ALIGN((align));
+	. = ALIGN((align));					\
+	__end_rodata = .;
 /*
  * bss (Block Started by Symbol) - uninitialized data
  * zeroed during startup

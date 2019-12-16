@@ -9,7 +9,8 @@
 #endif
 
 /* to align the pointer to the (next) page boundary */
-#define PAGE_ALIGN(addr)	ALIGN(addr, PAGE_SIZE)
+#define PAGE_ALIGN(addr)	ALIGN((addr), PAGE_SIZE)
+#define PAGE_ALIGNED(addr)	IS_ALIGNED((addr), PAGE_SIZE)
 
 #define __pa_symbol(x)		__pa(RELOC_HIDE((caddr_t)(x), 0))
 

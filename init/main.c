@@ -64,6 +64,11 @@ void timer_init(void);
 #else
 #define timer_init()
 #endif
+#ifdef CONFIG_SMP
+void smp_init(void);
+#else
+#define smp_init()
+#endif
 #ifdef CONFIG_RIS
 void ris_entry(void);
 #else
@@ -82,12 +87,13 @@ void system_init(void)
 	clk_init();
 	gpio_init();
 	debug_init();
+	smp_init();
 	irq_init();
-	fixmap_late_con_init();
-	ris_entry();
-	bh_init();
 	tick_init();
 	delay_init();
+	ris_entry();
+	bh_init();
+	fixmap_late_con_init();
 #ifdef CONFIG_PORTING_DELAY
 	while (1) {
 		printf("%llx\r\n", tsc_read_counter());

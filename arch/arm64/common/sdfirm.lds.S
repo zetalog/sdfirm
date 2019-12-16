@@ -48,6 +48,7 @@ SECTIONS
 		TEXT_TEXT
 		IDMAP_TEXT
 	}
+	. = ALIGN(PAGE_SIZE);
 	__etext = .;				/* end of text sections */
 
 	RO_DATA_SECTION(PAGE_SIZE)

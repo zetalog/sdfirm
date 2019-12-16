@@ -39,6 +39,7 @@ typedef __builtin_va_list va_list;
 #define UL(x)		x##UL
 #endif
 
+#define __noreturn			__attribute__((noreturn))
 #define __packed			__attribute__((__packed__))
 #define __used				__attribute__((__used__))
 #define __unused			__attribute__((__unused__))

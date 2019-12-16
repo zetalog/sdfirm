@@ -1,0 +1,346 @@
+#
+# Automatically generated make config: don't edit
+# Small Device version: 1.0.0.0
+# Mon Dec 16 10:09:45 2019
+#
+CONFIG_ARM64=y
+
+#
+# Generic setup
+#
+CONFIG_VENDOR_NAME="SmartCore"
+CONFIG_PRODUCT_NAME="SmartCore TestBench"
+CONFIG_VENDOR_ID=990
+CONFIG_PRODUCT_ID=0
+CONFIG_SERIAL_NO=0
+# CONFIG_BOOTLOADER is not set
+CONFIG_FIRMWARE=y
+# CONFIG_EMBEDDED is not set
+
+#
+# Firmware options
+#
+# CONFIG_GEM5 is not set
+# CONFIG_RIS is not set
+CONFIG_CONSOLE=y
+CONFIG_CONSOLE_COMMAND=y
+CONFIG_CONSOLE_OUTPUT=y
+CONFIG_CONSOLE_OUTPUT_CR=y
+CONFIG_CONSOLE_PRINT_BUFFER_SIZE=256
+CONFIG_CONSOLE_INPUT=y
+# CONFIG_CONSOLE_230400 is not set
+CONFIG_CONSOLE_115200=y
+# CONFIG_CONSOLE_57600 is not set
+# CONFIG_CONSOLE_38400 is not set
+# CONFIG_CONSOLE_19200 is not set
+# CONFIG_CONSOLE_9600 is not set
+# CONFIG_CONSOLE_4800 is not set
+# CONFIG_CONSOLE_2400 is not set
+CONFIG_CONSOLE_DEBUG=y
+
+#
+# ARM64 system options
+#
+# CONFIG_ARCH_QDF2400 is not set
+CONFIG_ARCH_GEM5=y
+# CONFIG_ARCH_SUNXI is not set
+CONFIG_CPU_VEXPRESS=y
+CONFIG_CPU_64v7=y
+CONFIG_CPU_64v7_VE=y
+CONFIG_CPU_64v8=y
+CONFIG_CPU_64v8_0=y
+CONFIG_CPU_64v8_1=y
+CONFIG_CPU_64v8_TZ=y
+CONFIG_CPU_64v8_1_ATOMICS=y
+CONFIG_CPU_64v8_1_SIMD=y
+CONFIG_CPU_64v8_1_LOR=y
+CONFIG_CPU_64v8_1_HPD=y
+CONFIG_CPU_64v8_1_PAN=y
+CONFIG_CPU_64v8_1_VHE=y
+CONFIG_NR_CPUS=4
+# CONFIG_TZ_SECURE is not set
+CONFIG_TZ_NORMAL=y
+CONFIG_SYS_KERNEL=y
+# CONFIG_SYS_MONITOR is not set
+CONFIG_SYS_GUEST=y
+# CONFIG_SYS_HYPERVISOR is not set
+# CONFIG_GIC is not set
+CONFIG_ARCH_HAS_GICv2=y
+CONFIG_VMSA=y
+# CONFIG_VMSA_VA_4GB is not set
+# CONFIG_VMSA_VA_64GB is not set
+# CONFIG_VMSA_VA_1TB is not set
+# CONFIG_VMSA_VA_16TB is not set
+CONFIG_VMSA_VA_256TB=y
+# CONFIG_VMSA_VA_4PB is not set
+# CONFIG_VMSA_ADDRESS_TAGGING is not set
+CONFIG_VMSA_PHYS_OFFSET=0x0
+
+#
+# External Debug support
+#
+# CONFIG_ARM_DCC is not set
+# CONFIG_PMU is not set
+# CONFIG_CORESIGHT is not set
+
+#
+# ARM CoreLink peripheral support
+#
+CONFIG_UART_PL01X=y
+CONFIG_ARCH_IS_UART_PL011=y
+# CONFIG_UART_PL010 is not set
+CONFIG_UART_PL011=y
+# CONFIG_UART_PL01X_SBSA is not set
+
+#
+# Compiler options
+#
+# CONFIG_ARM64_ERRATUM_826319 is not set
+# CONFIG_ARM64_ERRATUM_827319 is not set
+# CONFIG_ARM64_ERRATUM_824069 is not set
+# CONFIG_ARM64_ERRATUM_819472 is not set
+# CONFIG_ARM64_ERRATUM_832075 is not set
+# CONFIG_ARM64_ERRATUM_834220 is not set
+# CONFIG_ARM64_ERRATUM_845719 is not set
+# CONFIG_ARM64_ERRATUM_843419 is not set
+# CONFIG_QCOM_FALKOR_ERRATUM_1003 is not set
+# CONFIG_QCOM_FALKOR_ERRATUM_1009 is not set
+# CONFIG_QCOM_QDF2400_ERRATUM_0065 is not set
+
+#
+# GEM5 VExpress_EMM64 board options
+#
+CONFIG_GEM5_ROM_AS_RAM=y
+# CONFIG_GEM5_RAM_DEFAULT is not set
+CONFIG_GEM5_RAM_BASE=0x0
+CONFIG_GEM5_RAM_BITS=20
+CONFIG_UART_GEM5=y
+CONFIG_UART_ACE=y
+# CONFIG_UART_APB is not set
+
+#
+# Feature setup
+#
+
+#
+# Generic kernel features
+#
+CONFIG_SYS_NOIRQ=y
+# CONFIG_SYS_IRQ is not set
+# CONFIG_SYS_RT is not set
+# CONFIG_SYS_TASK is not set
+CONFIG_ARCH_HAS_GPT=y
+CONFIG_ARCH_HAS_TSC=y
+CONFIG_ARCH_HAS_TSC_CONST=y
+CONFIG_ARCH_IS_TICKLESS=y
+CONFIG_ARCH_HAS_IDLE=y
+CONFIG_ARCH_HAS_BOOT_LOAD=y
+
+#
+# Scheduling facility (bh) support
+#
+CONFIG_MAX_BHS=4
+CONFIG_SMP=y
+
+#
+# Timing facility (jiffy) support
+#
+
+#
+# Timing facility (delay) support
+#
+CONFIG_LPS_NO_LPS=y
+# CONFIG_TIMER is not set
+
+#
+# Address space layout (xip) support
+#
+CONFIG_BFM=y
+CONFIG_XIP=y
+CONFIG_BOOT_BASE=0x00000000
+CONFIG_LOAD_BASE=0x0
+# CONFIG_HEAP is not set
+CONFIG_MEM=y
+CONFIG_MEM_MAX_REGIONS=3
+# CONFIG_MEM_RESIZE is not set
+CONFIG_PAGE=y
+CONFIG_ARCH_HAS_MMU=y
+CONFIG_ARCH_HAS_MMU_4K=y
+CONFIG_ARCH_HAS_MMU_16K=y
+CONFIG_ARCH_HAS_MMU_64K=y
+CONFIG_ARCH_HAS_MMU_4L=y
+CONFIG_MMU=y
+CONFIG_MMU_4K_PAGE=y
+# CONFIG_MMU_16K_PAGE is not set
+# CONFIG_MMU_64K_PAGE is not set
+# CONFIG_MMU_4M_PAGE is not set
+# CONFIG_MMU_1L_TABLE is not set
+# CONFIG_MMU_2L_TABLE is not set
+# CONFIG_MMU_3L_TABLE is not set
+CONFIG_MMU_4L_TABLE=y
+# CONFIG_MMU_5L_TABLE is not set
+# CONFIG_MMU_PAGE_OFFSET is not set
+# CONFIG_MMU_IDMAP is not set
+# CONFIG_MMU_IDMAP_DEVICE is not set
+CONFIG_MMU_MAP_MEM=y
+# CONFIG_MMU_TEXT_MODIFY is not set
+# CONFIG_MMU_DEBUG_TABLE is not set
+# CONFIG_IDLE is not set
+# CONFIG_BULK is not set
+# CONFIG_TERM is not set
+# CONFIG_GPIO is not set
+# CONFIG_CLK is not set
+
+#
+# Human Interface Devices (HID) support
+#
+# CONFIG_LCD is not set
+# CONFIG_KBD is not set
+# CONFIG_LED is not set
+CONFIG_ARCH_HAS_UART=y
+
+#
+# Universal asynchronous RX/TX (UART) support
+#
+CONFIG_UART_230400=y
+# CONFIG_UART_115200 is not set
+# CONFIG_UART_57600 is not set
+# CONFIG_UART_38400 is not set
+# CONFIG_UART_19200 is not set
+# CONFIG_UART_9600 is not set
+# CONFIG_UART_4800 is not set
+# CONFIG_UART_2400 is not set
+# CONFIG_UART is not set
+# CONFIG_SPI is not set
+# CONFIG_I2C is not set
+# CONFIG_USB is not set
+# CONFIG_SCS is not set
+# CONFIG_MTD is not set
+# CONFIG_SCSI is not set
+# CONFIG_NET is not set
+# CONFIG_VIDEO is not set
+# CONFIG_RAS is not set
+
+#
+# Driver setup
+#
+
+#
+# Timer drivers
+#
+# CONFIG_DW_TIMERS is not set
+
+#
+# Debugging console drivers
+#
+# CONFIG_DW_UART is not set
+# CONFIG_SEGGER_RTT is not set
+
+#
+# LCD drivers
+#
+
+#
+# Video drivers
+#
+
+#
+# MTD memory drivers
+#
+# CONFIG_PN53X is not set
+# CONFIG_ACR122 is not set
+
+#
+# MMC host drivers
+#
+# CONFIG_DW_MSHC is not set
+# CONFIG_SDHCI is not set
+
+#
+# Clock drivers
+#
+
+#
+# Test setup
+#
+# CONFIG_TEST_VERBOSE is not set
+CONFIG_RAVEN=y
+# CONFIG_RAVEN_GLOBAL_VAR is not set
+# CONFIG_RAVEN_EXEC_VAR is not set
+# CONFIG_RAVEN_PERCPU_VAR is not set
+# CONFIG_RAVEN_IU is not set
+# CONFIG_RAVEN_XU is not set
+# CONFIG_RAVEN_SU is not set
+
+#
+# Library setup
+#
+
+#
+# Bit-wise operations
+#
+# CONFIG_BIT_FLS8 is not set
+# CONFIG_BIT_FLS16 is not set
+# CONFIG_BIT_FFS16 is not set
+CONFIG_BIT_FLS32=y
+# CONFIG_BIT_FFS32 is not set
+# CONFIG_BIT_ROUNDUP8 is not set
+# CONFIG_BIT_ROUNDUP16 is not set
+# CONFIG_BIT_ROUNDDOWN16 is not set
+CONFIG_BIT_ROUNDUP32=y
+# CONFIG_BIT_ROUNDDOWN32 is not set
+
+#
+# Bitmap operations
+#
+# CONFIG_BIT_FIND_CLEAR is not set
+
+#
+# Mathematic operations
+#
+CONFIG_MATH_GCD32=y
+CONFIG_MATH_MOD32=y
+# CONFIG_MATH_MUL32 is not set
+# CONFIG_MATH_MUL64 is not set
+# CONFIG_MATH_DIV32 is not set
+CONFIG_MATH_DIV64=y
+CONFIG_MATH_MOD64=y
+
+#
+# Atomic operations
+#
+# CONFIG_ATOMIC_SUB_RETURN is not set
+# CONFIG_ATOMIC_ADD_RETURN is not set
+
+#
+# Checksum algorithms
+#
+# CONFIG_CRC16_CCITT is not set
+# CONFIG_CRC32 is not set
+CONFIG_STDLIB=y
+
+#
+# Print operations
+#
+CONFIG_PRINT_VSNPRINTF=y
+# CONFIG_PRINT_SNPRINTF is not set
+CONFIG_PRINT_VPRINTF=y
+# CONFIG_PRINT_SPRINTF is not set
+CONFIG_PRINT_PRINTF=y
+
+#
+# String operations
+#
+CONFIG_STRING_STRTOUL=y
+# CONFIG_STRING_UUID is not set
+# CONFIG_FONTS is not set
+
+#
+# Development options
+#
+CONFIG_EXPERIMENTAL=y
+# CONFIG_CC_OPT_SIZE is not set
+CONFIG_DEBUG=y
+# CONFIG_CC_GEN_DEBUG is not set
+# CONFIG_DEBUG_PANIC is not set
+# CONFIG_PORTING is not set

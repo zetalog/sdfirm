@@ -100,6 +100,16 @@ __arm_reset:
 	ldr	x3, =PERCPU_STACKS_START
 	add	x0, x3, x0
 	mov	sp, x0
+
+        /* Enable hardware coherency:
+	 * Read EL1 CPU Extended Control Register
+	 * Set the SMPEN bit
+	 * Write EL1 CPU Extended Control Register
+	 */
+	mrs	x0, S3_1_c15_c2_1
+	orr	x0, x0, #(1 << 6)
+	msr	S3_1_c15_c2_1, x0
+	isb
 #else
 	ldr	x0, =PERCPU_STACKS_END
 	mov	sp, x0
@@ -167,6 +177,11 @@ ENTRY(__start)
 	eret
 #endif
 init_lo_el:
+	/* only CPU0 goes to main */
+	mrs	x0, MPIDR_EL1
+	and	x0, x0, #0xFF
+	cbnz	x0, cpu_spin
+
 	bl	__create_page_tables
 
 #ifdef CONFIG_SYS_MONITOR
@@ -194,6 +209,13 @@ ENTRY(stext)
 #endif
 	bl	system_init
 ENDPIPROC(stext)
+
+#ifdef CONFIG_SMP
+ENTRY(__smp_jump)
+	br	x4
+	b	.
+ENDPROC(__smp_jump)
+#endif
 
 ENTRY(__init_exception_level)
 	# switch different EL entries

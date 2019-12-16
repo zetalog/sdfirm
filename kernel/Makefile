@@ -9,6 +9,7 @@ obj-y += bh.rel
 obj-y += irq.rel
 obj-y += delay.rel
 obj-y += stack.rel
+obj-y += smp.rel
 obj-$(CONFIG_MEM) += mem.rel
 obj-$(CONFIG_CLK) += clk.rel
 obj-$(CONFIG_CONSOLE) += console.rel
