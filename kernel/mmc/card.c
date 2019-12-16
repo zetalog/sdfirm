@@ -1,3 +1,44 @@
+/*
+ * ZETALOG's Personal COPYRIGHT
+ *
+ * Copyright (c) 2019
+ *    ZETALOG - "Lv ZHENG".  All rights reserved.
+ *    Author: Lv "Zetalog" Zheng
+ *    Internet: zhenglv@hotmail.com
+ *
+ * This COPYRIGHT used to protect Personal Intelligence Rights.
+ * Redistribution and use in source and binary forms with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *    This product includes software developed by the Lv "Zetalog" ZHENG.
+ * 3. Neither the name of this software nor the names of its developers may
+ *    be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ * 4. Permission of redistribution and/or reuse of souce code partially only
+ *    granted to the developer(s) in the companies ZETALOG worked.
+ * 5. Any modification of this software should be published to ZETALOG unless
+ *    the above copyright notice is no longer declaimed.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE ZETALOG AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE ZETALOG OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * @(#)card.c: MMC/SD memory card implementation
+ * $Id: card.c,v 1.1 2019-12-16 21:25:00 zhenglv Exp $
+ */
+
 #include <target/mmc.h>
 #include <target/cmdline.h>
 #include <target/mem.h>
@@ -9,101 +50,163 @@
 #endif
 
 struct mem_card {
+	mmc_slot_t sid;
 	mmc_rca_t rca;
-	bool selected;
-	bool busy;
+	uint8_t tran;
+
+	mmc_lba_t lba;
+	size_t cnt;
 };
+
+void mmc_card_complete(mmc_rca_t rca, uint8_t op, bool result);
 
 struct mem_card mem_cards[NR_MMC_CARDS];
 mmc_card_t mmc_nr_cards = 0;
-uint8_t mem_card_buf[MMC_DEF_BL_LEN] __align(4);
-bool mem_card_busy = false;
+__align(MMC_DATA_ALIGN) uint8_t mem_card_buf[2 * MMC_DEF_BL_LEN];
+bool mem_card_buf_busy = false;
 
-void mmc_card_complete(mmc_rca_t rca, bool result)
+mmc_card_t mmc_rca2card(mmc_rca_t rca)
 {
-	printf("selected card\n");
+	mmc_card_t cid;
+
+	for (cid = 0; cid < mmc_nr_cards; cid++) {
+		if (mem_cards[cid].rca == rca)
+			return cid;
+	}
+	return INVALID_MMC_CARD;
 }
 
 mmc_card_t mmc_register_card(mmc_rca_t rca)
 {
-	mmc_card_t card;
+	mmc_card_t cid;
 
 	BUG_ON(mmc_nr_cards >= INVALID_MMC_CARD);
-	card = mmc_nr_cards;
-	mem_cards[card].rca = rca;
-	mem_cards[card].selected = false;
-	mem_cards[card].busy = false;
+	cid = mmc_nr_cards;
+	mem_cards[cid].sid = mmc_sid;
+	mem_cards[cid].rca = rca;
+	mem_cards[cid].tran = 0;
 	if (mmc_nr_cards == MMC_SELECTED_CARD)
 		mmc_select_card(mmc_card_complete);
 	mmc_nr_cards++;
-	return card;
+	return cid;
 }
 
-void mmc_card_complete_copy(mmc_rca_t rca, bool result)
-{
-	mmc_card_t i;
-
-	for (i = 0; i < mmc_nr_cards; i++) {
-		if (mem_cards[i].rca == rca) {
-			mem_cards[i].busy = false;
-			mem_print_data(0, mem_card_buf, 1,
-				       MMC_DEF_BL_LEN);
-			return;
-		}
-	}
-	mem_card_busy = false;
-}
-
-int mmc_card_copy(mmc_rca_t rca, caddr_t lba, size_t size)
+void mmc_card_select_card(mmc_rca_t rca)
 {
 	__unused mmc_slot_t sslot;
-	mmc_card_t i;
-	
-	if (mem_card_busy)
-		return -EBUSY;
-	mem_card_busy = true;
 
-	for (i = 0; i < mmc_nr_cards; i++) {
-		if (mem_cards[i].rca == rca) {
-			if (!mem_cards[i].busy) {
-				mem_cards[i].busy = true;
-				sslot = mmc_slot_save(MMC_SLOT(rca));
-				mmc_read_blocks(mem_card_buf,
-						(mmc_lba_t)lba,
-						size,
-						mmc_card_complete_copy);
-				mmc_slot_restore(sslot);
-			}
-			return 0;
+	sslot = mmc_slot_save(MMC_SLOT(rca));
+	mmc_select_card(mmc_card_complete);
+	mmc_slot_restore(sslot);
+}
+
+void mmc_card_read_blocks(mmc_rca_t rca, mmc_lba_t lba, size_t cnt)
+{
+	__unused mmc_slot_t sslot;
+
+	sslot = mmc_slot_save(MMC_SLOT(rca));
+	mmc_read_blocks(mem_card_buf, lba, cnt,
+			mmc_card_complete);
+	mmc_slot_restore(sslot);
+}
+
+void mmc_card_start_tran(mmc_rca_t rca)
+{
+	mmc_card_t cid;
+
+	cid = mmc_rca2card(rca);
+	BUG_ON(cid == INVALID_MMC_CARD);
+
+	if (mem_cards[cid].tran == MMC_OP_READ_BLOCKS)
+		mmc_card_read_blocks(rca, mem_cards[cid].lba,
+				     mem_cards[cid].cnt);
+}
+
+void mmc_card_complete(mmc_rca_t rca, uint8_t op, bool result)
+{
+	mmc_card_t cid;
+
+	cid = mmc_rca2card(rca);
+	if (cid == INVALID_MMC_CARD)
+		return;
+
+	if (!result)
+		goto err_exit;
+
+	switch (op) {
+	case MMC_OP_SELECT_CARD:
+		if (mem_cards[cid].tran != 0) {
+			mmc_card_start_tran(rca);
+			return;
 		}
+		break;
+	case MMC_OP_READ_BLOCKS:
+		mem_print_data(0, mem_card_buf, 1,
+			       mmc_slot_ctrl.block_cnt * MMC_DEF_BL_LEN);
+		break;
+	default:
+		break;
 	}
-	return -ENODEV;
+
+err_exit:
+	mem_cards[cid].tran = 0;
+	mem_card_buf_busy = false;
+}
+
+int mmc_card_read(mmc_rca_t rca, mmc_lba_t lba, size_t cnt)
+{
+	__unused mmc_slot_t sslot;
+	mmc_card_t cid;
+	
+	cid = mmc_rca2card(rca);
+	if (cid == INVALID_MMC_CARD)
+		return -ENODEV;
+
+	if (mem_card_buf_busy || mem_cards[cid].tran)
+		return -EBUSY;
+	mem_card_buf_busy = true;
+	mem_cards[cid].tran = MMC_OP_READ_BLOCKS;
+
+	mem_cards[cid].lba = lba;
+	mem_cards[cid].cnt = cnt;
+	if (!(mmc_slot_ctrl.flags & MMC_SLOT_CARD_SELECT))
+		mmc_card_select_card(rca);
+	else
+		mmc_card_start_tran(rca);
+	return 0;
 }
 
 static int do_card_list(int argc, char *argv[])
 {
-	int i;
+	mmc_card_t cid;
 
-	for (i = 0; i < mmc_nr_cards; i++) {
-		printf("#\tID\tSLOT\tCARD\n");
-		printf("%d\t%d\t%d\t%d\n", i, mem_cards[i].rca,
-		       MMC_SLOT(mem_cards[i].rca),
-		       MMC_CARD(mem_cards[i].rca));
+	for (cid = 0; cid < mmc_nr_cards; cid++) {
+		/* cid should equals to CARD */
+		printf("RCA\tSLOT\tCARD\n");
+		printf("%d\t%d\t%d\n", mem_cards[cid].rca,
+		       mem_cards[cid].sid, cid);
 	}
 	return 0;
 }
 
 static int do_card_dump(int argc, char *argv[])
 {
-	uint64_t addr = 0;
 	mmc_rca_t rca;
+	mmc_lba_t lba = 0;
+	size_t cnt = 1;
 
 	if (argc < 3)
 		return -EINVAL;
 	rca = strtoul(argv[2], 0, 0);
 	if (argc > 3)
-		addr = strtoul(argv[3], 0, 0);
-	mmc_card_copy(rca, (caddr_t)addr, MMC_DEF_BL_LEN);
+		lba = (mmc_lba_t)strtoul(argv[3], 0, 0);
+	if (argc > 4)
+		cnt = (size_t)strtoul(argv[4], 0, 0);
+	if (cnt > 2)
+		cnt = 2;
+	if (cnt < 1)
+		cnt = 1;
+	mmc_card_read(rca, lba, cnt);
 	return 0;
 }
 
@@ -122,8 +225,7 @@ static int do_card(int argc, char *argv[])
 DEFINE_COMMAND(mmcsd, do_card, "multimedia / secure digital card commands",
 	"    - MMC/SD commands\n"
 	"list\n"
-	"    - list slots and cards"
-	"dump rca lba\n"
-	"    - dump content of MMC/SD card"
-	"\n"
+	"    - list slots and cards\n"
+	"dump rca lba cnt\n"
+	"    - dump content of number (cnt) of blocks (lba)\n"
 );

@@ -48,8 +48,10 @@ bh_t mmc_bh = INVALID_BH;
 #if NR_IFD_SLOTS > 1
 mmc_slot_t mmc_sid = INVALID_MMC_SID;
 struct mmc_slot mmc_slots[NR_MMC_SLOTS];
+__align(MMC_DATA_ALIGN) uint8_t mmc_slot_bufs[NR_MMC_SLOTS][MMC_DEF_BL_LEN];
 #else
 struct mmc_slot mmc_slot_ctrl;
+__align(MMC_DATA_ALIGN) uint8_t mmc_slot_buf[MMC_DEF_BL_LEN];
 #endif
 
 #ifdef SYS_REALTIME
@@ -103,6 +105,10 @@ const char *mmc_event_names[] = {
 	"CARD_INSERT",
 	"CARD_REMOVE",
 	"CARD_BUSY",
+	"SELECT_CARD",
+	"DESELECT_CARD",
+	"START_TRAN",
+	"STOP_TRAN",
 };
 
 const char *mmc_event_name(mmc_event_t event)
@@ -121,6 +127,10 @@ const char *mmc_event_name(mmc_event_t event)
 const char *mmc_op_names[] = {
 	"NO_OP",
 	"IDENTIFY_CARD",
+	"SELECT_CARD",
+	"DESELECT_CARD",
+	"READ_BLOCKS",
+	"WRITE_BLOCKS",
 };
 
 const char *mmc_op_name(uint8_t op)
@@ -330,6 +340,8 @@ void mmc_app_cmd_complete(void)
 
 void mmc_op_complete(bool result)
 {
+	uint8_t op = mmc_slot_ctrl.op;
+
 	mmc_cmpl_cb cb = mmc_slot_ctrl.op_cb;
 
 	mmc_slot_ctrl.op = MMC_OP_NO_OP;
@@ -337,7 +349,7 @@ void mmc_op_complete(bool result)
 	mmc_slot_ctrl.cmd = MMC_CMD_NONE;
 
 	if (cb)
-		cb(MMC_RCA(mmc_sid, mmc_slot_ctrl.rca), result);
+		cb(mmc_slot_ctrl.rca, op, result);
 }
 
 int mmc_start_op(uint8_t op, mmc_cmpl_cb cb)
@@ -354,30 +366,41 @@ int mmc_start_op(uint8_t op, mmc_cmpl_cb cb)
 	case MMC_OP_IDENTIFY_CARD:
 		mmc_event_raise(MMC_EVENT_POWER_ON);
 		break;
+	case MMC_OP_SELECT_CARD:
+		mmc_event_raise(MMC_EVENT_SELECT_CARD);
+		break;
+	case MMC_OP_DESELECT_CARD:
+		mmc_event_raise(MMC_EVENT_DESELECT_CARD);
+		break;
+	case MMC_OP_READ_BLOCKS:
+		mmc_event_raise(MMC_EVENT_START_TRAN);
+		break;
 	}
 	return 0;
 }
 
 int mmc_read_blocks(uint8_t *buf, mmc_lba_t lba,
-		    size_t size, mmc_cmpl_cb cb)
+		    size_t cnt, mmc_cmpl_cb cb)
 {
 	uint32_t len = 1 << mmc_slot_ctrl.csd.read_bl_len;
-	uint16_t cnt;
+	uint16_t calc_cnt;
 
-	BUG_ON(!IS_ALIGNED((uintptr_t)lba, MMC_DEF_BL_LEN));
+	BUG_ON(!IS_ALIGNED(lba, MMC_DATA_ALIGN));
 
 	if (mmc_slot_ctrl.card_ocr & MMC_OCR_CCS) {
-		mmc_slot_ctrl.address =
-			(uint32_t)((size_t)lba / MMC_DEF_BL_LEN);
 		len = MMC_DEF_BL_LEN;
-		cnt = size / MMC_DEF_BL_LEN;
+		mmc_slot_ctrl.address = lba;
+		calc_cnt = cnt;
 	} else {
-		mmc_slot_ctrl.address = (uint32_t)(size_t)lba;
 		len = 1 << mmc_slot_ctrl.csd.read_bl_len;
-		cnt = size / mmc_slot_ctrl.csd.read_bl_len;
+		mmc_slot_ctrl.address = lba * len;
+		calc_cnt = cnt * len / MMC_DEF_BL_LEN;
 	}
-	MMC_BLOCK(READ, len, cnt);
-	mmc_slot_ctrl.block_data = (uint32_t *)buf;
+	MMC_BLOCK(READ, len, calc_cnt);
+	if (buf)
+		mmc_slot_ctrl.block_data = buf;
+	else
+		mmc_slot_ctrl.block_data = mmc_slot_ctrl.dat;
 	__mmc_read_blocks(cb);
 	return 0;
 }
@@ -386,8 +409,10 @@ void mmc_reset_slot(void)
 {
 	mmc_slot_ctrl.op = MMC_OP_NO_OP;
 	mmc_slot_ctrl.cmd = MMC_CMD_NONE;
+	mmc_slot_ctrl.dat = mmc_slot_buf;
 	mmc_slot_ctrl.state = MMC_STATE_idle;
 	mmc_slot_ctrl.rca = MMC_RCA_DEFAULT;
+	mmc_slot_ctrl.mmc_cid = INVALID_MMC_CARD;
 	mmc_slot_ctrl.event = 0;
 	mmc_slot_ctrl.flags = 0;
 	mmc_phy_reset_slot();

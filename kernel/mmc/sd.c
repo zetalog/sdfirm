@@ -237,6 +237,8 @@ static void sd_enter_ver(void)
  */
 static void sd_handle_identify_card(void)
 {
+	mmc_card_t cid;
+
 	if (mmc_cmd_is(MMC_CMD_NONE)) {
 		mmc_slot_ctrl.start_tick = tick_get_counter();
 		mmc_cmd(MMC_CMD_GO_IDLE_STATE);
@@ -253,20 +255,40 @@ static void sd_handle_identify_card(void)
 		mmc_cmd(SD_CMD_SEND_RELATIVE_ADDR);
 	else if (mmc_state_is(stby)) {
 		mmc_op_success();
-		mmc_register_card(MMC_RCA(mmc_sid, mmc_slot_ctrl.rca));
+		cid = mmc_register_card(mmc_slot_ctrl.rca);
+		if (cid != INVALID_MMC_CARD)
+			mmc_slot_ctrl.mmc_cid = cid;
 	} else if (mmc_state_is(ina))
 		mmc_op_failure();
 }
 
 static void sd_handle_select_card(void)
 {
-	if (!mmc_slot_ctrl.csd_valid)
-		mmc_cmd(MMC_CMD_SEND_CSD);
-	else if (!mmc_slot_ctrl.scr_valid)
-		mmc_send_acmd(SD_ACMD_SEND_SCR);
-	else if (mmc_state_is(stby))
-		mmc_cmd(MMC_CMD_SELECT_DESELECT_CARD);
-	else if (mmc_state_is(tran))
+	if (sd_spi_mode)
+		mmc_slot_ctrl.flags |= MMC_SLOT_CARD_SELECT;
+	else {
+		if (!mmc_slot_ctrl.csd_valid)
+			mmc_cmd(MMC_CMD_SEND_CSD);
+		else if (!mmc_slot_ctrl.scr_valid)
+			mmc_send_acmd(SD_ACMD_SEND_SCR);
+		else if (mmc_state_is(stby))
+			mmc_cmd(MMC_CMD_SELECT_DESELECT_CARD);
+	}
+	if (mmc_state_is(tran))
+		mmc_op_success();
+	else if (mmc_state_is(ina))
+		mmc_op_failure();
+}
+
+static void sd_handle_deselect_card(void)
+{
+	if (sd_spi_mode)
+		mmc_slot_ctrl.flags |= MMC_SLOT_CARD_SELECT;
+	else {
+		if (mmc_state_is(tran))
+			mmc_cmd(MMC_CMD_SELECT_DESELECT_CARD);
+	}
+	if (mmc_state_is(stby))
 		mmc_op_success();
 	else if (mmc_state_is(ina))
 		mmc_op_failure();
@@ -274,6 +296,12 @@ static void sd_handle_select_card(void)
 
 static void sd_handle_read_blocks(void)
 {
+	if (mmc_cmd_is(MMC_CMD_NONE)) {
+		if (mmc_slot_ctrl.block_cnt > 1)
+			mmc_cmd(MMC_CMD_READ_MULTIPLE_BLOCK);
+		else
+			mmc_cmd(MMC_CMD_READ_SINGLE_BLOCK);
+	}
 }
 
 void mmc_phy_handle_seq(void)
@@ -282,6 +310,8 @@ void mmc_phy_handle_seq(void)
 		sd_handle_identify_card();
 	if (mmc_op_is(MMC_OP_SELECT_CARD))
 		sd_handle_select_card();
+	if (mmc_op_is(MMC_OP_DESELECT_CARD))
+		sd_handle_deselect_card();
 	if (mmc_op_is(MMC_OP_READ_BLOCKS))
 		sd_handle_read_blocks();
 }
@@ -517,6 +547,14 @@ void mmc_phy_handle_stm(void)
 		}
 	/* data transfer mode */
 	} else if (mmc_state_is(stby)) {
+		if (flags & MMC_EVENT_SELECT_CARD) {
+			if (sd_spi_mode ||
+			    mmc_slot_ctrl.flags & MMC_SLOT_CARD_SELECT)
+				mmc_state_enter(tran);
+			else
+				mmc_state_enter(idle);
+			unraise_bits(flags, MMC_EVENT_SELECT_CARD);
+		}
 		if (flags & MMC_EVENT_CMD_SUCCESS) {
 			if (mmc_cmd_is(MMC_CMD_SEND_CSD));
 			if (mmc_cmd_is(MMC_CMD_SEND_CID));
@@ -524,13 +562,20 @@ void mmc_phy_handle_stm(void)
 				mmc_state_enter(tran);
 			else
 				mmc_state_enter(stby);
-
 			unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
 		}
 		if (flags & MMC_EVENT_CMD_FAILURE) {
 			unraise_bits(flags, MMC_EVENT_CMD_FAILURE);
 		}
 	} else if (mmc_state_is(tran)) {
+		if (flags & MMC_EVENT_DESELECT_CARD) {
+			if (sd_spi_mode ||
+			    !(mmc_slot_ctrl.flags & MMC_SLOT_CARD_SELECT))
+				mmc_state_enter(idle);
+			else
+				mmc_state_enter(tran);
+			unraise_bits(flags, MMC_EVENT_DESELECT_CARD);
+		}
 		if (flags & MMC_EVENT_CMD_SUCCESS) {
 			if (mmc_cmd_is(MMC_CMD_SELECT_DESELECT_CARD))
 				mmc_state_enter(stby);

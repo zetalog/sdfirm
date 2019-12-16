@@ -89,24 +89,25 @@
 #define NR_MMC_CARDS		CONFIG_MMC_MAX_CARDS
 #endif
 #define INVALID_MMC_CARD	NR_MMC_CARDS
-#define INVALID_MMC_RCA		MMC_RCA(INVALID_MMC_CARD, INVALID_MMC_SLOT)
 
-#define MMC_RCA(slot, card)	MAKELONG(card, slot)
-#define MMC_SLOT(rca)		HIWORD(rca)
-#define MMC_CARD(rca)		LOWORD(rca)
+#define MMC_RCA_DEFAULT		0
 
 typedef uint16_t mmc_slot_t;
 typedef uint16_t mmc_card_t;
-typedef uint32_t mmc_rca_t;
+typedef uint16_t mmc_rca_t;
 typedef uint16_t mmc_event_t;
-typedef __align(4) uint8_t *mmc_lba_t;
+typedef uint32_t mmc_lba_t;
 typedef uint8_t mmc_r1_t[4];
 typedef uint8_t mmc_r2_t[16];
 typedef uint8_t mmc_r3_t[4];
 
 #include <driver/mmc.h>
 
-#define MMC_RCA_DEFAULT		0x0000
+#ifdef MMC_HW_DATA_ALIGN
+#define MMC_DATA_ALIGN		MMC_HW_DATA_ALIGN
+#else
+#define MMC_DATA_ALIGN		4
+#endif
 
 /* This file is implemented according to the following standards:
  * JESD84-B41
@@ -536,13 +537,14 @@ typedef struct {
 /*===========================================================================
  * MMC Slot
  *===========================================================================*/
-typedef void (*mmc_cmpl_cb)(mmc_rca_t rca, bool result);
+typedef void (*mmc_cmpl_cb)(mmc_rca_t rca, uint8_t op, bool result);
 
 struct mmc_slot {
 	uint8_t state;
 	uint8_t cmd;
 	uint8_t acmd;
 	uint8_t rsp;
+	uint8_t *dat;
 	uint8_t err;
 	uint8_t op;
 	uint16_t flags;
@@ -557,6 +559,7 @@ struct mmc_slot {
 #define MMC_SLOT_BLOCK_DATA		\
 	(MMC_SLOT_BLOCK_READ | MMC_SLOT_BLOCK_WRITE)
 #define MMC_SLOT_CARD_DETECT		_BV(8)
+#define MMC_SLOT_CARD_SELECT		_BV(9)
 	mmc_event_t event;
 	/* SDSC Card (CCS=0) uses byte unit address and SDHC and SDXC
 	 * Cards (CCS=1) use block unit address (512 Bytes unit).
@@ -564,7 +567,7 @@ struct mmc_slot {
 	uint32_t address;
 	uint16_t block_cnt;
 	uint32_t block_len;
-	uint32_t *block_data;
+	uint8_t *block_data;
 	tick_t start_tick;
 	tick_t start_busy;
 	/* erase/switch func */
@@ -583,7 +586,9 @@ struct mmc_slot {
 	uint32_t host_ocr; /* host capacity */
 	bool ocr_valid;
 	uint16_t dsr;
-	mmc_card_t rca;
+	/* XXX: support only 1 card per slot */
+	mmc_rca_t rca;
+	mmc_card_t mmc_cid;
 	mmc_cmpl_cb op_cb;
 	MMC_PHY_SLOT
 	MMC_SPI_SLOT
@@ -609,6 +614,10 @@ struct mmc_slot {
 #define MMC_EVENT_CARD_INSERT	_BV(7)
 #define MMC_EVENT_CARD_REMOVE	_BV(8)
 #define MMC_EVENT_CARD_BUSY	_BV(9)
+#define MMC_EVENT_SELECT_CARD	_BV(10) /* SPI */
+#define MMC_EVENT_DESELECT_CARD	_BV(11) /* SPI */
+#define MMC_EVENT_START_TRAN	_BV(12)
+#define MMC_EVENT_STOP_TRAN	_BV(13)
 
 #define MMC_OP_NO_OP			0
 #define MMC_OP_IDENTIFY_CARD		1
@@ -639,12 +648,15 @@ mmc_slot_t mmc_slot_save(mmc_slot_t slot);
 void mmc_slot_restore(mmc_slot_t slot);
 extern mmc_slot_t mmc_sid;
 extern struct mmc_slot mmc_slots[NR_MMC_SLOTS];
+extern uint8_t mmc_slot_bufs[NR_MMC_SLOTS][MMC_DEF_BL_LEN];
 #define mmc_slot_ctrl mmc_slots[mmc_sid]
+#define mmc_slot_buf mmc_slot_bufs[mmc_sid]
 #else
 #define mmc_slot_save(sid)	0
 #define mmc_slot_restore(rca)
 #define mmc_sid			0
 extern struct mmc_slot mmc_slot_ctrl;
+extern uint8_t mmc_slot_buf[MMC_DEF_BL_LEN];
 #endif
 
 uint8_t mmc_crc7_update(uint8_t crc, uint8_t byte);
@@ -659,7 +671,7 @@ void mmc_op_complete(bool result);
 #define __mmc_read_blocks(cmpl)		mmc_start_op(MMC_OP_READ_BLOCKS, cmpl)
 #define __mmc_write_blocks(cmpl)	mmc_start_op(MMC_OP_WRITE_BLOCKS, cmpl)
 int mmc_read_blocks(uint8_t *buf, mmc_lba_t lba,
-		    size_t size, mmc_cmpl_cb cb);
+		    size_t cnt, mmc_cmpl_cb cb);
 
 void mmc_cmd(uint8_t cmd);
 void mmc_cmd_complete(uint8_t err);
