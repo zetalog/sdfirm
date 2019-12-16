@@ -242,9 +242,12 @@ static void sd_handle_identify_card(void)
 	if (mmc_cmd_is(MMC_CMD_NONE)) {
 		mmc_slot_ctrl.start_tick = tick_get_counter();
 		mmc_cmd(MMC_CMD_GO_IDLE_STATE);
-	} else if (mmc_state_is(idle))
+	} else if (mmc_state_is(idle)) {
+		/* TODO: select VHS, timeout */
 		mmc_cmd(SD_CMD_SEND_IF_COND);
-	else if (sd_state_is(ver)) {
+	} else if (sd_state_is(ver)) {
+		if (mmc_slot_ctrl.card_version == SD_PHY_VERSION_UNKNOWN)
+			mmc_slot_ctrl.card_version = SD_PHY_VERSION_10;
 		if (sd_spi_mode)
 			sd_spi_enter_ver();
 		else
@@ -258,7 +261,9 @@ static void sd_handle_identify_card(void)
 		cid = mmc_register_card(mmc_slot_ctrl.rca);
 		if (cid != INVALID_MMC_CARD)
 			mmc_slot_ctrl.mmc_cid = cid;
-	} else if (mmc_state_is(ina))
+	} else if (mmc_state_is(__ina))
+		mmc_cmd(MMC_CMD_GO_INACTIVE_STATE);
+	else if (mmc_state_is(ina))
 		mmc_op_failure();
 }
 
@@ -500,9 +505,20 @@ void mmc_phy_handle_stm(void)
 			if (mmc_err_is(MMC_ERR_ILLEGAL_COMMAND))
 				sd_state_enter(ver);
 			if (mmc_err_is(MMC_ERR_CHECK_PATTERN))
-				mmc_state_enter(ina);
-			if (mmc_err_is(MMC_ERR_CARD_NON_COMP_VOLT))
-				mmc_state_enter(ina);
+				mmc_state_enter(__ina);
+			/* If card cannot operate under supplied
+			 * voltage, card doesn't respond and return to
+			 * "idle" state.
+			 */
+			if (mmc_err_is(MMC_ERR_CARD_NON_COMP_VOLT) ||
+			    mmc_err_is(MMC_ERR_TIMEOUT)) {
+#if 0
+				if (!mmc_next_vhs())
+					mmc_state_enter(__ina);
+				else
+#endif
+					mmc_state_enter(idle);
+			}
 			unraise_bits(flags, MMC_EVENT_CMD_FAILURE);
 		}
 	} else if (sd_state_is(ver)) {
@@ -520,10 +536,13 @@ void mmc_phy_handle_stm(void)
 					  mmc_slot_ctrl.start_tick))
 					sd_state_enter(ver);
 				else
-					mmc_state_enter(ina);
+					mmc_state_enter(__ina);
 			}
 			if (mmc_err_is(MMC_ERR_HOST_OMIT_VOLT))
 				sd_state_enter(ver);
+			/* No response, must be a multimedia card */
+			if (mmc_err_is(MMC_ERR_TIMEOUT))
+				mmc_state_enter(__ina);
 			unraise_bits(flags, MMC_EVENT_CMD_FAILURE);
 		}
 	} else if (mmc_state_is(ready)) {

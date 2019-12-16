@@ -368,6 +368,7 @@ typedef uint8_t mmc_r3_t[4];
 #define MMC_STATE_prg			7  /* programming */
 #define MMC_STATE_dis			8  /* disconnect */
 /* The values are not used as MMC_CURRENT_STATE */
+#define MMC_STATE___ina			14 /* entering inactive */
 #define MMC_STATE_ina			15 /* inactive */
 #define NR_MMC_STATES			16
 
