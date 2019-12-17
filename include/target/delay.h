@@ -51,4 +51,6 @@ extern lps_t loops_per_ms;
 extern lps_t loops_per_us;
 #endif
 
+void delay_init(void);
+
 #endif /* __DELAY_H_INCLUDE__ */

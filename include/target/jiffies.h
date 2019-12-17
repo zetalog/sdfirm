@@ -27,9 +27,11 @@ void tick_update_tsc(tsc_count_t counter);
 #ifdef CONFIG_TICK
 extern volatile tick_t jiffies;
 #define tick_get_counter()		jiffies
+void tick_init(void);
 #else
 #define TSC_PER_HZ			(TSC_FREQ * 1000 / HZ)
 #define tick_get_counter()		div32u(tsc_read_counter(), TSC_PER_HZ)
+#define tick_init()			do { } while (0)
 #endif
 #endif
 

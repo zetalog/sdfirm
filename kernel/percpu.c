@@ -1,16 +1,9 @@
 /*
  * Author: Lv Zheng <lv.zheng@hxt-semitech.com>
  */
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
 #include <target/heap.h>
 #include <target/percpu.h>
-#include <target/heap.h>
 #include <target/spinlock.h>
-#include <target/linpack.h>
-#include <target/dhrystone.h>
 
 #if defined(CONFIG_SMP) && !(CONFIG_PERCPU_INTERLEAVE)
 uint64_t __percpu_offset[NR_CPUS + NR_EXTRA_CPU] __always_cache;

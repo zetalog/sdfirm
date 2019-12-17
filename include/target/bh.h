@@ -27,7 +27,7 @@ void bh_suspend(bh_t bh);
 void bh_resume(bh_t bh);
 boolean bh_resumed_any(void); 
 bh_t bh_register_handler(bh_cb handler);
-
+void bh_loop(void);
 void bh_init(void);
 #endif /* __ASSEMBLY__ */
 

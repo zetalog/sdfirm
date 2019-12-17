@@ -16,10 +16,7 @@
 
 static uint64_t psci_cpu_on(uint64_t cpu, uint64_t ep, uint64_t context)
 {
-	cpu_spin_table[cpu & 0xff] = ep;
-	cpu_context_table[cpu & 0xff] = context;
-	__asm("dsb sy");
-	__asm("sev");
+	smp_cpu_on(cpu, ep, context);
 	return PSCI_SUCCESS;
 }
 

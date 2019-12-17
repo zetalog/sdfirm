@@ -59,4 +59,10 @@ extern uintptr_t __end_rodata[];
 
 #include <target/smp.h>
 
+#ifndef __ASSEMBLY__
+void board_init(void);
+void appl_init(void);
+void modules_init(void);
+#endif
+
 #endif /* __ARCH_H_INCLUDE__ */

@@ -44,4 +44,38 @@
 
 #include <asm/mach/smp.h>
 
+#ifdef CONFIG_SMP
+#ifdef __ASSEMBLY__
+#ifndef LINKER_SCRIPT
+.macro asm_smp_processor_id _tmp:req, _res=x0
+	mov	\_res, sp
+	ldr	\_tmp, =PERCPU_STACKS_START
+	sub	\_res, \_res, \_tmp
+	ubfx	\_res, \_res, #PERCPU_STACK_SHIFT, #(32 - PERCPU_STACK_SHIFT)
+.endm
+#endif
+#else
+static inline cpu_t __smp_processor_id(void)
+{
+	unsigned int t;
+
+	asm volatile ("mov %0, sp\n\t" : "=r" (t));
+	t -= (PERCPU_STACKS_START + 1);
+	return (uint8_t)(t >> 12);
+}
+
+static inline uintptr_t __smp_processor_stack_top(void)
+{
+	uintptr_t t;
+
+	asm volatile ("mov %0, sp\n\t" : "=r" (t));
+	return ALIGN(t, PERCPU_STACK_SIZE);
+}
+
+cpu_t smp_hw_cpu_id(void);
+void smp_hw_cpu_boot(void);
+void smp_hw_cpu_on(cpu_t cpu, caddr_t ep, caddr_t context);
+#endif
+#endif
+
 #endif /* __ARM64_SMP_H_INCLUDE__ */

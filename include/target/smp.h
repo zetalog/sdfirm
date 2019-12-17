@@ -42,35 +42,44 @@
 #ifndef __SMP_H_INCLUDE__
 #define __SMP_H_INCLUDE__
 
-#include <target/compiler.h>
-#include <target/cache.h>
+#include <target/generic.h>
 #include <target/arch.h>
 
 #ifdef CONFIG_SMP
-#define smp_processor_id()	__smp_processor_id()
-#define hmp_processor_id()	__hmp_processor_id()
-#define NR_CPUS			MAX_CPU_NUM
+#define smp_processor_id()		__smp_processor_id()
+#define NR_CPUS				MAX_CPU_NUM
 #else
-#define smp_processor_id()	0
-#define hmp_processor_id()	0
-#define NR_CPUS			1
+#define smp_processor_id()		0
+#define NR_CPUS				1
+#endif
+
+#ifndef __ASSEMBLY__
+#if NR_CPUS > 65535
+typedef uint32_t cpu_t;
+#elif NR_CPUS > 255
+typedef uint16_t cpu_t;
+#else
+typedef uint8_t cpu_t;
+#endif
 #endif
 
 #include <asm/smp.h>
 
 #ifdef CONFIG_SMP
-#define SMP_CACHE_BYTES		__SMP_CACHE_BYTES
+#define SMP_CACHE_BYTES			__SMP_CACHE_BYTES
+#ifndef __ASSEMBLY__
+extern cpu_t smp_boot_cpu;
+void smp_init(void);
+#endif
 #else
 #ifndef __SMP_CACHE_BYTES
-#define SMP_CACHE_BYTES		1
+#define SMP_CACHE_BYTES			1
 #else
-#define SMP_CACHE_BYTES		__SMP_CACHE_BYTES
+#define SMP_CACHE_BYTES			__SMP_CACHE_BYTES
 #endif
+#define smp_boot_cpu			0
+#define smp_init()			do { } while (0)
 #endif
-#define __cache_aligned		__align(SMP_CACHE_BYTES)
-
-#ifndef __ASSEMBLY__
-unsigned int plat_my_core_pos(void);
-#endif
+#define __cache_aligned			__align(SMP_CACHE_BYTES)
 
 #endif /* __SMP_H_INCLUDE__ */

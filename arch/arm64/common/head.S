@@ -100,16 +100,6 @@ __arm_reset:
 	ldr	x3, =PERCPU_STACKS_START
 	add	x0, x3, x0
 	mov	sp, x0
-
-        /* Enable hardware coherency:
-	 * Read EL1 CPU Extended Control Register
-	 * Set the SMPEN bit
-	 * Write EL1 CPU Extended Control Register
-	 */
-	mrs	x0, S3_1_c15_c2_1
-	orr	x0, x0, #(1 << 6)
-	msr	S3_1_c15_c2_1, x0
-	isb
 #else
 	ldr	x0, =PERCPU_STACKS_END
 	mov	sp, x0
@@ -152,6 +142,19 @@ ENTRY(__start)
 	copy_sect __data_loc, __sdata, __edata, copy_data_exit, copy_data_loop
 #endif
 	zero_sect __bss_start, __bss_stop, init_bss_exit, init_bss_loop
+
+#ifdef CONFIG_SMP
+        /* Enable hardware coherency:
+	 * Read EL1 CPU Extended Control Register
+	 * Set the SMPEN bit
+	 * Write EL1 CPU Extended Control Register
+	 */
+	mrs	x0, S3_1_c15_c2_1
+	orr	x0, x0, #(1 << 6)
+	msr	S3_1_c15_c2_1, x0
+	isb
+#endif
+
 	bl	__init_exception_level
 
 	# Exit to suitable exception level
@@ -212,6 +215,7 @@ ENDPIPROC(stext)
 
 #ifdef CONFIG_SMP
 ENTRY(__smp_jump)
+	init_sp
 	br	x4
 	b	.
 ENDPROC(__smp_jump)
@@ -318,7 +322,7 @@ ENTRY(__create_page_tables)
 	# Invalidate the idmap and swapper page tables to avoid potential
 	# dirty cache lines being evicted.
 	mov	x0, x25
-	add	x1, x25, #BPGT_DIR_SIZE
+	ldr	x1, =BPGT_DIR_SIZE
 	call_l	__inval_dcache_area
 
 	# Clear the idmap and boot page tables.
@@ -416,7 +420,7 @@ simpoint_heap_map_exit:
 	# accesses (MMU disabled), invalidate the idmap and swapper page
 	# tables again to remove any speculatively loaded cache lines.
 	mov	x0, x25
-	add	x1, x25, #BPGT_DIR_SIZE
+	ldr	x1, =BPGT_DIR_SIZE
 	dmb	sy
 	call_l	__inval_dcache_area
 

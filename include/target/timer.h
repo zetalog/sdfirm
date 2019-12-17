@@ -37,13 +37,15 @@ struct timer_desc {
 __TEXT_TYPE__(const struct timer_desc, timer_desc_t);
 
 #ifdef CONFIG_TIMER
+void timer_init(void);
 tid_t timer_register(timer_desc_t *timer);
 void timer_unregister(tid_t tid);
 void timer_schedule_shot(tid_t tid, timeout_t tout_ms);
 #else
-#define timer_register(timer)	INVALID_TID
-#define timer_unregister(tid)
-#define timer_schedule_shot(tid, tout_ms)
+#define timer_init()				do { } while (0)
+#define timer_register(timer)			INVALID_TID
+#define timer_unregister(tid)			do { } while (0)
+#define timer_schedule_shot(tid, tout_ms)	do { } while (0)
 #endif
 
 #endif /* __TIMER_H_INCLUDE__ */

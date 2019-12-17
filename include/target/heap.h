@@ -115,8 +115,10 @@ typedef int8_t heap_offset_t;
 caddr_t heap_sbrk(heap_offset_t bytes);
 #ifdef CONFIG_HEAP
 void heap_range_init(caddr_t start_addr);
+void heap_init(void);
 #else
-#define heap_range_init(start_addr)
+#define heap_init()				do { } while (0)
+#define heap_range_init(start_addr)		do { } while (0)
 #endif
 
 caddr_t heap_alloc(heap_size_t bytes);

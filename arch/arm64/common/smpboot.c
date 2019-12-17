@@ -22,3 +22,16 @@ __noreturn void cpu_spin(int cpu)
 		   (void *)cpu_spin_table[cpu]);
 	__builtin_unreachable();
 }
+
+void smp_hw_cpu_on(cpu_t cpu, caddr_t ep, caddr_t context)
+{
+	cpu_spin_table[cpu & 0xff] = ep;
+	cpu_context_table[cpu & 0xff] = context;
+	dsb(sy);
+	sev();
+}
+
+void smp_hw_cpu_boot(void)
+{
+	smp_boot_cpu = 0;
+}

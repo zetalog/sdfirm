@@ -1,14 +1,18 @@
-#include <target/config.h>
 #include <target/generic.h>
 #include <target/arch.h>
 #include <target/irq.h>
+#include <target/bh.h>
 #include <target/delay.h>
+#include <target/timer.h>
+#include <target/jiffies.h>
+#include <target/task.h>
+#include <target/smp.h>
 #include <target/clk.h>
 #include <target/cmdline.h>
 #include <target/mem.h>
+#include <target/heap.h>
 #include <target/paging.h>
 #include <target/console.h>
-#include <stdio.h>
 
 __near__ uint32_t system_device_id = 0;
 text_char_t system_vendor_name[] = CONFIG_VENDOR_NAME;
@@ -19,31 +23,6 @@ uint16_t system_product_id(void)
 	return MAKEWORD(DEV_PRODUCT_ID, HIBYTE(LOWORD(system_device_id)));
 }
 
-extern void board_init(void);
-extern void appl_init(void);
-extern void modules_init(void);
-extern void bh_init(void);
-#ifdef CONFIG_TICK
-extern void tick_init(void);
-#else
-#define tick_init()
-#endif
-#ifdef CONFIG_TIMER
-extern void timer_init(void);
-#else
-#define timer_init()
-#endif
-#ifdef CONFIG_TASK
-extern void task_init(void);
-#else
-#define task_init()
-#endif
-extern void delay_init(void);
-#ifdef CONFIG_HEAP
-extern void heap_init(void);
-#else
-#define heap_init()
-#endif
 #ifdef CONFIG_BULK
 extern void bulk_init(void);
 #else
@@ -58,16 +37,6 @@ void gpio_init(void);
 void debug_init(void);
 #else
 #define debug_init()
-#endif
-#ifdef CONFIG_TIMER
-void timer_init(void);
-#else
-#define timer_init()
-#endif
-#ifdef CONFIG_SMP
-void smp_init(void);
-#else
-#define smp_init()
 #endif
 #ifdef CONFIG_RIS
 void ris_entry(void);
@@ -87,7 +56,6 @@ void system_init(void)
 	clk_init();
 	gpio_init();
 	debug_init();
-	smp_init();
 	irq_init();
 	tick_init();
 	delay_init();
@@ -111,19 +79,8 @@ void system_init(void)
 	cmd_init();
 	modules_init();
 	appl_init();
-	irq_local_enable();
-	main_debug(MAIN_DEBUG_INIT, 1);
-
-	while (1) {
-#ifdef CONFIG_IDLE
-		while (!bh_resumed_any()) {
-			dbg_dump(0xAA);
-			wait_irq();
-		}
-		dbg_dump(0xAB);
-#endif
-		bh_run_all();
-	}
+	smp_init();
+	bh_loop();
 }
 
 void system_suspend(void)

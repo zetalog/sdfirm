@@ -26,9 +26,16 @@ struct task_entry {
 #include <asm/task.h>
 
 #ifndef __ASSEMBLY__
+#ifdef CONFIG_TASK
+void task_init(void);
 pid_t task_create(task_call_cb call, void *priv,
 		  caddr_t stack_bottom, size_t stack_size);
 void task_schedule(void);
+#else
+#define task_init()			do { } while (0)
+#define task_create(call, priv, sb, ss)	INVALID_PID
+#define task_schedule()			do { } while (0)
+#endif
 #endif /* __ASSEMBLY__ */
 
 #endif /* __TASK_H_INCLUDE__ */

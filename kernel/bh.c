@@ -1,4 +1,5 @@
 #include <target/irq.h>
+#include <target/panic.h>
 
 DECLARE_BITMAP(bh_awakes, NR_BHS);
 struct bh_entry bh_entries[NR_BHS];
@@ -88,6 +89,22 @@ void bh_run_all(void)
 void bh_panic(void)
 {
 	idle_debug(IDLE_DEBUG_SID, DBG_SRC_IDLE);
+}
+
+void bh_loop(void)
+{
+	irq_local_enable();
+	main_debug(MAIN_DEBUG_INIT, 1);
+	while (1) {
+#ifdef CONFIG_IDLE
+		while (!bh_resumed_any()) {
+			dbg_dump(0xAA);
+			wait_irq();
+		}
+		dbg_dump(0xAB);
+#endif
+		bh_run_all();
+	}
 }
 
 void bh_init(void)
