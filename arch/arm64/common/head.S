@@ -180,10 +180,14 @@ ENTRY(__start)
 	eret
 #endif
 init_lo_el:
-	/* only CPU0 goes to main */
+	# early timer initialization
+	call_l	delay_init
+
+#ifndef CONFIG_BOOT_LINUX
 	mrs	x0, MPIDR_EL1
 	and	x0, x0, #0xFF
-	cbnz	x0, cpu_spin
+	cbnz	x0, _smp_spin
+#endif
 
 	bl	__create_page_tables
 
@@ -211,11 +215,37 @@ ENTRY(stext)
 ENDPIPROC(stext)
 
 #ifdef CONFIG_SMP
-ENTRY(__smp_jump)
+ENTRY(smp_hw_cpu_id)
+	mrs	x0, MPIDR_EL1
+	and	x1, x0, #MPIDR_CPU_MASK
+	and	x0, x0, #MPIDR_CLUSTER_MASK
+	lsr	x0, x0, #MPIDR_AFF1_SHIFT
+	mov	x2, #CPUS_PER_CLUSTER
+	madd	x0, x0, x2, x1
+	ret
+ENDPROC(smp_hw_cpu_id)
+ENTRY(_smp_start)
 	init_sp
-	br	x4
-	b	.
-ENDPROC(__smp_jump)
+
+	# GICC initialization
+	call_l	irq_smp_init
+
+#ifdef CONFIG_MMU
+	# Address to jump to after MMU has been enabled
+	mov	x27, x4
+#ifdef CONFIG_MMU_IDMAP
+	ldr	x25, =mmu_pg_dir
+#else
+	ldr	x25, =mmu_id_map
+#endif
+	# return (PIC) address
+	adr_l	lr, __enable_mmu
+	b	__cpu_setup
+#else
+	mov	x27, x4
+	br	x27
+#endif
+ENDPROC(_smp_start)
 #endif
 
 ENTRY(__init_exception_level)
@@ -262,14 +292,14 @@ ENDPROC(__init_exception_level)
 #ifdef CONFIG_BOOT_LINUX
 ENTRY(__linux_boot_el3)
 	# EL3/EL2 kernel bootloader
-	# early delay initialization
+	# early timer initialization
 	call_l	delay_init
 
 	# Only proceed on boot CPU
 	mrs	x0, MPIDR_EL1
-	tst     x0, #0xf
-1:
-	b.ne	1b
+	and	x0, x0, #0xFF
+	cbnz	x0, _smp_spin
+
 	# early GICD/GICR initialization
 	call_l	irq_init
 	ret

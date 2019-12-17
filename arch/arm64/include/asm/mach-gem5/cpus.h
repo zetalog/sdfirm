@@ -44,4 +44,6 @@
 
 #include <asm/mach/arch.h>
 
+#define CPUS_PER_CLUSTER	2
+
 #endif /* __CPUS_GEM5_H_INCLUDE__ */

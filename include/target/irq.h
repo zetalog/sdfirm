@@ -27,6 +27,11 @@ typedef void (*irq_handler)(void);
 #define irq_local_restore(__flags__)	irq_hw_flags_restore(__flags__)
 
 void irq_init(void);
+#ifdef CONFIG_SMP
+void irq_smp_init(void);
+#else
+#define irq_smp_init()			do { } while (0)
+#endif
 
 #ifndef CONFIG_CC_ISR_VECTOR
 void irq_register_vector(irq_t nr, irq_handler isr);

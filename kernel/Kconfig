@@ -471,6 +471,13 @@ config MMU_PAGE_OFFSET
 
 config MMU_IDMAP
 	bool "Enable identity mapping"
+	default y
+	help
+	  Enable this allows kernel to use identity mapping to switch page
+	  tables, the behavior is close to Linux kernel. However firmware
+	  can choose to disable identity mapping so that there is only one
+	  mapping directory linked in, thus save memory consumption.
+	  If unsure, say 'Y'.
 
 config MMU_IDMAP_DEVICE
 	bool "Enable early device identity mapping"

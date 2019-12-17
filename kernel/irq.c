@@ -81,3 +81,11 @@ void irq_init(void)
 	irq_hw_ctrl_init();
 	irq_local_disable();
 }
+
+#ifdef CONFIG_SMP
+void irq_smp_init(void)
+{
+	irqc_hw_smp_init();
+	irq_local_disable();
+}
+#endif

@@ -11,7 +11,9 @@
 #define NO_BLOCK_MAPPINGS	_BV(0)
 #define NO_CONT_MAPPINGS	_BV(1)
 
+#ifdef CONFIG_MMU_IDMAP
 pgd_t mmu_pg_dir[PTRS_PER_PGD] __page_aligned_bss;
+#endif
 
 static phys_addr_t early_pgtable_alloc(void)
 {

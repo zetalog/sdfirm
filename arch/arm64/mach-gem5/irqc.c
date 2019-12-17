@@ -10,3 +10,9 @@ void irqc_hw_ctrl_init(void)
 	/* Enable CPU interface */
 	gicv2_init_gicc();
 }
+
+void irqc_hw_smp_init(void)
+{
+	/* Enable CPU interface */
+	gicv2_init_gicc();
+}

@@ -46,8 +46,13 @@ void __systick_unmask_irq(void)
 	write_sysreg(value, CNTP_CTL_EL0);
 }
 
+static bool systick_done = false;
+
 void __systick_init(void)
 {
+	if (systick_done)
+		return;
+	systick_done = true;
 	write_sysreg(SYSTICK_HW_FREQUENCY, CNTFRQ_EL0);
 	write_sysreg(0, CNTVOFF_EL2);
 	write_sysreg(CNTHCTL_EL1PCEN | CNTHCTL_EL1PCTEN, CNTHCTL_EL2);

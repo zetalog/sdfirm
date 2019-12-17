@@ -264,6 +264,9 @@
 
 /* Allow implementation specific initialization */
 void irqc_hw_ctrl_init(void);
+#ifdef CONFIG_SMP
+void irqc_hw_smp_init(void);
+#endif
 void gic_hw_ctrl_init(void);
 
 #define gicd_enable_irq(irq)		\

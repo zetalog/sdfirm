@@ -3,19 +3,13 @@
 #include <target/jiffies.h>
 #include <target/irq.h>
 
-bool gblct_initialized = false;
-
 void gblct_init(void)
 {
-	if (!gblct_initialized) {
-		gblct_initialized = true;
-#if 0
-		/* GEM5 is EL1 based, configuring global counter is not
-		 * allowed.
-		 */
-		__systick_init();
-#endif
-	}
+	/* GEM5 only allows accessing counter registers before MMU is
+	 * enabled, so making sure delay_init() is invoked before
+	 * enabling MMU in head.S.
+	 */
+	__systick_init();
 }
 
 tsc_count_t tsc_hw_read_counter(void)
