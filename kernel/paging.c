@@ -1,11 +1,7 @@
-#include <stdio.h>
-#include <string.h>
 #include <target/mem.h>
 #include <target/paging.h>
 #include <target/arch.h>
-#include <target/linkage.h>
 #include <target/console.h>
-#include <target/compiler.h>
 #include <target/cmdline.h>
 
 #define NO_BLOCK_MAPPINGS	_BV(0)

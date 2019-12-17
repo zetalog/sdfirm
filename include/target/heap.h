@@ -1,8 +1,58 @@
+/*
+ * ZETALOG's Personal COPYRIGHT
+ *
+ * Copyright (c) 2019
+ *    ZETALOG - "Lv ZHENG".  All rights reserved.
+ *    Author: Lv "Zetalog" Zheng
+ *    Internet: zhenglv@hotmail.com
+ *
+ * This COPYRIGHT used to protect Personal Intelligence Rights.
+ * Redistribution and use in source and binary forms with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *    This product includes software developed by the Lv "Zetalog" ZHENG.
+ * 3. Neither the name of this software nor the names of its developers may
+ *    be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ * 4. Permission of redistribution and/or reuse of souce code partially only
+ *    granted to the developer(s) in the companies ZETALOG worked.
+ * 5. Any modification of this software should be published to ZETALOG unless
+ *    the above copyright notice is no longer declaimed.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE ZETALOG AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE ZETALOG OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * @(#)heap.h: heap allocator definition
+ * $Id: heap.h,v 1.1 2019-12-18 09:17:00 zhenglv Exp $
+ */
+
 #ifndef __HEAP_H_INCLUDE__
 #define __HEAP_H_INCLUDE__
 
 #include <target/generic.h>
-#include <target/paging.h>	/* page size */
+#include <target/page.h>
+
+/* There are several configurations to use this mechanism:
+ * 1. CONFIG_PAGE=n:
+ *    Many MCU firmware directly invoke heap_range_init() in their
+ *    architecture specific memory setup hook to enable heap usage.
+ * 2. CONFIG_PAGE=y:
+ *    When MMU is enabled, or SMP is enabled, heap is implemented on top
+ *    of page allocator.
+ */
 
 /* This allocator is written by Doug Lea and released to the public.
  * VERSION 2.6.6  Sun Mar  5 19:10:03 2000  Doug Lea  (dl at gee)
@@ -74,17 +124,21 @@
  * default version is the same as size_t.
  */
 
-#if CONFIG_HEAP_SIZE > 65535
+#if CONFIG_HEAP_SIZE > 0xFFFFFFFF
+typedef uint64_t heap_size_t;
+#elif CONFIG_HEAP_SIZE > 0xFFFF
 typedef uint32_t heap_size_t;
-#elif CONFIG_HEAP_SIZE > 255
+#elif CONFIG_HEAP_SIZE > 0xFF
 typedef uint16_t heap_size_t;
 #else
 typedef uint8_t heap_size_t;
 #endif
 
-#if CONFIG_HEAP_SIZE > 32767
+#if CONFIG_HEAP_SIZE > 0x7FFFFFFF
+typedef int64_t heap_offset_t;
+#elif CONFIG_HEAP_SIZE > 0x7FFF
 typedef int32_t heap_offset_t;
-#elif CONFIG_HEAP_SIZE > 127
+#elif CONFIG_HEAP_SIZE > 0x7F
 typedef int16_t heap_offset_t;
 #else
 typedef int8_t heap_offset_t;
@@ -112,18 +166,23 @@ typedef int8_t heap_offset_t;
 #define HEAP_ALIGN	8
 #endif
 
-caddr_t heap_sbrk(heap_offset_t bytes);
 #ifdef CONFIG_HEAP
 void heap_range_init(caddr_t start_addr);
 void heap_init(void);
+caddr_t heap_alloc(heap_size_t bytes);
+caddr_t heap_calloc(heap_size_t bytes);
+caddr_t heap_realloc(caddr_t ptr, heap_size_t bytes);
+void heap_free(caddr_t ptr);
+/* Used by allocator implementation to extend heap size */
+caddr_t heap_sbrk(heap_offset_t bytes);
 #else
 #define heap_init()				do { } while (0)
 #define heap_range_init(start_addr)		do { } while (0)
+#define heap_alloc(bytes)			((caddr_t)0)
+#define heap_calloc(bytes)			((caddr_t)0)
+#define heap_realloc(ptr, bytes)		((caddr_t)0)
+#define heap_free(ptr)				do { } while (0)
+#define heap_sbrk(bytes)			((caddr_t)0)
 #endif
-
-caddr_t heap_alloc(heap_size_t bytes);
-void heap_free(caddr_t ptr);
-caddr_t heap_realloc(caddr_t ptr, heap_size_t bytes);
-caddr_t heap_calloc(heap_size_t bytes);
 
 #endif /* __HEAP_H_INCLUDE__ */

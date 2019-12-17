@@ -1,7 +1,7 @@
-#include <target/config.h>
-#include <target/const.h>
+#include <target/compiler.h>
 #include <target/cmdline.h>
 #include <target/arch.h>
+#include <target/percpu.h>
 #include <asm-generic/sdfirm.lds.h>
 
 #define IDMAP_TEXT			\
@@ -82,6 +82,10 @@ SECTIONS
 
 	__data_loc = _etext_loc;		/* data boot location */
 	_edata_loc = __data_loc + _edata - _sdata;
+
+	.percpu : {
+		PERCPU_INPUT(SMP_CACHE_BYTES)
+	}
 
 	.bss (NOLOAD) : ALIGN(8) {
 		__bss_start = .;		/* begin of bss sections */

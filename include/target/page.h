@@ -52,6 +52,16 @@
 #define PAGE_PTR_BYTES		(1 << PAGE_PTR_BITS)
 
 #ifndef __ASSEMBLY__
+#if PAGE_SIZE < 0x100
+typedef uint8_t page_size_t;
+#elif PAGE_SIZE < 0x10000
+typedef uint16_t page_size_t;
+#elif PAGE_SIZE < 0x100000000
+typedef uint32_t page_size_t;
+#else
+typedef uint64_t page_size_t;
+#endif
+
 #define pfn_to_page(pfn)	\
 	((struct page *)((caddr_t)(((pfn_t)(pfn)) << PAGE_SHIFT)))
 #define page_to_pfn(page)	\

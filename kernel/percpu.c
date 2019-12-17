@@ -1,84 +1,65 @@
 /*
- * Author: Lv Zheng <lv.zheng@hxt-semitech.com>
+ * ZETALOG's Personal COPYRIGHT
+ *
+ * Copyright (c) 2019
+ *    ZETALOG - "Lv ZHENG".  All rights reserved.
+ *    Author: Lv "Zetalog" Zheng
+ *    Internet: zhenglv@hotmail.com
+ *
+ * This COPYRIGHT used to protect Personal Intelligence Rights.
+ * Redistribution and use in source and binary forms with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *    This product includes software developed by the Lv "Zetalog" ZHENG.
+ * 3. Neither the name of this software nor the names of its developers may
+ *    be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ * 4. Permission of redistribution and/or reuse of souce code partially only
+ *    granted to the developer(s) in the companies ZETALOG worked.
+ * 5. Any modification of this software should be published to ZETALOG unless
+ *    the above copyright notice is no longer declaimed.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE ZETALOG AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE ZETALOG OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * @(#)percpu.c: per-CPU variable storage implementation
+ * $Id: percpu.c,v 1.1 2019-12-17 16:36:00 zhenglv Exp $
  */
+
 #include <target/heap.h>
+#include <target/smp.h>
 #include <target/percpu.h>
-#include <target/spinlock.h>
 
-#if defined(CONFIG_SMP) && !(CONFIG_PERCPU_INTERLEAVE)
-uint64_t __percpu_offset[NR_CPUS + NR_EXTRA_CPU] __always_cache;
+uint64_t __percpu_offset[NR_CPUS];
+caddr_t __percpu_area;
 
-#ifdef CONFIG_PERCPU_PATTERN
-/* Deprecated feature, currently, patterns will dynamically allocate
- * required memory from heap when being dispatched.
- */
-union percpu_area {
-	struct linpack_context linpack;
-	struct dhrystone_context dhrystone;
-} __aligned(SMP_CACHE_BYTES);
-
-uint64_t percpu_free_area;
-
-caddr_t percpu_get_free_area(uint8_t cpu)
+void percpu_init(void)
 {
-	return (caddr_t)(percpu_free_area +
-			 cpu * sizeof (union percpu_area));
-}
-
-int percpu_init_free_area(void)
-{
-	void *ptr;
-
-	ptr = heap_aligned_alloc(SMP_CACHE_BYTES,
-				 sizeof (union percpu_area) * NR_CPUS);
-	if (!ptr) {
-		printf("Failed to allocate pattern area\n");
-		return -1;
-	}
-	percpu_free_area = (uint64_t)ptr;
-	return 0;
-}
-#else
-caddr_t percpu_get_free_area(uint8_t cpu)
-{
-	return 0;
-}
-
-static int inline percpu_init_free_area(void)
-{
-	return 0;
-}
-#endif
-
-int percpu_init(void)
-{
-	int ret;
 	size_t size, i;
-	void *ptr;
+	caddr_t ptr;
 
-	if (smp_processor_id() != cpus_boot_cpu)
-		return 0;
+	BUG_ON(smp_processor_id() != smp_boot_cpu);
 
 	size = PERCPU_END - PERCPU_START;
-	ptr = heap_aligned_alloc(SMP_CACHE_BYTES,
-				 size * NR_CPUS);
-	printf("alloc percpu: %016llx(%d)\n",
+	__percpu_area = heap_alloc(size * NR_CPUS + SMP_CACHE_BYTES);
+	ptr = ALIGN(__percpu_area, SMP_CACHE_BYTES);
+	printf("SMP allocating PERCPU area %016llx(%d).\n",
 	       (uint64_t)ptr, (int)(size * NR_CPUS));
 	for (i = 0; i < NR_CPUS; i++, ptr += size) {
 		__percpu_offset[i] = ((uint64_t)ptr) - PERCPU_START;
-		memcpy(ptr, (void *)PERCPU_START, size);
+		memory_copy(ptr, PERCPU_START, size);
 	}
-	ret = percpu_init_free_area();
-	return ret;
 }
-#else
-caddr_t percpu_get_free_area(uint8_t cpu)
-{
-	return 0;
-}
-
-int percpu_init(void)
-{
-	return 0;
-}
-#endif

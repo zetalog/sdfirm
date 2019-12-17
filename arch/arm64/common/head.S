@@ -183,7 +183,7 @@ init_lo_el:
 	# early timer initialization
 	call_l	delay_init
 
-#ifndef CONFIG_BOOT_LINUX
+#if !defined(CONFIG_BOOT_LINUX) && defined(CONFIG_SMP)
 	mrs	x0, MPIDR_EL1
 	and	x0, x0, #0xFF
 	cbnz	x0, _smp_spin
@@ -295,10 +295,12 @@ ENTRY(__linux_boot_el3)
 	# early timer initialization
 	call_l	delay_init
 
+#ifdef CONFIG_SMP
 	# Only proceed on boot CPU
 	mrs	x0, MPIDR_EL1
 	and	x0, x0, #0xFF
 	cbnz	x0, _smp_spin
+#endif
 
 	# early GICD/GICR initialization
 	call_l	irq_init

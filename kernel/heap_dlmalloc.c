@@ -1,5 +1,46 @@
+/*
+ * ZETALOG's Personal COPYRIGHT
+ *
+ * Copyright (c) 2019
+ *    ZETALOG - "Lv ZHENG".  All rights reserved.
+ *    Author: Lv "Zetalog" Zheng
+ *    Internet: zhenglv@hotmail.com
+ *
+ * This COPYRIGHT used to protect Personal Intelligence Rights.
+ * Redistribution and use in source and binary forms with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *    This product includes software developed by the Lv "Zetalog" ZHENG.
+ * 3. Neither the name of this software nor the names of its developers may
+ *    be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ * 4. Permission of redistribution and/or reuse of souce code partially only
+ *    granted to the developer(s) in the companies ZETALOG worked.
+ * 5. Any modification of this software should be published to ZETALOG unless
+ *    the above copyright notice is no longer declaimed.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE ZETALOG AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE ZETALOG OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * @(#)heap_dlmalloc.c: doug lea malloc algorithm implementation
+ * $Id: heap_dlmalloc.c,v 1.1 2019-12-18 09:56:00 zhenglv Exp $
+ */
+
 #include <target/heap.h>
-#include <target/string.h>
+#include <target/cmdline.h>
 
 /* The following macros are only invoked with (2n+1)-multiples of
  * heap_size_t units, with a positive integer n. This is exploited for
@@ -929,7 +970,7 @@ int heap_trim(heap_size_t pad)
 	} else {
 		/* Test to make sure no one else called sbrk */
 		current_brk = heap_sbrk(0);
-		if (current_brk != (heap_first_chunk + top_size)) {
+		if (current_brk != (caddr_t)(heap_first_chunk + top_size)) {
 			return 0;/* Apparently we don't own memory; must fail */
 		} else {
 			new_brk = heap_sbrk((heap_offset_t)(-extra));
@@ -1063,44 +1104,44 @@ static void heap_extend_top(heap_size_t nb)
 
 /* alloc algorthim:
  *
- * The requested size is first converted into a usable form, 'nb'.
- * This currently means to add 4 bytes overhead plus possibly more to
- * obtain 8-byte alignment and/or to obtain a size of at least
- * HEAP_HEAD_SIZE (currently 16 bytes), the smallest allocatable size.
- * (All fits are considered 'exact' if they are within HEAP_HEAD_SIZE
- * bytes.)
+ * The requested size is first converted into a usable form, 'nb'. This
+ * currently means to add 4 bytes overhead plus possibly more to obtain
+ * 8-byte alignment and/or to obtain a size of at least HEAP_HEAD_SIZE
+ * (currently 16 bytes), the smallest allocatable size. (All fits are
+ * considered 'exact' if they are within HEAP_HEAD_SIZE bytes.)
  *
  * From there, the first successful of the following steps is taken:
  *
  * 1. The bin corresponding to the request size is scanned, and if a chunk
  *    of exactly the right size is found, it is taken.
  *
- * 2. The most recently remaindered chunk is used if it is big enough.
- *    This is a form of (roving) first fit, used only in the absence of
- *    exact fits. Runs of consecutive requests use the remainder of the
- *    chunk used for the previous such request whenever possible.  This
- *    limited use of a first-fit style allocation strategy tends to give
- *    contiguous chunks coextensive lifetimes, which improves locality and
- *    can reduce fragmentation in the long run.
+ * 2. The most recently remaindered chunk is used if it is big enough. This
+ *    is a form of (roving) first fit, used only in the absence of exact
+ *    fits. Runs of consecutive requests use the remainder of the chunk
+ *    used for the previous such request whenever possible.  This limited
+ *    use of a first-fit style allocation strategy tends to give contiguous
+ *    chunks coextensive lifetimes, which improves locality and can reduce
+ *    fragmentation in the long run.
  *
  * 3. Other bins are scanned in increasing size order, using a chunk big
- *    enough to fulfill the request, and splitting off any remainder.
- *    This search is strictly by best-fit; i.e., the smallest (with ties
- *    going to approximately the least recently used) chunk that fits is
+ *    enough to fulfill the request, and splitting off any remainder. This
+ *    search is strictly by best-fit; i.e., the smallest (with ties going
+ *    to approximately the least recently used) chunk that fits is
  *    selected.
  *
- * 4. If large enough, the chunk bordering the end of memory ('heap_first_chunk')
- *    is split off. (This use of 'heap_first_chunk' is in accord with the best-fit
- *    search rule.  In effect, 'heap_first_chunk' is treated as larger (and thus
- *    less well fitting) than any other available chunk since it can be
- *    extended to be as large as necessary (up to system limitations).
+ * 4. If large enough, the chunk bordering the end of memory
+ *    ('heap_first_chunk') is split off. (This use of 'heap_first_chunk' is
+ *    in accord with the best-fit search rule.  In effect,
+ *    'heap_first_chunk' is treated as larger (and thus less well fitting)
+ *    than any other available chunk since it can be extended to be as
+ *    large as necessary (up to system limitations).
  *
- * 5. Otherwise, the heap_first_chunk of memory is extended by obtaining more
- *    space from the system (normally using heap_sbrk).  Memory is
+ * 5. Otherwise, the heap_first_chunk of memory is extended by obtaining
+ *    more space from the system (normally using heap_sbrk). Memory is
  *    gathered from the system (in system page-sized units) in a way that
  *    allows chunks obtained across different sbrk calls to be
- *    consolidated, but does not require contiguous memory. Thus, it
- *    should be safe to intersperse allocs with other sbrk calls.
+ *    consolidated, but does not require contiguous memory. Thus, it should
+ *    be safe to intersperse allocs with other sbrk calls.
  *
  * All allocations are made from the the 'lowest' part of any found chunk.
  * (The implementation invariant is that heap_prev_inuse is always true of
@@ -1552,3 +1593,71 @@ caddr_t heap_calloc(heap_size_t bytes)
 void heap_alloc_init(void)
 {
 }
+
+static int do_heap_test(int argc, char **argv)
+{
+	caddr_t addr;
+	heap_size_t size;
+	int i, nr_heaps = 1;
+
+	if (argc < 3)
+		return -EINVAL;
+
+	size = strtoul(argv[2], 0, 0);
+	if (argc > 3)
+		nr_heaps = strtoul(argv[3], 0, 0);
+
+	for (i = 0; i < nr_heaps; i++) {
+		printf("Allocating heap...\n");
+		addr = heap_alloc(size);
+		printf("alloc = %016llx\n", addr);
+		printf("Freeing heap...\n");
+		heap_free(addr);
+	}
+	return 0;
+}
+
+static int do_heap_bins(int argc, char **argv)
+{
+	int idx;
+	struct list_head *bin;
+	heap_size_t victim_size;
+	struct heap_chunk *victim;
+	struct heap_chunk *n;
+
+	printf("Number of BINs: %d\n", NR_HEAP_BINS);
+	if (heap_last_chunk)
+		printf("Last chunk: %08x\n",
+		       heap_curr_size(heap_last_chunk));
+	for (idx = 0; idx < NR_HEAP_BINS; idx++) {
+		bin = heap_bin(idx);
+		if (!list_empty(bin)) {
+			printf("BIN%d chunks:\n", idx);
+			heap_chunk_for_each_safe(victim, n, bin) {
+				victim_size = heap_curr_size(victim);
+				printf("  %08x\n", victim_size);
+			}
+		}
+	}
+	return 0;
+}
+
+static int do_heap(int argc, char **argv)
+{
+	if (argc < 2)
+		return -EINVAL;
+
+	if (strcmp(argv[1], "test") == 0)
+		return do_heap_test(argc, argv);
+	if (strcmp(argv[1], "bins") == 0)
+		return do_heap_bins(argc, argv);
+	return 0;
+}
+
+DEFINE_COMMAND(heap, do_heap, "Display free heap ranges",
+	"heap test size [N]"
+	"    -test heap allocator and display first N allocations\n"
+	"heap bins\n"
+	"    -dump heap bins\n"
+	"\n"
+);

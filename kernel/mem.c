@@ -8,7 +8,7 @@
 #include <limits.h>
 #include <stdio.h>
 
-#ifdef CONFIG_MEM
+#ifndef CONFIG_MEM_HEAP
 #define MEM_ALLOC_ANYWHERE		(~(phys_addr_t)0)
 #define MEM_ALLOC_ACCESSIBLE		0
 
@@ -689,6 +689,7 @@ void mem_free_all(void)
 		con_dbg("memory: %016llx - %016llx\n", start, end);
 		page_alloc_init(start, end - start);
 	}
+	heap_range_init(PERCPU_STACKS_END);
 }
 
 static void mem_dump(struct mem_type *type)

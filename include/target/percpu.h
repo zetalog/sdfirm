@@ -36,7 +36,7 @@
  * SUCH DAMAGE.
  *
  * @(#)percpu.h: per-cpu variables definitions
- * $Id: percpu.h,v 1.1 2019-11-06 15:56:00 zhenglv Exp $
+ * $Id: percpu.h,v 1.1 2019-12-17 17:00:00 zhenglv Exp $
  */
 
 #ifndef __PERCPU_H_INCLUDE__
@@ -47,7 +47,7 @@
 #define PERCPU_INPUT(cacheline)	\
 	. = ALIGN(cacheline);	\
 	__percpu_start = .;	\
-	*(.sysdata..percpu)	\
+	*(.data..percpu)	\
 	. = ALIGN(cacheline);	\
 	__percpu_end = .;
 
@@ -69,35 +69,21 @@ extern uintptr_t __percpu_end[];
 #define PERCPU_END		((uint64_t)&__percpu_end)
 
 #ifdef CONFIG_SMP
-#ifdef CONFIG_PERCPU_INTERLEAVE
-#define DEFINE_PERCPU(type, name)	\
-	__attribute__((__section__(".sysdata..percpu"))) \
-	__typeof__(type) percpu_##name[NR_CPUS]
-#define get_percpu(var)		(percpu_##var[smp_processor_id()])
-#define get_percpu_hmp(var)	get_percpu(var)
-#else
-#define DEFINE_PERCPU(type, name)	\
-	__attribute__((__section__(".sysdata..percpu"))) \
-	__typeof__(type) percpu_##name
-
-extern uint64_t __percpu_offset[NR_CPUS];
+#define DEFINE_PERCPU(type, name)			\
+	__attribute__((__section__(".data..percpu")))	\
+	__cache_aligned __typeof__(type) percpu_##name
 #define percpu_offset(x)	(__percpu_offset[x])
-#define thiscpu_offset		percpu_offset(smp_processor_id())
-
 #define percpu_reloc(var, cpu)	(*RELOC_HIDE(&percpu_##var, percpu_offset(cpu)))
 #define get_percpu(var)		percpu_reloc(var, smp_processor_id())
-#define get_percpu_hmp(var)	percpu_reloc(var, hmp_processor_id())
-#endif
+
+extern uint64_t __percpu_offset[NR_CPUS];
+void percpu_init(void);
 #else
 #define DEFINE_PERCPU(type, name)	\
 	__typeof__(type) percpu_##name
-
 #define get_percpu(var)		percpu_##var
-#define get_percpu_hmp(var)	get_percpu(var)
+#define percpu_init()		do { } while (0)
 #endif
-
-caddr_t percpu_get_free_area(uint8_t cpu);
-int percpu_init(void);
 #endif /* __ASSEMBLY__ */
 
 #endif /* __PERCPU_H_INCLUDE__ */

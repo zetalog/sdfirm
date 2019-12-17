@@ -142,6 +142,7 @@ endif
 
 menuconfig SMP
 	bool "Scheduling facility (SMP) support"
+	select HEAP_PAGE
 
 if SMP
 
@@ -312,6 +313,11 @@ config LOAD_DATA
 
 endmenu
 
+config HEAP_PAGE
+	bool
+	select PAGE
+	select HEAP
+
 menuconfig HEAP
 	bool "Address space allocator (heap) support"
 	help
@@ -331,6 +337,9 @@ config HEAP_ALIGN_2
 
 config HEAP_ALIGN_4
 	bool "4"
+
+config HEAP_ALIGN_8
+	bool "8"
 
 endchoice
 
@@ -371,11 +380,22 @@ config MEM_MAX_REGIONS
 config MEM_RESIZE
 	bool "Enable resizable memory region array support"
 
+config MEM_HEAP
+	bool "Use heap allocator instead of memory allocator"
+	depends !PAGE
+	select HEAP
+	help
+	  For embedded systems, use simple heap allocator would surfice.
+	  In this case, memory resource allocator can also be
+	  implemented via heap allocator interface.
+	  If unsure, say 'N'.
+
 endif
 
 menuconfig PAGE
 	bool "Address space allocator (page) support"
 	select MEM
+	select MMU_MAP_MEM if MMU
 
 if PAGE
 
