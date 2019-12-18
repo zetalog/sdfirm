@@ -13,7 +13,6 @@
 #include <target/panic.h>
 #include <target/muldiv.h>
 #include <target/version.h>
-#include <target/atomic.h>
 #include <target/circbf.h>
 
 #ifndef offsetof

@@ -40,6 +40,7 @@
  */
 
 #include <target/arch.h>
+#include <target/atomic.h>
 #include <asm/mach/cache.h>
 
 /* Info accessors */

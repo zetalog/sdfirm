@@ -8,7 +8,6 @@ obj-y += bitops.rel
 obj-y += muldiv.rel
 obj-y += string.rel
 obj-y += errno.rel
-obj-y += atomic.rel
 obj-$(CONFIG_PRINT_VSNPRINTF) += vsnprintf.rel
 obj-$(CONFIG_CONSOLE_OUTPUT) += printf.rel
 obj-$(CONFIG_CRC16_CCITT) += crc16_ccitt.rel

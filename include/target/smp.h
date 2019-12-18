@@ -36,7 +36,7 @@
  * SUCH DAMAGE.
  *
  * @(#)smp.h: symmetric multi-processing interfaces
- * $Id: smp.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * $Id: smp.h,v 1.0 2019-12-18 15:33:00 zhenglv Exp $
  */
 
 #ifndef __SMP_H_INCLUDE__

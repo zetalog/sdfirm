@@ -5,7 +5,6 @@
 menuconfig NET
 	bool "Networking support"
 	select HEAP
-	select ATOMIC_SUB_RETURN
 
 if NET
 

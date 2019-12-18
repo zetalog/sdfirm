@@ -76,16 +76,6 @@ config MATH_MOD64
 
 endmenu
 
-menu "Atomic operations"
-
-config ATOMIC_SUB_RETURN
-	bool "atomic_sub_return"
-
-config ATOMIC_ADD_RETURN
-	bool "atomic_add_return"
-
-endmenu
-
 menu "Checksum algorithms"
 
 config CRC16_CCITT

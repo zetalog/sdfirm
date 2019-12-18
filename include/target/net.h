@@ -1,7 +1,7 @@
 #ifndef __NET_H_INCLUDE_H__
 #define __NET_H_INCLUDE_H__
 
-#include <target/generic.h>
+#include <target/atomic.h>
 
 typedef uint16_t dev_mtu_t;
 typedef uint32_t sk_size_t;
