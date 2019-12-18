@@ -31,7 +31,7 @@ static inline void local_flush_tlb_all(void)
 static inline void flush_tlb_all(void)
 {
 	dsb(ishst);
-	__tlbi(vmallelis);
+	__tlbi(vmalle1is);
 	dsb(ish);
 	isb();
 }
