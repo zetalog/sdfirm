@@ -203,6 +203,25 @@ config NR_CPUS
 	# These have to remain sorted largest to smallest
 	default "48"
 
+menu "CPU architecture options"
+
+config ARM64_ATOMIC_CAS
+	bool "Enable compare and exchange (CAS) atomic support"
+	depends CPU_64v8_1_ATOMICS
+
+choice
+	prompt "Type of atomic counter"
+
+config ARM64_ATOMIC_COUNT_32
+	bool "signed 32-bit"
+
+config ARM64_ATOMIC_COUNT_64
+	bool "signed 64-bit"
+
+endchoice
+
+endmenu
+
 choice
 	prompt "System security (TrustZone)"
 	default TZ_NORMAL

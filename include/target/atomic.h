@@ -46,11 +46,99 @@
 
 #ifdef CONFIG_SMP
 #include <asm/atomic.h>
+
+#define atomic_read(v)			smp_hw_atomic_read(v)
+#define atomic_read_acquire(v)		smp_hw_atomic_read_acquire(v)
+
+#define atomic_set(v, i)		smp_hw_atomic_set(v, i)
+#define atomic_set_release(v, i)	smp_hw_atomic_set_release(v, i)
+
+#define atomic_add(i, v)		smp_hw_atomic_add(i, v)
+#define atomic_add_return(i, v)		smp_hw_atomic_add_return(i, v)
+#define atomic_add_return_acquire(i, v)	smp_hw_atomic_add_return_acquire(i, v)
+#define atomic_add_return_release(i, v)	smp_hw_atomic_add_return_release(i, v)
+#define atomic_add_return_relaxed(i, v)	smp_hw_atomic_add_return_relaxed(i, v)
+#define atomic_fetch_add(i, v)		smp_hw_atomic_fetch_add(i, v)
+#define atomic_fetch_add_acquire(i, v)	smp_hw_atomic_fetch_add_acquire(i, v)
+#define atomic_fetch_add_release(i, v)	smp_hw_atomic_fetch_add_release(i, v)
+#define atomic_fetch_add_relaxed(i, v)	smp_hw_atomic_fetch_add_relaxed(i, v)
+
+#define atomic_sub(i, v)		smp_hw_atomic_sub(i, v)
+#define atomic_sub_return_relaxed(i, v)	smp_hw_atomic_sub_return_relaxed(i, v)
+#define atomic_sub_return_acquire(i, v)	smp_hw_atomic_sub_return_acquire(i, v)
+#define atomic_sub_return_release(i, v)	smp_hw_atomic_sub_return_release(i, v)
+#define atomic_fetch_sub_relaxed(i, v)	smp_hw_atomic_fetch_sub_relaxed(i, v)
+#define atomic_fetch_sub_acquire(i, v)	smp_hw_atomic_fetch_sub_acquire(i, v)
+#define atomic_fetch_sub_release(i, v)	smp_hw_atomic_fetch_sub_release(i, v)
+
+#define atomic_inc(v)			smp_hw_atomic_inc(v)
+#define atomic_inc_return(v)		smp_hw_atomic_inc_return(v)
+#define atomic_inc_return_acquire(v)	smp_hw_atomic_inc_return_acquire(v)
+#define atomic_inc_return_release(v)	smp_hw_atomic_inc_return_release(v)
+#define atomic_inc_return_relaxed(v)	smp_hw_atomic_inc_return_relaxed(v)
+#define atomic_fetch_inc(v)		smp_hw_atomic_fetch_inc(v)
+#define atomic_fetch_inc_acquire(v)	smp_hw_atomic_fetch_inc_acquire(v)
+#define atomic_fetch_inc_release(v)	smp_hw_atomic_fetch_inc_release(v)
+#define atomic_fetch_inc_relaxed(v)	smp_hw_atomic_fetch_inc_relaxed(v)
+
+#define atomic_dec(v)			smp_hw_atomic_dec(v)
+#define atomic_dec_return(v)		smp_hw_atomic_dec_return(v)
+#define atomic_dec_return_acquire(v)	smp_hw_atomic_dec_return_acquire(v)
+#define atomic_dec_return_release(v)	smp_hw_atomic_dec_return_release(v)
+#define atomic_dec_return_relaxed(v)	smp_hw_atomic_dec_return_relaxed(v)
+#define atomic_fetch_dec(v)		smp_hw_atomic_fetch_dec(v)
+#define atomic_fetch_dec_acquire(v)	smp_hw_atomic_fetch_dec_acquire(v)
+#define atomic_fetch_dec_release(v)	smp_hw_atomic_fetch_dec_release(v)
+#define atomic_fetch_dec_relaxed(v)	smp_hw_atomic_fetch_dec_relaxed(v)
+
+#define atomic_and(i, v)		smp_hw_atomic_and(i, v)
+#define atomic_and_return(i, v)		smp_hw_atomic_and_return(i, v)
+#define atomic_and_return_acquire(i, v)	smp_hw_atomic_and_return_acquire(i, v)
+#define atomic_and_return_release(i, v)	smp_hw_atomic_and_return_release(i, v)
+#define atomic_and_return_relaxed(i, v)	smp_hw_atomic_and_return_relaxed(i, v)
+#define atomic_fetch_and(i, v)		smp_hw_atomic_fetch_and(i, v)
+#define atomic_fetch_and_acquire(i, v)	smp_hw_atomic_fetch_and_acquire(i, v)
+#define atomic_fetch_and_release(i, v)	smp_hw_atomic_fetch_and_release(i, v)
+#define atomic_fetch_and_relaxed(i, v)	smp_hw_atomic_fetch_and_relaxed(i, v)
+
+#define atomic_or(i, v)			smp_hw_atomic_or(i, v)
+#define atomic_or_return(i, v)		smp_hw_atomic_or_return(i, v)
+#define atomic_or_return_acquire(i, v)	smp_hw_atomic_or_return_acquire(i, v)
+#define atomic_or_return_release(i, v)	smp_hw_atomic_or_return_release(i, v)
+#define atomic_or_return_relaxed(i, v)	smp_hw_atomic_or_return_relaxed(i, v)
+#define atomic_fetch_or(i, v)		smp_hw_atomic_fetch_or(i, v)
+#define atomic_fetch_or_acquire(i, v)	smp_hw_atomic_fetch_or_acquire(i, v)
+#define atomic_fetch_or_release(i, v)	smp_hw_atomic_fetch_or_release(i, v)
+#define atomic_fetch_or_relaxed(i, v)	smp_hw_atomic_fetch_or_relaxed(i, v)
+
+#define atomic_xor(i, v)		smp_hw_atomic_xor(i, v)
+#define atomic_xor_return(i, v)		smp_hw_atomic_xor_return(i, v)
+#define atomic_xor_return_acquire(i, v)	smp_hw_atomic_xor_return_acquire(i, v)
+#define atomic_xor_return_release(i, v)	smp_hw_atomic_xor_return_release(i, v)
+#define atomic_xor_return_relaxed(i, v)	smp_hw_atomic_xor_return_relaxed(i, v)
+#define atomic_fetch_xor(i, v)		smp_hw_atomic_fetch_xor(i, v)
+#define atomic_fetch_xor_acquire(i, v)	smp_hw_atomic_fetch_xor_acquire(i, v)
+#define atomic_fetch_xor_release(i, v)	smp_hw_atomic_fetch_xor_release(i, v)
+#define atomic_fetch_xor_relaxed(i, v)	smp_hw_atomic_fetch_xor_relaxed(i, v)
+
+#define atomic_xchg(v, i)		smp_hw_atomic_xchg(v, i)
+#define atomic_xchg_acquire(v, i)	smp_hw_atomic_xchg_acquire(v, i)
+#define atomic_xchg_release(v, i)	smp_hw_atomic_xchg_release(v, i)
+#define atomic_xchg_relaxed(v, i)	smp_hw_atomic_xchg_relaxed(v, i)
+
+#define atomic_cmpxchg(v, o, n)		smp_hw_atomic_cmpxchg(v, o, n)
+#define atomic_cmpxchg_acquire(v, o, n)	smp_hw_atomic_cmpxchg_acquire(v, o, n)
+#define atomic_cmpxchg_release(v, o, n)	smp_hw_atomic_cmpxchg_release(v, o, n)
+#define atomic_cmpxchg_relaxed(v, o, n)	smp_hw_atomic_cmpxchg_relaxed(v, o, n)
+
+#define atomic_add_and_test(i, v)	smp_hw_atomic_add_and_test(i, v)
+#define atomic_sub_and_test(i, v)	smp_hw_atomic_sub_and_test(i, v)
+#define atomic_dec_and_test(i, v)	smp_hw_atomic_dec_and_test(i, v)
+#define atomic_inc_and_test(i, v)	smp_hw_atomic_inc_and_test(i, v)
 #else
 /* atomic_t should be 8 bit signed type */
 typedef int32_t atomic_count_t;
-
-typedef struct {atomic_count_t counter;}	atomic_t;
+typedef struct { atomic_count_t counter; } atomic_t;
 
 #define ATOMIC_OP(op, c_op)						\
 static inline void atomic_##op(atomic_count_t i, atomic_t *v)		\
