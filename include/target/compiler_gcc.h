@@ -47,8 +47,8 @@ typedef __builtin_va_list va_list;
 #define __always_inline			inline __attribute__((__always_inline__))
 #define __section(S)			__attribute__((__section__(#S)))
 
-#define __stringify_1(x...)	#x
-#define __stringify(x...)	__stringify_1(x)
+#define __stringify_1(x...)		#x
+#define __stringify(x...)		__stringify_1(x)
 
 #define RELOC_HIDE(ptr, off)				\
 	({						\
@@ -56,8 +56,5 @@ typedef __builtin_va_list va_list;
 		__asm__ ("" : "=r"(__ptr) : "0"(ptr));	\
 		(typeof(ptr)) (__ptr + (off));		\
 	})
-
-#define READ_ONCE(x)		(x)
-#define WRITE_ONCE(x, val)	((x) = (val))
 
 #endif  /* __COMPILER_GCC_H_INCLUDE__ */

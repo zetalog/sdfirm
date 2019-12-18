@@ -1,9 +1,24 @@
 #include <target/irq.h>
 #include <target/panic.h>
+#include <target/percpu.h>
 
+#ifdef CONFIG_SMP
+struct smp_idle {
+	DECLARE_BITMAP(bh_awakes, NR_BHS);
+	struct bh_entry bh_entries[NR_BHS];
+	bh_t bh_nr_regs;
+};
+
+DEFINE_PERCPU(struct smp_idle, smp_idles);
+
+#define bh_awakes	get_percpu(smp_idles).bh_awakes
+#define bh_entries	get_percpu(smp_idles).bh_entries
+#define bh_nr_regs	get_percpu(smp_idles).bh_nr_regs
+#else
 DECLARE_BITMAP(bh_awakes, NR_BHS);
 struct bh_entry bh_entries[NR_BHS];
 bh_t bh_nr_regs = 0;
+#endif
 
 /* big background lock */
 #ifdef SYS_REALTIME

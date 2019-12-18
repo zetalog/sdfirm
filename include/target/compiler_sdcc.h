@@ -20,4 +20,7 @@ typedef unsigned char * va_list;
 
 #define __packed
 
+#define READ_ONCE(x)			(x)
+#define WRITE_ONCE(x, val)		((x) = (val))
+
 #endif /* __COMPILER_SDCC_H_INCLUDE__ */

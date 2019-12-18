@@ -16,7 +16,7 @@
 #endif
 
 #ifndef __always_inline
-#define __always_inline	inline
+#define __always_inline		inline
 #endif
 #define ARRAY_ADDR(arr)		(&((arr)[0]))
 #define ARRAY_SIZE(arr)		(sizeof(arr) / sizeof((arr)[0]))

@@ -12,12 +12,32 @@
 #define TIMER_TIME(timeout)		((timeout_t)((timeout_t)(timeout) >> 1))
 #define TIMER_MAKE(shot, time)		((shot) | ((timeout_t)(time) << 1))
 
+#ifdef CONFIG_SMP
+struct smp_timer {
+	timer_desc_t *timer_descs[NR_TIMERS];
+	timeout_t timer_timeouts[NR_TIMERS];
+	DECLARE_BITMAP(timer_regs, NR_TIMERS);
+	bh_t timer_bh;
+	tid_t timer_running_tid;
+	tid_t timer_orders[NR_TIMERS+1];
+};
+
+DEFINE_PERCPU(struct smp_timer, smp_timers);
+
+#define timer_descs		get_percpu(smp_timres).timer_descs
+#define timer_timeouts		get_percpu(smp_timres).timer_timeouts
+#define timer_regs		get_percpu(smp_timres).timer_regs
+#define timer_bh		get_percpu(smp_timres).timer_bh
+#define timer_running_tid	get_percpu(smp_timres).timer_running_tid
+#define timer_orders		get_percpu(smp_timres).timer_orders
+#else
 timer_desc_t *timer_descs[NR_TIMERS];
 timeout_t timer_timeouts[NR_TIMERS];
 DECLARE_BITMAP(timer_regs, NR_TIMERS);
-bh_t timer_bh = INVALID_BH;
-tid_t timer_running_tid = INVALID_TID;
+bh_t timer_bh;
+tid_t timer_running_tid;
 tid_t timer_orders[NR_TIMERS+1];
+#endif
 
 void __timer_del(tid_t tid)
 {
@@ -413,6 +433,7 @@ void timer_init(void)
 	tid_t tid;
 
 	/* The last timer order indexing value is always INVALID_TID */
+	timer_running_tid = INVALID_TID;
 	for (tid = 0; tid < NR_TIMERS+1; tid++)
 		timer_orders[tid] = INVALID_TID;
 	timer_bh = bh_register_handler(timer_bh_handler);

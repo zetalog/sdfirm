@@ -46,6 +46,61 @@
 
 #define barrier()	__barrier()
 
+#ifndef __ASSEMBLY__
+/* Prevent the compiler from merging or refetching reads or writes.
+ *
+ * DEC Alpha may implement its own READ_ONCE clone for historical
+ * reasons.
+ */
+#ifndef READ_ONCE
+static __always_inline
+void __read_once_size(const volatile void *p, void *res, int size)
+{
+	switch (size) {
+	case 1: *(uint8_t *)res = *(volatile uint8_t *)p; break;
+	case 2: *(uint16_t *)res = *(volatile uint16_t *)p; break;
+	case 4: *(uint32_t *)res = *(volatile uint32_t *)p; break;
+	case 8: *(uint64_t *)res = *(volatile uint64_t *)p; break;
+	default:
+		__barrier();
+		__builtin_memcpy((void *)res, (const void *)p, size);
+		__barrier();
+	}
+}
+
+#define READ_ONCE(x)						\
+({								\
+	union { typeof(x) __val; char __c[1]; } __u;		\
+	__read_once_size(&(x), __u.__c, sizeof(x));		\
+	__u.__val;						\
+})
+#endif
+#ifndef WRITE_ONCE
+static __always_inline
+void __write_once_size(volatile void *p, void *res, int size)
+{
+	switch (size) {
+	case 1: *(volatile uint8_t *)p = *(uint8_t *)res; break;
+	case 2: *(volatile uint16_t *)p = *(uint16_t *)res; break;
+	case 4: *(volatile uint32_t *)p = *(uint32_t *)res; break;
+	case 8: *(volatile uint64_t *)p = *(uint64_t *)res; break;
+	default:
+		__barrier();
+		__builtin_memcpy((void *)p, (const void *)res, size);
+		__barrier();
+	}
+}
+
+#define WRITE_ONCE(x, val)					\
+({								\
+	union { typeof(x) __val; char __c[1]; } __u =		\
+		{ .__val = (__force typeof(x)) (val) };	 	\
+	__write_once_size(&(x), __u.__c, sizeof(x));		\
+	__u.__val;						\
+})
+#endif
+#endif /* __ASSEMBLY__ */
+
 #include <asm/barrier.h>
 
 #ifndef mb
