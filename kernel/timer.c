@@ -347,27 +347,30 @@ void timer_bh_handler(uint8_t event)
 }
 
 #ifdef CONFIG_TIMER_TEST
+tid_t tid_1;
+tid_t tid_2;
+tid_t tid_3;
+
 void timer_test_handler(void)
 {
+	printf("timeout\n");
+	timer_schedule_shot(tid_1, 5000);
 }
 
 timer_desc_t timer_1 = {
 	TIMER_BH,
 	timer_test_handler,
 };
-tid_t tid_1;
 
 timer_desc_t timer_2 = {
 	TIMER_IRQ,
 	timer_test_handler,
 };
-tid_t tid_2;
 
 timer_desc_t timer_3 = {
 	TIMER_IRQ,
 	timer_test_handler,
 };
-tid_t tid_3;
 
 void timer_test(void)
 {
@@ -405,11 +408,13 @@ void timer_test(void)
 	BUG_ON(timer_orders[1] != tid_2);
 	BUG_ON(timer_orders[2] != tid_3);
 
+#ifndef CONFIG_TIMER_TEST_TIMEOUT
 	timer_running_tid = tid_1;
 	timer_unregister(tid_1);
 	BUG_ON(timer_orders[0] != tid_2);
 	BUG_ON(timer_orders[1] != tid_3);
 	BUG_ON(timer_orders[2] != INVALID_TID);
+#endif
 
 	timer_running_tid = tid_2;
 	timer_unregister(tid_2);

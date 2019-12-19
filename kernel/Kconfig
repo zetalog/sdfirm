@@ -249,6 +249,13 @@ config MAX_TIMERS
 	  scs (IFD_PRES_POLL)
 	  So if you are not sure, say 1 here.
 
+config TIMER_TEST
+	bool "Enable timer self test"
+
+config TIMER_TEST_TIMEOUT
+	bool "Enable timer timeout test"
+	depends TIMER_TEST
+
 endif
 
 menu "Address space layout (xip) support"
