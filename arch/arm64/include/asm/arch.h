@@ -44,7 +44,9 @@
 #define SYS_USER		1
 #endif
 
+#define yield()			asm volatile("yield" ::: "memory")
 #define nop()			__nops(1)
 #define wait_irq()		wfi()
+#define cpu_relax()		yield()
 
 #endif /* __ARCH_ARM64_H_INCLUDE__ */

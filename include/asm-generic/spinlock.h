@@ -1,0 +1,82 @@
+#ifndef __ASM_GENERIC_SPINLOCK_H_INCLUDE__
+#define __ASM_GENERIC_SPINLOCK_H_INCLUDE__
+
+#include <target/atomic.h>
+#include <target/barrier.h>
+
+typedef struct spinlock {
+	union {
+		atomic_t val;
+		struct {
+			union {
+				uint16_t locked_pending;
+				struct {
+					uint8_t locked;
+					uint8_t pending;
+				};
+			} u;
+			uint16_t tail;
+		};
+	};
+} spinlock_t;
+
+#define	__ARCH_SPIN_LOCK_UNLOCKED	{ { .val = ATOMIC_INIT(0) } }
+
+/* Bitfields in the atomic value:
+ *
+ * When NR_CPUS < 16K
+ *  0- 7: locked byte
+ *     8: pending
+ *  9-15: not used
+ * 16-17: tail index
+ * 18-31: tail cpu (+1)
+ *
+ * When NR_CPUS >= 16K
+ *  0- 7: locked byte
+ *     8: pending
+ *  9-10: tail index
+ * 11-31: tail cpu (+1)
+ */
+#define	_Q_SET_MASK(type)	(((1U << _Q_ ## type ## _BITS) - 1)\
+				      << _Q_ ## type ## _OFFSET)
+#define _Q_LOCKED_OFFSET	0
+#define _Q_LOCKED_BITS		8
+#define _Q_LOCKED_MASK		_Q_SET_MASK(LOCKED)
+
+#define _Q_PENDING_OFFSET	(_Q_LOCKED_OFFSET + _Q_LOCKED_BITS)
+#if CONFIG_NR_CPUS < (1U << 14)
+#define _Q_PENDING_BITS		8
+#else
+#define _Q_PENDING_BITS		1
+#endif
+#define _Q_PENDING_MASK		_Q_SET_MASK(PENDING)
+
+#define _Q_TAIL_IDX_OFFSET	(_Q_PENDING_OFFSET + _Q_PENDING_BITS)
+#define _Q_TAIL_IDX_BITS	2
+#define _Q_TAIL_IDX_MASK	_Q_SET_MASK(TAIL_IDX)
+
+#define _Q_TAIL_CPU_OFFSET	(_Q_TAIL_IDX_OFFSET + _Q_TAIL_IDX_BITS)
+#define _Q_TAIL_CPU_BITS	(32 - _Q_TAIL_CPU_OFFSET)
+#define _Q_TAIL_CPU_MASK	_Q_SET_MASK(TAIL_CPU)
+
+#define _Q_TAIL_OFFSET		_Q_TAIL_IDX_OFFSET
+#define _Q_TAIL_MASK		(_Q_TAIL_IDX_MASK | _Q_TAIL_CPU_MASK)
+
+#define _Q_LOCKED_VAL		(1U << _Q_LOCKED_OFFSET)
+#define _Q_PENDING_VAL		(1U << _Q_PENDING_OFFSET)
+
+#define qspin_is_locked(lock)		atomic_read(&(lock)->val)
+#define qspin_value_unlocked(lock)	(!atomic_read(&(lock).val))
+#define qspin_is_contended(lock)	\
+	(atomic_read(&(lock)->val) & ~_Q_LOCKED_MASK)
+
+void qspin_lock(struct spinlock *lock);
+#define qspin_unlock(lock)		smp_store_release(&(lock)->locked, 0)
+
+#define smp_hw_spin_is_locked(l)	qspin_is_locked(l)
+#define smp_hw_spin_is_contended(l)	qspin_is_contended(l)
+#define smp_hw_spin_value_unlocked(l)	qspin_value_unlocked(l)
+#define smp_hw_spin_lock(l)		qspin_lock(l)
+#define smp_hw_spin_unlock(l)		qspin_unlock(l)
+
+#endif /* __ASM_GENERIC_SPINLOCK_H_INCLUDE__ */

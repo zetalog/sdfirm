@@ -232,19 +232,21 @@ ATOMIC64_OPS(xor, eor)
 #undef ATOMIC64_OP_RETURN
 #undef ATOMIC64_OP
 
+/* cmpxchg */
 #define __CMPXCHG_CASE(w, sfx, name, sz, mb, acq, rel, cl)		\
-static inline u##sz __cmpxchg_case_##name##sz(volatile void *ptr,	\
-					      unsigned long old,	\
-					      u##sz new)		\
+static inline								\
+uint##sz##_t __cmpxchg_case_##name##sz(volatile void *ptr,		\
+				       unsigned long old,		\
+				       uint##sz##_t new)		\
 {									\
 	unsigned long tmp;						\
-	u##sz oldval;							\
+	uint##sz##_t oldval;						\
 	/* Sub-word sizes require explicit casting so that the compare  \
 	 * part of the cmpxchg doesn't end up interpreting non-zero	\
 	 * upper bits of the register containing "old".			\
 	 */								\
 	if (sz < 32)							\
-		old = (u##sz)old;					\
+		old = (uint##sz##_t)old;				\
 	asm volatile(							\
 	"	prfm	pstl1strm, %[v]\n"				\
 	"1:	ld" #acq "xr" #sfx "\t%" #w "[oldval], %[v]\n"		\
@@ -255,7 +257,7 @@ static inline u##sz __cmpxchg_case_##name##sz(volatile void *ptr,	\
 	"	" #mb "\n"						\
 	"2:"								\
 	: [tmp] "=&r" (tmp), [oldval] "=&r" (oldval),			\
-	  [v] "+Q" (*(u##sz *)ptr)					\
+	  [v] "+Q" (*(uint##sz##_t *)ptr)				\
 	: [old] "Kr" (old), [new] "r" (new)				\
 	: cl);								\
 	return oldval;							\
@@ -278,32 +280,164 @@ __CMPXCHG_CASE(w,  ,  mb_, 32, dmb ish,  , l, "memory")
 __CMPXCHG_CASE( ,  ,  mb_, 64, dmb ish,  , l, "memory")
 #undef __CMPXCHG_CASE
 
-#define __CMPXCHG_DBL(name, mb, rel, cl)				\
-static inline long __cmpxchg_double##name(unsigned long old1,		\
-					  unsigned long old2,		\
-					  unsigned long new1,		\
-					  unsigned long new2,		\
-					  volatile void *ptr)		\
+#define __CMPXCHG_GEN(sfx)						\
+static inline unsigned long __cmpxchg##sfx(volatile void *ptr,		\
+					   unsigned long old,		\
+					   unsigned long new,		\
+					   int size)			\
 {									\
-	unsigned long tmp, ret;						\
-	asm volatile("// __cmpxchg_double" #name "\n"			\
+	switch (size) {							\
+	case 1:								\
+		return __cmpxchg_case##sfx##_8(ptr, old, new);		\
+	case 2:								\
+		return __cmpxchg_case##sfx##_16(ptr, old, new);		\
+	case 4:								\
+		return __cmpxchg_case##sfx##_32(ptr, old, new);		\
+	case 8:								\
+		return __cmpxchg_case##sfx##_64(ptr, old, new);		\
+	default:							\
+		BUG();							\
+	}								\
+	unreachable();							\
+}
+__CMPXCHG_GEN()
+__CMPXCHG_GEN(_acq)
+__CMPXCHG_GEN(_rel)
+__CMPXCHG_GEN(_mb)
+#undef __CMPXCHG_GEN
+
+#define __cmpxchg_wrapper(sfx, ptr, o, n)				\
+({									\
+	__typeof__(*(ptr)) __ret;					\
+	__ret = (__typeof__(*(ptr)))					\
+		__cmpxchg##sfx((ptr), (unsigned long)(o),		\
+				(unsigned long)(n), sizeof(*(ptr)));	\
+	__ret;								\
+})
+#define smp_hw_cmpxchg_relaxed(...)	__cmpxchg_wrapper(    , __VA_ARGS__)
+#define smp_hw_cmpxchg_acquire(...)	__cmpxchg_wrapper(_acq, __VA_ARGS__)
+#define smp_hw_cmpxchg_release(...)	__cmpxchg_wrapper(_rel, __VA_ARGS__)
+#define smp_hw_cmpxchg(...)		__cmpxchg_wrapper( _mb, __VA_ARGS__)
+
+/* xchg */
+#define __XCHG_CASE(w, sfx, name, sz, mb, nop_lse, acq, acq_lse, rel, cl)\
+static inline								\
+uint##sz##_t __xchg_case_##name##sz(uint##sz##_t x, volatile void *ptr)	\
+{									\
+	uint##sz##_t ret;						\
+	unsigned long tmp;						\
+	asm volatile("// __xchg" #name "\n"				\
 	"	prfm	pstl1strm, %2\n"				\
-	"1:	ldxp	%0, %1, %2\n"					\
-	"	eor	%0, %0, %3\n"					\
-	"	eor	%1, %1, %4\n"					\
-	"	orr	%1, %0, %1\n"					\
-	"	cbnz	%1, 2f\n"					\
-	"	st" #rel "xp	%w0, %5, %6, %2\n"			\
-	"	cbnz	%w0, 1b\n"					\
+	"1:	ld" #acq "xr" #sfx "\t%" #w "0, %2\n"			\
+	"	st" #rel "xr" #sfx "\t%w1, %" #w "3, %2\n"		\
+	"	cbnz	%w1, 1b\n"					\
 	"	" #mb "\n"						\
-	"2:"								\
-	: "=&r" (tmp), "=&r" (ret), "+Q" (*(unsigned long *)ptr)	\
-	: "r" (old1), "r" (old2), "r" (new1), "r" (new2)		\
+	: "=&r" (ret), "=&r" (tmp), "+Q" (*(uint##sz##_t *)ptr)		\
+	: "r" (x)							\
 	: cl);								\
 	return ret;							\
 }
-__CMPXCHG_DBL(   ,        ,  ,         )
-__CMPXCHG_DBL(_mb, dmb ish, l, "memory")
-#undef __CMPXCHG_DBL
+__XCHG_CASE(w, b,     ,  8,        ,    ,  ,  ,  ,         )
+__XCHG_CASE(w, h,     , 16,        ,    ,  ,  ,  ,         )
+__XCHG_CASE(w,  ,     , 32,        ,    ,  ,  ,  ,         )
+__XCHG_CASE( ,  ,     , 64,        ,    ,  ,  ,  ,         )
+__XCHG_CASE(w, b, acq_,  8,        ,    , a, a,  , "memory")
+__XCHG_CASE(w, h, acq_, 16,        ,    , a, a,  , "memory")
+__XCHG_CASE(w,  , acq_, 32,        ,    , a, a,  , "memory")
+__XCHG_CASE( ,  , acq_, 64,        ,    , a, a,  , "memory")
+__XCHG_CASE(w, b, rel_,  8,        ,    ,  ,  , l, "memory")
+__XCHG_CASE(w, h, rel_, 16,        ,    ,  ,  , l, "memory")
+__XCHG_CASE(w,  , rel_, 32,        ,    ,  ,  , l, "memory")
+__XCHG_CASE( ,  , rel_, 64,        ,    ,  ,  , l, "memory")
+__XCHG_CASE(w, b,  mb_,  8, dmb ish, nop,  , a, l, "memory")
+__XCHG_CASE(w, h,  mb_, 16, dmb ish, nop,  , a, l, "memory")
+__XCHG_CASE(w,  ,  mb_, 32, dmb ish, nop,  , a, l, "memory")
+__XCHG_CASE( ,  ,  mb_, 64, dmb ish, nop,  , a, l, "memory")
+#undef __XCHG_CASE
+
+#define __XCHG_GEN(sfx)							\
+static inline unsigned long __xchg##sfx(unsigned long x,		\
+					volatile void *ptr,		\
+					int size)			\
+{									\
+	switch (size) {							\
+	case 1:								\
+		return __xchg_case##sfx##_8(x, ptr);			\
+	case 2:								\
+		return __xchg_case##sfx##_16(x, ptr);			\
+	case 4:								\
+		return __xchg_case##sfx##_32(x, ptr);			\
+	case 8:								\
+		return __xchg_case##sfx##_64(x, ptr);			\
+	default:							\
+		BUG();							\
+	}								\
+	unreachable();							\
+}
+__XCHG_GEN()
+__XCHG_GEN(_acq)
+__XCHG_GEN(_rel)
+__XCHG_GEN(_mb)
+#undef __XCHG_GEN
+
+#define __xchg_wrapper(sfx, ptr, x)					\
+({									\
+	__typeof__(*(ptr)) __ret;					\
+	__ret = (__typeof__(*(ptr)))					\
+		__xchg##sfx((unsigned long)(x), (ptr), sizeof(*(ptr))); \
+	__ret;								\
+})
+#define smp_hw_xchg_relaxed(...)	__xchg_wrapper(    , __VA_ARGS__)
+#define smp_hw_xchg_acquire(...)	__xchg_wrapper(_acq, __VA_ARGS__)
+#define smp_hw_xchg_release(...)	__xchg_wrapper(_rel, __VA_ARGS__)
+#define smp_hw_xchg(...)		__xchg_wrapper( _mb, __VA_ARGS__)
+
+/* cmpwait */
+#define __CMPWAIT_CASE(w, sfx, sz)					\
+static inline void __cmpwait_case_##sz(volatile void *ptr,		\
+				       unsigned long val)		\
+{									\
+	unsigned long tmp;						\
+	asm volatile(							\
+	"	sevl\n"							\
+	"	wfe\n"							\
+	"	ldxr" #sfx "\t%" #w "[tmp], %[v]\n"			\
+	"	eor	%" #w "[tmp], %" #w "[tmp], %" #w "[val]\n"	\
+	"	cbnz	%" #w "[tmp], 1f\n"				\
+	"	wfe\n"							\
+	"1:"								\
+	: [tmp] "=&r" (tmp), [v] "+Q" (*(unsigned long *)ptr)		\
+	: [val] "r" (val));						\
+}
+__CMPWAIT_CASE(w, b, 8);
+__CMPWAIT_CASE(w, h, 16);
+__CMPWAIT_CASE(w,  , 32);
+__CMPWAIT_CASE( ,  , 64);
+#undef __CMPWAIT_CASE
+
+#define __CMPWAIT_GEN(sfx)						\
+static inline void __cmpwait##sfx(volatile void *ptr,			\
+				  unsigned long val,			\
+				  int size)				\
+{									\
+	switch (size) {							\
+	case 1:								\
+		return __cmpwait_case##sfx##_8(ptr, (uint8_t)val);	\
+	case 2:								\
+		return __cmpwait_case##sfx##_16(ptr, (uint16_t)val);	\
+	case 4:								\
+		return __cmpwait_case##sfx##_32(ptr, val);		\
+	case 8:								\
+		return __cmpwait_case##sfx##_64(ptr, val);		\
+	default:							\
+		BUG();							\
+	}								\
+	unreachable();							\
+}
+__CMPWAIT_GEN()
+#undef __CMPWAIT_GEN
+
+#define __cmpwait_relaxed(ptr, val) \
+	__cmpwait((ptr), (unsigned long)(val), sizeof(*(ptr)))
 
 #endif /* __ARM64_ATOMIC_LLSC_H_INCLUDE__ */

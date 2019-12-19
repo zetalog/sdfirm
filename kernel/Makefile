@@ -11,6 +11,7 @@ obj-y += delay.rel
 obj-y += stack.rel
 obj-$(CONFIG_SMP) += smp.rel
 obj-$(CONFIG_SMP) += percpu.rel
+#obj-$(CONFIG_SMP) += spinlock.rel
 obj-$(CONFIG_MEM) += mem.rel
 obj-$(CONFIG_CLK) += clk.rel
 obj-$(CONFIG_CONSOLE) += console.rel

@@ -139,6 +139,31 @@ void __write_once_size(volatile void *p, void *res, int size)
 #define __dma_wmb()	wmb()
 #endif
 
+#ifndef __smp_mb__before_atomic
+#define __smp_mb__before_atomic()	__smp_mb()
+#endif
+
+#ifndef __smp_mb__after_atomic
+#define __smp_mb__after_atomic()	__smp_mb()
+#endif
+
+#ifndef __smp_store_release
+#define __smp_store_release(p, v)	\
+	do {				\
+		__smp_mb();		\
+		WRITE_ONCE(*p, v);	\
+	} while (0)
+#endif
+
+#ifndef __smp_load_acquire
+#define __smp_load_acquire(p)				\
+	({						\
+		typeof(*p) ___p1 = READ_ONCE(*p);	\
+		__smp_mb();				\
+		___p1;					\
+	})
+#endif
+
 #ifndef dma_mb
 #define dma_mb()	__dma_mb()
 #endif
@@ -165,7 +190,23 @@ void __write_once_size(volatile void *p, void *res, int size)
 #define smp_wmb()	__smp_wmb()
 #endif
 
-#else	/* !CONFIG_SMP */
+#ifndef smp_mb__before_atomic
+#define smp_mb__before_atomic()	__smp_mb__before_atomic()
+#endif
+
+#ifndef smp_mb__after_atomic
+#define smp_mb__after_atomic()	__smp_mb__after_atomic()
+#endif
+
+#ifndef smp_load_acquire
+#define smp_load_acquire(p)	__smp_load_acquire(p)
+#endif
+
+#ifndef smp_store_release
+#define smp_store_release(p, v)	__smp_store_release(p, v)
+#endif
+
+#else /* !CONFIG_SMP */
 
 #ifndef smp_mb
 #define smp_mb()	barrier()
@@ -179,6 +220,58 @@ void __write_once_size(volatile void *p, void *res, int size)
 #define smp_wmb()	barrier()
 #endif
 
-#endif	/* CONFIG_SMP */
+#ifndef smp_mb__before_atomic
+#define smp_mb__before_atomic()	barrier()
+#endif
+
+#ifndef smp_mb__after_atomic
+#define smp_mb__after_atomic()	barrier()
+#endif
+
+#ifndef smp_store_release
+#define smp_store_release(p, v)		\
+	do {				\
+		barrier();		\
+		WRITE_ONCE(*p, v);	\
+	} while (0)
+#endif
+
+#ifndef smp_load_acquire
+#define smp_load_acquire(p)				\
+	({						\
+		typeof(*p) ___p1 = READ_ONCE(*p);	\
+		barrier();				\
+		___p1;					\
+	})
+#endif
+
+#endif /* CONFIG_SMP */
+
+#ifndef smp_cond_load_relaxed
+#define smp_cond_load_relaxed(ptr, cond_expr) ({	\
+	typeof(ptr) __PTR = (ptr);			\
+	typeof(*ptr) VAL;				\
+	for (;;) {					\
+		VAL = READ_ONCE(*__PTR);		\
+		if (cond_expr)				\
+			break;				\
+		cpu_relax();				\
+	}						\
+	VAL;						\
+})
+#endif
+
+#ifndef smp_acquire__after_ctrl_dep
+#define smp_acquire__after_ctrl_dep()		smp_rmb()
+#endif
+
+#ifndef smp_cond_load_acquire
+#define smp_cond_load_acquire(ptr, cond_expr) ({	\
+	typeof(*ptr) _val;				\
+	_val = smp_cond_load_relaxed(ptr, cond_expr);	\
+	smp_acquire__after_ctrl_dep();			\
+	_val;						\
+})
+#endif
 
 #endif /* __BARRIER_H_INCLUDE__ */
