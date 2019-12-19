@@ -319,9 +319,6 @@ static inline pgprot_t mk_pmd_sect_prot(pgprot_t prot)
 #endif
 
 #ifndef __ASSEMBLY__
-void create_pgd_mapping(pgd_t *pgdir, phys_addr_t phys,
-			caddr_t virt, phys_addr_t size,
-			pgprot_t prot, bool page_mapping_only);
 #ifdef CONFIG_MMU
 #ifndef set_fixmap
 #define set_fixmap(idx, phys)				\
@@ -356,10 +353,15 @@ void __set_fixmap(enum fixed_addresses idx,
 		  phys_addr_t phys, pgprot_t prot);
 
 void early_fixmap_init(void);
+void create_pgd_mapping(pgd_t *pgdir, phys_addr_t phys,
+			caddr_t virt, phys_addr_t size,
+			pgprot_t prot, bool page_mapping_only);
 void paging_init(void);
 #else /* CONFIG_MMU */
 #define __set_fixmap(idx, phys, prot)		do { } while (0)
 #define early_fixmap_init()			do { } while (0)
+#define create_pgd_mapping(pgdir, phys, virt, size, prot, mapping_only)	\
+	do { } while (0)
 #define paging_init()				do { } while (0)
 #endif /* CONFIG_MMU */
 #endif /* !__ASSEMBLY__ */
