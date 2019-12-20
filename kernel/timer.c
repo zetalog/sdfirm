@@ -3,6 +3,7 @@
 #include <target/gpt.h>
 #include <target/irq.h>
 #include <target/jiffies.h>
+#include <target/percpu.h>
 
 /* use the lowest bit to allow the maximum timeout values */
 #define TIMER_FLAG_SHOT			((timeout_t)1)
@@ -14,22 +15,24 @@
 
 #ifdef CONFIG_SMP
 struct smp_timer {
-	timer_desc_t *timer_descs[NR_TIMERS];
-	timeout_t timer_timeouts[NR_TIMERS];
-	DECLARE_BITMAP(timer_regs, NR_TIMERS);
-	bh_t timer_bh;
-	tid_t timer_running_tid;
-	tid_t timer_orders[NR_TIMERS+1];
+	timer_desc_t *smp_timer_descs[NR_TIMERS];
+	timeout_t smp_timer_timeouts[NR_TIMERS];
+	DECLARE_BITMAP(smp_timer_regs, NR_TIMERS);
+	bh_t smp_timer_bh;
+	tid_t smp_timer_running_tid;
+	tid_t smp_timer_orders[NR_TIMERS+1];
 };
 
 DEFINE_PERCPU(struct smp_timer, smp_timers);
 
-#define timer_descs		this_cpu_ptr(&smp_timres)->timer_descs
-#define timer_timeouts		this_cpu_ptr(&smp_timres)->timer_timeouts
-#define timer_regs		this_cpu_ptr(&smp_timres)->timer_regs
-#define timer_bh		this_cpu_ptr(&smp_timres)->timer_bh
-#define timer_running_tid	this_cpu_ptr(&smp_timres)->timer_running_tid
-#define timer_orders		this_cpu_ptr(&smp_timres)->timer_orders
+#define timer_descs		this_cpu_ptr(&smp_timers)->smp_timer_descs
+#define timer_timeouts		\
+	this_cpu_ptr(&smp_timers)->smp_timer_timeouts
+#define timer_regs		this_cpu_ptr(&smp_timers)->smp_timer_regs
+#define timer_bh		this_cpu_ptr(&smp_timers)->smp_timer_bh
+#define timer_running_tid	\
+	this_cpu_ptr(&smp_timers)->smp_timer_running_tid
+#define timer_orders		this_cpu_ptr(&smp_timers)->smp_timer_orders
 #else
 timer_desc_t *timer_descs[NR_TIMERS];
 timeout_t timer_timeouts[NR_TIMERS];

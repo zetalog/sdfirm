@@ -2,11 +2,35 @@
 # Firmware Tests
 #
 
-menu "Test setup"
+menuconfig TEST_BENCH
+	bool "Test bench setup"
+	select TIMER
+	select CRYPTO_RAND
+	select BIT_HWEIGHT64
+
+if TEST_BENCH
+
+choice
+	prompt "Test bench type"
+
+config TEST_BENCH_LOCAL
+	bool "Local CPU bench"
+	help
+	  The bench runs on the SMP boot core, testing other SMP cores as
+	  long as the SMP boot core itself.
+
+config TEST_BENCH_REMOTE
+	bool "Remote CPU bench"
+	help
+	  The bench runs on a special boot core, which has no coherence
+	  with other SMP cores and is responsible for power managing other
+	  SMP cores.
+
+endchoice
 
 config TEST_VERBOSE
 	bool "Enable verbosity in tests"
 
 source tests/raven/Kconfig
 
-endmenu
+endif

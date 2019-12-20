@@ -41,6 +41,9 @@ config BIT_ROUNDDOWN32
 	bool "rounddown32"
 	select BIT_FLS32
 
+config BIT_HWEIGHT64
+	bool "hweight64"
+
 endmenu
 
 menu "Bitmap operations"
@@ -128,6 +131,13 @@ config STRING_STRTOUL
 config STRING_UUID
 	select PRINT_SNPRINTF
 	bool "uuid"
+
+endmenu
+
+menu "Cryptographic algorithms"
+
+config CRYPTO_RAND
+	bool "rand/srand"
 
 endmenu
 

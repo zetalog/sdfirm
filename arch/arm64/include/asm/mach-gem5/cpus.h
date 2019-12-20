@@ -44,6 +44,11 @@
 
 #include <asm/mach/arch.h>
 
-#define CPUS_PER_CLUSTER	2
+#define CPUS_PER_CLUSTER	4
+#define CPUS_PER_RAIL		8
+#define CLUSTERS_PER_RAIL	2
+
+#define MAX_CPU_RAILS		(NR_CPUS / CPUS_PER_RAIL)
+#define MAX_CPU_CLUSTERS	(NR_CPUS / CPUS_PER_CLUSTER)
 
 #endif /* __CPUS_GEM5_H_INCLUDE__ */

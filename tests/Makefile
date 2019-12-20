@@ -1,6 +1,8 @@
 
 obj-y :=
 
+obj-$(CONFIG_TEST_BENCH) += bench.rel
+
 obj-$(CONFIG_RAVEN) += raven/
 
 SOURCE  = \

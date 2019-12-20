@@ -28,8 +28,11 @@ uint8_t find_next_set_bit(const bits_t *addr,
 uint8_t find_next_clear_bit(const bits_t *addr,
 			    uint8_t size, uint8_t offset);
 
-#define ALIGN(x,a)		__ALIGN_MASK(x,(a)-1)
 #define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
+#define ALIGN_UP(x, a)		__ALIGN_MASK(x, (a)-1)
+#define ALIGN_DOWN(x, a)	__ALIGN_MASK((x)-((a)-1), (a)-1)
+#define ALIGN(x, a)		ALIGN_UP(x, a)
+
 #define __round_mask(x, y) 	((y)-1)
 #define round_up(x, y)		((((x)-1) | __round_mask(x, y))+1)
 #define round_down(x, y)	((x) & ~__round_mask(x, y))
@@ -122,6 +125,7 @@ extern uint8_t ____ilog2_NaN(void);
 uint8_t bitrev8(uint8_t byte);
 uint8_t hweight8(uint8_t byte);
 uint8_t hweight16(uint16_t word);
+uint8_t hweight64(uint64_t quad);
 
 #define swap16(x) ((uint16_t)(						\
 	(((uint16_t)(x) & (uint16_t)0x00ffU) << 8) |			\

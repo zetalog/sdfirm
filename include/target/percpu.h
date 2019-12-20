@@ -72,15 +72,15 @@ extern uintptr_t __percpu_end[];
 #define DEFINE_PERCPU(type, name)			\
 	__attribute__((__section__(".data..percpu")))	\
 	__cache_aligned __typeof__(type) name
-#define percpu_offset(x)	(__percpu_offset[x])
-#define percpu_reloc_ptr(ptr, cpu)	\
-	RELOC_HIDE(ptr, percpu_offset(cpu))
-#define percpu_reloc_var(var, cpu)	\
-	(*percpu_reloc_ptr(&(var), cpu))
-#define this_cpu_var(var)	percpu_reloc_var(var, smp_processor_id())
-#define per_cpu_var(var, cpu)	percpu_reloc_var(var, cpu)
-#define this_cpu_ptr(ptr)	percpu_reloc_ptr(ptr, smp_processor_id())
-#define per_cpu_ptr(ptr, cpu)	percpu_reloc_ptr(ptr, cpu)
+#define percpu_offset(__cpu)	(__percpu_offset[__cpu])
+#define percpu_reloc_ptr(__ptr, __cpu)	\
+	RELOC_HIDE((__ptr), percpu_offset(__cpu))
+#define percpu_reloc_var(__var, __cpu)	\
+	(*percpu_reloc_ptr(&(__var), __cpu))
+#define per_cpu_var(__var, __cpu)	percpu_reloc_var(__var, __cpu)
+#define per_cpu_ptr(__ptr, __cpu)	percpu_reloc_ptr(__ptr, __cpu)
+#define this_cpu_var(__var)		per_cpu_var(__var, smp_processor_id())
+#define this_cpu_ptr(__ptr)		per_cpu_ptr(__ptr, smp_processor_id())
 
 extern uint64_t __percpu_offset[NR_CPUS];
 void percpu_init(void);

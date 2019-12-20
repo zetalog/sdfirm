@@ -4,16 +4,16 @@
 
 #ifdef CONFIG_SMP
 struct smp_idle {
-	DECLARE_BITMAP(bh_awakes, NR_BHS);
-	struct bh_entry bh_entries[NR_BHS];
-	bh_t bh_nr_regs;
+	DECLARE_BITMAP(smp_bh_awakes, NR_BHS);
+	struct bh_entry smp_bh_entries[NR_BHS];
+	bh_t smp_bh_nr_regs;
 };
 
 DEFINE_PERCPU(struct smp_idle, smp_idles);
 
-#define bh_awakes	this_cpu_ptr(&smp_idles)->bh_awakes
-#define bh_entries	this_cpu_ptr(&smp_idles)->bh_entries
-#define bh_nr_regs	this_cpu_ptr(&smp_idles)->bh_nr_regs
+#define bh_awakes	this_cpu_ptr(&smp_idles)->smp_bh_awakes
+#define bh_entries	this_cpu_ptr(&smp_idles)->smp_bh_entries
+#define bh_nr_regs	this_cpu_ptr(&smp_idles)->smp_bh_nr_regs
 #else
 DECLARE_BITMAP(bh_awakes, NR_BHS);
 struct bh_entry bh_entries[NR_BHS];
@@ -72,10 +72,38 @@ void bh_resume(bh_t bh)
 	set_bit(bh, bh_awakes);
 }
 
+#ifdef CONFIG_SMP
+void bh_resume_smp(bh_t bh, cpu_t cpu)
+{
+	struct smp_idle *idle = per_cpu_ptr(&smp_idles, cpu);
+
+	set_bit(bh, idle->smp_bh_awakes);
+}
+#endif
+
 boolean bh_resumed_any(void)
 {
 	return irq_is_polling ||
 	       NR_BHS != find_next_set_bit(bh_awakes, NR_BHS, 0);
+}
+
+static bh_t bh_resumed(bh_t last_bh)
+{
+	return find_next_set_bit(bh_awakes, NR_BHS, last_bh);
+}
+
+bh_t bh_run_once(bh_t bh)
+{
+again:
+	bh = bh_resumed(bh);
+	if (bh == INVALID_BH) {
+		wait_irq();
+		goto again;
+	}
+
+	bh_suspend(bh);
+	bh_run(bh, BH_WAKEUP);
+	return bh;
 }
 
 bh_t bh_register_handler(bh_cb handler)
