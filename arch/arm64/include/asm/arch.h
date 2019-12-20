@@ -45,6 +45,10 @@
 #endif
 
 #define yield()			asm volatile("yield" ::: "memory")
+#define prefetch(ptr)		\
+	asm volatile("prfm pldl1keep, %a0\n" : : "p" (ptr))
+#define prefetchw(ptr)		\
+	asm volatile("prfm pstl1keep, %a0\n" : : "p" (ptr))
 #define nop()			__nops(1)
 #define wait_irq()		wfi()
 #define cpu_relax()		yield()

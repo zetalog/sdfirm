@@ -254,14 +254,14 @@ static __always_inline void clear_pending_set_locked(struct spinlock *lock)
 static __always_inline
 uint32_t xchg_tail(struct spinlock *lock, uint32_t tail)
 {
-	uint32_t old, new, val = atomic_read(&lock->val);
+	atomic_count_t val = atomic_read(&lock->val);
+	uint32_t old, new;
 
 	for (;;) {
-		new = (val & _Q_LOCKED_PENDING_MASK) | tail;
-		/*
-		 * We can use relaxed semantics since the caller ensures that
-		 * the MCS node is properly initialized before updating the
-		 * tail.
+		new = (uint32_t)(val & _Q_LOCKED_PENDING_MASK) | tail;
+		/* We can use relaxed semantics since the caller ensures
+		 * that the MCS node is properly initialized before
+		 * updating the tail.
 		 */
 		old = atomic_cmpxchg_relaxed(&lock->val, val, new);
 		if (old == val)
@@ -297,12 +297,12 @@ static __always_inline void set_locked(struct spinlock *lock)
 
 int qspin_trylock(struct spinlock *lock)
 {
-	uint32_t val = atomic_read(&lock->val);
+	atomic_count_t val = atomic_read(&lock->val);
 
 	if (unlikely(val))
 		return 0;
 	return likely(atomic_try_cmpxchg_acquire(&lock->val, &val,
-		_Q_LOCKED_VAL));
+						 _Q_LOCKED_VAL));
 }
 
 /* qspin_lock_slowpath - acquire the queued spinlock
@@ -325,7 +325,8 @@ int qspin_trylock(struct spinlock *lock)
  * contended             :    (*,x,y) +--> (*,0,0) ---> (*,0,1) -'  :
  *   queue               :         ^--'                             :
  */
-void qspin_lock_slowpath(struct spinlock *lock, uint32_t val)
+static void qspin_lock_slowpath(struct spinlock *lock,
+				atomic_count_t val)
 {
 	struct mcs_spinlock *prev, *next, *node;
 	uint32_t old, tail;
@@ -378,7 +379,8 @@ void qspin_lock_slowpath(struct spinlock *lock, uint32_t val)
 	 * barriers.
 	 */
 	if (val & _Q_LOCKED_MASK)
-		atomic_cond_read_acquire(&lock->val, !(VAL & _Q_LOCKED_MASK));
+		atomic_cond_read_acquire(&lock->val,
+					 !(VAL & _Q_LOCKED_MASK));
 
 	/* take ownership and clear the pending bit.
 	 *
@@ -515,12 +517,12 @@ queue:
 	arch_mcs_spin_unlock_contended(&next->locked);
 release:
 	/* release the node */
-	__this_cpu_dec(qnodes[0].mcs.count);
+	this_cpu_ptr(&qnodes[0])->mcs.count--;
 }
 
 void qspin_lock(struct spinlock *lock)
 {
-	uint32_t val = 0;
+	atomic_count_t val = 0;
 
 	if (likely(atomic_try_cmpxchg_acquire(&lock->val, &val,
 					      _Q_LOCKED_VAL)))

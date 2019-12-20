@@ -214,6 +214,9 @@ atomic_try_cmpxchg(atomic_t *v, int *old, int new)
 #endif
 #endif /* atomic_try_cmpxchg_relaxed */
 
+#define atomic_cond_read_acquire(v, c) smp_cond_load_acquire(&(v)->counter, (c))
+#define atomic_cond_read_relaxed(v, c) smp_cond_load_relaxed(&(v)->counter, (c))
+
 #else /* CONFIG_SMP */
 /* atomic_t should be 8 bit signed type */
 typedef int32_t atomic_count_t;

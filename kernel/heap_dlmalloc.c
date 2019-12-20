@@ -310,10 +310,10 @@ struct heap_chunk {
  * heap_bin_hash for the sake of speed. This makes no difference
  * elsewhere.
  *
- * The special chunks 'heap_first_chunk' and 'heap_last_chunk' get their own
- * bins, (this is implemented via yet more trickery with the heap_bins
- * array), although 'heap_first_chunk' is never properly linked to its bin since
- * it is always handled specially.
+ * The special chunks 'heap_first_chunk' and 'heap_last_chunk' get their
+ * own bins, (this is implemented via yet more trickery with the heap_bins
+ * array), although 'heap_first_chunk' is never properly linked to its bin
+ * since it is always handled specially.
  */
 
 /* Indexing into bins, the macro will extract index for every size value
@@ -1626,6 +1626,9 @@ static int do_heap_bins(int argc, char **argv)
 	struct heap_chunk *n;
 
 	printf("Number of BINs: %d\n", NR_HEAP_BINS);
+	if (heap_first_chunk)
+		printf("First chunk: %08x\n",
+		       heap_curr_size(heap_first_chunk));
 	if (heap_last_chunk)
 		printf("Last chunk: %08x\n",
 		       heap_curr_size(heap_last_chunk));
@@ -1655,9 +1658,8 @@ static int do_heap(int argc, char **argv)
 }
 
 DEFINE_COMMAND(heap, do_heap, "Display free heap ranges",
-	"heap test size [N]"
+	"heap test size [N]\n"
 	"    -test heap allocator and display first N allocations\n"
 	"heap bins\n"
 	"    -dump heap bins\n"
-	"\n"
 );

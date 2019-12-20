@@ -47,13 +47,13 @@
 #ifdef CONFIG_SMP
 #include <asm/spinlock.h>
 #else
+#define DEFINE_SPINLOCK(x)
+
 #define smp_hw_spin_locked(lock)		\
 	((void)(lock), 0)
 #define smp_hw_spin_lock(lock)			\
 	do { barrier(); (void)(lock); } while (0)
 #define smp_hw_spin_unlock(lock)		\
-	do { barrier(); (void)(lock); } while (0)
-#define smp_hw_spin_lock_flags(lock, flags)	\
 	do { barrier(); (void)(lock); } while (0)
 #define smp_hw_spin_trylock(lock)		\
 	({ barrier(); (void)(lock); 1; })
@@ -63,5 +63,15 @@
 #define spin_lock(lock)		smp_hw_spin_lock(lock)
 #define spin_unlock(lock)	smp_hw_spin_unlock(lock)
 #define spin_trylock(lock)	smp_hw_spin_trylock(lock)
+#define spin_lock_irqsave(lock, flags)		\
+	do {					\
+		irq_local_save(flags);		\
+		smp_hw_spin_lock(lock);		\
+	} while (0)
+#define spin_unlock_irqrestore(lock, flags)	\
+	do {					\
+		smp_hw_spin_unlock(lock);	\
+		irq_local_restore(flags);	\
+	} while (0)
 
 #endif /* __SPINLOCK_H_INCLUDE__ */

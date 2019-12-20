@@ -24,12 +24,12 @@ struct smp_timer {
 
 DEFINE_PERCPU(struct smp_timer, smp_timers);
 
-#define timer_descs		get_percpu(smp_timres).timer_descs
-#define timer_timeouts		get_percpu(smp_timres).timer_timeouts
-#define timer_regs		get_percpu(smp_timres).timer_regs
-#define timer_bh		get_percpu(smp_timres).timer_bh
-#define timer_running_tid	get_percpu(smp_timres).timer_running_tid
-#define timer_orders		get_percpu(smp_timres).timer_orders
+#define timer_descs		this_cpu_ptr(&smp_timres)->timer_descs
+#define timer_timeouts		this_cpu_ptr(&smp_timres)->timer_timeouts
+#define timer_regs		this_cpu_ptr(&smp_timres)->timer_regs
+#define timer_bh		this_cpu_ptr(&smp_timres)->timer_bh
+#define timer_running_tid	this_cpu_ptr(&smp_timres)->timer_running_tid
+#define timer_orders		this_cpu_ptr(&smp_timres)->timer_orders
 #else
 timer_desc_t *timer_descs[NR_TIMERS];
 timeout_t timer_timeouts[NR_TIMERS];

@@ -57,7 +57,7 @@
 	asm_smp_processor_id \_tmp, \_res
 	ldr	\_tmp, =__percpu_offset
 	ldr	\_tmp, [\_tmp, \_res, lsl #3]
-	ldr     \_res, =percpu_\_var
+	ldr     \_res, =\_var
 	add     \_res, \_res, \_tmp
 .endm
 #endif
@@ -71,17 +71,26 @@ extern uintptr_t __percpu_end[];
 #ifdef CONFIG_SMP
 #define DEFINE_PERCPU(type, name)			\
 	__attribute__((__section__(".data..percpu")))	\
-	__cache_aligned __typeof__(type) percpu_##name
+	__cache_aligned __typeof__(type) name
 #define percpu_offset(x)	(__percpu_offset[x])
-#define percpu_reloc(var, cpu)	(*RELOC_HIDE(&percpu_##var, percpu_offset(cpu)))
-#define get_percpu(var)		percpu_reloc(var, smp_processor_id())
+#define percpu_reloc_ptr(ptr, cpu)	\
+	RELOC_HIDE(ptr, percpu_offset(cpu))
+#define percpu_reloc_var(var, cpu)	\
+	(*percpu_reloc_ptr(&(var), cpu))
+#define this_cpu_var(var)	percpu_reloc_var(var, smp_processor_id())
+#define per_cpu_var(var, cpu)	percpu_reloc_var(var, cpu)
+#define this_cpu_ptr(ptr)	percpu_reloc_ptr(ptr, smp_processor_id())
+#define per_cpu_ptr(ptr, cpu)	percpu_reloc_ptr(ptr, cpu)
 
 extern uint64_t __percpu_offset[NR_CPUS];
 void percpu_init(void);
 #else
 #define DEFINE_PERCPU(type, name)	\
-	__typeof__(type) percpu_##name
-#define get_percpu(var)		percpu_##var
+	__typeof__(type) name
+#define this_cpu_var(var)		(var)
+#define per_cpu_var(var, cpu)		(var)
+#define this_cpu_ptr(ptr)		(ptr)
+#define per_cpu_ptr(ptr, cpu)		(ptr)
 #define percpu_init()		do { } while (0)
 #endif
 #endif /* __ASSEMBLY__ */
