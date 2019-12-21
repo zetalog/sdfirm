@@ -484,7 +484,6 @@ typedef struct {
 #define sd_spi_recv_rsp()	do { } while (0)
 #define sd_spi_enter_ver()	do { } while (0)
 #define sd_spi_handle_ver()	do { } while (0)
-#define sd_spi_mode		false
 #endif
 
 #if defined(CONFIG_CONSOLE) && defined(CONFIG_MMC_DEBUG)
@@ -504,5 +503,6 @@ void mmc_phy_handle_seq(void);
 void mmc_phy_handle_stm(void);
 void mmc_phy_recv_rsp(void);
 void mmc_phy_send_cmd(void);
+void mmc_phy_tran_dat(void);
 
 #endif /* __SD_PHY_H_INCLUDE__ */

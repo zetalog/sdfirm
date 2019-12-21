@@ -87,6 +87,7 @@
 #define mmc_hw_slot_select(rca)		mmc_spi_select(rca)
 #define mmc_hw_send_command(cmd, arg)	mmc_spi_send(cmd, arg)
 #define mmc_hw_recv_response(resp, len)	mmc_spi_recv(resp, len)
+#define mmc_hw_tran_data(dat, len, cnt)	mmc_spi_tran(dat, len, cnt)
 #define mmc_hw_card_busy()		mmc_spi_busy()
 #endif
 
@@ -94,6 +95,7 @@ void mmc_spi_init(void);
 void mmc_spi_select(mmc_rca_t rca);
 void mmc_spi_send(uint8_t cmd, uint32_t arg);
 void mmc_spi_recv(uint8_t *resp, uint16_t len);
+void mmc_spi_tran(uint8_t *dat, uint32_t len, uint16_t cnt);
 void mmc_spi_busy(void);
 
 /* Send dummy byte (all ones).

@@ -306,6 +306,11 @@ static void sd_handle_read_blocks(void)
 			mmc_cmd(MMC_CMD_READ_MULTIPLE_BLOCK);
 		else
 			mmc_cmd(MMC_CMD_READ_SINGLE_BLOCK);
+	} else {
+		if (mmc_state_is(tran))
+			mmc_op_success();
+		else if (mmc_state_is(ina))
+			mmc_op_failure();
 	}
 }
 
@@ -444,6 +449,14 @@ void sd_state_enter_idle(void)
 		sd_state_enter(ver);
 }
 
+void sd_state_enter_ina(void)
+{
+	if (sd_spi_mode)
+		mmc_state_enter(ina);
+	else
+		mmc_state_enter(__ina);
+}
+
 static void sd_handle_ver(void)
 {
 	if (mmc_slot_ctrl.ocr_valid &&
@@ -469,7 +482,7 @@ void mmc_phy_handle_stm(void)
 	} else if (flags & MMC_EVENT_CARD_BUSY &&
 		   mmc_slot_ctrl.flags & MMC_SLOT_CARD_IS_BUSY &&
 		   mmc_slot_ctrl.rsp & MMC_RSP_BUSY) {
-		mmc_hw_card_busy();
+		(void)mmc_hw_card_busy();
 		unraise_bits(flags, MMC_EVENT_CARD_BUSY);
 	} else if (flags & MMC_EVENT_CMD_SUCCESS &&
 		   mmc_slot_ctrl.flags & MMC_SLOT_WAIT_APP_CMD &&
@@ -505,7 +518,7 @@ void mmc_phy_handle_stm(void)
 			if (mmc_err_is(MMC_ERR_ILLEGAL_COMMAND))
 				sd_state_enter(ver);
 			if (mmc_err_is(MMC_ERR_CHECK_PATTERN))
-				mmc_state_enter(__ina);
+				sd_state_enter_ina();
 			/* If card cannot operate under supplied
 			 * voltage, card doesn't respond and return to
 			 * "idle" state.
@@ -514,7 +527,7 @@ void mmc_phy_handle_stm(void)
 			    mmc_err_is(MMC_ERR_TIMEOUT)) {
 #if 0
 				if (!mmc_next_vhs())
-					mmc_state_enter(__ina);
+					sd_state_enter_ina();
 				else
 #endif
 					mmc_state_enter(idle);
@@ -536,13 +549,13 @@ void mmc_phy_handle_stm(void)
 					  mmc_slot_ctrl.start_tick))
 					sd_state_enter(ver);
 				else
-					mmc_state_enter(__ina);
+					sd_state_enter_ina();
 			}
 			if (mmc_err_is(MMC_ERR_HOST_OMIT_VOLT))
 				sd_state_enter(ver);
 			/* No response, must be a multimedia card */
 			if (mmc_err_is(MMC_ERR_TIMEOUT))
-				mmc_state_enter(__ina);
+				sd_state_enter_ina();
 			unraise_bits(flags, MMC_EVENT_CMD_FAILURE);
 		}
 	} else if (mmc_state_is(ready)) {
@@ -603,7 +616,10 @@ void mmc_phy_handle_stm(void)
 
 			unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
 		}
+		if (flags & MMC_EVENT_START_TRAN)
+			mmc_state_enter(tran);
 		if (flags & MMC_EVENT_CMD_FAILURE) {
+			sd_state_enter_ina();
 			unraise_bits(flags, MMC_EVENT_CMD_FAILURE);
 		}
 	}
@@ -856,7 +872,16 @@ void sd_send_cmd(void)
 #endif
 #ifdef SD_CLASS2
 	case MMC_CMD_READ_SINGLE_BLOCK:
+		MMC_BLOCK(READ, mmc_slot_ctrl.block_len, 1);
+		mmc_slot_ctrl.rsp = MMC_R1;
+		arg = mmc_slot_ctrl.address;
+		break;
 	case MMC_CMD_READ_MULTIPLE_BLOCK:
+		MMC_BLOCK(READ, mmc_slot_ctrl.block_len,
+			  mmc_slot_ctrl.block_cnt);
+		mmc_slot_ctrl.rsp = MMC_R1;
+		arg = mmc_slot_ctrl.address;
+		break;
 	case SD_CMD_SEND_TUNING_BLOCK:
 		mmc_slot_ctrl.rsp = MMC_R1;
 		arg = mmc_slot_ctrl.address;
@@ -970,6 +995,13 @@ void mmc_phy_send_cmd(void)
 		sd_spi_send_cmd();
 	else
 		sd_send_cmd();
+}
+
+void mmc_phy_tran_dat(void)
+{
+	mmc_hw_tran_data(mmc_slot_ctrl.block_data,
+			 mmc_slot_ctrl.block_len,
+			 mmc_slot_ctrl.block_cnt);
 }
 
 void mmc_phy_reset_slot(void)

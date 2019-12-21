@@ -69,15 +69,8 @@ void mmc_hw_irq_init(void)
 
 static int unleashed_sdcard_cmd(uint8_t cmd, uint32_t arg, bool busy)
 {
-	uint8_t r;
-
+	mmc_slot_ctrl.rsp = MMC_R1;
 	mmc_spi_send(cmd, arg);
-	if (busy) {
-		do {
-			r = mmc_spi_dummy();
-			printf("BUSY: %02x\n", r);
-		} while (r == 0);
-	}
 	return mmc_slot_ctrl.r1;
 }
 

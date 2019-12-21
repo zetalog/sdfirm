@@ -64,8 +64,6 @@
 #include <driver/dw_timers.h>
 #include <asm/mach/tmr.h>
 
-void board_init_timestamp(void);
-
 #define tsc_hw_ctrl_init()	board_init_timestamp()
 #ifdef CONFIG_DUOWEN_TSC_DW_TIMERS
 #define __tsc_hw_ctrl_init()	dw_timers_tsc_init(DW_TIMERS_TSC)

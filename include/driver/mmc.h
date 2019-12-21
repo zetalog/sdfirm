@@ -54,6 +54,7 @@
 #define mmc_hw_slot_select(sid)		do { } while (0)
 #define mmc_hw_send_command(cmd, arg)	do { } while (0)
 #define mmc_hw_recv_response(resp, len)	do { } while (0)
+#define mmc_hw_tran_data(dat, len, cnt)	do { } while (0)
 #define mmc_hw_card_detect()		false
 #define mmc_hw_set_clock(clock)		do { } while (0)
 #define mmc_hw_set_width(width)		do { } while (0)

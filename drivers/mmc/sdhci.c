@@ -219,6 +219,16 @@ void sdhci_recv_response(uint8_t *resp, uint8_t size)
 	sdhci_stop_transfer();
 }
 
+void sdhci_tran_data(uint8_t *dat, uint32_t len, uint16_t cnt)
+{
+	mmc_dat_success();
+}
+
+bool sdhci_card_busy(void)
+{
+	return false;
+}
+
 static void sdhci_set_power(uint8_t power)
 {
 	struct sdhci_host *host = mmc2sdhci();

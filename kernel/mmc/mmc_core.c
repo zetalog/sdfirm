@@ -147,7 +147,9 @@ const char *mmc_error_names[] = {
 	"card is with non compatible voltage range",
 	"card looses bus",
 	"illegal command",
+	"COM CRC error",
 	"check pattern error",
+	"timeout",
 };
 
 const char *mmc_error_name(uint8_t error)
@@ -232,7 +234,6 @@ mmc_slot_t mmc_slot_save(mmc_slot_t slot)
 }
 #endif
 
-#if 1
 uint8_t mmc_crc7_update(uint8_t crc, uint8_t data)
 {
 	int i;
@@ -246,17 +247,6 @@ uint8_t mmc_crc7_update(uint8_t crc, uint8_t data)
 	}
 	return crc;
 }
-#else
-uint8_t mmc_crc7_update(uint8_t crc, uint8_t byte)
-{
-	/* CRC polynomial 0x89 */
-	uint8_t remainder = crc & byte;
-
-	remainder ^= (remainder >> 4) ^ (remainder >> 7);
-	remainder ^= remainder << 4;
-	return remainder & 0x7f;
-}
-#endif
 
 static void mmc_async_handler(void)
 {
@@ -285,8 +275,21 @@ static void mmc_handler(uint8_t event)
 	}
 }
 
+void mmc_dat_complete(uint8_t err)
+{
+	mmc_slot_ctrl.err = err;
+	if (err != MMC_ERR_NO_ERROR) {
+		mmc_debug_error(err);
+		mmc_event_raise(MMC_EVENT_CMD_FAILURE);
+		return;
+	}
+	mmc_event_raise(MMC_EVENT_CMD_SUCCESS);
+}
+
 void mmc_rsp_complete(uint8_t err)
 {
+	uint8_t type = mmc_get_block_data();
+
 	mmc_slot_ctrl.err = err;
 	if (err != MMC_ERR_NO_ERROR) {
 		mmc_debug_error(err);
@@ -294,8 +297,12 @@ void mmc_rsp_complete(uint8_t err)
 		unraise_bits(mmc_slot_ctrl.flags, MMC_SLOT_WAIT_APP_ACMD);
 		return;
 	}
-	mmc_event_raise(MMC_EVENT_CMD_SUCCESS);
 	unraise_bits(mmc_slot_ctrl.flags, MMC_SLOT_WAIT_APP_ACMD);
+	if (!type) {
+		mmc_event_raise(MMC_EVENT_CMD_SUCCESS);
+		return;
+	}
+	mmc_phy_tran_dat();
 }
 
 void mmc_cmd_complete(uint8_t err)

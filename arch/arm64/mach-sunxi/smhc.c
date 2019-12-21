@@ -432,7 +432,7 @@ static int sunxi_sd_transfer_data(void)
 	uint8_t mmc_no = mmc_sid;
 	struct sunxi_mmc *mmc = SUNXI_SMHC(mmc_no);
 	uint8_t type = mmc_get_block_data();
-	uint32_t *buff = mmc_slot_ctrl.block_data;
+	uint32_t *buff = (uint32_t *)mmc_slot_ctrl.block_data;
 	size_t byte_cnt = 
 		mmc_slot_ctrl.block_len * mmc_slot_ctrl.block_cnt;
 	unsigned i;
@@ -614,6 +614,11 @@ void mmc_hw_recv_response(uint8_t *resp, uint8_t size)
 		     &mmc->gctrl);
 }
 
+void mmc_hw_tran_data(uint8_t *dat, uint32_t len, uint16_t cnt)
+{
+	mmc_dat_success();
+}
+
 void sunxi_sd_ctrl_init(uint8_t mmc_no)
 {
         struct sunxi_ccm_reg *ccm = SUNXI_CCU;
@@ -636,8 +641,6 @@ void sunxi_sd_ctrl_init(uint8_t mmc_no)
 	__raw_setl(1 << AHB_RESET_OFFSET_MMC(mmc_no),
 		   &ccm->ahb_reset0_cfg);
 	sunxi_sd_set_mod_clk(mmc_no, 24000000);
-	printf("SD detect: %s\n",
-	       sunxi_sd_detect_card(mmc_no) ? "TRUE" : "FALSE");
 	/* Reset controller */
 	__raw_writel(SUNXI_MMC_GCTRL_RESET, &mmc->gctrl);
 	mdelay(1);
@@ -649,3 +652,13 @@ void sunxi_sd_ctrl_init(uint8_t mmc_no)
 	mmc_slot_restore(sslot);
 	mdelay(1);
 }
+
+#ifdef SYS_REALTIME
+void sunxi_sd_irq_poll(void)
+{
+}
+#else
+void sunxi_sd_irq_init(void)
+{
+}
+#endif

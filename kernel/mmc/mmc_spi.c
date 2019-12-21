@@ -140,8 +140,6 @@ uint8_t mmc_spi_dummy(void)
 
 static void mmc_spi_handle_r1(uint8_t r)
 {
-	uint8_t type = mmc_get_block_data();
-
 	mmc_slot_ctrl.r1 = r;
 
 	if (r & MMC_R1_ERRORS) {
@@ -149,7 +147,7 @@ static void mmc_spi_handle_r1(uint8_t r)
 			mmc_cmd_failure(MMC_ERR_ILLEGAL_COMMAND);
 		else
 			mmc_cmd_failure(MMC_ERR_CARD_LOOSE_BUS);
-	} else if (!type) {
+	} else {
 		mmc_cmd_success();
 	}
 }
@@ -220,6 +218,45 @@ void mmc_spi_recv(uint8_t *resp, uint16_t len)
 
 	mmc_spi_dummy();
 	spi_deselect_device();
+}
+
+static uint16_t mmc_spi_crc16_update(uint16_t crc, uint8_t data)
+{
+	/* CRC polynomial 0x11021 */
+	crc = (uint8_t)(crc >> 8) | (crc << 8);
+	crc ^= data;
+	crc ^= (uint8_t)(crc >> 4) & 0xf;
+	crc ^= crc << 12;
+	crc ^= (crc & 0xff) << 5;
+	return crc;
+}
+
+void mmc_spi_tran(uint8_t *dat, uint32_t len, uint16_t cnt)
+{
+	volatile uint8_t *p = dat;
+	uint16_t crc, crc_exp;
+	uint32_t i;
+	uint8_t x;
+
+	if (mmc_slot_ctrl.flags & MMC_SLOT_BLOCK_READ) {
+		do {
+			crc = 0;
+			i = len;
+			while (mmc_spi_dummy() != SD_DATA_TOKEN);
+			do {
+				x = mmc_spi_dummy();
+				*p++ = x;
+				crc = mmc_spi_crc16_update(crc, x);
+			} while (--i > 0);
+			crc_exp = ((uint16_t)mmc_spi_dummy() << 8);
+			crc_exp |= mmc_spi_dummy();
+			if (crc != crc_exp) {
+				mmc_dat_failure(MMC_ERR_COM_CRC_ERROR);
+				return;
+			}
+		} while (--cnt > 0);
+	}
+	mmc_dat_success();
 }
 
 static void mmc_spi_mode(void)

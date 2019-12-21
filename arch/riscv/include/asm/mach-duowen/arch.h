@@ -54,6 +54,7 @@
 
 #ifndef __ASSEMBLY__
 void board_init_clock(void);
+void board_init_timestamp(void);
 void board_reset(void);
 void board_suspend(void);
 void board_hibernate(void);

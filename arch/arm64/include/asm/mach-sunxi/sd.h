@@ -141,5 +141,14 @@ void sunxi_sd_ctrl_init(uint8_t mmc_no);
 #define mmc_hw_ctrl_init()		sunxi_sd_ctrl_init(MMC_BOOT_ID)
 void mmc_hw_send_command(uint8_t cmd, uint32_t arg);
 void mmc_hw_recv_response(uint8_t *resp, uint8_t size);
+void mmc_hw_tran_data(uint8_t *dat, uint32_t len, uint16_t cnt);
+
+#ifdef SYS_REALTIME
+void sunxi_sd_irq_poll(void);
+#define mmc_hw_irq_poll()		sunxi_sd_irq_poll()
+#else
+void sunxi_sd_irq_init(void);
+#define mmc_hw_irq_init()		sunxi_sd_irq_init()
+#endif
 
 #endif /* __SD_SUNXI_H_INCLUDE__ */

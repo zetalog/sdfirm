@@ -681,6 +681,9 @@ void mmc_cmd_complete(uint8_t err);
 void mmc_rsp_complete(uint8_t err);
 #define mmc_rsp_success()	mmc_rsp_complete(MMC_ERR_NO_ERROR)
 #define mmc_rsp_failure(err)	mmc_rsp_complete(err)
+void mmc_dat_complete(uint8_t err);
+#define mmc_dat_success()	mmc_dat_complete(MMC_ERR_NO_ERROR)
+#define mmc_dat_failure(err)	mmc_dat_complete(err)
 void mmc_send_acmd(uint8_t acmd);
 void mmc_app_cmd_complete(void);
 

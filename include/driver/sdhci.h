@@ -413,9 +413,11 @@ struct sdhci_host {
 
 void sdhci_send_command(uint8_t cmd, uint32_t arg);
 void sdhci_recv_response(uint8_t *resp, uint8_t size);
+void sdhci_tran_data(uint8_t *dat, uint32_t len, uint16_t cnt);
 void sdhci_detect_card(void);
 bool sdhci_set_clock(uint32_t clock);
 void sdhci_set_width(uint8_t width);
+bool sdhci_card_busy(void);
 void sdhci_init(uint32_t f_min, uint32_t f_max);
 void sdhci_irq_init(void);
 void sdhci_irq_poll(void);
