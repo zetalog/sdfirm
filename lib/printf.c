@@ -1,4 +1,5 @@
 #include <target/uart.h>
+#include <target/irq.h>
 #include <target/spinlock.h>
 
 #ifdef CONFIG_CONSOLE_PRINT_BUFFER_SIZE

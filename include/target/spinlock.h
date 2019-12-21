@@ -47,7 +47,7 @@
 #ifdef CONFIG_SMP
 #include <asm/spinlock.h>
 #else
-#define DEFINE_SPINLOCK(x)
+#define DEFINE_SPINLOCK(x)		uint8_t x
 
 #define smp_hw_spin_locked(lock)		\
 	((void)(lock), 0)
