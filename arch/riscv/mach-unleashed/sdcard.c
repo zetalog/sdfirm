@@ -43,6 +43,7 @@
 #include <target/delay.h>
 #include <target/efi.h>
 #include <target/cmdline.h>
+#include <target/bh.h>
 
 void mmc_hw_spi_init(void)
 {
@@ -67,67 +68,41 @@ void mmc_hw_irq_init(void)
 }
 #endif
 
-static int unleashed_sdcard_cmd(uint8_t cmd, uint32_t arg, bool busy)
-{
-	mmc_slot_ctrl.rsp = MMC_R1;
-	mmc_spi_send(cmd, arg);
-	return mmc_slot_ctrl.r1;
-}
+bool unleashed_sdcard_success;
+uint8_t *unleashed_sdcard_buffer;
+uint32_t unleashed_sdcard_lba;
+uint16_t unleashed_sdcard_cnt;
 
-static uint16_t crc16(uint16_t crc, uint8_t data)
+void unleashed_sdcard_complete(mmc_rca_t rca, uint8_t op, bool result)
 {
-	/* CRC polynomial 0x11021 */
-	crc = (uint8_t)(crc >> 8) | (crc << 8);
-	crc ^= data;
-	crc ^= (uint8_t)(crc >> 4) & 0xf;
-	crc ^= crc << 12;
-	crc ^= (crc & 0xff) << 5;
-	return crc;
+	if (!result)
+		return;
+
+	if (op == MMC_OP_SELECT_CARD) {
+		mmc_read_blocks(unleashed_sdcard_buffer,
+				unleashed_sdcard_lba,
+				unleashed_sdcard_cnt,
+				unleashed_sdcard_complete);
+	}
+	if (op == MMC_OP_READ_BLOCKS)
+		unleashed_sdcard_success = result;
 }
 
 int unleashed_sdcard_copy(void *dst, uint32_t src_lba, size_t size)
 {
-	volatile uint8_t *p = dst;
-	long i = size;
-	int rc = 0;
-	uint8_t r1;
+	int ret;
 
-	if (size == 1)
-		r1 = unleashed_sdcard_cmd(MMC_CMD_READ_SINGLE_BLOCK,
-					  src_lba, false);
-	else
-		r1 = unleashed_sdcard_cmd(MMC_CMD_READ_MULTIPLE_BLOCK,
-					  src_lba, false);
-	if (r1 != 0x00)
-		return -EINVAL;
-
-	do {
-		uint16_t crc, crc_exp;
-		long n;
-
-		crc = 0;
-		n = MMC_DEF_BL_LEN;
-		while (mmc_spi_dummy() != SD_DATA_TOKEN);
-		do {
-			uint8_t x = mmc_spi_dummy();
-			*p++ = x;
-			crc = crc16(crc, x);
-		} while (--n > 0);
-		crc_exp = ((uint16_t)mmc_spi_dummy() << 8);
-		crc_exp |= mmc_spi_dummy();
-		if (crc != crc_exp) {
-			rc = -EINVAL;
-			break;
-		}
-		if ((i % 2000) == 0) {
-			puts(".");
-		}
-	} while (--i > 0);
-
-	if (size > 1)
-		unleashed_sdcard_cmd(MMC_CMD_STOP_TRANSMISSION, 0, true);
-	return rc;
+	unleashed_sdcard_success = false;
+	unleashed_sdcard_buffer = dst;
+	unleashed_sdcard_lba = src_lba;
+	unleashed_sdcard_cnt = size;
+	ret = mmc_select_card(unleashed_sdcard_complete);
+	if (ret)
+		return ret;
+	bh_sync();
+	return unleashed_sdcard_success ? 0 : -EINVAL;
 }
+#endif
 
 static int do_sdcard(int argc, char *argv[])
 {
