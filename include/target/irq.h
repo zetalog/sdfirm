@@ -45,8 +45,7 @@ boolean do_IRQ(irq_t nr);
 
 /* irq pollers */
 void irq_register_poller(bh_t bh);
-void irq_poll_bh(bh_t bh);
-extern boolean irq_is_polling;
+boolean irq_poll_bh(void);
 
 #ifndef irq_hw_flags_enable
 void irq_hw_flags_enable(void);

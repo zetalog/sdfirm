@@ -49,16 +49,11 @@ bh_t bh_nr_regs = 0;
 #define unlock_bh()			irq_local_enable()
 #endif
 
-void __bh_run(bh_t bh, uint8_t event)
-{
-	bh_entries[bh].handler(event);
-}
-
 void bh_run(bh_t bh, uint8_t event)
 {
 	lock_bh();
 	idle_debug(IDLE_DEBUG_SID, bh);
-	__bh_run(bh, event);
+	bh_entries[bh].handler(event);
 	unlock_bh();
 }
 
@@ -81,29 +76,29 @@ void bh_resume_smp(bh_t bh, cpu_t cpu)
 }
 #endif
 
-boolean bh_resumed_any(void)
+static bh_t bh_resumed(bh_t last_bh, boolean recursive)
 {
-	return irq_is_polling ||
-	       NR_BHS != find_next_set_bit(bh_awakes, NR_BHS, 0);
+	bh_t bh;
+
+	bh = find_next_set_bit(bh_awakes, NR_BHS, last_bh);
+	if (last_bh == 0 || bh != INVALID_BH || !recursive)
+		return bh;
+	return find_next_set_bit(bh_awakes, NR_BHS, 0);
 }
 
-static bh_t bh_resumed(bh_t last_bh)
+static bh_t bh_run_once(bh_t bh, boolean recursive)
 {
-	return find_next_set_bit(bh_awakes, NR_BHS, last_bh);
-}
+	bh_t next_bh;
 
-bh_t bh_run_once(bh_t bh)
-{
-again:
-	bh = bh_resumed(bh);
-	if (bh == INVALID_BH) {
-		wait_irq();
-		goto again;
-	}
-
-	bh_suspend(bh);
-	bh_run(bh, BH_WAKEUP);
-	return bh;
+	next_bh = bh_resumed(bh, recursive);
+	if (next_bh == INVALID_BH)
+		return next_bh;
+	bh_suspend(next_bh);
+	bh_run(next_bh, BH_WAKEUP);
+	next_bh++;
+	if (recursive && next_bh == INVALID_BH)
+		next_bh = 0;
+	return next_bh;
 }
 
 bh_t bh_register_handler(bh_cb handler)
@@ -116,38 +111,44 @@ bh_t bh_register_handler(bh_cb handler)
 	return bh;
 }
 
-void bh_run_all(void)
-{
-	bh_t bh;
-
-	for (bh = 0; bh < bh_nr_regs; bh++) {
-		if (test_bit(bh, bh_awakes)) {
-			bh_suspend(bh);
-			bh_run(bh, BH_WAKEUP);
-		}
-		irq_poll_bh(bh);
-	}
-}
-
 void bh_panic(void)
 {
 	idle_debug(IDLE_DEBUG_SID, DBG_SRC_IDLE);
 }
 
+static void __bh_sync(boolean recursive)
+{
+	bh_t bh = 0;
+
+	while (bh != INVALID_BH)
+		bh = bh_run_once(bh, recursive);
+}
+
+void bh_sync(void)
+{
+	__bh_sync(true);
+}
+
+#ifdef CONFIG_IDEL
+static void bh_irq_wait(void)
+{
+	dbg_dump(0xAA);
+	wait_irq();
+	dbg_dump(0xAB);
+}
+#else
+#define bh_irq_wait()		do { } while (0)
+#endif
+
 void bh_loop(void)
 {
 	irq_local_enable();
 	main_debug(MAIN_DEBUG_INIT, 1);
-	while (1) {
-#ifdef CONFIG_IDLE
-		while (!bh_resumed_any()) {
-			dbg_dump(0xAA);
-			wait_irq();
-		}
-		dbg_dump(0xAB);
-#endif
-		bh_run_all();
-	}
+	do {
+		__bh_sync(false);
+		if (!irq_poll_bh())
+			bh_irq_wait();
+	} while (1);
 }
 
 void bh_init(void)

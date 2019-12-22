@@ -63,10 +63,17 @@ void irq_register_vector(irq_t nr, irq_handler h)
 DECLARE_BITMAP(irq_poll_regs, NR_BHS);
 boolean irq_is_polling = false;
 
-void irq_poll_bh(bh_t bh)
+boolean irq_poll_bh(void)
 {
-	if (test_bit(bh, irq_poll_regs))
-		bh_run(bh, BH_POLLIRQ);
+	bh_t bh;
+
+	if (!irq_is_polling)
+		return false;
+	for (bh = 0; bh < NR_BHS; bh++) {
+		if (test_bit(bh, irq_poll_regs))
+			bh_run(bh, BH_POLLIRQ);
+	}
+	return true;
 }
 
 void irq_register_poller(bh_t bh)
