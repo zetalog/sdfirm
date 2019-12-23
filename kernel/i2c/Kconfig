@@ -30,5 +30,8 @@ config I2C_DEVICE_ID
 	  Disabling this will force the master driver not to perform
 	  device ID probing procedure.
 
+config ARCH_HAS_I2C
+	bool
+
 endif
 
