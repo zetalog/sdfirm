@@ -598,13 +598,13 @@ static int err_cpus(const char *hint)
 	return -EINVAL;
 }
 
-static uint64_t cmd_cpus_cpu_mask = 0;
-static int cmd_cpus_repeats = 0;
-static struct cpu_exec_test *cmd_cpus_test_set = NULL;
-static tick_t cmd_cpus_timeout = CPU_WAIT_INFINITE;
-static tick_t cmd_cpus_interval = CPU_WAIT_INFINITE;
+static uint64_t cmd_bench_cpu_mask = 0;
+static int cmd_bench_repeats = 0;
+static struct cpu_exec_test *cmd_bench_test_set = NULL;
+static tick_t cmd_bench_timeout = CPU_WAIT_INFINITE;
+static tick_t cmd_bench_interval = CPU_WAIT_INFINITE;
 
-static void cmd_cpus_run_complete(uint64_t *results)
+static void cmd_bench_run_complete(uint64_t *results)
 {
 	int id;
 
@@ -613,7 +613,7 @@ static void cmd_cpus_run_complete(uint64_t *results)
 
 	printf("cpus completed.\n");
 	for (id = 0; id < MAX_CPU_NUM; id++) {
-		if (cmd_cpus_cpu_mask & C(id)) {
+		if (cmd_bench_cpu_mask & C(id)) {
 			printf("%d result: %s(%lld)\n", id,
 			       results[id] == 0 ? "success" : "failure",
 			       results[id]);
@@ -622,13 +622,13 @@ static void cmd_cpus_run_complete(uint64_t *results)
 }
 
 #if 0
-static int cmd_cpus_run_remote(void)
+static int cmd_bench_run_remote(void)
 {
 	if (smp_processor_id() == 0)
 		wait_for_dbg();
-	return bench_didt(cmd_cpus_cpu_mask, cmd_cpus_test_set,
-			  cmd_cpus_interval, cmd_cpus_timeout,
-			  cmd_cpus_repeats);
+	return bench_didt(cmd_bench_cpu_mask, cmd_bench_test_set,
+			  cmd_bench_interval, cmd_bench_timeout,
+			  cmd_bench_repeats);
 }
 #endif
 
@@ -739,17 +739,17 @@ uint64_t cmd_get_cpu_mask(char *str)
 	return cpu_mask;
 }
 
-static int cmd_cpus_didt(uint64_t cpu_mask, struct cpu_exec_test *fn,
-			 tick_t period, tick_t interval,
-			 int repeats, tick_t timeout, bool sync)
+static int cmd_bench_didt(uint64_t cpu_mask, struct cpu_exec_test *fn,
+			  tick_t period, tick_t interval,
+			  int repeats, tick_t timeout, bool sync)
 {
 	cpu_t cpu;
 
-	cmd_cpus_cpu_mask = (cpu_mask & CPU_ALL);
-	cmd_cpus_test_set = fn;
-	cmd_cpus_interval = interval;
-	cmd_cpus_timeout = period;
-	cmd_cpus_repeats = repeats;
+	cmd_bench_cpu_mask = (cpu_mask & CPU_ALL);
+	cmd_bench_test_set = fn;
+	cmd_bench_interval = interval;
+	cmd_bench_timeout = period;
+	cmd_bench_repeats = repeats;
 
 	cpus_mode = CPU_MODE_TESTOS;
 	for (cpu = 0; cpu < NR_CPUS; cpu++) {
@@ -759,7 +759,7 @@ static int cmd_cpus_didt(uint64_t cpu_mask, struct cpu_exec_test *fn,
 	return 0;
 }
 
-static int cmd_cpus(int argc, char **argv)
+static int cmd_bench(int argc, char **argv)
 {
 	int nr_tests = ((uintptr_t)__testfn_end -
 			(uintptr_t)__testfn_start) /
@@ -818,7 +818,7 @@ static int cmd_cpus(int argc, char **argv)
 			printf("Switch to the non-didt mode.\n");
 			interval = 0;
 		}
-		ret = cmd_cpus_didt(cpu_mask, fn, period, interval,
+		ret = cmd_bench_didt(cpu_mask, fn, period, interval,
 				    repeats, timeout,
 				    !!strcmp(argv[1], "sync") == 0);
 		if (ret) {
@@ -830,7 +830,7 @@ static int cmd_cpus(int argc, char **argv)
 	return 0;
 }
 
-DEFINE_COMMAND(cpus, cmd_cpus, "Run pre-registered patterns on CPUs",
+DEFINE_COMMAND(bench, cmd_bench, "Run pre-registered patterns on CPUs",
 	" show\n"
 	"    -List the pre-registered patterns\n"
 	" async/sync N|cN|rN|all pattern period interval repeats [timeout]\n"
@@ -839,9 +839,6 @@ DEFINE_COMMAND(cpus, cmd_cpus, "Run pre-registered patterns on CPUs",
 	"     Each run starts simultaneously on specified CPUs.\n"
 	"     Each run repeatedly executing the pattern during \"period\".\n"
 	"     Next run starts \"interval\" later than the previous run.\n"
-);
-#if 0
-	/* size of help message is limitted */
 	"     CPU specifications (N|cN|rN|all):\n"
 	"        N: CPU N, N starts from 0.\n"
 	"       cN: Cluster N, N starts from 0.\n"
@@ -851,4 +848,4 @@ DEFINE_COMMAND(cpus, cmd_cpus, "Run pre-registered patterns on CPUs",
 	"                while (period), CPU will enter idle state for a\n"
 	"                while (interval - period).\n"
 	"     norm mode: When interval <= period, CPU won't enter idle state.\n"
-#endif
+);

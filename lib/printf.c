@@ -9,16 +9,16 @@
 #endif
 
 DEFINE_SPINLOCK(print_lock);
+static char print_buffer[CONSOLE_PRINT_BUFFER_SIZE];
 
 #ifdef CONFIG_PRINT_VPRINTF
 int vprintf(const char *fmt, va_list arg)
 {
 	int len, i, space;
 	irq_flags_t flags;
-	char print_buffer[CONSOLE_PRINT_BUFFER_SIZE];
 
-	len = vsnprintf(print_buffer, sizeof(print_buffer), fmt, arg);
 	spin_lock_irqsave(&print_lock, flags);
+	len = vsnprintf(print_buffer, sizeof(print_buffer), fmt, arg);
 	space = 0;
 	for (i = 0; i < len && space < CONSOLE_PRINT_BUFFER_SIZE; i++) {
 		putchar(print_buffer[i]);

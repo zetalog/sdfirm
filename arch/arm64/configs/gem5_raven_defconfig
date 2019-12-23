@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Dec 18 10:01:57 2019
+# Mon Dec 23 15:54:45 2019
 #
 CONFIG_ARM64=y
 
@@ -26,7 +26,7 @@ CONFIG_CONSOLE=y
 CONFIG_CONSOLE_COMMAND=y
 CONFIG_CONSOLE_OUTPUT=y
 CONFIG_CONSOLE_OUTPUT_CR=y
-CONFIG_CONSOLE_PRINT_BUFFER_SIZE=256
+CONFIG_CONSOLE_PRINT_BUFFER_SIZE=1024
 CONFIG_CONSOLE_INPUT=y
 # CONFIG_CONSOLE_230400 is not set
 CONFIG_CONSOLE_115200=y
@@ -58,6 +58,13 @@ CONFIG_CPU_64v8_1_HPD=y
 CONFIG_CPU_64v8_1_PAN=y
 CONFIG_CPU_64v8_1_VHE=y
 CONFIG_NR_CPUS=4
+
+#
+# CPU architecture options
+#
+# CONFIG_ARM64_ATOMIC_CAS is not set
+CONFIG_ARM64_ATOMIC_COUNT_32=y
+# CONFIG_ARM64_ATOMIC_COUNT_64 is not set
 # CONFIG_TZ_SECURE is not set
 CONFIG_TZ_NORMAL=y
 CONFIG_SYS_KERNEL=y
@@ -150,7 +157,11 @@ CONFIG_SMP=y
 # Timing facility (delay) support
 #
 CONFIG_LPS_NO_LPS=y
-# CONFIG_TIMER is not set
+CONFIG_TIMER=y
+CONFIG_TIMER_16BIT=y
+CONFIG_TIMER_ONESHOT=y
+CONFIG_MAX_TIMERS=4
+# CONFIG_TIMER_TEST is not set
 
 #
 # Address space layout (xip) support
@@ -194,7 +205,7 @@ CONFIG_MMU_IDMAP=y
 CONFIG_MMU_MAP_MEM=y
 # CONFIG_MMU_TEXT_MODIFY is not set
 # CONFIG_MMU_DEBUG_TABLE is not set
-# CONFIG_IDLE is not set
+CONFIG_IDLE=y
 # CONFIG_BULK is not set
 # CONFIG_TERM is not set
 # CONFIG_GPIO is not set
@@ -268,10 +279,9 @@ CONFIG_UART_230400=y
 #
 # Clock drivers
 #
-
-#
-# Test setup
-#
+CONFIG_TEST_BENCH=y
+CONFIG_TEST_BENCH_LOCAL=y
+# CONFIG_TEST_BENCH_REMOTE is not set
 # CONFIG_TEST_VERBOSE is not set
 # CONFIG_RAVEN is not set
 
@@ -292,11 +302,13 @@ CONFIG_BIT_FLS32=y
 # CONFIG_BIT_ROUNDDOWN16 is not set
 CONFIG_BIT_ROUNDUP32=y
 # CONFIG_BIT_ROUNDDOWN32 is not set
+CONFIG_BIT_HWEIGHT64=y
 
 #
 # Bitmap operations
 #
-# CONFIG_BIT_FIND_CLEAR is not set
+CONFIG_ARCH_HAS_BITS_PER_UNIT_32=y
+CONFIG_BIT_FIND_CLEAR=y
 
 #
 # Mathematic operations
@@ -308,12 +320,6 @@ CONFIG_MATH_MOD32=y
 # CONFIG_MATH_DIV32 is not set
 CONFIG_MATH_DIV64=y
 CONFIG_MATH_MOD64=y
-
-#
-# Atomic operations
-#
-# CONFIG_ATOMIC_SUB_RETURN is not set
-# CONFIG_ATOMIC_ADD_RETURN is not set
 
 #
 # Checksum algorithms
@@ -334,8 +340,14 @@ CONFIG_PRINT_PRINTF=y
 #
 # String operations
 #
+CONFIG_STRING_STRNCMP=y
 CONFIG_STRING_STRTOUL=y
 # CONFIG_STRING_UUID is not set
+
+#
+# Cryptographic algorithms
+#
+CONFIG_CRYPTO_RAND=y
 # CONFIG_FONTS is not set
 
 #

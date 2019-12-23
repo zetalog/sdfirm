@@ -97,7 +97,7 @@ config CONSOLE_OUTPUT_CR
 config CONSOLE_PRINT_BUFFER_SIZE
 	int "Configure console print buffer size"
 	default 64
-	range 32 512
+	range 32 1024
 
 config CONSOLE_INPUT
 	bool "Enable console input"
