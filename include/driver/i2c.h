@@ -16,6 +16,11 @@ typedef void (*i2c_io_cb)(void);
 #include <asm/mach-at90scr100/twi.h>
 #endif
 
+#ifdef CONFIG_DW_I2C
+#include <asm/mach-duowen/i2c.h>
+#endif
+
+
 #ifndef ARCH_HAVE_I2C
 #define I2C_HW_FREQ		0
 

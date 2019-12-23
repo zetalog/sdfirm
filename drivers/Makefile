@@ -14,3 +14,4 @@ obj-$(CONFIG_MTD) += mtd/
 obj-$(CONFIG_CLK) += clk/
 obj-y += mmc/
 obj-y += scs/
+obj-$(CONFIG_I2C) += i2c/
