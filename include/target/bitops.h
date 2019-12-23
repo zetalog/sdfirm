@@ -3,21 +3,38 @@
 
 #include <target/types.h>
 
+#if defined(CONFIG_ARCH_HAS_BITS_PER_UNIT_64)
+typedef uint64_t bits_t;
+#define BITS_PER_UNIT		64
+#elif defined(CONFIG_ARCH_HAS_BITS_PER_UNIT_32)
+typedef uint32_t bits_t;
+#define BITS_PER_UNIT		32
+#elif defined(CONFIG_ARCH_HAS_BITS_PER_UINT_16)
 typedef uint8_t bits_t;
-
-#define BITS_PER_UNIT			8
+#define BITS_PER_UNIT		16
+#else
+typedef uint8_t bits_t;
+#define BITS_PER_UNIT		8
+#endif
 
 #define BITS_TO_UNITS(bits)		\
 	(((uint8_t)((bits)+BITS_PER_UNIT-1))/((uint8_t)BITS_PER_UNIT))
 #define DECLARE_BITMAP(name, bits)	\
 	bits_t name[BITS_TO_UNITS(bits)]
-
 #define BITOP_MASK(nr)		((uint8_t)1 << ((nr) % BITS_PER_UNIT))
 #define BITOP_WORD(nr)		((uint8_t)(nr) / (uint8_t)BITS_PER_UNIT)
+
 #define IS_ALIGNED(x, a)	(((x) & ((a) - 1)) == 0)
 
-void set_bit(uint8_t nr, bits_t *addr);
-void clear_bit(uint8_t nr, bits_t *addr);
+void __set_bit(uint8_t nr, volatile bits_t *addr);
+void __clear_bit(uint8_t nr, volatile bits_t *addr);
+#ifdef CONFIG_SMP
+void set_bit(uint8_t nr, volatile bits_t *addr);
+void clear_bit(uint8_t nr, volatile bits_t *addr);
+#else
+#define set_bit(nr, addr)	__set_bit(nr, addr)
+#define clear_bit(nr, addr)	__clear_bit(nr, addr)
+#endif
 boolean test_bit(uint8_t nr, const bits_t *addr);
 #define find_first_set_bit(addr, size)		\
 	find_next_set_bit((addr), (size), 0)

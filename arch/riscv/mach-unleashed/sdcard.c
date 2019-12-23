@@ -146,6 +146,5 @@ static int do_sdcard(int argc, char *argv[])
 DEFINE_COMMAND(sdcard, do_sdcard, "SiFive QSPI SD card commands",
 	"    - SiFive QSPI SD card flash commands\n"
 	"gpt ...\n"
-	"    - print GPT entry information"
-	"\n"
+	"    - print GPT entry information\n"
 );

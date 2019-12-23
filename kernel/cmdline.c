@@ -93,10 +93,10 @@ static int do_help(int argc, char *argv[])
 }
 
 DEFINE_COMMAND(help, do_help, "Print command description/usage",
+	"help\n"
 	"    - print brief description of all commands\n"
-	"help command ...\n"
-	"    - print detailed usage of 'command'"
-	"\n"
+	"help command\n"
+	"    - print detailed usage of 'command'\n"
 );
 
 static int process_cmd(int argc, char * argv[])

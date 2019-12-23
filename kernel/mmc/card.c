@@ -222,8 +222,7 @@ static int do_card(int argc, char *argv[])
 	return 0;
 }
 
-DEFINE_COMMAND(mmcsd, do_card, "multimedia / secure digital card commands",
-	"    - MMC/SD commands\n"
+DEFINE_COMMAND(mmcsd, do_card, "MMC/SD card commands",
 	"list\n"
 	"    - list slots and cards\n"
 	"dump rca lba cnt\n"

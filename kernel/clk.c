@@ -311,5 +311,4 @@ DEFINE_COMMAND(clk, do_clk, "Control clock tree",
 	"    -disable clock\n"
 	"clk freq clk [freq]\n"
 	"    -set/get clock frequency\n"
-	"\n"
 );

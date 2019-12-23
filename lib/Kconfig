@@ -48,6 +48,15 @@ endmenu
 
 menu "Bitmap operations"
 
+config ARCH_HAS_BITS_PER_UNIT_16
+	bool
+
+config ARCH_HAS_BITS_PER_UNIT_32
+	bool
+
+config ARCH_HAS_BITS_PER_UNIT_64
+	bool
+
 config BIT_FIND_CLEAR
 	bool "find_clear_bit"
 

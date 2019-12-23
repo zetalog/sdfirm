@@ -1,4 +1,5 @@
 #include <target/irq.h>
+#include <target/percpu.h>
 
 #ifndef CONFIG_CC_ISR_VECTOR
 #ifndef ARCH_HAVE_VIC
@@ -60,7 +61,24 @@ void irq_register_vector(irq_t nr, irq_handler h)
 #endif
 #endif
 
+#ifdef CONFIG_SMP
+struct smp_poll {
+	DECLARE_BITMAP(smp_irq_poll_regs, NR_BHS);
+};
+
+DEFINE_PERCPU(struct smp_poll, smp_polls);
+
+#define irq_poll_regs	this_cpu_ptr(&smp_polls)->smp_irq_poll_regs
+
+void irq_smp_init(void)
+{
+	irqc_hw_smp_init();
+	irq_local_disable();
+}
+#else
 DECLARE_BITMAP(irq_poll_regs, NR_BHS);
+#endif
+
 boolean irq_is_polling = false;
 
 boolean irq_poll_bh(void)
@@ -88,11 +106,3 @@ void irq_init(void)
 	irq_hw_ctrl_init();
 	irq_local_disable();
 }
-
-#ifdef CONFIG_SMP
-void irq_smp_init(void)
-{
-	irqc_hw_smp_init();
-	irq_local_disable();
-}
-#endif

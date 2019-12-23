@@ -80,7 +80,6 @@ static int do_page(int argc, char **argv)
 }
 
 DEFINE_COMMAND(page, do_page, "Display free pages",
-	"page [N]"
+	"page [N]\n"
 	"    -test page allocator and display first N free pages\n"
-	"\n"
 );

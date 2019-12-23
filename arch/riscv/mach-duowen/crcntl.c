@@ -1695,5 +1695,4 @@ static int do_crcntl(int argc, char *argv[])
 DEFINE_COMMAND(crcntl, do_crcntl, "Clock/reset controller (CRCNTL)",
 	"crcntl dump\n"
 	"    -display clock tree source multiplexing\n"
-	"\n"
 );

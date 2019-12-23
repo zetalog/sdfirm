@@ -877,5 +877,4 @@ DEFINE_COMMAND(mem, do_mem, "Display memory",
 	"    -display mem content\n"
 	"mem dump\n"
 	"    -display mem regions\n"
-	"\n"
 );

@@ -289,5 +289,4 @@ DEFINE_COMMAND(pll, do_pll, "Control DWC PLL5GHz TSMC12FFCNS",
 	"    -put pll into standby state\n"
 	"pll relock pll\n"
 	"    -get pll out of standby state\n"
-	"\n"
 );

@@ -256,8 +256,7 @@ int cmd_coresight(int argc, char **argv)
 	return 0;
 }
 
-DEFINE_COMMAND(coresight, cmd_coresight,
-	"Dump coresight visible components",
+DEFINE_COMMAND(coresight, cmd_coresight, "Dump coresight visible components",
 	" show\n"
 	"    -List the coresight visible components\n"
 );

@@ -214,9 +214,11 @@ choice
 
 config ARM64_ATOMIC_COUNT_32
 	bool "signed 32-bit"
+	select ARCH_HAS_BITS_PER_UNIT_32
 
 config ARM64_ATOMIC_COUNT_64
 	bool "signed 64-bit"
+	select ARCH_HAS_BITS_PER_UNIT_64
 
 endchoice
 

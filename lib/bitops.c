@@ -48,19 +48,33 @@ uint8_t bitrev8(uint8_t byte)
  * If it's called on the same region of memory simultaneously, the effect
  * may be that only one operation succeeds.
  */
-void set_bit(uint8_t nr, bits_t *addr)
+void __set_bit(uint8_t nr, volatile bits_t *addr)
 {
 	bits_t mask = BITOP_MASK(nr);
 	bits_t *p = ((bits_t *)addr) + BITOP_WORD(nr);
 	*p |= mask;
 }
 
-void clear_bit(uint8_t nr, bits_t *addr)
+void __clear_bit(uint8_t nr, volatile bits_t *addr)
 {
 	bits_t mask = BITOP_MASK(nr);
 	bits_t *p = ((bits_t *)addr) + BITOP_WORD(nr);
 	*p &= ~mask;
 }
+
+#ifdef CONFIG_SMP
+void set_bit(uint8_t nr, volatile bits_t *p)
+{
+	p += BITOP_WORD(nr);
+	atomic_or(BITOP_MASK(nr), (atomic_t *)p);
+}
+
+void clear_bit(uint8_t nr, volatile bits_t *p)
+{
+	p += BITOP_WORD(nr);
+	atomic_andnot(BITOP_MASK(nr), (atomic_t *)p);
+}
+#endif
 
 /**
  * test_bit - Determine whether a bit is set

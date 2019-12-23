@@ -183,6 +183,5 @@ static int do_spinor(int argc, char *argv[])
 DEFINE_COMMAND(spinor, do_spinor, "SiFive QSPI SPI-NOR commands",
 	"    - SiFive QSPI SPI NOR flash commands\n"
 	"gpt ...\n"
-	"    - print GPT entry information"
-	"\n"
+	"    - print GPT entry information\n"
 );
