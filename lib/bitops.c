@@ -63,16 +63,18 @@ void __clear_bit(uint8_t nr, volatile bits_t *addr)
 }
 
 #ifdef CONFIG_SMP
-void set_bit(uint8_t nr, volatile bits_t *p)
+void set_bit(uint8_t nr, volatile bits_t *addr)
 {
-	p += BITOP_WORD(nr);
-	atomic_or(BITOP_MASK(nr), (atomic_t *)p);
+	bits_t mask = BITOP_MASK(nr);
+	bits_t *p = ((bits_t *)addr) + BITOP_WORD(nr);
+	atomic_or(mask, (atomic_t *)p);
 }
 
-void clear_bit(uint8_t nr, volatile bits_t *p)
+void clear_bit(uint8_t nr, volatile bits_t *addr)
 {
-	p += BITOP_WORD(nr);
-	atomic_andnot(BITOP_MASK(nr), (atomic_t *)p);
+	bits_t mask = BITOP_MASK(nr);
+	bits_t *p = ((bits_t *)addr) + BITOP_WORD(nr);
+	atomic_andnot(mask, (atomic_t *)p);
 }
 #endif
 

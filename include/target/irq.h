@@ -45,6 +45,11 @@ boolean do_IRQ(irq_t nr);
 
 /* irq pollers */
 void irq_register_poller(bh_t bh);
+#ifdef CONFIG_SMP
+void irq_register_poller_smp(bh_t bh);
+#else
+#define irq_register_poll_smp(bh)	irq_register_poll(bh)
+#endif
 boolean irq_poll_bh(void);
 
 #ifndef irq_hw_flags_enable

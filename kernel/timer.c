@@ -205,7 +205,7 @@ timeout_t timer_unshot_timeout = 0;
 boolean timer_polling = false;
 #define timer_poll_start()	(timer_polling = true)
 #define timer_poll_stop()	(timer_polling = false)
-#define timer_poll_init()	(irq_register_poller(timer_bh))
+#define timer_poll_init()	(irq_register_poller_smp(timer_bh))
 
 static void timer_poll_handler(void)
 {

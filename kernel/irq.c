@@ -64,11 +64,18 @@ void irq_register_vector(irq_t nr, irq_handler h)
 #ifdef CONFIG_SMP
 struct smp_poll {
 	DECLARE_BITMAP(smp_irq_poll_regs, NR_BHS);
+	DECLARE_BITMAP(smp_irq_poll_all_cpus, NR_BHS);
+	boolean smp_irq_is_polling;
 };
 
 DEFINE_PERCPU(struct smp_poll, smp_polls);
 
-#define irq_poll_regs	this_cpu_ptr(&smp_polls)->smp_irq_poll_regs
+#define irq_poll_regs		\
+	this_cpu_ptr(&smp_polls)->smp_irq_poll_regs
+#define irq_poll_all_cpus	\
+	this_cpu_ptr(&smp_polls)->smp_irq_poll_all_cpus
+#define irq_is_polling		\
+	this_cpu_ptr(&smp_polls)->smp_irq_is_polling
 
 void irq_smp_init(void)
 {
@@ -77,9 +84,9 @@ void irq_smp_init(void)
 }
 #else
 DECLARE_BITMAP(irq_poll_regs, NR_BHS);
+DECLARE_BITMAP(irq_poll_all_cpus, NR_BHS);
+boolean irq_is_polling;
 #endif
-
-boolean irq_is_polling = false;
 
 boolean irq_poll_bh(void)
 {
@@ -88,17 +95,34 @@ boolean irq_poll_bh(void)
 	if (!irq_is_polling)
 		return false;
 	for (bh = 0; bh < NR_BHS; bh++) {
-		if (test_bit(bh, irq_poll_regs))
-			bh_run(bh, BH_POLLIRQ);
+		if (test_bit(bh, irq_poll_regs)) {
+			if (smp_processor_id() == smp_boot_cpu ||
+			    test_bit(bh, irq_poll_all_cpus))
+				bh_run(bh, BH_POLLIRQ);
+		}
 	}
 	return true;
 }
 
-void irq_register_poller(bh_t bh)
+static void __irq_register_poller(bh_t bh, boolean all)
 {
 	set_bit(bh, irq_poll_regs);
+	if (all)
+		set_bit(bh, irq_poll_all_cpus);
 	irq_is_polling = true;
 }
+
+void irq_register_poller(bh_t bh)
+{
+	__irq_register_poller(bh, false);
+}
+
+#ifdef CONFIG_SMP
+void irq_register_poller_smp(bh_t bh)
+{
+	__irq_register_poller(bh, true);
+}
+#endif
 
 void irq_init(void)
 {
