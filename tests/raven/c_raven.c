@@ -1,6 +1,6 @@
 #include <target/percpu.h>
 #include <target/raven.h>
-#include <target/cpus.h>
+#include <target/bench.h>
 
 typedef uint8_t raven_array_t[RAVEN_ARRAY_SIZE];
 typedef uint8_t raven_l1miss_t[RAVEN_L1MISS_L2HIT_SIZE];

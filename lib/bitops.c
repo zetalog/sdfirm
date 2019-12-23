@@ -1,7 +1,7 @@
 #include <target/generic.h>
 #include <target/atomic.h>
 
-#ifdef BIT_HWEIGHT64
+#ifdef CONFIG_BIT_HWEIGHT64
 uint8_t hweight64(uint64_t quad)
 {
 	uint64_t res;
