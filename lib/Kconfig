@@ -124,6 +124,10 @@ endmenu
 
 menu "String operations"
 
+config STRING_STRNCMP
+	select STDLIB
+	bool "strncmp"
+
 config STRING_STRTOUL
 	select STDLIB
 	bool "strtoul"

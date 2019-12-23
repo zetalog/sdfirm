@@ -547,7 +547,6 @@ int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
 	       tick_t interval, tick_t period, int repeats)
 {
 	cpu_t cpu = smp_processor_id();
-	bh_t bh = INVALID_BH;
 	bool locked = false;
 
 	spin_lock(&cpu_exec_lock);
@@ -584,7 +583,7 @@ int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
 	while (cpu_ctxs[cpu].async_event != CPU_EVENT_POLL ||
 	       cpu_ctxs[cpu].async_state != CPU_STATE_NONE) {
 		irq_local_enable();
-		bh = bh_run_once(bh);
+		bh_sync();
 		irq_local_disable();
 	}
 	return cpu_ctxs[cpu].didt_result;

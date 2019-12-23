@@ -14,6 +14,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdlib.h>
 
 #ifdef ARCH_HAS_BOOL
 typedef bool				boolean;
