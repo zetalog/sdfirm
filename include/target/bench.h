@@ -45,6 +45,13 @@
 #include <target/arch.h>
 #include <target/jiffies.h>
 
+#define BENCH_INPUT(align)		\
+	.test_array ALIGN(align) : {	\
+		__testfn_start = .;	\
+		KEEP (*(.testfn))	\
+		__testfn_end = .;	\
+	}
+
 /* Auto APC Test Framework (cpu_local_exec):
  *
  * Running Flags:
@@ -141,16 +148,6 @@ extern struct cpu_exec_test __testfn_end[];
 #define c_testfn_sync(fn, size, align, timeout)			\
 	c_testfn_repeat_sync(fn, size, align, 1, timeout)
 
-void cpu_power_on_entry(void);
-void cpu_power_on_start(void);
-
-int cpu_local_init(void);
-
-/* The entry point invoked by the assembly, where cpus_begin_boot() will be
- * invoked.
- */
-void cpus_local_entry(void);
-
 uint64_t cpu_local_get_cpu_mask(void);
 int cpu_local_exec(struct cpu_exec_test *start, int nr_tests,
 		   uint64_t init_cpu_mask, uint32_t flags,
@@ -158,6 +155,12 @@ int cpu_local_exec(struct cpu_exec_test *start, int nr_tests,
 int cpu_local_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
 		   tick_t interval, tick_t period, int repeats);
 struct cpu_exec_test *cpu_exec_find(const char *name);
+
+#ifdef CONFIG_TEST_BENCH
+void bench_init(void);
+#else
+#define bench_init()		do { } while (0)
+#endif
 
 #endif /* __ASSEMBLY__ */
 

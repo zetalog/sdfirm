@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Dec 23 15:54:45 2019
+# Mon Dec 23 17:40:59 2019
 #
 CONFIG_ARM64=y
 
@@ -282,8 +282,14 @@ CONFIG_UART_230400=y
 CONFIG_TEST_BENCH=y
 CONFIG_TEST_BENCH_LOCAL=y
 # CONFIG_TEST_BENCH_REMOTE is not set
-# CONFIG_TEST_VERBOSE is not set
-# CONFIG_RAVEN is not set
+CONFIG_TEST_VERBOSE=y
+CONFIG_RAVEN=y
+# CONFIG_RAVEN_GLOBAL_VAR is not set
+# CONFIG_RAVEN_EXEC_VAR is not set
+# CONFIG_RAVEN_PERCPU_VAR is not set
+# CONFIG_RAVEN_IU is not set
+# CONFIG_RAVEN_XU is not set
+# CONFIG_RAVEN_SU is not set
 
 #
 # Library setup

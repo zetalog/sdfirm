@@ -2,6 +2,7 @@
 #include <target/cmdline.h>
 #include <target/arch.h>
 #include <target/percpu.h>
+#include <target/bench.h>
 #include <asm-generic/sdfirm.lds.h>
 
 #define IDMAP_TEXT			\
@@ -39,11 +40,8 @@ SECTIONS
 	}
 
 	CMD_LINE_SECTION(8)
-	.test_array ALIGN(8) : {
-		__testfn_start = .;
-		KEEP (*(.testfn))
-		__testfn_end = .;
-	}
+	BENCH_INPUT(8)
+
 	.text : {
 		TEXT_TEXT
 		IDMAP_TEXT

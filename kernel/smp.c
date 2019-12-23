@@ -45,6 +45,7 @@
 #include <target/task.h>
 #include <target/jiffies.h>
 #include <target/percpu.h>
+#include <target/bench.h>
 
 cpu_t smp_boot_cpu;
 
@@ -56,6 +57,7 @@ void smp_init(void)
 		bh_init();
 		timer_init();
 		task_init();
+		bench_init();
 		bh_loop();
 	} else {
 		cpu_t cpu;
@@ -66,5 +68,6 @@ void smp_init(void)
 			if (cpu != smp_boot_cpu)
 				smp_hw_cpu_on(cpu, (caddr_t)smp_init, 0);
 		}
+		bench_init();
 	}
 }

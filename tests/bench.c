@@ -58,12 +58,9 @@
 #define CPU_RUN			2
 
 /* CPU control states */
-#define CPU_STATE_NONE		0
-#define CPU_STATE_WAIT_IDLE	1
-#define CPU_STATE_WAIT_BUSY	2
-#define CPU_STATE_HALT		3
-#define CPU_STATE_WAIT_ARCH	4
-#define CPU_STATE_DIDT		5
+#define CPU_STATE_HALT		0
+#define CPU_STATE_NONE		1
+#define CPU_STATE_DIDT		2
 
 /* CPU control events */
 #define CPU_EVENT_START		(1<<0)
@@ -92,7 +89,16 @@ struct cpu_context {
 	bh_t bh;
 } __cache_aligned;
 
+int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
+	       tick_t interval, tick_t period, int repeats);
+
 static struct cpu_context cpu_ctxs[NR_CPUS];
+
+static uint64_t cmd_bench_cpu_mask = 0;
+static int cmd_bench_repeats = 0;
+static struct cpu_exec_test *cmd_bench_test_set = NULL;
+static tick_t cmd_bench_timeout = CPU_WAIT_INFINITE;
+static tick_t cmd_bench_interval = CPU_WAIT_INFINITE;
 
 /* Variables for testos_cpu_state:
  * closed: all CPUs have no synchronous pattern running on them
@@ -214,7 +220,7 @@ static void bench_exec(uint8_t cpu)
 	while (is_endless ||
 	       time_before(tick_get_counter(), end_time)) {
 		do_printf("%02d(%020lld): %s count down %d before %020lld\n",
-			  cpu, time_get_current_time(), fn->name,
+			  cpu, tick_get_counter(), fn->name,
 			  cpu_ctxs[cpu].didt_repeats, end_time);
 		if (!fn->func(bench_percpu_area(cpu))) {
 			cpu_ctxs[cpu].didt_result = -EFAULT;
@@ -245,6 +251,11 @@ static void bench_bh_handler(uint8_t __event)
 
 	cpu_ctxs[cpu].async_event = 0;
 	switch (cpu_ctxs[cpu].async_state) {
+	case CPU_STATE_HALT:
+		bench_didt(cmd_bench_cpu_mask, cmd_bench_test_set,
+			   cmd_bench_interval, cmd_bench_timeout,
+			   cmd_bench_repeats);
+		break;
 	case CPU_STATE_NONE:
 		/* FIXME: Idle Power Efficiency
 		 *
@@ -578,6 +589,7 @@ int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
 	cpu_ctxs[cpu].didt_entry = fn;
 	cpu_ctxs[cpu].didt_repeats = repeats;
 	cpu_ctxs[cpu].didt_result = 0;
+	cpu_ctxs[cpu].async_state = CPU_STATE_NONE;
 	bench_raise_event(CPU_EVENT_START);
 
 	while (cpu_ctxs[cpu].async_event != CPU_EVENT_POLL ||
@@ -586,10 +598,9 @@ int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
 		bh_sync();
 		irq_local_disable();
 	}
+	cpu_ctxs[cpu].async_state = CPU_STATE_HALT;
 	return cpu_ctxs[cpu].didt_result;
 }
-
-uint64_t cpus_mode = CPU_MODE_BENCH;
 
 static int err_cpus(const char *hint)
 {
@@ -597,12 +608,6 @@ static int err_cpus(const char *hint)
 	(void)cmd_help("cpus");
 	return -EINVAL;
 }
-
-static uint64_t cmd_bench_cpu_mask = 0;
-static int cmd_bench_repeats = 0;
-static struct cpu_exec_test *cmd_bench_test_set = NULL;
-static tick_t cmd_bench_timeout = CPU_WAIT_INFINITE;
-static tick_t cmd_bench_interval = CPU_WAIT_INFINITE;
 
 static void cmd_bench_run_complete(uint64_t *results)
 {
@@ -620,17 +625,6 @@ static void cmd_bench_run_complete(uint64_t *results)
 		}
 	}
 }
-
-#if 0
-static int cmd_bench_run_remote(void)
-{
-	if (smp_processor_id() == 0)
-		wait_for_dbg();
-	return bench_didt(cmd_bench_cpu_mask, cmd_bench_test_set,
-			  cmd_bench_interval, cmd_bench_timeout,
-			  cmd_bench_repeats);
-}
-#endif
 
 struct timer_desc bench_timer = {
 	TIMER_BH,
@@ -751,7 +745,6 @@ static int cmd_bench_didt(uint64_t cpu_mask, struct cpu_exec_test *fn,
 	cmd_bench_timeout = period;
 	cmd_bench_repeats = repeats;
 
-	cpus_mode = CPU_MODE_TESTOS;
 	for (cpu = 0; cpu < NR_CPUS; cpu++) {
 		if (C(cpu) & cpu_mask)
 			bh_resume_smp(cpu_ctxs[cpu].bh, cpu);
@@ -782,7 +775,7 @@ static int cmd_bench(int argc, char **argv)
 				       (uint64_t)((start + i)->func));
 		}
 	} else if (strcmp(argv[1], "help") == 0) {
-		(void)cmd_help("cpus");
+		(void)cmd_help("bench");
 	} else if (strcmp(argv[1], "sync") == 0 ||
 		   strcmp(argv[1], "async") == 0) {
 		if (argc < 7)
