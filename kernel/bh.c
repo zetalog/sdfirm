@@ -126,7 +126,9 @@ static void __bh_sync(boolean recursive)
 
 void bh_sync(void)
 {
+	irq_local_enable();
 	__bh_sync(true);
+	irq_local_disable();
 }
 
 #ifdef CONFIG_IDEL

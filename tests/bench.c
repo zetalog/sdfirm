@@ -132,12 +132,12 @@ static void bench_raise_event(uint8_t event)
 static void bench_reset_timeout(void)
 {
 	cpu_t cpu = smp_processor_id();
+	timeout_t tout_ms = cpu_ctxs[cpu].async_timeout - tick_get_counter();
 
-	timer_schedule_shot(cpu_ctxs[cpu].timer,
-			    cpu_ctxs[cpu].async_timeout);
+	timer_schedule_shot(cpu_ctxs[cpu].timer, tout_ms);
 }
 
-void bench_poll(uint8_t cpu)
+void bench_poll(void)
 {
 	bench_raise_event(CPU_EVENT_POLL);
 }
@@ -147,13 +147,19 @@ static void bench_timer_handler(void)
 	bench_raise_event(CPU_EVENT_TIME);
 }
 
+#ifdef CONFIG_BENCH_START_DELAY
+#define BENCH_START_DELAY_MS	CONFIG_BENCH_START_DELAY
+#else
+#define BENCH_START_DELAY_MS	64
+#endif
+
 static void bench_start(void)
 {
 	cpu_t cpu = smp_processor_id();
 	tick_t current_s = tick_get_counter();
 
-	cpu_ctxs[cpu].async_timeout =
-		ALIGN_UP(current_s + ULL(65536), ULL(65536));
+	cpu_ctxs[cpu].async_timeout = ALIGN_UP(current_s,
+					       BENCH_START_DELAY_MS);
 	bench_reset_timeout();
 }
 
@@ -175,7 +181,7 @@ static void bench_stop(void)
 		heap_free(ptr);
 }
 
-static void bench_enter_state(uint8_t cpu, uint8_t state)
+static void bench_enter_state(cpu_t cpu, uint8_t state)
 {
 	cpu_ctxs[cpu].async_state = state;
 	switch (cpu_ctxs[cpu].async_state) {
@@ -190,7 +196,7 @@ static void bench_enter_state(uint8_t cpu, uint8_t state)
 	}
 }
 
-static caddr_t bench_percpu_area(uint8_t cpu)
+static caddr_t bench_percpu_area(cpu_t cpu)
 {
 	if (!cpu_ctxs[cpu].didt_entry)
 		return (caddr_t)0;
@@ -200,7 +206,7 @@ static caddr_t bench_percpu_area(uint8_t cpu)
 			   hweight64(cpu_didt_cpu_mask >> cpu))));
 }
 
-static void bench_exec(uint8_t cpu)
+static void bench_exec(cpu_t cpu)
 {
 	struct cpu_exec_test *fn;
 	tick_t end_time;
@@ -264,7 +270,7 @@ static void bench_bh_handler(uint8_t __event)
 		 * in order to be more idle power efficient.
 		 */
 		if (event & CPU_EVENT_POLL)
-			bench_poll(cpu);
+			bench_poll();
 		if (event & CPU_EVENT_START)
 			bench_enter_state(cpu, CPU_STATE_DIDT);
 		break;
@@ -340,7 +346,7 @@ static void inline cpu_exec_close(uint64_t cpu_mask, bool is_exit,
 }
 
 static inline tick_t __get_testfn_timeout(struct cpu_exec_test *fn,
-					   tick_t timeout)
+					  tick_t timeout)
 {
 	if (fn->timeout != CPU_WAIT_INFINITE) {
 		tick_t test_timeout = tick_get_counter() + fn->timeout;
@@ -594,15 +600,13 @@ int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
 
 	while (cpu_ctxs[cpu].async_event != CPU_EVENT_POLL ||
 	       cpu_ctxs[cpu].async_state != CPU_STATE_NONE) {
-		irq_local_enable();
 		bh_sync();
-		irq_local_disable();
 	}
 	cpu_ctxs[cpu].async_state = CPU_STATE_HALT;
 	return cpu_ctxs[cpu].didt_result;
 }
 
-static int err_cpus(const char *hint)
+static int err_bench(const char *hint)
 {
 	printf("--ERROR: %s\n", hint);
 	(void)cmd_help("cpus");
@@ -764,14 +768,13 @@ static int cmd_bench(int argc, char **argv)
 	int repeats;
 
 	if (argc < 2)
-		return err_cpus("Missing sub-command.\n");
+		return err_bench("Missing sub-command.\n");
 	if (strcmp(argv[1], "show") == 0) {
 		for (i = 0; i < nr_tests; i++) {
 			if ((start + i)->flags & CPU_EXEC_META)
-				printf("%20s: %4s %4s 0x%016llx\n",
+				printf("%20s: %4s 0x%016llx\n",
 				       (start + i)->name,
 				       (start + i)->flags & CPU_EXEC_SYNC ? "sync" : "",
-				       (start + i)->flags & CPU_EXEC_DDR ? "ddr" : "",
 				       (uint64_t)((start + i)->func));
 		}
 	} else if (strcmp(argv[1], "help") == 0) {
@@ -779,31 +782,24 @@ static int cmd_bench(int argc, char **argv)
 	} else if (strcmp(argv[1], "sync") == 0 ||
 		   strcmp(argv[1], "async") == 0) {
 		if (argc < 7)
-			return err_cpus("Missing parameters.\n");
+			return err_bench("Missing parameters.\n");
 		cpu_mask = cmd_get_cpu_mask(argv[2]);
 		if (cpu_mask == CMD_INVALID_CPU_MASKS)
-			return err_cpus("Invalid CPU mask.\n");
+			return err_bench("Invalid CPU mask.\n");
 		fn = cpu_exec_find(argv[3]);
 		if (!fn || !(fn->flags & CPU_EXEC_META))
-			return err_cpus("Invalid test function.\n");
+			return err_bench("Invalid test function.\n");
 		period = strtoul(argv[4], 0, 0);
 		interval = strtoul(argv[5], 0, 0);
 		repeats = strtoul(argv[6], 0, 0);
-		if (period == CPU_WAIT_INFINITE ||
-		    period * MSECS_PER_SEC < period)
-			return err_cpus("Invalid period.\n");
-		period *= MSECS_PER_SEC;
-		if (interval == CPU_WAIT_INFINITE ||
-		    interval * MSECS_PER_SEC < interval)
-			return err_cpus("Invalid interval.\n");
-		interval *= MSECS_PER_SEC;
+		if (period == CPU_WAIT_INFINITE)
+			return err_bench("Invalid period.\n");
+		if (interval == CPU_WAIT_INFINITE)
+			return err_bench("Invalid interval.\n");
 		if (repeats < 0)
-			return err_cpus("Invalid repeat times.\n");
+			return err_bench("Invalid repeat times.\n");
 		if (argc > 7) {
 			timeout = strtoul(argv[7], 0, 0);
-			if (timeout * MSECS_PER_SEC < timeout)
-				return err_cpus("Invalid timeout.\n");
-			timeout *= MSECS_PER_SEC;
 		} else
 			timeout = CPU_WAIT_INFINITE;
 		/* Try to avoid dIdT mode */
@@ -812,14 +808,14 @@ static int cmd_bench(int argc, char **argv)
 			interval = 0;
 		}
 		ret = cmd_bench_didt(cpu_mask, fn, period, interval,
-				    repeats, timeout,
-				    !!strcmp(argv[1], "sync") == 0);
+				     repeats, timeout,
+				     !!strcmp(argv[1], "sync") == 0);
 		if (ret) {
 			printf("--ERROR: failed to run %s\n", argv[3]);
 			return -EFAULT;
 		}
 	} else
-		return err_cpus("Invalid sub-command.\n");
+		return err_bench("Invalid sub-command.\n");
 	return 0;
 }
 

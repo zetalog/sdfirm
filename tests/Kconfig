@@ -5,6 +5,7 @@
 menuconfig TEST_BENCH
 	bool "Test bench setup"
 	select TIMER
+	select TIMER_32BIT
 	select CRYPTO_RAND
 	select STRING_STRNCMP
 	select BIT_HWEIGHT64

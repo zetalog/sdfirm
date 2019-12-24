@@ -8,7 +8,11 @@
 #define SYSTICK_HW_COUNTER_MASK		((ULL(1) << 56) - 1)
 #define SYSTICK_HW_COUNTER(value)	_FV(SYSTICK_HW_COUNTER, value)
 
-/* mHz based */
-#define SYSTICK_HW_FREQUENCY	ULL(100000000)
+/* Hz based */
+#if 0
+#define SYSTICK_HW_FREQUENCY		ULL(100000000)
+#else
+#define SYSTICK_HW_FREQUENCY		ULL(20000)
+#endif
 
 #endif /* __TIMER_GEM5_H_INCLUDE__ */

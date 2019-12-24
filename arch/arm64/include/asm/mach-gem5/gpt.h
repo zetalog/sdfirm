@@ -7,6 +7,6 @@
 /* msec based */
 #define GPT_MAX_TIMEOUT					\
 	(SYSTICK_HW_COUNTER(ULL(0xFFFFFFFFFFFFFFFF)) /	\
-	 TICKS_TO_MILISECONDS)
+	 TSC_FREQ)
 
 #endif /* __GPT_GEM5_H_INCLUDE__ */

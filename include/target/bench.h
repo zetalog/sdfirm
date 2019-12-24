@@ -65,7 +65,6 @@
  *        serially.
  * SHARE: Memory chunk allocated for the case should be shared between
  *        the runnning cores.
- * DDR:   Can only be run in DDR, otherwise case are dependent on TCM.
  * META:  A case that implements a pattern running style for all other
  *        non-meta cases.
  */
@@ -73,7 +72,6 @@
 #define CPU_EXEC_RAND	0x00000002
 #define CPU_EXEC_NOSMP	0x00000004
 #define CPU_EXEC_SHARE	0x00000008
-#define CPU_EXEC_DDR	0x00000010
 #define CPU_EXEC_META	0x80000000
 
 #define CPU_EXEC_SUCCESS	1

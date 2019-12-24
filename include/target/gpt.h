@@ -4,7 +4,10 @@
 #include <target/types.h>
 
 #ifndef __ASSEMBLY__
-#if defined(CONFIG_TIMER_16BIT)
+#if defined(CONFIG_TIMER_32BIT)
+typedef uint32_t timeout_t;
+#define MAX_TIMEOUT	0x7FFFFFFF
+#elif defined(CONFIG_TIMER_16BIT)
 typedef uint16_t timeout_t;
 #define MAX_TIMEOUT	0x7FFF
 #else

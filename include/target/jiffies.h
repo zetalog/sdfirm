@@ -3,8 +3,8 @@
 
 #include <target/tsc.h>
 
+/* HZ is fixed to 1000, which means jiffy is msec based */
 #define HZ			1000
-#define MSECS_PER_SEC		1000000
 
 #ifndef __ASSEMBLY__
 typedef uint32_t tick_t;
@@ -35,8 +35,8 @@ extern volatile tick_t jiffies;
 #define tick_get_counter()		jiffies
 void tick_init(void);
 #else
-#define TSC_PER_HZ			(TSC_FREQ * 1000 / HZ)
-#define tick_get_counter()		div32u(tsc_read_counter(), TSC_PER_HZ)
+#define tick_get_counter()		\
+	div32u(tsc_read_counter(), TSC_FREQ)
 #define tick_init()			do { } while (0)
 #endif
 #endif

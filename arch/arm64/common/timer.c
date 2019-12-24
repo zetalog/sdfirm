@@ -1,6 +1,6 @@
-#include <target/gpt.h>
+#include <target/timer.h>
+#include <target/jiffies.h>
 #include <target/irq.h>
-#include <asm/timer.h>
 
 uint64_t __systick_read(void)
 {
@@ -24,8 +24,8 @@ void __systick_set_timeout(timeout_t match_val)
 {
 	uint64_t match_val_ticks;
 
-	match_val_ticks = match_val * TICKS_TO_MICROSECONDS;
-	write_sysreg(match_val_ticks, CNTP_CVAL_EL0);
+	match_val_ticks = match_val * TSC_FREQ;
+	write_sysreg(match_val_ticks, CNTP_TVAL_EL0);
 }
 
 void __systick_mask_irq(void)
@@ -54,9 +54,7 @@ void __systick_init(void)
 		return;
 	systick_done = true;
 	write_sysreg(SYSTICK_HW_FREQUENCY, CNTFRQ_EL0);
-	write_sysreg(0, CNTVOFF_EL2);
-	write_sysreg(CNTHCTL_EL1PCEN | CNTHCTL_EL1PCTEN, CNTHCTL_EL2);
 	write_sysreg(CNTKCTL_EL0PCTEN, CNTKCTL_EL1);
 	write_sysreg(CNTX_CTL_ENABLE, CNTP_CTL_EL0);
-	write_sysreg(-1, CNTP_CVAL_EL0);
+	write_sysreg(-1, CNTP_TVAL_EL0);
 }

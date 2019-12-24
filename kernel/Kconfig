@@ -150,6 +150,11 @@ endif
 
 menu "Timing facility (jiffy) support"
 
+config TICKLESS
+	bool
+	default y if !TICK
+	select MATH_DIV32
+
 config TICK
 	bool "Enable tick device support"
 	depends !ARCH_IS_TICKLESS
@@ -229,8 +234,12 @@ menuconfig TIMER
 
 if TIMER
 
+config TIMER_32BIT
+	bool "Enable 32-bit timeout value"
+
 config TIMER_16BIT
 	bool "Enable 16-bit timeout value"
+	depends !TIMER_32BIT
 
 config TIMER_ONESHOT
 	bool "Enable onshot timer interrupt"
