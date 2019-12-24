@@ -83,7 +83,7 @@ _do_irq:
 	stp	x3, x0, [sp, #-16]!
 	stp	x0, x4, [sp, #-16]!
 	mov	x0, sp
-	bl	do_IRQ
+	bl	irqc_hw_handle_irq
 	b	exception_exit
 
 exception_exit:
@@ -146,9 +146,9 @@ serror_sp_el0:
 sync_sp_elx:
 	ventry _bad_mode, 0
 irq_sp_elx:
-	ventry do_IRQ, 1
+	ventry _do_irq, 1
 fiq_sp_elx:
-	ventry do_IRQ, 2
+	ventry _do_irq, 2
 serror_sp_elx:
 	ventry _bad_mode, 3
 	/* -----------------------------------------------------------
