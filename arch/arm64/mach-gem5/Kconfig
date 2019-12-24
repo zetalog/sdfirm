@@ -44,6 +44,22 @@ config GEM5_RAM_BITS
 	  This option is useful for RTL simulation environment.
 	  Bit shift N of RAM memory size. Memory size will be 2^N.
 
+menu "System counter options"
+
+config GEM5_CNT_USER_FREQ
+	bool "Configure CNTFRQ frequency"
+	help
+	  On cycle emulators, real CNTFRQ value is not suitable for
+	  estimating real time. This option allows users to configure
+	  timings suitable for user feelings (especially for running
+	  timed bench tests).
+
+config GEM5_CNT_FREQ
+	int "CNTFRQ frequency"
+	depends GEM5_CNT_USER_FREQ
+
+endmenu
+
 config UART_GEM5
 	bool "AMBA PL011 uart controller support"
 	depends UART || DEBUG_PRINT || CONSOLE

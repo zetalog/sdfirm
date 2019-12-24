@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Dec 24 16:29:28 2019
+# Tue Dec 24 18:02:27 2019
 #
 CONFIG_ARM64=y
 
@@ -120,6 +120,12 @@ CONFIG_GEM5_ROM_AS_RAM=y
 # CONFIG_GEM5_RAM_DEFAULT is not set
 CONFIG_GEM5_RAM_BASE=0x0
 CONFIG_GEM5_RAM_BITS=20
+
+#
+# System counter options
+#
+CONFIG_GEM5_CNT_USER_FREQ=y
+CONFIG_GEM5_CNT_FREQ=20000
 CONFIG_UART_GEM5=y
 CONFIG_UART_ACE=y
 # CONFIG_UART_APB is not set
