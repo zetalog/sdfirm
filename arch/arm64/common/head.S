@@ -167,6 +167,18 @@ ENTRY(__start)
 #else
 #define PSR_MODE_KERNEL		PSR_MODE_EL1h
 #endif
+
+	# Enable CPU interfaces before exiting to EL1
+	# early timer initialization
+	call_l	delay_init
+#ifdef CONFIG_BOOT_LINUX
+	# Let the SMP handling code to initialize GICC where the GICC
+	# register addresses are valid mappings for the GIC drivers.
+	# However, when Linux kernel is booted, SMP code won't do that for
+	# kernel which requires GICC to be initialized by the bootloader.
+	call_l	irq_smp_init
+#endif
+
 #ifdef CONFIG_SYS_KERNEL
 	# switch different EL entries
 	mrs	x0, CurrentEL
@@ -180,9 +192,6 @@ ENTRY(__start)
 	eret
 #endif
 init_lo_el:
-	# early timer initialization
-	call_l	delay_init
-
 #if !defined(CONFIG_BOOT_LINUX) && defined(CONFIG_SMP)
 	mrs	x0, MPIDR_EL1
 	and	x0, x0, #0xFF
@@ -226,9 +235,6 @@ ENTRY(smp_hw_cpu_id)
 ENDPROC(smp_hw_cpu_id)
 ENTRY(_smp_start)
 	init_sp
-
-	# GICC initialization
-	call_l	irq_smp_init
 
 #ifdef CONFIG_MMU
 	# Address to jump to after MMU has been enabled

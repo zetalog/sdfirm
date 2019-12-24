@@ -46,14 +46,20 @@ void __systick_unmask_irq(void)
 	write_sysreg(value, CNTP_CTL_EL0);
 }
 
+#ifdef CONFIG_SMP
+static bool systick_dones[NR_CPUS];
+#define systick_done	systick_dones[smp_processor_id()]
+#else
 static bool systick_done = false;
+#endif
 
 void __systick_init(void)
 {
 	if (systick_done)
 		return;
 	systick_done = true;
-	write_sysreg(SYSTICK_HW_FREQUENCY, CNTFRQ_EL0);
+	if (current_el() == ARM_EL3)
+		write_sysreg(SYSTICK_HW_FREQUENCY, CNTFRQ_EL0);
 	write_sysreg(CNTKCTL_EL0PCTEN, CNTKCTL_EL1);
 	write_sysreg(CNTX_CTL_ENABLE, CNTP_CTL_EL0);
 	write_sysreg(-1, CNTP_TVAL_EL0);

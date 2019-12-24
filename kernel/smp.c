@@ -41,6 +41,7 @@
 
 #include <target/smp.h>
 #include <target/bh.h>
+#include <target/irq.h>
 #include <target/timer.h>
 #include <target/task.h>
 #include <target/jiffies.h>
@@ -54,6 +55,7 @@ void smp_init(void)
 	printf("SMP initializing CPU %d.\n", smp_processor_id());
 
 	if (smp_processor_id() != smp_boot_cpu) {
+		irq_smp_init();
 		bh_init();
 		timer_init();
 		task_init();

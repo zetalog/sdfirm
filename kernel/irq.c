@@ -76,12 +76,6 @@ DEFINE_PERCPU(struct smp_poll, smp_polls);
 	this_cpu_ptr(&smp_polls)->smp_irq_poll_all_cpus
 #define irq_is_polling		\
 	this_cpu_ptr(&smp_polls)->smp_irq_is_polling
-
-void irq_smp_init(void)
-{
-	irqc_hw_smp_init();
-	irq_local_disable();
-}
 #else
 DECLARE_BITMAP(irq_poll_regs, NR_BHS);
 DECLARE_BITMAP(irq_poll_all_cpus, NR_BHS);
@@ -123,6 +117,12 @@ void irq_register_poller_smp(bh_t bh)
 	__irq_register_poller(bh, true);
 }
 #endif
+
+void irq_smp_init(void)
+{
+	irqc_hw_smp_init();
+	irq_local_disable();
+}
 
 void irq_init(void)
 {
