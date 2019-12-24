@@ -21,6 +21,15 @@ struct smp_timer {
 	bh_t smp_timer_bh;
 	tid_t smp_timer_running_tid;
 	tid_t smp_timer_orders[NR_TIMERS+1];
+#ifdef CONFIG_TICK
+	tick_t smp_timer_last_tick;
+#else
+	timeout_t smp_timer_timeout;
+	timeout_t smp_timer_unshot_timeout;
+#ifdef SYS_BOOTLOAD
+	boolean smp_timer_polling;
+#endif
+#endif
 };
 
 DEFINE_PERCPU(struct smp_timer, smp_timers);
@@ -33,6 +42,16 @@ DEFINE_PERCPU(struct smp_timer, smp_timers);
 #define timer_running_tid	\
 	this_cpu_ptr(&smp_timers)->smp_timer_running_tid
 #define timer_orders		this_cpu_ptr(&smp_timers)->smp_timer_orders
+#ifdef CONFIG_TICK
+#define timer_last_tick		this_cpu_ptr(&smp_timers)->smp_timer_last_tick
+#else
+#define timer_timeout		this_cpu_ptr(&smp_timers)->smp_timer_timeout
+#define timer_unshot_timeout	\
+	this_cpu_ptr(&smp_timers)->smp_timer_unshot_timeout
+#ifdef SYS_BOOTLOAD
+#define timer_polling		this_cpu_ptr(&smp_timers)->smp_timer_polling
+#endif
+#endif
 #else
 timer_desc_t *timer_descs[NR_TIMERS];
 timeout_t timer_timeouts[NR_TIMERS];
@@ -40,6 +59,15 @@ DECLARE_BITMAP(timer_regs, NR_TIMERS);
 bh_t timer_bh;
 tid_t timer_running_tid;
 tid_t timer_orders[NR_TIMERS+1];
+#ifdef CONFIG_TICK
+tick_t timer_last_tick;
+#else
+timeout_t timer_timeout;
+timeout_t timer_unshot_timeout;
+#ifdef SYS_BOOTLOAD
+boolean timer_polling;
+#endif
+#endif
 #endif
 
 void __timer_del(tid_t tid)
@@ -117,9 +145,8 @@ void timer_run_timeout(uint8_t type)
 			break;
 		}
 		BUG_ON((type == TIMER_BH) && (timer->type != type));
-		if (timer->type == type) {
+		if (timer->type == type)
 			__timer_run(tid);
-		}
 	} while (1);
 }
 
@@ -161,8 +188,6 @@ void timer_unregister(tid_t tid)
 }
 
 #ifdef CONFIG_TICK
-tick_t timer_last_tick = 0;
-
 void timer_bh_timeout(void)
 {
 	tid_t tid, i;
@@ -198,11 +223,7 @@ void timer_bh_timeout(void)
 #define timer_restart()		timer_start()
 #define timer_poll_handler()
 #else
-timeout_t timer_timeout = TIMER_MAKE(TIMER_FLAG_SHOT, 0);
-timeout_t timer_unshot_timeout = 0;
-
 #ifdef SYS_BOOTLOAD
-boolean timer_polling = false;
 #define timer_poll_start()	(timer_polling = true)
 #define timer_poll_stop()	(timer_polling = false)
 #define timer_poll_init()	(irq_register_poller_smp(timer_bh))
@@ -241,9 +262,8 @@ void timer_shot_timeout(timeout_t to_shot)
 
 void timer_execute_shot(void)
 {
-	if (TIMER_SHOT(timer_timeout)) {
+	if (TIMER_SHOT(timer_timeout))
 		timer_shot_timeout(TIMER_TIME(timer_timeout));
-	}
 }
 
 void timer_restart(void)
@@ -442,6 +462,9 @@ void timer_init(void)
 
 	/* The last timer order indexing value is always INVALID_TID */
 	timer_running_tid = INVALID_TID;
+#ifndef CONFIG_TICK
+	timer_timeout = TIMER_MAKE(TIMER_FLAG_SHOT, 0);
+#endif
 	for (tid = 0; tid < NR_TIMERS+1; tid++)
 		timer_orders[tid] = INVALID_TID;
 	timer_bh = bh_register_handler(timer_bh_handler);

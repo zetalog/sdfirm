@@ -1,11 +1,11 @@
 #ifndef __GPT_H_INCLUDE__
 #define __GPT_H_INCLUDE__
 
-#include <target/types.h>
+#include <target/generic.h>
 
 #ifndef __ASSEMBLY__
-#if defined(CONFIG_TIMER_32BIT)
-typedef uint32_t timeout_t;
+#if defined(CONFIG_TIMER_31BIT)
+typedef int32_t timeout_t;
 #define MAX_TIMEOUT	0x7FFFFFFF
 #elif defined(CONFIG_TIMER_16BIT)
 typedef uint16_t timeout_t;
@@ -17,7 +17,6 @@ typedef uint8_t timeout_t;
 #endif
 
 #include <driver/gpt.h>
-#include <target/generic.h>
 
 /* General Purpose Timers support */
 

@@ -234,12 +234,15 @@ menuconfig TIMER
 
 if TIMER
 
-config TIMER_32BIT
-	bool "Enable 32-bit timeout value"
+config TIMER_31BIT
+	bool "Enable 31-bit timeout value"
+	help
+	  tick_t is 32-bit, so timeout_t can be 31-bit (stored as a signed
+	  32-bit value).
 
 config TIMER_16BIT
 	bool "Enable 16-bit timeout value"
-	depends !TIMER_32BIT
+	depends !TIMER_31BIT
 
 config TIMER_ONESHOT
 	bool "Enable onshot timer interrupt"
