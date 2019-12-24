@@ -177,11 +177,11 @@ void pl01x_con_init(void);
 
 #define pl01x_enable_irq(n, irq)	__raw_setw(irq, UARTIMSC(n))
 #define pl01x_disable_irq(n, irq)	__raw_clearw(irq, UARTIMSC(n))
-#define pl01x_mask_irq(n, irq)		__raw_setw(irq, UARTMIS(n))
-#define pl01x_unmask_irq(n, irq)	__raw_clearw(irq, UARTMIS(n))
 #define pl01x_clear_irq(n, irq)		__raw_setw(irq, UARTICR(n))
 #define pl01x_irq_status(n)		__raw_readw(irq, UARTRIS(n))
 #define pl01x_disable_all_irqs(n)	__raw_writew(0, UARTIMSC(n))
+#define pl01x_mask_irq(n, irq)      pl01x_disable_irq(n, irq)
+#define pl01x_unmask_irq(n, irq)    pl01x_enable_irq(n, irq)
 
 /* ---------------------------------------------------------------------------
  * SBSA excluded

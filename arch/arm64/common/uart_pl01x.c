@@ -122,6 +122,7 @@ static void pl01x_handle_irq(void)
 	/* TODO: handle RX IRQ:
 	 * debug_handle_irq();
 	 */
+    console_handle_irq();
 }
 
 void pl01x_irq_ack(void)

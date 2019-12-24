@@ -116,7 +116,7 @@ static void console_bh_handler(uint8_t events)
 	if (events == BH_POLLIRQ) {
 		console_output_handler();
 		console_input_handler();
-	} else if (events == CONSOLE_IRQ) {
+	} else if ((events | console_events) == CONSOLE_IRQ) {
 		console_events = 0;
 		console_input_handler();
 		console_irq_ack();
