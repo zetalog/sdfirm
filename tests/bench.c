@@ -172,9 +172,9 @@ static void bench_stop(void)
 	cpu_didt_refcnt--;
 	if (!cpu_didt_refcnt) {
 		locked = true;
-		ptr = cpu_didt_area;
+		ptr = cpu_didt_alloc;
 		cpu_didt_cpu_mask = 0;
-		cpu_didt_area = (caddr_t)NULL;
+		cpu_didt_alloc = (caddr_t)NULL;
 	}
 	spin_unlock(&cpu_exec_lock);
 	if (locked)
