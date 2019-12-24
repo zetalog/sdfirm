@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <target/uart.h>
 #include <target/gpio.h>
 #include <target/bh.h>
@@ -116,7 +115,9 @@ static void console_bh_handler(uint8_t events)
 	if (events == BH_POLLIRQ) {
 		console_output_handler();
 		console_input_handler();
-	} else if ((events | console_events) == CONSOLE_IRQ) {
+		return;
+	}
+	if (console_events == CONSOLE_IRQ) {
 		console_events = 0;
 		console_input_handler();
 		console_irq_ack();
