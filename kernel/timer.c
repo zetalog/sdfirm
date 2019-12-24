@@ -222,6 +222,7 @@ void timer_bh_timeout(void)
 #define timer_start()		bh_resume(timer_bh)
 #define timer_restart()		timer_start()
 #define timer_poll_handler()
+#define timer_recalc_timeout()	do { } while (0)
 #else
 #ifdef SYS_BOOTLOAD
 #define timer_poll_start()	(timer_polling = true)
@@ -357,6 +358,7 @@ void timer_schedule_shot(tid_t tid, timeout_t tout_ms)
 {
 	BUG_ON(tid != timer_running_tid);
 	__timer_reset_timeout(tid, tout_ms);
+	timer_recalc_timeout();
 }
 
 void timer_bh_handler(uint8_t event)

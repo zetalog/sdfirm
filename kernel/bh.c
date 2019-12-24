@@ -124,13 +124,6 @@ static void __bh_sync(boolean recursive)
 		bh = bh_run_once(bh, recursive);
 }
 
-void bh_sync(void)
-{
-	irq_local_enable();
-	__bh_sync(true);
-	irq_local_disable();
-}
-
 #ifdef CONFIG_IDEL
 static void bh_irq_wait(void)
 {
@@ -141,6 +134,15 @@ static void bh_irq_wait(void)
 #else
 #define bh_irq_wait()		do { } while (0)
 #endif
+
+void bh_sync(void)
+{
+	irq_local_enable();
+	__bh_sync(true);
+	if (!irq_poll_bh())
+		bh_irq_wait();
+	irq_local_disable();
+}
 
 void bh_loop(void)
 {
