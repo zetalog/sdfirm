@@ -66,8 +66,7 @@
 #define CPU_EVENT_START		(1<<0)
 #define CPU_EVENT_TIME		(1<<1)
 #define CPU_EVENT_SYNC		(1<<2)
-#define CPU_EVENT_POLL		(1<<3)
-#define CPU_EVENT_STOP		(1<<4)
+#define CPU_EVENT_STOP		(1<<3)
 
 #define __printf(...)		do { } while (0)
 #ifdef CONFIG_TEST_VERBOSE
@@ -121,10 +120,41 @@ static caddr_t cpu_didt_alloc;
 static uint8_t cpu_didt_refcnt;
 static unsigned long cpu_didt_cpu_mask;
 
+static const char *bench_event_name(uint8_t event)
+{
+	switch (event) {
+	case CPU_EVENT_START:
+		return "START";
+	case CPU_EVENT_TIME:
+		return "TIME";
+	case CPU_EVENT_SYNC:
+		return "SYNC";
+	case CPU_EVENT_STOP:
+		return "STOP";
+	default:
+		return "UNKNOWN";
+	}
+}
+
+static const char *bench_state_name(uint8_t state)
+{
+	switch (state) {
+	case CPU_STATE_HALT:
+		return "HALT";
+	case CPU_STATE_NONE:
+		return "NONE";
+	case CPU_STATE_DIDT:
+		return "DIDT";
+	default:
+		return "UNKNOWN";
+	}
+}
+
 static void bench_raise_event(uint8_t event)
 {
 	cpu_t cpu = smp_processor_id();
 
+	do_printf("Event %s\n", bench_event_name(event));
 	cpu_ctxs[cpu].async_event |= event;
 	bh_resume(cpu_ctxs[cpu].bh);
 }
@@ -135,11 +165,6 @@ static void bench_reset_timeout(void)
 	timeout_t tout_ms = cpu_ctxs[cpu].async_timeout - tick_get_counter();
 
 	timer_schedule_shot(cpu_ctxs[cpu].timer, tout_ms);
-}
-
-void bench_poll(void)
-{
-	bench_raise_event(CPU_EVENT_POLL);
 }
 
 static void bench_timer_handler(void)
@@ -183,10 +208,11 @@ static void bench_stop(void)
 
 static void bench_enter_state(cpu_t cpu, uint8_t state)
 {
+	do_printf("STATE %s\n", bench_state_name(state));
+
 	cpu_ctxs[cpu].async_state = state;
 	switch (cpu_ctxs[cpu].async_state) {
 	case CPU_STATE_NONE:
-		bench_raise_event(CPU_EVENT_POLL);
 		break;
 	case CPU_STATE_DIDT:
 		bench_start();
@@ -263,14 +289,6 @@ static void bench_bh_handler(uint8_t __event)
 			   cmd_bench_repeats);
 		break;
 	case CPU_STATE_NONE:
-		/* FIXME: Idle Power Efficiency
-		 *
-		 * We should use IRQs raised by the remote controlling CPU
-		 * (for example, GPIO IRQs) to eliminate this busy polling
-		 * in order to be more idle power efficient.
-		 */
-		if (event & CPU_EVENT_POLL)
-			bench_poll();
 		if (event & CPU_EVENT_START)
 			bench_enter_state(cpu, CPU_STATE_DIDT);
 		break;
@@ -410,7 +428,7 @@ again:
 		sync = true;
 
 	do_printf("%s %.3d/%.3d on %d\n", fn->name,
-	       test_id, nr_tests, smp_processor_id());
+		  test_id, nr_tests, smp_processor_id());
 
 repeat:
 	if (!(cpu_exec_good & cpu_mask)) {
@@ -598,10 +616,9 @@ int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
 	cpu_ctxs[cpu].async_state = CPU_STATE_NONE;
 	bench_raise_event(CPU_EVENT_START);
 
-	while (cpu_ctxs[cpu].async_event != CPU_EVENT_POLL ||
-	       cpu_ctxs[cpu].async_state != CPU_STATE_NONE) {
+	do {
 		bh_sync();
-	}
+	} while (cpu_ctxs[cpu].async_state != CPU_STATE_NONE);
 	cpu_ctxs[cpu].async_state = CPU_STATE_HALT;
 	return cpu_ctxs[cpu].didt_result;
 }

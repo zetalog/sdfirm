@@ -8,6 +8,7 @@
 typedef uint8_t bh_t;
 
 typedef void (*bh_cb)(uint8_t event);
+typedef boolean (*bh_synced_cb)(void *user);
 
 #define BH_WAKEUP	0x00	/* bottom half wakeup */
 #define BH_POLLIRQ	0x01	/* irq polling */
