@@ -56,6 +56,9 @@
 #define irqc_trigger_irq(irq)		irqc_hw_trigger_irq(irq)
 #define irqc_configure_irq(irq, prio, trigger)	\
 	irqc_hw_configure_irq(irq, prio, trigger)
+#ifndef CONFIG_SMP
+#define irqc_hw_smp_init()		do { } while (0)
+#endif
 #else
 #define irqc_hw_ctrl_init()		do { } while (0)
 #define irqc_hw_smp_init()		do { } while (0)

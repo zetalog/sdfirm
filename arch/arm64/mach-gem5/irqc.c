@@ -11,8 +11,10 @@ void irqc_hw_ctrl_init(void)
 	gicv2_init_gicc();
 }
 
+#ifdef CONFIG_SMP
 void irqc_hw_smp_init(void)
 {
 	/* Enable CPU interface */
 	gicv2_init_gicc();
 }
+#endif
