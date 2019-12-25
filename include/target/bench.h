@@ -77,25 +77,21 @@
 #define CPU_EXEC_SUCCESS	1
 #define CPU_EXEC_FAILURE	0
 
-#define CPU_MODE_BENCH	0
-#define CPU_MODE_TESTOS	1
-
 #ifdef __ASSEMBLY__
 
 #define CPU_WAIT_INFINITE		-1
-#define CPU_POWER_ON_ENTRY_POINT	cpu_power_on_entry
 
 #ifndef LINKER_SCRIPT
 	.macro define_asm_testfn, _name:req, _size:req, _align=128, _repeat=1, _flags=0, _timeout=CPU_WAIT_INFINITE
 	.section .testfn, "a"
 	.align 3
 	.type __testfn0_\_name, %object
-        .pushsection .rodata
-        9001:
-        .ascii "\_name"
-        .byte 0
-        .popsection
-        .quad 9001b
+	.pushsection .rodata
+	9001:
+	.ascii "\_name"
+	.byte 0
+	.popsection
+	.quad 9001b
 	.quad \_name
 	.long \_size
 	.long \_align
@@ -108,7 +104,6 @@
 #else /* __ASSEMBLY__ */
 
 #define CPU_WAIT_INFINITE		((tick_t)-1)
-#define CPU_POWER_ON_ENTRY_POINT	((uintptr_t)cpu_power_on_entry)
 
 typedef int (*percpu_entry)(caddr_t percpu_area);
 

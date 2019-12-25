@@ -3,8 +3,8 @@
 # asm_test_su_c4011.S
 # asm_test_su_c4021.S
 
-asflags-y += -DTESTOS
-ccflags-y += -DTESTOS
+EXTRA_AFLAGS += -DTESTOS
+EXTRA_CFLAGS += -DTESTOS
 
 obj-y :=
 

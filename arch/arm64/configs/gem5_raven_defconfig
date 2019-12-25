@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Dec 24 18:02:27 2019
+# Wed Dec 25 14:23:36 2019
 #
 CONFIG_ARM64=y
 
@@ -292,7 +292,7 @@ CONFIG_RAVEN=y
 # CONFIG_RAVEN_GLOBAL_VAR is not set
 # CONFIG_RAVEN_EXEC_VAR is not set
 # CONFIG_RAVEN_PERCPU_VAR is not set
-# CONFIG_RAVEN_IU is not set
+CONFIG_RAVEN_IU=y
 # CONFIG_RAVEN_XU is not set
 # CONFIG_RAVEN_SU is not set
 

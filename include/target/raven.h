@@ -44,6 +44,7 @@
 
 #include <target/percpu.h>
 #include <target/cpus.h>
+#include <target/bench.h>
 #include <target/smp.h>
 
 #define RAVEN_ARRAY_SIZE		(128*1024)

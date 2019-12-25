@@ -208,7 +208,7 @@ static void bench_stop(void)
 
 static void bench_enter_state(cpu_t cpu, uint8_t state)
 {
-	do_printf("STATE %s\n", bench_state_name(state));
+	do_printf("State %s\n", bench_state_name(state));
 
 	cpu_ctxs[cpu].async_state = state;
 	switch (cpu_ctxs[cpu].async_state) {
