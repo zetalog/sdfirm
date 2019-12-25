@@ -35,6 +35,7 @@ static void gpt_hw_handle_irq(void)
 	if (__systick_poll()) {
 		__systick_mask_irq();
 		tick_handler();
+		__systick_unmask_irq();
 	}
 }
 
@@ -54,10 +55,12 @@ void gpt_hw_irq_init(void)
 	irqc_configure_irq(IRQ_TIMER, 0, IRQ_LEVEL_TRIGGERED);
 	irq_register_vector(IRQ_TIMER, gpt_hw_handle_irq);
 	irqc_enable_irq(IRQ_TIMER);
+	gpt_hw_irq_enable();
 }
 #endif
 
 void gpt_hw_ctrl_init(void)
 {
 	gblct_init();
+	gpt_hw_irq_init();
 }
