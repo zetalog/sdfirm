@@ -62,7 +62,11 @@ void percpu_init(void)
 		__percpu_offset[i] = ((uint64_t)ptr) - PERCPU_START;
 		printf("CPU%d area: %016llx\n",
 		       i, PERCPU_START + __percpu_offset[i]);
-		memory_copy(PERCPU_START + __percpu_offset[i],
-			    PERCPU_START, size);
+		if (i == smp_boot_cpu)
+			memory_copy(PERCPU_START + __percpu_offset[i],
+				    PERCPU_START, size);
+		else
+			memory_set(PERCPU_START + __percpu_offset[i],
+				   0, size);
 	}
 }

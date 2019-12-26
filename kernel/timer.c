@@ -227,7 +227,7 @@ void timer_bh_timeout(void)
 #ifdef SYS_BOOTLOAD
 #define timer_poll_start()	(timer_polling = true)
 #define timer_poll_stop()	(timer_polling = false)
-#define timer_poll_init()	(irq_register_poller_smp(timer_bh))
+#define timer_poll_init()	(irq_register_poller(timer_bh))
 
 static void timer_poll_handler(void)
 {
