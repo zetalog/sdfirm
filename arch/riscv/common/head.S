@@ -13,6 +13,19 @@
 	.option pop
 	.endm
 
+	.macro disable_irq
+#ifdef CONFIG_RISCV_ENTR_M
+	csrci	mstatus, SR_MIE
+#endif
+	.endm
+
+	.macro disable_fpu
+#ifdef CONFIG_CPU_F
+	li	t0, SR_FS
+	csrc	sstatus, t0
+#endif
+	.endm
+
 	.macro	zerow regs
 	REG_S	zero, 0(\regs)
 	.endm
@@ -50,7 +63,7 @@
 
 ENTRY(__start)
 	/* Disable global interrupt. */
-	csrci	mstatus, 8
+	disable_irq
 
 	init_sp
 	init_gp

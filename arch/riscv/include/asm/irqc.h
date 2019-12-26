@@ -47,7 +47,7 @@
 /* RISCV allows embedded IRQ controllers */
 #include <asm/mach/irqc.h>
 
-#ifdef CONFIG_SYS_MONITOR
+#ifdef CONFIG_RISCV_EXIT_M
 #define external_irq_disable()	csr_clear(CSR_MIE, IE_MEIE)
 #define external_irq_enable()	csr_set(CSR_MIE, IE_MEIE)
 #else

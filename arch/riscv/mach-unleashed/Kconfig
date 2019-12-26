@@ -33,6 +33,8 @@ choice
 config UNLEASHED_ZSBL
 	bool "Zeroth stage boot loader (ZSBL)"
 	depends UNLEASHED_E51
+	select SYS_ENTR_M
+	select SYS_EXIT_M
 	select ARCH_HAS_NOVEC
 	select XIP
 	select LOAD_DATA
@@ -41,6 +43,8 @@ config UNLEASHED_ZSBL
 config UNLEASHED_FSBL
 	bool "First stage boot loader (FSBL)"
 	depends UNLEASHED_E51
+	select SYS_ENTR_M
+	select SYS_EXIT_M
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_BOOT_LOAD
 	select XIP

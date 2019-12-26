@@ -50,7 +50,7 @@ struct pt_regs {
 	unsigned long regs[31];
 };
 
-#ifdef CONFIG_SYS_MONITOR
+#ifdef CONFIG_RISCV_EXIT_M
 #define irq_hw_flags_save(x)	((x) = csr_read_clear(CSR_MSTATUS, SR_MIE))
 #define irq_hw_flags_restore(x)	csr_set(CSR_MSTATUS, (x) & SR_MIE)
 #define irq_hw_flags_enable()	csr_set(CSR_MSTATUS, SR_MIE)

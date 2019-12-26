@@ -329,6 +329,18 @@ config NR_CPUS
 config ARCH_HAS_NOSEE
 	bool
 
+config SYS_ENTR_M
+	bool
+
+config SYS_ENTR_S
+	bool
+
+config SYS_EXIT_M
+	bool
+
+config SYS_EXIT_S
+	bool
+
 choice
 	prompt "Privileged software stack"
 	default RISCV_AEE
@@ -349,41 +361,53 @@ config RISCV_HEE
 endchoice
 
 choice
-	prompt "System priviledge"
-	default SYS_KERNEL if RISCV_SEE || RISCV_HEE
-	default SYS_MONITOR if RISCV_AEE
+	prompt "Entry priviledge level"
 
 # Disabled for the firmware system
-#config SYS_USER
-#	bool "User mode"
+#config RISCV_ENTR_U
+#	bool "U-Mode"
 
-config SYS_KERNEL
-	bool "Privileged (kernel) mode"
-	depends RISCV_SEE || RISCV_HEE
-	select SYS_GUEST if !SYS_HYPERVISOR
+config RISCV_ENTR_S
+	bool "S-Mode"
+	depends !SYS_ENTR_M
 
-config SYS_MONITOR
-	bool "Monitor mode"
-	depends RISCV_AEE
-	depends !BOOTLOADER
+config RISCV_ENTR_M
+	bool "M-Mode"
+	depends !SYS_ENTR_S
 
 endchoice
 
-config SYS_GUEST
+choice
+	prompt "Exit priviledge level"
+
+# Disabled for the firmware system
+#config RISCV_EXIT_U
+#	bool "U-Mode"
+
+config RISCV_EXIT_S
+	bool "S-Mode"
+	depends !SYS_EXIT_M
+
+config RISCV_EXIT_M
+	bool "M-Mode"
+	depends !SYS_EXIT_S
+
+endchoice
+
+config SYS_LOADER
 	bool
-	depends !SYS_HYPERVISOR && SYS_KERNEL
+	depends BOOTLOADER
+	default y if RISCV_ENTR_M
 
-menuconfig SYS_HYPERVISOR
-	bool "Hypervisor optimization support"
-	depends RISCV_HEE && SYS_KERNEL
+config SYS_KERNEL
+	bool
 	depends !BOOTLOADER
+	default y if RISCV_EXIT_S && (RISCV_SEE || RISCV_HEE)
 
-if SYS_HYPERVISOR
-
-config SYS_HOST
-	bool "Host OS optimization support"
-
-endif
+config SYS_MONITOR
+	bool
+	depends !BOOTLOADER
+	default y if RISCV_ENTR_M && (RISCV_SEE || RISCV_HEE)
 
 menu "System peripherals"
 

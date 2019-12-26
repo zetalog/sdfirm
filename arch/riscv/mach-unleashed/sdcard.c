@@ -102,7 +102,6 @@ int unleashed_sdcard_copy(void *dst, uint32_t src_lba, size_t size)
 	bh_sync();
 	return unleashed_sdcard_success ? 0 : -EINVAL;
 }
-#endif
 
 static int do_sdcard(int argc, char *argv[])
 {
