@@ -315,7 +315,14 @@ void timer_irq_timeout(void)
 	timer_desc_t *timer;
 	boolean run_irq = false, run_bh = false;
 
+#ifndef CONFIG_SMP
 	BUG_ON(TIMER_SHOT(timer_timeout) != TIMER_FLAG_SHOT);
+#else
+	if (TIMER_SHOT(timer_timeout) != TIMER_FLAG_SHOT) {
+		printf("No timer IRQ on %d\n", smp_processor_id());
+		goto recalc;
+	}
+#endif
 	tout = TIMER_TIME(timer_timeout);
 	for (i = 0; i < NR_TIMERS; i++) {
 		tid = timer_orders[i];
@@ -340,6 +347,8 @@ void timer_irq_timeout(void)
 	}
 	if (run_irq)
 		timer_run_timeout(TIMER_IRQ);
+
+recalc:
 	if (!run_bh)
 		timer_recalc_timeout();
 }
@@ -378,8 +387,8 @@ tid_t tid_3;
 
 void timer_test_handler(void)
 {
-	printf("timeout\n");
-	timer_schedule_shot(tid_1, 5000);
+	printf("timeout on %d\n", smp_processor_id());
+	timer_schedule_shot(tid_3, 5000);
 }
 
 timer_desc_t timer_1 = {
@@ -433,13 +442,11 @@ void timer_test(void)
 	BUG_ON(timer_orders[1] != tid_2);
 	BUG_ON(timer_orders[2] != tid_3);
 
-#ifndef CONFIG_TIMER_TEST_TIMEOUT
 	timer_running_tid = tid_1;
 	timer_unregister(tid_1);
 	BUG_ON(timer_orders[0] != tid_2);
 	BUG_ON(timer_orders[1] != tid_3);
 	BUG_ON(timer_orders[2] != INVALID_TID);
-#endif
 
 	timer_running_tid = tid_2;
 	timer_unregister(tid_2);
@@ -447,12 +454,14 @@ void timer_test(void)
 	BUG_ON(timer_orders[1] != INVALID_TID);
 	BUG_ON(timer_orders[2] != INVALID_TID);
 
+#ifndef CONFIG_TIMER_TEST_TIMEOUT
 	timer_running_tid = tid_3;
 	timer_unregister(tid_3);
 	BUG_ON(find_first_clear_bit(timer_regs, NR_TIMERS) != 0);
 	BUG_ON(timer_orders[0] != INVALID_TID);
 	BUG_ON(timer_orders[1] != INVALID_TID);
 	BUG_ON(timer_orders[2] != INVALID_TID);
+#endif
 }
 #else
 #define timer_test()
