@@ -205,5 +205,8 @@ void uart_hw_irq_init(void);
 #define uart_hw_con_read()	-1
 #define uart_hw_con_poll()	false
 #endif
+#ifdef CONFIG_MMU
+#define uart_hw_mmu_init()	do { } while (0)
+#endif
 
 #endif /* __UART_UNLEASHED_H_INCLUDE__ */

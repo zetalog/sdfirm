@@ -15,7 +15,8 @@ config 32BIT
 	bool
 
 config RISCV
-	def_bool y
+	bool
+	default y
 	# even on 32-bit, physical (and DMA) addresses are > 32-bits
 
 source "init/Kconfig"
@@ -63,6 +64,7 @@ config ARCH_UNLEASHED
 	select UNLEASHED_SDCARD if MMCSD
 	select PLIC if !SYS_NOIRQ
 	select CLINT
+	select RISCV_VM if MMU
 	help
 	  This enables support for SiFive Freedom U540 SoC support.
 

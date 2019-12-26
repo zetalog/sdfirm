@@ -42,7 +42,6 @@
 #ifndef __PAGE_RISCV_H_INCLUDE__
 #define __PAGE_RISCV_H_INCLUDE__
 
-#include <target/types.h>
 #include <target/const.h>
 #include <target/barrier.h>
 #include <target/console.h>
@@ -54,8 +53,6 @@
  * asm/paging includes those that can appear after those defined in
  * <target/page.h>..
  */
-
-#ifdef CONFIG_PAGING
 /*===========================================================================
  * sdfirm specific definitions
  *===========================================================================*/
@@ -80,10 +77,6 @@
   * All MMU is implemented in this way, while we still keep the code
   * architecture specific.
   */
-#define PAGE_PTR_BITS		3
-#define PAGE_PTE_BITS		PAGE_SHIFT
-#define PAGE_PXD_BITS		(PAGE_SHIFT - PAGE_PTR_BITS)
-#endif /* CONFIG_PAGING */
 
 /*===========================================================================
  * linux style definitions
@@ -95,20 +88,33 @@
  *		 (VA_BITS - 1))
  * VA_BITS - the maximum number of bits for virtual addresses.
  */
-#define VA_BITS			VMSA_VA_SIZE_SHIFT
+#ifdef CONFIG_RISCV_SV32
+#define VA_BITS			32
+#define PAGE_PTR_BITS		2
+#define PHYS_MASK_SHIFT		34
+#endif
+#ifdef CONFIG_RISCV_SV39
+#define VA_BITS			39
+#define PAGE_PTR_BITS		3
+#define PHYS_MASK_SHIFT		56
+#endif
+#ifdef CONFIG_RISCV_SV48
+#define VA_BITS			48
+#define PAGE_PTR_BITS		3
+#endif
+#define PAGE_PTE_BITS		PAGE_SHIFT
+#define PAGE_PXD_BITS		(PAGE_SHIFT - PAGE_PTR_BITS)
+
 /* Every address range is linear */
 #define FIXADDR_END		(ULL(0x1) << VA_BITS)
 /*#define FIXADDR_END		PAGE_OFFSET*/
 #define PAGE_OFFSET		ULL(0x0)
 
 /* Highest possible physical address supported */
-#define PHYS_MASK_SHIFT		VMSA_PA_SIZE_SHIFT
 #define PHYS_MASK		((PTR_VAL_ONE << PHYS_MASK_SHIFT) - 1)
 
 #ifndef __ASSEMBLY__
 typedef uint64_t pfn_t;
-
-#ifdef CONFIG_PAGING
 typedef uint64_t pteval_t;
 typedef uint64_t pmdval_t;
 typedef uint64_t pudval_t;
@@ -156,7 +162,39 @@ static inline void set_pgd(pgdval_t *pgdp, pgdval_t pgd)
 }
 /* #define set_pgd(pgdp, pgd)	((*(pgdp) = (pgd)), page_wmb()) */
 #endif /* PGTABLE_LEVELS > 3 */
-#endif /* CONFIG_PAGING */
+#endif
+
+/*===========================================================================
+ * boot page table (bpgt)
+ *===========================================================================*/
+/* The idmap and boot page tables need some space reserved in the kernel
+ * image. Both require pgd, pud (4 levels only) and pmd tables to (section)
+ * map the kernel. With the 64K page configuration, swapper and idmap need to
+ * map to pte level. Note that the number of ID map translation levels could
+ * be increased on the fly if system RAM is out of reach for the default VA
+ * range, so pages required to map highest possible PA are reserved in all
+ * cases.
+ */
+#define BPGT_PGTABLE_LEVELS	(PGTABLE_LEVELS)
+#define IDMAP_PGTABLE_LEVELS	(__PGTABLE_LEVELS(PHYS_MASK_SHIFT))
+#define BPGT_DIR_SIZE		(BPGT_PGTABLE_LEVELS * PAGE_SIZE)
+#define IDMAP_DIR_SIZE		(IDMAP_PGTABLE_LEVELS * PAGE_SIZE)
+
+#if 0
+/* Initial memory map size */
+#define BPGT_BLOCK_SHIFT	PAGE_SHIFT
+#define BPGT_BLOCK_SIZE		PAGE_SIZE
+#define BPGT_TABLE_SHIFT	PMD_SHIFT
+
+/* The size of the initial kernel direct mapping */
+#define BPGT_INIT_MAP_SIZE	(_AC(1, UL) << BPGT_TABLE_SHIFT)
+
+/* Initial memory map attributes. */
+#define BPGT_PTE_FLAGS		(PTE_TYPE_PAGE | PTE_AF | PTE_SHARED)
+#define BPGT_PMD_FLAGS		(PMD_TYPE_SECT | PMD_SECT_AF | PMD_SECT_S)
+
+#define BPGT_MM_MMUFLAGS	(PTE_ATTRINDX(MT_NORMAL) | BPGT_PTE_FLAGS)
+#define BPGT_MM_DEVFLAGS	(PMD_ATTRINDX(MT_DEVICE_nGnRnE) | BPGT_PTE_FLAGS)
 #endif
 
 #endif /* __PAGE_RISCV_H_INCLUDE__ */

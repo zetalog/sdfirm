@@ -48,12 +48,6 @@
 #include <target/types.h>
 
 #ifndef __ASSEMBLY__
-#ifdef CONFIG_32BIT
-typedef uint32_t phys_addr_t;
-#else
-typedef uint64_t phys_addr_t;
-#endif
-
 /* For mem_hw_range_init() to allocate SoC specific memory resources. */
 #include <asm/mach/mem.h>
 #endif /* __ASSEMBLY__ */

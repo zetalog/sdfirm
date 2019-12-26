@@ -6,7 +6,6 @@
 #include <target/console.h>
 #include <target/mem.h>
 #include <asm/vmsa.h>
-#include <stdio.h>
 
 #define USER_ASID_BIT	48
 #define USER_ASID_FLAG	(UL(1) << USER_ASID_BIT)

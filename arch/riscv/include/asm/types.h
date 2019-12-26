@@ -67,5 +67,6 @@ typedef unsigned long	size_t;
 #define ARCH_HAVE_SIZE_T 1
 typedef caddr_t		uintptr_t;
 #define ARCH_HAVE_UINTPTR_T 1
+typedef unsigned long	phys_addr_t;
 
 #endif /* __TYPES_RISCV_H_INCLUDE__ */

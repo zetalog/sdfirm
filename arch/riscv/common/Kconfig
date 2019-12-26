@@ -16,6 +16,7 @@ config CPU_U54
 	select CPU_F
 	select CPU_D
 	select CPU_C
+	select CPU_SV39
 
 # RI5CY
 config CPU_RI5CY
@@ -188,6 +189,22 @@ config CPU_PMA
 config CPU_PMP
 	bool
 
+config CPU_SV32
+	bool
+	select ARCH_HAS_MMU
+
+config CPU_SV39
+	bool
+	depends 64BIT
+	select ARCH_HAS_MMU
+	select ARCH_HAS_MMU_4K
+	select ARCH_HAS_MMU_3L
+
+config CPU_SV48
+	bool
+	depends 64BIT
+	select ARCH_HAS_MMU
+
 config RISCV_M
 	bool "Multiplication and division (M) support"
 	depends CPU_M
@@ -276,6 +293,31 @@ config RISCV_H
 	depends CPU_H
 
 endmenu
+
+menuconfig RISCV_VM
+	bool "Page-based virtual memory system"
+	depends !ARCH_HAS_NO_SEE
+
+if RISCV_VM
+
+choice
+	prompt "Virtual memory bit"
+
+config RISCV_SV32
+	bool "Sv32"
+	depends CPU_SV32
+
+config RISCV_SV39
+	bool "Sv39"
+	depends CPU_SV39
+
+config RISCV_SV48
+	bool "Sv48"
+	depends CPU_SV48
+
+endchoice
+
+endif
 
 # We must be able to map all physical memory into the kernel, but the compiler
 # is still a bit more efficient when generating code if it's setup in a manner
