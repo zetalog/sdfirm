@@ -320,3 +320,7 @@ void i2c_hw_transfer_reset(void)
 	dw_i2c_pri->state = DW_I2C_DRIVER_INIT;
 	return;
 }
+
+void i2c_hw_master_select(i2c_t i2c)
+{
+}

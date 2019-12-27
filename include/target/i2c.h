@@ -3,6 +3,11 @@
 
 #include <target/generic.h>
 
+typedef uint8_t i2c_t;
+
+#define NR_I2C_MASTERS		CONFIG_I2C_MAX_MASTERS
+#define INVALID_I2C		NR_I2C_MASTERS
+
 #include <driver/i2c.h>
 
 #ifdef I2C_HW_FREQ
@@ -65,6 +70,11 @@ void i2c_apply_frequency(void);
 uint8_t i2c_master_write(i2c_addr_t slave, i2c_len_t txlen);
 uint8_t i2c_master_read(i2c_addr_t slave, i2c_len_t rxlen);
 void i2c_master_release(void);
+#if CONFIG_I2C_MAX_MASTERS > 1
+void i2c_master_select(i2c_t i2c);
+#else
+#define i2c_select_master(i2c)			do { } while (0)
+#endif
 #ifdef CONFIG_I2C_GENERAL_CALL
 uint8_t i2c_general_call(uint8_t cbyte, i2c_len_t limit);
 #else
@@ -80,7 +90,8 @@ uint32_t i2c_probe_devid(i2c_addr_t slave);
 #define i2c_master_write(slave, txlen)		I2C_STATUS_ARBI
 #define i2c_master_read(slave, rxlen)		I2C_STATUS_ARBI
 #define i2c_general_call(cbyte, limit)		I2C_STATUS_ARBI
-#define i2c_master_release()
+#define i2c_master_release()			do { } while (0)
+#define i2c_master_select(i2c)			do { } while (0)
 #define i2c_probe_devid(slave)			I2C_DEVID_INVAL
 #endif
 
