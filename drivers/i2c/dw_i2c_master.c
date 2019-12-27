@@ -1,4 +1,5 @@
 #include <target/i2c.h>
+#include <target/delay.h>
 #include <driver/dw_i2c.h>
 
 #define DW_I2C_DEBUG
@@ -77,11 +78,6 @@ void i2c_hw_set_address(i2c_addr_t addr, boolean call)
 /*
  * Set frequency by setting speed mode and relative SCL count
  */
-#ifndef CONFIG_DW_I2C_CLK
-#define BUS_CLK (125000 * 1000)
-#else
-#define BUS_CLK (CONFIG_DW_I2C_CLK * 1000)
-#endif
 void i2c_hw_set_frequency(uint16_t khz)
 {
 	caddr_t base = dw_i2c_pri->base;
@@ -277,6 +273,7 @@ uint8_t i2c_hw_read_byte(void)
 {
 	caddr_t base = dw_i2c_pri->base;
 	uint32_t val;
+	int check_cnt;
 #ifdef DW_I2C_DEBUG
 	con_printf("Debug: Enter %s\n", __func__);
 #endif
@@ -288,14 +285,20 @@ uint8_t i2c_hw_read_byte(void)
 		dw_i2c_pri->state = DW_I2C_DRIVER_INVALID;
 		return 0xFF; // XXX Invalid value
 	}
+
 	/* When IC_RX_TL = 0 (set in _init()), RX_FULL will be reported as
 	 * soon as one byte is received. */
-	// TODO: Detect timeout
+	check_cnt = 0;
 	do {
 		val = __raw_readl(base + IC_INTR_STAT);
-	} while (!(val & IC_RX_FULL));
-	val = __raw_readl(base + IC_DATA_CMD);
-	return (uint8_t)val;
+		if (val & IC_RX_FULL) {
+			val = __raw_readl(base + IC_DATA_CMD);
+			return (uint8_t)val;
+		}
+		check_cnt++;
+		udelay(200);
+	} while (check_cnt <= 10); /* Wait max 2ms for each byte. */
+	return 0xFF; // XXX Invalid value
 }
 
 /*
