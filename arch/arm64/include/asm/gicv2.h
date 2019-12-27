@@ -159,13 +159,15 @@
 			     GICC_EOIR);		\
 	} while (0)
 
-#define irqc_hw_enable_irq(irq)		gicd_enable_irq(irq)
-#define irqc_hw_disable_irq(irq)	gicd_disable_irq(irq)
+#define irqc_hw_enable_irq(irq)		gicv2_enable_irq(irq)
+#define irqc_hw_disable_irq(irq)	gicv2_disable_irq(irq)
 #define irqc_hw_trigger_irq(irq)	gicd_trigger_irq(irq)
 #define irqc_hw_clear_irq(irq)		gicd_clear_irq(irq)
 #define irqc_hw_configure_irq(irq, priority, trigger)	\
 	gicd_configure_irq(irq, priority, trigger)
 
+void gicv2_enable_irq(irq_t irq);
+void gicv2_disable_irq(irq_t irq);
 void gicv2_init_gicd(void);
 void gicv2_init_gicc(void);
 

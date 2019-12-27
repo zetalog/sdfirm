@@ -119,10 +119,7 @@ static void pl01x_handle_irq(void)
 {
 	irqc_disable_irq(UART_CON_IRQ);
 	pl01x_mask_irq(UART_CON_ID, UART_RXI);
-	/* TODO: handle RX IRQ:
-	 * debug_handle_irq();
-	 */
-    console_handle_irq();
+	console_handle_irq();
 }
 
 void pl01x_irq_ack(void)

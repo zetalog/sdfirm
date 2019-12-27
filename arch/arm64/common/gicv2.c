@@ -58,7 +58,7 @@ void gicv2_init_gicd(void)
 	__raw_clearl(GICD_ENABLE, GICD_CTLR);
 	/* Disable all IRQs */
 	gicd_disable_all_irqs();
-	for (irq = 0; irq < NR_IRQS; irq += 32) {
+	for (irq = 0; irq < NR_IRQS; irq++) {
 		__raw_setl(GICD_MODEL(GICD_MODEL_1_N), GICD_ICFGR(irq));
 		gicd_config_irq_security(irq);
 	}
@@ -83,4 +83,30 @@ void gicv2_init_gicc(void)
 	__raw_writel(GICC_BINARY_POINT(2), GICC_BPR);
 	/* Enable CPU interface */
 	__raw_setl(GICC_ENABLE, GICC_CTLR);
+}
+
+void gicv2_enable_irq(irq_t irq)
+{
+	uint8_t cpu_mask;
+
+	gicd_enable_irq(irq);
+	cpu_mask = __raw_readl(GICD_ITARGETSR(irq)) &
+		   GIC_CPU_TARGETS(irq, GIC_CPU_TARGETS_MASK);
+	cpu_mask |= _BV(smp_processor_id());
+	__raw_writel_mask(GIC_CPU_TARGETS(irq, cpu_mask),
+			  GIC_CPU_TARGETS(irq, GIC_CPU_TARGETS_MASK),
+			  GICD_ITARGETSR(irq));
+}
+
+void gicv2_disable_irq(irq_t irq)
+{
+	uint8_t cpu_mask;
+
+	cpu_mask = __raw_readl(GICD_ITARGETSR(irq)) &
+		   GIC_CPU_TARGETS(irq, GIC_CPU_TARGETS_MASK);
+	cpu_mask &= ~_BV(smp_processor_id());
+	__raw_writel_mask(GIC_CPU_TARGETS(irq, cpu_mask),
+			  GIC_CPU_TARGETS(irq, GIC_CPU_TARGETS_MASK),
+			  GICD_ITARGETSR(irq));
+	gicd_disable_irq(irq);
 }

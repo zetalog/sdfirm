@@ -5,6 +5,7 @@
 #include <target/console.h>
 #include <target/readline.h>
 #include <target/circbf.h>
+#include <target/spinlock.h>
 
 #define __console_output_space()	\
 	circbf_space(&console_output_buffer, CONSOLE_BUFFER_SIZE)
@@ -110,8 +111,12 @@ void console_handle_irq(void)
 	console_raise_event(CONSOLE_IRQ);
 }
 
+DEFINE_SPINLOCK(console_lock);
+
 static void console_bh_handler(uint8_t events)
 {
+	irq_flags_t flags;
+
 	if (events == BH_POLLIRQ) {
 		console_output_handler();
 		console_input_handler();
@@ -119,7 +124,9 @@ static void console_bh_handler(uint8_t events)
 	}
 	if (console_events == CONSOLE_IRQ) {
 		console_events = 0;
+		spin_lock_irqsave(&console_lock, flags);
 		console_input_handler();
+		spin_unlock_irqrestore(&console_lock, flags);
 		console_irq_ack();
 	}
 }
