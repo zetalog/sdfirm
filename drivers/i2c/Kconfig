@@ -1,25 +1,32 @@
-menu "Synopsys DesignWare I2C support"
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "I2C host drivers"
 
 menuconfig DW_I2C
-	bool "Support DW I2C"
+	bool "Synopsys DesignWare I2C support"
 
-config DW_I2C_CLK
-	int "Clock frequency (kHz)"
-	default 125000
-config DW_I2C_BASE_START
-	hex "Start of base address"
-
-config DW_I2C_BASE_STEP
-	hex "Step betwenn base addresses"
-
-config DW_I2C_CNT
-	int "Number of devices"
+if DW_I2C
 
 config DW_I2C_EMPTYFIFO_HOLD_MASTER
 	bool "If IC_EMPTYFIFO_HOLD_MASTER_EN is set"
-	default flase
 
 config DW_I2C_DYNAMIC_TAR_UPDATE
 	bool "If I2C_DYNAMIC_TAR_UPDATE is set"
-	default flase
+
+endif
+
+endmenu
+
+menu "I2C slave drivers"
+
+menuconfig DW_I2CS
+	bool "Synopsys DesignWare I2C slave support"
+
+if DW_I2CS
+
+endif
+
 endmenu

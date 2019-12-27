@@ -1,15 +1,19 @@
 #ifndef __I2C_DUOWEN_H_INCLUDE__
 #define __I2C_DUOWEN_H_INCLUDE__
 
-#if defined(CONFIG_DW_I2C)
+#include <target/arch.h>
+#include <target/clk.h>
+
+/* Required implementation specific definitions:
+ *
+ * DW_I2Cx_BASE: the base address of the I2C register block
+ */
+#define DW_I2C_BASE(n)		(I2C0_BASE + 0x100000 * n)
+#define DW_I2C_FREQ		SOC_PLL_DIV8_FREQ
+
+#ifdef CONFIG_DW_I2C
 #include <driver/dw_i2c.h>
-
-#ifndef ARCH_HAVE_I2C
-#define ARCH_HAVE_I2C		1
-#else
-#error "Multiple I2C controller defined"
 #endif
-
 
 void i2c_hw_ctrl_init(void);
 void i2c_hw_set_frequency(uint16_t khz);
@@ -20,6 +24,5 @@ void i2c_hw_stop_condition(void);
 void i2c_hw_write_byte(uint8_t byte);
 uint8_t i2c_hw_read_byte(void);
 void i2c_hw_transfer_reset(void);
-#endif
 
 #endif /* __I2C_DUOWEN_H_INCLUDE__ */

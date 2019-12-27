@@ -43,7 +43,7 @@ config ARCH_DUOWEN
 	select CRCNTL if CLK
 	select DW_TIMERS if DUOWEN_TSC_DW_TIMERS
 	select DUOWEN_TMR if !DUOWEN_TSC_DW_TIMERS
-	select DW_I2C if I2C
+	select DW_I2C if I2C_MASTER
 	help
 	  This enables support for emulated riscv platforms.
 

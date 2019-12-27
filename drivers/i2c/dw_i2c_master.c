@@ -90,7 +90,7 @@ void i2c_hw_set_frequency(uint16_t khz)
 	uint32_t ena;
 	int i2c_spd;
 	int speed = khz * 1000;
-	int bus_mhz = CONFIG_DW_I2C_CLK;
+	int bus_mhz = DW_I2C_FREQ;
 
 #ifdef DW_I2C_DEBUG
 	con_printf("Debug: Enter %s. khz = %d\n", __func__, khz);

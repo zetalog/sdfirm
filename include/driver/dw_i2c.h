@@ -42,24 +42,11 @@
 #ifndef __DW_I2C_H_INCLUDE__
 #define __DW_I2C_H_INCLUDE__
 
-/* Required implementation specific definitions:
- *
- * DW_I2Cx_BASE: the base address of the I2C register block
- */
-
-#ifndef CONFIG_DW_I2C_BASE_START
-#define CONFIG_DW_I2C_BASE_START 0x0FF64000000
+#ifndef ARCH_HAVE_I2C
+#define ARCH_HAVE_I2C		1
+#else
+#error "Multiple I2C controller defined"
 #endif
-
-#ifndef CONFIG_DW_I2C_BASE_STEP
-#define CONFIG_DW_I2C_BASE_STEP 0x100000
-#endif
-
-#ifndef CONFIG_DW_I2C_CNT
-#define CONFIG_DW_I2C_CNT 12
-#endif
-
-#define DW_I2C_BASE(n) ((unsigned)CONFIG_DW_I2C_BASE_START + (unsigned)CONFIG_DW_I2C_BASE_STEP * n)
 
 /* Register offset */
 #define IC_CON							0x00
