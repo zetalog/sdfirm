@@ -3,7 +3,7 @@
 
 #define INVALID_ADDR		0
 
-static volatile uint64_t *cpu_spin_table = (uint64_t *)(0x10000 - NR_CPUS * 8);
+static volatile phys_addr_t cpu_spin_table[NR_CPUS];
 static uint64_t cpu_context_table[NR_CPUS];
 void _smp_start(void *, void *, void *, void *, void *);
 
@@ -25,7 +25,7 @@ __noreturn void _smp_spin(int cpu)
 
 void smp_hw_cpu_on(cpu_t cpu, caddr_t ep, caddr_t context)
 {
-	cpu_spin_table[cpu & 0xff] = ep;
+	cpu_spin_table[cpu & 0xff] = __pa(ep);
 	cpu_context_table[cpu & 0xff] = context;
 	dsb(sy);
 	sev();
