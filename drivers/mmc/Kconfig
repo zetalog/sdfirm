@@ -16,25 +16,32 @@ choice
 
 config DW_MSHC_SD_UHSII
 	bool "SD + UHS-II"
-	select ARCH_HAS_SD
-	select ARCH_HAS_UHSII
+	depends ARCH_HAS_SD
+	depends ARCH_HAS_UHSII
+	select SDHC_SD
+	select SDHC_UHSII
 
 config DW_MSHC_SD
 	bool "SD"
-	select ARCH_HAS_SD
+	depends ARCH_HAS_SD
+	select SDHC_SD
 
 config DW_MSHC_UHSII
 	bool "UHS-II"
-	select ARCH_HAS_UHSII
+	depends ARCH_HAS_UHSII
+	select SDHC_UHSII
 
 config DW_MSHC_SD_EMMC
 	bool "SD + eMMC"
-	select ARCH_HAS_SD
-	select ARCH_HAS_EMMC
+	depends ARCH_HAS_SD
+	depends ARCH_HAS_EMMC
+	select SDHC_SD
+	select SDHC_EMMC
 
 config DW_MSHC_EMMC
 	bool "eMMC"
-	select ARCH_HAS_EMMC
+	depends ARCH_HAS_EMMC
+	select SDHC_EMMC
 
 endchoice
 
@@ -262,6 +269,9 @@ if SDHCI
 
 config SDHC_SD
 	bool "SD mode support"
+
+config SDHC_EMMC
+	bool "eMMC mode support"
 
 config SDHC_UHSI
 	bool "UHS-I mode support"

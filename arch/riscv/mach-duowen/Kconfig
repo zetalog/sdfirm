@@ -87,7 +87,7 @@ endif
 
 menuconfig DUOWEN_SD
 	bool "MMC/SD Host Controller (MSHC) support"
-	select SDHCI
+	select DW_MSHC
 
 if MSHC
 

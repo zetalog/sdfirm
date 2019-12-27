@@ -17,6 +17,7 @@ source drivers/video/Kconfig
 source drivers/mtd/Kconfig
 source drivers/scs/Kconfig
 source drivers/mmc/Kconfig
+source drivers/ddr/Kconfig
 source drivers/clk/Kconfig
 source drivers/i2c/Kconfig
 

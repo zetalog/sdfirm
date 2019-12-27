@@ -1,0 +1,15 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "DDR controller drivers"
+
+menuconfig DW_UMCTL2
+	bool "Synopsys DesignWare DDR uMCTL2 support"
+
+if DW_UMCTL2
+
+endif
+
+endmenu

@@ -623,6 +623,7 @@ source kernel/scsi/Kconfig
 source kernel/net/Kconfig
 source kernel/video/Kconfig
 source kernel/mmc/Kconfig
+source kernel/ddr/Kconfig
 
 config RAS
 	bool "Reliability Availability Serviceability (RAS) support"

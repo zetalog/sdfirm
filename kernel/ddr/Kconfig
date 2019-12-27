@@ -1,0 +1,13 @@
+#
+# DDR Devices
+#
+
+config ARCH_HAS_DDR
+	bool
+
+menuconfig DDR
+	bool "Double data rate (DDR) support"
+
+if DDR
+
+endif

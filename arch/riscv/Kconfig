@@ -44,6 +44,7 @@ config ARCH_DUOWEN
 	select DW_TIMERS if DUOWEN_TSC_DW_TIMERS
 	select DUOWEN_TMR if !DUOWEN_TSC_DW_TIMERS
 	select DW_I2C if I2C_MASTER
+	select DW_UMCTL2 if DDR
 	help
 	  This enables support for emulated riscv platforms.
 
