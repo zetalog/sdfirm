@@ -232,7 +232,7 @@ static caddr_t bench_percpu_area(cpu_t cpu)
 			   hweight64(cpu_didt_cpu_mask >> cpu))));
 }
 
-static void bench_exec(cpu_t cpu)
+static void __bench_exec(cpu_t cpu)
 {
 	struct cpu_exec_test *fn;
 	tick_t end_time;
@@ -266,12 +266,13 @@ static void bench_exec(cpu_t cpu)
 		cpu_ctxs[cpu].async_timeout +=
 			cpu_ctxs[cpu].async_wait_interval;
 		tick_t current_time = tick_get_counter();
-		if (time_before(current_time, cpu_ctxs[cpu].async_timeout)) {
+		if (time_after(current_time, cpu_ctxs[cpu].async_timeout)) {
 			/* Effectively avoid dIdT mode */
 			cpu_ctxs[cpu].async_timeout = current_time;
 			bench_raise_event(CPU_EVENT_TIME);
-		} else
+		} else {
 			bench_reset_timeout();
+		}
 	} else
 		bench_raise_event(CPU_EVENT_STOP);
 }
@@ -294,7 +295,7 @@ static void bench_bh_handler(uint8_t __event)
 		break;
 	case CPU_STATE_DIDT:
 		if (event & CPU_EVENT_TIME)
-			bench_exec(cpu);
+			__bench_exec(cpu);
 		if (event & CPU_EVENT_STOP) {
 			bench_stop();
 			bench_enter_state(cpu, CPU_STATE_NONE);
@@ -305,9 +306,9 @@ static void bench_bh_handler(uint8_t __event)
 	}
 }
 
-static void __cpus_sync(unsigned long sync_state,
-		        uint64_t this_cpu_mask, bool entry_or_exit,
-		        uint32_t flags, bool wait, tick_t timeout)
+static void __bench_sync(unsigned long sync_state,
+			 uint64_t this_cpu_mask, bool entry_or_exit,
+			 uint32_t flags, bool wait, tick_t timeout)
 {
 	uint64_t all_cpu_mask;
 
@@ -323,7 +324,6 @@ static void __cpus_sync(unsigned long sync_state,
 		spin_unlock(&cpu_exec_lock);
 		if (wait &&
 		    time_after(tick_get_counter(), timeout)) {
-			printf("%d: timeout\n", smp_processor_id());
 			spin_lock(&cpu_exec_lock);
 			if (sync_state == CPU_EXEC_OPENED)
 				cpu_exec_good &= cpu_exec_sync;
@@ -351,16 +351,16 @@ static void inline cpu_exec_open(uint64_t cpu_mask, bool is_entry,
 				 uint32_t flags, bool wait,
 				 tick_t timeout)
 {
-	__cpus_sync(CPU_EXEC_OPENED, cpu_mask, is_entry,
-		    flags,  wait, timeout);
+	__bench_sync(CPU_EXEC_OPENED, cpu_mask, is_entry,
+		     flags,  wait, timeout);
 }
 
 static void inline cpu_exec_close(uint64_t cpu_mask, bool is_exit,
 				  uint32_t flags, bool wait,
 				  tick_t timeout)
 {
-	__cpus_sync(CPU_EXEC_CLOSED, cpu_mask, is_exit,
-		    flags, wait, timeout);
+	__bench_sync(CPU_EXEC_CLOSED, cpu_mask, is_exit,
+		     flags, wait, timeout);
 }
 
 static inline tick_t __get_testfn_timeout(struct cpu_exec_test *fn,
@@ -453,7 +453,7 @@ repeat:
 		notify(false);
 	/* TODO: The percpu area is not working for raven cases, and
 	 *       raven cases are now the only pattern running with
-	 *       cpu_local_exec().
+	 *       bench_exec().
 	 */
 	ret = fn->func(bench_percpu_area(cpu));
 	if (!ret) {
@@ -466,7 +466,7 @@ repeat:
 	if (notify)
 		notify(true);
 	do_printf("%s success on %d\n",
-	       fn->name, smp_processor_id());
+		  fn->name, smp_processor_id());
 	spin_lock(&cpu_exec_lock);
 	if (sync)
 		cpu_exec_close(cpu_mask,
@@ -514,9 +514,9 @@ static int do_one_testfn(struct cpu_exec_test *start, int nr_tests,
  *         generated seperately by the different CPUs are in the same
  *         order.
  */
-int cpu_local_exec(struct cpu_exec_test *start, int nr_tests,
-		   uint64_t init_cpu_mask, uint32_t flags,
-		   tick_t timeout, void (*notify)(bool))
+int bench_exec(struct cpu_exec_test *start, int nr_tests,
+	       uint64_t init_cpu_mask, uint32_t flags,
+	       tick_t timeout, void (*notify)(bool))
 {
 	int ret;
 	tick_t expected_time = timeout;
@@ -558,7 +558,7 @@ end:
 	return ret;
 }
 
-struct cpu_exec_test *cpu_exec_find(const char *name)
+struct cpu_exec_test *bench_test_find(const char *name)
 {
 	int nr_tests = ((uintptr_t)__testfn_end -
 			(uintptr_t)__testfn_start) /
@@ -573,7 +573,7 @@ struct cpu_exec_test *cpu_exec_find(const char *name)
 	return NULL;
 }
 
-uint64_t cpu_local_get_cpu_mask(void)
+uint64_t bench_get_cpu_mask(void)
 {
 	return cpu_didt_cpu_mask;
 }
@@ -602,9 +602,9 @@ int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
 		cpu_didt_alloc = heap_alloc(fn->alloc_align +
 			fn->alloc_size * hweight64(init_cpu_mask));
 		cpu_didt_area = ALIGN(cpu_didt_alloc, fn->alloc_align);
-		printf("alloc: cpuexec: %016llx(%d)\n",
-		       (uint64_t)cpu_didt_area,
-		       fn->alloc_size * hweight64(init_cpu_mask));
+		do_printf("alloc: cpuexec: %016llx(%d)\n",
+			  (uint64_t)cpu_didt_area,
+			  fn->alloc_size * hweight64(init_cpu_mask));
 		locked = false;
 	}
 
@@ -626,10 +626,11 @@ int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
 static int err_bench(const char *hint)
 {
 	printf("--ERROR: %s\n", hint);
-	(void)cmd_help("cpus");
+	(void)cmd_help("bench");
 	return -EINVAL;
 }
 
+#if 0
 static void cmd_bench_run_complete(uint64_t *results)
 {
 	int id;
@@ -637,7 +638,7 @@ static void cmd_bench_run_complete(uint64_t *results)
 	if (!results)
 		return;
 
-	printf("cpus completed.\n");
+	printf("bench completed.\n");
 	for (id = 0; id < MAX_CPU_NUM; id++) {
 		if (cmd_bench_cpu_mask & C(id)) {
 			printf("%d result: %s(%lld)\n", id,
@@ -646,6 +647,7 @@ static void cmd_bench_run_complete(uint64_t *results)
 		}
 	}
 }
+#endif
 
 struct timer_desc bench_timer = {
 	TIMER_BH,
@@ -803,7 +805,7 @@ static int cmd_bench(int argc, char **argv)
 		cpu_mask = cmd_get_cpu_mask(argv[2]);
 		if (cpu_mask == CMD_INVALID_CPU_MASKS)
 			return err_bench("Invalid CPU mask.\n");
-		fn = cpu_exec_find(argv[3]);
+		fn = bench_test_find(argv[3]);
 		if (!fn || !(fn->flags & CPU_EXEC_META))
 			return err_bench("Invalid test function.\n");
 		period = strtoul(argv[4], 0, 0);

@@ -141,13 +141,13 @@ extern struct cpu_exec_test __testfn_end[];
 #define c_testfn_sync(fn, size, align, timeout)			\
 	c_testfn_repeat_sync(fn, size, align, 1, timeout)
 
-uint64_t cpu_local_get_cpu_mask(void);
-int cpu_local_exec(struct cpu_exec_test *start, int nr_tests,
-		   uint64_t init_cpu_mask, uint32_t flags,
-		   tick_t timeout, void (*notify)(bool));
-int cpu_local_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
-		   tick_t interval, tick_t period, int repeats);
-struct cpu_exec_test *cpu_exec_find(const char *name);
+int bench_exec(struct cpu_exec_test *start, int nr_tests,
+	       uint64_t init_cpu_mask, uint32_t flags,
+	       tick_t timeout, void (*notify)(bool));
+int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
+	       tick_t interval, tick_t period, int repeats);
+struct cpu_exec_test *bench_test_find(const char *name);
+uint64_t bench_get_cpu_mask(void);
 
 #ifdef CONFIG_TEST_BENCH
 void bench_init(void);

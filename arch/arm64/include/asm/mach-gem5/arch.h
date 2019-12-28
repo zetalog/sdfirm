@@ -44,7 +44,4 @@
 
 #include <asm/io.h>
 
-#define MAX_CPU_NUM		4
-#define ARCH_CPU_MASK		0x0000000F
-
 #endif /* __ARCH_GEM5_INCLUDE__ */

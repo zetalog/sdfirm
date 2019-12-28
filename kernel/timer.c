@@ -8,10 +8,11 @@
 /* use the lowest bit to allow the maximum timeout values */
 #define TIMER_FLAG_SHOT			((timeout_t)1)
 #define TIMER_IDLE			((timeout_t)0)
-#define TIMER_SHOT(timeout)		(timeout & TIMER_FLAG_SHOT)
+#define TIMER_SHOT(timeout)		((timeout) & TIMER_FLAG_SHOT)
 /* thus timeout values are always an even value */
-#define TIMER_TIME(timeout)		((timeout_t)((timeout_t)(timeout) >> 1))
-#define TIMER_MAKE(shot, time)		((shot) | ((timeout_t)(time) << 1))
+#define TIMER_TIME(timeout)		((timeout) >> 1)
+#define TIMER_MAKE(time)		\
+	(TIMER_FLAG_SHOT | ((timeout_t)(time) << 1))
 
 #ifdef CONFIG_SMP
 struct smp_timer {
@@ -21,9 +22,8 @@ struct smp_timer {
 	bh_t smp_timer_bh;
 	tid_t smp_timer_running_tid;
 	tid_t smp_timer_orders[NR_TIMERS+1];
-#ifdef CONFIG_TICK
 	tick_t smp_timer_last_tick;
-#else
+#ifndef CONFIG_TICK
 	timeout_t smp_timer_timeout;
 	timeout_t smp_timer_unshot_timeout;
 #ifdef SYS_BOOTLOAD
@@ -42,9 +42,8 @@ DEFINE_PERCPU(struct smp_timer, smp_timers);
 #define timer_running_tid	\
 	this_cpu_ptr(&smp_timers)->smp_timer_running_tid
 #define timer_orders		this_cpu_ptr(&smp_timers)->smp_timer_orders
-#ifdef CONFIG_TICK
 #define timer_last_tick		this_cpu_ptr(&smp_timers)->smp_timer_last_tick
-#else
+#ifndef CONFIG_TICK
 #define timer_timeout		this_cpu_ptr(&smp_timers)->smp_timer_timeout
 #define timer_unshot_timeout	\
 	this_cpu_ptr(&smp_timers)->smp_timer_unshot_timeout
@@ -59,9 +58,8 @@ DECLARE_BITMAP(timer_regs, NR_TIMERS);
 bh_t timer_bh;
 tid_t timer_running_tid;
 tid_t timer_orders[NR_TIMERS+1];
-#ifdef CONFIG_TICK
 tick_t timer_last_tick;
-#else
+#ifndef CONFIG_TICK
 timeout_t timer_timeout;
 timeout_t timer_unshot_timeout;
 #ifdef SYS_BOOTLOAD
@@ -150,14 +148,6 @@ void timer_run_timeout(uint8_t type)
 	} while (1);
 }
 
-void __timer_reset_timeout(tid_t tid, timeout_t tout_ms)
-{
-	BUG_ON(tout_ms > MAX_TIMEOUT);
-	timer_timeouts[tid] = TIMER_MAKE(TIMER_FLAG_SHOT, tout_ms);
-	__timer_del(tid);
-	__timer_add(tid);
-}
-
 /* Register a timer delay to execute the state machine
  *
  * IN bh: the state machine will be executed when the timer is due
@@ -211,7 +201,7 @@ void timer_bh_timeout(void)
 				BUG_ON(timer->type != TIMER_BH);
 				run_bh = true;
 			} else {
-				timer_timeouts[tid] = TIMER_MAKE(TIMER_FLAG_SHOT, tid_tout-span);
+				timer_timeouts[tid] = TIMER_MAKE(tid_tout-span);
 			}
 		}
 	}
@@ -219,15 +209,15 @@ void timer_bh_timeout(void)
 		timer_run_timeout(TIMER_BH);
 }
 
-#define timer_start()		bh_resume(timer_bh)
-#define timer_restart()		timer_start()
-#define timer_poll_handler()
-#define timer_recalc_timeout()	do { } while (0)
+#define timer_start()			bh_resume(timer_bh)
+#define timer_restart()			timer_start()
+#define timer_poll_handler()		do { } while (0)
+#define timer_recalc_timeout(shot)	do { } while (0)
 #else
 #ifdef SYS_BOOTLOAD
-#define timer_poll_start()	(timer_polling = true)
-#define timer_poll_stop()	(timer_polling = false)
-#define timer_poll_init()	(irq_register_poller(timer_bh))
+#define timer_poll_start()		(timer_polling = true)
+#define timer_poll_stop()		(timer_polling = false)
+#define timer_poll_init()		(irq_register_poller(timer_bh))
 
 static void timer_poll_handler(void)
 {
@@ -245,36 +235,51 @@ void timer_shot_timeout(timeout_t to_shot)
 {
 	if (to_shot < GPT_MAX_TIMEOUT) {
 		timer_unshot_timeout = 0;
+		/* Some GPTs do not kick unless there is a significant
+		 * timeout timer.
+		 */
 		if (to_shot == 0)
 			to_shot = 1;
-		timer_poll_start();
-		gpt_oneshot_timeout(to_shot);
 	} else {
+		/* This logic is added on MCS51 system, where TICKLESS
+		 * is still implemented while the GPTs on that systems
+		 * do not allow long enough timeout value.
+		 */
 		timer_unshot_timeout = to_shot - GPT_MAX_TIMEOUT;
 		/* XXX: GPT_MAX_TIMEOUT Validation
 		 *
 		 * if GPT_MAX_TIMEOUT > max of timeout_t, following code
 		 * could not get reached, so its safe to force it here
 		 */
-		timer_poll_start();
-		gpt_oneshot_timeout((timeout_t)GPT_MAX_TIMEOUT);
+		to_shot = (timeout_t)GPT_MAX_TIMEOUT;
 	}
+	timer_poll_start();
+	gpt_oneshot_timeout(to_shot);
 }
 
-void timer_execute_shot(void)
+static void timer_restart(void)
 {
 	if (TIMER_SHOT(timer_timeout))
 		timer_shot_timeout(TIMER_TIME(timer_timeout));
 }
 
-void timer_restart(void)
-{
-	timer_execute_shot();
-}
-
-void timer_recalc_timeout(void)
+static void __timer_recalc_timeout(boolean shot)
 {
 	tid_t tid, i;
+	timeout_t span, tout;
+	tick_t tick = tick_get_counter();
+
+	if (shot) {
+		/* FIXME:
+		 * Not precise timeouts to avoid timeout overheats.
+		 */
+		span = TIMER_TIME(timer_timeout);
+	} else {
+		span = tick - timer_last_tick;
+		if (span < 0)
+			span = 0;
+	}
+	timer_last_tick = tick;
 
 	timer_timeout = TIMER_IDLE;
 	for (i = 0; i < NR_TIMERS; i++) {
@@ -282,23 +287,32 @@ void timer_recalc_timeout(void)
 		if (tid == INVALID_TID)
 			break;
 		if (TIMER_SHOT(timer_timeouts[tid])) {
-			if (!TIMER_SHOT(timer_timeout)) {
+			tout = TIMER_TIME(timer_timeouts[tid]) - span;
+			/* Some GPTs do not kick unless there is a
+			 * significant timeout timer.
+			 */
+			if (!shot && tout <= 0)
+				tout = 1;
+			timer_timeouts[tid] = TIMER_MAKE(tout);
+			if (!TIMER_SHOT(timer_timeout))
 				timer_timeout = timer_timeouts[tid];
-			} else {
-				if (TIMER_TIME(timer_timeouts[tid]) <
-				    TIMER_TIME(timer_timeout)) {
-					timer_timeout = timer_timeouts[tid];
-				}
-			}
+			else
+				BUG_ON(TIMER_TIME(timer_timeouts[tid] <
+				       TIMER_TIME(timer_timeout)));
 		}
 	}
+}
+
+void timer_recalc_timeout(boolean shot)
+{
+	__timer_recalc_timeout(shot);
 	timer_restart();
 }
 
 void timer_bh_timeout(void)
 {
 	timer_run_timeout(TIMER_BH);
-	timer_recalc_timeout();
+	timer_recalc_timeout(true);
 }
 
 void timer_start(void)
@@ -315,14 +329,9 @@ void timer_irq_timeout(void)
 	timer_desc_t *timer;
 	boolean run_irq = false, run_bh = false;
 
-#ifndef CONFIG_SMP
-	BUG_ON(TIMER_SHOT(timer_timeout) != TIMER_FLAG_SHOT);
-#else
-	if (TIMER_SHOT(timer_timeout) != TIMER_FLAG_SHOT) {
-		printf("No timer IRQ on %d\n", smp_processor_id());
-		goto recalc;
-	}
-#endif
+	if (TIMER_SHOT(timer_timeout) != TIMER_FLAG_SHOT)
+		return;
+
 	tout = TIMER_TIME(timer_timeout);
 	for (i = 0; i < NR_TIMERS; i++) {
 		tid = timer_orders[i];
@@ -341,16 +350,14 @@ void timer_irq_timeout(void)
 				}
 			} else {
 				tid_tout -= tout;
-				timer_timeouts[tid] = TIMER_MAKE(TIMER_FLAG_SHOT, tid_tout);
+				timer_timeouts[tid] = TIMER_MAKE(tid_tout);
 			}
 		}
 	}
 	if (run_irq)
 		timer_run_timeout(TIMER_IRQ);
-
-recalc:
 	if (!run_bh)
-		timer_recalc_timeout();
+		timer_recalc_timeout(true);
 }
 
 void tick_handler(void)
@@ -365,9 +372,17 @@ void tick_handler(void)
 
 void timer_schedule_shot(tid_t tid, timeout_t tout_ms)
 {
-	BUG_ON(tid != timer_running_tid);
-	__timer_reset_timeout(tid, tout_ms);
-	timer_recalc_timeout();
+	BUG_ON(tout_ms > MAX_TIMEOUT);
+	__timer_del(tid);
+	__timer_recalc_timeout(false);
+	if (tout_ms <= 0)
+		tout_ms = 1;
+	timer_timeouts[tid] = TIMER_MAKE(tout_ms);
+	__timer_add(tid);
+	if (!TIMER_SHOT(timer_timeout) ||
+	    tout_ms < TIMER_TIME(timer_timeout))
+		timer_timeout = timer_timeouts[tid];
+	timer_restart();
 }
 
 void timer_bh_handler(uint8_t event)
@@ -473,9 +488,7 @@ void timer_init(void)
 
 	/* The last timer order indexing value is always INVALID_TID */
 	timer_running_tid = INVALID_TID;
-#ifndef CONFIG_TICK
-	timer_timeout = TIMER_MAKE(TIMER_FLAG_SHOT, 0);
-#endif
+	timer_timeout = TIMER_IDLE;
 	for (tid = 0; tid < NR_TIMERS+1; tid++)
 		timer_orders[tid] = INVALID_TID;
 	timer_bh = bh_register_handler(timer_bh_handler);

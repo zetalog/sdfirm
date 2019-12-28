@@ -6,11 +6,7 @@ typedef uint8_t raven_array_t[RAVEN_ARRAY_SIZE];
 typedef uint8_t raven_l1miss_t[RAVEN_L1MISS_L2HIT_SIZE];
 
 #ifdef CONFIG_RAVEN_GLOBAL_VAR
-#ifdef CONFIG_RAVEN_GLOBAL_VAR_SYNC
 #define RAVEN_CPU_EXEC_FLAGS	CPU_EXEC_SYNC
-#else
-#define RAVEN_CPU_EXEC_FLAGS	0
-#endif
 
 uint64_t x5_data;
 uint64_t x7_data;
@@ -35,10 +31,10 @@ int raven(caddr_t area)
 		       sizeof (struct cpu_exec_test);
 	int ret;
 
-	ret = cpu_local_exec(__testfn_start, nr_tests,
-			     cpu_local_get_cpu_mask(),
-			     RAVEN_CPU_EXEC_FLAGS,
-			     CPU_WAIT_INFINITE, NULL);
+	ret = bench_exec(__testfn_start, nr_tests,
+			 bench_get_cpu_mask(),
+			 RAVEN_CPU_EXEC_FLAGS,
+			 CPU_WAIT_INFINITE, NULL);
 	return ret ? 0 : 1;
 }
 __define_testfn(raven, RAVEN_CPU_EXEC_SIZE, SMP_CACHE_BYTES,

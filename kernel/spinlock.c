@@ -332,7 +332,7 @@ static void qspin_lock_slowpath(struct spinlock *lock,
 	uint32_t old, tail;
 	int idx;
 
-	BUG_ON(CONFIG_NR_CPUS >= (1U << _Q_TAIL_CPU_BITS));
+	BUG_ON(NR_CPUS >= (1U << _Q_TAIL_CPU_BITS));
 
 	/* Wait for in-progress pending->locked hand-overs with a bounded
 	 * number of spins so that we guarantee forward progress.

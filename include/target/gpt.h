@@ -8,10 +8,10 @@
 typedef int32_t timeout_t;
 #define MAX_TIMEOUT	0x7FFFFFFF
 #elif defined(CONFIG_TIMER_16BIT)
-typedef uint16_t timeout_t;
+typedef int16_t timeout_t;
 #define MAX_TIMEOUT	0x7FFF
 #else
-typedef uint8_t timeout_t;
+typedef int8_t timeout_t;
 #define MAX_TIMEOUT	0x7F
 #endif
 #endif

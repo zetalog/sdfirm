@@ -197,12 +197,6 @@ config CPU_BIG_ENDIAN
 	help
 	  Say Y if you plan on running a kernel in big-endian mode.
 
-config NR_CPUS
-	int "Maximum number of CPUs (1-4096)"
-	range 1 4096
-	# These have to remain sorted largest to smallest
-	default "48"
-
 menu "CPU architecture options"
 
 config ARM64_ATOMIC_CAS

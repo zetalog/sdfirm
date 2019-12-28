@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Dec 27 10:22:14 2019
+# Sat Dec 28 10:07:02 2019
 #
 CONFIG_ARM64=y
 
@@ -13,15 +13,15 @@ CONFIG_PRODUCT_NAME="SmartCore TestBench"
 CONFIG_VENDOR_ID=990
 CONFIG_PRODUCT_ID=0
 CONFIG_SERIAL_NO=0
-CONFIG_BOOTLOADER=y
-# CONFIG_FIRMWARE is not set
+# CONFIG_BOOTLOADER is not set
+CONFIG_FIRMWARE=y
 # CONFIG_EMBEDDED is not set
 
 #
-# Bootloader options
+# Firmware options
 #
-# CONFIG_BOOT_LINUX is not set
-# CONFIG_BOOT_ROM is not set
+# CONFIG_GEM5 is not set
+# CONFIG_RIS is not set
 CONFIG_CONSOLE=y
 CONFIG_CONSOLE_COMMAND=y
 CONFIG_CONSOLE_OUTPUT=y
@@ -57,7 +57,6 @@ CONFIG_CPU_64v8_1_LOR=y
 CONFIG_CPU_64v8_1_HPD=y
 CONFIG_CPU_64v8_1_PAN=y
 CONFIG_CPU_64v8_1_VHE=y
-CONFIG_NR_CPUS=2
 
 #
 # CPU architecture options
@@ -70,8 +69,16 @@ CONFIG_TZ_NORMAL=y
 CONFIG_SYS_KERNEL=y
 # CONFIG_SYS_MONITOR is not set
 CONFIG_SYS_GUEST=y
-# CONFIG_GIC is not set
+# CONFIG_SYS_HYPERVISOR is not set
+CONFIG_GIC=y
+
+#
+# Generic Interrupt Controller (GIC) support
+#
 CONFIG_ARCH_HAS_GICv2=y
+CONFIG_GICv2=y
+# CONFIG_GICv3 is not set
+# CONFIG_GICv2_IRQ_NS is not set
 CONFIG_VMSA=y
 # CONFIG_VMSA_VA_4GB is not set
 # CONFIG_VMSA_VA_64GB is not set
@@ -122,6 +129,14 @@ CONFIG_GEM5_RAM_BASE=0x0
 CONFIG_GEM5_RAM_BITS=20
 
 #
+# CPU settings
+#
+CONFIG_GEM5_SMP=y
+CONFIG_GEM5_MAX_CPUS=2
+CONFIG_GEM5_MAX_CLUSTERS=1
+CONFIG_GEM5_MAX_RAILS=1
+
+#
 # System counter options
 #
 CONFIG_GEM5_CNT_USER_FREQ=y
@@ -137,16 +152,22 @@ CONFIG_UART_ACE=y
 #
 # Generic kernel features
 #
-CONFIG_SYS_NOIRQ=y
-# CONFIG_SYS_IRQ is not set
+# CONFIG_SYS_NOIRQ is not set
+CONFIG_SYS_IRQ=y
 # CONFIG_SYS_RT is not set
 # CONFIG_SYS_TASK is not set
+CONFIG_ARCH_HAS_IRQC=y
 CONFIG_ARCH_HAS_GPT=y
 CONFIG_ARCH_HAS_TSC=y
 CONFIG_ARCH_HAS_TSC_CONST=y
 CONFIG_ARCH_IS_TICKLESS=y
 CONFIG_ARCH_HAS_IDLE=y
 CONFIG_ARCH_HAS_BOOT_LOAD=y
+
+#
+# Scheduling facility (irq) support
+#
+CONFIG_MAX_VECTORS=4
 
 #
 # Scheduling facility (bh) support
@@ -205,6 +226,7 @@ CONFIG_MMU_4K_PAGE=y
 # CONFIG_MMU_3L_TABLE is not set
 CONFIG_MMU_4L_TABLE=y
 # CONFIG_MMU_5L_TABLE is not set
+# CONFIG_MMU_PAGE_OFFSET is not set
 CONFIG_MMU_IDMAP=y
 # CONFIG_MMU_IDMAP_DEVICE is not set
 CONFIG_MMU_MAP_MEM=y
@@ -244,6 +266,7 @@ CONFIG_UART_230400=y
 # CONFIG_SCSI is not set
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
+# CONFIG_DDR is not set
 # CONFIG_RAS is not set
 
 #
@@ -282,8 +305,23 @@ CONFIG_UART_230400=y
 # CONFIG_SDHCI is not set
 
 #
+# DDR controller drivers
+#
+# CONFIG_DW_UMCTL2 is not set
+
+#
 # Clock drivers
 #
+
+#
+# I2C host drivers
+#
+# CONFIG_DW_I2C is not set
+
+#
+# I2C slave drivers
+#
+# CONFIG_DW_I2CS is not set
 CONFIG_TEST_BENCH=y
 CONFIG_TEST_BENCH_LOCAL=y
 # CONFIG_TEST_BENCH_REMOTE is not set

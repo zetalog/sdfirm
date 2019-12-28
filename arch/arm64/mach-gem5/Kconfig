@@ -44,6 +44,32 @@ config GEM5_RAM_BITS
 	  This option is useful for RTL simulation environment.
 	  Bit shift N of RAM memory size. Memory size will be 2^N.
 
+menu "CPU settings"
+
+config GEM5_SMP
+	bool "Multiple cores"
+
+if GEM5_SMP
+
+config GEM5_MAX_CPUS
+	int "Number of CPUs per cluster"
+	range 2 6
+	default 4
+
+config GEM5_MAX_CLUSTERS
+	int "Number of clusters per rail"
+	range 1 8
+	default 1
+
+config GEM5_MAX_RAILS
+	int "Number of power rails"
+	range 1 4
+	default 2
+
+endif
+
+endmenu
+
 menu "System counter options"
 
 config GEM5_CNT_USER_FREQ
