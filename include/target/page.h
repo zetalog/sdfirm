@@ -74,19 +74,26 @@ typedef uint64_t page_size_t;
 #define PHYS_PFN(x)	((pfn_t)((x) >> PAGE_SHIFT))
 
 struct page {
-	struct page *next;
+	struct list_head link;
+	phys_addr_t end;
 };
 
 #ifdef CONFIG_PAGE
-caddr_t page_alloc(void);
 caddr_t page_alloc_zeroed(void);
-void page_free(caddr_t address);
+struct page *page_alloc_pages(int nr_pages);
+void page_free_pages(struct page *page, int nr_pages);
 void page_alloc_init(caddr_t base, caddr_t size);
 void page_init(void);
 #else
-#define page_init()			do { } while (0)
-#define page_alloc_init(base, nr)	do { } while (0)
+#define page_init()				do { } while (0)
+#define page_alloc_init(base, nr)		do { } while (0)
+#define page_alloc_pages(nr_pages)		NULL
+#define page_free_pages(address, nr_pages)	do { } while (0)
 #endif
+#define page_alloc()				(caddr_t)page_alloc_pages(1)
+#define page_free(address)						\
+	page_free_pages((struct page *)ALIGN_DOWN((uintptr_t)address,	\
+						  PAGE_SIZE), 1)
 #endif /* __ASSEMBLY__ */
 
 #endif /* __PAGE_H_INCLUDE__ */
