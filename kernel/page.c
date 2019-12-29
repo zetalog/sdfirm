@@ -1,13 +1,17 @@
 #include <target/arch.h>
 #include <target/cmdline.h>
+#include <target/spinlock.h>
 
 LIST_HEAD(page_free_list);
+DEFINE_SPINLOCK(page_lock);
 
 void page_insert(struct page *page)
 {
+	irq_flags_t flags;
 	struct page *curr, *next, *tmp;
 
 	INIT_LIST_HEAD(&page->link);
+	spin_lock_irqsave(&page_lock, flags);
 	list_for_each_entry_safe(struct page, curr, next,
 				 &page_free_list, link) {
 again:
@@ -18,7 +22,7 @@ again:
 				list_del_init(&page->link);
 				goto again;
 			}
-			return;
+			goto exit_lock;
 		}
 		if (curr > page) {
 			list_add_tail(&page->link, &curr->link);
@@ -29,10 +33,12 @@ again:
 				list_del_init(&page->link);
 				goto again;
 			}
-			return;
+			goto exit_lock;
 		}
 	}
 	list_add_tail(&page->link, &page_free_list);
+exit_lock:
+	spin_unlock_irqrestore(&page_lock, flags);
 }
 
 int page_nr(struct page *page)
@@ -54,21 +60,26 @@ struct page *page_alloc_pages(int nr_pages)
 	struct page *pos;
 	struct page *page;
 	int nr;
+	irq_flags_t flags;
 
+	spin_lock_irqsave(&page_lock, flags);
 	list_for_each_entry(struct page, pos, &page_free_list, link) {
 		nr = page_nr(pos);
 		if (nr == nr_pages) {
 			list_del(&pos->link);
+			spin_unlock_irqrestore(&page_lock, flags);
 			return pos;
 		}
 		if (nr > nr_pages) {
 			page = page_offset(pos, nr_pages);
 			page->end = pos->end;
 			list_del(&pos->link);
+			spin_unlock_irqrestore(&page_lock, flags);
 			page_insert(page);
 			return pos;
 		}
 	}
+	spin_unlock_irqrestore(&page_lock, flags);
 	return NULL;
 }
 
