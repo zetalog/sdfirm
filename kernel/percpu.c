@@ -44,7 +44,8 @@
 #include <target/percpu.h>
 
 uint64_t __percpu_offset[NR_CPUS];
-caddr_t __percpu_area;
+caddr_t __percpu_alloc;
+int __percpu_pages;
 
 void percpu_init(void)
 {
@@ -54,10 +55,12 @@ void percpu_init(void)
 	BUG_ON(smp_processor_id() != smp_boot_cpu);
 
 	size = PERCPU_END - PERCPU_START;
-	__percpu_area = heap_alloc(size * NR_CPUS + SMP_CACHE_BYTES);
-	ptr = ALIGN(__percpu_area, SMP_CACHE_BYTES);
+	__percpu_pages = ALIGN_UP(size * NR_CPUS, PAGE_SIZE) / PAGE_SIZE;
+	ptr = (caddr_t)page_alloc_pages(__percpu_pages);
+	BUG_ON(!ptr || __percpu_alloc);
+	__percpu_alloc = ptr;
 	printf("SMP allocating PERCPU area %016llx(%d).\n",
-	       (uint64_t)ptr, (int)(size * NR_CPUS));
+	       (uint64_t)__percpu_alloc, __percpu_pages);
 	for (i = 0; i < NR_CPUS; i++, ptr += size) {
 		__percpu_offset[i] = ((uint64_t)ptr) - PERCPU_START;
 		printf("CPU%d area: %016llx\n",

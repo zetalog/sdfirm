@@ -676,21 +676,6 @@ static void reserve_bootmem_region(phys_addr_t start, phys_addr_t end)
 {
 }
 
-#ifdef CONFIG_HEAP
-void page_heap_alloc_init(phys_addr_t start, phys_addr_t end)
-{
-	phys_addr_t heap_end = ALIGN(PERCPU_STACKS_END + CONFIG_HEAP_SIZE,
-				     PAGE_SIZE);
-
-	if (start >= heap_end)
-		page_alloc_init(start, end);
-	else if (end > heap_end)
-		page_alloc_init(heap_end, end - heap_end);
-}
-#else
-#define page_heap_alloc_init(start, end)	page_alloc_init(start, end)
-#endif
-
 void mem_free_all(void)
 {
 	uint64_t i;
@@ -700,10 +685,9 @@ void mem_free_all(void)
 		con_dbg("reserved: %016llx - %016llx\n", start, end);
 		reserve_bootmem_region(start, end);
 	}
-	heap_range_init(PERCPU_STACKS_END);
 	for_each_free_mem_range(i, &start, &end) {
 		con_dbg("memory: %016llx - %016llx\n", start, end);
-		page_heap_alloc_init(start, end);
+		page_alloc_init(start, end);
 	}
 }
 

@@ -64,8 +64,28 @@ void heap_range_init(caddr_t start_addr)
 	__heap_start = ALIGN(start_addr, HEAP_ALIGN);
 }
 
+#ifndef CONFIG_HEAP_PAGE
+static int heap_page_nr(void)
+{
+	return ALIGN_UP(CONFIG_HEAP_SIZE, PAGE_SIZE) / PAGE_SIZE;
+}
+
+void heap_page_init(void)
+{
+	struct page *page;
+	int nr_pages = heap_page_nr();
+
+	page = page_alloc_pages(nr_pages);
+	BUG_ON(!page);
+	heap_range_init((caddr_t)page);
+}
+#else
+#define heap_page_init()	do { } while (0)
+#endif
+
 void heap_init(void)
 {
+	heap_page_init();
 	__heap_brk = __heap_start;
 	heap_alloc_init();
 }

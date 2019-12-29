@@ -142,7 +142,7 @@ endif
 
 menuconfig SMP
 	bool "Scheduling facility (SMP) support"
-	select HEAP_PAGE
+	select PAGE
 
 if SMP
 
@@ -332,17 +332,21 @@ config LOAD_DATA
 
 endmenu
 
-config HEAP_PAGE
+config ARCH_HAS_HEAP
 	bool
-	select PAGE
-	select HEAP
 
 menuconfig HEAP
 	bool "Address space allocator (heap) support"
+	select HEAP_PAGE if !ARCH_HAS_HEAP
 	help
 	  Heap will start aligned from data/bss end.
 
 if HEAP
+
+config HEAP_PAGE
+	bool "Use page allocator to prepare heap region"
+	depends !ARCH_HAS_HEAP
+	depends PAGE
 
 choice
 	prompt "Heap start address alignment"
@@ -401,6 +405,7 @@ config MEM_RESIZE
 
 config MEM_HEAP
 	bool "Use heap allocator instead of memory allocator"
+	depends ARCH_HAS_HEAP
 	depends !PAGE
 	select HEAP
 	help

@@ -48,7 +48,7 @@
 #include <target/spinlock.h>
 #include <target/percpu.h>
 #include <target/timer.h>
-#include <target/heap.h>
+#include <target/page.h>
 #include <target/cmdline.h>
 
 #define CMD_INVALID_CPU_MASKS	0
@@ -115,8 +115,8 @@ static DEFINE_SPINLOCK(cpu_exec_lock);
 static uint64_t cpu_exec_sync;
 static unsigned long cpu_exec_good;
 static int cpu_exec_test_id;
-static caddr_t cpu_didt_area;
-static caddr_t cpu_didt_alloc;
+static int cpu_didt_pages;
+static struct page *cpu_didt_alloc;
 static uint8_t cpu_didt_refcnt;
 static unsigned long cpu_didt_cpu_mask;
 
@@ -191,7 +191,7 @@ static void bench_start(void)
 static void bench_stop(void)
 {
 	bool locked = false;
-	caddr_t ptr;
+	struct page *ptr;
 
 	spin_lock(&cpu_exec_lock);
 	cpu_didt_refcnt--;
@@ -199,11 +199,11 @@ static void bench_stop(void)
 		locked = true;
 		ptr = cpu_didt_alloc;
 		cpu_didt_cpu_mask = 0;
-		cpu_didt_alloc = (caddr_t)NULL;
+		cpu_didt_alloc = NULL;
 	}
 	spin_unlock(&cpu_exec_lock);
 	if (locked)
-		heap_free(ptr);
+		page_free_pages(cpu_didt_alloc, cpu_didt_pages);
 }
 
 static void bench_enter_state(cpu_t cpu, uint8_t state)
@@ -226,7 +226,7 @@ static caddr_t bench_percpu_area(cpu_t cpu)
 {
 	if (!cpu_ctxs[cpu].didt_entry)
 		return (caddr_t)0;
-	return (caddr_t)((uint64_t)cpu_didt_area +
+	return (caddr_t)((uint64_t)cpu_didt_alloc +
 			 (cpu_ctxs[cpu].didt_entry->alloc_size *
 			  (hweight64(cpu_didt_cpu_mask) -
 			   hweight64(cpu_didt_cpu_mask >> cpu))));
@@ -591,7 +591,7 @@ int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
 		locked = true;
 	}
 	if (!locked) {
-		while (!cpu_didt_area) {
+		while (!cpu_didt_alloc) {
 			spin_unlock(&cpu_exec_lock);
 			cpu_relax();
 			spin_lock(&cpu_exec_lock);
@@ -599,12 +599,14 @@ int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
 	}
 	spin_unlock(&cpu_exec_lock);
 	if (locked) {
-		cpu_didt_alloc = heap_alloc(fn->alloc_align +
-			fn->alloc_size * hweight64(init_cpu_mask));
-		cpu_didt_area = ALIGN(cpu_didt_alloc, fn->alloc_align);
+		int cpus = hweight64(init_cpu_mask);
+		size_t size = fn->alloc_align + fn->alloc_size;
+
+		cpu_didt_pages = ALIGN_UP(size * cpus, PAGE_SIZE) /
+				 PAGE_SIZE;
+		cpu_didt_alloc = page_alloc_pages(cpu_didt_pages);
 		do_printf("alloc: cpuexec: %016llx(%d)\n",
-			  (uint64_t)cpu_didt_area,
-			  fn->alloc_size * hweight64(init_cpu_mask));
+			  (uint64_t)cpu_didt_alloc, cpu_didt_pages);
 		locked = false;
 	}
 

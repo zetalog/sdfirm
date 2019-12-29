@@ -24,6 +24,7 @@ config ARCH_LM3S9B92
 	select ARCH_IS_TICKLESS if !TICK_LM3S9B92_PERIODIC
 	select ARCH_HAS_TSC
 	select ARCH_HAS_IDLE
+	select ARCH_HAS_HEAP
 	select GPT_LM3S9B92 if TIMER
 	select UART_LM3S9B92 if UART || DEBUG_PRINT || CONSOLE
 	select GPIO_LM3S9B92 if GPIO
@@ -43,6 +44,7 @@ config ARCH_LM3S3826
 	select ARCH_IS_TICKLESS if !TICK_LM3S3826_PERIODIC
 	select ARCH_HAS_TSC
 	select ARCH_HAS_IDLE
+	select ARCH_HAS_HEAP
 	select GPIO_LM3S3826 if GPIO
 	select GPT_LM3S3826 if TIMER
 	select UART_LM3S3826 if UART || DEBUG_PRINT || CONSOLE
@@ -53,6 +55,7 @@ config ARCH_VEXPRESSA9
 	bool "ARM Versatile Express for Cortex-A9"
 	select CPU_CORTEXA9
 	select ARCH_HAS_TSC
+	select ARCH_HAS_HEAP
 	select UART_VEXPRESSA9 if UART || DEBUG_PRINT || CONSOLE
 	help
 	  Can be found in QEMU, a combination of Motherboard Express uATX and

@@ -98,9 +98,7 @@ void page_alloc_init(caddr_t base, caddr_t size)
 
 void page_init(void)
 {
-#if !defined(CONFIG_MMU) || defined(CONFIG_MMU_MAP_MEM)
 	mem_free_all();
-#endif
 }
 
 struct page *page_test_ptr;

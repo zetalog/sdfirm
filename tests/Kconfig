@@ -9,6 +9,7 @@ menuconfig TEST_BENCH
 	select CRYPTO_RAND
 	select STRING_STRNCMP
 	select BIT_HWEIGHT64
+	select PAGE
 
 if TEST_BENCH
 
