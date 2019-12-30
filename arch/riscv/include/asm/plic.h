@@ -42,7 +42,6 @@
 #ifndef __PLIC_RISCV_H_INCLUDE__
 #define __PLIC_RISCV_H_INCLUDE__
 
-#include <target/types.h>
 #include <target/arch.h>
 
 /* Global IRQ0 is "no interrupt" */

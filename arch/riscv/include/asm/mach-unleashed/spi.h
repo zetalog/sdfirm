@@ -42,7 +42,6 @@
 #ifndef __SPI_UNLEASHED_H_INCLUDE__
 #define __SPI_UNLEASHED_H_INCLUDE__
 
-#include <target/arch.h>
 #include <target/clk.h>
 
 /*===========================================================================

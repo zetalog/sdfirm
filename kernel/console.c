@@ -161,10 +161,6 @@ void con_dbg(const char *fmt, ...)
 	vprintf(fmt, arg);
 	va_end(arg);
 }
-#else
-void con_dbg(const char *fmt, ...)
-{
-}
 #endif
 
 #ifdef CONFIG_CONSOLE_COMMAND

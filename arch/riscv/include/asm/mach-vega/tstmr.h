@@ -42,8 +42,7 @@
 #ifndef __TSTMR_VEGA_H_INCLUDE__
 #define __TSTMR_VEGA_H_INCLUDE__
 
-#include <target/types.h>
-#include <asm/io.h>
+#include <target/arch.h>
 
 #define TSTMRA_BASE		UL(0x40034000)
 #define TSTMRB_BASE		UL(0x4102C000)

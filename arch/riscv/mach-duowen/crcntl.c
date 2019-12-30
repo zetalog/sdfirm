@@ -40,10 +40,7 @@
  */
 
 #include <target/clk.h>
-#include <target/delay.h>
 #include <target/cmdline.h>
-#include <stdio.h>
-#include <string.h>
 
 struct output_clk {
 	uint32_t freq;

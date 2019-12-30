@@ -40,7 +40,6 @@
  */
 
 #include <target/clk.h>
-#include <stdbool.h>
 
 static int enable_output_clk(clk_clk_t clk)
 {

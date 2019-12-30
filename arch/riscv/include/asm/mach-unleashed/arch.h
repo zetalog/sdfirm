@@ -46,8 +46,8 @@
  * instructions, registers.
  */
 
-#include <target/init.h>
-#include <target/types.h>
+#include <asm/mach/pwm.h>
+#include <asm/mach/msel.h>
 
 #ifndef __ASSEMBLY__
 void board_init_clock(void);

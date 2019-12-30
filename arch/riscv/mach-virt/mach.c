@@ -39,9 +39,7 @@
  * $Id: mach.c,v 1.1 2019-09-05 15:41:00 zhenglv Exp $
  */
 
-#include <target/cpus.h>
 #include <target/arch.h>
-#include <target/irq.h>
 
 void board_reset(void)
 {

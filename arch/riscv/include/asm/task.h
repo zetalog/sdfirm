@@ -1,7 +1,6 @@
 #ifndef __TASK_RISCV_H_INCLUDE__
 #define __TASK_RISCV_H_INCLUDE__
 
-#include <target/compiler.h>
 #include <target/page.h>
 
 #define MACHINE_STACK_SIZE		PAGE_SIZE

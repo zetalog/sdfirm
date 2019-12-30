@@ -2,9 +2,6 @@
 #define __CONSOLE_H_INCLUDE__
 
 #ifndef __ASSEMBLY__
-void con_printf(const char *fmt, ...);
-void con_dbg(const char *fmt, ...);
-
 #include <target/uart.h>
 
 #ifdef CONFIG_CONSOLE_115200
@@ -72,10 +69,18 @@ void early_console_init(void);
 void late_console_init(void);
 void console_init(void);
 void console_late_init(void);
+void con_printf(const char *fmt, ...);
 #else
 #define early_console_init()		do { } while (0)
 #define console_init()			do { } while (0)
 #define late_console_init()		do { } while (0)
+#define con_printf(...)			do { } while (0)
+#endif
+
+#ifdef CONFIG_CONSOLE_DEBUG
+void con_dbg(const char *fmt, ...);
+#else
+#define con_dbg(...)			do { } while (0)
 #endif
 
 #ifdef CONFIG_MMU_IDMAP_DEVICE

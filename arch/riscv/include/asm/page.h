@@ -42,7 +42,6 @@
 #ifndef __PAGE_RISCV_H_INCLUDE__
 #define __PAGE_RISCV_H_INCLUDE__
 
-#include <target/const.h>
 #include <target/barrier.h>
 #include <target/console.h>
 #include <target/mem.h>

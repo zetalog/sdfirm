@@ -43,7 +43,6 @@
 #define __MMU_RISCV_H_INCLUDE__
 
 #include <target/barrier.h>
-#include <target/sizes.h>
 
 /*---------------------------------------------------------------------------
  * Hardware MMU definitions

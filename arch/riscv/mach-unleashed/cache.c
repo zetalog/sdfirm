@@ -41,7 +41,6 @@
 
 #include <target/arch.h>
 #include <target/atomic.h>
-#include <asm/mach/cache.h>
 
 /* Info accessors */
 static inline uint8_t ccache_banks(uint64_t base_addr)

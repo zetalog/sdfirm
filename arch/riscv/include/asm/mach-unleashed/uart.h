@@ -44,7 +44,6 @@
 
 #include <target/gpio.h>
 #include <target/clk.h>
-#include <target/arch.h>
 
 #define SIFIVE_UART_BASE(n)		(UART0_BASE + 0x1000 * (n))
 

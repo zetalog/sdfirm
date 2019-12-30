@@ -46,8 +46,6 @@
  * wait_irq, cpu_relax, etc., as long as the CPU/Cache definitions and
  * configurable system bus targets (CPU/Cache, peripheral nodes).
  */
-#include <asm/cpus.h>
-#include <asm/cache.h>
 #include <asm/reg.h>
 #include <asm/mach/arch.h>
 

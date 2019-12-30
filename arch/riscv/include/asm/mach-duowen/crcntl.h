@@ -42,9 +42,6 @@
 #ifndef __CRCNTL_DUOWEN_H_INCLUDE__
 #define __CLCNTL_DUOWEN_H_INCLUDE__
 
-#include <target/arch.h>
-#include <target/generic.h>
-
 #define DW_PLL_REFCLK_FREQ		XO_CLK_FREQ
 #define DW_PLL_CFG0(pll)		CRCNTL_PLL_CFG0(pll)
 #define DW_PLL_CFG1(pll)		CRCNTL_PLL_CFG1(pll)

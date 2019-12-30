@@ -39,13 +39,9 @@
  * $Id: mach.c,v 1.1 2019-10-16 15:40:00 zhenglv Exp $
  */
 
-#include <target/generic.h>
-#include <target/cpus.h>
 #include <target/arch.h>
 #include <target/irq.h>
 #include <target/clk.h>
-#include <asm/mach/pwm.h>
-#include <asm/mach/msel.h>
 
 void board_init(void)
 {

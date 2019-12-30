@@ -42,6 +42,8 @@
 #ifndef __EVENT_VEGA_H_INCLUDE__
 #define __EVENT_VEGA_H_INCLUDE__
 
+#include <target/arch.h>
+
 /* RI5CY and ZERO-RISCY core both have an event unit to support vectorized
  * interrupts of up to 32 lines and event triggering of up to 32 input
  * lines. The interrupt and event lines are separately masked and buffered.
@@ -135,7 +137,12 @@
 	((__raw_readl(EVENT_INTPTENACTIVE(irq)) >>	\
 	  EVENT_IRQ_OFFSET(irq)) & 0x1)
 
+#ifdef CONFIG_IRQC_EVENT
 void event_init_ctrl(void);
 void event_configure_irq(irq_t irq, uint8_t pri, uint8_t trigger);
+#else
+#define event_init_ctrl()			do { } while (0)
+#define event_configure_irq(irq, pri, trigger)	do { } while (0)
+#endif
 
 #endif /* __EVENT_VEGA_H_INCLUDE__ */

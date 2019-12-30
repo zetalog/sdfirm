@@ -42,8 +42,6 @@
 #ifndef __RISCV_SMP_H_INCLUDE__
 #define __RISCV_SMP_H_INCLUDE__
 
-#include <target/types.h>
-
 #ifdef CONFIG_SMP
 #ifndef __ASSEMBLY__
 static inline uint8_t __smp_processor_id(void)

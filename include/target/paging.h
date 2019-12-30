@@ -263,7 +263,7 @@ static inline caddr_t pgd_addr_end(caddr_t addr, caddr_t end)
 extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
 #endif /* !__ASSEMBLY__ */
 #else
-#define __pa(x)			((phys_addr_t)(x))
+#define __pa(x)			((phys_addr_t)(caddr_t)(x))
 #define __va(x)			((caddr_t)(x))
 #endif /* CONFIG_ARCH_HAS_MMU */
 

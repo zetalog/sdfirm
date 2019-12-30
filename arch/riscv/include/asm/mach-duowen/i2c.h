@@ -1,7 +1,6 @@
 #ifndef __I2C_DUOWEN_H_INCLUDE__
 #define __I2C_DUOWEN_H_INCLUDE__
 
-#include <target/arch.h>
 #include <target/clk.h>
 
 /* Required implementation specific definitions:

@@ -42,8 +42,6 @@
 #ifndef __PCC_VEGA_H_INCLUDE__
 #define __PCC_VEGA_H_INCLUDE__
 
-#include <asm/io.h>
-
 #define PCC0_BASE			UL(0x4002B000)
 #define PCC1_BASE			UL(0x41027000)
 #define PCC_REG(n, offset)		(PCC##n##_BASE + (offset))

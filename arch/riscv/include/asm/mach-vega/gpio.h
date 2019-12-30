@@ -42,7 +42,7 @@
 #ifndef __GPIO_VEGA_H_INCLUDE__
 #define __GPIO_VEGA_H_INCLUDE__
 
-#include <asm/io.h>
+#include <target/arch.h>
 
 #ifdef CONFIG_GPIO
 #ifndef ARCH_HAVE_GPIO

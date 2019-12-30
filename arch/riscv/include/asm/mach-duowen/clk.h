@@ -43,7 +43,6 @@
 #define __CLK_DUOWEN_H_INCLUDE__
 
 #include <target/arch.h>
-#include <target/generic.h>
 #include <asm/mach/crcntl.h>
 
 #define NR_FREQPLANS		1

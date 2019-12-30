@@ -42,9 +42,6 @@
 #ifndef __CSR_RISCV_H_INCLUDE__
 #define __CSR_RISCV_H_INCLUDE__
 
-#include <target/const.h>
-#include <target/compiler.h>
-
 /* This file is intended for being included by architecture specific
  * register header.
  */

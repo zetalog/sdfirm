@@ -80,6 +80,7 @@ config ARCH_VEGA
 	select ARCH_HAS_GPIO
 	select ARCH_HAS_IDLE
 	select ARCH_HAS_CLK
+	select ARCH_HAS_IRQC
 	select LPUART if UART || DEBUG_PRINT || CONSOLE
 	select IRQC_EVENT if !SYS_NOIRQ
 	select VEGA_CLOCK_DIST if CLK

@@ -42,10 +42,6 @@
 #ifndef __MSMC_VEGA_H_INCLUDE__
 #define __MSMC_VEGA_H_INCLUDE__
 
-#include <target/types.h>
-#include <target/arch.h>
-#include <asm/io.h>
-
 #define SMC0_BASE		UL(0x40020000)
 #define SMC1_BASE		UL(0x41020000)
 #ifdef CONFIG_VEGA_RI5CY

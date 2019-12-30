@@ -42,12 +42,6 @@
 #ifndef __SCG_VEGA_H_INCLUDE__
 #define __SCG_VEGA_H_INCLUDE__
 
-#include <errno.h>
-#include <stdbool.h>
-#include <target/types.h>
-#include <target/bitops.h>
-#include <target/arch.h>
-
 /* system power modes */
 #define SCG_CLKOUT			NR_SYS_MODES
 #define NR_SCG_MODES			(SCG_CLKOUT + 1)

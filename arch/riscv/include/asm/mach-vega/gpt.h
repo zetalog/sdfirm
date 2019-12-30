@@ -35,60 +35,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)dw_uart.h: Synopsys DesignWare UART interface
- * $Id: dw_uart.h,v 1.1 2019-09-26 10:40:00 zhenglv Exp $
+ * @(#)gpt.h: RV32M1 (VEGA) specific mandatory GPT driver
+ * $Id: gpt.h,v 1.1 2019-12-31 06:40:00 zhenglv Exp $
  */
 
-#ifndef __UART_DUOWEN_H_INCLUDE__
-#define __UART_DUOWEN_H_INCLUDE__
+#ifndef __GPT_VEGA_H_INCLUDE__
+#define __GPT_VEGA_H_INCLUDE__
 
-#include <target/paging.h>
-#include <target/gpio.h>
-#include <target/clk.h>
+#include <asm/mach/tstmr.h>
 
-#define UART_CLK_ID		uart0_clk
-#define UART_APB_CLK_ID		uart0_apb_clk
-#define DW_UART0_BASE		IMC_UART_BASE
-#define UART_CON_ID		0
-
-#if defined(CONFIG_DW_UART)
-#include <driver/dw_uart.h>
-#ifndef ARCH_HAVE_UART
-#define ARCH_HAVE_UART		1
-#else
-#error "Multiple UART controller defined"
-#endif
-#endif
-
-#ifdef CONFIG_DEBUG_PRINT
-void uart_hw_dbg_init(void);
-void uart_hw_dbg_start(void);
-void uart_hw_dbg_stop(void);
-void uart_hw_dbg_write(uint8_t byte);
-void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
-#endif
-
-#ifdef CONFIG_MMU
-void uart_hw_mmu_init(void);
-#endif
-
-#ifdef CONFIG_CONSOLE
-#define uart_hw_con_init()						\
-	do {								\
-		board_init_clock();					\
-		clk_enable(UART_APB_CLK_ID);				\
-		clk_enable(UART_CLK_ID);				\
-		dw_uart_con_init(clk_get_frequency(UART_CLK_ID));	\
-	} while (0)
-#endif
-#ifdef CONFIG_CONSOLE_OUTPUT
-#define uart_hw_con_write(byte)	dw_uart_con_write(byte)
-#endif
-#ifdef CONFIG_CONSOLE_INPUT
-#define uart_hw_con_read()	dw_uart_con_read()
-#define uart_hw_con_poll()	dw_uart_con_poll()
-void uart_hw_irq_ack(void);
-void uart_hw_irq_init(void);
-#endif
-
-#endif /* __UART_DUOWEN_H_INCLUDE__ */
+#endif /* __GPT_VEGA_H_INCLUDE__ */

@@ -1,9 +1,5 @@
-#include <target/config.h>
-#include <target/linkage.h>
 #include <target/init.h>
 #include <target/arch.h>
-#include <asm/assembler.h>
-#include <asm/asm-offsets.h>
 #include <target/paging.h>
 
 #ifdef CONFIG_DUOWEN_IMC

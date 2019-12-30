@@ -45,7 +45,6 @@
 /* This file is intended for implementing architecture specific boot
  * memory resource allocator primitives.
  */
-#include <target/types.h>
 
 #ifndef __ASSEMBLY__
 /* For mem_hw_range_init() to allocate SoC specific memory resources. */

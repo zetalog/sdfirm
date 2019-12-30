@@ -42,9 +42,6 @@
 #ifndef __IMC_DUOWEN_H_INCLUDE__
 #define __IMC_DUOWEN_H_INCLUDE__
 
-#include <target/arch.h>
-#include <target/types.h>
-
 #define AXI_AXSIZE_BYTES		32
 
 #include <target/amba.h>

@@ -39,7 +39,6 @@
  * $Id: clk.c,v 1.1 2019-08-19 14:24:00 zhenglv Exp $
  */
 
-#include <errno.h>
 #include <target/clk.h>
 
 static uint32_t const_clks[] = {

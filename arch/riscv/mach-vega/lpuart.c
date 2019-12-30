@@ -40,8 +40,6 @@
  */
 
 #include <target/uart.h>
-#include <target/gpio.h>
-#include <target/clk.h>
 
 #ifdef CONFIG_LPUART_FIFO
 static void lpuart_enable_fifo_irqs(uint8_t id, lpuart_irq_t irqs)

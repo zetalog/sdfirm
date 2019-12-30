@@ -42,6 +42,7 @@
 #ifndef __CLK_VEGA_H_INCLUDE__
 #define __CLK_VEGA_H_INCLUDE__
 
+#include <target/arch.h>
 #include <asm/mach/scg.h>
 #include <asm/mach/pcc.h>
 #include <asm/mach/msmc.h>

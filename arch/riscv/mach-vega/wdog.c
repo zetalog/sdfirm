@@ -40,7 +40,6 @@
  */
 
 #include <target/arch.h>
-#include <asm/mach/wdog.h>
 
 void wdog_disable(void)
 {

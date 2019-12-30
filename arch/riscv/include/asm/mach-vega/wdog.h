@@ -42,9 +42,6 @@
 #ifndef __WDOG_VEGA_H_INCLUDE__
 #define __WDOG_VEGA_H_INCLUDE__
 
-#include <target/types.h>
-#include <asm/io.h>
-
 #define WDOG0_BASE		UL(0x4002A000)
 #define WDOG1_BASE		UL(0xT41026000)
 #ifdef CONFIG_VEGA_RI5CY
@@ -104,6 +101,8 @@
 #define WDOG_WINHIGH_MASK	REG_8BIT_MASK
 #define WDOG_WINHIGH(value)	_SET_FV(WDOG_WINHIGH, value)
 
+#if !defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
 void wdog_disable(void);
+#endif
 
 #endif /* __WDOG_VEGA_H_INCLUDE__ */

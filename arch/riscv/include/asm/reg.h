@@ -47,7 +47,6 @@
  * and other SoC specific address space definitions and global register
  * definitions.
  */
-#include <target/types.h>
 #include <asm/io.h>
 #include <asm/csr.h>
 #include <asm/mach/reg.h>

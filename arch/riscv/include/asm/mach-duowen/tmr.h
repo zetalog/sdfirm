@@ -42,8 +42,6 @@
 #ifndef __TMR_DUOWEN_H_INCLUDE__
 #define __TMR_DUOWEN_H_INCLUDE__
 
-#include <target/arch.h>
-
 #define TMR_BASE		TIMER3_BASE
 #define TMR_REG(offset)		(TMR_BASE + (offset))
 

@@ -35,23 +35,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)mmc.h: duowen specific mmc controller interface
- * $Id: mmc.h,v 1.1 2019-10-09 15:20:00 zhenglv Exp $
+ * @(#)gpt.h: SPIKE specific mandatory GPT driver
+ * $Id: gpt.h,v 1.1 2019-12-31 06:30:00 zhenglv Exp $
  */
 
-#ifndef __MMC_DUOWEN_H_INCLUDE__
-#define __MMC_DUOWEN_H_INCLUDE__
+#ifndef __GPT_SPIKE_H_INCLUDE__
+#define __GPT_SPIKE_H_INCLUDE__
 
-#include <target/gpio.h>
-#include <target/clk.h>
+#include <asm/clint.h>
 
-#ifdef CONFIG_DW_MSHC
-#include <target/sdhc.h>
-#ifndef ARCH_HAVE_MMC
-#define ARCH_HAVE_MMC		1
-#else
-#error "Multiple MMC controller defined"
-#endif
-#endif
-
-#endif /* __MMC_DUOWEN_H_INCLUDE__ */
+#endif /* __GPT_SPIKE_H_INCLUDE__ */

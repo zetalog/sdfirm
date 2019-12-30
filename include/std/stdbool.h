@@ -2,9 +2,10 @@
 #define __STD_STDBOOL_H_INCLUDE__
 
 #if defined(__GNUC__)
-#define bool	_Bool
-#define true	1
-#define false	0
+#define bool		_Bool
+#define true		1
+#define false		0
+#define ARCH_HAS_BOOL	1
 #endif
 
 #define __bool_true_false_are_defined	1

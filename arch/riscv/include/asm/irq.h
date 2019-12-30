@@ -42,7 +42,7 @@
 #ifndef __IRQ_RISCV_H_INCLUDE__
 #define __IRQ_RISCV_H_INCLUDE__
 
-#include <asm/reg.h>
+#include <target/arch.h>
 
 #ifndef __ASSEMBLY__
 typedef uint32_t irq_flags_t;

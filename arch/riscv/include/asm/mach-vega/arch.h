@@ -42,6 +42,8 @@
 #ifndef __ARCH_VEGA_H_INCLUDE__
 #define __ARCH_VEGA_H_INCLUDE__
 
+#include <asm/mach/wdog.h>
+
 /* This file is intended to be used for implementing SoC specific
  * instructions, registers.
  */

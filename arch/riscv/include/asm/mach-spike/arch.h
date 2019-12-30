@@ -46,9 +46,6 @@
  * instructions, registers.
  */
 
-#include <target/init.h>
-#include <target/types.h>
-
 #ifndef __ASSEMBLY__
 void board_reset(void);
 void board_suspend(void);

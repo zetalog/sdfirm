@@ -39,14 +39,11 @@
  * $Id: mach.c,v 1.1 2019-08-14 16:15:00 zhenglv Exp $
  */
 
-#include <target/generic.h>
+#include <target/irq.h>
 #include <target/cpus.h>
 #include <target/arch.h>
-#include <target/irq.h>
 #include <target/clk.h>
 #include <target/heap.h>
-#include <asm/mach/event.h>
-#include <asm/mach/wdog.h>
 
 bool board_in_irq(void)
 {

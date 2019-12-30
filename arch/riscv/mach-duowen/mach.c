@@ -39,8 +39,6 @@
  * $Id: mach.c,v 1.1 2019-09-02 15:13:00 zhenglv Exp $
  */
 
-#include <target/generic.h>
-#include <target/cpus.h>
 #include <target/arch.h>
 #include <target/irq.h>
 
