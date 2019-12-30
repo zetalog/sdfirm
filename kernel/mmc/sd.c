@@ -307,9 +307,14 @@ static void sd_handle_read_blocks(void)
 		else
 			mmc_cmd(MMC_CMD_READ_SINGLE_BLOCK);
 	} else {
-		if (mmc_state_is(tran))
-			mmc_op_success();
-		else if (mmc_state_is(ina))
+		if (mmc_state_is(tran)) {
+			if (!mmc_get_block_data())
+				mmc_op_success();
+			else {
+				mmc_set_block_data(0);
+				mmc_cmd(MMC_CMD_STOP_TRANSMISSION);
+			}
+		} else if (mmc_state_is(ina))
 			mmc_op_failure();
 	}
 }
@@ -482,8 +487,9 @@ void mmc_phy_handle_stm(void)
 	} else if (flags & MMC_EVENT_CARD_BUSY &&
 		   mmc_slot_ctrl.flags & MMC_SLOT_CARD_IS_BUSY &&
 		   mmc_slot_ctrl.rsp & MMC_RSP_BUSY) {
-		(void)mmc_hw_card_busy();
 		unraise_bits(flags, MMC_EVENT_CARD_BUSY);
+		if (!mmc_hw_card_busy())
+			mmc_rsp_success();
 	} else if (flags & MMC_EVENT_CMD_SUCCESS &&
 		   mmc_slot_ctrl.flags & MMC_SLOT_WAIT_APP_CMD &&
 		   mmc_cmd_is(MMC_CMD_APP_CMD)) {
@@ -653,10 +659,10 @@ void sd_resp_r1(void)
 	}
 }
 
-void sd_resp_r1b(void)
+bool sd_resp_r1b(void)
 {
 	sd_resp_r1();
-	mmc_hw_card_busy();
+	return !mmc_hw_card_busy();
 }
 
 void sd_resp_r2(void)
@@ -748,7 +754,8 @@ void sd_recv_rsp(void)
 		sd_resp_r1();
 		break;
 	case MMC_R1b:
-		sd_resp_r1b();
+		if (!sd_resp_r1b())
+			return;
 		break;
 	case MMC_R2:
 		sd_resp_r2();

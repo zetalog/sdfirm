@@ -186,7 +186,7 @@ void mmc_spi_send(uint8_t cmd, uint32_t arg)
 	mmc_cmd_failure(MMC_ERR_CARD_LOOSE_BUS);
 }
 
-void mmc_spi_busy(void)
+bool mmc_spi_busy(void)
 {
 	uint8_t r;
 
@@ -195,11 +195,12 @@ void mmc_spi_busy(void)
 		if (r == 0) {
 			mmc_spi_debug_busy(r);
 			mmc_event_raise(MMC_EVENT_CARD_BUSY);
-			return;
+			return true;
 		} else
 			unraise_bits(mmc_slot_ctrl.flags,
 				     MMC_SLOT_CARD_IS_BUSY);
 	}
+	return false;
 }
 
 void mmc_spi_recv(uint8_t *resp, uint16_t len)

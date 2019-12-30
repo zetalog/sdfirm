@@ -669,6 +669,7 @@ void mmc_op_complete(bool result);
 #define mmc_op_failure()		mmc_op_complete(false)
 #define mmc_identify_card()		mmc_start_op(MMC_OP_IDENTIFY_CARD, NULL)
 #define mmc_select_card(cmpl)		mmc_start_op(MMC_OP_SELECT_CARD, cmpl)
+#define mmc_deselect_card(cmpl)		mmc_start_op(MMC_OP_DESELECT_CARD, cmpl)
 #define __mmc_read_blocks(cmpl)		mmc_start_op(MMC_OP_READ_BLOCKS, cmpl)
 #define __mmc_write_blocks(cmpl)	mmc_start_op(MMC_OP_WRITE_BLOCKS, cmpl)
 int mmc_read_blocks(uint8_t *buf, mmc_lba_t lba,
@@ -706,5 +707,9 @@ uint8_t mmc_get_block_data(void);
 void mmc_wait_busy(void);
 
 mmc_card_t mmc_register_card(mmc_rca_t rca);
+int mmc_card_read_async(mmc_rca_t rca, uint8_t *buf,
+			mmc_lba_t lba, size_t cnt);
+int mmc_card_read_sync(mmc_rca_t rca, uint8_t *buf,
+		       mmc_lba_t lba, size_t cnt);
 
 #endif /* __MMC_H_INCLUDE__ */

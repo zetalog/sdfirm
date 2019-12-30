@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sun Dec 15 22:56:46 2019
+# Mon Dec 30 23:32:03 2019
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -64,17 +64,22 @@ CONFIG_CPU_C=y
 # CONFIG_RISCV_M is not set
 # CONFIG_RISCV_A is not set
 # CONFIG_RISCV_C is not set
+# CONFIG_RISCV_VM is not set
 CONFIG_CMODEL_MEDLOW=y
 # CONFIG_CMODEL_MEDANY is not set
 CONFIG_TUNE_GENERIC=y
 CONFIG_MAXPHYSMEM_2GB=y
 # CONFIG_MAXPHYSMEM_128GB is not set
 CONFIG_ARCH_HAS_NOSEE=y
+CONFIG_SYS_ENTR_M=y
+CONFIG_SYS_EXIT_M=y
 CONFIG_RISCV_AEE=y
 # CONFIG_RISCV_SEE is not set
 # CONFIG_RISCV_HEE is not set
-# CONFIG_SYS_KERNEL is not set
-CONFIG_SYS_MONITOR=y
+# CONFIG_RISCV_ENTR_S is not set
+CONFIG_RISCV_ENTR_M=y
+# CONFIG_RISCV_EXIT_S is not set
+CONFIG_RISCV_EXIT_M=y
 
 #
 # System peripherals
@@ -154,6 +159,7 @@ CONFIG_MAX_BHS=4
 #
 # Timing facility (jiffy) support
 #
+CONFIG_TICKLESS=y
 
 #
 # Timing facility (delay) support
@@ -235,6 +241,7 @@ CONFIG_SD_SDHC=y
 # CONFIG_SD_SDXC is not set
 CONFIG_SD_SPI=y
 # CONFIG_SDHC is not set
+# CONFIG_DDR is not set
 # CONFIG_RAS is not set
 
 #
@@ -273,9 +280,24 @@ CONFIG_SD_SPI=y
 # CONFIG_SDHCI is not set
 
 #
+# DDR controller drivers
+#
+# CONFIG_DW_UMCTL2 is not set
+
+#
 # Clock drivers
 #
 # CONFIG_DW_PLL5GHZ_TSMC12FFC is not set
+
+#
+# I2C host drivers
+#
+# CONFIG_DW_I2C is not set
+
+#
+# I2C slave drivers
+#
+# CONFIG_DW_I2CS is not set
 
 #
 # Library setup
@@ -294,6 +316,7 @@ CONFIG_SD_SPI=y
 # CONFIG_BIT_ROUNDDOWN16 is not set
 # CONFIG_BIT_ROUNDUP32 is not set
 # CONFIG_BIT_ROUNDDOWN32 is not set
+# CONFIG_BIT_HWEIGHT64 is not set
 
 #
 # Bitmap operations
@@ -310,12 +333,6 @@ CONFIG_SD_SPI=y
 CONFIG_MATH_DIV32=y
 CONFIG_MATH_DIV64=y
 CONFIG_MATH_MOD64=y
-
-#
-# Atomic operations
-#
-# CONFIG_ATOMIC_SUB_RETURN is not set
-# CONFIG_ATOMIC_ADD_RETURN is not set
 
 #
 # Checksum algorithms
@@ -336,8 +353,14 @@ CONFIG_PRINT_PRINTF=y
 #
 # String operations
 #
+# CONFIG_STRING_STRNCMP is not set
 CONFIG_STRING_STRTOUL=y
 CONFIG_STRING_UUID=y
+
+#
+# Cryptographic algorithms
+#
+# CONFIG_CRYPTO_RAND is not set
 # CONFIG_FONTS is not set
 
 #

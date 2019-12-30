@@ -68,41 +68,6 @@ void mmc_hw_irq_init(void)
 }
 #endif
 
-bool unleashed_sdcard_success;
-uint8_t *unleashed_sdcard_buffer;
-uint32_t unleashed_sdcard_lba;
-uint16_t unleashed_sdcard_cnt;
-
-void unleashed_sdcard_complete(mmc_rca_t rca, uint8_t op, bool result)
-{
-	if (!result)
-		return;
-
-	if (op == MMC_OP_SELECT_CARD) {
-		mmc_read_blocks(unleashed_sdcard_buffer,
-				unleashed_sdcard_lba,
-				unleashed_sdcard_cnt,
-				unleashed_sdcard_complete);
-	}
-	if (op == MMC_OP_READ_BLOCKS)
-		unleashed_sdcard_success = result;
-}
-
-int unleashed_sdcard_copy(void *dst, uint32_t src_lba, size_t size)
-{
-	int ret;
-
-	unleashed_sdcard_success = false;
-	unleashed_sdcard_buffer = dst;
-	unleashed_sdcard_lba = src_lba;
-	unleashed_sdcard_cnt = size;
-	ret = mmc_select_card(unleashed_sdcard_complete);
-	if (ret)
-		return ret;
-	bh_sync();
-	return unleashed_sdcard_success ? 0 : -EINVAL;
-}
-
 static int do_sdcard(int argc, char *argv[])
 {
 	uint8_t gpt_buf[MMC_DEF_BL_LEN];
@@ -119,7 +84,8 @@ static int do_sdcard(int argc, char *argv[])
 		return -EINVAL;
 	}
 	printf("Reading SDCard from SPI%d...\n", SPI_FLASH_ID);
-	err = unleashed_sdcard_copy(&hdr, GPT_HEADER_LBA, 1);
+	err = mmc_card_read_sync(0, (uint8_t *)&hdr,
+				 GPT_HEADER_LBA, 1);
 	if (err)
 		return -EINVAL;
 	mem_print_data(0, &hdr, 1, sizeof (gpt_header));
@@ -128,7 +94,7 @@ static int do_sdcard(int argc, char *argv[])
 		 MMC_DEF_BL_LEN - 1) / MMC_DEF_BL_LEN);
 	for (i = hdr.partition_entries_lba;
 	     i < partition_entries_lba_end; i++) {
-		unleashed_sdcard_copy(gpt_buf, i, 1);
+		mmc_card_read_sync(0, gpt_buf, i, 1);
 		gpt_entries = (gpt_partition_entry *)gpt_buf;
 		num_entries = MMC_DEF_BL_LEN / hdr.partition_entry_size;
 		for (j = 0; j < num_entries; j++) {

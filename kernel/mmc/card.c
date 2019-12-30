@@ -39,7 +39,9 @@
  * $Id: card.c,v 1.1 2019-12-16 21:25:00 zhenglv Exp $
  */
 
+#include <target/bh.h>
 #include <target/mmc.h>
+#include <target/page.h>
 #include <target/cmdline.h>
 #include <target/mem.h>
 
@@ -52,18 +54,19 @@
 struct mem_card {
 	mmc_slot_t sid;
 	mmc_rca_t rca;
-	uint8_t tran;
 
+	uint8_t *buf;
 	mmc_lba_t lba;
 	size_t cnt;
+	bool res;
+
+	uint8_t tran;
 };
 
 void mmc_card_complete(mmc_rca_t rca, uint8_t op, bool result);
 
 struct mem_card mem_cards[NR_MMC_CARDS];
 mmc_card_t mmc_nr_cards = 0;
-__align(MMC_DATA_ALIGN) uint8_t mem_card_buf[2 * MMC_DEF_BL_LEN];
-bool mem_card_buf_busy = false;
 
 mmc_card_t mmc_rca2card(mmc_rca_t rca)
 {
@@ -100,12 +103,22 @@ void mmc_card_select_card(mmc_rca_t rca)
 	mmc_slot_restore(sslot);
 }
 
-void mmc_card_read_blocks(mmc_rca_t rca, mmc_lba_t lba, size_t cnt)
+void mmc_card_deselect_card(mmc_rca_t rca)
 {
 	__unused mmc_slot_t sslot;
 
 	sslot = mmc_slot_save(MMC_SLOT(rca));
-	mmc_read_blocks(mem_card_buf, lba, cnt,
+	mmc_deselect_card(mmc_card_complete);
+	mmc_slot_restore(sslot);
+}
+
+void mmc_card_read_blocks(mmc_rca_t rca, uint8_t *buf,
+			  mmc_lba_t lba, size_t cnt)
+{
+	__unused mmc_slot_t sslot;
+
+	sslot = mmc_slot_save(MMC_SLOT(rca));
+	mmc_read_blocks(buf, lba, cnt,
 			mmc_card_complete);
 	mmc_slot_restore(sslot);
 }
@@ -118,7 +131,8 @@ void mmc_card_start_tran(mmc_rca_t rca)
 	BUG_ON(cid == INVALID_MMC_CARD);
 
 	if (mem_cards[cid].tran == MMC_OP_READ_BLOCKS)
-		mmc_card_read_blocks(rca, mem_cards[cid].lba,
+		mmc_card_read_blocks(rca, mem_cards[cid].buf,
+				     mem_cards[cid].lba,
 				     mem_cards[cid].cnt);
 }
 
@@ -141,39 +155,53 @@ void mmc_card_complete(mmc_rca_t rca, uint8_t op, bool result)
 		}
 		break;
 	case MMC_OP_READ_BLOCKS:
-		mem_print_data(0, mem_card_buf, 1,
-			       mmc_slot_ctrl.block_cnt * MMC_DEF_BL_LEN);
-		break;
 	default:
 		break;
 	}
 
 err_exit:
+	mem_cards[cid].res = result;
 	mem_cards[cid].tran = 0;
-	mem_card_buf_busy = false;
 }
 
-int mmc_card_read(mmc_rca_t rca, mmc_lba_t lba, size_t cnt)
+int mmc_card_read_async(mmc_rca_t rca, uint8_t *buf,
+			mmc_lba_t lba, size_t cnt)
 {
 	__unused mmc_slot_t sslot;
 	mmc_card_t cid;
-	
+
+	if (!buf)
+		return -EINVAL;
 	cid = mmc_rca2card(rca);
 	if (cid == INVALID_MMC_CARD)
 		return -ENODEV;
-
-	if (mem_card_buf_busy || mem_cards[cid].tran)
+	if (mem_cards[cid].tran)
 		return -EBUSY;
-	mem_card_buf_busy = true;
 	mem_cards[cid].tran = MMC_OP_READ_BLOCKS;
-
+	mem_cards[cid].buf = buf;
 	mem_cards[cid].lba = lba;
 	mem_cards[cid].cnt = cnt;
+	mem_cards[cid].res = false;
 	if (!(mmc_slot_ctrl.flags & MMC_SLOT_CARD_SELECT))
 		mmc_card_select_card(rca);
 	else
 		mmc_card_start_tran(rca);
 	return 0;
+}
+
+int mmc_card_read_sync(mmc_rca_t rca, uint8_t *buf,
+		       mmc_lba_t lba, size_t cnt)
+{
+	int ret;
+	mmc_card_t cid;
+
+	ret = mmc_card_read_async(rca, buf, lba, cnt);
+	if (ret)
+		return ret;
+	cid = mmc_rca2card(rca);
+	BUG_ON(cid == INVALID_MMC_CARD);
+	bh_sync();
+	return mem_cards[cid].res ? 0 : -EINVAL;
 }
 
 static int do_card_list(int argc, char *argv[])
@@ -189,6 +217,7 @@ static int do_card_list(int argc, char *argv[])
 	return 0;
 }
 
+__align(MMC_DATA_ALIGN) uint8_t mem_card_buf[2 * MMC_DEF_BL_LEN];
 static int do_card_dump(int argc, char *argv[])
 {
 	mmc_rca_t rca;
@@ -206,7 +235,11 @@ static int do_card_dump(int argc, char *argv[])
 		cnt = 2;
 	if (cnt < 1)
 		cnt = 1;
-	mmc_card_read(rca, lba, cnt);
+	if (mmc_card_read_sync(rca, mem_card_buf, lba, cnt))
+		printf("read_blocks %016x(%d) failure.\n", lba, cnt);
+	else
+		mem_print_data(0, mem_card_buf, 1,
+			       cnt * MMC_DEF_BL_LEN);
 	return 0;
 }
 

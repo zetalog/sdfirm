@@ -54,10 +54,10 @@ static void sd_spi_resp_r1(void)
 	raise_bits(mmc_slot_ctrl.flags, MMC_SLOT_CARD_STATUS_VALID);
 }
 
-static void sd_spi_resp_r1b(void)
+static bool sd_spi_resp_r1b(void)
 {
 	sd_spi_resp_r1();
-	mmc_hw_card_busy();
+	return !mmc_hw_card_busy();
 }
 
 static void sd_spi_resp_r2(void)
@@ -101,7 +101,8 @@ void sd_spi_recv_rsp(void)
 {
 	switch (mmc_slot_ctrl.rsp) {
 	case MMC_R1b:
-		sd_spi_resp_r1b();
+		if (!sd_spi_resp_r1b())
+			return;
 		break;
 	case MMC_R1:
 		sd_spi_resp_r1();

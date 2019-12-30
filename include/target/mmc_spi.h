@@ -96,7 +96,7 @@ void mmc_spi_select(mmc_rca_t rca);
 void mmc_spi_send(uint8_t cmd, uint32_t arg);
 void mmc_spi_recv(uint8_t *resp, uint16_t len);
 void mmc_spi_tran(uint8_t *dat, uint32_t len, uint16_t cnt);
-void mmc_spi_busy(void);
+bool mmc_spi_busy(void);
 
 /* Send dummy byte (all ones).
  * Used in many cases to read one byte from SD card, since SPI is a

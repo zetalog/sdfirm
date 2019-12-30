@@ -24,6 +24,8 @@ config DUOWEN_IMC
 config DUOWEN_APC
 	bool "APC"
 	select CPU_64G
+	select CPU_SV39
+	select CPU_SV48
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_BOOT_LOAD
 
