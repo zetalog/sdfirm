@@ -39,11 +39,13 @@ static phys_addr_t early_pgtable_alloc(void)
 	return phys;
 }
 
+#if 0
 static void early_pgtable_free(phys_addr_t phys)
 {
 	mmu_dbg_tbl("FREE: %016llx\n", phys);
 	mem_free(phys, PAGE_SIZE);
 }
+#endif
 
 static bool pgattr_change_is_safe(uint64_t old, uint64_t new)
 {
@@ -245,7 +247,7 @@ static void alloc_init_pud(pgd_t *pgdp, caddr_t addr, caddr_t end,
 	pgd_t pgd = READ_ONCE(*pgdp);
 
 	if (pgd_none(pgd)) {
-		phys_addr_t pud_phys;
+		__unused phys_addr_t pud_phys;
 		BUG_ON(!pgtable_alloc);
 		pud_phys = pgtable_alloc();
 		__pgd_populate(pgdp, pud_phys, PUD_TYPE_TABLE);

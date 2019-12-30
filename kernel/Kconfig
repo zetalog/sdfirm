@@ -142,7 +142,6 @@ endif
 
 menuconfig SMP
 	bool "Scheduling facility (SMP) support"
-	select PAGE
 
 if SMP
 
@@ -459,7 +458,6 @@ menuconfig MMU
 	bool "Address space layout (paging) support"
 	depends ARCH_HAS_MMU
 	select MEM
-	select PAGE
 
 if MMU
 

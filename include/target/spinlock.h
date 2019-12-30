@@ -43,6 +43,7 @@
 #define __SPINLOCK_H_INCLUDE__
 
 #include <target/generic.h>
+#include <target/irq.h>
 
 #ifdef CONFIG_SMP
 #include <asm/spinlock.h>
