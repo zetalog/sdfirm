@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Dec 30 11:22:38 2019
+# Tue Dec 31 22:44:04 2019
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -66,8 +66,8 @@ CONFIG_CPU_C=y
 CONFIG_CPU_SV39=y
 # CONFIG_RISCV_M is not set
 # CONFIG_RISCV_A is not set
-# CONFIG_RISCV_F is not set
-# CONFIG_RISCV_D is not set
+CONFIG_RISCV_F=y
+CONFIG_RISCV_D=y
 # CONFIG_RISCV_C is not set
 CONFIG_RISCV_VM=y
 # CONFIG_RISCV_SV32 is not set
@@ -87,6 +87,7 @@ CONFIG_RISCV_AEE=y
 CONFIG_RISCV_ENTR_M=y
 CONFIG_RISCV_EXIT_S=y
 # CONFIG_RISCV_EXIT_M is not set
+CONFIG_SBI=y
 
 #
 # System peripherals

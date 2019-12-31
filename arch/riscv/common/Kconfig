@@ -453,6 +453,15 @@ config SYS_MONITOR
 	depends !BOOTLOADER
 	default y if RISCV_ENTR_M && (RISCV_SEE || RISCV_HEE)
 
+config SBI
+	bool "Supervisor binary interface (SBI) support"
+	depends RISCV_ENTR_M
+	depends RISCV_EXIT_S
+	depends CPU_F
+	depends CPU_D
+	select RISCV_F
+	select RISCV_D
+
 menu "System peripherals"
 
 config ARCH_HAS_CLINT

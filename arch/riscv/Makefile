@@ -34,7 +34,7 @@ riscv-march-$(CONFIG_RISCV_64I)	:= rv64ima
 riscv-march-$(CONFIG_RISCV_F)	:= $(riscv-march-y)f
 riscv-march-$(CONFIG_RISCV_D)	:= $(riscv-march-y)d
 riscv-march-$(CONFIG_RISCV_C)	:= $(riscv-march-y)c
-CFLAGS += -march=$(subst fd,,$(riscv-march-y))
+CFLAGS += -march=$(riscv-march-y)
 AFLAGS += -march=$(riscv-march-y)
 
 CFLAGS += -mno-save-restore
@@ -98,6 +98,7 @@ machdirs := $(patsubst %,arch/riscv/mach-%/,$(machine-y))
 platdirs := $(patsubst %,arch/riscv/plat-%/,$(plat-y))
 
 core-y				+= arch/riscv/common/
+core-$(CONFIG_SBI)		+= arch/riscv/sbi/
 drivers-y			+= $(MACHINE)
 
 all: $(KBUILD_IMAGE)
