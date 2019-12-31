@@ -269,52 +269,63 @@ static void sd_handle_identify_card(void)
 
 static void sd_handle_select_card(void)
 {
-	if (sd_spi_mode)
+	if (mmc_state_is(tran)) {
 		mmc_slot_ctrl.flags |= MMC_SLOT_CARD_SELECT;
+		mmc_op_success();
+	} else if (mmc_state_is(__ina))
+		mmc_cmd(MMC_CMD_GO_INACTIVE_STATE);
+	else if (mmc_state_is(ina))
+		mmc_op_failure();
 	else {
-		if (!mmc_slot_ctrl.csd_valid)
+		if (sd_spi_mode) {
+			mmc_slot_ctrl.cmd = MMC_CMD_SELECT_DESELECT_CARD;
+			mmc_event_raise(MMC_EVENT_CMD_SUCCESS);
+		} else if (!mmc_slot_ctrl.csd_valid)
 			mmc_cmd(MMC_CMD_SEND_CSD);
 		else if (!mmc_slot_ctrl.scr_valid)
 			mmc_send_acmd(SD_ACMD_SEND_SCR);
-		else if (mmc_state_is(stby))
+		else
 			mmc_cmd(MMC_CMD_SELECT_DESELECT_CARD);
 	}
-	if (mmc_state_is(tran))
-		mmc_op_success();
-	else if (mmc_state_is(ina))
-		mmc_op_failure();
 }
 
 static void sd_handle_deselect_card(void)
 {
-	if (sd_spi_mode)
-		mmc_slot_ctrl.flags |= MMC_SLOT_CARD_SELECT;
-	else {
-		if (mmc_state_is(tran))
-			mmc_cmd(MMC_CMD_SELECT_DESELECT_CARD);
-	}
-	if (mmc_state_is(stby))
+	if (mmc_state_is(stby)) {
+		mmc_slot_ctrl.flags &= ~MMC_SLOT_CARD_SELECT;
 		mmc_op_success();
+	} else if (mmc_state_is(__ina))
+		mmc_cmd(MMC_CMD_GO_INACTIVE_STATE);
 	else if (mmc_state_is(ina))
 		mmc_op_failure();
+	else {
+		if (sd_spi_mode) {
+			mmc_slot_ctrl.cmd = MMC_CMD_SELECT_DESELECT_CARD;
+			mmc_event_raise(MMC_EVENT_CMD_SUCCESS);
+		} else
+			mmc_cmd(MMC_CMD_SELECT_DESELECT_CARD);
+	}
 }
 
 static void sd_handle_read_blocks(void)
 {
 	if (mmc_cmd_is(MMC_CMD_NONE)) {
+		unraise_bits(mmc_slot_ctrl.flags, MMC_SLOT_TRANS_STOPPED);
 		if (mmc_slot_ctrl.block_cnt > 1)
 			mmc_cmd(MMC_CMD_READ_MULTIPLE_BLOCK);
 		else
 			mmc_cmd(MMC_CMD_READ_SINGLE_BLOCK);
 	} else {
 		if (mmc_state_is(tran)) {
-			if (!mmc_get_block_data())
+			if (mmc_slot_ctrl.flags & MMC_SLOT_TRANS_STOPPED)
 				mmc_op_success();
 			else {
 				mmc_set_block_data(0);
 				mmc_cmd(MMC_CMD_STOP_TRANSMISSION);
 			}
-		} else if (mmc_state_is(ina))
+		} else if (mmc_state_is(__ina))
+			mmc_cmd(MMC_CMD_GO_INACTIVE_STATE);
+		else if (mmc_state_is(ina))
 			mmc_op_failure();
 	}
 }
@@ -490,6 +501,8 @@ void mmc_phy_handle_stm(void)
 		unraise_bits(flags, MMC_EVENT_CARD_BUSY);
 		if (!mmc_hw_card_busy())
 			mmc_rsp_success();
+		else
+			mmc_event_raise(MMC_EVENT_CARD_BUSY);
 	} else if (flags & MMC_EVENT_CMD_SUCCESS &&
 		   mmc_slot_ctrl.flags & MMC_SLOT_WAIT_APP_CMD &&
 		   mmc_cmd_is(MMC_CMD_APP_CMD)) {
@@ -586,11 +599,7 @@ void mmc_phy_handle_stm(void)
 	/* data transfer mode */
 	} else if (mmc_state_is(stby)) {
 		if (flags & MMC_EVENT_SELECT_CARD) {
-			if (sd_spi_mode ||
-			    mmc_slot_ctrl.flags & MMC_SLOT_CARD_SELECT)
-				mmc_state_enter(tran);
-			else
-				mmc_state_enter(idle);
+			mmc_state_enter(stby);
 			unraise_bits(flags, MMC_EVENT_SELECT_CARD);
 		}
 		if (flags & MMC_EVENT_CMD_SUCCESS) {
@@ -603,30 +612,36 @@ void mmc_phy_handle_stm(void)
 			unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
 		}
 		if (flags & MMC_EVENT_CMD_FAILURE) {
+			mmc_state_enter(__ina);
 			unraise_bits(flags, MMC_EVENT_CMD_FAILURE);
 		}
 	} else if (mmc_state_is(tran)) {
 		if (flags & MMC_EVENT_DESELECT_CARD) {
-			if (sd_spi_mode ||
-			    !(mmc_slot_ctrl.flags & MMC_SLOT_CARD_SELECT))
-				mmc_state_enter(idle);
-			else
-				mmc_state_enter(tran);
+			mmc_state_enter(tran);
 			unraise_bits(flags, MMC_EVENT_DESELECT_CARD);
 		}
 		if (flags & MMC_EVENT_CMD_SUCCESS) {
 			if (mmc_cmd_is(MMC_CMD_SELECT_DESELECT_CARD))
 				mmc_state_enter(stby);
-			else
+			else {
+				if (mmc_cmd_is(MMC_CMD_STOP_TRANSMISSION))
+					raise_bits(mmc_slot_ctrl.flags,
+						   MMC_SLOT_TRANS_STOPPED);
 				mmc_state_enter(tran);
-
+			}
 			unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
 		}
-		if (flags & MMC_EVENT_START_TRAN)
-			mmc_state_enter(tran);
 		if (flags & MMC_EVENT_CMD_FAILURE) {
-			sd_state_enter_ina();
+			if (mmc_cmd_is_read_block() ||
+			    mmc_cmd_is_write_block())
+				mmc_state_enter(__ina);
+			else
+				mmc_state_enter(tran);
 			unraise_bits(flags, MMC_EVENT_CMD_FAILURE);
+		}
+		if (flags & MMC_EVENT_START_TRAN) {
+			mmc_state_enter(tran);
+			unraise_bits(flags, MMC_EVENT_START_TRAN);
 		}
 	}
 	mmc_event_restore(flags);

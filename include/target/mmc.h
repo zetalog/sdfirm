@@ -561,6 +561,7 @@ struct mmc_slot {
 	(MMC_SLOT_BLOCK_READ | MMC_SLOT_BLOCK_WRITE)
 #define MMC_SLOT_CARD_DETECT		_BV(8)
 #define MMC_SLOT_CARD_SELECT		_BV(9)
+#define MMC_SLOT_TRANS_STOPPED		_BV(10)
 	mmc_event_t event;
 	/* SDSC Card (CCS=0) uses byte unit address and SDHC and SDXC
 	 * Cards (CCS=1) use block unit address (512 Bytes unit).

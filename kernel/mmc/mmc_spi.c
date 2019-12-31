@@ -142,6 +142,7 @@ static void mmc_spi_handle_r1(uint8_t r)
 {
 	mmc_slot_ctrl.r1 = r;
 
+	/* TODO: busy signaling is handled here? */
 	if (r & MMC_R1_ERRORS) {
 		if (r & MMC_R1_ILLEGAL_COMMAND)
 			mmc_cmd_failure(MMC_ERR_ILLEGAL_COMMAND);

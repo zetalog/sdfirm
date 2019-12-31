@@ -169,7 +169,7 @@ void mmc_debug(uint8_t tag, uint32_t val)
 		printf("event %s\n", mmc_event_name(val));
 		break;
 	case MMC_DEBUG_ERROR:
-		printf("error %s\n", mmc_error_name(val));
+		printf("\nerror %s\n", mmc_error_name(val));
 		break;
 	case MMC_DEBUG_CMD:
 		printf("cmd%d %s\n", val, mmc_cmd_name(val));

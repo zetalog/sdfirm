@@ -143,7 +143,6 @@ void mmc_card_complete(mmc_rca_t rca, uint8_t op, bool result)
 	cid = mmc_rca2card(rca);
 	if (cid == INVALID_MMC_CARD)
 		return;
-
 	if (!result)
 		goto err_exit;
 
@@ -235,6 +234,7 @@ static int do_card_dump(int argc, char *argv[])
 		cnt = 2;
 	if (cnt < 1)
 		cnt = 1;
+	memset(mem_card_buf, 0, 2 * MMC_DEF_BL_LEN);
 	if (mmc_card_read_sync(rca, mem_card_buf, lba, cnt))
 		printf("read_blocks %016x(%d) failure.\n", lba, cnt);
 	else
