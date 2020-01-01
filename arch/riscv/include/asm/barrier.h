@@ -46,6 +46,8 @@
  * implementations.
  */
 
+#define RISCV_ACQUIRE_BARRIER		"\tfence r , rw\n"
+#define RISCV_RELEASE_BARRIER		"\tfence rw,  w\n"
 #define fence(p, s)		\
 	asm volatile("fence " #p "," #s : : : "memory")
 
@@ -58,5 +60,17 @@
 #define __smp_mb()	fence(rw, rw)
 #define __smp_rmb()	fence(r, r)
 #define __smp_wmb()	fence(w, w)
+
+#define __smp_store_release(p, v)	\
+	do {				\
+		fence(rw, w);		\
+		*(p) = (v);		\
+	} while (0)
+#define __smp_load_acquire(p)		\
+({					\
+	typeof(*p) ___p1 = *(p);	\
+	fence(r, rw);			\
+	___p1;				\
+})
 
 #endif /* __RISCV_BARRIER_H_INCLUDE__ */

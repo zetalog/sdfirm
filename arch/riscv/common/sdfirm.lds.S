@@ -14,6 +14,9 @@ ENTRY(__start)
 SECTIONS
 {
 	. = PAGE_OFFSET + VEC_BASE;
+
+	PROVIDE(_fw_start = .);
+
 #ifdef CONFIG_ARCH_HAS_HIVEC
 	__svector = .;
 	TAIL_TEXT_SECTION(WORD_SIZE)
@@ -108,6 +111,22 @@ SECTIONS
 	. += PERCPU_STACKS_SIZE;
 	__end = .;				/* end of sdfirm */
 	_end = .;				/* end of sdfirm */
+
+	PROVIDE(_fw_end = .);
+
+#ifdef FW_PAYLOAD_OFFSET
+	. = PAGE_OFFSET + TEXT_OFFSET + FW_PAYLOAD_OFFSET;
+#else
+	. = ALIGN(PAGE_SIZE);
+#endif
+	.payload :
+	{
+		PROVIDE(_payload_start = .);
+		*(.payload)
+		. = ALIGN(8);
+		PROVIDE(_payload_end = .);
+	}
+	PROVIDE(_fw_reloc_end = .);
 }
 
 /*

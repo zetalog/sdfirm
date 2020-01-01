@@ -13,10 +13,14 @@
 	.option pop
 	.endm
 
-	.macro disable_irq
+	.macro disable_mirq
 #ifdef CONFIG_RISCV_ENTR_M
 	csrci	mstatus, SR_MIE
 #endif
+	.endm
+
+	.macro disable_sirq
+	csrci	sstatus, SR_MIE
 	.endm
 
 	.macro disable_fpu
@@ -63,10 +67,7 @@
 
 ENTRY(__start)
 	/* Disable global interrupt. */
-	disable_irq
-
-	init_sp
-	init_gp
+	disable_mirq
 
 #ifdef CONFIG_LOAD_TEXT
 	/* Handle both .text and .rodata sections */
@@ -79,6 +80,19 @@ ENTRY(__start)
 	/* Handle .bss section */
 	zero_sect __bss_start, __bss_stop, init_bss_exit, init_bss_loop
 
+	fence	rw, rw
+	/* At this point we are running from link address */
+
+	/* Reset all registers for boot HART */
+	li	ra, 0
+	call	reset_gprs
+
+	init_sp
+	init_gp
+
+#ifdef CONFIG_SBI
+	jal	ra, __sbi_entry
+#else
 	la	t0, __vectors
 	csrw	mtvec, t0
 #ifdef CONFIG_RISCV_N
@@ -87,4 +101,49 @@ ENTRY(__start)
 #endif
 
 	jal	ra, system_init
+#endif
 ENDPROC(__start)
+
+ENTRY(__sbi_exit)
+	disable_sirq
+
+	init_sp
+	init_gp
+
+	jal	ra, system_init
+ENDPROC(__sbi_exit)
+
+ENTRY(reset_gprs)
+	/* flush the instruction cache */
+	fence.i
+	/* Reset all registers except ra, a0, a1 and a2 */
+	li	sp, 0
+	li	gp, 0
+	li	tp, 0
+	li	t0, 0
+	li	t1, 0
+	li	t2, 0
+	li	s0, 0
+	li	s1, 0
+	li	a3, 0
+	li	a4, 0
+	li	a5, 0
+	li	a6, 0
+	li	a7, 0
+	li	s2, 0
+	li	s3, 0
+	li	s4, 0
+	li	s5, 0
+	li	s6, 0
+	li	s7, 0
+	li	s8, 0
+	li	s9, 0
+	li	s10, 0
+	li	s11, 0
+	li	t3, 0
+	li	t4, 0
+	li	t5, 0
+	li	t6, 0
+	csrw	CSR_MSCRATCH, 0
+	ret
+ENDPROC(reset_gprs)

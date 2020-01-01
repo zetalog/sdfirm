@@ -52,6 +52,9 @@
 
 /* Architecture specific CPU primitives */
 #define cpu_relax()		nop() /* Non-fairness cpu_relax() */
+#if 0
+#define cpu_relax()		asm volatile ("" : : : "memory")
+#endif
 #define wait_irq()		wfi()
 /* No WFE supports */
 #define wait_cpu()		cpu_relax()

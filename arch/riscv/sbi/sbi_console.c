@@ -18,9 +18,9 @@ bool sbi_isprintable(char c)
 {
 	if (((31 < c) && (c < 127)) || (c == '\f') || (c == '\r') ||
 	    (c == '\n') || (c == '\t')) {
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 int sbi_getc(void)
@@ -62,11 +62,6 @@ void sbi_gets(char *s, int maxwidth, char endchar)
 #define PAD_ZERO 2
 #define PAD_ALTERNATE 4
 #define PRINT_BUF_LEN 64
-
-#define va_start(v, l) __builtin_va_start((v), l)
-#define va_end __builtin_va_end
-#define va_arg __builtin_va_arg
-typedef __builtin_va_list va_list;
 
 static void printc(char **out, u32 *out_len, char ch)
 {

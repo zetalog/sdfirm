@@ -11,7 +11,6 @@
 #define __RISCV_FP_H__
 
 #include <sbi/riscv_asm.h>
-#include <sbi/riscv_encoding.h>
 #include <sbi/sbi_types.h>
 
 #define GET_PRECISION(insn) (((insn) >> 25) & 3)

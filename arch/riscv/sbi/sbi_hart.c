@@ -7,9 +7,9 @@
  *   Anup Patel <anup.patel@wdc.com>
  */
 
+#include <target/generic.h>
+#include <target/barrier.h>
 #include <sbi/riscv_asm.h>
-#include <sbi/riscv_barrier.h>
-#include <sbi/riscv_encoding.h>
 #include <sbi/riscv_fp.h>
 #include <sbi/riscv_locks.h>
 #include <sbi/sbi_bits.h>
@@ -166,7 +166,13 @@ static int pmp_init(struct sbi_scratch *scratch, u32 hartid)
 	fw_size_log2 = log2roundup(scratch->fw_size);
 	fw_start     = scratch->fw_start & ~((1UL << fw_size_log2) - 1UL);
 
-	pmp_set(0, 0, fw_start, fw_size_log2);
+#ifdef CONFIG_SYS_EXIT_S
+#define PMP_PROT_FW	(PMP_W | PMP_R | PMP_X)
+#else
+#define PMP_PROT_FW	0
+#endif
+
+	pmp_set(0, PMP_PROT_FW, fw_start, fw_size_log2);
 
 	count = sbi_platform_pmp_region_count(plat, hartid);
 	if ((PMP_COUNT - 1) < count)

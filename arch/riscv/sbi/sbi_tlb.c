@@ -8,8 +8,9 @@
  *   Anup Patel <anup.patel@wdc.com>
  */
 
+#include <target/generic.h>
+#include <target/barrier.h>
 #include <sbi/riscv_asm.h>
-#include <sbi/riscv_barrier.h>
 #include <sbi/sbi_error.h>
 #include <sbi/sbi_fifo.h>
 #include <sbi/sbi_hart.h>

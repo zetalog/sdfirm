@@ -62,6 +62,8 @@ typedef unsigned long		caddr_t;
 #define ARCH_HAVE_CADDR_T	1
 typedef unsigned long		size_t;
 #define ARCH_HAVE_SIZE_T	1
+typedef long			ssize_t;
+#define ARCH_HAVE_SSIZE_T	1
 typedef caddr_t			uintptr_t;
 #define ARCH_HAVE_UINTPTR_T	1
 typedef unsigned long long	phys_addr_t;
