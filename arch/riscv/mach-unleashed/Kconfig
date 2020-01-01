@@ -59,6 +59,7 @@ config UNLEASHED_BBL
 	depends UNLEASHED_U54
 	select SYS_ENTR_M
 	select SYS_EXIT_S
+	select SBI
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_BOOT_LOAD
 	select XIP

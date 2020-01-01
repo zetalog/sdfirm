@@ -10,9 +10,6 @@
 #ifndef __SBI_BITS_H__
 #define __SBI_BITS_H__
 
-#define likely(x) __builtin_expect((x), 1)
-#define unlikely(x) __builtin_expect((x), 0)
-
 #define ROUNDUP(a, b) ((((a)-1) / (b) + 1) * (b))
 #define ROUNDDOWN(a, b) ((a) / (b) * (b))
 

@@ -3,12 +3,7 @@
 
 #define inline
 
-#ifdef __ASSEMBLY__
-#define ULL(x)		x
-#define UL(x)		x
-#else
-#define ULL(x)		x##ULL
-#define UL(x)		x##UL
+#ifndef __ASSEMBLY__
 typedef unsigned char * va_list;
 #endif
 

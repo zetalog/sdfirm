@@ -17,6 +17,7 @@
 #include <sbi/sbi_system.h>
 #include <sbi/sbi_timer.h>
 #include <sbi/sbi_version.h>
+#include <target/smp.h>
 
 #define BANNER                                              \
 	"   ____                    _____ ____ _____\n"     \
@@ -28,10 +29,21 @@
 	"        | |\n"                                     \
 	"        |_|\n\n"
 
-static void sbi_boot_prints(struct sbi_scratch *scratch, u32 hartid)
+#if 0
+struct sbi_scratch *sbi_scratches[NR_CPUS];
+#else
+struct sbi_scratch *sbi_scratches[5]; /* for fu540 */
+#endif
+
+void sbi_late_init(void)
 {
 	char str[64];
+	cpu_t hartid = sbi_current_hartid();
+	struct sbi_scratch *scratch = sbi_scratches[hartid];
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+
+	if (!(scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS))
+		return;
 
 	misa_string(str, sizeof(str));
 	sbi_printf("\nOpenSBI v%d.%d (%s %s)\n", OPENSBI_VERSION_MAJOR,
@@ -57,41 +69,42 @@ static void sbi_boot_prints(struct sbi_scratch *scratch, u32 hartid)
 	sbi_hart_pmp_dump(scratch);
 }
 
-static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+static void __noreturn init_coldboot(void)
 {
 	int rc;
+	cpu_t hartid = sbi_current_hartid();
+	struct sbi_scratch *scratch = sbi_scratches[hartid];
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 
-	rc = sbi_system_early_init(scratch, TRUE);
+	rc = sbi_system_early_init(scratch, true);
 	if (rc)
 		sbi_hart_hang();
 
-	rc = sbi_hart_init(scratch, hartid, TRUE);
+	rc = sbi_hart_init(scratch, hartid, true);
 	if (rc)
 		sbi_hart_hang();
 
+#if 0
 	rc = sbi_console_init(scratch);
 	if (rc)
 		sbi_hart_hang();
 
-	rc = sbi_platform_irqchip_init(plat, TRUE);
+	rc = sbi_platform_irqchip_init(plat, true);
 	if (rc)
 		sbi_hart_hang();
 
-	rc = sbi_ipi_init(scratch, TRUE);
+	rc = sbi_ipi_init(scratch, true);
 	if (rc)
 		sbi_hart_hang();
 
-	rc = sbi_timer_init(scratch, TRUE);
+	rc = sbi_timer_init(scratch, true);
 	if (rc)
 		sbi_hart_hang();
+#endif
 
-	rc = sbi_system_final_init(scratch, TRUE);
+	rc = sbi_system_final_init(scratch, true);
 	if (rc)
 		sbi_hart_hang();
-
-	if (!(scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS))
-		sbi_boot_prints(scratch, hartid);
 
 	if (!sbi_platform_has_hart_hotplug(plat))
 		sbi_hart_wake_coldboot_harts(scratch, hartid);
@@ -100,9 +113,11 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
 			     scratch->next_mode);
 }
 
-static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
+static void __noreturn init_warmboot(void)
 {
 	int rc;
+	cpu_t hartid = sbi_current_hartid();
+	struct sbi_scratch *scratch = sbi_scratches[hartid];
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 
 	if (!sbi_platform_has_hart_hotplug(plat))
@@ -111,27 +126,29 @@ static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
 	if (sbi_platform_hart_disabled(plat, hartid))
 		sbi_hart_hang();
 
-	rc = sbi_system_early_init(scratch, FALSE);
+	rc = sbi_system_early_init(scratch, false);
 	if (rc)
 		sbi_hart_hang();
 
-	rc = sbi_hart_init(scratch, hartid, FALSE);
+	rc = sbi_hart_init(scratch, hartid, false);
 	if (rc)
 		sbi_hart_hang();
 
-	rc = sbi_platform_irqchip_init(plat, FALSE);
+#if 0
+	rc = sbi_platform_irqchip_init(plat, false);
 	if (rc)
 		sbi_hart_hang();
 
-	rc = sbi_ipi_init(scratch, FALSE);
+	rc = sbi_ipi_init(scratch, false);
 	if (rc)
 		sbi_hart_hang();
 
-	rc = sbi_timer_init(scratch, FALSE);
+	rc = sbi_timer_init(scratch, false);
 	if (rc)
 		sbi_hart_hang();
+#endif
 
-	rc = sbi_system_final_init(scratch, FALSE);
+	rc = sbi_system_final_init(scratch, false);
 	if (rc)
 		sbi_hart_hang();
 
@@ -159,20 +176,24 @@ static atomic_t coldboot_lottery = ATOMIC_INITIALIZER(0);
  *
  * @param scratch pointer to sbi_scratch of current HART
  */
-void __noreturn sbi_init(struct sbi_scratch *scratch)
+void __noreturn sbi_init(void)
 {
-	bool coldboot			= FALSE;
-	u32 hartid			= sbi_current_hartid();
+	cpu_t hartid = sbi_current_hartid();
+	struct sbi_scratch *scratch =
+		(struct sbi_scratch *)csr_read(CSR_MSCRATCH);
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+	bool coldboot = false;
 
 	if (sbi_platform_hart_disabled(plat, hartid))
 		sbi_hart_hang();
 
+	sbi_scratches[hartid] = scratch;
+
 	if (atomic_add_return(&coldboot_lottery, 1) == 1)
-		coldboot = TRUE;
+		coldboot = true;
 
 	if (coldboot)
-		init_coldboot(scratch, hartid);
+		init_coldboot();
 	else
-		init_warmboot(scratch, hartid);
+		init_warmboot();
 }

@@ -7,7 +7,6 @@
  *   Anup Patel <anup.patel@wdc.com>
  */
 
-#include <sbi/riscv_encoding.h>
 #include <sbi/riscv_unpriv.h>
 #include <sbi/sbi_bits.h>
 #include <sbi/sbi_hart.h>
@@ -105,36 +104,36 @@ ulong get_insn(ulong mepc, ulong *mstatus)
 #ifndef __riscv_compressed
 	asm("csrrs %[mstatus], " STR(CSR_MSTATUS) ", %[mprv]\n"
 #if __riscv_xlen == 64
-	    STR(LWU) " %[insn], (%[addr])\n"
+	    "lwu %[insn], (%[addr])\n"
 #else
-	    STR(LW) " %[insn], (%[addr])\n"
+	    "lw %[insn], (%[addr])\n"
 #endif
-		     "csrw " STR(CSR_MSTATUS) ", %[mstatus]"
+	    "csrw " STR(CSR_MSTATUS) ", %[mstatus]"
 	    : [mstatus] "+&r"(__mstatus), [insn] "=&r"(val)
 	    : [mprv] "r"(MSTATUS_MPRV | MSTATUS_MXR), [addr] "r"(__mepc));
 #else
 	ulong rvc_mask = 3, tmp;
 	asm("csrrs %[mstatus], " STR(CSR_MSTATUS) ", %[mprv]\n"
-						  "and %[tmp], %[addr], 2\n"
-						  "bnez %[tmp], 1f\n"
+	    "and %[tmp], %[addr], 2\n"
+	    "bnez %[tmp], 1f\n"
 #if __riscv_xlen == 64
-	    STR(LWU) " %[insn], (%[addr])\n"
+	    "lwu %[insn], (%[addr])\n"
 #else
-	    STR(LW) " %[insn], (%[addr])\n"
+	    "lw %[insn], (%[addr])\n"
 #endif
-		     "and %[tmp], %[insn], %[rvc_mask]\n"
-		     "beq %[tmp], %[rvc_mask], 2f\n"
-		     "sll %[insn], %[insn], %[xlen_minus_16]\n"
-		     "srl %[insn], %[insn], %[xlen_minus_16]\n"
-		     "j 2f\n"
-		     "1:\n"
-		     "lhu %[insn], (%[addr])\n"
-		     "and %[tmp], %[insn], %[rvc_mask]\n"
-		     "bne %[tmp], %[rvc_mask], 2f\n"
-		     "lhu %[tmp], 2(%[addr])\n"
-		     "sll %[tmp], %[tmp], 16\n"
-		     "add %[insn], %[insn], %[tmp]\n"
-		     "2: csrw " STR(CSR_MSTATUS) ", %[mstatus]"
+	    "and %[tmp], %[insn], %[rvc_mask]\n"
+	    "beq %[tmp], %[rvc_mask], 2f\n"
+	    "sll %[insn], %[insn], %[xlen_minus_16]\n"
+	    "srl %[insn], %[insn], %[xlen_minus_16]\n"
+	    "j 2f\n"
+	    "1:\n"
+	    "lhu %[insn], (%[addr])\n"
+	    "and %[tmp], %[insn], %[rvc_mask]\n"
+	    "bne %[tmp], %[rvc_mask], 2f\n"
+	    "lhu %[tmp], 2(%[addr])\n"
+	    "sll %[tmp], %[tmp], 16\n"
+	    "add %[insn], %[insn], %[tmp]\n"
+	    "2: csrw " STR(CSR_MSTATUS) ", %[mstatus]"
 	    : [mstatus] "+&r"(__mstatus), [insn] "=&r"(val), [tmp] "=&r"(tmp)
 	    : [mprv] "r"(MSTATUS_MPRV | MSTATUS_MXR), [addr] "r"(__mepc),
 	      [rvc_mask] "r"(rvc_mask), [xlen_minus_16] "i"(__riscv_xlen - 16));
