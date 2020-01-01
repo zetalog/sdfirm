@@ -8,8 +8,9 @@
  *   Nick Kossifidis <mick@ics.forth.gr>
  */
 
+#include <target/generic.h>
+#include <target/barrier.h>
 #include <sbi/riscv_asm.h>
-#include <sbi/riscv_barrier.h>
 #include <sbi/riscv_atomic.h>
 #include <sbi/riscv_unpriv.h>
 #include <sbi/sbi_error.h>

@@ -8,7 +8,6 @@
  */
 
 #include <sbi/riscv_asm.h>
-#include <sbi/riscv_encoding.h>
 #include <sbi/riscv_unpriv.h>
 #include <sbi/sbi_bits.h>
 #include <sbi/sbi_emulate_csr.h>

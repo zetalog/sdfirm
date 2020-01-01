@@ -7,7 +7,8 @@
  *   Anup Patel <anup.patel@wdc.com>
  */
 
-#include <sbi/riscv_barrier.h>
+#include <target/generic.h>
+#include <target/barrier.h>
 #include <sbi/riscv_locks.h>
 
 int spin_lock_check(spinlock_t *lock)

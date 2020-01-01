@@ -30,13 +30,8 @@
 #define ISR_NAKED      __attribute__((naked))
 #define ISR_ALIASOF(v) __attribute__((alias(__STRINGIFY(v))))
 
-#ifdef __ASSEMBLY__
-#define ULL(x)		x
-#define UL(x)		x
-#else
+#ifndef __ASSEMBLY__
 typedef __builtin_va_list va_list;
-#define ULL(x)		x##ULL
-#define UL(x)		x##UL
 #endif
 
 #define __noreturn			__attribute__((noreturn))

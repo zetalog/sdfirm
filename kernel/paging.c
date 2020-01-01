@@ -244,7 +244,7 @@ static void alloc_init_pud(pgd_t *pgdp, caddr_t addr, caddr_t end,
 {
 	caddr_t next;
 	pud_t *pudp;
-	pgd_t pgd = READ_ONCE(*pgdp);
+	__unused pgd_t pgd = READ_ONCE(*pgdp);
 
 	if (pgd_none(pgd)) {
 		__unused phys_addr_t pud_phys;
@@ -452,7 +452,7 @@ static pud_t bm_pud[PTRS_PER_PUD] __page_aligned_bss __unused;
 static inline pud_t *fixmap_pud(caddr_t addr)
 {
 	pgd_t *pgdp = pgd_offset_raw(mmu_id_map, addr);
-	pgd_t pgd = READ_ONCE(*pgdp);
+	__unused pgd_t pgd = READ_ONCE(*pgdp);
 
 	if (pgd_none(pgd) || pgd_bad(pgd))
 		BUG();

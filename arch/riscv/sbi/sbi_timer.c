@@ -8,7 +8,6 @@
  */
 
 #include <sbi/riscv_asm.h>
-#include <sbi/riscv_encoding.h>
 #include <sbi/sbi_platform.h>
 #include <sbi/sbi_timer.h>
 

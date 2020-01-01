@@ -10,7 +10,6 @@
 #include <sbi/sbi_types.h>
 #include <sbi/riscv_asm.h>
 #include <sbi/riscv_atomic.h>
-#include <sbi/riscv_barrier.h>
 #include <sbi/sbi_bits.h>
 
 long atomic_read(atomic_t *atom)

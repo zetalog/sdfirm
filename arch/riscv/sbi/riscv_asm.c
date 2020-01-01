@@ -8,7 +8,6 @@
  */
 
 #include <sbi/riscv_asm.h>
-#include <sbi/riscv_encoding.h>
 #include <sbi/sbi_error.h>
 
 unsigned long csr_read_num(int csr_num)
