@@ -3,7 +3,6 @@ EXTRA_CFLAGS += -fno-strict-aliasing
 obj-y :=
 
 obj-y += sbi_entry.rel
-obj-y += riscv_asm.rel
 obj-y += riscv_atomic.rel
 obj-y += riscv_hardfp.rel
 obj-y += riscv_locks.rel

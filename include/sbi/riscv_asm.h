@@ -24,13 +24,6 @@
 /* clang-format on */
 
 #ifndef __ASSEMBLY__
-unsigned long csr_read_num(int csr_num);
-void csr_write_num(int csr_num, unsigned long val);
-int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
-	    unsigned long log2len);
-int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
-	    unsigned long *log2len_out);
-
 static inline int misa_extension(char ext)
 {
 	return csr_read(CSR_MISA) & (1 << (ext - 'A'));

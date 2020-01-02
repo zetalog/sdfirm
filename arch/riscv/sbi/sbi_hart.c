@@ -114,57 +114,19 @@ unsigned long log2roundup(unsigned long x)
 			break;
 		ret++;
 	}
-
 	return ret;
-}
-
-void sbi_hart_pmp_dump(struct sbi_scratch *scratch)
-{
-	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
-	unsigned long prot, addr, size, l2l;
-	unsigned int i;
-
-	if (!sbi_platform_has_pmp(plat))
-		return;
-
-	for (i = 0; i < PMP_COUNT; i++) {
-		pmp_get(i, &prot, &addr, &l2l);
-		if (!(prot & PMP_A))
-			continue;
-		if (l2l < __riscv_xlen)
-			size = (1UL << l2l);
-		else
-			size = 0;
-#if __riscv_xlen == 32
-		sbi_printf("PMP%d: 0x%08lx-0x%08lx (A",
-#else
-		sbi_printf("PMP%d: 0x%016lx-0x%016lx (A",
-#endif
-			   i, addr, addr + size - 1);
-		if (prot & PMP_L)
-			sbi_printf(",L");
-		if (prot & PMP_R)
-			sbi_printf(",R");
-		if (prot & PMP_W)
-			sbi_printf(",W");
-		if (prot & PMP_X)
-			sbi_printf(",X");
-		sbi_printf(")\n");
-	}
 }
 
 static int pmp_init(struct sbi_scratch *scratch, u32 hartid)
 {
 	u32 i, count;
-	unsigned long fw_start, fw_size_log2;
-	ulong prot, addr, log2size;
+	ulong prot, log2size;
+	phys_addr_t addr;
+	unsigned long fw_start;
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 
 	if (!sbi_platform_has_pmp(plat))
 		return 0;
-
-	fw_size_log2 = log2roundup(scratch->fw_size);
-	fw_start     = scratch->fw_start & ~((1UL << fw_size_log2) - 1UL);
 
 #ifdef CONFIG_SYS_EXIT_S
 #define PMP_PROT_FW	(PMP_W | PMP_R | PMP_X)
@@ -172,14 +134,18 @@ static int pmp_init(struct sbi_scratch *scratch, u32 hartid)
 #define PMP_PROT_FW	0
 #endif
 
-	pmp_set(0, PMP_PROT_FW, fw_start, fw_size_log2);
+	log2size = log2roundup(scratch->fw_size);
+	fw_start = scratch->fw_start & ~((UL(1) << log2size) - 1);
+
+	pmp_set(0, PMP_PROT_FW, fw_start, log2size);
 
 	count = sbi_platform_pmp_region_count(plat, hartid);
 	if ((PMP_COUNT - 1) < count)
 		count = (PMP_COUNT - 1);
 
 	for (i = 0; i < count; i++) {
-		if (sbi_platform_pmp_region_info(plat, hartid, i, &prot, &addr,
+		if (sbi_platform_pmp_region_info(plat, hartid, i, &prot,
+						 (unsigned long *)&addr,
 						 &log2size))
 			continue;
 		pmp_set(i + 1, prot, addr, log2size);
@@ -244,6 +210,29 @@ void __attribute__((noreturn)) sbi_hart_hang(void)
 	__builtin_unreachable();
 }
 
+#ifndef CONFIG_ARCH_HAS_NOSEE
+static void sbi_switch_s_mode(unsigned long next_addr)
+{
+	csr_write(CSR_STVEC, next_addr);
+	csr_write(CSR_SSCRATCH, 0);
+	csr_write(CSR_SIE, 0);
+	csr_write(CSR_SATP, 0);
+}
+#else
+#define sbi_switch_s_mode(next_addr)	do { } while (0)
+#endif
+
+#ifdef CONFIG_RISCV_N
+static void sbi_switch_u_mode(unsigned long next_addr)
+{
+	csr_write(CSR_UTVEC, next_addr);
+	csr_write(CSR_USCRATCH, 0);
+	csr_write(CSR_UIE, 0);
+}
+#else
+#define sbi_switch_u_mode(next_addr)	do { } while (0)
+#endif
+
 void __attribute__((noreturn))
 sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
 		     unsigned long next_addr, unsigned long next_mode)
@@ -272,16 +261,10 @@ sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
 	csr_write(CSR_MSTATUS, val);
 	csr_write(CSR_MEPC, next_addr);
 
-	if (next_mode == PRV_S) {
-		csr_write(CSR_STVEC, next_addr);
-		csr_write(CSR_SSCRATCH, 0);
-		csr_write(CSR_SIE, 0);
-		csr_write(CSR_SATP, 0);
-	} else if (next_mode == PRV_U) {
-		csr_write(CSR_UTVEC, next_addr);
-		csr_write(CSR_USCRATCH, 0);
-		csr_write(CSR_UIE, 0);
-	}
+	if (next_mode == PRV_S)
+		sbi_switch_s_mode(next_addr);
+	else if (next_mode == PRV_U)
+		sbi_switch_u_mode(next_addr);
 
 	register unsigned long a0 asm("a0") = arg0;
 	register unsigned long a1 asm("a1") = arg1;

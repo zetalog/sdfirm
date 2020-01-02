@@ -66,7 +66,7 @@ void sbi_late_init(void)
 		   sbi_ecall_version_major(), sbi_ecall_version_minor());
 	sbi_printf("\n");
 
-	sbi_hart_pmp_dump(scratch);
+	pmp_dump(0, NULL);
 }
 
 static void __noreturn init_coldboot(void)

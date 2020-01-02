@@ -35,26 +35,37 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)arch.h: RISCV architecture specific definitions
- * $Id: arch.h,v 1.1 2019-08-14 09:32:00 zhenglv Exp $
+ * @(#)pmp.h: RISCV physical memory protection (PMP) interface
+ * $Id: pmp.h,v 1.1 2020-01-02 22:48:00 zhenglv Exp $
  */
 
-#ifndef __ARCH_RISCV_H_INCLUDE__
-#define __ARCH_RISCV_H_INCLUDE__
+#ifndef __PMP_RISCV_H_INCLUDE__
+#define __PMP_RISCV_H_INCLUDE__
 
-/* This file includes architecture specific CPU primitive definitions:
- * wait_irq, cpu_relax, etc., as long as the CPU/Cache definitions and
- * configurable system bus targets (CPU/Cache, peripheral nodes).
- */
-#include <asm/reg.h>
-#include <asm/mach/arch.h>
-#include <asm/pmp.h>
+#define PMP_R				0x01
+#define PMP_W				0x02
+#define PMP_X				0x04
+#define PMP_A				0x18
+#define PMP_A_TOR			0x08
+#define PMP_A_NA4			0x10
+#define PMP_A_NAPOT			0x18
+#define PMP_L				0x80
 
-#ifdef CONFIG_ARCH_HAS_NOVEC
-#ifdef VEC_BASE
-#error "Arch has no specific vector while VEC_BASE defined!"
+#define PMP_SHIFT			2
+#define PMP_COUNT			16
+
+#if !defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
+#ifdef CONFIG_RISCV_PMP
+int pmp_set(int n, unsigned long prot,
+	    phys_addr_t addr, unsigned long log2len);
+int pmp_get(int n, unsigned long *prot, phys_addr_t *addr,
+	    unsigned long *log2len);
+int pmp_dump(int argc, char **argv);
+#else
+#define pmp_set(n, prot, addr, log2len)		(-ENODEV)
+#define pmp_get(n, prot, addr, log2len)		(-ENODEV)
+#define pmp_dump(argc, argv)			0
 #endif
-#define VEC_BASE	0
 #endif
 
-#endif /* __ARCH_RISCV_H_INCLUDE__ */
+#endif /* __PMP_RISCV_H_INCLUDE__ */

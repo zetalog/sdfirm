@@ -17,6 +17,7 @@ config CPU_U54
 	select CPU_D
 	select CPU_C
 	select CPU_SV39
+	select CPU_PMP
 
 # RI5CY
 config CPU_RI5CY
