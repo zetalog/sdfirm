@@ -18,28 +18,11 @@ config BIT_FFS16
 config BIT_FLS32
 	bool "fls32"
 
+config BIT_FLS64
+	bool "fls64"
+
 config BIT_FFS32
 	bool "ffs32"
-
-config BIT_ROUNDUP8
-	bool "roundup8"
-	select BIT_FLS8
-
-config BIT_ROUNDUP16
-	bool "roundup16"
-	select BIT_FLS16
-
-config BIT_ROUNDDOWN16
-	bool "rounddown16"
-	select BIT_FLS16
-
-config BIT_ROUNDUP32
-	bool "roundup32"
-	select BIT_FLS32
-
-config BIT_ROUNDDOWN32
-	bool "rounddown32"
-	select BIT_FLS32
 
 config BIT_HWEIGHT64
 	bool "hweight64"

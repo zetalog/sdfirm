@@ -335,11 +335,6 @@ CONFIG_SD_SPI=y
 # CONFIG_BIT_FFS16 is not set
 # CONFIG_BIT_FLS32 is not set
 # CONFIG_BIT_FFS32 is not set
-# CONFIG_BIT_ROUNDUP8 is not set
-# CONFIG_BIT_ROUNDUP16 is not set
-# CONFIG_BIT_ROUNDDOWN16 is not set
-# CONFIG_BIT_ROUNDUP32 is not set
-# CONFIG_BIT_ROUNDDOWN32 is not set
 # CONFIG_BIT_HWEIGHT64 is not set
 
 #

@@ -462,6 +462,7 @@ config SBI
 	depends CPU_D
 	select RISCV_F
 	select RISCV_D
+	select BIT_FLS64
 
 menu "System peripherals"
 

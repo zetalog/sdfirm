@@ -72,7 +72,6 @@ menuconfig MTD_DATAFLASH
 	bool "ATMEL SPI interfaced DataFlash support"
 	depends SPI_MASTER
 	select BIT_FLS16
-	select BIT_ROUNDUP16
 
 if MTD_DATAFLASH
 

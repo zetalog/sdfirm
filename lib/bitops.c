@@ -273,23 +273,23 @@ uint8_t __fls32(uint32_t word)
 
 	if (!word)
 		return 0;
-	if (!(word & 0xffff0000u)) {
+	if (!(word & UL(0xffff0000))) {
 		word <<= 16;
 		num -= 16;
 	}
-	if (!(word & 0xff000000u)) {
+	if (!(word & UL(0xff000000))) {
 		word <<= 8;
 		num -= 8;
 	}
-	if (!(word & 0xf0000000u)) {
+	if (!(word & UL(0xf0000000))) {
 		word <<= 4;
 		num -= 4;
 	}
-	if (!(word & 0xc0000000u)) {
+	if (!(word & UL(0xc0000000))) {
 		word <<= 2;
 		num -= 2;
 	}
-	if (!(word & 0x80000000u)) {
+	if (!(word & UL(0x80000000))) {
 		word <<= 1;
 		num -= 1;
 	}
@@ -297,30 +297,37 @@ uint8_t __fls32(uint32_t word)
 }
 #endif
 
-#ifdef CONFIG_BIT_ROUNDUP8
-uint8_t __roundup8(uint8_t n)
+#ifdef CONFIG_BIT_FLS64
+uint8_t __fls64(uint64_t quad)
 {
-	return (uint8_t)1 << (__fls8((uint8_t)(n-1))+1);
-}
-#endif
+	int num = 64 - 1;
 
-#ifdef CONFIG_BIT_ROUNDUP16
-uint16_t __roundup16(uint16_t n)
-{
-	return (uint16_t)1 << (__fls16((uint16_t)(n-1))+1);
-}
-#endif
-
-#ifdef CONFIG_BIT_ROUNDUP32
-uint32_t __roundup32(uint32_t n)
-{
-	return (uint32_t)1 << (__fls32((uint32_t)(n-1))+1);
-}
-#endif
-
-#ifdef CONFIG_BIT_ROUNDDOWN32
-uint32_t __rounddown32(uint32_t n)
-{
-	return (uint32_t)1 << __fls32(n);
+	if (!quad)
+		return 0;
+	if (!(quad & ULL(0xffffffff00000000))) {
+		quad <<= 32;
+		num -= 32;
+	}
+	if (!(quad & ULL(0xffff000000000000))) {
+		quad <<= 16;
+		num -= 16;
+	}
+	if (!(quad & ULL(0xff00000000000000))) {
+		quad <<= 8;
+		num -= 8;
+	}
+	if (!(quad & ULL(0xf000000000000000))) {
+		quad <<= 4;
+		num -= 4;
+	}
+	if (!(quad & ULL(0xc000000000000000))) {
+		quad <<= 2;
+		num -= 2;
+	}
+	if (!(quad & ULL(0x8000000000000000))) {
+		quad <<= 1;
+		num -= 1;
+	}
+	return num;
 }
 #endif

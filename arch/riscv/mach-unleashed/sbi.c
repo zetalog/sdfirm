@@ -11,6 +11,7 @@
 #include <libfdt.h>
 #include <fdt.h>
 #endif
+#include <target/arch.h>
 #include <sbi/sbi_hart.h>
 #include <sbi/sbi_console.h>
 #include <sbi/sbi_platform.h>
@@ -123,7 +124,6 @@ static int fu540_pmp_region_info(u32 hartid, u32 index, ulong *prot,
 		ret = -1;
 		break;
 	};
-
 	return ret;
 }
 

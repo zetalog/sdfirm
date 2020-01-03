@@ -59,15 +59,20 @@ uint8_t __ffs16(uint16_t word);
 uint8_t __fls8(uint8_t x);
 uint8_t __fls16(uint16_t word);
 uint8_t __fls32(uint32_t word);
+uint8_t __fls64(uint64_t quad);
 #define __ffz8(x)	__ffs8((uint8_t)(~(x)))
 #define __ffz16(x)	__ffz8((uint16_t)(~(x)))
-uint32_t __roundup32(uint32_t n);
-uint32_t __rounddown32(uint32_t n);
-uint16_t __roundup16(uint16_t n);
-uint8_t __roundup8(uint8_t n);
+
+#define __roundup8(n)	((uint8_t)1 << (__fls8((uint8_t)((n)-1))+1))
+#define __roundup16(n)	((uint16_t)1 << (__fls16((uint16_t)((n)-1))+1))
+#define __roundup32(n)	((uint32_t)1 << (__fls32((uint32_t)((n)-1))+1))
+#define __roundup64(n)	((uint64_t)1 << (__fls64((uint32_t)((n)-1))+1))
+#define __rounddown32(n)	((uint32_t)1 << __fls32(n))
+
 #define __ilog2_u8(n)	__fls8(n)
 #define __ilog2_u16(n)	__fls16(n)
 #define __ilog2_u32(n)	__fls32(n)
+#define __ilog2_u64(n)	__fls64(n)
 extern uint8_t ____ilog2_NaN(void);
 #define ilog2_const(n)			\
 (					\
@@ -137,7 +142,7 @@ extern uint8_t ____ilog2_NaN(void);
 	(n) & (ULL(1) <<  1) ?  1 :	\
 	(n) & (ULL(1) <<  0) ?  0 :	\
 	____ilog2_NaN()			\
- )
+)
 
 uint8_t bitrev8(uint8_t byte);
 uint8_t hweight8(uint8_t byte);

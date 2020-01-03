@@ -105,18 +105,6 @@ static int delegate_traps(struct sbi_scratch *scratch, u32 hartid)
 	return 0;
 }
 
-unsigned long log2roundup(unsigned long x)
-{
-	unsigned long ret = 0;
-
-	while (ret < __riscv_xlen) {
-		if (x <= (1UL << ret))
-			break;
-		ret++;
-	}
-	return ret;
-}
-
 static int pmp_init(struct sbi_scratch *scratch, u32 hartid)
 {
 	u32 i, count;
@@ -134,7 +122,7 @@ static int pmp_init(struct sbi_scratch *scratch, u32 hartid)
 #define PMP_PROT_FW	0
 #endif
 
-	log2size = log2roundup(scratch->fw_size);
+	log2size = __ilog2_u64(__roundup64(scratch->fw_size));
 	fw_start = scratch->fw_start & ~((UL(1) << log2size) - 1);
 
 	pmp_set(0, PMP_PROT_FW, fw_start, log2size);

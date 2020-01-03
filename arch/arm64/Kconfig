@@ -31,7 +31,7 @@ config ARCH_QDF2400
 	select GPIO_TLMM if GPIO
 	select UART_QUART if !ARM_DCC && (UART || DEBUG_PRINT || CONSOLE)
 	select MATH_GCD32
-	select BIT_ROUNDUP32
+	select BIT_FLS32
 	select CLK
 	help
 	  This enables support for Qualcomm server platforms.
@@ -46,7 +46,7 @@ config ARCH_GEM5
 	select ARCH_HAS_GICv2
 	select ARCH_HAS_IDLE
 	select MATH_GCD32
-	select BIT_ROUNDUP32
+	select BIT_FLS32
 	select ARCH_HAS_BOOT_LOAD
 	select UART_GEM5 if !ARM_DCC && (UART || DEBUG_PRINT || CONSOLE)
 	help
