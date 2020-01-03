@@ -49,14 +49,6 @@
 #define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
 #define	virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
 
-#if PAGE_PTR_BITS == 3
-#define PTR_VAL_ONE		_AC(1, ULL)
-#define PTR_VAL_ZERO		_AC(0, ULL)
-#elif PAGE_PTR_BITS == 2
-#define PTR_VAL_ONE		_AC(1, UL)
-#define PTR_VAL_ZERO		_AC(0, UL)
-#endif
-
 #ifndef __ASSEMBLY__
 typedef struct page *pgtable_t;
 

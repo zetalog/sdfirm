@@ -47,6 +47,14 @@
 #endif
 #define PAGE_MAX_TABLE_ENTRIES	(1 << PAGE_PXD_BITS)
 
+#if PAGE_PTR_BITS == 3
+#define PTR_VAL_ONE		_AC(1, ULL)
+#define PTR_VAL_ZERO		_AC(0, ULL)
+#elif PAGE_PTR_BITS == 2
+#define PTR_VAL_ONE		_AC(1, UL)
+#define PTR_VAL_ZERO		_AC(0, UL)
+#endif
+
 #define PGDIR_BYTES		(PGTABLE_LEVELS * PAGE_SIZE)
 
 #define PAGE_PTR_BYTES		(1 << PAGE_PTR_BITS)

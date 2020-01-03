@@ -414,11 +414,11 @@ choice
 
 config RISCV_ENTR_S
 	bool "S-Mode"
-	depends !SYS_ENTR_M
+	depends SYS_ENTR_S
 
 config RISCV_ENTR_M
 	bool "M-Mode"
-	depends !SYS_ENTR_S
+	depends SYS_ENTR_M
 
 endchoice
 
@@ -431,11 +431,11 @@ choice
 
 config RISCV_EXIT_S
 	bool "S-Mode"
-	depends !SYS_EXIT_M
+	depends SYS_EXIT_S
 
 config RISCV_EXIT_M
 	bool "M-Mode"
-	depends !SYS_EXIT_S
+	depends SYS_EXIT_M
 
 endchoice
 
@@ -457,11 +457,12 @@ config SYS_MONITOR
 config SBI
 	bool "Supervisor binary interface (SBI) support"
 	depends RISCV_ENTR_M
-	depends RISCV_EXIT_S
 	depends CPU_F
 	depends CPU_D
+	depends CPU_PMP
 	select RISCV_F
 	select RISCV_D
+	select RISCV_PMP
 	select BIT_FLS64
 
 menu "System peripherals"

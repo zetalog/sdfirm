@@ -83,7 +83,7 @@ _do_irq:
 	stp	x3, x0, [sp, #-16]!
 	stp	x0, x4, [sp, #-16]!
 	mov	x0, sp
-#ifdef CONFIG_ARCH_HAS_IRQC
+#ifndef CONFIG_SYS_NOIRQ
 	bl	irqc_hw_handle_irq
 #endif
 	b	exception_exit

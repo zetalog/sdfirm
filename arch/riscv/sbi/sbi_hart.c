@@ -110,17 +110,13 @@ static int pmp_init(struct sbi_scratch *scratch, u32 hartid)
 	u32 i, count;
 	ulong prot, log2size;
 	phys_addr_t addr;
-	unsigned long fw_start;
+	__unused unsigned long fw_start;
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 
 	if (!sbi_platform_has_pmp(plat))
 		return 0;
 
-#ifdef CONFIG_SYS_EXIT_S
 #define PMP_PROT_FW	(PMP_W | PMP_R | PMP_X)
-#else
-#define PMP_PROT_FW	0
-#endif
 
 	log2size = __ilog2_u64(__roundup64(scratch->fw_size));
 	fw_start = scratch->fw_start & ~((UL(1) << log2size) - 1);

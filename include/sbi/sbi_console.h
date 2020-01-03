@@ -28,7 +28,11 @@ int __printf(2, 3) sbi_sprintf(char *out, const char *format, ...);
 
 int __printf(3, 4) sbi_snprintf(char *out, u32 out_sz, const char *format, ...);
 
+#ifdef CONFIG_SBI
 int __printf(1, 2) sbi_printf(const char *format, ...);
+#else
+#define sbi_printf(...)		printf(__VA_ARGS__)
+#endif
 
 struct sbi_scratch;
 int sbi_console_init(struct sbi_scratch *scratch);

@@ -89,18 +89,30 @@
  */
 #ifdef CONFIG_RISCV_SV32
 #define VA_BITS			32
-#define PAGE_PTR_BITS		2
-#define PHYS_MASK_SHIFT		34
 #endif
 #ifdef CONFIG_RISCV_SV39
 #define VA_BITS			39
-#define PAGE_PTR_BITS		3
-#define PHYS_MASK_SHIFT		56
 #endif
 #ifdef CONFIG_RISCV_SV48
 #define VA_BITS			48
-#define PAGE_PTR_BITS		3
 #endif
+
+#if __riscv_xlen == 32
+#define PHYS_MASK_SHIFT		34
+#define PAGE_PTR_BITS		2
+#ifndef VA_BITS
+#define VA_BITS			32
+#endif
+#elif __riscv_xlen == 64
+#define PHYS_MASK_SHIFT		56
+#define PAGE_PTR_BITS		3
+#ifndef VA_BITS
+#define VA_BITS			64
+#endif
+#else
+#error "Unsupported"
+#endif
+
 #define PAGE_PTE_BITS		PAGE_SHIFT
 #define PAGE_PXD_BITS		(PAGE_SHIFT - PAGE_PTR_BITS)
 

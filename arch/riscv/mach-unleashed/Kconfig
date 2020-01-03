@@ -58,6 +58,7 @@ config UNLEASHED_BBL
 	bool "Berkeley boot loader (BBL)"
 	depends UNLEASHED_U54
 	select SYS_ENTR_M
+	select SYS_EXIT_M
 	select SYS_EXIT_S
 	select SBI
 	select ARCH_HAS_NOVEC

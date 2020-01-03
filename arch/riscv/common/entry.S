@@ -47,7 +47,9 @@ __vectors:
 
 	# This is an interrupt.  Discard the mcause MSB and decode the rest.
 	move	a0, sp /* pt_regs */
+#ifndef CONFIG_SYS_NOIRQ
 	tail	irqc_hw_handle_irq
+#endif
 
 	sll	a1, a1, 1
 
