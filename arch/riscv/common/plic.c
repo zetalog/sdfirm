@@ -43,6 +43,30 @@
 #include <target/smp.h>
 #include <target/irq.h>
 
+void plic_sbi_init_cold(void)
+{
+	irq_t irq;
+
+	for (irq = 0; irq < NR_IRQS; irq++)
+		plic_configure_priority(irq, PLIC_PRI_MIN);
+}
+
+void plic_sbi_init_warm(cpu_t cpu)
+{
+	irq_t irq;
+
+	if (plic_hw_m_ctx(cpu) != PLIC_CTX_NONE) {
+		for (irq = 0; irq < NR_IRQS; irq++)
+			plic_disable_mirq(cpu, irq);
+		plic_configure_threashold_m(cpu, PLIC_PRI_MIN);
+	}
+	if (plic_hw_s_ctx(cpu) != PLIC_CTX_NONE) {
+		for (irq = 0; irq < NR_IRQS; irq++)
+			plic_disable_sirq(cpu, irq);
+		plic_configure_threashold_s(cpu, PLIC_PRI_NONE);
+	}
+}
+
 void irqc_hw_handle_irq(void)
 {
 	irq_t irq;

@@ -49,6 +49,7 @@
 
 #define PLIC_MAX_IRQS			1024
 #define PLIC_MAX_CONTEXTS		15872
+#define PLIC_CTX_NONE			-1
 
 #define PLIC_REG(offset)		(PLIC_BASE + (offset))
 #define PLIC_CONTEXT_REG(ctx, offset)	\
@@ -58,6 +59,7 @@
 #define PLIC_PRIORITYR_BASE		0
 #define PLIC_PENDINGR_BASE		0x1000
 #define PLIC_ENABLER_BASE		0x2000
+#define PLIC_ENABLER_CONTEXT		0x80
 #define PLIC_CONTEXT_BASE		0x200000
 #define PLIC_CONTEXT_SIZE		PLIC_BLOCK_SIZE
 
@@ -85,27 +87,65 @@
 #define PLIC_SET_IRQ(irq, value)	_SET_FVn(irq, PLIC_IRQ, value)
 #define PLIC_IRQ(irq)			PLIC_IRQ_OFFSET(irq)
 
-#define plic_enable_irq(irq)		\
-	__raw_setl(PLIC_IRQ(irq), PLIC_ENABLER(irq))
-#define plic_disable_irq(irq)		\
-	__raw_setl(PLIC_IRQ(irq), PLIC_ENABLER(irq))
-#define plic_irq_pending(irq)		\
+#define plic_enable_mirq(cpu, irq)			\
+	__raw_setl(PLIC_IRQ(irq), PLIC_ENABLER(irq) +	\
+		   plic_hw_m_ctx(cpu) * PLIC_ENABLER_CONTEXT)
+#define plic_enable_sirq(cpu, irq)			\
+	__raw_setl(PLIC_IRQ(irq), PLIC_ENABLER(irq) +	\
+		   plic_hw_s_ctx(cpu) * PLIC_ENABLER_CONTEXT)
+#define plic_disable_mirq(cpu, irq)			\
+	__raw_setl(PLIC_IRQ(irq), PLIC_ENABLER(irq) +	\
+		   plic_hw_m_ctx(cpu) * PLIC_ENABLER_CONTEXT)
+#define plic_disable_sirq(cpu, irq)			\
+	__raw_setl(PLIC_IRQ(irq), PLIC_ENABLER(irq) +	\
+		   plic_hw_s_ctx(cpu) * PLIC_ENABLER_CONTEXT)
+#define plic_irq_pending(irq)				\
 	(__raw_readl(PLIC_PENDINGR(irq)) & PLIC_IRQ(irq))
-#define plic_clear_irq(irq)		\
+#define plic_clear_irq(irq)				\
 	__raw_clearl(PLIC_IRQ(irq), PLIC_PENDINGR(irq))
-#define plic_set_irq(irq)		\
+#define plic_set_irq(irq)				\
 	__raw_setl(PLIC_IRQ(irq), PLIC_PENDINGR(irq))
 /* In case we only use 1 priority */
-#define plic_mask_irq(irq)		\
+#define plic_mask_irq(irq)				\
 	plic_configure_priority(irq, PLIC_PRI_NONE)
-#define plic_unmask_irq(irq)		\
+#define plic_unmask_irq(irq)				\
 	plic_configure_priority(irq, PLIC_PRI_MIN)
 #define plic_configure_priority(irq, pri)		\
 	__raw_writel(pri, PLIC_PRIORITYR(irq))
-#define plic_claim_irq(cpu)		\
-	__raw_readl(PLIC_CLAIMR(cpu))
-#define plic_irq_completion(cpu, irq)	\
-	__raw_writel(irq, PLIC_COMPLETIONR(cpu))
+#define plic_configure_threashold_m(cpu, pri)		\
+	__raw_writel(pri,				\
+		     PLIC_PRIORITY_THRESHOLDR(plic_hw_m_ctx(cpu)))
+#define plic_configure_threashold_s(cpu, pri)		\
+	__raw_writel(pri,				\
+		     PLIC_PRIORITY_THRESHOLDR(plic_hw_s_ctx(cpu)))
+#define plic_claim_mirq(cpu)				\
+	__raw_readl(PLIC_CLAIMR(plic_hw_m_ctx(cpu)))
+#define plic_claim_sirq(cpu)				\
+	__raw_readl(PLIC_CLAIMR(plic_hw_s_ctx(cpu)))
+#define plic_mirq_completion(cpu, irq)			\
+	__raw_writel(irq, PLIC_COMPLETIONR(plic_hw_m_ctx(cpu)))
+#define plic_sirq_completion(cpu, irq)			\
+	__raw_writel(irq, PLIC_COMPLETIONR(plic_hw_s_ctx(cpu)))
+
+#ifdef CONFIG_RISCV_EXIT_M
+#define plic_enable_irq(irq)		\
+	plic_enable_mirq(smp_processor_id(), irq)
+#define plic_disable_irq(irq)		\
+	plic_disable_mirq(smp_processor_id(), irq)
+#define plic_claim_irq(cpu)		plic_claim_mirq(cpu)
+#define plic_irq_completion(cpu, irq)	plic_mirq_completion(cpu, irq)
+#endif
+#ifdef CONFIG_RISCV_EXIT_S
+#define plic_enable_irq(irq)		\
+	plic_enable_sirq(smp_processor_id(), irq)
+#define plic_disable_irq(irq)		\
+	plic_disable_sirq(smp_processor_id(), irq)
+#define plic_claim_irq(cpu)		plic_claim_sirq(cpu)
+#define plic_irq_completion(cpu, irq)	plic_sirq_completion(cpu, irq)
+#endif
+
+void plic_sbi_init_cold(void);
+void plic_sbi_init_warm(cpu_t cpu);
 
 #define irqc_hw_enable_irq(irq)		plic_enable_irq(irq)
 #define irqc_hw_disable_irq(irq)	plic_disable_irq(irq)

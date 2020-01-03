@@ -49,7 +49,13 @@
 #define CLINT_MTIMECMP(hart)	CLINT_REG(0x4000 + ((hart) << 3))
 #define CLINT_MTIME		CLINT_REG(0xBFF8)
 
+#define clint_set_ipi(cpu)	__raw_writel(1, CLINT_MSIP(cpu))
+#define clint_clear_ipi(cpu)	__raw_writel(0, CLINT_MSIP(cpu))
+
 #if !defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
+void clint_sync_ipi(cpu_t cpu);
+void clint_set_mtimecmp(cpu_t cpu, uint64_t cmp);
+void clint_unset_mtimecmp(cpu_t cpu);
 uint64_t clint_read_mtime(void);
 #endif
 

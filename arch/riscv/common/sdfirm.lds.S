@@ -15,8 +15,6 @@ SECTIONS
 {
 	. = PAGE_OFFSET + VEC_BASE;
 
-	PROVIDE(_fw_start = .);
-
 #ifdef CONFIG_ARCH_HAS_HIVEC
 	__svector = .;
 	TAIL_TEXT_SECTION(WORD_SIZE)
@@ -24,6 +22,7 @@ SECTIONS
 #endif
 
 	. = PAGE_OFFSET + TEXT_OFFSET;
+	PROVIDE(_fw_start = .);
 	_start = .;				/* begin of sdfirm */
 	_stext = .;				/* begin of text and rodata sections */
 	__stext = .;				/* begin of text sections */

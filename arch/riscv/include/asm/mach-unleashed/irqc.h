@@ -51,6 +51,8 @@
 #endif
 
 #define PLIC_HW_PRI_MAX		31
+#define plic_hw_m_ctx(hartid)	((hartid) ? (2 * (hartid) - 1) : 0)
+#define plic_hw_s_ctx(hartid)	((hartid) ? (2 * (hartid)) : PLIC_CTX_NONE)
 
 #include <asm/plic.h>
 

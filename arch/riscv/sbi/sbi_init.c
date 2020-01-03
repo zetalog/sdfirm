@@ -42,8 +42,10 @@ void sbi_late_init(void)
 	struct sbi_scratch *scratch = sbi_scratches[hartid];
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 
+#if 0
 	if (!(scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS))
 		return;
+#endif
 
 	misa_string(str, sizeof(str));
 	sbi_printf("\nOpenSBI v%d.%d (%s %s)\n", OPENSBI_VERSION_MAJOR,
@@ -84,7 +86,6 @@ static void __noreturn init_coldboot(void)
 	if (rc)
 		sbi_hart_hang();
 
-#if 0
 	rc = sbi_console_init(scratch);
 	if (rc)
 		sbi_hart_hang();
@@ -100,7 +101,6 @@ static void __noreturn init_coldboot(void)
 	rc = sbi_timer_init(scratch, true);
 	if (rc)
 		sbi_hart_hang();
-#endif
 
 	rc = sbi_system_final_init(scratch, true);
 	if (rc)
@@ -109,6 +109,7 @@ static void __noreturn init_coldboot(void)
 	if (!sbi_platform_has_hart_hotplug(plat))
 		sbi_hart_wake_coldboot_harts(scratch, hartid);
 	sbi_hart_mark_available(hartid);
+	sbi_late_init();
 	sbi_hart_switch_mode(hartid, scratch->next_arg1, scratch->next_addr,
 			     scratch->next_mode);
 }
@@ -134,7 +135,6 @@ static void __noreturn init_warmboot(void)
 	if (rc)
 		sbi_hart_hang();
 
-#if 0
 	rc = sbi_platform_irqchip_init(plat, false);
 	if (rc)
 		sbi_hart_hang();
@@ -146,7 +146,6 @@ static void __noreturn init_warmboot(void)
 	rc = sbi_timer_init(scratch, false);
 	if (rc)
 		sbi_hart_hang();
-#endif
 
 	rc = sbi_system_final_init(scratch, false);
 	if (rc)

@@ -12,15 +12,11 @@
 #include <fdt.h>
 #endif
 #include <target/arch.h>
+#include <target/uart.h>
+#include <target/irq.h>
+#include <target/delay.h>
 #include <sbi/sbi_hart.h>
-#include <sbi/sbi_console.h>
 #include <sbi/sbi_platform.h>
-#include <sbi/riscv_io.h>
-#if 0
-#include <sbi_utils/irqchip/plic.h>
-#include <sbi_utils/serial/sifive-uart.h>
-#include <sbi_utils/sys/clint.h>
-#endif
 
 /* clang-format off */
 
@@ -31,14 +27,6 @@
 
 #define FU540_CLINT_ADDR			0x2000000
 
-#define FU540_PLIC_ADDR				0xc000000
-#define FU540_PLIC_NUM_SOURCES			0x35
-#define FU540_PLIC_NUM_PRIORITIES		7
-
-#define FU540_UART0_ADDR			0x10010000
-#define FU540_UART1_ADDR			0x10011000
-#define FU540_UART_BAUDRATE			115200
-
 /**
  * The FU540 SoC has 5 HARTs but HART ID 0 doesn't have S mode. enable only
  * HARTs 1 to 4.
@@ -48,12 +36,6 @@
 #endif
 
 #define FU540_HARITD_DISABLED			~(FU540_ENABLED_HART_MASK)
-
-/* PRCI clock related macros */
-//TODO: Do we need a separate driver for this ?
-#define FU540_PRCI_BASE_ADDR			0x10000000
-#define FU540_PRCI_CLKMUXSTATUSREG		0x002C
-#define FU540_PRCI_CLKMUX_STATUS_TLCLKSEL	(0x1 << 1)
 
 /* clang-format on */
 
@@ -127,75 +109,83 @@ static int fu540_pmp_region_info(u32 hartid, u32 index, ulong *prot,
 	return ret;
 }
 
+void fu540_console_putc(char ch)
+{
+	uart_hw_con_write(ch);
+}
+
+int fu540_console_getc(void)
+{
+	while (!uart_hw_con_poll());
+	return (int)uart_hw_con_read();
+}
+
 static int fu540_console_init(void)
 {
-#if 0
-	unsigned long peri_in_freq;
-
-	if (readl((volatile void *)FU540_PRCI_BASE_ADDR +
-		  FU540_PRCI_CLKMUXSTATUSREG) &
-	    FU540_PRCI_CLKMUX_STATUS_TLCLKSEL) {
-		peri_in_freq = FU540_SYS_CLK;
-	} else {
-		peri_in_freq = FU540_SYS_CLK / 2;
-	}
-
-	return sifive_uart_init(FU540_UART0_ADDR, peri_in_freq,
-				FU540_UART_BAUDRATE);
-#endif
-	return -ENODEV;
+	uart_hw_con_init();
+	return 0;
 }
 
 static int fu540_irqchip_init(bool cold_boot)
 {
-#if 0
-	int rc;
-	u32 hartid = sbi_current_hartid();
+	cpu_t cpu = sbi_current_hartid();
 
-	if (cold_boot) {
-		rc = plic_cold_irqchip_init(FU540_PLIC_ADDR,
-					    FU540_PLIC_NUM_SOURCES,
-					    FU540_HART_COUNT);
-		if (rc)
-			return rc;
-	}
+	if (cold_boot)
+		plic_sbi_init_cold();
+	else
+		plic_sbi_init_warm(cpu);
+	return 0;
+}
 
-	return plic_warm_irqchip_init(hartid, (hartid) ? (2 * hartid - 1) : 0,
-				      (hartid) ? (2 * hartid) : -1);
-#endif
-	return -ENODEV;
+void fu540_ipi_send(u32 target_hart)
+{
+	clint_set_ipi(target_hart);
+}
+
+void fu540_ipi_sync(u32 target_hart)
+{
+	clint_sync_ipi(target_hart);
+}
+
+void fu540_ipi_clear(u32 target_hart)
+{
+	clint_clear_ipi(target_hart);
 }
 
 static int fu540_ipi_init(bool cold_boot)
 {
-#if 0
-	int rc;
+	cpu_t cpu = sbi_current_hartid();
 
-	if (cold_boot) {
-		rc = clint_cold_ipi_init(FU540_CLINT_ADDR, FU540_HART_COUNT);
-		if (rc)
-			return rc;
+	if (!cold_boot) {
+		fu540_ipi_clear(cpu);
 	}
+	return 0;
+}
 
-	return clint_warm_ipi_init();
-#endif
-	return -ENODEV;
+u64 fu540_timer_value(void)
+{
+	return clint_read_mtime();
+}
+
+void fu540_timer_event_stop(void)
+{
+	cpu_t cpu = sbi_current_hartid();
+
+	clint_unset_mtimecmp(cpu);
+}
+
+void fu540_timer_event_start(u64 next_event)
+{
+	cpu_t cpu = sbi_current_hartid();
+
+	clint_set_mtimecmp(cpu, next_event);
 }
 
 static int fu540_timer_init(bool cold_boot)
 {
-#if 0
-	int rc;
-
-	if (cold_boot) {
-		rc = clint_cold_timer_init(FU540_CLINT_ADDR, FU540_HART_COUNT);
-		if (rc)
-			return rc;
-	}
-
-	return clint_warm_timer_init();
-#endif
-	return -ENODEV;
+	if (!cold_boot)
+		fu540_timer_event_stop();
+	return 0;
 }
 
 static int fu540_system_down(u32 type)
@@ -204,55 +194,21 @@ static int fu540_system_down(u32 type)
 	return 0;
 }
 
-void sifive_uart_putc(char ch)
-{
-}
-
-int sifive_uart_getc(void)
-{
-	return 0;
-}
-
-void clint_ipi_send(u32 target_hart)
-{
-}
-
-void clint_ipi_sync(u32 target_hart)
-{
-}
-
-void clint_ipi_clear(u32 target_hart)
-{
-}
-
-u64 clint_timer_value(void)
-{
-	return 0;
-}
-
-void clint_timer_event_stop(void)
-{
-}
-
-void clint_timer_event_start(u64 next_event)
-{
-}
-
 const struct sbi_platform_operations platform_ops = {
 	.pmp_region_count	= fu540_pmp_region_count,
 	.pmp_region_info	= fu540_pmp_region_info,
 	.final_init		= fu540_final_init,
-	.console_putc		= sifive_uart_putc,
-	.console_getc		= sifive_uart_getc,
+	.console_putc		= fu540_console_putc,
+	.console_getc		= fu540_console_getc,
 	.console_init		= fu540_console_init,
 	.irqchip_init		= fu540_irqchip_init,
-	.ipi_send		= clint_ipi_send,
-	.ipi_sync		= clint_ipi_sync,
-	.ipi_clear		= clint_ipi_clear,
+	.ipi_send		= fu540_ipi_send,
+	.ipi_sync		= fu540_ipi_sync,
+	.ipi_clear		= fu540_ipi_clear,
 	.ipi_init		= fu540_ipi_init,
-	.timer_value		= clint_timer_value,
-	.timer_event_stop	= clint_timer_event_stop,
-	.timer_event_start	= clint_timer_event_start,
+	.timer_value		= fu540_timer_value,
+	.timer_event_stop	= fu540_timer_event_stop,
+	.timer_event_start	= fu540_timer_event_start,
 	.timer_init		= fu540_timer_init,
 	.system_reboot		= fu540_system_down,
 	.system_shutdown	= fu540_system_down

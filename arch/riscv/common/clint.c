@@ -43,6 +43,22 @@
 #include <target/bitops.h>
 #include <target/irq.h>
 
+#if __riscv_xlen == 64
+uint64_t clint_read_mtime(void)
+{
+	return __raw_readq(CLINT_MTIME);
+}
+
+void clint_set_mtimecmp(cpu_t cpu, uint64_t cmp)
+{
+	__raw_writeq(cmp, CLINT_MTIMECMP(cpu));
+}
+
+void clint_unset_mtimecmp(cpu_t cpu)
+{
+	__raw_writeq(ULL(-1), CLINT_MTIMECMP(cpu));
+}
+#else
 uint64_t clint_read_mtime(void)
 {
 	uint32_t hi1, hi2;
@@ -54,4 +70,59 @@ uint64_t clint_read_mtime(void)
 		hi2 = __raw_readl(CLINT_MTIME + 4);
 	} while (hi1 != hi2);
 	return MAKELLONG(lo, hi1);
+}
+
+void clint_set_mtimecmp(cpu_t cpu, uint64_t cmp)
+{
+	__raw_writel(LODWORD(cmp), CLINT_MTIMECMP(cpu));
+	__raw_writel(HIDWORD(cmp), CLINT_MTIMECMP(cpu) + 4);
+}
+
+void clint_unset_mtimecmp(cpu_t cpu)
+{
+	__raw_writel(UL(-1), CLINT_MTIMECMP(cpu));
+	__raw_writel(UL(-1), CLINT_MTIMECMP(cpu) + 4);
+}
+#endif
+
+#ifdef CONFIG_RISCV_ATOMIC
+uint32_t clint_xchg(volatile uint32_t *ptr, uint32_t newval)
+{
+	/* The name of GCC built-in macro __sync_lock_test_and_set()
+	 * is misleading. A more appropriate name for GCC built-in
+	 * macro would be __sync_val_exchange().
+	 */
+	return __sync_lock_test_and_set(ptr, newval);
+}
+#else
+uint32_t clint_xchg(volatile uint32_t *ptr, uint32_t newval)
+{
+	uint32_t ret;
+	register uint32_t rc;
+
+	asm volatile("0:lr.w	%0, %2\n"
+		     "	sc.w.rl	%1, %z3, %2\n"
+		     "	bnez	%1, 0b\n"
+		     "	fence	rw, rw\n"
+		     : "=&r"(ret), "=&r"(rc), "+A"(*ptr)
+		     : "rJ"(newval)
+		     : "memory");
+	return ret;
+}
+#endif
+
+void clint_sync_ipi(cpu_t cpu)
+{
+	uint32_t ipi, incoming_ipi;
+	cpu_t src_cpu = smp_processor_id();
+
+	incoming_ipi = 0;
+	while (1) {
+		ipi = __raw_readl(CLINT_MSIP(cpu));
+		if (!ipi)
+			break;
+		incoming_ipi |= clint_xchg((uint32_t *)CLINT_MSIP(cpu), 0);
+	}
+	if (incoming_ipi)
+		__raw_writel(incoming_ipi, CLINT_MSIP(src_cpu));
 }
