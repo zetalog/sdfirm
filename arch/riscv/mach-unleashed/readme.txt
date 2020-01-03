@@ -32,11 +32,20 @@
    $ openocd -f openocd.u54.cfg
 7. Startup GDB session:
    $ riscv64-unknown-elf-gdb
-8. In GDB shell, type the following commands:
+8. In GDB shell, type the following commands to run on all cores:
    (gdb) target remote :3333
+   (gdb) file sdfirm
+   (gdb) monitor reset halt
+   (gdb) flushregs
+   (gdb) thread apply load
+   (gdb) set scheduling-locking off
+   (gdb) continue
+9. In GDB shell, type the following commands to run on a specific core:
+   (gdb) target remote :3333
+   (gdb) info threads
+   (gdb) thread 2 (switch to U54 boot core, can be 2, 3, 4, 5)
    (gdb) load sdfirm
    (gdb) symbol-file sdfirm (for debugging symbols)
-   (gdb) thread 2 (switch to U54 boot core, can be 2, 3, 4, 5)
    (gdb) continue
 
                                                                   Lv Zheng
