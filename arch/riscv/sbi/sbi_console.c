@@ -7,12 +7,12 @@
  *   Anup Patel <anup.patel@wdc.com>
  */
 
+#include <target/spinlock.h>
 #include <sbi/sbi_platform.h>
 #include <sbi/sbi_console.h>
-#include <sbi/riscv_locks.h>
 
 static const struct sbi_platform *console_plat = NULL;
-DEFINE_SPIN_LOCK(console_out_lock);
+DEFINE_SPINLOCK(console_out_lock);
 
 bool sbi_isprintable(char c)
 {

@@ -20,11 +20,12 @@ typedef struct spinlock {
 	};
 } spinlock_t;
 
-#define	__ARCH_SPIN_LOCK_UNLOCKED	{ { .val = ATOMIC_INIT(0) } }
+#define	__ARCH_SPIN_LOCK_UNLOCKED		{ { .val = ATOMIC_INIT(0) } }
 #define __SPIN_LOCK_INITIALIZER(lockname)	__ARCH_SPIN_LOCK_UNLOCKED
-#define __SPIN_LOCK_UNLOCKED(lockname) \
+#define __SPIN_LOCK_UNLOCKED(lockname)		\
 	(spinlock_t ) __SPIN_LOCK_INITIALIZER(lockname)
-#define DEFINE_SPINLOCK(x)		spinlock_t x = __SPIN_LOCK_UNLOCKED(x)
+#define DEFINE_SPINLOCK(x)			\
+	spinlock_t x = __SPIN_LOCK_UNLOCKED(x)
 
 /* Bitfields in the atomic value:
  *
@@ -69,6 +70,8 @@ typedef struct spinlock {
 #define _Q_LOCKED_VAL		(1U << _Q_LOCKED_OFFSET)
 #define _Q_PENDING_VAL		(1U << _Q_PENDING_OFFSET)
 
+#define qspin_init(lock)			\
+	((lock)->val = ATOMIC_INIT(0))
 #define qspin_is_locked(lock)		atomic_read(&(lock)->val)
 #define qspin_value_unlocked(lock)	(!atomic_read(&(lock).val))
 #define qspin_is_contended(lock)	\
@@ -78,6 +81,7 @@ void qspin_lock(struct spinlock *lock);
 int qspin_trylock(struct spinlock *lock);
 #define qspin_unlock(lock)		smp_store_release(&(lock)->u.locked, 0)
 
+#define smp_hw_spin_init(l)		qspin_init(l)
 #define smp_hw_spin_is_locked(l)	qspin_is_locked(l)
 #define smp_hw_spin_lock(l)		qspin_lock(l)
 #define smp_hw_spin_trylock(l)		qspin_trylock(l)

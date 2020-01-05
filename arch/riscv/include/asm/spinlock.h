@@ -35,48 +35,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)spinlock.h: SMP spin lock interfaces
- * $Id: spinlock.h,v 1.0 2019-12-18 15:49:00 zhenglv Exp $
+ * @(#)spinlock.h: RISCV specific spinlock interfaces
+ * $Id: spinlock.h,v 1.0 2020-01-05 21:43:00 zhenglv Exp $
  */
 
-#ifndef __SPINLOCK_H_INCLUDE__
-#define __SPINLOCK_H_INCLUDE__
+#ifndef __SPINLOCK_RISCV_H_INCLUDE__
+#define __SPINLOCK_RISCV_H_INCLUDE__
 
-#include <target/generic.h>
-#include <target/irq.h>
+#include <asm-generic/spinlock.h>
 
-#ifdef CONFIG_SMP
-#include <asm/spinlock.h>
-#else
-typedef uint8_t spinlock_t;
-
-#define DEFINE_SPINLOCK(lock)		spinlock_t lock = 0
-
-#define smp_hw_spin_init(lock)		(*(lock) = 0)
-#define smp_hw_spin_locked(lock)		\
-	((void)(lock), 0)
-#define smp_hw_spin_lock(lock)			\
-	do { barrier(); (void)(lock); } while (0)
-#define smp_hw_spin_unlock(lock)		\
-	do { barrier(); (void)(lock); } while (0)
-#define smp_hw_spin_trylock(lock)		\
-	({ barrier(); (void)(lock); 1; })
-#endif
-
-#define spin_lock_init(lock)	smp_hw_spin_init(lock)
-#define spin_locked(lock)	smp_hw_spin_locked(lock)
-#define spin_lock(lock)		smp_hw_spin_lock(lock)
-#define spin_unlock(lock)	smp_hw_spin_unlock(lock)
-#define spin_trylock(lock)	smp_hw_spin_trylock(lock)
-#define spin_lock_irqsave(lock, flags)		\
-	do {					\
-		irq_local_save(flags);		\
-		smp_hw_spin_lock(lock);		\
-	} while (0)
-#define spin_unlock_irqrestore(lock, flags)	\
-	do {					\
-		smp_hw_spin_unlock(lock);	\
-		irq_local_restore(flags);	\
-	} while (0)
-
-#endif /* __SPINLOCK_H_INCLUDE__ */
+#endif /* __SPINLOCK_RISCV_H_INCLUDE__ */

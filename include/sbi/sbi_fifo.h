@@ -11,7 +11,7 @@
 #ifndef __SBI_FIFO_H__
 #define __SBI_FIFO_H__
 
-#include <sbi/riscv_locks.h>
+#include <target/spinlock.h>
 #include <sbi/sbi_types.h>
 
 struct sbi_fifo {
