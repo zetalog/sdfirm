@@ -45,7 +45,23 @@
 uint32_t sifive_uart_rx;
 #endif
 
-uint32_t sifive_uart_min_div(uint32_t input_freq, uint32_t baudrate)
+static bool sifive_uart_con_init;
+
+void sifive_con_init(uint8_t params, uint32_t freq, uint32_t baudrate)
+{
+	if (sifive_uart_con_init)
+		return;
+
+	sifive_uart_ctrl_init(UART_CON_ID, params, freq, baudrate);
+	sifive_uart_con_init = true;
+}
+
+/*          Fin
+ * Fbaud = -------
+ *         div + 1
+ * Thus UART_DIV = (Fin / Fbaud) - 1
+ */
+static uint32_t sifive_uart_min_div(uint32_t freq, uint32_t baudrate)
 {
 	uint32_t quotient;
 
@@ -56,7 +72,19 @@ uint32_t sifive_uart_min_div(uint32_t input_freq, uint32_t baudrate)
 	 * This should not overflow as long as (Fin - 1 + Fbaud) does not
 	 * exceed 2^32 - 1.
 	 */
-	quotient = div32u(input_freq + baudrate - 1, baudrate);
+	quotient = div32u(freq + baudrate - 1, baudrate);
 	/* Avoid underflow */
 	return quotient ? quotient - 1 : 0;
+}
+
+void sifive_uart_ctrl_init(int n, uint8_t params,
+			   uint32_t freq, uint32_t baudrate)
+{
+	uint32_t div;
+
+	div = sifive_uart_min_div(freq, baudrate);
+	if (uart_stopb(params))
+		__raw_setl(UART_NSTOP, UART_TXCTRL(n));
+	__raw_writel(div, UART_DIV(n));
+	__sifive_uart_enable_fifo(n, 0, 0);
 }

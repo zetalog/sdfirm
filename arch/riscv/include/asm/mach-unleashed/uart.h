@@ -151,22 +151,10 @@
 #define sifive_uart_write_byte(n, byte)				\
 	__raw_writel((uint32_t)(byte), UART_TXDATA(n));
 #endif
-#define sifive_uart_ctrl_init(n, params, input_freq, baudrate)	\
-	do {							\
-		uint32_t div = sifive_uart_min_div(input_freq,	\
-						   baudrate);	\
-		if (uart_stopb(params))				\
-			__raw_setl(UART_NSTOP, UART_TXCTRL(n));	\
-		__raw_writel(div, UART_DIV(n));			\
-		__sifive_uart_enable_fifo(UART_CON_ID, 0, 0);	\
-	} while (0)
 
-/*          Fin
- * Fbaud = -------
- *         div + 1
- * Thus UART_DIV = (Fin / Fbaud) - 1
- */
-uint32_t sifive_uart_min_div(uint32_t input_freq, uint32_t baudrate);
+void sifive_uart_ctrl_init(int n, uint8_t params,
+			   uint32_t freq, uint32_t baudrate);
+void sifive_con_init(uint8_t params, uint32_t freq, uint32_t baudrate);
 
 extern uint32_t sifive_uart_rx;
 
@@ -182,10 +170,9 @@ void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
 #define uart_hw_con_init()					\
 	do {							\
 		board_init_clock();				\
-		sifive_uart_ctrl_init(UART_CON_ID,		\
-				      UART_DEF_PARAMS,		\
-				      clk_get_frequency(tlclk),	\
-				      UART_CON_BAUDRATE);	\
+		sifive_con_init(UART_DEF_PARAMS,		\
+				clk_get_frequency(tlclk),	\
+				UART_CON_BAUDRATE);		\
 	} while (0)
 #endif
 #ifdef CONFIG_CONSOLE_OUTPUT
