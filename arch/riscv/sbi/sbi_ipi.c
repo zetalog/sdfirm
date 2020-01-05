@@ -10,11 +10,10 @@
 
 #include <target/generic.h>
 #include <target/barrier.h>
-#include <sbi/riscv_asm.h>
-#include <sbi/riscv_atomic.h>
+#include <target/atomic.h>
+#include <target/bitops.h>
 #include <sbi/riscv_unpriv.h>
 #include <sbi/sbi_error.h>
-#include <sbi/sbi_bitops.h>
 #include <sbi/sbi_hart.h>
 #include <sbi/sbi_ipi.h>
 #include <sbi/sbi_platform.h>
@@ -48,7 +47,7 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, u32 hartid, u32 event,
 		else if (ret < 0)
 			return ret;
 	}
-	atomic_raw_set_bit(event, &ipi_data->ipi_type);
+	atomic_or(_BV(event), &ipi_data->ipi_type);
 	mb();
 	sbi_platform_ipi_send(plat, hartid);
 	if (event != SBI_IPI_EVENT_SOFT)
@@ -92,7 +91,7 @@ void sbi_ipi_clear_smode(struct sbi_scratch *scratch)
 
 void sbi_ipi_process(struct sbi_scratch *scratch)
 {
-	volatile unsigned long ipi_type;
+	volatile atomic_count_t ipi_type;
 	unsigned int ipi_event;
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 	struct sbi_ipi_data *ipi_data =
@@ -102,9 +101,9 @@ void sbi_ipi_process(struct sbi_scratch *scratch)
 	sbi_platform_ipi_clear(plat, hartid);
 
 	do {
-		ipi_type = ipi_data->ipi_type;
+		ipi_type = atomic_read(&ipi_data->ipi_type);
 		rmb();
-		ipi_event = __ffs(ipi_type);
+		ipi_event = __ffs32(ipi_type);
 		switch (ipi_event) {
 		case SBI_IPI_EVENT_SOFT:
 			csr_set(CSR_MIP, MIP_SSIP);
@@ -120,7 +119,8 @@ void sbi_ipi_process(struct sbi_scratch *scratch)
 			sbi_hart_hang();
 			break;
 		};
-		ipi_type = atomic_raw_clear_bit(ipi_event, &ipi_data->ipi_type);
+		ipi_type = atomic_fetch_and(~_BV(ipi_event),
+					    &ipi_data->ipi_type);
 	} while (ipi_type > 0);
 }
 
@@ -140,7 +140,7 @@ int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
 	}
 
 	ipi_data = sbi_scratch_offset_ptr(scratch, ipi_data_off);
-	ipi_data->ipi_type = 0x00;
+	INIT_ATOMIC(&ipi_data->ipi_type, 0);
 
 	ret = sbi_tlb_fifo_init(scratch, cold_boot);
 	if (ret)

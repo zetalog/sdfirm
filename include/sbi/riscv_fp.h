@@ -10,8 +10,7 @@
 #ifndef __RISCV_FP_H__
 #define __RISCV_FP_H__
 
-#include <sbi/riscv_asm.h>
-#include <sbi/sbi_types.h>
+#include <target/arch.h>
 
 #define GET_PRECISION(insn) (((insn) >> 25) & 3)
 #define GET_RM(insn) (((insn) >> 12) & 7)

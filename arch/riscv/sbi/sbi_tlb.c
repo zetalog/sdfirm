@@ -10,11 +10,10 @@
 
 #include <target/generic.h>
 #include <target/barrier.h>
-#include <sbi/riscv_asm.h>
+#include <target/bitops.h>
 #include <sbi/sbi_error.h>
 #include <sbi/sbi_fifo.h>
 #include <sbi/sbi_hart.h>
-#include <sbi/sbi_bitops.h>
 #include <sbi/sbi_scratch.h>
 #include <sbi/sbi_tlb.h>
 #include <sbi/sbi_string.h>

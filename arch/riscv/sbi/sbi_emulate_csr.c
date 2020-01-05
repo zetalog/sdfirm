@@ -7,7 +7,7 @@
  *   Anup Patel <anup.patel@wdc.com>
  */
 
-#include <sbi/riscv_asm.h>
+#include <target/arch.h>
 #include <sbi/sbi_bits.h>
 #include <sbi/sbi_console.h>
 #include <sbi/sbi_emulate_csr.h>

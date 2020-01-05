@@ -9,7 +9,6 @@
 
 #include <target/init.h>
 #include <target/arch.h>
-#include <sbi/riscv_asm.h>
 #include <sbi/sbi_platform.h>
 #include <sbi/sbi_scratch.h>
 #include <sbi/sbi_trap.h>

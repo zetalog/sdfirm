@@ -56,12 +56,14 @@ uint8_t find_next_clear_bit(const bits_t *addr,
 
 uint8_t __ffs8(uint8_t word);
 uint8_t __ffs16(uint16_t word);
+uint8_t __ffs32(uint32_t dword);
 uint8_t __fls8(uint8_t x);
 uint8_t __fls16(uint16_t word);
-uint8_t __fls32(uint32_t word);
+uint8_t __fls32(uint32_t dword);
 uint8_t __fls64(uint64_t quad);
 #define __ffz8(x)	__ffs8((uint8_t)(~(x)))
-#define __ffz16(x)	__ffz8((uint16_t)(~(x)))
+#define __ffz16(x)	__ffs16((uint16_t)(~(x)))
+#define __ffz32(x)	__ffs32((uint32_t)(~(x)))
 
 #define __roundup8(n)	((uint8_t)1 << (__fls8((uint8_t)((n)-1))+1))
 #define __roundup16(n)	((uint16_t)1 << (__fls16((uint16_t)((n)-1))+1))

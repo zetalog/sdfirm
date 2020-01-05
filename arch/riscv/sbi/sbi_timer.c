@@ -7,7 +7,6 @@
  *   Anup Patel <anup.patel@wdc.com>
  */
 
-#include <sbi/riscv_asm.h>
 #include <sbi/sbi_platform.h>
 #include <sbi/sbi_timer.h>
 

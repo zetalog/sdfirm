@@ -298,6 +298,7 @@ ATOMIC_NOP(xor, ^)
 #undef ATOMIC_FETCH_NOP
 
 #define ATOMIC_INIT(i)			{(i)}
+#define INIT_ATOMIC(a, i)		((a)->counter = (i))
 
 #define atomic_read(v)			READ_ONCE((v)->counter)
 #define atomic_set(v, i)		WRITE_ONCE(((v)->counter), (i))

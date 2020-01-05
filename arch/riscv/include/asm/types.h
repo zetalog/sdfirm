@@ -48,10 +48,12 @@
 
 #ifdef CONFIG_32BIT
 #define __WORDSIZE	32
+#define BITS_PER_LONG	32
 #define UINTPTR_MAX	UINT32_MAX
 #endif
 #ifdef CONFIG_64BIT
 #define __WORDSIZE	64
+#define BITS_PER_LONG	64
 #define UINTPTR_MAX	UINT64_MAX
 #endif
 

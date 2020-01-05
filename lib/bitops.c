@@ -239,6 +239,36 @@ uint8_t __ffs16(uint16_t word)
 }
 #endif
 
+#ifdef CONFIG_BIT_FFS32
+uint8_t __ffs32(uint32_t dword)
+{
+	uint8_t num = 0;
+
+	if (!dword)
+		return 0;
+
+	if ((dword & 0xffff) == 0) {
+		num += 16;
+		dword >>= 16;
+	}
+	if ((dword & 0xff) == 0) {
+		num += 8;
+		dword >>= 8;
+	}
+	if ((dword & 0xf) == 0) {
+		num += 4;
+		dword >>= 4;
+	}
+	if ((dword & 0x3) == 0) {
+		num += 2;
+		dword >>= 2;
+	}
+	if ((dword & 0x1) == 0)
+		num += 1;
+	return num;
+}
+#endif
+
 #ifdef CONFIG_BIT_FLS16
 uint8_t __fls16(uint16_t word)
 {
@@ -267,30 +297,30 @@ uint8_t __fls16(uint16_t word)
 #endif
 
 #ifdef CONFIG_BIT_FLS32
-uint8_t __fls32(uint32_t word)
+uint8_t __fls32(uint32_t dword)
 {
 	int num = 32 - 1;
 
-	if (!word)
+	if (!dword)
 		return 0;
-	if (!(word & UL(0xffff0000))) {
-		word <<= 16;
+	if (!(dword & UL(0xffff0000))) {
+		dword <<= 16;
 		num -= 16;
 	}
-	if (!(word & UL(0xff000000))) {
-		word <<= 8;
+	if (!(dword & UL(0xff000000))) {
+		dword <<= 8;
 		num -= 8;
 	}
-	if (!(word & UL(0xf0000000))) {
-		word <<= 4;
+	if (!(dword & UL(0xf0000000))) {
+		dword <<= 4;
 		num -= 4;
 	}
-	if (!(word & UL(0xc0000000))) {
-		word <<= 2;
+	if (!(dword & UL(0xc0000000))) {
+		dword <<= 2;
 		num -= 2;
 	}
-	if (!(word & UL(0x80000000))) {
-		word <<= 1;
+	if (!(dword & UL(0x80000000))) {
+		dword <<= 1;
 		num -= 1;
 	}
 	return num;

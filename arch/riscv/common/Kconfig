@@ -322,6 +322,23 @@ endchoice
 
 endif
 
+menu "CPU architecture options"
+
+choice
+	prompt "Type of atomic counter"
+
+config RISCV_ATOMIC_COUNT_32
+	bool "signed 32-bit"
+	select ARCH_HAS_BITS_PER_UNIT_32
+
+config RISCV_ATOMIC_COUNT_64
+	bool "signed 64-bit"
+	select ARCH_HAS_BITS_PER_UNIT_64
+
+endchoice
+
+endmenu
+
 # We must be able to map all physical memory into the kernel, but the compiler
 # is still a bit more efficient when generating code if it's setup in a manner
 # such that it can only map 2GiB of memory.
@@ -464,6 +481,7 @@ config SBI
 	select RISCV_D
 	select RISCV_PMP
 	select BIT_FLS64
+	select BIT_FFS32
 
 menu "System peripherals"
 

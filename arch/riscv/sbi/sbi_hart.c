@@ -9,7 +9,6 @@
 
 #include <target/generic.h>
 #include <target/barrier.h>
-#include <sbi/riscv_asm.h>
 #include <sbi/riscv_fp.h>
 #include <sbi/riscv_locks.h>
 #include <sbi/sbi_bits.h>

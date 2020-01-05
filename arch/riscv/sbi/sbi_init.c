@@ -7,8 +7,6 @@
  *   Anup Patel <anup.patel@wdc.com>
  */
 
-#include <sbi/riscv_asm.h>
-#include <sbi/riscv_atomic.h>
 #include <sbi/sbi_console.h>
 #include <sbi/sbi_ecall.h>
 #include <sbi/sbi_hart.h>
@@ -18,6 +16,7 @@
 #include <sbi/sbi_timer.h>
 #include <sbi/sbi_version.h>
 #include <target/smp.h>
+#include <target/atomic.h>
 
 #define BANNER                                              \
 	"   ____                    _____ ____ _____\n"     \
@@ -161,7 +160,7 @@ static void __noreturn init_warmboot(void)
 				     scratch->next_addr, scratch->next_mode);
 }
 
-static atomic_t coldboot_lottery = ATOMIC_INITIALIZER(0);
+static atomic_t coldboot_lottery = ATOMIC_INIT(0);
 
 /**
  * Initialize OpenSBI library for current HART and jump to next
@@ -188,7 +187,7 @@ void __noreturn sbi_init(void)
 
 	sbi_scratches[hartid] = scratch;
 
-	if (atomic_add_return(&coldboot_lottery, 1) == 1)
+	if (atomic_add_return(1, &coldboot_lottery) == 1)
 		coldboot = true;
 
 	if (coldboot)

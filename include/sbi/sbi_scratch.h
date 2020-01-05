@@ -10,7 +10,7 @@
 #ifndef __SBI_SCRATCH_H__
 #define __SBI_SCRATCH_H__
 
-#include <sbi/riscv_asm.h>
+#include <target/arch.h>
 
 /* clang-format off */
 
