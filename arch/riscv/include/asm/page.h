@@ -107,7 +107,7 @@
 #define PHYS_MASK_SHIFT		56
 #define PAGE_PTR_BITS		3
 #ifndef VA_BITS
-#define VA_BITS			64
+#define VA_BITS			39
 #endif
 #else
 #error "Unsupported"

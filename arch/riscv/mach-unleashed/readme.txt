@@ -37,8 +37,8 @@
    (gdb) file sdfirm
    (gdb) monitor reset halt
    (gdb) flushregs
-   (gdb) thread apply load
-   (gdb) set scheduling-locking off
+   (gdb) thread apply all load
+   (gdb) set scheduler-locking off
    (gdb) continue
 9. In GDB shell, type the following commands to run on a specific core:
    (gdb) target remote :3333
