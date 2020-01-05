@@ -10,7 +10,7 @@
 #include <sbi/riscv_locks.h>
 #include <sbi/sbi_scratch.h>
 
-static spinlock_t extra_lock = SPIN_LOCK_INITIALIZER;
+DEFINE_SPIN_LOCK(extra_lock);
 static unsigned long extra_offset = SBI_SCRATCH_EXTRA_SPACE_OFFSET;
 
 unsigned long sbi_scratch_alloc_offset(unsigned long size, const char *owner)

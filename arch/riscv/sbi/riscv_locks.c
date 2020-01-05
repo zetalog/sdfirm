@@ -11,7 +11,7 @@
 #include <target/barrier.h>
 #include <sbi/riscv_locks.h>
 
-int spin_lock_check(spinlock_t *lock)
+static int spin_lock_check(spinlock_t *lock)
 {
 	return (lock->lock == __RISCV_SPIN_UNLOCKED) ? 0 : 1;
 }

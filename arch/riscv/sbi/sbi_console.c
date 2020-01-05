@@ -12,7 +12,7 @@
 #include <sbi/riscv_locks.h>
 
 static const struct sbi_platform *console_plat = NULL;
-static spinlock_t console_out_lock	       = SPIN_LOCK_INITIALIZER;
+DEFINE_SPIN_LOCK(console_out_lock);
 
 bool sbi_isprintable(char c)
 {

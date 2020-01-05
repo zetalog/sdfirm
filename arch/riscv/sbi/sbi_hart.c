@@ -255,7 +255,7 @@ sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
 	__builtin_unreachable();
 }
 
-static spinlock_t avail_hart_mask_lock	      = SPIN_LOCK_INITIALIZER;
+DEFINE_SPIN_LOCK(avail_hart_mask_lock);
 static volatile unsigned long avail_hart_mask = 0;
 
 void sbi_hart_mark_available(u32 hartid)
@@ -292,7 +292,7 @@ struct sbi_scratch *sbi_hart_id_to_scratch(struct sbi_scratch *scratch,
 }
 
 #define COLDBOOT_WAIT_BITMAP_SIZE __riscv_xlen
-static spinlock_t coldboot_wait_bitmap_lock = SPIN_LOCK_INITIALIZER;
+DEFINE_SPIN_LOCK(coldboot_wait_bitmap_lock);
 static unsigned long coldboot_wait_bitmap   = 0;
 
 void sbi_hart_wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)

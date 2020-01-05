@@ -2,9 +2,9 @@ EXTRA_CFLAGS += -fno-strict-aliasing
 
 obj-y :=
 
+obj-$(CONFIG_SMP) += riscv_locks.rel
 obj-y += sbi_entry.rel
 obj-y += riscv_hardfp.rel
-obj-y += riscv_locks.rel
 obj-y += riscv_unpriv.rel
 obj-y += sbi_console.rel
 obj-y += sbi_ecall.rel

@@ -16,19 +16,20 @@ typedef struct {
 
 #define __RISCV_SPIN_UNLOCKED 0
 
-#define SPIN_LOCK_INIT(_lptr) (_lptr)->lock = __RISCV_SPIN_UNLOCKED
+#ifdef CONFIG_SMP
+#define SPIN_LOCK_INIT		{ .lock = __RISCV_SPIN_UNLOCKED }
+#define INIT_SPIN_LOCK(_l)	((_l)->lock = __RISCV_SPIN_UNLOCKED)
 
-#define SPIN_LOCK_INITIALIZER                  \
-	{                                      \
-		.lock = __RISCV_SPIN_UNLOCKED, \
-	}
-
-int spin_lock_check(spinlock_t *lock);
-
+#define DEFINE_SPIN_LOCK(_l)		\
+	spinlock_t _l = SPIN_LOCK_INIT(__RISCV_SPIN_UNLOCKED)
 int spin_trylock(spinlock_t *lock);
-
 void spin_lock(spinlock_t *lock);
-
 void spin_unlock(spinlock_t *lock);
+#else
+#define INIT_SPIN_LOCK(_l)
+#define DEFINE_SPIN_LOCK(_l)
+#define spin_lock(lock)			do { } while (0)
+#define spin_unlock(lock)		do { } while (0)
+#endif
 
 #endif
