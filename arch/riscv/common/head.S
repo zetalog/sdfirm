@@ -87,9 +87,6 @@ ENTRY(__start)
 	li	ra, 0
 	call	reset_gprs
 
-	init_sp
-	init_gp
-
 #ifdef CONFIG_SBI
 	jal	ra, __sbi_entry
 #else
@@ -107,9 +104,6 @@ ENDPROC(__start)
 ENTRY(__sbi_exit)
 	disable_sirq
 
-	init_sp
-	init_gp
-
 	jal	ra, system_init
 ENDPROC(__sbi_exit)
 
@@ -117,8 +111,8 @@ ENTRY(reset_gprs)
 	/* flush the instruction cache */
 	fence.i
 	/* Reset all registers except ra, a0, a1 and a2 */
-	li	sp, 0
-	li	gp, 0
+	init_sp
+	init_gp
 	li	tp, 0
 	li	t0, 0
 	li	t1, 0
