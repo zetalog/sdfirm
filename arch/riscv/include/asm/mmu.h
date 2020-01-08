@@ -47,157 +47,54 @@
 /*---------------------------------------------------------------------------
  * Hardware MMU definitions
  *---------------------------------------------------------------------------*/
-/* Section address mask and size definitions */
-#define SECTION_SHIFT		0
+/* megapage definitions */
+#ifdef CONFIG_RISCV_SV48
+#define SECTION_SHIFT		PMD_SHIFT
+#else
+#define SECTION_SHIFT		PAGE_SHIFT
+#endif
 #define SECTION_SIZE		(_AC(1, ULL) << SECTION_SHIFT)
 #define SECTION_MASK		(~(SECTION_SIZE-1))
 
-/*
- * Contiguous page definitions.
- */
-#define CONT_PTE_SHIFT		4
-#define CONT_PMD_SHIFT		4
-#define CONT_PTES		(1 << CONT_PTE_SHIFT)
-#define CONT_PTE_SIZE		(CONT_PTES * PAGE_SIZE)
-#define CONT_PTE_MASK		(~(CONT_PTE_SIZE - 1))
-#define CONT_PMDS		(1 << CONT_PMD_SHIFT)
-#define CONT_PMD_SIZE		(CONT_PMDS * PMD_SIZE)
-#define CONT_PMD_MASK		(~(CONT_PMD_SIZE - 1))
-/* the the numerical offset of the PTE within a range of CONT_PTES */
-#define CONT_RANGE_OFFSET(addr)	(((addr)>>PAGE_SHIFT)&(CONT_PTES-1))
+#define PUD_TYPE_TABLE			PAGE_TABLE
+#define PMD_TYPE_TABLE			PAGE_TABLE
+
+#define mk_pud_sect_prot(prot)		(prot)
+#define mk_pmd_sect_prot(prot)		(prot)
+#define pgattr_change_is_safe(old, new)	true
 
 /* Hardware page table definitions */
 
-/* Level 1 descriptor (PUD) */
-#define PUD_TYPE_TABLE		(_AT(pudval_t, 3) << 0)
-#define PUD_TABLE_BIT		(_AT(pgdval_t, 1) << 1)
-#define PUD_TYPE_MASK		(_AT(pgdval_t, 3) << 0)
-#define PUD_TYPE_SECT		(_AT(pgdval_t, 1) << 0)
-
-/* Level 2 descriptor (PMD) */
-#define PMD_TYPE_MASK		(_AT(pmdval_t, 3) << 0)
-#define PMD_TYPE_FAULT		(_AT(pmdval_t, 0) << 0)
-#define PMD_TYPE_TABLE		(_AT(pmdval_t, 3) << 0)
-#define PMD_TYPE_SECT		(_AT(pmdval_t, 1) << 0)
-#define PMD_TABLE_BIT		(_AT(pmdval_t, 1) << 1)
-
-/* Section */
-#define PMD_SECT_VALID		(_AT(pmdval_t, 1) << 0)
-#define PMD_SECT_PROT_NONE	(_AT(pmdval_t, 1) << 58)
-#define PMD_SECT_USER		(_AT(pmdval_t, 1) << 6)		/* AP[1] */
-#define PMD_SECT_RDONLY		(_AT(pmdval_t, 1) << 7)		/* AP[2] */
-#define PMD_SECT_S		(_AT(pmdval_t, 3) << 8)
-#define PMD_SECT_AF		(_AT(pmdval_t, 1) << 10)
-#define PMD_SECT_NG		(_AT(pmdval_t, 1) << 11)
-#define PMD_SECT_PXN		(_AT(pmdval_t, 1) << 53)
-#define PMD_SECT_UXN		(_AT(pmdval_t, 1) << 54)
-
-/* AttrIndx[2:0] encoding
- * (mapping attributes defined in the MAIR* registers)
- */
-#define PMD_ATTRINDX(t)		(_AT(pmdval_t, (t)) << 2)
-#define PMD_ATTRINDX_MASK	(_AT(pmdval_t, 7) << 2)
-
-/* Level 3 descriptor (PTE) */
-#define PTE_TYPE_MASK		(_AT(pteval_t, 3) << 0)
-#define PTE_TYPE_FAULT		(_AT(pteval_t, 0) << 0)
-#define PTE_TYPE_PAGE		(_AT(pteval_t, 3) << 0)
-#define PTE_TABLE_BIT		(_AT(pteval_t, 1) << 1)
-#define PTE_USER		(_AT(pteval_t, 1) << 6)		/* AP[1] */
-#define PTE_RDONLY		(_AT(pteval_t, 1) << 7)		/* AP[2] */
-#define PTE_SHARED		(_AT(pteval_t, 3) << 8)		/* SH[1:0], inner shareable */
-#define PTE_AF			(_AT(pteval_t, 1) << 10)	/* Access Flag */
-#define PTE_NG			(_AT(pteval_t, 1) << 11)	/* nG */
-#define PTE_DBM			(_AT(pteval_t, 1) << 51)	/* Dirty Bit Management */
-#define PTE_CONT		(_AT(pteval_t, 1) << 52)	/* Contiguous range */
-#define PTE_PXN			(_AT(pteval_t, 1) << 53)	/* Privileged XN */
-#define PTE_UXN			(_AT(pteval_t, 1) << 54)	/* User XN */
-
-#define PTE_ADDR_LOW		(((_AT(pteval_t, 1) << (48 - PAGE_SHIFT)) - 1) << PAGE_SHIFT)
-#ifdef CONFIG_CPU_64v8_2_LPA
-#define PTE_ADDR_HIGH		(_AT(pteval_t, 0xf) << 12)
-#define PTE_ADDR_MASK		(PTE_ADDR_LOW | PTE_ADDR_HIGH)
-#else
-#define PTE_ADDR_MASK		PTE_ADDR_LOW
-#endif
-
-/* AttrIndx[2:0] encoding
- * (mapping attributes defined in the MAIR* registers).
- */
-#define PTE_ATTRINDX(t)		(_AT(pteval_t, (t)) << 2)
-#define PTE_ATTRINDX_MASK	(_AT(pteval_t, 7) << 2)
-
-/* 2nd stage PTE definitions */
-#define PTE_S2_RDONLY		(_AT(pteval_t, 1) << 6)   /* HAP[2:1] */
-#define PTE_S2_RDWR		(_AT(pteval_t, 3) << 6)   /* HAP[2:1] */
-#define PMD_S2_RDWR		(_AT(pmdval_t, 3) << 6)   /* HAP[2:1] */
-
-/* Memory Attribute override for Stage-2 (MemAttr[3:0]) */
-#define PTE_S2_MEMATTR(t)	(_AT(pteval_t, (t)) << 2)
-#define PTE_S2_MEMATTR_MASK	(_AT(pteval_t, 0xf) << 2)
-
-/* EL2/HYP PTE/PMD definitions */
-#define PMD_HYP			PMD_SECT_USER
-#define PTE_HYP			PTE_USER
-
-/*---------------------------------------------------------------------------
- * Software MMU definitions
- *---------------------------------------------------------------------------*/
-/* Software defined PTE bits definition */
-#define PTE_VALID		(_AT(pteval_t, 1) << 0)
-#define PTE_FILE		(_AT(pteval_t, 1) << 2)	/* only when !pte_present() */
-#define PTE_DIRTY		(_AT(pteval_t, 1) << 55)
-#define PTE_SPECIAL		(_AT(pteval_t, 1) << 56)
-#define PTE_WRITE		(_AT(pteval_t, 1) << 57)
-#define PTE_PROT_NONE		(_AT(pteval_t, 1) << 58) /* only when !PTE_VALID */
-
-#ifdef CONFIG_SMP
-#define PROT_DEFAULT		(PTE_TYPE_PAGE | PTE_AF | PTE_SHARED)
-#define PROT_SECT_DEFAULT	(PMD_TYPE_SECT | PMD_SECT_AF | PMD_SECT_S)
-#else
-#define PROT_DEFAULT		(PTE_TYPE_PAGE | PTE_AF)
-#define PROT_SECT_DEFAULT	(PMD_TYPE_SECT | PMD_SECT_AF)
-#endif
-
-#define PROT_DEVICE_nGnRE	(PROT_DEFAULT | PTE_PXN | PTE_UXN | PTE_ATTRINDX(MT_DEVICE_nGnRE))
-#define PROT_NORMAL_NC		(PROT_DEFAULT | PTE_PXN | PTE_UXN | PTE_ATTRINDX(MT_NORMAL_NC))
-#define PROT_NORMAL		(PROT_DEFAULT | PTE_PXN | PTE_UXN | PTE_ATTRINDX(MT_NORMAL))
-
-#define PROT_SECT_DEVICE_nGnRE	(PROT_SECT_DEFAULT | PMD_SECT_PXN | PMD_SECT_UXN | PMD_ATTRINDX(MT_DEVICE_nGnRE))
-#define PROT_SECT_NORMAL	(PROT_SECT_DEFAULT | PMD_SECT_PXN | PMD_SECT_UXN | PMD_ATTRINDX(MT_NORMAL))
-#define PROT_SECT_NORMAL_EXEC	(PROT_SECT_DEFAULT | PMD_SECT_UXN | PMD_ATTRINDX(MT_NORMAL))
-
-/*
- * PTE format:
+/* PTE format:
  * | XLEN-1  10 | 9             8 | 7 | 6 | 5 | 4 | 3 | 2 | 1 | 0
  *       PFN      reserved for SW   D   A   G   U   X   W   R   V
  */
 
-#define _PAGE_ACCESSED_OFFSET 6
+#define _PAGE_ACCESSED_OFFSET	6
 
-#define _PAGE_PRESENT   (1 << 0)
-#define _PAGE_READ      (1 << 1)    /* Readable */
-#define _PAGE_WRITE     (1 << 2)    /* Writable */
-#define _PAGE_EXEC      (1 << 3)    /* Executable */
-#define _PAGE_USER      (1 << 4)    /* User */
-#define _PAGE_GLOBAL    (1 << 5)    /* Global */
-#define _PAGE_ACCESSED  (1 << 6)    /* Set by hardware on any access */
-#define _PAGE_DIRTY     (1 << 7)    /* Set by hardware on any write */
-#define _PAGE_SOFT      (1 << 8)    /* Reserved for software */
+#define _PAGE_PRESENT	(1 << 0)
+#define _PAGE_VALID	(1 << 0) /* Valid */
+#define _PAGE_READ	(1 << 1) /* Readable */
+#define _PAGE_WRITE	(1 << 2) /* Writable */
+#define _PAGE_EXEC	(1 << 3) /* Executable */
+#define _PAGE_USER	(1 << 4) /* User */
+#define _PAGE_GLOBAL	(1 << 5) /* Global */
+#define _PAGE_ACCESSED	(1 << 6) /* Set by hardware on any access */
+#define _PAGE_DIRTY	(1 << 7) /* Set by hardware on any write */
+#define _PAGE_SOFT	(1 << 8) /* Reserved for software */
 
-#define _PAGE_SPECIAL   _PAGE_SOFT
-#define _PAGE_TABLE     _PAGE_PRESENT
+#define _PAGE_SPECIAL	_PAGE_SOFT
+#define _PAGE_TABLE	_PAGE_PRESENT
 
-/*
- * _PAGE_PROT_NONE is set on not-present pages (and ignored by the hardware) to
- * distinguish them from swapped out pages
+/* _PAGE_PROT_NONE is set on not-present pages (and ignored by the
+ * hardware) to distinguish them from swapped out pages
  */
-#define _PAGE_PROT_NONE _PAGE_READ
+#define _PAGE_PROT_NONE	_PAGE_READ
 
-#define _PAGE_PFN_SHIFT 10
+#define _PAGE_PFN_SHIFT	10
 
 /* Set of bits to preserve across pte_modify() */
-#define _PAGE_CHG_MASK  (~(unsigned long)(_PAGE_PRESENT | _PAGE_READ |	\
+#define _PAGE_CHG_MASK	(~(unsigned long)(_PAGE_PRESENT | _PAGE_READ |	\
 					  _PAGE_WRITE | _PAGE_EXEC |	\
 					  _PAGE_USER | _PAGE_GLOBAL))
 
@@ -251,135 +148,77 @@
 #define __S110	PAGE_SHARED_EXEC
 #define __S111	PAGE_SHARED_EXEC
 
-/* Find an entry in the third-level page table. */
-#define __pte_index(addr)		(((addr) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
-#define pte_offset_kernel(dir, addr)	(pmd_page_vaddr(*(dir)) + __pte_index(addr))
-
-/* The following only work if pte_present(). Undefined behaviour otherwise. */
-#define pte_present(pte)	(!!(pte_val(pte) & (PTE_VALID | PTE_PROT_NONE)))
-#define pte_dirty(pte)		(!!(pte_val(pte) & PTE_DIRTY))
-#define pte_young(pte)		(!!(pte_val(pte) & PTE_AF))
-#define pte_exec(pte)		(!(pte_val(pte) & PTE_UXN))
-
-#define pte_valid_user(pte) \
-	((pte_val(pte) & (PTE_VALID | PTE_USER)) == (PTE_VALID | PTE_USER))
-#define pte_valid_not_user(pte) \
-	((pte_val(pte) & (PTE_VALID | PTE_USER)) == PTE_VALID)
-
 #ifndef __ASSEMBLY__
-static inline pte_t clear_pte_bit(pte_t pte, pgprot_t prot)
-{
-	pte_val(pte) &= ~pgprot_val(prot);
-	return pte;
-}
+#define pmd_clear(pmdp)		set_pmd(pmdp, __pmd(0))
 
-static inline pte_t set_pte_bit(pte_t pte, pgprot_t prot)
-{
-	pte_val(pte) |= pgprot_val(prot);
-	return pte;
-}
+#define pfn_pgd(pfn, prot)	\
+	__pgd((pfn << _PAGE_PFN_SHIFT) | pgprot_val(prot))
+#define _pgd_pfn(pgd)		(pgd_val(pgd) >> _PAGE_PFN_SHIFT)
+#define pgd_index(addr)		(((addr) >> PGDIR_SHIFT) & (PTRS_PER_PGD - 1))
 
-static inline pte_t pte_wrprotect(pte_t pte)
-{
-	return clear_pte_bit(pte, __pgprot(PTE_WRITE));
-}
+#define pmd_page(pmd)		(pfn_to_page(pmd_val(pmd) >> _PAGE_PFN_SHIFT))
+#define pmd_page_vaddr(pmd)	\
+	((unsigned long)pfn_to_virt(pmd_val(pmd) >> _PAGE_PFN_SHIFT))
+#define pmd_page_paddr(pmd)	(pmd_val(pmd) & PHYS_MASK & PAGE_MASK)
+#define pmd_bad(pmd)		(!pmd_present(pmd))
+#define pmd_present(pmd)	\
+	(pmd_val(pmd) & (_PAGE_PRESENT | _PAGE_PROT_NONE))
 
-static inline pte_t pte_mkwrite(pte_t pte)
-{
-	return set_pte_bit(pte, __pgprot(PTE_WRITE));
-}
+/* Yields the page frame number (PFN) of a page table entry */
+#define pte_pfn(pte)			((pte_val(pte) >> _PAGE_PFN_SHIFT))
+#define pte_page(x)     		pfn_to_page(pte_pfn(x))
+#define pfn_pte(pfn, prot)		\
+	(__pte((pfn << _PAGE_PFN_SHIFT) | pgprot_val(prot)))
+#define mk_pte(page, prot)		pfn_pte(page_to_pfn(page), prot)
+#define pte_index(addr) (((addr) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
+#define pte_offset_kernel(pmd, addr)	\
+	((pte_t *)pmd_page_vaddr(*pmd) + pte_index(addr))
 
-static inline pte_t pte_mkclean(pte_t pte)
-{
-	return clear_pte_bit(pte, __pgprot(PTE_DIRTY));
-}
+#define pte_present(pte)	\
+	(pte_val(pte) & (_PAGE_PRESENT | _PAGE_PROT_NONE))
+#define pte_write(pte)		(pte_val(pte) & _PAGE_WRITE)
+#define pte_exec(pte)		(pte_val(pte) & _PAGE_EXEC)
+#define pte_dirty(pte)		(pte_val(pte) & _PAGE_DIRTY)
+#define pte_young(pte)		(pte_val(pte) & _PAGE_ACCESSED)
+#define pte_special(pte)	(pte_val(pte) & _PAGE_SPECIAL)
+#define pte_huge(pte)		\
+	(pte_present(pte) &&	\
+	 (pte_val(pte) & (_PAGE_READ | _PAGE_WRITE | _PAGE_EXEC)))
 
-static inline pte_t pte_mkdirty(pte_t pte)
-{
-	return set_pte_bit(pte, __pgprot(PTE_DIRTY));
-}
+/* static inline pte_t pte_rdprotect(pte_t pte) */
+#define pte_wrprotect(pte)	(__pte(pte_val(pte) & ~(_PAGE_WRITE)))
 
-static inline pte_t pte_mkold(pte_t pte)
-{
-	return clear_pte_bit(pte, __pgprot(PTE_AF));
-}
-
-static inline pte_t pte_mkyoung(pte_t pte)
-{
-	return set_pte_bit(pte, __pgprot(PTE_AF));
-}
+/* static inline pte_t pte_mkread(pte_t pte) */
+/* static inline pte_t pte_mkexec(pte_t pte) */
+#define pte_mkwrite(pte)	(__pte(pte_val(pte) | _PAGE_WRITE))
+#define pte_mkdirty(pte)	(__pte(pte_val(pte) | _PAGE_DIRTY))
+#define pte_mkclean(pte)	(__pte(pte_val(pte) & ~(_PAGE_DIRTY)))
+#define pte_mkyoung(pte)	(__pte(pte_val(pte) | _PAGE_ACCESSED))
+#define pte_mkold(pte)		(__pte(pte_val(pte) & ~(_PAGE_ACCESSED)))
+#define pte_mkspecial(pte)	(__pte(pte_val(pte) | _PAGE_SPECIAL))
+#define pte_mkhuge(pte)		(pte)
+/* Modify page protection bits */
+#define pte_modify(pte, newprot)	\
+	(__pte((pte_val(pte) & _PAGE_CHG_MASK) | pgprot_val(newprot)))
 
 #if 0
-extern void __sync_icache_dcache(pte_t pteval, caddr_t addr);
+void flush_icache_pte(pte_t pte);
 
-static inline void set_pte_at(caddr_t addr, pte_t *ptep, pte_t pte)
+static inline void set_pte_at(struct mm_struct *mm,
+	unsigned long addr, pte_t *ptep, pte_t pteval)
 {
-	if (pte_valid_user(pte)) {
-		if (pte_exec(pte))
-			__sync_icache_dcache(pte, addr);
-		if (pte_dirty(pte) && pte_write(pte))
-			pte_val(pte) &= ~PTE_RDONLY;
-		else
-			pte_val(pte) |= PTE_RDONLY;
-	}
+	if (pte_present(pteval) && pte_exec(pteval))
+		flush_icache_pte(pteval);
 
-	set_pte(ptep, pte);
-}
-#endif
-
-#define pud_pte(pud)		__pte(pud_val(pud))
-#define pud_pmd(pud)		__pmd(pud_val(pud))
-#define pmd_pte(pmd)		__pte(pmd_val(pmd))
-#define pte_pmd(pte)		__pmd(pte_val(pte))
-
-#define pmd_young(pmd)		pte_young(pmd_pte(pmd))
-#define pmd_wrprotect(pmd)	pte_pmd(pte_wrprotect(pmd_pte(pmd)))
-#define pmd_mkold(pmd)		pte_pmd(pte_mkold(pmd_pte(pmd)))
-#define pmd_mkwrite(pmd)	pte_pmd(pte_mkwrite(pmd_pte(pmd)))
-#define pmd_mkdirty(pmd)	pte_pmd(pte_mkdirty(pmd_pte(pmd)))
-#define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
-#define pmd_mknotpresent(pmd)	(__pmd(pmd_val(pmd) & ~PMD_TYPE_MASK))
-
-#define mk_pmd(page,prot)	pfn_pmd(page_to_pfn(page),prot)
-#define set_pmd_at(addr, pmdp, pmd)	\
-	set_pte_at(addr, (pte_t *)pmdp, pmd_pte(pmd))
-
-#define __pgprot_modify(prot,mask,bits) \
-	__pgprot((pgprot_val(prot) & ~(mask)) | (bits))
-
-/* Mark the prot value as uncacheable and unbufferable. */
-#define pgprot_noncached(prot) \
-	__pgprot_modify(prot, PTE_ATTRINDX_MASK, PTE_ATTRINDX(MT_DEVICE_nGnRnE) | PTE_PXN | PTE_UXN)
-#define pgprot_writecombine(prot) \
-	__pgprot_modify(prot, PTE_ATTRINDX_MASK, PTE_ATTRINDX(MT_NORMAL_NC) | PTE_PXN | PTE_UXN)
-#define pgprot_device(prot) \
-	__pgprot_modify(prot, PTE_ATTRINDX_MASK, PTE_ATTRINDX(MT_DEVICE_nGnRE) | PTE_PXN | PTE_UXN)
-#define __HAVE_PHYS_MEM_ACCESS_PROT
-
-#define pmd_table(pmd)		((pmd_val(pmd) & PMD_TYPE_MASK) == PMD_TYPE_TABLE)
-#define pmd_sect(pmd)		((pmd_val(pmd) & PMD_TYPE_MASK) == PMD_TYPE_SECT)
-#ifdef CONFIG_MMU_64K_PAGE
-#define pud_sect(pud)		(0)
-#else
-#define pud_sect(pud)		((pud_val(pud) & PUD_TYPE_MASK) == PUD_TYPE_SECT)
-#endif
-
-/*
- * Conversion functions: convert a page and protection to a page entry,
- * and a page entry and page directory to the page they refer to.
- */
-#define mk_pte(page,prot)	pfn_pte(page_to_pfn(page),prot)
-
-static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
-{
-	const pteval_t mask = PTE_USER | PTE_PXN | PTE_UXN | PTE_RDONLY |
-			      PTE_PROT_NONE | PTE_VALID | PTE_WRITE;
-	pte_val(pte) = (pte_val(pte) & ~mask) | (pgprot_val(newprot) & mask);
-	return pte;
+	set_pte(ptep, pteval);
 }
 
-#define pmd_modify(pmd, newprot)	\
-	pte_pmd(pte_modify(pmd_pte(pmd), newprot))
+static inline void pte_clear(struct mm_struct *mm,
+	unsigned long addr, pte_t *ptep)
+{
+	set_pte_at(mm, addr, ptep, __pte(0));
+}
+#endif
 
 /* To include device specific fixmaps */
 #include <asm/mach/mmu.h>

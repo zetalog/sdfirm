@@ -157,6 +157,8 @@ static inline bool pmd_huge_map(pmd_t *pmdp, caddr_t addr, caddr_t next,
 #define NO_BLOCK_MAPPINGS					0
 #define pud_huge_map(pmdp, addr, next, phys, prot, flags)	false
 #define pmd_huge_map(pmdp, addr, next, phys, prot, flags)	false
+#define pud_sect(pud)						false
+#define pmd_sect(pmd)						false
 #endif
 
 static phys_addr_t early_pgtable_alloc(void)
@@ -202,7 +204,7 @@ static void init_pte(pmd_t *pmdp, caddr_t addr, caddr_t end,
 
 	ptep = pte_set_fixmap_offset(pmdp, addr);
 	do {
-		pte_t old_pte = READ_ONCE(*ptep);
+		__unused pte_t old_pte = READ_ONCE(*ptep);
 		pteval_t new_pte;
 
 		new_pte = pfn_pte(phys_to_pfn(phys), prot);

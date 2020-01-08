@@ -89,28 +89,42 @@
  */
 #ifdef CONFIG_RISCV_SV32
 #define VA_BITS			32
+#define BPGT_USES_MEGA_PAGES	0
 #endif
 #ifdef CONFIG_RISCV_SV39
 #define VA_BITS			39
+#define BPGT_USES_MEGA_PAGES	0
 #endif
 #ifdef CONFIG_RISCV_SV48
 #define VA_BITS			48
+#define BPGT_USES_MEGA_PAGES	1
 #endif
 
 #if __riscv_xlen == 32
 #define PHYS_MASK_SHIFT		34
 #define PAGE_PTR_BITS		2
-#ifndef VA_BITS
-#define VA_BITS			32
+#ifndef __ASSEMBLY__
+typedef uint32_t pfn_t;
+typedef uint32_t pteval_t;
+typedef uint32_t pmdval_t;
+typedef uint32_t pudval_t;
+typedef uint32_t pgdval_t;
 #endif
 #elif __riscv_xlen == 64
 #define PHYS_MASK_SHIFT		56
 #define PAGE_PTR_BITS		3
-#ifndef VA_BITS
-#define VA_BITS			39
+#ifndef __ASSEMBLY__
+typedef uint64_t pfn_t;
+typedef uint64_t pteval_t;
+typedef uint64_t pmdval_t;
+typedef uint64_t pudval_t;
+typedef uint64_t pgdval_t;
 #endif
 #else
 #error "Unsupported"
+#endif
+#ifndef VA_BITS
+#error "MMU scheme is not defined."
 #endif
 
 #define PAGE_PTE_BITS		PAGE_SHIFT
@@ -186,26 +200,36 @@ static inline void set_pgd(pgdval_t *pgdp, pgdval_t pgd)
  * range, so pages required to map highest possible PA are reserved in all
  * cases.
  */
+#if BPGT_USES_MAGE_PAGES
+#define BPGT_PGTABLE_LEVELS	(PGTABLE_LEVELS - 1)
+#define IDMAP_PGTABLE_LEVELS	(__PGTABLE_LEVELS(PHYS_MASK_SHIFT) - 1)
+#else
 #define BPGT_PGTABLE_LEVELS	(PGTABLE_LEVELS)
 #define IDMAP_PGTABLE_LEVELS	(__PGTABLE_LEVELS(PHYS_MASK_SHIFT))
+#endif
+
 #define BPGT_DIR_SIZE		(BPGT_PGTABLE_LEVELS * PAGE_SIZE)
 #define IDMAP_DIR_SIZE		(IDMAP_PGTABLE_LEVELS * PAGE_SIZE)
 
-#if 0
 /* Initial memory map size */
+#if BPGT_USES_MEGA_PAGES
+#define BPGT_BLOCK_SHIFT	SECTION_SHIFT
+#define BPGT_BLOCK_SIZE		SECTION_SIZE
+#define BPGT_TABLE_SHIFT	PUD_SHIFT
+#else
 #define BPGT_BLOCK_SHIFT	PAGE_SHIFT
 #define BPGT_BLOCK_SIZE		PAGE_SIZE
 #define BPGT_TABLE_SHIFT	PMD_SHIFT
+#endif
 
 /* The size of the initial kernel direct mapping */
 #define BPGT_INIT_MAP_SIZE	(_AC(1, UL) << BPGT_TABLE_SHIFT)
 
 /* Initial memory map attributes. */
-#define BPGT_PTE_FLAGS		(PTE_TYPE_PAGE | PTE_AF | PTE_SHARED)
-#define BPGT_PMD_FLAGS		(PMD_TYPE_SECT | PMD_SECT_AF | PMD_SECT_S)
+#define BPGT_PTE_FLAGS		(PAGE_KERNEL | PAGE_SHARED)
+#define BPGT_PMD_FLAGS		(PAGE_TABLE)
 
-#define BPGT_MM_MMUFLAGS	(PTE_ATTRINDX(MT_NORMAL) | BPGT_PTE_FLAGS)
-#define BPGT_MM_DEVFLAGS	(PMD_ATTRINDX(MT_DEVICE_nGnRnE) | BPGT_PTE_FLAGS)
-#endif
+#define BPGT_MM_MMUFLAGS	(BPGT_PTE_FLAGS)
+#define BPGT_MM_DEVFLAGS	(BPGT_PTE_FLAGS)
 
 #endif /* __PAGE_RISCV_H_INCLUDE__ */
