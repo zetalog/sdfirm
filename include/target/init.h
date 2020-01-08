@@ -10,6 +10,11 @@
 #define __LOVEC		.section	".lovec.text","ax"
 #define __HIVEC		.section	".hivec.text","ax"
 
+#define __init		__section(.init.text)
+#define __initdata	__section(.init.data)
+#define __initconst	__section(.init.rodata)
+#define __exitdata	__section(.exit.data)
+
 #include <asm/asm-offsets.h>
 
 #endif

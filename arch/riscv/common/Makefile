@@ -1,5 +1,7 @@
 obj-y :=
 
+CFLAGS_mmu.o := -mcmodel=medany
+
 obj-$(CONFIG_ARCH_HAS_NOVEC) += entry.rel
 obj-$(CONFIG_ARCH_HAS_NOVEC) += trap.rel
 
