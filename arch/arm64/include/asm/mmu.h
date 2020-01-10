@@ -220,6 +220,9 @@
 #define __pte_index(addr)		(((addr) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
 #define pte_offset_kernel(dir, addr)	(pmd_page_vaddr(*(dir)) + __pte_index(addr))
 
+#define pte_pfn(pte)		((pte_val(pte) & PHYS_MASK) >> PAGE_SHIFT)
+#define pfn_pte(pfn, prot)	__pte(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
+
 /* The following only work if pte_present(). Undefined behaviour otherwise. */
 #define pte_present(pte)	(!!(pte_val(pte) & (PTE_VALID | PTE_PROT_NONE)))
 #define pte_dirty(pte)		(!!(pte_val(pte) & PTE_DIRTY))
@@ -297,6 +300,10 @@ static inline void set_pte_at(caddr_t addr, pte_t *ptep, pte_t pte)
 #define pmd_pte(pmd)		__pte(pmd_val(pmd))
 #define pte_pmd(pte)		__pmd(pte_val(pte))
 
+#define pmd_pfn(pmd)		(pmd_page_paddr(pmd) >> PAGE_SHIFT)
+#define pfn_pmd(pfn,prot)	\
+	__pmd(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
+
 #define pmd_young(pmd)		pte_young(pmd_pte(pmd))
 #define pmd_wrprotect(pmd)	pte_pmd(pte_wrprotect(pmd_pte(pmd)))
 #define pmd_mkold(pmd)		pte_pmd(pte_mkold(pmd_pte(pmd)))
@@ -305,19 +312,25 @@ static inline void set_pte_at(caddr_t addr, pte_t *ptep, pte_t pte)
 #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
 #define pmd_mknotpresent(pmd)	(__pmd(pmd_val(pmd) & ~PMD_TYPE_MASK))
 
+#define pmd_bad(pmd)		(!(pmd_val(pmd) & 2))
+#define pmd_present(pmd)	pmd_val(pmd)
 #define mk_pmd(page,prot)	pfn_pmd(page_to_pfn(page),prot)
 #define set_pmd_at(addr, pmdp, pmd)	\
 	set_pte_at(addr, (pte_t *)pmdp, pmd_pte(pmd))
+#define pmd_page(pmd)			\
+	pfn_to_page(phys_to_pfn(pmd_val(pmd) & PHYS_MASK))
+#define pmd_page_paddr(pmd)		(pmd_val(pmd) & PHYS_MASK & PAGE_MASK)
+#define pmd_page_vaddr(pmd)		((pte_t *)__va(pmd_page_paddr(pmd)))
 
-#define __pgprot_modify(prot,mask,bits) \
+#define __pgprot_modify(prot,mask,bits)	\
 	__pgprot((pgprot_val(prot) & ~(mask)) | (bits))
 
 /* Mark the prot value as uncacheable and unbufferable. */
-#define pgprot_noncached(prot) \
+#define pgprot_noncached(prot)		\
 	__pgprot_modify(prot, PTE_ATTRINDX_MASK, PTE_ATTRINDX(MT_DEVICE_nGnRnE) | PTE_PXN | PTE_UXN)
-#define pgprot_writecombine(prot) \
+#define pgprot_writecombine(prot)	\
 	__pgprot_modify(prot, PTE_ATTRINDX_MASK, PTE_ATTRINDX(MT_NORMAL_NC) | PTE_PXN | PTE_UXN)
-#define pgprot_device(prot) \
+#define pgprot_device(prot)		\
 	__pgprot_modify(prot, PTE_ATTRINDX_MASK, PTE_ATTRINDX(MT_DEVICE_nGnRE) | PTE_PXN | PTE_UXN)
 #define __HAVE_PHYS_MEM_ACCESS_PROT
 
@@ -343,8 +356,19 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 	return pte;
 }
 
+static inline pgprot_t mk_pud_sect_prot(pgprot_t prot)
+{
+	return __pgprot((pgprot_val(prot) & ~PUD_TABLE_BIT) | PUD_TYPE_SECT);
+}
+
+static inline pgprot_t mk_pmd_sect_prot(pgprot_t prot)
+{
+	return __pgprot((pgprot_val(prot) & ~PMD_TABLE_BIT) | PMD_TYPE_SECT);
+}
+
 #define pmd_modify(pmd, newprot)	\
 	pte_pmd(pte_modify(pmd_pte(pmd), newprot))
+bool pgattr_change_is_safe(uint64_t old, uint64_t new);
 
 /* To include device specific fixmaps */
 #include <asm/mach/mmu.h>

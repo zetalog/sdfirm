@@ -47,21 +47,6 @@ static void early_pgtable_free(phys_addr_t phys)
 }
 #endif
 
-static bool pgattr_change_is_safe(uint64_t old, uint64_t new)
-{
-	/* The following mapping attributes may be updated in live
-	 * kernel mappings without the need for break-before-mak.
-	 */
-	static const pteval_t mask = PTE_PXN | PTE_RDONLY | PTE_WRITE | PTE_NG;
-	if (old == 0 || new == 0)
-		return true;
-	if ((old | new) & PTE_CONT)
-		return false;
-	if (old & ~new & PTE_NG)
-		return false;
-	return ((old ^ new) & ~mask) == 0;
-}
-
 int pud_set_huge(pud_t *pudp, phys_addr_t phys, pgprot_t prot)
 {
 	pud_t new_pud = pfn_pud(phys_to_pfn(phys), mk_pud_sect_prot(prot));

@@ -1,5 +1,20 @@
 #include <target/paging.h>
 
+bool pgattr_change_is_safe(uint64_t old, uint64_t new)
+{
+	/* The following mapping attributes may be updated in live
+	 * kernel mappings without the need for break-before-mak.
+	 */
+	static const pteval_t mask = PTE_PXN | PTE_RDONLY | PTE_WRITE | PTE_NG;
+	if (old == 0 || new == 0)
+		return true;
+	if ((old | new) & PTE_CONT)
+		return false;
+	if (old & ~new & PTE_NG)
+		return false;
+	return ((old ^ new) & ~mask) == 0;
+}
+
 extern void cpu_do_switch_pgd(phys_addr_t pgd_phys, unsigned long asid);
 
 static void cpu_set_reserved_ttbr_user(void)

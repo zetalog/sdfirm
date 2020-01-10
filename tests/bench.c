@@ -605,6 +605,8 @@ int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
 		cpu_didt_pages = ALIGN_UP(size * cpus, PAGE_SIZE) /
 				 PAGE_SIZE;
 		cpu_didt_alloc = page_alloc_pages(cpu_didt_pages);
+		memory_set((caddr_t)cpu_didt_alloc, 0,
+			   cpu_didt_pages * PAGE_SIZE);
 		do_printf("alloc: cpuexec: %016llx(%d)\n",
 			  (uint64_t)cpu_didt_alloc, cpu_didt_pages);
 		locked = false;

@@ -75,21 +75,8 @@ typedef pteval_t pgprot_t;
 
 #define PTRS_PER_PTE		PAGE_MAX_TABLE_ENTRIES
 
-#define pte_pfn(pte)		((pte_val(pte) & PHYS_MASK) >> PAGE_SHIFT)
-#define pfn_pte(pfn, prot)	__pte(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
-
 #define pte_none(pte)		(!pte_val(pte))
 #define pte_clear(addr, ptep)	set_pte(ptep, __pte(0))
-
-#if 0
-#define pte_alloc_one_kernel(addr)	((pte_t *)page_alloc_zeroed())
-#define pte_free_kernel(pte)		page_free((caddr_t)pte)
-#define pte_alloc_one(addr)		((pte_t *)page_alloc_zeroed())
-#define pte_free(pte)			page_free((caddr_t)pte)
-#endif
-
-#define pmd_page_paddr(pmd)		(pmd_val(pmd) & PHYS_MASK & PAGE_MASK)
-#define pmd_page_vaddr(pmd)		((pte_t *)__va(pmd_page_paddr(pmd)))
 
 /* Find an entry in the third-level page table. */
 #define pte_index(addr)			(((addr) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
@@ -99,15 +86,8 @@ typedef pteval_t pgprot_t;
 #define set_pte(ptep, pte)	(*(ptep) = (pte))
 #endif
 
-#define pmd_pfn(pmd)		(pmd_page_paddr(pmd) >> PAGE_SHIFT)
-#define pfn_pmd(pfn,prot)	__pmd(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
-
 #define pmd_none(pmd)		(!pmd_val(pmd))
-#define pmd_bad(pmd)		(!(pmd_val(pmd) & 2))
-#define pmd_present(pmd)	pmd_val(pmd)
 #define pmd_clear(pmdp)		set_pmd(pmdp, __pmd(0))
-
-#define pmd_page(pmd)		pfn_to_page(phys_to_pfn(pmd_val(pmd) & PHYS_MASK))
 
 #define __pmd_populate(pmdp, pte, prot)	set_pmd(pmdp, __pmd(pte | prot))
 #define pmd_populate(pmdp, ptep)	__pmd_populate(pmdp, __pa(ptep), PMD_TYPE_TABLE)
@@ -274,14 +254,6 @@ static inline caddr_t pmd_cont_addr_end(caddr_t addr, caddr_t end)
 	caddr_t __boundary = ((addr) + CONT_PMD_SIZE) & CONT_PMD_MASK;
 	return (__boundary - 1 < end - 1) ? __boundary : end;
 }
-
-static inline pgprot_t mk_pud_sect_prot(pgprot_t prot)
-{
-	return __pgprot((pgprot_val(prot) & ~PUD_TABLE_BIT) | PUD_TYPE_SECT);}
-
-static inline pgprot_t mk_pmd_sect_prot(pgprot_t prot)
-{
-	return __pgprot((pgprot_val(prot) & ~PMD_TABLE_BIT) | PMD_TYPE_SECT);}
 #endif
 #endif /* CONFIG_ARCH_HAS_MMU */
 
