@@ -454,6 +454,12 @@ config ARCH_HAS_MMU_4L
 config ARCH_HAS_MMU_5L
 	bool
 
+config ARCH_HAS_MMU_CONT
+	bool
+
+config ARCH_HAS_MMU_HUGE
+	bool
+
 menuconfig MMU
 	bool "Address space layout (paging) support"
 	depends ARCH_HAS_MMU

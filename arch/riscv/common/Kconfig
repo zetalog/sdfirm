@@ -317,6 +317,7 @@ config RISCV_SV39
 config RISCV_SV48
 	bool "Sv48"
 	depends CPU_SV48
+	select ARCH_HAS_MMU_HUGE
 
 endchoice
 

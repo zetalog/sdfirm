@@ -4,11 +4,159 @@
 #include <target/console.h>
 #include <target/cmdline.h>
 
-#define NO_BLOCK_MAPPINGS	_BV(0)
-#define NO_CONT_MAPPINGS	_BV(1)
-
 #ifdef CONFIG_MMU_IDMAP
 pgd_t mmu_pg_dir[PTRS_PER_PGD] __page_aligned_bss;
+#endif
+
+#ifdef CONFIG_ARCH_HAS_MMU_CONT
+#define NO_CONT_MAPPINGS	_BV(1)
+
+#define CONT_PTES		(1 << CONT_PTE_SHIFT)
+#define CONT_PTE_SIZE		(CONT_PTES * PAGE_SIZE)
+#define CONT_PTE_MASK		(~(CONT_PTE_SIZE - 1))
+#define CONT_PMDS		(1 << CONT_PMD_SHIFT)
+#define CONT_PMD_SIZE		(CONT_PMDS * PMD_SIZE)
+#define CONT_PMD_MASK		(~(CONT_PMD_SIZE - 1))
+
+static inline pgprot_t pud_cont_prot(caddr_t addr, caddr_t next,
+				     phys_addr_t phys, pgprot_t prot,
+				     int flags)
+{
+	pgprot_t __prot = prot;
+	if ((((addr | next | phys) & ~CONT_PMD_MASK) == 0) &&
+	    (flags & NO_CONT_MAPPINGS) == 0) {
+		con_dbg("PMD cont: addr=%016llx\n", addr);
+		__prot = __pgprot(pgprot_val(prot) | PTE_CONT);
+	}
+	return __prot;
+}
+
+static inline pgprot_t pmd_cont_prot(caddr_t addr, caddr_t next,
+				     phys_addr_t phys, pgprot_t prot,
+				     int flags)
+{
+	pgprot_t __prot = prot;
+	if ((((addr | next | phys) & ~CONT_PTE_MASK) == 0) &&
+	    (flags & NO_CONT_MAPPINGS) == 0) {
+		con_dbg("PTE cont: addr=%016llx\n", addr);
+		__prot = __pgprot(pgprot_val(prot) | PTE_CONT);
+	}
+	return __prot;
+}
+
+static inline caddr_t pte_cont_addr_end(caddr_t addr, caddr_t end)
+{
+	caddr_t __boundary = ((addr) + CONT_PTE_SIZE) & CONT_PTE_MASK;
+	return (__boundary - 1 < end - 1) ? __boundary : end;
+}
+
+static inline caddr_t pmd_cont_addr_end(caddr_t addr, caddr_t end)
+{
+	caddr_t __boundary = ((addr) + CONT_PMD_SIZE) & CONT_PMD_MASK;
+	return (__boundary - 1 < end - 1) ? __boundary : end;
+}
+#else
+#define NO_CONT_MAPPINGS				0
+#define pud_cont_prot(addr, next, phys, prot, flags)	(prot)
+#define pmd_cont_prot(addr, next, phys, prot, flags)	(prot)
+#define pte_cont_addr_end(addr, end)	pte_addr_end(addr, end)
+#define pmd_cont_addr_end(addr, end)	pmd_addr_end(addr, end)
+#endif
+
+#ifdef CONFIG_ARCH_HAS_MMU_HUGE
+#define NO_BLOCK_MAPPINGS	_BV(0)
+
+static inline bool pud_use_huge(caddr_t addr, caddr_t next, phys_addr_t phys)
+{
+	/* Only allows huge PUD for 4K granule */
+	if (PAGE_SHIFT != 12)
+		return false;
+	if (((addr | next | phys) & ~PUD_MASK) != 0)
+		return false;
+	return true;
+}
+
+int pud_set_huge(pud_t *pudp, phys_addr_t phys, pgprot_t prot)
+{
+	pud_t new_pud = pfn_pud(phys_to_pfn(phys), mk_pud_sect_prot(prot));
+
+	/* Only allow permission changes for now */
+	if (!pgattr_change_is_safe(READ_ONCE(pud_val(*pudp)),
+				   pud_val(new_pud)))
+		return 0;
+
+	BUG_ON(phys & ~PUD_MASK);
+	con_dbg("PUD huge: %016llx=%016llx\n", pudp, new_pud);
+	set_pud(pudp, new_pud);
+	return 1;
+}
+
+static inline bool pud_huge_map(pud_t *pudp, caddr_t addr, caddr_t next,
+				phys_addr_t phys, pgprot_t prot, int flags)
+{
+	pud_t old_pud = READ_ONCE(*pudp);
+
+	if ((flags & NO_BLOCK_MAPPINGS) != 0)
+		return false;
+	if (!pud_use_huge(addr, next, phys))
+		return false;
+
+	pud_set_huge(pudp, phys, prot);
+	/* After the PUD entry has been populated once, we
+	 * only allow updates to the permission attributes.
+	 */
+	if (!pgattr_change_is_safe(pud_val(old_pud),
+				   READ_ONCE(pud_val(*pudp))))
+		BUG();
+	return true;
+}
+
+static inline bool pmd_use_huge(caddr_t addr, caddr_t next,
+				phys_addr_t phys)
+{
+	if (((addr | next | phys) & ~SECTION_MASK) != 0)
+		return false;
+	return true;
+}
+
+int pmd_set_huge(pmd_t *pmdp, phys_addr_t phys, pgprot_t prot)
+{
+	pmd_t new_pmd = pfn_pmd(phys_to_pfn(phys), mk_pmd_sect_prot(prot));
+
+	/* Only allow permission changes for now */
+	if (!pgattr_change_is_safe(READ_ONCE(pmd_val(*pmdp)),
+				   pmd_val(new_pmd)))
+		return 0;
+
+	BUG_ON(phys & ~PMD_MASK);
+	con_dbg("PMD huge: %016llx=%016llx\n", pmdp, new_pmd);
+	set_pmd(pmdp, new_pmd);
+	return 1;
+}
+
+static inline bool pmd_huge_map(pmd_t *pmdp, caddr_t addr, caddr_t next,
+				phys_addr_t phys, pgprot_t prot, int flags)
+{
+	pmd_t old_pmd = READ_ONCE(*pmdp);
+
+	if ((flags & NO_BLOCK_MAPPINGS) != 0)
+		return false;
+	if (!pmd_use_huge(addr, next, phys))
+		return false;
+
+	pmd_set_huge(pmdp, phys, prot);
+	/* After the PMD entry has been populated once, we only allow
+	 * updates to the permission attributes.
+	 */
+	if (!pgattr_change_is_safe(pmd_val(old_pmd),
+				   READ_ONCE(pmd_val(*pmdp))))
+		BUG();
+	return true;
+}
+#else
+#define NO_BLOCK_MAPPINGS					0
+#define pud_huge_map(pmdp, addr, next, phys, prot, flags)	false
+#define pmd_huge_map(pmdp, addr, next, phys, prot, flags)	false
 #endif
 
 static phys_addr_t early_pgtable_alloc(void)
@@ -46,36 +194,6 @@ static void early_pgtable_free(phys_addr_t phys)
 	mem_free(phys, PAGE_SIZE);
 }
 #endif
-
-int pud_set_huge(pud_t *pudp, phys_addr_t phys, pgprot_t prot)
-{
-	pud_t new_pud = pfn_pud(phys_to_pfn(phys), mk_pud_sect_prot(prot));
-
-	/* Only allow permission changes for now */
-	if (!pgattr_change_is_safe(READ_ONCE(pud_val(*pudp)),
-				   pud_val(new_pud)))
-		return 0;
-
-	BUG_ON(phys & ~PUD_MASK);
-	con_dbg("PUD huge: %016llx=%016llx\n", pudp, new_pud);
-	set_pud(pudp, new_pud);
-	return 1;
-}
-
-int pmd_set_huge(pmd_t *pmdp, phys_addr_t phys, pgprot_t prot)
-{
-	pmd_t new_pmd = pfn_pmd(phys_to_pfn(phys), mk_pmd_sect_prot(prot));
-
-	/* Only allow permission changes for now */
-	if (!pgattr_change_is_safe(READ_ONCE(pmd_val(*pmdp)),
-				   pmd_val(new_pmd)))
-		return 0;
-
-	BUG_ON(phys & ~PMD_MASK);
-	con_dbg("PMD huge: %016llx=%016llx\n", pmdp, new_pmd);
-	set_pmd(pmdp, new_pmd);
-	return 1;
-}
 
 static void init_pte(pmd_t *pmdp, caddr_t addr, caddr_t end,
 		     phys_addr_t phys, pgprot_t prot)
@@ -126,15 +244,11 @@ static void alloc_init_cont_pte(pmd_t *pmdp, caddr_t addr,
 	BUG_ON(pmd_bad(pmd));
 
 	do {
-		pgprot_t __prot = prot;
+		pgprot_t __prot;
 		next = pte_cont_addr_end(addr, end);
 
 		/* Use a contiguous mapping if the range is suitably aligned */
-		if ((((addr | next | phys) & ~CONT_PTE_MASK) == 0) &&
-		    (flags & NO_CONT_MAPPINGS) == 0) {
-			con_dbg("PTE cont: addr=%016llx\n", addr);
-			__prot = __pgprot(pgprot_val(prot) | PTE_CONT);
-		}
+		__prot = pmd_cont_prot(addr, next, phys, prot, flags);
 		init_pte(pmdp, addr, next, phys, __prot);
 		phys += next - addr;
 	} while (addr = next, addr != end);
@@ -149,23 +263,14 @@ static void init_pmd(pud_t *pudp, caddr_t addr, caddr_t end,
 
 	pmdp = pmd_set_fixmap_offset(pudp, addr);
 	do {
-		pmd_t old_pmd = READ_ONCE(*pmdp);
 		next = pmd_addr_end(addr, end);
 		con_dbg("PMD: %016llx=%016llx, addr=%016llx\n",
 			pmdp, *pmdp, addr);
 
 		/* try section mapping first */
-		if (((addr | next | phys) & ~SECTION_MASK) == 0 &&
-		    (flags & NO_BLOCK_MAPPINGS) == 0) {
-			pmd_set_huge(pmdp, phys, prot);
+		if (!pmd_huge_map(pmdp, addr, next, phys, prot, flags)) {
+			pmd_t old_pmd = READ_ONCE(*pmdp);
 
-			/* After the PMD entry has been populated once, we
-			 * only allow updates to the permission attributes.
-			 */
-			if (!pgattr_change_is_safe(pmd_val(old_pmd),
-						   READ_ONCE(pmd_val(*pmdp))))
-				BUG();
-		} else {
 			alloc_init_cont_pte(pmdp, addr, next, phys, prot,
 					    pgtable_alloc, flags);
 			BUG_ON(pmd_val(old_pmd) != 0 &&
@@ -198,28 +303,15 @@ static void alloc_init_cont_pmd(pud_t *pudp, caddr_t addr,
 	BUG_ON(pud_bad(pud));
 
 	do {
-		pgprot_t __prot = prot;
+		pgprot_t __prot;
 		next = pmd_cont_addr_end(addr, end);
 
 		/* Use a contiguous mapping if the range is suitably aligned */
-		if ((((addr | next | phys) & ~CONT_PMD_MASK) == 0) &&
-		    (flags & NO_CONT_MAPPINGS) == 0) {
-			con_dbg("PMD cont: addr=%016llx\n", addr);
-			__prot = __pgprot(pgprot_val(prot) | PTE_CONT);
-		}
+		__prot = pud_cont_prot(addr, next, phys, prot, flags);
 		init_pmd(pudp, addr, next, phys, __prot, pgtable_alloc,
 			 flags);
 		phys += next - addr;
 	} while (addr = next, addr != end);
-}
-
-static inline bool use_1G_block(caddr_t addr, caddr_t next, phys_addr_t phys)
-{
-	if (PAGE_SHIFT != 12)
-		return false;
-	if (((addr | next | phys) & ~PUD_MASK) != 0)
-		return false;
-	return true;
 }
 
 static void alloc_init_pud(pgd_t *pgdp, caddr_t addr, caddr_t end,
@@ -242,23 +334,13 @@ static void alloc_init_pud(pgd_t *pgdp, caddr_t addr, caddr_t end,
 
 	pudp = pud_set_fixmap_offset(pgdp, addr);
 	do {
-		pud_t old_pud = READ_ONCE(*pudp);
 		next = pud_addr_end(addr, end);
 		con_dbg("PUD: %016llx=%016llx, addr=%016llx\n",
 			pudp, *pudp, addr);
 
-		/* For 4K granule only, try 1GB block */
-		if (use_1G_block(addr, next, phys) &&
-		    (flags & NO_BLOCK_MAPPINGS) == 0) {
-			pud_set_huge(pudp, phys, prot);
+		if (!pud_huge_map(pudp, addr, next, phys, prot, flags)) {
+			pud_t old_pud = READ_ONCE(*pudp);
 
-			/* After the PUD entry has been populated once, we
-			 * only allow updates to the permission attributes.
-			 */
-			if (!pgattr_change_is_safe(pud_val(old_pud),
-						   READ_ONCE(pud_val(*pudp))))
-				BUG();
-		} else {
 			alloc_init_cont_pmd(pudp, addr, next, phys, prot,
 					    pgtable_alloc, flags);
 			BUG_ON(pud_val(old_pud) != 0 &&

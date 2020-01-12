@@ -8,6 +8,8 @@ mainmenu "Small Device Firmware Configuration"
 config ARM64
 	bool
 	select ARCH_HAS_MMU
+	select ARCH_HAS_MMU_CONT
+	select ARCH_HAS_MMU_HUGE
 	select VMSA if MMU
 	default y
 	help

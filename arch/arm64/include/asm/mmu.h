@@ -67,15 +67,6 @@
 #define CONT_PMD_SHIFT		4
 #endif
 
-#define CONT_PTES		(1 << CONT_PTE_SHIFT)
-#define CONT_PTE_SIZE		(CONT_PTES * PAGE_SIZE)
-#define CONT_PTE_MASK		(~(CONT_PTE_SIZE - 1))
-#define CONT_PMDS		(1 << CONT_PMD_SHIFT)
-#define CONT_PMD_SIZE		(CONT_PMDS * PMD_SIZE)
-#define CONT_PMD_MASK		(~(CONT_PMD_SIZE - 1))
-/* the the numerical offset of the PTE within a range of CONT_PTES */
-#define CONT_RANGE_OFFSET(addr)	(((addr)>>PAGE_SHIFT)&(CONT_PTES-1))
-
 /* Hardware page table definitions */
 
 /* Level 1 descriptor (PUD) */

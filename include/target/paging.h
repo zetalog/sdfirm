@@ -241,22 +241,6 @@ extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
 
 #include <driver/mmu.h>
 
-#ifdef CONFIG_ARCH_HAS_MMU
-#ifndef __ASSEMBLY__
-static inline caddr_t pte_cont_addr_end(caddr_t addr, caddr_t end)
-{
-	caddr_t __boundary = ((addr) + CONT_PTE_SIZE) & CONT_PTE_MASK;
-	return (__boundary - 1 < end - 1) ? __boundary : end;
-}
-
-static inline caddr_t pmd_cont_addr_end(caddr_t addr, caddr_t end)
-{
-	caddr_t __boundary = ((addr) + CONT_PMD_SIZE) & CONT_PMD_MASK;
-	return (__boundary - 1 < end - 1) ? __boundary : end;
-}
-#endif
-#endif /* CONFIG_ARCH_HAS_MMU */
-
 #define FIXMAP_PAGE_IO	__pgprot(PROT_DEVICE_nGnRE)
 
 #define fix_to_virt(x)		(FIXADDR_END - ((x) << PAGE_SHIFT))
