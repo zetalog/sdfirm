@@ -51,6 +51,8 @@
 #ifdef CONFIG_DUOWEN_IMC
 #define PLIC_HW_PRI_MAX		31
 #endif
+#define plic_hw_m_ctx(hartid)	(2 * (hartid))
+#define plic_hw_s_ctx(hartid)	((hartid) < 16 ? (2 * (hartid) + 1) : PLIC_CTX_NONE)
 
 #include <asm/plic.h>
 

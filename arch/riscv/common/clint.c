@@ -121,7 +121,8 @@ void clint_sync_ipi(cpu_t cpu)
 		ipi = __raw_readl(CLINT_MSIP(cpu));
 		if (!ipi)
 			break;
-		incoming_ipi |= clint_xchg((uint32_t *)CLINT_MSIP(cpu), 0);
+		incoming_ipi |= clint_xchg(
+			(uint32_t *)(caddr_t)CLINT_MSIP(cpu), 0);
 	}
 	if (incoming_ipi)
 		__raw_writel(incoming_ipi, CLINT_MSIP(src_cpu));

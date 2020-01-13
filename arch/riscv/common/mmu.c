@@ -1,4 +1,5 @@
 #include <target/init.h>
+#include <target/arch.h>
 #include <target/paging.h>
 
 pgd_t mmu_id_map[IDMAP_DIR_SIZE / sizeof (pgd_t)] __page_aligned_bss;
@@ -58,8 +59,8 @@ __init void bpgt_create_idmap_blk(void *tbl, phys_addr_t phys,
 
 void __init mmu_hw_boot_init(void)
 {
-	uintptr_t load_pa = (uintptr_t)(&_start);
-	uintptr_t load_sz = (uintptr_t)(&_end) - load_pa;
+	uintptr_t load_pa = SDFIRM_START;
+	uintptr_t load_sz = SDFIRM_END - SDFIRM_START;
 
 	bpgt_create_idmap_dir(mmu_id_map, PAGE_OFFSET);
 	bpgt_create_idmap_blk(mmu_id_map, SDFIRM_START, load_pa, load_sz);

@@ -404,6 +404,10 @@ config SYS_EXIT_M
 config SYS_EXIT_S
 	bool
 
+config SYS_EXIT_U
+	bool
+	select RISCV_N if (CPU_N && !SYS_NOIRQ)
+
 choice
 	prompt "Privileged software stack"
 	default RISCV_AEE
@@ -444,8 +448,9 @@ choice
 	prompt "Exit priviledge level"
 
 # Disabled for the firmware system
-#config RISCV_EXIT_U
-#	bool "U-Mode"
+config RISCV_EXIT_U
+	bool "U-Mode"
+	depends SYS_EXIT_U
 
 config RISCV_EXIT_S
 	bool "S-Mode"

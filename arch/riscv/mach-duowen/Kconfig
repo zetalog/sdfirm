@@ -39,17 +39,22 @@ config DUOWEN_ZSBL
 	depends DUOWEN_IMC
 	select XIP
 	select LOAD_DATA
+	select SYS_ENTR_M
+	select SYS_EXIT_M
 
 config DUOWEN_FSBL
 	bool "1-stage programmable bootloader (FSBL)"
 	depends DUOWEN_IMC
 	select ARCH_HAS_BOOT_LOAD
 	select XIP
+	select SYS_ENTR_M
+	select SYS_EXIT_M
 
 config DUOWEN_SBI
 	bool "Open-SBI compliant bootloader (BBL)"
 	depends DUOWEN_APC
 	select SYS_ENTR_M
+	select SYS_EXIT_M
 	select SYS_EXIT_S
 	select SBI
 	select ARCH_HAS_NOVEC

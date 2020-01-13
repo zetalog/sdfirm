@@ -15,10 +15,12 @@ choice
 config SPIKE_CPU32
 	bool "32-bit CPU"
 	select CPU_SPIKE32
+	select CPU_SV32
 
 config SPIKE_CPU64
 	bool "64-bit CPU"
 	select CPU_SPIKE64
+	select CPU_SV39
 
 endchoice
 

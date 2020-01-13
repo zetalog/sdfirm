@@ -1,5 +1,5 @@
-#ifndef __MMU_UNLEASHED_H_INCLUDE__
-#define __MMU_UNLEASHED_H_INCLUDE__
+#ifndef __MMU_SPIKE_H_INCLUDE__
+#define __MMU_SPIKE_H_INCLUDE__
 
 /*
  * Here we define all the compile-time 'special' virtual
@@ -47,4 +47,4 @@ enum fixed_addresses {
 
 #define FIXADDR_SIZE	(__end_of_permanent_fixed_addresses << PAGE_SHIFT)
 
-#endif /* __MMU_UNLEASHED_H_INCLUDE__ */
+#endif /* __MMU_SPIKE_H_INCLUDE__ */

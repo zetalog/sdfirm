@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Dec 27 16:37:56 2019
+# Mon Jan 13 11:51:49 2020
 #
 CONFIG_32BIT=y
 CONFIG_RISCV=y
@@ -65,18 +65,27 @@ CONFIG_CPU_N=y
 # CONFIG_RISCV_C is not set
 # CONFIG_RISCV_N is not set
 # CONFIG_RISCV_VM is not set
+
+#
+# CPU architecture options
+#
+CONFIG_RISCV_ATOMIC_COUNT_32=y
+# CONFIG_RISCV_ATOMIC_COUNT_64 is not set
 CONFIG_CMODEL_MEDLOW=y
 # CONFIG_CMODEL_MEDANY is not set
 CONFIG_TUNE_GENERIC=y
 CONFIG_MAXPHYSMEM_2GB=y
 # CONFIG_MAXPHYSMEM_128GB is not set
+CONFIG_SYS_ENTR_M=y
+CONFIG_SYS_EXIT_M=y
 CONFIG_RISCV_AEE=y
 # CONFIG_RISCV_SEE is not set
 # CONFIG_RISCV_HEE is not set
-CONFIG_RISCV_ENTR_S=y
-# CONFIG_RISCV_ENTR_M is not set
-CONFIG_RISCV_EXIT_S=y
-# CONFIG_RISCV_EXIT_M is not set
+# CONFIG_RISCV_ENTR_S is not set
+CONFIG_RISCV_ENTR_M=y
+# CONFIG_RISCV_EXIT_U is not set
+# CONFIG_RISCV_EXIT_S is not set
+CONFIG_RISCV_EXIT_M=y
 
 #
 # System peripherals
@@ -92,6 +101,7 @@ CONFIG_DUOWEN_IMC=y
 # CONFIG_DUOWEN_APC is not set
 CONFIG_DUOWEN_ZSBL=y
 # CONFIG_DUOWEN_FSBL is not set
+# CONFIG_DUOWEN_SBI is not set
 
 #
 # Configure timestamp hardware
@@ -145,7 +155,6 @@ CONFIG_LOAD_DATA=y
 CONFIG_MEM=y
 CONFIG_MEM_MAX_REGIONS=6
 CONFIG_MEM_RESIZE=y
-# CONFIG_MEM_HEAP is not set
 # CONFIG_PAGE is not set
 # CONFIG_BULK is not set
 # CONFIG_TERM is not set
@@ -198,6 +207,7 @@ CONFIG_SD_SDSC=y
 # CONFIG_SD_SDXC is not set
 # CONFIG_SD_SPI is not set
 # CONFIG_SDHC is not set
+# CONFIG_DDR is not set
 # CONFIG_RAS is not set
 
 #
@@ -272,6 +282,11 @@ CONFIG_SDHC_SD=y
 # CONFIG_SDHC_UHSII is not set
 
 #
+# DDR controller drivers
+#
+# CONFIG_DW_UMCTL2 is not set
+
+#
 # Clock drivers
 #
 CONFIG_DW_PLL5GHZ_TSMC12FFC=y
@@ -301,12 +316,14 @@ CONFIG_BIT_FLS8=y
 CONFIG_BIT_FLS16=y
 # CONFIG_BIT_FFS16 is not set
 CONFIG_BIT_FLS32=y
+# CONFIG_BIT_FLS64 is not set
 # CONFIG_BIT_FFS32 is not set
 # CONFIG_BIT_HWEIGHT64 is not set
 
 #
 # Bitmap operations
 #
+CONFIG_ARCH_HAS_BITS_PER_UNIT_32=y
 # CONFIG_BIT_FIND_CLEAR is not set
 
 #

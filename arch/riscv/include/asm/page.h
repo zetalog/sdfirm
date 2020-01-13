@@ -120,11 +120,10 @@ typedef uint64_t pmdval_t;
 typedef uint64_t pudval_t;
 typedef uint64_t pgdval_t;
 #endif
-#else
-#error "Unsupported"
-#endif
+#elif defined(CONFIG_MMU)
 #ifndef VA_BITS
 #error "MMU scheme is not defined."
+#endif
 #endif
 
 #define PAGE_PTE_BITS		PAGE_SHIFT
@@ -139,12 +138,6 @@ typedef uint64_t pgdval_t;
 #define PHYS_MASK		((PTR_VAL_ONE << PHYS_MASK_SHIFT) - 1)
 
 #ifndef __ASSEMBLY__
-typedef uint64_t pfn_t;
-typedef uint64_t pteval_t;
-typedef uint64_t pmdval_t;
-typedef uint64_t pudval_t;
-typedef uint64_t pgdval_t;
-
 extern unsigned long empty_zero_page[PAGE_SIZE / sizeof (unsigned long)];
 
 static inline void page_wmb(void)

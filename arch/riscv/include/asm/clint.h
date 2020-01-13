@@ -42,7 +42,7 @@
 #ifndef __CLINT_RISCV_H_INCLUDE__
 #define __CLINT_RISCV_H_INCLUDE__
 
-#include <target/types.h>
+#include <target/smp.h>
 
 #define CLINT_REG(offset)	(CLINT_BASE + (offset))
 #define CLINT_MSIP(hart)	CLINT_REG((hart) << 2)
