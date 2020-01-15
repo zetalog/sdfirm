@@ -3,8 +3,6 @@
 #include <target/cmdline.h>
 #include <target/console.h>
 
-#define SIZE_1M		0x100000
-
 #define foreach_cmd(cmdp)		\
 	for (cmdp = __cmd_start; cmdp < __cmd_end; cmdp++)
 #define MAXARGS				10

@@ -39,7 +39,6 @@ SECTIONS
 		__init_text_end = .;
 	}
 
-	CMD_LINE_SECTION(8)
 	BENCH_INPUT(8)
 
 	.text : {
@@ -50,6 +49,7 @@ SECTIONS
 	__etext = .;				/* end of text sections */
 
 	RO_DATA_SECTION(PAGE_SIZE)
+	CMD_LINE_SECTION(8)
 	_etext = .;				/* end of text and rodata sections */
 
 	__text_loc = CONFIG_BOOT_BASE;		/* text boot location */

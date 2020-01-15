@@ -1,17 +1,15 @@
 #ifndef __CMDLINE_H_INCLUDE__
 #define __CMDLINE_H_INCLUDE__
 
-#include <errno.h>
 #include <target/compiler.h>
 
 #define CMD_LINE_SECTION(align)				\
 	. = ALIGN((align));				\
 	__cmd_start = .;				\
-	.cmd.text : {					\
-		KEEP(*(SORT(.cmd.text)))		\
+	.cmd.rodata : {					\
+		KEEP(*(SORT(.cmd.rodata)))		\
 	}						\
 	__cmd_end = .;
-
 
 #ifndef __ASSEMBLY__
 typedef struct {
@@ -21,10 +19,10 @@ typedef struct {
 	char *usage; /* long description */
 } cmd_tbl;
 
-#define DEFINE_COMMAND(name, cmd, help, usage)		\
-	int cmd(int, char *[]);				\
-	static cmd_tbl __cmd_##name			\
-	__attribute__((used,__section__(".cmd.text")))	\
+#define DEFINE_COMMAND(name, cmd, help, usage)			\
+	int cmd(int, char *[]);					\
+	static cmd_tbl __cmd_##name				\
+	__attribute__((used,__section__(".cmd.rodata")))	\
 	= { #name, cmd, help, usage }
 
 #ifdef CONFIG_CONSOLE_COMMAND

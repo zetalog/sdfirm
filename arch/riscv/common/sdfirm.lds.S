@@ -43,7 +43,6 @@ SECTIONS
 		. = ALIGN((WORD_SIZE));
 		__init_text_end = .;
 	}
-	CMD_LINE_SECTION(WORD_SIZE)
 
 	_text = .;
 	.text : {
@@ -54,6 +53,7 @@ SECTIONS
 	__etext = .;				/* end of text sections */
 
 	RO_DATA_SECTION(WORD_SIZE)
+	CMD_LINE_SECTION(WORD_SIZE)
 	.srodata : {
 		*(.srodata .srodata.*)
 		. = ALIGN((WORD_SIZE));
@@ -102,6 +102,10 @@ SECTIONS
 		*(.sbss .sbss.*)
 		*(.bss .bss.*)
 	}
+
+#ifdef CONFIG_ARCH_HAS_HTIF
+	HTIF_SECTION(WORD_SIZE)
+#endif
 	. = ALIGN(WORD_SIZE);
 	__bss_stop = .;				/* end of bss sections */
 	. = ALIGN(PAGE_SIZE);

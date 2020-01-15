@@ -21,6 +21,10 @@ config SPIKE_CPU64
 	bool "64-bit CPU"
 	select CPU_SPIKE64
 	select CPU_SV39
+	select CPU_SV48
+	select ARCH_HAS_UART
+	select ARCH_HAS_HTIF
+	select HTIF if UART || DEBUG_PRINT || CONSOLE
 
 endchoice
 

@@ -491,11 +491,20 @@ config SBI
 
 menu "System peripherals"
 
+config ARCH_HAS_HTIF
+	bool
+
+config HTIF
+	bool "Host Target Interface (HTIF) support"
+	depends ARCH_HAS_HTIF
+	help
+	  The interface can be found in spike (RISCV ISA simulator).
+
 config ARCH_HAS_CLINT
 	bool
 
 config CLINT
-	bool "SiFive Core Local Interruptor (CLINT) support"
+	bool "Core Local Interruptor (CLINT) support"
 	depends ARCH_HAS_CLINT
 
 config ARCH_HAS_PLIC

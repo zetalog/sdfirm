@@ -35,23 +35,26 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)arch.h: SPIKE machine specific definitions
- * $Id: arch.h,v 1.1 2019-09-05 11:26:00 zhenglv Exp $
+ * @(#)htif.h: host target interface (HTIF) definitions
+ * $Id: htif.h,v 1.1 2020-01-15 14:49:00 zhenglv Exp $
  */
 
-#ifndef __ARCH_SPIKE_H_INCLUDE__
-#define __ARCH_SPIKE_H_INCLUDE__
+#ifndef __HTIF_RISCV_H_INCLUDE__
+#define __HTIF_RISCV_H_INCLUDE__
 
-#include <asm/htif.h>
+#define HTIF_SECTION(align)				\
+	. = ALIGN((align));				\
+	__htif_base = .;				\
+	.htif : {					\
+		KEEP(*(SORT(.htif)))			\
+	}						\
 
-/* This file is intended to be used for implementing SoC specific
- * instructions, registers.
- */
+#if !defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
+bool htif_console_poll(void);
+int htif_console_read(void);
+void htif_console_write(uint8_t ch);
+void htif_syscall(uintptr_t);
+void htif_poweroff(void);
+#endif
 
-#ifndef __ASSEMBLY__
-void board_reset(void);
-void board_suspend(void);
-void board_hibernate(void);
-#endif /* __ASSEMBLY__ */
-
-#endif /* __ARCH_SPIKE_H_INCLUDE__ */
+#endif /* __HTIF_RISCV_H_INCLUDE__ */
