@@ -43,5 +43,6 @@
 #define __CPUS_SUNXI_H_INCLUDE__
 
 #define MAX_CPU_NUM		4
+#define CPUS_PER_CLUSTER	4
 
 #endif /* __CPUS_SUNXI_H_INCLUDE__ */

@@ -1,6 +1,7 @@
 #include <target/arch.h>
 #include <target/cmdline.h>
 #include <target/spinlock.h>
+#include <target/paging.h>
 
 LIST_HEAD(page_free_list);
 DEFINE_SPINLOCK(page_lock);

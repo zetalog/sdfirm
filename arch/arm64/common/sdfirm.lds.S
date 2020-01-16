@@ -3,6 +3,7 @@
 #include <target/arch.h>
 #include <target/percpu.h>
 #include <target/bench.h>
+#include <target/paging.h>
 #include <asm-generic/sdfirm.lds.h>
 
 #define IDMAP_TEXT			\

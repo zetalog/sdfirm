@@ -42,7 +42,7 @@
 #ifndef __BARRIER_H_INCLUDE__
 #define __BARRIER_H_INCLUDE__
 
-#include <target/compiler.h>
+#include <target/generic.h>
 
 #define barrier()	__barrier()
 

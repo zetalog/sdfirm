@@ -1,6 +1,7 @@
 #include <target/compiler.h>
 #include <target/arch.h>
 #include <target/cmdline.h>
+#include <target/paging.h>
 
 #define IDMAP_TEXT			\
 	. = ALIGN(SZ_4K);		\

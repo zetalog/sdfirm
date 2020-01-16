@@ -24,7 +24,7 @@
 #ifndef __NS16550_UART_H_INCLUDE__
 #define __NS16550_UART_H_INCLUDE__
 
-#include <target/generic.h>
+#include <target/arch.h>
 
 struct serial_device {
 	/* enough bytes to match alignment of following func pointer */

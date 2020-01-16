@@ -1,5 +1,6 @@
 #include <target/generic.h>
 #include <target/uart.h>
+#include <target/paging.h>
 
 #ifdef CONFIG_UART_ACE
 #ifdef CONFIG_CONSOLE_OUTPUT

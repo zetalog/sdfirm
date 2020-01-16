@@ -42,6 +42,8 @@
 #ifndef __DW_UART_H_INCLUDE__
 #define __DW_UART_H_INCLUDE__
 
+#include <target/arch.h>
+
 /* Required implementation specific definitions:
  *
  * CONFIG_ARCH_HAS_DW_AMBA_ADVANCED:

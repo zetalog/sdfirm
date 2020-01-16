@@ -3,7 +3,6 @@
 
 #include <target/cpus.h>
 #include <target/cache.h>
-#include <target/paging.h>
 #include <asm/arch.h>
 
 #ifdef CONFIG_XIP
@@ -48,8 +47,8 @@ extern uintptr_t __end_rodata[];
 #define PERCPU_STACKS_START		SDFIRM_DATA_END
 #define PERCPU_STACKS_SIZE		(PERCPU_STACK_SIZE * NR_CPUS)
 #define PERCPU_STACKS_END		(PERCPU_STACKS_START + PERCPU_STACKS_SIZE)
-#define PERCPU_STACK_SHIFT		PAGE_SHIFT
-#define PERCPU_STACK_SIZE		PAGE_SIZE
+#define PERCPU_STACK_SHIFT		12
+#define PERCPU_STACK_SIZE		(1 << PERCPU_STACK_SHIFT)
 #define PERCPU_STACK_START(x)		(PERCPU_STACKS_START + (x) * PERCPU_STACK_SIZE)
 #define FIXADDR_START			(FIXADDR_END - FIXADDR_SIZE)
 

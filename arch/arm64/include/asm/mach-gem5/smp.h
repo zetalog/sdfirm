@@ -42,6 +42,4 @@
 #ifndef __GEM5_SMP_H_INCLUDE__
 #define __GEM5_SMP_H_INCLUDE__
 
-#include <target/linkage.h>
-
 #endif /* __GEM5_SMP_H_INCLUDE__ */

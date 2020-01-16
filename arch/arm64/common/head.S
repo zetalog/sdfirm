@@ -2,6 +2,7 @@
 #include <target/compiler.h>
 #include <target/init.h>
 #include <target/arch.h>
+#include <target/paging.h>
 #include <asm/asm-offsets.h>
 
 #ifndef ARM_ROM_OFFSET
@@ -22,7 +23,7 @@ __head:
 	boot0_hook
 
 #ifdef CONFIG_BOOT_ROM
-.org 0
+//.org 0
 	b	__arm_reset
 .org 0x080
 	b	.

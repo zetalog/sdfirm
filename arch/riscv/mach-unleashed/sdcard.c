@@ -42,6 +42,7 @@
 #include <target/mmc.h>
 #include <target/efi.h>
 #include <target/cmdline.h>
+#include <target/mem.h>
 
 void mmc_hw_spi_init(void)
 {

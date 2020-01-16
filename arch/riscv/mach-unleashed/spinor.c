@@ -43,6 +43,7 @@
 #include <target/barrier.h>
 #include <target/efi.h>
 #include <target/cmdline.h>
+#include <target/mem.h>
 
 #define SPINOR_BLOCK_SIZE			512
 #ifdef CONFIG_UNLEASHED_FLASH_QSPI0

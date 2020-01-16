@@ -232,8 +232,10 @@ static inline caddr_t pgd_addr_end(caddr_t addr, caddr_t end)
 	return (__boundary - 1 < end - 1) ? __boundary : (end);
 }
 
-#ifdef CONFIG_MMU
+#ifdef CONFIG_MMU_IDMAP
 extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
+#else
+#define mmu_pg_dir		mmu_id_map
 #endif
 #endif /* !__ASSEMBLY__ */
 #else

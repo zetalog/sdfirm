@@ -43,7 +43,7 @@
 #include <target/delay.h>
 #include <target/panic.h>
 #include <target/clk.h>
-#include <target/time.h>
+#include <target/jiffies.h>
 #include <target/barrier.h>
 #include <target/pmic.h>
 
@@ -93,7 +93,7 @@
 
 static uint64_t falkor_init_mask = 0;
 static uint8_t falkor_async_state[MAX_CPU_NUM];
-static time_t falkor_async_timeout;
+static tick_t falkor_async_timeout;
 
 extern bool Clock_HMSSInit(void);
 
@@ -150,12 +150,12 @@ static inline void falkor_set_async_timeout(unsigned long us)
 #ifdef CONFIG_BUILD_PRESIL
 	us /= 1000;
 #endif
-	falkor_async_timeout = tsc_read_counter() + us;
+	falkor_async_timeout = tick_get_counter() + us;
 }
 
 static inline bool falkor_is_async_timeout(void)
 {
-	return !!time_after(tsc_read_counter(), falkor_async_timeout);
+	return !!time_after(tick_get_counter(), falkor_async_timeout);
 }
 
 #define FALKOR_L2_SW_SPM_EVENT_SPM_WAKEUP_BITMASK	0x2

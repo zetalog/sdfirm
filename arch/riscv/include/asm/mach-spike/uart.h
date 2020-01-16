@@ -57,6 +57,9 @@
 #define uart_hw_con_read()	htif_console_read()
 #define uart_hw_con_poll()	htif_console_poll()
 #define uart_hw_con_init()	do { } while (0)
+#ifdef CONFIG_MMU
+#define uart_hw_mmu_init()	do { } while (0)
+#endif
 #endif
 
 #endif /* __UART_SPIKE_H_INCLUDE__ */

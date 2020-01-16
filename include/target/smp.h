@@ -71,6 +71,7 @@ typedef uint8_t cpu_t;
 extern cpu_t smp_boot_cpu;
 void smp_init(void);
 #endif
+#define smp_cpu_on(cpu, ep, context)	smp_hw_cpu_on(cpu, ep, context)
 #else
 #ifndef __SMP_CACHE_BYTES
 #define SMP_CACHE_BYTES			1
@@ -79,6 +80,7 @@ void smp_init(void);
 #endif
 #define smp_boot_cpu			0
 #define smp_init()			do { } while (0)
+#define smp_cpu_on(cpu, ep, context)	do { } while (0)
 #endif
 #define __cache_aligned			__align(SMP_CACHE_BYTES)
 

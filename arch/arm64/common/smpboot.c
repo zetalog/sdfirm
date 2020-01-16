@@ -1,5 +1,6 @@
 #include <target/arch.h>
 #include <target/smp.h>
+#include <target/paging.h>
 
 #define INVALID_ADDR		0
 

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Nov 11 09:53:44 2019
+# Thu Jan 16 17:41:52 2020
 #
 CONFIG_ARM64=y
 
@@ -43,6 +43,7 @@ CONFIG_CONSOLE_115200=y
 #
 # CONFIG_ARCH_QDF2400 is not set
 CONFIG_ARCH_GEM5=y
+# CONFIG_ARCH_SUNXI is not set
 CONFIG_CPU_VEXPRESS=y
 CONFIG_CPU_64v7=y
 CONFIG_CPU_64v7_VE=y
@@ -56,7 +57,13 @@ CONFIG_CPU_64v8_1_LOR=y
 CONFIG_CPU_64v8_1_HPD=y
 CONFIG_CPU_64v8_1_PAN=y
 CONFIG_CPU_64v8_1_VHE=y
-CONFIG_NR_CPUS=4
+
+#
+# CPU architecture options
+#
+# CONFIG_ARM64_ATOMIC_CAS is not set
+CONFIG_ARM64_ATOMIC_COUNT_32=y
+# CONFIG_ARM64_ATOMIC_COUNT_64 is not set
 # CONFIG_TZ_SECURE is not set
 CONFIG_TZ_NORMAL=y
 CONFIG_SYS_KERNEL=y
@@ -113,6 +120,16 @@ CONFIG_GEM5_ROM_AS_RAM=y
 # CONFIG_GEM5_RAM_DEFAULT is not set
 CONFIG_GEM5_RAM_BASE=0x0
 CONFIG_GEM5_RAM_BITS=24
+
+#
+# CPU settings
+#
+# CONFIG_GEM5_SMP is not set
+
+#
+# System counter options
+#
+# CONFIG_GEM5_CNT_USER_FREQ is not set
 CONFIG_UART_GEM5=y
 CONFIG_UART_ACE=y
 # CONFIG_UART_APB is not set
@@ -144,6 +161,7 @@ CONFIG_SMP=y
 #
 # Timing facility (jiffy) support
 #
+CONFIG_TICKLESS=y
 
 #
 # Timing facility (delay) support
@@ -168,6 +186,8 @@ CONFIG_ARCH_HAS_MMU_4K=y
 CONFIG_ARCH_HAS_MMU_16K=y
 CONFIG_ARCH_HAS_MMU_64K=y
 CONFIG_ARCH_HAS_MMU_4L=y
+CONFIG_ARCH_HAS_MMU_CONT=y
+CONFIG_ARCH_HAS_MMU_HUGE=y
 CONFIG_MMU=y
 CONFIG_MMU_4K_PAGE=y
 # CONFIG_MMU_16K_PAGE is not set
@@ -217,7 +237,7 @@ CONFIG_UART_230400=y
 # CONFIG_SCSI is not set
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
-# CONFIG_MMC is not set
+# CONFIG_DDR is not set
 # CONFIG_RAS is not set
 
 #
@@ -252,12 +272,28 @@ CONFIG_UART_230400=y
 #
 # MMC host drivers
 #
+# CONFIG_DW_MSHC is not set
+# CONFIG_SDHCI is not set
 
 #
-# Test setup
+# DDR controller drivers
 #
-# CONFIG_TEST_VERBOSE is not set
-# CONFIG_RAVEN is not set
+# CONFIG_DW_UMCTL2 is not set
+
+#
+# Clock drivers
+#
+
+#
+# I2C host drivers
+#
+# CONFIG_DW_I2C is not set
+
+#
+# I2C slave drivers
+#
+# CONFIG_DW_I2CS is not set
+# CONFIG_TEST_BENCH is not set
 
 #
 # Library setup
@@ -270,11 +306,14 @@ CONFIG_UART_230400=y
 # CONFIG_BIT_FLS16 is not set
 # CONFIG_BIT_FFS16 is not set
 CONFIG_BIT_FLS32=y
+# CONFIG_BIT_FLS64 is not set
 # CONFIG_BIT_FFS32 is not set
+# CONFIG_BIT_HWEIGHT64 is not set
 
 #
 # Bitmap operations
 #
+CONFIG_ARCH_HAS_BITS_PER_UNIT_32=y
 CONFIG_BIT_FIND_CLEAR=y
 
 #
@@ -284,15 +323,9 @@ CONFIG_MATH_GCD32=y
 CONFIG_MATH_MOD32=y
 # CONFIG_MATH_MUL32 is not set
 CONFIG_MATH_MUL64=y
-# CONFIG_MATH_DIV32 is not set
+CONFIG_MATH_DIV32=y
 CONFIG_MATH_DIV64=y
 CONFIG_MATH_MOD64=y
-
-#
-# Atomic operations
-#
-# CONFIG_ATOMIC_SUB_RETURN is not set
-# CONFIG_ATOMIC_ADD_RETURN is not set
 
 #
 # Checksum algorithms
@@ -313,8 +346,14 @@ CONFIG_PRINT_PRINTF=y
 #
 # String operations
 #
+# CONFIG_STRING_STRNCMP is not set
 CONFIG_STRING_STRTOUL=y
 # CONFIG_STRING_UUID is not set
+
+#
+# Cryptographic algorithms
+#
+# CONFIG_CRYPTO_RAND is not set
 # CONFIG_FONTS is not set
 
 #

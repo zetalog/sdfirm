@@ -42,41 +42,13 @@
 #ifndef __QDF2400_SMP_H_INCLUDE__
 #define __QDF2400_SMP_H_INCLUDE__
 
-#include <target/linkage.h>
-
 #ifdef CONFIG_SMP
-#ifdef __ASSEMBLY__
-#ifndef LINKER_SCRIPT
-.macro asm_smp_processor_id _tmp:req, _res=x0
-	mov	\_res, sp
-	ldr	\_tmp, =PERCPU_STACKS_START
-	sub	\_res, \_res, \_tmp
-	ubfx	\_res, \_res, #PERCPU_STACK_SHIFT, #(32 - PERCPU_STACK_SHIFT)
-.endm
-#endif
-#else
-static inline uint8_t __smp_processor_id(void)
-{
-	unsigned int t;
-
-	asm volatile ("mov %0, sp\n\t" : "=r" (t));
-	t -= (PERCPU_STACKS_START + 1);
-	return (uint8_t)(t >> 12);
-}
-
+#ifndef __ASSEMBLY__
 static inline uint8_t __hmp_processor_id(void)
 {
 	uint8_t cpu = __smp_processor_id();
 
 	return cpu >= NR_CPUS ? NR_CPUS : cpu;
-}
-
-static inline uintptr_t __smp_processor_stack_top(void)
-{
-	uintptr_t t;
-
-	asm volatile ("mov %0, sp\n\t" : "=r" (t));
-	return ALIGN_UP(t, PERCPU_STACK_SIZE);
 }
 
 unsigned int plat_my_core_pos(void);

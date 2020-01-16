@@ -44,6 +44,7 @@
 
 #include <target/generic.h>
 #include <target/irq.h>
+#include <target/barrier.h>
 
 #ifdef CONFIG_SMP
 #include <asm/spinlock.h>

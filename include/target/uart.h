@@ -124,6 +124,4 @@ void uart_read_byte(uart_pid_t pid);
 void uart_write_byte(uart_pid_t pid);
 boolean uart_read_interrupting(uart_pid_t pid);
 
-#include <target/paging.h>
-
 #endif /* __UART_H_INCLUDE__ */
