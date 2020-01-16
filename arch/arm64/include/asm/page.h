@@ -151,9 +151,6 @@ static inline void set_pgd(pgdval_t *pgdp, pgdval_t pgd)
 #define BPGT_TABLE_SHIFT	PMD_SHIFT
 #endif
 
-/* The size of the initial kernel direct mapping */
-#define BPGT_INIT_MAP_SIZE	(_AC(1, UL) << BPGT_TABLE_SHIFT)
-
 /* Initial memory map attributes. */
 #define BPGT_PTE_FLAGS		(PTE_TYPE_PAGE | PTE_AF | PTE_SHARED)
 #define BPGT_PMD_FLAGS		(PMD_TYPE_SECT | PMD_SECT_AF | PMD_SECT_S)

@@ -195,21 +195,18 @@ config CPU_PMP
 
 config CPU_SV32
 	bool
+	depends 32BIT
 	select ARCH_HAS_MMU
 
 config CPU_SV39
 	bool
 	depends 64BIT
 	select ARCH_HAS_MMU
-	select ARCH_HAS_MMU_4K
-	select ARCH_HAS_MMU_3L
 
 config CPU_SV48
 	bool
 	depends 64BIT
 	select ARCH_HAS_MMU
-	select ARCH_HAS_MMU_4K
-	select ARCH_HAS_MMU_4L
 
 config RISCV_M
 	bool "Multiplication and division (M) support"
@@ -312,15 +309,20 @@ choice
 config RISCV_SV32
 	bool "Sv32"
 	depends CPU_SV32
+	select ARCH_HAS_MMU_4K
+	select ARCH_HAS_MMU_3L
 
 config RISCV_SV39
 	bool "Sv39"
 	depends CPU_SV39
+	select ARCH_HAS_MMU_4K
+	select ARCH_HAS_MMU_3L
 
 config RISCV_SV48
 	bool "Sv48"
 	depends CPU_SV48
-	select ARCH_HAS_MMU_HUGE
+	select ARCH_HAS_MMU_4K
+	select ARCH_HAS_MMU_4L
 
 endchoice
 

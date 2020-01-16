@@ -89,15 +89,15 @@
  */
 #ifdef CONFIG_RISCV_SV32
 #define VA_BITS			32
-#define BPGT_USES_MEGA_PAGES	0
+#define SATP_MODE		SATP_MODE_32
 #endif
 #ifdef CONFIG_RISCV_SV39
 #define VA_BITS			39
-#define BPGT_USES_MEGA_PAGES	0
+#define SATP_MODE		SATP_MODE_39
 #endif
 #ifdef CONFIG_RISCV_SV48
 #define VA_BITS			48
-#define BPGT_USES_MEGA_PAGES	1
+#define SATP_MODE		SATP_MODE_48
 #endif
 
 #if __riscv_xlen == 32
@@ -193,36 +193,21 @@ static inline void set_pgd(pgdval_t *pgdp, pgdval_t pgd)
  * range, so pages required to map highest possible PA are reserved in all
  * cases.
  */
-#if BPGT_USES_MAGE_PAGES
 #define BPGT_PGTABLE_LEVELS	(PGTABLE_LEVELS - 1)
 #define IDMAP_PGTABLE_LEVELS	(__PGTABLE_LEVELS(PHYS_MASK_SHIFT) - 1)
-#else
-#define BPGT_PGTABLE_LEVELS	(PGTABLE_LEVELS)
-#define IDMAP_PGTABLE_LEVELS	(__PGTABLE_LEVELS(PHYS_MASK_SHIFT))
-#endif
 
 #define BPGT_DIR_SIZE		(BPGT_PGTABLE_LEVELS * PAGE_SIZE)
 #define IDMAP_DIR_SIZE		(IDMAP_PGTABLE_LEVELS * PAGE_SIZE)
 
-/* Initial memory map size */
-#if BPGT_USES_MEGA_PAGES
+/* Initial memory map uses megapage */
 #define BPGT_BLOCK_SHIFT	SECTION_SHIFT
 #define BPGT_BLOCK_SIZE		SECTION_SIZE
 #define BPGT_TABLE_SHIFT	PUD_SHIFT
-#else
-#define BPGT_BLOCK_SHIFT	PAGE_SHIFT
-#define BPGT_BLOCK_SIZE		PAGE_SIZE
-#define BPGT_TABLE_SHIFT	PMD_SHIFT
-#endif
-
-/* The size of the initial kernel direct mapping */
-#define BPGT_INIT_MAP_SIZE	(_AC(1, UL) << BPGT_TABLE_SHIFT)
 
 /* Initial memory map attributes. */
-#define BPGT_PTE_FLAGS		(PAGE_KERNEL | PAGE_SHARED)
 #define BPGT_PMD_FLAGS		(PAGE_TABLE)
 
-#define BPGT_MM_MMUFLAGS	(BPGT_PTE_FLAGS)
-#define BPGT_MM_DEVFLAGS	(BPGT_PTE_FLAGS)
+#define BPGT_MM_MMUFLAGS	(PAGE_KERNEL_EXEC)
+#define BPGT_MM_DEVFLAGS	(PAGE_KERNEL)
 
 #endif /* __PAGE_RISCV_H_INCLUDE__ */

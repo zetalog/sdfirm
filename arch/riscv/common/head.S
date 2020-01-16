@@ -104,6 +104,10 @@ ENDPROC(__start)
 ENTRY(__sbi_exit)
 	disable_sirq
 
+#ifdef CONFIG_MMU
+	call	mmu_hw_boot_init
+#endif
+
 	jal	ra, system_init
 ENDPROC(__sbi_exit)
 

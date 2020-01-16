@@ -48,20 +48,12 @@
  * Hardware MMU definitions
  *---------------------------------------------------------------------------*/
 /* megapage definitions */
-#ifdef CONFIG_RISCV_SV48
-#define SECTION_SHIFT		PMD_SHIFT
-#else
-#define SECTION_SHIFT		PAGE_SHIFT
-#endif
-#define SECTION_SIZE		(_AC(1, ULL) << SECTION_SHIFT)
-#define SECTION_MASK		(~(SECTION_SIZE-1))
+#define SECTION_SHIFT			PMD_SHIFT
+#define SECTION_SIZE			(_AC(1, ULL) << SECTION_SHIFT)
+#define SECTION_MASK			(~(SECTION_SIZE-1))
 
 #define PUD_TYPE_TABLE			PAGE_TABLE
 #define PMD_TYPE_TABLE			PAGE_TABLE
-
-#define mk_pud_sect_prot(prot)		(prot)
-#define mk_pmd_sect_prot(prot)		(prot)
-#define pgattr_change_is_safe(old, new)	true
 
 /* Hardware page table definitions */
 
@@ -81,16 +73,16 @@
 #define _PAGE_GLOBAL	(1 << 5) /* Global */
 #define _PAGE_ACCESSED	(1 << 6) /* Set by hardware on any access */
 #define _PAGE_DIRTY	(1 << 7) /* Set by hardware on any write */
-#define _PAGE_SOFT	(1 << 8) /* Reserved for software */
+#define _PAGE_SOFT1	(1 << 8) /* Reserved for supervisor software */
+#define _PAGE_SOFT2	(1 << 9) /* Reserved for supervisor software */
 
-#define _PAGE_SPECIAL	_PAGE_SOFT
+#define _PAGE_SPECIAL	_PAGE_SOFT1
 #define _PAGE_TABLE	_PAGE_PRESENT
 
 /* _PAGE_PROT_NONE is set on not-present pages (and ignored by the
  * hardware) to distinguish them from swapped out pages
  */
 #define _PAGE_PROT_NONE	_PAGE_READ
-
 #define _PAGE_PFN_SHIFT	10
 
 /* Set of bits to preserve across pte_modify() */
@@ -149,30 +141,20 @@
 #define __S111	PAGE_SHARED_EXEC
 
 #ifndef __ASSEMBLY__
-#define pmd_clear(pmdp)		set_pmd(pmdp, __pmd(0))
-
 #define pfn_pgd(pfn, prot)	\
 	__pgd((pfn << _PAGE_PFN_SHIFT) | pgprot_val(prot))
 #define _pgd_pfn(pgd)		(pgd_val(pgd) >> _PAGE_PFN_SHIFT)
 #define pgd_index(addr)		(((addr) >> PGDIR_SHIFT) & (PTRS_PER_PGD - 1))
-
-#define pmd_page(pmd)		(pfn_to_page(pmd_val(pmd) >> _PAGE_PFN_SHIFT))
-#define pmd_page_vaddr(pmd)	\
-	((unsigned long)pfn_to_virt(pmd_val(pmd) >> _PAGE_PFN_SHIFT))
-#define pmd_page_paddr(pmd)	(pmd_val(pmd) & PHYS_MASK & PAGE_MASK)
-#define pmd_bad(pmd)		(!pmd_present(pmd))
-#define pmd_present(pmd)	\
-	(pmd_val(pmd) & (_PAGE_PRESENT | _PAGE_PROT_NONE))
 
 /* Yields the page frame number (PFN) of a page table entry */
 #define pte_pfn(pte)			((pte_val(pte) >> _PAGE_PFN_SHIFT))
 #define pte_page(x)     		pfn_to_page(pte_pfn(x))
 #define pfn_pte(pfn, prot)		\
 	(__pte((pfn << _PAGE_PFN_SHIFT) | pgprot_val(prot)))
-#define mk_pte(page, prot)		pfn_pte(page_to_pfn(page), prot)
-#define pte_index(addr) (((addr) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
-#define pte_offset_kernel(pmd, addr)	\
-	((pte_t *)pmd_page_vaddr(*pmd) + pte_index(addr))
+
+#define mk_pud_sect_prot(prot)		(prot)
+#define mk_pmd_sect_prot(prot)		(prot)
+#define pgattr_change_is_safe(old, new)	true
 
 #define pte_present(pte)	\
 	(pte_val(pte) & (_PAGE_PRESENT | _PAGE_PROT_NONE))
@@ -201,24 +183,26 @@
 #define pte_modify(pte, newprot)	\
 	(__pte((pte_val(pte) & _PAGE_CHG_MASK) | pgprot_val(newprot)))
 
-#if 0
-void flush_icache_pte(pte_t pte);
+#define pmd_page(pmd)		(pfn_to_page(pmd_val(pmd) >> _PAGE_PFN_SHIFT))
+#define pmd_page_vaddr(pmd)	\
+	((unsigned long)pfn_to_virt(pmd_val(pmd) >> _PAGE_PFN_SHIFT))
+#define pmd_page_paddr(pmd)	(pmd_val(pmd) & PHYS_MASK & PAGE_MASK)
+#define pmd_present(pmd)	\
+	(pmd_val(pmd) & (_PAGE_PRESENT | _PAGE_PROT_NONE))
+#define pmd_bad(pmd)		(!pmd_present(pmd))
 
-static inline void set_pte_at(struct mm_struct *mm,
-	unsigned long addr, pte_t *ptep, pte_t pteval)
-{
-	if (pte_present(pteval) && pte_exec(pteval))
-		flush_icache_pte(pteval);
-
-	set_pte(ptep, pteval);
-}
-
-static inline void pte_clear(struct mm_struct *mm,
-	unsigned long addr, pte_t *ptep)
-{
-	set_pte_at(mm, addr, ptep, __pte(0));
-}
+#if PGTABLE_LEVELS > 3
 #endif
+#if PGTABLE_LEVELS > 2
+#define pud_present(pud)	(pud_val(pud) & _PAGE_PRESENT)
+#define pud_bad(pud)		(!pud_present(pud))
+#define pud_page_vaddr(pud)	\
+	((unsigned long)pfn_to_virt(pud_val(pud) >> _PAGE_PFN_SHIFT))
+
+#define pfn_pmd(pfn, prot)	\
+	__pmd((pfn << _PAGE_PFN_SHIFT) | pgprot_val(prot))
+#define pmd_pfn(pmd)		(pmd_val(pmd) >> _PAGE_PFN_SHIFT)
+#endif /* PGTABLE_LEVELS > 2 */
 
 /* To include device specific fixmaps */
 #include <asm/mach/mmu.h>

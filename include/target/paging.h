@@ -25,6 +25,8 @@
 /* Convert a physical address to a Page Frame Number and back */
 #define phys_to_pfn(paddr)	((pfn_t)((paddr) >> PAGE_SHIFT))
 #define pfn_to_phys(pfn)	((phys_addr_t)(pfn) << PAGE_SHIFT)
+#define virt_to_pfn(vaddr)	((pfn_t)(__pa(vaddr) >> PAGE_SHIFT))
+#define pfn_to_virt(pfn)	((caddr_t)__va((pfn) << PAGE_SHIFT))
 
 /* Convert a page to/from a physical address */
 #define page_to_phys(page)	pfn_to_phys(page_to_pfn(page))
@@ -39,9 +41,6 @@
  */
 #define PHYS_PFN_OFFSET		(PHYS_OFFSET >> PAGE_SHIFT)
 #define ARCH_PFN_OFFSET		((caddr_t)PHYS_PFN_OFFSET)
-
-#define pfn_to_kaddr(pfn)	__va((pfn) << PAGE_SHIFT)
-#define virt_to_pfn(x)		phys_to_pfn(virt_to_phys(x))
 
 /* virt_to_page(k)	convert a _valid_ virtual address to struct page *
  * virt_addr_valid(k)	indicates whether a virtual address is valid
@@ -77,10 +76,12 @@ typedef pteval_t pgprot_t;
 
 #define pte_none(pte)		(!pte_val(pte))
 #define pte_clear(addr, ptep)	set_pte(ptep, __pte(0))
+#define pte_index(addr)		(((addr) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
 
-/* Find an entry in the third-level page table. */
-#define pte_index(addr)			(((addr) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
-#define pte_offset_phys(dir, addr)	(pmd_page_paddr(*(dir)) + pte_index(addr) * sizeof(pte_t))
+#define pte_offset_phys(dir, addr)	\
+	(pmd_page_paddr(*(dir)) + pte_index(addr) * sizeof(pte_t))
+#define pte_offset_kernel(dir, addr)	\
+	(pmd_page_vaddr(*(dir)) + pte_index(addr))
 
 #ifndef ARCH_HAVE_SET_PTE
 #define set_pte(ptep, pte)	(*(ptep) = (pte))
@@ -105,11 +106,6 @@ typedef pteval_t pgprot_t;
 #define pgd_offset_raw(pgd, addr)	((pgd) + pgd_index(addr))
 #define pgd_offset(addr)		(mmu_pg_dir+pgd_index(addr))
 
-#if 0
-#define pgd_alloc()	(BUG_ON(0), (pgd_t *)NULL)
-#define pgd_free(pgd)	BUG_ON(0)
-#endif
-
 #define pgd_set_fixmap(addr)			((pgd_t *)set_fixmap_offset(FIX_PGD, addr))
 #define pgd_clear_fixmap()			clear_fixmap(FIX_PGD)
 
@@ -129,10 +125,6 @@ static inline caddr_t pte_addr_end(caddr_t addr, caddr_t end)
 #include <target/paging-nop2d.h>
 #else /* PGTABLE_LEVELS > 2 */
 #define pud_page_paddr(pud)	(pud_val(pud) & PHYS_MASK & PAGE_MASK)
-#define pud_page_vaddr(pud)	((pmd_t *)__va(pud_page_paddr(pud)))
-
-#define pfn_pmd(pfn,prot)	__pmd(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
-#define pfn_pud(pfn, prot)	__pud(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
 
 /* PMD_SHIFT determines the size a level 2 page table entry can map. */
 #define PMD_SHIFT	(PAGE_PXD_BITS + PAGE_SHIFT)
@@ -157,14 +149,8 @@ static inline caddr_t pmd_addr_end(caddr_t addr, caddr_t end)
 	return (__boundary - 1 < end - 1) ? __boundary : end;
 }
 #endif /* !__ASSEMBLY__ */
-#if 0
-#define pmd_alloc_one(addr)	((pmd_t *)page_alloc_zeroed())
-#define pmd_free(pmd)		page_free((caddr_t)pmd)
-#endif
 
 #define pud_none(pud)		(!pud_val(pud))
-#define pud_bad(pud)		(!(pud_val(pud) & 2))
-#define pud_present(pud)	(pud_val(pud))
 #define pud_clear(pudp)		set_pud(pudp, __pud(0))
 
 #define __pud_populate(pudp, pmd, prot)	set_pud(pudp, __pud((pmd) | prot))
@@ -189,18 +175,13 @@ static inline caddr_t pmd_addr_end(caddr_t addr, caddr_t end)
 #define pud_offset_phys(dir, addr)	(pgd_page_paddr(*(dir)) + pud_index(addr) * sizeof(pud_t))
 #define pud_offset(pgd, addr)		((pud_t *)pgd_page_vaddr(*(pgd)) + pud_index(addr))
 
-#if 0
-#define pud_alloc_one(addr)	((pud_t *)page_alloc_zeroed())
-#define pud_free(pud)		page_free((caddr_t)pud)
-#endif
-
 #define pud_set_fixmap(addr)			((pud_t *)set_fixmap_offset(FIX_PUD, addr))
 #define pud_set_fixmap_offset(pgd, addr)	pud_set_fixmap(pud_offset_phys(pgd, addr))
 #define pud_clear_fixmap()			clear_fixmap(FIX_PUD)
 
-#define pgd_none(pgd)		(!pgd_val(pgd))
 #define pgd_bad(pgd)		(!(pgd_val(pgd) & 2))
 #define pgd_present(pgd)	pgd_val(pgd)
+#define pgd_none(pgd)		(!pgd_val(pgd))
 #define pgd_clear(pgdp)		set_pgd(pgdp, __pgd(0))
 
 #define __pgd_populate(pgdp, pud, prot)	set_pgd(pgdp, __pgd((pud) | prot))

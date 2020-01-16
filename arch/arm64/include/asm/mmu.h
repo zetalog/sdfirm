@@ -207,10 +207,6 @@
 #define __S110  PAGE_SHARED_EXEC
 #define __S111  PAGE_SHARED_EXEC
 
-/* Find an entry in the third-level page table. */
-#define __pte_index(addr)		(((addr) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
-#define pte_offset_kernel(dir, addr)	(pmd_page_vaddr(*(dir)) + __pte_index(addr))
-
 #define pte_pfn(pte)		((pte_val(pte) & PHYS_MASK) >> PAGE_SHIFT)
 #define pfn_pte(pfn, prot)	__pte(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
 
@@ -219,11 +215,6 @@
 #define pte_dirty(pte)		(!!(pte_val(pte) & PTE_DIRTY))
 #define pte_young(pte)		(!!(pte_val(pte) & PTE_AF))
 #define pte_exec(pte)		(!(pte_val(pte) & PTE_UXN))
-
-#define pte_valid_user(pte) \
-	((pte_val(pte) & (PTE_VALID | PTE_USER)) == (PTE_VALID | PTE_USER))
-#define pte_valid_not_user(pte) \
-	((pte_val(pte) & (PTE_VALID | PTE_USER)) == PTE_VALID)
 
 #ifndef __ASSEMBLY__
 static inline pte_t clear_pte_bit(pte_t pte, pgprot_t prot)
@@ -268,24 +259,6 @@ static inline pte_t pte_mkyoung(pte_t pte)
 	return set_pte_bit(pte, __pgprot(PTE_AF));
 }
 
-#if 0
-extern void __sync_icache_dcache(pte_t pteval, caddr_t addr);
-
-static inline void set_pte_at(caddr_t addr, pte_t *ptep, pte_t pte)
-{
-	if (pte_valid_user(pte)) {
-		if (pte_exec(pte))
-			__sync_icache_dcache(pte, addr);
-		if (pte_dirty(pte) && pte_write(pte))
-			pte_val(pte) &= ~PTE_RDONLY;
-		else
-			pte_val(pte) |= PTE_RDONLY;
-	}
-
-	set_pte(ptep, pte);
-}
-#endif
-
 #define pud_pte(pud)		__pte(pud_val(pud))
 #define pud_pmd(pud)		__pmd(pud_val(pud))
 #define pmd_pte(pmd)		__pte(pmd_val(pmd))
@@ -294,6 +267,14 @@ static inline void set_pte_at(caddr_t addr, pte_t *ptep, pte_t pte)
 #define pmd_pfn(pmd)		(pmd_page_paddr(pmd) >> PAGE_SHIFT)
 #define pfn_pmd(pfn,prot)	\
 	__pmd(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
+
+#if PGTABLE_LEVELS > 2
+#define pfn_pud(pfn, prot)	\
+	__pud(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
+#define pud_present(pud)	(pud_val(pud))
+#define pud_bad(pud)		(!(pud_val(pud) & 2))
+#define pud_page_vaddr(pud)	((pmd_t *)__va(pud_page_paddr(pud)))
+#endif
 
 #define pmd_young(pmd)		pte_young(pmd_pte(pmd))
 #define pmd_wrprotect(pmd)	pte_pmd(pte_wrprotect(pmd_pte(pmd)))
@@ -305,13 +286,10 @@ static inline void set_pte_at(caddr_t addr, pte_t *ptep, pte_t pte)
 
 #define pmd_bad(pmd)		(!(pmd_val(pmd) & 2))
 #define pmd_present(pmd)	pmd_val(pmd)
-#define mk_pmd(page,prot)	pfn_pmd(page_to_pfn(page),prot)
-#define set_pmd_at(addr, pmdp, pmd)	\
-	set_pte_at(addr, (pte_t *)pmdp, pmd_pte(pmd))
-#define pmd_page(pmd)			\
+#define pmd_page(pmd)		\
 	pfn_to_page(phys_to_pfn(pmd_val(pmd) & PHYS_MASK))
-#define pmd_page_paddr(pmd)		(pmd_val(pmd) & PHYS_MASK & PAGE_MASK)
-#define pmd_page_vaddr(pmd)		((pte_t *)__va(pmd_page_paddr(pmd)))
+#define pmd_page_paddr(pmd)	(pmd_val(pmd) & PHYS_MASK & PAGE_MASK)
+#define pmd_page_vaddr(pmd)	((pte_t *)__va(pmd_page_paddr(pmd)))
 
 #define __pgprot_modify(prot,mask,bits)	\
 	__pgprot((pgprot_val(prot) & ~(mask)) | (bits))
@@ -332,12 +310,6 @@ static inline void set_pte_at(caddr_t addr, pte_t *ptep, pte_t pte)
 #else
 #define pud_sect(pud)		((pud_val(pud) & PUD_TYPE_MASK) == PUD_TYPE_SECT)
 #endif
-
-/*
- * Conversion functions: convert a page and protection to a page entry,
- * and a page entry and page directory to the page they refer to.
- */
-#define mk_pte(page,prot)	pfn_pte(page_to_pfn(page),prot)
 
 static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 {
