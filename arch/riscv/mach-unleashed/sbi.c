@@ -18,14 +18,8 @@
 #include <sbi/sbi_hart.h>
 #include <sbi/sbi_platform.h>
 
-/* clang-format off */
-
 #define FU540_HART_COUNT			5
 #define FU540_HART_STACK_SIZE			8192
-
-#define FU540_SYS_CLK				1000000000
-
-#define FU540_CLINT_ADDR			0x2000000
 
 /**
  * The FU540 SoC has 5 HARTs but HART ID 0 doesn't have S mode. enable only
@@ -35,9 +29,7 @@
 #define FU540_ENABLED_HART_MASK	(1 << 1 | 1 << 2 | 1 << 3 | 1 << 4)
 #endif
 
-#define FU540_HARITD_DISABLED			~(FU540_ENABLED_HART_MASK)
-
-/* clang-format on */
+#define FU540_HART_ID_DISABLED			~(FU540_ENABLED_HART_MASK)
 
 static void fu540_modify_dt(void *fdt)
 {
@@ -221,6 +213,6 @@ const struct sbi_platform platform = {
 	.features		= SBI_PLATFORM_DEFAULT_FEATURES,
 	.hart_count		= FU540_HART_COUNT,
 	.hart_stack_size	= FU540_HART_STACK_SIZE,
-	.disabled_hart_mask	= FU540_HARITD_DISABLED,
+	.disabled_hart_mask	= FU540_HART_ID_DISABLED,
 	.platform_ops_addr	= (unsigned long)&platform_ops
 };

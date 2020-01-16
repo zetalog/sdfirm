@@ -40,11 +40,13 @@ config CPU_SPIKE32
 	bool
 	select CPU_32G
 	select CPU_C
+	select CPU_PMP
 
 config CPU_SPIKE64
 	bool
 	select CPU_64G
 	select CPU_C
+	select CPU_PMP
 
 # VIRT
 config CPU_VIRT
@@ -55,6 +57,7 @@ config CPU_VIRT
 	select CPU_F
 	select CPU_D
 	select CPU_C
+	select CPU_PMP
 
 config CPU_32G
 	bool

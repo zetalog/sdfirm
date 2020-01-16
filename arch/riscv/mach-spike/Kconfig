@@ -107,6 +107,20 @@ config SPIKE_L2_CACHE_B
 
 endif
 
+choice
+	prompt "Program type"
+
+config SPIKE_BBL
+	bool "Berkeley boot loader (BBL)"
+	depends SPIKE_CPU64
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SYS_EXIT_S
+	select SBI
+	select XIP
+
+endchoice
+
 endmenu
 
 endif
