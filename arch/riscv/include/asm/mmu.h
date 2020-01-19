@@ -141,16 +141,11 @@
 #define __S111	PAGE_SHARED_EXEC
 
 #ifndef __ASSEMBLY__
-#define pfn_pgd(pfn, prot)	\
-	__pgd((pfn << _PAGE_PFN_SHIFT) | pgprot_val(prot))
-#define _pgd_pfn(pgd)		(pgd_val(pgd) >> _PAGE_PFN_SHIFT)
-#define pgd_index(addr)		(((addr) >> PGDIR_SHIFT) & (PTRS_PER_PGD - 1))
-
 /* Yields the page frame number (PFN) of a page table entry */
 #define pte_pfn(pte)			((pte_val(pte) >> _PAGE_PFN_SHIFT))
-#define pte_page(x)     		pfn_to_page(pte_pfn(x))
 #define pfn_pte(pfn, prot)		\
-	(__pte((pfn << _PAGE_PFN_SHIFT) | pgprot_val(prot)))
+	__pte((pfn << _PAGE_PFN_SHIFT) | pgprot_val(prot))
+#define pte_page(x)     		pfn_to_page(pte_pfn(x))
 
 #define mk_pud_sect_prot(prot)		(prot)
 #define mk_pmd_sect_prot(prot)		(prot)
@@ -183,25 +178,29 @@
 #define pte_modify(pte, newprot)	\
 	(__pte((pte_val(pte) & _PAGE_CHG_MASK) | pgprot_val(newprot)))
 
-#define pmd_page(pmd)		(pfn_to_page(pmd_val(pmd) >> _PAGE_PFN_SHIFT))
-#define pmd_page_vaddr(pmd)	\
-	((unsigned long)pfn_to_virt(pmd_val(pmd) >> _PAGE_PFN_SHIFT))
-#define pmd_page_paddr(pmd)	(pmd_val(pmd) & PHYS_MASK & PAGE_MASK)
-#define pmd_present(pmd)	\
-	(pmd_val(pmd) & (_PAGE_PRESENT | _PAGE_PROT_NONE))
-#define pmd_bad(pmd)		(!pmd_present(pmd))
-
-#if PGTABLE_LEVELS > 3
-#endif
-#if PGTABLE_LEVELS > 2
-#define pud_present(pud)	(pud_val(pud) & _PAGE_PRESENT)
-#define pud_bad(pud)		(!pud_present(pud))
-#define pud_page_vaddr(pud)	\
-	((unsigned long)pfn_to_virt(pud_val(pud) >> _PAGE_PFN_SHIFT))
-
+#define pmd_pfn(pmd)		(pmd_val(pmd) >> _PAGE_PFN_SHIFT)
 #define pfn_pmd(pfn, prot)	\
 	__pmd((pfn << _PAGE_PFN_SHIFT) | pgprot_val(prot))
-#define pmd_pfn(pmd)		(pmd_val(pmd) >> _PAGE_PFN_SHIFT)
+
+#define pmd_bad(pmd)		(!pmd_present(pmd))
+#define pmd_present(pmd)	\
+	(pmd_val(pmd) & (_PAGE_PRESENT | _PAGE_PROT_NONE))
+
+#define pfn_pgd(pfn, prot)	\
+	__pgd((pfn << _PAGE_PFN_SHIFT) | pgprot_val(prot))
+#define pgd_pfn(pgd)		(pgd_val(pgd) >> _PAGE_PFN_SHIFT)
+
+#if PGTABLE_LEVELS > 3
+#define pgd_bad(pgd)		0
+#endif
+
+#define pfn_pud(pfn, prot)	\
+	__pud((pfn << _PAGE_PFN_SHIFT) | pgprot_val(prot))
+#define pud_pfn(pud)		(pud_val(pud) >> _PAGE_PFN_SHIFT)
+
+#if PGTABLE_LEVELS > 2
+#define pud_bad(pud)		(!pud_present(pud))
+#define pud_present(pud)	(pud_val(pud) & _PAGE_PRESENT)
 #endif /* PGTABLE_LEVELS > 2 */
 
 /* To include device specific fixmaps */

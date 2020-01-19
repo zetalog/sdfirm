@@ -208,8 +208,17 @@
 #define __S110  PAGE_SHARED_EXEC
 #define __S111  PAGE_SHARED_EXEC
 
+#define pgd_pfn(pgd)		((pgd_val(pgd) & PHYS_MASK) >> PAGE_SHIFT)
+#define pfn_pgd(pfn, prot)	\
+	__pgd(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
+#if PGTABLE_LEVELS > 3
+#define pgd_bad(pgd)		(!(pgd_val(pgd) & 2))
+#define pgd_present(pgd)	pgd_val(pgd)
+#endif /* PGTABLE_LEVELS > 3 */
+
 #define pte_pfn(pte)		((pte_val(pte) & PHYS_MASK) >> PAGE_SHIFT)
-#define pfn_pte(pfn, prot)	__pte(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
+#define pfn_pte(pfn, prot)	\
+	__pte(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
 
 /* The following only work if pte_present(). Undefined behaviour otherwise. */
 #define pte_present(pte)	(!!(pte_val(pte) & (PTE_VALID | PTE_PROT_NONE)))
@@ -265,18 +274,6 @@ static inline pte_t pte_mkyoung(pte_t pte)
 #define pmd_pte(pmd)		__pte(pmd_val(pmd))
 #define pte_pmd(pte)		__pmd(pte_val(pte))
 
-#define pmd_pfn(pmd)		(pmd_page_paddr(pmd) >> PAGE_SHIFT)
-#define pfn_pmd(pfn,prot)	\
-	__pmd(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
-
-#if PGTABLE_LEVELS > 2
-#define pfn_pud(pfn, prot)	\
-	__pud(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
-#define pud_present(pud)	(pud_val(pud))
-#define pud_bad(pud)		(!(pud_val(pud) & 2))
-#define pud_page_vaddr(pud)	((pmd_t *)__va(pud_page_paddr(pud)))
-#endif
-
 #define pmd_young(pmd)		pte_young(pmd_pte(pmd))
 #define pmd_wrprotect(pmd)	pte_pmd(pte_wrprotect(pmd_pte(pmd)))
 #define pmd_mkold(pmd)		pte_pmd(pte_mkold(pmd_pte(pmd)))
@@ -285,12 +282,20 @@ static inline pte_t pte_mkyoung(pte_t pte)
 #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
 #define pmd_mknotpresent(pmd)	(__pmd(pmd_val(pmd) & ~PMD_TYPE_MASK))
 
+#define pmd_pfn(pmd)		((pmd_val(pmd) & PHYS_MASK) >> PAGE_SHIFT)
+#define pfn_pmd(pfn, prot)	\
+	__pmd(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
+
 #define pmd_bad(pmd)		(!(pmd_val(pmd) & 2))
 #define pmd_present(pmd)	pmd_val(pmd)
-#define pmd_page(pmd)		\
-	pfn_to_page(phys_to_pfn(pmd_val(pmd) & PHYS_MASK))
-#define pmd_page_paddr(pmd)	(pmd_val(pmd) & PHYS_MASK & PAGE_MASK)
-#define pmd_page_vaddr(pmd)	((pte_t *)__va(pmd_page_paddr(pmd)))
+
+#define pud_pfn(pud)		((pud_val(pud) & PHYS_MASK) >> PAGE_SHIFT)
+#define pfn_pud(pfn, prot)	\
+	__pud(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
+#if PGTABLE_LEVELS > 2
+#define pud_bad(pud)		(!(pud_val(pud) & 2))
+#define pud_present(pud)	(pud_val(pud))
+#endif /* PGTABLE_LEVELS > 2 */
 
 #define __pgprot_modify(prot,mask,bits)	\
 	__pgprot((pgprot_val(prot) & ~(mask)) | (bits))

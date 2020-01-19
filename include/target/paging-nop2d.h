@@ -40,7 +40,7 @@ typedef pud_t pmd_t;
 #define pud_present(pud)			1
 #define pud_clear(pudptr)			do { } while (0)
 #define pud_populate(pmd, pte)			do { } while (0)
-#define pud_page(pud)				pmd_page((pmd_t)pud)
+#define pud_page_paddr(pud)			pmd_page_paddr((pmd_t)pud)
 #define pud_page_vaddr(pud)			pmd_page_vaddr((pmd_t)pud)
 
 /* (pmds are folded into puds so this doesn't get actually called,

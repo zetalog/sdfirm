@@ -593,11 +593,11 @@ void early_fixmap_init(void)
 	/* The boot-ioremap range spans multiple pmds, for which
 	 * we are not preparted:
 	 */
-	BUG_ON((fix_to_virt(FIX_BTMAP_BEGIN) >> PMD_SHIFT)
-	       != (fix_to_virt(FIX_BTMAP_END) >> PMD_SHIFT));
+	BUG_ON((fix_to_virt(FIX_BTMAP_BEGIN) >> PMD_SHIFT) !=
+	       (fix_to_virt(FIX_BTMAP_END) >> PMD_SHIFT));
 
 	if ((pmd != fixmap_pmd(fix_to_virt(FIX_BTMAP_BEGIN))) ||
-	    pmd != fixmap_pmd(fix_to_virt(FIX_BTMAP_END))) {
+	    (pmd != fixmap_pmd(fix_to_virt(FIX_BTMAP_END)))) {
 		BUG();
 		con_dbg("pmd %p != %p, %p\n",
 		       pmd, fixmap_pmd(fix_to_virt(FIX_BTMAP_BEGIN)),

@@ -37,7 +37,7 @@ typedef pgd_t pud_t;
 #define pgd_clear(pgdptr)			do { } while (0)
 #define __pgd_populate(pgd, pudp, prot)		do { } while (0)
 #define pgd_populate(pgd, pud)			do { } while (0)
-#define pgd_page(pgd)				pud_page((pud_t)pgd)
+#define pgd_page_paddr(pgd)			pud_page_paddr((pud_t)pgd)
 #define pgd_page_vaddr(pgd)			pud_page_vaddr((pud_t)pgd)
 
 /*
