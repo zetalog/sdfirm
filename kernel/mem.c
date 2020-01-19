@@ -333,7 +333,7 @@ static phys_addr_t mem_find_in_range(phys_addr_t size, phys_addr_t align,
 	/* avoid allocating the first page */
 	start = max(start, PAGE_SIZE);
 	end = max(start, end);
-	kernel_end = __pa_symbol(SDFIRM_END);
+	kernel_end = __pa(SDFIRM_END);
 
 	/* try bottom-up allocation only when bottom-up mode
 	 * is set and @end is above the kernel image.
@@ -714,8 +714,8 @@ static void mem_dump(struct mem_type *type)
 void mem_init(void)
 {
 	mem_hw_range_init();
-	mem_reserve(__pa_symbol(SDFIRM_START),
-		    __pa_symbol(SDFIRM_END) - __pa_symbol(SDFIRM_START));
+	mem_reserve(__pa(SDFIRM_START),
+		    __pa(SDFIRM_END) - __pa(SDFIRM_START));
 }
 #else
 static void mem_dump(struct mem_type *type)

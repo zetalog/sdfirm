@@ -35,7 +35,7 @@ pgd_t mmu_id_map[IDMAP_DIR_SIZE / sizeof (pgd_t)] __page_aligned_bss;
 
 __init void *bpgt_create_idmap_dir(void *tbl, caddr_t virt)
 {
-	phys_addr_t phys = __pa_symbol(tbl);
+	phys_addr_t phys = __pa(tbl);
 
 	phys += PAGE_SIZE;
 	set_bpgt_dir(tbl, pgd_t, virt, phys, PGDIR_SHIFT, PGD);
@@ -55,7 +55,7 @@ __init void *bpgt_create_idmap_dir(void *tbl, caddr_t virt)
 
 __init void bpgt_create_idmap_blk(void *tbl, caddr_t start, caddr_t end)
 {
-	phys_addr_t phys = __pa_symbol(start);
+	phys_addr_t phys = __pa(start);
 	int start_pfn = bpgt_index(start, BPGT_BLOCK_SHIFT, PTRS_PER_PTE);
 	int end_pfn = bpgt_index(end + BPGT_BLOCK_SIZE - 1,
 				 BPGT_BLOCK_SHIFT, PTRS_PER_PTE);
@@ -83,7 +83,7 @@ void __init mmu_hw_boot_init(void)
 #if defined(CONFIG_MMU_IDMAP_DEVICE) && defined(IDMAP_DEV_BASE)
 	/* TODO: Map identity device area for early console */
 #endif
-	satp = PFN_DOWN(__pa_symbol(mmu_id_map)) | SATP_MODE;
+	satp = PFN_DOWN(__pa(mmu_id_map)) | SATP_MODE;
 	printf("Early SATP: %016llx\n", satp);
 	csr_write(CSR_SATP, satp);
 	local_flush_tlb_all();

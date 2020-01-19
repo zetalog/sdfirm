@@ -360,7 +360,7 @@ static void __create_pgd_mapping(pgd_t *pgdir, phys_addr_t phys,
 				 int flags)
 {
 	caddr_t addr, length, end, next;
-	pgd_t *pgdp = pgd_offset_raw(pgdir, virt);
+	pgd_t *pgdp = pgd_offset(pgdir, virt);
 
 	con_dbg("LOWMAP: %016llx -> %016llx: %016llx\n", phys, virt, size);
 
@@ -400,7 +400,7 @@ void create_pgd_mapping(pgd_t *pgdir, phys_addr_t phys,
 static void map_kernel_segment(pgd_t *pgdp, void *va_start, void *va_end,
 			       pgprot_t prot, int flags)
 {
-	phys_addr_t pa_start = __pa_symbol(va_start);
+	phys_addr_t pa_start = __pa(va_start);
 	phys_addr_t size = va_end - va_start;
 
 	BUG_ON(!PAGE_ALIGNED(pa_start));
@@ -494,18 +494,18 @@ static void map_kernel(pgd_t *pgdp)
 	 * in the carveout for the mmu_pg_dir. We can simply re-use the
 	 * existing dir for the fixmap.
 	 */
-	set_pgd(pgd_offset_raw(pgdp, FIXADDR_START),
-		READ_ONCE(*pgd_offset_raw(mmu_id_map, FIXADDR_START)));
+	set_pgd(pgd_offset(pgdp, FIXADDR_START),
+		READ_ONCE(*pgd_offset(mmu_id_map, FIXADDR_START)));
 #ifndef CONFIG_MMU_IDMAP
 	/* Expand BPGT to 4K page tables */
-	set_pgd(pgd_offset_raw(mmu_id_map, (caddr_t)__stext),
-		READ_ONCE(*pgd_offset_raw(pgdp, (caddr_t)__stext)));
-	set_pgd(pgd_offset_raw(mmu_id_map, (caddr_t)__start_rodata),
-		READ_ONCE(*pgd_offset_raw(pgdp, (caddr_t)__start_rodata)));
-	set_pgd(pgd_offset_raw(mmu_id_map, (caddr_t)_sdata),
-		READ_ONCE(*pgd_offset_raw(pgdp, (caddr_t)_sdata)));
-	set_pgd(pgd_offset_raw(mmu_id_map, (caddr_t)PERCPU_STACKS_START),
-		READ_ONCE(*pgd_offset_raw(pgdp,
+	set_pgd(pgd_offset(mmu_id_map, (caddr_t)__stext),
+		READ_ONCE(*pgd_offset(pgdp, (caddr_t)__stext)));
+	set_pgd(pgd_offset(mmu_id_map, (caddr_t)__start_rodata),
+		READ_ONCE(*pgd_offset(pgdp, (caddr_t)__start_rodata)));
+	set_pgd(pgd_offset(mmu_id_map, (caddr_t)_sdata),
+		READ_ONCE(*pgd_offset(pgdp, (caddr_t)_sdata)));
+	set_pgd(pgd_offset(mmu_id_map, (caddr_t)PERCPU_STACKS_START),
+		READ_ONCE(*pgd_offset(pgdp,
 					  (caddr_t)PERCPU_STACKS_START)));
 #endif
 }
@@ -520,7 +520,7 @@ static pud_t bm_pud[PTRS_PER_PUD] __page_aligned_bss __unused;
 
 static inline pud_t *fixmap_pud(caddr_t addr)
 {
-	pgd_t *pgdp = pgd_offset_raw(mmu_id_map, addr);
+	pgd_t *pgdp = pgd_offset(mmu_id_map, addr);
 	__unused pgd_t pgd = READ_ONCE(*pgdp);
 
 	if (pgd_none(pgd) || pgd_bad(pgd))
@@ -531,7 +531,7 @@ static inline pud_t *fixmap_pud(caddr_t addr)
 static inline pmd_t *fixmap_pmd(caddr_t addr)
 {
 	pud_t *pudp = fixmap_pud(addr);
-	pud_t pud = READ_ONCE(*pudp);
+	__unused pud_t pud = READ_ONCE(*pudp);
 
 	if (pud_none(pud) || pud_bad(pud))
 		BUG();
@@ -544,9 +544,11 @@ static inline pte_t *fixmap_pte(caddr_t addr)
 	return &bm_pte[pte_index(addr)];
 #else
 	pmd_t *pmdp = fixmap_pmd(addr);
+	__unused pmd_t pmd = READ_ONCE(*pmdp);
 
-	BUG_ON(pmd_none(*pmdp) || pmd_bad(*pmdp));
-	return pte_offset_kernel(pmdp, addr);
+	if (pmd_none(pmd) || pmd_bad(pmd))
+		BUG();
+	return pte_offset(pmdp, addr);
 #endif
 }
 
@@ -581,7 +583,7 @@ void early_fixmap_init(void)
 	con_dbg("FIXMAP: %016llx - %016llx\n", FIXADDR_START, FIXADDR_END);
 	mmu_dbg_tbl("PGDIR: %016llx, %016llx\n", mmu_id_map, mmu_pg_dir);
 	addr = FIXADDR_START;
-	pgd = pgd_offset_raw(mmu_id_map, addr);
+	pgd = pgd_offset(mmu_id_map, addr);
 	pgd_populate(pgd, bm_pud);
 	pud = pud_offset(pgd, addr);
 	pud_populate(pud, bm_pmd);
@@ -629,16 +631,16 @@ void paging_init(void)
 	printf("BPGT_PGTABLE_LEVELS=%d\n", BPGT_PGTABLE_LEVELS);
 	printf("PGTABLE_LEVELS=%d\n", PGTABLE_LEVELS);
 	/* expand boot kernel mappings */
-	pgdp = pgd_set_fixmap(__pa_symbol(mmu_pg_dir));
+	pgdp = pgd_set_fixmap(__pa(mmu_pg_dir));
 	map_kernel(pgdp);
 	pgd_clear_fixmap();
 
 #ifdef CONFIG_MMU_MAP_MEM
 	/* map memory */
 #ifdef CONFIG_MMU_IDMAP
-	pgdp = pgd_set_fixmap(__pa_symbol(mmu_pg_dir));
+	pgdp = pgd_set_fixmap(__pa(mmu_pg_dir));
 #else
-	pgdp = pgd_set_fixmap(__pa_symbol(mmu_id_map));
+	pgdp = pgd_set_fixmap(__pa(mmu_id_map));
 #endif
 #ifdef CONFIG_GEM5
 #ifdef CONFIG_GEM5_STATIC_PAGES

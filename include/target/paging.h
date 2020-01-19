@@ -12,41 +12,20 @@
 #define PAGE_ALIGN(addr)	ALIGN((addr), PAGE_SIZE)
 #define PAGE_ALIGNED(addr)	IS_ALIGNED((addr), PAGE_SIZE)
 
-#define __pa_symbol(x)		__pa(RELOC_HIDE((caddr_t)(x), 0))
-
 #ifdef CONFIG_ARCH_HAS_MMU
 #define __PA(x)			((x) - PAGE_OFFSET + PHYS_OFFSET)
 #define __VA(x)			((x) - PHYS_OFFSET + PAGE_OFFSET)
 #define virt_to_phys(x)		(((phys_addr_t)(x) - PAGE_OFFSET + PHYS_OFFSET))
-#define phys_to_virt(x)		((caddr_t)((x) - PHYS_OFFSET + PAGE_OFFSET))
+#define phys_to_virt(x)		(((caddr_t)(x) - PHYS_OFFSET + PAGE_OFFSET))
 #define __pa(x)			virt_to_phys((caddr_t)(x))
 #define __va(x)			phys_to_virt((phys_addr_t)(x))
 
 /* Convert a physical address to a Page Frame Number and back */
 #define phys_to_pfn(paddr)	((pfn_t)((paddr) >> PAGE_SHIFT))
 #define pfn_to_phys(pfn)	((phys_addr_t)(pfn) << PAGE_SHIFT)
-#define virt_to_pfn(vaddr)	((pfn_t)(__pa(vaddr) >> PAGE_SHIFT))
-#define pfn_to_virt(pfn)	((caddr_t)__va((pfn) << PAGE_SHIFT))
-
-/* Convert a page to/from a physical address */
-#define page_to_phys(page)	pfn_to_phys(page_to_pfn(page))
-#define phys_to_page(phys)	pfn_to_page(phys_to_pfn(phys))
-
-/* PFNs are used to describe any physical page; this means
- * PFN 0 == physical address 0.
- *
- * This is the PFN of the first RAM page in the kernel
- * direct-mapped view.  We assume this is the first page
- * of RAM in the mem_map as well.
- */
-#define PHYS_PFN_OFFSET		(PHYS_OFFSET >> PAGE_SHIFT)
-#define ARCH_PFN_OFFSET		((caddr_t)PHYS_PFN_OFFSET)
-
-/* virt_to_page(k)	convert a _valid_ virtual address to struct page *
- * virt_addr_valid(k)	indicates whether a virtual address is valid
- */
-#define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
-#define	virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
+/* Convert a virtual address to a Page Frame Number and back */
+#define virt_to_pfn(vaddr)	phys_to_pfn(__pa(vaddr))
+#define pfn_to_virt(pfn)	__va(pfn_to_phys(pfn))
 
 #ifndef __ASSEMBLY__
 typedef struct page *pgtable_t;
@@ -75,23 +54,30 @@ typedef pteval_t pgprot_t;
 #define PTRS_PER_PTE		PAGE_MAX_TABLE_ENTRIES
 
 #define pte_none(pte)		(!pte_val(pte))
-#define pte_clear(addr, ptep)	set_pte(ptep, __pte(0))
 #define pte_index(addr)		(((addr) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
-
-#define pte_offset_phys(dir, addr)	\
-	(pmd_page_paddr(*(dir)) + pte_index(addr) * sizeof(pte_t))
-#define pte_offset_kernel(dir, addr)	\
-	(pmd_page_vaddr(*(dir)) + pte_index(addr))
-
 #ifndef ARCH_HAVE_SET_PTE
 #define set_pte(ptep, pte)	(*(ptep) = (pte))
 #endif
+#define pte_clear(addr, ptep)	set_pte(ptep, __pte(0))
+#define pte_offset(dir, addr)	(pmd_page_vaddr(*(dir)) + pte_index(addr))
+
+#define pte_offset_phys(dir, addr)	\
+	(pmd_page_paddr(*(dir)) + pte_index(addr) * sizeof(pte_t))
+
+#ifndef __ASSEMBLY__
+static inline caddr_t pte_addr_end(caddr_t addr, caddr_t end)
+{
+	caddr_t __boundary = (addr + PAGE_SIZE) & PAGE_MASK;
+	return (__boundary - 1 < end - 1) ? __boundary : end;
+}
+#endif /* !__ASSEMBLY__ */
 
 #define pmd_none(pmd)		(!pmd_val(pmd))
 #define pmd_clear(pmdp)		set_pmd(pmdp, __pmd(0))
 
 #define __pmd_populate(pmdp, pte, prot)	set_pmd(pmdp, __pmd(pte | prot))
-#define pmd_populate(pmdp, ptep)	__pmd_populate(pmdp, __pa(ptep), PMD_TYPE_TABLE)
+#define pmd_populate(pmdp, ptep)	\
+	__pmd_populate(pmdp, __pa(ptep), PMD_TYPE_TABLE)
 
 /* PGDIR_SHIFT determines the size a top-level page table entry can map
  * (depending on the configuration, this level can be 0, 1 or 2).
@@ -102,24 +88,18 @@ typedef pteval_t pgprot_t;
 #define PGDIR_MASK	(~(PGDIR_SIZE-1))
 #define PTRS_PER_PGD	(PTR_VAL_ONE << (VA_BITS - PGDIR_SHIFT))
 
-#define pgd_index(addr)			(((addr) >> PGDIR_SHIFT) & (PTRS_PER_PGD - 1))
-#define pgd_offset_raw(pgd, addr)	((pgd) + pgd_index(addr))
-#define pgd_offset(addr)		(mmu_pg_dir+pgd_index(addr))
+#define pgd_index(addr)			\
+	(((addr) >> PGDIR_SHIFT) & (PTRS_PER_PGD - 1))
+#define pgd_offset(pgd, addr)		((pgd) + pgd_index(addr))
 
-#define pgd_set_fixmap(addr)			((pgd_t *)set_fixmap_offset(FIX_PGD, addr))
+#define pgd_set_fixmap(addr)			\
+	((pgd_t *)set_fixmap_offset(FIX_PGD, addr))
 #define pgd_clear_fixmap()			clear_fixmap(FIX_PGD)
-
-#define pte_set_fixmap(addr)			((pte_t *)set_fixmap_offset(FIX_PTE, addr))
-#define pte_set_fixmap_offset(pmd, addr)	pte_set_fixmap(pte_offset_phys(pmd, addr))
+#define pte_set_fixmap(addr)			\
+	((pte_t *)set_fixmap_offset(FIX_PTE, addr))
+#define pte_set_fixmap_offset(pmd, addr)	\
+	pte_set_fixmap(pte_offset_phys(pmd, addr))
 #define pte_clear_fixmap()			clear_fixmap(FIX_PTE)
-
-#ifndef __ASSEMBLY__
-static inline caddr_t pte_addr_end(caddr_t addr, caddr_t end)
-{
-	caddr_t __boundary = (addr + PAGE_SIZE) & PAGE_MASK;
-	return (__boundary - 1 < end - 1) ? __boundary : end;
-}
-#endif /* !__ASSEMBLY__ */
 
 #if PGTABLE_LEVELS == 2
 #include <target/paging-nop2d.h>
@@ -134,7 +114,8 @@ static inline caddr_t pte_addr_end(caddr_t addr, caddr_t end)
 
 /* Find an entry in the second-level page table. */
 #define pmd_index(addr)			(((addr) >> PMD_SHIFT) & (PTRS_PER_PMD - 1))
-#define pmd_offset_phys(dir, addr)	(pud_page_paddr(*(dir)) + pmd_index(addr) * sizeof(pmd_t))
+#define pmd_offset_phys(dir, addr)	\
+	(pud_page_paddr(*(dir)) + pmd_index(addr) * sizeof(pmd_t))
 #define pmd_offset(pud, addr)		\
 	((pmd_t *)pud_page_vaddr(*(pud)) + pmd_index(addr))
 
@@ -225,8 +206,6 @@ extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
 #endif /* CONFIG_ARCH_HAS_MMU */
 
 #include <driver/mmu.h>
-
-#define FIXMAP_PAGE_IO	__pgprot(PROT_DEVICE_nGnRE)
 
 #define fix_to_virt(x)		(FIXADDR_END - ((x) << PAGE_SHIFT))
 #define virt_to_fix(x)		((FIXADDR_END - ((x)&PAGE_MASK)) >> PAGE_SHIFT)
