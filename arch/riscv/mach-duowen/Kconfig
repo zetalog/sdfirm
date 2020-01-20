@@ -23,13 +23,27 @@ config DUOWEN_IMC
 
 config DUOWEN_APC
 	bool "APC - coherence fabric (CFAB)"
-	select CPU_64G
-	select CPU_SV39
-	select CPU_SV48
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_BOOT_LOAD
 
 endchoice
+
+if DUOWEN_APC
+
+choice
+	prompt "APC CPU core model"
+
+config DUOWEN_APC_C910
+	bool "Xuantie C910"
+	select CPU_C910
+
+config DUOWEN_APC_VAISRA
+	bool "Emulated Vaisra"
+	select CPU_VAISRA
+
+endchoice
+
+endif
 
 choice
 	prompt "Program type"

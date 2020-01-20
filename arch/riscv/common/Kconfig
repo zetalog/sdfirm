@@ -1,3 +1,11 @@
+# Duowen Vaisra
+config CPU_VAISRA
+	bool
+	select CPU_64G
+	select CPU_SV39
+	select CPU_SV48
+	select CPU_PMP
+
 # SiFive E51
 config CPU_E51
 	bool
@@ -10,12 +18,17 @@ config CPU_E51
 # SiFive U54
 config CPU_U54
 	bool
-	select CPU_64I
-	select CPU_M
-	select CPU_A
-	select CPU_F
-	select CPU_D
+	select CPU_64G
 	select CPU_C
+	select CPU_SV39
+	select CPU_PMP
+
+# THead Xuantie C910
+config CPU_C910
+	bool
+	select CPU_64G
+	select CPU_C
+	select CPU_V
 	select CPU_SV39
 	select CPU_PMP
 
@@ -51,11 +64,7 @@ config CPU_SPIKE64
 # VIRT
 config CPU_VIRT
 	bool
-	select CPU_64I
-	select CPU_M
-	select CPU_A
-	select CPU_F
-	select CPU_D
+	select CPU_64G
 	select CPU_C
 	select CPU_PMP
 
