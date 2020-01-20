@@ -47,7 +47,6 @@
 #include <target/clk.h>
 
 #define UART_CLK_ID		uart0_clk
-#define UART_APB_CLK_ID		uart0_apb_clk
 #define DW_UART0_BASE		IMC_UART_BASE
 #define UART_CON_ID		0
 
@@ -76,7 +75,6 @@ void uart_hw_mmu_init(void);
 #define uart_hw_con_init()						\
 	do {								\
 		board_init_clock();					\
-		clk_enable(UART_APB_CLK_ID);				\
 		clk_enable(UART_CLK_ID);				\
 		dw_uart_con_init(clk_get_frequency(UART_CLK_ID));	\
 	} while (0)
