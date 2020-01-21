@@ -43,57 +43,392 @@
 #include <target/cmdline.h>
 
 struct output_clk {
-	uint32_t freq;
-	clk_t clk_sels[2];
+	clk_t clk_dep;
+	clk_t clk_src;
 	uint32_t flags;
-#define CLK_SEL_OFFSET	0
-#define CLK_SEL_MASK	REG_5BIT_MASK
 #define CLK_CLK_SEL_F	_BV(6)
-#define CLK_SEL(value)	(_SET_FV(CLK_SEL, value) | CLK_CLK_SEL_F)
-#define clk_sel(value)	_GET_FV(CLK_SEL, value)
 #define CLK_CLK_EN_F	_BV(7)
 #define CLK_SW_RST_F	_BV(8)
 #define CLK_CR		(CLK_CLK_EN_F | CLK_SW_RST_F)
 #define CLK_C		CLK_CLK_EN_F
 #define CLK_R		CLK_SW_RST_F
-#define CLK_BOOT	_BV(11)
-#define CLK_ENABLED	_BV(12)
-#define PCLK_ENABLED	_BV(13)
 };
 
 struct output_clk output_clks[] = {
-	[DMA_CLK] = {
-		.freq = SOC_PLL_FREQ,
-		.clk_sels = {
-			soc_pll,
-			invalid_clk,
-		},
+	/* 4.2 Cluster Clocks */
+	[CLUSTER0_HCLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_clk,
 		.flags = CLK_CR,
 	},
+	[CLUSTER1_HCLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_clk,
+		.flags = CLK_CR,
+	},
+	[CLUSTER2_HCLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_clk,
+		.flags = CLK_CR,
+	},
+	[CLUSTER3_HCLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_clk,
+		.flags = CLK_CR,
+	},
+	/* 4.3 Coherence Fabric Clocks */
+	[COHFAB_HCLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_clk,
+		.flags = CLK_CR,
+	},
+	/* 4.4 System Fabric Clocks */
+	[PLIC_HCLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_clk,
+		.flags = CLK_CR,
+	},
+	[TLMM_PCLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[SCSR_PCLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[WDT0_PCLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[WDT1_PCLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	/* 4.5 DMA Clocks */
+	[DMA_CLK] = {
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_clk,
+		.flags = CLK_CR,
+	},
+	/* 4.6 DDR Clocks */
 	[DDR_CLK] = {
-		.freq = DDR_PLL_FREQ,
-		.clk_sels = {
-			ddr_high_clk,
-			ddr_low_clk,
-		},
-		.flags = CLK_CR | CLK_SEL(DDR_CLK_SEL),
+		.clk_dep = sysfab_half_clk,
+		.clk_src = ddr_clk_div4_sel,
+		.flags = CLK_CR,
 	},
 	[DDR_BYPASS_PCLK] = {
-		.freq = DDR_PLL_FREQ,
-		.clk_sels = {
-			ddr_pll,
-			invalid_clk,
-		},
+		.clk_dep = invalid_clk,
+		.clk_src = ddr_clk_sel,
 		.flags = CLK_CR,
 	},
+	/* 4.7 PCIE Clocks */
 	[PCIE_CLK] = {
-		.freq = SOC_PLL_FREQ,
-		.clk_sels = {
-			soc_pll,
-			invalid_clk,
-		},
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_clk,
 		.flags = CLK_CR,
 	},
+	/* 4.8 Timer Clocks */
+	[TIMER0_PCLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_R,
+	},
+	[TIMER1_PCLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_R,
+	},
+	[TIMER2_PCLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_R,
+	},
+	[TIMER3_PCLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = invalid_clk,
+		.flags = CLK_R,
+	},
+	[TIMER0_1_CLK] = {
+		.clk_dep = timer0_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER0_2_CLK] = {
+		.clk_dep = timer0_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER0_3_CLK] = {
+		.clk_dep = timer0_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER0_4_CLK] = {
+		.clk_dep = timer0_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER0_5_CLK] = {
+		.clk_dep = timer0_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER0_6_CLK] = {
+		.clk_dep = timer0_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER0_7_CLK] = {
+		.clk_dep = timer0_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER0_8_CLK] = {
+		.clk_dep = timer0_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER1_1_CLK] = {
+		.clk_dep = timer1_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER1_2_CLK] = {
+		.clk_dep = timer1_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER1_3_CLK] = {
+		.clk_dep = timer1_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER1_4_CLK] = {
+		.clk_dep = timer1_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER1_5_CLK] = {
+		.clk_dep = timer1_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER1_6_CLK] = {
+		.clk_dep = timer1_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER1_7_CLK] = {
+		.clk_dep = timer1_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER1_8_CLK] = {
+		.clk_dep = timer1_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER2_1_CLK] = {
+		.clk_dep = timer2_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER2_2_CLK] = {
+		.clk_dep = timer2_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER2_3_CLK] = {
+		.clk_dep = timer2_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER2_4_CLK] = {
+		.clk_dep = timer2_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER2_5_CLK] = {
+		.clk_dep = timer2_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER2_6_CLK] = {
+		.clk_dep = timer2_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER2_7_CLK] = {
+		.clk_dep = timer2_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER2_8_CLK] = {
+		.clk_dep = timer2_pclk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_C,
+	},
+	[TIMER3_CLK] = {
+		.clk_dep = __timer3_pclk,
+		.clk_src = xo_clk,
+		.flags = CLK_CR,
+	},
+	/* 4.9 SD Clocks */
+	[SD_HCLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	/* 4.10 UART Clocks */
+	[UART0_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[UART1_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[UART2_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[UART3_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	/* 4.11 SPI Clocks */
+	[SPI0_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[SPI1_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[SPI2_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[SPI3_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[SPI4_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	/* 4.12 GPIO Clocks */
+	[GPIO0_PCLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[GPIO1_PCLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[GPIO2_PCLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	/* 4.13 I2C Clocks */
+	[I2C0_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[I2C1_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[I2C2_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[I2C3_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[I2C4_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[I2C5_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[I2C6_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[I2C7_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[I2C8_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[I2C9_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[I2C10_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	[I2C11_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
+		.flags = CLK_CR,
+	},
+	/* 4.14 Thermal Sensor Clocks */
+	[TSENSOR0_CLK] = {
+		.clk_dep = sysfab_half_clk,
+		.clk_src = xo_clk_div4,
+		.flags = CLK_CR,
+	},
+	[TSENSOR1_CLK] = {
+		.clk_dep = sysfab_half_clk,
+		.clk_src = xo_clk_div4,
+		.flags = CLK_CR,
+	},
+	[TSENSOR2_CLK] = {
+		.clk_dep = sysfab_half_clk,
+		.clk_src = xo_clk_div4,
+		.flags = CLK_CR,
+	},
+	[TSENSOR3_CLK] = {
+		.clk_dep = sysfab_half_clk,
+		.clk_src = xo_clk_div4,
+		.flags = CLK_CR,
+	},
+	/* Additional resets */
 	[CRCNTL_RST_PCIE_BUTTON] = {
 		.flags = CLK_R,
 	},
@@ -103,617 +438,57 @@ struct output_clk output_clks[] = {
 	[CRCNTL_RST_PCIE_TEST] = {
 		.flags = CLK_R,
 	},
+#if 0
 	[SYSFAB_DBG_CLK] = {
-		.freq = SOC_PLL_DIV4_FREQ,
-		.clk_sels = {
-			sysfab_clk_250,
-			xo_clk,
-		},
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,,
 		.flags = CLK_CR,
 	},
 	[SYSFAB_TIC_CLK] = {
-		.freq = SOC_PLL_DIV4_FREQ,
-		.clk_sels = {
-			sysfab_clk_250,
-			xo_clk,
-		},
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,,
 		.flags = CLK_CR,
 	},
-	[CLUSTER0_AHB_CLK] = {
-		.freq = CL0_PLL_FREQ,
-		.clk_sels = {
-			cl0_pll,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[CLUSTER1_AHB_CLK] = {
-		.freq = CL1_PLL_FREQ,
-		.clk_sels = {
-			cl1_pll,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[CLUSTER2_AHB_CLK] = {
-		.freq = CL2_PLL_FREQ,
-		.clk_sels = {
-			cl2_pll,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[CLUSTER3_AHB_CLK] = {
-		.freq = CL3_PLL_FREQ,
-		.clk_sels = {
-			cl3_pll,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[COHFAB_AHB_CLK] = {
-		.freq = COHFAB_PLL_FREQ,
-		.clk_sels = {
-			cohfab_pll,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[SCSR_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[TLMM_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[PLIC_CLK] = {
-		.freq = SOC_PLL_DIV4_FREQ,
-		.clk_sels = {
-			sysfab_clk_250,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-#if 0
 	[TIC_CLK] = {
-		.freq = 0,
-		.clk_sels = {
-			tic_xclk,
-		},
+		.clk_dep = invalid_clk,
+		.clk_src = tic_xclk,
+		.flags = CLK_CR,
+	},
+	[CORESIGHT_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,,
 		.flags = CLK_CR,
 	},
 #endif
-	[CORESIGHT_CLK] = {
-		.freq = SOC_PLL_DIV4_FREQ,
-		.clk_sels = {
-			sysfab_clk_250,
-			invalid_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[CRCNTL_RST_TIMER0] = {
-		.flags = CLK_R,
-	},
-	[CRCNTL_RST_TIMER1] = {
-		.flags = CLK_R,
-	},
-	[CRCNTL_RST_TIMER2] = {
-		.flags = CLK_R,
-	},
-	[CRCNTL_RST_TIMER3] = {
-		.flags = CLK_R,
-	},
-	[WDT0_CLK] = {
-		.freq = XO_CLK_FREQ,
-		.clk_sels = {
-			xo_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[WDT1_CLK] = {
-		.freq = XO_CLK_FREQ,
-		.clk_sels = {
-			xo_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[GPIO0_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[GPIO1_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[GPIO2_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[UART0_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[UART1_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[UART2_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[UART3_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[I2C0_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[I2C1_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[I2C2_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[I2C3_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[I2C4_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[I2C5_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[I2C6_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[I2C7_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[I2C8_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[I2C9_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[I2C10_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[I2C11_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[SPI0_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[SPI1_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[SPI2_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[SPI3_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[SPI4_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[SD_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[TIMER0_1_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER0_2_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER0_3_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER0_4_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER0_5_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER0_6_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER0_7_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER0_8_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[TIMER1_1_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER1_2_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER1_3_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER1_4_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER1_5_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER1_6_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER1_7_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER1_8_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER2_1_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER2_2_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER2_3_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER2_4_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER2_5_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER2_6_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER2_7_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER2_8_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			sysfab_clk_125,
-			invalid_clk,
-		},
-		.flags = CLK_C,
-	},
-	[TIMER3_CLK] = {
-		.freq = XO_CLK_FREQ,
-		.clk_sels = {
-			xo_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR | CLK_BOOT,
-	},
-	[TSENSOR0_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[TSENSOR1_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[TSENSOR2_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
-	[TSENSOR3_CLK] = {
-		.freq = SOC_PLL_DIV8_FREQ,
-		.clk_sels = {
-			apb_clk,
-			xo_clk,
-		},
-		.flags = CLK_CR,
-	},
 };
 
 #ifdef CONFIG_CONSOLE_COMMAND
 const char *output_clk_names[] = {
+	/* 4.2 Cluster Clocks */
+	[CLUSTER0_HCLK] = "cluster0_hclk",
+	[CLUSTER1_HCLK] = "cluster1_hclk",
+	[CLUSTER2_HCLK] = "cluster2_hclk",
+	[CLUSTER3_HCLK] = "cluster3_hclk",
+	/* 4.3 Coherence Fabric Clocks */
+	[COHFAB_HCLK] = "cohfab_hclk",
+	/* 4.4 System Fabric Clocks */
+	[PLIC_HCLK] = "plic_hclk",
+	[TLMM_PCLK] = "tlmm_pclk",
+	[SCSR_PCLK] = "scsr_pclk",
+	[WDT0_PCLK] = "wdt0_pclk",
+	[WDT1_PCLK] = "wdt1_pclk",
+	/* 4.5 DMA Clocks */
 	[DMA_CLK] = "dma_clk",
+	/* 4.6 DDR Clocks */
 	[DDR_CLK] = "ddr_clk",
 	[DDR_BYPASS_PCLK] = "ddrp0_bypass_pclk",
+	/* 4.7 PCIE Clocks */
 	[PCIE_CLK] = "pcie_clk",
-	[CRCNTL_RST_PCIE_BUTTON] = "pcie_button_rst",
-	[CRCNTL_RST_PCIE_POWER_UP] = "pcie_power_up_rst",
-	[CRCNTL_RST_PCIE_TEST] = "pcie_test_rst",
-	[SYSFAB_DBG_CLK] = "sysfab_dbg_clk",
-	[SYSFAB_TIC_CLK] = "sysfab_tic_clk",
-	[CLUSTER0_AHB_CLK] = "cluster0_ahb_clk",
-	[CLUSTER1_AHB_CLK] = "cluster1_ahb_clk",
-	[CLUSTER2_AHB_CLK] = "cluster2_ahb_clk",
-	[CLUSTER3_AHB_CLK] = "cluster3_ahb_clk",
-	[COHFAB_AHB_CLK] = "cohfab_clk",
-	[SCSR_CLK] = "scsr_clk",
-	[TLMM_CLK] = "tlmm_clk",
-	[PLIC_CLK] = "plic_clk",
-	/* [TIC_CLK] = "tic_clk", */
-	[CORESIGHT_CLK] = "coresight_clk",
-	[CRCNTL_RST_TIMER0] = "timer0_rst",
-	[CRCNTL_RST_TIMER1] = "timer1_rst",
-	[CRCNTL_RST_TIMER2] = "timer2_rst",
-	[CRCNTL_RST_TIMER3] = "timer3_rst",
-	[WDT0_CLK] = "wdt0_clk",
-	[WDT1_CLK] = "wdt1_clk",
-	[GPIO0_CLK] = "gpio0_clk",
-	[GPIO1_CLK] = "gpio1_clk",
-	[GPIO2_CLK] = "gpio2_clk",
-	[UART0_CLK] = "uart0_clk",
-	[UART1_CLK] = "uart1_clk",
-	[UART2_CLK] = "uart2_clk",
-	[UART3_CLK] = "uart3_clk",
-	[I2C0_CLK] = "i2c0_clk",
-	[I2C1_CLK] = "i2c1_clk",
-	[I2C2_CLK] = "i2c2_clk",
-	[I2C3_CLK] = "i2c3_clk",
-	[I2C4_CLK] = "i2c4_clk",
-	[I2C5_CLK] = "i2c5_clk",
-	[I2C6_CLK] = "i2c6_clk",
-	[I2C7_CLK] = "i2c7_clk",
-	[I2C8_CLK] = "i2c8_clk",
-	[I2C9_CLK] = "i2c9_clk",
-	[I2C10_CLK] = "i2c10_clk",
-	[I2C11_CLK] = "i2c11_clk",
-	[SPI0_CLK] = "spi0_clk",
-	[SPI1_CLK] = "spi1_clk",
-	[SPI2_CLK] = "spi2_clk",
-	[SPI3_CLK] = "spi3_clk",
-	[SPI4_CLK] = "spi4_clk",
-	[SD_CLK] = "sd_clk",
+	/* 4.8 Timer Clocks */
+	[TIMER0_PCLK] = "timer0_pclk",
+	[TIMER1_PCLK] = "timer1_pclk",
+	[TIMER2_PCLK] = "timer2_pclk",
+	[TIMER3_PCLK] = "timer3_pclk",
 	[TIMER0_1_CLK] = "timer0_1_clk",
 	[TIMER0_2_CLK] = "timer0_2_clk",
 	[TIMER0_3_CLK] = "timer0_3_clk",
@@ -739,10 +514,55 @@ const char *output_clk_names[] = {
 	[TIMER2_7_CLK] = "timer2_7_clk",
 	[TIMER2_8_CLK] = "timer2_8_clk",
 	[TIMER3_CLK] = "timer3_clk",
+	/* 4.9 SD Clocks */
+	[SD_HCLK] = "sd_hclk",
+	/* 4.10 UART Clocks */
+	[UART0_CLK] = "uart0_clk",
+	[UART1_CLK] = "uart1_clk",
+	[UART2_CLK] = "uart2_clk",
+	[UART3_CLK] = "uart3_clk",
+	/* 4.11 SPI Clocks */
+	[SPI0_CLK] = "spi0_clk",
+	[SPI1_CLK] = "spi1_clk",
+	[SPI2_CLK] = "spi2_clk",
+	[SPI3_CLK] = "spi3_clk",
+	[SPI4_CLK] = "spi4_clk",
+	/* 4.12 GPIO Clocks */
+	[GPIO0_PCLK] = "gpio0_pclk",
+	[GPIO1_PCLK] = "gpio1_pclk",
+	[GPIO2_PCLK] = "gpio2_pclk",
+	/* 4.13 I2C Clocks */
+	[I2C0_CLK] = "i2c0_clk",
+	[I2C1_CLK] = "i2c1_clk",
+	[I2C2_CLK] = "i2c2_clk",
+	[I2C3_CLK] = "i2c3_clk",
+	[I2C4_CLK] = "i2c4_clk",
+	[I2C5_CLK] = "i2c5_clk",
+	[I2C6_CLK] = "i2c6_clk",
+	[I2C7_CLK] = "i2c7_clk",
+	[I2C8_CLK] = "i2c8_clk",
+	[I2C9_CLK] = "i2c9_clk",
+	[I2C10_CLK] = "i2c10_clk",
+	[I2C11_CLK] = "i2c11_clk",
+	/* 4.14 Thermal Sensor Clocks */
 	[TSENSOR0_CLK] = "tsensor0_clk",
 	[TSENSOR1_CLK] = "tsensor1_clk",
 	[TSENSOR2_CLK] = "tsensor2_clk",
 	[TSENSOR3_CLK] = "tsensor3_clk",
+	/* Additional Resets */
+	[CRCNTL_RST_PCIE_BUTTON] = "pcie_button_rst",
+	[CRCNTL_RST_PCIE_POWER_UP] = "pcie_power_up_rst",
+	[CRCNTL_RST_PCIE_TEST] = "pcie_test_rst",
+	[TIMER0_PCLK] = "timer0_pclk",
+	[TIMER1_PCLK] = "timer1_pclk",
+	[TIMER2_PCLK] = "timer2_pclk",
+	[TIMER3_PCLK] = "timer3_pclk",
+#if 0
+	[SYSFAB_DBG_CLK] = "sysfab_dbg_clk",
+	[SYSFAB_TIC_CLK] = "sysfab_tic_clk",
+	/* [TIC_CLK] = "tic_clk", */
+	[CORESIGHT_CLK] = "coresight_clk",
+#endif
 };
 
 static const char *get_output_clk_name(clk_clk_t clk)
@@ -757,20 +577,17 @@ static const char *get_output_clk_name(clk_clk_t clk)
 
 static int enable_output_clk(clk_clk_t clk)
 {
-	clk_t clkid = clkid(CLK_OUTPUT, clk);
-
 	if (clk >= NR_OUTPUT_CLKS)
 		return -EINVAL;
 
-	if (output_clks[clk].flags & CLK_BOOT)
-		clk_hw_select_boot(clkid);
-	else
-		clk_hw_select_run(clkid);
-	if (output_clks[clk].flags & CLK_CLK_EN_F) {
+	if (output_clks[clk].clk_dep != invalid_clk)
+		clk_enable(output_clks[clk].clk_dep);
+	if (output_clks[clk].clk_src != invalid_clk)
+		clk_enable(output_clks[clk].clk_src);
+	if (output_clks[clk].flags & CLK_CLK_EN_F)
 		crcntl_clk_enable(clk);
+	if (output_clks[clk].flags & CLK_SW_RST_F)
 		crcntl_clk_deassert(clk);
-		raise_bits(output_clks[clk].flags, CLK_ENABLED);
-	}
 	return 0;
 }
 
@@ -779,54 +596,30 @@ static void disable_output_clk(clk_clk_t clk)
 	if (clk >= NR_OUTPUT_CLKS)
 		return;
 
-	if (output_clks[clk].flags & CLK_CLK_EN_F) {
+	if (output_clks[clk].clk_dep != invalid_clk)
+		clk_disable(output_clks[clk].clk_dep);
+	if (output_clks[clk].clk_src != invalid_clk)
+		clk_disable(output_clks[clk].clk_src);
+	if (output_clks[clk].flags & CLK_SW_RST_F)
 		crcntl_clk_assert(clk);
+	if (output_clks[clk].flags & CLK_CLK_EN_F)
 		crcntl_clk_disable(clk);
-		unraise_bits(output_clks[clk].flags, CLK_ENABLED);
-	}
 }
 
 static uint32_t get_output_clk_freq(clk_clk_t clk)
 {
-	uint32_t freq;
-
 	if (clk >= NR_OUTPUT_CLKS)
 		return INVALID_FREQ;
-	if (output_clks[clk].flags & CLK_CLK_SEL_F) {
-		if (crcntl_clk_selected(clk))
-			freq = clk_get_frequency(
-					output_clks[clk].clk_sels[1]);
-		else
-			freq = clk_get_frequency(
-					output_clks[clk].clk_sels[0]);
-	} else {
-		freq = clk_get_frequency(output_clks[clk].clk_sels[0]);
-		if (freq == INVALID_FREQ)
-			freq = clk_get_frequency(
-					output_clks[clk].clk_sels[1]);
-	}
-	return freq;
-}
-
-static void select_output_clk_src(clk_clk_t clk, clk_t src)
-{
-	clk_t clkid = clkid(CLK_OUTPUT, clk);
-
-	if (clk >= NR_OUTPUT_CLKS)
-		return;
-	if (src == output_clks[clk].clk_sels[0])
-		clk_hw_select_run(clkid);
-	if (src == output_clks[clk].clk_sels[1])
-		clk_hw_select_boot(clkid);
+	return clk_get_frequency(output_clks[clk].clk_src);
 }
 
 struct clk_driver clk_output = {
 	.max_clocks = NR_OUTPUT_CLKS,
 	.enable = enable_output_clk,
 	.disable = disable_output_clk,
+	.select = NULL,
 	.get_freq = get_output_clk_freq,
 	.set_freq = NULL,
-	.select = select_output_clk_src,
 	.get_name = get_output_clk_name,
 };
 
@@ -923,18 +716,114 @@ struct clk_driver clk_pll = {
 	.get_name = get_pll_name,
 };
 
+struct select_clk {
+	clk_t clk_sels[2];
+	bool flags;
+};
+
+struct select_clk select_clks[] = {
+	[SYSFAB_CLK_SEL] = {
+		.clk_sels = {
+			soc_pll,
+			xo_clk,
+		},
+	},
+	[DDR_CLK_SEL] = {
+		.clk_sels = {
+			ddr_pll,
+			xo_clk,
+		},
+	},
+	[DDR_CLK_DIV4_SEL] = {
+		.clk_sels = {
+			ddr_pll,
+			ddr_pll_div4,
+		},
+	},
+};
+
+#ifdef CONFIG_CONSOLE_COMMAND
+const char *sel_clk_names[NR_DIV_CLKS] = {
+	[SYSFAB_CLK_SEL] = "soc_clk(sysfab_clk_sel)",
+	[DDR_CLK_SEL] = "ddr_clk(ddr_clk_sel)",
+	[DDR_CLK_DIV4_SEL] = "ddr_clk_div4(ddr_clk_div4_sel)",
+};
+
+static const char *get_clk_sel_name(clk_clk_t clk)
+{
+	if (clk >= NR_SELECT_CLKS)
+		return NULL;
+	return sel_clk_names[clk];
+}
+#else
+#define get_clk_sel_name	NULL
+#endif
+
+static int enable_clk_sel(clk_clk_t clk)
+{
+	if (clk >= NR_SELECT_CLKS)
+		return -EINVAL;
+	if (!(select_clks[clk].flags & CLK_CLK_SEL_F)) {
+		clk_enable(select_clks[clk].clk_sels[0]);
+		if (!crcntl_clk_selected(clk))
+			__raw_clearl(_BV(clk), CRCNTL_CLK_SEL_CFG);
+		if (select_clks[clk].flags & CLK_CLK_EN_F)
+			clk_disable(select_clks[clk].clk_sels[1]);
+		else
+			select_clks[clk].flags |= CLK_CLK_EN_F;
+		select_clks[clk].flags |= CLK_CLK_SEL_F;
+	}
+	return 0;
+}
+
+static void disable_clk_sel(clk_clk_t clk)
+{
+	if (clk >= NR_SELECT_CLKS)
+		return;
+	if (select_clks[clk].flags & CLK_CLK_SEL_F) {
+		clk_enable(select_clks[clk].clk_sels[1]);
+		if (!crcntl_clk_selected(clk))
+			__raw_setl(_BV(clk), CRCNTL_CLK_SEL_CFG);
+		if (select_clks[clk].flags & CLK_CLK_EN_F)
+			clk_disable(select_clks[clk].clk_sels[0]);
+		else
+			select_clks[clk].flags |= CLK_CLK_EN_F;
+		select_clks[clk].flags &= ~CLK_CLK_SEL_F;
+	}
+}
+
+static uint32_t get_clk_sel_freq(clk_clk_t clk)
+{
+	if (clk >= NR_SELECT_CLKS)
+		return INVALID_FREQ;
+	if (crcntl_clk_selected(clk))
+		return clk_get_frequency(select_clks[clk].clk_sels[0]);
+	else
+		return clk_get_frequency(select_clks[clk].clk_sels[1]);
+}
+
+struct clk_driver clk_select = {
+	.max_clocks = NR_SELECT_CLKS,
+	.enable = enable_clk_sel,
+	.disable = disable_clk_sel,
+	.get_freq = get_clk_sel_freq,
+	.set_freq = NULL,
+	.select = NULL,
+	.get_name = get_clk_sel_name,
+};
+
 struct div_clk {
 	clk_t derived;
 	uint8_t div;
 };
 
 struct div_clk div_clks[NR_DIV_CLKS] = {
-	[SOC_PLL_DIV4] = {
-		.derived = soc_pll,
+	[SYSFAB_CLK] = {
+		.derived = soc_clk,
 		.div = 4,
 	},
-	[SOC_PLL_DIV8] = {
-		.derived = soc_pll,
+	[SYSFAB_HALF_CLK] = {
+		.derived = sysfab_clk,
 		.div = 8,
 	},
 	[SOC_PLL_DIV10] = {
@@ -949,15 +838,20 @@ struct div_clk div_clks[NR_DIV_CLKS] = {
 		.derived = ddr_pll,
 		.div = 4,
 	},
+	[XO_CLK_DIV4] = {
+		.derived = xo_clk,
+		.div = 4,
+	},
 };
 
 #ifdef CONFIG_CONSOLE_COMMAND
 const char *div_clk_names[NR_DIV_CLKS] = {
-	[SOC_PLL_DIV4] = "sysfab_clk_250",
-	[SOC_PLL_DIV8] = "sysfab_clk_125",
+	[SYSFAB_CLK] = "sysfab_clk",
+	[SYSFAB_HALF_CLK] = "sysfab_half_clk",
 	[SOC_PLL_DIV10] = "soc_pll_div10",
 	[SD_TM_CLK] = "sd_tm_clk",
 	[DDR_PLL_DIV4] = "ddr_pll_div4",
+	[XO_CLK_DIV4] = "xo_clk_div4",
 };
 
 static const char *get_pll_div_name(clk_clk_t clk)
@@ -1041,50 +935,6 @@ struct clk_driver clk_input = {
 /*===========================================================================
  * Clock tree APIs
  *===========================================================================*/
-void clk_hw_select_boot(clk_t clkid)
-{
-	clk_clk_t clk;
-	uint8_t bit;
-
-	if (clk_cat(clkid) != CLK_OUTPUT)
-		return;
-	clk = clk_clk(clkid);
-	if (output_clks[clk].flags & CLK_CLK_SEL_F) {
-		bit = clk_sel(output_clks[clk].flags);
-		clk_enable(output_clks[clk].clk_sels[1]);
-		__raw_setl(_BV(bit), CRCNTL_CLK_SEL_CFG);
-		if (output_clks[clk].flags & PCLK_ENABLED)
-			clk_disable(output_clks[clk].clk_sels[0]);
-	} else {
-		clk_enable(output_clks[clk].clk_sels[1]);
-		if (output_clks[clk].flags & PCLK_ENABLED)
-			clk_disable(output_clks[clk].clk_sels[0]);
-	}
-	output_clks[clk].flags |= PCLK_ENABLED;
-}
-
-void clk_hw_select_run(clk_t clkid)
-{
-	clk_clk_t clk;
-	uint8_t bit;
-
-	if (clk_cat(clkid) != CLK_OUTPUT)
-		return;
-	clk = clk_clk(clkid);
-	if (output_clks[clk].flags & CLK_CLK_SEL_F) {
-		bit = clk_sel(output_clks[clk].flags);
-		clk_enable(output_clks[clk].clk_sels[0]);
-		__raw_clearl(_BV(bit), CRCNTL_CLK_SEL_CFG);
-		if (output_clks[clk].flags & PCLK_ENABLED)
-			clk_disable(output_clks[clk].clk_sels[1]);
-	} else {
-		clk_enable(output_clks[clk].clk_sels[0]);
-		if (output_clks[clk].flags & PCLK_ENABLED)
-			clk_disable(output_clks[clk].clk_sels[1]);
-	}
-	output_clks[clk].flags |= PCLK_ENABLED;
-}
-
 static bool clk_hw_init = false;
 
 void board_init_clock(void)
@@ -1092,12 +942,14 @@ void board_init_clock(void)
 	if (!clk_hw_init) {
 		clk_register_driver(CLK_INPUT, &clk_input);
 		clk_register_driver(CLK_PLL, &clk_pll);
+		clk_register_driver(CLK_SELECT, &clk_select);
 		clk_register_driver(CLK_OUTPUT, &clk_output);
 		clk_register_driver(CLK_DIV, &clk_div);
 
 		/* Update the status of the default enabled clocks */
 		clk_enable(soc_pll);
-		clk_enable(scsr_clk);
+		clk_enable(sysfab_clk);
+		clk_enable(sysfab_half_clk);
 		clk_enable(timer3_clk);
 	}
 	clk_hw_init = true;
@@ -1113,11 +965,7 @@ void clk_hw_ctrl_init(void)
  *===========================================================================*/
 bool crcntl_clk_selected(clk_clk_t clk)
 {
-	uint8_t bit;
-
-	BUG_ON(!(output_clks[clk].flags & CLK_CLK_SEL_F));
-	bit = clk_sel(output_clks[clk].flags);
-	return !!(__raw_readl(CRCNTL_CLK_SEL_CFG) & _BV(bit));
+	return !(__raw_readl(CRCNTL_CLK_SEL_CFG) & _BV(clk));
 }
 
 bool crcntl_clk_enabled(clk_clk_t clk)
@@ -1229,16 +1077,27 @@ static int do_crcntl_dump(int argc, char *argv[])
 			       clk_get_mnemonic(div_clks[i].derived));
 		}
 	}
+	for (i = 0; i < NR_SELECT_CLKS; i++) {
+		if (sel_clk_names[i]) {
+			printf("clk  %3d %20s %20s\n",
+			       i, sel_clk_names[i],
+			       clk_get_mnemonic(select_clks[i].clk_sels[0]));
+			if (select_clks[i].clk_sels[1] != invalid_clk)
+				printf("%4s %3s %20s %20s\n", "", "", "",
+				       clk_get_mnemonic(
+					       select_clks[i].clk_sels[1]));
+		}
+	}
 	for (i = 0; i < NR_OUTPUT_CLKS; i++) {
 		if (output_clk_names[i] &&
 		    output_clks[i].flags & CLK_CLK_EN_F) {
 			printf("clk  %3d %20s %20s\n",
 			       i, output_clk_names[i],
-			       clk_get_mnemonic(output_clks[i].clk_sels[0]));
-			if (output_clks[i].clk_sels[1] != invalid_clk)
+			       clk_get_mnemonic(output_clks[i].clk_src));
+			if (output_clks[i].clk_dep != invalid_clk)
 				printf("%4s %3s %20s %20s\n", "", "", "",
 				       clk_get_mnemonic(
-					       output_clks[i].clk_sels[1]));
+					       output_clks[i].clk_dep));
 		}
 	}
 	return 0;

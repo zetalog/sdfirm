@@ -104,21 +104,12 @@
 /* CRCNTL_SW_GLOBAL_RST */
 #define PWR_GLOBAL_RST		_BV(0)
 
-/* CLK_SEL_CFG */
-#define DDR_CLK_DIV4_SEL	2
-#define DDR_CLK_SEL		1
-#define SYSFAB_CLK_SEL		0
-
 /* Most SW_RST bits are same as CLK_EN bits, except the followings */
 /* SW_RST_CFG0 */
 #define CRCNTL_RST_DDR_PWROKIN		2  /* SW_RST only, cold/warm reset */
 #define CRCNTL_RST_PCIE_BUTTON		5  /* SW_RST only */
 #define CRCNTL_RST_PCIE_POWER_UP	6  /* SW_RST only */
 #define CRCNTL_RST_PCIE_TEST		7  /* SW_RST only */
-#define CRCNTL_RST_TIMER0		25 /* SW_RST only */
-#define CRCNTL_RST_TIMER1		26 /* SW_RST only */
-#define CRCNTL_RST_TIMER2		27 /* SW_RST only */
-#define CRCNTL_RST_TIMER3		28 /* SW_RST only */
 
 /* CRCNTL_PLL_REG_ACCESS */
 #define PLL_REG_INVALID		_BV(25)
