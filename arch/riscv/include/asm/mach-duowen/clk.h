@@ -336,7 +336,7 @@
  * tsensor3_pclk: depends tsensor3_clk, sources sysfab_half_clk
  */
 
-#define CLK_DIV			((clk_cat_t)3)
+#define CLK_DIV			((clk_cat_t)4)
 #define SYSFAB_CLK		((clk_clk_t)0)
 #define SYSFAB_HALF_CLK		((clk_clk_t)1)
 #define SOC_PLL_DIV10		((clk_clk_t)2)

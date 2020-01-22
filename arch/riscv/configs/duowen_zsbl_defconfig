@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Jan 13 11:51:49 2020
+# Wed Jan 22 16:38:29 2020
 #
 CONFIG_32BIT=y
 CONFIG_RISCV=y
@@ -102,11 +102,9 @@ CONFIG_DUOWEN_IMC=y
 CONFIG_DUOWEN_ZSBL=y
 # CONFIG_DUOWEN_FSBL is not set
 # CONFIG_DUOWEN_SBI is not set
-
-#
-# Configure timestamp hardware
-#
-CONFIG_DUOWEN_TSC_DW_TIMERS=y
+CONFIG_DUOWEN_TMR=y
+# CONFIG_DUOWEN_TMR_CRCNTL_INIT is not set
+# CONFIG_DUOWEN_TMR_MTIME is not set
 CONFIG_CRCNTL=y
 CONFIG_DUOWEN_SD=y
 
@@ -161,7 +159,7 @@ CONFIG_MEM_RESIZE=y
 # CONFIG_GPIO is not set
 CONFIG_ARCH_HAS_CLK=y
 CONFIG_CLK=y
-CONFIG_CLK_MAX_DRIVERS=4
+CONFIG_CLK_MAX_DRIVERS=5
 
 #
 # Human Interface Devices (HID) support
@@ -217,8 +215,7 @@ CONFIG_SD_SDSC=y
 #
 # Timer drivers
 #
-CONFIG_DW_TIMERS=y
-CONFIG_DW_TIMERS_COUNT=1
+# CONFIG_DW_TIMERS is not set
 
 #
 # Debugging console drivers

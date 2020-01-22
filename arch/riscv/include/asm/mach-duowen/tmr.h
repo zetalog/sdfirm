@@ -59,7 +59,7 @@
 #define TMR_EN			_BV(0)
 #define TMR_HALT_ON_DEBUG	_BV(1)
 
-#define tmr_enable_mtime()	__raw_setl(TMR_EN, TMR_CNT_CTRL)
 uint64_t tmr_read_counter(void);
+void tmr_ctrl_init(void);
 
 #endif /* __TMR_DUOWEN_H_INCLUDE__ */

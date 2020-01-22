@@ -46,10 +46,7 @@ static bool tsc_hw_init = false;
 void board_init_timestamp(void)
 {
 	if (!tsc_hw_init) {
-		crcntl_clk_enable(DW_TIMERS_TSC_CLK);
-		crcntl_clk_deassert(DW_TIMERS_TSC_CLK);
-		__tsc_hw_ctrl_init();
-		tmr_enable_mtime();
+		tmr_ctrl_init();
 		tsc_hw_init = true;
 	}
 }

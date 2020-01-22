@@ -53,3 +53,23 @@ uint64_t tmr_read_counter(void)
 	} while (hi1 != hi2);
 	return MAKELLONG(lo, hi1);
 }
+
+#ifdef CONFIG_DUOWEN_TMR_CRCNTL_INIT
+static void __tmr_enable_clock(void)
+{
+	crcntl_clk_enable(TIMER3_CLK);
+	crcntl_clk_deassert(TIMER3_PCLK);
+}
+#else
+static void __tmr_enable_clock(void)
+{
+	board_init_clock();
+	clk_enable(timer3_clk);
+}
+#endif
+
+void tmr_ctrl_init(void)
+{
+	__tmr_enable_clock();
+	__raw_setl(TMR_EN, TMR_CNT_CTRL);
+}

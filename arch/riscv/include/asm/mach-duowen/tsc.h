@@ -49,31 +49,20 @@
 #define DW_TIMERS_SIZE		0x14
 #define DW_TIMERS_WIDTH		32
 #define DW_TIMERS_TSC		0
-#ifdef CONFIG_DUOWEN_TSC_DW_TIMERS
-#define DW_TIMERS_TSC_CLK	TIMER0_8_CLK
-#else
 #define DW_TIMERS_TSC_CLK	TIMER3_CLK
-#endif
 
 #define TSC_FREQ		XO_CLK_FREQ
 #define TSC_MAX			((ULL(1) << DW_TIMERS_WIDTH) - 1)
 
 #ifndef __ASSEMBLY__
-#include <driver/dw_timers.h>
 #include <asm/mach/tmr.h>
 
 #define tsc_hw_ctrl_init()	board_init_timestamp()
-#ifdef CONFIG_DUOWEN_TSC_DW_TIMERS
-#define __tsc_hw_ctrl_init()	dw_timers_tsc_init(DW_TIMERS_TSC)
-#define tsc_hw_read_counter()	dw_timers_get_counter(DW_TIMERS_TSC)
-#else /* CONFIG_DUOWEN_TSC_DW_TIMERS */
-#define __tsc_hw_ctrl_init()	do { } while (0)
 #ifdef CONFIG_DUOWEN_TMR_MTIME
 #define tsc_hw_read_counter()	csr_read(CSR_TIME)
 #else /* CONFIG_DUOWEN_TMR_MTIME */
 #define tsc_hw_read_counter()	tmr_read_counter()
 #endif /* CONFIG_DUOWEN_TMR_MTIME */
-#endif /* CONFIG_DUOWEN_TSC_DW_TIMERS */
 #endif /* __ASSEMBLY__ */
 
 #endif /* __TSC_DUOWEN_H_INCLUDE__ */

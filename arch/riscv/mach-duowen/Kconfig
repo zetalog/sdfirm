@@ -77,28 +77,21 @@ config DUOWEN_SBI
 
 endchoice
 
-menu "Configure timestamp hardware"
-
-config DUOWEN_TSC_DW_TIMERS
-	bool "Use DesignWare counter as timestamp counter"
-	select DW_TIMERS
-	help
-	  The SoC always requires RISCV timers CSR_TIME to be enabled to
-	  use timestamp features. However user can choose to use SoC
-	  timers (in this case, DesignWare timers) as timestamp hardware.
-	  Enabling this option to switch to use DesignWare timer counter.
-	  However using DW counter is optional as it is not in the AO
-	  clock/power domain.
-	  If unsure, say 'N'.
-
-config DUOWEN_TMR
-	bool "Enable timer controller (TMR) support"
-	depends !DUOWEN_TSC_DW_TIMERS
+menuconfig DUOWEN_TMR
+	bool "Enable global timer controller (TMR) support"
 	help
 	  TMR hardware is in the AO clock/power domain, it should be used
 	  as boot TSC.
 
 if DUOWEN_TMR
+
+config DUOWEN_TMR_CRCNTL_INIT
+	bool "Use raw CRCNTL APIs to enable and reset"
+	help
+	  By default, DUOWEN_TMR driver uses clock tree framework driver
+	  to control boot TMR (normally timer3) CLK_EN/SW_RST. While
+	  this option allows to use raw CRCNTL APIs instead.
+	  If unsure, say 'N'.
 
 config DUOWEN_TMR_MTIME
 	bool "Use CSR_TIME to access timer counter"
@@ -107,8 +100,6 @@ config DUOWEN_TMR_MTIME
 	  via CSR_TIME.
 
 endif
-
-endmenu
 
 menuconfig CRCNTL
 	bool "Enable clock/reset controller (CRCNTL) support"

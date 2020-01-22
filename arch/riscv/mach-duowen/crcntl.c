@@ -950,7 +950,6 @@ void board_init_clock(void)
 		clk_enable(soc_pll);
 		clk_enable(sysfab_clk);
 		clk_enable(sysfab_half_clk);
-		clk_enable(timer3_clk);
 	}
 	clk_hw_init = true;
 }
