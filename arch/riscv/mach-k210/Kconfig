@@ -1,0 +1,75 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+if ARCH_K210
+
+menu "Kendryte K210 board options"
+
+choice
+	prompt "Program type"
+
+config K210_BBL
+	bool "Berkeley boot loader (BBL)"
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SYS_EXIT_S
+	select SBI
+	select ARCH_HAS_NOVEC
+	select ARCH_HAS_BOOT_LOAD
+	select XIP
+
+endchoice
+
+menuconfig K210_SYSCTL
+	bool "System control (SYSCTL) support"
+	select ARCH_HAS_CLK
+	depends CLK
+
+if K210_SYSCTL
+
+endif
+
+menu "Pad pin settings"
+
+menuconfig FPIOA
+	bool "Field Programmable GPIO Array (FPIOA) support"
+
+if FPIOA
+
+endif
+
+menuconfig GPIOHS
+	bool "High speed GPIO controller (GPIOHS) support"
+
+if GPIOHS
+
+endif
+
+endmenu
+
+menu "Serial port settings"
+
+menuconfig UARTLS
+	bool "Low speed UART controller (UART) support"
+
+if UARTLS
+
+endif
+
+menuconfig UARTHS
+	bool "High speed UART controller (UARTHS) support"
+	select ARCH_HAS_UART
+	select GPIO
+	select CLK
+
+if UARTHS
+
+endif
+
+endmenu
+
+endmenu
+
+endif

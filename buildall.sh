@@ -45,3 +45,4 @@ build_sdfirm riscv64 spike_rv64
 #build_sdfirm riscv64 duowen_bbl
 build_sdfirm riscv64 unleashed_fsbl
 build_sdfirm riscv64 unleashed_bbl
+build_sdfirm riscv64 k210_bbl

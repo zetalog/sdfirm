@@ -70,6 +70,10 @@ ifeq ($(CONFIG_ARCH_UNLEASHED),y)
  machine-$(CONFIG_ARCH_UNLEASHED)	:= unleashed
  incdir-$(CONFIG_ARCH_UNLEASHED)	:= unleashed
 endif
+ifeq ($(CONFIG_ARCH_K210),y)
+ machine-$(CONFIG_ARCH_K210)		:= k210
+ incdir-$(CONFIG_ARCH_K210)		:= k210
+endif
 ifeq ($(CONFIG_ARCH_VEGA),y)
  machine-$(CONFIG_ARCH_VEGA)		:= vega
  incdir-$(CONFIG_ARCH_VEGA)		:= vega
