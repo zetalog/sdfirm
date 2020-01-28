@@ -306,11 +306,11 @@ config RISCV_H
 
 endmenu
 
-menuconfig RISCV_VM
-	bool "Page-based virtual memory system"
+menuconfig RISCV_SV
+	bool "Supervisor virtual addresing"
 	depends !ARCH_HAS_NO_SEE
 
-if RISCV_VM
+if RISCV_SV
 
 choice
 	prompt "Virtual memory bit"

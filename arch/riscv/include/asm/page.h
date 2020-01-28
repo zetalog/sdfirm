@@ -130,9 +130,17 @@ typedef uint64_t pgdval_t;
 #define PAGE_PXD_BITS		(PAGE_SHIFT - PAGE_PTR_BITS)
 
 /* Every address range is linear */
-#define FIXADDR_END		(ULL(0x1) << VA_BITS)
-/*#define FIXADDR_END		PAGE_OFFSET*/
+#define FIXADDR_END		PAGE_OFFSET
+#ifdef CONFIG_MMU_PAGE_OFFSET
+#if __riscv_xlen == 32
+#define PAGE_OFFSET		(UL(1) << (VA_BITS - 1))
+#endif
+#if __riscv_xlen == 64
+#define PAGE_OFFSET		(ULL(1) << (VA_BITS - 1))
+#endif
+#else
 #define PAGE_OFFSET		ULL(0x0)
+#endif
 
 /* Highest possible physical address supported */
 #define PHYS_MASK		((PTR_VAL_ONE << PHYS_MASK_SHIFT) - 1)

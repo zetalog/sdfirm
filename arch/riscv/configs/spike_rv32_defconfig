@@ -60,7 +60,7 @@ CONFIG_RISCV_A=y
 # CONFIG_RISCV_D is not set
 CONFIG_RISCV_C=y
 CONFIG_RISCV_PMP=y
-# CONFIG_RISCV_VM is not set
+# CONFIG_RISCV_SV is not set
 
 #
 # CPU architecture options

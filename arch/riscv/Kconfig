@@ -66,7 +66,7 @@ config ARCH_UNLEASHED
 	select UNLEASHED_SDCARD if MMCSD
 	select PLIC if !SYS_NOIRQ
 	select CLINT
-	select RISCV_VM if MMU
+	select RISCV_SV if MMU
 	help
 	  This enables support for SiFive Freedom U540 SoC support.
 

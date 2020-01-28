@@ -64,7 +64,7 @@ CONFIG_CPU_N=y
 # CONFIG_RISCV_M is not set
 # CONFIG_RISCV_C is not set
 # CONFIG_RISCV_N is not set
-# CONFIG_RISCV_VM is not set
+# CONFIG_RISCV_SV is not set
 
 #
 # CPU architecture options

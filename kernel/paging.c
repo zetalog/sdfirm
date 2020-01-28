@@ -581,7 +581,8 @@ void early_fixmap_init(void)
 	caddr_t addr;
 
 	con_dbg("FIXMAP: %016llx - %016llx\n", FIXADDR_START, FIXADDR_END);
-	mmu_dbg_tbl("PGDIR: %016llx, %016llx\n", mmu_id_map, mmu_pg_dir);
+	mmu_dbg_tbl("IDMAP: %016llx, PGDIR: %016llx\n",
+		    mmu_id_map, mmu_pg_dir);
 	addr = FIXADDR_START;
 	pgd = pgd_offset(mmu_id_map, addr);
 	pgd_populate(pgd, bm_pud);

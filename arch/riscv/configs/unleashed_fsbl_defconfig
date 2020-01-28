@@ -64,7 +64,7 @@ CONFIG_CPU_C=y
 # CONFIG_RISCV_M is not set
 # CONFIG_RISCV_A is not set
 # CONFIG_RISCV_C is not set
-# CONFIG_RISCV_VM is not set
+# CONFIG_RISCV_SV is not set
 CONFIG_CMODEL_MEDLOW=y
 # CONFIG_CMODEL_MEDANY is not set
 CONFIG_TUNE_GENERIC=y
