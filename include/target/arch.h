@@ -51,6 +51,7 @@ extern uintptr_t __erodata[];
 #define PERCPU_STACK_SIZE		(1 << PERCPU_STACK_SHIFT)
 #define PERCPU_STACK_START(x)		(PERCPU_STACKS_START + (x) * PERCPU_STACK_SIZE)
 #define FIXADDR_START			(FIXADDR_END - FIXADDR_SIZE)
+#define __FIXADDR_START			(FIXADDR_END - __FIXADDR_SIZE)
 
 /* Physcal address space */
 #define PAGEABLE_START			__PA(PERCPU_STACKS_END)

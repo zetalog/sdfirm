@@ -214,6 +214,31 @@ extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
 
 #include <driver/mmu.h>
 
+/* Here we define all the compile-time 'special' virtual addresses. The
+ * point is to have a constant address at compile time, but to set the
+ * physical address only in the boot process.
+ *
+ * These 'compile-time allocated' memory buffers are page-sized. Use
+ * set_fixmap(idx,phys) to associate physical memory with fixmap indices.
+ *
+ */
+
+#define FIXADDR_SIZE		(FIX_BTMAP_END	<< PAGE_SHIFT)
+#define __FIXADDR_SIZE		(FIX_BTMAP_BEGIN << PAGE_SHIFT)
+
+#define FIX_HOLE		0
+/* Temporary boot-time mappings. */
+#define FIX_BTMAP_END		MMU_HW_MAX_FIXMAP
+#define NR_FIX_BTMAPS		4
+#define FIX_BTMAP_BEGIN		(FIX_BTMAP_END + NR_FIX_BTMAPS)
+/* Used for kernel page table creation, so unmapped memory may be used for
+ * tables.
+ */
+#define FIX_PTE			(FIX_BTMAP_END + 0)
+#define FIX_PMD			(FIX_BTMAP_END + 1)
+#define FIX_PUD			(FIX_BTMAP_END + 2)
+#define FIX_PGD			(FIX_BTMAP_END + 3)
+
 #define fix_to_virt(x)		(FIXADDR_END - ((x) << PAGE_SHIFT))
 #define virt_to_fix(x)		((FIXADDR_END - ((x)&PAGE_MASK)) >> PAGE_SHIFT)
 
@@ -238,6 +263,8 @@ extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
 #endif
 
 #ifndef __ASSEMBLY__
+typedef uint8_t fixmap_t;
+
 #ifdef CONFIG_MMU
 #ifndef set_fixmap
 #define set_fixmap(idx, phys)	__set_fixmap(idx, phys, FIXMAP_PAGE_NORMAL)
@@ -266,8 +293,7 @@ extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
 #define set_fixmap_offset_io(idx, phys) \
 	__set_fixmap_offset(idx, phys, FIXMAP_PAGE_IO)
 
-void __set_fixmap(enum fixed_addresses idx,
-		  phys_addr_t phys, pgprot_t prot);
+void __set_fixmap(fixmap_t idx, phys_addr_t phys, pgprot_t prot);
 
 void early_fixmap_init(void);
 void create_pgd_mapping(pgd_t *pgdir, phys_addr_t phys,

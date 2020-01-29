@@ -587,13 +587,12 @@ static inline pte_t *fixmap_pte(caddr_t addr)
 /* Unusually, this is also called in IRQ context (ghes_iounmap_irq) so if we
  * ever need to use IPIs for TLB broadcasting, then we're in trouble here.
  */
-void __set_fixmap(enum fixed_addresses idx,
-		  phys_addr_t phys, pgprot_t flags)
+void __set_fixmap(fixmap_t idx, phys_addr_t phys, pgprot_t flags)
 {
 	caddr_t addr = fix_to_virt(idx);
 	pte_t *ptep;
 
-	BUG_ON(idx <= FIX_HOLE || idx >= __end_of_fixed_addresses);
+	BUG_ON(idx <= FIX_HOLE || idx >= FIX_BTMAP_BEGIN);
 
 	ptep = fixmap_pte(addr);
 
@@ -612,7 +611,10 @@ void early_fixmap_init(void)
 	pmd_t *pmd;
 	caddr_t addr;
 
-	con_dbg("FIXMAP: %016llx - %016llx\n", FIXADDR_START, FIXADDR_END);
+	con_dbg("FIXMAP(t): %016llx - %016llx\n",
+		__FIXADDR_START, FIXADDR_END);
+	con_dbg("FIXMAP(p): %016llx - %016llx\n",
+		FIXADDR_START, FIXADDR_END);
 	mmu_dbg_tbl("IDMAP: %016llx, PGDIR: %016llx\n",
 		    mmu_id_map, mmu_pg_dir);
 	addr = FIXADDR_START;
@@ -631,7 +633,6 @@ void early_fixmap_init(void)
 
 	if ((pmd != fixmap_pmd(fix_to_virt(FIX_BTMAP_BEGIN))) ||
 	    (pmd != fixmap_pmd(fix_to_virt(FIX_BTMAP_END)))) {
-		BUG();
 		con_dbg("pmd %p != %p, %p\n",
 		       pmd, fixmap_pmd(fix_to_virt(FIX_BTMAP_BEGIN)),
 		       fixmap_pmd(fix_to_virt(FIX_BTMAP_END)));
@@ -642,6 +643,7 @@ void early_fixmap_init(void)
 
 		con_dbg("FIX_BTMAP_END:       %d\n", FIX_BTMAP_END);
 		con_dbg("FIX_BTMAP_BEGIN:     %d\n", FIX_BTMAP_BEGIN);
+		BUG();
 	}
 }
 
