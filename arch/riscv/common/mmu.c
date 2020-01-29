@@ -87,7 +87,6 @@ void __init mmu_hw_boot_init(void)
 	printf("Early SATP: %016llx\n", satp);
 	csr_write(CSR_SATP, satp);
 	local_flush_tlb_all();
-	printf("Early  MAP: Done.\n");
 }
 
 void mmu_hw_ctrl_init(void)

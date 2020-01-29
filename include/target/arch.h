@@ -31,8 +31,8 @@ extern uintptr_t __stext[];
 extern uintptr_t __etext[];
 extern uintptr_t _sdata[];
 extern uintptr_t _edata[];
-extern uintptr_t __start_rodata[];
-extern uintptr_t __end_rodata[];
+extern uintptr_t __srodata[];
+extern uintptr_t __erodata[];
 
 #if defined(CONFIG_XIP) && !defined(CONFIG_BFM)
 #define SDFIRM_START		((caddr_t)(&_sdata))

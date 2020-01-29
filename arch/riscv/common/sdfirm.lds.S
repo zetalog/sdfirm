@@ -41,7 +41,7 @@ SECTIONS
 		*/
 		INIT_CALLS
 		INIT_DATA
-		. = ALIGN((WORD_SIZE));
+		. = ALIGN(WORD_SIZE);
 		__init_text_end = .;
 	}
 
@@ -49,16 +49,16 @@ SECTIONS
 	.text : {
 		TEXT_TEXT
 		IDMAP_TEXT
-		. = ALIGN((WORD_SIZE));
 	}
+	. = ALIGN(PAGE_SIZE);
 	__etext = .;				/* end of text sections */
 
+	__srodata = .;
 	RO_DATA_SECTION(WORD_SIZE)
 	CMD_LINE_SECTION(WORD_SIZE)
-	.srodata : {
-		*(.srodata .srodata.*)
-		. = ALIGN((WORD_SIZE));
-	}
+	SRO_DATA_SECTION(WORD_SIZE)
+	. = ALIGN(PAGE_SIZE);
+	__erodata = .;
 
 	_etext = .;				/* end of text and rodata sections */
 
@@ -66,7 +66,7 @@ SECTIONS
 	_etext_loc = __text_loc + _etext - _stext;
 
 #if defined(CONFIG_XIP) && (CONFIG_LOAD_BASE != CONFIG_BOOT_BASE)
-	. = CONFIG_LOAD_BASE;			/* ensure addresses followups are load addreses */
+	. = CONFIG_LOAD_BASE;			/* ensure addresses followups are load addresses */
 #endif
 
 	. = ALIGN(PAGE_SIZE);

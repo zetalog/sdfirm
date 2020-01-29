@@ -62,28 +62,22 @@
  * Read only Data
  */
 #define RO_DATA_SECTION(align)					\
-	. = ALIGN((align));					\
-	.rodata : AT(ADDR(.rodata)) {				\
-		__start_rodata = .;				\
+	.rodata : AT(ADDR(.rodata)) ALIGN(align) {		\
 		*(.rodata) *(.rodata.*)				\
 	}							\
 	/* __*init sections */					\
 	__init_rodata : AT(ADDR(__init_rodata)) {		\
 		*(.ref.rodata)					\
 	}							\
-	. = ALIGN((align));					\
-	__end_rodata = .;
 /*
  * bss (Block Started by Symbol) - uninitialized data
  * zeroed during startup
  */
 #define BSS(bss_align)						\
-	. = ALIGN(bss_align);					\
-	.bss : AT(ADDR(.bss)) {					\
+	.bss : AT(ADDR(.bss)) ALIGN(bss_align) {		\
 		*(.bss)						\
 	}
 #define BSS_SECTION(bss_align, stop_align)			\
-	. = ALIGN(bss_align);					\
 	__bss_start = .;					\
 	BSS(bss_align)						\
 	. = ALIGN(stop_align);					\

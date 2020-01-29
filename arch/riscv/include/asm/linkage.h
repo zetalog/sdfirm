@@ -56,6 +56,11 @@
 #define WORD_SIZE	8
 #endif
 
+#define SRO_DATA_SECTION(align)					\
+	.srodata : AT(ADDR(.srodata)) ALIGN(align) {		\
+		*(.srodata) *(.srodata.*)			\
+	}							\
+
 #include <asm-generic/sdfirm.lds.h>
 
 #endif /* __RISCV_LINKAGE_H_INCLUDE__ */

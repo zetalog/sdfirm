@@ -410,6 +410,34 @@ static void map_kernel_segment(pgd_t *pgdp, void *va_start, void *va_end,
 			     early_pgtable_alloc, flags);
 }
 
+#ifdef CONFIG_MMU_MAP_MEM
+#ifdef CONFIG_GEM5
+phys_addr_t *pages_list = NULL;
+#ifdef CONFIG_GEM5_STATIC_PAGES
+extern phys_addr_t *simpoint_pages_dump(void);
+#else
+extern phys_addr_t *simpoint_pages_alloc(void);
+#endif
+extern void simpoint_pages_map(pgd_t *pgdp, phys_addr_t *pages_list);
+extern void simpoint_mem_restore(void);
+
+static void map_mem(pgd_t *pgdp)
+{
+#ifdef CONFIG_GEM5_STATIC_PAGES
+	con_printf("Simpoint: Start simpoint_pages_dump\n");
+	pages_list = simpoint_pages_dump();
+#else
+	con_printf("Simpoint: Start simpoint_pages_alloc\n");
+	pages_list = simpoint_pages_alloc();
+#endif
+	con_printf("Simpoint: Start simpoint_pages_map\n");
+	simpoint_pages_map(pgdp, pages_list);
+#if defined(CONFIG_GEM5_NOT_RESTORE_MEM) || !defined(CONFIG_GEM5_STATIC_PAGES)
+	con_printf("Simpoint: Start simpoint_mem_restore\n");
+	simpoint_mem_restore();
+#endif
+}
+#else /* CONFIG_GEM5 */
 static void __map_mem_region(pgd_t *pgdp, phys_addr_t start, phys_addr_t end,
 			     pgprot_t prot, int flags)
 {
@@ -466,6 +494,10 @@ static void map_mem(pgd_t *pgdp)
 {
 	mem_walk_memory(__map_mem, pgdp);
 }
+#endif /* CONFIG_GEM5 */
+#else /* CONFIG_MMU_MAP_MEM */
+#define map_mem(pgdp)		do { } while (0)
+#endif /* CONFIG_MMU_MAP_MEM */
 
 static void map_kernel(pgd_t *pgdp)
 {
@@ -483,7 +515,7 @@ static void map_kernel(pgd_t *pgdp)
 	 * all other segments are allowed to use contiguous mappings.
 	 */
 	map_kernel_segment(pgdp, __stext, __etext, PAGE_TEXT_PROT, 0);
-	map_kernel_segment(pgdp, __start_rodata, __end_rodata,
+	map_kernel_segment(pgdp, __srodata, __erodata,
 			   PAGE_KERNEL_RO, NO_CONT_MAPPINGS);
 	map_kernel_segment(pgdp, _sdata, _edata, PAGE_KERNEL, 0);
 	/* Map stacks */
@@ -500,8 +532,8 @@ static void map_kernel(pgd_t *pgdp)
 	/* Expand BPGT to 4K page tables */
 	set_pgd(pgd_offset(mmu_id_map, (caddr_t)__stext),
 		READ_ONCE(*pgd_offset(pgdp, (caddr_t)__stext)));
-	set_pgd(pgd_offset(mmu_id_map, (caddr_t)__start_rodata),
-		READ_ONCE(*pgd_offset(pgdp, (caddr_t)__start_rodata)));
+	set_pgd(pgd_offset(mmu_id_map, (caddr_t)__srodata),
+		READ_ONCE(*pgd_offset(pgdp, (caddr_t)__srodata)));
 	set_pgd(pgd_offset(mmu_id_map, (caddr_t)_sdata),
 		READ_ONCE(*pgd_offset(pgdp, (caddr_t)_sdata)));
 	set_pgd(pgd_offset(mmu_id_map, (caddr_t)PERCPU_STACKS_START),
@@ -613,17 +645,6 @@ void early_fixmap_init(void)
 	}
 }
 
-#ifdef CONFIG_GEM5
-phys_addr_t *pages_list = NULL;
-#ifdef CONFIG_GEM5_STATIC_PAGES
-extern phys_addr_t *simpoint_pages_dump(void);
-#else
-extern phys_addr_t *simpoint_pages_alloc(void);
-#endif
-extern void simpoint_pages_map(pgd_t *pgdp, phys_addr_t *pages_list);
-extern void simpoint_mem_restore(void);
-#endif
-
 void paging_init(void)
 {
 	pgd_t *pgdp;
@@ -636,33 +657,12 @@ void paging_init(void)
 	map_kernel(pgdp);
 	pgd_clear_fixmap();
 
-#ifdef CONFIG_MMU_MAP_MEM
 	/* map memory */
-#ifdef CONFIG_MMU_IDMAP
 	pgdp = pgd_set_fixmap(__pa(mmu_pg_dir));
-#else
-	pgdp = pgd_set_fixmap(__pa(mmu_id_map));
-#endif
-#ifdef CONFIG_GEM5
-#ifdef CONFIG_GEM5_STATIC_PAGES
-	con_printf("Simpoint: Start simpoint_pages_dump\n");
-	pages_list = simpoint_pages_dump();
-#else
-	con_printf("Simpoint: Start simpoint_pages_alloc\n");
-	pages_list = simpoint_pages_alloc();
-#endif
-	con_printf("Simpoint: Start simpoint_pages_map\n");
-	simpoint_pages_map(pgdp, pages_list);
-#if defined(CONFIG_GEM5_NOT_RESTORE_MEM) || !defined(CONFIG_GEM5_STATIC_PAGES)
-	con_printf("Simpoint: Start simpoint_mem_restore\n");
-	simpoint_mem_restore();
-#endif
-#else
 	map_mem(pgdp);
-#endif
 	pgd_clear_fixmap();
-#endif
 
+	/* switch to mmu_pg_dir */
 #ifdef CONFIG_MMU_IDMAP
 	mmu_hw_ctrl_init();
 #endif

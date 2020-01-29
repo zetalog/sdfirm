@@ -49,8 +49,10 @@ SECTIONS
 	. = ALIGN(PAGE_SIZE);
 	__etext = .;				/* end of text sections */
 
-	RO_DATA_SECTION(PAGE_SIZE)
+	__srodata = .;
+	RO_DATA_SECTION(8)
 	CMD_LINE_SECTION(8)
+	__erodata = .;
 	_etext = .;				/* end of text and rodata sections */
 
 	__text_loc = CONFIG_BOOT_BASE;		/* text boot location */
