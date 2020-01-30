@@ -5,18 +5,18 @@
 pgd_t mmu_id_map[IDMAP_DIR_SIZE / sizeof (pgd_t)] __page_aligned_bss;
 
 /* mmu_hw_boot_init() is called from head.S with MMU-off.
- * Following requirements should be honoured for setup_vm() to work
- * correctly:
+ * Following requirements should be honoured for mmu_hw_boot_init() to
+ * work correctly:
  * 1) It should use PC-relative addressing for accessing kernel symbols.
  *    To achieve this we always use GCC cmodel=medany.
- * 2) The compiler instrumentation for FTRACE will not work for setup_vm()
- *    so disable compiler instrumentation when FTRACE is enabled.
+ * 2) The compiler instrumentation for FTRACE will not work for
+ *    mmu_hw_boot_init() so disable compiler instrumentation when FTRACE
+ *    is enabled.
  * Currently, the above requirements are honoured by using custom CFLAGS
  * for init.o in mm/Makefile.
  */
 #ifndef __riscv_cmodel_medany
-#error "setup_vm() is called from head.S before relocate so it should "
-	"not use absolute addressing."
+#error "mmu_hw_boot_init() called before relocation must be PIC!"
 #endif
 
 #define bpgt_index(virt, shift, ptrs)	(((virt) >> (shift)) & ((ptrs) - 1))
@@ -33,7 +33,7 @@ pgd_t mmu_id_map[IDMAP_DIR_SIZE / sizeof (pgd_t)] __page_aligned_bss;
 		*ptr = pte;						\
 	} while (0)
 
-__init void *bpgt_create_idmap_dir(void *tbl, caddr_t virt)
+__init static void *sv_bpgt_create_dir(void *tbl, caddr_t virt)
 {
 	phys_addr_t phys = __pa(tbl);
 
@@ -53,7 +53,7 @@ __init void *bpgt_create_idmap_dir(void *tbl, caddr_t virt)
 	return tbl;
 }
 
-__init void bpgt_create_idmap_blk(void *tbl, caddr_t start, caddr_t end)
+__init static void sv_bpgt_create_blk(void *tbl, caddr_t start, caddr_t end)
 {
 	phys_addr_t phys = __pa(start);
 	int start_pfn = bpgt_index(start, BPGT_BLOCK_SHIFT, PTRS_PER_PTE);
@@ -71,24 +71,36 @@ __init void bpgt_create_idmap_blk(void *tbl, caddr_t start, caddr_t end)
 	}
 }
 
-void __init mmu_hw_boot_init(void)
+__init static void sv_satp_switch(caddr_t map, const char *hint)
 {
-	void *tbl = mmu_id_map;
 	unsigned long satp;
 
-	printf("Early  MAP: %016llx - %016llx\n", SDFIRM_START, SDFIRM_END);
-	memset((void *)mmu_id_map, 0, IDMAP_DIR_SIZE);
-	tbl = bpgt_create_idmap_dir(tbl, SDFIRM_START);
-	bpgt_create_idmap_blk(tbl, SDFIRM_START, SDFIRM_END);
-#if defined(CONFIG_MMU_IDMAP_DEVICE) && defined(IDMAP_DEV_BASE)
-	/* TODO: Map identity device area for early console */
-#endif
-	satp = PFN_DOWN(__pa(mmu_id_map)) | SATP_MODE;
-	printf("Early SATP: %016llx\n", satp);
+	satp = PFN_DOWN(__pa(map)) | SATP_MODE;
+	printf("%s: %016llx\n", hint, satp);
 	csr_write(CSR_SATP, satp);
 	local_flush_tlb_all();
 }
 
-void mmu_hw_ctrl_init(void)
+__init static void sv_bpgt_init(void)
 {
+	void *tbl = mmu_id_map;
+
+	printf("Early  MAP: %016llx - %016llx\n", SDFIRM_START, SDFIRM_END);
+	tbl = sv_bpgt_create_dir(tbl, SDFIRM_START);
+	sv_bpgt_create_blk(tbl, SDFIRM_START, SDFIRM_END);
+#if defined(CONFIG_MMU_IDMAP_DEVICE) && defined(IDMAP_DEV_BASE)
+	/* TODO: Map identity device area for early console */
+#endif
+}
+
+__init void mmu_hw_boot_init(void)
+{
+	sv_bpgt_init();
+	sv_satp_switch((caddr_t)mmu_id_map, "Early SATP");
+}
+
+__init void mmu_hw_ctrl_init(void)
+{
+	/* TODO: relocate to PAGE_OFFSET */
+	sv_satp_switch((caddr_t)mmu_pg_dir, "SATP");
 }
