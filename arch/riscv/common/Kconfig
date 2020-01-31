@@ -211,11 +211,13 @@ config CPU_SV39
 	bool
 	depends 64BIT
 	select ARCH_HAS_MMU
+	select ARCH_HAS_MMU_HUGE
 
 config CPU_SV48
 	bool
 	depends 64BIT
 	select ARCH_HAS_MMU
+	select ARCH_HAS_MMU_HUGE
 
 config RISCV_M
 	bool "Multiplication and division (M) support"

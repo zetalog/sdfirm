@@ -81,8 +81,8 @@ int pud_set_huge(pud_t *pudp, phys_addr_t phys, pgprot_t prot)
 	pud_t new_pud = pfn_pud(phys_to_pfn(phys), mk_pud_sect_prot(prot));
 
 	/* Only allow permission changes for now */
-	if (!pgattr_change_is_safe(READ_ONCE(pud_val(*pudp)),
-				   pud_val(new_pud)))
+	if (!mmu_hw_pgattr_safe(READ_ONCE(pud_val(*pudp)),
+				pud_val(new_pud)))
 		return 0;
 
 	BUG_ON(phys & ~PUD_MASK);
@@ -105,8 +105,8 @@ static inline bool pud_huge_map(pud_t *pudp, caddr_t addr, caddr_t next,
 	/* After the PUD entry has been populated once, we
 	 * only allow updates to the permission attributes.
 	 */
-	if (!pgattr_change_is_safe(pud_val(old_pud),
-				   READ_ONCE(pud_val(*pudp))))
+	if (!mmu_hw_pgattr_safe(pud_val(old_pud),
+				READ_ONCE(pud_val(*pudp))))
 		BUG();
 	return true;
 }
@@ -124,8 +124,8 @@ int pmd_set_huge(pmd_t *pmdp, phys_addr_t phys, pgprot_t prot)
 	pmd_t new_pmd = pfn_pmd(phys_to_pfn(phys), mk_pmd_sect_prot(prot));
 
 	/* Only allow permission changes for now */
-	if (!pgattr_change_is_safe(READ_ONCE(pmd_val(*pmdp)),
-				   pmd_val(new_pmd)))
+	if (!mmu_hw_pgattr_safe(READ_ONCE(pmd_val(*pmdp)),
+				pmd_val(new_pmd)))
 		return 0;
 
 	BUG_ON(phys & ~PMD_MASK);
@@ -148,8 +148,8 @@ static inline bool pmd_huge_map(pmd_t *pmdp, caddr_t addr, caddr_t next,
 	/* After the PMD entry has been populated once, we only allow
 	 * updates to the permission attributes.
 	 */
-	if (!pgattr_change_is_safe(pmd_val(old_pmd),
-				   READ_ONCE(pmd_val(*pmdp))))
+	if (!mmu_hw_pgattr_safe(pmd_val(old_pmd),
+				READ_ONCE(pmd_val(*pmdp))))
 		BUG();
 	return true;
 }
@@ -217,8 +217,8 @@ static void init_pte(pmd_t *pmdp, caddr_t addr, caddr_t end,
 		/* After the PTE entry has been populated once, we
 		 * only allow updates to the permission attributes.
 		 */
-		if (!pgattr_change_is_safe(pte_val(old_pte),
-					   READ_ONCE(pte_val(*ptep))))
+		if (!mmu_hw_pgattr_safe(pte_val(old_pte),
+					READ_ONCE(pte_val(*ptep))))
 			BUG();
 		phys += PAGE_SIZE;
 	} while (ptep++, addr += PAGE_SIZE, addr != end);

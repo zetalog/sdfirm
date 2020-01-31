@@ -337,11 +337,11 @@ static inline pgprot_t mk_pmd_sect_prot(pgprot_t prot)
 
 #define pmd_modify(pmd, newprot)	\
 	pte_pmd(pte_modify(pmd_pte(pmd), newprot))
-bool pgattr_change_is_safe(uint64_t old, uint64_t new);
 
 /* To include device specific fixmaps */
 #include <asm/mach/mmu.h>
 
+bool mmu_hw_pgattr_safe(pteval_t old, pteval_t new);
 void mmu_hw_create_mapping(phys_addr_t phys, caddr_t virt,
 			   phys_addr_t size);
 void mmu_hw_ctrl_init(void);

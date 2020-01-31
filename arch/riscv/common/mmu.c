@@ -93,6 +93,17 @@ __init static void sv_bpgt_init(void)
 #endif
 }
 
+bool mmu_hw_pgattr_safe(pteval_t old, pteval_t new)
+{
+	/* The following mapping attributes may be updated in live
+	 * kernel mappings without the need for break-before-mak.
+	 */
+	static const pteval_t mask = _PAGE_READ | _PAGE_WRITE | _PAGE_EXEC;
+	if (old == 0 || new == 0)
+		return true;
+	return ((old ^ new) & ~mask) == 0;
+}
+
 __init void mmu_hw_boot_init(void)
 {
 	sv_bpgt_init();

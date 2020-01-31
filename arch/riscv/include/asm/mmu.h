@@ -147,9 +147,12 @@
 	__pte((pfn << _PAGE_PFN_SHIFT) | pgprot_val(prot))
 #define pte_page(x)     		pfn_to_page(pte_pfn(x))
 
+#define pud_sect(pud)			\
+	(pud_val(pud) & (_PAGE_READ | _PAGE_WRITE | _PAGE_EXEC))
+#define pmd_sect(pud)			\
+	(pmd_val(pud) & (_PAGE_READ | _PAGE_WRITE | _PAGE_EXEC))
 #define mk_pud_sect_prot(prot)		(prot)
 #define mk_pmd_sect_prot(prot)		(prot)
-#define pgattr_change_is_safe(old, new)	true
 
 #define pte_present(pte)	\
 	(pte_val(pte) & (_PAGE_PRESENT | _PAGE_PROT_NONE))
@@ -206,6 +209,7 @@
 /* To include device specific fixmaps */
 #include <asm/mach/mmu.h>
 
+bool mmu_hw_pgattr_safe(pteval_t old, pteval_t new);
 void mmu_hw_create_mapping(phys_addr_t phys, caddr_t virt,
 			   phys_addr_t size);
 void mmu_hw_ctrl_init(void);

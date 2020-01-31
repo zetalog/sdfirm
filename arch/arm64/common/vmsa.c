@@ -1,6 +1,6 @@
 #include <target/paging.h>
 
-bool pgattr_change_is_safe(uint64_t old, uint64_t new)
+bool mmu_hw_pgattr_safe(pteval_t old, pteval_t new)
 {
 	/* The following mapping attributes may be updated in live
 	 * kernel mappings without the need for break-before-mak.
