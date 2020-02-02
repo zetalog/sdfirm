@@ -88,7 +88,7 @@ int console_register_handler(console_handler handler)
 static int console_bh;
 static uint8_t console_events;
 
-#ifdef SYS_BOOTLOAD
+#ifdef SYS_REALTIME
 #define console_poll_init()	(irq_register_poller(console_bh))
 #define console_irq_ack()
 #define console_irq_init()
