@@ -156,9 +156,11 @@ config CPU_F
 
 config CPU_D
 	bool
+	select CPU_F
 
 config CPU_Q
 	bool
+	select CPU_D
 
 config CPU_C
 	bool
@@ -236,10 +238,12 @@ config RISCV_F
 config RISCV_D
 	bool "Double-precision floating-point (D) support"
 	depends CPU_D
+	select RISCV_F
 
 config RISCV_Q
 	bool "Quad-precision floating-point (Q) support"
 	depends CPU_Q
+	select RISCV_D
 
 config RISCV_L
 	bool "Decimal floating-point (L) support"

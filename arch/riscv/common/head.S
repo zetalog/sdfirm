@@ -3,7 +3,14 @@
 #include <target/paging.h>
 
 	.macro	init_sp
+#ifdef CONFIG_SMP
+	csrr	a3, CSR_MHARTID
+	slli	a2, a3, PERCPU_STACK_SHIFT
+	la	sp, PERCPU_STACKS_START
+	add	sp, sp, a2
+#else
 	la	sp, PERCPU_STACKS_END
+#endif
 	.endm
 
 	.macro	init_gp
@@ -15,18 +22,21 @@
 
 	.macro disable_mirq
 #ifdef CONFIG_RISCV_ENTR_M
-	csrci	mstatus, SR_MIE
+	csrci	CSR_MSTATUS, SR_MIE
 #endif
 	.endm
 
 	.macro disable_sirq
-	csrci	sstatus, SR_MIE
+#ifdef CONFIG_RISCV_EXIT_S
+	csrw	CSR_SIE, zero
+	csrw	CSR_SIP, zero
+#endif
 	.endm
 
 	.macro disable_fpu
-#ifdef CONFIG_CPU_F
+#ifdef CONFIG_RISCV_F
 	li	t0, SR_FS
-	csrc	sstatus, t0
+	csrc	CSR_SSTATUS, t0
 #endif
 	.endm
 
@@ -63,6 +73,20 @@
 	bltu	a0, a1, \lab_loop
 	.endm
 
+	.macro	config_mmu, map, sat, mode
+	la	\sat, \map
+	srl	\sat, \sat, PAGE_SHIFT
+	li	\mode, SATP_MODE
+	or	\sat, \sat, \mode
+	.endm
+
+	.macro	enable_mmu, map, sat, mode
+	config_mmu \map, \sat, \mode
+	sfence.vma
+	csrw	CSR_SATP, \sat
+	sfence.vma
+	.endm
+
 	__HEAD
 
 ENTRY(__start)
@@ -91,9 +115,8 @@ ENTRY(__start)
 	jal	ra, __sbi_entry
 #else
 	la	t0, __vectors
-	csrw	mtvec, t0
+	csrw	CSR_MTVEC, t0
 #ifdef CONFIG_RISCV_N
-	/* csrw	utvec, t0 */
 	csrw	CSR_UTVEC, t0
 #endif
 
@@ -103,13 +126,36 @@ ENDPROC(__start)
 
 ENTRY(__sbi_exit)
 	disable_sirq
+	disable_fpu
+
+	csrr	a3, CSR_MHARTID
+	bnez	a3, .Lsecondary_start
 
 #ifdef CONFIG_MMU
 	call	mmu_hw_boot_init
 #endif
+	/* call	relocate */
 
-	jal	ra, system_init
+	/* TODO: task initialization and DTB handling */
+	tail	system_init
 ENDPROC(__sbi_exit)
+
+.Lsecondary_start:
+#ifdef CONFIG_SMP
+	li	a1, NR_CPUS
+	bgeu	a0, a1, .Lsecondary_park
+
+	la	a3, .Lsecondary_park
+	csrw	CSR_STVEC, a3
+
+	/* call	relocate */
+	/* tail	__smp_start */
+#endif
+
+.align 2
+.Lsecondary_park:
+	wfi
+	j	.Lsecondary_park
 
 ENTRY(reset_gprs)
 	/* flush the instruction cache */

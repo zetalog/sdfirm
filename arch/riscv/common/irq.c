@@ -3,6 +3,11 @@
 
 uint32_t irq_nesting;
 
+void __bad_interrupt(void)
+{
+	asm volatile ("j ." : : : "memory");
+}
+
 void irq_hw_handle_irq(void)
 {
 	uint32_t mcause;
