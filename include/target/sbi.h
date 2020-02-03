@@ -15,29 +15,7 @@
 #define OPENSBI_VERSION ((OPENSBI_VERSION_MAJOR << 16) | \
 			 (OPENSBI_VERSION_MINOR))
 
-/** Offset of fw_start member in sbi_scratch */
-#define SBI_SCRATCH_FW_START_OFFSET		(0 * __SIZEOF_POINTER__)
-/** Offset of fw_size member in sbi_scratch */
-#define SBI_SCRATCH_FW_SIZE_OFFSET		(1 * __SIZEOF_POINTER__)
-/** Offset of next_arg1 member in sbi_scratch */
-#define SBI_SCRATCH_NEXT_ARG1_OFFSET		(2 * __SIZEOF_POINTER__)
-/** Offset of next_addr member in sbi_scratch */
-#define SBI_SCRATCH_NEXT_ADDR_OFFSET		(3 * __SIZEOF_POINTER__)
-/** Offset of next_mode member in sbi_scratch */
-#define SBI_SCRATCH_NEXT_MODE_OFFSET		(4 * __SIZEOF_POINTER__)
-/** Offset of warmboot_addr member in sbi_scratch */
-#define SBI_SCRATCH_WARMBOOT_ADDR_OFFSET	(5 * __SIZEOF_POINTER__)
-/** Offset of platform_addr member in sbi_scratch */
-#define SBI_SCRATCH_PLATFORM_ADDR_OFFSET	(6 * __SIZEOF_POINTER__)
-/** Offset of hartid_to_scratch member in sbi_scratch */
-#define SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET	(7 * __SIZEOF_POINTER__)
-/** Offset of tmp0 member in sbi_scratch */
-#define SBI_SCRATCH_TMP0_OFFSET			(8 * __SIZEOF_POINTER__)
-/** Offset of options member in sbi_scratch */
-#define SBI_SCRATCH_OPTIONS_OFFSET		(9 * __SIZEOF_POINTER__)
-/** Offset of extra space in sbi_scratch */
-#define SBI_SCRATCH_EXTRA_SPACE_OFFSET		(10 * __SIZEOF_POINTER__)
-/** Maximum size of sbi_scratch and sbi_ipi_data */
+/* Maximum size of sbi_scratch and sbi_ipi_data */
 #define SBI_SCRATCH_SIZE			(64 * __SIZEOF_POINTER__)
 
 #define SBI_IPI_EVENT_SOFT			0x1
@@ -106,6 +84,8 @@ struct sbi_scratch {
 	unsigned long tmp0;
 	/** Options for OpenSBI library */
 	unsigned long options;
+	/** Extra space */
+	unsigned long extra_space[0];
 } __packed;
 
 /** Possible options for OpenSBI library */

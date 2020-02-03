@@ -76,34 +76,34 @@ _scratch_init:
 	mul	t0, s7, s8
 	add	a5, a5, t0
 	sub	a5, a5, a4
-	REG_S	a4, SBI_SCRATCH_FW_START_OFFSET(tp)
-	REG_S	a5, SBI_SCRATCH_FW_SIZE_OFFSET(tp)
+	REG_S	a4, SBI_SCRATCH_FW_START(tp)
+	REG_S	a5, SBI_SCRATCH_FW_SIZE(tp)
 	/* Store next arg1 in scratch space */
 	MOV_3R	s0, a0, s1, a1, s2, a2
 	call	fw_next_arg1
-	REG_S	a0, SBI_SCRATCH_NEXT_ARG1_OFFSET(tp)
+	REG_S	a0, SBI_SCRATCH_NEXT_ARG1(tp)
 	MOV_3R	a0, s0, a1, s1, a2, s2
 	/* Store next address in scratch space */
 	MOV_3R	s0, a0, s1, a1, s2, a2
 	call	fw_next_addr
-	REG_S	a0, SBI_SCRATCH_NEXT_ADDR_OFFSET(tp)
+	REG_S	a0, SBI_SCRATCH_NEXT_ADDR(tp)
 	MOV_3R	a0, s0, a1, s1, a2, s2
 	/* Store next mode in scratch space */
 	MOV_3R	s0, a0, s1, a1, s2, a2
 	call	fw_next_mode
-	REG_S	a0, SBI_SCRATCH_NEXT_MODE_OFFSET(tp)
+	REG_S	a0, SBI_SCRATCH_NEXT_MODE(tp)
 	MOV_3R	a0, s0, a1, s1, a2, s2
 	/* Store warm_boot address in scratch space */
 	la	a4, _start_warm
-	REG_S	a4, SBI_SCRATCH_WARMBOOT_ADDR_OFFSET(tp)
+	REG_S	a4, SBI_SCRATCH_WARMBOOT_ADDR(tp)
 	/* Store platform address in scratch space */
 	la	a4, platform
-	REG_S	a4, SBI_SCRATCH_PLATFORM_ADDR_OFFSET(tp)
+	REG_S	a4, SBI_SCRATCH_PLATFORM_ADDR(tp)
 	/* Store hartid-to-scratch function address in scratch space */
 	la	a4, _hartid_to_scratch
-	REG_S	a4, SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET(tp)
+	REG_S	a4, SBI_SCRATCH_HARTID_TO_SCRATCH(tp)
 	/* Clear tmp0 in scratch space */
-	REG_S	zero, SBI_SCRATCH_TMP0_OFFSET(tp)
+	REG_S	zero, SBI_SCRATCH_TMP0(tp)
 	/* Store firmware options in scratch space */
 	MOV_3R	s0, a0, s1, a1, s2, a2
 #ifdef FW_OPTIONS
@@ -113,7 +113,7 @@ _scratch_init:
 #endif
 	call	fw_options
 	or	a4, a4, a0
-	REG_S	a4, SBI_SCRATCH_OPTIONS_OFFSET(tp)
+	REG_S	a4, SBI_SCRATCH_OPTIONS(tp)
 	MOV_3R	a0, s0, a1, s1, a2, s2
 	/* Move to next scratch space */
 	add	t1, t1, t2
@@ -311,7 +311,7 @@ ENTRY(_trap_handler)
 	csrrw	tp, CSR_MSCRATCH, tp
 
 	/* Save T0 in scratch space */
-	REG_S	t0, SBI_SCRATCH_TMP0_OFFSET(tp)
+	REG_S	t0, SBI_SCRATCH_TMP0(tp)
 
 	/* Check which mode we came from */
 	csrr	t0, CSR_MSTATUS
@@ -344,7 +344,7 @@ _trap_handler_all_mode:
 	REG_S	t0, PT_SP(sp)
 
 	/* Restore T0 from scratch space */
-	REG_L	t0, SBI_SCRATCH_TMP0_OFFSET(tp)
+	REG_L	t0, SBI_SCRATCH_TMP0(tp)
 
 	/* Save T0 on stack */
 	REG_S	t0, PT_T0(sp)

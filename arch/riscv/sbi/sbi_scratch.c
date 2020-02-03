@@ -7,11 +7,11 @@
  *   Anup Patel <anup.patel@wdc.com>
  */
 
-#include <target/spinlock.h>
 #include <target/sbi.h>
+#include <asm/asm-offsets.h>
 
 DEFINE_SPINLOCK(extra_lock);
-static unsigned long extra_offset = SBI_SCRATCH_EXTRA_SPACE_OFFSET;
+static unsigned long extra_offset = SBI_SCRATCH_EXTRA_SPACE;
 
 unsigned long sbi_scratch_alloc_offset(unsigned long size, const char *owner)
 {
@@ -48,7 +48,7 @@ done:
 
 void sbi_scratch_free_offset(unsigned long offset)
 {
-	if ((offset < SBI_SCRATCH_EXTRA_SPACE_OFFSET) ||
+	if ((offset < SBI_SCRATCH_EXTRA_SPACE) ||
 	    (SBI_SCRATCH_SIZE <= offset))
 		return;
 

@@ -1,5 +1,6 @@
 #include <target/kbuild.h>
 #include <target/task.h>
+#include <target/sbi.h>
 
 int main(void)
 {
@@ -47,5 +48,17 @@ int main(void)
 	 * ensures the alignment is sane.
 	 */
 	DEFINE(PT_SIZE_ON_STACK, ALIGN(sizeof(struct pt_regs), STACK_ALIGN));
+
+	OFFSET(SBI_SCRATCH_FW_START, sbi_scratch, fw_start);
+	OFFSET(SBI_SCRATCH_FW_SIZE, sbi_scratch, fw_size);
+	OFFSET(SBI_SCRATCH_NEXT_ARG1, sbi_scratch, next_arg1);
+	OFFSET(SBI_SCRATCH_NEXT_ADDR, sbi_scratch, next_addr);
+	OFFSET(SBI_SCRATCH_NEXT_MODE, sbi_scratch, next_mode);
+	OFFSET(SBI_SCRATCH_WARMBOOT_ADDR, sbi_scratch, warmboot_addr);
+	OFFSET(SBI_SCRATCH_PLATFORM_ADDR, sbi_scratch, platform_addr);
+	OFFSET(SBI_SCRATCH_HARTID_TO_SCRATCH, sbi_scratch, hartid_to_scratch);
+	OFFSET(SBI_SCRATCH_TMP0, sbi_scratch, tmp0);
+	OFFSET(SBI_SCRATCH_OPTIONS, sbi_scratch, options);
+	OFFSET(SBI_SCRATCH_EXTRA_SPACE, sbi_scratch, extra_space);
 	return 0;
 }
