@@ -107,30 +107,6 @@
 /* SCAUSE */
 #define SCAUSE_IRQ_FLAG		(_AC(1, UL) << (__riscv_xlen - 1))
 
-#define IRQ_U_SOFT		0
-#define IRQ_S_SOFT		1
-#define IRQ_H_SOFT		2
-#define IRQ_M_SOFT		3
-#define IRQ_U_TIMER		4
-#define IRQ_S_TIMER		5
-#define IRQ_H_TIMER		6
-#define IRQ_M_TIMER		7
-#define IRQ_U_EXT		8
-#define IRQ_S_EXT		9
-#define IRQ_H_EXT		10
-#define IRQ_M_EXT		11
-
-#define EXC_INST_MISALIGNED	0
-#define EXC_INST_ACCESS		1
-#define EXC_BREAKPOINT		3
-#define EXC_LOAD_ACCESS		5
-#define EXC_STORE_ACCESS	7
-#define EXC_SYSCALL		8
-#define EXC_INST_PAGE_FAULT	12
-#define EXC_LOAD_PAGE_FAULT	13
-#define EXC_STORE_PAGE_FAULT	15
-
-/* xIE (Interrupt Enable) and xIP (Interrupt Pending) flags */
 #define IE_USIE			(_AC(0x1, UL) << IRQ_U_SOFT)
 #define IE_UTIE			(_AC(0x1, UL) << IRQ_U_TIMER)
 #define IE_UEIE			(_AC(0x1, UL) << IRQ_U_EXT)
@@ -557,10 +533,6 @@
 #define SR_IE		SR_MIE
 #define SR_PIE		SR_MPIE
 #define SR_PP		SR_MPP
-
-#define RV_IRQ_SOFT	IRQ_M_SOFT
-#define RV_IRQ_TIMER	IRQ_M_TIMER
-#define RV_IRQ_EXT	IRQ_M_EXT
 #endif
 #ifdef CONFIG_RISCV_EXIT_S
 #define CSR_STATUS	CSR_SSTATUS
@@ -575,10 +547,6 @@
 #define SR_IE		SR_SIE
 #define SR_PIE		SR_SPIE
 #define SR_PP		SR_SPP
-
-#define RV_IRQ_SOFT	IRQ_S_SOFT
-#define RV_IRQ_TIMER	IRQ_S_TIMER
-#define RV_IRQ_EXT	IRQ_S_EXT
 #endif
 
 #ifndef __ASSEMBLY__

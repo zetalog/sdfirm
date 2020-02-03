@@ -47,19 +47,56 @@
 #ifndef __ASSEMBLY__
 typedef uint32_t irq_flags_t;
 
-#ifdef CONFIG_RISCV_EXIT_M
-#define irq_hw_flags_save(x)	((x) = csr_read_clear(CSR_MSTATUS, SR_MIE))
-#define irq_hw_flags_restore(x)	csr_set(CSR_MSTATUS, (x) & SR_MIE)
-#define irq_hw_flags_enable()	csr_set(CSR_MSTATUS, SR_MIE)
-#define irq_hw_flags_disable()	csr_clear(CSR_MSTATUS, SR_MIE)
-#else
-#define irq_hw_flags_save(x)	((x) = csr_read_clear(CSR_SSTATUS, SR_SIE))
-#define irq_hw_flags_restore(x)	csr_set(CSR_SSTATUS, (x) & SR_SIE)
-#define irq_hw_flags_enable()	csr_set(CSR_SSTATUS, SR_SIE)
-#define irq_hw_flags_disable()	csr_clear(CSR_SSTATUS, SR_SIE)
-#endif
+#define irq_hw_flags_save(x)	((x) = csr_read_clear(CSR_STATUS, SR_IE))
+#define irq_hw_flags_restore(x)	csr_set(CSR_STATUS, (x) & SR_IE)
+#define irq_hw_flags_enable()	csr_set(CSR_STATUS, SR_IE)
+#define irq_hw_flags_disable()	csr_clear(CSR_STATUS, SR_IE)
 #define irq_hw_ctrl_init()
 #endif /* __ASSEMBLY__ */
+
+#define IRQ_U_SOFT		0
+#define IRQ_S_SOFT		1
+#define IRQ_H_SOFT		2
+#define IRQ_M_SOFT		3
+#define IRQ_U_TIMER		4
+#define IRQ_S_TIMER		5
+#define IRQ_H_TIMER		6
+#define IRQ_M_TIMER		7
+#define IRQ_U_EXT		8
+#define IRQ_S_EXT		9
+#define IRQ_H_EXT		10
+#define IRQ_M_EXT		11
+#ifdef CONFIG_RISCV_EXIT_M
+#define IRQ_SOFT	IRQ_M_SOFT
+#define IRQ_TIMER	IRQ_M_TIMER
+#define IRQ_EXT		IRQ_M_EXT
+#endif
+#ifdef CONFIG_RISCV_EXIT_S
+#define IRQ_SOFT	IRQ_S_SOFT
+#define IRQ_TIMER	IRQ_S_TIMER
+#define IRQ_EXT		IRQ_S_EXT
+#endif
+
+#define IRQ_PLATFORM		16
+
+#define EXC_INST_MISALIGNED	0
+#define EXC_INST_ACCESS		1
+#define EXC_ILLEGAL_INST	2
+#define EXC_BREAKPOINT		3
+#define EXC_LOAD_MISALIGNED	4
+#define EXC_LOAD_ACCESS		5
+#define EXC_STORE_MISALIGNED	6
+#define EXC_STORE_ACCESS	7
+#define EXC_ECALL_U		8
+#define EXC_ECALL_S		9
+#define EXC_ECALL_M		11
+#define EXC_INST_PAGE_FAULT	12
+#define EXC_LOAD_PAGE_FAULT	13
+#define EXC_STORE_PAGE_FAULT	15
+
+#define EXC_SYSCALL		EXC_ECALL_U
+
+/* xIE (Interrupt Enable) and xIP (Interrupt Pending) flags */
 
 #define IPI_SOFT	0x1
 #define IPI_FENCE_I	0x2

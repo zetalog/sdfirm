@@ -55,7 +55,7 @@ __vectors:
 	sll	a1, a1, 1
 
 	# Is it a machine timer interrupt?
-	li	a0, RV_IRQ_TIMER * 2
+	li	a0, IRQ_TIMER * 2
 	bne	a0, a1, 1f
 
 	# Yes.  Simply clear MTIE and raise STIP.
@@ -73,7 +73,7 @@ __vectors:
 
 1:
 	# Is it an IPI?
-	li	a0, RV_IRQ_SOFT * 2
+	li	a0, IRQ_SOFT * 2
 	bne	a0, a1, .Lbad_trap
 
 	# Yes.  First, clear the MIPI bit.
