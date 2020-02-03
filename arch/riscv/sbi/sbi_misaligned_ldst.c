@@ -7,12 +7,9 @@
  *   Anup Patel <anup.patel@wdc.com>
  */
 
-#include <target/arch.h>
-#include <sbi/riscv_unpriv.h>
+#include <target/sbi.h>
 #include <sbi/riscv_fp.h>
 #include <sbi/sbi_error.h>
-#include <sbi/sbi_misaligned_ldst.h>
-#include <sbi/sbi_trap.h>
 
 union reg_data {
 	u8 data_bytes[8];

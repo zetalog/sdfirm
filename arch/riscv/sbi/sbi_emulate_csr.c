@@ -7,12 +7,9 @@
  *   Anup Patel <anup.patel@wdc.com>
  */
 
-#include <target/arch.h>
+#include <target/sbi.h>
 #include <sbi/sbi_bits.h>
-#include <sbi/sbi_console.h>
-#include <sbi/sbi_emulate_csr.h>
 #include <sbi/sbi_error.h>
-#include <sbi/sbi_timer.h>
 
 int sbi_emulate_csr_read(int csr_num, u32 hartid, ulong mstatus,
 			 struct sbi_scratch *scratch, ulong *csr_val)

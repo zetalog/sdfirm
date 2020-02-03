@@ -7,16 +7,8 @@
  *   Anup Patel <anup.patel@wdc.com>
  */
 
-#include <sbi/sbi_console.h>
-#include <sbi/sbi_ecall.h>
-#include <sbi/sbi_hart.h>
-#include <sbi/sbi_ipi.h>
-#include <sbi/sbi_platform.h>
-#include <sbi/sbi_system.h>
-#include <sbi/sbi_timer.h>
-#include <sbi/sbi_version.h>
 #include <target/smp.h>
-#include <target/atomic.h>
+#include <target/sbi.h>
 
 #define BANNER                                              \
 	"   ____                    _____ ____ _____\n"     \

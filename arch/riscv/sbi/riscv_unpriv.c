@@ -7,10 +7,8 @@
  *   Anup Patel <anup.patel@wdc.com>
  */
 
-#include <sbi/riscv_unpriv.h>
+#include <target/sbi.h>
 #include <sbi/sbi_bits.h>
-#include <sbi/sbi_hart.h>
-#include <sbi/sbi_scratch.h>
 
 #define DEFINE_UNPRIVILEGED_LOAD_FUNCTION(type, insn, insnlen)                \
 	type load_##type(const type *addr,                                    \

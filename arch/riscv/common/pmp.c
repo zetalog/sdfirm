@@ -40,7 +40,6 @@
  */
 
 #include <target/arch.h>
-#include <sbi/sbi_console.h>
 
 static inline unsigned long csr_read_pmpcfg(int n)
 {
@@ -332,21 +331,21 @@ int pmp_dump(int argc, char **argv)
 		else
 			size = 0;
 #if __riscv_xlen == 32
-		sbi_printf("PMP%d: 0x%08lx-0x%08lx (A",
+		printf("PMP%d: 0x%08lx-0x%08lx (A",
 #else
-		sbi_printf("PMP%d: 0x%016lx-0x%016lx (A",
+		printf("PMP%d: 0x%016lx-0x%016lx (A",
 #endif
-			   i, (unsigned long)addr,
-			   (unsigned long)addr + size - 1);
+		       i, (unsigned long)addr,
+		       (unsigned long)addr + size - 1);
 		if (prot & PMP_L)
-			sbi_printf(",L");
+			printf(",L");
 		if (prot & PMP_R)
-			sbi_printf(",R");
+			printf(",R");
 		if (prot & PMP_W)
-			sbi_printf(",W");
+			printf(",W");
 		if (prot & PMP_X)
-			sbi_printf(",X");
-		sbi_printf(")\n");
+			printf(",X");
+		printf(")\n");
 	}
 	return 0;
 }

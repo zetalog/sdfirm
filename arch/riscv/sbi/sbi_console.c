@@ -7,9 +7,7 @@
  *   Anup Patel <anup.patel@wdc.com>
  */
 
-#include <target/spinlock.h>
-#include <sbi/sbi_platform.h>
-#include <sbi/sbi_console.h>
+#include <target/sbi.h>
 
 static const struct sbi_platform *console_plat = NULL;
 DEFINE_SPINLOCK(console_out_lock);

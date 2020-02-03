@@ -8,17 +8,8 @@
  *   Nick Kossifidis <mick@ics.forth.gr>
  */
 
-#include <target/generic.h>
-#include <target/barrier.h>
-#include <target/atomic.h>
-#include <target/bitops.h>
-#include <sbi/riscv_unpriv.h>
+#include <target/sbi.h>
 #include <sbi/sbi_error.h>
-#include <sbi/sbi_hart.h>
-#include <sbi/sbi_ipi.h>
-#include <sbi/sbi_platform.h>
-#include <sbi/sbi_timer.h>
-#include <sbi/sbi_tlb.h>
 
 static unsigned long ipi_data_off;
 

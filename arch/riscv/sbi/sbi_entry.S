@@ -8,10 +8,7 @@
  */
 
 #include <target/init.h>
-#include <target/arch.h>
-#include <sbi/sbi_platform.h>
-#include <sbi/sbi_scratch.h>
-#include <sbi/sbi_trap.h>
+#include <target/sbi.h>
 #include <asm/asm-offsets.h>
 
 .macro	MOV_3R __d0, __s0, __d1, __s1, __d2, __s2

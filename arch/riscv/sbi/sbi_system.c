@@ -8,10 +8,7 @@
  *   Nick Kossifidis <mick@ics.forth.gr>
  */
 
-#include <sbi/sbi_hart.h>
-#include <sbi/sbi_platform.h>
-#include <sbi/sbi_system.h>
-#include <sbi/sbi_ipi.h>
+#include <target/sbi.h>
 
 int sbi_system_early_init(struct sbi_scratch *scratch, bool cold_boot)
 {

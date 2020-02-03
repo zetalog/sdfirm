@@ -11,12 +11,10 @@
 #include <libfdt.h>
 #include <fdt.h>
 #endif
-#include <target/arch.h>
+#include <target/sbi.h>
 #include <target/uart.h>
 #include <target/irq.h>
 #include <target/delay.h>
-#include <sbi/sbi_hart.h>
-#include <sbi/sbi_platform.h>
 
 #define FU540_HART_COUNT			5
 #define FU540_HART_STACK_SIZE			8192

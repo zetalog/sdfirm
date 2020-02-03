@@ -7,17 +7,8 @@
  *   Anup Patel <anup.patel@wdc.com>
  */
 
-#include <target/arch.h>
-#include <sbi/riscv_unpriv.h>
-#include <sbi/sbi_console.h>
-#include <sbi/sbi_ecall.h>
+#include <target/sbi.h>
 #include <sbi/sbi_error.h>
-#include <sbi/sbi_hart.h>
-#include <sbi/sbi_illegal_insn.h>
-#include <sbi/sbi_ipi.h>
-#include <sbi/sbi_misaligned_ldst.h>
-#include <sbi/sbi_timer.h>
-#include <sbi/sbi_trap.h>
 
 static void __noreturn sbi_trap_error(const char *msg, int rc, u32 hartid,
 				      ulong mcause, ulong mtval,

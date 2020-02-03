@@ -8,14 +8,9 @@
  *   Anup Patel <anup.patel@wdc.com>
  */
 
-#include <target/barrier.h>
+#include <target/sbi.h>
 #include <target/paging.h>
-#include <target/bitops.h>
 #include <sbi/sbi_error.h>
-#include <sbi/sbi_fifo.h>
-#include <sbi/sbi_hart.h>
-#include <sbi/sbi_scratch.h>
-#include <sbi/sbi_tlb.h>
 #include <sbi/sbi_string.h>
 
 static unsigned long ipi_tlb_fifo_off;

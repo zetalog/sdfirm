@@ -36,9 +36,7 @@
 #define SBI_PLATFORM_FIRMWARE_CONTEXT_OFFSET (0x60 + __SIZEOF_POINTER__)
 
 #ifndef __ASSEMBLY__
-
-#include <sbi/sbi_version.h>
-#include <sbi/sbi_scratch.h>
+#include <target/sbi.h>
 
 /** Possible feature flags of a platform */
 enum sbi_platform_features {
@@ -498,7 +496,6 @@ static inline int sbi_platform_system_shutdown(const struct sbi_platform *plat,
 		return sbi_platform_ops(plat)->system_shutdown(type);
 	return 0;
 }
-
 #endif
 
 #endif

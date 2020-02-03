@@ -8,7 +8,7 @@
  */
 
 #include <target/spinlock.h>
-#include <sbi/sbi_scratch.h>
+#include <target/sbi.h>
 
 DEFINE_SPINLOCK(extra_lock);
 static unsigned long extra_offset = SBI_SCRATCH_EXTRA_SPACE_OFFSET;

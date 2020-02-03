@@ -7,8 +7,7 @@
  *   Anup Patel <anup.patel@wdc.com>
  */
 
-#include <sbi/sbi_platform.h>
-#include <sbi/sbi_timer.h>
+#include <target/sbi.h>
 
 #if __riscv_xlen == 32
 u64 get_ticks(void)

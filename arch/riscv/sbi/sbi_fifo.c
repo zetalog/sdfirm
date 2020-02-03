@@ -7,7 +7,7 @@
  *   Atish Patra<atish.patra@wdc.com>
  *
  */
-#include <sbi/sbi_fifo.h>
+#include <target/sbi.h>
 #include <sbi/sbi_error.h>
 #include <sbi/sbi_string.h>
 

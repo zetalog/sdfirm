@@ -8,12 +8,9 @@
  */
 
 #include <target/arch.h>
-#include <sbi/riscv_unpriv.h>
+#include <target/sbi.h>
 #include <sbi/sbi_bits.h>
-#include <sbi/sbi_emulate_csr.h>
 #include <sbi/sbi_error.h>
-#include <sbi/sbi_illegal_insn.h>
-#include <sbi/sbi_trap.h>
 
 typedef int (*illegal_insn_func)(ulong insn, u32 hartid, ulong mcause,
 				 struct pt_regs *regs,

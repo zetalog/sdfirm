@@ -7,12 +7,10 @@
  *   Damien Le Moal <damien.lemoal@wdc.com>
  */
 
-#include <target/arch.h>
+#include <target/sbi.h>
 #include <target/uart.h>
 #include <target/irq.h>
 #include <target/delay.h>
-#include <sbi/sbi_hart.h>
-#include <sbi/sbi_platform.h>
 
 #define K210_HART_COUNT		2
 #define K210_HART_STACK_SIZE	4096
