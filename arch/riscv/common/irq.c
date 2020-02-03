@@ -1,3 +1,4 @@
+#include <target/init.h>
 #include <target/irq.h>
 #include <target/arch.h>
 
@@ -20,4 +21,20 @@ void irq_hw_handle_irq(void)
 		do_IRQ(irq);
 		irq_nesting--;
 	}
+}
+
+asmlinkage void __vectors(void);
+
+__init void trap_init(void)
+{
+#ifdef CONFIG_EXIT_M
+	csr_write(CSR_MSCRATCH, 0);
+	csr_write(CSR_MTVEC, &__vectors);
+	csr_write(CSR_MIE, -1);
+#endif
+#ifdef CONFIG_EXIT_S
+	csr_write(CSR_SSCRATCH, 0);
+	csr_write(CSR_STVEC, &__vectors);
+	csr_write(CSR_SIE, -1);
+#endif
 }

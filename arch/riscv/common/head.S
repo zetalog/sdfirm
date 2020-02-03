@@ -82,9 +82,10 @@
 
 	.macro	enable_mmu, map, sat, mode
 	config_mmu \map, \sat, \mode
-	sfence.vma
+#ifdef CONFIG_MMU
 	csrw	CSR_SATP, \sat
 	sfence.vma
+#endif
 	.endm
 
 	__HEAD
@@ -114,13 +115,7 @@ ENTRY(__start)
 #ifdef CONFIG_SBI
 	jal	ra, __sbi_entry
 #else
-	la	t0, __vectors
-	csrw	CSR_MTVEC, t0
-#ifdef CONFIG_RISCV_N
-	csrw	CSR_UTVEC, t0
-#endif
-
-	jal	ra, system_init
+	jal	ra, __sbi_exit
 #endif
 ENDPROC(__start)
 
@@ -132,13 +127,30 @@ ENTRY(__sbi_exit)
 	bnez	a3, .Lsecondary_start
 
 #ifdef CONFIG_MMU
-	call	mmu_hw_boot_init
+	call	bpgt_init
 #endif
-	/* call	relocate */
+	call	relocate
+	call	trap_init
 
 	/* TODO: task initialization and DTB handling */
 	tail	system_init
 ENDPROC(__sbi_exit)
+
+ENTRY(relocate)
+	/* Point stvec to virtual address of instruction after SATP write */
+	la	a0, 1f
+	csrw	CSR_STVEC, a0
+
+	/* Load boot identity page directory */
+	enable_mmu mmu_id_map, a0, a1
+.align 2
+1:
+	la	a0, .Lsecondary_park
+	csrw	CSR_STVEC, a0
+	init_gp
+	init_sp
+	ret
+ENDPROC(relocate)
 
 .Lsecondary_start:
 #ifdef CONFIG_SMP
@@ -148,7 +160,8 @@ ENDPROC(__sbi_exit)
 	la	a3, .Lsecondary_park
 	csrw	CSR_STVEC, a3
 
-	/* call	relocate */
+	call	relocate
+	call	trap_init
 	/* tail	__smp_start */
 #endif
 
