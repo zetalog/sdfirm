@@ -16,18 +16,18 @@
 #include <sbi/sbi_trap.h>
 
 typedef int (*illegal_insn_func)(ulong insn, u32 hartid, ulong mcause,
-				 struct sbi_trap_regs *regs,
+				 struct pt_regs *regs,
 				 struct sbi_scratch *scratch);
 
 static int truly_illegal_insn(ulong insn, u32 hartid, ulong mcause,
-			      struct sbi_trap_regs *regs,
+			      struct pt_regs *regs,
 			      struct sbi_scratch *scratch)
 {
-	return sbi_trap_redirect(regs, scratch, regs->mepc, mcause, insn);
+	return sbi_trap_redirect(regs, scratch, regs->epc, mcause, insn);
 }
 
 static int system_opcode_insn(ulong insn, u32 hartid, ulong mcause,
-			      struct sbi_trap_regs *regs,
+			      struct pt_regs *regs,
 			      struct sbi_scratch *scratch)
 {
 	int do_write, rs1_num = (insn >> 15) & 0x1f;
@@ -35,7 +35,7 @@ static int system_opcode_insn(ulong insn, u32 hartid, ulong mcause,
 	int csr_num   = (u32)insn >> 20;
 	ulong csr_val, new_csr_val;
 
-	if (sbi_emulate_csr_read(csr_num, hartid, regs->mstatus, scratch,
+	if (sbi_emulate_csr_read(csr_num, hartid, regs->status, scratch,
 				 &csr_val))
 		return truly_illegal_insn(insn, hartid, mcause, regs, scratch);
 
@@ -65,13 +65,13 @@ static int system_opcode_insn(ulong insn, u32 hartid, ulong mcause,
 		return truly_illegal_insn(insn, hartid, mcause, regs, scratch);
 	};
 
-	if (do_write && sbi_emulate_csr_write(csr_num, hartid, regs->mstatus,
+	if (do_write && sbi_emulate_csr_write(csr_num, hartid, regs->status,
 					      scratch, new_csr_val))
 		return truly_illegal_insn(insn, hartid, mcause, regs, scratch);
 
 	SET_RD(insn, regs, csr_val);
 
-	regs->mepc += 4;
+	regs->epc += 4;
 
 	return 0;
 }
@@ -112,14 +112,14 @@ static illegal_insn_func illegal_insn_table[32] = {
 };
 
 int sbi_illegal_insn_handler(u32 hartid, ulong mcause,
-			     struct sbi_trap_regs *regs,
+			     struct pt_regs *regs,
 			     struct sbi_scratch *scratch)
 {
 	ulong insn = csr_read(mbadaddr);
 
 	if (unlikely((insn & 3) != 3)) {
 		if (insn == 0)
-			insn = get_insn(regs->mepc, NULL);
+			insn = get_insn(regs->epc, NULL);
 		if ((insn & 3) != 3)
 			return truly_illegal_insn(insn, hartid, mcause, regs,
 						  scratch);

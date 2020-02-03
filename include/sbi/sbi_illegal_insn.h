@@ -12,11 +12,11 @@
 
 #include <sbi/sbi_types.h>
 
-struct sbi_trap_regs;
+struct pt_regs;
 struct sbi_scratch;
 
 int sbi_illegal_insn_handler(u32 hartid, ulong mcause,
-			     struct sbi_trap_regs *regs,
+			     struct pt_regs *regs,
 			     struct sbi_scratch *scratch);
 
 #endif

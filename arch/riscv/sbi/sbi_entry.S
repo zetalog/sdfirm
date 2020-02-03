@@ -12,6 +12,7 @@
 #include <sbi/sbi_platform.h>
 #include <sbi/sbi_scratch.h>
 #include <sbi/sbi_trap.h>
+#include <asm/asm-offsets.h>
 
 .macro	MOV_3R __d0, __s0, __d1, __s1, __d2, __s2
 	add	\__d0, \__s0, zero
@@ -328,7 +329,7 @@ _trap_handler_s_mode:
 	add	t0, sp, zero
 
 	/* Setup exception stack */
-	add	sp, tp, -(SBI_TRAP_REGS_SIZE)
+	add	sp, tp, -(PT_SIZE)
 
 	/* Jump to code common for all modes */
 	j	_trap_handler_all_mode
@@ -339,58 +340,58 @@ _trap_handler_m_mode:
 	add	t0, sp, zero
 
 	/* Re-use current SP as exception stack */
-	add	sp, sp, -(SBI_TRAP_REGS_SIZE)
+	add	sp, sp, -(PT_SIZE)
 
 _trap_handler_all_mode:
 	/* Save original SP (from T0) on stack */
-	REG_S	t0, SBI_TRAP_REGS_OFFSET(sp)(sp)
+	REG_S	t0, PT_SP(sp)
 
 	/* Restore T0 from scratch space */
 	REG_L	t0, SBI_SCRATCH_TMP0_OFFSET(tp)
 
 	/* Save T0 on stack */
-	REG_S	t0, SBI_TRAP_REGS_OFFSET(t0)(sp)
+	REG_S	t0, PT_T0(sp)
 
 	/* Swap TP and MSCRATCH */
 	csrrw	tp, CSR_MSCRATCH, tp
 
 	/* Save MEPC and MSTATUS CSRs */
 	csrr	t0, CSR_MEPC
-	REG_S	t0, SBI_TRAP_REGS_OFFSET(mepc)(sp)
+	REG_S	t0, PT_EPC(sp)
 	csrr	t0, CSR_MSTATUS
-	REG_S	t0, SBI_TRAP_REGS_OFFSET(mstatus)(sp)
+	REG_S	t0, PT_STATUS(sp)
 
 	/* Save all general regisers except SP and T0 */
-	REG_S	zero, SBI_TRAP_REGS_OFFSET(zero)(sp)
-	REG_S	ra, SBI_TRAP_REGS_OFFSET(ra)(sp)
-	REG_S	gp, SBI_TRAP_REGS_OFFSET(gp)(sp)
-	REG_S	tp, SBI_TRAP_REGS_OFFSET(tp)(sp)
-	REG_S	t1, SBI_TRAP_REGS_OFFSET(t1)(sp)
-	REG_S	t2, SBI_TRAP_REGS_OFFSET(t2)(sp)
-	REG_S	s0, SBI_TRAP_REGS_OFFSET(s0)(sp)
-	REG_S	s1, SBI_TRAP_REGS_OFFSET(s1)(sp)
-	REG_S	a0, SBI_TRAP_REGS_OFFSET(a0)(sp)
-	REG_S	a1, SBI_TRAP_REGS_OFFSET(a1)(sp)
-	REG_S	a2, SBI_TRAP_REGS_OFFSET(a2)(sp)
-	REG_S	a3, SBI_TRAP_REGS_OFFSET(a3)(sp)
-	REG_S	a4, SBI_TRAP_REGS_OFFSET(a4)(sp)
-	REG_S	a5, SBI_TRAP_REGS_OFFSET(a5)(sp)
-	REG_S	a6, SBI_TRAP_REGS_OFFSET(a6)(sp)
-	REG_S	a7, SBI_TRAP_REGS_OFFSET(a7)(sp)
-	REG_S	s2, SBI_TRAP_REGS_OFFSET(s2)(sp)
-	REG_S	s3, SBI_TRAP_REGS_OFFSET(s3)(sp)
-	REG_S	s4, SBI_TRAP_REGS_OFFSET(s4)(sp)
-	REG_S	s5, SBI_TRAP_REGS_OFFSET(s5)(sp)
-	REG_S	s6, SBI_TRAP_REGS_OFFSET(s6)(sp)
-	REG_S	s7, SBI_TRAP_REGS_OFFSET(s7)(sp)
-	REG_S	s8, SBI_TRAP_REGS_OFFSET(s8)(sp)
-	REG_S	s9, SBI_TRAP_REGS_OFFSET(s9)(sp)
-	REG_S	s10, SBI_TRAP_REGS_OFFSET(s10)(sp)
-	REG_S	s11, SBI_TRAP_REGS_OFFSET(s11)(sp)
-	REG_S	t3, SBI_TRAP_REGS_OFFSET(t3)(sp)
-	REG_S	t4, SBI_TRAP_REGS_OFFSET(t4)(sp)
-	REG_S	t5, SBI_TRAP_REGS_OFFSET(t5)(sp)
-	REG_S	t6, SBI_TRAP_REGS_OFFSET(t6)(sp)
+	REG_S	zero, PT_ZERO(sp)
+	REG_S	ra, PT_RA(sp)
+	REG_S	gp, PT_GP(sp)
+	REG_S	tp, PT_TP(sp)
+	REG_S	t1, PT_T1(sp)
+	REG_S	t2, PT_T2(sp)
+	REG_S	s0, PT_S0(sp)
+	REG_S	s1, PT_S1(sp)
+	REG_S	a0, PT_A0(sp)
+	REG_S	a1, PT_A1(sp)
+	REG_S	a2, PT_A2(sp)
+	REG_S	a3, PT_A3(sp)
+	REG_S	a4, PT_A4(sp)
+	REG_S	a5, PT_A5(sp)
+	REG_S	a6, PT_A6(sp)
+	REG_S	a7, PT_A7(sp)
+	REG_S	s2, PT_S2(sp)
+	REG_S	s3, PT_S3(sp)
+	REG_S	s4, PT_S4(sp)
+	REG_S	s5, PT_S5(sp)
+	REG_S	s6, PT_S6(sp)
+	REG_S	s7, PT_S7(sp)
+	REG_S	s8, PT_S8(sp)
+	REG_S	s9, PT_S9(sp)
+	REG_S	s10, PT_S10(sp)
+	REG_S	s11, PT_S11(sp)
+	REG_S	t3, PT_T3(sp)
+	REG_S	t4, PT_T4(sp)
+	REG_S	t5, PT_T5(sp)
+	REG_S	t6, PT_T6(sp)
 
 	/* Call C routine */
 	add	a0, sp, zero
@@ -398,47 +399,47 @@ _trap_handler_all_mode:
 	call	sbi_trap_handler
 
 	/* Restore all general regisers except SP and T0 */
-	REG_L	ra, SBI_TRAP_REGS_OFFSET(ra)(sp)
-	REG_L	gp, SBI_TRAP_REGS_OFFSET(gp)(sp)
-	REG_L	tp, SBI_TRAP_REGS_OFFSET(tp)(sp)
-	REG_L	t1, SBI_TRAP_REGS_OFFSET(t1)(sp)
-	REG_L	t2, SBI_TRAP_REGS_OFFSET(t2)(sp)
-	REG_L	s0, SBI_TRAP_REGS_OFFSET(s0)(sp)
-	REG_L	s1, SBI_TRAP_REGS_OFFSET(s1)(sp)
-	REG_L	a0, SBI_TRAP_REGS_OFFSET(a0)(sp)
-	REG_L	a1, SBI_TRAP_REGS_OFFSET(a1)(sp)
-	REG_L	a2, SBI_TRAP_REGS_OFFSET(a2)(sp)
-	REG_L	a3, SBI_TRAP_REGS_OFFSET(a3)(sp)
-	REG_L	a4, SBI_TRAP_REGS_OFFSET(a4)(sp)
-	REG_L	a5, SBI_TRAP_REGS_OFFSET(a5)(sp)
-	REG_L	a6, SBI_TRAP_REGS_OFFSET(a6)(sp)
-	REG_L	a7, SBI_TRAP_REGS_OFFSET(a7)(sp)
-	REG_L	s2, SBI_TRAP_REGS_OFFSET(s2)(sp)
-	REG_L	s3, SBI_TRAP_REGS_OFFSET(s3)(sp)
-	REG_L	s4, SBI_TRAP_REGS_OFFSET(s4)(sp)
-	REG_L	s5, SBI_TRAP_REGS_OFFSET(s5)(sp)
-	REG_L	s6, SBI_TRAP_REGS_OFFSET(s6)(sp)
-	REG_L	s7, SBI_TRAP_REGS_OFFSET(s7)(sp)
-	REG_L	s8, SBI_TRAP_REGS_OFFSET(s8)(sp)
-	REG_L	s9, SBI_TRAP_REGS_OFFSET(s9)(sp)
-	REG_L	s10, SBI_TRAP_REGS_OFFSET(s10)(sp)
-	REG_L	s11, SBI_TRAP_REGS_OFFSET(s11)(sp)
-	REG_L	t3, SBI_TRAP_REGS_OFFSET(t3)(sp)
-	REG_L	t4, SBI_TRAP_REGS_OFFSET(t4)(sp)
-	REG_L	t5, SBI_TRAP_REGS_OFFSET(t5)(sp)
-	REG_L	t6, SBI_TRAP_REGS_OFFSET(t6)(sp)
+	REG_L	ra, PT_RA(sp)
+	REG_L	gp, PT_GP(sp)
+	REG_L	tp, PT_TP(sp)
+	REG_L	t1, PT_T1(sp)
+	REG_L	t2, PT_T2(sp)
+	REG_L	s0, PT_S0(sp)
+	REG_L	s1, PT_S1(sp)
+	REG_L	a0, PT_A0(sp)
+	REG_L	a1, PT_A1(sp)
+	REG_L	a2, PT_A2(sp)
+	REG_L	a3, PT_A3(sp)
+	REG_L	a4, PT_A4(sp)
+	REG_L	a5, PT_A5(sp)
+	REG_L	a6, PT_A6(sp)
+	REG_L	a7, PT_A7(sp)
+	REG_L	s2, PT_S2(sp)
+	REG_L	s3, PT_S3(sp)
+	REG_L	s4, PT_S4(sp)
+	REG_L	s5, PT_S5(sp)
+	REG_L	s6, PT_S6(sp)
+	REG_L	s7, PT_S7(sp)
+	REG_L	s8, PT_S8(sp)
+	REG_L	s9, PT_S9(sp)
+	REG_L	s10, PT_S10(sp)
+	REG_L	s11, PT_S11(sp)
+	REG_L	t3, PT_T3(sp)
+	REG_L	t4, PT_T4(sp)
+	REG_L	t5, PT_T5(sp)
+	REG_L	t6, PT_T6(sp)
 
 	/* Restore MEPC and MSTATUS CSRs */
-	REG_L	t0, SBI_TRAP_REGS_OFFSET(mepc)(sp)
+	REG_L	t0, PT_EPC(sp)
 	csrw	CSR_MEPC, t0
-	REG_L	t0, SBI_TRAP_REGS_OFFSET(mstatus)(sp)
+	REG_L	t0, PT_STATUS(sp)
 	csrw	CSR_MSTATUS, t0
 
 	/* Restore T0 */
-	REG_L	t0, SBI_TRAP_REGS_OFFSET(t0)(sp)
+	REG_L	t0, PT_T0(sp)
 
 	/* Restore SP */
-	REG_L	sp, SBI_TRAP_REGS_OFFSET(sp)(sp)
+	REG_L	sp, PT_SP(sp)
 
 	mret
 ENDPROC(_trap_handler)

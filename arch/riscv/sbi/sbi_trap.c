@@ -21,13 +21,13 @@
 
 static void __noreturn sbi_trap_error(const char *msg, int rc, u32 hartid,
 				      ulong mcause, ulong mtval,
-				      struct sbi_trap_regs *regs)
+				      struct pt_regs *regs)
 {
 	sbi_printf("%s: hart%d: %s (error %d)\n", __func__, hartid, msg, rc);
 	sbi_printf("%s: hart%d: mcause=0x%" PRILX " mtval=0x%" PRILX "\n",
 		   __func__, hartid, mcause, mtval);
 	sbi_printf("%s: hart%d: mepc=0x%" PRILX " mstatus=0x%" PRILX "\n",
-		   __func__, hartid, regs->mepc, regs->mstatus);
+		   __func__, hartid, regs->epc, regs->status);
 	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
 		   hartid, "ra", regs->ra, "sp", regs->sp);
 	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
@@ -75,13 +75,13 @@ static void __noreturn sbi_trap_error(const char *msg, int rc, u32 hartid,
  *
  * @return 0 on success and negative error code on failure
  */
-int sbi_trap_redirect(struct sbi_trap_regs *regs, struct sbi_scratch *scratch,
+int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
 		      ulong epc, ulong cause, ulong tval)
 {
 	ulong new_mstatus, prev_mode;
 
 	/* Sanity check on previous mode */
-	prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
+	prev_mode = (regs->status & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
 	if (prev_mode != PRV_S && prev_mode != PRV_U)
 		return SBI_ENOTSUPP;
 
@@ -91,10 +91,10 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs, struct sbi_scratch *scratch,
 	csr_write(CSR_SCAUSE, cause);
 
 	/* Set MEPC to S-mode exception vector base */
-	regs->mepc = csr_read(CSR_STVEC);
+	regs->epc = csr_read(CSR_STVEC);
 
 	/* Initial value of new MSTATUS */
-	new_mstatus = regs->mstatus;
+	new_mstatus = regs->status;
 
 	/* Clear MPP, SPP, SPIE, and SIE */
 	new_mstatus &=
@@ -105,14 +105,14 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs, struct sbi_scratch *scratch,
 		new_mstatus |= (1UL << MSTATUS_SPP_SHIFT);
 
 	/* Set SPIE */
-	if (regs->mstatus & MSTATUS_SIE)
+	if (regs->status & MSTATUS_SIE)
 		new_mstatus |= (1UL << MSTATUS_SPIE_SHIFT);
 
 	/* Set MPP */
 	new_mstatus |= (PRV_S << MSTATUS_MPP_SHIFT);
 
 	/* Set new value in MSTATUS */
-	regs->mstatus = new_mstatus;
+	regs->status = new_mstatus;
 
 	return 0;
 }
@@ -132,7 +132,7 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs, struct sbi_scratch *scratch,
  * @param regs pointer to register state
  * @param scratch pointer to sbi_scratch of current HART
  */
-void sbi_trap_handler(struct sbi_trap_regs *regs, struct sbi_scratch *scratch)
+void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch)
 {
 	int rc = SBI_ENOTSUPP;
 	const char *msg = "trap handler failed";
@@ -181,20 +181,20 @@ void sbi_trap_handler(struct sbi_trap_regs *regs, struct sbi_scratch *scratch)
 	case CAUSE_LOAD_PAGE_FAULT:
 	case CAUSE_STORE_PAGE_FAULT:
 		uptrap = sbi_hart_get_trap_info(scratch);
-		if ((regs->mstatus & MSTATUS_MPRV) && uptrap) {
+		if ((regs->status & MSTATUS_MPRV) && uptrap) {
 			rc = 0;
-			regs->mepc += uptrap->ilen;
+			regs->epc += uptrap->ilen;
 			uptrap->cause = mcause;
 			uptrap->tval = mtval;
 		} else {
-			rc = sbi_trap_redirect(regs, scratch, regs->mepc,
+			rc = sbi_trap_redirect(regs, scratch, regs->epc,
 					       mcause, mtval);
 		}
 		msg = "page/access fault handler failed";
 		break;
 	default:
 		/* If the trap came from S or U mode, redirect it there */
-		rc = sbi_trap_redirect(regs, scratch, regs->mepc, mcause, mtval);
+		rc = sbi_trap_redirect(regs, scratch, regs->epc, mcause, mtval);
 		break;
 	};
 

@@ -30,7 +30,7 @@ u16 sbi_ecall_version_minor(void)
 	return SBI_ECALL_VERSION_MINOR;
 }
 
-int sbi_ecall_handler(u32 hartid, ulong mcause, struct sbi_trap_regs *regs,
+int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 		      struct sbi_scratch *scratch)
 {
 	int ret = SBI_ENOTSUPP;
@@ -96,10 +96,10 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct sbi_trap_regs *regs,
 	};
 
 	if (!ret) {
-		regs->mepc += 4;
+		regs->epc += 4;
 	} else if (ret == SBI_ETRAP) {
 		ret = 0;
-		sbi_trap_redirect(regs, scratch, regs->mepc,
+		sbi_trap_redirect(regs, scratch, regs->epc,
 				  uptrap.cause, uptrap.tval);
 	}
 

@@ -42,6 +42,8 @@
 #ifndef __ASSEMBLER_RISCV_H_INCLUDE__
 #define __ASSEMBLER_RISCV_H_INCLUDE__
 
+#define STACK_ALIGN	16
+
 /* This file is intended for being included by the all of theassemblies, so
  * generic assembly macros, C/ASM portable definitions can be found here.
  */

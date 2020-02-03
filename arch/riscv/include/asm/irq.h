@@ -46,9 +46,6 @@
 
 #ifndef __ASSEMBLY__
 typedef uint32_t irq_flags_t;
-struct pt_regs {
-	unsigned long regs[31];
-};
 
 #ifdef CONFIG_RISCV_EXIT_M
 #define irq_hw_flags_save(x)	((x) = csr_read_clear(CSR_MSTATUS, SR_MIE))
