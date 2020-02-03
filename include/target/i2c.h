@@ -73,7 +73,7 @@ void i2c_master_release(void);
 #if CONFIG_I2C_MAX_MASTERS > 1
 void i2c_master_select(i2c_t i2c);
 #else
-#define i2c_select_master(i2c)			do { } while (0)
+#define i2c_master_select(i2c)			do { } while (0)
 #endif
 #ifdef CONFIG_I2C_GENERAL_CALL
 uint8_t i2c_general_call(uint8_t cbyte, i2c_len_t limit);
