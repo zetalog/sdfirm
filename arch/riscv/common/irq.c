@@ -27,14 +27,7 @@ asmlinkage void __vectors(void);
 
 __init void trap_init(void)
 {
-#ifdef CONFIG_EXIT_M
-	csr_write(CSR_MSCRATCH, 0);
-	csr_write(CSR_MTVEC, &__vectors);
-	csr_write(CSR_MIE, -1);
-#endif
-#ifdef CONFIG_EXIT_S
-	csr_write(CSR_SSCRATCH, 0);
-	csr_write(CSR_STVEC, &__vectors);
-	csr_write(CSR_SIE, -1);
-#endif
+	csr_write(CSR_SCRATCH, 0);
+	csr_write(CSR_TVEC, &__vectors);
+	csr_write(CSR_IE, -1);
 }

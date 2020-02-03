@@ -27,16 +27,14 @@
 	.endm
 
 	.macro disable_sirq
-#ifdef CONFIG_RISCV_EXIT_S
-	csrw	CSR_SIE, zero
-	csrw	CSR_SIP, zero
-#endif
+	csrw	CSR_IE, zero
+	csrw	CSR_IP, zero
 	.endm
 
 	.macro disable_fpu
 #ifdef CONFIG_RISCV_F
 	li	t0, SR_FS
-	csrc	CSR_SSTATUS, t0
+	csrc	CSR_STATUS, t0
 #endif
 	.endm
 
@@ -139,14 +137,14 @@ ENDPROC(__sbi_exit)
 ENTRY(relocate)
 	/* Point stvec to virtual address of instruction after SATP write */
 	la	a0, 1f
-	csrw	CSR_STVEC, a0
+	csrw	CSR_TVEC, a0
 
 	/* Load boot identity page directory */
 	enable_mmu mmu_id_map, a0, a1
 .align 2
 1:
 	la	a0, .Lsecondary_park
-	csrw	CSR_STVEC, a0
+	csrw	CSR_TVEC, a0
 	init_gp
 	init_sp
 	ret
@@ -158,7 +156,7 @@ ENDPROC(relocate)
 	bgeu	a0, a1, .Lsecondary_park
 
 	la	a3, .Lsecondary_park
-	csrw	CSR_STVEC, a3
+	csrw	CSR_TVEC, a3
 
 	call	relocate
 	call	trap_init

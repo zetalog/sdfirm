@@ -544,6 +544,43 @@
 					 (s32)(((insn) >> 7) & 0x1f))
 #define MASK_FUNCT3			0x7000
 
+#ifdef CONFIG_RISCV_EXIT_M
+#define CSR_STATUS	CSR_MSTATUS
+#define CSR_IE		CSR_MIE
+#define CSR_TVEC	CSR_MTVEC
+#define CSR_SCRATCH	CSR_MSCRATCH
+#define CSR_EPC	CSR_MEPC
+#define CSR_CAUSE	CSR_MCAUSE
+#define CSR_TVAL	CSR_MTVAL
+#define CSR_IP		CSR_MIP
+
+#define SR_IE		SR_MIE
+#define SR_PIE		SR_MPIE
+#define SR_PP		SR_MPP
+
+#define RV_IRQ_SOFT	IRQ_M_SOFT
+#define RV_IRQ_TIMER	IRQ_M_TIMER
+#define RV_IRQ_EXT	IRQ_M_EXT
+#endif
+#ifdef CONFIG_RISCV_EXIT_S
+#define CSR_STATUS	CSR_SSTATUS
+#define CSR_IE		CSR_SIE
+#define CSR_TVEC	CSR_STVEC
+#define CSR_SCRATCH	CSR_SSCRATCH
+#define CSR_EPC	CSR_SEPC
+#define CSR_CAUSE	CSR_SCAUSE
+#define CSR_TVAL	CSR_STVAL
+#define CSR_IP		CSR_SIP
+
+#define SR_IE		SR_SIE
+#define SR_PIE		SR_SPIE
+#define SR_PP		SR_SPP
+
+#define RV_IRQ_SOFT	IRQ_S_SOFT
+#define RV_IRQ_TIMER	IRQ_S_TIMER
+#define RV_IRQ_EXT	IRQ_S_EXT
+#endif
+
 #ifndef __ASSEMBLY__
 #define csr_swap(csr, val)					\
 ({								\

@@ -37,13 +37,13 @@ trap_table:
 	__HEAD
 .global __vectors
 __vectors:
-	csrrw	sp, mscratch, sp
+	csrrw	sp, CSR_SCRATCH, sp
 	beqz	sp, .Ltrap_from_machine_mode
 
 	REG_S	a0, PT_A0(sp)
 	REG_S	a1, PT_A1(sp)
 
-	csrr	a1, mcause
+	csrr	a1, CSR_CAUSE
 	bgez	a1, .Lhandle_trap_in_machine_mode
 
 	# This is an interrupt.  Discard the mcause MSB and decode the rest.
@@ -55,7 +55,7 @@ __vectors:
 	sll	a1, a1, 1
 
 	# Is it a machine timer interrupt?
-	li	a0, IRQ_M_TIMER * 2
+	li	a0, RV_IRQ_TIMER * 2
 	bne	a0, a1, 1f
 
 	# Yes.  Simply clear MTIE and raise STIP.
@@ -68,12 +68,12 @@ __vectors:
 	# Go back whence we came.
 	REG_L	a0, PT_A0(sp)
 	REG_L	a1, PT_A1(sp)
-	csrrw	sp, mscratch, sp
+	csrrw	sp, CSR_SCRATCH, sp
 	mret
 
 1:
 	# Is it an IPI?
-	li	a0, IRQ_M_SOFT * 2
+	li	a0, RV_IRQ_SOFT * 2
 	bne	a0, a1, .Lbad_trap
 
 	# Yes.  First, clear the MIPI bit.
@@ -91,7 +91,7 @@ __vectors:
 #endif
 	and	a1, a0, IPI_SOFT
 	beqz	a1, 1f
-	csrs	mip, IE_SSIE
+	csrs	CSR_IP, SR_IE
 1:
 	andi	a1, a0, IPI_FENCE_I
 	beqz	a1, 1f
@@ -124,9 +124,9 @@ __vectors:
 	REG_S	s1, PT_S1(sp)
 	mv	a0, sp				# a0 <- regs
 	REG_S	a2, PT_A2(sp)
-	csrr	a2, mepc			# a2 <- mepc
+	csrr	a2, CSR_EPC			# a2 <- mepc
 	REG_S	a3, PT_A3(sp)
-	csrrw	t0, mscratch, x0		# t0 <- user sp
+	csrrw	t0, CSR_SCRATCH, x0		# t0 <- user sp
 	REG_S	a4, PT_A4(sp)
 	REG_S	a5, PT_A5(sp)
 	REG_S	a6, PT_A6(sp)
@@ -162,7 +162,7 @@ __vectors:
 restore_mscratch:
 	# Restore mscratch, so future traps will know they didn't come
 	# from M-mode.
-	csrw	mscratch, sp
+	csrw	CSR_SCRATCH, sp
 
 restore_regs:
 	# Restore all of the registers.
@@ -210,7 +210,7 @@ __redirect_trap:
 	j	restore_mscratch
 
 .Ltrap_from_machine_mode:
-	csrr	sp, mscratch
+	csrr	sp, CSR_SCRATCH
 	addi	sp, sp, -INTEGER_CONTEXT_SIZE
 	REG_S	a0, PT_A0(sp)
 	REG_S	a1, PT_A1(sp)
