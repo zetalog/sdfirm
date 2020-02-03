@@ -99,23 +99,6 @@ static int fu540_pmp_region_info(u32 hartid, u32 index, ulong *prot,
 	return ret;
 }
 
-void fu540_console_putc(char ch)
-{
-	uart_hw_con_write(ch);
-}
-
-int fu540_console_getc(void)
-{
-	while (!uart_hw_con_poll());
-	return (int)uart_hw_con_read();
-}
-
-static int fu540_console_init(void)
-{
-	uart_hw_con_init();
-	return 0;
-}
-
 static int fu540_irqchip_init(bool cold_boot)
 {
 	cpu_t cpu = sbi_current_hartid();
@@ -188,9 +171,6 @@ const struct sbi_platform_operations platform_ops = {
 	.pmp_region_count	= fu540_pmp_region_count,
 	.pmp_region_info	= fu540_pmp_region_info,
 	.final_init		= fu540_final_init,
-	.console_putc		= fu540_console_putc,
-	.console_getc		= fu540_console_getc,
-	.console_init		= fu540_console_init,
 	.irqchip_init		= fu540_irqchip_init,
 	.ipi_send		= fu540_ipi_send,
 	.ipi_sync		= fu540_ipi_sync,

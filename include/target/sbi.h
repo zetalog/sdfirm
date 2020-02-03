@@ -207,21 +207,6 @@ void sbi_timer_event_start(struct sbi_scratch *scratch, u64 next_event);
 void sbi_timer_process(struct sbi_scratch *scratch);
 int sbi_timer_init(struct sbi_scratch *scratch, bool cold_boot);
 
-#define __printf(a, b) __attribute__((format(printf, a, b)))
-bool sbi_isprintable(char ch);
-int sbi_getc(void);
-void sbi_putc(char ch);
-void sbi_puts(const char *str);
-void sbi_gets(char *s, int maxwidth, char endchar);
-int __printf(2, 3) sbi_sprintf(char *out, const char *format, ...);
-int __printf(3, 4) sbi_snprintf(char *out, u32 out_sz, const char *format, ...);
-#ifdef CONFIG_SBI
-int __printf(1, 2) sbi_printf(const char *format, ...);
-#else
-#define sbi_printf(...)		printf(__VA_ARGS__)
-#endif
-int sbi_console_init(struct sbi_scratch *scratch);
-
 int sbi_hart_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot);
 void *sbi_hart_get_trap_info(struct sbi_scratch *scratch);
 void sbi_hart_set_trap_info(struct sbi_scratch *scratch, void *data);

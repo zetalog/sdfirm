@@ -38,6 +38,7 @@ int putchar(int c)
 
 int getchar(void)
 {
+	while (!uart_hw_con_poll());
 	return (int)uart_hw_con_read();
 }
 

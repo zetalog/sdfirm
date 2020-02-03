@@ -41,11 +41,11 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 		ret = 0;
 		break;
 	case SBI_ECALL_CONSOLE_PUTCHAR:
-		sbi_putc(regs->a0);
+		putchar(regs->a0);
 		ret = 0;
 		break;
 	case SBI_ECALL_CONSOLE_GETCHAR:
-		regs->a0 = sbi_getc();
+		regs->a0 = getchar();
 		ret	 = 0;
 		break;
 	case SBI_ECALL_CLEAR_IPI:

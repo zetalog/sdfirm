@@ -159,7 +159,7 @@ __vectors:
 	sw	tp, (sp)
 #endif
 
-restore_mscratch:
+restore_scratch:
 	# Restore mscratch, so future traps will know they didn't come
 	# from M-mode.
 	csrw	CSR_SCRATCH, sp
@@ -207,7 +207,7 @@ __redirect_trap:
 	neg	t0, t0
 	and	sp, sp, t0
 	addi	sp, sp, -MENTRY_FRAME_SIZE
-	j	restore_mscratch
+	j	restore_scratch
 
 .Ltrap_from_machine_mode:
 	csrr	sp, CSR_SCRATCH

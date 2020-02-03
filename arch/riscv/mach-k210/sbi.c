@@ -15,23 +15,6 @@
 #define K210_HART_COUNT		2
 #define K210_HART_STACK_SIZE	4096
 
-static int k210_console_init(void)
-{
-	uart_hw_con_init();
-	return 0;
-}
-
-static void k210_console_putc(char c)
-{
-	uart_hw_con_write(c);
-}
-
-static int k210_console_getc(void)
-{
-	while (!uart_hw_con_poll());
-	return (int)uart_hw_con_read();
-}
-
 static int k210_irqchip_init(bool cold_boot)
 {
 	cpu_t cpu = sbi_current_hartid();
@@ -105,10 +88,6 @@ static int k210_system_shutdown(u32 type)
 }
 
 const struct sbi_platform_operations platform_ops = {
-	.console_init	= k210_console_init,
-	.console_putc	= k210_console_putc,
-	.console_getc	= k210_console_getc,
-
 	.irqchip_init = k210_irqchip_init,
 
 	.ipi_init  = k210_ipi_init,

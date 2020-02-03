@@ -39,25 +39,25 @@ void sbi_late_init(void)
 #endif
 
 	misa_string(str, sizeof(str));
-	sbi_printf("\nOpenSBI v%d.%d (%s %s)\n", OPENSBI_VERSION_MAJOR,
-		   OPENSBI_VERSION_MINOR, __DATE__, __TIME__);
+	printf("\nOpenSBI v%d.%d (%s %s)\n", OPENSBI_VERSION_MAJOR,
+	       OPENSBI_VERSION_MINOR, __DATE__, __TIME__);
 
-	sbi_printf(BANNER);
+	printf(BANNER);
 
 	/* Platform details */
-	sbi_printf("Platform Name          : %s\n", sbi_platform_name(plat));
-	sbi_printf("Platform HART Features : RV%d%s\n", misa_xlen(), str);
-	sbi_printf("Platform Max HARTs     : %d\n",
-		   sbi_platform_hart_count(plat));
-	sbi_printf("Current Hart           : %u\n", hartid);
+	printf("Platform Name          : %s\n", sbi_platform_name(plat));
+	printf("Platform HART Features : RV%d%s\n", misa_xlen(), str);
+	printf("Platform Max HARTs     : %d\n",
+	       sbi_platform_hart_count(plat));
+	printf("Current Hart           : %u\n", hartid);
 	/* Firmware details */
-	sbi_printf("Firmware Base          : 0x%lx\n", scratch->fw_start);
-	sbi_printf("Firmware Size          : %d KB\n",
-		   (u32)(scratch->fw_size / 1024));
+	printf("Firmware Base          : 0x%lx\n", scratch->fw_start);
+	printf("Firmware Size          : %d KB\n",
+	       (u32)(scratch->fw_size / 1024));
 	/* Generic details */
-	sbi_printf("Runtime SBI Version    : %d.%d\n",
-		   sbi_ecall_version_major(), sbi_ecall_version_minor());
-	sbi_printf("\n");
+	printf("Runtime SBI Version    : %d.%d\n",
+	       sbi_ecall_version_major(), sbi_ecall_version_minor());
+	printf("\n");
 
 	pmp_dump(0, NULL);
 }
@@ -77,9 +77,7 @@ static void __noreturn init_coldboot(void)
 	if (rc)
 		sbi_hart_hang();
 
-	rc = sbi_console_init(scratch);
-	if (rc)
-		sbi_hart_hang();
+	console_init();
 
 	rc = sbi_platform_irqchip_init(plat, true);
 	if (rc)
