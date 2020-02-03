@@ -16,28 +16,7 @@
  */
 #define SBI_PLATFORM_VERSION(Major, Minor) ((Major << 16) | Minor)
 
-/** Offset of opensbi_version in struct sbi_platform */
-#define SBI_PLATFORM_OPENSBI_VERSION_OFFSET (0x00)
-/** Offset of platform_version in struct sbi_platform */
-#define SBI_PLATFORM_VERSION_OFFSET (0x04)
-/** Offset of name in struct sbi_platform */
-#define SBI_PLATFORM_NAME_OFFSET (0x08)
-/** Offset of features in struct sbi_platform */
-#define SBI_PLATFORM_FEATURES_OFFSET (0x48)
-/** Offset of hart_count in struct sbi_platform */
-#define SBI_PLATFORM_HART_COUNT_OFFSET (0x50)
-/** Offset of hart_stack_size in struct sbi_platform */
-#define SBI_PLATFORM_HART_STACK_SIZE_OFFSET (0x54)
-/** Offset of disabled_hart_mask in struct sbi_platform */
-#define SBI_PLATFORM_DISABLED_HART_OFFSET (0x58)
-/** Offset of platform_ops_addr in struct sbi_platform */
-#define SBI_PLATFORM_OPS_OFFSET (0x60)
-/** Offset of firmware_context in struct sbi_platform */
-#define SBI_PLATFORM_FIRMWARE_CONTEXT_OFFSET (0x60 + __SIZEOF_POINTER__)
-
 #ifndef __ASSEMBLY__
-#include <target/sbi.h>
-
 /** Possible feature flags of a platform */
 enum sbi_platform_features {
 	/** Platform has timer value */
