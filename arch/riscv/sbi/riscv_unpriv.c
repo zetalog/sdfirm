@@ -21,9 +21,9 @@
 		trap->tval = 0;                                               \
 		sbi_hart_set_trap_info(scratch, trap);                        \
 		asm volatile(                                                 \
-			"csrrs %0, " STR(CSR_MSTATUS) ", %3\n"                \
+			"csrrs %0, " __stringify(CSR_MSTATUS) ", %3\n"        \
 			#insn " %1, %2\n"                                     \
-			"csrw " STR(CSR_MSTATUS) ", %0"                       \
+			"csrw " __stringify(CSR_MSTATUS) ", %0"               \
 		    : "+&r"(__mstatus), "=&r"(val)                            \
 		    : "m"(*addr), "r"(MSTATUS_MPRV));                         \
 		sbi_hart_set_trap_info(scratch, NULL);                        \
@@ -41,9 +41,9 @@
 		trap->tval = 0;                                               \
 		sbi_hart_set_trap_info(scratch, trap);                        \
 		asm volatile(                                                 \
-			"csrrs %0, " STR(CSR_MSTATUS) ", %3\n"                \
+			"csrrs %0, " __stringify(CSR_MSTATUS) ", %3\n"        \
 			#insn " %1, %2\n"                                     \
-			"csrw " STR(CSR_MSTATUS) ", %0"                       \
+			"csrw " __stringify(CSR_MSTATUS) ", %0"               \
 			: "+&r"(__mstatus)                                    \
 			: "r"(val), "m"(*addr), "r"(MSTATUS_MPRV));           \
 		sbi_hart_set_trap_info(scratch, NULL);                        \
@@ -99,18 +99,18 @@ ulong get_insn(ulong mepc, ulong *mstatus)
 	register ulong __mstatus asm("a3");
 	ulong val;
 #ifndef __riscv_compressed
-	asm("csrrs %[mstatus], " STR(CSR_MSTATUS) ", %[mprv]\n"
+	asm("csrrs %[mstatus], " __stringify(CSR_MSTATUS) ", %[mprv]\n"
 #if __riscv_xlen == 64
 	    "lwu %[insn], (%[addr])\n"
 #else
 	    "lw %[insn], (%[addr])\n"
 #endif
-	    "csrw " STR(CSR_MSTATUS) ", %[mstatus]"
+	    "csrw " stringify(CSR_MSTATUS) ", %[mstatus]"
 	    : [mstatus] "+&r"(__mstatus), [insn] "=&r"(val)
 	    : [mprv] "r"(MSTATUS_MPRV | MSTATUS_MXR), [addr] "r"(__mepc));
 #else
 	ulong rvc_mask = 3, tmp;
-	asm("csrrs %[mstatus], " STR(CSR_MSTATUS) ", %[mprv]\n"
+	asm("csrrs %[mstatus], " __stringify(CSR_MSTATUS) ", %[mprv]\n"
 	    "and %[tmp], %[addr], 2\n"
 	    "bnez %[tmp], 1f\n"
 #if __riscv_xlen == 64
@@ -130,7 +130,7 @@ ulong get_insn(ulong mepc, ulong *mstatus)
 	    "lhu %[tmp], 2(%[addr])\n"
 	    "sll %[tmp], %[tmp], 16\n"
 	    "add %[insn], %[insn], %[tmp]\n"
-	    "2: csrw " STR(CSR_MSTATUS) ", %[mstatus]"
+	    "2: csrw " __stringify(CSR_MSTATUS) ", %[mstatus]"
 	    : [mstatus] "+&r"(__mstatus), [insn] "=&r"(val), [tmp] "=&r"(tmp)
 	    : [mprv] "r"(MSTATUS_MPRV | MSTATUS_MXR), [addr] "r"(__mepc),
 	      [rvc_mask] "r"(rvc_mask), [xlen_minus_16] "i"(__riscv_xlen - 16));

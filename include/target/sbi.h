@@ -41,11 +41,42 @@
 
 #define SBI_TLB_FIFO_NUM_ENTRIES		4
 
+#define EXTRACT_FIELD(val, which)		\
+	(((val) & (which)) / ((which) & ~((which)-1)))
+#define INSERT_FIELD(val, which, fieldval)	\
+	(((val) & ~(which)) | ((fieldval) * ((which) & ~((which)-1))))
+
 #ifndef __ASSEMBLY__
 #include <target/atomic.h>
 #include <target/spinlock.h>
-#include <sbi/sbi_types.h>
-#include <sbi/sbi_bits.h>
+
+typedef char			s8;
+typedef unsigned char		u8;
+
+typedef short			s16;
+typedef unsigned short		u16;
+
+typedef int			s32;
+typedef unsigned int		u32;
+
+#if __riscv_xlen == 64
+typedef long			s64;
+typedef unsigned long		u64;
+#define PRILX			"016lx"
+#elif __riscv_xlen == 32
+typedef long long		s64;
+typedef unsigned long long	u64;
+#define PRILX			"08lx"
+#else
+#error "Unexpected __riscv_xlen"
+#endif
+
+typedef unsigned long		ulong;
+typedef unsigned long		virtual_addr_t;
+typedef unsigned long		virtual_size_t;
+typedef unsigned long		physical_addr_t;
+typedef unsigned long		physical_size_t;
+
 #include <sbi/riscv_unpriv.h>
 #include <sbi/riscv_fp.h>
 

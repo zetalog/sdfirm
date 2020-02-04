@@ -10,8 +10,6 @@
 #ifndef __RISCV_UNPRIV_H__
 #define __RISCV_UNPRIV_H__
 
-#include <sbi/sbi_types.h>
-
 struct sbi_scratch;
 
 struct unpriv_trap {
