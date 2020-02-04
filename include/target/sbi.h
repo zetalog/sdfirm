@@ -46,7 +46,6 @@
 #include <target/spinlock.h>
 #include <sbi/sbi_types.h>
 #include <sbi/sbi_bits.h>
-#include <sbi/sbi_string.h>
 #include <sbi/riscv_unpriv.h>
 #include <sbi/riscv_fp.h>
 

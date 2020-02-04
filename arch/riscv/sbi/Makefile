@@ -14,7 +14,6 @@ obj-y += sbi_init.rel
 obj-y += sbi_ipi.rel
 obj-y += sbi_misaligned_ldst.rel
 obj-y += sbi_scratch.rel
-obj-y += sbi_string.rel
 obj-y += sbi_system.rel
 obj-y += sbi_timer.rel
 obj-y += sbi_tlb.rel

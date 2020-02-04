@@ -180,7 +180,7 @@ void sbi_tlb_fifo_process(struct sbi_scratch *scratch, u32 event)
 			sbi_tlb_fifo_sfence_vma(&tinfo);
 		else if (tinfo.type == SBI_TLB_FLUSH_VMA_ASID)
 			sbi_tlb_fifo_sfence_vma_asid(&tinfo);
-		sbi_memset(&tinfo, 0, SBI_TLB_INFO_SIZE);
+		memset(&tinfo, 0, SBI_TLB_INFO_SIZE);
 	}
 }
 
