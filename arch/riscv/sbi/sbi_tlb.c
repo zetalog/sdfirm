@@ -10,8 +10,6 @@
 
 #include <target/sbi.h>
 #include <target/paging.h>
-#include <sbi/sbi_error.h>
-#include <sbi/sbi_string.h>
 
 static unsigned long ipi_tlb_fifo_off;
 static unsigned long ipi_tlb_fifo_mem_off;
@@ -35,7 +33,6 @@ static inline int __sbi_tlb_fifo_range_check(struct sbi_tlb_info *curr,
 	} else if (next->start >= curr->start && next_end <= curr_end) {
 		ret = SBI_FIFO_SKIP;
 	}
-
 	return ret;
 }
 
@@ -77,7 +74,6 @@ static int sbi_tlb_fifo_update_cb(void *in, void *data)
 		else
 			ret = __sbi_tlb_fifo_range_check(curr, next);
 	}
-
 	return ret;
 }
 
@@ -117,7 +113,6 @@ int sbi_tlb_fifo_update(struct sbi_scratch *scratch, u32 event, void *data)
 		__asm__ __volatile("nop");
 		__asm__ __volatile("nop");
 	}
-
 	return 0;
 }
 
@@ -198,18 +193,18 @@ int sbi_tlb_fifo_init(struct sbi_scratch *scratch, bool cold_boot)
 		ipi_tlb_fifo_off = sbi_scratch_alloc_offset(sizeof(*ipi_tlb_q),
 							    "IPI_TLB_FIFO");
 		if (!ipi_tlb_fifo_off)
-			return SBI_ENOMEM;
+			return -ENOMEM;
 		ipi_tlb_fifo_mem_off = sbi_scratch_alloc_offset(
 				SBI_TLB_FIFO_NUM_ENTRIES * SBI_TLB_INFO_SIZE,
 				"IPI_TLB_FIFO_MEM");
 		if (!ipi_tlb_fifo_mem_off) {
 			sbi_scratch_free_offset(ipi_tlb_fifo_off);
-			return SBI_ENOMEM;
+			return -ENOMEM;
 		}
 	} else {
 		if (!ipi_tlb_fifo_off ||
 		    !ipi_tlb_fifo_mem_off)
-			return SBI_ENOMEM;
+			return -ENOMEM;
 	}
 
 	ipi_tlb_q = sbi_scratch_offset_ptr(scratch, ipi_tlb_fifo_off);
@@ -217,6 +212,5 @@ int sbi_tlb_fifo_init(struct sbi_scratch *scratch, bool cold_boot)
 
 	sbi_fifo_init(ipi_tlb_q, ipi_tlb_mem,
 		      SBI_TLB_FIFO_NUM_ENTRIES, SBI_TLB_INFO_SIZE);
-
 	return 0;
 }

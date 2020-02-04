@@ -8,7 +8,6 @@
  */
 
 #include <target/sbi.h>
-#include <sbi/sbi_error.h>
 
 static void __noreturn sbi_trap_error(const char *msg, int rc, u32 hartid,
 				      ulong mcause, ulong mtval,
@@ -74,7 +73,7 @@ int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
 	/* Sanity check on previous mode */
 	prev_mode = (regs->status & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
 	if (prev_mode != PRV_S && prev_mode != PRV_U)
-		return SBI_ENOTSUPP;
+		return -ENOTSUP;
 
 	/* Update S-mode exception info */
 	csr_write(CSR_STVAL, tval);
@@ -104,7 +103,6 @@ int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
 
 	/* Set new value in MSTATUS */
 	regs->status = new_mstatus;
-
 	return 0;
 }
 
@@ -125,7 +123,7 @@ int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
  */
 void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch)
 {
-	int rc = SBI_ENOTSUPP;
+	int rc = -ENOTSUP;
 	const char *msg = "trap handler failed";
 	u32 hartid = sbi_current_hartid();
 	ulong mcause = csr_read(CSR_MCAUSE);

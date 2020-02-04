@@ -8,8 +8,6 @@
  */
 
 #include <target/sbi.h>
-#include <sbi/riscv_fp.h>
-#include <sbi/sbi_error.h>
 
 union reg_data {
 	u8 data_bytes[8];
@@ -85,7 +83,7 @@ int sbi_misaligned_load_handler(u32 hartid, ulong mcause,
 #endif
 #endif
 	} else
-		return SBI_EILL;
+		return -ENOSYS;
 
 	val.data_u64 = 0;
 	for (i = 0; i < len; i++) {
@@ -169,7 +167,7 @@ int sbi_misaligned_store_handler(u32 hartid, ulong mcause,
 #endif
 #endif
 	} else
-		return SBI_EILL;
+		return -ENOSYS;
 
 	for (i = 0; i < len; i++) {
 		store_u8((void *)(addr + i), val.data_bytes[i],

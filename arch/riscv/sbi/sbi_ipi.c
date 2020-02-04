@@ -9,7 +9,6 @@
  */
 
 #include <target/sbi.h>
-#include <sbi/sbi_error.h>
 
 static unsigned long ipi_data_off;
 
@@ -58,7 +57,7 @@ int sbi_ipi_send_many(struct sbi_scratch *scratch, struct unpriv_trap *uptrap,
 	if (pmask) {
 		mask &= load_ulong(pmask, scratch, uptrap);
 		if (uptrap->cause)
-			return SBI_ETRAP;
+			return ETRAP;
 	}
 
 	/* send IPIs to every other hart on the set */
@@ -71,7 +70,6 @@ int sbi_ipi_send_many(struct sbi_scratch *scratch, struct unpriv_trap *uptrap,
 	 */
 	if (mask & (1UL << hartid))
 		sbi_ipi_send(scratch, hartid, event, data);
-
 	return 0;
 }
 
@@ -124,10 +122,10 @@ int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
 		ipi_data_off = sbi_scratch_alloc_offset(sizeof(*ipi_data),
 							"IPI_DATA");
 		if (!ipi_data_off)
-			return SBI_ENOMEM;
+			return -ENOMEM;
 	} else {
 		if (!ipi_data_off)
-			return SBI_ENOMEM;
+			return -ENOMEM;
 	}
 
 	ipi_data = sbi_scratch_offset_ptr(scratch, ipi_data_off);
@@ -139,6 +137,5 @@ int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
 
 	/* Enable software interrupts */
 	csr_set(CSR_MIE, MIP_MSIP);
-
 	return sbi_platform_ipi_init(sbi_platform_ptr(scratch), cold_boot);
 }

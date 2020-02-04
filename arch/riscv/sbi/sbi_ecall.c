@@ -8,7 +8,6 @@
  */
 
 #include <target/sbi.h>
-#include <sbi/sbi_error.h>
 
 #define SBI_ECALL_VERSION_MAJOR 0
 #define SBI_ECALL_VERSION_MINOR 1
@@ -26,7 +25,7 @@ u16 sbi_ecall_version_minor(void)
 int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 		      struct sbi_scratch *scratch)
 {
-	int ret = SBI_ENOTSUPP;
+	int ret = -ENOTSUP;
 	struct unpriv_trap uptrap;
 	struct sbi_tlb_info tlb_info;
 
@@ -83,14 +82,14 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 		ret = 0;
 		break;
 	default:
-		regs->a0 = SBI_ENOTSUPP;
+		regs->a0 = -ENOTSUP;
 		ret	 = 0;
 		break;
 	};
 
 	if (!ret) {
 		regs->epc += 4;
-	} else if (ret == SBI_ETRAP) {
+	} else if (ret == ETRAP) {
 		ret = 0;
 		sbi_trap_redirect(regs, scratch, regs->epc,
 				  uptrap.cause, uptrap.tval);

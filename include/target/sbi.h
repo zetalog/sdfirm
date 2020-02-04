@@ -15,6 +15,8 @@
 #define OPENSBI_VERSION ((OPENSBI_VERSION_MAJOR << 16) | \
 			 (OPENSBI_VERSION_MINOR))
 
+#define ETRAP		-256
+
 /* Maximum size of sbi_scratch and sbi_ipi_data */
 #define SBI_SCRATCH_SIZE			(64 * __SIZEOF_POINTER__)
 
@@ -40,10 +42,13 @@
 #define SBI_TLB_FIFO_NUM_ENTRIES		4
 
 #ifndef __ASSEMBLY__
-#include <sbi/sbi_types.h>
-#include <sbi/riscv_unpriv.h>
 #include <target/atomic.h>
 #include <target/spinlock.h>
+#include <sbi/sbi_types.h>
+#include <sbi/sbi_bits.h>
+#include <sbi/sbi_string.h>
+#include <sbi/riscv_unpriv.h>
+#include <sbi/riscv_fp.h>
 
 #define SBI_ECALL(__num, __a0, __a1, __a2)                                    \
 	({                                                                    \

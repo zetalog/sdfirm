@@ -12,7 +12,7 @@
  * bugs as well. Use any optimized routines from newlib or glibc if required.
  */
 
-#include <sbi/sbi_string.h>
+#include <target/sbi.h>
 
 int sbi_strcmp(const char *a, const char *b)
 {

@@ -8,9 +8,6 @@
  */
 
 #include <target/sbi.h>
-#include <sbi/riscv_fp.h>
-#include <sbi/sbi_bits.h>
-#include <sbi/sbi_error.h>
 
 /**
  * Return HART ID of the caller.
@@ -54,7 +51,7 @@ static int fp_init(u32 hartid)
 		return 0;
 
 	if (!(csr_read(CSR_MSTATUS) & MSTATUS_FS))
-		return SBI_EINVAL;
+		return -EINVAL;
 
 #ifdef __riscv_flen
 	for (i = 0; i < 32; i++)
@@ -64,9 +61,8 @@ static int fp_init(u32 hartid)
 	fd_mask = (1 << ('F' - 'A')) | (1 << ('D' - 'A'));
 	csr_clear(CSR_MISA, fd_mask);
 	if (csr_read(CSR_MISA) & fd_mask)
-		return SBI_ENOTSUPP;
+		return -ENOTSUP;
 #endif
-
 	return 0;
 }
 
@@ -92,10 +88,9 @@ static int delegate_traps(struct sbi_scratch *scratch, u32 hartid)
 	csr_write(CSR_MEDELEG, exceptions);
 
 	if (csr_read(CSR_MIDELEG) != interrupts)
-		return SBI_EFAIL;
+		return -ENODEV;
 	if (csr_read(CSR_MEDELEG) != exceptions)
-		return SBI_EFAIL;
-
+		return -ENODEV;
 	return 0;
 }
 
@@ -128,7 +123,6 @@ static int pmp_init(struct sbi_scratch *scratch, u32 hartid)
 			continue;
 		pmp_set(i + 1, prot, addr, log2size);
 	}
-
 	return 0;
 }
 
@@ -142,7 +136,7 @@ int sbi_hart_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
 		trap_info_offset = sbi_scratch_alloc_offset(__SIZEOF_POINTER__,
 							    "HART_TRAP_INFO");
 		if (!trap_info_offset)
-			return SBI_ENOMEM;
+			return -ENOMEM;
 	}
 
 	mstatus_init(scratch, hartid);

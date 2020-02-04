@@ -7,10 +7,7 @@
  *   Anup Patel <anup.patel@wdc.com>
  */
 
-#include <target/arch.h>
 #include <target/sbi.h>
-#include <sbi/sbi_bits.h>
-#include <sbi/sbi_error.h>
 
 typedef int (*illegal_insn_func)(ulong insn, u32 hartid, ulong mcause,
 				 struct pt_regs *regs,
@@ -69,7 +66,6 @@ static int system_opcode_insn(ulong insn, u32 hartid, ulong mcause,
 	SET_RD(insn, regs, csr_val);
 
 	regs->epc += 4;
-
 	return 0;
 }
 
@@ -121,7 +117,6 @@ int sbi_illegal_insn_handler(u32 hartid, ulong mcause,
 			return truly_illegal_insn(insn, hartid, mcause, regs,
 						  scratch);
 	}
-
 	return illegal_insn_table[(insn & 0x7c) >> 2](insn, hartid, mcause,
 						      regs, scratch);
 }

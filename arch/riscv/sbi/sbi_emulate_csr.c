@@ -8,8 +8,6 @@
  */
 
 #include <target/sbi.h>
-#include <sbi/sbi_bits.h>
-#include <sbi/sbi_error.h>
 
 int sbi_emulate_csr_read(int csr_num, u32 hartid, ulong mstatus,
 			 struct sbi_scratch *scratch, ulong *csr_val)
@@ -84,9 +82,8 @@ int sbi_emulate_csr_read(int csr_num, u32 hartid, ulong mstatus,
 	default:
 		printf("%s: hartid%d: invalid csr_num=0x%x\n", __func__,
 		       hartid, csr_num);
-		return SBI_ENOTSUPP;
+		return -ENOTSUP;
 	};
-
 	return 0;
 }
 
@@ -129,8 +126,7 @@ int sbi_emulate_csr_write(int csr_num, u32 hartid, ulong mstatus,
 	default:
 		printf("%s: hartid%d: invalid csr_num=0x%x\n", __func__,
 		       hartid, csr_num);
-		return SBI_ENOTSUPP;
+		return -ENOTSUP;
 	};
-
 	return 0;
 }

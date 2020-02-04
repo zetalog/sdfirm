@@ -14,6 +14,7 @@
 #define EEXIST          17
 #define ENODEV          19
 #define EINVAL          22
+#define	ENOSPC		28
 #define EPIPE           32
 #define ERANGE          34
 #define EDEADLK         35

@@ -8,8 +8,6 @@
  *
  */
 #include <target/sbi.h>
-#include <sbi/sbi_error.h>
-#include <sbi/sbi_string.h>
 
 void sbi_fifo_init(struct sbi_fifo *fifo, void *queue_mem, u16 entries,
 		   u16 entry_size)
@@ -38,7 +36,6 @@ u16 sbi_fifo_avail(struct sbi_fifo *fifo)
 	spin_lock(&fifo->qlock);
 	ret = fifo->avail;
 	spin_unlock(&fifo->qlock);
-
 	return ret;
 }
 
@@ -49,7 +46,6 @@ bool sbi_fifo_is_full(struct sbi_fifo *fifo)
 	spin_lock(&fifo->qlock);
 	ret = __sbi_fifo_is_full(fifo);
 	spin_unlock(&fifo->qlock);
-
 	return ret;
 }
 
@@ -66,7 +62,6 @@ bool sbi_fifo_is_empty(struct sbi_fifo *fifo)
 	spin_lock(&fifo->qlock);
 	ret = __sbi_fifo_is_empty(fifo);
 	spin_unlock(&fifo->qlock);
-
 	return ret;
 }
 
@@ -86,7 +81,6 @@ bool sbi_fifo_reset(struct sbi_fifo *fifo)
 	spin_lock(&fifo->qlock);
 	__sbi_fifo_reset(fifo);
 	spin_unlock(&fifo->qlock);
-
 	return true;
 }
 
@@ -126,7 +120,6 @@ int sbi_fifo_inplace_update(struct sbi_fifo *fifo, void *in,
 		}
 	}
 	spin_unlock(&fifo->qlock);
-
 	return ret;
 }
 
@@ -135,13 +128,13 @@ int sbi_fifo_enqueue(struct sbi_fifo *fifo, void *data)
 	u32 head;
 
 	if (!fifo || !data)
-		return SBI_EINVAL;
+		return -EINVAL;
 
 	spin_lock(&fifo->qlock);
 
 	if (__sbi_fifo_is_full(fifo)) {
 		spin_unlock(&fifo->qlock);
-		return SBI_ENOSPC;
+		return -ENOSPC;
 	}
 
 	head = (u32)fifo->tail + fifo->avail;
@@ -153,20 +146,19 @@ int sbi_fifo_enqueue(struct sbi_fifo *fifo, void *data)
 	fifo->avail++;
 
 	spin_unlock(&fifo->qlock);
-
 	return 0;
 }
 
 int sbi_fifo_dequeue(struct sbi_fifo *fifo, void *data)
 {
 	if (!fifo || !data)
-		return SBI_EINVAL;
+		return -EINVAL;
 
 	spin_lock(&fifo->qlock);
 
 	if (__sbi_fifo_is_empty(fifo)) {
 		spin_unlock(&fifo->qlock);
-		return SBI_ENOENT;
+		return -ENOENT;
 	}
 
 	sbi_memcpy(data, fifo->queue + (u32)fifo->tail * fifo->entry_size,
@@ -178,6 +170,5 @@ int sbi_fifo_dequeue(struct sbi_fifo *fifo, void *data)
 		fifo->tail = 0;
 
 	spin_unlock(&fifo->qlock);
-
 	return 0;
 }

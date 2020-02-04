@@ -8,7 +8,6 @@
  */
 
 #include <target/sbi.h>
-#include <sbi/sbi_bits.h>
 
 #define DEFINE_UNPRIVILEGED_LOAD_FUNCTION(type, insn, insnlen)                \
 	type load_##type(const type *addr,                                    \
