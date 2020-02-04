@@ -164,6 +164,7 @@
 #define ROM_BASE		IMC_ROM_BASE
 #define ROMEND			(IMC_ROM_BASE + IMC_ROM_SIZE)
 #endif /* CONFIG_DUOWEN_BOOT_APC */
+
 /* LOVEC */
 #ifdef CONFIG_ARCH_HAS_LOVEC
 #define VEC_BASE		ROM_BASE
@@ -174,8 +175,13 @@
 #define RAM_BASE		APC_RAM_BASE
 #define RAMEND			(APC_RAM_BASE + APC_RAM_SIZE)
 #else /* CONFIG_DUOWEN_BOOT_APC */
+#ifdef CONFIG_DUOWEN_APC
+#define RAM_BASE		0
+#define RAMEND			0x80000000
+#else
 #define RAM_BASE		IMC_RAM_BASE
 #define RAMEND			(IMC_RAM_BASE + IMC_RAM_SIZE)
+#endif
 #endif /* CONFIG_DUOWEN_BOOT_APC */
 
 #endif /* __REG_DUOWEN_H_INCLUDE__ */

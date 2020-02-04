@@ -79,6 +79,7 @@ endchoice
 
 menuconfig DUOWEN_TMR
 	bool "Enable global timer controller (TMR) support"
+	depends DUOWEN_IMC
 	help
 	  TMR hardware is in the AO clock/power domain, it should be used
 	  as boot TSC.

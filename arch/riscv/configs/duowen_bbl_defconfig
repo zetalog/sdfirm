@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Sep 17 01:02:32 2019
+# Tue Feb  4 17:34:06 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -23,13 +23,32 @@ CONFIG_FIRMWARE=y
 #
 # CONFIG_GEM5 is not set
 # CONFIG_RIS is not set
+CONFIG_CONSOLE=y
+CONFIG_CONSOLE_COMMAND=y
+CONFIG_CONSOLE_OUTPUT=y
+# CONFIG_CONSOLE_OUTPUT_CR is not set
+CONFIG_CONSOLE_PRINT_BUFFER_SIZE=64
+CONFIG_CONSOLE_INPUT=y
+# CONFIG_CONSOLE_230400 is not set
+CONFIG_CONSOLE_115200=y
+# CONFIG_CONSOLE_57600 is not set
+# CONFIG_CONSOLE_38400 is not set
+# CONFIG_CONSOLE_19200 is not set
+# CONFIG_CONSOLE_9600 is not set
+# CONFIG_CONSOLE_4800 is not set
+# CONFIG_CONSOLE_2400 is not set
+# CONFIG_CONSOLE_DEBUG is not set
 
 #
 # RISCV system options
 #
-# CONFIG_ARCH_VEGA is not set
 CONFIG_ARCH_DUOWEN=y
+# CONFIG_ARCH_UNLEASHED is not set
+# CONFIG_ARCH_K210 is not set
+# CONFIG_ARCH_VEGA is not set
 # CONFIG_ARCH_SPIKE is not set
+# CONFIG_ARCH_VIRT is not set
+CONFIG_CPU_C910=y
 CONFIG_CPU_64G=y
 CONFIG_CPU_64I=y
 # CONFIG_RISCV_WMO is not set
@@ -47,23 +66,62 @@ CONFIG_CPU_M=y
 CONFIG_CPU_A=y
 CONFIG_CPU_F=y
 CONFIG_CPU_D=y
+CONFIG_CPU_C=y
+CONFIG_CPU_V=y
+CONFIG_CPU_PMP=y
+CONFIG_CPU_SV39=y
 # CONFIG_RISCV_M is not set
 CONFIG_RISCV_A=y
-# CONFIG_RISCV_F is not set
-# CONFIG_RISCV_D is not set
+CONFIG_RISCV_F=y
+CONFIG_RISCV_D=y
+CONFIG_RISCV_C=y
+# CONFIG_RISCV_V is not set
+CONFIG_RISCV_PMP=y
+# CONFIG_RISCV_SV is not set
+
+#
+# CPU architecture options
+#
+CONFIG_RISCV_ATOMIC_COUNT_32=y
+# CONFIG_RISCV_ATOMIC_COUNT_64 is not set
 # CONFIG_CMODEL_MEDLOW is not set
 CONFIG_CMODEL_MEDANY=y
 CONFIG_TUNE_GENERIC=y
-CONFIG_MAXPHYSMEM_2GB=y
-# CONFIG_MAXPHYSMEM_128GB is not set
+# CONFIG_MAXPHYSMEM_2GB is not set
+CONFIG_MAXPHYSMEM_128GB=y
+CONFIG_SYS_ENTR_M=y
+CONFIG_SYS_EXIT_M=y
+CONFIG_SYS_EXIT_S=y
+CONFIG_RISCV_AEE=y
+# CONFIG_RISCV_SEE is not set
+# CONFIG_RISCV_HEE is not set
+# CONFIG_RISCV_ENTR_S is not set
+CONFIG_RISCV_ENTR_M=y
+# CONFIG_RISCV_EXIT_U is not set
+CONFIG_RISCV_EXIT_S=y
+# CONFIG_RISCV_EXIT_M is not set
+CONFIG_SBI=y
+
+#
+# System peripherals
+#
+CONFIG_CLINT=y
+CONFIG_ARCH_HAS_PLIC=y
+CONFIG_PLIC=y
 
 #
 # Emulated RISCV (Duowen) board options
 #
+# CONFIG_DUOWEN_BOOT_APC is not set
 # CONFIG_DUOWEN_IMC is not set
 CONFIG_DUOWEN_APC=y
-CONFIG_DUOWEN_APC_RAM_SIZE=0x40000
-# CONFIG_DUOWEN_APC_RAM_BOOT is not set
+CONFIG_DUOWEN_APC_C910=y
+# CONFIG_DUOWEN_APC_VAISRA is not set
+# CONFIG_DUOWEN_ZSBL is not set
+# CONFIG_DUOWEN_FSBL is not set
+CONFIG_DUOWEN_SBI=y
+CONFIG_CRCNTL=y
+# CONFIG_DUOWEN_SD is not set
 
 #
 # Feature setup
@@ -77,10 +135,11 @@ CONFIG_SYS_NOIRQ=y
 # CONFIG_SYS_RT is not set
 # CONFIG_SYS_TASK is not set
 CONFIG_ARCH_HAS_NOVEC=y
-CONFIG_ARCH_HAS_GPT=y
+CONFIG_ARCH_HAS_IRQC=y
 CONFIG_ARCH_HAS_TSC=y
 CONFIG_ARCH_HAS_TSC_CONST=y
 CONFIG_ARCH_IS_TICKLESS=y
+CONFIG_ARCH_HAS_BOOT_LOAD=y
 
 #
 # Scheduling facility (bh) support
@@ -91,6 +150,7 @@ CONFIG_MAX_BHS=4
 #
 # Timing facility (jiffy) support
 #
+CONFIG_TICKLESS=y
 
 #
 # Timing facility (delay) support
@@ -101,21 +161,24 @@ CONFIG_LPS_NO_LPS=y
 #
 # Address space layout (xip) support
 #
-CONFIG_ARCH_HAS_BOOT_LOAD=y
+# CONFIG_BFM is not set
 CONFIG_XIP=y
 CONFIG_BOOT_BASE=0x0
 CONFIG_LOAD_BASE=0x0
-# CONFIG_LOAD_TEXT is not set
-# CONFIG_LOAD_DATA is not set
 # CONFIG_HEAP is not set
 CONFIG_MEM=y
-# CONFIG_MMU_MAP_MEM is not set
 CONFIG_MEM_MAX_REGIONS=4
 CONFIG_MEM_RESIZE=y
 # CONFIG_PAGE is not set
+CONFIG_ARCH_HAS_MMU=y
+CONFIG_ARCH_HAS_MMU_HUGE=y
+# CONFIG_MMU is not set
 # CONFIG_BULK is not set
 # CONFIG_TERM is not set
-# CONFIG_CLK is not set
+# CONFIG_GPIO is not set
+CONFIG_ARCH_HAS_CLK=y
+CONFIG_CLK=y
+CONFIG_CLK_MAX_DRIVERS=1
 
 #
 # Human Interface Devices (HID) support
@@ -123,6 +186,7 @@ CONFIG_MEM_RESIZE=y
 # CONFIG_LCD is not set
 # CONFIG_KBD is not set
 # CONFIG_LED is not set
+CONFIG_ARCH_HAS_UART=y
 
 #
 # Universal asynchronous RX/TX (UART) support
@@ -138,12 +202,16 @@ CONFIG_UART_115200=y
 # CONFIG_UART is not set
 # CONFIG_SPI is not set
 # CONFIG_I2C is not set
+CONFIG_ARCH_HAS_I2C=y
 # CONFIG_USB is not set
 # CONFIG_SCS is not set
 # CONFIG_MTD is not set
 # CONFIG_SCSI is not set
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
+CONFIG_ARCH_HAS_SD=y
+# CONFIG_MMCSD is not set
+# CONFIG_DDR is not set
 # CONFIG_RAS is not set
 
 #
@@ -151,9 +219,32 @@ CONFIG_UART_115200=y
 #
 
 #
+# Timer drivers
+#
+# CONFIG_DW_TIMERS is not set
+
+#
 # Debugging console drivers
 #
-# CONFIG_DBG_SEGGER_RTT is not set
+CONFIG_CON_DW_UART=y
+CONFIG_DW_UART=y
+# CONFIG_DW_UART_FIFO_NONE is not set
+CONFIG_DW_UART_FIFO_16=y
+# CONFIG_DW_UART_FIFO_32 is not set
+# CONFIG_DW_UART_FIFO_64 is not set
+# CONFIG_DW_UART_FIFO_128 is not set
+# CONFIG_DW_UART_FIFO_256 is not set
+# CONFIG_DW_UART_FIFO_512 is not set
+# CONFIG_DW_UART_FIFO_1024 is not set
+# CONFIG_DW_UART_FIFO_2048 is not set
+# CONFIG_DW_UART_FIFO_MEM_EXTERNAL is not set
+CONFIG_DW_UART_FIFO_MEM_INTERNAL=y
+# CONFIG_DW_UART_16550_COMPATIBLE is not set
+# CONFIG_DW_UART_AFCE_MODE is not set
+# CONFIG_DW_UART_SIR_MODE is not set
+# CONFIG_DW_UART_FIFO_ACCESS is not set
+# CONFIG_DW_UART_ADDITIONAL_FEATURES is not set
+# CONFIG_SEGGER_RTT is not set
 
 #
 # LCD drivers
@@ -170,21 +261,54 @@ CONFIG_UART_115200=y
 # CONFIG_ACR122 is not set
 
 #
+# MMC host drivers
+#
+# CONFIG_DW_MSHC is not set
+# CONFIG_SDHCI is not set
+
+#
+# DDR controller drivers
+#
+# CONFIG_DW_UMCTL2 is not set
+
+#
+# Clock drivers
+#
+CONFIG_DW_PLL5GHZ_TSMC12FFC=y
+# CONFIG_DW_PLL5GHZ_TSMC12FFC_RANGE2 is not set
+# CONFIG_DW_PLL5GHZ_TSMC12FFC_GEAR is not set
+# CONFIG_DW_PLL5GHZ_TSMC12FFC_PRSTDUR is not set
+# CONFIG_DW_PLL5GHZ_TSMC12FFC_ACCEL is not set
+
+#
+# I2C host drivers
+#
+# CONFIG_DW_I2C is not set
+
+#
+# I2C slave drivers
+#
+# CONFIG_DW_I2CS is not set
+
+#
 # Library setup
 #
 
 #
 # Bit-wise operations
 #
-# CONFIG_BIT_FLS8 is not set
+CONFIG_BIT_FLS8=y
 CONFIG_BIT_FLS16=y
 # CONFIG_BIT_FFS16 is not set
 # CONFIG_BIT_FLS32 is not set
-# CONFIG_BIT_FFS32 is not set
+CONFIG_BIT_FLS64=y
+CONFIG_BIT_FFS32=y
+# CONFIG_BIT_HWEIGHT64 is not set
 
 #
 # Bitmap operations
 #
+CONFIG_ARCH_HAS_BITS_PER_UNIT_32=y
 # CONFIG_BIT_FIND_CLEAR is not set
 
 #
@@ -197,12 +321,6 @@ CONFIG_MATH_MOD32=y
 CONFIG_MATH_DIV32=y
 CONFIG_MATH_DIV64=y
 CONFIG_MATH_MOD64=y
-
-#
-# Atomic operations
-#
-# CONFIG_ATOMIC_SUB_RETURN is not set
-# CONFIG_ATOMIC_ADD_RETURN is not set
 
 #
 # Checksum algorithms
@@ -223,7 +341,14 @@ CONFIG_PRINT_PRINTF=y
 #
 # String operations
 #
+# CONFIG_STRING_STRNCMP is not set
 CONFIG_STRING_STRTOUL=y
+# CONFIG_STRING_UUID is not set
+
+#
+# Cryptographic algorithms
+#
+# CONFIG_CRYPTO_RAND is not set
 # CONFIG_FONTS is not set
 
 #
@@ -235,4 +360,3 @@ CONFIG_DEBUG=y
 # CONFIG_CC_GEN_DEBUG is not set
 # CONFIG_DEBUG_PANIC is not set
 # CONFIG_PORTING is not set
-# CONFIG_DEBUG_PRINT is not set

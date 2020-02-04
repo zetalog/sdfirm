@@ -45,5 +45,8 @@
 #ifdef CONFIG_DUOWEN_IMC
 #define NR_IRQS		64
 #endif /* CONFIG_DUOWEN_IMC */
+#ifdef CONFIG_DUOWEN_APC
+#define NR_IRQS		64
+#endif /* CONFIG_DUOWEN_APC */
 
 #endif  /* __IRQ_DUOWEN_H_INCLUDE__ */

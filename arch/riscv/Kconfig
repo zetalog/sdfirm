@@ -41,7 +41,8 @@ config ARCH_DUOWEN
 	select DUOWEN_SD if MMCSD
 	select PLIC if !SYS_NOIRQ
 	select CRCNTL if CLK
-	select DUOWEN_TMR
+	select DUOWEN_TMR if DUOWEN_IMC
+	select CLINT if DUOWEN_APC
 	select DW_I2C if I2C_MASTER
 	select DW_UMCTL2 if DDR
 	help

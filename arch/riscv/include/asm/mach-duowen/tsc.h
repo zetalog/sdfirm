@@ -44,6 +44,8 @@
 
 #include <target/arch.h>
 #include <target/clk.h>
+#include <asm/mach/tmr.h>
+#include <asm/clint.h>
 
 #define DW_TIMERS_BASE		IMC_TIMER_BASE
 #define DW_TIMERS_SIZE		0x14
@@ -55,14 +57,20 @@
 #define TSC_MAX			((ULL(1) << DW_TIMERS_WIDTH) - 1)
 
 #ifndef __ASSEMBLY__
-#include <asm/mach/tmr.h>
-
+#ifdef CONFIG_DUOWEN_IMC
 #define tsc_hw_ctrl_init()	board_init_timestamp()
 #ifdef CONFIG_DUOWEN_TMR_MTIME
 #define tsc_hw_read_counter()	csr_read(CSR_TIME)
 #else /* CONFIG_DUOWEN_TMR_MTIME */
 #define tsc_hw_read_counter()	tmr_read_counter()
 #endif /* CONFIG_DUOWEN_TMR_MTIME */
+#endif
+
+#ifdef CONFIG_DUOWEN_APC
+#define CLINT_BASE		0x20000000
+#define tsc_hw_read_counter()	clint_read_mtime()
+#define tsc_hw_ctrl_init()
+#endif /* CONFIG_DUOWEN_APC */
 #endif /* __ASSEMBLY__ */
 
 #endif /* __TSC_DUOWEN_H_INCLUDE__ */

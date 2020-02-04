@@ -55,7 +55,7 @@ CFLAGS += $(call cc-option,-mstrict-align)
 
 # Default target when executing plain make
 boot		:= arch/riscv/boot
-KBUILD_IMAGE	:= sdfirm.bin sdfirm.srec sdfirm.rom sdfirm.ram
+KBUILD_IMAGE	:= sdfirm.bin sdfirm.srec sdfirm.ram sdfirm.rom
 
 # arch specific predefines for sparse
 CHECKFLAGS += -D__riscv -D__riscv_xlen=$(BITS)

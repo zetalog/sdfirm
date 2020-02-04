@@ -11,7 +11,7 @@
 # Copyright (C) 2009 Lv Zheng
 #
 
-sdfirm := sdfirm.bin sdfirm.srec sdfirm.rom sdfirm.ram
+sdfirm := sdfirm.bin sdfirm.srec sdfirm.ram sdfirm.rom
 
 $(obj)/sdfirm.bin: sdfirm.strip FORCE
 	$(call if_changed,objcopy)

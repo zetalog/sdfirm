@@ -11,7 +11,8 @@ build_sdfirm()
 	fi
 	if [ "x${arch}" = "xriscv64" ]; then
 		export SUBARCH=riscv
-		export RISCV64=1
+		export RISCV64=
+		#export RISCV64=1
 	fi
 	if [ "x${arch}" = "xarm64" ]; then
 		export SUBARCH=arm64
@@ -39,10 +40,11 @@ build_sdfirm arm64 ddr_umctl2_tb
 build_sdfirm riscv32 spike_rv32
 build_sdfirm riscv32 duowen_zsbl
 build_sdfirm riscv32 duowen_fsbl
+build_sdfirm riscv64 duowen_bbl
+# disabled due to bin2vhx.pl bug
 #build_sdfirm riscv32 vega_ri5cy
 
 build_sdfirm riscv64 spike_rv64
-#build_sdfirm riscv64 duowen_bbl
 build_sdfirm riscv64 unleashed_fsbl
 build_sdfirm riscv64 unleashed_bbl
 build_sdfirm riscv64 k210_bbl
