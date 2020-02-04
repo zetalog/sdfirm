@@ -146,6 +146,10 @@ struct pt_regs {
 #define IPI_SFENCE_VMA	0x4
 #define IPI_HALT	0x8
 
+#ifndef __ASSEMBLY__
 #include <asm/mach/irq.h>
+
+__noreturn void hart_hang(void);
+#endif
 
 #endif /* __IRQ_RISCV_H_INCLUDE__ */

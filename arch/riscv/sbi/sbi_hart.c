@@ -176,13 +176,6 @@ void sbi_hart_set_trap_info(struct sbi_scratch *scratch, void *data)
 	*trap_info = (unsigned long)data;
 }
 
-void __attribute__((noreturn)) sbi_hart_hang(void)
-{
-	while (1)
-		wfi();
-	__builtin_unreachable();
-}
-
 #ifndef CONFIG_ARCH_HAS_NOSEE
 static void sbi_switch_s_mode(unsigned long next_addr)
 {
@@ -217,14 +210,14 @@ sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
 		break;
 	case PRV_S:
 		if (!misa_extension('S'))
-			sbi_hart_hang();
+			hart_hang();
 		break;
 	case PRV_U:
 		if (!misa_extension('U'))
-			sbi_hart_hang();
+			hart_hang();
 		break;
 	default:
-		sbi_hart_hang();
+		hart_hang();
 	}
 
 	val = csr_read(CSR_MSTATUS);
@@ -292,7 +285,7 @@ void sbi_hart_wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
 
 	if ((sbi_platform_hart_count(plat) <= hartid) ||
 	    (COLDBOOT_WAIT_BITMAP_SIZE <= hartid))
-		sbi_hart_hang();
+		hart_hang();
 
 	/* Set MSIE bit to receive IPI */
 	csr_set(CSR_MIE, MIP_MSIP);

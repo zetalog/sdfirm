@@ -25,7 +25,7 @@ sbi_system_reboot(struct sbi_scratch *scratch, u32 type)
 
 {
 	sbi_platform_system_reboot(sbi_platform_ptr(scratch), type);
-	sbi_hart_hang();
+	hart_hang();
 }
 
 void __attribute__((noreturn))
@@ -37,6 +37,5 @@ sbi_system_shutdown(struct sbi_scratch *scratch, u32 type)
 	/* If that fails (or is not implemented) send an IPI on every
 	 * hart to hang and then hang the current hart */
 	sbi_ipi_send_many(scratch, NULL, NULL, SBI_IPI_EVENT_HALT, NULL);
-
-	sbi_hart_hang();
+	hart_hang();
 }

@@ -71,29 +71,29 @@ static void __noreturn init_coldboot(void)
 
 	rc = sbi_system_early_init(scratch, true);
 	if (rc)
-		sbi_hart_hang();
+		hart_hang();
 
 	rc = sbi_hart_init(scratch, hartid, true);
 	if (rc)
-		sbi_hart_hang();
+		hart_hang();
 
 	console_init();
 
 	rc = sbi_platform_irqchip_init(plat, true);
 	if (rc)
-		sbi_hart_hang();
+		hart_hang();
 
 	rc = sbi_ipi_init(scratch, true);
 	if (rc)
-		sbi_hart_hang();
+		hart_hang();
 
 	rc = sbi_timer_init(scratch, true);
 	if (rc)
-		sbi_hart_hang();
+		hart_hang();
 
 	rc = sbi_system_final_init(scratch, true);
 	if (rc)
-		sbi_hart_hang();
+		hart_hang();
 
 	if (!sbi_platform_has_hart_hotplug(plat))
 		sbi_hart_wake_coldboot_harts(scratch, hartid);
@@ -114,37 +114,37 @@ static void __noreturn init_warmboot(void)
 		sbi_hart_wait_for_coldboot(scratch, hartid);
 
 	if (sbi_platform_hart_disabled(plat, hartid))
-		sbi_hart_hang();
+		hart_hang();
 
 	rc = sbi_system_early_init(scratch, false);
 	if (rc)
-		sbi_hart_hang();
+		hart_hang();
 
 	rc = sbi_hart_init(scratch, hartid, false);
 	if (rc)
-		sbi_hart_hang();
+		hart_hang();
 
 	rc = sbi_platform_irqchip_init(plat, false);
 	if (rc)
-		sbi_hart_hang();
+		hart_hang();
 
 	rc = sbi_ipi_init(scratch, false);
 	if (rc)
-		sbi_hart_hang();
+		hart_hang();
 
 	rc = sbi_timer_init(scratch, false);
 	if (rc)
-		sbi_hart_hang();
+		hart_hang();
 
 	rc = sbi_system_final_init(scratch, false);
 	if (rc)
-		sbi_hart_hang();
+		hart_hang();
 
 	sbi_hart_mark_available(hartid);
 
 	if (sbi_platform_has_hart_hotplug(plat))
 		/* TODO: To be implemented in-future. */
-		sbi_hart_hang();
+		hart_hang();
 	else
 		sbi_hart_switch_mode(hartid, scratch->next_arg1,
 				     scratch->next_addr, scratch->next_mode);
@@ -173,7 +173,7 @@ void __noreturn sbi_init(void)
 	bool coldboot = false;
 
 	if (sbi_platform_hart_disabled(plat, hartid))
-		sbi_hart_hang();
+		hart_hang();
 
 	sbi_scratches[hartid] = scratch;
 

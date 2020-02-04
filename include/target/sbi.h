@@ -245,7 +245,6 @@ int sbi_hart_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot);
 void *sbi_hart_get_trap_info(struct sbi_scratch *scratch);
 void sbi_hart_set_trap_info(struct sbi_scratch *scratch, void *data);
 void sbi_hart_pmp_dump(struct sbi_scratch *scratch);
-__noreturn void sbi_hart_hang(void);
 __noreturn void sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
 				     unsigned long next_addr,
 				     unsigned long next_mode);

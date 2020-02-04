@@ -5,6 +5,12 @@ uint32_t irq_nesting;
 
 irq_handler riscv_irqs[NR_INT_IRQS];
 
+__noreturn void hart_hang(void)
+{
+	while (1) wait_irq();
+	__builtin_unreachable();
+}
+
 void __bad_interrupt(void)
 {
 	asm volatile ("j ." : : : "memory");

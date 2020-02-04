@@ -51,7 +51,7 @@ static void __noreturn sbi_trap_error(const char *msg, int rc, u32 hartid,
 	printf("%s: hart%d: %s=0x%" PRILX "\n", __func__, hartid, "t6",
 	       regs->t6);
 
-	sbi_hart_hang();
+	hart_hang();
 }
 
 /**

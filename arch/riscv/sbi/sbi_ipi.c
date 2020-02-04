@@ -105,7 +105,7 @@ void sbi_ipi_process(struct sbi_scratch *scratch)
 			sbi_tlb_fifo_process(scratch, ipi_event);
 			break;
 		case SBI_IPI_EVENT_HALT:
-			sbi_hart_hang();
+			hart_hang();
 			break;
 		};
 		ipi_type = atomic_fetch_and(~_BV(ipi_event),
