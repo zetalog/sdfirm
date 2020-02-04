@@ -1,12 +1,19 @@
-#include <target/init.h>
 #include <target/irq.h>
 #include <target/arch.h>
 
 uint32_t irq_nesting;
 
+irq_handler riscv_irqs[NR_INT_IRQS];
+
 void __bad_interrupt(void)
 {
 	asm volatile ("j ." : : : "memory");
+}
+
+void riscv_register_irq(irq_t irq, irq_handler h)
+{
+	BUG_ON(irq <= 0 || irq >= NR_INT_IRQS);
+	riscv_irqs[irq] = h;
 }
 
 void irq_hw_handle_irq(void)
@@ -23,11 +30,19 @@ void irq_hw_handle_irq(void)
 	}
 }
 
-asmlinkage void __vectors(void);
-
-__init void trap_init(void)
+void do_riscv_interrupt(struct pt_regs *regs)
 {
-	csr_write(CSR_SCRATCH, 0);
-	csr_write(CSR_TVEC, &__vectors);
-	csr_write(CSR_IE, -1);
+	irq_t irq = regs->cause & ~SCAUSE_IRQ_FLAG;
+
+	if (irq >= NR_INT_IRQS || irq == IRQ_EXT) {
+		irq_hw_handle_irq();
+		return;
+	}
+	if (riscv_irqs[irq] != NULL) {
+		riscv_irqs[irq]();
+		return;
+	}
+
+	printf("unexpected interrupt cause 0x%lx", regs->cause);
+	BUG();
 }

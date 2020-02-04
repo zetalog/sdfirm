@@ -107,4 +107,13 @@
 #error "Unexpected __SIZEOF_SHORT__"
 #endif
 
+#if defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
+	.macro	init_gp
+	.option push
+	.option norelax
+	la	gp, __global_pointer$
+	.option pop
+	.endm
+#endif /* __ASSEMBLY__ */
+
 #endif /* __ASSEMBLER_RISCV_H_INCLUDE__ */

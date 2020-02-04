@@ -1,167 +1,79 @@
+#include <target/init.h>
 #include <target/irq.h>
 #include <target/panic.h>
 #include <target/arch.h>
-#include <stdio.h>
 
-void __attribute__((noreturn))
-bad_trap(uintptr_t* regs, uintptr_t dummy, uintptr_t mepc)
-{
-	printf("machine: unhandlable trap %d @ %p\n",
-	       csr_read(CSR_MCAUSE), mepc);
-	BUG();
-	while (1) wait_irq();
-}
-
-#ifndef CONFIG_ARCH_HAS_NOSEE
-extern void __redirect_trap();
-void redirect_trap(uintptr_t epc, uintptr_t mstatus, uintptr_t badaddr)
-{
-	uintptr_t new_mstatus;
-	uintptr_t mpp_s;
-
-	csr_write(CSR_STVAL, badaddr);
-	csr_write(CSR_SEPC, epc);
-	csr_write(CSR_SCAUSE, csr_read(CSR_MCAUSE));
-	csr_write(CSR_MEPC, csr_read(CSR_STVEC));
-
-	new_mstatus = mstatus & ~(SR_SPP | SR_SPIE | SR_SIE);
-	mpp_s = SR_MPP & (SR_MPP >> 1);
-	new_mstatus |= (mstatus * (SR_SPIE / SR_SIE)) & SR_SPIE;
-	new_mstatus |= (mstatus / (mpp_s / SR_SPP)) & SR_SPP;
-	new_mstatus |= mpp_s;
-	csr_write(CSR_MSTATUS, new_mstatus);
-	return __redirect_trap();
-}
-#else
-void redirect_trap(uintptr_t epc, uintptr_t mstatus, uintptr_t badaddr)
-{
-}
-#endif
-
-void pmp_trap(uintptr_t *regs, uintptr_t mcause, uintptr_t mepc)
-{
-	redirect_trap(mepc, csr_read(CSR_MSTATUS), csr_read(CSR_MTVAL));
-}
-
-void illegal_insn_trap(uintptr_t epc, uintptr_t mstatus, uintptr_t badaddr)
-{
-	printf("machine: illegal instruction\n");
-	BUG();
-	while (1) wait_irq();
-}
-
-void mcall_trap(uintptr_t epc, uintptr_t mstatus, uintptr_t badaddr)
-{
-	printf("machine: mcall\n");
-}
-
-void trap_from_machine_mode(uintptr_t epc, uintptr_t mstatus, uintptr_t badaddr)
-{
-	printf("machine: trap from machine mode\n");
-	BUG();
-	while (1) wait_irq();
-}
-
-union byte_array {
-	uint8_t bytes[8];
-	uintptr_t intx;
-	uint64_t int64;
-};
-
-void misaligned_load_trap(uintptr_t *regs, uintptr_t mcause, uintptr_t mepc)
-{
-#if 0
-	union byte_array val;
-	uintptr_t mstatus;
-	insn_t insn = get_insn(mepc, &mstatus);
-	uintptr_t npc = mepc + insn_len(insn);
-	uintptr_t addr = read_csr(mbadaddr);
-	int shift = 0, fp = 0, len;
-
-	if ((insn & INSN_MASK_LW) == INSN_MATCH_LW)
-		len = 4, shift = 8*(sizeof(uintptr_t) - len);
 #if __riscv_xlen == 64
-	else if ((insn & INSN_MASK_LD) == INSN_MATCH_LD)
-		len = 8, shift = 8*(sizeof(uintptr_t) - len);
-	else if ((insn & INSN_MASK_LWU) == INSN_MATCH_LWU)
-		len = 4;
+#define REG_FMT		"%16lx"
 #endif
-	else if ((insn & INSN_MASK_LH) == INSN_MATCH_LH)
-		len = 2, shift = 8*(sizeof(uintptr_t) - len);
-	else if ((insn & INSN_MASK_LHU) == INSN_MATCH_LHU)
-		len = 2;
-#ifdef __riscv_compressed
-#if __riscv_xlen >= 64
-	else if ((insn & INSN_MASK_C_LD) == INSN_MATCH_C_LD)
-		len = 8, shift = 8*(sizeof(uintptr_t) - len), insn = RVC_RS2S(insn) << SH_RD;
-	else if ((insn & INSN_MASK_C_LDSP) == INSN_MATCH_C_LDSP && ((insn >> SH_RD) & 0x1f))
-		len = 8, shift = 8*(sizeof(uintptr_t) - len);
+#if __riscv_xlen == 32
+#define REG_FMT		"%8lx"
 #endif
-	else if ((insn & INSN_MASK_C_LW) == INSN_MATCH_C_LW)
-		len = 4, shift = 8*(sizeof(uintptr_t) - len), insn = RVC_RS2S(insn) << SH_RD;
-	else if ((insn & INSN_MASK_C_LWSP) == INSN_MATCH_C_LWSP && ((insn >> SH_RD) & 0x1f))
-		len = 4, shift = 8*(sizeof(uintptr_t) - len);
-#endif
-	else {
-		mcause = CAUSE_LOAD_ACCESS;
-		csr_write(CSR_MCAUSE, mcause);
-		return truly_illegal_insn(regs, mcause, mepc, mstatus, insn);
-	}
 
-	val.int64 = 0;
-	for (intptr_t i = 0; i < len; i++)
-		val.bytes[i] = load_uint8_t((void *)(addr + i), mepc);
+#define user_mode(regs)		(((regs)->status & SR_PP) == 0)
 
-	if (!fp)
-		SET_RD(insn, regs, (intptr_t)val.intx << shift >> shift);
-	else if (len == 8)
-		SET_F64_RD(insn, regs, val.int64);
+void show_regs(struct pt_regs *regs)
+{
+	printf(" epc: " REG_FMT " ra : " REG_FMT " sp : " REG_FMT "\n",
+	       regs->epc, regs->ra, regs->sp);
+	printf(" gp : " REG_FMT " tp : " REG_FMT " t0 : " REG_FMT "\n",
+	       regs->gp, regs->tp, regs->t0);
+	printf(" t1 : " REG_FMT " t2 : " REG_FMT " s0 : " REG_FMT "\n",
+	       regs->t1, regs->t2, regs->s0);
+	printf(" s1 : " REG_FMT " a0 : " REG_FMT " a1 : " REG_FMT "\n",
+	       regs->s1, regs->a0, regs->a1);
+	printf(" a2 : " REG_FMT " a3 : " REG_FMT " a4 : " REG_FMT "\n",
+	       regs->a2, regs->a3, regs->a4);
+	printf(" a5 : " REG_FMT " a6 : " REG_FMT " a7 : " REG_FMT "\n",
+	       regs->a5, regs->a6, regs->a7);
+	printf(" s2 : " REG_FMT " s3 : " REG_FMT " s4 : " REG_FMT "\n",
+	       regs->s2, regs->s3, regs->s4);
+	printf(" s5 : " REG_FMT " s6 : " REG_FMT " s7 : " REG_FMT "\n",
+	       regs->s5, regs->s6, regs->s7);
+	printf(" s8 : " REG_FMT " s9 : " REG_FMT " s10: " REG_FMT "\n",
+	       regs->s8, regs->s9, regs->s10);
+	printf(" s11: " REG_FMT " t3 : " REG_FMT " t4 : " REG_FMT "\n",
+	       regs->s11, regs->t3, regs->t4);
+	printf(" t5 : " REG_FMT " t6 : " REG_FMT "\n",
+	       regs->t5, regs->t6);
+
+	printf("status: " REG_FMT " badaddr: " REG_FMT " cause: " REG_FMT "\n",
+	       regs->status, regs->badaddr, regs->cause);
+}
+
+static void do_trap_error(struct pt_regs *regs, unsigned long addr,
+			  const char *str)
+{
+	if (user_mode(regs))
+		printf("Unhandled exception at " REG_FMT".\n", addr);
 	else
-		SET_F32_RD(insn, regs, val.intx);
-	csr_write(CSR_MEPC, npc);
-#endif
+		printf("%s at " REG_FMT ".\n", str, addr);
+	show_regs(regs);
 }
 
-void misaligned_store_trap(uintptr_t *regs, uintptr_t mcause, uintptr_t mepc)
+#define DO_ERROR_INFO(name, str)			\
+asmlinkage void name(struct pt_regs *regs)		\
+{							\
+	do_trap_error(regs, regs->epc, "Oops - " str);	\
+}
+
+DO_ERROR_INFO(do_trap_unknown, "unknown exception");
+DO_ERROR_INFO(do_trap_insn_misaligned, "instruction address misaligned");
+DO_ERROR_INFO(do_trap_insn_fault, "instruction access fault");
+DO_ERROR_INFO(do_trap_insn_illegal, "illegal instruction");
+DO_ERROR_INFO(do_trap_load_misaligned, "load address misaligned");
+DO_ERROR_INFO(do_trap_load_fault, "load access fault");
+DO_ERROR_INFO(do_trap_store_misaligned, "store (or AMO) address misaligned");
+DO_ERROR_INFO(do_trap_store_fault, "store (or AMO) access fault");
+DO_ERROR_INFO(do_trap_ecall_u, "environment call from U-mode");
+DO_ERROR_INFO(do_trap_ecall_s, "environment call from S-mode");
+DO_ERROR_INFO(do_trap_ecall_m, "environment call from M-mode");
+
+asmlinkage void __vectors(void);
+
+__init void trap_init(void)
 {
-#if 0
-	union byte_array val;
-	uintptr_t mstatus;
-	insn_t insn = get_insn(mepc, &mstatus);
-	uintptr_t npc = mepc + insn_len(insn);
-	int len, i;
-	uintptr_t addr;
-
-	val.intx = GET_RS2(insn, regs);
-	if ((insn & INSN_MASK_SW) == INSN_MATCH_SW)
-		len = 4;
-#if __riscv_xlen == 64
-	else if ((insn & INSN_MASK_SD) == INSN_MATCH_SD)
-		len = 8;
-#endif
-	else if ((insn & INSN_MASK_SH) == INSN_MATCH_SH)
-		len = 2;
-#ifdef __riscv_compressed
-#if __riscv_xlen >= 64
-	else if ((insn & INSN_MASK_C_SD) == INSN_MATCH_C_SD)
-		len = 8, val.intx = GET_RS2S(insn, regs);
-	else if ((insn & INSN_MASK_C_SDSP) == INSN_MATCH_C_SDSP && ((insn >> SH_RD) & 0x1f))
-		len = 8, val.intx = GET_RS2C(insn, regs);
-#endif
-	else if ((insn & INSN_MASK_C_SW) == INSN_MATCH_C_SW)
-		len = 4, val.intx = GET_RS2S(insn, regs);
-	else if ((insn & INSN_MASK_C_SWSP) == INSN_MATCH_C_SWSP && ((insn >> SH_RD) & 0x1f))
-		len = 4, val.intx = GET_RS2C(insn, regs);
-#endif
-	else {
-		mcause = CAUSE_STORE_ACCESS;
-		write_csr(mcause, mcause);
-		return truly_illegal_insn(regs, mcause, mepc, mstatus, insn);
-	}
-
-	addr = csr_read_csr(CSR_MTVAL);
-	for (i = 0; i < len; i++)
-		store_uint8_t((void *)(addr + i), val.bytes[i], mepc);
-	csr_write(CSR_MEPC, npc);
-#endif
+	csr_write(CSR_SCRATCH, 0);
+	csr_write(CSR_TVEC, &__vectors);
+	csr_write(CSR_IE, -1);
 }

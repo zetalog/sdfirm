@@ -44,8 +44,12 @@
 
 #include <target/arch.h>
 
+#ifndef __ASSEMBLY__
+void riscv_register_irq(irq_t irq, irq_handler h);
+
 /* RISCV allows embedded IRQ controllers */
 #include <asm/mach/irqc.h>
+#endif
 
 #ifdef CONFIG_RISCV_EXIT_M
 #define external_irq_disable()	csr_clear(CSR_MIE, IE_MEIE)

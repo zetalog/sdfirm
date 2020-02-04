@@ -4,6 +4,9 @@
 
 int main(void)
 {
+	OFFSET(TASK_KERN_SP, task_entry, kern_sp);
+	OFFSET(TASK_USER_SP, task_entry, user_sp);
+
 	DEFINE(PT_SIZE, sizeof(struct pt_regs));
 	OFFSET(PT_ZERO, pt_regs, zero);
 	OFFSET(PT_EPC, pt_regs, epc);

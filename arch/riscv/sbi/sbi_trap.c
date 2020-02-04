@@ -68,7 +68,7 @@ static void __noreturn sbi_trap_error(const char *msg, int rc, u32 hartid,
 int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
 		      ulong epc, ulong cause, ulong tval)
 {
-	ulong new_mstatus, prev_mode;
+	ulong new_status, prev_mode;
 
 	/* Sanity check on previous mode */
 	prev_mode = (regs->status & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
@@ -84,25 +84,25 @@ int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
 	regs->epc = csr_read(CSR_STVEC);
 
 	/* Initial value of new MSTATUS */
-	new_mstatus = regs->status;
+	new_status = regs->status;
 
 	/* Clear MPP, SPP, SPIE, and SIE */
-	new_mstatus &=
+	new_status &=
 		~(MSTATUS_MPP | MSTATUS_SPP | MSTATUS_SPIE | MSTATUS_SIE);
 
 	/* Set SPP */
 	if (prev_mode == PRV_S)
-		new_mstatus |= (1UL << MSTATUS_SPP_SHIFT);
+		new_status |= (1UL << MSTATUS_SPP_SHIFT);
 
 	/* Set SPIE */
 	if (regs->status & MSTATUS_SIE)
-		new_mstatus |= (1UL << MSTATUS_SPIE_SHIFT);
+		new_status |= (1UL << MSTATUS_SPIE_SHIFT);
 
 	/* Set MPP */
-	new_mstatus |= (PRV_S << MSTATUS_MPP_SHIFT);
+	new_status |= (PRV_S << MSTATUS_MPP_SHIFT);
 
 	/* Set new value in MSTATUS */
-	regs->status = new_mstatus;
+	regs->status = new_status;
 	return 0;
 }
 

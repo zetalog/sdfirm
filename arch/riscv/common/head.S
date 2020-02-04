@@ -13,13 +13,6 @@
 #endif
 	.endm
 
-	.macro	init_gp
-	.option push
-	.option norelax
-	la	gp, __global_pointer$
-	.option pop
-	.endm
-
 	.macro disable_mirq
 #ifdef CONFIG_RISCV_ENTR_M
 	csrci	CSR_MSTATUS, SR_MIE

@@ -19,7 +19,8 @@ struct task_entry {
 	pid_t pid;
 	size_t stack_size;
 	caddr_t stack_bottom;
-	caddr_t sp;
+	caddr_t kern_sp;
+	caddr_t user_sp;
 };
 #endif /* __ASSEMBLY__ */
 
