@@ -110,6 +110,12 @@ endif
 choice
 	prompt "Program type"
 
+config SPIKE_PK
+	bool "Proxy kernel"
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select XIP
+
 config SPIKE_BBL
 	bool "Berkeley boot loader (BBL)"
 	depends SPIKE_CPU64

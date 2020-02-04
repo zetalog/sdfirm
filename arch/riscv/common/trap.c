@@ -57,11 +57,9 @@ void mcall_trap(uintptr_t epc, uintptr_t mstatus, uintptr_t badaddr)
 
 void trap_from_machine_mode(uintptr_t epc, uintptr_t mstatus, uintptr_t badaddr)
 {
-#if 0
 	printf("machine: trap from machine mode\n");
 	BUG();
 	while (1) wait_irq();
-#endif
 }
 
 union byte_array {
@@ -80,28 +78,28 @@ void misaligned_load_trap(uintptr_t *regs, uintptr_t mcause, uintptr_t mepc)
 	uintptr_t addr = read_csr(mbadaddr);
 	int shift = 0, fp = 0, len;
 
-	if ((insn & MASK_LW) == MATCH_LW)
+	if ((insn & INSN_MASK_LW) == INSN_MATCH_LW)
 		len = 4, shift = 8*(sizeof(uintptr_t) - len);
 #if __riscv_xlen == 64
-	else if ((insn & MASK_LD) == MATCH_LD)
+	else if ((insn & INSN_MASK_LD) == INSN_MATCH_LD)
 		len = 8, shift = 8*(sizeof(uintptr_t) - len);
-	else if ((insn & MASK_LWU) == MATCH_LWU)
+	else if ((insn & INSN_MASK_LWU) == INSN_MATCH_LWU)
 		len = 4;
 #endif
-	else if ((insn & MASK_LH) == MATCH_LH)
+	else if ((insn & INSN_MASK_LH) == INSN_MATCH_LH)
 		len = 2, shift = 8*(sizeof(uintptr_t) - len);
-	else if ((insn & MASK_LHU) == MATCH_LHU)
+	else if ((insn & INSN_MASK_LHU) == INSN_MATCH_LHU)
 		len = 2;
 #ifdef __riscv_compressed
 #if __riscv_xlen >= 64
-	else if ((insn & MASK_C_LD) == MATCH_C_LD)
+	else if ((insn & INSN_MASK_C_LD) == INSN_MATCH_C_LD)
 		len = 8, shift = 8*(sizeof(uintptr_t) - len), insn = RVC_RS2S(insn) << SH_RD;
-	else if ((insn & MASK_C_LDSP) == MATCH_C_LDSP && ((insn >> SH_RD) & 0x1f))
+	else if ((insn & INSN_MASK_C_LDSP) == INSN_MATCH_C_LDSP && ((insn >> SH_RD) & 0x1f))
 		len = 8, shift = 8*(sizeof(uintptr_t) - len);
 #endif
-	else if ((insn & MASK_C_LW) == MATCH_C_LW)
+	else if ((insn & INSN_MASK_C_LW) == INSN_MATCH_C_LW)
 		len = 4, shift = 8*(sizeof(uintptr_t) - len), insn = RVC_RS2S(insn) << SH_RD;
-	else if ((insn & MASK_C_LWSP) == MATCH_C_LWSP && ((insn >> SH_RD) & 0x1f))
+	else if ((insn & INSN_MASK_C_LWSP) == INSN_MATCH_C_LWSP && ((insn >> SH_RD) & 0x1f))
 		len = 4, shift = 8*(sizeof(uintptr_t) - len);
 #endif
 	else {
@@ -135,24 +133,24 @@ void misaligned_store_trap(uintptr_t *regs, uintptr_t mcause, uintptr_t mepc)
 	uintptr_t addr;
 
 	val.intx = GET_RS2(insn, regs);
-	if ((insn & MASK_SW) == MATCH_SW)
+	if ((insn & INSN_MASK_SW) == INSN_MATCH_SW)
 		len = 4;
 #if __riscv_xlen == 64
-	else if ((insn & MASK_SD) == MATCH_SD)
+	else if ((insn & INSN_MASK_SD) == INSN_MATCH_SD)
 		len = 8;
 #endif
-	else if ((insn & MASK_SH) == MATCH_SH)
+	else if ((insn & INSN_MASK_SH) == INSN_MATCH_SH)
 		len = 2;
 #ifdef __riscv_compressed
 #if __riscv_xlen >= 64
-	else if ((insn & MASK_C_SD) == MATCH_C_SD)
+	else if ((insn & INSN_MASK_C_SD) == INSN_MATCH_C_SD)
 		len = 8, val.intx = GET_RS2S(insn, regs);
-	else if ((insn & MASK_C_SDSP) == MATCH_C_SDSP && ((insn >> SH_RD) & 0x1f))
+	else if ((insn & INSN_MASK_C_SDSP) == INSN_MATCH_C_SDSP && ((insn >> SH_RD) & 0x1f))
 		len = 8, val.intx = GET_RS2C(insn, regs);
 #endif
-	else if ((insn & MASK_C_SW) == MATCH_C_SW)
+	else if ((insn & INSN_MASK_C_SW) == INSN_MATCH_C_SW)
 		len = 4, val.intx = GET_RS2S(insn, regs);
-	else if ((insn & MASK_C_SWSP) == MATCH_C_SWSP && ((insn >> SH_RD) & 0x1f))
+	else if ((insn & INSN_MASK_C_SWSP) == INSN_MATCH_C_SWSP && ((insn >> SH_RD) & 0x1f))
 		len = 4, val.intx = GET_RS2C(insn, regs);
 #endif
 	else {

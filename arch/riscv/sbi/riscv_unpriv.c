@@ -105,7 +105,7 @@ ulong get_insn(ulong mepc, ulong *mstatus)
 #else
 	    "lw %[insn], (%[addr])\n"
 #endif
-	    "csrw " stringify(CSR_MSTATUS) ", %[mstatus]"
+	    "csrw " __stringify(CSR_MSTATUS) ", %[mstatus]"
 	    : [mstatus] "+&r"(__mstatus), [insn] "=&r"(val)
 	    : [mprv] "r"(MSTATUS_MPRV | MSTATUS_MXR), [addr] "r"(__mepc));
 #else

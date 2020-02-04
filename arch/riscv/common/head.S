@@ -79,8 +79,8 @@
 	.endm
 
 	.macro	enable_mmu, map, sat, mode
-	config_mmu \map, \sat, \mode
 #ifdef CONFIG_MMU
+	config_mmu \map, \sat, \mode
 	csrw	CSR_SATP, \sat
 	sfence.vma
 #endif

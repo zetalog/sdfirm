@@ -8,6 +8,7 @@
  */
 
 #include <target/sbi.h>
+#include <sbi/riscv_fp.h>
 
 union reg_data {
 	u8 data_bytes[8];

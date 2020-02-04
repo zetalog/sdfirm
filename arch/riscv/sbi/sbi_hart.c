@@ -8,6 +8,7 @@
  */
 
 #include <target/sbi.h>
+#include <sbi/riscv_fp.h>
 
 /**
  * Return HART ID of the caller.

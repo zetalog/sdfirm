@@ -78,7 +78,6 @@ typedef unsigned long		physical_addr_t;
 typedef unsigned long		physical_size_t;
 
 #include <sbi/riscv_unpriv.h>
-#include <sbi/riscv_fp.h>
 
 #define SBI_ECALL(__num, __a0, __a1, __a2)                                    \
 	({                                                                    \
