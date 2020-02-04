@@ -132,10 +132,6 @@ ENTRY(__handle_irq)
 	jal	x0, irq_hw_handle_irq
 ENDPROC(__handle_irq)
 
-ENTRY(__bad_interrupt)
-	j	.
-ENDPROC(__bad_interrupt)
-
 	.macro define_exception_entry entry_name handler_name
 	.weak \entry_name
 \entry_name:
@@ -149,3 +145,7 @@ ENDPROC(__bad_interrupt)
 define_exception_entry __handle_illegal_instr __bad_interrupt
 define_exception_entry __handle_ecall __bad_interrupt
 define_exception_entry __handle_lsu __bad_interrupt
+
+ENTRY(trap_init)
+	ret
+ENDPROC(trap_init)

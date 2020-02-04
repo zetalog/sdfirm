@@ -17,10 +17,14 @@ config VEGA_RI5CY
 	bool "RI5CY"
 	select CPU_RI5CY
 	select ARCH_HAS_HIVEC
+	select SYS_ENTR_M
+	select SYS_EXIT_M
 
 config VEGA_0RISCY
 	bool "Zero RISCY"
 	select CPU_0RISCY
+	select SYS_ENTR_M
+	select SYS_EXIT_M
 
 endchoice
 
