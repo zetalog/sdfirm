@@ -119,7 +119,10 @@ config ARCH_SPIKE
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_BOOT_LOAD
 	select ARCH_HAS_CLINT
+	select ARCH_HAS_IRQC
+	select CLINT if !SYS_NOIRQ
 	select CLINT
+	select RISCV_COUNTERS
 	help
 	  This enables support for simulated riscv platforms.
 

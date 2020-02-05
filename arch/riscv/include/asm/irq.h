@@ -150,6 +150,7 @@ struct pt_regs {
 #include <asm/mach/irq.h>
 
 __noreturn void hart_hang(void);
+void show_regs(struct pt_regs *regs);
 #endif
 
 #endif /* __IRQ_RISCV_H_INCLUDE__ */

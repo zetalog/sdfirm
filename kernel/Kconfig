@@ -263,9 +263,16 @@ config MAX_TIMERS
 config TIMER_TEST
 	bool "Enable timer self test"
 
+if TIMER_TEST
+
 config TIMER_TEST_TIMEOUT
 	bool "Enable timer timeout test"
-	depends TIMER_TEST
+
+config TIMER_TEST_MAX_SHOTS
+	int "Maximum test shots"
+	default -1
+
+endif
 
 endif
 

@@ -54,6 +54,7 @@ config CPU_SPIKE32
 	select CPU_32G
 	select CPU_C
 	select CPU_PMP
+	select CPU_COUNTERS
 
 config CPU_SPIKE64
 	bool

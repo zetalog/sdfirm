@@ -53,6 +53,7 @@
 #define CLINT_SIZE		0xC0000
 
 #include <asm/clint.h>
+#include <asm/counters.h>
 
 /* Default RTC frequency in DTS:
  *   timebase-frequency = <10000000>;
@@ -71,7 +72,7 @@
 #define TSC_FREQ		(FREQ_RTC/1000)
 #define TSC_MAX			ULL(0xFFFFFFFFFFFFFFFF)
 
-#define tsc_hw_read_counter()	clint_read_mtime()
+#define tsc_hw_read_counter()	rdtime()
 #define tsc_hw_ctrl_init()
 
 #endif /* __TSC_SPIKE_H_INCLUDE__ */
