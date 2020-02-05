@@ -530,6 +530,10 @@
 #define CSR_TVAL	CSR_MTVAL
 #define CSR_IP		CSR_MIP
 
+#define IE_SIE		IE_MSIE
+#define IE_TIE		IE_MTIE
+#define IE_EIE		IE_MEIE
+
 #define SR_IE		SR_MIE
 #define SR_PIE		SR_MPIE
 #define SR_PP		SR_MPP
@@ -543,6 +547,10 @@
 #define CSR_CAUSE	CSR_SCAUSE
 #define CSR_TVAL	CSR_STVAL
 #define CSR_IP		CSR_SIP
+
+#define IE_SIE		IE_SSIE
+#define IE_TIE		IE_STIE
+#define IE_EIE		IE_SEIE
 
 #define SR_IE		SR_SIE
 #define SR_PIE		SR_SPIE

@@ -43,9 +43,8 @@ ENTRY(__sbi_entry)
 	 * s7 -> HART Count
 	 * s8 -> HART Stack Size
 	 */
-	la	a4, platform
-	LWU	s7, SBI_PLATFORM_HART_COUNT(a4)
-	LWU	s8, SBI_PLATFORM_HART_STACK_SIZE(a4)
+	li	s7, NR_CPUS
+	li	s8, SBI_PERCPU_STACK_SIZE
 
 	/* Setup scratch space for all the HARTs*/
 	la	tp, _fw_end
@@ -212,9 +211,8 @@ _start_warm:
 	csrw	CSR_MIE, zero
 	csrw	CSR_MIP, zero
 
-	la	a4, platform
-	LWU	s7, SBI_PLATFORM_HART_COUNT(a4)
-	LWU	s8, SBI_PLATFORM_HART_STACK_SIZE(a4)
+	li	s7, NR_CPUS
+	li	s8, SBI_PERCPU_STACK_SIZE
 
 	/* HART ID should be within expected limit */
 	csrr	s6, CSR_MHARTID
@@ -268,9 +266,8 @@ ENTRY(_hartid_to_scratch)
 	 * s1 -> HART Stack End
 	 * s2 -> Temporary
 	 */
-	la	s2, platform
-	LWU	s0, SBI_PLATFORM_HART_STACK_SIZE(s2)
-	LWU	s2, SBI_PLATFORM_HART_COUNT(s2)
+	li	s0, SBI_PERCPU_STACK_SIZE
+	li	s2, NR_CPUS
 	mul	s2, s2, s0
 	la	s1, _fw_end
 	add	s1, s1, s2

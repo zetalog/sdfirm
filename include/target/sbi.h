@@ -266,5 +266,6 @@ __noreturn void sbi_init(void);
 #endif /* __ASSEMBLY__ */
 
 #include <driver/sbi.h>
+#include <asm/sbi.h>
 
 #endif /* __SBI_H_INCLUDE__ */

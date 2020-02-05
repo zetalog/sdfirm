@@ -16,9 +16,6 @@
 #include <target/irq.h>
 #include <target/delay.h>
 
-#define FU540_HART_COUNT			5
-#define FU540_HART_STACK_SIZE			8192
-
 /**
  * The FU540 SoC has 5 HARTs but HART ID 0 doesn't have S mode. enable only
  * HARTs 1 to 4.
@@ -189,8 +186,6 @@ const struct sbi_platform platform = {
 	.platform_version	= SBI_PLATFORM_VERSION(0x0, 0x01),
 	.name			= "SiFive Freedom U540",
 	.features		= SBI_PLATFORM_DEFAULT_FEATURES,
-	.hart_count		= FU540_HART_COUNT,
-	.hart_stack_size	= FU540_HART_STACK_SIZE,
 	.disabled_hart_mask	= FU540_HART_ID_DISABLED,
 	.platform_ops_addr	= (unsigned long)&platform_ops
 };

@@ -47,8 +47,7 @@ void sbi_late_init(void)
 	/* Platform details */
 	printf("Platform Name          : %s\n", sbi_platform_name(plat));
 	printf("Platform HART Features : RV%d%s\n", misa_xlen(), str);
-	printf("Platform Max HARTs     : %d\n",
-	       sbi_platform_hart_count(plat));
+	printf("Platform Max HARTs     : %d\n", NR_CPUS);
 	printf("Current Hart           : %u\n", hartid);
 	/* Firmware details */
 	printf("Firmware Base          : 0x%lx\n", scratch->fw_start);

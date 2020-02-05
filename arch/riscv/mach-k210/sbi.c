@@ -12,9 +12,6 @@
 #include <target/irq.h>
 #include <target/delay.h>
 
-#define K210_HART_COUNT		2
-#define K210_HART_STACK_SIZE	4096
-
 static int k210_irqchip_init(bool cold_boot)
 {
 	cpu_t cpu = sbi_current_hartid();
@@ -109,8 +106,6 @@ const struct sbi_platform platform = {
 	.platform_version   	= SBI_PLATFORM_VERSION(0x0, 0x01),
 	.name			= "Kendryte K210",
 	.features		= SBI_PLATFORM_HAS_TIMER_VALUE,
-	.hart_count		= K210_HART_COUNT,
-	.hart_stack_size	= K210_HART_STACK_SIZE,
 	.disabled_hart_mask	= 0,
 	.platform_ops_addr	= (unsigned long)&platform_ops
 };

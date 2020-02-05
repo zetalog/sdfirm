@@ -7,8 +7,6 @@
 #include <target/irq.h>
 #include <target/delay.h>
 
-#define SPIKE_HART_STACK_SIZE			8192
-
 static void spike_modify_dt(void *fdt)
 {
 }
@@ -131,8 +129,6 @@ const struct sbi_platform platform = {
 	.platform_version	= SBI_PLATFORM_VERSION(0x0, 0x01),
 	.name			= "RISC-V ISA simulator (spike)",
 	.features		= SBI_PLATFORM_DEFAULT_FEATURES,
-	.hart_count		= NR_CPUS,
-	.hart_stack_size	= SPIKE_HART_STACK_SIZE,
 	.disabled_hart_mask	= 0,
 	.platform_ops_addr	= (unsigned long)&platform_ops
 };

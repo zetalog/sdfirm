@@ -68,8 +68,6 @@ int main(void)
 	OFFSET(SBI_PLATFORM_PLATFORM_VERSION, sbi_platform, platform_version);
 	OFFSET(SBI_PLATFORM_NAME, sbi_platform, name);
 	OFFSET(SBI_PLATFORM_FEATURES, sbi_platform, features);
-	OFFSET(SBI_PLATFORM_HART_COUNT, sbi_platform, hart_count);
-	OFFSET(SBI_PLATFORM_HART_STACK_SIZE, sbi_platform, hart_stack_size);
 	OFFSET(SBI_PLATFORM_DISABLED_HART_MASK, sbi_platform, disabled_hart_mask);
 	OFFSET(SBI_PLATFORM_PLATFORM_OPS_ADDR, sbi_platform, platform_ops_addr);
 	OFFSET(SBI_PLATFORM_FIRMWARE_CONTEXT, sbi_platform, firmware_context);

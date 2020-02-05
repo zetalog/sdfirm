@@ -100,10 +100,6 @@ struct sbi_platform {
 	char name[64];
 	/** Supported features */
 	u64 features;
-	/** Total number of HARTs */
-	u32 hart_count;
-	/** Per-HART stack size for exception/interrupt handling */
-	u32 hart_stack_size;
 	/** Mask representing the set of disabled HARTs */
 	u64 disabled_hart_mask;
 	/** Pointer to sbi platform operations */
@@ -168,34 +164,6 @@ static inline bool sbi_platform_hart_disabled(const struct sbi_platform *plat,
 	if (plat && (plat->disabled_hart_mask & (1 << hartid)))
 		return true;
 	return false;
-}
-
-/**
- * Get total number of HARTs supported by the platform
- *
- * @param plat pointer to struct sbi_platform
- *
- * @return total number of HARTs
- */
-static inline u32 sbi_platform_hart_count(const struct sbi_platform *plat)
-{
-	if (plat)
-		return plat->hart_count;
-	return 0;
-}
-
-/**
- * Get per-HART stack size for exception/interrupt handling
- *
- * @param plat pointer to struct sbi_platform
- *
- * @return stack size in bytes
- */
-static inline u32 sbi_platform_hart_stack_size(const struct sbi_platform *plat)
-{
-	if (plat)
-		return plat->hart_stack_size;
-	return 0;
 }
 
 /**

@@ -11,9 +11,9 @@ __noreturn void hart_hang(void)
 	__builtin_unreachable();
 }
 
-void __bad_interrupt(void)
+__noreturn void __bad_interrupt(void)
 {
-	asm volatile ("j ." : : : "memory");
+	hart_hang();
 }
 
 void riscv_register_irq(irq_t irq, irq_handler h)
@@ -38,8 +38,9 @@ void irq_hw_handle_irq(void)
 
 void do_riscv_interrupt(struct pt_regs *regs)
 {
-	irq_t irq = regs->cause & ~SCAUSE_IRQ_FLAG;
+	irq_t irq;
 
+	irq = regs->cause & ~SCAUSE_IRQ_FLAG;
 	if (irq >= NR_INT_IRQS || irq == IRQ_EXT) {
 		irq_hw_handle_irq();
 		return;
