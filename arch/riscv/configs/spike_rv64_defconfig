@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sat Feb  1 20:31:10 2020
+# Thu Feb  6 00:40:33 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -37,7 +37,7 @@ CONFIG_CONSOLE_115200=y
 # CONFIG_CONSOLE_9600 is not set
 # CONFIG_CONSOLE_4800 is not set
 # CONFIG_CONSOLE_2400 is not set
-CONFIG_CONSOLE_DEBUG=y
+# CONFIG_CONSOLE_DEBUG is not set
 
 #
 # RISCV system options
@@ -75,6 +75,7 @@ CONFIG_RISCV_A=y
 CONFIG_RISCV_F=y
 CONFIG_RISCV_D=y
 CONFIG_RISCV_C=y
+CONFIG_RISCV_COUNTERS=y
 CONFIG_RISCV_PMP=y
 CONFIG_RISCV_SV=y
 # CONFIG_RISCV_SV32 is not set
@@ -125,6 +126,7 @@ CONFIG_SPIKE_MEM1_SIZE=0x80000000
 # CONFIG_SPIKE_MEM2 is not set
 # CONFIG_SPIKE_ICACHE is not set
 # CONFIG_SPIKE_DCACHE is not set
+# CONFIG_SPIKE_PK is not set
 CONFIG_SPIKE_BBL=y
 
 #
@@ -134,16 +136,22 @@ CONFIG_SPIKE_BBL=y
 #
 # Generic kernel features
 #
-CONFIG_SYS_NOIRQ=y
+# CONFIG_SYS_NOIRQ is not set
 # CONFIG_SYS_IRQ is not set
-# CONFIG_SYS_RT is not set
+CONFIG_SYS_RT=y
 # CONFIG_SYS_TASK is not set
 CONFIG_ARCH_HAS_NOVEC=y
+CONFIG_ARCH_HAS_IRQC=y
 CONFIG_ARCH_HAS_GPT=y
 CONFIG_ARCH_HAS_TSC=y
 CONFIG_ARCH_HAS_TSC_CONST=y
 CONFIG_ARCH_IS_TICKLESS=y
 CONFIG_ARCH_HAS_BOOT_LOAD=y
+
+#
+# Scheduling facility (irq) support
+#
+CONFIG_MAX_VECTORS=4
 
 #
 # Scheduling facility (bh) support
@@ -160,7 +168,13 @@ CONFIG_TICKLESS=y
 # Timing facility (delay) support
 #
 CONFIG_LPS_NO_LPS=y
-# CONFIG_TIMER is not set
+CONFIG_TIMER=y
+CONFIG_TIMER_31BIT=y
+CONFIG_TIMER_ONESHOT=y
+CONFIG_MAX_TIMERS=3
+CONFIG_TIMER_TEST=y
+CONFIG_TIMER_TEST_TIMEOUT=y
+CONFIG_TIMER_TEST_MAX_SHOTS=6
 
 #
 # Address space layout (xip) support
@@ -193,7 +207,6 @@ CONFIG_MMU_IDMAP=y
 CONFIG_MMU_IDMAP_DEVICE=y
 CONFIG_MMU_MAP_MEM=y
 # CONFIG_MMU_TEXT_MODIFY is not set
-# CONFIG_MMU_DEBUG_TABLE is not set
 # CONFIG_BULK is not set
 # CONFIG_TERM is not set
 # CONFIG_GPIO is not set
@@ -303,7 +316,7 @@ CONFIG_BIT_FFS32=y
 # Bitmap operations
 #
 CONFIG_ARCH_HAS_BITS_PER_UNIT_32=y
-# CONFIG_BIT_FIND_CLEAR is not set
+CONFIG_BIT_FIND_CLEAR=y
 
 #
 # Mathematic operations

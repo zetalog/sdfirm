@@ -7,6 +7,7 @@
 void riscv_timer(void)
 {
 	irqc_clear_irq(IRQ_TIMER);
+	irqc_disable_irq(IRQ_TIMER);
 	tick_handler();
 }
 

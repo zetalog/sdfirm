@@ -123,7 +123,8 @@ ENTRY(__sbi_exit)
 	call	relocate
 	call	trap_init
 
-	/* TODO: task initialization and DTB handling */
+	la	tp, init_task
+
 	tail	system_init
 ENDPROC(__sbi_exit)
 
