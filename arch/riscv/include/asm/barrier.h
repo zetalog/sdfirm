@@ -73,4 +73,9 @@
 	___p1;				\
 })
 
+#define smp_mb__after_atomic()	\
+	asm volatile(RISCV_ACQUIRE_BARRIER "" ::: "memory")
+#define smp_mb__before_atomic()	\
+	asm volatile(RISCV_RELEASE_BARRIER "" ::: "memory");
+
 #endif /* __RISCV_BARRIER_H_INCLUDE__ */

@@ -2,7 +2,7 @@
 #define __SBI_H_INCLUDE__
 
 #include <target/arch.h>
-#include <target/task.h>
+#include <target/irq.h>
 
 #define OPENSBI_VERSION_MAJOR 0
 #define OPENSBI_VERSION_MINOR 4
