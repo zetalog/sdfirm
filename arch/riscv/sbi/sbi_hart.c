@@ -24,7 +24,7 @@ static void mstatus_init(struct sbi_scratch *scratch, u32 hartid)
 
 	/* Enable FPU */
 	if (misa_extension('D') || misa_extension('F'))
-		csr_write(CSR_MSTATUS, MSTATUS_FS);
+		csr_write(CSR_MSTATUS, SR_FS);
 
 	/* Enable user/supervisor use of perf counters */
 	if (misa_extension('S') && sbi_platform_has_scounteren(plat))
@@ -51,7 +51,7 @@ static int fp_init(u32 hartid)
 	if (!misa_extension('D') && !misa_extension('F'))
 		return 0;
 
-	if (!(csr_read(CSR_MSTATUS) & MSTATUS_FS))
+	if (!(csr_read(CSR_MSTATUS) & SR_FS))
 		return -EINVAL;
 
 #ifdef __riscv_flen
@@ -77,13 +77,13 @@ static int delegate_traps(struct sbi_scratch *scratch, u32 hartid)
 		return 0;
 
 	/* Send M-mode interrupts and most exceptions to S-mode */
-	interrupts = MIP_SSIP | MIP_STIP | MIP_SEIP;
-	exceptions = (1U << CAUSE_MISALIGNED_FETCH) | (1U << CAUSE_BREAKPOINT) |
-		     (1U << CAUSE_USER_ECALL);
+	interrupts = IR_SSI | IR_STI | IR_SEI;
+	exceptions = (1U << EXC_INSN_MISALIGNED) | (1U << EXC_BREAKPOINT) |
+		     (1U << EXC_ECALL_U);
 	if (sbi_platform_has_mfaults_delegation(plat))
-		exceptions |= (1U << CAUSE_FETCH_PAGE_FAULT) |
-			      (1U << CAUSE_LOAD_PAGE_FAULT) |
-			      (1U << CAUSE_STORE_PAGE_FAULT);
+		exceptions |= (1U << EXC_INSN_PAGE_FAULT) |
+			      (1U << EXC_LOAD_PAGE_FAULT) |
+			      (1U << EXC_STORE_PAGE_FAULT);
 
 	csr_write(CSR_MIDELEG, interrupts);
 	csr_write(CSR_MEDELEG, exceptions);
@@ -221,8 +221,8 @@ sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
 	}
 
 	val = csr_read(CSR_MSTATUS);
-	val = INSERT_FIELD(val, MSTATUS_MPP, next_mode);
-	val = INSERT_FIELD(val, MSTATUS_MPIE, 0);
+	val = INSERT_FIELD(val, SR_MPP, next_mode);
+	val = INSERT_FIELD(val, SR_MPIE, 0);
 
 	csr_write(CSR_MSTATUS, val);
 	csr_write(CSR_MEPC, next_addr);
@@ -287,7 +287,7 @@ void sbi_hart_wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
 		hart_hang();
 
 	/* Set MSIE bit to receive IPI */
-	csr_set(CSR_MIE, MIP_MSIP);
+	csr_set(CSR_MIE, IR_MSI);
 
 	do {
 		spin_lock(&coldboot_wait_bitmap_lock);
@@ -300,9 +300,9 @@ void sbi_hart_wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
 		spin_lock(&coldboot_wait_bitmap_lock);
 		coldboot_wait_bitmap &= ~(1UL << hartid);
 		spin_unlock(&coldboot_wait_bitmap_lock);
-	} while (!(mipval && MIP_MSIP));
+	} while (!(mipval && IR_MSI));
 
-	csr_clear(CSR_MIP, MIP_MSIP);
+	csr_clear(CSR_MIP, IR_MSI);
 }
 
 void sbi_hart_wake_coldboot_harts(struct sbi_scratch *scratch, u32 hartid)

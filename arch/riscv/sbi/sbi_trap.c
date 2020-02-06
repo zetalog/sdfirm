@@ -71,7 +71,7 @@ int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
 	ulong new_status, prev_mode;
 
 	/* Sanity check on previous mode */
-	prev_mode = (regs->status & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
+	prev_mode = (regs->status & SR_MPP) >> SR_MPP_SHIFT;
 	if (prev_mode != PRV_S && prev_mode != PRV_U)
 		return -ENOTSUP;
 
@@ -87,19 +87,18 @@ int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
 	new_status = regs->status;
 
 	/* Clear MPP, SPP, SPIE, and SIE */
-	new_status &=
-		~(MSTATUS_MPP | MSTATUS_SPP | MSTATUS_SPIE | MSTATUS_SIE);
+	new_status &= ~(SR_MPP | SR_SPP | SR_SPIE | SR_SIE);
 
 	/* Set SPP */
 	if (prev_mode == PRV_S)
-		new_status |= (1UL << MSTATUS_SPP_SHIFT);
+		new_status |= (1UL << SR_SPP_SHIFT);
 
 	/* Set SPIE */
-	if (regs->status & MSTATUS_SIE)
-		new_status |= (1UL << MSTATUS_SPIE_SHIFT);
+	if (regs->status & SR_SIE)
+		new_status |= SR_SPIE;
 
 	/* Set MPP */
-	new_status |= (PRV_S << MSTATUS_MPP_SHIFT);
+	new_status |= (PRV_S << SR_MPP_SHIFT);
 
 	/* Set new value in MSTATUS */
 	regs->status = new_status;
@@ -147,30 +146,30 @@ void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch)
 	}
 
 	switch (mcause) {
-	case CAUSE_ILLEGAL_INSTRUCTION:
+	case EXC_INSN_ILLEGAL:
 		rc  = sbi_illegal_insn_handler(hartid, mcause, regs, scratch);
 		msg = "illegal instruction handler failed";
 		break;
-	case CAUSE_MISALIGNED_LOAD:
+	case EXC_LOAD_MISALIGNED:
 		rc = sbi_misaligned_load_handler(hartid, mcause, regs, scratch);
 		msg = "misaligned load handler failed";
 		break;
-	case CAUSE_MISALIGNED_STORE:
+	case EXC_STORE_MISALIGNED:
 		rc  = sbi_misaligned_store_handler(hartid, mcause, regs,
 						   scratch);
 		msg = "misaligned store handler failed";
 		break;
-	case CAUSE_SUPERVISOR_ECALL:
-	case CAUSE_HYPERVISOR_ECALL:
+	case EXC_ECALL_H:
+	case EXC_ECALL_S:
 		rc  = sbi_ecall_handler(hartid, mcause, regs, scratch);
 		msg = "ecall handler failed";
 		break;
-	case CAUSE_LOAD_ACCESS:
-	case CAUSE_STORE_ACCESS:
-	case CAUSE_LOAD_PAGE_FAULT:
-	case CAUSE_STORE_PAGE_FAULT:
+	case EXC_LOAD_ACCESS:
+	case EXC_STORE_ACCESS:
+	case EXC_LOAD_PAGE_FAULT:
+	case EXC_STORE_PAGE_FAULT:
 		uptrap = sbi_hart_get_trap_info(scratch);
-		if ((regs->status & MSTATUS_MPRV) && uptrap) {
+		if ((regs->status & SR_MPRV) && uptrap) {
 			rc = 0;
 			regs->epc += uptrap->ilen;
 			uptrap->cause = mcause;

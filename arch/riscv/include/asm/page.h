@@ -89,15 +89,15 @@
  */
 #ifdef CONFIG_RISCV_SV32
 #define VA_BITS			32
-#define SATP_MODE		SATP_MODE_32
+#define SATP_MODE		ATP_MODE_32
 #endif
 #ifdef CONFIG_RISCV_SV39
 #define VA_BITS			39
-#define SATP_MODE		SATP_MODE_39
+#define SATP_MODE		ATP_MODE_39
 #endif
 #ifdef CONFIG_RISCV_SV48
 #define VA_BITS			48
-#define SATP_MODE		SATP_MODE_48
+#define SATP_MODE		ATP_MODE_48
 #endif
 
 #if __riscv_xlen == 32

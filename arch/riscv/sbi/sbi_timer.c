@@ -49,14 +49,14 @@ void sbi_timer_event_stop(struct sbi_scratch *scratch)
 void sbi_timer_event_start(struct sbi_scratch *scratch, u64 next_event)
 {
 	sbi_platform_timer_event_start(sbi_platform_ptr(scratch), next_event);
-	csr_clear(CSR_MIP, MIP_STIP);
-	csr_set(CSR_MIE, MIP_MTIP);
+	csr_clear(CSR_MIP, IR_STI);
+	csr_set(CSR_MIE, IR_MTI);
 }
 
 void sbi_timer_process(struct sbi_scratch *scratch)
 {
-	csr_clear(CSR_MIE, MIP_MTIP);
-	csr_set(CSR_MIP, MIP_STIP);
+	csr_clear(CSR_MIE, IR_MTI);
+	csr_set(CSR_MIP, IR_STI);
 }
 
 int sbi_timer_init(struct sbi_scratch *scratch, bool cold_boot)

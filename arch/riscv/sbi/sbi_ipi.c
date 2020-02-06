@@ -75,7 +75,7 @@ int sbi_ipi_send_many(struct sbi_scratch *scratch, struct unpriv_trap *uptrap,
 
 void sbi_ipi_clear_smode(struct sbi_scratch *scratch)
 {
-	csr_clear(CSR_MIP, MIP_SSIP);
+	csr_clear(CSR_MIP, IR_SSI);
 }
 
 void sbi_ipi_process(struct sbi_scratch *scratch)
@@ -95,7 +95,7 @@ void sbi_ipi_process(struct sbi_scratch *scratch)
 		ipi_event = __ffs32(ipi_type);
 		switch (ipi_event) {
 		case SBI_IPI_EVENT_SOFT:
-			csr_set(CSR_MIP, MIP_SSIP);
+			csr_set(CSR_MIP, IR_SSI);
 			break;
 		case SBI_IPI_EVENT_FENCE_I:
 			__asm__ __volatile("fence.i");
@@ -136,6 +136,6 @@ int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
 		return ret;
 
 	/* Enable software interrupts */
-	csr_set(CSR_MIE, MIP_MSIP);
+	csr_set(CSR_MIE, IR_MSI);
 	return sbi_platform_ipi_init(sbi_platform_ptr(scratch), cold_boot);
 }

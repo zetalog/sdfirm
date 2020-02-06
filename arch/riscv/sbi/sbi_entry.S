@@ -297,7 +297,7 @@ ENTRY(_trap_handler)
 
 	/* Check which mode we came from */
 	csrr	t0, CSR_MSTATUS
-	srl	t0, t0, MSTATUS_MPP_SHIFT
+	srl	t0, t0, SR_MPP_SHIFT
 	and	t0, t0, PRV_M
 	xori	t0, t0, PRV_M
 	beq	t0, zero, _trap_handler_m_mode

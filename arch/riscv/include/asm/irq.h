@@ -122,18 +122,19 @@ struct pt_regs {
 #define NR_INT_IRQS		16
 #define IRQ_PLATFORM		NR_INT_IRQS
 
-#define EXC_INST_MISALIGNED	0
-#define EXC_INST_ACCESS		1
-#define EXC_ILLEGAL_INST	2
+#define EXC_INSN_MISALIGNED	0
+#define EXC_INSN_ACCESS		1
+#define EXC_INSN_ILLEGAL	2
 #define EXC_BREAKPOINT		3
 #define EXC_LOAD_MISALIGNED	4
 #define EXC_LOAD_ACCESS		5
 #define EXC_STORE_MISALIGNED	6
 #define EXC_STORE_ACCESS	7
 #define EXC_ECALL_U		8
-#define EXC_ECALL_S		9
+#define EXC_ECALL_S		9  /* hypervisor call */
+#define EXC_ECALL_H		10 /* supervisor call */
 #define EXC_ECALL_M		11
-#define EXC_INST_PAGE_FAULT	12
+#define EXC_INSN_PAGE_FAULT	12
 #define EXC_LOAD_PAGE_FAULT	13
 #define EXC_STORE_PAGE_FAULT	15
 

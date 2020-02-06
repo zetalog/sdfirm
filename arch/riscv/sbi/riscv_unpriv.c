@@ -25,7 +25,7 @@
 			#insn " %1, %2\n"                                     \
 			"csrw " __stringify(CSR_MSTATUS) ", %0"               \
 		    : "+&r"(__mstatus), "=&r"(val)                            \
-		    : "m"(*addr), "r"(MSTATUS_MPRV));                         \
+		    : "m"(*addr), "r"(SR_MPRV));                              \
 		sbi_hart_set_trap_info(scratch, NULL);                        \
 		return val;                                                   \
 	}
@@ -45,7 +45,7 @@
 			#insn " %1, %2\n"                                     \
 			"csrw " __stringify(CSR_MSTATUS) ", %0"               \
 			: "+&r"(__mstatus)                                    \
-			: "r"(val), "m"(*addr), "r"(MSTATUS_MPRV));           \
+			: "r"(val), "m"(*addr), "r"(SR_MPRV));                \
 		sbi_hart_set_trap_info(scratch, NULL);                        \
 	}
 
@@ -107,7 +107,7 @@ ulong get_insn(ulong mepc, ulong *mstatus)
 #endif
 	    "csrw " __stringify(CSR_MSTATUS) ", %[mstatus]"
 	    : [mstatus] "+&r"(__mstatus), [insn] "=&r"(val)
-	    : [mprv] "r"(MSTATUS_MPRV | MSTATUS_MXR), [addr] "r"(__mepc));
+	    : [mprv] "r"(SR_MPRV | SR_MXR), [addr] "r"(__mepc));
 #else
 	ulong rvc_mask = 3, tmp;
 	asm("csrrs %[mstatus], " __stringify(CSR_MSTATUS) ", %[mprv]\n"
@@ -132,7 +132,7 @@ ulong get_insn(ulong mepc, ulong *mstatus)
 	    "add %[insn], %[insn], %[tmp]\n"
 	    "2: csrw " __stringify(CSR_MSTATUS) ", %[mstatus]"
 	    : [mstatus] "+&r"(__mstatus), [insn] "=&r"(val), [tmp] "=&r"(tmp)
-	    : [mprv] "r"(MSTATUS_MPRV | MSTATUS_MXR), [addr] "r"(__mepc),
+	    : [mprv] "r"(SR_MPRV | SR_MXR), [addr] "r"(__mepc),
 	      [rvc_mask] "r"(rvc_mask), [xlen_minus_16] "i"(__riscv_xlen - 16));
 #endif
 	if (mstatus)
