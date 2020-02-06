@@ -43,6 +43,5 @@
 #define __CPUS_K210_H_INCLUDE__
 
 #define MAX_CPU_NUM		2
-#define ARCH_CPU_MASK		0x00000003
 
 #endif /* __CPUS_K210_H_INCLUDE__ */

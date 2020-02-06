@@ -44,11 +44,9 @@
 
 #ifdef CONFIG_UNLEASHED_E51
 #define MAX_CPU_NUM		1
-#define ARCH_CPU_MASK		0x00000001
 #endif
 #ifdef CONFIG_UNLEASHED_U54
 #define MAX_CPU_NUM		4
-#define ARCH_CPU_MASK		0x0000000F
 #endif
 
 #endif /* __CPUS_UNLEASHED_H_INCLUDE__ */

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Feb  6 00:40:33 2020
+# Thu Feb  6 15:20:12 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -120,7 +120,6 @@ CONFIG_CLINT=y
 #
 # CONFIG_SPIKE_CPU32 is not set
 CONFIG_SPIKE_CPU64=y
-# CONFIG_SPIKE_SMP is not set
 CONFIG_SPIKE_MEM1_BASE=0x80000000
 CONFIG_SPIKE_MEM1_SIZE=0x80000000
 # CONFIG_SPIKE_MEM2 is not set

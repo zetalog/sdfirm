@@ -43,6 +43,5 @@
 #define __CPUS_VEXPRESS_H_INCLUDE__
 
 #define MAX_CPU_NUM		1
-#define ARCH_CPU_MASK		0x00000001
 
 #endif /* __CPUS_VEXPRESS_H_INCLUDE__ */

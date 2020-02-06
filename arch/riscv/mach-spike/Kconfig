@@ -28,9 +28,11 @@ config SPIKE_CPU64
 
 endchoice
 
-config SPIKE_SMP
-	bool "Enable Symmetrical Multi-Processing (SMP)"
-	select CPU_SMP
+config SPIKE_SMP_CPUS
+	int "Number of processors"
+	depends SMP
+	range 1 64
+	default 2
 
 config SPIKE_MEM1_BASE
 	hex "Primary memory base address"
@@ -92,7 +94,7 @@ endif
 
 config SPIKE_L2_CACHE
 	bool "Enable L2-cache"
-	depends CPU_SMP
+	depends SPIKE_SMP
 
 if SPIKE_L2_CACHE
 
