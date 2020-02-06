@@ -5,6 +5,32 @@
 #include <target/task.h>
 #include <asm/asm-offsets.h>
 
+#ifdef CONFIG_TASK
+	.macro save_kern_sp
+	REG_S	sp, TASK_KERN_SP(tp)
+	.endm
+	.macro load_kern_sp
+	REG_S	sp, TASK_KERN_SP(tp)
+	.endm
+	.macro save_scratch_sp
+	REG_S	sp, TASK_USER_SP(tp)
+	.endm
+	.macro load_scratch_sp
+	REG_L	s0, TASK_USER_SP(tp)
+	.endm
+#else
+	.macro save_kern_sp
+	.endm
+	.macro load_kern_sp
+	.endm
+	.macro save_scratch_sp
+	REG_S	sp, SCRATCH_SP(tp)
+	.endm
+	.macro load_scratch_sp
+	REG_L	s0, SCRATCH_SP(tp)
+	.endm
+#endif
+
 #ifdef CONFIG_ARCH_HAS_NOVEC
 	.macro SAVE_ALL
 	.local _restore_kernel_tpsp
@@ -19,10 +45,10 @@
 
 _restore_kernel_tpsp:
 	csrr	tp, CSR_SCRATCH
-	REG_S	sp, TASK_KERN_SP(tp)
+	save_kern_sp
 _save_context:
-	REG_S	sp, TASK_USER_SP(tp)
-	REG_L	sp, TASK_KERN_SP(tp)
+	save_scratch_sp
+	load_kern_sp
 	addi	sp, sp, -(PT_SIZE_ON_STACK)
 	REG_S	x1,  PT_RA(sp)
 	REG_S	x3,  PT_GP(sp)
@@ -54,7 +80,7 @@ _save_context:
 	REG_S	x30, PT_T5(sp)
 	REG_S	x31, PT_T6(sp)
 
-	REG_L	s0, TASK_USER_SP(tp)
+	load_scratch_sp
 #if defined(CONFIG_RISCV_F) && defined(CONFIG_RISCV_EXIT_S)
 	/* Disable user-mode memory access as it should only be set in the
 	 * actual user copy routines.

@@ -1,10 +1,11 @@
 #include <target/irq.h>
 #include <target/arch.h>
 #include <target/task.h>
+#include <target/arch.h>
 
 uint32_t irq_nesting;
 
-struct task_entry init_task;
+struct scratch scratch_cpu;
 
 __noreturn void hart_hang(void)
 {

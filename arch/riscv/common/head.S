@@ -123,7 +123,11 @@ ENTRY(__sbi_exit)
 	call	relocate
 	call	trap_init
 
+#ifdef CONFIG_TASK
 	la	tp, init_task
+#else
+	la	tp, scratch_cpu
+#endif
 
 	tail	system_init
 ENDPROC(__sbi_exit)

@@ -60,6 +60,12 @@
 #define wait_cpu()		cpu_relax()
 #define wake_cpu()
 
+#ifndef __ASSEMBLY__
+struct scratch {
+	unsigned long sp;
+};
+#endif
+
 #include <asm/mach/cpus.h>
 
 #endif /* __RISCV_CPUS_H_INCLUDE__ */
