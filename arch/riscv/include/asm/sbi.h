@@ -86,9 +86,9 @@
 #define sbi_send_ipi(hartmask)	SBI_CALL_1(SBI_SEND_IPI, hartmask)
 #define sbi_remote_fence_id(hartmask)				\
 	SBI_CALL_1(SBI_REMOTE_FENCE_I, hartmask)
-#define sbi_remote_fence_vma(hartmask, start, size)		\
+#define sbi_remote_sfence_vma(hartmask, start, size)		\
 	SBI_CALL_3(SBI_REMOTE_SFENCE_VMA, hartmask, start, size)
-#define sbi_remote_fence_vma_asid(hartmask, start, size, asid)	\
+#define sbi_remote_sfence_vma_asid(hartmask, start, size, asid)	\
 	SBI_CALL_4(SBI_REMOTE_SFENCE_VMA_ASID, hartmask, start, size, asid)
 
 #endif /* __SBI_RISCV_H_INCLUDE__ */
