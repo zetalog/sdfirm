@@ -71,7 +71,7 @@ typedef struct spinlock {
 #define _Q_PENDING_VAL		(1U << _Q_PENDING_OFFSET)
 
 #define qspin_init(lock)			\
-	((lock)->val = ATOMIC_INIT(0))
+	(INIT_ATOMIC(&(lock)->val, 0))
 #define qspin_is_locked(lock)		atomic_read(&(lock)->val)
 #define qspin_value_unlocked(lock)	(!atomic_read(&(lock).val))
 #define qspin_is_contended(lock)	\
