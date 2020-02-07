@@ -1,0 +1,12 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "DMA host drivers"
+
+menuconfig DW_DMA
+	bool "Synopsys DesignWare DMA support"
+
+endmenu
+
