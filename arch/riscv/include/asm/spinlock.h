@@ -42,6 +42,49 @@
 #ifndef __SPINLOCK_RISCV_H_INCLUDE__
 #define __SPINLOCK_RISCV_H_INCLUDE__
 
+#ifdef CONFIG_RISCV_SPINLOCK_GENERIC
 #include <asm-generic/spinlock.h>
+#endif
+
+#ifdef CONFIG_RISCV_SPINLOCK_RAW
+typedef struct {
+	volatile unsigned int lock;
+} spinlock_t;
+
+#define DEFINE_SPINLOCK(lock)		spinlock_t lock = { 0 }
+
+#define smp_hw_spin_init(x)		((x)->lock = 0)
+#define smp_hw_spin_locked(x)		(READ_ONCE((x)->lock) != 0)
+
+static inline void smp_hw_spin_unlock(spinlock_t *lock)
+{
+	smp_store_release(&lock->lock, 0);
+}
+
+static inline int smp_hw_spin_trylock(spinlock_t *lock)
+{
+	int tmp = 1, busy;
+
+	asm volatile (
+		"	amoswap.w %0, %2, %1\n"
+		RISCV_ACQUIRE_BARRIER
+		: "=r" (busy), "+A" (lock->lock)
+		: "r" (tmp)
+		: "memory");
+
+	return !busy;
+}
+
+static inline void smp_hw_spin_lock(spinlock_t *lock)
+{
+	while (1) {
+		if (smp_hw_spin_locked(lock))
+			continue;
+
+		if (smp_hw_spin_trylock(lock))
+			break;
+	}
+}
+#endif
 
 #endif /* __SPINLOCK_RISCV_H_INCLUDE__ */

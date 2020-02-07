@@ -8,6 +8,7 @@ mainmenu "Small Device Firmware Configuration"
 config ARM64
 	bool
 	select ARCH_HAS_SMP
+	select ARCH_HAS_QSPINLOCK if SMP
 	select ARCH_HAS_MMU
 	select ARCH_HAS_MMU_CONT
 	select ARCH_HAS_MMU_HUGE

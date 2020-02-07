@@ -149,6 +149,9 @@ menuconfig SMP
 
 if SMP
 
+config ARCH_HAS_QSPINLOCK
+	bool
+
 endif
 
 menu "Timing facility (jiffy) support"

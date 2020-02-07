@@ -361,6 +361,25 @@ config RISCV_ATOMIC_COUNT_64
 
 endchoice
 
+choice
+	prompt "Type of SMP spinlock"
+
+config RISCV_SPINLOCK_GENERIC
+	bool "Queued spinlock"
+	select ARCH_HAS_QSPINLOCK if SMP
+	help
+	  Alway fair, however, due to no awoswap 16-bit implementation,
+	  consumes more memory for each spinlock_t.
+
+config RISCV_SPINLOCK_RAW
+	bool "Raw spinlock"
+	depends RISCV_A
+	help
+	  May suffer from lock fairness, and dead locks due to cache
+	  contension.
+
+endchoice
+
 endmenu
 
 # We must be able to map all physical memory into the kernel, but the compiler
