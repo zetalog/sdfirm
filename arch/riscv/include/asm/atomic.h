@@ -89,7 +89,7 @@ void smp_hw_atomic_##op(atomic_count_t i, atomic_t *v)			\
 #define ATOMIC_FETCH_OP(op, asm_op, I, asm_type)			\
 static __always_inline							\
 atomic_count_t smp_hw_atomic_fetch_##op##_relaxed(atomic_count_t i,	\
-					   atomic_t *v)			\
+						  atomic_t *v)		\
 {									\
 	register atomic_count_t ret;					\
 	asm volatile(							\
@@ -599,5 +599,77 @@ ATOMIC_OPS()
 #define atomic_sub_return(i, v)		smp_hw_atomic_sub_return(i, v)
 #define atomic_add_return_relaxed(i, v)	smp_hw_atomic_add_return_relaxed(i, v)
 #define atomic_sub_return_relaxed(i, v)	smp_hw_atomic_sub_return_relaxed(i, v)
+
+static inline int
+smp_hw_atomic_fetch_and_acquire(int i, atomic_t *v)
+{
+	int ret = atomic_fetch_and_relaxed(i, v);
+	__atomic_acquire_fence();
+	return ret;
+}
+#define atomic_fetch_and_acquire	smp_hw_atomic_fetch_and_acquire
+
+static inline int
+smp_hw_atomic_fetch_and_release(int i, atomic_t *v)
+{
+	__atomic_release_fence();
+	return atomic_fetch_and_relaxed(i, v);
+}
+#define atomic_fetch_and_release	smp_hw_atomic_fetch_and_release
+
+static inline int
+smp_hw_atomic_fetch_andnot_acquire(int i, atomic_t *v)
+{
+	return atomic_fetch_and_acquire(~i, v);
+}
+#define atomic_fetch_andnot_acquire	smp_hw_atomic_fetch_andnot_acquire
+
+static inline int
+smp_hw_atomic_fetch_andnot_release(int i, atomic_t *v)
+{
+	return atomic_fetch_and_release(~i, v);
+}
+#define atomic_fetch_andnot_release	smp_hw_atomic_fetch_andnot_release
+
+static inline int
+smp_hw_atomic_fetch_andnot_relaxed(int i, atomic_t *v)
+{
+	return atomic_fetch_and_relaxed(~i, v);
+}
+#define atomic_fetch_andnot_relaxed	smp_hw_atomic_fetch_andnot_relaxed
+
+static inline int
+smp_hw_atomic_fetch_or_acquire(int i, atomic_t *v)
+{
+	int ret = atomic_fetch_or_relaxed(i, v);
+	__atomic_acquire_fence();
+	return ret;
+}
+#define atomic_fetch_or_acquire		smp_hw_atomic_fetch_or_acquire
+
+static inline int
+smp_hw_atomic_fetch_or_release(int i, atomic_t *v)
+{
+	__atomic_release_fence();
+	return atomic_fetch_or_relaxed(i, v);
+}
+#define atomic_fetch_or_release		smp_hw_atomic_fetch_or_release
+
+static inline int
+smp_hw_atomic_fetch_xor_acquire(int i, atomic_t *v)
+{
+	int ret = atomic_fetch_xor_relaxed(i, v);
+	__atomic_acquire_fence();
+	return ret;
+}
+#define atomic_fetch_xor_acquire	smp_hw_atomic_fetch_xor_acquire
+
+static inline int
+smp_hw_atomic_fetch_xor_release(int i, atomic_t *v)
+{
+	__atomic_release_fence();
+	return atomic_fetch_xor_relaxed(i, v);
+}
+#define atomic_fetch_xor_release	smp_hw_atomic_fetch_xor_release
 
 #endif /* __ATOMIC_RISCV_H_INCLUDE__ */
