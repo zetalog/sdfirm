@@ -15,4 +15,9 @@
 	do { } while (0)
 #define irqc_hw_ctrl_init()		do { } while (0)
 
+#ifdef CONFIG_SMP
+/* clint requires no CPU specific initialization */
+#define irqc_hw_smp_init()		do { } while (0)
+#endif
+
 #endif /* __IRQC_SPIKE_H_INCLUDE__ */
