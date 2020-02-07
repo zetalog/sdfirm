@@ -1,5 +1,6 @@
 #include <target/compiler.h>
 #include <target/arch.h>
+#include <target/percpu.h>
 #include <target/cmdline.h>
 #include <target/paging.h>
 
@@ -97,6 +98,10 @@ SECTIONS
 
 	__data_loc = _etext_loc;		/* data boot location */
 	_edata_loc = __data_loc + _edata - _sdata;
+
+	.percpu : {
+		PERCPU_INPUT(SMP_CACHE_BYTES)
+	}
 
 	.bss (NOLOAD) : ALIGN(WORD_SIZE) {
 		__bss_start = .;		/* begin of bss sections */
