@@ -168,6 +168,153 @@ ATOMIC_OPS(xor, xor, i)
 #undef ATOMIC_FETCH_OP
 #undef ATOMIC_OP_RETURN
 
+#define __xchg_relaxed(ptr, new, size)					\
+({									\
+	__typeof__(ptr) __ptr = (ptr);					\
+	__typeof__(new) __new = (new);					\
+	__typeof__(*(ptr)) __ret;					\
+	switch (size) {							\
+	case 4:								\
+		__asm__ __volatile__ (					\
+			"	amoswap.w %0, %2, %1\n"			\
+			: "=r" (__ret), "+A" (*__ptr)			\
+			: "r" (__new)					\
+			: "memory");					\
+		break;							\
+	case 8:								\
+		__asm__ __volatile__ (					\
+			"	amoswap.d %0, %2, %1\n"			\
+			: "=r" (__ret), "+A" (*__ptr)			\
+			: "r" (__new)					\
+			: "memory");					\
+		break;							\
+	default:							\
+		BUG();							\
+	}								\
+	__ret;								\
+})
+
+#define xchg_relaxed(ptr, x)						\
+({									\
+	__typeof__(*(ptr)) _x_ = (x);					\
+	(__typeof__(*(ptr))) __xchg_relaxed((ptr),			\
+					    _x_, sizeof(*(ptr)));	\
+})
+
+#define __xchg_acquire(ptr, new, size)					\
+({									\
+	__typeof__(ptr) __ptr = (ptr);					\
+	__typeof__(new) __new = (new);					\
+	__typeof__(*(ptr)) __ret;					\
+	switch (size) {							\
+	case 4:								\
+		__asm__ __volatile__ (					\
+			"	amoswap.w %0, %2, %1\n"			\
+			RISCV_ACQUIRE_BARRIER				\
+			: "=r" (__ret), "+A" (*__ptr)			\
+			: "r" (__new)					\
+			: "memory");					\
+		break;							\
+	case 8:								\
+		__asm__ __volatile__ (					\
+			"	amoswap.d %0, %2, %1\n"			\
+			RISCV_ACQUIRE_BARRIER				\
+			: "=r" (__ret), "+A" (*__ptr)			\
+			: "r" (__new)					\
+			: "memory");					\
+		break;							\
+	default:							\
+		BUG();							\
+	}								\
+	__ret;								\
+})
+
+#define xchg_acquire(ptr, x)						\
+({									\
+	__typeof__(*(ptr)) _x_ = (x);					\
+	(__typeof__(*(ptr))) __xchg_acquire((ptr),			\
+					    _x_, sizeof(*(ptr)));	\
+})
+
+#define __xchg_release(ptr, new, size)					\
+({									\
+	__typeof__(ptr) __ptr = (ptr);					\
+	__typeof__(new) __new = (new);					\
+	__typeof__(*(ptr)) __ret;					\
+	switch (size) {							\
+	case 4:								\
+		__asm__ __volatile__ (					\
+			RISCV_RELEASE_BARRIER				\
+			"	amoswap.w %0, %2, %1\n"			\
+			: "=r" (__ret), "+A" (*__ptr)			\
+			: "r" (__new)					\
+			: "memory");					\
+		break;							\
+	case 8:								\
+		__asm__ __volatile__ (					\
+			RISCV_RELEASE_BARRIER				\
+			"	amoswap.d %0, %2, %1\n"			\
+			: "=r" (__ret), "+A" (*__ptr)			\
+			: "r" (__new)					\
+			: "memory");					\
+		break;							\
+	default:							\
+		BUG();							\
+	}								\
+	__ret;								\
+})
+
+#define xchg_release(ptr, x)						\
+({									\
+	__typeof__(*(ptr)) _x_ = (x);					\
+	(__typeof__(*(ptr))) __xchg_release((ptr),			\
+					    _x_, sizeof(*(ptr)));	\
+})
+
+#define __xchg(ptr, new, size)						\
+({									\
+	__typeof__(ptr) __ptr = (ptr);					\
+	__typeof__(new) __new = (new);					\
+	__typeof__(*(ptr)) __ret;					\
+	switch (size) {							\
+	case 4:								\
+		__asm__ __volatile__ (					\
+			"	amoswap.w.aqrl %0, %2, %1\n"		\
+			: "=r" (__ret), "+A" (*__ptr)			\
+			: "r" (__new)					\
+			: "memory");					\
+		break;							\
+	case 8:								\
+		__asm__ __volatile__ (					\
+			"	amoswap.d.aqrl %0, %2, %1\n"		\
+			: "=r" (__ret), "+A" (*__ptr)			\
+			: "r" (__new)					\
+			: "memory");					\
+		break;							\
+	default:							\
+		BUG();							\
+	}								\
+	__ret;								\
+})
+
+#define xchg(ptr, x)							\
+({									\
+	__typeof__(*(ptr)) _x_ = (x);					\
+	(__typeof__(*(ptr))) __xchg((ptr), _x_, sizeof(*(ptr)));	\
+})
+
+#define xchg32(ptr, x)							\
+({									\
+	BUG_ON(sizeof(*(ptr)) != 4);					\
+	xchg((ptr), (x));						\
+})
+
+#define xchg64(ptr, x)							\
+({									\
+	BUG_ON(sizeof(*(ptr)) != 8);					\
+	xchg((ptr), (x));						\
+})
+
 /* Atomic compare and exchange.  Compare OLD with MEM, if identical,
  * store NEW in MEM.  Return the initial value in MEM.  Success is
  * indicated by comparing RETURN with OLD.
@@ -203,7 +350,7 @@ ATOMIC_OPS(xor, xor, i)
 			: "memory");					\
 		break;							\
 	default:							\
-		BUG();						\
+		BUG();							\
 	}								\
 	__ret;								\
 })
@@ -249,7 +396,7 @@ ATOMIC_OPS(xor, xor, i)
 			: "memory");					\
 		break;							\
 	default:							\
-		BUG();						\
+		BUG();							\
 	}								\
 	__ret;								\
 })
@@ -295,7 +442,7 @@ ATOMIC_OPS(xor, xor, i)
 			: "memory");					\
 		break;							\
 	default:							\
-		BUG();						\
+		BUG();							\
 	}								\
 	__ret;								\
 })
@@ -341,7 +488,7 @@ ATOMIC_OPS(xor, xor, i)
 			: "memory");					\
 		break;							\
 	default:							\
-		BUG();						\
+		BUG();							\
 	}								\
 	__ret;								\
 })
@@ -356,17 +503,37 @@ ATOMIC_OPS(xor, xor, i)
 
 #define cmpxchg32(ptr, o, n)						\
 ({									\
-	BUG_ON(sizeof(*(ptr)) != 4);				\
+	BUG_ON(sizeof(*(ptr)) != 4);					\
 	cmpxchg((ptr), (o), (n));					\
 })
 
 #define cmpxchg64(ptr, o, n)						\
 ({									\
-	BUG_ON(sizeof(*(ptr)) != 8);				\
+	BUG_ON(sizeof(*(ptr)) != 8);					\
 	cmpxchg((ptr), (o), (n));					\
 })
 
 #define ATOMIC_OP(c_t, size)						\
+static __always_inline							\
+c_t smp_hw_atomic_xchg_relaxed(atomic_t *v, c_t n)			\
+{									\
+	return __xchg_relaxed(&(v->counter), n, size);			\
+}									\
+static __always_inline							\
+c_t smp_hw_atomic_xchg_acquire(atomic_t *v, c_t n)			\
+{									\
+	return __xchg_acquire(&(v->counter), n, size);			\
+}									\
+static __always_inline							\
+c_t smp_hw_atomic_xchg_release(atomic_t *v, c_t n)			\
+{									\
+	return __xchg_release(&(v->counter), n, size);			\
+}									\
+static __always_inline							\
+c_t smp_hw_atomic_xchg(atomic_t *v, c_t n)				\
+{									\
+	return __xchg(&(v->counter), n, size);				\
+}									\
 static __always_inline							\
 c_t smp_hw_atomic_cmpxchg_relaxed(atomic_t *v, c_t o, c_t n)		\
 {									\
@@ -399,6 +566,10 @@ c_t smp_hw_atomic_cmpxchg(atomic_t *v, c_t o, c_t n)			\
 
 ATOMIC_OPS()
 
+#define atomic_xchg_relaxed		smp_hw_atomic_xchg_relaxed
+#define atomic_xchg_acquire		smp_hw_atomic_xchg_acquire
+#define atomic_xchg_release		smp_hw_atomic_xchg_release
+#define atomic_xchg			smp_hw_atomic_xchg
 #define atomic_cmpxchg_relaxed		smp_hw_atomic_cmpxchg_relaxed
 #define atomic_cmpxchg_acquire		smp_hw_atomic_cmpxchg_acquire
 #define atomic_cmpxchg_release		smp_hw_atomic_cmpxchg_release
