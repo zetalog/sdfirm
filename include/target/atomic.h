@@ -134,9 +134,9 @@
 
 #ifndef atomic_try_cmpxchg
 static inline bool
-atomic_try_cmpxchg(atomic_t *v, int *old, int new)
+atomic_try_cmpxchg(atomic_t *v, atomic_count_t *old, atomic_count_t new)
 {
-	int r, o = *old;
+	atomic_count_t r, o = *old;
 	r = atomic_cmpxchg(v, o, new);
 	if (unlikely(r != o))
 		*old = r;
@@ -146,9 +146,10 @@ atomic_try_cmpxchg(atomic_t *v, int *old, int new)
 #endif
 #ifndef atomic_try_cmpxchg_acquire
 static inline bool
-atomic_try_cmpxchg_acquire(atomic_t *v, int *old, int new)
+atomic_try_cmpxchg_acquire(atomic_t *v,
+			   atomic_count_t *old, atomic_count_t new)
 {
-	int r, o = *old;
+	atomic_count_t r, o = *old;
 	r = atomic_cmpxchg_acquire(v, o, new);
 	if (unlikely(r != o))
 		*old = r;
@@ -158,9 +159,10 @@ atomic_try_cmpxchg_acquire(atomic_t *v, int *old, int new)
 #endif
 #ifndef atomic_try_cmpxchg_release
 static inline bool
-atomic_try_cmpxchg_release(atomic_t *v, int *old, int new)
+atomic_try_cmpxchg_release(atomic_t *v,
+			   atomic_count_t *old, atomic_count_t new)
 {
-	int r, o = *old;
+	atomic_count_t r, o = *old;
 	r = atomic_cmpxchg_release(v, o, new);
 	if (unlikely(r != o))
 		*old = r;
@@ -170,9 +172,10 @@ atomic_try_cmpxchg_release(atomic_t *v, int *old, int new)
 #endif
 #ifndef atomic_try_cmpxchg_relaxed
 static inline bool
-atomic_try_cmpxchg_relaxed(atomic_t *v, int *old, int new)
+atomic_try_cmpxchg_relaxed(atomic_t *v,
+			   atomic_count_t *old, atomic_count_t new)
 {
-	int r, o = *old;
+	atomic_count_t r, o = *old;
 	r = atomic_cmpxchg_relaxed(v, o, new);
 	if (unlikely(r != o))
 		*old = r;
@@ -183,7 +186,8 @@ atomic_try_cmpxchg_relaxed(atomic_t *v, int *old, int new)
 #else /* atomic_try_cmpxchg_relaxed */
 #ifndef atomic_try_cmpxchg_acquire
 static inline bool
-atomic_try_cmpxchg_acquire(atomic_t *v, int *old, int new)
+atomic_try_cmpxchg_acquire(atomic_t *v,
+			   atomic_count_t *old, atomic_count_t new)
 {
 	bool ret = atomic_try_cmpxchg_relaxed(v, old, new);
 	__atomic_acquire_fence();
@@ -193,7 +197,8 @@ atomic_try_cmpxchg_acquire(atomic_t *v, int *old, int new)
 #endif
 #ifndef atomic_try_cmpxchg_release
 static inline bool
-atomic_try_cmpxchg_release(atomic_t *v, int *old, int new)
+atomic_try_cmpxchg_release(atomic_t *v,
+			   atomic_count_t *old, atomic_count_t new)
 {
 	__atomic_release_fence();
 	return atomic_try_cmpxchg_relaxed(v, old, new);
@@ -202,7 +207,7 @@ atomic_try_cmpxchg_release(atomic_t *v, int *old, int new)
 #endif
 #ifndef atomic_try_cmpxchg
 static inline bool
-atomic_try_cmpxchg(atomic_t *v, int *old, int new)
+atomic_try_cmpxchg(atomic_t *v, atomic_count_t *old, atomic_count_t new)
 {
 	bool ret;
 	__atomic_pre_full_fence();

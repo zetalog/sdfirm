@@ -151,6 +151,7 @@ config CPU_M
 
 config CPU_A
 	bool
+	select ARCH_HAS_SMP
 
 config CPU_F
 	bool
@@ -352,6 +353,7 @@ choice
 config RISCV_ATOMIC_COUNT_32
 	bool "signed 32-bit"
 	select ARCH_HAS_BITS_PER_UNIT_32
+	depends !SMP
 
 config RISCV_ATOMIC_COUNT_64
 	bool "signed 64-bit"

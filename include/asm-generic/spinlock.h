@@ -9,13 +9,13 @@ typedef struct spinlock {
 		atomic_t val;
 		struct {
 			union {
-				uint16_t locked_pending;
+				qspin_half_t locked_pending;
 				struct {
-					uint8_t locked;
-					uint8_t pending;
+					qspin_quater_t locked;
+					qspin_quater_t pending;
 				};
 			} u;
-			uint16_t tail;
+			qspin_half_t tail;
 		};
 	};
 } spinlock_t;

@@ -140,8 +140,12 @@ config MAX_TASKS
 
 endif
 
+config ARCH_HAS_SMP
+	bool
+
 menuconfig SMP
 	bool "Scheduling facility (SMP) support"
+	depends ARCH_HAS_SMP
 
 if SMP
 

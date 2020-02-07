@@ -44,11 +44,15 @@
 
 #include <asm/barrier.h>
 
+#ifdef CONFIG_RISCV_A
+
 #ifdef CONFIG_RISCV_ATOMIC_COUNT_32
 typedef int32_t atomic_count_t;
 #endif
 #ifdef CONFIG_RISCV_ATOMIC_COUNT_64
 typedef int64_t atomic_count_t;
+typedef uint32_t qspin_half_t;
+typedef uint16_t qspin_quater_t;
 #endif
 typedef struct { atomic_count_t counter; } atomic_t;
 
@@ -170,9 +174,9 @@ ATOMIC_OPS(xor, xor, i)
 
 #define __xchg_relaxed(ptr, new, size)					\
 ({									\
-	__typeof__(ptr) __ptr = (ptr);					\
-	__typeof__(new) __new = (new);					\
-	__typeof__(*(ptr)) __ret;					\
+	typeof(ptr) __ptr = (ptr);					\
+	typeof(new) __new = (new);					\
+	typeof(*(ptr)) __ret;						\
 	switch (size) {							\
 	case 4:								\
 		__asm__ __volatile__ (					\
@@ -189,24 +193,22 @@ ATOMIC_OPS(xor, xor, i)
 			: "memory");					\
 		break;							\
 	default:							\
-		BUG();							\
-		unreachable();						\
+		BUILD_BUG();						\
 	}								\
 	__ret;								\
 })
 
 #define xchg_relaxed(ptr, x)						\
 ({									\
-	__typeof__(*(ptr)) _x_ = (x);					\
-	(__typeof__(*(ptr))) __xchg_relaxed((ptr),			\
-					    _x_, sizeof(*(ptr)));	\
+	typeof(*(ptr)) _x_ = (x);					\
+	(typeof(*(ptr))) __xchg_relaxed((ptr), _x_, sizeof(*(ptr)));	\
 })
 
 #define __xchg_acquire(ptr, new, size)					\
 ({									\
-	__typeof__(ptr) __ptr = (ptr);					\
-	__typeof__(new) __new = (new);					\
-	__typeof__(*(ptr)) __ret;					\
+	typeof(ptr) __ptr = (ptr);					\
+	typeof(new) __new = (new);					\
+	typeof(*(ptr)) __ret;						\
 	switch (size) {							\
 	case 4:								\
 		__asm__ __volatile__ (					\
@@ -225,24 +227,22 @@ ATOMIC_OPS(xor, xor, i)
 			: "memory");					\
 		break;							\
 	default:							\
-		BUG();							\
-		unreachable();						\
+		BUILD_BUG();						\
 	}								\
 	__ret;								\
 })
 
 #define xchg_acquire(ptr, x)						\
 ({									\
-	__typeof__(*(ptr)) _x_ = (x);					\
-	(__typeof__(*(ptr))) __xchg_acquire((ptr),			\
-					    _x_, sizeof(*(ptr)));	\
+	typeof(*(ptr)) _x_ = (x);					\
+	(typeof(*(ptr))) __xchg_acquire((ptr), _x_, sizeof(*(ptr)));	\
 })
 
 #define __xchg_release(ptr, new, size)					\
 ({									\
-	__typeof__(ptr) __ptr = (ptr);					\
-	__typeof__(new) __new = (new);					\
-	__typeof__(*(ptr)) __ret;					\
+	typeof(ptr) __ptr = (ptr);					\
+	typeof(new) __new = (new);					\
+	typeof(*(ptr)) __ret;						\
 	switch (size) {							\
 	case 4:								\
 		__asm__ __volatile__ (					\
@@ -261,24 +261,22 @@ ATOMIC_OPS(xor, xor, i)
 			: "memory");					\
 		break;							\
 	default:							\
-		BUG();							\
-		unreachable();						\
+		BUILD_BUG();						\
 	}								\
 	__ret;								\
 })
 
 #define xchg_release(ptr, x)						\
 ({									\
-	__typeof__(*(ptr)) _x_ = (x);					\
-	(__typeof__(*(ptr))) __xchg_release((ptr),			\
-					    _x_, sizeof(*(ptr)));	\
+	typeof(*(ptr)) _x_ = (x);					\
+	(typeof(*(ptr))) __xchg_release((ptr), _x_, sizeof(*(ptr)));	\
 })
 
 #define __xchg(ptr, new, size)						\
 ({									\
-	__typeof__(ptr) __ptr = (ptr);					\
-	__typeof__(new) __new = (new);					\
-	__typeof__(*(ptr)) __ret;					\
+	typeof(ptr) __ptr = (ptr);					\
+	typeof(new) __new = (new);					\
+	typeof(*(ptr)) __ret;						\
 	switch (size) {							\
 	case 4:								\
 		__asm__ __volatile__ (					\
@@ -295,27 +293,26 @@ ATOMIC_OPS(xor, xor, i)
 			: "memory");					\
 		break;							\
 	default:							\
-		BUG();							\
-		unreachable();						\
+		BUILD_BUG();						\
 	}								\
 	__ret;								\
 })
 
 #define xchg(ptr, x)							\
 ({									\
-	__typeof__(*(ptr)) _x_ = (x);					\
-	(__typeof__(*(ptr))) __xchg((ptr), _x_, sizeof(*(ptr)));	\
+	typeof(*(ptr)) _x_ = (x);					\
+	(typeof(*(ptr))) __xchg((ptr), _x_, sizeof(*(ptr)));		\
 })
 
 #define xchg32(ptr, x)							\
 ({									\
-	BUG_ON(sizeof(*(ptr)) != 4);					\
+	BUILD_BUG_ON(sizeof(*(ptr)) != 4);				\
 	xchg((ptr), (x));						\
 })
 
 #define xchg64(ptr, x)							\
 ({									\
-	BUG_ON(sizeof(*(ptr)) != 8);					\
+	BUILD_BUG_ON(sizeof(*(ptr)) != 8);				\
 	xchg((ptr), (x));						\
 })
 
@@ -325,10 +322,10 @@ ATOMIC_OPS(xor, xor, i)
  */
 #define __cmpxchg_relaxed(ptr, old, new, size)				\
 ({									\
-	__typeof__(ptr) __ptr = (ptr);					\
-	__typeof__(*(ptr)) __old = (old);				\
-	__typeof__(*(ptr)) __new = (new);				\
-	__typeof__(*(ptr)) __ret;					\
+	typeof(ptr) __ptr = (ptr);					\
+	typeof(*(ptr)) __old = (old);					\
+	typeof(*(ptr)) __new = (new);					\
+	typeof(*(ptr)) __ret;						\
 	register unsigned int __rc;					\
 	switch (size) {							\
 	case 4:								\
@@ -354,26 +351,25 @@ ATOMIC_OPS(xor, xor, i)
 			: "memory");					\
 		break;							\
 	default:							\
-		BUG();							\
-		unreachable();						\
+		BUILD_BUG();						\
 	}								\
 	__ret;								\
 })
 
 #define cmpxchg_relaxed(ptr, o, n)					\
 ({									\
-	__typeof__(*(ptr)) _o_ = (o);					\
-	__typeof__(*(ptr)) _n_ = (n);					\
-	(__typeof__(*(ptr))) __cmpxchg_relaxed((ptr),			\
+	typeof(*(ptr)) _o_ = (o);					\
+	typeof(*(ptr)) _n_ = (n);					\
+	(typeof(*(ptr))) __cmpxchg_relaxed((ptr),			\
 					_o_, _n_, sizeof(*(ptr)));	\
 })
 
 #define __cmpxchg_acquire(ptr, old, new, size)				\
 ({									\
-	__typeof__(ptr) __ptr = (ptr);					\
-	__typeof__(*(ptr)) __old = (old);				\
-	__typeof__(*(ptr)) __new = (new);				\
-	__typeof__(*(ptr)) __ret;					\
+	typeof(ptr) __ptr = (ptr);					\
+	typeof(*(ptr)) __old = (old);					\
+	typeof(*(ptr)) __new = (new);					\
+	typeof(*(ptr)) __ret;						\
 	register unsigned int __rc;					\
 	switch (size) {							\
 	case 4:								\
@@ -401,26 +397,25 @@ ATOMIC_OPS(xor, xor, i)
 			: "memory");					\
 		break;							\
 	default:							\
-		BUG();							\
-		unreachable();						\
+		BUILD_BUG();						\
 	}								\
 	__ret;								\
 })
 
 #define cmpxchg_acquire(ptr, o, n)					\
 ({									\
-	__typeof__(*(ptr)) _o_ = (o);					\
-	__typeof__(*(ptr)) _n_ = (n);					\
-	(__typeof__(*(ptr))) __cmpxchg_acquire((ptr),			\
+	typeof(*(ptr)) _o_ = (o);					\
+	typeof(*(ptr)) _n_ = (n);					\
+	(typeof(*(ptr))) __cmpxchg_acquire((ptr),			\
 					_o_, _n_, sizeof(*(ptr)));	\
 })
 
 #define __cmpxchg_release(ptr, old, new, size)				\
 ({									\
-	__typeof__(ptr) __ptr = (ptr);					\
-	__typeof__(*(ptr)) __old = (old);				\
-	__typeof__(*(ptr)) __new = (new);				\
-	__typeof__(*(ptr)) __ret;					\
+	typeof(ptr) __ptr = (ptr);					\
+	typeof(*(ptr)) __old = (old);					\
+	typeof(*(ptr)) __new = (new);					\
+	typeof(*(ptr)) __ret;						\
 	register unsigned int __rc;					\
 	switch (size) {							\
 	case 4:								\
@@ -448,26 +443,25 @@ ATOMIC_OPS(xor, xor, i)
 			: "memory");					\
 		break;							\
 	default:							\
-		BUG();							\
-		unreachable();						\
+		BUILD_BUG();						\
 	}								\
 	__ret;								\
 })
 
 #define cmpxchg_release(ptr, o, n)					\
 ({									\
-	__typeof__(*(ptr)) _o_ = (o);					\
-	__typeof__(*(ptr)) _n_ = (n);					\
-	(__typeof__(*(ptr))) __cmpxchg_release((ptr),			\
+	typeof(*(ptr)) _o_ = (o);					\
+	typeof(*(ptr)) _n_ = (n);					\
+	(typeof(*(ptr))) __cmpxchg_release((ptr),			\
 					_o_, _n_, sizeof(*(ptr)));	\
 })
 
 #define __cmpxchg(ptr, old, new, size)					\
 ({									\
-	__typeof__(ptr) __ptr = (ptr);					\
-	__typeof__(*(ptr)) __old = (old);				\
-	__typeof__(*(ptr)) __new = (new);				\
-	__typeof__(*(ptr)) __ret;					\
+	typeof(ptr) __ptr = (ptr);					\
+	typeof(*(ptr)) __old = (old);					\
+	typeof(*(ptr)) __new = (new);					\
+	typeof(*(ptr)) __ret;						\
 	register unsigned int __rc;					\
 	switch (size) {							\
 	case 4:								\
@@ -495,29 +489,27 @@ ATOMIC_OPS(xor, xor, i)
 			: "memory");					\
 		break;							\
 	default:							\
-		BUG();							\
-		unreachable();						\
+		BUILD_BUG();						\
 	}								\
 	__ret;								\
 })
 
 #define cmpxchg(ptr, o, n)						\
 ({									\
-	__typeof__(*(ptr)) _o_ = (o);					\
-	__typeof__(*(ptr)) _n_ = (n);					\
-	(__typeof__(*(ptr))) __cmpxchg((ptr),				\
-				       _o_, _n_, sizeof(*(ptr)));	\
+	typeof(*(ptr)) _o_ = (o);					\
+	typeof(*(ptr)) _n_ = (n);					\
+	(typeof(*(ptr))) __cmpxchg((ptr), _o_, _n_, sizeof(*(ptr)));	\
 })
 
 #define cmpxchg32(ptr, o, n)						\
 ({									\
-	BUG_ON(sizeof(*(ptr)) != 4);					\
+	BUILD_BUG_ON(sizeof(*(ptr)) != 4);				\
 	cmpxchg((ptr), (o), (n));					\
 })
 
 #define cmpxchg64(ptr, o, n)						\
 ({									\
-	BUG_ON(sizeof(*(ptr)) != 8);					\
+	BUILD_BUG_ON(sizeof(*(ptr)) != 8);				\
 	cmpxchg((ptr), (o), (n));					\
 })
 
@@ -679,5 +671,7 @@ smp_hw_atomic_fetch_xor_release(int i, atomic_t *v)
 	return atomic_fetch_xor_relaxed(i, v);
 }
 #define atomic_fetch_xor_release	smp_hw_atomic_fetch_xor_release
+
+#endif /* CONFIG_RISCV_A */
 
 #endif /* __ATOMIC_RISCV_H_INCLUDE__ */

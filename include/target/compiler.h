@@ -21,6 +21,27 @@
 #define ARRAY_ADDR(arr)		(&((arr)[0]))
 #define ARRAY_SIZE(arr)		(sizeof(arr) / sizeof((arr)[0]))
 
+#ifndef __compiletime_warning
+#define __compiletime_warning(message)
+#endif
+
+#ifndef __compiletime_error
+#define __compiletime_error(message)
+#endif
+
+#define compiletime_assert(condition, msg)				\
+	do {								\
+		extern void nonexist(void) __compiletime_error(msg);	\
+		if (!(condition))					\
+			nonexist();					\
+	} while (0)
+
+#define BUILD_BUG_ON_MSG(cond, msg)	compiletime_assert(!(cond), msg)
+#define BUILD_BUG_ON(condition)		\
+	BUILD_BUG_ON_MSG(condition, "BUILD_BUG_ON failed: " #condition)
+#define BUILD_BUG()			\
+	BUILD_BUG_ON_MSG(1, "BUILD_BUG failed")
+
 #include <target/assembler.h>
 #include <target/linkage.h>
 

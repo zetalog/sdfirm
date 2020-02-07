@@ -108,6 +108,8 @@ smp_hw_atomic_fetch_##op##name(atomic_count_t i, atomic_t *v)		\
 
 #ifdef CONFIG_ARM64_ATOMIC_COUNT_32
 typedef int32_t atomic_count_t;
+typedef uint16_t qspin_half_t;
+typedef uint8_t qspin_quater_t;
 typedef struct { atomic_count_t counter; } atomic_t;
 
 #define ATOMIC32_OPS(...)						\
@@ -197,6 +199,8 @@ smp_hw_atomic_fetch_##op##name(atomic_count_t i, atomic_t *v)		\
 
 #ifdef CONFIG_ARM64_ATOMIC_COUNT_64
 typedef int64_t atomic_count_t;
+typedef uint32_t qspin_half_t;
+typedef uint16_t qspin_quater_t;
 typedef struct { atomic_count_t counter; } atomic_t;
 
 #define ATOMIC64_OPS(...)						\
@@ -296,7 +300,7 @@ static inline unsigned long __cmpxchg##sfx(volatile void *ptr,		\
 	case 8:								\
 		return __cmpxchg_case##sfx##_64(ptr, old, new);		\
 	default:							\
-		BUG();							\
+		BUILD_BUG();						\
 	}								\
 	unreachable();							\
 }
@@ -308,8 +312,8 @@ __CMPXCHG_GEN(_mb)
 
 #define __cmpxchg_wrapper(sfx, ptr, o, n)				\
 ({									\
-	__typeof__(*(ptr)) __ret;					\
-	__ret = (__typeof__(*(ptr)))					\
+	typeof(*(ptr)) __ret;						\
+	__ret = (typeof(*(ptr)))					\
 		__cmpxchg##sfx((ptr), (unsigned long)(o),		\
 				(unsigned long)(n), sizeof(*(ptr)));	\
 	__ret;								\
@@ -370,7 +374,7 @@ static inline unsigned long __xchg##sfx(unsigned long x,		\
 	case 8:								\
 		return __xchg_case##sfx##_64(x, ptr);			\
 	default:							\
-		BUG();							\
+		BUILD_BUG();						\
 	}								\
 	unreachable();							\
 }
@@ -382,8 +386,8 @@ __XCHG_GEN(_mb)
 
 #define __xchg_wrapper(sfx, ptr, x)					\
 ({									\
-	__typeof__(*(ptr)) __ret;					\
-	__ret = (__typeof__(*(ptr)))					\
+	typeof(*(ptr)) __ret;						\
+	__ret = (typeof(*(ptr)))					\
 		__xchg##sfx((unsigned long)(x), (ptr), sizeof(*(ptr))); \
 	__ret;								\
 })
@@ -430,7 +434,7 @@ static inline void __cmpwait##sfx(volatile void *ptr,			\
 	case 8:								\
 		return __cmpwait_case##sfx##_64(ptr, val);		\
 	default:							\
-		BUG();							\
+		BUILD_BUG();						\
 	}								\
 	unreachable();							\
 }

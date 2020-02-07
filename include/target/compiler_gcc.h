@@ -49,6 +49,8 @@ typedef __builtin_va_list va_list;
 #define likely(x)			__builtin_expect(!!(x), 1)
 #define unlikely(x)			__builtin_expect(!!(x), 0)
 #define unreachable()			__builtin_unreachable()
+#define __compiletime_warning(message)	__attribute__((__warning__(message)))
+#define __compiletime_error(message)	__attribute__((__error__(message)))
 
 #define RELOC_HIDE(ptr, off)				\
 	({						\

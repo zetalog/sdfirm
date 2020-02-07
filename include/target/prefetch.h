@@ -3,11 +3,11 @@
 
 #include <target/arch.h>
 
-#ifndef ARCH_HAS_PREFETCH
+#ifndef prefetch
 #define prefetch(x) __builtin_prefetch(x)
 #endif
 
-#ifndef ARCH_HAS_PREFETCHW
+#ifndef prefetchw
 #define prefetchw(x) __builtin_prefetch(x,1)
 #endif
 
