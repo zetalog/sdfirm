@@ -190,6 +190,7 @@ ATOMIC_OPS(xor, xor, i)
 		break;							\
 	default:							\
 		BUG();							\
+		unreachable();						\
 	}								\
 	__ret;								\
 })
@@ -225,6 +226,7 @@ ATOMIC_OPS(xor, xor, i)
 		break;							\
 	default:							\
 		BUG();							\
+		unreachable();						\
 	}								\
 	__ret;								\
 })
@@ -260,6 +262,7 @@ ATOMIC_OPS(xor, xor, i)
 		break;							\
 	default:							\
 		BUG();							\
+		unreachable();						\
 	}								\
 	__ret;								\
 })
@@ -293,6 +296,7 @@ ATOMIC_OPS(xor, xor, i)
 		break;							\
 	default:							\
 		BUG();							\
+		unreachable();						\
 	}								\
 	__ret;								\
 })
@@ -351,6 +355,7 @@ ATOMIC_OPS(xor, xor, i)
 		break;							\
 	default:							\
 		BUG();							\
+		unreachable();						\
 	}								\
 	__ret;								\
 })
@@ -397,6 +402,7 @@ ATOMIC_OPS(xor, xor, i)
 		break;							\
 	default:							\
 		BUG();							\
+		unreachable();						\
 	}								\
 	__ret;								\
 })
@@ -443,6 +449,7 @@ ATOMIC_OPS(xor, xor, i)
 		break;							\
 	default:							\
 		BUG();							\
+		unreachable();						\
 	}								\
 	__ret;								\
 })
@@ -489,6 +496,7 @@ ATOMIC_OPS(xor, xor, i)
 		break;							\
 	default:							\
 		BUG();							\
+		unreachable();						\
 	}								\
 	__ret;								\
 })
