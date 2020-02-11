@@ -125,21 +125,16 @@ ENTRY(__start)
 	/* Handle .bss section */
 	zero_sect __bss_start, __bss_stop, init_bss_exit, init_bss_loop
 
-	/* TODO: Mark relocate copy done:
-	 * use data sections.
-	 */
 	la	t0, abi_relocate_done
-	li	t1, 1
-	REG_S	t1, 0(t0)
+	REG_S	t0, 0(t0)
 	fence	rw, rw
 
 	/* At this point we are running from link address */
 	j	__abi_start_warm
 
 secondary_wait_for_abi_relocate:
-	li	t0, 1
-	la	t1, abi_relocate_done
-	REG_L	t1, 0(t1)
+	la	t0, abi_relocate_done
+	REG_L	t1, 0(t0)
 	/* Reduce the bus traffic so that boot hart may proceed faster */
 	nop
 	nop
@@ -250,12 +245,14 @@ ENTRY(reset_gprs)
 	ret
 ENDPROC(reset_gprs)
 
-	.align 3
-abi_relocate_done:
-	RISCV_PTR	0
-
 ENTRY(_start_hang)
 1:
 	wfi
 	j	1b
 ENDPROC(_start_hang)
+
+	.pushsection .data
+	.align 3
+abi_relocate_done:
+	RISCV_PTR	0
+	.popsection

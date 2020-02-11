@@ -228,21 +228,16 @@ _fdt_reloc_again:
 _fdt_reloc_done:
 #endif
 
-	/* TODO: Mark boot hart done:
-	 * use data sections.
-	 */
-	li	t0, 1
-	la	t1, sbi_relocate_done
-	REG_S	t0, 0(t1)
+	la	t0, sbi_relocate_done
+	REG_S	t0, 0(t0)
 	fence	rw, rw
 
 	j	__sbi_entry_warm
 
 	/* waitting for boot hart done */
 secondary_wait_for_sbi_relocate:
-	li	t0, 1
-	la	t1, sbi_relocate_done
-	REG_L	t1, 0(t1)
+	la	t0, sbi_relocate_done
+	REG_L	t1, 0(t0)
 	/* Reduce the bus traffic so that boot hart may proceed faster */
 	nop
 	nop
@@ -272,10 +267,6 @@ __sbi_entry_warm:
 	/* never reached */
 	ret
 ENDPROC(__sbi_entry)
-
-	.align 3
-sbi_relocate_done:
-	RISCV_PTR	0
 
 ENTRY(_hartid_to_scratch)
 	add	sp, sp, -(3 * __SIZEOF_POINTER__)
@@ -526,4 +517,10 @@ payload_bin:
 #else
 	.incbin	FW_PAYLOAD_PATH
 #endif
+	.popsection
+
+	.pushsection .data
+	.align 3
+sbi_relocate_done:
+	RISCV_PTR	0
 	.popsection
