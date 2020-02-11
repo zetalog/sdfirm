@@ -15,4 +15,6 @@ obj-$(CONFIG_CLK) += clk/
 obj-y += mmc/
 obj-y += scs/
 obj-$(CONFIG_I2C) += i2c/
-obj-$(CONFIG_DW_DMA) += i2c/
+obj-$(CONFIG_DW_DMA) += dma/
+obj-$(CONFIG_DW_SPI) += spi/
+

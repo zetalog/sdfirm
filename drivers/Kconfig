@@ -21,5 +21,6 @@ source drivers/ddr/Kconfig
 source drivers/clk/Kconfig
 source drivers/i2c/Kconfig
 source drivers/dma/Kconfig
+source drivers/spi/Kconfig
 
 endmenu

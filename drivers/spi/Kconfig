@@ -1,0 +1,12 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "SPI Master drivers"
+
+menuconfig DW_SPI
+	bool "Synopsys DesignWare Apb Spi support"
+
+endmenu
+
