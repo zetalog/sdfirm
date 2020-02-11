@@ -114,6 +114,6 @@
 	la	gp, __global_pointer$
 	.option pop
 	.endm
-#endif /* __ASSEMBLY__ */
+#endif
 
 #endif /* __ASSEMBLER_RISCV_H_INCLUDE__ */

@@ -1,10 +1,42 @@
 /*
- * SPDX-License-Identifier: BSD-2-Clause
+ * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2019 Western Digital Corporation or its affiliates.
+ * Copyright (c) 2019
+ *    ZETALOG - "Lv ZHENG".  All rights reserved.
+ *    Author: Lv "Zetalog" Zheng
+ *    Internet: zhenglv@hotmail.com
  *
- * Authors:
- *   Anup Patel <anup.patel@wdc.com>
+ * This COPYRIGHT used to protect Personal Intelligence Rights.
+ * Redistribution and use in source and binary forms with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *    This product includes software developed by the Lv "Zetalog" ZHENG.
+ * 3. Neither the name of this software nor the names of its developers may
+ *    be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ * 4. Permission of redistribution and/or reuse of souce code partially only
+ *    granted to the developer(s) in the companies ZETALOG worked.
+ * 5. Any modification of this software should be published to ZETALOG unless
+ *    the above copyright notice is no longer declaimed.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE ZETALOG AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE ZETALOG OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * @(#)sbi_entry.S: SBI mode entry point
+ * $Id: sbi_entry.S,v 1.0 2020-02-11 12:58:00 zhenglv Exp $
  */
 
 #include <target/init.h>
@@ -25,51 +57,62 @@
 	add	\__d4, \__s4, zero
 .endm
 
+	.macro init_tp hartid, reg_tmp
+#ifdef CONFIG_SMP
+	slli	\reg_tmp, \hartid, PERCPU_STACK_SHIFT
+	la	tp, (SBI_PERCPU_STACKS_START + PERCPU_STACK_SIZE)
+	add	tp, tp, \reg_tmp
+#else
+	la	tp, SBI_PERCPU_STACKS_END
+#endif
+	li	\reg_tmp, SBI_SCRATCH_SIZE
+	sub	tp, tp, \reg_tmp
+	.endm
+
+	.macro init_sptp hartid, reg_tmp
+#ifdef CONFIG_SMP
+	slli	\reg_tmp, \hartid, PERCPU_STACK_SHIFT
+	la	sp, (SBI_PERCPU_STACKS_START + PERCPU_STACK_SIZE)
+	add	sp, sp, \reg_tmp
+#else
+	la	sp, SBI_PERCPU_STACKS_END
+#endif
+	li	\reg_tmp, SBI_SCRATCH_SIZE
+	sub	tp, sp, \reg_tmp
+	add	sp, tp, zero
+	.endm
+
 	__HEAD
 
 ENTRY(__sbi_entry)
-	/* mark relocate copy done */
-	la	t0, _boot_status
-	li	t1, 1
-	REG_S	t1, 0(t0)
-	fence	rw, rw
+	/* s6 -> HART ID
+	 * s7 -> HART Count
+	 */
+	csrr	s6, CSR_MHARTID
+	li	s7, NR_CPUS
+	/* Jump to warm boot if it is not the first core booting, hartid
+	 * 0 is mandatory by ISA.
+	 */
+	bnez	s6, secondary_wait_for_sbi_relocate
 
 	/* Allow main firmware to save info */
 	MOV_5R	s0, a0, s1, a1, s2, a2, s3, a3, s4, a4
 	call	fw_save_info
 	MOV_5R	a0, s0, a1, s1, a2, s2, a3, s3, a4, s4
 
-	/* Preload HART details
-	 * s7 -> HART Count
-	 * s8 -> HART Stack Size
-	 */
-	li	s7, NR_CPUS
-	li	s8, SBI_PERCPU_STACK_SIZE
-
-	/* Setup scratch space for all the HARTs*/
-	la	tp, _fw_end
-	mul	a5, s7, s8
-	add	tp, tp, a5
 	/* Keep a copy of tp */
-	add	t3, tp, zero
+	la	t3, SBI_PERCPU_STACKS_END
 	/* Counter */
 	li	t2, 1
-	/* hartid 0 is mandated by ISA */
+	/* hartid 0 */
 	li	t1, 0
 _scratch_init:
-	add	tp, t3, zero
-	mul	a5, s8, t1
-	sub	tp, tp, a5
-	li	a5, SBI_SCRATCH_SIZE
-	sub	tp, tp, a5
+	init_tp	t1, a5
 
 	/* Initialize scratch space */
 	/* Store fw_start and fw_size in scratch space */
-	la	a4, _fw_start
-	la	a5, _fw_end
-	mul	t0, s7, s8
-	add	a5, a5, t0
-	sub	a5, a5, a4
+	la	a4, _start
+	la	a5, _end
 	REG_S	a4, SBI_SCRATCH_FW_START(tp)
 	REG_S	a5, SBI_SCRATCH_FW_SIZE(tp)
 	/* Store next arg1 in scratch space */
@@ -88,7 +131,7 @@ _scratch_init:
 	REG_S	a0, SBI_SCRATCH_NEXT_MODE(tp)
 	MOV_3R	a0, s0, a1, s1, a2, s2
 	/* Store warm_boot address in scratch space */
-	la	a4, _start_warm
+	la	a4, __sbi_entry_warm
 	REG_S	a4, SBI_SCRATCH_WARMBOOT_ADDR(tp)
 	/* Store platform address in scratch space */
 	la	a4, platform
@@ -122,8 +165,8 @@ _scratch_init:
 	add	a1, t1, zero
 _prev_arg1_override_done:
 
-	/*
-	 * Relocate Flatened Device Tree (FDT)
+#ifdef CONFIG_FDT
+	/* Relocate Flatened Device Tree (FDT)
 	 * source FDT address = previous arg1
 	 * destination FDT address = next arg1
 	 *
@@ -183,55 +226,34 @@ _fdt_reloc_again:
 	add	t1, t1, __SIZEOF_POINTER__
 	blt	t1, t2, _fdt_reloc_again
 _fdt_reloc_done:
+#endif
 
-	/* mark boot hart done */
-	li	t0, 2
-	la	t1, _boot_status
+	/* TODO: Mark boot hart done:
+	 * use data sections.
+	 */
+	li	t0, 1
+	la	t1, sbi_relocate_done
 	REG_S	t0, 0(t1)
 	fence	rw, rw
-	j	_start_warm
 
-	/* waitting for boot hart done (_boot_status == 2) */
-_wait_for_boot_hart:
-	li	t0, 2
-	la	t1, _boot_status
+	j	__sbi_entry_warm
+
+	/* waitting for boot hart done */
+secondary_wait_for_sbi_relocate:
+	li	t0, 1
+	la	t1, sbi_relocate_done
 	REG_L	t1, 0(t1)
 	/* Reduce the bus traffic so that boot hart may proceed faster */
 	nop
 	nop
 	nop
-	bne	t0, t1, _wait_for_boot_hart
+	bne	t0, t1, secondary_wait_for_sbi_relocate
 
-_start_warm:
-	/* Reset all registers for non-boot HARTs */
-	li	ra, 0
-	call	reset_gprs
-
-	/* Disable and clear all interrupts */
-	csrw	CSR_MIE, zero
-	csrw	CSR_MIP, zero
-
-	li	s7, NR_CPUS
-	li	s8, SBI_PERCPU_STACK_SIZE
-
-	/* HART ID should be within expected limit */
-	csrr	s6, CSR_MHARTID
-	bge	s6, s7, _start_hang
-
-	/* find the scratch space for this hart */
-	la	tp, _fw_end
-	mul	a5, s7, s8
-	add	tp, tp, a5
-	mul	a5, s8, s6
-	sub	tp, tp, a5
-	li	a5, SBI_SCRATCH_SIZE
-	sub	tp, tp, a5
-
+__sbi_entry_warm:
+	/* Init SP */
+	init_sptp s6, a5
 	/* update the mscratch */
 	csrw	CSR_MSCRATCH, tp
-
-	/* Setup stack */
-	add	sp, tp, zero
 
 	/* Setup trap handler */
 	la	a4, _trap_handler
@@ -252,7 +274,7 @@ _start_warm:
 ENDPROC(__sbi_entry)
 
 	.align 3
-_boot_status:
+sbi_relocate_done:
 	RISCV_PTR	0
 
 ENTRY(_hartid_to_scratch)
@@ -266,7 +288,7 @@ ENTRY(_hartid_to_scratch)
 	 * s1 -> HART Stack End
 	 * s2 -> Temporary
 	 */
-	li	s0, SBI_PERCPU_STACK_SIZE
+	li	s0, PERCPU_STACK_SIZE
 	li	s2, NR_CPUS
 	mul	s2, s2, s0
 	la	s1, _fw_end
@@ -281,12 +303,6 @@ ENTRY(_hartid_to_scratch)
 	add	sp, sp, (3 * __SIZEOF_POINTER__)
 	ret
 ENDPROC(_hartid_to_scratch)
-
-ENTRY(_start_hang)
-1:
-	wfi
-	j	1b
-ENDPROC(_start_hang)
 
 ENTRY(_trap_handler)
 	/* Swap TP and MSCRATCH */

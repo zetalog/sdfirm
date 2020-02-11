@@ -234,6 +234,7 @@ ENTRY(smp_hw_cpu_id)
 	madd	x0, x0, x2, x1
 	ret
 ENDPROC(smp_hw_cpu_id)
+
 ENTRY(_smp_start)
 	init_sp
 

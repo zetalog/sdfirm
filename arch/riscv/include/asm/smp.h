@@ -53,13 +53,6 @@ static inline uint8_t __smp_processor_id(void)
 	return (uint8_t)(t >> 12);
 }
 
-static inline uint8_t __hmp_processor_id(void)
-{
-	uint8_t cpu = __smp_processor_id();
-
-	return cpu >= NR_CPUS ? NR_CPUS : cpu;
-}
-
 static inline uintptr_t __smp_processor_stack_top(void)
 {
 	uintptr_t t;

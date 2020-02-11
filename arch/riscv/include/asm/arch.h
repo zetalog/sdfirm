@@ -46,8 +46,8 @@
  * wait_irq, cpu_relax, etc., as long as the CPU/Cache definitions and
  * configurable system bus targets (CPU/Cache, peripheral nodes).
  */
-#include <asm/reg.h>
 #include <asm/mach/arch.h>
+#include <asm/reg.h>
 #include <asm/pmp.h>
 
 #ifdef CONFIG_ARCH_HAS_NOVEC
@@ -57,15 +57,16 @@
 #define VEC_BASE	0
 #endif
 
+#define ABI_PERCPU_STACKS_START		PERCPU_STACKS_START
+#define ABI_PERCPU_STACKS_END		PERCPU_STACKS_END
+#define ABI_PERCPU_STACK_START(x)	PERCPU_STACK_START(x)
+
 #ifdef CONFIG_SBI
-#define SBI_PERCPU_STACKS_START		PERCPU_STACKS_END
-#define SBI_PERCPU_STACKS_SIZE		(SBI_PERCPU_STACK_SIZE * NR_CPUS)
+#define SBI_PERCPU_STACKS_START		ABI_PERCPU_STACKS_END
 #define SBI_PERCPU_STACKS_END		\
-	(SBI_PERCPU_STACKS_START + SBI_PERCPU_STACKS_SIZE)
-#define SBI_PERCPU_STACK_SHIFT		12
-#define SBI_PERCPU_STACK_SIZE		(1 << SBI_PERCPU_STACK_SHIFT)
+	(SBI_PERCPU_STACKS_START + PERCPU_STACKS_SIZE)
 #define SBI_PERCPU_STACK_START(x)	\
-	(SBI_PERCPU_STACKS_START + (x) * SBI_PERCPU_STACK_SIZE)
+	(SBI_PERCPU_STACKS_START + (x) * PERCPU_STACK_SIZE)
 #endif
 
 #endif /* __ARCH_RISCV_H_INCLUDE__ */

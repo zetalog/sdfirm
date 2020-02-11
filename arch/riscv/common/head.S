@@ -2,24 +2,26 @@
 #include <target/arch.h>
 #include <target/paging.h>
 
-	.macro	init_sp
-#ifdef CONFIG_SMP
-	csrr	a3, CSR_MHARTID
-	slli	a2, a3, PERCPU_STACK_SHIFT
-	la	sp, PERCPU_STACKS_START
-	add	sp, sp, a2
-#else
-	la	sp, PERCPU_STACKS_END
-#endif
-	.endm
-
 	.macro disable_mirq
-#ifdef CONFIG_RISCV_ENTR_M
-	csrci	CSR_MSTATUS, SR_MIE
-#endif
+	csrw	CSR_MIE, zero
+	csrw	CSR_MIP, zero
 	.endm
 
 	.macro disable_sirq
+	csrw	CSR_SIE, zero
+	csrw	CSR_SIP, zero
+	.endm
+
+	.macro disable_entr_irq
+#ifdef CONFIG_RISCV_ENTR_M
+	disable_mirq
+#endif
+#ifdef CONFIG_RISCV_ENTR_S
+	disable_sirq
+#endif
+	.endm
+
+	.macro disable_exit_irq
 	csrw	CSR_IE, zero
 	csrw	CSR_IP, zero
 	.endm
@@ -28,6 +30,26 @@
 #ifdef CONFIG_RISCV_F
 	li	t0, SR_FS
 	csrc	CSR_STATUS, t0
+#endif
+	.endm
+
+	.macro init_entr_tls
+#ifdef CONFIG_RISCV_ENTR_M
+	csrw	CSR_MSCRATCH, 0
+#endif
+#ifdef CONFIG_RISCV_ENTR_S
+	csrw	CSR_SSCRATCH, 0
+#endif
+	.endm
+
+	.macro	init_sp
+#ifdef CONFIG_SMP
+	csrr	a3, CSR_MHARTID
+	slli	a2, a3, PERCPU_STACK_SHIFT
+	la	sp, (ABI_PERCPU_STACKS_START + PERCPU_STACK_SIZE)
+	add	sp, sp, a2
+#else
+	la	sp, ABI_PERCPU_STACKS_END
 #endif
 	.endm
 
@@ -83,7 +105,14 @@
 
 ENTRY(__start)
 	/* Disable global interrupt. */
-	disable_mirq
+	disable_entr_irq
+
+	/* Jump to warm boot if it is not the first core booting */
+	csrr	a6, CSR_MHARTID
+	li	a7, NR_CPUS
+	bge	a6, a7, secondary_park
+	/* hartid 0 is the mandatory core */
+	bnez	a6, secondary_wait_for_abi_relocate
 
 #ifdef CONFIG_LOAD_TEXT
 	/* Handle both .text and .rodata sections */
@@ -96,12 +125,32 @@ ENTRY(__start)
 	/* Handle .bss section */
 	zero_sect __bss_start, __bss_stop, init_bss_exit, init_bss_loop
 
+	/* TODO: Mark relocate copy done:
+	 * use data sections.
+	 */
+	la	t0, abi_relocate_done
+	li	t1, 1
+	REG_S	t1, 0(t0)
 	fence	rw, rw
-	/* At this point we are running from link address */
 
+	/* At this point we are running from link address */
+	j	__abi_start_warm
+
+secondary_wait_for_abi_relocate:
+	li	t0, 1
+	la	t1, abi_relocate_done
+	REG_L	t1, 0(t1)
+	/* Reduce the bus traffic so that boot hart may proceed faster */
+	nop
+	nop
+	nop
+	bne	t0, t1, secondary_wait_for_abi_relocate
+
+__abi_start_warm:
+#ifdef CONFIG_RISCV_ENTR_M
 	/* Reset all registers for boot HART */
-	li	ra, 0
 	call	reset_gprs
+#endif
 
 #ifdef CONFIG_SBI
 	jal	ra, __sbi_entry
@@ -111,7 +160,7 @@ ENTRY(__start)
 ENDPROC(__start)
 
 ENTRY(__sbi_exit)
-	disable_sirq
+	disable_exit_irq
 	disable_fpu
 
 	csrr	a3, CSR_MHARTID
@@ -141,7 +190,7 @@ ENTRY(relocate)
 	enable_mmu mmu_id_map, a0, a1
 .align 2
 1:
-	la	a0, .Lsecondary_park
+	la	a0, secondary_park
 	csrw	CSR_TVEC, a0
 	init_gp
 	init_sp
@@ -151,9 +200,9 @@ ENDPROC(relocate)
 .Lsecondary_start:
 #ifdef CONFIG_SMP
 	li	a1, NR_CPUS
-	bgeu	a0, a1, .Lsecondary_park
+	bgeu	a0, a1, secondary_park
 
-	la	a3, .Lsecondary_park
+	la	a3, secondary_park
 	csrw	CSR_TVEC, a3
 
 	call	relocate
@@ -162,9 +211,9 @@ ENDPROC(relocate)
 #endif
 
 .align 2
-.Lsecondary_park:
+secondary_park:
 	wfi
-	j	.Lsecondary_park
+	j	secondary_park
 
 ENTRY(reset_gprs)
 	/* flush the instruction cache */
@@ -197,6 +246,16 @@ ENTRY(reset_gprs)
 	li	t4, 0
 	li	t5, 0
 	li	t6, 0
-	csrw	CSR_MSCRATCH, 0
+	init_entr_tls
 	ret
 ENDPROC(reset_gprs)
+
+	.align 3
+abi_relocate_done:
+	RISCV_PTR	0
+
+ENTRY(_start_hang)
+1:
+	wfi
+	j	1b
+ENDPROC(_start_hang)

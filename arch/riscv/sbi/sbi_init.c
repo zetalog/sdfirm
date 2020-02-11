@@ -20,11 +20,7 @@
 	"        | |\n"                                     \
 	"        |_|\n\n"
 
-#if 0
 struct sbi_scratch *sbi_scratches[NR_CPUS];
-#else
-struct sbi_scratch *sbi_scratches[5]; /* for fu540 */
-#endif
 
 void sbi_late_init(void)
 {
@@ -32,6 +28,7 @@ void sbi_late_init(void)
 	cpu_t hartid = sbi_current_hartid();
 	struct sbi_scratch *scratch = sbi_scratches[hartid];
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+	caddr_t sp = (caddr_t)scratch + SBI_SCRATCH_SIZE;
 
 #if 0
 	if (!(scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS))
@@ -49,6 +46,9 @@ void sbi_late_init(void)
 	printf("Platform HART Features : RV%d%s\n", misa_xlen(), str);
 	printf("Platform Max HARTs     : %d\n", NR_CPUS);
 	printf("Current Hart           : %u\n", hartid);
+	printf("Current Thread Pointer : 0x%016lx\n", scratch);
+	printf("Current Treahd Stack   : 0x%016lx - 0x%016lx\n",
+	       sp - PERCPU_STACK_SIZE, sp);
 	/* Firmware details */
 	printf("Firmware Base          : 0x%lx\n", scratch->fw_start);
 	printf("Firmware Size          : %d KB\n",
