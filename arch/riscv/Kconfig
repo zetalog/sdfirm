@@ -9,9 +9,11 @@ config 128BIT
 	bool
 
 config 64BIT
+	select ARCH_HAS_BITS_PER_UNIT_64
 	bool
 
 config 32BIT
+	select ARCH_HAS_BITS_PER_UNIT_32
 	bool
 
 config RISCV
