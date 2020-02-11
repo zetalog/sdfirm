@@ -82,6 +82,18 @@
 	add	sp, tp, zero
 	.endm
 
+	.macro get_tp hartid, reg_tmp, reg_res
+#ifdef CONFIG_SMP
+	slli	\reg_tmp, \hartid, PERCPU_STACK_SHIFT
+	la	\reg_res, (SBI_PERCPU_STACKS_START + PERCPU_STACK_SIZE)
+	add	\reg_res, \reg_res, \reg_tmp
+#else
+	la	\reg_res, SBI_PERCPU_STACKS_END
+#endif
+	li	\reg_tmp, SBI_SCRATCH_SIZE
+	sub	\reg_res, \reg_res, \reg_tmp
+	.endm
+
 	__HEAD
 
 ENTRY(__sbi_entry)
@@ -269,29 +281,20 @@ __sbi_entry_warm:
 ENDPROC(__sbi_entry)
 
 ENTRY(_hartid_to_scratch)
-	add	sp, sp, -(3 * __SIZEOF_POINTER__)
+	add	sp, sp, -(2 * __SIZEOF_POINTER__)
 	REG_S	s0, (sp)
 	REG_S	s1, (__SIZEOF_POINTER__)(sp)
-	REG_S	s2, (__SIZEOF_POINTER__ * 2)(sp)
-	/*
-	 * a0 -> HART ID (passed by caller)
-	 * s0 -> HART Stack Size
+
+	/* a0 -> HART ID (passed by caller)
+	 * s0 -> Temporary
 	 * s1 -> HART Stack End
-	 * s2 -> Temporary
 	 */
-	li	s0, PERCPU_STACK_SIZE
-	li	s2, NR_CPUS
-	mul	s2, s2, s0
-	la	s1, _fw_end
-	add	s1, s1, s2
-	mul	s2, s0, a0
-	sub	s1, s1, s2
-	li	s2, SBI_SCRATCH_SIZE
-	sub	a0, s1, s2
+	get_tp	a0, s0, s1
+	sub	a0, s1, zero
+
 	REG_L	s0, (sp)
 	REG_L	s1, (__SIZEOF_POINTER__)(sp)
-	REG_L	s2, (__SIZEOF_POINTER__ * 2)(sp)
-	add	sp, sp, (3 * __SIZEOF_POINTER__)
+	add	sp, sp, (2 * __SIZEOF_POINTER__)
 	ret
 ENDPROC(_hartid_to_scratch)
 

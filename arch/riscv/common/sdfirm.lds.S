@@ -24,7 +24,6 @@ SECTIONS
 #endif
 
 	. = PAGE_OFFSET + TEXT_OFFSET;
-	PROVIDE(_fw_start = .);
 	_start = .;				/* begin of sdfirm */
 	_stext = .;				/* begin of text and rodata sections */
 	__stext = .;				/* begin of text sections */
@@ -119,7 +118,6 @@ SECTIONS
 
 	. += PERCPU_STACKS_SIZE;
 #ifdef CONFIG_SBI
-	PROVIDE(_fw_end = .);
 	. += PERCPU_STACKS_SIZE;
 #endif
 	__end = .;				/* end of sdfirm */
