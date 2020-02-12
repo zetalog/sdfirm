@@ -69,4 +69,9 @@
 	(SBI_PERCPU_STACKS_START + (x) * PERCPU_STACK_SIZE)
 #endif
 
+#ifndef __ASSEMBLY__
+unsigned long get_sp(void);
+unsigned long get_tp(void);
+#endif
+
 #endif /* __ARCH_RISCV_H_INCLUDE__ */

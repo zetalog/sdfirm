@@ -251,6 +251,16 @@ ENTRY(_start_hang)
 	j	1b
 ENDPROC(_start_hang)
 
+ENTRY(get_sp)
+	add	a0, sp, zero
+	ret
+ENDPROC(get_sp)
+
+ENTRY(get_tp)
+	add	a0, tp, zero
+	ret
+ENDPROC(get_tp)
+
 	.pushsection .data
 	.align 3
 abi_relocate_done:
