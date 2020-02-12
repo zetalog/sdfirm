@@ -48,16 +48,16 @@ static inline uint8_t __smp_processor_id(void)
 {
 	unsigned int t;
 
-	asm volatile ("mv	sp, %0\n" : "=r" (t));
-	t -= (PERCPU_STACKS_START + 1);
-	return (uint8_t)(t >> 12);
+	asm volatile ("add	%0, sp, zero\n" : "=r" (t));
+	t -= (ABI_PERCPU_STACKS_START + 1);
+	return (uint8_t)(t >> PERCPU_STACK_SHIFT);
 }
 
 static inline uintptr_t __smp_processor_stack_top(void)
 {
 	uintptr_t t;
 
-	asm volatile ("mv	sp, %0\n" : "=r" (t));
+	asm volatile ("add	%0, sp, zero\n" : "=r" (t));
 	return ALIGN(t, PERCPU_STACK_SIZE);
 }
 #endif
