@@ -8,7 +8,6 @@
  */
 
 #include <target/sbi.h>
-#include <sbi/riscv_fp.h>
 
 /**
  * Return HART ID of the caller.
@@ -40,13 +39,10 @@ static void mstatus_init(struct sbi_scratch *scratch, u32 hartid)
 		csr_write(CSR_SATP, 0);
 }
 
+#if defined(CONFIG_RISCV_F) || defined(CONFIG_RISCV_D)
 static int fp_init(u32 hartid)
 {
-#ifdef __riscv_flen
 	int i;
-#else
-	unsigned long fd_mask;
-#endif
 
 	if (!misa_extension('D') && !misa_extension('F'))
 		return 0;
@@ -54,18 +50,29 @@ static int fp_init(u32 hartid)
 	if (!(csr_read(CSR_MSTATUS) & SR_FS))
 		return -EINVAL;
 
-#ifdef __riscv_flen
 	for (i = 0; i < 32; i++)
 		init_fp_reg(i);
 	csr_write(CSR_FCSR, 0);
+	return 0;
+}
 #else
+static int fp_init(u32 hartid)
+{
+	unsigned long fd_mask;
+
+	if (!misa_extension('D') && !misa_extension('F'))
+		return 0;
+
+	if (!(csr_read(CSR_MSTATUS) & SR_FS))
+		return -EINVAL;
+
 	fd_mask = (1 << ('F' - 'A')) | (1 << ('D' - 'A'));
 	csr_clear(CSR_MISA, fd_mask);
 	if (csr_read(CSR_MISA) & fd_mask)
 		return -ENOTSUP;
-#endif
 	return 0;
 }
+#endif
 
 static int delegate_traps(struct sbi_scratch *scratch, u32 hartid)
 {

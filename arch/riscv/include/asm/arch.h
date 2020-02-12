@@ -49,6 +49,7 @@
 #include <asm/mach/arch.h>
 #include <asm/reg.h>
 #include <asm/pmp.h>
+#include <asm/fp.h>
 
 #ifdef CONFIG_ARCH_HAS_NOVEC
 #ifdef VEC_BASE

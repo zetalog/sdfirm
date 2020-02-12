@@ -513,11 +513,7 @@ config SYS_MONITOR
 config SBI
 	bool "Supervisor binary interface (SBI) support"
 	depends RISCV_ENTR_M
-	depends CPU_F
-	depends CPU_D
 	depends CPU_PMP
-	select RISCV_F
-	select RISCV_D
 	select RISCV_PMP
 	select BIT_FLS64
 	select BIT_FFS32

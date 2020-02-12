@@ -3,7 +3,6 @@ EXTRA_CFLAGS += -fno-strict-aliasing
 obj-y :=
 
 obj-y += sbi_entry.rel
-obj-y += riscv_hardfp.rel
 obj-y += riscv_unpriv.rel
 obj-y += sbi_ecall.rel
 obj-y += sbi_emulate_csr.rel
