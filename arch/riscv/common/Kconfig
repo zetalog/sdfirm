@@ -5,6 +5,7 @@ config CPU_VAISRA
 	select CPU_SV39
 	select CPU_SV48
 	select CPU_PMP
+	select CPU_COUNTERS
 
 # SiFive E51
 config CPU_E51
@@ -22,6 +23,7 @@ config CPU_U54
 	select CPU_C
 	select CPU_SV39
 	select CPU_PMP
+	select CPU_COUNTERS
 
 # THead Xuantie C910
 config CPU_C910
@@ -61,6 +63,7 @@ config CPU_SPIKE64
 	select CPU_64G
 	select CPU_C
 	select CPU_PMP
+	select CPU_COUNTERS
 
 # VIRT
 config CPU_VIRT
@@ -68,6 +71,7 @@ config CPU_VIRT
 	select CPU_64G
 	select CPU_C
 	select CPU_PMP
+	select CPU_COUNTERS
 
 config CPU_32G
 	bool
@@ -151,7 +155,6 @@ config CPU_M
 
 config CPU_A
 	bool
-	select ARCH_HAS_SMP
 
 config CPU_F
 	bool
@@ -535,6 +538,7 @@ config ARCH_HAS_CLINT
 config CLINT
 	bool "Core Local Interruptor (CLINT) support"
 	depends ARCH_HAS_CLINT
+	select ARCH_HAS_SMP if CPU_A
 
 config ARCH_HAS_PLIC
 	bool

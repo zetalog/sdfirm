@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Feb 12 11:21:16 2020
+# Wed Feb 12 11:28:16 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -67,6 +67,7 @@ CONFIG_CPU_A=y
 CONFIG_CPU_F=y
 CONFIG_CPU_D=y
 CONFIG_CPU_C=y
+CONFIG_CPU_COUNTERS=y
 CONFIG_CPU_PMP=y
 CONFIG_CPU_SV39=y
 CONFIG_CPU_SV48=y
@@ -127,6 +128,11 @@ CONFIG_SPIKE_MEM1_SIZE=0x80000000
 # CONFIG_SPIKE_MEM2 is not set
 # CONFIG_SPIKE_ICACHE is not set
 # CONFIG_SPIKE_DCACHE is not set
+
+#
+# Peripheral settings
+#
+CONFIG_SPIKE_CLINT=y
 # CONFIG_SPIKE_PK is not set
 CONFIG_SPIKE_BBL=y
 

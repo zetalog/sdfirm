@@ -109,6 +109,17 @@ config SPIKE_L2_CACHE_B
 
 endif
 
+menu "Peripheral settings"
+
+config SPIKE_CLINT
+	bool "Enable CLINT emulation"
+	select ARCH_HAS_GPT
+	select ARCH_HAS_CLINT
+	select ARCH_HAS_IRQC
+	select CLINT if !SYS_NOIRQ || SBI
+
+endmenu
+
 choice
 	prompt "Program type"
 
