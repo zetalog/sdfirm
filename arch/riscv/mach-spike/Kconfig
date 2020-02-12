@@ -110,14 +110,11 @@ menu "Peripheral settings"
 
 config SPIKE_CLINT
 	bool "Enable CLINT emulation"
-	select ARCH_HAS_GPT
 	select ARCH_HAS_CLINT
-	select ARCH_HAS_IRQC
-	select CLINT if !SYS_NOIRQ || SBI
+	select CLINT if !SYS_NOIRQ
 
 config SPIKE_HTIF
 	bool "Enable HTIF emulation"
-	select ARCH_HAS_UART
 	select ARCH_HAS_HTIF
 	select HTIF if UART || DEBUG_PRINT || CONSOLE
 

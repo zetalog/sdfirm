@@ -59,7 +59,7 @@
 #define uart_hw_con_init()	do { } while (0)
 #ifdef CONFIG_MMU
 #define uart_hw_mmu_init()	do { } while (0)
-#endif
-#endif
+#endif /* CONFIG_MMU */
+#endif /* CONFIG_HTIF */
 
 #endif /* __UART_SPIKE_H_INCLUDE__ */

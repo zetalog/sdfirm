@@ -155,6 +155,7 @@ config CPU_M
 
 config CPU_A
 	bool
+	select ARCH_HAS_SMP
 
 config CPU_F
 	bool
@@ -538,7 +539,6 @@ config ARCH_HAS_CLINT
 config CLINT
 	bool "Core Local Interruptor (CLINT) support"
 	depends ARCH_HAS_CLINT
-	select ARCH_HAS_SMP if CPU_A
 
 config ARCH_HAS_PLIC
 	bool
