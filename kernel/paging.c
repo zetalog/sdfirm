@@ -211,9 +211,6 @@ static void init_pte(pmd_t *pmdp, caddr_t addr, caddr_t end,
 		con_dbg("PTE: %016llx=%016llx, addr=%016llx\n",
 			ptep, new_pte, addr);
 		set_pte(ptep, new_pte);
-		if (strcmp((char *)__cmd_start, "mem") != 0)
-			printf("CMD FAIL: %016llx=%016llx %016llx-%016llx\n",
-			       ptep, new_pte, phys, addr);
 		/* After the PTE entry has been populated once, we
 		 * only allow updates to the permission attributes.
 		 */

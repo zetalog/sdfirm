@@ -28,9 +28,7 @@ __TEXT_TYPE__(const struct uart_port, uart_port_t);
 #endif
 #ifdef CONFIG_CONSOLE
 #define uart_hw_con_init()	do { } while (0)
-#ifndef CONFIG_MMU
 #define uart_hw_mmu_init()	do { } while (0)
-#endif
 #endif
 #ifdef CONFIG_CONSOLE_OUTPUT
 #define uart_hw_con_write(byte)	do { } while (0)

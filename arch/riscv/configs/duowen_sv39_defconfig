@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Feb 12 11:32:13 2020
+# Wed Feb 12 12:51:04 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -23,21 +23,7 @@ CONFIG_FIRMWARE=y
 #
 # CONFIG_GEM5 is not set
 # CONFIG_RIS is not set
-CONFIG_CONSOLE=y
-CONFIG_CONSOLE_COMMAND=y
-CONFIG_CONSOLE_OUTPUT=y
-# CONFIG_CONSOLE_OUTPUT_CR is not set
-CONFIG_CONSOLE_PRINT_BUFFER_SIZE=512
-CONFIG_CONSOLE_INPUT=y
-# CONFIG_CONSOLE_230400 is not set
-CONFIG_CONSOLE_115200=y
-# CONFIG_CONSOLE_57600 is not set
-# CONFIG_CONSOLE_38400 is not set
-# CONFIG_CONSOLE_19200 is not set
-# CONFIG_CONSOLE_9600 is not set
-# CONFIG_CONSOLE_4800 is not set
-# CONFIG_CONSOLE_2400 is not set
-# CONFIG_CONSOLE_DEBUG is not set
+# CONFIG_CONSOLE is not set
 
 #
 # RISCV system options
@@ -113,8 +99,6 @@ CONFIG_SBI=y
 #
 # System peripherals
 #
-CONFIG_ARCH_HAS_HTIF=y
-CONFIG_HTIF=y
 
 #
 # Simulated RISCV (SPIKE) board options
@@ -131,6 +115,7 @@ CONFIG_SPIKE_MEM1_SIZE=0x80000000
 # Peripheral settings
 #
 # CONFIG_SPIKE_CLINT is not set
+# CONFIG_SPIKE_HTIF is not set
 # CONFIG_SPIKE_PK is not set
 CONFIG_SPIKE_BBL=y
 
@@ -209,7 +194,6 @@ CONFIG_MMU_MAP_MEM=y
 # CONFIG_LCD is not set
 # CONFIG_KBD is not set
 # CONFIG_LED is not set
-CONFIG_ARCH_HAS_UART=y
 
 #
 # Universal asynchronous RX/TX (UART) support
@@ -364,3 +348,4 @@ CONFIG_DEBUG=y
 # CONFIG_CC_GEN_DEBUG is not set
 # CONFIG_DEBUG_PANIC is not set
 # CONFIG_PORTING is not set
+# CONFIG_DEBUG_PRINT is not set
