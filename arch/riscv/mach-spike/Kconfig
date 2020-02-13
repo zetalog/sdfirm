@@ -120,6 +120,20 @@ config SPIKE_HTIF
 
 endmenu
 
+menu "Shutdown scheme"
+
+config SPIKE_SHUTDOWN_DUOWEN
+	bool "Duowen IO write"
+	help
+	  Write 0x14 to 0xFFFFFFFF00.
+
+config SPIKE_SHUTDOWN_OVPSIM
+	bool "OVPSim spin"
+	help
+	  Spin around write_tohost symbol.
+
+endmenu
+
 choice
 	prompt "Program type"
 

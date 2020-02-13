@@ -103,6 +103,13 @@ static int spike_timer_init(bool cold_boot)
 
 static int spike_system_down(u32 type)
 {
+#ifdef CONFIG_SPIKE_SHUTDOWN_DUOWEN
+	__raw_writel(0x14, 0xFFFFFFFF00);
+	__fence();
+#endif
+#ifdef CONFIG_SPIKE_SHUTDOWN_OVPSIM
+	ovpsim_shutdown();
+#endif
 	/* For now nothing to do. */
 	return 0;
 }

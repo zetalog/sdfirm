@@ -49,6 +49,7 @@
 /* Instruction naming identical APIs */
 #define nop()			asm volatile("nop")
 #define wfi()			asm volatile("wfi")
+#define __fence()		asm volatile("fence")
 
 /* Architecture specific CPU primitives */
 #define cpu_relax()		nop() /* Non-fairness cpu_relax() */

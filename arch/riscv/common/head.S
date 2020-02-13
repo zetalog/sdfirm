@@ -242,6 +242,11 @@ ENTRY(get_tp)
 	ret
 ENDPROC(get_tp)
 
+ENTRY(ovpsim_shutdown)
+write_tohost:
+	j	write_tohost
+ENDPROC(ovpsim_shutdown)
+
 	.pushsection .data
 	.align 3
 abi_relocate_done:
