@@ -7,6 +7,7 @@ int main(void)
 	OFFSET(TASK_KERN_SP, task_entry, kern_sp);
 	OFFSET(TASK_USER_SP, task_entry, user_sp);
 
+	DEFINE(SCRATCH_SIZE, sizeof(struct scratch));
 	OFFSET(SCRATCH_SP, scratch, sp);
 
 	DEFINE(PT_SIZE, sizeof(struct pt_regs));

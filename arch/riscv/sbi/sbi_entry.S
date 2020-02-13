@@ -43,19 +43,19 @@
 #include <target/sbi.h>
 #include <asm/asm-offsets.h>
 
-.macro	MOV_3R __d0, __s0, __d1, __s1, __d2, __s2
+	.macro MOV_3R __d0, __s0, __d1, __s1, __d2, __s2
 	add	\__d0, \__s0, zero
 	add	\__d1, \__s1, zero
 	add	\__d2, \__s2, zero
-.endm
+	.endm
 
-.macro	MOV_5R __d0, __s0, __d1, __s1, __d2, __s2, __d3, __s3, __d4, __s4
+	.macro MOV_5R __d0, __s0, __d1, __s1, __d2, __s2, __d3, __s3, __d4, __s4
 	add	\__d0, \__s0, zero
 	add	\__d1, \__s1, zero
 	add	\__d2, \__s2, zero
 	add	\__d3, \__s3, zero
 	add	\__d4, \__s4, zero
-.endm
+	.endm
 
 	.macro init_tp hartid, reg_tmp
 #ifdef CONFIG_SMP

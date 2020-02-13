@@ -5,8 +5,6 @@
 
 uint32_t irq_nesting;
 
-struct scratch scratch_cpu;
-
 __noreturn void hart_hang(void)
 {
 	while (1) wait_irq();

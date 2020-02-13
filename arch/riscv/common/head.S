@@ -33,36 +33,40 @@
 #endif
 	.endm
 
-	.macro init_entr_tls
-#ifdef CONFIG_RISCV_ENTR_M
+	.macro init_mtls
 	csrw	CSR_MSCRATCH, 0
-#endif
-#ifdef CONFIG_RISCV_ENTR_S
-	csrw	CSR_SSCRATCH, 0
-#endif
 	.endm
 
-	.macro	init_sp
+	.macro init_stls
+	csrw	CSR_SSCRATCH, 0
+	.endm
+
+	.macro init_gpsptp
+	init_gp
 #ifdef CONFIG_SMP
 	csrr	a3, CSR_MHARTID
-	slli	a2, a3, PERCPU_STACK_SHIFT
-	la	sp, (ABI_PERCPU_STACKS_START + PERCPU_STACK_SIZE)
-	add	sp, sp, a2
+	slli	sp, a3, PERCPU_STACK_SHIFT
+	la	a3, (ABI_PERCPU_STACKS_START + PERCPU_STACK_SIZE)
+	add	sp, sp, a3
 #else
 	la	sp, ABI_PERCPU_STACKS_END
 #endif
+	li	a3, SCRATCH_SIZE
+	sub	tp, sp, a3
+	add	sp, tp, zero
+	REG_S	sp, SCRATCH_SP(tp);
 	.endm
 
-	.macro	zerow regs
+	.macro zerow regs
 	REG_S	zero, 0(\regs)
 	.endm
 
-	.macro	copyw regl, regs, regv
+	.macro copyw regl, regs, regv
 	REG_L	\regv, 0(\regl)
 	REG_S	\regv, 0(\regs)
 	.endm
 
-	.macro	zero_sect, sva, eva, lab_exit, lab_loop
+	.macro zero_sect, sva, eva, lab_exit, lab_loop
 	la	a0, \sva
 	la	a1, \eva
 	j	\lab_exit
@@ -73,7 +77,7 @@
 	bltu	a0, a1, \lab_loop
 	.endm
 
-	.macro	copy_sect, sla, sva, eva, lab_exit, lab_loop
+	.macro copy_sect, sla, sva, eva, lab_exit, lab_loop
 	la	a2, \sla
 	la	a0, \sva
 	la	a1, \eva
@@ -86,14 +90,14 @@
 	bltu	a0, a1, \lab_loop
 	.endm
 
-	.macro	config_mmu, map, sat, mode
+	.macro config_mmu, map, sat, mode
 	la	\sat, \map
 	srl	\sat, \sat, PAGE_SHIFT
 	li	\mode, SATP_MODE
 	or	\sat, \sat, \mode
 	.endm
 
-	.macro	enable_mmu, map, sat, mode
+	.macro enable_mmu, map, sat, mode
 #ifdef CONFIG_MMU
 	config_mmu \map, \sat, \mode
 	csrw	CSR_SATP, \sat
@@ -101,16 +105,29 @@
 #endif
 	.endm
 
+	/* Enable ABI environment, gp, tp, sp and vectors */
+	.macro enable_abi reg_tmp
+	init_gpsptp
+	call	trap_init
+	.endm
+
 	__HEAD
 
 ENTRY(__start)
+#ifdef CONFIG_RISCV_ENTR_M
+	/* Reset core to the entry point on failure */
+	la	ra, __start
+	/* Reset all registers, except ra, gp, sp */
+	init_gprs
+	init_mtls
+#endif
 	/* Disable global interrupt. */
 	disable_entr_irq
 
 	/* Jump to warm boot if it is not the first core booting */
 	csrr	a6, CSR_MHARTID
-	li	a7, NR_CPUS
-	bge	a6, a7, secondary_park
+	li	a5, NR_CPUS
+	bge	a6, a5, secondary_park
 	/* hartid 0 is the mandatory core */
 	bnez	a6, secondary_wait_for_abi_relocate
 
@@ -142,11 +159,7 @@ secondary_wait_for_abi_relocate:
 	bne	t0, t1, secondary_wait_for_abi_relocate
 
 __abi_start_warm:
-#ifdef CONFIG_RISCV_ENTR_M
-	/* Reset all registers for boot HART */
-	call	reset_gprs
-#endif
-
+	la	ra, _start_hang
 #ifdef CONFIG_SBI
 	jal	ra, __sbi_entry
 #else
@@ -158,19 +171,24 @@ ENTRY(__sbi_exit)
 	disable_exit_irq
 	disable_fpu
 
-	csrr	a3, CSR_MHARTID
-	bnez	a3, .Lsecondary_start
+	csrr	a6, CSR_MHARTID
+	bnez	a6, secondary_start
+
+	/* TODO:
+	 * Do we need to initialize gp, tp, sp before invoking PIC?
+	 * Remove the following lines if we don't.
+	 */
+	init_gpsptp
 
 #ifdef CONFIG_MMU
 	call	bpgt_init
 #endif
 	call	relocate
-	call	trap_init
+	enable_abi
 
+	/* Initialize task */
 #ifdef CONFIG_TASK
 	la	tp, init_task
-#else
-	la	tp, scratch_cpu
 #endif
 
 	tail	system_init
@@ -178,30 +196,25 @@ ENDPROC(__sbi_exit)
 
 ENTRY(relocate)
 	/* Point stvec to virtual address of instruction after SATP write */
-	la	a0, 1f
-	csrw	CSR_TVEC, a0
+	la	a3, 1f
+	csrw	CSR_TVEC, a3
 
 	/* Load boot identity page directory */
-	enable_mmu mmu_id_map, a0, a1
-.align 2
+	enable_mmu mmu_id_map, a3, a4
+
+	/* Point stvec to the CPU park entry */
+	.align 2
 1:
-	la	a0, secondary_park
-	csrw	CSR_TVEC, a0
-	init_gp
-	init_sp
+	la	a3, secondary_park
+	csrw	CSR_TVEC, a3
 	ret
 ENDPROC(relocate)
 
-.Lsecondary_start:
+secondary_start:
 #ifdef CONFIG_SMP
-	li	a1, NR_CPUS
-	bgeu	a0, a1, secondary_park
-
-	la	a3, secondary_park
-	csrw	CSR_TVEC, a3
-
 	call	relocate
-	call	trap_init
+
+	enable_abi
 	/* tail	__smp_start */
 #endif
 
@@ -209,41 +222,6 @@ ENDPROC(relocate)
 secondary_park:
 	wfi
 	j	secondary_park
-
-ENTRY(reset_gprs)
-	/* flush the instruction cache */
-	fence.i
-	/* Reset all registers except ra, a0, a1 and a2 */
-	init_sp
-	init_gp
-	li	tp, 0
-	li	t0, 0
-	li	t1, 0
-	li	t2, 0
-	li	s0, 0
-	li	s1, 0
-	li	a3, 0
-	li	a4, 0
-	li	a5, 0
-	li	a6, 0
-	li	a7, 0
-	li	s2, 0
-	li	s3, 0
-	li	s4, 0
-	li	s5, 0
-	li	s6, 0
-	li	s7, 0
-	li	s8, 0
-	li	s9, 0
-	li	s10, 0
-	li	s11, 0
-	li	t3, 0
-	li	t4, 0
-	li	t5, 0
-	li	t6, 0
-	init_entr_tls
-	ret
-ENDPROC(reset_gprs)
 
 ENTRY(_start_hang)
 1:
