@@ -52,6 +52,7 @@ SECTIONS
 	__srodata = .;
 	RO_DATA_SECTION(8)
 	CMD_LINE_SECTION(8)
+	. = ALIGN(PAGE_SIZE);
 	__erodata = .;
 	_etext = .;				/* end of text and rodata sections */
 

@@ -69,6 +69,7 @@ typedef uint8_t cpu_t;
 #define SMP_CACHE_BYTES			__SMP_CACHE_BYTES
 #ifndef __ASSEMBLY__
 extern cpu_t smp_boot_cpu;
+extern bool smp_initialized;
 void smp_init(void);
 #endif
 #define smp_cpu_on(cpu, ep, context)	smp_hw_cpu_on(cpu, ep, context)
@@ -79,6 +80,7 @@ void smp_init(void);
 #define SMP_CACHE_BYTES			__SMP_CACHE_BYTES
 #endif
 #define smp_boot_cpu			0
+#define smp_initialized			true
 #define smp_init()			do { } while (0)
 #define smp_cpu_on(cpu, ep, context)	do { } while (0)
 #endif

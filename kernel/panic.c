@@ -33,6 +33,7 @@ void debug_init(void)
 #endif
 
 #ifdef CONFIG_DEBUG_PANIC
+#ifdef CONFIG_DEBUG_PRINT
 void dbg_panic(const text_char_t *file, int line)
 {
 	main_debug(MAIN_DEBUG_PANIC, 0<<4);
@@ -44,4 +45,13 @@ void dbg_panic(const text_char_t *file, int line)
 	while (1)
 		bh_panic();
 }
+#endif
+#ifdef CONFIG_CONSOLE_OUTPUT
+void dbg_panic(const text_char_t *file, int line)
+{
+	printf("%d PANIC: %s:%d", smp_processor_id(), file, line);
+	while (1)
+		bh_panic();
+}
+#endif
 #endif

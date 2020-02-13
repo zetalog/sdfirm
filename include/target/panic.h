@@ -56,7 +56,6 @@ void dbg_panic(const text_char_t *file, int line);
 #define BUG_ON(expr)					\
 	do {						\
 		if (expr) {				\
-			con_dbg("PANIC: " #expr);	\
 			BUG();				\
 		}					\
 	} while (0)

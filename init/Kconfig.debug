@@ -54,6 +54,7 @@ config CC_GEN_DEBUG
 
 config DEBUG_PANIC
 	bool "Enable debug panic output"
+	depends DEBUG_PRINT || CONSOLE_OUTPUT
 	select PANIC_DEBUG if DEBUG_PRINT
 
 menuconfig PORTING

@@ -13,6 +13,7 @@
 #include <target/heap.h>
 #include <target/paging.h>
 #include <target/console.h>
+#include <target/percpu.h>
 
 __near__ uint32_t system_device_id = 0;
 text_char_t system_vendor_name[] = CONFIG_VENDOR_NAME;
@@ -63,9 +64,6 @@ void system_init(void)
 	irq_init();
 	tick_init();
 	delay_init();
-	ris_entry();
-	bh_init();
-	fixmap_late_con_init();
 #ifdef CONFIG_PORTING_DELAY
 	while (1) {
 		printf("%llx\r\n", tsc_read_counter());
@@ -74,16 +72,19 @@ void system_init(void)
 		delay(5);
 	}
 #endif
-	timer_init();
+	fixmap_late_con_init();
 	paging_init();
+	page_init();
+	heap_init();
+	percpu_init();
 #ifdef CONFIG_GEM5
 	con_printf("Simpoint: Start simpoint_entry\n");
 	simpoint_entry();
 #endif
-	page_init();
-	heap_init();
+	ris_entry();
+	bh_init();
+	timer_init();
 	bulk_init();
-
 	cmd_init();
 	modules_init();
 	appl_init();

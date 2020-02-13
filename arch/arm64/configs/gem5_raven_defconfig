@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sun Dec 29 14:06:07 2019
+# Thu Feb 13 13:43:57 2020
 #
 CONFIG_ARM64=y
 
@@ -173,7 +173,9 @@ CONFIG_MAX_VECTORS=4
 # Scheduling facility (bh) support
 #
 CONFIG_MAX_BHS=4
+CONFIG_ARCH_HAS_SMP=y
 CONFIG_SMP=y
+CONFIG_ARCH_HAS_QSPINLOCK=y
 
 #
 # Timing facility (jiffy) support
@@ -207,6 +209,8 @@ CONFIG_ARCH_HAS_MMU_4K=y
 CONFIG_ARCH_HAS_MMU_16K=y
 CONFIG_ARCH_HAS_MMU_64K=y
 CONFIG_ARCH_HAS_MMU_4L=y
+CONFIG_ARCH_HAS_MMU_CONT=y
+CONFIG_ARCH_HAS_MMU_HUGE=y
 CONFIG_MMU=y
 CONFIG_MMU_4K_PAGE=y
 # CONFIG_MMU_16K_PAGE is not set
@@ -313,6 +317,11 @@ CONFIG_UART_230400=y
 # I2C slave drivers
 #
 # CONFIG_DW_I2CS is not set
+
+#
+# DMA host drivers
+#
+# CONFIG_DW_DMA is not set
 CONFIG_TEST_BENCH=y
 CONFIG_TEST_BENCH_LOCAL=y
 # CONFIG_TEST_BENCH_REMOTE is not set
@@ -338,6 +347,7 @@ CONFIG_RAVEN_L2_SYNC=y
 # CONFIG_BIT_FLS16 is not set
 # CONFIG_BIT_FFS16 is not set
 CONFIG_BIT_FLS32=y
+# CONFIG_BIT_FLS64 is not set
 # CONFIG_BIT_FFS32 is not set
 CONFIG_BIT_HWEIGHT64=y
 
@@ -394,5 +404,5 @@ CONFIG_EXPERIMENTAL=y
 # CONFIG_CC_OPT_SIZE is not set
 CONFIG_DEBUG=y
 # CONFIG_CC_GEN_DEBUG is not set
-# CONFIG_DEBUG_PANIC is not set
+CONFIG_DEBUG_PANIC=y
 # CONFIG_PORTING is not set

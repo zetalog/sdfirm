@@ -185,6 +185,9 @@ ENTRY(__sbi_exit)
 #endif
 	call	relocate
 	enable_abi
+#ifdef CONFIG_SMP
+	call	smp_boot
+#endif
 
 	/* Initialize task */
 #ifdef CONFIG_TASK

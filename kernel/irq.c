@@ -93,12 +93,14 @@ boolean irq_poll_bh(void)
 
 void irq_register_poller(bh_t bh)
 {
+	BUG_ON(!smp_initialized);
 	set_bit(bh, irq_poll_regs);
 	irq_is_polling = true;
 }
 
 void irq_smp_init(void)
 {
+	BUG_ON(!smp_initialized);
 	irqc_hw_smp_init();
 	irq_local_disable();
 }

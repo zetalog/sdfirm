@@ -60,6 +60,11 @@ int console_output_init(void)
 #endif
 
 #ifdef CONFIG_CONSOLE_INPUT
+void console_uart_handler(void)
+{
+	readline_async();
+}
+
 bool console_console_poll(void)
 {
 	return !!uart_hw_con_poll();
@@ -67,6 +72,8 @@ bool console_console_poll(void)
 
 int console_input_init(void)
 {
+	readline_init();
+	console_register_handler(console_uart_handler);
 	return 0;
 }
 
@@ -164,20 +171,7 @@ void con_dbg(const char *fmt, ...)
 }
 #endif
 
-#ifdef CONFIG_CONSOLE_COMMAND
-void console_uart_handler(void)
-{
-	readline_async();
-}
-
-void console_late_init(void)
-{
-	readline_init();
-	console_register_handler(console_uart_handler);
-}
-#endif
-
-void early_console_init(void)
+void console_early_init(void)
 {
 	gpio_hw_mmu_init();
 	uart_hw_mmu_init();
@@ -187,13 +181,13 @@ void early_console_init(void)
 void console_init(void)
 {
 	console_output_init();
+	printf("Welcome to sdfirm\n");
 }
 
-void late_console_init(void)
+void console_late_init(void)
 {
 	console_input_init();
 	console_bh = bh_register_handler(console_bh_handler);
 	console_irq_init();
 	console_poll_init();
-	printf("Welcome to sdfirm\n");
 }

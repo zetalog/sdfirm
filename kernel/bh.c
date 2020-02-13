@@ -105,6 +105,7 @@ bh_t bh_register_handler(bh_cb handler)
 {
 	bh_t bh = bh_nr_regs;
 
+	BUG_ON(!smp_initialized);
 	BUG_ON(bh == NR_BHS);
 	bh_entries[bh].handler = handler;
 	bh_nr_regs++;
@@ -157,4 +158,5 @@ void bh_loop(void)
 
 void bh_init(void)
 {
+	BUG_ON(!smp_initialized);
 }

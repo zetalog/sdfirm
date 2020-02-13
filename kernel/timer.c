@@ -158,6 +158,7 @@ tid_t timer_register(timer_desc_t *timer)
 {
 	tid_t tid;
 
+	BUG_ON(!smp_initialized);
 	tid = find_first_clear_bit(timer_regs, NR_TIMERS);
 	BUG_ON(tid == NR_TIMERS);
 	timer_descs[tid] = timer;
@@ -498,6 +499,8 @@ void timer_test(void)
 void timer_init(void)
 {
 	tid_t tid;
+
+	BUG_ON(!smp_initialized);
 
 	/* The last timer order indexing value is always INVALID_TID */
 	timer_running_tid = INVALID_TID;

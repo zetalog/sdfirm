@@ -46,13 +46,15 @@
 uint64_t __percpu_offset[NR_CPUS];
 caddr_t __percpu_alloc;
 int __percpu_pages;
+bool smp_initialized = false;
 
 void percpu_init(void)
 {
 	size_t size, i;
 	caddr_t ptr;
 
-	BUG_ON(smp_processor_id() != smp_boot_cpu);
+	if (smp_processor_id() != smp_boot_cpu)
+		return;
 
 	size = PERCPU_END - PERCPU_START;
 	__percpu_pages = ALIGN_UP(size * NR_CPUS, PAGE_SIZE) / PAGE_SIZE;
@@ -72,4 +74,5 @@ void percpu_init(void)
 			memory_set(PERCPU_START + __percpu_offset[i],
 				   0, size);
 	}
+	smp_initialized = true;
 }
