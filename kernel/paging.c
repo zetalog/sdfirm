@@ -3,6 +3,7 @@
 #include <target/arch.h>
 #include <target/console.h>
 #include <target/cmdline.h>
+#include <target/init.h>
 
 #ifdef CONFIG_MMU_IDMAP
 pgd_t mmu_pg_dir[PTRS_PER_PGD] __page_aligned_bss;
@@ -161,6 +162,67 @@ static inline bool pmd_huge_map(pmd_t *pmdp, caddr_t addr, caddr_t next,
 #define pmd_sect(pmd)						false
 #endif
 
+#ifdef CONFIG_ARCH_HAS_MMU_ORDER
+__init static pte_t *get_pte_virt(phys_addr_t pa)
+{
+	pte_clear_fixmap();
+	return pte_set_fixmap(pa);
+}
+
+__init static pte_t *get_pte_virt_offset(pmd_t *pmdp, phys_addr_t pa)
+{
+	pte_clear_fixmap();
+	return pte_set_fixmap_offset(pmdp, pa);
+}
+
+__init static pmd_t *get_pmd_virt(phys_addr_t pa)
+{
+	pmd_clear_fixmap();
+	return pmd_set_fixmap(pa);
+}
+
+__init static pmd_t *get_pmd_virt_offset(pud_t *pudp, phys_addr_t pa)
+{
+	pmd_clear_fixmap();
+	return pmd_set_fixmap_offset(pudp, pa);
+}
+
+__init static pud_t *get_pud_virt(phys_addr_t pa)
+{
+	pud_clear_fixmap();
+	return pud_set_fixmap(pa);
+}
+
+__init static pud_t *get_pud_virt_offset(pgd_t *pgdp, phys_addr_t pa)
+{
+	pud_clear_fixmap();
+	return pud_set_fixmap_offset(pgdp, pa);
+}
+
+__init static pgd_t *get_pgd_virt(phys_addr_t pa)
+{
+	pgd_clear_fixmap();
+	return pgd_set_fixmap(pa);
+}
+
+#define put_pte_virt()			do { } while (0)
+#define put_pmd_virt()			do { } while (0)
+#define put_pud_virt()			do { } while (0)
+#define put_pgd_virt()			do { } while (0)
+#else
+#define get_pte_virt(pa)		pte_set_fixmap(pa)
+#define get_pmd_virt(pa)		pmd_set_fixmap(pa)
+#define get_pud_virt(pa)		pud_set_fixmap(pa)
+#define get_pgd_virt(pa)		pgd_set_fixmap(pa)
+#define get_pte_virt_offset(pmdp, pa)	pte_set_fixmap_offset(pmdp, pa)
+#define get_pmd_virt_offset(pudp, pa)	pmd_set_fixmap_offset(pudp, pa)
+#define get_pud_virt_offset(pgdp, pa)	pud_set_fixmap_offset(pgdp, pa)
+#define put_pte_virt()			pte_clear_fixmap()
+#define put_pmd_virt()			pmd_clear_fixmap()
+#define put_pud_virt()			pud_clear_fixmap()
+#define put_pgd_virt()			pgd_clear_fixmap()
+#endif
+
 static phys_addr_t early_pgtable_alloc(void)
 {
 	phys_addr_t phys;
@@ -176,7 +238,7 @@ static phys_addr_t early_pgtable_alloc(void)
 	 * FIX_PTE slot will be free, so we can (ab)use the FIX_PTE slot to
 	 * initialise any level of table.
 	 */
-	ptr = pte_set_fixmap(phys);
+	ptr = get_pte_virt(phys);
 	mmu_dbg_tbl("ALLOC: P=%016llx, V=%016llx\n", phys, ptr);
 #ifndef CONFIG_GEM5_SKIP_SET_PGT
 	memory_set((caddr_t)ptr, 0, PAGE_SIZE);
@@ -185,7 +247,7 @@ static phys_addr_t early_pgtable_alloc(void)
 	/* Implicit barriers also ensure the zeroed page is visible to the
 	 * page table walker.
 	 */
-	pte_clear_fixmap();
+	put_pte_virt();
 	return phys;
 }
 
@@ -202,7 +264,7 @@ static void init_pte(pmd_t *pmdp, caddr_t addr, caddr_t end,
 {
 	pte_t *ptep;
 
-	ptep = pte_set_fixmap_offset(pmdp, addr);
+	ptep = get_pte_virt_offset(pmdp, addr);
 	do {
 		__unused pte_t old_pte = READ_ONCE(*ptep);
 		pteval_t new_pte;
@@ -219,8 +281,7 @@ static void init_pte(pmd_t *pmdp, caddr_t addr, caddr_t end,
 			BUG();
 		phys += PAGE_SIZE;
 	} while (ptep++, addr += PAGE_SIZE, addr != end);
-
-	pte_clear_fixmap();
+	put_pte_virt();
 }
 
 static void alloc_init_cont_pte(pmd_t *pmdp, caddr_t addr,
@@ -260,7 +321,7 @@ static void init_pmd(pud_t *pudp, caddr_t addr, caddr_t end,
 	caddr_t next;
 	pmd_t *pmdp;
 
-	pmdp = pmd_set_fixmap_offset(pudp, addr);
+	pmdp = get_pmd_virt_offset(pudp, addr);
 	do {
 		next = pmd_addr_end(addr, end);
 		con_dbg("PMD: %016llx=%016llx, addr=%016llx\n",
@@ -277,8 +338,7 @@ static void init_pmd(pud_t *pudp, caddr_t addr, caddr_t end,
 		}
 		phys += next - addr;
 	} while (pmdp++, addr = next, addr != end);
-
-	pmd_clear_fixmap();
+	put_pmd_virt();
 }
 
 static void alloc_init_cont_pmd(pud_t *pudp, caddr_t addr,
@@ -331,7 +391,7 @@ static void alloc_init_pud(pgd_t *pgdp, caddr_t addr, caddr_t end,
 	}
 	BUG_ON(pgd_bad(pgd));
 
-	pudp = pud_set_fixmap_offset(pgdp, addr);
+	pudp = get_pud_virt_offset(pgdp, addr);
 	do {
 		next = pud_addr_end(addr, end);
 		con_dbg("PUD: %016llx=%016llx, addr=%016llx\n",
@@ -347,7 +407,7 @@ static void alloc_init_pud(pgd_t *pgdp, caddr_t addr, caddr_t end,
 		}
 		phys += next - addr;
 	} while (pudp++, addr = next, addr != end);
-	pud_clear_fixmap();
+	put_pud_virt();
 }
 
 static void __create_pgd_mapping(pgd_t *pgdir, phys_addr_t phys,
@@ -652,14 +712,14 @@ void paging_init(void)
 	printf("BPGT_PGTABLE_LEVELS=%d\n", BPGT_PGTABLE_LEVELS);
 	printf("PGTABLE_LEVELS=%d\n", PGTABLE_LEVELS);
 	/* expand boot kernel mappings */
-	pgdp = pgd_set_fixmap(__pa(mmu_pg_dir));
+	pgdp = get_pgd_virt(__pa(mmu_pg_dir));
 	map_kernel(pgdp);
-	pgd_clear_fixmap();
+	put_pgd_virt();
 
 	/* map memory */
-	pgdp = pgd_set_fixmap(__pa(mmu_pg_dir));
+	pgdp = get_pgd_virt(__pa(mmu_pg_dir));
 	map_mem(pgdp);
-	pgd_clear_fixmap();
+	put_pgd_virt();
 
 	/* switch to mmu_pg_dir */
 #ifdef CONFIG_MMU_IDMAP

@@ -73,19 +73,21 @@ typedef uint64_t pgdval_t;
 
 extern unsigned long empty_zero_page[PAGE_SIZE / sizeof (unsigned long)];
 
+#define page_barrier()		dsb(ishst)
+
 #define ARCH_HAVE_SET_PTE 1
 static inline void set_pte(pteval_t *ptep, pteval_t pte)
 {
 	mmu_dbg_tbl("PTE: %016llx: %016llx\n", ptep, pte);
 	__raw_writeq(pte, ptep);
-	dsb(ishst);
+	page_barrier();
 }
 #define ARCH_HAVE_SET_PMD 1
 static inline void set_pmd(pmdval_t *pmdp, pmdval_t pmd)
 {
 	mmu_dbg_tbl("PMD: %016llx: %016llx\n", pmdp, pmd);
 	__raw_writeq(pmd, pmdp);
-	dsb(ishst);
+	page_barrier();
 }
 #if PGTABLE_LEVELS > 2
 #define ARCH_HAVE_SET_PUD 1
@@ -93,7 +95,7 @@ static inline void set_pud(pudval_t *pudp, pudval_t pud)
 {
 	mmu_dbg_tbl("PUD: %016llx: %016llx\n", pudp, pud);
 	__raw_writeq(pud, pudp);
-	dsb(ishst);
+	page_barrier();
 }
 #endif /* PGTABLE_LEVELS > 2 */
 #if PGTABLE_LEVELS > 3
@@ -102,7 +104,7 @@ static inline void set_pgd(pgdval_t *pgdp, pgdval_t pgd)
 {
 	mmu_dbg_tbl("PGD: %016llx: %016llx\n", pgdp, pgd);
 	__raw_writeq(pgd, pgdp);
-	dsb(ishst);
+	page_barrier();
 }
 #endif /* PGTABLE_LEVELS > 3 */
 #endif

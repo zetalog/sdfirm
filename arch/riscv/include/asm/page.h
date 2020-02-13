@@ -148,12 +148,18 @@ typedef uint64_t pgdval_t;
 #ifndef __ASSEMBLY__
 extern unsigned long empty_zero_page[PAGE_SIZE / sizeof (unsigned long)];
 
+#ifdef CONFIG_ARCH_HAS_MMU_ORDER
+#define page_barrier()			do  {} while (0)
+#else
+#define page_barrier()			mb()
+#endif
+
 #define ARCH_HAVE_SET_PTE 1
 static inline void set_pte(pteval_t *ptep, pteval_t pte)
 {
 	mmu_dbg_tbl("PTE: %016llx: %016llx\n", ptep, pte);
 	*ptep = pte;
-	wmb();
+	page_barrier();
 }
 /* #define set_pte(ptep, pte)	((*(ptep) = (pte)), page_wmb()) */
 #define ARCH_HAVE_SET_PMD 1
@@ -161,7 +167,7 @@ static inline void set_pmd(pmdval_t *pmdp, pmdval_t pmd)
 {
 	mmu_dbg_tbl("PMD: %016llx: %016llx\n", pmdp, pmd);
 	*pmdp = pmd;
-	wmb();
+	page_barrier();
 }
 /* #define set_pmd(pmdp, pmd)	((*(pmdp) = (pmd)), page_wmb()) */
 #if PGTABLE_LEVELS > 2
@@ -170,7 +176,7 @@ static inline void set_pud(pudval_t *pudp, pudval_t pud)
 {
 	mmu_dbg_tbl("PUD: %016llx: %016llx\n", pudp, pud);
 	*pudp = pud;
-	wmb();
+	page_barrier();
 }
 /* #define set_pud(pudp, pud)	((*(pudp) = (pud)), page_wmb()) */
 #endif /* PGTABLE_LEVELS > 2 */
@@ -180,7 +186,7 @@ static inline void set_pgd(pgdval_t *pgdp, pgdval_t pgd)
 {
 	mmu_dbg_tbl("PGD: %016llx: %016llx\n", pgdp, pgd);
 	*pgdp = pgd;
-	wmb();
+	page_barrier();
 }
 /* #define set_pgd(pgdp, pgd)	((*(pgdp) = (pgd)), page_wmb()) */
 #endif /* PGTABLE_LEVELS > 3 */
