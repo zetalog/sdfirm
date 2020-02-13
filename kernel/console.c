@@ -178,10 +178,21 @@ void console_early_init(void)
 	console_enabled = true;
 }
 
+#define BANNER							\
+	"   _____ _____  ______ _____ _____  __  __\n"		\
+	"  / ____|  __ \\|  ____|_   _|  __ \\|  \\/  |\n"	\
+	" | (___ | |  | | |__    | | | |__) | \\  / |\n"	\
+	"  \\___ \\| |  | |  __|   | | |  _  /| |\\/| |\n"	\
+	"  ____) | |__| | |     _| |_| | \\ \\| |  | |\n"	\
+	" |_____/|_____/|_|    |_____|_|  \\_\\_|  |_|\n\n"
+
 void console_init(void)
 {
 	console_output_init();
-	printf("Welcome to sdfirm\n");
+	printf("\n");
+	printf("%s - %s\n", CONFIG_VENDOR_NAME, CONFIG_PRODUCT_NAME);
+	printf("%s - %s\n", CONFIG_UNAME_RELEASE, CONFIG_KERNELVERSION);
+	printf(BANNER);
 }
 
 void console_late_init(void)
