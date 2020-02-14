@@ -144,7 +144,7 @@ uint64_t simpoint_exit_cnt = 1;
 		# Memory information as array in C file
 		out_str = \
 """
-#ifndef CONFIG_GEM5_STATIC_PAGES
+#ifndef CONFIG_GEM5_NOT_RESTORE_MEM
 /*
  * Storage for address-value pairs.
  */
@@ -200,7 +200,7 @@ __attribute__((__section__(\".simpoint_pages\"), __aligned__(""" + str(self.PAGE
 """
 };
 /* End address */
-static uint64_t simpoint_pages_end [0]__attribute__((__section__(".simpoint_pages")))= {};
+//static uint64_t simpoint_pages_end [0]__attribute__((__section__(".simpoint_pages")))= {};
 #endif
 """
 		self.fd_c.write(out_str)
@@ -213,6 +213,7 @@ static uint64_t simpoint_pages_end [0]__attribute__((__section__(".simpoint_page
 		# Sub func: Page allocating
 		out_str = \
 """
+#ifndef CONFIG_GEM5_STATIC_PAGES
 #include <target/paging.h>
 
 static phys_addr_t simpoint_new_pages[""" + str(page_cnt) + """] = {0};
@@ -224,6 +225,7 @@ static phys_addr_t *simpoint_pages_alloc(void)
     }
     return simpoint_new_pages;
 }
+#endif
 
 #ifdef CONFIG_GEM5_STATIC_PAGES
 #include <target/paging.h>
@@ -271,8 +273,9 @@ static void simpoint_pages_map(pgd_t *pgdp, phys_addr_t *pages_list)
 		# Sub func: Memory restore
 		out_str = \
 """
-#ifndef CONFIG_GEM5_STATIC_PAGES
+#ifndef CONFIG_GEM5_NOT_RESTORE_MEM
 #include <target/compiler.h>
+
 static void simpoint_mem_restore(void)
 {
     uint64_t *ptr = simpoint_mem_info;
@@ -282,7 +285,7 @@ static void simpoint_mem_restore(void)
         *addr = value;
     }
 }
-#endif    
+#endif
 """
 		self.fd_c.write(out_str)
 

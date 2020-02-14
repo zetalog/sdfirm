@@ -469,31 +469,10 @@ static void map_kernel_segment(pgd_t *pgdp, void *va_start, void *va_end,
 
 #ifdef CONFIG_MMU_MAP_MEM
 #ifdef CONFIG_GEM5
-phys_addr_t *pages_list = NULL;
-#ifdef CONFIG_GEM5_STATIC_PAGES
-extern phys_addr_t *simpoint_pages_dump(void);
-#else
-extern phys_addr_t *simpoint_pages_alloc(void);
-#endif
-extern void simpoint_pages_map(pgd_t *pgdp, phys_addr_t *pages_list);
-extern void simpoint_mem_restore(void);
 
-static void map_mem(pgd_t *pgdp)
-{
-#ifdef CONFIG_GEM5_STATIC_PAGES
-	con_printf("Simpoint: Start simpoint_pages_dump\n");
-	pages_list = simpoint_pages_dump();
-#else
-	con_printf("Simpoint: Start simpoint_pages_alloc\n");
-	pages_list = simpoint_pages_alloc();
-#endif
-	con_printf("Simpoint: Start simpoint_pages_map\n");
-	simpoint_pages_map(pgdp, pages_list);
-#if defined(CONFIG_GEM5_NOT_RESTORE_MEM) || !defined(CONFIG_GEM5_STATIC_PAGES)
-	con_printf("Simpoint: Start simpoint_mem_restore\n");
-	simpoint_mem_restore();
-#endif
-}
+#include <target/gem5.h>
+#define map_mem(pgdp) gem5_map_mem(pgdp)
+
 #else /* CONFIG_GEM5 */
 static void __map_mem_region(pgd_t *pgdp, phys_addr_t start, phys_addr_t end,
 			     pgprot_t prot, int flags)

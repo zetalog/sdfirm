@@ -14,6 +14,9 @@
 #include <target/paging.h>
 #include <target/console.h>
 #include <target/percpu.h>
+#ifdef CONFIG_GEM5
+#include <target/gem5.h>
+#endif
 
 __near__ uint32_t system_device_id = 0;
 text_char_t system_vendor_name[] = CONFIG_VENDOR_NAME;
@@ -43,10 +46,6 @@ void debug_init(void);
 void ris_entry(void);
 #else
 #define ris_entry()	do { } while (0)
-#endif
-
-#ifdef CONFIG_GEM5
-extern void simpoint_entry(void);
 #endif
 
 #ifndef CONFIG_PORTING
@@ -80,8 +79,7 @@ void system_init(void)
 	percpu_init();
 
 #ifdef CONFIG_GEM5
-	con_printf("Simpoint: Start simpoint_entry\n");
-	simpoint_entry();
+	gem5_init();
 #endif
 	ris_entry();
 	bh_init();

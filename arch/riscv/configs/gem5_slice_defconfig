@@ -1,0 +1,359 @@
+#
+# Automatically generated make config: don't edit
+# Small Device version: 1.0.0.0
+# Fri Feb 14 17:43:33 2020
+#
+CONFIG_64BIT=y
+CONFIG_RISCV=y
+
+#
+# Generic setup
+#
+CONFIG_VENDOR_NAME="SmartCore"
+CONFIG_PRODUCT_NAME="SPIKE RISCV64 BBL"
+CONFIG_VENDOR_ID=990
+CONFIG_PRODUCT_ID=0
+CONFIG_SERIAL_NO=0
+# CONFIG_BOOTLOADER is not set
+CONFIG_FIRMWARE=y
+# CONFIG_EMBEDDED is not set
+
+#
+# Firmware options
+#
+CONFIG_GEM5=y
+# CONFIG_GEM5_STATIC_PAGES is not set
+# CONFIG_GEM5_SKIP_SET_PGT is not set
+# CONFIG_GEM5_NOT_RESTORE_MEM is not set
+# CONFIG_RIS is not set
+# CONFIG_CONSOLE is not set
+
+#
+# RISCV system options
+#
+# CONFIG_ARCH_DUOWEN is not set
+# CONFIG_ARCH_UNLEASHED is not set
+# CONFIG_ARCH_K210 is not set
+# CONFIG_ARCH_VEGA is not set
+CONFIG_ARCH_SPIKE=y
+# CONFIG_ARCH_VIRT is not set
+CONFIG_CPU_SPIKE64=y
+CONFIG_CPU_64G=y
+CONFIG_CPU_64I=y
+# CONFIG_RISCV_WMO is not set
+# CONFIG_RISCV_32I is not set
+CONFIG_RISCV_64I=y
+# CONFIG_RISCV_32E is not set
+# CONFIG_RISCV_128I is not set
+
+#
+# ISA extensions
+#
+CONFIG_CPU_ZIFENCEI=y
+CONFIG_CPU_ZICSR=y
+CONFIG_CPU_M=y
+CONFIG_CPU_A=y
+CONFIG_CPU_F=y
+CONFIG_CPU_D=y
+CONFIG_CPU_C=y
+CONFIG_CPU_COUNTERS=y
+CONFIG_CPU_PMP=y
+CONFIG_CPU_SV39=y
+CONFIG_CPU_SV48=y
+CONFIG_RISCV_M=y
+CONFIG_RISCV_A=y
+# CONFIG_RISCV_F is not set
+# CONFIG_RISCV_D is not set
+# CONFIG_RISCV_C is not set
+CONFIG_RISCV_COUNTERS=y
+CONFIG_RISCV_PMP=y
+CONFIG_RISCV_SV=y
+# CONFIG_RISCV_SV32 is not set
+CONFIG_RISCV_SV39=y
+# CONFIG_RISCV_SV48 is not set
+
+#
+# CPU architecture options
+#
+CONFIG_RISCV_ATOMIC_COUNT_32=y
+# CONFIG_RISCV_ATOMIC_COUNT_64 is not set
+CONFIG_RISCV_SPINLOCK_GENERIC=y
+# CONFIG_RISCV_SPINLOCK_RAW is not set
+# CONFIG_CMODEL_MEDLOW is not set
+CONFIG_CMODEL_MEDANY=y
+CONFIG_TUNE_GENERIC=y
+CONFIG_MAXPHYSMEM_2GB=y
+# CONFIG_MAXPHYSMEM_128GB is not set
+CONFIG_SYS_ENTR_M=y
+CONFIG_SYS_EXIT_M=y
+CONFIG_SYS_EXIT_S=y
+# CONFIG_RISCV_AEE is not set
+CONFIG_RISCV_SEE=y
+# CONFIG_RISCV_HEE is not set
+# CONFIG_RISCV_ENTR_S is not set
+CONFIG_RISCV_ENTR_M=y
+# CONFIG_RISCV_EXIT_U is not set
+CONFIG_RISCV_EXIT_S=y
+# CONFIG_RISCV_EXIT_M is not set
+CONFIG_SYS_KERNEL=y
+CONFIG_SYS_MONITOR=y
+CONFIG_SBI=y
+
+#
+# System peripherals
+#
+
+#
+# Simulated RISCV (SPIKE) board options
+#
+# CONFIG_SPIKE_CPU32 is not set
+CONFIG_SPIKE_CPU64=y
+CONFIG_SPIKE_MEM1_BASE=0x80000000
+CONFIG_SPIKE_MEM1_SIZE=0x80000000
+# CONFIG_SPIKE_MEM2 is not set
+# CONFIG_SPIKE_ICACHE is not set
+# CONFIG_SPIKE_DCACHE is not set
+
+#
+# Peripheral settings
+#
+# CONFIG_SPIKE_CLINT is not set
+# CONFIG_SPIKE_HTIF is not set
+# CONFIG_SPIKE_PK is not set
+CONFIG_SPIKE_BBL=y
+
+#
+# Feature setup
+#
+
+#
+# Generic kernel features
+#
+CONFIG_SYS_NOIRQ=y
+# CONFIG_SYS_IRQ is not set
+# CONFIG_SYS_RT is not set
+# CONFIG_SYS_TASK is not set
+CONFIG_ARCH_HAS_NOVEC=y
+CONFIG_ARCH_HAS_IRQC=y
+CONFIG_ARCH_HAS_GPT=y
+CONFIG_ARCH_HAS_TSC=y
+CONFIG_ARCH_HAS_TSC_CONST=y
+CONFIG_ARCH_IS_TICKLESS=y
+CONFIG_ARCH_HAS_BOOT_LOAD=y
+
+#
+# Scheduling facility (bh) support
+#
+CONFIG_MAX_BHS=4
+CONFIG_ARCH_HAS_SMP=y
+# CONFIG_SMP is not set
+
+#
+# Timing facility (jiffy) support
+#
+CONFIG_TICKLESS=y
+
+#
+# Timing facility (delay) support
+#
+CONFIG_LPS_NO_LPS=y
+# CONFIG_TIMER is not set
+
+#
+# Address space layout (xip) support
+#
+CONFIG_BFM=y
+CONFIG_XIP=y
+CONFIG_BOOT_BASE=0x80000000
+CONFIG_LOAD_BASE=0x80000000
+# CONFIG_HEAP is not set
+CONFIG_MEM=y
+CONFIG_MEM_MAX_REGIONS=4
+CONFIG_MEM_RESIZE=y
+CONFIG_PAGE=y
+CONFIG_ARCH_HAS_MMU=y
+CONFIG_ARCH_HAS_MMU_4K=y
+CONFIG_ARCH_HAS_MMU_3L=y
+CONFIG_ARCH_HAS_MMU_HUGE=y
+CONFIG_MMU=y
+CONFIG_MMU_4K_PAGE=y
+# CONFIG_MMU_16K_PAGE is not set
+# CONFIG_MMU_64K_PAGE is not set
+# CONFIG_MMU_4M_PAGE is not set
+# CONFIG_MMU_1L_TABLE is not set
+# CONFIG_MMU_2L_TABLE is not set
+CONFIG_MMU_3L_TABLE=y
+# CONFIG_MMU_4L_TABLE is not set
+# CONFIG_MMU_5L_TABLE is not set
+# CONFIG_MMU_PAGE_OFFSET is not set
+CONFIG_MMU_IDMAP=y
+CONFIG_MMU_IDMAP_DEVICE=y
+CONFIG_MMU_MAP_MEM=y
+# CONFIG_MMU_TEXT_MODIFY is not set
+# CONFIG_BULK is not set
+# CONFIG_TERM is not set
+# CONFIG_GPIO is not set
+# CONFIG_CLK is not set
+
+#
+# Human Interface Devices (HID) support
+#
+# CONFIG_LCD is not set
+# CONFIG_KBD is not set
+# CONFIG_LED is not set
+CONFIG_ARCH_HAS_UART=y
+
+#
+# Universal asynchronous RX/TX (UART) support
+#
+# CONFIG_UART_230400 is not set
+CONFIG_UART_115200=y
+# CONFIG_UART_57600 is not set
+# CONFIG_UART_38400 is not set
+# CONFIG_UART_19200 is not set
+# CONFIG_UART_9600 is not set
+# CONFIG_UART_4800 is not set
+# CONFIG_UART_2400 is not set
+# CONFIG_UART is not set
+# CONFIG_SPI is not set
+# CONFIG_I2C is not set
+# CONFIG_USB is not set
+# CONFIG_SCS is not set
+# CONFIG_MTD is not set
+# CONFIG_SCSI is not set
+# CONFIG_NET is not set
+# CONFIG_VIDEO is not set
+# CONFIG_DDR is not set
+# CONFIG_RAS is not set
+
+#
+# Driver setup
+#
+
+#
+# Timer drivers
+#
+# CONFIG_DW_TIMERS is not set
+
+#
+# Debugging console drivers
+#
+# CONFIG_DW_UART is not set
+# CONFIG_SEGGER_RTT is not set
+
+#
+# LCD drivers
+#
+
+#
+# Video drivers
+#
+
+#
+# MTD memory drivers
+#
+# CONFIG_PN53X is not set
+# CONFIG_ACR122 is not set
+
+#
+# MMC host drivers
+#
+# CONFIG_DW_MSHC is not set
+# CONFIG_SDHCI is not set
+
+#
+# DDR controller drivers
+#
+# CONFIG_DW_UMCTL2 is not set
+
+#
+# Clock drivers
+#
+
+#
+# I2C host drivers
+#
+# CONFIG_DW_I2C is not set
+
+#
+# I2C slave drivers
+#
+# CONFIG_DW_I2CS is not set
+
+#
+# DMA host drivers
+#
+# CONFIG_DW_DMA is not set
+
+#
+# Library setup
+#
+
+#
+# Bit-wise operations
+#
+# CONFIG_BIT_FLS8 is not set
+CONFIG_BIT_FLS16=y
+# CONFIG_BIT_FFS16 is not set
+# CONFIG_BIT_FLS32 is not set
+CONFIG_BIT_FLS64=y
+CONFIG_BIT_FFS32=y
+# CONFIG_BIT_HWEIGHT64 is not set
+
+#
+# Bitmap operations
+#
+CONFIG_ARCH_HAS_BITS_PER_UNIT_32=y
+CONFIG_ARCH_HAS_BITS_PER_UNIT_64=y
+CONFIG_BIT_FIND_CLEAR=y
+
+#
+# Mathematic operations
+#
+CONFIG_MATH_GCD32=y
+CONFIG_MATH_MOD32=y
+# CONFIG_MATH_MUL32 is not set
+# CONFIG_MATH_MUL64 is not set
+CONFIG_MATH_DIV32=y
+CONFIG_MATH_DIV64=y
+CONFIG_MATH_MOD64=y
+
+#
+# Checksum algorithms
+#
+# CONFIG_CRC16_CCITT is not set
+# CONFIG_CRC32 is not set
+CONFIG_STDLIB=y
+
+#
+# Print operations
+#
+CONFIG_PRINT_VSNPRINTF=y
+# CONFIG_PRINT_SNPRINTF is not set
+CONFIG_PRINT_VPRINTF=y
+# CONFIG_PRINT_SPRINTF is not set
+CONFIG_PRINT_PRINTF=y
+
+#
+# String operations
+#
+# CONFIG_STRING_STRNCMP is not set
+CONFIG_STRING_STRTOUL=y
+# CONFIG_STRING_UUID is not set
+
+#
+# Cryptographic algorithms
+#
+# CONFIG_CRYPTO_RAND is not set
+# CONFIG_FONTS is not set
+
+#
+# Development options
+#
+CONFIG_EXPERIMENTAL=y
+# CONFIG_CC_OPT_SIZE is not set
+CONFIG_DEBUG=y
+# CONFIG_CC_GEN_DEBUG is not set
+# CONFIG_DEBUG_PANIC is not set
+# CONFIG_PORTING is not set
+# CONFIG_DEBUG_PRINT is not set
