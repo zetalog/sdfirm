@@ -50,21 +50,10 @@
 #define local_flush_tlb_page(addr)	\
 	asm volatile ("sfence.vma %0" : : "r" (addr) : "memory")
 
-#ifndef CONFIG_SMP
-#define flush_tlb_all()			local_flush_tlb_all()
-#define flush_tlb_page(asid, addr)	local_flush_tlb_page(addr)
-#define flush_tlb_range_user(asid, start, end)		\
-	local_flush_tlb_all()
-#else
-#define flush_tlb_all()					\
-	sbi_remote_sfence_vma(CPU_ALL, 0, -1)
-#define flush_tlb_page(asid, addr)			\
-	sbi_remote_sfence_vma(asid2cpu(asid), (addr), 0)
-#define flush_tlb_range_user(asid, start, end)		\
-	sbi_remote_sfence_vma(asid2cpu(asid), (start), (end) - (start))
-#endif /* CONFIG_SMP */
-
-#define flush_tlb_range_kern(start, end)	 flush_tlb_all()
+void flush_tlb_all(void);
+void flush_tlb_page(int asid, caddr_t addr);
+void flush_tlb_range_user(int asid, caddr_t start, caddr_t end);
+void flush_tlb_range_kern(caddr_t start, caddr_t end);
 #endif /* !__ASSEMBLY__ */
 
 #endif /* __TLB_RISCV_H_INCLUDE__ */

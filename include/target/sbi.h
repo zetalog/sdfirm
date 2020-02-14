@@ -3,6 +3,7 @@
 
 #include <target/arch.h>
 #include <target/irq.h>
+#include <target/jiffies.h>
 
 #define OPENSBI_VERSION_MAJOR 0
 #define OPENSBI_VERSION_MINOR 4
@@ -191,11 +192,18 @@ void sbi_scratch_free_offset(unsigned long offset);
 #define sbi_scratch_thishart_offset_ptr(offset)	\
 	((void *)sbi_scratch_thishart_ptr() + (offset))
 
+#ifdef CONFIG_ARCH_HAS_SBI_IPI
 int sbi_ipi_send_many(struct sbi_scratch *scratch, struct unpriv_trap *uptrap,
 		      ulong *pmask, u32 event, void *data);
 void sbi_ipi_clear_smode(struct sbi_scratch *scratch);
 void sbi_ipi_process(struct sbi_scratch *scratch);
 int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot);
+#else
+#define sbi_ipi_send_many(scratch, uptrap, pmask, event, data)	0
+#define sbi_ipi_clear_smode(scratch)		do { } while (0)
+#define sbi_ipi_process(scratch)		do { } while (0)
+#define sbi_ipi_init(scratch, cold_boot)	do { } while (0)
+#endif
 
 u16 sbi_ecall_version_major(void);
 u16 sbi_ecall_version_minor(void);
@@ -235,11 +243,19 @@ int sbi_tlb_fifo_update(struct sbi_scratch *scratch, u32 event, void *data);
 void sbi_tlb_fifo_process(struct sbi_scratch *scratch, u32 event);
 int sbi_tlb_fifo_init(struct sbi_scratch *scratch, bool cold_boot);
 
+#ifdef CONFIG_ARCH_HAS_SBI_TIMER
 u64 sbi_timer_value(struct sbi_scratch *scratch);
 void sbi_timer_event_stop(struct sbi_scratch *scratch);
 void sbi_timer_event_start(struct sbi_scratch *scratch, u64 next_event);
 void sbi_timer_process(struct sbi_scratch *scratch);
 int sbi_timer_init(struct sbi_scratch *scratch, bool cold_boot);
+#else
+#define sbi_timer_value(scratch)			rdtime()
+#define sbi_timer_event_stop(scratch)			do { } while (0)
+#define sbi_timer_event_start(scratch, next_event)	do { } while (0)
+#define sbi_timer_process(scratch)			do { } while (0)
+#define sbi_timer_init(scratch, cold_boot)		do { } while (0)
+#endif
 
 int sbi_hart_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot);
 void *sbi_hart_get_trap_info(struct sbi_scratch *scratch);

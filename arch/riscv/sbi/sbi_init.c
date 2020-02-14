@@ -82,13 +82,8 @@ static void __noreturn init_coldboot(void)
 	if (rc)
 		hart_hang();
 
-	rc = sbi_ipi_init(scratch, true);
-	if (rc)
-		hart_hang();
-
-	rc = sbi_timer_init(scratch, true);
-	if (rc)
-		hart_hang();
+	sbi_ipi_init(scratch, true);
+	sbi_timer_init(scratch, true);
 
 	rc = sbi_system_final_init(scratch, true);
 	if (rc)
@@ -127,13 +122,8 @@ static void __noreturn init_warmboot(void)
 	if (rc)
 		hart_hang();
 
-	rc = sbi_ipi_init(scratch, false);
-	if (rc)
-		hart_hang();
-
-	rc = sbi_timer_init(scratch, false);
-	if (rc)
-		hart_hang();
+	sbi_ipi_init(scratch, false);
+	sbi_timer_init(scratch, false);
 
 	rc = sbi_system_final_init(scratch, false);
 	if (rc)

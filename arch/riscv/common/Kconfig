@@ -515,6 +515,12 @@ config SYS_MONITOR
 	depends !BOOTLOADER
 	default y if RISCV_ENTR_M && (RISCV_SEE || RISCV_HEE)
 
+config ARCH_HAS_SBI_IPI
+	bool
+
+config ARCH_HAS_SBI_TIMER
+	bool
+
 config SBI
 	bool "Supervisor binary interface (SBI) support"
 	depends RISCV_ENTR_M
@@ -540,6 +546,8 @@ config ARCH_HAS_CLINT
 config CLINT
 	bool "Core Local Interruptor (CLINT) support"
 	depends ARCH_HAS_CLINT
+	select ARCH_HAS_SBI_IPI
+	select ARCH_HAS_SBI_TIMER
 
 config ARCH_HAS_PLIC
 	bool

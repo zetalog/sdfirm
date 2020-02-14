@@ -27,7 +27,7 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 {
 	int ret = -ENOTSUP;
 	struct unpriv_trap uptrap;
-	struct sbi_tlb_info tlb_info;
+	__unused struct sbi_tlb_info tlb_info;
 
 	switch (regs->a7) {
 	case SBI_ECALL_SET_TIMER:
@@ -45,7 +45,7 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 		break;
 	case SBI_ECALL_CONSOLE_GETCHAR:
 		regs->a0 = getchar();
-		ret	 = 0;
+		ret = 0;
 		break;
 	case SBI_ECALL_CLEAR_IPI:
 		sbi_ipi_clear_smode(scratch);

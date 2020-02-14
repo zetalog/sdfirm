@@ -68,9 +68,18 @@ typedef uint8_t cpu_t;
 #ifdef CONFIG_SMP
 #define SMP_CACHE_BYTES			__SMP_CACHE_BYTES
 #ifndef __ASSEMBLY__
+typedef struct cpu_mask { DECLARE_BITMAP(bits, NR_CPUS); } cpu_mask_t;
+
 extern cpu_t smp_boot_cpu;
+extern cpu_mask_t smp_online_cpus;
 extern bool smp_initialized;
+
 void smp_init(void);
+
+#define cpumask_bits(maskp)		((maskp)->bits)
+#define cpumask_set_cpu(cpu, maskp)	set_bit((cpu), cpumask_bits(maskp))
+#define cpumask_clear_cpu(cpu, maskp)	clear_bit((cpu), cpumask_bits(maskp))
+#define cpumask_test_cpu(cpu, maskp)	test_bit((cpu), cpumask_bits(maskp))
 #endif
 #define smp_cpu_on(cpu, ep, context)	smp_hw_cpu_on(cpu, ep, context)
 #else
@@ -80,7 +89,14 @@ void smp_init(void);
 #define SMP_CACHE_BYTES			__SMP_CACHE_BYTES
 #endif
 #define smp_boot_cpu			0
+#define smp_online_cpus			C(0)
 #define smp_initialized			true
+
+#define cpumask_bits(maskp)		C(0)
+#define cpumask_set_cpu(cpu, maskp)	do { } while (0)
+#define cpumask_clear_cpu(cpu, maskp)	do { } while (0)
+#define cpumask_test_cpu(cpu, maskp)	((cpu) == 0)
+
 #define smp_init()			do { } while (0)
 #define smp_cpu_on(cpu, ep, context)	do { } while (0)
 #endif

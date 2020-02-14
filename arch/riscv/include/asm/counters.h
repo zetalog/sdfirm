@@ -46,6 +46,7 @@
  * can be used in the tsc/pmu implementation.
  */
 
+#ifndef __ASSEMBLY__
 #ifdef CONFIG_RISCV_COUNTERS
 #ifdef CONFIG_64BIT
 static inline uint64_t rdtime(void)
@@ -115,5 +116,6 @@ static inline uint64_t rdinstret(void)
 }
 #endif
 #endif /* CONFIG_RISCV_COUNTERS */
+#endif /* !__ASSEMBLY__ */
 
 #endif /* __COUNTERS_RISCV_H_INCLUDE__ */

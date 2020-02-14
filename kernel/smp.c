@@ -47,8 +47,10 @@
 #include <target/jiffies.h>
 #include <target/percpu.h>
 #include <target/bench.h>
+#include <target/atomic.h>
 
 cpu_t smp_boot_cpu;
+cpu_mask_t smp_online_cpus;
 
 void smp_boot(void)
 {
@@ -57,8 +59,11 @@ void smp_boot(void)
 
 void smp_init(void)
 {
+	cpu_t cpu = smp_processor_id();
+
 	printf("SMP initializing CPU %d.\n", smp_processor_id());
 
+	cpumask_set_cpu(cpu, &smp_online_cpus);
 	if (smp_processor_id() != smp_boot_cpu) {
 		irq_smp_init();
 		bh_init();

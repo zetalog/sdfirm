@@ -9,28 +9,6 @@
 
 #include <target/sbi.h>
 
-#if __riscv_xlen == 32
-u64 get_ticks(void)
-{
-	u32 lo, hi, tmp;
-	__asm__ __volatile__("1:\n"
-			     "rdtimeh %0\n"
-			     "rdtime %1\n"
-			     "rdtimeh %2\n"
-			     "bne %0, %2, 1b"
-			     : "=&r"(hi), "=&r"(lo), "=&r"(tmp));
-	return ((u64)hi << 32) | lo;
-}
-#else
-u64 get_ticks(void)
-{
-	unsigned long n;
-
-	__asm__ __volatile__("rdtime %0" : "=r"(n));
-	return n;
-}
-#endif
-
 u64 sbi_timer_value(struct sbi_scratch *scratch)
 {
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
@@ -38,7 +16,7 @@ u64 sbi_timer_value(struct sbi_scratch *scratch)
 	if (sbi_platform_has_timer_value(plat))
 		return sbi_platform_timer_value(plat);
 	else
-		return get_ticks();
+		return rdtime();
 }
 
 void sbi_timer_event_stop(struct sbi_scratch *scratch)

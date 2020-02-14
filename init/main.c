@@ -76,7 +76,9 @@ void system_init(void)
 	paging_init();
 	page_init();
 	heap_init();
+	bulk_init();
 	percpu_init();
+
 #ifdef CONFIG_GEM5
 	con_printf("Simpoint: Start simpoint_entry\n");
 	simpoint_entry();
@@ -84,10 +86,12 @@ void system_init(void)
 	ris_entry();
 	bh_init();
 	timer_init();
-	bulk_init();
-	cmd_init();
+	task_init();
+
 	modules_init();
 	appl_init();
+	cmd_init();
+
 	smp_init();
 	bh_loop();
 }

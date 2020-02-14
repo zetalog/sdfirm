@@ -7,6 +7,7 @@ obj-$(CONFIG_ARCH_HAS_NOVEC) += trap.rel
 
 head-y += head.rel
 obj-y += irq.rel
+obj-y += tlb.rel
 
 obj-$(CONFIG_RISCV_PMP) += pmp.rel
 obj-$(CONFIG_RISCV_F) += float.rel
