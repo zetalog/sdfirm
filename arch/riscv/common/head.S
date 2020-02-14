@@ -106,7 +106,7 @@
 	.endm
 
 	/* Enable ABI environment, gp, tp, sp and vectors */
-	.macro enable_abi reg_tmp
+	.macro enable_abi
 	init_gpsptp
 	call	trap_init
 	.endm
@@ -215,10 +215,18 @@ ENDPROC(relocate)
 
 secondary_start:
 #ifdef CONFIG_SMP
-	call	relocate
+	slli	a3, a6, LGREG
+	la	a4, __cpu_up_entry
+	add	a4, a3, a4
 
+wait_for_cpu_up:
+	REG_L	a7, (a4) /* entry */
+	beqz	a7, wait_for_cpu_up
+	fence
+
+	call	relocate
 	enable_abi
-	/* tail	__smp_start */
+	jr	a7
 #endif
 
 .align 2

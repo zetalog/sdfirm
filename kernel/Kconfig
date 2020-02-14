@@ -277,6 +277,7 @@ config TIMER_TEST_TIMEOUT
 
 config TIMER_TEST_MAX_SHOTS
 	int "Maximum test shots"
+	depends TIMER_TEST_TIMEOUT
 	default -1
 
 endif
