@@ -81,24 +81,29 @@ void smp_init(void);
 #define cpumask_clear_cpu(cpu, maskp)	clear_bit((cpu), cpumask_bits(maskp))
 #define cpumask_test_cpu(cpu, maskp)	test_bit((cpu), cpumask_bits(maskp))
 #endif
-#define smp_cpu_on(cpu, ep, context)	smp_hw_cpu_on(cpu, ep, context)
+#define smp_cpu_on(cpu, ep)		smp_hw_cpu_on(cpu, ep)
 #else
 #ifndef __SMP_CACHE_BYTES
 #define SMP_CACHE_BYTES			1
 #else
 #define SMP_CACHE_BYTES			__SMP_CACHE_BYTES
 #endif
+
+#ifndef __ASSEMBLY__
 #define smp_boot_cpu			0
-#define smp_online_cpus			C(0)
 #define smp_initialized			true
 
+typedef int cpu_mask_t;
+extern cpu_mask_t smp_online_cpus;
+
 #define cpumask_bits(maskp)		C(0)
-#define cpumask_set_cpu(cpu, maskp)	do { } while (0)
-#define cpumask_clear_cpu(cpu, maskp)	do { } while (0)
-#define cpumask_test_cpu(cpu, maskp)	((cpu) == 0)
+#define cpumask_set_cpu(cpu, maskp)	(*(maskp) = 1)
+#define cpumask_clear_cpu(cpu, maskp)	(*(maskp) = 0)
+#define cpumask_test_cpu(cpu, maskp)	(C(cpu) == *(maskp))
 
 #define smp_init()			do { } while (0)
 #define smp_cpu_on(cpu, ep, context)	do { } while (0)
+#endif /* __ASSEMBLY__ */
 #endif
 #define __cache_aligned			__align(SMP_CACHE_BYTES)
 

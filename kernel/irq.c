@@ -12,6 +12,9 @@
 irq_handler irq_handlers[MAX_VECTORS];
 irq_t irq_nr_table[MAX_VECTORS];
 uint8_t irq_nr_regs = 0;
+#ifndef CONFIG_SMP
+cpu_mask_t smp_online_cpus = C(0);
+#endif
 
 extern void __bad_interrupt(void);
 

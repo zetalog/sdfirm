@@ -1,5 +1,6 @@
 #include <target/tlb.h>
 #include <target/smp.h>
+#include <target/page.h>
 
 #ifndef asid2cpu
 #define asid2cpu(asid)		((cpu_t)(asid))
@@ -21,13 +22,13 @@ void __flush_tlb_all(void)
 	local_flush_tlb_all();
 }
 
-void __flush_tlb_range(cpu_mask_t cpumask, caddr_t start, caddr_t end)
+void __flush_tlb_range(cpu_mask_t *cpumask, caddr_t start, caddr_t end)
 {
 	caddr_t __start = ALIGN_DOWN(start, PAGE_SIZE);
 	caddr_t __end = ALIGN_UP(end, PAGE_SIZE);
 	caddr_t addr;
 
-	for (addr = __start, addr < __end, addr += PAGE_SIZE)
+	for (addr = __start; addr < __end; addr += PAGE_SIZE)
 		local_flush_tlb_page(addr);
 }
 #endif
