@@ -179,7 +179,7 @@ static uint64_t simpoint_mem_info[] = {
  * Memory pages in an array
  */
 /* Start address */
-uint64_t simpoint_pages_start []                                                                                                                                                       
+static uint64_t simpoint_pages_start []                                                                                                                                                       
 __attribute__((__section__(\".simpoint_pages\"), __aligned__(""" + str(self.PAGE_SIZE) + """))) = {
 """
 		self.fd_c.write(out_str)
@@ -200,7 +200,7 @@ __attribute__((__section__(\".simpoint_pages\"), __aligned__(""" + str(self.PAGE
 """
 };
 /* End address */
-uint64_t simpoint_pages_end [0]__attribute__((__section__(".simpoint_pages")))= {};
+static uint64_t simpoint_pages_end [0]__attribute__((__section__(".simpoint_pages")))= {};
 #endif
 """
 		self.fd_c.write(out_str)
@@ -210,13 +210,13 @@ uint64_t simpoint_pages_end [0]__attribute__((__section__(".simpoint_pages")))= 
 		page_cnt = len(self.mem_pages)
 		print("Status: Output memory page functions...")
 
-		# Page allocating function
+		# Sub func: Page allocating
 		out_str = \
 """
 #include <target/paging.h>
 
-phys_addr_t simpoint_new_pages[""" + str(page_cnt) + """] = {0};
-phys_addr_t *simpoint_pages_alloc(void)
+static phys_addr_t simpoint_new_pages[""" + str(page_cnt) + """] = {0};
+static phys_addr_t *simpoint_pages_alloc(void)
 {
     for (int i = 0; i < """ + str(page_cnt) + """; i++) {
         simpoint_new_pages[i] = mem_alloc(""" + str(self.PAGE_SIZE) + """, """ + str(self.PAGE_SIZE) + """);
@@ -229,7 +229,7 @@ phys_addr_t *simpoint_pages_alloc(void)
 #include <target/paging.h>
 static phys_addr_t simpoint_dumped_pages[""" + str(page_cnt) + """] = {0};
 
-phys_addr_t *simpoint_pages_dump(void)
+static phys_addr_t *simpoint_pages_dump(void)
 {
     phys_addr_t pa = (phys_addr_t)simpoint_pages_start;
     for (int i = 0; i < """ + str(page_cnt) + """; i++) {
@@ -243,10 +243,10 @@ phys_addr_t *simpoint_pages_dump(void)
 """
 		self.fd_c.write(out_str)
 
-		# Page mapping function
+		# Sub fucn: Page mapping
 		out_str = \
 """
-void simpoint_pages_map(pgd_t *pgdp, phys_addr_t *pages_list)
+static void simpoint_pages_map(pgd_t *pgdp, phys_addr_t *pages_list)
 {
 """
 		self.fd_c.write(out_str)
@@ -268,13 +268,12 @@ void simpoint_pages_map(pgd_t *pgdp, phys_addr_t *pages_list)
 """
 		self.fd_c.write(out_str)
 
-
-		# Memory restore function
+		# Sub func: Memory restore
 		out_str = \
 """
 #ifndef CONFIG_GEM5_STATIC_PAGES
 #include <target/compiler.h>
-void simpoint_mem_restore(void)
+static void simpoint_mem_restore(void)
 {
     uint64_t *ptr = simpoint_mem_info;
     for (int i = 0; i < """ + str(self.mem_info_cnt) + """; i++) {
@@ -284,6 +283,37 @@ void simpoint_mem_restore(void)
     }
 }
 #endif    
+"""
+		self.fd_c.write(out_str)
+
+		# API for sdfirm
+		out_str = \
+"""
+extern void simpoint_entry(void);
+
+void gem5_init(void)
+{
+    con_printf("Simpoint: Start simpoint_entry\\n");
+    simpoint_entry();
+}
+
+void gem5_map_mem(pgd_t *pgdp)
+{
+    phys_addr_t *pages_list = NULL;
+#ifdef CONFIG_GEM5_STATIC_PAGES
+    con_printf("Simpoint: Start simpoint_pages_dump\\n");
+    pages_list = simpoint_pages_dump();
+#else
+    con_printf("Simpoint: Start simpoint_pages_alloc\\n");
+    pages_list = simpoint_pages_alloc();
+#endif
+    con_printf("Simpoint: Start simpoint_pages_map\\n");
+    simpoint_pages_map(pgdp, pages_list);
+#if !defined(CONFIG_GEM5_NOT_RESTORE_MEM) || !defined(CONFIG_GEM5_STATIC_PAGES)
+    con_printf("Simpoint: Start simpoint_mem_restore\\n");
+    simpoint_mem_restore();
+#endif
+}
 """
 		self.fd_c.write(out_str)
 
