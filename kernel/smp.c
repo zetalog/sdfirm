@@ -76,7 +76,7 @@ void smp_init(void)
 
 		for (cpu = 0; cpu < NR_CPUS; cpu++) {
 			if (cpu != smp_boot_cpu)
-				smp_hw_cpu_on(cpu, (caddr_t)smp_init, 0);
+				smp_cpu_on(cpu, (caddr_t)smp_init);
 		}
 		bench_init();
 	}

@@ -5,8 +5,7 @@
 #define INVALID_ADDR		0
 
 static volatile phys_addr_t cpu_spin_table[NR_CPUS];
-static uint64_t cpu_context_table[NR_CPUS];
-void _smp_start(void *, void *, void *, void *, void *);
+void _smp_start(void *, void *, void *, void *, void *entry_point);
 
 __noreturn void _smp_spin(int cpu)
 {
@@ -19,15 +18,13 @@ __noreturn void _smp_spin(int cpu)
 	do {
 		wfe();
 	} while (cpu_spin_table[cpu] == INVALID_ADDR);
-	_smp_start((void *)cpu_context_table[cpu], 0, 0, 0,
-		   (void *)cpu_spin_table[cpu]);
+	_smp_start(0, 0, 0, 0, (void *)cpu_spin_table[cpu]);
 	__builtin_unreachable();
 }
 
-void smp_hw_cpu_on(cpu_t cpu, caddr_t ep, caddr_t context)
+void smp_hw_cpu_on(cpu_t cpu, caddr_t ep)
 {
 	cpu_spin_table[cpu & 0xff] = __pa(ep);
-	cpu_context_table[cpu & 0xff] = context;
 	dsb(sy);
 	sev();
 }
