@@ -60,6 +60,10 @@ static inline uintptr_t __smp_processor_stack_top(void)
 	asm volatile ("add	%0, sp, zero\n" : "=r" (t));
 	return ALIGN(t, PERCPU_STACK_SIZE);
 }
+
+cpu_t smp_hw_cpu_id(void);
+void smp_hw_cpu_boot(void);
+void smp_hw_cpu_on(cpu_t cpu, caddr_t ep);
 #endif
 #endif
 
