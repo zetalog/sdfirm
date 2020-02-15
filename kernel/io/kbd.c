@@ -1,5 +1,6 @@
 #include <target/kbd.h>
 #include <target/bh.h>
+#include <target/panic.h>
 
 static void kbd_default_capture(uint8_t scancode, uint8_t event);
 

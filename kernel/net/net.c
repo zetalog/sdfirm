@@ -1,5 +1,6 @@
 #include <target/net.h>
 #include <target/heap.h>
+#include <target/panic.h>
 
 void skb_over_panic(struct sk_buff *skb, int sz, char *here)
 {

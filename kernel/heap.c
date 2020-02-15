@@ -39,6 +39,7 @@
  * $Id: heap.c,v 1.1 2019-12-18 09:40:00 zhenglv Exp $
  */
 
+#include <target/panic.h>
 #include <target/heap.h>
 
 caddr_t __heap_brk;

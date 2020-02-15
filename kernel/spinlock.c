@@ -1,6 +1,7 @@
 #include <target/spinlock.h>
 #include <target/percpu.h>
 #include <target/prefetch.h>
+#include <target/panic.h>
 
 /* The basic principle of a queue-based spinlock can best be understood
  * by studying a classic queue-based spinlock implementation called the

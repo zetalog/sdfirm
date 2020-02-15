@@ -1,4 +1,5 @@
 #include <target/irq.h>
+#include <target/panic.h>
 #include <target/percpu.h>
 
 #ifndef CONFIG_CC_ISR_VECTOR

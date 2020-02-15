@@ -45,8 +45,6 @@
 #include <target/bitops.h>
 #include <target/barrier.h>
 #include <target/cmdline.h>
-#include <stdio.h>
-#include <string.h>
 
 #ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_ACCEL
 #define dw_pll5ghz_tsmc12ffc_delay(us)	wmb()

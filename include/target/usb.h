@@ -44,6 +44,7 @@
 
 #include <target/timer.h>
 #include <target/bulk.h>
+#include <target/panic.h>
 
 #ifdef CONFIG_USB_DEBUG
 /* IRQ debug ID */

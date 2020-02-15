@@ -41,9 +41,7 @@
 
 #include <target/clk.h>
 #include <target/cmdline.h>
-#include <errno.h>
-#include <string.h>
-#include <stdio.h>
+#include <target/panic.h>
 
 struct clk_driver *clk_drivers[MAX_CLK_DRIVERS];
 

@@ -1,7 +1,6 @@
 /*
  * Author: Lv Zheng <lv.zheng@hxt-semitech.com>
  */
-#include <string.h>
 #include <target/dts.h>
 #include <target/cmdline.h>
 #include <target/panic.h>

@@ -1,3 +1,4 @@
+#include <target/panic.h>
 #include <target/spi.h>
 
 spi_device_t *spi_devices[NR_SPI_DEVICES];

@@ -199,10 +199,18 @@ void sbi_ipi_clear_smode(struct sbi_scratch *scratch);
 void sbi_ipi_process(struct sbi_scratch *scratch);
 int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot);
 #else
-#define sbi_ipi_send_many(scratch, uptrap, pmask, event, data)	0
+static inline int sbi_ipi_send_many(struct sbi_scratch *scratch,
+				    struct unpriv_trap *uptrap,
+				    ulong *pmask, u32 event, void *data)
+{
+	return 0;
+}
 #define sbi_ipi_clear_smode(scratch)		do { } while (0)
 #define sbi_ipi_process(scratch)		do { } while (0)
-#define sbi_ipi_init(scratch, cold_boot)	do { } while (0)
+static inline int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
+{
+	return 0;
+}
 #endif
 
 u16 sbi_ecall_version_major(void);
@@ -254,7 +262,10 @@ int sbi_timer_init(struct sbi_scratch *scratch, bool cold_boot);
 #define sbi_timer_event_stop(scratch)			do { } while (0)
 #define sbi_timer_event_start(scratch, next_event)	do { } while (0)
 #define sbi_timer_process(scratch)			do { } while (0)
-#define sbi_timer_init(scratch, cold_boot)		do { } while (0)
+static inline int sbi_timer_init(struct sbi_scratch *scratch, bool cold_boot)
+{
+	return 0;
+}
 #endif
 
 int sbi_hart_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot);

@@ -42,6 +42,7 @@
 #include <target/arch.h>
 #include <target/spinlock.h>
 #include <target/string.h>
+#include <target/panic.h>
 
 extern uint64_t __htif_base;
 volatile uint64_t tohost __attribute__((section(".htif")));

@@ -50,6 +50,7 @@
 #include <asm/reg.h>
 #include <asm/pmp.h>
 #include <asm/fp.h>
+#include <asm/counters.h>
 
 #ifdef CONFIG_ARCH_HAS_NOVEC
 #ifdef VEC_BASE

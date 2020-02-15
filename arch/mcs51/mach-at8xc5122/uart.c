@@ -1,4 +1,5 @@
 #include <target/uart.h>
+#include <target/panic.h>
 
 /* frame error detection */
 #define __uart_hw_unraise_fe()		(PCON &= ~MSK_PCON_SMOD0)

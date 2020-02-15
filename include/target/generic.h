@@ -10,7 +10,6 @@
 #include <target/bitops.h>
 #include <target/list.h>
 #include <target/string.h>
-#include <target/panic.h>
 #include <target/muldiv.h>
 #include <target/version.h>
 #include <target/circbf.h>

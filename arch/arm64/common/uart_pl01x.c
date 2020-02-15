@@ -41,6 +41,7 @@
 
 #include <target/irq.h>
 #include <target/uart.h>
+#include <target/console.h>
 
 #ifndef CONFIG_UART_PL01X_SBSA
 /* compute the baud rate divisor

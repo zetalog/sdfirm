@@ -2,6 +2,7 @@
 #define __MTD_H_INCLUDE__
 
 #include <target/generic.h>
+#include <target/panic.h>
 
 #ifdef CONFIG_MTD_MAX_CHIPS
 #define NR_MTD_CHIPS		CONFIG_MTD_MAX_CHIPS

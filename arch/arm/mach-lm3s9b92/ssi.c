@@ -1,5 +1,6 @@
 #include <target/spi.h>
 #include <target/arch.h>
+#include <target/panic.h>
 
 #ifdef CONFIG_PORTING_SPI
 #define __SPI_HW_LBM	_BV(LBM)

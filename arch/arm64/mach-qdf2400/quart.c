@@ -1,9 +1,9 @@
 #include <target/uart.h>
-#include <target/bitops.h>
 #include <target/irq.h>
 #include <target/gpio.h>
 #include <target/clk.h>
 #include <target/console.h>
+#include <target/panic.h>
 
 #define UART_DM_QUART_TX_FIFO_SIZE	256
 #define UART_DM_ACUART_TX_FIFO_SIZE	64

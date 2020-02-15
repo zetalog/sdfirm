@@ -43,6 +43,7 @@
 #define __SCS_H_INCLUDE__
 
 #include <target/generic.h>
+#include <target/panic.h>
 
 #ifdef CONFIG_SCS_DEBUG
 #define scs_debug(tag, val)		dbg_print((tag), (val))

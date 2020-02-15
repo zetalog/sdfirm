@@ -1,6 +1,7 @@
 #include <target/mmc.h>
 #include <target/gpio.h>
 #include <target/delay.h>
+#include <target/panic.h>
 
 struct sunxi_sd_slot {
 	int fatal_err;

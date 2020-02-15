@@ -2,6 +2,7 @@
 #include <target/irq.h>
 #include <target/jiffies.h>
 #include <target/uart.h>
+#include <target/panic.h>
 
 #ifdef CONFIG_TICK
 #ifdef CONFIG_TICK_LM3S3826_PERIODIC

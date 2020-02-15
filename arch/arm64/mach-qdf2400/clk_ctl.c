@@ -40,6 +40,7 @@
  */
 
 #include <target/clk.h>
+#include <target/panic.h>
 
 void __clk_config_root(caddr_t cmd_rcgr, uint8_t clk_sel,
 		       uint8_t hid, uint32_t m, uint32_t n,

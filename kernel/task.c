@@ -2,6 +2,7 @@
 #include <target/timer.h>
 #include <target/heap.h>
 #include <target/irq.h>
+#include <target/panic.h>
 
 #define TASK_SLICE		10
 #define INIT_TASK		(&task_entries[INIT_PID])

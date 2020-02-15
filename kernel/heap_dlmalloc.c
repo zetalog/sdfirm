@@ -39,6 +39,7 @@
  * $Id: heap_dlmalloc.c,v 1.1 2019-12-18 09:56:00 zhenglv Exp $
  */
 
+#include <target/panic.h>
 #include <target/heap.h>
 #include <target/cmdline.h>
 

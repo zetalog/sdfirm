@@ -40,6 +40,7 @@
  */
 
 #include <target/uart.h>
+#include <target/panic.h>
 
 #ifdef CONFIG_LPUART_FIFO
 static void lpuart_enable_fifo_irqs(uint8_t id, lpuart_irq_t irqs)

@@ -39,6 +39,7 @@
  * $Id: tlmm.c,v 1.279 2018-09-20 10:19:18 zhenglv Exp $
  */
 
+#include <target/arch.h>
 #include <target/gpio.h>
 
 void tlmm_config_pad(uint8_t gpio, uint8_t pad, uint8_t drv)

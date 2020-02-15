@@ -40,6 +40,7 @@
  */
 
 #include <target/irq.h>
+#include <target/panic.h>
 
 /*
  * When configuring the OFFSET field, the offset must be aligned to the

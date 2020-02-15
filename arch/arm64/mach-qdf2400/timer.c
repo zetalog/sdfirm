@@ -2,6 +2,7 @@
 #include <target/tsc.h>
 #include <target/jiffies.h>
 #include <target/irq.h>
+#include <target/panic.h>
 
 bool qdf2400_gblct_initialized = false;
 

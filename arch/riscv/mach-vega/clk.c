@@ -40,6 +40,7 @@
  */
 
 #include <target/clk.h>
+#include <target/panic.h>
 
 static uint32_t const_clks[] = {
 	[LPOSC_CLK] = FREQ_LPOSC_CLK,

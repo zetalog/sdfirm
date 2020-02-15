@@ -41,6 +41,8 @@ build_sdfirm riscv32 spike_rv32
 build_sdfirm riscv32 duowen_zsbl
 build_sdfirm riscv32 duowen_fsbl
 build_sdfirm riscv64 duowen_bbl
+build_sdfirm riscv64 duowen_sv39
+build_sdfirm riscv64 duowen_sv48
 # disabled due to bin2vhx.pl bug
 #build_sdfirm riscv32 vega_ri5cy
 

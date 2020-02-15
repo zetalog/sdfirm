@@ -1,4 +1,5 @@
 #include <target/gpio.h>
+#include <target/panic.h>
 
 uint8_t __gpio_hw_od;
 uint8_t __gpio_hw_od5;

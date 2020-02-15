@@ -14,6 +14,7 @@
 #include <target/paging.h>
 #include <target/console.h>
 #include <target/percpu.h>
+#include <target/panic.h>
 
 __near__ uint32_t system_device_id = 0;
 text_char_t system_vendor_name[] = CONFIG_VENDOR_NAME;

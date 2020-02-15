@@ -2,7 +2,6 @@
 #define __PAGE_H_INCLUDE__
 
 #include <target/generic.h>
-#include <target/console.h>
 
 #if defined(CONFIG_MMU_64K_PAGE)
 #define PAGE_SHIFT		16
@@ -29,7 +28,7 @@
 	(((va_bits) - PAGE_PTR_BITS - 1) / (PAGE_SHIFT - PAGE_PTR_BITS))
 
 #ifdef CONFIG_MMU_DEBUG_TABLE
-#define mmu_dbg_tbl		con_dbg
+#define mmu_dbg_tbl		printf
 #else
 #define mmu_dbg_tbl(fmt, ...)	do { } while (0)
 #endif

@@ -40,6 +40,7 @@
  */
 
 #include <target/clk.h>
+#include <target/panic.h>
 
 void pcc_select_source(caddr_t reg, uint8_t src)
 {

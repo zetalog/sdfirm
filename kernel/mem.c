@@ -1,5 +1,6 @@
 #include <target/console.h>
 #include <target/cmdline.h>
+#include <target/panic.h>
 #include <target/mem.h>
 #include <target/arch.h>
 #include <target/heap.h>

@@ -40,6 +40,7 @@
  */
 
 #include <target/irq.h>
+#include <target/panic.h>
 
 irq_handler __vic_hw_vector_table[NR_IRQS];
 

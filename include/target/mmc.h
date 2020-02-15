@@ -43,6 +43,7 @@
 #define __MMC_H_INCLUDE__
 
 #include <target/generic.h>
+#include <target/panic.h>
 #include <target/jiffies.h>
 
 #ifdef CONFIG_MMC_DEBUG

@@ -49,6 +49,7 @@ config ARCH_DUOWEN
 	select CLINT if DUOWEN_APC
 	select DW_I2C if I2C_MASTER
 	select DW_UMCTL2 if DDR
+	select RISCV_COUNTERS if SBI
 	help
 	  This enables support for emulated riscv platforms.
 

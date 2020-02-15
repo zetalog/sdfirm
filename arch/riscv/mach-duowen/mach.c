@@ -41,6 +41,7 @@
 
 #include <target/arch.h>
 #include <target/irq.h>
+#include <target/clk.h>
 
 void imc_sfab_remap(int n, uint32_t in_addr, uint64_t out_addr,
 		    imc_at_attr_t attr)

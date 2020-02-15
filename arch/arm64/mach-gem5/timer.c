@@ -2,6 +2,7 @@
 #include <target/tsc.h>
 #include <target/jiffies.h>
 #include <target/irq.h>
+#include <target/panic.h>
 
 void gblct_init(void)
 {

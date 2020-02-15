@@ -47,10 +47,9 @@
 #ifdef WIN32
 #include <host/acpi.h>
 #else
-#include <target/types.h>
-#include <target/bitops.h>
+#include <target/generic.h>
+#include <target/panic.h>
 #include <target/heap.h>
-#include <target/list.h>
 #endif
 
 #define ACPI_REVISION			0x00000001

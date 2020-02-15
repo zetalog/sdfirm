@@ -1,4 +1,5 @@
 #include <target/generic.h>
+#include <target/panic.h>
 #include <target/arch.h>
 
 #ifdef CONFIG_GPIO_LM3S9B92_AHB

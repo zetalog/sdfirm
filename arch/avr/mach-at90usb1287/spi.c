@@ -1,4 +1,5 @@
 #include <target/spi.h>
+#include <target/panic.h>
 
 /* XXX: Clear SPIF/WCOL Before Next Transfer
  *

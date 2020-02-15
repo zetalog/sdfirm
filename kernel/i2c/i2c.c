@@ -1,4 +1,5 @@
 #include <target/i2c.h>
+#include <target/panic.h>
 
 struct i2c_master {
 	i2c_addr_t target;

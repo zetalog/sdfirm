@@ -4,6 +4,7 @@
 #include <target/irq.h>
 #include <target/jiffies.h>
 #include <target/percpu.h>
+#include <target/panic.h>
 
 /* use the lowest bit to allow the maximum timeout values */
 #define TIMER_FLAG_SHOT			((timeout_t)1)

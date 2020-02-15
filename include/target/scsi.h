@@ -3,6 +3,7 @@
 
 #include <target/generic.h>
 #include <target/bulk.h>
+#include <target/panic.h>
 
 typedef uint8_t scsi_lun_t;	/* logical unit number */
 typedef uint8_t scsi_tag_t;	/* task identifier */

@@ -9,6 +9,7 @@
 
 #include <target/smp.h>
 #include <target/sbi.h>
+#include <target/console.h>
 
 #define BANNER                                              \
 	"   ____                    _____ ____ _____\n"     \

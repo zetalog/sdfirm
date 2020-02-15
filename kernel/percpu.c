@@ -42,6 +42,7 @@
 #include <target/heap.h>
 #include <target/smp.h>
 #include <target/percpu.h>
+#include <target/panic.h>
 
 uint64_t __percpu_offset[NR_CPUS];
 caddr_t __percpu_alloc;

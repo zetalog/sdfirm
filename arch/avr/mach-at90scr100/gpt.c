@@ -1,6 +1,7 @@
 #include <target/gpt.h>
 #include <target/irq.h>
 #include <target/jiffies.h>
+#include <target/panic.h>
 
 #define __gpt_hw_stop_timer()				\
 	(__timer2_hw_disable_cs())

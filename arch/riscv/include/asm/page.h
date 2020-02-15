@@ -43,8 +43,6 @@
 #define __PAGE_RISCV_H_INCLUDE__
 
 #include <target/barrier.h>
-#include <target/console.h>
-#include <target/mem.h>
 
 /* This file is intended to be used by page allocator and paging. Page
  * allocator requires basic address space range definitions. And paging
@@ -154,6 +152,36 @@ extern unsigned long empty_zero_page[PAGE_SIZE / sizeof (unsigned long)];
 #define page_barrier()			mb()
 #endif
 
+/*===========================================================================
+ * boot page table (bpgt)
+ *===========================================================================*/
+/* The idmap and boot page tables need some space reserved in the kernel
+ * image. Both require pgd, pud (4 levels only) and pmd tables to (section)
+ * map the kernel. With the 64K page configuration, swapper and idmap need to
+ * map to pte level. Note that the number of ID map translation levels could
+ * be increased on the fly if system RAM is out of reach for the default VA
+ * range, so pages required to map highest possible PA are reserved in all
+ * cases.
+ */
+#define BPGT_PGTABLE_LEVELS	(PGTABLE_LEVELS - 1)
+#define IDMAP_PGTABLE_LEVELS	(__PGTABLE_LEVELS(PHYS_MASK_SHIFT) - 1)
+
+#define BPGT_DIR_SIZE		(BPGT_PGTABLE_LEVELS * PAGE_SIZE)
+#define IDMAP_DIR_SIZE		(IDMAP_PGTABLE_LEVELS * PAGE_SIZE)
+
+/* Initial memory map uses megapage */
+#define BPGT_BLOCK_SHIFT	SECTION_SHIFT
+#define BPGT_BLOCK_SIZE		SECTION_SIZE
+#define BPGT_TABLE_SHIFT	PUD_SHIFT
+
+/* Initial memory map attributes. */
+#define BPGT_PMD_FLAGS		(PAGE_TABLE)
+
+#define BPGT_MM_MMUFLAGS	(PAGE_KERNEL_EXEC)
+#define BPGT_MM_DEVFLAGS	(PAGE_KERNEL)
+
+#include <target/mem.h>
+
 #define ARCH_HAVE_SET_PTE 1
 static inline void set_pte(pteval_t *ptep, pteval_t pte)
 {
@@ -191,33 +219,5 @@ static inline void set_pgd(pgdval_t *pgdp, pgdval_t pgd)
 /* #define set_pgd(pgdp, pgd)	((*(pgdp) = (pgd)), page_wmb()) */
 #endif /* PGTABLE_LEVELS > 3 */
 #endif
-
-/*===========================================================================
- * boot page table (bpgt)
- *===========================================================================*/
-/* The idmap and boot page tables need some space reserved in the kernel
- * image. Both require pgd, pud (4 levels only) and pmd tables to (section)
- * map the kernel. With the 64K page configuration, swapper and idmap need to
- * map to pte level. Note that the number of ID map translation levels could
- * be increased on the fly if system RAM is out of reach for the default VA
- * range, so pages required to map highest possible PA are reserved in all
- * cases.
- */
-#define BPGT_PGTABLE_LEVELS	(PGTABLE_LEVELS - 1)
-#define IDMAP_PGTABLE_LEVELS	(__PGTABLE_LEVELS(PHYS_MASK_SHIFT) - 1)
-
-#define BPGT_DIR_SIZE		(BPGT_PGTABLE_LEVELS * PAGE_SIZE)
-#define IDMAP_DIR_SIZE		(IDMAP_PGTABLE_LEVELS * PAGE_SIZE)
-
-/* Initial memory map uses megapage */
-#define BPGT_BLOCK_SHIFT	SECTION_SHIFT
-#define BPGT_BLOCK_SIZE		SECTION_SIZE
-#define BPGT_TABLE_SHIFT	PUD_SHIFT
-
-/* Initial memory map attributes. */
-#define BPGT_PMD_FLAGS		(PAGE_TABLE)
-
-#define BPGT_MM_MMUFLAGS	(PAGE_KERNEL_EXEC)
-#define BPGT_MM_DEVFLAGS	(PAGE_KERNEL)
 
 #endif /* __PAGE_RISCV_H_INCLUDE__ */

@@ -3,6 +3,7 @@
 #include <target/arch.h>
 #include <target/console.h>
 #include <target/cmdline.h>
+#include <target/panic.h>
 #include <target/init.h>
 
 #ifdef CONFIG_MMU_IDMAP
@@ -175,11 +176,13 @@ __init static pte_t *get_pte_virt_offset(pmd_t *pmdp, phys_addr_t pa)
 	return pte_set_fixmap_offset(pmdp, pa);
 }
 
+#if 0
 __init static pmd_t *get_pmd_virt(phys_addr_t pa)
 {
 	pmd_clear_fixmap();
 	return pmd_set_fixmap(pa);
 }
+#endif
 
 __init static pmd_t *get_pmd_virt_offset(pud_t *pudp, phys_addr_t pa)
 {
@@ -187,11 +190,13 @@ __init static pmd_t *get_pmd_virt_offset(pud_t *pudp, phys_addr_t pa)
 	return pmd_set_fixmap_offset(pudp, pa);
 }
 
+#if 0
 __init static pud_t *get_pud_virt(phys_addr_t pa)
 {
 	pud_clear_fixmap();
 	return pud_set_fixmap(pa);
 }
+#endif
 
 __init static pud_t *get_pud_virt_offset(pgd_t *pgdp, phys_addr_t pa)
 {

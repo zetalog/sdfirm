@@ -1,4 +1,5 @@
 #include <target/paging.h>
+#include <target/panic.h>
 
 bool mmu_hw_pgattr_safe(pteval_t old, pteval_t new)
 {

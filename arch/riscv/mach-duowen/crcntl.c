@@ -40,6 +40,7 @@
  */
 
 #include <target/clk.h>
+#include <target/panic.h>
 #include <target/cmdline.h>
 
 struct output_clk {

@@ -2,6 +2,7 @@
 #define __LCD_H_INCLUDE__
 
 #include <target/generic.h>
+#include <target/panic.h>
 
 typedef void (*lcd_init_cb)(void);
 

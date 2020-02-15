@@ -40,6 +40,7 @@
  */
 
 #include <target/clk.h>
+#include <target/panic.h>
 
 uint32_t scg_sirc_freq[SCG_SIRC_RANGE_MAX] = {
 	[SCG_SIRC_2MHZ] = 2000000,
