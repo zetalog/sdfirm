@@ -191,7 +191,7 @@ static void bench_start(void)
 static void bench_stop(void)
 {
 	bool locked = false;
-	struct page *ptr;
+	__unused struct page *ptr;
 
 	spin_lock(&cpu_exec_lock);
 	cpu_didt_refcnt--;

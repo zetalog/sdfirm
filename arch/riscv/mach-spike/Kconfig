@@ -26,10 +26,22 @@ config SPIKE_CPU64
 endchoice
 
 config SPIKE_SMP_CPUS
-	int "Number of processors"
+	int "Number of cores per cluster"
 	depends SMP
-	range 1 64
-	default 2
+	range 1 4
+	default 4
+
+config SPIKE_SMP_CLUSTERS
+	int "Number of clusters per rail"
+	depends SMP
+	range 1 32
+	default 1
+
+config SPIKE_SMP_RAILS
+	int "Number of cluster rails"
+	depends SMP
+	range 1 32
+	default 1
 
 config SPIKE_MEM1_BASE
 	hex "Primary memory base address"

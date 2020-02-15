@@ -3,6 +3,7 @@
 #include <target/percpu.h>
 #include <target/cmdline.h>
 #include <target/paging.h>
+#include <target/bench.h>
 
 #define IDMAP_TEXT			\
 	. = ALIGN(SZ_4K);		\
@@ -44,6 +45,8 @@ SECTIONS
 		. = ALIGN(WORD_SIZE);
 		__init_text_end = .;
 	}
+
+	BENCH_INPUT(WORD_SIZE)
 
 	_text = .;
 	.text : {
