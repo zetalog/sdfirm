@@ -9,6 +9,7 @@
  */
 
 #include <target/sbi.h>
+#include <target/cmdline.h>
 
 int sbi_system_early_init(struct sbi_scratch *scratch, bool cold_boot)
 {
@@ -39,3 +40,24 @@ sbi_system_shutdown(struct sbi_scratch *scratch, u32 type)
 	sbi_ipi_send_many(scratch, NULL, NULL, SBI_IPI_EVENT_HALT, NULL);
 	hart_hang();
 }
+
+static int do_sbi_shutdown(int argc, char *argv[])
+{
+	sbi_shutdown();
+	return 0;
+}
+
+static int do_sbi(int argc, char *argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+
+	if (strcmp(argv[1], "shutdown") == 0)
+		return do_sbi_shutdown(argc, argv);
+	return 0;
+}
+
+DEFINE_COMMAND(sbi, do_sbi, "Supervisor binary interface commands",
+	"shutdown\n"
+	"    - shutdown system\n"
+);
