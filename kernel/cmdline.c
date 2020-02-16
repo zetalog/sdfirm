@@ -130,12 +130,77 @@ void cmd_dump_sect(void)
 		       (caddr_t)__cmd_end - (caddr_t)__cmd_start);
 }
 
+#ifdef CONFIG_CONSOLE_COMMAND_BATCH
+static char *parse_batch(char *line, int *args, char *argv[])
+{
+	int nargs = 0;
+
+	while (nargs < MAXARGS) {
+		/* skip any white space */
+		while (isblank(*line) || *line == ';')
+			++line;
+
+		if (*line == '\0') {
+			/* end of line, no more args */
+			argv[nargs] = NULL;
+			*args = nargs;
+			return NULL;
+		}
+
+		/* begin of argument string */
+		argv[nargs++] = line;
+		/* find end of string */
+		while (*line && !(isblank(*line) || *line == ';'))
+			++line;
+
+		if (*line == '\0') {
+			/* end of line, no more args */
+			argv[nargs] = NULL;
+			*args = nargs;
+			return NULL;
+		}
+		if (*line == ';') {
+			argv[nargs] = NULL;
+			*args = nargs;
+			*line++ = '\0';
+			return line;
+		}
+		/* terminate current arg */
+		*line++ = '\0';
+	}
+
+	printf("** Too many args (max. %d) **\n", MAXARGS);
+	return NULL;
+}
+
+char cmd_batch_orig[] = CONFIG_CONSOLE_COMMAND_BATCH_COMMAND;
+char *cmd_batch_cmds = cmd_batch_orig;
+
+void cmd_batch(void)
+{
+	char *argv[MAXARGS + 1];
+	int argc;
+
+again:
+	argc = 0;
+	cmd_batch_cmds = parse_batch(cmd_batch_cmds, &argc, argv);
+	if (argc > 0)
+		process_cmd(argc, argv);
+	if (!cmd_batch_cmds)
+		return;
+	goto again;
+}
+#else
+#define cmd_batch()		do { } while (0)
+#endif
+
 int cmd_init(void)
 {
 	console_late_init();
 	readline_register_handler(cmd_console_handler);
 	con_dbg("Command section: %016llx - %016llx\n",
 		__cmd_start, __cmd_end);
+	cmd_batch();
 	puts("sdfirm> ");
 	return 0;
 }

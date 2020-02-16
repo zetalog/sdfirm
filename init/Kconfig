@@ -83,9 +83,17 @@ menuconfig CONSOLE
 
 if CONSOLE
 
-config CONSOLE_COMMAND
+menuconfig CONSOLE_COMMAND
 	bool "Enable command line support"
 	select CONSOLE_INPUT
+
+config CONSOLE_COMMAND_BATCH
+	bool "Enable batch command support"
+	depends CONSOLE_COMMAND
+
+config CONSOLE_COMMAND_BATCH_COMMAND
+	string "Batch commands"
+	depends CONSOLE_COMMAND_BATCH
 
 config CONSOLE_OUTPUT
 	bool "Enable console output"
