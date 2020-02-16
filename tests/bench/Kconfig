@@ -1,0 +1,39 @@
+#
+# Firmware Tests
+#
+
+menu "Standard benchmark tests"
+
+config DHRYSTONE
+	bool "Dhrystone"
+
+if DHRYSTONE
+
+config DHRYSTONE_TIMEOUT
+	int "Dhrystone timeout (usecs)"
+	range -1 1000000
+	default -1
+
+config DHRYSTONE_REPEATS
+	int "Dhyrstone number of runs"
+	range 5000 5000000
+	default 5000
+
+choice
+	prompt "Percpu mechanism"
+	default DHRYSTONE_GENERIC_PERCPU
+
+config DHRYSTONE_GENERIC_PERCPU
+	bool "SMP percpu variable"
+
+config DHRYSTONE_SPECIFIC_PERCPU
+	bool "Specific percpu arrary"
+
+config DHRYSTONE_BENCH_PERCPU
+	bool "Bench percpu allocation"
+
+endchoice
+
+endif
+
+endmenu

@@ -120,6 +120,7 @@ static struct page *cpu_didt_alloc;
 static uint8_t cpu_didt_refcnt;
 static unsigned long cpu_didt_cpu_mask;
 
+#ifdef CONFIG_TEST_VERBOSE
 static const char *bench_event_name(uint8_t event)
 {
 	switch (event) {
@@ -149,6 +150,7 @@ static const char *bench_state_name(uint8_t state)
 		return "UNKNOWN";
 	}
 }
+#endif
 
 static void bench_raise_event(uint8_t event)
 {

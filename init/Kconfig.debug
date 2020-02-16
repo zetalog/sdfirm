@@ -33,9 +33,18 @@ config CC_OPT_SIZE
 	bool "Optimize for size"
 	default y
 	help
-	  Enabling this option will pass "--opt-code-size" instead of
-	  "--opt-code-speed" to sdcc resulting in a smaller kernel.
+	  Enabling this option will pass size optimization option
+	  instead of speed optimization option to the compilers,
+	  resulting in a smaller kernel.
 	  If unsure, say N.
+
+config CC_OPT_SPEED
+	bool "Optimize for speed"
+	help
+	  Enabling this option will pass speed optimization option
+	  instead of size optimization option to the compilers,
+	  resulting in a speedy kernel.
+	  If unsure, sayn N.
 
 menuconfig DEBUG
 	bool 'Debugging options'

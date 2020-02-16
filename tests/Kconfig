@@ -34,6 +34,7 @@ endchoice
 config TEST_VERBOSE
 	bool "Enable verbosity in tests"
 
+source tests/bench/Kconfig
 source tests/raven/Kconfig
 
 endif
