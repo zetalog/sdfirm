@@ -91,9 +91,8 @@ void system_init(void)
 
 	modules_init();
 	appl_init();
-	cmd_init();
-
 	smp_init();
+	cmd_init();
 	bh_loop();
 }
 

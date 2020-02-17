@@ -106,9 +106,14 @@ static tick_t cmd_bench_interval = CPU_WAIT_INFINITE;
 #define CPU_EXEC_CLOSED	0
 #define CPU_EXEC_OPENED	1
 
+#define CPU_EXEC_IDLE	0
+#define CPU_EXEC_PEND	1
+#define CPU_EXEC_BUSY	2
+
 /* The following global variables are not good parallel programming
  * examples, should be tuned to gain maximum performance.
  */
+static unsigned long cpu_exec_stage = CPU_EXEC_IDLE;
 static unsigned long cpu_exec_state;
 static uint8_t cpu_exec_refcnt;
 static DEFINE_SPINLOCK(cpu_exec_lock);
@@ -208,6 +213,9 @@ static void bench_stop(void)
 		do_printf("free: cpuexec: %016llx(%d)\n",
 			  (uint64_t)ptr, cpu_didt_pages);
 		page_free_pages(ptr, cpu_didt_pages);
+		spin_lock(&cpu_exec_lock);
+		cpu_exec_stage = CPU_EXEC_IDLE;
+		spin_unlock(&cpu_exec_lock);
 	}
 }
 
@@ -608,6 +616,7 @@ int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
 		int cpus = hweight64(init_cpu_mask);
 		size_t size = ALIGN_UP(fn->alloc_size, fn->alloc_align);
 
+		cpu_exec_stage = CPU_EXEC_BUSY;
 		cpu_didt_pages = ALIGN_UP(size * cpus, PAGE_SIZE) /
 				 PAGE_SIZE;
 		cpu_didt_alloc = page_alloc_pages(cpu_didt_pages);
@@ -773,6 +782,15 @@ static int cmd_bench_didt(uint64_t cpu_mask, struct cpu_exec_test *fn,
 {
 	cpu_t cpu;
 
+	spin_lock(&cpu_exec_lock);
+	if (cpu_exec_stage != CPU_EXEC_IDLE) {
+		printf("Bench busy...\n");
+		spin_unlock(&cpu_exec_lock);
+		return -EBUSY;
+	}
+	cpu_exec_stage = CPU_EXEC_PEND;
+	spin_unlock(&cpu_exec_lock);
+
 	cmd_bench_cpu_mask = (cpu_mask & CPU_ALL);
 	cmd_bench_test_set = fn;
 	cmd_bench_interval = interval;
@@ -782,6 +800,18 @@ static int cmd_bench_didt(uint64_t cpu_mask, struct cpu_exec_test *fn,
 	for (cpu = 0; cpu < NR_CPUS; cpu++) {
 		if (C(cpu) & cpu_mask)
 			bh_resume_smp(cpu_ctxs[cpu].bh, cpu);
+	}
+
+	if (sync) {
+		spin_lock(&cpu_exec_lock);
+		while (1) {
+			spin_unlock(&cpu_exec_lock);
+			bh_sync();
+			spin_lock(&cpu_exec_lock);
+			if (cpu_exec_stage == CPU_EXEC_IDLE)
+				break;
+		}
+		spin_unlock(&cpu_exec_lock);
 	}
 	return 0;
 }
@@ -839,7 +869,7 @@ static int cmd_bench(int argc, char **argv)
 		}
 		ret = cmd_bench_didt(cpu_mask, fn, period, interval,
 				     repeats, timeout,
-				     !!strcmp(argv[1], "sync") == 0);
+				     !!(strcmp(argv[1], "sync") == 0));
 		if (ret) {
 			printf("--ERROR: failed to run %s\n", argv[3]);
 			return -EFAULT;
