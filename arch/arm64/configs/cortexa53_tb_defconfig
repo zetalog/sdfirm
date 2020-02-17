@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Jan 16 17:41:52 2020
+# Mon Feb 17 21:58:37 2020
 #
 CONFIG_ARM64=y
 
@@ -22,6 +22,8 @@ CONFIG_FIRMWARE=y
 #
 # CONFIG_GEM5 is not set
 # CONFIG_RIS is not set
+CONFIG_COMMAND=y
+# CONFIG_COMMAND_BATCH is not set
 CONFIG_CONSOLE=y
 CONFIG_CONSOLE_COMMAND=y
 CONFIG_CONSOLE_OUTPUT=y
@@ -156,7 +158,9 @@ CONFIG_ARCH_HAS_BOOT_LOAD=y
 # Scheduling facility (bh) support
 #
 CONFIG_MAX_BHS=4
+CONFIG_ARCH_HAS_SMP=y
 CONFIG_SMP=y
+CONFIG_ARCH_HAS_QSPINLOCK=y
 
 #
 # Timing facility (jiffy) support
@@ -293,6 +297,11 @@ CONFIG_UART_230400=y
 # I2C slave drivers
 #
 # CONFIG_DW_I2CS is not set
+
+#
+# DMA host drivers
+#
+# CONFIG_DW_DMA is not set
 # CONFIG_TEST_BENCH is not set
 
 #
@@ -361,6 +370,7 @@ CONFIG_STRING_STRTOUL=y
 #
 CONFIG_EXPERIMENTAL=y
 # CONFIG_CC_OPT_SIZE is not set
+CONFIG_CC_OPT_SPEED=y
 CONFIG_DEBUG=y
 # CONFIG_CC_GEN_DEBUG is not set
 # CONFIG_DEBUG_PANIC is not set

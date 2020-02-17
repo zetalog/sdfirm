@@ -30,7 +30,7 @@ build_sdfirm()
 }
 
 build_sdfirm arm64 qdf2400_imc
-#build_sdfirm arm64 gem5_boot
+build_sdfirm arm64 gem5_boot
 #build_sdfirm arm64 gem5_firm
 build_sdfirm arm64 gem5_raven
 build_sdfirm arm64 cortexa53_tb

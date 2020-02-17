@@ -29,18 +29,22 @@ void append_cr(int c)
 #define append_cr(c)	do { } while (0)
 #endif
 
+#ifdef CONFIG_CONSOLE_OUTPUT
 int putchar(int c)
 {
 	append_cr(c);
 	uart_hw_con_write(c);
 	return 1;
 }
+#endif
 
+#ifdef CONFIG_CONSOLE_INPUT
 int getchar(void)
 {
 	while (!uart_hw_con_poll());
 	return (int)uart_hw_con_read();
 }
+#endif
 
 #ifdef CONFIG_CONSOLE_OUTPUT
 int console_output_space(void)
