@@ -139,9 +139,19 @@ int dhrystone (caddr_t percpu_area)
                     Expected_End_Time,
                     Begin_Time,
                     End_Time;
-        __unused float Microseconds;
-        float       Vax_Mips,
-                    Dhrystones_Per_Second;
+#ifdef CONFIG_ARCH_HAS_FP
+#define DHRY_FMT        "%6.1f"
+#define DHRY_FMT2       "%12.21f"
+        __unused float  Microseconds;
+        float           Vax_Mips,
+                        Dhrystones_Per_Second;
+#else /* CONFIG_ARCH_HAS_FP */
+#define DHRY_FMT        "%6lld"
+#define DHRY_FMT2       "%12lld"
+        __unused int    Microseconds;
+        unsigned int    Vax_Mips,
+                        Dhrystones_Per_Second;
+#endif /* CONFIG_ARCH_HAS_FP */
 
 #ifndef HOSTED
         Rec_Type    Type_Glob,
@@ -363,6 +373,7 @@ int dhrystone (caddr_t percpu_area)
   }
   else
   {
+#ifdef CONFIG_ARCH_HAS_FP
 #ifdef HOSTED
 #ifdef HAVE_TIMES_H
     Microseconds = (float) User_Time * Mic_secs_Per_Second
@@ -381,11 +392,17 @@ int dhrystone (caddr_t percpu_area)
                         / (float) User_Time;
 #endif
     Vax_Mips = Dhrystones_Per_Second / 1757;
+#else /* CONFIG_ARCH_HAS_FP */
+    Microseconds = User_Time / Number_Of_Runs;
+    Dhrystones_Per_Second = Number_Of_Runs * Mic_secs_Per_Second
+                        / User_Time;
+    Vax_Mips = Dhrystones_Per_Second / 1757;
+#endif /* CONFIG_ARCH_HAS_FP */
     printf ("Number of runs:                             %d \n", Number_Of_Runs);
     printf ("User time (us):                             %llu \n", (uint64_t)User_Time);
-    dhry_printf ("Microseconds for one run through Dhrystone: %6.1f \n", Microseconds);
-    dhry_printf ("Dhrystones per Second:                      %6.1f \n", Dhrystones_Per_Second);
-    printf ("VAX MIPS rating:                            %12.21f \n", Vax_Mips);
+    dhry_printf ("Microseconds for one run through Dhrystone: " DHRY_FMT " \n", Microseconds);
+    dhry_printf ("Dhrystones per Second:                      " DHRY_FMT " \n", Dhrystones_Per_Second);
+    printf ("VAX MIPS rating:                            " DHRY_FMT2 " \n", Vax_Mips);
     dhry_printf ("\n");
   }
 

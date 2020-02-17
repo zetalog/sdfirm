@@ -204,8 +204,11 @@ static void bench_stop(void)
 		cpu_didt_alloc = NULL;
 	}
 	spin_unlock(&cpu_exec_lock);
-	if (locked)
-		page_free_pages(cpu_didt_alloc, cpu_didt_pages);
+	if (locked) {
+		do_printf("free: cpuexec: %016llx(%d)\n",
+			  (uint64_t)ptr, cpu_didt_pages);
+		page_free_pages(ptr, cpu_didt_pages);
+	}
 }
 
 static void bench_enter_state(cpu_t cpu, uint8_t state)
@@ -226,12 +229,13 @@ static void bench_enter_state(cpu_t cpu, uint8_t state)
 
 static caddr_t bench_percpu_area(cpu_t cpu)
 {
+	size_t size;
+
 	if (!cpu_ctxs[cpu].didt_entry)
 		return (caddr_t)0;
-	return (caddr_t)((uint64_t)cpu_didt_alloc +
-			 (cpu_ctxs[cpu].didt_entry->alloc_size *
-			  (hweight64(cpu_didt_cpu_mask) -
-			   hweight64(cpu_didt_cpu_mask >> cpu))));
+	size = ALIGN_UP(cpu_ctxs[cpu].didt_entry->alloc_size,
+			cpu_ctxs[cpu].didt_entry->alloc_align);
+	return (caddr_t)((uint64_t)cpu_didt_alloc + cpu * size);
 }
 
 static void __bench_exec(cpu_t cpu)
@@ -602,15 +606,16 @@ int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
 	spin_unlock(&cpu_exec_lock);
 	if (locked) {
 		int cpus = hweight64(init_cpu_mask);
-		size_t size = fn->alloc_align + fn->alloc_size;
+		size_t size = ALIGN_UP(fn->alloc_size, fn->alloc_align);
 
 		cpu_didt_pages = ALIGN_UP(size * cpus, PAGE_SIZE) /
 				 PAGE_SIZE;
 		cpu_didt_alloc = page_alloc_pages(cpu_didt_pages);
 		memory_set((caddr_t)cpu_didt_alloc, 0,
 			   cpu_didt_pages * PAGE_SIZE);
-		do_printf("alloc: cpuexec: %016llx(%d)\n",
-			  (uint64_t)cpu_didt_alloc, cpu_didt_pages);
+		do_printf("alloc: cpuexec: %016llx-%016llx(%d-%d)\n",
+			  (uint64_t)cpu_didt_alloc, size,
+			  cpus, cpu_didt_pages);
 		locked = false;
 	}
 

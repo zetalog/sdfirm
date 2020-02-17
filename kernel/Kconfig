@@ -662,4 +662,7 @@ config PERF
 	bool "Performance counting (perf) support"
 	depends ARCH_HAS_PMU
 
+config ARCH_HAS_FP
+	bool
+
 endmenu

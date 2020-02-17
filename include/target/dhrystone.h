@@ -243,8 +243,8 @@
 #include <stdarg.h>
 #include <errno.h>
 
-#define dhry_printf(fmt, ...)	        printf(fmt, __VA_ARGS__)
-#define dhry_fprintf(fp, fmt, ...)      fprintf(fp, fmt, __VA_ARGS__)
+#define dhry_printf(...)                printf(__VA_ARGS__)
+#define dhry_fprintf(fp, ...)           fprintf(fp, __VA_ARGS__)
 #define dhry_strcpy                     strcpy
 
 #ifndef HAVE_TIME_H
@@ -255,11 +255,10 @@
 #else
 #ifdef CONFIG_TEST_VERBOSE
 #define dhry_printf(...)                printf(__VA_ARGS__)
-#define dhry_fprintf(fp, ...)           printf(__VA_ARGS__)
 #else
 #define dhry_printf(fmt, ...)           do { } while (0)
-#define dhry_fprintf(fp, fmt, ...)      do { } while (0)
 #endif
+#define dhry_fprintf(fp, fmt, ...)      do { } while (0)
 #define dhry_strcpy                     __builtin_strcpy
 #define HAVE_STDBOOL_H
 #include <target/generic.h>
@@ -286,7 +285,11 @@
 
 /* Define cache warmup runs, 1 should be sufficient */
 #define DHRYSTONE_WARMUP_RUNS	1
+#ifdef CONFIG_ARCH_HAS_FP
 #define Mic_secs_Per_Second     1000000.0
+#else
+#define Mic_secs_Per_Second     1000000
+#endif
                 /* Berkeley UNIX C returns process times in seconds/HZ */
 
 #ifdef  NOSTRUCTASSIGN

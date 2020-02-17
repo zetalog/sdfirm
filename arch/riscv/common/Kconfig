@@ -241,6 +241,7 @@ config RISCV_A
 config RISCV_F
 	bool "Single-precision floating-point (F) support"
 	depends CPU_F
+	select ARCH_HAS_FP
 
 config RISCV_D
 	bool "Double-precision floating-point (D) support"
