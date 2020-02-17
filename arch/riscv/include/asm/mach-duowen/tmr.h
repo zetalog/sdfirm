@@ -59,12 +59,14 @@
 #define TMR_EN			_BV(0)
 #define TMR_HALT_ON_DEBUG	_BV(1)
 
+#ifndef __ASSEMBLY__
 #ifdef CONFIG_DUOWEN_TMR
 uint64_t tmr_read_counter(void);
 void tmr_ctrl_init(void);
 #else
 #define tmr_read_counter()	0
 #define tmr_ctrl_init()		do { } while (0)
+#endif
 #endif
 
 #endif /* __TMR_DUOWEN_H_INCLUDE__ */

@@ -369,13 +369,7 @@ endchoice
 
 choice
 	prompt "Type of SMP spinlock"
-
-config RISCV_SPINLOCK_GENERIC
-	bool "Queued spinlock"
-	select ARCH_HAS_QSPINLOCK if SMP
-	help
-	  Alway fair, however, due to no awoswap 16-bit implementation,
-	  consumes more memory for each spinlock_t.
+	default RISCV_SPINLOCK_RAW
 
 config RISCV_SPINLOCK_RAW
 	bool "Raw spinlock"
@@ -383,6 +377,13 @@ config RISCV_SPINLOCK_RAW
 	help
 	  May suffer from lock fairness, and dead locks due to cache
 	  contension.
+
+config RISCV_SPINLOCK_GENERIC
+	bool "Queued spinlock"
+	select ARCH_HAS_QSPINLOCK if SMP
+	help
+	  Alway fair, however, due to no awoswap 16-bit implementation,
+	  consumes more memory for each spinlock_t.
 
 endchoice
 

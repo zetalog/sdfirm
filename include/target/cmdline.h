@@ -25,7 +25,7 @@ typedef struct {
 	__attribute__((used,__section__(".cmd.rodata")))	\
 	= { #name, cmd, help, usage }
 
-#ifdef CONFIG_CONSOLE_COMMAND
+#ifdef CONFIG_COMMAND
 extern cmd_tbl __cmd_start[0];
 extern cmd_tbl __cmd_end[0];
 
@@ -33,7 +33,17 @@ int cmd_help(char *cmd);
 int cmd_loop(void);
 int cmd_init(void);
 void cmd_dump_sect(void);
+int cmd_parse(char *line, char *argv[]);
+int cmd_execute(int argc, char * argv[]);
 #else
+static inline int cmd_execute(int argc, char * argv[])
+{
+	return -ENODEV;
+}
+static inline int cmd_parse(char *line, char *argv[])
+{
+	return -ENODEV;
+}
 static inline int cmd_help(char *cmd)
 {
 	return -ENODEV;

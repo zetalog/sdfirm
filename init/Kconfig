@@ -77,6 +77,17 @@ endmenu
 
 endif
 
+menuconfig COMMAND
+	bool "Enable command line support"
+
+config COMMAND_BATCH
+	bool "Enable batch command support"
+	depends COMMAND
+
+config COMMAND_BATCH_COMMAND
+	string "Batch commands"
+	depends COMMAND_BATCH
+
 menuconfig CONSOLE
 	bool "Enable console on (possibly) UART0"
 	select PRINT_PRINTF
@@ -84,16 +95,9 @@ menuconfig CONSOLE
 if CONSOLE
 
 menuconfig CONSOLE_COMMAND
-	bool "Enable command line support"
+	bool "Enable console command line support"
 	select CONSOLE_INPUT
-
-config CONSOLE_COMMAND_BATCH
-	bool "Enable batch command support"
-	depends CONSOLE_COMMAND
-
-config CONSOLE_COMMAND_BATCH_COMMAND
-	string "Batch commands"
-	depends CONSOLE_COMMAND_BATCH
+	select COMMAND
 
 config CONSOLE_OUTPUT
 	bool "Enable console output"

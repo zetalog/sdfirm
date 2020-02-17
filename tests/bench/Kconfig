@@ -21,16 +21,16 @@ config DHRYSTONE_REPEATS
 
 choice
 	prompt "Percpu mechanism"
-	default DHRYSTONE_GENERIC_PERCPU
+	default DHRYSTONE_BENCH_PERCPU
+
+config DHRYSTONE_BENCH_PERCPU
+	bool "Bench percpu allocation"
 
 config DHRYSTONE_GENERIC_PERCPU
 	bool "SMP percpu variable"
 
 config DHRYSTONE_SPECIFIC_PERCPU
 	bool "Specific percpu arrary"
-
-config DHRYSTONE_BENCH_PERCPU
-	bool "Bench percpu allocation"
 
 endchoice
 

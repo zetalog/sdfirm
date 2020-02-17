@@ -367,9 +367,9 @@ int dhrystone (caddr_t percpu_area)
 
   if (User_Time < Too_Small_Time)
   {
-    dhry_printf ("Measured time too small to obtain meaningful results\n");
-    dhry_printf ("Please increase number of runs\n");
-    dhry_printf ("\n");
+    printf ("Measured time too small to obtain meaningful results\n");
+    printf ("Please increase number of runs\n");
+    printf ("\n");
   }
   else
   {

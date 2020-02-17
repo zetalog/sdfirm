@@ -50,6 +50,7 @@
 #define riscv_disable_irq(irq)	csr_clear(CSR_IE, IRQ2IE(irq))
 #define riscv_trigger_irq(irq)	csr_set(CSR_IP, IRQ2IE(irq))
 #define riscv_clear_irq(irq)	csr_clear(CSR_IP, IRQ2IE(irq))
+#define riscv_irq_raised(irq)	(csr_read(CSR_IP) & IRQ2IE(irq))
 
 /* RISCV allows embedded IRQ controllers */
 #include <asm/mach/irqc.h>

@@ -14,9 +14,7 @@ void riscv_timer(void)
 #ifdef SYS_BOOTLOAD
 void gpt_hw_irq_poll(void)
 {
-	unsigned long ip = csr_read(CSR_IP);
-
-	if (ip & IE_TIE)
+	if (riscv_irq_raised(IRQ_TIMER))
 		riscv_timer();
 }
 #endif

@@ -7,7 +7,7 @@
 	for (cmdp = __cmd_start; cmdp < __cmd_end; cmdp++)
 #define MAXARGS				10
 
-static int parse_line(char *line, char *argv[])
+int cmd_parse(char *line, char *argv[])
 {
 	int nargs = 0;
 
@@ -97,7 +97,7 @@ DEFINE_COMMAND(help, do_help, "Print command description/usage",
 	"    - print detailed usage of 'command'\n"
 );
 
-static int process_cmd(int argc, char * argv[])
+int cmd_execute(int argc, char * argv[])
 {
 	cmd_tbl *cmdp;
 
@@ -107,6 +107,7 @@ static int process_cmd(int argc, char * argv[])
 	return cmdp->cmd(argc, argv);
 }
 
+#ifdef CONFIG_CONSOLE_COMMAND
 int cmd_console_handler(char *buf, int len)
 {
 	char *argv[MAXARGS + 1];
@@ -117,12 +118,24 @@ int cmd_console_handler(char *buf, int len)
 		return -EINTR;
 	}
 
-	argc = parse_line(buf, argv);
+	argc = cmd_parse(buf, argv);
 	if (argc > 0)
-		process_cmd(argc, argv);
+		cmd_execute(argc, argv);
 	puts("sdfirm> ");
 	return 0;
 }
+
+void cmd_console(void)
+{
+	console_late_init();
+	readline_register_handler(cmd_console_handler);
+	con_dbg("Command section: %016llx - %016llx\n",
+		__cmd_start, __cmd_end);
+	puts("sdfirm> ");
+}
+#else
+#define cmd_console()		do { } while (0)
+#endif
 
 void cmd_dump_sect(void)
 {
@@ -130,7 +143,7 @@ void cmd_dump_sect(void)
 		       (caddr_t)__cmd_end - (caddr_t)__cmd_start);
 }
 
-#ifdef CONFIG_CONSOLE_COMMAND_BATCH
+#ifdef CONFIG_COMMAND_BATCH
 static char *parse_batch(char *line, int *args, char *argv[])
 {
 	int nargs = 0;
@@ -173,7 +186,7 @@ static char *parse_batch(char *line, int *args, char *argv[])
 	return NULL;
 }
 
-char cmd_batch_orig[] = CONFIG_CONSOLE_COMMAND_BATCH_COMMAND;
+char cmd_batch_orig[] = CONFIG_COMMAND_BATCH_COMMAND;
 char *cmd_batch_cmds = cmd_batch_orig;
 
 void cmd_batch(void)
@@ -185,7 +198,7 @@ again:
 	argc = 0;
 	cmd_batch_cmds = parse_batch(cmd_batch_cmds, &argc, argv);
 	if (argc > 0)
-		process_cmd(argc, argv);
+		cmd_execute(argc, argv);
 	if (!cmd_batch_cmds)
 		return;
 	goto again;
@@ -196,11 +209,7 @@ again:
 
 int cmd_init(void)
 {
-	console_late_init();
-	readline_register_handler(cmd_console_handler);
-	con_dbg("Command section: %016llx - %016llx\n",
-		__cmd_start, __cmd_end);
+	cmd_console();
 	cmd_batch();
-	puts("sdfirm> ");
 	return 0;
 }
