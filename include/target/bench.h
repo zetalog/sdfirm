@@ -83,7 +83,7 @@
 
 #ifndef LINKER_SCRIPT
 	.macro define_asm_testfn, _name:req, _size:req, _align=128, _repeat=1, _flags=0, _timeout=CPU_WAIT_INFINITE
-	.section .testfn, "a"
+	.pushsection .testfn, "a"
 	.align 3
 	.type __testfn0_\_name, %object
 	.pushsection .rodata
@@ -98,6 +98,7 @@
 	.long \_flags
 	.long \_repeat
 	.quad \_timeout
+	.popsection
 	.endm
 #endif
 

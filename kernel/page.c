@@ -63,6 +63,9 @@ struct page *page_alloc_pages(int nr_pages)
 	int nr;
 	irq_flags_t flags;
 
+	if (nr_pages == 0)
+		return NULL;
+
 	spin_lock_irqsave(&page_lock, flags);
 	list_for_each_entry(struct page, pos, &page_free_list, link) {
 		nr = page_nr(pos);
@@ -86,6 +89,9 @@ struct page *page_alloc_pages(int nr_pages)
 
 void page_free_pages(struct page *page, int nr_pages)
 {
+	if (nr_pages == 0)
+		return;
+
 	page->end = (phys_addr_t)page_offset(page, nr_pages);
 	page_insert(page);
 }

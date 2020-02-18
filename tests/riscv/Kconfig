@@ -1,0 +1,38 @@
+
+menuconfig TESTS_RISCV
+	bool "RISC-V ISA compliance"
+	depends RISCV
+
+if TESTS_RISCV
+
+config TESTS_RV64UI
+	bool "Enable RV64UI tests"
+	depends CPU_64I
+	select RISCV_64I
+
+config TESTS_RV64UM
+	bool "Enable RV64UM tests"
+	depends 64BIT && CPU_M
+	select RISCV_M
+
+config TESTS_RV64UF
+	bool "Enable RV64UF tests"
+	depends 64BIT && CPU_F
+	select RISCV_F
+
+config TESTS_RV64UD
+	bool "Enable RV64UD tests"
+	depends 64BIT && CPU_D
+	select RISCV_D
+
+config TESTS_RV64UA
+	bool "Enable RV64UA tests"
+	depends 64BIT && CPU_A
+	select RISCV_A
+
+config TESTS_RV64UC
+	bool "Enable RV64UC tests"
+	depends 64BIT && CPU_C
+	select RISCV_C
+
+endif

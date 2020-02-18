@@ -36,5 +36,6 @@ config TEST_VERBOSE
 
 source tests/bench/Kconfig
 source tests/raven/Kconfig
+source tests/riscv/Kconfig
 
 endif
