@@ -103,15 +103,8 @@ static int spike_timer_init(bool cold_boot)
 
 static int spike_system_down(u32 type)
 {
-#ifdef CONFIG_SPIKE_SHUTDOWN_DUOWEN
-	printf("Shutting down DUOWEN simulation...\n");
-	__raw_writel(0x14, 0xFFFFFFFF00);
-	__fence();
-#endif
-#ifdef CONFIG_SPIKE_SHUTDOWN_OVPSIM
-	printf("Shutting down OVPSim...\n");
-	ovpsim_shutdown();
-#endif
+	printf("Shutting down simulation...\n");
+	sim_shutdown();
 	/* For now nothing to do. */
 	return 0;
 }

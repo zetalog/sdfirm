@@ -250,10 +250,24 @@ ENTRY(get_tp)
 	ret
 ENDPROC(get_tp)
 
-ENTRY(ovpsim_shutdown)
-write_tohost:
+ENTRY(sim_shutdown)
+	j	test_section_end
+ENTRY(test_section_end)
+#ifdef CONFIG_SPIKE_SHUTDOWN_DUOWEN
+	csrw	satp, zero
+	li	x10, 0xFFFFFFFF00
+	li	x11, 0x14
+	sd	x11, 0(x10)
+	fence
+#endif /* CONFIG_SPIKE_SHUTDOWN_DUOWEN */
+END(test_section_end)
+#ifdef CONFIG_SPIKE_SHUTDOWN_OVPSIM
+ENTRY(write_tohost)
 	j	write_tohost
-ENDPROC(ovpsim_shutdown)
+END(write_tohost)
+#endif /* CONFIG_SPIKE_SHUTDOWN_OVPSIM */
+	ret
+ENDPROC(sim_shutdown)
 
 	.pushsection .data
 	.align 3
