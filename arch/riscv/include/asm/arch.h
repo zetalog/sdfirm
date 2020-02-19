@@ -71,6 +71,10 @@
 	(SBI_PERCPU_STACKS_START + (x) * PERCPU_STACK_SIZE)
 #endif
 
+#ifdef CONFIG_SPIKE_SHUTDOWN_OVPSIM
+#define _start_hang			write_tohost
+#endif /* CONFIG_SPIKE_SHUTDOWN_OVPSIM */
+
 #ifndef __ASSEMBLY__
 unsigned long get_sp(void);
 unsigned long get_tp(void);

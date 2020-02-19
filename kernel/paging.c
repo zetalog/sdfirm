@@ -231,7 +231,7 @@ __init static pgd_t *get_pgd_virt(phys_addr_t pa)
 static phys_addr_t early_pgtable_alloc(void)
 {
 	phys_addr_t phys;
-	void *ptr;
+	__unused void *ptr;
 
 	phys = mem_alloc(PAGE_SIZE, PAGE_SIZE);
 	if (!phys) {
@@ -245,7 +245,7 @@ static phys_addr_t early_pgtable_alloc(void)
 	 */
 	ptr = get_pte_virt(phys);
 	mmu_dbg_tbl("ALLOC: P=%016llx, V=%016llx\n", phys, ptr);
-#ifndef CONFIG_GEM5_SKIP_SET_PGT
+#ifndef CONFIG_MMU_NO_EARLY_TABLE_ZEROING
 	memory_set((caddr_t)ptr, 0, PAGE_SIZE);
 #endif
 

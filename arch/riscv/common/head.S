@@ -234,11 +234,13 @@ secondary_park:
 	wfi
 	j	secondary_park
 
+#ifndef CONFIG_SPIKE_SHUTDOWN_OVPSIM
 ENTRY(_start_hang)
 1:
 	wfi
 	j	1b
 ENDPROC(_start_hang)
+#endif /* CONFIG_SPIKE_SHUTDOWN_OVPSIM */
 
 ENTRY(get_sp)
 	add	a0, sp, zero

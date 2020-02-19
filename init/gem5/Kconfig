@@ -9,6 +9,7 @@ config GEM5_STATIC_PAGES
 
 config GEM5_SKIP_SET_PGT
 	bool "Do not set page table to zero in initialization"
+	select MMU_NO_EARLY_TABLE_ZEROING
 
 config GEM5_NOT_RESTORE_MEM
 	bool "Do not restore memory data for Simpoint slice"

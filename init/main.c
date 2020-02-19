@@ -15,6 +15,7 @@
 #include <target/console.h>
 #include <target/percpu.h>
 #include <target/panic.h>
+#include <target/bench.h>
 
 __near__ uint32_t system_device_id = 0;
 text_char_t system_vendor_name[] = CONFIG_VENDOR_NAME;
@@ -92,6 +93,7 @@ void system_init(void)
 	modules_init();
 	appl_init();
 	smp_init();
+	bench_init();
 	cmd_init();
 	bh_loop();
 }

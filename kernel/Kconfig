@@ -566,6 +566,14 @@ config MMU_TEXT_MODIFY
 	  This option is only prepared for SELF modification tests.
 	  If unsure, say 'N'.
 
+config MMU_NO_EARLY_TABLE_ZEROING
+	bool "Skip early page table zeroing"
+	help
+	  In simulation environment, the simulated memory may have alreadyi
+	  been initialized to zero, so we can skip early page table zeroing
+	  to accelerate the simulation.
+	  If unsure, say 'N'.
+
 config MMU_DEBUG_TABLE
 	bool "Debugging table entry population"
 	depends CONSOLE_DEBUG

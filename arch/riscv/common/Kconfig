@@ -353,6 +353,8 @@ endif
 
 menu "CPU architecture options"
 
+if RISCV_A
+
 choice
 	prompt "Type of atomic counter"
 
@@ -373,7 +375,6 @@ choice
 
 config RISCV_SPINLOCK_RAW
 	bool "Raw spinlock"
-	depends RISCV_A
 	help
 	  May suffer from lock fairness, and dead locks due to cache
 	  contension.
@@ -386,6 +387,8 @@ config RISCV_SPINLOCK_GENERIC
 	  consumes more memory for each spinlock_t.
 
 endchoice
+
+endif
 
 endmenu
 
