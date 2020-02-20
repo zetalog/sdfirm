@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Feb 25 11:12:34 2020
+# Wed Feb 26 10:27:15 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -125,6 +125,7 @@ CONFIG_DUOWEN_APC_VAISRA=y
 CONFIG_DUOWEN_SBI=y
 CONFIG_CRCNTL=y
 # CONFIG_DUOWEN_SD is not set
+CONFIG_DUOWEN_SMMU=y
 CONFIG_DUOWEN_DMA=y
 
 #
@@ -223,7 +224,10 @@ CONFIG_DMA=y
 # CONFIG_VIDEO is not set
 CONFIG_ARCH_HAS_SD=y
 # CONFIG_MMCSD is not set
+CONFIG_ARCH_HAS_DDR=y
 # CONFIG_DDR is not set
+CONFIG_ARCH_HAS_IOMMU=y
+CONFIG_IOMMU=y
 # CONFIG_RAS is not set
 
 #
@@ -282,6 +286,26 @@ CONFIG_DW_UART_FIFO_MEM_INTERNAL=y
 # DDR controller drivers
 #
 # CONFIG_DW_UMCTL2 is not set
+
+#
+# IO MMU drivers
+#
+CONFIG_ARCH_HAS_SMMU=y
+CONFIG_ARCH_HAS_SMMUv2=y
+CONFIG_ARCH_HAS_SMMU_SMRG=y
+CONFIG_ARCH_HAS_SMMU_SSDT=y
+CONFIG_ARCH_HAS_SMMU_EXSMRG=y
+CONFIG_ARCH_HAS_SMMU_COMPINDEX=y
+CONFIG_ARM_SMMU=y
+# CONFIG_ARM_SMMUv1 is not set
+# CONFIG_ARCH_SMMUv1_64KB is not set
+CONFIG_ARM_SMMUv2=y
+# CONFIG_ARM_SMMUv3 is not set
+# CONFIG_SMMU_SMRG is not set
+# CONFIG_SMMU_SSDT is not set
+# CONFIG_SMMU_EXSMRG is not set
+# CONFIG_SMMU_COMPINDEX is not set
+CONFIG_SMMU_MMU500=y
 
 #
 # Clock drivers
@@ -363,6 +387,11 @@ CONFIG_PRINT_PRINTF=y
 # CONFIG_STRING_STRNCMP is not set
 CONFIG_STRING_STRTOUL=y
 # CONFIG_STRING_UUID is not set
+
+#
+# Time opeartions
+#
+# CONFIG_TIME_CLOCK is not set
 
 #
 # Cryptographic algorithms

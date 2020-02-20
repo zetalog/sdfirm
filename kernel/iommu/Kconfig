@@ -1,0 +1,13 @@
+#
+# IOMMU Devices
+#
+
+config ARCH_HAS_IOMMU
+	bool
+
+menuconfig IOMMU
+	bool "I/O Memory Management Unit (IOMMU) support"
+
+if IOMMU
+
+endif

@@ -26,6 +26,7 @@ config DUOWEN_APC
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_BOOT_LOAD
 	select ARCH_HAS_DMA
+	select ARCH_HAS_IOMMU
 
 endchoice
 
@@ -116,6 +117,18 @@ menuconfig DUOWEN_SD
 	select DW_MSHC
 
 if MSHC
+
+endif
+
+menuconfig DUOWEN_SMMU
+	bool "System Memory Management Unit (SMMU) support"
+	select SMMU_MMU500
+	help
+	  Duowen SMMU is an ARM SMMUv2 like IOMMU hardware, with
+	  necessary modifications in order to be used in the RISC-V
+	  SoC environment.
+
+if DUOWEN_SMMU
 
 endif
 

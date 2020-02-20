@@ -83,6 +83,10 @@ typedef unsigned long			loff_t;
 #define REG_23BIT_MASK			0x7FFFFF
 #define REG_24BIT_MASK			0xFFFFFF
 #define REG_28BIT_MASK			0xFFFFFFF
+#define REG_32BIT_MASK			0xFFFFFFFF
+#define REG_36BIT_MASK			ULL(0xFFFFFFFFF)
+#define REG_40BIT_MASK			ULL(0xFFFFFFFFFF)
+#define REG_44BIT_MASK			ULL(0xFFFFFFFFFFF)
 #define REG_1BIT_ADDR(base, n)		((base)+(((n) & (~31)) >> 3))
 #define REG_2BIT_ADDR(base, n)		((base)+(((n) & (~15)) >> 2))
 #define REG_4BIT_ADDR(base, n)		((base)+(((n) & (~7 )) >> 1))

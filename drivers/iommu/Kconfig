@@ -1,0 +1,163 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "IO MMU drivers"
+
+config ARCH_HAS_SMMU
+	bool
+
+config ARCH_HAS_SMMUv1
+	bool
+	select ARCH_HAS_SMMU
+
+config ARCH_HAS_SMMUv1_64KB
+	bool
+	select ARCH_HAS_SMMUv1
+
+config ARCH_HAS_SMMUv2
+	bool
+	select ARCH_HAS_SMMU
+
+config ARCH_HAS_SMMUv3
+	bool
+	select ARCH_HAS_SMMU
+
+config ARCH_HAS_SMMUv3_0
+	bool
+	select ARCH_HAS_SMMUv3
+
+config ARCH_HAS_SMMUv3_1
+	bool
+	select ARCH_HAS_SMMUv3_0
+
+config ARCH_HAS_SMMUv3_2
+	bool
+	select ARCH_HAS_SMMUv3_1
+
+config ARCH_HAS_SMMU_SMRG
+	bool
+
+config ARCH_HAS_SMMU_SSDT
+	bool
+
+config ARCH_HAS_SMMU_EXSMRG
+	bool
+	select ARCH_HAS_SMMU_SMRG
+
+config ARCH_HAS_SMMU_COMPINDEX
+	bool
+
+config ARCH_HAS_SMMU_E2HC
+	bool
+
+config ARCH_HAS_SMMU_PTFS_SHORT
+	bool
+	help
+	  AArch32 short-descriptor support.
+
+config ARCH_HAS_SMMU_PTFS_LONG
+	bool
+	help
+	  AArch32 long-descriptor support.
+
+config ARCH_HAS_SMMU_PTFS_v8_4KB
+	bool
+	help
+	  4KB translation granule size.
+
+config ARCH_HAS_SMMU_PTFS_v8_16KB
+	bool
+	help
+	  16KB translation granule size.
+
+config ARCH_HAS_SMMU_PTFS_v8_64KB
+	bool
+	help
+	  64KB translation granule size.
+
+menuconfig ARM_SMMU
+	bool "ARM System Memory Management Unit (SMMU) support"
+	depends ARCH_HAS_SMMU
+
+if ARM_SMMU
+
+choice
+	prompt "SMMU Architecture"
+
+config ARM_SMMUv1
+	bool "SMMUv1"
+	depends ARCH_HAS_SMMUv1
+	select ARCH_HAS_SMMU_SMRG
+	select ARCH_HAS_SMMU_SSDT
+
+config ARCH_SMMUv1_64KB
+	bool "SMMUv1 64KB"
+	depends ARCH_HAS_SMMUv1_64KB
+
+config ARM_SMMUv2
+	bool "SMMUv2"
+	depends ARCH_HAS_SMMUv2
+	select ARCH_HAS_SMMU_EXSMRG
+	select ARCH_HAS_SMMU_SSDT
+	select ARCH_HAS_SMMU_COMPINDEX
+
+config ARM_SMMUv3
+	bool "SMMUv3.0, 3.1 and 3.2"
+	depends ARCH_HAS_SMMUv3
+
+endchoice
+
+choice
+	prompt "Translation scheme"
+
+config SMMU_ARCH64
+	bool "ARCH64"
+	depends ARM_SMMUv2
+
+config SMMU_ARCH32_S
+	bool "ARCH32 short"
+
+config SMMU_ARCH32_L
+	bool "ARCH32 long"
+
+endchoice
+
+config SMMU_SMRG
+	bool "Stream match register group (SMRG) support"
+	depends ARCH_HAS_SMMU_SMRG
+
+config SMMU_SSDT
+	bool "Security state determination table (SSDT) support"
+	depends ARCH_HAS_SMMU_SSDT
+
+config SMMU_EXSMRG
+	bool "Extended stream match register group (EXSMRG) support"
+	depends ARCH_HAS_SMMU_EXSMRG
+	select SMMU_SMRG
+
+config SMMU_COMPINDEX
+	bool "StreamID compressed indexing support"
+	depends ARCH_HAS_SMMU_COMPINDEX
+
+config SMMU_E2HC
+	bool "E2H context (E2HC) support"
+	depends ARCH_HAS_SMMU_E2HC
+
+config SMMU_DISABLE_BYPASS
+	bool "Disable bypass streams"
+	help
+	  Disable bypass streams such that incoming transactions from
+	  devices that are not attached to an iommu domain will report an
+	  abort back to the device and will not be allowed to pass through
+	  the SMMU.
+
+endif
+
+config SMMU_MMU500
+	bool "ARM CoreLink MMU-500 SMMU support"
+	select ARCH_HAS_SMMUv2
+	select ARM_SMMU
+
+endmenu
