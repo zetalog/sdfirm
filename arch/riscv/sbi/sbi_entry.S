@@ -69,7 +69,8 @@
 	sub	tp, tp, \reg_tmp
 	.endm
 
-	.macro init_sptp hartid, reg_tmp
+	.macro init_gpsptp hartid, reg_tmp
+	init_gp
 #ifdef CONFIG_SMP
 	slli	\reg_tmp, \hartid, PERCPU_STACK_SHIFT
 	la	sp, (SBI_PERCPU_STACKS_START + PERCPU_STACK_SIZE)
@@ -257,8 +258,8 @@ secondary_wait_for_sbi_relocate:
 	bne	t0, t1, secondary_wait_for_sbi_relocate
 
 __sbi_entry_warm:
-	/* Init SP */
-	init_sptp s6, a5
+	/* Init GP, SP, TP */
+	init_gpsptp s6, a5
 	/* update the mscratch */
 	csrw	CSR_MSCRATCH, tp
 
