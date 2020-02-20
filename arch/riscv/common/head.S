@@ -257,9 +257,16 @@ ENTRY(sim_shutdown)
 ENTRY(test_section_end)
 #ifdef CONFIG_SPIKE_SHUTDOWN_DUOWEN
 	csrw	satp, zero
-	li	x10, 0xFFFFFFFF00
-	li	x11, 0x14
-	sd	x11, 0(x10)
+	li	a0, 0xFFFFFFFF00
+#ifdef CONFIG_SMP
+	csrr	a1, CSR_MHARTID
+	addi	a1, a1, 1
+	slli	a1, a1, 4
+	addi	a1, a1, 0x4
+#else
+	li	a1, 0x4
+#endif
+	sd	a1, 0(a0)
 	fence
 #endif /* CONFIG_SPIKE_SHUTDOWN_DUOWEN */
 END(test_section_end)
