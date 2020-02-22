@@ -4,8 +4,6 @@
 
 menuconfig TEST_BENCH
 	bool "Test bench setup"
-	select TIMER
-	select TIMER_31BIT
 	select CRYPTO_RAND
 	select STRING_STRNCMP
 	select BIT_HWEIGHT64
@@ -30,6 +28,16 @@ config TEST_BENCH_REMOTE
 	  SMP cores.
 
 endchoice
+
+config TEST_BENCH_DIDT
+	bool "Enable dI/dT power calibration mode"
+	depends !SYS_NOIRQ
+	select TIMER
+	select TIMER_31BIT
+	help
+	  Allows multiple CPUs to execute tests simultaneously, and
+	  repeatedly using timer. This mode is useful for power stress
+	  tests.
 
 config TEST_VERBOSE
 	bool "Enable verbosity in tests"

@@ -166,17 +166,43 @@ static void bench_raise_event(uint8_t event)
 	bh_resume(cpu_ctxs[cpu].bh);
 }
 
-static void bench_reset_timeout(void)
+#ifdef CONFIG_BENCH_DIDT
+static void bench_timer_wait(cpu_t cpu, timeout_t tout_ms)
 {
-	cpu_t cpu = smp_processor_id();
-	timeout_t tout_ms = cpu_ctxs[cpu].async_timeout - tick_get_counter();
-
 	timer_schedule_shot(cpu_ctxs[cpu].timer, tout_ms);
 }
 
 static void bench_timer_handler(void)
 {
 	bench_raise_event(CPU_EVENT_TIME);
+}
+
+struct timer_desc bench_timer = {
+	TIMER_BH,
+	bench_timer_handler,
+};
+
+static void bench_timer_init(cpu_t cpu)
+{
+	cpu_ctxs[cpu].timer = timer_register(&bench_timer);
+}
+#else
+static void bench_timer_wait(cpu_t cpu, timeout_t tout_ms)
+{
+	if (tout_ms > 0)
+		mdelay(tout_ms);
+	bench_raise_event(CPU_EVENT_TIME);
+}
+
+#define bench_timer_init(cpu)			do { } while (0)
+#endif
+
+static void bench_reset_timeout(void)
+{
+	cpu_t cpu = smp_processor_id();
+	timeout_t tout_ms = cpu_ctxs[cpu].async_timeout - tick_get_counter();
+
+	bench_timer_wait(cpu, tout_ms);
 }
 
 #ifdef CONFIG_BENCH_START_DELAY
@@ -671,17 +697,12 @@ static void cmd_bench_run_complete(uint64_t *results)
 }
 #endif
 
-struct timer_desc bench_timer = {
-	TIMER_BH,
-	bench_timer_handler,
-};
-
 void bench_init(void)
 {
 	cpu_t cpu = smp_processor_id();
 
 	cpu_ctxs[cpu].bh = bh_register_handler(bench_bh_handler);
-	cpu_ctxs[cpu].timer = timer_register(&bench_timer);
+	bench_timer_init(cpu);
 }
 
 static uint64_t cmd_get_cpu_mask_field(char *str, int len)
