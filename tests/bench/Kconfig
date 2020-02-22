@@ -36,4 +36,16 @@ endchoice
 
 endif
 
+config HANOITOWER
+	bool "Hanoi Tower"
+
+if HANOITOWER
+
+config HANOITOWER_DEPTH
+	int "Hanoi tower depth (the number of disks)"
+	range 1 16
+	default 4
+
+endif
+
 endmenu
