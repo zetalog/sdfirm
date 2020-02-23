@@ -48,4 +48,32 @@ config HANOITOWER_DEPTH
 
 endif
 
+config COREMARK
+	bool "CoreMark"
+
+if COREMARK
+
+config COREMARK_USE_CLOCK
+	bool "Use clock to compute time"
+
+config COREMARK_MEM_STATIC
+	bool "Use static memory"
+
+config COREMARK_ARG_1
+	string "Argument 1: first speed"
+	default "0"
+
+config COREMARK_ARG_2
+	string "Argument 2: second speed"
+	default "0"
+endif
+
+config COREMARK_ARG_3
+	string "Argument 3: thidr speed"
+	default "0x66"
+
+config COREMARK_ARG_4
+	string "Argument 4: iterations"
+	default "1000"
+
 endmenu
