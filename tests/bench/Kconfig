@@ -6,6 +6,7 @@ menu "Standard benchmark tests"
 
 config DHRYSTONE
 	bool "Dhrystone"
+	select TIME_CLOCK
 
 if DHRYSTONE
 

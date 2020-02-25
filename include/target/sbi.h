@@ -251,14 +251,13 @@ int sbi_tlb_fifo_update(struct sbi_scratch *scratch, u32 event, void *data);
 void sbi_tlb_fifo_process(struct sbi_scratch *scratch, u32 event);
 int sbi_tlb_fifo_init(struct sbi_scratch *scratch, bool cold_boot);
 
-#ifdef CONFIG_ARCH_HAS_SBI_TIMER
 u64 sbi_timer_value(struct sbi_scratch *scratch);
+#ifdef CONFIG_ARCH_HAS_SBI_TIMER
 void sbi_timer_event_stop(struct sbi_scratch *scratch);
 void sbi_timer_event_start(struct sbi_scratch *scratch, u64 next_event);
 void sbi_timer_process(struct sbi_scratch *scratch);
 int sbi_timer_init(struct sbi_scratch *scratch, bool cold_boot);
 #else
-#define sbi_timer_value(scratch)			rdtime()
 #define sbi_timer_event_stop(scratch)			do { } while (0)
 #define sbi_timer_event_start(scratch, next_event)	do { } while (0)
 #define sbi_timer_process(scratch)			do { } while (0)

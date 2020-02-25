@@ -215,18 +215,13 @@ int dhrystone (caddr_t percpu_area)
   Expected_End_Time = dhrystone_expected_timeout();
   if (Expected_End_Time != CPU_WAIT_INFINITE)
   {
-    Expected_End_Time += utime();
+    Expected_End_Time += clock();
   }
 #endif
 
   dhry_printf ("Execution starts, %d runs through Dhrystone\n", Number_Of_Runs);
 
-#ifdef HAVE_TIMES_H
-  times (&time_info);
-  Begin_Time = (long) time_info.tms_utime;
-#else
-  Begin_Time = utime ( (long *) 0);
-#endif
+  Begin_Time = clock();
 
   for (Run_Index = (1 - DHRYSTONE_WARMUP_RUNS);
        Run_Index <= Number_Of_Runs; ++Run_Index)
@@ -238,12 +233,7 @@ int dhrystone (caddr_t percpu_area)
       /* Start timer */
       /***************/
 
-#ifdef HAVE_TIMES_H
-      times (&time_info);
-      Begin_Time = (long) time_info.tms_utime;
-#else
-      Begin_Time = utime ( (long *) 0);
-#endif
+      Begin_Time = clock();
     }
 
     Proc_5();
@@ -291,7 +281,7 @@ int dhrystone (caddr_t percpu_area)
 #ifndef HOSTED
     if (unlikely(Run_Index % 10000 == 0) &&
         Expected_End_Time != CPU_WAIT_INFINITE &&
-        time_after(utime(), Expected_End_Time))
+        time_after(clock(), Expected_End_Time))
     {
       Number_Of_Runs = Run_Index;
       break;
@@ -303,12 +293,7 @@ int dhrystone (caddr_t percpu_area)
   /* Stop timer */
   /**************/
 
-#ifdef HAVE_TIMES_H
-  times (&time_info);
-  End_Time = (long) time_info.tms_utime;
-#else
-  End_Time = utime ( (long *) 0);
-#endif
+  End_Time = clock();
 
   dhry_printf ("Execution ends\n");
   dhry_printf ("\n");
@@ -375,16 +360,9 @@ int dhrystone (caddr_t percpu_area)
   {
 #ifdef CONFIG_ARCH_HAS_FP
 #ifdef HOSTED
-#ifdef HAVE_TIMES_H
-    Microseconds = (float) User_Time * Mic_secs_Per_Second
-                        / ((float) HZ * ((float) Number_Of_Runs));
-    Dhrystones_Per_Second = ((float) HZ * (float) Number_Of_Runs)
-                        / (float) User_Time;
-#else
     Microseconds = (float) User_Time * Mic_secs_Per_Second
                         / (float) Number_Of_Runs;
     Dhrystones_Per_Second = (float) Number_Of_Runs / (float) User_Time;
-#endif
 #else
     Microseconds = (float) User_Time
                         / (float) Number_Of_Runs;

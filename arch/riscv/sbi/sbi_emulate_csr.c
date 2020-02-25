@@ -9,6 +9,15 @@
 
 #include <target/sbi.h>
 
+#ifndef CONFIG_ARCH_HAS_SBI_TIMER
+u64 sbi_timer;
+
+u64 sbi_timer_value(struct sbi_scratch *scratch)
+{
+	return sbi_timer++;
+}
+#endif
+
 int sbi_emulate_csr_read(int csr_num, u32 hartid, ulong mstatus,
 			 struct sbi_scratch *scratch, ulong *csr_val)
 {

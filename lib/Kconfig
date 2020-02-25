@@ -130,6 +130,14 @@ config STRING_UUID
 
 endmenu
 
+menu "Time opeartions"
+
+config TIME_CLOCK
+	bool "clock"
+	select MATH_DIV32
+
+endmenu
+
 menu "Cryptographic algorithms"
 
 config CRYPTO_RAND

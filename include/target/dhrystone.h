@@ -236,6 +236,10 @@
 
 /* Compiler and system dependent definitions: */
 
+#define HAVE_STDBOOL_H
+#define HAVE_TIME_H
+#define HAVE_CLOCK
+
 #ifdef HOSTED
 #include <stdio.h>
 #include <string.h> /* for strcpy, strcmp */
@@ -246,12 +250,6 @@
 #define dhry_printf(...)                printf(__VA_ARGS__)
 #define dhry_fprintf(fp, ...)           fprintf(fp, __VA_ARGS__)
 #define dhry_strcpy                     strcpy
-
-#ifndef HAVE_TIME_H
-#define HAVE_TIMES_H
-#endif
-                /* Use times(2) time function unless    */
-                /* explicitly defined otherwise         */
 #else
 #ifdef CONFIG_TEST_VERBOSE
 #define dhry_printf(...)                printf(__VA_ARGS__)
@@ -260,27 +258,21 @@
 #endif
 #define dhry_fprintf(fp, fmt, ...)      do { } while (0)
 #define dhry_strcpy                     __builtin_strcpy
-#define HAVE_STDBOOL_H
+
 #include <target/generic.h>
 #include <target/bench.h>
 #include <target/percpu.h>
 #include <target/jiffies.h>
-
-#define utime(tick)		tick_get_counter()
-#define Too_Small_Time (2*HZ)
-#endif
-
-#ifdef HAVE_TIMES_H
-#include <sys/types.h>
-#include <sys/times.h>
-                /* for "times" */
-#define Too_Small_Time (2*HZ)
 #endif
 
 #ifdef HAVE_TIME_H
 #include <time.h>
-                /* for "time" */
+                /* for time, clock */
+#ifdef HAVE_CLOCK
+#define Too_Small_Time (2*HZ)
+#else /* HAVE_TIME */
 #define Too_Small_Time 2
+#endif
 #endif
 
 /* Define cache warmup runs, 1 should be sufficient */
