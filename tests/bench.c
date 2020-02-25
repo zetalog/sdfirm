@@ -90,6 +90,10 @@ struct cpu_context {
 
 int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
 	       tick_t interval, tick_t period, int repeats);
+static void __bench_sync(unsigned long sync_state,
+			 uint64_t this_cpu_mask, bool entry_or_exit,
+			 uint32_t flags, bool wait, tick_t timeout);
+static caddr_t bench_percpu_area(cpu_t cpu);
 
 static struct cpu_context cpu_ctxs[NR_CPUS];
 
@@ -115,7 +119,6 @@ static tick_t cmd_bench_interval = CPU_WAIT_INFINITE;
  */
 static unsigned long cpu_exec_stage = CPU_EXEC_IDLE;
 static unsigned long cpu_exec_state;
-static uint8_t cpu_exec_refcnt;
 static DEFINE_SPINLOCK(cpu_exec_lock);
 static uint64_t cpu_exec_sync;
 static unsigned long cpu_exec_good;
@@ -166,227 +169,6 @@ static void bench_raise_event(uint8_t event)
 	bh_resume(cpu_ctxs[cpu].bh);
 }
 
-#ifdef CONFIG_BENCH_DIDT
-static void bench_timer_wait(cpu_t cpu, timeout_t tout_ms)
-{
-	timer_schedule_shot(cpu_ctxs[cpu].timer, tout_ms);
-}
-
-static void bench_timer_handler(void)
-{
-	bench_raise_event(CPU_EVENT_TIME);
-}
-
-struct timer_desc bench_timer = {
-	TIMER_BH,
-	bench_timer_handler,
-};
-
-static void bench_timer_init(cpu_t cpu)
-{
-	cpu_ctxs[cpu].timer = timer_register(&bench_timer);
-}
-#else
-static void bench_timer_wait(cpu_t cpu, timeout_t tout_ms)
-{
-	if (tout_ms > 0)
-		mdelay(tout_ms);
-	bench_raise_event(CPU_EVENT_TIME);
-}
-
-#define bench_timer_init(cpu)			do { } while (0)
-#endif
-
-static void bench_reset_timeout(void)
-{
-	cpu_t cpu = smp_processor_id();
-	timeout_t tout_ms = cpu_ctxs[cpu].async_timeout - tick_get_counter();
-
-	bench_timer_wait(cpu, tout_ms);
-}
-
-#ifdef CONFIG_BENCH_START_DELAY
-#define BENCH_START_DELAY_MS	CONFIG_BENCH_START_DELAY
-#else
-#define BENCH_START_DELAY_MS	64
-#endif
-
-static void bench_start(void)
-{
-	cpu_t cpu = smp_processor_id();
-	tick_t current_s = tick_get_counter();
-
-	cpu_ctxs[cpu].async_timeout = ALIGN_UP(current_s,
-					       BENCH_START_DELAY_MS);
-	bench_reset_timeout();
-}
-
-static void bench_stop(void)
-{
-	bool locked = false;
-	__unused struct page *ptr;
-
-	spin_lock(&cpu_exec_lock);
-	cpu_didt_refcnt--;
-	if (!cpu_didt_refcnt) {
-		locked = true;
-		ptr = cpu_didt_alloc;
-		cpu_didt_cpu_mask = 0;
-		cpu_didt_alloc = NULL;
-	}
-	spin_unlock(&cpu_exec_lock);
-	if (locked) {
-		do_printf("free: cpuexec: %016llx(%d)\n",
-			  (uint64_t)ptr, cpu_didt_pages);
-		page_free_pages(ptr, cpu_didt_pages);
-		spin_lock(&cpu_exec_lock);
-		cpu_exec_stage = CPU_EXEC_IDLE;
-		spin_unlock(&cpu_exec_lock);
-	}
-}
-
-static void bench_enter_state(cpu_t cpu, uint8_t state)
-{
-	do_printf("State %s\n", bench_state_name(state));
-
-	cpu_ctxs[cpu].async_state = state;
-	switch (cpu_ctxs[cpu].async_state) {
-	case CPU_STATE_NONE:
-		break;
-	case CPU_STATE_DIDT:
-		bench_start();
-		break;
-	default:
-		break;
-	}
-}
-
-static caddr_t bench_percpu_area(cpu_t cpu)
-{
-	size_t size;
-
-	if (!cpu_ctxs[cpu].didt_entry)
-		return (caddr_t)0;
-	size = ALIGN_UP(cpu_ctxs[cpu].didt_entry->alloc_size,
-			cpu_ctxs[cpu].didt_entry->alloc_align);
-	return (caddr_t)((uint64_t)cpu_didt_alloc + cpu * size);
-}
-
-static void __bench_exec(cpu_t cpu)
-{
-	struct cpu_exec_test *fn;
-	tick_t end_time;
-	bool is_endless;
-
-	if (!cpu_ctxs[cpu].didt_entry) {
-		cpu_ctxs[cpu].didt_result = -EEXIST;
-		bench_raise_event(CPU_EVENT_STOP);
-		return;
-	} else
-		fn = cpu_ctxs[cpu].didt_entry;
-
-	end_time = cpu_ctxs[cpu].async_timeout +
-		   cpu_ctxs[cpu].async_exec_period;
-	is_endless = !!(cpu_ctxs[cpu].async_exec_period ==
-			CPU_WAIT_INFINITE);
-	while (is_endless ||
-	       time_before(tick_get_counter(), end_time)) {
-		do_printf("%02d(%020lld): %s count down %d before %020lld\n",
-			  cpu, tick_get_counter(), fn->name,
-			  cpu_ctxs[cpu].didt_repeats, end_time);
-		if (!fn->func(bench_percpu_area(cpu))) {
-			cpu_ctxs[cpu].didt_result = -EFAULT;
-			bench_raise_event(CPU_EVENT_STOP);
-			break;
-		}
-	}
-	cpu_ctxs[cpu].didt_repeats--;
-	if (cpu_ctxs[cpu].didt_repeats &&
-	    cpu_ctxs[cpu].async_wait_interval != CPU_WAIT_INFINITE) {
-		cpu_ctxs[cpu].async_timeout +=
-			cpu_ctxs[cpu].async_wait_interval;
-		tick_t current_time = tick_get_counter();
-		if (time_after(current_time, cpu_ctxs[cpu].async_timeout)) {
-			/* Effectively avoid dIdT mode */
-			cpu_ctxs[cpu].async_timeout = current_time;
-			bench_raise_event(CPU_EVENT_TIME);
-		} else {
-			bench_reset_timeout();
-		}
-	} else
-		bench_raise_event(CPU_EVENT_STOP);
-}
-
-static void bench_bh_handler(uint8_t __event)
-{
-	cpu_t cpu = smp_processor_id();
-	uint8_t event = cpu_ctxs[cpu].async_event;
-
-	cpu_ctxs[cpu].async_event = 0;
-	switch (cpu_ctxs[cpu].async_state) {
-	case CPU_STATE_HALT:
-		bench_didt(cmd_bench_cpu_mask, cmd_bench_test_set,
-			   cmd_bench_interval, cmd_bench_timeout,
-			   cmd_bench_repeats);
-		break;
-	case CPU_STATE_NONE:
-		if (event & CPU_EVENT_START)
-			bench_enter_state(cpu, CPU_STATE_DIDT);
-		break;
-	case CPU_STATE_DIDT:
-		if (event & CPU_EVENT_TIME)
-			__bench_exec(cpu);
-		if (event & CPU_EVENT_STOP) {
-			bench_stop();
-			bench_enter_state(cpu, CPU_STATE_NONE);
-		}
-		break;
-	default:
-		break;
-	}
-}
-
-static void __bench_sync(unsigned long sync_state,
-			 uint64_t this_cpu_mask, bool entry_or_exit,
-			 uint32_t flags, bool wait, tick_t timeout)
-{
-	uint64_t all_cpu_mask;
-
-	if (sync_state == CPU_EXEC_OPENED) {
-		all_cpu_mask = cpu_exec_good;
-		cpu_exec_sync |= this_cpu_mask;
-	} else {
-		all_cpu_mask = 0;
-		cpu_exec_sync &= ~this_cpu_mask;
-	}
-
-	while (cpu_exec_state != sync_state) {
-		spin_unlock(&cpu_exec_lock);
-		if (wait &&
-		    time_after(tick_get_counter(), timeout)) {
-			spin_lock(&cpu_exec_lock);
-			if (sync_state == CPU_EXEC_OPENED)
-				cpu_exec_good &= cpu_exec_sync;
-			else
-				cpu_exec_good &= ~cpu_exec_sync;
-			spin_unlock(&cpu_exec_lock);
-		}
-		cpu_relax();
-		spin_lock(&cpu_exec_lock);
-		if (all_cpu_mask == cpu_exec_sync &&
-		    cpu_exec_state != sync_state) {
-			cpu_exec_state = sync_state;
-			/* SYNC+RAND mode solution 2:
-			 * The last CPU will reset the global test id
-			 * here.
-			 */
-			if (sync_state == CPU_EXEC_OPENED &&
-			    entry_or_exit)
-				cpu_exec_test_id = -1;
-		}
-	}
-}
-
 static void inline cpu_exec_open(uint64_t cpu_mask, bool is_entry,
 				 uint32_t flags, bool wait,
 				 tick_t timeout)
@@ -403,6 +185,15 @@ static void inline cpu_exec_close(uint64_t cpu_mask, bool is_exit,
 		     flags, wait, timeout);
 }
 
+#ifdef CONFIG_TEST_BENCH_DIDT
+#ifdef CONFIG_BENCH_START_DELAY
+#define BENCH_START_DELAY_MS	CONFIG_BENCH_START_DELAY
+#else
+#define BENCH_START_DELAY_MS	64
+#endif
+
+static uint8_t cpu_exec_refcnt;
+
 static inline tick_t __get_testfn_timeout(struct cpu_exec_test *fn,
 					  tick_t timeout)
 {
@@ -413,6 +204,72 @@ static inline tick_t __get_testfn_timeout(struct cpu_exec_test *fn,
 	}
 	return timeout;
 }
+
+static void bench_timer_start(void)
+{
+	cpu_t cpu = smp_processor_id();
+	tick_t current_s = tick_get_counter();
+
+	cpu_ctxs[cpu].async_timeout = ALIGN_UP(current_s,
+					       BENCH_START_DELAY_MS);
+}
+
+static bool bench_should_suspend(cpu_t cpu, struct cpu_exec_test *fn)
+{
+	tick_t end_time;
+	bool is_endless;
+
+	end_time = cpu_ctxs[cpu].async_timeout +
+		   cpu_ctxs[cpu].async_exec_period;
+	is_endless = !!(cpu_ctxs[cpu].async_exec_period ==
+			CPU_WAIT_INFINITE);
+	if (is_endless ||
+	    time_before(tick_get_counter(), end_time)) {
+		do_printf("%02d(%020lld): %s count down %d before %020lld\n",
+			  cpu, tick_get_counter(), fn->name,
+			  cpu_ctxs[cpu].didt_repeats, end_time);
+		return false;
+	}
+	return true;
+}
+
+static bool bench_should_resume(cpu_t cpu)
+{
+	tick_t current_time;
+
+	cpu_ctxs[cpu].async_timeout +=
+		cpu_ctxs[cpu].async_wait_interval;
+	current_time = tick_get_counter();
+	if (time_after(current_time, cpu_ctxs[cpu].async_timeout)) {
+		/* Effectively avoid dIdT mode */
+		cpu_ctxs[cpu].async_timeout = current_time;
+		return true;
+	}
+	return false;
+}
+
+static void bench_reset_timeout(void)
+{
+	cpu_t cpu = smp_processor_id();
+	timeout_t tout_ms = cpu_ctxs[cpu].async_timeout - tick_get_counter();
+
+	timer_schedule_shot(cpu_ctxs[cpu].timer, tout_ms);
+}
+
+static bool __bench_sync_wait(bool wait, tick_t timeout)
+{
+	return !!(wait && time_after(tick_get_counter(), timeout));
+}
+
+static void bench_timer_handler(void)
+{
+	bench_raise_event(CPU_EVENT_TIME);
+}
+
+struct timer_desc bench_timer = {
+	TIMER_BH,
+	bench_timer_handler,
+};
 
 static int __do_one_testfn(struct cpu_exec_test *start,
 			   int nr_tests, int *local_test_id,
@@ -596,6 +453,198 @@ end:
 		cpu_exec_good = 0;
 	spin_unlock(&cpu_exec_lock);
 	return ret;
+}
+
+static void bench_timer_init(cpu_t cpu)
+{
+	cpu_ctxs[cpu].timer = timer_register(&bench_timer);
+}
+#else
+static inline tick_t __get_testfn_timeout(struct cpu_exec_test *fn,
+					  tick_t timeout)
+{
+	return 0;
+}
+
+static void bench_reset_timeout(void)
+{
+	bench_raise_event(CPU_EVENT_TIME);
+}
+
+static bool __bench_sync_wait(bool wait, tick_t timeout)
+{
+	return false;
+}
+
+static bool bench_should_suspend(cpu_t cpu, struct cpu_exec_test *fn)
+{
+	cpu_ctxs[cpu].async_timeout++;
+	return !(cpu_ctxs[cpu].async_timeout & 1);
+}
+
+static bool bench_should_resume(cpu_t cpu)
+{
+	return true;
+}
+
+#define bench_timer_init(cpu)			do { } while (0)
+#define bench_timer_start(cpu)			do { } while (0)
+#endif
+
+static void bench_start(void)
+{
+	bench_timer_start();
+	bench_reset_timeout();
+}
+
+static void bench_stop(void)
+{
+	bool locked = false;
+	__unused struct page *ptr;
+
+	spin_lock(&cpu_exec_lock);
+	cpu_didt_refcnt--;
+	if (!cpu_didt_refcnt) {
+		locked = true;
+		ptr = cpu_didt_alloc;
+		cpu_didt_cpu_mask = 0;
+		cpu_didt_alloc = NULL;
+	}
+	spin_unlock(&cpu_exec_lock);
+	if (locked) {
+		do_printf("free: cpuexec: %016llx(%d)\n",
+			  (uint64_t)ptr, cpu_didt_pages);
+		page_free_pages(ptr, cpu_didt_pages);
+		spin_lock(&cpu_exec_lock);
+		cpu_exec_stage = CPU_EXEC_IDLE;
+		spin_unlock(&cpu_exec_lock);
+	}
+}
+
+static void bench_enter_state(cpu_t cpu, uint8_t state)
+{
+	do_printf("State %s\n", bench_state_name(state));
+
+	cpu_ctxs[cpu].async_state = state;
+	switch (cpu_ctxs[cpu].async_state) {
+	case CPU_STATE_NONE:
+		break;
+	case CPU_STATE_DIDT:
+		bench_start();
+		break;
+	default:
+		break;
+	}
+}
+
+static caddr_t bench_percpu_area(cpu_t cpu)
+{
+	size_t size;
+
+	if (!cpu_ctxs[cpu].didt_entry)
+		return (caddr_t)0;
+	size = ALIGN_UP(cpu_ctxs[cpu].didt_entry->alloc_size,
+			cpu_ctxs[cpu].didt_entry->alloc_align);
+	return (caddr_t)((uint64_t)cpu_didt_alloc + cpu * size);
+}
+
+static void __bench_exec(cpu_t cpu)
+{
+	struct cpu_exec_test *fn;
+
+	if (!cpu_ctxs[cpu].didt_entry) {
+		cpu_ctxs[cpu].didt_result = -EEXIST;
+		bench_raise_event(CPU_EVENT_STOP);
+		return;
+	} else
+		fn = cpu_ctxs[cpu].didt_entry;
+
+	while (!bench_should_suspend(cpu, fn)) {
+		if (!fn->func(bench_percpu_area(cpu))) {
+			cpu_ctxs[cpu].didt_result = -EFAULT;
+			bench_raise_event(CPU_EVENT_STOP);
+			break;
+		}
+	}
+
+	cpu_ctxs[cpu].didt_repeats--;
+	if (cpu_ctxs[cpu].didt_repeats &&
+	    cpu_ctxs[cpu].async_wait_interval != CPU_WAIT_INFINITE) {
+		if (bench_should_resume(cpu))
+			bench_raise_event(CPU_EVENT_TIME);
+		else
+			bench_reset_timeout();
+	} else
+		bench_raise_event(CPU_EVENT_STOP);
+}
+
+static void bench_bh_handler(uint8_t __event)
+{
+	cpu_t cpu = smp_processor_id();
+	uint8_t event = cpu_ctxs[cpu].async_event;
+
+	cpu_ctxs[cpu].async_event = 0;
+	switch (cpu_ctxs[cpu].async_state) {
+	case CPU_STATE_HALT:
+		bench_didt(cmd_bench_cpu_mask, cmd_bench_test_set,
+			   cmd_bench_interval, cmd_bench_timeout,
+			   cmd_bench_repeats);
+		break;
+	case CPU_STATE_NONE:
+		if (event & CPU_EVENT_START)
+			bench_enter_state(cpu, CPU_STATE_DIDT);
+		break;
+	case CPU_STATE_DIDT:
+		if (event & CPU_EVENT_TIME)
+			__bench_exec(cpu);
+		if (event & CPU_EVENT_STOP) {
+			bench_stop();
+			bench_enter_state(cpu, CPU_STATE_NONE);
+		}
+		break;
+	default:
+		break;
+	}
+}
+
+static void __bench_sync(unsigned long sync_state,
+			 uint64_t this_cpu_mask, bool entry_or_exit,
+			 uint32_t flags, bool wait, tick_t timeout)
+{
+	uint64_t all_cpu_mask;
+
+	if (sync_state == CPU_EXEC_OPENED) {
+		all_cpu_mask = cpu_exec_good;
+		cpu_exec_sync |= this_cpu_mask;
+	} else {
+		all_cpu_mask = 0;
+		cpu_exec_sync &= ~this_cpu_mask;
+	}
+
+	while (cpu_exec_state != sync_state) {
+		spin_unlock(&cpu_exec_lock);
+		if (__bench_sync_wait(wait,timeout)) {
+			spin_lock(&cpu_exec_lock);
+			if (sync_state == CPU_EXEC_OPENED)
+				cpu_exec_good &= cpu_exec_sync;
+			else
+				cpu_exec_good &= ~cpu_exec_sync;
+			spin_unlock(&cpu_exec_lock);
+		}
+		cpu_relax();
+		spin_lock(&cpu_exec_lock);
+		if (all_cpu_mask == cpu_exec_sync &&
+		    cpu_exec_state != sync_state) {
+			cpu_exec_state = sync_state;
+			/* SYNC+RAND mode solution 2:
+			 * The last CPU will reset the global test id
+			 * here.
+			 */
+			if (sync_state == CPU_EXEC_OPENED &&
+			    entry_or_exit)
+				cpu_exec_test_id = -1;
+		}
+	}
 }
 
 struct cpu_exec_test *bench_test_find(const char *name)

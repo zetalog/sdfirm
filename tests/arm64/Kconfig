@@ -2,6 +2,7 @@
 menuconfig RAVEN
 	bool "ARM64 CPU verification (RAVEN)"
 	depends ARM64
+	select TEST_BENCH_DIDT
 
 if RAVEN
 
