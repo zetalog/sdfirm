@@ -126,6 +126,7 @@ SECTIONS
 	__end = .;				/* end of sdfirm */
 	_end = .;				/* end of sdfirm */
 
+#ifdef CONFIG_SBI_PAYLOAD
 #ifdef FW_PAYLOAD_OFFSET
 	. = PAGE_OFFSET + TEXT_OFFSET + FW_PAYLOAD_OFFSET;
 #else
@@ -139,6 +140,7 @@ SECTIONS
 		PROVIDE(_payload_end = .);
 	}
 	PROVIDE(_fw_reloc_end = .);
+#endif /* CONFIG_SBI_PAYLOAD */
 }
 
 /*

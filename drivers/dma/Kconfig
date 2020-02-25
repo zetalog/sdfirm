@@ -7,6 +7,7 @@ menu "DMA host drivers"
 
 menuconfig DW_DMA
 	bool "Synopsys DesignWare DMA support"
+	select BIT_FFS32
 
 endmenu
 

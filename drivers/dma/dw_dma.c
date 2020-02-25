@@ -38,8 +38,10 @@
  * @(#)dw_dma.c: Synopsys DesignWare DMA interface
  * $Id: dw_dma.c,v 1.0 2020-2-6 10:58:00 syl Exp $
  */
-#include <driver/dw_dmac.h>
+
+#include <target/dma.h>
 #include <target/list.h>
+
 #define DW_DMA_DEBUG
 #ifdef DW_DMA_DEBUG
 #include <target/console.h>
@@ -55,37 +57,6 @@ dma_desc_t dma_desc_buffer[DW_DMA_POOL_NUM];
 uint8_t phys_buffer[DW_DMA_POOL_NUM][DMAC_MAX_BLK_SIZE];
 desc_stuct_t  axi_desc;
 desc_stuct_t *ptr_axi_desc = &axi_desc;
-
-static inline unsigned long ffs(unsigned long word)
-{
-	int num = 0;
-
-#if BITS_PER_LONG == 64
-	if ((word & 0xffffffff) == 0) {
-		num += 32;
-		word >>= 32;
-	}
-#endif
-	if ((word & 0xffff) == 0) {
-		num += 16;
-		word >>= 16;
-	}
-	if ((word & 0xff) == 0) {
-		num += 8;
-		word >>= 8;
-	}
-	if ((word & 0xf) == 0) {
-		num += 4;
-		word >>= 4;
-	}
-	if ((word & 0x3) == 0) {
-		num += 2;
-		word >>= 2;
-	}
-	if ((word & 0x1) == 0)
-		num += 1;
-	return num;
-}
 
 static inline void
 dma_reg_set32(dma_chip_t *chip, uint32_t reg, uint32_t val)
@@ -229,79 +200,80 @@ static uint32_t chan_get_xfer_width(dma_chan_t *chan, dma_addr_t src,
 {
 	uint32_t max_width = chan->chip->hdata->m_data_width;
 
-	return ffs(src | dst | len | BIT(max_width));
+	return __ffs32(src | dst | len | BIT(max_width));
 }
+
 static int dma_pool_init(void)
 {
-    int8_t cnt;
-    ptr_axi_desc->alloc_index = 0;
-    ptr_axi_desc->allocated_num = 0;
-    ptr_axi_desc->free_num = 0;
+	int8_t cnt;
 
-    for(cnt=0;cnt<DW_DMA_POOL_NUM;cnt++)
-    {
-        dma_desc_buffer[cnt].desc_id =cnt;
-        dma_desc_buffer[cnt].desc_status=0;
-    }
+	ptr_axi_desc->alloc_index = 0;
+	ptr_axi_desc->allocated_num = 0;
+	ptr_axi_desc->free_num = 0;
+
+	for (cnt = 0; cnt < DW_DMA_POOL_NUM; cnt++) {
+		dma_desc_buffer[cnt].desc_id = cnt;
+		dma_desc_buffer[cnt].desc_status = 0;
+	}
+	return 0;
 }
 
 static inline dma_desc_t *dma_desc_alloc(dma_addr_t *handle)
 {
-    dma_desc_t *desc;
-    int32_t free_index;
+	dma_desc_t *desc;
+	int32_t free_index;
 
-    if(ptr_axi_desc->allocated_num- ptr_axi_desc->free_num == DW_DMA_POOL_NUM )
-        return NULL;
+	if (ptr_axi_desc->allocated_num - ptr_axi_desc->free_num ==
+	    DW_DMA_POOL_NUM)
+		return NULL;
     
-    desc = &dma_desc_buffer[ptr_axi_desc->alloc_index];
-    desc->desc_status = ALLOCATED;
+	desc = &dma_desc_buffer[ptr_axi_desc->alloc_index];
+	desc->desc_status = ALLOCATED;
     
-    handle = (dma_addr_t *)&phys_buffer[ptr_axi_desc->alloc_index];
+	handle = (dma_addr_t *)&phys_buffer[ptr_axi_desc->alloc_index];
 
-    free_index = ptr_axi_desc->alloc_index++;
-    free_index = free_index%DW_DMA_POOL_NUM;
-    desc = &dma_desc_buffer[free_index];
+	free_index = ptr_axi_desc->alloc_index++;
+	free_index = free_index%DW_DMA_POOL_NUM;
+	desc = &dma_desc_buffer[free_index];
     
-    while(desc->desc_status == ALLOCATED)
-    {
-        free_index++;
-        free_index = free_index%DW_DMA_POOL_NUM;
-        desc = &dma_desc_buffer[free_index];
-    }
-    ptr_axi_desc->alloc_index = free_index;
-    
-    return desc;
+	while (desc->desc_status == ALLOCATED) {
+		free_index++;
+		free_index = free_index%DW_DMA_POOL_NUM;
+		desc = &dma_desc_buffer[free_index];
+	}
+	ptr_axi_desc->alloc_index = free_index;
+	return desc;
 }
 
 static inline void dma_desc_free(dma_desc_t *desc)
 { 
-    int32_t	    desc_id;
-    desc_id = desc->desc_id;
-    memset (&dma_desc_buffer[desc_id],0,sizeof(dma_desc_t));
-    memset (phys_buffer[desc_id],0,DMAC_MAX_BLK_SIZE);
-    desc->desc_status = 0;
-    desc->desc_id = desc_id;
-    ptr_axi_desc->free_num ++;
+	int32_t	desc_id;
+
+	desc_id = desc->desc_id;
+	memset(&dma_desc_buffer[desc_id], 0, sizeof(dma_desc_t));
+	memset(phys_buffer[desc_id], 0, DMAC_MAX_BLK_SIZE);
+	desc->desc_status = 0;
+	desc->desc_id = desc_id;
+	ptr_axi_desc->free_num ++;
 }
 
 static dma_desc_t *axi_desc_get(dma_chan_t *chan)
 {
 	dma_desc_t *desc;
 	dma_addr_t phys_tmp = 0;
-    
+
 	desc = dma_desc_alloc(&phys_tmp);
 	if (unlikely(!desc)) {
-        	#ifdef DW_I2C_DEBUG
-	        con_printf("Debug: chan %d : not enough descriptors available\n", chan->id);
-               #endif
+#ifdef DW_I2C_DEBUG
+	        con_printf("dw_i2c: chan %d: not enough descriptors\n",
+			   chan->id);
+#endif
 		return NULL;
 	}
-       if(chan->descs_allocated == 0){
-               chan->first = desc;
-       }
-    	chan->descs_allocated++;
+	if(chan->descs_allocated == 0)
+		chan->first = desc;
+	chan->descs_allocated++;
 	INIT_LIST_HEAD(&desc->desc_list);
-
 	desc->phys = phys_tmp;
 	desc->chan = chan;
 	return desc;
@@ -313,7 +285,8 @@ static void axi_desc_put(dma_desc_t *desc)
 	dma_desc_t *child, *_next;
 	unsigned int descs_put = 0;
 
-	list_for_each_entry_safe(dma_desc_t, child, _next, &desc->desc_list, desc_list) {
+	list_for_each_entry_safe(dma_desc_t, child, _next,
+				 &desc->desc_list, desc_list) {
 		list_del(&child->desc_list);
 		dma_desc_free(child);
 		descs_put++;
@@ -321,13 +294,11 @@ static void axi_desc_put(dma_desc_t *desc)
 
 	dma_desc_free(desc);
 	descs_put++;
-
 	chan->descs_allocated = chan->descs_allocated -descs_put;
-
-       #ifdef DW_I2C_DEBUG
-	        con_printf("Debug: %d descs put, %d still allocated\n", 
-	        chan->id,descs_put,chan->descs_allocated));
-       #endif
+#ifdef DW_I2C_DEBUG
+	con_printf("dw_i2c: %d descs put, %d still allocated\n", 
+		   chan->id,descs_put,chan->descs_allocated);
+#endif
 }
 static void write_desc_llp(dma_desc_t *desc, dma_addr_t adr)
 {
@@ -339,17 +310,16 @@ static void write_chan_llp(dma_chan_t *chan, dma_addr_t adr)
 	chan_reg_set64(chan, CH_LLP, adr);
 }
 
-static int chan_block_xfer_start(dma_chan_t *chan,
-				      dma_desc_t *first)
+static int chan_block_xfer_start(dma_chan_t *chan, dma_desc_t *first)
 {
 	uint32_t priority = chan->chip->hdata->priority[chan->id];
 	uint32_t reg, irq_mask;
 	uint8_t lms = 0; 
 
 	if (unlikely(chan_is_hw_enable(chan))) {
-	        #ifdef DW_I2C_DEBUG
+#ifdef DW_I2C_DEBUG
 	        con_printf("Debug: chan %d : is non-idle!\n", chan->id);
-               #endif
+#endif
 		return DMA_ERROR;
 	}
 
@@ -375,7 +345,7 @@ static int chan_block_xfer_start(dma_chan_t *chan,
 	chan_irq_set(chan, irq_mask);
 
 	chan_enable(chan);
-       return DMA_OK;
+	return DMA_OK;
 }
 
 static int32_t chan_block_xfer_start_single(dma_chan_t *chan,
@@ -386,9 +356,9 @@ static int32_t chan_block_xfer_start_single(dma_chan_t *chan,
 	uint8_t lms = 0; 
 
 	if (unlikely(chan_is_hw_enable(chan))) {
-	        #ifdef DW_I2C_DEBUG
+#ifdef DW_I2C_DEBUG
 	        con_printf("Debug: chan %d : is non-idle!\n", chan->id);
-               #endif
+#endif
 		return DMA_ERROR;
 	}
 
@@ -413,18 +383,18 @@ static int32_t chan_block_xfer_start_single(dma_chan_t *chan,
 	chan_irq_set(chan, irq_mask);
 
 	chan_enable(chan);
-       return DMA_OK;
+	return DMA_OK;
 }
 
 static void chan_start_first_queued(uint8_t chanid)
 {
 	dma_desc_t *desc;
-       dma_chan_t *chan = chip->chan[chanid];
+	dma_chan_t *chan = chip->chan[chanid];
 
 	desc = chan->first;
-	#ifdef DW_I2C_DEBUG
+#ifdef DW_I2C_DEBUG
 	con_printf("Debug: chan %d : started!\n", chan->id);
-        #endif
+#endif
 	chan_block_xfer_start(chan, desc);
 }
 
@@ -641,7 +611,8 @@ static  void chan_handle_err(dma_chan_t *chan, uint32_t status)
 
 	spin_unlock_irqrestore(&chan->lock, flags);
 }
-static irqreturn_t dw_dma_interrupt(int irq, void *dev_id)
+
+irqreturn_t dw_dma_interrupt(int irq, void *dev_id)
 {
 	dma_chip_t *chip = dev_id;
 	dma_chan_t *chan;
@@ -681,23 +652,17 @@ static inline void chan_resume(dma_chan_t *chan)
 	val |=  (BIT(chan->id) << DMAC_CHAN_SUSP_WE_SHIFT);
 	dma_reg_set32(chan->chip, DMAC_CHEN, val);
 }
-static inline int32_t clk_prepare_enable(void)
-{
-	int32_t ret;
-	ret = clk_enable();
-	return ret;
-}
+
 static int32_t dma_resume(dma_chip_t *chip)
 {
 	dma_enable(chip);
 	dma_irq_enable(chip);
-
 	return 0;
 }
 
-static int dw_dma_init(void)
+void dw_dma_init(void)
 {
-       uint32_t tmp;
+	uint32_t tmp;
 	uint32_t i;
 	
 	chip->irq = DW_DMA_INT_NUM;
@@ -712,12 +677,12 @@ static int dw_dma_init(void)
 
         for (tmp = 0; tmp < chip->hdata->nr_channels; tmp++) {
 		chip->hdata->block_size[tmp] = DMAC_MAX_BLK_SIZE;
-              chip->hdata->priority[tmp] = tmp;
+		chip->hdata->priority[tmp] = tmp;
 	}
-       chip->hdata->restrict_burst_len = true;
+	chip->hdata->restrict_burst_len = true;
 	chip->hdata->rw_burst_len = DW_DMAC_ARWLEN_64;
         
-        for (tmp = 0; tmp < chip->hdata->nr_channels; tmp++) {
+	for (tmp = 0; tmp < chip->hdata->nr_channels; tmp++) {
 		chip->chan[tmp] = &chan_var[tmp];
 	}
         
@@ -725,18 +690,12 @@ static int dw_dma_init(void)
 		dma_chan_t *chan = chip->chan[i];
 		chan->chip = chip;
 		chan->id = i;
-		chan->chan_reg_base = chip->reg_base + COMMON_REG_LEN + i * CHAN_REG_LEN;
+		chan->chan_reg_base = chip->reg_base +
+			COMMON_REG_LEN + i * CHAN_REG_LEN;
 	}
 	dma_pool_init();    
 	dma_resume(chip);
 	dma_hw_init(chip);
-
-	return 0;
-}
-
-void dma_init(void)
-{
-        dw_dma_init();
 }
 
 int32_t dma_multi_block_memcpy(void *dst, void *src, size_t len)
@@ -800,4 +759,3 @@ int32_t dma_single_block_memcpy(void *dst, void *src, size_t len)
     }
     return DMA_ERROR;
 }
-

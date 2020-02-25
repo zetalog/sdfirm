@@ -6,3 +6,4 @@ obj-$(CONFIG_MEM) += mem.rel
 
 obj-$(CONFIG_CRCNTL) += crcntl.rel
 obj-$(CONFIG_DUOWEN_TMR) += tmr.rel
+obj-$(CONFIG_DUOWEN_DMA) += dma.rel

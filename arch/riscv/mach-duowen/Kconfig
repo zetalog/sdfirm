@@ -25,6 +25,7 @@ config DUOWEN_APC
 	bool "APC - coherence fabric (CFAB)"
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_BOOT_LOAD
+	select ARCH_HAS_DMA
 
 endchoice
 
@@ -119,5 +120,9 @@ if MSHC
 endif
 
 endmenu
+
+menuconfig DUOWEN_DMA
+	bool "Direct Memory Access Controller (DMA) support"
+	select DW_DMA
 
 endif

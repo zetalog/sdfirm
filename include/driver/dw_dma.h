@@ -38,10 +38,12 @@
  * @(#)dw_dma.h: Synopsys DesignWare DMA interface
  * $Id: dw_dma.h,v 1.0 2020-2-6 10:58:00 syl Exp $
  */
-#ifndef _DW_DMA_H
-#define _DW_DMA_H
+
+#ifndef __DW_DMA_H_INCLUDE__
+#define __DW_DMA_H_INCLUDE__
+
+#include <target/generic.h>
 #include <target/spinlock.h>
-#include <target/types.h>
 
 #define DMAC_MAX_CHANNELS	 8
 #define DMAC_MAX_MASTERS	2
@@ -55,8 +57,7 @@ enum irqreturn {
 typedef enum irqreturn irqreturn_t;
 typedef caddr_t dma_addr_t;
 
-typedef struct 
-{
+typedef struct {
     int32_t alloc_index;
     int32_t allocated_num;
     int32_t free_num;
@@ -98,35 +99,33 @@ typedef struct  {
 } dma_desc_t;
 
 typedef struct dma_chan_str{
-	struct  dma_chip_str	*chip;
+	struct dma_chip_str *chip;
 	caddr_t	chan_reg_base;
-	uint8_t				id;
-       spinlock_t lock;
-       int32_t		descs_allocated;
-       dma_desc_t *first;
+	uint8_t id;
+	spinlock_t lock;
+	int32_t descs_allocated;
+	dma_desc_t *first;
 } dma_chan_t;
 
-typedef struct  dma_chip_str{
-	int32_t			irq;
-	caddr_t     reg_base;
-	caddr_t  core_clk;
-	caddr_t  cfgr_clk;
-	dw_dma_hcfg_t	*hdata;
-	dma_chan_t	*chan[DMAC_MAX_CHANNELS];
+typedef struct dma_chip_str{
+	int32_t irq;
+	caddr_t reg_base;
+	caddr_t core_clk;
+	caddr_t cfgr_clk;
+	dw_dma_hcfg_t *hdata;
+	dma_chan_t *chan[DMAC_MAX_CHANNELS];
 } dma_chip_t;
 
 #define DMA_OK  0
 #define DMA_ERROR  (-1)
 
-
-
 #define BIT(nr)			(1UL << (nr))
-#define le64_to_cpu(x) ((uint64_t)(x))
-#define cpu_to_le64(x) ((uint64_t)(x))
+#define le64_to_cpu(x)		((uint64_t)(x))
+#define cpu_to_le64(x)		((uint64_t)(x))
 #define le32_to_cpu(x)		(x)
 #define cpu_to_le32(x)		(x)
-#define upper_32_bits(n) ((uint32_t)(((n) >> 16) >> 16))
-#define lower_32_bits(n) ((uint32_t)(n))
+#define upper_32_bits(n)	((uint32_t)(((n) >> 16) >> 16))
+#define lower_32_bits(n)	((uint32_t)(n))
 
 #define DMA_SUPPORTS_MEM_TO_MEM	BIT(0)
 #define DMA_SUPPORTS_MEM_TO_DEV	BIT(1)
@@ -149,7 +148,6 @@ typedef struct  dma_chip_str{
 #define DW_DMA_CFGR_CLK 0xf0000100
 #define DW_DMA_M_DATA_WIDTH 8
 #define ALLOCATED 1
-
 
 #define COMMON_REG_LEN		0x100
 #define CHAN_REG_LEN		0x100
@@ -340,4 +338,8 @@ enum dma_slave_buswidth {
 	DMA_SLAVE_BUSWIDTH_32_BYTES = 32,
 	DMA_SLAVE_BUSWIDTH_64_BYTES = 64,
 };
-#endif /* _DW_DMA_H */
+
+void dw_dma_init(void);
+irqreturn_t dw_dma_interrupt(int irq, void *dev_id);
+
+#endif /* __DW_DMA_H_INCLUDE__ */

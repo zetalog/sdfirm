@@ -1,0 +1,13 @@
+#
+# DMA Devices
+#
+
+config ARCH_HAS_DMA
+	bool
+
+menuconfig DMA
+	bool "Direct Memory Access (DMA) support"
+
+if DMA
+
+endif

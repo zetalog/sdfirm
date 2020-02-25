@@ -651,6 +651,7 @@ source kernel/io/Kconfig
 source kernel/uart/Kconfig
 source kernel/spi/Kconfig
 source kernel/i2c/Kconfig
+source kernel/dma/Kconfig
 source kernel/usb/Kconfig
 source kernel/scs/Kconfig
 source kernel/mtd/Kconfig

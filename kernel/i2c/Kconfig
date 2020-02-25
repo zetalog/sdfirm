@@ -2,6 +2,9 @@
 # I2C Devices
 #
 
+config ARCH_HAS_I2C
+	bool
+
 menuconfig I2C
 	bool "Inter integrated circuit (I2C) support"
 
@@ -34,9 +37,6 @@ config I2C_DEVICE_ID
 	help
 	  Disabling this will force the master driver not to perform
 	  device ID probing procedure.
-
-config ARCH_HAS_I2C
-	bool
 
 endif
 

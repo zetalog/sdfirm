@@ -11,8 +11,7 @@ build_sdfirm()
 	fi
 	if [ "x${arch}" = "xriscv64" ]; then
 		export SUBARCH=riscv
-		export RISCV64=
-		#export RISCV64=1
+		export RISCV64=1
 	fi
 	if [ "x${arch}" = "xarm64" ]; then
 		export SUBARCH=arm64
