@@ -6,6 +6,7 @@
 #include <target/uart.h>
 #include <target/irq.h>
 #include <target/delay.h>
+#include <target/bench.h>
 
 static void spike_modify_dt(void *fdt)
 {
@@ -104,7 +105,6 @@ static int spike_timer_init(bool cold_boot)
 static int spike_system_down(u32 type)
 {
 	printf("Shutting down simulation...\n");
-	sim_shutdown();
 	/* For now nothing to do. */
 	return 0;
 }
@@ -134,3 +134,12 @@ const struct sbi_platform platform = {
 	.disabled_hart_mask	= 0,
 	.platform_ops_addr	= (unsigned long)&platform_ops
 };
+
+int sim_notify(caddr_t percpu_area)
+{
+	sim_shutdown();
+	return 1;
+}
+
+__define_testfn(sim_notify, 0, SMP_CACHE_BYTES,
+		CPU_EXEC_META, 1, CPU_WAIT_INFINITE);
