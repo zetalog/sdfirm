@@ -40,6 +40,7 @@
  */
 #include <driver/dw_dmac.h>
 #include <target/list.h>
+#include <target/clk.h>
 #define DW_DMA_DEBUG
 #ifdef DW_DMA_DEBUG
 #include <target/console.h>
@@ -683,8 +684,7 @@ static inline void chan_resume(dma_chan_t *chan)
 }
 static inline int32_t clk_prepare_enable(void)
 {
-	int32_t ret;
-	ret = clk_enable();
+	int32_t ret = 1;
 	return ret;
 }
 static int32_t dma_resume(dma_chip_t *chip)
