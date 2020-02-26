@@ -16,3 +16,6 @@ obj-$(CONFIG_CRC32) += crc32_table.rel
 obj-$(CONFIG_FONTS) += font/
 obj-$(CONFIG_STRING_UUID) += uuid.rel
 obj-$(CONFIG_CRYPTO_RAND) += rand.rel
+
+#CFLAGS_tmath.o += -fno-builtin
+obj-$(CONFIG_MATH_TAYLOR) += tmath.rel

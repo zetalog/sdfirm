@@ -81,6 +81,9 @@ config CRC32
 
 endmenu
 
+config MATH_TAYLOR
+	bool "Math lib based on Taylor series"
+
 config STDLIB
 	bool
 
