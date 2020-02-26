@@ -50,5 +50,6 @@ config HANOITOWER_DEPTH
 endif
 
 source tests/bench/coremark/Kconfig
+source tests/bench/c_fft/Kconfig
 
 endmenu

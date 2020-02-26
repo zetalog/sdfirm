@@ -7,3 +7,5 @@ obj-$(CONFIG_HANOITOWER) += hanoitower.rel
 
 obj-$(CONFIG_COREMARK) += coremark/
 
+obj-$(CONFIG_C_FFT) += c_fft/
+
