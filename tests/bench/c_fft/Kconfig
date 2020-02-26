@@ -1,0 +1,14 @@
+config C_FFT
+	bool "C-Implementations of FFT"
+	# TODO select double floating-point
+	select MATH_TAYLOR
+
+if C_FFT
+
+config C_FFT_VALUE_CNT
+	int "Value count of FFT test"
+	range 1 64
+	default 30
+
+endif
+
