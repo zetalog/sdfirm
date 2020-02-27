@@ -104,10 +104,10 @@ int coremark(caddr_t percpu_area)
 {
 	char *argv[] = {
 		"coremark",
-		CONFIG_COREMARK_ARG_1,
-		CONFIG_COREMARK_ARG_2,
-		CONFIG_COREMARK_ARG_3,
-		CONFIG_COREMARK_ARG_4};
+		"0",
+		"0",
+		"0x66",
+		"1"};
 	int argc = 5;
 
 	coremark_ctx[smp_processor_id()].ptr = (struct coremark_context *)percpu_area;
@@ -130,7 +130,11 @@ int coremark(caddr_t percpu_area)
 	results[0].seed1=get_seed(1);
 	results[0].seed2=get_seed(2);
 	results[0].seed3=get_seed(3);
+#ifdef CONFIG_COREMARK_ITERATION_CNT
+	results[0].iterations= CONFIG_COREMARK_ITERATION_CNT;
+#else
 	results[0].iterations=get_seed_32(4);
+#endif
 #if CORE_DEBUG
 	results[0].iterations=1;
 #endif
