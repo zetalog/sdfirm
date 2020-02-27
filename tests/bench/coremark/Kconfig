@@ -11,21 +11,9 @@ config COREMARK_MEM_STATIC
 	bool "Use static memory"
 	default y
 
-config COREMARK_ARG_1
-	string "Argument 1: first speed"
-	default "0"
-
-config COREMARK_ARG_2
-	string "Argument 2: second speed"
-	default "0"
-
-config COREMARK_ARG_3
-	string "Argument 3: thidr speed"
-	default "0x66"
-
-config COREMARK_ARG_4
-	string "Argument 4: iterations"
-	default "1000"
+config COREMARK_ITERATION_CNT
+	int "Iterations count"
+	default 1
 
 endif
 
