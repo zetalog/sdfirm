@@ -155,12 +155,20 @@
 #define SR_HPP		_AC(0x00000600, UL) /* Previously Hypervisor */
 #endif
 
-#ifdef CONFIG_CPU_F
 #define SR_FS		_AC(0x00006000, UL) /* Floating-point Status */
+#ifdef CONFIG_CPU_F
 #define SR_FS_OFF	_AC(0x00000000, UL)
 #define SR_FS_INITIAL	_AC(0x00002000, UL)
 #define SR_FS_CLEAN	_AC(0x00004000, UL)
 #define SR_FS_DIRTY	_AC(0x00006000, UL)
+#endif
+
+#define SR_VS		_AC(0x01800000, UL) /* Vector extension */
+#ifdef CONFIG_CPU_V
+#define SR_VS_OFF	_AC(0x00000000, UL)
+#define SR_VS_INITIAL	_AC(0x00800000, UL)
+#define SR_VS_CLEAN	_AC(0x01000000, UL)
+#define SR_VS_DIRTY	_AC(0x01800000, UL)
 #endif
 
 #define SR_XS		_AC(0x00018000, UL) /* Extension Status */

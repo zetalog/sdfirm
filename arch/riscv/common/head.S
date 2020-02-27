@@ -26,10 +26,23 @@
 	csrw	CSR_IP, zero
 	.endm
 
-	.macro disable_fpu
+	.macro init_fpu
 #ifdef CONFIG_RISCV_F
+	li	t0, SR_FS_INITIAL
+	csrs	CSR_STATUS, t0
+#else
 	li	t0, SR_FS
 	csrc	CSR_STATUS, t0
+#endif
+#ifdef CONFIG_RISCV_V
+	li	t0, SR_VS_INITIAL
+	csrs	CSR_STATUS, t0
+#else
+	li	t0, SR_VS
+	csrc	CSR_STATUS, t0
+#endif
+#if defined(CONFIG_RISCV_F) || defined(CONFIG_RISCV_V)
+	csrwi	fcsr, 0
 #endif
 	.endm
 
@@ -169,7 +182,7 @@ ENDPROC(__start)
 
 ENTRY(__sbi_exit)
 	disable_exit_irq
-	disable_fpu
+	init_fpu
 
 	csrr	a6, CSR_MHARTID
 	bnez	a6, secondary_start
