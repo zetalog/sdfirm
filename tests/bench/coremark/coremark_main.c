@@ -115,7 +115,9 @@ int coremark(caddr_t percpu_area)
 	ee_u16 i,j=0,num_algorithms=0;
 	ee_s16 known_id=-1,total_errors=0;
 	ee_u16 seedcrc=0;
+#ifdef CONFIG_COREMARK_TIME_ON
 	CORE_TICKS total_time;
+#endif
 	core_results results[MULTITHREAD];
 #if (MEM_METHOD==MEM_STACK)
 	ee_u8 stack_memblock[TOTAL_DATA_SIZE*MULTITHREAD];
@@ -219,6 +221,7 @@ int coremark(caddr_t percpu_area)
 	
 	/* automatically determine number of iterations if not set */
 	if (results[0].iterations==0) { 
+#ifdef CONFIG_COREMARK_TIME_ON
 		secs_ret secs_passed=0;
 		ee_u32 divisor;
 		results[0].iterations=1;
@@ -234,9 +237,14 @@ int coremark(caddr_t percpu_area)
 		if (divisor==0) /* some machines cast float to int as 0 since this conversion is not defined by ANSI, but we know at least one second passed */
 			divisor=1;
 		results[0].iterations*=1+10/divisor;
+#else
+		results[0].iterations = 1;
+#endif
 	}
 	/* perform actual benchmark */
+#ifdef CONFIG_COREMARK_TIME_ON
 	start_time();
+#endif
 #if (MULTITHREAD>1)
 	if (default_num_contexts>MULTITHREAD) {
 		default_num_contexts=MULTITHREAD;
@@ -252,8 +260,10 @@ int coremark(caddr_t percpu_area)
 #else
 	iterate(&results[0]);
 #endif
+#ifdef CONFIG_COREMARK_TIME_ON
 	stop_time();
 	total_time=get_time();
+#endif
 	/* get a function of the input to report */
 	seedcrc=crc16(results[0].seed1,seedcrc);
 	seedcrc=crc16(results[0].seed2,seedcrc);
@@ -309,6 +319,7 @@ int coremark(caddr_t percpu_area)
 	total_errors+=check_data_types();
 	/* and report results */
 	ee_printf("CoreMark Size    : %lu\n", (long unsigned) results[0].size);
+#ifdef CONFIG_COREMARK_TIME_ON
 	ee_printf("Total ticks      : %lu\n", (long unsigned) total_time);
 #if HAS_FLOAT
 	ee_printf("Total time (secs): %f\n",time_in_secs(total_time));
@@ -326,6 +337,7 @@ int coremark(caddr_t percpu_area)
 	}
 #else
 	ee_printf("Note: Did NOT check total time\n");
+#endif
 #endif
 
 	ee_printf("Iterations       : %lu\n", (long unsigned) default_num_contexts*results[0].iterations);
@@ -350,6 +362,7 @@ int coremark(caddr_t percpu_area)
 		ee_printf("[%d]crcfinal      : 0x%04x\n",i,results[i].crc);
 	if (total_errors==0) {
 		ee_printf("Correct operation validated. See README.md for run and reporting rules.\n");
+#ifdef CONFIG_COREMARK_TIME_ON
 #if HAS_FLOAT
 		if (known_id==3) {
 			ee_printf("CoreMark 1.0 : %f / %s %s",default_num_contexts*results[0].iterations/time_in_secs(total_time),COMPILER_VERSION,COMPILER_FLAGS);
@@ -364,6 +377,7 @@ int coremark(caddr_t percpu_area)
 #endif
 			ee_printf("\n");
 		}
+#endif
 #endif
 	}
 	if (total_errors>0)
