@@ -79,7 +79,7 @@ void __timer_del(tid_t tid)
 		if (timer_orders[i] == tid)
 			break;
 	}
-	for (; i < NR_TIMERS; i++) {
+	for (; i < NR_TIMERS-1; i++) {
 		if (timer_orders[i] != INVALID_TID) {
 			tid_t swp = timer_orders[i+1];
 			timer_orders[i+1] = timer_orders[i];
