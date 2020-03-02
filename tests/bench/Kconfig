@@ -49,6 +49,27 @@ config HANOITOWER_DEPTH
 
 endif
 
+config MEMSTREAM
+	bool "Memory Stream"
+
+if MEMSTREAM
+
+config MEMSTREAM_ARRAY_SIZE
+	int "Array size"
+	range 1000 8000000
+	default 200000
+
+config MEMSTREAM_NTIMES
+	int "Running times"
+	range 1 16
+	default 2
+
+config MEMSTREAM_TIME_ON
+	bool "Turn on time operations"
+	default n
+
+endif
+
 source tests/bench/coremark/Kconfig
 source tests/bench/c_fft/Kconfig
 
