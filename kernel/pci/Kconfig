@@ -1,0 +1,13 @@
+#
+# PCI Devices
+#
+
+config ARCH_HAS_PCI
+	bool
+
+menuconfig PCI
+	bool "Peripheral component interconnect (PCI) support"
+
+if PCI
+
+endif

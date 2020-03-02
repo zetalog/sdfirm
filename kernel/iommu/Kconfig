@@ -6,7 +6,7 @@ config ARCH_HAS_IOMMU
 	bool
 
 menuconfig IOMMU
-	bool "I/O Memory Management Unit (IOMMU) support"
+	bool "I/O memory management unit (IOMMU) support"
 
 if IOMMU
 

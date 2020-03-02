@@ -1,0 +1,16 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "PCI drivers"
+
+menuconfig DW_PCIE
+	bool "Synopsys DesignWare PCI-Express (PCIe) support"
+	depends ARCH_HAS_PCI
+
+if DW_PCIE
+
+endif
+
+endmenu

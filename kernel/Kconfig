@@ -660,10 +660,11 @@ source kernel/net/Kconfig
 source kernel/video/Kconfig
 source kernel/mmc/Kconfig
 source kernel/ddr/Kconfig
+source kernel/pci/Kconfig
 source kernel/iommu/Kconfig
 
 config RAS
-	bool "Reliability Availability Serviceability (RAS) support"
+	bool "Reliability availability serviceability (RAS) support"
 
 config ARCH_HAS_PMU
 	bool

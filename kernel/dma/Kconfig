@@ -6,7 +6,7 @@ config ARCH_HAS_DMA
 	bool
 
 menuconfig DMA
-	bool "Direct Memory Access (DMA) support"
+	bool "Direct memory access (DMA) support"
 
 if DMA
 

@@ -27,6 +27,7 @@ config DUOWEN_APC
 	select ARCH_HAS_BOOT_LOAD
 	select ARCH_HAS_DMA
 	select ARCH_HAS_IOMMU
+	select ARCH_HAS_PCI
 
 endchoice
 
@@ -120,6 +121,14 @@ if MSHC
 
 endif
 
+menuconfig DUOWEN_PCIE
+	bool "PCI-Express (PCIe) support"
+	select DW_PCIE
+
+if DUOWEN_PCIE
+
+endif
+
 menuconfig DUOWEN_SMMU
 	bool "System Memory Management Unit (SMMU) support"
 	select SMMU_MMU500
@@ -132,10 +141,10 @@ if DUOWEN_SMMU
 
 endif
 
-endmenu
-
 menuconfig DUOWEN_DMA
 	bool "Direct Memory Access Controller (DMA) support"
 	select DW_DMA
+
+endmenu
 
 endif

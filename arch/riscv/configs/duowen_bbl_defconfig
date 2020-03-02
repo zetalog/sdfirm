@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Feb 26 10:27:15 2020
+# Mon Mar  2 11:01:47 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -125,6 +125,7 @@ CONFIG_DUOWEN_APC_VAISRA=y
 CONFIG_DUOWEN_SBI=y
 CONFIG_CRCNTL=y
 # CONFIG_DUOWEN_SD is not set
+CONFIG_DUOWEN_PCIE=y
 CONFIG_DUOWEN_SMMU=y
 CONFIG_DUOWEN_DMA=y
 
@@ -226,6 +227,8 @@ CONFIG_ARCH_HAS_SD=y
 # CONFIG_MMCSD is not set
 CONFIG_ARCH_HAS_DDR=y
 # CONFIG_DDR is not set
+CONFIG_ARCH_HAS_PCI=y
+CONFIG_PCI=y
 CONFIG_ARCH_HAS_IOMMU=y
 CONFIG_IOMMU=y
 # CONFIG_RAS is not set
@@ -233,6 +236,15 @@ CONFIG_IOMMU=y
 #
 # Driver setup
 #
+
+#
+# Clock drivers
+#
+CONFIG_DW_PLL5GHZ_TSMC12FFC=y
+# CONFIG_DW_PLL5GHZ_TSMC12FFC_RANGE2 is not set
+# CONFIG_DW_PLL5GHZ_TSMC12FFC_GEAR is not set
+# CONFIG_DW_PLL5GHZ_TSMC12FFC_PRSTDUR is not set
+# CONFIG_DW_PLL5GHZ_TSMC12FFC_ACCEL is not set
 
 #
 # Timer drivers
@@ -288,6 +300,11 @@ CONFIG_DW_UART_FIFO_MEM_INTERNAL=y
 # CONFIG_DW_UMCTL2 is not set
 
 #
+# PCI drivers
+#
+CONFIG_DW_PCIE=y
+
+#
 # IO MMU drivers
 #
 CONFIG_ARCH_HAS_SMMU=y
@@ -301,20 +318,15 @@ CONFIG_ARM_SMMU=y
 # CONFIG_ARCH_SMMUv1_64KB is not set
 CONFIG_ARM_SMMUv2=y
 # CONFIG_ARM_SMMUv3 is not set
+CONFIG_SMMU_ARCH64=y
+# CONFIG_SMMU_ARCH32_S is not set
+# CONFIG_SMMU_ARCH32_L is not set
 # CONFIG_SMMU_SMRG is not set
 # CONFIG_SMMU_SSDT is not set
 # CONFIG_SMMU_EXSMRG is not set
 # CONFIG_SMMU_COMPINDEX is not set
+# CONFIG_SMMU_DISABLE_BYPASS is not set
 CONFIG_SMMU_MMU500=y
-
-#
-# Clock drivers
-#
-CONFIG_DW_PLL5GHZ_TSMC12FFC=y
-# CONFIG_DW_PLL5GHZ_TSMC12FFC_RANGE2 is not set
-# CONFIG_DW_PLL5GHZ_TSMC12FFC_GEAR is not set
-# CONFIG_DW_PLL5GHZ_TSMC12FFC_PRSTDUR is not set
-# CONFIG_DW_PLL5GHZ_TSMC12FFC_ACCEL is not set
 
 #
 # I2C host drivers
@@ -325,6 +337,11 @@ CONFIG_DW_PLL5GHZ_TSMC12FFC=y
 # I2C slave drivers
 #
 # CONFIG_DW_I2CS is not set
+
+#
+# SPI Master drivers
+#
+# CONFIG_DW_SPI is not set
 
 #
 # DMA host drivers
@@ -370,6 +387,7 @@ CONFIG_MATH_MOD64=y
 #
 # CONFIG_CRC16_CCITT is not set
 # CONFIG_CRC32 is not set
+# CONFIG_MATH_TAYLOR is not set
 CONFIG_STDLIB=y
 
 #
