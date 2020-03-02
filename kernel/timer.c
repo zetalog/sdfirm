@@ -356,10 +356,10 @@ void timer_irq_timeout(void)
 			}
 		}
 	}
-	if (run_irq)
-		timer_run_timeout(TIMER_IRQ);
 	if (!run_bh)
 		timer_recalc_timeout(true);
+	if (run_irq)
+		timer_run_timeout(TIMER_IRQ);
 }
 
 void tick_handler(void)
@@ -412,7 +412,7 @@ int timer_nr_tests = TIMER_TEST_SHOTS;
 
 void timer_test_handler(void)
 {
-	printf("timeout %d on %d, %016lx\n", timer_running_tid,
+	printf("timeout %d on %d, 0x%016lx\n", timer_running_tid,
 	       smp_processor_id(), (unsigned long)tick_get_counter());
 	if (timer_nr_tests) {
 		timer_schedule_shot(timer_running_tid, 5000);

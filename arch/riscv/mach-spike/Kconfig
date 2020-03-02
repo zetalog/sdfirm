@@ -125,6 +125,17 @@ config SPIKE_CLINT
 	select ARCH_HAS_CLINT
 	select CLINT if !SYS_NOIRQ
 
+config SPIKE_CLINT_RTC_FREQ
+	int "Clint timer frequency"
+	depends SPIKE_CLINT
+	default 10000000
+	range 10000 10000000
+	help
+	  In the cycle accurate emulation environment, using a cycle based
+	  RTC frequency causes a longer timeout from the real world's
+	  perspective. This configuration allows users to select a lower
+	  frequency for the RTC to match the speed of the emulation host.
+
 config SPIKE_HTIF
 	bool "Enable HTIF emulation"
 	select ARCH_HAS_HTIF

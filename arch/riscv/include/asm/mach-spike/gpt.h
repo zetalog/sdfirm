@@ -44,4 +44,6 @@
 
 #include <asm/clint.h>
 
+#define GPT_MAX_TIMEOUT	0xffffffff
+
 #endif /* __GPT_SPIKE_H_INCLUDE__ */
