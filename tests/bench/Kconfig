@@ -70,6 +70,17 @@ config MEMSTREAM_TIME_ON
 
 endif
 
+config SHA256
+	bool "256-bit SHA algorithm"
+
+if SHA256
+
+config SHA256_TEST_CNT 
+	int "Count of tests"
+	range 1 6
+	default 2
+endif
+
 source tests/bench/coremark/Kconfig
 source tests/bench/c_fft/Kconfig
 
