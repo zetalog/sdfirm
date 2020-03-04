@@ -1,0 +1,14 @@
+config JPGENC
+	bool "Jpeg Encoder"
+
+if JPGENC
+
+config JPGENC_SMALL_IMAGE
+	bool "Use small image"
+	default y
+
+#config JPGENC_HEAP_MEM
+	#bool "Use memory from heap"
+	#default n
+
+endif

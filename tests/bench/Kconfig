@@ -79,9 +79,11 @@ config SHA256_TEST_CNT
 	int "Count of tests"
 	range 1 6
 	default 2
+
 endif
 
 source tests/bench/coremark/Kconfig
 source tests/bench/c_fft/Kconfig
+source tests/bench/jpgenc/Kconfig
 
 endmenu
