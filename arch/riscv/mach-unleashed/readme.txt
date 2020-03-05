@@ -22,6 +22,29 @@
    (gdb) load sdfirm
    (gdb) symbol-file sdfirm (for debugging symbols)
    (gdb) continue
+8. Single step debugging:
+   (gdb) set disassemble-next-line on
+   (gdb) si/ni (for assembly debugging)
+   (gdb) s/n (for C debugging)
+   (gdb) info register pc (dump register content)
+   (gdb) examine /nfu <addr> (dump memory content)
+         n: number of memory unit
+         f: format - x hex
+                     d decimal
+                     u unsigned decimal
+                     o octet
+                     t binary
+                     a address
+                     i instruction
+                     c character
+                     f floating point
+         u: length of memory unit
+            b byte
+            h half word
+            w word
+            g quad
+   (gdb) set $pc = 0x8000000
+   (gdb) until *0x80000a8 (run to a specific address)
 
 ===== DEBUGGING U54 =====
 5. Special steps for running U54:

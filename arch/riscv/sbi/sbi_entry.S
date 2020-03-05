@@ -95,13 +95,24 @@
 	sub	\reg_res, \reg_res, \reg_tmp
 	.endm
 
+	.macro get_hartid reg
+#ifdef CONFIG_SMP
+	csrr	\reg, CSR_MHARTID
+#else
+	li	\reg, 0
+#endif
+	.endm
+
 	__HEAD
 
 ENTRY(__sbi_entry)
+	/* Need to initialize gp before using symbols */
+	init_gp
+
 	/* s6 -> HART ID
 	 * s7 -> HART Count
 	 */
-	csrr	s6, CSR_MHARTID
+	get_hartid s6
 	li	s7, NR_CPUS
 	/* Jump to warm boot if it is not the first core booting, hartid
 	 * 0 is mandatory by ISA.

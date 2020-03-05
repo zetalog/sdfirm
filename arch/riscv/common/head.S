@@ -54,10 +54,18 @@
 	csrw	CSR_SSCRATCH, 0
 	.endm
 
+	.macro get_hartid reg
+#ifdef CONFIG_SMP
+	csrr	\reg, CSR_MHARTID
+#else
+	li	\reg, 0
+#endif
+	.endm
+
 	.macro init_gpsptp
 	init_gp
 #ifdef CONFIG_SMP
-	csrr	a3, CSR_MHARTID
+	get_hartid a3
 	slli	sp, a3, PERCPU_STACK_SHIFT
 	la	a3, (ABI_PERCPU_STACKS_START + PERCPU_STACK_SIZE)
 	add	sp, sp, a3
@@ -128,17 +136,23 @@
 
 ENTRY(__start)
 #ifdef CONFIG_RISCV_ENTR_M
-	/* Reset core to the entry point on failure */
-	la	ra, __start
 	/* Reset all registers, except ra, gp, sp */
 	init_gprs
 	init_mtls
+	/* Need to initialize gp before using symbols */
+	init_gp
+	/* Reset core to the entry point on failure */
+	la	ra, __start
+#else
+	/* Need to initialize gp before using symbols */
+	init_gp
 #endif
+
 	/* Disable global interrupt. */
 	disable_entr_irq
 
 	/* Jump to warm boot if it is not the first core booting */
-	csrr	a6, CSR_MHARTID
+	get_hartid a6
 	li	a5, NR_CPUS
 	bge	a6, a5, secondary_park
 	/* hartid 0 is the mandatory core */
@@ -184,14 +198,14 @@ ENTRY(__sbi_exit)
 	disable_exit_irq
 	init_fpu
 
-	csrr	a6, CSR_MHARTID
-	bnez	a6, secondary_start
-
 	/* TODO:
 	 * Do we need to initialize gp, tp, sp before invoking PIC?
 	 * Remove the following lines if we don't.
 	 */
 	init_gpsptp
+
+	get_hartid a6
+	bnez	a6, secondary_start
 
 #ifdef CONFIG_MMU
 	call	bpgt_init
@@ -272,7 +286,7 @@ ENTRY(test_section_end)
 	csrw	satp, zero
 	li	a0, 0xFFFFFFFF00
 #ifdef CONFIG_SMP
-	csrr	a1, CSR_MHARTID
+	get_hartid a1
 	addi	a1, a1, 1
 	slli	a1, a1, 4
 	addi	a1, a1, 0x4
