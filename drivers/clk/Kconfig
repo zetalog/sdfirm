@@ -11,6 +11,23 @@ menuconfig DW_PLL5GHZ_TSMC12FFC
 	select BIT_FLS8
 	select MATH_DIV32
 	select MATH_DIV64
+	help
+	  This clock-multiplying PLL macro-cell is designed for a TSMC 12nm
+	  FFC CMOS technology. The PLL topology has an analog loop with a
+	  ring oscillator in its core.
+	  The PLL has 2 independent output clock channels (R and P), and
+	  each channel frequency is obtained from a programmable integer
+	  division of the VCO operating frequency. Each output channel
+	  division value is the result of a multiplication between two
+	  factors, from two different divider values, and the total
+	  division ranges from 2 to 4096.
+	  The VCO output frequency is also divided by Fractional Division
+	  Circuit (ranging from 16 to 1039) before being compared to an
+	  input, which in turn can be an integer division (from 1 to 32) of
+	  a crystal based, reference input frequency.
+	  A built-in gearshift mode during startup promotes faster locking
+	  times at the expense of higher jitter at startup or relock
+	  phases, but aims locking times below 10μs.
 
 if DW_PLL5GHZ_TSMC12FFC
 
@@ -34,8 +51,54 @@ config DW_PLL5GHZ_TSMC12FFC_GEAR
 	  at the cost of less phase margin and more jitter during the gear
 	  state.
 
+config DW_PLL5GHZ_TSMC12FFC_REG_ACCESS
+	bool "Enable PLL control register accesses"
+	help
+	  Normally, PLL control registers are not useful for PLL
+	  programming. However there are some tuning facilities can be
+	  used to obtain higher performance.
+	  If unsure, say 'N'.
+
+if DW_PLL5GHZ_TSMC12FFC_REG_ACCESS
+
 config DW_PLL5GHZ_TSMC12FFC_PRSTDUR
 	bool "Enable preset duration adjustment"
+
+config DW_PLL5GHZ_TSMC12FFC_BYPASS_SYNC
+	bool "Enable bypass clock resynchronization circuits"
+	help
+	  In high speed dividers, there are clock resynchronization
+	  circuits that require a sampling frequency below 1GHz to operate
+	  correctly. This means that if:
+                                             --------- ---------
+	    Fvco/(2*(2*divvco[3]+2*divvco[2]+divvco[3]*divvco[2])) > 1GHz
+	  Then the bit bypass_sync_p inside register "ANAREG06" should be
+	  enabled.
+
+config DW_PLL5GHZ_TSMC12FFC_BYPASS_TEST
+	bool "Enable test bypass"
+
+endif
+
+choice
+	prompt "Default output P/R"
+	default DW_PLL5GHZ_TSMC12FFC_OUTPUT_PROG
+
+config DW_PLL5GHZ_TSMC12FFC_OUTPUT_PROG
+	bool "Programmable"
+
+config DW_PLL5GHZ_TSMC12FFC_OUTPUT_DIV2
+	bool "DIV2 (DIVCOVP/R=0, P/R=0)"
+
+endchoice
+
+config DW_PLL5GHZ_TSMC12FFC_CNT_LOCKED
+	bool "Enable count locked signal"
+	depends EXPERIMENTAL
+	help
+	  In DUOWEN SoC, a special cnt_locked signal can be used to
+	  detect an unexpected PLL lock states.
+	  If unsure, say 'N'.
 
 config DW_PLL5GHZ_TSMC12FFC_ACCEL
 	bool "Enable acceleration for emulation"
@@ -43,6 +106,7 @@ config DW_PLL5GHZ_TSMC12FFC_ACCEL
 	help
 	  In emulation environment, t_pwrstb, t_trst and t_pwron can be
 	  omit to accelerate emulation.
+	  If unsure, say 'N'.
 
 endif
 

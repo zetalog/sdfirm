@@ -72,6 +72,10 @@ ifeq ($(CONFIG_ARCH_DUOWEN),y)
  machine-$(CONFIG_ARCH_DUOWEN)		:= duowen
  incdir-$(CONFIG_ARCH_DUOWEN)		:= duowen
 endif
+ifeq ($(CONFIG_ARCH_DPU),y)
+ machine-$(CONFIG_ARCH_DPU)		:= dpu
+ incdir-$(CONFIG_ARCH_DPU)		:= dpu
+endif
 ifeq ($(CONFIG_ARCH_UNLEASHED),y)
  machine-$(CONFIG_ARCH_UNLEASHED)	:= unleashed
  incdir-$(CONFIG_ARCH_UNLEASHED)	:= unleashed

@@ -47,7 +47,7 @@ uint64_t tmr_read_counter(void)
 	uint32_t lo;
 
 	do {
-	     	hi1 = __raw_readl(TMR_CNT_HI);
+		hi1 = __raw_readl(TMR_CNT_HI);
 		lo = __raw_readl(TMR_CNT_LO);
 		hi2 = __raw_readl(TMR_CNT_HI);
 	} while (hi1 != hi2);

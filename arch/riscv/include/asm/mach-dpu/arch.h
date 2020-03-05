@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2019
+ * Copyright (c) 2020
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,65 +35,40 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)clk.h: clock tree framework interface
- * $Id: clk.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)arch.h: DPU machine specific definitions
+ * $Id: arch.h,v 1.1 2020-03-02 16:11:00 zhenglv Exp $
  */
 
-#ifndef __CLK_H_INCLUDE__
-#define __CLK_H_INCLUDE__
+#ifndef __ARCH_DPU_H_INCLUDE__
+#define __ARCH_DPU_H_INCLUDE__
 
-#include <target/generic.h>
+#include <asm/mach/tcsr.h>
 
-#ifdef CONFIG_CLK_MAX_DRIVERS
-#define MAX_CLK_DRIVERS		CONFIG_CLK_MAX_DRIVERS
-#endif
+/* This file is intended to be used for implementing SoC specific
+ * instructions, registers.
+ */
+
+#define XIN_FREQ		UL(25000000)	/* 25MHz */
+#define PLL0_VCO_FREQ		ULL(4000000000)	/* 4GHz */
+#define PLL1_VCO_FREQ		ULL(4000000000)	/* 4GHz */
+#define PLL2_VCO_FREQ		ULL(3200000000)	/* 3.2GHz */
+#define PLL3_VCO_FREQ		ULL(4000000000)	/* 4GHz */
+#define PLL4_VCO_FREQ		ULL(4000000000)	/* 4GHz */
+#define PLL0_P_FREQ		UL(1000000000)	/* 1GHz */
+#define PLL1_P_FREQ		UL(1000000000)	/* 1GHz */
+#define PLL2_P_FREQ		UL(800000000)	/* 800MHz */
+#define PLL3_P_FREQ		UL(1000000000)	/* 1GHz */
+#define PLL3_R_FREQ		UL(200000000)	/* 200MHz */
+#define PLL4_P_FREQ		UL(2000000000)	/* 2GHz */
+#define IMC_CLK_FREQ		PLL0_P_FREQ
+#define PE_CLK_FREQ		PLL1_P_FREQ
+#define PCIE_CLK_FREQ		PLL3_P_FREQ
+#define APB_CLK_FREQ		PLL3_R_FREQ
+#define CPU_CLK_FREQ		PLL4_P_FREQ
 
 #ifndef __ASSEMBLY__
-typedef uint16_t clk_t;
-typedef uint8_t clk_cat_t;
-typedef uint8_t clk_clk_t;
-
-#define clkid(cat, clk)		((clk_t)MAKEWORD(clk, cat))
-#define clk_clk(clkid)		LOBYTE(clkid)
-#define clk_cat(clkid)		HIBYTE(clkid)
-
-#ifndef clk_freq_t
-#define clk_freq_t		uint32_t
-#endif
-
-#define INVALID_FREQ		((clk_freq_t)0)
-
-struct clk_driver {
-	clk_clk_t max_clocks;
-	int (*enable)(clk_clk_t clk);
-	void (*disable)(clk_clk_t clk);
-	clk_freq_t (*get_freq)(clk_clk_t clk);
-	int (*set_freq)(clk_clk_t clk, clk_freq_t freq);
-	void (*select)(clk_clk_t clk, clk_t src);
-	const char *(*get_name)(clk_clk_t clk);
-};
-
-#ifdef CONFIG_CLK
-#include <asm/mach/clk.h>
-
-clk_freq_t clk_get_frequency(clk_t clk);
-int clk_set_frequency(clk_t clk, clk_freq_t freq);
-int clk_enable(clk_t clk);
-void clk_disable(clk_t clk);
-void clk_select_source(clk_t clk, clk_t src);
-const char *clk_get_mnemonic(clk_t clk);
-
-int clk_register_driver(clk_cat_t category, struct clk_driver *clkd);
-void clk_init(void);
-#else
-#define clk_get_frequency(clk)		0
-#define clk_set_frequency(clk, freq)	(-ENODEV)
-#define clk_enable(clk)			(-ENODEV)
-#define clk_disable(clk)		do { } while (0)
-#define clk_select_source(clk, src)	do { } while (0)
-#define clk_get_mnemonic(clk)		NULL
-#define clk_init()			do { } while (0)
-#endif
+void board_init_clock(void);
+void board_init_timestamp(void);
 #endif /* __ASSEMBLY__ */
 
-#endif /* __CLK_H_INCLUDE__ */
+#endif /* __ARCH_DPU_H_INCLUDE__ */

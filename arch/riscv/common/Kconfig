@@ -43,6 +43,7 @@ config CPU_RI5CY
 	select CPU_M
 	select CPU_C
 	select CPU_N
+	select ARCH_HAS_NOSEE
 
 # ZERO RISCY
 config CPU_0RISCY
@@ -51,6 +52,7 @@ config CPU_0RISCY
 	select CPU_32E
 	select CPU_M
 	select CPU_C
+	select ARCH_HAS_NOSEE
 
 # SPIKE32
 config CPU_SPIKE32

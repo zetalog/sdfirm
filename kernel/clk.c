@@ -45,7 +45,7 @@
 
 struct clk_driver *clk_drivers[MAX_CLK_DRIVERS];
 
-uint32_t clk_get_frequency(clk_t clk)
+clk_freq_t clk_get_frequency(clk_t clk)
 {
 	struct clk_driver *clkd;
 	clk_cat_t cat = clk_cat(clk);
@@ -75,7 +75,7 @@ int clk_enable(clk_t clk)
 	return ret;
 }
 
-int clk_set_frequency(clk_t clk, uint32_t freq)
+int clk_set_frequency(clk_t clk, clk_freq_t freq)
 {
 	struct clk_driver *clkd;
 	clk_cat_t cat = clk_cat(clk);
@@ -251,7 +251,7 @@ static int do_clk_disable(int argc, char *argv[])
 static int do_clk_freq(int argc, char *argv[])
 {
 	clk_t clkid;
-	uint32_t freq;
+	clk_freq_t freq;
 	int ret;
 
 	if (argc < 3)

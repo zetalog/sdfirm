@@ -108,6 +108,7 @@ endif
 menuconfig CRCNTL
 	bool "Enable clock/reset controller (CRCNTL) support"
 	select DW_PLL5GHZ_TSMC12FFC
+	select DW_PLL5GHZ_TSMC12FFC_CNT_LOCKED
 
 if CRCNTL
 

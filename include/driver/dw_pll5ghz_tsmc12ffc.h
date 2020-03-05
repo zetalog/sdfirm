@@ -94,7 +94,9 @@
 /* PLL_STATUS */
 #define PLL_LOCKED		_BV(0)
 #define PLL_STANDBYEFF		_BV(1)
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_CNT_LOCKED
 #define PLL_CNT_LOCKED		_BV(2)
+#endif
 
 /* PLL ranges */
 #define PLL_RANGE1	(PLL_VCO_MODE | PLL_LOWFREQ)
@@ -171,10 +173,34 @@ void dw_pll5ghz_tsmc12ffc_bypass(uint8_t pll, uint8_t mode);
 void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco);
 /* power down sequence */
 void dw_pll5ghz_tsmc12ffc_pwrdn(uint8_t pll);
+/* P/R output enable */
+void dw_pll5ghz_tsmc12ffc_enable(uint8_t pll, uint64_t fvco,
+				 uint64_t freq, bool r);
+/* P/R output disable */
+void dw_pll5ghz_tsmc12ffc_disable(uint8_t pll, bool r);
 /* enter standby sequence */
 void dw_pll5ghz_tsmc12ffc_standby(uint8_t pll);
 /* leave standby sequence */
 void dw_pll5ghz_tsmc12ffc_relock(uint8_t pll);
+
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_BYPASS_SYNC
+void dw_pll5ghz_tsmc12ffc_bypass_sync(uint8_t pll, bool r, bool bypass);
+#else
+#define dw_pll5ghz_tsmc12ffc_bypass_sync(pll, r, bypass)	\
+	do { } while (0)
+#endif
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_BYPASS_TEST
+void dw_pll5ghz_tsmc12ffc_bypass_test(uint8_t pll, bool bypass);
+#else
+#define dw_pll5ghz_tsmc12ffc_bypass_test(pll, bypass)		\
+	do { } while (0)
+#endif
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_PRSTDUR
+void dw_pll5ghz_tsmc12ffc_prstdur(uint8_t pll);
+#else
+#define dw_pll5ghz_tsmc12ffc_prstdur(pll)			\
+	do { } while (0)
+#endif
 
 #ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_REG_ACCESS
 void dw_pll_write(uint8_t pll, uint8_t reg, uint8_t val);

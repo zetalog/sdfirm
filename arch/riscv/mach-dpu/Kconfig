@@ -1,0 +1,73 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+if ARCH_DPU
+
+menu "Smart Core DPU board options"
+
+config DPU_BOOT
+	bool
+
+choice
+	prompt "Program type"
+
+config DPU_BOOT_ROM
+	bool "0-stage boot ROM bootloader (ZSBL)"
+	select XIP
+	select LOAD_DATA
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select DPU_TCSR
+	select DPU_BOOT
+
+config DPU_BOOT_FLASH
+	bool "1-stage programmable flash bootloader (FSBL)"
+	select ARCH_HAS_BOOT_LOAD
+	select XIP
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select DPU_TCSR
+	select DPU_BOOT
+
+config DPU_FIRM
+	bool "DPU runtime firmware"
+	select DPU_TCSR
+
+endchoice
+
+menuconfig DPU_TCSR
+	bool "Enable top control and status registers (TCSR) support"
+
+if DPU_TCSR
+
+config DPU_TCSR_ADDR_TRANS
+	bool "Enable address translation support"
+
+config DPU_TCSR_BUS_TRANS
+	bool "Enable bus transaction support"
+
+endif
+
+menuconfig DPU_PLL
+	bool "Enable DPU PLL and clock/reset support"
+	select DW_PLL5GHZ_TSMC12FFC
+
+if DPU_PLL
+
+config DPU_PLL_ARST
+	bool "Enable DPU PLL cluster reset (ARST) support"
+
+endif
+
+menuconfig DPU_TMR
+	bool "Enable DPU RISC-V timer support"
+
+if DPU_TMR
+
+endif
+
+endmenu
+
+endif

@@ -36,12 +36,14 @@ config ARCH_DUOWEN
 	select ARCH_IS_TICKLESS
 	select ARCH_HAS_TSC
 	select ARCH_HAS_TSC_CONST
-	select ARCH_HAS_PLIC
 	select ARCH_HAS_IRQC
 	select ARCH_HAS_CLK
+	select ARCH_HAS_CLINT
+	select ARCH_HAS_PLIC
 	select ARCH_HAS_DDR
 	select ARCH_HAS_SD
 	select ARCH_HAS_I2C
+	select ARCH_HAS_SPI
 	select RISCV_COUNTERS if SBI
 	select CLINT if DUOWEN_APC
 	select PLIC if !SYS_NOIRQ
@@ -56,6 +58,33 @@ config ARCH_DUOWEN
 	select DUOWEN_SMMU if IOMMU
 	help
 	  This enables support for emulated riscv platforms.
+
+config ARCH_DPU
+	bool "SmarCo DPU"
+	select CPU_RI5CY
+	select ARCH_HAS_NOVEC
+	select ARCH_IS_TICKLESS
+	select ARCH_HAS_TSC
+	select ARCH_HAS_TSC_CONST
+	select ARCH_HAS_IRQC
+	select ARCH_HAS_CLK
+	select ARCH_HAS_I2C
+	select ARCH_HAS_SPI
+	select ARCH_HAS_DMA
+	select ARCH_HAS_DDR
+	select ARCH_HAS_PCI
+	select ARCH_HAS_PLIC
+	select PLIC if !SYS_NOIRQ
+	select DPU_PLL if CLK
+	select DPU_TMR if CLK
+	select DW_UART if CONSOLE || DEBUG_PRINT
+	select DW_I2C if I2C_MASTER
+	select DW_SPI if SPI_MASTER
+	select DW_DMA if DMA
+	select DW_UMCTL2 if DDR
+	select DW_PCIE if PCI
+	help
+	  This enables support for smart core (SmarCo) DPU platform.
 
 config ARCH_UNLEASHED
 	bool "SiFive HiFive Unleashed (FU540)"
@@ -159,6 +188,7 @@ source "arch/riscv/common/Kconfig"
 endmenu
 
 source "arch/riscv/mach-duowen/Kconfig"
+source "arch/riscv/mach-dpu/Kconfig"
 source "arch/riscv/mach-unleashed/Kconfig"
 source "arch/riscv/mach-k210/Kconfig"
 source "arch/riscv/mach-vega/Kconfig"

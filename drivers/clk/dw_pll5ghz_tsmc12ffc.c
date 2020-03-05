@@ -87,26 +87,120 @@ void dw_pll5ghz_tsmc12ffc_relock(uint8_t pll)
 				  DW_PLL_CFG1(pll));
 		dw_pll5ghz_tsmc12ffc_gear(pll);
 		while (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED));
-
-		/* P/R outputs:
-		 *  1'b0: Fclkout = 0 or Fclkref/(P|R)
-		 *  1'b1: Fclkout = PLL output
-		 */
-		__raw_setl(PLL_ENP, DW_PLL_CFG1(pll));
-		__raw_setl(PLL_ENR, DW_PLL_CFG1(pll));
 	}
 }
 
-#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_PRSTDUR
-static void dw_pll5ghz_tsmc12ffc_prstdur(uint8_t pll)
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_OUTPUT_PROG
+void dw_pll5ghz_tsmc12ffc_output_default(uint8_t pll, bool r)
 {
-	uint8_t prstdur;
+	uint32_t en = r ? PLL_ENR : PLL_ENP;
 
-	prstdur = __fls8(div32u(DW_PLL_REFCLK_FREQ, 1000000) - 1) - 1;
-	dw_pll_write(pll, PLL_ANAREG07, PLL_PRSTDUR(prstdur));
+	__raw_clearl(en, DW_PLL_CFG1(pll));
+	en |= r ? PLL_DIVVCOR(0xF) | PLL_R(0x3F) :
+		  PLL_DIVVCOP(0xF) | PLL_P(0x3F);
+	__raw_setl(en, DW_PLL_CFG1(pll));
+}
+
+/* Normal oper: Fclkout = Fvco / (divvco{p|r} * {p|r})
+ * Bypass core: Fclkout = Fcmpclk / (divvco{p|r}[1:0] * {p|r})
+ * Bypass all:  Fclkout = Fref_clk
+ */
+#define next_div(fvco, div, div32, div10)		\
+	if ((div) < 8)					\
+		(div32) = (div32) ? 3 : 2;		\
+	else if ((div) < 64)				\
+		(div10) += 1;				\
+	else						\
+		BUG();					\
+	(div) <<= 1;					\
+	(fvco) >>= 1;					\
+
+void __dw_pll5ghz_tsmc12ffc_enable(uint8_t pll, uint64_t fvco,
+				   uint64_t freq, bool r,
+				   uint64_t div, uint32_t divcov32)
+{
+	uint32_t en = r ? PLL_ENR : PLL_ENP;
+	uint32_t divcov10 = 0;
+	uint32_t pr;
+
+	fvco = div64u(fvco, div);
+	do {
+		pr = div64u(fvco, freq);
+		if (pr <= 64)
+			break;
+		next_div(fvco, divcov32, divcov10, div);
+	} while (1);
+	__raw_clearl(en, DW_PLL_CFG1(pll));
+	en |= r ? PLL_DIVVCOR(divcov32 << 2 | divcov10) | PLL_R(pr - 1) :
+		  PLL_DIVVCOP(divcov32 << 2 | divcov10) | PLL_P(pr - 1);
+	__raw_setl(en, DW_PLL_CFG1(pll));
+}
+
+void dw_pll5ghz_tsmc12ffc_enable_sync(uint8_t pll, uint64_t fvco,
+				      uint64_t freq, bool r)
+{
+	uint64_t div;
+	uint32_t divcov32;
+
+	BUG_ON(freq > ULL(1000000000));
+
+	if (fvco < ULL(2000000000)) {
+		divcov32 = 0;
+		div = 2;
+	} else if (fvco < ULL(4000000000)) {
+		divcov32 = 2;
+		div = 4;
+	} else {
+		divcov32 = 3;
+		div = 8;
+	}
+	__dw_pll5ghz_tsmc12ffc_enable(pll, fvco, freq, r, div, divcov32);
+}
+
+void dw_pll5ghz_tsmc12ffc_enable_async(uint8_t pll, uint64_t fvco,
+				       uint64_t freq, bool r)
+{
+	uint64_t div = 2;
+	uint32_t divcov32 = 0;
+
+	dw_pll5ghz_tsmc12ffc_bypass_sync(pll, r, true);
+	__dw_pll5ghz_tsmc12ffc_enable(pll, fvco, freq, r, div, divcov32);
+}
+
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_BYPASS_SYNC
+void dw_pll5ghz_tsmc12ffc_enable(uint8_t pll, uint64_t fvco,
+				 uint64_t freq, bool r)
+{
+	if (freq > ULL(1000000000))
+		dw_pll5ghz_tsmc12ffc_enable_async(pll, fvco, freq, r);
+	else
+		dw_pll5ghz_tsmc12ffc_enable_sync(pll, fvco, freq, r);
 }
 #else
-#define dw_pll5ghz_tsmc12ffc_prstdur(pll)	do { } while (0)
+void dw_pll5ghz_tsmc12ffc_enable(uint8_t pll, uint64_t fvco,
+				 uint64_t freq, bool r)
+{
+	dw_pll5ghz_tsmc12ffc_enable_sync(pll, fvco, freq, r);
+}
+#endif /* CONFIG_DW_PLL5GHZ_TSMC12FFC_BYPASS_SYNC */
+#endif /* CONFIG_DW_PLL5GHZ_TSMC12FFC_OUTPUT_PROG */
+
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_OUTPUT_DIV2
+void dw_pll5ghz_tsmc12ffc_output_default(uint8_t pll, bool r)
+{
+	uint32_t en = r ? PLL_ENR : PLL_ENP;
+
+	dw_pll5ghz_tsmc12ffc_bypass_sync(pll, r, true);
+	__raw_clearl(en, DW_PLL_CFG1(pll));
+	en |= r ? PLL_DIVVCOR(0) | PLL_R(0) : PLL_DIVVCOP(0) | PLL_P(0);
+	__raw_setl(en, DW_PLL_CFG1(pll));
+}
+
+void dw_pll5ghz_tsmc12ffc_enable(uint8_t pll, uint64_t fvco,
+				 uint64_t freq, bool r)
+{
+	dw_pll5ghz_tsmc12ffc_output_default(pll, r);
+}
 #endif
 
 void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
@@ -116,7 +210,9 @@ void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
 	uint32_t cfg = PLL_RANGE3;
 	uint64_t fbdiv;
 
-	if (fvco <= ULL(3750000000))
+	if (fvco < ULL(2500000000))
+		BUG();
+	else if (fvco <= ULL(3750000000))
 		cfg = PLL_RANGE1;
 	else if (fvco > ULL(3750000000) && fvco <= ULL(4000000000))
 		cfg = PLL_RANGE2;
@@ -168,8 +264,13 @@ void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
 	 *  1'b0: Fclkout = 0 or Fclkref/(P|R)
 	 *  1'b1: Fclkout = PLL output
 	 */
-	__raw_setl(PLL_ENP, DW_PLL_CFG1(pll));
-	__raw_setl(PLL_ENR, DW_PLL_CFG1(pll));
+	dw_pll5ghz_tsmc12ffc_output_default(pll, false);
+	dw_pll5ghz_tsmc12ffc_output_default(pll, true);
+}
+
+void dw_pll5ghz_tsmc12ffc_disable(uint8_t pll, bool r)
+{
+	__raw_clearl(r ? PLL_ENR : PLL_ENP, DW_PLL_CFG1(pll));
 }
 
 void dw_pll5ghz_tsmc12ffc_pwrdn(uint8_t pll)
@@ -187,11 +288,11 @@ void dw_pll5ghz_tsmc12ffc_bypass(uint8_t pll, uint8_t mode)
 	switch (mode) {
 	case PLL_BYPASS_CORE:
 		__raw_setl(PLL_BYPASS, DW_PLL_CFG1(pll));
-		dw_pll_write(pll, PLL_ANAREG05, 0);
+		dw_pll5ghz_tsmc12ffc_bypass_test(pll, false);
 		break;
 	case PLL_BYPASS_ALL:
 		__raw_setl(PLL_BYPASS, DW_PLL_CFG1(pll));
-		dw_pll_write(pll, PLL_ANAREG05, PLL_TEST_BYPASS);
+		dw_pll5ghz_tsmc12ffc_bypass_test(pll, true);
 		break;
 	case PLL_BYPASS_NONE:
 	default:
@@ -200,6 +301,7 @@ void dw_pll5ghz_tsmc12ffc_bypass(uint8_t pll, uint8_t mode)
 	}
 }
 
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_REG_ACCESS
 void dw_pll_write(uint8_t pll, uint8_t reg, uint8_t val)
 {
 	if (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_PWRON))
@@ -213,6 +315,32 @@ uint8_t dw_pll_read(uint8_t pll, uint8_t reg)
 		return 0;
 	return __dw_pll_read(pll, reg);
 }
+
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_BYPASS_TEST
+void dw_pll5ghz_tsmc12ffc_bypass_test(uint8_t pll, bool bypass)
+{
+	dw_pll_write(pll, PLL_ANAREG05, bypass ? PLL_TEST_BYPASS : 0);
+}
+#endif
+
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_BYPASS_SYNC
+void dw_pll5ghz_tsmc12ffc_bypass_sync(uint8_t pll, bool r, bool bypass)
+{
+	uint8_t sync = r ? PLL_BYPASS_SYNC_R : PLL_BYPASS_SYNC_P;
+
+	dw_pll_write(pll, PLL_ANAREG06, bypass ? sync : 0);
+}
+#endif
+
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_PRSTDUR
+void dw_pll5ghz_tsmc12ffc_prstdur(uint8_t pll)
+{
+	uint8_t prstdur;
+
+	prstdur = __fls8(div32u(DW_PLL_REFCLK_FREQ, 1000000) - 1) - 1;
+	dw_pll_write(pll, PLL_ANAREG07, PLL_PRSTDUR(prstdur));
+}
+#endif
 
 static int do_pll_reg_access(int argc, char * argv[])
 {
@@ -239,6 +367,12 @@ static int do_pll_reg_access(int argc, char * argv[])
 	}
 	return 0;
 }
+#else
+static int do_pll_reg_access(int argc, char * argv[])
+{
+	return -EINVAL;
+}
+#endif
 
 static int do_pll_operation(int argc, char * argv[])
 {

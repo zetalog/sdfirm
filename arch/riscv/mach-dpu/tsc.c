@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2019
+ * Copyright (c) 2020
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,65 +35,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)clk.h: clock tree framework interface
- * $Id: clk.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)tsc.c: DPU specific mandatory TSC implementation
+ * $Id: tsc.c,v 1.1 2020-03-04 15:21:00 zhenglv Exp $
  */
 
-#ifndef __CLK_H_INCLUDE__
-#define __CLK_H_INCLUDE__
+#include <target/delay.h>
 
-#include <target/generic.h>
+static bool tsc_hw_init = false;
 
-#ifdef CONFIG_CLK_MAX_DRIVERS
-#define MAX_CLK_DRIVERS		CONFIG_CLK_MAX_DRIVERS
-#endif
-
-#ifndef __ASSEMBLY__
-typedef uint16_t clk_t;
-typedef uint8_t clk_cat_t;
-typedef uint8_t clk_clk_t;
-
-#define clkid(cat, clk)		((clk_t)MAKEWORD(clk, cat))
-#define clk_clk(clkid)		LOBYTE(clkid)
-#define clk_cat(clkid)		HIBYTE(clkid)
-
-#ifndef clk_freq_t
-#define clk_freq_t		uint32_t
-#endif
-
-#define INVALID_FREQ		((clk_freq_t)0)
-
-struct clk_driver {
-	clk_clk_t max_clocks;
-	int (*enable)(clk_clk_t clk);
-	void (*disable)(clk_clk_t clk);
-	clk_freq_t (*get_freq)(clk_clk_t clk);
-	int (*set_freq)(clk_clk_t clk, clk_freq_t freq);
-	void (*select)(clk_clk_t clk, clk_t src);
-	const char *(*get_name)(clk_clk_t clk);
-};
-
-#ifdef CONFIG_CLK
-#include <asm/mach/clk.h>
-
-clk_freq_t clk_get_frequency(clk_t clk);
-int clk_set_frequency(clk_t clk, clk_freq_t freq);
-int clk_enable(clk_t clk);
-void clk_disable(clk_t clk);
-void clk_select_source(clk_t clk, clk_t src);
-const char *clk_get_mnemonic(clk_t clk);
-
-int clk_register_driver(clk_cat_t category, struct clk_driver *clkd);
-void clk_init(void);
-#else
-#define clk_get_frequency(clk)		0
-#define clk_set_frequency(clk, freq)	(-ENODEV)
-#define clk_enable(clk)			(-ENODEV)
-#define clk_disable(clk)		do { } while (0)
-#define clk_select_source(clk, src)	do { } while (0)
-#define clk_get_mnemonic(clk)		NULL
-#define clk_init()			do { } while (0)
-#endif
-#endif /* __ASSEMBLY__ */
-
-#endif /* __CLK_H_INCLUDE__ */
+void board_init_timestamp(void)
+{
+	if (!tsc_hw_init) {
+		tmr_ctrl_init();
+		tsc_hw_init = true;
+	}
+}
