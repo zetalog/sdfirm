@@ -3,6 +3,7 @@
 
 #include <target/types.h>
 
+#define RAND_MAX INT_MAX
 int rand(void);
 void srand(unsigned);
 
