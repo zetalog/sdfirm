@@ -1,0 +1,37 @@
+config GENANN
+	bool "General ANN and mini-test"
+
+	select MATH_TAYLOR
+
+if GENANN
+
+config GENANN_BUF_ONE_PAGE
+	bool "Allocate one page as data buffer"
+	default y
+
+config GENANN_LOOKUP_SIZE
+	int "Lookup size of ANN"
+	range 4 4096
+	default 8 
+
+config GENANN_TEST_BASIC
+	bool "Run sub-test basic"
+	default y
+
+config GENANN_TEST_XOR
+	bool "Run sub-test xor"
+	default y
+
+config GENANN_TEST_BACKPROP
+	bool "Run sub-test backprop"
+	default y
+
+config GENANN_TEST_TRAIN_AND
+	bool "Run sub-test train_and"
+	default y
+
+config GENANN_TEST_TRAIN_OR
+	bool "Run sub-test train_or"
+	default y
+
+endif

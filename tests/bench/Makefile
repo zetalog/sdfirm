@@ -16,3 +16,5 @@ obj-$(CONFIG_COREMARK) += coremark/
 obj-$(CONFIG_C_FFT) += c_fft/
 
 obj-$(CONFIG_JPGENC) += jpgenc/
+
+obj-$(CONFIG_GENANN) += gen_ann/
