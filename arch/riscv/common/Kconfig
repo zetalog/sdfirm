@@ -392,6 +392,11 @@ endif
 
 endmenu
 
+menu "Compiler options"
+
+config CC_NO_RELAX
+	bool "Disable link relaxation"
+
 # We must be able to map all physical memory into the kernel, but the compiler
 # is still a bit more efficient when generating code if it's setup in a manner
 # such that it can only map 2GiB of memory.
@@ -431,6 +436,8 @@ config MAXPHYSMEM_128GB
 	bool "128GiB"
 
 endchoice
+
+endmenu
 
 config ARCH_HAS_NOSEE
 	bool
@@ -526,13 +533,30 @@ config ARCH_HAS_SBI_IPI
 config ARCH_HAS_SBI_TIMER
 	bool
 
-config SBI
+menuconfig SBI
 	bool "Supervisor binary interface (SBI) support"
 	depends RISCV_ENTR_M
 	depends CPU_PMP
 	select RISCV_PMP
 	select BIT_FLS64
 	select BIT_FFS32
+
+if SBI
+
+config SBI_PAYLOAD
+	bool "Enable SBI payload binary"
+
+if SBI_PAYLOAD
+
+config SBI_PAYLOAD_PATH
+	string "Path to the payload binary"
+
+config SBI_PAYLOAD_OFFSET
+	hex "Load offset of the payload"
+
+endif
+
+endif
 
 menu "System peripherals"
 

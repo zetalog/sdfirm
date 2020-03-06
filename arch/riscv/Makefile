@@ -47,6 +47,12 @@ ifeq ($(CONFIG_CMODEL_MEDANY),y)
 	CFLAGS += -mcmodel=medany
 endif
 
+ifeq ($(CONFIG_CC_NO_RELAX),y)
+	CFLAGS += -Wl,--no-relax
+else
+#	CFLAGS += -msmall-data-limit=n
+endif
+
 # GCC versions that support the "-mstrict-align" option default to allowing
 # unaligned accesses.  While unaligned accesses are explicitly allowed in the
 # RISC-V ISA, they're emulated by machine mode traps on all extant

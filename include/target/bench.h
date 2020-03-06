@@ -46,10 +46,13 @@
 #include <target/jiffies.h>
 
 #define BENCH_INPUT(align)		\
+	__testfn_start = .;		\
+	KEEP (*(.testfn))		\
+	__testfn_end = .;
+
+#define BENCH_SECTION(align)		\
 	.test_array ALIGN(align) : {	\
-		__testfn_start = .;	\
-		KEEP (*(.testfn))	\
-		__testfn_end = .;	\
+		BENCH_INPUT(align)	\
 	}
 
 /* Auto APC Test Framework (cpu_local_exec):

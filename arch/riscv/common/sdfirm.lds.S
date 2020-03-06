@@ -27,27 +27,16 @@ SECTIONS
 	. = PAGE_OFFSET + TEXT_OFFSET;
 	_start = .;				/* begin of sdfirm */
 	_stext = .;				/* begin of text and rodata sections */
+
 	__stext = .;				/* begin of text sections */
 	__init_text_begin = .;
 	HEAD_TEXT_SECTION(WORD_SIZE)
 	.init : {
 		INIT_TEXT
-		/*
-		__proc_info_begin = .;
-		*(.proc.info.init)
-		__proc_info_end = .;
-		__arch_info_begin = .;
-		*(.arch.info.init)
-		__arch_info_end = .;
-		*/
 		INIT_CALLS
-		INIT_DATA
-		. = ALIGN(WORD_SIZE);
-		__init_text_end = .;
 	}
-
-	BENCH_INPUT(WORD_SIZE)
-
+	. = ALIGN(WORD_SIZE);
+	__init_text_end = .;
 	_text = .;
 	.text : {
 		TEXT_TEXT
@@ -57,9 +46,12 @@ SECTIONS
 	__etext = .;				/* end of text sections */
 
 	__srodata = .;
-	RO_DATA_SECTION(WORD_SIZE)
-	CMD_LINE_SECTION(WORD_SIZE)
-	SRO_DATA_SECTION(WORD_SIZE)
+	.rodata : {
+		RODATA_RODATA
+		CMDLINE_INPUT(WORD_SIZE)
+		BENCH_INPUT(WORD_SIZE)
+	}
+	SRODATA_SECTION(WORD_SIZE)
 	. = ALIGN(PAGE_SIZE);
 	__erodata = .;
 
@@ -73,51 +65,55 @@ SECTIONS
 #endif
 
 	. = ALIGN(PAGE_SIZE);
-
 	_sdata = .;				/* begin of data and bss sections */
+	_data = .;
+
 	__sdata = .;				/* begin of data sections */
 #ifdef CONFIG_LOAD_DATA
 	.data : AT(_etext) {
 #else
 	.data : {
 #endif
-		_data = .;
-#ifdef CONFIG_XIP
 		__init_data_begin = .;
 		INIT_DATA
 		__init_data_end = .;
-#endif
 		DATA_DATA
-		. = ALIGN((WORD_SIZE));
 	}
-
-	.sdata : {
-		__global_pointer$ = . + 0x800;
-		*(.sdata .sdata.*)
-		. = ALIGN(WORD_SIZE);
-	}
+	SDATA_SECTION(WORD_SIZE);
 	__edata = .;				/* end of data sections */
-
-	__data_loc = _etext_loc;		/* data boot location */
-	_edata_loc = __data_loc + _edata - _sdata;
 
 	.percpu : {
 		PERCPU_INPUT(SMP_CACHE_BYTES)
 	}
 
-	.bss (NOLOAD) : ALIGN(WORD_SIZE) {
-		__bss_start = .;		/* begin of bss sections */
+	. = ALIGN(WORD_SIZE);
+	__bss_start = .;			/* begin of bss sections */
+	.bss (NOLOAD) : {
 		*(.sbss .sbss.*)
 		*(.bss .bss.*)
 	}
-
 #ifdef CONFIG_ARCH_HAS_HTIF
 	HTIF_SECTION(WORD_SIZE)
 #endif
 	. = ALIGN(WORD_SIZE);
 	__bss_stop = .;				/* end of bss sections */
+
 	. = ALIGN(PAGE_SIZE);
 	_edata = .;				/* end of data and bss sections */
+
+#ifndef CONFIG_CC_NO_RELAX
+	/* Cover as much of sdata as possible if it exists.  If sdata+bss
+	 * is smaller than 0x1000 then start from bss end to cover as much
+	 * of the program as possible.  But rodata is not allowed to be
+	 * referenced by gp, as the address of variables in rodata may
+	 * change during relaxation, so start from data in that case.
+	 */
+	__global_pointer$ = MIN(__sdata_start + 0x800,
+				MAX(_sdata + 0x800, _edata - 0x800));
+#endif
+
+	__data_loc = _etext_loc;		/* data boot location */
+	_edata_loc = __data_loc + _edata - _sdata;
 
 	. += PERCPU_STACKS_SIZE;
 #ifdef CONFIG_SBI
@@ -127,19 +123,17 @@ SECTIONS
 	_end = .;				/* end of sdfirm */
 
 #ifdef CONFIG_SBI_PAYLOAD
-#ifdef FW_PAYLOAD_OFFSET
-	. = PAGE_OFFSET + TEXT_OFFSET + FW_PAYLOAD_OFFSET;
+#ifdef CONFIG_SBI_PAYLOAD_OFFSET
+	. = PAGE_OFFSET + TEXT_OFFSET + CONFIG_SBI_PAYLOAD_OFFSET;
 #else
 	. = ALIGN(PAGE_SIZE);
 #endif
-	.payload :
-	{
-		PROVIDE(_payload_start = .);
+	_payload_start = .;
+	.payload : {
 		*(.payload)
-		. = ALIGN(8);
-		PROVIDE(_payload_end = .);
+		. = ALIGN(WORD_SIZE);
 	}
-	PROVIDE(_fw_reloc_end = .);
+	_payload_end = .;
 #endif /* CONFIG_SBI_PAYLOAD */
 }
 

@@ -3,13 +3,16 @@
 
 #include <target/compiler.h>
 
-#define CMD_LINE_SECTION(align)				\
+#define CMDLINE_INPUT(align)				\
 	. = ALIGN((align));				\
 	__cmd_start = .;				\
-	.cmd.rodata : {					\
-		KEEP(*(SORT(.cmd.rodata)))		\
-	}						\
+	KEEP(*(SORT(.cmd.rodata)))			\
 	__cmd_end = .;
+
+#define CMDLINE_SECTION(align)				\
+	.cmd.rodata : {					\
+		CMDLINE_INPUT(align)			\
+	}
 
 #ifndef __ASSEMBLY__
 typedef struct {

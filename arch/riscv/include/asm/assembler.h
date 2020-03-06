@@ -109,10 +109,12 @@
 
 #if defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
 	.macro init_gp
+#ifndef CONFIG_CC_NO_RELAX
 	.option push
 	.option norelax
 	la	gp, __global_pointer$
 	.option pop
+#endif
 	.endm
 
 	.macro init_gprs

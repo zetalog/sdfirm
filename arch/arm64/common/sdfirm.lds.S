@@ -40,8 +40,6 @@ SECTIONS
 		__init_text_end = .;
 	}
 
-	BENCH_INPUT(8)
-
 	.text : {
 		TEXT_TEXT
 		IDMAP_TEXT
@@ -51,7 +49,8 @@ SECTIONS
 
 	__srodata = .;
 	RO_DATA_SECTION(8)
-	CMD_LINE_SECTION(8)
+	CMDLINE_SECTION(8)
+	BENCH_SECTION(8)
 	. = ALIGN(PAGE_SIZE);
 	__erodata = .;
 	_etext = .;				/* end of text and rodata sections */

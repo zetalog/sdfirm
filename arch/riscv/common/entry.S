@@ -155,8 +155,6 @@ ENTRY(__vectors)
 	 */
 	csrw	CSR_SCRATCH, zero
 
-	init_gp
-
 	la	ra, ret_from_exception
 
 	/* Distinguish interrupt/exception */

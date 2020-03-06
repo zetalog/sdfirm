@@ -57,17 +57,16 @@
 #define DATA_DATA						\
 	*(.data)						\
 	*(.ref.data)
+#define RODATA_RODATA						\
+	*(.rodata) *(.rodata.*)					\
+	*(.ref.rodata)
 
 /*
  * Read only Data
  */
 #define RO_DATA_SECTION(align)					\
 	.rodata : AT(ADDR(.rodata)) ALIGN(align) {		\
-		*(.rodata) *(.rodata.*)				\
-	}							\
-	/* __*init sections */					\
-	__init_rodata : AT(ADDR(__init_rodata)) {		\
-		*(.ref.rodata)					\
+		RODATA_RODATA					\
 	}							\
 /*
  * bss (Block Started by Symbol) - uninitialized data

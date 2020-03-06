@@ -106,9 +106,6 @@
 	__HEAD
 
 ENTRY(__sbi_entry)
-	/* Need to initialize gp before using symbols */
-	init_gp
-
 	/* s6 -> HART ID
 	 * s7 -> HART Count
 	 */

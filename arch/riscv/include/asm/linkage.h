@@ -56,10 +56,19 @@
 #define WORD_SIZE	8
 #endif
 
-#define SRO_DATA_SECTION(align)					\
+#define SRODATA_SECTION(align)					\
 	.srodata : AT(ADDR(.srodata)) ALIGN(align) {		\
 		*(.srodata) *(.srodata.*)			\
 	}							\
+
+#define SDATA_SECTION(align)					\
+	. = ALIGN(align);					\
+	__sdata_start = .;					\
+	.sdata : {						\
+		*(.sdata .sdata.*)				\
+	}							\
+	. = ALIGN(align);					\
+	__sdata_stop = .
 
 #include <asm-generic/sdfirm.lds.h>
 

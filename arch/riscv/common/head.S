@@ -139,13 +139,8 @@ ENTRY(__start)
 	/* Reset all registers, except ra, gp, sp */
 	init_gprs
 	init_mtls
-	/* Need to initialize gp before using symbols */
-	init_gp
 	/* Reset core to the entry point on failure */
 	la	ra, __start
-#else
-	/* Need to initialize gp before using symbols */
-	init_gp
 #endif
 
 	/* Disable global interrupt. */
