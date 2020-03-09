@@ -48,10 +48,4 @@
  * instructions, registers.
  */
 
-#ifndef __ASSEMBLY__
-void board_reset(void);
-void board_suspend(void);
-void board_hibernate(void);
-#endif /* __ASSEMBLY__ */
-
 #endif /* __ARCH_SPIKE_H_INCLUDE__ */

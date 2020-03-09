@@ -60,6 +60,23 @@ extern uintptr_t __erodata[];
 #include <target/smp.h>
 
 #ifndef __ASSEMBLY__
+#ifdef CONFIG_SHUTDOWN
+void board_shutdown(void);
+#else
+#define board_shutdown()		do { } while (0)
+#endif
+#ifdef CONFIG_REBOOT
+void board_reboot(void);
+#else
+#define board_reboot()			do { } while (0)
+#endif
+#ifdef CONFIG_SUSPEND
+void board_suspend(void);
+void board_resume(void);
+#else
+#define board_suspend()			do { } while (0)
+#define board_resume()			do { } while (0)
+#endif
 void board_init(void);
 void appl_init(void);
 void modules_init(void);

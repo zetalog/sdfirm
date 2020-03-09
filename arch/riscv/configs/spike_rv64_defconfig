@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Feb 25 12:44:15 2020
+# Mon Mar  9 12:12:19 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -46,6 +46,7 @@ CONFIG_CONSOLE_115200=y
 # RISCV system options
 #
 # CONFIG_ARCH_DUOWEN is not set
+# CONFIG_ARCH_DPU is not set
 # CONFIG_ARCH_UNLEASHED is not set
 # CONFIG_ARCH_K210 is not set
 # CONFIG_ARCH_VEGA is not set
@@ -81,10 +82,6 @@ CONFIG_RISCV_A=y
 # CONFIG_RISCV_C is not set
 CONFIG_RISCV_COUNTERS=y
 CONFIG_RISCV_PMP=y
-CONFIG_RISCV_SV=y
-# CONFIG_RISCV_SV32 is not set
-CONFIG_RISCV_SV39=y
-# CONFIG_RISCV_SV48 is not set
 
 #
 # CPU architecture options
@@ -93,6 +90,11 @@ CONFIG_RISCV_SV39=y
 CONFIG_RISCV_ATOMIC_COUNT_64=y
 CONFIG_RISCV_SPINLOCK_RAW=y
 # CONFIG_RISCV_SPINLOCK_GENERIC is not set
+
+#
+# Compiler options
+#
+# CONFIG_CC_NO_RELAX is not set
 # CONFIG_CMODEL_MEDLOW is not set
 CONFIG_CMODEL_MEDANY=y
 CONFIG_TUNE_GENERIC=y
@@ -114,6 +116,7 @@ CONFIG_SYS_MONITOR=y
 CONFIG_ARCH_HAS_SBI_IPI=y
 CONFIG_ARCH_HAS_SBI_TIMER=y
 CONFIG_SBI=y
+# CONFIG_SBI_PAYLOAD is not set
 
 #
 # System peripherals
@@ -141,6 +144,7 @@ CONFIG_SPIKE_MEM1_SIZE=0x80000000
 # Peripheral settings
 #
 CONFIG_SPIKE_CLINT=y
+CONFIG_SPIKE_CLINT_RTC_FREQ=10000000
 CONFIG_SPIKE_HTIF=y
 
 #
@@ -211,26 +215,14 @@ CONFIG_MEM=y
 CONFIG_MEM_MAX_REGIONS=4
 CONFIG_MEM_RESIZE=y
 CONFIG_PAGE=y
-CONFIG_ARCH_HAS_MMU=y
-CONFIG_ARCH_HAS_MMU_4K=y
-CONFIG_ARCH_HAS_MMU_3L=y
-CONFIG_ARCH_HAS_MMU_HUGE=y
-CONFIG_MMU=y
-CONFIG_MMU_4K_PAGE=y
-# CONFIG_MMU_16K_PAGE is not set
-# CONFIG_MMU_64K_PAGE is not set
-# CONFIG_MMU_4M_PAGE is not set
-# CONFIG_MMU_1L_TABLE is not set
-# CONFIG_MMU_2L_TABLE is not set
-CONFIG_MMU_3L_TABLE=y
-# CONFIG_MMU_4L_TABLE is not set
-# CONFIG_MMU_5L_TABLE is not set
-# CONFIG_MMU_PAGE_OFFSET is not set
-CONFIG_MMU_IDMAP=y
-CONFIG_MMU_IDMAP_DEVICE=y
-CONFIG_MMU_MAP_MEM=y
-# CONFIG_MMU_TEXT_MODIFY is not set
-# CONFIG_MMU_NO_EARLY_TABLE_ZEROING is not set
+
+#
+# Power management model (board) support
+#
+# CONFIG_SHUTDOWN is not set
+# CONFIG_REBOOT is not set
+# CONFIG_SUSPEND is not set
+# CONFIG_HIBERNATE is not set
 # CONFIG_BULK is not set
 # CONFIG_TERM is not set
 # CONFIG_GPIO is not set
@@ -266,10 +258,16 @@ CONFIG_UART_115200=y
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
 # CONFIG_DDR is not set
+# CONFIG_PCI is not set
+# CONFIG_IOMMU is not set
 # CONFIG_RAS is not set
 
 #
 # Driver setup
+#
+
+#
+# Clock drivers
 #
 
 #
@@ -309,8 +307,13 @@ CONFIG_UART_115200=y
 # CONFIG_DW_UMCTL2 is not set
 
 #
-# Clock drivers
+# PCI drivers
 #
+
+#
+# IO MMU drivers
+#
+# CONFIG_SMMU_MMU500 is not set
 
 #
 # I2C host drivers
@@ -321,6 +324,11 @@ CONFIG_UART_115200=y
 # I2C slave drivers
 #
 # CONFIG_DW_I2CS is not set
+
+#
+# SPI Master drivers
+#
+# CONFIG_DW_SPI is not set
 
 #
 # DMA host drivers
@@ -342,9 +350,12 @@ CONFIG_DHRYSTONE_BENCH_PERCPU=y
 # CONFIG_DHRYSTONE_GENERIC_PERCPU is not set
 # CONFIG_DHRYSTONE_SPECIFIC_PERCPU is not set
 # CONFIG_HANOITOWER is not set
+# CONFIG_MEMSTREAM is not set
+# CONFIG_SHA256 is not set
+# CONFIG_MD5 is not set
 # CONFIG_COREMARK is not set
-CONFIG_COREMARK_ARG_3="0x66"
-CONFIG_COREMARK_ARG_4="1000"
+# CONFIG_C_FFT is not set
+# CONFIG_JPGENC is not set
 # CONFIG_TESTS_RISCV is not set
 
 #
@@ -384,6 +395,7 @@ CONFIG_MATH_MOD64=y
 #
 # CONFIG_CRC16_CCITT is not set
 # CONFIG_CRC32 is not set
+# CONFIG_MATH_TAYLOR is not set
 CONFIG_STDLIB=y
 
 #
@@ -401,6 +413,11 @@ CONFIG_PRINT_PRINTF=y
 CONFIG_STRING_STRNCMP=y
 CONFIG_STRING_STRTOUL=y
 # CONFIG_STRING_UUID is not set
+
+#
+# Time opeartions
+#
+CONFIG_TIME_CLOCK=y
 
 #
 # Cryptographic algorithms

@@ -176,7 +176,12 @@ void dw_pll5ghz_tsmc12ffc_standby(uint8_t pll);
 /* leave standby sequence */
 void dw_pll5ghz_tsmc12ffc_relock(uint8_t pll);
 
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_REG_ACCESS
 void dw_pll_write(uint8_t pll, uint8_t reg, uint8_t val);
 uint8_t dw_pll_read(uint8_t pll, uint8_t reg);
+#else
+#define dw_pll_write(pll, reg, val)	do { } while (0)
+#define dw_pll_read(pll, reg)		0
+#endif
 
 #endif /* __DW_PLL5GHZ_TSMC12FFC_H_INCLUDE__ */

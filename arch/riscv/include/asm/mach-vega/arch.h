@@ -55,10 +55,4 @@
 #define SYS_MODE_HSRUN			2
 #define NR_SYS_MODES			(SYS_MODE_HSRUN + 1)
 
-#ifndef __ASSEMBLY__
-void board_reset(void);
-void board_suspend(void);
-void board_hibernate(void);
-#endif /* __ASSEMBLY__ */
-
 #endif /* __ARCH_VEGA_H_INCLUDE__ */

@@ -280,6 +280,9 @@ config TIMER_TEST_MAX_SHOTS
 	depends TIMER_TEST_TIMEOUT
 	default -1
 
+config TIMER_TEST_SHUTDOWN
+	bool "Enable shutdown after test"
+
 endif
 
 endif
@@ -579,6 +582,30 @@ config MMU_DEBUG_TABLE
 	depends CONSOLE_DEBUG
 
 endif
+
+menu "Power management model (board) support"
+
+config SHUTDOWN
+	bool "Board shutdown support"
+
+config REBOOT
+	bool "Board reboot support"
+
+menuconfig SUSPEND
+	bool "Board suspend/resume support"
+
+if SUSPEND
+
+endif
+
+menuconfig HIBERNATE
+	bool "Board hibernate/resume support"
+
+if HIBERNATE
+
+endif
+
+endmenu
 
 menuconfig IDLE
 	bool "Power management model (idle) support"

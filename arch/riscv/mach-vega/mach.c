@@ -50,11 +50,14 @@ bool board_in_irq(void)
 	return __raw_readl(EVENT_INTPTENACTIVE) != 0;
 }
 
-void board_reset(void)
+#ifdef CONFIG_REBOOT
+void board_reboot(void)
 {
 	__raw_setl(SLPCTRL_SYSRSTREQST, EVENT_SLPCTRL);
 }
+#endif
 
+#ifdef CONFIG_SUSPEND
 void board_suspend(void)
 {
 	__raw_writel_mask(SLPCTRL_SLPCTRL(EVENT_SLP_SLEEP_ENABLE),
@@ -62,12 +65,19 @@ void board_suspend(void)
 			  EVENT_SLPCTRL);
 }
 
+void board_resume(void)
+{
+}
+#endif
+
+#ifdef CONFIG_HIBERNATE
 void board_hibernate(void)
 {
 	__raw_writel_mask(SLPCTRL_SLPCTRL(EVENT_SLP_DEEP_SLEEP_ENABLE),
 			  SLPCTRL_SLPCTRL(SLPCTRL_SLPCTRL_MASK),
 			  EVENT_SLPCTRL);
 }
+#endif
 
 void board_init(void)
 {

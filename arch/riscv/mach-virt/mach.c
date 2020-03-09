@@ -41,18 +41,6 @@
 
 #include <target/arch.h>
 
-void board_reset(void)
-{
-}
-
-void board_suspend(void)
-{
-}
-
-void board_hibernate(void)
-{
-}
-
 void board_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);

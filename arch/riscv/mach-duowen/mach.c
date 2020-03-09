@@ -55,17 +55,11 @@ void imc_sfab_remap(int n, uint32_t in_addr, uint64_t out_addr,
 	imc_sfab_set_valid(n);
 }
 
-void board_reset(void)
+#ifdef CONFIG_REBOOT
+void board_reboot(void)
 {
 }
-
-void board_suspend(void)
-{
-}
-
-void board_hibernate(void)
-{
-}
+#endif
 
 #ifdef CONFIG_DUOWEN_IMC
 static void imc_init(void)

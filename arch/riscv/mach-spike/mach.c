@@ -41,17 +41,14 @@
 
 #include <target/arch.h>
 
-void board_reset(void)
+#ifdef CONFIG_SHUTDOWN
+void board_shutdown(void)
 {
+#ifndef CONFIG_SMP
+	sim_shutdown();
+#endif
 }
-
-void board_suspend(void)
-{
-}
-
-void board_hibernate(void)
-{
-}
+#endif
 
 void board_init(void)
 {

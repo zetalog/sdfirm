@@ -97,7 +97,9 @@
 #define dw_timers_get_counter(n)			\
 	(DW_TIMERS_MAX - __raw_readl(TIMERCURRENTVAL(n)))
 
+#ifndef __ASSEMBLY__
 void dw_timers_tsc_init(int n);
 void dw_timers_gpt_init(int n);
+#endif
 
 #endif /* __DW_TIMERS_H_INCLUDE__ */

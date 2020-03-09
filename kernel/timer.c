@@ -410,6 +410,12 @@ tid_t tid_3;
 
 int timer_nr_tests = TIMER_TEST_SHOTS;
 
+#ifdef CONFIG_TIMER_TEST_SHUTDOWN
+#define timer_test_shutdown()		board_shutdown()
+#else
+#define timer_test_shutdown()		do { } while (0)
+#endif
+
 void timer_test_handler(void)
 {
 	printf("timeout %d on %d, 0x%016lx\n", timer_running_tid,
@@ -418,7 +424,8 @@ void timer_test_handler(void)
 		timer_schedule_shot(timer_running_tid, 5000);
 		if (timer_nr_tests > 0)
 			timer_nr_tests--;
-	}
+	} else
+		timer_test_shutdown();
 }
 
 timer_desc_t timer_1 = {
