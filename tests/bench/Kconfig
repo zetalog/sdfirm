@@ -94,6 +94,9 @@ config MD5_TEST_CNT
 
 endif
 
+config TLB_TEST
+	bool "Test TLB flush"
+
 source tests/bench/coremark/Kconfig
 source tests/bench/c_fft/Kconfig
 source tests/bench/jpgenc/Kconfig
