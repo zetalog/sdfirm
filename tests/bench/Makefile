@@ -11,6 +11,8 @@ obj-$(CONFIG_SHA256) += sha256.rel
 
 obj-$(CONFIG_MD5) += md5.rel
 
+obj-$(CONFIG_TLB_TEST) += tlbtest.rel
+
 obj-$(CONFIG_COREMARK) += coremark/
 
 obj-$(CONFIG_C_FFT) += c_fft/
