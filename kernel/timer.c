@@ -421,11 +421,18 @@ void timer_test_handler(void)
 	printf("timeout %d on %d, 0x%016lx\n", timer_running_tid,
 	       smp_processor_id(), (unsigned long)tick_get_counter());
 	if (timer_nr_tests) {
+#ifdef CONFIG_TIMER_TEST_TIMEOUT
+		timer_schedule_shot(timer_running_tid, CONFIG_TIMER_TEST_SHOT_PERIOD);
+#else
 		timer_schedule_shot(timer_running_tid, 5000);
+#endif
 		if (timer_nr_tests > 0)
 			timer_nr_tests--;
-	} else
+	} else {
+		printf("time test end %d on %d, 0x%016lx\n", timer_running_tid,
+				smp_processor_id(), (unsigned long)tick_get_counter());
 		timer_test_shutdown();
+	}
 }
 
 timer_desc_t timer_1 = {
@@ -446,8 +453,8 @@ timer_desc_t timer_3 = {
 void timer_test(void)
 {
 	tid_1 = timer_register(&timer_1);
-	timer_schedule_shot(tid_1, 20);
 #ifndef CONFIG_TIMER_TEST_TIMEOUT
+	timer_schedule_shot(tid_1, 20);
 	BUG_ON(timer_orders[0] != tid_1);
 	BUG_ON(timer_orders[1] != INVALID_TID);
 	BUG_ON(timer_orders[2] != INVALID_TID);
@@ -498,6 +505,8 @@ void timer_test(void)
 	BUG_ON(timer_orders[0] != INVALID_TID);
 	BUG_ON(timer_orders[1] != INVALID_TID);
 	BUG_ON(timer_orders[2] != INVALID_TID);
+#else
+	timer_schedule_shot(timer_running_tid, CONFIG_TIMER_TEST_SHOT_PERIOD);
 #endif
 }
 #else

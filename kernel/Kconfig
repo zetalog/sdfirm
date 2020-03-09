@@ -280,6 +280,11 @@ config TIMER_TEST_MAX_SHOTS
 	depends TIMER_TEST_TIMEOUT
 	default -1
 
+config TIMER_TEST_SHOT_PERIOD
+	int "Period of each shot"
+	range 2 128
+	default 2
+
 config TIMER_TEST_SHUTDOWN
 	bool "Enable shutdown after test"
 
