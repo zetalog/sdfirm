@@ -26,17 +26,21 @@ static void mstatus_init(struct sbi_scratch *scratch, u32 hartid)
 		csr_write(CSR_MSTATUS, SR_FS);
 
 	/* Enable user/supervisor use of perf counters */
+#ifndef CONFIG_ARCH_HAS_NOSEE
 	if (misa_extension('S') && sbi_platform_has_scounteren(plat))
 		csr_write(CSR_SCOUNTEREN, -1);
+#endif
 	if (sbi_platform_has_mcounteren(plat))
 		csr_write(CSR_MCOUNTEREN, -1);
 
 	/* Disable all interrupts */
 	csr_write(CSR_MIE, 0);
 
+#ifndef CONFIG_ARCH_HAS_NOSEE
 	/* Disable S-mode paging */
 	if (misa_extension('S'))
 		csr_write(CSR_SATP, 0);
+#endif
 }
 
 #if defined(CONFIG_RISCV_F) || defined(CONFIG_RISCV_D)

@@ -20,10 +20,11 @@
  * The FU540 SoC has 5 HARTs but HART ID 0 doesn't have S mode. enable only
  * HARTs 1 to 4.
  */
-#ifndef FU540_ENABLED_HART_MASK
-#define FU540_ENABLED_HART_MASK	(1 << 1 | 1 << 2 | 1 << 3 | 1 << 4)
+#ifdef CONFIG_UNLEASHED_E51
+#define FU540_ENABLED_HART_MASK			(1 << 0)
+#else
+#define FU540_ENABLED_HART_MASK			(1 << 1 | 1 << 2 | 1 << 3 | 1 << 4)
 #endif
-
 #define FU540_HART_ID_DISABLED			~(FU540_ENABLED_HART_MASK)
 
 static void fu540_modify_dt(void *fdt)

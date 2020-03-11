@@ -135,6 +135,7 @@
 	__HEAD
 
 ENTRY(__start)
+	init_gp
 #ifdef CONFIG_RISCV_ENTR_M
 	/* Reset all registers, except ra, gp, sp */
 	init_gprs
@@ -190,6 +191,7 @@ __abi_start_warm:
 ENDPROC(__start)
 
 ENTRY(__sbi_exit)
+	init_gp
 	disable_exit_irq
 	init_fpu
 

@@ -496,7 +496,15 @@ ENTRY(fw_next_mode)
 	 * We can only use a0, a1, and a2 registers here.
 	 * The next address should be returned in 'a0'.
 	 */
+#ifdef CONFIG_RISCV_EXIT_M
+	li	a0, PRV_M
+#endif
+#ifdef CONFIG_RISCV_EXIT_S
 	li	a0, PRV_S
+#endif
+#ifdef CONFIG_RISCV_EXIT_U
+	li	a0, PRV_U
+#endif
 	ret
 ENDPROC(fw_next_mode)
 
