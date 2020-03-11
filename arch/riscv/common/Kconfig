@@ -216,18 +216,18 @@ config CPU_PMP
 
 config CPU_SV32
 	bool
-	depends 32BIT && RISCV_ENTR_S
+	depends 32BIT && RISCV_EXIT_S
 	select ARCH_HAS_MMU
 
 config CPU_SV39
 	bool
-	depends 64BIT && RISCV_ENTR_S
+	depends 64BIT && RISCV_EXIT_S
 	select ARCH_HAS_MMU
 	select ARCH_HAS_MMU_HUGE
 
 config CPU_SV48
 	bool
-	depends 64BIT && RISCV_ENTR_S
+	depends 64BIT && RISCV_EXIT_S
 	select ARCH_HAS_MMU
 	select ARCH_HAS_MMU_HUGE
 
@@ -325,7 +325,7 @@ endmenu
 
 menuconfig RISCV_SV
 	bool "Supervisor virtual addresing"
-	depends ARCH_HAS_MMU && !ARCH_HAS_NO_SEE
+	depends ARCH_HAS_MMU && !ARCH_HAS_NOSEE
 
 if RISCV_SV
 

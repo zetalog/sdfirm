@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Mar  9 12:12:19 2020
+# Wed Mar 11 22:13:21 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -82,6 +82,10 @@ CONFIG_RISCV_A=y
 # CONFIG_RISCV_C is not set
 CONFIG_RISCV_COUNTERS=y
 CONFIG_RISCV_PMP=y
+CONFIG_RISCV_SV=y
+# CONFIG_RISCV_SV32 is not set
+CONFIG_RISCV_SV39=y
+# CONFIG_RISCV_SV48 is not set
 
 #
 # CPU architecture options
@@ -202,6 +206,7 @@ CONFIG_MAX_TIMERS=6
 CONFIG_TIMER_TEST=y
 CONFIG_TIMER_TEST_TIMEOUT=y
 CONFIG_TIMER_TEST_MAX_SHOTS=6
+# CONFIG_TIMER_TEST_SHUTDOWN is not set
 
 #
 # Address space layout (xip) support
@@ -215,6 +220,11 @@ CONFIG_MEM=y
 CONFIG_MEM_MAX_REGIONS=4
 CONFIG_MEM_RESIZE=y
 CONFIG_PAGE=y
+CONFIG_ARCH_HAS_MMU=y
+CONFIG_ARCH_HAS_MMU_4K=y
+CONFIG_ARCH_HAS_MMU_3L=y
+CONFIG_ARCH_HAS_MMU_HUGE=y
+# CONFIG_MMU is not set
 
 #
 # Power management model (board) support
