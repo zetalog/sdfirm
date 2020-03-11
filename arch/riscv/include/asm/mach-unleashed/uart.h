@@ -45,7 +45,14 @@
 #include <target/gpio.h>
 #include <target/clk.h>
 
-#define SIFIVE_UART_BASE(n)		(UART0_BASE + 0x1000 * (n))
+#define __SIFIVE_UART_BASE(n)		(UART0_BASE + 0x1000 * (n))
+#ifdef CONFIG_MMU
+#define SIFIVE_UART_BASE(n)		sifive_uart_reg_base[n]
+#define SIFIVE_MAX_UART_PORTS		2
+extern caddr_t sifive_uart_reg_base[SIFIVE_MAX_UART_PORTS];
+#else
+#define SIFIVE_UART_BASE(n)		__SIFIVE_UART_BASE(n)
+#endif
 
 #ifdef CONFIG_UNLEASHED_CON_UART0
 #define UART_CON_ID			0
@@ -155,6 +162,7 @@
 void sifive_uart_ctrl_init(int n, uint8_t params,
 			   uint32_t freq, uint32_t baudrate);
 void sifive_con_init(uint8_t params, uint32_t freq, uint32_t baudrate);
+void sifive_uart_mmu_init(int n);
 
 extern uint32_t sifive_uart_rx;
 
@@ -192,7 +200,7 @@ void uart_hw_irq_init(void);
 #define uart_hw_con_poll()	false
 #endif
 #ifdef CONFIG_MMU
-#define uart_hw_mmu_init()	do { } while (0)
+#define uart_hw_mmu_init()	sifive_uart_mmu_init(UART_CON_ID)
 #endif
 
 #endif /* __UART_UNLEASHED_H_INCLUDE__ */

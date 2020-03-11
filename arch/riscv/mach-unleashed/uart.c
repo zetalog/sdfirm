@@ -39,7 +39,8 @@
  * $Id: uart.c,v 1.1 2019-10-16 15:43:00 zhenglv Exp $
  */
 
-#include <target/uart.h>
+#include <target/console.h>
+#include <target/paging.h>
 
 #ifndef CONFIG_SIFIVE_UART_STATUS
 uint32_t sifive_uart_rx;
@@ -88,3 +89,19 @@ void sifive_uart_ctrl_init(int n, uint8_t params,
 	__raw_writel(div, UART_DIV(n));
 	__sifive_uart_enable_fifo(n, 0, 0);
 }
+
+#ifdef CONFIG_MMU
+caddr_t sifive_uart_reg_base[SIFIVE_MAX_UART_PORTS] = {
+	__SIFIVE_UART_BASE(0),
+	__SIFIVE_UART_BASE(1),
+};
+
+void sifive_uart_mmu_init(int n)
+{
+	set_fixmap_io(FIX_UART, __SIFIVE_UART_BASE(n) & PAGE_MASK);
+	sifive_uart_reg_base[n] = fix_to_virt(FIX_UART);
+	printf("FIXMAP: %016llx -> %016llx: UART0\n",
+	       __SIFIVE_UART_BASE(n), fix_to_virt(FIX_UART));
+	uart_hw_con_init();
+}
+#endif
