@@ -22,9 +22,34 @@
  */
 #ifdef CONFIG_UNLEASHED_E51
 #define FU540_ENABLED_HART_MASK			(1 << 0)
+#endif
+#ifdef CONFIG_UNLEASHED_U54
+#ifdef CONFIG_UNLEASHED_U54_HART_MASK
+#ifdef CONFIG_UNLEASHED_U54_HART1
+#define HART1					(1 << 1)
+#else
+#define HART1					0
+#endif
+#ifdef CONFIG_UNLEASHED_U54_HART2
+#define HART2					(1 << 2)
+#else
+#define HART2					0
+#endif
+#ifdef CONFIG_UNLEASHED_U54_HART3
+#define HART3					(1 << 3)
+#else
+#define HART3					0
+#endif
+#ifdef CONFIG_UNLEASHED_U54_HART4
+#define HART4					(1 << 4)
+#else
+#define HART4					0
+#endif
+#define FU540_ENABLED_HART_MASK			(HART1 | HART2 | HART3 | HART4)
 #else
 #define FU540_ENABLED_HART_MASK			(1 << 1 | 1 << 2 | 1 << 3 | 1 << 4)
-#endif
+#endif /* CONFIG_UNLEASHED_U54_HART_MASK */
+#endif /* CONFIG_UNLEASHED_U54 */
 #define FU540_HART_ID_DISABLED			~(FU540_ENABLED_HART_MASK)
 
 static void fu540_modify_dt(void *fdt)

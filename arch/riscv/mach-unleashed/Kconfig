@@ -23,6 +23,33 @@ config UNLEASHED_U54
 
 endchoice
 
+if UNLEASHED_U54
+
+config UNLEASHED_U54_HART_MASK
+	bool "Select enabled U54 harts"
+
+if UNLEASHED_U54_HART_MASK
+
+config UNLEASHED_U54_HART1
+	bool "hartid 1"
+	default y
+
+config UNLEASHED_U54_HART2
+	bool "hartid 2"
+	default y
+
+config UNLEASHED_U54_HART3
+	bool "hartid 3"
+	default y
+
+config UNLEASHED_U54_HART4
+	bool "hartid 4"
+	default y
+
+endif
+
+endif
+
 endmenu
 
 menu "System configuration"
