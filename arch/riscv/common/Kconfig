@@ -14,7 +14,6 @@ config CPU_E51
 	select CPU_M
 	select CPU_A
 	select CPU_C
-	select CPU_PMP
 	select CPU_COUNTERS
 	select ARCH_HAS_NOSEE
 
@@ -538,8 +537,7 @@ config ARCH_HAS_SBI_TIMER
 menuconfig SBI
 	bool "Supervisor binary interface (SBI) support"
 	depends RISCV_ENTR_M
-	depends CPU_PMP
-	select RISCV_PMP
+	select RISCV_PMP if CPU_PMP
 	select BIT_FLS64
 	select BIT_FFS32
 

@@ -74,6 +74,7 @@ static int fu540_final_init(bool cold_boot)
 	return 0;
 }
 
+#ifdef CONFIG_UNLEASHED_U54
 static u32 fu540_pmp_region_count(u32 hartid)
 {
 	return 1;
@@ -96,6 +97,18 @@ static int fu540_pmp_region_info(u32 hartid, u32 index, ulong *prot,
 	};
 	return ret;
 }
+#else
+static u32 fu540_pmp_region_count(u32 hartid)
+{
+	return 0;
+}
+
+static int fu540_pmp_region_info(u32 hartid, u32 index, ulong *prot,
+				 ulong *addr, ulong *log2size)
+{
+	return 0;
+}
+#endif
 
 static int fu540_irqchip_init(bool cold_boot)
 {

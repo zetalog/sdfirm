@@ -106,6 +106,7 @@ static int delegate_traps(struct sbi_scratch *scratch, u32 hartid)
 	return 0;
 }
 
+#ifdef CONFIG_RISCV_PMP
 static int pmp_init(struct sbi_scratch *scratch, u32 hartid)
 {
 	u32 i, count;
@@ -137,6 +138,12 @@ static int pmp_init(struct sbi_scratch *scratch, u32 hartid)
 	}
 	return 0;
 }
+#else
+static int pmp_init(struct sbi_scratch *scratch, u32 hartid)
+{
+	return 0;
+}
+#endif
 
 static unsigned long trap_info_offset;
 

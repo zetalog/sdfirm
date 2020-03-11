@@ -64,7 +64,7 @@ int pmp_dump(int argc, char **argv);
 #else
 #define pmp_set(n, prot, addr, log2len)		(-ENODEV)
 #define pmp_get(n, prot, addr, log2len)		(-ENODEV)
-#define pmp_dump(argc, argv)			0
+#define pmp_dump(argc, argv)			do { } while (0)
 #endif
 #endif
 
