@@ -45,6 +45,14 @@
 #include <target/arch.h>
 #include <asm/mach/prci.h>
 
+#ifdef CONFIG_PRCI
+#ifndef ARCH_HAVE_CLK
+#define ARCH_HAVE_CLK		1
+#else
+#error "Multiple CLK controller defined"
+#endif
+#endif
+
 #define NR_FREQPLANS		1
 #define FREQPLAN_RUN		0
 #define INVALID_FREQPLAN	NR_FREQPLANS
@@ -93,5 +101,8 @@
 #define tlclk			clkid(CLK_OUTPUT, TLCLK)
 
 void clk_hw_ctrl_init(void);
+#ifdef CONFIG_MMU
+void clk_hw_mmu_init(void);
+#endif
 
 #endif /* __CLK_UNLEASHED_H_INCLUDE__ */

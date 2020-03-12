@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Mar  5 15:49:40 2020
+# Fri Mar 13 08:17:12 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -45,6 +45,7 @@ CONFIG_CONSOLE_115200=y
 # RISCV system options
 #
 # CONFIG_ARCH_DUOWEN is not set
+# CONFIG_ARCH_DPU is not set
 CONFIG_ARCH_UNLEASHED=y
 # CONFIG_ARCH_K210 is not set
 # CONFIG_ARCH_VEGA is not set
@@ -64,13 +65,20 @@ CONFIG_RISCV_64I=y
 CONFIG_CPU_M=y
 CONFIG_CPU_A=y
 CONFIG_CPU_C=y
+CONFIG_CPU_COUNTERS=y
 # CONFIG_RISCV_M is not set
 # CONFIG_RISCV_A is not set
 # CONFIG_RISCV_C is not set
+CONFIG_RISCV_COUNTERS=y
 
 #
 # CPU architecture options
 #
+
+#
+# Compiler options
+#
+# CONFIG_CC_NO_RELAX is not set
 CONFIG_CMODEL_MEDLOW=y
 # CONFIG_CMODEL_MEDANY is not set
 CONFIG_TUNE_GENERIC=y
@@ -87,8 +95,6 @@ CONFIG_RISCV_ENTR_M=y
 # CONFIG_RISCV_EXIT_U is not set
 # CONFIG_RISCV_EXIT_S is not set
 CONFIG_RISCV_EXIT_M=y
-CONFIG_ARCH_HAS_SBI_IPI=y
-CONFIG_ARCH_HAS_SBI_TIMER=y
 
 #
 # System peripherals
@@ -97,6 +103,9 @@ CONFIG_ARCH_HAS_CLINT=y
 CONFIG_CLINT=y
 CONFIG_ARCH_HAS_PLIC=y
 CONFIG_PLIC=y
+CONFIG_ARCH_HAS_SBI_IPI=y
+CONFIG_ARCH_HAS_SBI_TIMER=y
+# CONFIG_SBI is not set
 
 #
 # SiFive HiFive Unleashed (FU540) board options
@@ -114,6 +123,7 @@ CONFIG_UNLEASHED_E51=y
 # CONFIG_UNLEASHED_ZSBL is not set
 CONFIG_UNLEASHED_FSBL=y
 # CONFIG_UNLEASHED_BBL is not set
+CONFIG_UNLEASHED_FSBL_INIT_ONLY=y
 CONFIG_UNLEASHED_CORECLK_FREQ_10GHZ=y
 # CONFIG_UNLEASHED_CORECLK_FREQ_15GHZ is not set
 CONFIG_UNLEASHED_CON_UART0=y
@@ -189,6 +199,14 @@ CONFIG_MEM=y
 CONFIG_MEM_MAX_REGIONS=4
 CONFIG_MEM_RESIZE=y
 # CONFIG_PAGE is not set
+
+#
+# Power management model (board) support
+#
+# CONFIG_SHUTDOWN is not set
+# CONFIG_REBOOT is not set
+# CONFIG_SUSPEND is not set
+# CONFIG_HIBERNATE is not set
 CONFIG_IDLE=y
 # CONFIG_BULK is not set
 # CONFIG_TERM is not set

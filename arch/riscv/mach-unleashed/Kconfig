@@ -97,6 +97,16 @@ config UNLEASHED_BBL
 
 endchoice
 
+config UNLEASHED_FSBL_INIT_ONLY
+	bool "Initialize DDR/Cache only (no command line)"
+	depends UNLEASHED_FSBL
+	help
+	  This configuration compiles the firmware to only initialize
+	  DDR/cache and hang wfi endlessly. Such binary image can be used
+	  with GDB as a first stage E51 bootloader, preparing the
+	  execution environment for a next stage U54 BBL which requires to
+	  run in the DDR region with cache enabled.
+
 choice
 	prompt "Frequency of coreclk"
 

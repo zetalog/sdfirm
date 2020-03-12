@@ -55,6 +55,11 @@ struct sbi_platform_operations {
 	int (*pmp_region_info)(u32 hartid, u32 index, ulong *prot, ulong *addr,
 			       ulong *log2size);
 
+	/** Write a character to the platform console output */
+	void (*console_putc)(char ch);
+	/** Read a character from the platform console input */
+	int (*console_getc)(void);
+
 	/** Initialize the platform interrupt controller for current HART */
 	int (*irqchip_init)(bool cold_boot);
 
@@ -239,6 +244,34 @@ static inline int sbi_platform_pmp_region_info(const struct sbi_platform *plat,
 							       addr,
 							       log2size);
 	return 0;
+}
+
+/**
+ * Write a character to the platform console output
+ *
+ * @param plat pointer to struct sbi_platform
+ * @param ch character to write
+ */
+static inline void sbi_platform_console_putc(const struct sbi_platform *plat,
+						char ch)
+{
+	if (plat && sbi_platform_ops(plat)->console_putc)
+		sbi_platform_ops(plat)->console_putc(ch);
+	putchar(ch);
+}
+
+/**
+ * Read a character from the platform console input
+ *
+ * @param plat pointer to struct sbi_platform
+ *
+ * @return character read from console input
+ */
+static inline int sbi_platform_console_getc(const struct sbi_platform *plat)
+{
+	if (plat && sbi_platform_ops(plat)->console_getc)
+		return sbi_platform_ops(plat)->console_getc();
+	return getchar();
 }
 
 /**

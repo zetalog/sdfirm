@@ -91,8 +91,8 @@ int sbi_emulate_csr_read(int csr_num, u32 hartid, ulong mstatus,
 		*csr_val = hartid;
 		break;
 	default:
-		printf("%s: hartid%d: invalid csr_num=0x%x\n", __func__,
-		       hartid, csr_num);
+		sbi_printf("%s: hartid%d: invalid csr_num=0x%x\n", __func__,
+			   hartid, csr_num);
 		return -ENOTSUP;
 	};
 	return 0;
@@ -135,8 +135,8 @@ int sbi_emulate_csr_write(int csr_num, u32 hartid, ulong mstatus,
 		csr_write(CSR_MHPMEVENT(4), csr_val);
 		break;
 	default:
-		printf("%s: hartid%d: invalid csr_num=0x%x\n", __func__,
-		       hartid, csr_num);
+		sbi_printf("%s: hartid%d: invalid csr_num=0x%x\n", __func__,
+			   hartid, csr_num);
 		return -ENOTSUP;
 	};
 	return 0;

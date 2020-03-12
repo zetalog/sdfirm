@@ -48,6 +48,14 @@
 #include <asm/mach/ccu.h>
 #include <asm/mach/prcm.h>
 
+#ifdef CONFIG_SUNXI_CCU
+#ifndef ARCH_HAVE_CLK
+#define ARCH_HAVE_CLK		1
+#else
+#error "Multiple CLK controller defined"
+#endif
+#endif
+
 #define NR_FREQPLANS		1
 #define FREQPLAN_RUN		0
 #define INVALID_FREQPLAN	NR_FREQPLANS

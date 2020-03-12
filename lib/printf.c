@@ -1,12 +1,6 @@
-#include <target/uart.h>
+#include <target/console.h>
 #include <target/irq.h>
 #include <target/spinlock.h>
-
-#ifdef CONFIG_CONSOLE_PRINT_BUFFER_SIZE
-#define CONSOLE_PRINT_BUFFER_SIZE	CONFIG_CONSOLE_PRINT_BUFFER_SIZE
-#else
-#define CONSOLE_PRINT_BUFFER_SIZE	128
-#endif
 
 DEFINE_SPINLOCK(print_lock);
 static char print_buffer[CONSOLE_PRINT_BUFFER_SIZE];

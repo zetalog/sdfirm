@@ -196,15 +196,6 @@ void sbi_hart_set_trap_info(struct sbi_scratch *scratch, void *data)
 	*trap_info = (unsigned long)data;
 }
 
-#ifdef CONFIG_SBI_MODIFY_PRIVILEGE
-void sbi_modify_privilege(struct pt_regs *regs,
-			  struct sbi_scratch *scratch)
-{
-	if (sbi_mode_switched != PRV_M)
-		csr_set(CSR_MSTATUS, SR_MPRV);
-}
-#endif
-
 #ifndef CONFIG_ARCH_HAS_NOSEE
 static void sbi_switch_s_mode(unsigned long next_addr)
 {

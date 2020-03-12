@@ -94,6 +94,7 @@ config ARCH_UNLEASHED
 	select ARCH_HAS_IDLE
 	select ARCH_HAS_GPT
 	select ARCH_HAS_GPIO
+	select ARCH_HAS_CLK
 	select ARCH_HAS_CLINT
 	select ARCH_HAS_PLIC
 	select ARCH_HAS_IRQC
@@ -118,6 +119,7 @@ config ARCH_K210
 	select ARCH_HAS_IDLE
 	select ARCH_HAS_GPT
 	select ARCH_HAS_GPIO
+	select ARCH_HAS_CLK
 	select ARCH_HAS_CLINT
 	select ARCH_HAS_PLIC
 	select ARCH_HAS_IRQC

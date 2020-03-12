@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2019
+ * Copyright (c) 2020
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,75 +35,24 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)uart.c: FU540 (unleashed) specific UART implementation
- * $Id: uart.c,v 1.1 2019-10-16 15:43:00 zhenglv Exp $
+ * @(#)clk.h: required CLK driver specific abstraction
+ * $Id: clk.h,v 1.1 2020-03-13 10:16:00 zhenglv Exp $
  */
 
-#include <target/console.h>
-#include <target/paging.h>
+#ifndef __CLK_DRIVER_H_INCLUDE__
+#define __CLK_DRIVER_H_INCLUDE__
 
-#ifndef CONFIG_SIFIVE_UART_STATUS
-uint32_t sifive_uart_rx;
+#ifdef CONFIG_ARCH_HAS_CLK
+#include <asm/mach/clk.h>
 #endif
 
-static bool sifive_uart_con_init;
-
-void sifive_con_init(uint8_t params, uint32_t freq, uint32_t baudrate)
-{
-	if (sifive_uart_con_init)
-		return;
-
-	sifive_uart_ctrl_init(UART_CON_ID, params, freq, baudrate);
-	sifive_uart_con_init = true;
-}
-
-/*          Fin
- * Fbaud = -------
- *         div + 1
- * Thus UART_DIV = (Fin / Fbaud) - 1
- */
-static uint32_t sifive_uart_min_div(uint32_t freq, uint32_t baudrate)
-{
-	uint32_t quotient;
-
-	/* The nearest integer for UART_DIV requires rounding up as to not
-	 * exceed baudrate.
-	 *  div = ceil(Fin / Fbaud) - 1
-	 *      = floor((Fin - 1 + Fbaud) / Fbaud) - 1
-	 * This should not overflow as long as (Fin - 1 + Fbaud) does not
-	 * exceed 2^32 - 1.
-	 */
-	quotient = div32u(freq + baudrate - 1, baudrate);
-	/* Avoid underflow */
-	return quotient ? quotient - 1 : 0;
-}
-
-void sifive_uart_ctrl_init(int n, uint8_t params,
-			   uint32_t freq, uint32_t baudrate)
-{
-	uint32_t div;
-
-	div = sifive_uart_min_div(freq, baudrate);
-	if (uart_stopb(params))
-		__raw_setl(UART_NSTOP, UART_TXCTRL(n));
-	__raw_writel(div, UART_DIV(n));
-	__sifive_uart_enable_fifo(n, 0, 0);
-}
-
-#ifdef CONFIG_MMU
-caddr_t sifive_uart_reg_base[SIFIVE_MAX_UART_PORTS] = {
-	__SIFIVE_UART_BASE(0),
-	__SIFIVE_UART_BASE(1),
-};
-
-void sifive_uart_mmu_init(int n)
-{
-	if (sifive_uart_reg_base[n] == __SIFIVE_UART_BASE(n)) {
-		set_fixmap_io(FIX_UART, __SIFIVE_UART_BASE(n) & PAGE_MASK);
-		sifive_uart_reg_base[n] = fix_to_virt(FIX_UART);
-		printf("FIXMAP: %016llx -> %016llx: UART\n",
-		       __SIFIVE_UART_BASE(n), fix_to_virt(FIX_UART));
-	}
-	uart_hw_con_init();
-}
+#ifndef ARCH_HAVE_CLK
+#define clk_hw_ctrl_init()		do { } while (0)
+#define clk_hw_mmu_init()		do { } while (0)
+#else
+#ifndef CONFIG_MMU
+#define clk_hw_mmu_init()		do { } while (0)
 #endif
+#endif
+
+#endif /* __CLK_DRIVER_H_INCLUDE__ */

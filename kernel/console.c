@@ -1,5 +1,6 @@
 #include <target/uart.h>
 #include <target/gpio.h>
+#include <target/clk.h>
 #include <target/bh.h>
 #include <target/irq.h>
 #include <target/console.h>
@@ -20,7 +21,7 @@ DECLARE_CIRCBF16(console_output_buffer, CONSOLE_BUFFER_SIZE);
 static console_handler console_console_handler = NULL;
 
 #ifdef CONFIG_CONSOLE_OUTPUT_CR
-void append_cr(int c)
+static void append_cr(int c)
 {
 	if (c == '\n')
 		uart_hw_con_write('\r');
@@ -177,6 +178,7 @@ void con_dbg(const char *fmt, ...)
 
 void console_early_init(void)
 {
+	clk_hw_mmu_init();
 	gpio_hw_mmu_init();
 	uart_hw_mmu_init();
 	console_enabled = true;

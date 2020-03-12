@@ -15,6 +15,7 @@
 #include <target/uart.h>
 #include <target/irq.h>
 #include <target/delay.h>
+#include <target/console.h>
 
 /**
  * The FU540 SoC has 5 HARTs but HART ID 0 doesn't have S mode. enable only
@@ -111,6 +112,51 @@ static int fu540_pmp_region_info(u32 hartid, u32 index, ulong *prot,
 }
 #endif
 
+#define __UART_REG(n, offset)	(__SIFIVE_UART_BASE(n) + (offset))
+#define __UART_TXDATA(n)	__UART_REG(n, 0x00)
+#define __UART_RXDATA(n)	__UART_REG(n, 0x04)
+#ifdef CONFIG_SIFIVE_UART_STATUS
+#define __UART_TXSTAT(n)	__UART_REG(n, 0x02)
+#define __UART_RXSTAT(n)	__UART_REG(n, 0x06)
+#endif
+
+#define __sifive_uart_write_poll(n)				\
+	(!(__raw_readw(__UART_TXSTAT(n)) & UART_FULL))
+#define __sifive_uart_read_poll(n)				\
+	(!(__raw_readw(__UART_RXSTAT(n)) & UART_EMPTY))
+#define __sifive_uart_write_byte(n, byte)			\
+	__raw_writeb(byte, __UART_TXDATA(n))
+#define __sifive_uart_read_byte(n)				\
+	__raw_readb(__UART_RXDATA(n))
+
+#define __fu540_console_putc(byte)				\
+	do {							\
+		while (!sifive_uart_write_poll(UART_CON_ID));	\
+		sifive_uart_write_byte(UART_CON_ID, byte);	\
+	} while (0)
+
+#ifdef CONFIG_CONSOLE_OUTPUT_CR
+static void append_cr(int c)
+{
+	if (c == '\n')
+		__fu540_console_putc('\r');
+}
+#else
+#define append_cr(c)	do { } while (0)
+#endif
+
+static void fu540_console_putc(char ch)
+{
+	append_cr(ch);
+	__fu540_console_putc(ch);
+}
+
+static int fu540_console_getc(void)
+{
+	while (!__sifive_uart_read_poll(UART_CON_ID));
+	return (int)__sifive_uart_read_byte(UART_CON_ID);
+}
+
 static int fu540_irqchip_init(bool cold_boot)
 {
 	cpu_t cpu = sbi_current_hartid();
@@ -183,6 +229,8 @@ const struct sbi_platform_operations platform_ops = {
 	.pmp_region_count	= fu540_pmp_region_count,
 	.pmp_region_info	= fu540_pmp_region_info,
 	.final_init		= fu540_final_init,
+	.console_putc		= fu540_console_putc,
+	.console_getc		= fu540_console_getc,
 	.irqchip_init		= fu540_irqchip_init,
 	.ipi_send		= fu540_ipi_send,
 	.ipi_sync		= fu540_ipi_sync,

@@ -44,21 +44,27 @@
 
 #include <asm/cpus.h>
 
-#define CPU_TO_MASK(cpu)	(1ULL << (cpu))
-#define LLC_TO_MASK(llc)	(1ULL << (llc))
+#define CPU_TO_MASK(cpu)	(ULL(1) << (cpu))
+#define LLC_TO_MASK(llc)	(ULL(1) << (llc))
 #define C(cpu)			CPU_TO_MASK(cpu)
 #define L(llc)			LLC_TO_MASK(llc)
 #ifndef CPU_ALL
 #define CPU_ALL			(CPU_TO_MASK(MAX_CPU_NUM)-1)
 #endif
+#ifndef LLC_ALL
 #define LLC_ALL			(LLC_TO_MASK(MAX_LLC_NUM)-1)
+#endif
 
-#define CPU_CLUSTER_MASK	((1ULL << CPUS_PER_CLUSTER) - 1)
+#ifndef CPU_CLUSTER_MASK
+#define CPU_CLUSTER_MASK	((ULL(1) << CPUS_PER_CLUSTER) - 1)
+#endif
 #define CPU_TO_CLUSTER(cpu)	((cpu) / CPUS_PER_CLUSTER)
 #define CLUSTER_TO_CPU_MASK(duplex)	\
         (CPU_CLUSTER_MASK << ((duplex) * CPUS_PER_CLUSTER))
 
-#define CPU_RAIL_MASK		((1ULL << CPUS_PER_RAIL) - 1)
+#ifndef CPU_RAIL_MASK
+#define CPU_RAIL_MASK		((ULL(1) << CPUS_PER_RAIL) - 1)
+#endif
 #define CPU_TO_RAIL(cpu)	((cpu) / CPUS_PER_RAIL)
 #define RAIL_TO_CPU_MASK(cluster)	\
         (CPU_RAIL_MASK << ((cluster) * CPUS_PER_RAIL))

@@ -47,6 +47,7 @@
 	.endm
 
 	.macro init_mtls
+	csrw	CSR_MSTATUS, 0
 	csrw	CSR_MSCRATCH, 0
 	.endm
 
@@ -61,6 +62,10 @@
 #else
 	li	\reg, 0
 #endif
+	.endm
+
+	.macro get_hartmask reg
+	li	\reg, CPU_ALL
 	.endm
 
 	.macro get_hartid reg
@@ -152,12 +157,13 @@ ENTRY(__start)
 	/* Disable global interrupt. */
 	disable_entr_irq
 
-	/* Jump to warm boot if it is not the first core booting */
+	/* Jump to warm boot if it is not the boot core */
 	get_hartid a6
-	li	a7, 1
-	sll	a7, a7, a6
-	andi	a7, a7, CPU_ALL
-	beqz	a7, secondary_park
+	li	t0, 1
+	sll	t0, t0, a6
+	get_hartmask t1
+	and	t0, t0, t1
+	beqz	t0, secondary_park
 	/* Pick up boot core */
 	li	a7, BOOT_HART
 	bne	a6, a7, secondary_wait_for_abi_relocate

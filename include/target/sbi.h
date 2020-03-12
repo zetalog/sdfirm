@@ -4,6 +4,7 @@
 #include <target/arch.h>
 #include <target/irq.h>
 #include <target/jiffies.h>
+#include <target/console.h>
 
 #define OPENSBI_VERSION_MAJOR 0
 #define OPENSBI_VERSION_MINOR 4
@@ -282,11 +283,13 @@ struct sbi_scratch *sbi_hart_id_to_scratch(struct sbi_scratch *scratch,
 void sbi_hart_wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid);
 void sbi_hart_wake_coldboot_harts(struct sbi_scratch *scratch, u32 hartid);
 u32 sbi_current_hartid(void);
-#ifdef CONFIG_SBI_MODIFY_PRIVILEGE
-void sbi_modify_privilege(struct pt_regs *regs,
-			  struct sbi_scratch *scratch);
+
+#ifdef CONFIG_CONSOLE_OUTPUT
+int sbi_vprintf(const char *fmt, va_list arg);
+int sbi_printf(const char *fmt, ...);
 #else
-#define sbi_modify_privilege(reg, scratch)	do { } while (0)
+#define sbi_vprintf(fmt, arg)		do { } while (0)
+#define sbi_printf(fmt, ...)		do { } while (0)
 #endif
 
 int sbi_system_early_init(struct sbi_scratch *scratch, bool cold_boot);

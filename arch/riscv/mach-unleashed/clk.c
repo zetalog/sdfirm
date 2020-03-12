@@ -40,6 +40,7 @@
  */
 
 #include <target/clk.h>
+#include <target/paging.h>
 
 static int enable_output_clk(clk_clk_t clk)
 {
@@ -212,3 +213,15 @@ void clk_hw_ctrl_init(void)
 {
 	board_init_clock();
 }
+
+#ifdef CONFIG_MMU
+caddr_t sifive_prci_reg_base = PRCI_BASE;
+
+void clk_hw_mmu_init(void)
+{
+	if (sifive_prci_reg_base == PRCI_BASE) {
+		set_fixmap_io(FIX_PRCI, PRCI_BASE & PAGE_MASK);
+		sifive_prci_reg_base = fix_to_virt(FIX_PRCI);
+	}
+}
+#endif

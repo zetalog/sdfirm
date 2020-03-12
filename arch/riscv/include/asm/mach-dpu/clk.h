@@ -45,6 +45,14 @@
 #include <target/arch.h>
 #include <asm/mach/pll.h>
 
+#ifdef CONFIG_DPU_PLL
+#ifndef ARCH_HAVE_CLK
+#define ARCH_HAVE_CLK		1
+#else
+#error "Multiple CLK controller defined"
+#endif
+#endif
+
 #ifdef CONFIG_DPU_BOOT
 #define NR_FREQPLANS		1
 #else

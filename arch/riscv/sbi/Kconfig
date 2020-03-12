@@ -15,12 +15,8 @@ menuconfig SBI
 	select RISCV_COUNTERS if CPU_COUNTERS
 	select BIT_FLS64
 	select BIT_FFS32
-	select SBI_MODIFY_PRIVILEGE if RISCV_EXIT_S
 
 if SBI
-
-config SBI_MODIFY_PRIVILEGE
-	bool "Enable modify privilege (MPRV) support"
 
 config SBI_PAYLOAD
 	bool "Enable SBI payload binary"

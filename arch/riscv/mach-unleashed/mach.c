@@ -42,24 +42,30 @@
 #include <target/arch.h>
 #include <target/irq.h>
 #include <target/clk.h>
+#include <target/gpio.h>
 
 void board_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);
+#ifdef CONFIG_UNLEASHED_FSBL
 	/* Cleanup bootup problems */
 	pwm_disable(0);
 	pwm_disable(1);
 
 	board_init_clock();
 	board_ddr_init();
-#ifdef CONFIG_UNLEASHED_FSBL
 	clk_enable(gemgxlclk);
-#endif
+#ifndef CONFIG_UNLEASHED_FSBL_INIT_ONLY
 #ifdef CONFIG_UNLEASHED_FLASH_QSPI0
 	board_spinor_init(0);
 #endif
 #ifdef CONFIG_UNLEASHED_FLASH_QSPI1
 	board_spinor_init(1);
 #endif
+#endif
 	board_cache_init();
+#ifdef CONFIG_UNLEASHED_FSBL_INIT_ONLY
+	hart_hang();
+#endif
+#endif
 }

@@ -23,6 +23,7 @@
 
 struct sbi_scratch *sbi_scratches[NR_CPUS];
 
+#ifdef CONFIG_CONSOLE_OUTPUT
 void sbi_late_init(void)
 {
 	char str[64];
@@ -37,30 +38,37 @@ void sbi_late_init(void)
 #endif
 
 	misa_string(str, sizeof(str));
-	printf("\nOpenSBI v%d.%d (%s %s)\n", OPENSBI_VERSION_MAJOR,
-	       OPENSBI_VERSION_MINOR, __DATE__, __TIME__);
+	sbi_printf("\nOpenSBI v%d.%d (%s %s)\n",
+		   OPENSBI_VERSION_MAJOR, OPENSBI_VERSION_MINOR,
+		   __DATE__, __TIME__);
 
-	printf(BANNER);
+	sbi_printf(BANNER);
 
 	/* Platform details */
-	printf("Platform Name          : %s\n", sbi_platform_name(plat));
-	printf("Platform HART Features : RV%d%s\n", misa_xlen(), str);
-	printf("Platform Max HARTs     : %d\n", NR_CPUS);
-	printf("Current Hart           : %u\n", hartid);
-	printf("Current Thread Pointer : 0x%016lx\n", scratch);
-	printf("Current Treahd Stack   : 0x%016lx - 0x%016lx\n",
-	       sp - PERCPU_STACK_SIZE, sp);
+	sbi_printf("Platform Name          : %s\n",
+		   sbi_platform_name(plat));
+	sbi_printf("Platform HART Features : RV%d%s\n",
+		   misa_xlen(), str);
+	sbi_printf("Platform Max HARTs     : %d\n", NR_CPUS);
+	sbi_printf("Current Hart           : %u\n", hartid);
+	sbi_printf("Current Thread Pointer : 0x%016lx\n", scratch);
+	sbi_printf("Current Thread Stack   : 0x%016lx - 0x%016lx\n",
+		   sp - PERCPU_STACK_SIZE, sp);
 	/* Firmware details */
-	printf("Firmware Base          : 0x%lx\n", scratch->fw_start);
-	printf("Firmware Size          : %d KB\n",
-	       (u32)(scratch->fw_size / 1024));
+	sbi_printf("Firmware Base          : 0x%lx\n",
+		   scratch->fw_start);
+	sbi_printf("Firmware Size          : %d KB\n",
+		   (u32)(scratch->fw_size / 1024));
 	/* Generic details */
-	printf("Runtime SBI Version    : %d.%d\n",
-	       sbi_ecall_version_major(), sbi_ecall_version_minor());
-	printf("\n");
+	sbi_printf("Runtime SBI Version    : %d.%d\n",
+		   sbi_ecall_version_major(), sbi_ecall_version_minor());
+	sbi_printf("\n");
 
 	pmp_dump(0, NULL);
 }
+#else
+#define sbi_late_init()		do { } while (0)
+#endif
 
 static void __noreturn init_coldboot(void)
 {

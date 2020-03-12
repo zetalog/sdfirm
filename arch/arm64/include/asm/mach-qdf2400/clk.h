@@ -45,6 +45,12 @@
 #include <target/compiler.h>
 #include <target/generic.h>
 
+#ifndef ARCH_HAVE_CLK
+#define ARCH_HAVE_CLK		1
+#else
+#error "Multiple CLK controller defined"
+#endif
+
 #define NR_FREQPLANS		3
 #define FREQPLAN_1_0		0
 #define FREQPLAN_1_1		1

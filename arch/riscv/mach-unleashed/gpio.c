@@ -40,6 +40,7 @@
  */
 
 #include <target/gpio.h>
+#include <target/paging.h>
 
 void sifive_gpio_config_pad(uint8_t gpio, uint8_t pad, uint8_t drv)
 {
@@ -86,3 +87,15 @@ void sifive_gpio_config_irq(uint8_t gpio, uint32_t mode)
 		}
 	}
 }
+
+#ifdef CONFIG_MMU
+caddr_t sifive_gpio_reg_base = GPIO_BASE;
+
+void gpio_hw_mmu_init(void)
+{
+	if (sifive_gpio_reg_base == GPIO_BASE) {
+		set_fixmap_io(FIX_GPIO, GPIO_BASE & PAGE_MASK);
+		sifive_gpio_reg_base = fix_to_virt(FIX_GPIO);
+	}
+}
+#endif

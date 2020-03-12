@@ -67,6 +67,6 @@ void board_cache_init(void);
 #else
 #define board_cache_init()		do { } while (0)
 #endif
-#endif
+#endif /* __ASSEMBLY__ */
 
 #endif /* __ARCH_UNLEASHED_H_INCLUDE__ */

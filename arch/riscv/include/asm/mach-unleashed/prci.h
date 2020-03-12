@@ -42,7 +42,13 @@
 #ifndef __PRCI_UNLEASHED_H_INCLUDE__
 #define __PRCI_UNLEASHED_H_INCLUDE__
 
-#define PRCI_REG(offset)	(PRCI_BASE + (offset))
+#ifdef CONFIG_MMU
+#define __PRCI_BASE		sifive_prci_reg_base
+extern caddr_t sifive_prci_reg_base;
+#else
+#define __PRCI_BASE		PRCI_BASE
+#endif
+#define PRCI_REG(offset)	(__PRCI_BASE + (offset))
 
 #define PRCI_HFXOSCCFG		PRCI_REG(0x00)
 #define PRCI_COREPLL		0

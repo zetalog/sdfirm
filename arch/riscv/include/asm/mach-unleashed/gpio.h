@@ -52,7 +52,13 @@
 #endif
 #endif
 
-#define GPIO_REG(offset)	(GPIO_BASE + (offset))
+#ifdef CONFIG_MMU
+#define __GPIO_BASE		sifive_gpio_reg_base
+extern caddr_t sifive_gpio_reg_base;
+#else
+#define __GPIO_BASE		GPIO_BASE
+#endif
+#define GPIO_REG(offset)	(__GPIO_BASE + (offset))
 
 #define GPIO_INPUT_VAL		GPIO_REG(0x00)
 #define GPIO_INPUT_EN		GPIO_REG(0x04)
@@ -162,7 +168,7 @@ void sifive_gpio_config_irq(uint8_t gpio, uint32_t mode);
 /* TODO: GPIO IRQ Controller */
 #define gpio_hw_ctrl_init()			do { } while (0)
 #ifdef CONFIG_MMU
-#define gpio_hw_mmu_init()			do { } while (0)
+void gpio_hw_mmu_init(void);
 #endif
 
 #endif /* __GPIO_UNLEASHED_H_INCLUDE__ */

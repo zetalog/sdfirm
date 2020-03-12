@@ -47,6 +47,14 @@
 #include <asm/mach/pcc.h>
 #include <asm/mach/msmc.h>
 
+#ifdef CONFIG_VEGA_CLOCK_DIST
+#ifndef ARCH_HAVE_CLK
+#define ARCH_HAVE_CLK		1
+#else
+#error "Multiple CLK controller defined"
+#endif
+#endif
+
 #define NR_FREQPLANS		3
 #define FREQPLAN_RUN		0
 #define FREQPLAN_VLPR		1
