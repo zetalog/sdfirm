@@ -184,6 +184,7 @@ config ARCH_VIRT
 endchoice
 
 source "arch/riscv/common/Kconfig"
+source "arch/riscv/sbi/Kconfig"
 
 endmenu
 

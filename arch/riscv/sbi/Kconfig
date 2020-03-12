@@ -1,0 +1,33 @@
+#
+# Supervisor Binary Interface (SBI)
+#
+
+config ARCH_HAS_SBI_IPI
+	bool
+
+config ARCH_HAS_SBI_TIMER
+	bool
+
+menuconfig SBI
+	bool "Supervisor binary interface (SBI) support"
+	depends RISCV_ENTR_M
+	select RISCV_PMP if CPU_PMP
+	select BIT_FLS64
+	select BIT_FFS32
+
+if SBI
+
+config SBI_PAYLOAD
+	bool "Enable SBI payload binary"
+
+if SBI_PAYLOAD
+
+config SBI_PAYLOAD_PATH
+	string "Path to the payload binary"
+
+config SBI_PAYLOAD_OFFSET
+	hex "Load offset of the payload"
+
+endif
+
+endif
