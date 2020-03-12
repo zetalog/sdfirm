@@ -64,6 +64,8 @@
    (gdb) set scheduler-locking off
    (gdb) continue
 9. In GDB shell, type the following commands to run on a specific core:
+   NOTE: CONFIG_UNLEASHED_HART_MASK should be configured to select only
+         this core.
    (gdb) target remote :3333
    (gdb) info threads
    (gdb) thread 2 (switch to U54 boot core, can be 2, 3, 4, 5)

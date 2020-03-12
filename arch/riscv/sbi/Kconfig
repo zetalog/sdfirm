@@ -12,6 +12,7 @@ menuconfig SBI
 	bool "Supervisor binary interface (SBI) support"
 	depends RISCV_ENTR_M
 	select RISCV_PMP if CPU_PMP
+	select RISCV_COUNTERS if CPU_COUNTERS
 	select BIT_FLS64
 	select BIT_FFS32
 
