@@ -48,7 +48,9 @@
 #define LLC_TO_MASK(llc)	(1ULL << (llc))
 #define C(cpu)			CPU_TO_MASK(cpu)
 #define L(llc)			LLC_TO_MASK(llc)
+#ifndef CPU_ALL
 #define CPU_ALL			(CPU_TO_MASK(MAX_CPU_NUM)-1)
+#endif
 #define LLC_ALL			(LLC_TO_MASK(MAX_LLC_NUM)-1)
 
 #define CPU_CLUSTER_MASK	((1ULL << CPUS_PER_CLUSTER) - 1)

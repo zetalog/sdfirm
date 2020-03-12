@@ -95,32 +95,36 @@
 	sub	\reg_res, \reg_res, \reg_tmp
 	.endm
 
-	.macro get_hartid reg
+	.macro get_smpid reg
 #ifdef CONFIG_SMP
 	csrr	\reg, CSR_MHARTID
+	get_arch_smpid \reg
 #else
 	li	\reg, 0
 #endif
 	.endm
 
+	.macro get_hartid reg
+	csrr	\reg, CSR_MHARTID
+	.endm
+
 	__HEAD
 
 ENTRY(__sbi_entry)
-	/* s6 -> HART ID
-	 * s7 -> HART Count
-	 */
+	/* s6 -> HART ID */
 	get_hartid s6
-	li	s7, NR_CPUS
-	/* Jump to warm boot if it is not the first core booting, hartid
-	 * 0 is mandatory by ISA.
-	 */
-	bnez	s6, secondary_wait_for_sbi_relocate
+
+	/* Jump to warm boot if it is not the first core booting. */
+	li	s7, BOOT_HART
+	bne	s6, s7, secondary_wait_for_sbi_relocate
 
 	/* Allow main firmware to save info */
 	MOV_5R	s0, a0, s1, a1, s2, a2, s3, a3, s4, a4
 	call	fw_save_info
 	MOV_5R	a0, s0, a1, s1, a2, s2, a3, s3, a4, s4
 
+	/* s7 -> HART Count */
+	li	s7, NR_CPUS
 	/* Keep a copy of tp */
 	la	t3, SBI_PERCPU_STACKS_END
 	/* Counter */

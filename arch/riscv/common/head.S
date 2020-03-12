@@ -54,18 +54,23 @@
 	csrw	CSR_SSCRATCH, 0
 	.endm
 
-	.macro get_hartid reg
+	.macro get_smpid reg
 #ifdef CONFIG_SMP
 	csrr	\reg, CSR_MHARTID
+	get_arch_smpid \reg
 #else
 	li	\reg, 0
 #endif
 	.endm
 
+	.macro get_hartid reg
+	csrr	\reg, CSR_MHARTID
+	.endm
+
 	.macro init_gpsptp
 	init_gp
 #ifdef CONFIG_SMP
-	get_hartid a3
+	get_smpid a3
 	slli	sp, a3, PERCPU_STACK_SHIFT
 	la	a3, (ABI_PERCPU_STACKS_START + PERCPU_STACK_SIZE)
 	add	sp, sp, a3
@@ -149,10 +154,13 @@ ENTRY(__start)
 
 	/* Jump to warm boot if it is not the first core booting */
 	get_hartid a6
-	li	a5, NR_CPUS
-	bge	a6, a5, secondary_park
-	/* hartid 0 is the mandatory core */
-	bnez	a6, secondary_wait_for_abi_relocate
+	li	a7, 1
+	sll	a7, a7, a6
+	andi	a7, a7, CPU_ALL
+	beqz	a7, secondary_park
+	/* Pick up boot core */
+	li	a7, BOOT_HART
+	bne	a6, a7, secondary_wait_for_abi_relocate
 
 #ifdef CONFIG_LOAD_TEXT
 	/* Handle both .text and .rodata sections */
@@ -202,7 +210,8 @@ ENTRY(__sbi_exit)
 	init_gpsptp
 
 	get_hartid a6
-	bnez	a6, secondary_start
+	li	a7, BOOT_HART
+	bne	a6, a7, secondary_start
 
 #ifdef CONFIG_MMU
 	call	bpgt_init

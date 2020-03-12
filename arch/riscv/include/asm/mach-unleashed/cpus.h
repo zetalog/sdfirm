@@ -45,8 +45,50 @@
 #ifdef CONFIG_UNLEASHED_E51
 #define MAX_CPU_NUM		1
 #endif
+
 #ifdef CONFIG_UNLEASHED_U54
-#define MAX_CPU_NUM		4
+#ifdef CONFIG_UNLEASHED_U54_HART_MASK
+#ifdef CONFIG_UNLEASHED_U54_HART1
+#define HART1			C(1)
+#else
+#define HART1			0
+#endif
+#ifdef CONFIG_UNLEASHED_U54_HART2
+#define HART2			C(2)
+#else
+#define HART2			0
+#endif
+#ifdef CONFIG_UNLEASHED_U54_HART3
+#define HART3			C(3)
+#else
+#define HART3			0
+#endif
+#ifdef CONFIG_UNLEASHED_U54_HART4
+#define HART4			C(4)
+#else
+#define HART4			0
+#endif
+#define CPU_ALL			(HART1 | HART2 | HART3 | HART4)
+#else /* CONFIG_UNLEASHED_U54_HART_MASK */
+#define CPU_ALL			(C(1) | C(2) | C(3) | C(4))
+#endif /* CONFIG_UNLEASHED_U54_HART_MASK */
+#ifdef CONFIG_SMP
+#define MAX_CPU_NUM		5 /* Including E51 */
+#else
+#define MAX_CPU_NUM		1
+#endif
+#define BOOT_HART		1
+#if defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
+	.macro get_arch_smpid reg
+	beqz	\reg, 7770f
+	addi	\reg, \reg, -1
+	j	7771f
+7770:
+	li	\reg, 4
+7771:
+	.endm
+#define ARCH_HAVE_SMPID		1
+#endif
 #endif
 
 #endif /* __CPUS_UNLEASHED_H_INCLUDE__ */

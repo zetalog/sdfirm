@@ -137,6 +137,8 @@ void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch)
 	ulong mtval = csr_read(CSR_MTVAL);
 	struct unpriv_trap *uptrap;
 
+	sbi_modify_privilege(regs, scratch);
+
 	if (mcause & (1UL << (__riscv_xlen - 1))) {
 		mcause &= ~(1UL << (__riscv_xlen - 1));
 		switch (mcause) {

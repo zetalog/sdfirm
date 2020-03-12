@@ -190,13 +190,20 @@ void console_early_init(void)
 	"  ____) | |__| | |     _| |_| | \\ \\| |  | |\n"	\
 	" |_____/|_____/|_|    |_____|_|  \\_\\_|  |_|\n\n"
 
+static bool console_banner_printed;
+
 void console_init(void)
 {
 	console_output_init();
 	printf("\n");
-	printf("%s - %s\n", CONFIG_VENDOR_NAME, CONFIG_PRODUCT_NAME);
-	printf("%s - %s\n", CONFIG_UNAME_RELEASE, CONFIG_KERNELVERSION);
-	printf(BANNER);
+	if (!console_banner_printed) {
+		printf("%s - %s\n",
+		       CONFIG_VENDOR_NAME, CONFIG_PRODUCT_NAME);
+		printf("%s - %s\n",
+		       CONFIG_UNAME_RELEASE, CONFIG_KERNELVERSION);
+		printf(BANNER);
+		console_banner_printed = true;
+	}
 }
 
 void console_late_init(void)

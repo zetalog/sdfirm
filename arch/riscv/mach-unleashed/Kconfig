@@ -36,14 +36,17 @@ config UNLEASHED_U54_HART1
 
 config UNLEASHED_U54_HART2
 	bool "hartid 2"
+	depends SMP
 	default y
 
 config UNLEASHED_U54_HART3
 	bool "hartid 3"
+	depends SMP
 	default y
 
 config UNLEASHED_U54_HART4
 	bool "hartid 4"
+	depends SMP
 	default y
 
 endif
@@ -91,9 +94,6 @@ config UNLEASHED_BBL
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_BOOT_LOAD
 	select XIP
-	select UNLEASHED_SPINOR
-	select UNLEASHED_SDCARD
-	select MMCSD
 
 endchoice
 

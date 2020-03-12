@@ -282,6 +282,12 @@ struct sbi_scratch *sbi_hart_id_to_scratch(struct sbi_scratch *scratch,
 void sbi_hart_wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid);
 void sbi_hart_wake_coldboot_harts(struct sbi_scratch *scratch, u32 hartid);
 u32 sbi_current_hartid(void);
+#ifdef CONFIG_SBI_MODIFY_PRIVILEGE
+void sbi_modify_privilege(struct pt_regs *regs,
+			  struct sbi_scratch *scratch);
+#else
+#define sbi_modify_privilege(reg, scratch)	do { } while (0)
+#endif
 
 int sbi_system_early_init(struct sbi_scratch *scratch, bool cold_boot);
 int sbi_system_final_init(struct sbi_scratch *scratch, bool cold_boot);
