@@ -47,7 +47,6 @@
 	.endm
 
 	.macro init_mtls
-	csrw	CSR_MSTATUS, 0
 	csrw	CSR_MSCRATCH, 0
 	.endm
 
@@ -254,6 +253,8 @@ ENDPROC(relocate)
 
 secondary_start:
 #ifdef CONFIG_SMP
+	/* Convert hartid to smpid */
+	get_arch_smpid a6
 	slli	a3, a6, LGREG
 	la	a4, __cpu_up_entry
 	add	a4, a3, a4

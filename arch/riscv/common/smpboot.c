@@ -12,5 +12,5 @@ void smp_hw_cpu_on(cpu_t cpu, caddr_t ep)
 
 void smp_hw_cpu_boot(void)
 {
-	smp_boot_cpu = csr_read(CSR_MHARTID);
+	smp_boot_cpu = smp_processor_id();
 }

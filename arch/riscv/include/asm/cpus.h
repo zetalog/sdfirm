@@ -72,6 +72,9 @@ struct scratch {
 #ifndef BOOT_HART
 #define BOOT_HART		0
 #endif
+#ifndef MAX_HARTS
+#define MAX_HARTS		NR_CPUS
+#endif
 
 #if defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
 #ifndef ARCH_HAVE_SMPID

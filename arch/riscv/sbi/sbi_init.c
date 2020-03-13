@@ -21,7 +21,7 @@
 	"        | |\n"                                     \
 	"        |_|\n\n"
 
-struct sbi_scratch *sbi_scratches[NR_CPUS];
+struct sbi_scratch *sbi_scratches[MAX_HARTS];
 
 #ifdef CONFIG_CONSOLE_OUTPUT
 void sbi_late_init(void)

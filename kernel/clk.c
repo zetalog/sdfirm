@@ -175,8 +175,8 @@ static int do_clk_dump(int argc, char *argv[])
 
 	printf("%20s: %-10s\n", "clock", "frequency");
 	for (cat = 0; cat < MAX_CLK_DRIVERS; cat++) {
-		if (clk_drivers[cat]) {
-			clkd = clk_drivers[cat];
+		clkd = clk_drivers[cat];
+		if (clkd) {
 			for (clk = 0; clk < clkd->max_clocks; clk++) {
 				clkid = clkid(cat, clk);
 				name = clk_get_mnemonic(clkid);

@@ -123,8 +123,8 @@ ENTRY(__sbi_entry)
 	call	fw_save_info
 	MOV_5R	a0, s0, a1, s1, a2, s2, a3, s3, a4, s4
 
-	/* s7 -> HART Count */
-	li	s7, NR_CPUS
+	/* s7 -> SMP Count */
+	li	s7, MAX_HARTS
 	/* Keep a copy of tp */
 	la	t3, SBI_PERCPU_STACKS_END
 	/* Counter */

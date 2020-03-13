@@ -78,6 +78,7 @@
 #define MAX_CPU_NUM		1
 #endif
 #define BOOT_HART		1
+#define MAX_HARTS		5
 #if defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
 	.macro get_arch_smpid reg
 	beqz	\reg, 7770f
