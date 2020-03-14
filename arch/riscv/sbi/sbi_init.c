@@ -88,8 +88,6 @@ static void __noreturn init_coldboot(void)
 	if (rc)
 		hart_hang();
 
-	sbi_printf("Hart %d booting...\n", hartid);
-
 	rc = sbi_platform_irqchip_init(plat, true);
 	if (rc)
 		hart_hang();
@@ -121,8 +119,6 @@ static void __noreturn init_warmboot(void)
 
 	if (sbi_platform_hart_disabled(plat, hartid))
 		hart_hang();
-
-	sbi_printf("Hart %d booting...\n", hartid);
 
 	rc = sbi_system_early_init(scratch, false);
 	if (rc)

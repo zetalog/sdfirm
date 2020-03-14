@@ -50,8 +50,8 @@
    (gdb) flushregs
    (gdb) symbol-file unleashed_bbl (for debugging symbols)
    (gdb) continue
-   NOTE: sometimes, debugger switches to hart0, and hart1 still hangs.
-         you may do the followings:
+   NOTE: Sometimes, debugger switches to hart0, and hart1 still hangs.
+         You may do the followings:
    (gdb) continue (let hart0 run)
    (gdb) thread 2
    (gdb) load unleashed_bbl (reload firmware on hart1)
@@ -65,6 +65,12 @@
    (gdb) set scheduler-locking off
    (gdb) thread 2
    (gdb) continue
+   NOTE: Sometimes, debugger switches to hart0, and other harts hang.
+         You may do the followings:
+   (gdb) continue (let hart0 run)
+   (gdb) thread 2
+   (gdb) thread apply all load (reload firmware on harts)
+   (gdb) continue (let hart1 run)
 ===== DEBUGGING commands =====
 14.Hardware reset:
    (gdb) monitor reset halt (reset core)

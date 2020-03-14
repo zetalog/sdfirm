@@ -51,8 +51,14 @@
 #endif
 
 #define PLIC_HW_PRI_MAX		31
-#define plic_hw_m_ctx(hartid)	((hartid) ? (2 * (hartid) - 1) : 0)
-#define plic_hw_s_ctx(hartid)	((hartid) ? (2 * (hartid)) : PLIC_CTX_NONE)
+#ifdef CONFIG_UNLEASHED_E51
+#define plic_hw_m_ctx(cpu)	0
+#define plic_hw_s_ctx(cpu)	PLIC_CTX_NONE
+#endif
+#ifdef CONFIG_UNLEASHED_U54
+#define plic_hw_m_ctx(cpu)	((((cpu) + 1) << 1) - 1)
+#define plic_hw_s_ctx(cpu)	(((cpu) + 1) << 1)
+#endif
 
 #include <asm/plic.h>
 

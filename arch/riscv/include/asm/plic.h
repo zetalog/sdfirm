@@ -52,6 +52,8 @@
 #define PLIC_CTX_NONE			-1
 
 #define PLIC_REG(offset)		(PLIC_BASE + (offset))
+#define PLIC_1BIT_REG(offset, irq)	\
+	REG_1BIT_ADDR(PLIC_BASE + (offset), irq)
 #define PLIC_CONTEXT_REG(ctx, offset)	\
 	PLIC_REG(PLIC_CONTEXT_BASE + (ctx) * PLIC_CONTEXT_SIZE + (offset))
 
@@ -63,9 +65,10 @@
 #define PLIC_CONTEXT_BASE		0x200000
 #define PLIC_CONTEXT_SIZE		PLIC_BLOCK_SIZE
 
-#define PLIC_PRIORITYR(irq)		PLIC_REG(PLIC_PRIORITYR_BASE + (irq) * 4)
-#define PLIC_PENDINGR(irq)		REG_1BIT_ADDR(PLIC_PENDINGR_BASE, irq)
-#define PLIC_ENABLER(irq)		REG_1BIT_ADDR(PLIC_ENABLER_BASE, irq)
+#define PLIC_PRIORITYR(irq)		\
+	PLIC_REG(PLIC_PRIORITYR_BASE + ((irq) << 2))
+#define PLIC_PENDINGR(irq)		PLIC_1BIT_REG(PLIC_PENDINGR_BASE, irq)
+#define PLIC_ENABLER(irq)		PLIC_1BIT_REG(PLIC_ENABLER_BASE, irq)
 
 #define PLIC_PRIORITY_THRESHOLDR(ctx)	PLIC_CONTEXT_REG(ctx, 0x00)
 #define PLIC_CLAIMR(ctx)		PLIC_CONTEXT_REG(ctx, 0x04)
@@ -94,11 +97,11 @@
 	__raw_setl(PLIC_IRQ(irq), PLIC_ENABLER(irq) +	\
 		   plic_hw_s_ctx(cpu) * PLIC_ENABLER_CONTEXT)
 #define plic_disable_mirq(cpu, irq)			\
-	__raw_setl(PLIC_IRQ(irq), PLIC_ENABLER(irq) +	\
-		   plic_hw_m_ctx(cpu) * PLIC_ENABLER_CONTEXT)
+	__raw_clearl(PLIC_IRQ(irq), PLIC_ENABLER(irq) +	\
+		     plic_hw_m_ctx(cpu) * PLIC_ENABLER_CONTEXT)
 #define plic_disable_sirq(cpu, irq)			\
-	__raw_setl(PLIC_IRQ(irq), PLIC_ENABLER(irq) +	\
-		   plic_hw_s_ctx(cpu) * PLIC_ENABLER_CONTEXT)
+	__raw_clearl(PLIC_IRQ(irq), PLIC_ENABLER(irq) +	\
+		     plic_hw_s_ctx(cpu) * PLIC_ENABLER_CONTEXT)
 #define plic_irq_pending(irq)				\
 	(__raw_readl(PLIC_PENDINGR(irq)) & PLIC_IRQ(irq))
 #define plic_clear_irq(irq)				\

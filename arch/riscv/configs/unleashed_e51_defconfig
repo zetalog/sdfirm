@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sat Mar 14 19:10:04 2020
+# Sun Mar 15 08:55:13 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -102,7 +102,7 @@ CONFIG_RISCV_EXIT_M=y
 CONFIG_ARCH_HAS_CLINT=y
 CONFIG_CLINT=y
 CONFIG_ARCH_HAS_PLIC=y
-CONFIG_PLIC=y
+# CONFIG_PLIC is not set
 CONFIG_ARCH_HAS_SBI_IPI=y
 CONFIG_ARCH_HAS_SBI_TIMER=y
 # CONFIG_SBI is not set
