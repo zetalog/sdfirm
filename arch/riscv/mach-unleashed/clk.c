@@ -42,6 +42,22 @@
 #include <target/clk.h>
 #include <target/paging.h>
 
+#ifdef CONFIG_CONSOLE_COMMAND
+const char *output_clk_names[NR_OUTPUT_CLKS] = {
+	[CORECLK] = "coreclk",
+	[TLCLK] = "tlclk",
+};
+
+static const char *get_output_clk_name(clk_clk_t clk)
+{
+	if (clk >= NR_OUTPUT_CLKS)
+		return NULL;
+	return output_clk_names[clk];
+}
+#else
+#define get_output_clk_name	NULL
+#endif
+
 static int enable_output_clk(clk_clk_t clk)
 {
 	if (clk >= NR_OUTPUT_CLKS)
@@ -103,6 +119,7 @@ struct clk_driver clk_output = {
 	.disable = disable_output_clk,
 	.get_freq = get_output_clk_freq,
 	.set_freq = set_output_clk_freq,
+	.get_name = get_output_clk_name,
 };
 
 struct pll_clk {
@@ -124,6 +141,23 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 		.enabled = false,
 	},
 };
+
+#ifdef CONFIG_CONSOLE_COMMAND
+const char *pll_clk_names[NR_PLL_CLKS] = {
+	[COREPLL] = "corepll",
+	[DDRPLL] = "ddrpll",
+	[GEMGXLPLL] = "gemgxlpll",
+};
+
+static const char *get_pll_name(clk_clk_t clk)
+{
+	if (clk >= NR_PLL_CLKS)
+		return NULL;
+	return pll_clk_names[clk];
+}
+#else
+#define get_pll_name		NULL
+#endif
 
 static void __enable_pll(clk_clk_t clk)
 {
@@ -174,12 +208,29 @@ struct clk_driver clk_pll = {
 	.disable = disable_pll,
 	.get_freq = get_pll_freq,
 	.set_freq = set_pll_freq,
+	.get_name = get_pll_name,
 };
 
 uint32_t input_clks[NR_INPUT_CLKS] = {
 	[HFCLK] = HFCLK_FREQ,
 	[RTCCLK] = RTCCLK_FREQ,
 };
+
+#ifdef CONFIG_CONSOLE_COMMAND
+const char *input_clk_names[NR_INPUT_CLKS] = {
+	[HFCLK] = "hfclk",
+	[RTCCLK] = "rtcclk",
+};
+
+static const char *get_input_clk_name(clk_clk_t clk)
+{
+	if (clk >= NR_INPUT_CLKS)
+		return NULL;
+	return input_clk_names[clk];
+}
+#else
+#define get_input_clk_name	NULL
+#endif
 
 static uint32_t get_input_clk_freq(clk_clk_t clk)
 {
@@ -194,6 +245,7 @@ struct clk_driver clk_input = {
 	.disable = NULL,
 	.get_freq = get_input_clk_freq,
 	.set_freq = NULL,
+	.get_name = get_input_clk_name,
 };
 
 static bool clk_hw_init = false;
