@@ -115,6 +115,7 @@
 	la	gp, __global_pointer$
 	.option pop
 #endif
+	fence	rw, rw
 	.endm
 
 	.macro init_gprs

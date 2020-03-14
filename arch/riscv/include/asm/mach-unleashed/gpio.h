@@ -168,7 +168,7 @@ void sifive_gpio_config_irq(uint8_t gpio, uint32_t mode);
 /* TODO: GPIO IRQ Controller */
 #define gpio_hw_ctrl_init()			do { } while (0)
 #ifdef CONFIG_MMU
-void gpio_hw_mmu_init(void);
+#define gpio_hw_mmu_init()			sifive_mmu_map_gpio()
 #endif
 
 #endif /* __GPIO_UNLEASHED_H_INCLUDE__ */

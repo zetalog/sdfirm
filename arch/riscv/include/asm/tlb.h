@@ -45,11 +45,13 @@
 #include <asm/sbi.h>
 
 #ifndef __ASSEMBLY__
-#define local_flush_tlb_all()		\
+#define sfence_vma_all()		\
 	asm volatile ("sfence.vma" : : : "memory")
-#define local_flush_tlb_page(addr)	\
+#define sfence_vma_page(addr)		\
 	asm volatile ("sfence.vma %0" : : "r" (addr) : "memory")
 
+void local_flush_tlb_all(void);
+void local_flush_tlb_page(caddr_t addr);
 void flush_tlb_all(void);
 void flush_tlb_page(int asid, caddr_t addr);
 void flush_tlb_range_user(int asid, caddr_t start, caddr_t end);

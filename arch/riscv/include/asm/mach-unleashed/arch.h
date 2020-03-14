@@ -67,6 +67,13 @@ void board_cache_init(void);
 #else
 #define board_cache_init()		do { } while (0)
 #endif
+
+#ifdef CONFIG_MMU
+void sifive_mmu_map_prci(void);
+void sifive_mmu_map_gpio(void);
+void sifive_mmu_map_uart(int n);
+void sifive_mmu_dump_maps(void);
+#endif
 #endif /* __ASSEMBLY__ */
 
 #endif /* __ARCH_UNLEASHED_H_INCLUDE__ */

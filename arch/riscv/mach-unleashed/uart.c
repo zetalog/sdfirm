@@ -91,19 +91,10 @@ void sifive_uart_ctrl_init(int n, uint8_t params,
 }
 
 #ifdef CONFIG_MMU
-caddr_t sifive_uart_reg_base[SIFIVE_MAX_UART_PORTS] = {
-	__SIFIVE_UART_BASE(0),
-	__SIFIVE_UART_BASE(1),
-};
-
-void sifive_uart_mmu_init(int n)
+void uart_hw_mmu_init(void)
 {
-	if (sifive_uart_reg_base[n] == __SIFIVE_UART_BASE(n)) {
-		set_fixmap_io(FIX_UART, __SIFIVE_UART_BASE(n) & PAGE_MASK);
-		sifive_uart_reg_base[n] = fix_to_virt(FIX_UART);
-		printf("FIXMAP: %016llx -> %016llx: UART\n",
-		       __SIFIVE_UART_BASE(n), fix_to_virt(FIX_UART));
-	}
+	sifive_mmu_map_uart(UART_CON_ID);
 	uart_hw_con_init();
+	sifive_mmu_dump_maps();
 }
 #endif

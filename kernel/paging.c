@@ -424,7 +424,8 @@ static void __create_pgd_mapping(pgd_t *pgdir, phys_addr_t phys,
 	caddr_t addr, length, end, next;
 	pgd_t *pgdp = pgd_offset(pgdir, virt);
 
-	con_dbg("LOWMAP: %016llx -> %016llx: %016llx\n", phys, virt, size);
+	con_printf("LOWMAP: %016llx -> %016llx: %016llx\n",
+		   phys, virt, size);
 
 	/* If the virtual and physical address don't have the same offset
 	 * within a page, we cannot map the region as the caller expects.
@@ -712,9 +713,6 @@ void paging_init(void)
 {
 	pgd_t *pgdp;
 
-	printf("==============================================================\n");
-	printf("BPGT_PGTABLE_LEVELS=%d\n", BPGT_PGTABLE_LEVELS);
-	printf("PGTABLE_LEVELS=%d\n", PGTABLE_LEVELS);
 	/* expand boot kernel mappings */
 	pgdp = get_pgd_virt(__pa(mmu_pg_dir));
 	map_kernel(pgdp);

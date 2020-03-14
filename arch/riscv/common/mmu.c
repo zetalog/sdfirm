@@ -1,6 +1,7 @@
 #include <target/init.h>
 #include <target/arch.h>
 #include <target/paging.h>
+#include <target/console.h>
 
 pgd_t mmu_id_map[IDMAP_DIR_SIZE / sizeof (pgd_t)] __page_aligned_bss;
 

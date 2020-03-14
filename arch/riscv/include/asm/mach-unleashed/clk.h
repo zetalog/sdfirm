@@ -102,7 +102,7 @@
 
 void clk_hw_ctrl_init(void);
 #ifdef CONFIG_MMU
-void clk_hw_mmu_init(void);
+#define clk_hw_mmu_init()	sifive_mmu_map_prci()
 #endif
 
 #endif /* __CLK_UNLEASHED_H_INCLUDE__ */

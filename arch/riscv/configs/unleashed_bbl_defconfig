@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Mar 12 21:37:04 2020
+# Fri Mar 13 22:29:21 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -74,7 +74,7 @@ CONFIG_CPU_COUNTERS=y
 CONFIG_CPU_PMP=y
 CONFIG_CPU_SV39=y
 # CONFIG_RISCV_M is not set
-# CONFIG_RISCV_A is not set
+CONFIG_RISCV_A=y
 # CONFIG_RISCV_F is not set
 # CONFIG_RISCV_D is not set
 # CONFIG_RISCV_C is not set
@@ -88,6 +88,10 @@ CONFIG_RISCV_SV39=y
 #
 # CPU architecture options
 #
+# CONFIG_RISCV_ATOMIC_COUNT_32 is not set
+CONFIG_RISCV_ATOMIC_COUNT_64=y
+CONFIG_RISCV_SPINLOCK_RAW=y
+# CONFIG_RISCV_SPINLOCK_GENERIC is not set
 
 #
 # Compiler options

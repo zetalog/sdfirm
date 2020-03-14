@@ -23,6 +23,8 @@
    (gdb) load unleashed_fsbl
    (gdb) symbol-file unleashed_fsbl (for debugging symbols)
    (gdb) continue
+   NOTE: If the image is a bootstrap fsbl, you can exit openocd gdb server
+         after pc reaches to the waiting loop.
 8. Single step debugging:
    (gdb) set disassemble-next-line on
    (gdb) si/ni (for assembly debugging)
@@ -70,6 +72,12 @@
    (gdb) load unleashed_bbl
    (gdb) symbol-file unleashed_bbl (for debugging symbols)
    (gdb) continue
+   NOTE: sometimes, debugger switches to hart0, and hart1 still hangs.
+         you may do the followings:
+   (gdb) continue (let hart0 run)
+   (gdb) thread 2
+   (gdb) load unleashed_bbl (reload firmware on hart1)
+   (gdb) continue (let hart1 run)
 14.Run BBL in SMP mode:
    In GDB shell, type the following commands to run on all cores:
    (gdb) target remote :3333

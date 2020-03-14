@@ -360,8 +360,8 @@ static phys_addr_t mem_find_in_range(phys_addr_t size, phys_addr_t align,
 		 * so we use WARN_ONCE() here to see the stack trace if
 		 * fail happens.
 		 */
-		printf("memblock: bottom-up allocation failed, "
-		       "memory hotunplug may be affected\n");
+		con_printf("memblock: bottom-up allocation failed, "
+			   "memory hotunplug may be affected\n");
 	}
 	return __mem_find_range_top_down(start, end, size, align);
 }
@@ -409,8 +409,8 @@ static int mem_double_array(struct mem_type *type,
 
 	new_array = (struct mem_region *)((addr ? (void *)(__va(addr)) : NULL));
 	if (!addr) {
-		printf("memblock: Failed to double %s array from %ld to %ld entries !\n",
-		       mem_type_name(type), type->max, type->max * 2);
+		con_printf("memblock: Failed to double %s array from %ld to %ld entries !\n",
+			   mem_type_name(type), type->max, type->max * 2);
 		return -1;
 	}
 
@@ -683,11 +683,11 @@ void mem_free_all(void)
 	phys_addr_t start, end;
 
 	for_each_reserved_mem_region(i, &start, &end) {
-		con_dbg("reserved: %016llx - %016llx\n", start, end);
+		con_printf("reserved: %016llx - %016llx\n", start, end);
 		reserve_bootmem_region(start, end);
 	}
 	for_each_free_mem_range(i, &start, &end) {
-		con_dbg("memory: %016llx - %016llx\n", start, end);
+		con_printf("memory: %016llx - %016llx\n", start, end);
 		page_alloc_init(start, end - start);
 	}
 }

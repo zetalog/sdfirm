@@ -47,6 +47,8 @@
 	.endm
 
 	.macro init_mtls
+	li	t0, SR_MPRV
+	csrc	CSR_MSTATUS, 0
 	csrw	CSR_MSCRATCH, 0
 	.endm
 
@@ -85,6 +87,7 @@
 	sub	tp, sp, a3
 	add	sp, tp, zero
 	REG_S	sp, SCRATCH_SP(tp);
+	fence	rw, rw
 	.endm
 
 	.macro zerow regs

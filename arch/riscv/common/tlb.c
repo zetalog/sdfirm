@@ -1,11 +1,25 @@
 #include <target/tlb.h>
 #include <target/smp.h>
 #include <target/page.h>
+#include <target/barrier.h>
 
 #ifndef asid2cpu
 #define asid2cpu(asid)		((cpu_t)(asid))
 #endif
 
+void local_flush_tlb_all(void)
+{
+	sfence_vma_all();
+	fence(rw, rw);
+}
+
+void local_flush_tlb_page(caddr_t addr)
+{
+	sfence_vma_page(addr);
+	fence(rw, rw);
+}
+
+void local_flush_tlb_page(caddr_t addr);
 #ifdef CONFIG_SMP
 void __flush_tlb_all(void)
 {

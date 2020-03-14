@@ -197,8 +197,8 @@ static bool console_banner_printed;
 void console_init(void)
 {
 	console_output_init();
-	printf("\n");
 	if (!console_banner_printed) {
+		printf("\n");
 		printf("%s - %s\n",
 		       CONFIG_VENDOR_NAME, CONFIG_PRODUCT_NAME);
 		printf("%s - %s\n",

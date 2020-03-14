@@ -200,7 +200,7 @@ void uart_hw_irq_init(void);
 #define uart_hw_con_poll()	false
 #endif
 #ifdef CONFIG_MMU
-#define uart_hw_mmu_init()	sifive_uart_mmu_init(UART_CON_ID)
+void uart_hw_mmu_init(void);
 #endif
 
 #endif /* __UART_UNLEASHED_H_INCLUDE__ */
