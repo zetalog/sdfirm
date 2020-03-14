@@ -257,7 +257,6 @@ static inline void sbi_platform_console_putc(const struct sbi_platform *plat,
 {
 	if (plat && sbi_platform_ops(plat)->console_putc)
 		sbi_platform_ops(plat)->console_putc(ch);
-	putchar(ch);
 }
 
 /**
@@ -271,7 +270,7 @@ static inline int sbi_platform_console_getc(const struct sbi_platform *plat)
 {
 	if (plat && sbi_platform_ops(plat)->console_getc)
 		return sbi_platform_ops(plat)->console_getc();
-	return getchar();
+	return -1;
 }
 
 /**

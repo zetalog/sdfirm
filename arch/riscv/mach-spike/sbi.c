@@ -47,6 +47,16 @@ static int spike_pmp_region_info(u32 hartid, u32 index, ulong *prot,
 	return ret;
 }
 
+static void spike_console_putc(char ch)
+{
+	putchar(ch);
+}
+
+static int spike_console_getc(void)
+{
+	return getchar();
+}
+
 static int spike_irqchip_init(bool cold_boot)
 {
 	return 0;
@@ -113,6 +123,8 @@ const struct sbi_platform_operations platform_ops = {
 	.pmp_region_count	= spike_pmp_region_count,
 	.pmp_region_info	= spike_pmp_region_info,
 	.final_init		= spike_final_init,
+	.console_putc		= spike_console_putc,
+	.console_getc		= spike_console_getc,
 	.irqchip_init		= spike_irqchip_init,
 	.ipi_send		= spike_ipi_send,
 	.ipi_sync		= spike_ipi_sync,

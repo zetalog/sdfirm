@@ -12,6 +12,16 @@
 #include <target/irq.h>
 #include <target/delay.h>
 
+static void k210_console_putc(char ch)
+{
+	putchar(ch);
+}
+
+static int k210_console_getc(void)
+{
+	return getchar();
+}
+
 static int k210_irqchip_init(bool cold_boot)
 {
 	cpu_t cpu = sbi_current_hartid();
@@ -85,6 +95,9 @@ static int k210_system_shutdown(u32 type)
 }
 
 const struct sbi_platform_operations platform_ops = {
+	.console_putc = k210_console_putc,
+	.console_getc = k210_console_getc,
+
 	.irqchip_init = k210_irqchip_init,
 
 	.ipi_init  = k210_ipi_init,

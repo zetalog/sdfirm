@@ -1,5 +1,4 @@
 #include <target/sbi.h>
-#include <target/console.h>
 #include <target/spinlock.h>
 
 DEFINE_SPINLOCK(sbi_print_lock);
@@ -34,4 +33,11 @@ int sbi_printf(const char *fmt, ...)
 	len = sbi_vprintf(fmt, arg);
 	va_end(arg);
 	return len;
+}
+
+int sbi_console_init(struct sbi_scratch *scratch)
+{
+	sbi_console_plat = sbi_platform_ptr(scratch);
+	console_init();
+	return 0;
 }

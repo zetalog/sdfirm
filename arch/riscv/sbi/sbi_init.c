@@ -9,7 +9,6 @@
 
 #include <target/smp.h>
 #include <target/sbi.h>
-#include <target/console.h>
 
 #define BANNER                                              \
 	"   ____                    _____ ____ _____\n"     \
@@ -85,7 +84,11 @@ static void __noreturn init_coldboot(void)
 	if (rc)
 		hart_hang();
 
-	console_init();
+	rc = sbi_console_init(scratch);
+	if (rc)
+		hart_hang();
+
+	sbi_printf("Hart %d booting...\n", hartid);
 
 	rc = sbi_platform_irqchip_init(plat, true);
 	if (rc)
@@ -118,6 +121,8 @@ static void __noreturn init_warmboot(void)
 
 	if (sbi_platform_hart_disabled(plat, hartid))
 		hart_hang();
+
+	sbi_printf("Hart %d booting...\n", hartid);
 
 	rc = sbi_system_early_init(scratch, false);
 	if (rc)

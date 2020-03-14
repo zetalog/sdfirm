@@ -287,9 +287,14 @@ u32 sbi_current_hartid(void);
 #ifdef CONFIG_CONSOLE_OUTPUT
 int sbi_vprintf(const char *fmt, va_list arg);
 int sbi_printf(const char *fmt, ...);
+int sbi_console_init(struct sbi_scratch *scratch);
 #else
 #define sbi_vprintf(fmt, arg)		do { } while (0)
 #define sbi_printf(fmt, ...)		do { } while (0)
+static inline int sbi_console_init(struct sbi_scratch *scratch)
+{
+	return 0;
+}
 #endif
 
 int sbi_system_early_init(struct sbi_scratch *scratch, bool cold_boot);
