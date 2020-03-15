@@ -300,12 +300,12 @@ struct sbi_scratch *sbi_hart_id_to_scratch(struct sbi_scratch *scratch,
 DEFINE_SPINLOCK(coldboot_wait_bitmap_lock);
 static unsigned long coldboot_wait_bitmap   = 0;
 
-void sbi_hart_wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
+void sbi_cpu_wait_for_coldboot(struct sbi_scratch *scratch, u32 cpu)
 {
 	unsigned long mipval;
 
-	if (hartid >= MAX_HARTS ||
-	    (COLDBOOT_WAIT_BITMAP_SIZE <= hartid))
+	if (cpu >= NR_CPUS ||
+	    (COLDBOOT_WAIT_BITMAP_SIZE <= cpu))
 		hart_hang();
 
 	/* Set MSIE bit to receive IPI */
@@ -313,29 +313,29 @@ void sbi_hart_wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
 
 	do {
 		spin_lock(&coldboot_wait_bitmap_lock);
-		coldboot_wait_bitmap |= (1UL << hartid);
+		coldboot_wait_bitmap |= (1UL << cpu);
 		spin_unlock(&coldboot_wait_bitmap_lock);
 
 		wfi();
 		mipval = csr_read(CSR_MIP);
 
 		spin_lock(&coldboot_wait_bitmap_lock);
-		coldboot_wait_bitmap &= ~(1UL << hartid);
+		coldboot_wait_bitmap &= ~(1UL << cpu);
 		spin_unlock(&coldboot_wait_bitmap_lock);
 	} while (!(mipval && IR_MSI));
 
 	csr_clear(CSR_MIP, IR_MSI);
 }
 
-void sbi_hart_wake_coldboot_harts(struct sbi_scratch *scratch, u32 hartid)
+void sbi_cpu_wake_coldboot_cpus(struct sbi_scratch *scratch, u32 cpu)
 {
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 
-	for (int i = 0; i < MAX_HARTS; i++) {
+	for (int i = 0; i < NR_CPUS; i++) {
 		/* send an IPI to every other hart */
 		spin_lock(&coldboot_wait_bitmap_lock);
-		if ((i != hartid) && (coldboot_wait_bitmap & (1UL << i)))
-			sbi_platform_ipi_send(plat, smp_hw_hart_cpu(i));
+		if ((i != cpu) && (coldboot_wait_bitmap & (1UL << i)))
+			sbi_platform_ipi_send(plat, i);
 		spin_unlock(&coldboot_wait_bitmap_lock);
 	}
 }

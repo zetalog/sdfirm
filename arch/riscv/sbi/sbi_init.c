@@ -34,7 +34,6 @@ void __sbi_late_init(void)
 	sbi_printf("Current Thread Pointer : 0x%016lx\n", scratch);
 	sbi_printf("Current Thread Stack   : 0x%016lx - 0x%016lx\n",
 		   sp - PERCPU_STACK_SIZE, sp);
-	sbi_printf("\n");
 }
 
 void sbi_late_init(void)
@@ -69,7 +68,6 @@ void sbi_late_init(void)
 	/* Generic details */
 	sbi_printf("Runtime SBI Version    : %d.%d\n",
 		   sbi_ecall_version_major(), sbi_ecall_version_minor());
-	sbi_printf("\n");
 	sbi_printf("Platform Max HARTs     : %d\n", MAX_HARTS);
 	sbi_printf("Firmware Max CPUs      : %d\n", NR_CPUS);
 	__sbi_late_init();
@@ -112,7 +110,8 @@ static void __noreturn init_coldboot(void)
 		hart_hang();
 
 	if (!sbi_platform_has_hart_hotplug(plat))
-		sbi_hart_wake_coldboot_harts(scratch, hartid);
+		sbi_cpu_wake_coldboot_cpus(scratch,
+			smp_hw_hart_cpu(hartid));
 	sbi_hart_mark_available(hartid);
 	sbi_late_init();
 	sbi_hart_switch_mode(hartid, scratch->next_arg1, scratch->next_addr,
@@ -127,7 +126,8 @@ static void __noreturn init_warmboot(void)
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 
 	if (!sbi_platform_has_hart_hotplug(plat))
-		sbi_hart_wait_for_coldboot(scratch, hartid);
+		sbi_cpu_wait_for_coldboot(scratch,
+			smp_hw_hart_cpu(hartid));
 
 	if (sbi_platform_hart_disabled(plat, hartid))
 		hart_hang();

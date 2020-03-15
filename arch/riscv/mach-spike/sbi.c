@@ -143,7 +143,7 @@ const struct sbi_platform platform = {
 	.platform_version	= SBI_PLATFORM_VERSION(0x0, 0x01),
 	.name			= "RISC-V ISA simulator (spike)",
 	.features		= SBI_PLATFORM_DEFAULT_FEATURES,
-	.disabled_hart_mask	= 0,
+	.disabled_hart_mask	= ~HART_ALL,
 	.platform_ops_addr	= (unsigned long)&platform_ops
 };
 

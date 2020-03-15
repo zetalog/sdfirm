@@ -77,7 +77,7 @@ __init static void sv_satp_switch(caddr_t map, const char *hint)
 	unsigned long satp;
 
 	satp = PFN_DOWN(__pa(map)) | SATP_MODE;
-	mmu_dbg_tbl("%s: %016llx\n", hint, satp);
+	printf("%s: %016llx\n", hint, satp);
 	csr_write(CSR_SATP, satp);
 	local_flush_tlb_all();
 }

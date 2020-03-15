@@ -44,9 +44,6 @@
 #include <target/irq.h>
 #include <target/delay.h>
 
-#define DUOWEN_ENABLED_HART_MASK		CPU_ALL
-#define DUOWEN_HART_ID_DISABLED			~(DUOWEN_ENABLED_HART_MASK)
-
 static void duowen_modify_dt(void *fdt)
 {
 }
@@ -187,6 +184,6 @@ const struct sbi_platform platform = {
 	.platform_version	= SBI_PLATFORM_VERSION(0x0, 0x01),
 	.name			= "SmarCo DUOWEN",
 	.features		= SBI_PLATFORM_DEFAULT_FEATURES,
-	.disabled_hart_mask	= DUOWEN_HART_ID_DISABLED,
+	.disabled_hart_mask	= 0,
 	.platform_ops_addr	= (unsigned long)&platform_ops
 };

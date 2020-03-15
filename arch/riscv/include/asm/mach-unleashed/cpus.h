@@ -50,30 +50,39 @@
 #ifdef CONFIG_UNLEASHED_U54_HART_MASK
 #ifdef CONFIG_UNLEASHED_U54_HART1
 #define HART1			C(1)
+#define CPU0			C(0)
 #else
 #define HART1			0
+#define CPU0			0
 #endif
 #ifdef CONFIG_UNLEASHED_U54_HART2
 #define HART2			C(2)
+#define CPU1			C(1)
 #else
 #define HART2			0
+#define CPU1			0
 #endif
 #ifdef CONFIG_UNLEASHED_U54_HART3
 #define HART3			C(3)
+#define CPU2			C(2)
 #else
 #define HART3			0
+#define CPU2			0
 #endif
 #ifdef CONFIG_UNLEASHED_U54_HART4
 #define HART4			C(4)
+#define CPU3			C(3)
 #else
 #define HART4			0
+#define CPU3			0
 #endif
-#define CPU_ALL			(HART1 | HART2 | HART3 | HART4)
+#define CPU_ALL			(CPU0 | CPU1 | CPU2 | CPU3)
+#define HART_ALL		(HART1 | HART2 | HART3 | HART4)
 #else /* CONFIG_UNLEASHED_U54_HART_MASK */
-#define CPU_ALL			(C(1) | C(2) | C(3) | C(4))
+#define HART_ALL		(C(1) | C(2) | C(3) | C(4))
 #endif /* CONFIG_UNLEASHED_U54_HART_MASK */
 #ifdef CONFIG_SMP
-#define MAX_CPU_NUM		5 /* Including E51 */
+#define MAX_CPU_NUM		4 /* Excluding E51 */
 #else
 #define MAX_CPU_NUM		1
 #endif

@@ -66,7 +66,7 @@
 	.endm
 
 	.macro get_hartmask reg
-	li	\reg, CPU_ALL
+	li	\reg, HART_ALL
 	.endm
 
 	.macro get_hartid reg
@@ -142,6 +142,7 @@
 	.macro enable_abi
 	init_gpsptp
 	call	trap_init
+	fence	rw, rw
 	.endm
 
 	__HEAD
@@ -207,6 +208,7 @@ __abi_start_warm:
 ENDPROC(__start)
 
 ENTRY(__sbi_exit)
+	fence	rw, rw
 	init_gp
 	disable_exit_irq
 	init_fpu
