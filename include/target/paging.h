@@ -300,12 +300,18 @@ void create_pgd_mapping(pgd_t *pgdir, phys_addr_t phys,
 			caddr_t virt, phys_addr_t size,
 			pgprot_t prot, bool page_mapping_only);
 void paging_init(void);
+#ifdef CONFIG_SMP
+#define mmu_smp_init()				mmu_hw_ctrl_init()
+#endif
 #else /* CONFIG_MMU */
 #define __set_fixmap(idx, phys, prot)		do { } while (0)
 #define early_fixmap_init()			do { } while (0)
 #define create_pgd_mapping(pgdir, phys, virt, size, prot, mapping_only)	\
 	do { } while (0)
 #define paging_init()				do { } while (0)
+#ifdef CONFIG_SMP
+#define mmu_smp_init()				do { } while (0)
+#endif
 #endif /* CONFIG_MMU */
 #endif /* !__ASSEMBLY__ */
 

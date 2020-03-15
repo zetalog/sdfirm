@@ -79,7 +79,6 @@ __init static void sv_satp_switch(caddr_t map, const char *hint)
 	satp = PFN_DOWN(__pa(map)) | SATP_MODE;
 	printf("%s: %016llx\n", hint, satp);
 	csr_write(CSR_SATP, satp);
-	local_flush_tlb_all();
 }
 
 __init void bpgt_init(void)

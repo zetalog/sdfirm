@@ -48,6 +48,7 @@
 #include <target/percpu.h>
 #include <target/bench.h>
 #include <target/atomic.h>
+#include <target/paging.h>
 
 cpu_t smp_boot_cpu;
 cpu_mask_t smp_online_cpus;
@@ -66,6 +67,7 @@ void smp_init(void)
 	cpumask_set_cpu(cpu, &smp_online_cpus);
 	if (smp_processor_id() != smp_boot_cpu) {
 		irq_smp_init();
+		mmu_smp_init();
 		bh_init();
 		timer_init();
 		task_init();
