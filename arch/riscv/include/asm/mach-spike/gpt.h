@@ -42,7 +42,7 @@
 #ifndef __GPT_SPIKE_H_INCLUDE__
 #define __GPT_SPIKE_H_INCLUDE__
 
-#include <asm/clint.h>
+#include <asm/mach/clint.h>
 
 #define GPT_MAX_TIMEOUT	0xffffffff
 

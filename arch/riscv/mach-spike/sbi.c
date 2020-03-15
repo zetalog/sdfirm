@@ -62,24 +62,24 @@ static int spike_irqchip_init(bool cold_boot)
 	return 0;
 }
 
-void spike_ipi_send(u32 target_hart)
+void spike_ipi_send(u32 target_cpu)
 {
-	clint_set_ipi(target_hart);
+	clint_set_ipi(target_cpu);
 }
 
-void spike_ipi_sync(u32 target_hart)
+void spike_ipi_sync(u32 target_cpu)
 {
-	clint_sync_ipi(target_hart);
+	clint_sync_ipi(target_cpu);
 }
 
-void spike_ipi_clear(u32 target_hart)
+void spike_ipi_clear(u32 target_cpu)
 {
-	clint_clear_ipi(target_hart);
+	clint_clear_ipi(target_cpu);
 }
 
 static int spike_ipi_init(bool cold_boot)
 {
-	cpu_t cpu = sbi_current_hartid();
+	cpu_t cpu = sbi_processor_id();
 
 	if (!cold_boot)
 		spike_ipi_clear(cpu);
@@ -93,14 +93,14 @@ u64 spike_timer_value(void)
 
 void spike_timer_event_stop(void)
 {
-	__unused cpu_t cpu = sbi_current_hartid();
+	__unused cpu_t cpu = sbi_processor_id();
 
 	clint_unset_mtimecmp(cpu);
 }
 
 void spike_timer_event_start(u64 next_event)
 {
-	__unused cpu_t cpu = sbi_current_hartid();
+	__unused cpu_t cpu = sbi_processor_id();
 
 	clint_set_mtimecmp(cpu, next_event);
 }

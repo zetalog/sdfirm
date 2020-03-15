@@ -12,10 +12,11 @@
 
 static unsigned long ipi_data_off;
 
-static int sbi_ipi_send(struct sbi_scratch *scratch, u32 hartid, u32 event,
-			void *data)
+static int sbi_ipi_send(struct sbi_scratch *scratch, u32 cpu,
+			u32 event, void *data)
 {
 	int ret;
+	u32 hartid = smp_hw_cpu_hart(cpu);
 	struct sbi_scratch *remote_scratch = NULL;
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 	struct sbi_ipi_data *ipi_data;
@@ -39,9 +40,9 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, u32 hartid, u32 event,
 	}
 	atomic_or(_BV(event), &ipi_data->ipi_type);
 	mb();
-	sbi_platform_ipi_send(plat, hartid);
+	sbi_platform_ipi_send(plat, cpu);
 	if (event != SBI_IPI_EVENT_SOFT)
-		sbi_platform_ipi_sync(plat, hartid);
+		sbi_platform_ipi_sync(plat, cpu);
 
 done:
 	return 0;
@@ -63,13 +64,15 @@ int sbi_ipi_send_many(struct sbi_scratch *scratch, struct unpriv_trap *uptrap,
 	/* send IPIs to every other hart on the set */
 	for (i = 0, m = mask; m; i++, m >>= 1)
 		if ((m & 1UL) && (i != hartid))
-			sbi_ipi_send(scratch, i, event, data);
+			sbi_ipi_send(scratch, smp_hw_hart_cpu(i),
+				     event, data);
 
 	/* If the current hart is on the set, send an IPI
 	 * to it as well
 	 */
 	if (mask & (1UL << hartid))
-		sbi_ipi_send(scratch, hartid, event, data);
+		sbi_ipi_send(scratch, smp_hw_hart_cpu(hartid),
+			     event, data);
 	return 0;
 }
 
@@ -87,7 +90,7 @@ void sbi_ipi_process(struct sbi_scratch *scratch)
 			sbi_scratch_offset_ptr(scratch, ipi_data_off);
 
 	u32 hartid = sbi_current_hartid();
-	sbi_platform_ipi_clear(plat, hartid);
+	sbi_platform_ipi_clear(plat, smp_hw_hart_cpu(hartid));
 
 	do {
 		ipi_type = atomic_read(&ipi_data->ipi_type);

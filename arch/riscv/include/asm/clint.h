@@ -49,20 +49,29 @@
 #define CLINT_MTIMECMP(hart)	CLINT_REG(0x4000 + ((hart) << 3))
 #define CLINT_MTIME		CLINT_REG(0xBFF8)
 
-#define clint_set_ipi(cpu)	__raw_writel(1, CLINT_MSIP(cpu))
-#define clint_clear_ipi(cpu)	__raw_writel(0, CLINT_MSIP(cpu))
-
 #if !defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
 #ifdef CONFIG_CLINT
-void clint_sync_ipi(cpu_t cpu);
 void clint_set_mtimecmp(cpu_t cpu, uint64_t cmp);
 void clint_unset_mtimecmp(cpu_t cpu);
 uint64_t clint_read_mtime(void);
+#ifdef CONFIG_SBI
+#define clint_set_ipi(cpu)	\
+	__raw_writel(1, CLINT_MSIP(smp_hw_cpu_hart(cpu)))
+#define clint_clear_ipi(cpu)	\
+	__raw_writel(0, CLINT_MSIP(smp_hw_cpu_hart(cpu)))
+void clint_sync_ipi(cpu_t cpu);
 #else
+#define clint_set_ipi(cpu)		do { } while (0)
+#define clint_clear_ipi(cpu)		do { } while (0)
 #define clint_sync_ipi(cpu)		do { } while (0)
+#endif
+#else
 #define clint_set_mtimecmp(cpu, cmp)	do { } while (0)
 #define clint_unset_mtimecmp(cpu)	do { } while (0)
 #define clint_read_mtime()		0
+#define clint_set_ipi(cpu)		do { } while (0)
+#define clint_clear_ipi(cpu)		do { } while (0)
+#define clint_sync_ipi(cpu)		do { } while (0)
 #endif
 #endif
 

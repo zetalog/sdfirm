@@ -98,7 +98,7 @@ static int duowen_console_getc(void)
 
 static int duowen_irqchip_init(bool cold_boot)
 {
-	cpu_t cpu = sbi_current_hartid();
+	cpu_t cpu = sbi_processor_id();
 
 	if (cold_boot)
 		plic_sbi_init_cold();
@@ -107,24 +107,24 @@ static int duowen_irqchip_init(bool cold_boot)
 	return 0;
 }
 
-void duowen_ipi_send(u32 target_hart)
+void duowen_ipi_send(u32 target_cpu)
 {
-	clint_set_ipi(target_hart);
+	clint_set_ipi(target_cpu);
 }
 
-void duowen_ipi_sync(u32 target_hart)
+void duowen_ipi_sync(u32 target_cpu)
 {
-	clint_sync_ipi(target_hart);
+	clint_sync_ipi(target_cpu);
 }
 
-void duowen_ipi_clear(u32 target_hart)
+void duowen_ipi_clear(u32 target_cpu)
 {
-	clint_clear_ipi(target_hart);
+	clint_clear_ipi(target_cpu);
 }
 
 static int duowen_ipi_init(bool cold_boot)
 {
-	cpu_t cpu = sbi_current_hartid();
+	cpu_t cpu = sbi_processor_id();
 
 	if (!cold_boot)
 		duowen_ipi_clear(cpu);
@@ -138,14 +138,14 @@ u64 duowen_timer_value(void)
 
 void duowen_timer_event_stop(void)
 {
-	cpu_t cpu = sbi_current_hartid();
+	cpu_t cpu = sbi_processor_id();
 
 	clint_unset_mtimecmp(cpu);
 }
 
 void duowen_timer_event_start(u64 next_event)
 {
-	cpu_t cpu = sbi_current_hartid();
+	cpu_t cpu = sbi_processor_id();
 
 	clint_set_mtimecmp(cpu, next_event);
 }

@@ -42,17 +42,7 @@
 #ifndef __TSC_SPIKE_H_INCLUDE__
 #define __TSC_SPIKE_H_INCLUDE__
 
-/* CLINT:
- *   clint@2000000 {
- *     compatible = "riscv,clint0";
- *     interrupts-extended = <&CPU0_intc 3 &CPU0_intc 7 >;
- *     reg = <0x0 0x2000000 0x0 0xc0000>;
- *   };
- */
-#define CLINT_BASE		0x2000000
-#define CLINT_SIZE		0xC0000
-
-#include <asm/clint.h>
+#include <asm/mach/clint.h>
 #include <asm/counters.h>
 
 /* Default RTC frequency in DTS:

@@ -23,13 +23,26 @@
 struct sbi_scratch *sbi_scratches[MAX_HARTS];
 
 #ifdef CONFIG_CONSOLE_OUTPUT
+void __sbi_late_init(void)
+{
+	cpu_t hartid = sbi_current_hartid();
+	struct sbi_scratch *scratch = sbi_scratches[hartid];
+	caddr_t sp = (caddr_t)scratch + SBI_SCRATCH_SIZE;
+
+	sbi_printf("Current Hart           : %u\n", hartid);
+	sbi_printf("Current CPU            : %u\n", sbi_processor_id());
+	sbi_printf("Current Thread Pointer : 0x%016lx\n", scratch);
+	sbi_printf("Current Thread Stack   : 0x%016lx - 0x%016lx\n",
+		   sp - PERCPU_STACK_SIZE, sp);
+	sbi_printf("\n");
+}
+
 void sbi_late_init(void)
 {
 	char str[64];
 	cpu_t hartid = sbi_current_hartid();
 	struct sbi_scratch *scratch = sbi_scratches[hartid];
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
-	caddr_t sp = (caddr_t)scratch + SBI_SCRATCH_SIZE;
 
 #if 0
 	if (!(scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS))
@@ -48,11 +61,6 @@ void sbi_late_init(void)
 		   sbi_platform_name(plat));
 	sbi_printf("Platform HART Features : RV%d%s\n",
 		   misa_xlen(), str);
-	sbi_printf("Platform Max HARTs     : %d\n", NR_CPUS);
-	sbi_printf("Current Hart           : %u\n", hartid);
-	sbi_printf("Current Thread Pointer : 0x%016lx\n", scratch);
-	sbi_printf("Current Thread Stack   : 0x%016lx - 0x%016lx\n",
-		   sp - PERCPU_STACK_SIZE, sp);
 	/* Firmware details */
 	sbi_printf("Firmware Base          : 0x%lx\n",
 		   scratch->fw_start);
@@ -62,11 +70,15 @@ void sbi_late_init(void)
 	sbi_printf("Runtime SBI Version    : %d.%d\n",
 		   sbi_ecall_version_major(), sbi_ecall_version_minor());
 	sbi_printf("\n");
+	sbi_printf("Platform Max HARTs     : %d\n", MAX_HARTS);
+	sbi_printf("Firmware Max CPUs      : %d\n", NR_CPUS);
+	__sbi_late_init();
 
 	pmp_dump(0, NULL);
 }
 #else
-#define sbi_late_init()		do { } while (0)
+#define __sbi_late_init()		do { } while (0)
+#define sbi_late_init()			do { } while (0)
 #endif
 
 static void __noreturn init_coldboot(void)
@@ -144,9 +156,11 @@ static void __noreturn init_warmboot(void)
 	if (sbi_platform_has_hart_hotplug(plat))
 		/* TODO: To be implemented in-future. */
 		hart_hang();
-	else
+	else {
+		__sbi_late_init();
 		sbi_hart_switch_mode(hartid, scratch->next_arg1,
 				     scratch->next_addr, scratch->next_mode);
+	}
 }
 
 static atomic_t coldboot_lottery = ATOMIC_INIT(0);

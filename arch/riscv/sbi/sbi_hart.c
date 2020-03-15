@@ -304,7 +304,7 @@ void sbi_hart_wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
 {
 	unsigned long mipval;
 
-	if (hartid >= NR_CPUS ||
+	if (hartid >= MAX_HARTS ||
 	    (COLDBOOT_WAIT_BITMAP_SIZE <= hartid))
 		hart_hang();
 
@@ -331,11 +331,11 @@ void sbi_hart_wake_coldboot_harts(struct sbi_scratch *scratch, u32 hartid)
 {
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 
-	for (int i = 0; i < NR_CPUS; i++) {
+	for (int i = 0; i < MAX_HARTS; i++) {
 		/* send an IPI to every other hart */
 		spin_lock(&coldboot_wait_bitmap_lock);
 		if ((i != hartid) && (coldboot_wait_bitmap & (1UL << i)))
-			sbi_platform_ipi_send(plat, i);
+			sbi_platform_ipi_send(plat, smp_hw_hart_cpu(i));
 		spin_unlock(&coldboot_wait_bitmap_lock);
 	}
 }

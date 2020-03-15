@@ -63,12 +63,12 @@ struct sbi_platform_operations {
 	/** Initialize the platform interrupt controller for current HART */
 	int (*irqchip_init)(bool cold_boot);
 
-	/** Send IPI to a target HART */
-	void (*ipi_send)(u32 target_hart);
-	/** Wait for target HART to acknowledge IPI */
-	void (*ipi_sync)(u32 target_hart);
-	/** Clear IPI for a target HART */
-	void (*ipi_clear)(u32 target_hart);
+	/** Send IPI to a target SMP CPU */
+	void (*ipi_send)(u32 target_cpu);
+	/** Wait for target SMP CPU to acknowledge IPI */
+	void (*ipi_sync)(u32 target_cpu);
+	/** Clear IPI for a target SMP CPU */
+	void (*ipi_clear)(u32 target_cpu);
 	/** Initialize IPI for current HART */
 	int (*ipi_init)(bool cold_boot);
 
@@ -290,42 +290,42 @@ static inline int sbi_platform_irqchip_init(const struct sbi_platform *plat,
 }
 
 /**
- * Send IPI to a target HART
+ * Send IPI to a target CPU
  *
  * @param plat pointer to struct sbi_platform
- * @param target_hart HART ID of IPI target
+ * @param target_cpu SMP CPU ID of IPI target
  */
 static inline void sbi_platform_ipi_send(const struct sbi_platform *plat,
-					 u32 target_hart)
+					 u32 target_cpu)
 {
 	if (plat && sbi_platform_ops(plat)->ipi_send)
-		sbi_platform_ops(plat)->ipi_send(target_hart);
+		sbi_platform_ops(plat)->ipi_send(target_cpu);
 }
 
 /**
- * Wait for target HART to acknowledge IPI
+ * Wait for target CPU to acknowledge IPI
  *
  * @param plat pointer to struct sbi_platform
- * @param target_hart HART ID of IPI target
+ * @param target_cpu SMP CPU ID of IPI target
  */
 static inline void sbi_platform_ipi_sync(const struct sbi_platform *plat,
-					 u32 target_hart)
+					 u32 target_cpu)
 {
 	if (plat && sbi_platform_ops(plat)->ipi_sync)
-		sbi_platform_ops(plat)->ipi_sync(target_hart);
+		sbi_platform_ops(plat)->ipi_sync(target_cpu);
 }
 
 /**
- * Clear IPI for a target HART
+ * Clear IPI for a target CPU
  *
  * @param plat pointer to struct sbi_platform
- * @param target_hart HART ID of IPI target
+ * @param target_hart SMP CPU ID of IPI target
  */
 static inline void sbi_platform_ipi_clear(const struct sbi_platform *plat,
-					  u32 target_hart)
+					  u32 target_cpu)
 {
 	if (plat && sbi_platform_ops(plat)->ipi_clear)
-		sbi_platform_ops(plat)->ipi_clear(target_hart);
+		sbi_platform_ops(plat)->ipi_clear(target_cpu);
 }
 
 /**

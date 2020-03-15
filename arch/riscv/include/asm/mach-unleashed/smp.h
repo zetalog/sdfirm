@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2019
+ * Copyright (c) 2020
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,58 +35,20 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)smp.h: RISCV specific symmetric multi-processing interfaces
- * $Id: smp.h,v 1.1 2019-08-14 14:01:00 zhenglv Exp $
+ * @(#)smp.h: SiFive unleashed specific SMP id <-> HART id conversion
+ * $Id: smp.h,v 1.1 2020-03-15 12:10:00 zhenglv Exp $
  */
 
-#ifndef __RISCV_SMP_H_INCLUDE__
-#define __RISCV_SMP_H_INCLUDE__
+#ifndef __SMP_UNLEASHED_H_INCLUDE__
+#define __SMP_UNLEASHED_H_INCLUDE__
 
-#ifdef CONFIG_ARCH_HAS_SMP
-#include <asm/mach/smp.h>
+#ifdef CONFIG_UNLEASHED_E51
+#define smp_hw_cpu_hart(cpu)		0
+#define smp_hw_hart_cpu(hart)		0
+#endif
+#ifdef CONFIG_UNLEASHED_U54
+#define smp_hw_cpu_hart(cpu)		((cpu) + 1)
+#define smp_hw_hart_cpu(hart)		((hart) - 1)
 #endif
 
-#ifdef CONFIG_SMP
-#ifndef __ASSEMBLY__
-static inline uint8_t sbi_processor_id(void)
-{
-	unsigned int t;
-
-	asm volatile ("add	%0, sp, zero\n" : "=r" (t));
-	t -= (SBI_PERCPU_STACKS_START + 1);
-	return smp_hw_hart_cpu((uint8_t)(t >> PERCPU_STACK_SHIFT));
-}
-
-static inline uint8_t abi_processor_id(void)
-{
-	unsigned int t;
-
-	asm volatile ("add	%0, sp, zero\n" : "=r" (t));
-	t -= (ABI_PERCPU_STACKS_START + 1);
-	return (uint8_t)(t >> PERCPU_STACK_SHIFT);
-}
-
-static inline uintptr_t __smp_processor_stack_top(void)
-{
-	uintptr_t t;
-
-	asm volatile ("add	%0, sp, zero\n" : "=r" (t));
-	return ALIGN(t, PERCPU_STACK_SIZE);
-}
-
-cpu_t smp_hw_cpu_id(void);
-void smp_hw_cpu_boot(void);
-void smp_hw_cpu_on(cpu_t cpu, caddr_t ep);
-#endif /* __ASSEMBLY__ */
-#ifdef CONFIG_RISCV_EXIT_M
-#define __smp_processor_id()	sbi_processor_id()
-#endif
-#ifdef CONFIG_RISCV_EXIT_S
-#define __smp_processor_id()	abi_processor_id()
-#endif
-#else /* CONFIG_SMP */
-#define sbi_processor_id()	0
-#define abi_processor_id()	0
-#endif /* CONFIG_SMP */
-
-#endif /* __RISCV_SMP_H_INCLUDE__ */
+#endif /* __SMP_UNLEASHED_H_INCLUDE__ */

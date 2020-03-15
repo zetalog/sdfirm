@@ -35,13 +35,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)clint.c: SiFive core local interruptor (CLINT) implementation
+ * @(#)clint.c: Core local interruptor (CLINT) implementation
  * $Id: clint.c,v 1.1 2019-09-05 18:04:00 zhenglv Exp $
  */
 
 #include <target/tsc.h>
 #include <target/bitops.h>
 #include <target/irq.h>
+#include <target/smp.h>
 
 #if __riscv_xlen == 64
 uint64_t clint_read_mtime(void)
@@ -51,12 +52,12 @@ uint64_t clint_read_mtime(void)
 
 void clint_set_mtimecmp(cpu_t cpu, uint64_t cmp)
 {
-	__raw_writeq(cmp, CLINT_MTIMECMP(cpu));
+	__raw_writeq(cmp, CLINT_MTIMECMP(smp_hw_cpu_hart(cpu)));
 }
 
 void clint_unset_mtimecmp(cpu_t cpu)
 {
-	__raw_writeq(ULL(-1), CLINT_MTIMECMP(cpu));
+	__raw_writeq(ULL(-1), CLINT_MTIMECMP(smp_hw_cpu_hart(cpu)));
 }
 #else
 uint64_t clint_read_mtime(void)
@@ -74,19 +75,20 @@ uint64_t clint_read_mtime(void)
 
 void clint_set_mtimecmp(cpu_t cpu, uint64_t cmp)
 {
-	__raw_writel(LODWORD(cmp), CLINT_MTIMECMP(cpu));
-	__raw_writel(HIDWORD(cmp), CLINT_MTIMECMP(cpu) + 4);
+	__raw_writel(LODWORD(cmp), CLINT_MTIMECMP(smp_hw_cpu_hart(cpu)));
+	__raw_writel(HIDWORD(cmp), CLINT_MTIMECMP(smp_hw_cpu_hart(cpu)) + 4);
 }
 
 void clint_unset_mtimecmp(cpu_t cpu)
 {
-	__raw_writel(UL(-1), CLINT_MTIMECMP(cpu));
-	__raw_writel(UL(-1), CLINT_MTIMECMP(cpu) + 4);
+	__raw_writel(UL(-1), CLINT_MTIMECMP(smp_hw_cpu_hart(cpu)));
+	__raw_writel(UL(-1), CLINT_MTIMECMP(smp_hw_cpu_hart(cpu)) + 4);
 }
 #endif
 
+#ifdef CONFIG_SBI
 #ifdef CONFIG_RISCV_ATOMIC
-uint32_t clint_xchg(volatile uint32_t *ptr, uint32_t newval)
+static uint32_t clint_xchg(volatile uint32_t *ptr, uint32_t newval)
 {
 	/* The name of GCC built-in macro __sync_lock_test_and_set()
 	 * is misleading. A more appropriate name for GCC built-in
@@ -95,7 +97,7 @@ uint32_t clint_xchg(volatile uint32_t *ptr, uint32_t newval)
 	return __sync_lock_test_and_set(ptr, newval);
 }
 #else
-uint32_t clint_xchg(volatile uint32_t *ptr, uint32_t newval)
+static uint32_t clint_xchg(volatile uint32_t *ptr, uint32_t newval)
 {
 	uint32_t ret;
 	register uint32_t rc;
@@ -114,16 +116,18 @@ uint32_t clint_xchg(volatile uint32_t *ptr, uint32_t newval)
 void clint_sync_ipi(cpu_t cpu)
 {
 	uint32_t ipi, incoming_ipi;
-	cpu_t src_cpu = smp_processor_id();
+	cpu_t src_cpu = sbi_processor_id();
 
 	incoming_ipi = 0;
 	while (1) {
-		ipi = __raw_readl(CLINT_MSIP(cpu));
+		ipi = __raw_readl(CLINT_MSIP(smp_hw_cpu_hart(cpu)));
 		if (!ipi)
 			break;
-		incoming_ipi |= clint_xchg(
-			(uint32_t *)(caddr_t)CLINT_MSIP(cpu), 0);
+		incoming_ipi |= clint_xchg((uint32_t *)(caddr_t)
+			CLINT_MSIP(smp_hw_cpu_hart(cpu)), 0);
 	}
 	if (incoming_ipi)
-		__raw_writel(incoming_ipi, CLINT_MSIP(src_cpu));
+		__raw_writel(incoming_ipi,
+			CLINT_MSIP(smp_hw_cpu_hart(src_cpu)));
 }
+#endif

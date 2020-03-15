@@ -117,7 +117,7 @@ SECTIONS
 
 	. += PERCPU_STACKS_SIZE;
 #ifdef CONFIG_SBI
-	. += PERCPU_STACKS_SIZE;
+	. += SBI_PERCPU_STACKS_SIZE;
 #endif
 	__end = .;				/* end of sdfirm */
 	_end = .;				/* end of sdfirm */
