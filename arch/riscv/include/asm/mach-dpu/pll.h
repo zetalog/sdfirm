@@ -111,10 +111,10 @@
 #define PLL_GMUX_CFG(pll)		PLL_REG(pll, 0x0C)
 
 /* PLL_GMUX_CFG */
+#define PLL_GMUX_EN_R			_BV(3)
+#define PLL_GMUX_SEL_R			_BV(2)
 #define PLL_GMUX_EN_P			_BV(1)
 #define PLL_GMUX_SEL_P			_BV(0)
-#define PLL_GMUX_EN_R			_BV(1)
-#define PLL_GMUX_SEL_R			_BV(0)
 #define DPU_GMUX_SEL(r)			((r) ? PLL_GMUX_SEL_R : PLL_GMUX_SEL_P)
 #define DPU_GMUX_EN(r)			((r) ? PLL_GMUX_EN_R : PLL_GMUX_EN_P)
 

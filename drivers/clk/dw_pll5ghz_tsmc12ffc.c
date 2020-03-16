@@ -120,20 +120,24 @@ void __dw_pll5ghz_tsmc12ffc_enable(uint8_t pll, uint64_t fvco,
 				   uint64_t div, uint32_t divcov32)
 {
 	uint32_t en = r ? PLL_ENR : PLL_ENP;
+	uint32_t mask = r ? PLL_ENR | PLL_R(PLL_R_MASK) |
+			    PLL_DIVVCOR(PLL_DIVVCOR_MASK) :
+			    PLL_ENP | PLL_P(PLL_P_MASK) |
+			    PLL_DIVVCOP(PLL_DIVVCOP_MASK);
 	uint32_t divcov10 = 0;
 	uint32_t pr;
 
 	fvco = div64u(fvco, div);
 	do {
-		pr = div64u(fvco, freq);
+		pr = (uint32_t)div64u(fvco, freq);
 		if (pr <= 64)
 			break;
 		next_div(fvco, divcov32, divcov10, div);
 	} while (1);
-	__raw_clearl(en, DW_PLL_CFG1(pll));
+	__raw_writel_mask(0, mask, DW_PLL_CFG1(pll));
 	en |= r ? PLL_DIVVCOR(divcov32 << 2 | divcov10) | PLL_R(pr - 1) :
 		  PLL_DIVVCOP(divcov32 << 2 | divcov10) | PLL_P(pr - 1);
-	__raw_setl(en, DW_PLL_CFG1(pll));
+	__raw_writel_mask(en, mask, DW_PLL_CFG1(pll));
 }
 
 void dw_pll5ghz_tsmc12ffc_enable_sync(uint8_t pll, uint64_t fvco,
@@ -144,10 +148,10 @@ void dw_pll5ghz_tsmc12ffc_enable_sync(uint8_t pll, uint64_t fvco,
 
 	BUG_ON(freq > ULL(1000000000));
 
-	if (fvco < ULL(2000000000)) {
+	if (fvco <= ULL(2000000000)) {
 		divcov32 = 0;
 		div = 2;
-	} else if (fvco < ULL(4000000000)) {
+	} else if (fvco <= ULL(4000000000)) {
 		divcov32 = 2;
 		div = 4;
 	} else {
@@ -356,9 +360,9 @@ static int do_pll_reg_access(int argc, char * argv[])
 		printf("PLL %d is not in PWRON state.\n", pll);
 		return -EINVAL;
 	}
-	reg = strtoul(argv[3], NULL, 0);
+	reg = (uint8_t)strtoul(argv[3], NULL, 0);
 	if (argc > 4) {
-		val = strtoul(argv[4], NULL, 0);
+		val = (uint8_t)strtoul(argv[4], NULL, 0);
 		dw_pll_write(pll, reg, val);
 		printf("done.\n");
 	} else {

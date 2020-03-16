@@ -24,6 +24,7 @@ void dpu_pll_soft_reset(uint8_t comp)
 {
 	uint32_t srst = PLL_SRST(comp);
 
+#ifdef CONFIG_DPU_PLL_FORCE_RESET
 	if (__raw_readl(PLL_SOFT_RST(comp)) & srst) {
 		__raw_clearl(srst, PLL_SOFT_RST(comp));
 		/* XXX: How long should we wait?
@@ -38,6 +39,7 @@ void dpu_pll_soft_reset(uint8_t comp)
 		 * the register bit dedicated to the single IP.
 		 */
 	}
+#endif
 	__raw_setl(srst, PLL_SOFT_RST(comp));
 	while (!(__raw_readl(PLL_SOFT_RST(comp)) & srst));
 }

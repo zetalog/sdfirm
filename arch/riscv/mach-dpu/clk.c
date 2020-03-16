@@ -257,7 +257,7 @@ static const char *get_reset_clk_name(clk_clk_t clk)
 
 static int enable_reset_clk(clk_clk_t clk)
 {
-	if (clk >= NR_RESET_CLKS || !(_BV(clk) & CLK_RST_MAP))
+	if (clk >= NR_RESET_CLKS || !(_BV_ULL(clk) & CLK_RST_MAP))
 		return -EINVAL;
 	if (!(reset_clks[clk].flags & CLK_SRST_F))
 		return -EINVAL;
@@ -271,7 +271,7 @@ static int enable_reset_clk(clk_clk_t clk)
 
 static void disable_reset_clk(clk_clk_t clk)
 {
-	if (clk >= NR_RESET_CLKS || !(_BV(clk) & CLK_RST_MAP))
+	if (clk >= NR_RESET_CLKS || !(_BV_ULL(clk) & CLK_RST_MAP))
 		return;
 	if (!(reset_clks[clk].flags & CLK_SRST_F))
 		return;
@@ -284,7 +284,7 @@ static void disable_reset_clk(clk_clk_t clk)
 
 static clk_freq_t get_reset_clk_freq(clk_clk_t clk)
 {
-	if (clk >= NR_RESET_CLKS || !(_BV(clk) & CLK_RST_MAP))
+	if (clk >= NR_RESET_CLKS || !(_BV_ULL(clk) & CLK_RST_MAP))
 		return INVALID_FREQ;
 	return clk_get_frequency(reset_clks[clk].clk_src);
 }
