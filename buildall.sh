@@ -44,7 +44,8 @@ build_sdfirm riscv32 duowen_fsbl
 build_sdfirm riscv64 duowen_bbl
 build_sdfirm riscv64 duowen_sv39
 build_sdfirm riscv64 duowen_sv48
-build_sdfirm riscv64 dpu_fsbl
+build_sdfirm riscv64 dpu_rom
+build_sdfirm riscv64 dpu_flash
 # disabled due to bin2vhx.pl bug
 #build_sdfirm riscv32 vega_ri5cy
 
