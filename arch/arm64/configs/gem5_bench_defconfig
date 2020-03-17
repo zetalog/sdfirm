@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Feb 17 21:51:20 2020
+# Tue Mar 17 09:12:22 2020
 #
 CONFIG_ARM64=y
 
@@ -9,7 +9,7 @@ CONFIG_ARM64=y
 # Generic setup
 #
 CONFIG_VENDOR_NAME="SmartCore"
-CONFIG_PRODUCT_NAME="SmartCore TestBench"
+CONFIG_PRODUCT_NAME="SmarCo GEM5 CPU Bench"
 CONFIG_VENDOR_ID=990
 CONFIG_PRODUCT_ID=0
 CONFIG_SERIAL_NO=0
@@ -23,7 +23,8 @@ CONFIG_FIRMWARE=y
 # CONFIG_GEM5 is not set
 # CONFIG_RIS is not set
 CONFIG_COMMAND=y
-# CONFIG_COMMAND_BATCH is not set
+CONFIG_COMMAND_BATCH=y
+CONFIG_COMMAND_BATCH_COMMAND="bench sync all dhrystone 1000 2000 1"
 CONFIG_CONSOLE=y
 CONFIG_CONSOLE_COMMAND=y
 CONFIG_CONSOLE_OUTPUT=y
@@ -38,7 +39,7 @@ CONFIG_CONSOLE_115200=y
 # CONFIG_CONSOLE_9600 is not set
 # CONFIG_CONSOLE_4800 is not set
 # CONFIG_CONSOLE_2400 is not set
-CONFIG_CONSOLE_DEBUG=y
+# CONFIG_CONSOLE_DEBUG is not set
 
 #
 # ARM64 system options
@@ -134,7 +135,7 @@ CONFIG_GEM5_RAM_BITS=20
 # CPU settings
 #
 CONFIG_GEM5_SMP=y
-CONFIG_GEM5_MAX_CPUS=2
+CONFIG_GEM5_MAX_CPUS=4
 CONFIG_GEM5_MAX_CLUSTERS=1
 CONFIG_GEM5_MAX_RAILS=1
 
@@ -169,7 +170,7 @@ CONFIG_ARCH_HAS_BOOT_LOAD=y
 #
 # Scheduling facility (irq) support
 #
-CONFIG_MAX_VECTORS=4
+CONFIG_MAX_VECTORS=8
 
 #
 # Scheduling facility (bh) support
@@ -228,7 +229,15 @@ CONFIG_MMU_IDMAP=y
 # CONFIG_MMU_IDMAP_DEVICE is not set
 CONFIG_MMU_MAP_MEM=y
 CONFIG_MMU_TEXT_MODIFY=y
-# CONFIG_MMU_DEBUG_TABLE is not set
+# CONFIG_MMU_NO_EARLY_TABLE_ZEROING is not set
+
+#
+# Power management model (board) support
+#
+# CONFIG_SHUTDOWN is not set
+# CONFIG_REBOOT is not set
+# CONFIG_SUSPEND is not set
+# CONFIG_HIBERNATE is not set
 CONFIG_IDLE=y
 # CONFIG_BULK is not set
 # CONFIG_TERM is not set
@@ -257,6 +266,7 @@ CONFIG_UART_230400=y
 # CONFIG_UART is not set
 # CONFIG_SPI is not set
 # CONFIG_I2C is not set
+# CONFIG_DMA is not set
 # CONFIG_USB is not set
 # CONFIG_SCS is not set
 # CONFIG_MTD is not set
@@ -264,10 +274,16 @@ CONFIG_UART_230400=y
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
 # CONFIG_DDR is not set
+# CONFIG_PCI is not set
+# CONFIG_IOMMU is not set
 # CONFIG_RAS is not set
 
 #
 # Driver setup
+#
+
+#
+# Clock drivers
 #
 
 #
@@ -307,8 +323,13 @@ CONFIG_UART_230400=y
 # CONFIG_DW_UMCTL2 is not set
 
 #
-# Clock drivers
+# PCI drivers
 #
+
+#
+# IO MMU drivers
+#
+# CONFIG_SMMU_MMU500 is not set
 
 #
 # I2C host drivers
@@ -321,12 +342,18 @@ CONFIG_UART_230400=y
 # CONFIG_DW_I2CS is not set
 
 #
+# SPI Master drivers
+#
+# CONFIG_DW_SPI is not set
+
+#
 # DMA host drivers
 #
 # CONFIG_DW_DMA is not set
 CONFIG_TEST_BENCH=y
 CONFIG_TEST_BENCH_LOCAL=y
 # CONFIG_TEST_BENCH_REMOTE is not set
+CONFIG_TEST_BENCH_DIDT=y
 CONFIG_TEST_VERBOSE=y
 
 #
@@ -338,15 +365,16 @@ CONFIG_DHRYSTONE_REPEATS=5000
 CONFIG_DHRYSTONE_BENCH_PERCPU=y
 # CONFIG_DHRYSTONE_GENERIC_PERCPU is not set
 # CONFIG_DHRYSTONE_SPECIFIC_PERCPU is not set
-CONFIG_RAVEN=y
-CONFIG_RAVEN_GLOBAL_VAR=y
-# CONFIG_RAVEN_EXEC_VAR is not set
-# CONFIG_RAVEN_PERCPU_VAR is not set
-CONFIG_RAVEN_IU=y
-# CONFIG_RAVEN_XU is not set
-CONFIG_RAVEN_SU=y
-CONFIG_RAVEN_SU_SYNC=y
-CONFIG_RAVEN_L2_SYNC=y
+# CONFIG_HANOITOWER is not set
+# CONFIG_MEMSTREAM is not set
+# CONFIG_SHA256 is not set
+# CONFIG_MD5 is not set
+# CONFIG_TLB_TEST is not set
+# CONFIG_COREMARK is not set
+# CONFIG_C_FFT is not set
+# CONFIG_JPGENC is not set
+# CONFIG_GENANN is not set
+# CONFIG_RAVEN is not set
 
 #
 # Library setup
@@ -385,6 +413,7 @@ CONFIG_MATH_MOD64=y
 #
 # CONFIG_CRC16_CCITT is not set
 # CONFIG_CRC32 is not set
+# CONFIG_MATH_TAYLOR is not set
 CONFIG_STDLIB=y
 
 #
@@ -402,6 +431,11 @@ CONFIG_PRINT_PRINTF=y
 CONFIG_STRING_STRNCMP=y
 CONFIG_STRING_STRTOUL=y
 # CONFIG_STRING_UUID is not set
+
+#
+# Time opeartions
+#
+CONFIG_TIME_CLOCK=y
 
 #
 # Cryptographic algorithms

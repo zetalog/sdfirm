@@ -30,10 +30,12 @@ build_sdfirm()
 
 build_sdfirm arm64 qdf2400_imc
 build_sdfirm arm64 gem5_boot
-#build_sdfirm arm64 gem5_firm
-build_sdfirm arm64 gem5_raven
+# disabled due to external GEM5 requirement
+#build_sdfirm arm64 gem5_slice
+build_sdfirm arm64 gem5_bench
 build_sdfirm arm64 cortexa53_tb
 build_sdfirm arm64 ddr_umctl2_tb
+# disabled due to spl size limitation
 #build_sdfirm arm64 nanopi_neo2_spl
 
 build_sdfirm riscv32 spike_rv32
