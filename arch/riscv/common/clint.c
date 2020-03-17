@@ -87,7 +87,7 @@ void clint_unset_mtimecmp(cpu_t cpu)
 #endif
 
 #ifdef CONFIG_SBI
-#ifdef CONFIG_RISCV_ATOMIC
+#ifdef CONFIG_RISCV_A
 static uint32_t clint_xchg(volatile uint32_t *ptr, uint32_t newval)
 {
 	/* The name of GCC built-in macro __sync_lock_test_and_set()
