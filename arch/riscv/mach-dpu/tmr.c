@@ -54,13 +54,7 @@ uint64_t tmr_read_counter(void)
 	return MAKELLONG(lo, hi1);
 }
 
-static void __tmr_enable_clock(void)
-{
-	board_init_clock();
-}
-
 void tmr_ctrl_init(void)
 {
-	__tmr_enable_clock();
 	__raw_setl(TMR_EN, TMR_CNT_CTRL);
 }
