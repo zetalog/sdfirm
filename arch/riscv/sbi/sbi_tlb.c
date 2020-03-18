@@ -11,8 +11,8 @@
 #include <target/sbi.h>
 #include <target/paging.h>
 
-static unsigned long ipi_tlb_fifo_off;
-static unsigned long ipi_tlb_fifo_mem_off;
+static unsigned long ipi_tlb_fifo_off[MAX_HARTS];
+static unsigned long ipi_tlb_fifo_mem_off[MAX_HARTS];
 
 static inline int __sbi_tlb_fifo_range_check(struct sbi_tlb_info *curr,
 					     struct sbi_tlb_info *next)
@@ -77,14 +77,14 @@ static int sbi_tlb_fifo_update_cb(void *in, void *data)
 	return ret;
 }
 
-int sbi_tlb_fifo_update(struct sbi_scratch *scratch, u32 event, void *data)
+int sbi_tlb_fifo_update(struct sbi_scratch *scratch, u32 event, void *data, u32 hartid)
 {
 	int ret;
 	struct sbi_fifo *ipi_tlb_fifo;
 	struct sbi_tlb_info *tinfo = data;
 
 	ipi_tlb_fifo = sbi_scratch_offset_ptr(scratch,
-					      ipi_tlb_fifo_off);
+					      ipi_tlb_fifo_off[hartid]);
 	/*
 	 * If address range to flush is too big then simply
 	 * upgrade it to flush all because we can only flush
@@ -171,9 +171,10 @@ static void sbi_tlb_fifo_sfence_vma_asid(struct sbi_tlb_info *tinfo)
 
 void sbi_tlb_fifo_process(struct sbi_scratch *scratch, u32 event)
 {
+	u32 hartid = sbi_current_hartid();
 	struct sbi_tlb_info tinfo;
 	struct sbi_fifo *ipi_tlb_fifo =
-			sbi_scratch_offset_ptr(scratch, ipi_tlb_fifo_off);
+			sbi_scratch_offset_ptr(scratch, ipi_tlb_fifo_off[hartid]);
 
 	while (!sbi_fifo_dequeue(ipi_tlb_fifo, &tinfo)) {
 		if (tinfo.type == SBI_TLB_FLUSH_VMA)
@@ -186,29 +187,41 @@ void sbi_tlb_fifo_process(struct sbi_scratch *scratch, u32 event)
 
 int sbi_tlb_fifo_init(struct sbi_scratch *scratch, bool cold_boot)
 {
+	u32 hartid = sbi_current_hartid();
 	void *ipi_tlb_mem;
 	struct sbi_fifo *ipi_tlb_q;
 
 	if (cold_boot) {
-		ipi_tlb_fifo_off = sbi_scratch_alloc_offset(sizeof(*ipi_tlb_q),
+		ipi_tlb_fifo_off[hartid] = sbi_scratch_alloc_offset(sizeof(*ipi_tlb_q),
 							    "IPI_TLB_FIFO");
-		if (!ipi_tlb_fifo_off)
+		if (!ipi_tlb_fifo_off[hartid])
 			return -ENOMEM;
-		ipi_tlb_fifo_mem_off = sbi_scratch_alloc_offset(
+		ipi_tlb_fifo_mem_off[hartid] = sbi_scratch_alloc_offset(
 				SBI_TLB_FIFO_NUM_ENTRIES * SBI_TLB_INFO_SIZE,
 				"IPI_TLB_FIFO_MEM");
-		if (!ipi_tlb_fifo_mem_off) {
-			sbi_scratch_free_offset(ipi_tlb_fifo_off);
+		if (!ipi_tlb_fifo_mem_off[hartid]) {
+			sbi_scratch_free_offset(ipi_tlb_fifo_off[hartid]);
 			return -ENOMEM;
 		}
 	} else {
-		if (!ipi_tlb_fifo_off ||
-		    !ipi_tlb_fifo_mem_off)
+		ipi_tlb_fifo_off[hartid] = sbi_scratch_alloc_offset(sizeof(*ipi_tlb_q),
+							    "IPI_TLB_FIFO");
+		if (!ipi_tlb_fifo_off[hartid])
+			return -ENOMEM;
+		ipi_tlb_fifo_mem_off[hartid] = sbi_scratch_alloc_offset(
+				SBI_TLB_FIFO_NUM_ENTRIES * SBI_TLB_INFO_SIZE,
+				"IPI_TLB_FIFO_MEM");
+		if (!ipi_tlb_fifo_mem_off[hartid]) {
+			sbi_scratch_free_offset(ipi_tlb_fifo_off[hartid]);
+			return -ENOMEM;
+		}
+		if (!ipi_tlb_fifo_off[hartid] ||
+		    !ipi_tlb_fifo_mem_off[hartid])
 			return -ENOMEM;
 	}
 
-	ipi_tlb_q = sbi_scratch_offset_ptr(scratch, ipi_tlb_fifo_off);
-	ipi_tlb_mem = sbi_scratch_offset_ptr(scratch, ipi_tlb_fifo_mem_off);
+	ipi_tlb_q = sbi_scratch_offset_ptr(scratch, ipi_tlb_fifo_off[hartid]);
+	ipi_tlb_mem = sbi_scratch_offset_ptr(scratch, ipi_tlb_fifo_mem_off[hartid]);
 
 	sbi_fifo_init(ipi_tlb_q, ipi_tlb_mem,
 		      SBI_TLB_FIFO_NUM_ENTRIES, SBI_TLB_INFO_SIZE);

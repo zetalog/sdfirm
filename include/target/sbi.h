@@ -20,7 +20,7 @@
 #define ETRAP		-256
 
 /* Maximum size of sbi_scratch and sbi_ipi_data */
-#define SBI_SCRATCH_SIZE			(64 * __SIZEOF_POINTER__)
+#define SBI_SCRATCH_SIZE			(128 * __SIZEOF_POINTER__)
 
 #define SBI_IPI_EVENT_SOFT			0x1
 #define SBI_IPI_EVENT_FENCE_I			0x2
@@ -248,7 +248,7 @@ int sbi_fifo_inplace_update(struct sbi_fifo *fifo, void *in,
 			    int (*fptr)(void *in, void *data));
 u16 sbi_fifo_avail(struct sbi_fifo *fifo);
 
-int sbi_tlb_fifo_update(struct sbi_scratch *scratch, u32 event, void *data);
+int sbi_tlb_fifo_update(struct sbi_scratch *scratch, u32 event, void *data, u32 hartid);
 void sbi_tlb_fifo_process(struct sbi_scratch *scratch, u32 event);
 int sbi_tlb_fifo_init(struct sbi_scratch *scratch, bool cold_boot);
 

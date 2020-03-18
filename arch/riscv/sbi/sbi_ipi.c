@@ -8,9 +8,10 @@
  *   Nick Kossifidis <mick@ics.forth.gr>
  */
 
+#include <target/barrier.h>
 #include <target/sbi.h>
 
-static unsigned long ipi_data_off;
+static unsigned long ipi_data_off[MAX_HARTS];
 
 static int sbi_ipi_send(struct sbi_scratch *scratch, u32 cpu,
 			u32 event, void *data)
@@ -29,10 +30,10 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, u32 cpu,
 	 * trigger the interrupt
 	 */
 	remote_scratch = sbi_hart_id_to_scratch(scratch, hartid);
-	ipi_data = sbi_scratch_offset_ptr(remote_scratch, ipi_data_off);
+	ipi_data = sbi_scratch_offset_ptr(remote_scratch, ipi_data_off[hartid]);
 	if (event == SBI_IPI_EVENT_SFENCE_VMA ||
 	    event == SBI_IPI_EVENT_SFENCE_VMA_ASID) {
-		ret = sbi_tlb_fifo_update(remote_scratch, event, data);
+		ret = sbi_tlb_fifo_update(remote_scratch, event, data, hartid);
 		if (ret > 0)
 			goto done;
 		else if (ret < 0)
@@ -83,13 +84,13 @@ void sbi_ipi_clear_smode(struct sbi_scratch *scratch)
 
 void sbi_ipi_process(struct sbi_scratch *scratch)
 {
+	u32 hartid = sbi_current_hartid();
 	volatile atomic_count_t ipi_type;
 	unsigned int ipi_event;
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 	struct sbi_ipi_data *ipi_data =
-			sbi_scratch_offset_ptr(scratch, ipi_data_off);
+			sbi_scratch_offset_ptr(scratch, ipi_data_off[hartid]);
 
-	u32 hartid = sbi_current_hartid();
 	sbi_platform_ipi_clear(plat, smp_hw_hart_cpu(hartid));
 
 	do {
@@ -120,18 +121,23 @@ int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
 {
 	int ret;
 	struct sbi_ipi_data *ipi_data;
+	cpu_t hartid = sbi_current_hartid();
 
 	if (cold_boot) {
-		ipi_data_off = sbi_scratch_alloc_offset(sizeof(*ipi_data),
+		ipi_data_off[hartid] = sbi_scratch_alloc_offset(sizeof(*ipi_data),
 							"IPI_DATA");
-		if (!ipi_data_off)
+		if (!ipi_data_off[hartid]) {
 			return -ENOMEM;
+		}
 	} else {
-		if (!ipi_data_off)
+		ipi_data_off[hartid] = sbi_scratch_alloc_offset(sizeof(*ipi_data),
+							"IPI_DATA");
+		if (!ipi_data_off[hartid]) {
 			return -ENOMEM;
+		}
 	}
 
-	ipi_data = sbi_scratch_offset_ptr(scratch, ipi_data_off);
+	ipi_data = sbi_scratch_offset_ptr(scratch, ipi_data_off[hartid]);
 	INIT_ATOMIC(&ipi_data->ipi_type, 0);
 
 	ret = sbi_tlb_fifo_init(scratch, cold_boot);
