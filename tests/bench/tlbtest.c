@@ -22,19 +22,20 @@ void main (int argc, char *argv[])
 int tlbtest(caddr_t percpu_area)
 #endif
 {
-	unsigned char test_buf_1[BUF_SIZE] = {0};
-	unsigned char test_buf_2[BUF_SIZE] = {0};
+	unsigned char test_buf_1[BUF_SIZE];
+	__unused unsigned char test_buf_2[BUF_SIZE];
+	int i;
 
-	tlbtest_ctx[smp_processor_id()].ptr = (struct tlbtest_context *)percpu_area;
+	tlbtest_ctx[smp_processor_id()].ptr =
+		(struct tlbtest_context *)percpu_area;
 
-	for (int i = 0; i < BUF_SIZE; i+= 17) {
+	for (i = 0; i < BUF_SIZE; i+= 17)
 		test_buf_1[i] = i;
-	}
-	flush_tlb_range_kern((caddr_t)test_buf_1, (caddr_t)(test_buf_1+BUF_SIZE));
+	flush_tlb_range_kern((caddr_t)test_buf_1,
+		(caddr_t)(test_buf_1+BUF_SIZE));
 
-	for (int i = 0; i < BUF_SIZE; i+= 13) {
+	for (i = 0; i < BUF_SIZE; i+= 13)
 		test_buf_2[i] = i;
-	}
 	flush_tlb_all();
 
 	tlbtest_ctx[smp_processor_id()].ptr->result = 1;
