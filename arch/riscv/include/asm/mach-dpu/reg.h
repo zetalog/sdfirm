@@ -112,7 +112,7 @@
 
 /* LOVEC */
 #ifdef CONFIG_ARCH_HAS_LOVEC
-#define VEC_BASE		ROM_BASE
+#define VEC_BASE		BOOTROM_BASE
 #endif
 
 #endif /* __REG_DPU_H_INCLUDE__ */

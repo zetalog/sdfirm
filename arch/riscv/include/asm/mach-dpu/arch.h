@@ -42,6 +42,10 @@
 #ifndef __ARCH_DPU_H_INCLUDE__
 #define __ARCH_DPU_H_INCLUDE__
 
+#ifdef CONFIG_ARCH_HAS_LOVEC
+#define __VEC			__LOVEC
+#endif
+
 #include <asm/mach/tcsr.h>
 
 /* This file is intended to be used for implementing SoC specific

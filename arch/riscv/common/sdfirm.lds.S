@@ -18,11 +18,7 @@ SECTIONS
 {
 	. = PAGE_OFFSET + VEC_BASE;
 
-#ifdef CONFIG_ARCH_HAS_HIVEC
-	__svector = .;
 	TAIL_TEXT_SECTION(WORD_SIZE)
-	__evector = .;
-#endif
 
 	. = PAGE_OFFSET + TEXT_OFFSET;
 	_start = .;				/* begin of sdfirm */

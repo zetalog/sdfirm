@@ -145,7 +145,3 @@ ENDPROC(__handle_irq)
 define_exception_entry __handle_illegal_instr __bad_interrupt
 define_exception_entry __handle_ecall __bad_interrupt
 define_exception_entry __handle_lsu __bad_interrupt
-
-ENTRY(trap_init)
-	ret
-ENDPROC(trap_init)

@@ -4,14 +4,18 @@
 #ifdef CONFIG_ARCH_HAS_LOVEC
 #define LOVEC_TEXT						\
 	__vectors = .;						\
-	*(.lovec.text)
+	__svector = .;						\
+	*(.lovec.text)						\
+	__evector = .;
 #else
 #define LOVEC_TEXT
 #endif
 #ifdef CONFIG_ARCH_HAS_HIVEC
 #define HIVEC_TEXT						\
 	__vectors = .;						\
-	*(.hivec.text)
+	__svector = .;						\
+	*(.hivec.text)						\
+	__evector = .;
 #else
 #define HIVEC_TEXT
 #endif

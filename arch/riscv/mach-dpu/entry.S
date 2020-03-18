@@ -2,7 +2,7 @@
 #include <target/arch.h>
 #include <target/paging.h>
 
-#ifdef CONFIG_DUOWEN_IMC
+#ifdef CONFIG_DPU_BOOT_ROM
 #define EXCEPTION_STACK_SIZE 0x58
 
 	__VEC

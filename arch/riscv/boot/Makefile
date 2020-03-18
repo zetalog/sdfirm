@@ -20,7 +20,15 @@ $(obj)/sdfirm.srec: sdfirm.strip FORCE
 	$(call if_changed,objcopy)
 	@echo '  Small Device Firmware: $@ is ready'
 $(obj)/sdfirm.rom: $(obj)/sdfirm.bin FORCE
+ifdef CONFIG_XIP
+ifdef CONFIG_LOAD_DATA
 	$(call if_changed,bin2vhx)
+else
+	touch $@
+endif
+else
+	touch $@
+endif
 	@echo '  Small Device Firmware: $@ is ready'
 $(obj)/sdfirm.ram: $(obj)/sdfirm.srec FORCE
 	$(call if_changed,srec2vhx)

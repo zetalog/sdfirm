@@ -21,15 +21,18 @@ config DPU_BOOT_ROM
 	select SYS_EXIT_M
 	select DPU_TCSR
 	select DPU_BOOT
+	select ARCH_HAS_LOVEC
 
 config DPU_BOOT_FLASH
 	bool "1-stage programmable flash bootloader (FSBL)"
 	select ARCH_HAS_BOOT_LOAD
 	select XIP
+	select LOAD_DATA
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select DPU_TCSR
 	select DPU_BOOT
+	select ARCH_HAS_NOVEC
 
 config DPU_FIRM
 	bool "DPU runtime firmware"

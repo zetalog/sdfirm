@@ -62,7 +62,6 @@ config ARCH_DUOWEN
 config ARCH_DPU
 	bool "SmarCo DPU"
 	select CPU_RI5CY
-	select ARCH_HAS_NOVEC
 	select ARCH_IS_TICKLESS
 	select ARCH_HAS_TSC
 	select ARCH_HAS_TSC_CONST
