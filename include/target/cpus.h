@@ -55,6 +55,22 @@
 #define LLC_ALL			(LLC_TO_MASK(MAX_LLC_NUM)-1)
 #endif
 
+#ifndef MAX_CPU_CLUSTERS
+#define MAX_CPU_CLUSTERS	1
+#endif
+#ifndef MAX_CPU_RAILS
+#define MAX_CPU_RAILS		1
+#endif
+#ifndef CPUS_PER_CLUSTER
+#define CPUS_PER_CLUSTER	1
+#endif
+#ifndef CLUSTERS_PER_RAIL
+#define CLUSTERS_PER_RAIL	1
+#endif
+#ifndef CPUS_PER_RAIL
+#define CPUS_PER_RAIL		(CPUS_PER_CLUSTER * CLUSTERS_PER_RAIL)
+#endif
+
 #ifndef CPU_CLUSTER_MASK
 #define CPU_CLUSTER_MASK	((ULL(1) << CPUS_PER_CLUSTER) - 1)
 #endif
