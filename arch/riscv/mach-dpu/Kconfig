@@ -71,6 +71,10 @@ if DPU_TMR
 
 endif
 
+config DPU_PCI_SUBSYS
+	bool "Enable DPU PCI subsystem(Testchip) support"
+	select DW_PCIE
+
 endmenu
 
 endif

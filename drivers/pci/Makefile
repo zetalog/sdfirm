@@ -1,3 +1,3 @@
-obj-y :=
+EXTRA_CFLAGS += -DSDFIRM
 
-obj-$(CONFIG_DW_PCIE) += dw_pcie.rel
+obj-$(CONFIG_DW_PCIE) += pcie_designware.rel

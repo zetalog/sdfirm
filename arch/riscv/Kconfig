@@ -81,7 +81,7 @@ config ARCH_DPU
 	select DW_SPI if SPI_MASTER
 	select DW_DMA if DMA
 	select DW_UMCTL2 if DDR
-	select DW_PCIE if PCI
+	select DPU_PCI_SUBSYS if PCI
 	help
 	  This enables support for smart core (SmarCo) DPU platform.
 
