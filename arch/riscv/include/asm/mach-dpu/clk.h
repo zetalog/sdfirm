@@ -115,6 +115,11 @@
 #define apb_clk			clkid(CLK_SEL, APB_CLK)
 #define cpu_clk			clkid(CLK_SEL, CPU_CLK)
 #define periph_clk		apb_clk
+#define pcie_aclk		pcie_clk
+#define pcie_pclk		apb_clk
+#define pcie_aux_clk		xin
+#define pcie_ref_clk_p		pci_phy_clk
+#define pcie_ref_clk_n		pci_phy_clk
 
 #define CLK_RESET		((clk_cat_t)4)
 #define NR_RESET_CLKS		NR_PLL_RSTS
