@@ -97,6 +97,18 @@ endif
 config TLB_TEST
 	bool "Test TLB flush"
 
+if TLB_TEST
+
+config TLB_TEST_FLUSH_RANGE
+	bool "Test flush range"
+	default y
+
+config TLB_TEST_FLUSH_ALL
+	bool "Test flush all"
+	default n
+
+endif
+
 source tests/bench/coremark/Kconfig
 source tests/bench/c_fft/Kconfig
 source tests/bench/jpgenc/Kconfig

@@ -26,14 +26,20 @@ int tlbtest(caddr_t percpu_area)
 		(struct tlbtest_context *)percpu_area;
 	printf("Start tlbtest\n");
 
+#ifdef CONFIG_TLB_TEST_FLUSH_RANGE
 	for (i = 0; i < BUF_SIZE; i+= 17)
 		test_buf_1[i] = i;
+	printf("Start tlbtest flush range\n");
 	flush_tlb_range_kern((caddr_t)test_buf_1,
 		(caddr_t)(test_buf_1+BUF_SIZE));
+#endif
 
+#ifdef CONFIG_TLB_TEST_FLUSH_ALL
 	for (i = 0; i < BUF_SIZE; i+= 13)
 		test_buf_2[i] = i;
+	printf("Start tlbtest flush all\n");
 	flush_tlb_all();
+#endif
 
 	tlbtest_ctx[smp_processor_id()].ptr->result = 1;
 	printf("End of tlbtest. Success\n");
