@@ -122,7 +122,7 @@ if MSHC
 
 endif
 
-menuconfig DUOWEN_PCIE
+config DUOWEN_PCIE
 	bool "PCI-Express (PCIe) support"
 	select DW_PCIE
 
