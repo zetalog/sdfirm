@@ -147,19 +147,49 @@
 #define plic_irq_completion(cpu, irq)	plic_sirq_completion(cpu, irq)
 #endif
 
+#ifdef CONFIG_PLIC
 void plic_sbi_init_cold(void);
 void plic_sbi_init_warm(cpu_t cpu);
+#else
+#define plic_sbi_init_cold()		do { } while (0)
+#define plic_sbi_init_warm(cpu)		do { } while (0)
+#endif
 
-#define irqc_hw_enable_irq(irq)		plic_enable_irq(irq)
-#define irqc_hw_disable_irq(irq)	plic_disable_irq(irq)
-#define irqc_hw_clear_irq(irq)		plic_clear_irq(irq)
-#define irqc_hw_trigger_irq(irq)	plic_set_irq(irq)
+#ifdef ARCH_HAVE_IRQC
+#ifdef CONFIG_PLIC
+void irqc_hw_enable_irq(irq_t irq);
+void irqc_hw_disable_irq(irq_t irq);
+void irqc_hw_clear_irq(irq_t irq);
+void irqc_hw_trigger_irq(irq_t irq);
+void irqc_hw_configure_irq(irq_t irq, uint8_t prio, uint8_t trigger);
+void irqc_hw_handle_irq(void);
 
-#define irqc_hw_ctrl_init()		plic_hw_ctrl_init()
-#define irqc_hw_configure_irq(irq, prio, trig)		\
+#ifdef CONFIG_SBI
+/* PLIC requires no special initialization other than that is done
+ * in SBI.
+ */
+#define irqc_hw_ctrl_init()	plic_hw_ctrl_init()
+#ifdef CONFIG_SMP
+#define irqc_hw_smp_init()	do { } while (0)
+#endif /* CONFIG_SMP */
+#else /* CONFIG_SBI */
+#define irqc_hw_ctrl_init()				\
 	do {						\
-		plic_configure_priority(irq, prio);	\
-		plic_hw_configure_trigger(irq, trig);	\
+		plic_hw_ctrl_init();			\
+		plic_sbi_init_cold();			\
 	} while (0)
+#ifdef CONFIG_SMP
+#define irqc_hw_smp_init()	plic_sbi_init_warm(smp_processor_id())
+#endif /* CONFIG_SMP */
+#endif /* CONFIG_SBI */
+#ifdef CONFIG_MMU
+#define irqc_hw_mmu_init()	plic_hw_mmu_init()
+#endif /* CONFIG_MMU */
+#else /* CONFIG_PLIC */
+/* Specially when a platform supports CLINT and uses that as IRQC */
+#define irqc_hw_ctrl_init()	do { } while (0)
+#define irqc_hw_handle_irq()	do { } while (0)
+#endif /* CONFIG_PLIC */
+#endif /* ARCH_HAVE_IRQC */
 
 #endif /* __PLIC_RISCV_H_INCLUDE__ */

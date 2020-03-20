@@ -59,9 +59,13 @@
 #ifndef CONFIG_SMP
 #define irqc_hw_smp_init()		do { } while (0)
 #endif
+#ifndef CONFIG_MMU
+#define irqc_hw_mmu_init()		do { } while (0)
+#endif
 #else
 #define irqc_hw_ctrl_init()		do { } while (0)
 #define irqc_hw_smp_init()		do { } while (0)
+#define irqc_hw_mmu_init()		do { } while (0)
 #define irqc_enable_irq(irq)		do { } while (0)
 #define irqc_disable_irq(irq)		do { } while (0)
 #define irqc_clear_irq(irq)		do { } while (0)

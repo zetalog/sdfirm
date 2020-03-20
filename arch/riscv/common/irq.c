@@ -16,7 +16,7 @@ __noreturn void __bad_interrupt(void)
 	hart_hang();
 }
 
-void irq_hw_handle_irq(void)
+void riscv_handle_irq(void)
 {
 	unsigned long cause = csr_read(CSR_CAUSE);
 	irq_t irq;
@@ -32,8 +32,12 @@ void do_riscv_interrupt(struct pt_regs *regs)
 	irq_t irq;
 
 	irq = regs->cause & ~ICR_IRQ_FLAG;
-	if (irq == IRQ_TIMER || irq == IRQ_EXT) {
-		irq_hw_handle_irq();
+	if (irq == IRQ_EXT) {
+		irqc_hw_handle_irq();
+		return;
+	}
+	if (irq == IRQ_TIMER) {
+		riscv_handle_irq();
 		return;
 	}
 

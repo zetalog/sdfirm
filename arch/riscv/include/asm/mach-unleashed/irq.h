@@ -42,21 +42,23 @@
 #ifndef __IRQ_UNLEASHED_H_INCLUDE__
 #define __IRQ_UNLEASHED_H_INCLUDE__
 
-#define IRQ_L2_DIRE	1 /* L2 Cache ECC DirError */
-#define IRQ_L2_DATAE	2 /* L2 Cache ECC DataError */
-#define IRQ_L2_DATAF	3 /* L2 Cache ECC DataFail */
-#define IRQ_UART0	4
-#define IRQ_UART1	5
-#define IRQ_QSPI2	6
-#define IRQ_GPIO(n)	(7 + (n)) /* GPIO0-15 */
-#define IRQ_DMA(n)	(23 + (n)) /* DMA0-7 */
-#define IRQ_MSI		(32 + (n))
-#define IRQ_PWM0CMP(n)	(42 + (n)) /* PWMCMP0-3IP */
-#define IRQ_PWM1CMP(n)	(46 + (n)) /* PWMCMP0-3IP */
-#define IRQ_I2C		50
-#define IRQ_QSPI0	51
-#define IRQ_QSPI1	52
-#define IRQ_GBE		53 /* GigaBit Ethernet */
-#define NR_IRQS		53
+#define IRQ_L2_DIRE	IRQ_EXT(1) /* L2 Cache ECC DirError */
+#define IRQ_L2_DATAE	IRQ_EXT(2) /* L2 Cache ECC DataError */
+#define IRQ_L2_DATAF	IRQ_EXT(3) /* L2 Cache ECC DataFail */
+#define IRQ_UART0	IRQ_EXT(4)
+#define IRQ_UART1	IRQ_EXT(5)
+#define IRQ_QSPI2	IRQ_EXT(6)
+#define IRQ_GPIO(n)	IRQ_EXT(7 + (n)) /* GPIO0-15 */
+#define IRQ_DMA(n)	IRQ_EXT(23 + (n)) /* DMA0-7 */
+#define IRQ_MSI		IRQ_EXT(32 + (n))
+#define IRQ_PWM0CMP(n)	IRQ_EXT(42 + (n)) /* PWMCMP0-3IP */
+#define IRQ_PWM1CMP(n)	IRQ_EXT(46 + (n)) /* PWMCMP0-3IP */
+#define IRQ_I2C		IRQ_EXT(50)
+#define IRQ_QSPI0	IRQ_EXT(51)
+#define IRQ_QSPI1	IRQ_EXT(52)
+#define IRQ_GBE		IRQ_EXT(53) /* GigaBit Ethernet */
+#define NR_EXT_IRQS	64
+
+#define NR_IRQS		(NR_INT_IRQS + NR_EXT_IRQS)
 
 #endif  /* __IRQ_UNLEASHED_H_INCLUDE__ */

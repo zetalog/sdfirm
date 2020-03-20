@@ -57,7 +57,5 @@
 #include <asm/plic.h>
 
 #define plic_hw_ctrl_init()	do { } while (0)
-#define plic_hw_configure_trigger(irq, trig)	\
-	do { } while (0)
 
 #endif /* __IRQC_K210_H_INCLUDE__ */

@@ -41,6 +41,10 @@
 
 #include <target/irq.h>
 
+void event_handle_irq(void)
+{
+}
+
 void event_configure_irq(irq_t irq, uint8_t pri, uint8_t trigger)
 {
 	__raw_writel_mask(EVENT_PRI(irq, pri),

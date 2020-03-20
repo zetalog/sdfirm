@@ -67,6 +67,44 @@ void plic_sbi_init_warm(cpu_t cpu)
 	}
 }
 
+void irqc_hw_enable_irq(irq_t irq)
+{
+	if (irq >= IRQ_PLATFORM)
+		plic_enable_irq(irq - IRQ_PLATFORM);
+	else
+		riscv_enable_irq(irq);
+}
+
+void irqc_hw_disable_irq(irq_t irq)
+{
+	if (irq >= IRQ_PLATFORM)
+		plic_disable_irq(irq - IRQ_PLATFORM);
+	else
+		riscv_disable_irq(irq);
+}
+
+void irqc_hw_clear_irq(irq_t irq)
+{
+	if (irq >= IRQ_PLATFORM)
+		plic_clear_irq(irq - IRQ_PLATFORM);
+	else
+		riscv_clear_irq(irq);
+}
+
+void irqc_hw_trigger_irq(irq_t irq)
+{
+	if (irq >= IRQ_PLATFORM)
+		plic_set_irq(irq - IRQ_PLATFORM);
+	else
+		riscv_trigger_irq(irq);
+}
+
+void irqc_hw_configure_irq(irq_t irq, uint8_t prio, uint8_t trigger)
+{
+	if (irq >= IRQ_PLATFORM)
+		plic_configure_priority(irq - IRQ_PLATFORM, prio);
+}
+
 void irqc_hw_handle_irq(void)
 {
 	irq_t irq;
@@ -74,12 +112,14 @@ void irqc_hw_handle_irq(void)
 
 	riscv_disable_irq(IRQ_EXT);
 	irq = plic_claim_irq(cpu);
-	if (irq >= NR_IRQS) {
+	if (irq >= NR_EXT_IRQS) {
+		plic_disable_irq(irq);
 		plic_irq_completion(cpu, irq);
+		riscv_enable_irq(IRQ_EXT);
 		return;
 	}
-	if (!do_IRQ(irq))
-		irqc_hw_disable_irq(irq);
+	if (!do_IRQ(irq + IRQ_PLATFORM))
+		plic_disable_irq(irq);
 	plic_irq_completion(cpu, irq);
 	riscv_enable_irq(IRQ_EXT);
 }

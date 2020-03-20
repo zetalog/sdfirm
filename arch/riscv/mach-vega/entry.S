@@ -129,7 +129,7 @@ ENTRY(__handle_irq)
 	jal	x1, enter_exception
 	la	x1, exit_exception
 	csrr	a0, mcause
-	jal	x0, irq_hw_handle_irq
+	jal	x0, do_riscv_interrupt
 ENDPROC(__handle_irq)
 
 	.macro define_exception_entry entry_name handler_name

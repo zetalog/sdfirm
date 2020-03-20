@@ -44,7 +44,7 @@
 
 #include <target/arch.h>
 
-#ifndef ARCH_HAVE_IRQC_
+#ifndef ARCH_HAVE_IRQC
 #define ARCH_HAVE_IRQC		1
 #else
 #error "Multiple IRQ controller defined"
@@ -63,12 +63,5 @@
 #include <asm/plic.h>
 
 #define plic_hw_ctrl_init()	do { } while (0)
-#define plic_hw_configure_trigger(irq, trig)	\
-	do { } while (0)
-
-#ifdef CONFIG_SMP
-/* clint requires no CPU specific initialization */
-#define irqc_hw_smp_init()	do { } while (0)
-#endif
 
 #endif /* __IRQC_UNLEASHED_H_INCLUDE__ */

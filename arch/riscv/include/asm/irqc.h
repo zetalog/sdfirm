@@ -52,6 +52,8 @@
 #define riscv_clear_irq(irq)	csr_clear(CSR_IP, IRQ2IE(irq))
 #define riscv_irq_raised(irq)	(csr_read(CSR_IP) & IRQ2IE(irq))
 
+void riscv_handle_irq(void);
+
 /* RISCV allows embedded IRQ controllers */
 #include <asm/mach/irqc.h>
 #endif

@@ -13,11 +13,17 @@
 #define irqc_hw_clear_irq(irq)		riscv_clear_irq(irq)
 #define irqc_hw_configure_irq(irq, priority, trigger)	\
 	do { } while (0)
-#define irqc_hw_ctrl_init()		do { } while (0)
 
-#ifdef CONFIG_SMP
+/* clint handles no external IRQs */
+#define irqc_hw_handle_irq()		do { } while (0)
+
 /* clint requires no CPU specific initialization */
+#define irqc_hw_ctrl_init()		do { } while (0)
+#ifdef CONFIG_SMP
 #define irqc_hw_smp_init()		do { } while (0)
+#endif
+#ifdef CONFIG_MMU
+#define irqc_hw_mmu_init()		do { } while (0)
 #endif
 
 #endif /* __IRQC_SPIKE_H_INCLUDE__ */

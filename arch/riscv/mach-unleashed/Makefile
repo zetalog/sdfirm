@@ -11,6 +11,5 @@ obj-$(CONFIG_SIFIVE_UART) += uart.rel
 obj-$(CONFIG_SIFIVE_QSPI) += qspi.rel
 obj-$(CONFIG_SIFIVE_DDR) += ddr.rel
 obj-$(CONFIG_SIFIVE_CACHE) += cache.rel
-
 obj-$(CONFIG_UNLEASHED_SDCARD) += sdcard.rel
 obj-$(CONFIG_UNLEASHED_SPINOR) += spinor.rel

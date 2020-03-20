@@ -138,9 +138,11 @@
 	  EVENT_IRQ_OFFSET(irq)) & 0x1)
 
 #ifdef CONFIG_IRQC_EVENT
+void event_handle_irq(void);
 void event_init_ctrl(void);
 void event_configure_irq(irq_t irq, uint8_t pri, uint8_t trigger);
 #else
+#define event_handle_irq()			do { } while (0)
 #define event_init_ctrl()			do { } while (0)
 #define event_configure_irq(irq, pri, trigger)	do { } while (0)
 #endif

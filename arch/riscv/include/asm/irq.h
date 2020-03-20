@@ -109,18 +109,19 @@ struct pt_regs {
 #define IRQ_H_EXT		10
 #define IRQ_M_EXT		11
 #ifdef CONFIG_RISCV_EXIT_M
-#define IRQ_SOFT	IRQ_M_SOFT
-#define IRQ_TIMER	IRQ_M_TIMER
-#define IRQ_EXT		IRQ_M_EXT
+#define IRQ_SOFT		IRQ_M_SOFT
+#define IRQ_TIMER		IRQ_M_TIMER
+#define IRQ_EXT			IRQ_M_EXT
 #endif
 #ifdef CONFIG_RISCV_EXIT_S
-#define IRQ_SOFT	IRQ_S_SOFT
-#define IRQ_TIMER	IRQ_S_TIMER
-#define IRQ_EXT		IRQ_S_EXT
+#define IRQ_SOFT		IRQ_S_SOFT
+#define IRQ_TIMER		IRQ_S_TIMER
+#define IRQ_EXT			IRQ_S_EXT
 #endif
 
 #define NR_INT_IRQS		16
 #define IRQ_PLATFORM		NR_INT_IRQS
+#define IRQ_EXIT(irq)		(IRQ_PLATFORM + (irq))
 
 #define EXC_INSN_MISALIGNED	0
 #define EXC_INSN_ACCESS		1

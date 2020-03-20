@@ -42,6 +42,8 @@
 #ifndef __IRQC_DUOWEN_H_INCLUDE__
 #define __IRQC_DUOWEN_H_INCLUDE__
 
+#include <target/clk.h>
+
 #ifndef ARCH_HAVE_IRQC_
 #define ARCH_HAVE_IRQC		1
 #else
@@ -56,8 +58,6 @@
 
 #include <asm/plic.h>
 
-#define plic_hw_ctrl_init()	do { } while (0)
-#define plic_hw_configure_trigger(irq, trig)	\
-	do { } while (0)
+#define plic_hw_ctrl_init()		clk_enable(plic_hclk)
 
 #endif /* __IRQC_DUOWEN_H_INCLUDE__ */

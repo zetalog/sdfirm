@@ -58,4 +58,6 @@
 #define irqc_hw_configure_irq(irq, priority, trigger)	\
 	event_configure_irq(irq, priority, trigger)
 
+#define irqc_hw_handle_irq()		event_handle_irq()
+
 #endif /* __IRQC_VEGA_H_INCLUDE__ */
