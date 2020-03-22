@@ -205,4 +205,15 @@ uint8_t dpu_pll_reg_read(uint8_t pll, uint8_t reg);
 #define dpu_pll_wdt_reset()			\
 	__raw_clear(WDT_RST_DIS, PLL_GLOBAL_RST)
 
+/* Frequency plans */
+#ifndef __ASSEMBLY__
+/* Internal APIs */
+clk_freq_t freqplan_get_fvco(int pll, int plan);
+clk_freq_t freqplan_get_fpclk(int pll, int plan);
+clk_freq_t freqplan_get_fpclk_nodef(int pll, int plan);
+clk_freq_t freqplan_get_frclk(int pll, int plan);
+/* External APIs */
+clk_freq_t freqplan_get_freqeuncy(clk_t clk, int plan);
+#endif /* __ASSEMBLY__ */
+
 #endif /* __PLL_DPU_H_INCLUDE__ */

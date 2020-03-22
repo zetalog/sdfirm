@@ -377,7 +377,7 @@ const char *sel_clk_names[NR_SEL_CLKS] = {
 	[PCIE_CLK] = "pcie_clk (pll3_p_gmux)",
 	[CPU_CLK] = "cpu_clk (pll4_p_gmux)",
 	[PCIE_REF_CLK] = "pcie_ref_clk (pll5_p_gmux)",
-	[APB_CLK] = "apb_clk (pll4_r_gmux)",
+	[APB_CLK] = "apb_clk (pll3_r_gmux)",
 };
 
 static const char *get_clk_sel_name(clk_clk_t clk)
@@ -446,12 +446,44 @@ static clk_freq_t get_clk_sel_freq(clk_clk_t clk)
 		return clk_get_frequency(sel_clks[clk].clk_sels[1]);
 }
 
+static int set_clk_sel_freq(clk_clk_t clk, clk_freq_t freq)
+{
+	int i;
+	int ret;
+
+	/* GMUX of apb_clk should be auto-balanced */
+	if (clk > NR_PLLS)
+		return -EINVAL;
+	BUG_ON(clk == APB_CLK);
+
+	/* Only allows pre-defined frequency plans */
+	for (i = 0; i < NR_FREQPLANS; i++) {
+		if (freq == freqplan_get_fpclk_nodef(clk, i))
+			goto freq_valid;
+	}
+	return -EINVAL;
+
+freq_valid:
+	/* Auto-balance apb_clk */
+	if (clk == PCIE_CLK)
+		clk_disable(apb_clk);
+	disable_clk_sel(clk);
+	ret = clk_set_frequency(sel_clks[clk].clk_sels[0], freq);
+	if (ret)
+		return ret;
+	enable_clk_sel(clk);
+	/* Auto-balance apb_clk */
+	if (clk == PCIE_CLK)
+		clk_enable(apb_clk);
+	return 0;
+}
+
 struct clk_driver clk_gmux = {
 	.max_clocks = NR_SEL_CLKS,
 	.enable = enable_clk_sel,
 	.disable = disable_clk_sel,
 	.get_freq = get_clk_sel_freq,
-	.set_freq = NULL,
+	.set_freq = set_clk_sel_freq,
 	.select = NULL,
 	.get_name = get_clk_sel_name,
 };
@@ -571,14 +603,40 @@ static clk_freq_t get_pll_freq(clk_clk_t clk)
 
 static int set_pll_freq(clk_clk_t clk, clk_freq_t freq)
 {
-	if (clk >= NR_PLL_CLKS)
-		return -EINVAL;
+	int i;
+	int ret;
 
-	if (pll_clks[clk].freq != freq) {
-		__disable_pll(clk);
-		pll_clks[clk].freq = freq;
+	/* PLL rclkout of apb_clk should be auto-balanced */
+	if (clk > NR_PLLS)
+		return -EINVAL;
+	BUG_ON(clk == PLL3_R);
+
+	/* Only allows pre-defined frequency plans */
+	for (i = 0; i < NR_FREQPLANS; i++) {
+		if (freq == freqplan_get_fpclk_nodef(clk, i))
+			goto freq_valid;
+	}
+	return -EINVAL;
+
+freq_valid:
+	/* Auto-balance apb_clk */
+	if (clk == PLL3_P) {
+		pll_clks[PLL3_R].freq = freqplan_get_frclk(clk, i);
+		__disable_pll(PLL3_R);
+	}
+	pll_clks[clk].freq = freq;
+	__disable_pll(clk);
+	ret = clk_set_frequency(pll_clks[clk].src,
+				freqplan_get_fvco(clk, i));
+	if (ret) {
+		con_printf("PLL(%d): set frequency(%lld) failure.\n",
+			   clk, freq);
+		return ret;
 	}
 	__enable_pll(clk);
+	/* Auto-balance apb_clk */
+	if (clk == PLL3_P)
+		__enable_pll(PLL3_R);
 	return 0;
 }
 
