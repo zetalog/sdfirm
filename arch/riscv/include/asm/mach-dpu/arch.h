@@ -53,22 +53,26 @@
  */
 
 #define XIN_FREQ		UL(25000000)	/* 25MHz */
+#define PCIE_PHY_CLK_FREQ	UL(25000000)	/* 25MHz */
 #define PLL0_VCO_FREQ		ULL(4000000000)	/* 4GHz */
 #define PLL1_VCO_FREQ		ULL(4000000000)	/* 4GHz */
 #define PLL2_VCO_FREQ		ULL(3200000000)	/* 3.2GHz */
 #define PLL3_VCO_FREQ		ULL(4000000000)	/* 4GHz */
 #define PLL4_VCO_FREQ		ULL(4000000000)	/* 4GHz */
-#define PLL0_P_FREQ		UL(1000000000)	/* 1GHz */
+#define PLL5_VCO_FREQ		ULL(2500000000) /* 2.5GHz */
+#define PLL0_P_FREQ		UL(500000000)	/* 500MHz */
 #define PLL1_P_FREQ		UL(1000000000)	/* 1GHz */
 #define PLL2_P_FREQ		UL(800000000)	/* 800MHz */
 #define PLL3_P_FREQ		UL(1000000000)	/* 1GHz */
 #define PLL3_R_FREQ		UL(200000000)	/* 200MHz */
 #define PLL4_P_FREQ		UL(2000000000)	/* 2GHz */
+#define PLL5_P_FREQ		UL(100000000)	/* 100MHz */
 #define IMC_CLK_FREQ		PLL0_P_FREQ
 #define PE_CLK_FREQ		PLL1_P_FREQ
 #define PCIE_CLK_FREQ		PLL3_P_FREQ
 #define APB_CLK_FREQ		PLL3_R_FREQ
 #define CPU_CLK_FREQ		PLL4_P_FREQ
+#define PCIE_REF_CLK_FREQ	PLL5_P_FREQ
 
 #ifndef __ASSEMBLY__
 void board_init_clock(void);

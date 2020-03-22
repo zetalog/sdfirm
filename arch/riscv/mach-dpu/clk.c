@@ -51,7 +51,7 @@ struct reset_clk {
 	uint8_t flags;
 };
 
-#define CLK_SRST_MAP	ULL(0x0000007FFFFF)
+#define CLK_SRST_MAP	ULL(0x000007FFFFFF)
 #define CLK_ARST_MAP	ULL(0x1FFE00000000)
 #ifdef CONFIG_DPU_PLL_ARST
 #define CLK_RST_MAP	(CLK_ARST_MAP | CLK_SRST_MAP)
@@ -152,6 +152,22 @@ struct reset_clk reset_clks[NR_RESET_CLKS] = {
 		.clk_src = ddr_clk,
 		.flags = CLK_SRST_F,
 	},
+	[SRST_DDR0_POR] = {
+		.clk_src = ddr_clk,
+		.flags = CLK_SRST_F,
+	},
+	[SRST_DDR1_POR] = {
+		.clk_src = ddr_clk,
+		.flags = CLK_SRST_F,
+	},
+	[SRST_PCIE0_POR] = {
+		.clk_src = pcie_ref_clk,
+		.flags = CLK_SRST_F,
+	},
+	[SRST_PCIE1_POR] = {
+		.clk_src = pcie_ref_clk,
+		.flags = CLK_SRST_F,
+	},
 #ifdef CONFIG_DPU_PLL_ARST
 	[APC0_CPU0_FUNC_ARST] = {
 		.clk_src = cpu_clk,
@@ -229,6 +245,10 @@ const char *reset_clk_names[NR_RESET_CLKS] = {
 	[SRST_DDR0_1] = "srst_ddr0_1",
 	[SRST_DDR1_0] = "srst_ddr1_0",
 	[SRST_DDR1_1] = "srst_ddr1_1",
+	[SRST_DDR0_POR] = "srst_ddr0_por",
+	[SRST_DDR1_POR] = "srst_ddr1_por",
+	[SRST_PCIE0_POR] = "srst_pcie0_por",
+	[SRST_PCIE1_POR] = "srst_pcie1_por",
 #ifdef CONFIG_DPU_PLL_ARST
 	[APC0_CPU0_FUNC_ARST] = "apc0_cpu0_func_arst",
 	[APC0_CPU1_FUNC_ARST] = "apc0_cpu1_func_arst",
@@ -335,6 +355,12 @@ struct sel_clk sel_clks[NR_SEL_CLKS] = {
 			xin,
 		},
 	},
+	[PCIE_REF_CLK] = {
+		.clk_sels = {
+			pll5_p,
+			pcie_phy_clk,
+		},
+	},
 	[APB_CLK] = {
 		.clk_sels = {
 			pll3_r,
@@ -350,6 +376,7 @@ const char *sel_clk_names[NR_SEL_CLKS] = {
 	[DDR_CLK] = "ddr_clk (pll2_p_gmux)",
 	[PCIE_CLK] = "pcie_clk (pll3_p_gmux)",
 	[CPU_CLK] = "cpu_clk (pll4_p_gmux)",
+	[PCIE_REF_CLK] = "pcie_ref_clk (pll5_p_gmux)",
 	[APB_CLK] = "apb_clk (pll4_r_gmux)",
 };
 
@@ -461,6 +488,11 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 		.freq = PLL4_P_FREQ,
 		.enabled = false,
 	},
+	[PLL5_P] = {
+		.src = pll5_vco,
+		.freq = PLL5_P_FREQ,
+		.enabled = false,
+	},
 	[PLL3_R] = {
 		.src = pll3_vco,
 		.freq = PLL3_R_FREQ,
@@ -475,6 +507,7 @@ const char *pll_clk_names[NR_PLL_CLKS] = {
 	[PLL2_P] = "pll2_p",
 	[PLL3_P] = "pll3_p",
 	[PLL4_P] = "pll4_p",
+	[PLL5_P] = "pll5_p",
 	[PLL3_R] = "pll3_r",
 };
 
@@ -585,6 +618,10 @@ struct vco_clk vco_clks[NR_VCO_CLKS] = {
 		.freq = PLL4_VCO_FREQ,
 		.enabled = false,
 	},
+	[PLL5_VCO] = {
+		.freq = PLL5_VCO_FREQ,
+		.enabled = false,
+	},
 };
 
 #ifdef CONFIG_CONSOLE_COMMAND
@@ -594,6 +631,7 @@ const char *vco_clk_names[NR_VCO_CLKS] = {
 	[PLL2_VCO] = "pll2_vco",
 	[PLL3_VCO] = "pll3_vco",
 	[PLL4_VCO] = "pll4_vco",
+	[PLL5_VCO] = "pll5_vco",
 };
 
 const char *get_vco_name(clk_clk_t clk)
@@ -669,11 +707,13 @@ struct clk_driver clk_vco = {
 
 uint32_t input_clks[NR_INPUT_CLKS] = {
 	[XIN] = XIN_FREQ,
+	[PCIE_PHY_CLK] = PCIE_PHY_CLK_FREQ,
 };
 
 #ifdef CONFIG_CONSOLE_COMMAND
 const char *input_clk_names[NR_INPUT_CLKS] = {
 	[XIN] = "xin",
+	[PCIE_PHY_CLK] = "pcie_phy_clk",
 };
 
 static const char *get_input_clk_name(clk_clk_t clk)

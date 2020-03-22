@@ -47,17 +47,115 @@
 #define PLL_REG_REG(offset)		(PLL_REG_BASE + (offset))
 #define PLL_REG(pll, offset)		\
 	PLL_REG_REG(((pll) << 4) + (offset))
-#define PLL_1BIT_REG(off, n)		REG_1BIT_ADDR(PLL_REG_BASE+(off), n)
 
-#define NR_PLLS				5
+#define NR_PLLS				6
 
 /* DW PLL5GHz TSMC12FFC registers */
 #define DW_PLL_REFCLK_FREQ		XIN_FREQ
 #define DW_PLL_CFG0(pll)		PLL_REG(pll, 0x00)
 #define DW_PLL_CFG1(pll)		PLL_REG(pll, 0x04)
 #define DW_PLL_STATUS(pll)		PLL_REG(pll, 0x08)
-#define PLL_REG_ACCESS(pll)		PLL_REG_REG(0x58 + ((pll) << 2))
-#define PLL_REG_TIMING(pll)		PLL_REG_REG(0x6C + ((pll) << 2))
+
+#define dpu_pll_enable(pll, freq)		\
+	dw_pll5ghz_tsmc12ffc_pwron(pll, freq)
+#define dpu_pll_disable(pll)			\
+	dw_pll5ghz_tsmc12ffc_pwrdn(pll)
+
+#define dpu_div_enable(pll, fvco, freq, r)	\
+	dw_pll5ghz_tsmc12ffc_enable(pll, fvco, freq, r)
+#define dpu_div_disable(pll, r)			\
+	dw_pll5ghz_tsmc12ffc_disable(pll, r)
+
+/* PLL GMUX registers */
+#define PLL_GMUX_CFG(pll)		PLL_REG(pll, 0x0C)
+
+/* PLL_GMUX_CFG */
+#define PLL_GMUX_EN_R			_BV(3)
+#define PLL_GMUX_SEL_R			_BV(2)
+#define PLL_GMUX_EN_P			_BV(1)
+#define PLL_GMUX_SEL_P			_BV(0)
+#define DPU_GMUX_SEL(r)			((r) ? PLL_GMUX_SEL_R : PLL_GMUX_SEL_P)
+#define DPU_GMUX_EN(r)			((r) ? PLL_GMUX_EN_R : PLL_GMUX_EN_P)
+
+#define dpu_gmux_selected(pll, r)	\
+	(!(__raw_readl(PLL_GMUX_CFG(pll)) & DPU_GMUX_SEL(r)))
+#define dpu_gmux_select(pll, r)		\
+	__raw_clearl(DPU_GMUX_SEL(r), PLL_GMUX_CFG(pll))
+#define dpu_gmux_deselect(pll, r)	\
+	__raw_setl(DPU_GMUX_SEL(r), PLL_GMUX_CFG(pll))
+#define dpu_gmux_enabled(pll, r)	\
+	(!!(__raw_readl(PLL_GMUX_CFG(pll)) & DPU_GMUX_EN(r)))
+#define dpu_gmux_enable(pll, r)		\
+	__raw_setl(DPU_GMUX_EN(r), PLL_GMUX_CFG(pll))
+#define dpu_gmux_disable(pll, r)	\
+	__raw_clearl(DPU_GMUX_EN(r), PLL_GMUX_CFG(pll))
+
+/* Soft reset registers */
+#define SRST_BASE			PLL_REG(NR_PLLS, 0)
+#define SRST_REG(offset)		(SRST_BASE + (offset))
+#define SRST_1BIT_REG(off, n)		REG_1BIT_ADDR(SRST_BASE+(off), n)
+
+#define PLL_GLOBAL_RST			SRST_REG(0x00)
+#define PLL_SOFT_RST(n)			SRST_1BIT_REG(0x00, n)
+
+/* PLL_SOFT_RST/PLL_CLUSTER_SOFT_RST */
+#define PLL_SRST(n)			_BV(REG_1BIT_OFFSET(n))
+
+/* global reset bits */
+#define SRST_SYS			_BV(30)
+#define WDT_RST_DIS			_BV(31)
+
+/* SOFT_RST/CLUSTER_SOFT_RST IDs */
+#define SRST_GPDPU			0
+#define SRST_PCIE0			1
+#define SRST_PCIE1			2
+#define SRST_SPI			3
+#define SRST_I2C0			4
+#define SRST_I2C1			5
+#define SRST_I2C2			6
+#define SRST_UART			7
+#define SRST_PLIC			8
+#define SRST_GPIO			9
+#define SRST_RAM			10
+#define SRST_ROM			11
+#define SRST_TMR			12
+#define SRST_WDT			13
+#define SRST_TCSR			14
+#define SRST_CLUSTER_CFG		15
+#define SRST_IMC			16
+#define SRST_NOC			17
+#define SRST_FLASH			18
+#define SRST_DDR0_0			19
+#define SRST_DDR0_1			20
+#define SRST_DDR1_0			21
+#define SRST_DDR1_1			22
+#define SRST_DDR0_POR			23
+#define SRST_DDR1_POR			24
+#define SRST_PCIE0_POR			25
+#define SRST_PCIE1_POR			26
+#define POR_ARST			32
+#define APC0_CPU0_FUNC_ARST		33
+#define APC0_CPU1_FUNC_ARST		34
+#define APC1_CPU0_FUNC_ARST		35
+#define APC1_CPU1_FUNC_ARST		36
+#define APC0_L2_FUNC_ARST		37
+#define APC1_L2_FUNC_ARST		38
+#define APC0_CPU0_DBG_ARST		39
+#define APC0_CPU1_DBG_ARST		40
+#define APC1_CPU0_DBG_ARST		41
+#define APC1_CPU1_DBG_ARST		42
+#define APC0_L2_DBG_ARST		43
+#define APC1_L2_DBG_ARST		44
+
+#ifdef CONFIG_DPU_PLL_ARST
+#define NR_PLL_RSTS			(APC1_L2_DBG_ARST + 1)
+#else
+#define NR_PLL_RSTS			(SRST_PCIE1_POR + 1)
+#endif
+
+/* PLL register access */
+#define PLL_REG_ACCESS(pll)		SRST_REG(0x08 + ((pll) << 2))
+#define PLL_REG_TIMING(pll)		SRST_REG(0x0C + ((pll) << 2))
 
 /* PLL_REG_ACCESS */
 #define PLL_REG_INVALID		_BV(25)
@@ -96,95 +194,6 @@
 #define __dw_pll_read(pll, reg)		dpu_pll_reg_read(pll, reg)
 #define __dw_pll_write(pll, reg, val)	dpu_pll_reg_write(pll, reg, val)
 #include <driver/dw_pll5ghz_tsmc12ffc.h>
-
-#define dpu_pll_enable(pll, freq)		\
-	dw_pll5ghz_tsmc12ffc_pwron(pll, freq)
-#define dpu_pll_disable(pll)			\
-	dw_pll5ghz_tsmc12ffc_pwrdn(pll)
-
-#define dpu_div_enable(pll, fvco, freq, r)	\
-	dw_pll5ghz_tsmc12ffc_enable(pll, fvco, freq, r)
-#define dpu_div_disable(pll, r)			\
-	dw_pll5ghz_tsmc12ffc_disable(pll, r)
-
-/* PLL GMUX registers */
-#define PLL_GMUX_CFG(pll)		PLL_REG(pll, 0x0C)
-
-/* PLL_GMUX_CFG */
-#define PLL_GMUX_EN_R			_BV(3)
-#define PLL_GMUX_SEL_R			_BV(2)
-#define PLL_GMUX_EN_P			_BV(1)
-#define PLL_GMUX_SEL_P			_BV(0)
-#define DPU_GMUX_SEL(r)			((r) ? PLL_GMUX_SEL_R : PLL_GMUX_SEL_P)
-#define DPU_GMUX_EN(r)			((r) ? PLL_GMUX_EN_R : PLL_GMUX_EN_P)
-
-#define dpu_gmux_selected(pll, r)	\
-	(!(__raw_readl(PLL_GMUX_CFG(pll)) & DPU_GMUX_SEL(r)))
-#define dpu_gmux_select(pll, r)		\
-	__raw_clearl(DPU_GMUX_SEL(r), PLL_GMUX_CFG(pll))
-#define dpu_gmux_deselect(pll, r)	\
-	__raw_setl(DPU_GMUX_SEL(r), PLL_GMUX_CFG(pll))
-#define dpu_gmux_enabled(pll, r)	\
-	(!!(__raw_readl(PLL_GMUX_CFG(pll)) & DPU_GMUX_EN(r)))
-#define dpu_gmux_enable(pll, r)		\
-	__raw_setl(DPU_GMUX_EN(r), PLL_GMUX_CFG(pll))
-#define dpu_gmux_disable(pll, r)	\
-	__raw_clearl(DPU_GMUX_EN(r), PLL_GMUX_CFG(pll))
-
-/* Soft reset registers */
-#define PLL_GLOBAL_RST			PLL_REG_REG(0x50)
-#define PLL_SOFT_RST(n)			PLL_1BIT_REG(0x50, n)
-
-/* PLL_SOFT_RST */
-#define PLL_SRST(n)			_BV(REG_1BIT_OFFSET(n))
-
-/* global reset bits */
-#define SRST_SYS			_BV(30)
-#define WDT_RST_DIS			_BV(31)
-
-/* SOFT_RST/CLUSTER_SOFT_RST IDs */
-#define SRST_GPDPU			0
-#define SRST_PCIE0			1
-#define SRST_PCIE1			2
-#define SRST_SPI			3
-#define SRST_I2C0			4
-#define SRST_I2C1			5
-#define SRST_I2C2			6
-#define SRST_UART			7
-#define SRST_PLIC			8
-#define SRST_GPIO			9
-#define SRST_RAM			10
-#define SRST_ROM			11
-#define SRST_TMR			12
-#define SRST_WDT			13
-#define SRST_TCSR			14
-#define SRST_CLUSTER_CFG		15
-#define SRST_IMC			16
-#define SRST_NOC			17
-#define SRST_FLASH			18
-#define SRST_DDR0_0			19
-#define SRST_DDR0_1			20
-#define SRST_DDR1_0			21
-#define SRST_DDR1_1			22
-#define POR_ARST			32
-#define APC0_CPU0_FUNC_ARST		33
-#define APC0_CPU1_FUNC_ARST		34
-#define APC1_CPU0_FUNC_ARST		35
-#define APC1_CPU1_FUNC_ARST		36
-#define APC0_L2_FUNC_ARST		37
-#define APC1_L2_FUNC_ARST		38
-#define APC0_CPU0_DBG_ARST		39
-#define APC0_CPU1_DBG_ARST		40
-#define APC1_CPU0_DBG_ARST		41
-#define APC1_CPU1_DBG_ARST		42
-#define APC0_L2_DBG_ARST		43
-#define APC1_L2_DBG_ARST		44
-
-#ifdef CONFIG_DPU_PLL_ARST
-#define NR_PLL_RSTS			(APC1_L2_DBG_ARST + 1)
-#else
-#define NR_PLL_RSTS			(SRST_DDR1_1 + 1)
-#endif
 
 #ifndef __ASSEMBLY__
 void dpu_pll_soft_reset(uint8_t comp);

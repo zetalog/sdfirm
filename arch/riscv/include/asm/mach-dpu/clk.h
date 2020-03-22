@@ -78,12 +78,14 @@
 #define PLL2_VCO		((clk_clk_t)2)
 #define PLL3_VCO		((clk_clk_t)3)
 #define PLL4_VCO		((clk_clk_t)4)
-#define NR_VCO_CLKS		(PLL4_VCO + 1)
+#define PLL5_VCO		((clk_clk_t)5)
+#define NR_VCO_CLKS		(PLL5_VCO + 1)
 #define pll0_vco		clkid(CLK_VCO, PLL0_VCO)
 #define pll1_vco		clkid(CLK_VCO, PLL1_VCO)
 #define pll2_vco		clkid(CLK_VCO, PLL2_VCO)
 #define pll3_vco		clkid(CLK_VCO, PLL3_VCO)
 #define pll4_vco		clkid(CLK_VCO, PLL4_VCO)
+#define pll5_vco		clkid(CLK_VCO, PLL5_VCO)
 
 #define CLK_PLL			((clk_cat_t)2)
 #define PLL0_P			((clk_clk_t)0)
@@ -91,13 +93,15 @@
 #define PLL2_P			((clk_clk_t)2)
 #define PLL3_P			((clk_clk_t)3)
 #define PLL4_P			((clk_clk_t)4)
-#define PLL3_R			((clk_clk_t)5)
+#define PLL5_P			((clk_clk_t)5)
+#define PLL3_R			((clk_clk_t)6)
 #define NR_PLL_CLKS		(PLL3_R + 1)
 #define pll0_p			clkid(CLK_PLL, PLL0_P)
 #define pll1_p			clkid(CLK_PLL, PLL1_P)
 #define pll2_p			clkid(CLK_PLL, PLL2_P)
 #define pll3_p			clkid(CLK_PLL, PLL3_P)
 #define pll4_p			clkid(CLK_PLL, PLL4_P)
+#define pll5_p			clkid(CLK_PLL, PLL5_P)
 #define pll3_r			clkid(CLK_PLL, PLL3_R)
 
 #define CLK_SEL			((clk_cat_t)3)
@@ -106,20 +110,22 @@
 #define DDR_CLK			((clk_clk_t)2) /* PLL2_P */
 #define PCIE_CLK		((clk_clk_t)3) /* PLL3_P */
 #define CPU_CLK			((clk_clk_t)4) /* PLL4_P */
-#define APB_CLK			((clk_clk_t)5) /* PLL3_R */
+#define PCIE_REF_CLK		((clk_clk_t)5) /* PLL5_P */
+#define APB_CLK			((clk_clk_t)6) /* PLL3_R */
 #define NR_SEL_CLKS		(APB_CLK + 1)
 #define imc_clk			clkid(CLK_SEL, IMC_CLK)
 #define pe_clk			clkid(CLK_SEL, PE_CLK)
 #define ddr_clk			clkid(CLK_SEL, DDR_CLK)
 #define pcie_clk		clkid(CLK_SEL, PCIE_CLK)
 #define apb_clk			clkid(CLK_SEL, APB_CLK)
+#define pcie_ref_clk		clkid(CLK_SEL, PCIE_REF_CLK)
 #define cpu_clk			clkid(CLK_SEL, CPU_CLK)
 #define periph_clk		apb_clk
 #define pcie_aclk		pcie_clk
 #define pcie_pclk		apb_clk
 #define pcie_aux_clk		xin
-#define pcie_ref_clk_p		pci_phy_clk
-#define pcie_ref_clk_n		pci_phy_clk
+#define pcie_ref_clk_p		pci_ref_clk
+#define pcie_ref_clk_n		pci_ref_clk
 
 #define CLK_RESET		((clk_cat_t)4)
 #define NR_RESET_CLKS		NR_PLL_RSTS
@@ -148,6 +154,10 @@
 #define srst_ddr0_1		clkid(CLK_RESET, SRST_DDR0_1)
 #define srst_ddr1_0		clkid(CLK_RESET, SRST_DDR1_0)
 #define srst_ddr1_1		clkid(CLK_RESET, SRST_DDR1_1)
+#define srst_ddr0_por		clkid(CLK_RESET, SRST_DDR0_POR)
+#define srst_ddr1_por		clkid(CLK_RESET, SRST_DDR0_POR)
+#define srst_pcie0_por		clkid(CLK_RESET, SRST_PCIE0_POR)
+#define srst_pcie1_por		clkid(CLK_RESET, SRST_PCIE1_POR)
 #define por_arst		clkid(CLK_RESET, POR_ARST)
 #define apc0_cpu0_func_arst	clkid(CLK_RESET, APC0_CPU0_FUNC_ARST)
 #define apc0_cpu1_func_arst	clkid(CLK_RESET, APC0_CPU1_FUNC_ARST)
