@@ -155,16 +155,16 @@ static DEFINE_PERCPU(struct qnode, qnodes[MAX_NODES]);
 /* We must be able to distinguish between no-tail and the tail at 0:0,
  * therefore increment the cpu number by one.
  */
-static inline __pure uint32_t encode_tail(int cpu, int idx)
+static inline __pure uint64_t encode_tail(int cpu, int idx)
 {
-	uint32_t tail;
+	uint64_t tail;
 
-	tail  = (cpu + 1) << _Q_TAIL_CPU_OFFSET;
-	tail |= idx << _Q_TAIL_IDX_OFFSET; /* assume < 4 */
+	tail  = ((uint64_t)(cpu + 1)) << _Q_TAIL_CPU_OFFSET;
+	tail |= (uint64_t)idx << _Q_TAIL_IDX_OFFSET; /* assume < 4 */
 	return tail;
 }
 
-static inline __pure struct mcs_spinlock *decode_tail(uint32_t tail)
+static inline __pure struct mcs_spinlock *decode_tail(uint64_t tail)
 {
 	int cpu = (tail >> _Q_TAIL_CPU_OFFSET) - 1;
 	int idx = (tail &  _Q_TAIL_IDX_MASK) >> _Q_TAIL_IDX_OFFSET;
@@ -179,7 +179,7 @@ struct mcs_spinlock *grab_mcs_node(struct mcs_spinlock *base, int idx)
 
 #define _Q_LOCKED_PENDING_MASK (_Q_LOCKED_MASK | _Q_PENDING_MASK)
 
-#if _Q_PENDING_BITS == 8
+#if _Q_PENDING_BITS == 16
 /* clear_pending - clear the pending bit.
  * @lock: Pointer to queued spinlock structure
  *
@@ -212,12 +212,12 @@ static __always_inline void clear_pending_set_locked(struct spinlock *lock)
  * p,*,* -> n,*,* ; prev = xchg(lock, node)
  */
 static __always_inline
-uint32_t xchg_tail(struct spinlock *lock, uint32_t tail)
+uint64_t xchg_tail(struct spinlock *lock, uint64_t tail)
 {
 	/* We can use relaxed semantics since the caller ensures that the
 	 * MCS node is properly initialized before updating the tail.
 	 */
-	return (uint32_t)xchg_relaxed(&lock->tail,
+	return (uint64_t)xchg_relaxed(&lock->tail,
 				      tail >> _Q_TAIL_OFFSET) <<
 	       _Q_TAIL_OFFSET;
 }
