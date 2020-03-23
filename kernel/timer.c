@@ -411,7 +411,7 @@ tid_t tid_3;
 int timer_nr_tests = TIMER_TEST_SHOTS;
 
 #ifdef CONFIG_TIMER_TEST_SHUTDOWN
-#define timer_test_shutdown()		board_shutdown()
+#define timer_test_shutdown()		sim_shutdown()
 #else
 #define timer_test_shutdown()		do { } while (0)
 #endif
