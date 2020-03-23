@@ -57,11 +57,14 @@ typedef uint8_t clk_clk_t;
 #define clk_clk(clkid)		LOBYTE(clkid)
 #define clk_cat(clkid)		HIBYTE(clkid)
 
+#include <driver/clk.h>
+
 #ifndef clk_freq_t
 #define clk_freq_t		uint32_t
 #endif
-
+#ifndef INVALID_FREQ
 #define INVALID_FREQ		((clk_freq_t)0)
+#endif
 
 struct clk_driver {
 	clk_clk_t max_clocks;
@@ -72,8 +75,6 @@ struct clk_driver {
 	void (*select)(clk_clk_t clk, clk_t src);
 	const char *(*get_name)(clk_clk_t clk);
 };
-
-#include <driver/clk.h>
 
 #ifdef CONFIG_CLK
 clk_freq_t clk_get_frequency(clk_t clk);

@@ -181,8 +181,8 @@ static int do_clk_dump(int argc, char *argv[])
 				clkid = clkid(cat, clk);
 				name = clk_get_mnemonic(clkid);
 				if (name)
-					printf("%20s: %-10d\n", name,
-					       clk_get_frequency(clkid));
+					printf("%20s: %-10lld\n", name,
+					       (uint64_t)clk_get_frequency(clkid));
 			}
 		}
 	}
@@ -265,7 +265,7 @@ static int do_clk_freq(int argc, char *argv[])
 		freq = strtoul(argv[3], NULL, 0);
 		ret = clk_set_frequency(clkid, freq);
 		if (ret) {
-			printf("faiure: %s %10d.\n", argv[2], freq);
+			printf("faiure: %s %10lld.\n", argv[2], (uint64_t)freq);
 			return ret;
 		}
 		printf("success.\n");
@@ -275,7 +275,7 @@ static int do_clk_freq(int argc, char *argv[])
 			printf("faiure: %s.\n", argv[2]);
 			return -EINVAL;
 		}
-		printf("%20s: %-10d\n", argv[2], freq);
+		printf("%20s: %-10lld\n", argv[2], (uint64_t)freq);
 	}
 	return 0;
 }

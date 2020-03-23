@@ -43,7 +43,6 @@
 #define __CLK_DPU_H_INCLUDE__
 
 #include <target/arch.h>
-#include <asm/mach/pll.h>
 
 #ifdef CONFIG_DPU_PLL
 #ifndef ARCH_HAVE_CLK
@@ -57,6 +56,7 @@
 #define FREQPLAN_RUN		0
 #define INVALID_FREQPLAN	NR_FREQPLANS
 
+#define clk_freq_t		uint64_t
 #define invalid_clk		clkid(0xFF, 0xFF)
 
 #define CLK_INPUT		((clk_cat_t)0)
@@ -190,6 +190,8 @@
 #define pcie0_por_n		srst_pcie0_por
 #define pcie1_arst_n		srst_pcie1
 #define pcie1_por_n		srst_pcie1_por
+
+#include <asm/mach/pll.h>
 
 /* Enable clock tree core */
 void clk_hw_ctrl_init(void);
