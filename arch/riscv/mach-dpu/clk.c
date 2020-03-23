@@ -806,6 +806,12 @@ struct clk_driver clk_input = {
  *===========================================================================*/
 static bool clk_hw_init = false;
 
+void ddr_apply_freqplan(int plan)
+{
+	vco_clks[PLL2_VCO].freq = freqplan_get_frequency(pll2_vco, plan);
+	pll_clks[PLL2_P].freq = freqplan_get_frequency(pll2_p, plan);
+}
+
 void board_init_clock(void)
 {
 	if (!clk_hw_init) {

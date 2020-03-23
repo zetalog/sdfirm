@@ -50,12 +50,12 @@ struct freqplan {
 	uint32_t f_pll_rclk;
 };
 
+#ifdef CONFIG_DPU_FREQPLAN_PE
 static struct freqplan pe_freqplan[NR_FREQPLANS] = {
 	[0] = {
 		.f_pll_vco = ULL(4000000000),
 		.f_pll_pclk = UL(1000000000),
 	},
-#ifndef CONFIG_DPU_BOOT
 	[1] = {
 		.f_pll_vco = ULL(3600000000),
 		.f_pll_pclk = UL(900000000),
@@ -80,15 +80,16 @@ static struct freqplan pe_freqplan[NR_FREQPLANS] = {
 		.f_pll_vco = ULL(3200000000),
 		.f_pll_pclk = UL(400000000),
 	},
-#endif
 };
+#else
+#define pe_freqplan		NULL
+#endif
 
 struct freqplan ddr_freqplan[NR_FREQPLANS] = {
 	[0] = {
 		.f_pll_vco = ULL(3200000000),
 		.f_pll_pclk = UL(800000000),
 	},
-#ifndef CONFIG_DPU_BOOT
 	[1] = {
 		.f_pll_vco = ULL(2933333332),
 		.f_pll_pclk = UL(733333333),
@@ -113,16 +114,15 @@ struct freqplan ddr_freqplan[NR_FREQPLANS] = {
 		.f_pll_vco = ULL(3200000000),
 		.f_pll_pclk = UL(400000000),
 	},
-#endif
 };
 
+#ifdef CONFIG_DPU_PLL_FREQPLAN_BUS
 struct freqplan bus_freqplan[NR_FREQPLANS] = {
 	[0] = {
 		.f_pll_vco = ULL(4000000000),
 		.f_pll_pclk = UL(1000000000),
 		.f_pll_rclk = UL(250000000),
 	},
-#ifndef CONFIG_DPU_BOOT
 	[1] = {
 		.f_pll_vco = ULL(3600000000),
 		.f_pll_pclk = UL(900000000),
@@ -153,8 +153,10 @@ struct freqplan bus_freqplan[NR_FREQPLANS] = {
 		.f_pll_pclk = UL(400000000),
 		.f_pll_rclk = UL(100000000),
 	},
-#endif
 };
+#else
+#define bus_freqplan		NULL
+#endif
 
 struct freqplan *freqplans[NR_PLLS] = {
 	[IMC_CLK] = NULL,
@@ -171,6 +173,20 @@ struct freqplan freqplans_def[NR_PLLS] = {
 		.f_pll_pclk = PLL0_P_FREQ,
 		.f_pll_rclk = INVALID_FREQ,
 	},
+#ifndef CONFIG_DPU_PLL_FREQPLAN_PE
+	[PE_CLK] = {
+		.f_pll_vco = PLL1_VCO_FREQ,
+		.f_pll_pclk = PLL1_P_FREQ,
+		.f_pll_rclk = INVALID_FREQ,
+	},
+#endif
+#ifndef CONFIG_DPU_PLL_FREQPLAN_BUS
+	[AXI_CLK] = {
+		.f_pll_vco = PLL3_VCO_FREQ,
+		.f_pll_pclk = PLL3_P_FREQ,
+		.f_pll_rclk = PLL3_R_FREQ,
+	},
+#endif
 	[CPU_CLK] = {
 		.f_pll_vco = PLL4_VCO_FREQ,
 		.f_pll_pclk = PLL4_P_FREQ,

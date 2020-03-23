@@ -53,11 +53,7 @@
 #endif
 #endif
 
-#ifdef CONFIG_DPU_BOOT
-#define NR_FREQPLANS		1
-#else
 #define NR_FREQPLANS		7
-#endif
 #define FREQPLAN_RUN		0
 #define INVALID_FREQPLAN	NR_FREQPLANS
 
@@ -197,5 +193,6 @@
 
 /* Enable clock tree core */
 void clk_hw_ctrl_init(void);
+void ddr_apply_freqplan(int plan);
 
 #endif /* __CLK_DPU_H_INCLUDE__ */

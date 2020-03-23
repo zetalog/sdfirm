@@ -62,6 +62,20 @@ if DPU_PLL
 config DPU_PLL_ARST
 	bool "Enable DPU PLL cluster reset (ARST) support"
 
+config DPU_PLL_FREQPLAN_PE
+	bool "Enable 7-gear PE frequency plan support"
+	help
+	  Frequency plan is only prepared for DDR 7-gear. Enable this
+	  option to enable PE frequency plan support to match DDR gears.
+	  If unsure, say 'N'.
+
+config DPU_PLL_FREQPLAN_BUS
+	bool "Enable 7-gear bus frequency plan support"
+	help
+	  Frequency plan is only prepared for DDR 7-gear. Enable this
+	  option to enable bus frequency plan support to match DDR gears.
+	  If unsure, say 'N'.
+
 endif
 
 menuconfig DPU_TMR

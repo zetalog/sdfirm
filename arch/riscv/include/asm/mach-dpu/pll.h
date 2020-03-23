@@ -213,7 +213,7 @@ clk_freq_t freqplan_get_fpclk(int pll, int plan);
 clk_freq_t freqplan_get_fpclk_nodef(int pll, int plan);
 clk_freq_t freqplan_get_frclk(int pll, int plan);
 /* External APIs */
-clk_freq_t freqplan_get_freqeuncy(clk_t clk, int plan);
+clk_freq_t freqplan_get_frequency(clk_t clk, int plan);
 #endif /* __ASSEMBLY__ */
 
 #endif /* __PLL_DPU_H_INCLUDE__ */
