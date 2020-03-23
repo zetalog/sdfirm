@@ -406,6 +406,23 @@ static int do_pll_operation(int argc, char * argv[])
 	return -ENODEV;
 }
 
+static int do_pll_bypass(int argc, char * argv[])
+{
+	int pll;
+
+	if (argc < 4)
+		return -EINVAL;
+
+	pll = strtoul(argv[2], NULL, 0);
+	if (strcmp(argv[3], "all"))
+		dw_pll5ghz_tsmc12ffc_bypass(pll, PLL_BYPASS_ALL);
+	if (strcmp(argv[3], "core"))
+		dw_pll5ghz_tsmc12ffc_bypass(pll, PLL_BYPASS_CORE);
+	if (strcmp(argv[3], "none"))
+		dw_pll5ghz_tsmc12ffc_bypass(pll, PLL_BYPASS_NONE);
+	return -ENODEV;
+}
+
 static int do_pll(int argc, char *argv[])
 {
 	if (argc < 2)
@@ -413,6 +430,8 @@ static int do_pll(int argc, char *argv[])
 
 	if (strcmp(argv[1], "access") == 0)
 		return do_pll_reg_access(argc, argv);
+	if (strcmp(argv[1], "bypass") == 0)
+		return do_pll_bypass(argc, argv);
 	return do_pll_operation(argc, argv);
 }
 
@@ -421,6 +440,8 @@ DEFINE_COMMAND(pll, do_pll, "Control DWC PLL5GHz TSMC12FFCNS",
 	"    -read pll register\n"
 	"pll access pll reg val\n"
 	"    -write pll register\n"
+	"pll bypass all|core|none\n"
+	"    -set pll output bypass mode\n"
 	"pll up pll freq\n"
 	"    -power up pll with specified frequency\n"
 	"pll down pll\n"
