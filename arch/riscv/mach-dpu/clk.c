@@ -65,47 +65,47 @@ struct reset_clk reset_clks[NR_RESET_CLKS] = {
 		.flags = CLK_SRST_F,
 	},
 	[SRST_PCIE0] = {
-		.clk_src = pcie_clk,
+		.clk_src = axi_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_PCIE1] = {
-		.clk_src = pcie_clk,
+		.clk_src = axi_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_SPI] = {
-		.clk_src = periph_clk,
+		.clk_src = apb_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_I2C0] = {
-		.clk_src = periph_clk,
+		.clk_src = apb_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_I2C1] = {
-		.clk_src = periph_clk,
+		.clk_src = apb_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_I2C2] = {
-		.clk_src = periph_clk,
+		.clk_src = apb_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_UART] = {
-		.clk_src = periph_clk,
+		.clk_src = apb_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_PLIC] = {
-		.clk_src = periph_clk,
+		.clk_src = apb_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_GPIO] = {
-		.clk_src = periph_clk,
+		.clk_src = apb_clk,
 		.flags = CLK_EN_F,
 	},
 	[SRST_RAM] = {
-		.clk_src = periph_clk,
+		.clk_src = apb_clk,
 		.flags = CLK_EN_F,
 	},
 	[SRST_ROM] = {
-		.clk_src = periph_clk,
+		.clk_src = apb_clk,
 		.flags = CLK_EN_F,
 	},
 	[SRST_TMR] = {
@@ -113,27 +113,27 @@ struct reset_clk reset_clks[NR_RESET_CLKS] = {
 		.flags = CLK_EN_F,
 	},
 	[SRST_WDT] = {
-		.clk_src = periph_clk,
+		.clk_src = apb_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_TCSR] = {
-		.clk_src = periph_clk,
+		.clk_src = apb_clk,
 		.flags = CLK_EN_F,
 	},
 	[SRST_CLUSTER_CFG] = {
-		.clk_src = periph_clk,
+		.clk_src = apb_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_IMC] = {
-		.clk_src = periph_clk,
+		.clk_src = apb_clk,
 		.flags = CLK_EN_F,
 	},
 	[SRST_NOC] = {
-		.clk_src = periph_clk,
+		.clk_src = apb_clk,
 		.flags = CLK_EN_F,
 	},
 	[SRST_FLASH] = {
-		.clk_src = periph_clk,
+		.clk_src = apb_clk,
 		.flags = CLK_EN_F,
 	},
 	[SRST_DDR0_0] = {
@@ -343,7 +343,7 @@ struct sel_clk sel_clks[NR_SEL_CLKS] = {
 			xin,
 		},
 	},
-	[PCIE_CLK] = {
+	[AXI_CLK] = {
 		.clk_sels = {
 			pll3_p,
 			xin,
@@ -374,7 +374,7 @@ const char *sel_clk_names[NR_SEL_CLKS] = {
 	[IMC_CLK] = "imc_clk (pll0_p_gmux)",
 	[PE_CLK] = "pe_clk (pll1_p_gmux)",
 	[DDR_CLK] = "ddr_clk (pll2_p_gmux)",
-	[PCIE_CLK] = "pcie_clk (pll3_p_gmux)",
+	[AXI_CLK] = "axi_clk (pll3_p_gmux)",
 	[CPU_CLK] = "cpu_clk (pll4_p_gmux)",
 	[PCIE_REF_CLK] = "pcie_ref_clk (pll5_p_gmux)",
 	[APB_CLK] = "apb_clk (pll3_r_gmux)",
@@ -465,7 +465,7 @@ static int set_clk_sel_freq(clk_clk_t clk, clk_freq_t freq)
 
 freq_valid:
 	/* Auto-balance apb_clk */
-	if (clk == PCIE_CLK)
+	if (clk == AXI_CLK)
 		clk_disable(apb_clk);
 	disable_clk_sel(clk);
 	ret = clk_set_frequency(sel_clks[clk].clk_sels[0], freq);
@@ -473,7 +473,7 @@ freq_valid:
 		return ret;
 	enable_clk_sel(clk);
 	/* Auto-balance apb_clk */
-	if (clk == PCIE_CLK)
+	if (clk == AXI_CLK)
 		clk_enable(apb_clk);
 	return 0;
 }

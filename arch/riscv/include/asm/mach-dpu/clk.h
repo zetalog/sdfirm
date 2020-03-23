@@ -108,7 +108,7 @@
 #define IMC_CLK			((clk_clk_t)0) /* PLL0_P */
 #define PE_CLK			((clk_clk_t)1) /* PLL1_P */
 #define DDR_CLK			((clk_clk_t)2) /* PLL2_P */
-#define PCIE_CLK		((clk_clk_t)3) /* PLL3_P */
+#define AXI_CLK			((clk_clk_t)3) /* PLL3_P */
 #define CPU_CLK			((clk_clk_t)4) /* PLL4_P */
 #define PCIE_REF_CLK		((clk_clk_t)5) /* PLL5_P */
 #define APB_CLK			((clk_clk_t)6) /* PLL3_R */
@@ -116,22 +116,21 @@
 #define imc_clk			clkid(CLK_SEL, IMC_CLK)
 #define pe_clk			clkid(CLK_SEL, PE_CLK)
 #define ddr_clk			clkid(CLK_SEL, DDR_CLK)
-#define pcie_clk		clkid(CLK_SEL, PCIE_CLK)
+#define axi_clk			clkid(CLK_SEL, AXI_CLK)
 #define apb_clk			clkid(CLK_SEL, APB_CLK)
 #define pcie_ref_clk		clkid(CLK_SEL, PCIE_REF_CLK)
 #define cpu_clk			clkid(CLK_SEL, CPU_CLK)
-#define periph_clk		apb_clk
 
 /* DDR clock alias */
 #define ddr0_clk		ddr_clk
-#define ddr0_aclk		pcie_clk
+#define ddr0_aclk		axi_clk
 #define ddr0_pclk		apb_clk
 /* PCIe clock alias */
-#define pcie0_aclk		pcie_clk
+#define pcie0_aclk		axi_clk
 #define pcie0_pclk		apb_clk
 #define pcie0_aux_clk		xin
 #define pcie0_ref_clk		pcie_ref_clk
-#define pcie1_aclk		pcie_clk
+#define pcie1_aclk		axi_clk
 #define pcie1_pclk		apb_clk
 #define pcie1_aux_clk		xin
 #define pcie1_ref_clk		pcie_ref_clk

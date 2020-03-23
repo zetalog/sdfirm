@@ -116,7 +116,7 @@ struct freqplan ddr_freqplan[NR_FREQPLANS] = {
 #endif
 };
 
-struct freqplan pcie_freqplan[NR_FREQPLANS] = {
+struct freqplan bus_freqplan[NR_FREQPLANS] = {
 	[0] = {
 		.f_pll_vco = ULL(4000000000),
 		.f_pll_pclk = UL(1000000000),
@@ -160,7 +160,7 @@ struct freqplan *freqplans[NR_PLLS] = {
 	[IMC_CLK] = NULL,
 	[PE_CLK] = pe_freqplan,
 	[DDR_CLK] = ddr_freqplan,
-	[PCIE_CLK] = pcie_freqplan,
+	[AXI_CLK] = bus_freqplan,
 	[CPU_CLK] = NULL,
 	[PCIE_REF_CLK] = NULL,
 };
