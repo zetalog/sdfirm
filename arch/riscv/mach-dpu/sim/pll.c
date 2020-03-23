@@ -59,7 +59,7 @@ struct pll_reg {
 	uint8_t scfrac_cnt;
 };
 
-struct pll_ctrl pll5ghz_tsmc12ffc[NR_PLL_CLKS] = {
+struct pll_ctrl pll5ghz_tsmc12ffc[NR_PLLS] = {
 	[0] = {
 		.cfg0 = 0x0,
 		.cfg1 = 0x00400000,
@@ -90,6 +90,12 @@ struct pll_ctrl pll5ghz_tsmc12ffc[NR_PLL_CLKS] = {
 		.status = 0x0,
 		.clk_cfg = 0x3,
 	},
+	[5] = {
+		.cfg0 = 0x0,
+		.cfg1 = 0x00400000,
+		.status = 0x0,
+		.clk_cfg = 0x3,
+	},
 };
 struct dpu_srst dpu_srst = {
 	.soft_rst = _BV(SRST_GPIO) | _BV(SRST_RAM) |
@@ -99,15 +105,15 @@ struct dpu_srst dpu_srst = {
 		    SRST_SYS | WDT_RST_DIS,
 	.cluster_soft_rst = 0xFFFFFFFF,
 };
-uint32_t pll_reg_access[NR_PLL_CLKS] = {
+uint32_t pll_reg_access[NR_PLLS] = {
 	[0] = PLL_REG_IDLE,
 	[1] = PLL_REG_IDLE,
 	[2] = PLL_REG_IDLE,
 	[3] = PLL_REG_IDLE,
 	[4] = PLL_REG_IDLE,
 };
-unsigned long pll_states[NR_PLL_CLKS];
-struct pll_reg pll_regs[NR_PLL_CLKS];
+unsigned long pll_states[NR_PLLS];
+struct pll_reg pll_regs[NR_PLLS];
 
 uint32_t sim_readl(caddr_t a)
 {
@@ -407,4 +413,11 @@ void sim_writel(uint32_t v, caddr_t a)
 void main(void)
 {
 	board_init_clock();
+	printf("====================\n");
+	printf("Applying DDR frequency 1\n");
+	ddr_apply_freqplan(1);
+	clk_enable(ddr0_clk);
+	printf("====================\n");
+	printf("Applying DDR frequency 0\n");
+	clk_set_frequency(ddr0_clk, freqplan_get_frequency(ddr_clk, 0));
 }
