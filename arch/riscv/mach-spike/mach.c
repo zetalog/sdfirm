@@ -44,9 +44,7 @@
 #ifdef CONFIG_SHUTDOWN
 void board_shutdown(void)
 {
-#ifndef CONFIG_SMP
 	sim_shutdown();
-#endif
 }
 #endif
 
