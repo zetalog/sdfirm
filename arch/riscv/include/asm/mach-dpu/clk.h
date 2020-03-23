@@ -121,17 +121,26 @@
 #define pcie_ref_clk		clkid(CLK_SEL, PCIE_REF_CLK)
 #define cpu_clk			clkid(CLK_SEL, CPU_CLK)
 #define periph_clk		apb_clk
-#define pcie_aclk		pcie_clk
-#define pcie_pclk		apb_clk
-#define pcie_aux_clk		xin
-#define pcie_ref_clk_p		pci_ref_clk
-#define pcie_ref_clk_n		pci_ref_clk
+
+/* DDR clock alias */
+#define ddr0_clk		ddr_clk
+#define ddr0_aclk		pcie_clk
+#define ddr0_pclk		apb_clk
+/* PCIe clock alias */
+#define pcie0_aclk		pcie_clk
+#define pcie0_pclk		apb_clk
+#define pcie0_aux_clk		xin
+#define pcie0_ref_clk		pcie_ref_clk
+#define pcie1_aclk		pcie_clk
+#define pcie1_pclk		apb_clk
+#define pcie1_aux_clk		xin
+#define pcie1_ref_clk		pcie_ref_clk
 
 #define CLK_RESET		((clk_cat_t)4)
 #define NR_RESET_CLKS		NR_PLL_RSTS
 #define srst_gpdpu		clkid(CLK_RESET, SRST_GPDPU)
 #define srst_pcie0		clkid(CLK_RESET, SRST_PCIE0)
-#define srst_pcie1		clkid(CLK_RESET, SRST_PCIE2)
+#define srst_pcie1		clkid(CLK_RESET, SRST_PCIE1)
 #define srst_spi		clkid(CLK_RESET, SRST_SPI)
 #define srst_i2c0		clkid(CLK_RESET, SRST_I2C0)
 #define srst_i2c1		clkid(CLK_RESET, SRST_I2C1)
@@ -171,6 +180,21 @@
 #define apc1_cpu1_dbg_arst	clkid(CLK_RESET, APC1_CPU1_DBG_ARST)
 #define apc0_l2_dbg_arst	clkid(CLK_RESET, APC0_L2_DBG_ARST)
 #define apc1_l2_dbg_arst	clkid(CLK_RESET, APC1_L2_DBG_ARST)
+
+/* DDR reset alias */
+#define ddr0_pwr_ok_in		srst_ddr0_por
+#define ddr0_prst_n		srst_ddr0_0
+#define ddr0_rst_n		srst_ddr0_1
+#define ddr0_arst_n		srst_ddr0_1
+#define ddr1_pwr_ok_in		srst_ddr1_por
+#define ddr1_prst_n		srst_ddr1_0
+#define ddr1_rst_n		srst_ddr1_1
+#define ddr1_arst_n		srst_ddr1_1
+/* PCIe reset alias */
+#define pcie0_arst_n		srst_pcie0
+#define pcie0_por_n		srst_pcie0_por
+#define pcie1_arst_n		srst_pcie1
+#define pcie1_por_n		srst_pcie1_por
 
 /* Enable clock tree core */
 void clk_hw_ctrl_init(void);
