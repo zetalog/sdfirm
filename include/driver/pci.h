@@ -5,4 +5,8 @@
 #include <asm/mach/pci.h>
 #endif
 
+#ifndef ARCH_HAVE_PCI
+#define pci_platform_init()		do { } while (0)
+#endif
+
 #endif /* __PCI_DRIVER_H_INCLUDE__ */

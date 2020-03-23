@@ -26,6 +26,11 @@ void usb_init(void);
 #else
 #define usb_init()
 #endif
+#ifdef CONFIG_PCI
+void pci_init(void);
+#else
+#define pci_init()
+#endif
 #ifdef CONFIG_NET
 void net_init(void);
 #else
@@ -137,6 +142,7 @@ void term_init(void);
 void modules_init(void)
 {
 	/* buses */
+	pci_init();
 	uart_init();
 	i2c_init();
 	spi_init();
