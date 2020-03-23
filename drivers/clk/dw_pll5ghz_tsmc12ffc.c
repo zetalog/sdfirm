@@ -268,6 +268,7 @@ void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
 	 *  1'b0: Fclkout = 0 or Fclkref/(P|R)
 	 *  1'b1: Fclkout = PLL output
 	 */
+	dw_pll5ghz_tsmc12ffc_bypass(pll, PLL_BYPASS_NONE);
 	dw_pll5ghz_tsmc12ffc_output_default(pll, false);
 	dw_pll5ghz_tsmc12ffc_output_default(pll, true);
 }
@@ -279,6 +280,7 @@ void dw_pll5ghz_tsmc12ffc_disable(uint8_t pll, bool r)
 
 void dw_pll5ghz_tsmc12ffc_pwrdn(uint8_t pll)
 {
+	dw_pll5ghz_tsmc12ffc_bypass(pll, PLL_BYPASS_NONE);
 	if (__raw_readl(DW_PLL_STATUS(pll)) & PLL_STANDBYEFF)
 		dw_pll5ghz_tsmc12ffc_relock(pll);
 	if (__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED) {
@@ -289,6 +291,8 @@ void dw_pll5ghz_tsmc12ffc_pwrdn(uint8_t pll)
 
 void dw_pll5ghz_tsmc12ffc_bypass(uint8_t pll, uint8_t mode)
 {
+	if (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_PWRON))
+		return;
 	switch (mode) {
 	case PLL_BYPASS_CORE:
 		__raw_setl(PLL_BYPASS, DW_PLL_CFG1(pll));
