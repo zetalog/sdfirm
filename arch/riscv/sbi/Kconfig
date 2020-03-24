@@ -22,6 +22,10 @@ if SBI
 config SBI_PAYLOAD
 	bool "Enable SBI payload binary"
 
+config SBI_CSR_MIMPID
+	bool "Support reading the mimpid CSR"
+	default n
+
 if SBI_PAYLOAD
 
 config SBI_PAYLOAD_PATH
