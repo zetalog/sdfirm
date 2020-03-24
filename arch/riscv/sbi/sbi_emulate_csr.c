@@ -90,6 +90,11 @@ int sbi_emulate_csr_read(int csr_num, u32 hartid, ulong mstatus,
 	case CSR_MHARTID:
 		*csr_val = hartid;
 		break;
+#ifdef CONFIG_SBI_CSR_MIMPID
+	case CSR_MIMPID:
+		*csr_val = csr_read(CSR_MIMPID);
+		break;
+#endif
 	default:
 		sbi_printf("%s: hartid%d: invalid csr_num=0x%x\n", __func__,
 			   hartid, csr_num);
