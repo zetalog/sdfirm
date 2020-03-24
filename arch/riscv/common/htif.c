@@ -64,15 +64,9 @@ DEFINE_SPINLOCK(htif_lock);
 #define HTIF_BCD_CMD_READ		0
 #define HTIF_BCD_CMD_WRITE		1
 
-#if __riscv_xlen == 64
 #define TOHOST_CMD(dev, cmd, payload)			\
 	(((uint64_t)(dev) << 56) |			\
 	 ((uint64_t)(cmd) << 48) | (uint64_t)(payload))
-#else
-#define TOHOST_CMD(dev, cmd, payload) ({		\
-	if ((dev) || (cmd)) __builtin_trap();		\
-	(payload); })
-#endif
 #define FROMHOST_DEV(fromhost_value)	\
 	((uint64_t)(fromhost_value) >> 56)
 #define FROMHOST_CMD(fromhost_value)	\
@@ -119,11 +113,6 @@ int htif_console_read(void)
 	/* HTIF devices are not supported on RV32 */
 	return -1;
 }
-
-void htif_console_write(uint8_t ch)
-{
-	/* HTIF devices are not supported on RV32. */
-}
 #else
 bool htif_con_pending = false;
 bool htif_console_poll(void)
@@ -160,6 +149,7 @@ int htif_console_read(void)
 	spin_unlock(&htif_lock);
 	return ch - 1;
 }
+#endif
 
 void htif_console_write(uint8_t ch)
 {
@@ -167,7 +157,6 @@ void htif_console_write(uint8_t ch)
 	__set_tohost(HTIF_DEV_BCD, HTIF_BCD_CMD_WRITE, ch);
 	spin_unlock(&htif_lock);
 }
-#endif
 
 static void do_tohost_fromhost(uintptr_t dev, uintptr_t cmd, uintptr_t data)
 {
