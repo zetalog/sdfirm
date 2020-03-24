@@ -147,6 +147,20 @@ endmenu
 
 menu "Shutdown scheme"
 
+config SPIKE_SHUTDOWN_SPIKE
+	bool "Spike HTIF poweroff"
+	help
+	  Write to HTIF at specific CSR mimpid.
+	select SBI_CSR_MIMPID if SBI
+
+if SPIKE_SHUTDOWN_SPIKE
+
+config SPIKE_CSR_MIMPID
+	hex "CSR mimpid value identified to Spike"
+	default 0x7370696B
+
+endif
+
 config SPIKE_SHUTDOWN_DUOWEN
 	bool "Duowen IO write"
 	help
