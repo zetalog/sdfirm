@@ -302,6 +302,11 @@ ENDPROC(get_tp)
 ENTRY(sim_shutdown)
 	j	test_section_end
 ENTRY(test_section_end)
+#ifdef CONFIG_SPIKE_SHUTDOWN_SPIKE
+	li a0, CONFIG_SPIKE_CSR_MIMPID
+	csrr a1, CSR_MIMPID
+	beq a0, a1, htif_poweroff
+#endif
 #ifdef CONFIG_SPIKE_SHUTDOWN_DUOWEN
 	csrw	satp, zero
 	li	a0, 0xFFFFFFFF00
