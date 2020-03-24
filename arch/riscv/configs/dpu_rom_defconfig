@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Mar 18 12:42:05 2020
+# Tue Mar 24 14:33:56 2020
 #
 CONFIG_32BIT=y
 CONFIG_RISCV=y
@@ -113,7 +113,10 @@ CONFIG_DPU_TCSR=y
 # CONFIG_DPU_TCSR_BUS_TRANS is not set
 CONFIG_DPU_PLL=y
 # CONFIG_DPU_PLL_ARST is not set
+# CONFIG_DPU_PLL_FREQPLAN_PE is not set
+# CONFIG_DPU_PLL_FREQPLAN_BUS is not set
 CONFIG_DPU_TMR=y
+# CONFIG_DPU_PCI_SUBSYS is not set
 
 #
 # Feature setup
