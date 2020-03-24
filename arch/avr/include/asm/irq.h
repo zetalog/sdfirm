@@ -8,7 +8,7 @@
 #define cli()  __asm__ __volatile__ ("cli" ::)
 #define sei()  __asm__ __volatile__ ("sei" ::)
 
-typedef uint8_t irq_flags_t;
+typedef __unused uint8_t irq_flags_t;
 
 #define irq_hw_flags_save(__flags__)		\
 	do {					\

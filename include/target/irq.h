@@ -21,10 +21,17 @@ typedef void (*irq_handler)(void);
 #include <driver/irqc.h>
 #endif
 
+#ifdef CONFIG_SYS_NOIRQ
+#define irq_local_enable()		do { } while (0)
+#define irq_local_disable()		do { } while (0)
+#define irq_local_save(__flags__)	((__flags__) = 0)
+#define irq_local_restore(__flags__)	do { } while (0)
+#else
 #define irq_local_enable()		irq_hw_flags_enable()
 #define irq_local_disable()		irq_hw_flags_disable()
 #define irq_local_save(__flags__)	irq_hw_flags_save(__flags__)
 #define irq_local_restore(__flags__)	irq_hw_flags_restore(__flags__)
+#endif
 
 void irq_init(void);
 void irq_smp_init(void);

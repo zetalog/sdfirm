@@ -45,7 +45,7 @@
 #include <target/arch.h>
 
 #ifndef __ASSEMBLY__
-typedef uint32_t irq_flags_t;
+typedef __unused uint32_t irq_flags_t;
 
 struct pt_regs {
 	unsigned long zero;

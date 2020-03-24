@@ -48,6 +48,7 @@ extern uint64_t __htif_base;
 volatile uint64_t tohost __attribute__((section(".htif")));
 volatile uint64_t fromhost __attribute__((section(".htif")));
 volatile int htif_console_buf = -1;
+bool htif_con_pending = false;
 DEFINE_SPINLOCK(htif_lock);
 
 #define TOHOST(base_int)	(uint64_t *)(base_int + TOHOST_OFFSET)
@@ -102,19 +103,6 @@ static void __set_tohost(uintptr_t dev, uintptr_t cmd, uintptr_t data)
 	tohost = TOHOST_CMD(dev, cmd, data);
 }
 
-#if __riscv_xlen == 32
-bool htif_console_poll(void)
-{
-	return false;
-}
-
-int htif_console_read(void)
-{
-	/* HTIF devices are not supported on RV32 */
-	return -1;
-}
-#else
-bool htif_con_pending = false;
 bool htif_console_poll(void)
 {
 	int ch;
@@ -149,7 +137,6 @@ int htif_console_read(void)
 	spin_unlock(&htif_lock);
 	return ch - 1;
 }
-#endif
 
 void htif_console_write(uint8_t ch)
 {

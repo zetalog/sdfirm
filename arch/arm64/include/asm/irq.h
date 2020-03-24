@@ -21,7 +21,7 @@
 #define IRQ_PTIMER3	29 /* EL3 physical timer */
 #define IRQ_PTIMER1	30 /* EL1 physical timer */
 
-typedef uint64_t irq_flags_t;
+typedef __unused uint64_t irq_flags_t;
 
 #define irq_hw_flags_save(x)					\
 	__asm__ __volatile__(					\

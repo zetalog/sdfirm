@@ -3,7 +3,7 @@
 
 #include <asm/mach/irq.h>
 
-typedef uint32_t irq_flags_t;
+typedef __unused uint32_t irq_flags_t;
 
 #define irq_hw_flags_save(x)		\
 	do {				\

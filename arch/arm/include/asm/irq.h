@@ -5,7 +5,7 @@
 #include <target/generic.h>
 #include <asm/reg.h>
 
-typedef uint32_t irq_flags_t;
+typedef __unused uint32_t irq_flags_t;
 
 #ifdef CONFIG_CPU_32v7M
 #define irq_hw_flags_save(x)					\
