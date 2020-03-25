@@ -72,6 +72,7 @@ static struct freqplan pe_freqplan[NR_FREQPLANS] = {
 		.f_pll_vco = ULL(4800000000),
 		.f_pll_pclk = UL(600000000),
 	},
+#if 0
 	[5] = {
 		.f_pll_vco = ULL(4000000000),
 		.f_pll_pclk = UL(500000000),
@@ -80,75 +81,35 @@ static struct freqplan pe_freqplan[NR_FREQPLANS] = {
 		.f_pll_vco = ULL(3200000000),
 		.f_pll_pclk = UL(400000000),
 	},
+#endif
 };
 #else
 #define pe_freqplan		NULL
 #endif
 
-struct freqplan ddr_freqplan[NR_FREQPLANS] = {
-	[0] = {
-		.f_pll_vco = ULL(3200000000),
-		.f_pll_pclk = UL(800000000),
-	},
-	[1] = {
-		.f_pll_vco = ULL(2933333332),
-		.f_pll_pclk = UL(733333333),
-	},
-	[2] = {
-		.f_pll_vco = ULL(2666666664),
-		.f_pll_pclk = UL(666666666),
-	},
-	[3] = {
-		.f_pll_vco = ULL(4800000000),
-		.f_pll_pclk = UL(600000000),
-	},
-	[4] = {
-		.f_pll_vco = ULL(4266666664),
-		.f_pll_pclk = UL(533333333),
-	},
-	[5] = {
-		.f_pll_vco = ULL(3733333328),
-		.f_pll_pclk = UL(466666666),
-	},
-	[6] = {
-		.f_pll_vco = ULL(3200000000),
-		.f_pll_pclk = UL(400000000),
-	},
-};
-
 #ifdef CONFIG_DPU_PLL_FREQPLAN_BUS
 struct freqplan bus_freqplan[NR_FREQPLANS] = {
 	[0] = {
-		.f_pll_vco = ULL(4000000000),
-		.f_pll_pclk = UL(1000000000),
-		.f_pll_rclk = UL(250000000),
-	},
-	[1] = {
-		.f_pll_vco = ULL(3600000000),
-		.f_pll_pclk = UL(900000000),
-		.f_pll_rclk = UL(100000000),
-	},
-	[2] = {
 		.f_pll_vco = ULL(3200000000),
 		.f_pll_pclk = UL(800000000),
 		.f_pll_rclk = UL(100000000),
 	},
-	[3] = {
+	[1] = {
 		.f_pll_vco = ULL(2800000000),
 		.f_pll_pclk = UL(700000000),
 		.f_pll_rclk = UL(100000000),
 	},
-	[4] = {
+	[2] = {
 		.f_pll_vco = ULL(3600000000),
 		.f_pll_pclk = UL(600000000),
 		.f_pll_rclk = UL(100000000),
 	},
-	[5] = {
+	[3] = {
 		.f_pll_vco = ULL(4000000000),
 		.f_pll_pclk = UL(500000000),
 		.f_pll_rclk = UL(100000000),
 	},
-	[6] = {
+	[4] = {
 		.f_pll_vco = ULL(3200000000),
 		.f_pll_pclk = UL(400000000),
 		.f_pll_rclk = UL(100000000),
@@ -161,7 +122,7 @@ struct freqplan bus_freqplan[NR_FREQPLANS] = {
 struct freqplan *freqplans[NR_PLLS] = {
 	[IMC_CLK] = NULL,
 	[PE_CLK] = pe_freqplan,
-	[DDR_CLK] = ddr_freqplan,
+	[DDR_CLK] = NULL,
 	[AXI_CLK] = bus_freqplan,
 	[CPU_CLK] = NULL,
 	[PCIE_REF_CLK] = NULL,
@@ -239,31 +200,4 @@ clk_freq_t freqplan_get_frclk(int pll, int plan)
 		return INVALID_FREQ;
 	fp = freqplan_get(pll, plan);
 	return fp ? fp->f_pll_rclk : freqplans_def[pll].f_pll_rclk;
-}
-
-clk_freq_t freqplan_get_fpclk_nodef(int pll, int plan)
-{
-	struct freqplan *fp = freqplan_get(pll, plan);
-
-	return fp ? fp->f_pll_pclk : INVALID_FREQ;
-}
-
-clk_freq_t freqplan_get_frequency(clk_t clk, int plan)
-{
-	clk_clk_t cid = clk_clk(clk);
-
-	switch (clk_cat(clk)) {
-	case CLK_SEL:
-	case CLK_PLL:
-		if (cid > NR_PLLS) {
-			if (cid != PLL3_R)
-				return INVALID_FREQ;
-			return freqplan_get_frclk(PLL3_P, plan);
-		}
-		return freqplan_get_fpclk(cid, plan);
-	case CLK_VCO:
-		return freqplan_get_fvco(cid, plan);
-	default:
-		return INVALID_FREQ;
-	}
 }

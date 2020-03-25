@@ -41,6 +41,7 @@
 
 #include <target/clk.h>
 #include <target/panic.h>
+#include <target/ddr.h>
 
 #define CLK_SEL_F	_BV(0)
 #define CLK_EN_F	_BV(1)
@@ -361,6 +362,12 @@ struct sel_clk sel_clks[NR_SEL_CLKS] = {
 			pcie_phy_clk,
 		},
 	},
+	[DDR_BYPASS_PCLK] = {
+		.clk_sels = {
+			pll2_r,
+			xin,
+		},
+	},
 	[APB_CLK] = {
 		.clk_sels = {
 			pll3_r,
@@ -377,6 +384,7 @@ const char *sel_clk_names[NR_SEL_CLKS] = {
 	[AXI_CLK] = "axi_clk (pll3_p_gmux)",
 	[CPU_CLK] = "cpu_clk (pll4_p_gmux)",
 	[PCIE_REF_CLK] = "pcie_ref_clk (pll5_p_gmux)",
+	[DDR_BYPASS_PCLK] = "ddr_bypass_pclk (pll2_r_gmux)",
 	[APB_CLK] = "apb_clk (pll3_r_gmux)",
 };
 
@@ -392,8 +400,8 @@ static const char *get_clk_sel_name(clk_clk_t clk)
 
 static int enable_clk_sel(clk_clk_t clk)
 {
-	bool r = (clk >= NR_PLLS);
-	uint8_t pll = r ? 3 : clk;
+	bool r = CLK_IS_PLL_RCLK(clk);
+	uint8_t pll = CLK_TO_PLL(clk, r);
 
 	if (clk >= NR_SEL_CLKS)
 		return -EINVAL;
@@ -414,8 +422,8 @@ static int enable_clk_sel(clk_clk_t clk)
 
 static void disable_clk_sel(clk_clk_t clk)
 {
-	bool r = (clk >= NR_PLLS);
-	uint8_t pll = r ? 3 : clk;
+	bool r = CLK_IS_PLL_RCLK(clk);
+	uint8_t pll = CLK_TO_PLL(clk, r);
 
 	if (clk >= NR_SEL_CLKS)
 		return;
@@ -435,8 +443,8 @@ static void disable_clk_sel(clk_clk_t clk)
 
 static clk_freq_t get_clk_sel_freq(clk_clk_t clk)
 {
-	bool r = (clk >= NR_PLLS);
-	uint8_t pll = r ? 3 : clk;
+	bool r = CLK_IS_PLL_RCLK(clk);
+	uint8_t pll = CLK_TO_PLL(clk, r);
 
 	if (clk >= NR_SEL_CLKS)
 		return INVALID_FREQ;
@@ -446,27 +454,44 @@ static clk_freq_t get_clk_sel_freq(clk_clk_t clk)
 		return clk_get_frequency(sel_clks[clk].clk_sels[1]);
 }
 
+/* Validating if CLK_SEL/CLK_PLL frequency is valid */
+int is_valid_clk_freq(clk_clk_t clk, clk_freq_t freq)
+{
+	int i;
+
+	/* APB/DDR_BYPASS_PCLK should be aoto balanced */
+	if (clk > NR_PLLS)
+		return INVALID_FREQPLAN;
+
+	/* Only allows pre-defined frequency plans */
+	if (clk == DDR_CLK) {
+		for (i = 0; i < NR_DDR_SPEEDS; i++) {
+			if (freq == ddr_get_fpclk(i))
+				return i;
+		}
+	} else {
+		for (i = 0; i < NR_FREQPLANS; i++) {
+			if (freq == freqplan_get_fpclk(clk, i))
+				return i;
+		}
+	}
+	return INVALID_FREQPLAN;
+}
+
 static int set_clk_sel_freq(clk_clk_t clk, clk_freq_t freq)
 {
 	int i;
 	int ret;
 
-	/* GMUX of apb_clk should be auto-balanced */
-	if (clk > NR_PLLS)
+	i = is_valid_clk_freq(clk, freq);
+	if (i == INVALID_FREQPLAN)
 		return -EINVAL;
-	BUG_ON(clk == APB_CLK);
 
-	/* Only allows pre-defined frequency plans */
-	for (i = 0; i < NR_FREQPLANS; i++) {
-		if (freq == freqplan_get_fpclk_nodef(clk, i))
-			goto freq_valid;
-	}
-	return -EINVAL;
-
-freq_valid:
-	/* Auto-balance apb_clk */
+	/* Auto-balance apb_clk/ddr_bypass_pclk */
 	if (clk == AXI_CLK)
 		clk_disable(apb_clk);
+	if (clk == DDR_CLK)
+		clk_disable(ddr_bypass_pclk);
 	disable_clk_sel(clk);
 	ret = clk_set_frequency(sel_clks[clk].clk_sels[0], freq);
 	if (ret)
@@ -475,6 +500,9 @@ freq_valid:
 	/* Auto-balance apb_clk */
 	if (clk == AXI_CLK)
 		clk_enable(apb_clk);
+	/* Auto-balance ddr_bypass_pclk */
+	if (clk == DDR_CLK && ddr_get_frclk(i) != INVALID_FREQ)
+		clk_enable(ddr_bypass_pclk);
 	return 0;
 }
 
@@ -525,6 +553,11 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 		.freq = PLL5_P_FREQ,
 		.enabled = false,
 	},
+	[PLL2_R] = {
+		.src = pll2_vco,
+		.freq = PLL2_R_FREQ,
+		.enabled = false,
+	},
 	[PLL3_R] = {
 		.src = pll3_vco,
 		.freq = PLL3_R_FREQ,
@@ -540,6 +573,7 @@ const char *pll_clk_names[NR_PLL_CLKS] = {
 	[PLL3_P] = "pll3_p",
 	[PLL4_P] = "pll4_p",
 	[PLL5_P] = "pll5_p",
+	[PLL2_R] = "pll2_r",
 	[PLL3_R] = "pll3_r",
 };
 
@@ -555,8 +589,8 @@ const char *get_pll_name(clk_clk_t clk)
 
 static void __enable_pll(clk_clk_t clk)
 {
-	bool r = (clk >= NR_PLLS);
-	uint8_t pll = r ? 3 : clk;
+	bool r = CLK_IS_PLL_RCLK(clk);
+	uint8_t pll = CLK_TO_PLL(clk, r);
 
 	if (!pll_clks[clk].enabled) {
 		clk_enable(pll_clks[clk].src);
@@ -569,8 +603,8 @@ static void __enable_pll(clk_clk_t clk)
 
 static void __disable_pll(clk_clk_t clk)
 {
-	bool r = (clk >= NR_PLLS);
-	uint8_t pll = r ? 3 : clk;
+	bool r = CLK_IS_PLL_RCLK(clk);
+	uint8_t pll = CLK_TO_PLL(clk, r);
 
 	if (pll_clks[clk].enabled) {
 		pll_clks[clk].enabled = false;
@@ -606,19 +640,15 @@ static int set_pll_freq(clk_clk_t clk, clk_freq_t freq)
 	int i;
 	int ret;
 
-	/* PLL rclkout of apb_clk should be auto-balanced */
-	if (clk > NR_PLLS)
+	i = is_valid_clk_freq(clk, freq);
+	if (i == INVALID_FREQPLAN)
 		return -EINVAL;
-	BUG_ON(clk == PLL3_R);
 
-	/* Only allows pre-defined frequency plans */
-	for (i = 0; i < NR_FREQPLANS; i++) {
-		if (freq == freqplan_get_fpclk_nodef(clk, i))
-			goto freq_valid;
+	/* Auto-balance ddr_bypass_pclk */
+	if (clk == PLL2_P) {
+		pll_clks[PLL2_R].freq = ddr_get_frclk(i);
+		__disable_pll(PLL2_R);
 	}
-	return -EINVAL;
-
-freq_valid:
 	/* Auto-balance apb_clk */
 	if (clk == PLL3_P) {
 		pll_clks[PLL3_R].freq = freqplan_get_frclk(clk, i);
@@ -626,8 +656,12 @@ freq_valid:
 	}
 	pll_clks[clk].freq = freq;
 	__disable_pll(clk);
-	ret = clk_set_frequency(pll_clks[clk].src,
-				freqplan_get_fvco(clk, i));
+	if (clk == PLL2_P || clk == PLL2_R)
+		ret = clk_set_frequency(pll_clks[clk].src,
+					ddr_get_fvco(i));
+	else
+		ret = clk_set_frequency(pll_clks[clk].src,
+					freqplan_get_fvco(clk, i));
 	if (ret) {
 		con_printf("PLL(%d): set frequency(%lld) failure.\n",
 			   clk, freq);
@@ -637,6 +671,9 @@ freq_valid:
 	/* Auto-balance apb_clk */
 	if (clk == PLL3_P)
 		__enable_pll(PLL3_R);
+	/* Auto-balance ddr_bypass_pclk */
+	if (clk == PLL2_P && ddr_get_frclk(i) != INVALID_FREQ)
+		__enable_pll(PLL2_R);
 	return 0;
 }
 
@@ -806,10 +843,18 @@ struct clk_driver clk_input = {
  *===========================================================================*/
 static bool clk_hw_init = false;
 
-void ddr_apply_freqplan(int plan)
+void clk_apply_vco(clk_clk_t clk, clk_freq_t freq)
 {
-	vco_clks[PLL2_VCO].freq = freqplan_get_frequency(pll2_vco, plan);
-	pll_clks[PLL2_P].freq = freqplan_get_frequency(pll2_p, plan);
+	if (clk >= NR_VCO_CLKS)
+		return;
+	vco_clks[clk].freq = freq;
+}
+
+void clk_apply_pll(clk_clk_t clk, clk_freq_t freq)
+{
+	if (clk >= NR_PLLS)
+		return;
+	pll_clks[clk].freq = freq;
 }
 
 void board_init_clock(void)

@@ -56,6 +56,7 @@ endif
 menuconfig DPU_PLL
 	bool "Enable DPU PLL and clock/reset support"
 	select DW_PLL5GHZ_TSMC12FFC
+	select MATH_DIV32
 
 if DPU_PLL
 
@@ -82,6 +83,14 @@ menuconfig DPU_TMR
 	bool "Enable DPU RISC-V timer support"
 
 if DPU_TMR
+
+endif
+
+menuconfig DPU_DDR
+	bool "Enable DPU DDR support"
+	select DW_UMCTL2
+
+if DPU_DDR
 
 endif
 

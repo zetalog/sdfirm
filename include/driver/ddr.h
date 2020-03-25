@@ -35,50 +35,21 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)arch.h: DPU machine specific definitions
- * $Id: arch.h,v 1.1 2020-03-02 16:11:00 zhenglv Exp $
+ * @(#)ddr.h: required DDR driver specific abstraction
+ * $Id: ddr.h,v 1.1 2020-03-26 08:51:00 zhenglv Exp $
  */
 
-#ifndef __ARCH_DPU_H_INCLUDE__
-#define __ARCH_DPU_H_INCLUDE__
+#ifndef __DDR_DRIVER_H_INCLUDE__
+#define __DDR_DRIVER_H_INCLUDE__
 
-#ifdef CONFIG_ARCH_HAS_LOVEC
-#define __VEC			__LOVEC
+#ifdef CONFIG_ARCH_HAS_DDR
+#include <asm/mach/ddr.h>
 #endif
 
-#include <asm/mach/tcsr.h>
+#ifndef ARCH_HAVE_DDR
+#define ddr_hw_ctrl_init()		do { } while (0)
+#define ddr_hw_config_speed(speed)	do { } while (0)
+#define ddr_hw_enable_speed(speed)	do { } while (0)
+#endif
 
-/* This file is intended to be used for implementing SoC specific
- * instructions, registers.
- */
-
-#define XIN_FREQ		UL(25000000)	/* 25MHz */
-#define PCIE_PHY_CLK_FREQ	UL(25000000)	/* 25MHz */
-#define PLL0_VCO_FREQ		ULL(3200000000)	/* 3.2GHz */
-#define PLL1_VCO_FREQ		ULL(4000000000)	/* 4GHz */
-#define PLL2_VCO_FREQ		ULL(3200000000)	/* 3.2GHz */
-#define PLL3_VCO_FREQ		ULL(3200000000)	/* 3.2GHz */
-#define PLL4_VCO_FREQ		ULL(4000000000)	/* 4GHz */
-#define PLL5_VCO_FREQ		ULL(2500000000) /* 2.5GHz */
-#define PLL2_VCO_LOW_FREQ	ULL(2500000000)	/* 2.5GHz */
-#define PLL0_P_FREQ		UL(800000000)	/* 800MHz */
-#define PLL1_P_FREQ		UL(1000000000)	/* 1GHz */
-#define PLL2_P_FREQ		UL(800000000)	/* 800MHz */
-#define PLL2_R_FREQ		UL(50000000)	/* 50MHz */
-#define PLL3_P_FREQ		UL(800000000)	/* 800MHz */
-#define PLL3_R_FREQ		UL(200000000)	/* 200MHz */
-#define PLL4_P_FREQ		UL(2000000000)	/* 2GHz */
-#define PLL5_P_FREQ		UL(100000000)	/* 100MHz */
-#define IMC_CLK_FREQ		PLL0_P_FREQ
-#define PE_CLK_FREQ		PLL1_P_FREQ
-#define AXI_CLK_FREQ		PLL3_P_FREQ
-#define APB_CLK_FREQ		PLL3_R_FREQ
-#define CPU_CLK_FREQ		PLL4_P_FREQ
-#define PCIE_REF_CLK_FREQ	PLL5_P_FREQ
-
-#ifndef __ASSEMBLY__
-void board_init_clock(void);
-void board_init_timestamp(void);
-#endif /* __ASSEMBLY__ */
-
-#endif /* __ARCH_DPU_H_INCLUDE__ */
+#endif /* __DDR_DRIVER_H_INCLUDE__ */

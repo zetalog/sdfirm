@@ -1,5 +1,6 @@
 #include <target/arch.h>
 #include <target/clk.h>
+#include <target/ddr.h>
 #include <target/panic.h>
 
 #define PLL_REG_RW_MASK				\
@@ -111,16 +112,24 @@ uint32_t pll_reg_access[NR_PLLS] = {
 	[2] = PLL_REG_IDLE,
 	[3] = PLL_REG_IDLE,
 	[4] = PLL_REG_IDLE,
+	[5] = PLL_REG_IDLE,
 };
 unsigned long pll_states[NR_PLLS];
 struct pll_reg pll_regs[NR_PLLS];
+
+uint32_t addr_tran_lo[6];
+uint32_t addr_tran_hi[6];
 
 uint32_t sim_readl(caddr_t a)
 {
 	int pll;
 	int offset;
 
-	if (a >= 0x4014000 && a < 0x4014050) {
+	if (a >= IMC_ADDR_TRANS_LO(0) && a < IMC_ADDR_TRANS_LO(5)) {
+		return addr_tran_lo[(a - TCSR_REG(0x40)) / 8];
+	} else if (a >= IMC_ADDR_TRANS_HI(0) && a < IMC_ADDR_TRANS_HI(5)) {
+		return addr_tran_hi[(a - TCSR_REG(0x44)) / 8];
+	} else if (a >= PLL_REG_REG(0) && a < SRST_REG(0)) {
 		pll = (a & 0xF0) >> 4;
 		offset = (a & 0x0F) / 4;
 		if (offset == 0)
@@ -131,12 +140,12 @@ uint32_t sim_readl(caddr_t a)
 			return pll5ghz_tsmc12ffc[pll].status;
 		if (offset == 3)
 			return pll5ghz_tsmc12ffc[pll].clk_cfg;
-	} else if (a == 0x40140050)
+	} else if (a == SRST_REG(0))
 		return dpu_srst.soft_rst;
-	else if (a == 0x40140054)
+	else if (a == SRST_REG(4))
 		return dpu_srst.cluster_soft_rst;
 	else {
-		pll = (int)((a - 0x40140058) / 4);
+		pll = (int)((a - PLL_REG_ACCESS(0)) / 4);
 		return pll_reg_access[pll];
 	}
 	return 0;
@@ -391,7 +400,11 @@ void sim_writel(uint32_t v, caddr_t a)
 	int pll;
 	int offset;
 
-	if (a >= 0x4014000 && a < 0x4014050) {
+	if (a >= IMC_ADDR_TRANS_LO(0) && a < IMC_ADDR_TRANS_LO(5)) {
+		addr_tran_lo[(a - TCSR_REG(0x40)) / 8] = v;
+	} else if (a >= IMC_ADDR_TRANS_HI(0) && a < IMC_ADDR_TRANS_HI(5)) {
+		addr_tran_hi[(a - TCSR_REG(0x44)) / 8] = v;
+	} else if (a >= PLL_REG_REG(0) && a < SRST_REG(0)) {
 		pll = (int)((a & 0xF0) >> 4);
 		offset = (int)((a & 0x0F) / 4);
 		if (offset == 0)
@@ -400,24 +413,37 @@ void sim_writel(uint32_t v, caddr_t a)
 			write_pll_cfg1(pll, v);
 		if (offset == 3)
 			pll5ghz_tsmc12ffc[pll].clk_cfg = v;
-	} else if (a == 0x40140050)
+	} else if (a == SRST_REG(0))
 		dpu_srst.soft_rst = v;
-	else if (a == 0x40140054)
+	else if (a == SRST_REG(4))
 		dpu_srst.cluster_soft_rst = v;
 	else {
-		pll = (int)((a - 0x40140058) / 4);
+		pll = (int)((a - PLL_REG_ACCESS(0)) / 4);
 		write_pll_access(pll, v);
 	}
 }
 
+void test_addr_trans(void)
+{
+	uint32_t attr = 0;// IMC_AT_ATTR_NORMAL;
+
+	imc_addr_trans(0, 0x20000000, ULL(0xC00000000), attr);
+}
+
 void main(void)
 {
+	int speed;
+
+	test_addr_trans();
+
 	board_init_clock();
 	printf("====================\n");
 	printf("Applying DDR frequency 1\n");
-	ddr_apply_freqplan(1);
+	ddr_config_speed(DDR4_2666);
 	clk_enable(ddr0_clk);
-	printf("====================\n");
-	printf("Applying DDR frequency 0\n");
-	clk_set_frequency(ddr0_clk, freqplan_get_frequency(ddr_clk, 0));
+	for (speed = 0; speed < NR_DDR_SPEEDS; speed++) {
+		printf("====================\n");
+		printf("Applying DDR frequency %d\n", speed);
+		clk_set_frequency(ddr0_clk, ddr_get_fpclk(speed));
+	}
 }

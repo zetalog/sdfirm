@@ -52,9 +52,9 @@
 #endif
 #endif
 
-#define NR_FREQPLANS		7
+#define NR_FREQPLANS		5
 #define FREQPLAN_RUN		0
-#define INVALID_FREQPLAN	NR_FREQPLANS
+#define INVALID_FREQPLAN	(-1)
 
 #define clk_freq_t		uint64_t
 #define invalid_clk		clkid(0xFF, 0xFF)
@@ -84,21 +84,26 @@
 #define pll5_vco		clkid(CLK_VCO, PLL5_VCO)
 
 #define CLK_PLL			((clk_cat_t)2)
-#define PLL0_P			((clk_clk_t)0)
-#define PLL1_P			((clk_clk_t)1)
-#define PLL2_P			((clk_clk_t)2)
-#define PLL3_P			((clk_clk_t)3)
-#define PLL4_P			((clk_clk_t)4)
-#define PLL5_P			((clk_clk_t)5)
-#define PLL3_R			((clk_clk_t)6)
-#define NR_PLL_CLKS		(PLL3_R + 1)
+#define PLL0_P			IMC_CLK
+#define PLL1_P			PE_CLK
+#define PLL2_P			DDR_CLK
+#define PLL3_P			AXI_CLK
+#define PLL4_P			CPU_CLK
+#define PLL5_P			PCIE_REF_CLK
+#define PLL2_R			DDR_BYPASS_PCLK
+#define PLL3_R			APB_CLK
+#define NR_PLL_CLKS		NR_SEL_CLKS
 #define pll0_p			clkid(CLK_PLL, PLL0_P)
 #define pll1_p			clkid(CLK_PLL, PLL1_P)
 #define pll2_p			clkid(CLK_PLL, PLL2_P)
 #define pll3_p			clkid(CLK_PLL, PLL3_P)
 #define pll4_p			clkid(CLK_PLL, PLL4_P)
 #define pll5_p			clkid(CLK_PLL, PLL5_P)
+#define pll2_r			clkid(CLK_PLL, PLL2_R)
 #define pll3_r			clkid(CLK_PLL, PLL3_R)
+
+#define CLK_IS_PLL_RCLK(clk)	(!!((clk) >= NR_PLLS))
+#define CLK_TO_PLL(clk, isrclk)	((isrclk) ? ((clk) - NR_PLLS - 2) : (clk))
 
 #define CLK_SEL			((clk_cat_t)3)
 #define IMC_CLK			((clk_clk_t)0) /* PLL0_P */
@@ -107,20 +112,23 @@
 #define AXI_CLK			((clk_clk_t)3) /* PLL3_P */
 #define CPU_CLK			((clk_clk_t)4) /* PLL4_P */
 #define PCIE_REF_CLK		((clk_clk_t)5) /* PLL5_P */
-#define APB_CLK			((clk_clk_t)6) /* PLL3_R */
+#define DDR_BYPASS_PCLK		((clk_clk_t)6) /* PLL2_R */
+#define APB_CLK			((clk_clk_t)7) /* PLL3_R */
 #define NR_SEL_CLKS		(APB_CLK + 1)
 #define imc_clk			clkid(CLK_SEL, IMC_CLK)
 #define pe_clk			clkid(CLK_SEL, PE_CLK)
 #define ddr_clk			clkid(CLK_SEL, DDR_CLK)
 #define axi_clk			clkid(CLK_SEL, AXI_CLK)
-#define apb_clk			clkid(CLK_SEL, APB_CLK)
-#define pcie_ref_clk		clkid(CLK_SEL, PCIE_REF_CLK)
 #define cpu_clk			clkid(CLK_SEL, CPU_CLK)
+#define pcie_ref_clk		clkid(CLK_SEL, PCIE_REF_CLK)
+#define ddr_bypass_pclk		clkid(CLK_SEL, DDR_BYPASS_PCLK)
+#define apb_clk			clkid(CLK_SEL, APB_CLK)
 
 /* DDR clock alias */
 #define ddr0_clk		ddr_clk
 #define ddr0_aclk		axi_clk
 #define ddr0_pclk		apb_clk
+#define ddr0_bypass_pclk	ddr_bypass_pclk
 /* PCIe clock alias */
 #define pcie0_aclk		axi_clk
 #define pcie0_pclk		apb_clk
@@ -195,6 +203,13 @@
 
 /* Enable clock tree core */
 void clk_hw_ctrl_init(void);
-void ddr_apply_freqplan(int plan);
+
+clk_freq_t freqplan_get_fvco(int pll, int plan);
+clk_freq_t freqplan_get_fpclk(int pll, int plan);
+clk_freq_t freqplan_get_frclk(int pll, int plan);
+
+/* Helper for frequency plans */
+void clk_apply_vco(clk_clk_t clk, clk_freq_t freq);
+void clk_apply_pll(clk_clk_t clk, clk_freq_t freq);
 
 #endif /* __CLK_DPU_H_INCLUDE__ */

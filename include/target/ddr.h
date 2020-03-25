@@ -35,50 +35,37 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)arch.h: DPU machine specific definitions
- * $Id: arch.h,v 1.1 2020-03-02 16:11:00 zhenglv Exp $
+ * @(#)ddr.h: double data rate framework interface
+ * $Id: ddr.h,v 1.0 2020-03-26 08:48:00 zhenglv Exp $
  */
 
-#ifndef __ARCH_DPU_H_INCLUDE__
-#define __ARCH_DPU_H_INCLUDE__
+#ifndef __DDR_H_INCLUDE__
+#define __DDR_H_INCLUDE__
 
-#ifdef CONFIG_ARCH_HAS_LOVEC
-#define __VEC			__LOVEC
-#endif
+#include <target/generic.h>
 
-#include <asm/mach/tcsr.h>
+/* Speed grade */
+#define DDR_200		0
+#define DDR_266		(DDR_200 + 1)
+#define DDR2_400	(DDR_200 + 2)
+#define DDR2_533	(DDR2_400 + 1)
+#define DDR2_667	(DDR2_400 + 2)
+#define DDR2_800	(DDR2_400 + 3)
+#define DDR3_800	DDR2_800
+#define DDR3_1066	(DDR3_800 + 1)
+#define DDR3_1333	(DDR3_800 + 2)
+#define DDR3_1600	(DDR3_800 + 3)
+#define DDR4_1600	DDR3_1600
+#define DDR4_1866	(DDR4_1600 + 1)
+#define DDR4_2133	(DDR4_1600 + 2)
+#define DDR4_2400	(DDR4_1600 + 3)
+#define DDR4_2666	(DDR4_1600 + 4)
+#define DDR4_2933	(DDR4_1600 + 5)
+#define DDR4_3200	(DDR4_1600 + 6)
 
-/* This file is intended to be used for implementing SoC specific
- * instructions, registers.
- */
+#include <driver/ddr.h>
 
-#define XIN_FREQ		UL(25000000)	/* 25MHz */
-#define PCIE_PHY_CLK_FREQ	UL(25000000)	/* 25MHz */
-#define PLL0_VCO_FREQ		ULL(3200000000)	/* 3.2GHz */
-#define PLL1_VCO_FREQ		ULL(4000000000)	/* 4GHz */
-#define PLL2_VCO_FREQ		ULL(3200000000)	/* 3.2GHz */
-#define PLL3_VCO_FREQ		ULL(3200000000)	/* 3.2GHz */
-#define PLL4_VCO_FREQ		ULL(4000000000)	/* 4GHz */
-#define PLL5_VCO_FREQ		ULL(2500000000) /* 2.5GHz */
-#define PLL2_VCO_LOW_FREQ	ULL(2500000000)	/* 2.5GHz */
-#define PLL0_P_FREQ		UL(800000000)	/* 800MHz */
-#define PLL1_P_FREQ		UL(1000000000)	/* 1GHz */
-#define PLL2_P_FREQ		UL(800000000)	/* 800MHz */
-#define PLL2_R_FREQ		UL(50000000)	/* 50MHz */
-#define PLL3_P_FREQ		UL(800000000)	/* 800MHz */
-#define PLL3_R_FREQ		UL(200000000)	/* 200MHz */
-#define PLL4_P_FREQ		UL(2000000000)	/* 2GHz */
-#define PLL5_P_FREQ		UL(100000000)	/* 100MHz */
-#define IMC_CLK_FREQ		PLL0_P_FREQ
-#define PE_CLK_FREQ		PLL1_P_FREQ
-#define AXI_CLK_FREQ		PLL3_P_FREQ
-#define APB_CLK_FREQ		PLL3_R_FREQ
-#define CPU_CLK_FREQ		PLL4_P_FREQ
-#define PCIE_REF_CLK_FREQ	PLL5_P_FREQ
+#define ddr_config_speed(speed)		ddr_hw_config_speed(speed)
+#define ddr_enable_speed(speed)		ddr_hw_enable_speed(speed)
 
-#ifndef __ASSEMBLY__
-void board_init_clock(void);
-void board_init_timestamp(void);
-#endif /* __ASSEMBLY__ */
-
-#endif /* __ARCH_DPU_H_INCLUDE__ */
+#endif /* __DDR_H_INCLUDE__ */
