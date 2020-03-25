@@ -50,6 +50,9 @@ static void hanoitower_run(int num, char frompeg, char topeg, char auxpeg)
 #define CONFIG_HANOITOWER_DEPTH 4
 #endif
 
+static int hanoitower_t_pass(void) { return 1; }
+static int hanoitower_t_fail(void) { return 0; }
+
 #ifdef HOSTED
 void main (int argc, char *argv[])
 #else
@@ -74,11 +77,11 @@ int hanoitower(caddr_t percpu_area)
 	if (hanoitower_results[num-1] == 
 			hanoitower_ctx[smp_processor_id()].ptr->move_cnt) {
 		printf("Bench %s(disk_num = %d): Success.\n", __func__, num);
-		return 1;
+		return hanoitower_t_pass();
 	} else {
 		printf("Bench %s(disk_num = %d): Failed. move_cnt = %d\n", __func__,
 				num, hanoitower_ctx[smp_processor_id()].ptr->move_cnt);
-		return 0;
+		return hanoitower_t_fail();
 	}
 }
 __define_testfn(hanoitower, sizeof(struct hanoitower_context), SMP_CACHE_BYTES,
