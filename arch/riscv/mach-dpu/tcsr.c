@@ -48,9 +48,7 @@ void imc_addr_trans(int n, uint32_t in_addr, uint64_t out_addr,
 	imc_addr_set_invalid(n);
 	imc_addr_set_addr_i(n, in_addr);
 	imc_addr_set_addr_o(n, out_addr);
-	imc_addr_set_attr(n, IMC_AT_ATTR_GET_BURST(attr),
-			  IMC_AT_ATTR_GET_CACHE(attr),
-			  IMC_AT_ATTR_GET_PROT(attr));
+	imc_addr_set_attr(n, attr);
 	imc_addr_set_valid(n);
 }
 #endif

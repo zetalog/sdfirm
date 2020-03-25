@@ -137,21 +137,21 @@ typedef uint16_t imc_at_attr_t;
 /* IMC_ADDR_TRANS_LO */
 #define IMC_AT_IN_31_24_OFFSET		0
 #define IMC_AT_IN_31_24_MASK		REG_8BIT_MASK
-#define IMC_AT_IN_31_24(value)		_SET_FV(IMC_AT_IN_31_24, value)
+#define IMC_AT_IN_31_24(value)		_SET_FV(IMC_AT_IN_31_24, (value))
 /* IMC_ADDR_TRANS_HI */
 #define IMC_AT_VALID			_BV(31)
 #define IMC_AT_BURST_OFFSET		28
 #define IMC_AT_BURST_MASK		REG_2BIT_MASK
-#define IMC_AT_BURST(value)		_SET_FV(IMC_AT_BURST, value)
+#define IMC_AT_BURST(value)		_SET_FV(IMC_AT_BURST, (value))
 #define IMC_AT_CACHE_OFFSET		24
 #define IMC_AT_CACHE_MASK		REG_4BIT_MASK
-#define IMC_AT_CACHE(value)		_SET_FV(IMC_AT_CACHE, value)
+#define IMC_AT_CACHE(value)		_SET_FV(IMC_AT_CACHE, (value))
 #define IMC_AT_PROT_OFFSET		20
 #define IMC_AT_PROT_MASK		REG_3BIT_MASK
-#define IMC_AT_PROT(value)		_SET_FV(IMC_AT_PROT, value)
+#define IMC_AT_PROT(value)		_SET_FV(IMC_AT_PROT, (value))
 #define IMC_AT_OUT_43_24_OFFSET		0
 #define IMC_AT_OUT_43_24_MASK		REG_20BIT_MASK
-#define IMC_AT_OUT_43_24(value)		_SET_FV(IMC_AT_OUT_43_24, value)
+#define IMC_AT_OUT_43_24(value)		_SET_FV(IMC_AT_OUT_43_24, (value))
 
 /* IMC_AT attributes, see AXI_AXPROT/AXI_AXCACHE/AXBURST
  *
@@ -160,22 +160,21 @@ typedef uint16_t imc_at_attr_t;
  */
 #define IMC_AT_ATTR_PROT_OFFSET		0
 #define IMC_AT_ATTR_PROT_MASK		IMC_AT_PROT_MASK
-#define IMC_AT_ATTR_SET_PROT(value)	_SET_FV(IMC_AT_ATTR_PROT, value)
-#define IMC_AT_ATTR_GET_PROT(value)	_GET_FV(IMC_AT_ATTR_PROT, value)
+#define IMC_AT_ATTR_SET_PROT(value)	_SET_FV(IMC_AT_ATTR_PROT, (value))
+#define IMC_AT_ATTR_GET_PROT(value)	_GET_FV(IMC_AT_ATTR_PROT, (value))
 #define IMC_AT_ATTR_CACHE_OFFSET	4
 #define IMC_AT_ATTR_CACHE_MASK		IMC_AT_CACHE_MASK
-#define IMC_AT_ATTR_SET_CACHE(value)	_SET_FV(IMC_AT_ATTR_CACHE, value)
-#define IMC_AT_ATTR_GET_CACHE(value)	_GET_FV(IMC_AT_ATTR_CACHE, value)
+#define IMC_AT_ATTR_SET_CACHE(value)	_SET_FV(IMC_AT_ATTR_CACHE, (value))
+#define IMC_AT_ATTR_GET_CACHE(value)	_GET_FV(IMC_AT_ATTR_CACHE, (value))
 #define IMC_AT_ATTR_BURST_OFFSET	8
 #define IMC_AT_ATTR_BURST_MASK		IMC_AT_BURST_MASK
-#define IMC_AT_ATTR_SET_BURST(value)	_SET_FV(IMC_AT_ATTR_BURST, value)
-#define IMC_AT_ATTR_GET_BURST(value)	_GET_FV(IMC_AT_ATTR_BURST, value)
-#define IMC_AT_ATTR(burst, cache)	\
-	(IMC_AT_ATTR_SET_BURST(burst) |	\
-	 IMC_AT_ATTR_SET_CACHE(cache) | \
-	 AXI_AXPROT_NON_PRIVILEDGED |	\
-	 AXI_AXPROT_SECURE |		\
-	 AXI_AXPROT_DATA)
+#define IMC_AT_ATTR_SET_BURST(value)	_SET_FV(IMC_AT_ATTR_BURST, (value))
+#define IMC_AT_ATTR_GET_BURST(value)	_GET_FV(IMC_AT_ATTR_BURST, (value))
+#define IMC_AT_ATTR(burst, cache)		\
+	(IMC_AT_ATTR_SET_BURST((burst)) |	\
+	 IMC_AT_ATTR_SET_CACHE((cache)) |	\
+	 AXI_AXPROT_NON_PRIVILEDGED |		\
+	 AXI_AXPROT_SECURE | AXI_AXPROT_DATA)
 #define IMC_AT_ATTR_NORMAL		\
 	IMC_AT_ATTR(AXI_AXCACHE_CACHEABLE, AXI_AXBURST_INCR)
 #define IMC_AT_ATTR_DEVICE		\
@@ -185,28 +184,39 @@ typedef uint16_t imc_at_attr_t;
 	__raw_setl(IMC_AT_VALID, IMC_ADDR_TRANS_HI(n));
 #define imc_addr_set_invalid(n)		\
 	__raw_clearl(IMC_AT_VALID, IMC_ADDR_TRANS_HI(n));
-#define imc_addr_set_attr(n, burst, cache, prot)		\
-	__raw_writel_mask(IMC_AT_BURST(burst) |			\
-			  IMC_AT_CACHE(cache) |			\
-			  IMC_AT_PROT(prot),			\
-			  IMC_AT_BURST(IMC_AT_BURST_MASK) |	\
-			  IMC_AT_CACHE(IMC_AT_CACHE_MASK) |	\
-			  IMC_AT_PROT(IMC_AT_PROT_MASK),	\
-			  IMC_ADDR_TRANS_HI(n))
+#define imc_addr_set_attr(n, attr)					\
+	do {								\
+		uint32_t burst = IMC_AT_ATTR_GET_BURST(attr);		\
+		uint32_t cache = IMC_AT_ATTR_GET_CACHE(attr);		\
+		uint32_t prot = IMC_AT_ATTR_GET_PROT(attr);		\
+		__raw_writel_mask(IMC_AT_BURST(burst) |			\
+				  IMC_AT_CACHE(cache) |			\
+				  IMC_AT_PROT(prot),			\
+				  IMC_AT_BURST(IMC_AT_BURST_MASK) |	\
+				  IMC_AT_CACHE(IMC_AT_CACHE_MASK) |	\
+				  IMC_AT_PROT(IMC_AT_PROT_MASK),	\
+				  IMC_ADDR_TRANS_HI(n));		\
+	} while (0)
 #define IMC_AT_ADDR_I_OFFSET		24
 #define IMC_AT_ADDR_I_MASK		IMC_AT_IN_31_24_MASK
-#define IMC_AT_ADDR_I(value)		_GET_FV(IMC_AT_ADDR_I, value)
+#define IMC_AT_ADDR_I(value)		_GET_FV(IMC_AT_ADDR_I, (value))
 #define IMC_AT_ADDR_O_OFFSET		24
 #define IMC_AT_ADDR_O_MASK		IMC_AT_OUT_43_24_MASK
-#define IMC_AT_ADDR_O(value)		_GET_FV(IMC_AT_ADDR_O, value)
+#define IMC_AT_ADDR_O(value)		_GET_FV_ULL(IMC_AT_ADDR_O, (value))
 #define imc_addr_set_addr_i(n, addr)				\
-	__raw_writel_mask(IMC_AT_IN_31_24(IMC_AT_ADDR_I(addr)),	\
-			  IMC_AT_IN_31_24(IMC_AT_ADDR_I_MASK),	\
-			  IMC_ADDR_TRANS_LO(n))
+	do {							\
+		uint32_t in = IMC_AT_ADDR_I(addr);		\
+		__raw_writel_mask(IMC_AT_IN_31_24(in),		\
+			IMC_AT_IN_31_24(IMC_AT_ADDR_I_MASK),	\
+			IMC_ADDR_TRANS_LO(n));			\
+	} while (0)
 #define imc_addr_set_addr_o(n, addr)				\
-	__raw_writel_mask(IMC_AT_OUT_43_24(IMC_AT_ADDR_O(addr)),\
-			  IMC_AT_OUT_43_24(IMC_AT_ADDR_O_MASK),	\
-			  IMC_ADDR_TRANS_HI(n))
+	do {							\
+		uint32_t out = IMC_AT_ADDR_O(addr);		\
+		__raw_writel_mask(IMC_AT_OUT_43_24(out),	\
+			IMC_AT_OUT_43_24(IMC_AT_ADDR_O_MASK),	\
+			IMC_ADDR_TRANS_HI(n));			\
+	} while (0)
 
 #ifndef __ASSEMBLY__
 void imc_addr_trans(int n, uint32_t in_addr, uint64_t out_addr,
