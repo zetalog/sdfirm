@@ -168,6 +168,9 @@ void md5_run(const uint8_t *initial_msg, size_t initial_len, uint8_t *digest) {
     to_bytes(h3, digest + 12);
 }
  
+static int md5_t_pass(void) { return 1; }
+static int md5_t_fail(void) { return 0; }
+
 #ifdef HOSTED
 int main(int argc, char **argv) {
 #else
@@ -216,10 +219,10 @@ int md5(caddr_t percpu_area)
  
 	if (error_cnt == 0) {
 		printf("MD5 test Success\n");
-    	return 1;
+		return md5_t_pass();
 	} else {
 		printf("MD5 test Failed\n");
-		return 0;
+		return md5_t_fail();
 	}
 }
 
