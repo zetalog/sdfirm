@@ -21,6 +21,8 @@ config DPU_BOOT_ROM
 	select SYS_EXIT_M
 	select DPU_TCSR
 	select DPU_BOOT
+	select DPU_FLASH
+	select DPU_DDR
 	select ARCH_HAS_LOVEC
 
 config DPU_BOOT_FLASH
@@ -32,6 +34,7 @@ config DPU_BOOT_FLASH
 	select SYS_EXIT_M
 	select DPU_TCSR
 	select DPU_BOOT
+	select DPU_DDR
 	select ARCH_HAS_NOVEC
 
 config DPU_FIRM
@@ -83,6 +86,49 @@ menuconfig DPU_TMR
 	bool "Enable DPU RISC-V timer support"
 
 if DPU_TMR
+
+endif
+
+menuconfig DPU_FLASH
+	bool "Enable random accessible flash support"
+
+if DPU_FLASH
+
+choice
+	prompt "Divider length"
+	default DPU_FLASH_DIVIDER_16
+
+config DPU_FLASH_DIVIDER_8
+	bool "8-bit"
+
+config DPU_FLASH_DIVIDER_16
+	bool "16-bit"
+
+config DPU_FLASH_DIVIDER_24
+	bool "24-bit"
+
+config DPU_FLASH_DIVIDER_32
+	bool "32-bit"
+
+endchoice
+
+choice
+	prompt "SPI select length"
+	default DPU_FLASH_SS_8
+
+config DPU_FLASH_SS_8
+	bool "8-bit"
+
+config DPU_FLASH_SS_16
+	bool "16-bit"
+
+config DPU_FLASH_SS_24
+	bool "24-bit"
+
+config DPU_FLASH_SS_32
+	bool "32-bit"
+
+endchoice
 
 endif
 

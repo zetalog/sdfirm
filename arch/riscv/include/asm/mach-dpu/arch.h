@@ -47,6 +47,7 @@
 #endif
 
 #include <asm/mach/tcsr.h>
+#include <asm/mach/flash.h>
 
 /* This file is intended to be used for implementing SoC specific
  * instructions, registers.
