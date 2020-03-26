@@ -62,9 +62,10 @@
 #define wake_cpu()
 
 #ifndef __ASSEMBLY__
+#include<asm/assembler.h>
 struct scratch {
 	unsigned long sp;
-};
+} __attribute__((aligned(STACK_ALIGN)));
 #endif
 
 #include <asm/mach/cpus.h>
