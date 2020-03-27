@@ -93,15 +93,16 @@
 #define IMC_SSI_BUSY			_BV(0)
 
 #define imc_soc_major()			\
-	IMC_MAJOR(__raw_real(TCSR_SOC_HW_VERSION))
+	IMC_MAJOR(__raw_readl(TCSR_SOC_HW_VERSION))
 #define imc_soc_minor()			\
-	IMC_MINOR(__raw_real(TCSR_SOC_HW_VERSION))
+	IMC_MINOR(__raw_readl(TCSR_SOC_HW_VERSION))
 #define imc_core_id()			\
 	IMC_CORE_ID(__raw_readl(TCSR_CORE_ID))
 #define imc_cluster_id()		\
 	IMC_CLUSTER_ID(__raw_readl(TCSR_CLUSTER_ID))
 #define imc_boot_mode()			\
 	IMC_BOOT_MODE(__raw_readl(TCSR_BOOT_MODE))
+#define imc_boot_addr()			__raw_readl(TCSR_BOOT_ADDR)
 #define imc_enable_clock()		\
 	__raw_setl(IMC_CLOCK_EN, TCSR_CLOCK_EN)
 #define imc_disable_clock()		\

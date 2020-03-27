@@ -120,16 +120,22 @@ endmenu
 menu "String operations"
 
 config STRING_STRNCMP
-	select STDLIB
 	bool "strncmp"
+	select STDLIB
 
 config STRING_STRTOUL
-	select STDLIB
 	bool "strtoul"
+	select STDLIB
+
+config STRING_STRTOULL
+	bool "strtoull"
+	select STDLIB
+	select MATH_MOD64
+	select MATH_DIV64
 
 config STRING_UUID
-	select PRINT_SNPRINTF
 	bool "uuid"
+	select PRINT_SNPRINTF
 
 endmenu
 

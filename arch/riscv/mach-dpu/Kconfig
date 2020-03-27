@@ -45,6 +45,7 @@ endchoice
 
 menuconfig DPU_TCSR
 	bool "Enable top control and status registers (TCSR) support"
+	select STRING_STRTOULL if COMMAND
 
 if DPU_TCSR
 

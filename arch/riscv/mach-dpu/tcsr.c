@@ -40,6 +40,7 @@
  */
 
 #include <target/arch.h>
+#include <target/cmdline.h>
 
 #ifdef CONFIG_DPU_TCSR_ADDR_TRANS
 void imc_addr_trans(int n, uint32_t in_addr, uint64_t out_addr,
@@ -51,4 +52,74 @@ void imc_addr_trans(int n, uint32_t in_addr, uint64_t out_addr,
 	imc_addr_set_attr(n, attr);
 	imc_addr_set_valid(n);
 }
+
+static int do_tcsr_addr(int argc, char *argv[])
+{
+	int index;
+	uint32_t in;
+	uint64_t out;
+	uint32_t attr = IMC_AT_ATTR_NORMAL;
+
+	if (argc < 6)
+		return -EINVAL;
+
+	index = strtoul(argv[2], NULL, 0);
+	in = strtoul(argv[3], NULL, 0);
+	out = strtoull(argv[4], NULL, 0);
+	if (strcmp(argv[5], "device"))
+		attr = IMC_AT_ATTR_DEVICE;
+	imc_addr_trans(index, in, out, attr);
+	return 0;
+}
+#else
+static inline do_tcsr_addr(int argc, char **argv)
+{
+	printf("DPU_TCSR_ADDR_TRANS is not configured.\n");
+	return -ENODEV;
+}
 #endif
+
+const char *imc_boot2name(uint8_t boot_mode)
+{
+	switch (boot_mode) {
+	case IMC_BOOT_ROM:
+		return "rom";
+	case IMC_BOOT_FLASH:
+		return "flash";
+	default:
+		return "BOOT_ADDR";
+	}
+}
+
+static int do_tcsr_info(int argc, char *argv[])
+{
+	uint8_t mode = imc_boot_mode();
+
+	printf("Major:     %02x\n", imc_soc_major());
+	printf("Minor:     %02x\n", imc_soc_minor());
+	printf("Core:      %02x\n", imc_core_id());
+	printf("Cluster:   %d\n", imc_cluster_id());
+	printf("Boot Mode: %d\n", imc_boot2name(mode));
+	if (mode == IMC_BOOT_USE_BOOT_ADDR)
+		printf("Boot Addr: %08lx\n", imc_boot_addr());
+	return 0;
+}
+
+static int do_tcsr(int argc, char *argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+
+	if (strcmp(argv[1], "info") == 0)
+		return do_tcsr_info(argc, argv);
+	if (strcmp(argv[1], "addr") == 0)
+		return do_tcsr_addr(argc, argv);
+	return -EINVAL;
+}
+
+DEFINE_COMMAND(tcsr, do_tcsr, "Top control/status registers",
+	"tcsr info\n"
+	"    -dump versions, identifiers, modes\n"
+	"tcsr addr id in out normal|device\n"
+	"    -map AXI address space (beyond 4G)\n"
+);
