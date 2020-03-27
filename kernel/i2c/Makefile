@@ -5,3 +5,5 @@
 obj-y:=
 
 obj-y += i2c.rel
+
+obj-${CONFIG_I2C_CMD_TOOL} += i2c_cmd_tool.rel
