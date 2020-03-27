@@ -16,6 +16,16 @@ config DW_I2C_EMPTYFIFO_HOLD_MASTER
 config DW_I2C_DYNAMIC_TAR_UPDATE
 	bool "If I2C_DYNAMIC_TAR_UPDATE is set"
 
+config DW_I2C_RX_TL
+	int "Threshold level for RX FIFO"
+	default 1
+	range 0 255
+
+config DW_I2C_TX_TL
+	int "Threshold level for TX FIFO"
+	default 0
+	range 0 255
+
 endif
 
 endmenu

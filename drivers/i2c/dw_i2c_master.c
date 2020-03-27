@@ -1,3 +1,4 @@
+#include <target/clk.h>
 #include <target/i2c.h>
 #include <driver/dw_i2c.h>
 
@@ -26,13 +27,34 @@ struct dw_i2c_private {
 	int state;
 };
 
-static struct dw_i2c_private dw_i2c0 = {
-	.base = DW_I2C_BASE(0),
-	.addr_mode = 0,
-	.state = DW_I2C_DRIVER_INVALID,
-};
+static struct dw_i2c_private dw_i2c_masters[CONFIG_I2C_MAX_MASTERS] = {0};
 
-static struct dw_i2c_private *dw_i2c_pri = &dw_i2c0;
+static struct dw_i2c_private *dw_i2c_pri = NULL;
+
+void i2c_hw_init(void)
+{
+	int i;
+	for (i = 0; i < CONFIG_I2C_MAX_MASTERS; i++) {
+		dw_i2c_masters[i].base = DW_I2C_BASE(i);
+		dw_i2c_masters[i].addr_mode = 0;
+		dw_i2c_masters[i].state = DW_I2C_DRIVER_INVALID;
+	}
+#ifdef CONFIG_ARCH_DPU
+	clk_enable(srst_i2c0);
+	clk_enable(srst_i2c1);
+	clk_enable(srst_i2c2);
+#endif
+}
+
+int i2c_hw_master_select_by_num(unsigned int num)
+{
+	if (num >= CONFIG_I2C_MAX_MASTERS) {
+		con_printf("Error: Invalid I2C num = %d\n", num);
+		return -1;
+	}
+	dw_i2c_pri = dw_i2c_masters + num;
+	return 0;
+}
 
 /*
  * Initialize controller as master device
@@ -40,22 +62,79 @@ static struct dw_i2c_private *dw_i2c_pri = &dw_i2c0;
 void i2c_hw_ctrl_init(void)
 {
 	caddr_t base = dw_i2c_pri->base;
+
+	uint32_t val;
+	uint32_t offset;
+
 #ifdef DW_I2C_DEBUG
 	con_printf("Debug: Enter %s\n", __func__);
 #endif
-	__raw_writel(0, base + IC_ENABLE);
-	__raw_writel(IC_CON_SD /* IC_SLAVE_DISABLE */
-				 | IC_CON_RE /* IC_RESTART_EN */
-				 /* IC_10BITADDR_MASTER = 0 */
-				 /* IC_10BITADDR_SLAVE = 0 */
-				 | IC_CON_SPD_SS /* SEEP = Stand */
-				 | IC_CON_MM /* IC_MASTER_MODE */
-				 , base + IC_CON);
-	__raw_writel(0, base + IC_RX_TL); /* 0 sets the threshold for 1 entry */
-	__raw_writel(1, base + IC_TX_TL); /* 1 sets the threshold for 1 entry */
-	__raw_writel(IC_INTR_ALL, base + IC_INTR_MASK);
-	__raw_writel(1, base + IC_ENABLE);
+
+	offset = IC_ENABLE;
+	val = 0;
+#ifdef DW_I2C_DEBUG
+	con_printf("w 0x%2x 0x%x _ENABLE\n", offset, val);
+#endif
+	__raw_writel(val, base + offset);
+
+#ifdef DW_I2C_DEBUG
+	offset = IC_CON; val = __raw_readl(base + offset); con_printf("r 0x%2x 0x%x _CON\n", offset, val);
+	offset = IC_RX_TL; val = __raw_readl(base + offset); con_printf("r 0x%2x 0x%x _RX_TL\n", offset, val);
+	offset = IC_TX_TL; val = __raw_readl(base + offset); con_printf("r 0x%2x 0x%x _TX_TL\n", offset, val);
+	offset = IC_INTR_MASK; val = __raw_readl(base + offset); con_printf("r 0x%2x 0x%x _INTR_MASK\n", offset, val);
+	offset = IC_SS_SCL_HCNT; val = __raw_readl(base + offset); con_printf("r 0x%2x 0x%x _SS_SCL_HCNT\n", offset, val);
+	offset = IC_SS_SCL_LCNT; val = __raw_readl(base + offset); con_printf("r 0x%2x 0x%x _SS_SCL_LCNT\n", offset, val);
+	offset = IC_HS_SCL_HCNT; val = __raw_readl(base + offset); con_printf("r 0x%2x 0x%x _HS_SCL_HCNT\n", offset, val);
+	offset = IC_HS_SCL_LCNT; val = __raw_readl(base + offset); con_printf("r 0x%2x 0x%x _HS_SCL_LCNT\n", offset, val);
+	offset = IC_FS_SCL_HCNT; val = __raw_readl(base + offset); con_printf("r 0x%2x 0x%x _FS_SCL_HCNT\n", offset, val);
+	offset = IC_FS_SCL_LCNT; val = __raw_readl(base + offset); con_printf("r 0x%2x 0x%x _FS_SCL_LCNT\n", offset, val);
+#endif
+
+	offset = IC_CON;
+	val = IC_CON_SD /* IC_SLAVE_DISABLE */
+		| IC_CON_RE /* IC_RESTART_EN */
+		/* IC_10BITADDR_MASTER = 0 */
+		/* IC_10BITADDR_SLAVE = 0 */
+		| IC_CON_SPD_SS /* SEEP = Stand */
+		| IC_CON_MM /* IC_MASTER_MODE */
+		;
+#ifdef DW_I2C_DEBUG
+	con_printf("w 0x%2x 0x%x _CON\n", offset, val);
+#endif
+	__raw_writel(val, base + offset);
+
+	offset = IC_RX_TL;
+	val = CONFIG_DW_I2C_RX_TL;
+#ifdef DW_I2C_DEBUG
+	con_printf("w 0x%2x 0x%x _RX_TL\n", offset, val);
+#endif
+	__raw_writel(val, base + offset);
+
+	offset = IC_TX_TL;
+	val = CONFIG_DW_I2C_TX_TL;
+#ifdef DW_I2C_DEBUG
+	con_printf("w 0x%2x 0x%x _TX_TL\n", offset, val);
+#endif
+	__raw_writel(val, base + offset);
+
+	offset = IC_INTR_MASK;
+	val = IC_INTR_ALL;
+#ifdef DW_I2C_DEBUG
+	con_printf("w 0x%2x 0x%x _INTR_MASK\n", offset, val);
+#endif
+	__raw_writel(val, base + offset);
+
+	offset = IC_ENABLE;
+	val = 1;
+#ifdef DW_I2C_DEBUG
+	con_printf("w 0x%2x 0x%x _ENABLE\n", offset, val);
+#endif
+	__raw_writel(val, base + offset);
+
 	dw_i2c_pri->state = DW_I2C_DRIVER_INIT;
+#ifdef DW_I2C_DEBUG
+	con_printf("Debug: Exit %s\n", __func__);
+#endif
 	return;
 }
 
@@ -77,11 +156,6 @@ void i2c_hw_set_address(i2c_addr_t addr, boolean call)
 /*
  * Set frequency by setting speed mode and relative SCL count
  */
-#ifndef CONFIG_DW_I2C_CLK
-#define BUS_CLK (125000 * 1000)
-#else
-#define BUS_CLK (CONFIG_DW_I2C_CLK * 1000)
-#endif
 void i2c_hw_set_frequency(uint16_t khz)
 {
 	caddr_t base = dw_i2c_pri->base;
@@ -90,10 +164,14 @@ void i2c_hw_set_frequency(uint16_t khz)
 	uint32_t ena;
 	int i2c_spd;
 	int speed = khz * 1000;
-	int bus_mhz = DW_I2C_FREQ;
+	int bus_speed = DW_I2C_FREQ;
+	int bus_mhz = bus_speed / 1000 / 1000;
+
+	uint32_t val;
+	uint32_t offset;
 
 #ifdef DW_I2C_DEBUG
-	con_printf("Debug: Enter %s. khz = %d\n", __func__, khz);
+	con_printf("Debug: Enter %s. bus = %d MHz, seep = %d kHz\n", __func__, bus_mhz, khz);
 #endif
 	if (speed >= I2C_MAX_SPEED)
 		i2c_spd = IC_SPEED_MODE_MAX;
@@ -102,17 +180,92 @@ void i2c_hw_set_frequency(uint16_t khz)
 	else
 		i2c_spd = IC_SPEED_MODE_STANDARD;
 
-	ena = __raw_readl(base + IC_ENABLE);
-	__raw_writel(0, base + IC_ENABLE);
+	offset = IC_ENABLE;
+	val = __raw_readl(base + offset);
+#ifdef DW_I2C_DEBUG
+	con_printf("r 0x%2x 0x%x _ENABLE\n", offset, val);
+#endif
+	ena = val;
 
-	cntl = __raw_readl(base + IC_CON) & (~IC_CON_SPD_MSK);
+	val = 0;
+#ifdef DW_I2C_DEBUG
+	con_printf("w 0x%2x 0x%x _ENABLE\n", offset, val);
+#endif
+	__raw_writel(val, base + offset);
 
+	offset = IC_CON;
+	val = __raw_readl(base + offset);
+#ifdef DW_I2C_DEBUG
+	con_printf("r 0x%2x 0x%x _CON\n", offset, val);
+#endif
+	cntl = val;
+
+#ifdef CONFIG_DW_I2C_USE_COUNT
+	switch (i2c_spd) {
+	case IC_SPEED_MODE_MAX:
+		cntl |= IC_CON_SPD_HS;
+		hcnt = bus_speed / speed / 3;
+		lcnt = hcnt * 2;
+#ifdef DW_I2C_DEBUG
+		offset = IC_HS_SCL_HCNT; val = hcnt;
+		con_printf("w 0x%2x 0x%x _HS_SCL_HCNT\n", offset, val);
+#endif
+		__raw_writel(hcnt, base + IC_HS_SCL_HCNT);
+#ifdef DW_I2C_DEBUG
+		offset = IC_HS_SCL_LCNT; val = lcnt;
+		con_printf("w 0x%2x 0x%x _HS_SCL_LCNT\n", offset, val);
+#endif
+		__raw_writel(lcnt, base + IC_HS_SCL_LCNT);
+		break;
+
+	case IC_SPEED_MODE_STANDARD:
+		cntl |= IC_CON_SPD_SS;
+		hcnt = bus_speed / speed;
+		lcnt = hcnt;
+#ifdef DW_I2C_DEBUG
+		offset = IC_SS_SCL_HCNT; val = hcnt;
+		con_printf("w 0x%2x 0x%x _SS_SCL_HCNT\n", offset, val);
+#endif
+		__raw_writel(hcnt, base + IC_SS_SCL_HCNT);
+#ifdef DW_I2C_DEBUG
+		offset = IC_SS_SCL_LCNT; val = lcnt;
+		con_printf("w 0x%2x 0x%x _SS_SCL_LCNT\n", offset, val);
+#endif
+		__raw_writel(lcnt, base + IC_SS_SCL_LCNT);
+		break;
+
+	case IC_SPEED_MODE_FAST:
+	default:
+		cntl |= IC_CON_SPD_FS;
+		hcnt = bus_speed / speed / 3;
+		lcnt = hcnt * 2;
+#ifdef DW_I2C_DEBUG
+		offset = IC_FS_SCL_HCNT; val = hcnt;
+		con_printf("w 0x%2x 0x%x _FS_SCL_HCNT\n", offset, val);
+#endif
+		__raw_writel(hcnt, base + IC_FS_SCL_HCNT);
+#ifdef DW_I2C_DEBUG
+		offset = IC_FS_SCL_LCNT; val = lcnt;
+		con_printf("w 0x%2x 0x%x _FS_SCL_LCNT\n", offset, val);
+#endif
+		__raw_writel(lcnt, base + IC_FS_SCL_LCNT);
+		break;
+	}
+#else
 	switch (i2c_spd) {
 	case IC_SPEED_MODE_MAX:
 		cntl |= IC_CON_SPD_HS;
 		hcnt = (bus_mhz * MIN_HS_SCL_HIGHTIME) / 1000;
 		lcnt = (bus_mhz * MIN_HS_SCL_LOWTIME) / 1000;
+#ifdef DW_I2C_DEBUG
+		offset = IC_HS_SCL_HCNT; val = hcnt;
+		con_printf("w 0x%2x 0x%x _HS_SCL_HCNT\n", offset, val);
+#endif
 		__raw_writel(hcnt, base + IC_HS_SCL_HCNT);
+#ifdef DW_I2C_DEBUG
+		offset = IC_HS_SCL_LCNT; val = lcnt;
+		con_printf("w 0x%2x 0x%x _HS_SCL_LCNT\n", offset, val);
+#endif
 		__raw_writel(lcnt, base + IC_HS_SCL_LCNT);
 		break;
 
@@ -120,7 +273,15 @@ void i2c_hw_set_frequency(uint16_t khz)
 		cntl |= IC_CON_SPD_SS;
 		hcnt = (bus_mhz * MIN_SS_SCL_HIGHTIME) / 1000;
 		lcnt = (bus_mhz * MIN_SS_SCL_LOWTIME) / 1000;
+#ifdef DW_I2C_DEBUG
+		offset = IC_SS_SCL_HCNT; val = hcnt;
+		con_printf("w 0x%2x 0x%x _SS_SCL_HCNT\n", offset, val);
+#endif
 		__raw_writel(hcnt, base + IC_SS_SCL_HCNT);
+#ifdef DW_I2C_DEBUG
+		offset = IC_SS_SCL_LCNT; val = lcnt;
+		con_printf("w 0x%2x 0x%x _SS_SCL_LCNT\n", offset, val);
+#endif
 		__raw_writel(lcnt, base + IC_SS_SCL_LCNT);
 		break;
 
@@ -129,18 +290,324 @@ void i2c_hw_set_frequency(uint16_t khz)
 		cntl |= IC_CON_SPD_FS;
 		hcnt = (bus_mhz * MIN_FS_SCL_HIGHTIME) / 1000;
 		lcnt = (bus_mhz * MIN_FS_SCL_LOWTIME) / 1000;
+#ifdef DW_I2C_DEBUG
+		offset = IC_FS_SCL_HCNT; val = hcnt;
+		con_printf("w 0x%2x 0x%x _FS_SCL_HCNT\n", offset, val);
+#endif
 		__raw_writel(hcnt, base + IC_FS_SCL_HCNT);
+#ifdef DW_I2C_DEBUG
+		offset = IC_FS_SCL_LCNT; val = lcnt;
+		con_printf("w 0x%2x 0x%x _FS_SCL_LCNT\n", offset, val);
+#endif
 		__raw_writel(lcnt, base + IC_FS_SCL_LCNT);
 		break;
 	}
+#endif
 
-	__raw_writel(cntl, base + IC_CON);
+	offset = IC_CON;
+	val = cntl;
+#ifdef DW_I2C_DEBUG
+	con_printf("w 0x%2x 0x%x _ENABLE\n", offset, val);
+#endif
+	__raw_writel(val, base + offset);
 
 	/* Restore back i2c now speed set */
-	if (ena == IC_ENABLE_0B)
-		__raw_writel(1, base + IC_ENABLE);
+	if (ena == IC_ENABLE_0B) {
+		val = 1;
+#ifdef DW_I2C_DEBUG
+		con_printf("w 0x%2x 0x%x _ENABLE\n", offset, val);
+#endif
+		__raw_writel(val, base + offset);
+	}
 
 	return;
+}
+
+static void i2c_setaddress(caddr_t base, unsigned int i2c_addr)
+{
+#ifdef DW_I2C_DEBUG
+	con_printf("Debug: Enter %s\n", __func__);
+#endif
+	__raw_writel(0, base + IC_ENABLE);
+	__raw_writel(i2c_addr, base + IC_TAR);
+	__raw_writel(1, base + IC_ENABLE);
+#ifdef DW_I2C_DEBUG
+	con_printf("Debug: Exit %s\n", __func__);
+#endif
+}
+static void i2c_flush_rxfifo(caddr_t base)
+{
+	uint32_t val;
+	uint32_t offset;
+	offset  = IC_STATUS;
+	do {
+		val = __raw_readl(base + offset);
+#ifdef DW_I2C_DEBUG
+		con_printf("r 0x%2x 0x%x _STATUS\n", offset, val);
+#endif
+	} while (val & IC_STATUS_RFNE);
+}
+
+static int i2c_wait_for_bb(caddr_t base)
+{
+	uint32_t val;
+	uint32_t offset;
+	offset  = IC_STATUS;
+#ifdef DW_I2C_DEBUG
+	con_printf("Debug: Enter %s\n", __func__);
+#endif
+	do {
+		val = __raw_readl(base + offset);
+#ifdef DW_I2C_DEBUG
+		con_printf("r 0x%2x 0x%x _STATUS\n", offset, val);
+#endif
+	} while(val & IC_STATUS_MA || !(val & IC_STATUS_TFE));
+#ifdef DW_I2C_DEBUG
+	con_printf("Debug: Exit %s\n", __func__);
+#endif
+	return 0;
+}
+
+static int i2c_xfer_init(caddr_t base, unsigned char chip, unsigned int addr,
+			 int alen)
+{
+	uint32_t val;
+	uint32_t offset;
+
+#ifdef DW_I2C_DEBUG
+	con_printf("Debug: Enter %s\n", __func__);
+#endif
+	if (i2c_wait_for_bb(base))
+		return 1;
+
+	i2c_setaddress(base, chip);
+	offset = IC_DATA_CMD;
+	while (alen) {
+		alen--;
+		/* high byte address going out first */
+		val = (addr >> (alen * 8)) & 0xff;
+#ifdef DW_I2C_DEBUG
+		con_printf("w 0x%2x 0x%x _DATA_CMD\n", offset, val);
+#endif
+		__raw_writel(val, base + offset);
+	}
+#ifdef DW_I2C_DEBUG
+	con_printf("Debug: Exit %s\n", __func__);
+#endif
+	return 0;
+}
+
+static int i2c_rx_finish(caddr_t base)
+{
+	uint32_t val;
+	uint32_t offset;
+
+#ifdef DW_I2C_DEBUG
+	con_printf("Debug: Enter %s\n", __func__);
+#endif
+	while (1) {
+		offset = IC_RAW_INTR_STAT;
+		val = __raw_readl(base + offset);
+#ifdef DW_I2C_DEBUG
+		con_printf("r 0x%2x 0x%x _RAW_INTR_STAT\n", offset, val);
+#endif
+		if (val & IC_STOP_DET) {
+			offset = IC_CLR_STOP_DET;
+			val = __raw_readl(base + offset);
+#ifdef DW_I2C_DEBUG
+			con_printf("r 0x%2x 0x%x _CLR_STOP_DET\n", offset, val);
+#endif
+			break;
+		}
+	}
+
+	if (i2c_wait_for_bb(base)) {
+		printf("Timed out waiting for bus\n");
+		return 1;
+	}
+
+	i2c_flush_rxfifo(base);
+
+#ifdef DW_I2C_DEBUG
+	con_printf("Debug: Exit %s\n", __func__);
+#endif
+	return 0;
+}
+
+static int i2c_tx_finish(caddr_t base)
+{
+	uint32_t val;
+	uint32_t offset;
+
+#ifdef DW_I2C_DEBUG
+	con_printf("Debug: Enter %s\n", __func__);
+#endif
+
+	while (1) {
+		offset = IC_STATUS;
+		val = __raw_readl(base + offset);
+#ifdef DW_I2C_DEBUG
+		con_printf("r 0x%2x 0x%x _STATUS\n", offset, val);
+#endif
+		if (val & IC_STATUS_TFE) {
+			break;
+		}
+
+		offset = IC_RAW_INTR_STAT;
+		val = __raw_readl(base + offset);
+#ifdef DW_I2C_DEBUG
+		con_printf("r 0x%2x 0x%x _RAW_INTR_STAT\n", offset, val);
+#endif
+		if (val & IC_STOP_DET) {
+			offset = IC_CLR_STOP_DET;
+			val = __raw_readl(base + offset);
+#ifdef DW_I2C_DEBUG
+			con_printf("r 0x%2x 0x%x _CLR_STOP_DET\n", offset, val);
+#endif
+			break;
+		}
+	}
+
+	if (i2c_wait_for_bb(base)) {
+		printf("Timed out waiting for bus\n");
+		return 1;
+	}
+
+#ifdef DW_I2C_DEBUG
+	con_printf("Debug: Exit %s\n", __func__);
+#endif
+	return 0;
+}
+
+/*
+ * Read from i2c memory
+ * @chip:	target i2c address
+ * @addr:	address to read from
+ * @alen:
+ * @buffer:	buffer for read data
+ * @len:	no of bytes to be read
+ *
+ * Read from i2c memory.
+ */
+int i2c_hw_read_mem(uint8_t dev, unsigned int addr,
+			 int alen, uint8_t *buffer, int len)
+{
+	caddr_t base = dw_i2c_pri->base;
+	unsigned int active = 0;
+	uint32_t val;
+	uint32_t offset;
+	int ret;
+
+#ifdef DW_I2C_DEBUG
+	con_printf("Debug: Enter %s\n", __func__);
+#endif
+
+	ret = i2c_xfer_init(base, dev, addr, alen);
+	if (ret != 0) {
+		con_printf("Error: Failed i2c_xfer_init. ret = %d\n", ret);
+		return 1;
+	}
+
+	while (len) {
+		if (!active) {
+			/*
+			 * Avoid writing to ic_cmd_data multiple times
+			 * in case this loop spins too quickly and the
+			 * ic_status RFNE bit isn't set after the first
+			 * write. Subsequent writes to ic_cmd_data can
+			 * trigger spurious i2c transfer.
+			 */
+			offset = IC_DATA_CMD;
+			if (len == 1)
+				val = IC_CMD | IC_STOP;
+			else
+				val = IC_CMD;
+#ifdef DW_I2C_DEBUG
+			con_printf("w 0x%2x 0x%x _DATA_CMD\n", offset, val);
+#endif
+			__raw_writel(val, base + offset);
+			active = 1;
+		}
+
+		offset = IC_STATUS;
+		val = __raw_readl(base + offset);
+#ifdef DW_I2C_DEBUG
+		con_printf("r 0x%2x 0x%x _STATUS\n", offset, val);
+#endif
+		if (val & IC_STATUS_RFNE) {
+			offset = IC_DATA_CMD;
+			val = __raw_readl(base + offset);
+#ifdef DW_I2C_DEBUG
+			con_printf("r 0x%2x 0x%x _DATA_CMD\n", offset, val);
+#endif
+			*buffer++ = (uint8_t)val;
+			len--;
+			active = 0;
+		}
+	}
+
+	ret = i2c_rx_finish(base);
+#ifdef DW_I2C_DEBUG
+	con_printf("Debug: Exit %s\n", __func__);
+#endif
+	return ret;
+}
+
+/*
+ * Write to i2c memory
+ * @chip:	target i2c address
+ * @addr:	address to read from
+ * @alen:
+ * @buffer:	buffer for read data
+ * @len:	no of bytes to be read
+ *
+ * Write to i2c memory.
+ */
+int i2c_hw_write_mem(uint8_t dev, unsigned int addr,
+			  int alen, uint8_t *buffer, int len)
+{
+	caddr_t base = dw_i2c_pri->base;
+	//int nb = len;
+	uint32_t val;
+	uint32_t offset;
+	int ret;
+
+#ifdef DW_I2C_DEBUG
+	con_printf("Debug: Enter %s\n", __func__);
+#endif
+
+	ret = i2c_xfer_init(base, dev, addr, alen);
+	if (ret != 0) {
+		con_printf("Error: Failed i2c_xfer_init. ret = %d\n", ret);
+		return 1;
+	}
+
+	while (len) {
+		offset = IC_STATUS;
+		val = __raw_readl(base + offset);
+#ifdef DW_I2C_DEBUG
+		con_printf("r 0x%2x 0x%x _STATUS\n", offset, val);
+#endif
+		if (val & IC_STATUS_TFNF) {
+			if (--len == 0) {
+				val = *buffer | IC_STOP;
+			} else {
+				val = *buffer;
+			}
+			offset = IC_DATA_CMD;
+#ifdef DW_I2C_DEBUG
+			con_printf("w 0x%2x 0x%x _DATA_CMD\n", offset, val);
+#endif
+			__raw_writel(val, base + offset);
+			buffer++;
+		}
+	}
+
+	ret = i2c_tx_finish(base);
+#ifdef DW_I2C_DEBUG
+	con_printf("Debug: Exit %s\n", __func__);
+#endif
+	return ret;
 }
 
 /*
