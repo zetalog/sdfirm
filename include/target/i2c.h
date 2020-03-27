@@ -114,4 +114,12 @@ uint8_t i2c_bus_mode(void);
 uint8_t i2c_dir_mode(void);
 uint8_t i2c_bus_dir_mode(void);
 
+/* Provied by advanced I2C controller to access memory I2C slaves. */
+void i2c_hw_init(void);
+int i2c_hw_master_select_by_num(unsigned int num);
+int i2c_hw_read_mem(uint8_t dev, unsigned int addr, int alen, uint8_t *buffer, int len);
+int i2c_hw_write_mem(uint8_t dev, unsigned int addr, int alen, uint8_t *buffer, int len);
+
+int i2c_hw_read_vip(uint8_t dev, uint8_t *buffer, int len);
+int i2c_hw_write_vip(uint8_t dev, unsigned int addr, uint8_t *buffer, int len);
 #endif /* __I2C_H_INCLUDE__ */
