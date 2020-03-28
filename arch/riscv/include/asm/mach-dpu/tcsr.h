@@ -82,6 +82,10 @@
 #define IMC_CLUSTER_ID_MASK		REG_6BIT_MASK
 #define IMC_CLUSTER_ID(value)		_GET_FV(IMC_CLUSTER_ID, value)
 /* CLOCK_EN */
+#ifdef CONFIG_DPU_TCSR_SIM_FINISH
+#define IMC_SIM_PASS			_BV(31)
+#define IMC_SIM_FAIL			_BV(30)
+#endif
 #define IMC_CLOCK_EN			_BV(0)
 /* LP_STATUS */
 #define IMC_I2C2_EN			_BV(6)
@@ -107,6 +111,12 @@
 	__raw_setl(IMC_CLOCK_EN, TCSR_CLOCK_EN)
 #define imc_disable_clock()		\
 	__raw_clearl(IMC_CLOCK_EN, TCSR_CLOCK_EN)
+#ifdef CONFIG_DPU_TCSR_SIM_FINISH
+#define imc_sim_finish(pass)		\
+	__raw_setl((pass) ? IMC_SIM_PASS : IMC_SIM_FAIL, TCSR_CLOCK_EN)
+#else
+#define imc_sim_finish(pass)		do { } while (0)
+#endif
 #define imc_lp_status(ip)		\
 	(__raw_readl(IMC_LP_STATUS) & (ip))
 

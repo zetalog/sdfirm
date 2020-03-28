@@ -46,6 +46,7 @@
 #ifdef CONFIG_SHUTDOWN
 void board_shutdown(void)
 {
+	imc_sim_finish(true);
 }
 #endif
 

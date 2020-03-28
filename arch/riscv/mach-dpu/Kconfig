@@ -55,6 +55,12 @@ config DPU_TCSR_ADDR_TRANS
 config DPU_TCSR_BUS_TRANS
 	bool "Enable bus transaction support"
 
+config DPU_TCSR_SIM_FINISH
+	bool "Enable simulation finish support"
+	help
+	  In simulation environment, enabling this allows to shutdown
+	  VCS simulation.
+
 endif
 
 menuconfig DPU_PLL
