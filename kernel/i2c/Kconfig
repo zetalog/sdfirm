@@ -38,5 +38,9 @@ config I2C_DEVICE_ID
 	  Disabling this will force the master driver not to perform
 	  device ID probing procedure.
 
+config I2C_CMD_TOOL
+	bool "Enable I2C command tool"
+	default y
+
 endif
 
