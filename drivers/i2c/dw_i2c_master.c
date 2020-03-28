@@ -1,11 +1,9 @@
 #include <target/clk.h>
 #include <target/i2c.h>
+#include <target/console.h>
 #include <driver/dw_i2c.h>
 
 #define DW_I2C_DEBUG
-#ifdef DW_I2C_DEBUG
-#include <target/console.h>
-#endif
 
 enum dw_i2c_driver_state {
 	DW_I2C_DRIVER_INIT = 0,
@@ -165,13 +163,15 @@ void i2c_hw_set_frequency(uint16_t khz)
 	int i2c_spd;
 	int speed = khz * 1000;
 	int bus_speed = DW_I2C_FREQ;
+#ifndef CONFIG_DW_I2C_USE_COUNT
 	int bus_mhz = bus_speed / 1000 / 1000;
+#endif
 
 	uint32_t val;
 	uint32_t offset;
 
 #ifdef DW_I2C_DEBUG
-	con_printf("Debug: Enter %s. bus = %d MHz, seep = %d kHz\n", __func__, bus_mhz, khz);
+	con_printf("Debug: Enter %s. bus speed = %ld Hz, i2c seep = %d kHz\n", __func__, bus_speed, khz);
 #endif
 	if (speed >= I2C_MAX_SPEED)
 		i2c_spd = IC_SPEED_MODE_MAX;
@@ -307,12 +307,13 @@ void i2c_hw_set_frequency(uint16_t khz)
 	offset = IC_CON;
 	val = cntl;
 #ifdef DW_I2C_DEBUG
-	con_printf("w 0x%2x 0x%x _ENABLE\n", offset, val);
+	con_printf("w 0x%2x 0x%x _CON\n", offset, val);
 #endif
 	__raw_writel(val, base + offset);
 
 	/* Restore back i2c now speed set */
 	if (ena == IC_ENABLE_0B) {
+		offset = IC_ENABLE;
 		val = 1;
 #ifdef DW_I2C_DEBUG
 		con_printf("w 0x%2x 0x%x _ENABLE\n", offset, val);

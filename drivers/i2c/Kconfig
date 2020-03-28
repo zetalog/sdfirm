@@ -16,6 +16,9 @@ config DW_I2C_EMPTYFIFO_HOLD_MASTER
 config DW_I2C_DYNAMIC_TAR_UPDATE
 	bool "If I2C_DYNAMIC_TAR_UPDATE is set"
 
+config DW_I2C_USE_COUNT
+	bool "If SCL frequency is configured with clock count or period(ns)"
+
 config DW_I2C_RX_TL
 	int "Threshold level for RX FIFO"
 	default 1
