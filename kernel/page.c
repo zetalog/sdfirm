@@ -16,10 +16,10 @@ void page_insert(struct page *page)
 	list_for_each_entry_safe(struct page, curr, next,
 				 &page_free_list, link) {
 again:
-		if ((phys_addr_t)page == curr->end) {
-			curr->end += page->end - (phys_addr_t)page;
+		if (ptr_to_phys(page) == curr->end) {
+			curr->end += page->end - ptr_to_phys(page);
 			page = list_entry(&next->link, struct page, link);
-			if (curr->end == (phys_addr_t)page) {
+			if (curr->end == ptr_to_phys(page)) {
 				list_del_init(&page->link);
 				goto again;
 			}
@@ -27,7 +27,7 @@ again:
 		}
 		if (curr > page) {
 			list_add_tail(&page->link, &curr->link);
-			if ((phys_addr_t)curr == page->end) {
+			if (ptr_to_phys(curr) == page->end) {
 				tmp = curr;
 				curr = page;
 				page = tmp;
@@ -44,16 +44,16 @@ exit_lock:
 
 int page_nr(struct page *page)
 {
-	return (int)((page->end - (phys_addr_t)page) >> PAGE_SHIFT);
+	return (int)((page->end - ptr_to_phys(page)) >> PAGE_SHIFT);
 }
 
 struct page *page_offset(struct page *page, int nr_pages)
 {
 	phys_addr_t address;
 
-	address = (phys_addr_t)page +
+	address = ptr_to_phys(page) +
 		  ((phys_addr_t)nr_pages << PAGE_SHIFT);
-	return (struct page *)address;
+	return (struct page *)phys_to_ptr(address);
 }
 
 struct page *page_alloc_pages(int nr_pages)
@@ -92,7 +92,7 @@ void page_free_pages(struct page *page, int nr_pages)
 	if (nr_pages == 0)
 		return;
 
-	page->end = (phys_addr_t)page_offset(page, nr_pages);
+	page->end = ptr_to_phys(page_offset(page, nr_pages));
 	page_insert(page);
 }
 
@@ -170,7 +170,7 @@ static int do_page_dump(int argc, char **argv)
 	list_for_each_entry(struct page, page,
 			    &page_free_list, link) {
 		printf("%016llx - %016llx\n",
-		       (phys_addr_t)page, page->end);
+		       ptr_to_phys(page), page->end);
 	}
 	return 0;
 }

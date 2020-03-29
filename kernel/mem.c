@@ -407,7 +407,8 @@ static int mem_double_array(struct mem_type *type,
 			min(new_area_start, mem_current_limit),
 			new_alloc_size, PAGE_SIZE);
 
-	new_array = (struct mem_region *)((addr ? (void *)(__va(addr)) : NULL));
+	new_array = (struct mem_region *)
+		(addr ? virt_to_ptr(__va(addr)) : NULL);
 	if (!addr) {
 		con_printf("memblock: Failed to double %s array from %ld to %ld entries !\n",
 			   mem_type_name(type), type->max, type->max * 2);
@@ -849,15 +850,80 @@ static int do_mem_display(int argc, char * argv[])
 	unsigned long length = 0;
 	void *buf = NULL;
 
+	if (argc < 3)
+		return -EINVAL;
 	if ((size = get_data_size(argv[1], 4)) < 0)
 		return -EINVAL;
-
 	addr = strtoul(argv[2], 0, 0);
-	if (argc > 2)
+	if (argc > 3)
 		length = strtoul(argv[3], NULL, 0);
 
 	buf = (void *)(unsigned long)addr;
 	mem_print_data(addr, buf, size, length);
+	return 0;
+}
+
+static int do_mem_read(int argc, char * argv[])
+{
+	int size;
+	caddr_t addr;
+	unsigned long value = -1;
+
+	if (argc < 4)
+		return -EINVAL;
+	if ((size = get_data_size(argv[2], 4)) < 0)
+		return -EINVAL;
+	addr = strtoul(argv[3], 0, 0);
+
+	switch (size) {
+	case 1:
+		value = __raw_readb(addr);
+		break;
+	case 2:
+		value = __raw_readw(addr);
+		break;
+	case 3:
+		value = __raw_readl(addr);
+		break;
+	case 4:
+		value = __raw_readq(addr);
+		break;
+	default:
+		break;
+	}
+	mem_print_data(addr, &value, size, 1);
+	return 0;
+}
+
+static int do_mem_write(int argc, char * argv[])
+{
+	int size;
+	caddr_t addr;
+	unsigned long value;
+
+	if (argc < 5)
+		return -EINVAL;
+	if ((size = get_data_size(argv[2], 4)) < 0)
+		return -EINVAL;
+	addr = strtoul(argv[3], 0, 0);
+	value = strtoull(argv[4], 0, 0);
+
+	switch (size) {
+	case 1:
+		__raw_writeb(value, addr);
+		break;
+	case 2:
+		__raw_writew(value, addr);
+		break;
+	case 3:
+		__raw_writel(value, addr);
+		break;
+	case 4:
+		__raw_writeq(value, addr);
+		break;
+	default:
+		break;
+	}
 	return 0;
 }
 
@@ -868,13 +934,20 @@ static int do_mem(int argc, char * argv[])
 
 	if (strcmp(argv[1], "dump") == 0)
 		return do_mem_dump(argc, argv);
-	else
-		return do_mem_display(argc, argv);
+	else if (strcmp(argv[1], "read") == 0)
+		return do_mem_read(argc, argv);
+	else if (strcmp(argv[1], "write") == 0)
+		return do_mem_write(argc, argv);
+	return do_mem_display(argc, argv);
 }
 
 DEFINE_COMMAND(mem, do_mem, "Display memory",
 	"mem b|w|l|q addr [len]\n"
 	"    -display mem content\n"
+	"mem read b|w|l|q addr\n"
+	"    -read mem content\n"
+	"mem write b|w|l|q addr value\n"
+	"    -write mem content\n"
 	"mem dump\n"
-	"    -display mem regions\n"
+	"    -dump mem regions\n"
 );

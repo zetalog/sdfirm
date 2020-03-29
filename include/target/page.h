@@ -85,6 +85,11 @@ struct page {
 	phys_addr_t end;
 };
 
+#define ptr_to_phys(x)		((phys_addr_t)((uintptr_t)(x)))
+#define ptr_to_virt(x)		((caddr_t)((uintptr_t)(x)))
+#define phys_to_ptr(x)		((void *)((uintptr_t)(x)))
+#define virt_to_ptr(x)		((void *)((uintptr_t)(x)))
+
 #ifdef CONFIG_PAGE
 caddr_t page_alloc_zeroed(void);
 struct page *page_alloc_pages(int nr_pages);

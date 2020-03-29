@@ -415,6 +415,7 @@ endif
 menuconfig MEM
 	bool "Address space allocator (bootmem) support"
 	select STRING_STRTOUL
+	select STRING_STRTOULL
 
 if MEM
 
