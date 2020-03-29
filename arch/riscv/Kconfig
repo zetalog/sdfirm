@@ -159,7 +159,6 @@ config ARCH_SPIKE
 	select ARCH_HAS_UART
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_BOOT_LOAD
-	select RISCV_COUNTERS
 	select SPIKE_HTIF if UART || DEBUG_PRINT || CONSOLE
 	select SPIKE_CLINT if !SYS_NOIRQ
 	help

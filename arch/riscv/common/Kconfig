@@ -59,15 +59,16 @@ config CPU_SPIKE32
 	bool
 	select CPU_32G
 	select CPU_C
+	select CPU_SV32
 	select CPU_PMP
-	select CPU_COUNTERS
 
 config CPU_SPIKE64
 	bool
 	select CPU_64G
 	select CPU_C
+	select CPU_SV39
+	select CPU_SV48
 	select CPU_PMP
-	select CPU_COUNTERS
 
 # VIRT
 config CPU_VIRT
