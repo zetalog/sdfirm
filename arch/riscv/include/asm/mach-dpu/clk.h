@@ -103,7 +103,7 @@
 #define pll3_r			clkid(CLK_PLL, PLL3_R)
 
 #define CLK_IS_PLL_RCLK(clk)	(!!((clk) >= NR_PLLS))
-#define CLK_TO_PLL(clk, isrclk)	((isrclk) ? ((clk) - NR_PLLS - 2) : (clk))
+#define CLK_TO_PLL(clk, isrclk)	((isrclk) ? ((clk) - NR_PLLS + 2) : (clk))
 
 #define CLK_SEL			((clk_cat_t)3)
 #define IMC_CLK			((clk_clk_t)0) /* PLL0_P */
