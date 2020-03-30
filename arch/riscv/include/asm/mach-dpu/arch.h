@@ -51,6 +51,8 @@
 
 #include <asm/mach/tcsr.h>
 #include <asm/mach/flash.h>
+#include <asm/mach/pe.h>
+#include <asm/mach/apc.h>
 
 /* This file is intended to be used for implementing SoC specific
  * instructions, registers.

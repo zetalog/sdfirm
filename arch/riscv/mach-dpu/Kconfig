@@ -41,6 +41,16 @@ config DPU_FIRM
 
 endchoice
 
+menu "Boot targets"
+
+config DPU_BOOT_PE
+	bool "DPU process elements (PE)"
+
+config DPU_BOOT_APC
+	bool "RISCV CPU clusters (APC)"
+
+endmenu
+
 menuconfig DPU_TCSR
 	bool "Enable top control and status registers (TCSR) support"
 	select STRING_STRTOULL if COMMAND

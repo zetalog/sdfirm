@@ -10,3 +10,5 @@ obj-$(CONFIG_DPU_PLL) += pll.rel
 obj-$(CONFIG_DPU_TMR) += tmr.rel
 obj-$(CONFIG_DPU_DDR) += ddr.rel
 obj-$(CONFIG_DPU_PCI_SUBSYS) += pcie_dpu.rel
+obj-$(CONFIG_DPU_BOOT_PE) += pe.rel
+obj-$(CONFIG_DPU_BOOT_APC) += apc.rel

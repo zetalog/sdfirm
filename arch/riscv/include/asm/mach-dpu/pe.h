@@ -35,61 +35,19 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)mach.c: DPU specific board initialization
- * $Id: mach.c,v 1.1 2020-03-04 15:19:00 zhenglv Exp $
+ * @(#)pe.h: DPU process elements boot definition
+ * $Id: pe.h,v 1.1 2020-03-30 16:15:00 zhenglv Exp $
  */
 
-#include <target/arch.h>
-#include <target/irq.h>
-#include <target/clk.h>
-#include <target/cmdline.h>
+#ifndef __PE_DPU_H_INCLUDE__
+#define __PE_DPU_H_INCLUDE__
 
-#ifdef CONFIG_SHUTDOWN
-void board_shutdown(void)
-{
-	imc_sim_finish(true);
-}
+#ifdef CONFIG_DPU_BOOT_PE
+#ifndef __ASSEMBLY__
+void dpu_pe_boot(void);
+#endif
+#else
+#define dpu_pe_boot()		do { } while (0)
 #endif
 
-#ifdef CONFIG_REBOOT
-void board_reboot(void)
-{
-}
-#endif
-
-void board_init(void)
-{
-	DEVICE_ARCH(DEVICE_ARCH_RISCV);
-	board_init_timestamp();
-}
-
-static int do_dpu_boot(int argc, char *argv[])
-{
-	if (argc < 3)
-		return -EINVAL;
-
-	if (strcmp(argv[2], "pe") == 0) {
-		dpu_pe_boot();
-		return 0;
-	}
-	if (strcmp(argv[2], "apc") == 0) {
-		dpu_apc_boot();
-		return 0;
-	}
-	return -EINVAL;
-}
-
-static int do_dpu(int argc, char *argv[])
-{
-	if (argc < 2)
-		return -EINVAL;
-
-	if (strcmp(argv[1], "boot") == 0)
-		return do_dpu_boot(argc, argv);
-	return -EINVAL;
-}
-
-DEFINE_COMMAND(dpu, do_dpu, "DPU SoC global commands",
-	"dpu boot pe|apc\n"
-	"    -boot DPU PE or RISCV64 APC\n"
-);
+#endif /* __PE_DPU_H_INCLUDE__ */
