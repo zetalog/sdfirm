@@ -271,8 +271,8 @@ void imc_addr_trans(int n, uint32_t in_addr, uint64_t out_addr,
 #define imc_axi_exit_low_power(periph)				\
 	do {							\
 		__raw_setl(IMC_AXI_REQ(periph),			\
-			   TCSR_SHUTDN_REQ);			\
-		while (!(__raw_readl(TCSR_SHUTDN_ACK) &		\
+			   TCSR_BRINGUP_REQ);			\
+		while (!(__raw_readl(TCSR_BRINGUP_ACK) &	\
 		         IMC_AXI_ACK(periph)));			\
 	} while (0)
 #define imc_axi_is_low_power(periph)				\
