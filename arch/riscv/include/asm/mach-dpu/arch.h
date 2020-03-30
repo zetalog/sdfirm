@@ -45,6 +45,9 @@
 #ifdef CONFIG_ARCH_HAS_LOVEC
 #define __VEC			__LOVEC
 #endif
+#ifdef CONFIG_ARCH_HAS_NOVEC
+#define __VEC
+#endif
 
 #include <asm/mach/tcsr.h>
 #include <asm/mach/flash.h>

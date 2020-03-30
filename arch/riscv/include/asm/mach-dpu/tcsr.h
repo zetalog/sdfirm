@@ -87,14 +87,6 @@
 #define IMC_SIM_FAIL			_BV(30)
 #endif
 #define IMC_CLOCK_EN			_BV(0)
-/* LP_STATUS */
-#define IMC_I2C2_EN			_BV(6)
-#define IMC_I2C1_EN			_BV(5)
-#define IMC_I2C0_EN			_BV(4)
-#define IMC_UART_LP_REQ_SCLK		_BV(3)
-#define IMC_UART_LP_REQ_PCLK		_BV(2)
-#define IMC_SSI_SLEEP			_BV(1)
-#define IMC_SSI_BUSY			_BV(0)
 
 #define imc_soc_major()			\
 	IMC_MAJOR(__raw_readl(TCSR_SOC_HW_VERSION))
@@ -117,8 +109,6 @@
 #else
 #define imc_sim_finish(pass)		do { } while (0)
 #endif
-#define imc_lp_status(ip)		\
-	(__raw_readl(IMC_LP_STATUS) & (ip))
 
 #ifndef __ASSEMBLY__
 typedef uint16_t imc_at_attr_t;
@@ -238,7 +228,7 @@ void imc_addr_trans(int n, uint32_t in_addr, uint64_t out_addr,
 	do { } while (0)
 #endif
 
-#ifdef CONFIG_DPU_TCSR_BUS_TRANS
+#ifdef CONFIG_DPU_TCSR_LOW_POWER
 /* SHUTDN_REQ/ACK */
 #define IMC_DDR1_CTRL			15
 #define IMC_DDR1			14
@@ -256,17 +246,44 @@ void imc_addr_trans(int n, uint32_t in_addr, uint64_t out_addr,
 #define IMC_PCIE_X8_MST			2
 #define IMC_PCIE_X16_SLV		1
 #define IMC_PCIE_X16_MST		0
+#define IMC_MAX_AXI_PERIPHS		16
+/* LP_STATUS */
+#define IMC_I2C2_EN			6
+#define IMC_I2C1_EN			5
+#define IMC_I2C0_EN			4
+#define IMC_UART_LP_REQ_SCLK		3
+#define IMC_UART_LP_REQ_PCLK		2
+#define IMC_SSI_SLEEP			1
+#define IMC_SSI_BUSY			0
+#define IMC_MAX_APB_PERIPHS		7
 
-#define IMC_BUS_REQ(bus)		_BV(bus)
-#define IMC_BUS_ACTIVE(bus)		_BV((bus) + 16)
-#define IMC_BUS_ACK(bus)		_BV(bus)
+#define IMC_AXI_REQ(periph)		_BV(periph)
+#define IMC_AXI_ACTIVE(periph)		_BV((periph) + 16)
+#define IMC_AXI_ACK(periph)		_BV(periph)
 
-#define imc_bus_active(bus)		\
-	(__raw_readl(IMC_SHUTDN_ACK) & IMC_BUS_ACTIVE(bus))
-#define imc_bus_shutdn_req(bus)		\
-	__raw_setl(IMC_BUS_REQ(bus), IMC_SHUTDN_REQ)
-#define imc_bus_shutdn_ack(bus)		\
-	__raw_setl(IMC_BUS_ACK(bus), IMC_SHUTDN_ACK)
+#define imc_axi_enter_low_power(periph)				\
+	do {							\
+		__raw_clearl(IMC_AXI_REQ(periph),		\
+			     TCSR_SHUTDN_REQ);			\
+		while (__raw_readl(TCSR_SHUTDN_ACK) &		\
+		       IMC_AXI_ACK(periph));			\
+	} while (0)
+#define imc_axi_exit_low_power(periph)				\
+	do {							\
+		__raw_setl(IMC_AXI_REQ(periph),			\
+			   TCSR_SHUTDN_REQ);			\
+		while (!(__raw_readl(TCSR_SHUTDN_ACK) &		\
+		         IMC_AXI_ACK(periph)));			\
+	} while (0)
+#define imc_axi_is_low_power(periph)				\
+	(!(__raw_readl(TCSR_SHUTDN_ACK) & IMC_AXI_ACTIVE(periph)))
+#define imc_apb_is_low_power(periph)		\
+	(__raw_readl(TCSR_LP_STATUS) & _BV(periph))
+#else
+#define imc_axi_enter_low_power(periph)	do { } while (0)
+#define imc_axi_exit_low_power(periph)	do { } while (0)
+#define imc_axi_is_low_power(periph)	false
+#define imc_apb_is_low_power(periph)	false
 #endif
 
 #endif /* __TCSR_DPU_H_INCLUDE__ */

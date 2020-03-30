@@ -2,10 +2,9 @@ obj-y :=
 
 CFLAGS_mmu.o := -mcmodel=medany
 
-obj-$(CONFIG_ARCH_HAS_NOVEC) += entry.rel
-
 head-y += head.rel
 obj-y += trap.rel
+obj-$(CONFIG_RISCV_GENERIC_TRAP) += entry.rel
 obj-y += irq.rel
 obj-y += tlb.rel
 

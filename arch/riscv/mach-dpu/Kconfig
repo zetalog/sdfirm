@@ -52,8 +52,8 @@ if DPU_TCSR
 config DPU_TCSR_ADDR_TRANS
 	bool "Enable address translation support"
 
-config DPU_TCSR_BUS_TRANS
-	bool "Enable bus transaction support"
+config DPU_TCSR_LOW_POWER
+	bool "Enable bus low power support"
 
 config DPU_TCSR_SIM_FINISH
 	bool "Enable simulation finish support"

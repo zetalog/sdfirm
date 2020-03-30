@@ -31,7 +31,6 @@
 	.endm
 #endif
 
-#ifdef CONFIG_ARCH_HAS_NOVEC
 	.macro SAVE_ALL
 	.local _restore_kernel_tpsp
 	.local _save_context
@@ -226,4 +225,3 @@ __sexctab:
 	RISCV_PTR do_trap_unknown /* do_page_fault (store) */
 __eexctab:
 END(exc_table)
-#endif

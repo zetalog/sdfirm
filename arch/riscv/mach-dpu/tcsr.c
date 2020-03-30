@@ -79,6 +79,126 @@ static inline do_tcsr_addr(int argc, char **argv)
 }
 #endif
 
+#ifdef CONFIG_DPU_TCSR_LOW_POWER
+const char *imc_apb_names[IMC_MAX_APB_PERIPHS] = {
+	"ssi_busy",
+	"ssi_sleep",
+	"uart_lp_req_pclk",
+	"uart_lp_req_sclk",
+	"i2c0_en",
+	"i2c1_en",
+	"i2c2_en",
+};
+
+#if 0
+static int imc_apb_name2periph(const char *name)
+{
+	int periph;
+
+	for (periph = 0; periph < IMC_MAX_APB_PERIPHS; periph++) {
+		if (strcmp(name, imc_apb_names[periph]) == 0)
+			return periph;
+	}
+	return IMC_MAX_APB_PERIPHS;
+}
+#endif
+
+static void do_tcsr_apb_dump(void)
+{
+	int periph;
+
+	for (periph = 0; periph < IMC_MAX_APB_PERIPHS; periph++) {
+		printf("%s: %s\n", imc_apb_names[periph],
+		       imc_apb_is_low_power(periph) ? "off" : "on");
+	}
+}
+
+static int do_tcsr_apb(int argc, char **argv)
+{
+	if (argc < 3)
+		return -EINVAL;
+	if (strcmp(argv[2], "dump") == 0) {
+		do_tcsr_apb_dump();
+		return 0;
+	}
+	return -ENODEV;
+}
+
+const char *imc_axi_names[IMC_MAX_AXI_PERIPHS] = {
+	"pcie_x16_mst",
+	"pcie_x16_slv",
+	"pcie_x8_mst",
+	"pcie_x8_slv",
+	"pcie_x4_0_mst",
+	"pcie_x4_0_slv",
+	"pcie_x4_1_mst",
+	"pcie_x4_1_slv",
+	"pcie_x16_dbi",
+	"pcie_x8_dbi",
+	"pcie_x4_0_dbi",
+	"pcie_x4_1_dbi",
+	"ddr0",
+	"ddr0_ctrl",
+	"ddr1",
+	"ddr1_ctrl",
+};
+
+static int imc_axi_name2periph(const char *name)
+{
+	int periph;
+
+	for (periph = 0; periph < IMC_MAX_AXI_PERIPHS; periph++) {
+		if (strcmp(name, imc_axi_names[periph]) == 0)
+			return periph;
+	}
+	return IMC_MAX_AXI_PERIPHS;
+}
+
+static void do_tcsr_axi_dump(void)
+{
+	int periph;
+
+	for (periph = 0; periph < IMC_MAX_AXI_PERIPHS; periph++) {
+		printf("%s: %s\n", imc_axi_names[periph],
+		       imc_axi_is_low_power(periph) ? "off" : "on");
+	}
+}
+
+static int do_tcsr_axi(int argc, char **argv)
+{
+	int periph;
+
+	if (argc < 3)
+		return -EINVAL;
+	if (strcmp(argv[2], "dump") == 0) {
+		do_tcsr_axi_dump();
+		return 0;
+	}
+	if (argc < 4)
+		return -EINVAL;
+	periph = imc_axi_name2periph(argv[3]);
+	if (periph >= IMC_MAX_AXI_PERIPHS)
+		return -EINVAL;
+	if (strcmp(argv[2], "on") == 0)
+		imc_axi_exit_low_power(periph);
+	if (strcmp(argv[2], "off") == 0)
+		imc_axi_enter_low_power(periph);
+	return -ENODEV;
+}
+#else
+static inline int do_tcsr_apb(int argc, char **argv)
+{
+	printf("DPU_TCSR_LOW_POWER is not configured.\n");
+	return -ENODEV;
+}
+
+static inline int do_tcsr_axi(int argc, char **argv)
+{
+	printf("DPU_TCSR_LOW_POWER is not configured.\n");
+	return -ENODEV;
+}
+#endif
+
 const char *imc_boot2name(uint8_t boot_mode)
 {
 	switch (boot_mode) {
@@ -125,6 +245,10 @@ static int do_tcsr(int argc, char *argv[])
 		return do_tcsr_addr(argc, argv);
 	if (strcmp(argv[1], "sim") == 0)
 		return do_tcsr_sim(argc, argv);
+	if (strcmp(argv[1], "apb") == 0)
+		return do_tcsr_apb(argc, argv);
+	if (strcmp(argv[1], "axi") == 0)
+		return do_tcsr_axi(argc, argv);
 	return -EINVAL;
 }
 
@@ -133,6 +257,12 @@ DEFINE_COMMAND(tcsr, do_tcsr, "Top control/status registers",
 	"    -dump versions, identifiers, modes\n"
 	"tcsr addr id in out normal|device\n"
 	"    -map AXI address space (beyond 4G)\n"
+	"tcsr apb dump\n"
+	"    -dump APB bus peripheral status\n"
+	"tcsr axi dump\n"
+	"    -dump AXI bus peripheral status\n"
+	"tcsr axi on|off periph\n"
+	"    -power on|off AXI bus peripheral\n"
 	"tcsr sim pass|fail\n"
 	"    -finish simulation with pass/fail\n"
 );

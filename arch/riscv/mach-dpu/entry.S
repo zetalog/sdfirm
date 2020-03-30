@@ -33,7 +33,7 @@
 
 	__VEC
 
-__vectors:
+ENTRY(__vectors)
 	jal	x0, __handle_exception
 	jal	x0, __handle_bad_irq
 	jal	x0, __handle_bad_irq
@@ -68,6 +68,7 @@ __vectors:
 	jal	x0, __handle_bad_irq
 	/* reset vector */
 	jal	x0, __start
+END(__vectors)
 
 	.option norvc
 	__HEAD
@@ -224,7 +225,7 @@ ret_from_exception:
 END(__handle_exception)
 
 	.section ".rodata"
-ENTRY(exc_table)
+ENTRY(ri5cy_exc_table)
 __sexctab:
 	RISCV_PTR do_trap_insn_misaligned
 	RISCV_PTR do_trap_insn_fault
@@ -243,7 +244,7 @@ __sexctab:
 	RISCV_PTR do_trap_unknown
 	RISCV_PTR do_trap_unknown /* do_page_fault (store) */
 __eexctab:
-END(exc_table)
+END(ri5cy_exc_table)
 
 	.macro	define_irq entry, handler
 ENTRY(\entry)

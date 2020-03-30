@@ -6,6 +6,7 @@ config CPU_VAISRA
 	select CPU_SV48
 	select CPU_PMP
 	select CPU_COUNTERS
+	select RISCV_GENERIC_TRAP
 
 # SiFive E51
 config CPU_E51
@@ -16,6 +17,7 @@ config CPU_E51
 	select CPU_C
 	select CPU_COUNTERS
 	select ARCH_HAS_NOSEE
+	select RISCV_GENERIC_TRAP
 
 # SiFive U54
 config CPU_U54
@@ -26,6 +28,7 @@ config CPU_U54
 	select CPU_PMP
 	select CPU_COUNTERS
 	select ARCH_HAS_MMU_ORDER
+	select RISCV_GENERIC_TRAP
 
 # THead Xuantie C910
 config CPU_C910
@@ -35,6 +38,7 @@ config CPU_C910
 	select CPU_V
 	select CPU_SV39
 	select CPU_PMP
+	select RISCV_GENERIC_TRAP
 
 # RI5CY
 config CPU_RI5CY
@@ -61,6 +65,7 @@ config CPU_SPIKE32
 	select CPU_C
 	select CPU_SV32
 	select CPU_PMP
+	select RISCV_GENERIC_TRAP
 
 config CPU_SPIKE64
 	bool
@@ -69,6 +74,7 @@ config CPU_SPIKE64
 	select CPU_SV39
 	select CPU_SV48
 	select CPU_PMP
+	select RISCV_GENERIC_TRAP
 
 # VIRT
 config CPU_VIRT
@@ -77,6 +83,7 @@ config CPU_VIRT
 	select CPU_C
 	select CPU_PMP
 	select CPU_COUNTERS
+	select RISCV_GENERIC_TRAP
 
 config CPU_32G
 	bool
@@ -356,6 +363,9 @@ endchoice
 endif
 
 menu "CPU architecture options"
+
+config RISCV_GENERIC_TRAP
+	bool
 
 if RISCV_A
 
