@@ -54,6 +54,10 @@ config MEMSTREAM
 
 if MEMSTREAM
 
+config MEMSTREAM_STATIC_ARRAY
+	bool "Use static array (rather than allocate dynamically)"
+	default y
+
 config MEMSTREAM_ARRAY_SIZE
 	int "Array size"
 	range 1000 8000000
