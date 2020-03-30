@@ -219,7 +219,7 @@ static int do_tcsr_info(int argc, char *argv[])
 	printf("Minor:     %02x\n", imc_soc_minor());
 	printf("Core:      %02x\n", imc_core_id());
 	printf("Cluster:   %d\n", imc_cluster_id());
-	printf("Boot Mode: %d\n", imc_boot2name(mode));
+	printf("Boot Mode: %s\n", imc_boot2name(mode));
 	if (mode == IMC_BOOT_USE_BOOT_ADDR)
 		printf("Boot Addr: %08lx\n", imc_boot_addr());
 	return 0;
