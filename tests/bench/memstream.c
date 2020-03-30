@@ -201,27 +201,33 @@ static struct memstream_percpu memstream_ctx[MAX_CPU_NUM];
 #define STREAM_TYPE double
 #endif
 
+#ifdef CONFIG_MEMSTREAM_STATIC_ARRAY
 static STREAM_TYPE	all_a[MAX_CPU_NUM][STREAM_ARRAY_SIZE+OFFSET],
 			all_b[MAX_CPU_NUM][STREAM_ARRAY_SIZE+OFFSET],
 			all_c[MAX_CPU_NUM][STREAM_ARRAY_SIZE+OFFSET];
+#else
+static STREAM_TYPE	all_a[MAX_CPU_NUM][0],
+			all_b[MAX_CPU_NUM][0],
+			all_c[MAX_CPU_NUM][0];
+#endif
 
 #ifdef CONFIG_MEMSTREAM_TIME_ON
 static double	avgtime[4] = {0}, maxtime[4] = {0},
 		mintime[4] = {FLT_MAX,FLT_MAX,FLT_MAX,FLT_MAX};
 #endif
-
+#if 0
 static char	*label[4] = {"Copy:      ", "Scale:     ",
     "Add:       ", "Triad:     "};
-
 static double	bytes[4] = {
     2 * sizeof(STREAM_TYPE) * STREAM_ARRAY_SIZE,
     2 * sizeof(STREAM_TYPE) * STREAM_ARRAY_SIZE,
     3 * sizeof(STREAM_TYPE) * STREAM_ARRAY_SIZE,
     3 * sizeof(STREAM_TYPE) * STREAM_ARRAY_SIZE
     };
+#endif
 
 extern double mysecond();
-extern void checkSTREAMresults();
+extern int checkSTREAMresults(int);
 #ifdef TUNED
 extern void tuned_STREAM_Copy();
 extern void tuned_STREAM_Scale(STREAM_TYPE scalar);
@@ -231,6 +237,9 @@ extern void tuned_STREAM_Triad(STREAM_TYPE scalar);
 #ifdef _OPENMP
 extern int omp_get_num_threads();
 #endif
+
+static int memstream_t_pass(void) { return 1; }
+static int memstream_t_fail(void) { return 0; }
 
 #ifdef HOSTED
 void main ()
@@ -245,14 +254,22 @@ int memstream(caddr_t percpu_area)
     int			k;
     ssize_t		j;
     STREAM_TYPE		scalar;
-    double		t, times[4][NTIMES];
+    double		/*t, */times[4][NTIMES];
+	int smp_id = smp_processor_id();
+	int ret;
 
-	STREAM_TYPE *a = all_a[smp_processor_id()];
-	STREAM_TYPE *b = all_b[smp_processor_id()];
-	STREAM_TYPE *c = all_c[smp_processor_id()];
+#ifdef CONFIG_MEMSTREAM_STATIC_ARRAY
+	STREAM_TYPE *a = all_a[smp_id];
+	STREAM_TYPE *b = all_b[smp_id];
+	STREAM_TYPE *c = all_c[smp_id];
+#else
+	STREAM_TYPE *a = page_alloc_pages(1);
+	STREAM_TYPE *b = page_alloc_pages(1);
+	STREAM_TYPE *c = page_alloc_pages(1);
+#endif
 
-	memstream_ctx[smp_processor_id()].ptr = (struct memstream_context *)percpu_area;
-	memstream_ctx[smp_processor_id()].ptr->result = 1;
+	memstream_ctx[smp_id].ptr = (struct memstream_context *)percpu_area;
+	memstream_ctx[smp_id].ptr->result = 1;
 
 
     /* --- SETUP --- determine precision and check timing --- */
@@ -416,12 +433,21 @@ int memstream(caddr_t percpu_area)
     }
     printf(HLINE);
 #endif
-#if 0
-    /* --- Check Results --- */
-    checkSTREAMresults();
-    printf(HLINE);
+
+    ret = checkSTREAMresults(smp_id);
+
+#ifndef CONFIG_MEMSTREAM_STATIC_ARRAY
+	page_free_pages(a);
+	page_free_pages(b);
+	page_free_pages(c);
 #endif
-    return 1;
+	if (ret == 0) {
+		printf("Memory Stream test Success\n");
+		return memstream_t_pass();
+	} else {
+		printf("Memory Stream test Failed\n");
+		return memstream_t_fail();
+	}
 }
 
 #ifdef CONFIG_MEMSTREAM_TIME_ON
@@ -487,11 +513,11 @@ double mysecond()
 }
 #endif
 
-#if 0
+#if 1
 #ifndef abs
 #define abs(a) ((a) >= 0 ? (a) : -(a))
 #endif
-void checkSTREAMresults ()
+int checkSTREAMresults (int smp_id)
 {
 	STREAM_TYPE aj,bj,cj,scalar;
 	STREAM_TYPE aSumErr,bSumErr,cSumErr;
@@ -499,6 +525,10 @@ void checkSTREAMresults ()
 	double epsilon;
 	ssize_t	j;
 	int	k,ierr,err;
+
+	STREAM_TYPE *a = all_a[smp_id];
+	STREAM_TYPE *b = all_b[smp_id];
+	STREAM_TYPE *c = all_c[smp_id];
 
     /* reproduce initialization */
 	aj = 1.0;
@@ -599,7 +629,7 @@ void checkSTREAMresults ()
 		printf("     For array c[], %d errors were found.\n",ierr);
 	}
 	if (err == 0) {
-		printf ("Solution Validates: avg error less than %e on all three arrays\n",epsilon);
+		printf ("Solution Validates: avg error less than %d on all three arrays\n",epsilon);
 	}
 #ifdef VERBOSE
 	printf ("Results Validation Verbose Results: \n");
@@ -607,6 +637,7 @@ void checkSTREAMresults ()
 	printf ("    Observed a(1), b(1), c(1): %f %f %f \n",a[1],b[1],c[1]);
 	printf ("    Rel Errors on a, b, c:     %e %e %e \n",abs(aAvgErr/aj),abs(bAvgErr/bj),abs(cAvgErr/cj));
 #endif
+	return err;
 }
 #endif
 
