@@ -23,7 +23,6 @@ config DPU_BOOT_ROM
 	select DPU_BOOT
 	select DPU_FLASH
 	select DPU_DDR
-	select ARCH_HAS_LOVEC
 
 config DPU_BOOT_FLASH
 	bool "1-stage programmable flash bootloader (FSBL)"
@@ -35,7 +34,6 @@ config DPU_BOOT_FLASH
 	select DPU_TCSR
 	select DPU_BOOT
 	select DPU_DDR
-	select ARCH_HAS_NOVEC
 
 config DPU_FIRM
 	bool "DPU runtime firmware"

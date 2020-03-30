@@ -73,6 +73,7 @@ config ARCH_DPU
 	select ARCH_HAS_DDR
 	select ARCH_HAS_PCI
 	select ARCH_HAS_PLIC
+	select ARCH_HAS_NOVEC
 	select PLIC if !SYS_NOIRQ
 	select DPU_PLL if CLK
 	select DPU_TMR if CLK
