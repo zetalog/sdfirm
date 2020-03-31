@@ -42,6 +42,15 @@
 #ifndef __REG_DPU_H_INCLUDE__
 #define __REG_DPU_H_INCLUDE__
 
+/* CSRs */
+#define CSR_UHARTID		0x014
+#define CSR_PRIVLV		0xC10
+
+/* Hardware loop extension */
+#define CSR_LPSTART(n)		(0x7C0 + (n) << 2) /* LPSTART[0, 1] */
+#define CSR_LPEND(n)		(0x7C1 + (n) << 2) /* LPEND[0, 1] */
+#define CSR_LPCOUNT(n)		(0x7C2 + (n) << 2) /* LPCOUNT[0, 1] */
+
 #define FLASH_BASE		UL(0x00000000)
 #define DDR0_PHY_BASE		UL(0x02000000)
 #define DDR1_PHY_BASE		UL(0x03000000)

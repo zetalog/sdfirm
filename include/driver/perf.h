@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2019
+ * Copyright (c) 2020
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,24 +35,19 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)perf.h: ARM64 specific perf implementation
- * $Id: perf.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)perf.h: required PERF driver specific abstraction
+ * $Id: perf.h,v 1.1 2020-03-31 10:16:00 zhenglv Exp $
  */
 
-#ifndef __ARM64_PERF_H_INCLUDE__
-#define __ARM64_PERF_H_INCLUDE__
+#ifndef __PERF_DRIVER_H_INCLUDE__
+#define __PERF_DRIVER_H_INCLUDE__
 
-#include <asm/pmu.h>
+#ifdef CONFIG_ARCH_HAS_PMU
+#include <asm/mach/pmu.h>
+#endif
 
-#define PERF_HW_MAX_COUNTERS		31
-#define PERF_HW_DEFAULT_EVENT		ARMV8_PMUV3_SW_INCR
+#ifndef ARCH_HAVE_PMU
+#define pmu_hw_ctrl_init()		do { } while (0)
+#endif
 
-#define perf_hw_ctrl_init()		pmu_init()
-#define perf_hw_reset_events()		pmu_reset_events()
-#define perf_hw_get_counters()		pmu_get_counters()
-#define perf_hw_enable_event(event)	pmu_enable_event(event)
-#define perf_hw_disable_event(event)	pmu_disable_event(event)
-#define perf_hw_configure_event(event)	pmu_configure_event(event)
-#define perf_hw_get_event_count(event)	pmu_get_event_count(event)
-
-#endif /* __ARM64_PERF_H_INCLUDE__ */
+#endif /* __PERF_DRIVER_H_INCLUDE__ */

@@ -45,8 +45,11 @@ config CPU_RI5CY
 	bool
 	select CPU_32I
 	select CPU_M
+	select CPU_F
 	select CPU_C
 	select CPU_N
+	select CPU_PMP
+	select ARCH_HAS_PMU
 	select ARCH_HAS_NOSEE
 
 # ZERO RISCY
@@ -567,5 +570,9 @@ config ARCH_HAS_PLIC
 config PLIC
 	bool "Platform level interrupt controller (PLIC) support"
 	depends ARCH_HAS_PLIC
+
+config RI5CY_PC
+	bool "RI5CY performance counter support"
+	depends PERF && CPU_RI5CY
 
 endmenu

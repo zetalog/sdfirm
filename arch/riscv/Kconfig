@@ -56,6 +56,7 @@ config ARCH_DUOWEN
 	select DW_UMCTL2 if DDR
 	select DUOWEN_DMA if DMA
 	select DUOWEN_SMMU if IOMMU
+	select RI5CY_PC if PERF
 	help
 	  This enables support for emulated riscv platforms.
 
@@ -83,6 +84,7 @@ config ARCH_DPU
 	select DW_DMA if DMA
 	select DPU_DDR if DDR
 	select DPU_PCI_SUBSYS if PCI
+	select RI5CY_PC if PERF
 	help
 	  This enables support for smart core (SmarCo) DPU platform.
 

@@ -35,38 +35,24 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)perf.h: performance measurement mechanism
- * $Id: perf.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)pmu.h: ARM64 specific perf implementation
+ * $Id: pmu.h,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
  */
 
-#ifndef __PERF_H_INCLUDE__
-#define __PERF_H_INCLUDE__
+#ifndef __ARM64_PMU_H_INCLUDE__
+#define __ARM64_PMU_H_INCLUDE__
 
-#include <target/generic.h>
-#include <driver/perf.h>
+#include <asm/pmu.h>
 
-#define NR_PERF_EVTS		PMU_HW_MAX_COUNTERS
-#define INVALID_PERF_EVT	NR_PERF_EVTS
+#define PMU_HW_MAX_COUNTERS		31
+#define PMU_HW_DEFAULT_EVENT		ARMV8_PMUV3_SW_INCR
 
-#if NR_PERF_COUNTERS < 256
-typedef uint8_t perf_evt_t;
-#endif
-typedef uint64_t perf_cnt_t;
+#define pmu_hw_ctrl_init()		pmu_init()
+#define pmu_hw_reset_events()		pmu_reset_events()
+#define pmu_hw_get_counters()		pmu_get_counters()
+#define pmu_hw_enable_event(event)	pmu_enable_event(event)
+#define pmu_hw_disable_event(event)	pmu_disable_event(event)
+#define pmu_hw_configure_event(event)	pmu_configure_event(event)
+#define pmu_hw_get_event_count(event)	pmu_get_event_count(event)
 
-#ifdef CONFIG_PERF
-#define perf_event_count(event)	\
-	perf_hw_get_event_count(event)
-
-int perf_event_id(perf_evt_t event);
-int perf_register_event(perf_evt_t event);
-void perf_unregister_all_events(void);
-void perf_init(void);
-#else
-#define perf_event_count(event)		0
-#define perf_event_id(event)		-1
-#define perf_register_event(event)	-ENODEV
-#define perf_unregister_all_events()	do { } while (0)
-#define perf_init()			do { } while (0)
-#endif
-
-#endif /* __PERF_H_INCLUDE__ */
+#endif /* __ARM64_PMU_H_INCLUDE__ */

@@ -231,9 +231,9 @@ void imc_addr_trans(int n, uint32_t in_addr, uint64_t out_addr,
 #ifdef CONFIG_DPU_TCSR_LOW_POWER
 /* SHUTDN_REQ/ACK */
 #define IMC_DDR1_CTRL			15
-#define IMC_DDR1			14
+#define IMC_DDR1			14 /* DDR AXI */
 #define IMC_DDR0_CTRL			13
-#define IMC_DDR0			12
+#define IMC_DDR0			12 /* DDR AXI */
 #define IMC_PCIE_X4_1_DBI		11
 #define IMC_PCIE_X4_0_DBI		10
 #define IMC_PCIE_X8_DBI			9
