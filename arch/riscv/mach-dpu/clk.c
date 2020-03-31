@@ -395,14 +395,14 @@ struct sel_clk sel_clks[NR_SEL_CLKS] = {
 
 #ifdef CONFIG_CONSOLE_COMMAND
 const char *sel_clk_names[NR_SEL_CLKS] = {
-	[IMC_CLK] = "imc_clk (pll0_p_gmux)",
-	[PE_CLK] = "pe_clk (pll1_p_gmux)",
-	[DDR_CLK] = "ddr_clk (pll2_p_gmux)",
-	[AXI_CLK] = "axi_clk (pll3_p_gmux)",
-	[CPU_CLK] = "cpu_clk (pll4_p_gmux)",
-	[PCIE_REF_CLK] = "pcie_ref_clk (pll5_p_gmux)",
-	[DDR_BYPASS_PCLK] = "ddr_bypass_pclk (pll2_r_gmux)",
-	[APB_CLK] = "apb_clk (pll3_r_gmux)",
+	[IMC_CLK] = "imc_clk",
+	[PE_CLK] = "pe_clk",
+	[DDR_CLK] = "ddr_clk",
+	[AXI_CLK] = "axi_clk",
+	[CPU_CLK] = "cpu_clk",
+	[PCIE_REF_CLK] = "pcie_ref_clk",
+	[DDR_BYPASS_PCLK] = "ddr_bypass_pclk",
+	[APB_CLK] = "apb_clk",
 };
 
 static const char *get_clk_sel_name(clk_clk_t clk)
