@@ -277,12 +277,18 @@ void imc_addr_trans(int n, uint32_t in_addr, uint64_t out_addr,
 	} while (0)
 #define imc_axi_is_low_power(periph)				\
 	(!(__raw_readl(TCSR_SHUTDN_ACK) & IMC_AXI_ACTIVE(periph)))
-#define imc_apb_is_low_power(periph)		\
+#define imc_apb_is_low_power(periph)				\
 	(__raw_readl(TCSR_LP_STATUS) & _BV(periph))
+#ifndef __ASSEMBLY__
+void imc_axi_register_periphs(uint16_t periphs);
+void imc_axi_unregister_periphs(uint16_t periphs);
+#endif
 #else
 #define imc_axi_enter_low_power(periph)	do { } while (0)
 #define imc_axi_exit_low_power(periph)	do { } while (0)
 #define imc_axi_is_low_power(periph)	false
+#define imc_axi_register_periphs(periphs)	do { } while (0)
+#define imc_axi_unregister_periphs(periphs)	do { } while (0)
 #define imc_apb_is_low_power(periph)	false
 #endif
 

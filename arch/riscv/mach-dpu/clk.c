@@ -50,6 +50,7 @@
 struct reset_clk {
 	clk_t clk_src;
 	uint8_t flags;
+	uint16_t axi_periphs;
 };
 
 #define CLK_SRST_MAP	ULL(0x000007FFFFFF)
@@ -68,6 +69,18 @@ struct reset_clk reset_clks[NR_RESET_CLKS] = {
 	[SRST_PCIE0] = {
 		.clk_src = axi_clk,
 		.flags = CLK_SRST_F,
+		.axi_periphs = _BV(IMC_PCIE_X16_MST) |
+			       _BV(IMC_PCIE_X8_MST) |
+			       _BV(IMC_PCIE_X4_0_MST) |
+			       _BV(IMC_PCIE_X4_1_MST) |
+			       _BV(IMC_PCIE_X16_SLV) |
+			       _BV(IMC_PCIE_X8_SLV) |
+			       _BV(IMC_PCIE_X4_0_SLV) |
+			       _BV(IMC_PCIE_X4_1_SLV) |
+			       _BV(IMC_PCIE_X16_DBI) |
+			       _BV(IMC_PCIE_X8_DBI) |
+			       _BV(IMC_PCIE_X4_0_DBI) |
+			       _BV(IMC_PCIE_X4_1_DBI),
 	},
 	[SRST_PCIE1] = {
 		.clk_src = axi_clk,
@@ -144,6 +157,7 @@ struct reset_clk reset_clks[NR_RESET_CLKS] = {
 	[SRST_DDR0_1] = {
 		.clk_src = ddr_clk,
 		.flags = CLK_SRST_F,
+		.axi_periphs = _BV(IMC_DDR0) | _BV(IMC_DDR0_CTRL),
 	},
 	[SRST_DDR1_0] = {
 		.clk_src = ddr_clk,
@@ -152,6 +166,7 @@ struct reset_clk reset_clks[NR_RESET_CLKS] = {
 	[SRST_DDR1_1] = {
 		.clk_src = ddr_clk,
 		.flags = CLK_SRST_F,
+		.axi_periphs = _BV(IMC_DDR1) | _BV(IMC_DDR1_CTRL),
 	},
 	[SRST_DDR0_POR] = {
 		.clk_src = ddr_clk,
@@ -287,6 +302,7 @@ static int enable_reset_clk(clk_clk_t clk)
 		clk_enable(reset_clks[clk].clk_src);
 	dpu_pll_soft_reset(clk);
 	reset_clks[clk].flags |= CLK_EN_F;
+	imc_axi_register_periphs(reset_clks[clk].axi_periphs);
 	return 0;
 }
 
@@ -301,6 +317,7 @@ static void disable_reset_clk(clk_clk_t clk)
 		clk_disable(reset_clks[clk].clk_src);
 	dpu_pll_soft_reset(clk);
 	reset_clks[clk].flags &= ~CLK_EN_F;
+	imc_axi_unregister_periphs(reset_clks[clk].axi_periphs);
 }
 
 static clk_freq_t get_reset_clk_freq(clk_clk_t clk)

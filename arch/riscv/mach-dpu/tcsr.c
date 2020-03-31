@@ -143,6 +143,20 @@ const char *imc_axi_names[IMC_MAX_AXI_PERIPHS] = {
 	"ddr1_ctrl",
 };
 
+uint16_t imc_axi_periphs;
+
+#define imc_axi_periph_registered(periph)	(_BV(periph) & imc_axi_periphs)
+
+void imc_axi_register_periphs(uint16_t periphs)
+{
+	imc_axi_periphs |= periphs;
+}
+
+void imc_axi_unregister_periphs(uint16_t periphs)
+{
+	imc_axi_periphs &= ~periphs;
+}
+
 static int imc_axi_name2periph(const char *name)
 {
 	int periph;
@@ -179,9 +193,9 @@ static int do_tcsr_axi(int argc, char **argv)
 	periph = imc_axi_name2periph(argv[3]);
 	if (periph >= IMC_MAX_AXI_PERIPHS)
 		return -EINVAL;
-	if (strcmp(argv[2], "on") == 0)
+	if (strcmp(argv[2], "on") == 0 && imc_axi_periph_registered(periph))
 		imc_axi_exit_low_power(periph);
-	if (strcmp(argv[2], "off") == 0)
+	if (strcmp(argv[2], "off") == 0 && imc_axi_periph_registered(periph))
 		imc_axi_enter_low_power(periph);
 	return -ENODEV;
 }
