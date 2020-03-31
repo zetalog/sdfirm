@@ -66,6 +66,7 @@ config ARCH_DPU
 	select ARCH_IS_TICKLESS
 	select ARCH_HAS_TSC
 	select ARCH_HAS_TSC_CONST
+	select ARCH_HAS_GPT
 	select ARCH_HAS_IRQC
 	select ARCH_HAS_CLK
 	select ARCH_HAS_I2C

@@ -45,14 +45,8 @@
 #include <target/arch.h>
 #include <target/clk.h>
 
-#define DW_TIMERS_BASE		TIMER_BASE
-#define DW_TIMERS_SIZE		0x14
-#define DW_TIMERS_WIDTH		32
-#define DW_TIMERS_TSC		0
-#define DW_TIMERS_TSC_CLK	XIN
-
 #define TSC_FREQ		XIN_FREQ
-#define TSC_MAX			((ULL(1) << DW_TIMERS_WIDTH) - 1)
+#define TSC_MAX			ULL(0xFFFFFFFFFFFFFFFF)
 
 #include <asm/mach/tmr.h>
 
