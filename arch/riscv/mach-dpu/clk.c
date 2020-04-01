@@ -339,6 +339,7 @@ struct clk_driver clk_srst = {
 
 struct sel_clk {
 	clk_t clk_sels[2];
+	bool allow_gating;
 	bool enabled;
 };
 
@@ -348,48 +349,56 @@ struct sel_clk sel_clks[NR_SEL_CLKS] = {
 			pll0_p,
 			xin,
 		},
+		.allow_gating = false, /* IMC is required to boot */
 	},
 	[PE_CLK] = {
 		.clk_sels = {
 			pll1_p,
 			xin,
 		},
+		.allow_gating = true,
 	},
 	[DDR_CLK] = {
 		.clk_sels = {
 			pll2_p,
 			xin,
 		},
+		.allow_gating = true,
 	},
 	[AXI_CLK] = {
 		.clk_sels = {
 			pll3_p,
 			xin,
 		},
+		.allow_gating = true,
 	},
 	[CPU_CLK] = {
 		.clk_sels = {
 			pll4_p,
 			xin,
 		},
+		.allow_gating = true,
 	},
 	[PCIE_REF_CLK] = {
 		.clk_sels = {
 			pll5_p,
 			pcie_phy_clk,
 		},
+		.allow_gating = true,
 	},
 	[DDR_BYPASS_PCLK] = {
 		.clk_sels = {
 			pll2_r,
 			xin,
 		},
+		.allow_gating = true,
 	},
 	[APB_CLK] = {
 		.clk_sels = {
 			pll3_r,
 			xin,
 		},
+		.allow_gating = false, /* ROM/RAM/TMR are required to boot */
 	},
 };
 
@@ -415,36 +424,23 @@ static const char *get_clk_sel_name(clk_clk_t clk)
 #define get_clk_sel_name	NULL
 #endif
 
-static int enable_clk_sel(clk_clk_t clk)
+static void __select_clk0(clk_clk_t clk, uint8_t pll, bool r)
 {
-	bool r = CLK_IS_PLL_RCLK(clk);
-	uint8_t pll = CLK_TO_PLL(clk, r);
-
-	if (clk >= NR_SEL_CLKS)
-		return -EINVAL;
-
 	if (sel_clks[clk].enabled) {
 		if (!dpu_gmux_selected(pll, r)) {
 			clk_enable(sel_clks[clk].clk_sels[0]);
 			dpu_gmux_select(pll, r);
 			clk_disable(sel_clks[clk].clk_sels[1]);
 		}
-		return 0;
+		return;
 	}
 	clk_enable(sel_clks[clk].clk_sels[0]);
 	sel_clks[clk].enabled = true;
 	dpu_gmux_select(pll, r);
-	return 0;
 }
 
-static void disable_clk_sel(clk_clk_t clk)
+static void __select_clk1(clk_clk_t clk, uint8_t pll, bool r)
 {
-	bool r = CLK_IS_PLL_RCLK(clk);
-	uint8_t pll = CLK_TO_PLL(clk, r);
-
-	if (clk >= NR_SEL_CLKS)
-		return;
-
 	if (sel_clks[clk].enabled) {
 		if (dpu_gmux_selected(pll, r)) {
 			clk_enable(sel_clks[clk].clk_sels[1]);
@@ -456,6 +452,33 @@ static void disable_clk_sel(clk_clk_t clk)
 	clk_enable(sel_clks[clk].clk_sels[1]);
 	sel_clks[clk].enabled = true;
 	dpu_gmux_deselect(pll, r);
+}
+
+static int enable_clk_sel(clk_clk_t clk)
+{
+	bool r = CLK_IS_PLL_RCLK(clk);
+	uint8_t pll = CLK_TO_PLL(clk, r);
+
+	if (clk >= NR_SEL_CLKS)
+		return -EINVAL;
+
+	__select_clk0(clk, pll, r);
+	if (sel_clks[clk].allow_gating && !dpu_gmux_enabled(pll, r))
+		dpu_gmux_enable(pll, r);
+	return 0;
+}
+
+static void disable_clk_sel(clk_clk_t clk)
+{
+	bool r = CLK_IS_PLL_RCLK(clk);
+	uint8_t pll = CLK_TO_PLL(clk, r);
+
+	if (clk >= NR_SEL_CLKS)
+		return;
+
+	if (sel_clks[clk].allow_gating && dpu_gmux_enabled(pll, r))
+		dpu_gmux_disable(pll, r);
+	__select_clk1(clk, pll, r);
 }
 
 static clk_freq_t get_clk_sel_freq(clk_clk_t clk)
@@ -523,13 +546,27 @@ static int set_clk_sel_freq(clk_clk_t clk, clk_freq_t freq)
 	return 0;
 }
 
+static void select_clk_sel(clk_clk_t clk, clk_t src)
+{
+	bool r = CLK_IS_PLL_RCLK(clk);
+	uint8_t pll = CLK_TO_PLL(clk, r);
+
+	if (clk >= NR_SEL_CLKS)
+		return;
+
+	if (sel_clks[clk].clk_sels[0] == src)
+		__select_clk0(clk, pll, r);
+	if (sel_clks[clk].clk_sels[1] == src)
+		__select_clk1(clk, pll, r);
+}
+
 struct clk_driver clk_gmux = {
 	.max_clocks = NR_SEL_CLKS,
 	.enable = enable_clk_sel,
 	.disable = disable_clk_sel,
 	.get_freq = get_clk_sel_freq,
 	.set_freq = set_clk_sel_freq,
-	.select = NULL,
+	.select = select_clk_sel,
 	.get_name = get_clk_sel_name,
 };
 
