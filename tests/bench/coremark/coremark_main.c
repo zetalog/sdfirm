@@ -76,7 +76,11 @@ ee_s32 get_seed_32(int i);
 #endif
 
 #if (MEM_METHOD==MEM_STATIC)
+#ifdef CONFIG_SMP
+ee_u8 static_memblk[MAX_CPU_NUM][TOTAL_DATA_SIZE];
+#else
 ee_u8 static_memblk[TOTAL_DATA_SIZE];
+#endif
 #endif
 char *mem_name[3] = {"Static","Heap","Stack"};
 /* Function: main
@@ -96,6 +100,9 @@ char *mem_name[3] = {"Static","Heap","Stack"};
 
 */
 
+static int coremark_t_pass(void) { return 1; }
+static int coremark_t_fail(void) { return 0; }
+
 #ifdef HOSTED
 MAIN_RETURN_TYPE main(int argc, char *argv[])
 #else
@@ -109,8 +116,9 @@ int coremark(caddr_t percpu_area)
 		"0x66",
 		"1"};
 	int argc = 5;
+	int cpu_id = smp_processor_id();
 
-	coremark_ctx[smp_processor_id()].ptr = (struct coremark_context *)percpu_area;
+	coremark_ctx[cpu_id].ptr = (struct coremark_context *)percpu_area;
 
 	ee_u16 i,j=0,num_algorithms=0;
 	ee_s16 known_id=-1,total_errors=0;
@@ -156,7 +164,11 @@ int coremark(caddr_t percpu_area)
 		results[0].seed3=0x66;
 	}
 #if (MEM_METHOD==MEM_STATIC)
+#ifdef CONFIG_SMP
+	results[0].memblock[0]=(void *)static_memblk[cpu_id];
+#else
 	results[0].memblock[0]=(void *)static_memblk;
+#endif
 	results[0].size=TOTAL_DATA_SIZE;
 	results[0].err=0;
 	#if (MULTITHREAD>1)
@@ -380,10 +392,6 @@ int coremark(caddr_t percpu_area)
 #endif
 #endif
 	}
-	if (total_errors>0)
-		ee_printf("Errors detected\n");
-	if (total_errors<0)
-		ee_printf("Cannot validate operation for these seed values, please compare with results on a known platform.\n");
 
 #if (MEM_METHOD==MEM_MALLOC)
 	for (i=0 ; i<MULTITHREAD; i++) 
@@ -392,7 +400,13 @@ int coremark(caddr_t percpu_area)
 	/* And last call any target specific code for finalizing */
 	portable_fini(&(results[0].port));
 
-	return MAIN_RETURN_VAL;	
+	if (total_errors == 0) {
+		printf("CoreMark test Success\n");
+		return coremark_t_pass();
+	} else {
+		printf("CoreMark test Failed\n");
+		return coremark_t_fail();
+	}
 }
 
 
