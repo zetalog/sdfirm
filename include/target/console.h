@@ -4,6 +4,7 @@
 #ifndef __ASSEMBLY__
 #include <target/uart.h>
 
+#ifndef UART_CON_BAUDRATE
 #ifdef CONFIG_CONSOLE_115200
 #define UART_CON_BAUDRATE	115200
 #endif
@@ -25,7 +26,6 @@
 #ifdef CONFIG_CONSOLE_2400
 #define UART_CON_BAUDRATE	2400
 #endif
-#ifndef UART_CON_BAUDRATE
 #define UART_CON_BAUDRATE	115200
 #endif
 

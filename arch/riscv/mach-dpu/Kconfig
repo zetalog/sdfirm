@@ -147,6 +147,12 @@ endchoice
 
 endif
 
+config DPU_UART_VIP
+	bool "Enable DPU UART simulation model support"
+	help
+	  When this is selected, UART baudrate generator frequency will
+	  be APB_CLK/16.
+
 menuconfig DPU_DDR
 	bool "Enable DPU DDR support"
 	select DW_UMCTL2

@@ -59,6 +59,10 @@
 #endif
 #endif
 
+#ifdef CONFIG_DPU_UART_VIP
+#define UART_CON_BAUDRATE		(APB_CLK_FREQ/16)
+#endif
+
 #ifdef CONFIG_DEBUG_PRINT
 void uart_hw_dbg_init(void);
 void uart_hw_dbg_start(void);
