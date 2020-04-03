@@ -64,6 +64,7 @@
 #define tmr_enable_irq(id)	__raw_setl(_BV(id), TMR_INTR_EN(id))
 #define tmr_disable_irq(id)	__raw_clearl(_BV(id), TMR_INTR_EN(id))
 #define tmr_irq_status(id)	(__raw_readl(TMR_INTR_STATUS(id)) & _BV(id))
+#define tmr_irq_clear(id)	__raw_clearl(_BV(id), TMR_INTR_STATUS(id))
 
 #ifndef __ASSEMBLY__
 uint64_t tmr_read_counter(void);

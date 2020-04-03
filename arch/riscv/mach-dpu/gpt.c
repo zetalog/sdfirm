@@ -6,6 +6,10 @@
 
 void tmr_irq_handler(void)
 {
+	uint8_t cpu = smp_processor_id();
+
+	tmr_irq_clear(cpu);
+	tmr_disable_irq(cpu);
 	irqc_clear_irq(IRQ_TIMER);
 	irqc_disable_irq(IRQ_TIMER);
 	tick_handler();
@@ -21,10 +25,12 @@ void gpt_hw_irq_poll(void)
 
 void gpt_hw_oneshot_timeout(timeout_t tout_ms)
 {
+	uint8_t cpu = smp_processor_id();
 	uint64_t next = tick_get_counter() + tout_ms;
 
+	tmr_enable_irq(cpu);
 	irqc_enable_irq(IRQ_TIMER);
-	tmr_write_compare(smp_processor_id(), TSC_FREQ * next);
+	tmr_write_compare(cpu, TSC_FREQ * next);
 }
 
 void gpt_hw_ctrl_init(void)
