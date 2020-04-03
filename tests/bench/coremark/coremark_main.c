@@ -401,10 +401,10 @@ int coremark(caddr_t percpu_area)
 	portable_fini(&(results[0].port));
 
 	if (total_errors == 0) {
-		printf("CoreMark test Success\n");
+		printf("Bench %s Success.\n", __func__);
 		return coremark_t_pass();
 	} else {
-		printf("CoreMark test Failed\n");
+		printf("Bench %s Failed.\n", __func__);
 		return coremark_t_fail();
 	}
 }

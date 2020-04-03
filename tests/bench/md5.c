@@ -218,10 +218,10 @@ int md5(caddr_t percpu_area)
     }
  
 	if (error_cnt == 0) {
-		printf("MD5 test Success\n");
+		printf("Bench %s Success.\n", __func__);
 		return md5_t_pass();
 	} else {
-		printf("MD5 test Failed\n");
+		printf("Bench %s Failed.\n", __func__);
 		return md5_t_fail();
 	}
 }

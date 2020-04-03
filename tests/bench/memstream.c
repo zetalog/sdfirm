@@ -442,10 +442,10 @@ int memstream(caddr_t percpu_area)
 	page_free_pages(c);
 #endif
 	if (ret == 0) {
-		printf("Memory Stream test Success\n");
+		printf("Bench %s Success.\n", __func__);
 		return memstream_t_pass();
 	} else {
-		printf("Memory Stream test Failed\n");
+		printf("Bench %s Failed.\n", __func__);
 		return memstream_t_fail();
 	}
 }
