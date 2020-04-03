@@ -25,7 +25,8 @@ CONFIG_FIRMWARE=y
 # CONFIG_RIS is not set
 CONFIG_COMMAND=y
 CONFIG_COMMAND_BATCH=y
-CONFIG_COMMAND_BATCH_COMMAND="help; bench sync 0 sim_notify 1 2 1"
+#CONFIG_COMMAND_BATCH_COMMAND="help; bench sync 0 sim_notify 1 2 1"
+CONFIG_COMMAND_BATCH_COMMAND="help; help; bench sync 0 sim_notify 1 2 1"
 # CONFIG_CONSOLE is not set
 # CONFIG_CONSOLE_230400 is not set
 # CONFIG_CONSOLE_115200 is not set

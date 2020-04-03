@@ -20,7 +20,7 @@ debug_config_only="n"
 # Bench configuration
 #
 bench_list="hanoitower md5"
-#bench_list="hanoitower"
+bench_list="coremark"
 
 bench_mode="single"
 #bench_mode="batch"
@@ -35,8 +35,8 @@ config_ext_1="RISCV_M=n"
 #config_key_2="SMP=y"
 #config_ext_2="SMP=n"
 
-config_key_3="SPINLOCK_RAW"
-config_ext_3="SPINLOCK_GENERIC"
+#config_key_3="SPINLOCK_RAW"
+#config_ext_3="SPINLOCK_GENERIC"
 
 #config_key_4=""
 #config_ext_4=""
@@ -57,14 +57,14 @@ config_ext_3="SPINLOCK_GENERIC"
 function init_config_single()
 {
 	for bench in $bench_list; do
-		batch_command="bench sync all "$bench" 1 2 1; "
+		batch_command="bench sync all "$bench" 1 2 1"
 		cp $base_config .config
 		config_off=${bench^^}"=n"
 		config_on=${bench^^}"=y"
 		sed -i s/$config_off/$config_on/ .config
 		make oldconfig >> /dev/null
-		sed -i s/help/"$batch_command"/ .config
-		sed -i s/MEM1_SIZE=0x2000000/MEM1_SIZE=0x80000/ .config
+		sed -i s/help/"$batch_command"/g .config
+		#sed -i s/MEM1_SIZE=0x2000000/MEM1_SIZE=0x1600000/ .config
 		cp .config ./config-rv${sub_arch}-${bench}
 	done
 }
