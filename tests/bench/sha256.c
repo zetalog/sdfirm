@@ -272,7 +272,7 @@ void main (void)
 int sha256(caddr_t percpu_area)
 #endif
 {
-	int err_cnt = 0;
+	int error_cnt = 0;
 	char *input_buf[] = {
 #if 0
 		"",
@@ -340,7 +340,7 @@ int sha256(caddr_t percpu_area)
 		printf("\n");
 		for (j = 0; j < SHA256_BYTES; j++) {
 			if (digest_value[i][j] != hash[j]) {
-				err_cnt++;
+				error_cnt++;
 				printf("Invalid %02x %02x", hash[j], digest_value[i][j]);
 				continue;
 			}
@@ -348,11 +348,11 @@ int sha256(caddr_t percpu_area)
 		printf("\n\n");
 	}
 
-	if (err_cnt == 0) {
-		printf("MD5 test Success\n");
+	if (error_cnt == 0) {
+		printf("Bench %s Success.\n", __func__);
 		return sha256_t_pass();
 	} else {
-		printf("MD5 test Failed\n");
+		printf("Bench %s Failed.\n", __func__);
 		return sha256_t_fail();
 	}
 }

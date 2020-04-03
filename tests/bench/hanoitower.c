@@ -76,11 +76,10 @@ int hanoitower(caddr_t percpu_area)
 	/* Checkout result and return */
 	if (hanoitower_results[num-1] == 
 			hanoitower_ctx[smp_processor_id()].ptr->move_cnt) {
-		printf("Bench %s(disk_num = %d): Success.\n", __func__, num);
+		printf("Bench %s Success. disk_num = %d\n", __func__, num);
 		return hanoitower_t_pass();
 	} else {
-		printf("Bench %s(disk_num = %d): Failed. move_cnt = %d\n", __func__,
-				num, hanoitower_ctx[smp_processor_id()].ptr->move_cnt);
+		printf("Bench %s Failed. disk_num = %d\n", __func__, num);
 		return hanoitower_t_fail();
 	}
 }
