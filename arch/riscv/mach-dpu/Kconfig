@@ -51,6 +51,31 @@ config DPU_BOOT_APC
 
 endmenu
 
+menu "Simulation options"
+
+config DPU_UART_VIP
+	bool "Enable DPU UART simulation model support"
+	help
+	  When this is selected, UART baudrate generator frequency will
+	  be APB_CLK/16.
+
+config DPU_TMR_VIP
+	bool "Enable DPU TMR simulation model support"
+	depends DPU_TMR
+	help
+	  Can fixup a shortened timeout value to make RTL simulation
+	  faster.
+
+config DPU_TMR_VIP_TOUT
+	hex "Fixed compare counter during simulation"
+	range 0x1000 0x10000
+	default 0x4000
+	help
+	  Use the fixed value to be added to the CNT, and set to the
+	  CMP register.
+
+endmenu
+
 menuconfig DPU_TCSR
 	bool "Enable top control and status registers (TCSR) support"
 	select STRING_STRTOULL if COMMAND
@@ -146,12 +171,6 @@ config DPU_FLASH_SS_32
 endchoice
 
 endif
-
-config DPU_UART_VIP
-	bool "Enable DPU UART simulation model support"
-	help
-	  When this is selected, UART baudrate generator frequency will
-	  be APB_CLK/16.
 
 menuconfig DPU_DDR
 	bool "Enable DPU DDR support"
