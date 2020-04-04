@@ -62,7 +62,7 @@ config ARCH_DUOWEN
 
 config ARCH_DPU
 	bool "SmarCo DPU"
-	select CPU_RI5CY
+	select CPU_CV32E
 	select ARCH_IS_TICKLESS
 	select ARCH_HAS_TSC
 	select ARCH_HAS_TSC_CONST
@@ -76,9 +76,9 @@ config ARCH_DPU
 	select ARCH_HAS_PCI
 	select ARCH_HAS_PLIC
 	select ARCH_HAS_NOVEC
-	select PLIC if !SYS_NOIRQ
 	select DPU_PLL if CLK
 	select DPU_TMR if CLK
+	select DPU_PLIC if !SYS_NOIRQ
 	select DW_UART if CONSOLE || DEBUG_PRINT
 	select DW_I2C if I2C_MASTER
 	select DW_SPI if SPI_MASTER
@@ -86,6 +86,7 @@ config ARCH_DPU
 	select DPU_DDR if DDR
 	select DPU_PCI_SUBSYS if PCI
 	select RI5CY_PC if PERF
+	select RI5CY_FIRQ if !SYS_NOIRQ
 	help
 	  This enables support for smart core (SmarCo) DPU platform.
 
@@ -136,6 +137,7 @@ config ARCH_K210
 
 config ARCH_VEGA
 	bool "Open-ISA VEGA-Lite (RV32M1)"
+	select RISCV_VIRQ
 	select ARCH_IS_TICKLESS
 	select ARCH_HAS_TSC
 	select ARCH_HAS_TSC_CONST

@@ -6,7 +6,6 @@ config CPU_VAISRA
 	select CPU_SV48
 	select CPU_PMP
 	select CPU_COUNTERS
-	select RISCV_GENERIC_TRAP
 
 # SiFive E51
 config CPU_E51
@@ -17,7 +16,6 @@ config CPU_E51
 	select CPU_C
 	select CPU_COUNTERS
 	select ARCH_HAS_NOSEE
-	select RISCV_GENERIC_TRAP
 
 # SiFive U54
 config CPU_U54
@@ -28,7 +26,6 @@ config CPU_U54
 	select CPU_PMP
 	select CPU_COUNTERS
 	select ARCH_HAS_MMU_ORDER
-	select RISCV_GENERIC_TRAP
 
 # THead Xuantie C910
 config CPU_C910
@@ -38,7 +35,6 @@ config CPU_C910
 	select CPU_V
 	select CPU_SV39
 	select CPU_PMP
-	select RISCV_GENERIC_TRAP
 
 # RI5CY
 config CPU_RI5CY
@@ -49,8 +45,15 @@ config CPU_RI5CY
 	select CPU_C
 	select CPU_N
 	select CPU_PMP
+	select CPU_VIRQ
 	select ARCH_HAS_PMU
 	select ARCH_HAS_NOSEE
+	select ARCH_HAS_RI5CY_FIRQ
+
+config CPU_CV32E
+	bool
+	select CPU_RI5CY
+	select ARCH_HAS_RI5CY_FIRQ_EXT
 
 # ZERO RISCY
 config CPU_0RISCY
@@ -68,7 +71,6 @@ config CPU_SPIKE32
 	select CPU_C
 	select CPU_SV32
 	select CPU_PMP
-	select RISCV_GENERIC_TRAP
 
 config CPU_SPIKE64
 	bool
@@ -77,7 +79,6 @@ config CPU_SPIKE64
 	select CPU_SV39
 	select CPU_SV48
 	select CPU_PMP
-	select RISCV_GENERIC_TRAP
 
 # VIRT
 config CPU_VIRT
@@ -86,7 +87,6 @@ config CPU_VIRT
 	select CPU_C
 	select CPU_PMP
 	select CPU_COUNTERS
-	select RISCV_GENERIC_TRAP
 
 config CPU_32G
 	bool
@@ -242,6 +242,9 @@ config CPU_SV48
 	select ARCH_HAS_MMU
 	select ARCH_HAS_MMU_HUGE
 
+config CPU_VIRQ
+	bool
+
 config RISCV_M
 	bool "Multiplication and division (M) support"
 	depends CPU_M
@@ -332,8 +335,6 @@ config RISCV_H
 	bool "Hypervisor extension support"
 	depends CPU_H
 
-endmenu
-
 menuconfig RISCV_SV
 	bool "Supervisor virtual addresing"
 	depends ARCH_HAS_MMU && !ARCH_HAS_NOSEE
@@ -365,10 +366,13 @@ endchoice
 
 endif
 
-menu "CPU architecture options"
+config RISCV_VIRQ
+	bool "Vectorized interrupt support"
+	depends CPU_VIRQ
 
-config RISCV_GENERIC_TRAP
-	bool
+endmenu
+
+menu "CPU architecture options"
 
 if RISCV_A
 
@@ -574,5 +578,21 @@ config PLIC
 config RI5CY_PC
 	bool "RI5CY performance counter support"
 	depends PERF && CPU_RI5CY
+
+config ARCH_HAS_RI5CY_FIRQ
+	bool
+
+config ARCH_HAS_RI5CY_FIRQ_EXT
+	bool
+	select ARCH_HAS_RI5CY_FIRQ
+
+menuconfig RI5CY_FIRQ
+	bool "RI5CY fast interrupt support"
+	depends ARCH_HAS_RI5CY_FIRQ
+	select RISCV_VIRQ
+
+menuconfig RI5CY_FIRQ_EXT
+	bool "RI5CY extended fast interrupt support"
+	depends RI5CY_FIRQ && ARCH_HAS_RI5CY_FIRQ_EXT
 
 endmenu

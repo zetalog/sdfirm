@@ -1,0 +1,2 @@
+define_virq __handle_tmr_virq do_riscv_interrupt
+define_virq __handle_ext_virq do_riscv_interrupt

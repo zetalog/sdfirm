@@ -19,25 +19,37 @@ config DPU_BOOT_ROM
 	select LOAD_DATA
 	select SYS_ENTR_M
 	select SYS_EXIT_M
+	select SYS_EXIT_U
 	select DPU_TCSR
 	select DPU_BOOT
 	select DPU_FLASH
+	select DPU_SPI_FLASH
 	select DPU_DDR
 
 config DPU_BOOT_FLASH
-	bool "1-stage programmable flash bootloader (FSBL)"
+	bool "0-stage programmable flash bootloader (ZSBL)"
 	select ARCH_HAS_BOOT_LOAD
 	select XIP
 	select LOAD_DATA
 	select SYS_ENTR_M
 	select SYS_EXIT_M
+	select SYS_EXIT_U
 	select DPU_TCSR
 	select DPU_BOOT
 	select DPU_DDR
+	select DPU_SPI_FLASH
 
-config DPU_FIRM
-	bool "DPU runtime firmware"
+config DPU_BOOT_SPI_FLASH
+	bool "1-stage programmable SPI flash bootloader (FSBL)"
+	select ARCH_HAS_BOOT_LOAD
+	select XIP
+	select LOAD_DATA
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SYS_EXIT_U
 	select DPU_TCSR
+	select DPU_BOOT
+	select DPU_DDR
 
 endchoice
 
@@ -51,30 +63,15 @@ config DPU_BOOT_APC
 
 endmenu
 
-menu "Simulation options"
+menuconfig DPU_SIM
+	bool "Enable simulation options"
 
 config DPU_UART_VIP
 	bool "Enable DPU UART simulation model support"
+	depends DPU_SIM
 	help
 	  When this is selected, UART baudrate generator frequency will
 	  be APB_CLK/16.
-
-config DPU_TMR_VIP
-	bool "Enable DPU TMR simulation model support"
-	depends DPU_TMR
-	help
-	  Can fixup a shortened timeout value to make RTL simulation
-	  faster.
-
-config DPU_TMR_VIP_TOUT
-	hex "Fixed compare counter during simulation"
-	range 0x1000 0x10000
-	default 0x4000
-	help
-	  Use the fixed value to be added to the CNT, and set to the
-	  CMP register.
-
-endmenu
 
 menuconfig DPU_TCSR
 	bool "Enable top control and status registers (TCSR) support"
@@ -127,6 +124,38 @@ menuconfig DPU_TMR
 
 if DPU_TMR
 
+config DPU_TMR_FIRQ
+	bool "Enable extended fast interrupt support"
+	select RI5CY_FIRQ
+
+config DPU_TMR_CMP_CONST
+	bool "Enable constant compare counter support"
+	depends DPU_SIM
+	help
+	  Can fixup a shortened timeout value to make RTL simulation
+	  faster.
+
+config DPU_TMR_CMP_CONST_TOUT
+	hex "Constant compare counter value"
+	depends DPU_TMR_CMP_CONST
+	range 0x1000 0x10000
+	default 0x4000
+	help
+	  Use the fixed value to be added to the CNT, and set to the
+	  CMP register.
+
+endif
+
+menuconfig DPU_PLIC
+	bool "Enable DPU RISC-V PLIC support"
+	select PLIC
+
+if DPU_PLIC
+
+config DPU_PLIC_FIRQ
+	bool "Enable extended fast interrupt support"
+	select RI5CY_FIRQ
+
 endif
 
 menuconfig DPU_FLASH
@@ -169,6 +198,14 @@ config DPU_FLASH_SS_32
 	bool "32-bit"
 
 endchoice
+
+endif
+
+menuconfig DPU_SPI_FLASH
+	bool "Enable SPI accessible flash support"
+	select SPI_MASTER
+
+if DPU_SPI_FLASH
 
 endif
 

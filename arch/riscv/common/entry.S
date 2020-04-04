@@ -32,20 +32,17 @@
 #endif
 
 	.macro SAVE_ALL
-	.local _restore_kernel_tpsp
-	.local _save_context
 
 	/* If coming from userspace, preserve the user thread pointer and load
 	 * the kernel thread pointer.  If we came from the kernel, sscratch
 	 * will contain 0, and we should continue on the current TP.
 	 */
 	csrrw	tp, CSR_SCRATCH, tp
-	bnez	tp, _save_context
+	bnez	tp, 8888f
 
-_restore_kernel_tpsp:
 	csrr	tp, CSR_SCRATCH
 	save_kern_sp
-_save_context:
+8888:
 	save_scratch_sp
 	load_kern_sp
 	addi	sp, sp, -(PT_SIZE_ON_STACK)
@@ -146,7 +143,11 @@ _save_context:
 	.option norvc
 	__HEAD
 
+#ifdef CONFIG_RISCV_VIRQ
+ENTRY(__handle_traps)
+#else
 ENTRY(__vectors)
+#endif
 	SAVE_ALL
 
 	/* Set the scratch register to 0, so that if a recursive exception
@@ -202,7 +203,11 @@ restore_all:
 #ifdef CONFIG_RISCV_EXIT_S
 	sret
 #endif
+#ifdef CONFIG_RISCV_VIRQ
+END(__handle_traps)
+#else
 END(__vectors)
+#endif
 
 	.section ".rodata"
 ENTRY(exc_table)
@@ -225,3 +230,30 @@ __sexctab:
 	RISCV_PTR do_trap_unknown /* do_page_fault (store) */
 __eexctab:
 END(exc_table)
+
+#ifdef CONFIG_RISCV_VIRQ
+	.macro	define_virq entry, handler
+ENTRY(\entry)
+	SAVE_ALL
+	csrw	CSR_SCRATCH, zero
+	la	ra, 8888f
+#ifndef CONFIG_SYS_NOIRQ
+	move	a0, sp /* pt_regs */
+	tail	\handler
+#endif
+8888:
+	REG_L	s0, PT_STATUS(sp)
+	csrc	CSR_STATUS, SR_IE
+	li	t0, SR_PP
+	and	s0, s0, t0
+	bnez	s0, 1f
+1:
+	RESTORE_ALL
+	mret
+END(\entry)
+	.endm
+
+define_virq __handle_bad_virq _start_hang
+
+#include "asm/mach/virq.h"
+#endif

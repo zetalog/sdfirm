@@ -1,6 +1,6 @@
 EXTRA_CFLAGS += -DSDFIRM -DDPU
 
-obj-y += entry.rel
+obj-$(CONFIG_RI5CY_FIRQ) += entry.rel
 obj-y += mach.rel
 obj-y += tsc.rel
 obj-$(CONFIG_MEM) += mem.rel

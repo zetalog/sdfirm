@@ -89,7 +89,7 @@ int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
 	csr_write(CSR_SCAUSE, cause);
 
 	/* Set MEPC to S-mode exception vector base */
-	regs->epc = csr_read(CSR_STVEC);
+	regs->epc = irq_get_stvec();
 
 	/* Initial value of new MSTATUS */
 	new_status = regs->status;

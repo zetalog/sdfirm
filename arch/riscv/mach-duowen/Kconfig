@@ -18,6 +18,7 @@ choice
 config DUOWEN_IMC
 	bool "IMC - system fabric (SFAB)"
 	select CPU_RI5CY
+	select RISCV_VIRQ
 	select ARCH_HAS_NOVEC
 	depends !DUOWEN_BOOT_APC
 

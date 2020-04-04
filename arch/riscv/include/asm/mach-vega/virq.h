@@ -1,0 +1,3 @@
+define_virq __handle_illegal_instr _start_hang
+define_virq __handle_ecall _start_hang
+define_virq __handle_lsu _start_hang

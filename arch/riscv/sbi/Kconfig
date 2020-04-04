@@ -10,7 +10,7 @@ config ARCH_HAS_SBI_TIMER
 
 menuconfig SBI
 	bool "Supervisor binary interface (SBI) support"
-	depends RISCV_ENTR_M
+	depends RISCV_ENTR_M && !RISCV_VIRQ
 	select RISCV_PMP if CPU_PMP
 	select CPU_COUNTERS
 	select RISCV_COUNTERS

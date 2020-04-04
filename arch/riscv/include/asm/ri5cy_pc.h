@@ -4,8 +4,13 @@
 #include <target/arch.h>
 
 #define CSR_PCCR(n)		(0x780 + (n))
+#ifdef CONFIG_CPU_CV32E
+#define CSR_PCER		0x7E0
+#define CSR_PCMR		0x7E1
+#else
 #define CSR_PCER		0x7A0
 #define CSR_PCMR		0x7A1
+#endif
 
 /* Performance Counter Mode Register (PCMR) */
 #define PC_GLOBAL_ENABLE	_AC(0x00000001, UL)

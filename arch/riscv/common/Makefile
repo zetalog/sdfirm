@@ -4,7 +4,7 @@ CFLAGS_mmu.o := -mcmodel=medany
 
 head-y += head.rel
 obj-y += trap.rel
-obj-$(CONFIG_RISCV_GENERIC_TRAP) += entry.rel
+obj-y += entry.rel
 obj-y += irq.rel
 obj-y += tlb.rel
 

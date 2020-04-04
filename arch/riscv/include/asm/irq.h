@@ -148,6 +148,33 @@ struct pt_regs {
 #define IPI_SFENCE_VMA	0x4
 #define IPI_HALT	0x8
 
+#define IRQ_DIRECT	0x0
+#define IRQ_VECTOR	0x1
+
+#ifdef CONFIG_RISCV_VIRQ
+#define irq_set_mtvec(vec)		\
+	csr_write(CSR_MTVEC, (uintptr_t)(vec) | IRQ_VECTOR)
+#define irq_set_stvec(vec)		\
+	csr_write(CSR_STVEC, (uintptr_t)(vec) | IRQ_VECTOR)
+#define irq_set_utvec(vec)		\
+	csr_write(CSR_UTVEC, (uintptr_t)(vec) | IRQ_VECTOR)
+#define irq_set_tvec(vec)		\
+	csr_write(CSR_TVEC, (uintptr_t)(vec) | IRQ_VECTOR)
+#define irq_get_mtvec(vec)		(csr_read(CSR_MTVEC) & ~IRQ_VECTOR)
+#define irq_get_stvec(vec)		(csr_read(CSR_STVEC) & ~IRQ_VECTOR)
+#define irq_get_utvec(vec)		(csr_read(CSR_UTVEC) & ~IRQ_VECTOR)
+#define irq_get_tvec(vec)		(csr_read(CSR_TVEC) & ~IRQ_VECTOR)
+#else
+#define irq_set_mtvec(vec)		csr_write(CSR_MTVEC, vec)
+#define irq_set_stvec(vec)		csr_write(CSR_STVEC, vec)
+#define irq_set_utvec(vec)		csr_write(CSR_UTVEC, vec)
+#define irq_set_tvec(vec)		csr_write(CSR_TVEC, vec)
+#define irq_get_mtvec()			csr_read(CSR_MTVEC)
+#define irq_get_stvec()			csr_read(CSR_STVEC)
+#define irq_get_utvec()			csr_read(CSR_UTVEC)
+#define irq_get_tvec()			csr_read(CSR_TVEC)
+#endif
+
 #ifndef __ASSEMBLY__
 #include <asm/mach/irq.h>
 

@@ -75,6 +75,6 @@ asmlinkage void __vectors(void);
 __init void trap_init(void)
 {
 	csr_write(CSR_SCRATCH, 0);
-	csr_write(CSR_TVEC, &__vectors);
+	irq_set_tvec(&__vectors);
 	csr_write(CSR_IE, -1);
 }

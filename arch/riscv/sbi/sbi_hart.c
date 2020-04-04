@@ -199,7 +199,7 @@ void sbi_hart_set_trap_info(struct sbi_scratch *scratch, void *data)
 #ifndef CONFIG_ARCH_HAS_NOSEE
 static void sbi_switch_s_mode(unsigned long next_addr)
 {
-	csr_write(CSR_STVEC, next_addr);
+	irq_set_stvec(next_addr);
 	csr_write(CSR_SSCRATCH, 0);
 	csr_write(CSR_SIE, 0);
 	csr_write(CSR_SATP, 0);
@@ -212,7 +212,7 @@ static void sbi_switch_s_mode(unsigned long next_addr)
 #ifdef CONFIG_RISCV_N
 static void sbi_switch_u_mode(unsigned long next_addr)
 {
-	csr_write(CSR_UTVEC, next_addr);
+	irq_set_utvec(next_addr);
 	csr_write(CSR_USCRATCH, 0);
 	csr_write(CSR_UIE, 0);
 	sbi_mode_switched = PRV_U;
