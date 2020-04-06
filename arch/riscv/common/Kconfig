@@ -55,6 +55,11 @@ config CPU_CV32E
 	select CPU_RI5CY
 	select ARCH_HAS_RI5CY_FIRQ_EXT
 
+config CPU_CV64A
+	bool
+	select CPU_64G
+	select CPU_C
+
 # ZERO RISCY
 config CPU_0RISCY
 	bool

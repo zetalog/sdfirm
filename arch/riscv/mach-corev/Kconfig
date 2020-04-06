@@ -1,0 +1,66 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+if ARCH_COREV
+
+menu "OpenHW Group Core-V bench options"
+
+choice
+	prompt "Verified CPU"
+	help
+	  Selects CPUs that compiled sdfirm should run against.
+
+config COREV_CV32
+	bool "CV32E (ri5cy)"
+	select CPU_CV32E
+	select RISCV_VIRQ
+	select ARCH_HAS_NOVEC
+	select ARCH_HAS_BOOT_LOAD
+
+config COREV_CV64
+	bool "CV64A (ariane)"
+	select CPU_CV64A
+	select ARCH_HAS_NOVEC
+	select ARCH_HAS_BOOT_LOAD
+
+endchoice
+
+choice
+	prompt "Program type"
+
+config COREV_ZSBL
+	bool "0-stage bootloader (ZSBL)"
+	select XIP
+	select LOAD_DATA
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+
+config COREV_SBI
+	bool "Open-SBI compliant bootloader (BBL)"
+	depends COREV_CV64
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SYS_EXIT_S
+	select SBI
+	select ARCH_HAS_NOVEC
+	select ARCH_HAS_BOOT_LOAD
+	select XIP
+
+endchoice
+
+config COREV_MEM_WIDTH
+	int "Memory address width"
+	range 20 28
+	default 20
+
+config COREV_TIMER
+	bool "OpenHW Group core bench timer support"
+
+config COREV_PRINT
+	bool "OpenHW Group core bench print support"
+
+endmenu
+
+endif

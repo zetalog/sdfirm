@@ -84,6 +84,10 @@ ifeq ($(CONFIG_ARCH_K210),y)
  machine-$(CONFIG_ARCH_K210)		:= k210
  incdir-$(CONFIG_ARCH_K210)		:= k210
 endif
+ifeq ($(CONFIG_ARCH_COREV),y)
+ machine-$(CONFIG_ARCH_COREV)		:= corev
+ incdir-$(CONFIG_ARCH_COREV)		:= corev
+endif
 ifeq ($(CONFIG_ARCH_VEGA),y)
  machine-$(CONFIG_ARCH_VEGA)		:= vega
  incdir-$(CONFIG_ARCH_VEGA)		:= vega

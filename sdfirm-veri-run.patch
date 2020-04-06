@@ -1,0 +1,66 @@
+diff --git a/cv32/sim/Common.mk b/cv32/sim/Common.mk
+index d129efe..064789d 100644
+--- a/cv32/sim/Common.mk
++++ b/cv32/sim/Common.mk
+@@ -126,6 +126,10 @@ RISCV_EXE_PREFIX         = $(RISCV)/bin/riscv32-unknown-elf-
+ CORE_TEST_DIR                        = $(PROJ_ROOT_DIR)/cv32/tests/core
+ FIRMWARE                             = $(CORE_TEST_DIR)/firmware
+ VERI_FIRMWARE                        = ../../tests/core/firmware
++SDFIRM                               = $(CORE_TEST_DIR)/sdfirm
++SDFIRM_DIR                           = $(SDFIRM)
++SDFIRM_PROG                         ?= sdfirm
++VERI_SDFIRM                          = ../../tests/core/sdfirm
+ CUSTOM                               = $(CORE_TEST_DIR)/custom
+ CUSTOM_DIR                          ?= $(CUSTOM)
+ CUSTOM_PROG                         ?= my_hello_world
+@@ -189,6 +193,13 @@ sanity: hello-world
+ %.hex: %.elf
+ 	$(RISCV_EXE_PREFIX)objcopy -O verilog $< $@
+ 
++# Running sdfirm firmware:
++$(SDFIRM_DIR)/$(SDFIRM_PROG).elf: $(SDFIRM_DIR)/arch/riscv/configs/cv32e_verif_defconfig
++	cd $(SDFIRM_DIR); make $(notdir $<); make
++	cp $(SDFIRM_DIR)/sdfirm.strip $@
++sdfirm-clean:
++	rm -rf $(SDFIRM)/sdfirm.elf $(SDFIRM)/sdfirm.hex
++
+ # Running custom programs:
+ # We link with our custom crt0.s and syscalls.c against newlib so that we can
+ # use the c standard library
+diff --git a/cv32/sim/core/Makefile b/cv32/sim/core/Makefile
+index 0e690d8..2caa8d9 100644
+--- a/cv32/sim/core/Makefile
++++ b/cv32/sim/core/Makefile
+@@ -46,7 +46,7 @@ COREV_PROJ    = cv32
+ PROJ_ROOT_DIR = $(PWD)/../../..
+ 
+ # Compile compile flags for all simulators
+-SV_CMP_FLAGS = 
++SV_CMP_FLAGS = +define+TRACE_EXECUTION
+ 
+ # vsim configuration
+ VVERSION  = "10.7b"
+@@ -97,7 +97,7 @@ XRUN_DIR          = xcelium.d
+ 
+ # verilator configuration
+ VERILATOR           = verilator
+-VERI_FLAGS         +=
++VERI_FLAGS         += +vcd
+ VERI_COMPILE_FLAGS += -Wno-BLKANDNBLK $(SV_CMP_FLAGS) # hope this doesn't hurt us in the long run
+ VERI_TRACE          =
+ VERI_OBJ_DIR       ?= cobj_dir
+@@ -461,6 +461,14 @@ hello-world-veri-run: verilate $(CUSTOM)/hello_world.hex
+ 		"+firmware=$(VERI_CUSTOM)/hello_world.hex" \
+ 		| tee $(VERI_LOG_DIR)/hello-world-veri-run.log
+ 
++# run sdfirm firmware in verilator
++.PHONY: sdfirm-veri-run
++sdfirm-veri-run: verilate $(SDFIRM)/sdfirm.hex
++	mkdir -p $(VERI_LOG_DIR)
++	./testbench_verilator $(VERI_FLAGS) \
++		"+firmware=$(VERI_SDFIRM)/sdfirm.hex" \
++		| tee $(VERI_LOG_DIR)/sdfirm-veri-run.log
++
+ 
+ # verilator specific cleanup
+ veri-clean: verilate-clean
