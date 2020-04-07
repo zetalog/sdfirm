@@ -15,7 +15,7 @@ obj-$(CONFIG_TLB_TEST) += tlbtest.rel
 
 obj-$(CONFIG_COREMARK) += coremark/
 
-obj-$(CONFIG_C_FFT) += c_fft/
+obj-$(CONFIG_CFFT) += cfft/
 
 obj-$(CONFIG_JPGENC) += jpgenc/
 

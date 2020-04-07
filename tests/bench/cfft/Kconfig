@@ -1,11 +1,11 @@
-config C_FFT
+config CFFT
 	bool "C-Implementations of FFT"
 	# TODO select double floating-point
 	select MATH_TAYLOR
 
-if C_FFT
+if CFFT
 
-config C_FFT_VALUE_CNT
+config CFFT_VALUE_CNT
 	int "Value count of FFT test"
 	range 1 64
 	default 30
