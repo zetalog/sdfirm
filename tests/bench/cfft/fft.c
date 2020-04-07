@@ -5,7 +5,7 @@
 #define PI 3.1415926535897932384626434
 
 complex* DFT_naive(complex* x, int N) {
-    complex X[CONFIG_C_FFT_VALUE_CNT] = {0};
+    complex X[CONFIG_CFFT_VALUE_CNT] = {0};
     int k, n;
     for(k = 0; k < N; k++) {
         X[k].re = 0.0;

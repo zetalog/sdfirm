@@ -114,7 +114,7 @@ config TLB_TEST_FLUSH_ALL
 endif
 
 source tests/bench/coremark/Kconfig
-source tests/bench/c_fft/Kconfig
+source tests/bench/cfft/Kconfig
 source tests/bench/jpgenc/Kconfig
 source tests/bench/gen_ann/Kconfig
 
