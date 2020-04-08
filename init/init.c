@@ -144,7 +144,9 @@ void modules_init(void)
 	/* buses */
 	pci_init();
 	uart_init();
+#ifndef CONFIG_I2C_CMD_TOOL
 	i2c_init();
+#endif
 	spi_init();
 	net_init();
 	mmcsd_init();

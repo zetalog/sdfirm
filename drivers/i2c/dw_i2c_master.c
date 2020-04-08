@@ -612,6 +612,79 @@ int i2c_hw_write_mem(uint8_t dev, unsigned int addr,
 }
 
 /*
+ * DW I2C VIP operations:
+ * - write: 1 byte I2C CMD + 1 byte address + n bytes data
+ * - read:  1 byte I2C CMD + n bytes data (from slave)
+ */
+int i2c_hw_write_vip(uint8_t dev, unsigned int addr,
+			  uint8_t *buffer, int len)
+{
+	return i2c_hw_write_mem(dev, addr, 1, buffer, len);
+}
+
+int i2c_hw_read_vip(uint8_t dev, uint8_t *buffer, int len)
+{
+	caddr_t base = dw_i2c_pri->base;
+	unsigned int active = 0;
+	uint32_t val;
+	uint32_t offset;
+	int ret;
+
+#ifdef DW_I2C_DEBUG
+	con_printf("Debug: Enter %s\n", __func__);
+#endif
+
+	if (i2c_wait_for_bb(base))
+		return 1;
+
+	i2c_setaddress(base, dev);
+
+	while (len) {
+		if (!active) {
+			/*
+			 * Avoid writing to ic_cmd_data multiple times
+			 * in case this loop spins too quickly and the
+			 * ic_status RFNE bit isn't set after the first
+			 * write. Subsequent writes to ic_cmd_data can
+			 * trigger spurious i2c transfer.
+			 */
+			offset = IC_DATA_CMD;
+			if (len == 1)
+				val = IC_CMD | IC_STOP;
+			else
+				val = IC_CMD;
+#ifdef DW_I2C_DEBUG
+			con_printf("w 0x%2x 0x%x _DATA_CMD\n", offset, val);
+#endif
+			__raw_writel(val, base + offset);
+			active = 1;
+		}
+
+		offset = IC_STATUS;
+		val = __raw_readl(base + offset);
+#ifdef DW_I2C_DEBUG
+		con_printf("r 0x%2x 0x%x _STATUS\n", offset, val);
+#endif
+		if (val & IC_STATUS_RFNE) {
+			offset = IC_DATA_CMD;
+			val = __raw_readl(base + offset);
+#ifdef DW_I2C_DEBUG
+			con_printf("r 0x%2x 0x%x _DATA_CMD\n", offset, val);
+#endif
+			*buffer++ = (uint8_t)val;
+			len--;
+			active = 0;
+		}
+	}
+
+	ret = i2c_rx_finish(base);
+#ifdef DW_I2C_DEBUG
+	con_printf("Debug: Exit %s\n", __func__);
+#endif
+	return ret;
+}
+
+/*
  * Do nothing at I2C bus here because START will be issued automatically
  * by the controller.
  * When operating as an I2C master, putting data into the transmit FIFO
