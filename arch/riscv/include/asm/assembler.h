@@ -153,6 +153,11 @@
 	li	t5, 0
 	li	t6, 0
 	.endm
+
+#define __ENTRY(name, bits) \
+  .globl name; \
+  .align bits; \
+  name:
 #endif
 
 #endif /* __ASSEMBLER_RISCV_H_INCLUDE__ */

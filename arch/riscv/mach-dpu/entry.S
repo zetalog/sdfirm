@@ -7,7 +7,7 @@
 
 	__VEC
 
-ENTRY(__vectors)
+__ENTRY(__vectors, 8)
 	jal	x0, __handle_traps
 	jal	x0, __handle_bad_virq
 	jal	x0, __handle_bad_virq
