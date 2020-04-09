@@ -12,6 +12,7 @@ if DW_I2C
 
 config DW_I2C_EMPTYFIFO_HOLD_MASTER
 	bool "If IC_EMPTYFIFO_HOLD_MASTER_EN is set"
+	default y
 
 config DW_I2C_DYNAMIC_TAR_UPDATE
 	bool "If I2C_DYNAMIC_TAR_UPDATE is set"

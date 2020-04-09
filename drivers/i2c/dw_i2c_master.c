@@ -519,10 +519,11 @@ int i2c_hw_read_mem(uint8_t dev, unsigned int addr,
 			 * trigger spurious i2c transfer.
 			 */
 			offset = IC_DATA_CMD;
+			val = IC_CMD;
+#ifdef CONFIG_DW_I2C_EMPTYFIFO_HOLD_MASTER
 			if (len == 1)
-				val = IC_CMD | IC_STOP;
-			else
-				val = IC_CMD;
+				val |= IC_STOP;
+#endif
 #ifdef DW_I2C_DEBUG
 			con_printf("w 0x%2x 0x%x _DATA_CMD\n", offset, val);
 #endif
@@ -590,17 +591,19 @@ int i2c_hw_write_mem(uint8_t dev, unsigned int addr,
 		con_printf("r 0x%2x 0x%x _STATUS\n", offset, val);
 #endif
 		if (val & IC_STATUS_TFNF) {
-			if (--len == 0) {
-				val = *buffer | IC_STOP;
-			} else {
-				val = *buffer;
-			}
 			offset = IC_DATA_CMD;
+			val = *buffer;
+#ifdef CONFIG_DW_I2C_EMPTYFIFO_HOLD_MASTER
+			if (len == 1) {
+				val = *buffer | IC_STOP;
+			}
+#endif
 #ifdef DW_I2C_DEBUG
 			con_printf("w 0x%2x 0x%x _DATA_CMD\n", offset, val);
 #endif
 			__raw_writel(val, base + offset);
 			buffer++;
+			len--;
 		}
 	}
 
@@ -649,10 +652,11 @@ int i2c_hw_read_vip(uint8_t dev, uint8_t *buffer, int len)
 			 * trigger spurious i2c transfer.
 			 */
 			offset = IC_DATA_CMD;
+			val = IC_CMD;
+#ifdef CONFIG_DW_I2C_EMPTYFIFO_HOLD_MASTER
 			if (len == 1)
-				val = IC_CMD | IC_STOP;
-			else
-				val = IC_CMD;
+				val |= IC_STOP;
+#endif
 #ifdef DW_I2C_DEBUG
 			con_printf("w 0x%2x 0x%x _DATA_CMD\n", offset, val);
 #endif
