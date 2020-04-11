@@ -173,9 +173,9 @@ void i2c_hw_set_frequency(uint16_t khz)
 #ifdef DW_I2C_DEBUG
 	con_printf("Debug: Enter %s. bus speed = %ld Hz, i2c seep = %d kHz\n", __func__, bus_speed, khz);
 #endif
-	if (speed > I2C_FAST_PLUS_SPEED)
+	if (speed >= I2C_MAX_SPEED)
 		i2c_spd = IC_SPEED_MODE_MAX;
-	else if (speed > I2C_STANDARD_SPEED)
+	else if (speed >= I2C_FAST_SPEED)
 		i2c_spd = IC_SPEED_MODE_FAST;
 	else
 		i2c_spd = IC_SPEED_MODE_STANDARD;
@@ -204,7 +204,8 @@ void i2c_hw_set_frequency(uint16_t khz)
 	switch (i2c_spd) {
 	case IC_SPEED_MODE_HIGH:
 		cntl |= IC_CON_SPD_HS;
-		hcnt = bus_speed / speed / 3;
+		hcnt = bus_speed / speed / (6+16) * 6 - (1+7);
+		lcnt = bus_speed / speed / (6+16) * 16 - 1;
 		lcnt = hcnt * 2;
 #ifdef DW_I2C_DEBUG
 		offset = IC_HS_SCL_HCNT; val = hcnt;
@@ -224,8 +225,8 @@ void i2c_hw_set_frequency(uint16_t khz)
 
 	case IC_SPEED_MODE_STANDARD:
 		cntl |= IC_CON_SPD_SS;
-		hcnt = bus_speed / speed / 2;
-		lcnt = hcnt;
+		hcnt = bus_speed / speed / (40+47) * 40 - (5+7);
+		lcnt = bus_speed / speed / (40+47) * 47 - 1;
 #ifdef DW_I2C_DEBUG
 		offset = IC_SS_SCL_HCNT; val = hcnt;
 		con_printf("w 0x%2x 0x%x _SS_SCL_HCNT\n", offset, val);
@@ -245,8 +246,8 @@ void i2c_hw_set_frequency(uint16_t khz)
 	case IC_SPEED_MODE_FAST:
 	default:
 		cntl |= IC_CON_SPD_FS;
-		hcnt = bus_speed / speed / 3;
-		lcnt = hcnt * 2;
+		hcnt = bus_speed / speed / (6+13) * 6 - (5+7);
+		lcnt = bus_speed / speed / (6+13) * 13 - 1;
 #ifdef DW_I2C_DEBUG
 		offset = IC_FS_SCL_HCNT; val = hcnt;
 		con_printf("w 0x%2x 0x%x _FS_SCL_HCNT\n", offset, val);

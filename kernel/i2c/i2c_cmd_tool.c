@@ -111,7 +111,7 @@ static int do_i2cvip(int argc, char *argv[])
 	}
 	i2c_hw_ctrl_init();
 
-	//i2c_hw_set_frequency(freq_khz);
+	i2c_hw_set_frequency(freq_khz);
 
 	/* Write test */
 	ret = i2c_hw_write_vip(slave_addr, mem_addr, data_buf_tx, data_size);
