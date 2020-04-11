@@ -640,6 +640,125 @@ int i2c_hw_write_mem(uint8_t dev, unsigned int addr,
 }
 
 /*
+ * Simple read and write for some bytes.
+ */
+int i2c_hw_read_bytes(uint8_t dev, uint8_t *buffer, int len, unsigned int stop)
+{
+	caddr_t base = dw_i2c_pri->base;
+	unsigned int active = 0;
+	uint32_t val;
+	uint32_t offset;
+	int ret;
+
+#ifdef DW_I2C_DEBUG
+	con_printf("Debug: Enter %s\n", __func__);
+#endif
+	if (i2c_wait_for_bb(base))
+		return -1;
+	i2c_setaddress(base, dev);
+
+	while (len) {
+		if (!active) {
+			/*
+			 * Avoid writing to ic_cmd_data multiple times
+			 * in case this loop spins too quickly and the
+			 * ic_status RFNE bit isn't set after the first
+			 * write. Subsequent writes to ic_cmd_data can
+			 * trigger spurious i2c transfer.
+			 */
+			offset = IC_DATA_CMD;
+			val = IC_CMD;
+#ifdef CONFIG_DW_I2C_EMPTYFIFO_HOLD_MASTER
+			if (len == 1 && stop != 0)
+				val |= IC_STOP;
+#endif
+#ifdef DW_I2C_DEBUG
+			con_printf("w 0x%2x 0x%x _DATA_CMD\n", offset, val);
+#endif
+			__raw_writel(val, base + offset);
+			active = 1;
+		}
+
+		offset = IC_STATUS;
+		val = __raw_readl(base + offset);
+#ifdef DW_I2C_DEBUG
+		con_printf("r 0x%2x 0x%x _STATUS\n", offset, val);
+#endif
+		if (val & IC_STATUS_RFNE) {
+			offset = IC_DATA_CMD;
+			val = __raw_readl(base + offset);
+#ifdef DW_I2C_DEBUG
+			con_printf("r 0x%2x 0x%x _DATA_CMD\n", offset, val);
+#endif
+			*buffer++ = (uint8_t)val;
+			len--;
+			active = 0;
+		}
+		/* TODO Timeout. */
+	}
+
+	ret = i2c_rx_finish(base);
+#ifdef DW_I2C_DEBUG
+	con_printf("Debug: Exit %s\n", __func__);
+#endif
+	if (ret != 0) {
+		return -1;
+	}
+
+	return len;
+}
+
+int i2c_hw_write_bytes(uint8_t dev, uint8_t *buffer, int len, unsigned int stop)
+{
+	caddr_t base = dw_i2c_pri->base;
+	//int nb = len;
+	uint32_t val;
+	uint32_t offset;
+	int ret;
+
+#ifdef DW_I2C_DEBUG
+	con_printf("Debug: Enter %s\n", __func__);
+#endif
+	if (i2c_wait_for_bb(base))
+		return -1;
+	i2c_setaddress(base, dev);
+
+	while (len) {
+		offset = IC_STATUS;
+		val = __raw_readl(base + offset);
+#ifdef DW_I2C_DEBUG
+		con_printf("r 0x%2x 0x%x _STATUS\n", offset, val);
+#endif
+		if (val & IC_STATUS_TFNF) {
+			offset = IC_DATA_CMD;
+			val = *buffer;
+#ifdef CONFIG_DW_I2C_EMPTYFIFO_HOLD_MASTER
+			if (len == 1 && stop != 0) {
+				val = *buffer | IC_STOP;
+			}
+#endif
+#ifdef DW_I2C_DEBUG
+			con_printf("w 0x%2x 0x%x _DATA_CMD\n", offset, val);
+#endif
+			__raw_writel(val, base + offset);
+			buffer++;
+			len--;
+		}
+		/* TODO Timeout. */
+	}
+
+	ret = i2c_tx_finish(base);
+#ifdef DW_I2C_DEBUG
+	con_printf("Debug: Exit %s\n", __func__);
+#endif
+	if (ret != 0) {
+		return -1;
+	}
+
+	return len;
+}
+
+/*
  * DW I2C VIP operations:
  * - write: 1 byte I2C CMD + 1 byte address + n bytes data
  * - read:  1 byte I2C CMD + n bytes data (from slave)
