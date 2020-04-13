@@ -74,8 +74,10 @@ static void dw_pll5ghz_tsmc12ffc_gear(uint8_t pll)
 
 void dw_pll5ghz_tsmc12ffc_standby(uint8_t pll)
 {
-	__raw_writel(PLL_STANDBY | PLL_PWRON, DW_PLL_CFG1(pll));
-	while (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_STANDBYEFF));
+	if (PLL_OPMODE(__raw_readl(DW_PLL_STATUS(pll))) == PLL_LOCKED) {
+		__raw_writel(PLL_STANDBY | PLL_PWRON, DW_PLL_CFG1(pll));
+		while (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_STANDBYEFF));
+	}
 }
 
 void dw_pll5ghz_tsmc12ffc_relock(uint8_t pll)
@@ -334,9 +336,11 @@ void dw_pll5ghz_tsmc12ffc_bypass_test(uint8_t pll, bool bypass)
 #ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_BYPASS_SYNC
 void dw_pll5ghz_tsmc12ffc_bypass_sync(uint8_t pll, bool r, bool bypass)
 {
-	uint8_t sync = r ? PLL_BYPASS_SYNC_R : PLL_BYPASS_SYNC_P;
+	uint8_t sync;
 
-	dw_pll_write(pll, PLL_ANAREG06, bypass ? sync : 0);
+	sync = dw_pll_read(pll, PLL_ANAREG06);
+	sync |= r ? PLL_BYPASS_SYNC_R : PLL_BYPASS_SYNC_P;
+	dw_pll_write(pll, PLL_ANAREG06, sync);
 }
 #endif
 
@@ -368,11 +372,10 @@ static int do_pll_reg_access(int argc, char * argv[])
 	if (argc > 4) {
 		val = (uint8_t)strtoul(argv[4], NULL, 0);
 		dw_pll_write(pll, reg, val);
-		printf("done.\n");
 	} else {
 		val = dw_pll_read(pll, reg);
-		printf("%02x: %02x\n", reg, val);
 	}
+	printf("%c: %02x: %02x\n", argc > 4 ? 'W' : 'R', reg, val);
 	return 0;
 }
 #else

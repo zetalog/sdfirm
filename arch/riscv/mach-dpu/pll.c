@@ -16,7 +16,7 @@ uint8_t dpu_pll_reg_read(uint8_t pll, uint8_t reg)
 		     PLL_REG_ACCESS(pll));
 	do {
 		val = __raw_readl(PLL_REG_ACCESS(pll));
-	} while (val & PLL_REG_IDLE);
+	} while (!(val & PLL_REG_IDLE));
 	return PLL_REG_RDATA(val);
 }
 

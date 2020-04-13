@@ -96,6 +96,11 @@
 #define PLL_STANDBYEFF		_BV(1)
 #ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_CNT_LOCKED
 #define PLL_CNT_LOCKED		_BV(2)
+#define PLL_OPMODE_OFFSET	0
+#define PLL_OPMODE_MASK		REG_2BIT_MASK
+#define PLL_OPMODE(value)	_GET_FV(PLL_OPMODE, (value))
+#else
+#define PLL_OPMODE(value)	(value)
 #endif
 
 /* PLL ranges */
