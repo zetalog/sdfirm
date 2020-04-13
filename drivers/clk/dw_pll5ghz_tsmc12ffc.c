@@ -400,19 +400,20 @@ static int do_pll_operation(int argc, char * argv[])
 		return -EINVAL;
 
 	pll = strtoul(argv[2], NULL, 0);
-	if (strcmp(argv[1], "up")) {
+	if (strcmp(argv[1], "up") == 0) {
 		if (argc < 4)
 			return -EINVAL;
 		freq = strtoul(argv[3], NULL, 0);
 		dw_pll5ghz_tsmc12ffc_pwron(pll, freq);
-	}
-	if (strcmp(argv[1], "down"))
+	} else if (strcmp(argv[1], "down") == 0)
 		dw_pll5ghz_tsmc12ffc_pwrdn(pll);
-	if (strcmp(argv[1], "standby"))
+	else if (strcmp(argv[1], "standby") == 0)
 		dw_pll5ghz_tsmc12ffc_standby(pll);
-	if (strcmp(argv[1], "relock"))
+	else if (strcmp(argv[1], "relock") == 0)
 		dw_pll5ghz_tsmc12ffc_relock(pll);
-	return -ENODEV;
+	else
+		return -ENODEV;
+	return 0;
 }
 
 static int do_pll_bypass(int argc, char * argv[])
@@ -423,13 +424,15 @@ static int do_pll_bypass(int argc, char * argv[])
 		return -EINVAL;
 
 	pll = strtoul(argv[2], NULL, 0);
-	if (strcmp(argv[3], "all"))
+	if (strcmp(argv[3], "all") == 0)
 		dw_pll5ghz_tsmc12ffc_bypass(pll, PLL_BYPASS_ALL);
-	if (strcmp(argv[3], "core"))
+	else if (strcmp(argv[3], "core") == 0)
 		dw_pll5ghz_tsmc12ffc_bypass(pll, PLL_BYPASS_CORE);
-	if (strcmp(argv[3], "none"))
+	else if (strcmp(argv[3], "none") == 0)
 		dw_pll5ghz_tsmc12ffc_bypass(pll, PLL_BYPASS_NONE);
-	return -ENODEV;
+	else
+		return -ENODEV;
+	return 0;
 }
 
 static int do_pll(int argc, char *argv[])

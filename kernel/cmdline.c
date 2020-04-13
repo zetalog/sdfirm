@@ -46,7 +46,7 @@ static cmd_tbl *find_cmd(const char *cmd)
 	cmd_tbl *cmdp;
 
 	foreach_cmd(cmdp) {
-		if (strcmp(cmdp->name, cmd))
+		if (strcmp(cmdp->name, cmd) != 0)
 			continue;
 		return cmdp;
 	}

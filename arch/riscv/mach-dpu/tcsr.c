@@ -66,7 +66,7 @@ static int do_tcsr_addr(int argc, char *argv[])
 	index = strtoul(argv[2], NULL, 0);
 	in = strtoul(argv[3], NULL, 0);
 	out = strtoull(argv[4], NULL, 0);
-	if (strcmp(argv[5], "device"))
+	if (strcmp(argv[5], "device") == 0)
 		attr = IMC_AT_ATTR_DEVICE;
 	imc_addr_trans(index, in, out, attr);
 	return 0;
