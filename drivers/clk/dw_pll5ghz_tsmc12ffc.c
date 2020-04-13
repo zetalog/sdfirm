@@ -394,7 +394,7 @@ static int do_pll_reg_access(int argc, char * argv[])
 static int do_pll_operation(int argc, char * argv[])
 {
 	int pll;
-	uint32_t freq;
+	uint64_t freq;
 
 	if (argc < 3)
 		return -EINVAL;
@@ -403,7 +403,7 @@ static int do_pll_operation(int argc, char * argv[])
 	if (strcmp(argv[1], "up") == 0) {
 		if (argc < 4)
 			return -EINVAL;
-		freq = strtoul(argv[3], NULL, 0);
+		freq = strtoull(argv[3], NULL, 0);
 		dw_pll5ghz_tsmc12ffc_pwron(pll, freq);
 	} else if (strcmp(argv[1], "down") == 0)
 		dw_pll5ghz_tsmc12ffc_pwrdn(pll);
