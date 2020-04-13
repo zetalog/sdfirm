@@ -88,7 +88,9 @@ config DW_PLL5GHZ_TSMC12FFC_OUTPUT_PROG
 	bool "Programmable"
 
 config DW_PLL5GHZ_TSMC12FFC_OUTPUT_DIV2
-	bool "DIV2 (DIVCOVP/R=0, P/R=0)"
+	bool "Fixed DIV2"
+	help
+	  Fixed output as (DIVCOVP/R=0, P/R=0).
 
 endchoice
 

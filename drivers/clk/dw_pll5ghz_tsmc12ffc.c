@@ -93,14 +93,17 @@ void dw_pll5ghz_tsmc12ffc_relock(uint8_t pll)
 }
 
 #ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_OUTPUT_PROG
-void dw_pll5ghz_tsmc12ffc_output_default(uint8_t pll, bool r)
+void dw_pll5ghz_tsmc12ffc_output_default(uint8_t pll, bool r, bool enable)
 {
 	uint32_t en = r ? PLL_ENR : PLL_ENP;
 
 	__raw_clearl(en, DW_PLL_CFG1(pll));
 	en |= r ? PLL_DIVVCOR(0xF) | PLL_R(0x3F) :
 		  PLL_DIVVCOP(0xF) | PLL_P(0x3F);
-	__raw_setl(en, DW_PLL_CFG1(pll));
+	if (enable)
+		__raw_setl(en, DW_PLL_CFG1(pll));
+	else
+		__raw_clearl(en, DW_PLL_CFG1(pll));
 }
 
 /* Normal oper: Fclkout = Fvco / (divvco{p|r} * {p|r})
@@ -192,20 +195,23 @@ void dw_pll5ghz_tsmc12ffc_enable(uint8_t pll, uint64_t fvco,
 #endif /* CONFIG_DW_PLL5GHZ_TSMC12FFC_OUTPUT_PROG */
 
 #ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_OUTPUT_DIV2
-void dw_pll5ghz_tsmc12ffc_output_default(uint8_t pll, bool r)
+void dw_pll5ghz_tsmc12ffc_output_default(uint8_t pll, bool r, bool enable)
 {
 	uint32_t en = r ? PLL_ENR : PLL_ENP;
 
 	dw_pll5ghz_tsmc12ffc_bypass_sync(pll, r, true);
 	__raw_clearl(en, DW_PLL_CFG1(pll));
 	en |= r ? PLL_DIVVCOR(0) | PLL_R(0) : PLL_DIVVCOP(0) | PLL_P(0);
-	__raw_setl(en, DW_PLL_CFG1(pll));
+	if (enable)
+		__raw_setl(en, DW_PLL_CFG1(pll));
+	else
+		__raw_clearl(en, DW_PLL_CFG1(pll));
 }
 
 void dw_pll5ghz_tsmc12ffc_enable(uint8_t pll, uint64_t fvco,
 				 uint64_t freq, bool r)
 {
-	dw_pll5ghz_tsmc12ffc_output_default(pll, r);
+	dw_pll5ghz_tsmc12ffc_output_default(pll, r, true);
 }
 #endif
 
@@ -271,13 +277,13 @@ void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
 	 *  1'b1: Fclkout = PLL output
 	 */
 	dw_pll5ghz_tsmc12ffc_bypass(pll, PLL_BYPASS_NONE);
-	dw_pll5ghz_tsmc12ffc_output_default(pll, false);
-	dw_pll5ghz_tsmc12ffc_output_default(pll, true);
+	dw_pll5ghz_tsmc12ffc_output_default(pll, false, false);
+	dw_pll5ghz_tsmc12ffc_output_default(pll, true, false);
 }
 
 void dw_pll5ghz_tsmc12ffc_disable(uint8_t pll, bool r)
 {
-	__raw_clearl(r ? PLL_ENR : PLL_ENP, DW_PLL_CFG1(pll));
+	dw_pll5ghz_tsmc12ffc_output_default(pll, r, false);
 }
 
 void dw_pll5ghz_tsmc12ffc_pwrdn(uint8_t pll)
