@@ -217,6 +217,39 @@ void dw_pll5ghz_tsmc12ffc_enable(uint8_t pll, uint64_t fvco,
 }
 #endif
 
+static void __dw_pll5ghz_tsmc12ffc_pwrup(uint8_t pll, uint32_t cfg)
+{
+	cfg |= PLL_GEAR;
+	__raw_writel(cfg, DW_PLL_CFG1(pll));
+	/* t_pwrstb */
+	dw_pll5ghz_tsmc12ffc_delay(1);
+	/* ndelay(500); */
+	cfg |= PLL_TEST_RESET;
+	__raw_writel(cfg, DW_PLL_CFG1(pll));
+	/* t_trst */
+	dw_pll5ghz_tsmc12ffc_delay(1);
+	/* ndelay(50); */
+	cfg |= PLL_PWRON;
+	__raw_writel(cfg, DW_PLL_CFG1(pll));
+	/* XXX: t_pwron
+	 *      In the databook, PWRON and RST_N seem to be set
+	 *      simultaneously, while the IP complains that PWRON must
+	 *      be enabled before setting RST_N. And the process takes
+	 *      time, otherwise, RST_N setting and GEAR_SHIFT unsetting
+	 *      can go wrong.
+	 */
+	dw_pll5ghz_tsmc12ffc_delay(1);
+	cfg |= PLL_RESET;
+	__raw_writel(cfg, DW_PLL_CFG1(pll));
+	dw_pll5ghz_tsmc12ffc_gear(pll);
+	while (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED));
+}
+
+void dw_pll5ghz_tsmc12ffc_pwrup(uint8_t pll)
+{
+	__dw_pll5ghz_tsmc12ffc_pwrup(pll, __raw_readl(DW_PLL_CFG1(pll)));
+}
+
 void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
 {
 	uint16_t mint, mfrac;
@@ -249,30 +282,7 @@ void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
 		     PLL_MINT(mint - 16) | PLL_MFRAC(mfrac),
 		     DW_PLL_CFG0(pll));
 
-	cfg |= PLL_GEAR;
-	__raw_writel(cfg, DW_PLL_CFG1(pll));
-	/* t_pwrstb */
-	dw_pll5ghz_tsmc12ffc_delay(1);
-	/* ndelay(500); */
-	cfg |= PLL_TEST_RESET;
-	__raw_writel(cfg, DW_PLL_CFG1(pll));
-	/* t_trst */
-	dw_pll5ghz_tsmc12ffc_delay(1);
-	/* ndelay(50); */
-	cfg |= PLL_PWRON;
-	__raw_writel(cfg, DW_PLL_CFG1(pll));
-	/* XXX: t_pwron
-	 *      In the databook, PWRON and RST_N seem to be set
-	 *      simultaneously, while the IP complains that PWRON must
-	 *      be enabled before setting RST_N. And the process takes
-	 *      time, otherwise, RST_N setting and GEAR_SHIFT unsetting
-	 *      can go wrong.
-	 */
-	dw_pll5ghz_tsmc12ffc_delay(1);
-	cfg |= PLL_RESET;
-	__raw_writel(cfg, DW_PLL_CFG1(pll));
-	dw_pll5ghz_tsmc12ffc_gear(pll);
-	while (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED));
+	__dw_pll5ghz_tsmc12ffc_pwrup(pll, cfg);
 
 	/* P/R outputs:
 	 *  1'b0: Fclkout = 0 or Fclkref/(P|R)
@@ -396,18 +406,14 @@ static int do_pll_reg_access(int argc, char * argv[])
 static int do_pll_operation(int argc, char * argv[])
 {
 	int pll;
-	uint64_t freq;
 
 	if (argc < 3)
 		return -EINVAL;
 
 	pll = strtoul(argv[2], NULL, 0);
-	if (strcmp(argv[1], "up") == 0) {
-		if (argc < 4)
-			return -EINVAL;
-		freq = strtoull(argv[3], NULL, 0);
-		dw_pll5ghz_tsmc12ffc_pwron(pll, freq);
-	} else if (strcmp(argv[1], "down") == 0)
+	if (strcmp(argv[1], "up") == 0)
+		dw_pll5ghz_tsmc12ffc_pwrup(pll);
+	else if (strcmp(argv[1], "down") == 0)
 		dw_pll5ghz_tsmc12ffc_pwrdn(pll);
 	else if (strcmp(argv[1], "standby") == 0)
 		dw_pll5ghz_tsmc12ffc_standby(pll);
@@ -456,8 +462,8 @@ DEFINE_COMMAND(pll, do_pll, "Control DWC PLL5GHz TSMC12FFCNS",
 	"    -write pll register\n"
 	"pll bypass all|core|none\n"
 	"    -set pll output bypass mode\n"
-	"pll up pll freq\n"
-	"    -power up pll with specified frequency\n"
+	"pll up pll\n"
+	"    -power up pll\n"
 	"pll down pll\n"
 	"    -power down pll\n"
 	"pll standby pll\n"
