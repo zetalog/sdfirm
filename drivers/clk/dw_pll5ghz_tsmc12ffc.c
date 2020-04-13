@@ -53,6 +53,7 @@
 #endif
 
 #ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_GEAR
+#define PLL_GEAR			PLL_GEAR_SHIFT
 static void dw_pll5ghz_tsmc12ffc_gear(uint8_t pll)
 {
 	/* The PLL only leaves the transition states and gets to normal
@@ -66,16 +67,18 @@ static void dw_pll5ghz_tsmc12ffc_gear(uint8_t pll)
 	udelay(1);
 	/* t_gs: gearshift */
 	udelay(2);
-	__raw_clearl(PLL_GEAR_SHIFT, DW_PLL_CFG1(pll));
+	__raw_clearl(PLL_GEAR, DW_PLL_CFG1(pll));
 }
 #else
+#define PLL_GEAR			0
 #define dw_pll5ghz_tsmc12ffc_gear(pll)	do { } while (0)
 #endif
 
 void dw_pll5ghz_tsmc12ffc_standby(uint8_t pll)
 {
 	if (PLL_OPMODE(__raw_readl(DW_PLL_STATUS(pll))) == PLL_LOCKED) {
-		__raw_writel(PLL_STANDBY | PLL_PWRON, DW_PLL_CFG1(pll));
+		__raw_writel_mask(PLL_STANDBY | PLL_PWRON, PLL_STATE_MASK,
+				  DW_PLL_CFG1(pll));
 		while (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_STANDBYEFF));
 	}
 }
@@ -83,9 +86,8 @@ void dw_pll5ghz_tsmc12ffc_standby(uint8_t pll)
 void dw_pll5ghz_tsmc12ffc_relock(uint8_t pll)
 {
 	if (__raw_readl(DW_PLL_STATUS(pll)) & PLL_STANDBYEFF) {
-		__raw_writel_mask(PLL_RESET | PLL_PWRON | PLL_GEAR_SHIFT,
-				  PLL_RESET | PLL_STANDBY |
-				  PLL_PWRON | PLL_GEAR_SHIFT,
+		__raw_writel_mask(PLL_RESET | PLL_PWRON | PLL_GEAR,
+				  PLL_RESET | PLL_STATE_MASK,
 				  DW_PLL_CFG1(pll));
 		dw_pll5ghz_tsmc12ffc_gear(pll);
 		while (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED));
@@ -247,7 +249,7 @@ void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
 		     PLL_MINT(mint - 16) | PLL_MFRAC(mfrac),
 		     DW_PLL_CFG0(pll));
 
-	cfg |= PLL_GEAR_SHIFT;
+	cfg |= PLL_GEAR;
 	__raw_writel(cfg, DW_PLL_CFG1(pll));
 	/* t_pwrstb */
 	dw_pll5ghz_tsmc12ffc_delay(1);
