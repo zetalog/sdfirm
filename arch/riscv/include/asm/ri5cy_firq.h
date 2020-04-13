@@ -22,6 +22,7 @@
 #define __riscv_firq_raised(irq)	riscv_irq_raised(FIRQ2IRQ(irq))
 
 #ifdef CONFIG_RI5CY_FIRQ_EXT
+#define NR_INT_IRQS			48
 #define EFIRQ2IRQ(irq)			((irq) - 16)
 #define EFIRQ2IE(irq)			(_AC(0x1, UL) << EFIRQ2IRQ(irq))
 
@@ -42,6 +43,7 @@
 #define riscv_firq_raised(irq)		\
 	((irq) < 16 ? __riscv_firq_raised(irq) : riscv_efirq_raised(irq))
 #else
+#define NR_INT_IRQS			16
 #define riscv_enable_firq(irq)		__riscv_enable_firq(irq)
 #define riscv_disable_firq(irq)		__riscv_disable_firq(irq)
 #define riscv_trigger_firq(irq)		__riscv_trigger_firq(irq)

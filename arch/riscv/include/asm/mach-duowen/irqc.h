@@ -50,14 +50,26 @@
 #error "Multiple IRQ controller defined"
 #endif
 
-#ifdef CONFIG_DUOWEN_IMC
 #define PLIC_HW_PRI_MAX		31
-#endif
 #define plic_hw_m_ctx(hartid)	(2 * (hartid))
 #define plic_hw_s_ctx(hartid)	((hartid) < 16 ? (2 * (hartid) + 1) : PLIC_CTX_NONE)
 
+#include <asm/ri5cy_firq.h>
 #include <asm/plic.h>
 
 #define plic_hw_ctrl_init()		clk_enable(plic_hclk)
+
+/* Internal IRQs */
+#ifdef CONFIG_DUOWEN_IMC
+#define plic_hw_enable_int(irq)		riscv_enable_firq(irq)
+#define plic_hw_disable_int(irq)	riscv_disable_firq(irq)
+#define plic_hw_clear_int(irq)		riscv_clear_firq(irq)
+#define plic_hw_trigger_int(irq)	riscv_trigger_firq(irq)
+#else
+#define plic_hw_enable_int(irq)		riscv_enable_irq(irq)
+#define plic_hw_disable_int(irq)	riscv_disable_irq(irq)
+#define plic_hw_clear_int(irq)		riscv_clear_irq(irq)
+#define plic_hw_trigger_int(irq)	riscv_trigger_irq(irq)
+#endif
 
 #endif /* __IRQC_DUOWEN_H_INCLUDE__ */

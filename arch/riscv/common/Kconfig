@@ -594,7 +594,6 @@ config ARCH_HAS_RI5CY_FIRQ_EXT
 menuconfig RI5CY_FIRQ
 	bool "RI5CY fast interrupt support"
 	depends ARCH_HAS_RI5CY_FIRQ
-	select RISCV_VIRQ
 
 menuconfig RI5CY_FIRQ_EXT
 	bool "RI5CY extended fast interrupt support"

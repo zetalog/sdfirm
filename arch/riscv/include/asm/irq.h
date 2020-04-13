@@ -119,9 +119,11 @@ struct pt_regs {
 #define IRQ_EXT			IRQ_S_EXT
 #endif
 
+#ifndef ARCH_HAVE_INT_IRQS
 #define NR_INT_IRQS		16
+#endif
 #define IRQ_PLATFORM		NR_INT_IRQS
-#define IRQ_EXIT(irq)		(IRQ_PLATFORM + (irq))
+#define EXT_IRQ(irq)		(IRQ_PLATFORM + (irq))
 
 #define EXC_INSN_MISALIGNED	0
 #define EXC_INSN_ACCESS		1

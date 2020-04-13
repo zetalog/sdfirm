@@ -46,9 +46,7 @@
  * instructions, registers.
  */
 
-#ifdef CONFIG_DUOWEN_IMC
-#define __VEC			__LOVEC
-#endif
+#define __VEC
 
 #define XO_CLK_FREQ		UL(25000000)
 #define CL0_PLL_FREQ		UL(2000000000)

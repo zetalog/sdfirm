@@ -62,6 +62,12 @@
 
 #include <asm/plic.h>
 
-#define plic_hw_ctrl_init()	do { } while (0)
+#define plic_hw_ctrl_init()		do { } while (0)
+
+/* Internal IRQs */
+#define plic_hw_enable_int(irq)		riscv_enable_irq(irq)
+#define plic_hw_disable_int(irq)	riscv_disable_irq(irq)
+#define plic_hw_clear_int(irq)		riscv_clear_irq(irq)
+#define plic_hw_trigger_int(irq)	riscv_trigger_irq(irq)
 
 #endif /* __IRQC_UNLEASHED_H_INCLUDE__ */

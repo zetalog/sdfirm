@@ -42,12 +42,8 @@
 #ifndef __ARCH_DPU_H_INCLUDE__
 #define __ARCH_DPU_H_INCLUDE__
 
-#ifdef CONFIG_ARCH_HAS_LOVEC
-#define __VEC			__LOVEC
-#endif
-#ifdef CONFIG_ARCH_HAS_NOVEC
+#define ARCH_HAVE_INT_IRQS	1
 #define __VEC
-#endif
 
 #include <asm/mach/tcsr.h>
 #include <asm/mach/flash.h>

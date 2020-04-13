@@ -19,12 +19,10 @@ config DUOWEN_IMC
 	bool "IMC - system fabric (SFAB)"
 	select CPU_RI5CY
 	select RISCV_VIRQ
-	select ARCH_HAS_NOVEC
 	depends !DUOWEN_BOOT_APC
 
 config DUOWEN_APC
 	bool "APC - coherence fabric (CFAB)"
-	select ARCH_HAS_NOVEC
 	select ARCH_HAS_BOOT_LOAD
 	select ARCH_HAS_DMA
 	select ARCH_HAS_IOMMU
@@ -75,7 +73,6 @@ config DUOWEN_SBI
 	select SYS_EXIT_M
 	select SYS_EXIT_S
 	select SBI
-	select ARCH_HAS_NOVEC
 	select ARCH_HAS_BOOT_LOAD
 	select XIP
 
