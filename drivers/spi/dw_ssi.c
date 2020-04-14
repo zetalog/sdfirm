@@ -35,74 +35,40 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)dw_spi.c: Synopsys DesignWare SSI interface
- * $Id: dw_spi.c,v 1.0 2020-2-10 10:58:00 syl Exp $
+ * @(#)dw_ssi.c: Synopsys DesignWare SSI interface
+ * $Id: dw_ssi.c,v 1.0 2020-2-10 10:58:00 syl Exp $
  */
-#include <driver/dw_spi.h>
-#include <target/clk.h>
-#include <target/bh.h>
-#define DW_SPI_DEBUG
-#ifdef DW_SPI_DEBUG
-#include <target/console.h>
-#endif
 
-dw_spi_t dw_spi_str_ver;
-static inline uint32_t spi_reg_get32(dw_spi_t *dw_spi_str, uint32_t offset)
+#include <target/spi.h>
+
+struct dw_ssi dw_ssis[NR_DW_SSIS];
+
+void dw_ssi_config_freq(int n, uint32_t freq)
 {
-	return __raw_readl(dw_spi_str->regs_base + offset);
+	uint16_t clk_div;
+
+	clk_div = (uint16_t)div32u(clk_get_frequency(DW_SSI_CLK), freq);
+	clk_div = (clk_div + 1) & 0xfffe;
+	__raw_writel(clk_div, SSI_BAUDR(n));
 }
 
-static inline void spi_reg_set32(dw_spi_t *dw_spi_str, uint32_t offset, uint32_t val)
+void dw_ssi_init_master(int n, uint8_t frf)
 {
-	__raw_writel(val, dw_spi_str->regs_base + offset);
+	if (n >= NR_DW_SSIS)
+		return;
+
+	dw_ssi_disable_ctrl(n);
+	__raw_writel_mask(SSI_FRF(frf), SSI_FRF_MASK, SSI_CTRLR0(n));
+	dw_ssis[n].tx_fifo_depth = CONFIG_DW_SSI_TX_FIFO_DEPTH - 1;
+	dw_ssis[n].rx_fifo_depth = CONFIG_DW_SSI_RX_FIFO_DEPTH - 1;
+	__raw_writel(0, SSI_TXFTLR(n));
+	__raw_writel(dw_ssis[n].tx_fifo_depth, SSI_TXFTLR(n));
+	__raw_writel(0, SSI_RXFTLR(n));
+	__raw_writel(0xFF, SSI_IMR(n));
+	dw_ssi_enable_ctrl(n);
 }
 
-static inline uint16_t spi_reg_get16(dw_spi_t *dw_spi_str, uint32_t offset)
-{
-	return __raw_readw(dw_spi_str->regs_base + offset);
-}
-
-static inline void spi_reg_set16(dw_spi_t *dw_spi_str, uint32_t offset, uint16_t val)
-{
-	__raw_writew(val, dw_spi_str->regs_base + offset);
-}
-
-static inline void spi_enable_chip(dw_spi_t *dw_spi_str, int32_t enable)
-{
-	spi_reg_set32(dw_spi_str, DW_SPI_SSIENR, (enable ? 1 : 0));
-}
-
-static void spi_hw_init(dw_spi_t *dw_spi_str)
-{
-	spi_enable_chip(dw_spi_str, 0);
-	spi_reg_set32(dw_spi_str, DW_SPI_IMR, 0xff);
-	spi_enable_chip(dw_spi_str, 1);
-
-	if (!dw_spi_str->fifo_len) {
-		uint32_t fifo;
-		for (fifo = 1; fifo < 256; fifo++) {
-			spi_reg_set16(dw_spi_str, DW_SPI_TXFLTR, fifo);
-			if (fifo != spi_reg_get16(dw_spi_str, DW_SPI_TXFLTR))
-				break;
-		}
-
-		dw_spi_str->fifo_len = (fifo == 1) ? 0 : fifo;
-		spi_reg_set16(dw_spi_str, DW_SPI_TXFLTR, 0);
-	}
-	con_printf("%s: fifo_len=%d\n", __func__, dw_spi_str->fifo_len);
-}
-int32_t dw_spi_init(void)
-{
-       dw_spi_t *dw_spi_str = &dw_spi_str_ver;
-	dw_spi_str->regs_base = DW_SPI_REG_BASE;
-	dw_spi_str->freq = DW_SPI_FREQ_SPEED;
-       dw_spi_str->bits_per_word = 8;
-	dw_spi_str->tmode = 0; /* Tx & Rx */
-       spi_hw_init(dw_spi_str);
-
-	return SPI_OK;
-}
-
+#if 0
 static inline uint32_t tx_max(dw_spi_t *dw_spi_str)
 {
 	uint32_t tx_left, tx_room, rxtx_gap;
@@ -115,6 +81,7 @@ static inline uint32_t tx_max(dw_spi_t *dw_spi_str)
 
 	return min3(tx_left, tx_room, (uint32_t)(dw_spi_str->fifo_len - rxtx_gap));
 }
+
 static inline uint32_t rx_max(dw_spi_t *dw_spi_str)
 {
 	uint32_t rx_left = (dw_spi_str->rx_end - dw_spi_str->rx) / (dw_spi_str->bits_per_word >> 3);
@@ -178,24 +145,23 @@ static int32_t poll_transfer(dw_spi_t *dw_spi_str)
 		if (ret < 0)
 			return ret;
 	} while (dw_spi_str->rx_end > dw_spi_str->rx);
-
 	return SPI_OK;
 }
 
-int32_t dw_spi_tx(const void *txdata, uint32_t txbytes,
-		       void *rxdata)
+int32_t dw_spi_tx(const void *txdata, uint32_t txbytes, void *rxdata)
 {
-       dw_spi_t *dw_spi_str = &dw_spi_str_ver;
+	dw_spi_t *dw_spi_str = &dw_spi_str_ver;
 	const uint8_t *tx = txdata;
 	uint8_t *rx = rxdata;
 	int32_t ret = 0;
 	uint32_t cr0 = 0;
 	uint32_t cs;
-       int32_t bitlen = txbytes*8;
+	int32_t bitlen = txbytes*8;
 
-	cr0 = (dw_spi_str->bits_per_word - 1) | (dw_spi_str->type << SPI_FRF_OFFSET) |
-		(dw_spi_str->mode << SPI_MODE_OFFSET) |
-		(dw_spi_str->tmode << SPI_TMOD_OFFSET);
+	cr0 = (dw_spi_str->bits_per_word - 1) |
+	      (dw_spi_str->type << SPI_FRF_OFFSET) |
+	      (dw_spi_str->mode << SPI_MODE_OFFSET) |
+	      (dw_spi_str->tmode << SPI_TMOD_OFFSET);
 
 	if (rx && tx)
 		dw_spi_str->tmode = SPI_TMOD_TR;
@@ -215,49 +181,14 @@ int32_t dw_spi_tx(const void *txdata, uint32_t txbytes,
 	dw_spi_str->rx = rx;
 	dw_spi_str->rx_end = dw_spi_str->rx + dw_spi_str->len;
 
-	spi_enable_chip(dw_spi_str, 0);
+	dw_ssi_disable_ctrl(n);
 
 	con_printf("%s: cr0=%08x\n", __func__, cr0);
 	if (spi_reg_get16(dw_spi_str, DW_SPI_CTRL0) != cr0)
 		spi_reg_set16(dw_spi_str, DW_SPI_CTRL0, cr0);
 
-	cs = DW_SPI_CS;
-	spi_reg_set32(dw_spi_str, DW_SPI_SER, 1 << cs);
-
-	spi_enable_chip(dw_spi_str, 1);
-
+	dw_ssi_enable_ctrl(n);
 	ret = poll_transfer(dw_spi_str);
-
 	return ret;
 }
-
-static int32_t dw_spi_set_speed(uint32_t speed)
-{
-	dw_spi_t *dw_spi_str = &dw_spi_str_ver;
-	uint16_t clk_div;
-
-	spi_enable_chip(dw_spi_str, 0);
-
-	clk_div = clk_get_frequency() / speed;
-	clk_div = (clk_div + 1) & 0xfffe;
-	spi_reg_set32(dw_spi_str, DW_SPI_BAUDR, clk_div);
-
-	spi_enable_chip(dw_spi_str, 1);
-
-	dw_spi_str->freq = speed;
-	con_printf("%s: regs=%p speed=%d clk_div=%d\n", __func__, dw_spi_str->regs_base,
-	      dw_spi_str->freq, clk_div);
-
-	return SPI_OK;
-}
-
-static int32_t dw_spi_set_mode(uint32_t mode)
-{
-	dw_spi_t *dw_spi_str = &dw_spi_str_ver;
-
-	dw_spi_str->mode = mode;
-	con_printf("%s: regs=%p, mode=%d\n", __func__, dw_spi_str->regs_base, dw_spi_str->mode);
-
-	return SPI_OK;
-}
-
+#endif

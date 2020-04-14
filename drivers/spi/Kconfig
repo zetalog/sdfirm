@@ -5,8 +5,135 @@
 
 menu "SPI Master drivers"
 
-menuconfig DW_SPI
-	bool "Synopsys DesignWare Apb Spi support"
+config ARCH_HAS_SSI_RX_SAMPLE_DELAY
+	bool
+
+config ARCH_HAS_SSI_DMA
+	bool
+
+config ARCH_HAS_SSI_DDR
+	bool
+	depends !DW_SSI_SPI_MODE_STD && ARCH_HAS_DW_AMBA_ADVANCED
+	help
+	  Configures the device to support Dual Data transmission on both
+	  positive and negative edge of sclk_out.
+
+config ARCH_HAS_SSI_RXDS
+	bool
+	depends ARCH_HAS_DW_AMBA_ADVANCED
+	select ARCH_HAS_SSI_DDR
+	help
+	  Configures the device to include data strobe signaling for rxd
+	  signal.
+
+config ARCH_HAS_SSI_DM
+	bool
+	depends !DW_SSI_SPI_MODE_STD && ARCH_HAS_APB_40 && \
+		ARCH_HAS_DW_AMBA_ADVANCED
+	help
+	  Selects if data mask signal shall be included on SPI interface.
+
+menuconfig DW_SSI
+	bool "Synopsys DesignWare APB SSI support"
+	select MATH_DIV32
+
+if DW_SSI
+
+choice
+	prompt "Maximum transfer size"
+	default DW_SSI_MAX_XFER_SIZE_32
+	help
+	  Configures the maximum transfer size supported by device. The
+	  receive and transmit FIFO widths will be equal to configured
+	  value.
+
+config DW_SSI_MAX_XFER_SIZE_16
+	bool "16 Bits"
+
+config DW_SSI_MAX_XFER_SIZE_32
+	bool "32 Bits"
+
+endchoice
+
+config DW_SSI_RX_FIFO_DEPTH
+	int "Receive FIFO buffer depth"
+	default 8
+	range 2 256
+
+config DW_SSI_TX_FIFO_DEPTH
+	int "Transmit FIFO buffer depth"
+	default 8
+	range 2 100 if DW_SSI_SPI_MODE_STD
+	range 5 100 if (!DW_SSI_SPI_MODE_STD && DW_SSI_MAX_XFER_SIZE_16)
+	range 3 100 if (!DW_SSI_SPI_MODE_STD && DW_SSI_MAX_XFER_SIZE_32)
+
+config DW_SSI_MAX_SLAVES
+	int "Number of slave select lines"
+	default 1
+	range 1 16
+
+config DW_SSI_RX_DLY_SR_DEPTH
+	int "Maximum RXD sample delay"
+	default 4
+	range 4 255
+	depends ARCH_HAS_SSI_RX_SAMPLE_DELAY
+	help
+	  Defines the maximum number of ssi_clk cycles that can be used to
+	  delay the sampling of the rxd input.
+
+config DW_SSI_HC_FRF
+	bool "Enable hard coded (fixed) frame format"
+	help
+	  When set, the frame format (serial protocol) can be fixed so
+	  that the user cannot dynamically program it.
+
+choice
+	prompt "Default frame format"
+	default DW_SSI_DFLT_FRF_SPI
+
+config DW_SSI_DFLT_FRF_SPI
+	bool "Motorola SPI"
+
+config DW_SSI_DFLT_FRF_SSP
+	bool "TI SSP"
+
+config DW_SSI_DFLT_FRF_MICROWIRE
+	bool "NatSemi Microwire"
+
+endchoice
+
+config DW_SSI_SPI_MODE_STD_ONLY
+	bool
+	depends (DW_SSI_HC_FRF || DW_SSI_DFLT_FRF_STD) && \
+		ARCH_HAS_DW_AMBA_ADVANCED
+
+choice
+	prompt "Select SPI mode"
+	default DW_SSI_SPI_MODE_STD
+
+config DW_SSI_SPI_MODE_STD
+	bool "Standard SPI mode"
+
+config DW_SSI_SPI_MODE_DUAL
+	bool "Dual SPI mode"
+	depends !DW_SSI_SPI_MODE_STD_ONLY
+
+config DW_SSI_SPI_MODE_QUAD
+	bool "Quad SPI mode"
+	depends !DW_SSI_SPI_MODE_STD_ONLY
+
+config DW_SSI_SPI_MODE_OCTAL
+	bool "Octal SPI mode"
+	depends !DW_SSI_SPI_MODE_STD_ONLY
+
+endchoice
+
+config DW_SSI_XIP
+	bool "Include XIP feature in SPI mode"
+	depends !DW_SSI_SPI_MODE_STD && !ARCH_HAS_APB_20 && \
+		ARCH_HAS_DW_AMBA_ADVANCED
+
+endif
 
 endmenu
 

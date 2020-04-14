@@ -4,6 +4,15 @@
 
 menu "Driver setup"
 
+config ARCH_HAS_APB_20
+	bool
+
+config ARCH_HAS_APB_30
+	bool
+
+config ARCH_HAS_APB_40
+	bool
+
 #
 # Common to all Synopsys AMBA advance peripherals
 #

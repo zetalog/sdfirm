@@ -6,7 +6,7 @@
 menu "I2C host drivers"
 
 menuconfig DW_I2C
-	bool "Synopsys DesignWare I2C support"
+	bool "Synopsys DesignWare APB I2C support"
 
 if DW_I2C
 

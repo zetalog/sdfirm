@@ -116,7 +116,7 @@ config DBG_DW_UART
 	bool
 
 menuconfig DW_UART
-	bool "Synopsys DesignWare UART support"
+	bool "Synopsys DesignWare APB UART support"
 	select CON_DW_UART if CONSOLE
 	select DBG_DW_UART if DEBUG_PRINT
 	select ARCH_HAS_UART

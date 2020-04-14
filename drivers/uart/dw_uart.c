@@ -40,6 +40,7 @@
  */
 #include <target/console.h>
 #include <target/uart.h>
+#include <target/barrier.h>
 
 #ifdef CONFIG_DW_UART_DLF
 #define dw_uart_convert_baudrate(freq, baud, div, frac)	\

@@ -42,7 +42,6 @@
 #ifndef __UART_DPU_H_INCLUDE__
 #define __UART_DPU_H_INCLUDE__
 
-#include <target/paging.h>
 #include <target/gpio.h>
 #include <target/clk.h>
 
@@ -50,7 +49,7 @@
 #define DW_UART0_BASE		UART_BASE
 #define UART_CON_ID		0
 
-#if defined(CONFIG_DW_UART)
+#ifdef CONFIG_DW_UART
 #include <driver/dw_uart.h>
 #ifndef ARCH_HAVE_UART
 #define ARCH_HAVE_UART		1

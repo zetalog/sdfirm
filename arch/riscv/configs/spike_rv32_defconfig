@@ -323,7 +323,7 @@ CONFIG_UART_115200=y
 #
 # SPI Master drivers
 #
-# CONFIG_DW_SPI is not set
+# CONFIG_DW_SSI is not set
 
 #
 # DMA host drivers
