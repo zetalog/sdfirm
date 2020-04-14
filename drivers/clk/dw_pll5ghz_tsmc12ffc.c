@@ -247,7 +247,10 @@ static void __dw_pll5ghz_tsmc12ffc_pwrup(uint8_t pll, uint32_t cfg)
 
 void dw_pll5ghz_tsmc12ffc_pwrup(uint8_t pll)
 {
-	__dw_pll5ghz_tsmc12ffc_pwrup(pll, __raw_readl(DW_PLL_CFG1(pll)));
+	uint32_t cfg = __raw_readl(DW_PLL_CFG1(pll));
+
+	cfg &= ~(PLL_STATE_MASK | PLL_RESET_MASK);
+	__dw_pll5ghz_tsmc12ffc_pwrup(pll, cfg);
 }
 
 void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
