@@ -41,7 +41,34 @@
 
 #include <target/spi.h>
 
-struct dw_ssi dw_ssis[NR_DW_SSIS];
+/* Only 8 Bits transfers are allowed */
+#define DW_SSI_XFER_SIZE		8
+
+struct dw_ssi_ctx dw_ssis[NR_DW_SSIS];
+
+#if 0
+static inline uint32_t tx_max(int n)
+{
+	uint32_t tx_left, tx_room, rxtx_gap;
+
+	tx_left = (dw_ssis[n].tx_end - dw_ssis[n].tx) /
+		  (DW_SSI_XFER_SIZE >> 3);
+	tx_room = dw_ssis[n].tx_fifo_depth - __raw_readl(SSI_TXFLR(n));
+	rxtx_gap = ((dw_ssis[n].rx_end - dw_ssis[n].rx) -
+		    (dw_ssis[n].tx_end - dw_ssis[n].tx)) /
+		   (DW_SSI_XFER_SIZE >> 3);
+
+	return min3(tx_left, tx_room,
+		    (uint32_t)(dw_ssis[n].tx_fifo_depth - rxtx_gap));
+}
+
+static inline uint32_t rx_max(int n)
+{
+	uint32_t rx_left = (dw_ssis[n].rx_end - dw_ssis[n].rx) /
+			   (DW_SSI_XFER_SIZE >> 3);
+	return min(rx_left, __raw_readl(SSI_RXFLR(n)));
+}
+#endif
 
 void dw_ssi_config_freq(int n, uint32_t freq)
 {
@@ -52,42 +79,42 @@ void dw_ssi_config_freq(int n, uint32_t freq)
 	__raw_writel(clk_div, SSI_BAUDR(n));
 }
 
-void dw_ssi_init_master(int n, uint8_t frf)
+#define dw_ssi_probe_fifo(n, reg, depth)				\
+	do {								\
+		if (!depth) {						\
+			uint32_t fifo;					\
+			for (fifo = 0; fifo < 256; fifo++) {		\
+				__raw_writel(fifo, reg(n));		\
+				if (fifo != __raw_readl(reg(n)))	\
+					break;				\
+			}						\
+			depth = fifo;					\
+		}							\
+	} while (0)
+
+void dw_ssi_init_master(int n, uint8_t frf, uint8_t tmod,
+			uint16_t txfifo, uint16_t rxfifo)
 {
 	if (n >= NR_DW_SSIS)
 		return;
 
 	dw_ssi_disable_ctrl(n);
-	__raw_writel_mask(SSI_FRF(frf), SSI_FRF_MASK, SSI_CTRLR0(n));
-	dw_ssis[n].tx_fifo_depth = CONFIG_DW_SSI_TX_FIFO_DEPTH - 1;
-	dw_ssis[n].rx_fifo_depth = CONFIG_DW_SSI_RX_FIFO_DEPTH - 1;
+	__raw_writel_mask(SSI_FRF(frf) | SSI_TMOD(tmod) |
+			  SSI_DFS(DW_SSI_XFER_SIZE - 1),
+			  SSI_FRF_MASK | SSI_TMOD_MASK | SSI_DFS_MASK,
+			  SSI_CTRLR0(n));
+	dw_ssi_probe_fifo(n, SSI_TXFTLR, txfifo);
+	dw_ssis[n].tx_fifo_depth = (uint8_t)(txfifo - 1);
+	dw_ssi_probe_fifo(n, SSI_RXFTLR, txfifo);
+	dw_ssis[n].rx_fifo_depth = (uint8_t)(rxfifo - 1);
 	__raw_writel(0, SSI_TXFTLR(n));
-	__raw_writel(dw_ssis[n].tx_fifo_depth, SSI_TXFTLR(n));
+	/* __raw_writel(dw_ssis[n].tx_fifo_depth, SSI_TXFTLR(n)); */
 	__raw_writel(0, SSI_RXFTLR(n));
 	__raw_writel(0xFF, SSI_IMR(n));
 	dw_ssi_enable_ctrl(n);
 }
 
 #if 0
-static inline uint32_t tx_max(dw_spi_t *dw_spi_str)
-{
-	uint32_t tx_left, tx_room, rxtx_gap;
-
-	tx_left = (dw_spi_str->tx_end - dw_spi_str->tx) / (dw_spi_str->bits_per_word >> 3);
-	tx_room = dw_spi_str->fifo_len - spi_reg_get16(dw_spi_str, DW_SPI_TXFLR);
-
-	rxtx_gap = ((dw_spi_str->rx_end - dw_spi_str->rx) - (dw_spi_str->tx_end - dw_spi_str->tx)) /
-		(dw_spi_str->bits_per_word >> 3);
-
-	return min3(tx_left, tx_room, (uint32_t)(dw_spi_str->fifo_len - rxtx_gap));
-}
-
-static inline uint32_t rx_max(dw_spi_t *dw_spi_str)
-{
-	uint32_t rx_left = (dw_spi_str->rx_end - dw_spi_str->rx) / (dw_spi_str->bits_per_word >> 3);
-	return min_t(uint32_t, rx_left, spi_reg_get16(dw_spi_str, DW_SPI_RXFLR));
-}
-
 static void dw_writer(dw_spi_t *dw_spi_str)
 {
 	uint32_t max = tx_max(dw_spi_str);

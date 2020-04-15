@@ -46,6 +46,11 @@ config ARCH_DUOWEN
 	select ARCH_HAS_SPI
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_APB_40
+	select ARCH_HAS_SSI_FIFO
+	select ARCH_HAS_SSI_XFER_32
+	select ARCH_HAS_SSI_FRF
+	select ARCH_HAS_SSI_SPI
+	select ARCH_HAS_SSI_SPI_1WIRE
 	select RISCV_COUNTERS if SBI
 	select DUOWEN_TMR if DUOWEN_IMC
 	select CLINT if DUOWEN_APC
@@ -80,6 +85,11 @@ config ARCH_DPU
 	select ARCH_HAS_PLIC
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_APB_40
+	select ARCH_HAS_SSI_FIFO
+	select ARCH_HAS_SSI_XFER_32
+	select ARCH_HAS_SSI_FRF
+	select ARCH_HAS_SSI_SPI
+	select ARCH_HAS_SSI_SPI_1WIRE
 	select DPU_TMR
 	select RI5CY_FIRQ if !SYS_NOIRQ
 	select DPU_PLIC if !SYS_NOIRQ

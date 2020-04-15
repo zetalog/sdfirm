@@ -49,5 +49,8 @@ uint32_t gcd32u(uint32_t n, uint32_t m);
 #ifndef clamp
 #define clamp(val, lo, hi)	min(max(val, lo), hi)
 #endif
+#ifndef min3
+#define min3(x, y, z)		min(min(x, y), z)
+#endif
 
 #endif /* __MULDIV_H_INCLUDE__ */

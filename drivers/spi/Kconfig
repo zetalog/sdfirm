@@ -8,6 +8,39 @@ menu "SPI Master drivers"
 config ARCH_HAS_SSI_RX_SAMPLE_DELAY
 	bool
 
+config ARCH_HAS_SSI_FIFO
+	bool
+
+config ARCH_HAS_SSI_XFER_16
+	bool
+
+config ARCH_HAS_SSI_XFER_32
+	bool
+
+config ARCH_HAS_SSI_FRF
+	bool
+
+config ARCH_HAS_SSI_SPI
+	bool
+
+config ARCH_HAS_SSI_SSP
+	bool
+
+config ARCH_HAS_SSI_MICROWAVE
+	bool
+
+config ARCH_HAS_SSI_SPI_1WIRE
+	bool
+
+config ARCH_HAS_SSI_SPI_2WIRE
+	bool
+
+config ARCH_HAS_SSI_SPI_4WIRE
+	bool
+
+config ARCH_HAS_SSI_SPI_8WIRE
+	bool
+
 config ARCH_HAS_SSI_DMA
 	bool
 
@@ -36,6 +69,7 @@ config ARCH_HAS_SSI_DM
 menuconfig DW_SSI
 	bool "Synopsys DesignWare APB SSI support"
 	select MATH_DIV32
+	select DW_SSI_HC_FRF if !ARCH_HAS_SSI_FRF
 
 if DW_SSI
 
@@ -49,11 +83,19 @@ choice
 
 config DW_SSI_MAX_XFER_SIZE_16
 	bool "16 Bits"
+	depends ARCH_HAS_SSI_XFER_16
 
 config DW_SSI_MAX_XFER_SIZE_32
 	bool "32 Bits"
+	depends ARCH_HAS_SSI_XFER_32
 
 endchoice
+
+config DW_SSI_FIFO_DEPTH
+	bool "Use predefined FIFO buffer depth"
+	depends !ARCH_HAS_SSI_FIFO
+
+if DW_SSI_FIFO_DEPTH
 
 config DW_SSI_RX_FIFO_DEPTH
 	int "Receive FIFO buffer depth"
@@ -63,9 +105,11 @@ config DW_SSI_RX_FIFO_DEPTH
 config DW_SSI_TX_FIFO_DEPTH
 	int "Transmit FIFO buffer depth"
 	default 8
-	range 2 100 if DW_SSI_SPI_MODE_STD
-	range 5 100 if (!DW_SSI_SPI_MODE_STD && DW_SSI_MAX_XFER_SIZE_16)
-	range 3 100 if (!DW_SSI_SPI_MODE_STD && DW_SSI_MAX_XFER_SIZE_32)
+	range 2 256 if DW_SSI_SPI_MODE_STD
+	range 5 256 if (!DW_SSI_SPI_MODE_STD && DW_SSI_MAX_XFER_SIZE_16)
+	range 3 256 if (!DW_SSI_SPI_MODE_STD && DW_SSI_MAX_XFER_SIZE_32)
+
+endif
 
 config DW_SSI_MAX_SLAVES
 	int "Number of slave select lines"
@@ -83,6 +127,7 @@ config DW_SSI_RX_DLY_SR_DEPTH
 
 config DW_SSI_HC_FRF
 	bool "Enable hard coded (fixed) frame format"
+	depends !ARCH_HAS_SSI_FRF
 	help
 	  When set, the frame format (serial protocol) can be fixed so
 	  that the user cannot dynamically program it.
@@ -93,18 +138,21 @@ choice
 
 config DW_SSI_DFLT_FRF_SPI
 	bool "Motorola SPI"
+	depends ARCH_HAS_SSI_SPI
 
 config DW_SSI_DFLT_FRF_SSP
 	bool "TI SSP"
+	depends ARCH_HAS_SSI_SSP
 
 config DW_SSI_DFLT_FRF_MICROWIRE
 	bool "NatSemi Microwire"
+	depends ARCH_HAS_SSI_MICROWAVE
 
 endchoice
 
 config DW_SSI_SPI_MODE_STD_ONLY
 	bool
-	depends (DW_SSI_HC_FRF || DW_SSI_DFLT_FRF_STD) && \
+	depends (ARCH_HAS_SSI_FRF || DW_SSI_DFLT_FRF_SPI) && \
 		ARCH_HAS_DW_AMBA_ADVANCED
 
 choice
@@ -113,18 +161,22 @@ choice
 
 config DW_SSI_SPI_MODE_STD
 	bool "Standard SPI mode"
+	depends ARCH_HAS_SSI_SPI_1WIRE
 
 config DW_SSI_SPI_MODE_DUAL
 	bool "Dual SPI mode"
 	depends !DW_SSI_SPI_MODE_STD_ONLY
+	depends ARCH_HAS_SSI_SPI_2WIRE
 
 config DW_SSI_SPI_MODE_QUAD
 	bool "Quad SPI mode"
 	depends !DW_SSI_SPI_MODE_STD_ONLY
+	depends ARCH_HAS_SSI_SPI_4WIRE
 
 config DW_SSI_SPI_MODE_OCTAL
 	bool "Octal SPI mode"
 	depends !DW_SSI_SPI_MODE_STD_ONLY
+	depends ARCH_HAS_SSI_SPI_8WIRE
 
 endchoice
 

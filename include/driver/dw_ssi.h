@@ -105,8 +105,9 @@
 #define SSI_SPI_FRF_QUAD	0x2
 #define SSI_SPI_FRF_OCTAL	0x3
 #ifdef CONFIG_DW_SSI_MAX_XFER_SIZE_32
-#define SPI_DFS_OFFSET		16
-#define SPI_DFS_MASK		REG_5BIT_MASK
+#define DW_SSI_MAX_XFER_SIZE	32
+#define SSI_DFS_OFFSET		16
+#define SSI_DFS_MASK		REG_5BIT_MASK
 #define SSI_DFS(value)		_SET_FV(SSI_DFS, value)
 #endif
 #define SSI_CFS_OFFSET		12
@@ -130,6 +131,7 @@
 #define SSI_FRF_MASK		REG_2BIT_MASK
 #define SSI_FRF(value)		_SET_FV(SSI_FRF, value)
 #ifdef CONFIG_DW_SSI_MAX_XFER_SIZE_16
+#define DW_SSI_MAX_XFER_SIZE	16
 #define SSI_DFS_OFFSET		0
 #define SSI_DFS_MASK		REG_4BIT_MASK
 #define SSI_DFS(value)		_SET_FV(SSI_DFS, value)
@@ -204,15 +206,12 @@
 #define DW_SPI_CS			1
 #define DW_SPI_FREQ_SPEED		50
 
-typedef struct dw_ssi {
-	uint32_t mode;
-	int32_t bits_per_word;
-	uint8_t tmode;		/* TR/TO/RO/EEPROM */
+struct dw_ssi_ctx {
 	uint8_t type;		/* SPI/SSP/MicroWire */
-	int32_t len;
+	uint8_t frf;		/* TR/TO/RO/EEPROM */
 	uint8_t tx_fifo_depth;	/* depth of the FIFO buffer */
 	uint8_t rx_fifo_depth;	/* depth of the FIFO buffer */
-} dw_ssi_t;
+};
 
 #define dw_ssi_enable_ctrl(n)		__raw_setl(SSI_EN, SSI_SSIENR(n))
 #define dw_ssi_disable_ctrl(n)		__raw_clearl(SSI_EN, SSI_SSIENR(n))
@@ -222,6 +221,21 @@ typedef struct dw_ssi {
 #define dw_ssi_select_chip(n, chip)	__raw_writel(_BV(chip), SSI_SER(n))
 
 void dw_ssi_config_freq(int n, uint32_t freq);
-void dw_ssi_init_master(int n, uint8_t frf);
+void dw_ssi_init_master(int n, uint8_t frf, uint8_t tmod,
+			uint16_t txfifo, uint16_t rxfifo);
+
+#ifdef CONFIG_DW_SSI_FIFO_DEPTH
+#define DW_SSI_TX_FIFO_DEPTH		CONFIG_DW_SSI_TX_FIFO_DEPTH
+#define DW_SSI_RX_FIFO_DEPTH		CONFIG_DW_SSI_RX_FIFO_DEPTH
+#else
+/* Allow probe */
+#define DW_SSI_TX_FIFO_DEPTH		0
+#define DW_SSI_RX_FIFO_DEPTH		0
+#endif
+
+#define __dw_ssi_init_master_fifo(n, frf, tmod)		\
+	dw_ssi_init_master(n, frf, tmod,		\
+			   DW_SSI_TX_FIFO_DEPTH,	\
+			   DW_SSI_RX_FIFO_DEPTH)
 
 #endif /* __DW_SSI_H_INCLUDE__ */
