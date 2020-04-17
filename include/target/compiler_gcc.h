@@ -46,6 +46,12 @@ typedef __builtin_va_list va_list;
 #define __stringify_1(x...)		#x
 #define __stringify(x...)		__stringify_1(x)
 
+#ifdef CONFIG_CC_ALWAYS_INLINE
+#define __inline			__always_inline
+#else
+#define __inline			inline
+#endif
+
 #define likely(x)			__builtin_expect(!!(x), 1)
 #define unlikely(x)			__builtin_expect(!!(x), 0)
 #define unreachable()			__builtin_unreachable()

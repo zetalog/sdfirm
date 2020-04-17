@@ -448,17 +448,17 @@
 		     : : "rK" (__v) : "memory");		\
 })
 
-static inline int misa_extension(char ext)
+static __inline int misa_extension(char ext)
 {
 	return csr_read(CSR_MISA) & (1 << (ext - 'A'));
 }
 
-static inline int misa_xlen(void)
+static __inline int misa_xlen(void)
 {
 	return ((long)csr_read(CSR_MISA) < 0) ? 64 : 32;
 }
 
-static inline void misa_string(char *out, unsigned int out_sz)
+static __inline void misa_string(char *out, unsigned int out_sz)
 {
 	unsigned long i, val = csr_read(CSR_MISA);
 

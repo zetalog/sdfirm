@@ -45,20 +45,20 @@
 #include <asm/mach/io.h>
 
 #ifndef __ASSEMBLY__
-static inline void __raw_writeb(uint8_t v, caddr_t a)
+static __inline void __raw_writeb(uint8_t v, caddr_t a)
 {
 	asm volatile("sb %0, 0(%1)" : : "r"(v), "r"(a));
 }
-static inline void __raw_writew(uint16_t v, caddr_t a)
+static __inline void __raw_writew(uint16_t v, caddr_t a)
 {
 	asm volatile("sh %0, 0(%1)" : : "r" (v), "r" (a));
 }
-static inline void __raw_writel(uint32_t v, caddr_t a)
+static __inline void __raw_writel(uint32_t v, caddr_t a)
 {
 	asm volatile("sw %0, 0(%1)" : : "r" (v), "r" (a));
 }
 #ifdef CONFIG_64BIT
-static inline void __raw_writeq(uint64_t v, caddr_t a)
+static __inline void __raw_writeq(uint64_t v, caddr_t a)
 {
 	asm volatile("sd %0, 0(%1)" : : "r" (v), "r" (a));
 }
@@ -66,21 +66,21 @@ static inline void __raw_writeq(uint64_t v, caddr_t a)
 #define __raw_writeq(v,a)	(*(volatile uint64_t *)(caddr_t)(a) = (v))
 #endif
 
-static inline uint8_t __raw_readb(const caddr_t a)
+static __inline uint8_t __raw_readb(const caddr_t a)
 {
 	uint8_t v;
 
 	asm volatile("lb %0, 0(%1)" : "=r" (v) : "r" (a));
 	return v;
 }
-static inline uint16_t __raw_readw(const caddr_t a)
+static __inline uint16_t __raw_readw(const caddr_t a)
 {
 	uint16_t v;
 
 	asm volatile("lh %0, 0(%1)" : "=r" (v) : "r" (a));
 	return v;
 }
-static inline uint32_t __raw_readl(const caddr_t a)
+static __inline uint32_t __raw_readl(const caddr_t a)
 {
 	uint32_t v;
 
@@ -88,7 +88,7 @@ static inline uint32_t __raw_readl(const caddr_t a)
 	return v;
 }
 #ifdef CONFIG_64BIT
-static inline uint64_t __raw_readq(const caddr_t a)
+static __inline uint64_t __raw_readq(const caddr_t a)
 {
 	uint64_t v;
 

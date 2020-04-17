@@ -46,6 +46,12 @@ config CC_OPT_SPEED
 	  resulting in a speedy kernel.
 	  If unsure, sayn N.
 
+config CC_ALWAYS_INLINE
+	bool "Use always inline"
+	help
+	  Switch inline implementation to __always_inline rather than
+	  inline.
+
 menuconfig DEBUG
 	bool 'Debugging options'
 	depends EXPERIMENTAL

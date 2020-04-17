@@ -14,6 +14,7 @@ typedef unsigned char * va_list;
 #pragma disable_warning 85
 
 #define __packed
+#define __inline
 
 #define READ_ONCE(x)			(x)
 #define WRITE_ONCE(x, val)		((x) = (val))
