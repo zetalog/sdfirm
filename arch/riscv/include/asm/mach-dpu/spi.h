@@ -58,11 +58,12 @@
 #endif
 #endif
 
-#define SPI_HW_MAX_FREQ			(APB_CLK_FREQ / 1000) /* kHz */
+#define DW_SSI_CLK_FREQ			(APB_CLK_FREQ) /* Hz */
+
 #define spi_hw_config_mode(mode)	dw_ssi_config_mode(SSI_ID, mode)
 #define spi_hw_config_freq(khz)		dw_ssi_config_freq(SSI_ID, khz)
-#define spi_hw_read_byte()		0x00
-#define spi_hw_write_byte(byte)
+#define spi_hw_read_byte()		dw_ssi_read_byte(SSI_ID)
+#define spi_hw_write_byte(byte)		dw_ssi_write_byte(SSI_ID, byte)
 #define spi_hw_chip_select(chip)	dw_ssi_select_chip(SSI_ID, chip)
 #define spi_hw_ctrl_init()				\
 	dw_ssi_init_master(SSI_ID, SSI_SPI_FRF_STD,	\

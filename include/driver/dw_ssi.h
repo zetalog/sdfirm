@@ -84,12 +84,12 @@
 #define SSI_VERSION_ID(n)	DW_SSI_REG(n, 0x5C)
 #define SSI_DR(n, x)		DW_SSI_REG(n, (x) < 2)
 #ifdef CONFIG_DW_SSI_MAX_XFER_SIZE_32
-#define dw_ssi_read_dr(n, x)		__raw_readl(SSR_DR(n, x))
-#define dw_ssi_write_dr(n, x, v)	__raw_writel(v, SSR_DR(n, x))
+#define dw_ssi_read_dr(n)		__raw_readl(SSI_DR(n, 0))
+#define dw_ssi_write_dr(n, v)		__raw_writel(v, SSI_DR(n, 0))
 #endif
 #ifdef CONFIG_DW_SSI_MAX_XFER_SIZE_16
-#define dw_ssi_read_dr(n, x)		__raw_readw(SSR_DR(n, x))
-#define dw_ssi_write_dr(n, x, v)	__raw_writew(v, SSR_DR(n, x))
+#define dw_ssi_read_dr(n)		__raw_readw(SSI_DR(n, 0))
+#define dw_ssi_write_dr(n, v)		__raw_writew(v, SSI_DR(n, 0))
 #endif
 #define SSI_RX_SAMPLE_DLY(n)	DW_SSI_REG(n, 0xF0)
 #define SSI_SPI_CTRLR0(n)	DW_SSI_REG(n, 0xF4)
@@ -130,6 +130,9 @@
 #define SSI_FRF_OFFSET		4
 #define SSI_FRF_MASK		REG_2BIT_MASK
 #define SSI_FRF(value)		_SET_FV(SSI_FRF, value)
+#define SSI_FRF_SPI		0
+#define SSI_FRF_SSP		1
+#define SSI_FRF_MICROWAVE	2
 #ifdef CONFIG_DW_SSI_MAX_XFER_SIZE_16
 #define DW_SSI_MAX_XFER_SIZE	16
 #define SSI_DFS_OFFSET		0
@@ -175,6 +178,9 @@
 #define SSI_TXOI		_BV(1)
 #define SSI_TXEI		_BV(0)
 
+#define SSI_ALL_IRQS		(SSI_MSTI | SSI_RXFI | SSI_RXOI | \
+				 SSI_RXUI | SSI_TXOI | SSI_TXEI)
+
 /* 5.1.27 SPI_CTRLR0 */
 #define SSI_SPI_RXDS_EN		_BV(18)
 #define SSI_INST_DDR_EN		_BV(17)
@@ -207,19 +213,48 @@
 #define DW_SPI_FREQ_SPEED		50
 
 struct dw_ssi_ctx {
-	uint8_t type;		/* SPI/SSP/MicroWire */
-	uint8_t frf;		/* TR/TO/RO/EEPROM */
+	uint8_t frf;		/* SPI/SSP/MicroWire */
+	uint8_t tmod;		/* TR/TO/RO/EEPROM */
 	uint8_t tx_fifo_depth;	/* depth of the FIFO buffer */
 	uint8_t rx_fifo_depth;	/* depth of the FIFO buffer */
+#ifdef CONFIG_DW_SSI_XFER
+	uint8_t spi_type;	/* STD/DUAL/QUAD/OCTAL */
+	uint8_t spi_mode;	/* SCPOL/SCPH */
+	void *tx;
+	void *tx_end;
+	void *rx;
+	void *rx_end;
+	int len;
+#endif
 };
+
+/* The maximum frequency of the bit-rate clock (sclk_out) is one-half the
+ * frequency of ssi_clk.
+ */
+#define SPI_HW_MAX_FREQ			(DW_SSI_CLK_FREQ / 2000) /* kHz */
 
 #define dw_ssi_enable_ctrl(n)		__raw_setl(SSI_EN, SSI_SSIENR(n))
 #define dw_ssi_disable_ctrl(n)		__raw_clearl(SSI_EN, SSI_SSIENR(n))
+#define dw_ssi_reset_ctrl(n)				\
+	do {						\
+		dw_ssi_disable_ctrl(n);			\
+		dw_ssi_disable_irqs(SSI_ALL_IRQS);	\
+		dw_ssi_enable_ctrl(n);			\
+	} while (0)
 #define dw_ssi_config_mode(n, mode)		\
 	__raw_writel_mask(SSI_SPI_MODE(mode),	\
 			  SSI_SPI_MODE_MASK, SSI_CTRLR0(n))
 #define dw_ssi_select_chip(n, chip)	__raw_writel(_BV(chip), SSI_SER(n))
+#define dw_ssi_enable_irqs(n, irqs)	__raw_clearl(irqs, SSI_IMR(n))
+#define dw_ssi_disable_irqs(n, irqs)	__raw_setl(irqs, SSI_IMR(n))
 
+#define dw_ssi_write_byte(n, byte)				\
+	do {							\
+		while (!(__raw_readl(SSI_RISR(n)) & SSI_TXEI));	\
+		dw_ssi_write_dr(n, byte);			\
+	} while (0)
+
+uint8_t dw_ssi_read_byte(int n);
 void dw_ssi_config_freq(int n, uint32_t freq);
 void dw_ssi_init_master(int n, uint8_t frf, uint8_t tmod,
 			uint16_t txfifo, uint16_t rxfifo);
@@ -237,5 +272,10 @@ void dw_ssi_init_master(int n, uint8_t frf, uint8_t tmod,
 	dw_ssi_init_master(n, frf, tmod,		\
 			   DW_SSI_TX_FIFO_DEPTH,	\
 			   DW_SSI_RX_FIFO_DEPTH)
+#ifdef CONFIG_DW_SSI_XFER
+int dw_ssi_xfer(int n, const void *txdata, size_t txbytes, void *rxdata);
+#else
+#define dw_ssi_xfer(n, txdata, txsize, rxdata)		-ENODEV
+#endif
 
 #endif /* __DW_SSI_H_INCLUDE__ */

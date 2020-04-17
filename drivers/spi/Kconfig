@@ -185,6 +185,9 @@ config DW_SSI_XIP
 	depends !DW_SSI_SPI_MODE_STD && !ARCH_HAS_APB_20 && \
 		ARCH_HAS_DW_AMBA_ADVANCED
 
+config DW_SSI_XFER
+	bool "Enable multi-byte transfer mode"
+
 endif
 
 endmenu

@@ -40,43 +40,41 @@
  */
 
 #include <target/spi.h>
+#include <target/console.h>
+#include <target/jiffies.h>
 
 /* Only 8 Bits transfers are allowed */
 #define DW_SSI_XFER_SIZE		8
+typedef uint8_t dw_ssi_data;
 
 struct dw_ssi_ctx dw_ssis[NR_DW_SSIS];
 
-#if 0
-static inline uint32_t tx_max(int n)
-{
-	uint32_t tx_left, tx_room, rxtx_gap;
-
-	tx_left = (dw_ssis[n].tx_end - dw_ssis[n].tx) /
-		  (DW_SSI_XFER_SIZE >> 3);
-	tx_room = dw_ssis[n].tx_fifo_depth - __raw_readl(SSI_TXFLR(n));
-	rxtx_gap = ((dw_ssis[n].rx_end - dw_ssis[n].rx) -
-		    (dw_ssis[n].tx_end - dw_ssis[n].tx)) /
-		   (DW_SSI_XFER_SIZE >> 3);
-
-	return min3(tx_left, tx_room,
-		    (uint32_t)(dw_ssis[n].tx_fifo_depth - rxtx_gap));
-}
-
-static inline uint32_t rx_max(int n)
-{
-	uint32_t rx_left = (dw_ssis[n].rx_end - dw_ssis[n].rx) /
-			   (DW_SSI_XFER_SIZE >> 3);
-	return min(rx_left, __raw_readl(SSI_RXFLR(n)));
-}
-#endif
-
 void dw_ssi_config_freq(int n, uint32_t freq)
 {
-	uint16_t clk_div;
+	uint16_t sckdv;
+	uint32_t f_ssi_clk = div32u(clk_get_frequency(DW_SSI_CLK), 1000);
 
-	clk_div = (uint16_t)div32u(clk_get_frequency(DW_SSI_CLK), freq);
-	clk_div = (clk_div + 1) & 0xfffe;
-	__raw_writel(clk_div, SSI_BAUDR(n));
+	/* 2.2 Clock Ratios
+	 * The frequency of sclk_out can be derived from the following
+	 * equation:
+	 * Fsclk_out = Fssi_clk / SCKDV
+	 * SCKDV is a bit field in the programmable register BAUDR,
+	 * holding any even value in the range 0 to 65,534. If SCKDV is 0,
+	 * then sclk_out is disabled.
+	 */
+	if ((freq << 1) > f_ssi_clk)
+		freq = (f_ssi_clk >> 1);
+	sckdv = (uint16_t)div32u(f_ssi_clk, freq);
+	/* Ensure Fsclk_out is less than requested, and even value. */
+	sckdv = (sckdv + 1) & 0xFFFE;
+	__raw_writel(sckdv, SSI_BAUDR(n));
+}
+
+uint8_t dw_ssi_read_byte(int n)
+{
+	while (!(__raw_readl(SSI_RISR(n)) & SSI_RXFI));
+
+	return dw_ssi_read_dr(n);
 }
 
 #define dw_ssi_probe_fifo(n, reg, depth)				\
@@ -107,115 +105,120 @@ void dw_ssi_init_master(int n, uint8_t frf, uint8_t tmod,
 	dw_ssis[n].tx_fifo_depth = (uint8_t)(txfifo - 1);
 	dw_ssi_probe_fifo(n, SSI_RXFTLR, txfifo);
 	dw_ssis[n].rx_fifo_depth = (uint8_t)(rxfifo - 1);
-	__raw_writel(0, SSI_TXFTLR(n));
-	/* __raw_writel(dw_ssis[n].tx_fifo_depth, SSI_TXFTLR(n)); */
-	__raw_writel(0, SSI_RXFTLR(n));
+	__raw_writel(dw_ssis[n].tx_fifo_depth, SSI_TXFTLR(n));
+	__raw_writel(1, SSI_RXFTLR(n));
 	__raw_writel(0xFF, SSI_IMR(n));
 	dw_ssi_enable_ctrl(n);
 }
 
-#if 0
-static void dw_writer(dw_spi_t *dw_spi_str)
+#ifdef CONFIG_DW_SSI_XFER
+static inline uint32_t tx_max(int n)
 {
-	uint32_t max = tx_max(dw_spi_str);
-	uint16_t txw = 0;
+	uint32_t tx_left, rxtx_gap, tx_room;
+
+	tx_left = div32u(dw_ssis[n].tx_end - dw_ssis[n].tx,
+			 DW_SSI_XFER_SIZE >> 3);
+	tx_room = ((uint32_t)dw_ssis[n].tx_fifo_depth + 1) -
+		  __raw_readl(SSI_TXFLR(n));
+	rxtx_gap = div32u((dw_ssis[n].rx_end - dw_ssis[n].rx) -
+			  (dw_ssis[n].tx_end - dw_ssis[n].tx),
+			  DW_SSI_XFER_SIZE >> 3);
+
+	return min3(tx_left, tx_room,
+		    (uint32_t)(dw_ssis[n].tx_fifo_depth) + 1 - rxtx_gap);
+}
+
+static inline uint32_t rx_max(int n)
+{
+	uint32_t rx_left;
+
+	rx_left = div32u(dw_ssis[n].rx_end - dw_ssis[n].rx,
+			 DW_SSI_XFER_SIZE >> 3);
+	return min(rx_left, __raw_readl(SSI_RXFLR(n)));
+}
+
+static void dw_writer(int n)
+{
+	uint32_t max = tx_max(n);
+	dw_ssi_data txw = 0;
 
 	while (max--) {
-		if (dw_spi_str->tx_end - dw_spi_str->len) {
-			if (dw_spi_str->bits_per_word == 8)
-				txw = *(uint8_t *)(dw_spi_str->tx);
-			else
-				txw = *(uint16_t *)(dw_spi_str->tx);
-		}
-		spi_reg_set16(dw_spi_str, DW_SPI_DR, txw);
+		if (dw_ssis[n].tx_end - dw_ssis[n].len)
+			txw = *(dw_ssi_data *)(dw_ssis[n].tx);
+		dw_ssi_write_dr(n, txw);
 		con_printf("%s: tx=0x%02x\n", __func__, txw);
-		dw_spi_str->tx += dw_spi_str->bits_per_word >> 3;
+		dw_ssis[n].tx += DW_SSI_XFER_SIZE >> 3;
 	}
 }
 
-static int32_t dw_reader(dw_spi_t *dw_spi_str)
+static bool dw_reader(int n)
 {
-       uint32_t max;
-	uint16_t rxw;
-       uint32_t cnt;
+	uint32_t max;
+	dw_ssi_data rxw;
+	tick_t start = tick_get_counter();
 
-	while (rx_max(dw_spi_str) == 0) {
-              cnt++;
-		if (cnt  > RX_TIMEOUT)
-			return SPI_ERROR;
+	while (rx_max(n) == 0) {
+		if (time_after(tick_get_counter(), start + RX_TIMEOUT))
+			return false;
 	}
-	max = rx_max(dw_spi_str);
+	max = rx_max(n);
 
 	while (max--) {
-		rxw = spi_reg_get16(dw_spi_str, DW_SPI_DR);
+		rxw = dw_ssi_read_dr(n);
 		con_printf("%s: rx=0x%02x\n", __func__, rxw);
-
-		if (dw_spi_str->rx_end - dw_spi_str->len) {
-			if (dw_spi_str->bits_per_word == 8)
-				*(uint8_t *)(dw_spi_str->rx) = rxw;
-			else
-				*(uint16_t *)(dw_spi_str->rx) = rxw;
-		}
-		dw_spi_str->rx += dw_spi_str->bits_per_word >> 3;
+		if (dw_ssis[n].rx_end - dw_ssis[n].len)
+			*(dw_ssi_data *)(dw_ssis[n].rx) = rxw;
+		dw_ssis[n].rx += DW_SSI_XFER_SIZE >> 3;
 	}
-
-	return SPI_OK;
+	return true;
 }
 
-static int32_t poll_transfer(dw_spi_t *dw_spi_str)
+static int poll_transfer(int n)
 {
-	int32_t ret;
-
 	do {
-		dw_writer(dw_spi_str);
-		ret = dw_reader(dw_spi_str);
-		if (ret < 0)
-			return ret;
-	} while (dw_spi_str->rx_end > dw_spi_str->rx);
-	return SPI_OK;
+		dw_writer(n);
+		if (!dw_reader(n))
+			return -EAGAIN;
+	} while (dw_ssis[n].rx_end > dw_ssis[n].rx);
+	return 0;
 }
 
-int32_t dw_spi_tx(const void *txdata, uint32_t txbytes, void *rxdata)
+int dw_ssi_xfer(int n, const void *txdata, size_t txbytes, void *rxdata)
 {
-	dw_spi_t *dw_spi_str = &dw_spi_str_ver;
 	const uint8_t *tx = txdata;
 	uint8_t *rx = rxdata;
-	int32_t ret = 0;
 	uint32_t cr0 = 0;
-	uint32_t cs;
-	int32_t bitlen = txbytes*8;
+	int32_t bitlen = txbytes * 8;
 
-	cr0 = (dw_spi_str->bits_per_word - 1) |
-	      (dw_spi_str->type << SPI_FRF_OFFSET) |
-	      (dw_spi_str->mode << SPI_MODE_OFFSET) |
-	      (dw_spi_str->tmode << SPI_TMOD_OFFSET);
+	cr0 = (DW_SSI_XFER_SIZE - 1) |
+	      SSI_FRF(dw_ssis[n].frf) | SSI_TMOD(dw_ssis[n].tmod) |
+	      SSI_SPI_FRF(dw_ssis[n].spi_type) |
+	      SSI_SPI_MODE(dw_ssis[n].spi_mode);
 
 	if (rx && tx)
-		dw_spi_str->tmode = SPI_TMOD_TR;
+		dw_ssis[n].tmod = SSI_TMOD_TX_AND_RX;
 	else if (rx)
-		dw_spi_str->tmode = SPI_TMOD_RO;
+		dw_ssis[n].tmod = SSI_TMOD_RX_ONLY;
 	else
-		dw_spi_str->tmode = SPI_TMOD_TO;
+		dw_ssis[n].tmod = SSI_TMOD_TX_ONLY;
 
-	cr0 &= ~SPI_TMOD_MASK;
-	cr0 |= (dw_spi_str->tmode << SPI_TMOD_OFFSET);
+	cr0 &= ~SSI_TMOD_MASK;
+	cr0 |= SSI_TMOD(dw_ssis[n].tmod);
 
-	dw_spi_str->len = bitlen >> 3;
-	con_printf("%s: rx=%p tx=%p len=%d [bytes]\n", __func__, rx, tx, dw_spi_str->len);
+	dw_ssis[n].len = bitlen >> 3;
+	con_printf("%s: rx=%p tx=%p len=%d [bytes]\n",
+		   __func__, rx, tx, dw_ssis[n].len);
 
-	dw_spi_str->tx = (void *)tx;
-	dw_spi_str->tx_end = dw_spi_str->tx + dw_spi_str->len;
-	dw_spi_str->rx = rx;
-	dw_spi_str->rx_end = dw_spi_str->rx + dw_spi_str->len;
+	dw_ssis[n].tx = (void *)tx;
+	dw_ssis[n].tx_end = dw_ssis[n].tx + dw_ssis[n].len;
+	dw_ssis[n].rx = rx;
+	dw_ssis[n].rx_end = dw_ssis[n].rx + dw_ssis[n].len;
 
 	dw_ssi_disable_ctrl(n);
-
 	con_printf("%s: cr0=%08x\n", __func__, cr0);
-	if (spi_reg_get16(dw_spi_str, DW_SPI_CTRL0) != cr0)
-		spi_reg_set16(dw_spi_str, DW_SPI_CTRL0, cr0);
-
+	if (__raw_readl(SSI_CTRLR0(n)) != cr0)
+		__raw_writel(cr0, SSI_CTRLR0(n));
 	dw_ssi_enable_ctrl(n);
-	ret = poll_transfer(dw_spi_str);
-	return ret;
+	return poll_transfer(n);
 }
 #endif
