@@ -44,6 +44,10 @@
 #include <target/irq.h>
 #include <target/smp.h>
 
+#ifdef CONFIG_CLINT_FORCE_FAST_TIMEOUT
+#define FAST_TIMEOUT_DIFF  0x08
+#endif
+
 #if __riscv_xlen == 64
 uint64_t clint_read_mtime(void)
 {
@@ -52,6 +56,11 @@ uint64_t clint_read_mtime(void)
 
 void clint_set_mtimecmp(cpu_t cpu, uint64_t cmp)
 {
+#ifdef CONFIG_CLINT_FORCE_FAST_TIMEOUT
+	uint64_t val;
+	val = __raw_readq(CLINT_MTIME);
+	cmp = val + FAST_TIMEOUT_DIFF;
+#endif
 	__raw_writeq(cmp, CLINT_MTIMECMP(smp_hw_cpu_hart(cpu)));
 }
 
@@ -75,6 +84,15 @@ uint64_t clint_read_mtime(void)
 
 void clint_set_mtimecmp(cpu_t cpu, uint64_t cmp)
 {
+#ifdef CONFIG_CLINT_FORCE_FAST_TIMEOUT
+	uint64_t val;
+	uint32_t hi;
+	uint32_t lo;
+	hi = __raw_readl(CLINT_MTIME + 4);
+	lo = __raw_readl(CLINT_MTIME);
+	val = MAKELLONG(lo, hi);
+	cmp = val + FAST_TIMEOUT_DIFF;
+#endif
 	__raw_writel(LODWORD(cmp), CLINT_MTIMECMP(smp_hw_cpu_hart(cpu)));
 	__raw_writel(HIDWORD(cmp), CLINT_MTIMECMP(smp_hw_cpu_hart(cpu)) + 4);
 }
