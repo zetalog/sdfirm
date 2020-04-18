@@ -573,6 +573,14 @@ config CLINT
 	select ARCH_HAS_SBI_IPI
 	select ARCH_HAS_SBI_TIMER
 
+if CLINT
+
+config CLINT_FORCE_FAST_TIMEOUT
+	bool "Force Clint timer to use very shot timeout"
+	default n
+
+endif
+
 config ARCH_HAS_PLIC
 	bool
 
