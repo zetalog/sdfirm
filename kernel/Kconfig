@@ -352,6 +352,20 @@ config LOAD_DATA
 	  sdfirm shouldn't copy .data sections to itself by disabling this
 	  option.
 
+config NO_ZERO_BSS
+	bool "Disable .bss section zeroing"
+	depends EXPERIMENTAL
+	help
+	  On simulation environment, .bss zeroing can be skipped as the
+	  memory target model itself may have already been zeroed.
+
+config NO_ZERO_GPR
+	bool "Disable GPR zeroing"
+	depends EXPERIMENTAL
+	help
+	  On simulation environment, GPR zeroing can be skipped as the
+	  register memory model itself may have already been zeroed.
+
 endmenu
 
 config ARCH_HAS_HEAP

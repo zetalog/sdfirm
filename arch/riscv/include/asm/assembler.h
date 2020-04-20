@@ -121,6 +121,7 @@
 	.macro init_gprs
 	/* flush the instruction cache */
 	fence.i
+#ifndef CONFIG_NO_ZERO_GPR
 	li	tp, 0
 	li	t0, 0
 	li	t1, 0
@@ -132,7 +133,7 @@
 	li	a0, 0
 	li	a1, 0
 	li	a2, 0
-#endif
+#endif /* CONFIG_ARCH_HAS_BOOT_LOAD */
 	li	a3, 0
 	li	a4, 0
 	li	a5, 0
@@ -152,6 +153,7 @@
 	li	t4, 0
 	li	t5, 0
 	li	t6, 0
+#endif /* CONFIG_NO_ZERO_BSS */
 	.endm
 
 #define __ENTRY(name, bits) \
