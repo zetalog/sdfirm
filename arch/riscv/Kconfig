@@ -76,7 +76,7 @@ config ARCH_DPU
 	select ARCH_HAS_TSC_CONST
 	select ARCH_HAS_GPT
 	select ARCH_HAS_IRQC
-	select ARCH_HAS_CLK
+	select ARCH_HAS_CLK if !DPU_PLL_BYPASS_CLK
 	select ARCH_HAS_I2C
 	select ARCH_HAS_SPI
 	select ARCH_HAS_DMA

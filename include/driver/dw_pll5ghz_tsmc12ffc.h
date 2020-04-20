@@ -45,6 +45,7 @@
 #include <target/arch.h>
 #include <target/generic.h>
 
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC
 /* To use this driver, followings need to be defined:
  * 1. DW_PLL5GHZ_REFCLK_FREQ;
  * 2. PLL_CFG0/PLL_CFG1/PLL_CFG2/PLL_STATUS register addresses;
@@ -217,6 +218,33 @@ uint8_t dw_pll_read(uint8_t pll, uint8_t reg);
 #else
 #define dw_pll_write(pll, reg, val)	do { } while (0)
 #define dw_pll_read(pll, reg)		0
+#endif
+#else
+static __inline void dw_pll5ghz_tsmc12ffc_bypass(uint8_t pll, uint8_t mode)
+{
+}
+static __inline void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
+{
+}
+static __inline void dw_pll5ghz_tsmc12ffc_pwrup(uint8_t pll)
+{
+}
+static __inline void dw_pll5ghz_tsmc12ffc_pwrdn(uint8_t pll)
+{
+}
+static __inline void dw_pll5ghz_tsmc12ffc_enable(uint8_t pll, uint64_t fvco,
+						 uint64_t freq, bool r)
+{
+}
+static __inline void dw_pll5ghz_tsmc12ffc_disable(uint8_t pll, bool r)
+{
+}
+static __inline void dw_pll5ghz_tsmc12ffc_standby(uint8_t pll)
+{
+}
+static __inline void dw_pll5ghz_tsmc12ffc_relock(uint8_t pll)
+{
+}
 #endif
 
 #endif /* __DW_PLL5GHZ_TSMC12FFC_H_INCLUDE__ */

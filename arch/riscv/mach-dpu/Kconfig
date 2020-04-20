@@ -95,7 +95,7 @@ endif
 
 menuconfig DPU_PLL
 	bool "Enable DPU PLL and clock/reset support"
-	select DW_PLL5GHZ_TSMC12FFC
+	select DW_PLL5GHZ_TSMC12FFC if !DPU_PLL_BYPASS_PLL
 	select MATH_DIV32
 
 if DPU_PLL
@@ -116,6 +116,20 @@ config DPU_PLL_FREQPLAN_BUS
 	  Frequency plan is only prepared for DDR 7-gear. Enable this
 	  option to enable bus frequency plan support to match DDR gears.
 	  If unsure, say 'N'.
+
+config DPU_PLL_BYPASS_CLK
+	bool "Allow disabling clock framework"
+	help
+	  On simulation environments, CLK can be opt-off if no need to
+	  configure any clocks (forced in test benches).
+
+config DPU_PLL_BYPASS_PLL
+	bool "Allow disabling PLL driver"
+	help
+	  On simulation environnments, PLL can be opt-off if no need to
+	  configure any PLLs (forced in test benches). Due to enabling of
+	  clock framework, some APIs that obtain clock frequencies can
+	  still work in this configuration.
 
 endif
 
