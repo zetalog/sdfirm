@@ -28,6 +28,7 @@ source drivers/mtd/Kconfig
 source drivers/scs/Kconfig
 source drivers/mmc/Kconfig
 source drivers/ddr/Kconfig
+source drivers/spd/Kconfig
 source drivers/pci/Kconfig
 source drivers/iommu/Kconfig
 source drivers/i2c/Kconfig
