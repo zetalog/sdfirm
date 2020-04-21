@@ -1,0 +1,176 @@
+#include <target/console.h>
+#include <target/i2c.h>
+#include <asm/mach/spd.h>
+
+#include "spd_ee1004.h"
+
+#define SPD_EE1004_DEBUG
+
+#ifdef CONFIG_SPD_BUS_KHZ
+#define SPD_BUS_KHZ CONFIG_SPD_BUS_KHZ
+#else
+#define SPD_BUS_KHZ 100
+#endif
+
+static uint8_t ee_page = 0;
+
+int spd_hw_init(void)
+{
+	unsigned int i2c_master = SPD_BUS_NUM;
+	uint16_t i2c_freq = SPD_BUS_KHZ;
+	int ret;
+
+#ifdef SPD_EE1004_DEBUG
+	con_printf("Debug: Enter %s\n", __func__);
+#endif
+
+	i2c_hw_init();
+#ifdef SPD_EE1004_DEBUG
+	con_printf("Debug: Select I2C Master = %u\n", i2c_master);
+#endif
+	ret = i2c_hw_master_select_by_num(i2c_master);
+	if (ret != 0) {
+		con_printf("Error: Failed to select I2C master = %u\n", i2c_master);
+		return -1;
+	}
+#ifdef SPD_EE1004_DEBUG
+	con_printf("Debug: Set I2C frequency = %u KHz\n", i2c_freq);
+#endif
+	i2c_hw_set_frequency(i2c_freq);
+	return 0;
+}
+
+static int spd_ee_set_page(uint8_t new_page)
+{
+	uint8_t dsc;
+	int ret;
+
+	if (new_page > 0) {
+		new_page = 1;
+	}
+
+	/* No need to switch page. */
+	if ((new_page == 0 && ee_page == 0) || (new_page != 0 && ee_page != 0)) {
+		return 0;
+	}
+
+	if (ee_page == 0) {
+		dsc = SPD_DSC_SPA0;
+	} else {
+		dsc = SPD_DSC_SPA1;
+	}
+#ifdef SPD_EE1004_DEBUG
+	con_printf("Debug: Set EE page to = %u\n", new_page);
+#endif
+	ret = i2c_hw_write_bytes((dsc >> 1), &dsc, 1, 1); /* XXX DSC repeats as Data */
+	if (ret < 0) {
+		con_printf("Error: Failed to send DSC SPAx = %u\n", dsc);
+		return ret;
+	}
+	ee_page = new_page;
+	return 0;
+}
+
+static int spd_ee_dummy_write(uint8_t dev, uint8_t addr)
+{
+	uint8_t dsc;
+	int ret;
+	dsc = SPD_DSC_WSPD | (dev << 1);
+#ifdef SPD_EE1004_DEBUG
+	con_printf("Debug: Do dummy write. dsc = 0x%x, addr = 0x%x\n", dsc, addr);
+#endif
+	ret = i2c_hw_write_bytes((dsc >> 1), &addr, 1, 1);
+	if (ret != 1) {
+		con_printf("Error: Failed to do dummy write. dsc = 0x%x, ret = %d\n", dsc, ret);
+		return ret;
+	}
+	return 0;
+}
+
+int spd_hw_read_bytes(uint8_t dev, uint16_t addr, uint8_t *buffer, int len)
+{
+	uint8_t dsc;
+	int len_in_page_0 = 0;
+	int len_in_page_1 = 0;
+	int ret;
+
+	if (buffer == NULL) {
+		con_printf("Error: Invalid buffer = %p\n", buffer);
+		return -1;
+	}
+	if (dev >= SPD_COUNT) {
+		con_printf("Error: Invalid SPD num = %u\n", dev);
+		return -1;
+	}
+	if (addr >= SPD_EE_SIZE || (addr + len) > SPD_EE_SIZE) {
+		con_printf("Error: Invalid EE addr = 0x%x, len = %d\n", addr, len);
+		return -1;
+	}
+
+	dsc = SPD_DSC_RSPD | (dev << 1);
+
+	if (addr + len < SPD_EE_PAGE_SIZE) {
+		len_in_page_0 = len;
+		len_in_page_1 = 0;
+	} else if (addr > SPD_EE_PAGE_SIZE) {
+		len_in_page_0 = 0;
+		len_in_page_1 = len;
+	} else {
+		len_in_page_0 = SPD_EE_PAGE_SIZE - addr;
+		len_in_page_1 = len - len_in_page_0;
+	}
+
+	if (len_in_page_0 > 0) {
+		int this_len = len_in_page_0;
+		uint8_t this_addr = (uint8_t)addr;
+		spd_ee_set_page(0);
+		spd_ee_dummy_write(dev, this_addr);
+#ifdef SPD_EE1004_DEBUG
+		con_printf("Debug: Read EE page 0. dsc = 0x%x, len = %d\n", dsc, this_len);
+#endif
+		ret = i2c_hw_read_bytes((dsc >> 1), buffer, this_len, 1);
+		if (ret < 0) {
+			con_printf("Error: Failed to read EE page 0. dsc = 0x%x, len = %d, ret = %d\n", dsc, this_len, ret);
+			return -1;
+		}
+	}
+
+	if (len_in_page_1 > 0) {
+		int this_len = len_in_page_1;
+		uint8_t this_addr;
+		if (addr < SPD_EE_PAGE_SIZE) {
+			this_addr = 0;
+		} else {
+			this_addr = (uint8_t)(addr - SPD_EE_PAGE_SIZE);
+		}
+		spd_ee_set_page(1);
+		spd_ee_dummy_write(dev, this_addr);
+#ifdef SPD_EE1004_DEBUG
+		con_printf("Debug: Read EE page 1. dsc = 0x%x, len = %d\n", dsc, this_len);
+#endif
+		ret = i2c_hw_read_bytes((dsc >> 1), (buffer + len_in_page_0), this_len, 1);
+		if (ret < 0) {
+			con_printf("Error: Failed to read EE page 1. dsc = 0x%x, len = %d, ret = %d\n", dsc, this_len, ret);
+			return -1;
+		}
+	}
+	return len;
+}
+
+int spd_hw_write_bytes(uint8_t dev, uint16_t addr, uint8_t *buffer, int len)
+{
+	if (buffer == NULL) {
+		con_printf("Error: Invalid buffer = %p\n", buffer);
+		return -1;
+	}
+	if (dev >= SPD_COUNT) {
+		con_printf("Error: Invalid SPD num = %u\n", dev);
+		return -1;
+	}
+	if (addr >= SPD_EE_SIZE || (addr + len) >= SPD_EE_SIZE) {
+		con_printf("Error: Invalid EE addr = 0x%x, len = %d\n", addr, len);
+		return -1;
+	}
+
+	return 0;
+}

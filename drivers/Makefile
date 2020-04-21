@@ -19,3 +19,4 @@ obj-$(CONFIG_SPI) += spi/
 obj-$(CONFIG_DMA) += dma/
 obj-$(CONFIG_PCI) += pci/
 obj-$(CONFIG_IOMMU) += iommu/
+obj-y += spd/
