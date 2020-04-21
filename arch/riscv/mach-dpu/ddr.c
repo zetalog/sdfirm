@@ -1,5 +1,6 @@
 #include <target/ddr.h>
 
+#ifdef CONFIG_DPU_PLL
 struct ddr_speed {
 	uint64_t f_pll_vco;
 	uint32_t f_pll_pclk;
@@ -139,3 +140,4 @@ void ddr_hw_enable_speed(uint8_t speed)
 			clk_enable(pll2_r);
 	}
 }
+#endif

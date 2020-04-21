@@ -78,7 +78,11 @@
 #define PCIE_REF_CLK_FREQ	PLL5_P_FREQ
 
 #ifndef __ASSEMBLY__
+#ifdef CONFIG_CLK
 void board_init_clock(void);
+#else
+#define board_init_clock()	do { } while (0)
+#endif
 void board_init_timestamp(void);
 #endif /* __ASSEMBLY__ */
 

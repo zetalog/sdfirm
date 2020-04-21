@@ -75,12 +75,16 @@ void uart_hw_mmu_init(void);
 #endif
 
 #ifdef CONFIG_CONSOLE
+#ifdef CONFIG_CLK
 #define uart_hw_con_init()						\
 	do {								\
 		board_init_clock();					\
 		clk_enable(UART_CLK_ID);				\
 		dw_uart_con_init(clk_get_frequency(UART_CLK_ID));	\
 	} while (0)
+#else
+#define uart_hw_con_init()	do { } while (0)
+#endif
 #endif
 #ifdef CONFIG_CONSOLE_OUTPUT
 #define uart_hw_con_write(byte)	dw_uart_con_write(byte)

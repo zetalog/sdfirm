@@ -90,8 +90,8 @@ void clk_init(void);
 #define clk_hw_mmu_init()		do { } while (0)
 #endif /* CONFIG_MMU */
 #else
-#define clk_get_frequency(clk)		0
-#define clk_set_frequency(clk, freq)	(-ENODEV)
+#define clk_get_frequency(clk)		INVALID_FREQ
+#define clk_set_frequency(clk)		(-ENODEV)
 #define clk_enable(clk)			(-ENODEV)
 #define clk_disable(clk)		do { } while (0)
 #define clk_select_source(clk, src)	do { } while (0)

@@ -49,10 +49,19 @@ typedef uint8_t dw_ssi_data;
 
 struct dw_ssi_ctx dw_ssis[NR_DW_SSIS];
 
+#ifdef CONFIG_CLK
+uint32_t dw_ssi_get_clk_freq(void)
+{
+	return div32u(clk_get_frequency(DW_SSI_CLK), 1000);
+}
+#else
+#define dw_ssi_get_clk_freq()		(APB_CLK_FREQ / 1000)
+#endif
+
 void dw_ssi_config_freq(int n, uint32_t freq)
 {
 	uint16_t sckdv;
-	uint32_t f_ssi_clk = div32u(clk_get_frequency(DW_SSI_CLK), 1000);
+	uint32_t f_ssi_clk = dw_ssi_get_clk_freq();
 
 	/* 2.2 Clock Ratios
 	 * The frequency of sclk_out can be derived from the following

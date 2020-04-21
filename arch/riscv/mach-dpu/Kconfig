@@ -64,7 +64,9 @@ config DPU_BOOT_APC
 endmenu
 
 menuconfig DPU_SIM
-	bool "Enable simulation options"
+	bool "Simulation options"
+
+if DPU_SIM
 
 config DPU_UART_VIP
 	bool "Enable DPU UART simulation model support"
@@ -72,6 +74,14 @@ config DPU_UART_VIP
 	help
 	  When this is selected, UART baudrate generator frequency will
 	  be APB_CLK/16.
+
+config DPU_SIM_CLK
+	bool "Allow disabling clock framework"
+	help
+	  On simulation environments, CLK can be opt-off if no need to
+	  configure any clocks (forced in test benches).
+
+endif
 
 menuconfig DPU_TCSR
 	bool "Enable top control and status registers (TCSR) support"
@@ -87,6 +97,7 @@ config DPU_TCSR_LOW_POWER
 
 config DPU_TCSR_SIM_FINISH
 	bool "Enable simulation finish support"
+	depends DPU_SIM
 	help
 	  In simulation environment, enabling this allows to shutdown
 	  VCS simulation.
@@ -117,14 +128,9 @@ config DPU_PLL_FREQPLAN_BUS
 	  option to enable bus frequency plan support to match DDR gears.
 	  If unsure, say 'N'.
 
-config DPU_PLL_BYPASS_CLK
-	bool "Allow disabling clock framework"
-	help
-	  On simulation environments, CLK can be opt-off if no need to
-	  configure any clocks (forced in test benches).
-
 config DPU_PLL_BYPASS_PLL
 	bool "Allow disabling PLL driver"
+	depends DPU_SIM
 	help
 	  On simulation environnments, PLL can be opt-off if no need to
 	  configure any PLLs (forced in test benches). Due to enabling of
