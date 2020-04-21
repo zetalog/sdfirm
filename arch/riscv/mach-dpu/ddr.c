@@ -44,7 +44,7 @@ struct ddr_speed ddr_speeds[NR_DDR_SPEEDS] = {
 		.f_pll_rclk = INVALID_FREQ,
 	},
 	[DDR3_1333] = {
-		.f_pll_vco = ULL(4000000000),
+		.f_pll_vco = ULL(2666666666),
 		.f_pll_pclk = UL(333333333),
 		.f_pll_rclk = INVALID_FREQ,
 	},
@@ -59,7 +59,7 @@ struct ddr_speed ddr_speeds[NR_DDR_SPEEDS] = {
 		.f_pll_rclk = INVALID_FREQ,
 	},
 	[DDR2_667] = {
-		.f_pll_vco = ULL(4000000000),
+		.f_pll_vco = ULL(2666666666),
 		.f_pll_pclk = UL(166666666),
 		.f_pll_rclk = UL(666666666),
 	},
@@ -69,7 +69,7 @@ struct ddr_speed ddr_speeds[NR_DDR_SPEEDS] = {
 		.f_pll_rclk = UL(533333333),
 	},
 	[DDR2_400] = {
-		.f_pll_vco = ULL(4000000000),
+		.f_pll_vco = ULL(3200000000),
 		.f_pll_pclk = UL(100000000),
 		.f_pll_rclk = UL(400000000),
 	},
@@ -79,7 +79,7 @@ struct ddr_speed ddr_speeds[NR_DDR_SPEEDS] = {
 		.f_pll_rclk = UL(266666666),
 	},
 	[DDR_200] = {
-		.f_pll_vco = ULL(2800000000),
+		.f_pll_vco = ULL(3200000000),
 		.f_pll_pclk = UL(50000000),
 		.f_pll_rclk = UL(200000000),
 	},
