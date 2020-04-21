@@ -241,6 +241,9 @@ static int do_tcsr_info(int argc, char *argv[])
 
 static int do_tcsr_sim(int argc, char *argv[])
 {
+	if (argc < 3)
+		return -EINVAL;
+
 	if (strcmp(argv[2], "fail") == 0)
 		imc_sim_finish(false);
 	else
