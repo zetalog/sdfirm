@@ -123,8 +123,8 @@ void ddr_hw_config_speed(uint8_t speed)
 	ds = ddr_get_speed(speed);
 	if (ds) {
 		clk_apply_vco(PLL2_VCO, ds->f_pll_vco);
-		clk_apply_vco(PLL2_P, ds->f_pll_pclk);
-		clk_apply_vco(PLL2_R, ds->f_pll_rclk);
+		clk_apply_pll(PLL2_P, ds->f_pll_pclk);
+		clk_apply_pll(PLL2_R, ds->f_pll_rclk);
 	}
 }
 

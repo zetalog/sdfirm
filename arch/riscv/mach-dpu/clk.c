@@ -168,12 +168,15 @@ struct reset_clk reset_clks[NR_RESET_CLKS] = {
 		.flags = CLK_SRST_F,
 		.axi_periphs = _BV(IMC_DDR1) | _BV(IMC_DDR1_CTRL),
 	},
+	/* DDR requires this to be done earlier than speed determination,
+	 * thus it should be independent of any ddr clock.
+	 */
 	[SRST_DDR0_POR] = {
-		.clk_src = ddr_clk,
+		.clk_src = invalid_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_DDR1_POR] = {
-		.clk_src = ddr_clk,
+		.clk_src = invalid_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_PCIE0_POR] = {
@@ -906,7 +909,7 @@ void clk_apply_vco(clk_clk_t clk, clk_freq_t freq)
 
 void clk_apply_pll(clk_clk_t clk, clk_freq_t freq)
 {
-	if (clk >= NR_PLLS)
+	if (clk >= NR_PLL_CLKS)
 		return;
 	pll_clks[clk].freq = freq;
 }
