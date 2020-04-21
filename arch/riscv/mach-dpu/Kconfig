@@ -53,7 +53,36 @@ config DPU_BOOT_SPI_FLASH
 
 endchoice
 
-menu "Boot targets"
+menu "Bootloader options"
+
+
+config DPU_BOOT_LOAD
+	bool "Enable bootloader"
+	depends DPU_BOOT_ROM || DPU_BOOT_FLASH
+
+if DPU_BOOT_LOAD
+
+choice
+	prompt "Boot image residency"
+
+config DPU_BOOT_SPI
+	bool "SPI flash"
+	depends DPU_FLASH
+
+config DPU_BOOT_SSI
+	bool "SSI flash"
+	depends DW_SSI && EXPERIMENTAL
+
+endchoice
+
+config DPU_BOOT_ADDR
+	hex "Bootloader jump address"
+	range 0x00000000 0x01E00000 if DPU_BOOT_SPI
+	range 0x08000000 0x08080000 if DPU_BOOT_SSI
+	default 0x00000000 if DPU_BOOT_SPI
+	default 0x08080000 if DPU_BOOT_SSI
+
+endif
 
 config DPU_BOOT_PE
 	bool "DPU process elements (PE)"
@@ -180,6 +209,7 @@ endif
 
 menuconfig DPU_FLASH
 	bool "Enable random accessible flash support"
+	select MATH_DIV32
 
 if DPU_FLASH
 

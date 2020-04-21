@@ -45,10 +45,12 @@
 #include <target/arch.h>
 
 #define FLASH_MEM_OFFSET	0
-#define FLASH_REG_OFFSET	0x1E00000
-#define FLASH_CFG_OFFSET	0x1E08000
+#define FLASH_REG_OFFSET	0x01E00000
+#define FLASH_CFG_OFFSET	0x01E08000
 #define FLASH_REG(offset)	(FLASH_BASE + FLASH_REG_OFFSET + (offset))
 #define FLASH_CFG(offset)	(FLASH_BASE + FLASH_CFG_OFFSET + (offset))
+
+#define DPU_FLASH_FREQ		80000000 /* 80MHz */
 
 #define SPI_CTRL		FLASH_CFG(0x00)
 #define SPI_DIVIDER		FLASH_CFG(0x04)
@@ -119,5 +121,9 @@
 #define SPI_COUNTER_OFFSET		0
 #define SPI_COUNTER_MASK		REG_16BIT_MASK
 #define SPI_GET_COUNTER(value)		_GET_FV(SPI_COUNTER, value)
+
+#ifndef __ASSEMBLY__
+void dpu_flash_set_frequency(uint32_t freq);
+#endif
 
 #endif /* __FLASH_DPU_H_INCLUDE__ */
