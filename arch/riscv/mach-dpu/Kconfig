@@ -10,77 +10,105 @@ menu "Smart Core DPU board options"
 config DPU_BOOT
 	bool
 
+config DPU_LOAD_ZSBL
+	bool
+
+config DPU_LOAD_FSBL
+	bool
+
 choice
 	prompt "Program type"
 
 config DPU_BOOT_ROM
 	bool "0-stage boot ROM bootloader (ZSBL)"
+	select DPU_BOOT
+	select DPU_LOAD_ZSBL
 	select XIP
 	select LOAD_DATA
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select SYS_EXIT_U
 	select DPU_TCSR
-	select DPU_BOOT
-	select DPU_FLASH
 	select DPU_SPI_FLASH
+	select DPU_SSI_FLASH
 	select DPU_DDR
 
-config DPU_BOOT_FLASH
-	bool "0-stage programmable flash bootloader (ZSBL)"
+config DPU_BOOT_RAM
+	bool "0-stage boot RAM bootloader (ZSBL)"
 	select ARCH_HAS_BOOT_LOAD
+	select DPU_BOOT
+	select DPU_LOAD_ZSBL
 	select XIP
-	select LOAD_DATA
+	select BFM
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select SYS_EXIT_U
 	select DPU_TCSR
-	select DPU_BOOT
-	select DPU_DDR
 	select DPU_SPI_FLASH
+	select DPU_SSI_FLASH
+	select DPU_DDR
 
 config DPU_BOOT_SPI_FLASH
-	bool "1-stage programmable SPI flash bootloader (FSBL)"
+	bool "0-stage/1-stage SPINOR bootloader (ZSBL/FSBL)"
 	select ARCH_HAS_BOOT_LOAD
+	select DPU_BOOT
+	select DPU_LOAD_ZSBL
+	select DPU_LOAD_FSBL
 	select XIP
 	select LOAD_DATA
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select SYS_EXIT_U
 	select DPU_TCSR
-	select DPU_BOOT
 	select DPU_DDR
+	select DPU_SPI_FLASH
+	select DPU_SSI_FLASH
+
+config DPU_BOOT_SSI_FLASH
+	bool "1-stage SPI flash bootloader (FSBL)"
+	select ARCH_HAS_BOOT_LOAD
+	select DPU_BOOT
+	select DPU_LOAD_FSBL
+	select XIP
+	select LOAD_DATA
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SYS_EXIT_U
+	select DPU_TCSR
+	select DPU_DDR
+	select DPU_SPI_FLASH
+	select DPU_SSI_FLASH
 
 endchoice
 
 menu "Bootloader options"
 
 
-config DPU_BOOT_LOAD
+config DPU_LOAD
 	bool "Enable bootloader"
-	depends DPU_BOOT_ROM || DPU_BOOT_FLASH
+	depends DPU_LOAD_ZSBL || DPU_LOAD_FSBL
 
-if DPU_BOOT_LOAD
+if DPU_LOAD
 
 choice
-	prompt "Boot image residency"
+	prompt "Load image residency"
 
-config DPU_BOOT_SPI
+config DPU_LOAD_SPI_FLASH
 	bool "SPI flash"
-	depends DPU_FLASH
+	depends DPU_SPI_FLASH
 
-config DPU_BOOT_SSI
+config DPU_LOAD_SSI_FLASH
 	bool "SSI flash"
-	depends DW_SSI && EXPERIMENTAL
+	depends DPU_SSI_FLASH && EXPERIMENTAL
 
 endchoice
 
 config DPU_BOOT_ADDR
 	hex "Bootloader jump address"
-	range 0x00000000 0x01E00000 if DPU_BOOT_SPI
-	range 0x08000000 0x08080000 if DPU_BOOT_SSI
-	default 0x00000000 if DPU_BOOT_SPI
-	default 0x08080000 if DPU_BOOT_SSI
+	range 0x00000000 0x01E00000 if DPU_LOAD_SPI_FLASH
+	range 0x08000000 0x08080000 if DPU_LOAD_SSI_FLASH
+	default 0x00000000 if DPU_LOAD_SPI_FLASH
+	default 0x08080000 if DPU_LOAD_SSI_FLASH
 
 endif
 
@@ -207,11 +235,15 @@ config DPU_PLIC_FIRQ
 
 endif
 
-menuconfig DPU_FLASH
-	bool "Enable random accessible flash support"
+menuconfig DPU_SPI_FLASH
+	bool "Enable SPI flash support"
 	select MATH_DIV32
+	help
+	  The DPU SoC contains a random accessible SPI controller that is
+	  able to convert generic SPI NOR flashes into random accessible
+	  ROM.
 
-if DPU_FLASH
+if DPU_SPI_FLASH
 
 choice
 	prompt "Divider length"
@@ -251,11 +283,21 @@ endchoice
 
 endif
 
-menuconfig DPU_SPI_FLASH
-	bool "Enable SPI accessible flash support"
-	select SPI_MASTER
+menuconfig DPU_SSI_FLASH
+	bool "Enable SSI flash support"
+	depends SPI_MASTER
+	select DW_SSI
+	select ARCH_HAS_SSI_FIFO
+	select ARCH_HAS_SSI_XFER_32
+	select ARCH_HAS_SSI_FRF
+	select ARCH_HAS_SSI_SPI
+	select ARCH_HAS_SSI_SPI_1WIRE
+	help
+	  The DPU SoC also contains a DW_SSI controller that can be used
+	  to interface with the external SPI flashes. However, the
+	  controller doesn't support random accessibility.
 
-if DPU_SPI_FLASH
+if DPU_SSI_FLASH
 
 endif
 
