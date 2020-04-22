@@ -3,6 +3,7 @@
 #include <target/cmdline.h>
 #include <target/console.h>
 #include <target/i2c.h>
+#include <target/spd.h>
 
 #define foreach_cmd(cmdp)		\
 	for (cmdp = __cmd_start; cmdp < __cmd_end; cmdp++)
@@ -142,4 +143,46 @@ static int do_i2cvip(int argc, char *argv[])
 
 DEFINE_COMMAND(i2cvip, do_i2cvip, "I2C Tool for VIP Slave",
 	"i2ctool usage\n"
+);
+
+#define SPD_DATA_SIZE 512
+static int do_i2cspd(int argc, char *argv[])
+{
+//	uint8_t data_buf_tx[SPD_DATA_SIZE];
+	uint8_t data_buf_rx[SPD_DATA_SIZE];
+	int len;
+	int ret;
+	int i;
+	uint8_t spd_num = 0;
+
+	printf("SPD initiate\n");
+	ret = spd_hw_init();
+	if (ret != 0) {
+		printf("Error: Failed spd_hw_init. ret = %d\n", ret);
+		return 0;
+	}
+
+	len = 8;
+	printf("SPD[%d] read a few bytes\n", spd_num);
+	ret = spd_hw_read_bytes(spd_num, 0, data_buf_rx, len);
+	for (i = 0; i < len; i++) {
+		printf("%d-%02x ", i, data_buf_rx[i]);
+	}
+	printf("\n");
+
+	len = SPD_DATA_SIZE;
+	printf("SPD[%d] read full SDP\n", spd_num);
+	ret = spd_hw_read_bytes(spd_num, 0, data_buf_rx, len);
+	for (i = 0; i < len; i++) {
+		if (i % 37 != 0) break; /* Sample print */
+		printf("%d-%02x", i, data_buf_rx[i]);
+	}
+	printf("\n");
+
+	printf("i2cspd End\n");
+	return 0;
+}
+
+DEFINE_COMMAND(i2cspd, do_i2cspd, "I2C Tool for SPD Slave",
+	"i2cspd usage\n"
 );
