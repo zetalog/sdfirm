@@ -28,8 +28,8 @@ void gpt_hw_oneshot_timeout(timeout_t tout_ms)
 	uint8_t cpu = smp_processor_id();
 	uint64_t next;
 
-#ifdef CONFIG_DPU_TMR_VIP
-	next = tmr_read_counter() + CONFIG_DPU_TMR_VIP_TOUT;
+#ifdef CONFIG_DPU_TMR_CMP_CONST
+	next = tmr_read_counter() + CONFIG_DPU_TMR_CMP_CONST_TOUT;
 	tmr_write_compare(cpu, next);
 #else
 	next = tick_get_counter() + tout_ms;
