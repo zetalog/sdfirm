@@ -44,6 +44,7 @@
 
 #define ARCH_HAVE_INT_IRQS	1
 #define __VEC
+#define __VEC_ALIGN		8
 
 #include <asm/mach/tcsr.h>
 #include <asm/mach/flash.h>

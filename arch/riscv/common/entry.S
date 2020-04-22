@@ -141,12 +141,15 @@
 	.endm
 
 	.option norvc
-	__HEAD
 
 #ifdef CONFIG_RISCV_VIRQ
 ENTRY(__handle_traps)
 #else
+#ifdef __VEC_ALIGN
+__ENTRY(__vectors, __VEC_ALIGN)
+#else
 ENTRY(__vectors)
+#endif
 #endif
 	SAVE_ALL
 
