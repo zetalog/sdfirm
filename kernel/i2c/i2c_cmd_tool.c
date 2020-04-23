@@ -145,15 +145,36 @@ DEFINE_COMMAND(i2cvip, do_i2cvip, "I2C Tool for VIP Slave",
 	"i2ctool usage\n"
 );
 
+#ifdef CONFIG_DPU_DDR_SPD_COUNT
+#define SPD_CNT CONFIG_DPU_DDR_SPD_COUNT
+#else
+#define SPD_CNT 1
+#endif
+
+/* Write test not enabled at present */
+//#define SPD_TEST_WRITE
+
+#if 0
 #define SPD_DATA_SIZE 512
+#else
+#define SPD_DATA_SIZE 256
+#endif
 static int do_i2cspd(int argc, char *argv[])
 {
-//	uint8_t data_buf_tx[SPD_DATA_SIZE];
-	uint8_t data_buf_rx[SPD_DATA_SIZE];
+#ifdef SPD_TEST_WRITE
+	uint8_t data_buf_tx[SPD_DATA_SIZE];
+#endif
+	uint8_t data_buf_rx[SPD_DATA_SIZE] = {0};
 	int len;
 	int ret;
 	int i;
 	uint8_t spd_num = 0;
+
+#ifdef SPD_TEST_WRITE
+	for (i = 0; i < SPD_DATA_SIZE; i++) {
+		data_buf_tx[i] = (uint8_t)(0xD0 + i);
+	}
+#endif
 
 	printf("SPD initiate\n");
 	ret = spd_hw_init();
@@ -162,23 +183,40 @@ static int do_i2cspd(int argc, char *argv[])
 		return 0;
 	}
 
-	len = 8;
-	printf("SPD[%d] read a few bytes\n", spd_num);
-	ret = spd_hw_read_bytes(spd_num, 0, data_buf_rx, len);
-	for (i = 0; i < len; i++) {
-		printf("%d-%02x ", i, data_buf_rx[i]);
+	for (spd_num = 0; spd_num < SPD_CNT; spd_num++) {
+		len = 8;
+		printf("SPD[%d] read a few bytes\n", spd_num);
+		ret = spd_hw_read_bytes(spd_num, 0, data_buf_rx, len);
+		for (i = 0; i < len; i++) {
+			printf("%d-%02x ", i, data_buf_rx[i]);
+		}
+		printf("\n");
 	}
-	printf("\n");
 
-	len = SPD_DATA_SIZE;
-	printf("SPD[%d] read full SDP\n", spd_num);
-	ret = spd_hw_read_bytes(spd_num, 0, data_buf_rx, len);
-	for (i = 0; i < len; i++) {
-		if (i % 37 != 0) break; /* Sample print */
-		printf("%d-%02x", i, data_buf_rx[i]);
+#ifdef SPD_TEST_WRITE
+	for (spd_num = 0; spd_num < SPD_CNT; spd_num++) {
+		printf("SPD[%d] write a few bytes\n", spd_num);
+		ret = spd_hw_write_bytes(spd_num, 0, data_buf_tx, len);
+
+		printf("SPD[%d] read a few bytes again\n", spd_num);
+		ret = spd_hw_read_bytes(spd_num, 0, data_buf_rx, len);
+		for (i = 0; i < len; i++) {
+			printf("%d-%02x ", i, data_buf_rx[i]);
+		}
+		printf("\n");
+
+		len = SPD_DATA_SIZE;
+		printf("SPD[%d] write full SDP\n", spd_num);
+		ret = spd_hw_write_bytes(spd_num, 0, data_buf_tx, len);
+		printf("SPD[%d] read full SDP\n", spd_num);
+		ret = spd_hw_read_bytes(spd_num, 0, data_buf_rx, len);
+		for (i = 0; i < len; i++) {
+			if (i % 37 != 0) break; /* Sample print */
+			printf("%d-%02x", i, data_buf_rx[i]);
+		}
+		printf("\n");
 	}
-	printf("\n");
-
+#endif
 	printf("i2cspd End\n");
 	return 0;
 }
