@@ -65,5 +65,6 @@ clk_freq_t ddr_get_frclk(int speed);
 #define ddr_hw_ctrl_init()	dw_umctl2_init()
 void ddr_hw_config_speed(uint8_t speed);
 void ddr_hw_enable_speed(uint8_t speed);
+void ddr_hw_wait_dfi(uint32_t cycles);
 
 #endif /* __DDR_DPU_H_INCLUDE__ */

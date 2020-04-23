@@ -53,4 +53,9 @@ uint32_t gcd32u(uint32_t n, uint32_t m);
 #define min3(x, y, z)		min(min(x, y), z)
 #endif
 
+#define DIV_ROUND_DOWN(l, d)		div32u(l, d)
+#define DIV_ROUND_UP(l, d)		DIV_ROUND_DOWN((l) + (d) - 1, (d))
+#define DIV_ROUND_DOWN_LL(ll, d)	div64u(ll, d)
+#define DIV_ROUND_UP_LL(ll, d)		DIV_ROUND_DOWN_LL((ll) + (d) - 1, (d))
+
 #endif /* __MULDIV_H_INCLUDE__ */

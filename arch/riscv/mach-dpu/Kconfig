@@ -308,6 +308,7 @@ endif
 menuconfig DPU_DDR
 	bool "Enable DPU DDR support"
 	select DW_UMCTL2
+	select MATH_DIV32
 
 if DPU_DDR
 

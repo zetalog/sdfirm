@@ -1,4 +1,5 @@
 #include <target/ddr.h>
+#include <target/jiffies.h>
 
 #ifdef CONFIG_DPU_PLL
 struct ddr_speed {
@@ -141,3 +142,13 @@ void ddr_hw_enable_speed(uint8_t speed)
 	}
 }
 #endif
+
+void ddr_hw_wait_dfi(uint32_t cycles)
+{
+	uint32_t ratio;
+	tsc_count_t last;
+
+	ratio = DIV_ROUND_UP(clk_get_frequency(ddr_clk), __TSC_FREQ);
+	last = DIV_ROUND_UP(cycles, ratio) + tsc_read_counter();
+	while (time_before(tsc_read_counter(), last));
+}

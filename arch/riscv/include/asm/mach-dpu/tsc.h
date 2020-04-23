@@ -45,7 +45,8 @@
 #include <target/arch.h>
 #include <target/clk.h>
 
-#define TSC_FREQ		XIN_FREQ
+#define __TSC_FREQ		XIN_FREQ
+#define TSC_FREQ		(__TSC_FREQ/1000) /* kHz based */
 #define TSC_MAX			ULL(0xFFFFFFFFFFFFFFFF)
 
 #include <asm/mach/tmr.h>

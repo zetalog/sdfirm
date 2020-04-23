@@ -67,5 +67,6 @@
 
 #define ddr_config_speed(speed)		ddr_hw_config_speed(speed)
 #define ddr_enable_speed(speed)		ddr_hw_enable_speed(speed)
+#define ddr_wait_dfi(cycles)		ddr_hw_wait_dfi(cycles)
 
 #endif /* __DDR_H_INCLUDE__ */

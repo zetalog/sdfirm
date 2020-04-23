@@ -50,6 +50,7 @@
 #define ddr_hw_ctrl_init()		do { } while (0)
 #define ddr_hw_config_speed(speed)	do { } while (0)
 #define ddr_hw_enable_speed(speed)	do { } while (0)
+#define ddr_hw_wait_dfi(cycles)		do { } while (0)
 #endif
 
 #endif /* __DDR_DRIVER_H_INCLUDE__ */
