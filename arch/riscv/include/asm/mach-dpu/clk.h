@@ -123,6 +123,16 @@
 #define pcie_ref_clk		clkid(CLK_SEL, PCIE_REF_CLK)
 #define ddr_bypass_pclk		clkid(CLK_SEL, DDR_BYPASS_PCLK)
 #define apb_clk			clkid(CLK_SEL, APB_CLK)
+/* XXX: Do not confuse:
+ *      The ddr_clk named in CLKRST is actually the core_ddr_clk (the
+ *      uMCTL2 clock) in DesignWare specification where the ddr_clk refers
+ *      to the DDR data sampling clock whose frequency is 2 * Fdfi_clk in
+ *      the DPU SoC design due to the synthesis restriction as Fdfi_clk
+ *      equals to Fcore_ddr_clk, while it's much difficult in achieving
+ *      1.6GHz core_ddr_clk for DDR4_3200 speed grade.
+ */
+#define dfi_clk			ddr_clk
+#define core_ddr_clk		ddr_clk
 
 /* DDR clock alias */
 #define ddr0_clk		ddr_clk
