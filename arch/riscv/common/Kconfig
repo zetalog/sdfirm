@@ -575,9 +575,21 @@ config CLINT
 
 if CLINT
 
+config CLINT_XCHG_LLSC
+	bool "Use LL/SC style xchg"
+	help
+	  By default, CLINT driver uses amoswap to do IPI atomicity.
+	  However, this doesn't work for all architectures. Enabling this
+	  option allows the driver to switch to use LL/SC based xchg.
+	  If unsure, say 'N'.
+
 config CLINT_FORCE_FAST_TIMEOUT
 	bool "Force Clint timer to use very shot timeout"
-	default n
+	help
+	  On simulation environments, any timeout value may be too long
+	  to be simulated. Select this option allows the driver to force
+	  a small enough value for simulation.
+	  If unsure, say 'N'.
 
 endif
 

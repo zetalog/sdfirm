@@ -43,6 +43,7 @@
 #include <target/bitops.h>
 #include <target/irq.h>
 #include <target/smp.h>
+#include <target/atomic.h>
 
 #ifdef CONFIG_CLINT_FORCE_FAST_TIMEOUT
 #define FAST_TIMEOUT_DIFF  0x08
@@ -105,7 +106,9 @@ void clint_unset_mtimecmp(cpu_t cpu)
 #endif
 
 #ifdef CONFIG_SBI
-#ifdef CONFIG_RISCV_A
+#if !defined(CONFIG_CLINT_XCHG_LLSC) && defined(CONFIG_RISCV_A)
+#define clint_xchg(ptr, val)		xchg(ptr, val)
+#if 0
 static uint32_t clint_xchg(volatile uint32_t *ptr, uint32_t newval)
 {
 	/* The name of GCC built-in macro __sync_lock_test_and_set()
@@ -114,6 +117,7 @@ static uint32_t clint_xchg(volatile uint32_t *ptr, uint32_t newval)
 	 */
 	return __sync_lock_test_and_set(ptr, newval);
 }
+#endif
 #else
 static uint32_t clint_xchg(volatile uint32_t *ptr, uint32_t newval)
 {
