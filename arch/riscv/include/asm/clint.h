@@ -54,7 +54,7 @@
 void clint_set_mtimecmp(cpu_t cpu, uint64_t cmp);
 void clint_unset_mtimecmp(cpu_t cpu);
 uint64_t clint_read_mtime(void);
-#ifdef CONFIG_SBI
+#if defined(CONFIG_SBI) && defined(CONFIG_SMP)
 #define clint_set_ipi(cpu)	\
 	__raw_writel(1, CLINT_MSIP(smp_hw_cpu_hart(cpu)))
 #define clint_clear_ipi(cpu)	\

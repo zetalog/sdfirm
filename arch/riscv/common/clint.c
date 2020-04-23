@@ -105,7 +105,7 @@ void clint_unset_mtimecmp(cpu_t cpu)
 }
 #endif
 
-#ifdef CONFIG_SBI
+#if defined(CONFIG_SBI) && defined(CONFIG_SMP)
 #if !defined(CONFIG_CLINT_XCHG_LLSC) && defined(CONFIG_RISCV_A)
 #define clint_xchg(ptr, val)		xchg(ptr, val)
 #if 0
