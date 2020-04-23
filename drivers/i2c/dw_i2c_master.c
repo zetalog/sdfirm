@@ -648,6 +648,7 @@ int i2c_hw_read_bytes(uint8_t dev, uint8_t *buffer, int len, unsigned int stop)
 	unsigned int active = 0;
 	uint32_t val;
 	uint32_t offset;
+	int orig_len = len;
 	int ret;
 
 #ifdef DW_I2C_DEBUG
@@ -705,15 +706,15 @@ int i2c_hw_read_bytes(uint8_t dev, uint8_t *buffer, int len, unsigned int stop)
 		return -1;
 	}
 
-	return len;
+	return (orig_len - len);
 }
 
 int i2c_hw_write_bytes(uint8_t dev, uint8_t *buffer, int len, unsigned int stop)
 {
 	caddr_t base = dw_i2c_pri->base;
-	//int nb = len;
 	uint32_t val;
 	uint32_t offset;
+	int orig_len = len;
 	int ret;
 
 #ifdef DW_I2C_DEBUG
@@ -755,7 +756,7 @@ int i2c_hw_write_bytes(uint8_t dev, uint8_t *buffer, int len, unsigned int stop)
 		return -1;
 	}
 
-	return len;
+	return (orig_len - len);
 }
 
 /*
