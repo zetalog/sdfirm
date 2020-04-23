@@ -198,11 +198,13 @@ endif
 
 menuconfig DPU_TMR
 	bool "Enable DPU RISC-V timer support"
+	select DPU_TMR_FIRQ if RISCV_VIRQ
 
 if DPU_TMR
 
 config DPU_TMR_FIRQ
 	bool "Enable extended fast interrupt support"
+	depends RISCV_VIRQ
 	select RI5CY_FIRQ
 
 config DPU_TMR_CMP_CONST
@@ -226,11 +228,13 @@ endif
 menuconfig DPU_PLIC
 	bool "Enable DPU RISC-V PLIC support"
 	select PLIC
+	select DPU_PLIC_FIRQ if RISCV_VIRQ
 
 if DPU_PLIC
 
 config DPU_PLIC_FIRQ
 	bool "Enable extended fast interrupt support"
+	depends RISCV_VIRQ
 	select RI5CY_FIRQ
 
 endif
