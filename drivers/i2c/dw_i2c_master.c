@@ -29,6 +29,27 @@ static struct dw_i2c_private dw_i2c_masters[CONFIG_I2C_MAX_MASTERS] = {0};
 
 static struct dw_i2c_private *dw_i2c_pri = NULL;
 
+#ifdef CONFIG_DW_I2C_TEST_IRQ
+/* Give RX_FULL interrupt when get 1 or more entry in RX FIFO. */
+#ifdef CONFIG_DW_I2C_RX_TL
+#undef CONFIG_DW_I2C_RX_TL
+#define CONFIG_DW_I2C_RX_TL 0
+#endif
+#include <target/irq.h>
+static unsigned int irq_test_master_num = 0;
+static unsigned int irq_test_flag = 0;
+static irq_flags_t irq_flags;
+/* Interrupts cared about:
+ *	- RX_FULL : auto cleared
+ */
+void dw_i2c_irq_handler(void)
+{
+	irqc_clear_irq(IRQ_I2C0 + irq_test_master_num);
+	irqc_disable_irq(IRQ_I2C0 + irq_test_master_num);
+	irq_test_flag = 1 + irq_test_master_num;
+}
+#endif
+
 void i2c_hw_init(void)
 {
 	int i;
@@ -37,6 +58,17 @@ void i2c_hw_init(void)
 		dw_i2c_masters[i].addr_mode = 0;
 		dw_i2c_masters[i].state = DW_I2C_DRIVER_INVALID;
 	}
+#ifdef CONFIG_DW_I2C_TEST_IRQ
+	for (i = 0; i < CONFIG_I2C_MAX_MASTERS; i++) {
+		irqc_configure_irq(IRQ_I2C0 + i, 1, IRQ_LEVEL_TRIGGERED);
+	}
+	for (i = 0; i < CONFIG_I2C_MAX_MASTERS; i++) {
+		irq_register_vector(IRQ_I2C0 + i, dw_i2c_irq_handler);
+	}
+	for (i = 0; i < CONFIG_I2C_MAX_MASTERS; i++) {
+		irqc_enable_irq(IRQ_I2C0 + i);
+	}
+#endif
 #ifdef CONFIG_ARCH_DPU
 	clk_enable(srst_i2c0);
 	clk_enable(srst_i2c1);
@@ -51,6 +83,9 @@ int i2c_hw_master_select_by_num(unsigned int num)
 		return -1;
 	}
 	dw_i2c_pri = dw_i2c_masters + num;
+#ifdef CONFIG_DW_I2C_TEST_IRQ
+	irq_test_master_num = num;
+#endif
 	return 0;
 }
 
@@ -116,7 +151,11 @@ void i2c_hw_ctrl_init(void)
 	__raw_writel(val, base + offset);
 
 	offset = IC_INTR_MASK;
+#ifdef CONFIG_DW_I2C_TEST_IRQ
+	val = IC_RX_FULL;
+#else
 	val = IC_INTR_ALL;
+#endif
 #ifdef DW_I2C_DEBUG
 	con_printf("w 0x%2x 0x%x _INTR_MASK\n", offset, val);
 #endif
@@ -808,6 +847,17 @@ int i2c_hw_read_vip(uint8_t dev, uint8_t *buffer, int len)
 			__raw_writel(val, base + offset);
 			active = 1;
 		}
+
+#ifdef CONFIG_DW_I2C_TEST_IRQ
+		while(irq_test_flag == 0) {
+			irq_local_save(irq_flags);
+			irq_local_enable();
+			irq_local_disable();
+			irq_local_restore(irq_flags);
+		}
+		irq_test_flag = 0;
+		irqc_enable_irq(IRQ_I2C0 + irq_test_master_num);
+#endif
 
 		offset = IC_STATUS;
 		val = __raw_readl(base + offset);
