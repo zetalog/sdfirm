@@ -30,6 +30,10 @@ config DW_I2C_TX_TL
 	default 0
 	range 0 255
 
+config DW_I2C_TEST_IRQ
+	bool "Test IRQ handler for DW I2C"
+	default n
+
 endif
 
 endmenu
