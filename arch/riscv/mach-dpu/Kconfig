@@ -15,6 +15,7 @@ config DPU_LOAD_ZSBL
 
 config DPU_LOAD_FSBL
 	bool
+	select DPU_DDR
 
 choice
 	prompt "Program type"
@@ -31,7 +32,6 @@ config DPU_BOOT_ROM
 	select DPU_TCSR
 	select DPU_SPI_FLASH
 	select DPU_SSI_FLASH
-	select DPU_DDR
 
 config DPU_BOOT_RAM
 	bool "0-stage boot RAM bootloader (ZSBL)"
@@ -46,7 +46,6 @@ config DPU_BOOT_RAM
 	select DPU_TCSR
 	select DPU_SPI_FLASH
 	select DPU_SSI_FLASH
-	select DPU_DDR
 
 config DPU_BOOT_SPI_FLASH
 	bool "0-stage/1-stage SPINOR bootloader (ZSBL/FSBL)"
@@ -128,9 +127,13 @@ if DPU_SIM
 config DPU_UART_VIP
 	bool "Enable DPU UART simulation model support"
 	depends DPU_SIM
+	default y
 	help
-	  When this is selected, UART baudrate generator frequency will
-	  be APB_CLK/16.
+	  When this is selected, the UART baudrate generator frequency will
+	  be APB_CLK/16, making things happening quickly when an UART slave
+	  VIP is connected. In case your are using a UART master DPI VIP,
+	  selecting this is safe as the VIP cares no about the baudrate.
+	  If unsure, say 'Y'.
 
 config DPU_SIM_CLK
 	bool "Allow disabling clock framework"
@@ -315,7 +318,7 @@ if DPU_DDR
 endif
 
 config DPU_PCI_SUBSYS
-	bool "Enable DPU PCI subsystem(Testchip) support"
+	bool "Enable DPU PCIe subsystem support"
 	select DW_PCIE
 
 endmenu

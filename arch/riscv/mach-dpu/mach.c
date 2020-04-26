@@ -57,16 +57,17 @@ void board_reboot(void)
 }
 #endif
 
-#ifdef CONFIG_DPU_BOOT_LOAD
+#ifdef CONFIG_DPU_LOAD
 void (*board_boot_entry)(void) = (void *)CONFIG_DPU_BOOT_ADDR;
 
 void board_boot(void)
 {
-#ifdef CONFIG_BOOT_SPI
+	board_init_clock();
+#ifdef CONFIG_DPU_LOAD_SPI_FLASH
 	clk_enable(srst_flash);
 	dpu_flash_set_frequency(min(DPU_FLASH_FREQ, APB_CLK_FREQ));
 #endif
-#ifdef CONFIG_BOOT_SSI
+#ifdef CONFIG_DPU_LOAD_SSI_FLASH
 	clk_enable(srst_spi);
 #endif
 	board_boot_entry();

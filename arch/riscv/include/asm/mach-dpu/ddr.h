@@ -57,6 +57,7 @@
 
 #define NR_DDR_SPEEDS		(DDR4_3200 + 1)
 
+#ifdef CONFIG_DPU_DDR
 clk_freq_t ddr_get_fvco(int speed);
 clk_freq_t ddr_get_fpclk(int speed);
 clk_freq_t ddr_get_frclk(int speed);
@@ -66,5 +67,10 @@ clk_freq_t ddr_get_frclk(int speed);
 void ddr_hw_config_speed(uint8_t speed);
 void ddr_hw_enable_speed(uint8_t speed);
 void ddr_hw_wait_dfi(uint32_t cycles);
+#else
+#define ddr_get_fvco(speed)	PLL2_VCO_FREQ
+#define ddr_get_fpclk(speed)	PLL2_P_FREQ
+#define ddr_get_frclk(speed)	PLL2_R_FREQ
+#endif
 
 #endif /* __DDR_DPU_H_INCLUDE__ */
