@@ -19,21 +19,16 @@ $(obj)/sdfirm.bin: sdfirm.strip FORCE
 $(obj)/sdfirm.srec: sdfirm.strip FORCE
 	$(call if_changed,objcopy)
 	@echo '  Small Device Firmware: $@ is ready'
+OBJCOPYFLAGS_sdfirm.bin		+=-O binary
+OBJCOPYFLAGS_sdfirm.srec	+=-O srec
+
+ifeq ($(CONFIG_SIMULATION),y)
 $(obj)/sdfirm.rom: $(obj)/sdfirm.bin FORCE
-ifdef CONFIG_XIP
-ifdef CONFIG_LOAD_DATA
 	$(call if_changed,bin2vhx)
-else
-	touch $@
-endif
-else
-	touch $@
-endif
 	@echo '  Small Device Firmware: $@ is ready'
 $(obj)/sdfirm.ram: $(obj)/sdfirm.srec FORCE
 	$(call if_changed,srec2vhx)
 	@echo '  Small Device Firmware: $@ is ready'
-OBJCOPYFLAGS_sdfirm.bin		+=-O binary
-OBJCOPYFLAGS_sdfirm.srec	+=-O srec
-BIN2VHXFLAGS_sdfirm.rom		+=--width=32
-SREC2VHXFLAGS_sdfirm.ram	+=-w 32
+BIN2VHXFLAGS_sdfirm.rom		+=--width=$(CONFIG_VERILOG_DATA_WIDTH)
+SREC2VHXFLAGS_sdfirm.ram	+=-w $(CONFIG_VERILOG_DATA_WIDTH)
+endif

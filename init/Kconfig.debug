@@ -52,6 +52,18 @@ config CC_ALWAYS_INLINE
 	  Switch inline implementation to __always_inline rather than
 	  inline.
 
+menuconfig SIMULATION
+	bool "Simulation options"
+
+if SIMULATION
+
+config VERILOG_DATA_WIDTH
+	int "Verilog data width"
+	default 32 if ARCH_HAS_BITS_PER_UNIT_32
+	default 64 if ARCH_HAS_BITS_PER_UNIT_64
+
+endif
+
 menuconfig DEBUG
 	bool 'Debugging options'
 	depends EXPERIMENTAL

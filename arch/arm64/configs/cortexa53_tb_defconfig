@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Feb 17 21:58:37 2020
+# Mon Apr 27 15:17:54 2020
 #
 CONFIG_ARM64=y
 
@@ -180,6 +180,8 @@ CONFIG_BFM=y
 CONFIG_XIP=y
 CONFIG_BOOT_BASE=0x00000000
 CONFIG_LOAD_BASE=0x0
+# CONFIG_NO_ZERO_BSS is not set
+# CONFIG_NO_ZERO_GPR is not set
 # CONFIG_HEAP is not set
 CONFIG_MEM=y
 CONFIG_MEM_MAX_REGIONS=4
@@ -207,6 +209,15 @@ CONFIG_MMU_4L_TABLE=y
 CONFIG_MMU_IDMAP_DEVICE=y
 CONFIG_MMU_MAP_MEM=y
 # CONFIG_MMU_TEXT_MODIFY is not set
+# CONFIG_MMU_NO_EARLY_TABLE_ZEROING is not set
+
+#
+# Power management model (board) support
+#
+# CONFIG_SHUTDOWN is not set
+# CONFIG_REBOOT is not set
+# CONFIG_SUSPEND is not set
+# CONFIG_HIBERNATE is not set
 # CONFIG_IDLE is not set
 # CONFIG_BULK is not set
 # CONFIG_TERM is not set
@@ -235,6 +246,7 @@ CONFIG_UART_230400=y
 # CONFIG_UART is not set
 # CONFIG_SPI is not set
 # CONFIG_I2C is not set
+# CONFIG_DMA is not set
 # CONFIG_USB is not set
 # CONFIG_SCS is not set
 # CONFIG_MTD is not set
@@ -242,10 +254,16 @@ CONFIG_UART_230400=y
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
 # CONFIG_DDR is not set
+# CONFIG_PCI is not set
+# CONFIG_IOMMU is not set
 # CONFIG_RAS is not set
 
 #
 # Driver setup
+#
+
+#
+# Clock drivers
 #
 
 #
@@ -285,8 +303,13 @@ CONFIG_UART_230400=y
 # CONFIG_DW_UMCTL2 is not set
 
 #
-# Clock drivers
+# PCI drivers
 #
+
+#
+# IO MMU drivers
+#
+# CONFIG_SMMU_MMU500 is not set
 
 #
 # I2C host drivers
@@ -299,10 +322,16 @@ CONFIG_UART_230400=y
 # CONFIG_DW_I2CS is not set
 
 #
+# SPI Master drivers
+#
+# CONFIG_DW_SSI is not set
+
+#
 # DMA host drivers
 #
 # CONFIG_DW_DMA is not set
 # CONFIG_TEST_BENCH is not set
+# CONFIG_RAVEN is not set
 
 #
 # Library setup
@@ -341,6 +370,7 @@ CONFIG_MATH_MOD64=y
 #
 # CONFIG_CRC16_CCITT is not set
 # CONFIG_CRC32 is not set
+# CONFIG_MATH_TAYLOR is not set
 CONFIG_STDLIB=y
 
 #
@@ -357,7 +387,13 @@ CONFIG_PRINT_PRINTF=y
 #
 # CONFIG_STRING_STRNCMP is not set
 CONFIG_STRING_STRTOUL=y
+CONFIG_STRING_STRTOULL=y
 # CONFIG_STRING_UUID is not set
+
+#
+# Time opeartions
+#
+# CONFIG_TIME_CLOCK is not set
 
 #
 # Cryptographic algorithms
@@ -371,6 +407,9 @@ CONFIG_STRING_STRTOUL=y
 CONFIG_EXPERIMENTAL=y
 # CONFIG_CC_OPT_SIZE is not set
 CONFIG_CC_OPT_SPEED=y
+# CONFIG_CC_ALWAYS_INLINE is not set
+CONFIG_SIMULATION=y
+CONFIG_VERILOG_DATA_WIDTH=128
 CONFIG_DEBUG=y
 # CONFIG_CC_GEN_DEBUG is not set
 # CONFIG_DEBUG_PANIC is not set

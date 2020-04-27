@@ -61,7 +61,10 @@ CFLAGS += $(call cc-option,-mstrict-align)
 
 # Default target when executing plain make
 boot		:= arch/riscv/boot
-KBUILD_IMAGE	:= sdfirm.bin sdfirm.srec sdfirm.ram sdfirm.rom
+KBUILD_IMAGE	:= sdfirm.bin sdfirm.srec
+ifeq ($(CONFIG_SIMULATION),y)
+KBUILD_IMAGE	+= sdfirm.ram sdfirm.rom
+endif
 
 # arch specific predefines for sparse
 CHECKFLAGS += -D__riscv -D__riscv_xlen=$(BITS)
@@ -136,10 +139,12 @@ sdfirm.bin: sdfirm.strip
 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
 sdfirm.srec: sdfirm.strip
 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
+ifeq ($(CONFIG_SIMULATION),y)
 sdfirm.rom: sdfirm.bin
 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
 sdfirm.ram: sdfirm.srec
 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
+endif
 
 PHONY += maketools FORCE
 maketools: include/asm/mach FORCE

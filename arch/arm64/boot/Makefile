@@ -19,9 +19,6 @@ $(obj)/sdfirm.bin: sdfirm.strip FORCE
 $(obj)/sdfirm.srec: sdfirm.strip FORCE
 	$(call if_changed,objcopy)
 	@echo '  Small Device Firmware: $@ is ready'
-$(obj)/sdfirm.vhx: $(obj)/sdfirm.srec FORCE
-	$(call if_changed,srec2vhx)
-	@echo '  Small Device Firmware: $@ is ready'
 ifdef CONFIG_SUNXI_SPL
 $(obj)/sunxi-spl.bin: $(obj)/sdfirm.bin FORCE
 	$(call if_changed,mksunxiboot)
@@ -30,4 +27,9 @@ MKSUNXIBOOTFLAGS_sunxi-spl.bin	+="sun50i-h5-nanopi-neo2"
 endif
 OBJCOPYFLAGS_sdfirm.bin		+=-O binary
 OBJCOPYFLAGS_sdfirm.srec	+=-O srec
-SREC2VHXFLAGS_sdfirm.vhx	+=-w 128
+ifeq ($(CONFIG_SIMULATION),y)
+$(obj)/sdfirm.vhx: $(obj)/sdfirm.srec FORCE
+	$(call if_changed,srec2vhx)
+	@echo '  Small Device Firmware: $@ is ready'
+SREC2VHXFLAGS_sdfirm.vhx	+=-w $(CONFIG_VERILOG_DATA_WIDTH)
+endif

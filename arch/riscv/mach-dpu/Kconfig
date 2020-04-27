@@ -119,14 +119,12 @@ config DPU_BOOT_APC
 
 endmenu
 
-menuconfig DPU_SIM
-	bool "Simulation options"
+menu "Simulation options"
 
-if DPU_SIM
+if SIMULATION
 
 config DPU_UART_VIP
 	bool "Enable DPU UART simulation model support"
-	depends DPU_SIM
 	default y
 	help
 	  When this is selected, the UART baudrate generator frequency will
@@ -143,8 +141,10 @@ config DPU_SIM_CLK
 
 endif
 
+endmenu
+
 menuconfig DPU_TCSR
-	bool "Enable top control and status registers (TCSR) support"
+	bool "Top control and status registers (TCSR) support"
 	select STRING_STRTOULL if COMMAND
 
 if DPU_TCSR
@@ -157,7 +157,7 @@ config DPU_TCSR_LOW_POWER
 
 config DPU_TCSR_SIM_FINISH
 	bool "Enable simulation finish support"
-	depends DPU_SIM
+	depends SIMULATION
 	help
 	  In simulation environment, enabling this allows to shutdown
 	  VCS simulation.
@@ -165,7 +165,7 @@ config DPU_TCSR_SIM_FINISH
 endif
 
 menuconfig DPU_PLL
-	bool "Enable DPU PLL and clock/reset support"
+	bool "DPU PLL and clock/reset support"
 	select DW_PLL5GHZ_TSMC12FFC if !DPU_PLL_BYPASS_PLL
 	select MATH_DIV32
 
@@ -190,7 +190,7 @@ config DPU_PLL_FREQPLAN_BUS
 
 config DPU_PLL_BYPASS_PLL
 	bool "Allow disabling PLL driver"
-	depends DPU_SIM
+	depends SIMULATION
 	help
 	  On simulation environnments, PLL can be opt-off if no need to
 	  configure any PLLs (forced in test benches). Due to enabling of
@@ -200,7 +200,7 @@ config DPU_PLL_BYPASS_PLL
 endif
 
 menuconfig DPU_TMR
-	bool "Enable DPU RISC-V timer support"
+	bool "DPU RISC-V timer support"
 	select DPU_TMR_FIRQ if RISCV_VIRQ
 
 if DPU_TMR
@@ -212,7 +212,7 @@ config DPU_TMR_FIRQ
 
 config DPU_TMR_CMP_CONST
 	bool "Enable constant compare counter support"
-	depends DPU_SIM
+	depends SIMULATION
 	help
 	  Can fixup a shortened timeout value to make RTL simulation
 	  faster.
@@ -229,7 +229,7 @@ config DPU_TMR_CMP_CONST_TOUT
 endif
 
 menuconfig DPU_PLIC
-	bool "Enable DPU RISC-V PLIC support"
+	bool "DPU RISC-V PLIC support"
 	select PLIC
 	select DPU_PLIC_FIRQ if RISCV_VIRQ
 
@@ -243,7 +243,7 @@ config DPU_PLIC_FIRQ
 endif
 
 menuconfig DPU_SPI_FLASH
-	bool "Enable SPI flash support"
+	bool "DPU SPI flash support"
 	select MATH_DIV32
 	help
 	  The DPU SoC contains a random accessible SPI controller that is
@@ -291,7 +291,7 @@ endchoice
 endif
 
 menuconfig DPU_SSI_FLASH
-	bool "Enable SSI flash support"
+	bool "DPU SSI flash support"
 	depends SPI_MASTER
 	select DW_SSI
 	select ARCH_HAS_SSI_FIFO
@@ -309,7 +309,7 @@ if DPU_SSI_FLASH
 endif
 
 menuconfig DPU_DDR
-	bool "Enable DPU DDR support"
+	bool "DPU DDR controller/phy support"
 	select DW_UMCTL2
 	select MATH_DIV32
 
@@ -318,7 +318,7 @@ if DPU_DDR
 endif
 
 config DPU_PCI_SUBSYS
-	bool "Enable DPU PCIe subsystem support"
+	bool "DPU PCIe subsystem support"
 	select DW_PCIE
 
 endmenu
