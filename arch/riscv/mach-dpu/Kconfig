@@ -7,6 +7,20 @@ if ARCH_DPU
 
 menu "Smart Core DPU board options"
 
+choice
+	prompt "IMC CPU type"
+	default DPU_CV32E
+
+config DPU_CV32E
+	bool "RI5CY"
+	select CPU_CV32E
+
+config DPU_CV64A
+	bool "Ariane"
+	select CPU_CV64A
+
+endchoice
+
 config DPU_BOOT
 	bool
 
