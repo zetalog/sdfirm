@@ -41,6 +41,7 @@
 #include <target/console.h>
 #include <target/uart.h>
 #include <target/barrier.h>
+#include <target/irq.h>
 
 #ifdef CONFIG_DW_UART_DLF
 #define dw_uart_convert_baudrate(freq, baud, div, frac)	\
@@ -126,4 +127,36 @@ bool dw_uart_con_poll(void)
 {
 	return dw_uart_read_poll(UART_CON_ID);
 }
+
+#ifndef CONFIG_SYS_NOIRQ
+#define dw_uart_con_irq_id()	IIR_IID(__raw_readl(UART_IIR(UART_CON_ID)))
+
+void dw_uart_handle_irq(void)
+{
+	uint8_t irq;
+
+	irq = dw_uart_con_irq_id();
+	if (irq != UART_IRQ_RBFI)
+		return;
+
+	irqc_disable_irq(UART_CON_IRQ);
+	dw_uart_disable_irq(UART_CON_ID, IER_ERBFI);
+	console_handle_irq();
+}
+
+void dw_uart_irq_init(void)
+{
+	dw_uart_disable_all_irqs(UART_CON_ID);
+	irqc_configure_irq(UART_CON_IRQ, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(UART_CON_IRQ, dw_uart_handle_irq);
+	irqc_enable_irq(UART_CON_IRQ);
+	dw_uart_enable_irq(UART_CON_ID, IER_ERBFI);
+}
+
+void dw_uart_irq_ack(void)
+{
+	dw_uart_enable_irq(UART_CON_ID, IER_ERBFI);
+	irqc_enable_irq(UART_CON_IRQ);
+}
+#endif
 #endif

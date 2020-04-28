@@ -48,6 +48,7 @@
 #define UART_CLK_ID		srst_uart
 #define DW_UART0_BASE		UART_BASE
 #define UART_CON_ID		0
+#define UART_CON_IRQ		IRQ_UART
 
 #ifdef CONFIG_DW_UART
 #include <driver/dw_uart.h>
@@ -92,8 +93,10 @@ void uart_hw_mmu_init(void);
 #ifdef CONFIG_CONSOLE_INPUT
 #define uart_hw_con_read()	dw_uart_con_read()
 #define uart_hw_con_poll()	dw_uart_con_poll()
-void uart_hw_irq_ack(void);
-void uart_hw_irq_init(void);
+#ifndef CONFIG_SYS_NOIRQ
+#define uart_hw_irq_init()	dw_uart_irq_init()
+#define uart_hw_irq_ack()	dw_uart_irq_ack()
+#endif
 #endif
 
 #endif /* __UART_DPU_H_INCLUDE__ */

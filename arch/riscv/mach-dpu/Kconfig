@@ -123,16 +123,6 @@ menu "Simulation options"
 
 if SIMULATION
 
-config DPU_UART_VIP
-	bool "Enable DPU UART simulation model support"
-	default y
-	help
-	  When this is selected, the UART baudrate generator frequency will
-	  be APB_CLK/16, making things happening quickly when an UART slave
-	  VIP is connected. In case your are using a UART master DPI VIP,
-	  selecting this is safe as the VIP cares no about the baudrate.
-	  If unsure, say 'Y'.
-
 config DPU_SIM_CLK
 	bool "Allow disabling clock framework"
 	help
@@ -239,6 +229,25 @@ config DPU_PLIC_FIRQ
 	bool "Enable extended fast interrupt support"
 	depends RISCV_VIRQ
 	select RI5CY_FIRQ
+
+endif
+
+menuconfig DPU_UART
+	bool "DPU UART controller support"
+	select DW_UART
+
+if DPU_UART
+
+config DPU_UART_VIP
+	bool "Enable DPU UART simulation model support"
+	depends SIMULATION
+	default y
+	help
+	  When this is selected, the UART baudrate generator frequency will
+	  be APB_CLK/16, making things happening quicker when an UART slave
+	  VIP is connected. In case your are using a UART master DPI VIP,
+	  selecting this is safe as the VIP cares no about the baudrate.
+	  If unsure, say 'Y'.
 
 endif
 

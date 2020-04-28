@@ -176,6 +176,29 @@
 #define UART_CTR(n)		DW_UART_REG(n, 0xFC)
 #endif
 
+/* Interrupt Enable Register - IER */
+#define IER_PTIME		_BV(7)
+#define IER_ELCOLR		_BV(4)
+#define IER_EDSSI		_BV(3)
+#define IER_ELSI		_BV(2)
+#define IER_ETBEI		_BV(1)
+#define IER_ERBFI		_BV(0)
+
+/* Interrupt Identification Register - IIR */
+#define IIR_FIFOSE_OFFSET	6
+#define IIR_FIFOSE_MASK		REG_2BIT_MASK
+#define IIR_FIFOSE(value)	_GET_FV(IIR_FIFOSE, value)
+#define IIR_IID_OFFSET		0
+#define IIR_IID_MASK		REG_4BIT_MASK
+#define IIR_IID(value)		_GET_FV(IIR_IID, value)
+#define UART_IRQ_DSSI		0  /* Modem status */
+#define UART_IRQ_NONE		1  /* No IRQ pending */
+#define UART_IRQ_TBEI		2  /* THR empty */
+#define UART_IRQ_RBFI		4  /* RBR full */
+#define UART_IRQ_LSI		6  /* Receiver line status */
+#define UART_IRQ_BUSY		7  /* Busy detet */
+#define UART_IRQ_TIMEOUT	12 /* Character timeout */
+
 /* Modem Control Register - MCR */
 #define MCR_SIRE		_BV(6)
 #define MCR_AFCE		_BV(5)
@@ -257,6 +280,10 @@
 #define dw_uart_read_byte(n)		__raw_readl(UART_RBR(n))
 #define dw_uart_write_byte(n, byte)	__raw_writel((byte), UART_THR(n))
 
+#define dw_uart_disable_all_irqs(n)	__raw_writel(0, UART_IER(n))
+#define dw_uart_enable_irq(n, irq)	__raw_setl(irq, UART_IER(n))
+#define dw_uart_disable_irq(n, irq)	__raw_clearl(irq, UART_IER(n))
+
 #ifdef CONFIG_CONSOLE
 void dw_uart_con_init(uint32_t freq);
 #endif
@@ -266,6 +293,10 @@ void dw_uart_con_write(uint8_t byte);
 #ifdef CONFIG_CONSOLE_INPUT
 uint8_t dw_uart_con_read(void);
 bool dw_uart_con_poll(void);
+#ifndef CONFIG_SYS_NOIRQ
+void dw_uart_irq_init(void);
+void dw_uart_irq_ack(void);
+#endif
 #endif
 
 #endif /* __DW_UART_H_INCLUDE__ */

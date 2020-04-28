@@ -90,7 +90,7 @@ config ARCH_DPU
 	select DPU_PLIC if !SYS_NOIRQ
 	select DPU_PLL if CLK
 	select DPU_SSI_FLASH if SPI_MASTER
-	select DW_UART if CONSOLE || DEBUG_PRINT
+	select DPU_UART if CONSOLE || DEBUG_PRINT
 	select DW_I2C if I2C_MASTER
 	select DW_DMA if DMA
 	select DPU_DDR if DDR
