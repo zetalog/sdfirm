@@ -86,9 +86,7 @@
 #define PLIC_IRQ_OFFSET(irq)		REG_1BIT_OFFSET(irq)
 #define PLIC_IRQ_MASK			REG_1BIT_MASK
 /* Macros used to program PLIC_PENDINGR/PLIC_ENABLER */
-#define PLIC_GET_IRQ(irq, value)	_GET_FVn(irq, PLIC_IRQ, value)
-#define PLIC_SET_IRQ(irq, value)	_SET_FVn(irq, PLIC_IRQ, value)
-#define PLIC_IRQ(irq)			PLIC_IRQ_OFFSET(irq)
+#define PLIC_IRQ(irq)			_BV(PLIC_IRQ_OFFSET(irq))
 
 #define plic_enable_mirq(cpu, irq)			\
 	__raw_setl(PLIC_IRQ(irq), PLIC_ENABLER(irq) +	\

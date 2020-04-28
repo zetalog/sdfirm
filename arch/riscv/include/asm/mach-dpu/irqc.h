@@ -50,14 +50,18 @@
 #error "Multiple IRQ controller defined"
 #endif
 
-#define PLIC_HW_PRI_MAX		31
-#define plic_hw_m_ctx(hartid)	(2 * (hartid))
-#define plic_hw_s_ctx(hartid)	((hartid) < 16 ? (2 * (hartid) + 1) : PLIC_CTX_NONE)
+#define PLIC_HW_PRI_MAX			31
+#define plic_hw_m_ctx(hartid)		(hartid)
+#define plic_hw_s_ctx(hartid)		PLIC_CTX_NONE
 
 #include <asm/ri5cy_firq.h>
 #include <asm/plic.h>
 
-#define plic_hw_ctrl_init()		clk_enable(srst_plic)
+#define plic_hw_ctrl_init()			\
+	do {					\
+		clk_enable(srst_plic);		\
+		plic_hw_enable_int(IRQ_EXT);	\
+	} while (0)
 
 /* Internal IRQs */
 #define plic_hw_enable_int(irq)		riscv_enable_firq(irq)
