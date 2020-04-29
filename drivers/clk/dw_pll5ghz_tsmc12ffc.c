@@ -94,18 +94,26 @@ void dw_pll5ghz_tsmc12ffc_relock(uint8_t pll)
 	}
 }
 
+void dw_pll5ghz_tsmc12ffc_output_config(uint8_t pll, bool r, uint32_t en)
+{
+	uint32_t mask = r ? PLL_ENR | PLL_R(PLL_R_MASK) |
+			    PLL_DIVVCOR(PLL_DIVVCOR_MASK) :
+			    PLL_ENP | PLL_P(PLL_P_MASK) |
+			    PLL_DIVVCOP(PLL_DIVVCOP_MASK);
+	if ((__raw_readl(DW_PLL_CFG1(pll)) & mask) != en)
+		__raw_writel_mask(en, mask, DW_PLL_CFG1(pll));
+}
+
 #ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_OUTPUT_PROG
 void dw_pll5ghz_tsmc12ffc_output_default(uint8_t pll, bool r, bool enable)
 {
-	uint32_t en = r ? PLL_ENR : PLL_ENP;
+	uint32_t en;
 
-	__raw_clearl(en, DW_PLL_CFG1(pll));
-	en |= r ? PLL_DIVVCOR(0xF) | PLL_R(0x3F) :
-		  PLL_DIVVCOP(0xF) | PLL_P(0x3F);
+	en = r ? PLL_DIVVCOR(0xF) | PLL_R(0x3F) :
+		 PLL_DIVVCOP(0xF) | PLL_P(0x3F);
 	if (enable)
-		__raw_setl(en, DW_PLL_CFG1(pll));
-	else
-		__raw_clearl(en, DW_PLL_CFG1(pll));
+		en |= r ? PLL_ENR : PLL_ENP;
+	dw_pll5ghz_tsmc12ffc_output_config(pll, r, en);
 }
 
 /* Normal oper: Fclkout = Fvco / (divvco{p|r} * {p|r})
@@ -127,10 +135,6 @@ void __dw_pll5ghz_tsmc12ffc_enable(uint8_t pll, uint64_t fvco,
 				   uint64_t div, uint32_t divcov32)
 {
 	uint32_t en = r ? PLL_ENR : PLL_ENP;
-	uint32_t mask = r ? PLL_ENR | PLL_R(PLL_R_MASK) |
-			    PLL_DIVVCOR(PLL_DIVVCOR_MASK) :
-			    PLL_ENP | PLL_P(PLL_P_MASK) |
-			    PLL_DIVVCOP(PLL_DIVVCOP_MASK);
 	uint32_t divcov10 = 0;
 	uint32_t pr;
 
@@ -141,10 +145,9 @@ void __dw_pll5ghz_tsmc12ffc_enable(uint8_t pll, uint64_t fvco,
 			break;
 		next_div(fvco, divcov32, divcov10, div);
 	} while (1);
-	__raw_writel_mask(0, mask, DW_PLL_CFG1(pll));
 	en |= r ? PLL_DIVVCOR(divcov32 << 2 | divcov10) | PLL_R(pr - 1) :
 		  PLL_DIVVCOP(divcov32 << 2 | divcov10) | PLL_P(pr - 1);
-	__raw_writel_mask(en, mask, DW_PLL_CFG1(pll));
+	dw_pll5ghz_tsmc12ffc_output_config(pll, r, en);
 }
 
 void dw_pll5ghz_tsmc12ffc_enable_sync(uint8_t pll, uint64_t fvco,
@@ -199,15 +202,13 @@ void dw_pll5ghz_tsmc12ffc_enable(uint8_t pll, uint64_t fvco,
 #ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_OUTPUT_DIV2
 void dw_pll5ghz_tsmc12ffc_output_default(uint8_t pll, bool r, bool enable)
 {
-	uint32_t en = r ? PLL_ENR : PLL_ENP;
+	uint32_t en;
 
 	dw_pll5ghz_tsmc12ffc_bypass_sync(pll, r, true);
-	__raw_clearl(en, DW_PLL_CFG1(pll));
-	en |= r ? PLL_DIVVCOR(0) | PLL_R(0) : PLL_DIVVCOP(0) | PLL_P(0);
+	en = r ? PLL_DIVVCOR(0) | PLL_R(0) : PLL_DIVVCOP(0) | PLL_P(0);
 	if (enable)
-		__raw_setl(en, DW_PLL_CFG1(pll));
-	else
-		__raw_clearl(en, DW_PLL_CFG1(pll));
+		en |= r ? PLL_ENR : PLL_ENP;
+	dw_pll5ghz_tsmc12ffc_output_config(pll, r, en);
 }
 
 void dw_pll5ghz_tsmc12ffc_enable(uint8_t pll, uint64_t fvco,
@@ -260,6 +261,9 @@ void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
 	uint32_t cfg = PLL_RANGE3;
 	uint64_t fbdiv;
 
+	if (__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED)
+		return;
+
 	if (fvco < ULL(2500000000))
 		BUG();
 	else if (fvco <= ULL(3750000000))
@@ -303,6 +307,9 @@ void dw_pll5ghz_tsmc12ffc_disable(uint8_t pll, bool r)
 
 void dw_pll5ghz_tsmc12ffc_pwrdn(uint8_t pll)
 {
+	if (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED))
+		return;
+
 	dw_pll5ghz_tsmc12ffc_bypass(pll, PLL_BYPASS_NONE);
 	if (__raw_readl(DW_PLL_STATUS(pll)) & PLL_STANDBYEFF)
 		dw_pll5ghz_tsmc12ffc_relock(pll);

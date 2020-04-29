@@ -139,7 +139,7 @@ struct reset_clk reset_clks[NR_RESET_CLKS] = {
 		.flags = CLK_SRST_F,
 	},
 	[SRST_IMC] = {
-		.clk_src = apb_clk,
+		.clk_src = imc_clk,
 		.flags = CLK_EN_F,
 	},
 	[SRST_NOC] = {
