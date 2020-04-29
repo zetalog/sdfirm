@@ -136,14 +136,12 @@
 	do {						\
 		__raw_writel(FCR_FIFOE |		\
 			     FCR_RT(FCR_RT_CHAR_1) |	\
-			     FCR_TET(FCR_TET_EMPTY),	\
+			     FCR_TET(FCR_TET_EMPTY) |	\
+			     FCR_RESET_MASK,		\
 			     UART_FCR(n));		\
 	} while (0)
-#define dw_uart_reset_fifo(n)				\
-	__raw_writel_mask(FCR_RESET_MASK, FCR_RESET_MASK, UART_FCR(n))
 #else
 #define dw_uart_config_fifo(n)
-#define dw_uart_reset_fifo(n)
 #endif
 #ifdef CONFIG_DW_UART_SHADOW
 #define UART_SRBRn(n, i)	DW_UART_REG(n, 0x30 + (i)*0x04)

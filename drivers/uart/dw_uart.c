@@ -105,7 +105,6 @@ void dw_uart_con_init(uint32_t freq)
 		     UART_LCR(UART_CON_ID));
 	/* Configure FIFO */
 	dw_uart_config_fifo(UART_CON_ID);
-	dw_uart_reset_fifo(UART_CON_ID);
 }
 #endif
 
