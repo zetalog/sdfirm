@@ -123,7 +123,9 @@ void irqc_hw_configure_irq(irq_t irq, uint8_t prio, uint8_t trigger)
 }
 
 #ifdef CONFIG_PLIC_COMPLETION
-#define plic_internal_completion(cpu, irq)	do { } while (0)
+#define plic_completion(cpu, irq)	plic_irq_completion(cpu, irq)
+#else
+#define plic_completion(cpu, irq)	do { } while (0)
 
 void irqc_hw_ack_irq(irq_t irq)
 {
@@ -131,8 +133,6 @@ void irqc_hw_ack_irq(irq_t irq)
 
 	plic_irq_completion(cpu, irq);
 }
-#else
-#define plic_internal_completion(cpu, irq)	plic_irq_completion(cpu, irq)
 #endif
 
 void irqc_hw_handle_irq(void)
@@ -152,7 +152,7 @@ void irqc_hw_handle_irq(void)
 			plic_disable_irq(irq);
 			plic_irq_completion(cpu, irq);
 		} else
-			plic_internal_completion(cpu, irq);
+			plic_completion(cpu, irq);
 	}
 	plic_hw_enable_int(IRQ_EXT);
 }

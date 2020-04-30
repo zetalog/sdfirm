@@ -482,7 +482,6 @@ config SYS_EXIT_S
 
 config SYS_EXIT_U
 	bool
-	select RISCV_N if (CPU_N && !SYS_NOIRQ)
 
 choice
 	prompt "Privileged software stack"
@@ -527,6 +526,7 @@ choice
 config RISCV_EXIT_U
 	bool "U-Mode"
 	depends SYS_EXIT_U
+	select RISCV_N if (CPU_N && !SYS_NOIRQ)
 
 config RISCV_EXIT_S
 	bool "S-Mode"
@@ -599,13 +599,26 @@ config ARCH_HAS_PLIC
 config PLIC
 	bool "Platform level interrupt controller (PLIC) support"
 	depends ARCH_HAS_PLIC
-	select ARCH_HAS_IRQC_MASK
-	select ARCH_HAS_IRQC_ACK
+	select ARCH_HAS_IRQC_ACK if !PLIC_COMPLETION
 
 if PLIC
 
 config PLIC_COMPLETION
-	bool "Prefer IRQ handler to perform IRQ completion"
+	bool "Enable internal IRQ completion"
+	help
+	  By default, PLIC driver allows hardware drivers to invoke IRQ
+	  completion as EOI indication. However, for realtime reasons,
+	  PLIC driver may complete the IRQ in the IRQ context.
+	  If unsure, say 'N'.
+
+config PLIC_MASK_PRIORITY
+	bool "Enable priority based IRQ masking"
+	select ARCH_HAS_IRQC_MASK
+	help
+	  By default, PLIC uses  ENABLER based IRQ masking. This option
+	  allows to use PRIORITYR based IRQ masking, at the cost that the
+	  hardware drivers can only use the lowest priority - 1.
+	  If unsure, say 'N'.
 
 endif
 
