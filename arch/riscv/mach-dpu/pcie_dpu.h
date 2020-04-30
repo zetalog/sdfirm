@@ -27,6 +27,9 @@
 #define RESET_CORE_X4_1             0xC
 #define RESET_PHY                   0x10
 #define SUBSYS_CONTROL              0x14
+#define REFCLK_CONTROL              0x18
+#define SRAM_CONTROL                0x1c
+#define SRAM_STATUS                 0x20
 
 #define LINK_MODE_4_4_4_4           0x0
 #define LINK_MODE_8_4_0_4           0x1
@@ -60,36 +63,33 @@
 #define CFG_AXI_CORE_X4_0           0x0
 #define CFG_AXI_CORE_X4_1           0x0
 #else
-#define CFG_APB_SUBSYS              0xff09000000ULL
-#define CFG_APB_CORE_X16            0xff09001000ULL
-#define CFG_APB_CORE_X8             0xff09002000ULL
-#define CFG_APB_CORE_X4_0           0xff09003000ULL
-#define CFG_APB_CORE_X4_1           0xff09004000ULL
+#define CFG_APB_PHY_0               0x4500000UL
+#define CFG_APB_SUBSYS              0x4510000UL
+#define CFG_APB_CORE_X16            0x4511000UL
+#define CFG_APB_CORE_X8             0x4512000UL
+#define CFG_APB_CORE_X4_0           0x4513000UL
+#define CFG_APB_CORE_X4_1           0x4514000UL
 
-#define CFG_APB_PHY_0               0xff09100000ULL
-#define CFG_APB_PHY_1               0xff09200000ULL
-#define CFG_APB_PHY_2               0xff09300000ULL
-#define CFG_APB_PHY_3               0xff09400000ULL
 
-#define CFG_AXI_CORE_X16            0xff09110000ULL
-#define CFG_AXI_CORE_X8             0xff09210000ULL
-#define CFG_AXI_CORE_X4_0           0xff09310000ULL
-#define CFG_AXI_CORE_X4_1           0xff09410000ULL
+#define CFG_AXI_CORE_X16            0x4300000UL
+#define CFG_AXI_CORE_X8             0x4380000UL
+#define CFG_AXI_CORE_X4_0           0x4400000UL
+#define CFG_AXI_CORE_X4_1           0x4480000UL
 #endif
 
 #define KB                          (1UL << 10)
 #define MB                          (1UL << 20)
 #define GB                          (1UL << 30)
 
-#define PCIE_SUBSYS_ADDR_START      0x40000000000ULL
+#define PCIE_SUBSYS_ADDR_START      0xc00000000ULL
 #define PCIE_CORE_X16_ADDR_START    PCIE_SUBSYS_ADDR_START
-#define PCIE_CORE_X8_ADDR_START     PCIE_CORE_X16_ADDR_START + 512*GB
-#define PCIE_CORE_X4_0_ADDR_START   PCIE_CORE_X8_ADDR_START + 512*GB
-#define PCIE_CORE_X4_1_ADDR_START   PCIE_CORE_X4_0_ADDR_START + 512*GB
-#define PCIE_SUBSYS_ADDR_END        PCIE_CORE_X4_1_ADDR_START + 512*GB
+#define PCIE_CORE_X8_ADDR_START     PCIE_CORE_X16_ADDR_START + 4*GB
+#define PCIE_CORE_X4_0_ADDR_START   PCIE_CORE_X8_ADDR_START + 4*GB
+#define PCIE_CORE_X4_1_ADDR_START   PCIE_CORE_X4_0_ADDR_START + 4*GB
+#define PCIE_SUBSYS_ADDR_END        PCIE_CORE_X4_1_ADDR_START + 4*GB
 
 #define PCIE_CORE_CFG_SIZE      512*KB
-#define PCIE_CORE_MEM_SIZE      512*GB
+#define PCIE_CORE_MEM_SIZE      (4*GB - 512*KB)
 #define PCIE_CORE_X16_CFG0_START     PCIE_CORE_X8_ADDR_START - PCIE_CORE_CFG_SIZE
 #define PCIE_CORE_X16_CFG1_START     PCIE_CORE_X8_ADDR_START - 2*PCIE_CORE_CFG_SIZE
 #define PCIE_CORE_X8_CFG0_START     PCIE_CORE_X4_0_ADDR_START - PCIE_CORE_CFG_SIZE
