@@ -138,7 +138,7 @@ void dw_uart_handle_irq(void)
 	if (irq != UART_IRQ_RBFI)
 		return;
 
-	irqc_disable_irq(UART_CON_IRQ);
+	irqc_mask_irq(UART_CON_IRQ);
 	dw_uart_disable_irq(UART_CON_ID, IER_ERBFI);
 	console_handle_irq();
 }
@@ -155,7 +155,8 @@ void dw_uart_irq_init(void)
 void dw_uart_irq_ack(void)
 {
 	dw_uart_enable_irq(UART_CON_ID, IER_ERBFI);
-	irqc_enable_irq(UART_CON_IRQ);
+	irqc_unmask_irq(UART_CON_IRQ);
+	irqc_ack_irq(UART_CON_IRQ);
 }
 #endif
 #endif

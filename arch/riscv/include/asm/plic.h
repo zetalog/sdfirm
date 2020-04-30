@@ -157,10 +157,17 @@ void plic_sbi_init_warm(cpu_t cpu);
 #ifdef CONFIG_PLIC
 void irqc_hw_enable_irq(irq_t irq);
 void irqc_hw_disable_irq(irq_t irq);
+void irqc_hw_mask_irq(irq_t irq);
+void irqc_hw_unmask_irq(irq_t irq);
 void irqc_hw_clear_irq(irq_t irq);
 void irqc_hw_trigger_irq(irq_t irq);
 void irqc_hw_configure_irq(irq_t irq, uint8_t prio, uint8_t trigger);
 void irqc_hw_handle_irq(void);
+#ifdef CONFIG_PLIC_ACK
+void irqc_hw_ack_irq(irq_t irq);
+#else
+#define irqc_hw_ack_irq(irq)	do { } while (0)
+#endif
 
 #ifdef CONFIG_SBI
 /* PLIC requires no special initialization other than that is done

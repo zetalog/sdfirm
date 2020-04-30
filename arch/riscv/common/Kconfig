@@ -599,6 +599,15 @@ config ARCH_HAS_PLIC
 config PLIC
 	bool "Platform level interrupt controller (PLIC) support"
 	depends ARCH_HAS_PLIC
+	select ARCH_HAS_IRQC_MASK
+	select ARCH_HAS_IRQC_ACK
+
+if PLIC
+
+config PLIC_COMPLETION
+	bool "Prefer IRQ handler to perform IRQ completion"
+
+endif
 
 config RI5CY_PC
 	bool "RI5CY performance counter support"

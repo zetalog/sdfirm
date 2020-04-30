@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Apr 27 17:32:43 2020
+# Thu Apr 30 10:34:22 2020
 #
 CONFIG_32BIT=y
 CONFIG_RISCV=y
@@ -116,6 +116,8 @@ CONFIG_ARCH_HAS_RI5CY_FIRQ_EXT=y
 #
 # Smart Core DPU board options
 #
+CONFIG_DPU_CV32E=y
+# CONFIG_DPU_CV64A is not set
 CONFIG_DPU_BOOT=y
 CONFIG_DPU_LOAD_ZSBL=y
 CONFIG_DPU_BOOT_ROM=y
@@ -136,7 +138,6 @@ CONFIG_DPU_BOOT_APC=y
 #
 # Simulation options
 #
-CONFIG_DPU_UART_VIP=y
 # CONFIG_DPU_SIM_CLK is not set
 CONFIG_DPU_TCSR=y
 CONFIG_DPU_TCSR_ADDR_TRANS=y
@@ -150,6 +151,8 @@ CONFIG_DPU_PLL=y
 CONFIG_DPU_TMR=y
 # CONFIG_DPU_TMR_CMP_CONST is not set
 # CONFIG_DPU_PLIC is not set
+CONFIG_DPU_UART=y
+CONFIG_DPU_UART_VIP=y
 CONFIG_DPU_SPI_FLASH=y
 # CONFIG_DPU_FLASH_DIVIDER_8 is not set
 CONFIG_DPU_FLASH_DIVIDER_16=y
@@ -340,6 +343,11 @@ CONFIG_DW_UART_FIFO_MEM_INTERNAL=y
 # DDR controller drivers
 #
 CONFIG_DW_UMCTL2=y
+
+#
+# Serial Presence Detect (SPD) drivers
+#
+CONFIG_SPD_BUS_KHZ=60
 
 #
 # PCI drivers

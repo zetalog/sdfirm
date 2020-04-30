@@ -60,7 +60,7 @@ void i2c_hw_init(void)
 	}
 #ifdef CONFIG_DW_I2C_TEST_IRQ
 	for (i = 0; i < CONFIG_I2C_MAX_MASTERS; i++) {
-		irqc_configure_irq(IRQ_I2C0 + i, 1, IRQ_LEVEL_TRIGGERED);
+		irqc_configure_irq(IRQ_I2C0 + i, 0, IRQ_LEVEL_TRIGGERED);
 	}
 	for (i = 0; i < CONFIG_I2C_MAX_MASTERS; i++) {
 		irq_register_vector(IRQ_I2C0 + i, dw_i2c_irq_handler);

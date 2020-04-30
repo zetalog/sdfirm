@@ -83,6 +83,22 @@ void irqc_hw_disable_irq(irq_t irq)
 		plic_hw_disable_int(irq);
 }
 
+void irqc_hw_mask_irq(irq_t irq)
+{
+	if (irq >= IRQ_PLATFORM)
+		plic_mask_irq(irq - IRQ_PLATFORM);
+	else
+		plic_hw_disable_int(irq);
+}
+
+void irqc_hw_unmask_irq(irq_t irq)
+{
+	if (irq >= IRQ_PLATFORM)
+		plic_unmask_irq(irq - IRQ_PLATFORM);
+	else
+		plic_hw_enable_int(irq);
+}
+
 void irqc_hw_clear_irq(irq_t irq)
 {
 	if (irq >= IRQ_PLATFORM)
@@ -102,8 +118,22 @@ void irqc_hw_trigger_irq(irq_t irq)
 void irqc_hw_configure_irq(irq_t irq, uint8_t prio, uint8_t trigger)
 {
 	if (irq >= IRQ_PLATFORM)
-		plic_configure_priority(irq - IRQ_PLATFORM, prio);
+		plic_configure_priority(irq - IRQ_PLATFORM,
+					prio + PLIC_PRI_MIN);
 }
+
+#ifdef CONFIG_PLIC_COMPLETION
+#define plic_internal_completion(cpu, irq)	do { } while (0)
+
+void irqc_hw_ack_irq(irq_t irq)
+{
+	uint8_t cpu = smp_processor_id();
+
+	plic_irq_completion(cpu, irq);
+}
+#else
+#define plic_internal_completion(cpu, irq)	plic_irq_completion(cpu, irq)
+#endif
 
 void irqc_hw_handle_irq(void)
 {
@@ -113,13 +143,16 @@ void irqc_hw_handle_irq(void)
 	plic_hw_disable_int(IRQ_EXT);
 	irq = plic_claim_irq(cpu);
 	if (irq >= NR_EXT_IRQS) {
+		/* Invalid IRQ */
 		plic_disable_irq(irq);
 		plic_irq_completion(cpu, irq);
-		plic_hw_enable_int(IRQ_EXT);
-		return;
+	} else {
+		if (!do_IRQ(irq + IRQ_PLATFORM)) {
+			/* No IRQ handler registered, disabling... */
+			plic_disable_irq(irq);
+			plic_irq_completion(cpu, irq);
+		} else
+			plic_internal_completion(cpu, irq);
 	}
-	if (!do_IRQ(irq + IRQ_PLATFORM))
-		plic_disable_irq(irq);
-	plic_irq_completion(cpu, irq);
 	plic_hw_enable_int(IRQ_EXT);
 }

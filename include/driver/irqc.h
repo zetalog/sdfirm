@@ -56,6 +56,19 @@
 #define irqc_trigger_irq(irq)		irqc_hw_trigger_irq(irq)
 #define irqc_configure_irq(irq, prio, trigger)	\
 	irqc_hw_configure_irq(irq, prio, trigger)
+#ifdef CONFIG_ARCH_HAS_IRQC_ACK
+/* Defer acknowledgement */
+#define irqc_ack_irq(irq)		irqc_hw_ack_irq(irq)
+#else
+#define irqc_ack_irq(irq)		irqc_hw_clear_irq(irq)
+#endif
+#ifdef CONFIG_ARCH_HAS_IRQC_MASK
+#define irqc_mask_irq(irq)		irqc_hw_mask_irq(irq)
+#define irqc_unmask_irq(irq)		irqc_hw_unmask_irq(irq)
+#else
+#define irqc_mask_irq(irq)		irqc_hw_disable_irq(irq)
+#define irqc_unmask_irq(irq)		irqc_hw_enable_irq(irq)
+#endif
 #ifndef CONFIG_SMP
 #define irqc_hw_smp_init()		do { } while (0)
 #endif
@@ -72,6 +85,9 @@
 #define irqc_trigger_irq(irq)		do { } while (0)
 #define irqc_configure_irq(irq, prio, trigger)	\
 	do { } while (0)
+#define irqc_mask_irq(irq)		do { } while (0)
+#define irqc_unmask_irq(irq)		do { } while (0)
+#define irqc_ack_irq(irq)		do { } while (0)
 #endif
 
 #endif /* __IRQC_DRIVER_H_INCLUDE__ */
