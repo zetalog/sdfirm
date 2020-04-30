@@ -1,4 +1,6 @@
 #include "pcie_dpu.h"
+#include <target/clk.h>
+#include <asm/mach/tcsr.h>
 
 struct duowen_pcie_subsystem pcie_subsystem;
 
@@ -8,11 +10,11 @@ struct dw_pcie controllers[] =
     {
         .axi_dbi_port = AXI_DBI_PORT_X16,
         .dbi_base = CFG_AXI_CORE_X16,
-        .pp.cfg_bar0 = PCIE_CORE_X16_CFG0_START,
-        .pp.cfg_bar1 = PCIE_CORE_X16_CFG1_START,
+        .pp.cfg_bar0 = 3*GB + 512*KB,
+        .pp.cfg_bar1 = 3*GB + 1*MB,
         .pp.cfg_size = PCIE_CORE_CFG_SIZE,
-        .pp.mem_base = PCIE_CORE_X16_ADDR_START,
-        .pp.mem_size = PCIE_CORE_MEM_SIZE,
+        .pp.mem_base = 0,
+        .pp.mem_size = 3*GB,
     },
 
     // X8
@@ -104,16 +106,31 @@ void reset_init(struct duowen_pcie_subsystem *pcie_subsystem)
 {
     uint64_t base = pcie_subsystem->cfg_apb[SUBSYS];
     uint8_t port = APB_PORT_SUBSYS;
+    uint8_t mode = duowen_get_link_mode(pcie_subsystem);
+    uint32_t data = 0;
 
-    write_apb((base + RESET_PHY), 0x0, port);
-    udelay(1); // 100ns
+    write_apb((base + RESET_PHY), 0x10, port);
+    write_apb((base + SRAM_CONTROL), 0x0, port);
+    write_apb((base + REFCLK_CONTROL), 0x1, port);
+    // #200ns
+    write_apb((base + RESET_PHY), 0xf, port);
+    // #100ns
 
-    write_apb((base + RESET_CORE_X16), 0xff, port);
-    write_apb((base + RESET_CORE_X8), 0xff, port);
-    write_apb((base + RESET_CORE_X4_0), 0xff, port);
-    write_apb((base + RESET_CORE_X4_1), 0xff, port);
+    if (mode == LINK_MODE_16_0_0_0)
+        write_apb((base + RESET_CORE_X16), 0xff, port);
+    else if (mode == LINK_MODE_8_8_0_0)
+        write_apb((base + RESET_CORE_X8), 0xff, port);
+    else if (mode == LINK_MODE_4_4_4_4)
+        write_apb((base + RESET_CORE_X4_0), 0xff, port);
+    else
+        write_apb((base + RESET_CORE_X4_1), 0xff, port);
 
-    write_apb((base + RESET_PHY), 0xff, port);
+    while ((data & 0x1) != 0x1) {
+        data = read_apb((base + SRAM_STATUS), port);
+    }
+    write_apb((base + SRAM_CONTROL), 0x1, port);
+    
+    //write_apb((base + RESET_PHY), 0xff, port);
 }
 
 static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
@@ -124,6 +141,9 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
     uint8_t link_mode = pcie_subsystem->link_mode;
 
     //assert(link_mode != LINK_MODE_INVALID);
+
+    // #10ns
+    write_apb((base + SUBSYS_CONTROL), link_mode, port);   
 
     switch (link_mode) {
     case LINK_MODE_4_4_4_4:     // 0: In DPU, X4_0
@@ -158,6 +178,8 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
         (controller + X4_0)->order = 2;
         (controller + X4_1)->order = 3;
 #endif
+        base = pcie_subsystem->cfg_apb[X4_0];
+        port = APB_PORT_X4_0;
         break;
     case LINK_MODE_8_4_0_4:     // 1: In DPU, X4_1
 #ifdef DPU
@@ -190,8 +212,10 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
         (controller + X8)->order = 1;
         (controller + X4_0)->order = 0xff;
         (controller + X4_1)->order = 2;
-        break;
 #endif
+        base = pcie_subsystem->cfg_apb[X4_1];
+        port = APB_PORT_X4_1;
+        break;
     case LINK_MODE_8_8_0_0:     // 2: In DPU, X8
 #ifdef DPU
         (controller + X16)->lane_num = 0;
@@ -224,6 +248,8 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
         (controller + X4_0)->order = 0xff;
         (controller + X4_1)->order = 0xff;
 #endif
+        base = pcie_subsystem->cfg_apb[X8];
+        port = APB_PORT_X8;
         break;
     case LINK_MODE_16_0_0_0:    //  3: In DPU: X16
 #ifdef DPU
@@ -257,11 +283,12 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
         (controller + X4_0)->order = 0xff;
         (controller + X4_1)->order = 0xff;
 #endif
+        base = pcie_subsystem->cfg_apb[X16];
+        port = APB_PORT_X16;
         break;
     }
 
-    write_apb((base + SUBSYS_CONTROL), link_mode, port);   
-    udelay(1); // 300ns
+    write_apb((base + 0), 0xc810010, port);   
 }
 
 static void subsys_link_init_post(struct duowen_pcie_subsystem *pcie_subsys)
@@ -315,16 +342,35 @@ void instance_subsystem(struct duowen_pcie_subsystem *pcie_subsystem)
         dw_controller_init(pcie_subsystem->controller + i);
 }
 
+void clock_init(void)
+{
+    clk_enable(pcie0_aclk);
+    clk_enable(pcie0_pclk);
+    clk_enable(pcie0_aux_clk);
+    clk_enable(pcie0_ref_clk);
+    __raw_writel(0x2, 0x401405c);
+
+    clk_enable(srst_pcie0);
+    clk_enable(srst_pcie0_por);
+}
+
+//#define TCSR_BASE 0x4100000
 void pci_platform_init(void)
 {
     struct duowen_pcie_subsystem *pcie_subsys;
     struct dw_pcie *controller;
     int i;
+    //uint32_t base = TCSR_BASE, val;
+
+    printf("bird: PCIE start\n");
+    //imc_addr_trans(0, 0x20000000, 0xc00000000, 0);
+
 
     pcie_subsys = &pcie_subsystem;
     instance_subsystem(pcie_subsys);
 
-    //clock_init();
+    clock_init();
+    subsys_link_init_pre(pcie_subsys);
     reset_init(pcie_subsys);
     subsys_link_init_pre(pcie_subsys);
     

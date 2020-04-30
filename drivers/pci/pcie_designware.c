@@ -542,6 +542,9 @@ void dw_pcie_setup(struct dw_pcie *pci)
 	uint32_t lanes = pci->lane_num;
     uint8_t order = pci->order;
 
+    // test: disable DLL feature exchange
+    //dw_pcie_write_dbi(pci, DW_PCIE_CDM, 0x2d0, 0x0, 0x4);
+
     /* Conifg Fast Link Scale Factor is 64(16us) */
     val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_TIMER_CTRL_MAX_FUN_NUM_OFF, 0x4);
     tmp = 0x2 << 29;
