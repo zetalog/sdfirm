@@ -596,6 +596,9 @@ endif
 config ARCH_HAS_PLIC
 	bool
 
+config ARCH_HAS_PLIC_EOI_EARLY
+	bool
+
 config PLIC
 	bool "Platform level interrupt controller (PLIC) support"
 	depends ARCH_HAS_PLIC
@@ -605,6 +608,7 @@ if PLIC
 
 config PLIC_COMPLETION
 	bool "Enable internal IRQ completion"
+	depends ARCH_HAS_PLIC_EOI_EARLY
 	help
 	  By default, PLIC driver allows hardware drivers to invoke IRQ
 	  completion as EOI indication. However, for realtime reasons,

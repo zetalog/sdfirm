@@ -131,7 +131,7 @@ void irqc_hw_ack_irq(irq_t irq)
 {
 	uint8_t cpu = smp_processor_id();
 
-	plic_irq_completion(cpu, irq);
+	plic_irq_completion(cpu, irq - IRQ_PLATFORM);
 }
 #endif
 
