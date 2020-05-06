@@ -65,11 +65,12 @@ config ARCH_HAS_VIC
 config ARCH_HAS_IRQC
 	bool
 
-config ARCH_HAS_IRQC_MASK
-	bool
-
 config ARCH_HAS_IRQC_ACK
 	bool
+
+config ARCH_HAS_IRQC_MASK
+	bool
+	depends !ARCH_HAS_IRQC_ACK
 
 config ARCH_HAS_GPT
 	bool

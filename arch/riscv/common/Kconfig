@@ -617,9 +617,10 @@ config PLIC_COMPLETION
 
 config PLIC_MASK_PRIORITY
 	bool "Enable priority based IRQ masking"
+	depends PLIC_COMPLETION
 	select ARCH_HAS_IRQC_MASK
 	help
-	  By default, PLIC uses  ENABLER based IRQ masking. This option
+	  By default, PLIC uses ENABLER based IRQ masking. This option
 	  allows to use PRIORITYR based IRQ masking, at the cost that the
 	  hardware drivers can only use the lowest priority - 1.
 	  If unsure, say 'N'.

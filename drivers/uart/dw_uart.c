@@ -155,8 +155,8 @@ void dw_uart_irq_init(void)
 void dw_uart_irq_ack(void)
 {
 	dw_uart_enable_irq(UART_CON_ID, IER_ERBFI);
-	irqc_unmask_irq(UART_CON_IRQ);
 	irqc_ack_irq(UART_CON_IRQ);
+	irqc_unmask_irq(UART_CON_IRQ);
 }
 #endif
 #endif

@@ -858,8 +858,8 @@ int i2c_hw_read_vip(uint8_t dev, uint8_t *buffer, int len)
 			irq_local_restore(irq_flags);
 		}
 		irq_test_flag = 0;
-		irqc_unmask_irq(IRQ_I2C0 + irq_test_master_num);
 		irqc_ack_irq(IRQ_I2C0 + irq_test_master_num);
+		irqc_unmask_irq(IRQ_I2C0 + irq_test_master_num);
 #endif
 
 		offset = IC_STATUS;

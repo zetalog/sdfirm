@@ -56,19 +56,74 @@
 #define irqc_trigger_irq(irq)		irqc_hw_trigger_irq(irq)
 #define irqc_configure_irq(irq, prio, trigger)	\
 	irqc_hw_configure_irq(irq, prio, trigger)
+/* There are 2 kinds of IRQ implementation:
+ * 1. mask/clear based IRQ chip, they trend to provide the feature of
+ *    mask/unmask.
+ *    isr:
+ *      if (edge)
+ *        clear
+ *      if (!handled)
+ *        mask
+ *    dsr:
+ *      if (level)
+ *        clear
+ *      if (masked)
+ *        unmask
+ *    sdfirm IRQC framework doesn't care if IRQ is handled, so hardware
+ *    driver need to invoke mask/unmask themselves. NOTE that clear goes
+ *    prior than unmask.
+ * 2. ack based IRQ chip, they trend to provide the feature of
+ *    CONFIG_ARCH_HAS_IRQC_ACK (commonly seen in SMP environment).
+ *    isr:
+ *      soi (start of interrupt, i.e., read CLAIMR)
+ *      if (!handled)
+ *        mask
+ *    dsr:
+ *      if (masked)
+ *        unmask
+ *      eoi (end of interrupt, i.e., write CLAIMR)
+ *    In this case, interrupt is automatically masked during soi-eoi
+ *    period. NOTE that unmask goes prior than eoi.
+ * Then sdfirm provides the following unified IRQ chip framework:
+ *    isr:
+ *      if (!handled)
+ *        mask
+ *    dsr:
+ *      ack
+ *      if (masked)
+ *        unmask
+ * And all hardware driver must use the above sequence to survive both
+ * kinds of the IRQ chips. For the IRQ chip implementation, care must be
+ * taken to provide the semantics in the the following style:
+ * 1. CONFIG_ARCH_HAS_IRQC_ACK=n:
+ *    mask/unmask: mask/unmask
+ *    ack: clear
+ * 2. CONFIG_ARCH_HAS_IRQC_ACK=y:
+ *    mask/unmask: nothing as mask is automatically done by soi-eoi.
+ *    ack: eoi
+ * In addition to this, IRQ chips may provide their own mask/unmask
+ * implementation where mask/disable and unmask/enable use different
+ * registers.
+ * 1. CONFIG_ARCH_HAS_IRQC_ACK=n, CONFIG_ARCH_HAS_IRQC_MASK=n:
+ *    mask/unmask: disable/enable
+ * 2. CONFIG_ARCH_HAS_IRQC_ACK=n, CONFIG_ARCH_HAS_IRQC_MASK=y:
+ *    mask/unmask: architecture specific mask/unmask
+ */
 #ifdef CONFIG_ARCH_HAS_IRQC_ACK
-/* Defer acknowledgement */
 #define irqc_ack_irq(irq)		irqc_hw_ack_irq(irq)
-#else
+#define irqc_mask_irq(irq)		do { } while (0)
+#define irqc_unmask_irq(irq)		do { } while (0)
+#else /* CONFIG_ARCH_HAS_IRQC_ACK */
 #define irqc_ack_irq(irq)		irqc_hw_clear_irq(irq)
-#endif
 #ifdef CONFIG_ARCH_HAS_IRQC_MASK
 #define irqc_mask_irq(irq)		irqc_hw_mask_irq(irq)
 #define irqc_unmask_irq(irq)		irqc_hw_unmask_irq(irq)
-#else
+#else /* CONFIG_ARCH_HAS_IRQC_MASK */
 #define irqc_mask_irq(irq)		irqc_hw_disable_irq(irq)
 #define irqc_unmask_irq(irq)		irqc_hw_enable_irq(irq)
-#endif
+#endif /* CONFIG_ARCH_HAS_IRQC_MASK */
+#endif /* CONFIG_ARCH_HAS_IRQC_ACK */
+
 #ifndef CONFIG_SMP
 #define irqc_hw_smp_init()		do { } while (0)
 #endif
