@@ -65,6 +65,7 @@
 #define spi_hw_read_byte()		dw_ssi_read_byte(SSI_ID)
 #define spi_hw_write_byte(byte)		dw_ssi_write_byte(SSI_ID, byte)
 #define spi_hw_chip_select(chip)	dw_ssi_select_chip(SSI_ID, chip)
+#define spi_hw_deselect_chips()		dw_ssi_deselect_chips(SSI_ID)
 #define spi_hw_ctrl_init()				\
 	dw_ssi_init_master(SSI_ID, SSI_SPI_FRF_STD,	\
 			   SSI_TMOD_TX_AND_RX, 8, 8)

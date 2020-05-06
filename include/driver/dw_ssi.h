@@ -245,6 +245,7 @@ struct dw_ssi_ctx {
 	__raw_writel_mask(SSI_SPI_MODE(mode),	\
 			  SSI_SPI_MODE_MASK, SSI_CTRLR0(n))
 #define dw_ssi_select_chip(n, chip)	__raw_writel(_BV(chip), SSI_SER(n))
+#define dw_ssi_deselect_chips(n)	__raw_writel(0, SSI_SER(n))
 #define dw_ssi_enable_irqs(n, irqs)	__raw_clearl(irqs, SSI_IMR(n))
 #define dw_ssi_disable_irqs(n, irqs)	__raw_setl(irqs, SSI_IMR(n))
 

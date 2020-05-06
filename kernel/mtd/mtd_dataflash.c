@@ -384,6 +384,7 @@ mtd_t dataflash_register_bank(uint8_t chip)
 	/* register MTD device */
 	dataflash_infos[bid].cid = dataflash_cid;
 	dataflash_infos[bid].pageorder = __fls16(dataflash_hw_page_size());
+	dataflash_infos[bid].eraseorder = __fls16(dataflash_hw_page_size());
 	dataflash_infos[bid].nr_pages = DATAFLASH_HW_MAX_PAGES;
 	dataflash_privs[bid].mtd = mtd_add_device(&dataflash_infos[bid]);
 

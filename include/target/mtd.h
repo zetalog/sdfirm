@@ -57,6 +57,7 @@ struct mtd_info {
 	uint8_t pageorder;
 	/* mtd_size_t pagesize; */
 	mtd_page_t nr_pages;
+	uint8_t eraseorder;
 };
 
 struct mtd_concat {

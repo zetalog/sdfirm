@@ -322,6 +322,8 @@ menuconfig DPU_SSI_FLASH
 	select ARCH_HAS_SSI_FRF
 	select ARCH_HAS_SSI_SPI
 	select ARCH_HAS_SSI_SPI_1WIRE
+	select MTD
+	select SPIFLASH_W25Q32
 	help
 	  The DPU SoC also contains a DW_SSI controller that can be used
 	  to interface with the external SPI flashes. However, the

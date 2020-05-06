@@ -4,6 +4,8 @@
 
 menuconfig MTD
 	bool "Memory technology device (MTD) support"
+	select BIT_FLS32
+	select BIT_FLS16
 
 if MTD
 
@@ -85,6 +87,58 @@ config DATAFLASH_WRITE_VERIFY
 
 config DATAFLASH_OTP
 	bool "DataFlash one time programmable (OTP) support"
+
+endif
+
+menuconfig MTD_SPIFLASH
+	bool "Winbond SPI interfaced flash support"
+
+if MTD_SPIFLASH
+
+config SPIFLASH_MAX_BANKS
+	int "Number of SPI flash banks"
+	range 1 16
+	default 1
+
+choice
+	prompt "SPI wires"
+
+config SPIFLASH_STD
+	bool "Standard SPI instructions"
+
+config SPIFLASH_DUAL
+	bool "Dual SPI instructions"
+
+config SPIFLASH_QUAD
+	bool "Quad SPI instructions"
+
+endchoice
+
+choice
+	prompt "Standard SPI mode"
+	default SPIFLASH_MODE_0
+
+config SPIFLASH_MODE_0
+	bool "Mode 0"
+
+config SPIFLASH_MODE_3
+	bool "Mode 3"
+
+endchoice
+
+choice
+	prompt "Block erase size"
+
+config SPIFLASH_ERASE_4K
+	bool "Sector 4KB"
+
+config SPIFLASH_ERASE_32K
+	bool "Block 32KB"
+
+config SPIFLASH_ERASE_64K
+	bool "Block 64KB"
+
+endchoice
 
 endif
 

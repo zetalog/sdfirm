@@ -275,8 +275,9 @@ static void mtd_concat_erase(mtd_t mtd, mtd_addr_t addr, mtd_size_t length)
 		BUG_ON(erase_mtd >= mtd_last_cid);
 		erase_info = mtd_get_info(erase_mtd);
 		erase_addr = mtd_concat_chip_addr(priv, addr+offset);
-		erase_size = mtd_page_size(erase_info->pageorder) -
-			     mtd_page_offset(erase_addr, erase_info->pageorder);
+		erase_size = mtd_page_size(erase_info->eraseorder) -
+			     mtd_page_offset(erase_addr,
+					     erase_info->eraseorder);
 		erase_size = min(length, erase_size);
 		mtd_erase(erase_mtd, erase_addr, erase_size);
 
