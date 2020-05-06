@@ -101,15 +101,21 @@ int console_register_handler(console_handler handler)
 static int console_bh;
 static uint8_t console_events;
 
+#ifdef CONFIG_CONSOLE_INPUT
 #ifdef SYS_REALTIME
 #define console_poll_init()	(irq_register_poller(console_bh))
-#define console_irq_ack()
-#define console_irq_init()
-#else
-#define console_poll_init()
+#define console_irq_ack()	do { } while (0)
+#define console_irq_init()	do { } while (0)
+#else /* SYS_REALTIME */
+#define console_poll_init()	do { } while (0)
 #define console_irq_init()	uart_hw_irq_init()
 #define console_irq_ack()	uart_hw_irq_ack()
-#endif
+#endif /* SYS_REALTIME */
+#else /* CONFIG_CONSOLE_INPUT */
+#define console_poll_init()	do { } while (0)
+#define console_irq_init()	do { } while (0)
+#define console_irq_ack()	do { } while (0)
+#endif /* CONFIG_CONSOLE_INPUT */
 
 #define CONSOLE_IRQ		0x02
 
