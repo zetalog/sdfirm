@@ -44,8 +44,10 @@ static irq_flags_t irq_flags;
  */
 void dw_i2c_irq_handler(void)
 {
-	irqc_clear_irq(IRQ_I2C0 + irq_test_master_num);
-	irqc_disable_irq(IRQ_I2C0 + irq_test_master_num);
+	/* The IRQ handler do not automatically mask irq for hardware, as
+	 * there is no return value indicated by the handler.
+	 */
+	irqc_mask_irq(IRQ_I2C0 + irq_test_master_num);
 	irq_test_flag = 1 + irq_test_master_num;
 }
 #endif
@@ -849,14 +851,15 @@ int i2c_hw_read_vip(uint8_t dev, uint8_t *buffer, int len)
 		}
 
 #ifdef CONFIG_DW_I2C_TEST_IRQ
-		while(irq_test_flag == 0) {
+		while (irq_test_flag == 0) {
 			irq_local_save(irq_flags);
 			irq_local_enable();
 			irq_local_disable();
 			irq_local_restore(irq_flags);
 		}
 		irq_test_flag = 0;
-		irqc_enable_irq(IRQ_I2C0 + irq_test_master_num);
+		irqc_unmask_irq(IRQ_I2C0 + irq_test_master_num);
+		irqc_ack_irq(IRQ_I2C0 + irq_test_master_num);
 #endif
 
 		offset = IC_STATUS;
