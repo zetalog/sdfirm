@@ -56,7 +56,13 @@
 #define irqc_trigger_irq(irq)		irqc_hw_trigger_irq(irq)
 #define irqc_configure_irq(irq, prio, trigger)	\
 	irqc_hw_configure_irq(irq, prio, trigger)
-/* There are 2 kinds of IRQ implementation:
+/* XXX: Extended IRQC APIs
+ * This segment dipicts the extended IRQC APIs:
+ * 1. irqc_mask_irq
+ * 2. irqc_unmask_irq
+ * 3. irqc_ack_irq
+ *
+ * There are 2 kinds of IRQ implementation:
  * 1. mask/clear based IRQ chip, they trend to provide the feature of
  *    mask/unmask.
  *    isr:
@@ -83,18 +89,20 @@
  *        unmask
  *      eoi (end of interrupt, i.e., write CLAIMR)
  *    In this case, interrupt is automatically masked during soi-eoi
- *    period. NOTE that unmask goes prior than eoi.
- * Then sdfirm provides the following unified IRQ chip framework:
+ *    period. However sdfirm common drivers may still provide mask/unmask
+ *    themselves. NOTE that unmask must go prior than eoi.
+ * In order to handle both cases, sdfirm provides a unified IRQ chip API
+ * framework, where the APIs must be invoked by the common drivers in the
+ * following sequences:
  *    isr:
  *      if (!handled)
- *        mask
+ *        irqc_mask_irq
  *    dsr:
- *      ack
+ *      irqc_ack_irq
  *      if (masked)
- *        unmask
- * And all hardware driver must use the above sequence to survive both
- * kinds of the IRQ chips. For the IRQ chip implementation, care must be
- * taken to provide the semantics in the the following style:
+ *        irqc_unmask_irq
+ * For the IRQ chip implementation, care must be taken to provide the
+ * semantics in the the following style:
  * 1. CONFIG_ARCH_HAS_IRQC_ACK=n:
  *    mask/unmask: mask/unmask
  *    ack: clear
@@ -108,17 +116,31 @@
  *    mask/unmask: disable/enable
  * 2. CONFIG_ARCH_HAS_IRQC_ACK=n, CONFIG_ARCH_HAS_IRQC_MASK=y:
  *    mask/unmask: architecture specific mask/unmask
+ * And we can notice that, by default an IRQ chip implementation needn't
+ * provide mask/unmask/ack APIs, and sdfirm will provide the default
+ * generic implementation:
+ * 1. CONFIG_ARCH_HAS_IRQC_ACK=n, CONFIG_ARCH_HAS_IRQC_MASK=n:
+ *    mask/unmask: disable/enable
+ *    ack: clear
  */
 #ifdef CONFIG_ARCH_HAS_IRQC_ACK
 #define irqc_ack_irq(irq)		irqc_hw_ack_irq(irq)
 #define irqc_mask_irq(irq)		do { } while (0)
 #define irqc_unmask_irq(irq)		do { } while (0)
 #else /* CONFIG_ARCH_HAS_IRQC_ACK */
+/* XXX: For an edge triggered IRQ, this implementation is not safe, may
+ *      lead to the IRQ losses unless the driver contains some polling
+ *      code to recover from the losses.
+ */
 #define irqc_ack_irq(irq)		irqc_hw_clear_irq(irq)
 #ifdef CONFIG_ARCH_HAS_IRQC_MASK
 #define irqc_mask_irq(irq)		irqc_hw_mask_irq(irq)
 #define irqc_unmask_irq(irq)		irqc_hw_unmask_irq(irq)
 #else /* CONFIG_ARCH_HAS_IRQC_MASK */
+/* XXX: This kind of mask/unmask must be invoked inside an enable/disable
+ *      period and the mask invocation must be paired with an unmask
+ *      invocation during that period.
+ */
 #define irqc_mask_irq(irq)		irqc_hw_disable_irq(irq)
 #define irqc_unmask_irq(irq)		irqc_hw_enable_irq(irq)
 #endif /* CONFIG_ARCH_HAS_IRQC_MASK */
