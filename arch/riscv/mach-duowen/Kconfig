@@ -147,3 +147,21 @@ menuconfig DUOWEN_DMA
 endmenu
 
 endif
+
+menuconfig DUOWEN_DDR
+	bool "DDR controller/phy support"
+
+if DUOWEN_DDR
+
+config DUOWEN_DDR_SPD_BUS_NUM
+	int "I2C Bus (Master) Number for DDR SPDs"
+	default 0
+	depends I2C && I2C_MASTER
+
+config DUOWEN_DDR_SPD_COUNT
+	int "Count of DDR SPDs (DIMMs)"
+	default 2
+	range 1 8
+	depends I2C && I2C_MASTER
+
+endif

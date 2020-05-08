@@ -49,6 +49,7 @@
 #define UART_CLK_ID		uart0_clk
 #define DW_UART0_BASE		IMC_UART_BASE
 #define UART_CON_ID		0
+#define UART_CON_IRQ		IRQ_UART0
 
 #if defined(CONFIG_DW_UART)
 #include <driver/dw_uart.h>

@@ -47,7 +47,6 @@ build_sdfirm riscv64 duowen_sv48
 build_sdfirm riscv32 dpu_rom
 build_sdfirm riscv32 dpu_flash
 build_sdfirm riscv32 dpu_ram
-build_sdfirm riscv32 dpu_zsbl
 build_sdfirm riscv32 vega_ri5cy
 
 build_sdfirm riscv64 spike_rv64
