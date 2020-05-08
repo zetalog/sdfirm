@@ -153,7 +153,12 @@
 #define pcie1_aux_clk		xin
 #define pcie1_ref_clk		pcie_ref_clk
 
-#define CLK_RESET		((clk_cat_t)4)
+#define CLK_DEP			((clk_cat_t)4)
+#define VPU_CLK			((clk_clk_t)0)
+#define NR_DEP_CLKS		(VPU_CLK + 1)
+#define vpu_clk			clkid(CLK_DEP, 0)
+
+#define CLK_RESET		((clk_cat_t)5)
 #define NR_RESET_CLKS		NR_PLL_RSTS
 #define srst_gpdpu		clkid(CLK_RESET, SRST_GPDPU)
 #define srst_pcie0		clkid(CLK_RESET, SRST_PCIE0)
@@ -185,8 +190,6 @@
 #define srst_pcie0_por		clkid(CLK_RESET, SRST_PCIE0_POR)
 #define srst_pcie1_por		clkid(CLK_RESET, SRST_PCIE1_POR)
 #define por_arst		clkid(CLK_RESET, POR_ARST)
-#define srst_vpu_brst		srst_vpu
-#define srst_vpu_crst		srst_vpu
 
 /* DDR reset alias */
 #define ddr0_pwr_ok_in		srst_ddr0_por

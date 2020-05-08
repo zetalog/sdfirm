@@ -49,7 +49,6 @@
 
 struct reset_clk {
 	clk_t clk_src;
-	clk_t clk_dep;
 	uint8_t flags;
 	uint16_t axi_periphs;
 };
@@ -59,12 +58,10 @@ struct reset_clk {
 struct reset_clk reset_clks[NR_RESET_CLKS] = {
 	[SRST_GPDPU] = {
 		.clk_src = pe_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_PCIE0] = {
 		.clk_src = axi_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_SRST_F,
 		.axi_periphs = _BV(IMC_PCIE_X16_MST) |
 			       _BV(IMC_PCIE_X8_MST) |
@@ -81,108 +78,87 @@ struct reset_clk reset_clks[NR_RESET_CLKS] = {
 	},
 	[SRST_PCIE1] = {
 		.clk_src = axi_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_SPI] = {
 		.clk_src = apb_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_I2C0] = {
 		.clk_src = apb_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_I2C1] = {
 		.clk_src = apb_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_I2C2] = {
 		.clk_src = apb_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_UART] = {
 		.clk_src = apb_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_PLIC] = {
 		.clk_src = apb_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_GPIO] = {
 		.clk_src = apb_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_EN_F,
 	},
 	[SRST_RAM] = {
 		.clk_src = apb_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_EN_F,
 	},
 	[SRST_ROM] = {
 		.clk_src = apb_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_EN_F,
 	},
 	[SRST_TMR] = {
 		.clk_src = xin,
-		.clk_dep = invalid_clk,
 		.flags = CLK_EN_F,
 	},
 	[SRST_WDT] = {
 		.clk_src = apb_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_TCSR] = {
 		.clk_src = apb_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_EN_F,
 	},
 	[SRST_VPU] = {
-		.clk_src = vpu_bclk,
-		.clk_dep = vpu_cclk,
+		.clk_src = vpu_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_IMC] = {
 		.clk_src = imc_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_EN_F,
 	},
 	[SRST_NOC] = {
 		.clk_src = apb_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_EN_F,
 	},
 	[SRST_FLASH] = {
 		.clk_src = apb_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_EN_F,
 	},
 	[SRST_DDR0_0] = {
 		.clk_src = ddr_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_DDR0_1] = {
 		.clk_src = ddr_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_SRST_F,
 		.axi_periphs = _BV(IMC_DDR0) | _BV(IMC_DDR0_CTRL),
 	},
 	[SRST_DDR1_0] = {
 		.clk_src = ddr_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_DDR1_1] = {
 		.clk_src = ddr_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_SRST_F,
 		.axi_periphs = _BV(IMC_DDR1) | _BV(IMC_DDR1_CTRL),
 	},
@@ -191,22 +167,18 @@ struct reset_clk reset_clks[NR_RESET_CLKS] = {
 	 */
 	[SRST_DDR0_POR] = {
 		.clk_src = invalid_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_DDR1_POR] = {
 		.clk_src = invalid_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_PCIE0_POR] = {
 		.clk_src = pcie_ref_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_SRST_F,
 	},
 	[SRST_PCIE1_POR] = {
 		.clk_src = pcie_ref_clk,
-		.clk_dep = invalid_clk,
 		.flags = CLK_SRST_F,
 	},
 };
@@ -261,8 +233,6 @@ static int enable_reset_clk(clk_clk_t clk)
 
 	if (reset_clks[clk].clk_src != invalid_clk)
 		clk_enable(reset_clks[clk].clk_src);
-	if (reset_clks[clk].clk_dep != invalid_clk)
-		clk_enable(reset_clks[clk].clk_dep);
 	dpu_pll_soft_reset(clk);
 	reset_clks[clk].flags |= CLK_EN_F;
 	imc_axi_register_periphs(reset_clks[clk].axi_periphs);
@@ -298,6 +268,84 @@ struct clk_driver clk_srst = {
 	.get_freq = get_reset_clk_freq,
 	.set_freq = NULL,
 	.get_name = get_reset_clk_name,
+};
+
+struct dep_clk {
+	clk_t *clk_deps;
+};
+
+clk_t vpu_clks[] = {
+	vpu_bclk,
+	vpu_cclk,
+	invalid_clk,
+};
+
+struct dep_clk dep_clks[NR_DEP_CLKS] = {
+	[VPU_CLK] = {
+		.clk_deps = vpu_clks,
+	},
+};
+
+#ifdef CONFIG_CONSOLE_COMMAND
+const char *dep_clk_names[NR_DEP_CLKS] = {
+	[VPU_CLK] = "vpu_clk",
+};
+
+static const char *get_dep_clk_name(clk_clk_t clk)
+{
+	if (clk >= NR_DEP_CLKS)
+		return NULL;
+	return dep_clk_names[clk];
+}
+#else
+#define get_dep_clk_name	NULL
+#endif
+
+static int enable_dep_clk(clk_clk_t clk)
+{
+	clk_t *dep;
+
+	if (clk >= NR_DEP_CLKS)
+		return -EINVAL;
+	if (dep_clks[clk].clk_deps == NULL)
+		return -EINVAL;
+
+	for (dep = dep_clks[clk].clk_deps; *dep != invalid_clk; dep++)
+		clk_enable(*dep);
+	return 0;
+}
+
+static void disable_dep_clk(clk_clk_t clk)
+{
+	clk_t *dep;
+
+	if (clk >= NR_DEP_CLKS)
+		return;
+	if (dep_clks[clk].clk_deps == NULL)
+		return;
+
+	for (dep = dep_clks[clk].clk_deps; *dep != invalid_clk; dep++)
+		clk_disable(*dep);
+}
+
+static clk_freq_t get_dep_clk_freq(clk_clk_t clk)
+{
+	struct dep_clk *dep;
+
+	if (clk >= NR_DEP_CLKS)
+		return INVALID_FREQ;
+	dep = &(dep_clks[clk]);
+	return clk_get_frequency(dep->clk_deps[0]);
+}
+
+struct clk_driver clk_dep = {
+	.max_clocks = NR_DEP_CLKS,
+	.enable = enable_dep_clk,
+	.disable = disable_dep_clk,
+	.get_freq = get_dep_clk_freq,
+	.set_freq = NULL,
+	.select = NULL,
+	.get_name = get_dep_clk_name,
 };
 
 struct sel_clk {
@@ -894,6 +942,7 @@ void board_init_clock(void)
 		clk_register_driver(CLK_VCO, &clk_vco);
 		clk_register_driver(CLK_PLL, &clk_pll);
 		clk_register_driver(CLK_SEL, &clk_gmux);
+		clk_register_driver(CLK_DEP, &clk_dep);
 		clk_register_driver(CLK_RESET, &clk_srst);
 		/* Update the status of the default enabled clocks */
 		clk_enable(imc_clk);
