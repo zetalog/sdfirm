@@ -59,6 +59,8 @@ config CPU_CV64A
 	bool
 	select CPU_64G
 	select CPU_C
+	select CPU_SV39
+	select CPU_PMP
 
 # ZERO RISCY
 config CPU_0RISCY

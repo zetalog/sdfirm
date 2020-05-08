@@ -72,4 +72,10 @@
 #define spi_hw_ctrl_start()		dw_ssi_enable_ctrl(SSI_ID)
 #define spi_hw_ctrl_stop()		dw_ssi_disable_ctrl(SSI_ID)
 
+#ifdef CONFIG_DPU_SSI_FLASH
+void dpu_ssi_flash_init(void);
+#else
+#define dpu_ssi_flash_init()		do { } while (0)
+#endif
+
 #endif /* __SPI_DPU_H_INCLUDE__ */

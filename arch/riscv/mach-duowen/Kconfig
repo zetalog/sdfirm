@@ -144,7 +144,7 @@ menuconfig DUOWEN_DMA
 	bool "Direct Memory Access Controller (DMA) support"
 	select DW_DMA
 
-endmenu
+if DUOWEN_DMA
 
 endif
 
@@ -163,5 +163,9 @@ config DUOWEN_DDR_SPD_COUNT
 	default 2
 	range 1 8
 	depends I2C && I2C_MASTER
+
+endif
+
+endmenu
 
 endif

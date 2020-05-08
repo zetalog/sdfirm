@@ -42,6 +42,7 @@
 #include <target/arch.h>
 #include <target/irq.h>
 #include <target/clk.h>
+#include <target/spi.h>
 #include <target/cmdline.h>
 
 #ifdef CONFIG_SHUTDOWN
@@ -79,6 +80,7 @@ void board_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);
 	board_init_timestamp();
+	dpu_ssi_flash_init();
 	board_boot();
 }
 

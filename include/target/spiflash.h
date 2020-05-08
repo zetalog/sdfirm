@@ -59,5 +59,6 @@ typedef uint8_t spiflash_bid_t;
 #define INVALID_SPIFLASH_BID			SPIFLASH_MAX_BANKS
 void spiflash_select(spiflash_bid_t bid);
 void spiflash_deselect(void);
+mtd_t spiflash_register_bank(uint8_t chip);
 
 #endif /* __SPIFLASH_H_INCLUDE__ */

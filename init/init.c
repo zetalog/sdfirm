@@ -100,6 +100,11 @@ void dataflash_init(void);
 #else
 #define dataflash_init()
 #endif
+#ifdef CONFIG_MTD_SPIFLASH
+void spiflash_init(void);
+#else
+#define spiflash_init()
+#endif
 
 #ifdef CONFIG_USB_HID
 void hid_init(void);
