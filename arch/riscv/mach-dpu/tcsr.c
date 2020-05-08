@@ -42,43 +42,6 @@
 #include <target/arch.h>
 #include <target/cmdline.h>
 
-#ifdef CONFIG_DPU_TCSR_ADDR_TRANS
-void imc_addr_trans(int n, uint32_t in_addr, uint64_t out_addr,
-		    imc_at_attr_t attr)
-{
-	imc_addr_set_invalid(n);
-	imc_addr_set_addr_i(n, in_addr);
-	imc_addr_set_addr_o(n, out_addr);
-	imc_addr_set_attr(n, attr);
-	imc_addr_set_valid(n);
-}
-
-static int do_tcsr_addr(int argc, char *argv[])
-{
-	int index;
-	uint32_t in;
-	uint64_t out;
-	uint32_t attr = IMC_AT_ATTR_NORMAL;
-
-	if (argc < 6)
-		return -EINVAL;
-
-	index = strtoul(argv[2], NULL, 0);
-	in = strtoul(argv[3], NULL, 0);
-	out = strtoull(argv[4], NULL, 0);
-	if (strcmp(argv[5], "device") == 0)
-		attr = IMC_AT_ATTR_DEVICE;
-	imc_addr_trans(index, in, out, attr);
-	return 0;
-}
-#else
-static inline do_tcsr_addr(int argc, char **argv)
-{
-	printf("DPU_TCSR_ADDR_TRANS is not configured.\n");
-	return -ENODEV;
-}
-#endif
-
 #ifdef CONFIG_DPU_TCSR_LOW_POWER
 const char *imc_apb_names[IMC_MAX_APB_PERIPHS] = {
 	"ssi_busy",
@@ -231,23 +194,10 @@ static int do_tcsr_info(int argc, char *argv[])
 
 	printf("Major:     %02x\n", imc_soc_major());
 	printf("Minor:     %02x\n", imc_soc_minor());
-	printf("Core:      %02x\n", imc_core_id());
-	printf("Cluster:   %d\n", imc_cluster_id());
+	printf("Hart ID:   %02x\n", imc_hart_id());
 	printf("Boot Mode: %s\n", imc_boot2name(mode));
 	if (mode == IMC_BOOT_USE_BOOT_ADDR)
-		printf("Boot Addr: %08lx\n", imc_boot_addr());
-	return 0;
-}
-
-static int do_tcsr_sim(int argc, char *argv[])
-{
-	if (argc < 3)
-		return -EINVAL;
-
-	if (strcmp(argv[2], "fail") == 0)
-		imc_sim_finish(false);
-	else
-		imc_sim_finish(true);
+		printf("Boot Addr: %016llx\n", imc_boot_addr());
 	return 0;
 }
 
@@ -258,10 +208,6 @@ static int do_tcsr(int argc, char *argv[])
 
 	if (strcmp(argv[1], "info") == 0)
 		return do_tcsr_info(argc, argv);
-	if (strcmp(argv[1], "addr") == 0)
-		return do_tcsr_addr(argc, argv);
-	if (strcmp(argv[1], "sim") == 0)
-		return do_tcsr_sim(argc, argv);
 	if (strcmp(argv[1], "apb") == 0)
 		return do_tcsr_apb(argc, argv);
 	if (strcmp(argv[1], "axi") == 0)
@@ -272,14 +218,10 @@ static int do_tcsr(int argc, char *argv[])
 DEFINE_COMMAND(tcsr, do_tcsr, "Top control/status registers",
 	"tcsr info\n"
 	"    -dump versions, identifiers, modes\n"
-	"tcsr addr id in out normal|device\n"
-	"    -map AXI address space (beyond 4G)\n"
 	"tcsr apb dump\n"
 	"    -dump APB bus peripheral status\n"
 	"tcsr axi dump\n"
 	"    -dump AXI bus peripheral status\n"
 	"tcsr axi on|off periph\n"
 	"    -power on|off AXI bus peripheral\n"
-	"tcsr sim pass|fail\n"
-	"    -finish simulation with pass/fail\n"
 );

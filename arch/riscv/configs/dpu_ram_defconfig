@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu May  7 15:48:13 2020
+# Fri May  8 09:54:35 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -139,9 +139,7 @@ CONFIG_DPU_BOOT_APC=y
 #
 # CONFIG_DPU_SIM_CLK is not set
 CONFIG_DPU_TCSR=y
-CONFIG_DPU_TCSR_ADDR_TRANS=y
 CONFIG_DPU_TCSR_LOW_POWER=y
-CONFIG_DPU_TCSR_SIM_FINISH=y
 CONFIG_DPU_PLL=y
 # CONFIG_DPU_PLL_ARST is not set
 # CONFIG_DPU_PLL_FREQPLAN_PE is not set
