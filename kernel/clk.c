@@ -51,10 +51,10 @@ clk_freq_t clk_get_frequency(clk_t clk)
 	clk_cat_t cat = clk_cat(clk);
 
 	if (cat >= MAX_CLK_DRIVERS)
-		return -EINVAL;
+		return INVALID_FREQ;
 	clkd = clk_drivers[cat];
 	if (!clkd)
-		return -EINVAL;
+		return INVALID_FREQ;
 	BUG_ON(!clkd->get_freq);
 	return clkd->get_freq(clk_clk(clk));
 }
