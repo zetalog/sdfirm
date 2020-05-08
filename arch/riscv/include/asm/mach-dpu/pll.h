@@ -98,14 +98,14 @@
 #define PLL_GLOBAL_RST			SRST_REG(0x00)
 #define PLL_SOFT_RST(n)			SRST_1BIT_REG(0x00, n)
 
-/* PLL_SOFT_RST/PLL_CLUSTER_SOFT_RST */
+/* PLL_SOFT_RST */
 #define PLL_SRST(n)			_BV(REG_1BIT_OFFSET(n))
 
 /* global reset bits */
 #define SRST_SYS			_BV(30)
 #define WDT_RST_DIS			_BV(31)
 
-/* SOFT_RST/CLUSTER_SOFT_RST IDs */
+/* SOFT_RST IDs */
 #define SRST_GPDPU			0
 #define SRST_PCIE0			1
 #define SRST_PCIE1			2
@@ -121,7 +121,7 @@
 #define SRST_TMR			12
 #define SRST_WDT			13
 #define SRST_TCSR			14
-#define SRST_CLUSTER_CFG		15
+#define SRST_VPU			15
 #define SRST_IMC			16
 #define SRST_NOC			17
 #define SRST_FLASH			18
@@ -134,24 +134,8 @@
 #define SRST_PCIE0_POR			25
 #define SRST_PCIE1_POR			26
 #define POR_ARST			32
-#define APC0_CPU0_FUNC_ARST		33
-#define APC0_CPU1_FUNC_ARST		34
-#define APC1_CPU0_FUNC_ARST		35
-#define APC1_CPU1_FUNC_ARST		36
-#define APC0_L2_FUNC_ARST		37
-#define APC1_L2_FUNC_ARST		38
-#define APC0_CPU0_DBG_ARST		39
-#define APC0_CPU1_DBG_ARST		40
-#define APC1_CPU0_DBG_ARST		41
-#define APC1_CPU1_DBG_ARST		42
-#define APC0_L2_DBG_ARST		43
-#define APC1_L2_DBG_ARST		44
 
-#ifdef CONFIG_DPU_PLL_ARST
-#define NR_PLL_RSTS			(APC1_L2_DBG_ARST + 1)
-#else
 #define NR_PLL_RSTS			(SRST_PCIE1_POR + 1)
-#endif
 
 /* PLL register access */
 #define PLL_REG_ACCESS(pll)		SRST_REG(0x08 + ((pll) << 2))

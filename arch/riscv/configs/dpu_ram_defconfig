@@ -132,7 +132,7 @@ CONFIG_DPU_BOOT_RAM=y
 #
 # CONFIG_DPU_LOAD is not set
 CONFIG_DPU_BOOT_PE=y
-CONFIG_DPU_BOOT_APC=y
+CONFIG_DPU_BOOT_VPU=y
 
 #
 # Simulation options

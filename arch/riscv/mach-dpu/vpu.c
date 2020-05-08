@@ -35,14 +35,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)apc.c: DPU application processor cluster boot implementation
- * $Id: apc.c,v 1.1 2020-03-30 16:15:00 zhenglv Exp $
+ * @(#)vpu.c: DPU vision processor unit (VPU) boot implementation
+ * $Id: vpu.c,v 1.1 2020-05-08 10:58:00 zhenglv Exp $
  */
 
 #include <target/arch.h>
 #include <target/clk.h>
 
-void dpu_apc_boot(void)
+void dpu_vpu_boot(void)
 {
-	clk_enable(srst_cluster_cfg);
+	clk_enable(srst_vpu);
 }

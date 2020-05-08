@@ -124,7 +124,7 @@ struct freqplan *freqplans[NR_PLLS] = {
 	[PE_CLK] = pe_freqplan,
 	[DDR_CLK] = NULL,
 	[AXI_CLK] = bus_freqplan,
-	[CPU_CLK] = NULL,
+	[VPU_BCLK] = NULL,
 	[PCIE_REF_CLK] = NULL,
 };
 
@@ -148,10 +148,10 @@ struct freqplan freqplans_def[NR_PLLS] = {
 		.f_pll_rclk = PLL3_R_FREQ,
 	},
 #endif
-	[CPU_CLK] = {
+	[VPU_BCLK] = {
 		.f_pll_vco = PLL4_VCO_FREQ,
 		.f_pll_pclk = PLL4_P_FREQ,
-		.f_pll_rclk = INVALID_FREQ,
+		.f_pll_rclk = PLL4_R_FREQ,
 	},
 	[PCIE_REF_CLK] = {
 		.f_pll_vco = PLL5_VCO_FREQ,

@@ -35,19 +35,19 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)apc.h: DPU application processor cluster boot definition
- * $Id: apc.h,v 1.1 2020-03-30 16:15:00 zhenglv Exp $
+ * @(#)vpu.h: DPU vision processor unit (VPU) boot definition
+ * $Id: vpu.h,v 1.1 2020-05-08 10:54:00 zhenglv Exp $
  */
 
-#ifndef __APC_DPU_H_INCLUDE__
-#define __APC_DPU_H_INCLUDE__
+#ifndef __VPU_DPU_H_INCLUDE__
+#define __VPU_DPU_H_INCLUDE__
 
-#ifdef CONFIG_DPU_BOOT_APC
+#ifdef CONFIG_DPU_BOOT_VPU
 #ifndef __ASSEMBLY__
-void dpu_apc_boot(void);
+void dpu_vpu_boot(void);
 #endif
 #else
-#define dpu_apc_boot()		do { } while (0)
+#define dpu_vpu_boot()		do { } while (0)
 #endif
 
-#endif /* __APC_DPU_H_INCLUDE__ */
+#endif /* __VPU_DPU_H_INCLUDE__ */

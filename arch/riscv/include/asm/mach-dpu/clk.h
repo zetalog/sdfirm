@@ -88,10 +88,11 @@
 #define PLL1_P			PE_CLK
 #define PLL2_P			DDR_CLK
 #define PLL3_P			AXI_CLK
-#define PLL4_P			CPU_CLK
+#define PLL4_P			VPU_BCLK
 #define PLL5_P			PCIE_REF_CLK
 #define PLL2_R			DDR_BYPASS_PCLK
 #define PLL3_R			APB_CLK
+#define PLL4_R			VPU_CCLK
 #define NR_PLL_CLKS		NR_SEL_CLKS
 #define pll0_p			clkid(CLK_PLL, PLL0_P)
 #define pll1_p			clkid(CLK_PLL, PLL1_P)
@@ -101,6 +102,7 @@
 #define pll5_p			clkid(CLK_PLL, PLL5_P)
 #define pll2_r			clkid(CLK_PLL, PLL2_R)
 #define pll3_r			clkid(CLK_PLL, PLL3_R)
+#define pll4_r			clkid(CLK_PLL, PLL4_R)
 
 #define CLK_IS_PLL_RCLK(clk)	(!!((clk) >= NR_PLLS))
 #define CLK_TO_PLL(clk, isrclk)	((isrclk) ? ((clk) - NR_PLLS + 2) : (clk))
@@ -110,19 +112,21 @@
 #define PE_CLK			((clk_clk_t)1) /* PLL1_P */
 #define DDR_CLK			((clk_clk_t)2) /* PLL2_P */
 #define AXI_CLK			((clk_clk_t)3) /* PLL3_P */
-#define CPU_CLK			((clk_clk_t)4) /* PLL4_P */
+#define VPU_BCLK		((clk_clk_t)4) /* PLL4_P */
 #define PCIE_REF_CLK		((clk_clk_t)5) /* PLL5_P */
 #define DDR_BYPASS_PCLK		((clk_clk_t)6) /* PLL2_R */
 #define APB_CLK			((clk_clk_t)7) /* PLL3_R */
-#define NR_SEL_CLKS		(APB_CLK + 1)
+#define VPU_CCLK		((clk_clk_t)8) /* PLL4_R */
+#define NR_SEL_CLKS		(VPU_CCLK + 1)
 #define imc_clk			clkid(CLK_SEL, IMC_CLK)
 #define pe_clk			clkid(CLK_SEL, PE_CLK)
 #define ddr_clk			clkid(CLK_SEL, DDR_CLK)
 #define axi_clk			clkid(CLK_SEL, AXI_CLK)
-#define cpu_clk			clkid(CLK_SEL, CPU_CLK)
+#define vpu_bclk		clkid(CLK_SEL, VPU_BCLK)
 #define pcie_ref_clk		clkid(CLK_SEL, PCIE_REF_CLK)
 #define ddr_bypass_pclk		clkid(CLK_SEL, DDR_BYPASS_PCLK)
 #define apb_clk			clkid(CLK_SEL, APB_CLK)
+#define vpu_cclk		clkid(CLK_SEL, VPU_CCLK)
 /* XXX: Do not confuse:
  *      The ddr_clk named in CLKRST is actually the core_ddr_clk (the
  *      uMCTL2 clock) in DesignWare specification where the ddr_clk refers
@@ -166,7 +170,7 @@
 #define srst_tmr		clkid(CLK_RESET, SRST_TMR)
 #define srst_wdt		clkid(CLK_RESET, SRST_WDT)
 #define srst_tcsr		clkid(CLK_RESET, SRST_TCSR)
-#define srst_cluster_cfg	clkid(CLK_RESET, SRST_CLUSTER_CFG)
+#define srst_vpu		clkid(CLK_RESET, SRST_VPU)
 #define srst_imc		clkid(CLK_RESET, SRST_IMC)
 #define srst_noc		clkid(CLK_RESET, SRST_NOC)
 #define srst_flash		clkid(CLK_RESET, SRST_FLASH)
@@ -181,18 +185,8 @@
 #define srst_pcie0_por		clkid(CLK_RESET, SRST_PCIE0_POR)
 #define srst_pcie1_por		clkid(CLK_RESET, SRST_PCIE1_POR)
 #define por_arst		clkid(CLK_RESET, POR_ARST)
-#define apc0_cpu0_func_arst	clkid(CLK_RESET, APC0_CPU0_FUNC_ARST)
-#define apc0_cpu1_func_arst	clkid(CLK_RESET, APC0_CPU1_FUNC_ARST)
-#define apc1_cpu0_func_arst	clkid(CLK_RESET, APC1_CPU0_FUNC_ARST)
-#define apc1_cpu1_func_arst	clkid(CLK_RESET, APC1_CPU1_FUNC_ARST)
-#define apc0_l2_func_arst	clkid(CLK_RESET, APC0_L2_FUNC_ARST)
-#define apc1_l2_func_arst	clkid(CLK_RESET, APC1_L2_FUNC_ARST)
-#define apc0_cpu0_dbg_arst	clkid(CLK_RESET, APC0_CPU0_DBG_ARST)
-#define apc0_cpu1_dbg_arst	clkid(CLK_RESET, APC0_CPU1_DBG_ARST)
-#define apc1_cpu0_dbg_arst	clkid(CLK_RESET, APC1_CPU0_DBG_ARST)
-#define apc1_cpu1_dbg_arst	clkid(CLK_RESET, APC1_CPU1_DBG_ARST)
-#define apc0_l2_dbg_arst	clkid(CLK_RESET, APC0_L2_DBG_ARST)
-#define apc1_l2_dbg_arst	clkid(CLK_RESET, APC1_L2_DBG_ARST)
+#define srst_vpu_brst		srst_vpu
+#define srst_vpu_crst		srst_vpu
 
 /* DDR reset alias */
 #define ddr0_pwr_ok_in		srst_ddr0_por

@@ -91,8 +91,8 @@ static int do_dpu_boot(int argc, char *argv[])
 		dpu_pe_boot();
 		return 0;
 	}
-	if (strcmp(argv[2], "apc") == 0) {
-		dpu_apc_boot();
+	if (strcmp(argv[2], "vpu") == 0) {
+		dpu_vpu_boot();
 		return 0;
 	}
 	return -EINVAL;
@@ -109,6 +109,6 @@ static int do_dpu(int argc, char *argv[])
 }
 
 DEFINE_COMMAND(dpu, do_dpu, "DPU SoC global commands",
-	"dpu boot pe|apc\n"
-	"    -boot DPU PE or RISCV64 APC\n"
+	"dpu boot pe|vpu\n"
+	"    -boot DPU PE or VPU\n"
 );

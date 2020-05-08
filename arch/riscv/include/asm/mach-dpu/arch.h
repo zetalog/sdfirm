@@ -49,7 +49,7 @@
 #include <asm/mach/tcsr.h>
 #include <asm/mach/flash.h>
 #include <asm/mach/pe.h>
-#include <asm/mach/apc.h>
+#include <asm/mach/vpu.h>
 
 /* This file is intended to be used for implementing SoC specific
  * instructions, registers.
@@ -69,13 +69,15 @@
 #define PLL2_R_FREQ		UL(50000000)	/* 50MHz */
 #define PLL3_P_FREQ		UL(800000000)	/* 800MHz */
 #define PLL3_R_FREQ		UL(100000000)	/* 100MHz */
-#define PLL4_P_FREQ		UL(2000000000)	/* 2GHz */
+#define PLL4_P_FREQ		UL(500000000)	/* 500MHz */
+#define PLL4_R_FREQ		UL(500000000)	/* 500MHz */
 #define PLL5_P_FREQ		UL(100000000)	/* 100MHz */
 #define IMC_CLK_FREQ		PLL0_P_FREQ
 #define PE_CLK_FREQ		PLL1_P_FREQ
 #define AXI_CLK_FREQ		PLL3_P_FREQ
 #define APB_CLK_FREQ		PLL3_R_FREQ
-#define CPU_CLK_FREQ		PLL4_P_FREQ
+#define VPU_BCLK_FREQ		PLL4_P_FREQ
+#define VPU_CCLK_FREQ		PLL4_R_FREQ
 #define PCIE_REF_CLK_FREQ	PLL5_P_FREQ
 
 #ifndef __ASSEMBLY__

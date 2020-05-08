@@ -128,8 +128,8 @@ endif
 config DPU_BOOT_PE
 	bool "DPU process elements (PE)"
 
-config DPU_BOOT_APC
-	bool "RISCV CPU clusters (APC)"
+config DPU_BOOT_VPU
+	bool "DPU vision processor unit (VPU)"
 
 endmenu
 
@@ -164,9 +164,6 @@ menuconfig DPU_PLL
 	select MATH_DIV32
 
 if DPU_PLL
-
-config DPU_PLL_ARST
-	bool "Enable DPU PLL cluster reset (ARST) support"
 
 config DPU_PLL_FREQPLAN_PE
 	bool "Enable 7-gear PE frequency plan support"
