@@ -98,6 +98,22 @@ static int do_dpu_boot(int argc, char *argv[])
 	return -EINVAL;
 }
 
+static int do_dpu_pll2(int argc, char *argv[])
+{
+	if (argc < 3)
+		return -EINVAL;
+
+	if (strcmp(argv[2], "ddr0") == 0) {
+		dpu_pll_reg_select_ddr0();
+		return 0;
+	}
+	if (strcmp(argv[2], "ddr1") == 0) {
+		dpu_pll_reg_select_ddr1();
+		return 0;
+	}
+	return -EINVAL;
+}
+
 static int do_dpu(int argc, char *argv[])
 {
 	if (argc < 2)
@@ -105,10 +121,14 @@ static int do_dpu(int argc, char *argv[])
 
 	if (strcmp(argv[1], "boot") == 0)
 		return do_dpu_boot(argc, argv);
+	if (strcmp(argv[1], "pll2") == 0)
+		return do_dpu_pll2(argc, argv);
 	return -EINVAL;
 }
 
 DEFINE_COMMAND(dpu, do_dpu, "DPU SoC global commands",
 	"dpu boot pe|vpu\n"
 	"    -boot DPU PE or VPU\n"
+	"dpu pll2 ddr0|ddr1\n"
+	"    -select PLL2 register access read source\n"
 );

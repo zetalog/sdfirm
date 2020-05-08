@@ -142,6 +142,11 @@
 #define PLL_REG_TIMING(pll)		SRST_REG(0x0C + ((pll) << 2))
 
 /* PLL_REG_ACCESS */
+/* PLL2 specific register bit. DDR0 and DDR1 share same settings, but only
+ * when PLL_REG_READ=1, data source can be selected if DDR0 or DDR1
+ * register data should be returned.
+ */
+#define PLL_REG_PLL2_SEL	_BV(26)
 #define PLL_REG_INVALID		_BV(25)
 #define PLL_REG_IDLE		_BV(24)
 #define PLL_REG_RDATA_OFFSET	16
@@ -174,6 +179,10 @@
 	__raw_writel(PLL_TSETUP(setup) | PLL_THOLD(hold) |	\
 		     PLL_TREAD(read) | PLL_TWRITE(write),	\
 		     PLL_REG_TIMING(pll));
+#define dpu_pll_reg_select_ddr0()				\
+	__raw_clearl(PLL_REG_PLL2_SEL, PLL_REG_ACCESS(2))
+#define dpu_pll_reg_select_ddr1()				\
+	__raw_setl(PLL_REG_PLL2_SEL, PLL_REG_ACCESS(2))
 
 #define __dw_pll_read(pll, reg)		dpu_pll_reg_read(pll, reg)
 #define __dw_pll_write(pll, reg, val)	dpu_pll_reg_write(pll, reg, val)

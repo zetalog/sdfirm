@@ -1,11 +1,22 @@
 #include <target/clk.h>
 #include <target/delay.h>
 
-void dpu_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val)
+void __dpu_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val)
 {
 	__raw_writel(PLL_REG_WRITE | PLL_REG_SEL(reg) | PLL_REG_WDATA(val),
 		     PLL_REG_ACCESS(pll));
 	while (!(__raw_readl(PLL_REG_ACCESS(pll)) & PLL_REG_IDLE));
+}
+
+void dpu_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val)
+{
+	if (pll == 2) {
+		dpu_pll_reg_select_ddr0();
+		__dpu_pll_reg_write(pll, reg, val);
+		dpu_pll_reg_select_ddr1();
+		__dpu_pll_reg_write(pll, reg, val);
+	} else
+		__dpu_pll_reg_write(pll, reg, val);
 }
 
 uint8_t dpu_pll_reg_read(uint8_t pll, uint8_t reg)
