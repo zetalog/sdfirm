@@ -82,7 +82,7 @@
 #define SSI_DMARDLR(n)		DW_SSI_REG(n, 0x54)
 #define SSI_IDR(n)		DW_SSI_REG(n, 0x58)
 #define SSI_VERSION_ID(n)	DW_SSI_REG(n, 0x5C)
-#define SSI_DR(n, x)		DW_SSI_REG(n, (x) < 2)
+#define SSI_DR(n, x)		DW_SSI_REG(n, 0x60 + (x) * 0x04)
 #ifdef CONFIG_DW_SSI_MAX_XFER_SIZE_32
 #define dw_ssi_read_dr(n)		__raw_readl(SSI_DR(n, 0))
 #define dw_ssi_write_dr(n, v)		__raw_writel(v, SSI_DR(n, 0))

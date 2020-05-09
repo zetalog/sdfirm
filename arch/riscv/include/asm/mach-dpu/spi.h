@@ -67,8 +67,13 @@
 #define spi_hw_chip_select(chip)	dw_ssi_select_chip(SSI_ID, chip)
 #define spi_hw_deselect_chips()		dw_ssi_deselect_chips(SSI_ID)
 #define spi_hw_ctrl_init()				\
-	dw_ssi_init_master(SSI_ID, SSI_SPI_FRF_STD,	\
-			   SSI_TMOD_TX_AND_RX, 8, 8)
+	do {						\
+		clk_enable(DW_SSI_CLK);			\
+		dw_ssi_init_master(SSI_ID,		\
+				   SSI_SPI_FRF_STD,	\
+				   SSI_TMOD_TX_AND_RX,	\
+				   8, 8);		\
+	} while (0)
 #define spi_hw_ctrl_start()		dw_ssi_enable_ctrl(SSI_ID)
 #define spi_hw_ctrl_stop()		dw_ssi_disable_ctrl(SSI_ID)
 
