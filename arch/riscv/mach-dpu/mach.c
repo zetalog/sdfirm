@@ -76,10 +76,14 @@ void board_boot(void)
 #define board_boot()		do { } while (0)
 #endif
 
-void board_init(void)
+void board_early_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);
 	board_init_timestamp();
+}
+
+void board_late_init(void)
+{
 	dpu_ssi_flash_init();
 	board_boot();
 }

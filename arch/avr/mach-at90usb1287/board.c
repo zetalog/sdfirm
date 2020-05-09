@@ -53,12 +53,16 @@ void board_flash_init(void)
 #define board_flash_init()
 #endif
 
-void board_init(void)
+void board_early_init(void)
 {
 	clk_init();
 	mem_init();
 	wdt_ctrl_stop();
 	DEVICE_ARCH(DEVICE_ARCH_AVR);
+}
+
+void board_late_init(void)
+{
 	board_flash_init();
 	/* board_blkdev = mtd_register_blkdev(board_flash); */
 	/* board_lun = sbc_mount_device(board_blkdev); */

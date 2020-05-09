@@ -10,9 +10,13 @@ void mem_init(void)
 	heap_range_init((caddr_t)__bss_stop);
 }
 
-void board_init(void)
+void board_early_init(void)
 {
 	mem_init();
 
 	DEVICE_ARCH(DEVICE_ARCH_ARM);
+}
+
+void board_late_init(void)
+{
 }

@@ -54,7 +54,11 @@ void board_reboot(void)
 }
 #endif
 
-void board_init(void)
+void board_early_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);
+}
+
+void board_late_init(void)
+{
 }

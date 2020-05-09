@@ -22,7 +22,7 @@ AVR system options
 XXX board options
 	arch/$ARCH/mach-$MACH/Kconfig
 
-以下为初始化功能，board_init	-> init/main.c system_init的驱动
+以下为初始化功能，board_early_init	-> init/main.c system_init的驱动
 	上电：电源管理控制器配置
 	上时钟：CPU频率/源配置
 	设置中断：中断控制器配置
@@ -30,12 +30,12 @@ XXX board options
 	设置引脚：GPIO复用/封装配置
 
 以下为kernel功能
-	TSC驱动tsc.c		-> kernel/delay.c的驱动
-	GPT驱动gpt.c		-> kernel/timer.c和kernel/tick.c的驱动
+	TSC驱动tsc.c			-> kernel/delay.c的驱动
+	GPT驱动gpt.c			-> kernel/timer.c和kernel/tick.c的驱动
 
-SoC片内控制器驱动		-> kernel/module/xxx.c的驱动
+SoC片内控制器驱动			-> kernel/module/xxx.c的驱动
 例如：
-	UART驱动uart.c		-> kernel/io/uart.c的驱动
+	UART驱动uart.c			-> kernel/io/uart.c的驱动
 	USB设备驱动usb.c		-> kernel/usb/usb_dev.c的驱动
 
 

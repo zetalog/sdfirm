@@ -59,7 +59,7 @@ void system_init(void)
 	early_fixmap_init();
 	fixmap_early_con_init();
 	main_debug(MAIN_DEBUG_INIT, 0);
-	board_init();
+	board_early_init();
 	clk_init();
 	gpio_init();
 	debug_init();
@@ -91,6 +91,7 @@ void system_init(void)
 	task_init();
 
 	modules_init();
+	board_late_init();
 	appl_init();
 	smp_init();
 	bench_init();
@@ -724,7 +725,7 @@ void led_on(void)
 
 void system_init(void)
 {
-	board_init();
+	board_early_init();
 	gpio_init();
 	debug_init();
 	irq_init();

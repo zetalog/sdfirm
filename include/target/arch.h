@@ -77,7 +77,8 @@ void board_resume(void);
 #define board_suspend()			do { } while (0)
 #define board_resume()			do { } while (0)
 #endif
-void board_init(void);
+void board_early_init(void);
+void board_late_init(void);
 void appl_init(void);
 void modules_init(void);
 #endif

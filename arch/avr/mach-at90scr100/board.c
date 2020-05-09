@@ -17,10 +17,14 @@ static void clk_init(void)
 	clk_hw_set_cpu();
 }
 
-void board_init(void)
+void board_early_init(void)
 {
 	clk_init();
 	wdt_ctrl_stop();
 
 	DEVICE_ARCH(DEVICE_ARCH_AVR);
+}
+
+void board_late_init(void)
+{
 }

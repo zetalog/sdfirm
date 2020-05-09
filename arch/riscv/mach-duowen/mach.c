@@ -69,10 +69,14 @@ static void imc_init(void)
 #define imc_init()		do { } while (0)
 #endif
 
-void board_init(void)
+void board_early_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);
 	board_init_timestamp();
 	crcntl_power_up();
 	imc_init();
+}
+
+void board_late_init(void)
+{
 }

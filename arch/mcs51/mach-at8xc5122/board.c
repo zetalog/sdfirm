@@ -71,10 +71,14 @@ void board_lcd_init(void)
 #endif
 #endif
 
-void board_init(void)
+void board_early_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_MCS51);
 	clk_init();
 	mem_init();
 	board_lcd_init();
+}
+
+void board_late_init(void)
+{
 }
