@@ -106,16 +106,17 @@ void dw_ssi_init_master(int n, uint8_t frf, uint8_t tmod,
 		return;
 
 	dw_ssi_disable_ctrl(n);
-	__raw_writel_mask(SSI_FRF(frf) | SSI_TMOD(tmod) |
-			  SSI_DFS(DW_SSI_XFER_SIZE - 1),
-			  SSI_FRF_MASK | SSI_TMOD_MASK | SSI_DFS_MASK,
-			  SSI_CTRLR0(n));
+	/* Default to SPI_MODE_0 */
+	__raw_writel(SSI_FRF(SSI_FRF_SPI) | SSI_TMOD(tmod) |
+		     SSI_SPI_FRF(frf) | SSI_SPI_MODE(SPI_MODE_0) |
+		     SSI_DFS(DW_SSI_XFER_SIZE - 1),
+		     SSI_CTRLR0(n));
 	dw_ssi_probe_fifo(n, SSI_TXFTLR, txfifo);
 	dw_ssis[n].tx_fifo_depth = (uint8_t)(txfifo - 1);
 	dw_ssi_probe_fifo(n, SSI_RXFTLR, txfifo);
 	dw_ssis[n].rx_fifo_depth = (uint8_t)(rxfifo - 1);
 	__raw_writel(dw_ssis[n].tx_fifo_depth, SSI_TXFTLR(n));
-	__raw_writel(1, SSI_RXFTLR(n));
+	__raw_writel(0, SSI_RXFTLR(n));
 	__raw_writel(0xFF, SSI_IMR(n));
 	dw_ssi_enable_ctrl(n);
 }

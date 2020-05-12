@@ -241,11 +241,17 @@ struct dw_ssi_ctx {
 		dw_ssi_disable_irqs(SSI_ALL_IRQS);	\
 		dw_ssi_enable_ctrl(n);			\
 	} while (0)
-#define dw_ssi_config_mode(n, mode)		\
-	__raw_writel_mask(SSI_SPI_MODE(mode),	\
+#define dw_ssi_config_mode(n, mode)			\
+	__raw_writel_mask(SSI_SPI_MODE(mode),		\
 			  SSI_SPI_MODE_MASK, SSI_CTRLR0(n))
-#define dw_ssi_select_chip(n, chip)	__raw_writel(_BV(chip), SSI_SER(n))
-#define dw_ssi_deselect_chips(n)	__raw_writel(0, SSI_SER(n))
+#define dw_ssi_select_chips(n, chips)			\
+	do {						\
+		dw_ssi_disable_ctrl(n);			\
+		__raw_writel(chips, SSI_SER(n));	\
+		dw_ssi_enable_ctrl(n);			\
+	} while (0)
+#define dw_ssi_select_chip(n, chip)	dw_ssi_select_chips(n, _BV(chip))
+#define dw_ssi_deselect_chips(n)	dw_ssi_select_chips(n, 0)
 #define dw_ssi_enable_irqs(n, irqs)	__raw_clearl(irqs, SSI_IMR(n))
 #define dw_ssi_disable_irqs(n, irqs)	__raw_setl(irqs, SSI_IMR(n))
 

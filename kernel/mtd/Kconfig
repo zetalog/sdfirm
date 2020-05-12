@@ -116,7 +116,7 @@ endchoice
 
 choice
 	prompt "Standard SPI mode"
-	default SPIFLASH_MODE_0
+	default SPIFLASH_MODE_3
 
 config SPIFLASH_MODE_0
 	bool "Mode 0"
