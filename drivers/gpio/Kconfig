@@ -1,0 +1,26 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "GPIO controller drivers"
+
+menuconfig DW_GPIO
+	bool "Synopsys DesignWare APB GPIO support"
+
+if DW_GPIO
+
+config DW_GPIO_MAX_PORTS
+	int "Number of ports"
+	range 1 4
+
+config DW_GPIO_PARAMS
+	bool "Enable design-time parameters identification"
+
+config DW_GPIO_ID
+	bool "Enable ID register"
+
+endif
+
+endmenu
+

@@ -20,19 +20,22 @@ config ARCH_HAS_DW_AMBA_ADVANCED
 	bool
 
 source drivers/clk/Kconfig
+source drivers/gpio/Kconfig
 source drivers/timer/Kconfig
 source drivers/uart/Kconfig
+source drivers/i2c/Kconfig
+source drivers/spi/Kconfig
+source drivers/dma/Kconfig
+source drivers/iommu/Kconfig
+
 source drivers/lcd/Kconfig
 source drivers/video/Kconfig
+
 source drivers/mtd/Kconfig
 source drivers/scs/Kconfig
 source drivers/mmc/Kconfig
 source drivers/ddr/Kconfig
 source drivers/spd/Kconfig
 source drivers/pci/Kconfig
-source drivers/iommu/Kconfig
-source drivers/i2c/Kconfig
-source drivers/spi/Kconfig
-source drivers/dma/Kconfig
 
 endmenu

@@ -190,6 +190,14 @@ config DPU_PLL_BYPASS_PLL
 
 endif
 
+menuconfig DPU_GPIO
+	bool "DPU GPIO controller support"
+	select DW_GPIO
+
+if DPU_GPIO
+
+endif
+
 menuconfig DPU_TMR
 	bool "DPU RISC-V timer support"
 	select DPU_TMR_FIRQ if RISCV_VIRQ
@@ -309,6 +317,7 @@ menuconfig DPU_SSI_FLASH
 	select ARCH_HAS_SSI_FRF
 	select ARCH_HAS_SSI_SPI
 	select ARCH_HAS_SSI_SPI_1WIRE
+	select ARCH_HAS_SPIFLASH
 	select MTD
 	select MEM if COMMAND
 	select SPIFLASH_W25Q32

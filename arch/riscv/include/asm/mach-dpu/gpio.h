@@ -35,52 +35,29 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)spi.h: DPU serial peripheral interface (SPI) definitions
- * $Id: spi.h,v 1.1 2020-04-14 13:16:00 zhenglv Exp $
+ * @(#)gpio.h: DPU general purpose input/output (GPIO) definitions
+ * $Id: gpio.h,v 1.1 2020-05-20 14:37:00 zhenglv Exp $
  */
 
-#ifndef __SPI_DPU_H_INCLUDE__
-#define __SPI_DPU_H_INCLUDE__
+#ifndef __GPIO_DPU_H_INCLUDE__
+#define __GPIO_DPU_H_INCLUDE__
 
-#include <target/gpio.h>
+#include <target/arch.h>
 #include <target/clk.h>
 
-#define DW_SSI_CLK		srst_spi
-#define DW_SSI_BASE(n)		SSI_BASE
-#define SSI_ID			0
-
-#ifdef CONFIG_DW_SSI
-#include <driver/dw_ssi.h>
-#ifndef ARCH_HAVE_SPI
-#define ARCH_HAVE_SPI		1
+#ifdef CONFIG_GPIO
+#ifndef ARCH_HAVE_GPIO
+#include <driver/dw_gpio.h>
+#define ARCH_HAVE_GPIO		1
 #else
-#error "Multiple SPI controller defined"
+#error "Multiple GPIO controller defined"
 #endif
 #endif
 
-#define DW_SSI_CLK_FREQ			(APB_CLK_FREQ) /* Hz */
+/* GPIO abstraction */
+#define GPIO_HW_MAX_PORTS	4
+#define GPIO_HW_MAX_PINS	8
 
-#define spi_hw_config_mode(mode)	dw_ssi_config_mode(SSI_ID, mode)
-#define spi_hw_config_freq(khz)		dw_ssi_config_freq(SSI_ID, khz)
-#define spi_hw_read_byte()		dw_ssi_read_byte(SSI_ID)
-#define spi_hw_write_byte(byte)		dw_ssi_write_byte(SSI_ID, byte)
-#define spi_hw_chip_select(chip)	dw_ssi_select_chip(SSI_ID, chip)
-#define spi_hw_deselect_chips()		dw_ssi_deselect_chips(SSI_ID)
-#define spi_hw_ctrl_init()					\
-	do {							\
-		clk_enable(DW_SSI_CLK);				\
-		dw_ssi_init_master(SSI_ID, SSI_SPI_FRF_STD,	\
-				   SSI_TMOD_EEPROM_READ, 8, 8);	\
-		dw_ssi_init_spi(SSI_ID, SSI_SPI_FRF_STD,	\
-				8, 24, 0);			\
-	} while (0)
-#define spi_hw_ctrl_start()		dw_ssi_enable_ctrl(SSI_ID)
-#define spi_hw_ctrl_stop()		dw_ssi_disable_ctrl(SSI_ID)
+#define gpio_hw_ctrl_init()		clk_enable(srst_gpio)
 
-#ifdef CONFIG_DPU_SSI_FLASH
-void dpu_ssi_flash_init(void);
-#else
-#define dpu_ssi_flash_init()		do { } while (0)
-#endif
-
-#endif /* __SPI_DPU_H_INCLUDE__ */
+#endif /* __GPIO_DPU_H_INCLUDE__ */

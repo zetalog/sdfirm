@@ -90,6 +90,9 @@ config DATAFLASH_OTP
 
 endif
 
+config ARCH_HAS_SPIFLASH
+	bool
+
 menuconfig MTD_SPIFLASH
 	bool "Winbond SPI interfaced flash support"
 

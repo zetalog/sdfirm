@@ -244,6 +244,9 @@ struct dw_ssi_ctx {
 #define dw_ssi_config_mode(n, mode)			\
 	__raw_writel_mask(SSI_SPI_MODE(mode),		\
 			  SSI_SPI_MODE_MASK, SSI_CTRLR0(n))
+#define dw_ssi_config_xfer(n, tmod)			\
+	__raw_writel_mask(SSI_TMOD(tmod),		\
+			  SSI_TMOD_MASK, SSI_CTRLR0(n))
 #define dw_ssi_select_chips(n, chips)			\
 	do {						\
 		dw_ssi_disable_ctrl(n);			\
@@ -255,16 +258,14 @@ struct dw_ssi_ctx {
 #define dw_ssi_enable_irqs(n, irqs)	__raw_clearl(irqs, SSI_IMR(n))
 #define dw_ssi_disable_irqs(n, irqs)	__raw_setl(irqs, SSI_IMR(n))
 
-#define dw_ssi_write_byte(n, byte)				\
-	do {							\
-		while (!(__raw_readl(SSI_RISR(n)) & SSI_TXEI));	\
-		dw_ssi_write_dr(n, byte);			\
-	} while (0)
-
 uint8_t dw_ssi_read_byte(int n);
+void dw_ssi_write_byte(int n, uint8_t byte);
 void dw_ssi_config_freq(int n, uint32_t freq);
 void dw_ssi_init_master(int n, uint8_t frf, uint8_t tmod,
 			uint16_t txfifo, uint16_t rxfifo);
+void dw_ssi_init_spi(int n, uint8_t spi_frf,
+		     uint8_t inst_l, uint8_t addr_l,
+		     uint8_t wait_cycles);
 
 #ifdef CONFIG_DW_SSI_FIFO_DEPTH
 #define DW_SSI_TX_FIFO_DEPTH		CONFIG_DW_SSI_TX_FIFO_DEPTH

@@ -2,8 +2,8 @@
 #define __SPIFLASH_DRIVER_H_INCLUDE__
 
 /* chip drivers */
-#ifdef CONFIG_SPIFLASH_W25Q32
-#include <driver/spiflash_w25q32.h>
+#ifdef CONFIG_ARCH_HAS_SPIFLASH
+#include <asm/mach/spiflash.h>
 #endif
 
 #ifndef ARCH_HAVE_SPIFLASH_CHIP

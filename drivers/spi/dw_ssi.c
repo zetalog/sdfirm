@@ -48,6 +48,7 @@
 typedef uint8_t dw_ssi_data;
 
 struct dw_ssi_ctx dw_ssis[NR_DW_SSIS];
+uint8_t dw_ssi_tmods[NR_DW_SSIS];
 
 #ifdef CONFIG_CLK
 uint32_t dw_ssi_get_clk_freq(void)
@@ -79,10 +80,23 @@ void dw_ssi_config_freq(int n, uint32_t freq)
 	__raw_writel(sckdv, SSI_BAUDR(n));
 }
 
+void dw_ssi_switch_xfer(int n, uint8_t tmod)
+{
+	if (tmod != dw_ssi_tmods[n]) {
+		dw_ssi_config_xfer(n, tmod);
+		dw_ssi_tmods[n] = tmod;
+	}
+}
+
+void dw_ssi_write_byte(int n, uint8_t byte)
+{
+	while (!(__raw_readl(SSI_RISR(n)) & SSI_TXEI));
+	dw_ssi_write_dr(n, byte);
+}
+
 uint8_t dw_ssi_read_byte(int n)
 {
 	while (!(__raw_readl(SSI_RISR(n)) & SSI_RXFI));
-
 	return dw_ssi_read_dr(n);
 }
 
@@ -111,6 +125,7 @@ void dw_ssi_init_master(int n, uint8_t frf, uint8_t tmod,
 		     SSI_SPI_FRF(frf) | SSI_SPI_MODE(SPI_MODE_0) |
 		     SSI_DFS(DW_SSI_XFER_SIZE - 1),
 		     SSI_CTRLR0(n));
+	dw_ssi_tmods[n] = tmod;
 	dw_ssi_probe_fifo(n, SSI_TXFTLR, txfifo);
 	dw_ssis[n].tx_fifo_depth = (uint8_t)(txfifo - 1);
 	dw_ssi_probe_fifo(n, SSI_RXFTLR, txfifo);
@@ -118,6 +133,28 @@ void dw_ssi_init_master(int n, uint8_t frf, uint8_t tmod,
 	__raw_writel(dw_ssis[n].tx_fifo_depth, SSI_TXFTLR(n));
 	__raw_writel(0, SSI_RXFTLR(n));
 	__raw_writel(0xFF, SSI_IMR(n));
+	dw_ssi_enable_ctrl(n);
+}
+
+void dw_ssi_init_spi(int n, uint8_t spi_frf,
+		     uint8_t inst_l, uint8_t addr_l,
+		     uint8_t wait_cycles)
+{
+	uint32_t ctrl = SSI_TRANS_TYPE(0);
+
+	if (n >= NR_DW_SSIS)
+		return;
+
+	dw_ssi_disable_ctrl(n);
+	if (spi_frf != SSI_SPI_FRF_STD) {
+		ctrl |= SSI_TRANS_TYPE(2);
+		__raw_writel_mask(SSI_SPI_FRF(spi_frf),
+				  SSI_SPI_FRF_MASK,
+				  SSI_CTRLR0(n));
+	}
+	ctrl |= SSI_INST_L(inst_l >> 2) | SSI_ADDR_L(addr_l >> 2) |
+		SSI_WAIT_CYCLES(wait_cycles);
+	__raw_writel(ctrl, SSI_SPI_CTRLR0(n));
 	dw_ssi_enable_ctrl(n);
 }
 
