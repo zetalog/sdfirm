@@ -55,9 +55,11 @@
 #endif
 
 /* GPIO abstraction */
+#ifdef CONFIG_GPIO
 #define GPIO_HW_MAX_PORTS	4
 #define GPIO_HW_MAX_PINS	8
 
 #define gpio_hw_ctrl_init()		clk_enable(srst_gpio)
+#endif
 
 #endif /* __GPIO_DPU_H_INCLUDE__ */

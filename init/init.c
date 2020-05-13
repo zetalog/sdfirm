@@ -173,6 +173,7 @@ void modules_init(void)
 	/* busmods */
 	flash_init();
 	dataflash_init();
+	spiflash_init();
 	hid_init();
 	msd_init();
 	dfu_init();
