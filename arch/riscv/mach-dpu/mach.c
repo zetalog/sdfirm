@@ -58,19 +58,28 @@ void board_reboot(void)
 #endif
 
 #ifdef CONFIG_DPU_LOAD
-void (*board_boot_entry)(void) = (void *)CONFIG_DPU_BOOT_ADDR;
-
 void board_boot(void)
 {
+	uint8_t flash_sel = imc_boot_flash();
+	void (*boot_entry)(void);
+
 	board_init_clock();
-#ifdef CONFIG_DPU_LOAD_SPI_FLASH
-	clk_enable(srst_flash);
-	dpu_flash_set_frequency(min(DPU_FLASH_FREQ, APB_CLK_FREQ));
-#endif
-#ifdef CONFIG_DPU_LOAD_SSI_FLASH
-	clk_enable(srst_spi);
-#endif
-	board_boot_entry();
+	if (flash_sel == IMC_FLASH_SPI) {
+		printf("Booting from SPI flash...\n");
+		boot_entry = (void *)CONFIG_DPU_BOOT_ADDR;
+		clk_enable(srst_flash);
+		dpu_flash_set_frequency(min(DPU_FLASH_FREQ, APB_CLK_FREQ));
+	}
+	if (flash_sel == IMC_FLASH_SSI) {
+		uint32_t addr = 0;
+		uint32_t size = 500000;
+
+		printf("Booting from SSI flash...\n");
+		boot_entry = (void *)RAM_BASE;
+		/* TODO: Find addr/size from flash GPT partitions */
+		dpu_ssi_flash_boot(boot_entry, addr, size);
+	}
+	boot_entry();
 }
 #else
 #define board_boot()		do { } while (0)

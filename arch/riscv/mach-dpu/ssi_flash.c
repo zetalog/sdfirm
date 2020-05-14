@@ -13,18 +13,77 @@ void dpu_ssi_flash_init(void)
 	board_flash = spiflash_register_bank(0);
 }
 
-int dw_ssi_flash_copy(uint8_t *buf, uint32_t addr, uint32_t size)
+void dpu_ssi_flash_copy(void *buf, uint32_t addr, uint32_t size)
 {
 	mtd_t smtd;
 	int i;
+	uint8_t *dst = buf;
 
 	smtd = mtd_save_device(board_flash);
 	mtd_open(OPEN_READ, addr, size);
 	for (i = 0; i < size; i++)
-		buf[i] = mtd_read_byte();
+		dst[i] = mtd_read_byte();
 	mtd_close();
 	mtd_restore_device(smtd);
-	return 0;
+}
+
+static inline void dpu_ssi_flash_select(uint32_t chips)
+{
+	__raw_clearl(SSI_EN, SSI_SSIENR(0));
+	__raw_writel(chips, SSI_SER(0));
+	__raw_setl(SSI_EN, SSI_SSIENR(0));
+}
+
+static inline void dpu_ssi_flash_writeb(uint8_t byte)
+{
+	while (!(__raw_readl(SSI_RISR(0)) & SSI_TXEI));
+	__raw_writel(byte, SSI_DR(0, 0));
+}
+
+static inline uint8_t dpu_ssi_flash_readb(void)
+{
+        while (!(__raw_readl(SSI_RISR(0)) & SSI_RXFI));
+        return __raw_readl(SSI_DR(0, 0));
+}
+
+static inline uint8_t dpu_ssi_flash_read(uint32_t addr)
+{
+	uint8_t byte;
+
+	dpu_ssi_flash_select(_BV(0));
+	dpu_ssi_flash_writeb(SF_READ_DATA);
+	dpu_ssi_flash_writeb((uint8_t)(addr >> 16));
+	dpu_ssi_flash_writeb((uint8_t)(addr >> 8));
+	dpu_ssi_flash_writeb((uint8_t)(addr >> 0));
+	byte = dpu_ssi_flash_readb();
+	dpu_ssi_flash_select(0);
+	return byte;
+}
+
+void __dpu_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
+{
+	int i;
+	uint8_t *dst = boot;
+	void (*boot_entry)(void) = boot;
+
+	for (i = 0; i < size; i++, addr++)
+		dst[i] = dpu_ssi_flash_read(addr);
+	boot_entry();
+}
+
+void dpu_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
+{
+	dpu_boot_cb boot_func;
+#ifdef CONFIG_DPU_BOOT_STACK
+	__align(32) uint8_t boot_from_stack[256];
+
+	boot_func = (dpu_boot_cb)boot_from_stack;
+	memcpy(boot_from_stack, __dpu_ssi_flash_boot, 256);
+#else
+	boot_func = __dpu_ssi_flash_boot;
+#endif
+	boot_func(boot, addr, size);
+	unreachable();
 }
 
 static int do_flash_gpt(int argc, char *argv[])
@@ -35,20 +94,17 @@ static int do_flash_gpt(int argc, char *argv[])
 	gpt_partition_entry *gpt_entries;
 	uint64_t i;
 	uint32_t j;
-	int err;
 	uint32_t num_entries;
 
-	err = dw_ssi_flash_copy((uint8_t *)&hdr,
+	dpu_ssi_flash_copy(&hdr,
 		GPT_HEADER_LBA * FLASH_PAGE_SIZE, GPT_HEADER_BYTES);
-	if (err)
-		return -EINVAL;
 	mem_print_data(0, &hdr, 1, sizeof (gpt_header));
 	partition_entries_lba_end = (hdr.partition_entries_lba +
 		(hdr.num_partition_entries * hdr.partition_entry_size +
 		 FLASH_PAGE_SIZE - 1) / FLASH_PAGE_SIZE);
 	for (i = hdr.partition_entries_lba;
 	     i < partition_entries_lba_end; i++) {
-		dw_ssi_flash_copy(gpt_buf, i * FLASH_PAGE_SIZE,
+		dpu_ssi_flash_copy(gpt_buf, i * FLASH_PAGE_SIZE,
 				  FLASH_PAGE_SIZE);
 		gpt_entries = (gpt_partition_entry *)gpt_buf;
 		num_entries = FLASH_PAGE_SIZE / hdr.partition_entry_size;
@@ -82,7 +138,7 @@ static int do_flash_dump(int argc, char *argv[])
 		       FLASH_PAGE_SIZE);
 		return -EINVAL;
 	}
-	dw_ssi_flash_copy(buffer, addr, size);
+	dpu_ssi_flash_copy(buffer, addr, size);
 	mem_print_data(0, buffer, 1, size);
 	return 0;
 }

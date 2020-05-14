@@ -74,6 +74,12 @@
 #define IMC_BOOT_ROM			0x00
 #define IMC_BOOT_FLASH			0x01
 #define IMC_BOOT_USE_BOOT_ADDR		0x02
+/* FLASH_SEL */
+#define IMC_FLASH_SEL_OFFSET		4
+#define IMC_FLASH_SEL_MASK		REG_1BIT_MASK
+#define IMC_FLASH_SEL(value)		_GET_FV(IMC_FLASH_SEL, value)
+#define IMC_FLASH_SPI			0x00
+#define IMC_FLASH_SSI			0x01
 
 #define imc_soc_major()			\
 	IMC_MAJOR(__raw_readl(TCSR_SOC_HW_VERSION))
@@ -83,6 +89,8 @@
 	MAKELLONG(__raw_readl(TCSR_HART_ID_LO), __raw_readl(TCSR_HART_ID_HI))
 #define imc_boot_mode()			\
 	IMC_BOOT_MODE(__raw_readl(TCSR_BOOT_MODE))
+#define imc_boot_flash()			\
+	IMC_FLASH_SEL(__raw_readl(TCSR_BOOT_MODE))
 #define imc_boot_addr()					\
 	 MAKELLONG(__raw_readl(TCSR_BOOT_ADDR_LO),	\
 		   __raw_readl(TCSR_BOOT_ADDR_HI))

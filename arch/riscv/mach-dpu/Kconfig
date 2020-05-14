@@ -117,11 +117,22 @@ config DPU_LOAD_SSI_FLASH
 endchoice
 
 config DPU_BOOT_ADDR
-	hex "Bootloader jump address"
-	range 0x00000000 0x01E00000 if DPU_LOAD_SPI_FLASH
-	range 0x08000000 0x08080000 if DPU_LOAD_SSI_FLASH
-	default 0x00000000 if DPU_LOAD_SPI_FLASH
-	default 0x08080000 if DPU_LOAD_SSI_FLASH
+	hex "Bootloader SPI flash jump address"
+	range 0x00000000 0x01E00000
+	depends DPU_LOAD_SPI_FLASH
+	default 0x00000080
+
+config DPU_BOOT_STACK
+	bool "Enable boot from stack support"
+	help
+	  By default, each bootloader's .text section should be in
+	  a different memory region. Enable this option only if the next
+	  bootloader resides on SRAM low end, and the region is conflict
+	  with the current bootloader. However, if the next bootloader
+	  occupies the high end of the SRAM region, which is conflict with
+	  the stack of the current bootloader, please do not enable this
+	  option.
+	  If unsure, say 'N'.
 
 endif
 
