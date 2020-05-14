@@ -47,6 +47,7 @@
 #include <target/amba.h>
 
 #define TCSR_REG(offset)		(TCSR_BASE + (offset))
+#define TCSR_MSG_REG(offset)		TCSR_REG(0xFFF00 + (offset))
 #define TCSR_SOC_HW_VERSION		TCSR_REG(0x00)
 #define TCSR_BOOT_MODE			TCSR_REG(0x04)
 #define TCSR_BOOT_ADDR_LO		TCSR_REG(0x10)
@@ -59,6 +60,7 @@
 #define TCSR_SHUTDN_ACK			TCSR_REG(0x88)
 #define TCSR_BRINGUP_ACK		TCSR_REG(0x8C)
 #define TCSR_LP_STATUS			TCSR_REG(0x90)
+#define TCSR_SIM_FINISH			TCSR_MSG_REG(0x0C)
 
 /* SOC_HW_VERSION */
 #define IMC_MAJOR_OFFSET		8
@@ -80,6 +82,11 @@
 #define IMC_FLASH_SEL(value)		_GET_FV(IMC_FLASH_SEL, value)
 #define IMC_FLASH_SPI			0x00
 #define IMC_FLASH_SSI			0x01
+/* SIM MSG SRC */
+#ifdef CONFIG_DPU_TCSR_SIM_FINISH
+#define IMC_SIM_PASS			_BV(31)
+#define IMC_SIM_FAIL			_BV(30)
+#endif
 
 #define imc_soc_major()			\
 	IMC_MAJOR(__raw_readl(TCSR_SOC_HW_VERSION))
@@ -94,6 +101,12 @@
 #define imc_boot_addr()					\
 	 MAKELLONG(__raw_readl(TCSR_BOOT_ADDR_LO),	\
 		   __raw_readl(TCSR_BOOT_ADDR_HI))
+#ifdef CONFIG_DPU_TCSR_SIM_FINISH
+#define imc_sim_finish(pass)		\
+	__raw_setl((pass) ? IMC_SIM_PASS : IMC_SIM_FAIL, TCSR_SIM_FINISH)
+#else
+#define imc_sim_finish(pass)		do { } while (0)
+#endif
 
 #ifdef CONFIG_DPU_TCSR_LOW_POWER
 /* SHUTDN_REQ/ACK */

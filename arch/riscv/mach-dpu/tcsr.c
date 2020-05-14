@@ -201,6 +201,18 @@ static int do_tcsr_info(int argc, char *argv[])
 	return 0;
 }
 
+static int do_tcsr_sim(int argc, char *argv[])
+{
+	if (argc < 3)
+		return -EINVAL;
+
+	if (strcmp(argv[2], "fail") == 0)
+		imc_sim_finish(false);
+	else
+		imc_sim_finish(true);
+	return 0;
+}
+
 static int do_tcsr(int argc, char *argv[])
 {
 	if (argc < 2)
@@ -212,6 +224,8 @@ static int do_tcsr(int argc, char *argv[])
 		return do_tcsr_apb(argc, argv);
 	if (strcmp(argv[1], "axi") == 0)
 		return do_tcsr_axi(argc, argv);
+	if (strcmp(argv[1], "sim") == 0)
+		return do_tcsr_sim(argc, argv);
 	return -EINVAL;
 }
 
@@ -224,4 +238,6 @@ DEFINE_COMMAND(tcsr, do_tcsr, "Top control/status registers",
 	"    -dump AXI bus peripheral status\n"
 	"tcsr axi on|off periph\n"
 	"    -power on|off AXI bus peripheral\n"
+	"tcsr sim pass|fail\n"
+	"    -finish simulation with pass/fail\n"
 );

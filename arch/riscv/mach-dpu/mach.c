@@ -48,6 +48,7 @@
 #ifdef CONFIG_SHUTDOWN
 void board_shutdown(void)
 {
+	imc_sim_finish(true);
 }
 #endif
 
@@ -129,6 +130,18 @@ static int do_dpu_pll2(int argc, char *argv[])
 	return -EINVAL;
 }
 
+static int do_dpu_shutdown(int argc, char *argv[])
+{
+	board_shutdown();
+	return 0;
+}
+
+static int do_dpu_reboot(int argc, char *argv[])
+{
+	board_reboot();
+	return 0;
+}
+
 static int do_dpu(int argc, char *argv[])
 {
 	if (argc < 2)
@@ -138,6 +151,10 @@ static int do_dpu(int argc, char *argv[])
 		return do_dpu_boot(argc, argv);
 	if (strcmp(argv[1], "pll2") == 0)
 		return do_dpu_pll2(argc, argv);
+	if (strcmp(argv[1], "shutdown") == 0)
+		return do_dpu_shutdown(argc, argv);
+	if (strcmp(argv[1], "reboot") == 0)
+		return do_dpu_reboot(argc, argv);
 	return -EINVAL;
 }
 
@@ -146,4 +163,8 @@ DEFINE_COMMAND(dpu, do_dpu, "DPU SoC global commands",
 	"    -boot DPU PE or VPU\n"
 	"dpu pll2 ddr0|ddr1\n"
 	"    -select PLL2 register access read source\n"
+	"dpu shutdown\n"
+	"    -shutdown board\n"
+	"dpu reboot\n"
+	"    -reboot board\n"
 );

@@ -167,6 +167,13 @@ if DPU_TCSR
 config DPU_TCSR_LOW_POWER
 	bool "Enable bus low power support"
 
+config DPU_TCSR_SIM_FINISH
+	bool "Enable simulation finish support"
+	depends SIMULATION
+	help
+	  In simulation environment, enabling this allows to shutdown
+	  VCS simulation.
+
 endif
 
 menuconfig DPU_PLL
