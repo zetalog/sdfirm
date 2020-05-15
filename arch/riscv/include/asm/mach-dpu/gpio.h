@@ -45,7 +45,8 @@
 #include <target/arch.h>
 #include <target/clk.h>
 
-#ifdef CONFIG_GPIO
+#ifdef CONFIG_DPU_GPIO
+#define DW_GPIO_BASE(n)		GPIO_BASE
 #ifndef ARCH_HAVE_GPIO
 #include <driver/dw_gpio.h>
 #define ARCH_HAVE_GPIO		1
@@ -57,9 +58,29 @@
 /* GPIO abstraction */
 #ifdef CONFIG_GPIO
 #define GPIO_HW_MAX_PORTS	4
-#define GPIO_HW_MAX_PINS	8
+#define GPIO_HW_MAX_PINS	32
 
-#define gpio_hw_ctrl_init()		clk_enable(srst_gpio)
-#endif
+#define gpio_hw_ctrl_init()			clk_enable(srst_gpio)
+#define gpio_hw_read_pin(port, pin)		\
+	dw_gpio_read_pin(0, port, pin)
+#define gpio_hw_write_pin(port, pin, val)	\
+	dw_gpio_write_pin(0, port, pin, val)
+/* No programmable PAD model and no multiplexing for now */
+#define gpio_hw_config_pad(port, pin, pad, ma)	\
+	dw_gpio_config_pad(0, port, pin, pad, ma)
+#define gpio_hw_config_mux(port, pin, mux)	do { } while (0)
+#ifndef CONFIG_SYS_NOIRQ
+#define gpio_hw_config_irq(port, pin, mode)	\
+	dw_gpio_config_irq(0, port, pin, mode)
+#define gpio_hw_enable_irq(port, pin)		\
+	dw_gpio_enable_irq(0, port, pin)
+#define gpio_hw_disable_irq(port, pin)		\
+	dw_gpio_disable_irq(0, port, pin)
+#define gpio_hw_irq_status(port, pin)		\
+	dw_gpio_irq_status(0, port, pin)
+#define gpio_hw_clear_irq(port, pin)		\
+	dw_gpio_clear_irq(0, port, pin)
+#endif /* CONFIG_SYS_NOIRQ */
+#endif /* CONFIG_GPIO */
 
 #endif /* __GPIO_DPU_H_INCLUDE__ */

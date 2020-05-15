@@ -131,8 +131,8 @@
 	gpio_hw_enable_irq(port, pin)
 #define gpio_disable_irq(port, pin)			\
 	gpio_hw_disable_irq(port, pin)
-#define gpio_irq_status(port)				\
-	gpio_hw_irq_status(port)
+#define gpio_irq_status(port, pin)			\
+	gpio_hw_irq_status(port, pin)
 #define gpio_clear_irq(port, pin)			\
 	gpio_hw_clear_irq(port, pin)
 
