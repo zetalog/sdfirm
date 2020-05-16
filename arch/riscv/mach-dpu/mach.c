@@ -45,6 +45,8 @@
 #include <target/spi.h>
 #include <target/cmdline.h>
 
+#include "gpt_util.h"
+
 #ifdef CONFIG_SHUTDOWN
 void board_shutdown(void)
 {
@@ -74,10 +76,21 @@ void board_boot(void)
 	if (flash_sel == IMC_FLASH_SSI) {
 		uint32_t addr = 0;
 		uint32_t size = 500000;
+		unsigned char boot_file[] = "fsbl.bin";
+		int ret;
 
-		printf("Booting from SSI flash...\n");
 		boot_entry = (void *)RAM_BASE;
-		/* TODO: Find addr/size from flash GPT partitions */
+		printf("Initiating Primary GPT from SSI flash at %p...\n", boot_entry);
+		ret = gpt_pgpt_init((uint8_t *)boot_entry);
+		if (ret != 0) {
+			printf("Error: Failed to initiate Primary GPT. ret = %d\n", ret);
+		}
+		printf("Getting boot file %s...\n", boot_file);
+		ret = gpt_get_file_by_name(boot_file, &addr, &size);
+		if (ret <= 0) {
+			printf("Error: Failed to get boot file. ret = %d\n", ret);
+		}
+		printf("Booting from SSI flash addr = 0x%lx, size = 0x%lx...\n", addr, size);
 		dpu_ssi_flash_boot(boot_entry, addr, size);
 	}
 	boot_entry();
