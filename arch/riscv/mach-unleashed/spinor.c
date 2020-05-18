@@ -45,7 +45,6 @@
 #include <target/cmdline.h>
 #include <target/mem.h>
 
-#define SPINOR_BLOCK_SIZE			512
 #ifdef CONFIG_UNLEASHED_FLASH_QSPI0
 #define SPINOR_BASE				QSPI0_FLASH_BASE
 #endif
@@ -140,7 +139,7 @@ int board_spinor_init(uint8_t spi)
 
 static int do_spinor(int argc, char *argv[])
 {
-	uint8_t gpt_buf[SPINOR_BLOCK_SIZE];
+	uint8_t gpt_buf[GPT_LBA_SIZE];
 	gpt_header hdr;
 	uint64_t partition_entries_lba_end;
 	gpt_partition_entry *gpt_entries;
@@ -155,19 +154,19 @@ static int do_spinor(int argc, char *argv[])
 	}
 	printf("Reading SPI-NOR from SPI%d...\n", SPI_FLASH_ID);
 	err = unleashed_spinor_copy(&hdr,
-		GPT_HEADER_LBA * SPINOR_BLOCK_SIZE, GPT_HEADER_BYTES);
+		GPT_HEADER_LBA * GPT_LBA_SIZE, GPT_HEADER_BYTES);
 	if (err)
 		return -EINVAL;
 	mem_print_data(0, &hdr, 1, sizeof (gpt_header));
 	partition_entries_lba_end = (hdr.partition_entries_lba +
 		(hdr.num_partition_entries * hdr.partition_entry_size +
-		 SPINOR_BLOCK_SIZE - 1) / SPINOR_BLOCK_SIZE);
+		 GPT_LBA_SIZE - 1) / GPT_LBA_SIZE);
 	for (i = hdr.partition_entries_lba;
 	     i < partition_entries_lba_end; i++) {
-		unleashed_spinor_copy(gpt_buf, i * SPINOR_BLOCK_SIZE,
-				      SPINOR_BLOCK_SIZE);
+		unleashed_spinor_copy(gpt_buf, i * GPT_LBA_SIZE,
+				      GPT_LBA_SIZE);
 		gpt_entries = (gpt_partition_entry *)gpt_buf;
-		num_entries = SPINOR_BLOCK_SIZE / hdr.partition_entry_size;
+		num_entries = GPT_LBA_SIZE / hdr.partition_entry_size;
 		for (j = 0; j < num_entries; j++) {
 			printf("%s:\n",
 			       uuid_export(gpt_entries[j].partition_type_guid.u.uuid));

@@ -100,7 +100,9 @@ struct gpt_header {
 
 /* Copy of Primary GPT */
 static uint8_t gpt_pgpt[GPT_SECTOR_SIZE * GPT_PGPT_SECTOR_CNT] = {0};
+#if 0
 static struct gpt_header *gpt_header_ptr = (struct gpt_header *)(gpt_pgpt + GPT_SECTOR_SIZE * 1);
+#endif
 static struct gpt_entry *gpt_entries_start = (struct gpt_entry *)(gpt_pgpt + GPT_SECTOR_SIZE * 2);
 
 #ifdef GPT_UTIL_DEBUG

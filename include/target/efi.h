@@ -45,6 +45,7 @@
 #include <target/compiler.h>
 #include <target/uuid.h>
 
+#define GPT_LBA_SIZE		512
 #define GPT_HEADER_LBA		1
 #define GPT_HEADER_BYTES	92
 

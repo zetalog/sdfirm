@@ -1016,9 +1016,11 @@
 	__raw_setl(PCR_LK, PCR(port, pin))
 
 /* GPIO abstraction */
+#ifdef CONFIG_GPIO
 #define GPIO_HW_MAX_PORTS	5
 #define GPIO_HW_MAX_PINS	32
 
+#define gpio_hw_ctrl_init()		do { } while (0)
 #define gpio_hw_read_pin(port, pin)		\
 	(gpio_is_output(port, pin) ?		\
 	 gpio_get_output(port, pin) :		\
@@ -1031,6 +1033,7 @@
 	port_config_mux(port, pin, mux)
 #define gpio_hw_config_pad(port, pin, pad, drv)	\
 	port_config_pad(port, pin, pad, drv)
+#ifndef CONFIG_SYS_NOIRQ
 #define gpio_hw_config_irq(port, pin, mode)	\
 	port_config_irq(port, pin, mode)
 #define gpio_hw_enable_irq(port, pin)
@@ -1041,7 +1044,8 @@
 #define gpio_hw_trigger_irq(port, pin)
 #define gpio_hw_irq_status(port, pin)		\
 	port_get_isf(port, pin)
-#define gpio_hw_ctrl_init()		do { } while (0)
+#endif
+#endif
 
 void port_config_pad(uint8_t port, uint8_t pin,
 		     uint8_t pad, uint8_t drv);

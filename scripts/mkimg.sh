@@ -99,5 +99,5 @@ do
 done
 
 echo ">> Final partition information:"
-fdisk -l -o Device,Start,End,Sectors,Size,Name,UUID $output_img
+fdisk -l $output_img
 

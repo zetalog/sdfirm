@@ -69,7 +69,7 @@ void mmc_hw_irq_init(void)
 
 static int do_sdcard(int argc, char *argv[])
 {
-	uint8_t gpt_buf[MMC_DEF_BL_LEN];
+	uint8_t gpt_buf[GPT_LBA_SIZE];
 	gpt_header hdr;
 	uint64_t partition_entries_lba_end;
 	gpt_partition_entry *gpt_entries;
@@ -90,12 +90,12 @@ static int do_sdcard(int argc, char *argv[])
 	mem_print_data(0, &hdr, 1, sizeof (gpt_header));
 	partition_entries_lba_end = (hdr.partition_entries_lba +
 		(hdr.num_partition_entries * hdr.partition_entry_size +
-		 MMC_DEF_BL_LEN - 1) / MMC_DEF_BL_LEN);
+		 GPT_LBA_SIZE - 1) / GPT_LBA_SIZE);
 	for (i = hdr.partition_entries_lba;
 	     i < partition_entries_lba_end; i++) {
 		mmc_card_read_sync(0, gpt_buf, i, 1);
 		gpt_entries = (gpt_partition_entry *)gpt_buf;
-		num_entries = MMC_DEF_BL_LEN / hdr.partition_entry_size;
+		num_entries = GPT_LBA_SIZE / hdr.partition_entry_size;
 		for (j = 0; j < num_entries; j++) {
 			printf("%s:\n",
 			       uuid_export(gpt_entries[j].partition_type_guid.u.uuid));
