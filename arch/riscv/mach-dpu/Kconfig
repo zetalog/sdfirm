@@ -96,25 +96,15 @@ endchoice
 
 menu "Bootloader options"
 
-
 config DPU_LOAD
 	bool "Enable bootloader"
 	depends DPU_LOAD_ZSBL || DPU_LOAD_FSBL
 
 if DPU_LOAD
 
-choice
-	prompt "Load image residency"
-
 config DPU_LOAD_SPI_FLASH
-	bool "SPI flash"
+	bool "Enable load from SPI flash"
 	depends DPU_SPI_FLASH
-
-config DPU_LOAD_SSI_FLASH
-	bool "SSI flash"
-	depends DPU_SSI_FLASH && EXPERIMENTAL
-
-endchoice
 
 config DPU_BOOT_ADDR
 	hex "Bootloader SPI flash jump address"
@@ -122,8 +112,12 @@ config DPU_BOOT_ADDR
 	depends DPU_LOAD_SPI_FLASH
 	default 0x00000080
 
+config DPU_LOAD_SSI_FLASH
+	bool "Enable load from SSI flash"
+	depends DPU_SSI_FLASH && EXPERIMENTAL
+
 config DPU_BOOT_STACK
-	bool "Enable boot from stack support"
+	bool "Enable boot from stack"
 	help
 	  By default, each bootloader's .text section should be in
 	  a different memory region. Enable this option only if the next
