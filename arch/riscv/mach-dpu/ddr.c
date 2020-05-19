@@ -152,3 +152,7 @@ void ddr_hw_wait_dfi(uint32_t cycles)
 	last = DIV_ROUND_UP(cycles, ratio) + tsc_read_counter();
 	while (time_before(tsc_read_counter(), last));
 }
+
+void dw_umctl2_init(void)
+{
+}

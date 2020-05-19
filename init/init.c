@@ -73,6 +73,11 @@ void ifd_init(void);
 #else
 #define ifd_init()
 #endif
+#ifdef CONFIG_DDR
+void ddr_init(void);
+#else
+#define ddr_init()
+#endif
 #ifdef CONFIG_MMC_CORE
 void mmcsd_init(void);
 #else
@@ -155,6 +160,7 @@ void modules_init(void)
 	spi_init();
 	net_init();
 	mmcsd_init();
+	ddr_init();
 	usb_init();
 	mtd_init();
 
