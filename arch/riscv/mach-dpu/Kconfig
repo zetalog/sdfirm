@@ -152,6 +152,10 @@ config DPU_SIM_GPIO_IRQ
 	bool "Enable GPIO IRQ testing framework"
 	depends DPU_GPIO && SYS_IRQ
 
+config DPU_SIM_SSI_IRQ
+	bool "Enable SSI IRQ testing support"
+	depends DPU_SSI_FLASH && SYS_IRQ
+
 endif
 
 endmenu

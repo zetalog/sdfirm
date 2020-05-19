@@ -54,9 +54,6 @@
 #define NR_DW_SSIS		1
 #endif
 
-#define SPI_OK		0
-#define SPI_ERROR	(-1)
-
 /* ssi_memory_map/ssi_address_block registers */
 #define SSI_CTRLR0(n)		DW_SSI_REG(n, 0x00)
 #define SSI_CTRLR1(n)		DW_SSI_REG(n, 0x04)

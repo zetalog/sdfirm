@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon May 18 18:35:16 2020
+# Tue May 19 16:29:35 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -110,6 +110,7 @@ CONFIG_RISCV_EXIT_M=y
 #
 # System peripherals
 #
+CONFIG_RISCV_IRQ_VERBOSE=y
 CONFIG_ARCH_HAS_PLIC=y
 CONFIG_ARCH_HAS_PLIC_EOI_EARLY=y
 CONFIG_PLIC=y
@@ -139,6 +140,8 @@ CONFIG_DPU_BOOT_VPU=y
 # Simulation options
 #
 # CONFIG_DPU_SIM_CLK is not set
+CONFIG_DPU_SIM_GPIO_IRQ=y
+CONFIG_DPU_SIM_SSI_IRQ=y
 CONFIG_DPU_TCSR=y
 CONFIG_DPU_TCSR_LOW_POWER=y
 CONFIG_DPU_TCSR_SIM_FINISH=y

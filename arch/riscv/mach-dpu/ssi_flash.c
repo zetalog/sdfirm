@@ -143,6 +143,46 @@ static int do_flash_dump(int argc, char *argv[])
 	return 0;
 }
 
+#ifdef CONFIG_DPU_SIM_SSI_IRQ
+static uint32_t triggered = false;
+
+static void dpu_ssi_handler(void)
+{
+	triggered = true;
+	irqc_mask_irq(IRQ_SPI);
+	printf("SSI IRQ\n");
+}
+
+void dpu_ssi_irq_init(void)
+{
+	irqc_configure_irq(IRQ_SPI, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(IRQ_SPI, dpu_ssi_handler);
+	irqc_enable_irq(IRQ_SPI);
+}
+
+static int do_flash_irq(int argc, char *argv[])
+{
+	uint8_t status;
+
+	dw_ssi_enable_irqs(SSI_ID, SSI_RXFI | SSI_TXEI);
+	dw_ssi_write_byte(SSI_ID, SF_READ_STATUS_1);
+        status = dw_ssi_read_byte(SSI_ID);
+	while (!triggered) {
+		irq_local_enable();
+		irq_local_disable();
+	}
+	irqc_ack_irq(IRQ_SPI);
+	dw_ssi_disable_irqs(SSI_ID, SSI_RXFI | SSI_TXEI);
+	irqc_unmask_irq(IRQ_SPI);
+	return -EINVAL;
+}
+#else
+static int do_flash_irq(int argc, char *argv[])
+{
+	return -EINVAL;
+}
+#endif
+
 static int do_flash(int argc, char *argv[])
 {
 	if (argc < 2)
@@ -152,6 +192,8 @@ static int do_flash(int argc, char *argv[])
 		return do_flash_dump(argc, argv);
 	if (strcmp(argv[1], "gpt") == 0)
 		return do_flash_gpt(argc, argv);
+	if (strcmp(argv[1], "irq") == 0)
+		return do_flash_irq(argc, argv);
 	return -ENODEV;
 }
 
@@ -162,4 +204,6 @@ DEFINE_COMMAND(flash, do_flash, "SSI flash commands",
 	"      size: default to 32\n"
 	"gpt\n"
 	"    - dump GPT partitions from SSI flash\n"
+	"irq\n"
+	"    - testing SSI IRQ\n"
 );

@@ -11,54 +11,54 @@ struct dpu_gpio_irq {
 
 extern struct dpu_gpio_irq dpu_gpio_irqs[];
 
-void dpu_gpio_handler(struct dpu_gpio_irq *girq)
+static void dpu_gpio_handler(struct dpu_gpio_irq *girq)
 {
 	girq->triggered = true;
 	irqc_mask_irq(girq->irq);
 	printf("GPIO%d IRQ\n", girq->irq - IRQ_GPIO0);
 }
 
-void dpu_gpio0_handler(void)
+static void dpu_gpio0_handler(void)
 {
 	dpu_gpio_handler(&dpu_gpio_irqs[0]);
 }
 
-void dpu_gpio1_handler(void)
+static void dpu_gpio1_handler(void)
 {
 	dpu_gpio_handler(&dpu_gpio_irqs[1]);
 }
 
-void dpu_gpio2_handler(void)
+static void dpu_gpio2_handler(void)
 {
 	dpu_gpio_handler(&dpu_gpio_irqs[2]);
 }
 
-void dpu_gpio3_handler(void)
+static void dpu_gpio3_handler(void)
 {
 	dpu_gpio_handler(&dpu_gpio_irqs[3]);
 }
 
-void dpu_gpio4_handler(void)
+static void dpu_gpio4_handler(void)
 {
 	dpu_gpio_handler(&dpu_gpio_irqs[4]);
 }
 
-void dpu_gpio5_handler(void)
+static void dpu_gpio5_handler(void)
 {
 	dpu_gpio_handler(&dpu_gpio_irqs[5]);
 }
 
-void dpu_gpio6_handler(void)
+static void dpu_gpio6_handler(void)
 {
 	dpu_gpio_handler(&dpu_gpio_irqs[6]);
 }
 
-void dpu_gpio7_handler(void)
+static void dpu_gpio7_handler(void)
 {
 	dpu_gpio_handler(&dpu_gpio_irqs[7]);
 }
 
-struct dpu_gpio_irq dpu_gpio_irqs[] = {
+static struct dpu_gpio_irq dpu_gpio_irqs[] = {
 	{ IRQ_GPIO0, dpu_gpio0_handler, 1 },
 	{ IRQ_GPIO1, dpu_gpio1_handler, 0 },
 	{ IRQ_GPIO2, dpu_gpio2_handler, 3 },
@@ -69,7 +69,7 @@ struct dpu_gpio_irq dpu_gpio_irqs[] = {
 	{ IRQ_GPIO7, dpu_gpio7_handler, 6 },
 };
 
-void dpu_gpio_irq_trigger(int pin, bool high)
+static void dpu_gpio_irq_trigger(int pin, bool high)
 {
 	struct dpu_gpio_irq *girq;
 

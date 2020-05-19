@@ -88,4 +88,10 @@ void dpu_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size);
 #define dpu_ssi_flash_boot(boot, addr, size)	do { } while (0)
 #endif
 
+#ifdef CONFIG_DPU_SIM_SSI_IRQ
+void dpu_ssi_irq_init(void);
+#else
+#define dpu_ssi_irq_init()		do { } while (0)
+#endif
+
 #endif /* __SPI_DPU_H_INCLUDE__ */
