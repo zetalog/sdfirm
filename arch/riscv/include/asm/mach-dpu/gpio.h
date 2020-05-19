@@ -83,4 +83,10 @@
 #endif /* CONFIG_SYS_NOIRQ */
 #endif /* CONFIG_GPIO */
 
+#ifdef CONFIG_DPU_SIM_GPIO_IRQ
+void dpu_gpio_irq_init(void);
+#else
+#define dpu_gpio_irq_init()			do { } while (0)
+#endif
+
 #endif /* __GPIO_DPU_H_INCLUDE__ */

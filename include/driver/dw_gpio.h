@@ -77,8 +77,7 @@
 #define GPIO_CONFIG_REG1(n)	DW_GPIO_REG(n, 0x74)
 
 #define dw_gpio_write_pin(n, p, pin, v)				\
-	((v) ? __raw_setl(_BV(pin), GPIO_SWPORT_DR(n, p)) :	\
-	 __raw_clearl(_BV(pin), GPIO_SWPORT_DR(n, p)))
+	__raw_writel_mask(v ? _BV(pin) : 0, _BV(pin), GPIO_SWPORT_DR(n, p))
 #define dw_gpio_read_pin(n, p, pin)				\
 	(!!(__raw_readl(GPIO_SWPORT_DR(n, p)) & _BV(pin)))
 

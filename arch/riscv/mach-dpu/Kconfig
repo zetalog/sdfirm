@@ -154,6 +154,10 @@ config DPU_SIM_CLK
 	  On simulation environments, CLK can be opt-off if no need to
 	  configure any clocks (forced in test benches).
 
+config DPU_SIM_GPIO_IRQ
+	bool "Enable GPIO IRQ testing framework"
+	depends DPU_GPIO && SYS_IRQ
+
 endif
 
 endmenu

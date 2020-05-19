@@ -107,6 +107,7 @@ void board_early_init(void)
 
 void board_late_init(void)
 {
+	dpu_gpio_irq_init();
 	dpu_ssi_flash_init();
 	board_boot();
 }

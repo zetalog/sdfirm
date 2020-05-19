@@ -122,8 +122,21 @@ void irqc_hw_configure_irq(irq_t irq, uint8_t prio, uint8_t trigger)
 					prio + PLIC_PRI_MIN);
 }
 
+#ifdef CONFIG_RISCV_IRQ_VERBOSE
+#define plic_irq_completion_verbose(cpu, irq, is_ack)		\
+	do {							\
+		plic_irq_completion((cpu), (irq));		\
+		printf("PLIC %d %s completion.\n", (irq),	\
+		       (is_ack) ? "external" : "internal");	\
+	} while (0)
+#else
+#define plic_irq_completion_verbose(cpu, irq, is_ack)		\
+	plic_irq_completion(cpu, irq)
+#endif
+
 #ifdef CONFIG_PLIC_COMPLETION
-#define plic_completion(cpu, irq)	plic_irq_completion(cpu, irq)
+#define plic_completion(cpu, irq)	\
+	plic_irq_completion_verbose(cpu, irq, false)
 #else
 #define plic_completion(cpu, irq)	do { } while (0)
 
@@ -131,7 +144,7 @@ void irqc_hw_ack_irq(irq_t irq)
 {
 	uint8_t cpu = smp_processor_id();
 
-	plic_irq_completion(cpu, irq - IRQ_PLATFORM);
+	plic_irq_completion_verbose(cpu, irq - IRQ_PLATFORM, true);
 }
 #endif
 

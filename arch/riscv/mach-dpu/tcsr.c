@@ -154,11 +154,17 @@ static int do_tcsr_axi(int argc, char **argv)
 	if (argc < 4)
 		return -EINVAL;
 	periph = imc_axi_name2periph(argv[3]);
-	if (periph >= IMC_MAX_AXI_PERIPHS)
+	if (periph >= IMC_MAX_AXI_PERIPHS) {
+		printf("%s is an unknown AXI peripheral!\n", argv[3]);
 		return -EINVAL;
-	if (strcmp(argv[2], "on") == 0 && imc_axi_periph_registered(periph))
+	}
+	if (!imc_axi_periph_registered(periph)) {
+		printf("%s is not in a reset active state!\n", argv[3]);
+		return -EINVAL;
+	}
+	if (strcmp(argv[2], "on") == 0)
 		imc_axi_exit_low_power(periph);
-	if (strcmp(argv[2], "off") == 0 && imc_axi_periph_registered(periph))
+	if (strcmp(argv[2], "off") == 0)
 		imc_axi_enter_low_power(periph);
 	return -ENODEV;
 }

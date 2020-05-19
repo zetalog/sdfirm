@@ -147,11 +147,12 @@ struct reset_clk reset_clks[NR_RESET_CLKS] = {
 	[SRST_DDR0_0] = {
 		.clk_src = ddr_clk,
 		.flags = CLK_SRST_F,
+		.axi_periphs = _BV(IMC_DDR0) | _BV(IMC_DDR0_CTRL),
 	},
 	[SRST_DDR0_1] = {
 		.clk_src = ddr_clk,
 		.flags = CLK_SRST_F,
-		.axi_periphs = _BV(IMC_DDR0) | _BV(IMC_DDR0_CTRL),
+		.axi_periphs = _BV(IMC_DDR1) | _BV(IMC_DDR1_CTRL),
 	},
 	[SRST_DDR1_0] = {
 		.clk_src = ddr_clk,
@@ -160,7 +161,6 @@ struct reset_clk reset_clks[NR_RESET_CLKS] = {
 	[SRST_DDR1_1] = {
 		.clk_src = ddr_clk,
 		.flags = CLK_SRST_F,
-		.axi_periphs = _BV(IMC_DDR1) | _BV(IMC_DDR1_CTRL),
 	},
 	/* DDR requires this to be done earlier than speed determination,
 	 * thus it should be independent of any ddr clock.

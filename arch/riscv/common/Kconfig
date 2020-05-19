@@ -556,6 +556,12 @@ config SYS_MONITOR
 
 menu "System peripherals"
 
+config RISCV_IRQ_VERBOSE
+	bool "Enable IRQ handler verbosity"
+	depends SIMULATION && EXPERIMENTAL
+	help
+	  This is useful for IRQ testing.
+
 config ARCH_HAS_HTIF
 	bool
 
