@@ -2,6 +2,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifndef GPT_LOCAL_TEST
+#include <asm/mach/spi.h>
+#endif
+
 #define GPT_UTIL_DEBUG
 
 /* Size of Sector (Logical Block) */
@@ -9,7 +13,10 @@
 #define GPT_SECTOR_SIZE (1 << GPT_SECTOR_SIZE_SHIFT)
 
 #define GPT_PGPT_SECTOR_CNT 34		/* Sector count of Primary GPT */
-#define GPT_PGPT_PART_CNT 128		/* Partition Entry count in Primary GPT */
+/* Partition Entry count in Primary GPT.
+   - Entries start at the 3rd sector (LBA 2)
+   - There are 4 entires in each sector.  */
+#define GPT_PGPT_PART_CNT ((GPT_PGPT_SECTOR_CNT-2) * 4)
 #define GPT_PART_START_SECTOR 2		/* Sector number (LBA) of the 1st Partition Entry */
 
 #define GPT_HEADER_SIGNATURE 0x5452415020494645LL /* EFI PART */
@@ -129,6 +136,7 @@ static void gpt_header_print(struct gpt_header *header)
 
 static void gpt_entry_print(struct gpt_entry *entry)
 {
+	int i;
 	unsigned char *byte_ptr;
 	if (entry == NULL) return;
 	byte_ptr = (unsigned char *)(&entry->partition_guid);
@@ -140,7 +148,7 @@ static void gpt_entry_print(struct gpt_entry *entry)
 			byte_ptr[10], byte_ptr[11], byte_ptr[12], byte_ptr[13], byte_ptr[14], byte_ptr[15]);
 	printf("%016lx ", entry->lba_start);
 	printf("%016lx ", entry->lba_end);
-	for (int i = 0; i < (GPT_PART_NAME_LEN * sizeof(uint16_t)); i++) {
+	for (i = 0; i < (GPT_PART_NAME_LEN * sizeof(uint16_t)); i++) {
 		printf("%02x", *(((unsigned char *)(entry->name)) + i));
 	}
 	printf("\n");
@@ -148,23 +156,30 @@ static void gpt_entry_print(struct gpt_entry *entry)
 }
 #endif
 
+#ifdef GPT_LOCAL_TEST
 int gpt_pgpt_init(uint8_t *image_start)
-{
-#ifdef GPT_UTIL_DEBUG
-	printf("Debug: Enter %s. image_start @ %p\n", __func__, image_start);
+#else
+int gpt_pgpt_init(void)
 #endif
+{
+	/* PGPT header is at the 2nd sector */
+	uint32_t flash_addr = GPT_SECTOR_SIZE;
+	uint32_t copy_size = GPT_SECTOR_SIZE;
+#ifdef GPT_UTIL_DEBUG
+	printf("Debug: Enter %s\n", __func__);
+	printf("Debug: Copy flash addr = 0x%x, size = 0x%x\n", flash_addr, copy_size);
+#endif
+
+#ifdef GPT_LOCAL_TEST
+	/* Copy header and all entries in one time */
 	if (image_start == NULL) return -1;
 	memcpy(gpt_pgpt, image_start, sizeof(gpt_pgpt));
+#else
+	/* Copy header only */
+	dpu_ssi_flash_copy(gpt_pgpt + GPT_SECTOR_SIZE, flash_addr, copy_size);
+#endif
 #ifdef GPT_UTIL_DEBUG
-	/* PGPT header is at the 2nd sector */
 	gpt_header_print((struct gpt_header *)(gpt_pgpt + GPT_SECTOR_SIZE));
-	for (int i = 0; i < GPT_PGPT_PART_CNT; i++) {
-		struct gpt_entry *entry_ptr = gpt_entries_start + i;
-		uint32_t *guid_words = (uint32_t *)(&entry_ptr->partition_guid);
-		if (guid_words[0] == 0 && guid_words[1] == 0 && guid_words[2] == 0 && guid_words[3] == 0)
-			continue;
-		gpt_entry_print(entry_ptr);
-	}
 #endif
 	return 0;
 }
@@ -188,7 +203,10 @@ static int gpt_entry_check_name(struct gpt_entry *entry, uint8_t *name_str)
  */
 int gpt_get_part_by_name(uint8_t *part_name, uint32_t *offset, uint32_t *size, uint16_t *pad_size)
 {
+	uint32_t flash_addr = GPT_SECTOR_SIZE * GPT_PART_START_SECTOR;
+	uint32_t copy_size = sizeof(struct gpt_entry);
 	int i;
+
 #ifdef GPT_UTIL_DEBUG
 	printf("Debug: Enter %s\n", __func__);
 #endif
@@ -200,8 +218,22 @@ int gpt_get_part_by_name(uint8_t *part_name, uint32_t *offset, uint32_t *size, u
 		struct gpt_entry *entry_ptr = gpt_entries_start + i;
 		uint32_t *guid_words = (uint32_t *)(&entry_ptr->partition_guid);
 		unsigned char *guid_bytes = (unsigned char *)(&entry_ptr->partition_guid);
+#ifdef GPT_LOCAL_TEST
+		/* No need to copy, because all data is copied in gpt_pgpt_init() */
+#else
+#ifdef GPT_UTIL_DEBUG
+		printf("Debug: Copy Partition Entry %d flash addr = 0x%x size = 0x%x\n", i, flash_addr, copy_size);
+#endif
+		dpu_ssi_flash_copy(entry_ptr, flash_addr, copy_size);
+		flash_addr += copy_size;
+#endif
+#ifdef GPT_UTIL_DEBUG
+		printf("Debug: Checking partition %d\n", (i + 1));
+		gpt_entry_print(entry_ptr);
+#endif
+		/* Stop searching at empty entry */
 		if (guid_words[0] == 0 && guid_words[1] == 0 && guid_words[2] == 0 && guid_words[3] == 0)
-			continue;
+			break;
 		if (gpt_entry_check_name(entry_ptr, part_name) != 0) {
 			continue;
 		}

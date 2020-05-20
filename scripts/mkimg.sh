@@ -91,7 +91,7 @@ do
 	file_size=`wc --bytes $input_dir/$f | cut -d " " -f 1`
 	part_info=`parted $output_img unit B print 2> /dev/null | sed '1,/Number/d' | head -n $part_num | tail -n 1`
 	part_start=`echo $part_info tr -s ' ' | cut -d ' ' -f 2 | cut -d 'B' -f 1`
-	let dd_seek=$part_start-1
+	let dd_seek=$part_start
 	let part_end=$dd_seek+$file_size
 	echo ">> Copy data into partiton $part_num seek $dd_seek start $part_start end $part_end size $file_size from file $f"
 	dd if=$input_dir/$f of=$output_img bs=1 count=$file_size seek=$dd_seek conv=notrunc
