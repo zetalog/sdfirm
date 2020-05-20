@@ -83,8 +83,8 @@ void board_boot(void)
 		int ret;
 
 		boot_entry = (void *)RAM_BASE;
-		printf("Initiating Primary GPT from SSI flash at %p...\n", boot_entry);
-		ret = gpt_pgpt_init((uint8_t *)boot_entry);
+		printf("Initiating Primary GPT from SSI flash...\n");
+		ret = gpt_pgpt_init();
 		if (ret != 0) {
 			printf("Error: Failed to initiate Primary GPT. ret = %d\n", ret);
 		}
