@@ -33,9 +33,6 @@ void do_riscv_interrupt(struct pt_regs *regs)
 
 	irq = regs->cause & ~ICR_IRQ_FLAG;
 	if (irq == IRQ_EXT) {
-#ifdef CONFIG_RISCV_IRQ_VERBOSE
-		printf("External IRQ\n");
-#endif
 		irqc_hw_handle_irq();
 		return;
 	}

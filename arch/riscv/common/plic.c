@@ -160,6 +160,9 @@ void irqc_hw_handle_irq(void)
 		plic_disable_irq(irq);
 		plic_irq_completion(cpu, irq);
 	} else {
+#ifdef CONFIG_RISCV_IRQ_VERBOSE
+		printf("External IRQ %d\n", irq);
+#endif
 		if (!do_IRQ(irq + IRQ_PLATFORM)) {
 			/* No IRQ handler registered, disabling... */
 			plic_disable_irq(irq);

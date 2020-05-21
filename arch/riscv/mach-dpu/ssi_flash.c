@@ -134,7 +134,7 @@ static int do_flash_dump(int argc, char *argv[])
 		printf("addr should be less than %d\n", FLASH_TOTAL_SIZE);
 		return -EINVAL;
 	}
-	if (addr > FLASH_PAGE_SIZE) {
+	if (size > FLASH_PAGE_SIZE) {
 		printf("size should be less or equal than %d\n",
 		       FLASH_PAGE_SIZE);
 		return -EINVAL;
@@ -145,37 +145,49 @@ static int do_flash_dump(int argc, char *argv[])
 }
 
 #ifdef CONFIG_DPU_SIM_SSI_IRQ
-static uint32_t triggered = false;
+static uint32_t dw_ssi_irqs;
 
 static void dpu_ssi_handler(void)
 {
-	triggered = true;
-	irqc_mask_irq(IRQ_SPI);
-	printf("SSI IRQ\n");
+	uint32_t irqs = dw_ssi_irqs_status(SSI_ID);
+
+	if ((irqs & SSI_TXEI) && !(dw_ssi_irqs & SSI_TXEI)) {
+		dw_ssi_disable_irqs(SSI_ID, SSI_TXEI);
+		dw_ssi_irqs |= SSI_TXEI;
+		dw_ssi_write_dr(SSI_ID, SF_READ_STATUS_1);
+	}
+	if ((irqs & SSI_RXFI) && !(dw_ssi_irqs & SSI_RXFI)) {
+		dw_ssi_disable_irqs(SSI_ID, SSI_RXFI);
+		dw_ssi_irqs |= SSI_RXFI;
+		(void)dw_ssi_read_dr(SSI_ID);
+	}
+	dw_ssi_clear_irqs(SSI_ID, irqs);
+	irqc_ack_irq(IRQ_SPI);
 }
 
 void dpu_ssi_irq_init(void)
 {
 	irqc_configure_irq(IRQ_SPI, 0, IRQ_LEVEL_TRIGGERED);
 	irq_register_vector(IRQ_SPI, dpu_ssi_handler);
-	irqc_enable_irq(IRQ_SPI);
 }
 
 static int do_flash_irq(int argc, char *argv[])
 {
-	uint8_t status;
+	uint32_t irqs = SSI_RXFI | SSI_TXEI;
 
-	dw_ssi_enable_irqs(SSI_ID, SSI_RXFI | SSI_TXEI);
-	dw_ssi_write_byte(SSI_ID, SF_READ_STATUS_1);
-	while (!triggered) {
-		irq_local_enable();
-		irq_local_disable();
-	}
-	dw_ssi_disable_irqs(SSI_ID, SSI_RXFI | SSI_TXEI);
-	irqc_ack_irq(IRQ_SPI);
-	irqc_unmask_irq(IRQ_SPI);
-	status = dw_ssi_read_byte(SSI_ID);
-	return (status & SF_BUSY) ? -EBUSY : 0;
+	dw_ssi_irqs = 0;
+
+	dw_ssi_select_chip(SSI_ID, 0);
+	dw_ssi_enable_irqs(SSI_ID, irqs);
+	irqc_enable_irq(IRQ_SPI);
+	irq_local_enable();
+	while (!(dw_ssi_irqs & irqs));
+	irq_local_disable();
+	irqc_disable_irq(IRQ_SPI);
+	dw_ssi_disable_irqs(SSI_ID, irqs);
+	dw_ssi_deselect_chips(SSI_ID);
+	printf("IRQ test passed.\n");
+	return 0;
 }
 #else
 static int do_flash_irq(int argc, char *argv[])

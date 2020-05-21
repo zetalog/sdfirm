@@ -235,7 +235,7 @@ struct dw_ssi_ctx {
 #define dw_ssi_reset_ctrl(n)				\
 	do {						\
 		dw_ssi_disable_ctrl(n);			\
-		dw_ssi_disable_irqs(SSI_ALL_IRQS);	\
+		dw_ssi_disable_irqs(n, SSI_ALL_IRQS);	\
 		dw_ssi_enable_ctrl(n);			\
 	} while (0)
 #define dw_ssi_config_mode(n, mode)			\
@@ -254,6 +254,8 @@ struct dw_ssi_ctx {
 #define dw_ssi_deselect_chips(n)	dw_ssi_select_chips(n, 0)
 #define dw_ssi_enable_irqs(n, irqs)	__raw_clearl(irqs, SSI_IMR(n))
 #define dw_ssi_disable_irqs(n, irqs)	__raw_setl(irqs, SSI_IMR(n))
+#define dw_ssi_irqs_status(n)		__raw_readl(SSI_ISR(n))
+#define dw_ssi_clear_irqs(n, irqs)	__raw_clearl(irqs, SSI_ISR(n))
 
 uint8_t dw_ssi_read_byte(int n);
 void dw_ssi_write_byte(int n, uint8_t byte);

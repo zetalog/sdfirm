@@ -132,7 +132,7 @@ void dw_ssi_init_master(int n, uint8_t frf, uint8_t tmod,
 	dw_ssis[n].rx_fifo_depth = (uint8_t)(rxfifo - 1);
 	__raw_writel(dw_ssis[n].tx_fifo_depth, SSI_TXFTLR(n));
 	__raw_writel(0, SSI_RXFTLR(n));
-	__raw_writel(0xFF, SSI_IMR(n));
+	dw_ssi_disable_irqs(n, SSI_ALL_IRQS);
 	dw_ssi_enable_ctrl(n);
 }
 
