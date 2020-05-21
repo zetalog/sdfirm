@@ -2,6 +2,7 @@
 #include <target/cmdline.h>
 #include <target/mem.h>
 #include <target/efi.h>
+#include <target/irq.h>
 
 #define FLASH_PAGE_SIZE		256
 #define FLASH_TOTAL_SIZE	4000000
@@ -166,15 +167,15 @@ static int do_flash_irq(int argc, char *argv[])
 
 	dw_ssi_enable_irqs(SSI_ID, SSI_RXFI | SSI_TXEI);
 	dw_ssi_write_byte(SSI_ID, SF_READ_STATUS_1);
-        status = dw_ssi_read_byte(SSI_ID);
 	while (!triggered) {
 		irq_local_enable();
 		irq_local_disable();
 	}
-	irqc_ack_irq(IRQ_SPI);
 	dw_ssi_disable_irqs(SSI_ID, SSI_RXFI | SSI_TXEI);
+	irqc_ack_irq(IRQ_SPI);
 	irqc_unmask_irq(IRQ_SPI);
-	return -EINVAL;
+	status = dw_ssi_read_byte(SSI_ID);
+	return (status & SF_BUSY) ? -EBUSY : 0;
 }
 #else
 static int do_flash_irq(int argc, char *argv[])

@@ -194,16 +194,31 @@ const char *imc_boot2name(uint8_t boot_mode)
 	}
 }
 
+const char *imc_flash2name(uint8_t boot_flash)
+{
+	switch (boot_flash) {
+	case IMC_FLASH_SPI:
+		return "spi";
+	case IMC_FLASH_SSI:
+		return "ssi";
+	default:
+		return "unknown";
+	}
+}
+
 static int do_tcsr_info(int argc, char *argv[])
 {
 	uint8_t mode = imc_boot_mode();
+	uint8_t flash = imc_boot_flash();
 
-	printf("Major:     %02x\n", imc_soc_major());
-	printf("Minor:     %02x\n", imc_soc_minor());
-	printf("Hart ID:   %02x\n", imc_hart_id());
-	printf("Boot Mode: %s\n", imc_boot2name(mode));
+	printf("Major:      %02x\n", imc_soc_major());
+	printf("Minor:      %02x\n", imc_soc_minor());
+	printf("Hart ID:    %02x\n", imc_hart_id());
+	printf("Boot Mode:  %s\n", imc_boot2name(mode));
 	if (mode == IMC_BOOT_USE_BOOT_ADDR)
-		printf("Boot Addr: %016llx\n", imc_boot_addr());
+		printf("Boot Addr:  %016llx\n", imc_boot_addr());
+	if (mode == IMC_BOOT_ROM)
+		printf("Boot Flash: %s\n", imc_flash2name(flash));
 	return 0;
 }
 

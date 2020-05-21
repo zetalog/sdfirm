@@ -9,7 +9,7 @@ struct dpu_gpio_irq {
 	bool triggered;
 };
 
-extern struct dpu_gpio_irq dpu_gpio_irqs[];
+static struct dpu_gpio_irq dpu_gpio_irqs[];
 
 static void dpu_gpio_handler(struct dpu_gpio_irq *girq)
 {
