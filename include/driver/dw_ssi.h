@@ -252,8 +252,8 @@ struct dw_ssi_ctx {
 	} while (0)
 #define dw_ssi_select_chip(n, chip)	dw_ssi_select_chips(n, _BV(chip))
 #define dw_ssi_deselect_chips(n)	dw_ssi_select_chips(n, 0)
-#define dw_ssi_enable_irqs(n, irqs)	__raw_clearl(irqs, SSI_IMR(n))
-#define dw_ssi_disable_irqs(n, irqs)	__raw_setl(irqs, SSI_IMR(n))
+#define dw_ssi_enable_irqs(n, irqs)	__raw_setl(irqs, SSI_IMR(n))
+#define dw_ssi_disable_irqs(n, irqs)	__raw_clearl(irqs, SSI_IMR(n))
 #define dw_ssi_irqs_status(n)		__raw_readl(SSI_ISR(n))
 #define dw_ssi_clear_irqs(n, irqs)	__raw_clearl(irqs, SSI_ISR(n))
 

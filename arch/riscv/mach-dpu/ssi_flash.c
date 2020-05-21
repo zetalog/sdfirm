@@ -174,15 +174,23 @@ void dpu_ssi_irq_init(void)
 static int do_flash_irq(int argc, char *argv[])
 {
 	uint32_t irqs = SSI_RXFI | SSI_TXEI;
+	mtd_t smtd;
+
+	smtd = mtd_save_device(board_flash);
+	mtd_open(OPEN_READ, 0, 8);
+	mtd_close();
+	mtd_restore_device(smtd);
+	printf("IRQ test ready.\n");
 
 	dw_ssi_irqs = 0;
 
 	dw_ssi_select_chip(SSI_ID, 0);
 	dw_ssi_enable_irqs(SSI_ID, irqs);
 	irqc_enable_irq(IRQ_SPI);
-	irq_local_enable();
-	while (!(dw_ssi_irqs & irqs));
-	irq_local_disable();
+	while (dw_ssi_irqs != irqs) {
+		irq_local_enable();
+		irq_local_disable();
+	}
 	irqc_disable_irq(IRQ_SPI);
 	dw_ssi_disable_irqs(SSI_ID, irqs);
 	dw_ssi_deselect_chips(SSI_ID);
