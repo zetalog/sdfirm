@@ -114,7 +114,7 @@ config DPU_BOOT_ADDR
 
 config DPU_LOAD_SSI_FLASH
 	bool "Enable load from SSI flash"
-	depends DPU_SSI_FLASH && EXPERIMENTAL
+	depends DPU_SSI_FLASH
 
 config DPU_BOOT_STACK
 	bool "Enable boot from stack"
@@ -348,6 +348,24 @@ menuconfig DPU_SSI_FLASH
 	  controller doesn't support random accessibility.
 
 if DPU_SSI_FLASH
+
+config DPU_SSI_FLASH_FREQ
+	int "DPU SSI flash frequency"
+	range 100000 80000000
+	default 1000000 if !SIMULATION
+	default 8000000 if SIMULATION
+	depends EXPERIMENTAL
+	help
+	  The SPINOR flash uses the "EEPROM read" protocol that the CS
+	  should be kept active during the entire transaction. However,
+	  the DW_ssi controller automatically inactivates the CS pin when
+	  the FIFO is run out. That requires the program to run fast
+	  enough to fill data into the SPI FIFO. The CS inactivation can
+	  be seen if the SPI transaction period is filled up with less APB
+	  transactions (rom/ram/ssi accesses).
+	  It's tested that 8MHz is working for the case of "ROM booting
+	  SSI" in the simulation environment, for the non-simulation
+	  environment, it's preferred to use 1MHz by design.
 
 endif
 

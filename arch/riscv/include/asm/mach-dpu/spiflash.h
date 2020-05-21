@@ -46,7 +46,12 @@
  * data stream transferred via APB without seeing an auto CSn deassertion,
  * SPI should run as slow as reasonable.
  */
-#define SPIFLASH_HW_MAX_FREQ		10000
+#ifdef CONFIG_DPU_SSI_FLASH_FREQ
+#define SPIFLASH_HW_MAX_FREQ		(CONFIG_DPU_SSI_FLASH_FREQ/1000)
+#else
+#define SPIFLASH_HW_MAX_FREQ		1000
+#endif
+
 #include <driver/spiflash_w25q32.h>
 
 #endif /* __SPIFLASH_DPU_H_INCLUDE__ */
