@@ -82,7 +82,7 @@ static void dpu_gpio_irq_trigger(int pin, bool high)
 	gpio_config_pad(GPIOA, girq->trigger_pin, GPIO_PAD_PP, 2);
 	gpio_config_irq(GPIOA, pin, high ? GPIO_IRQ_HL : GPIO_IRQ_LL);
 	gpio_write_pin(GPIOA, girq->trigger_pin, high ? 1 : 0);
-	if (!girq->triggered) {
+	while (!girq->triggered) {
 		irq_local_enable();
 		irq_local_disable();
 	}
