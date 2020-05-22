@@ -622,6 +622,18 @@ config PLIC_COMPLETION
 	  PLIC driver may complete the IRQ in the IRQ context.
 	  If unsure, say 'N'.
 
+choice
+	prompt "Internal completion timing"
+	default PLIC_COMPLETION_EXIT
+
+config PLIC_COMPLETION_ENTRY
+	bool "IRQ entry"
+
+config PLIC_COMPLETION_EXIT
+	bool "IRQ exit"
+
+endchoice
+
 config PLIC_MASK_PRIORITY
 	bool "Enable priority based IRQ masking"
 	depends PLIC_COMPLETION

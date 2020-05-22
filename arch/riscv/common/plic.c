@@ -135,10 +135,19 @@ void irqc_hw_configure_irq(irq_t irq, uint8_t prio, uint8_t trigger)
 #endif
 
 #ifdef CONFIG_PLIC_COMPLETION
-#define plic_completion(cpu, irq)	\
+#ifdef CONFIG_PLIC_COMPLETION_ENTRY
+#define plic_completion_entry(cpu, irq)	\
 	plic_irq_completion_verbose(cpu, irq, false)
+#define plic_completion_exit(cpu, irq)	do { } while (0)
+#endif
+#ifdef CONFIG_PLIC_COMPLETION_EXIT
+#define plic_completion_entry(cpu, irq)	do { } while (0)
+#define plic_completion_exit(cpu, irq)	\
+	plic_irq_completion_verbose(cpu, irq, false)
+#endif
 #else
-#define plic_completion(cpu, irq)	do { } while (0)
+#define plic_completion_entry(cpu, irq)	do { } while (0)
+#define plic_completion_exit(cpu, irq)	do { } while (0)
 
 void irqc_hw_ack_irq(irq_t irq)
 {
@@ -163,12 +172,13 @@ void irqc_hw_handle_irq(void)
 #ifdef CONFIG_RISCV_IRQ_VERBOSE
 		printf("External IRQ %d\n", irq);
 #endif
+		plic_completion_entry(cpu, irq);
 		if (!do_IRQ(irq + IRQ_PLATFORM)) {
 			/* No IRQ handler registered, disabling... */
 			plic_disable_irq(irq);
 			plic_irq_completion(cpu, irq);
 		} else
-			plic_completion(cpu, irq);
+			plic_completion_exit(cpu, irq);
 	}
 	plic_hw_enable_int(IRQ_EXT);
 }
