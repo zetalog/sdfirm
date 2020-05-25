@@ -1,5 +1,6 @@
 #include "pcie_dpu.h"
 #include <target/clk.h>
+#include <target/irq.h>
 #include <asm/mach/tcsr.h>
 
 struct duowen_pcie_subsystem pcie_subsystem;
@@ -111,7 +112,7 @@ void reset_init(struct duowen_pcie_subsystem *pcie_subsystem)
 
     write_apb((base + RESET_PHY), 0x10, port);
     write_apb((base + SRAM_CONTROL), 0x0, port);
-    write_apb((base + REFCLK_CONTROL), 0x1, port);
+    write_apb((base + REFCLK_CONTROL), 0x2, port);
     // #200ns
     write_apb((base + RESET_PHY), 0xf, port);
     // #100ns
@@ -129,7 +130,6 @@ void reset_init(struct duowen_pcie_subsystem *pcie_subsystem)
         data = read_apb((base + SRAM_STATUS), port);
     }
     write_apb((base + SRAM_CONTROL), 0x1, port);
-    
     //write_apb((base + RESET_PHY), 0xff, port);
 }
 
@@ -143,7 +143,7 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
     //assert(link_mode != LINK_MODE_INVALID);
 
     // #10ns
-    write_apb((base + SUBSYS_CONTROL), link_mode, port);   
+    write_apb((base + SUBSYS_CONTROL), link_mode, port);
 
     switch (link_mode) {
     case LINK_MODE_4_4_4_4:     // 0: In DPU, X4_0
@@ -288,7 +288,7 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
         break;
     }
 
-    write_apb((base + 0), 0xc810010, port);   
+    write_apb((base + 0), 0xc810010, port);
 }
 
 static void subsys_link_init_post(struct duowen_pcie_subsystem *pcie_subsys)
@@ -348,11 +348,81 @@ void clock_init(void)
     clk_enable(pcie0_pclk);
     clk_enable(pcie0_aux_clk);
     clk_enable(pcie0_ref_clk);
-    __raw_writel(0x2, 0x401405c);
+    //__raw_writel(0x2, 0x401405c);
 
     clk_enable(srst_pcie0);
     clk_enable(srst_pcie0_por);
 }
+
+#ifdef CONFIG_DPU_PCIE_TEST
+void dpu_pcie_handle_msi(bool en)
+{
+    uint8_t mode = duowen_get_link_mode(&pcie_subsystem);
+    int val;
+    uint64_t base;
+
+    switch (mode) {
+        case LINK_MODE_0:
+            base = pcie_subsystem.cfg_apb[X4_1];
+            break;
+        case LINK_MODE_1:
+            base = pcie_subsystem.cfg_apb[X4_0];
+            break;
+        case LINK_MODE_2:
+            base = pcie_subsystem.cfg_apb[X8];
+            break;
+        case LINK_MODE_3:
+        default:
+            base = pcie_subsystem.cfg_apb[X16];
+    }
+
+    if (en)
+        val = 0;
+    else
+        val = 1;
+
+    // We just mask this interrupt, since there is no
+    // register we can manipulate to clear the interrupt
+    // from VIP
+    __raw_writel(val, base + 0x44);
+}
+
+void dpu_pcie_handle_inta(bool en)
+{
+    if (en) // trigger assert INTA msg
+        __raw_writel(0x2, TCSR_MSG_REG(0x80));
+    else    // trigger de-assert INTA msg
+        __raw_writel(0x4, TCSR_MSG_REG(0x80));
+}
+
+void dpu_pcie_handle_irq(int int_type)
+{
+    if (int_type == MSI_INT)
+        dpu_pcie_handle_msi(0);
+    else if (int_type == INTA_INT)
+        dpu_pcie_handle_inta(0);
+    else
+        printf("Unknown IRQ number: 0x%x\n", int_type);
+}
+
+void dpu_pcie_msi_handler(void)
+{
+    printf("bird: Receive PCIE MSI interrupt\n");
+	irqc_mask_irq(IRQ_PCIE_X16_MSI);
+    dpu_pcie_handle_irq(MSI_INT);
+    irqc_unmask_irq(IRQ_PCIE_X16_MSI);
+    irqc_ack_irq(IRQ_PCIE_X16_MSI);
+}
+
+void dpu_pcie_inta_handler(void)
+{
+    printf("bird: Receive PCIE INTA interrupt\n");
+	irqc_mask_irq(IRQ_PCIE_X16_INTA);
+    dpu_pcie_handle_irq(INTA_INT);
+    irqc_unmask_irq(IRQ_PCIE_X16_INTA);
+    irqc_ack_irq(IRQ_PCIE_X16_INTA);
+}
+#endif
 
 //#define TCSR_BASE 0x4100000
 void pci_platform_init(void)
@@ -361,10 +431,10 @@ void pci_platform_init(void)
     struct dw_pcie *controller;
     int i;
     //uint32_t base = TCSR_BASE, val;
+    uint64_t val;
 
     printf("bird: PCIE start\n");
     //imc_addr_trans(0, 0x20000000, 0xc00000000, 0);
-
 
     pcie_subsys = &pcie_subsystem;
     instance_subsystem(pcie_subsys);
@@ -372,7 +442,6 @@ void pci_platform_init(void)
     clock_init();
     subsys_link_init_pre(pcie_subsys);
     reset_init(pcie_subsys);
-    subsys_link_init_pre(pcie_subsys);
     
     controller = pcie_subsys->controller;
 
@@ -384,5 +453,47 @@ void pci_platform_init(void)
     }
 
     subsys_link_init_post(pcie_subsys);
-}
 
+    //__raw_writel(0xa0, base + 0x40);
+    //__raw_writel(0x80000c00, base + 0x44);
+
+#ifdef CONFIG_DPU_PCIE_TEST
+    irqc_configure_irq(IRQ_PCIE_X16_MSI, 0, IRQ_LEVEL_TRIGGERED);
+    irq_register_vector(IRQ_PCIE_X16_MSI, dpu_pcie_msi_handler);
+    irqc_enable_irq(IRQ_PCIE_X16_MSI);
+
+    irqc_configure_irq(IRQ_PCIE_X16_INTA, 0, IRQ_LEVEL_TRIGGERED);
+    irq_register_vector(IRQ_PCIE_X16_INTA, dpu_pcie_inta_handler);
+    irqc_enable_irq(IRQ_PCIE_X16_INTA);
+
+    // find which controller is in use, and enable its MSI int
+    for(i = 0; i < sizeof(controllers)/sizeof(struct dw_pcie); i++) {
+        if (controller->active == true)
+            break;
+    }
+    dw_pcie_enable_msi(&(controller->pp));
+
+    // trigger EP VIP MSI interrupt
+    __raw_writel(0x3, TCSR_MSG_REG(0x80));
+    // trigger EP VIP INTA interrupt
+    __raw_writel(0x2, TCSR_MSG_REG(0x80));
+
+    __raw_writeq(0x64646464, 0xc00000010);
+    val = __raw_readq(0xc00000010);
+    if (val == 0x64646464)
+        printf("MEM64 Read/Write transaction passed\n");
+
+    __raw_writel(0x32323232, 0xc00000100);
+    val = __raw_readl(0xc00000100);
+    if (val == 0x32323232)
+        printf("MEM32 Read/Write transaction passed\n");
+
+    // cfg0 read
+    val = __raw_readl(0xcc0080000);
+    printf("cfg0: %x\n", val);
+
+    // cfg1 read
+    val = __raw_readl(0xc00100000);
+    printf("cfg1: %x\n", val);
+#endif
+}

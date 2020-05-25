@@ -99,6 +99,10 @@
 #define PCIE_CORE_X4_1_CFG0_START     PCIE_SUBSYS_ADDR_END - PCIE_CORE_CFG_SIZE
 #define PCIE_CORE_X4_1_CFG1_START     PCIE_SUBSYS_ADDR_END - 2*PCIE_CORE_CFG_SIZE
 
+#ifdef CONFIG_DPU_PCIE_TEST
+#define MSI_INT     0
+#define INTA_INT    1
+#endif
 
 #ifdef IPBENCH
 void apb_read_c(uint32_t addr, uint32_t *data, int port);
@@ -106,7 +110,6 @@ void apb_write_c(uint32_t addr, uint32_t data, int port);
 #endif
 
 void init_duowen_pcie_subsystem(void);
-
 
 struct duowen_pcie_subsystem
 {
