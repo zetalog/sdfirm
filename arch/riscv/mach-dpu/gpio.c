@@ -81,6 +81,7 @@ static void dpu_gpio_irq_trigger(int pin, bool high)
 	gpio_config_pad(GPIOA, pin, GPIO_PAD_PP, GPIO_DRIVE_IN);
 	gpio_config_pad(GPIOA, girq->trigger_pin, GPIO_PAD_PP, 2);
 	gpio_config_irq(GPIOA, pin, high ? GPIO_IRQ_HL : GPIO_IRQ_LL);
+	gpio_enable_irq(GPIOA, pin);
 	gpio_write_pin(GPIOA, girq->trigger_pin, high ? 1 : 0);
 	while (!girq->triggered) {
 		irq_local_enable();
@@ -89,6 +90,7 @@ static void dpu_gpio_irq_trigger(int pin, bool high)
 	gpio_write_pin(GPIOA, girq->trigger_pin, high ? 0 : 1);
 	irqc_ack_irq(girq->irq);
 	irqc_unmask_irq(girq->irq);
+	gpio_disable_irq(GPIOA, pin);
 }
 
 void dpu_gpio_irq_init(void)

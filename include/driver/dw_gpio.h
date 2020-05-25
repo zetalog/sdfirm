@@ -76,38 +76,37 @@
 #define GPIO_CONFIG_REG2(n)	DW_GPIO_REG(n, 0x70)
 #define GPIO_CONFIG_REG1(n)	DW_GPIO_REG(n, 0x74)
 
-#define dw_gpio_write_pin(n, p, pin, v)				\
-	__raw_writel_mask(v ? _BV(pin) : 0, _BV(pin), GPIO_SWPORT_DR(n, p))
 #define dw_gpio_read_pin(n, p, pin)				\
 	(!!(__raw_readl(GPIO_SWPORT_DR(n, p)) & _BV(pin)))
 
-#define dw_gpio_enable_irq(n, p, pin)				\
-	__raw_setl(_BV(pin), GPIO_INTEN(n, p))
-#define dw_gpio_disable_irq(n, p, pin)				\
-	__raw_clearl(_BV(pin), GPIO_INTEN(n, p))
-#define dw_gpio_mask_irq(n, p, pin)				\
-	__raw_clearl(_BV(pin), GPIO_INTMASK(n, p))
-#define dw_gpio_unmask_irq(n, p, pin)				\
-	__raw_setl(_BV(pin), GPIO_INTMASK(n, p))
-#define dw_gpio_set_irq_level(n, p, pin)			\
+#define dw_gpio_enable_irq(n, pin)				\
+	__raw_setl(_BV(pin), GPIO_INTEN(n))
+#define dw_gpio_disable_irq(n, pin)				\
+	__raw_clearl(_BV(pin), GPIO_INTEN(n))
+#define dw_gpio_mask_irq(n, pin)				\
+	__raw_clearl(_BV(pin), GPIO_INTMASK(n))
+#define dw_gpio_unmask_irq(n, pin)				\
+	__raw_setl(_BV(pin), GPIO_INTMASK(n))
+#define dw_gpio_set_irq_level(n, pin)				\
 	__raw_clearl(_BV(pin), GPIO_INTTYPE_LEVEL(n))
-#define dw_gpio_set_irq_edge(n, p, pin)				\
+#define dw_gpio_set_irq_edge(n, pin)				\
 	__raw_setl(_BV(pin), GPIO_INTTYPE_LEVEL(n))
-#define dw_gpio_set_irq_high(n, p, pin)				\
+#define dw_gpio_set_irq_high(n, pin)				\
 	__raw_setl(_BV(pin), GPIO_INT_POLARITY(n))
-#define dw_gpio_set_irq_low(n, p, pin)				\
+#define dw_gpio_set_irq_low(n, pin)				\
 	__raw_clearl(_BV(pin), GPIO_INT_POLARITY(n))
-#define dw_gpio_irq_status(n, p, pin)				\
+#define dw_gpio_irq_status(n, pin)				\
 	(!!(__raw_readl(GPIO_RAW_INTSTATUS(n)) & _BV(pin)))
-#define dw_gpio_enable_irq_debounce(n, p, pin)			\
+#define dw_gpio_enable_irq_debounce(n, pin)			\
 	__raw_setl(_BV(pin), GPIO_DEBOUNCE(n))
-#define dw_gpio_disable_irq_debounce(n, p, pin)			\
+#define dw_gpio_disable_irq_debounce(n, pin)			\
 	__raw_clearl(_BV(pin), GPIO_DEBOUNCE(n))
-#define dw_gpio_clear_irq(n, p, pin)				\
+#define dw_gpio_clear_irq(n, pin)				\
 	__raw_setl(_BV(pin), GPIO_PORTA_EOI(n))
 
 void dw_gpio_config_pad(uint8_t n, uint8_t p, uint8_t pin,
 			uint8_t pad, uint8_t drv);
-void dw_gpio_config_irq(uint8_t n, uint8_t p, uint8_t pin, uint8_t mode);
+void dw_gpio_config_irq(uint8_t n, uint8_t pin, uint8_t mode);
+void dw_gpio_write_pin(uint8_t n, uint8_t p, uint8_t pin, uint8_t value);
 
 #endif /* __DW_GPIO_H_INCLUDE__ */

@@ -130,7 +130,7 @@ static int do_flash_dump(int argc, char *argv[])
 		addr = strtoul(argv[2], NULL, 0);
 	if (argc > 3)
 		size = strtoul(argv[3], NULL, 0);
-	if (addr >= FLASH_TOTAL_SIZE) {
+	if (size >= FLASH_TOTAL_SIZE) {
 		printf("addr should be less than %d\n", FLASH_TOTAL_SIZE);
 		return -EINVAL;
 	}

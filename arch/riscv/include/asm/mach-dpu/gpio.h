@@ -71,15 +71,15 @@
 #define gpio_hw_config_mux(port, pin, mux)	do { } while (0)
 #ifndef CONFIG_SYS_NOIRQ
 #define gpio_hw_config_irq(port, pin, mode)	\
-	dw_gpio_config_irq(0, port, pin, mode)
+	dw_gpio_config_irq(0, pin, mode)
 #define gpio_hw_enable_irq(port, pin)		\
-	dw_gpio_enable_irq(0, port, pin)
+	dw_gpio_enable_irq(0, pin)
 #define gpio_hw_disable_irq(port, pin)		\
-	dw_gpio_disable_irq(0, port, pin)
+	dw_gpio_disable_irq(0, pin)
 #define gpio_hw_irq_status(port, pin)		\
-	dw_gpio_irq_status(0, port, pin)
+	dw_gpio_irq_status(0, pin)
 #define gpio_hw_clear_irq(port, pin)		\
-	dw_gpio_clear_irq(0, port, pin)
+	dw_gpio_clear_irq(0, pin)
 #endif /* CONFIG_SYS_NOIRQ */
 #endif /* CONFIG_GPIO */
 
