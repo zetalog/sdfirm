@@ -303,39 +303,43 @@ static const char *get_dep_clk_name(clk_clk_t clk)
 
 static int enable_dep_clk(clk_clk_t clk)
 {
-	clk_t *dep;
+	clk_t *deps;
+	int i;
 
 	if (clk >= NR_DEP_CLKS)
 		return -EINVAL;
 	if (dep_clks[clk].clk_deps == NULL)
 		return -EINVAL;
 
-	for (dep = dep_clks[clk].clk_deps; *dep != invalid_clk; dep++)
-		clk_enable(*dep);
+	deps = dep_clks[clk].clk_deps;
+	for (i = 0; deps[i] != invalid_clk; i++)
+		clk_enable(deps[i]);
 	return 0;
 }
 
 static void disable_dep_clk(clk_clk_t clk)
 {
-	clk_t *dep;
+	clk_t *deps;
+	int i;
 
 	if (clk >= NR_DEP_CLKS)
 		return;
 	if (dep_clks[clk].clk_deps == NULL)
 		return;
 
-	for (dep = dep_clks[clk].clk_deps; *dep != invalid_clk; dep++)
-		clk_disable(*dep);
+	deps = dep_clks[clk].clk_deps;
+	for (i = 0; deps[i] != invalid_clk; i++)
+		clk_disable(deps[i]);
 }
 
 static clk_freq_t get_dep_clk_freq(clk_clk_t clk)
 {
-	struct dep_clk *dep;
+	clk_t *deps;
 
 	if (clk >= NR_DEP_CLKS)
 		return INVALID_FREQ;
-	dep = &(dep_clks[clk]);
-	return clk_get_frequency(dep->clk_deps[0]);
+	deps = dep_clks[clk].clk_deps;
+	return clk_get_frequency(deps[0]);
 }
 
 struct clk_driver clk_dep = {
