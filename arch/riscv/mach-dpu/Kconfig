@@ -393,6 +393,11 @@ config DPU_PCI_SUBSYS
 	bool "DPU PCIe subsystem support"
 	select DW_PCIE
 
+config DPU_PCIE_TEST
+	bool "Enable PCIE RC(Root Complex) basic test"
+	depends DPU_PCI_SUBSYS
+	default n
+
 endmenu
 
 endif

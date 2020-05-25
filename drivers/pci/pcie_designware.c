@@ -114,6 +114,7 @@ uint32_t dw_pcie_read_dbi(struct dw_pcie *pci, enum dw_pcie_access_type type, ui
         val = readw_dbi(pci, type, reg);
         break;
     case 4:
+    default:
         val = readl_dbi(pci, type, reg);
     }
 
@@ -682,10 +683,20 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
 	dw_pcie_rd_own_conf(pp, PCIE_LINK_WIDTH_SPEED_CONTROL, 4, &val);
 	val |= PORT_LOGIC_SPEED_CHANGE;
 	dw_pcie_wr_own_conf(pp, PCIE_LINK_WIDTH_SPEED_CONTROL, 4, val);
-
 	dw_pcie_dbi_ro_wr_dis(pci);
 }
 
+void dw_pcie_enable_msi(struct pcie_port *pp)
+{
+	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+
+    dw_pcie_dbi_ro_wr_en(pci);
+	// Set MSI Addr
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM, 0x820, 0x80201100, 0x4);
+	// Enable MSI int
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM, 0x828, 0x3, 0x4);
+	dw_pcie_dbi_ro_wr_dis(pci);
+}
 
 int pre_platform_init(void)
 {
