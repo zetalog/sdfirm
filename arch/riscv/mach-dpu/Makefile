@@ -1,5 +1,3 @@
-EXTRA_CFLAGS += -DSDFIRM -DDPU
-
 obj-$(CONFIG_RISCV_VIRQ) += entry.rel
 obj-y += mach.rel
 obj-y += tsc.rel

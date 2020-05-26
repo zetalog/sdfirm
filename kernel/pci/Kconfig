@@ -7,6 +7,7 @@ config ARCH_HAS_PCI
 
 menuconfig PCI
 	bool "Peripheral component interconnect (PCI) support"
+	depends ARCH_HAS_PCI
 
 if PCI
 

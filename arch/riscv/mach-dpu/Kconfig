@@ -389,14 +389,17 @@ config DPU_DDR_SPD_COUNT
 
 endif
 
-config DPU_PCI_SUBSYS
+menuconfig DPU_PCI_SUBSYS
 	bool "DPU PCIe subsystem support"
 	select DW_PCIE
 
+if DPU_PCI_SUBSYS
+
 config DPU_PCIE_TEST
 	bool "Enable PCIE RC(Root Complex) basic test"
-	depends DPU_PCI_SUBSYS
 	default n
+
+endif
 
 endmenu
 

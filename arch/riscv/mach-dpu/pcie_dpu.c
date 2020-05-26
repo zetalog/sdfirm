@@ -1,4 +1,4 @@
-#include "pcie_dpu.h"
+#include <target/pci.h>
 #include <target/clk.h>
 #include <target/irq.h>
 #include <asm/mach/tcsr.h>
