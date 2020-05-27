@@ -100,12 +100,21 @@
 #define PLL_STANDBYEFF		_BV(1)
 #ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_CNT_LOCKED
 #define PLL_CNT_LOCKED		_BV(2)
+#endif
+/* XXX: DPU CFG and STATUS bits:
+ *
+ * DPU PLL2 actually contains 2 PLLs, each PLL is used for 1 DDR
+ * subsystem. Since DDR configuration is synchronized, there is only 1 CFG
+ * register set for both PLLs, but their STATUS register bits should be
+ * shadowed to allow software to query individual status of the 2 PLLs:
+ *  BIT 0-1: used for PLL2 of DDR0
+ *  BIT 2-3: used for PLL2 of DDR1
+ * Thus we should always use masked STATUS register value to be safe for
+ * such cases.
+ */
 #define PLL_OPMODE_OFFSET	0
 #define PLL_OPMODE_MASK		REG_2BIT_MASK
 #define PLL_OPMODE(value)	_GET_FV(PLL_OPMODE, (value))
-#else
-#define PLL_OPMODE(value)	(value)
-#endif
 
 /* PLL ranges */
 #define PLL_RANGE1	(PLL_VCO_MODE | PLL_LOWFREQ)
