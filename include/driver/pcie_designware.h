@@ -455,6 +455,9 @@ void dw_pcie_disable_atu(struct dw_pcie *pci, int index,
 			 enum dw_pcie_region_type type);
 void dw_pcie_setup(struct dw_pcie *pci);
 void dw_pcie_enable_msi(struct pcie_port *pp);
+#ifndef CONFIG_DPU_PCIE_ROLE_RC
+void dw_pcie_ep_dma_test(struct pcie_port *pp);
+#endif
 
 static inline void dw_pcie_dbi_ro_wr_en(struct dw_pcie *pci)
 {

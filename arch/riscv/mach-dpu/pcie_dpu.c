@@ -288,7 +288,11 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
         break;
     }
 
+#ifdef CONFIG_DPU_PCIE_ROLE_RC
     write_apb((base + 0), 0xc810010, port);
+#else
+    write_apb((base + 0), 0xc810000, port);
+#endif
 }
 
 static void subsys_link_init_post(struct duowen_pcie_subsystem *pcie_subsys)
@@ -424,14 +428,11 @@ void dpu_pcie_inta_handler(void)
 }
 #endif
 
-//#define TCSR_BASE 0x4100000
 void pci_platform_init(void)
 {
     struct duowen_pcie_subsystem *pcie_subsys;
     struct dw_pcie *controller;
     int i;
-    //uint32_t base = TCSR_BASE, val;
-    uint64_t val;
 
     printf("bird: PCIE start\n");
     //imc_addr_trans(0, 0x20000000, 0xc00000000, 0);
@@ -448,8 +449,8 @@ void pci_platform_init(void)
     for(i = 0; i < sizeof(controllers)/sizeof(struct dw_pcie); i++) {
         if (controller->active == true) {
             dw_pcie_setup_rc(&(controller->pp));
-            controller++;
         }
+        controller++;
     }
 
     subsys_link_init_post(pcie_subsys);
@@ -458,6 +459,17 @@ void pci_platform_init(void)
     //__raw_writel(0x80000c00, base + 0x44);
 
 #ifdef CONFIG_DPU_PCIE_TEST
+    printf("bird: PCIE TEST start\n");
+    // find which controller is in use, and enable its MSI int
+    controller = pcie_subsys->controller;
+    for(i = 0; i < sizeof(controllers)/sizeof(struct dw_pcie); i++) {
+        if (controller->active == true)
+            break;
+        controller++;
+    }
+#ifdef CONFIG_DPU_PCIE_ROLE_RC
+    uint64_t val;
+
     irqc_configure_irq(IRQ_PCIE_X16_MSI, 0, IRQ_LEVEL_TRIGGERED);
     irq_register_vector(IRQ_PCIE_X16_MSI, dpu_pcie_msi_handler);
     irqc_enable_irq(IRQ_PCIE_X16_MSI);
@@ -466,11 +478,6 @@ void pci_platform_init(void)
     irq_register_vector(IRQ_PCIE_X16_INTA, dpu_pcie_inta_handler);
     irqc_enable_irq(IRQ_PCIE_X16_INTA);
 
-    // find which controller is in use, and enable its MSI int
-    for(i = 0; i < sizeof(controllers)/sizeof(struct dw_pcie); i++) {
-        if (controller->active == true)
-            break;
-    }
     dw_pcie_enable_msi(&(controller->pp));
 
     // trigger EP VIP MSI interrupt
@@ -495,5 +502,9 @@ void pci_platform_init(void)
     // cfg1 read
     val = __raw_readl(0xc00100000);
     printf("cfg1: %x\n", val);
+#else
+    // carry out EP DMA test
+    dw_pcie_ep_dma_test(&(controller->pp));
+#endif
 #endif
 }
