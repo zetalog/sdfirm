@@ -300,9 +300,14 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
                 PCIE_IATU_UPPER_TARGET_ADDR_OFF_OUTBOUND, 0x4, upper_32_bits(pci_addr));
 	dw_pcie_write_atu(pci, DW_PCIE_REGION_OUTBOUND, index,
                 PCIE_IATU_REGION_CTRL1_OFF_OUTBOUND, 0x4, type);
+#ifdef CONFIG_DPU_PCIE_ROLE_RC
 	dw_pcie_write_atu(pci, DW_PCIE_REGION_OUTBOUND, index,
                 PCIE_IATU_REGION_CTRL2_OFF_OUTBOUND, 0x4, PCIE_ATU_ENABLE);
-
+#else
+    // enable regine & bypass DMA request
+	dw_pcie_write_atu(pci, DW_PCIE_REGION_OUTBOUND, index,
+                PCIE_IATU_REGION_CTRL2_OFF_OUTBOUND, 0x4, 0x88);
+#endif
 	/*
 	 * Make sure ATU enable takes effect before any subsequent config
 	 * and I/O accesses.
@@ -677,8 +682,13 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
     dw_pcie_prog_outbound_atu(pci, 2, PCIE_ATU_TYPE_MEM, pp->mem_base, 0x2000000000000000, pp->mem_size);
 	dw_pcie_wr_own_conf(pp, PCI_BASE_ADDRESS_0, 4, 0);
 
+#ifdef CONFIG_DPU_PCIE_ROLE_RC
 	/* Program correct class for RC */
 	dw_pcie_wr_own_conf(pp, PCI_CLASS_DEVICE, 2, PCI_CLASS_BRIDGE_PCI);
+#else
+    /* Choose Storage class for EP test seems reasonably */
+	dw_pcie_wr_own_conf(pp, PCI_CLASS_DEVICE, 2, PCI_CLASS_STORAGE_OTHER);
+#endif
 
 	dw_pcie_rd_own_conf(pp, PCIE_LINK_WIDTH_SPEED_CONTROL, 4, &val);
 	val |= PORT_LOGIC_SPEED_CHANGE;
@@ -697,6 +707,34 @@ void dw_pcie_enable_msi(struct pcie_port *pp)
 	dw_pcie_write_dbi(pci, DW_PCIE_CDM, 0x828, 0x3, 0x4);
 	dw_pcie_dbi_ro_wr_dis(pci);
 }
+
+#ifndef CONFIG_DPU_PCIE_ROLE_RC
+void dw_pcie_ep_dma_test(struct pcie_port *pp)
+{
+	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+    // config max payload size/read request size, 0x78?
+    dw_pcie_write_dbi(pci, DW_PCIE_CDM, 0x78, 0x5850, 0x4);
+
+    // set DMA Engine Enable register
+    dw_pcie_write_dbi(pci, DW_PCIE_DMA, 0xc, 0x1, 0x4);
+    // set DMA write interrupt mask register
+    dw_pcie_write_dbi(pci, DW_PCIE_DMA, 0x54, 0x0, 0x4);
+    // set DMA Channel control 1 register
+    dw_pcie_write_dbi(pci, DW_PCIE_DMA, 0x200, 0x4400008, 0x4);
+    // set DMA transfer size register
+    dw_pcie_write_dbi(pci, DW_PCIE_DMA, 0x208, 0x100, 0x4);
+    // set DMA SAR low register
+    dw_pcie_write_dbi(pci, DW_PCIE_DMA, 0x20c, 0x8000000, 0x4);
+    // set DMA SAR high register
+    dw_pcie_write_dbi(pci, DW_PCIE_DMA, 0x210, 0x0, 0x4);
+    // set DMA DAR low register
+    dw_pcie_write_dbi(pci, DW_PCIE_DMA, 0x214, 0x10000000, 0x4);
+    // set DMA DAR high register
+    dw_pcie_write_dbi(pci, DW_PCIE_DMA, 0x218, 0x0, 0x4);
+    // set DMA write doorbell register
+    dw_pcie_write_dbi(pci, DW_PCIE_DMA, 0x10, 0x0, 0x4);
+}
+#endif
 
 int pre_platform_init(void)
 {
