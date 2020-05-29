@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue May 26 11:09:40 2020
+# Fri May 29 19:27:30 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -169,8 +169,7 @@ CONFIG_DPU_FLASH_SS_8=y
 CONFIG_DPU_SSI_FLASH=y
 CONFIG_DPU_SSI_FLASH_FREQ=8000000
 CONFIG_DPU_DDR=y
-CONFIG_DPU_PCI_SUBSYS=y
-CONFIG_DPU_PCIE_TEST=y
+# CONFIG_DPU_PCI_SUBSYS is not set
 
 #
 # Feature setup
@@ -195,7 +194,7 @@ CONFIG_ARCH_HAS_BOOT_LOAD=y
 #
 # Scheduling facility (irq) support
 #
-CONFIG_MAX_VECTORS=12
+CONFIG_MAX_VECTORS=32
 
 #
 # Scheduling facility (bh) support
@@ -300,7 +299,7 @@ CONFIG_SPIFLASH_ERASE_4K=y
 CONFIG_ARCH_HAS_DDR=y
 CONFIG_DDR=y
 CONFIG_ARCH_HAS_PCI=y
-CONFIG_PCI=y
+# CONFIG_PCI is not set
 # CONFIG_IOMMU is not set
 # CONFIG_RAS is not set
 

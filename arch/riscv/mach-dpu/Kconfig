@@ -192,6 +192,10 @@ config DPU_PLL_FREQPLAN_PE
 	  option to enable PE frequency plan support to match DDR gears.
 	  If unsure, say 'N'.
 
+config DPU_PLL_FREQPLAN_PE_HISPEED
+	bool "Enable high speed test (2GHz)"
+	depends SIMULATION && DPU_PLL_FREQPLAN_PE
+
 config DPU_PLL_FREQPLAN_BUS
 	bool "Enable 7-gear bus frequency plan support"
 	help

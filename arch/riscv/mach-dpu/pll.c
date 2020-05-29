@@ -61,7 +61,7 @@ struct freqplan {
 	uint32_t f_pll_rclk;
 };
 
-#ifdef CONFIG_DPU_FREQPLAN_PE
+#ifdef CONFIG_DPU_PLL_FREQPLAN_PE
 static struct freqplan pe_freqplan[NR_FREQPLANS] = {
 	[0] = {
 		.f_pll_vco = ULL(4000000000),
@@ -79,10 +79,17 @@ static struct freqplan pe_freqplan[NR_FREQPLANS] = {
 		.f_pll_vco = ULL(2800000000),
 		.f_pll_pclk = UL(700000000),
 	},
+#ifdef CONFIG_DPU_PLL_FREQPLAN_PE_HISPEED
+	[4] = {
+		.f_pll_vco = ULL(4000000000),
+		.f_pll_pclk = UL(2000000000),
+	},
+#else
 	[4] = {
 		.f_pll_vco = ULL(4800000000),
 		.f_pll_pclk = UL(600000000),
 	},
+#endif
 #if 0
 	[5] = {
 		.f_pll_vco = ULL(4000000000),
