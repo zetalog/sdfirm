@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Mar 25 16:18:55 2020
+# Wed Jun  3 10:09:29 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -25,17 +25,8 @@ CONFIG_FIRMWARE=y
 # CONFIG_RIS is not set
 CONFIG_COMMAND=y
 CONFIG_COMMAND_BATCH=y
-#CONFIG_COMMAND_BATCH_COMMAND="help; bench sync 0 sim_notify 1 2 1"
 CONFIG_COMMAND_BATCH_COMMAND="help; help; bench sync 0 sim_notify 1 2 1"
 # CONFIG_CONSOLE is not set
-# CONFIG_CONSOLE_230400 is not set
-# CONFIG_CONSOLE_115200 is not set
-# CONFIG_CONSOLE_57600 is not set
-# CONFIG_CONSOLE_38400 is not set
-# CONFIG_CONSOLE_19200 is not set
-# CONFIG_CONSOLE_9600 is not set
-# CONFIG_CONSOLE_4800 is not set
-# CONFIG_CONSOLE_2400 is not set
 
 #
 # RISCV system options
@@ -45,6 +36,7 @@ CONFIG_COMMAND_BATCH_COMMAND="help; help; bench sync 0 sim_notify 1 2 1"
 # CONFIG_ARCH_UNLEASHED is not set
 # CONFIG_ARCH_K210 is not set
 # CONFIG_ARCH_VEGA is not set
+# CONFIG_ARCH_COREV is not set
 CONFIG_ARCH_SPIKE=y
 # CONFIG_ARCH_VIRT is not set
 CONFIG_CPU_SPIKE64=y
@@ -120,10 +112,13 @@ CONFIG_ARCH_HAS_HTIF=y
 CONFIG_HTIF=y
 CONFIG_ARCH_HAS_CLINT=y
 CONFIG_CLINT=y
+# CONFIG_CLINT_XCHG_LLSC is not set
+# CONFIG_CLINT_FORCE_FAST_TIMEOUT is not set
 CONFIG_ARCH_HAS_SBI_IPI=y
 CONFIG_ARCH_HAS_SBI_TIMER=y
 CONFIG_SBI=y
 # CONFIG_SBI_PAYLOAD is not set
+CONFIG_SBI_CSR_MIMPID=y
 
 #
 # Simulated RISCV (SPIKE) board options
@@ -210,6 +205,8 @@ CONFIG_BFM=y
 CONFIG_XIP=y
 CONFIG_BOOT_BASE=0x80000000
 CONFIG_LOAD_BASE=0x80000000
+# CONFIG_NO_ZERO_BSS is not set
+# CONFIG_NO_ZERO_GPR is not set
 # CONFIG_HEAP is not set
 CONFIG_MEM=y
 CONFIG_MEM_MAX_REGIONS=4
@@ -278,7 +275,6 @@ CONFIG_UART_115200=y
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
 # CONFIG_DDR is not set
-# CONFIG_PCI is not set
 # CONFIG_IOMMU is not set
 # CONFIG_RAS is not set
 CONFIG_ARCH_HAS_FP=y
@@ -292,6 +288,11 @@ CONFIG_ARCH_HAS_FP=y
 #
 
 #
+# GPIO controller drivers
+#
+# CONFIG_DW_GPIO is not set
+
+#
 # Timer drivers
 #
 # CONFIG_DW_TIMERS is not set
@@ -301,40 +302,6 @@ CONFIG_ARCH_HAS_FP=y
 #
 # CONFIG_DW_UART is not set
 # CONFIG_SEGGER_RTT is not set
-
-#
-# LCD drivers
-#
-
-#
-# Video drivers
-#
-
-#
-# MTD memory drivers
-#
-# CONFIG_PN53X is not set
-# CONFIG_ACR122 is not set
-
-#
-# MMC host drivers
-#
-# CONFIG_DW_MSHC is not set
-# CONFIG_SDHCI is not set
-
-#
-# DDR controller drivers
-#
-# CONFIG_DW_UMCTL2 is not set
-
-#
-# PCI drivers
-#
-
-#
-# IO MMU drivers
-#
-# CONFIG_SMMU_MMU500 is not set
 
 #
 # I2C host drivers
@@ -355,6 +322,47 @@ CONFIG_ARCH_HAS_FP=y
 # DMA host drivers
 #
 # CONFIG_DW_DMA is not set
+
+#
+# IO MMU drivers
+#
+# CONFIG_SMMU_MMU500 is not set
+
+#
+# LCD drivers
+#
+
+#
+# Video drivers
+#
+
+#
+# MTD memory drivers
+#
+# CONFIG_DATAFLASH_AT45DB642D is not set
+# CONFIG_SPIFLASH_W25Q32 is not set
+# CONFIG_PN53X is not set
+# CONFIG_ACR122 is not set
+
+#
+# MMC host drivers
+#
+# CONFIG_DW_MSHC is not set
+# CONFIG_SDHCI is not set
+
+#
+# DDR controller drivers
+#
+# CONFIG_DW_UMCTL2 is not set
+
+#
+# Serial Presence Detect (SPD) drivers
+#
+CONFIG_SPD_BUS_KHZ=60
+
+#
+# PCI drivers
+#
 CONFIG_TEST_BENCH=y
 CONFIG_TEST_BENCH_LOCAL=y
 # CONFIG_TEST_BENCH_REMOTE is not set
@@ -364,42 +372,16 @@ CONFIG_TEST_VERBOSE=y
 #
 # Standard benchmark tests
 #
-CONFIG_DHRYSTONE=n
-CONFIG_DHRYSTONE_TIMEOUT=-1
-CONFIG_DHRYSTONE_REPEATS=5000
-CONFIG_DHRYSTONE_BENCH_PERCPU=y
-# CONFIG_DHRYSTONE_GENERIC_PERCPU is not set
-# CONFIG_DHRYSTONE_SPECIFIC_PERCPU is not set
-CONFIG_HANOITOWER=n
-CONFIG_HANOITOWER_DEPTH=3
-CONFIG_MEMSTREAM=n
-CONFIG_MEMSTREAM_ARRAY_SIZE=200000
-CONFIG_MEMSTREAM_NTIMES=2
-# CONFIG_MEMSTREAM_TIME_ON is not set
-CONFIG_SHA256=n
-CONFIG_SHA256_TEST_CNT=2
-CONFIG_MD5=n
-CONFIG_MD5_TEST_CNT=2
-CONFIG_TLB_TEST=n
-CONFIG_TLB_TEST_FLUSH_RANGE=y
-# CONFIG_TLB_TEST_FLUSH_ALL is not set
-CONFIG_COREMARK=n
-CONFIG_COREMARK_USE_CLOCK=y
-# CONFIG_COREMARK_TIME_ON is not set
-CONFIG_COREMARK_MEM_STATIC=y
-CONFIG_COREMARK_ITERATION_CNT=1
-CONFIG_CFFT=n
-CONFIG_CFFT_VALUE_CNT=30
-CONFIG_JPGENC=n
-CONFIG_JPGENC_SMALL_IMAGE=y
-CONFIG_GENANN=n
-CONFIG_GENANN_BUF_ONE_PAGE=y
-CONFIG_GENANN_LOOKUP_SIZE=8
-CONFIG_GENANN_TEST_BASIC=y
-CONFIG_GENANN_TEST_XOR=y
-CONFIG_GENANN_TEST_BACKPROP=y
-CONFIG_GENANN_TEST_TRAIN_AND=y
-CONFIG_GENANN_TEST_TRAIN_OR=y
+# CONFIG_DHRYSTONE is not set
+# CONFIG_HANOITOWER is not set
+# CONFIG_MEMSTREAM is not set
+# CONFIG_SHA256 is not set
+# CONFIG_MD5 is not set
+# CONFIG_TLB_TEST is not set
+# CONFIG_COREMARK is not set
+# CONFIG_CFFT is not set
+# CONFIG_JPGENC is not set
+# CONFIG_GENANN is not set
 # CONFIG_TESTS_RISCV is not set
 
 #
@@ -456,6 +438,7 @@ CONFIG_PRINT_PRINTF=y
 #
 CONFIG_STRING_STRNCMP=y
 CONFIG_STRING_STRTOUL=y
+CONFIG_STRING_STRTOULL=y
 # CONFIG_STRING_UUID is not set
 
 #
@@ -475,6 +458,8 @@ CONFIG_CRYPTO_RAND=y
 CONFIG_EXPERIMENTAL=y
 # CONFIG_CC_OPT_SIZE is not set
 # CONFIG_CC_OPT_SPEED is not set
+# CONFIG_CC_ALWAYS_INLINE is not set
+# CONFIG_SIMULATION is not set
 CONFIG_DEBUG=y
 # CONFIG_CC_GEN_DEBUG is not set
 # CONFIG_PORTING is not set
