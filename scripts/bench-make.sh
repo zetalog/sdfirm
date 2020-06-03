@@ -107,11 +107,12 @@ function extend_config()
 			tag=`echo $ext | awk -F "_" '{print $NF}'`
 			tag=${tag/=/}
 			new_config=$f-$tag
-			key_del="$ext is"
+			other_replace_src="$ext is not"
+			other_replace_dst="$key is not"
 			echo "Generate config" $new_config
 			cp -f $f .config
-			sed -i s/$key/$ext/ .config
-			sed /$key_del/d .config
+			sed -i s/"$key"/"$ext"/ .config
+			sed -i s/"$other_replace_src"/"$other_replace_dst"/ .config
 			make oldconfig
 			mv .config $new_config
 			diff -ru $base_config $new_config
