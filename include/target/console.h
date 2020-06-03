@@ -4,7 +4,10 @@
 #ifndef __ASSEMBLY__
 #include <target/uart.h>
 
-#ifndef UART_CON_BAUDRATE
+#ifndef UART_CON_BAUDRATE /* Allow fixed baudrate */
+#ifdef CONFIG_CONSOLE_230400
+#define UART_CON_BAUDRATE	230400
+#endif
 #ifdef CONFIG_CONSOLE_115200
 #define UART_CON_BAUDRATE	115200
 #endif
@@ -26,8 +29,12 @@
 #ifdef CONFIG_CONSOLE_2400
 #define UART_CON_BAUDRATE	2400
 #endif
+#endif /* !UART_CON_BAUDRATE */
+
+/* Default baudrate */
+#ifndef UART_CON_BAUDRATE
 #define UART_CON_BAUDRATE	115200
-#endif
+#endif /* !UART_CON_BAUDRATE */
 
 #ifdef CONFIG_CONSOLE_PRINT_BUFFER_SIZE
 #define CONSOLE_PRINT_BUFFER_SIZE	CONFIG_CONSOLE_PRINT_BUFFER_SIZE
