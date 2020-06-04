@@ -65,7 +65,7 @@ struct ddr_speed ddr_speeds[NR_DDR_SPEEDS] = {
 		.f_pll_rclk = UL(666666666),
 	},
 	[DDR2_533] = {
-		.f_pll_vco = ULL(3200000000),
+		.f_pll_vco = ULL(4266666666),
 		.f_pll_pclk = UL(133333333),
 		.f_pll_rclk = UL(533333333),
 	},
