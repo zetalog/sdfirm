@@ -80,9 +80,9 @@
 #define CPU_EXEC_SUCCESS	1
 #define CPU_EXEC_FAILURE	0
 
-#ifdef __ASSEMBLY__
-
 #define CPU_WAIT_INFINITE		-1
+
+#ifdef __ASSEMBLY__
 
 #ifndef LINKER_SCRIPT
 	.macro define_asm_testfn, _name:req, _size:req, _align=128, _repeat=1, _flags=0, _timeout=CPU_WAIT_INFINITE
@@ -106,8 +106,6 @@
 #endif
 
 #else /* __ASSEMBLY__ */
-
-#define CPU_WAIT_INFINITE		((tick_t)-1)
 
 typedef int (*percpu_entry)(caddr_t percpu_area);
 

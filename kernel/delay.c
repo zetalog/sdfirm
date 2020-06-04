@@ -41,6 +41,8 @@
 #include <target/delay.h>
 #include <target/jiffies.h>
 #include <target/irq.h>
+#include <target/cmdline.h>
+#include <time.h>
 
 /* XXX: Wrap Over of "Delay Tick Elapsed"
  *
@@ -265,3 +267,26 @@ void delay_init(void)
 	calibrate_delay();
 	calibrate_delay_stop();
 }
+
+static int do_time(int argc, char *argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+
+	if (strcmp(argv[1], "tsc") == 0) {
+		printf("%lld\n", tsc_read_counter());
+		return 0;
+	}
+	if (strcmp(argv[1], "clock") == 0) {
+		printf("%lld\n", clock());
+		return 0;
+	}
+	return -EINVAL;
+}
+
+DEFINE_COMMAND(time, do_time, "Time measurement commands",
+	"time tsc\n"
+	"    -current TSC timestamp\n"
+	"time clock\n"
+	"    -current standard clock value (us)\n"
+);

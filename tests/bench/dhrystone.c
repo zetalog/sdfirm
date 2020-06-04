@@ -279,8 +279,7 @@ int dhrystone (caddr_t percpu_area)
       /* Int_1_Loc == 5 */
 
 #ifndef HOSTED
-    if (unlikely(Run_Index % 10000 == 0) &&
-        Expected_End_Time != CPU_WAIT_INFINITE &&
+    if ((Expected_End_Time != CPU_WAIT_INFINITE) &&
         time_after(clock(), Expected_End_Time))
     {
       Number_Of_Runs = Run_Index;
