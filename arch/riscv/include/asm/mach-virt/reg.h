@@ -3,7 +3,8 @@
 
 #define RAM_BASE		UL(0x80000000)
 #define RAMEND			UL(0x80000000)
+#define CLINT_BASE		UL(0x02000000)
 #define PLIC_BASE		UL(0x0C000000)
-#define CLINT_BASE		UL(0x2000000)
+#define UART0_BASE		UL(0x10000000)
 
 #endif /* __REG_VIRT_H_INCLUDE__ */

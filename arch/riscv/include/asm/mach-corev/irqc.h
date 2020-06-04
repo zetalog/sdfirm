@@ -42,7 +42,7 @@
 #ifndef __IRQC_COREV_H_INCLUDE__
 #define __IRQC_COREV_H_INCLUDE__
 
-#ifndef ARCH_HAVE_IRQC_
+#ifndef ARCH_HAVE_IRQC
 #define ARCH_HAVE_IRQC		1
 #else
 #error "Multiple IRQ controller defined"

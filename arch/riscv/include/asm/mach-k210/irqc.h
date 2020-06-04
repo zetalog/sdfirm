@@ -44,7 +44,7 @@
 
 #include <target/arch.h>
 
-#ifndef ARCH_HAVE_IRQC_
+#ifndef ARCH_HAVE_IRQC
 #define ARCH_HAVE_IRQC		1
 #else
 #error "Multiple IRQ controller defined"

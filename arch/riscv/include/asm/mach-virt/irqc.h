@@ -44,14 +44,23 @@
 
 #include <target/arch.h>
 
-#ifndef ARCH_HAVE_IRQC_
+#ifndef ARCH_HAVE_IRQC
 #define ARCH_HAVE_IRQC		1
 #else
 #error "Multiple IRQ controller defined"
 #endif
 
-#define PLIC_HW_PRI_MAX		31
+#define plic_hw_m_ctx(cpu)	(((cpu) + 1) << 1)
+#define plic_hw_s_ctx(cpu)	((((cpu) + 1) << 1) + 1)
 
 #include <asm/plic.h>
+
+#define plic_hw_ctrl_init()		do { } while (0)
+
+/* Internal IRQs */
+#define plic_hw_enable_int(irq)		riscv_enable_irq(irq)
+#define plic_hw_disable_int(irq)	riscv_disable_irq(irq)
+#define plic_hw_clear_int(irq)		riscv_clear_irq(irq)
+#define plic_hw_trigger_int(irq)	riscv_trigger_irq(irq)
 
 #endif /* __IRQC_VIRT_H_INCLUDE__ */

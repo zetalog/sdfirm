@@ -47,12 +47,11 @@
 #include <target/gpio.h>
 #include <target/clk.h>
 
-#define UART_CON_ID		0
-#define UART0_BASE      0x10000000
+#define UART_CON_ID			0
 #define CONFIG_SYS_NS16550_CLK		3686400
-#define CONFIG_CONS_INDEX	1
-#define CONFIG_SYS_NS16550_COM1	UART0_BASE
-#define CONFIG_SYS_NS16550_REG_SIZE (1)
+#define CONFIG_CONS_INDEX		1
+#define CONFIG_SYS_NS16550_COM1		UART0_BASE
+#define CONFIG_SYS_NS16550_REG_SIZE	(1)
 
 #include <driver/ns16550.h>
 #ifndef ARCH_HAVE_UART

@@ -5,7 +5,7 @@
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
-#include <target/uart.h>
+#include <target/console.h>
 #ifdef CONFIG_NS87308
 #include <ns87308.h>
 #endif

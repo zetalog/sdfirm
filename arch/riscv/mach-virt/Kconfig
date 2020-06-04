@@ -2,6 +2,19 @@ if ARCH_VIRT
 
 menu "QEMU RISCV (VIRT) board options"
 
+choice
+	prompt "Program type"
+
+config VIRT_BBL
+	bool "Berkeley boot loader (BBL)"
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SYS_EXIT_S
+	select SBI
+	select XIP
+
+endchoice
+
 endmenu
 
 endif

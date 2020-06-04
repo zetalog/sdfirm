@@ -50,6 +50,7 @@ build_sdfirm riscv32 dpu_ram
 build_sdfirm riscv32 vega_ri5cy
 
 build_sdfirm riscv64 spike_rv64
+build_sdfirm riscv64 virt_rv64
 build_sdfirm riscv64 unleashed_fsbl
 build_sdfirm riscv64 unleashed_bbl
 build_sdfirm riscv64 k210_bbl
