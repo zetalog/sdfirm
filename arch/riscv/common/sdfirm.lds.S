@@ -118,11 +118,10 @@ SECTIONS
 	__end = .;				/* end of sdfirm */
 	_end = .;				/* end of sdfirm */
 
+	. = ALIGN(PAGE_SIZE);
 #ifdef CONFIG_SBI_PAYLOAD
 #ifdef CONFIG_SBI_PAYLOAD_OFFSET
 	. = PAGE_OFFSET + TEXT_OFFSET + CONFIG_SBI_PAYLOAD_OFFSET;
-#else
-	. = ALIGN(PAGE_SIZE);
 #endif
 	_payload_start = .;
 	.payload : {

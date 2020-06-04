@@ -41,6 +41,7 @@
 
 #include <target/init.h>
 #include <target/sbi.h>
+#include <target/page.h>
 #include <asm/asm-offsets.h>
 
 	.macro MOV_3R __d0, __s0, __d1, __s1, __d2, __s2
@@ -190,7 +191,7 @@ _scratch_init:
 	add	a1, t1, zero
 _prev_arg1_override_done:
 
-#ifdef CONFIG_FDT
+#ifdef CONFIG_SBI_FDT
 	/* Relocate Flatened Device Tree (FDT)
 	 * source FDT address = previous arg1
 	 * destination FDT address = next arg1
@@ -461,7 +462,7 @@ ENTRY(fw_prev_arg1)
 	 * We can only use a0, a1, and a2 registers here.
 	 * The previous arg1 should be returned in 'a0'.
 	 */
-#ifdef FW_PAYLOAD_FDT_PATH
+#ifdef CONFIG_SBI_FDT_PAYLOAD
 	la	a0, fdt_bin
 #else
 	add	a0, zero, zero
@@ -474,8 +475,8 @@ ENTRY(fw_next_arg1)
 	 * We can only use a0, a1, and a2 registers here.
 	 * The next arg1 should be returned in 'a0'.
 	 */
-#ifdef FW_PAYLOAD_FDT_ADDR
-	li	a0, FW_PAYLOAD_FDT_ADDR
+#ifdef CONFIG_SBI_FDT_PAYLOAD
+	li	a0, CONFIG_SBI_FDT_ADDR_BASE
 #else
 	add	a0, zero, zero
 #endif
@@ -487,7 +488,7 @@ ENTRY(fw_next_addr)
 	 * We can only use a0, a1, and a2 registers here.
 	 * The next address should be returned in 'a0'.
 	 */
-#if 0
+#ifdef CONFIG_SBI_PAYLOAD
 	la	a0, payload_bin
 #else
 	la	a0, __sbi_exit
@@ -522,24 +523,30 @@ ENTRY(fw_options)
 	ret
 ENDPROC(fw_options)
 
-#ifdef FW_PAYLOAD_FDT_PATH
-	.align 4
+#ifdef CONFIG_SBI_FDT_PAYLOAD_PATH
 	.pushsection .text, "ax", %progbits
+	.align 4
 	.globl fdt_bin
 fdt_bin:
-	.incbin	FW_PAYLOAD_FDT_PATH
+	.incbin	CONFIG_SBI_FDT_PAYLOAD_PATH
 	.popsection
 #endif
 
-	.align 4
 	.pushsection .payload, "ax", %progbits
+#ifdef CONFIG_SBI_PAYLOAD_ALIGN_RELAXED
+	/* align payload minimally */
+	.align 4
+#else
+	/* align payload to megapage */
+	.align PAGE_PTE_BITS + PAGE_PXD_BITS
+#endif
 	.globl payload_bin
 payload_bin:
-#ifndef FW_PAYLOAD_PATH
+#ifndef CONFIG_SBI_PAYLOAD_PATH
 	wfi
 	j	payload_bin
 #else
-	.incbin	FW_PAYLOAD_PATH
+	.incbin	CONFIG_SBI_PAYLOAD_PATH
 #endif
 	.popsection
 

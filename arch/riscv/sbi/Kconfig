@@ -22,18 +22,47 @@ if SBI
 config SBI_PAYLOAD
 	bool "Enable SBI payload binary"
 
-config SBI_CSR_MIMPID
-	bool "Support reading the mimpid CSR"
-	default n
-
 if SBI_PAYLOAD
 
 config SBI_PAYLOAD_PATH
 	string "Path to the payload binary"
 
-config SBI_PAYLOAD_OFFSET
-	hex "Load offset of the payload"
+config SBI_PAYLOAD_ALIGN_RELAXED
+	bool "Enable relaxed alignment"
 
 endif
+
+config SBI_FDT
+	bool "Enable SBI device tree binary"
+
+if SBI_FDT
+
+choice
+	prompt "Device tree source"
+
+config SBI_FDT_ARG1
+	bool "Argument (a1)"
+
+config SBI_FDT_ADDR
+	bool "Fixed address"
+
+config SBI_FDT_PAYLOAD
+	bool "Payload"
+
+endchoice
+
+config SBI_FDT_ADDR_BASE
+	hex "Fixed address of device tree binary"
+	depends SBI_FDT_ADDR
+
+config SBI_FDT_PAYLOAD_PATH
+	string "Path to the device tree binary"
+	depends SBI_FDT_PAYLOAD
+
+endif
+
+config SBI_CSR_MIMPID
+	bool "Support reading the mimpid CSR"
+	default n
 
 endif

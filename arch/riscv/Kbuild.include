@@ -4,8 +4,8 @@ COMPILER	:= gcc
 endif
 ifeq ($(CROSS_COMPILE),)
 ifeq ($(RISCV64),)
-CROSS_COMPILE	:= riscv32-unknown-elf-
+CROSS_COMPILE	:= riscv32-linux-
 else
-CROSS_COMPILE	:= riscv64-unknown-elf-
+CROSS_COMPILE	:= riscv64-linux-
 endif
 endif

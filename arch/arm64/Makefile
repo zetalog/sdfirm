@@ -134,7 +134,7 @@ core-y				+= arch/arm64/common/
 drivers-y			+= $(MACHINE)
 
 # Default target when executing plain make
-KBUILD_IMAGE := sdfirm.bin sdfirm.srec sdfirm.vhx
+KBUILD_IMAGE := sdfirm.bin sdfirm.srec
 ifeq ($(CONFIG_SIMULATION),y)
 KBUILD_IMAGE += sdfirm.vhx
 endif
