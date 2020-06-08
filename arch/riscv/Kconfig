@@ -195,6 +195,7 @@ config ARCH_SPIKE
 	select ARCH_HAS_UART
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_BOOT_LOAD
+	select ARCH_HAS_FDT
 	select SPIKE_HTIF if UART || DEBUG_PRINT || CONSOLE
 	select SPIKE_CLINT if !SYS_NOIRQ
 	help
@@ -210,10 +211,11 @@ config ARCH_VIRT
 	select ARCH_HAS_BOOT_LOAD
 	select ARCH_HAS_CLINT
 	select ARCH_HAS_PLIC
-	select CLINT
-	select PLIC if !SYS_NOIRQ
 	select ARCH_HAS_IRQC
 	select ARCH_HAS_NS16550
+	select ARCH_HAS_FDT
+	select CLINT
+	select PLIC if !SYS_NOIRQ
 	help
 	  This enables support for RISC-V VIRT platform.
 

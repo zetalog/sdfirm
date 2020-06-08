@@ -58,11 +58,31 @@ void *memmove(void *dest, const void *src, size_t count)
 	return dest;
 }
 
+int memcmp(const void *cs, const void *ct, size_t count)
+{
+	const unsigned char *su1, *su2;
+	int res = 0;
+
+	for (su1 = cs, su2 = ct; 0 < count; ++su1, ++su2, count--)
+		if ((res = *su1 - *su2) != 0)
+			break;
+	return res;
+}
+
 size_t strlen(const char *s)
 {
 	const char *sc;
 
 	for (sc = s; *sc != '\0'; ++sc)
+		/* nothing */;
+	return sc - s;
+}
+
+size_t strnlen(const char *s, size_t count)
+{
+	const char *sc;
+
+	for (sc = s; count-- && *sc != '\0'; ++sc)
 		/* nothing */;
 	return sc - s;
 }
@@ -75,6 +95,17 @@ char *strcpy(char *dest, const char *src)
 	while ((*dest++ = *src++) != '\0')
 		/* nothing */;
 	return tmp;
+}
+
+void *memchr(const void *s, int c, size_t n)
+{
+	const unsigned char *p = s;
+	while (n-- != 0) {
+        	if ((unsigned char)c == *p++) {
+			return (void *)(p - 1);
+		}
+	}
+	return NULL;
 }
 
 int strcmp(const char *cs, const char *ct)
@@ -90,6 +121,24 @@ int strcmp(const char *cs, const char *ct)
 			break;
 	}
 	return 0;
+}
+
+char *strchr(const char *s, int c)
+{
+	for (; *s != (char)c; ++s)
+		if (*s == '\0')
+			return NULL;
+	return (char *)s;
+}
+
+char *strrchr(const char *s, int c)
+{
+	const char *last = NULL;
+	do {
+		if (*s == (char)c)
+			last = s;
+	} while (*s++);
+	return (char *)last;
 }
 
 #ifdef CONFIG_STRING_STRNCMP

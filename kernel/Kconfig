@@ -724,6 +724,7 @@ source kernel/mmc/Kconfig
 source kernel/ddr/Kconfig
 source kernel/pci/Kconfig
 source kernel/iommu/Kconfig
+source kernel/fdt/Kconfig
 
 config RAS
 	bool "Reliability availability serviceability (RAS) support"

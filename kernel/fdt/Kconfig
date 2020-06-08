@@ -1,0 +1,13 @@
+#
+# FDT Firmware
+#
+
+config ARCH_HAS_FDT
+	bool
+
+menuconfig FDT
+	bool "Flattened device tree (FDT) support"
+
+if FDT
+
+endif
