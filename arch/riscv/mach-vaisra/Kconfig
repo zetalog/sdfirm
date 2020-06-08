@@ -1,0 +1,56 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+if ARCH_VAISRA
+
+menu "Smart Core Vaisra bench options"
+
+config VAISRA_SMP_CPUS
+	int "Number of cores per cluster"
+	depends SMP
+	range 1 4
+	default 4
+
+config VAISRA_MEM_BASE
+	hex "Primary memory base address"
+	default 0x80000000
+
+config VAISRA_MEM_SIZE
+	hex "Primary memory size"
+	range 0x80000000 0x8000000000
+	default 0x80000000
+
+menu "Peripheral settings"
+
+config VAISRA_UART
+	bool "Enable PL011 uart console"
+	select ARCH_IS_UART_PL010
+	select UART_PL01X
+	select UART_PL01X_SBSA
+
+endmenu
+
+choice
+	prompt "Program type"
+
+config VAISRA_TB
+	bool "Test bench"
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select XIP
+
+config VAISRA_BBL
+	bool "Berkeley boot loader (BBL)"
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SYS_EXIT_S
+	select SBI
+	select XIP
+
+endchoice
+
+endmenu
+
+endif

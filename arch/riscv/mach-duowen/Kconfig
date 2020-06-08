@@ -5,7 +5,7 @@
 
 if ARCH_DUOWEN
 
-menu "Emulated RISCV (Duowen) board options"
+menu "Smart Core Duowen board options"
 
 config DUOWEN_BOOT_APC
 	bool "Enable boot mode cluster"

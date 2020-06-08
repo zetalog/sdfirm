@@ -12,8 +12,6 @@ obj-$(CONFIG_ARM_DCC) += dcc/
 obj-$(CONFIG_PMUv3) += pmuv3.rel
 obj-$(CONFIG_CORESIGHT) += coresight/
 
-obj-$(CONFIG_UART_PL01X) += uart_pl01x.rel
-
 obj-y += cache.rel
 obj-y += timer.rel
 obj-y += except.rel

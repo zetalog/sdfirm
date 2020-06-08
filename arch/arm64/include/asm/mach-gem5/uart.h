@@ -31,7 +31,7 @@ extern caddr_t uart_hw_reg_base[UART_HW_MAX_PORTS];
 
 #if defined(CONFIG_UART_GEM5)
 #ifdef CONFIG_UART_ACE
-#include <asm/uart_pl01x.h>
+#include <driver/uart_pl01x.h>
 #endif
 #ifdef CONFIG_UART_APB
 #include <driver/dw_uart.h>

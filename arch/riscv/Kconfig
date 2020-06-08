@@ -34,7 +34,7 @@ choice
 	default ARCH_VEGA
 
 config ARCH_DUOWEN
-	bool "Emulated RISCV platform"
+	bool "SmarCo MC Duowen"
 	select ARCH_IS_TICKLESS
 	select ARCH_HAS_TSC
 	select ARCH_HAS_TSC_CONST
@@ -69,7 +69,7 @@ config ARCH_DUOWEN
 	select DUOWEN_SMMU if IOMMU
 	select RI5CY_PC if PERF
 	help
-	  This enables support for emulated riscv platforms.
+	  This enables support for smart core (SmarCo) duowen riscv cluster platforms.
 
 config ARCH_DPU
 	bool "SmarCo DPU"
@@ -102,6 +102,24 @@ config ARCH_DPU
 	select RI5CY_PC if (PERF && DPU_CV32E)
 	help
 	  This enables support for smart core (SmarCo) DPU platform.
+
+config ARCH_VAISRA
+	bool "SmarCo MC Vaisra"
+	select CPU_VAISRA
+	select ARCH_HAS_NOVEC
+	select ARCH_IS_TICKLESS
+	select ARCH_HAS_TSC
+	select ARCH_HAS_TSC_CONST
+	select ARCH_HAS_GPT
+	select ARCH_HAS_IRQC
+	select ARCH_HAS_CLINT
+	#select ARCH_HAS_TBOX
+	select RISCV_COUNTERS if SBI
+	select CLINT
+	#select TBOX if !SYS_NOIRQ
+	select VAISRA_UART if CONSOLE || DEBUG_PRINT
+	help
+	  This enables support for smart core (SmarCo) vaisra riscv CPU bench platforms.
 
 config ARCH_UNLEASHED
 	bool "SiFive HiFive Unleashed (FU540)"
@@ -228,6 +246,7 @@ endmenu
 
 source "arch/riscv/mach-duowen/Kconfig"
 source "arch/riscv/mach-dpu/Kconfig"
+source "arch/riscv/mach-vaisra/Kconfig"
 source "arch/riscv/mach-unleashed/Kconfig"
 source "arch/riscv/mach-k210/Kconfig"
 source "arch/riscv/mach-vega/Kconfig"

@@ -116,6 +116,7 @@ uint8_t pl01x_read_byte(void)
 	return pl01x_read_data(UART_CON_ID);
 }
 
+#ifdef CONFIG_SYS_IRQ
 static void pl01x_handle_irq(void)
 {
 	irqc_disable_irq(UART_CON_IRQ);
@@ -144,3 +145,4 @@ void pl01x_irq_exit(void)
 	irqc_disable_irq(UART_CON_IRQ);
 	irqc_configure_irq(UART_CON_IRQ, GIC_PRIORITY_IDLE, IRQ_LEVEL_TRIGGERED);
 }
+#endif

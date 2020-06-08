@@ -79,6 +79,10 @@ ifeq ($(CONFIG_ARCH_DPU),y)
  machine-$(CONFIG_ARCH_DPU)		:= dpu
  incdir-$(CONFIG_ARCH_DPU)		:= dpu
 endif
+ifeq ($(CONFIG_ARCH_VAISRA),y)
+ machine-$(CONFIG_ARCH_VAISRA)		:= vaisra
+ incdir-$(CONFIG_ARCH_VAISRA)		:= vaisra
+endif
 ifeq ($(CONFIG_ARCH_UNLEASHED),y)
  machine-$(CONFIG_ARCH_UNLEASHED)	:= unleashed
  incdir-$(CONFIG_ARCH_UNLEASHED)	:= unleashed

@@ -445,42 +445,6 @@ source "arch/arm64/common/coresight/Kconfig"
 
 menu "ARM CoreLink peripheral support"
 
-config UART_PL01X
-	bool "PrimeCell UART (PL01x) support"
-	select ARCH_HAS_UART
-	help
-	  PrimeCell UART (PL010/PL011) offers similar functionality to the
-	  industry-standard 16C550 UART.
-
-if UART_PL01X
-
-config ARCH_IS_UART_PL010
-	bool
-
-config ARCH_IS_UART_PL011
-	bool
-
-choice
-	prompt "PL01x architecture"
-
-config UART_PL010
-	bool "PL010"
-	depends ARCH_IS_UART_PL010
-
-config UART_PL011
-	bool "PL011"
-	depends ARCH_IS_UART_PL011
-
-endchoice
-
-config UART_PL01X_SBSA
-	bool "PL01X Server Base System Architecture (SBSA) subset"
-	select ARCH_IS_UART_PL011
-	help
-	  Select this to exclude non-SBSA required features.
-
-endif
-
 endmenu
 
 config CPU_BIG_ENDIAN

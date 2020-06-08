@@ -103,7 +103,7 @@
 
 #if defined(CONFIG_QUART_BLSP0) || defined(CONFIG_QUART_BLSP3)
 #include <asm/mach/quart.h>
-#include <asm/uart_pl01x.h>
+#include <driver/uart_pl01x.h>
 #ifndef ARCH_HAVE_UART
 #define ARCH_HAVE_UART		1
 #else

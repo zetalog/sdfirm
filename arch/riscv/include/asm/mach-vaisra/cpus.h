@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2019
+ * Copyright (c) 2020
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,76 +35,27 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)smp.h: symmetric multi-processing interfaces
- * $Id: smp.h,v 1.0 2019-12-18 15:33:00 zhenglv Exp $
+ * @(#)cpus.h: VAISRA specific CPU definitions
+ * $Id: cpus.h,v 1.1 2020-06-08 17:16:00 zhenglv Exp $
  */
 
-#ifndef __SMP_H_INCLUDE__
-#define __SMP_H_INCLUDE__
-
-#include <target/generic.h>
-#include <target/arch.h>
+#ifndef __CPUS_VAISRA_H_INCLUDE__
+#define __CPUS_VAISRA_H_INCLUDE__
 
 #ifdef CONFIG_SMP
-#define smp_processor_id()		__smp_processor_id()
-#define NR_CPUS				MAX_CPU_NUM
-#else
-#define smp_processor_id()		0
-#define NR_CPUS				1
-#endif
+#define CPUS_PER_CLUSTER	CONFIG_VAISRA_SMP_CPUS
+#define CLUSTERS_PER_RAIL	1
+#define MAX_CPU_RAILS		1
+#define MAX_CPU_CLUSTERS	(MAX_CPU_RAILS * CLUSTERS_PER_RAIL)
+#define CPUS_PER_RAIL		(CPUS_PER_CLUSTER * CLUSTERS_PER_RAIL)
+#define MAX_CPU_NUM		(MAX_CPU_RAILS * CPUS_PER_RAIL)
+#else /* CONFIG_SMP */
+#define MAX_CPU_NUM		1
+#define MAX_CPU_CLUSTERS	1
+#define MAX_CPU_RAILS		1
+#define CPUS_PER_CLUSTER	1
+#define CLUSTERS_PER_RAIL	1
+#define CPUS_PER_RAIL		1
+#endif /* CONFIG_SMP */
 
-#ifndef __ASSEMBLY__
-#if NR_CPUS > 65535
-typedef uint32_t cpu_t;
-#elif NR_CPUS > 255
-typedef uint16_t cpu_t;
-#else
-typedef uint8_t cpu_t;
-#endif
-#endif /* __ASSEMBLY__ */
-
-#include <asm/smp.h>
-
-#ifdef CONFIG_SMP
-#define SMP_CACHE_BYTES			__SMP_CACHE_BYTES
-#ifndef __ASSEMBLY__
-typedef struct cpu_mask { DECLARE_BITMAP(bits, NR_CPUS); } cpu_mask_t;
-
-extern cpu_t smp_boot_cpu;
-extern cpu_mask_t smp_online_cpus;
-extern bool smp_initialized;
-
-void smp_init(void);
-
-#define cpumask_bits(maskp)		((maskp)->bits)
-#define cpumask_set_cpu(cpu, maskp)	set_bit((cpu), cpumask_bits(maskp))
-#define cpumask_clear_cpu(cpu, maskp)	clear_bit((cpu), cpumask_bits(maskp))
-#define cpumask_test_cpu(cpu, maskp)	test_bit((cpu), cpumask_bits(maskp))
-#endif
-#define smp_cpu_on(cpu, ep)		smp_hw_cpu_on(cpu, ep)
-#else
-#ifndef __SMP_CACHE_BYTES
-#define SMP_CACHE_BYTES			1
-#else
-#define SMP_CACHE_BYTES			__SMP_CACHE_BYTES
-#endif
-
-#ifndef __ASSEMBLY__
-#define smp_boot_cpu			0
-#define smp_initialized			true
-
-typedef int cpu_mask_t;
-extern cpu_mask_t smp_online_cpus;
-
-#define cpumask_bits(maskp)		C(0)
-#define cpumask_set_cpu(cpu, maskp)	(*(maskp) = 1)
-#define cpumask_clear_cpu(cpu, maskp)	(*(maskp) = 0)
-#define cpumask_test_cpu(cpu, maskp)	(C(cpu) == *(maskp))
-
-#define smp_init()			do { } while (0)
-#define smp_cpu_on(cpu, ep, context)	do { } while (0)
-#endif /* __ASSEMBLY__ */
-#endif
-#define __cache_aligned			__align(SMP_CACHE_BYTES)
-
-#endif /* __SMP_H_INCLUDE__ */
+#endif /* __CPUS_VAISRA_H_INCLUDE__ */

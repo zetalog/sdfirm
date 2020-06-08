@@ -59,3 +59,5 @@ build_sdfirm riscv64 duowen_sv48
 build_sdfirm riscv64 dpu_rom
 build_sdfirm riscv64 dpu_flash
 build_sdfirm riscv64 dpu_ram
+# Vaisra
+build_sdfirm riscv64 vaisra_tb

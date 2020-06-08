@@ -16,7 +16,7 @@ menuconfig SBI
 	select RISCV_COUNTERS
 	select BIT_FLS64
 	select BIT_FFS32
-	select FDT
+	select FDT if ARCH_HAS_FDT
 
 if SBI
 
