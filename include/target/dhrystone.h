@@ -275,9 +275,13 @@
 #endif
 #endif
 
+#ifdef CONFIG_DHRYSTONE_REG
+#define REG			register
+#endif
+
 /* Define cache warmup runs, 1 should be sufficient */
 #define DHRYSTONE_WARMUP_RUNS	1
-#ifdef CONFIG_ARCH_HAS_FP
+#ifdef CONFIG_FP
 #define Mic_secs_Per_Second     1000000.0
 #else
 #define Mic_secs_Per_Second     1000000

@@ -164,7 +164,7 @@ static char *format_number(char *string, char *end, uint64_t number,
 	return string;
 }
 
-#ifdef CONFIG_STDLIB_FP
+#ifdef CONFIG_PRINT_FP
 #include "fpmax.h"
 
 #if FPMAX_MAX_10_EXP < -FPMAX_MIN_10_EXP
@@ -560,7 +560,7 @@ EXIT_SPECIAL:
 	} while (ppc < ppc_last);
 	return pos;
 }
-#endif /* CONFIG_STDLIB_FP */
+#endif /* CONFIG_PRINT_FP */
 
 int vsnprintf(char *string, size_t size, const char *format, va_list args)
 {
@@ -577,7 +577,7 @@ int vsnprintf(char *string, size_t size, const char *format, va_list args)
 	const void *p;
 	int32_t length;
 	int i;
-#ifdef CONFIG_STDLIB_FP
+#ifdef CONFIG_PRINT_FP
 	float_max_t f;
 #endif
 
@@ -708,7 +708,7 @@ int vsnprintf(char *string, size_t size, const char *format, va_list args)
 		case 'u':
 			break;
 
-#ifdef CONFIG_STDLIB_FP
+#ifdef CONFIG_PRINT_FP
 		case 'f':
 		case 'e':
 		case 'g':
@@ -739,7 +739,7 @@ int vsnprintf(char *string, size_t size, const char *format, va_list args)
 		}
 
 		if (qualifier == 'L') {
-#ifdef CONFIG_STDLIB_FP
+#ifdef CONFIG_PRINT_FP
 			if (type & FLOAT)
 				f = (float_max_t)va_arg(args, double);
 			else
@@ -750,7 +750,7 @@ int vsnprintf(char *string, size_t size, const char *format, va_list args)
 					number = (int64_t)number;
 			}
 		} else if (qualifier == 'l') {
-#ifdef CONFIG_STDLIB_FP
+#ifdef CONFIG_PRINT_FP
 			if (type & FLOAT)
 				f = (float_max_t)va_arg(args, double);
 			else
@@ -761,7 +761,7 @@ int vsnprintf(char *string, size_t size, const char *format, va_list args)
 					number = (int32_t)number;
 			}
 		} else if (qualifier == 'h') {
-#ifdef CONFIG_STDLIB_FP
+#ifdef CONFIG_PRINT_FP
 			if (type & FLOAT)
 				f = (float_max_t)va_arg(args, double);
 			else
@@ -772,7 +772,7 @@ int vsnprintf(char *string, size_t size, const char *format, va_list args)
 					number = (int16_t)number;
 			}
 		} else {
-#ifdef CONFIG_STDLIB_FP
+#ifdef CONFIG_PRINT_FP
 			if (type & FLOAT)
 				f = (float_max_t)va_arg(args, double);
 			else
@@ -784,7 +784,7 @@ int vsnprintf(char *string, size_t size, const char *format, va_list args)
 			}
 		}
 
-#ifdef CONFIG_STDLIB_FP
+#ifdef CONFIG_PRINT_FP
 		if (type & FLOAT)
 			pos = format_float(pos, end, f, *format,
 					   width, precision, type);

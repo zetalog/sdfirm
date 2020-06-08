@@ -115,6 +115,9 @@ config PRINT_PRINTF
 	bool "printf"
 	select PRINT_VPRINTF
 
+config PRINT_FP
+	bool "floating point"
+
 endmenu
 
 menu "String operations"

@@ -610,6 +610,14 @@ config MMU_DEBUG_TABLE
 
 endif
 
+config ARCH_HAS_FP
+	bool
+
+menuconfig FP
+	bool "Calculation force (FP) support"
+	depends ARCH_HAS_FP
+	select PRINT_FP if PRINT_VSNPRINTF
+
 menu "Power management model (board) support"
 
 config SHUTDOWN
@@ -726,8 +734,5 @@ config ARCH_HAS_PMU
 config PERF
 	bool "Performance counting (perf) support"
 	depends ARCH_HAS_PMU
-
-config ARCH_HAS_FP
-	bool
 
 endmenu

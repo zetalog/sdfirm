@@ -20,6 +20,8 @@ config RISCV
 	bool
 	select RISCV_A if SMP
 	select RISCV_SV if MMU
+	select RISCV_F if (FP && CPU_F)
+	select RISCV_D if (FP && CPU_D)
 	default y
 	# even on 32-bit, physical (and DMA) addresses are > 32-bits
 

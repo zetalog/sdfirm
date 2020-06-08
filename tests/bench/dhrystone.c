@@ -32,10 +32,12 @@ uint64_t dhrystone_num_of_runs(void)
 	return DHRYSTONE_REPEATS;
 }
 
+#ifdef CONFIG_DHRYSTONE_TIME
 uint64_t dhrystone_expected_timeout(void)
 {
 	return DHRYSTONE_TIMEOUT;
 }
+#endif
 
 #define TRACE_ID_MASK	0x000000FF
 #define TRACE_RUN_MASK	0xFFFFFF00
@@ -136,22 +138,24 @@ int dhrystone (caddr_t percpu_area)
                     /* Measurements should last at least 2 seconds */
 
         long long   User_Time,
-                    Expected_End_Time,
                     Begin_Time,
                     End_Time;
-#ifdef CONFIG_ARCH_HAS_FP
+#ifdef CONFIG_DHRYSTONE_TIME
+	long long   Expected_End_Time,
+#endif
+#ifdef CONFIG_FP
 #define DHRY_FMT        "%6.1f"
 #define DHRY_FMT2       "%12.21f"
         __unused float  Microseconds;
         float           Vax_Mips,
                         Dhrystones_Per_Second;
-#else /* CONFIG_ARCH_HAS_FP */
+#else /* CONFIG_FP */
 #define DHRY_FMT        "%6lld"
 #define DHRY_FMT2       "%12lld"
-        __unused int    Microseconds;
-        unsigned int    Vax_Mips,
+        __unused long   Microseconds;
+        long long       Vax_Mips,
                         Dhrystones_Per_Second;
-#endif /* CONFIG_ARCH_HAS_FP */
+#endif /* CONFIG_FP */
 
 #ifndef HOSTED
         Rec_Type    Type_Glob,
@@ -212,22 +216,24 @@ int dhrystone (caddr_t percpu_area)
   Number_Of_Runs = atoi(argv[1]);
 #else
   Number_Of_Runs = dhrystone_num_of_runs();
+#ifdef CONFIG_DHRYSTONE_TIME
   Expected_End_Time = dhrystone_expected_timeout();
   if (Expected_End_Time != CPU_WAIT_INFINITE)
   {
     Expected_End_Time += clock();
   }
+#endif /* CONFIG_DHRYSTONE_TIME */
 #endif
 
   dhry_printf ("Execution starts, %d runs through Dhrystone\n", Number_Of_Runs);
 
   Begin_Time = clock();
+  Number_Of_Runs += DHRYSTONE_WARMUP_RUNS;
 
-  for (Run_Index = (1 - DHRYSTONE_WARMUP_RUNS);
-       Run_Index <= Number_Of_Runs; ++Run_Index)
+  for (Run_Index = 0; Run_Index <= Number_Of_Runs; ++Run_Index)
   {
 
-    if (unlikely(Run_Index == 1))
+    if (unlikely(Run_Index == DHRYSTONE_WARMUP_RUNS))
     {
       /***************/
       /* Start timer */
@@ -279,12 +285,16 @@ int dhrystone (caddr_t percpu_area)
       /* Int_1_Loc == 5 */
 
 #ifndef HOSTED
-    if ((Expected_End_Time != CPU_WAIT_INFINITE) &&
-        time_after(clock(), Expected_End_Time))
-    {
-      Number_Of_Runs = Run_Index;
-      break;
+#ifdef CONFIG_DHRYSTONE_TIME
+    if (unlikely(Expected_End_Time != CPU_WAIT_INFINITE) &&
+        likely(Run_Index > DHRYSTONE_WARMUP_RUNS)) {
+      if (time_after(clock(), Expected_End_Time))
+      {
+        Number_Of_Runs = Run_Index;
+        break;
+      }
     }
+#endif /* CONFIG_DHRYSTONE_TIME */
 #endif
   }  /* loop "for Run_Index" */
 
@@ -292,6 +302,7 @@ int dhrystone (caddr_t percpu_area)
   /* Stop timer */
   /**************/
 
+  Number_Of_Runs -= DHRYSTONE_WARMUP_RUNS;
   End_Time = clock();
 
   dhry_printf ("Execution ends\n");
@@ -357,7 +368,7 @@ int dhrystone (caddr_t percpu_area)
   }
   else
   {
-#ifdef CONFIG_ARCH_HAS_FP
+#ifdef CONFIG_FP
 #ifdef HOSTED
     Microseconds = (float) User_Time * Mic_secs_Per_Second
                         / (float) Number_Of_Runs;
@@ -368,13 +379,12 @@ int dhrystone (caddr_t percpu_area)
     Dhrystones_Per_Second = (float) Number_Of_Runs * Mic_secs_Per_Second
                         / (float) User_Time;
 #endif
-    Vax_Mips = Dhrystones_Per_Second / 1757;
-#else /* CONFIG_ARCH_HAS_FP */
+#else /* CONFIG_FP */
     Microseconds = User_Time / Number_Of_Runs;
-    Dhrystones_Per_Second = Number_Of_Runs * Mic_secs_Per_Second
-                        / User_Time;
+    Dhrystones_Per_Second = (long long) Number_Of_Runs * Mic_secs_Per_Second
+                        / (long long) User_Time;
+#endif /* CONFIG_FP */
     Vax_Mips = Dhrystones_Per_Second / 1757;
-#endif /* CONFIG_ARCH_HAS_FP */
     printf ("Number of runs:                             %d \n", Number_Of_Runs);
     printf ("User time (us):                             %llu \n", (uint64_t)User_Time);
     dhry_printf ("Microseconds for one run through Dhrystone: " DHRY_FMT " \n", Microseconds);
