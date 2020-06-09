@@ -614,7 +614,7 @@ config ARCH_HAS_FP
 	bool
 
 menuconfig FP
-	bool "Calculation force (FP) support"
+	bool "Arithmetic facility (float) support"
 	depends ARCH_HAS_FP
 	select PRINT_FP if PRINT_VSNPRINTF
 

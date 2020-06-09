@@ -52,13 +52,13 @@ struct dhrystone_percpu {
 
 struct dhrystone_percpu dhrystone_ctx[MAX_CPU_NUM];
 #define get_dhrystone		(dhrystone_ctx[smp_processor_id()].ptr)
-#else
+#endif
 #ifdef CONFIG_DHRYSTONE_GENERIC_PERCPU
 DEFINE_PERCPU(struct dhrystone_context, dhrystone_ctx);
 #define get_dhrystone		this_cpu_ptr(&dhrystone_ctx)
-#else
-struct dhrystone_context *get_dhrystone;
 #endif
+#ifdef CONFIG_DHRYSTONE_BENCH_PERCPU
+struct dhrystone_context *get_dhrystone;
 #endif
 #define Ptr_Glob		get_dhrystone->Ptr_Glob
 #define Next_Ptr_Glob		get_dhrystone->Next_Ptr_Glob

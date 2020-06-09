@@ -6,6 +6,10 @@
 #include <stdarg.h>
 
 #ifndef __ASSEMBLY__
+typedef void	*FILE;
+#define stderr	NULL
+#define stdout	NULL
+
 int sprintf(char *, const char *, ...);
 int snprintf(char *, size_t, const char *, ...);
 int vsprintf(char *, const char *, va_list);

@@ -5,6 +5,7 @@ obj-$(CONFIG_TLB_TEST) += tlbtest.rel
 
 # benchmarks
 obj-$(CONFIG_DHRYSTONE) += dhrystone.rel
+obj-$(CONFIG_LINPACK) += linpack.rel
 obj-$(CONFIG_COREMARK) += coremark/
 obj-$(CONFIG_MEMSTREAM) += memstream.rel
 

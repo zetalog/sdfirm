@@ -4,7 +4,7 @@
 
 menu "Standard benchmark tests"
 
-config DHRYSTONE
+menuconfig DHRYSTONE
 	bool "Dhrystone"
 	select TIME_CLOCK
 
@@ -40,6 +40,40 @@ config DHRYSTONE_GENERIC_PERCPU
 
 config DHRYSTONE_SPECIFIC_PERCPU
 	bool "Specific percpu arrary"
+
+endchoice
+
+endif
+
+menuconfig LINPACK
+	bool "Linpack"
+	select FP
+	select PRINT_SPRINTF
+
+if LINPACK
+
+config LINPACK_CALIBRATION_TIMEOUT
+	int "Linpack calibration timeout (usecs)"
+	range 1 1000000
+	default 1
+
+config LINPACK_CALIBRATION_REPEATS
+	int "Linpack calibration repeats"
+	range 1 10
+	default 1
+
+choice
+	prompt "Percpu mechnism"
+	default LINPACK_BENCH_PERCPU
+
+config LINPACK_BENCH_PERCPU
+	bool "Bench percpu allocation"
+
+config LINPACK_GENERIC_PERCPU
+	bool "SMP percpu allocation"
+
+config LINPACK_SPECIFIC_PERCPU
+	bool "Specific percpu array"
 
 endchoice
 
