@@ -3,21 +3,9 @@ config COREMARK
 
 if COREMARK
 
-config COREMARK_USE_CLOCK
-	bool "Use clock to compute time"
-	default y
-
-config COREMARK_TIME_ON
-	bool "Turn on time operations"
-	default n
-
-config COREMARK_MEM_STATIC
-	bool "Use static memory"
-	default y
-
 config COREMARK_ITERATION_CNT
 	int "Iterations count"
-	default 1
+	default 200
 
 endif
 
