@@ -47,4 +47,12 @@
 #define FIX_TBOX		(FIX_HOLE + 3)
 #define MMU_HW_MAX_FIXMAP	(FIX_TBOX + 1)
 
+#ifdef CONFIG_MMU
+void vaisra_mmu_map_uart(int n);
+void vaisra_mmu_dump_maps(void);
+#else
+#define vaisra_mmu_map_uart(n)	do { } while (0)
+#define vaisra_mmu_dump_maps()	do { } while (0)
+#endif
+
 #endif /* __MMU_VAISRA_H_INCLUDE__ */

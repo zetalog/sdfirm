@@ -84,14 +84,24 @@ static int vaisra_pmp_region_info(u32 hartid, u32 index, ulong *prot,
 	return ret;
 }
 
+#define __UART_REG(offset)		(UART_BASE + (offset))
+#define __UARTDR			__UART_REG(0x000)
+#define __UARTFR			__UART_REG(0x018)
+#define __pl01x_read_data()		__raw_readb(__UARTDR)
+#define __pl01x_write_data(v)		__raw_writeb(v, __UARTDR)
+#define __pl01x_write_full()		(__raw_readw(__UARTFR) & UART_TXFF)
+#define __pl01x_read_empty()		(__raw_readw(__UARTFR) & UART_RXFE)
+
 static void vaisra_console_putc(char ch)
 {
-	putchar(ch);
+	while (__pl01x_write_full());
+	__pl01x_write_data(ch);
 }
 
 static int vaisra_console_getc(void)
 {
-	return getchar();
+	while (__pl01x_read_empty());
+	return __pl01x_read_data();
 }
 
 static int vaisra_irqchip_init(bool cold_boot)

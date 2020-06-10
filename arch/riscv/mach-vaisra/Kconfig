@@ -26,9 +26,8 @@ menu "Peripheral settings"
 
 config VAISRA_UART
 	bool "Enable PL011 uart console"
-	select ARCH_IS_UART_PL010
+	select ARCH_IS_UART_PL011
 	select UART_PL01X
-	select UART_PL01X_SBSA
 
 endmenu
 
@@ -39,6 +38,7 @@ config VAISRA_TB
 	bool "Test bench"
 	select SYS_ENTR_M
 	select SYS_EXIT_M
+	select SYS_EXIT_S
 	select XIP
 
 config VAISRA_BBL

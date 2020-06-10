@@ -48,7 +48,14 @@
 #define UART_CON_ID			0
 #define UART_CON_IRQ			IRQ_UART0
 
-#define UART_BASE(n)			(UART0_BASE+((n)<<4))
+#ifdef CONFIG_MMU
+#define VAISRA_UART_BASE		vaisra_uart_reg_base
+extern caddr_t vaisra_uart_reg_base;
+#else
+#define VAISRA_UART_BASE		UART_BASE
+#endif
+#define VAISRA_UART_REG(n, offset)	(VAISRA_UART_BASE + (offset))
+#define UART_REG(n, offset)		VAISRA_UART_REG(n, offset)
 
 #ifdef CONFIG_VAISRA_UART
 #include <driver/uart_pl01x.h>
@@ -61,10 +68,12 @@
 #define uart_hw_con_write(byte)	pl01x_write_byte(byte)
 #define uart_hw_con_read()	pl01x_read_byte()
 #define uart_hw_con_poll()	pl01x_read_poll()
-#define uart_hw_con_init()	do { } while (0)
+#define uart_hw_con_init()	vaisra_uart_con_init()
 #ifdef CONFIG_MMU
-#define uart_hw_mmu_init()	do { } while (0)
+#define uart_hw_mmu_init()	vaisra_uart_mmu_init()
+void vaisra_uart_mmu_init(void);
 #endif /* CONFIG_MMU */
+void vaisra_uart_con_init(void);
 #endif /* CONFIG_VAISRA_UART */
 
 #endif /* __UART_VAISRA_H_INCLUDE__ */

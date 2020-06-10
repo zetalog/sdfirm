@@ -35,25 +35,30 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)reg.h: VAISRA space and register definitions
- * $Id: reg.h,v 1.1 2020-06-08 17:12:00 zhenglv Exp $
+ * @(#)uart.c: VAISRA specific UART implementation
+ * $Id: uart.c,v 1.1 2020-06-10 16:11:00 zhenglv Exp $
  */
 
-#ifndef __REG_VAISRA_H_INCLUDE__
-#define __REG_VAISRA_H_INCLUDE__
+#include <target/uart.h>
+#include <target/console.h>
+#include <target/paging.h>
 
-#define ROM_BASE		ULL(0xFFFFFFF000)
-#define ROM_SIZE		UL(0xF00)
-#define RAM_BASE		CONFIG_VAISRA_MEM_BASE
-#define RAM_SIZE		CONFIG_VAISRA_MEM_SIZE
-#define RAMEND			(RAM_BASE + RAM_SIZE)
+static bool vaisra_uart_con_initialized;
 
-#define CLINT_BASE		ULL(0x8002000000)
-#define UART_BASE		ULL(0x8002010000)
-#ifdef CONFIG_VAISRA_TBOX_TIDY
-#define TBOX_BASE		ULL(0x8002020000)
-#else
-#define TBOX_BASE		ROM_BASE
+void vaisra_uart_con_init(void)
+{
+	if (vaisra_uart_con_initialized)
+		return;
+
+	pl01x_con_init();
+	vaisra_uart_con_initialized = true;
+}
+
+#ifdef CONFIG_MMU
+void vaisra_uart_mmu_init(void)
+{
+	vaisra_mmu_map_uart(UART_CON_ID);
+	uart_hw_con_init();
+	vaisra_mmu_dump_maps();
+}
 #endif
-
-#endif /* __REG_VAISRA_H_INCLUDE__ */

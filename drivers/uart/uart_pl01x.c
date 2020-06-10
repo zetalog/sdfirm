@@ -99,7 +99,7 @@ void pl01x_con_init(void)
 
 void pl01x_write_byte(uint8_t byte)
 {
-	uint8_t n = UART_CON_ID;
+	__unused uint8_t n = UART_CON_ID;
 
 	while (pl01x_write_full(n));
 	pl01x_write_data(n, byte);

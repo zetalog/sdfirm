@@ -8,8 +8,7 @@
  */
 
 #if 0
-#include <libfdt.h>
-#include <fdt.h>
+#include <target/fdt.h>
 #endif
 #include <target/sbi.h>
 #include <target/uart.h>

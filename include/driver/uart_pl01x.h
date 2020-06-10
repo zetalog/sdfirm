@@ -44,7 +44,9 @@
 
 #include <target/muldiv.h>
 
+#ifndef UART_REG
 #define UART_REG(n, offset)	(UART_BASE(n)+(offset))
+#endif
 #define UART_FV(name, value)	_FV(UART_##name, value)
 
 /* PrimeCell UART (PL010/PL011) Technical Reference Manual
