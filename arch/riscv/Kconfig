@@ -113,6 +113,7 @@ config ARCH_VAISRA
 	select ARCH_HAS_GPT
 	select ARCH_HAS_IRQC
 	select ARCH_HAS_CLINT
+	select ARCH_HAS_BOOT_LOAD
 	#select ARCH_HAS_TBOX
 	select RISCV_COUNTERS if SBI
 	select CLINT

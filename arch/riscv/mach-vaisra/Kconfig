@@ -40,6 +40,7 @@ config VAISRA_TB
 	select SYS_EXIT_M
 	select SYS_EXIT_S
 	select XIP
+	select BFM
 
 config VAISRA_BBL
 	bool "Berkeley boot loader (BBL)"
@@ -48,6 +49,7 @@ config VAISRA_BBL
 	select SYS_EXIT_S
 	select SBI
 	select XIP
+	select BFM
 
 endchoice
 
