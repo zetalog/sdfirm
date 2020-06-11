@@ -106,6 +106,11 @@ bool mmu_hw_pgattr_safe(pteval_t old, pteval_t new)
 
 __init void mmu_hw_ctrl_init(void)
 {
-	/* TODO: relocate to PAGE_OFFSET */
+	/* Relocate to the trampoline table */
+	local_flush_tlb_all();
+	sv_satp_switch((caddr_t)mmu_id_map, "SATP");
+
+	/* Relocate to the runtime table, PAGE_OFFSET has not been supported yet. */
 	sv_satp_switch((caddr_t)mmu_pg_dir, "SATP");
+	local_flush_tlb_all();
 }
