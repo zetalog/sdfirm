@@ -36,7 +36,7 @@ extern volatile tick_t jiffies;
 void tick_init(void);
 #else
 #define tick_get_counter()		\
-	div32u(tsc_read_counter(), TSC_FREQ)
+	__tsc_div(tsc_read_counter(), TSC_FREQ)
 #define tick_init()			do { } while (0)
 #endif
 #endif

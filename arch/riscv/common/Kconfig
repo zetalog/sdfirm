@@ -293,6 +293,7 @@ config RISCV_ZTSO
 config RISCV_COUNTERS
 	bool "Performance counters and timer support"
 	depends CPU_COUNTERS
+	select MATH_DIV64
 	default y
 
 config RISCV_B
@@ -579,6 +580,7 @@ config CLINT
 	depends ARCH_HAS_CLINT
 	select ARCH_HAS_SBI_IPI
 	select ARCH_HAS_SBI_TIMER
+	select MATH_DIV64
 
 if CLINT
 
