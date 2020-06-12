@@ -257,7 +257,7 @@ static void bench_reset_timeout(void)
 	cpu_t cpu = smp_processor_id();
 	tick_t tick = tick_get_counter();
 
-	if (time_after(tick, cpu_ctxs[cpu].async_timeout))
+	if (!time_before(tick, cpu_ctxs[cpu].async_timeout))
 		bench_raise_event(CPU_EVENT_TIME);
 	else
 		timer_schedule_shot(cpu_ctxs[cpu].timer,

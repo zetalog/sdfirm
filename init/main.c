@@ -94,9 +94,6 @@ void system_init(void)
 	board_late_init();
 	appl_init();
 	smp_init();
-	bench_init();
-	cmd_init();
-	bh_loop();
 }
 
 void system_suspend(void)

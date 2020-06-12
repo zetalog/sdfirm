@@ -159,6 +159,9 @@ if SMP
 config ARCH_HAS_QSPINLOCK
 	bool
 
+config SMP_WAIT_BOOT
+	bool "Wait other CPUs to boot up"
+
 endif
 
 menu "Timing facility (jiffy) support"

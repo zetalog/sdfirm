@@ -40,7 +40,7 @@ config TEST_BENCH_DIDT
 	  tests.
 
 config TEST_BENCH_START_DELAY
-	bool "Start delay alignment"
+	int "Start delay alignment"
 	depends SMP
 	default 64
 	help

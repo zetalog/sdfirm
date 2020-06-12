@@ -49,6 +49,7 @@
 #include <target/bench.h>
 #include <target/atomic.h>
 #include <target/paging.h>
+#include <target/cmdline.h>
 
 cpu_t smp_boot_cpu;
 cpu_mask_t smp_online_cpus;
@@ -72,14 +73,17 @@ void smp_init(void)
 		timer_init();
 		task_init();
 		bench_init();
-		bh_loop();
 	} else {
 		cpu_t cpu;
 
 		for (cpu = 0; cpu < NR_CPUS; cpu++) {
-			if (cpu != smp_boot_cpu)
+			if (cpu != smp_boot_cpu) {
 				smp_cpu_on(cpu, (caddr_t)smp_init);
+				while (!cpumask_test_cpu(cpu, &smp_online_cpus));
+			}
 		}
 		bench_init();
+		cmd_init();
 	}
+	bh_loop();
 }
