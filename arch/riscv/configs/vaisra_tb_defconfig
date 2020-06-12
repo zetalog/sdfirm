@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Jun 11 16:21:49 2020
+# Fri Jun 12 13:39:28 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -136,7 +136,7 @@ CONFIG_SBI=y
 # Smart Core Vaisra bench options
 #
 CONFIG_VAISRA_MEM_BASE=0x80000000
-CONFIG_VAISRA_MEM_SIZE=0x80000000
+CONFIG_VAISRA_MEM_SIZE=0x600000
 
 #
 # Peripheral settings
@@ -189,11 +189,7 @@ CONFIG_TIMER=y
 CONFIG_TIMER_31BIT=y
 CONFIG_TIMER_ONESHOT=y
 CONFIG_MAX_TIMERS=6
-CONFIG_TIMER_TEST=y
-CONFIG_TIMER_TEST_TIMEOUT=y
-CONFIG_TIMER_TEST_MAX_SHOTS=6
-CONFIG_TIMER_TEST_SHOT_PERIOD=2
-# CONFIG_TIMER_TEST_SHUTDOWN is not set
+# CONFIG_TIMER_TEST is not set
 
 #
 # Address space layout (xip) support

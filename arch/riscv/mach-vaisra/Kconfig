@@ -19,7 +19,6 @@ config VAISRA_MEM_BASE
 
 config VAISRA_MEM_SIZE
 	hex "Primary memory size"
-	range 0x80000000 0x8000000000
 	default 0x80000000
 
 menu "Peripheral settings"
