@@ -39,6 +39,15 @@ config TEST_BENCH_DIDT
 	  repeatedly using timer. This mode is useful for power stress
 	  tests.
 
+config TEST_BENCH_START_DELAY
+	bool "Start delay alignment"
+	depends SMP
+	default 64
+	help
+	  In order to align all CPUs to execute tests simultaneously, CPUs
+	  may start run after aligning current time to a start delay
+	  interval. This should be a power of 2 value.
+
 config TEST_VERBOSE
 	bool "Enable verbosity in tests"
 

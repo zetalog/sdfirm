@@ -186,10 +186,10 @@ static void inline cpu_exec_close(uint64_t cpu_mask, bool is_exit,
 }
 
 #ifdef CONFIG_TEST_BENCH_DIDT
-#ifdef CONFIG_BENCH_START_DELAY
-#define BENCH_START_DELAY_MS	CONFIG_BENCH_START_DELAY
+#ifdef CONFIG_TEST_BENCH_START_DELAY
+#define BENCH_START_DELAY_MS	CONFIG_TEST_BENCH_START_DELAY
 #else
-#define BENCH_START_DELAY_MS	64
+#define BENCH_START_DELAY_MS	0 /* non-SMP mode, no start aligning */
 #endif
 
 static uint8_t cpu_exec_refcnt;
@@ -210,8 +210,12 @@ static void bench_timer_start(void)
 	cpu_t cpu = smp_processor_id();
 	tick_t current_s = tick_get_counter();
 
+#if BENCH_START_DELAY_MS
 	cpu_ctxs[cpu].async_timeout = ALIGN_UP(current_s,
 					       BENCH_START_DELAY_MS);
+#else
+	cpu_ctxs[cpu].async_timeout = current_s;
+#endif
 }
 
 static bool bench_should_suspend(cpu_t cpu, struct cpu_exec_test *fn)
@@ -223,7 +227,7 @@ static bool bench_should_suspend(cpu_t cpu, struct cpu_exec_test *fn)
 		   cpu_ctxs[cpu].async_exec_period;
 	is_endless = !!(cpu_ctxs[cpu].async_exec_period ==
 			CPU_WAIT_INFINITE);
-	if (is_endless ||
+	if (is_endless || !cpu_ctxs[cpu].async_wait_interval ||
 	    time_before(tick_get_counter(), end_time)) {
 		do_printf("%02d(%020lld): %s count down %d before %020lld\n",
 			  cpu, tick_get_counter(), fn->name,
@@ -251,9 +255,13 @@ static bool bench_should_resume(cpu_t cpu)
 static void bench_reset_timeout(void)
 {
 	cpu_t cpu = smp_processor_id();
-	timeout_t tout_ms = cpu_ctxs[cpu].async_timeout - tick_get_counter();
+	tick_t tick = tick_get_counter();
 
-	timer_schedule_shot(cpu_ctxs[cpu].timer, tout_ms);
+	if (time_after(tick, cpu_ctxs[cpu].async_timeout))
+		bench_raise_event(CPU_EVENT_TIME);
+	else
+		timer_schedule_shot(cpu_ctxs[cpu].timer,
+				    cpu_ctxs[cpu].async_timeout - tick);
 }
 
 static bool __bench_sync_wait(bool wait, tick_t timeout)
@@ -968,5 +976,6 @@ DEFINE_COMMAND(bench, cmd_bench, "Run pre-registered patterns on CPUs",
 	"     dIdT mode: When interval > period, after running pattern for a\n"
 	"                while (period), CPU will enter idle state for a\n"
 	"                while (interval - period).\n"
-	"     norm mode: When interval <= period, CPU won't enter idle state.\n"
+	"     norm mode: When interval <= period, CPU won't enter idle state,\n"
+	"                When interval = 0, ensured to run at least once.\n"
 );
