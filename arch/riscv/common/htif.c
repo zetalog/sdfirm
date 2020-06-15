@@ -164,6 +164,27 @@ static void do_tohost_fromhost(uintptr_t dev, uintptr_t cmd, uintptr_t data)
 	spin_unlock(&htif_lock);
 }
 
+void htif_putc(char ch)
+{
+	htif_console_write(ch);
+}
+
+int htif_getc(void)
+{
+	int ch;
+
+	spin_lock(&htif_lock);
+	__check_fromhost();
+	ch = htif_console_buf;
+	if (ch >= 0) {
+		htif_console_buf = -1;
+		__set_tohost(HTIF_DEV_BCD, HTIF_BCD_CMD_READ, 0);
+	}
+	spin_unlock(&htif_lock);
+
+	return ch - 1;
+}
+
 void htif_syscall(uintptr_t arg)
 {
 	do_tohost_fromhost(HTIF_DEV_SYSCALL_PROXY,

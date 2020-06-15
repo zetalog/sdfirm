@@ -55,6 +55,8 @@ int htif_console_read(void);
 void htif_console_write(uint8_t ch);
 void htif_syscall(uintptr_t);
 void htif_poweroff(void);
+void htif_putc(char ch);
+int htif_getc(void);
 #endif
 
 #endif /* __HTIF_RISCV_H_INCLUDE__ */

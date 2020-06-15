@@ -49,12 +49,12 @@ static int spike_pmp_region_info(u32 hartid, u32 index, ulong *prot,
 
 static void spike_console_putc(char ch)
 {
-	putchar(ch);
+	htif_putc(ch);
 }
 
 static int spike_console_getc(void)
 {
-	return getchar();
+	return htif_getc();
 }
 
 static int spike_irqchip_init(bool cold_boot)
