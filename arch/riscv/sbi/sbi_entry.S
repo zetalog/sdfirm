@@ -475,7 +475,7 @@ ENTRY(fw_next_arg1)
 	 * We can only use a0, a1, and a2 registers here.
 	 * The next arg1 should be returned in 'a0'.
 	 */
-#ifdef CONFIG_SBI_FDT_PAYLOAD
+#ifdef CONFIG_SBI_FDT_ADDR_BASE
 	li	a0, CONFIG_SBI_FDT_ADDR_BASE
 #else
 	add	a0, zero, zero
@@ -488,7 +488,7 @@ ENTRY(fw_next_addr)
 	 * We can only use a0, a1, and a2 registers here.
 	 * The next address should be returned in 'a0'.
 	 */
-#ifdef CONFIG_SBI_PAYLOAD
+#ifdef CONFIG_SBI_PAYLOAD_PATH
 	la	a0, payload_bin
 #else
 	la	a0, __sbi_exit

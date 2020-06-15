@@ -149,6 +149,11 @@
 	fence	rw, rw
 	.endm
 
+	.macro MOV_3R __d0, __s0, __d1, __s1, __d2, __s2
+	add	\__d0, \__s0, zero
+	add	\__d1, \__s1, zero
+	add	\__d2, \__s2, zero
+	.endm
 	__HEAD
 
 ENTRY(__start)
@@ -175,6 +180,7 @@ ENTRY(__start)
 	li	a7, BOOT_HART
 	bne	a6, a7, secondary_wait_for_abi_relocate
 
+	MOV_3R	s0, a0, s1, a1, s2, a2
 #ifdef CONFIG_LOAD_TEXT
 	/* Handle both .text and .rodata sections */
 	copy_sect __text_loc, _stext, _etext, copy_text_exit, copy_text_loop
@@ -187,6 +193,7 @@ ENTRY(__start)
 	/* Handle .bss section */
 	zero_sect __bss_start, __bss_stop, init_bss_exit, init_bss_loop
 #endif
+	MOV_3R	a0, s0, a1, s1, a2, s2
 
 	la	t0, abi_relocate_done
 	REG_S	t0, 0(t0)
