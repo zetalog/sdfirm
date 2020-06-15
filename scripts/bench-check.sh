@@ -51,12 +51,12 @@ function verify_elf()
 		then
 			pc=`echo $pc | cut -b 9-16`
 		fi
-		grep $pc $log_file > /dev/null
-		if [ $? -eq 0 ]
+		pass_core_cnt=`grep $pc $log_file | wc -l`
+		if [ $pass_core_cnt -eq $spike_smp ]
 		then
-			echo "Pass PC" $pc >> $report_file
+			echo "Pass PC" $pc "at all" $pass_core_cnt "Cores" >> $report_file
 		else
-			echo "No Pass PC" $pc >> $report_file
+			echo "Not all Cores got Pass PC" $pc $pass_core_cnt "<" $spike_smp >> $report_file
 		fi
 	done
 	for pc in $pc_fail;
@@ -65,10 +65,12 @@ function verify_elf()
 		then
 			pc=`echo $pc | cut -b 9-16`
 		fi
-		grep $pc $log_file
-		if [ $? -eq 0 ]
+		fail_core_cnt=`grep $pc $log_file | wc -l`
+		if [ $fail_core_cnt -eq 0 ]
 		then
-			echo "Fail PC" $pc >> $report_file
+			echo "No fail PC" $pc >> $report_file
+		else
+			echo "Fail PC" $pc "at" $fail_core_cnt "Cores" >> $report_file
 		fi
 	done
 	echo "" >> $report_file
