@@ -82,8 +82,9 @@ ee_s32 get_seed_32(int i);
 #endif
 
 #if (MEM_METHOD == MEM_STATIC)
-ee_u8 static_memblk[TOTAL_DATA_SIZE];
+ee_u8 *static_memblk;
 #endif
+
 char *mem_name[3] = { "Static", "Heap", "Stack" };
 /* Function: main
         Main entry routine for the benchmark.
@@ -108,10 +109,11 @@ char *mem_name[3] = { "Static", "Heap", "Stack" };
 #include <target/cpus.h>
 #include <target/percpu.h>
 #include <target/coremark.h>
+
 struct coremark_percpu {
 	struct coremark_context *ptr;
 } __cache_aligned;
-//static struct coremark_percpu coremark_ctx[MAX_CPU_NUM];
+static struct coremark_percpu coremark_ctx[MAX_CPU_NUM];
 
 static int coremark_t_pass(void) { return 1; }
 static int coremark_t_fail(void) { return 0; }
@@ -138,6 +140,9 @@ int coremark(caddr_t percpu_area)
 		"0x66",
 		"200"};
 	int argc = 5;
+	int cpu_id = smp_processor_id();
+	coremark_ctx[cpu_id].ptr = (struct coremark_context *)percpu_area;
+	ee_u8 *static_memblk = (ee_u8 *)coremark_ctx[cpu_id].ptr->static_memblk;
 #endif
     ee_u16       i, j = 0, num_algorithms = 0;
     ee_s16       known_id = -1, total_errors = 0;

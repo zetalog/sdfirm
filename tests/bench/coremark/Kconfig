@@ -7,5 +7,8 @@ config COREMARK_ITERATION_CNT
 	int "Iterations count"
 	default 200
 
+config COREMARK_DATA_SIZE
+	int "Data size per CPU"
+	default 2000
 endif
 
