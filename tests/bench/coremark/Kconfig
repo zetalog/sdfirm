@@ -1,14 +1,18 @@
-config COREMARK
+#
+# CoreMark Tests
+#
+
+menuconfig COREMARK
 	bool "CoreMark"
 
 if COREMARK
 
 config COREMARK_ITERATION_CNT
-	int "Iterations count"
+	int "CoreMark iterations count"
 	default 200
 
 config COREMARK_DATA_SIZE
-	int "Data size per CPU"
+	int "CoreMark data size per CPU"
 	default 2000
-endif
 
+endif

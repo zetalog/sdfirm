@@ -84,19 +84,9 @@ endchoice
 
 endif
 
-config HANOITOWER
-	bool "Hanoi Tower"
+source tests/bench/coremark/Kconfig
 
-if HANOITOWER
-
-config HANOITOWER_DEPTH
-	int "Hanoi tower depth (the number of disks)"
-	range 1 16
-	default 4
-
-endif
-
-config MEMSTREAM
+menuconfig MEMSTREAM
 	bool "Memory Stream"
 
 if MEMSTREAM
@@ -145,7 +135,27 @@ config MD5_TEST_CNT
 
 endif
 
-config TLB_TEST
+config HANOITOWER
+	bool "Hanoi Tower"
+
+if HANOITOWER
+
+config HANOITOWER_DEPTH
+	int "Hanoi tower depth (the number of disks)"
+	range 1 16
+	default 4
+
+endif
+
+source tests/bench/cfft/Kconfig
+source tests/bench/jpgenc/Kconfig
+source tests/bench/gen_ann/Kconfig
+
+endmenu
+
+menu "Santiy check tests"
+
+menuconfig TLB_TEST
 	bool "Test TLB flush"
 
 if TLB_TEST
@@ -156,13 +166,7 @@ config TLB_TEST_FLUSH_RANGE
 
 config TLB_TEST_FLUSH_ALL
 	bool "Test flush all"
-	default n
 
 endif
-
-source tests/bench/coremark/Kconfig
-source tests/bench/cfft/Kconfig
-source tests/bench/jpgenc/Kconfig
-source tests/bench/gen_ann/Kconfig
 
 endmenu
