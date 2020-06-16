@@ -280,7 +280,11 @@
 #endif
 
 /* Define cache warmup runs, 1 should be sufficient */
+#ifdef CONFIG_DHRYSTONE_WARMUPS
+#define DHRYSTONE_WARMUP_RUNS	CONFIG_DHRYSTONE_WARMUPS
+#else
 #define DHRYSTONE_WARMUP_RUNS	1
+#endif
 #ifdef CONFIG_FP
 #define Mic_secs_Per_Second     1000000.0
 #else

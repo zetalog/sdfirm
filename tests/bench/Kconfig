@@ -15,6 +15,11 @@ config DHRYSTONE_REPEATS
 	range 5000 5000000
 	default 5000
 
+config DHRYSTONE_WARMUPS
+	int "Dhrystone number of warmup runs"
+	range 1 100
+	default 1
+
 config DHRYSTONE_TIME
 	bool "Run dhrystone a specific time slot"
 
