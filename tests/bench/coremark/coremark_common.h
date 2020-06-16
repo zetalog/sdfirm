@@ -23,8 +23,10 @@ Original Author: Shay Gal-on
 /* Configuration: TOTAL_DATA_SIZE
         Define total size for data algorithms will operate on
 */
+#ifndef CONFIG_COREMARE_DATA_SIZE
 #ifndef TOTAL_DATA_SIZE
 #define TOTAL_DATA_SIZE 2 * 1000
+#endif
 #endif
 
 #define SEED_ARG      0
