@@ -35,8 +35,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)dw_uart.h: Synopsys DesignWare UART interface
- * $Id: dw_uart.h,v 1.1 2019-09-26 10:40:00 zhenglv Exp $
+ * @(#)uart.h: Virt specific UART (16550) interface
+ * $Id: uart.h,v 1.1 2019-09-26 10:40:00 zhenglv Exp $
  */
 
 #ifndef __UART_VIRT_H_INCLUDE__
