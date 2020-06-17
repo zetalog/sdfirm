@@ -123,7 +123,7 @@ int dhrystone (caddr_t percpu_area)
   /* Main and Proc_0 in the Ada version             */
 {
         One_Fifty   Int_1_Loc;
-  REG   One_Fifty   Int_2_Loc;
+  REG   One_Fifty   Int_2_Loc = 3;
         One_Fifty   Int_3_Loc;
   REG   char        Ch_Index;
         Enumeration Enum_Loc;
@@ -144,17 +144,17 @@ int dhrystone (caddr_t percpu_area)
 	long long   Expected_End_Time,
 #endif
 #ifdef CONFIG_FP
-#define DHRY_FMT        "%6.1f"
-#define DHRY_FMT2       "%12.21f"
-        __unused float  Microseconds;
-        float           Vax_Mips,
-                        Dhrystones_Per_Second;
+#define DHRY_FMT    "%6.1f"
+#define DHRY_FMT2   "%12.21f"
+        float       __unused Microseconds;
+        float       Vax_Mips,
+                    Dhrystones_Per_Second;
 #else /* CONFIG_FP */
-#define DHRY_FMT        "%6lld"
-#define DHRY_FMT2       "%12lld"
-        __unused long   Microseconds;
-        long long       Vax_Mips,
-                        Dhrystones_Per_Second;
+#define DHRY_FMT    "%6lld"
+#define DHRY_FMT2   "%12lld"
+        long        __unused Microseconds;
+        long long   Vax_Mips,
+                    Dhrystones_Per_Second;
 #endif /* CONFIG_FP */
 
 #ifndef HOSTED

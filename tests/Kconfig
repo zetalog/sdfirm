@@ -3,7 +3,7 @@
 #
 
 menuconfig TEST_BENCH
-	bool "Test bench setup"
+	bool "Testbench setup"
 	select CRYPTO_RAND
 	select STRING_STRNCMP
 	select BIT_HWEIGHT64

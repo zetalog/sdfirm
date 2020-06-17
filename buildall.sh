@@ -42,22 +42,24 @@ build_sdfirm riscv32 spike32_tb
 build_sdfirm riscv32 vega_ri5cy
 
 build_sdfirm riscv64 spike64_tb
-build_sdfirm riscv64 spike64_bbl
-build_sdfirm riscv64 virt_rv64
+build_sdfirm riscv64 virt64_tb
+build_sdfirm riscv64 vaisra_tb
 
-build_sdfirm riscv64 unleashed_fsbl
+touch Image
+build_sdfirm riscv64 spike64_bbl
+build_sdfirm riscv64 virt64_bbl
 build_sdfirm riscv64 unleashed_bbl
 build_sdfirm riscv64 k210_bbl
+build_sdfirm riscv64 duowen_bbl
+rm -f Image
+
+build_sdfirm riscv64 unleashed_zsbl
+build_sdfirm riscv64 unleashed_fsbl
 
 # DUOWEN
 build_sdfirm riscv32 duowen_zsbl
 build_sdfirm riscv32 duowen_fsbl
-build_sdfirm riscv64 duowen_bbl
-build_sdfirm riscv64 duowen_sv39
-build_sdfirm riscv64 duowen_sv48
 # DPU
 build_sdfirm riscv64 dpu_rom
 build_sdfirm riscv64 dpu_flash
 build_sdfirm riscv64 dpu_ram
-# Vaisra
-build_sdfirm riscv64 vaisra_tb
