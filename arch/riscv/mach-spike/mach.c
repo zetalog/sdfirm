@@ -40,11 +40,12 @@
  */
 
 #include <target/arch.h>
+#include <target/cmdline.h>
 
 #ifdef CONFIG_SHUTDOWN
 void board_shutdown(void)
 {
-	sim_shutdown();
+	htif_poweroff();
 }
 #endif
 
@@ -56,3 +57,24 @@ void board_early_init(void)
 void board_late_init(void)
 {
 }
+
+static int do_spike_shutdown(int argc, char *argv[])
+{
+	board_shutdown();
+	return 0;
+}
+
+static int do_spike(int argc, char *argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+
+	if (strcmp(argv[1], "shutdown") == 0)
+		return do_spike_shutdown(argc, argv);
+	return -EINVAL;
+}
+
+DEFINE_COMMAND(spike, do_spike, "Spike simulator global commands",
+	"spike shutdown\n"
+	"    -shutdown board\n"
+);

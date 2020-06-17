@@ -9,6 +9,7 @@ menu "Simulated RISCV (SPIKE) board options"
 
 choice
 	prompt "CPU ISA"
+	default SPIKE_CPU64
 	help
 	  Selects CPUs that compiled sdfirm should run against.
 
