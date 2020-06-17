@@ -74,8 +74,6 @@ extern cpu_t smp_boot_cpu;
 extern cpu_mask_t smp_online_cpus;
 extern bool smp_initialized;
 
-void smp_init(void);
-
 #define cpumask_bits(maskp)		((maskp)->bits)
 #define cpumask_set_cpu(cpu, maskp)	set_bit((cpu), cpumask_bits(maskp))
 #define cpumask_clear_cpu(cpu, maskp)	clear_bit((cpu), cpumask_bits(maskp))
@@ -101,10 +99,13 @@ extern cpu_mask_t smp_online_cpus;
 #define cpumask_clear_cpu(cpu, maskp)	(*(maskp) = 0)
 #define cpumask_test_cpu(cpu, maskp)	(C(cpu) == *(maskp))
 
-#define smp_init()			do { } while (0)
 #define smp_cpu_on(cpu, ep, context)	do { } while (0)
 #endif /* __ASSEMBLY__ */
 #endif
 #define __cache_aligned			__align(SMP_CACHE_BYTES)
+
+#ifndef __ASSEMBLY__
+void smp_init(void);
+#endif /* __ASSEMBLY__ */
 
 #endif /* __SMP_H_INCLUDE__ */

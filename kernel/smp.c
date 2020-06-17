@@ -51,6 +51,7 @@
 #include <target/paging.h>
 #include <target/cmdline.h>
 
+#ifdef CONFIG_SMP
 cpu_t smp_boot_cpu;
 cpu_mask_t smp_online_cpus;
 
@@ -87,3 +88,11 @@ void smp_init(void)
 	}
 	bh_loop();
 }
+#else
+void smp_init(void)
+{
+	bench_init();
+	cmd_init();
+	bh_loop();
+}
+#endif
