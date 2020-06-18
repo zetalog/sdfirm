@@ -126,6 +126,18 @@ volatile ee_s32 seed5_volatile = 0;
 #define EE_TICKS_PER_SEC (NSECS_PER_SEC / TIMER_RES_DIVIDER)
 
 #if SAMPLE_TIME_IMPLEMENTATION
+#ifdef CONFIG_COREMARK_SIMPLE_REPORT
+void start_time(void) { return; }
+void stop_time(void) { return; }
+CORE_TICKS get_time(void) { return 0; }
+CORE_TICKS
+get_time_ticks(void)
+{
+    CORETIMETYPE curr_ticks;
+    GETMYTIME(&curr_ticks);
+    return (CORE_TICKS)curr_ticks;
+}
+#else
 /** Define Host specific (POSIX), or target specific global time variables. */
 static CORETIMETYPE start_time_val, stop_time_val;
 
@@ -181,9 +193,10 @@ get_time(void)
 {
     CORE_TICKS elapsed
         = (CORE_TICKS)(MYTIMEDIFF(stop_time_val, start_time_val));
-	printf("Time: start = 0x%llx, stop = 0x%llx, elapsed = 0x%llx\n", start_time_val, stop_time_val, elapsed);
     return elapsed;
 }
+CORE_TICKS get_time_ticks(void) { return 0; }
+#endif
 /* Function: time_in_secs
         Convert the value returned by get_time to seconds.
 

@@ -79,6 +79,8 @@ typedef size_t CORE_TICKS;
 #elif HAS_TIME_H
 #include <time.h>
 typedef clock_t CORE_TICKS;
+#define iterations_per_sec(iterations, ticks) \
+         ((unsigned long long)iterations * 1000000 / ticks)
 #else
 #error \
     "Please define type of CORE_TICKS and implement start_time, end_time get_time and time_in_secs functions!"

@@ -7,12 +7,20 @@ menuconfig COREMARK
 
 if COREMARK
 
+config COREMARK_FORCE_VERY_QUICK
+	bool "Use minimal data size and iteration count to run quickly"
+
+config COREMARK_RUN_CNT
+	int "How many times to run those iterations"
+	default 3
+
+config COREMARK_SIMPLE_REPORT
+	bool "Give report of simple format"
+	default y
+
 config COREMARK_ITERATION_CNT
 	int "CoreMark iterations count"
+	depends !COREMARK_FORCE_VERY_QUICK
 	default 200
-
-config COREMARK_DATA_SIZE
-	int "CoreMark data size per CPU"
-	default 2000
 
 endif
