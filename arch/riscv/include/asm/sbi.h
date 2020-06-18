@@ -52,6 +52,11 @@
 #define SBI_REMOTE_SFENCE_VMA_ASID	7
 #define SBI_SHUTDOWN			8
 
+/* sdfirm specific SBI calls */
+/* Enable/disable trap logs */
+#define SBI_ENABLE_LOG			30
+#define SBI_DISABLE_LOG			31
+
 #define SBI_CALL(which, arg0, arg1, arg2, arg3) ({		\
 	register uintptr_t a0 asm ("a0") = (uintptr_t)(arg0);	\
 	register uintptr_t a1 asm ("a1") = (uintptr_t)(arg1);	\
@@ -90,5 +95,7 @@
 	SBI_CALL_3(SBI_REMOTE_SFENCE_VMA, hartmask, start, size)
 #define sbi_remote_sfence_vma_asid(hartmask, start, size, asid)	\
 	SBI_CALL_4(SBI_REMOTE_SFENCE_VMA_ASID, hartmask, start, size, asid)
+#define sbi_enable_log()	SBI_CALL_0(SBI_ENABLE_LOG)
+#define sbi_disable_log()	SBI_CALL_0(SBI_DISABLE_LOG)
 
 #endif /* __SBI_RISCV_H_INCLUDE__ */

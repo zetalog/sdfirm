@@ -114,6 +114,18 @@ int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
 }
 #endif
 
+void sbi_trap_log(const char *fmt, ...)
+{
+	va_list arg;
+
+	if (!sbi_trap_log_enabled())
+		return;
+
+	va_start(arg, fmt);
+	(void)sbi_vprintf(fmt, arg);
+	va_end(arg);
+}
+
 /**
  * Handle trap/interrupt
  *
@@ -142,12 +154,15 @@ void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch)
 		mcause &= ~(1UL << (__riscv_xlen - 1));
 		switch (mcause) {
 		case IRQ_M_TIMER:
+			sbi_trap_log("IRQ_M_TIMER\n");
 			sbi_timer_process(scratch);
 			break;
 		case IRQ_M_SOFT:
+			sbi_trap_log("IRQ_M_SOFT\n");
 			sbi_ipi_process(scratch);
 			break;
 		default:
+			sbi_trap_log("Unknown extarnal IRQ\n");
 			msg = "unhandled external interrupt";
 			goto trap_error;
 		};
@@ -156,20 +171,24 @@ void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch)
 
 	switch (mcause) {
 	case EXC_INSN_ILLEGAL:
+		sbi_trap_log("Illegal instruction\n");
 		rc  = sbi_illegal_insn_handler(hartid, mcause, regs, scratch);
 		msg = "illegal instruction handler failed";
 		break;
 	case EXC_LOAD_MISALIGNED:
+		sbi_trap_log("Misaligned load\n");
 		rc = sbi_misaligned_load_handler(hartid, mcause, regs, scratch);
 		msg = "misaligned load handler failed";
 		break;
 	case EXC_STORE_MISALIGNED:
+		sbi_trap_log("Misaligned store\n");
 		rc  = sbi_misaligned_store_handler(hartid, mcause, regs,
 						   scratch);
 		msg = "misaligned store handler failed";
 		break;
 	case EXC_ECALL_H:
 	case EXC_ECALL_S:
+		sbi_trap_log("ECALL of S-mode\n");
 		rc  = sbi_ecall_handler(hartid, mcause, regs, scratch);
 		msg = "ecall handler failed";
 		break;
@@ -179,17 +198,20 @@ void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch)
 	case EXC_STORE_PAGE_FAULT:
 		uptrap = sbi_hart_get_trap_info(scratch);
 		if ((regs->status & SR_MPRV) && uptrap) {
+			sbi_trap_log("Fatal page/access fault\n");
 			rc = 0;
 			regs->epc += uptrap->ilen;
 			uptrap->cause = mcause;
 			uptrap->tval = mtval;
 		} else {
+			sbi_trap_log("Redirected page/access fault\n");
 			rc = sbi_trap_redirect(regs, scratch, regs->epc,
 					       mcause, mtval);
 		}
 		msg = "page/access fault handler failed";
 		break;
 	default:
+		sbi_trap_log("Redirected unhandled exception\n");
 		/* If the trap came from S or U mode, redirect it there */
 		rc = sbi_trap_redirect(regs, scratch, regs->epc, mcause, mtval);
 		break;

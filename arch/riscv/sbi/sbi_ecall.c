@@ -12,6 +12,13 @@
 #define SBI_ECALL_VERSION_MAJOR 0
 #define SBI_ECALL_VERSION_MINOR 1
 
+bool sbi_trap_log;
+
+bool sbi_trap_log_enabled(void)
+{
+	return sbi_trap_log;
+}
+
 u16 sbi_ecall_version_major(void)
 {
 	return SBI_ECALL_VERSION_MAJOR;
@@ -31,6 +38,7 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 
 	switch (regs->a7) {
 	case SBI_ECALL_SET_TIMER:
+		sbi_trap_log("ECALL_SET_TIMER\n");
 #if __riscv_xlen == 32
 		sbi_timer_event_start(scratch,
 				      (((u64)regs->a1 << 32) | (u64)regs->a0));
@@ -79,6 +87,14 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 		break;
 	case SBI_ECALL_SHUTDOWN:
 		sbi_system_shutdown(scratch, 0);
+		ret = 0;
+		break;
+	case SBI_ENABLE_LOG:
+		sbi_trap_log = true;
+		ret = 0;
+		break;
+	case SBI_DISABLE_LOG:
+		sbi_trap_log = false;
 		ret = 0;
 		break;
 	default:

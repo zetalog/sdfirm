@@ -222,6 +222,7 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
 		      ulong epc, ulong cause, ulong tval);
 void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch);
+bool sbi_trap_log_enabled(void);
 
 int sbi_misaligned_load_handler(u32 hartid, ulong mcause,
 				struct pt_regs *regs,
