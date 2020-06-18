@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Mar 17 09:12:22 2020
+# Thu Jun 18 13:36:30 2020
 #
 CONFIG_ARM64=y
 
@@ -102,11 +102,6 @@ CONFIG_VMSA_PHYS_OFFSET=0x0
 #
 # ARM CoreLink peripheral support
 #
-CONFIG_UART_PL01X=y
-CONFIG_ARCH_IS_UART_PL011=y
-# CONFIG_UART_PL010 is not set
-CONFIG_UART_PL011=y
-# CONFIG_UART_PL01X_SBSA is not set
 
 #
 # Compiler options
@@ -179,6 +174,7 @@ CONFIG_MAX_BHS=4
 CONFIG_ARCH_HAS_SMP=y
 CONFIG_SMP=y
 CONFIG_ARCH_HAS_QSPINLOCK=y
+# CONFIG_SMP_WAIT_BOOT is not set
 
 #
 # Timing facility (jiffy) support
@@ -202,6 +198,8 @@ CONFIG_BFM=y
 CONFIG_XIP=y
 CONFIG_BOOT_BASE=0x00000000
 CONFIG_LOAD_BASE=0x0
+# CONFIG_NO_ZERO_BSS is not set
+# CONFIG_NO_ZERO_GPR is not set
 # CONFIG_HEAP is not set
 CONFIG_MEM=y
 CONFIG_MEM_MAX_REGIONS=3
@@ -274,8 +272,8 @@ CONFIG_UART_230400=y
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
 # CONFIG_DDR is not set
-# CONFIG_PCI is not set
 # CONFIG_IOMMU is not set
+# CONFIG_FDT is not set
 # CONFIG_RAS is not set
 
 #
@@ -287,6 +285,11 @@ CONFIG_UART_230400=y
 #
 
 #
+# GPIO controller drivers
+#
+# CONFIG_DW_GPIO is not set
+
+#
 # Timer drivers
 #
 # CONFIG_DW_TIMERS is not set
@@ -295,41 +298,12 @@ CONFIG_UART_230400=y
 # Debugging console drivers
 #
 # CONFIG_DW_UART is not set
+CONFIG_UART_PL01X=y
+CONFIG_ARCH_IS_UART_PL011=y
+# CONFIG_UART_PL010 is not set
+CONFIG_UART_PL011=y
+# CONFIG_UART_PL01X_SBSA is not set
 # CONFIG_SEGGER_RTT is not set
-
-#
-# LCD drivers
-#
-
-#
-# Video drivers
-#
-
-#
-# MTD memory drivers
-#
-# CONFIG_PN53X is not set
-# CONFIG_ACR122 is not set
-
-#
-# MMC host drivers
-#
-# CONFIG_DW_MSHC is not set
-# CONFIG_SDHCI is not set
-
-#
-# DDR controller drivers
-#
-# CONFIG_DW_UMCTL2 is not set
-
-#
-# PCI drivers
-#
-
-#
-# IO MMU drivers
-#
-# CONFIG_SMMU_MMU500 is not set
 
 #
 # I2C host drivers
@@ -350,30 +324,79 @@ CONFIG_UART_230400=y
 # DMA host drivers
 #
 # CONFIG_DW_DMA is not set
+
+#
+# IO MMU drivers
+#
+# CONFIG_SMMU_MMU500 is not set
+
+#
+# LCD drivers
+#
+
+#
+# Video drivers
+#
+
+#
+# MTD memory drivers
+#
+# CONFIG_DATAFLASH_AT45DB642D is not set
+# CONFIG_SPIFLASH_W25Q32 is not set
+# CONFIG_PN53X is not set
+# CONFIG_ACR122 is not set
+
+#
+# MMC host drivers
+#
+# CONFIG_DW_MSHC is not set
+# CONFIG_SDHCI is not set
+
+#
+# DDR controller drivers
+#
+# CONFIG_DW_UMCTL2 is not set
+
+#
+# Serial Presence Detect (SPD) drivers
+#
+CONFIG_SPD_BUS_KHZ=60
+
+#
+# PCI drivers
+#
 CONFIG_TEST_BENCH=y
 CONFIG_TEST_BENCH_LOCAL=y
 # CONFIG_TEST_BENCH_REMOTE is not set
 CONFIG_TEST_BENCH_DIDT=y
+CONFIG_TEST_BENCH_START_DELAY=64
 CONFIG_TEST_VERBOSE=y
 
 #
 # Standard benchmark tests
 #
 CONFIG_DHRYSTONE=y
-CONFIG_DHRYSTONE_TIMEOUT=-1
 CONFIG_DHRYSTONE_REPEATS=5000
+CONFIG_DHRYSTONE_WARMUPS=1
+# CONFIG_DHRYSTONE_TIME is not set
+CONFIG_DHRYSTONE_REG=y
 CONFIG_DHRYSTONE_BENCH_PERCPU=y
 # CONFIG_DHRYSTONE_GENERIC_PERCPU is not set
 # CONFIG_DHRYSTONE_SPECIFIC_PERCPU is not set
-# CONFIG_HANOITOWER is not set
+# CONFIG_LINPACK is not set
+# CONFIG_COREMARK is not set
 # CONFIG_MEMSTREAM is not set
 # CONFIG_SHA256 is not set
 # CONFIG_MD5 is not set
-# CONFIG_TLB_TEST is not set
-# CONFIG_COREMARK is not set
+# CONFIG_HANOITOWER is not set
 # CONFIG_CFFT is not set
 # CONFIG_JPGENC is not set
 # CONFIG_GENANN is not set
+
+#
+# Santiy check tests
+#
+# CONFIG_TLB_TEST is not set
 # CONFIG_RAVEN is not set
 
 #
@@ -424,12 +447,14 @@ CONFIG_PRINT_VSNPRINTF=y
 CONFIG_PRINT_VPRINTF=y
 # CONFIG_PRINT_SPRINTF is not set
 CONFIG_PRINT_PRINTF=y
+# CONFIG_PRINT_FP is not set
 
 #
 # String operations
 #
 CONFIG_STRING_STRNCMP=y
 CONFIG_STRING_STRTOUL=y
+CONFIG_STRING_STRTOULL=y
 # CONFIG_STRING_UUID is not set
 
 #
@@ -449,6 +474,8 @@ CONFIG_CRYPTO_RAND=y
 CONFIG_EXPERIMENTAL=y
 # CONFIG_CC_OPT_SIZE is not set
 CONFIG_CC_OPT_SPEED=y
+# CONFIG_CC_ALWAYS_INLINE is not set
+# CONFIG_SIMULATION is not set
 CONFIG_DEBUG=y
 # CONFIG_CC_GEN_DEBUG is not set
 CONFIG_DEBUG_PANIC=y

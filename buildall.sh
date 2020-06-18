@@ -1,5 +1,7 @@
 #!/bin/sh
 
+update_defconfigs=
+
 build_sdfirm()
 {
 	arch=$1
@@ -19,6 +21,9 @@ build_sdfirm()
 
 	echo "Building ${arch} ${prog}..."
 	make ${prog}_defconfig > /dev/null
+	if [ "x$update_defconfigs" = "xyes" ]; then
+		cp -f ./.config arch/${SUBARCH}/configs/${prog}_defconfig
+	fi
 	make clean > /dev/null
 	make > /dev/null
 	if [ $? != 0 ]; then
@@ -27,6 +32,32 @@ build_sdfirm()
 	fi
 	echo "Building ${prog} success."
 }
+
+usage()
+{
+	echo "Usage:"
+	echo "`basename $0` [-u]"
+	echo "Where:"
+	echo " -u:          update default configurations"
+	exit $1
+}
+
+fatal_usage()
+{
+	echo $1
+	usage 1
+}
+
+while getopts "hu" opt
+do
+	case $opt in
+	h) usage 0;;
+	u) update_defconfigs=yes;;
+	?) echo "Invalid argument $opt"
+	   fatal_usage;;
+	esac
+done
+shift $(($OPTIND - 1))
 
 build_sdfirm arm64 qdf2400_imc
 build_sdfirm arm64 gem5_boot

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Apr 27 15:17:54 2020
+# Thu Jun 18 13:36:42 2020
 #
 CONFIG_ARM64=y
 
@@ -94,11 +94,6 @@ CONFIG_VMSA_PHYS_OFFSET=0x0
 #
 # ARM CoreLink peripheral support
 #
-CONFIG_UART_PL01X=y
-CONFIG_ARCH_IS_UART_PL011=y
-# CONFIG_UART_PL010 is not set
-CONFIG_UART_PL011=y
-# CONFIG_UART_PL01X_SBSA is not set
 
 #
 # Compiler options
@@ -161,6 +156,7 @@ CONFIG_MAX_BHS=4
 CONFIG_ARCH_HAS_SMP=y
 CONFIG_SMP=y
 CONFIG_ARCH_HAS_QSPINLOCK=y
+# CONFIG_SMP_WAIT_BOOT is not set
 
 #
 # Timing facility (jiffy) support
@@ -254,8 +250,8 @@ CONFIG_UART_230400=y
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
 # CONFIG_DDR is not set
-# CONFIG_PCI is not set
 # CONFIG_IOMMU is not set
+# CONFIG_FDT is not set
 # CONFIG_RAS is not set
 
 #
@@ -267,6 +263,11 @@ CONFIG_UART_230400=y
 #
 
 #
+# GPIO controller drivers
+#
+# CONFIG_DW_GPIO is not set
+
+#
 # Timer drivers
 #
 # CONFIG_DW_TIMERS is not set
@@ -275,41 +276,12 @@ CONFIG_UART_230400=y
 # Debugging console drivers
 #
 # CONFIG_DW_UART is not set
+CONFIG_UART_PL01X=y
+CONFIG_ARCH_IS_UART_PL011=y
+# CONFIG_UART_PL010 is not set
+CONFIG_UART_PL011=y
+# CONFIG_UART_PL01X_SBSA is not set
 # CONFIG_SEGGER_RTT is not set
-
-#
-# LCD drivers
-#
-
-#
-# Video drivers
-#
-
-#
-# MTD memory drivers
-#
-# CONFIG_PN53X is not set
-# CONFIG_ACR122 is not set
-
-#
-# MMC host drivers
-#
-# CONFIG_DW_MSHC is not set
-# CONFIG_SDHCI is not set
-
-#
-# DDR controller drivers
-#
-# CONFIG_DW_UMCTL2 is not set
-
-#
-# PCI drivers
-#
-
-#
-# IO MMU drivers
-#
-# CONFIG_SMMU_MMU500 is not set
 
 #
 # I2C host drivers
@@ -330,6 +302,47 @@ CONFIG_UART_230400=y
 # DMA host drivers
 #
 # CONFIG_DW_DMA is not set
+
+#
+# IO MMU drivers
+#
+# CONFIG_SMMU_MMU500 is not set
+
+#
+# LCD drivers
+#
+
+#
+# Video drivers
+#
+
+#
+# MTD memory drivers
+#
+# CONFIG_DATAFLASH_AT45DB642D is not set
+# CONFIG_SPIFLASH_W25Q32 is not set
+# CONFIG_PN53X is not set
+# CONFIG_ACR122 is not set
+
+#
+# MMC host drivers
+#
+# CONFIG_DW_MSHC is not set
+# CONFIG_SDHCI is not set
+
+#
+# DDR controller drivers
+#
+# CONFIG_DW_UMCTL2 is not set
+
+#
+# Serial Presence Detect (SPD) drivers
+#
+CONFIG_SPD_BUS_KHZ=60
+
+#
+# PCI drivers
+#
 # CONFIG_TEST_BENCH is not set
 # CONFIG_RAVEN is not set
 
@@ -381,6 +394,7 @@ CONFIG_PRINT_VSNPRINTF=y
 CONFIG_PRINT_VPRINTF=y
 # CONFIG_PRINT_SPRINTF is not set
 CONFIG_PRINT_PRINTF=y
+# CONFIG_PRINT_FP is not set
 
 #
 # String operations

@@ -35,6 +35,18 @@ int sbi_printf(const char *fmt, ...)
 	return len;
 }
 
+int sbi_getc(void)
+{
+	return sbi_platform_console_getc(sbi_console_plat);
+}
+
+void sbi_putc(char ch)
+{
+	if (ch == '\n')
+		sbi_platform_console_putc(sbi_console_plat, '\r');
+	sbi_platform_console_putc(sbi_console_plat, ch);
+}
+
 int sbi_console_init(struct sbi_scratch *scratch)
 {
 	sbi_console_plat = sbi_platform_ptr(scratch);

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sun Mar 29 11:15:47 2020
+# Thu Jun 18 13:37:01 2020
 #
 CONFIG_32BIT=y
 CONFIG_RISCV=y
@@ -46,9 +46,11 @@ CONFIG_CONSOLE_115200=y
 #
 # CONFIG_ARCH_DUOWEN is not set
 # CONFIG_ARCH_DPU is not set
+# CONFIG_ARCH_VAISRA is not set
 # CONFIG_ARCH_UNLEASHED is not set
 # CONFIG_ARCH_K210 is not set
 # CONFIG_ARCH_VEGA is not set
+# CONFIG_ARCH_COREV is not set
 CONFIG_ARCH_SPIKE=y
 # CONFIG_ARCH_VIRT is not set
 CONFIG_CPU_SPIKE32=y
@@ -63,6 +65,7 @@ CONFIG_RISCV_32I=y
 #
 # ISA extensions
 #
+CONFIG_CPU_S=y
 CONFIG_CPU_ZIFENCEI=y
 CONFIG_CPU_ZICSR=y
 CONFIG_CPU_M=y
@@ -73,6 +76,7 @@ CONFIG_CPU_C=y
 CONFIG_CPU_COUNTERS=y
 CONFIG_CPU_PMP=y
 CONFIG_CPU_SV32=y
+CONFIG_RISCV_S=y
 CONFIG_RISCV_M=y
 # CONFIG_RISCV_A is not set
 # CONFIG_RISCV_F is not set
@@ -114,10 +118,19 @@ CONFIG_ARCH_HAS_HTIF=y
 CONFIG_HTIF=y
 CONFIG_ARCH_HAS_CLINT=y
 CONFIG_CLINT=y
+# CONFIG_CLINT_XCHG_LLSC is not set
+# CONFIG_CLINT_FORCE_FAST_TIMEOUT is not set
 CONFIG_ARCH_HAS_SBI_IPI=y
 CONFIG_ARCH_HAS_SBI_TIMER=y
 CONFIG_SBI=y
+# CONFIG_SBI_RISCV_F is not set
+# CONFIG_SBI_RISCV_D is not set
+# CONFIG_SBI_RISCV_C is not set
+# CONFIG_SBI_RISCV_S is not set
+# CONFIG_SBI_RISCV_U is not set
 # CONFIG_SBI_PAYLOAD is not set
+# CONFIG_SBI_FDT is not set
+# CONFIG_SBI_CSR_MIMPID is not set
 
 #
 # Simulated RISCV (SPIKE) board options
@@ -141,6 +154,7 @@ CONFIG_SPIKE_HTIF=y
 #
 # Shutdown scheme
 #
+# CONFIG_SPIKE_SHUTDOWN_SPIKE is not set
 # CONFIG_SPIKE_SHUTDOWN_DUOWEN is not set
 # CONFIG_SPIKE_SHUTDOWN_OVPSIM is not set
 # CONFIG_SPIKE_PK is not set
@@ -203,6 +217,8 @@ CONFIG_TIMER_TEST_SHOT_PERIOD=2
 CONFIG_XIP=y
 CONFIG_BOOT_BASE=0x80000000
 CONFIG_LOAD_BASE=0x80000000
+# CONFIG_NO_ZERO_BSS is not set
+# CONFIG_NO_ZERO_GPR is not set
 # CONFIG_HEAP is not set
 CONFIG_MEM=y
 CONFIG_MEM_MAX_REGIONS=4
@@ -210,6 +226,8 @@ CONFIG_MEM_RESIZE=y
 CONFIG_PAGE=y
 CONFIG_ARCH_HAS_MMU=y
 # CONFIG_MMU is not set
+CONFIG_ARCH_HAS_FP=y
+# CONFIG_FP is not set
 
 #
 # Power management model (board) support
@@ -253,8 +271,9 @@ CONFIG_UART_115200=y
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
 # CONFIG_DDR is not set
-# CONFIG_PCI is not set
 # CONFIG_IOMMU is not set
+CONFIG_ARCH_HAS_FDT=y
+CONFIG_FDT=y
 # CONFIG_RAS is not set
 
 #
@@ -266,6 +285,11 @@ CONFIG_UART_115200=y
 #
 
 #
+# GPIO controller drivers
+#
+# CONFIG_DW_GPIO is not set
+
+#
 # Timer drivers
 #
 # CONFIG_DW_TIMERS is not set
@@ -274,41 +298,8 @@ CONFIG_UART_115200=y
 # Debugging console drivers
 #
 # CONFIG_DW_UART is not set
+# CONFIG_UART_PL01X is not set
 # CONFIG_SEGGER_RTT is not set
-
-#
-# LCD drivers
-#
-
-#
-# Video drivers
-#
-
-#
-# MTD memory drivers
-#
-# CONFIG_PN53X is not set
-# CONFIG_ACR122 is not set
-
-#
-# MMC host drivers
-#
-# CONFIG_DW_MSHC is not set
-# CONFIG_SDHCI is not set
-
-#
-# DDR controller drivers
-#
-# CONFIG_DW_UMCTL2 is not set
-
-#
-# PCI drivers
-#
-
-#
-# IO MMU drivers
-#
-# CONFIG_SMMU_MMU500 is not set
 
 #
 # I2C host drivers
@@ -329,6 +320,47 @@ CONFIG_UART_115200=y
 # DMA host drivers
 #
 # CONFIG_DW_DMA is not set
+
+#
+# IO MMU drivers
+#
+# CONFIG_SMMU_MMU500 is not set
+
+#
+# LCD drivers
+#
+
+#
+# Video drivers
+#
+
+#
+# MTD memory drivers
+#
+# CONFIG_DATAFLASH_AT45DB642D is not set
+# CONFIG_SPIFLASH_W25Q32 is not set
+# CONFIG_PN53X is not set
+# CONFIG_ACR122 is not set
+
+#
+# MMC host drivers
+#
+# CONFIG_DW_MSHC is not set
+# CONFIG_SDHCI is not set
+
+#
+# DDR controller drivers
+#
+# CONFIG_DW_UMCTL2 is not set
+
+#
+# Serial Presence Detect (SPD) drivers
+#
+CONFIG_SPD_BUS_KHZ=60
+
+#
+# PCI drivers
+#
 # CONFIG_TEST_BENCH is not set
 # CONFIG_TESTS_RISCV is not set
 
@@ -380,13 +412,14 @@ CONFIG_PRINT_VSNPRINTF=y
 CONFIG_PRINT_VPRINTF=y
 # CONFIG_PRINT_SPRINTF is not set
 CONFIG_PRINT_PRINTF=y
+# CONFIG_PRINT_FP is not set
 
 #
 # String operations
 #
 # CONFIG_STRING_STRNCMP is not set
 CONFIG_STRING_STRTOUL=y
-# CONFIG_STRING_STRTOULL is not set
+CONFIG_STRING_STRTOULL=y
 # CONFIG_STRING_UUID is not set
 
 #
@@ -406,6 +439,8 @@ CONFIG_STRING_STRTOUL=y
 CONFIG_EXPERIMENTAL=y
 # CONFIG_CC_OPT_SIZE is not set
 # CONFIG_CC_OPT_SPEED is not set
+# CONFIG_CC_ALWAYS_INLINE is not set
+# CONFIG_SIMULATION is not set
 CONFIG_DEBUG=y
 # CONFIG_CC_GEN_DEBUG is not set
 # CONFIG_DEBUG_PANIC is not set

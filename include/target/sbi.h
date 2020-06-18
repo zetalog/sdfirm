@@ -223,6 +223,7 @@ int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
 		      ulong epc, ulong cause, ulong tval);
 void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch);
 bool sbi_trap_log_enabled(void);
+void sbi_trap_log(const char *fmt, ...);
 
 int sbi_misaligned_load_handler(u32 hartid, ulong mcause,
 				struct pt_regs *regs,
@@ -285,16 +286,29 @@ void sbi_cpu_wait_for_coldboot(struct sbi_scratch *scratch, u32 cpu);
 void sbi_cpu_wake_coldboot_cpus(struct sbi_scratch *scratch, u32 cpu);
 u32 sbi_current_hartid(void);
 
-#ifdef CONFIG_CONSOLE_OUTPUT
-int sbi_vprintf(const char *fmt, va_list arg);
-int sbi_printf(const char *fmt, ...);
+#ifdef CONFIG_CONSOLE
 int sbi_console_init(struct sbi_scratch *scratch);
 #else
-#define sbi_vprintf(fmt, arg)		do { } while (0)
-#define sbi_printf(fmt, ...)		do { } while (0)
 static inline int sbi_console_init(struct sbi_scratch *scratch)
 {
 	return 0;
+}
+#endif
+#ifdef CONFIG_CONSOLE_OUTPUT
+int sbi_vprintf(const char *fmt, va_list arg);
+int sbi_printf(const char *fmt, ...);
+void sbi_putc(char ch);
+#else
+#define sbi_vprintf(fmt, arg)		do { } while (0)
+#define sbi_printf(fmt, ...)		do { } while (0)
+#define sbi_putc(ch)			do { } while (0)
+#endif
+#ifdef CONFIG_CONSOLE_INPUT
+int sbi_getc(void);
+#else
+static inline int sbi_getc(void)
+{
+	return -1;
 }
 #endif
 

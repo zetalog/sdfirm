@@ -23,7 +23,7 @@ int sbi_emulate_csr_read(int csr_num, u32 hartid, ulong mstatus,
 {
 	ulong cen = -1UL;
 
-#ifndef CONFIG_ARCH_HAS_NOSEE
+#ifdef CONFIG_CPU_S
 	if (EXTRACT_FIELD(mstatus, SR_MPP) == PRV_U)
 		cen = csr_read(CSR_SCOUNTEREN);
 #endif

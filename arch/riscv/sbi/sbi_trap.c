@@ -66,13 +66,7 @@ static void __noreturn sbi_trap_error(const char *msg, int rc, u32 hartid,
  *
  * @return 0 on success and negative error code on failure
  */
-#ifdef CONFIG_ARCH_HAS_NOSEE
-int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
-		      ulong epc, ulong cause, ulong tval)
-{
-	return -ENOTSUP;
-}
-#else
+#ifdef CONFIG_CPU_S
 int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
 		      ulong epc, ulong cause, ulong tval)
 {
@@ -111,6 +105,12 @@ int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
 	/* Set new value in MSTATUS */
 	regs->status = new_status;
 	return 0;
+}
+#else
+int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
+		      ulong epc, ulong cause, ulong tval)
+{
+	return -ENOTSUP;
 }
 #endif
 

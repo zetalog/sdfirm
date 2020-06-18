@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Apr 23 16:29:53 2020
+# Thu Jun 18 13:38:32 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -46,6 +46,7 @@ CONFIG_CONSOLE_115200=y
 #
 CONFIG_ARCH_DUOWEN=y
 # CONFIG_ARCH_DPU is not set
+# CONFIG_ARCH_VAISRA is not set
 # CONFIG_ARCH_UNLEASHED is not set
 # CONFIG_ARCH_K210 is not set
 # CONFIG_ARCH_VEGA is not set
@@ -64,6 +65,7 @@ CONFIG_RISCV_64I=y
 #
 # ISA extensions
 #
+CONFIG_CPU_S=y
 CONFIG_CPU_ZIFENCEI=y
 CONFIG_CPU_ZICSR=y
 CONFIG_CPU_M=y
@@ -74,6 +76,7 @@ CONFIG_CPU_COUNTERS=y
 CONFIG_CPU_PMP=y
 CONFIG_CPU_SV39=y
 CONFIG_CPU_SV48=y
+CONFIG_RISCV_S=y
 CONFIG_RISCV_M=y
 CONFIG_RISCV_A=y
 # CONFIG_RISCV_F is not set
@@ -119,15 +122,26 @@ CONFIG_CLINT=y
 # CONFIG_CLINT_XCHG_LLSC is not set
 # CONFIG_CLINT_FORCE_FAST_TIMEOUT is not set
 CONFIG_ARCH_HAS_PLIC=y
+CONFIG_ARCH_HAS_PLIC_EOI_EARLY=y
 CONFIG_PLIC=y
+# CONFIG_PLIC_COMPLETION is not set
+# CONFIG_PLIC_COMPLETION_ENTRY is not set
+CONFIG_PLIC_COMPLETION_EXIT=y
+# CONFIG_VAISRA_TBOX is not set
 CONFIG_ARCH_HAS_SBI_IPI=y
 CONFIG_ARCH_HAS_SBI_TIMER=y
 CONFIG_SBI=y
+# CONFIG_SBI_RISCV_F is not set
+# CONFIG_SBI_RISCV_D is not set
+# CONFIG_SBI_RISCV_C is not set
+# CONFIG_SBI_RISCV_S is not set
+# CONFIG_SBI_RISCV_U is not set
 # CONFIG_SBI_PAYLOAD is not set
+# CONFIG_SBI_FDT is not set
 # CONFIG_SBI_CSR_MIMPID is not set
 
 #
-# Emulated RISCV (Duowen) board options
+# Smart Core Duowen board options
 #
 # CONFIG_DUOWEN_BOOT_APC is not set
 # CONFIG_DUOWEN_IMC is not set
@@ -142,6 +156,7 @@ CONFIG_CRCNTL=y
 CONFIG_DUOWEN_PCIE=y
 CONFIG_DUOWEN_SMMU=y
 CONFIG_DUOWEN_DMA=y
+# CONFIG_DUOWEN_DDR is not set
 
 #
 # Feature setup
@@ -156,6 +171,7 @@ CONFIG_SYS_RT=y
 # CONFIG_SYS_TASK is not set
 CONFIG_ARCH_HAS_NOVEC=y
 CONFIG_ARCH_HAS_IRQC=y
+CONFIG_ARCH_HAS_IRQC_ACK=y
 CONFIG_ARCH_HAS_TSC=y
 CONFIG_ARCH_HAS_TSC_CONST=y
 CONFIG_ARCH_IS_TICKLESS=y
@@ -172,6 +188,7 @@ CONFIG_MAX_VECTORS=4
 CONFIG_MAX_BHS=4
 CONFIG_ARCH_HAS_SMP=y
 CONFIG_SMP=y
+# CONFIG_SMP_WAIT_BOOT is not set
 
 #
 # Timing facility (jiffy) support
@@ -201,6 +218,8 @@ CONFIG_MEM_RESIZE=y
 CONFIG_ARCH_HAS_MMU=y
 CONFIG_ARCH_HAS_MMU_HUGE=y
 # CONFIG_MMU is not set
+CONFIG_ARCH_HAS_FP=y
+# CONFIG_FP is not set
 
 #
 # Power management model (board) support
@@ -256,6 +275,7 @@ CONFIG_ARCH_HAS_PCI=y
 CONFIG_PCI=y
 CONFIG_ARCH_HAS_IOMMU=y
 CONFIG_IOMMU=y
+# CONFIG_FDT is not set
 # CONFIG_RAS is not set
 
 #
@@ -274,6 +294,11 @@ CONFIG_DW_PLL5GHZ_TSMC12FFC_OUTPUT_PROG=y
 # CONFIG_DW_PLL5GHZ_TSMC12FFC_OUTPUT_DIV2 is not set
 CONFIG_DW_PLL5GHZ_TSMC12FFC_CNT_LOCKED=y
 # CONFIG_DW_PLL5GHZ_TSMC12FFC_ACCEL is not set
+
+#
+# GPIO controller drivers
+#
+# CONFIG_DW_GPIO is not set
 
 #
 # Timer drivers
@@ -301,37 +326,33 @@ CONFIG_DW_UART_FIFO_MEM_INTERNAL=y
 # CONFIG_DW_UART_SIR_MODE is not set
 # CONFIG_DW_UART_FIFO_ACCESS is not set
 # CONFIG_DW_UART_ADDITIONAL_FEATURES is not set
+# CONFIG_UART_PL01X is not set
 # CONFIG_SEGGER_RTT is not set
 
 #
-# LCD drivers
+# I2C host drivers
 #
+# CONFIG_DW_I2C is not set
 
 #
-# Video drivers
+# I2C slave drivers
 #
+# CONFIG_DW_I2CS is not set
 
 #
-# MTD memory drivers
+# SPI Master drivers
 #
-# CONFIG_PN53X is not set
-# CONFIG_ACR122 is not set
+CONFIG_ARCH_HAS_SSI_FIFO=y
+CONFIG_ARCH_HAS_SSI_XFER_32=y
+CONFIG_ARCH_HAS_SSI_FRF=y
+CONFIG_ARCH_HAS_SSI_SPI=y
+CONFIG_ARCH_HAS_SSI_SPI_1WIRE=y
+# CONFIG_DW_SSI is not set
 
 #
-# MMC host drivers
+# DMA host drivers
 #
-# CONFIG_DW_MSHC is not set
-# CONFIG_SDHCI is not set
-
-#
-# DDR controller drivers
-#
-# CONFIG_DW_UMCTL2 is not set
-
-#
-# PCI drivers
-#
-CONFIG_DW_PCIE=y
+CONFIG_DW_DMA=y
 
 #
 # IO MMU drivers
@@ -358,29 +379,41 @@ CONFIG_SMMU_ARCH64=y
 CONFIG_SMMU_MMU500=y
 
 #
-# I2C host drivers
+# LCD drivers
 #
-# CONFIG_DW_I2C is not set
 
 #
-# I2C slave drivers
+# Video drivers
 #
-# CONFIG_DW_I2CS is not set
 
 #
-# SPI Master drivers
+# MTD memory drivers
 #
-CONFIG_ARCH_HAS_SSI_FIFO=y
-CONFIG_ARCH_HAS_SSI_XFER_32=y
-CONFIG_ARCH_HAS_SSI_FRF=y
-CONFIG_ARCH_HAS_SSI_SPI=y
-CONFIG_ARCH_HAS_SSI_SPI_1WIRE=y
-# CONFIG_DW_SSI is not set
+# CONFIG_DATAFLASH_AT45DB642D is not set
+# CONFIG_SPIFLASH_W25Q32 is not set
+# CONFIG_PN53X is not set
+# CONFIG_ACR122 is not set
 
 #
-# DMA host drivers
+# MMC host drivers
 #
-CONFIG_DW_DMA=y
+# CONFIG_DW_MSHC is not set
+# CONFIG_SDHCI is not set
+
+#
+# DDR controller drivers
+#
+# CONFIG_DW_UMCTL2 is not set
+
+#
+# Serial Presence Detect (SPD) drivers
+#
+CONFIG_SPD_BUS_KHZ=60
+
+#
+# PCI drivers
+#
+CONFIG_DW_PCIE=y
 # CONFIG_TEST_BENCH is not set
 # CONFIG_TESTS_RISCV is not set
 
@@ -432,6 +465,7 @@ CONFIG_PRINT_VSNPRINTF=y
 CONFIG_PRINT_VPRINTF=y
 # CONFIG_PRINT_SPRINTF is not set
 CONFIG_PRINT_PRINTF=y
+# CONFIG_PRINT_FP is not set
 
 #
 # String operations
@@ -459,6 +493,7 @@ CONFIG_EXPERIMENTAL=y
 # CONFIG_CC_OPT_SIZE is not set
 # CONFIG_CC_OPT_SPEED is not set
 # CONFIG_CC_ALWAYS_INLINE is not set
+# CONFIG_SIMULATION is not set
 CONFIG_DEBUG=y
 # CONFIG_CC_GEN_DEBUG is not set
 # CONFIG_DEBUG_PANIC is not set

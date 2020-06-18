@@ -12,11 +12,11 @@
 #define SBI_ECALL_VERSION_MAJOR 0
 #define SBI_ECALL_VERSION_MINOR 1
 
-bool sbi_trap_log;
+bool sbi_trap_log_on;
 
 bool sbi_trap_log_enabled(void)
 {
-	return sbi_trap_log;
+	return sbi_trap_log_on;
 }
 
 u16 sbi_ecall_version_major(void)
@@ -48,11 +48,11 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 		ret = 0;
 		break;
 	case SBI_ECALL_CONSOLE_PUTCHAR:
-		putchar(regs->a0);
+		sbi_putc(regs->a0);
 		ret = 0;
 		break;
 	case SBI_ECALL_CONSOLE_GETCHAR:
-		regs->a0 = getchar();
+		regs->a0 = sbi_getc();
 		ret = 0;
 		break;
 	case SBI_ECALL_CLEAR_IPI:
@@ -90,11 +90,11 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 		ret = 0;
 		break;
 	case SBI_ENABLE_LOG:
-		sbi_trap_log = true;
+		sbi_trap_log_on = true;
 		ret = 0;
 		break;
 	case SBI_DISABLE_LOG:
-		sbi_trap_log = false;
+		sbi_trap_log_on = false;
 		ret = 0;
 		break;
 	default:

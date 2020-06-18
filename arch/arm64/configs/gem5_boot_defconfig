@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Feb 17 21:53:44 2020
+# Thu Jun 18 13:36:22 2020
 #
 CONFIG_ARM64=y
 
@@ -85,11 +85,6 @@ CONFIG_ARCH_HAS_GICv2=y
 #
 # ARM CoreLink peripheral support
 #
-CONFIG_UART_PL01X=y
-CONFIG_ARCH_IS_UART_PL011=y
-# CONFIG_UART_PL010 is not set
-CONFIG_UART_PL011=y
-# CONFIG_UART_PL01X_SBSA is not set
 
 #
 # Compiler options
@@ -170,6 +165,8 @@ CONFIG_LPS_NO_LPS=y
 CONFIG_XIP=y
 CONFIG_BOOT_BASE=0x00000000
 CONFIG_LOAD_BASE=0x0
+# CONFIG_NO_ZERO_BSS is not set
+# CONFIG_NO_ZERO_GPR is not set
 # CONFIG_HEAP is not set
 # CONFIG_MEM is not set
 # CONFIG_PAGE is not set
@@ -177,6 +174,14 @@ CONFIG_ARCH_HAS_MMU=y
 CONFIG_ARCH_HAS_MMU_CONT=y
 CONFIG_ARCH_HAS_MMU_HUGE=y
 # CONFIG_MMU is not set
+
+#
+# Power management model (board) support
+#
+# CONFIG_SHUTDOWN is not set
+# CONFIG_REBOOT is not set
+# CONFIG_SUSPEND is not set
+# CONFIG_HIBERNATE is not set
 # CONFIG_IDLE is not set
 # CONFIG_BULK is not set
 # CONFIG_TERM is not set
@@ -205,6 +210,7 @@ CONFIG_UART_230400=y
 # CONFIG_UART is not set
 # CONFIG_SPI is not set
 # CONFIG_I2C is not set
+# CONFIG_DMA is not set
 # CONFIG_USB is not set
 # CONFIG_SCS is not set
 # CONFIG_MTD is not set
@@ -212,11 +218,22 @@ CONFIG_UART_230400=y
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
 # CONFIG_DDR is not set
+# CONFIG_IOMMU is not set
+# CONFIG_FDT is not set
 # CONFIG_RAS is not set
 
 #
 # Driver setup
 #
+
+#
+# Clock drivers
+#
+
+#
+# GPIO controller drivers
+#
+# CONFIG_DW_GPIO is not set
 
 #
 # Timer drivers
@@ -227,7 +244,37 @@ CONFIG_UART_230400=y
 # Debugging console drivers
 #
 # CONFIG_DW_UART is not set
+CONFIG_UART_PL01X=y
+CONFIG_ARCH_IS_UART_PL011=y
+# CONFIG_UART_PL010 is not set
+CONFIG_UART_PL011=y
+# CONFIG_UART_PL01X_SBSA is not set
 # CONFIG_SEGGER_RTT is not set
+
+#
+# I2C host drivers
+#
+# CONFIG_DW_I2C is not set
+
+#
+# I2C slave drivers
+#
+# CONFIG_DW_I2CS is not set
+
+#
+# SPI Master drivers
+#
+# CONFIG_DW_SSI is not set
+
+#
+# DMA host drivers
+#
+# CONFIG_DW_DMA is not set
+
+#
+# IO MMU drivers
+#
+# CONFIG_SMMU_MMU500 is not set
 
 #
 # LCD drivers
@@ -240,6 +287,8 @@ CONFIG_UART_230400=y
 #
 # MTD memory drivers
 #
+# CONFIG_DATAFLASH_AT45DB642D is not set
+# CONFIG_SPIFLASH_W25Q32 is not set
 # CONFIG_PN53X is not set
 # CONFIG_ACR122 is not set
 
@@ -255,24 +304,15 @@ CONFIG_UART_230400=y
 # CONFIG_DW_UMCTL2 is not set
 
 #
-# Clock drivers
+# Serial Presence Detect (SPD) drivers
 #
+CONFIG_SPD_BUS_KHZ=60
 
 #
-# I2C host drivers
+# PCI drivers
 #
-# CONFIG_DW_I2C is not set
-
-#
-# I2C slave drivers
-#
-# CONFIG_DW_I2CS is not set
-
-#
-# DMA host drivers
-#
-# CONFIG_DW_DMA is not set
 # CONFIG_TEST_BENCH is not set
+# CONFIG_RAVEN is not set
 
 #
 # Library setup
@@ -311,6 +351,7 @@ CONFIG_MATH_MOD64=y
 #
 # CONFIG_CRC16_CCITT is not set
 # CONFIG_CRC32 is not set
+# CONFIG_MATH_TAYLOR is not set
 CONFIG_STDLIB=y
 
 #
@@ -321,13 +362,20 @@ CONFIG_PRINT_VSNPRINTF=y
 CONFIG_PRINT_VPRINTF=y
 # CONFIG_PRINT_SPRINTF is not set
 CONFIG_PRINT_PRINTF=y
+# CONFIG_PRINT_FP is not set
 
 #
 # String operations
 #
 # CONFIG_STRING_STRNCMP is not set
 # CONFIG_STRING_STRTOUL is not set
+# CONFIG_STRING_STRTOULL is not set
 # CONFIG_STRING_UUID is not set
+
+#
+# Time opeartions
+#
+# CONFIG_TIME_CLOCK is not set
 
 #
 # Cryptographic algorithms
@@ -341,6 +389,8 @@ CONFIG_PRINT_PRINTF=y
 CONFIG_EXPERIMENTAL=y
 # CONFIG_CC_OPT_SIZE is not set
 # CONFIG_CC_OPT_SPEED is not set
+# CONFIG_CC_ALWAYS_INLINE is not set
+# CONFIG_SIMULATION is not set
 CONFIG_DEBUG=y
 # CONFIG_CC_GEN_DEBUG is not set
 # CONFIG_DEBUG_PANIC is not set

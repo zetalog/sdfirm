@@ -17,11 +17,35 @@ menuconfig SBI
 	select BIT_FLS64
 	select BIT_FFS32
 	select FDT if ARCH_HAS_FDT
+	select SBI_RISCV_F if RISCV_F
+	select SBI_RISCV_D if RISCV_D
+	select SBI_RISCV_C if RISCV_C
 
 if SBI
 
+config SBI_RISCV_F
+	bool "Enable single precision FP load/store"
+
+config SBI_RISCV_D
+	bool "Enable double precision FP load/store"
+
+config SBI_RISCV_C
+	bool "Enable compressed load/store"
+
+config SBI_RISCV_S
+	bool "Enable supervisor mode"
+	depends RISCV_S
+
+config SBI_RISCV_U
+	bool "Enable user mode"
+
 config SBI_PAYLOAD
 	bool "Enable SBI payload binary"
+	select SBI_RISCV_F
+	select SBI_RISCV_D
+	select SBI_RISCV_C
+	select SBI_RISCV_S if RISCV_S
+	select SBI_RISCV_U
 
 if SBI_PAYLOAD
 

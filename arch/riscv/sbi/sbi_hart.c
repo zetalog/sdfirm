@@ -9,7 +9,7 @@
 
 #include <target/sbi.h>
 
-static uint8_t sbi_mode_switched = PRV_M;
+static __unused uint8_t sbi_mode_switched = PRV_M;
 
 /**
  * Return HART ID of the caller.
@@ -24,11 +24,13 @@ static void mstatus_init(struct sbi_scratch *scratch, u32 hartid)
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 
 	/* Enable FPU */
+#if defined(CONFIG_CPU_F) || defined(CONFIG_CPU_D)
 	if (misa_extension('D') || misa_extension('F'))
 		csr_write(CSR_MSTATUS, SR_FS);
+#endif
 
 	/* Enable user/supervisor use of perf counters */
-#ifndef CONFIG_ARCH_HAS_NOSEE
+#ifdef CONFIG_CPU_S
 	if (misa_extension('S') && sbi_platform_has_scounteren(plat))
 		csr_write(CSR_SCOUNTEREN, -1);
 #endif
@@ -38,14 +40,14 @@ static void mstatus_init(struct sbi_scratch *scratch, u32 hartid)
 	/* Disable all interrupts */
 	csr_write(CSR_MIE, 0);
 
-#ifndef CONFIG_ARCH_HAS_NOSEE
+#ifdef CONFIG_CPU_S
 	/* Disable S-mode paging */
 	if (misa_extension('S'))
 		csr_write(CSR_SATP, 0);
 #endif
 }
 
-#if defined(CONFIG_RISCV_F) || defined(CONFIG_RISCV_D)
+#if defined(CONFIG_SBI_RISCV_F) || defined(CONFIG_SBI_RISCV_D)
 static int fp_init(u32 hartid)
 {
 	int i;
@@ -196,7 +198,7 @@ void sbi_hart_set_trap_info(struct sbi_scratch *scratch, void *data)
 	*trap_info = (unsigned long)data;
 }
 
-#ifndef CONFIG_ARCH_HAS_NOSEE
+#ifdef CONFIG_SBI_RISCV_S
 static void sbi_switch_s_mode(unsigned long next_addr)
 {
 	irq_set_stvec(next_addr);
@@ -209,7 +211,7 @@ static void sbi_switch_s_mode(unsigned long next_addr)
 #define sbi_switch_s_mode(next_addr)	do { } while (0)
 #endif
 
-#ifdef CONFIG_RISCV_N
+#ifdef CONFIG_SBI_RISCV_U
 static void sbi_switch_u_mode(unsigned long next_addr)
 {
 	irq_set_utvec(next_addr);

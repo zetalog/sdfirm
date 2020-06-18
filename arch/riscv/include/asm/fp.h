@@ -42,7 +42,7 @@
 #ifndef __FP_RISCV_H_INCLUDE__
 #define __FP_RISCV_H_INCLUDE__
 
-#ifdef CONFIG_RISCV_F
+#ifdef CONFIG_SBI_RISCV_F
 #define GET_PRECISION(insn)	(((insn) >> 25) & 3)
 #define GET_RM(insn)		(((insn) >> 12) & 7)
 #define PRECISION_S		0

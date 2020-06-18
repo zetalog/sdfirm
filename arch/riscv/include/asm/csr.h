@@ -46,7 +46,6 @@
  * register header.
  */
 
-#ifdef CONFIG_CPU_N
 #define CSR_USTATUS		0x000
 #define CSR_UIE			0x004
 #define CSR_UTVEC		0x005
@@ -55,7 +54,6 @@
 #define CSR_UCAUSE		0x042
 #define CSR_UTVAL		0x043
 #define CSR_UIP			0x044
-#endif
 #ifdef CONFIG_CPU_F
 #define CSR_FFLAGS		0x001
 #define CSR_FRM			0x002
@@ -69,7 +67,7 @@
 #define CSR_TIMEH		0xC81
 #define CSR_INSTRETH		0xC82
 #define CSR_HPMCOUNTERH(n)	(0xC80+(n)) /* n=3..31 */
-#ifndef CONFIG_ARCH_HAS_NOSEE
+#ifdef CONFIG_CPU_S
 #define CSR_SSTATUS		0x100
 #define CSR_SEDELEG		0x102
 #define CSR_SIDELEG		0x103
@@ -142,7 +140,7 @@
 #define SR_MPIE		_AC(0x00000080, UL) /* Machine Previous IE */
 #define SR_MPP_SHIFT	11
 #define SR_MPP		_AC(0x00001800, UL) /* Previously Machine */
-#ifndef CONFIG_ARCH_HAS_NOSEE
+#ifdef CONFIG_CPU_S
 #define SR_SIE		_AC(0x00000002, UL) /* Supervisor Interrupt Enable */
 #define SR_SPIE		_AC(0x00000020, UL) /* Supervisor Previous IE */
 #define SR_SPP_SHIFT	8

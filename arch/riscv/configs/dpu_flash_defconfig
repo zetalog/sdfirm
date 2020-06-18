@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon May 18 18:35:40 2020
+# Thu Jun 18 13:39:26 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -46,6 +46,7 @@ CONFIG_CONSOLE_115200=y
 #
 # CONFIG_ARCH_DUOWEN is not set
 CONFIG_ARCH_DPU=y
+# CONFIG_ARCH_VAISRA is not set
 # CONFIG_ARCH_UNLEASHED is not set
 # CONFIG_ARCH_K210 is not set
 # CONFIG_ARCH_VEGA is not set
@@ -64,6 +65,7 @@ CONFIG_RISCV_64I=y
 #
 # ISA extensions
 #
+CONFIG_CPU_S=y
 CONFIG_CPU_ZIFENCEI=y
 CONFIG_CPU_ZICSR=y
 CONFIG_CPU_M=y
@@ -72,6 +74,7 @@ CONFIG_CPU_F=y
 CONFIG_CPU_D=y
 CONFIG_CPU_C=y
 CONFIG_CPU_SV39=y
+CONFIG_RISCV_S=y
 CONFIG_RISCV_M=y
 CONFIG_RISCV_A=y
 # CONFIG_RISCV_F is not set
@@ -110,6 +113,7 @@ CONFIG_RISCV_EXIT_M=y
 #
 # System peripherals
 #
+# CONFIG_RISCV_IRQ_VERBOSE is not set
 CONFIG_ARCH_HAS_PLIC=y
 CONFIG_ARCH_HAS_PLIC_EOI_EARLY=y
 # CONFIG_PLIC is not set
@@ -161,6 +165,7 @@ CONFIG_DPU_FLASH_SS_8=y
 # CONFIG_DPU_FLASH_SS_24 is not set
 # CONFIG_DPU_FLASH_SS_32 is not set
 CONFIG_DPU_SSI_FLASH=y
+CONFIG_DPU_SSI_FLASH_FREQ=8000000
 CONFIG_DPU_DDR=y
 # CONFIG_DPU_PCI_SUBSYS is not set
 
@@ -214,6 +219,8 @@ CONFIG_MEM=y
 CONFIG_MEM_MAX_REGIONS=3
 # CONFIG_MEM_RESIZE is not set
 # CONFIG_PAGE is not set
+CONFIG_ARCH_HAS_FP=y
+# CONFIG_FP is not set
 
 #
 # Power management model (board) support
@@ -287,6 +294,7 @@ CONFIG_DDR=y
 CONFIG_ARCH_HAS_PCI=y
 # CONFIG_PCI is not set
 # CONFIG_IOMMU is not set
+# CONFIG_FDT is not set
 # CONFIG_RAS is not set
 
 #
@@ -340,6 +348,7 @@ CONFIG_DW_UART_FIFO_MEM_INTERNAL=y
 # CONFIG_DW_UART_SIR_MODE is not set
 # CONFIG_DW_UART_FIFO_ACCESS is not set
 # CONFIG_DW_UART_ADDITIONAL_FEATURES is not set
+# CONFIG_UART_PL01X is not set
 # CONFIG_SEGGER_RTT is not set
 
 #
@@ -471,6 +480,7 @@ CONFIG_PRINT_SNPRINTF=y
 CONFIG_PRINT_VPRINTF=y
 # CONFIG_PRINT_SPRINTF is not set
 CONFIG_PRINT_PRINTF=y
+# CONFIG_PRINT_FP is not set
 
 #
 # String operations
