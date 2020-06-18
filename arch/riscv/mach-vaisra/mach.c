@@ -40,11 +40,35 @@
  */
 
 #include <target/arch.h>
+#include <target/bench.h>
+#include <target/smp.h>
+#include <target/paging.h>
+#include <target/barrier.h>
+#include <target/percpu.h>
+#include <target/cmdline.h>
+
+#ifdef CONFIG_MMU
+#define vaisra_disable_mmu()	mmu_hw_ctrl_exit()
+#else
+#define vaisra_disable_mmu()	do { } while (0)
+#endif
+
+static void vaisra_success(void)
+{
+	vaisra_disable_mmu();
+	tbox_finish();
+}
+
+static void vaisra_failure(void)
+{
+	vaisra_disable_mmu();
+	tbox_error();
+}
 
 #ifdef CONFIG_SHUTDOWN
 void board_shutdown(void)
 {
-	sim_shutdown();
+	vaisra_success();
 }
 #endif
 
@@ -56,3 +80,44 @@ void board_early_init(void)
 void board_late_init(void)
 {
 }
+
+static int do_vaisra_shutdown(int argc, char *argv[])
+{
+	board_shutdown();
+	return 0;
+}
+
+static int do_vaisra(int argc, char *argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+
+	if (strcmp(argv[1], "shutdown") == 0)
+		return do_vaisra_shutdown(argc, argv);
+	return -EINVAL;
+}
+
+DEFINE_COMMAND(vaisra, do_vaisra, "VAISRA simulation global commands",
+	"vaisra shutdown\n"
+	"    -shutdown board\n"
+);
+
+/* Percpu specific VAISRA shutdown */
+static DEFINE_PERCPU(bool, vaisra_err);
+
+void vaisra_error(void)
+{
+	this_cpu_var(vaisra_err) = true;
+}
+
+int vaisra_finish(caddr_t percpu_area)
+{
+	if (this_cpu_var(vaisra_err))
+		vaisra_failure();
+	else
+		vaisra_success();
+	return 1;
+}
+
+__define_testfn(vaisra_finish, 0, SMP_CACHE_BYTES,
+		CPU_EXEC_META, 1, CPU_WAIT_INFINITE);

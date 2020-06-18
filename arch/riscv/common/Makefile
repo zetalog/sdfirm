@@ -17,5 +17,6 @@ obj-$(CONFIG_CLINT) += clint.rel
 obj-$(CONFIG_PLIC) += plic.rel
 obj-$(CONFIG_HTIF) += htif.rel
 obj-$(CONFIG_RI5CY_PC) += ri5cy_pc.rel
+obj-$(CONFIG_VAISRA_TBOX) += tbox.rel
 
 extra-y := $(head-y) sdfirm.lds

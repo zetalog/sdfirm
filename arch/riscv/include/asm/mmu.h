@@ -214,6 +214,7 @@ bool mmu_hw_pgattr_safe(pteval_t old, pteval_t new);
 void mmu_hw_create_mapping(phys_addr_t phys, caddr_t virt,
 			   phys_addr_t size);
 void mmu_hw_ctrl_init(void);
+void mmu_hw_ctrl_exit(void);
 #endif /* !__ASSEMBLY__ */
 
 #ifndef LINKER_SCRIPT

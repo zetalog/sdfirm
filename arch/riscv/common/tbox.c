@@ -35,24 +35,35 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)reg.h: VAISRA space and register definitions
- * $Id: reg.h,v 1.1 2020-06-08 17:12:00 zhenglv Exp $
+ * @(#)mach.c: VAISRA specific board initialization
+ * $Id: mach.c,v 1.1 2020-06-18 10:05:00 zhenglv Exp $
  */
 
-#ifndef __REG_VAISRA_H_INCLUDE__
-#define __REG_VAISRA_H_INCLUDE__
+#include <target/arch.h>
+#include <target/smp.h>
 
-#define ROM_BASE		ULL(0xFFFFFFF000)
-#define ROM_SIZE		UL(0xF00)
-#define RAM_BASE		CONFIG_VAISRA_MEM_BASE
-#define RAM_SIZE		CONFIG_VAISRA_MEM_SIZE
-#define RAMEND			(RAM_BASE + RAM_SIZE)
+#ifdef CONFIG_SMP
+void tbox_finish(void)
+{
+	cpu_t hart = smp_hw_cpu_hart(smp_processor_id());
 
-#define CLINT_BASE		ULL(0x8002000000)
-#define UART_BASE		ULL(0x8002010000)
-#ifdef CONFIG_VAISRA_TBOX_TIDY
-#define TBOX_BASE		ULL(0x8002020000)
+	__raw_writel(TBOX_CHAR_EOT_CPU(cpu), TBOX_TUBE);
+}
+
+void tbox_error(void)
+{
+	cpu_t hart = smp_hw_cpu_hart(smp_processor_id());
+
+	__raw_writel(TBOX_CHAR_ERR_CPU(cpu), TBOX_TUBE);
+}
+#else
+void tbox_finish(void)
+{
+	__raw_writel(TBOX_CHAR_EOT, TBOX_TUBE);
+}
+
+void tbox_error(void)
+{
+	__raw_writel(TBOX_CHAR_ERR, TBOX_TUBE);
+}
 #endif
-#include <asm/tbox.h>
-
-#endif /* __REG_VAISRA_H_INCLUDE__ */

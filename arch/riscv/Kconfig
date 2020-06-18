@@ -114,10 +114,10 @@ config ARCH_VAISRA
 	select ARCH_HAS_IRQC
 	select ARCH_HAS_CLINT
 	select ARCH_HAS_BOOT_LOAD
-	#select ARCH_HAS_TBOX
 	select RISCV_COUNTERS if SBI
 	select CLINT
-	#select TBOX if !SYS_NOIRQ
+	select VAISRA_TBOX if SYS_IRQ
+	select VAISRA_TBOX if SHUTDOWN
 	select VAISRA_UART if CONSOLE || DEBUG_PRINT
 	help
 	  This enables support for smart core (SmarCo) vaisra riscv CPU bench platforms.

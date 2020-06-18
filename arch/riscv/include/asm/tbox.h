@@ -35,24 +35,34 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)reg.h: VAISRA space and register definitions
- * $Id: reg.h,v 1.1 2020-06-08 17:12:00 zhenglv Exp $
+ * @(#)tbox.h: Vaisra trickbox and tube interface
+ * $Id: tbox.h,v 1.1 2020-06-18 09:38:00 zhenglv Exp $
  */
 
-#ifndef __REG_VAISRA_H_INCLUDE__
-#define __REG_VAISRA_H_INCLUDE__
+#ifndef __VAISRA_TBOX_H_INCLUDE__
+#define __VAISRA_TBOX_H_INCLUDE__
 
-#define ROM_BASE		ULL(0xFFFFFFF000)
-#define ROM_SIZE		UL(0xF00)
-#define RAM_BASE		CONFIG_VAISRA_MEM_BASE
-#define RAM_SIZE		CONFIG_VAISRA_MEM_SIZE
-#define RAMEND			(RAM_BASE + RAM_SIZE)
-
-#define CLINT_BASE		ULL(0x8002000000)
-#define UART_BASE		ULL(0x8002010000)
-#ifdef CONFIG_VAISRA_TBOX_TIDY
-#define TBOX_BASE		ULL(0x8002020000)
+#ifndef TBOX_BASE
+#define TBOX_BASE		ULL(0xFFFFFFF000)
 #endif
-#include <asm/tbox.h>
 
-#endif /* __REG_VAISRA_H_INCLUDE__ */
+#define TBOX_REG(offset)	(TBOX_BASE + (offset))
+
+#define TBOX_TUBE		TBOX_REG(0)
+#define TBOX
+
+#define TBOX_CHAR_LF		0x0A
+#define TBOX_CHAR_CR		0x0D
+#define TBOX_CHAR_EOT		0x04 /* ends the test */
+#define TBOX_CHAR_ERR		0x08
+#define TBOX_CHAR_NUL		0x00
+
+#define TBOX_CHAR_EOT_CPU(cpu)	((((cpu) + 1) << 4) + TBOX_CHAR_EOT)
+#define TBOX_CHAR_ERR_CPU(cpu)	((((cpu) + 1) << 4) + TBOX_CHAR_ERR)
+
+#ifndef __ASSEMBLY__
+void tbox_finish(void);
+void tbox_error(void);
+#endif
+
+#endif /* __VAISRA_TBOX_H_INCLUDE__ */

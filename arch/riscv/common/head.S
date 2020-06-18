@@ -322,6 +322,7 @@ ENTRY(test_section_end)
 #endif
 #ifdef CONFIG_SPIKE_SHUTDOWN_DUOWEN
 	csrw	satp, zero
+	fence
 	li	a0, 0xFFFFFFFF00
 #ifdef CONFIG_SMP
 	get_hartid a1
@@ -332,7 +333,6 @@ ENTRY(test_section_end)
 	li	a1, 0x4
 #endif
 	sd	a1, 0(a0)
-	fence
 #endif /* CONFIG_SPIKE_SHUTDOWN_DUOWEN */
 END(test_section_end)
 #ifdef CONFIG_SPIKE_SHUTDOWN_OVPSIM

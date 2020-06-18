@@ -667,4 +667,15 @@ menuconfig RI5CY_FIRQ_EXT
 	bool "RI5CY extended fast interrupt support"
 	depends RI5CY_FIRQ && ARCH_HAS_RI5CY_FIRQ_EXT
 
+menuconfig VAISRA_TBOX
+	bool "Vaisra tube and trickbox support"
+	depends CPU_VAISRA
+	help
+	  A simple IRQ triggering source that can be seen on ARM based CPU
+	  benches. Due to its simplicity and ACE compatibility, it can be
+	  easily ported to the RISC-V based CPU benches like VAISRA to work
+	  as an external IRQ source.
+	  The hardware also includes a tube register that allows to end the
+	  simulation.
+
 endmenu

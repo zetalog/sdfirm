@@ -49,4 +49,8 @@
 #define OSC_FREQ		33333333
 #define CPU_FREQ		(52 * OSC_FREQ)
 
+#ifndef __ASSEMBLY__
+void vaisra_error(void);
+#endif
+
 #endif /* __ARCH_VAISRA_H_INCLUDE__ */

@@ -114,3 +114,9 @@ __init void mmu_hw_ctrl_init(void)
 	sv_satp_switch((caddr_t)mmu_pg_dir, "SATP");
 	local_flush_tlb_all();
 }
+
+void mmu_hw_ctrl_exit(void)
+{
+	csr_write(CSR_SATP, 0);
+	local_flush_tlb_all();
+}
