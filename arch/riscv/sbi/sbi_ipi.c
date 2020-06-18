@@ -98,16 +98,20 @@ void sbi_ipi_process(struct sbi_scratch *scratch)
 		ipi_event = __ffs32(ipi_type);
 		switch (ipi_event) {
 		case SBI_IPI_EVENT_SOFT:
+			sbi_trap_log("IPI_EVENT_SOFT\n");
 			csr_set(CSR_MIP, IR_SSI);
 			break;
 		case SBI_IPI_EVENT_FENCE_I:
+			sbi_trap_log("IPI_EVENT_FENCE_I\n");
 			__asm__ __volatile("fence.i");
 			break;
 		case SBI_IPI_EVENT_SFENCE_VMA:
 		case SBI_IPI_EVENT_SFENCE_VMA_ASID:
+			sbi_trap_log("IPI_EVENT_SFENCE_VMA\n");
 			sbi_tlb_fifo_process(scratch, ipi_event);
 			break;
 		case SBI_IPI_EVENT_HALT:
+			sbi_trap_log("IPI_EVENT_HALT\n");
 			hart_hang();
 			break;
 		};

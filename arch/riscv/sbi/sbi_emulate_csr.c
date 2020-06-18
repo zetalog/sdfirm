@@ -32,16 +32,19 @@ int sbi_emulate_csr_read(int csr_num, u32 hartid, ulong mstatus,
 	case CSR_CYCLE:
 		if (!((cen >> (CSR_CYCLE - CSR_CYCLE)) & 1))
 			return -1;
+		sbi_trap_log("CSR_CYCLE read\n");
 		*csr_val = csr_read(CSR_MCYCLE);
 		break;
 	case CSR_TIME:
 		if (!((cen >> (CSR_TIME - CSR_CYCLE)) & 1))
 			return -1;
+		sbi_trap_log("CSR_TIME read\n");
 		*csr_val = sbi_timer_value(scratch);
 		break;
 	case CSR_INSTRET:
 		if (!((cen >> (CSR_INSTRET - CSR_CYCLE)) & 1))
 			return -1;
+		sbi_trap_log("CSR_INSTRET read\n");
 		*csr_val = csr_read(CSR_MINSTRET);
 		break;
 	case CSR_MHPMCOUNTER(3):

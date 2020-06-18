@@ -56,18 +56,22 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 		ret = 0;
 		break;
 	case SBI_ECALL_CLEAR_IPI:
+		sbi_trap_log("ECALL_CLEAR_IPI\n");
 		sbi_ipi_clear_smode(scratch);
 		ret = 0;
 		break;
 	case SBI_ECALL_SEND_IPI:
+		sbi_trap_log("ECALL_SEND_IPI\n");
 		ret = sbi_ipi_send_many(scratch, &uptrap, (ulong *)regs->a0,
 					SBI_IPI_EVENT_SOFT, NULL);
 		break;
 	case SBI_ECALL_REMOTE_FENCE_I:
+		sbi_trap_log("ECALL_REMOTE_FENCE_I\n");
 		ret = sbi_ipi_send_many(scratch, &uptrap, (ulong *)regs->a0,
 					SBI_IPI_EVENT_FENCE_I, NULL);
 		break;
 	case SBI_ECALL_REMOTE_SFENCE_VMA:
+		sbi_trap_log("ECALL_REMOTE_SFENCE_VMA\n");
 		tlb_info.start = (unsigned long)regs->a1;
 		tlb_info.size  = (unsigned long)regs->a2;
 		tlb_info.type  = SBI_TLB_FLUSH_VMA;
@@ -76,6 +80,7 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 					SBI_IPI_EVENT_SFENCE_VMA, &tlb_info);
 		break;
 	case SBI_ECALL_REMOTE_SFENCE_VMA_ASID:
+		sbi_trap_log("ECALL_REMOTE_SFENCE_VMA_ASID\n");
 		tlb_info.start = (unsigned long)regs->a1;
 		tlb_info.size  = (unsigned long)regs->a2;
 		tlb_info.asid  = (unsigned long)regs->a3;
@@ -86,6 +91,7 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 					&tlb_info);
 		break;
 	case SBI_ECALL_SHUTDOWN:
+		sbi_trap_log("ECALL_SHUTDOWN\n");
 		sbi_system_shutdown(scratch, 0);
 		ret = 0;
 		break;

@@ -89,14 +89,14 @@ u64 spike_timer_value(void)
 
 void spike_timer_event_stop(void)
 {
-	__unused cpu_t cpu = sbi_processor_id();
+	cpu_t cpu = sbi_processor_id();
 
 	clint_unset_mtimecmp(cpu);
 }
 
 void spike_timer_event_start(u64 next_event)
 {
-	__unused cpu_t cpu = sbi_processor_id();
+	cpu_t cpu = sbi_processor_id();
 
 	clint_set_mtimecmp(cpu, next_event);
 }
