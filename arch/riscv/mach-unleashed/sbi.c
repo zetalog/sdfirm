@@ -128,31 +128,16 @@ static int fu540_pmp_region_info(u32 hartid, u32 index, ulong *prot,
 #define __sifive_uart_read_byte(n)				\
 	__raw_readb(__UART_RXDATA(n))
 
-#define __fu540_console_putc(byte)				\
-	do {							\
-		while (!sifive_uart_write_poll(UART_CON_ID));	\
-		sifive_uart_write_byte(UART_CON_ID, byte);	\
-	} while (0)
-
-#ifdef CONFIG_CONSOLE_OUTPUT_CR
-static void append_cr(int c)
-{
-	if (c == '\n')
-		__fu540_console_putc('\r');
-}
-#else
-#define append_cr(c)	do { } while (0)
-#endif
-
 static void fu540_console_putc(char ch)
 {
-	append_cr(ch);
-	__fu540_console_putc(ch);
+	while (!sifive_uart_write_poll(UART_CON_ID));
+	sifive_uart_write_byte(UART_CON_ID, byte);
 }
 
 static int fu540_console_getc(void)
 {
-	while (!__sifive_uart_read_poll(UART_CON_ID));
+	if (!__sifive_uart_read_poll(UART_CON_ID))
+		return -1;
 	return (int)__sifive_uart_read_byte(UART_CON_ID);
 }
 

@@ -63,25 +63,15 @@ static int virt_pmp_region_info(u32 hartid, u32 index, ulong *prot, ulong *addr,
 	return ret;
 }
 
-#ifdef CONFIG_CONSOLE_OUTPUT_CR
-static void append_cr(int c)
-{
-	if (c == '\n')
-		ns16550_con_write('\r');
-}
-#else
-#define append_cr(c)	do { } while (0)
-#endif
-
 static void virt_console_putc(char ch)
 {
-	append_cr(ch);
 	ns16550_con_write(ch);
 }
 
 static int virt_console_getc(void)
 {
-	while (!ns16550_con_poll());
+	if (!ns16550_con_poll())
+		return -1;
 	return (int)ns16550_con_read();
 }
 

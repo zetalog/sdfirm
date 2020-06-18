@@ -100,7 +100,8 @@ static void vaisra_console_putc(char ch)
 
 static int vaisra_console_getc(void)
 {
-	while (__pl01x_read_empty());
+	if (__pl01x_read_empty())
+		return -1;
 	return __pl01x_read_data();
 }
 
