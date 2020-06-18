@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Jun 18 13:52:51 2020
+# Thu Jun 18 14:48:03 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -14,20 +14,18 @@ CONFIG_PRODUCT_NAME="RISC-V isa simulator (spike) Berkeley Bootloader"
 CONFIG_VENDOR_ID=990
 CONFIG_PRODUCT_ID=0
 CONFIG_SERIAL_NO=0
-# CONFIG_BOOTLOADER is not set
-CONFIG_FIRMWARE=y
+CONFIG_BOOTLOADER=y
+# CONFIG_FIRMWARE is not set
 # CONFIG_EMBEDDED is not set
 
 #
-# Firmware options
+# Bootloader options
 #
-# CONFIG_GEM5 is not set
-# CONFIG_RIS is not set
-CONFIG_COMMAND=y
-CONFIG_COMMAND_BATCH=y
-CONFIG_COMMAND_BATCH_COMMAND="bench sync all dhrystone 1 2 1"
+# CONFIG_BOOT_LINUX is not set
+# CONFIG_BOOT_ROM is not set
+# CONFIG_COMMAND is not set
 CONFIG_CONSOLE=y
-CONFIG_CONSOLE_COMMAND=y
+# CONFIG_CONSOLE_COMMAND is not set
 CONFIG_CONSOLE_OUTPUT=y
 # CONFIG_CONSOLE_OUTPUT_CR is not set
 CONFIG_CONSOLE_PRINT_BUFFER_SIZE=1024
@@ -116,8 +114,7 @@ CONFIG_RISCV_ENTR_M=y
 # CONFIG_RISCV_EXIT_U is not set
 CONFIG_RISCV_EXIT_S=y
 # CONFIG_RISCV_EXIT_M is not set
-CONFIG_SYS_KERNEL=y
-CONFIG_SYS_MONITOR=y
+CONFIG_SYS_LOADER=y
 
 #
 # System peripherals
@@ -391,12 +388,12 @@ CONFIG_SPD_BUS_KHZ=60
 # Bit-wise operations
 #
 # CONFIG_BIT_FLS8 is not set
-CONFIG_BIT_FLS16=y
+# CONFIG_BIT_FLS16 is not set
 # CONFIG_BIT_FFS16 is not set
 # CONFIG_BIT_FLS32 is not set
 CONFIG_BIT_FLS64=y
 CONFIG_BIT_FFS32=y
-CONFIG_BIT_HWEIGHT64=y
+# CONFIG_BIT_HWEIGHT64 is not set
 
 #
 # Bitmap operations
@@ -407,8 +404,8 @@ CONFIG_BIT_FIND_CLEAR=y
 #
 # Mathematic operations
 #
-CONFIG_MATH_GCD32=y
-CONFIG_MATH_MOD32=y
+# CONFIG_MATH_GCD32 is not set
+# CONFIG_MATH_MOD32 is not set
 # CONFIG_MATH_MUL32 is not set
 # CONFIG_MATH_MUL64 is not set
 CONFIG_MATH_DIV32=y
@@ -436,7 +433,7 @@ CONFIG_PRINT_PRINTF=y
 #
 # String operations
 #
-CONFIG_STRING_STRNCMP=y
+# CONFIG_STRING_STRNCMP is not set
 CONFIG_STRING_STRTOUL=y
 CONFIG_STRING_STRTOULL=y
 # CONFIG_STRING_UUID is not set
@@ -444,12 +441,12 @@ CONFIG_STRING_STRTOULL=y
 #
 # Time opeartions
 #
-CONFIG_TIME_CLOCK=y
+# CONFIG_TIME_CLOCK is not set
 
 #
 # Cryptographic algorithms
 #
-CONFIG_CRYPTO_RAND=y
+# CONFIG_CRYPTO_RAND is not set
 # CONFIG_FONTS is not set
 
 #
@@ -461,6 +458,6 @@ CONFIG_EXPERIMENTAL=y
 # CONFIG_CC_ALWAYS_INLINE is not set
 # CONFIG_SIMULATION is not set
 CONFIG_DEBUG=y
-# CONFIG_CC_GEN_DEBUG is not set
+CONFIG_CC_GEN_DEBUG=y
 # CONFIG_DEBUG_PANIC is not set
 # CONFIG_PORTING is not set

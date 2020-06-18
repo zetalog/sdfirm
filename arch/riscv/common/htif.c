@@ -84,7 +84,8 @@ static void __check_fromhost(void)
 	fromhost = 0;
 
 	/* this should be from the console */
-	BUG_ON(FROMHOST_DEV(fh) != 1);
+	if (FROMHOST_DEV(fh) != 1)
+		BUG();
 	switch (FROMHOST_CMD(fh)) {
 	case 0:
 		htif_console_buf = 1 + (uint8_t)FROMHOST_DATA(fh);
@@ -171,18 +172,9 @@ void htif_putc(char ch)
 
 int htif_getc(void)
 {
-	int ch;
-
-	spin_lock(&htif_lock);
-	__check_fromhost();
-	ch = htif_console_buf;
-	if (ch >= 0) {
-		htif_console_buf = -1;
-		__set_tohost(HTIF_DEV_BCD, HTIF_BCD_CMD_READ, 0);
-	}
-	spin_unlock(&htif_lock);
-
-	return ch - 1;
+	if (!htif_console_poll())
+		return -1;
+	return htif_console_read();
 }
 
 void htif_syscall(uintptr_t arg)

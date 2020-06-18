@@ -46,6 +46,9 @@ config SBI_PAYLOAD
 	select SBI_RISCV_C
 	select SBI_RISCV_S if RISCV_S
 	select SBI_RISCV_U
+	select CONSOLE
+	select CONSOLE_OUTPUT
+	select CONSOLE_INPUT
 
 if SBI_PAYLOAD
 

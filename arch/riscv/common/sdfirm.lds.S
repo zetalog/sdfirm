@@ -89,7 +89,7 @@ SECTIONS
 		*(.bss .bss.*)
 	}
 #ifdef CONFIG_ARCH_HAS_HTIF
-	HTIF_SECTION(WORD_SIZE)
+	HTIF_SECTION(PAGE_SIZE)
 #endif
 	. = ALIGN(WORD_SIZE);
 	__bss_stop = .;				/* end of bss sections */
