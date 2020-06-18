@@ -23,10 +23,22 @@ Original Author: Shay Gal-on
 /* Configuration: TOTAL_DATA_SIZE
         Define total size for data algorithms will operate on
 */
-#ifndef CONFIG_COREMARE_DATA_SIZE
+
+#ifdef CONFIG_COREMARK_FORCE_VERY_QUICK
+#define TOTAL_DATA_SIZE 400
+#define ITERATION_CNT 1
+#else
+#define ITERATION_CNT CONFIG_COREMARK_ITERATION_CNT
+#endif
+
+#ifdef CONFIG_COREMARK_RUN_CNT
+#define RUN_CNT CONFIG_COREMARK_RUN_CNT
+#else
+#define RUN_CNT 1
+#endif
+
 #ifndef TOTAL_DATA_SIZE
 #define TOTAL_DATA_SIZE 2 * 1000
-#endif
 #endif
 
 #define SEED_ARG      0
@@ -67,6 +79,7 @@ typedef ee_u32 secs_ret;
 #define MAIN_RETURN_TYPE int
 #endif
 
+CORE_TICKS get_time_ticks(void);
 void       start_time(void);
 void       stop_time(void);
 CORE_TICKS get_time(void);
