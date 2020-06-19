@@ -19,13 +19,15 @@ u64 sbi_timer_value(struct sbi_scratch *scratch)
 }
 #endif
 
-int sbi_emulate_csr_read(int csr_num, u32 hartid, ulong mstatus,
+int sbi_emulate_csr_read(int csr_num, struct pt_regs *regs,
 			 struct sbi_scratch *scratch, ulong *csr_val)
 {
+	int ret = 0;
 	ulong cen = -1UL;
+	ulong prev_mode = EXTRACT_FIELD(regs->status, SR_MPP);
 
 #ifdef CONFIG_CPU_S
-	if (EXTRACT_FIELD(mstatus, SR_MPP) == PRV_U)
+	if (prev_mode == PRV_U)
 		cen = csr_read(CSR_SCOUNTEREN);
 #endif
 
@@ -92,7 +94,7 @@ int sbi_emulate_csr_read(int csr_num, u32 hartid, ulong mstatus,
 		*csr_val = csr_read(CSR_MHPMEVENT(4));
 		break;
 	case CSR_MHARTID:
-		*csr_val = hartid;
+		*csr_val = csr_read(CSR_MHARTID);
 		break;
 #ifdef CONFIG_SBI_CSR_MIMPID
 	case CSR_MIMPID:
@@ -100,16 +102,21 @@ int sbi_emulate_csr_read(int csr_num, u32 hartid, ulong mstatus,
 		break;
 #endif
 	default:
-		sbi_printf("%s: hartid%d: invalid csr_num=0x%x\n", __func__,
-			   hartid, csr_num);
-		return -ENOTSUP;
+		ret = -ENOTSUP;
+		break;
 	};
-	return 0;
+	if (ret)
+		sbi_printf("%s: hartid%d: invalid csr_num=0x%x\n",
+			   __func__, sbi_current_hartid(), csr_num);
+	return ret;
 }
 
-int sbi_emulate_csr_write(int csr_num, u32 hartid, ulong mstatus,
+int sbi_emulate_csr_write(int csr_num, struct pt_regs *regs,
 			  struct sbi_scratch *scratch, ulong csr_val)
 {
+	int ret = 0;
+	/*ulong prev_mode = EXTRACT_FIELD(regs->status, SR_MPP);*/
+
 	switch (csr_num) {
 	case CSR_CYCLE:
 		csr_write(CSR_MCYCLE, csr_val);
@@ -144,9 +151,11 @@ int sbi_emulate_csr_write(int csr_num, u32 hartid, ulong mstatus,
 		csr_write(CSR_MHPMEVENT(4), csr_val);
 		break;
 	default:
-		sbi_printf("%s: hartid%d: invalid csr_num=0x%x\n", __func__,
-			   hartid, csr_num);
-		return -ENOTSUP;
+		ret = -ENOTSUP;
+		break;
 	};
-	return 0;
+	if (ret)
+		sbi_printf("%s: hartid%d: invalid csr_num=0x%x\n",
+			   __func__, sbi_current_hartid(), csr_num);
+	return ret;
 }

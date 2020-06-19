@@ -235,9 +235,9 @@ int sbi_illegal_insn_handler(u32 hartid, ulong mcause,
 			     struct pt_regs *regs,
 			     struct sbi_scratch *scratch);
 
-int sbi_emulate_csr_read(int csr_num, u32 hartid, ulong mstatus,
+int sbi_emulate_csr_read(int csr_num, struct pt_regs *regs,
 			 struct sbi_scratch *scratch, ulong *csr_val);
-int sbi_emulate_csr_write(int csr_num, u32 hartid, ulong mstatus,
+int sbi_emulate_csr_write(int csr_num, struct pt_regs *regs,
 			  struct sbi_scratch *scratch, ulong csr_val);
 
 int sbi_fifo_dequeue(struct sbi_fifo *fifo, void *data);

@@ -9,19 +9,16 @@
 
 #include <target/sbi.h>
 
-typedef int (*illegal_insn_func)(ulong insn, u32 hartid, ulong mcause,
-				 struct pt_regs *regs,
+typedef int (*illegal_insn_func)(ulong insn, struct pt_regs *regs,
 				 struct sbi_scratch *scratch);
 
-static int truly_illegal_insn(ulong insn, u32 hartid, ulong mcause,
-			      struct pt_regs *regs,
+static int truly_illegal_insn(ulong insn, struct pt_regs *regs,
 			      struct sbi_scratch *scratch)
 {
-	return sbi_trap_redirect(regs, scratch, regs->epc, mcause, insn);
+	return sbi_trap_redirect(regs, scratch, regs->epc, EXC_INSN_ILLEGAL, insn);
 }
 
-static int system_opcode_insn(ulong insn, u32 hartid, ulong mcause,
-			      struct pt_regs *regs,
+static int system_opcode_insn(ulong insn, struct pt_regs *regs,
 			      struct sbi_scratch *scratch)
 {
 	int do_write, rs1_num = (insn >> 15) & 0x1f;
@@ -29,9 +26,10 @@ static int system_opcode_insn(ulong insn, u32 hartid, ulong mcause,
 	int csr_num   = (u32)insn >> 20;
 	ulong csr_val, new_csr_val;
 
-	if (sbi_emulate_csr_read(csr_num, hartid, regs->status, scratch,
-				 &csr_val))
-		return truly_illegal_insn(insn, hartid, mcause, regs, scratch);
+	/* TODO: Ensure that we got CSR read/write instruction */
+
+	if (sbi_emulate_csr_read(csr_num, regs, scratch, &csr_val))
+		return truly_illegal_insn(insn, regs, scratch);
 
 	do_write = rs1_num;
 	switch (GET_RM(insn)) {
@@ -56,16 +54,16 @@ static int system_opcode_insn(ulong insn, u32 hartid, ulong mcause,
 		new_csr_val = csr_val & ~rs1_num;
 		break;
 	default:
-		return truly_illegal_insn(insn, hartid, mcause, regs, scratch);
+		return truly_illegal_insn(insn, regs, scratch);
 	};
 
-	if (do_write && sbi_emulate_csr_write(csr_num, hartid, regs->status,
-					      scratch, new_csr_val))
-		return truly_illegal_insn(insn, hartid, mcause, regs, scratch);
+	if (do_write && sbi_emulate_csr_write(csr_num, regs, scratch, new_csr_val))
+		return truly_illegal_insn(insn, regs, scratch);
 
 	SET_RD(insn, regs, csr_val);
 
 	regs->epc += 4;
+
 	return 0;
 }
 
@@ -114,9 +112,7 @@ int sbi_illegal_insn_handler(u32 hartid, ulong mcause,
 		if (insn == 0)
 			insn = get_insn(regs->epc, NULL);
 		if ((insn & 3) != 3)
-			return truly_illegal_insn(insn, hartid, mcause, regs,
-						  scratch);
+			return truly_illegal_insn(insn, regs, scratch);
 	}
-	return illegal_insn_table[(insn & 0x7c) >> 2](insn, hartid, mcause,
-						      regs, scratch);
+	return illegal_insn_table[(insn & 0x7c) >> 2](insn, regs, scratch);
 }
