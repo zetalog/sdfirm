@@ -60,6 +60,7 @@
 
 #define DW_SSI_CLK_FREQ			(APB_CLK_FREQ) /* Hz */
 
+#ifdef CONFIG_DW_SSI
 #define spi_hw_config_mode(mode)	dw_ssi_config_mode(SSI_ID, mode)
 #define spi_hw_config_freq(khz)		dw_ssi_config_freq(SSI_ID, khz)
 #define spi_hw_read_byte()		dw_ssi_read_byte(SSI_ID)
@@ -76,6 +77,7 @@
 	} while (0)
 #define spi_hw_ctrl_start()		dw_ssi_enable_ctrl(SSI_ID)
 #define spi_hw_ctrl_stop()		dw_ssi_disable_ctrl(SSI_ID)
+#endif
 
 #ifdef CONFIG_DPU_SSI_FLASH
 typedef void (*dpu_boot_cb)(void *, uint32_t, uint32_t);

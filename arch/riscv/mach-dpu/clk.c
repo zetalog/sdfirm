@@ -63,6 +63,7 @@ struct reset_clk reset_clks[NR_RESET_CLKS] = {
 	[SRST_PCIE0] = {
 		.clk_src = axi_clk,
 		.flags = CLK_SRST_F,
+#ifdef CONFIG_DPU_TCSR
 		.axi_periphs = _BV(IMC_PCIE_X16_MST) |
 			       _BV(IMC_PCIE_X8_MST) |
 			       _BV(IMC_PCIE_X4_0_MST) |
@@ -75,6 +76,7 @@ struct reset_clk reset_clks[NR_RESET_CLKS] = {
 			       _BV(IMC_PCIE_X8_DBI) |
 			       _BV(IMC_PCIE_X4_0_DBI) |
 			       _BV(IMC_PCIE_X4_1_DBI),
+#endif
 	},
 	[SRST_PCIE1] = {
 		.clk_src = axi_clk,
@@ -147,12 +149,16 @@ struct reset_clk reset_clks[NR_RESET_CLKS] = {
 	[SRST_DDR0_0] = {
 		.clk_src = ddr_clk,
 		.flags = CLK_SRST_F,
+#ifdef CONFIG_DPU_TCSR
 		.axi_periphs = _BV(IMC_DDR0) | _BV(IMC_DDR0_CTRL),
+#endif
 	},
 	[SRST_DDR0_1] = {
 		.clk_src = ddr_clk,
 		.flags = CLK_SRST_F,
+#ifdef CONFIG_DPU_TCSR
 		.axi_periphs = _BV(IMC_DDR1) | _BV(IMC_DDR1_CTRL),
+#endif
 	},
 	[SRST_DDR1_0] = {
 		.clk_src = ddr_clk,

@@ -24,6 +24,9 @@ endchoice
 config DPU_BOOT
 	bool
 
+config DPU_FIRM
+	bool
+
 config DPU_LOAD_ZSBL
 	bool
 
@@ -42,6 +45,7 @@ config DPU_BOOT_ROM
 	select LOAD_DATA
 	select SYS_ENTR_M
 	select SYS_EXIT_M
+	select SYS_EXIT_S if DPU_CV64A
 	select SYS_EXIT_U
 	select DPU_TCSR
 	select DPU_SPI_FLASH
@@ -56,6 +60,7 @@ config DPU_BOOT_RAM
 	select BFM
 	select SYS_ENTR_M
 	select SYS_EXIT_M
+	select SYS_EXIT_S if DPU_CV64A
 	select SYS_EXIT_U
 	select DPU_TCSR
 	select DPU_SPI_FLASH
@@ -71,6 +76,7 @@ config DPU_BOOT_SPI_FLASH
 	select LOAD_DATA
 	select SYS_ENTR_M
 	select SYS_EXIT_M
+	select SYS_EXIT_S if DPU_CV64A
 	select SYS_EXIT_U
 	select DPU_TCSR
 	select DPU_DDR
@@ -86,15 +92,27 @@ config DPU_BOOT_SSI_FLASH
 	select LOAD_DATA
 	select SYS_ENTR_M
 	select SYS_EXIT_M
+	select SYS_EXIT_S if DPU_CV64A
 	select SYS_EXIT_U
 	select DPU_TCSR
 	select DPU_DDR
 	select DPU_SPI_FLASH
 	select DPU_SSI_FLASH
 
+config DPU_FIRM_DDR
+	bool "Runtime target firmware (DPU-FW)"
+	select ARCH_HAS_BOOT_LOAD
+	select DPU_FIRM
+	select XIP
+	select BFM
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SYS_EXIT_S if DPU_CV64A
+	select SYS_EXIT_U
+
 endchoice
 
-menu "Bootloader options"
+menu "Bootloader/Firmware options"
 
 config DPU_LOAD
 	bool "Enable bootloader"
@@ -130,11 +148,17 @@ config DPU_BOOT_STACK
 
 endif
 
+config DPU_FIRM_SIZE
+	hex "Firmware size"
+	depends DPU_FIRM
+
 config DPU_BOOT_PE
 	bool "DPU process elements (PE)"
+	depends DPU_BOOT
 
 config DPU_BOOT_VPU
 	bool "DPU vision processor unit (VPU)"
+	depends DPU_BOOT
 
 endmenu
 
