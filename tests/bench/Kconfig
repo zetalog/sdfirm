@@ -23,11 +23,27 @@ config DHRYSTONE_WARMUPS
 config DHRYSTONE_TIME
 	bool "Run dhrystone a specific time slot"
 
+choice
+	prompt "Time measure API"
+
+config DHRYSTONE_TIME_CLOCK
+	bool "clock()"
+
+config DHRYSTONE_TIME_TSC
+	bool "tick()"
+
+endchoice
+
 config DHRYSTONE_TIMEOUT
-	int "Dhrystone timeout (usecs)"
+	int "Dhrystone timeout (ticks or clocks)"
 	depends DHRYSTONE_TIME
 	range -1 1000000
 	default -1
+
+config DHRYSTONE_TSC_TOO_SMALL
+	int "Too small ticks"
+	depends DHRYSTONE_TIME_TSC
+	default 2
 
 config DHRYSTONE_REG
 	bool "Use registers as dhrystone data"

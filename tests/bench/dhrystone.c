@@ -220,14 +220,14 @@ int dhrystone (caddr_t percpu_area)
   Expected_End_Time = dhrystone_expected_timeout();
   if (Expected_End_Time != CPU_WAIT_INFINITE)
   {
-    Expected_End_Time += clock();
+    Expected_End_Time += dhrystone_time();
   }
 #endif /* CONFIG_DHRYSTONE_TIME */
 #endif
 
   dhry_printf ("Execution starts, %d runs through Dhrystone\n", Number_Of_Runs);
 
-  Begin_Time = clock();
+  Begin_Time = dhrystone_time();
   Number_Of_Runs += DHRYSTONE_WARMUP_RUNS;
 
   for (Run_Index = 0; Run_Index <= Number_Of_Runs; ++Run_Index)
@@ -239,7 +239,7 @@ int dhrystone (caddr_t percpu_area)
       /* Start timer */
       /***************/
 
-      Begin_Time = clock();
+      Begin_Time = dhrystone_time();
     }
 
     Proc_5();
@@ -288,7 +288,7 @@ int dhrystone (caddr_t percpu_area)
 #ifdef CONFIG_DHRYSTONE_TIME
     if (unlikely(Expected_End_Time != CPU_WAIT_INFINITE) &&
         likely(Run_Index > DHRYSTONE_WARMUP_RUNS)) {
-      if (time_after(clock(), Expected_End_Time))
+      if (time_after(dhrystone_time(), Expected_End_Time))
       {
         Number_Of_Runs = Run_Index;
         break;
@@ -303,7 +303,7 @@ int dhrystone (caddr_t percpu_area)
   /**************/
 
   Number_Of_Runs -= DHRYSTONE_WARMUP_RUNS;
-  End_Time = clock();
+  End_Time = dhrystone_time();
 
   dhry_printf ("Execution ends\n");
   dhry_printf ("\n");
@@ -375,13 +375,13 @@ int dhrystone (caddr_t percpu_area)
     Dhrystones_Per_Second = (float) Number_Of_Runs / (float) User_Time;
 #else
     Microseconds = (float) User_Time
-                        / (float) Number_Of_Runs;
-    Dhrystones_Per_Second = (float) Number_Of_Runs * Mic_secs_Per_Second
+                        / (float) Number_Of_Runs / Ticks_Per_Mic;
+    Dhrystones_Per_Second = (float) Number_Of_Runs * Mic_secs_Per_Second * Ticks_Per_Mic
                         / (float) User_Time;
 #endif
 #else /* CONFIG_FP */
-    Microseconds = User_Time / Number_Of_Runs;
-    Dhrystones_Per_Second = (long long) Number_Of_Runs * Mic_secs_Per_Second
+    Microseconds = User_Time / Number_Of_Runs / Ticks_Per_Mic;
+    Dhrystones_Per_Second = (long long) Number_Of_Runs * Mic_secs_Per_Second * Ticks_Per_Mic
                         / (long long) User_Time;
 #endif /* CONFIG_FP */
     Vax_Mips = Dhrystones_Per_Second / 1757;

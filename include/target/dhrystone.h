@@ -237,8 +237,10 @@
 /* Compiler and system dependent definitions: */
 
 #define HAVE_STDBOOL_H
+#ifdef CONFIG_DHRYSTONE_TIME_CLOCK
 #define HAVE_TIME_H
 #define HAVE_CLOCK
+#endif
 
 #ifdef HOSTED
 #include <stdio.h>
@@ -265,14 +267,22 @@
 #include <target/jiffies.h>
 #endif
 
+#ifdef CONFIG_DHRYSTONE_TIME_TSC
+#define dhrystone_time()   tsc_read_counter()
+#define Too_Small_Time     CONFIG_DHRYSTONE_TSC_TOO_SMALL
+#define Ticks_Per_Mic      TICKS_TO_MICROSECONDS
+#endif
 #ifdef HAVE_TIME_H
 #include <time.h>
                 /* for time, clock */
 #ifdef HAVE_CLOCK
-#define Too_Small_Time (2*HZ)
+#define Too_Small_Time     (2*HZ)
+#define dhrystone_time()   clock()
+#define Ticks_Per_Mic      1
 #else /* HAVE_TIME */
-#define Too_Small_Time 2
-#endif
+#define Too_Small_Time     2
+#define dhrystone_time()   time(NULL)
+#endif /* HAVE_CLOCK */
 #endif
 
 #ifdef CONFIG_DHRYSTONE_REG
