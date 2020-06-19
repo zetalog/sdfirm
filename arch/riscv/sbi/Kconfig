@@ -20,6 +20,9 @@ menuconfig SBI
 	select SBI_RISCV_F if RISCV_F
 	select SBI_RISCV_D if RISCV_D
 	select SBI_RISCV_C if RISCV_C
+	select SBI_NEXT_U if !SBI_PAYLOAD && SYS_EXIT_U
+	select SBI_NEXT_S if !SBI_PAYLOAD && SYS_EXIT_S
+	select SBI_NEXT_M if !SBI_PAYLOAD && SYS_EXIT_M
 
 if SBI
 
@@ -39,13 +42,42 @@ config SBI_RISCV_S
 config SBI_RISCV_U
 	bool "Enable user mode"
 
+config SBI_NEXT_U
+	bool
+
+config SBI_NEXT_S
+	bool
+
+config SBI_NEXT_M
+	bool
+
+choice
+	prompt "Next priviledge level"
+
+# Disabled for the firmware system
+config SBI_RISCV_NEXT_U
+	bool "U-Mode"
+	depends SBI_NEXT_U
+
+config SBI_RISCV_NEXT_S
+	bool "S-Mode"
+	depends SBI_NEXT_S
+
+config SBI_RISCV_NEXT_M
+	bool "M-Mode"
+	depends SBI_NEXT_M
+
+endchoice
+
 config SBI_PAYLOAD
 	bool "Enable SBI payload binary"
 	select SBI_RISCV_F
 	select SBI_RISCV_D
 	select SBI_RISCV_C
 	select SBI_RISCV_S if RISCV_S
-	select SBI_RISCV_U
+	select SBI_RISCV_U if RISCV_U
+	select SBI_NEXT_S if RISCV_SEE
+	select SBI_NEXT_U if RISCV_AEE
 	select CONSOLE
 	select CONSOLE_OUTPUT
 	select CONSOLE_INPUT

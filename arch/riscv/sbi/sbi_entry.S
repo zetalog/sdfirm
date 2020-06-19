@@ -501,13 +501,13 @@ ENTRY(fw_next_mode)
 	 * We can only use a0, a1, and a2 registers here.
 	 * The next address should be returned in 'a0'.
 	 */
-#ifdef CONFIG_RISCV_EXIT_M
+#ifdef CONFIG_SBI_RISCV_NEXT_M
 	li	a0, PRV_M
 #endif
-#ifdef CONFIG_RISCV_EXIT_S
+#ifdef CONFIG_SBI_RISCV_NEXT_S
 	li	a0, PRV_S
 #endif
-#ifdef CONFIG_RISCV_EXIT_U
+#ifdef CONFIG_SBI_RISCV_NEXT_U
 	li	a0, PRV_U
 #endif
 	ret

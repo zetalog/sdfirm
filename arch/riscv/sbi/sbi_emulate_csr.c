@@ -10,6 +10,7 @@
 #include <target/sbi.h>
 
 #ifndef CONFIG_ARCH_HAS_SBI_TIMER
+#warn "ARCH_HAS_SBI_TIMER is not defined, using pseudo timer"
 u64 sbi_timer;
 
 u64 sbi_timer_value(struct sbi_scratch *scratch)

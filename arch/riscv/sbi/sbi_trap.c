@@ -171,24 +171,24 @@ void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch)
 
 	switch (mcause) {
 	case EXC_INSN_ILLEGAL:
-		sbi_trap_log("Illegal instruction\n");
+		sbi_trap_log("EXC_INSN_ILLEGAL\n");
 		rc  = sbi_illegal_insn_handler(hartid, mcause, regs, scratch);
 		msg = "illegal instruction handler failed";
 		break;
 	case EXC_LOAD_MISALIGNED:
-		sbi_trap_log("Misaligned load\n");
+		sbi_trap_log("EXC_LOAD_MISALIGNED\n");
 		rc = sbi_misaligned_load_handler(hartid, mcause, regs, scratch);
 		msg = "misaligned load handler failed";
 		break;
 	case EXC_STORE_MISALIGNED:
-		sbi_trap_log("Misaligned store\n");
+		sbi_trap_log("EXC_STORE_MISALIGNED\n");
 		rc  = sbi_misaligned_store_handler(hartid, mcause, regs,
 						   scratch);
 		msg = "misaligned store handler failed";
 		break;
 	case EXC_ECALL_H:
 	case EXC_ECALL_S:
-		sbi_trap_log("ECALL of S-mode\n");
+		sbi_trap_log("EXC_ECALL_x\n");
 		rc  = sbi_ecall_handler(hartid, mcause, regs, scratch);
 		msg = "ecall handler failed";
 		break;
@@ -198,20 +198,20 @@ void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch)
 	case EXC_STORE_PAGE_FAULT:
 		uptrap = sbi_hart_get_trap_info(scratch);
 		if ((regs->status & SR_MPRV) && uptrap) {
-			sbi_trap_log("Fatal page/access fault\n");
+			sbi_trap_log("EXC_x_ACCESS/EXC_x_PAGE_FAULT\n");
 			rc = 0;
 			regs->epc += uptrap->ilen;
 			uptrap->cause = mcause;
 			uptrap->tval = mtval;
 		} else {
-			sbi_trap_log("Redirected page/access fault\n");
+			sbi_trap_log("Redirected page/access exception %d\n", mcause);
 			rc = sbi_trap_redirect(regs, scratch, regs->epc,
 					       mcause, mtval);
 		}
 		msg = "page/access fault handler failed";
 		break;
 	default:
-		sbi_trap_log("Redirected unhandled exception\n");
+		sbi_trap_log("Redirected unhandled exception %d\n", mcause);
 		/* If the trap came from S or U mode, redirect it there */
 		rc = sbi_trap_redirect(regs, scratch, regs->epc, mcause, mtval);
 		break;
