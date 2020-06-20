@@ -222,7 +222,6 @@ config ARCH_SPIKE
 
 config ARCH_VIRT
 	bool "QEMU RISC-V VIRT platform"
-	select CPU_VIRT
 	select ARCH_IS_TICKLESS
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_TSC
@@ -235,6 +234,7 @@ config ARCH_VIRT
 	select ARCH_HAS_FDT
 	select CLINT
 	select PLIC if !SYS_NOIRQ
+	select VIRT_UART if UART || DEBUG_PRINT || CONSOLE
 	help
 	  This enables support for RISC-V VIRT platform.
 

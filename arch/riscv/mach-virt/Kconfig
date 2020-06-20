@@ -2,14 +2,41 @@ if ARCH_VIRT
 
 menu "QEMU RISCV (VIRT) board options"
 
+choice
+	prompt "CPU ISA"
+	default VIRT_CPU64
+	help
+	  Selects CPUs that compiled sdfirm should run against.
+
+config VIRT_CPU32
+	bool "32-bit CPU"
+	select CPU_VIRT32
+
+config VIRT_CPU64
+	bool "64-bit CPU"
+	select CPU_VIRT64
+
+endchoice
+
 config VIRT_SMP_CPUS
 	int "Number of cores per cluster"
 	depends SMP
 	range 1 8
 	default 8
 
+config VIRT_MEM_SIZE
+	hex "Memory size"
+	default 0x80000000
+
 choice
 	prompt "Program type"
+
+config VIRT_TB
+	bool "Test bench"
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SYS_EXIT_S
+	select XIP
 
 config VIRT_BBL
 	bool "Berkeley boot loader (BBL)"
@@ -20,6 +47,14 @@ config VIRT_BBL
 	select XIP
 
 endchoice
+
+config VIRT_UART
+	bool "Virtio UART controller (NS16550) support"
+	select NS16550
+
+if VIRT_UART
+
+endif
 
 endmenu
 

@@ -63,16 +63,29 @@ static int virt_pmp_region_info(u32 hartid, u32 index, ulong *prot, ulong *addr,
 	return ret;
 }
 
+#define __UART_REG(n, offset)	(__VIRT_UART_BASE + (offset))
+#define __UART_RBR(n)		__UART_REG(n, 0)
+#define __UART_LSR(n)		__UART_REG(n, 5)
+#define __UART_THR(n)		__UART_RBR(n)
+
+#define __ns16550_con_write(c)								\
+	do {										\
+		while ((uart_reg_read(__UART_LSR(UART_CON_ID)) & UART_LSR_THRE) == 0);	\
+		uart_reg_write(c, __UART_THR(UART_CON_ID));				\
+	} while (0)
+#define __ns16550_con_read()		uart_reg_read(__UART_RBR(UART_CON_ID))
+#define __ns16550_con_poll()		(uart_reg_read(__UART_LSR(UART_CON_ID)) & UART_LSR_DR)
+
 static void virt_console_putc(char ch)
 {
-	ns16550_con_write(ch);
+	__ns16550_con_write(ch);
 }
 
 static int virt_console_getc(void)
 {
-	if (!ns16550_con_poll())
+	if (!__ns16550_con_poll())
 		return -1;
-	return (int)ns16550_con_read();
+	return (int)__ns16550_con_read();
 }
 
 static int virt_irqchip_init(bool cold_boot)

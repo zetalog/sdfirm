@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2019
+ * Copyright (c) 2020
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,61 +35,19 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)uart.h: Virt specific UART (16550) interface
- * $Id: uart.h,v 1.1 2019-09-26 10:40:00 zhenglv Exp $
+ * @(#)mmu.h: QEMU virt specific MMU device mapping definition
+ * $Id: mmu.h,v 1.1 2020-06-20 09:39:00 zhenglv Exp $
  */
 
-#ifndef __UART_VIRT_H_INCLUDE__
-#define __UART_VIRT_H_INCLUDE__
+#ifndef __MMU_VIRT_H_INCLUDE__
+#define __MMU_VIRT_H_INCLUDE__
 
-#include <target/arch.h>
-#include <target/paging.h>
-#include <target/gpio.h>
-#include <target/clk.h>
+#define FIX_CLINT		(FIX_HOLE + 1)
+#define FIX_PLIC		(FIX_HOLE + 2)
+#define FIX_UART		(FIX_HOLE + 3)
+#define MMU_HW_MAX_FIXMAP	(FIX_UART + 1)
 
-#define __VIRT_UART_BASE		UART0_BASE
-#ifdef CONFIG_MMU
-#define VIRT_UART_BASE			virt_uart_reg_base
-extern caddr_t virt_uart_reg_base;
-#else
-#define VIRT_UART_BASE			__VIRT_UART_BASE
-#endif
+void virt_mmu_map_uart(int n);
+void virt_mmu_dump_maps(void);
 
-#define UART_CON_ID			0
-#define UART_BASE(n)			VIRT_UART_BASE
-#define NS16550_CLK			3686400
-#define NS16550_REG_SIZE		(1)
-
-#include <driver/ns16550.h>
-#ifndef ARCH_HAVE_UART
-#define ARCH_HAVE_UART		1
-#else
-#error "Multiple UART controller defined"
-#endif
-
-#ifdef CONFIG_DEBUG_PRINT
-void uart_hw_dbg_init(void);
-void uart_hw_dbg_start(void);
-void uart_hw_dbg_stop(void);
-void uart_hw_dbg_write(uint8_t byte);
-void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
-#endif
-
-#ifdef CONFIG_MMU
-void uart_hw_mmu_init(void);
-#endif
-
-#ifdef CONFIG_CONSOLE
-#define uart_hw_con_init()	ns16550_con_init()
-#endif
-#ifdef CONFIG_CONSOLE_OUTPUT
-#define uart_hw_con_write(byte)	ns16550_con_write(byte)
-#endif
-#ifdef CONFIG_CONSOLE_INPUT
-#define uart_hw_con_read()	ns16550_con_read()
-#define uart_hw_con_poll()	ns16550_con_poll()
-void uart_hw_irq_ack(void);
-void uart_hw_irq_init(void);
-#endif
-
-#endif /* __UART_VIRT_H_INCLUDE__ */
+#endif /* __MMU_VIRT_H_INCLUDE__ */
