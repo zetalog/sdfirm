@@ -41,7 +41,7 @@
 #define SBI_TLB_FLUSH_ALL			((unsigned long)-1)
 #define SBI_TLB_FLUSH_MAX_SIZE			(1UL << 30)
 
-#define SBI_TLB_FIFO_NUM_ENTRIES		4
+#define SBI_TLB_FIFO_NUM_ENTRIES		8
 
 #define EXTRACT_FIELD(val, which)		\
 	(((val) & (which)) / ((which) & ~((which)-1)))
@@ -137,7 +137,8 @@ struct sbi_ipi_data {
 enum sbi_tlb_info_types {
 	SBI_TLB_FLUSH_VMA,
 	SBI_TLB_FLUSH_VMA_ASID,
-	SBI_TLB_FLUSH_VMA_VMID
+	SBI_TLB_FLUSH_VMA_VMID,
+	SBI_ITLB_FLUSH
 };
 
 struct sbi_tlb_info {
@@ -145,6 +146,7 @@ struct sbi_tlb_info {
 	unsigned long size;
 	unsigned long asid;
 	unsigned long type;
+	unsigned long shart_mask;
 };
 
 struct sbi_fifo {
@@ -159,7 +161,6 @@ struct sbi_fifo {
 enum sbi_fifo_inplace_update_types {
 	SBI_FIFO_SKIP,
 	SBI_FIFO_UPDATED,
-	SBI_FIFO_RESET,
 	SBI_FIFO_UNCHANGED,
 };
 
@@ -250,9 +251,10 @@ int sbi_fifo_inplace_update(struct sbi_fifo *fifo, void *in,
 			    int (*fptr)(void *in, void *data));
 u16 sbi_fifo_avail(struct sbi_fifo *fifo);
 
-int sbi_tlb_fifo_update(struct sbi_scratch *scratch, u32 event, void *data);
-void sbi_tlb_fifo_process(struct sbi_scratch *scratch, u32 event);
+int sbi_tlb_fifo_update(struct sbi_scratch *scratch, u32 hartid, void *data);
+void sbi_tlb_fifo_process(struct sbi_scratch *scratch);
 int sbi_tlb_fifo_init(struct sbi_scratch *scratch, bool cold_boot);
+void sbi_tlb_fifo_sync(struct sbi_scratch *scratch);
 
 u64 sbi_timer_value(struct sbi_scratch *scratch);
 #ifdef CONFIG_ARCH_HAS_SBI_TIMER

@@ -50,8 +50,8 @@ static void __noreturn sbi_trap_error(const char *msg, int rc,
 		   hartid, "t2", regs->t2, "t3", regs->t3);
 	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
 		   hartid, "t4", regs->t4, "t5", regs->t5);
-	sbi_printf("%s: hart%d: %s=0x%" PRILX "\n", __func__,
-		   hartid, "t6", regs->t6);
+	sbi_printf("%s: hart%d: %s=0x%" PRILX "\n", __func__, hartid, "t6",
+		   regs->t6);
 
 	hart_hang();
 }

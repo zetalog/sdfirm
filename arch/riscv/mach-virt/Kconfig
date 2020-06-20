@@ -2,6 +2,12 @@ if ARCH_VIRT
 
 menu "QEMU RISCV (VIRT) board options"
 
+config VIRT_SMP_CPUS
+	int "Number of cores per cluster"
+	depends SMP
+	range 1 8
+	default 8
+
 choice
 	prompt "Program type"
 

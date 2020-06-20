@@ -35,6 +35,7 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 	int ret = -ENOTSUP;
 	struct unpriv_trap uptrap;
 	__unused struct sbi_tlb_info tlb_info;
+	u32 source_hart = sbi_current_hartid();
 
 	switch (regs->a7) {
 	case SBI_ECALL_SET_TIMER:
@@ -67,14 +68,19 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 		break;
 	case SBI_ECALL_REMOTE_FENCE_I:
 		sbi_trap_log("ECALL_REMOTE_FENCE_I\n");
+		tlb_info.start = 0;
+		tlb_info.size  = 0;
+		tlb_info.type  = SBI_ITLB_FLUSH;
+		tlb_info.shart_mask = 1UL << source_hart;
 		ret = sbi_ipi_send_many(scratch, &uptrap, (ulong *)regs->a0,
-					SBI_IPI_EVENT_FENCE_I, NULL);
+					SBI_IPI_EVENT_FENCE_I, &tlb_info);
 		break;
 	case SBI_ECALL_REMOTE_SFENCE_VMA:
 		sbi_trap_log("ECALL_REMOTE_SFENCE_VMA\n");
 		tlb_info.start = (unsigned long)regs->a1;
 		tlb_info.size  = (unsigned long)regs->a2;
 		tlb_info.type  = SBI_TLB_FLUSH_VMA;
+		tlb_info.shart_mask = 1UL << source_hart;
 
 		ret = sbi_ipi_send_many(scratch, &uptrap, (ulong *)regs->a0,
 					SBI_IPI_EVENT_SFENCE_VMA, &tlb_info);
@@ -85,6 +91,7 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 		tlb_info.size  = (unsigned long)regs->a2;
 		tlb_info.asid  = (unsigned long)regs->a3;
 		tlb_info.type  = SBI_TLB_FLUSH_VMA_ASID;
+		tlb_info.shart_mask = 1UL << source_hart;
 
 		ret = sbi_ipi_send_many(scratch, &uptrap, (ulong *)regs->a0,
 					SBI_IPI_EVENT_SFENCE_VMA_ASID,
