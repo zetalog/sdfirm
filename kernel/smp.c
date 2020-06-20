@@ -105,7 +105,7 @@ int ipi_sanity(caddr_t percpu_area)
 
 	sbi_enable_log();
 	for_each_cpu(cpu, &smp_online_cpus) {
-		printf("%d Sending IPI to %d\n", smp_processor_id(), cpu);
+		printf("SMP: %d sending IPI to %d\n", smp_processor_id(), cpu);
 		if (cpu != smp_processor_id())
 			smp_cpu_off(cpu);
 	}

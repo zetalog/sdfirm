@@ -23,12 +23,16 @@
 struct sbi_scratch *sbi_scratches[MAX_HARTS];
 
 #ifdef CONFIG_CONSOLE_OUTPUT
-void __sbi_late_init(void)
+void sbi_boot_hart_prints(void)
 {
-	cpu_t hartid = sbi_current_hartid();
+	u32 hartid = sbi_current_hartid();
 	struct sbi_scratch *scratch = sbi_scratches[hartid];
-	caddr_t sp = (caddr_t)scratch + SBI_SCRATCH_SIZE;
+	caddr_t sp;
 
+	if (!(scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS))
+		return;
+
+	sp = (caddr_t)scratch + SBI_SCRATCH_SIZE;
 	sbi_printf("Current Hart           : %u\n", hartid);
 	sbi_printf("Current CPU            : %u\n", sbi_processor_id());
 	sbi_printf("Current Thread Pointer : 0x%016lx\n", scratch);
@@ -36,17 +40,15 @@ void __sbi_late_init(void)
 		   sp - PERCPU_STACK_SIZE, sp);
 }
 
-void sbi_late_init(void)
+void sbi_boot_prints(void)
 {
 	char str[64];
 	cpu_t hartid = sbi_current_hartid();
 	struct sbi_scratch *scratch = sbi_scratches[hartid];
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 
-#if 0
 	if (!(scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS))
 		return;
-#endif
 
 	misa_string(str, sizeof(str));
 	sbi_printf("\nOpenSBI v%d.%d (%s %s)\n",
@@ -70,14 +72,81 @@ void sbi_late_init(void)
 		   sbi_ecall_version_major(), sbi_ecall_version_minor());
 	sbi_printf("Platform Max HARTs     : %d\n", MAX_HARTS);
 	sbi_printf("Firmware Max CPUs      : %d\n", NR_CPUS);
-	__sbi_late_init();
+	sbi_boot_hart_prints();
 
 	pmp_dump(0, NULL);
 }
 #else
-#define __sbi_late_init()		do { } while (0)
-#define sbi_late_init()			do { } while (0)
+#define sbi_boot_hart_prints()		do { } while (0)
+#define sbi_boot_prints()		do { } while (0)
 #endif
+
+#define COLDBOOT_WAIT_BITMAP_SIZE __riscv_xlen
+static DEFINE_SPINLOCK(coldboot_lock);
+static unsigned long coldboot_done = 0;
+static unsigned long coldboot_wait_bitmap = 0;
+
+static void wait_for_coldboot(struct sbi_scratch *scratch, u32 cpu)
+{
+	unsigned long saved_mie;
+	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+
+	if (cpu >= NR_CPUS ||
+	    (COLDBOOT_WAIT_BITMAP_SIZE <= cpu))
+		hart_hang();
+
+	/* Save MIE CSR */
+	saved_mie = csr_read(CSR_MIE);
+
+	/* Set MSIE bit to receive IPI */
+	csr_set(CSR_MIE, IR_MSI);
+
+	/* Acquire coldboot lock */
+	spin_lock(&coldboot_lock);
+
+	/* Mark current HART as waiting */
+	coldboot_wait_bitmap |= (1UL << cpu);
+
+	/* Wait for coldboot to finish using WFI */
+	while (!coldboot_done) {
+		spin_unlock(&coldboot_lock);
+		wfi();
+		spin_lock(&coldboot_lock);
+	};
+
+	/* Unmark current HART as waiting */
+	coldboot_wait_bitmap &= ~(1UL << cpu);
+
+	/* Release coldboot lock */
+	spin_unlock(&coldboot_lock);
+
+	/* Restore MIE CSR */
+	csr_write(CSR_MIE, saved_mie);
+
+	/* Clear current HART IPI */
+	sbi_platform_ipi_clear(plat, smp_hw_cpu_hart(cpu));
+}
+
+static void wake_coldboot_harts(struct sbi_scratch *scratch, u32 cpu)
+{
+	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+	int i;
+
+	/* Acquire coldboot lock */
+	spin_lock(&coldboot_lock);
+
+	/* Mark coldboot done */
+	coldboot_done = 1;
+
+	/* Send an IPI to all HARTs waiting for coldboot */
+	for (i = 0; i < NR_CPUS; i++) {
+		if ((i != cpu) && (coldboot_wait_bitmap & (1UL << i)))
+			sbi_platform_ipi_send(plat, i);
+	}
+
+	/* Release coldboot lock */
+	spin_unlock(&coldboot_lock);
+}
 
 static void __noreturn init_coldboot(void)
 {
@@ -109,11 +178,11 @@ static void __noreturn init_coldboot(void)
 	if (rc)
 		hart_hang();
 
+	sbi_boot_prints();
+
 	if (!sbi_platform_has_hart_hotplug(plat))
-		sbi_cpu_wake_coldboot_cpus(scratch,
-			smp_hw_hart_cpu(hartid));
+		wake_coldboot_harts(scratch, smp_hw_hart_cpu(hartid));
 	sbi_hart_mark_available(hartid);
-	sbi_late_init();
 	sbi_hart_switch_mode(hartid, scratch->next_arg1, scratch->next_addr,
 			     scratch->next_mode);
 }
@@ -126,8 +195,7 @@ static void __noreturn init_warmboot(void)
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 
 	if (!sbi_platform_has_hart_hotplug(plat))
-		sbi_cpu_wait_for_coldboot(scratch,
-			smp_hw_hart_cpu(hartid));
+		wait_for_coldboot(scratch, smp_hw_hart_cpu(hartid));
 
 	if (sbi_platform_hart_disabled(plat, hartid))
 		hart_hang();
@@ -157,7 +225,7 @@ static void __noreturn init_warmboot(void)
 		/* TODO: To be implemented in-future. */
 		hart_hang();
 	else {
-		__sbi_late_init();
+		sbi_boot_hart_prints();
 		sbi_hart_switch_mode(hartid, scratch->next_arg1,
 				     scratch->next_addr, scratch->next_mode);
 	}
@@ -190,7 +258,7 @@ void __noreturn sbi_init(void)
 
 	sbi_scratches[hartid] = scratch;
 
-	if (atomic_add_return(1, &coldboot_lottery) == 1)
+	if (atomic_xchg(&coldboot_lottery, 1) == 0)
 		coldboot = true;
 
 	if (coldboot)
