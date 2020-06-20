@@ -73,10 +73,12 @@ void smp_init(void)
 		bh_init();
 		timer_init();
 		task_init();
+		smp_hw_ctrl_init();
 		bench_init();
 	} else {
 		cpu_t cpu;
 
+		smp_hw_ctrl_init();
 		for (cpu = 0; cpu < NR_CPUS; cpu++) {
 			if (cpu != smp_boot_cpu) {
 				smp_cpu_on(cpu, (caddr_t)smp_init);
@@ -96,3 +98,19 @@ void smp_init(void)
 	bh_loop();
 }
 #endif
+
+int ipi_sanity(caddr_t percpu_area)
+{
+	cpu_t cpu;
+
+	sbi_enable_log();
+	for_each_cpu(cpu, &smp_online_cpus) {
+		printf("%d Sending IPI to %d\n", smp_processor_id(), cpu);
+		if (cpu != smp_processor_id())
+			smp_cpu_off(cpu);
+	}
+	sbi_disable_log();
+	return 1;
+}
+__define_testfn(ipi_sanity, 0, SMP_CACHE_BYTES,
+		CPU_EXEC_META, 1, CPU_WAIT_INFINITE);

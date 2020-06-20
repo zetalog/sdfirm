@@ -77,6 +77,8 @@ static inline uintptr_t __smp_processor_stack_top(void)
 cpu_t smp_hw_cpu_id(void);
 void smp_hw_cpu_boot(void);
 void smp_hw_cpu_on(cpu_t cpu, caddr_t ep);
+void smp_hw_cpu_off(cpu_t cpu);
+void smp_hw_ctrl_init(void);
 #endif /* __ASSEMBLY__ */
 #ifdef CONFIG_RISCV_EXIT_M
 #define __smp_processor_id()	sbi_processor_id()

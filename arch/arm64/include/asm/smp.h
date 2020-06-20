@@ -75,6 +75,7 @@ static inline uintptr_t __smp_processor_stack_top(void)
 cpu_t smp_hw_cpu_id(void);
 void smp_hw_cpu_boot(void);
 void smp_hw_cpu_on(cpu_t cpu, caddr_t ep);
+#define smp_hw_ctrl_init()		do { } while (0)
 #endif
 #endif
 

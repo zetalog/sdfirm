@@ -39,7 +39,7 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 
 	switch (regs->a7) {
 	case SBI_ECALL_SET_TIMER:
-		sbi_trap_log("ECALL_SET_TIMER\n");
+		sbi_trap_log("%d: ECALL_SET_TIMER\n", source_hart);
 #if __riscv_xlen == 32
 		sbi_timer_event_start(scratch,
 				      (((u64)regs->a1 << 32) | (u64)regs->a0));
@@ -57,17 +57,17 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 		ret = 0;
 		break;
 	case SBI_ECALL_CLEAR_IPI:
-		sbi_trap_log("ECALL_CLEAR_IPI\n");
+		sbi_trap_log("%d: ECALL_CLEAR_IPI\n", source_hart);
 		sbi_ipi_clear_smode(scratch);
 		ret = 0;
 		break;
 	case SBI_ECALL_SEND_IPI:
-		sbi_trap_log("ECALL_SEND_IPI\n");
+		sbi_trap_log("%d: ECALL_SEND_IPI\n", source_hart);
 		ret = sbi_ipi_send_many(scratch, &uptrap, (ulong *)regs->a0,
 					SBI_IPI_EVENT_SOFT, NULL);
 		break;
 	case SBI_ECALL_REMOTE_FENCE_I:
-		sbi_trap_log("ECALL_REMOTE_FENCE_I\n");
+		sbi_trap_log("%d: ECALL_REMOTE_FENCE_I\n", source_hart);
 		tlb_info.start = 0;
 		tlb_info.size  = 0;
 		tlb_info.type  = SBI_ITLB_FLUSH;
@@ -76,7 +76,7 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 					SBI_IPI_EVENT_FENCE_I, &tlb_info);
 		break;
 	case SBI_ECALL_REMOTE_SFENCE_VMA:
-		sbi_trap_log("ECALL_REMOTE_SFENCE_VMA\n");
+		sbi_trap_log("%d: ECALL_REMOTE_SFENCE_VMA\n", source_hart);
 		tlb_info.start = (unsigned long)regs->a1;
 		tlb_info.size  = (unsigned long)regs->a2;
 		tlb_info.type  = SBI_TLB_FLUSH_VMA;
@@ -86,7 +86,7 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 					SBI_IPI_EVENT_SFENCE_VMA, &tlb_info);
 		break;
 	case SBI_ECALL_REMOTE_SFENCE_VMA_ASID:
-		sbi_trap_log("ECALL_REMOTE_SFENCE_VMA_ASID\n");
+		sbi_trap_log("%d: ECALL_REMOTE_SFENCE_VMA_ASID\n", source_hart);
 		tlb_info.start = (unsigned long)regs->a1;
 		tlb_info.size  = (unsigned long)regs->a2;
 		tlb_info.asid  = (unsigned long)regs->a3;
@@ -98,7 +98,7 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 					&tlb_info);
 		break;
 	case SBI_ECALL_SHUTDOWN:
-		sbi_trap_log("ECALL_SHUTDOWN\n");
+		sbi_trap_log("%d: ECALL_SHUTDOWN\n", source_hart);
 		sbi_system_shutdown(scratch, 0);
 		ret = 0;
 		break;

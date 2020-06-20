@@ -130,10 +130,6 @@ enum sbi_scratch_options {
 	SBI_SCRATCH_NO_BOOT_PRINTS = (1 << 0),
 };
 
-struct sbi_ipi_data {
-	atomic_t ipi_type;
-};
-
 enum sbi_tlb_info_types {
 	SBI_TLB_FLUSH_VMA,
 	SBI_TLB_FLUSH_VMA_ASID,

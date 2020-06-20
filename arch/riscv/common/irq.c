@@ -36,6 +36,13 @@ void do_riscv_interrupt(struct pt_regs *regs)
 		irqc_hw_handle_irq();
 		return;
 	}
+	if (irq == IRQ_SOFT) {
+#ifdef CONFIG_RISCV_IRQ_VERBOSE
+		printf("Soft IRQ\n");
+#endif
+		riscv_handle_irq();
+		return;
+	}
 	if (irq == IRQ_TIMER) {
 #ifdef CONFIG_RISCV_IRQ_VERBOSE
 		printf("Timer IRQ\n");

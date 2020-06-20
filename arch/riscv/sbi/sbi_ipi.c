@@ -10,9 +10,13 @@
 
 #include <target/sbi.h>
 
+struct sbi_ipi_data {
+	atomic_t ipi_type;
+};
+
 static unsigned long ipi_data_off;
 
-static int sbi_ipi_send(struct sbi_scratch *scratch, u32 cpu,
+static int sbi_ipi_send(struct sbi_scratch *scratch, cpu_t cpu,
 			u32 event, void *data)
 {
 	int ret;
@@ -103,23 +107,23 @@ void sbi_ipi_process(struct sbi_scratch *scratch)
 
 		switch (ipi_event) {
 		case SBI_IPI_EVENT_SOFT:
-			sbi_trap_log("IPI_EVENT_SOFT\n");
+			sbi_trap_log("%d: IPI_EVENT_SOFT\n", hartid);
 			csr_set(CSR_MIP, IR_SSI);
 			break;
 		case SBI_IPI_EVENT_FENCE_I:
-			sbi_trap_log("IPI_EVENT_FENCE_I\n");
+			sbi_trap_log("%d: IPI_EVENT_FENCE_I\n", hartid);
 			sbi_tlb_fifo_process(scratch);
 			break;
 		case SBI_IPI_EVENT_SFENCE_VMA:
-			sbi_trap_log("IPI_EVENT_SFENCE_VMA\n");
+			sbi_trap_log("%d: IPI_EVENT_SFENCE_VMA\n", hartid);
 			sbi_tlb_fifo_process(scratch);
 			break;
 		case SBI_IPI_EVENT_SFENCE_VMA_ASID:
-			sbi_trap_log("IPI_EVENT_SFENCE_VMA_ASID\n");
+			sbi_trap_log("%d: IPI_EVENT_SFENCE_VMA_ASID\n", hartid);
 			sbi_tlb_fifo_process(scratch);
 			break;
 		case SBI_IPI_EVENT_HALT:
-			sbi_trap_log("IPI_EVENT_HALT\n");
+			sbi_trap_log("%d: IPI_EVENT_HALT\n", hartid);
 			hart_hang();
 			break;
 		default:

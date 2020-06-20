@@ -189,7 +189,6 @@ void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch)
 		break;
 	case EXC_ECALL_H:
 	case EXC_ECALL_S:
-		sbi_trap_log("EXC_ECALL_x\n");
 		rc  = sbi_ecall_handler(hartid, mcause, regs, scratch);
 		msg = "ecall handler failed";
 		break;

@@ -78,8 +78,14 @@ extern bool smp_initialized;
 #define cpumask_set_cpu(cpu, maskp)	set_bit((cpu), cpumask_bits(maskp))
 #define cpumask_clear_cpu(cpu, maskp)	clear_bit((cpu), cpumask_bits(maskp))
 #define cpumask_test_cpu(cpu, maskp)	test_bit((cpu), cpumask_bits(maskp))
+
+#define cpumask_first(srcp)		find_first_set_bit(cpumask_bits(srcp), NR_CPUS)
+#define cpumask_next(n, srcp)		find_next_set_bit(cpumask_bits(srcp), NR_CPUS, n + 1)
+#define for_each_cpu(cpu, mask)		\
+	for ((cpu) = cpumask_first(mask); (cpu) = cpumask_next((cpu), (mask)), (cpu) < NR_CPUS;)
 #endif
 #define smp_cpu_on(cpu, ep)		smp_hw_cpu_on(cpu, ep)
+#define smp_cpu_off(cpu)		smp_hw_cpu_off(cpu)
 #else
 #ifndef __SMP_CACHE_BYTES
 #define SMP_CACHE_BYTES			1
@@ -98,6 +104,11 @@ extern cpu_mask_t smp_online_cpus;
 #define cpumask_set_cpu(cpu, maskp)	(*(maskp) = 1)
 #define cpumask_clear_cpu(cpu, maskp)	(*(maskp) = 0)
 #define cpumask_test_cpu(cpu, maskp)	(C(cpu) == *(maskp))
+#define cpumask_first(srcp)		(0)
+/* Valid inputs for n are -1 and 0. */
+#define cpumask_next(n, *srcp)		((n)+1)
+#define for_each_cpu(cpu, mask)			\
+	for ((cpu) = 0; (cpu) < 1; (cpu)++, (void)mask)
 
 #define smp_cpu_on(cpu, ep, context)	do { } while (0)
 #endif /* __ASSEMBLY__ */
