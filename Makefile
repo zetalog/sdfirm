@@ -697,17 +697,17 @@ ifeq ($(CONFIG_GEM5),y)
 quiet_cmd_simpoint_slice_gem5 = GEN     init/gem5/simpoint_slice.gem5
       cmd_simpoint_slice_gem5 = set -e;				\
         echo "GEM5_SRC=$(CONFIG_GEM5_PATH)" >			\
-		init/gem5/simpoint_slice.gem5;			\
+		$(srctree)/init/gem5/simpoint_slice.gem5;	\
         echo "SE_ARCH=$(ARCH)" >>				\
-		init/gem5/simpoint_slice.gem5;			\
+		$(srctree)init/gem5/simpoint_slice.gem5;	\
         echo "SE_PROG=$(CONFIG_GEM5_PROGRAM)" >>		\
-		init/gem5/simpoint_slice.gem5;			\
+		$(srctree)/init/gem5/simpoint_slice.gem5;	\
         echo "SIM_CHECKPOINT=$(CONFIG_GEM5_CHECKPOINT)" >>	\
-		init/gem5/simpoint_slice.gem5;
+		$(srctree)/init/gem5/simpoint_slice.gem5;
 else
 quiet_cmd_simpoint_slice_gem5 = GEN     init/gem5/simpoint_slice.gem5
       cmd_simpoint_slice_gem5 = set -e				\
-	echo GEM5_DISABLE > init/gem5/simpoint_slice.gem5
+	echo GEM5_DISABLE > $(srctree)/init/gem5/simpoint_slice.gem5
 endif
 
 init/gem5/simpoint_slice.gem5: .config $(srctree)/Makefile $(srctree)/scripts/gem5sim.sh
