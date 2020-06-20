@@ -89,6 +89,7 @@ menuconfig UART_SUNXI
 	depends !ARM_DCC
 	select ARCH_HAS_NS16550
 	select NS16550
+	select ARCH_HAS_NS16550_MEM32
 	select GPIO
 	default y
 	help

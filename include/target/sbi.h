@@ -5,6 +5,7 @@
 #include <target/irq.h>
 #include <target/jiffies.h>
 #include <target/console.h>
+#include <target/atomic.h>
 
 #define OPENSBI_VERSION_MAJOR 0
 #define OPENSBI_VERSION_MINOR 4

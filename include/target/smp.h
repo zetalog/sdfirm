@@ -106,11 +106,12 @@ extern cpu_mask_t smp_online_cpus;
 #define cpumask_test_cpu(cpu, maskp)	(C(cpu) == *(maskp))
 #define cpumask_first(srcp)		(0)
 /* Valid inputs for n are -1 and 0. */
-#define cpumask_next(n, *srcp)		((n)+1)
+#define cpumask_next(n, srcp)		((n)+1)
 #define for_each_cpu(cpu, mask)			\
 	for ((cpu) = 0; (cpu) < 1; (cpu)++, (void)mask)
 
 #define smp_cpu_on(cpu, ep, context)	do { } while (0)
+#define smp_cpu_off(cpu)		do { } while (0)
 #endif /* __ASSEMBLY__ */
 #endif
 #define __cache_aligned			__align(SMP_CACHE_BYTES)

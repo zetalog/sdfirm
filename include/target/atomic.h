@@ -45,6 +45,7 @@
 #include <target/irq.h>
 #include <target/barrier.h>
 
+#ifndef __ASSEMBLY__
 /* The idea here is to build acquire/release variants by adding explicit
  * barriers on top of the relaxed variant. In the case where the relaxed
  * variant is already fully ordered, no additional barriers are needed.
@@ -92,6 +93,15 @@
 
 #ifdef CONFIG_SMP
 #include <asm/atomic.h>
+#else /* CONFIG_SMP */
+#ifndef xchg
+unsigned long __xchg(unsigned long x, volatile void *ptr, int size);
+#define xchg(ptr, x) ({							\
+	((__typeof__(*(ptr)))						\
+		__xchg((unsigned long)(x), (ptr), sizeof(*(ptr))));	\
+})
+#endif /* xchg */
+#endif /* CONFIG_SMP */
 
 #ifndef xchg_relaxed
 #define xchg_relaxed		xchg
@@ -125,6 +135,7 @@
 #endif
 #endif /* cmpxchg_relaxed */
 
+#ifdef CONFIG_SMP
 #ifndef atomic_try_cmpxchg_relaxed
 #ifdef atomic_try_cmpxchg
 #define atomic_try_cmpxchg_acquire atomic_try_cmpxchg
@@ -318,6 +329,9 @@ ATOMIC_NOP(xor, ^)
 #define atomic_sub_and_test(i,v)	(atomic_sub_return((i), (v)) == 0)
 #define atomic_inc_and_test(v)		(atomic_inc_return(v) == 0)
 #define atomic_dec_and_test(v)		(atomic_sub_return(1, (v)) == 0)
+#define atomic_xchg(ptr, v)		(xchg(&(ptr)->counter, (v)))
+#define atomic_cmpxchg(v, old, new)	(cmpxchg(&((v)->counter), (old), (new)))
 #endif
+#endif /* __ASSEMBLY__ */
 
 #endif /* __ATOMIC_H_INCLUDE__ */

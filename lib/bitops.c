@@ -1,5 +1,7 @@
 #include <target/generic.h>
 #include <target/atomic.h>
+#include <target/panic.h>
+#include <target/irq.h>
 
 #ifdef CONFIG_BIT_HWEIGHT64
 uint8_t hweight64(uint64_t quad)
@@ -359,5 +361,61 @@ uint8_t __fls64(uint64_t quad)
 		num -= 1;
 	}
 	return num;
+}
+#endif
+
+#ifndef CONFIG_SMP
+unsigned long __xchg(unsigned long x, volatile void *ptr, int size)
+{
+	unsigned long ret;
+	irq_flags_t flags;
+
+	switch (size) {
+	case 1:
+#ifdef __xchg_u8
+		return __xchg_u8(x, ptr);
+#else
+		irq_local_save(flags);
+		ret = *(volatile uint8_t *)ptr;
+		*(volatile uint8_t *)ptr = x;
+		irq_local_restore(flags);
+		return ret;
+#endif /* __xchg_u8 */
+	case 2:
+#ifdef __xchg_u16
+		return __xchg_u16(x, ptr);
+#else
+		irq_local_save(flags);
+		ret = *(volatile uint16_t *)ptr;
+		*(volatile uint16_t *)ptr = x;
+		irq_local_restore(flags);
+		return ret;
+#endif /* __xchg_u16 */
+	case 4:
+#ifdef __xchg_u32
+		return __xchg_u32(x, ptr);
+#else
+		irq_local_save(flags);
+		ret = *(volatile uint32_t *)ptr;
+		*(volatile uint32_t *)ptr = x;
+		irq_local_restore(flags);
+		return ret;
+#endif /* __xchg_u32 */
+#ifdef CONFIG_64BIT
+	case 8:
+#ifdef __xchg_u64
+		return __xchg_u64(x, ptr);
+#else
+		irq_local_save(flags);
+		ret = *(volatile uint64_t *)ptr;
+		*(volatile uint64_t *)ptr = x;
+		irq_local_restore(flags);
+		return ret;
+#endif /* __xchg_u64 */
+#endif /* CONFIG_64BIT */
+	default:
+		BUG();
+		return x;
+	}
 }
 #endif

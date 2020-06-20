@@ -47,6 +47,9 @@ config ARCH_HAS_NS16550_FIFO_1024
 config ARCH_HAS_NS16550_FIFO_2048
 	bool
 
+config ARCH_HAS_NS16550_MEM32
+	bool
+
 menuconfig NS16550
 	bool "National Semiconductor 16550 UART support"
 	depends ARCH_HAS_NS16550

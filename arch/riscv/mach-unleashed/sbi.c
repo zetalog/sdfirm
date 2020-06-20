@@ -131,7 +131,7 @@ static int fu540_pmp_region_info(u32 hartid, u32 index, ulong *prot,
 static void fu540_console_putc(char ch)
 {
 	while (!sifive_uart_write_poll(UART_CON_ID));
-	sifive_uart_write_byte(UART_CON_ID, byte);
+	sifive_uart_write_byte(UART_CON_ID, ch);
 }
 
 static int fu540_console_getc(void)

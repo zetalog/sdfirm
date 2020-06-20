@@ -1,24 +1,42 @@
 /*
- * NS16550 Serial Port
- * originally from linux source (arch/powerpc/boot/ns16550.h)
+ * ZETALOG's Personal COPYRIGHT
  *
- * Cleanup and unification
- * (C) 2009 by Detlev Zundel, DENX Software Engineering GmbH
+ * Copyright (c) 2020
+ *    ZETALOG - "Lv ZHENG".  All rights reserved.
+ *    Author: Lv "Zetalog" Zheng
+ *    Internet: zhenglv@hotmail.com
  *
- * modified slightly to
- * have addresses as offsets from CONFIG_SYS_ISA_BASE
- * added a few more definitions
- * added prototypes for ns16550.c
- * reduced no of com ports to 2
- * modifications (c) Rob Taylor, Flying Pig Systems. 2000.
+ * This COPYRIGHT used to protect Personal Intelligence Rights.
+ * Redistribution and use in source and binary forms with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *    This product includes software developed by the Lv "Zetalog" ZHENG.
+ * 3. Neither the name of this software nor the names of its developers may
+ *    be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ * 4. Permission of redistribution and/or reuse of souce code partially only
+ *    granted to the developer(s) in the companies ZETALOG worked.
+ * 5. Any modification of this software should be published to ZETALOG unless
+ *    the above copyright notice is no longer declaimed.
  *
- * added support for port on 64-bit bus
- * by Richard Danter (richard.danter@windriver.com), (C) 2005 Wind River Systems
- */
-
-/*
- * Note that the following macro magic uses the fact that the compiler
- * will not allocate storage for arrays of size 0
+ * THIS SOFTWARE IS PROVIDED BY THE ZETALOG AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE ZETALOG OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * @(#)ns16550.c: National semi 16550 UART interface
+ * $Id: ns16550.c,v 1.1 2020-06-20 11:48:00 zhenglv Exp $
  */
 
 #ifndef __NS16550_UART_H_INCLUDE__
@@ -26,69 +44,80 @@
 
 #include <target/arch.h>
 
-struct serial_device {
-	/* enough bytes to match alignment of following func pointer */
-	char	name[16];
+#ifndef NS16550_IER
+#define NS16550_IER  0x00
+#endif /* NS16550_IER */
 
-	int	(*start)(void);
-	int	(*stop)(void);
-	void	(*setbrg)(void);
-	int	(*getc)(void);
-	int	(*tstc)(void);
-	void	(*putc)(const char c);
-	void	(*puts)(const char *s);
-//	struct serial_device	*next;
-};
-
-#ifndef CONFIG_SYS_NS16550_REG_SIZE
+/*
+ * Note that the following macro magic uses the fact that the compiler
+ * will not allocate storage for arrays of size 0
+ */
+#ifndef NS16550_REG_SIZE
 /*
  * For driver model we always use one byte per register, and sort out the
  * differences in the driver
  */
-#define CONFIG_SYS_NS16550_REG_SIZE (-1)
+#define NS16550_REG_SIZE (-1)
 #endif
 
-#if !defined(CONFIG_SYS_NS16550_REG_SIZE) || (CONFIG_SYS_NS16550_REG_SIZE == 0)
+#if !defined(NS16550_REG_SIZE) || (NS16550_REG_SIZE == 0)
 #error "Please define NS16550 registers size."
-#elif defined(CONFIG_SYS_NS16550_MEM32) && !defined(CONFIG_DM_SERIAL)
-#define UART_REG(x) uint32_t x
-#elif (CONFIG_SYS_NS16550_REG_SIZE > 0)
-#define UART_REG(x)						   \
-	unsigned char prepad_##x[CONFIG_SYS_NS16550_REG_SIZE - 1]; \
-	unsigned char x;
-#elif (CONFIG_SYS_NS16550_REG_SIZE < 0)
-#define UART_REG(x)							\
-	unsigned char x;						\
-	unsigned char postpad_##x[-CONFIG_SYS_NS16550_REG_SIZE - 1];
+#elif defined(CONFIG_ARCH_HAS_NS16550_MEM32)
+#define UART_REG2(n, offset)		(UART_BASE(n) + (offset) << 2)
+#define uart_reg_write(v, reg)		__raw_writel(v, reg)
+#define uart_reg_read(reg)		__raw_readl(reg)
+#define UART_REG(x)			uint32_t x
+#elif (NS16550_REG_SIZE == -4)
+#define UART_REG2(n, offset)		(UART_BASE(n) + (offset) << 2)
+#define uart_reg_write(v, reg)		__raw_writeb(v, reg)
+#define uart_reg_read(reg)		__raw_readb(reg)
+#define UART_REG(x)			\
+	uint8_t x;			\
+	uint8_t postpad_##x[3];
+#elif (NS16550_REG_SIZE == -2)
+#define UART_REG2(n, offset)		(UART_BASE(n) + (offset) << 1)
+#define uart_reg_write(v, reg)		__raw_writeb(v, reg)
+#define uart_reg_read(reg)		__raw_readb(reg)
+#define UART_REG(x)			\
+	uint8_t x;			\
+	uint8_t postpad_##x;
+#elif (NS16550_REG_SIZE == 4)
+#define UART_REG2(n, offset)		(UART_BASE(n) + (offset) << 2)
+#define uart_reg_write(v, reg)		__raw_writeb(v, reg)
+#define uart_reg_read(reg)		__raw_readb(reg)
+#define UART_REG(x)			\
+	uint8_t prepad_##x[3];		\
+	uint8_t x;
+#elif (NS16550_REG_SIZE == 2)
+#define UART_REG2(n, offset)		(UART_BASE(n) + (offset) << 1)
+#define uart_reg_write(v, reg)		__raw_writeb(v, reg)
+#define uart_reg_read(reg)		__raw_readb(reg)
+#define UART_REG(x)			\
+	uint8_t prepad_##x;		\
+	uint8_t x;
+#else /* (NS16550_REG_SIZE == -1) || (NS16550_REG_SIZE == 1) */
+#define UART_REG2(n, offset)		(UART_BASE(n) + (offset))
+#define uart_reg_write(v, reg)		__raw_writeb(v, reg)
+#define uart_reg_read(reg)		__raw_readb(reg)
+#define UART_REG(x)			uint8_t x
 #endif
 
-struct NS16550 {
-	UART_REG(rbr);		/* 0 */
-	UART_REG(ier);		/* 1 */
-	UART_REG(fcr);		/* 2 */
-	UART_REG(lcr);		/* 3 */
-	UART_REG(mcr);		/* 4 */
-	UART_REG(lsr);		/* 5 */
-	UART_REG(msr);		/* 6 */
-	UART_REG(spr);		/* 7 */
-	UART_REG(mdr1);		/* 8 */
-	UART_REG(reg9);		/* 9 */
-	UART_REG(regA);		/* A */
-	UART_REG(regB);		/* B */
-	UART_REG(regC);		/* C */
-	UART_REG(regD);		/* D */
-	UART_REG(regE);		/* E */
-	UART_REG(uasr);		/* F */
-	UART_REG(scr);		/* 10*/
-	UART_REG(ssr);		/* 11*/
-};
-
-#define thr rbr
-#define iir fcr
-#define dll rbr
-#define dlm ier
-
-typedef struct NS16550 *NS16550_t;
+#define UART_RBR(n)		UART_REG2(n, 0)
+#define UART_IER(n)		UART_REG2(n, 1)
+#define UART_FCR(n)		UART_REG2(n, 2)
+#define UART_LCR(n)		UART_REG2(n, 3)
+#define UART_MCR(n)		UART_REG2(n, 4)
+#define UART_LSR(n)		UART_REG2(n, 5)
+#define UART_MSR(n)		UART_REG2(n, 6)
+#define UART_SPR(n)		UART_REG2(n, 7)
+#define UART_MDR1(n)		UART_REG2(n, 8)
+#define UART_UASR(n)		UART_REG2(n, 15)
+#define UART_SCR(n)		UART_REG2(n, 16)
+#define UART_SSR(n)		UART_REG2(n, 17)
+#define UART_THR(n)		UART_RBR(n)
+#define UART_IIR(n)		UART_FCR(n)
+#define UART_DLL(n)		UART_RBR(n)
+#define UART_DLM(n)		UART_IER(n)
 
 /*
  * These are the definitions for the FIFO Control Register
@@ -189,11 +218,15 @@ typedef struct NS16550 *NS16550_t;
 /* useful defaults for LCR */
 #define UART_LCR_8N1	0x03
 
-void NS16550_init(NS16550_t com_port, int baud_divisor);
-void NS16550_putc(NS16550_t com_port, char c);
-char NS16550_getc(NS16550_t com_port);
-int NS16550_tstc(NS16550_t com_port);
-void NS16550_reinit(NS16550_t com_port, int baud_divisor);
+#define UART_LCRVAL UART_LCR_8N1		/* 8 data, 1 stop, no parity */
+#define UART_MCRVAL (UART_MCR_DTR | \
+		     UART_MCR_RTS)		/* RTS/DTR */
+
+void NS16550_init(int com_port, int baud_divisor);
+void NS16550_putc(int com_port, char c);
+char NS16550_getc(int com_port);
+int NS16550_tstc(int com_port);
+void NS16550_reinit(int com_port, int baud_divisor);
 
 /**
  * ns16550_calc_divisor() - calculate the divisor given clock and baud rate
@@ -206,7 +239,7 @@ void NS16550_reinit(NS16550_t com_port, int baud_divisor);
  * @baudrate:	Required baud rate
  * @return baud rate divisor that should be used
  */
-int ns16550_calc_divisor(NS16550_t port, int clock, int baudrate);
+int ns16550_calc_divisor(int port, int clock, int baudrate);
 
 void ns16550_con_init(void);
 void ns16550_con_write(uint8_t byte);
