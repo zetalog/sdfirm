@@ -661,9 +661,10 @@ void __set_fixmap(fixmap_t idx, phys_addr_t phys, pgprot_t flags)
 
 	if (pgprot_val(flags))
 		set_pte(ptep, pfn_pte(phys >> PAGE_SHIFT, flags));
-	else
+	else {
 		pte_clear(addr, ptep);
-	flush_tlb_range_kern(addr, addr + PAGE_SIZE);
+		flush_tlb_range_kern(addr, addr + PAGE_SIZE);
+	}
 }
 
 void early_fixmap_init(void)
