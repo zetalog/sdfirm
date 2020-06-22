@@ -34,6 +34,9 @@ config DPU_LOAD_FSBL
 	bool
 	select DPU_DDR
 
+config DPU_LOAD_BBL
+	bool
+
 choice
 	prompt "Program type"
 
@@ -84,18 +87,29 @@ config DPU_BOOT_SPI_FLASH
 	select DPU_SSI_FLASH
 
 config DPU_BOOT_SSI_FLASH
-	bool "1-stage SPI flash bootloader (FSBL)"
+	bool "1-stage SSI flash bootloader (FSBL)"
 	select ARCH_HAS_BOOT_LOAD
 	select DPU_BOOT
 	select DPU_LOAD_FSBL
 	select XIP
-	select LOAD_DATA
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select SYS_EXIT_S if DPU_CV64A
 	select SYS_EXIT_U
 	select DPU_TCSR
 	select DPU_DDR
+	select DPU_SPI_FLASH
+	select DPU_SSI_FLASH
+
+config DPU_BOOT_DDR
+	bool "Berkeley bootloader (BBL)"
+	select ARCH_HAS_BOOT_LOAD
+	select DPU_BOOT
+	select DPU_LOAD_BBL
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SBI
+	select SBI_PAYLOAD
 	select DPU_SPI_FLASH
 	select DPU_SSI_FLASH
 
@@ -372,7 +386,7 @@ menuconfig DPU_SSI_FLASH
 	select STRING_UUID
 	help
 	  The DPU SoC also contains a DW_SSI controller that can be used
-	  to interface with the external SPI flashes. However, the
+	  to interface with the external SSI flashes. However, the
 	  controller doesn't support random accessibility.
 
 if DPU_SSI_FLASH

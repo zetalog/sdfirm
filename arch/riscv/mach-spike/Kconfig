@@ -187,8 +187,8 @@ config SPIKE_BBL
 	bool "Berkeley boot loader (BBL)"
 	select SYS_ENTR_M
 	select SYS_EXIT_M
-	select SYS_EXIT_S
 	select SBI
+	select SBI_PAYLOAD
 	select XIP
 
 endchoice
