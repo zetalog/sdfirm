@@ -183,6 +183,13 @@ config SPIKE_PK
 	select SYS_EXIT_M
 	select XIP
 
+config SPIKE_TB
+	bool "Test bench"
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SYS_EXIT_S
+	select XIP
+
 config SPIKE_BBL
 	bool "Berkeley boot loader (BBL)"
 	select SYS_ENTR_M
