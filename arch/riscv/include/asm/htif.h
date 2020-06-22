@@ -50,6 +50,7 @@
 	}						\
 
 #if !defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
+#ifdef CONFIG_HTIF
 bool htif_console_poll(void);
 int htif_console_read(void);
 void htif_console_write(uint8_t ch);
@@ -57,6 +58,15 @@ void htif_syscall(uintptr_t);
 void htif_poweroff(void);
 void htif_putc(char ch);
 int htif_getc(void);
+#else
+#define htif_console_poll()	false
+#define htif_console_read()	-1
+#define htif_console_write(ch)	do { } while (0)
+#define htif_syscall(ptr)	do { } while (0)
+#define htif_poweroff()		do { } while (0)
+#define htif_putc(ch)		do { } while (0)
+#define htif_getc()		-1
+#endif
 #endif
 
 #endif /* __HTIF_RISCV_H_INCLUDE__ */

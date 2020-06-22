@@ -13,7 +13,7 @@ static void __noreturn sbi_trap_error(const char *msg, int rc,
 				      ulong mcause, ulong mtval,
 				      struct pt_regs *regs)
 {
-	u32 hartid = sbi_current_hartid();
+	__unused u32 hartid = sbi_current_hartid();
 
 	sbi_printf("%s: hart%d: %s (error %d)\n", __func__, hartid, msg, rc);
 	sbi_printf("%s: hart%d: mcause=0x%" PRILX " mtval=0x%" PRILX "\n",
@@ -123,7 +123,7 @@ void sbi_trap_log(const char *fmt, ...)
 		return;
 
 	va_start(arg, fmt);
-	(void)sbi_vprintf(fmt, arg);
+	sbi_vprintf(fmt, arg);
 	va_end(arg);
 }
 
