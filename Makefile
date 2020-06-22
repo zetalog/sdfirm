@@ -240,7 +240,7 @@ include $(srctree)/scripts/Kbuild.include
 
 # Use TARGETINCLUDE when you must reference the include/ directory.
 # Needed to be compatible with the O= option
-TARGETINCLUDE   := -Iinclude -Iinclude/std \
+TARGETINCLUDE   := -Iinclude -Iinclude/std -I$(srctree)/arch/$(ARCH)/include/asm \
                    $(if $(KBUILD_SRC),-Iinclude2 -I$(srctree)/include)
 ifeq ($(COMPILER), gcc)
 TARGETINCLUDE	+= -include $(srctree)/include/target/config.h
