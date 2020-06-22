@@ -48,8 +48,11 @@
 
 #define TBOX_REG(offset)	(TBOX_BASE + (offset))
 
-#define TBOX_TUBE		TBOX_REG(0)
-#define TBOX
+#define TBOX_TUBE		TBOX_REG(0xF00)
+#define TBOX_FCNT		TBOX_REG(0xF18) /* FIRQ count */
+#define TBOX_FCLR		TBOX_REG(0xF20) /* FIRQ clear */
+
+#define TBOX_EINT		TBOX_REG(0x000) /* External interrupt trigger */
 
 #define TBOX_CHAR_LF		0x0A
 #define TBOX_CHAR_CR		0x0D
@@ -59,6 +62,17 @@
 
 #define TBOX_CHAR_EOT_CPU(cpu)	((((cpu) + 1) << 4) + TBOX_CHAR_EOT)
 #define TBOX_CHAR_ERR_CPU(cpu)	((((cpu) + 1) << 4) + TBOX_CHAR_ERR)
+
+#define TBOX_IRQ(cpu, irq)	((1 << (irq)) << ((cpu) << 3))
+
+#define TBOX_IRQ_MEI		0
+#define TBOX_IRQ_NMI		2
+#define TBOX_IRQ_SEI		4
+
+#define tbox_trigger_eint(cpu, irq)	__raw_writel(TBOX_IRQ(cpu, irq), TBOX_EINT)
+#define tbox_trigger_mei(cpu, irq)	tbox_trigger_eint(cpu, TOBX_IRQ_MEI)
+#define tbox_trigger_sei(cpu, irq)	tbox_trigger_eint(cpu, TOBX_IRQ_SEI)
+#define tbox_trigger_nmi(cpu, irq)	tbox_trigger_eint(cpu, TOBX_IRQ_NMI)
 
 #ifndef __ASSEMBLY__
 void tbox_finish(void);

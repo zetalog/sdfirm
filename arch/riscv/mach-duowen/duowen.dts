@@ -1,0 +1,102 @@
+/dts-v1/;
+
+/ {
+	#address-cells = <0x2>;
+	#size-cells = <0x2>;
+	compatible = "riscv-smarco";
+	model = "riscv-smarco,duowen";
+
+	rtc@ff66000000 {
+		interrupts = <0xa3>;
+		interrupt-parent = <0x3>;
+		reg = <0x0 0xff66000000 0x0 0x1000>;
+		compatible = "smarco,smarco-tmr";
+	};
+
+	chosen {
+		bootargs = [00];
+		stdout-path = "/uart@ff63000000";
+	};
+
+	uart@ff63000000 {
+		interrupts = <0x52>;
+		interrupt-parent = <0x3>;
+		clock-frequency = <0x384000>;
+		reg = <0x0 0xff63000000 0x0 0x100>;
+		compatible = "ns16550a";
+	};
+
+	poweroff {
+		value = <0x5555>;
+		offset = <0x0>;
+		regmap = <0x4>;
+		compatible = "syscsr-poweroff";
+	};
+
+	reboot {
+		value = <0x7777>;
+		offset = <0x0>;
+		regmap = <0x4>;
+		compatible = "syscsr-reboot";
+	};
+
+	cpus {
+		#address-cells = <0x1>;
+		#size-cells = <0x0>;
+		timebase-frequency = <0x989680>;
+
+		cpu-map {
+			cluster0 {
+				core0 {
+					cpu = <0x1>;
+				};
+			};
+		};
+
+		cpu@0 {
+			phandle = <0x1>;
+			device_type = "cpu";
+			reg = <0x0>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x2>;
+			};
+		};
+	};
+
+	memory@0000000000 {
+		device_type = "memory";
+		reg = <0x0 0x0000000000 0x0 0x8000000000>;
+	};
+
+	soc {
+		#address-cells = <0x2>;
+		#size-cells = <0x2>;
+		compatible = "simple-bus";
+		ranges;
+
+		interrupt-controller@ff70000000 {
+			phandle = <0x3>;
+			riscv,ndev = <0x35>;
+			reg = <0x0 0xff70000000 0x0 0x4000000>;
+			interrupts-extended = <0x2 0x52 0x2 0xa3>;
+			interrupt-controller;
+			compatible = "riscv,plic0";
+			#interrupt-cells = <0x1>;
+			#address-cells = <0x0>;
+		};
+
+		clint@ff010f0000 {
+			interrupts-extended = <0x2 0x3 0x2 0x7>;
+			reg = <0x0 0xff010f0000 0x0 0x10000>;
+			compatible = "riscv,clint0";
+		};
+	};
+};
