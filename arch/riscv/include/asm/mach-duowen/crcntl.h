@@ -159,4 +159,8 @@ bool crcntl_clk_asserted(clk_clk_t clk);
 void crcntl_clk_assert(clk_clk_t clk);
 void crcntl_clk_deassert(clk_clk_t clk);
 
+void crcntl_init_zsbl(void);
+#define crcntl_init_fsbl()		do { } while (0)
+#define crcntl_init_bbl()		do { } while (0)
+
 #endif /* __CRCNTL_DUOWEN_H_INCLUDE__ */

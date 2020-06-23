@@ -69,6 +69,19 @@ static void imc_init(void)
 #define imc_init()		do { } while (0)
 #endif
 
+void board_init_clock(void)
+{
+#ifdef CONFIG_DUOWEN_ZSBL
+	crcntl_init_zsbl();
+#endif
+#ifdef CONFIG_DUOWEN_FSBL
+	crcntl_init_fsbl();
+#endif
+#ifdef CONFIG_DUOWEN_BBL
+	crcntl_init_bbl();
+#endif
+}
+
 void board_early_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);

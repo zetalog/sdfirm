@@ -938,7 +938,7 @@ struct clk_driver clk_input = {
  *===========================================================================*/
 static bool clk_hw_init = false;
 
-void board_init_clock(void)
+void crcntl_init_zsbl(void)
 {
 	if (!clk_hw_init) {
 		clk_register_driver(CLK_INPUT, &clk_input);

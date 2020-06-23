@@ -106,18 +106,15 @@ config SBI_FDT_ARG1
 config SBI_FDT_ADDR
 	bool "Fixed address"
 
-config SBI_FDT_PAYLOAD
-	bool "Payload"
+config SBI_FDT_BUILTIN
+	bool "Builtin"
+	select FDT_BUILTIN
 
 endchoice
 
 config SBI_FDT_ADDR_BASE
 	hex "Fixed address of device tree binary"
 	depends SBI_FDT_ADDR
-
-config SBI_FDT_PAYLOAD_PATH
-	string "Path to the device tree binary"
-	depends SBI_FDT_PAYLOAD
 
 endif
 

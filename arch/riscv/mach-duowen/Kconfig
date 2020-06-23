@@ -30,18 +30,37 @@ config DUOWEN_APC
 
 endchoice
 
+if DUOWEN_IMC
+
+choice
+	prompt "IMC CPU core model"
+	default DUOWEN_IMC_ARIANE
+
+config DUOWEN_IMC_ARIANE
+	bool "Ariane (CV64A)"
+	select CPU_CV64A
+
+config DUOWEN_IMC_RI5CY
+	bool "RI5CY (CV32E)"
+	select CPU_CV32E
+
+endchoice
+
+endif
+
 if DUOWEN_APC
 
 choice
 	prompt "APC CPU core model"
+	default DUOWEN_APC_VAISRA
+
+config DUOWEN_APC_VAISRA
+	bool "Vaisra"
+	select CPU_VAISRA
 
 config DUOWEN_APC_C910
 	bool "Xuantie C910"
 	select CPU_C910
-
-config DUOWEN_APC_VAISRA
-	bool "Emulated Vaisra"
-	select CPU_VAISRA
 
 endchoice
 
@@ -67,13 +86,29 @@ config DUOWEN_FSBL
 	select SYS_EXIT_M
 
 config DUOWEN_SBI
-	bool "Open-SBI compliant bootloader (BBL)"
+	bool "Berkeley bootloader (BBL)"
 	depends DUOWEN_APC
 	select SYS_ENTR_M
 	select SYS_EXIT_M
-	select SYS_EXIT_S
 	select SBI
+	select SBI_PAYLOAD
 	select ARCH_HAS_BOOT_LOAD
+	select XIP
+	select BFM
+
+config DUOWEN_BROM
+	bool "Vaisra boot ROM (APC ROM)"
+	depends DUOWEN_APC
+	select XIP
+	select LOAD_DATA
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+
+config DUOWEN_TB
+	bool "Test bench"
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SYS_EXIT_S
 	select XIP
 
 endchoice

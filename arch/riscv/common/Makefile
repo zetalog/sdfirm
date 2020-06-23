@@ -2,12 +2,14 @@ obj-y :=
 
 CFLAGS_mmu.o := -mcmodel=medany
 
+extra-$(CONFIG_FDT_BUILTIN) += fdt_builtin.dtb
+obj-$(CONFIG_FDT_BUILTIN) += fdt_builtin.dtb.rel
+
 head-y += head.rel
 obj-y += trap.rel
 obj-y += entry.rel
 obj-y += irq.rel
 obj-y += tlb.rel
-
 obj-$(CONFIG_SMP) += smpboot.rel
 obj-$(CONFIG_RISCV_PMP) += pmp.rel
 obj-$(CONFIG_RISCV_F) += float.rel

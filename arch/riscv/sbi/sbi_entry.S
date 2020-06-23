@@ -462,7 +462,7 @@ ENTRY(fw_prev_arg1)
 	 * We can only use a0, a1, and a2 registers here.
 	 * The previous arg1 should be returned in 'a0'.
 	 */
-#ifdef CONFIG_SBI_FDT_PAYLOAD
+#ifdef CONFIG_SBI_FDT_BUILTIN
 	la	a0, fdt_bin
 #else
 	add	a0, zero, zero
@@ -522,15 +522,6 @@ ENTRY(fw_options)
 	add	a0, zero, zero
 	ret
 ENDPROC(fw_options)
-
-#ifdef CONFIG_SBI_FDT_PAYLOAD_PATH
-	.pushsection .text, "ax", %progbits
-	.align 4
-	.globl fdt_bin
-fdt_bin:
-	.incbin	CONFIG_SBI_FDT_PAYLOAD_PATH
-	.popsection
-#endif
 
 	.pushsection .payload, "ax", %progbits
 #ifdef CONFIG_SBI_PAYLOAD_ALIGN_RELAXED

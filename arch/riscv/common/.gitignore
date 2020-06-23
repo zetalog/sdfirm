@@ -14,4 +14,7 @@
 *.swp
 *.bak
 *.lds
+*.dtb
+*.dtb.S
 asm-offsets.s
+fdt_builtin.dts

@@ -137,6 +137,14 @@ include/asm/mach: $(wildcard include/config/arch/*.h) \
 	@echo '  SYMLINK include/asm/mach -> include/asm/$(INCDIR)'
 	$(Q)$(SYMLINK) $(objtree)/include/asm/$(INCDIR) $@
 
+ifeq ($(CONFIG_FDT_BUILTIN),y)
+DTS_FILE := arch/$(ARCH)/common/fdt_builtin.dts
+$(DTS_FILE): $(MACHINE)$(machine-y).dts
+	@echo '  COPY    $(DTS_FILE) -> $(MACHINE)$(machine-y).dts'
+	$(Q)cp -f $< $@
+endif
+CLEAN_FILES += arch/$(ARCH)/common/fdt_builtin.dts
+
 archprepare: maketools
 
 sdfirm.bin: sdfirm.strip
@@ -151,7 +159,7 @@ sdfirm.ram: sdfirm.srec
 endif
 
 PHONY += maketools FORCE
-maketools: include/asm/mach FORCE
+maketools: include/asm/mach $(DTS_FILE) FORCE
 
 CLEAN_FILES += arch/$(ARCH)/include/asm/mach-types.h
 
