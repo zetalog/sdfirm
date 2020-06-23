@@ -57,12 +57,14 @@ static void vaisra_success(void)
 {
 	vaisra_disable_mmu();
 	tbox_finish();
+	vaisra_sim_shutdown();
 }
 
 static void vaisra_failure(void)
 {
 	vaisra_disable_mmu();
 	tbox_error();
+	vaisra_sim_shutdown();
 }
 
 #ifdef CONFIG_SHUTDOWN

@@ -79,7 +79,6 @@
 #ifndef __ASSEMBLY__
 unsigned long get_sp(void);
 unsigned long get_tp(void);
-void sim_shutdown(void);
 #endif
 
 #endif /* __ARCH_RISCV_H_INCLUDE__ */

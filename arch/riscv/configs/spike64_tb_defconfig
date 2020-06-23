@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Jun 22 19:57:15 2020
+# Tue Jun 23 09:21:23 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -169,13 +169,6 @@ CONFIG_SPIKE_MEM1_SIZE=0x80000000
 CONFIG_SPIKE_CLINT=y
 CONFIG_SPIKE_CLINT_RTC_FREQ=10000000
 CONFIG_SPIKE_HTIF=y
-
-#
-# Shutdown scheme
-#
-# CONFIG_SPIKE_SHUTDOWN_SPIKE is not set
-# CONFIG_SPIKE_SHUTDOWN_DUOWEN is not set
-# CONFIG_SPIKE_SHUTDOWN_OVPSIM is not set
 # CONFIG_SPIKE_PK is not set
 CONFIG_SPIKE_TB=y
 # CONFIG_SPIKE_BBL is not set

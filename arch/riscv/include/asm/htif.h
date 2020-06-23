@@ -47,7 +47,7 @@
 	__htif_base = .;				\
 	.htif : {					\
 		KEEP(*(SORT(.htif)))			\
-	}						\
+	}
 
 #if !defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
 #ifdef CONFIG_HTIF

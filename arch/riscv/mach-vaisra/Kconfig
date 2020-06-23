@@ -52,6 +52,36 @@ config VAISRA_BBL
 
 endchoice
 
+menu "Simulation options"
+
+menuconfig VAISRA_SPIKE
+	bool "Compare vaisra program with spike"
+	depends SIMULATION
+	select ARCH_HAS_HTIF
+	select HTIF if SHUTDOWN
+	select SBI_CSR_MIMPID if SBI
+	help
+	  Verification methodology may compare vaisra program execution
+	  log with spike commit logs. Enable this to write to HTIF when
+	  spike is detected via its MIMPID.
+
+if VAISRA_SPIKE
+
+config VAISRA_SPIKE_MIMPID
+	hex "CSR mimpid value identified to spike"
+	default 0x7370696B
+
+endif
+
+config VAISRA_OVPSIM
+	bool "Compare vaisra program with OVPSim"
+	depends SIMULATION
+	help
+	  Verification methodology may compare vaisra program execution
+	  log with OVPSim tracers.
+
+endmenu
+
 endmenu
 
 endif

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Jun 19 13:18:49 2020
+# Tue Jun 23 09:21:50 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -157,6 +157,10 @@ CONFIG_VAISRA_MEM_SIZE=0x600000
 CONFIG_VAISRA_UART=y
 CONFIG_VAISRA_TB=y
 # CONFIG_VAISRA_BBL is not set
+
+#
+# Simulation options
+#
 
 #
 # Feature setup

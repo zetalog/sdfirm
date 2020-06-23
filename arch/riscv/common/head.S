@@ -312,37 +312,6 @@ ENTRY(get_tp)
 	ret
 ENDPROC(get_tp)
 
-ENTRY(sim_shutdown)
-	j	test_section_end
-ENTRY(test_section_end)
-#ifdef CONFIG_SPIKE_SHUTDOWN_SPIKE
-	li a0, CONFIG_SPIKE_CSR_MIMPID
-	csrr a1, CSR_MIMPID
-	beq a0, a1, htif_poweroff
-#endif
-#ifdef CONFIG_SPIKE_SHUTDOWN_DUOWEN
-	csrw	satp, zero
-	fence
-	li	a0, 0xFFFFFFFF00
-#ifdef CONFIG_SMP
-	get_hartid a1
-	addi	a1, a1, 1
-	slli	a1, a1, 4
-	addi	a1, a1, 0x4
-#else
-	li	a1, 0x4
-#endif
-	sd	a1, 0(a0)
-#endif /* CONFIG_SPIKE_SHUTDOWN_DUOWEN */
-END(test_section_end)
-#ifdef CONFIG_SPIKE_SHUTDOWN_OVPSIM
-ENTRY(write_tohost)
-	j	write_tohost
-END(write_tohost)
-#endif /* CONFIG_SPIKE_SHUTDOWN_OVPSIM */
-	ret
-ENDPROC(sim_shutdown)
-
 	.pushsection .data
 	.align 3
 abi_relocate_done:

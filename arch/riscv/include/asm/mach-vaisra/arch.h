@@ -42,6 +42,10 @@
 #ifndef __ARCH_VAISRA_H_INCLUDE__
 #define __ARCH_VAISRA_H_INCLUDE__
 
+#ifdef CONFIG_VAISRA_SPIKE
+#include <asm/htif.h>
+#endif
+
 /* This file is intended to be used for implementing SoC specific
  * instructions, registers.
  */
@@ -51,6 +55,11 @@
 
 #ifndef __ASSEMBLY__
 void vaisra_error(void);
+#ifdef CONFIG_SHUTDOWN
+void vaisra_sim_shutdown(void);
+#else
+#define vaisra_sim_shutdown()	do { } while (0)
+#endif
 #endif
 
 #endif /* __ARCH_VAISRA_H_INCLUDE__ */

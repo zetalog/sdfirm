@@ -146,34 +146,6 @@ config SPIKE_HTIF
 
 endmenu
 
-menu "Shutdown scheme"
-
-config SPIKE_SHUTDOWN_SPIKE
-	bool "Spike HTIF poweroff"
-	help
-	  Write to HTIF at specific CSR mimpid.
-	select SBI_CSR_MIMPID if SBI
-
-if SPIKE_SHUTDOWN_SPIKE
-
-config SPIKE_CSR_MIMPID
-	hex "CSR mimpid value identified to Spike"
-	default 0x7370696B
-
-endif
-
-config SPIKE_SHUTDOWN_DUOWEN
-	bool "Duowen IO write"
-	help
-	  Write 0x14 to 0xFFFFFFFF00.
-
-config SPIKE_SHUTDOWN_OVPSIM
-	bool "OVPSim spin"
-	help
-	  Spin around write_tohost symbol.
-
-endmenu
-
 choice
 	prompt "Program type"
 

@@ -163,7 +163,7 @@ static int vaisra_timer_init(bool cold_boot)
 static int vaisra_system_down(u32 type)
 {
 	printf("Shutting down simulation...\n");
-	/* For now nothing to do. */
+	board_shutdown();
 	return 0;
 }
 
@@ -194,12 +194,3 @@ const struct sbi_platform platform = {
 	.disabled_hart_mask	= ~HART_ALL,
 	.platform_ops_addr	= (unsigned long)&platform_ops
 };
-
-int sim_notify(caddr_t percpu_area)
-{
-	sim_shutdown();
-	return 1;
-}
-
-__define_testfn(sim_notify, 0, SMP_CACHE_BYTES,
-		CPU_EXEC_META, 1, CPU_WAIT_INFINITE);
