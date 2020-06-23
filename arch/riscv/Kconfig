@@ -227,6 +227,7 @@ config ARCH_VIRT
 	select ARCH_HAS_TSC
 	select ARCH_HAS_TSC_CONST
 	select ARCH_HAS_BOOT_LOAD
+	select ARCH_HAS_GPT
 	select ARCH_HAS_CLINT
 	select ARCH_HAS_PLIC
 	select ARCH_HAS_IRQC
