@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Jun 23 09:23:28 2020
+# Thu Jun 25 00:31:17 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -100,8 +100,6 @@ CONFIG_MAXPHYSMEM_2GB=y
 # CONFIG_MAXPHYSMEM_128GB is not set
 CONFIG_SYS_ENTR_M=y
 CONFIG_SYS_EXIT_M=y
-CONFIG_SYS_EXIT_S=y
-CONFIG_SYS_EXIT_U=y
 CONFIG_RISCV_AEE=y
 # CONFIG_RISCV_SEE is not set
 # CONFIG_RISCV_HEE is not set

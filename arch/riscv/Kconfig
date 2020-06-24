@@ -58,6 +58,7 @@ config ARCH_DUOWEN
 	select ARCH_HAS_SSI_SPI
 	select ARCH_HAS_SSI_SPI_1WIRE
 	select RISCV_COUNTERS if SBI
+	select FDT_BUILTIN if SBI_FDT
 	select DUOWEN_TMR if DUOWEN_IMC
 	select CLINT if DUOWEN_APC
 	select RI5CY_FIRQ if (DUOWEN_IMC_RI5CY && !SYS_NOIRQ)
@@ -95,6 +96,7 @@ config ARCH_DPU
 	select ARCH_HAS_APB_40
 	select DPU_TMR
 	select RI5CY_FIRQ if (!SYS_NOIRQ && DPU_CV32E)
+	select FDT_BUILTIN if SBI_FDT
 	select DPU_PLIC if !SYS_NOIRQ
 	select DPU_PLL if CLK
 	select DPU_GPIO if GPIO

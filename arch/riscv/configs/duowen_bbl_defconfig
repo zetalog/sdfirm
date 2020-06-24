@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Jun 24 18:36:48 2020
+# Thu Jun 25 00:29:06 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -144,9 +144,6 @@ CONFIG_SBI_PAYLOAD=y
 CONFIG_SBI_PAYLOAD_PATH="Image"
 # CONFIG_SBI_PAYLOAD_ALIGN_RELAXED is not set
 CONFIG_SBI_FDT=y
-# CONFIG_SBI_FDT_ARG1 is not set
-# CONFIG_SBI_FDT_ADDR is not set
-CONFIG_SBI_FDT_BUILTIN=y
 # CONFIG_SBI_CSR_MIMPID is not set
 
 #

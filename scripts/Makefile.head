@@ -199,7 +199,7 @@ quiet_cmd_dt_S_dtb= DTB     $@
 cmd_dt_S_dtb=						\
 {							\
 	echo '\#include <asm-generic/sdfirm.lds.h>'; 	\
-	echo '.section .dtb.init.rodata,"a"';		\
+	echo '.section .fdt,"a"';			\
 	echo '.global fdt_bin';				\
 	echo 'fdt_bin:';				\
 	echo '.incbin "$<" ';				\

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Jun 23 09:23:37 2020
+# Thu Jun 25 00:31:40 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y

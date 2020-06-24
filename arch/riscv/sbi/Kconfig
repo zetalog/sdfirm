@@ -94,27 +94,23 @@ endif
 
 config SBI_FDT
 	bool "Enable SBI device tree binary"
+	help
+	  When device tree is enabled in SBI, platform may choose to use
+	  builtin FDT via selecting FDT_BUILTIN in the scope of ARCH_xxx.
+	  When FDT_BUILTIN is not selected, the register a1 will be
+	  assumed to contain a pointer to the FDT provided by the previous
+	  firmware.
 
 if SBI_FDT
 
-choice
-	prompt "Device tree source"
-
-config SBI_FDT_ARG1
-	bool "Argument (a1)"
-
-config SBI_FDT_ADDR
-	bool "Fixed address"
-
 config SBI_FDT_BUILTIN
-	bool "Builtin"
+	bool "Force builtin flatened device tree"
 	select FDT_BUILTIN
-
-endchoice
-
-config SBI_FDT_ADDR_BASE
-	hex "Fixed address of device tree binary"
-	depends SBI_FDT_ADDR
+	help
+	  On platforms that allow previous firmware to pass DTB via the
+	  register of a1, users can still force SBI to use a builtin DTB
+	  instead.
+	  If unsre, say 'N';
 
 endif
 

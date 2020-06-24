@@ -215,11 +215,7 @@ _prev_arg1_override_done:
 	add	t0, a1, zero
 	and	t0, t0, a3
 	/* t2 = source FDT size in big-endian */
-#if __riscv_xlen == 64
-	lwu	t2, 4(t0)
-#else
-	lw	t2, 4(t0)
-#endif
+	LWU	t2, 4(t0)
 	/* t3 = bit[15:8] of FDT size */
 	add	t3, t2, zero
 	srli	t3, t3, 16
@@ -462,8 +458,12 @@ ENTRY(fw_prev_arg1)
 	 * We can only use a0, a1, and a2 registers here.
 	 * The previous arg1 should be returned in 'a0'.
 	 */
-#ifdef CONFIG_SBI_FDT_BUILTIN
+#ifdef CONFIG_SBI_FDT
+#ifdef CONFIG_FDT_BUILTIN
 	la	a0, fdt_bin
+#else
+	add	a0, a1, zero
+#endif
 #else
 	add	a0, zero, zero
 #endif
@@ -475,8 +475,8 @@ ENTRY(fw_next_arg1)
 	 * We can only use a0, a1, and a2 registers here.
 	 * The next arg1 should be returned in 'a0'.
 	 */
-#ifdef CONFIG_SBI_FDT_ADDR_BASE
-	li	a0, CONFIG_SBI_FDT_ADDR_BASE
+#ifdef CONFIG_SBI_FDT
+	la	a0, _fdt_start
 #else
 	add	a0, zero, zero
 #endif

@@ -123,13 +123,24 @@ SECTIONS
 #ifdef CONFIG_SBI_PAYLOAD_OFFSET
 	. = PAGE_OFFSET + TEXT_OFFSET + CONFIG_SBI_PAYLOAD_OFFSET;
 #endif
+#endif
 	_payload_start = .;
+#ifdef CONFIG_SBI_PAYLOAD
 	.payload : {
 		*(.payload)
 		. = ALIGN(WORD_SIZE);
 	}
-	_payload_end = .;
 #endif /* CONFIG_SBI_PAYLOAD */
+	_payload_end = .;
+	. = ALIGN(PAGE_SIZE);
+	_fdt_start = .;
+#ifdef CONFIG_FDT_BUILTIN
+	.fdt : {
+		*(.fdt)
+		. = ALIGN(WORD_SIZE);
+	}
+#endif
+	_fdt_end = .;
 }
 
 /*
