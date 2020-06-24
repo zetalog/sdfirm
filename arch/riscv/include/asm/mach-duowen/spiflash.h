@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2019
+ * Copyright (c) 2020
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,41 +35,23 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)arch.h: DUOWEN machine specific definitions
- * $Id: arch.h,v 1.1 2019-09-02 10:56:00 zhenglv Exp $
+ * @(#)spiflash.h: DUOWEN SPI flash (w25q32) definitions
+ * $Id: spiflash.h,v 1.1 2020-05-13 17:46:00 zhenglv Exp $
  */
 
-#ifndef __ARCH_DUOWEN_H_INCLUDE__
-#define __ARCH_DUOWEN_H_INCLUDE__
+#ifndef __SPIFLASH_DUOWEN_H_INCLUDE__
+#define __SPIFLASH_DUOWEN_H_INCLUDE__
 
-/* This file is intended to be used for implementing SoC specific
- * instructions, registers.
+/* APB is clocked at 100MHz, in order to have DW_ssi FIFO filled up by the
+ * data stream transferred via APB without seeing an auto CSn deassertion,
+ * SPI should run as slow as reasonable.
  */
+#ifdef CONFIG_DUOWEN_SSI_FLASH_FREQ
+#define SPIFLASH_HW_MAX_FREQ		(CONFIG_DUOWEN_SSI_FLASH_FREQ/1000)
+#else
+#define SPIFLASH_HW_MAX_FREQ		1000
+#endif
 
-#define __VEC
+#include <driver/spiflash_w25q32.h>
 
-#define XO_CLK_FREQ		UL(25000000)
-#define CL0_PLL_FREQ		UL(2000000000)
-#define CL1_PLL_FREQ		UL(2000000000)
-#define CL2_PLL_FREQ		UL(2000000000)
-#define CL3_PLL_FREQ		UL(2000000000)
-#define COHFAB_PLL_FREQ		UL(2000000000)
-#define SOC_PLL_FREQ		UL(1000000000)
-#define SYSFAB_CLK_FREQ		UL(250000000)
-#define SYSFAB_HALF_CLK_FREQ	UL(125000000)
-#define SOC_PLL_DIV10_FREQ	UL(100000000)
-#define DDR_PLL_FREQ		UL(800000000)
-#define DDR_PLL_DIV4_FREQ	UL(200000000)
-#define DDR_CLK_MIN_FREQ	UL(600000000)
-#define DDR_CLK_MAX_FREQ	UL(800000000)
-#define SD_TM_CLK_FREQ		UL(1000000)
-
-#include <asm/mach/imc.h>
-#include <asm/mach/flash.h>
-
-#ifndef __ASSEMBLY__
-void board_init_clock(void);
-void board_init_timestamp(void);
-#endif /* __ASSEMBLY__ */
-
-#endif /* __ARCH_DUOWEN_H_INCLUDE__ */
+#endif /* __SPIFLASH_DUOWEN_H_INCLUDE__ */

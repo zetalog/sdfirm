@@ -55,7 +55,7 @@ choice
 	default DUOWEN_APC_VAISRA
 
 config DUOWEN_APC_VAISRA
-	bool "Vaisra"
+	bool "SmarCo Vaisra"
 	select CPU_VAISRA
 
 config DUOWEN_APC_C910
@@ -66,35 +66,65 @@ endchoice
 
 endif
 
+config DUOWEN_BOOT
+	bool
+
+config DUOWEN_FIRM
+	bool
+
+config DUOWEN_LOAD_ZSBL
+	bool
+
+config DUOWEN_LOAD_FSBL
+	bool
+	select DUOWEN_DDR
+
+config DUOWEN_LOAD_BBL
+	bool
+
 choice
 	prompt "Program type"
 
 config DUOWEN_ZSBL
 	bool "0-stage ROM bootloader (ZSBL)"
 	depends DUOWEN_IMC
+	select DUOWEN_BOOT
+	select DUOWEN_LOAD_ZSBL
 	select XIP
 	select LOAD_DATA
 	select SYS_ENTR_M
 	select SYS_EXIT_M
+	select DUOWEN_SPI_FLASH
+	select DUOWEN_SSI_FLASH
 
 config DUOWEN_FSBL
 	bool "1-stage programmable bootloader (FSBL)"
 	depends DUOWEN_IMC
+	select DUOWEN_BOOT
+	select DUOWEN_LOAD_FSBL
 	select ARCH_HAS_BOOT_LOAD
 	select XIP
+	select BFM if !DUOWEN_FSBL_SPI
 	select SYS_ENTR_M
 	select SYS_EXIT_M
+	select DUOWEN_DDR
+	select DUOWEN_SPI_FLASH
+	select DUOWEN_SSI_FLASH
 
-config DUOWEN_SBI
+config DUOWEN_BBL
 	bool "Berkeley bootloader (BBL)"
 	depends DUOWEN_APC
+	select DUOWEN_BOOT
+	select DUOWEN_LOAD_BBL
+	select ARCH_HAS_BOOT_LOAD
+	select XIP
+	select BFM
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select SBI
 	select SBI_PAYLOAD
-	select ARCH_HAS_BOOT_LOAD
-	select XIP
-	select BFM
+	select DUOWEN_SPI_FLASH
+	select DUOWEN_SSI_FLASH
 
 config DUOWEN_BROM
 	bool "Vaisra boot ROM (APC ROM)"
@@ -108,13 +138,54 @@ config DUOWEN_TB
 	bool "Test bench"
 	select SYS_ENTR_M
 	select SYS_EXIT_M
-	select SYS_EXIT_S
+	select SYS_EXIT_S if (DUOWEN_APC || DUOWEN_IMC_ARIANE)
 	select XIP
 
 endchoice
 
+menu "Bootloader/firmware options"
+
+config DUOWEN_FSBL_SPI
+	bool "Build SPI flash resident FSBL"
+	depends DUOWEN_FSBL
+
+config DUOWEN_LOAD
+	bool "Enable bootloader"
+	depends DUOWEN_LOAD_ZSBL || DUOWEN_LOAD_FSBL
+
+if DUOWEN_LOAD
+
+config DUOWEN_LOAD_SPI_FLASH
+	bool "Enable load from SPI flash"
+	depends DUOWEN_SPI_FLASH
+	depends DUOWEN_ZSBL || (DUOWEN_FSBL && DUOWEN_FSBL_SPI)
+
+config DUOWEN_BOOT_ADDR
+	hex "Bootloader SPI flash jump address"
+	depends DUOWEN_LOAD_SPI_FLASH
+
+config DUOWEN_LOAD_SSI_FLASH
+	bool "Enable load from SSI flash"
+	depends DUOWEN_SSI_FLASH
+
+config DUOWEN_BOOT_STACK
+	bool "Enable boot from stack"
+	help
+	  By default, each bootloader's .text section should be in
+	  a different memory region. Enable this option only if the next
+	  bootloader resides on SRAM low end, and the region is conflict
+	  with the current bootloader. However, if the next bootloader
+	  occupies the high end of the SRAM region, which is conflict with
+	  the stack of the current bootloader, please do not enable this
+	  option.
+	  If unsure, say 'N'.
+
+endif
+
+endmenu
+
 menuconfig DUOWEN_TMR
-	bool "Enable global timer controller (TMR) support"
+	bool "Duowen global timer controller (TMR) support"
 	depends DUOWEN_IMC
 	help
 	  TMR hardware is in the AO clock/power domain, it should be used
@@ -139,7 +210,7 @@ config DUOWEN_TMR_MTIME
 endif
 
 menuconfig CRCNTL
-	bool "Enable clock/reset controller (CRCNTL) support"
+	bool "Duowen clock/reset controller (CRCNTL) support"
 	select DW_PLL5GHZ_TSMC12FFC
 	select DW_PLL5GHZ_TSMC12FFC_CNT_LOCKED
 
@@ -147,8 +218,97 @@ if CRCNTL
 
 endif
 
+menuconfig DUOWEN_SPI_FLASH
+	bool "Duowen SPI flash support"
+	select MATH_DIV32
+	help
+	  The DUOWEN SoC contains a random accessible SPI controller that
+	  is able to convert generic SPI NOR flashes into random accessible
+	  ROM.
+
+if DUOWEN_SPI_FLASH
+
+choice
+	prompt "Divider length"
+	default DUOWEN_FLASH_DIVIDER_16
+
+config DUOWEN_FLASH_DIVIDER_8
+        bool "8-bit"
+
+config DUOWEN_FLASH_DIVIDER_16
+        bool "16-bit"
+
+config DUOWEN_FLASH_DIVIDER_24
+        bool "24-bit"
+
+config DUOWEN_FLASH_DIVIDER_32
+        bool "32-bit"
+
+endchoice
+
+choice
+	prompt "SPI select length"
+	default DUOWEN_FLASH_SS_8
+
+config DUOWEN_FLASH_SS_8
+	bool "8-bit"
+
+config DUOWEN_FLASH_SS_16
+        bool "16-bit"
+
+config DUOWEN_FLASH_SS_24
+        bool "24-bit"
+
+config DUOWEN_FLASH_SS_32
+        bool "32-bit"
+
+endchoice
+
+endif
+
+menuconfig DUOWEN_SSI_FLASH
+	bool "Duowen SSI flash support"
+	depends SPI_MASTER
+	select DW_SSI
+	select ARCH_HAS_SSI_FIFO
+	select ARCH_HAS_SSI_XFER_32
+	select ARCH_HAS_SSI_FRF
+	select ARCH_HAS_SSI_SPI
+	select ARCH_HAS_SSI_SPI_1WIRE
+	select ARCH_HAS_SPIFLASH
+	select MTD
+	select MEM if COMMAND
+	select SPIFLASH_W25Q32
+	select STRING_UUID
+	help
+	  The DUOWN SoC also contains a DW_SSI controller that can be used
+	  to interface with the external SSI flashes. However, the
+	  controller doesn't support random accessibility.
+
+if DUOWEN_SSI_FLASH
+
+config DUOWEN_SSI_FLASH_FREQ
+	int "Duowen SSI flash frequency"
+	range 100000 80000000
+	default 1000000 if !SIMULATION
+	default 8000000 if SIMULATION
+	depends EXPERIMENTAL
+	help
+	  The SPINOR flash uses the "EEPROM read" protocol that the CS
+	  should be kept active during the entire transaction. However,
+	  the DW_ssi controller automatically inactivates the CS pin when
+	  the FIFO is run out. That requires the program to run fast
+	  enough to fill data into the SPI FIFO. The CS inactivation can
+	  be seen if the SPI transaction period is filled up with less APB
+	  transactions (rom/ram/ssi accesses).
+	  It's tested that 8MHz is working for the case of "ROM booting
+	  SSI" in the simulation environment, for the non-simulation
+	  environment, it's preferred to use 1MHz by design.
+
+endif
+
 menuconfig DUOWEN_SD
-	bool "MMC/SD Host Controller (MSHC) support"
+	bool "Duowen MSHC controller support"
 	select DW_MSHC
 
 if MSHC
@@ -156,7 +316,7 @@ if MSHC
 endif
 
 config DUOWEN_PCIE
-	bool "PCI-Express (PCIe) support"
+	bool "Duowen PCI-Express (PCIe) support"
 	select DW_PCIE
 
 if DUOWEN_PCIE
@@ -164,7 +324,7 @@ if DUOWEN_PCIE
 endif
 
 menuconfig DUOWEN_SMMU
-	bool "System Memory Management Unit (SMMU) support"
+	bool "Duowen SMMU controller support"
 	select SMMU_MMU500
 	help
 	  Duowen SMMU is an ARM SMMUv2 like IOMMU hardware, with
@@ -176,7 +336,7 @@ if DUOWEN_SMMU
 endif
 
 menuconfig DUOWEN_DMA
-	bool "Direct Memory Access Controller (DMA) support"
+	bool "Duowen DMA controller support"
 	select DW_DMA
 
 if DUOWEN_DMA
@@ -184,7 +344,7 @@ if DUOWEN_DMA
 endif
 
 menuconfig DUOWEN_DDR
-	bool "DDR controller/phy support"
+	bool "Duowen DDR controller/phy support"
 
 if DUOWEN_DDR
 

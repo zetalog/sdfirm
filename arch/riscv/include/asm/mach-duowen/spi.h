@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2019
+ * Copyright (c) 2020
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,41 +35,65 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)arch.h: DUOWEN machine specific definitions
- * $Id: arch.h,v 1.1 2019-09-02 10:56:00 zhenglv Exp $
+ * @(#)spi.h: DUOWEN serial peripheral interface (SPI) definitions
+ * $Id: spi.h,v 1.1 2020-04-14 13:16:00 zhenglv Exp $
  */
 
-#ifndef __ARCH_DUOWEN_H_INCLUDE__
-#define __ARCH_DUOWEN_H_INCLUDE__
+#ifndef __SPI_DUOWEN_H_INCLUDE__
+#define __SPI_DUOWEN_H_INCLUDE__
 
-/* This file is intended to be used for implementing SoC specific
- * instructions, registers.
- */
+#include <target/gpio.h>
+#include <target/clk.h>
 
-#define __VEC
+#define DW_SSI_CLK		spi0_clk
+#define DW_SSI_BASE(n)		SPI0_BASE
+#define SSI_ID			0
 
-#define XO_CLK_FREQ		UL(25000000)
-#define CL0_PLL_FREQ		UL(2000000000)
-#define CL1_PLL_FREQ		UL(2000000000)
-#define CL2_PLL_FREQ		UL(2000000000)
-#define CL3_PLL_FREQ		UL(2000000000)
-#define COHFAB_PLL_FREQ		UL(2000000000)
-#define SOC_PLL_FREQ		UL(1000000000)
-#define SYSFAB_CLK_FREQ		UL(250000000)
-#define SYSFAB_HALF_CLK_FREQ	UL(125000000)
-#define SOC_PLL_DIV10_FREQ	UL(100000000)
-#define DDR_PLL_FREQ		UL(800000000)
-#define DDR_PLL_DIV4_FREQ	UL(200000000)
-#define DDR_CLK_MIN_FREQ	UL(600000000)
-#define DDR_CLK_MAX_FREQ	UL(800000000)
-#define SD_TM_CLK_FREQ		UL(1000000)
+#ifdef CONFIG_DW_SSI
+#include <driver/dw_ssi.h>
+#ifndef ARCH_HAVE_SPI
+#define ARCH_HAVE_SPI		1
+#else
+#error "Multiple SPI controller defined"
+#endif
+#endif
 
-#include <asm/mach/imc.h>
-#include <asm/mach/flash.h>
+#define DW_SSI_CLK_FREQ			(SYSFAB_HALF_CLK_FREQ) /* Hz */
 
-#ifndef __ASSEMBLY__
-void board_init_clock(void);
-void board_init_timestamp(void);
-#endif /* __ASSEMBLY__ */
+#ifdef CONFIG_DW_SSI
+#define spi_hw_config_mode(mode)	dw_ssi_config_mode(SSI_ID, mode)
+#define spi_hw_config_freq(khz)		dw_ssi_config_freq(SSI_ID, khz)
+#define spi_hw_read_byte()		dw_ssi_read_byte(SSI_ID)
+#define spi_hw_write_byte(byte)		dw_ssi_write_byte(SSI_ID, byte)
+#define spi_hw_chip_select(chip)	dw_ssi_select_chip(SSI_ID, chip)
+#define spi_hw_deselect_chips()		dw_ssi_deselect_chips(SSI_ID)
+#define spi_hw_ctrl_init()					\
+	do {							\
+		clk_enable(DW_SSI_CLK);				\
+		dw_ssi_init_master(SSI_ID, SSI_SPI_FRF_STD,	\
+				   SSI_TMOD_EEPROM_READ, 8, 8);	\
+		dw_ssi_init_spi(SSI_ID, SSI_SPI_FRF_STD,	\
+				8, 24, 0);			\
+	} while (0)
+#define spi_hw_ctrl_start()		dw_ssi_enable_ctrl(SSI_ID)
+#define spi_hw_ctrl_stop()		dw_ssi_disable_ctrl(SSI_ID)
+#endif
 
-#endif /* __ARCH_DUOWEN_H_INCLUDE__ */
+#ifdef CONFIG_DUOWEN_SSI_FLASH
+typedef void (*duowen_boot_cb)(void *, uint32_t, uint32_t);
+void duowen_ssi_flash_init(void);
+void duowen_ssi_flash_copy(void *buf, uint32_t addr, uint32_t size);
+void duowen_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size);
+#else
+#define duowen_ssi_flash_init()			do { } while (0)
+#define duowen_ssi_flash_copy(buf, addr, size)	do { } while (0)
+#define duowen_ssi_flash_boot(boot, addr, size)	do { } while (0)
+#endif
+
+#ifdef CONFIG_DUOWEN_SIM_SSI_IRQ
+void duowen_ssi_irq_init(void);
+#else
+#define duowen_ssi_irq_init()		do { } while (0)
+#endif
+
+#endif /* __SPI_DUOWEN_H_INCLUDE__ */

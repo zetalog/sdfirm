@@ -64,6 +64,7 @@ config ARCH_DUOWEN
 	select PLIC if !SYS_NOIRQ
 	select CRCNTL if CLK
 	select DW_UART if CONSOLE || DEBUG_PRINT
+	select DUOWEN_SSI_FLASH if SPI_MASTER
 	select DUOWEN_SD if MMCSD
 	select DUOWEN_PCIE if PCI
 	select DW_I2C if I2C_MASTER
