@@ -164,47 +164,43 @@ static inline bool pmd_huge_map(pmd_t *pmdp, caddr_t addr, caddr_t next,
 #endif
 
 #ifdef CONFIG_ARCH_HAS_MMU_ORDER
-__init static pte_t *get_pte_virt(phys_addr_t pa)
+__init static __inline pte_t *get_pte_virt(phys_addr_t pa)
 {
 	pte_clear_fixmap();
 	return pte_set_fixmap(pa);
 }
 
-__init static pte_t *get_pte_virt_offset(pmd_t *pmdp, phys_addr_t pa)
+__init static __inline pte_t *get_pte_virt_offset(pmd_t *pmdp, phys_addr_t pa)
 {
 	pte_clear_fixmap();
 	return pte_set_fixmap_offset(pmdp, pa);
 }
 
-#if 0
-__init static pmd_t *get_pmd_virt(phys_addr_t pa)
+__init static __inline pmd_t *get_pmd_virt(phys_addr_t pa)
 {
 	pmd_clear_fixmap();
 	return pmd_set_fixmap(pa);
 }
-#endif
 
-__init static pmd_t *get_pmd_virt_offset(pud_t *pudp, phys_addr_t pa)
+__init static __inline pmd_t *get_pmd_virt_offset(pud_t *pudp, phys_addr_t pa)
 {
 	pmd_clear_fixmap();
 	return pmd_set_fixmap_offset(pudp, pa);
 }
 
-#if 0
-__init static pud_t *get_pud_virt(phys_addr_t pa)
+__init static __inline pud_t *get_pud_virt(phys_addr_t pa)
 {
 	pud_clear_fixmap();
 	return pud_set_fixmap(pa);
 }
-#endif
 
-__init static pud_t *get_pud_virt_offset(pgd_t *pgdp, phys_addr_t pa)
+__init static __inline pud_t *get_pud_virt_offset(pgd_t *pgdp, phys_addr_t pa)
 {
 	pud_clear_fixmap();
 	return pud_set_fixmap_offset(pgdp, pa);
 }
 
-__init static pgd_t *get_pgd_virt(phys_addr_t pa)
+__init static __inline pgd_t *get_pgd_virt(phys_addr_t pa)
 {
 	pgd_clear_fixmap();
 	return pgd_set_fixmap(pa);

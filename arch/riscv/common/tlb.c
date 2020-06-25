@@ -10,25 +10,21 @@
 void local_flush_tlb_all(void)
 {
 	sfence_vma_all();
-	fence(rw, rw);
 }
 
 void local_flush_tlb_page(caddr_t addr)
 {
 	sfence_vma_page(addr);
-	fence(rw, rw);
 }
 
 void local_flush_tlb_asid_all(int asid)
 {
 	sfence_vma_asid_all(asid);
-	fence(rw, rw);
 }
 
 void local_flush_tlb_asid_page(int asid, caddr_t addr)
 {
 	sfence_vma_asid_page(asid, addr);
-	fence(rw, rw);
 }
 
 void local_flush_tlb_page(caddr_t addr);
