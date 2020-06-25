@@ -45,13 +45,19 @@
 #include <asm/sbi.h>
 
 #ifndef __ASSEMBLY__
-#define sfence_vma_all()		\
+#define sfence_vma_all()			\
 	asm volatile ("sfence.vma" : : : "memory")
-#define sfence_vma_page(addr)		\
+#define sfence_vma_page(addr)			\
 	asm volatile ("sfence.vma %0" : : "r" (addr) : "memory")
+#define sfence_vma_asid_all(asid)		\
+	asm volatile("sfence.vma x0, %0" : : "r"(asid) : "memory")
+#define sfence_vma_asid_page(asid, addr)	\
+	asm volatile("sfence.vma %0, %1" : : "r"(addr), "r"(asid) : "memory")
 
 void local_flush_tlb_all(void);
 void local_flush_tlb_page(caddr_t addr);
+void local_flush_tlb_asid_all(int asid);
+void local_flush_tlb_asid_page(int asid, caddr_t addr);
 void flush_tlb_all(void);
 void flush_tlb_page(int asid, caddr_t addr);
 void flush_tlb_range_user(int asid, caddr_t start, caddr_t end);

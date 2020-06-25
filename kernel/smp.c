@@ -58,6 +58,7 @@ cpu_mask_t smp_online_cpus;
 void smp_boot(void)
 {
 	smp_hw_cpu_boot();
+	cpumask_set_cpu(smp_boot_cpu, &smp_online_cpus);
 }
 
 void smp_init(void)
@@ -66,8 +67,8 @@ void smp_init(void)
 
 	printf("SMP initializing CPU %d.\n", cpu);
 
-	cpumask_set_cpu(cpu, &smp_online_cpus);
 	if (smp_processor_id() != smp_boot_cpu) {
+		cpumask_set_cpu(cpu, &smp_online_cpus);
 		irq_smp_init();
 		mmu_smp_init();
 		bh_init();

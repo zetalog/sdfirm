@@ -54,6 +54,8 @@
 #endif
 #define __SMP_CACHE_BYTES	(1 << __SMP_CACHE_SHIFT)
 
+#define local_flush_icache_all()		asm volatile ("fence.i" ::: "memory")
+
 #ifndef __ASSEMBLY__
 #define __flush_dcache_area(addr, size)		do { } while (0)
 #define __clean_dcache_area_poc(addr, size)	do { } while (0)

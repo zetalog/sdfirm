@@ -9,16 +9,13 @@
  */
 
 #include <target/sbi.h>
+#include <target/tlb.h>
+#include <target/cache.h>
 #include <target/paging.h>
 
 static unsigned long tlb_sync_off;
 static unsigned long tlb_fifo_off;
 static unsigned long tlb_fifo_mem_off;
-
-static void sbi_tlb_flush_all(void)
-{
-	__asm__ __volatile("sfence.vma");
-}
 
 static void sbi_tlb_fifo_sfence_vma(struct sbi_tlb_info *tinfo)
 {
@@ -27,16 +24,12 @@ static void sbi_tlb_fifo_sfence_vma(struct sbi_tlb_info *tinfo)
 	unsigned long i;
 
 	if ((start == 0 && size == 0) || (size == SBI_TLB_FLUSH_ALL)) {
-		sbi_tlb_flush_all();
+		local_flush_tlb_all();
 		return;
 	}
 
-	for (i = 0; i < size; i += PAGE_SIZE) {
-		__asm__ __volatile__("sfence.vma %0"
-				     :
-				     : "r"(start + i)
-				     : "memory");
-	}
+	for (i = 0; i < size; i += PAGE_SIZE)
+		local_flush_tlb_page(start + i);
 }
 
 static void sbi_tlb_fifo_sfence_vma_asid(struct sbi_tlb_info *tinfo)
@@ -47,39 +40,32 @@ static void sbi_tlb_fifo_sfence_vma_asid(struct sbi_tlb_info *tinfo)
 	unsigned long i;
 
 	if (start == 0 && size == 0) {
-		sbi_tlb_flush_all();
+		local_flush_tlb_all();
 		return;
 	}
 
 	/* Flush entire MM context for a given ASID */
 	if (size == SBI_TLB_FLUSH_ALL) {
-		__asm__ __volatile__("sfence.vma x0, %0"
-				     :
-				     : "r"(asid)
-				     : "memory");
+		local_flush_tlb_asid_all(asid);
 		return;
 	}
 
-	for (i = 0; i < size; i += PAGE_SIZE) {
-		__asm__ __volatile__("sfence.vma %0, %1"
-				     :
-				     : "r"(start + i), "r"(asid)
-				     : "memory");
-	}
+	for (i = 0; i < size; i += PAGE_SIZE)
+		local_flush_tlb_asid_page(asid, start + i);
 }
 
 static void sbi_tlb_local_flush(struct sbi_tlb_info *tinfo)
 {
-       if (tinfo->type == SBI_TLB_FLUSH_VMA) {
-               sbi_tlb_fifo_sfence_vma(tinfo);
-       } else if (tinfo->type == SBI_TLB_FLUSH_VMA_ASID) {
-               sbi_tlb_fifo_sfence_vma_asid(tinfo);
-       } else if (tinfo->type == SBI_ITLB_FLUSH)
-               __asm__ __volatile("fence.i");
-       else
-               sbi_printf("Invalid tlb flush request type [%lu]\n",
-			  tinfo->type);
-       return;
+	if (tinfo->type == SBI_TLB_FLUSH_VMA)
+		sbi_tlb_fifo_sfence_vma(tinfo);
+	else if (tinfo->type == SBI_TLB_FLUSH_VMA_ASID)
+		sbi_tlb_fifo_sfence_vma_asid(tinfo);
+	else if (tinfo->type == SBI_ITLB_FLUSH)
+		local_flush_icache_all();
+	else
+		sbi_printf("Invalid tlb flush request type [%lu]\n",
+			   tinfo->type);
+	return;
 }
 
 static void sbi_tlb_entry_process(struct sbi_scratch *scratch,
