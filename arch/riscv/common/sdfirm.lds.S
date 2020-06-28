@@ -47,7 +47,7 @@ SECTIONS
 		CMDLINE_INPUT(WORD_SIZE)
 		BENCH_INPUT(WORD_SIZE)
 	}
-	SRODATA_SECTION(WORD_SIZE)
+	SRODATA(WORD_SIZE)
 	. = ALIGN(PAGE_SIZE);
 	__erodata = .;
 
@@ -82,12 +82,9 @@ SECTIONS
 		PERCPU_INPUT(SMP_CACHE_BYTES)
 	}
 
-	. = ALIGN(WORD_SIZE);
 	__bss_start = .;			/* begin of bss sections */
-	.bss (NOLOAD) : {
-		*(.sbss .sbss.*)
-		*(.bss .bss.*)
-	}
+	SBSS(WORD_SIZE)
+	BSS(WORD_SIZE)
 #ifdef CONFIG_ARCH_HAS_HTIF
 	HTIF_SECTION(PAGE_SIZE)
 #endif

@@ -157,14 +157,14 @@
 	__HEAD
 
 ENTRY(__start)
-	init_gp
 #ifdef CONFIG_RISCV_ENTR_M
 	/* Reset all registers, except ra, gp, sp */
 	init_gprs
 	init_mtls
 	/* Reset core to the entry point on failure */
-	la	ra, __start
+	la	ra, _start_hang
 #endif
+	init_gp
 
 	/* Disable global interrupt. */
 	disable_entr_irq

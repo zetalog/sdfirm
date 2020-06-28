@@ -56,17 +56,21 @@
 #define WORD_SIZE	8
 #endif
 
-#define SRODATA_SECTION(align)					\
+#define SRODATA(align)						\
 	.srodata : AT(ADDR(.srodata)) ALIGN(align) {		\
 		*(.srodata) *(.srodata.*)			\
-	}							\
-
-#define SDATA_SECTION(align)					\
-	. = ALIGN(align);					\
-	__sdata_start = .;					\
-	.sdata : {						\
+	}
+#define SBSS(align)						\
+	.sbss (NOLOAD) : AT(ADDR(.sbss)) ALIGN(align) {		\
+		*(.sbss) *(.sbss.*)				\
+	}
+#define SDATA(align)						\
+	.sdata : AT(ADDR(.sdata)) ALIGN(align) {		\
 		*(.sdata .sdata.*)				\
-	}							\
+	}
+#define SDATA_SECTION(align)					\
+	__sdata_start = .;					\
+	SDATA(align)						\
 	. = ALIGN(align);					\
 	__sdata_stop = .
 

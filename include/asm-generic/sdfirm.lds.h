@@ -71,13 +71,13 @@
 #define RO_DATA_SECTION(align)					\
 	.rodata : AT(ADDR(.rodata)) ALIGN(align) {		\
 		RODATA_RODATA					\
-	}							\
+	}
 /*
  * bss (Block Started by Symbol) - uninitialized data
  * zeroed during startup
  */
 #define BSS(bss_align)						\
-	.bss : AT(ADDR(.bss)) ALIGN(bss_align) {		\
+	.bss (NOLOAD) : AT(ADDR(.bss)) ALIGN(bss_align) {	\
 		*(.bss)						\
 	}
 #define BSS_SECTION(bss_align, stop_align)			\

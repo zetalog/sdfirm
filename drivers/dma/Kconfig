@@ -9,5 +9,19 @@ menuconfig DW_DMA
 	bool "Synopsys DesignWare DMA support"
 	select BIT_FFS32
 
+if DW_DMA
+
+config DW_DMA_MAX_BLK_SIZE
+	hex "Maximum DMA block size"
+	range 0x32 0x200000
+	default 0x32
+
+config DW_DMA_MAX_POOLS
+	int "Number of DMA pools"
+	range 1 100
+	default 1
+
+endif
+
 endmenu
 

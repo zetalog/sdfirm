@@ -45,9 +45,13 @@
 #include <target/generic.h>
 #include <target/spinlock.h>
 
-#define DMAC_MAX_CHANNELS	 8
+#define DMAC_MAX_CHANNELS	8
 #define DMAC_MAX_MASTERS	2
+#ifdef CONFIG_DW_DMC_MAX_BLK_SIZE
+#define DMAC_MAX_BLK_SIZE	CONFIG_DW_DMC_MAX_BLK_SIZE
+#else
 #define DMAC_MAX_BLK_SIZE	0x200000
+#endif
 
 enum irqreturn {
 	IRQ_NONE		= (0 << 0),
@@ -141,12 +145,16 @@ typedef struct dma_chip_str{
 	DMA_SLAVE_BUSWIDTH_32_BYTES	| \
 	DMA_SLAVE_BUSWIDTH_64_BYTES)
 	
-#define DW_DMA_POOL_NUM   100
-#define DW_DMA_INT_NUM 3
-#define DW_DMA_REG_BASE 0xf0000000
-#define DW_DMA_CORE_CLK 0xf0000000
-#define DW_DMA_CFGR_CLK 0xf0000100
-#define DW_DMA_M_DATA_WIDTH 8
+#ifdef CONFIG_DW_DMA_MAX_POOLS
+#define DW_DMA_POOL_NUM		CONFIG_DW_DMA_MAX_POOLS
+#else
+#define DW_DMA_POOL_NUM		100
+#endif
+#define DW_DMA_INT_NUM		3
+#define DW_DMA_REG_BASE		0xf0000000
+#define DW_DMA_CORE_CLK		0xf0000000
+#define DW_DMA_CFGR_CLK		0xf0000100
+#define DW_DMA_M_DATA_WIDTH	8
 #define ALLOCATED 1
 
 #define COMMON_REG_LEN		0x100

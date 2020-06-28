@@ -59,6 +59,22 @@ do
 done
 shift $(($OPTIND - 1))
 
+PSEUDO_IMAGE=no
+if [ ! -x Image ]; then
+	echo "Creating pseudo image..."
+	touch Image
+	PSEUDO_IMAGE=yes
+fi
+build_sdfirm riscv64 spike64_bbl
+build_sdfirm riscv64 virt64_bbl
+build_sdfirm riscv64 unleashed_bbl
+build_sdfirm riscv64 k210_bbl
+build_sdfirm riscv64 duowen_bbl
+if [ "x$PSEUDO_IMAGE" = "xyes" ]; then
+	echo "Deleting pseudo image..."
+	rm -f Image
+fi
+
 build_sdfirm arm64 qdf2400_imc
 build_sdfirm arm64 gem5_boot
 # disabled due to external GEM5 requirement
@@ -76,14 +92,6 @@ build_sdfirm riscv64 spike64_tb
 build_sdfirm riscv64 spike64_nocon
 build_sdfirm riscv64 virt64_tb
 build_sdfirm riscv64 vaisra_tb
-
-touch Image
-build_sdfirm riscv64 spike64_bbl
-build_sdfirm riscv64 virt64_bbl
-build_sdfirm riscv64 unleashed_bbl
-build_sdfirm riscv64 k210_bbl
-build_sdfirm riscv64 duowen_bbl
-rm -f Image
 
 build_sdfirm riscv64 unleashed_zsbl
 build_sdfirm riscv64 unleashed_fsbl
