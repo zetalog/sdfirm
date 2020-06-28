@@ -419,7 +419,7 @@ int main(int argc, char *argv[])
 		usage();
 		return 1;
 	}
-	byte_data = malloc(byte_width / 8);
+	byte_data = malloc(byte_width);
 	if (!byte_data) {
 		fprintf(stderr, "ERROR: Cant malloc buffer %d.\n",
 			byte_width);
