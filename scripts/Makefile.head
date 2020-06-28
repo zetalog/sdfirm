@@ -181,15 +181,20 @@ DTC ?= dtc
 
 # Disable noisy checks by default
 ifeq ($(findstring 1,$(KBUILD_EXTRA_WARN)),)
-DTC_FLAGS += -Wno-unit_address_vs_reg \
-	-Wno-unit_address_format \
-	-Wno-simple_bus_reg \
-	-Wno-pci_device_reg
+DTC_FLAGS +=
 endif
 
 ifneq ($(findstring 2,$(KBUILD_EXTRA_WARN)),)
 DTC_FLAGS += -Wnode_name_chars_strict \
-	-Wproperty_name_chars_strict
+	-Wproperty_name_chars_strict \
+	-Wno-unit_address_vs_reg \
+	-Wno-unit_address_format \
+	-Wno-avoid_unnecessary_addr_size \
+	-Wno-alias_paths \
+	-Wno-graph_child_address \
+	-Wno-simple_bus_reg \
+	-Wno-unique_unit_address \
+	-Wno-pci_device_reg
 endif
 
 DTC_FLAGS += $(DTC_FLAGS_$(basetarget))
