@@ -74,13 +74,10 @@ SECTIONS
 		INIT_DATA
 		__init_data_end = .;
 		DATA_DATA
+		PERCPU_INPUT(SMP_CACHE_BYTES)
 	}
 	SDATA_SECTION(WORD_SIZE);
 	__edata = .;				/* end of data sections */
-
-	.percpu : {
-		PERCPU_INPUT(SMP_CACHE_BYTES)
-	}
 
 	__bss_start = .;			/* begin of bss sections */
 	SBSS(WORD_SIZE)

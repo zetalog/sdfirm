@@ -61,11 +61,11 @@
 		*(.srodata) *(.srodata.*)			\
 	}
 #define SBSS(align)						\
-	.sbss (NOLOAD) : AT(ADDR(.sbss)) ALIGN(align) {		\
+	.sbss (NOLOAD) :  ALIGN(align) {			\
 		*(.sbss) *(.sbss.*)				\
 	}
 #define SDATA(align)						\
-	.sdata : AT(ADDR(.sdata)) ALIGN(align) {		\
+	.sdata : ALIGN(align) {					\
 		*(.sdata .sdata.*)				\
 	}
 #define SDATA_SECTION(align)					\

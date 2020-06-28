@@ -77,8 +77,8 @@
  * zeroed during startup
  */
 #define BSS(bss_align)						\
-	.bss (NOLOAD) : AT(ADDR(.bss)) ALIGN(bss_align) {	\
-		*(.bss)						\
+	.bss (NOLOAD) : ALIGN(bss_align) {			\
+		*(.bss) *(.bss.*)				\
 	}
 #define BSS_SECTION(bss_align, stop_align)			\
 	__bss_start = .;					\
