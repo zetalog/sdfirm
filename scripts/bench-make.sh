@@ -10,7 +10,7 @@ SDFIRM_DIR=.
 #
 sub_arch=64
 arch=riscv${sub_arch}
-base_config=${SDFIRM_DIR}/arch/riscv/configs/bench_rv${sub_arch}_defconfig
+base_config=${SDFIRM_DIR}/arch/riscv/configs/vaisra_nocon_defconfig
 
 # Debug option
 debug_config_only="y"
@@ -20,7 +20,7 @@ debug_config_only="n"
 # Bench configuration
 #
 bench_list="hanoitower md5"
-bench_list="coremark"
+bench_list="cfft"
 
 bench_mode="single"
 #bench_mode="batch"
