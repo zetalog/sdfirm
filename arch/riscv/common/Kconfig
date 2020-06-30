@@ -150,11 +150,6 @@ choice
 	  This selects the base ISA that this kernel will target and must match
 	  the target platform.
 
-config RISCV_WMO
-	bool "Weak memory ordering (RVWMO)"
-	depends CPU_WMO
-	select 32BIT
-
 config RISCV_32I
 	bool "RV32I"
 	depends CPU_32I
@@ -403,6 +398,19 @@ config RISCV_VIRQ
 endmenu
 
 menu "CPU architecture options"
+
+choice
+	prompt "Memory consistency model"
+
+config RISCV_WMO
+	bool "Weak memory ordering (RVWMO)"
+	depends CPU_WMO
+
+config RISCV_TSO
+	bool "Total store ordering (RVTSO)"
+	depends RISCV_ZTSO
+
+endchoice
 
 if RISCV_A
 

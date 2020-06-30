@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2019
+ * Copyright (c) 2020
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,55 +35,67 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cpus.h: RISCV CPU number/primitive interfaces
- * $Id: cpus.h,v 1.1 2019-08-14 09:37:00 zhenglv Exp $
+ * @(#)clk_asic.c: DUOWEN FPGA frequency plan implementation
+ * $Id: clk_asic.c,v 1.1 2020-06-30 14:31:00 zhenglv Exp $
  */
 
-#ifndef __RISCV_CPUS_H_INCLUDE__
-#define __RISCV_CPUS_H_INCLUDE__
+#include <target/clk.h>
 
-/* This file includes architecture specific CPU hart definitions and CPU
- * primitives used by OS.
- */
+uint32_t input_clks[NR_INPUT_CLKS] = {
+	[XO_CLK] = XO_CLK_FREQ,
+	[SOC_PLL] = SOC_PLL_FREQ,
+	[DDR_PLL] = DDR_PLL_FREQ,
+	[COHFAB_PLL] = CFAB_PLL_FREQ,
+	[CL0_PLL] = CL_PLL_FREQ,
+	[CL1_PLL] = CL_PLL_FREQ,
+	[CL2_PLL] = CL_PLL_FREQ,
+	[CL3_PLL] = CL_PLL_FREQ,
+};
 
-/* Instruction naming identical APIs */
-#define nop()			asm volatile("nop")
-#define wfi()			asm volatile("wfi")
+#ifdef CONFIG_CONSOLE_COMMAND
+const char *input_clk_names[NR_INPUT_CLKS] = {
+	[XO_CLK] = "xo_clk",
+	[SOC_PLL] = "soc_pll",
+	[DDR_PLL] = "ddr_pll",
+	[COHFAB_PLL] = "cohfab_pll",
+	[CL0_PLL] = "cl0_pll",
+	[CL1_PLL] = "cl1_pll",
+	[CL2_PLL] = "cl2_pll",
+	[CL3_PLL] = "cl3_pll",
+};
 
-/* Architecture specific CPU primitives */
-#define cpu_relax()		nop() /* Non-fairness cpu_relax() */
-#if 0
-#define cpu_relax()		asm volatile ("" : : : "memory")
-#endif
-#define wait_irq()		wfi()
-/* No WFE supports */
-#define wait_cpu()		cpu_relax()
-#define wake_cpu()
-
-#ifndef __ASSEMBLY__
-#include<asm/assembler.h>
-struct scratch {
-	unsigned long sp;
-} __attribute__((aligned(STACK_ALIGN)));
-#endif
-
-#include <asm/mach/cpus.h>
-
-#ifndef BOOT_HART
-#define BOOT_HART		0
-#endif
-#ifndef MAX_HARTS
-#define MAX_HARTS		NR_CPUS
-#endif
-#ifndef HART_ALL
-#define HART_ALL		CPU_ALL
+static const char *get_input_clk_name(clk_clk_t clk)
+{
+	if (clk >= NR_INPUT_CLKS)
+		return NULL;
+	return input_clk_names[clk];
+}
+#else
+#define get_input_clk_name	NULL
 #endif
 
-#if defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
-#ifndef ARCH_HAVE_SMPID
-	.macro get_arch_smpid reg
-	.endm
-#endif
-#endif
+static uint32_t get_input_clk_freq(clk_clk_t clk)
+{
+	if (clk >= NR_INPUT_CLKS)
+		return INVALID_FREQ;
+	return input_clks[clk];
+}
 
-#endif /* __RISCV_CPUS_H_INCLUDE__ */
+struct clk_driver clk_input = {
+	.max_clocks = NR_INPUT_CLKS,
+	.enable = NULL,
+	.disable = NULL,
+	.get_freq = get_input_clk_freq,
+	.set_freq = NULL,
+	.select = NULL,
+	.get_name = get_input_clk_name,
+};
+
+void clk_pll_dump(void)
+{
+}
+
+void clk_pll_init(void)
+{
+	clk_register_driver(CLK_INPUT, &clk_input);
+}

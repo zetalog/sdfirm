@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sun Jun 28 14:39:07 2020
+# Tue Jun 30 14:28:50 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -57,7 +57,6 @@ CONFIG_ARCH_DUOWEN=y
 CONFIG_CPU_VAISRA=y
 CONFIG_CPU_64G=y
 CONFIG_CPU_64I=y
-# CONFIG_RISCV_WMO is not set
 # CONFIG_RISCV_32I is not set
 CONFIG_RISCV_64I=y
 # CONFIG_RISCV_32E is not set
@@ -88,6 +87,8 @@ CONFIG_RISCV_PMP=y
 #
 # CPU architecture options
 #
+# CONFIG_RISCV_WMO is not set
+# CONFIG_RISCV_TSO is not set
 # CONFIG_RISCV_ATOMIC_COUNT_32 is not set
 CONFIG_RISCV_ATOMIC_COUNT_64=y
 CONFIG_RISCV_SPINLOCK_RAW=y
@@ -167,6 +168,13 @@ CONFIG_DUOWEN_BBL=y
 #
 # Bootloader/firmware options
 #
+
+#
+# Simulation options
+#
+CONFIG_DUOWEN_ASIC=y
+# CONFIG_DUOWEN_FPGA is not set
+# CONFIG_DUOWEN_ZEBU is not set
 CONFIG_CRCNTL=y
 CONFIG_DUOWEN_SPI_FLASH=y
 # CONFIG_DUOWEN_FLASH_DIVIDER_8 is not set

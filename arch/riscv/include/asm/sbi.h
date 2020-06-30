@@ -89,7 +89,7 @@
 #define sbi_shutdown()		SBI_CALL_0(SBI_SHUTDOWN)
 #define sbi_clear_ipi()		SBI_CALL_0(SBI_CLEAR_IPI)
 #define sbi_send_ipi(hartmask)	SBI_CALL_1(SBI_SEND_IPI, hartmask)
-#define sbi_remote_fence_id(hartmask)				\
+#define sbi_remote_fence_i(hartmask)				\
 	SBI_CALL_1(SBI_REMOTE_FENCE_I, hartmask)
 #define sbi_remote_sfence_vma(hartmask, start, size)		\
 	SBI_CALL_3(SBI_REMOTE_SFENCE_VMA, hartmask, start, size)

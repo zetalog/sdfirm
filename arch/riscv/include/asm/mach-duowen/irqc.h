@@ -57,7 +57,7 @@
 #include <asm/ri5cy_firq.h>
 #include <asm/plic.h>
 
-#define plic_hw_ctrl_init()		clk_enable(plic_hclk)
+#define plic_hw_ctrl_init()		clk_enable(plic_clk)
 
 /* Internal IRQs */
 #ifdef CONFIG_DUOWEN_IMC

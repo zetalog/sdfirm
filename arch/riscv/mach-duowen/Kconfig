@@ -184,6 +184,24 @@ endif
 
 endmenu
 
+menu "Simulation options"
+
+choice
+	prompt "Frequency plan"
+
+config DUOWEN_ASIC
+	bool "Real ASIC"
+
+config DUOWEN_FPGA
+	bool "S2C FPGA"
+
+config DUOWEN_ZEBU
+	bool "ZEBU"
+
+endchoice
+
+endmenu
+
 menuconfig DUOWEN_TMR
 	bool "Duowen global timer controller (TMR) support"
 	depends DUOWEN_IMC

@@ -151,13 +151,15 @@ void crcntl_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val);
 uint8_t crcntl_pll_reg_read(uint8_t pll, uint8_t reg);
 
 /* APIs here can be invoked w/o enabling clock tree core */
-bool crcntl_clk_selected(clk_clk_t clk);
-bool crcntl_clk_enabled(clk_clk_t clk);
-void crcntl_clk_enable(clk_clk_t clk);
-void crcntl_clk_disable(clk_clk_t clk);
 bool crcntl_clk_asserted(clk_clk_t clk);
 void crcntl_clk_assert(clk_clk_t clk);
 void crcntl_clk_deassert(clk_clk_t clk);
+bool crcntl_clk_enabled(clk_clk_t clk);
+void crcntl_clk_enable(clk_clk_t clk);
+void crcntl_clk_disable(clk_clk_t clk);
+bool crcntl_clk_selected(clk_clk_t clk);
+void crcntl_clk_select(clk_clk_t clk);
+void crcntl_clk_deselect(clk_clk_t clk);
 
 void crcntl_init_zsbl(void);
 #define crcntl_init_fsbl()		do { } while (0)
