@@ -33,6 +33,7 @@ int spd_hw_init(void)
 		con_printf("Error: Failed to select I2C master = %u\n", i2c_master);
 		return -1;
 	}
+	i2c_hw_ctrl_init();
 #ifdef SPD_EE1004_DEBUG
 	con_printf("Debug: Set I2C frequency = %u KHz\n", i2c_freq);
 #endif
