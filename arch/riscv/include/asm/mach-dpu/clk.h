@@ -219,4 +219,8 @@ clk_freq_t freqplan_get_frclk(int pll, int plan);
 void clk_apply_vco(clk_clk_t clk, clk_freq_t freq);
 void clk_apply_pll(clk_clk_t clk, clk_freq_t freq);
 
+#ifdef CONFIG_MMU
+#define clk_hw_mmu_init()	dpu_mmu_map_pll()
+#endif
+
 #endif /* __CLK_DPU_H_INCLUDE__ */

@@ -35,75 +35,50 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)uart.h: DPU specific UART controller interface
- * $Id: uart.h,v 1.1 2020-03-04 13:18:00 zhenglv Exp $
+ * @(#)mmu.c: DPU machine specific MMU mappings
+ * $Id: mmu.c,v 1.1 2020-07-01 16:39:00 zhenglv Exp $
  */
 
-#ifndef __UART_DPU_H_INCLUDE__
-#define __UART_DPU_H_INCLUDE__
+#include <target/paging.h>
+#include <target/console.h>
 
-#include <target/gpio.h>
-#include <target/clk.h>
+caddr_t dpu_uart_reg_base = __DPU_UART_BASE;
+caddr_t dpu_gpio_reg_base = GPIO_BASE;
+caddr_t dpu_pll_reg_base = PLL_REG_BASE;
 
-#define UART_CLK_ID		srst_uart
-#define __DPU_UART_BASE		UART_BASE
-#ifdef CONFIG_MMU
-#define DPU_UART_BASE		dpu_uart_reg_base
-extern caddr_t dpu_uart_reg_base;
-#else
-#define DPU_UART_BASE		__DPU_UART_BASE
-#endif
-#define DW_UART_REG(n, offset)	(DPU_UART_BASE + (offset))
-#define UART_CON_ID		0
-#define UART_CON_IRQ		IRQ_UART
+void dpu_mmu_dump_maps(void)
+{
+	if (dpu_pll_reg_base != PLL_REG_BASE)
+		printf("FIXMAP: %016llx -> %016llx: PLL\n",
+		       PLL_REG_BASE, fix_to_virt(FIX_PLL));
+	if (dpu_gpio_reg_base != GPIO_BASE)
+		printf("FIXMAP: %016llx -> %016llx: GPIO\n",
+		       GPIO_BASE, fix_to_virt(FIX_GPIO));
+	if (dpu_uart_reg_base != __DPU_UART_BASE)
+		printf("FIXMAP: %016llx -> %016llx: UART\n",
+		       __DPU_UART_BASE, fix_to_virt(FIX_UART));
+}
 
-#ifdef CONFIG_DW_UART
-#include <driver/dw_uart.h>
-#ifndef ARCH_HAVE_UART
-#define ARCH_HAVE_UART		1
-#else
-#error "Multiple UART controller defined"
-#endif
-#endif
+void dpu_mmu_map_pll(void)
+{
+	if (dpu_pll_reg_base == PLL_REG_BASE) {
+		set_fixmap_io(FIX_PLL, PLL_REG_BASE & PAGE_MASK);
+		dpu_pll_reg_base = fix_to_virt(FIX_PLL);
+	}
+}
 
-#ifdef CONFIG_DPU_UART_VIP
-#define UART_CON_BAUDRATE		(APB_CLK_FREQ/16)
-#endif
+void dpu_mmu_map_gpio(void)
+{
+	if (dpu_gpio_reg_base == GPIO_BASE) {
+		set_fixmap_io(FIX_GPIO, GPIO_BASE & PAGE_MASK);
+		dpu_gpio_reg_base = fix_to_virt(FIX_GPIO);
+	}
+}
 
-#ifdef CONFIG_DEBUG_PRINT
-void uart_hw_dbg_init(void);
-void uart_hw_dbg_start(void);
-void uart_hw_dbg_stop(void);
-void uart_hw_dbg_write(uint8_t byte);
-void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
-#endif
-
-#ifdef CONFIG_MMU
-void uart_hw_mmu_init(void);
-#endif
-
-#ifdef CONFIG_CONSOLE
-#ifdef CONFIG_CLK
-#define uart_hw_con_init()						\
-	do {								\
-		board_init_clock();					\
-		clk_enable(UART_CLK_ID);				\
-		dw_uart_con_init(clk_get_frequency(UART_CLK_ID));	\
-	} while (0)
-#else
-#define uart_hw_con_init()	do { } while (0)
-#endif
-#endif
-#ifdef CONFIG_CONSOLE_OUTPUT
-#define uart_hw_con_write(byte)	dw_uart_con_write(byte)
-#endif
-#ifdef CONFIG_CONSOLE_INPUT
-#define uart_hw_con_read()	dw_uart_con_read()
-#define uart_hw_con_poll()	dw_uart_con_poll()
-#ifndef CONFIG_SYS_NOIRQ
-#define uart_hw_irq_init()	dw_uart_irq_init()
-#define uart_hw_irq_ack()	dw_uart_irq_ack()
-#endif
-#endif
-
-#endif /* __UART_DPU_H_INCLUDE__ */
+void dpu_mmu_map_uart(int n)
+{
+	if (dpu_uart_reg_base == __DPU_UART_BASE) {
+		set_fixmap_io(FIX_UART, __DPU_UART_BASE & PAGE_MASK);
+		dpu_uart_reg_base = fix_to_virt(FIX_UART);
+	}
+}

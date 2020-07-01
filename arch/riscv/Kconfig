@@ -92,6 +92,7 @@ config ARCH_DPU
 	select ARCH_HAS_DDR
 	select ARCH_HAS_PCI
 	select ARCH_HAS_PLIC
+	select ARCH_HAS_FDT
 	select ARCH_HAS_PLIC_EOI_EARLY
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_APB_40

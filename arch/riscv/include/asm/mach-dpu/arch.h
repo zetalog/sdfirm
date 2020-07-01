@@ -87,6 +87,13 @@ void board_init_clock(void);
 #define board_init_clock()	do { } while (0)
 #endif
 void board_init_timestamp(void);
+
+#ifdef CONFIG_MMU
+void dpu_mmu_dump_maps(void);
+void dpu_mmu_map_uart(int n);
+void dpu_mmu_map_gpio(void);
+void dpu_mmu_map_pll(void);
+#endif
 #endif /* __ASSEMBLY__ */
 
 #endif /* __ARCH_DPU_H_INCLUDE__ */

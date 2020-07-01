@@ -35,75 +35,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)uart.h: DPU specific UART controller interface
- * $Id: uart.h,v 1.1 2020-03-04 13:18:00 zhenglv Exp $
+ * @(#)uart.c: DPU machine specific UART implementation
+ * $Id: uart.c,v 1.1 2020-07-01 16:47:00 zhenglv Exp $
  */
 
-#ifndef __UART_DPU_H_INCLUDE__
-#define __UART_DPU_H_INCLUDE__
-
-#include <target/gpio.h>
-#include <target/clk.h>
-
-#define UART_CLK_ID		srst_uart
-#define __DPU_UART_BASE		UART_BASE
-#ifdef CONFIG_MMU
-#define DPU_UART_BASE		dpu_uart_reg_base
-extern caddr_t dpu_uart_reg_base;
-#else
-#define DPU_UART_BASE		__DPU_UART_BASE
-#endif
-#define DW_UART_REG(n, offset)	(DPU_UART_BASE + (offset))
-#define UART_CON_ID		0
-#define UART_CON_IRQ		IRQ_UART
-
-#ifdef CONFIG_DW_UART
-#include <driver/dw_uart.h>
-#ifndef ARCH_HAVE_UART
-#define ARCH_HAVE_UART		1
-#else
-#error "Multiple UART controller defined"
-#endif
-#endif
-
-#ifdef CONFIG_DPU_UART_VIP
-#define UART_CON_BAUDRATE		(APB_CLK_FREQ/16)
-#endif
-
-#ifdef CONFIG_DEBUG_PRINT
-void uart_hw_dbg_init(void);
-void uart_hw_dbg_start(void);
-void uart_hw_dbg_stop(void);
-void uart_hw_dbg_write(uint8_t byte);
-void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
-#endif
+#include <target/console.h>
+#include <target/paging.h>
 
 #ifdef CONFIG_MMU
-void uart_hw_mmu_init(void);
+void uart_hw_mmu_init(void)
+{
+	dpu_mmu_map_uart(UART_CON_ID);
+	uart_hw_con_init();
+	dpu_mmu_dump_maps();
+}
 #endif
-
-#ifdef CONFIG_CONSOLE
-#ifdef CONFIG_CLK
-#define uart_hw_con_init()						\
-	do {								\
-		board_init_clock();					\
-		clk_enable(UART_CLK_ID);				\
-		dw_uart_con_init(clk_get_frequency(UART_CLK_ID));	\
-	} while (0)
-#else
-#define uart_hw_con_init()	do { } while (0)
-#endif
-#endif
-#ifdef CONFIG_CONSOLE_OUTPUT
-#define uart_hw_con_write(byte)	dw_uart_con_write(byte)
-#endif
-#ifdef CONFIG_CONSOLE_INPUT
-#define uart_hw_con_read()	dw_uart_con_read()
-#define uart_hw_con_poll()	dw_uart_con_poll()
-#ifndef CONFIG_SYS_NOIRQ
-#define uart_hw_irq_init()	dw_uart_irq_init()
-#define uart_hw_irq_ack()	dw_uart_irq_ack()
-#endif
-#endif
-
-#endif /* __UART_DPU_H_INCLUDE__ */

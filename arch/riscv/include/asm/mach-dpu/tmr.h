@@ -61,6 +61,8 @@
 #define TMR_EN			_BV(0)
 #define TMR_HALT_ON_DEBUG	_BV(1)
 
+#define tmr_enable_cmp(id)	__raw_setl(_BV(id), TMR_CMP_CTRL(id))
+#define tmr_disable_cmp(id)	__raw_clearl(_BV(id), TMR_CMP_CTRL(id))
 #define tmr_enable_irq(id)	__raw_setl(_BV(id), TMR_INTR_EN(id))
 #define tmr_disable_irq(id)	__raw_clearl(_BV(id), TMR_INTR_EN(id))
 #define tmr_irq_status(id)	(__raw_readl(TMR_INTR_STATUS(id)) & _BV(id))

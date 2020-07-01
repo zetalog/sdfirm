@@ -257,6 +257,7 @@ endif
 menuconfig DPU_TMR
 	bool "DPU RISC-V timer support"
 	select DPU_TMR_FIRQ if RISCV_VIRQ
+	select ARCH_HAS_SBI_TIMER
 
 if DPU_TMR
 

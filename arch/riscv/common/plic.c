@@ -151,7 +151,7 @@ void irqc_hw_configure_irq(irq_t irq, uint8_t prio, uint8_t trigger)
 
 void irqc_hw_ack_irq(irq_t irq)
 {
-	uint8_t cpu = smp_processor_id();
+	__unused uint8_t cpu = smp_processor_id();
 
 	plic_irq_completion_verbose(cpu, irq - IRQ_PLATFORM, true);
 }
@@ -160,7 +160,7 @@ void irqc_hw_ack_irq(irq_t irq)
 void irqc_hw_handle_irq(void)
 {
 	irq_t irq;
-	uint8_t cpu = smp_processor_id();
+	__unused uint8_t cpu = smp_processor_id();
 
 	plic_hw_disable_int(IRQ_EXT);
 	irq = plic_claim_irq(cpu);

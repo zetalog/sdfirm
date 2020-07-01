@@ -46,7 +46,13 @@
 #include <target/clk.h>
 
 #ifdef CONFIG_DPU_GPIO
-#define DW_GPIO_BASE(n)		GPIO_BASE
+#ifdef CONFIG_MMU
+#define __GPIO_BASE		dpu_gpio_reg_base
+extern caddr_t dpu_gpio_reg_base;
+#else
+#define __GPIO_BASE		GPIO_BASE
+#endif
+#define DW_GPIO_REG(n, offset)	(__GPIO_BASE + (offset))
 #ifndef ARCH_HAVE_GPIO
 #include <driver/dw_gpio.h>
 #define ARCH_HAVE_GPIO		1
@@ -87,6 +93,9 @@
 void dpu_gpio_irq_init(void);
 #else
 #define dpu_gpio_irq_init()			do { } while (0)
+#endif
+#ifdef CONFIG_MMU
+#define gpio_hw_mmu_init()			dpu_mmu_map_gpio()
 #endif
 
 #endif /* __GPIO_DPU_H_INCLUDE__ */

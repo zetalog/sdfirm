@@ -56,10 +56,10 @@ uint64_t tmr_read_counter(void)
 
 void tmr_write_compare(uint8_t id, uint64_t count)
 {
-	__raw_clearl(_BV(id), TMR_CMP_CTRL(id));
+	tmr_disable_cmp(id);
 	__raw_writel(LODWORD(count), TMR_CMP_LO(id));
 	__raw_writel(HIDWORD(count), TMR_CMP_HI(id));
-	__raw_setl(_BV(id), TMR_CMP_CTRL(id));
+	tmr_enable_cmp(id);
 }
 
 void tmr_ctrl_init(void)

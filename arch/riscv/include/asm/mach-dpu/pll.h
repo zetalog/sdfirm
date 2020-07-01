@@ -44,7 +44,13 @@
 
 #include <target/arch.h>
 
-#define PLL_REG_REG(offset)		(PLL_REG_BASE + (offset))
+#ifdef CONFIG_MMU
+#define __PLL_REG_BASE		dpu_pll_reg_base
+extern caddr_t dpu_pll_reg_base;
+#else
+#define __PLL_REG_BASE		PLL_REG_BASE
+#endif
+#define PLL_REG_REG(offset)		(__PLL_REG_BASE + (offset))
 #define PLL_REG(pll, offset)		\
 	PLL_REG_REG(((pll) << 4) + (offset))
 

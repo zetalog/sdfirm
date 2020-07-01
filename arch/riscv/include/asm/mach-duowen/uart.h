@@ -76,10 +76,6 @@ void uart_hw_dbg_write(uint8_t byte);
 void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
 #endif
 
-#ifdef CONFIG_MMU
-void uart_hw_mmu_init(void);
-#endif
-
 #ifdef CONFIG_CONSOLE
 #define uart_hw_con_init()						\
 	do {								\
