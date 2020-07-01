@@ -40,6 +40,7 @@
  */
 
 #include <target/sbi.h>
+#include <target/fdt.h>
 #include <target/uart.h>
 #include <target/irq.h>
 #include <target/delay.h>
@@ -83,14 +84,26 @@ static int duowen_pmp_region_info(u32 hartid, u32 index, ulong *prot,
 	return ret;
 }
 
+#define __DUOWEN_UART_REG(n, offset)		(__DUOWEN_UART_BASE + (offset))
+#define __UART_RBR(n)				__DUOWEN_UART_REG(n, 0x00)
+#define __UART_THR(n)				__DUOWEN_UART_REG(n, 0x00)
+#define __UART_LSR(n)				__DUOWEN_UART_REG(n, 0x14)
+#define __duowen_uart_write_poll(n)		(!!(__raw_readl(__UART_LSR(n)) & LSR_TEMT))
+#define __duowen_uart_read_poll(n)		(!!(__raw_readl(__UART_LSR(n)) & LSR_DR))
+#define __duowen_uart_read_byte(n)		__raw_readl(__UART_RBR(n))
+#define __duowen_uart_write_byte(n, byte)	__raw_writel((byte), __UART_THR(n))
+
 static void duowen_console_putc(char ch)
 {
-	putchar(ch);
+	while (!__duowen_uart_write_poll(UART_CON_ID));
+	__duowen_uart_write_byte(UART_CON_ID, ch);
 }
 
 static int duowen_console_getc(void)
 {
-	return getchar();
+	if (!__duowen_uart_read_poll(UART_CON_ID))
+		return -1;
+	return __duowen_uart_read_byte(UART_CON_ID);
 }
 
 static int duowen_irqchip_init(bool cold_boot)

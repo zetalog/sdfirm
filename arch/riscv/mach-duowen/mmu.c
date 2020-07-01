@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2019
+ * Copyright (c) 2020
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,71 +35,27 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)dw_uart.h: Synopsys DesignWare UART interface
- * $Id: dw_uart.h,v 1.1 2019-09-26 10:40:00 zhenglv Exp $
+ * @(#)mmu.c: DUOWEN machine specific MMU mappings
+ * $Id: mmu.c,v 1.1 2020-07-01 10:28:00 zhenglv Exp $
  */
 
-#ifndef __UART_DUOWEN_H_INCLUDE__
-#define __UART_DUOWEN_H_INCLUDE__
-
 #include <target/paging.h>
-#include <target/gpio.h>
-#include <target/clk.h>
+#include <target/console.h>
 
-#define __DUOWEN_UART_BASE	IMC_UART_BASE
+caddr_t duowen_uart_reg_base = __DUOWEN_UART_BASE;
 
-#define UART_CLK_ID		uart0_clk
-#ifdef CONFIG_MMU
-#define DUOWEN_UART_BASE	duowen_uart_reg_base
-extern caddr_t duowen_uart_reg_base;
-#else
-#define DUOWEN_UART_BASE	__DUOWEN_UART_BASE
-#endif
-#define DW_UART_REG(n, offset)	(DUOWEN_UART_BASE + (offset))
-#define UART_CON_ID		0
-#define UART_CON_IRQ		IRQ_UART0
+void duowen_mmu_dump_maps(void)
+{
+	if (duowen_uart_reg_base != __DUOWEN_UART_BASE)
+		printf("FIXMAP: %016llx -> %016llx: UART\n",
+		       __DUOWEN_UART_BASE, fix_to_virt(FIX_UART));
+}
 
-#if defined(CONFIG_DW_UART)
-#include <driver/dw_uart.h>
-#ifndef ARCH_HAVE_UART
-#define ARCH_HAVE_UART		1
-#else
-#error "Multiple UART controller defined"
-#endif
-#endif
+void duowen_mmu_map_uart(int n)
+{
+	if (duowen_uart_reg_base == __DUOWEN_UART_BASE) {
+		set_fixmap_io(FIX_UART, __DUOWEN_UART_BASE & PAGE_MASK);
+		duowen_uart_reg_base = fix_to_virt(FIX_UART);
+	}
+}
 
-#ifdef CONFIG_DEBUG_PRINT
-void uart_hw_dbg_init(void);
-void uart_hw_dbg_start(void);
-void uart_hw_dbg_stop(void);
-void uart_hw_dbg_write(uint8_t byte);
-void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
-#endif
-
-#ifdef CONFIG_MMU
-void uart_hw_mmu_init(void);
-#endif
-
-#ifdef CONFIG_CONSOLE
-#define uart_hw_con_init()						\
-	do {								\
-		board_init_clock();					\
-		clk_enable(UART_CLK_ID);				\
-		dw_uart_con_init(clk_get_frequency(UART_CLK_ID));	\
-	} while (0)
-#endif
-#ifdef CONFIG_CONSOLE_OUTPUT
-#define uart_hw_con_write(byte)	dw_uart_con_write(byte)
-#endif
-#ifdef CONFIG_CONSOLE_INPUT
-#define uart_hw_con_read()	dw_uart_con_read()
-#define uart_hw_con_poll()	dw_uart_con_poll()
-void uart_hw_irq_ack(void);
-void uart_hw_irq_init(void);
-#endif
-
-#ifdef CONFIG_MMU
-void uart_hw_mmu_init(void);
-#endif
-
-#endif /* __UART_DUOWEN_H_INCLUDE__ */

@@ -50,6 +50,7 @@ config ARCH_DUOWEN
 	select ARCH_HAS_SD
 	select ARCH_HAS_I2C
 	select ARCH_HAS_SPI
+	select ARCH_HAS_FDT
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_APB_40
 	select ARCH_HAS_SSI_FIFO
@@ -64,7 +65,7 @@ config ARCH_DUOWEN
 	select RI5CY_FIRQ if (DUOWEN_IMC_RI5CY && !SYS_NOIRQ)
 	select PLIC if !SYS_NOIRQ
 	select CRCNTL if CLK
-	select DW_UART if CONSOLE || DEBUG_PRINT
+	select DUOWEN_UART if CONSOLE || DEBUG_PRINT
 	select DUOWEN_SSI_FLASH if SPI_MASTER
 	select DUOWEN_SD if MMCSD
 	select DUOWEN_PCIE if PCI

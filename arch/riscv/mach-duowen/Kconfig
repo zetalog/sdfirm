@@ -202,6 +202,14 @@ endchoice
 
 endmenu
 
+menuconfig DUOWEN_UART
+	bool "Duowen UART controller support"
+	select DW_UART
+
+if DUOWEN_UART
+
+endif
+
 menuconfig DUOWEN_TMR
 	bool "Duowen global timer controller (TMR) support"
 	depends DUOWEN_IMC
