@@ -84,6 +84,7 @@ static int vaisra_pmp_region_info(u32 hartid, u32 index, ulong *prot,
 	return ret;
 }
 
+#ifdef CONFIG_VAISRA_UART
 #define __UART_REG(offset)		(UART_BASE + (offset))
 #define __UARTDR			__UART_REG(0x000)
 #define __UARTFR			__UART_REG(0x018)
@@ -104,6 +105,16 @@ static int vaisra_console_getc(void)
 		return -1;
 	return __pl01x_read_data();
 }
+#else
+static void vaisra_console_putc(char ch)
+{
+}
+
+static int vaisra_console_getc(void)
+{
+	return 0;
+}
+#endif
 
 static int vaisra_irqchip_init(bool cold_boot)
 {

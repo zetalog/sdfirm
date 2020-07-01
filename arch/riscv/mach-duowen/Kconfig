@@ -10,6 +10,9 @@ menu "Smart Core Duowen board options"
 config DUOWEN_BOOT_APC
 	bool "Enable boot mode cluster"
 
+config DUOWEN_BOOT_SPI
+	bool "Enable boot external flash ROM"
+
 choice
 	prompt "Programmed CPUs"
 	help
@@ -23,7 +26,6 @@ config DUOWEN_IMC
 
 config DUOWEN_APC
 	bool "APC - coherence fabric (CFAB)"
-	select ARCH_HAS_BOOT_LOAD
 	select ARCH_HAS_DMA
 	select ARCH_HAS_IOMMU
 	select ARCH_HAS_PCI
@@ -99,10 +101,9 @@ config DUOWEN_ZSBL
 
 config DUOWEN_FSBL
 	bool "1-stage programmable bootloader (FSBL)"
-	depends DUOWEN_IMC
 	select DUOWEN_BOOT
 	select DUOWEN_LOAD_FSBL
-	select ARCH_HAS_BOOT_LOAD
+	select ARCH_HAS_BOOT_LOAD if !DUOWEN_BOOT_SPI
 	select XIP
 	select BFM if !DUOWEN_FSBL_SPI
 	select SYS_ENTR_M

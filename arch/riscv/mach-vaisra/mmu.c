@@ -43,14 +43,8 @@
 #include <target/uart.h>
 #include <target/paging.h>
 
+#ifdef CONFIG_VAISRA_UART
 caddr_t vaisra_uart_reg_base = UART_BASE;
-
-void vaisra_mmu_dump_maps(void)
-{
-	if (vaisra_uart_reg_base != UART_BASE)
-		printf("FIXMAP: %016llx -> %016llx: UART\n",
-		       UART_BASE, fix_to_virt(UART_BASE));
-}
 
 void vaisra_mmu_map_uart(int n)
 {
@@ -58,4 +52,19 @@ void vaisra_mmu_map_uart(int n)
 		set_fixmap_io(FIX_UART, UART_BASE & PAGE_MASK);
 		vaisra_uart_reg_base = fix_to_virt(FIX_UART);
 	}
+}
+
+static void vaisra_mmu_dump_uart(void)
+{
+	if (vaisra_uart_reg_base != UART_BASE)
+		printf("FIXMAP: %016llx -> %016llx: UART\n",
+		       UART_BASE, fix_to_virt(UART_BASE));
+}
+#else
+#define vaisra_mmu_dump_uart()		do { } while (0)
+#endif
+
+void vaisra_mmu_dump_maps(void)
+{
+	vaisra_mmu_dump_uart();
 }

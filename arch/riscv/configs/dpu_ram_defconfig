@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Jul  1 15:31:33 2020
+# Wed Jul  1 18:17:02 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -122,6 +122,7 @@ CONFIG_PLIC=y
 # CONFIG_PLIC_COMPLETION is not set
 # CONFIG_PLIC_COMPLETION_ENTRY is not set
 CONFIG_PLIC_COMPLETION_EXIT=y
+CONFIG_ARCH_HAS_SBI_TIMER=y
 # CONFIG_SBI is not set
 
 #
@@ -310,6 +311,7 @@ CONFIG_DDR=y
 CONFIG_ARCH_HAS_PCI=y
 # CONFIG_PCI is not set
 # CONFIG_IOMMU is not set
+CONFIG_ARCH_HAS_FDT=y
 # CONFIG_FDT is not set
 # CONFIG_RAS is not set
 

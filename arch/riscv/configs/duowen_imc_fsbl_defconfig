@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Jul  1 15:31:00 2020
+# Wed Jul  1 18:16:27 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -136,6 +136,7 @@ CONFIG_ARCH_HAS_RI5CY_FIRQ=y
 # Smart Core Duowen board options
 #
 # CONFIG_DUOWEN_BOOT_APC is not set
+# CONFIG_DUOWEN_BOOT_SPI is not set
 CONFIG_DUOWEN_IMC=y
 # CONFIG_DUOWEN_APC is not set
 CONFIG_DUOWEN_IMC_ARIANE=y
