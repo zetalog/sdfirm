@@ -12,4 +12,6 @@
 #endif
 #endif
 
+void pci_platform_init(void);
+
 #endif /* __PCI_DUOWEN_H_INCLUDE__ */

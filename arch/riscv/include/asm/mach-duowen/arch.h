@@ -80,6 +80,11 @@
 #ifndef __ASSEMBLY__
 void board_init_clock(void);
 void board_init_timestamp(void);
+#ifdef CONFIG_DUOWEN_APC_VAISRA
+void vaisra_cpu_init(void);
+#else
+#define vaisra_cpu_init()	do { } while (0)
+#endif
 #endif /* __ASSEMBLY__ */
 
 #endif /* __ARCH_DUOWEN_H_INCLUDE__ */

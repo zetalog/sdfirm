@@ -64,7 +64,7 @@
 		};
 	};
 
-	memory@0000000000 {
+	memory@0 {
 		device_type = "memory";
 		reg = <0x0 0x0000000000 0x80 0x00000000>;
 	};

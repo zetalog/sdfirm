@@ -61,6 +61,17 @@ static int duowen_final_init(bool cold_boot)
 	return 0;
 }
 
+static int duowen_early_init(bool cold_boot)
+{
+	vaisra_cpu_init();
+
+	if (!cold_boot)
+		return 0;
+
+	board_init_timestamp();
+	return 0;
+}
+
 static u32 duowen_pmp_region_count(u32 hartid)
 {
 	return 1;
@@ -176,6 +187,7 @@ static int duowen_system_down(u32 type)
 const struct sbi_platform_operations platform_ops = {
 	.pmp_region_count	= duowen_pmp_region_count,
 	.pmp_region_info	= duowen_pmp_region_info,
+	.early_init		= duowen_early_init,
 	.final_init		= duowen_final_init,
 	.console_putc		= duowen_console_putc,
 	.console_getc		= duowen_console_getc,

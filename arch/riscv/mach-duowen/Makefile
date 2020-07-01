@@ -16,3 +16,4 @@ obj-$(CONFIG_DUOWEN_TMR) += tmr.rel
 obj-$(CONFIG_DUOWEN_DMA) += dma.rel
 obj-$(CONFIG_DUOWEN_PCIE) += pcie_duowen.rel
 obj-$(CONFIG_DUOWEN_SPI_FLASH) += spi_flash.rel
+obj-$(CONFIG_DUOWEN_APC_VAISRA) += vaisra.rel
