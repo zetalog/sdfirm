@@ -97,8 +97,9 @@ build_sdfirm riscv64 unleashed_zsbl
 build_sdfirm riscv64 unleashed_fsbl
 
 # DUOWEN
-build_sdfirm riscv32 duowen_zsbl
-build_sdfirm riscv32 duowen_fsbl
+build_sdfirm riscv64 duowen_imc_zsbl
+build_sdfirm riscv64 duowen_imc_fsbl
+build_sdfirm riscv64 duowen_apc_fsbl
 # DPU
 build_sdfirm riscv64 dpu_rom
 build_sdfirm riscv64 dpu_flash

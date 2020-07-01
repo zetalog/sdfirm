@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sun Jun 28 14:24:50 2020
+# Wed Jul  1 15:28:27 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -56,7 +56,6 @@ CONFIG_ARCH_K210=y
 CONFIG_CPU_U54=y
 CONFIG_CPU_64G=y
 CONFIG_CPU_64I=y
-# CONFIG_RISCV_WMO is not set
 # CONFIG_RISCV_32I is not set
 CONFIG_RISCV_64I=y
 # CONFIG_RISCV_32E is not set
@@ -88,6 +87,8 @@ CONFIG_RISCV_PMP=y
 #
 # CPU architecture options
 #
+# CONFIG_RISCV_WMO is not set
+# CONFIG_RISCV_TSO is not set
 
 #
 # Compiler options

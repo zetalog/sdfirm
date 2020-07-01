@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Jun 30 14:28:50 2020
+# Wed Jul  1 15:28:35 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -175,6 +175,7 @@ CONFIG_DUOWEN_BBL=y
 CONFIG_DUOWEN_ASIC=y
 # CONFIG_DUOWEN_FPGA is not set
 # CONFIG_DUOWEN_ZEBU is not set
+CONFIG_DUOWEN_UART=y
 CONFIG_CRCNTL=y
 CONFIG_DUOWEN_SPI_FLASH=y
 # CONFIG_DUOWEN_FLASH_DIVIDER_8 is not set
@@ -307,7 +308,8 @@ CONFIG_ARCH_HAS_PCI=y
 CONFIG_PCI=y
 CONFIG_ARCH_HAS_IOMMU=y
 CONFIG_IOMMU=y
-# CONFIG_FDT is not set
+CONFIG_ARCH_HAS_FDT=y
+CONFIG_FDT=y
 # CONFIG_RAS is not set
 
 #
