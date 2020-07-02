@@ -10,6 +10,25 @@ menuconfig DHRYSTONE
 
 if DHRYSTONE
 
+choice
+	prompt "Dhrystone run rules"
+
+config DHRYSTONE_GROUND_RULES
+	bool "Ground rules"
+	select DHRYSTONE_NO_INLINE
+	help
+	  - Seperate compilation;
+	  - No procedure merging;
+	  - Otherwise, compiler optimization are allowed but should be
+	    indicated;
+	  - default results are those without register declarations.
+
+config DHRYSTONE_BEST_EFFORT
+	bool "Best effort"
+	select DHRYSTONE_REG
+
+endchoice
+
 config DHRYSTONE_REPEATS
 	int "Dhyrstone number of runs"
 	range 5000 5000000
@@ -47,7 +66,12 @@ config DHRYSTONE_TSC_TOO_SMALL
 
 config DHRYSTONE_REG
 	bool "Use registers as dhrystone data"
+	depends DHRYSTONE_BEST_EFFORT
 	default y
+
+config DHRYSTONE_NO_INLINE
+	bool "Disallow inline function merging"
+	depends DHRYSTONE_GROUND_RULES
 
 choice
 	prompt "Percpu mechanism"

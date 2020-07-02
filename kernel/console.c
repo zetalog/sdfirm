@@ -200,9 +200,20 @@ void console_early_init(void)
 
 static bool console_banner_printed;
 
+#ifdef CONFIG_CONSOLE_DEBUG_BOOT
+static void console_debug_boot(void)
+{
+	while (1)
+		putchar(0x55);
+}
+#else
+#define console_debug_boot()	do { } while (0)
+#endif
+
 void console_init(void)
 {
 	console_output_init();
+	console_debug_boot();
 	if (!console_banner_printed) {
 		printf("\n");
 		printf("%s - %s\n",

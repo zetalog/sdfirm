@@ -99,6 +99,7 @@ void clk_init(void);
 #define clk_init()			do { } while (0)
 #ifndef CONFIG_MMU
 #define clk_hw_mmu_init()		do { } while (0)
+#define clk_register_driver(cat, clkd)	(-ENODEV)
 #endif /* CONFIG_MMU */
 #endif
 #endif /* __ASSEMBLY__ */

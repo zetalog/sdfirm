@@ -285,10 +285,6 @@
 #endif /* HAVE_CLOCK */
 #endif
 
-#ifdef CONFIG_DHRYSTONE_REG
-#define REG			register
-#endif
-
 /* Define cache warmup runs, 1 should be sufficient */
 #ifdef CONFIG_DHRYSTONE_WARMUPS
 #define DHRYSTONE_WARMUP_RUNS	CONFIG_DHRYSTONE_WARMUPS

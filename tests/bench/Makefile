@@ -5,7 +5,12 @@ obj-$(CONFIG_TLB_TEST) += tlbtest.rel
 
 # benchmarks
 obj-$(CONFIG_DHRYSTONE) += dhrystone.rel
+ifeq ($(CONFIG_DHRYSTONE_NO_INLINE),y)
 CFLAGS_dhrystone.o += -fno-inline
+endif
+ifeq ($(CONFIG_DHRYSTONE_REG),y)
+CFLAGS_dhrystone.o += -DREG=register
+endif
 
 obj-$(CONFIG_LINPACK) += linpack.rel
 obj-$(CONFIG_COREMARK) += coremark/
