@@ -188,6 +188,14 @@ config DPU_SIM_SSI_IRQ
 	bool "Enable SSI IRQ testing support"
 	depends DPU_SSI_FLASH && SYS_IRQ
 
+config DPU_SIM_DDR_BOOT
+	bool "Use DDR model for DDR1 to boot"
+	help
+	  The special boot mode is used to perform OS verification in the
+	  simulation environment. When it is configured, DDR1 becomes a
+	  RAM model, and sizes 512MB. The CPU will boot the the start
+	  address of DDR1 (0x08_0000_0000).
+
 endif
 
 endmenu
