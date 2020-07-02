@@ -141,7 +141,7 @@ int dhrystone (caddr_t percpu_area)
                     Begin_Time,
                     End_Time;
 #ifdef CONFIG_DHRYSTONE_TIME
-	long long   Expected_End_Time,
+	long long   Expected_End_Time;
 #endif
 #ifdef CONFIG_FP
 #define DHRY_FMT    "%6.1f"
