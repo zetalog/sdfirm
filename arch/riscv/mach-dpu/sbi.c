@@ -175,7 +175,7 @@ static int dpu_timer_init(bool cold_boot)
 
 static int dpu_system_down(u32 type)
 {
-	/* For now nothing to do. */
+	imc_sim_finish();
 	return 0;
 }
 

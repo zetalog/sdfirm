@@ -50,7 +50,13 @@ void irq_vectors_init(void)
 	uint8_t i;
 	for (i = 0; i < MAX_VECTORS; i++)
 		irq_handlers[i] = __bad_interrupt;
+	irqc_hw_mmu_init();
 	irqc_hw_ctrl_init();
+}
+
+void irq_smp_vectors_init(void)
+{
+	irqc_hw_smp_init();
 }
 #else
 void irq_vectors_init(void)
@@ -61,6 +67,10 @@ void irq_vectors_init(void)
 void irq_register_vector(irq_t nr, irq_handler h)
 {
 	vic_hw_register_irq(nr, h);
+}
+
+void irq_smp_vectors_init(void)
+{
 }
 #endif
 #endif
@@ -105,7 +115,7 @@ void irq_register_poller(bh_t bh)
 void irq_smp_init(void)
 {
 	BUG_ON(!smp_initialized);
-	irqc_hw_smp_init();
+	irq_smp_vectors_init();
 	irq_local_disable();
 }
 

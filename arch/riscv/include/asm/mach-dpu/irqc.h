@@ -50,6 +50,13 @@
 #error "Multiple IRQ controller defined"
 #endif
 
+#ifdef CONFIG_MMU
+#define PLIC_BASE		dpu_plic_reg_base
+extern caddr_t dpu_plic_reg_base;
+#else
+#define PLIC_BASE		PLIC_REG_BASE
+#endif
+
 #define PLIC_HW_PRI_MAX			31
 #define plic_hw_m_ctx(hartid)		(hartid)
 #define plic_hw_s_ctx(hartid)		PLIC_CTX_NONE
@@ -68,5 +75,9 @@
 #define plic_hw_disable_int(irq)	riscv_disable_firq(irq)
 #define plic_hw_clear_int(irq)		riscv_clear_firq(irq)
 #define plic_hw_trigger_int(irq)	riscv_trigger_firq(irq)
+
+#ifdef CONFIG_MMU
+void plic_hw_mmu_init(void);
+#endif
 
 #endif /* __IRQC_DPU_H_INCLUDE__ */

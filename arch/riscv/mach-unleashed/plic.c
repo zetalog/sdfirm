@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2019
+ * Copyright (c) 2020
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,50 +35,23 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)irqc.h: FU540 (unleashed) specific IRQ controller interfaces
- * $Id: irqc.h,v 1.1 2019-10-12 11:20:00 zhenglv Exp $
+ * @(#)plic.c: FU540 (unleashed) specific PLIC implementation
+ * $Id: plic.c,v 1.1 2020-07-03 10:00:00 zhenglv Exp $
  */
 
-#ifndef __IRQC_UNLEASHED_H_INCLUDE__
-#define __IRQC_UNLEASHED_H_INCLUDE__
-
-#include <target/arch.h>
-
-#ifndef ARCH_HAVE_IRQC
-#define ARCH_HAVE_IRQC		1
-#else
-#error "Multiple IRQ controller defined"
-#endif
+#include <target/irq.h>
+#include <target/paging.h>
 
 #ifdef CONFIG_MMU
-#define PLIC_BASE		sifive_plic_reg_base
-extern caddr_t sifive_plic_reg_base;
-#else
-#define PLIC_BASE		PLIC_REG_BASE
+caddr_t sifive_plic_reg_base = PLIC_REG_BASE;
+
+void plic_hw_mmu_init(void)
+{
+	if (sifive_plic_reg_base == PLIC_REG_BASE) {
+		set_fixmap_io(FIX_PLIC, PLIC_REG_BASE & PAGE_MASK);
+		sifive_plic_reg_base = fix_to_virt(FIX_PLIC);
+		printf("FIXMAP: %016llx -> %016llx: PLIC\n",
+		       PLIC_REG_BASE, fix_to_virt(FIX_PLIC));
+	}
+}
 #endif
-
-#define PLIC_HW_PRI_MAX		31
-#ifdef CONFIG_UNLEASHED_E51
-#define plic_hw_m_ctx(cpu)	0
-#define plic_hw_s_ctx(cpu)	PLIC_CTX_NONE
-#endif
-#ifdef CONFIG_UNLEASHED_U54
-#define plic_hw_m_ctx(cpu)	((((cpu) + 1) << 1) - 1)
-#define plic_hw_s_ctx(cpu)	(((cpu) + 1) << 1)
-#endif
-
-#include <asm/plic.h>
-
-#define plic_hw_ctrl_init()		do { } while (0)
-
-/* Internal IRQs */
-#define plic_hw_enable_int(irq)		riscv_enable_irq(irq)
-#define plic_hw_disable_int(irq)	riscv_disable_irq(irq)
-#define plic_hw_clear_int(irq)		riscv_clear_irq(irq)
-#define plic_hw_trigger_int(irq)	riscv_trigger_irq(irq)
-
-#ifdef CONFIG_MMU
-void plic_hw_mmu_init(void);
-#endif
-
-#endif /* __IRQC_UNLEASHED_H_INCLUDE__ */

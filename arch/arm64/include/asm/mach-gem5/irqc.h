@@ -17,4 +17,8 @@
 
 #include <asm/gicv2.h>
 
+#ifdef CONFIG_MMU
+void irqc_hw_mmu_init(void);
+#endif
+
 #endif /* __IRQC_GEM5_H_INCLUDE__ */

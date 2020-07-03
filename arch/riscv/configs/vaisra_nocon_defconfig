@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Jul  1 18:15:52 2020
+# Fri Jul  3 10:11:00 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -213,6 +213,7 @@ CONFIG_ARCH_HAS_MMU=y
 CONFIG_ARCH_HAS_MMU_4K=y
 CONFIG_ARCH_HAS_MMU_3L=y
 CONFIG_ARCH_HAS_MMU_HUGE=y
+CONFIG_ARCH_HAS_MMU_BARRIER=y
 CONFIG_MMU=y
 CONFIG_MMU_4K_PAGE=y
 # CONFIG_MMU_16K_PAGE is not set

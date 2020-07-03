@@ -511,6 +511,9 @@ config ARCH_HAS_MMU_HUGE
 config ARCH_HAS_MMU_ORDER
 	bool
 
+config ARCH_HAS_MMU_BARRIER
+	bool
+
 menuconfig MMU
 	bool "Address space layout (paging) support"
 	depends ARCH_HAS_MMU

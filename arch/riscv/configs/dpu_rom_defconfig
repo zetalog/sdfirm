@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Jul  1 18:16:42 2020
+# Fri Jul  3 10:11:49 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -40,6 +40,7 @@ CONFIG_CONSOLE_115200=y
 # CONFIG_CONSOLE_4800 is not set
 # CONFIG_CONSOLE_2400 is not set
 # CONFIG_CONSOLE_DEBUG is not set
+# CONFIG_CONSOLE_DEBUG_BOOT is not set
 
 #
 # RISCV system options
@@ -149,6 +150,7 @@ CONFIG_DPU_BOOT_VPU=y
 # Simulation options
 #
 # CONFIG_DPU_SIM_CLK is not set
+# CONFIG_DPU_SIM_DDR_BOOT is not set
 CONFIG_DPU_TCSR=y
 CONFIG_DPU_TCSR_LOW_POWER=y
 # CONFIG_DPU_TCSR_SIM_FINISH is not set
@@ -226,6 +228,7 @@ CONFIG_MEM=y
 CONFIG_MEM_MAX_REGIONS=3
 # CONFIG_MEM_RESIZE is not set
 # CONFIG_PAGE is not set
+CONFIG_ARCH_HAS_MMU_BARRIER=y
 CONFIG_ARCH_HAS_FP=y
 # CONFIG_FP is not set
 

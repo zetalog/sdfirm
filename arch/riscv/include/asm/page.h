@@ -176,6 +176,12 @@ extern unsigned long empty_zero_page[PAGE_SIZE / sizeof (unsigned long)];
 
 #include <target/mem.h>
 
+#ifdef CONFIG_ARCH_HAS_MMU_BARRIER
+#define mmu_barrier()		local_flush_icache_all()
+#else
+#define mmu_barrier()		do { } while (0)
+#endif
+
 #define ARCH_HAVE_SET_PTE 1
 static inline void set_pte(pteval_t *ptep, pteval_t pte)
 {
