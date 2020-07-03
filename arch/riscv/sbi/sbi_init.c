@@ -22,14 +22,14 @@
 
 struct sbi_scratch *sbi_scratches[MAX_HARTS];
 
-#ifdef CONFIG_CONSOLE_OUTPUT
+#ifdef CONFIG_SBI_BOOT_PRINTS
 void sbi_boot_hart_prints(void)
 {
 	u32 hartid = sbi_current_hartid();
 	struct sbi_scratch *scratch = sbi_scratches[hartid];
 	caddr_t sp;
 
-	if (!(scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS))
+	if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
 		return;
 
 	sp = (caddr_t)scratch + SBI_SCRATCH_SIZE;
@@ -47,7 +47,7 @@ void sbi_boot_prints(void)
 	struct sbi_scratch *scratch = sbi_scratches[hartid];
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 
-	if (!(scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS))
+	if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
 		return;
 
 	misa_string(str, sizeof(str));

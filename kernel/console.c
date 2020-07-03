@@ -190,16 +190,6 @@ void console_early_init(void)
 	console_enabled = true;
 }
 
-#define BANNER							\
-	"   _____ _____  ______ _____ _____  __  __\n"		\
-	"  / ____|  __ \\|  ____|_   _|  __ \\|  \\/  |\n"	\
-	" | (___ | |  | | |__    | | | |__) | \\  / |\n"	\
-	"  \\___ \\| |  | |  __|   | | |  _  /| |\\/| |\n"	\
-	"  ____) | |__| | |     _| |_| | \\ \\| |  | |\n"	\
-	" |_____/|_____/|_|    |_____|_|  \\_\\_|  |_|\n\n"
-
-static bool console_banner_printed;
-
 #ifdef CONFIG_CONSOLE_DEBUG_BOOT
 static void console_debug_boot(void)
 {
@@ -210,10 +200,19 @@ static void console_debug_boot(void)
 #define console_debug_boot()	do { } while (0)
 #endif
 
-void console_init(void)
+#ifdef CONFIG_CONSOLE_BANNER
+#define BANNER							\
+	"   _____ _____  ______ _____ _____  __  __\n"		\
+	"  / ____|  __ \\|  ____|_   _|  __ \\|  \\/  |\n"	\
+	" | (___ | |  | | |__    | | | |__) | \\  / |\n"	\
+	"  \\___ \\| |  | |  __|   | | |  _  /| |\\/| |\n"	\
+	"  ____) | |__| | |     _| |_| | \\ \\| |  | |\n"	\
+	" |_____/|_____/|_|    |_____|_|  \\_\\_|  |_|\n\n"
+
+static bool console_banner_printed;
+
+static void console_banner(void)
 {
-	console_output_init();
-	console_debug_boot();
 	if (!console_banner_printed) {
 		printf("\n");
 		printf("%s - %s\n",
@@ -223,6 +222,16 @@ void console_init(void)
 		printf(BANNER);
 		console_banner_printed = true;
 	}
+}
+#else
+#define console_banner()	do { } while (0)
+#endif
+
+void console_init(void)
+{
+	console_output_init();
+	console_debug_boot();
+	console_banner();
 }
 
 void console_late_init(void)

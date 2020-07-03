@@ -153,6 +153,9 @@ config CONSOLE_DEBUG
 	bool "Enable console debugging messages"
 	depends EXPERIMENTAL
 
+config CONSOLE_BANNER
+	bool "Enable sdfirm boot banner"
+
 config CONSOLE_DEBUG_BOOT
 	bool "Enable boot debug sequence 0x55"
 	depends EXPERIMENTAL
