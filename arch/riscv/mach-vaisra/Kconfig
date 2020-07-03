@@ -54,6 +54,13 @@ endchoice
 
 menu "Simulation options"
 
+config VAISRA_BOOT_RAM
+	bool "Enable booting from RAM"
+	help
+	  When BOOT_MODE=ram is configured in vaisra_beta environment,
+	  vaisra resets from 0x80000000 instead of resetting from internal
+	  ROM address.
+
 menuconfig VAISRA_SPIKE
 	bool "Compare vaisra program with spike"
 	depends SIMULATION

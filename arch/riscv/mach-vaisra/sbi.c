@@ -49,6 +49,16 @@ static void vaisra_modify_dt(void *fdt)
 {
 }
 
+static int vaisra_early_init(bool cold_boot)
+{
+	vaisra_cpu_init();
+
+	if (!cold_boot)
+		return 0;
+
+	return 0;
+}
+
 static int vaisra_final_init(bool cold_boot)
 {
 	void *fdt;
@@ -181,6 +191,7 @@ static int vaisra_system_down(u32 type)
 const struct sbi_platform_operations platform_ops = {
 	.pmp_region_count	= vaisra_pmp_region_count,
 	.pmp_region_info	= vaisra_pmp_region_info,
+	.early_init		= vaisra_early_init,
 	.final_init		= vaisra_final_init,
 	.console_putc		= vaisra_console_putc,
 	.console_getc		= vaisra_console_getc,

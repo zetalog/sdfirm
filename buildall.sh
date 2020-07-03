@@ -93,6 +93,7 @@ build_sdfirm riscv64 spike64_nocon
 build_sdfirm riscv64 virt64_tb
 build_sdfirm riscv64 vaisra_tb
 build_sdfirm riscv64 vaisra_nocon
+build_sdfirm riscv64 vaisra_fsbl
 
 build_sdfirm riscv64 unleashed_zsbl
 build_sdfirm riscv64 unleashed_fsbl

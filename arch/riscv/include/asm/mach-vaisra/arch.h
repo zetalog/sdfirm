@@ -55,6 +55,11 @@
 
 #ifndef __ASSEMBLY__
 void vaisra_error(void);
+#ifdef CONFIG_VAISRA_BOOT_RAM
+void vaisra_cpu_init(void);
+#else
+#define vaisra_cpu_init()	do { } while (0)
+#endif
 #ifdef CONFIG_SHUTDOWN
 void vaisra_sim_shutdown(void);
 #else
