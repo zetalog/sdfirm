@@ -708,4 +708,31 @@ menuconfig VAISRA_TBOX
 	  The hardware also includes a tube register that allows to end the
 	  simulation.
 
+menuconfig VAISRA_PMA
+	bool "Vaisra physical memory attributes support"
+	depends CPU_VAISRA
+	help
+	  Vaisra SoC PMA driver.
+
+if VAISRA_PMA
+
+config VAISRA_PMA_WRITE_THROUGH
+	bool "Enable normal memory write-through"
+
+config VAISRA_PMA_TRANSIENT
+	bool "Enable normal memory traisient"
+
+config VAISRA_PMA_EARLY_WRITE_ACK
+	bool "Enable device memory early write acknowledgement"
+
+config VAISRA_PMA_RE_ORDERING
+	bool "Enable device memory re-ordering"
+	select VAISRA_PMA_EARLY_WRITE_ACK
+
+config VAISRA_PMA_GATHERING
+	bool "Enable device memory gathering"
+	select VAISRA_PMA_RE_ORDERING
+
+endif
+
 endmenu
