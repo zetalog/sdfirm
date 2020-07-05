@@ -56,6 +56,7 @@ menu "Simulation options"
 
 config VAISRA_BOOT_RAM
 	bool "Enable booting from RAM"
+	select VAISRA_PMA
 	help
 	  When BOOT_MODE=ram is configured in vaisra_beta environment,
 	  vaisra resets from 0x80000000 instead of resetting from internal

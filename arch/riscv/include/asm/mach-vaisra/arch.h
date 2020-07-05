@@ -45,6 +45,9 @@
 #ifdef CONFIG_VAISRA_SPIKE
 #include <asm/htif.h>
 #endif
+#ifdef CONFIG_VAISRA_PMA
+#include <asm/vaisra_pma.h>
+#endif
 
 /* This file is intended to be used for implementing SoC specific
  * instructions, registers.
