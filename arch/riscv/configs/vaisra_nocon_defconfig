@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Jul  3 10:11:00 2020
+# Mon Jul  6 20:11:24 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -73,6 +73,7 @@ CONFIG_RISCV_SV=y
 # CONFIG_RISCV_SV32 is not set
 CONFIG_RISCV_SV39=y
 # CONFIG_RISCV_SV48 is not set
+# CONFIG_RISCV_SV_ZIFENCEI is not set
 
 #
 # CPU architecture options
@@ -148,6 +149,7 @@ CONFIG_VAISRA_TB=y
 #
 # Simulation options
 #
+# CONFIG_VAISRA_BOOT_RAM is not set
 
 #
 # Feature setup

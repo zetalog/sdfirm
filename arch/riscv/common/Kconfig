@@ -7,7 +7,6 @@ config CPU_VAISRA
 	select CPU_SV48
 	select CPU_PMP
 	select CPU_COUNTERS
-	select ARCH_HAS_MMU_BARRIER
 
 # SiFive E51
 config CPU_E51
@@ -27,7 +26,6 @@ config CPU_U54
 	select CPU_SV39
 	select CPU_PMP
 	select CPU_COUNTERS
-	select ARCH_HAS_MMU_ORDER
 
 # THead Xuantie C910
 config CPU_C910
@@ -63,7 +61,6 @@ config CPU_CV64A
 	select CPU_C
 	select CPU_S
 	select CPU_SV39
-	select ARCH_HAS_MMU_BARRIER
 
 # ZERO RISCY
 config CPU_0RISCY
@@ -365,6 +362,7 @@ menuconfig RISCV_SV
 	bool "Supervisor virtual addresing"
 	depends ARCH_HAS_MMU
 	select RISCV_S
+	select ARCH_HAS_MMU_BARRIER if !RISCV_SV_ZIFENCEI
 
 if RISCV_SV
 
@@ -390,6 +388,10 @@ config RISCV_SV48
 	select ARCH_HAS_MMU_4L
 
 endchoice
+
+config RISCV_SV_ZIFENCEI
+	bool "Enable instrution fetch barrier"
+	depends CPU_ZIFENCEI
 
 endif
 

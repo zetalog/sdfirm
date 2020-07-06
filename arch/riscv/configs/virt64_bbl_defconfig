@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Jul  3 10:08:31 2020
+# Mon Jul  6 20:04:48 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -39,6 +39,7 @@ CONFIG_CONSOLE_115200=y
 # CONFIG_CONSOLE_4800 is not set
 # CONFIG_CONSOLE_2400 is not set
 # CONFIG_CONSOLE_DEBUG is not set
+# CONFIG_CONSOLE_BANNER is not set
 # CONFIG_CONSOLE_DEBUG_BOOT is not set
 
 #
@@ -138,6 +139,7 @@ CONFIG_SBI_NEXT_S=y
 # CONFIG_SBI_RISCV_NEXT_U is not set
 CONFIG_SBI_RISCV_NEXT_S=y
 # CONFIG_SBI_RISCV_NEXT_M is not set
+# CONFIG_SBI_BOOT_PRINTS is not set
 CONFIG_SBI_PAYLOAD=y
 CONFIG_SBI_PAYLOAD_PATH="Image"
 # CONFIG_SBI_PAYLOAD_ALIGN_RELAXED is not set

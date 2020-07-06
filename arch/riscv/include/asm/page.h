@@ -177,44 +177,40 @@ extern unsigned long empty_zero_page[PAGE_SIZE / sizeof (unsigned long)];
 
 #include <target/mem.h>
 
-#ifdef CONFIG_ARCH_HAS_MMU_BARRIER
+#ifdef CONFIG_RISCV_SV_ZIFENCEI
 #define mmu_barrier()		local_flush_icache_all()
 #else
 #define mmu_barrier()		do { } while (0)
 #endif
 
 #define ARCH_HAVE_SET_PTE 1
-static inline void set_pte(pteval_t *ptep, pteval_t pte)
+static __inline void set_pte(pteval_t *ptep, pteval_t pte)
 {
 	mmu_dbg_tbl("PTE: %016llx: %016llx\n", ptep, pte);
 	WRITE_ONCE(*ptep, pte);
 	mmu_barrier();
 }
-/* #define set_pte(ptep, pte)	((*(ptep) = (pte)), page_wmb()) */
 #define ARCH_HAVE_SET_PMD 1
-static inline void set_pmd(pmdval_t *pmdp, pmdval_t pmd)
+static __inline void set_pmd(pmdval_t *pmdp, pmdval_t pmd)
 {
 	mmu_dbg_tbl("PMD: %016llx: %016llx\n", pmdp, pmd);
 	WRITE_ONCE(*pmdp, pmd);
 }
-/* #define set_pmd(pmdp, pmd)	((*(pmdp) = (pmd)), page_wmb()) */
 #if PGTABLE_LEVELS > 2
 #define ARCH_HAVE_SET_PUD 1
-static inline void set_pud(pudval_t *pudp, pudval_t pud)
+static __inline void set_pud(pudval_t *pudp, pudval_t pud)
 {
 	mmu_dbg_tbl("PUD: %016llx: %016llx\n", pudp, pud);
 	WRITE_ONCE(*pudp, pud);
 }
-/* #define set_pud(pudp, pud)	((*(pudp) = (pud)), page_wmb()) */
 #endif /* PGTABLE_LEVELS > 2 */
 #if PGTABLE_LEVELS > 3
 #define ARCH_HAVE_SET_PGD 1
-static inline void set_pgd(pgdval_t *pgdp, pgdval_t pgd)
+static __inline void set_pgd(pgdval_t *pgdp, pgdval_t pgd)
 {
 	mmu_dbg_tbl("PGD: %016llx: %016llx\n", pgdp, pgd);
 	WRITE_ONCE(*pgdp, pgd);
 }
-/* #define set_pgd(pgdp, pgd)	((*(pgdp) = (pgd)), page_wmb()) */
 #endif /* PGTABLE_LEVELS > 3 */
 #endif
 

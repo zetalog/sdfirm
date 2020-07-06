@@ -163,7 +163,7 @@ static inline bool pmd_huge_map(pmd_t *pmdp, caddr_t addr, caddr_t next,
 #define pmd_sect(pmd)						false
 #endif
 
-#ifdef CONFIG_ARCH_HAS_MMU_ORDER
+#ifdef CONFIG_ARCH_HAS_MMU_BARRIER
 __init static __inline pte_t *get_pte_virt(phys_addr_t pa)
 {
 	pte_clear_fixmap();

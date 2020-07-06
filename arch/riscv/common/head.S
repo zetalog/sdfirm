@@ -130,13 +130,13 @@
 	or	\sat, \sat, \mode
 	.endm
 
-	/* The first time mapping enabling, sfence.vma follows SATP write. When
-	 * it's not the first time enabling, sfence.vma may be followed by SATP
-	 * writes.
+	/* The first time mapping enabling, sfence.vma may be invoked to
+	 * flush spurious TLB entries.
 	 */
 	.macro enable_mmu, map, sat, mode
 #ifdef CONFIG_MMU
 	config_mmu \map, \sat, \mode
+	sfence.vma
 	csrw	CSR_SATP, \sat
 	sfence.vma
 #endif

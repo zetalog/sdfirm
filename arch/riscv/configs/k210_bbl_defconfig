@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Jul  3 10:08:50 2020
+# Mon Jul  6 20:05:36 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -40,6 +40,7 @@ CONFIG_CONSOLE_115200=y
 # CONFIG_CONSOLE_4800 is not set
 # CONFIG_CONSOLE_2400 is not set
 # CONFIG_CONSOLE_DEBUG is not set
+# CONFIG_CONSOLE_BANNER is not set
 # CONFIG_CONSOLE_DEBUG_BOOT is not set
 
 #
@@ -136,6 +137,7 @@ CONFIG_SBI_NEXT_M=y
 # CONFIG_SBI_RISCV_NEXT_U is not set
 CONFIG_SBI_RISCV_NEXT_S=y
 # CONFIG_SBI_RISCV_NEXT_M is not set
+# CONFIG_SBI_BOOT_PRINTS is not set
 # CONFIG_SBI_PAYLOAD is not set
 # CONFIG_SBI_FDT is not set
 # CONFIG_SBI_CSR_MIMPID is not set
@@ -211,7 +213,6 @@ CONFIG_MEM=y
 CONFIG_MEM_MAX_REGIONS=4
 CONFIG_MEM_RESIZE=y
 # CONFIG_PAGE is not set
-CONFIG_ARCH_HAS_MMU_ORDER=y
 CONFIG_ARCH_HAS_FP=y
 # CONFIG_FP is not set
 
