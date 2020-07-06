@@ -42,14 +42,14 @@
 #ifndef __PMP_RISCV_H_INCLUDE__
 #define __PMP_RISCV_H_INCLUDE__
 
-#define PMP_R				0x01
-#define PMP_W				0x02
-#define PMP_X				0x04
-#define PMP_A				0x18
-#define PMP_A_TOR			0x08
-#define PMP_A_NA4			0x10
-#define PMP_A_NAPOT			0x18
-#define PMP_L				0x80
+#define PMP_R				_AC(0x00000001, UL)
+#define PMP_W				_AC(0x00000002, UL)
+#define PMP_X				_AC(0x00000004, UL)
+#define PMP_A				_AC(0x00000018, UL)
+#define PMP_A_TOR			_AC(0x00000008, UL)
+#define PMP_A_NA4			_AC(0x00000010, UL)
+#define PMP_A_NAPOT			_AC(0x00000018, UL)
+#define PMP_L				_AC(0x00000080, UL)
 
 #define PMP_SHIFT			2
 #define PMP_COUNT			16
