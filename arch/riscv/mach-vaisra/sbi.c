@@ -49,12 +49,21 @@ static void vaisra_modify_dt(void *fdt)
 {
 }
 
+static void vaisra_pma_init(void)
+{
+	/* PMA configured for vaisra_beta test bench */
+	pma_set(0, PMA_AT_NORMAL | PMA_S_INNER, RAM_BASE, ilog2_const(round_up(RAM_SIZE)));
+	pma_set(1, PMA_AT_DEVICE,               DEV_BASE, ilog2_const(DEV_SIZE));
+	pma_set(2, PMA_AT_DEVICE,               ROM_BASE, ilog2_const(round_up(ROM_SIZE)));
+}
+
 static int vaisra_early_init(bool cold_boot)
 {
 	vaisra_cpu_init();
 
 	if (!cold_boot)
 		return 0;
+	vaisra_pma_init();
 
 	return 0;
 }
