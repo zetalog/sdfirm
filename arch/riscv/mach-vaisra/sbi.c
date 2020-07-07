@@ -52,10 +52,15 @@ static void vaisra_modify_dt(void *fdt)
 #ifdef CONFIG_VAISRA_BOOT_RAM
 static void vaisra_pma_init(void)
 {
+	int n = 0;
+
 	/* PMA configured for vaisra_beta test bench */
-	pma_set(0, PMA_AT_NORMAL | PMA_S_INNER, RAM_BASE, __ilog2_u64(__roundup64(RAM_SIZE)));
-	pma_set(1, PMA_AT_DEVICE,               DEV_BASE, ilog2_const(DEV_SIZE));
-	pma_set(2, PMA_AT_DEVICE,               ROM_BASE, __ilog2_u64(__roundup64(ROM_SIZE)));
+	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER, RAM_BASE,
+		     __ilog2_u64(__roundup64(max(SZ_2M, RAM_SIZE))));
+	n += pma_set(n, PMA_AT_DEVICE,               DEV_BASE,
+		     ilog2_const(max(SZ_2M, DEV_SIZE)));
+	n += pma_set(n, PMA_AT_DEVICE,               ROM_BASE,
+		     __ilog2_u64(__roundup64(ROM_SIZE)));
 }
 #else
 #define vaisra_pma_init()		do { } while (0)

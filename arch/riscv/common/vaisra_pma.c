@@ -200,25 +200,42 @@ void csr_write_pmaaddr(int n, unsigned long val)
 	};
 }
 
+void __pma_cfg(int n, unsigned long attr)
+{
+	unsigned long cfgmask, pmacfg;
+	int pmacfg_index, pmacfg_shift;
+	bool tor = ((attr & PMA_A) == PMA_A_TOR);
+
+	/* calculate PMA register and offset */
+	pmacfg_index = REG64_16BIT_INDEX(tor ? n + 1 : n);
+	pmacfg_shift = REG64_16BIT_OFFSET(tor ? n + 1 : n);
+
+	cfgmask = ~(UL(0xffff) << pmacfg_shift);
+	pmacfg	= csr_read_pmacfg(pmacfg_index) & cfgmask;
+	pmacfg |= ((attr << pmacfg_shift) & ~cfgmask);
+
+	csr_write_pmacfg(pmacfg_index, pmacfg);
+}
+
 int pma_set(int n, unsigned long attr, phys_addr_t addr, unsigned long log2len)
 {
-	int pmacfg_index, pmacfg_shift;
-	unsigned long cfgmask, pmacfg;
 	unsigned long addrmask, pmaaddr;
+	bool tor = !IS_ALIGNED(addr, PMA_GRAIN_ALIGN) || log2len < PMA_GRAIN_SHIFT;
 
 	/* check parameters */
 	if (n >= PMA_COUNT || log2len > __riscv_xlen || log2len < PMA_SHIFT)
 		return -EINVAL;
 
-	/* calculate PMA register and offset */
-	pmacfg_index = REG64_16BIT_INDEX(n);
-	pmacfg_shift = REG64_16BIT_OFFSET(n);
-
 	/* encode PMA config */
-	attr |= (log2len == PMA_SHIFT) ? PMA_A_NA4 : PMA_A_NAPOT;
-	cfgmask = ~(UL(0xffff) << pmacfg_shift);
-	pmacfg	= csr_read_pmacfg(pmacfg_index) & cfgmask;
-	pmacfg |= ((attr << pmacfg_shift) & ~cfgmask);
+	attr |= tor ? PMA_A_TOR :
+		((log2len == PMA_SHIFT) ? PMA_A_NA4 : PMA_A_NAPOT);
+
+	if (tor) {
+		csr_write_pmaaddr(n, addr);
+		csr_write_pmaaddr(n + 1, addr + (1 << log2len));
+		__pma_cfg(n, attr);
+		return 2;
+	}
 
 	/* encode PMA address */
 	if (log2len == PMA_SHIFT) {
@@ -235,6 +252,6 @@ int pma_set(int n, unsigned long attr, phys_addr_t addr, unsigned long log2len)
 
 	/* write csrs */
 	csr_write_pmaaddr(n, pmaaddr);
-	csr_write_pmacfg(pmacfg_index, pmacfg);
-	return 0;
+	__pma_cfg(n, attr);
+	return 1;
 }

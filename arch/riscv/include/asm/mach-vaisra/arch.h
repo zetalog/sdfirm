@@ -42,6 +42,8 @@
 #ifndef __ARCH_VAISRA_H_INCLUDE__
 #define __ARCH_VAISRA_H_INCLUDE__
 
+#define VAISRA_PMA_G		(19)
+
 #ifdef CONFIG_VAISRA_SPIKE
 #include <asm/htif.h>
 #endif

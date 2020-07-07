@@ -42,13 +42,24 @@
 #ifndef __PMA_VAISRA_H_INCLUDE__
 #define __PMA_VAISRA_H_INCLUDE__
 
+#ifndef VAISRA_PMA_G
+#error "VAISRA_PMA_G should be defined!"
+#endif
+
+#define PMA_GRAIN_SHIFT		(VAISRA_PMA_G + 2)
+#define PMA_GRAIN_ALIGN		(ULL(1) << PMA_GRAIN_SHIFT)
+
 #define CSR_PMACFG(n)		(0x7C0 + (n)) /* 0..3 */
 #define CSR_PMAADDR(n)		(0x7D0 + (n)) /* 0..15 */
 
 /* Address mode [11:10] */
 #define PMA_A			_AC(0x00000C00, UL)
 #define PMA_A_TOR		_AC(0x00000400, UL)
+#if VAISRA_PMA_G >= 1
+#define PMA_A_NA4		PMA_A_NAPOT
+#else
 #define PMA_A_NA4		_AC(0x00000800, UL)
+#endif
 #define PMA_A_NAPOT		_AC(0x00000C00, UL)
 /* Sharable [9:8] */
 #define PMA_S			_AC(0x00000300, UL)
