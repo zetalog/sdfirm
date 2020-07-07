@@ -15,10 +15,6 @@
 #include <target/delay.h>
 #include <target/bench.h>
 
-#define VIRT_TEST_ADDR			0x100000
-#define VIRT_TEST_FINISHER_FAIL		0x3333
-#define VIRT_TEST_FINISHER_PASS		0x5555
-
 static void virt_modify_dt(void *fdt)
 {
 #if 0
@@ -154,7 +150,7 @@ static int virt_system_down(u32 type)
 	/* Tell the "finisher" that the simulation
 	 * was successful so that QEMU exits
 	 */
-	__raw_writel(VIRT_TEST_FINISHER_PASS, VIRT_TEST_ADDR);
+	virt_finish_pass();
 	return 0;
 }
 

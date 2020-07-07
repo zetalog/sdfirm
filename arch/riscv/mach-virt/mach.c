@@ -40,6 +40,22 @@
  */
 
 #include <target/arch.h>
+#include <target/sbi.h>
+#include <target/cmdline.h>
+
+#ifdef CONFIG_SHUTDOWN
+#ifdef CONFIG_SBI
+void board_shutdown(void)
+{
+	sbi_shutdown();
+}
+#else
+void board_shutdown(void)
+{
+	virt_finish_pass();
+}
+#endif
+#endif
 
 void board_early_init(void)
 {
@@ -49,3 +65,24 @@ void board_early_init(void)
 void board_late_init(void)
 {
 }
+
+static int do_qemu_shutdown(int argc, char *argv[])
+{
+	board_shutdown();
+	return 0;
+}
+
+static int do_qemu(int argc, char *argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+
+	if (strcmp(argv[1], "shutdown") == 0)
+		return do_qemu_shutdown(argc, argv);
+	return -EINVAL;
+}
+
+DEFINE_COMMAND(qemu, do_qemu, "QEMU virtio (virt) simulator global commands",
+	"qemu shutdown\n"
+	"    -shutdown board\n"
+);

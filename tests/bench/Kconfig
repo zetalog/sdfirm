@@ -31,7 +31,8 @@ endchoice
 
 config DHRYSTONE_REPEATS
 	int "Dhyrstone number of runs"
-	range 5000 5000000
+	range 5000 5000000 if DHRYSTONE_TIME_CLOCK
+	range 500 5000000 if DHRYSTONE_TIME_TSC
 	default 5000
 
 config DHRYSTONE_WARMUPS
