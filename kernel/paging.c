@@ -210,6 +210,8 @@ __init static __inline pgd_t *get_pgd_virt(phys_addr_t pa)
 #define put_pmd_virt()			do { } while (0)
 #define put_pud_virt()			do { } while (0)
 #define put_pgd_virt()			do { } while (0)
+#define get_virt_barrier(pa)		flush_tlb_range_kern(pa, pa + PAGE_SIZE)
+#define put_virt_flush(pa)		do { } while (0)
 #else
 #define get_pte_virt(pa)		pte_set_fixmap(pa)
 #define get_pmd_virt(pa)		pmd_set_fixmap(pa)
@@ -222,6 +224,8 @@ __init static __inline pgd_t *get_pgd_virt(phys_addr_t pa)
 #define put_pmd_virt()			pmd_clear_fixmap()
 #define put_pud_virt()			pud_clear_fixmap()
 #define put_pgd_virt()			pgd_clear_fixmap()
+#define get_virt_barrier(pa)		do { } while (0)
+#define put_virt_flush(pa)		flush_tlb_range_kern(pa, pa + PAGE_SIZE)
 #endif
 
 static phys_addr_t early_pgtable_alloc(void)
@@ -655,11 +659,12 @@ void __set_fixmap(fixmap_t idx, phys_addr_t phys, pgprot_t flags)
 
 	ptep = fixmap_pte(addr);
 
-	if (pgprot_val(flags))
+	if (pgprot_val(flags)) {
 		set_pte(ptep, pfn_pte(phys >> PAGE_SHIFT, flags));
-	else {
+		get_virt_barrier(addr);
+	} else {
 		pte_clear(addr, ptep);
-		flush_tlb_range_kern(addr, addr + PAGE_SIZE);
+		put_virt_flush(addr);
 	}
 }
 
