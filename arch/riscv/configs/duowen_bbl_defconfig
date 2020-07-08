@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Jul  6 20:05:59 2020
+# Wed Jul  8 11:26:47 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -132,6 +132,21 @@ CONFIG_PLIC=y
 # CONFIG_PLIC_COMPLETION_ENTRY is not set
 CONFIG_PLIC_COMPLETION_EXIT=y
 # CONFIG_VAISRA_TBOX is not set
+CONFIG_VAISRA_PMA=y
+
+#
+# Default normal memory attributes
+#
+# CONFIG_VAISRA_PMA_NON_ALLOCATE is not set
+# CONFIG_VAISRA_PMA_WRITE_THROUGH is not set
+# CONFIG_VAISRA_PMA_TRANSIENT is not set
+
+#
+# Default device attributes
+#
+# CONFIG_VAISRA_PMA_GATHERING is not set
+# CONFIG_VAISRA_PMA_RE_ORDERING is not set
+# CONFIG_VAISRA_PMA_EARLY_WRITE_ACK is not set
 CONFIG_ARCH_HAS_SBI_IPI=y
 CONFIG_ARCH_HAS_SBI_TIMER=y
 CONFIG_SBI=y
@@ -246,8 +261,8 @@ CONFIG_LPS_NO_LPS=y
 #
 CONFIG_BFM=y
 CONFIG_XIP=y
-CONFIG_BOOT_BASE=0x800
-CONFIG_LOAD_BASE=0x800
+CONFIG_BOOT_BASE=0x80
+CONFIG_LOAD_BASE=0x80
 # CONFIG_NO_ZERO_BSS is not set
 # CONFIG_NO_ZERO_GPR is not set
 # CONFIG_HEAP is not set

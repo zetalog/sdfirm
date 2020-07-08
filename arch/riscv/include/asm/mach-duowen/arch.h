@@ -77,6 +77,11 @@
 #include <asm/mach/imc.h>
 #include <asm/mach/flash.h>
 
+#ifdef CONFIG_VAISRA_PMA
+#define VAISRA_PMA_G		19
+#include <asm/vaisra_pma.h>
+#endif
+
 #ifndef __ASSEMBLY__
 void board_init_clock(void);
 void board_init_timestamp(void);

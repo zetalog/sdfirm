@@ -59,6 +59,7 @@ choice
 config DUOWEN_APC_VAISRA
 	bool "SmarCo Vaisra"
 	select CPU_VAISRA
+	select VAISRA_PMA
 
 config DUOWEN_APC_C910
 	bool "Xuantie C910"

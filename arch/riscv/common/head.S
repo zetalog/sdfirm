@@ -100,27 +100,27 @@
 	.endm
 
 	.macro zero_sect, sva, eva, lab_exit, lab_loop
-	la	a0, \sva
-	la	a1, \eva
+	la	t0, \sva
+	la	t1, \eva
 	j	\lab_exit
 \lab_loop:
-	zerow	a0
-	addi	a0, a0, WORD_SIZE
+	zerow	t0
+	addi	t0, t0, WORD_SIZE
 \lab_exit:
-	bltu	a0, a1, \lab_loop
+	bltu	t0, t1, \lab_loop
 	.endm
 
 	.macro copy_sect, sla, sva, eva, lab_exit, lab_loop
-	la	a2, \sla
-	la	a0, \sva
-	la	a1, \eva
+	la	t2, \sla
+	la	t0, \sva
+	la	t1, \eva
 	j	\lab_exit
 \lab_loop:
-	copyw	a2, a0, a3
-	addi	a2, a2, WORD_SIZE
-	addi	a0, a0, WORD_SIZE
+	copyw	t2, t0, t3
+	addi	t2, t2, WORD_SIZE
+	addi	t0, t0, WORD_SIZE
 \lab_exit:
-	bltu	a0, a1, \lab_loop
+	bltu	t0, t1, \lab_loop
 	.endm
 
 	.macro config_mmu, map, sat, mode
@@ -180,7 +180,6 @@ ENTRY(__start)
 	li	a7, BOOT_HART
 	bne	a6, a7, secondary_wait_for_abi_relocate
 
-	MOV_3R	s0, a0, s1, a1, s2, a2
 #ifdef CONFIG_LOAD_TEXT
 	/* Handle both .text and .rodata sections */
 	copy_sect __text_loc, _stext, _etext, copy_text_exit, copy_text_loop
@@ -193,7 +192,6 @@ ENTRY(__start)
 	/* Handle .bss section */
 	zero_sect __bss_start, __bss_stop, init_bss_exit, init_bss_loop
 #endif
-	MOV_3R	a0, s0, a1, s1, a2, s2
 
 	la	t0, abi_relocate_done
 	REG_S	t0, 0(t0)
