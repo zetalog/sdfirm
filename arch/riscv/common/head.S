@@ -2,6 +2,8 @@
 #include <target/arch.h>
 #include <target/paging.h>
 
+#define RV_LARGE_LOAD_OFFSET	(CONFIG_BOOT_BASE - CONFIG_LOAD_BASE)
+
 	.macro disable_mirq
 	csrw	CSR_MIE, zero
 	csrw	CSR_MIP, zero
@@ -110,6 +112,24 @@
 	bltu	t0, t1, \lab_loop
 	.endm
 
+#ifdef CONFIG_MAXPHYSMEM_128GB
+	/* No large mcmodel defined for long range loading, so we have to
+	 * do it ourselves.
+	 */
+	.macro copy_sect, sva, eva, lab_exit, lab_loop
+	li	t2, RV_LARGE_LOAD_OFFSET
+	la	t0, \sva
+	add	t2, t2, t0
+	la	t1, \eva
+	j	\lab_exit
+\lab_loop:
+	copyw	t2, t0, t3
+	addi	t2, t2, WORD_SIZE
+	addi	t0, t0, WORD_SIZE
+\lab_exit:
+	bltu	t0, t1, \lab_loop
+	.endm
+#else
 	.macro copy_sect, sla, sva, eva, lab_exit, lab_loop
 	la	t2, \sla
 	la	t0, \sva
@@ -122,6 +142,7 @@
 \lab_exit:
 	bltu	t0, t1, \lab_loop
 	.endm
+#endif
 
 	.macro config_mmu, map, sat, mode
 	la	\sat, \map
@@ -182,11 +203,19 @@ ENTRY(__start)
 
 #ifdef CONFIG_LOAD_TEXT
 	/* Handle both .text and .rodata sections */
+#ifdef CONFIG_MAXPHYSMEM_128GB
+	copy_sect _stext, _etext, copy_text_exit, copy_text_loop
+#else
 	copy_sect __text_loc, _stext, _etext, copy_text_exit, copy_text_loop
+#endif
 #endif
 #ifdef CONFIG_LOAD_DATA
 	/* Handle .data section */
+#ifdef CONFIG_MAXPHYSMEM_128GB
+	copy_sect __sdata, __edata, copy_data_exit, copy_data_loop
+#else
 	copy_sect __data_loc, __sdata, __edata, copy_data_exit, copy_data_loop
+#endif
 #endif
 #ifndef CONFIG_NO_ZERO_BSS
 	/* Handle .bss section */

@@ -7,12 +7,6 @@ if ARCH_DUOWEN
 
 menu "Smart Core Duowen board options"
 
-config DUOWEN_BOOT_APC
-	bool "Enable boot mode cluster"
-
-config DUOWEN_BOOT_SPI
-	bool "Enable boot external flash ROM"
-
 choice
 	prompt "Programmed CPUs"
 	help
@@ -20,54 +14,17 @@ choice
 
 config DUOWEN_IMC
 	bool "IMC - system fabric (SFAB)"
-	select CPU_RI5CY
-	select RISCV_VIRQ
-	depends !DUOWEN_BOOT_APC
+	select CPU_CV64A
 
 config DUOWEN_APC
 	bool "APC - coherence fabric (CFAB)"
+	select CPU_VAISRA
+	select VAISRA_PMA
 	select ARCH_HAS_DMA
 	select ARCH_HAS_IOMMU
 	select ARCH_HAS_PCI
 
 endchoice
-
-if DUOWEN_IMC
-
-choice
-	prompt "IMC CPU core model"
-	default DUOWEN_IMC_ARIANE
-
-config DUOWEN_IMC_ARIANE
-	bool "Ariane (CV64A)"
-	select CPU_CV64A
-
-config DUOWEN_IMC_RI5CY
-	bool "RI5CY (CV32E)"
-	select CPU_CV32E
-
-endchoice
-
-endif
-
-if DUOWEN_APC
-
-choice
-	prompt "APC CPU core model"
-	default DUOWEN_APC_VAISRA
-
-config DUOWEN_APC_VAISRA
-	bool "SmarCo Vaisra"
-	select CPU_VAISRA
-	select VAISRA_PMA
-
-config DUOWEN_APC_C910
-	bool "Xuantie C910"
-	select CPU_C910
-
-endchoice
-
-endif
 
 config DUOWEN_BOOT
 	bool
@@ -80,7 +37,6 @@ config DUOWEN_LOAD_ZSBL
 
 config DUOWEN_LOAD_FSBL
 	bool
-	select DUOWEN_DDR
 
 config DUOWEN_LOAD_BBL
 	bool
@@ -90,10 +46,9 @@ choice
 
 config DUOWEN_ZSBL
 	bool "0-stage ROM bootloader (ZSBL)"
-	depends DUOWEN_IMC
 	select DUOWEN_BOOT
 	select DUOWEN_LOAD_ZSBL
-	select XIP
+	select XIP if DUOWEN_IMC
 	select LOAD_DATA
 	select SYS_ENTR_M
 	select SYS_EXIT_M
@@ -104,8 +59,8 @@ config DUOWEN_FSBL
 	bool "1-stage programmable bootloader (FSBL)"
 	select DUOWEN_BOOT
 	select DUOWEN_LOAD_FSBL
-	select ARCH_HAS_BOOT_LOAD if !DUOWEN_BOOT_SPI
-	select XIP
+	select ARCH_HAS_BOOT_LOAD if !DUOWEN_FSBL_SPI
+	select XIP if DUOWEN_IMC
 	select BFM if !DUOWEN_FSBL_SPI
 	select SYS_ENTR_M
 	select SYS_EXIT_M
@@ -128,19 +83,11 @@ config DUOWEN_BBL
 	select DUOWEN_SPI_FLASH
 	select DUOWEN_SSI_FLASH
 
-config DUOWEN_BROM
-	bool "Vaisra boot ROM (APC ROM)"
-	depends DUOWEN_APC
-	select XIP
-	select LOAD_DATA
-	select SYS_ENTR_M
-	select SYS_EXIT_M
-
 config DUOWEN_TB
 	bool "Test bench"
 	select SYS_ENTR_M
 	select SYS_EXIT_M
-	select SYS_EXIT_S if (DUOWEN_APC || DUOWEN_IMC_ARIANE)
+	select SYS_EXIT_S
 	select XIP
 
 endchoice
@@ -239,8 +186,7 @@ endif
 
 menuconfig CRCNTL
 	bool "Duowen clock/reset controller (CRCNTL) support"
-	select DW_PLL5GHZ_TSMC12FFC
-	select DW_PLL5GHZ_TSMC12FFC_CNT_LOCKED
+	select DW_PLL5GHZ_TSMC12FFC if DUOWEN_ASIC
 
 if CRCNTL
 

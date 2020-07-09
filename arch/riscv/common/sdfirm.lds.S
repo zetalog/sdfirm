@@ -53,8 +53,10 @@ SECTIONS
 
 	_etext = .;				/* end of text and rodata sections */
 
+#ifndef CONFIG_MAXPHYSMEM_128GB
 	__text_loc = CONFIG_BOOT_BASE;		/* text boot location */
 	_etext_loc = __text_loc + _etext - _stext;
+#endif
 
 #if defined(CONFIG_XIP) && (CONFIG_LOAD_BASE != CONFIG_BOOT_BASE)
 	. = CONFIG_LOAD_BASE;			/* ensure addresses followups are load addresses */
@@ -102,8 +104,10 @@ SECTIONS
 				MAX(_sdata + 0x800, _edata - 0x800));
 #endif
 
+#ifndef CONFIG_MAXPHYSMEM_128GB
 	__data_loc = _etext_loc;		/* data boot location */
 	_edata_loc = __data_loc + _edata - _sdata;
+#endif
 
 	. += PERCPU_STACKS_SIZE;
 #ifdef CONFIG_SBI

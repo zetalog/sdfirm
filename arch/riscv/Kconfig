@@ -62,7 +62,6 @@ config ARCH_DUOWEN
 	select FDT_BUILTIN if SBI_FDT
 	select DUOWEN_TMR if DUOWEN_IMC
 	select CLINT if DUOWEN_APC
-	select RI5CY_FIRQ if (DUOWEN_IMC_RI5CY && !SYS_NOIRQ)
 	select PLIC if !SYS_NOIRQ
 	select CRCNTL if CLK
 	select DUOWEN_UART if CONSOLE || DEBUG_PRINT
@@ -73,7 +72,6 @@ config ARCH_DUOWEN
 	select DW_UMCTL2 if DDR
 	select DUOWEN_DMA if DMA
 	select DUOWEN_SMMU if IOMMU
-	select RI5CY_PC if (DUOWEN_IMc-RI5CY && PERF)
 	help
 	  This enables support for smart core (SmarCo) duowen riscv cluster platforms.
 
