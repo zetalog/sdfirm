@@ -71,5 +71,8 @@
 #define plic_hw_clear_int(irq)		riscv_clear_irq(irq)
 #define plic_hw_trigger_int(irq)	riscv_trigger_irq(irq)
 #endif
+#ifdef CONFIG_MMU
+#define plic_hw_mmu_init()		do { } while (0)
+#endif
 
 #endif /* __IRQC_DUOWEN_H_INCLUDE__ */

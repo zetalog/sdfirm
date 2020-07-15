@@ -162,6 +162,10 @@ PHONY += maketools FORCE
 maketools: include/asm/mach $(DTS_FILE) FORCE
 
 CLEAN_FILES += arch/$(ARCH)/include/asm/mach-types.h
+CLEAN_FILES += arch/$(ARCH)/boot/sdfirm.rom
+CLEAN_FILES += arch/$(ARCH)/boot/sdfirm.ram
+CLEAN_FILES += arch/$(ARCH)/boot/sdfirm.srec
+CLEAN_FILES += arch/$(ARCH)/boot/sdfirm.bin
 
 # We use MRPROPER_FILES and CLEAN_FILES now
 archclean:

@@ -44,6 +44,7 @@
 
 #include <target/barrier.h>
 #include <target/tlb.h>
+#include <target/cache.h>
 
 /* This file is intended to be used by page allocator and paging. Page
  * allocator requires basic address space range definitions. And paging
