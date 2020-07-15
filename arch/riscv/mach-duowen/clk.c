@@ -47,12 +47,6 @@ struct output_clk {
 	clk_t clk_dep;
 	clk_t clk_src;
 	uint32_t flags;
-#define CLK_CLK_SEL_F	_BV(6)
-#define CLK_CLK_EN_F	_BV(7)
-#define CLK_SW_RST_F	_BV(8)
-#define CLK_CR		(CLK_CLK_EN_F | CLK_SW_RST_F)
-#define CLK_C		CLK_CLK_EN_F
-#define CLK_R		CLK_SW_RST_F
 };
 
 struct output_clk output_clks[] = {
@@ -624,100 +618,6 @@ struct clk_driver clk_output = {
 	.get_name = get_output_clk_name,
 };
 
-struct select_clk {
-	clk_t clk_sels[2];
-	bool flags;
-};
-
-struct select_clk select_clks[] = {
-	[SYSFAB_CLK_SEL] = {
-		.clk_sels = {
-			soc_pll,
-			xo_clk,
-		},
-	},
-	[DDR_CLK_SEL] = {
-		.clk_sels = {
-			ddr_pll,
-			xo_clk,
-		},
-	},
-	[DDR_CLK_DIV4_SEL] = {
-		.clk_sels = {
-			ddr_pll,
-			ddr_pll_div4,
-		},
-	},
-};
-
-#ifdef CONFIG_CONSOLE_COMMAND
-const char *sel_clk_names[NR_DIV_CLKS] = {
-	[SYSFAB_CLK_SEL] = "soc_clk(sysfab_clk_sel)",
-	[DDR_CLK_SEL] = "ddr_clk(ddr_clk_sel)",
-	[DDR_CLK_DIV4_SEL] = "ddr_clk_div4(ddr_clk_div4_sel)",
-};
-
-static const char *get_clk_sel_name(clk_clk_t clk)
-{
-	if (clk >= NR_SELECT_CLKS)
-		return NULL;
-	return sel_clk_names[clk];
-}
-#else
-#define get_clk_sel_name	NULL
-#endif
-
-static int enable_clk_sel(clk_clk_t clk)
-{
-	if (clk >= NR_SELECT_CLKS)
-		return -EINVAL;
-	if (!(select_clks[clk].flags & CLK_CLK_SEL_F)) {
-		clk_enable(select_clks[clk].clk_sels[0]);
-		crcntl_clk_select(clk);
-		if (select_clks[clk].flags & CLK_CLK_EN_F)
-			clk_disable(select_clks[clk].clk_sels[1]);
-		else
-			select_clks[clk].flags |= CLK_CLK_EN_F;
-		select_clks[clk].flags |= CLK_CLK_SEL_F;
-	}
-	return 0;
-}
-
-static void disable_clk_sel(clk_clk_t clk)
-{
-	if (clk >= NR_SELECT_CLKS)
-		return;
-	if (select_clks[clk].flags & CLK_CLK_SEL_F) {
-		clk_enable(select_clks[clk].clk_sels[1]);
-		crcntl_clk_deselect(clk);
-		if (select_clks[clk].flags & CLK_CLK_EN_F)
-			clk_disable(select_clks[clk].clk_sels[0]);
-		else
-			select_clks[clk].flags |= CLK_CLK_EN_F;
-		select_clks[clk].flags &= ~CLK_CLK_SEL_F;
-	}
-}
-
-static uint32_t get_clk_sel_freq(clk_clk_t clk)
-{
-	if (clk >= NR_SELECT_CLKS)
-		return INVALID_FREQ;
-	if (crcntl_clk_selected(clk))
-		return clk_get_frequency(select_clks[clk].clk_sels[0]);
-	else
-		return clk_get_frequency(select_clks[clk].clk_sels[1]);
-}
-
-struct clk_driver clk_select = {
-	.max_clocks = NR_SELECT_CLKS,
-	.enable = enable_clk_sel,
-	.disable = disable_clk_sel,
-	.get_freq = get_clk_sel_freq,
-	.set_freq = NULL,
-	.select = NULL,
-	.get_name = get_clk_sel_name,
-};
-
 struct div_clk {
 	clk_t derived;
 	uint8_t div;
@@ -811,7 +711,6 @@ void crcntl_init_zsbl(void)
 {
 	if (!clk_hw_init) {
 		clk_pll_init();
-		clk_register_driver(CLK_SELECT, &clk_select);
 		clk_register_driver(CLK_OUTPUT, &clk_output);
 		clk_register_driver(CLK_DIV, &clk_div);
 
@@ -839,17 +738,6 @@ static int do_crcntl_dump(int argc, char *argv[])
 			printf("div  %3d %20s %20s\n",
 			       i, div_clk_names[i],
 			       clk_get_mnemonic(div_clks[i].derived));
-		}
-	}
-	for (i = 0; i < NR_SELECT_CLKS; i++) {
-		if (sel_clk_names[i]) {
-			printf("clk  %3d %20s %20s\n",
-			       i, sel_clk_names[i],
-			       clk_get_mnemonic(select_clks[i].clk_sels[0]));
-			if (select_clks[i].clk_sels[1] != invalid_clk)
-				printf("%4s %3s %20s %20s\n", "", "", "",
-				       clk_get_mnemonic(
-					       select_clks[i].clk_sels[1]));
 		}
 	}
 	for (i = 0; i < NR_OUTPUT_CLKS; i++) {

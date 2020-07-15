@@ -85,11 +85,23 @@
 #define cl1_pll			clkid(CLK_PLL, CL1_PLL)
 #define cl2_pll			clkid(CLK_PLL, CL2_PLL)
 #define cl3_pll			clkid(CLK_PLL, CL3_PLL)
+
+#define CLK_SELECT		((clk_cat_t)2)
+/* CLK_SEL_CFG */
+#define SYSFAB_CLK_SEL		((clk_clk_t)0)
+#define DDR_CLK_SEL		((clk_clk_t)1)
+#define DDR_CLK_DIV4_SEL	((clk_clk_t)2)
+#define NR_SELECT_CLKS		(DDR_CLK_DIV4_SEL + 1)
+#define sysfab_clk_sel		clkid(CLK_SELECT, SYSFAB_CLK_SEL)
+#define ddr_clk_sel		clkid(CLK_SELECT, DDR_CLK_SEL)
+#define ddr_clk_div4_sel	clkid(CLK_SELECT, DDR_CLK_DIV4_SEL)
+#define soc_clk			sysfab_clk_sel
 #endif
 
 #ifdef CONFIG_DUOWEN_FPGA
 #define CLK_INPUT		((clk_cat_t)0)
 #define CLK_PLL			CLK_INPUT
+#define CLK_SELECT		CLK_INPUT
 #define XO_CLK			((clk_clk_t)0)
 #define TIC_CLK			((clk_clk_t)1)
 #define JTAG_CLK		((clk_clk_t)2)
@@ -111,18 +123,11 @@
 #define cl1_pll			clkid(CLK_PLL, CL1_PLL)
 #define cl2_pll			clkid(CLK_PLL, CL2_PLL)
 #define cl3_pll			clkid(CLK_PLL, CL3_PLL)
-#endif
-
-#define CLK_SELECT		((clk_cat_t)2)
-/* CLK_SEL_CFG */
-#define SYSFAB_CLK_SEL		((clk_clk_t)0)
-#define DDR_CLK_SEL		((clk_clk_t)1)
-#define DDR_CLK_DIV4_SEL	((clk_clk_t)2)
-#define NR_SELECT_CLKS		(DDR_CLK_DIV4_SEL + 1)
-#define sysfab_clk_sel		clkid(CLK_SELECT, SYSFAB_CLK_SEL)
-#define ddr_clk_sel		clkid(CLK_SELECT, DDR_CLK_SEL)
-#define ddr_clk_div4_sel	clkid(CLK_SELECT, DDR_CLK_DIV4_SEL)
+#define sysfab_clk_sel		soc_pll
+#define ddr_clk_sel		ddr_pll
 #define soc_clk			sysfab_clk_sel
+#define ddr_clk_div4_sel	ddr_pll
+#endif
 
 #define CLK_OUTPUT		((clk_cat_t)3)
 /* CLK_EN_CFG0 */
@@ -322,6 +327,14 @@
 #define sd_tm_clk		clkid(CLK_DIV, SD_TM_CLK)
 #define ddr_pll_div4		clkid(CLK_DIV, DDR_PLL_DIV4)
 #define xo_clk_div4		clkid(CLK_DIV, XO_CLK_DIV4)
+
+/* Clock flags, used by clk drivers to indicate clock features */
+#define CLK_CLK_SEL_F	_BV(6)
+#define CLK_CLK_EN_F	_BV(7)
+#define CLK_SW_RST_F	_BV(8)
+#define CLK_CR		(CLK_CLK_EN_F | CLK_SW_RST_F)
+#define CLK_C		CLK_CLK_EN_F
+#define CLK_R		CLK_SW_RST_F
 
 void clk_pll_dump(void);
 void clk_pll_init(void);
