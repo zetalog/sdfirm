@@ -149,6 +149,10 @@ config DUOWEN_ZEBU
 
 endchoice
 
+config DUOWEN_FPGA_DDR_MODEL
+	bool "Enable DDR model in VCS environment"
+	depends DUOWEN_FPGA && SIMULATION
+
 endmenu
 
 menuconfig DUOWEN_UART

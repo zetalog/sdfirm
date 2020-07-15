@@ -49,6 +49,33 @@ static void duowen_modify_dt(void *fdt)
 {
 }
 
+#ifdef CONFIG_VAISRA_PMA
+static void duowen_pma_init(void)
+{
+	int n = 0;
+
+	/* PMA configured for vaisra_beta test bench */
+	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER, RAM_BASE,
+		     __ilog2_u64(__roundup64(max(SZ_2M, RAM_SIZE))));
+	n += pma_set(n, PMA_AT_DEVICE,               DEV_BASE,
+		     ilog2_const(max(SZ_2M, DEV_SIZE)));
+}
+#else
+#define duowen_pma_init()		do { } while (0)
+#endif
+
+static int duowen_early_init(bool cold_boot)
+{
+	vaisra_cpu_init();
+
+	if (!cold_boot)
+		return 0;
+
+	duowen_pma_init();
+	board_init_timestamp();
+	return 0;
+}
+
 static int duowen_final_init(bool cold_boot)
 {
 	void *fdt;
@@ -58,17 +85,6 @@ static int duowen_final_init(bool cold_boot)
 
 	fdt = sbi_scratch_thishart_arg1_ptr();
 	duowen_modify_dt(fdt);
-	return 0;
-}
-
-static int duowen_early_init(bool cold_boot)
-{
-	vaisra_cpu_init();
-
-	if (!cold_boot)
-		return 0;
-
-	board_init_timestamp();
 	return 0;
 }
 
