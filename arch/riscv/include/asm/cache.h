@@ -55,13 +55,18 @@
 #define __SMP_CACHE_BYTES	(1 << __SMP_CACHE_SHIFT)
 
 #ifndef __ASSEMBLY__
+#define fence_i()				\
+	asm volatile("fence.i" : : : "memory")
+
 #define __flush_dcache_area(addr, size)		do { } while (0)
 #define __clean_dcache_area_poc(addr, size)	do { } while (0)
 #define __inval_dcache_area_poc(addr, size)	do { } while (0)
+void local_flush_icache_all(void);
 
 #define __flush_dcache_addr(addr)		do { } while (0)
 #define __clean_dcache_addr(addr)		do { } while (0)
 #define __inval_dcache_addr(addr)		do { } while (0)
+void flush_icache_all(void);
 #endif
 
 #endif /* __CACHE_RISCV_H_INCLUDE__ */
