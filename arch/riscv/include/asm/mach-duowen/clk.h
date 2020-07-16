@@ -125,8 +125,8 @@
 #define cl3_pll			clkid(CLK_PLL, CL3_PLL)
 #define sysfab_clk_sel		soc_pll
 #define ddr_clk_sel		ddr_pll
+#define ddr_clk_div4_sel	ddr_pll_div4
 #define soc_clk			sysfab_clk_sel
-#define ddr_clk_div4_sel	ddr_pll
 #endif
 
 #define CLK_OUTPUT		((clk_cat_t)3)

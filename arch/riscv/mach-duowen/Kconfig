@@ -149,6 +149,11 @@ config DUOWEN_ZEBU
 
 endchoice
 
+config DUOWEN_APC_MAX_CPUS
+	int "Number of VAISRA CPUs"
+	range 1 16
+	depends DUOWEN_APC && SMP && (!DUOWEN_ASIC || SIMULATION)
+
 config DUOWEN_FPGA_DDR_MODEL
 	bool "Enable DDR model in VCS environment"
 	depends DUOWEN_FPGA && SIMULATION

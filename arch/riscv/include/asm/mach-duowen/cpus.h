@@ -46,7 +46,15 @@
 #define MAX_CPU_NUM		1
 #endif
 #ifdef CONFIG_DUOWEN_APC
+#ifdef CONFIG_SMP
+#ifdef CONFIG_DUOWEN_APC_MAX_CPUS
+#define MAX_CPU_NUM		CONFIG_DUOWEN_APC_MAX_CPUS
+#else /* CONFIG_DUOWEN_APC_MAX_CPUS */
 #define MAX_CPU_NUM		16
+#endif /* CONFIG_DUOWEN_APC_MAX_CPUS */
+#else /* CONFIG_SMP */
+#define MAX_CPU_NUM		1
+#endif /* CONFIG_SMP */
 #endif
 
 #endif /* __CPUS_DUOWEN_H_INCLUDE__ */
