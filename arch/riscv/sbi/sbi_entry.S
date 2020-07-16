@@ -523,6 +523,7 @@ ENTRY(fw_options)
 	ret
 ENDPROC(fw_options)
 
+#ifdef CONFIG_SBI_PAYLOAD
 	.pushsection .payload, "ax", %progbits
 #ifdef CONFIG_SBI_PAYLOAD_ALIGN_RELAXED
 	/* align payload minimally */
@@ -540,6 +541,7 @@ payload_bin:
 	.incbin	CONFIG_SBI_PAYLOAD_PATH
 #endif
 	.popsection
+#endif
 
 	.pushsection .data
 	.align 3
