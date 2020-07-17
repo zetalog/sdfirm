@@ -54,8 +54,14 @@
 #define PLIC_REG(offset)		(PLIC_BASE + (offset))
 #define PLIC_1BIT_REG(offset, irq)	\
 	REG_1BIT_ADDR(PLIC_BASE + (offset), irq)
+
+#ifdef PLIC_CTX_BASE
+#define PLIC_CONTEXT_REG(ctx, offset)	\
+	(PLIC_CTX_BASE + (ctx) * PLIC_CONTEXT_SIZE + (offset))
+#else
 #define PLIC_CONTEXT_REG(ctx, offset)	\
 	PLIC_REG(PLIC_CONTEXT_BASE + (ctx) * PLIC_CONTEXT_SIZE + (offset))
+#endif
 
 #define PLIC_BLOCK_SIZE			0x1000
 #define PLIC_PRIORITYR_BASE		0

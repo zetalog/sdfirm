@@ -52,9 +52,12 @@
 
 #ifdef CONFIG_MMU
 #define PLIC_BASE		dpu_plic_reg_base
+#define PLIC_CTX_BASE		(dpu_plic_ctx_base[0])
 extern caddr_t dpu_plic_reg_base;
+extern caddr_t dpu_plic_ctx_base[2];
 #else
 #define PLIC_BASE		PLIC_REG_BASE
+#define PLIC_CTX_BASE		(PLIC_REG_BASE + PLIC_CONTEXT_BASE)
 #endif
 
 #define PLIC_HW_PRI_MAX			31
