@@ -43,8 +43,14 @@
 #define __REG_COREV_H_INCLUDE__
 
 #define MEM_BASE		0x00000000
+#ifdef CONFIG_COREV_MEM_WIDTH
 #define MEM_WIDTH		CONFIG_COREV_MEM_WIDTH
 #define MEM_SIZE		_BV(MEM_WIDTH)
+#else
+#define MEM_SIZE		0x400000
+#endif
+
+#define DEBUG_BASE		0x1A110800
 
 #define ROM_BASE		RAM_BASE
 #define ROM_SIZE		RAM_SIZE
@@ -54,5 +60,11 @@
 #define PRINT_BASE		0x10000000
 #define TIMER_BASE		0x15000000
 #define TESTS_BASE		0x20000000
+
+#define TESTS_REG(offset)	(TESTS_BASE + (offset))
+/* write test result of program to this reg */
+#define TESTS_RESULT		TESTS_REG(0x00)
+/* write exit value of program to this reg */
+#define TESTS_EXIT		TESTS_REG(0x04)
 
 #endif /* __REG_COREV_H_INCLUDE__ */

@@ -44,21 +44,12 @@
 
 #include <target/arch.h>
 
-#define CVPRINT_OUTPORT		0x10000000
-#define CVPRINT_INPORT		0x10000004
-#define CVPRINT_STATUS		0x10000008
+#define PRINT_REG(offset)	(PRINT_BASE + (offset))
+#define PRINT_STDOUT		PRINT_REG(0x00)
+#define PRINT_STDIN		PRINT_REG(0x04)
 
-#define CVPRINT_RXF		_BV(0)
-#define CVPRINT_TXF		_BV(1)
-
-#define pulp_tx_full()		(!!(__raw_readl(CVPRINT_STATUS) & CVPRINT_TXF))
-#define pulp_rx_full()		(!!(__raw_readl(CVPRINT_STATUS) & CVPRINT_RXF))
-#define pulp_putchar(ch)					\
-	do {							\
-		while (pulp_tx_full());				\
-		__raw_writel((uint32_t)ch, CVPRINT_OUTPORT);	\
-	} while (0)
-#define pulp_getchar()		__raw_readl(CVPRINT_INPORT)
-#define pulp_poll()		pulp_rx_full()
+#define pulp_putchar(byte)	__raw_writel(byte, PRINT_STDOUT)
+#define pulp_poll()		false
+#define pulp_getchar()		(-1) /* NYI */
 
 #endif /* __PRINT_COREV_H_INCLUDE__ */
