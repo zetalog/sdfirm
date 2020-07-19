@@ -40,6 +40,7 @@
  */
 
 #include <target/arch.h>
+#include <target/cmdline.h>
 
 #ifdef CONFIG_SHUTDOWN
 void board_shutdown(void)
@@ -62,3 +63,24 @@ void board_early_init(void)
 void board_late_init(void)
 {
 }
+
+static int do_corev_shutdown(int argc, char *argv[])
+{
+	board_shutdown();
+	return 0;
+}
+
+static int do_corev(int argc, char *argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+
+	if (strcmp(argv[1], "shutdown") == 0)
+		return do_corev_shutdown(argc, argv);
+	return -EINVAL;
+}
+
+DEFINE_COMMAND(corev, do_corev, "core-v-verif simulation global commands",
+	"dpu shutdown\n"
+	"    -shutdown board\n"
+);

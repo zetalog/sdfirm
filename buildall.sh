@@ -110,3 +110,5 @@ build_sdfirm riscv64 dpu_rom
 build_sdfirm riscv64 dpu_flash
 build_sdfirm riscv64 dpu_ram
 build_sdfirm riscv64 dpu_ddr
+# core-v-verif
+build_sdfirm riscv32 corev_cv32
