@@ -14,7 +14,7 @@ choice
 
 config DUOWEN_IMC
 	bool "IMC - system fabric (SFAB)"
-	select CPU_CV64A
+	select CPU_CVA6
 
 config DUOWEN_APC
 	bool "APC - coherence fabric (CFAB)"

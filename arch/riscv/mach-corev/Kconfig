@@ -13,15 +13,15 @@ choice
 	  Selects CPUs that compiled sdfirm should run against.
 
 config COREV_CV32
-	bool "CV32E (ri5cy)"
-	select CPU_CV32E
+	bool "CV32E40P (ri5cy)"
+	select CPU_CV32E40P
 	select RISCV_VIRQ
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_BOOT_LOAD
 
 config COREV_CV64
-	bool "CV64A (ariane)"
-	select CPU_CV64A
+	bool "CVA6 (ariane)"
+	select CPU_CVA6
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_BOOT_LOAD
 

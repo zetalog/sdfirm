@@ -9,15 +9,15 @@ menu "Smart Core DPU board options"
 
 choice
 	prompt "IMC CPU type"
-	default DPU_CV32E
+	default DPU_CV32E40P
 
-config DPU_CV32E
+config DPU_CV32E40P
 	bool "RI5CY"
-	select CPU_CV32E
+	select CPU_CV32E40P
 
-config DPU_CV64A
+config DPU_CVA6
 	bool "Ariane"
-	select CPU_CV64A
+	select CPU_CVA6
 
 endchoice
 
@@ -61,7 +61,7 @@ config DPU_BOOT_RAM
 	select BFM
 	select SYS_ENTR_M
 	select SYS_EXIT_M
-	select SYS_EXIT_S if DPU_CV64A
+	select SYS_EXIT_S if DPU_CVA6
 	select SYS_EXIT_U
 	select DPU_TCSR
 	select DPU_SPI_FLASH
@@ -115,7 +115,7 @@ config DPU_FIRM_DDR
 	select BFM
 	select SYS_ENTR_M
 	select SYS_EXIT_M
-	select SYS_EXIT_S if DPU_CV64A
+	select SYS_EXIT_S if DPU_CVA6
 	select SYS_EXIT_U
 
 endchoice

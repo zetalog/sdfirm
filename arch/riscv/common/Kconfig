@@ -50,12 +50,12 @@ config CPU_RI5CY
 	select ARCH_HAS_PMU
 	select ARCH_HAS_RI5CY_FIRQ
 
-config CPU_CV32E
+config CPU_CV32E40P
 	bool
 	select CPU_RI5CY
 	select ARCH_HAS_RI5CY_FIRQ_EXT
 
-config CPU_CV64A
+config CPU_CVA6
 	bool
 	select CPU_64G
 	select CPU_C

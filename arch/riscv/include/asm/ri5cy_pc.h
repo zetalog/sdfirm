@@ -4,7 +4,7 @@
 #include <target/arch.h>
 
 #define CSR_PCCR(n)		(0x780 + (n))
-#ifdef CONFIG_CPU_CV32E
+#ifdef CONFIG_CPU_CV32E40P
 #define CSR_PCER		0x7E0
 #define CSR_PCMR		0x7E1
 #else
