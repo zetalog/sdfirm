@@ -158,6 +158,14 @@ config DUOWEN_FPGA_DDR_MODEL
 	bool "Enable DDR model in VCS environment"
 	depends DUOWEN_FPGA && SIMULATION
 
+config DUOWEN_BOOT_APC
+	bool "Enable boot from APC"
+	depends DUOWEN_FPGA || DUOWEN_ZEBU || SIMULATION
+	help
+	  In the simulation environment, we can skip IMC boot sequences and
+	  run APC program instead to accelerate. However, some required
+	  boot sequences need to be performed by APC.
+
 endmenu
 
 menuconfig DUOWEN_UART
@@ -170,7 +178,7 @@ endif
 
 menuconfig DUOWEN_TMR
 	bool "Duowen global timer controller (TMR) support"
-	depends DUOWEN_IMC
+	depends DUOWEN_IMC || DUOWEN_BOOT_APC
 	help
 	  TMR hardware is in the AO clock/power domain, it should be used
 	  as boot TSC.
@@ -184,12 +192,6 @@ config DUOWEN_TMR_CRCNTL_INIT
 	  to control boot TMR (normally timer3) CLK_EN/SW_RST. While
 	  this option allows to use raw CRCNTL APIs instead.
 	  If unsure, say 'N'.
-
-config DUOWEN_TMR_MTIME
-	bool "Use CSR_TIME to access timer counter"
-	help
-	  By enabling TMR_CNT_CTRL.TMR_EN, timer counter can be accessed
-	  via CSR_TIME.
 
 endif
 

@@ -116,25 +116,29 @@
 #define SOC_PLL			((clk_clk_t)3)
 #define DDR_BUS_PLL		((clk_clk_t)4)
 #define DDR_PLL			((clk_clk_t)5)
-#define COHFAB_PLL		((clk_clk_t)6)
-#define CL0_PLL			((clk_clk_t)7)
-#define CL1_PLL			((clk_clk_t)8)
-#define CL2_PLL			((clk_clk_t)9)
-#define CL3_PLL			((clk_clk_t)10)
+#define PCIE_PLL		((clk_clk_t)6)
+#define COHFAB_PLL		((clk_clk_t)7)
+#define CL0_PLL			((clk_clk_t)8)
+#define CL1_PLL			((clk_clk_t)9)
+#define CL2_PLL			((clk_clk_t)10)
+#define CL3_PLL			((clk_clk_t)11)
 #define NR_INPUT_CLKS		(CL3_PLL + 1)
 #define xo_clk			clkid(CLK_INPUT, XO_CLK)
 #define tic_clk			clkid(CLK_INPUT, TIC_CLK)
 #define jtag_clk		clkid(CLK_INPUT, JTAG_CLK)
-#define ddr_pll			clkid(CLK_PLL, DDR_PLL)
 #define soc_pll			clkid(CLK_PLL, SOC_PLL)
+#define ddr_bus_pll		clkid(CLK_PLL, DDR_BUS_PLL)
+#define ddr_pll			clkid(CLK_PLL, DDR_PLL)
+#define pcie_pll		clkid(CLK_PLL, PCIE_PLL)
 #define cohfab_pll		clkid(CLK_PLL, COHFAB_PLL)
 #define cl0_pll			clkid(CLK_PLL, CL0_PLL)
 #define cl1_pll			clkid(CLK_PLL, CL1_PLL)
 #define cl2_pll			clkid(CLK_PLL, CL2_PLL)
 #define cl3_pll			clkid(CLK_PLL, CL3_PLL)
 #define soc_clk_sel		soc_pll
+#define ddr_bus_clk_sel		ddr_bus_pll
 #define ddr_clk_sel		ddr_pll
-#define ddr_clk_div4_sel	ddr_pll_div4
+#define ddr_clk_div4_sel	ddr_clk_sel_div4
 #define soc_clk			soc_clk_sel
 #endif
 
