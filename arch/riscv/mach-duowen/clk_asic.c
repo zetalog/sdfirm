@@ -47,9 +47,15 @@ struct select_clk {
 };
 
 struct select_clk select_clks[] = {
-	[SYSFAB_CLK_SEL] = {
+	[SOC_CLK_SEL] = {
 		.clk_sels = {
-			soc_pll,
+			soc_pll_div4,
+			xo_clk,
+		},
+	},
+	[DDR_BUS_CLK_SEL] = {
+		.clk_sels = {
+			ddr_bus_pll,
 			xo_clk,
 		},
 	},
@@ -61,17 +67,27 @@ struct select_clk select_clks[] = {
 	},
 	[DDR_CLK_DIV4_SEL] = {
 		.clk_sels = {
-			ddr_pll,
-			ddr_pll_div4,
+			ddr_clk_sel,
+			ddr_clk_sel_div4,
 		},
 	},
+#if 0
+	[SD_RX_TX_SEL] = {
+		.clk_sels = {
+			sd_hw_clk,
+			sd_sw_clk,
+		},
+	},
+#endif
 };
 
 #ifdef CONFIG_CONSOLE_COMMAND
 const char *sel_clk_names[NR_DIV_CLKS] = {
-	[SYSFAB_CLK_SEL] = "soc_clk(sysfab_clk_sel)",
-	[DDR_CLK_SEL] = "ddr_clk(ddr_clk_sel)",
-	[DDR_CLK_DIV4_SEL] = "ddr_clk_div4(ddr_clk_div4_sel)",
+	[SOC_CLK_SEL] = "soc_clk_sel",
+	[DDR_BUS_CLK_SEL] = "ddr_bus_clk_sel",
+	[DDR_CLK_SEL] = "ddr_clk_sel",
+	[DDR_CLK_DIV4_SEL] = "ddr_clk_div4_sel",
+	[SD_RX_TX_CLK_SEL] = "sd_rx_tx_clk_sel",
 };
 
 static const char *get_clk_sel_name(clk_clk_t clk)
@@ -145,8 +161,16 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 		.freq = SOC_PLL_FREQ,
 		.enabled = false,
 	},
+	[DDR_BUS_PLL] = {
+		.freq = DDR_BUS_PLL_FREQ,
+		.enabled = false,
+	},
 	[DDR_PLL] = {
 		.freq = DDR_PLL_FREQ,
+		.enabled = false,
+	},
+	[PCIE_PLL] = {
+		.freq = PCIE_PLL_FREQ,
 		.enabled = false,
 	},
 	[COHFAB_PLL] = {
@@ -174,7 +198,9 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 #ifdef CONFIG_CONSOLE_COMMAND
 const char *pll_clk_names[NR_PLL_CLKS] = {
 	[SOC_PLL] = "soc_pll",
+	[DDR_BUS_PLL] = "ddr_bus_pll",
 	[DDR_PLL] = "ddr_pll",
+	[PCIE_PLL] = "pcie_pll",
 	[COHFAB_PLL] = "cohfab_pll",
 	[CL0_PLL] = "cl0_pll",
 	[CL1_PLL] = "cl1_pll",

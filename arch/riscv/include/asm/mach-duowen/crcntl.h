@@ -59,30 +59,29 @@
 
 #define CRCNTL_REG(offset)		(CRCNTL_BASE + (offset))
 
-/* power control */
-#define CRCNTL_WARM_RESET_DETECT_TIME	CRCNTL_REG(0x00)
-#define CRCNTL_PWR_FSM_DELAY_TIME	CRCNTL_REG(0x04)
-#define CRCNTL_PWR_SHUTDOWN		CRCNTL_REG(0x08)
-#define CRCNTL_PS_HOLD			CRCNTL_REG(0x0C)
-
-/* reset control */
-#define CRCNTL_RST_CAUSE		CRCNTL_REG(0x50)
-#define CRCNTL_SW_RST_CFG(n)		CRCNTL_REG(0x60 + ((n) << 2))
-
-/* clock control */
-#define CRCNTL_CLK_EN_CFG(n)		CRCNTL_REG(0x80 + ((n) << 2))
-#define CRCNTL_CLK_SEL_CFG		CRCNTL_REG(0x94)
-#define CRCNTL_SW_GLOBAL_RST		CRCNTL_REG(0xA0)
-
 /* PLL control */
-#define CRCNTL_PLL_REG(pll, offset)	\
-	CRCNTL_REG(((pll) << 5) + 0x10 + (offset))
+#define CRCNTL_PLL_REG(pll, offset)	CRCNTL_REG(((pll) << 5) + (offset))
 #define CRCNTL_PLL_CFG0(pll)		CRCNTL_PLL_REG(pll, 0x00)
 #define CRCNTL_PLL_CFG1(pll)		CRCNTL_PLL_REG(pll, 0x04)
 #define CRCNTL_PLL_CFG2(pll)		CRCNTL_PLL_REG(pll, 0x08)
 #define CRCNTL_PLL_STATUS(pll)		CRCNTL_PLL_REG(pll, 0x0C)
 #define CRCNTL_PLL_REG_ACCESS(pll)	CRCNTL_PLL_REG(pll, 0x10)
 #define CTCNTL_PLL_REG_TIMING(pll)	CRCNTL_PLL_REG(pll, 0x14)
+
+/* reset control */
+#define CRCNTL_RST_CAUSE		CRCNTL_REG(0x120)
+#define CRCNTL_SW_RST_CFG(n)		CRCNTL_REG(0x130 + ((n) << 2))
+
+/* clock control */
+#define CRCNTL_CLK_EN_CFG(n)		CRCNTL_REG(0x140 + ((n) << 2))
+#define CRCNTL_CLK_SEL_CFG		CRCNTL_REG(0x150)
+
+/* power control */
+#define CRCNTL_WARM_RESET_DETECT_TIME	CRCNTL_REG(0x100)
+#define CRCNTL_PWR_FSM_DELAY_TIME	CRCNTL_REG(0x104)
+#define CRCNTL_PWR_SHUTDOWN		CRCNTL_REG(0x108)
+#define CRCNTL_PS_HOLD			CRCNTL_REG(0x10C)
+#define CRCNTL_SW_GLOBAL_RST		CRCNTL_REG(0x110)
 
 /* power control */
 /* CRCNTL_WARM_RESET_DETECT_TIME */
@@ -104,12 +103,11 @@
 /* CRCNTL_SW_GLOBAL_RST */
 #define PWR_GLOBAL_RST		_BV(0)
 
-/* Most SW_RST bits are same as CLK_EN bits, except the followings */
-/* SW_RST_CFG0 */
-#define CRCNTL_RST_DDR_PWROKIN		2  /* SW_RST only, cold/warm reset */
-#define CRCNTL_RST_PCIE_BUTTON		5  /* SW_RST only */
-#define CRCNTL_RST_PCIE_POWER_UP	6  /* SW_RST only */
-#define CRCNTL_RST_PCIE_TEST		7  /* SW_RST only */
+/* CRCNTL_RST_CAUSE */
+#define RST_SW_GLBAL		_BV(0)
+#define RST_WDT0		_BV(1)
+#define RST_WDT1		_BV(2)
+#define RST_WARM		_BV(3)
 
 /* CRCNTL_PLL_REG_ACCESS */
 #define PLL_REG_INVALID		_BV(25)

@@ -51,6 +51,28 @@ struct output_clk {
 
 struct output_clk output_clks[] = {
 	/* 4.2 Cluster Clocks */
+#if 0
+	[CLUSTER0_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cl0_clk,
+		.flags = CLK_CR,
+	},
+	[CLUSTER1_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cl1_clk,
+		.flags = CLK_CR,
+	},
+	[CLUSTER2_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cl2_clk,
+		.flags = CLK_CR,
+	},
+	[CLUSTER3_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cl3_clk,
+		.flags = CLK_CR,
+	},
+#endif
 	[CLUSTER0_HCLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
@@ -72,41 +94,65 @@ struct output_clk output_clks[] = {
 		.flags = CLK_CR,
 	},
 	/* 4.3 Coherence Fabric Clocks */
+#if 0
+	[COHFAB_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cfab_clk,
+		.flags = CLK_CR,
+	},
+#endif
 	[COHFAB_HCLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
 		.flags = CLK_CR,
 	},
-	/* 4.4 System Fabric Clocks */
-	[PLIC_CLK] = {
+#if 0
+	[COHFAB_CFG_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cfgfab_clk,
+		.flags = CLK_CR,
+	},
+#endif
+	/* 4.4 System Fabric Clocks
+	 * +-------------------------------------------+
+	 * |                                           v
+	 * +--------+ -> +---------+ -> +--------------+    +-------------+ -> imc_clk
+	 * | xo_clk |    | soc_pll |    | soc_pll_div4 |    | soc_clk_sel |    ram_aclk/rom_hclk
+	 * +--------+    +---------+    +--------------+ -> +-------------+    plic_hclk
+	 *                                                  v
+	 *                                                  +--------------+ -> tlmm_pclk
+	 *                                                  | soc_clk_div2 |    scsr_pclk
+	 *                                                  +--------------+    wdt0/1_pclk
+	 */
+	[PLIC_HCLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
 		.flags = CLK_CR,
 	},
-	[TLMM_CLK] = {
+	[TLMM_PCLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_half_clk,
 		.flags = CLK_CR,
 	},
-	[SCSR_CLK] = {
+	[SCSR_PCLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_half_clk,
 		.flags = CLK_CR,
 	},
-	[WDT0_CLK] = {
+	[WDT0_PCLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_half_clk,
 		.flags = CLK_CR,
 	},
-	[WDT1_CLK] = {
+	[WDT1_PCLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_half_clk,
 		.flags = CLK_CR,
 	},
 	/* 4.5 DMA Clocks */
-	[DMA_CLK] = {
-		.clk_dep = sysfab_half_clk,
-		.clk_src = soc_clk,
+	[DMA_HCLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_half_clk,
 		.flags = CLK_CR,
 	},
 	/* 4.6 DDR Clocks */
@@ -126,7 +172,18 @@ struct output_clk output_clks[] = {
 		.clk_src = soc_clk,
 		.flags = CLK_CR,
 	},
-	/* 4.8 Timer Clocks */
+	/* 4.8 Timer Clocks
+	 * +-------------------------------------------+
+	 * |                                           v
+	 * +--------+ -> +---------+ -> +--------------+    +-------------+ -> +--------------+ -> timer_pclk
+	 * | xo_clk |    | soc_pll |    | soc_pll_div4 |    | soc_clk_sel |    | soc_clk_div2 |
+	 * +--------+    +---------+    +--------------+ -> +-------------+    +--------------+
+	 * |                       |    +--------------+    +-------------+ ---------------------> timer_clk
+	 * |                       |    | soc_pll_div8 |    | soc_clk_sel |
+	 * |                       +--> +--------------+ -> +-------------+
+	 * |                                           ^
+	 * +-------------------------------------------+
+	 */
 	[TIMER0_RST] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_half_clk,
@@ -149,122 +206,122 @@ struct output_clk output_clks[] = {
 	},
 	[TIMER0_1_CLK] = {
 		.clk_dep = timer0_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER0_2_CLK] = {
 		.clk_dep = timer0_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER0_3_CLK] = {
 		.clk_dep = timer0_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER0_4_CLK] = {
 		.clk_dep = timer0_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER0_5_CLK] = {
 		.clk_dep = timer0_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER0_6_CLK] = {
 		.clk_dep = timer0_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER0_7_CLK] = {
 		.clk_dep = timer0_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER0_8_CLK] = {
 		.clk_dep = timer0_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER1_1_CLK] = {
 		.clk_dep = timer1_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER1_2_CLK] = {
 		.clk_dep = timer1_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER1_3_CLK] = {
 		.clk_dep = timer1_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER1_4_CLK] = {
 		.clk_dep = timer1_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER1_5_CLK] = {
 		.clk_dep = timer1_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER1_6_CLK] = {
 		.clk_dep = timer1_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER1_7_CLK] = {
 		.clk_dep = timer1_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER1_8_CLK] = {
 		.clk_dep = timer1_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER2_1_CLK] = {
 		.clk_dep = timer2_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER2_2_CLK] = {
 		.clk_dep = timer2_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER2_3_CLK] = {
 		.clk_dep = timer2_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER2_4_CLK] = {
 		.clk_dep = timer2_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER2_5_CLK] = {
 		.clk_dep = timer2_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER2_6_CLK] = {
 		.clk_dep = timer2_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER2_7_CLK] = {
 		.clk_dep = timer2_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER2_8_CLK] = {
 		.clk_dep = timer2_rst,
-		.clk_src = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_C,
 	},
 	[TIMER3_CLK] = {
@@ -278,160 +335,189 @@ struct output_clk output_clks[] = {
 		.clk_src = sysfab_half_clk,
 		.flags = CLK_CR,
 	},
-	/* 4.10 UART Clocks */
+	/* 4.10 UART Clocks
+	 * +-------------------------------------------+
+	 * |                                           v
+	 * +--------+ -> +---------+ -> +--------------+    +-------------+ -> +--------------+ -> uart_pclk
+	 * | xo_clk |    | soc_pll |    | soc_pll_div4 |    | soc_clk_sel |    | soc_clk_div2 |
+	 * +--------+    +---------+    +--------------+ -> +-------------+    +--------------+
+	 * |                       |    +--------------+    +-------------+ ---------------------> uart_clk
+	 * |                       |    | soc_pll_div8 |    | soc_clk_sel |
+	 * |                       +--> +--------------+ -> +-------------+
+	 * |                                           ^
+	 * +-------------------------------------------+
+	 * SW developers needn't know uart_pclk.
+	 */
 	[UART0_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_CR,
 	},
 	[UART1_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_CR,
 	},
 	[UART2_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_CR,
 	},
 	[UART3_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_CR,
 	},
-	/* 4.11 SPI Clocks */
+	/* 4.11 SPI Clocks
+	 * +-------------------------------------------+
+	 * |                                           v
+	 * +--------+ -> +---------+ -> +--------------+    +-------------+ -> +--------------+ -> spi_pclk
+	 * | xo_clk |    | soc_pll |    | soc_pll_div4 |    | soc_clk_sel |    | soc_clk_div2 |
+	 * +--------+    +---------+    +--------------+ -> +-------------+    +--------------+
+	 * |                       |    +--------------+    +-------------+ ---------------------> spi_clk
+	 * |                       |    | soc_pll_div8 |    | soc_clk_sel |
+	 * |                       +--> +--------------+ -> +-------------+
+	 * |                                           ^
+	 * +-------------------------------------------+
+	 * SW developers needn't know spi_pclk.
+	 */
 	[SPI0_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_CR,
 	},
 	[SPI1_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_CR,
 	},
 	[SPI2_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_CR,
 	},
 	[SPI3_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_CR,
 	},
 	[SPI4_CLK] = {
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
+		.flags = CLK_CR,
+	},
+	/* 4.12 SPI Flash Clocks
+	 * +-------------------------------------------+
+	 * |                                           v
+	 * +--------+ -> +---------+ -> +--------------+    +-------------+ -> spi_flash_pclk
+	 * | xo_clk |    | soc_pll |    | soc_pll_div4 |    | soc_clk_sel |
+	 * +--------+    +---------+    +--------------+ -> +-------------+
+	 */
+	[SPI_FLASH_PCLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_clk,
+		.flags = CLK_CR,
+	},
+	/* 4.13 GPIO Clocks
+	 * +-------------------------------------------+
+	 * |                                           v
+	 * +--------+ -> +---------+ -> +--------------+    +-------------+ -> +--------------+ -> gpio_pclk
+	 * | xo_clk |    | soc_pll |    | soc_pll_div4 |    | soc_clk_sel |    | soc_clk_div2 |
+	 * +--------+    +---------+    +--------------+ -> +-------------+    +--------------+
+	 */
+	[GPIO0_PCLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_half_clk,
 		.flags = CLK_CR,
 	},
-	/* 4.12 GPIO Clocks */
-	[GPIO0_CLK] = {
+	[GPIO1_PCLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_half_clk,
 		.flags = CLK_CR,
 	},
-	[GPIO1_CLK] = {
+	[GPIO2_PCLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_half_clk,
 		.flags = CLK_CR,
 	},
-	[GPIO2_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
-		.flags = CLK_CR,
-	},
-	/* 4.13 I2C Clocks */
+	/* 4.14 I2C Clocks
+	 * +-------------------------------------------+
+	 * |                                           v
+	 * +--------+ -> +---------+ -> +--------------+    +-------------+ -> +--------------+ -> i2c_pclk
+	 * | xo_clk |    | soc_pll |    | soc_pll_div4 |    | soc_clk_sel |    | soc_clk_div2 |
+	 * +--------+    +---------+    +--------------+ -> +-------------+    +--------------+
+	 * |                       |    +--------------+    +-------------+ ---------------------> i2c_clk
+	 * |                       |    | soc_pll_div8 |    | soc_clk_sel |
+	 * |                       +--> +--------------+ -> +-------------+
+	 * |                                           ^
+	 * +-------------------------------------------+
+	 * SW developers needn't know i2c_pclk.
+	 */
 	[I2C0_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_CR,
 	},
 	[I2C1_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_CR,
 	},
 	[I2C2_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_CR,
 	},
 	[I2C3_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_CR,
 	},
 	[I2C4_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_CR,
 	},
 	[I2C5_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_CR,
 	},
 	[I2C6_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_CR,
 	},
 	[I2C7_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_CR,
 	},
 	[I2C8_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_CR,
 	},
 	[I2C9_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_CR,
 	},
 	[I2C10_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_CR,
 	},
 	[I2C11_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
+		.clk_dep = sysfab_half_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_CR,
 	},
-	/* 4.14 Thermal Sensor Clocks */
-	[TSENSOR0_CLK] = {
+	/* 4.15 Thermal Sensor Clocks */
+	[TSENSOR_CLK] = {
 		.clk_dep = sysfab_half_clk,
 		.clk_src = xo_clk_div4,
 		.flags = CLK_CR,
-	},
-	[TSENSOR1_CLK] = {
-		.clk_dep = sysfab_half_clk,
-		.clk_src = xo_clk_div4,
-		.flags = CLK_CR,
-	},
-	[TSENSOR2_CLK] = {
-		.clk_dep = sysfab_half_clk,
-		.clk_src = xo_clk_div4,
-		.flags = CLK_CR,
-	},
-	[TSENSOR3_CLK] = {
-		.clk_dep = sysfab_half_clk,
-		.clk_src = xo_clk_div4,
-		.flags = CLK_CR,
-	},
-	/* Additional resets */
-	[CRCNTL_RST_PCIE_BUTTON] = {
-		.flags = CLK_R,
-	},
-	[CRCNTL_RST_PCIE_POWER_UP] = {
-		.flags = CLK_R,
-	},
-	[CRCNTL_RST_PCIE_TEST] = {
-		.flags = CLK_R,
 	},
 #if 0
 	[SYSFAB_DBG_CLK] = {
@@ -467,13 +553,13 @@ const char *output_clk_names[] = {
 	/* 4.3 Coherence Fabric Clocks */
 	[COHFAB_HCLK] = "cohfab_hclk",
 	/* 4.4 System Fabric Clocks */
-	[PLIC_CLK] = "plic_clk",
-	[TLMM_CLK] = "tlmm_clk",
-	[SCSR_CLK] = "scsr_clk",
-	[WDT0_CLK] = "wdt0_clk",
-	[WDT1_CLK] = "wdt1_clk",
+	[PLIC_HCLK] = "plic_hclk",
+	[TLMM_PCLK] = "tlmm_pclk",
+	[SCSR_PCLK] = "scsr_pclk",
+	[WDT0_PCLK] = "wdt0_pclk",
+	[WDT1_PCLK] = "wdt1_pclk",
 	/* 4.5 DMA Clocks */
-	[DMA_CLK] = "dma_clk",
+	[DMA_HCLK] = "dma_hclk",
 	/* 4.6 DDR Clocks */
 	[DDR_CLK] = "ddr_clk",
 	[DDR_BYPASS_PCLK] = "ddrp0_bypass_pclk",
@@ -522,11 +608,13 @@ const char *output_clk_names[] = {
 	[SPI2_CLK] = "spi2_clk",
 	[SPI3_CLK] = "spi3_clk",
 	[SPI4_CLK] = "spi4_clk",
-	/* 4.12 GPIO Clocks */
-	[GPIO0_CLK] = "gpio0_clk",
-	[GPIO1_CLK] = "gpio1_clk",
-	[GPIO2_CLK] = "gpio2_clk",
-	/* 4.13 I2C Clocks */
+	/* 4.12 SPI Flash Clocks */
+	[SPI_FLASH_PCLK] = "spi_flash_pclk",
+	/* 4.13 GPIO Clocks */
+	[GPIO0_PCLK] = "gpio0_pclk",
+	[GPIO1_PCLK] = "gpio1_pclk",
+	[GPIO2_PCLK] = "gpio2_pclk",
+	/* 4.14 I2C Clocks */
 	[I2C0_CLK] = "i2c0_clk",
 	[I2C1_CLK] = "i2c1_clk",
 	[I2C2_CLK] = "i2c2_clk",
@@ -539,15 +627,9 @@ const char *output_clk_names[] = {
 	[I2C9_CLK] = "i2c9_clk",
 	[I2C10_CLK] = "i2c10_clk",
 	[I2C11_CLK] = "i2c11_clk",
-	/* 4.14 Thermal Sensor Clocks */
-	[TSENSOR0_CLK] = "tsensor0_clk",
-	[TSENSOR1_CLK] = "tsensor1_clk",
-	[TSENSOR2_CLK] = "tsensor2_clk",
-	[TSENSOR3_CLK] = "tsensor3_clk",
+	/* 4.15 Thermal Sensor Clocks */
+	[TSENSOR_CLK] = "tsensor_clk",
 	/* Additional Resets */
-	[CRCNTL_RST_PCIE_BUTTON] = "pcie_button_rst",
-	[CRCNTL_RST_PCIE_POWER_UP] = "pcie_power_up_rst",
-	[CRCNTL_RST_PCIE_TEST] = "pcie_test_rst",
 	[TIMER0_RST] = "timer0_rst",
 	[TIMER1_RST] = "timer1_rst",
 	[TIMER2_RST] = "timer2_rst",
@@ -624,13 +706,17 @@ struct div_clk {
 };
 
 struct div_clk div_clks[NR_DIV_CLKS] = {
-	[SYSFAB_CLK] = {
-		.derived = soc_clk,
+	[SOC_PLL_DIV4] = {
+		.derived = soc_pll,
 		.div = 4,
 	},
-	[SYSFAB_HALF_CLK] = {
-		.derived = sysfab_clk,
-		.div = 8,
+	[SOC_CLK_DIV2] = {
+		.derived = soc_clk,
+		.div = 2,
+	},
+	[SOC_PLL_DIV2] = {
+		.derived = soc_pll,
+		.div = 2,
 	},
 	[SOC_PLL_DIV10] = {
 		.derived = soc_pll,
@@ -640,8 +726,8 @@ struct div_clk div_clks[NR_DIV_CLKS] = {
 		.derived = soc_pll_div10,
 		.div = 100,
 	},
-	[DDR_PLL_DIV4] = {
-		.derived = ddr_pll,
+	[DDR_CLK_SEL_DIV4] = {
+		.derived = ddr_clk_sel,
 		.div = 4,
 	},
 	[XO_CLK_DIV4] = {
@@ -652,11 +738,12 @@ struct div_clk div_clks[NR_DIV_CLKS] = {
 
 #ifdef CONFIG_CONSOLE_COMMAND
 const char *div_clk_names[NR_DIV_CLKS] = {
-	[SYSFAB_CLK] = "sysfab_clk",
-	[SYSFAB_HALF_CLK] = "sysfab_half_clk",
+	[SOC_PLL_DIV4] = "soc_pll_div4", /* sysfab_clk src */
+	[SOC_CLK_DIV2] = "soc_clk_div2", /* sysfab_half_clk */
+	[SOC_PLL_DIV2] = "soc_pll_div2",
 	[SOC_PLL_DIV10] = "soc_pll_div10",
 	[SD_TM_CLK] = "sd_tm_clk",
-	[DDR_PLL_DIV4] = "ddr_pll_div4",
+	[DDR_CLK_SEL_DIV4] = "ddr_clk_sel_div4",
 	[XO_CLK_DIV4] = "xo_clk_div4",
 };
 
