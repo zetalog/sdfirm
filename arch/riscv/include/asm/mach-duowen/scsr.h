@@ -35,66 +35,40 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)arch.h: DUOWEN machine specific definitions
- * $Id: arch.h,v 1.1 2019-09-02 10:56:00 zhenglv Exp $
+ * @(#)scsr.h: DUOWEN SysCSR register definitions
+ * $Id: scsr.h,v 1.1 2019-09-02 11:12:00 zhenglv Exp $
  */
 
-#ifndef __ARCH_DUOWEN_H_INCLUDE__
-#define __ARCH_DUOWEN_H_INCLUDE__
+#ifndef __SCSR_DUOWEN_H_INCLUDE__
+#define __SCSR_DUOWEN_H_INCLUDE__
 
-/* This file is intended to be used for implementing SoC specific
- * instructions, registers.
- */
+#define AXI_AXSIZE_BYTES		32
 
-#define __VEC
+#include <target/amba.h>
 
-#ifdef CONFIG_DUOWEN_ASIC
-#define XO_CLK_FREQ		UL(25000000)
-#define SOC_PLL_FREQ		UL(1000000000)
-#define DDR_PLL_FREQ		UL(800000000)
-#define CL_PLL_FREQ		UL(2500000000)
-#define CFAB_PLL_FREQ		UL(2000000000)
-#endif
-#ifdef CONFIG_DUOWEN_FPGA
-#define XO_CLK_FREQ		UL(5000000)
-#define SOC_PLL_FREQ		UL(5000000)
-#define DDR_PLL_FREQ		UL(5000000)
-#define CL_PLL_FREQ		UL(5000000)
-#define CFAB_PLL_FREQ		UL(5000000)
-#endif
+#define SCSR_REG(offset)		(SCSR_BASE + (offset))
+#define SCSR_BOOT_ADDR			SCSR_REG(0x00)
+#define SCSR_CORE_ID			SCSR_REG(0x04)
+#define SCSR_CLUSTER_ID			SCSR_REG(0x08)
+#define SCSR_CLOCK_EN			SCSR_REG(0x0C)
 
-#define APC_CLK_FREQ		CL_PLL_FREQ
-#define IMC_CLK_FREQ		SFAB_CLK_FREQ
-#define AHB_CLK_FREQ		SFAB_CLK_FREQ
-#define APB_CLK_FREQ		SFAB_HALF_CLK_FREQ
+/* CORE_ID (offset 0x04) */
+#define IMC_CORE_ID_OFFSET		0
+#define IMC_CORE_ID_MASK		REG_4BIT_MASK
+#define IMC_CORE_ID(value)		_GET_FV(IMC_CORE_ID, value)
+/* CLUSTER_ID (offset 0x08) */
+#define IMC_CLUSTER_ID_OFFSET		0
+#define IMC_CLUSTER_ID_MASK		REG_6BIT_MASK
+#define IMC_CLUSTER_ID(value)		_GET_FV(IMC_CLUSTER_ID, value)
+/* CLOCK_EN (offset 0x0C) */
+#define IMC_CLOCK_EN			_BV(0)
+#define imc_core_id()			\
+	IMC_CORE_ID(__raw_readl(SCSR_CORE_ID))
+#define imc_cluster_id()		\
+	IMC_CLUSTER_ID(__raw_readl(SCSR_CLUSTER_ID))
+#define imc_enable_clock()		\
+	__raw_setl(IMC_CLOCK_EN, SCSR_CLOCK_EN)
+#define imc_disable_clock()		\
+	__raw_clearl(IMC_CLOCK_EN, SCSR_CLOCK_EN)
 
-#define CFAB_CLK_FREQ		CFAB_PLL_FREQ
-
-#define CL_HCLK_FREQ		(SOC_PLL_FREQ/4)
-#define CFAB_HCLK_FREQ		(SOC_PLL_FREQ/4)
-#define CFAB_PCLK_FREQ		(SOC_PLL_FREQ/2)
-
-#define SFAB_CLK_FREQ		(SOC_PLL_FREQ/4) /* Used by IMC/RAM/ROM/PLIC */
-#define SFAB_HALF_CLK_FREQ	(SFAB_CLK_FREQ/2)
-
-#define SD_TM_CLK_FREQ		(SOC_PLL_FREQ/10/100)
-
-#include <asm/mach/scsr.h>
-#include <asm/mach/flash.h>
-
-#ifdef CONFIG_VAISRA_PMA
-#define VAISRA_PMA_G		19
-#include <asm/vaisra_pma.h>
-#endif
-
-#ifndef __ASSEMBLY__
-void board_init_clock(void);
-void board_init_timestamp(void);
-#ifdef CONFIG_DUOWEN_APC
-void vaisra_cpu_init(void);
-#else
-#define vaisra_cpu_init()	do { } while (0)
-#endif
-#endif /* __ASSEMBLY__ */
-
-#endif /* __ARCH_DUOWEN_H_INCLUDE__ */
+#endif /* __SCSR_DUOWEN_H_INCLUDE__ */
