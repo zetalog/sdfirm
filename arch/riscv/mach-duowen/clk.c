@@ -50,7 +50,13 @@ struct output_clk {
 };
 
 struct output_clk output_clks[] = {
-	/* 4.2 Cluster Clocks */
+	/* 4.2 Cluster Clocks
+	 * +-------------------------------------------+
+	 * |                                           v
+	 * +--------+ -> +---------+ -> +--------------+    +-------------+ -> cluster_clk
+	 * | xo_clk |    | soc_pll |    | soc_pll_div4 |    | soc_clk_sel |
+	 * +--------+    +---------+    +--------------+ -> +-------------+
+	 */
 #if 0
 	[CLUSTER0_CLK] = {
 		.clk_dep = invalid_clk,
@@ -93,7 +99,18 @@ struct output_clk output_clks[] = {
 		.clk_src = sysfab_clk,
 		.flags = CLK_CR,
 	},
-	/* 4.3 Coherence Fabric Clocks */
+	/* 4.3 Coherence Fabric Clocks
+	 * +-------------------------------------------+
+	 * |                                           v
+	 * +--------+ -> +---------+ -> +--------------+    +-------------+ -> cohfab_clk
+	 * | xo_clk |    | soc_pll |    | soc_pll_div4 |    | soc_clk_sel |
+	 * +--------+    +---------+    +--------------+ -> +-------------+
+	 * |                       |    +--------------+    +-------------+ -> cohfab_cfg_hclk
+	 * |                       |    | soc_pll_div2 |    | soc_clk_sel |
+	 * |                       +--> +--------------+ -> +-------------+
+	 * |                                           ^
+	 * +-------------------------------------------+
+	 */
 #if 0
 	[COHFAB_CLK] = {
 		.clk_dep = invalid_clk,
@@ -106,13 +123,11 @@ struct output_clk output_clks[] = {
 		.clk_src = sysfab_clk,
 		.flags = CLK_CR,
 	},
-#if 0
 	[COHFAB_CFG_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = cfgfab_clk,
-		.flags = CLK_CR,
+		.clk_dep = sysfab_clk,
+		.clk_src = soc_pll_div2,
+		.flags = 0,
 	},
-#endif
 	/* 4.4 System Fabric Clocks
 	 * +-------------------------------------------+
 	 * |                                           v
@@ -149,24 +164,73 @@ struct output_clk output_clks[] = {
 		.clk_src = sysfab_half_clk,
 		.flags = CLK_CR,
 	},
-	/* 4.5 DMA Clocks */
+	/* 4.5 DMA Clocks
+	 * +-------------------------------------------+
+	 * |                                           v
+	 * +--------+ -> +---------+ -> +--------------+    +-------------+ -> dma_clk
+	 * | xo_clk |    | soc_pll |    | soc_pll_div2 |    | soc_clk_sel |
+	 * +--------+    +---------+    +--------------+ -> +-------------+
+	 * |                       |    +--------------+    +-------------+ -> dma_hclk
+	 * |                       |    | soc_pll_div8 |    | soc_clk_sel |
+	 * |                       +--> +--------------+ -> +-------------+
+	 * |                                           ^
+	 * +-------------------------------------------+
+	 */
+	[DMA_CLK] = {
+		.clk_dep = dma_hclk,
+		.clk_src = soc_pll_div2,
+		.flags = 0,
+	},
 	[DMA_HCLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,
+		.clk_dep = sysfab_clk,
+		.clk_src = soc_pll_div8,
 		.flags = CLK_CR,
 	},
-	/* 4.6 DDR Clocks */
-	[DDR_CLK] = {
-		.clk_dep = sysfab_half_clk,
-		.clk_src = ddr_clk_div4_sel,
-		.flags = CLK_CR,
+	/* 4.6 DDR Clocks
+	 * +--------------------------------------------------+
+	 * |                                                  v
+	 * +--------+ -> +-------------+ -> +-----------------+ -> ddr_aclk
+	 * | xo_clk |    | ddr_bus_pll |    | ddr_bus_clk_sel |
+	 * +--------+    +-------------+    +-----------------+
+	 * |
+	 * +--------------------------------------------------------------+
+	 * |                                                              v
+	 * |             +---------+ -> +--------------+ -> +-------------+ -> ddr_pclk
+	 * |             | soc_pll |    | soc_pll_div8 |    | soc_clk_sel |
+	 * +-----------> +---------+    +--------------+    +-------------+
+	 * |
+	 * +------------------------------------------+
+	 * |                                          v
+	 * |             +---------+ -> +-------------+ ---------------------------+ -> ddr_bypass_pclk
+	 * |             | ddr_pll |    | ddr_clk_sel |                            |
+	 * +-----------> +---------+    +-------------+                            |
+	 *                              v                                          v
+	 *                              +------------------+    +------------------+ -> ddr_clk
+	 *                              | ddr_clk_sel_div4 |    | ddr_clk_div4_sel |
+	 *                              +------------------+ -> +------------------+
+	 */
+	[DDR_AXI_RST] = {
+		.clk_dep = invalid_clk,
+		.clk_src = ddr_bus_clk_sel,
+		.flags = CLK_R,
+	},
+	[DDR_APB_RST] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_pll_div8,
+		.flags = CLK_R,
 	},
 	[DDR_BYPASS_PCLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = ddr_clk_sel,
 		.flags = CLK_CR,
 	},
-	/* 4.7 PCIE Clocks */
+	[DDR_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = ddr_clk_div4_sel,
+		.flags = CLK_CR,
+	},
+	/* 4.7 PCIE Clocks
+	 */
 	[PCIE_CLK] = {
 		.clk_dep = sysfab_half_clk,
 		.clk_src = soc_clk,
@@ -640,6 +704,7 @@ const char *output_clk_names[] = {
 	/* [TIC_CLK] = "tic_clk", */
 	[CORESIGHT_CLK] = "coresight_clk",
 #endif
+	/* Additional clocks */
 };
 
 static const char *get_output_clk_name(clk_clk_t clk)
@@ -701,49 +766,69 @@ struct clk_driver clk_output = {
 };
 
 struct div_clk {
-	clk_t derived;
+	clk_t src;
 	uint8_t div;
+	clk_t sel;
 };
 
 struct div_clk div_clks[NR_DIV_CLKS] = {
-	[SOC_PLL_DIV4] = {
-		.derived = soc_pll,
-		.div = 4,
-	},
-	[SOC_CLK_DIV2] = {
-		.derived = soc_clk,
-		.div = 2,
-	},
 	[SOC_PLL_DIV2] = {
-		.derived = soc_pll,
+		.src = soc_pll,
 		.div = 2,
+		.sel = soc_clk_sel,
+	},
+	[SOC_PLL_DIV4] = {
+		.src = soc_pll,
+		.div = 4,
+		.sel = soc_clk_sel,
+	},
+	[SOC_PLL_DIV8] = {
+		.src = soc_pll,
+		.div = 8,
+		.sel = soc_clk_sel,
 	},
 	[SOC_PLL_DIV10] = {
-		.derived = soc_pll,
+		.src = soc_pll,
 		.div = 10,
+		.sel = soc_clk_sel,
 	},
-	[SD_TM_CLK] = {
-		.derived = soc_pll_div10,
-		.div = 100,
+	[SOC_PLL_DIV12] = {
+		.src = soc_pll,
+		.div = 12,
+		.sel = soc_clk_sel,
+	},
+	[SOC_CLK_SEL_DIV2] = {
+		.src = soc_clk_sel,
+		.div = 2,
+		.sel = invalid_clk,
 	},
 	[DDR_CLK_SEL_DIV4] = {
-		.derived = ddr_clk_sel,
+		.src = ddr_clk_sel,
 		.div = 4,
+		.sel = invalid_clk,
+	},
+	[SD_TM_CLK] = {
+		.src = soc_pll_div10,
+		.div = 100,
+		.sel = invalid_clk,
 	},
 	[XO_CLK_DIV4] = {
-		.derived = xo_clk,
+		.src = xo_clk,
 		.div = 4,
+		.sel = invalid_clk,
 	},
 };
 
 #ifdef CONFIG_CONSOLE_COMMAND
 const char *div_clk_names[NR_DIV_CLKS] = {
-	[SOC_PLL_DIV4] = "soc_pll_div4", /* sysfab_clk src */
-	[SOC_CLK_DIV2] = "soc_clk_div2", /* sysfab_half_clk */
 	[SOC_PLL_DIV2] = "soc_pll_div2",
+	[SOC_PLL_DIV4] = "soc_pll_div4", /* sysfab_clk src */
+	[SOC_PLL_DIV8] = "soc_pll_div8",
 	[SOC_PLL_DIV10] = "soc_pll_div10",
-	[SD_TM_CLK] = "sd_tm_clk",
+	[SOC_PLL_DIV12] = "soc_pll_div12",
+	[SOC_CLK_SEL_DIV2] = "soc_clk_sel_div2", /* sysfab_half_clk */
 	[DDR_CLK_SEL_DIV4] = "ddr_clk_sel_div4",
+	[SD_TM_CLK] = "sd_tm_clk",
 	[XO_CLK_DIV4] = "xo_clk_div4",
 };
 
@@ -759,24 +844,39 @@ static const char *get_pll_div_name(clk_clk_t clk)
 
 static int enable_pll_div(clk_clk_t clk)
 {
+	clk_t sel;
+
 	if (clk >= NR_DIV_CLKS)
 		return -EINVAL;
-	return clk_enable(div_clks[clk].derived);
+	sel = div_clks[clk].sel;
+	if (sel != invalid_clk)
+		clk_enable(sel);
+	return clk_enable(div_clks[clk].src);
 }
 
 static void disable_pll_div(clk_clk_t clk)
 {
+	clk_t sel;
+
 	if (clk >= NR_DIV_CLKS)
 		return;
-	clk_disable(div_clks[clk].derived);
+	sel = div_clks[clk].sel;
+	if (sel != invalid_clk)
+		clk_disable(sel);
+	clk_disable(div_clks[clk].src);
 }
 
 static uint32_t get_pll_div_freq(clk_clk_t clk)
 {
+	clk_t sel;
+
 	if (clk >= NR_DIV_CLKS)
 		return INVALID_FREQ;
-	return clk_get_frequency(div_clks[clk].derived) /
-	       div_clks[clk].div;
+	/* Handle sel clk src from div clk */
+	sel = div_clks[clk].sel;
+	if (sel != invalid_clk && !crcntl_clk_selected(clk_clk(sel)))
+		return XO_CLK_FREQ;
+	return clk_get_frequency(div_clks[clk].src) / div_clks[clk].div;
 }
 
 struct clk_driver clk_div = {
@@ -824,7 +924,7 @@ static int do_crcntl_dump(int argc, char *argv[])
 		if (div_clk_names[i]) {
 			printf("div  %3d %20s %20s\n",
 			       i, div_clk_names[i],
-			       clk_get_mnemonic(div_clks[i].derived));
+			       clk_get_mnemonic(div_clks[i].src));
 		}
 	}
 	for (i = 0; i < NR_OUTPUT_CLKS; i++) {
