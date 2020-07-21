@@ -794,7 +794,7 @@ struct clk_driver clk_div = {
  *===========================================================================*/
 static bool clk_hw_init = false;
 
-void crcntl_init_zsbl(void)
+void crcntl_init(void)
 {
 	if (!clk_hw_init) {
 		clk_pll_init();
