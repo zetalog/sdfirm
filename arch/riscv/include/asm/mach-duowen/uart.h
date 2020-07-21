@@ -46,7 +46,7 @@
 #include <target/gpio.h>
 #include <target/clk.h>
 
-#define __DUOWEN_UART_BASE	IMC_UART_BASE
+#define __DUOWEN_UART_BASE	UART0_BASE
 
 #define UART_CLK_ID		uart0_clk
 #ifdef CONFIG_MMU

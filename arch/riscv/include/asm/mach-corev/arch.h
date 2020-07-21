@@ -48,6 +48,8 @@
 
 #define __VEC
 
+#define CORE_FREQ		100000 /* 5ns HI, 5ns LO */
+
 #include <asm/mach/cvtests.h>
 
 #endif /* __ARCH_COREV_H_INCLUDE__ */

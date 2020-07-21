@@ -46,7 +46,7 @@
 
 #include <target/amba.h>
 
-#define IMC_CSR_REG(offset)		(IMC_CSR_BASE + (offset))
+#define IMC_CSR_REG(offset)		(SYSCSR_BASE + (offset))
 #define IMC_CSR_BOOT_ADDR		IMC_CSR_REG(0x00)
 #define IMC_CSR_CORE_ID			IMC_CSR_REG(0x04)
 #define IMC_CSR_CLUSTER_ID		IMC_CSR_REG(0x08)

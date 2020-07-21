@@ -54,9 +54,13 @@
 #error "Multiple UART controller defined"
 #endif
 
+#ifdef CONFIG_CONSOLE_OUTPUT
 #define uart_hw_con_write(byte)	pulp_putchar(byte)
+#endif
+#ifdef CONFIG_CONSOLE_INPUT
 #define uart_hw_con_read()	pulp_getchar()
 #define uart_hw_con_poll()	pulp_poll()
+#endif
 #define uart_hw_con_init()	do { } while (0)
 #endif /* CONFIG_COREV_PRINT */
 
