@@ -199,16 +199,13 @@ void csr_write_pmpaddr(int n, unsigned long val)
 	};
 }
 
-static unsigned long ctz(unsigned long x)
-{
-	unsigned long ret = 0;
-
-	while (!(x & 1UL)) {
-		ret++;
-		x = x >> 1;
-	}
-	return ret;
-}
+#if __riscv_xlen == 32
+#define ctz(x)			__fls32(x)
+#elif __riscv_xlen == 64
+#define ctz(x)			__fls64(x)
+#else
+#define ctz(x)			-1
+#endif
 
 int pmp_set(int n, unsigned long prot,
 	    phys_addr_t addr, unsigned long log2len)

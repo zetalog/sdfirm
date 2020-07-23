@@ -42,12 +42,23 @@
 #ifndef __PMP_RISCV_H_INCLUDE__
 #define __PMP_RISCV_H_INCLUDE__
 
+#ifndef PMP_G
+#define PMP_G				0
+#endif
+
+#define PMP_GRAIN_SHIFT         	(PMP_G + 2)
+#define PMP_GRAIN_ALIGN         	(ULL(1) << PMP_GRAIN_SHIFT)
+
 #define PMP_R				_AC(0x00000001, UL)
 #define PMP_W				_AC(0x00000002, UL)
 #define PMP_X				_AC(0x00000004, UL)
 #define PMP_A				_AC(0x00000018, UL)
 #define PMP_A_TOR			_AC(0x00000008, UL)
+#if PMP_G >= 1
+#define PMP_A_NA4			PMP_A_NAPOT
+#else
 #define PMP_A_NA4			_AC(0x00000010, UL)
+#endif
 #define PMP_A_NAPOT			_AC(0x00000018, UL)
 #define PMP_L				_AC(0x00000080, UL)
 

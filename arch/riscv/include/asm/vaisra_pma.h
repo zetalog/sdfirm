@@ -147,7 +147,8 @@
 #define PMA_SHIFT		2
 
 #ifndef __ASSEMBLY__
-int pma_set(int n, unsigned long attr, phys_addr_t addr, unsigned long log2len);
+int pma_set(int n, unsigned long attr, phys_addr_t addr,
+	    unsigned long log2len);
 #endif
 
 #endif /* __PMA_VAISRA_H_INCLUDE__ */

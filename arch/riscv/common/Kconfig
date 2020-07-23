@@ -352,6 +352,8 @@ config RISCV_PMA
 config RISCV_PMP
 	bool "Physical address protection (PMP) support"
 	depends CPU_PMP
+	select BIT_FLS32 if 32BIT
+	select BIT_FLS64 if 64BIT
 	default y
 
 config RISCV_H
