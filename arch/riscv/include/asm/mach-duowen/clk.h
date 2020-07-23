@@ -139,20 +139,20 @@
 #define ddr_bus_clk_sel		ddr_bus_pll
 #define ddr_clk_sel		ddr_pll
 #define ddr_clk_div4_sel	ddr_clk_sel_div4
+#define sd_rx_tx_clk_sel	soc_pll_div10
 #define soc_clk			soc_clk_sel
 #endif
 
 #define CLK_OUTPUT		((clk_cat_t)3)
 /* CLK_EN_CFG0 */
-#define DMA_HCLK		((clk_clk_t)0)
-#define PCIE_POWER_UP_RST	((clk_clk_t)1) /* SW_RST only */
+#define DMA_CLK			((clk_clk_t)0)
+#define PCIE_POR		((clk_clk_t)1) /* SW_RST only */
 #define PCIE_CLK		((clk_clk_t)2)
-#define DDR_CLK			((clk_clk_t)4) /* CLK_EN only */
+#define DDR_POR			((clk_clk_t)4) /* SW_RST only */
 #define DDR_BYPASS_PCLK		((clk_clk_t)5) /* CLK_EN only */
-#define DDR_PWROKIN_RST		((clk_clk_t)4) /* SW_RST only */
-#define DDR_APB_RST		((clk_clk_t)5) /* SW_RST only */
-#define DDR_AXI_RST		((clk_clk_t)6) /* SW_RST only */
-#define DDR_RST			((clk_clk_t)7) /* SW_RST only */
+#define DDR_PCLK		((clk_clk_t)6)
+#define DDR_ACLK		((clk_clk_t)7)
+#define DDR_CLK			((clk_clk_t)8)
 #define SYSFAB_DBG_CLK		((clk_clk_t)9)
 #define SYSFAB_TIC_CLK		((clk_clk_t)10)
 #define CLUSTER0_HCLK		((clk_clk_t)12)
@@ -234,17 +234,22 @@
 
 /* Additional output clocks */
 #define COHFAB_CFG_CLK		((clk_clk_t)97)
-#define DMA_CLK			((clk_clk_t)98)
+#define DMA_HCLK		((clk_clk_t)98)
+#define PCIE_PCLK		((clk_clk_t)99)
+#define SD_BCLK			((clk_clk_t)100)
+#define SD_CCLK			((clk_clk_t)101)
 
-#define NR_OUTPUT_CLKS		(DMA_CLK + 1)
+#define NR_OUTPUT_CLKS		(SD_CCLK + 1)
 
 /* CLK_EN_CFG0 */
 /* Integrated overall clocks */
-#define dma_hclk		clkid(CLK_OUTPUT, DMA_HCLK)
-#define ddr_clk			clkid(CLK_OUTPUT, DDR_CLK)
+#define dma_clk			clkid(CLK_OUTPUT, DMA_CLK)
+#define ddr_por			clkid(CLK_OUTPUT, DDR_POR)
 #define ddr_bypass_pclk		clkid(CLK_OUTPUT, DDR_BYPASS_PCLK)
-#define ddr_apb_rst		clkid(CLK_OUTPUT, DDR_APB_RST)
-#define ddr_axi_rst		clkid(CLK_OUTPUT, DDR_AXI_RST)
+#define ddr_pclk		clkid(CLK_OUTPUT, DDR_PCLK)
+#define ddr_aclk		clkid(CLK_OUTPUT, DDR_ACLK)
+#define ddr_clk			clkid(CLK_OUTPUT, DDR_CLK)
+#define pcie_por		clkid(CLK_OUTPUT, PCIE_POR)
 #define pcie_clk		clkid(CLK_OUTPUT, PCIE_CLK)
 #define sysfab_dbg_clk		clkid(CLK_OUTPUT, SYSFAB_DBG_CLK)
 #define sysfab_tic_clk		clkid(CLK_OUTPUT, SYSFAB_TIC_CLK)
@@ -267,11 +272,17 @@
 #define wdt1_pclk		clkid(CLK_OUTPUT, WDT1_PCLK)
 /* Additional clocks */
 #define cohfab_cfg_clk		clkid(CLK_OUTPUT, COHFAB_CFG_CLK)
-#define dma_clk			clkid(CLK_OUTPUT, DMA_CLK)
+#define dma_hclk		clkid(CLK_OUTPUT, DMA_HCLK)
+#define pcie_pclk		clkid(CLK_OUTPUT, PCIE_PCLK)
+#define sd_bclk			clkid(CLK_OUTPUT, SD_BCLK)
+#define sd_cclk			clkid(CLK_OUTPUT, SD_CCLK)
 /* Alias for AO domain clocks */
 #define imc_clk			sysfab_clk
 #define ram_aclk		sysfab_clk
 #define brom_hclk		sysfab_clk
+#define pcie_aux_clk		xo_clk
+#define pcie_aclk		sysfab_clk
+#define sd_hclk			sysfab_half_clk
 
 /* CLK_EN_CFG1 */
 /* Internal bus clocks */
@@ -345,7 +356,8 @@
 #define DDR_CLK_SEL_DIV4	((clk_clk_t)6)
 #define SD_TM_CLK		((clk_clk_t)7)
 #define XO_CLK_DIV4		((clk_clk_t)8)
-#define NR_DIV_CLKS		(XO_CLK_DIV4 + 1)
+#define XO_CLK_DIV10		((clk_clk_t)9)
+#define NR_DIV_CLKS		(XO_CLK_DIV10 + 1)
 #define soc_pll_div4		clkid(CLK_DIV, SOC_PLL_DIV4)
 #define soc_pll_div8		clkid(CLK_DIV, SOC_PLL_DIV8)
 #define soc_pll_div2		clkid(CLK_DIV, SOC_PLL_DIV2)
@@ -355,6 +367,7 @@
 #define ddr_clk_sel_div4	clkid(CLK_DIV, DDR_CLK_SEL_DIV4)
 #define sd_tm_clk		clkid(CLK_DIV, SD_TM_CLK)
 #define xo_clk_div4		clkid(CLK_DIV, XO_CLK_DIV4)
+#define xo_clk_div10		clkid(CLK_DIV, XO_CLK_DIV10)
 #define sysfab_clk		soc_pll_div4
 #define sysfab_half_clk		soc_clk_sel_div2
 
