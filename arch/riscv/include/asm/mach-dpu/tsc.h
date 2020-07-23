@@ -53,7 +53,11 @@
 
 #ifndef __ASSEMBLY__
 #define tsc_hw_ctrl_init()	board_init_timestamp()
+#if defined(CONFIG_RISCV_COUNTERS) || defined(CONFIG_SBI)
+#define tsc_hw_read_counter()	rdtime()
+#else
 #define tsc_hw_read_counter()	tmr_read_counter()
+#endif
 #endif /* __ASSEMBLY__ */
 
 #endif /* __TSC_DPU_H_INCLUDE__ */
