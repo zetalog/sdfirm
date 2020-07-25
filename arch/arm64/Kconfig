@@ -48,12 +48,14 @@ config ARCH_GEM5
 	select ARCH_HAS_TSC
 	select ARCH_HAS_TSC_CONST
 	select ARCH_HAS_GPT
+	select ARCH_HAS_PMU
 	select ARCH_HAS_GICv2
 	select ARCH_HAS_IDLE
 	select MATH_GCD32
 	select BIT_FLS32
 	select ARCH_HAS_BOOT_LOAD
 	select UART_GEM5 if !ARM_DCC && (UART || DEBUG_PRINT || CONSOLE)
+	select PMUv3 if PERF
 	help
 	  This enables support of ARM versatile express platform.
 

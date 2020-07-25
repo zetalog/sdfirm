@@ -684,7 +684,8 @@ endif
 
 config RI5CY_PC
 	bool "RI5CY performance counter support"
-	depends PERF && CPU_RI5CY
+	depends CPU_RI5CY
+	select ARCH_HAS_PMU
 
 config ARCH_HAS_RI5CY_FIRQ
 	bool

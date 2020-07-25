@@ -44,15 +44,4 @@
 
 #include <asm/pmu.h>
 
-#define PMU_HW_MAX_COUNTERS		31
-#define PMU_HW_DEFAULT_EVENT		ARMV8_PMUV3_SW_INCR
-
-#define pmu_hw_ctrl_init()		pmu_init()
-#define pmu_hw_reset_events()		pmu_reset_events()
-#define pmu_hw_get_counters()		pmu_get_counters()
-#define pmu_hw_enable_event(event)	pmu_enable_event(event)
-#define pmu_hw_disable_event(event)	pmu_disable_event(event)
-#define pmu_hw_configure_event(event)	pmu_configure_event(event)
-#define pmu_hw_get_event_count(event)	pmu_get_event_count(event)
-
 #endif /* __ARM64_PMU_H_INCLUDE__ */

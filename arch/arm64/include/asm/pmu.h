@@ -162,7 +162,10 @@
 #define ARMV81_PMUV3_STALL_FRONTEND	0x0023
 #define ARMV81_PMUV3_STALL_BACKEND	0x0024
 
-#define pmu_get_counters()		PMCR_N(read_sysreg(PMCR_EL0))
+#define PMU_HW_MAX_COUNTERS		31
+#define PMU_HW_DEFAULT_EVENT		ARMV8_PMUV3_SW_INCR
+
+#define pmu_hw_get_counters()		PMCR_N(read_sysreg(PMCR_EL0))
 #define pmu_reset_cycle_counter()	write_sysreg(PMCR_C, PMCR_EL0)
 #define pmu_reset_event_counters()	write_sysreg(PMCR_P, PMCR_EL0)
 
@@ -200,19 +203,19 @@
 #define pmu_increment_software()			\
 	write_sysreg(PMSWINC_P(perf_event_id(ARMV8_PMUV3_SW_INCR)), PMSWINC_EL0)
 
-#define pmu_reset_events()				\
+#define pmu_hw_reset_events()				\
 	write_sysreg(read_sysreg(PMCR_EL0) |		\
 		     PMCR_C | PMCR_P, PMCR_EL0)
 
-#define pmu_enable_event(event)		\
+#define pmu_hw_enable_event(event)		\
 	pmu_enable_overflow(perf_event_id(event))
-#define pmu_disable_event(event)	\
+#define pmu_hw_disable_event(event)	\
 	pmu_disable_overflow(perf_event_id(event))
-#define pmu_configure_event(event)	\
+#define pmu_hw_configure_event(event)	\
 	pmu_configure_overflow(perf_event_id(event), event)
-#define pmu_get_event_count(event)	\
+#define pmu_hw_get_event_count(event)	\
 	pmu_get_count(perf_event_id(event))
 
-int pmu_init(void);
+int pmu_hw_ctrl_init(void);
 
 #endif /* __PMU_ARM64_H_INCLUDE__ */

@@ -55,8 +55,8 @@ static void duowen_pma_init(void)
 	int n = 0;
 
 	/* PMA configured for vaisra_beta test bench */
-	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER, RAM_BASE,
-		     __ilog2_u64(__roundup64(max(SZ_2M, RAM_SIZE))));
+	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER, DDR_BASE,
+		     ilog2_const(max(SZ_2M, DDR_SIZE)));
 	n += pma_set(n, PMA_AT_DEVICE,               DEV_BASE,
 		     ilog2_const(max(SZ_2M, DEV_SIZE)));
 }

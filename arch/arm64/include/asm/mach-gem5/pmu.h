@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2019
+ * Copyright (c) 2020
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,60 +35,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)pmuv3.c: ARM64 performance monitor unit v3 (PMUv3) implementation
- * $Id: pmuv3.c,v 1.279 2019-04-14 10:19:18 zhenglv Exp $
+ * @(#)pmu.h: GEM5 specific PMU implementation
+ * $Id: pmu.h,v 1.1 2020-07-25 10:16:00 zhenglv Exp $
  */
 
-#include <stdio.h>
-#include <target/perf.h>
-#include <target/irq.h>
-#include <asm/reg.h>
+#ifndef __PMU_GEM5_H_INCLUDE__
+#define __PMU_GEM5_H_INCLUDE__
 
-#ifndef CONFIG_IRQ_POLLING
-void pmu_handle_irq(void)
-{
-	uint32_t ovs = read_sysreg(PMOVSCLR_EL0);
-	int evt;
+#include <asm/pmu.h>
 
-	for (evt = 0; evt < PERF_HW_MAX_COUNTERS; evt++) {
-		if (ovs & PMOVS_P(evt))
-			printf("Event %d counter overflow\n", evt);
-	}
-	write_sysreg(ovs, PMOVSCLR_EL0);
-}
-
-int pmu_irq_init(void)
-{
-	irqc_configure_irq(IRQ_PMU, 0, IRQ_LEVEL_TRIGGERED);
-	irq_register_vector(IRQ_PMU, pmu_handle_irq);
-	irqc_enable_irq(IRQ_PMU);
-	return 0;
-}
-#else
-static inline int pmu_irq_init(void)
-{
-	return 0;
-}
-#endif
-
-void pmu_hw_ctrl_reset(void)
-{
-	perf_hw_reset_events();
-}
-
-int pmu_hw_ctrl_init(void)
-{
-	uint32_t reg;
-
-	write_sysreg(read_sysreg(PMUSERENR_EL0) | PMUSERENR_EN,
-		     PMUSERENR_EL0);
-	reg = read_sysreg(PMCR_EL0);
-	reg &= ~(PMCR_LC | PMCR_DP | PMCR_D);
-	write_sysreg(reg | PMCR_E | PMCR_X, PMCR_EL0);
-	write_sysreg(read_sysreg(MDCR_EL3) | MDCR_SPME, MDCR_EL3);
-	write_sysreg(read_sysreg(MDCR_EL3) | ~MDCR_TPM, MDCR_EL3);
-	write_sysreg(read_sysreg(MDCR_EL2) | ~MDCR_TPM, MDCR_EL2);
-
-	pmu_irq_init();
-	return 0;
-}
+#endif /* __PMU_GEM5_H_INCLUDE__ */

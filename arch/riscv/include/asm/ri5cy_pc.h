@@ -53,12 +53,12 @@
 #define ri5cy_config_wraparound()	csr_clear(CSR_PCMR, PC_SATURATION)
 #define ri5cy_config_saturation()	csr_set(CSR_PCMR, PC_SATURATION)
 
-#define ri5cy_get_count(event)		csr_read(CSR_PCCR(event))
 #define ri5cy_enable_count(event)	csr_set(CSR_PCER, PC_ID(event))
 #define ri5cy_disable_count(event)	csr_clear(CSR_PCER, PC_ID(event))
 
 #ifndef __ASSEMBLY__
 void ri5cy_set_count(uint8_t event, uint32_t count);
+uint32_t ri5cy_get_count(uint8_t event);
 #endif
 
 #endif /* __PMU_RI5CY_H_INCLUDE__ */

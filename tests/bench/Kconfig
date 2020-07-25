@@ -26,6 +26,7 @@ config DHRYSTONE_GROUND_RULES
 config DHRYSTONE_BEST_EFFORT
 	bool "Best effort"
 	select DHRYSTONE_REG
+	select CC_OPT_SPEED
 
 endchoice
 

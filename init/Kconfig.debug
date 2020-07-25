@@ -40,6 +40,8 @@ config CC_OPT_SIZE
 
 config CC_OPT_SPEED
 	bool "Optimize for speed"
+	# ARM64 LR/SC implementation requires O2
+	# depends !DHRYSTONE_GROUND_RULES
 	help
 	  Enabling this option will pass speed optimization option
 	  instead of size optimization option to the compilers,

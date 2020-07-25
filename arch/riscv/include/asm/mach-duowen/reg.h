@@ -132,7 +132,7 @@
 #endif
 #ifdef CONFIG_DUOWEN_FPGA
 #ifdef CONFIG_DUOWEN_FPGA_DDR_MODEL
-#define DDR_SIZE		SZ_2M
+#define DDR_SIZE		SZ_32M
 #else
 #define DDR_SIZE		SZ_16G
 #endif
