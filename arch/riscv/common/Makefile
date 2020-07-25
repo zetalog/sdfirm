@@ -14,6 +14,7 @@ obj-$(CONFIG_SMP) += smpboot.rel
 obj-$(CONFIG_RISCV_PMP) += pmp.rel
 obj-$(CONFIG_RISCV_F) += float.rel
 obj-$(CONFIG_MMU) += mmu.rel
+obj-$(CONFIG_HPM) += hpm.rel
 obj-$(CONFIG_TASK) += task.rel
 obj-$(CONFIG_CLINT) += clint.rel
 obj-$(CONFIG_PLIC) += plic.rel

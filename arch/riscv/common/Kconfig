@@ -682,6 +682,14 @@ config PLIC_MASK_PRIORITY
 
 endif
 
+config HPM
+	bool "Hardware performance monotor support"
+	select ARCH_HAS_PMU
+
+config HPM_EVENT
+	bool "Enable hpmevent register support"
+	depends HPM
+
 config RI5CY_PC
 	bool "RI5CY performance counter support"
 	depends CPU_RI5CY

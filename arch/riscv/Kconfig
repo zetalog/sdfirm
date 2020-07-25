@@ -106,6 +106,7 @@ config ARCH_DPU
 	select DPU_DDR if DDR
 	select DPU_PCI_SUBSYS if PCI
 	select RI5CY_PC if (PERF && DPU_CV32E40P)
+	select HPM if (PERF && DPU_CVA6)
 	help
 	  This enables support for smart core (SmarCo) DPU platform.
 
