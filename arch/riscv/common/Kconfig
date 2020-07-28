@@ -7,6 +7,7 @@ config CPU_VAISRA
 	select CPU_SV48
 	select CPU_PMP
 	select CPU_COUNTERS
+	select ARCH_HAS_HPM_EVENT if HPM
 
 # SiFive E51
 config CPU_E51
@@ -682,13 +683,20 @@ config PLIC_MASK_PRIORITY
 
 endif
 
+config ARCH_HAS_HPM_EVENT
+	bool
+
 config HPM
 	bool "Hardware performance monotor support"
 	select ARCH_HAS_PMU
 
+if HPM
+
 config HPM_EVENT
 	bool "Enable hpmevent register support"
-	depends HPM
+	depends ARCH_HAS_HPM_EVENT
+
+endif
 
 config RI5CY_PC
 	bool "RI5CY performance counter support"

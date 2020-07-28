@@ -35,60 +35,44 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)vaisra_ras.h: VAISRA specific RAS (reli/avail/service-ability) interface
- * $Id: vaisra_ras.h,v 1.1 2020-07-28 09:09:00 zhenglv Exp $
+ * @(#)vaisra_hpm.h: VAISRA hardware performance monitor events
+ * $Id: vaisra_hpm.h,v 1.1 2020-07-28 21:45:00 zhenglv Exp $
  */
 
-#ifndef __RAS_VAISRA_H_INCLUDE__
-#define __RAS_VAISRA_H_INCLUDE__
+#ifndef __HPM_VAISRA_H_INCLUDE__
+#define __HPM_VAISRA_H_INCLUDE__
 
-#define IRQ_M_NMI	16
+#define HPM_SWINCR		0x0000
+#define HPM_L1ICRF		0x0001 /* L1 I-cache refill */
+#define HPM_L1ITRF		0x0002 /* L1 I-tlb refill */
+#define HPM_L1DCRF		0x0003 /* L1 D-cache refill */
+#define HPM_L1DCAC		0x0004 /* L1 D-cache access */
+#define HPM_LDRET		0x0005 /* load retired */
+#define HPM_STRET		0x0007 /* store retired */
+#define HPM_EXCENTR		0x0009 /* exception entry */
+#define HPM_EXCEXIT		0x000A /* exception exit */
+#define HPM_BRUNPRED		0x0010 /* branch mis-predicted */
+#define HPM_BRPRED		0x0012 /* branch predicted */
+#define HPM_MEMACC		0x0013 /* data memory access */
+#define HPM_L1ICAC		0x0014 /* L1 I-cache access */
+#define HPM_L2DCAC		0x0016 /* L2 D-cache access */
+#define HPM_L2DCRF		0x0017 /* L2 D-cache refill */
+#define HPM_L2DCWB		0x0018 /* L2 D-cache write-back */
+#define HPM_BUSACC		0x0019 /* bus access */
+#define HPM_MEMERR		0x001A /* memory error */
+#define HPM_INSTSPEC		0x001B /* inst speculatively executed */
+#define HPM_SATPRET		0x001C /* SATP-write retired */
+#define HPM_L1DCAL		0x001F /* L1 D-cache allocate */
+#define HPM_L2DCAL		0x0020 /* L2 D-cache allocate */
+#define HPM_STALLFE		0x0023 /* stall frontend */
+#define HPM_STALLBE		0x0024 /* stall backend */
+#define HPM_L1DTAC		0x0025 /* L1 D-tlb access */
+#define HPM_L1ITAC		0x0026 /* L1 I-tlb access */
+#define HPM_L2DTRF		0x002D /* L2 D-tlb refill */
+#define HPM_L2ITRF		0x002E /* L2 I-tlb refill */
+#define HPM_L2DTAC		0x002F /* L2 D-tlb access */
+#define HPM_L2ITAC		0x0030 /* L2 I-tlb access */
 
-/* dcache and icache, accessed via CSR */
-#define CSR_DCEC	0x5cd /* D-cache error control */
-#define CSR_DCES	0x5ce /* D-cache error status */
-#define CSR_ICEC	0x5d0 /* I-cache error control */
-#define CSR_ICES	0x5d1 /* I-cache error status */
+#include <asm/hpm.h>
 
-/* L2, accessed via L2CSR */ 
-#define L2CSR_L2EC0	0x208 /* L2-cache error control 0 */
-#define L2CSR_L2EC1	0x210 /* L2-cache error control 1 */
-#define L2CSR_L2ES_GC	0x218 /* L2-cache error status (get/clear) */
-#define L2CSR_L2ES_S	0x220 /* L2-cache error status (set) */
-
-/* DCEC/DCES */
-#define DCE_L1VTPE	0 /* L1-dcache virtual tag parity error */
-#define DCE_L1PTPE	1 /* L1-dcache physical tag parity error */
-#define DCE_L1DPE	2 /* L1-dcache data parity error */
-#define DCE_S1FTLBTPE	3 /* Stage-1 final TLB tag parity error */
-#define DCE_S1FTLBDPE	4 /* Stage-1 final TLB data parity error */
-
-#define MAX_DCES	5
-
-/* ICEC/ICES */
-#define ICE_L0TPE	0 /* L0-icache tag parity error */
-#define ICE_L0DPE	1 /* L0-icache data parity error */
-#define ICE_L1TPE	2 /* L1-icache tag parity error */
-#define ICE_L1DPE	3 /* L1-icache data parity error */
-#define ICE_V0ICPEO	4 /* interleave-0 I-cache parity error observed */
-#define ICE_V1ICPEO	5 /* interleave-1 I-cache parity error observed */
-
-#define MAX_ICES	6
-
-/* L2EC/L2ES */
-
-#define ERR_S(err)	_BV(err)
-#define ERR_ESEI(err)	_BV(((err) << 1) + 1)
-#define ERR_ENMI(err)	_BV((err) << 1)
-
-#define err_nmi_enabled(csr, err)		(!!((csr) & ERR_ENMI(err)))
-#define err_irq_enabled(csr, err)		(!!((csr) & ERR_ESEI(err)))
-#define err_indicated(csr, err)			(!!((csr) & ERR_E(err)))
-
-#if defined(CONFIG_VAISRA_RAS) && defined(CONFIG_SBI)
-void sbi_process_vaisra_nmi(void);
-#else
-#define sbi_process_vaisra_nmi()	do { } while (0)
-#endif
-
-#endif /* __RAS_VAISRA_H_INCLUDE__ */
+#endif /* __HPM_VAISRA_H_INCLUDE__ */
