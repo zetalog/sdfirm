@@ -163,9 +163,13 @@ void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch)
 			sbi_ipi_process(scratch);
 			break;
 		default:
-			sbi_trap_log("Unknown extarnal IRQ\n");
-			msg = "unhandled external interrupt";
-			goto trap_error;
+			if (sbi_platform_process_irq(sbi_platform_ptr(scratch),
+						     mcause) != 0) {
+				sbi_trap_log("Unknown extarnal IRQ\n");
+				msg = "unhandled external interrupt";
+				goto trap_error;
+			}
+			break;
 		};
 		return;
 	}

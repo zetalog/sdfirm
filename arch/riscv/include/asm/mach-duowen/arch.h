@@ -86,6 +86,10 @@
 #include <asm/vaisra_pma.h>
 #endif
 
+#ifdef CONFIG_VAISRA_RAS
+#include <asm/vaisra_ras.h>
+#endif
+
 #ifndef __ASSEMBLY__
 void board_init_clock(void);
 void board_init_timestamp(void);

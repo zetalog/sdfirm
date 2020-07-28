@@ -22,5 +22,6 @@ obj-$(CONFIG_HTIF) += htif.rel
 obj-$(CONFIG_RI5CY_PC) += ri5cy_pc.rel
 obj-$(CONFIG_VAISRA_TBOX) += tbox.rel
 obj-$(CONFIG_VAISRA_PMA) += vaisra_pma.rel
+obj-$(CONFIG_VAISRA_RAS) += vaisra_ras.rel
 
 extra-y := $(head-y) sdfirm.lds

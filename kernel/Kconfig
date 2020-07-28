@@ -729,6 +729,9 @@ source kernel/pci/Kconfig
 source kernel/iommu/Kconfig
 source kernel/fdt/Kconfig
 
+config ARCH_HAS_RAS
+	bool
+
 config RAS
 	bool "Reliability availability serviceability (RAS) support"
 

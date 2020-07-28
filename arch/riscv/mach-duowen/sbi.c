@@ -44,6 +44,7 @@
 #include <target/uart.h>
 #include <target/irq.h>
 #include <target/delay.h>
+#include <target/ras.h>
 
 static void duowen_modify_dt(void *fdt)
 {
@@ -200,6 +201,17 @@ static int duowen_system_down(u32 type)
 	return 0;
 }
 
+static int duowen_process_irq(u32 cause)
+{
+#ifdef CONFIG_VAISRA_RAS
+	if (cause == IRQ_M_NMI) {
+		sbi_process_vaisra_nmi();
+		return 0;
+	}
+#endif
+	return -ENODEV;
+}
+
 const struct sbi_platform_operations platform_ops = {
 	.pmp_region_count	= duowen_pmp_region_count,
 	.pmp_region_info	= duowen_pmp_region_info,
@@ -217,7 +229,8 @@ const struct sbi_platform_operations platform_ops = {
 	.timer_event_start	= duowen_timer_event_start,
 	.timer_init		= duowen_timer_init,
 	.system_reboot		= duowen_system_down,
-	.system_shutdown	= duowen_system_down
+	.system_shutdown	= duowen_system_down,
+	.process_irq		= duowen_process_irq,
 };
 
 const struct sbi_platform platform = {

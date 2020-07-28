@@ -42,6 +42,10 @@
 #ifndef __IRQ_DUOWEN_H_INCLUDE__
 #define __IRQ_DUOWEN_H_INCLUDE__
 
+#ifdef ARCH_HAVE_INT_IRQS
+#define NR_INT_IRQS		20
+#endif
+
 #define IRQ_CFAB_ECC_CE		EXT_IRQ(1) /* Correctable error */
 #define IRQ_CFAB_ECC_UE		EXT_IRQ(2) /* Uncorrectable error */
 

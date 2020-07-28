@@ -16,12 +16,14 @@ __noreturn void __bad_interrupt(void)
 	hart_hang();
 }
 
-void riscv_handle_irq(void)
+static void riscv_handle_irq(irq_t irq)
 {
-	unsigned long cause = csr_read(CSR_CAUSE);
-	irq_t irq;
-
-	irq = cause & ~ICR_IRQ_FLAG;
+#ifdef CONFIG_RISCV_IRQ_VERBOSE
+	if (irq == IRQ_SOFT)
+		printf("Soft IRQ\n");
+	if (irq == IRQ_TIMER)
+		printf("Timer IRQ\n");
+#endif
 	irq_nesting++;
 	do_IRQ(irq);
 	irq_nesting--;
@@ -36,18 +38,8 @@ void do_riscv_interrupt(struct pt_regs *regs)
 		irqc_hw_handle_irq();
 		return;
 	}
-	if (irq == IRQ_SOFT) {
-#ifdef CONFIG_RISCV_IRQ_VERBOSE
-		printf("Soft IRQ\n");
-#endif
-		riscv_handle_irq();
-		return;
-	}
-	if (irq == IRQ_TIMER) {
-#ifdef CONFIG_RISCV_IRQ_VERBOSE
-		printf("Timer IRQ\n");
-#endif
-		riscv_handle_irq();
+	if (irq < NR_INT_IRQS) {
+		riscv_handle_irq(irq);
 		return;
 	}
 

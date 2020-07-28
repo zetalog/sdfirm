@@ -727,6 +727,10 @@ menuconfig VAISRA_PMA
 	help
 	  Vaisra SoC PMA driver.
 
+menuconfig VAISRA_RAS
+	bool "Vaisra reliability availability serviceability (RAS) support"
+	depends !SYS_NOIRQ || SBI
+
 if VAISRA_PMA
 
 menu "Default normal memory attributes"

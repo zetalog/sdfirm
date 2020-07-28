@@ -42,6 +42,7 @@ config DW_PLL5GHZ_TSMC12FFC_RANGE2
 
 config DW_PLL5GHZ_TSMC12FFC_GEAR
 	bool "Enable fast startup transition"
+	default y if !SIMULATION
 	help
 	  From Power-down to Normal operation the PLL can transition by a
 	  Fast Startup (gear) state when the gear_shift pin is high, or by
@@ -104,7 +105,7 @@ config DW_PLL5GHZ_TSMC12FFC_CNT_LOCKED
 
 config DW_PLL5GHZ_TSMC12FFC_ACCEL
 	bool "Enable acceleration for emulation"
-	depends EXPERIMENTAL
+	depends SIMULATION
 	help
 	  In emulation environment, t_pwrstb, t_trst and t_pwron can be
 	  omit to accelerate emulation.

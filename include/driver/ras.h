@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2019
+ * Copyright (c) 2020
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,25 +35,19 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)irqc.h: RISCV IRQ controller interfaces
- * $Id: irqc.h,v 1.1 2019-08-18 21:39:00 zhenglv Exp $
+ * @(#)ras.h: required RAS driver specific abstraction
+ * $Id: ras.h,v 1.1 2020-07-28 17:13:00 zhenglv Exp $
  */
 
-#ifndef __IRQC_RISCV_H_INCLUDE__
-#define __IRQC_RISCV_H_INCLUDE__
+#ifndef __RAS_DRIVER_H_INCLUDE__
+#define __RAS_DRIVER_H_INCLUDE__
 
-#include <target/arch.h>
-
-#ifndef __ASSEMBLY__
-#define IRQ2IE(irq)		(_AC(0x1, UL) << (irq))
-#define riscv_enable_irq(irq)	csr_set(CSR_IE, IRQ2IE(irq))
-#define riscv_disable_irq(irq)	csr_clear(CSR_IE, IRQ2IE(irq))
-#define riscv_trigger_irq(irq)	csr_set(CSR_IP, IRQ2IE(irq))
-#define riscv_clear_irq(irq)	csr_clear(CSR_IP, IRQ2IE(irq))
-#define riscv_irq_raised(irq)	(csr_read(CSR_IP) & IRQ2IE(irq))
-
-/* RISCV allows embedded IRQ controllers */
-#include <asm/mach/irqc.h>
+#ifdef CONFIG_ARCH_HAS_RAS
+#include <asm/mach/ras.h>
 #endif
 
-#endif /* __IRQC_RISCV_H_INCLUDE__ */
+#ifndef ARCH_HAVE_RAS
+#define ras_hw_ctrl_init()		do { } while (0)
+#endif
+
+#endif /* __RAS_DRIVER_H_INCLUDE__ */

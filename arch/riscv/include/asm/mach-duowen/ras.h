@@ -35,25 +35,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)irqc.h: RISCV IRQ controller interfaces
- * $Id: irqc.h,v 1.1 2019-08-18 21:39:00 zhenglv Exp $
+ * @(#)ras.h: VAISRA NMI interface
+ * $Id: ras.h,v 1.1 2020-07-28 17:15:00 zhenglv Exp $
  */
 
-#ifndef __IRQC_RISCV_H_INCLUDE__
-#define __IRQC_RISCV_H_INCLUDE__
+#ifndef __RAS_DUOWEN_H_INCLUDE__
+#define __RAS_DUOWEN_H_INCLUDE__
 
-#include <target/arch.h>
-
-#ifndef __ASSEMBLY__
-#define IRQ2IE(irq)		(_AC(0x1, UL) << (irq))
-#define riscv_enable_irq(irq)	csr_set(CSR_IE, IRQ2IE(irq))
-#define riscv_disable_irq(irq)	csr_clear(CSR_IE, IRQ2IE(irq))
-#define riscv_trigger_irq(irq)	csr_set(CSR_IP, IRQ2IE(irq))
-#define riscv_clear_irq(irq)	csr_clear(CSR_IP, IRQ2IE(irq))
-#define riscv_irq_raised(irq)	(csr_read(CSR_IP) & IRQ2IE(irq))
-
-/* RISCV allows embedded IRQ controllers */
-#include <asm/mach/irqc.h>
+#ifdef CONFIG_VAISRA_RAS
+#define ARCH_HAVE_RAS		1
+#include <asm/vaisra_ras.h>
 #endif
 
-#endif /* __IRQC_RISCV_H_INCLUDE__ */
+#endif /* __RAS_DUOWEN_H_INCLUDE__ */

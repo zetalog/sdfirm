@@ -85,6 +85,9 @@ struct sbi_platform_operations {
 	int (*system_reboot)(u32 type);
 	/** Shutdown or poweroff the platform */
 	int (*system_shutdown)(u32 type);
+
+	/** Handle platform specific IRQ */
+	int (*process_irq)(u32 cause);
 } __packed;
 
 /** Representation of a platform */
@@ -428,6 +431,22 @@ static inline int sbi_platform_system_shutdown(const struct sbi_platform *plat,
 {
 	if (plat && sbi_platform_ops(plat)->system_shutdown)
 		return sbi_platform_ops(plat)->system_shutdown(type);
+	return 0;
+}
+
+/**
+ * Handle platform specific IRQ
+ *
+ * @param plat pointer to struct sbi_platform
+ * @param cause IRQ cause
+ *
+ * @return 0 on success and negative error code on failure
+ */
+static inline int sbi_platform_process_irq(const struct sbi_platform *plat,
+					   u32 cause)
+{
+	if (plat && sbi_platform_ops(plat)->process_irq)
+		return sbi_platform_ops(plat)->process_irq(cause);
 	return 0;
 }
 #endif
