@@ -385,7 +385,7 @@ void clk_pll_init(void);
 /* Enable clock tree core */
 void clk_hw_ctrl_init(void);
 #ifdef CONFIG_MMU
-#define clk_hw_mmu_init()	do { } while (0)
+void clk_hw_mmu_init(void);
 #endif
 
 #endif /* __CLK_DUOWEN_H_INCLUDE__ */

@@ -52,12 +52,20 @@
 
 #include <driver/dw_pll5ghz_tsmc12ffc.h>
 
+#define __DUOWEN_CLK_BASE		CRCNTL_BASE
+#ifdef CONFIG_MMU
+#define DUOWEN_CLK_BASE			duowen_clk_reg_base
+extern caddr_t duowen_clk_reg_base;
+#else
+#define DUOWEN_CLK_BASE			__DUOWEN_CLK_BASE
+#endif
+
 /* XXX: This implementation is based on undocumented PLL RTL
  *      sequence, and may subject to change.
  * NOTE: all CRCNTL registers are only 32-bit accessiable.
  */
 
-#define CRCNTL_REG(offset)		(CRCNTL_BASE + (offset))
+#define CRCNTL_REG(offset)		(DUOWEN_CLK_BASE + (offset))
 
 /* PLL control */
 #define CRCNTL_PLL_REG(pll, offset)	CRCNTL_REG(((pll) << 5) + (offset))

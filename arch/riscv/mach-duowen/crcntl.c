@@ -142,3 +142,10 @@ void crcntl_clk_deselect(clk_clk_t clk)
 	if (crcntl_clk_selected(clk))
 		__raw_setl(_BV(clk), CRCNTL_CLK_SEL_CFG);
 }
+
+#ifdef CONFIG_MMU
+void clk_hw_mmu_init(void)
+{
+	duowen_mmu_map_clk();
+}
+#endif

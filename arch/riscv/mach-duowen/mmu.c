@@ -43,12 +43,16 @@
 #include <target/console.h>
 
 caddr_t duowen_uart_reg_base = __DUOWEN_UART_BASE;
+caddr_t duowen_clk_reg_base = __DUOWEN_CLK_BASE;
 
 void duowen_mmu_dump_maps(void)
 {
 	if (duowen_uart_reg_base != __DUOWEN_UART_BASE)
 		printf("FIXMAP: %016llx -> %016llx: UART\n",
 		       __DUOWEN_UART_BASE, fix_to_virt(FIX_UART));
+	if (duowen_clk_reg_base != __DUOWEN_CLK_BASE)
+		printf("FIXMAP: %016llx -> %016llx: CRCNTL\n",
+		       __DUOWEN_CLK_BASE, fix_to_virt(FIX_CRCNTL));
 }
 
 void duowen_mmu_map_uart(int n)
@@ -59,3 +63,10 @@ void duowen_mmu_map_uart(int n)
 	}
 }
 
+void duowen_mmu_map_clk(void)
+{
+	if (duowen_clk_reg_base == __DUOWEN_CLK_BASE) {
+		set_fixmap_io(FIX_CRCNTL, __DUOWEN_CLK_BASE & PAGE_MASK);
+		duowen_clk_reg_base = fix_to_virt(FIX_CRCNTL);
+	}
+}
