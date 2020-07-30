@@ -61,7 +61,7 @@ config ARCH_DUOWEN
 	select ARCH_HAS_RAS
 	select RISCV_COUNTERS if SBI
 	select FDT_BUILTIN if SBI_FDT
-	select DUOWEN_TMR if DUOWEN_IMC
+	select DUOWEN_TMR if DUOWEN_IMC || DUOWEN_BOOT_APC
 	select CLINT if DUOWEN_APC
 	select PLIC if !SYS_NOIRQ
 	select CRCNTL if CLK

@@ -48,7 +48,7 @@ config DUOWEN_ZSBL
 	bool "0-stage ROM bootloader (ZSBL)"
 	select DUOWEN_BOOT
 	select DUOWEN_LOAD_ZSBL
-	select XIP if DUOWEN_IMC
+	select XIP
 	select LOAD_DATA
 	select SYS_ENTR_M
 	select SYS_EXIT_M
@@ -60,7 +60,7 @@ config DUOWEN_FSBL
 	select DUOWEN_BOOT
 	select DUOWEN_LOAD_FSBL
 	select ARCH_HAS_BOOT_LOAD if !DUOWEN_FSBL_SPI
-	select XIP if DUOWEN_IMC
+	select XIP
 	select BFM if !DUOWEN_FSBL_SPI
 	select SYS_ENTR_M
 	select SYS_EXIT_M
