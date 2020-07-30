@@ -51,14 +51,14 @@
 #define CSR_MICES	0x5d1 /* I-cache error status */
 
 /* L2 indirect register access CSR */
-#define CSR_ML2CSRS	0x5d2 /* L2 CSR select register */
-#define CSR_ML2CSRD	0x5d3 /* L2 CSR data register */
+#define CSR_ML2CSRS	0x5d3 /* L2 CSR select register */
+#define CSR_ML2CSRD	0x5d2 /* L2 CSR data register */
 
 /* L2, accessed via L2CSR */ 
-#define L2CSR_L2EC0	0x208 /* L2-cache error control 0 */
-#define L2CSR_L2EC1	0x210 /* L2-cache error control 1 */
-#define L2CSR_L2ES_GC	0x218 /* L2-cache error status (get/clear) */
-#define L2CSR_L2ES_S	0x220 /* L2-cache error status (set) */
+#define L2CSR_L2EC0	0x200 /* L2-cache error control 0 */
+#define L2CSR_L2EC1	0x201 /* L2-cache error control 1 */
+#define L2CSR_L2ES_GC	0x204 /* L2-cache error status (get/clear) */
+#define L2CSR_L2ES_S	0x205 /* L2-cache error status (set) */
 
 /* DCEC/DCES */
 #define DCE_L1VTPE	0 /* L1-dcache virtual tag parity error */
