@@ -84,10 +84,12 @@ __init static void sv_satp_switch(caddr_t map, const char *hint)
 __init void bpgt_init(void)
 {
 	void *tbl = mmu_id_map;
+	phys_addr_t start = round_down(SDFIRM_START, BPGT_BLOCK_SIZE);
+	phys_addr_t end = round_up(SDFIRM_END, BPGT_BLOCK_SIZE);
 
-	printf("Early  MAP: %016llx - %016llx\n", SDFIRM_START, SDFIRM_END);
-	tbl = bpgt_create_dir(tbl, SDFIRM_START);
-	bpgt_create_blk(tbl, SDFIRM_START, SDFIRM_END);
+	printf("Early  MAP: %016llx - %016llx\n", start, end);
+	tbl = bpgt_create_dir(tbl, start);
+	bpgt_create_blk(tbl, start, end);
 #if defined(CONFIG_MMU_IDMAP_DEVICE) && defined(IDMAP_DEV_BASE)
 	/* TODO: Map identity device area for early console */
 #endif
