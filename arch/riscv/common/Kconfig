@@ -308,7 +308,7 @@ config RISCV_ZTSO
 	default y
 
 config RISCV_COUNTERS
-	bool "Performance counters and timer support"
+	bool "Performance counters and timer (counters) support"
 	depends CPU_COUNTERS
 	select MATH_DIV64
 	default y
@@ -735,10 +735,6 @@ menuconfig VAISRA_PMA
 	help
 	  Vaisra SoC PMA driver.
 
-menuconfig VAISRA_RAS
-	bool "Vaisra reliability availability serviceability (RAS) support"
-	depends !SYS_NOIRQ || SBI
-
 if VAISRA_PMA
 
 menu "Default normal memory attributes"
@@ -771,5 +767,9 @@ config VAISRA_PMA_EARLY_WRITE_ACK
 endmenu
 
 endif
+
+menuconfig VAISRA_RAS
+	bool "Vaisra reliability availability serviceability (RAS) support"
+	depends !SYS_NOIRQ || SBI
 
 endmenu

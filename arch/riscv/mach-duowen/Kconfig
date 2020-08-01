@@ -48,6 +48,7 @@ config DUOWEN_ZSBL
 	bool "0-stage ROM bootloader (ZSBL)"
 	select DUOWEN_BOOT
 	select DUOWEN_LOAD_ZSBL
+	select DUOWEN_BOOT_APC if DUOWEN_APC
 	select XIP
 	select LOAD_DATA
 	select SYS_ENTR_M
@@ -59,6 +60,7 @@ config DUOWEN_FSBL
 	bool "1-stage programmable bootloader (FSBL)"
 	select DUOWEN_BOOT
 	select DUOWEN_LOAD_FSBL
+	select DUOWEN_BOOT_APC if DUOWEN_APC
 	select ARCH_HAS_BOOT_LOAD if !DUOWEN_FSBL_SPI
 	select XIP
 	select BFM if !DUOWEN_FSBL_SPI
@@ -78,8 +80,9 @@ config DUOWEN_BBL
 	select BFM
 	select SYS_ENTR_M
 	select SYS_EXIT_M
+	select SYS_EXIT_S if SIMULATION
 	select SBI
-	select SBI_PAYLOAD
+	select SBI_PAYLOAD if !SIMULATION
 	select DUOWEN_SPI_FLASH
 	select DUOWEN_SSI_FLASH
 
@@ -88,11 +91,19 @@ config DUOWEN_TB
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select SYS_EXIT_S
+	select ARCH_HAS_BOOT_LOAD
 	select XIP
 
 endchoice
 
 menu "Bootloader/firmware options"
+
+config DUOWEN_BOOT_APC
+	bool "Enable boot from APC"
+	depends DUOWEN_BOOT && (DUOWEN_LOAD_ZSBL || DUOWEN_LOAD_FSBL)
+	help
+	  Use internal SRAM as RAM for APC program instead of using DDR.
+	  This is normally used for APC ZSBL/FSBL configuration.
 
 config DUOWEN_FSBL_SPI
 	bool "Build SPI flash resident FSBL"
@@ -158,14 +169,6 @@ config DUOWEN_FPGA_DDR_MODEL
 	bool "Enable DDR model in VCS environment"
 	depends DUOWEN_FPGA && SIMULATION
 
-config DUOWEN_BOOT_APC
-	bool "Enable boot from APC"
-	depends DUOWEN_FPGA || DUOWEN_ZEBU || SIMULATION
-	help
-	  In the simulation environment, we can skip IMC boot sequences and
-	  run APC program instead to accelerate. However, some required
-	  boot sequences need to be performed by APC.
-
 endmenu
 
 menuconfig DUOWEN_UART
@@ -178,7 +181,6 @@ endif
 
 menuconfig DUOWEN_TMR
 	bool "Duowen global timer controller (TMR) support"
-	depends DUOWEN_IMC || DUOWEN_BOOT_APC
 	help
 	  TMR hardware is in the AO clock/power domain, it should be used
 	  as boot TSC.
