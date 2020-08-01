@@ -419,13 +419,13 @@ static void __create_pgd_mapping(pgd_t *pgdir, phys_addr_t phys,
 				 caddr_t virt, phys_addr_t size,
 				 pgprot_t prot,
 				 phys_addr_t (*pgtable_alloc)(void),
-				 int flags)
+				 int flags, const char *name)
 {
 	caddr_t addr, length, end, next;
 	pgd_t *pgdp = pgd_offset(pgdir, virt);
 
-	con_printf("LOWMAP: %016llx -> %016llx: %016llx\n",
-		   phys, virt, size);
+	con_printf("LOWMAP: %016llx -> %016llx: %016llx %s\n",
+		   phys, virt, size, name ? name : "memory");
 
 	/* If the virtual and physical address don't have the same offset
 	 * within a page, we cannot map the region as the caller expects.
@@ -457,20 +457,21 @@ void create_pgd_mapping(pgd_t *pgdir, phys_addr_t phys,
 	else
 		flags = 0;
 	__create_pgd_mapping(pgdir, phys, virt, size, prot,
-			     early_pgtable_alloc, flags);
+			     early_pgtable_alloc, flags, NULL);
 }
 
 static void map_kernel_segment(pgd_t *pgdp, void *va_start, void *va_end,
-			       pgprot_t prot, int flags)
+			       pgprot_t prot, int flags, const char *name)
 {
-	phys_addr_t pa_start = __pa(va_start);
+	phys_addr_t pa_start;
 	phys_addr_t size = va_end - va_start;
 
-	BUG_ON(!PAGE_ALIGNED(pa_start));
-	BUG_ON(!PAGE_ALIGNED(size));
-
+	va_start = (void *)round_down((caddr_t)va_start, PAGE_SIZE);
+	pa_start = __pa(va_start);
+	pa_start = round_down(pa_start, PAGE_SIZE);
+	size = round_up(size, PAGE_SIZE);
 	__create_pgd_mapping(pgdp, pa_start, (caddr_t)va_start, size, prot,
-			     early_pgtable_alloc, flags);
+			     early_pgtable_alloc, flags, name);
 }
 
 #ifdef CONFIG_MMU_MAP_MEM
@@ -504,8 +505,8 @@ static void map_mem(pgd_t *pgdp)
 static void __map_mem_region(pgd_t *pgdp, phys_addr_t start, phys_addr_t end,
 			     pgprot_t prot, int flags)
 {
-	phys_addr_t kernel_start = __pa(SDFIRM_START);
-	phys_addr_t kernel_end = __pa(SDFIRM_END);
+	phys_addr_t kernel_start = round_down(__pa(SDFIRM_START), PAGE_SIZE);
+	phys_addr_t kernel_end = round_up(__pa(SDFIRM_END), PAGE_SIZE);
 
 	/* The kernel itself is mapped at page granularity. Map all other
 	 * memory, making sure we don't overwrite the existing kernel mappings.
@@ -515,7 +516,7 @@ static void __map_mem_region(pgd_t *pgdp, phys_addr_t start, phys_addr_t end,
 	if (end < kernel_start || start >= kernel_end) {
 		__create_pgd_mapping(pgdp, start, phys_to_virt(start),
 				     end - start, prot,
-				     early_pgtable_alloc, flags);
+				     early_pgtable_alloc, flags, NULL);
 		return;
 	}
 
@@ -526,13 +527,13 @@ static void __map_mem_region(pgd_t *pgdp, phys_addr_t start, phys_addr_t end,
 		__create_pgd_mapping(pgdp, start,
 				     phys_to_virt(start),
 				     kernel_start - start, prot,
-				     early_pgtable_alloc, flags);
+				     early_pgtable_alloc, flags, NULL);
 	}
 	if (kernel_end < end) {
 		__create_pgd_mapping(pgdp, kernel_end,
 				     phys_to_virt(kernel_end),
 				     end - kernel_end, prot,
-				     early_pgtable_alloc, flags);
+				     early_pgtable_alloc, flags, NULL);
 	}
 }
 
@@ -577,13 +578,14 @@ static void map_kernel(pgd_t *pgdp)
 	/* Only rodata will be remapped with different permissions later on,
 	 * all other segments are allowed to use contiguous mappings.
 	 */
-	map_kernel_segment(pgdp, __stext, __etext, PAGE_TEXT_PROT, 0);
+	map_kernel_segment(pgdp, __stext, __etext,
+			   PAGE_TEXT_PROT, 0, ".text");
 	map_kernel_segment(pgdp, __srodata, __erodata,
-			   PAGE_KERNEL_RO, NO_CONT_MAPPINGS);
-	map_kernel_segment(pgdp, _sdata, _edata, PAGE_KERNEL, 0);
+			   PAGE_KERNEL_RO, NO_CONT_MAPPINGS, ".rodata");
+	map_kernel_segment(pgdp, _sdata, _edata, PAGE_KERNEL, 0, ".data");
 	/* Map stacks */
 	map_kernel_segment(pgdp, (void *)PERCPU_STACKS_START,
-			   (void *)PERCPU_STACKS_END, PAGE_KERNEL, 0);
+			   (void *)PERCPU_STACKS_END, PAGE_KERNEL, 0, "stack");
 
 	/* The fixmap falls in a separate pgd to the kernel, and doesn't live
 	 * in the carveout for the mmu_pg_dir. We can simply re-use the

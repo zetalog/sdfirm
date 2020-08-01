@@ -715,9 +715,11 @@ static void mem_dump(struct mem_type *type)
 
 void mem_init(void)
 {
+	phys_addr_t pa_start = round_down(__pa(SDFIRM_START), PAGE_SIZE);
+	phys_addr_t pa_end = round_up(__pa(SDFIRM_END), PAGE_SIZE);
+
 	mem_hw_range_init();
-	mem_reserve(__pa(SDFIRM_START),
-		    __pa(SDFIRM_END) - __pa(SDFIRM_START));
+	mem_reserve(pa_start, pa_end - pa_start);
 }
 #else
 static void mem_dump(struct mem_type *type)
