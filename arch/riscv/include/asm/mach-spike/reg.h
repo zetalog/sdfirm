@@ -76,9 +76,12 @@
  *  0
  *  HIWORD(entry)
  *  LOWORD(entry)
+ *  And 0x1020 is the default FDT address. The ROM is comprised of the
+ *  code segment and the FDT image, rounded up to 4K bytes. So we
+ *  pre-allocated 16KB as ROM.
  */
 #define ROM_BASE		UL(0x00000000)
-#define ROM_SIZE		UL(0x20)
+#define ROM_SIZE		UL(0x4000)
 #endif
 #define RAM_BASE		MEM1_BASE
 #define RAMEND			(MEM1_BASE + MEM1_SIZE)

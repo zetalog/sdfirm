@@ -151,8 +151,18 @@ choice
 
 config SPIKE_PK
 	bool "Proxy kernel"
+	select ARCH_HAS_BOOT_LOAD
 	select SYS_ENTR_M
 	select SYS_EXIT_M
+	select XIP
+
+config SPIKE_BBL
+	bool "Berkeley boot loader (BBL)"
+	select ARCH_HAS_BOOT_LOAD
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SBI
+	select SBI_PAYLOAD
 	select XIP
 
 config SPIKE_TB
@@ -160,15 +170,6 @@ config SPIKE_TB
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select SYS_EXIT_S
-	select XIP
-
-config SPIKE_BBL
-	bool "Berkeley boot loader (BBL)"
-	select SYS_ENTR_M
-	select SYS_EXIT_M
-	select SBI
-	select SBI_PAYLOAD
-	select XIP
 
 endchoice
 
