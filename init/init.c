@@ -188,6 +188,4 @@ void modules_init(void)
 
 	/* apps */
 	usb_pn53x_init();
-
-	task_init();
 }

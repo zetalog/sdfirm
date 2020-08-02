@@ -31,6 +31,51 @@
 	.endm
 #endif
 
+#ifdef CONFIG_TASK
+ENTRY(__switch_to)
+	/* Save context into prev->thread */
+	li    a4,  TASK_THREAD_RA
+	add   a3, a0, a4
+	add   a4, a1, a4
+	REG_S ra,  TASK_THREAD_RA_RA(a3)
+	REG_S sp,  TASK_THREAD_SP_RA(a3)
+	REG_S s0,  TASK_THREAD_S0_RA(a3)
+	REG_S s1,  TASK_THREAD_S1_RA(a3)
+	REG_S s2,  TASK_THREAD_S2_RA(a3)
+	REG_S s3,  TASK_THREAD_S3_RA(a3)
+	REG_S s4,  TASK_THREAD_S4_RA(a3)
+	REG_S s5,  TASK_THREAD_S5_RA(a3)
+	REG_S s6,  TASK_THREAD_S6_RA(a3)
+	REG_S s7,  TASK_THREAD_S7_RA(a3)
+	REG_S s8,  TASK_THREAD_S8_RA(a3)
+	REG_S s9,  TASK_THREAD_S9_RA(a3)
+	REG_S s10, TASK_THREAD_S10_RA(a3)
+	REG_S s11, TASK_THREAD_S11_RA(a3)
+	/* Restore context from next->thread */
+	REG_L ra,  TASK_THREAD_RA_RA(a4)
+	REG_L sp,  TASK_THREAD_SP_RA(a4)
+	REG_L s0,  TASK_THREAD_S0_RA(a4)
+	REG_L s1,  TASK_THREAD_S1_RA(a4)
+	REG_L s2,  TASK_THREAD_S2_RA(a4)
+	REG_L s3,  TASK_THREAD_S3_RA(a4)
+	REG_L s4,  TASK_THREAD_S4_RA(a4)
+	REG_L s5,  TASK_THREAD_S5_RA(a4)
+	REG_L s6,  TASK_THREAD_S6_RA(a4)
+	REG_L s7,  TASK_THREAD_S7_RA(a4)
+	REG_L s8,  TASK_THREAD_S8_RA(a4)
+	REG_L s9,  TASK_THREAD_S9_RA(a4)
+	REG_L s10, TASK_THREAD_S10_RA(a4)
+	REG_L s11, TASK_THREAD_S11_RA(a4)
+	/* Swap the CPU entry around. */
+	lw a3, TASK_THREAD_CPU(a0)
+	lw a4, TASK_THREAD_CPU(a1)
+	sw a3, TASK_THREAD_CPU(a1)
+	sw a4, TASK_THREAD_CPU(a0)
+	move tp, a1
+	ret
+ENDPROC(__switch_to)
+#endif
+
 	.macro SAVE_ALL
 
 	/* If coming from userspace, preserve the user thread pointer and load

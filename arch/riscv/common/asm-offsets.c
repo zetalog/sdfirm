@@ -4,6 +4,25 @@
 
 int main(void)
 {
+#ifdef CONFIG_TASK
+	OFFSET(TASK_THREAD_RA, task_entry, thread.ra);
+	OFFSET(TASK_THREAD_SP, task_entry, thread.sp);
+	OFFSET(TASK_THREAD_S0, task_entry, thread.s[0]);
+	OFFSET(TASK_THREAD_S1, task_entry, thread.s[1]);
+	OFFSET(TASK_THREAD_S2, task_entry, thread.s[2]);
+	OFFSET(TASK_THREAD_S3, task_entry, thread.s[3]);
+	OFFSET(TASK_THREAD_S4, task_entry, thread.s[4]);
+	OFFSET(TASK_THREAD_S5, task_entry, thread.s[5]);
+	OFFSET(TASK_THREAD_S6, task_entry, thread.s[6]);
+	OFFSET(TASK_THREAD_S7, task_entry, thread.s[7]);
+	OFFSET(TASK_THREAD_S8, task_entry, thread.s[8]);
+	OFFSET(TASK_THREAD_S9, task_entry, thread.s[9]);
+	OFFSET(TASK_THREAD_S10, task_entry, thread.s[10]);
+	OFFSET(TASK_THREAD_S11, task_entry, thread.s[11]);
+	OFFSET(TASK_THREAD_SP, task_entry, thread.sp);
+	OFFSET(TASK_THREAD_CPU, task_entry, thread.cpu);
+#endif
+
 	OFFSET(TASK_KERN_SP, task_entry, kern_sp);
 	OFFSET(TASK_USER_SP, task_entry, user_sp);
 
@@ -74,5 +93,64 @@ int main(void)
 	OFFSET(SBI_PLATFORM_DISABLED_HART_MASK, sbi_platform, disabled_hart_mask);
 	OFFSET(SBI_PLATFORM_PLATFORM_OPS_ADDR, sbi_platform, platform_ops_addr);
 	OFFSET(SBI_PLATFORM_FIRMWARE_CONTEXT, sbi_platform, firmware_context);
+
+#ifdef CONFIG_TASK
+	DEFINE(TASK_THREAD_RA_RA,
+		  offsetof(struct task_entry, thread.ra)
+		- offsetof(struct task_entry, thread.ra)
+	);
+	DEFINE(TASK_THREAD_SP_RA,
+		  offsetof(struct task_entry, thread.sp)
+		- offsetof(struct task_entry, thread.ra)
+	);
+	DEFINE(TASK_THREAD_S0_RA,
+		  offsetof(struct task_entry, thread.s[0])
+		- offsetof(struct task_entry, thread.ra)
+	);
+	DEFINE(TASK_THREAD_S1_RA,
+		  offsetof(struct task_entry, thread.s[1])
+		- offsetof(struct task_entry, thread.ra)
+	);
+	DEFINE(TASK_THREAD_S2_RA,
+		  offsetof(struct task_entry, thread.s[2])
+		- offsetof(struct task_entry, thread.ra)
+	);
+	DEFINE(TASK_THREAD_S3_RA,
+		  offsetof(struct task_entry, thread.s[3])
+		- offsetof(struct task_entry, thread.ra)
+	);
+	DEFINE(TASK_THREAD_S4_RA,
+		  offsetof(struct task_entry, thread.s[4])
+		- offsetof(struct task_entry, thread.ra)
+	);
+	DEFINE(TASK_THREAD_S5_RA,
+		  offsetof(struct task_entry, thread.s[5])
+		- offsetof(struct task_entry, thread.ra)
+	);
+	DEFINE(TASK_THREAD_S6_RA,
+		  offsetof(struct task_entry, thread.s[6])
+		- offsetof(struct task_entry, thread.ra)
+	);
+	DEFINE(TASK_THREAD_S7_RA,
+		  offsetof(struct task_entry, thread.s[7])
+		- offsetof(struct task_entry, thread.ra)
+	);
+	DEFINE(TASK_THREAD_S8_RA,
+		  offsetof(struct task_entry, thread.s[8])
+		- offsetof(struct task_entry, thread.ra)
+	);
+	DEFINE(TASK_THREAD_S9_RA,
+		  offsetof(struct task_entry, thread.s[9])
+		- offsetof(struct task_entry, thread.ra)
+	);
+	DEFINE(TASK_THREAD_S10_RA,
+		  offsetof(struct task_entry, thread.s[10])
+		- offsetof(struct task_entry, thread.ra)
+	);
+	DEFINE(TASK_THREAD_S11_RA,
+		  offsetof(struct task_entry, thread.s[11])
+		- offsetof(struct task_entry, thread.ra)
+	);
+#endif
 	return 0;
 }

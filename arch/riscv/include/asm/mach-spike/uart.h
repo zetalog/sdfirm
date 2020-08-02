@@ -60,6 +60,10 @@
 #ifdef CONFIG_MMU
 #define uart_hw_mmu_init()	do { } while (0)
 #endif /* CONFIG_MMU */
+#ifndef CONFIG_SYS_NOIRQ
+#define uart_hw_irq_init()	do { } while (0)
+#define uart_hw_irq_ack()	do { } while (0)
+#endif
 #endif /* CONFIG_HTIF */
 
 #endif /* __UART_SPIKE_H_INCLUDE__ */

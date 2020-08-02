@@ -132,11 +132,14 @@ config MAX_BHS
 
 endmenu
 
+config ARCH_HAS_THREAD
+	bool
+
 menuconfig TASK
 	bool "Scheduling facility (task) support"
 	depends EXPERIMENTAL
 	depends SYS_TASK
-#	select HEAP
+	select PAGE
 
 if TASK
 
@@ -144,6 +147,13 @@ config MAX_TASKS
 	int "Num of schedulable tasks (1~8)"
 	range 1 8
 	default 4
+
+config TASK_TEST
+	bool "Enable task self test"
+
+if TASK_TEST
+
+endif
 
 endif
 

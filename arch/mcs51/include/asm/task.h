@@ -4,7 +4,7 @@
 #include <target/config.h>
 #include <asm/mach/arch.h>
 
-#define INIT_STACK	128
+#define INIT_STACK	RAMEND
 #define INIT_STACK_SIZE	128
 
 struct pt_regs {

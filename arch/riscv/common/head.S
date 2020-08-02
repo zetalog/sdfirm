@@ -1,6 +1,7 @@
 #include <target/init.h>
 #include <target/arch.h>
 #include <target/paging.h>
+#include <target/task.h>
 
 #define RV_LARGE_LOAD_OFFSET	(CONFIG_BOOT_BASE - CONFIG_LOAD_BASE)
 

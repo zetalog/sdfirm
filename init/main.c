@@ -88,10 +88,10 @@ void system_init(void)
 	ris_entry();
 	bh_init();
 	timer_init();
-	task_init();
 
 	modules_init();
 	board_late_init();
+	task_init();
 	appl_init();
 	smp_init();
 }
