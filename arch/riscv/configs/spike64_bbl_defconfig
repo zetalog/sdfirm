@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Jul  6 22:32:59 2020
+# Sun Aug  2 09:52:59 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -21,7 +21,7 @@ CONFIG_BOOTLOADER=y
 #
 # Bootloader options
 #
-# CONFIG_BOOT_LINUX is not set
+CONFIG_BOOT_LINUX=y
 # CONFIG_BOOT_ROM is not set
 # CONFIG_COMMAND is not set
 CONFIG_CONSOLE=y
@@ -126,6 +126,8 @@ CONFIG_ARCH_HAS_CLINT=y
 CONFIG_CLINT=y
 # CONFIG_CLINT_XCHG_LLSC is not set
 # CONFIG_CLINT_FORCE_FAST_TIMEOUT is not set
+# CONFIG_HPM is not set
+# CONFIG_VAISRA_RAS is not set
 CONFIG_ARCH_HAS_SBI_IPI=y
 CONFIG_ARCH_HAS_SBI_TIMER=y
 CONFIG_SBI=y
@@ -168,8 +170,8 @@ CONFIG_SPIKE_CLINT=y
 CONFIG_SPIKE_CLINT_RTC_FREQ=10000000
 CONFIG_SPIKE_HTIF=y
 # CONFIG_SPIKE_PK is not set
-# CONFIG_SPIKE_TB is not set
 CONFIG_SPIKE_BBL=y
+# CONFIG_SPIKE_TB is not set
 
 #
 # Feature setup
@@ -280,6 +282,7 @@ CONFIG_UART_115200=y
 CONFIG_ARCH_HAS_FDT=y
 CONFIG_FDT=y
 # CONFIG_RAS is not set
+# CONFIG_PERF is not set
 
 #
 # Driver setup

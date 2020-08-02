@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Jul  7 08:21:27 2020
+# Sun Aug  2 09:53:19 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -131,8 +131,10 @@ CONFIG_ARCH_HAS_CLINT=y
 CONFIG_CLINT=y
 # CONFIG_CLINT_XCHG_LLSC is not set
 # CONFIG_CLINT_FORCE_FAST_TIMEOUT is not set
+# CONFIG_HPM is not set
 CONFIG_VAISRA_TBOX=y
 # CONFIG_VAISRA_PMA is not set
+# CONFIG_VAISRA_RAS is not set
 CONFIG_ARCH_HAS_SBI_IPI=y
 CONFIG_ARCH_HAS_SBI_TIMER=y
 CONFIG_SBI=y
@@ -298,6 +300,7 @@ CONFIG_UART_115200=y
 # CONFIG_IOMMU is not set
 # CONFIG_FDT is not set
 # CONFIG_RAS is not set
+# CONFIG_PERF is not set
 
 #
 # Driver setup

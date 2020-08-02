@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Jul  6 22:24:14 2020
+# Sun Aug  2 09:57:39 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -135,6 +135,8 @@ CONFIG_ARCH_HAS_CLINT=y
 CONFIG_CLINT=y
 # CONFIG_CLINT_XCHG_LLSC is not set
 # CONFIG_CLINT_FORCE_FAST_TIMEOUT is not set
+# CONFIG_HPM is not set
+# CONFIG_VAISRA_RAS is not set
 CONFIG_ARCH_HAS_SBI_IPI=y
 CONFIG_ARCH_HAS_SBI_TIMER=y
 CONFIG_SBI=y
@@ -175,8 +177,8 @@ CONFIG_SPIKE_CLINT=y
 CONFIG_SPIKE_CLINT_RTC_FREQ=10000000
 CONFIG_SPIKE_HTIF=y
 # CONFIG_SPIKE_PK is not set
-CONFIG_SPIKE_TB=y
 # CONFIG_SPIKE_BBL is not set
+CONFIG_SPIKE_TB=y
 
 #
 # Feature setup
@@ -309,6 +311,7 @@ CONFIG_UART_115200=y
 CONFIG_ARCH_HAS_FDT=y
 CONFIG_FDT=y
 # CONFIG_RAS is not set
+# CONFIG_PERF is not set
 
 #
 # Driver setup
@@ -442,7 +445,7 @@ CONFIG_DHRYSTONE_BENCH_PERCPU=y
 # Bit-wise operations
 #
 # CONFIG_BIT_FLS8 is not set
-CONFIG_BIT_FLS16=y
+# CONFIG_BIT_FLS16 is not set
 # CONFIG_BIT_FFS16 is not set
 # CONFIG_BIT_FLS32 is not set
 CONFIG_BIT_FLS64=y
@@ -458,8 +461,8 @@ CONFIG_BIT_FIND_CLEAR=y
 #
 # Mathematic operations
 #
-CONFIG_MATH_GCD32=y
-CONFIG_MATH_MOD32=y
+# CONFIG_MATH_GCD32 is not set
+# CONFIG_MATH_MOD32 is not set
 # CONFIG_MATH_MUL32 is not set
 # CONFIG_MATH_MUL64 is not set
 CONFIG_MATH_DIV32=y

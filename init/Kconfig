@@ -36,18 +36,23 @@ config BOOTLOADER
 	select SYS_NOIRQ
 	help
 	  Allow dynamic allocations. IRQ is disabled. Not a runtime system.
+	  Disallow booting from memory.
 
 config FIRMWARE
 	bool "Device firmware"
 	select SYS_IRQ
+	select ARCH_HAS_BOOT_LOAD
 	help
 	  Disallow dynamic allocation. IRQ is enabled. A runtime system.
+	  Allow booting from memory.
 
 config EMBEDDED
 	bool "Embedded system"
 	select SYS_IRQ
+	select ARCH_HAS_BOOT_LOAD
 	help
 	  Allow dynamic allocations. IRQ is enabled. A runtime system.
+	  Allow booting from memory.
 
 endchoice
 

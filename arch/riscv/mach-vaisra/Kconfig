@@ -38,11 +38,10 @@ config VAISRA_TB
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select SYS_EXIT_S
-	select XIP
-	select BFM
 
 config VAISRA_BBL
 	bool "Berkeley boot loader (BBL)"
+	select ARCH_HAS_BOOT_LOAD
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select SYS_EXIT_S

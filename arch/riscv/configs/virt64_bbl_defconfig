@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Jul  7 08:36:09 2020
+# Sun Aug  2 09:52:31 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -14,15 +14,15 @@ CONFIG_PRODUCT_NAME="QEMU RISCV64 (VIRTIO) Berkeley Bootloader"
 CONFIG_VENDOR_ID=990
 CONFIG_PRODUCT_ID=0
 CONFIG_SERIAL_NO=0
-# CONFIG_BOOTLOADER is not set
-CONFIG_FIRMWARE=y
+CONFIG_BOOTLOADER=y
+# CONFIG_FIRMWARE is not set
 # CONFIG_EMBEDDED is not set
 
 #
-# Firmware options
+# Bootloader options
 #
-# CONFIG_GEM5 is not set
-# CONFIG_RIS is not set
+CONFIG_BOOT_LINUX=y
+# CONFIG_BOOT_ROM is not set
 # CONFIG_COMMAND is not set
 CONFIG_CONSOLE=y
 # CONFIG_CONSOLE_COMMAND is not set
@@ -114,7 +114,7 @@ CONFIG_RISCV_ENTR_M=y
 # CONFIG_RISCV_EXIT_U is not set
 # CONFIG_RISCV_EXIT_S is not set
 CONFIG_RISCV_EXIT_M=y
-CONFIG_SYS_MONITOR=y
+CONFIG_SYS_LOADER=y
 
 #
 # System peripherals
@@ -127,6 +127,8 @@ CONFIG_ARCH_HAS_PLIC=y
 CONFIG_PLIC=y
 # CONFIG_PLIC_COMPLETION_ENTRY is not set
 CONFIG_PLIC_COMPLETION_EXIT=y
+# CONFIG_HPM is not set
+# CONFIG_VAISRA_RAS is not set
 CONFIG_ARCH_HAS_SBI_IPI=y
 CONFIG_ARCH_HAS_SBI_TIMER=y
 CONFIG_SBI=y
@@ -264,6 +266,7 @@ CONFIG_UART_115200=y
 CONFIG_ARCH_HAS_FDT=y
 CONFIG_FDT=y
 # CONFIG_RAS is not set
+# CONFIG_PERF is not set
 
 #
 # Driver setup
