@@ -53,6 +53,7 @@ void task_schedule(void)
 	if (prev != next) {
 		/* call arch specific switch to here */
 		printf("Switching %d -> %d\n", prev->pid, next->pid);
+		task_current = next;
 		arch_hw_switch_to(prev, next, prev);
 	}
 	irq_local_restore(flags);
@@ -72,23 +73,17 @@ timer_desc_t task_timer = {
 #ifdef CONFIG_TASK_TEST
 static void task1_main(void *priv)
 {
-	irq_flags_t flags;
-
 	while (1) {
-		irq_local_save(flags);
 		printf("task 1 scheduled\n");
-		irq_local_restore(flags);
+		task_schedule();
 	}
 }
 
 static void task2_main(void *priv)
 {
-	irq_flags_t flags;
-
 	while (1) {
-		irq_local_save(flags);
 		printf("task 2 scheduled\n");
-		irq_local_restore(flags);
+		task_schedule();
 	}
 }
 
