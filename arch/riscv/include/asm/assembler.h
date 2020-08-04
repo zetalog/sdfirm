@@ -44,6 +44,7 @@
 
 #define STACK_ALIGN	16
 
+#ifndef __DTS__
 /* This file is intended for being included by the all of theassemblies, so
  * generic assembly macros, C/ASM portable definitions can be found here.
  */
@@ -161,5 +162,6 @@
   .align bits; \
   name:
 #endif
+#endif /* __DTS__ */
 
 #endif /* __ASSEMBLER_RISCV_H_INCLUDE__ */

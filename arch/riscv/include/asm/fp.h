@@ -48,6 +48,7 @@
 #define PRECISION_S		0
 #define PRECISION_D		1
 
+#ifndef __DTS__
 #ifdef __riscv_flen
 #define GET_F32_REG(insn, pos, regs)					\
 	({								\
@@ -107,6 +108,7 @@
 #else
 #error "Floating point emulation not supported.\n"
 #endif
+#endif /* __DTS__ */
 
 #define GET_F32_RS1(insn, regs)		(GET_F32_REG(insn, 15, regs))
 #define GET_F32_RS2(insn, regs)		(GET_F32_REG(insn, 20, regs))

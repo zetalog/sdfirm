@@ -68,7 +68,7 @@ extern caddr_t duowen_clk_reg_base;
 #define CRCNTL_REG(offset)		(DUOWEN_CLK_BASE + (offset))
 
 /* PLL control */
-#define CRCNTL_PLL_REG(pll, offset)	CRCNTL_REG(((pll) << 5) + (offset))
+#define CRCNTL_PLL_REG(pll, offset)	CRCNTL_REG(((pll) << 6) + (offset))
 #define CRCNTL_PLL_CFG0(pll)		CRCNTL_PLL_REG(pll, 0x00)
 #define CRCNTL_PLL_CFG1(pll)		CRCNTL_PLL_REG(pll, 0x04)
 #define CRCNTL_PLL_CFG2(pll)		CRCNTL_PLL_REG(pll, 0x08)

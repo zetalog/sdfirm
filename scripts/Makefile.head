@@ -96,11 +96,12 @@ $(error No compiler is defined.)
 endif
 
 # Finds dt-bindings
-DTC_INCLUDE    := $(srctree)/include
+DTC_INCLUDE    := $(srctree)/include $(srctree)/include/std
 
-dtc_cpp_flags  = -Wp,-MMD,$(depfile).pre.tmp -nostdinc                    \
-		 $(addprefix -I,$(DTC_INCLUDE))                          \
-		 -undef -D__DTS__
+dtc_cpp_flags  = -Wp,-MMD,$(depfile).pre.tmp -nostdinc		\
+		 $(addprefix -I,$(DTC_INCLUDE))			\
+		 -undef -D__DTS__				\
+		 -undef -D__ASSEMBLY__ -undef -DLINKER_SCRIPT
 
 # Finds the multi-part object the current object will be linked into
 modname-multi = $(sort $(foreach m,$(multi-used),\

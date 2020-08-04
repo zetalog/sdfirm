@@ -78,7 +78,7 @@ if [ "x${SPIKE_MEM_CUST}" = "xyes" ]; then
 		echo "RAM base (${SPIKE_MEM_BASE}) less than ROM size (${SPIKE_ROM_SIZE})!"
 		exit 1
 	fi
-	SPIKE_OPTS="-m${SPIKE_MEM_BASE}:${SPIKE_MEM_SIZE}"
+	SPIKE_OPTS="-m${SPIKE_MEM_BASE}:${SPIKE_MEM_SIZE} ${SPIKE_OPTS}"
 fi
 
 echo "spike ${SPIKE_OPTS} ${SCRIPT}/../sdfirm ${SPIKE_PIPE}"

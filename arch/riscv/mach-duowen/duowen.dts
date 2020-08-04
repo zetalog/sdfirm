@@ -1,3 +1,5 @@
+#include <target/arch.h>
+
 /dts-v1/;
 
 / {
@@ -66,7 +68,16 @@
 
 	memory@0 {
 		device_type = "memory";
+#ifdef CONFIG_DUOWEN_ASIC
 		reg = <0x0 0x0000000000 0x80 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_FPGA
+#ifdef CONFIG_DUOWEN_FPGA_DDR_MODEL
+		reg = <0x0 0x0000000000 0x0 0x02000000>;
+#else
+		reg = <0x0 0x0000000000 0x4 0x00000000>;
+#endif
+#endif
 	};
 
 	soc {
