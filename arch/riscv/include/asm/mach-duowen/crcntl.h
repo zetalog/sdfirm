@@ -152,6 +152,10 @@ extern caddr_t duowen_clk_reg_base;
 	dw_pll5ghz_tsmc12ffc_pwron(pll, (uint64_t)freq)
 #define crcntl_pll_disable(pll)			\
 	dw_pll5ghz_tsmc12ffc_pwrdn(pll)
+#define crcntl_div_enable(pll, fvco, freq, r)	\
+	dw_pll5ghz_tsmc12ffc_enable(pll, fvco, freq, r)
+#define crcntl_div_disable(pll, r)		\
+	dw_pll5ghz_tsmc12ffc_disable(pll, r)
 
 void crcntl_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val);
 uint8_t crcntl_pll_reg_read(uint8_t pll, uint8_t reg);

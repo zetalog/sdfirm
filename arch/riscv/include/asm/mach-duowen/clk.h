@@ -57,10 +57,18 @@
 #define FREQPLAN_RUN		0
 #define INVALID_FREQPLAN	NR_FREQPLANS
 
+#define clk_freq_t		uint64_t
 #define invalid_clk		clkid(0xFF, 0xFF)
 
 #ifdef CONFIG_DUOWEN_ASIC
 #define CLK_INPUT		((clk_cat_t)0)
+#define CLK_VCO			((clk_cat_t)1)
+#define CLK_PLL			((clk_cat_t)2)
+#define CLK_SELECT		((clk_cat_t)3)
+#define CLK_OUTPUT		((clk_cat_t)4)
+#define CLK_DIV			((clk_cat_t)5)
+
+/* CLK_INPUT */
 #define XO_CLK			((clk_clk_t)0)
 #define TIC_CLK			((clk_clk_t)1)
 #define JTAG_CLK		((clk_clk_t)2)
@@ -69,7 +77,28 @@
 #define tic_clk			clkid(CLK_INPUT, TIC_CLK)
 #define jtag_clk		clkid(CLK_INPUT, JTAG_CLK)
 
-#define CLK_PLL			((clk_cat_t)1)
+/* CLK_VCO */
+#define SOC_VCO			((clk_clk_t)0)
+#define DDR_BUS_VCO		((clk_clk_t)1)
+#define DDR_VCO			((clk_clk_t)2)
+#define PCIE_VCO		((clk_clk_t)3)
+#define COHFAB_VCO		((clk_clk_t)4)
+#define CL0_VCO			((clk_clk_t)5)
+#define CL1_VCO			((clk_clk_t)6)
+#define CL2_VCO			((clk_clk_t)7)
+#define CL3_VCO			((clk_clk_t)8)
+#define NR_VCO_CLKS		(CL3_VCO + 1)
+#define soc_vco			clkid(CLK_VCO, SOC_VCO)
+#define ddr_bus_vco		clkid(CLK_VCO, DDR_BUS_VCO)
+#define ddr_vco			clkid(CLK_VCO, DDR_VCO)
+#define pcie_vco		clkid(CLK_VCO, PCIE_VCO)
+#define cohfab_vco		clkid(CLK_VCO, COHFAB_VCO)
+#define cl0_vco			clkid(CLK_VCO, CL0_VCO)
+#define cl1_vco			clkid(CLK_VCO, CL1_VCO)
+#define cl2_vco			clkid(CLK_VCO, CL2_VCO)
+#define cl3_vco			clkid(CLK_VCO, CL3_VCO)
+
+/* CLK_PLL */
 #define SOC_PLL			((clk_clk_t)0)
 #define DDR_BUS_PLL		((clk_clk_t)1)
 #define DDR_PLL			((clk_clk_t)2)
@@ -90,8 +119,7 @@
 #define cl2_pll			clkid(CLK_PLL, CL2_PLL)
 #define cl3_pll			clkid(CLK_PLL, CL3_PLL)
 
-#define CLK_SELECT		((clk_cat_t)2)
-/* CLK_SEL_CFG */
+/* CLK_SELECT: CLK_SEL_CFG */
 #define SOC_CLK_SEL		((clk_clk_t)0)
 #define DDR_BUS_CLK_SEL		((clk_clk_t)1)
 #define DDR_CLK_SEL		((clk_clk_t)2)
@@ -108,6 +136,10 @@
 
 #ifdef CONFIG_DUOWEN_FPGA
 #define CLK_INPUT		((clk_cat_t)0)
+#define CLK_OUTPUT		((clk_cat_t)1)
+#define CLK_DIV			((clk_cat_t)2)
+
+/* CLK_INPUT */
 #define CLK_PLL			CLK_INPUT
 #define CLK_SELECT		CLK_INPUT
 #define XO_CLK			((clk_clk_t)0)
@@ -143,8 +175,7 @@
 #define soc_clk			soc_clk_sel
 #endif
 
-#define CLK_OUTPUT		((clk_cat_t)3)
-/* CLK_EN_CFG0 */
+/* CLK_OUTPUT: CLK_EN_CFG0 */
 #define DMA_CLK			((clk_clk_t)0)
 #define PCIE_POR		((clk_clk_t)1) /* SW_RST only */
 #define PCIE_CLK		((clk_clk_t)2)
@@ -173,7 +204,7 @@
 #define WDT0_PCLK		((clk_clk_t)29)
 #define WDT1_PCLK		((clk_clk_t)30)
 
-/* CLK_EN_CFG1 */
+/* CLK_OUTPUT: CLK_EN_CFG1 */
 #define GPIO0_PCLK		((clk_clk_t)32)
 #define GPIO1_PCLK		((clk_clk_t)33)
 #define GPIO2_PCLK		((clk_clk_t)34)
@@ -202,7 +233,7 @@
 #define SD_CLK			((clk_clk_t)57)
 #define TSENSOR_CLK		((clk_clk_t)63)
 
-/* CLK_EN_CFG2 */
+/* CLK_OUTPUT: CLK_EN_CFG2 */
 #define TIMER0_1_CLK		((clk_clk_t)64) /* CLK_EN only */
 #define TIMER0_2_CLK		((clk_clk_t)65) /* CLK_EN only */
 #define TIMER0_3_CLK		((clk_clk_t)66) /* CLK_EN only */
@@ -229,7 +260,7 @@
 #define TIMER2_8_CLK		((clk_clk_t)87) /* CLK_EN only */
 #define TIMER3_CLK		((clk_clk_t)88) /* CLK_EN only */
 
-/* CLK_EN_CFG3 */
+/* CLK_OUTPUT: CLK_EN_CFG3 */
 #define IMC_CLK			((clk_clk_t)96) /* SW_RST only */
 
 /* Additional output clocks */
@@ -241,7 +272,7 @@
 
 #define NR_OUTPUT_CLKS		(SD_CCLK + 1)
 
-/* CLK_EN_CFG0 */
+/* CLK_OUTPUT: CLK_EN_CFG0 */
 /* Integrated overall clocks */
 #define dma_clk			clkid(CLK_OUTPUT, DMA_CLK)
 #define ddr_por			clkid(CLK_OUTPUT, DDR_POR)
@@ -284,7 +315,7 @@
 #define pcie_aclk		sysfab_clk
 #define sd_hclk			sysfab_half_clk
 
-/* CLK_EN_CFG1 */
+/* CLK_OUTPUT: CLK_EN_CFG1 */
 /* Internal bus clocks */
 #define gpio0_pclk		clkid(CLK_OUTPUT, GPIO0_PCLK)
 #define gpio1_pclk		clkid(CLK_OUTPUT, GPIO1_PCLK)
@@ -317,7 +348,7 @@
  * sd_tm_clk: depends sd_clk, sources soc_pll_div10/100
  */
 
-/* CLK_EN_CFG2 */
+/* CLK_OUTPUT: CLK_EN_CFG2 */
 /* Integrated overall clocks */
 #define timer0_1_clk		clkid(CLK_OUTPUT, TIMER0_1_CLK)
 #define timer0_2_clk		clkid(CLK_OUTPUT, TIMER0_2_CLK)
@@ -346,7 +377,7 @@
 #define timer3_clk		clkid(CLK_OUTPUT, TIMER3_CLK)
 #define tsensor_clk		clkid(CLK_OUTPUT, TSENSOR_CLK)
 
-#define CLK_DIV			((clk_cat_t)4)
+/* CLK_DIV */
 #define SOC_PLL_DIV2		((clk_clk_t)0)
 #define SOC_PLL_DIV4		((clk_clk_t)1)
 #define SOC_PLL_DIV8		((clk_clk_t)2)

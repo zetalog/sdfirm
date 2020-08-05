@@ -131,7 +131,7 @@ static void disable_clk_sel(clk_clk_t clk)
 	}
 }
 
-static uint32_t get_clk_sel_freq(clk_clk_t clk)
+static clk_freq_t get_clk_sel_freq(clk_clk_t clk)
 {
 	if (clk >= NR_SELECT_CLKS)
 		return INVALID_FREQ;
@@ -152,44 +152,54 @@ struct clk_driver clk_select = {
 };
 
 struct pll_clk {
-	uint32_t freq;
+	clk_t src;
+	clk_freq_t freq;
 	bool enabled;
 };
 
 struct pll_clk pll_clks[NR_PLL_CLKS] = {
 	[SOC_PLL] = {
+		.src = soc_vco,
 		.freq = SOC_PLL_FREQ,
 		.enabled = false,
 	},
 	[DDR_BUS_PLL] = {
+		.src = ddr_bus_vco,
 		.freq = DDR_BUS_PLL_FREQ,
 		.enabled = false,
 	},
 	[DDR_PLL] = {
+		.src = ddr_vco,
 		.freq = DDR_PLL_FREQ,
 		.enabled = false,
 	},
 	[PCIE_PLL] = {
+		.src = pcie_vco,
 		.freq = PCIE_PLL_FREQ,
 		.enabled = false,
 	},
 	[COHFAB_PLL] = {
+		.src = cohfab_vco,
 		.freq = CFAB_PLL_FREQ,
 		.enabled = false,
 	},
 	[CL0_PLL] = {
+		.src = cl0_vco,
 		.freq = CL_PLL_FREQ,
 		.enabled = false,
 	},
 	[CL1_PLL] = {
+		.src = cl1_vco,
 		.freq = CL_PLL_FREQ,
 		.enabled = false,
 	},
 	[CL2_PLL] = {
+		.src = cl2_vco,
 		.freq = CL_PLL_FREQ,
 		.enabled = false,
 	},
 	[CL3_PLL] = {
+		.src = cl3_vco,
 		.freq = CL_PLL_FREQ,
 		.enabled = false,
 	},
@@ -221,7 +231,10 @@ const char *get_pll_name(clk_clk_t clk)
 static void __enable_pll(clk_clk_t clk)
 {
 	if (!pll_clks[clk].enabled) {
-		crcntl_pll_enable(clk, pll_clks[clk].freq);
+		clk_enable(pll_clks[clk].src);
+		crcntl_div_enable(clk,
+				  clk_get_frequency(pll_clks[clk].src),
+				  pll_clks[clk].freq, false);
 		pll_clks[clk].enabled = true;
 	}
 }
@@ -230,7 +243,8 @@ static void __disable_pll(clk_clk_t clk)
 {
 	if (pll_clks[clk].enabled) {
 		pll_clks[clk].enabled = false;
-		crcntl_pll_disable(clk);
+		crcntl_div_disable(clk, false);
+		clk_disable(pll_clks[clk].src);
 	}
 }
 
@@ -249,14 +263,14 @@ static void disable_pll(clk_clk_t clk)
 	__disable_pll(clk);
 }
 
-static uint32_t get_pll_freq(clk_clk_t clk)
+static clk_freq_t get_pll_freq(clk_clk_t clk)
 {
 	if (clk >= NR_PLL_CLKS)
 		return INVALID_FREQ;
 	return pll_clks[clk].freq;
 }
 
-static int set_pll_freq(clk_clk_t clk, uint32_t freq)
+static int set_pll_freq(clk_clk_t clk, clk_freq_t freq)
 {
 	if (clk >= NR_PLL_CLKS)
 		return -EINVAL;
@@ -279,6 +293,134 @@ struct clk_driver clk_pll = {
 	.get_name = get_pll_name,
 };
 
+struct vco_clk {
+	clk_freq_t freq;
+	bool enabled;
+};
+
+struct vco_clk vco_clks[NR_VCO_CLKS] = {
+	[SOC_VCO] = {
+		.freq = SOC_VCO_FREQ,
+		.enabled = false,
+	},
+	[DDR_BUS_VCO] = {
+		.freq = DDR_BUS_VCO_FREQ,
+		.enabled = false,
+	},
+	[DDR_VCO] = {
+		.freq = DDR_VCO_FREQ,
+		.enabled = false,
+	},
+	[PCIE_VCO] = {
+		.freq = PCIE_VCO_FREQ,
+		.enabled = false,
+	},
+	[COHFAB_VCO] = {
+		.freq = COHFAB_VCO_FREQ,
+		.enabled = false,
+	},
+	[CL0_VCO] = {
+		.freq = CL_VCO_FREQ,
+		.enabled = false,
+	},
+	[CL1_VCO] = {
+		.freq = CL_VCO_FREQ,
+		.enabled = false,
+	},
+	[CL2_VCO] = {
+		.freq = CL_VCO_FREQ,
+		.enabled = false,
+	},
+	[CL3_VCO] = {
+		.freq = CL_VCO_FREQ,
+		.enabled = false,
+	},
+};
+
+#ifdef CONFIG_CONSOLE_COMMAND
+const char *vco_clk_names[NR_VCO_CLKS] = {
+	[SOC_VCO] = "soc_vco",
+	[DDR_BUS_VCO] = "ddr_bus_vco",
+	[DDR_VCO] = "ddr_vco",
+	[PCIE_VCO] = "pcie_vco",
+	[COHFAB_VCO] = "cohfab_vco",
+	[CL0_VCO] = "cl0_vco",
+	[CL1_VCO] = "cl1_vco",
+	[CL2_VCO] = "cl2_vco",
+	[CL3_VCO] = "cl3_vco",
+};
+
+const char *get_vco_name(clk_clk_t clk)
+{
+	if (clk >= NR_VCO_CLKS)
+		return NULL;
+	return vco_clk_names[clk];
+}
+#else
+#define get_vco_name		NULL
+#endif
+
+static void __enable_vco(clk_clk_t clk)
+{
+	if (!vco_clks[clk].enabled) {
+		crcntl_pll_enable(clk, vco_clks[clk].freq);
+		vco_clks[clk].enabled = true;
+	}
+}
+
+static void __disable_vco(clk_clk_t clk)
+{
+	if (vco_clks[clk].enabled) {
+		vco_clks[clk].enabled = false;
+		crcntl_pll_disable(clk);
+	}
+}
+
+static int enable_vco(clk_clk_t clk)
+{
+	if (clk >= NR_VCO_CLKS)
+		return -EINVAL;
+	__enable_vco(clk);
+	return 0;
+}
+
+static void disable_vco(clk_clk_t clk)
+{
+	if (clk >= NR_VCO_CLKS)
+		return;
+	__disable_vco(clk);
+}
+
+static clk_freq_t get_vco_freq(clk_clk_t clk)
+{
+	if (clk >= NR_VCO_CLKS)
+		return INVALID_FREQ;
+	return vco_clks[clk].freq;
+}
+
+static int set_vco_freq(clk_clk_t clk, clk_freq_t freq)
+{
+	if (clk >= NR_VCO_CLKS)
+		return -EINVAL;
+
+	if (vco_clks[clk].freq != freq) {
+		__disable_vco(clk);
+		vco_clks[clk].freq = freq;
+	}
+	__enable_vco(clk);
+	return 0;
+}
+
+struct clk_driver clk_vco = {
+	.max_clocks = NR_VCO_CLKS,
+	.enable = enable_vco,
+	.disable = disable_vco,
+	.get_freq = get_vco_freq,
+	.set_freq = set_vco_freq,
+	.select = NULL,
+	.get_name = get_vco_name,
+};
+
 uint32_t input_clks[NR_INPUT_CLKS] = {
 	[XO_CLK] = XO_CLK_FREQ,
 };
@@ -298,7 +440,7 @@ static const char *get_input_clk_name(clk_clk_t clk)
 #define get_input_clk_name	NULL
 #endif
 
-static uint32_t get_input_clk_freq(clk_clk_t clk)
+static clk_freq_t get_input_clk_freq(clk_clk_t clk)
 {
 	if (clk >= NR_INPUT_CLKS)
 		return INVALID_FREQ;
@@ -341,6 +483,7 @@ void clk_pll_dump(void)
 void clk_pll_init(void)
 {
 	clk_register_driver(CLK_INPUT, &clk_input);
+	clk_register_driver(CLK_VCO, &clk_vco);
 	clk_register_driver(CLK_PLL, &clk_pll);
 	clk_register_driver(CLK_SELECT, &clk_select);
 }

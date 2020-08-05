@@ -806,7 +806,7 @@ static void disable_output_clk(clk_clk_t clk)
 		crcntl_clk_disable(clk);
 }
 
-static uint32_t get_output_clk_freq(clk_clk_t clk)
+static clk_freq_t get_output_clk_freq(clk_clk_t clk)
 {
 	if (clk >= NR_OUTPUT_CLKS)
 		return INVALID_FREQ;
@@ -930,7 +930,7 @@ static void disable_pll_div(clk_clk_t clk)
 	clk_disable(div_clks[clk].src);
 }
 
-static uint32_t get_pll_div_freq(clk_clk_t clk)
+static clk_freq_t get_pll_div_freq(clk_clk_t clk)
 {
 	clk_t sel;
 

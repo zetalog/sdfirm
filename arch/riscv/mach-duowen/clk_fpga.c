@@ -78,7 +78,7 @@ static const char *get_input_clk_name(clk_clk_t clk)
 #define get_input_clk_name	NULL
 #endif
 
-static uint32_t get_input_clk_freq(clk_clk_t clk)
+static clk_freq_t get_input_clk_freq(clk_clk_t clk)
 {
 	if (clk >= NR_INPUT_CLKS)
 		return INVALID_FREQ;
