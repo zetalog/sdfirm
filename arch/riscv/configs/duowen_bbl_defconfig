@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sat Aug  1 08:24:10 2020
+# Thu Aug  6 14:53:22 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -195,6 +195,7 @@ CONFIG_DUOWEN_BBL=y
 CONFIG_DUOWEN_FPGA=y
 # CONFIG_DUOWEN_ZEBU is not set
 CONFIG_DUOWEN_FPGA_DDR_MODEL=y
+# CONFIG_DUOWEN_MSG is not set
 CONFIG_DUOWEN_UART=y
 CONFIG_DUOWEN_TMR=y
 # CONFIG_DUOWEN_TMR_CRCNTL_INIT is not set
@@ -244,6 +245,7 @@ CONFIG_MAX_VECTORS=4
 # Scheduling facility (bh) support
 #
 CONFIG_MAX_BHS=4
+CONFIG_ARCH_HAS_THREAD=y
 CONFIG_ARCH_HAS_SMP=y
 # CONFIG_SMP is not set
 
@@ -297,8 +299,8 @@ CONFIG_ARCH_HAS_FP=y
 #
 # Power management model (board) support
 #
-# CONFIG_SHUTDOWN is not set
-# CONFIG_REBOOT is not set
+CONFIG_SHUTDOWN=y
+CONFIG_REBOOT=y
 # CONFIG_SUSPEND is not set
 # CONFIG_HIBERNATE is not set
 # CONFIG_BULK is not set

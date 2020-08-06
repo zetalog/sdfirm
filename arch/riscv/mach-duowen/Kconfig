@@ -169,6 +169,13 @@ config DUOWEN_FPGA_DDR_MODEL
 
 endmenu
 
+menuconfig DUOWEN_MSG
+	bool "Duowen shared message support"
+	depends SIMULATION
+	help
+	  This hardware can only be found in testbench, mostly be used to
+	  drive tests and UVM sequences.
+
 menuconfig DUOWEN_UART
 	bool "Duowen UART controller support"
 	select DW_UART

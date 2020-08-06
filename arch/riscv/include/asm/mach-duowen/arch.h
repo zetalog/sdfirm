@@ -86,6 +86,7 @@
 
 #include <asm/mach/scsr.h>
 #include <asm/mach/flash.h>
+#include <asm/mach/msg.h>
 
 #ifdef CONFIG_VAISRA_PMA
 #define VAISRA_PMA_G		19
