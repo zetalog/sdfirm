@@ -826,59 +826,48 @@ struct clk_driver clk_output = {
 struct div_clk {
 	clk_t src;
 	uint8_t div;
-	clk_t sel;
 };
 
 struct div_clk div_clks[NR_DIV_CLKS] = {
 	[SOC_PLL_DIV2] = {
 		.src = soc_pll,
 		.div = 2,
-		.sel = soc_clk_sel,
 	},
 	[SOC_PLL_DIV4] = {
 		.src = soc_pll,
 		.div = 4,
-		.sel = soc_clk_sel,
 	},
 	[SOC_PLL_DIV8] = {
 		.src = soc_pll,
 		.div = 8,
-		.sel = soc_clk_sel,
 	},
 	[SOC_PLL_DIV10] = {
 		.src = soc_pll,
 		.div = 10,
-		.sel = soc_clk_sel,
 	},
 	[SOC_PLL_DIV12] = {
 		.src = soc_pll,
 		.div = 12,
-		.sel = soc_clk_sel,
 	},
 	[SOC_CLK_SEL_DIV2] = {
 		.src = soc_clk_sel,
 		.div = 2,
-		.sel = invalid_clk,
 	},
 	[DDR_CLK_SEL_DIV4] = {
 		.src = ddr_clk_sel,
 		.div = 4,
-		.sel = invalid_clk,
 	},
 	[SD_TM_CLK] = {
 		.src = sd_clk,
 		.div = 100,
-		.sel = invalid_clk,
 	},
 	[XO_CLK_DIV4] = {
 		.src = xo_clk,
 		.div = 4,
-		.sel = invalid_clk,
 	},
 	[XO_CLK_DIV10] = {
 		.src = xo_clk,
 		.div = 10,
-		.sel = invalid_clk,
 	},
 };
 
@@ -908,38 +897,22 @@ static const char *get_pll_div_name(clk_clk_t clk)
 
 static int enable_pll_div(clk_clk_t clk)
 {
-	clk_t sel;
-
 	if (clk >= NR_DIV_CLKS)
 		return -EINVAL;
-	sel = div_clks[clk].sel;
-	if (sel != invalid_clk)
-		clk_enable(sel);
 	return clk_enable(div_clks[clk].src);
 }
 
 static void disable_pll_div(clk_clk_t clk)
 {
-	clk_t sel;
-
 	if (clk >= NR_DIV_CLKS)
 		return;
-	sel = div_clks[clk].sel;
-	if (sel != invalid_clk)
-		clk_disable(sel);
 	clk_disable(div_clks[clk].src);
 }
 
 static clk_freq_t get_pll_div_freq(clk_clk_t clk)
 {
-	clk_t sel;
-
 	if (clk >= NR_DIV_CLKS)
 		return INVALID_FREQ;
-	/* Handle sel clk src from div clk */
-	sel = div_clks[clk].sel;
-	if (sel != invalid_clk && !crcntl_clk_selected(clk_clk(sel)))
-		return XO_CLK_FREQ;
 	return clk_get_frequency(div_clks[clk].src) / div_clks[clk].div;
 }
 

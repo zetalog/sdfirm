@@ -399,7 +399,7 @@
 #define sd_tm_clk		clkid(CLK_DIV, SD_TM_CLK)
 #define xo_clk_div4		clkid(CLK_DIV, XO_CLK_DIV4)
 #define xo_clk_div10		clkid(CLK_DIV, XO_CLK_DIV10)
-#define sysfab_clk		soc_pll_div4
+#define sysfab_clk		soc_clk_sel
 #define sysfab_half_clk		soc_clk_sel_div2
 
 /* Clock flags, used by clk drivers to indicate clock features */
