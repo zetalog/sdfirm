@@ -610,7 +610,7 @@ config HTIF
 config ARCH_HAS_CLINT
 	bool
 
-config CLINT
+menuconfig CLINT
 	bool "Core Local Interruptor (CLINT) support"
 	depends ARCH_HAS_CLINT
 	select ARCH_HAS_SBI_IPI
@@ -643,7 +643,7 @@ config ARCH_HAS_PLIC
 config ARCH_HAS_PLIC_EOI_EARLY
 	bool
 
-config PLIC
+menuconfig PLIC
 	bool "Platform level interrupt controller (PLIC) support"
 	depends ARCH_HAS_PLIC
 	select ARCH_HAS_IRQC_ACK if !PLIC_COMPLETION
@@ -686,7 +686,7 @@ endif
 config ARCH_HAS_HPM_EVENT
 	bool
 
-config HPM
+menuconfig HPM
 	bool "Hardware performance monotor support"
 	select ARCH_HAS_PMU
 
@@ -698,7 +698,7 @@ config HPM_EVENT
 
 endif
 
-config RI5CY_PC
+menuconfig RI5CY_PC
 	bool "RI5CY performance counter support"
 	depends CPU_RI5CY
 	select ARCH_HAS_PMU
