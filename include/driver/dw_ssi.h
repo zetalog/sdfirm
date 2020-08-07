@@ -36,7 +36,7 @@
  * SUCH DAMAGE.
  *
  * @(#)dw_ssi.h: Synopsys DesignWare SSI interface
- * $Id: dw_ssi.h,v 1.0 2020-2-11 10:58:00 syl Exp $
+ * $Id: dw_ssi.h,v 1.0 2020-02-11 10:58:00 zhenglv Exp $
  */
 
 #ifndef __DW_SSI_H_INCLUDE__

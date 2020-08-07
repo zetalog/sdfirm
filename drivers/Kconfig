@@ -38,4 +38,6 @@ source drivers/ddr/Kconfig
 source drivers/spd/Kconfig
 source drivers/pci/Kconfig
 
+source drivers/noc/Kconfig
+
 endmenu

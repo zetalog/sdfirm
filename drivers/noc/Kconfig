@@ -1,0 +1,20 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "NoC interconnect drivers"
+
+config ARCH_HAS_NOC
+	bool
+
+menuconfig NCORE
+	bool "Arteris Ncore interconnect support"
+
+if NCORE
+
+endif
+
+endmenu
+
+

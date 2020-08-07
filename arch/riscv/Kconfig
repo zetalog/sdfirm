@@ -60,6 +60,7 @@ config ARCH_DUOWEN
 	select ARCH_HAS_SSI_SPI
 	select ARCH_HAS_SSI_SPI_1WIRE
 	select ARCH_HAS_RAS
+	select ARCH_HAS_NOC
 	select RISCV_COUNTERS if SBI
 	select FDT_BUILTIN if SBI_FDT
 	select DUOWEN_TMR
@@ -75,6 +76,7 @@ config ARCH_DUOWEN
 	select DUOWEN_DMA if DMA
 	select DUOWEN_SMMU if IOMMU
 	select VAISRA_RAS if RAS
+	select NCORE
 	help
 	  This enables support for smart core (SmarCo) duowen riscv cluster platforms.
 
