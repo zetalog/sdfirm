@@ -70,6 +70,7 @@ struct select_clk select_clks[] = {
 			ddr_clk_sel,
 			ddr_clk_sel_div4,
 		},
+		.flags = CLK_SEL_SRC_F,
 	},
 #if 0
 	[SD_RX_TX_SEL] = {
@@ -123,7 +124,8 @@ static void disable_clk_sel(clk_clk_t clk)
 	if (select_clks[clk].flags & CLK_CLK_SEL_F) {
 		clk_enable(select_clks[clk].clk_sels[1]);
 		crcntl_clk_deselect(clk);
-		if (select_clks[clk].flags & CLK_CLK_EN_F)
+		if (select_clks[clk].flags & CLK_CLK_EN_F &&
+		    !(select_clks[clk].flags & CLK_SEL_SRC_F))
 			clk_disable(select_clks[clk].clk_sels[0]);
 		else
 			select_clks[clk].flags |= CLK_CLK_EN_F;
@@ -456,6 +458,20 @@ struct clk_driver clk_input = {
 	.select = NULL,
 	.get_name = get_input_clk_name,
 };
+
+void clk_apply_vco(clk_clk_t clk, clk_freq_t freq)
+{
+	if (clk >= NR_VCO_CLKS)
+		return;
+	vco_clks[clk].freq = freq;
+}
+
+void clk_apply_pll(clk_clk_t clk, clk_freq_t freq)
+{
+	if (clk >= NR_PLL_CLKS)
+		return;
+	pll_clks[clk].freq = freq;
+}
 
 void clk_pll_dump(void)
 {

@@ -403,12 +403,13 @@
 #define sysfab_half_clk		soc_clk_sel_div2
 
 /* Clock flags, used by clk drivers to indicate clock features */
-#define CLK_CLK_SEL_F	_BV(6)
-#define CLK_CLK_EN_F	_BV(7)
-#define CLK_SW_RST_F	_BV(8)
-#define CLK_CR		(CLK_CLK_EN_F | CLK_SW_RST_F)
-#define CLK_C		CLK_CLK_EN_F
-#define CLK_R		CLK_SW_RST_F
+#define CLK_CLK_SEL_F		_BV(0)
+#define CLK_CLK_EN_F		_BV(1)
+#define CLK_SW_RST_F		_BV(2)
+#define CLK_SEL_SRC_F		_BV(3) /* SEL_CLK uses same clock source */
+#define CLK_CR			(CLK_CLK_EN_F | CLK_SW_RST_F)
+#define CLK_C			CLK_CLK_EN_F
+#define CLK_R			CLK_SW_RST_F
 
 void clk_pll_dump(void);
 void clk_pll_init(void);
@@ -417,6 +418,13 @@ void clk_pll_init(void);
 void clk_hw_ctrl_init(void);
 #ifdef CONFIG_MMU
 void clk_hw_mmu_init(void);
+#endif
+#ifdef CONFIG_DUOWEN_ASIC
+void clk_apply_vco(clk_clk_t clk, clk_freq_t freq);
+void clk_apply_pll(clk_clk_t clk, clk_freq_t freq);
+#else
+#define clk_apply_vco(clk, freq)		do { } while (0)
+#define clk_apply_pll(clk, freq)		do { } while (0)
 #endif
 
 #endif /* __CLK_DUOWEN_H_INCLUDE__ */

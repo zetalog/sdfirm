@@ -167,14 +167,14 @@ config DUOWEN_FPGA_DDR_MODEL
 	bool "Enable DDR model in VCS environment"
 	depends DUOWEN_FPGA && SIMULATION
 
-endmenu
-
 menuconfig DUOWEN_MSG
 	bool "Duowen shared message support"
 	depends SIMULATION
 	help
 	  This hardware can only be found in testbench, mostly be used to
 	  drive tests and UVM sequences.
+
+endmenu
 
 menuconfig DUOWEN_UART
 	bool "Duowen UART controller support"
