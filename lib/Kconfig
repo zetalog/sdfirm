@@ -140,6 +140,9 @@ config STRING_UUID
 	bool "uuid"
 	select PRINT_SNPRINTF
 
+config STRING_BYTELIST
+	bool "byte list"
+
 endmenu
 
 menu "Time opeartions"
