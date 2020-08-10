@@ -42,24 +42,25 @@
 #ifndef __NCORE_NOC_H_INCLUDE__
 #define __NCORE_NOC_H_INCLUDE__
 
+#include <target/generic.h>
+
 /* Structure units */
 #define NCORE_REG(offset)		(NCORE_BASE + (offset))
-#define NCORE_SU(n)			(NCORE_BASE + (n) << 12)
-#define NCORE_CAIU0			0   /* 0 ~ 95 */
-#define NCORE_NCBU0			96  /* 0 ~ 31 */
-#define NCORE_DIRU0			128 /* 0 ~ 31 */
-#define NCORE_CMIU0			172 /* 0 ~ 31 */
-#define NCORE_CAIU(n)			NCORE_SU(NCORE_CAIU0 + (n))
-#define NCORE_NCBU(n)			NCORE_SU(NCORE_NCBU0 + (n))
-#define NCORE_DIRU(n)			NCORE_SU(NCORE_DIRU0 + (n))
-#define NCORE_CMIU(n)			NCORE_SU(NCORE_CMIU0 + (n))
+#define NCORE_SU(n)			(NCORE_BASE + ((n) << 12))
+#define NCORE_SU_CAIU			0
+#define NCORE_SU_NCBU			3
+#define NCORE_SU_DIRU			4
+#define NCORE_SU_CMIU			6
+#define ncore_su_t2i(type)		((type) << 5)
+#define ncore_su_i2t(id)		((id) >> 5)
+#define NCORE_MAX_SUS			224
+#define NCORE_CAIU(n)			NCORE_SU(ncore_su_t2i(NCORE_SU_CAIU) + (n))
+#define NCORE_NCBU(n)			NCORE_SU(ncore_su_t2i(NCORE_SU_NCBU) + (n))
+#define NCORE_DIRU(n)			NCORE_SU(ncore_su_t2i(NCORE_SU_DIRU) + (n))
+#define NCORE_CMIU(n)			NCORE_SU(ncore_su_t2i(NCORE_SU_CMIU) + (n))
 #define NCORE_CS			NCORE_REG(0xFF000)
 
 #define SU_REG(n, offset)		(NCORE_SU(n) + (offset))
-#define CAIU_REG(n, offset)		(NCORE_CAIU(n) + (offset))
-#define NCBU_REG(n, offset)		(NCORE_NCBU(n) + (offset))
-#define DIRU_REG(n, offset)		(NCORE_DIRU(n) + (offset))
-#define CMIU_REG(n, offset)		(NCORE_CMIU(n) + (offset))
 #define CS_REG(offset)			(NCORE_CS + (offset))
 
 /* ===========================================================================
@@ -139,7 +140,7 @@
  */
 #define SU_ErrAddr_OFFSET		0
 #define SU_ErrAddr_MASK			REG_12BIT_MASK
-#define SU_ErrAddr(value)		_GET_FV(SU_ErrAddr)
+#define SU_ErrAddr(value)		_GET_FV(SU_ErrAddr, value)
 
 /* ===========================================================================
  * NCBUPC/DIRUSF Common Registers and Fields
@@ -198,14 +199,14 @@
  */
 #define SU_ImplVer_OFFSET		0
 #define SU_ImplVer_MASK			REG_8BIT_MASK
-#define SU_ImplVer(value)		_GET_FV(SU_ImplVer)
+#define SU_ImplVer(value)		_GET_FV(SU_ImplVer, value)
 
 /* ===========================================================================
  * CAIU Specific Registers and Fields
  * =========================================================================== */
 /* CAIU Coherent Agent Interface Unit */
-#define CAIUTCR(n)			CAIU_REG(0x000)
-#define CAIUTAR(n)			CAIU_REG(0x004)
+#define CAIUTCR(n)			SU_REG(0x000)
+#define CAIUTAR(n)			SU_REG(0x004)
 
 /* CAIUTCR Transaction Control Register */
 #define CAIU_TransEn			_BV(0)
@@ -217,25 +218,25 @@
 /* CAIUIDR Identification Register */
 #define CAIU_CaiId_OFFSET		8
 #define CAIU_CaiId_MASK			REG_7BIT_MASK
-#define CAIU_CaiId(value)		_GET_FV(CAIU_CaiId)
+#define CAIU_CaiId(value)		_GET_FV(CAIU_CaiId, value)
 #define CAIU_Ca				_BV(15)
 #define CAIU_Type_OFFSET		16
 #define CAIU_Type_MASK			REG_4BIT_MASK
-#define CAIU_Type(value)		_GET_FV(CAIU_Type)
+#define CAIU_Type(value)		_GET_FV(CAIU_Type, value)
 #define CAIU_Type_CAI_ACE_DVM		0
 #define CAIU_Type_CAI_ACELite_DVM	1
 #define CAIU_Type_CAI_ACE		2
 #define CAIU_Type_CAI_ACELite		3
 #define CAIU_SfId_OFFSET		20
 #define CAIU_SfId_MASK			REG_5BIT_MASK
-#define CAIU_SfId(value)		_GET_FV(CAIU_SfId)
+#define CAIU_SfId(value)		_GET_FV(CAIU_SfId, value)
 
 /* NCBU Non-coherent Bridge Unit */
-#define NCBUTCR(n)			NCBU_REG(n, 0x000)
-#define NCBUTAR(n)			NCBU_REG(n, 0x004)
-#define NCBUPCTCR(n)			NCBU_REG(n, 0x010)
-#define NCBUPCTAR(n)			NCBU_REG(n, 0x014)
-#define NCBUPCIDR(n)			NCBU_REG(n, 0xFF8)
+#define NCBUTCR(n)			SU_REG(n, 0x000)
+#define NCBUTAR(n)			SU_REG(n, 0x004)
+#define NCBUPCTCR(n)			SU_REG(n, 0x010)
+#define NCBUPCTAR(n)			SU_REG(n, 0x014)
+#define NCBUPCIDR(n)			SU_REG(n, 0xFF8)
 
 /* NCBUTCR Transaction Control Register */
 #define NCBU_TransEn			_BV(0)
@@ -269,63 +270,63 @@
 /* NCBUIDR Identification Register */
 #define NCBU_NcbId_OFFSET		8
 #define NCBU_NcbId_MASK			REG_7BIT_MASK
-#define NCBU_NcbId(value)		_GET_FV(NCBU_NcbId)
+#define NCBU_NcbId(value)		_GET_FV(NCBU_NcbId, value)
 #define NCBU_Ca				_BV(15)
 #define NCBU_Type_OFFSET		16
 #define NCBU_Type_MASK			REG_4BIT_MASK
-#define NCBU_Type(value)		_GET_FV(NCBU_Type)
+#define NCBU_Type(value)		_GET_FV(NCBU_Type, value)
 #define NCBU_TYPE_NCB			3
 #define NCBU_SfId_OFFSET		20
 #define NCBU_SfId_MASK			REG_5BIT_MASK
-#define NCBU_SfId(value)		_GET_FV(NCBU_SfId)
+#define NCBU_SfId(value)		_GET_FV(NCBU_SfId, value)
 
 /* DIRU Directory Unit */
-#define DIRUTCR(n)			DIRU_REG(0x000)
-#define DIRUTAR(n)			DIRU_REG(0x004)
-#define DIRUSFER(n)			REG_1BIT_ADDR(DIRU_REG(0x010), 0)
-#define DIRUCASER(n, b)			REG_1BIT_ADDR(DIRU_REG(0x040), (b))
-#define DIRUCASAR(n, b)			REG_1BIT_ADDR(DIRU_REG(0x050), (b))
-#define DIRUMRHER(n)			REG_1BIT_ADDR(DIRU_REG(0x070), 0)
+#define DIRUTCR(n)			SU_REG(n, 0x000)
+#define DIRUTAR(n)			SU_REG(n, 0x004)
+#define DIRUSFER(n)			REG_1BIT_ADDR(SU_REG(n, 0x010), 0)
+#define DIRUCASER(n, b)			REG_1BIT_ADDR(SU_REG(n, 0x040), (b))
+#define DIRUCASAR(n, b)			REG_1BIT_ADDR(SU_REG(n, 0x050), (b))
+#define DIRUMRHER(n)			REG_1BIT_ADDR(SU_REG(n, 0x070), 0)
 
 /* DIRUTAR Transaction Activity Register */
 #define DIRU_TransActv			_BV(0)
 
 /* CMIU Coherent Memory Interface Unit */
-#define CMIUTCR(n)			CMIU_REG(0x000)
-#define CMIUTAR(n)			CMIU_REG(0x004)
-#define CMIUCMCTCR(n)			CMIU_REG(0x010)
-#define CMIUCMCTAR(n)			CMIU_REG(0x014)
-#define CMIUCMCIDR(n)			CMIU_REG(0xFF8)
+#define CMIUTCR(n)			SU_REG(n, 0x000)
+#define CMIUTAR(n)			SU_REG(n, 0x004)
+#define CMIUCMCTCR(n)			SU_REG(n, 0x010)
+#define CMIUCMCTAR(n)			SU_REG(n, 0x014)
+#define CMIUCMCIDR(n)			SU_REG(n, 0xFF8)
 
 /* CMIUTCR Transaction Control Register */
 #define CMIU_TransActv			_BV(0)
 
 /* CMIUCMCTCR Coherent Memory Cache Transaction Control Register */
-#define CMIU_LookupEn			_BV(0)
-#define CMIU_FillEn			_BV(1)
+#define CMIUCM_LookupEn			_BV(0)
+#define CMIUCM_FillEn			_BV(1)
 
 /* CMIUCMCTAR Coherent Memory Cache Transaction Activity Register */
-#define CMIU_EvictActv			_BV(0)
-#define CMIU_FillActv			_BV(1)
+#define CMIUCM_EvictActv		_BV(0)
+#define CMIUCM_FillActv			_BV(1)
 
 /* CMIUCMCIDR Coherent Memory Cache Identification Register */
-#define CMIU_NumSets_OFFSET		0
-#define CMIU_NumSets_MASK		REG_20BIT_MASK
-#define CMIU_NumSets(value)		_GET_FV(CMIU_NumSets, value)
-#define CMIU_NumWays_OFFSET		20
-#define CMIU_NumWays_MASK		REG_6BIT_MASK
-#define CMIU_NumWays(value)		_GET_FV(CMIU_NumWays, value)
-#define CMIU_Type_OFFSET		26
-#define CMIU_Type_MASK			REG_3BIT_MASK
-#define CMIU_Type(value)		_GET_FV(CMIU_Type, value)
-#define CMIU_Type_UNIMPL		0x0
-#define CMIU_Type_HINT			0x1
-#define CMIU_Type_VICTIM		0x2
+#define CMIUCMC_NumSets_OFFSET		0
+#define CMIUCMC_NumSets_MASK		REG_20BIT_MASK
+#define CMIUCMC_NumSets(value)		_GET_FV(CMIUCMC_NumSets, value)
+#define CMIUCMC_NumWays_OFFSET		20
+#define CMIUCMC_NumWays_MASK		REG_6BIT_MASK
+#define CMIUCMC_NumWays(value)		_GET_FV(CMIUCMC_NumWays, value)
+#define CMIUCMC_Type_OFFSET		26
+#define CMIUCMC_Type_MASK		REG_3BIT_MASK
+#define CMIUCMC_Type(value)		_GET_FV(CMIUCMC_Type, value)
+#define CMIUCMC_Type_UNIMPL		0x0
+#define CMIUCMC_Type_HINT		0x1
+#define CMIUCMC_Type_VICTIM		0x2
 /* CMIUIDR Identification Register */
 #define CMIU_CmiId_OFFSET		8
 #define CMIU_CmiId_MASK			REG_4BIT_MASK
-#define CMIU_CmiId(value)		_GET_FV(CMIU_CmiId)
-#define CMIU_HntCap_OFFSET		_BV(13)
+#define CMIU_CmiId(value)		_GET_FV(CMIU_CmiId, value)
+#define CMIU_HntCap			_BV(13)
 #define CMIU_Cmc			_BV(31)
 
 /* Coherent Subsystem Register */
@@ -333,7 +334,7 @@
 #define CSADSAR(n)			REG_1BIT_ADDR(CS_REG(0x050), (n))
 #define CSCEISR(n)			REG_1BIT_ADDR(CS_REG(0x100), (n))
 #define CSUEISR(n)			REG_1BIT_ADDR(CS_REG(0x140), (n))
-#define CSSFIDR(n)			CS_REG(0xF00 + (n) << 2)
+#define CSSFIDR(n)			CS_REG(0xF00 + ((n) << 2))
 #define CSUIDR				CS_REG(0xFF8)
 #define CSIDR				CS_REG(0xFFC)
 
@@ -374,5 +375,56 @@
 #define CS_NumSfs_OFFSET		18
 #define CS_NumSfs_MASK			REG_5BIT_MASK
 #define CS_NumSfs(value)		_GET_FV(CS_NumSfs, value)
+
+#define NCORE_SU_ID(su)			REG_1BIT_OFFSET(su)
+
+/* CSIDR */
+#define ncore_release_version()		CS_RelVer(__raw_readl(CSIDR))
+#define ncore_dir_cacheline_offset()	CS_DirClOffset(__raw_readl(CSIDR))
+#define ncore_num_sfs()			CS_NumSfs(__raw_readl(CSIDR))
+
+/* CSUIDR */
+#define ncore_num_caius()		CS_NumCaius(__raw_readl(CSUIDR))
+#define ncore_num_ncbus()		CS_NumNcbus(__raw_readl(CSUIDR))
+#define ncore_num_dirus()		CS_NumDirus(__raw_readl(CSUIDR))
+#define ncore_num_cmius()		CS_NumCmius(__raw_readl(CSUIDR))
+
+/* CSSFIDR */
+#define ncore_sf_type(n)		CS_Type(__raw_readl(CSSFIDR(n)))
+#define ncore_sf_num_sets(n)		CS_NumSets(__raw_readl(CSSFIDR(n)))
+#define ncore_sf_num_ways(n)		CS_NumWays(__raw_readl(CSSFIDR(n)))
+
+/* CSADSER/CSADSAR */
+#define ncore_dvm_enable(su)		__raw_setl(NCORE_SU_ID(su), CSADSER(su))
+#define ncore_dvm_disable(su)		__raw_clearl(NCORE_SU_ID(su), CSADSER(su))
+#define ncore_dvm_active(su)		(__raw_readl(CSADSAR(su)) & NCORE_SU_ID(su))
+
+/* CSCEISR/CSUEISR */
+#define ncore_ce_irq_status(su)		(__raw_readl(CSCEISR(su)) & NCORE_SU_ID(su))
+#define ncore_ue_irq_status(su)		(__raw_readl(CSUEISR(su)) & NCORE_SU_ID(su))
+
+/* SUIDR */
+#define ncore_su_impl_ver(su)		SU_ImplVer(__raw_readl(SUIDR(su)))
+#define ncore_caiu_id(su)		CAIU_CaiId(__raw_readl(SUIDR(su)))
+#define ncore_caiu_type(su)		CAIU_Type(__raw_readl(SUIDR(su)))
+#define ncore_caiu_ca(su)		(!!(__raw_readl(SUIDR(su)) & CAIU_Ca))
+#define ncore_caiu_sf_id(su)		CAIU_SfId(__raw_readl(SUIDR(su)))
+#define ncore_ncbu_id(su)		NCBU_NcbId(__raw_readl(SUIDR(su)))
+#define ncore_ncbu_type(su)		NCBU_Type(__raw_readl(SUIDR(su)))
+#define ncore_ncbu_ca(su)		(!!(__raw_readl(SUIDR(su)) & NCBU_Ca))
+#define ncore_ncbu_sf_id(su)		NCBU_SfId(__raw_readl(SUIDR(su)))
+#define ncore_cmiu_id(su)		CMIU_CmiId(__raw_readl(SUIDR(su)))
+#define ncore_cmiu_hnt_cap(su)		(!!(__raw_readl(SUIDR(su)) & CMIU_HntCap))
+#define ncore_cmiu_cmc(su)		(!!(__raw_readl(SUIDR(su)) & CMIU_Cmc))
+
+/* NCBUPCIDR/CMIUCMCIDR */
+#define ncore_ncbu_pc_type(su)		NCBUPC_Type(__raw_readl(NCBUPCIDR(su)))
+#define ncore_ncbu_pc_num_sets(su)	NCBUPC_NumSets(__raw_readl(NCBUPCIDR(su)))
+#define ncore_ncbu_pc_num_ways(su)	NCBUPC_NumWays(__raw_readl(NCBUPCIDR(su)))
+#define ncore_cmiu_cmc_type(su)		CMIUCMC_Type(__raw_readl(CMIUCMCIDR(su)))
+#define ncore_cmiu_cmc_num_sets(su)	CMIUCMC_NumSets(__raw_readl(CMIUCMCIDR(su)))
+#define ncore_cmiu_cmc_num_ways(su)	CMIUCMC_NumWays(__raw_readl(CMIUCMCIDR(su)))
+
+void ncore_init(void);
 
 #endif /* __NCORE_NOC_H_INCLUDE__ */

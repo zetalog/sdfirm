@@ -42,6 +42,7 @@
 #include <target/arch.h>
 #include <target/irq.h>
 #include <target/clk.h>
+#include <target/noc.h>
 #include <target/cmdline.h>
 
 #ifdef CONFIG_SHUTDOWN
@@ -81,6 +82,7 @@ void board_early_init(void)
 
 void board_late_init(void)
 {
+	ncore_init();
 }
 
 static int do_duowen_shutdown(int argc, char *argv[])
