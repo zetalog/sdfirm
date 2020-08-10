@@ -1,7 +1,8 @@
-#ifndef __MONACO_SU_CENTRIQ_H_INCLUDE__
-#define __MONACO_SU_CENTRIQ_H_INCLUDE__
+#ifndef __MONACO_H_INCLUDE__
+#define __MONACO_H_INCLUDE__
 
 #include <target/generic.h>
+#include <target/byte_list.h>
 
 #define  SOC_HW_MAJOR_VERSION_1        1
 #define  SOC_HW_MAJOR_VERSION_2        2
@@ -896,12 +897,10 @@ typedef struct {
 	rs_bum_thresh_t rs_bum_thresh[4]; /* MBSU, DMSU, PBSU, MCSU */
 } rs_settings_t;
 
-#include <asm/mach/monaco_su.h>
-
 extern rs_mask_su_t rs_active_mask;
 void rs_config_fatcm_segment(uint64_t base, const uint32_t **seg_lists);
 void rs_read_bum_counter(rs_type_e su_type, uint32_t su_id,
 			 rs_bum_cntr_t *bum_cnt);
 unsigned int rs_init(monaco_init_t *init_parms_ptr);
 
-#endif /* __MONACO_SU_CENTRIQ_H_INCLUDE__ */
+#endif /* __MONACO_H_INCLUDE__ */

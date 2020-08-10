@@ -1,5 +1,4 @@
-#include <target/arch.h>
-#include <target/byte_list.h>
+#include <target/noc.h>
 
 #ifndef __BAREMETAL__
 //#include <asm/mach/FabricStatusCode.h>

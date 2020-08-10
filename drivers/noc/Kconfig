@@ -15,6 +15,13 @@ if NCORE
 
 endif
 
+menuconfig MONACO
+	bool "Qualcomm MONACO ring interconnect support"
+
+if MONACO
+
+endif
+
 endmenu
 
 

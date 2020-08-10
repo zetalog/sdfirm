@@ -1,5 +1,14 @@
-#ifndef __MONACO_SU_QDF2400_H_INCLUDE__
-#define __MONACO_SU_QDF2400_H_INCLUDE__
+#ifndef __NOC_QDF2400_H_INCLUDE__
+#define __NOC_QDF2400_H_INCLUDE__
+
+#include <target/arch.h>
+
+#include <driver/monaco.h>
+#ifndef ARCH_HAVE_NOC
+#define ARCH_HAVE_NOC		1
+#else
+#error "Multiple NOC controller defined"
+#endif
 
 /****************************************************************************
  * Monaco Ring Switch Config Base Address
@@ -244,4 +253,4 @@ extern const rs_list_t su_hw_switch_lists[RS_CH_TOTAL_NUM];
 
 uint8_t su_get_linear_sid(uint8_t inst);
 
-#endif /* __MONACO_SU_QDF2400_H_INCLUDE__ */
+#endif /* __NOC_QDF2400_H_INCLUDE__ */

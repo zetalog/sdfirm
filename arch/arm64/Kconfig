@@ -33,6 +33,7 @@ config ARCH_QDF2400
 	select ARCH_HAS_IDLE
 	select ARCH_HAS_GPT
 	select ARCH_HAS_CLK
+	select ARCH_HAS_NOC
 	select GPIO_TLMM if GPIO
 	select UART_QUART if !ARM_DCC && (UART || DEBUG_PRINT || CONSOLE)
 	select MATH_GCD32
