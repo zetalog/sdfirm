@@ -313,6 +313,7 @@
 #define brom_hclk		sysfab_clk
 #define pcie_aux_clk		xo_clk
 #define pcie_aclk		sysfab_clk
+#define pcie_alt_ref_clk	pcie_clk
 #define sd_hclk			sysfab_half_clk
 
 /* CLK_OUTPUT: CLK_EN_CFG1 */
