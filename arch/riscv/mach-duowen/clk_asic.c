@@ -43,7 +43,7 @@
 
 struct select_clk {
 	clk_t clk_sels[2];
-	bool flags;
+	uint8_t flags;
 };
 
 struct select_clk select_clks[] = {
@@ -70,7 +70,7 @@ struct select_clk select_clks[] = {
 			ddr_clk_sel,
 			ddr_clk_sel_div4,
 		},
-		.flags = CLK_SEL_SRC_F,
+		.flags = CLK_HOMOLOG_SRC_F,
 	},
 #if 0
 	[SD_RX_TX_SEL] = {
@@ -108,9 +108,10 @@ static int enable_clk_sel(clk_clk_t clk)
 	if (!(select_clks[clk].flags & CLK_CLK_SEL_F)) {
 		clk_enable(select_clks[clk].clk_sels[0]);
 		crcntl_clk_select(clk);
-		if (select_clks[clk].flags & CLK_CLK_EN_F)
-			clk_disable(select_clks[clk].clk_sels[1]);
-		else
+		if (select_clks[clk].flags & CLK_CLK_EN_F) {
+			if (!(select_clks[clk].flags & CLK_HOMOLOG_SRC_F))
+				clk_disable(select_clks[clk].clk_sels[1]);
+		} else
 			select_clks[clk].flags |= CLK_CLK_EN_F;
 		select_clks[clk].flags |= CLK_CLK_SEL_F;
 	}
@@ -124,10 +125,10 @@ static void disable_clk_sel(clk_clk_t clk)
 	if (select_clks[clk].flags & CLK_CLK_SEL_F) {
 		clk_enable(select_clks[clk].clk_sels[1]);
 		crcntl_clk_deselect(clk);
-		if (select_clks[clk].flags & CLK_CLK_EN_F &&
-		    !(select_clks[clk].flags & CLK_SEL_SRC_F))
-			clk_disable(select_clks[clk].clk_sels[0]);
-		else
+		if (select_clks[clk].flags & CLK_CLK_EN_F) {
+			if (!(select_clks[clk].flags & CLK_HOMOLOG_SRC_F))
+				clk_disable(select_clks[clk].clk_sels[0]);
+		} else
 			select_clks[clk].flags |= CLK_CLK_EN_F;
 		select_clks[clk].flags &= ~CLK_CLK_SEL_F;
 	}

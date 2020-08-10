@@ -151,13 +151,10 @@ void ddr_hw_enable_speed(uint8_t speed)
 
 	ds = ddr_get_speed(speed);
 	if (ds) {
-		if (speed > DDR2_667) {
+		if (speed > DDR2_667)
 			clk_enable(ddr_clk);
-			clk_disable(ddr_bypass_pclk);
-		} else {
-			clk_disable(ddr_clk);
+		else
 			clk_enable(ddr_bypass_pclk);
-		}
 	}
 }
 #endif

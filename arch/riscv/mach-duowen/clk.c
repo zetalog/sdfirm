@@ -46,7 +46,7 @@
 struct output_clk {
 	clk_t clk_dep;
 	clk_t clk_src;
-	uint32_t flags;
+	uint8_t flags;
 };
 
 struct output_clk output_clks[] = {
@@ -225,9 +225,9 @@ struct output_clk output_clks[] = {
 		.flags = CLK_CR,
 	},
 	[DDR_BYPASS_PCLK] = {
-		.clk_dep = ddr_pclk,
+		.clk_dep = ddr_clk_div4_sel,
 		.clk_src = ddr_clk_sel,
-		.flags = CLK_C,
+		.flags = CLK_C | CLK_REVERSE_DEP_F,
 	},
 	[DDR_CLK] = {
 		.clk_dep = ddr_pclk,
@@ -780,8 +780,12 @@ static int enable_output_clk(clk_clk_t clk)
 	if (clk >= NR_OUTPUT_CLKS)
 		return -EINVAL;
 
-	if (output_clks[clk].clk_dep != invalid_clk)
-		clk_enable(output_clks[clk].clk_dep);
+	if (output_clks[clk].clk_dep != invalid_clk) {
+		if (output_clks[clk].flags & CLK_REVERSE_DEP_F)
+			clk_disable(output_clks[clk].clk_dep);
+		else
+			clk_enable(output_clks[clk].clk_dep);
+	}
 	if (output_clks[clk].clk_src != invalid_clk)
 		clk_enable(output_clks[clk].clk_src);
 	if (output_clks[clk].flags & CLK_CLK_EN_F)
@@ -796,8 +800,12 @@ static void disable_output_clk(clk_clk_t clk)
 	if (clk >= NR_OUTPUT_CLKS)
 		return;
 
-	if (output_clks[clk].clk_dep != invalid_clk)
-		clk_disable(output_clks[clk].clk_dep);
+	if (output_clks[clk].clk_dep != invalid_clk) {
+		if (output_clks[clk].flags & CLK_REVERSE_DEP_F)
+			clk_enable(output_clks[clk].clk_dep);
+		else
+			clk_disable(output_clks[clk].clk_dep);
+	}
 	if (output_clks[clk].clk_src != invalid_clk)
 		clk_disable(output_clks[clk].clk_src);
 	if (output_clks[clk].flags & CLK_SW_RST_F)

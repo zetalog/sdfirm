@@ -407,7 +407,8 @@
 #define CLK_CLK_SEL_F		_BV(0)
 #define CLK_CLK_EN_F		_BV(1)
 #define CLK_SW_RST_F		_BV(2)
-#define CLK_SEL_SRC_F		_BV(3) /* SEL_CLK uses same clock source */
+#define CLK_REVERSE_DEP_F	_BV(3)
+#define CLK_HOMOLOG_SRC_F	_BV(4)
 #define CLK_CR			(CLK_CLK_EN_F | CLK_SW_RST_F)
 #define CLK_C			CLK_CLK_EN_F
 #define CLK_R			CLK_SW_RST_F
