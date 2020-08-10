@@ -65,27 +65,20 @@ void ncore_init(void)
 		printf("Snoop filter number of sets: %d\n", ncore_sf_num_sets(i));
 	}
 	for (i = 0; i < NCORE_MAX_SUS; i++) {
-		if (i >= (ncore_su_t2i(NCORE_SU_CAIU) + nr_caius) &&
-		    i < ncore_su_t2i(NCORE_SU_NCBU))
-			continue;
-		if (i >= (ncore_su_t2i(NCORE_SU_NCBU) + nr_ncbus) &&
-		    i < ncore_su_t2i(NCORE_SU_DIRU))
-			continue;
-		if (i >= (ncore_su_t2i(NCORE_SU_DIRU) + nr_dirus) &&
-		    i < ncore_su_t2i(NCORE_SU_CMIU))
-			continue;
-		if (i >= (ncore_su_t2i(NCORE_SU_CMIU) + nr_cmius))
-			continue;
 		printf("SU %d implementation version: %d\n",
 		       ncore_su_i2t(i), ncore_su_impl_ver(i));
 		switch (ncore_su_i2t(i)) {
 		case NCORE_SU_CAIU:
+			if ((i - ncore_su_t2i(NCORE_SU_CAIU)) >= nr_caius)
+				continue;
 			printf("CAIU id: %d\n", ncore_caiu_id(i));
 			printf("CAIU type: %d\n", ncore_caiu_type(i));
 			printf("CAIU caching agent: %d\n", ncore_caiu_ca(i));
 			printf("CAIU snoop filter id: %d\n", ncore_caiu_sf_id(i));
 			break;
 		case NCORE_SU_NCBU:
+			if ((i - ncore_su_t2i(NCORE_SU_NCBU)) >= nr_ncbus)
+				continue;
 			printf("NCBU id: %d\n", ncore_ncbu_id(i));
 			printf("NCBU type: %d\n", ncore_ncbu_type(i));
 			printf("NCBU caching agent: %d\n", ncore_ncbu_ca(i));
@@ -97,8 +90,12 @@ void ncore_init(void)
 			       ncore_ncbu_pc_num_sets(i));
 			break;
 		case NCORE_SU_DIRU:
+			if ((i - ncore_su_t2i(NCORE_SU_DIRU)) >= nr_dirus)
+				continue;
 			break;
 		case NCORE_SU_CMIU:
+			if ((i - ncore_su_t2i(NCORE_SU_CMIU)) >= nr_cmius)
+				continue;
 			printf("CMIU id: %d\n", ncore_cmiu_id(i));
 			printf("CMIU hint capable: %d\n", ncore_cmiu_hnt_cap(i));
 			printf("CMIU CMC (coherent memory cache): %d\n", ncore_cmiu_cmc(i));
