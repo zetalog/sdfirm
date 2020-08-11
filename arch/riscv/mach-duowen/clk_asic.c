@@ -105,6 +105,7 @@ static int enable_clk_sel(clk_clk_t clk)
 {
 	if (clk >= NR_SELECT_CLKS)
 		return -EINVAL;
+	crcntl_trace(true, get_clk_sel_name(clk));
 	if (!(select_clks[clk].flags & CLK_CLK_SEL_F)) {
 		clk_enable(select_clks[clk].clk_sels[0]);
 		crcntl_clk_select(clk);
@@ -122,6 +123,7 @@ static void disable_clk_sel(clk_clk_t clk)
 {
 	if (clk >= NR_SELECT_CLKS)
 		return;
+	crcntl_trace(false, get_clk_sel_name(clk));
 	if (select_clks[clk].flags & CLK_CLK_SEL_F) {
 		clk_enable(select_clks[clk].clk_sels[1]);
 		crcntl_clk_deselect(clk);
@@ -255,6 +257,7 @@ static int enable_pll(clk_clk_t clk)
 {
 	if (clk >= NR_PLL_CLKS)
 		return -EINVAL;
+	crcntl_trace(true, get_pll_name(clk));
 	__enable_pll(clk);
 	return 0;
 }
@@ -263,6 +266,7 @@ static void disable_pll(clk_clk_t clk)
 {
 	if (clk >= NR_PLL_CLKS)
 		return;
+	crcntl_trace(false, get_pll_name(clk));
 	__disable_pll(clk);
 }
 
@@ -383,6 +387,7 @@ static int enable_vco(clk_clk_t clk)
 {
 	if (clk >= NR_VCO_CLKS)
 		return -EINVAL;
+	crcntl_trace(true, get_vco_name(clk));
 	__enable_vco(clk);
 	return 0;
 }
@@ -391,6 +396,7 @@ static void disable_vco(clk_clk_t clk)
 {
 	if (clk >= NR_VCO_CLKS)
 		return;
+	crcntl_trace(false, get_vco_name(clk));
 	__disable_vco(clk);
 }
 

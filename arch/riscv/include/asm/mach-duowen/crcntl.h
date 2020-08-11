@@ -170,7 +170,15 @@ void crcntl_clk_disable(clk_clk_t clk);
 bool crcntl_clk_selected(clk_clk_t clk);
 void crcntl_clk_select(clk_clk_t clk);
 void crcntl_clk_deselect(clk_clk_t clk);
-
+#ifdef CONFIG_CRCNTL_TRACE
+void crcntl_trace_enable(void);
+void crcntl_trace_disable(void);
+void crcntl_trace(bool enabling, const char *name);
+#else
+#define crcntl_trace_enable()		do { } while (0)
+#define crcntl_trace_disable()		do { } while (0)
+#define crcntl_trace(enabling, name)	do { } while (0)
+#endif
 void crcntl_init(void);
 
 #endif /* __CRCNTL_DUOWEN_H_INCLUDE__ */

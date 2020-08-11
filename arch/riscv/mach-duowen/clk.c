@@ -668,12 +668,22 @@ struct output_clk output_clks[] = {
 #ifdef CONFIG_CONSOLE_COMMAND
 const char *output_clk_names[] = {
 	/* 4.2 Cluster Clocks */
+#if 0
+	[CLUSTER0_CLK] = "cluster0_clk",
+	[CLUSTER1_CLK] = "cluster1_clk",
+	[CLUSTER2_CLK] = "cluster2_clk",
+	[CLUSTER3_CLK] = "cluster3_clk",
+#endif
 	[CLUSTER0_HCLK] = "cluster0_hclk",
 	[CLUSTER1_HCLK] = "cluster1_hclk",
 	[CLUSTER2_HCLK] = "cluster2_hclk",
 	[CLUSTER3_HCLK] = "cluster3_hclk",
 	/* 4.3 Coherence Fabric Clocks */
+#if 0
+	[COHFAB_CLK] = "cohfab_clk",
+#endif
 	[COHFAB_HCLK] = "cohfab_hclk",
+	[COHFAB_CFG_CLK] = "cohfab_cfg_clk",
 	/* 4.4 System Fabric Clocks */
 	[PLIC_HCLK] = "plic_hclk",
 	[TLMM_PCLK] = "tlmm_pclk",
@@ -681,11 +691,18 @@ const char *output_clk_names[] = {
 	[WDT0_PCLK] = "wdt0_pclk",
 	[WDT1_PCLK] = "wdt1_pclk",
 	/* 4.5 DMA Clocks */
+	[DMA_CLK] = "dma_clk",
 	[DMA_HCLK] = "dma_hclk",
 	/* 4.6 DDR Clocks */
+	[DDR_POR] = "ddr_por",
+	[DDR_ACLK] = "ddr_aclk",
+	[DDR_PCLK] = "ddr_pclk",
+	[DDR_BYPASS_PCLK] = "ddr_bypass_pclk",
 	[DDR_CLK] = "ddr_clk",
 	[DDR_BYPASS_PCLK] = "ddrp0_bypass_pclk",
 	/* 4.7 PCIE Clocks */
+	[PCIE_POR] = "pcie_por",
+	[PCIE_PCLK] = "pcie_pclk",
 	[PCIE_CLK] = "pcie_clk",
 	/* 4.8 Timer Clocks */
 	[TIMER0_RST] = "timer0_rst",
@@ -718,6 +735,8 @@ const char *output_clk_names[] = {
 	[TIMER2_8_CLK] = "timer2_8_clk",
 	[TIMER3_CLK] = "timer3_clk",
 	/* 4.9 SD Clocks */
+	[SD_BCLK] = "sd_bclk",
+	[SD_CCLK] = "sd_cclk",
 	[SD_CLK] = "sd_clk",
 	/* 4.10 UART Clocks */
 	[UART0_CLK] = "uart0_clk",
@@ -751,18 +770,12 @@ const char *output_clk_names[] = {
 	[I2C11_CLK] = "i2c11_clk",
 	/* 4.15 Thermal Sensor Clocks */
 	[TSENSOR_CLK] = "tsensor_clk",
-	/* Additional Resets */
-	[TIMER0_RST] = "timer0_rst",
-	[TIMER1_RST] = "timer1_rst",
-	[TIMER2_RST] = "timer2_rst",
-	[TIMER3_RST] = "timer3_rst",
 #if 0
 	[SYSFAB_DBG_CLK] = "sysfab_dbg_clk",
 	[SYSFAB_TIC_CLK] = "sysfab_tic_clk",
-	/* [TIC_CLK] = "tic_clk", */
+	[TIC_CLK] = "tic_clk",
 	[CORESIGHT_CLK] = "coresight_clk",
 #endif
-	/* Additional clocks */
 };
 
 static const char *get_output_clk_name(clk_clk_t clk)
@@ -780,6 +793,7 @@ static int enable_output_clk(clk_clk_t clk)
 	if (clk >= NR_OUTPUT_CLKS)
 		return -EINVAL;
 
+	crcntl_trace(true, get_output_clk_name(clk));
 	if (output_clks[clk].clk_dep != invalid_clk) {
 		if (output_clks[clk].flags & CLK_REVERSE_DEP_F)
 			clk_disable(output_clks[clk].clk_dep);
@@ -800,6 +814,7 @@ static void disable_output_clk(clk_clk_t clk)
 	if (clk >= NR_OUTPUT_CLKS)
 		return;
 
+	crcntl_trace(false, get_output_clk_name(clk));
 	if (output_clks[clk].clk_dep != invalid_clk) {
 		if (output_clks[clk].flags & CLK_REVERSE_DEP_F)
 			clk_enable(output_clks[clk].clk_dep);
@@ -907,6 +922,7 @@ static int enable_pll_div(clk_clk_t clk)
 {
 	if (clk >= NR_DIV_CLKS)
 		return -EINVAL;
+	crcntl_trace(true, get_pll_div_name(clk));
 	return clk_enable(div_clks[clk].src);
 }
 
@@ -914,6 +930,7 @@ static void disable_pll_div(clk_clk_t clk)
 {
 	if (clk >= NR_DIV_CLKS)
 		return;
+	crcntl_trace(false, get_pll_div_name(clk));
 	clk_disable(div_clks[clk].src);
 }
 

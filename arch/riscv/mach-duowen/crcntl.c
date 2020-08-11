@@ -143,6 +143,26 @@ void crcntl_clk_deselect(clk_clk_t clk)
 		__raw_setl(_BV(clk), CRCNTL_CLK_SEL_CFG);
 }
 
+#ifdef CONFIG_CRCNTL_TRACE
+bool crcntl_tracing;
+
+void crcntl_trace_enable(void)
+{
+	crcntl_tracing = true;
+}
+
+void crcntl_trace_disable(void)
+{
+	crcntl_tracing = false;
+}
+
+void cncntl_trace(bool enabling, const char *name)
+{
+	if (crcntl_tracing)
+		printf("%c %s\n", enabling ? 'E' : 'D', name);
+}
+#endif
+
 #ifdef CONFIG_MMU
 void clk_hw_mmu_init(void)
 {

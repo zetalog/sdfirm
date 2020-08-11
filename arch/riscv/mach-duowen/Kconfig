@@ -213,6 +213,10 @@ menuconfig CRCNTL
 
 if CRCNTL
 
+config CRCNTL_TRACE
+	bool "Enable clock tree enabling/disabling trace logs"
+	depends EXPERIMENTAL
+
 endif
 
 menuconfig DUOWEN_SPI_FLASH
