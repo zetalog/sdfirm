@@ -213,6 +213,11 @@ menuconfig CRCNTL
 
 if CRCNTL
 
+config CRCNTL_UNIFIED
+	bool "Enable unified PLL API support"
+	help
+	  Enabling this includes CFAB, APC PLL support in CRCNTL style.
+
 config CRCNTL_TRACE
 	bool "Enable clock tree enabling/disabling trace logs"
 	depends EXPERIMENTAL

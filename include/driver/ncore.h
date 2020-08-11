@@ -402,8 +402,16 @@
 #define ncore_sf_num_ways(n)		CS_NumWays(__raw_readl(CSSFIDR(n)))
 
 /* CSADSER/CSADSAR */
-#define ncore_dvm_enable(su)		__raw_setl(NCORE_SU_ID(su), CSADSER(su))
-#define ncore_dvm_disable(su)		__raw_clearl(NCORE_SU_ID(su), CSADSER(su))
+#define ncore_dvm_enable(su)				\
+	do {						\
+		uint32_t sid = NCORE_SU_ID(su);		\
+		__raw_setl(_BV(sid), CSADSER(su));	\
+	} while (0)
+#define ncore_dvm_disable(su)				\
+	do {						\
+		uint32_t sid = NCORE_SU_ID(su);		\
+		__raw_clearl(_BV(sid), CSADSER(su));	\
+	} while (0)
 #define ncore_dvm_active(su)		(__raw_readl(CSADSAR(su)) & _BV(NCORE_SU_ID(su)))
 
 /* CSCEISR/CSUEISR */
@@ -441,11 +449,19 @@
 	while (!(__raw_readl(SUMAR(su)) & SU_MntOpActv))
 
 /* DIRUSFER */
-#define ncore_diru_enable_sf(diru, su)		\
-	__raw_setl(NCORE_SU_ID(su), DIRUSFER(ncore_su_diru(diru)))
+#define ncore_diru_enable_sf(diru, su)				\
+	do {							\
+		uint32_t sid = NCORE_SU_ID(su);			\
+		__raw_setl(_BV(sid),				\
+			   DIRUSFER(ncore_su_diru(diru)));	\
+	} while (0)
 /* DIRUCASER */
-#define ncore_diru_enable_cas(diru, su)		\
-	__raw_setl(NCORE_SU_ID(su), DIRUCASER(ncore_su_diru(diru), su))
+#define ncore_diru_enable_cas(diru, su)				\
+	do {							\
+		uint32_t sid = NCORE_SU_ID(su);			\
+		__raw_setl(_BV(sid),				\
+			   DIRUCASER(ncore_su_diru(diru), su));	\
+	} while (0)
 /* DIRUCASAR */
 #define ncore_diru_cas_active(diru, su)		\
 	(__raw_readl(DIRUCASAR(ncore_su_diru(diru), su)) & _BV(NCORE_SU_ID(su)))

@@ -44,15 +44,32 @@
 
 caddr_t duowen_uart_reg_base = __DUOWEN_UART_BASE;
 caddr_t duowen_clk_reg_base = __DUOWEN_CLK_BASE;
+caddr_t duowen_cfab_clk_reg_base = __DUOWEN_CFAB_CLK_BASE;
+caddr_t duowen_apc_clk_reg_base[4] = {
+	__DUOWEN_APC_CLK_BASE(0),
+	__DUOWEN_APC_CLK_BASE(1),
+	__DUOWEN_APC_CLK_BASE(2),
+	__DUOWEN_APC_CLK_BASE(3),
+};
 
 void duowen_mmu_dump_maps(void)
 {
+	int i;
+
 	if (duowen_uart_reg_base != __DUOWEN_UART_BASE)
 		printf("FIXMAP: %016llx -> %016llx: UART\n",
 		       __DUOWEN_UART_BASE, fix_to_virt(FIX_UART));
 	if (duowen_clk_reg_base != __DUOWEN_CLK_BASE)
 		printf("FIXMAP: %016llx -> %016llx: CRCNTL\n",
 		       __DUOWEN_CLK_BASE, fix_to_virt(FIX_CRCNTL));
+	if (duowen_cfab_clk_reg_base != __DUOWEN_CFAB_CLK_BASE)
+		printf("FIXMAP: %016llx -> %016llx: CFAB\n",
+		       __DUOWEN_CFAB_CLK_BASE, fix_to_virt(FIX_CFAB));
+	for (i = 0; i < 4; i++) {
+		if (duowen_apc_clk_reg_base[i] != __DUOWEN_APC_CLK_BASE(i))
+			printf("FIXMAP: %016llx -> %016llx: APC%d\n",
+			       __DUOWEN_APC_CLK_BASE(i), fix_to_virt(FIX_APC0 + i), i);
+	}
 }
 
 void duowen_mmu_map_uart(int n)
@@ -65,8 +82,27 @@ void duowen_mmu_map_uart(int n)
 
 void duowen_mmu_map_clk(void)
 {
+	int i;
+
 	if (duowen_clk_reg_base == __DUOWEN_CLK_BASE) {
 		set_fixmap_io(FIX_CRCNTL, __DUOWEN_CLK_BASE & PAGE_MASK);
 		duowen_clk_reg_base = fix_to_virt(FIX_CRCNTL);
 	}
+	if (duowen_cfab_clk_reg_base == __DUOWEN_CFAB_CLK_BASE) {
+		set_fixmap_io(FIX_CFAB, __DUOWEN_CFAB_CLK_BASE & PAGE_MASK);
+		duowen_cfab_clk_reg_base = fix_to_virt(FIX_CFAB);
+	}
+	for (i = 0; i < 4; i++) {
+		if (duowen_apc_clk_reg_base[i] == __DUOWEN_APC_CLK_BASE(i)) {
+			set_fixmap_io(FIX_APC0 + i, __DUOWEN_APC_CLK_BASE(i) & PAGE_MASK);
+			duowen_apc_clk_reg_base[i] = fix_to_virt(FIX_APC0 + i);
+		}
+	}
+#ifdef CONFIG_CRCNTL_UNIFIED
+	for (i = 0; i < 4; i++)
+		duowen_pll_reg_base[i] = CRCNTL_PLL_REG(i, 0);
+	duowen_pll_reg_base[4] = COHFAB_PLL_REG(0);
+	for (i = 0; i < 4; i++)
+		duowen_pll_reg_base[5 + i] = CLUSTER_PLL_REG(i, 0);
+#endif
 }

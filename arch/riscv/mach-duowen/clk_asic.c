@@ -237,7 +237,7 @@ static void __enable_pll(clk_clk_t clk)
 {
 	if (!pll_clks[clk].enabled) {
 		clk_enable(pll_clks[clk].src);
-		crcntl_div_enable(clk,
+		duowen_div_enable(clk,
 				  clk_get_frequency(pll_clks[clk].src),
 				  pll_clks[clk].freq, false);
 		pll_clks[clk].enabled = true;
@@ -248,7 +248,7 @@ static void __disable_pll(clk_clk_t clk)
 {
 	if (pll_clks[clk].enabled) {
 		pll_clks[clk].enabled = false;
-		crcntl_div_disable(clk, false);
+		duowen_div_disable(clk, false);
 		clk_disable(pll_clks[clk].src);
 	}
 }
@@ -370,7 +370,7 @@ const char *get_vco_name(clk_clk_t clk)
 static void __enable_vco(clk_clk_t clk)
 {
 	if (!vco_clks[clk].enabled) {
-		crcntl_pll_enable(clk, vco_clks[clk].freq);
+		duowen_pll_enable(clk, vco_clks[clk].freq);
 		vco_clks[clk].enabled = true;
 	}
 }
@@ -379,7 +379,7 @@ static void __disable_vco(clk_clk_t clk)
 {
 	if (vco_clks[clk].enabled) {
 		vco_clks[clk].enabled = false;
-		crcntl_pll_disable(clk);
+		duowen_pll_disable(clk);
 	}
 }
 

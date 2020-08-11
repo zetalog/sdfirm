@@ -43,27 +43,44 @@
 #include <target/panic.h>
 
 /*===========================================================================
- * CRCNTL APIs
+ * DUOWEN unitified PLL (crcntl, cohfab, cluster) APIs
  *===========================================================================*/
-void crcntl_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val)
+#ifdef CONFIG_CRCNTL_UNIFIED
+phys_addr_t duowen_pll_reg_base[DUOWEN_MAX_PLLS] = {
+	__CRCNTL_PLL_REG(0, 0),
+	__CRCNTL_PLL_REG(1, 0),
+	__CRCNTL_PLL_REG(2, 0),
+	__CRCNTL_PLL_REG(3, 0),
+	__DUOWEN_CFAB_CLK_BASE,
+	__DUOWEN_APC_CLK_BASE(0),
+	__DUOWEN_APC_CLK_BASE(1),
+	__DUOWEN_APC_CLK_BASE(2),
+	__DUOWEN_APC_CLK_BASE(3),
+};
+#endif
+
+void duowen_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val)
 {
 	__raw_writel(PLL_REG_WRITE | PLL_REG_SEL(reg) | PLL_REG_WDATA(val),
-		     CRCNTL_PLL_REG_ACCESS(pll));
-	while (!(__raw_readl(CRCNTL_PLL_REG_ACCESS(pll)) & PLL_REG_IDLE));
+		     DW_PLL_REG_ACCESS(pll));
+	while (!(__raw_readl(DW_PLL_REG_ACCESS(pll)) & PLL_REG_IDLE));
 }
 
-uint8_t crcntl_pll_reg_read(uint8_t pll, uint8_t reg)
+uint8_t duowen_pll_reg_read(uint8_t pll, uint8_t reg)
 {
 	uint32_t val;
 
 	__raw_writel(PLL_REG_READ | PLL_REG_SEL(reg),
-		     CRCNTL_PLL_REG_ACCESS(pll));
+		     DW_PLL_REG_ACCESS(pll));
 	do {
-		val = __raw_readl(CRCNTL_PLL_REG_ACCESS(pll));
+		val = __raw_readl(DW_PLL_REG_ACCESS(pll));
 	} while (val & PLL_REG_IDLE);
 	return PLL_REG_RDATA(val);
 }
 
+/*===========================================================================
+ * CRCNTL APIs
+ *===========================================================================*/
 bool crcntl_clk_asserted(clk_clk_t clk)
 {
 	uint8_t n, bit;
