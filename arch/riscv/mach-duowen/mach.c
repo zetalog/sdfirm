@@ -83,7 +83,7 @@ void board_early_init(void)
 void board_late_init(void)
 {
 #ifdef CONFIG_DUOWEN_NOC
-	ncore_init();
+	duowen_imc_noc_init();
 #endif
 }
 

@@ -40,8 +40,9 @@
  */
 
 #include <target/noc.h>
+#include <target/arch.h>
 
-void ncore_init(void)
+void ncore_discover(void)
 {
 	uint8_t nr_mems, i;
 	uint8_t nr_caius, nr_ncbus, nr_dirus, nr_cmius;
@@ -55,15 +56,17 @@ void ncore_init(void)
 	printf("Release version: %d\n", ncore_release_version());
 	printf("Directory cacheline offset: %d\n", ncore_dir_cacheline_offset());
 	printf("Number of memory regions: %d\n", nr_mems);
-	printf("Number of CAIU: %d\n", nr_caius);
-	printf("Number of NCBU: %d\n", nr_ncbus);
-	printf("Number of DIRU: %d\n", nr_dirus);
-	printf("Number of CMIU: %d\n", nr_cmius);
 	for (i = 0; i < nr_mems; i++) {
 		printf("Snoop filter type: %d\n", ncore_sf_type(i));
 		printf("Snoop filter number of ways: %d\n", ncore_sf_num_ways(i));
 		printf("Snoop filter number of sets: %d\n", ncore_sf_num_sets(i));
 	}
+
+	printf("Number of CAIU: %d\n", nr_caius);
+	printf("Number of NCBU: %d\n", nr_ncbus);
+	printf("Number of DIRU: %d\n", nr_dirus);
+	printf("Number of CMIU: %d\n", nr_cmius);
+
 	for (i = 0; i < NCORE_MAX_SUS; i++) {
 		printf("SU %d implementation version: %d\n",
 		       ncore_su_i2t(i), ncore_su_impl_ver(i));
@@ -108,5 +111,51 @@ void ncore_init(void)
 			}
 			break;
 		}
+	}
+}
+
+void ncore_init(uint8_t ncais, uint8_t nncbs, uint8_t ndirs, uint8_t ncmis)
+{
+	uint8_t i, j;
+
+	/* 6.1.1 Directory Initialization */
+	for (i = 0; i < ndirs; i++) {
+		/* Intiialize snoop filters */
+		for (j = 0; j < ncais; j++)
+			ncore_su_mnt_init_all(ncore_su_diru(i), j);
+		ncore_su_mnt_wait_active(ncore_su_diru(i));
+		/* Enable snoop filters */
+		for (j = 0; j < ncais; j++)
+			ncore_diru_enable_sf(i, j);
+	}
+	/* 6.1.2 Coherent Memory Interface Initialization */
+	for (i = 0; i < ncmis; i++) {
+		/* Initialize coherent memory caches */
+		ncore_su_mnt_init_all(ncore_su_cmiu(i), 0);
+		ncore_su_mnt_wait_active(ncore_su_cmiu(i));
+		/* Enable coherent memory lookups */
+		__raw_setl(CMIUCMC_LookupEn, CMIUCMCTCR(ncore_su_cmiu(i)));
+		/* Enable coherent memory fills */
+		__raw_setl(CMIUCMC_FillEn, CMIUCMCTCR(ncore_su_cmiu(i)));
+	}
+	/* 6.1.3 Non-coherent Bridge Initialization */
+	for (i = 0; i < nncbs; i++) {
+		/* Initialize proxy caches */
+		ncore_su_mnt_init_all(ncore_su_ncbu(i), 0);
+		ncore_su_mnt_wait_active(ncore_su_ncbu(i));
+		/* Enable proxy cache lookups */
+		__raw_setl(NCBUPC_LookupEn, NCBUPCTCR(ncore_su_ncbu(i)));
+		/* Enable snoop messages */
+		for (j = 0; j < ndirs; j++)
+			ncore_diru_enable_cas(j, ncore_su_ncbu(i));
+		/* Enable proxy cache fills */
+		__raw_setl(NCBUPC_FillEn, NCBUPCTCR(ncore_su_ncbu(i)));
+		/* TODO: Set allocation policy */
+	}
+	/* 6.1.4 Coherent Agent Interface Initialization */
+	for (i = 0; i < ndirs; i++) {
+		/* Enable snoop messages */
+		for (j = 0; j < ncais; j++)
+			ncore_diru_enable_cas(i, ncore_su_caiu(j));
 	}
 }

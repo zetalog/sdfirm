@@ -45,6 +45,7 @@
 #include <target/irq.h>
 #include <target/delay.h>
 #include <target/ras.h>
+#include <target/noc.h>
 
 static void duowen_modify_dt(void *fdt)
 {
@@ -67,6 +68,10 @@ static void duowen_pma_init(void)
 
 static int duowen_early_init(bool cold_boot)
 {
+#ifdef CONFIG_DUOWEN_NOC
+	duowen_apc_noc_init();
+#endif
+
 	vaisra_cpu_init();
 
 	if (!cold_boot)

@@ -53,6 +53,10 @@
 #define NCORE_SU_CMIU			6
 #define ncore_su_t2i(type)		((type) << 5)
 #define ncore_su_i2t(id)		((id) >> 5)
+#define ncore_su_caiu(n)		(ncore_su_t2i(NCORE_SU_CAIU) + (n))
+#define ncore_su_ncbu(n)		(ncore_su_t2i(NCORE_SU_NCBU) + (n))
+#define ncore_su_diru(n)		(ncore_su_t2i(NCORE_SU_DIRU) + (n))
+#define ncore_su_cmiu(n)		(ncore_su_t2i(NCORE_SU_CMIU) + (n))
 #define NCORE_MAX_SUS			224
 #define NCORE_CAIU(n)			NCORE_SU(ncore_su_t2i(NCORE_SU_CAIU) + (n))
 #define NCORE_NCBU(n)			NCORE_SU(ncore_su_t2i(NCORE_SU_NCBU) + (n))
@@ -156,16 +160,19 @@
  */
 #define SU_MntOp_OFFSET			0
 #define SU_MntOp_MASK			REG_4BIT_MASK
-#define SU_MntOp(value)			_SET_FV(SU_PcMntOp)
+#define SU_MntOp(value)			_SET_FV(SU_MntOp, value)
 #define SU_MntOp_InitAll		0x0
 #define SU_MntOp_FlushAll		0x4
 #define SU_MntOp_FlushSetWay		0x5
 #define SU_MntOp_FlushAddr		0x6
-#define SU_MntSfId_OFFSET		16
-#define SU_MntSfId_MASK			REG_5BIT_MASK
-#define SU_MntSfId(value)		_SET_FV(SU_MntSfId, value)
-#define SU_MntArrId			_BV(16)
+#define SU_MntId_OFFSET			16
+#define SU_MntId_MASK			REG_5BIT_MASK
+#define SU_MntId(value)			_SET_FV(SU_MntId, value)
 #define SU_MntSecAttr			_BV(21)
+#define DIRU_MntOp_FlushAllVictim	0x8
+/* Identification varies from different Us */
+#define NCBU_MntArrId			_BV(16)
+#define CMIU_MntArrId			_BV(16)
 /* NCBUPCMAR Proxy Cache Maintenance Activity Register
  * DIRUSFMAR Snoop Filter Maintenance Activity Register
  * CMIUCMCMAR Coherent Memory Cache Maintenace Activity Register
@@ -302,12 +309,12 @@
 #define CMIU_TransActv			_BV(0)
 
 /* CMIUCMCTCR Coherent Memory Cache Transaction Control Register */
-#define CMIUCM_LookupEn			_BV(0)
-#define CMIUCM_FillEn			_BV(1)
+#define CMIUCMC_LookupEn		_BV(0)
+#define CMIUCMC_FillEn			_BV(1)
 
 /* CMIUCMCTAR Coherent Memory Cache Transaction Activity Register */
-#define CMIUCM_EvictActv		_BV(0)
-#define CMIUCM_FillActv			_BV(1)
+#define CMIUCMC_EvictActv		_BV(0)
+#define CMIUCMC_FillActv		_BV(1)
 
 /* CMIUCMCIDR Coherent Memory Cache Identification Register */
 #define CMIUCMC_NumSets_OFFSET		0
@@ -397,11 +404,11 @@
 /* CSADSER/CSADSAR */
 #define ncore_dvm_enable(su)		__raw_setl(NCORE_SU_ID(su), CSADSER(su))
 #define ncore_dvm_disable(su)		__raw_clearl(NCORE_SU_ID(su), CSADSER(su))
-#define ncore_dvm_active(su)		(__raw_readl(CSADSAR(su)) & NCORE_SU_ID(su))
+#define ncore_dvm_active(su)		(__raw_readl(CSADSAR(su)) & _BV(NCORE_SU_ID(su)))
 
 /* CSCEISR/CSUEISR */
-#define ncore_ce_irq_status(su)		(__raw_readl(CSCEISR(su)) & NCORE_SU_ID(su))
-#define ncore_ue_irq_status(su)		(__raw_readl(CSUEISR(su)) & NCORE_SU_ID(su))
+#define ncore_ce_irq_status(su)		(__raw_readl(CSCEISR(su)) & _BV(NCORE_SU_ID(su)))
+#define ncore_ue_irq_status(su)		(__raw_readl(CSUEISR(su)) & _BV(NCORE_SU_ID(su)))
 
 /* SUIDR */
 #define ncore_su_impl_ver(su)		SU_ImplVer(__raw_readl(SUIDR(su)))
@@ -425,6 +432,28 @@
 #define ncore_cmiu_cmc_num_sets(su)	CMIUCMC_NumSets(__raw_readl(CMIUCMCIDR(su)))
 #define ncore_cmiu_cmc_num_ways(su)	CMIUCMC_NumWays(__raw_readl(CMIUCMCIDR(su)))
 
-void ncore_init(void);
+/* SUMCR/SUMAR/SUMLR */
+#define ncore_su_mnt_init_all(su, id)		\
+	__raw_writel(SU_MntOp(SU_MntOp_InitAll) | SU_MntId(id), SUMCR(su))
+#define ncore_su_mnt_flush_all(su, id)		\
+	__raw_writel(SU_MntOp(SU_MntOp_FlushAll) | SU_MntId(id), SUMCR(su))
+#define ncore_su_mnt_wait_active(su)		\
+	while (!(__raw_readl(SUMAR(su)) & SU_MntOpActv))
+
+/* DIRUSFER */
+#define ncore_diru_enable_sf(diru, su)		\
+	__raw_setl(NCORE_SU_ID(su), DIRUSFER(ncore_su_diru(diru)))
+/* DIRUCASER */
+#define ncore_diru_enable_cas(diru, su)		\
+	__raw_setl(NCORE_SU_ID(su), DIRUCASER(ncore_su_diru(diru), su))
+/* DIRUCASAR */
+#define ncore_diru_cas_active(diru, su)		\
+	(__raw_readl(DIRUCASAR(ncore_su_diru(diru), su)) & _BV(NCORE_SU_ID(su)))
+
+#ifdef CONFIG_NCORE
+void ncore_init(uint8_t ncais, uint8_t nncbs, uint8_t ndirs, uint8_t ncmis);
+#else
+#define ncore_init(ncais, nncbs, ndirs, ncmis)	do { } while (0)
+#endif
 
 #endif /* __NCORE_NOC_H_INCLUDE__ */

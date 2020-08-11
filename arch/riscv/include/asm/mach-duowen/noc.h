@@ -52,4 +52,17 @@
 #error "Multiple NOC controller defined"
 #endif
 
+#define MAX_DDR_SEGMENTS	2
+
+#define noc_hw_ctrl_init()	\
+	ncore_init(MAX_CPU_CLUSTERS, 0, MAX_DDR_SEGMENTS, MAX_DDR_SEGMENTS)
+
+#ifdef CONFIG_DUOWEN_BOOT_APC
+#define duowen_imc_noc_init()	do { } while (0)
+#define duowen_apc_noc_init()	noc_hw_ctrl_init()
+#else
+#define duowen_imc_noc_init()	noc_hw_ctrl_init()
+#define duowen_apc_noc_init()	do { } while (0)
+#endif
+
 #endif /* __NOC_DUOWEN_H_INCLUDE__ */
