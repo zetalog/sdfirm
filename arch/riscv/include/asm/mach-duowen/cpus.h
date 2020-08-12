@@ -62,9 +62,9 @@
 #endif
 #ifdef CONFIG_DUOWEN_FPGA
 #ifdef CONFIG_DUOWEN_FPGA_SMP
-#define MAX_CPU_CLUSTERS	1
-#else
 #define MAX_CPU_CLUSTERS	3
+#else
+#define MAX_CPU_CLUSTERS	1
 #endif
 #endif
 

@@ -68,12 +68,12 @@ static void duowen_pma_init(void)
 
 static int duowen_early_init(bool cold_boot)
 {
-	duowen_apc_noc_init();
 	vaisra_cpu_init();
 
 	if (!cold_boot)
 		return 0;
 
+	duowen_apc_noc_init();
 	duowen_pma_init();
 	board_init_timestamp();
 	return 0;

@@ -446,7 +446,7 @@
 #define ncore_su_mnt_flush_all(su, id)		\
 	__raw_writel(SU_MntOp(SU_MntOp_FlushAll) | SU_MntId(id), SUMCR(su))
 #define ncore_su_mnt_wait_active(su)		\
-	while (!(__raw_readl(SUMAR(su)) & SU_MntOpActv))
+	while (__raw_readl(SUMAR(su)) & SU_MntOpActv)
 
 /* DIRUSFER */
 #define ncore_diru_enable_sf(diru, su)				\

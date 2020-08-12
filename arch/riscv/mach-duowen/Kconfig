@@ -187,6 +187,7 @@ menuconfig DUOWEN_NOC
 	bool "Duowen network on chip (NoC) support"
 	depends !DUOWEN_ZSBL
 	select NCORE
+	select DUOWEN_FPGA_APC_SMP if (DUOWEN_FPGA && SMP && DUOWEN_APC)
 	help
 	  NoC driver is required by FSBL or BBL before booting into Linux.
 
