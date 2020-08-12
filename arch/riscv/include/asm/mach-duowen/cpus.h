@@ -57,4 +57,15 @@
 #endif /* CONFIG_SMP */
 #endif
 
+#ifdef CONFIG_DUOWEN_ASIC
+#define MAX_CPU_CLUSTERS	4
+#endif
+#ifdef CONFIG_DUOWEN_FPGA
+#ifdef CONFIG_DUOWEN_FPGA_SMP
+#define MAX_CPU_CLUSTERS	1
+#else
+#define MAX_CPU_CLUSTERS	3
+#endif
+#endif
+
 #endif /* __CPUS_DUOWEN_H_INCLUDE__ */

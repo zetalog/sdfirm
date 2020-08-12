@@ -116,7 +116,8 @@ void ncore_discover(void)
 
 void ncore_init(uint8_t ncais, uint8_t nncbs, uint8_t ndirs, uint8_t ncmis)
 {
-	uint8_t i, j;
+	uint8_t i, j, k;
+	uint32_t su_mask;
 
 	/* 6.1.1 Directory Initialization */
 	for (i = 0; i < ndirs; i++) {
@@ -125,29 +126,39 @@ void ncore_init(uint8_t ncais, uint8_t nncbs, uint8_t ndirs, uint8_t ncmis)
 			ncore_su_mnt_init_all(ncore_su_diru(i), j);
 		ncore_su_mnt_wait_active(ncore_su_diru(i));
 		/* Enable snoop filters */
+		su_mask = 0;
 		for (j = 0; j < ncais; j++)
-			ncore_diru_enable_sf(i, j);
+			su_mask |= _BV(j);
+		ncore_diru_enable_sfs(i, su_mask);
 	}
 	/* 6.1.2 Coherent Memory Interface Initialization */
 	for (i = 0; i < ncmis; i++) {
 		/* Initialize coherent memory caches */
 		ncore_su_mnt_init_all(ncore_su_cmiu(i), 0);
 		ncore_su_mnt_wait_active(ncore_su_cmiu(i));
-		/* Enable coherent memory lookups */
-		__raw_setl(CMIUCMC_LookupEn, CMIUCMCTCR(ncore_su_cmiu(i)));
-		/* Enable coherent memory fills */
-		__raw_setl(CMIUCMC_FillEn, CMIUCMCTCR(ncore_su_cmiu(i)));
+		/* Enable coherent memory lookups
+		 * Enable coherent memory fills
+		 */
+		__raw_writel(CMIUCMC_LookupEn | CMIUCMC_FillEn,
+			     CMIUCMCTCR(ncore_su_cmiu(i)));
 	}
 	/* 6.1.3 Non-coherent Bridge Initialization */
+	su_mask = 0;
 	for (i = 0; i < nncbs; i++) {
 		/* Initialize proxy caches */
 		ncore_su_mnt_init_all(ncore_su_ncbu(i), 0);
 		ncore_su_mnt_wait_active(ncore_su_ncbu(i));
 		/* Enable proxy cache lookups */
-		__raw_setl(NCBUPC_LookupEn, NCBUPCTCR(ncore_su_ncbu(i)));
+		__raw_writel(NCBUPC_LookupEn, NCBUPCTCR(ncore_su_ncbu(i)));
+		su_mask |= _BV(i);
+	}
+	if (su_mask) {
 		/* Enable snoop messages */
 		for (j = 0; j < ndirs; j++)
-			ncore_diru_enable_cas(j, ncore_su_ncbu(i));
+			ncore_diru_enable_cas_group(j, NCORE_SU_NCBU,
+						    su_mask);
+	}
+	for (i = 0; i < nncbs; i++) {
 		/* Enable proxy cache fills */
 		__raw_setl(NCBUPC_FillEn, NCBUPCTCR(ncore_su_ncbu(i)));
 		/* TODO: Set allocation policy */
@@ -155,7 +166,17 @@ void ncore_init(uint8_t ncais, uint8_t nncbs, uint8_t ndirs, uint8_t ncmis)
 	/* 6.1.4 Coherent Agent Interface Initialization */
 	for (i = 0; i < ndirs; i++) {
 		/* Enable snoop messages */
-		for (j = 0; j < ncais; j++)
-			ncore_diru_enable_cas(i, ncore_su_caiu(j));
+		k = (ncais + 31) / 32;
+		for (k = 0; k < ((ncais + 31) / 32); k++) {
+			if (ncais >= ((k + 1) * 32)) {
+				ncore_diru_enable_cas_group(j, k,
+							    0xFFFFFFFF);
+			} else {
+				su_mask = 0;
+				for (j = 0; j < (ncais - (k * 32)); j++)
+					su_mask |= _BV(j);
+				ncore_diru_enable_cas_group(i, k, su_mask);
+			}
+		}
 	}
 }

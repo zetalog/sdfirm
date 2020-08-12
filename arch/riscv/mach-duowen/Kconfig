@@ -67,6 +67,7 @@ config DUOWEN_FSBL
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select DUOWEN_DDR
+	select DUOWEN_NOC
 	select DUOWEN_SPI_FLASH
 	select DUOWEN_SSI_FLASH
 
@@ -81,6 +82,7 @@ config DUOWEN_BBL
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select SYS_EXIT_S if SIMULATION
+	select DUOWEN_NOC if DUOWEN_FPGA
 	select SBI
 	select SBI_PAYLOAD if !SIMULATION
 	select DUOWEN_SPI_FLASH
@@ -167,6 +169,11 @@ config DUOWEN_FPGA_DDR_MODEL
 	bool "Enable DDR model in VCS environment"
 	depends DUOWEN_FPGA && SIMULATION
 
+config DUOWEN_FPGA_APC_SMP
+	bool "Enable FGPA SMP environment"
+	depends DUOWEN_FPGA
+	depends DUOWEN_IMC || (DUOWEN_APC && SMP)
+
 menuconfig DUOWEN_MSG
 	bool "Duowen shared message support"
 	depends SIMULATION
@@ -174,12 +181,14 @@ menuconfig DUOWEN_MSG
 	  This hardware can only be found in testbench, mostly be used to
 	  drive tests and UVM sequences.
 
-menuconfig DUOWEN_NOC
-	bool "Duowen network on chip (NoC) test driver support"
-	depends SIMULATION
-	select NCORE
-
 endmenu
+
+menuconfig DUOWEN_NOC
+	bool "Duowen network on chip (NoC) support"
+	depends !DUOWEN_ZSBL
+	select NCORE
+	help
+	  NoC driver is required by FSBL or BBL before booting into Linux.
 
 menuconfig DUOWEN_UART
 	bool "Duowen UART controller support"

@@ -54,10 +54,14 @@
 
 #define MAX_DDR_SEGMENTS	2
 
+#ifdef CONFIG_DUOWEN_NOC
 #define noc_hw_ctrl_init()	\
 	ncore_init(MAX_CPU_CLUSTERS, 0, MAX_DDR_SEGMENTS, MAX_DDR_SEGMENTS)
+#else
+#define noc_hw_ctrl_init()	do { } while (0)
+#endif
 
-#ifdef CONFIG_DUOWEN_BOOT_APC
+#ifdef CONFIG_DUOWEN_APC
 #define duowen_imc_noc_init()	do { } while (0)
 #define duowen_apc_noc_init()	noc_hw_ctrl_init()
 #else

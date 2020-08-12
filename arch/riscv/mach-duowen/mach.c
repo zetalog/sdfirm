@@ -82,9 +82,10 @@ void board_early_init(void)
 
 void board_late_init(void)
 {
-#ifdef CONFIG_DUOWEN_NOC
+	/* TODO: DDR/CFAB/APC AXI clocks need to be enabled before
+	 *       initializing NoC.
+	 */
 	duowen_imc_noc_init();
-#endif
 }
 
 static int do_duowen_shutdown(int argc, char *argv[])

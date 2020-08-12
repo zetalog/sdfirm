@@ -455,6 +455,8 @@
 		__raw_setl(_BV(sid),				\
 			   DIRUSFER(ncore_su_diru(diru)));	\
 	} while (0)
+#define ncore_diru_enable_sfs(diru, sus)			\
+	__raw_writel((su_mask), DIRUSFER(ncore_su_diru(diru)))
 /* DIRUCASER */
 #define ncore_diru_enable_cas(diru, su)				\
 	do {							\
@@ -462,8 +464,10 @@
 		__raw_setl(_BV(sid),				\
 			   DIRUCASER(ncore_su_diru(diru), su));	\
 	} while (0)
+#define ncore_diru_enable_cas_group(diru, casg, su_mask)	\
+	__raw_writel((su_mask), DIRUCASER(ncore_su_diru(diru), (casg)))
 /* DIRUCASAR */
-#define ncore_diru_cas_active(diru, su)		\
+#define ncore_diru_cas_active(diru, su)				\
 	(__raw_readl(DIRUCASAR(ncore_su_diru(diru), su)) & _BV(NCORE_SU_ID(su)))
 
 #ifdef CONFIG_NCORE
