@@ -311,10 +311,15 @@
 #define imc_clk			sysfab_clk
 #define ram_aclk		sysfab_clk
 #define brom_hclk		sysfab_clk
+#define sd_hclk			sysfab_half_clk
+/* clocke/reset alias required by DDR/PCIe drivers */
+#define ddr_arst		ddr_aclk
+#define ddr_prst		ddr_pclk
+#define ddr_rst			ddr_clk
 #define pcie_aux_clk		xo_clk
 #define pcie_aclk		sysfab_clk
 #define pcie_alt_ref_clk	pcie_clk
-#define sd_hclk			sysfab_half_clk
+#define pcie_rst		pcie_alt_ref_clk
 
 /* CLK_OUTPUT: CLK_EN_CFG1 */
 /* Internal bus clocks */
