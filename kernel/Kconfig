@@ -710,7 +710,7 @@ config GPIO
 config ARCH_HAS_CLK
 	bool
 
-config CLK
+menuconfig CLK
 	bool "Clock tree framework support"
 	select STRING_STRTOUL
 

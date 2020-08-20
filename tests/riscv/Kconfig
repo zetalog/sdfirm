@@ -1,4 +1,6 @@
 
+menu "RISCV system tests"
+
 menuconfig TESTS_RISCV
 	bool "RISC-V ISA compliance"
 	depends RISCV
@@ -36,3 +38,5 @@ config TESTS_RV64UC
 	select RISCV_C
 
 endif
+
+endmenu

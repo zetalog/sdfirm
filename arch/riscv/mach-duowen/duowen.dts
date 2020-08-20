@@ -9,8 +9,11 @@
 	model = "riscv-smarco,duowen";
 
 	chosen {
+		bootargs = "console=hvc0 earlycon=sbi"
+#if 0
 		bootargs = [00];
 		stdout-path = "/uart@ff63000000";
+#endif
 	};
 
 	uart@ff63000000 {
