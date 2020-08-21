@@ -51,8 +51,14 @@
 #endif
 
 #define PLIC_HW_PRI_MAX		31
-#define plic_hw_m_ctx(hartid)	(2 * (hartid))
-#define plic_hw_s_ctx(hartid)	((hartid) < 16 ? (2 * (hartid) + 1) : PLIC_CTX_NONE)
+#ifdef CONFIG_DUOWEN_IMC
+#define plic_hw_m_ctx(hartid)	16
+#define plic_hw_s_ctx(hartid)	32
+#endif
+#ifdef CONFIG_DUOWEN_APC
+#define plic_hw_m_ctx(hartid)	(hartid)
+#define plic_hw_s_ctx(hartid)	((hartid) + 16)
+#endif
 
 #include <asm/ri5cy_firq.h>
 #include <asm/plic.h>
