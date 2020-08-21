@@ -56,6 +56,9 @@
 #include <driver/dw_umctl2.h>
 
 #define NR_DDR_SPEEDS		(DDR4_3200 + 1)
+#define ddr_por			ddr0_pwr_ok_in
+#define ddr_prst		ddr0_prst_n
+#define ddr_arst		ddr0_arst_n
 
 #ifdef CONFIG_DPU_DDR
 clk_freq_t ddr_get_fvco(int speed);
@@ -64,6 +67,7 @@ clk_freq_t ddr_get_frclk(int speed);
 
 /* DDR frequency plans */
 #define ddr_hw_ctrl_init()	dw_umctl2_init()
+#define ddr_hw_ctrl_start()	dw_umctl2_start()
 void ddr_hw_config_speed(uint8_t speed);
 void ddr_hw_enable_speed(uint8_t speed);
 void ddr_hw_wait_dfi(uint32_t cycles);
