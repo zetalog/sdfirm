@@ -62,7 +62,7 @@
 #ifdef CONFIG_DUOWEN_DDR
 /* DDR frequency plans */
 #define ddr_hw_ctrl_init()	dw_umctl2_init()
-#define ddr_hw_ctrl_start	dw_umctl2_start()
+#define ddr_hw_ctrl_start()	dw_umctl2_start()
 void ddr_hw_config_speed(uint8_t speed);
 void ddr_hw_enable_speed(uint8_t speed);
 void ddr_hw_wait_dfi(uint32_t cycles);
