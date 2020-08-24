@@ -25,8 +25,8 @@
 #include <time.h>
 
 typedef long int		intmax_t;
-#define malloc(sz)		heap_alloc(sz)
-#define free(ptr)		heap_free(ptr)
+#define malloc(sz)		(void *)heap_alloc(sz)
+#define free(ptr)		heap_free((caddr_t)ptr)
 #ifdef CONFIG_TEST_VERBOSE
 #define fprintf(f, ...)		printf(__VA_ARGS__)
 #define vfprintf(f, fmt, args)	vprintf(fmt, args)

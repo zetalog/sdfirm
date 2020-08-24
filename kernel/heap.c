@@ -65,7 +65,7 @@ void heap_range_init(caddr_t start_addr)
 	__heap_start = ALIGN(start_addr, HEAP_ALIGN);
 }
 
-#ifndef CONFIG_HEAP_PAGE
+#ifdef CONFIG_HEAP_PAGE
 static int heap_page_nr(void)
 {
 	return ALIGN_UP(CONFIG_HEAP_SIZE, PAGE_SIZE) / PAGE_SIZE;

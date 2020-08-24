@@ -95,18 +95,6 @@ Enumeration Func_1 (Capital_Letter Ch_1_Par_Val,
 Boolean Func_2 (Str_30 Str_1_Par_Ref, Str_30 Str_2_Par_Ref);
 Boolean Func_3 (Enumeration Enum_Par_Val);
 
-/* Using the current memcpy causes unaligned accesses for the first two
- * strcpy invocations.
- */
-char *mystrcpy(char *dest, const char *src)
-{
-	char *tmp = dest;
-
-	while ((*dest++ = *src++) != '\0')
-		/* nothing */;
-	return tmp;
-}
-
   /* forward declaration necessary since Enumeration may not simply be int */
 
 #include "dhry_1.c"
@@ -181,9 +169,9 @@ int dhrystone (caddr_t percpu_area)
   Ptr_Glob->Discr                       = Ident_1;
   Ptr_Glob->variant.var_1.Enum_Comp     = Ident_3;
   Ptr_Glob->variant.var_1.Int_Comp      = 40;
-  mystrcpy (Ptr_Glob->variant.var_1.Str_Comp,
+  strcpy (Ptr_Glob->variant.var_1.Str_Comp,
           "DHRYSTONE PROGRAM, SOME STRING");
-  mystrcpy (Str_1_Loc, "DHRYSTONE PROGRAM, 1'ST STRING");
+  strcpy (Str_1_Loc, "DHRYSTONE PROGRAM, 1'ST STRING");
 
   Arr_2_Glob [8][7] = 10-DHRYSTONE_WARMUP_RUNS;
         /* Was missing in published program. Without this statement,   */

@@ -42,6 +42,9 @@
 #include <target/panic.h>
 #include <target/heap.h>
 #include <target/cmdline.h>
+#include <target/spinlock.h>
+
+DEFINE_SPINLOCK(heap_lock);
 
 /* The following macros are only invoked with (2n+1)-multiples of
  * heap_size_t units, with a positive integer n. This is exploited for
@@ -1150,7 +1153,7 @@ static void heap_extend_top(heap_size_t nb)
  * previously allocated and still in-use chunk, or the base of its memory
  * arena.)
  */
-caddr_t heap_alloc(heap_size_t bytes)
+static caddr_t __heap_alloc(heap_size_t bytes)
 {
 	struct heap_chunk *victim;
 	heap_size_t victim_size;
@@ -1332,7 +1335,7 @@ caddr_t heap_alloc(heap_size_t bytes)
  *    corresponding bins. (This includes the case of consolidating with the
  *    current 'heap_last_chunk').
  */
-void heap_free(caddr_t mem)
+static void __heap_free(caddr_t mem)
 {
 	struct heap_chunk *p;
 	heap_size_t hd;
@@ -1434,7 +1437,7 @@ void heap_free(caddr_t mem)
  * allowing it would also allow too many other incorrect usages of realloc
  * to be sensible.
  */
-caddr_t heap_realloc(caddr_t oldmem, heap_size_t bytes)
+static caddr_t __heap_realloc(caddr_t oldmem, heap_size_t bytes)
 {
 	heap_size_t nb;
 	struct heap_chunk *oldp;
@@ -1452,7 +1455,7 @@ caddr_t heap_realloc(caddr_t oldmem, heap_size_t bytes)
 	heap_offset_t remainder_size;
 
 	/* realloc of null is supposed to be same as malloc */
-	if (oldmem == 0) return heap_alloc(bytes);
+	if (oldmem == 0) return __heap_alloc(bytes);
 
 	newp = oldp = heap_mem2chunk(oldmem);
 	newsize = oldsize = heap_curr_size(oldp);
@@ -1536,7 +1539,7 @@ caddr_t heap_realloc(caddr_t oldmem, heap_size_t bytes)
 		}
 
 		/* Must allocate */
-		newmem = heap_alloc(bytes);
+		newmem = __heap_alloc(bytes);
 		if (newmem == 0)
 			return 0;
 
@@ -1549,7 +1552,7 @@ caddr_t heap_realloc(caddr_t oldmem, heap_size_t bytes)
 		}
 
 		HEAP_ALLOC_COPY(newmem, oldmem, oldsize - HEAP_SIZE_SIZE);
-		heap_free(oldmem);
+		__heap_free(oldmem);
 		return newmem;
 	}
 
@@ -1564,7 +1567,7 @@ split:
 		heap_set_head(remainder, remainder_size);
 		heap_set_inuse_at(remainder, remainder_size);
 		/* let free() deal with it */
-		heap_free(heap_chunk2mem(remainder));
+		__heap_free(heap_chunk2mem(remainder));
 	} else {
 		heap_set_size(newp, newsize);
 		heap_set_inuse_at(newp, newsize);
@@ -1572,6 +1575,17 @@ split:
 
 	heap_check_inuse_chunk(newp);
 	return heap_chunk2mem(newp);
+}
+
+caddr_t heap_realloc(caddr_t oldmem, heap_size_t bytes)
+{
+	irq_flags_t flags;
+	caddr_t mem;
+
+	spin_lock_irqsave(&heap_lock, flags);
+	mem = __heap_realloc(oldmem, bytes);
+	spin_unlock_irqrestore(&heap_lock, flags);
+	return mem;
 }
 #endif
 
@@ -1589,6 +1603,26 @@ caddr_t heap_calloc(heap_size_t bytes)
 		HEAP_ALLOC_ZERO((caddr_t)mem, csz - HEAP_SIZE_SIZE);
 		return mem;
 	}
+}
+
+caddr_t heap_alloc(heap_size_t bytes)
+{
+	irq_flags_t flags;
+	caddr_t mem;
+
+	spin_lock_irqsave(&heap_lock, flags);
+	mem = __heap_alloc(bytes);
+	spin_unlock_irqrestore(&heap_lock, flags);
+	return mem;
+}
+
+void heap_free(caddr_t mem)
+{
+	irq_flags_t flags;
+
+	spin_lock_irqsave(&heap_lock, flags);
+	__heap_free(mem);
+	spin_unlock_irqrestore(&heap_lock, flags);
 }
 
 void heap_alloc_init(void)
