@@ -1162,3 +1162,83 @@ void parse_cmd(int argc, char **argv, cmd_t *d, cmd_t *p)
 	if (argc == 0) return;
 	usage(prog, d);
 }
+
+#if 0
+#ifdef CPUS_DEFINED
+cpus_t *read_affinity(void)
+{
+	cpu_set_t mask;
+	int sz = 0;
+	int p;
+	int res = sched_getaffinity(0, sizeof(mask), &mask);
+	cpus_t *r;
+
+	if (res != 0) {
+		errexit("sched_getaffinity", res);
+	}
+	for (p = 0; p <  CPU_SETSIZE; p++) {
+		if (CPU_ISSET(p, &mask))
+			sz++;
+	}
+
+	r = cpus_create(sz);
+	for (p = 0, *q = r->cpu; p < CPU_SETSIZE; p++) {
+		if (CPU_ISSET(p, &mask))
+			*q++ = p;
+	}
+	return r;
+}
+
+#endif
+/* Attempt to force processors wake up, on devices where unused procs
+ * go to sleep...
+ */
+
+
+#ifdef FORCE_AFFINITY
+const static tsc_t sec = (tsc_t)1000000;
+
+static void* loop(void *p)
+{
+	tsc_t *q = p;
+	tsc_t max = *q;
+
+	while (timeofday() < max);
+	return NULL;
+}
+
+static void warm_up(int sz, tsc_t d)
+{
+	int k;
+	pthread_t th[sz];
+
+	d += timeofday();
+	for (k = 0; k < sz; k++)
+		launch(&th[k], loop, &d);
+	for (k = 0; k < sz; k++)
+		join(&th[k]);
+}
+
+#ifdef CPUS_DEFINED
+cpus_t *read_force_affinity(int n_avail, int verbose)
+{
+	int sz = n_avail <= 1 ? 1 : n_avail;
+	tsc_t max = sec / 100;
+	cpus_t *r;
+
+	for (; ; ) {
+		warm_up(sz+1, max);
+		r = read_affinity();
+		if (n_avail <= r->sz)
+			return r;
+		if (verbose) {
+			fprintf(stderr, "Read affinity: '");
+			cpus_dump(stderr, r);
+			fprintf(stderr, "'\n");
+		}
+		cpus_free(r);
+	}
+}
+#endif
+#endif
+#endif

@@ -590,6 +590,9 @@ config SYS_MONITOR
 	depends !BOOTLOADER
 	default y if RISCV_ENTR_M && (RISCV_SEE || RISCV_HEE)
 
+config ARCH_HAS_BOOT0
+	bool
+
 menu "System peripherals"
 
 config RISCV_IRQ_VERBOSE

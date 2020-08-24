@@ -17,7 +17,7 @@
 #define N 2
 #define AFF_INCR (1)
 /* Includes */
-#include "litmus.h"
+#include <target/litmus.h>
 
 /* params */
 typedef struct {

@@ -98,6 +98,12 @@
 #include <asm/vaisra_ras.h>
 #endif
 
+#ifdef CONFIG_ARCH_HAS_BOOT0
+	.macro	boot0_hook
+	jal	ra, vaisra_cpu_init
+	.endm
+#endif
+
 #ifndef __ASSEMBLY__
 void board_init_clock(void);
 void board_init_timestamp(void);

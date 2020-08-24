@@ -68,7 +68,9 @@ static void duowen_pma_init(void)
 
 static int duowen_early_init(bool cold_boot)
 {
+#ifndef CONFIG_ARCH_HAS_BOOT0
 	vaisra_cpu_init();
+#endif
 
 	if (!cold_boot)
 		return 0;

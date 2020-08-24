@@ -5,6 +5,12 @@
 
 #define RV_LARGE_LOAD_OFFSET	(CONFIG_BOOT_BASE - CONFIG_LOAD_BASE)
 
+#ifndef CONFIG_ARCH_HAS_BOOT0
+	.macro	boot0_hook
+	nop
+	.endm
+#endif
+
 	.macro disable_mirq
 	csrw	CSR_MIE, zero
 	csrw	CSR_MIP, zero
@@ -179,6 +185,8 @@
 	__HEAD
 
 ENTRY(__start)
+	boot0_hook
+
 #ifdef CONFIG_RISCV_ENTR_M
 	/* Reset all registers, except ra, gp, sp */
 	init_gprs
