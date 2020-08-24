@@ -98,10 +98,12 @@
 #include <asm/vaisra_ras.h>
 #endif
 
+#if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
 #ifdef CONFIG_ARCH_HAS_BOOT0
 	.macro	boot0_hook
 	jal	ra, vaisra_cpu_init
 	.endm
+#endif
 #endif
 
 #ifndef __ASSEMBLY__
