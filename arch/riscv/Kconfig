@@ -266,7 +266,11 @@ source "arch/riscv/mach-virt/Kconfig"
 
 source "kernel/Kconfig"
 source "drivers/Kconfig"
+
+menu "Test setup"
 source "tests/Kconfig"
 source "tests/riscv/Kconfig"
+endmenu
+
 source "lib/Kconfig"
 source "init/Kconfig.debug"

@@ -2,8 +2,11 @@
 # Firmware Tests
 #
 
+config TEST_VERBOSE
+	bool "Enable verbosity in tests"
+
 menuconfig TEST_BENCH
-	bool "Testbench setup"
+	bool "CPU remote/local test bench tests"
 	select CRYPTO_RAND
 	select STRING_STRNCMP
 	select BIT_HWEIGHT64
@@ -48,9 +51,16 @@ config TEST_BENCH_START_DELAY
 	  may start run after aligning current time to a start delay
 	  interval. This should be a power of 2 value.
 
-config TEST_VERBOSE
-	bool "Enable verbosity in tests"
-
 source tests/bench/Kconfig
+
+endif
+
+menuconfig TEST_LITMUS
+	bool "Enable memory model litmus tests"
+	select FP
+	select STRING_STRTOD
+	select TIME_CLOCK
+
+if TEST_LITMUS
 
 endif

@@ -1,0 +1,11 @@
+#
+# RISCV Litmus Tests
+#
+
+menuconfig TESTS_LITMUS_RISCV
+	bool "RISC-V memory model litmus tests"
+	select TEST_LITMUS
+
+if TESTS_LITMUS_RISCV
+
+endif

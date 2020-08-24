@@ -27,5 +27,6 @@ size_t strlcat (char *, const char *, size_t);
 size_t strlcpy (char *, const char *, size_t);
 size_t strtoul(const char *, char **, int);
 unsigned long long strtoull(const char *, char **, int);
+double strtod(const char *str, char **endptr);
 
 #endif	/* __STD_STRING_H_INCLUDE__ */

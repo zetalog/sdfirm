@@ -1,5 +1,7 @@
 #ifndef __FLOAT_STD_H_INCLUDE__
 
+#define HUGE_VAL (__builtin_huge_val())
+
 /* Radix of exponent representation */
 #undef FLT_RADIX
 #define FLT_RADIX 2

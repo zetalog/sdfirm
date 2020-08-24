@@ -136,6 +136,11 @@ config STRING_STRTOULL
 	select MATH_MOD64
 	select MATH_DIV64
 
+config STRING_STRTOD
+	bool "strtod"
+	select STDLIB
+	depends FP
+
 config STRING_UUID
 	bool "uuid"
 	select PRINT_SNPRINTF

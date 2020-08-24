@@ -143,6 +143,10 @@ extern struct cpu_exec_test __testfn_end[];
 #define c_testfn_sync(fn, size, align, timeout)			\
 	c_testfn_repeat_sync(fn, size, align, 1, timeout)
 
+typedef struct cpu_exec_cpu {
+	cpu_t cpu;
+} cpu_exec_cpu_t;
+
 int bench_exec(struct cpu_exec_test *start, int nr_tests,
 	       uint64_t init_cpu_mask, uint32_t flags,
 	       tick_t timeout, void (*notify)(bool));
