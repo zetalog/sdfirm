@@ -1055,7 +1055,7 @@ int parse_cmd(int argc, char **argv, cmd_t *d, cmd_t *p)
 				usage(prog, d);
 			p->stride = argint(prog, argv[0], d);
 			if (p->stride < 0)
-				p->stride = 1;
+				p->stride = 0;
 		} else if (strcmp(*argv, "-fs") == 0) {
 			--argc; ++argv;
 			if (!*argv) {
@@ -1092,7 +1092,7 @@ int parse_cmd(int argc, char **argv, cmd_t *d, cmd_t *p)
 				return 2;
 			}
 			a = argint(prog, argv[0], d);
-			p->avail = a < 1 ? 1 : a;
+			p->avail = a < 0 ? 0 : a;
 		} else if (d->sync_n > 0 && strcmp(*argv, "-k") == 0) {
 			int a;
 
