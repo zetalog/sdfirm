@@ -10,6 +10,11 @@
 	nop
 	.endm
 #endif
+#ifndef CONFIG_ARCH_HAS_BOOT1
+	.macro	boot1_hook
+	nop
+	.endm
+#endif
 
 	.macro disable_mirq
 	csrw	CSR_MIE, zero
@@ -80,6 +85,17 @@
 
 	.macro get_hartid reg
 	csrr	\reg, CSR_MHARTID
+	.endm
+
+	.macro init_sp
+#ifdef CONFIG_SMP
+	get_smpid a3
+	slli	sp, a3, PERCPU_STACK_SHIFT
+	la	a3, (ABI_PERCPU_STACKS_START + PERCPU_STACK_SIZE)
+	add	sp, sp, a3
+#else
+	la	sp, ABI_PERCPU_STACKS_END
+#endif
 	.endm
 
 	.macro init_gpsptp
@@ -249,6 +265,12 @@ secondary_wait_for_abi_relocate:
 
 __abi_start_warm:
 	la	ra, _start_hang
+
+#ifdef CONFIG_ARCH_HAS_BOOT1
+	init_sp
+#endif
+	boot1_hook
+
 #ifdef CONFIG_SBI
 	jal	ra, __sbi_entry
 #else

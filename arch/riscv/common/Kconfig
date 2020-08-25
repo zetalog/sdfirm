@@ -593,6 +593,9 @@ config SYS_MONITOR
 config ARCH_HAS_BOOT0
 	bool
 
+config ARCH_HAS_BOOT1
+	bool
+
 menu "System peripherals"
 
 config RISCV_IRQ_VERBOSE

@@ -76,7 +76,6 @@ config ARCH_DUOWEN
 	select DUOWEN_DMA if DMA
 	select DUOWEN_SMMU if IOMMU
 	select VAISRA_RAS if RAS
-	select ARCH_HAS_BOOT0 if DUOWEN_APC_BOOT0
 	help
 	  This enables support for smart core (SmarCo) duowen riscv cluster platforms.
 
