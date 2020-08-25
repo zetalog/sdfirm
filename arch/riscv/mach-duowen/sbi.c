@@ -52,7 +52,7 @@ static void duowen_modify_dt(void *fdt)
 }
 
 #ifdef CONFIG_VAISRA_PMA
-static void duowen_pma_init(void)
+void duowen_pma_init(void)
 {
 	int n = 0;
 
@@ -62,21 +62,19 @@ static void duowen_pma_init(void)
 	n += pma_set(n, PMA_AT_DEVICE,               DEV_BASE,
 		     ilog2_const(max(SZ_2M, DEV_SIZE)));
 }
-#else
-#define duowen_pma_init()		do { } while (0)
 #endif
 
 static int duowen_early_init(bool cold_boot)
 {
 #ifndef CONFIG_ARCH_HAS_BOOT0
 	vaisra_cpu_init();
+	duowen_pma_init();
 #endif
 
 	if (!cold_boot)
 		return 0;
 
 	duowen_apc_noc_init();
-	duowen_pma_init();
 	board_init_timestamp();
 	return 0;
 }

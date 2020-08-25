@@ -102,6 +102,9 @@
 #ifdef CONFIG_ARCH_HAS_BOOT0
 	.macro	boot0_hook
 	jal	ra, vaisra_cpu_init
+#ifdef CONFIG_VAISRA_PMA
+	jal	ra, duowen_pma_init
+#endif
 	.endm
 #endif
 #endif
@@ -113,6 +116,11 @@ void board_init_timestamp(void);
 void vaisra_cpu_init(void);
 #else
 #define vaisra_cpu_init()	do { } while (0)
+#endif
+#ifdef CONFIG_VAISRA_PMA
+void duowen_pma_init(void);
+#else
+#define duowem_pma_init()	do { } while (0)
 #endif
 #endif /* __ASSEMBLY__ */
 
