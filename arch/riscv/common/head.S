@@ -15,6 +15,11 @@
 	nop
 	.endm
 #endif
+#ifndef CONFIG_ARCH_HAS_BOOT2
+	.macro	boot2_hook
+	nop
+	.endm
+#endif
 
 	.macro disable_mirq
 	csrw	CSR_MIE, zero
@@ -252,6 +257,9 @@ ENTRY(__start)
 	fence	rw, rw
 
 	/* At this point we are running from link address */
+	init_sp
+	boot1_hook
+
 	j	__abi_start_warm
 
 secondary_wait_for_abi_relocate:
@@ -266,10 +274,7 @@ secondary_wait_for_abi_relocate:
 __abi_start_warm:
 	la	ra, _start_hang
 
-#ifdef CONFIG_ARCH_HAS_BOOT1
-	init_sp
-#endif
-	boot1_hook
+	boot2_hook
 
 #ifdef CONFIG_SBI
 	jal	ra, __sbi_entry

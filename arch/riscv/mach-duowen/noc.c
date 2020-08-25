@@ -35,37 +35,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)noc.h: DUOWEN specific network on chip (NoC) interface
- * $Id: noc.h,v 1.0 2020-08-07 23:24:00 zhenglv Exp $
+ * @(#)noc.c: DUOWEN specific NoC initialization
+ * $Id: noc.c,v 1.1 2020-08-25 18:03:00 zhenglv Exp $
  */
 
-#ifndef __NOC_DUOWEN_H_INCLUDE__
-#define __NOC_DUOWEN_H_INCLUDE__
-
 #include <target/arch.h>
+#include <target/noc.h>
 
-#define NCORE_BASE		COHFAB_BASE
-#include <driver/ncore.h>
-#ifndef ARCH_HAVE_NOC
-#define ARCH_HAVE_NOC		1
-#else
-#error "Multiple NOC controller defined"
-#endif
-
-#define MAX_DDR_SEGMENTS	2
-
-#ifdef CONFIG_DUOWEN_NOC
-void duowen_noc_init(void);
-#else
-#define duowen_noc_init()	do { } while (0)
-#endif
-
-#ifdef CONFIG_DUOWEN_APC
-#define duowen_imc_noc_init()	do { } while (0)
-#define duowen_apc_noc_init()	duowen_noc_init()
-#else
-#define duowen_imc_noc_init()	duowen_noc_init()
-#define duowen_apc_noc_init()	do { } while (0)
-#endif
-
-#endif /* __NOC_DUOWEN_H_INCLUDE__ */
+void duowen_noc_init(void)
+{
+	ncore_init(MAX_CPU_CLUSTERS, 0, MAX_DDR_SEGMENTS, MAX_DDR_SEGMENTS);
+}

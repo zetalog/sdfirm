@@ -99,9 +99,16 @@
 #endif
 
 #if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
-#ifdef CONFIG_ARCH_HAS_BOOT1
-	.macro	boot1_hook
+#ifdef CONFIG_DUOWEN_APC_BOOT_HOOK
+	.macro	boot0_hook
 	jal	ra, vaisra_cpu_init
+	.endm
+	.macro	boot1_hook
+#if defined(CONFIG_DUOWEN_NOC) && defined(CONFIG_DUOWEN_APC)
+	jal	ra, duowen_noc_init
+#endif
+	.endm
+	.macro	boot2_hook
 #ifdef CONFIG_VAISRA_PMA
 	jal	ra, duowen_pma_init
 #endif

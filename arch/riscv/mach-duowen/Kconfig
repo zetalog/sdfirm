@@ -87,7 +87,7 @@ config DUOWEN_BBL
 	select SBI_PAYLOAD if !SIMULATION
 	select DUOWEN_SPI_FLASH
 	select DUOWEN_SSI_FLASH
-	select DUOWEN_APC_BOOT1 if DUOWEN_FPGA_APC_SMP
+	select DUOWEN_APC_BOOT_HOOK if DUOWEN_FPGA_APC_SMP
 
 config DUOWEN_TB
 	bool "Test bench"
@@ -106,9 +106,11 @@ config DUOWEN_BOOT_APC
 	  Use internal SRAM as RAM for APC program instead of using DDR.
 	  This is normally used for APC ZSBL/FSBL configuration.
 
-config DUOWEN_APC_BOOT1
-	bool "Enable boot1 ROM"
+config DUOWEN_APC_BOOT_HOOK
+	bool "Enable boot ROM hooks"
+	select ARCH_HAS_BOOT0
 	select ARCH_HAS_BOOT1
+	select ARCH_HAS_BOOT2
 
 config DUOWEN_FSBL_SPI
 	bool "Build SPI flash resident FSBL"
