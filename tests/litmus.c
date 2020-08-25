@@ -15,17 +15,13 @@
 /****************************************************************************/
 #include <target/litmus.h>
 
+int litmus_ecode;
+
 void fatal(char *msg)
 {
-	log_error("Failure: %s\n", msg);
+	printf("Failure: %s\n", msg);
 	fprintf(stdout, "Failure: %s\n", msg);
-	BUG();
-}
-
-void errexit(char *msg, int err)
-{
-	log_error("%s: %d\n", msg, err);
-	BUG();
+	litmus_ecode = 1;
 }
 
 int gcd(int a, int b)
@@ -70,21 +66,27 @@ void pp_ints(FILE *fp, int *p, int n)
 	int k;
 
 	if (n > 0) {
-		fprintf(fp, "%i", p[0]);
+		if (!fp)
+			printf("%i", p[0]);
+		else
+			fprintf(fp, "%i", p[0]);
 		for (k = 1; k < n; k++) {
-			fprintf(fp, ",%i", p[k]);
+			if (!fp)
+				printf(",%i", p[k]);
+			else
+				fprintf(fp, ",%i", p[k]);
 		}
 	}
 }
 
-void ints_dump(FILE *fp, ints_t *p)
+void ints_dump(ints_t *p)
 {
 	int k;
 
 	if (p->sz > 0) {
-		fprintf(fp, "%i:%i", 0, p->t[0]);
+		printf("%i:%i", 0, p->t[0]);
 		for (k = 1; k < p->sz; k++) {
-			fprintf(fp, ",%i:%i", k, p->t[k]);
+			printf(",%i:%i", k, p->t[k]);
 		}
 	}
 }
@@ -532,7 +534,7 @@ static prfone_t *get_name_slot(prfproc_t *p, char *name)
 	return NULL; /* Name not found */
 }
 
-void prefetch_dump(FILE *fp, prfdirs_t *p)
+void prefetch_dump(prfdirs_t *p)
 {
 	prfproc_t *q = p->t;
 	int some = 0;
@@ -550,11 +552,11 @@ void prefetch_dump(FILE *fp, prfdirs_t *p)
 				else if (dir == touch) c = 'T';
 				else if (dir == touch_store) c = 'W';
 				if (some) {
-					fprintf(fp, ",");
+					printf(",");
 				} else {
 					some = 1;
 				}
-				fprintf(fp, "%i:%s=%c", _p, r[_v].name, c);
+				printf("%i:%s=%c", _p, r[_v].name, c);
 			}
 		}
 	}
@@ -588,7 +590,7 @@ int parse_prefetch(char *p, prfdirs_t *r)
 
 		if (proc < 0 || proc >= r->nthreads ||
 		    *p == '\0' || *q != ':')
-			return 0 ;
+			return 0;
 		p = q + 1;
 		p0 = p;
 		while (*p != '=') {
@@ -599,8 +601,8 @@ int parse_prefetch(char *p, prfdirs_t *r)
 		*p = '\0';
 		loc_slot = get_name_slot(&r->t[proc], p0);
 		if (loc_slot == NULL) {
-			log_error("Proc %i does not access variable %s\n",
-				  proc, p0);
+			printf("Proc %i does not access variable %s\n",
+			       proc, p0);
 			*p = '=';
 			return 0;
 		}
@@ -620,9 +622,12 @@ int parse_prefetch(char *p, prfdirs_t *r)
 		}
 		loc_slot->dir = dir;
 		c = *++p;
-		if (c == '\0') return 1;
-		else if (c == ',') p++;
-		else return 0;
+		if (c == '\0')
+			return 1;
+		else if (c == ',')
+			p++;
+		else
+			return 0;
 	}
 }
 
@@ -734,126 +739,130 @@ void pb_wait(pb_t *p)
 
 static void usage(char *prog, cmd_t *d)
 {
-	log_error("usage: %s (options)*\n", prog);
-	log_error("  -v      be verbose\n");
-	log_error("  -q      be quiet\n");
-	log_error("  -a <n>  run maximal number of tests for n available processors (default %i)\n",
-		  d->avail);
-	log_error("  -n <n>  run n tests concurrently\n");
-	log_error("  -r <n>  perform n runs (default %i)\n", d->max_run);
-	log_error("  -fr <f> multiply run number per f\n");
-	log_error("  -s <n>  outcomes per run (default %i)\n",
-		  d->size_of_test);
+	printf("usage: %s (options)*\n", prog);
+	printf("  -v      be verbose\n");
+	printf("  -q      be quiet\n");
+	printf("  -a <n>  run maximal number of tests for n available processors (default %i)\n",
+	       d->avail);
+	printf("  -n <n>  run n tests concurrently\n");
+	printf("  -r <n>  perform n runs (default %i)\n", d->max_run);
+	printf("  -fr <f> multiply run number per f\n");
+	printf("  -s <n>  outcomes per run (default %i)\n",
+	       d->size_of_test);
 	if (d->stride > 0) {
-		log_error("  -st <n> stride (default %i)\n", d->stride);
+		printf("  -st <n> stride (default %i)\n", d->stride);
 	}
-	log_error("  -fs <f> multiply outcomes per f\n") ;
-	log_error("  -f <f>  multiply outcomes per f, divide run number by f\n") ;
+	printf("  -fs <f> multiply outcomes per f\n") ;
+	printf("  -f <f>  multiply outcomes per f, divide run number by f\n") ;
 	if (d->aff_mode != aff_none) {
-		log_error("  -i <n>  increment for allocating logical processors, -i 0 disables affinity mode");
+		printf("  -i <n>  increment for allocating logical processors, -i 0 disables affinity mode");
 		if (d->aff_mode == aff_incr) {
-			log_error(" (default %i)\n", d->aff_incr);
+			printf(" (default %i)\n", d->aff_incr);
 		} else {
-			log_error("\n");
+			printf("\n");
 		}
-		log_error("  -p <ns> specify logical processors (default '");
-		cpus_dump(errlog, d->aff_cpus);
-		log_error("')\n");
-		log_error("  +ra     randomise affinity%s\n",
-			  d->aff_mode == aff_random ? " (default)" : "");
+		printf("  -p <ns> specify logical processors (default '");
+		cpus_dump(NULL, d->aff_cpus);
+		printf("')\n");
+		printf("  +ra     randomise affinity%s\n",
+		       d->aff_mode == aff_random ? " (default)" : "");
 		if (d->aff_custom_enabled) {
-			log_error("  +ca     enable custom affinity%s\n",
-				  d->aff_mode == aff_custom ?
-				  " (default)" : "");
+			printf("  +ca     enable custom affinity%s\n",
+			       d->aff_mode == aff_custom ? " (default)" : "");
 		} else {
-			log_error("  +ca     alias for +ra\n");
+			printf("  +ca     alias for +ra\n");
 		}
 		if (d->aff_scan_enabled) {
-			log_error("  +sa     enable scanning affinity%s\n",
-				  d->aff_mode == aff_scan ?
-				  " (default)" : "") ;
-			log_error("  +ta <topo> set topology affinity\n") ;
+			printf("  +sa     enable scanning affinity%s\n",
+			       d->aff_mode == aff_scan ?  " (default)" : "") ;
+			printf("  +ta <topo> set topology affinity\n") ;
 		} else {
-			log_error("  +sa     alias for +ra\n");
+			printf("  +sa     alias for +ra\n");
 		}
 	}
 	if (d->shuffle >= 0) {
-		log_error("  +rm     randomise memory accesses%s\n",
-			  d->shuffle ? " (default)" : "");
-		log_error("  -rm     do not randomise memory accesses%s\n",
-			  !d->shuffle ? " (default)" : "");
+		printf("  +rm     randomise memory accesses%s\n",
+		       d->shuffle ? " (default)" : "");
+		printf("  -rm     do not randomise memory accesses%s\n",
+		       !d->shuffle ? " (default)" : "");
 	}
 	if (d->speedcheck >= 0) {
-		log_error("  +sc     stop as soon as possible%s\n",
-			  d->speedcheck ? " (default)" : "");
-		log_error("  -sc     run test completly%s\n",
-			  !d->speedcheck ? " (default)" : "");
+		printf("  +sc     stop as soon as possible%s\n",
+		       d->speedcheck ? " (default)" : "");
+		printf("  -sc     run test completly%s\n",
+		       !d->speedcheck ? " (default)" : "");
 	}
 	if (!d->fix) {
-		log_error("  +fix    fix thread launch order\n");
+		printf("  +fix    fix thread launch order\n");
 	}
 	if (d->delta_tb) {
-		log_error("  -tb <list> set timebase delays, default '");
-		ints_dump(errlog, d->delta_tb);
-		log_error("'\n");
-		log_error("    List syntax is comma separated proc:delay\n");
-		log_error("  -ta <n>    set all timebase delays\n");
+		printf("  -tb <list> set timebase delays, default '");
+		ints_dump(d->delta_tb);
+		printf("'\n");
+		printf("    List syntax is comma separated proc:delay\n");
+		printf("  -ta <n>    set all timebase delays\n");
 	}
 	if (d->verbose_barrier >= 0) {
-		log_error("  +vb     show iteration timings%s\n",
-			  d->verbose_barrier ? " (default)" : "");
-		log_error("  -vb     do not show iteration timings%s\n",
-			  !d->verbose_barrier ? " (default)" : "");
+		printf("  +vb     show iteration timings%s\n",
+		       d->verbose_barrier ? " (default)" : "");
+		printf("  -vb     do not show iteration timings%s\n",
+		       !d->verbose_barrier ? " (default)" : "");
 	}
 	if (d->prefetch) {
-		log_error("  -pra (I|F|T|W) set all prefetch\n");
-		log_error("  -prf <list> set prefetch, default '");
-		prefetch_dump(errlog,d->prefetch);
-		log_error("'\n");
-		log_error("    List syntax is comma separated proc:name=(I|F|T|W)\n");
+		printf("  -pra (I|F|T|W) set all prefetch\n");
+		printf("  -prf <list> set prefetch, default '");
+		prefetch_dump(d->prefetch);
+		printf("'\n");
+		printf("    List syntax is comma separated proc:name=(I|F|T|W)\n");
 	}
 	if (d->static_prefetch >= 0) {
-		log_error("  -prs <n> prefetch probability is 1/n, -prs 0 disables feature, default %i\n",
-			  d->static_prefetch);
+		printf("  -prs <n> prefetch probability is 1/n, -prs 0 disables feature, default %i\n",
+		       d->static_prefetch);
 	}
 	if (d->max_loop > 0) {
-		log_error("  -l <n>  measure time by running assembly in a loop of size <n> (default %i)\n",
-			  d->max_loop);
+		printf("  -l <n>  measure time by running assembly in a loop of size <n> (default %i)\n",
+		       d->max_loop);
 	}
 	if (d->prelude > 0) {
-		log_error("  -vp     no verbose prelude\n");
+		printf("  -vp     no verbose prelude\n");
 	}
 	if (d->sync_n > 0) {
-		log_error("  -k <n>  undocumented (default %i)\n",
-			  d->sync_n);
+		printf("  -k <n>  undocumented (default %i)\n", d->sync_n);
 	}
-	exit(2);
 }
 
-static long my_add (long x, long y)
+static long my_add(long x, long y)
 {
 	long r = x + y;
 
 	if (r < x || r < y) {
 		errno = ERANGE;
-	       	fatal("overflow");
+		return -ERANGE;
 	}
 	return r;
 }
 
 static long my_pow10(int p, long x)
 {
-	long r = x ;
+	long r = x;
 
 	for (; p > 0; p--) {
-		long y2 = my_add(r, r);
-		long y4 = my_add(y2, y2);
-		long y8 = my_add(y4, y4);
+		long y2, y4, y8;
+
+		y2 = my_add(r, r);
+		if (y2 < 0)
+			return -ERANGE;
+		y4 = my_add(y2, y2);
+		if (y4 < 0)
+			return -ERANGE;
+		y8 = my_add(y4, y4);
+		if (y8 < 0)
+			return -ERANGE;
 		r = my_add(y8, y2) ;
 	}
 	if (r >= INT_MAX || r <= 0) {
 		errno = ERANGE;
-		fatal("overflow");
+		return -ERANGE;
 	}
 	return r;
 }
@@ -863,13 +872,17 @@ static int do_argint(char *p, char **q)
 	long r = strtoul(p, q, 10);
 
 	if (errno == ERANGE) {
-		fatal("overflow");
+		return -ERANGE;
 	}
 	if (**q == 'k' || **q == 'K') {
 		r = my_pow10(3, r);
+		if (r < 0)
+			return -ERANGE;
 	       	*q += 1;
 	} else if (**q == 'm' || **q == 'M') {
 		r = my_pow10(6, r);
+		if (r < 0)
+			return -ERANGE;
 		*q += 1;
 	}
 	return (int)r;
@@ -880,8 +893,11 @@ static int argint(char *prog, char *p, cmd_t *d)
 	char *q ;
 	long r = do_argint(p, &q);
 
+	if (r < 0)
+		return -ERANGE;
 	if (*p == '\0' || *q != '\0') {
 		usage(prog, d);
+		return -EINVAL;
 	}
 	return (int)r;
 }
@@ -897,10 +913,13 @@ static cpus_t *argcpus(char *prog, char *p0, cmd_t *d)
 	for (; ; ) {
 		char *q;
 		int x = (int)strtoul(p, &q, 10);
-		if (x < 0 || *p == '\0' || (*q != '\0' && *q != ','))
+		if (x < 0 || *p == '\0' || (*q != '\0' && *q != ',')) {
 			usage(prog, d);
+			return NULL;
+		}
 		sz++;
-		if (*q == '\0') break;
+		if (*q == '\0')
+			break;
 		p = q + 1;
 	}
 	r = cpus_create(sz);
@@ -913,19 +932,25 @@ static cpus_t *argcpus(char *prog, char *p0, cmd_t *d)
 	return r;
 }
 
-static void argints(char *prog, cmd_t *d, char *p, ints_t *r)
+static int argints(char *prog, cmd_t *d, char *p, ints_t *r)
 {
 	while (*p) {
 		char *q ;
 		int idx = (int)strtoul(p, &q, 10);
 		int v;
 
-		if (idx < 0 || idx >= r->sz || *p == '\0' || *q != ':')
+		if (idx < 0 || idx >= r->sz || *p == '\0' || *q != ':') {
 			usage(prog, d);
+			return -EINVAL;
+		}
 		p = q + 1;
 		v = do_argint(p, &q);
-		if (*p == '\0' || (*q != '\0' && *q != ','))
+		if (v < 0)
+			return -ERANGE;
+		if (*p == '\0' || (*q != '\0' && *q != ',')) {
 			usage(prog, d);
+			return -EINVAL;
+		}
 		r->t[idx] = v;
 		if (*q == '\0') {
 			p = q;
@@ -933,6 +958,7 @@ static void argints(char *prog, cmd_t *d, char *p, ints_t *r)
 			p = q + 1;
 		}
 	}
+	return 0;
 }
 
 static void argoneprefetch(char *prog, cmd_t *d, char *p, prfdirs_t *r)
@@ -953,27 +979,32 @@ static void argoneprefetch(char *prog, cmd_t *d, char *p, prfdirs_t *r)
 	set_prefetch(r, dir);
 }
 
-static void argprefetch(char *prog, cmd_t *d, char *p, prfdirs_t *r)
+static int argprefetch(char *prog, cmd_t *d, char *p, prfdirs_t *r)
 {
-	if (!parse_prefetch(p, r))
+	if (!parse_prefetch(p, r)) {
 		usage(prog, d);
+		return -EINVAL;
+	}
+	return 0;
 }
 
-static double argdouble(char *prog,char *p,cmd_t *d)
+static double argdouble(char *prog, char *p, cmd_t *d)
 {
 	char *q ;
 	double r = strtod(p, &q);
 
 	if (*p == '\0' || *q != '\0') {
 		usage(prog,d);
+		return (double)(-EINVAL);
 	}
 	return r;
 }
 
-void parse_cmd(int argc, char **argv, cmd_t *d, cmd_t *p)
+int parse_cmd(int argc, char **argv, cmd_t *d, cmd_t *p)
 {
 	char *prog = argv[0];
 
+	litmus_ecode = 0;
 	/* Options */
 	for (; ; ) {
 		char fst;
@@ -990,30 +1021,48 @@ void parse_cmd(int argc, char **argv, cmd_t *d, cmd_t *p)
 			p->verbose++;
 		else if (strcmp(*argv, "-r") == 0) {
 			--argc; ++argv;
-			if (!*argv)
+			if (!*argv) {
 				usage(prog, d);
+				return 2;
+			}
 			p->max_run = argint(prog, argv[0], d);
+			if (p->max_run < 1)
+				p->max_run = 1;
 		} else if (strcmp(*argv, "-fr") == 0) {
+			double f;
+
 			--argc; ++argv;
-			if (!*argv)
+			if (!*argv) {
 				usage(prog, d);
-			p->max_run *= argdouble(prog, argv[0], d);
+				return 2;
+			}
+			f = argdouble(prog, argv[0], d);
+			if (f < 0)
+				f = 1.0;
+			p->max_run *= f;
 		} else if (strcmp(*argv, "-s") == 0) {
 			--argc; ++argv;
-			if (!*argv)
+			if (!*argv) {
 				usage(prog, d);
+				return 2;
+			}
 			p->size_of_test = argint(prog, argv[0], d);
+			if (p->size_of_test < 1)
+				p->size_of_test = 1;
 		} else if (d->stride > 0 && strcmp(*argv,"-st") == 0) {
 			--argc; ++argv;
 			if (!*argv)
 				usage(prog, d);
 			p->stride = argint(prog, argv[0], d);
-			if (p->stride <= 0)
-				p->stride = 0;
+			if (p->stride < 0)
+				p->stride = 1;
 		} else if (strcmp(*argv, "-fs") == 0) {
 			--argc; ++argv;
-			if (!*argv) usage(prog, d);
-			p->size_of_test *= argdouble(prog,argv[0], d);
+			if (!*argv) {
+				usage(prog, d);
+				return 2;
+			}
+			p->size_of_test *= argdouble(prog, argv[0], d);
 		} else if (strcmp(*argv, "-f") == 0) {
 			double f;
 
@@ -1021,12 +1070,16 @@ void parse_cmd(int argc, char **argv, cmd_t *d, cmd_t *p)
 			if (!*argv)
 				usage(prog, d);
 			f = argdouble(prog, argv[0], d);
+			if (f < 0)
+				f = 1.0;
 			p->size_of_test *= f;
 			p->max_run /= f;
 		} else if (strcmp(*argv, "-n") == 0) {
 			--argc; ++argv;
-			if (!*argv)
+			if (!*argv) {
 				usage(prog, d);
+				return 2;
+			}
 			p->n_exe = argint(prog, argv[0], d);
 			if (p->n_exe < 1)
 				p->n_exe = 1;
@@ -1034,15 +1087,20 @@ void parse_cmd(int argc, char **argv, cmd_t *d, cmd_t *p)
 			int a;
 
 			--argc; ++argv;
-			if (!*argv) usage(prog, d);
+			if (!*argv) {
+				usage(prog, d);
+				return 2;
+			}
 			a = argint(prog, argv[0], d);
-			p->avail = a;
+			p->avail = a < 1 ? 1 : a;
 		} else if (d->sync_n > 0 && strcmp(*argv, "-k") == 0) {
 			int a;
 
 			--argc; ++argv;
-			if (!*argv)
+			if (!*argv) {
 				usage(prog, d);
+				return 2;
+			}
 			a = argint(prog, argv[0], d);
 			p->sync_n = a < 0 ? 0 : a;
 		} else if (d->aff_mode != aff_none &&
@@ -1050,8 +1108,10 @@ void parse_cmd(int argc, char **argv, cmd_t *d, cmd_t *p)
 			int i;
 
 			--argc; ++argv;
-			if (!*argv)
+			if (!*argv) {
 				usage(prog, d);
+				return 2;
+			}
 			i = argint(prog,argv[0], d);
 			p->aff_mode = aff_incr;
 			p->aff_incr = i < 0 ? 0 : i;
@@ -1060,9 +1120,13 @@ void parse_cmd(int argc, char **argv, cmd_t *d, cmd_t *p)
 			cpus_t *cpus;
 
 			--argc; ++argv;
-			if (!*argv)
+			if (!*argv) {
 				usage(prog, d);
+				return 2;
+			}
 			cpus = argcpus(prog, argv[0], d);
+			if (!cpus)
+				return 2;
 			p->aff_cpus = cpus;
 		} else if (d->aff_mode != aff_none &&
 			   strcmp(*argv, "+ra") == 0) {
@@ -1083,8 +1147,10 @@ void parse_cmd(int argc, char **argv, cmd_t *d, cmd_t *p)
 			   strcmp(*argv, "+ta") == 0) {
 			p->aff_mode = aff_topo;
 			--argc; ++argv;
-			if (!*argv)
+			if (!*argv) {
 				usage(prog, d);
+				return 2;
+			}
 			p->aff_topo = argv[0];
 		} else if (d->aff_mode != aff_none &&
 			   strcmp(*argv, "+sa") == 0) {
@@ -1114,36 +1180,48 @@ void parse_cmd(int argc, char **argv, cmd_t *d, cmd_t *p)
 			p->prelude = 0;
 		} else if (d->delta_tb && strcmp(*argv, "-tb") == 0) {
 			--argc; ++argv;
-			if (!*argv)
+			if (!*argv) {
 				usage(prog, d);
-			argints(prog, d, argv[0], p->delta_tb);
+				return 2;
+			}
+			if (argints(prog, d, argv[0], p->delta_tb) != 0)
+				return 2;
 		} else if (d->delta_tb && strcmp(*argv,"-ta") == 0) {
 			int da;
 			int k;
 
 			--argc; ++argv;
-			if (!*argv)
+			if (!*argv) {
 				usage(prog, d);
+				return 2;
+			}
 			da = argint(prog, argv[0], d);
 			for (k = 0; k < p->delta_tb->sz; k++)
 				p->delta_tb->t[k] = da;
 		} else if (d->prefetch && strcmp(*argv, "-prf") == 0) {
 			--argc; ++argv;
-			if (!*argv)
+			if (!*argv) {
 				usage(prog, d);
-			argprefetch(prog, d, argv[0], p->prefetch);
+				return 2;
+			}
+			if (argprefetch(prog, d, argv[0], p->prefetch) != 0)
+				return 2;
 		} else if (d->prefetch && strcmp(*argv,"-pra") == 0) {
 			--argc; ++argv;
-			if (!*argv)
+			if (!*argv) {
 				usage(prog, d);
+				return 2;
+			}
 			argoneprefetch(prog, d, argv[0], p->prefetch);
 		} else if (d->static_prefetch >= 0 &&
 			   strcmp(*argv, "-prs") == 0) {
 			int prs;
 
 			--argc; ++argv;
-			if (!*argv)
+			if (!*argv) {
 				usage(prog, d);
+				return 2;
+			}
 			prs = argint(prog, argv[0], d);
 			p->static_prefetch = prs >= 0 ? prs : 0;
 		} else if (d->max_loop > 0 && strcmp(*argv, "-l") == 0) {
@@ -1154,91 +1232,51 @@ void parse_cmd(int argc, char **argv, cmd_t *d, cmd_t *p)
 				usage(prog, d);
 			i = argint(prog, argv[0], d);
 			p->max_loop = i < 1 ? 1 : i;
-		} else
+		} else {
 			usage(prog, d);
+			return 2;
+		}
 	}
 
 	/* Argument */
-	if (argc == 0) return;
+	if (argc == 0)
+		return 0;
 	usage(prog, d);
+	return 2;
 }
 
-#if 0
 #ifdef CPUS_DEFINED
 cpus_t *read_affinity(void)
 {
-	cpu_set_t mask;
-	int sz = 0;
-	int p;
-	int res = sched_getaffinity(0, sizeof(mask), &mask);
+	int p, *q;
 	cpus_t *r;
 
-	if (res != 0) {
-		errexit("sched_getaffinity", res);
-	}
-	for (p = 0; p <  CPU_SETSIZE; p++) {
-		if (CPU_ISSET(p, &mask))
-			sz++;
-	}
-
-	r = cpus_create(sz);
-	for (p = 0, *q = r->cpu; p < CPU_SETSIZE; p++) {
-		if (CPU_ISSET(p, &mask))
+	r = cpus_create(NR_CPUS);
+	for (p = 0, q = r->cpu; p < NR_CPUS; p++) {
+		if (C(p) & CPU_ALL)
 			*q++ = p;
 	}
 	return r;
 }
 
-#endif
 /* Attempt to force processors wake up, on devices where unused procs
  * go to sleep...
  */
-
-
 #ifdef FORCE_AFFINITY
-const static tsc_t sec = (tsc_t)1000000;
-
-static void* loop(void *p)
-{
-	tsc_t *q = p;
-	tsc_t max = *q;
-
-	while (timeofday() < max);
-	return NULL;
-}
-
-static void warm_up(int sz, tsc_t d)
-{
-	int k;
-	pthread_t th[sz];
-
-	d += timeofday();
-	for (k = 0; k < sz; k++)
-		launch(&th[k], loop, &d);
-	for (k = 0; k < sz; k++)
-		join(&th[k]);
-}
-
-#ifdef CPUS_DEFINED
 cpus_t *read_force_affinity(int n_avail, int verbose)
 {
-	int sz = n_avail <= 1 ? 1 : n_avail;
-	tsc_t max = sec / 100;
 	cpus_t *r;
 
-	for (; ; ) {
-		warm_up(sz+1, max);
-		r = read_affinity();
-		if (n_avail <= r->sz)
-			return r;
-		if (verbose) {
-			fprintf(stderr, "Read affinity: '");
-			cpus_dump(stderr, r);
-			fprintf(stderr, "'\n");
-		}
-		cpus_free(r);
+	r = read_affinity();
+	if (n_avail <= r->sz)
+		return r;
+	if (verbose) {
+		fprintf(errlog, "Read affinity: '");
+		cpus_dump(errlog, r);
+		fprintf(errlog, "'\n");
 	}
+	cpus_free(r);
+	return NULL;
 }
-#endif
 #endif
 #endif

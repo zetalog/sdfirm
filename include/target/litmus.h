@@ -68,8 +68,6 @@ uint32_t rand_k(st_t *st, uint32_t n);
 #define errlog			stderr
 #define log_error(...)		fprintf(errlog, __VA_ARGS__)
 void fatal(char *msg);
-/* e is errno */
-void errexit(char *msg, int e);
 int gcd(int a, int b);
 int find_string(char *t[], int sz, char *s);
 void *malloc_check(size_t sz);
@@ -103,7 +101,7 @@ typedef struct {
 	int *t;
 } ints_t;
 
-void ints_dump(FILE *fp, ints_t *p);
+void ints_dump(ints_t *p);
 
 /************************/
 /* Histogram structure  */
@@ -147,7 +145,7 @@ typedef struct {
 	prfproc_t *t;
 } prfdirs_t;
 
-void prefetch_dump(FILE *fp, prfdirs_t *p);
+void prefetch_dump(prfdirs_t *p);
 int parse_prefetch(char *p, prfdirs_t *r);
 void set_prefetch(prfdirs_t *p, prfdir_t d);
 
@@ -184,12 +182,22 @@ pb_t *pb_create(int nprocs);
 void pb_free(pb_t *p);
 void pb_wait(pb_t *p);
 
+/* Affinity */
+
+typedef enum {
+	aff_none,
+	aff_incr,
+	aff_random,
+	aff_custom,
+	aff_scan,
+	aff_topo
+} aff_mode_t;
+
+cpus_t *read_force_affinity(int n_avail, int verbose);
+
 /************************/
 /* Command line options */
 /************************/
-typedef enum
-  { aff_none, aff_incr, aff_random, aff_custom,
-    aff_scan, aff_topo} aff_mode_t ;
 
 typedef struct {
   int verbose ;
@@ -226,12 +234,11 @@ typedef struct {
   int prelude ;
 } cmd_t ;
 
-void parse_cmd(int argc, char **argv, cmd_t *def, cmd_t *p) ;
+int parse_cmd(int argc, char **argv, cmd_t *def, cmd_t *p);
 
 /* Thread launch and join */
 
-void launch(cpu_exec_cpu_t *th, f_t *f, void *a) ;
-void *join(cpu_exec_cpu_t *th) ;
-cpus_t *read_force_affinity(int n_avail, int verbose);
+void launch(cpu_exec_cpu_t *th, f_t *f, void *a);
+void *join(cpu_exec_cpu_t *th);
 
 #endif

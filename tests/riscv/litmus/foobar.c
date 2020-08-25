@@ -18,6 +18,7 @@
 #define AFF_INCR (1)
 /* Includes */
 #include <target/litmus.h>
+#include <target/cmdline.h>
 
 /* params */
 typedef struct {
@@ -338,6 +339,7 @@ static void *zyva(void *_va) {
     if (_b->verbose>1) fprintf(stderr,"Run %i of %i\r", n_run, _b->max_run);
     reinit(&ctx);
     if (_b->do_change) perm_funs(&ctx.seed,fun,N);
+#if 0
     for (int _p = NT-1 ; _p >= 0 ; _p--) {
       launch(&thread[_p],fun[_p],&parg[_p]);
     }
@@ -345,6 +347,7 @@ static void *zyva(void *_va) {
     for (int _p = NT-1 ; _p >= 0 ; _p--) {
       join(&thread[_p]);
     }
+#endif
     /* Log final states */
     for (int _i = _b->size_of_test-1 ; _i >= 0 ; _i--) {
       int _out_1_x5_i = ctx.out_1_x5[_i];
@@ -548,14 +551,17 @@ static void run(cmd_t *cmd,cpus_t *def_all_cpus,FILE *out) {
         }
       }
     }
+#if 0
     if (k < n_th) {
       launch(&th[k],zyva,p);
     } else {
       hist = (hist_t *)zyva(p);
     }
+#endif
   }
 
   count_t n_outs = prm.size_of_test; n_outs *= prm.max_run;
+#if 0
   for (int k=0 ; k < n_th ; k++) {
     hist_t *hk = (hist_t *)join(&th[k]);
     if (sum_outs(hk->outcomes) != n_outs || hk->n_pos + hk->n_neg != n_outs) {
@@ -564,6 +570,7 @@ static void run(cmd_t *cmd,cpus_t *def_all_cpus,FILE *out) {
     merge_hists(hist,hk);
     free_hist(hk);
   }
+#endif
   cpus_free(all_cpus);
   tsc_t total = timeofday() - start;
   pm_free(p_mutex);
@@ -588,8 +595,19 @@ int MP(int argc, char **argv, FILE *out) {
   }
   cmd_t def = { 0, NUMBER_OF_RUN, SIZE_OF_TEST, STRIDE, AVAIL, 0, 0, aff_incr, 1, 1, AFF_INCR, def_all_cpus, NULL, -1, MAX_LOOP, NULL, NULL, -1, -1, -1, 0, 1};
   cmd_t cmd = def;
-  parse_cmd(argc,argv,&def,&cmd);
-  run(&cmd,def_all_cpus,out);
+  if (parse_cmd(argc,argv,&def,&cmd) == 0)
+    run(&cmd,def_all_cpus,out);
   if (def_all_cpus != cmd.aff_cpus) cpus_free(def_all_cpus);
   return EXIT_SUCCESS;
 }
+
+
+static int do_litmus(int argc, char **argv)
+{
+  return MP(argc, argv, stderr);
+}
+
+DEFINE_COMMAND(litmus, do_litmus, "Run memory model litmus tests",
+  "litmus -h\n"
+  "    -display test usage\n"
+);

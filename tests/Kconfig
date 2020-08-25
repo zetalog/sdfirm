@@ -60,6 +60,8 @@ menuconfig TEST_LITMUS
 	select FP
 	select STRING_STRTOD
 	select TIME_CLOCK
+	select CRYPTO_RAND
+	depends HEAP
 
 if TEST_LITMUS
 
