@@ -45,9 +45,12 @@ QEMU=qemu-system-${ARCH}
 if [ "x${QEMU_DTS}" != "x" ]; then
 	QEMU_DTB="`echo ${QEMU_DTS%.*}`.dtb"
 	QEMU_MOPTS=",dumpdtb=${QEMU_DTB}"
+	QEMU_FIRM=""
+else
+	QEMU_FIRM="-bios ${SCRIPT}/../sdfirm"
 fi
 
-${QEMU} ${QEMU_OPTS} -machine virt${QEMU_MOPTS} -bios ${SCRIPT}/../sdfirm
+${QEMU} ${QEMU_OPTS} -machine virt${QEMU_MOPTS} ${QEMU_FIRM}
 
 if [ "x${QEMU_DTS}" != "x" ]; then
 	dtc -I dtb -O dts -o ${QEMU_DTS} ${QEMU_DTB}

@@ -9,16 +9,21 @@
 	model = "riscv-smarco,duowen";
 
 	chosen {
-		bootargs = "console=hvc0 earlycon=sbi";
-#if 0
+#ifdef CONFIG_DUOWEN_CONSOLE_UART0
 		bootargs = [00];
 		stdout-path = "/uart@ff63000000";
+#else
+		bootargs = "console=hvc0 earlycon=sbi";
 #endif
 	};
 
 	uart@ff63000000 {
-		interrupts = <0x52>;
+		interrupts = <0x54>;
+#ifdef CONFIG_DUOWEN_FPGA_APC_SMP
+		interrupt-parent = <0x7>;
+#else
 		interrupt-parent = <0x3>;
+#endif
 		clock-frequency = <0x384000>;
 		reg = <0xff 0x63000000 0x0 0x100>;
 		compatible = "ns16550a";
@@ -43,6 +48,70 @@
 		#size-cells = <0x0>;
 		timebase-frequency = <0x989680>;
 
+#ifdef CONFIG_DUOWEN_FPGA_APC_SMP
+		cpu-map {
+			cluster0 {
+				core0 {
+					cpu = <0x5>;
+				};
+			};
+			cluster1 {
+				core1 {
+					cpu = <0x3>;
+				};
+			};
+			cluster2 {
+				core2 {
+					cpu = <0x1>;
+				};
+			};
+		};
+		cpu@0 {
+			phandle = <0x5>;
+			device_type = "cpu";
+			reg = <0x0>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x6>;
+			};
+		};
+		cpu@1 {
+			phandle = <0x3>;
+			device_type = "cpu";
+			reg = <0x1>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x4>;
+			};
+		};
+		cpu@2 {
+			phandle = <0x1>;
+			device_type = "cpu";
+			reg = <0x2>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x2>;
+			};
+		};
+#else
 		cpu-map {
 			cluster0 {
 				core0 {
@@ -50,7 +119,6 @@
 				};
 			};
 		};
-
 		cpu@0 {
 			phandle = <0x1>;
 			device_type = "cpu";
@@ -59,7 +127,6 @@
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
 			mmu-type = "riscv,sv48";
-
 			interrupt-controller {
 				#interrupt-cells = <0x1>;
 				interrupt-controller;
@@ -67,6 +134,8 @@
 				phandle = <0x2>;
 			};
 		};
+
+#endif
 	};
 
 	memory@0 {
@@ -90,7 +159,11 @@
 		ranges;
 
 		interrupt-controller@ff70000000 {
+#ifdef CONFIG_DUOWEN_FPGA_APC_SMP
+			phandle = <0x7>;
+#else
 			phandle = <0x3>;
+#endif
 			riscv,ndev = <0x35>;
 			reg = <0xff 0x70000000 0x0 0x4000000>;
 			interrupts-extended = <0x2 0x52 0x2 0xa3>;
