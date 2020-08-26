@@ -19,7 +19,7 @@
 
 	uart@ff63000000 {
 		interrupts = <0x54>;
-#ifdef CONFIG_DUOWEN_FPGA_APC_SMP
+#ifdef CONFIG_DUOWEN_FPGA_SMP
 		interrupt-parent = <0x7>;
 #else
 		interrupt-parent = <0x3>;
@@ -48,7 +48,7 @@
 		#size-cells = <0x0>;
 		timebase-frequency = <0x989680>;
 
-#ifdef CONFIG_DUOWEN_FPGA_APC_SMP
+#ifdef CONFIG_DUOWEN_FPGA_SMP
 		cpu-map {
 			cluster0 {
 				core0 {
@@ -159,7 +159,7 @@
 		ranges;
 
 		interrupt-controller@ff70000000 {
-#ifdef CONFIG_DUOWEN_FPGA_APC_SMP
+#ifdef CONFIG_DUOWEN_FPGA_SMP
 			phandle = <0x7>;
 #else
 			phandle = <0x3>;

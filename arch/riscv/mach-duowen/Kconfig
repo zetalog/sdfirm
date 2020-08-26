@@ -87,7 +87,7 @@ config DUOWEN_BBL
 	select SBI_PAYLOAD if !SIMULATION
 	select DUOWEN_SPI_FLASH
 	select DUOWEN_SSI_FLASH
-	select DUOWEN_APC_BOOT_HOOK if DUOWEN_FPGA_APC_SMP
+	select DUOWEN_APC_BOOT_HOOK if DUOWEN_FPGA_SMP
 
 config DUOWEN_TB
 	bool "Test bench"
@@ -170,7 +170,7 @@ endchoice
 config DUOWEN_APC_MAX_CPUS
 	int "Number of VAISRA CPUs"
 	range 1 16
-	default 3 if DUOWEN_FPGA_APC_SMP
+	default 3 if DUOWEN_FPGA_SMP
 	default 16 if !DUOWEN_FPGA
 	depends DUOWEN_APC && SMP && (!DUOWEN_ASIC || SIMULATION)
 
@@ -178,7 +178,7 @@ config DUOWEN_FPGA_DDR_MODEL
 	bool "Enable DDR model in VCS environment"
 	depends DUOWEN_FPGA && SIMULATION
 
-config DUOWEN_FPGA_APC_SMP
+config DUOWEN_FPGA_SMP
 	bool "Enable FGPA SMP environment"
 	depends DUOWEN_FPGA
 	depends DUOWEN_IMC || (DUOWEN_APC && SMP)
@@ -196,7 +196,7 @@ menuconfig DUOWEN_NOC
 	bool "Duowen network on chip (NoC) support"
 	depends !DUOWEN_ZSBL
 	select NCORE
-	select DUOWEN_FPGA_APC_SMP if (DUOWEN_FPGA && SMP && DUOWEN_APC)
+	select DUOWEN_FPGA_SMP if (DUOWEN_FPGA && SMP && DUOWEN_APC)
 	help
 	  NoC driver is required by FSBL or BBL before booting into Linux.
 
