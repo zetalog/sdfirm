@@ -71,6 +71,7 @@ uint8_t i2c_master_write(i2c_addr_t slave, i2c_len_t txlen);
 uint8_t i2c_master_read(i2c_addr_t slave, i2c_len_t rxlen);
 void i2c_master_release(void);
 void i2c_master_init(void);
+#define i2c_set_frequency(khz) i2c_hw_set_frequency(khz)
 #if CONFIG_I2C_MAX_MASTERS > 1
 void i2c_master_select(i2c_t i2c);
 extern i2c_t i2c_mid;
@@ -92,6 +93,7 @@ uint32_t i2c_probe_devid(i2c_addr_t slave);
 #define i2c_apply_frequency()
 #define i2c_master_write(slave, txlen)		I2C_STATUS_ARBI
 #define i2c_master_read(slave, rxlen)		I2C_STATUS_ARBI
+#define i2c_set_frequency(khz)          do { } while (0)
 #define i2c_general_call(cbyte, limit)		I2C_STATUS_ARBI
 #define i2c_master_release()			do { } while (0)
 #define i2c_master_select(i2c)			do { } while (0)

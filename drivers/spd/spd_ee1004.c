@@ -18,7 +18,6 @@ int spd_hw_init(void)
 {
 	unsigned int i2c_master = SPD_BUS_NUM;
 	uint16_t i2c_freq = SPD_BUS_KHZ;
-	int ret;
 
 #ifdef SPD_EE1004_DEBUG
 	con_printf("Debug: Enter %s\n", __func__);
@@ -28,11 +27,7 @@ int spd_hw_init(void)
 #ifdef SPD_EE1004_DEBUG
 	con_printf("Debug: Select I2C Master = %u\n", i2c_master);
 #endif
-	ret = i2c_master_select(i2c_master);
-	if (ret != 0) {
-		con_printf("Error: Failed to select I2C master = %u\n", i2c_master);
-		return -1;
-	}
+	i2c_master_select(i2c_master);
 	i2c_master_init();
 #ifdef SPD_EE1004_DEBUG
 	con_printf("Debug: Set I2C frequency = %u KHz\n", i2c_freq);
