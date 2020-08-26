@@ -70,6 +70,7 @@ void i2c_apply_frequency(void);
 uint8_t i2c_master_write(i2c_addr_t slave, i2c_len_t txlen);
 uint8_t i2c_master_read(i2c_addr_t slave, i2c_len_t rxlen);
 void i2c_master_release(void);
+void i2c_master_init(void);
 #if CONFIG_I2C_MAX_MASTERS > 1
 void i2c_master_select(i2c_t i2c);
 #else
@@ -114,15 +115,6 @@ uint8_t i2c_bus_mode(void);
 uint8_t i2c_dir_mode(void);
 uint8_t i2c_bus_dir_mode(void);
 
-/* Provied by advanced I2C controller to access memory I2C slaves. */
-void i2c_hw_init(void);
-int i2c_hw_master_select_by_num(unsigned int num);
-int i2c_hw_read_mem(uint8_t dev, unsigned int addr, int alen, uint8_t *buffer, int len);
-int i2c_hw_write_mem(uint8_t dev, unsigned int addr, int alen, uint8_t *buffer, int len);
+extern i2c_t i2c_mid;
 
-int i2c_hw_read_bytes(uint8_t dev, uint8_t *buffer, int len, unsigned int stop);
-int i2c_hw_write_bytes(uint8_t dev, uint8_t *buffer, int len, unsigned int stop);
-
-int i2c_hw_read_vip(uint8_t dev, uint8_t *buffer, int len);
-int i2c_hw_write_vip(uint8_t dev, unsigned int addr, uint8_t *buffer, int len);
 #endif /* __I2C_H_INCLUDE__ */

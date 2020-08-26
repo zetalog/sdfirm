@@ -24,20 +24,20 @@ int spd_hw_init(void)
 	con_printf("Debug: Enter %s\n", __func__);
 #endif
 
-	i2c_hw_init();
+	dw_i2c_init();
 #ifdef SPD_EE1004_DEBUG
 	con_printf("Debug: Select I2C Master = %u\n", i2c_master);
 #endif
-	ret = i2c_hw_master_select_by_num(i2c_master);
+	ret = i2c_master_select(i2c_master);
 	if (ret != 0) {
 		con_printf("Error: Failed to select I2C master = %u\n", i2c_master);
 		return -1;
 	}
-	i2c_hw_ctrl_init();
+	i2c_master_init();
 #ifdef SPD_EE1004_DEBUG
 	con_printf("Debug: Set I2C frequency = %u KHz\n", i2c_freq);
 #endif
-	i2c_hw_set_frequency(i2c_freq);
+	i2c_set_frequency(i2c_freq);
 	return 0;
 }
 
@@ -63,7 +63,7 @@ static int spd_ee_set_page(uint8_t new_page)
 #ifdef SPD_EE1004_DEBUG
 	con_printf("Debug: Set EE page to = %u\n", new_page);
 #endif
-	ret = i2c_hw_write_bytes((dsc >> 1), &dsc, 1, 1); /* XXX DSC repeats as Data */
+	ret = dw_i2c_write_bytes((dsc >> 1), &dsc, 1, 1); /* XXX DSC repeats as Data */
 	if (ret < 0) {
 		con_printf("Error: Failed to send DSC SPAx = %u\n", dsc);
 		return ret;
@@ -80,7 +80,7 @@ static int spd_ee_dummy_write(uint8_t dev, uint8_t addr)
 #ifdef SPD_EE1004_DEBUG
 	con_printf("Debug: Do dummy write. dsc = 0x%x, addr = 0x%x\n", dsc, addr);
 #endif
-	ret = i2c_hw_write_bytes((dsc >> 1), &addr, 1, 1);
+	ret = dw_i2c_write_bytes((dsc >> 1), &addr, 1, 1);
 	if (ret != 1) {
 		con_printf("Error: Failed to do dummy write. dsc = 0x%x, ret = %d\n", dsc, ret);
 		return ret;
@@ -99,7 +99,7 @@ static int spd_ee_byte_write(uint8_t dev, uint8_t addr, uint8_t data)
 #ifdef SPD_EE1004_DEBUG
 	con_printf("Debug: Do dummy wirte. dsc = 0x%x, addr = 0x%x, data = 0x%x\n", dsc, addr, data);
 #endif
-	ret = i2c_hw_write_bytes((dsc >> 1), buf, sizeof(buf), 1);
+	ret = dw_i2c_write_bytes((dsc >> 1), buf, sizeof(buf), 1);
 	if (ret != 1) {
 		con_printf("Error: Failed to do byte wirte. dsc = 0x%x, ret = %d\n", dsc, ret);
 		return ret;
@@ -128,7 +128,7 @@ static int spd_ee_page_write(uint8_t dev, uint8_t addr, uint8_t *data, int len)
 #ifdef SPD_EE1004_DEBUG
 	con_printf("Debug: Do page wirte. dsc = 0x%x, addr = 0x%x, len = 0x%x\n", dsc, addr, len);
 #endif
-	ret = i2c_hw_write_bytes((dsc >> 1), i2c_tx_buf, i2c_tx_len, 1);
+	ret = dw_i2c_write_bytes((dsc >> 1), i2c_tx_buf, i2c_tx_len, 1);
 	if (ret != i2c_tx_len) {
 		con_printf("Error: Failed to do page wirte. dsc = 0x%x, ret = %d\n", dsc, ret);
 		return ret;
@@ -198,7 +198,7 @@ int spd_hw_read_bytes(uint8_t dev, uint16_t addr, uint8_t *buffer, int len)
 #ifdef SPD_EE1004_DEBUG
 		con_printf("Debug: Read EE page 0. dsc = 0x%x, len = %d\n", dsc, this_len);
 #endif
-		ret = i2c_hw_read_bytes((dsc >> 1), buffer, this_len, 1);
+		ret = dw_i2c_read_bytes((dsc >> 1), buffer, this_len, 1);
 		if (ret < 0) {
 			con_printf("Error: Failed to read EE page 0. dsc = 0x%x, len = %d, ret = %d\n", dsc, this_len, ret);
 			return -1;
@@ -218,7 +218,7 @@ int spd_hw_read_bytes(uint8_t dev, uint16_t addr, uint8_t *buffer, int len)
 #ifdef SPD_EE1004_DEBUG
 		con_printf("Debug: Read EE page 1. dsc = 0x%x, len = %d\n", dsc, this_len);
 #endif
-		ret = i2c_hw_read_bytes((dsc >> 1), (buffer + len_in_page_0), this_len, 1);
+		ret = dw_i2c_read_bytes((dsc >> 1), (buffer + len_in_page_0), this_len, 1);
 		if (ret < 0) {
 			con_printf("Error: Failed to read EE page 1. dsc = 0x%x, len = %d, ret = %d\n", dsc, this_len, ret);
 			return -1;

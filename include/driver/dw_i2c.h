@@ -202,4 +202,29 @@
 #define I2C_HIGH_SPEED		3400000
 #define I2C_MAX_SPEED		I2C_HIGH_SPEED
 
+void dw_i2c_master_select(i2c_t i2c);
+void dw_i2c_master_init(void);
+void dw_i2c_set_address(i2c_addr_t addr, boolean call);
+void dw_i2c_set_frequency(uint16_t khz);
+void dw_i2c_start_condition(void);
+void dw_i2c_stop_condition(void);
+void dw_i2c_write_byte(uint8_t byte);
+uint8_t dw_i2c_read_byte(void);
+void dw_i2c_transfer_reset(void);
+void dw_i2c_irq_init(void);
+
+/* Non-standard APIs, used for tests */
+int dw_i2c_read_bytes(uint8_t dev, uint8_t *buffer,
+		      int len, unsigned int stop);
+int dw_i2c_write_bytes(uint8_t dev, uint8_t *buffer,
+		       int len, unsigned int stop);
+int dw_i2c_read_mem(uint8_t dev, unsigned int addr,
+		    int alen, uint8_t *buffer, int len);
+int dw_i2c_write_mem(uint8_t dev, unsigned int addr,
+		     int alen, uint8_t *buffer, int len);
+int dw_i2c_read_vip(uint8_t dev, uint8_t *buffer, int len);
+int dw_i2c_write_vip(uint8_t dev, unsigned int addr,
+		     uint8_t *buffer, int len);
+void dw_i2c_init(void);
+
 #endif /* __DW_I2C_H_INCLUDE__ */

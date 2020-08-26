@@ -325,6 +325,11 @@ config DPU_UART_VIP
 
 endif
 
+menuconfig DPU_I2C
+	bool "DPU I2C master support"
+	select DW_I2C
+	depends I2C_MASTER
+
 menuconfig DPU_SPI_FLASH
 	bool "DPU SPI flash support"
 	select MATH_DIV32
@@ -423,8 +428,8 @@ if DPU_DDR
 
 config DPU_DDR_SPD_BUS_NUM
 	int "I2C Bus (Master) Number for DDR SPDs"
-	default 0
 	depends I2C && I2C_MASTER
+	default 0
 
 config DPU_DDR_SPD_COUNT
 	int "Count of DDR SPDs (DIMMs)"

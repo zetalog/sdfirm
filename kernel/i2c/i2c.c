@@ -309,8 +309,13 @@ void i2c_set_status(uint8_t status)
 	i2c_status = status;
 }
 
-void i2c_init(void)
+void i2c_master_init(void)
 {
 	i2c_hw_ctrl_init();
+}
+
+void i2c_init(void)
+{
+	i2c_master_init();
 	i2c_transfer_reset();
 }

@@ -12,17 +12,25 @@
 
 #ifdef CONFIG_DW_I2C
 #include <driver/dw_i2c.h>
+#ifndef ARCH_HAVE_I2C
+#define ARCH_HAVE_I2C		1
+#else
+#error "Multiple I2C controller defined"
+#endif
 #endif
 
-void i2c_hw_ctrl_init(void);
-void i2c_hw_set_frequency(uint16_t khz);
-void i2c_hw_set_address(i2c_addr_t addr, boolean call);
-
-void i2c_hw_start_condition(void);
-void i2c_hw_stop_condition(void);
-void i2c_hw_write_byte(uint8_t byte);
-uint8_t i2c_hw_read_byte(void);
-void i2c_hw_transfer_reset(void);
-void i2c_hw_master_select(i2c_t i2c);
+#define i2c_hw_master_select(i2c)	dw_i2c_master_select(i2c)
+#define i2c_hw_ctrl_init()				\
+	do {						\
+		clk_enable(srst_i2c0 + i2c_mid);	\
+		dw_i2c_master_init();			\
+	} while (0)
+#define i2c_hw_set_address(addr, call)	dw_i2c_set_address(addr, call)
+#define i2c_hw_set_frequency(khz)	dw_i2c_set_frequency(khz)
+#define i2c_hw_start_condition()	dw_i2c_start_condition()
+#define i2c_hw_stop_condition()		dw_i2c_stop_condition()
+#define i2c_hw_read_byte()		dw_i2c_read_byte()
+#define i2c_hw_write_byte(byte)		dw_i2c_write_byte(byte)
+#define i2c_hw_transfer_reset()		dw_i2c_transfer_reset()
 
 #endif /* __I2C_DPU_H_INCLUDE__ */

@@ -52,7 +52,7 @@ void dw_i2c_irq_handler(void)
 }
 #endif
 
-void i2c_hw_init(void)
+void dw_i2c_init(void)
 {
 	int i;
 	for (i = 0; i < CONFIG_I2C_MAX_MASTERS; i++) {
@@ -71,30 +71,21 @@ void i2c_hw_init(void)
 		irqc_enable_irq(IRQ_I2C0 + i);
 	}
 #endif
-#ifdef CONFIG_ARCH_DPU
-	clk_enable(srst_i2c0);
-	clk_enable(srst_i2c1);
-	clk_enable(srst_i2c2);
-#endif
 }
 
-int i2c_hw_master_select_by_num(unsigned int num)
+void dw_i2c_master_select(i2c_t i2c)
 {
-	if (num >= CONFIG_I2C_MAX_MASTERS) {
-		con_printf("Error: Invalid I2C num = %d\n", num);
-		return -1;
-	}
-	dw_i2c_pri = dw_i2c_masters + num;
+	BUG_ON(i2c >= CONFIG_I2C_MAX_MASTERS);
+	dw_i2c_pri = dw_i2c_masters + i2c;
 #ifdef CONFIG_DW_I2C_TEST_IRQ
-	irq_test_master_num = num;
+	irq_test_master_num = i2c;
 #endif
-	return 0;
 }
 
 /*
  * Initialize controller as master device
  */
-void i2c_hw_ctrl_init(void)
+void dw_i2c_master_init(void)
 {
 	caddr_t base = dw_i2c_pri->base;
 
@@ -180,7 +171,7 @@ void i2c_hw_ctrl_init(void)
 /*
  * Set address when this controller acts as a slave device
  */
-void i2c_hw_set_address(i2c_addr_t addr, boolean call)
+void dw_i2c_set_address(i2c_addr_t addr, boolean call)
 {
 	caddr_t base = dw_i2c_pri->base;
 #ifdef DW_I2C_DEBUG
@@ -195,7 +186,7 @@ void i2c_hw_set_address(i2c_addr_t addr, boolean call)
 /*
  * Set frequency by setting speed mode and relative SCL count
  */
-void i2c_hw_set_frequency(uint16_t khz)
+void dw_i2c_set_frequency(uint16_t khz)
 {
 	caddr_t base = dw_i2c_pri->base;
 	uint32_t cntl;
@@ -556,8 +547,8 @@ static int i2c_tx_finish(caddr_t base)
  *
  * Read from i2c memory.
  */
-int i2c_hw_read_mem(uint8_t dev, unsigned int addr,
-			 int alen, uint8_t *buffer, int len)
+int dw_i2c_read_mem(uint8_t dev, unsigned int addr,
+		    int alen, uint8_t *buffer, int len)
 {
 	caddr_t base = dw_i2c_pri->base;
 	unsigned int active = 0;
@@ -631,8 +622,8 @@ int i2c_hw_read_mem(uint8_t dev, unsigned int addr,
  *
  * Write to i2c memory.
  */
-int i2c_hw_write_mem(uint8_t dev, unsigned int addr,
-			  int alen, uint8_t *buffer, int len)
+int dw_i2c_write_mem(uint8_t dev, unsigned int addr,
+		     int alen, uint8_t *buffer, int len)
 {
 	caddr_t base = dw_i2c_pri->base;
 	//int nb = len;
@@ -683,7 +674,8 @@ int i2c_hw_write_mem(uint8_t dev, unsigned int addr,
 /*
  * Simple read and write for some bytes.
  */
-int i2c_hw_read_bytes(uint8_t dev, uint8_t *buffer, int len, unsigned int stop)
+int dw_i2c_read_bytes(uint8_t dev, uint8_t *buffer,
+		      int len, unsigned int stop)
 {
 	caddr_t base = dw_i2c_pri->base;
 	unsigned int active = 0;
@@ -750,7 +742,8 @@ int i2c_hw_read_bytes(uint8_t dev, uint8_t *buffer, int len, unsigned int stop)
 	return (orig_len - len);
 }
 
-int i2c_hw_write_bytes(uint8_t dev, uint8_t *buffer, int len, unsigned int stop)
+int dw_i2c_write_bytes(uint8_t dev, uint8_t *buffer,
+		       int len, unsigned int stop)
 {
 	caddr_t base = dw_i2c_pri->base;
 	uint32_t val;
@@ -805,13 +798,13 @@ int i2c_hw_write_bytes(uint8_t dev, uint8_t *buffer, int len, unsigned int stop)
  * - write: 1 byte I2C CMD + 1 byte address + n bytes data
  * - read:  1 byte I2C CMD + n bytes data (from slave)
  */
-int i2c_hw_write_vip(uint8_t dev, unsigned int addr,
-			  uint8_t *buffer, int len)
+int dw_i2c_write_vip(uint8_t dev, unsigned int addr,
+		     uint8_t *buffer, int len)
 {
-	return i2c_hw_write_mem(dev, addr, 1, buffer, len);
+	return dw_i2c_write_mem(dev, addr, 1, buffer, len);
 }
 
-int i2c_hw_read_vip(uint8_t dev, uint8_t *buffer, int len)
+int dw_i2c_read_vip(uint8_t dev, uint8_t *buffer, int len)
 {
 	caddr_t base = dw_i2c_pri->base;
 	unsigned int active = 0;
@@ -892,7 +885,7 @@ int i2c_hw_read_vip(uint8_t dev, uint8_t *buffer, int len)
  * When operating as an I2C master, putting data into the transmit FIFO
  * causes the DW_apb_i2c to generate a START condition on the I2C bus.
  */
-void i2c_hw_start_condition(void)
+void dw_i2c_start_condition(void)
 {
 #ifdef DW_I2C_DEBUG
 	con_printf("Debug: Enter %s\n", __func__);
@@ -912,7 +905,7 @@ void i2c_hw_start_condition(void)
  * I2C bus; a STOP condition is not issued if this bit is not set, even if
  * the transmit FIFO is empty.
  */
-void i2c_hw_stop_condition(void)
+void dw_i2c_stop_condition(void)
 {
 #ifdef DW_I2C_DEBUG
 	con_printf("Debug: Enter %s\n", __func__);
@@ -921,7 +914,7 @@ void i2c_hw_stop_condition(void)
 	return;
 }
 
-void i2c_hw_write_byte(uint8_t byte)
+void dw_i2c_write_byte(uint8_t byte)
 {
 	caddr_t base = dw_i2c_pri->base;
 	uint32_t val;
@@ -1016,7 +1009,7 @@ void i2c_hw_write_byte(uint8_t byte)
 	return;
 }
 
-uint8_t i2c_hw_read_byte(void)
+uint8_t dw_i2c_read_byte(void)
 {
 	caddr_t base = dw_i2c_pri->base;
 	uint32_t val;
@@ -1044,7 +1037,7 @@ uint8_t i2c_hw_read_byte(void)
 /*
  * Abort transfer if any, and get ready for new start
  */
-void i2c_hw_transfer_reset(void)
+void dw_i2c_transfer_reset(void)
 {
 	caddr_t base = dw_i2c_pri->base;
 	uint32_t val;
@@ -1062,8 +1055,4 @@ void i2c_hw_transfer_reset(void)
 	dw_i2c_pri->addr_mode = 0;
 	dw_i2c_pri->state = DW_I2C_DRIVER_INIT;
 	return;
-}
-
-void i2c_hw_master_select(i2c_t i2c)
-{
 }
