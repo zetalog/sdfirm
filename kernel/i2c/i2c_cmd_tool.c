@@ -37,11 +37,7 @@ static int do_i2cmem(int argc, char *argv[])
 	printf("i2cmem master num = %u, freq = %ukHz, slave_addr = 0x%x, mem_addr = 0x%x, data_size = %d\n",
 			master_num, freq_khz, slave_addr, mem_addr, data_size);
 
-	ret = i2c_master_select(master_num);
-	if (ret < 0) {
-		printf("Error: Invalid I2C master num = %d\n", master_num);
-		return -1;
-	}
+	i2c_master_select(master_num);
 	i2c_master_init();
 	i2c_set_frequency(freq_khz);
 	ret = dw_i2c_write_mem(slave_addr, mem_addr, mem_addr_size,
@@ -109,11 +105,7 @@ static int do_i2cvip(int argc, char *argv[])
 	printf("i2cvip master num = %u, freq = %ukHz, slave_addr = 0x%x, mem_addr = 0x%x, data_size = %d\n",
 	       master_num, freq_khz, slave_addr, mem_addr, data_size);
 
-	ret = i2c_master_select(master_num);
-	if (ret < 0) {
-		printf("Error: Invalid I2C master num = %d\n", master_num);
-		return -1;
-	}
+	i2c_master_select(master_num);
 	i2c_master_init();
 	i2c_set_frequency(freq_khz);
 

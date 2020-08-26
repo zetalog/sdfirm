@@ -1,6 +1,7 @@
 #include <target/clk.h>
 #include <target/i2c.h>
 #include <target/console.h>
+#include <target/panic.h>
 #include <driver/dw_i2c.h>
 
 #define DW_I2C_DEBUG
