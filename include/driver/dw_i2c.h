@@ -42,12 +42,6 @@
 #ifndef __DW_I2C_H_INCLUDE__
 #define __DW_I2C_H_INCLUDE__
 
-#ifndef ARCH_HAVE_I2C
-#define ARCH_HAVE_I2C		1
-#else
-#error "Multiple I2C controller defined"
-#endif
-
 /* Register offset */
 #define IC_CON							0x00
 #define IC_TAR							0x04

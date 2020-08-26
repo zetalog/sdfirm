@@ -73,8 +73,10 @@ void i2c_master_release(void);
 void i2c_master_init(void);
 #if CONFIG_I2C_MAX_MASTERS > 1
 void i2c_master_select(i2c_t i2c);
+extern i2c_t i2c_mid;
 #else
 #define i2c_master_select(i2c)			do { } while (0)
+#define i2c_mid					0
 #endif
 #ifdef CONFIG_I2C_GENERAL_CALL
 uint8_t i2c_general_call(uint8_t cbyte, i2c_len_t limit);
@@ -114,7 +116,5 @@ void i2c_set_status(uint8_t status);
 uint8_t i2c_bus_mode(void);
 uint8_t i2c_dir_mode(void);
 uint8_t i2c_bus_dir_mode(void);
-
-extern i2c_t i2c_mid;
 
 #endif /* __I2C_H_INCLUDE__ */
