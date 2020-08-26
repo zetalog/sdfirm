@@ -20,5 +20,3 @@ obj-$(CONFIG_DPU_PCI_SUBSYS) += pcie_dpu.rel
 
 obj-$(CONFIG_DPU_BOOT_PE) += pe.rel
 obj-$(CONFIG_DPU_BOOT_VPU) += vpu.rel
-
-obj-y += gpt_util.rel

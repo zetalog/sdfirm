@@ -43,6 +43,7 @@
 #include <target/irq.h>
 #include <target/clk.h>
 #include <target/noc.h>
+#include <target/uefi.h>
 #include <target/cmdline.h>
 
 #ifdef CONFIG_SHUTDOWN
@@ -59,12 +60,45 @@ void board_reboot(void)
 }
 #endif
 
-#ifdef CONFIG_DUOWEN_IMC
-static void imc_init(void)
+#ifdef CONFIG_DUOWEN_LOAD
+void board_boot(void)
 {
+	uint8_t flash_sel = imc_boot_flash();
+	void (*boot_entry)(void);
+
+	board_init_clock();
+#ifdef CONFIG_DUOWEN_LOAD_SPI_FLASH
+	if (flash_sel == IMC_FLASH_SPI) {
+		printf("Booting from SPI flash...\n");
+		boot_entry = (void *)CONFIG_DUOWEN_BOOT_ADDR;
+		clk_enable(spi_flash_pclk);
+		duowen_flash_set_frequency(min(DUOWEN_FLASH_FREQ,
+					       APB_CLK_FREQ));
+	}
+#endif
+#ifdef CONFIG_DUOWEN_LOAD_SSI_FLASH
+	if (flash_sel == IMC_FLASH_SSI) {
+		uint32_t addr = 0;
+		uint32_t size = 500000;
+		unsigned char boot_file[] = "fsbl.bin";
+		int ret;
+
+		boot_entry = (void *)RAM_BASE;
+		ret = gpt_pgpt_init();
+		if (ret != 0)
+			printf("E(%d): Failed to init primary GPT.\n", ret);
+		ret = gpt_get_file_by_name(boot_file, &addr, &size);
+		if (ret <= 0)
+			printf("E(%d): Failed to get boot file.\n", ret);
+		printf("Booting from SSI flash addr=0x%lx, size=0x%lx...\n",
+		       addr, size);
+		duowen_ssi_flash_boot(boot_entry, addr, size);
+	}
+#endif
+	boot_entry();
 }
 #else
-#define imc_init()		do { } while (0)
+#define board_boot()		do { } while (0)
 #endif
 
 void board_init_clock(void)
@@ -77,7 +111,6 @@ void board_early_init(void)
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);
 	board_init_timestamp();
 	crcntl_power_up();
-	imc_init();
 }
 
 void board_late_init(void)
@@ -86,6 +119,7 @@ void board_late_init(void)
 	 *       initializing NoC.
 	 */
 	duowen_imc_noc_init();
+	board_boot();
 }
 
 static int do_duowen_shutdown(int argc, char *argv[])

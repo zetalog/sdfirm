@@ -61,6 +61,7 @@ config ARCH_DUOWEN
 	select ARCH_HAS_SSI_SPI_1WIRE
 	select ARCH_HAS_RAS
 	select ARCH_HAS_NOC
+	select ARCH_HAS_UEFI
 	select RISCV_COUNTERS if SBI
 	select FDT_BUILTIN if SBI_FDT
 	select DUOWEN_TMR
@@ -98,6 +99,7 @@ config ARCH_DPU
 	select ARCH_HAS_PLIC_EOI_EARLY
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_APB_40
+	select ARCH_HAS_UEFI
 	select DPU_TMR
 	select RI5CY_FIRQ if (!SYS_NOIRQ && DPU_CV32E40P)
 	select FDT_BUILTIN if SBI_FDT

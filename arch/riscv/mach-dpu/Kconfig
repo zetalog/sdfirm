@@ -141,6 +141,8 @@ config DPU_BOOT_ADDR
 config DPU_LOAD_SSI_FLASH
 	bool "Enable load from SSI flash"
 	depends DPU_SSI_FLASH
+	select UEFI
+	select UEFI_GPT
 
 config DPU_BOOT_STACK
 	bool "Enable boot from stack"

@@ -51,6 +51,7 @@
 #define SCSR_CORE_ID			SCSR_REG(0x04)
 #define SCSR_CLUSTER_ID			SCSR_REG(0x08)
 #define SCSR_CLOCK_EN			SCSR_REG(0x0C)
+#define SCSR_BOOT_MODE			SCSR_REG(0x10)
 
 /* CORE_ID (offset 0x04) */
 #define IMC_CORE_ID_OFFSET		0
@@ -62,6 +63,20 @@
 #define IMC_CLUSTER_ID(value)		_GET_FV(IMC_CLUSTER_ID, value)
 /* CLOCK_EN (offset 0x0C) */
 #define IMC_CLOCK_EN			_BV(0)
+/* BOOT_MODE */
+#define IMC_BOOT_MODE_OFFSET		0
+#define IMC_BOOT_MODE_MASK		REG_2BIT_MASK
+#define IMC_BOOT_MODE(value)		_GET_FV(IMC_BOOT_MODE, value)
+#define IMC_BOOT_ROM			0x00
+#define IMC_BOOT_FLASH			0x01
+#define IMC_BOOT_USE_BOOT_ADDR		0x02
+/* FLASH_SEL */
+#define IMC_FLASH_SEL_OFFSET		4
+#define IMC_FLASH_SEL_MASK		REG_1BIT_MASK
+#define IMC_FLASH_SEL(value)		_GET_FV(IMC_FLASH_SEL, value)
+#define IMC_FLASH_SPI			0x00
+#define IMC_FLASH_SSI			0x01
+
 #define imc_core_id()			\
 	IMC_CORE_ID(__raw_readl(SCSR_CORE_ID))
 #define imc_cluster_id()		\
@@ -70,5 +85,7 @@
 	__raw_setl(IMC_CLOCK_EN, SCSR_CLOCK_EN)
 #define imc_disable_clock()		\
 	__raw_clearl(IMC_CLOCK_EN, SCSR_CLOCK_EN)
+#define imc_boot_flash()			\
+	IMC_FLASH_SEL(__raw_readl(SCSR_BOOT_MODE))
 
 #endif /* __SCSR_DUOWEN_H_INCLUDE__ */

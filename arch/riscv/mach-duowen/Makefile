@@ -17,5 +17,6 @@ obj-$(CONFIG_DUOWEN_DDR) += ddr.rel
 obj-$(CONFIG_DUOWEN_DMA) += dma.rel
 obj-$(CONFIG_DUOWEN_PCIE) += pcie_duowen.rel
 obj-$(CONFIG_DUOWEN_SPI_FLASH) += spi_flash.rel
+obj-$(CONFIG_DUOWEN_SSI_FLASH) += ssi_flash.rel
 obj-$(CONFIG_DUOWEN_APC) += vaisra.rel
 obj-$(CONFIG_DUOWEN_NOC) += noc.rel

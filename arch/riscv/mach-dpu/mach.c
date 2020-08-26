@@ -43,9 +43,8 @@
 #include <target/irq.h>
 #include <target/clk.h>
 #include <target/spi.h>
+#include <target/uefi.h>
 #include <target/cmdline.h>
-
-#include "gpt_util.h"
 
 #ifdef CONFIG_SHUTDOWN
 void board_shutdown(void)

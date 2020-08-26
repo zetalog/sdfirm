@@ -75,7 +75,7 @@ void __duowen_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 void duowen_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 {
 	duowen_boot_cb boot_func;
-#ifdef CONFIG_DPU_BOOT_STACK
+#ifdef CONFIG_DUOWEN_BOOT_STACK
 	__align(32) uint8_t boot_from_stack[256];
 
 	boot_func = (duowen_boot_cb)boot_from_stack;
@@ -144,7 +144,7 @@ static int do_flash_dump(int argc, char *argv[])
 	return 0;
 }
 
-#ifdef CONFIG_DPU_SIM_SSI_IRQ
+#ifdef CONFIG_DUOWEN_SIM_SSI_IRQ
 static uint32_t dw_ssi_irqs;
 
 static void duowen_ssi_handler(void)

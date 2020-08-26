@@ -738,6 +738,7 @@ source kernel/ddr/Kconfig
 source kernel/pci/Kconfig
 source kernel/iommu/Kconfig
 source kernel/fdt/Kconfig
+source kernel/uefi/Kconfig
 
 config ARCH_HAS_RAS
 	bool
