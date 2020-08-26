@@ -42,16 +42,31 @@ SCRIPT=`(cd \`dirname $0\`; pwd)`
 ARCH=riscv64
 QEMU=qemu-system-${ARCH}
 
-if [ "x${QEMU_DTS}" != "x" ]; then
-	QEMU_DTB="`echo ${QEMU_DTS%.*}`.dtb"
-	QEMU_MOPTS=",dumpdtb=${QEMU_DTB}"
+if [ ! -f ${SCRIPT}/../sdfirm ]; then
+	echo "warning: No -bios option specified."
+	echo "warning: This default will change in a future release."
+	echo "warning: See deprecation documentation for details."
 	QEMU_FIRM=""
 else
 	QEMU_FIRM="-bios ${SCRIPT}/../sdfirm"
 fi
+if [ "x${QEMU_DTS}" != "x" ]; then
+	QEMU_DTB="`echo ${QEMU_DTS%.*}`.dtb"
+	QEMU_MOPTS=",dumpdtb=${QEMU_DTB}"
+else
+	QEMU_FIRM="-bios ${SCRIPT}/../sdfirm"
+fi
 
-${QEMU} ${QEMU_OPTS} -machine virt${QEMU_MOPTS} ${QEMU_FIRM}
+${QEMU} ${QEMU_OPTS} -machine virt${QEMU_MOPTS} ${QEMU_FIRM} 2>/dev/null
 
 if [ "x${QEMU_DTS}" != "x" ]; then
-	dtc -I dtb -O dts -o ${QEMU_DTS} ${QEMU_DTB}
+	if [ -f ${QEMU_DTB} ]; then
+		dtc -I dtb -O dts -o ${QEMU_DTS} ${QEMU_DTB}
+		echo "DTS file (${QEMU_DTS}) is generated."
+	else
+		echo "error: DTS file is not generate."
+		if [ "x${QEMU_FIRM}" = "x" ]; then
+			echo "error: Try to use -bios to avoid breakage."
+		fi
+	fi
 fi

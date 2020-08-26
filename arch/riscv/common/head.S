@@ -252,13 +252,13 @@ ENTRY(__start)
 	zero_sect __bss_start, __bss_stop, init_bss_exit, init_bss_loop
 #endif
 
-	la	t0, abi_relocate_done
-	REG_S	t0, 0(t0)
-	fence	rw, rw
-
 	/* At this point we are running from link address */
 	init_sp
 	boot1_hook
+
+	la	t0, abi_relocate_done
+	REG_S	t0, 0(t0)
+	fence	rw, rw
 
 	j	__abi_start_warm
 
