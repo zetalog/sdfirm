@@ -76,9 +76,9 @@ config DUOWEN_BBL
 	depends DUOWEN_APC
 	select DUOWEN_BOOT
 	select DUOWEN_LOAD_BBL
-	select ARCH_HAS_BOOT_LOAD
-	select XIP
-	select BFM
+	select ARCH_HAS_BOOT_LOAD if !DUOWEN_BBL_SPI
+	select XIP if !DUOWEN_BBL_SPI
+	select BFM if !DUOWEN_BBL_SPI
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select SYS_EXIT_S if SIMULATION
@@ -116,6 +116,10 @@ config DUOWEN_APC_BOOT_HOOK
 config DUOWEN_FSBL_SPI
 	bool "Build SPI flash resident FSBL"
 	depends DUOWEN_FSBL
+
+config DUOWEN_BBL_SPI
+	bool "Build SPI flash resident BBL"
+	depends DUOWEN_BBL
 
 menuconfig DUOWEN_LOAD
 	bool "Enable bootloader"
