@@ -11,6 +11,10 @@ menuconfig DW_PCIE
 
 if DW_PCIE
 
+config PCIE_ROLE_RC
+	bool "Setup PCIE Core as RC"
+	default y
+
 endif
 
 endmenu

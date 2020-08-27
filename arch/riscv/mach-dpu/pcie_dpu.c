@@ -25,7 +25,7 @@ struct dw_pcie controllers[] =
         .pp.cfg_bar0 = PCIE_CORE_X8_CFG0_START,
         .pp.cfg_bar1 = PCIE_CORE_X8_CFG1_START,
         .pp.cfg_size = PCIE_CORE_CFG_SIZE,
-        .pp.mem_base = PCIE_CORE_X8_ADDR_START,
+        .pp.mem_base = 0,
         .pp.mem_size = PCIE_CORE_MEM_SIZE,
     },
 
@@ -36,7 +36,7 @@ struct dw_pcie controllers[] =
         .pp.cfg_bar0 = PCIE_CORE_X4_0_CFG0_START,
         .pp.cfg_bar1 = PCIE_CORE_X4_0_CFG1_START,
         .pp.cfg_size = PCIE_CORE_CFG_SIZE,
-        .pp.mem_base = PCIE_CORE_X4_0_ADDR_START,
+        .pp.mem_base = 0,
         .pp.mem_size = PCIE_CORE_MEM_SIZE,
     },
 
@@ -47,12 +47,12 @@ struct dw_pcie controllers[] =
         .pp.cfg_bar0 = PCIE_CORE_X4_1_CFG0_START,
         .pp.cfg_bar1 = PCIE_CORE_X4_1_CFG1_START,
         .pp.cfg_size = PCIE_CORE_CFG_SIZE,
-        .pp.mem_base = PCIE_CORE_X4_1_ADDR_START,
+        .pp.mem_base = 0,
         .pp.mem_size = PCIE_CORE_MEM_SIZE,
     },
 };
 
-uint32_t read_apb(uint32_t addr, uint8_t port)
+uint32_t read_apb(uint64_t addr, uint8_t port)
 {
     uint32_t data;
 #ifdef IPBENCH
@@ -288,7 +288,7 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
         break;
     }
 
-#ifdef CONFIG_DPU_PCIE_ROLE_RC
+#ifdef CONFIG_PCIE_ROLE_RC
     write_apb((base + 0), 0xc810010, port);
 #else
     write_apb((base + 0), 0xc810000, port);
@@ -467,7 +467,7 @@ void pci_platform_init(void)
             break;
         controller++;
     }
-#ifdef CONFIG_DPU_PCIE_ROLE_RC
+#ifdef CONFIG_PCIE_ROLE_RC
     uint64_t val;
 
     irqc_configure_irq(IRQ_PCIE_X16_MSI, 0, IRQ_LEVEL_TRIGGERED);
