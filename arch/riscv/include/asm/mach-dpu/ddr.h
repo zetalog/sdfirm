@@ -59,6 +59,7 @@
 #define ddr_por			ddr0_pwr_ok_in
 #define ddr_prst		ddr0_prst_n
 #define ddr_arst		ddr0_arst_n
+#define ddr_rst			ddr0_rst_n
 
 #ifdef CONFIG_DPU_DDR
 clk_freq_t ddr_get_fvco(int speed);

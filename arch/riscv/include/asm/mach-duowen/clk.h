@@ -269,8 +269,12 @@
 #define PCIE_PCLK		((clk_clk_t)99)
 #define SD_BCLK			((clk_clk_t)100)
 #define SD_CCLK			((clk_clk_t)101)
-
+#ifdef CONFIG_DUOWEN_DDR_EARLY_CLOCK
+#define DDR_RST			((clk_clk_t)102)
+#define NR_OUTPUT_CLKS		(DDR_RST + 1)
+#else
 #define NR_OUTPUT_CLKS		(SD_CCLK + 1)
+#endif
 
 /* CLK_OUTPUT: CLK_EN_CFG0 */
 /* Integrated overall clocks */
@@ -307,15 +311,15 @@
 #define pcie_pclk		clkid(CLK_OUTPUT, PCIE_PCLK)
 #define sd_bclk			clkid(CLK_OUTPUT, SD_BCLK)
 #define sd_cclk			clkid(CLK_OUTPUT, SD_CCLK)
+#ifdef CONFIG_DUOWEN_DDR_EARLY_CLOCK
+#define ddr_rst			clkid(CLK_OUTPUT, DDR_RST)
+#endif
 /* Alias for AO domain clocks */
 #define imc_clk			sysfab_clk
 #define ram_aclk		sysfab_clk
 #define brom_hclk		sysfab_clk
 #define sd_hclk			sysfab_half_clk
 /* clocke/reset alias required by DDR/PCIe drivers */
-#define ddr_arst		ddr_aclk
-#define ddr_prst		ddr_pclk
-#define ddr_rst			ddr_clk
 #define pcie_aux_clk		xo_clk
 #define pcie_aclk		sysfab_clk
 #define pcie_alt_ref_clk	pcie_clk
@@ -414,6 +418,7 @@
 #define CLK_SW_RST_F		_BV(2)
 #define CLK_REVERSE_DEP_F	_BV(3)
 #define CLK_HOMOLOG_SRC_F	_BV(4)
+#define CLK_DDR_RST_F		_BV(5)
 #define CLK_CR			(CLK_CLK_EN_F | CLK_SW_RST_F)
 #define CLK_C			CLK_CLK_EN_F
 #define CLK_R			CLK_SW_RST_F

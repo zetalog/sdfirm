@@ -40,9 +40,9 @@
  */
 
 #include <target/ddr.h>
+#include <target/delay.h>
 #include <target/jiffies.h>
 
-#ifdef CONFIG_CRCNTL
 struct ddr_speed {
 	uint64_t f_pll_vco;
 	uint32_t f_pll_clk;
@@ -134,18 +134,7 @@ clk_freq_t ddr_get_fclk(int speed)
 	return ds ? ds->f_pll_clk: INVALID_FREQ;
 }
 
-void ddr_hw_config_speed(uint8_t speed)
-{
-	struct ddr_speed *ds;
-
-	ds = ddr_get_speed(speed);
-	if (ds) {
-		clk_apply_vco(DDR_VCO, ds->f_pll_vco);
-		clk_apply_pll(DDR_PLL, ds->f_pll_clk);
-	}
-}
-
-void ddr_hw_enable_speed(uint8_t speed)
+void __ddr_hw_enable_speed(uint8_t speed)
 {
 	struct ddr_speed *ds;
 
@@ -156,6 +145,42 @@ void ddr_hw_enable_speed(uint8_t speed)
 		else
 			clk_enable(ddr_bypass_pclk);
 	}
+}
+
+void ddr_hw_config_speed(uint8_t speed)
+{
+	struct ddr_speed *ds;
+
+	ds = ddr_get_speed(speed);
+	if (ds) {
+		clk_apply_vco(DDR_VCO, ds->f_pll_vco);
+		clk_apply_pll(DDR_PLL, ds->f_pll_clk);
+	}
+#ifdef CONFIG_DUOWEN_DDR_EARLY_CLOCK
+	__ddr_hw_enable_speed(speed);
+	crcntl_clk_assert(DDR_CLK);
+	crcntl_clk_assert(DDR_ACLK);
+	crcntl_clk_assert(DDR_PCLK);
+	crcntl_clk_assert(DDR_POR);
+	ddr_wait_dfi(8);
+#endif
+}
+
+#ifndef CONFIG_DUOWEN_DDR_EARLY_CLOCK
+void ddr_hw_enable_speed(uint8_t speed)
+{
+	__ddr_hw_enable_speed(speed);
+}
+
+void ddr_hw_ctrl_init(void)
+{
+	crcntl_clk_assert(DDR_CLK);
+	crcntl_clk_assert(DDR_ACLK);
+	crcntl_clk_assert(DDR_PCLK);
+	crcntl_clk_assert(DDR_POR);
+	/* No DDR_CLK is enabled, ddr_wait_dfi() is not working here. */
+	udelay(1);
+	dw_umctl2_init();
 }
 #endif
 

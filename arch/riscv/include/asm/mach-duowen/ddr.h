@@ -58,13 +58,21 @@
 #define NR_DDR_SPEEDS		(DDR4_3200 + 1)
 #define ddr_prst		ddr_pclk
 #define ddr_arst		ddr_aclk
+#ifndef CONFIG_DUOWEN_DDR_EARLY_CLOCK
+#define ddr_rst			ddr_clk
+#endif
 
 #ifdef CONFIG_DUOWEN_DDR
 /* DDR frequency plans */
-#define ddr_hw_ctrl_init()	dw_umctl2_init()
-#define ddr_hw_ctrl_start()	dw_umctl2_start()
-void ddr_hw_config_speed(uint8_t speed);
+#ifndef CONFIG_DUOWEN_DDR_EARLY_CLOCK
+void ddr_hw_ctrl_init(void);
 void ddr_hw_enable_speed(uint8_t speed);
+#else
+#define ddr_hw_ctrl_init()		dw_umctl2_init()
+#define ddr_hw_enable_speed(speed)	do { } while (0)
+#endif
+#define ddr_hw_ctrl_start()		dw_umctl2_start()
+void ddr_hw_config_speed(uint8_t speed);
 void ddr_hw_wait_dfi(uint32_t cycles);
 #endif
 

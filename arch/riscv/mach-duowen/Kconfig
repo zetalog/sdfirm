@@ -379,6 +379,10 @@ menuconfig DUOWEN_DDR
 
 if DUOWEN_DDR
 
+config DUOWEN_DDR_EARLY_CLOCK
+	bool "Enable early ddr_clk and late ddr_rst quirk"
+	depends EXPERIMENTAL
+
 config DUOWEN_DDR_SPD_BUS_NUM
 	int "I2C Bus (Master) Number for DDR SPDs"
 	default 0

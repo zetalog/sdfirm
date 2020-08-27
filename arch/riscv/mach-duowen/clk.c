@@ -230,10 +230,20 @@ struct output_clk output_clks[] = {
 		.flags = CLK_C | CLK_REVERSE_DEP_F,
 	},
 	[DDR_CLK] = {
-		.clk_dep = ddr_pclk,
+		.clk_dep = invalid_clk,
 		.clk_src = ddr_clk_div4_sel,
+#ifdef CONFIG_DUOWEN_DDR_EARLY_CLOCK
+		.flags = CLK_C,
+	}
+	[DDR_RST] = {
+		.clk_dep = invalid_clk,
+		.clk_src = ddr_clk,
+		.flags = CLK_DDR_RST_F,
+	},
+#else
 		.flags = CLK_CR,
 	},
+#endif
 	/* 4.7 PCIE Clocks
 	 * +-> pcie_aux_clk              +-----+ -> pcie_alt_ref_clk_n
 	 * |                             | inv |
@@ -700,6 +710,9 @@ const char *output_clk_names[] = {
 	[DDR_BYPASS_PCLK] = "ddr_bypass_pclk",
 	[DDR_CLK] = "ddr_clk",
 	[DDR_BYPASS_PCLK] = "ddrp0_bypass_pclk",
+#ifdef CONFIG_DUOWEN_DDR_EARLY_CLOCK
+	[DDR_RST] = "ddr_rst",
+#endif
 	/* 4.7 PCIE Clocks */
 	[PCIE_POR] = "pcie_por",
 	[PCIE_PCLK] = "pcie_pclk",
@@ -806,6 +819,8 @@ static int enable_output_clk(clk_clk_t clk)
 		crcntl_clk_enable(clk);
 	if (output_clks[clk].flags & CLK_SW_RST_F)
 		crcntl_clk_deassert(clk);
+	if (output_clks[clk].flags & CLK_DDR_RST_F)
+		crcntl_clk_deassert(DDR_CLK);
 	return 0;
 }
 
@@ -823,6 +838,8 @@ static void disable_output_clk(clk_clk_t clk)
 	}
 	if (output_clks[clk].clk_src != invalid_clk)
 		clk_disable(output_clks[clk].clk_src);
+	if (output_clks[clk].flags & CLK_DDR_RST_F)
+		crcntl_clk_assert(DDR_CLK);
 	if (output_clks[clk].flags & CLK_SW_RST_F)
 		crcntl_clk_assert(clk);
 	if (output_clks[clk].flags & CLK_CLK_EN_F)

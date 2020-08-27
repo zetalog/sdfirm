@@ -3,6 +3,7 @@
 void dw_umctl2_start(void)
 {
 	clk_enable(ddr_arst);
+	clk_enable(ddr_rst);
 
 	/* TODO: configure dw_umctl2 after seeting ddr_clk/ddr_rst */
 }
