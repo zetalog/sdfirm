@@ -391,6 +391,14 @@ config DUOWEN_PCIE
 
 if DUOWEN_PCIE
 
+config DUOWEN_PCIE_TEST
+	bool "Enable PCIE EP/RC(Root Complex) basic test"
+	default n
+	help
+	  When this option is enabled, basic test on either EP
+	  or RC will be implemented, depends on whether PCIE_ROLE_RC
+	  is checked
+
 endif
 
 menuconfig DUOWEN_SMMU

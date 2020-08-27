@@ -447,11 +447,6 @@ menuconfig DPU_PCI_SUBSYS
 
 if DPU_PCI_SUBSYS
 
-config DPU_PCIE_ROLE_RC
-	bool "Setup PCIE Core as RC"
-	depends DPU_PCI_SUBSYS
-	default y
-
 config DPU_PCIE_TEST
 	bool "Enable PCIE EP/RC(Root Complex) basic test"
 	default n

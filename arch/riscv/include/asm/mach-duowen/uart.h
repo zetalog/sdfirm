@@ -77,12 +77,16 @@ void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
 #endif
 
 #ifdef CONFIG_CONSOLE
+#ifdef CONFIG_CLK
 #define uart_hw_con_init()						\
 	do {								\
 		board_init_clock();					\
 		clk_enable(UART_CLK_ID);				\
 		dw_uart_con_init(clk_get_frequency(UART_CLK_ID));	\
 	} while (0)
+#else
+#define uart_hw_con_init()	do { } while (0)
+#endif
 #endif
 #ifdef CONFIG_CONSOLE_OUTPUT
 #define uart_hw_con_write(byte)	dw_uart_con_write(byte)
@@ -90,8 +94,10 @@ void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
 #ifdef CONFIG_CONSOLE_INPUT
 #define uart_hw_con_read()	dw_uart_con_read()
 #define uart_hw_con_poll()	dw_uart_con_poll()
-void uart_hw_irq_ack(void);
-void uart_hw_irq_init(void);
+#ifndef CONFIG_SYS_NOIRQ
+#define uart_hw_irq_init()	dw_uart_irq_init()
+#define uart_hw_irq_ack()	dw_uart_irq_ack()
+#endif
 #endif
 #ifndef CONFIG_SYS_NOIRQ
 #define uart_hw_irq_init()	dw_uart_irq_init()
