@@ -18,6 +18,7 @@
 #define AFF_INCR (1)
 /* Includes */
 #include <target/litmus.h>
+#include <target/bh.h>
 #include <target/cmdline.h>
 
 /* params */
@@ -71,7 +72,7 @@ static char *group[] = {
 #define SCANSZ 2
 #define SCANLINE 4
 
-static count_t ngroups[SCANSZ];
+static count_t g_ngroups[SCANSZ];
 
 /**********************/
 /* Context definition */
@@ -184,6 +185,48 @@ typedef struct {
   ctx_t *_a;   /* In this context */
 } parg_t;
 
+typedef struct {
+  pm_t *p_mutex;
+  pb_t *p_barrier;
+  param_t *_p;
+  int z_id;
+  int *cpus;
+} zyva_t;
+
+#define NT N
+
+static tsc_t g_start;
+static param_t prm;
+static cmd_t g_def = {
+  0, NUMBER_OF_RUN, SIZE_OF_TEST, STRIDE, AVAIL, 0, 0,
+  aff_incr, 1, 1, AFF_INCR, NULL, NULL, -1, MAX_LOOP,
+  NULL, NULL, -1, -1, -1, 0, 1
+};
+static cmd_t g_cmd;
+static int g_n_exe;
+static int g_n_th;
+static int g_next_cpu;
+static int g_delta;
+static int g_start_scan;
+static int g_max_start;
+static int *g_aff_cpu;
+static zyva_t *g_zarg;
+
+static cpus_t *g_def_all_cpus;
+static cpus_t *g_all_cpus;
+static int g_n_aff_cpus;
+static int *g_aff_cpus;
+static hist_t *g_hist = NULL;
+static zyva_t *g_zargs;
+static hist_t **g_hists;
+static pm_t *g_mutex;
+static pb_t *g_barrier;
+
+static parg_t g_parg[N];
+static ctx_t g_ctx;
+static int g_n_run;
+static int g_exe;
+
 static void *P0(void *_vb) {
   mbar();
   parg_t *_b = (parg_t *)_vb;
@@ -295,83 +338,20 @@ static void reinit(ctx_t *_a) {
   }
 }
 
-typedef struct {
-  pm_t *p_mutex;
-  pb_t *p_barrier;
-  param_t *_p;
-  int z_id;
-  int *cpus;
-} zyva_t;
+static f_t *g_fun[] = {&P0,&P1};
 
-#define NT N
-
-static void *zyva(void *_va) {
-  zyva_t *_a = (zyva_t *) _va;
-  param_t *_b = _a->_p;
-  pb_wait(_a->p_barrier);
+static void zyva(void) {
+#if 0
   cpu_exec_cpu_t thread[NT];
-  parg_t parg[N];
-  f_t *fun[] = {&P0,&P1};
-  hist_t *hist = alloc_hist();
-  ctx_t ctx;
-  ctx._p = _b;
 
-  init(&ctx);
-  for (int _p = N-1 ; _p >= 0 ; _p--) {
-    parg[_p].th_id = _p; parg[_p]._a = &ctx;
-    parg[_p].cpu = &(_a->cpus[0]);
+  for (int _p = NT-1 ; _p >= 0 ; _p--) {
+    launch(&thread[_p],g_fun[_p],&g_parg[_p]);
   }
-
-  for (int n_run = 0 ; n_run < _b->max_run ; n_run++) {
-    if (_b->aff_mode == aff_random) {
-      pb_wait(_a->p_barrier);
-      if (_a->z_id == 0) perm_prefix_ints(&ctx.seed,_a->cpus,_b->ncpus_used,_b->ncpus);
-      pb_wait(_a->p_barrier);
-    } else if (_b->aff_mode == aff_scan) {
-      pb_wait(_a->p_barrier);
-      int idx_scan = n_run % SCANSZ;
-      int *from =  &cpu_scan[SCANLINE*idx_scan];
-      from += N*_a->z_id;
-      for (int k = 0 ; k < N ; k++) _a->cpus[k] = from[k];
-      pb_wait(_a->p_barrier);
-    } else {
-    }
-    if (_b->verbose>1) fprintf(stderr,"Run %i of %i\r", n_run, _b->max_run);
-    reinit(&ctx);
-    if (_b->do_change) perm_funs(&ctx.seed,fun,N);
-    for (int _p = NT-1 ; _p >= 0 ; _p--) {
-      launch(&thread[_p],fun[_p],&parg[_p]);
-    }
-    if (_b->do_change) perm_cpus(&ctx.seed,thread,NT);
-    for (int _p = NT-1 ; _p >= 0 ; _p--) {
-      join(&thread[_p]);
-    }
-    /* Log final states */
-    for (int _i = _b->size_of_test-1 ; _i >= 0 ; _i--) {
-      int _out_1_x5_i = ctx.out_1_x5[_i];
-      int _out_1_x7_i = ctx.out_1_x7[_i];
-      outcome_t o;
-      int cond;
-
-      cond = final_ok(final_cond(_out_1_x5_i,_out_1_x7_i));
-      o[out_1_x5_f] = _out_1_x5_i;
-      o[out_1_x7_f] = _out_1_x7_i;
-      add_outcome(hist,1,o,cond);
-      if (_b->aff_mode == aff_scan && _a->cpus[0] >= 0 && cond) {
-        pm_lock(_a->p_mutex);
-        ngroups[n_run % SCANSZ]++;
-        pm_unlock(_a->p_mutex);
-      } else if (_b->aff_mode == aff_topo && _a->cpus[0] >= 0 && cond) {
-        pm_lock(_a->p_mutex);
-        ngroups[0]++;
-        pm_unlock(_a->p_mutex);
-      }
-      if (cond) { hist->n_pos++; } else { hist->n_neg++; }
-    }
+  if (_b->do_change) perm_cpus(&g_ctx.seed,thread,NT);
+  for (int _p = NT-1 ; _p >= 0 ; _p--) {
+    join(&thread[_p]);
   }
-
-  finalize(&ctx);
-  return hist;
+#endif
 }
 
 #ifdef ASS
@@ -428,82 +408,66 @@ static void postlude(FILE *out,cmd_t *cmd,hist_t *hist,count_t p_true,count_t p_
   if (p_true > 0) {
     if (cmd->aff_mode == aff_scan) {
       for (int k = 0 ; k < SCANSZ ; k++) {
-        count_t c = ngroups[k];
+        count_t c = g_ngroups[k];
         if ((c*100)/p_true > ENOUGH) { printf("Topology %-6" PCTR":> %s\n",c,group[k]); }
       }
     } else if (cmd->aff_mode == aff_topo) {
-      printf("Topology %-6" PCTR ":> %s\n",ngroups[0],cmd->aff_topo);
+      printf("Topology %-6" PCTR ":> %s\n",g_ngroups[0],cmd->aff_topo);
     }
   }
   fprintf(out,"Time MP %.2f\n",total / 1000000.0);
   fflush(out);
 }
 
-static tsc_t start;
-static param_t prm;
-static cpus_t *def_all_cpus;
-static cmd_t def = { 0, NUMBER_OF_RUN, SIZE_OF_TEST, STRIDE, AVAIL, 0, 0, aff_incr, 1, 1, AFF_INCR, NULL, NULL, -1, MAX_LOOP, NULL, NULL, -1, -1, -1, 0, 1};
-static cmd_t cmd;
-static int n_exe;
-static cpus_t *all_cpus;
-static int aff_cpus_sz;
-static int *aff_cpus;
-static int n_th;
-static hist_t *hist = NULL;
-static zyva_t *zarg;
-static hist_t **hists;
-static pm_t *p_mutex;
-static pb_t *p_barrier;
-
-static void ctor(cmd_t *cmd,cpus_t *def_all_cpus,FILE *out) {
-  if (cmd->prelude) prelude(out);
-  start = timeofday();
+static void ctor(FILE *out) {
+  if (g_cmd.prelude) prelude(out);
+  g_start = timeofday();
 /* Set some parameters */
-  prm.verbose = cmd->verbose;
-  prm.size_of_test = cmd->size_of_test;
-  prm.max_run = cmd->max_run;
-  prm.stride = cmd->stride > 0 ? cmd->stride : N ;
+  prm.verbose = g_cmd.verbose;
+  prm.size_of_test = g_cmd.size_of_test;
+  prm.max_run = g_cmd.max_run;
+  prm.stride = g_cmd.stride > 0 ? g_cmd.stride : N ;
   int ntopo = -1;
-  if (cmd->aff_mode == aff_topo) {
-    ntopo = find_string(group,SCANSZ,cmd->aff_topo);
+  if (g_cmd.aff_mode == aff_topo) {
+    ntopo = find_string(group,SCANSZ,g_cmd.aff_topo);
     if (ntopo < 0) {
-      log_error("Bad topology %s, reverting to scan affinity\n",cmd->aff_topo);
-      cmd->aff_mode = aff_scan; cmd->aff_topo = NULL;
+      log_error("Bad topology %s, reverting to scan affinity\n",g_cmd.aff_topo);
+      g_cmd.aff_mode = aff_scan; g_cmd.aff_topo = NULL;
     }
   }
-  prm.do_change = cmd->aff_mode != aff_custom && cmd->aff_mode != aff_scan && cmd->aff_mode != aff_topo;
-  if (cmd->fix) prm.do_change = 0;
-  prm.cm = coremap_seq(def_all_cpus->sz,2);
+  prm.do_change = g_cmd.aff_mode != aff_custom && g_cmd.aff_mode != aff_scan && g_cmd.aff_mode != aff_topo;
+  if (g_cmd.fix) prm.do_change = 0;
+  prm.cm = coremap_seq(g_def_all_cpus->sz,2);
 /* Computes number of test concurrent instances */
-  int n_avail = cmd->avail > 0 ? cmd->avail : cmd->aff_cpus->sz;
-  if (n_avail >  cmd->aff_cpus->sz) log_error("Warning: avail=%i, available=%i\n",n_avail, cmd->aff_cpus->sz);
-  if (cmd->n_exe > 0) {
-    n_exe = cmd->n_exe;
+  int n_avail = g_cmd.avail > 0 ? g_cmd.avail : g_cmd.aff_cpus->sz;
+  if (n_avail >  g_cmd.aff_cpus->sz) log_error("Warning: avail=%i, available=%i\n",n_avail, g_cmd.aff_cpus->sz);
+  if (g_cmd.n_exe > 0) {
+    g_n_exe = g_cmd.n_exe;
   } else {
-    n_exe = n_avail < N ? 1 : n_avail / N;
+    g_n_exe = n_avail < N ? 1 : n_avail / N;
   }
 /* Set affinity parameters */
-  all_cpus = cmd->aff_cpus;
-  aff_cpus_sz = cmd->aff_mode == aff_random ? max(all_cpus->sz,N*n_exe) : N*n_exe;
-  aff_cpus = malloc_check(sizeof(int) * aff_cpus_sz);
-  prm.aff_mode = cmd->aff_mode;
-  prm.ncpus = aff_cpus_sz;
-  prm.ncpus_used = N*n_exe;
+  g_all_cpus = g_cmd.aff_cpus;
+  g_n_aff_cpus = g_cmd.aff_mode == aff_random ? max(g_all_cpus->sz,N*g_n_exe) : N*g_n_exe;
+  g_aff_cpus = malloc_check(sizeof(int) * g_n_aff_cpus);
+  prm.aff_mode = g_cmd.aff_mode;
+  prm.ncpus = g_n_aff_cpus;
+  prm.ncpus_used = N*g_n_exe;
 /* Show parameters to user */
   if (prm.verbose) {
-    log_error( "MP: n=%i, r=%i, s=%i",n_exe,prm.max_run,prm.size_of_test);
+    log_error( "MP: n=%i, r=%i, s=%i",g_n_exe,prm.max_run,prm.size_of_test);
     log_error(", st=%i",prm.stride);
-    if (cmd->aff_mode == aff_incr) {
-      log_error( ", i=%i",cmd->aff_incr);
-    } else if (cmd->aff_mode == aff_random) {
+    if (g_cmd.aff_mode == aff_incr) {
+      log_error( ", i=%i",g_cmd.aff_incr);
+    } else if (g_cmd.aff_mode == aff_random) {
       log_error(", +ra");
-    } else if (cmd->aff_mode == aff_custom) {
+    } else if (g_cmd.aff_mode == aff_custom) {
       log_error(", +ca");
-    } else if (cmd->aff_mode == aff_scan) {
+    } else if (g_cmd.aff_mode == aff_scan) {
       log_error(", +sa");
     }
     log_error(", p='");
-    cpus_dump(stderr,cmd->aff_cpus);
+    cpus_dump(stderr,g_cmd.aff_cpus);
     log_error("'");
     log_error("\n");
     if (prm.verbose > 1 && prm.cm) {
@@ -512,110 +476,202 @@ static void ctor(cmd_t *cmd,cpus_t *def_all_cpus,FILE *out) {
       log_error("\n");
     }
   }
-  if (cmd->aff_mode == aff_random) {
-    for (int k = 0 ; k < aff_cpus_sz ; k++) {
-      aff_cpus[k] = all_cpus->cpu[k % all_cpus->sz];
+  if (g_cmd.aff_mode == aff_random) {
+    for (int k = 0 ; k < g_n_aff_cpus ; k++) {
+      g_aff_cpus[k] = g_all_cpus->cpu[k % g_all_cpus->sz];
     }
-  } else if (cmd->aff_mode == aff_custom) {
+  } else if (g_cmd.aff_mode == aff_custom) {
     st_t seed = 0;
-    custom_affinity(&seed,prm.cm,color,diff,all_cpus,n_exe,aff_cpus);
+    custom_affinity(&seed,prm.cm,color,diff,g_all_cpus,g_n_exe,g_aff_cpus);
     if (prm.verbose) {
       log_error("thread allocation: \n");
-      cpus_dump_test(stderr,aff_cpus,aff_cpus_sz,prm.cm,N);
+      cpus_dump_test(stderr,g_aff_cpus,g_n_aff_cpus,prm.cm,N);
     }
-  } else if (cmd->aff_mode == aff_topo) {
+  } else if (g_cmd.aff_mode == aff_topo) {
     int *from = &cpu_scan[ntopo * SCANLINE];
-    for (int k = 0 ; k < aff_cpus_sz ; k++) {
-      aff_cpus[k] = *from++;
+    for (int k = 0 ; k < g_n_aff_cpus; k++) {
+      g_aff_cpus[k] = *from++;
     }
   }
-  n_th = n_exe-1;
-  zarg = malloc_check(sizeof(zyva_t) * n_exe);
-  hists = malloc_check(sizeof(hist_t *) * n_th);
-  p_mutex = pm_create();
-  p_barrier = pb_create(n_exe);
+  g_n_th = g_n_exe-1;
+  g_zargs = malloc_check(sizeof(zyva_t) * g_n_exe);
+  g_hists = malloc_check(sizeof(hist_t *) * g_n_th);
+  g_mutex = pm_create();
+  g_barrier = pb_create(g_n_exe);
+  g_next_cpu = 0;
+  g_delta = g_cmd.aff_incr;
+  if (g_delta <= 0) {
+    for (int k=0 ; k < g_all_cpus->sz ; k++) g_all_cpus->cpu[k] = -1;
+    g_delta = 1;
+  } else {
+    g_delta %= g_all_cpus->sz;
+  }
+  g_start_scan=0, g_max_start=gcd(g_delta,g_all_cpus->sz);
+  g_aff_cpu = g_aff_cpus;
+  g_exe = 0;
 }
 
-static void run(cmd_t *cmd,cpus_t *def_all_cpus,FILE *out) {
-  int next_cpu = 0;
-  int delta = cmd->aff_incr;
-  if (delta <= 0) {
-    for (int k=0 ; k < all_cpus->sz ; k++) all_cpus->cpu[k] = -1;
-    delta = 1;
+static void exe_ctor(FILE *out)
+{
+  zyva_t *p = g_zarg = &g_zargs[g_exe];
+  p->_p = &prm;
+  p->p_mutex = g_mutex; p->p_barrier = g_barrier; 
+  p->z_id = g_exe;
+  p->cpus = g_aff_cpu;
+  if (g_cmd.aff_mode != aff_incr) {
+    g_aff_cpu += N;
   } else {
-    delta %= all_cpus->sz;
-  }
-  int start_scan=0, max_start=gcd(delta,all_cpus->sz);
-  int *aff_p = aff_cpus;
-  for (int k=0 ; k < n_exe ; k++) {
-    zyva_t *p = &zarg[k];
-    p->_p = &prm;
-    p->p_mutex = p_mutex; p->p_barrier = p_barrier; 
-    p->z_id = k;
-    p->cpus = aff_p;
-    if (cmd->aff_mode != aff_incr) {
-      aff_p += N;
-    } else {
-      for (int i=0 ; i < N ; i++) {
-        *aff_p = all_cpus->cpu[next_cpu]; aff_p++;
-        next_cpu += delta; next_cpu %= all_cpus->sz;
-        if (next_cpu == start_scan) {
-          start_scan++ ; start_scan %= max_start;
-          next_cpu = start_scan;
-        }
+    for (int i=0 ; i < N ; i++) {
+      *g_aff_cpu = g_all_cpus->cpu[g_next_cpu]; g_aff_cpu++;
+      g_next_cpu += g_delta; g_next_cpu %= g_all_cpus->sz;
+      if (g_next_cpu == g_start_scan) {
+        g_start_scan++ ; g_start_scan %= g_max_start;
+        g_next_cpu = g_start_scan;
       }
     }
-    if (k < n_th)
-      hists[k] = zyva(p);
+  }
+  /* Make this operation asynchronous */
+  pb_wait(p->p_barrier);
+  hist_t *hist = alloc_hist();
+  g_ctx._p = p->_p;
+
+  if (p->z_id < g_n_th)
+    g_hists[p->z_id] = hist;
+  else
+    g_hist = hist;
+
+  init(&g_ctx);
+  for (int _p = N-1 ; _p >= 0 ; _p--) {
+    g_parg[_p].th_id = _p; g_parg[_p]._a = &g_ctx;
+    g_parg[_p].cpu = &(p->cpus[0]);
+  }
+  g_n_run = 0;
+}
+
+static void run_ctor(FILE *out) {
+  zyva_t *p = g_zarg = &g_zargs[g_exe];
+  param_t *_b = p->_p;
+
+  if (_b->aff_mode == aff_random) {
+    pb_wait(p->p_barrier);
+    if (p->z_id == 0) perm_prefix_ints(&g_ctx.seed,p->cpus,_b->ncpus_used,_b->ncpus);
+    pb_wait(p->p_barrier);
+  } else if (_b->aff_mode == aff_scan) {
+    pb_wait(p->p_barrier);
+    int idx_scan = g_n_run % SCANSZ;
+    int *from =  &cpu_scan[SCANLINE*idx_scan];
+    from += N*p->z_id;
+    for (int k = 0 ; k < N ; k++) p->cpus[k] = from[k];
+    pb_wait(p->p_barrier);
+  } else {
+  }
+  if (_b->verbose>1) fprintf(stderr,"Run %i of %i\r", g_n_run, _b->max_run);
+  reinit(&g_ctx);
+  if (_b->do_change) perm_funs(&g_ctx.seed,g_fun,N);
+  zyva();
+}
+
+static void run_dtor(FILE *out)
+{
+  zyva_t *p = g_zarg = &g_zargs[g_exe];
+  param_t *_b = p->_p;
+
+  /* Log final states */
+  for (int _i = _b->size_of_test-1 ; _i >= 0 ; _i--) {
+    int _out_1_x5_i = g_ctx.out_1_x5[_i];
+    int _out_1_x7_i = g_ctx.out_1_x7[_i];
+    outcome_t o;
+    int cond;
+    hist_t *hist;
+
+    if (p->z_id < g_n_th)
+      hist = g_hists[p->z_id];
     else
-      hist = zyva(p);
+      hist = g_hist;
+    cond = final_ok(final_cond(_out_1_x5_i,_out_1_x7_i));
+    o[out_1_x5_f] = _out_1_x5_i;
+    o[out_1_x7_f] = _out_1_x7_i;
+    add_outcome(hist,1,o,cond);
+    if (_b->aff_mode == aff_scan && p->cpus[0] >= 0 && cond) {
+      pm_lock(p->p_mutex);
+      g_ngroups[g_n_run % SCANSZ]++;
+      pm_unlock(p->p_mutex);
+    } else if (_b->aff_mode == aff_topo && p->cpus[0] >= 0 && cond) {
+      pm_lock(p->p_mutex);
+      g_ngroups[0]++;
+      pm_unlock(p->p_mutex);
+    }
+    if (cond) { hist->n_pos++; } else { hist->n_neg++; }
+  }
+  g_n_run++;
+  if (g_n_run < _b->max_run) {
+    litmus_raise(LITMUS_EVT_RUN_NEXT);
+  } else {
+    litmus_raise(LITMUS_EVT_CLOSE);
   }
 }
 
-static void dtor(cmd_t *cmd,cpus_t *def_all_cpus,FILE *out) {
+static void exe_dtor(FILE *out)
+{
+  finalize(&g_ctx);
+  g_exe++;
+  if (g_exe < g_n_exe) {
+    litmus_raise(LITMUS_EVT_EXE_NEXT);
+  } else {
+    litmus_raise(LITMUS_EVT_CLOSE);
+  }
+}
+
+static void dtor(FILE *out) {
   count_t n_outs = prm.size_of_test; n_outs *= prm.max_run;
-  for (int k=0 ; k < n_th ; k++) {
-    hist_t *hk = hists[k];
+  for (int k=0 ; k < g_n_th ; k++) {
+    hist_t *hk = g_hists[k];
     if (sum_outs(hk->outcomes) != n_outs || hk->n_pos + hk->n_neg != n_outs) {
       fatal("MP, sum_hist");
     }
-    merge_hists(hist,hk);
+    merge_hists(g_hist,hk);
     free_hist(hk);
   }
-  cpus_free(all_cpus);
-  tsc_t total = timeofday() - start;
-  pm_free(p_mutex);
-  pb_free(p_barrier);
-  free(hists);
-  free(zarg);
+  cpus_free(g_all_cpus);
+  tsc_t total = timeofday() - g_start;
+  pm_free(g_mutex);
+  pb_free(g_barrier);
+  free(g_hists);
+  free(g_zargs);
 
-  n_outs *= n_exe ;
-  if (sum_outs(hist->outcomes) != n_outs || hist->n_pos + hist->n_neg != n_outs) {
+  n_outs *= g_n_exe ;
+  if (sum_outs(g_hist->outcomes) != n_outs || g_hist->n_pos + g_hist->n_neg != n_outs) {
     fatal("MP, sum_hist") ;
   }
-  count_t p_true = hist->n_pos, p_false = hist->n_neg;
-  postlude(out,cmd,hist,p_true,p_false,total);
-  free_hist(hist);
-  free(aff_cpus);
+  count_t p_true = g_hist->n_pos, p_false = g_hist->n_neg;
+  postlude(out,&g_cmd,g_hist,p_true,p_false,total);
+  free_hist(g_hist);
+  free(g_aff_cpus);
   cpus_free(prm.cm);
+  if (g_def_all_cpus != g_cmd.aff_cpus) cpus_free(g_def_all_cpus);
+  litmus_raise(LITMUS_EVT_CLOSE);
 }
 
 int MP(int argc, char **argv, FILE *out) {
-  def_all_cpus = read_force_affinity(AVAIL,0);
-  if (def_all_cpus->sz < N) {
-    cpus_free(def_all_cpus);
+  g_def_all_cpus = read_force_affinity(AVAIL,0);
+  if (g_def_all_cpus->sz < N) {
+    cpus_free(g_def_all_cpus);
     return EXIT_SUCCESS;
   }
-  def.aff_cpus = def_all_cpus;
-  cmd = def;
-  if (parse_cmd(argc,argv,&def,&cmd) == 0) {
-    ctor(&cmd,def_all_cpus,out);
-    run(&cmd,def_all_cpus,out);
-    dtor(&cmd,def_all_cpus,out);
-  }
-  if (def_all_cpus != cmd.aff_cpus) cpus_free(def_all_cpus);
+  g_def.aff_cpus = g_def_all_cpus;
+  g_cmd = g_def;
+  if (parse_cmd(argc,argv,&g_def,&g_cmd) == 0) {
+    litmus_launch();
+  } else if (g_def_all_cpus != g_cmd.aff_cpus) cpus_free(g_def_all_cpus);
   return EXIT_SUCCESS;
 }
+
+int foobar(caddr_t percpu_area) {
+  return 1;
+}
+
+__define_testfn(foobar, 0, SMP_CACHE_BYTES,
+		CPU_EXEC_META, 1, CPU_WAIT_INFINITE);
 
 static int do_litmus(int argc, char **argv)
 {
@@ -626,3 +682,64 @@ DEFINE_COMMAND(litmus, do_litmus, "Run memory model litmus tests",
   "litmus -h\n"
   "    -display test usage\n"
 );
+
+#define LITMUS_STA_IDLE		0
+#define LITMUS_STA_EXE_LOOP	1
+#define LITMUS_STA_RUN_LOOP	2
+
+bh_t litmus_bh;
+uint32_t litmus_events;
+uint32_t litmus_state;
+
+void litmus_raise(uint8_t event)
+{
+  litmus_events |= event;
+  bh_resume(litmus_bh);
+}
+
+static void litmus_handler(uint8_t __event)
+{
+  uint32_t event = litmus_events;
+
+  litmus_events = 0;
+  switch (litmus_state) {
+  case LITMUS_STA_IDLE:
+    if (event & LITMUS_EVT_OPEN) {
+      ctor(stderr);
+      litmus_state = LITMUS_STA_EXE_LOOP;
+      litmus_raise(LITMUS_EVT_EXE_NEXT);
+    }
+    break;
+  case LITMUS_STA_EXE_LOOP:
+    if (event & LITMUS_EVT_EXE_NEXT) {
+      exe_ctor(stderr);
+      litmus_state = LITMUS_STA_RUN_LOOP;
+      litmus_raise(LITMUS_EVT_RUN_NEXT);
+    }
+    if (event & LITMUS_EVT_CLOSE) {
+      dtor(stderr);
+      litmus_state = LITMUS_STA_IDLE;
+    }
+    break;
+  case LITMUS_STA_RUN_LOOP:
+    if (event & LITMUS_EVT_RUN_NEXT) {
+      run_ctor(stderr);
+      run_dtor(stderr);
+    }
+    if (event & LITMUS_EVT_CLOSE) {
+      exe_dtor(stderr);
+      litmus_state = LITMUS_STA_EXE_LOOP;
+      litmus_raise(LITMUS_EVT_EXE_NEXT);
+    }
+  }
+}
+
+void litmus_launch(void)
+{
+  litmus_raise(LITMUS_EVT_OPEN);
+}
+
+void litmus_init(void)
+{
+  litmus_bh = bh_register_handler(litmus_handler);
+}

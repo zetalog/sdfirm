@@ -238,6 +238,14 @@ int parse_cmd(int argc, char **argv, cmd_t *def, cmd_t *p);
 
 /* Thread launch and join */
 
+#define LITMUS_EVT_OPEN		0
+#define LITMUS_EVT_CLOSE	1
+#define LITMUS_EVT_EXE_NEXT	2
+#define LITMUS_EVT_RUN_NEXT	3
+
+void litmus_launch(void);
+void litmus_raise(uint8_t event);
+
 void launch(cpu_exec_cpu_t *th, f_t *f, void *a);
 void *join(cpu_exec_cpu_t *th);
 
