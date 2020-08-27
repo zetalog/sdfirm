@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Aug 26 19:33:41 2020
+# Thu Aug 27 14:47:43 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -199,6 +199,7 @@ CONFIG_DUOWEN_SSI_FLASH_FREQ=1000000
 # CONFIG_DUOWEN_SMMU is not set
 # CONFIG_DUOWEN_DMA is not set
 CONFIG_DUOWEN_DDR=y
+# CONFIG_DUOWEN_DDR_EARLY_CLOCK is not set
 
 #
 # Feature setup
@@ -323,7 +324,7 @@ CONFIG_SPIFLASH_ERASE_4K=y
 CONFIG_ARCH_HAS_SD=y
 # CONFIG_MMCSD is not set
 CONFIG_ARCH_HAS_DDR=y
-# CONFIG_DDR is not set
+CONFIG_DDR=y
 CONFIG_ARCH_HAS_PCI=y
 # CONFIG_PCI is not set
 CONFIG_ARCH_HAS_IOMMU=y
@@ -446,7 +447,7 @@ CONFIG_SPIFLASH_W25Q32=y
 #
 # DDR controller drivers
 #
-# CONFIG_DW_UMCTL2 is not set
+CONFIG_DW_UMCTL2=y
 
 #
 # Serial Presence Detect (SPD) drivers

@@ -46,6 +46,36 @@
 #include <target/uefi.h>
 #include <target/cmdline.h>
 
+uint8_t imc_boot_cpu(void)
+{
+	uint32_t boot_mode = __raw_readl(SCSR_BOOT_MODE);
+
+	if (boot_mode & IMC_BOOT_SIM_IMC)
+		return boot_mode & IMC_BOOT_SIM_APC;
+	return boot_mode & IMC_BOOT_APC;
+}
+
+uint8_t __imc_boot_flash(void)
+{
+	return IMC_BOOT_FLASH(__raw_readl(SCSR_BOOT_MODE));
+}
+
+#ifdef CONFIG_DUOWEN_ZSBL
+uint8_t imc_boot_flash(void)
+{
+	uint8_t flash = __imc_boot_flash();
+
+	return flash > IMC_FLASH_SPI_LOAD ? IMC_FLASH_SPI_LOAD : flash;
+}
+#else
+uint8_t imc_boot_flash(void)
+{
+	uint8_t flash = __imc_boot_flash();
+
+	return flash > IMC_FLASH_SSI_LOAD ? IMC_FLASH_SSI_LOAD : flash;
+}
+#endif
+
 #ifdef CONFIG_SHUTDOWN
 void board_shutdown(void)
 {
@@ -68,7 +98,7 @@ void board_boot(void)
 
 	board_init_clock();
 #ifdef CONFIG_DUOWEN_LOAD_SPI_FLASH
-	if (flash_sel == IMC_FLASH_SPI) {
+	if (flash_sel == IMC_FLASH_SPI_LOAD) {
 		printf("Booting from SPI flash...\n");
 		boot_entry = (void *)CONFIG_DUOWEN_BOOT_ADDR;
 		clk_enable(spi_flash_pclk);
@@ -77,7 +107,7 @@ void board_boot(void)
 	}
 #endif
 #ifdef CONFIG_DUOWEN_LOAD_SSI_FLASH
-	if (flash_sel == IMC_FLASH_SSI) {
+	if (flash_sel == IMC_FLASH_SSI_LOAD) {
 		uint32_t addr = 0;
 		uint32_t size = 500000;
 		unsigned char boot_file[] = "fsbl.bin";

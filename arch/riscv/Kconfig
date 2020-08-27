@@ -72,8 +72,8 @@ config ARCH_DUOWEN
 	select DUOWEN_SSI_FLASH if SPI_MASTER
 	select DUOWEN_SD if MMCSD
 	select DUOWEN_PCIE if PCI
-	select DW_I2C if I2C_MASTER
-	select DW_UMCTL2 if DDR
+	select DUOWEN_I2C if I2C_MASTER
+	select DUOWEN_DDR if DDR
 	select DUOWEN_DMA if DMA
 	select DUOWEN_SMMU if IOMMU
 	select VAISRA_RAS if RAS

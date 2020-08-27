@@ -47,45 +47,80 @@
 #include <target/amba.h>
 
 #define SCSR_REG(offset)		(SCSR_BASE + (offset))
-#define SCSR_BOOT_ADDR			SCSR_REG(0x00)
-#define SCSR_CORE_ID			SCSR_REG(0x04)
-#define SCSR_CLUSTER_ID			SCSR_REG(0x08)
-#define SCSR_CLOCK_EN			SCSR_REG(0x0C)
-#define SCSR_BOOT_MODE			SCSR_REG(0x10)
+#define SCSR_HW_VERSION			SCSR_REG(0x00)
+#define SCSR_BOOT_MODE			SCSR_REG(0x04)
+#define SCSR_BOOT_ADDR_LO		SCSR_REG(0x08)
+#define SCSR_BOOT_ADDR_HI		SCSR_REG(0x0C)
+#define SCSR_BOOT_ADDR_CFG_LO		SCSR_REG(0x10)
+#define SCSR_BOOT_ADDR_CFG_HI		SCSR_REG(0x14)
+#define SCSR_HART_ID_LO			SCSR_REG(0x18)
+#define SCSR_HART_ID_HI			SCSR_REG(0x1C)
 
-/* CORE_ID (offset 0x04) */
-#define IMC_CORE_ID_OFFSET		0
-#define IMC_CORE_ID_MASK		REG_4BIT_MASK
-#define IMC_CORE_ID(value)		_GET_FV(IMC_CORE_ID, value)
-/* CLUSTER_ID (offset 0x08) */
-#define IMC_CLUSTER_ID_OFFSET		0
-#define IMC_CLUSTER_ID_MASK		REG_6BIT_MASK
-#define IMC_CLUSTER_ID(value)		_GET_FV(IMC_CLUSTER_ID, value)
-/* CLOCK_EN (offset 0x0C) */
-#define IMC_CLOCK_EN			_BV(0)
+#define SCSR_SHUTDN_REQ			SCSR_REG(0x80)
+#define SCSR_BRINGUP_REQ		SCSR_REG(0x84)
+#define SCSR_SHUTDN_ACK			SCSR_REG(0x88)
+#define SCSR_BRINGUP_ACK		SCSR_REG(0x8C)
+#define SCSR_UART_STATUS		SCSR_REG(0x90)
+#define SCSR_TIMER_PAUSE		SCSR_REG(0x94)
+#define SCSR_TIMER_STATUS		SCSR_REG(0x98)
+#define SCSR_SD_STABLE			SCSR_REG(0x9C)
+#define SCSR_SD_STATUS			SCSR_REG(0xA0)
+#define SCSR_SPI_STATUS			SCSR_REG(0xA4)
+#define SCSR_I2C_STATUS			SCSR_REG(0xA8)
+
+#define SCSR_CLINT_CFG			SCSR_REG(0xC0)
+#define SCSR_CHIP_LINK_CFG		SCSR_REG(0xC4)
+
+#define PMA_CFG_LO(n)			SCSR_REG(0x100 + (n) << 3)
+#define PMA_CFG_HI(n)			SCSR_REG(0x104 + (n) << 3)
+#define PMA_ADDR_LO(n)			SCSR_REG(0x140 + (n) << 3)
+#define PMA_ADDR_HI(n)			SCSR_REG(0x144 + (n) << 3)
+
+/* SOC_HW_VERSION */
+#define SCSR_MINOR_OFFSET		0
+#define SCSR_MINOR_MASK			REG_8BIT_MASK
+#define SCSR_MINOR(value)		_GET_FV(SCSR_MINOR, value)
+#define SCSR_MAJOR_OFFSET		8
+#define SCSR_MAJOR_MASK			REG_8BIT_MASK
+#define SCSR_MAJOR(value)		_GET_FV(SCSR_MAJOR, value)
 /* BOOT_MODE */
-#define IMC_BOOT_MODE_OFFSET		0
-#define IMC_BOOT_MODE_MASK		REG_2BIT_MASK
-#define IMC_BOOT_MODE(value)		_GET_FV(IMC_BOOT_MODE, value)
-#define IMC_BOOT_ROM			0x00
-#define IMC_BOOT_FLASH			0x01
-#define IMC_BOOT_USE_BOOT_ADDR		0x02
-/* FLASH_SEL */
-#define IMC_FLASH_SEL_OFFSET		4
-#define IMC_FLASH_SEL_MASK		REG_1BIT_MASK
-#define IMC_FLASH_SEL(value)		_GET_FV(IMC_FLASH_SEL, value)
-#define IMC_FLASH_SPI			0x00
-#define IMC_FLASH_SSI			0x01
+#define IMC_BOOT_FLASH_OFFSET		0
+#define IMC_BOOT_FLASH_MASK		REG_2BIT_MASK
+#define IMC_BOOT_FLASH(value)		_GET_FV(IMC_BOOT_FLASH, value)
+#define IMC_FLASH_SD_LOAD		0x00
+#define IMC_FLASH_SSI_LOAD		0x01
+#define IMC_FLASH_SPI_LOAD		0x02
+#define IMC_FLASH_SPI_BOOT		0x03
+#define IMC_BOOT_IMC			0x0
+#define IMC_BOOT_APC			0x4
+#define IMC_BOOT_SIM			0x8
+#define IMC_BOOT_SIM_IMC		IMC_BOOT_SIM
+#define IMC_BOOT_SIM_APC		(IMC_BOOT_SIM | 0x2)
 
-#define imc_core_id()			\
-	IMC_CORE_ID(__raw_readl(SCSR_CORE_ID))
-#define imc_cluster_id()		\
-	IMC_CLUSTER_ID(__raw_readl(SCSR_CLUSTER_ID))
-#define imc_enable_clock()		\
-	__raw_setl(IMC_CLOCK_EN, SCSR_CLOCK_EN)
-#define imc_disable_clock()		\
-	__raw_clearl(IMC_CLOCK_EN, SCSR_CLOCK_EN)
-#define imc_boot_flash()			\
-	IMC_FLASH_SEL(__raw_readl(SCSR_BOOT_MODE))
+#define imc_get_boot_addr()				\
+	MAKELLONG(__raw_readl(SCSR_BOOT_ADDR_LO),	\
+		  __raw_readl(SCSR_BOOT_ADDR_HI))
+#define imc_set_boot_addr(addr)				\
+	do {						\
+		__raw_writel(LODWORD(addr),		\
+			     SCSR_BOOT_ADDR_CFG_LO);	\
+		__raw_writel(HIDWORD(addr),		\
+			     SCSR_BOOT_ADDR_CFG_HI);	\
+	} while (0)
+#define imc_get_hart_id()				\
+	MAKELLONG(__raw_readl(SCSR_HART_ID_LO),		\
+		  __raw_readl(SCSR_HART_ID_HI))
+#define imc_set_hart_id(hart)				\
+	do {						\
+		__raw_writel(LODWORD(hart),		\
+			     SCSR_HART_ID_LO);		\
+		__raw_writel(HIDWORD(hart),		\
+			     SCSR_HART_ID_HI);		\
+	} while (0)
+
+#ifndef __ASSEMBLY__
+uint8_t imc_boot_cpu(void);
+uint8_t imc_boot_flash(void);
+#endif
 
 #endif /* __SCSR_DUOWEN_H_INCLUDE__ */
