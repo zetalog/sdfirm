@@ -5,22 +5,6 @@
 
 #define RV_LARGE_LOAD_OFFSET	(CONFIG_BOOT_BASE - CONFIG_LOAD_BASE)
 
-#ifndef CONFIG_ARCH_HAS_BOOT0
-	.macro	boot0_hook
-	nop
-	.endm
-#endif
-#ifndef CONFIG_ARCH_HAS_BOOT1
-	.macro	boot1_hook
-	nop
-	.endm
-#endif
-#ifndef CONFIG_ARCH_HAS_BOOT2
-	.macro	boot2_hook
-	nop
-	.endm
-#endif
-
 	.macro disable_mirq
 	csrw	CSR_MIE, zero
 	csrw	CSR_MIP, zero
@@ -206,7 +190,9 @@
 	__HEAD
 
 ENTRY(__start)
+#ifdef CONFIG_ARCH_HAS_BOOT0
 	boot0_hook
+#endif
 
 #ifdef CONFIG_RISCV_ENTR_M
 	/* Reset all registers, except ra, gp, sp */
@@ -253,8 +239,10 @@ ENTRY(__start)
 #endif
 
 	/* At this point we are running from link address */
+#ifdef CONFIG_ARCH_HAS_BOOT1
 	init_sp
 	boot1_hook
+#endif
 
 	la	t0, abi_relocate_done
 	REG_S	t0, 0(t0)
@@ -274,7 +262,10 @@ secondary_wait_for_abi_relocate:
 __abi_start_warm:
 	la	ra, _start_hang
 
+#ifdef CONFIG_ARCH_HAS_BOOT2
+	init_sp
 	boot2_hook
+#endif
 
 #ifdef CONFIG_SBI
 	jal	ra, __sbi_entry
