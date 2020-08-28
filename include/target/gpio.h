@@ -136,4 +136,10 @@
 #define gpio_clear_irq(port, pin)			\
 	gpio_hw_clear_irq(port, pin)
 
+#ifdef CONFIG_GPIO
+void gpio_init(void);
+#else
+#define gpio_init()
+#endif
+
 #endif /* __GPIO_H_INCLUDE__ */

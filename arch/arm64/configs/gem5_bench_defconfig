@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Jul  6 20:07:39 2020
+# Fri Aug 28 13:44:27 2020
 #
 CONFIG_ARM64=y
 
@@ -276,7 +276,10 @@ CONFIG_UART_230400=y
 # CONFIG_DDR is not set
 # CONFIG_IOMMU is not set
 # CONFIG_FDT is not set
+# CONFIG_UEFI is not set
 # CONFIG_RAS is not set
+CONFIG_ARCH_HAS_PMU=y
+# CONFIG_PERF is not set
 
 #
 # Driver setup
@@ -367,12 +370,18 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # PCI drivers
 #
+
+#
+# NoC interconnect drivers
+#
+# CONFIG_NCORE is not set
+# CONFIG_MONACO is not set
+CONFIG_TEST_VERBOSE=y
 CONFIG_TEST_BENCH=y
 CONFIG_TEST_BENCH_LOCAL=y
 # CONFIG_TEST_BENCH_REMOTE is not set
 CONFIG_TEST_BENCH_DIDT=y
 CONFIG_TEST_BENCH_START_DELAY=64
-CONFIG_TEST_VERBOSE=y
 
 #
 # Standard benchmark tests
@@ -462,6 +471,7 @@ CONFIG_STRING_STRNCMP=y
 CONFIG_STRING_STRTOUL=y
 CONFIG_STRING_STRTOULL=y
 # CONFIG_STRING_UUID is not set
+# CONFIG_STRING_BYTELIST is not set
 
 #
 # Time opeartions
@@ -485,4 +495,3 @@ CONFIG_CC_OPT_SPEED=y
 CONFIG_DEBUG=y
 # CONFIG_CC_GEN_DEBUG is not set
 CONFIG_DEBUG_PANIC=y
-# CONFIG_PORTING is not set

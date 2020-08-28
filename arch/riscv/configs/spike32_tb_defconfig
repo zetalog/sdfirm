@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Jul  6 20:08:56 2020
+# Fri Aug 28 13:44:55 2020
 #
 CONFIG_32BIT=y
 CONFIG_RISCV=y
@@ -127,6 +127,8 @@ CONFIG_ARCH_HAS_CLINT=y
 CONFIG_CLINT=y
 # CONFIG_CLINT_XCHG_LLSC is not set
 # CONFIG_CLINT_FORCE_FAST_TIMEOUT is not set
+# CONFIG_HPM is not set
+# CONFIG_VAISRA_RAS is not set
 CONFIG_ARCH_HAS_SBI_IPI=y
 CONFIG_ARCH_HAS_SBI_TIMER=y
 CONFIG_SBI=y
@@ -164,8 +166,8 @@ CONFIG_SPIKE_CLINT=y
 CONFIG_SPIKE_CLINT_RTC_FREQ=10000000
 CONFIG_SPIKE_HTIF=y
 # CONFIG_SPIKE_PK is not set
-CONFIG_SPIKE_TB=y
 # CONFIG_SPIKE_BBL is not set
+CONFIG_SPIKE_TB=y
 
 #
 # Feature setup
@@ -195,6 +197,7 @@ CONFIG_MAX_VECTORS=4
 # Scheduling facility (bh) support
 #
 CONFIG_MAX_BHS=5
+CONFIG_ARCH_HAS_THREAD=y
 CONFIG_ARCH_HAS_SMP=y
 # CONFIG_SMP is not set
 
@@ -281,7 +284,9 @@ CONFIG_UART_115200=y
 # CONFIG_IOMMU is not set
 CONFIG_ARCH_HAS_FDT=y
 CONFIG_FDT=y
+# CONFIG_UEFI is not set
 # CONFIG_RAS is not set
+# CONFIG_PERF is not set
 
 #
 # Driver setup
@@ -368,7 +373,22 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # PCI drivers
 #
+
+#
+# NoC interconnect drivers
+#
+# CONFIG_NCORE is not set
+# CONFIG_MONACO is not set
+
+#
+# Test setup
+#
+# CONFIG_TEST_VERBOSE is not set
 # CONFIG_TEST_BENCH is not set
+
+#
+# RISCV system tests
+#
 # CONFIG_TESTS_RISCV is not set
 
 #
@@ -381,7 +401,7 @@ CONFIG_SPD_BUS_KHZ=60
 # CONFIG_BIT_FLS8 is not set
 CONFIG_BIT_FLS16=y
 # CONFIG_BIT_FFS16 is not set
-# CONFIG_BIT_FLS32 is not set
+CONFIG_BIT_FLS32=y
 CONFIG_BIT_FLS64=y
 CONFIG_BIT_FFS32=y
 # CONFIG_BIT_HWEIGHT64 is not set
@@ -428,6 +448,7 @@ CONFIG_PRINT_PRINTF=y
 CONFIG_STRING_STRTOUL=y
 CONFIG_STRING_STRTOULL=y
 # CONFIG_STRING_UUID is not set
+# CONFIG_STRING_BYTELIST is not set
 
 #
 # Time opeartions
@@ -451,4 +472,3 @@ CONFIG_EXPERIMENTAL=y
 CONFIG_DEBUG=y
 # CONFIG_CC_GEN_DEBUG is not set
 # CONFIG_DEBUG_PANIC is not set
-# CONFIG_PORTING is not set

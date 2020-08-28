@@ -67,7 +67,7 @@
 #endif
 
 #ifdef CONFIG_DUOWEN_APC
-#define CLINT_BASE		0x20000000
+#define CLINT_BASE		0xFF010F0000
 #define tsc_hw_read_counter()	clint_read_mtime()
 #define tsc_hw_ctrl_init()
 #endif /* CONFIG_DUOWEN_APC */

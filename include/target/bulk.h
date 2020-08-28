@@ -200,4 +200,10 @@ void bulk_transfer_sync(uint8_t bulk, size_t size);
 bulk_cid_t bulk_alloc_fifo(uint8_t *buffer, bulk_size_t length);
 void bulk_free_fifo(bulk_cid_t bulk);
 
+#ifdef CONFIG_BULK
+extern void bulk_init(void);
+#else
+#define bulk_init()
+#endif
+
 #endif /* __BULK_H_INCLUDE__ */

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Aug 26 19:29:45 2020
+# Fri Aug 28 13:46:58 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -196,7 +196,6 @@ CONFIG_DUOWEN_SSI_FLASH_FREQ=1000000
 # CONFIG_DUOWEN_PCIE is not set
 # CONFIG_DUOWEN_SMMU is not set
 # CONFIG_DUOWEN_DMA is not set
-# CONFIG_DUOWEN_DDR is not set
 
 #
 # Feature setup
@@ -556,4 +555,3 @@ CONFIG_VERILOG_DATA_WIDTH=32
 CONFIG_DEBUG=y
 CONFIG_CC_GEN_DEBUG=y
 # CONFIG_DEBUG_PANIC is not set
-# CONFIG_PORTING is not set

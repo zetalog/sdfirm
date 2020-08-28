@@ -661,6 +661,7 @@ int MP(int argc, char **argv, FILE *out) {
   g_def.aff_cpus = g_def_all_cpus;
   g_cmd = g_def;
   if (parse_cmd(argc,argv,&g_def,&g_cmd) == 0) {
+    printf("here\n");
     litmus_launch();
   } else if (g_def_all_cpus != g_cmd.aff_cpus) cpus_free(g_def_all_cpus);
   return EXIT_SUCCESS;

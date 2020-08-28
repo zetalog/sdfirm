@@ -76,4 +76,10 @@ void dbg_panic(const text_char_t *file, int line);
 
 #include <target/console.h>
 
+#ifdef CONFIG_DEBUG_PRINT
+void debug_init(void);
+#else
+#define debug_init()
+#endif
+
 #endif /* __PANIC_H_INCLUDE__ */

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sun Aug  2 09:52:59 2020
+# Fri Aug 28 13:43:07 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -196,6 +196,7 @@ CONFIG_ARCH_HAS_BOOT_LOAD=y
 # Scheduling facility (bh) support
 #
 CONFIG_MAX_BHS=4
+CONFIG_ARCH_HAS_THREAD=y
 CONFIG_ARCH_HAS_SMP=y
 CONFIG_SMP=y
 # CONFIG_SMP_WAIT_BOOT is not set
@@ -281,6 +282,7 @@ CONFIG_UART_115200=y
 # CONFIG_IOMMU is not set
 CONFIG_ARCH_HAS_FDT=y
 CONFIG_FDT=y
+# CONFIG_UEFI is not set
 # CONFIG_RAS is not set
 # CONFIG_PERF is not set
 
@@ -369,7 +371,22 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # PCI drivers
 #
+
+#
+# NoC interconnect drivers
+#
+# CONFIG_NCORE is not set
+# CONFIG_MONACO is not set
+
+#
+# Test setup
+#
+# CONFIG_TEST_VERBOSE is not set
 # CONFIG_TEST_BENCH is not set
+
+#
+# RISCV system tests
+#
 # CONFIG_TESTS_RISCV is not set
 
 #
@@ -429,6 +446,7 @@ CONFIG_PRINT_PRINTF=y
 CONFIG_STRING_STRTOUL=y
 CONFIG_STRING_STRTOULL=y
 # CONFIG_STRING_UUID is not set
+# CONFIG_STRING_BYTELIST is not set
 
 #
 # Time opeartions
@@ -452,4 +470,3 @@ CONFIG_EXPERIMENTAL=y
 CONFIG_DEBUG=y
 CONFIG_CC_GEN_DEBUG=y
 # CONFIG_DEBUG_PANIC is not set
-# CONFIG_PORTING is not set

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sun Aug  2 09:57:07 2020
+# Fri Aug 28 13:45:24 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -191,6 +191,7 @@ CONFIG_MAX_VECTORS=4
 # Scheduling facility (bh) support
 #
 CONFIG_MAX_BHS=4
+CONFIG_ARCH_HAS_THREAD=y
 CONFIG_ARCH_HAS_SMP=y
 CONFIG_SMP=y
 CONFIG_SMP_WAIT_BOOT=y
@@ -293,6 +294,7 @@ CONFIG_UART_115200=y
 # CONFIG_IOMMU is not set
 CONFIG_ARCH_HAS_FDT=y
 CONFIG_FDT=y
+# CONFIG_UEFI is not set
 # CONFIG_RAS is not set
 # CONFIG_PERF is not set
 
@@ -381,12 +383,22 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # PCI drivers
 #
+
+#
+# NoC interconnect drivers
+#
+# CONFIG_NCORE is not set
+# CONFIG_MONACO is not set
+
+#
+# Test setup
+#
+CONFIG_TEST_VERBOSE=y
 CONFIG_TEST_BENCH=y
 CONFIG_TEST_BENCH_LOCAL=y
 # CONFIG_TEST_BENCH_REMOTE is not set
 CONFIG_TEST_BENCH_DIDT=y
 CONFIG_TEST_BENCH_START_DELAY=64
-CONFIG_TEST_VERBOSE=y
 
 #
 # Standard benchmark tests
@@ -418,6 +430,10 @@ CONFIG_DHRYSTONE_BENCH_PERCPU=y
 # Santiy check tests
 #
 # CONFIG_TLB_TEST is not set
+
+#
+# RISCV system tests
+#
 # CONFIG_TESTS_RISCV is not set
 
 #
@@ -477,6 +493,7 @@ CONFIG_STRING_STRNCMP=y
 CONFIG_STRING_STRTOUL=y
 CONFIG_STRING_STRTOULL=y
 # CONFIG_STRING_UUID is not set
+# CONFIG_STRING_BYTELIST is not set
 
 #
 # Time opeartions
@@ -499,5 +516,4 @@ CONFIG_EXPERIMENTAL=y
 # CONFIG_SIMULATION is not set
 CONFIG_DEBUG=y
 # CONFIG_CC_GEN_DEBUG is not set
-# CONFIG_PORTING is not set
 # CONFIG_DEBUG_PRINT is not set

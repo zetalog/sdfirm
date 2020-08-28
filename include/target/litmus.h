@@ -246,6 +246,12 @@ int parse_cmd(int argc, char **argv, cmd_t *def, cmd_t *p);
 void litmus_launch(void);
 void litmus_raise(uint8_t event);
 
+#ifdef CONFIG_TEST_LITMUS
+void litmus_init(void);
+#else
+#define litmus_init()		do { } while (0)
+#endif
+
 void launch(cpu_exec_cpu_t *th, f_t *f, void *a);
 void *join(cpu_exec_cpu_t *th);
 

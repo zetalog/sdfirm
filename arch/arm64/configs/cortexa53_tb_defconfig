@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Jul  6 20:08:08 2020
+# Fri Aug 28 13:44:37 2020
 #
 CONFIG_ARM64=y
 
@@ -254,7 +254,10 @@ CONFIG_UART_230400=y
 # CONFIG_DDR is not set
 # CONFIG_IOMMU is not set
 # CONFIG_FDT is not set
+# CONFIG_UEFI is not set
 # CONFIG_RAS is not set
+CONFIG_ARCH_HAS_PMU=y
+# CONFIG_PERF is not set
 
 #
 # Driver setup
@@ -345,6 +348,13 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # PCI drivers
 #
+
+#
+# NoC interconnect drivers
+#
+# CONFIG_NCORE is not set
+# CONFIG_MONACO is not set
+# CONFIG_TEST_VERBOSE is not set
 # CONFIG_TEST_BENCH is not set
 # CONFIG_RAVEN is not set
 
@@ -405,6 +415,7 @@ CONFIG_PRINT_PRINTF=y
 CONFIG_STRING_STRTOUL=y
 CONFIG_STRING_STRTOULL=y
 # CONFIG_STRING_UUID is not set
+# CONFIG_STRING_BYTELIST is not set
 
 #
 # Time opeartions
@@ -429,4 +440,3 @@ CONFIG_VERILOG_DATA_WIDTH=128
 CONFIG_DEBUG=y
 # CONFIG_CC_GEN_DEBUG is not set
 # CONFIG_DEBUG_PANIC is not set
-# CONFIG_PORTING is not set

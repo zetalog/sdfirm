@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Jul  6 20:12:18 2020
+# Fri Aug 28 13:46:14 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -109,6 +109,7 @@ CONFIG_CLINT=y
 # CONFIG_CLINT_FORCE_FAST_TIMEOUT is not set
 CONFIG_ARCH_HAS_PLIC=y
 # CONFIG_PLIC is not set
+# CONFIG_HPM is not set
 CONFIG_ARCH_HAS_SBI_IPI=y
 CONFIG_ARCH_HAS_SBI_TIMER=y
 # CONFIG_SBI is not set
@@ -179,6 +180,7 @@ CONFIG_ARCH_HAS_BOOT_LOAD=y
 # Scheduling facility (bh) support
 #
 CONFIG_MAX_BHS=4
+CONFIG_ARCH_HAS_THREAD=y
 CONFIG_ARCH_HAS_SMP=y
 # CONFIG_SMP is not set
 
@@ -282,7 +284,9 @@ CONFIG_SD_SPI=y
 # CONFIG_DDR is not set
 # CONFIG_IOMMU is not set
 # CONFIG_FDT is not set
+# CONFIG_UEFI is not set
 # CONFIG_RAS is not set
+# CONFIG_PERF is not set
 
 #
 # Driver setup
@@ -370,7 +374,22 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # PCI drivers
 #
+
+#
+# NoC interconnect drivers
+#
+# CONFIG_NCORE is not set
+# CONFIG_MONACO is not set
+
+#
+# Test setup
+#
+# CONFIG_TEST_VERBOSE is not set
 # CONFIG_TEST_BENCH is not set
+
+#
+# RISCV system tests
+#
 # CONFIG_TESTS_RISCV is not set
 
 #
@@ -430,6 +449,7 @@ CONFIG_PRINT_PRINTF=y
 CONFIG_STRING_STRTOUL=y
 CONFIG_STRING_STRTOULL=y
 CONFIG_STRING_UUID=y
+# CONFIG_STRING_BYTELIST is not set
 
 #
 # Time opeartions
@@ -453,4 +473,3 @@ CONFIG_EXPERIMENTAL=y
 CONFIG_DEBUG=y
 CONFIG_CC_GEN_DEBUG=y
 # CONFIG_DEBUG_PANIC is not set
-# CONFIG_PORTING is not set
