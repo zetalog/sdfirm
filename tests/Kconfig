@@ -65,4 +65,7 @@ menuconfig TEST_LITMUS
 
 if TEST_LITMUS
 
+config TEST_LITMUS_DEBUG
+	bool "Enable litmus debugging messages"
+
 endif

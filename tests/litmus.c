@@ -48,7 +48,7 @@ int find_string(char *t[], int sz, char *s)
 	return -1;
 }
 
-void *malloc_check(size_t sz)
+void *malloc_check(size_t sz, const char *name)
 {
 	void *p;
 
@@ -58,7 +58,14 @@ void *malloc_check(size_t sz)
 		if (!errno) errno = ENOMEM ;
 		BUG();
 	}
+	printf("M(%s): %016llx - %016llx\n", name, p, sz);
 	return p ;
+}
+
+void free_check(void *p, const char *name)
+{
+	printf("F(%s): %016llx\n", name, p);
+	free(p);
 }
 
 void pp_ints(FILE *fp, int *p, int n)
@@ -97,16 +104,16 @@ void ints_dump(ints_t *p)
 
 cpus_t *cpus_create(int sz)
 {
-	cpus_t *r = malloc_check(sizeof(*r)) ;
+	cpus_t *r = malloc_check(sizeof(*r), "cpus") ;
 	r->sz = sz ;
-	r->cpu = malloc_check(sizeof(r->cpu[0])*sz)  ;
+	r->cpu = malloc_check(sizeof(r->cpu[0])*sz, "cpus->cpu");
 	return r ;
 }
 
 void cpus_free(cpus_t *p)
 {
-	free(p->cpu);
-	free(p);
+	free_check(p->cpu, "cpus->cpu");
+	free_check(p, "cpus");
 }
 
 void cpus_dump(FILE *fp, cpus_t *p)
@@ -158,8 +165,8 @@ static void mapcore_free(mapcore_t *p)
 
 	for (c = 0; c < p->ncores; c++)
 		cpus_free(p->core[c]);
-	free(p->core);
-	free(p);
+	free_check(p->core, "mapcore->core");
+	free_check(p, "mapcore");
 }
 
 static int get_ncores(cpus_t *cm)
@@ -199,10 +206,10 @@ static mapcore_t *inverse_procs(cpus_t *cm, cpus_t *p)
 {
 	int c;
 	int ncores = get_ncores(cm) ;
-	mapcore_t *r = malloc_check(sizeof(*r));
+	mapcore_t *r = malloc_check(sizeof(*r), "mapcore");
 
 	r->ncores = ncores;
-	r->core = malloc_check(sizeof(r->core[0])*ncores);
+	r->core = malloc_check(sizeof(r->core[0])*ncores, "mapcore->core");
 	for (c = 0; c < ncores; c++) {
 		r->core[c] = get_core_procs(cm,p,c);
 	}
@@ -400,7 +407,7 @@ uint32_t rand_k(uint32_t *st, uint32_t k)
 
 static outs_t *alloc_outs(intmax_t k)
 {
-	outs_t *r = malloc_check(sizeof(*r));
+	outs_t *r = malloc_check(sizeof(*r), "outs");
 	r->k = k;
 	r->c = 0;
 	r->show = 0;
@@ -413,7 +420,7 @@ void free_outs(outs_t *p)
 	if (p == NULL) return;
 	free_outs(p->next);
 	free_outs(p->down);
-	free(p);
+	free_check(p, "outs");
 }
 
 /* Worth writing as a loop, since called many times */
@@ -677,14 +684,14 @@ void perm_cpus(unsigned *st, cpu_exec_cpu_t thread[], int n)
 /* phread based mutex */
 pm_t *pm_create(void)
 {
-	pm_t *p = malloc_check(sizeof(*p));
+	pm_t *p = malloc_check(sizeof(*p), "pm");
 	spin_lock_init(p);
 	return p;
 }
 
 void pm_free(pm_t *p)
 {
-	free(p);
+	free_check(p, "pm");
 }
 
 void pm_lock(pm_t *m)
@@ -700,7 +707,7 @@ void pm_unlock(pm_t *m)
 /* pthread based barrier, usable for nproc threads */
 pb_t *pb_create(int nprocs)
 {
-	pb_t *p = malloc_check(sizeof(*p));
+	pb_t *p = malloc_check(sizeof(*p), "pb");
 	p->cond = pm_create();
 	p->count = p->nprocs = nprocs;
 	p->turn = 0;
@@ -710,7 +717,7 @@ pb_t *pb_create(int nprocs)
 void pb_free(pb_t *p)
 {
 	pm_free(p->cond);
-	free(p);
+	free_check(p, "pb");
 }
 
 /* The following code should protect us against spurious wake ups */

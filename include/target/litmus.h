@@ -70,7 +70,8 @@ uint32_t rand_k(st_t *st, uint32_t n);
 void fatal(char *msg);
 int gcd(int a, int b);
 int find_string(char *t[], int sz, char *s);
-void *malloc_check(size_t sz);
+void *malloc_check(size_t sz, const char *name);
+void free_check(void *p, const char *name);
 void pp_ints(FILE *fp, int *p, int n);
 
 /***********/
@@ -238,13 +239,21 @@ int parse_cmd(int argc, char **argv, cmd_t *def, cmd_t *p);
 
 /* Thread launch and join */
 
-#define LITMUS_EVT_OPEN		0
-#define LITMUS_EVT_CLOSE	1
-#define LITMUS_EVT_EXE_NEXT	2
-#define LITMUS_EVT_RUN_NEXT	3
+#define LITMUS_STA_IDLE		0
+#define LITMUS_STA_EXE_LOOP	1
+#define LITMUS_STA_RUN_LOOP	2
+
+#define LITMUS_EVT_OPEN		_BV(0)
+#define LITMUS_EVT_CLOSE	_BV(1)
+#define LITMUS_EVT_EXE_START	_BV(2)
+#define LITMUS_EVT_EXE_STOP	_BV(3)
+#define LITMUS_EVT_RUN_NEXT	_BV(4)
+
+typedef uint16_t litmus_evt_t;
+typedef uint8_t litmus_sta_t;
 
 void litmus_launch(void);
-void litmus_raise(uint8_t event);
+void litmus_raise(litmus_evt_t event);
 
 #ifdef CONFIG_TEST_LITMUS
 void litmus_init(void);
