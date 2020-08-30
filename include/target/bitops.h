@@ -18,37 +18,37 @@ typedef uint8_t bits_t;
 #endif
 
 #define BITS_TO_UNITS(bits)		\
-	(((uint8_t)((bits)+BITS_PER_UNIT-1))/((uint8_t)BITS_PER_UNIT))
+	(((bits_t)((bits)+BITS_PER_UNIT-1))/((uint8_t)BITS_PER_UNIT))
 #define DECLARE_BITMAP(name, bits)	\
 	bits_t name[BITS_TO_UNITS(bits)]
-#define BITOP_MASK(nr)		((uint8_t)1 << ((nr) % BITS_PER_UNIT))
-#define BITOP_WORD(nr)		((uint8_t)(nr) / (uint8_t)BITS_PER_UNIT)
+#define BITOP_MASK(nr)		((bits_t)1 << ((nr) % BITS_PER_UNIT))
+#define BITOP_WORD(nr)		((bits_t)(nr) / (uint8_t)BITS_PER_UNIT)
 
-#define IS_ALIGNED(x, a)	(((x) & ((a) - 1)) == 0)
-
-void __set_bit(uint8_t nr, volatile bits_t *addr);
-void __clear_bit(uint8_t nr, volatile bits_t *addr);
+void __set_bit(bits_t nr, volatile bits_t *addr);
+void __clear_bit(bits_t nr, volatile bits_t *addr);
 #ifdef CONFIG_SMP
-void set_bit(uint8_t nr, volatile bits_t *addr);
-void clear_bit(uint8_t nr, volatile bits_t *addr);
+void set_bit(bits_t nr, volatile bits_t *addr);
+void clear_bit(bits_t nr, volatile bits_t *addr);
 #else
 #define set_bit(nr, addr)	__set_bit(nr, addr)
 #define clear_bit(nr, addr)	__clear_bit(nr, addr)
 #endif
-boolean test_bit(uint8_t nr, const bits_t *addr);
+boolean test_bit(bits_t nr, const bits_t *addr);
 #define find_first_set_bit(addr, size)		\
 	find_next_set_bit((addr), (size), 0)
 #define find_first_clear_bit(addr, size)	\
 	find_next_clear_bit((addr), (size), 0)
-uint8_t find_next_set_bit(const bits_t *addr,
-			  uint8_t size, uint8_t offset);
-uint8_t find_next_clear_bit(const bits_t *addr,
-			    uint8_t size, uint8_t offset);
+bits_t find_next_set_bit(const bits_t *addr,
+			 bits_t size, bits_t offset);
+bits_t find_next_clear_bit(const bits_t *addr,
+			   bits_t size, bits_t offset);
 
 #define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
 #define ALIGN_UP(x, a)		__ALIGN_MASK(x, (a)-1)
 #define ALIGN_DOWN(x, a)	__ALIGN_MASK((x)-((a)-1), (a)-1)
 #define ALIGN(x, a)		ALIGN_UP(x, a)
+
+#define IS_ALIGNED(x, a)	(((x) & ((a) - 1)) == 0)
 
 #define __round_mask(x, y) 	((y)-1)
 #define round_up(x, y)		((((x)-1) | __round_mask(x, y))+1)

@@ -1037,7 +1037,7 @@ do {									\
 	}								\
 } while (0)
 
-#define heap_chunk_unlink(P)		list_del_init(&P->node)
+#define heap_chunk_unlink(P)		list_del_init(&((P)->node))
 
 #define heap_set_last_remainder(P)	(heap_last_chunk = (P))
 #define heap_clear_last_remainder()	(heap_last_chunk = NULL)

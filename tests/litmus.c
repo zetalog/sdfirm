@@ -15,15 +15,6 @@
 /****************************************************************************/
 #include <target/litmus.h>
 
-int litmus_ecode;
-
-void fatal(char *msg)
-{
-	printf("Failure: %s\n", msg);
-	fprintf(stdout, "Failure: %s\n", msg);
-	litmus_ecode = 1;
-}
-
 int gcd(int a, int b)
 {
 	int tmp;
@@ -65,7 +56,8 @@ void *malloc_check(size_t sz, const char *name)
 void free_check(void *p, const char *name)
 {
 	printf("F(%s): %016llx\n", name, p);
-	free(p);
+	if (p)
+		free(p);
 }
 
 void pp_ints(FILE *fp, int *p, int n)
@@ -102,18 +94,16 @@ void ints_dump(ints_t *p)
 /* CPU sets */
 /************/
 
-cpus_t *cpus_create(int sz)
+cpus_t *cpus_create(int sz, const char *name)
 {
-	cpus_t *r = malloc_check(sizeof(*r), "cpus") ;
-	r->sz = sz ;
-	r->cpu = malloc_check(sizeof(r->cpu[0])*sz, "cpus->cpu");
-	return r ;
+	cpus_t *r = malloc_check(sizeof(*r) + sz*sizeof(r->cpu[0]), name);
+	r->sz = sz;
+	return r;
 }
 
-void cpus_free(cpus_t *p)
+void cpus_free(cpus_t *p, const char *name)
 {
-	free_check(p->cpu, "cpus->cpu");
-	free_check(p, "cpus");
+	free_check(p, name);
 }
 
 void cpus_dump(FILE *fp, cpus_t *p)
@@ -139,9 +129,9 @@ void cpus_dump_test(FILE *fp, int *p, int sz, cpus_t *cm, int nprocs)
 	}
 }
 
-cpus_t *coremap_seq(int navail, int nways)
+cpus_t *coremap_seq(int navail, int nways, const char *name)
 {
-	cpus_t *r = cpus_create(navail);
+	cpus_t *r = cpus_create(navail, name);
 	int ncores = navail / nways;
 	int i = 0;
 	int c, k;
@@ -156,7 +146,7 @@ cpus_t *coremap_seq(int navail, int nways)
 
 typedef struct {
 	int ncores;
-	cpus_t **core;
+	cpus_t *core[0];
 } mapcore_t ;
 
 static void mapcore_free(mapcore_t *p)
@@ -164,8 +154,7 @@ static void mapcore_free(mapcore_t *p)
 	int c;
 
 	for (c = 0; c < p->ncores; c++)
-		cpus_free(p->core[c]);
-	free_check(p->core, "mapcore->core");
+		cpus_free(p->core[c], "mapcore");
 	free_check(p, "mapcore");
 }
 
@@ -181,7 +170,7 @@ static int get_ncores(cpus_t *cm)
 	return r+1;
 }
 
-cpus_t *get_core_procs(cpus_t *cm, cpus_t *p,int c)
+static cpus_t *get_core_procs(cpus_t *cm, cpus_t *p, int c)
 {
 	int sz = 0;
 	int k, i;
@@ -192,7 +181,7 @@ cpus_t *get_core_procs(cpus_t *cm, cpus_t *p,int c)
 		if (cm->cpu[p->cpu[k]] == c)
 		       sz++;
 	}
-	r = cpus_create(sz);
+	r = cpus_create(sz, "mapcore");
 	i = 0;
 	for (k = 0; k < p->sz; k++) {
 		proc = p->cpu[k];
@@ -206,13 +195,12 @@ static mapcore_t *inverse_procs(cpus_t *cm, cpus_t *p)
 {
 	int c;
 	int ncores = get_ncores(cm) ;
-	mapcore_t *r = malloc_check(sizeof(*r), "mapcore");
+	mapcore_t *r;
 
+	r = malloc_check(sizeof(*r) + ncores*sizeof(r->core[0]), "mapcore");
 	r->ncores = ncores;
-	r->core = malloc_check(sizeof(r->core[0])*ncores, "mapcore->core");
-	for (c = 0; c < ncores; c++) {
-		r->core[c] = get_core_procs(cm,p,c);
-	}
+	for (c = 0; c < ncores; c++)
+		r->core[c] = get_core_procs(cm, p, c);
 	return r;
 }
 
@@ -303,7 +291,7 @@ static int find_one_proc(int prev, st_t *st, int *cm, mapcore_t *mc,
 void custom_affinity(st_t *st, cpus_t *cm, int **color, int *diff,
 		     cpus_t *aff_cpus, int n_exe, int *r)
 {
-	mapcore_t *mc = inverse_procs(cm,aff_cpus);
+	mapcore_t *mc = inverse_procs(cm, aff_cpus);
 	int n = get_n(color);
 	/* Diff relation as matrix */
 	int d[n*n];
@@ -909,7 +897,7 @@ static int argint(char *prog, char *p, cmd_t *d)
 	return (int)r;
 }
 
-static cpus_t *argcpus(char *prog, char *p0, cmd_t *d)
+static cpus_t *argcpus(char *prog, char *p0, cmd_t *d, const char *name)
 {
 	int sz = 0;
 	char *p;
@@ -929,7 +917,7 @@ static cpus_t *argcpus(char *prog, char *p0, cmd_t *d)
 			break;
 		p = q + 1;
 	}
-	r = cpus_create(sz);
+	r = cpus_create(sz, name);
 	p = p0;
 	for (k = 0; k < sz; k++) {
 		char *q;
@@ -1011,7 +999,6 @@ int parse_cmd(int argc, char **argv, cmd_t *d, cmd_t *p)
 {
 	char *prog = argv[0];
 
-	litmus_ecode = 0;
 	/* Options */
 	for (; ; ) {
 		char fst;
@@ -1131,7 +1118,7 @@ int parse_cmd(int argc, char **argv, cmd_t *d, cmd_t *p)
 				usage(prog, d);
 				return 2;
 			}
-			cpus = argcpus(prog, argv[0], d);
+			cpus = argcpus(prog, argv[0], d, "cmd->aff_cpus");
 			if (!cpus)
 				return 2;
 			p->aff_cpus = cpus;
@@ -1253,12 +1240,12 @@ int parse_cmd(int argc, char **argv, cmd_t *d, cmd_t *p)
 }
 
 #ifdef CPUS_DEFINED
-cpus_t *read_affinity(void)
+cpus_t *read_affinity(const char *name)
 {
 	int p, *q;
 	cpus_t *r;
 
-	r = cpus_create(NR_CPUS);
+	r = cpus_create(NR_CPUS, name);
 	for (p = 0, q = r->cpu; p < NR_CPUS; p++) {
 		if (C(p) & CPU_ALL)
 			*q++ = p;
@@ -1270,11 +1257,11 @@ cpus_t *read_affinity(void)
  * go to sleep...
  */
 #ifdef FORCE_AFFINITY
-cpus_t *read_force_affinity(int n_avail, int verbose)
+cpus_t *read_force_affinity(int n_avail, int verbose, const char *name)
 {
 	cpus_t *r;
 
-	r = read_affinity();
+	r = read_affinity(name);
 	if (n_avail <= r->sz)
 		return r;
 	if (verbose) {
@@ -1282,7 +1269,7 @@ cpus_t *read_force_affinity(int n_avail, int verbose)
 		cpus_dump(errlog, r);
 		fprintf(errlog, "'\n");
 	}
-	cpus_free(r);
+	cpus_free(r, name);
 	return NULL;
 }
 #endif

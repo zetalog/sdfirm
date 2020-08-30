@@ -50,14 +50,14 @@ uint8_t bitrev8(uint8_t byte)
  * If it's called on the same region of memory simultaneously, the effect
  * may be that only one operation succeeds.
  */
-void __set_bit(uint8_t nr, volatile bits_t *addr)
+void __set_bit(bits_t nr, volatile bits_t *addr)
 {
 	bits_t mask = BITOP_MASK(nr);
 	bits_t *p = ((bits_t *)addr) + BITOP_WORD(nr);
 	*p |= mask;
 }
 
-void __clear_bit(uint8_t nr, volatile bits_t *addr)
+void __clear_bit(bits_t nr, volatile bits_t *addr)
 {
 	bits_t mask = BITOP_MASK(nr);
 	bits_t *p = ((bits_t *)addr) + BITOP_WORD(nr);
@@ -65,14 +65,14 @@ void __clear_bit(uint8_t nr, volatile bits_t *addr)
 }
 
 #ifdef CONFIG_SMP
-void set_bit(uint8_t nr, volatile bits_t *addr)
+void set_bit(bits_t nr, volatile bits_t *addr)
 {
 	bits_t mask = BITOP_MASK(nr);
 	bits_t *p = ((bits_t *)addr) + BITOP_WORD(nr);
 	atomic_or(mask, (atomic_t *)p);
 }
 
-void clear_bit(uint8_t nr, volatile bits_t *addr)
+void clear_bit(bits_t nr, volatile bits_t *addr)
 {
 	bits_t mask = BITOP_MASK(nr);
 	bits_t *p = ((bits_t *)addr) + BITOP_WORD(nr);
@@ -85,17 +85,17 @@ void clear_bit(uint8_t nr, volatile bits_t *addr)
  * @nr: bit number to test
  * @addr: Address to start counting from
  */
-boolean test_bit(uint8_t nr, const bits_t *addr)
+boolean test_bit(bits_t nr, const bits_t *addr)
 {
 	return (bits_t)1 & (addr[BITOP_WORD(nr)] >> (nr & (BITS_PER_UNIT-1)));
 }
 
-uint8_t find_next_set_bit(const bits_t *addr,
-			  uint8_t size,
-			  uint8_t offset)
+bits_t find_next_set_bit(const bits_t *addr,
+			 bits_t size,
+			 bits_t offset)
 {
 	const bits_t *p = addr + BITOP_WORD(offset);
-	uint8_t result = offset & ~(BITS_PER_UNIT-1);
+	bits_t result = offset & ~(BITS_PER_UNIT-1);
 	bits_t tmp;
 
 	if (offset >= size)
@@ -131,12 +131,12 @@ found_middle:
 }
 
 #ifdef CONFIG_BIT_FIND_CLEAR
-uint8_t find_next_clear_bit(const bits_t *addr,
-			    uint8_t size,
-			    uint8_t offset)
+bits_t find_next_clear_bit(const bits_t *addr,
+			   bits_t size,
+			   bits_t offset)
 {
 	const bits_t *p = addr + BITOP_WORD(offset);
-	uint8_t result = offset & ~(BITS_PER_UNIT-1);
+	bits_t result = offset & ~(BITS_PER_UNIT-1);
 	bits_t tmp;
 
 	if (offset >= size)

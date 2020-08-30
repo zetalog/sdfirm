@@ -24,7 +24,7 @@
 #include <target/panic.h>
 #include <time.h>
 
-typedef long int		intmax_t;
+typedef int			intmax_t;
 #define malloc(sz)		(void *)heap_alloc(sz)
 #define free(ptr)		heap_free((caddr_t)ptr)
 #ifdef CONFIG_TEST_VERBOSE
@@ -50,7 +50,7 @@ typedef tsc_count_t tsc_t;
 typedef void* f_t(void *);
 typedef void dump_outcome(FILE *chan, intmax_t *o, count_t c, int show);
 
-#define PCTR "%p"
+#define PCTR "llu"
 #define PTSC "%llu"
 
 /**********/
@@ -67,7 +67,7 @@ uint32_t rand_k(st_t *st, uint32_t n);
 
 #define errlog			stderr
 #define log_error(...)		fprintf(errlog, __VA_ARGS__)
-void fatal(char *msg);
+#define fatal(...)		printf(__VA_ARGS__)
 int gcd(int a, int b);
 int find_string(char *t[], int sz, char *s);
 void *malloc_check(size_t sz, const char *name);
@@ -81,15 +81,15 @@ void pp_ints(FILE *fp, int *p, int n);
 #define CPUS_DEFINED 1
 typedef struct {
 	int sz;
-	int *cpu;
+	int cpu[1];
 } cpus_t;
 
-cpus_t *cpus_create(int sz);
-void cpus_free(cpus_t *p);
+cpus_t *cpus_create(int sz, const char *name);
+void cpus_free(cpus_t *p, const char *name);
 void cpus_dump(FILE *fp, cpus_t *p);
 void cpus_dump_test(FILE *fp, int *p, int sz, cpus_t *cm, int nprocs);
 
-cpus_t *coremap_seq(int navail, int nways);
+cpus_t *coremap_seq(int navail, int nways, const char *name);
 void custom_affinity(st_t *st, cpus_t *cm, int **color, int *diff,
 		     cpus_t *aff_cpus, int n_exe, int *r);
 
@@ -194,7 +194,7 @@ typedef enum {
 	aff_topo
 } aff_mode_t;
 
-cpus_t *read_force_affinity(int n_avail, int verbose);
+cpus_t *read_force_affinity(int n_avail, int verbose, const char *name);
 
 /************************/
 /* Command line options */
