@@ -807,7 +807,7 @@ int vsnprintf(char *string, size_t size, const char *format, va_list args)
 #ifdef CONFIG_PRINT_VSPRINTF
 int vsprintf(char *buf, const char *fmt, va_list args)
 {
-	return vsnprintf(buf, UINT32_MAX, fmt, args);
+	return vsnprintf(buf, INT_MAX, fmt, args);
 }
 #endif
 
@@ -832,7 +832,7 @@ int sprintf(char *buf, const char *fmt, ...)
 	int len;
 
 	va_start(args, fmt);
-	len = vsnprintf(buf, UINT32_MAX, fmt, args);
+	len = vsnprintf(buf, INT_MAX, fmt, args);
 	va_end(args);
 
 	return len;
