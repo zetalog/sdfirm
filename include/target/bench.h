@@ -151,7 +151,9 @@ int bench_exec(struct cpu_exec_test *start, int nr_tests,
 	       uint64_t init_cpu_mask, uint32_t flags,
 	       tick_t timeout, void (*notify)(bool));
 int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
-	       tick_t interval, tick_t period, int repeats);
+	       tick_t interval, tick_t period, int repeats,
+	       tick_t start_delay);
+int bench_simple(uint64_t cpu_mask, struct cpu_exec_test *fn, bool sync);
 struct cpu_exec_test *bench_test_find(const char *name);
 uint64_t bench_get_cpu_mask(void);
 

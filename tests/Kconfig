@@ -51,6 +51,9 @@ config TEST_BENCH_START_DELAY
 	  may start run after aligning current time to a start delay
 	  interval. This should be a power of 2 value.
 
+config TEST_BENCH_DEBUG
+	bool "Enable bench debugging messages"
+
 source tests/bench/Kconfig
 
 endif
@@ -61,7 +64,8 @@ menuconfig TEST_LITMUS
 	select STRING_STRTOD
 	select TIME_CLOCK
 	select CRYPTO_RAND
-	depends HEAP
+	select HEAP
+	select TEST_BENCH
 
 if TEST_LITMUS
 

@@ -415,7 +415,7 @@ static void postlude(FILE *out,cmd_t *cmd,hist_t *hist,count_t p_true,count_t p_
   fflush(out);
 }
 
-static void ctor(FILE *out) {
+void litmus_start(FILE *out) {
   if (g_cmd.prelude) prelude(out);
   g_start = timeofday();
 /* Set some parameters */
@@ -508,7 +508,7 @@ static void ctor(FILE *out) {
   g_n_exe = 0;
 }
 
-static void exe_ctor(FILE *out)
+void litmus_exe_start(FILE *out)
 {
   zyva_t *p = g_zarg = &g_zargs[g_n_exe];
   p->_p = &prm;
@@ -539,7 +539,7 @@ static void exe_ctor(FILE *out)
   g_n_run = 0;
 }
 
-static void run_ctor(FILE *out) {
+void litmus_run_start(FILE *out) {
   zyva_t *p = g_zarg = &g_zargs[g_n_exe];
   param_t *_b = p->_p;
 
@@ -559,6 +559,7 @@ static void run_ctor(FILE *out) {
   if (_b->verbose>1) fprintf(stderr,"Run %i of %i\r", g_n_run, _b->max_run);
   reinit(&g_ctx);
   if (_b->do_change) perm_funs(&g_ctx.seed,g_fun,N);
+  litmus_exec("foobar");
 #if 0
   for (int _p = NT-1 ; _p >= 0 ; _p--) {
     launch(&g_cpus[_p],g_fun[_p],&g_parg[_p]);
@@ -567,7 +568,7 @@ static void run_ctor(FILE *out) {
 #endif
 }
 
-static void run_dtor(FILE *out)
+void litmus_run_stop(FILE *out)
 {
   zyva_t *p = g_zarg = &g_zargs[g_n_exe];
   param_t *_b = p->_p;
@@ -612,7 +613,7 @@ static void run_dtor(FILE *out)
   }
 }
 
-static void exe_dtor(FILE *out)
+void litmus_exe_stop(FILE *out)
 {
   finalize(&g_ctx);
   g_n_exe++;
@@ -623,7 +624,7 @@ static void exe_dtor(FILE *out)
   }
 }
 
-static void dtor(FILE *out) {
+void litmus_stop(FILE *out) {
   count_t n_outs = prm.size_of_test; n_outs *= prm.max_run;
   for (int k=0 ; k < g_n_th ; k++) {
     hist_t *hk = &g_hists[k];
@@ -668,150 +669,9 @@ int MP(int argc, char **argv, FILE *out) {
 }
 
 int foobar(caddr_t percpu_area) {
+  printf("Running foobar...\n");
   return 1;
 }
 
 __define_testfn(foobar, 0, SMP_CACHE_BYTES,
 		CPU_EXEC_META, 1, CPU_WAIT_INFINITE);
-
-static int do_litmus(int argc, char **argv)
-{
-  return MP(argc, argv, stderr);
-}
-
-DEFINE_COMMAND(litmus, do_litmus, "Run memory model litmus tests",
-  "litmus -h\n"
-  "    -display test usage\n"
-);
-
-bh_t litmus_bh;
-litmus_evt_t litmus_event;
-litmus_sta_t litmus_state;
-
-#ifdef CONFIG_TEST_LITMUS_DEBUG
-static void litmus_dbg_evt(litmus_evt_t event)
-{
-  switch (event) {
-  case LITMUS_EVT_OPEN:
-    printf("E: OPEN\n");
-    break;
-  case LITMUS_EVT_CLOSE:
-    printf("E: CLOSE\n");
-    break;
-  case LITMUS_EVT_EXE_START:
-    printf("E: EXE START\n");
-    break;
-  case LITMUS_EVT_EXE_STOP:
-    printf("E: EXE STOP\n");
-    break;
-  case LITMUS_EVT_RUN_START:
-    printf("E: RUN START\n");
-    break;
-  case LITMUS_EVT_RUN_STOP:
-    printf("E: RUN STOP\n");
-    break;
-  default:
-    printf("E: UNKNOWN\n");
-    break;
-  }
-}
-
-static void litmus_dbg_sta(litmus_sta_t state)
-{
-  switch (state) {
-  case LITMUS_STA_IDLE:
-    printf("S: IDLE\n");
-    break;
-  case LITMUS_STA_EXE_LOOP:
-    printf("S: EXE LOOP\n");
-    break;
-  case LITMUS_STA_RUN_LOOP:
-    printf("S: RUN LOOP\n");
-    break;
-  default:
-    printf("S: UNKNOWN\n");
-    break;
-  }
-}
-#else
-#define litmus_dbg_evt(event)		do { } while (0)
-#define litmus_dbg_sta(state)		do { } while (0)
-#endif
-
-void litmus_raise(litmus_evt_t event)
-{
-  if (!(litmus_event & event)) {
-    litmus_event |= event;
-    litmus_dbg_evt(event);
-    bh_resume(litmus_bh);
-  }
-}
-
-void litmus_enter(litmus_sta_t state)
-{
-  if (litmus_state != state) {
-    litmus_state = state;
-    litmus_dbg_sta(state);
-    switch (state) {
-    default:
-      break;
-    }
-  }
-}
-
-static void litmus_handler(uint8_t __event)
-{
-  uint32_t event = litmus_event;
-
-  litmus_event = 0;
-  switch (litmus_state) {
-  case LITMUS_STA_IDLE:
-    if (event & LITMUS_EVT_OPEN) {
-      ctor(stderr);
-      litmus_enter(LITMUS_STA_EXE_LOOP);
-      litmus_raise(LITMUS_EVT_EXE_START);
-    }
-    break;
-  case LITMUS_STA_EXE_LOOP:
-    if (event & LITMUS_EVT_EXE_START) {
-      exe_ctor(stderr);
-      litmus_enter(LITMUS_STA_RUN_LOOP);
-      litmus_raise(LITMUS_EVT_RUN_START);
-    }
-    if (event & LITMUS_EVT_EXE_STOP) {
-      exe_dtor(stderr);
-    }
-    if (event & LITMUS_EVT_CLOSE) {
-      dtor(stderr);
-      litmus_enter(LITMUS_STA_IDLE);
-    }
-    break;
-  case LITMUS_STA_RUN_LOOP:
-    if (event & LITMUS_EVT_RUN_START) {
-      run_ctor(stderr);
-      litmus_raise(LITMUS_EVT_RUN_STOP);
-    }
-    if (event & LITMUS_EVT_RUN_STOP) {
-      run_dtor(stderr);
-    }
-    if (event & LITMUS_EVT_CLOSE) {
-      litmus_enter(LITMUS_STA_EXE_LOOP);
-      litmus_raise(LITMUS_EVT_EXE_STOP);
-    }
-  }
-}
-
-void litmus_launch(void)
-{
-  litmus_raise(LITMUS_EVT_OPEN);
-  do {
-    bh_sync();
-  } while (litmus_state != LITMUS_STA_IDLE);
-}
-
-void litmus_init(void)
-{
-  litmus_event = 0;
-  litmus_state = LITMUS_STA_IDLE;
-  litmus_bh = bh_register_handler(litmus_handler);
-}

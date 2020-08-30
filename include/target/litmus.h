@@ -254,15 +254,21 @@ typedef uint16_t litmus_evt_t;
 typedef uint8_t litmus_sta_t;
 
 void litmus_launch(void);
+void litmus_exec(const char *test);
 void litmus_raise(litmus_evt_t event);
+
+void litmus_start(FILE *out);
+void litmus_stop(FILE *out);
+void litmus_exe_start(FILE *out);
+void litmus_exe_stop(FILE *out);
+void litmus_run_start(FILE *out);
+void litmus_run_stop(FILE *out);
+int MP(int argc, char **argv, FILE *out);
 
 #ifdef CONFIG_TEST_LITMUS
 void litmus_init(void);
 #else
 #define litmus_init()		do { } while (0)
 #endif
-
-void launch(cpu_exec_cpu_t *th, f_t *f, void *a);
-void *join(cpu_exec_cpu_t *th);
 
 #endif

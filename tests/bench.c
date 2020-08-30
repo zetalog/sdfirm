@@ -69,10 +69,16 @@
 #define CPU_EVENT_STOP		(1<<3)
 
 #define __printf(...)		do { } while (0)
-#ifdef CONFIG_TEST_VERBOSE
+#ifdef CONFIG_TEST_BENCH_DEBUG
 #define do_printf		printf
 #else
 #define do_printf		__printf
+#endif
+
+#ifdef CONFIG_TEST_BENCH_START_DELAY
+#define BENCH_START_DELAY_MS	CONFIG_TEST_BENCH_START_DELAY
+#else
+#define BENCH_START_DELAY_MS	0 /* non-SMP mode, no start aligning */
 #endif
 
 struct cpu_context {
@@ -81,6 +87,7 @@ struct cpu_context {
 	tick_t async_timeout;
 	tick_t async_exec_period;
 	tick_t async_wait_interval;
+	tick_t async_start_delay;
 	struct cpu_exec_test *didt_entry;
 	int didt_result;
 	int didt_repeats;
@@ -88,8 +95,6 @@ struct cpu_context {
 	bh_t bh;
 } __cache_aligned;
 
-int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
-	       tick_t interval, tick_t period, int repeats);
 static void __bench_sync(unsigned long sync_state,
 			 uint64_t this_cpu_mask, bool entry_or_exit,
 			 uint32_t flags, bool wait, tick_t timeout);
@@ -102,6 +107,7 @@ static int cmd_bench_repeats = 0;
 static struct cpu_exec_test *cmd_bench_test_set = NULL;
 static tick_t cmd_bench_timeout = CPU_WAIT_INFINITE;
 static tick_t cmd_bench_interval = CPU_WAIT_INFINITE;
+static tick_t cmd_bench_start_delay = BENCH_START_DELAY_MS;
 
 /* Variables for testos_cpu_state:
  * closed: all CPUs have no synchronous pattern running on them
@@ -128,7 +134,7 @@ static struct page *cpu_didt_alloc;
 static uint8_t cpu_didt_refcnt;
 static unsigned long cpu_didt_cpu_mask;
 
-#ifdef CONFIG_TEST_VERBOSE
+#ifdef CONFIG_TEST_BENCH_DEBUG
 static const char *bench_event_name(uint8_t event)
 {
 	switch (event) {
@@ -210,12 +216,12 @@ static void bench_timer_start(void)
 	cpu_t cpu = smp_processor_id();
 	tick_t current_s = tick_get_counter();
 
-#if BENCH_START_DELAY_MS
-	cpu_ctxs[cpu].async_timeout = ALIGN_UP(current_s,
-					       BENCH_START_DELAY_MS);
-#else
-	cpu_ctxs[cpu].async_timeout = current_s;
-#endif
+	if (cpu_ctxs[cpu].async_start_delay) {
+		cpu_ctxs[cpu].async_timeout = ALIGN_UP(current_s,
+			cpu_ctxs[cpu].async_start_delay);
+	} else {
+		cpu_ctxs[cpu].async_timeout = current_s;
+	}
 }
 
 static bool bench_should_suspend(cpu_t cpu, struct cpu_exec_test *fn)
@@ -596,7 +602,7 @@ static void bench_bh_handler(uint8_t __event)
 	case CPU_STATE_HALT:
 		bench_didt(cmd_bench_cpu_mask, cmd_bench_test_set,
 			   cmd_bench_interval, cmd_bench_timeout,
-			   cmd_bench_repeats);
+			   cmd_bench_repeats, cmd_bench_start_delay);
 		break;
 	case CPU_STATE_NONE:
 		if (event & CPU_EVENT_START)
@@ -676,7 +682,8 @@ uint64_t bench_get_cpu_mask(void)
 }
 
 int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
-	       tick_t interval, tick_t period, int repeats)
+	       tick_t interval, tick_t period, int repeats,
+	       tick_t start_delay)
 {
 	cpu_t cpu = smp_processor_id();
 	bool locked = false;
@@ -688,33 +695,34 @@ int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
 		locked = true;
 	}
 	if (!locked) {
-		while (!cpu_didt_alloc) {
+		while (cpu_exec_stage != CPU_EXEC_BUSY) {
 			spin_unlock(&cpu_exec_lock);
 			cpu_relax();
 			spin_lock(&cpu_exec_lock);
 		}
 	}
-	spin_unlock(&cpu_exec_lock);
 	if (locked) {
 		int cpus = hweight64(init_cpu_mask);
 		size_t size = ALIGN_UP(fn->alloc_size, fn->alloc_align);
 
-		cpu_exec_stage = CPU_EXEC_BUSY;
 		cpu_didt_pages = ALIGN_UP(size * cpus, PAGE_SIZE) /
 				 PAGE_SIZE;
-		cpu_didt_alloc = page_alloc_pages(cpu_didt_pages);
 		if (cpu_didt_pages) {
+			cpu_didt_alloc = page_alloc_pages(cpu_didt_pages);
 			memory_set((caddr_t)cpu_didt_alloc, 0,
 				   cpu_didt_pages * PAGE_SIZE);
 		}
+		cpu_exec_stage = CPU_EXEC_BUSY;
 		do_printf("alloc: cpuexec: %016llx-%016llx(%d-%d)\n",
 			  (uint64_t)cpu_didt_alloc, size,
 			  cpus, cpu_didt_pages);
 		locked = false;
 	}
+	spin_unlock(&cpu_exec_lock);
 
 	cpu_ctxs[cpu].async_wait_interval = interval;
 	cpu_ctxs[cpu].async_exec_period = period;
+	cpu_ctxs[cpu].async_start_delay = start_delay;
 	cpu_ctxs[cpu].didt_entry = fn;
 	cpu_ctxs[cpu].didt_repeats = repeats;
 	cpu_ctxs[cpu].didt_result = 0;
@@ -876,6 +884,46 @@ static int cmd_bench_didt(uint64_t cpu_mask, struct cpu_exec_test *fn,
 	cmd_bench_interval = interval;
 	cmd_bench_timeout = period;
 	cmd_bench_repeats = repeats;
+	cmd_bench_start_delay = BENCH_START_DELAY_MS;
+
+	for (cpu = 0; cpu < NR_CPUS; cpu++) {
+		if (C(cpu) & cpu_mask)
+			bh_resume_smp(cpu_ctxs[cpu].bh, cpu);
+	}
+
+	if (sync) {
+		spin_lock(&cpu_exec_lock);
+		while (1) {
+			spin_unlock(&cpu_exec_lock);
+			bh_sync();
+			spin_lock(&cpu_exec_lock);
+			if (cpu_exec_stage == CPU_EXEC_IDLE)
+				break;
+		}
+		spin_unlock(&cpu_exec_lock);
+	}
+	return 0;
+}
+
+int bench_simple(uint64_t cpu_mask, struct cpu_exec_test *fn, bool sync)
+{
+	cpu_t cpu;
+
+	spin_lock(&cpu_exec_lock);
+	if (cpu_exec_stage != CPU_EXEC_IDLE) {
+		printf("Bench busy...\n");
+		spin_unlock(&cpu_exec_lock);
+		return -EBUSY;
+	}
+	cpu_exec_stage = CPU_EXEC_PEND;
+	spin_unlock(&cpu_exec_lock);
+
+	cmd_bench_cpu_mask = (cpu_mask & CPU_ALL);
+	cmd_bench_test_set = fn;
+	cmd_bench_interval = 1;
+	cmd_bench_timeout = 0;
+	cmd_bench_repeats = 1;
+	cmd_bench_start_delay = 0;
 
 	for (cpu = 0; cpu < NR_CPUS; cpu++) {
 		if (C(cpu) & cpu_mask)
