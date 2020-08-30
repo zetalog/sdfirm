@@ -237,8 +237,10 @@ static void *P0(void *_vb) {
   mbar();
   parg_t *_b = (parg_t *)_vb;
   ctx_t *_a = _b->_a;
+#if 0
   int _ecpu = _b->cpu[_b->th_id];
-  /* force_one_affinity(_ecpu,AVAIL,_a->_p->verbose,"MP"); */
+  force_one_affinity(_ecpu,AVAIL,_a->_p->verbose,"MP");
+#endif
   check_globals(_a);
   int _th_id = _b->th_id;
   int volatile *barrier = _a->barrier;
@@ -274,8 +276,10 @@ static void *P1(void *_vb) {
   mbar();
   parg_t *_b = (parg_t *)_vb;
   ctx_t *_a = _b->_a;
+#if 0
   int _ecpu = _b->cpu[_b->th_id];
-  /* force_one_affinity(_ecpu,AVAIL,_a->_p->verbose,"MP"); */
+  force_one_affinity(_ecpu,AVAIL,_a->_p->verbose,"MP");
+#endif
   check_globals(_a);
   int _th_id = _b->th_id;
   int volatile *barrier = _a->barrier;
@@ -307,6 +311,21 @@ asm __volatile__ (
   }
   mbar();
   return NULL;
+}
+
+typedef struct {
+  f_t *fun;
+  void *arg;
+  int p;
+} targ_t;
+
+targ_t g_targs[NR_CPUS];
+
+static void zyva(int cpu, int p, f_t *fun, void *arg)
+{
+  g_targs[cpu].p = p;
+  g_targs[cpu].fun = fun;
+  g_targs[cpu].arg = arg;
 }
 
 /*******************************************************/
@@ -542,6 +561,7 @@ void litmus_exe_start(FILE *out)
 void litmus_run_start(FILE *out) {
   zyva_t *p = g_zarg = &g_zargs[g_n_exe];
   param_t *_b = p->_p;
+  memset(g_targs, 0, sizeof(g_targs));
 
   if (_b->aff_mode == aff_random) {
     pb_wait(p->p_barrier);
@@ -559,11 +579,17 @@ void litmus_run_start(FILE *out) {
   if (_b->verbose>1) fprintf(stderr,"Run %i of %i\r", g_n_run, _b->max_run);
   reinit(&g_ctx);
   if (_b->do_change) perm_funs(&g_ctx.seed,g_fun,N);
+  for (int _p = NT-1 ; _p >= 0 ; _p--) {
+#if 0
+    launch(&g_cpus[_p],g_fun[_p],&g_parg[_p]);
+#endif
+    parg_t *parg = (parg_t *)&g_parg[_p];;
+    int _ecpu = parg->cpu[parg->th_id];
+    zyva(_ecpu, _p, g_fun[_p], &g_parg[_p]);
+    /* force_one_affinity(_ecpu,AVAIL,_a->_p->verbose,"MP"); */
+  }
   litmus_exec("foobar");
 #if 0
-  for (int _p = NT-1 ; _p >= 0 ; _p--) {
-    launch(&g_cpus[_p],g_fun[_p],&g_parg[_p]);
-  }
   if (_b->do_change) perm_cpus(&g_ctx.seed,g_cpus,NT);
 #endif
 }
@@ -669,8 +695,12 @@ int MP(int argc, char **argv, FILE *out) {
 }
 
 int foobar(caddr_t percpu_area) {
-  printf("Running foobar...\n");
-  return 1;
+  int cpu = smp_processor_id();
+  targ_t *targ = &(g_targs[cpu]);
+
+  if (targ->fun)
+    targ->fun(targ->arg);
+  return 0;
 }
 
 __define_testfn(foobar, 0, SMP_CACHE_BYTES,

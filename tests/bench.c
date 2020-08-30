@@ -920,7 +920,7 @@ int bench_simple(uint64_t cpu_mask, struct cpu_exec_test *fn, bool sync)
 
 	cmd_bench_cpu_mask = (cpu_mask & CPU_ALL);
 	cmd_bench_test_set = fn;
-	cmd_bench_interval = 1;
+	cmd_bench_interval = 0;
 	cmd_bench_timeout = 0;
 	cmd_bench_repeats = 1;
 	cmd_bench_start_delay = 0;
