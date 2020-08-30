@@ -43,19 +43,23 @@ void *malloc_check(size_t sz, const char *name)
 {
 	void *p;
 
-	if (sz == 0) return NULL ;
-	p = malloc(sz) ;
+	if (sz == 0) return NULL;
+	p = malloc(sz);
 	if (!p) {
-		if (!errno) errno = ENOMEM ;
+		if (!errno) errno = ENOMEM;
 		BUG();
 	}
+#ifdef CONFIG_TEST_LITMUS_DEBUG
 	printf("M(%s): %016llx - %016llx\n", name, p, sz);
-	return p ;
+#endif
+	return p;
 }
 
 void free_check(void *p, const char *name)
 {
+#ifdef CONFIG_TEST_LITMUS_DEBUG
 	printf("F(%s): %016llx\n", name, p);
+#endif
 	if (p)
 		free(p);
 }
@@ -115,13 +119,13 @@ void cpus_dump_test(FILE *fp, int *p, int sz, cpus_t *cm, int nprocs)
 {
 	int k, i;
 
-	for (k = 0 ; k < sz ; k += nprocs) {
+	for (k = 0; k < sz; k += nprocs) {
 		fprintf(fp, "[");
 		pp_ints(fp, &p[k], nprocs);
 		fprintf(fp, "] {");
 		if (nprocs > 0) {
 			fprintf(fp, "%i", cm->cpu[p[k]]);
-			for (i = 1 ; i < nprocs; i++) {
+			for (i = 1; i < nprocs; i++) {
 				fprintf(fp, ",%i", cm->cpu[p[k+i]]);
 			}
 		}
@@ -147,7 +151,7 @@ cpus_t *coremap_seq(int navail, int nways, const char *name)
 typedef struct {
 	int ncores;
 	cpus_t *core[0];
-} mapcore_t ;
+} mapcore_t;
 
 static void mapcore_free(mapcore_t *p)
 {
@@ -194,7 +198,7 @@ static cpus_t *get_core_procs(cpus_t *cm, cpus_t *p, int c)
 static mapcore_t *inverse_procs(cpus_t *cm, cpus_t *p)
 {
 	int c;
-	int ncores = get_ncores(cm) ;
+	int ncores = get_ncores(cm);
 	mapcore_t *r;
 
 	r = malloc_check(sizeof(*r) + ncores*sizeof(r->core[0]), "mapcore");
@@ -282,7 +286,7 @@ static int find_one_proc(int prev, st_t *st, int *cm, mapcore_t *mc,
 		}
 		k++;
 		k %= mc->ncores;
-	} while (k != k0) ;
+	} while (k != k0);
 	if (found < 0)
 		fatal("Cannot allocate threads");
 	return found;
@@ -658,7 +662,7 @@ void perm_cpus(unsigned *st, cpu_exec_cpu_t thread[], int n)
 	int j;
 	cpu_exec_cpu_t t;
 
-	for (k = 0 ; k < n-1 ; k++) {
+	for (k = 0; k < n-1; k++) {
 		j = k + rand_k(st, n - k);
 		t = thread[j];
 		thread[j] = thread[k]; thread[k] = t;
@@ -747,8 +751,8 @@ static void usage(char *prog, cmd_t *d)
 	if (d->stride > 0) {
 		printf("  -st <n> stride (default %i)\n", d->stride);
 	}
-	printf("  -fs <f> multiply outcomes per f\n") ;
-	printf("  -f <f>  multiply outcomes per f, divide run number by f\n") ;
+	printf("  -fs <f> multiply outcomes per f\n");
+	printf("  -f <f>  multiply outcomes per f, divide run number by f\n");
 	if (d->aff_mode != aff_none) {
 		printf("  -i <n>  increment for allocating logical processors, -i 0 disables affinity mode");
 		if (d->aff_mode == aff_incr) {
@@ -769,8 +773,8 @@ static void usage(char *prog, cmd_t *d)
 		}
 		if (d->aff_scan_enabled) {
 			printf("  +sa     enable scanning affinity%s\n",
-			       d->aff_mode == aff_scan ?  " (default)" : "") ;
-			printf("  +ta <topo> set topology affinity\n") ;
+			       d->aff_mode == aff_scan ?  " (default)" : "");
+			printf("  +ta <topo> set topology affinity\n");
 		} else {
 			printf("  +sa     alias for +ra\n");
 		}
@@ -853,7 +857,7 @@ static long my_pow10(int p, long x)
 		y8 = my_add(y4, y4);
 		if (y8 < 0)
 			return -ERANGE;
-		r = my_add(y8, y2) ;
+		r = my_add(y8, y2);
 	}
 	if (r >= INT_MAX || r <= 0) {
 		errno = ERANGE;
@@ -885,7 +889,7 @@ static int do_argint(char *p, char **q)
 
 static int argint(char *prog, char *p, cmd_t *d)
 {
-	char *q ;
+	char *q;
 	long r = do_argint(p, &q);
 
 	if (r < 0)
@@ -930,7 +934,7 @@ static cpus_t *argcpus(char *prog, char *p0, cmd_t *d, const char *name)
 static int argints(char *prog, cmd_t *d, char *p, ints_t *r)
 {
 	while (*p) {
-		char *q ;
+		char *q;
 		int idx = (int)strtoul(p, &q, 10);
 		int v;
 
@@ -985,7 +989,7 @@ static int argprefetch(char *prog, cmd_t *d, char *p, prfdirs_t *r)
 
 static double argdouble(char *prog, char *p, cmd_t *d)
 {
-	char *q ;
+	char *q;
 	double r = strtod(p, &q);
 
 	if (*p == '\0' || *q != '\0') {

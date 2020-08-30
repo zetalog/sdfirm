@@ -345,20 +345,7 @@ static void reinit(ctx_t *_a) {
 }
 
 static f_t *g_fun[] = {&P0,&P1};
-
-static void zyva(void) {
-#if 0
-  cpu_exec_cpu_t thread[NT];
-
-  for (int _p = NT-1 ; _p >= 0 ; _p--) {
-    launch(&thread[_p],g_fun[_p],&g_parg[_p]);
-  }
-  if (_b->do_change) perm_cpus(&g_ctx.seed,thread,NT);
-  for (int _p = NT-1 ; _p >= 0 ; _p--) {
-    join(&thread[_p]);
-  }
-#endif
-}
+cpu_exec_cpu_t g_cpus[NT];
 
 #ifdef ASS
 static void ass(FILE *out) { }
@@ -398,6 +385,9 @@ static void postlude(FILE *out,cmd_t *cmd,hist_t *hist,count_t p_true,count_t p_
   fprintf(out,"\nWitnesses\n");
   fprintf(out,"Positive: %" PCTR ", Negative: %" PCTR "\n",p_true,p_false);
   fprintf(out,"Condition %s is %svalidated\n","exists (1:x5=1 /\\ 1:x7=0)",cond ? "" : "NOT ");
+#ifndef CONFIG_TEST_VERBOSE
+  printf("%s: %s\n","exists (1:x5=1 /\\ 1:x7=0)",cond ? "OK" : "NG");
+#endif
   fprintf(out,"Hash=2939da84098a543efdbb91e30585ab71\n");
   fprintf(out,"Cycle=Rfe PodRR Fre PodWW\n");
   fprintf(out,"Relax MP %s %s\n",p_true > 0 ? "Ok" : "No","");
@@ -569,7 +559,12 @@ static void run_ctor(FILE *out) {
   if (_b->verbose>1) fprintf(stderr,"Run %i of %i\r", g_n_run, _b->max_run);
   reinit(&g_ctx);
   if (_b->do_change) perm_funs(&g_ctx.seed,g_fun,N);
-  zyva();
+#if 0
+  for (int _p = NT-1 ; _p >= 0 ; _p--) {
+    launch(&g_cpus[_p],g_fun[_p],&g_parg[_p]);
+  }
+  if (_b->do_change) perm_cpus(&g_ctx.seed,g_cpus,NT);
+#endif
 }
 
 static void run_dtor(FILE *out)
@@ -577,6 +572,11 @@ static void run_dtor(FILE *out)
   zyva_t *p = g_zarg = &g_zargs[g_n_exe];
   param_t *_b = p->_p;
 
+#if 0
+  for (int _p = NT-1; _p >= 0 ; _p--) {
+    join(&g_cpus[_p]);
+  }
+#endif
   /* Log final states */
   for (int _i = _b->size_of_test-1 ; _i >= 0 ; _i--) {
     int _out_1_x5_i = g_ctx.out_1_x5[_i];
@@ -606,7 +606,7 @@ static void run_dtor(FILE *out)
   }
   g_n_run++;
   if (g_n_run < _b->max_run) {
-    litmus_raise(LITMUS_EVT_RUN_NEXT);
+    litmus_raise(LITMUS_EVT_RUN_START);
   } else {
     litmus_raise(LITMUS_EVT_CLOSE);
   }
@@ -704,8 +704,11 @@ static void litmus_dbg_evt(litmus_evt_t event)
   case LITMUS_EVT_EXE_STOP:
     printf("E: EXE STOP\n");
     break;
-  case LITMUS_EVT_RUN_NEXT:
-    printf("E: RUN NEXT\n");
+  case LITMUS_EVT_RUN_START:
+    printf("E: RUN START\n");
+    break;
+  case LITMUS_EVT_RUN_STOP:
+    printf("E: RUN STOP\n");
     break;
   default:
     printf("E: UNKNOWN\n");
@@ -773,7 +776,7 @@ static void litmus_handler(uint8_t __event)
     if (event & LITMUS_EVT_EXE_START) {
       exe_ctor(stderr);
       litmus_enter(LITMUS_STA_RUN_LOOP);
-      litmus_raise(LITMUS_EVT_RUN_NEXT);
+      litmus_raise(LITMUS_EVT_RUN_START);
     }
     if (event & LITMUS_EVT_EXE_STOP) {
       exe_dtor(stderr);
@@ -784,8 +787,11 @@ static void litmus_handler(uint8_t __event)
     }
     break;
   case LITMUS_STA_RUN_LOOP:
-    if (event & LITMUS_EVT_RUN_NEXT) {
+    if (event & LITMUS_EVT_RUN_START) {
       run_ctor(stderr);
+      litmus_raise(LITMUS_EVT_RUN_STOP);
+    }
+    if (event & LITMUS_EVT_RUN_STOP) {
       run_dtor(stderr);
     }
     if (event & LITMUS_EVT_CLOSE) {
@@ -798,6 +804,9 @@ static void litmus_handler(uint8_t __event)
 void litmus_launch(void)
 {
   litmus_raise(LITMUS_EVT_OPEN);
+  do {
+    bh_sync();
+  } while (litmus_state != LITMUS_STA_IDLE);
 }
 
 void litmus_init(void)

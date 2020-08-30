@@ -247,7 +247,8 @@ int parse_cmd(int argc, char **argv, cmd_t *def, cmd_t *p);
 #define LITMUS_EVT_CLOSE	_BV(1)
 #define LITMUS_EVT_EXE_START	_BV(2)
 #define LITMUS_EVT_EXE_STOP	_BV(3)
-#define LITMUS_EVT_RUN_NEXT	_BV(4)
+#define LITMUS_EVT_RUN_START	_BV(4)
+#define LITMUS_EVT_RUN_STOP	_BV(5)
 
 typedef uint16_t litmus_evt_t;
 typedef uint8_t litmus_sta_t;
