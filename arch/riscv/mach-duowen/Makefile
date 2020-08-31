@@ -6,6 +6,7 @@ obj-$(CONFIG_RISCV_VIRQ) += entry.rel
 obj-$(CONFIG_SBI) += sbi.rel
 obj-$(CONFIG_MEM) += mem.rel
 obj-$(CONFIG_MMU) += mmu.rel
+obj-$(CONFIG_TIMER) += gpt.rel
 
 obj-$(CONFIG_CRCNTL) += crcntl.rel
 obj-$(CONFIG_CRCNTL) += clk.rel

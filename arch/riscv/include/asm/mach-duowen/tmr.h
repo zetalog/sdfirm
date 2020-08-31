@@ -51,13 +51,20 @@
 #define TMR_INTR_STATUS(n)	REG_1BIT_ADDR(TMR_REG(0x14), n)
 #define TMR_CNT_LO		TMR_REG(0x40)
 #define TMR_CNT_HI		TMR_REG(0x44)
-#define TMR_CMP_LO(n)		TMR_REG(0x200 + (n) << 4)
-#define TMR_CMP_HI(n)		TMR_REG(0x204 + (n) << 4)
-#define TMR_VAL(n)		TMR_REG(0x208 + (n) << 4)
+#define TMR_CMP_LO(n)		TMR_REG(0x200 + ((n) << 4))
+#define TMR_CMP_HI(n)		TMR_REG(0x204 + ((n) << 4))
+#define TMR_VAL(n)		TMR_REG(0x208 + ((n) << 4))
 
 /* TMR_CNT_CTRL */
 #define TMR_EN			_BV(0)
 #define TMR_HALT_ON_DEBUG	_BV(1)
+
+#define tmr_enable_cmp(id)	__raw_setl(_BV(id), TMR_CMP_CTRL(id))
+#define tmr_disable_cmp(id)	__raw_clearl(_BV(id), TMR_CMP_CTRL(id))
+#define tmr_enable_irq(id)	__raw_setl(_BV(id), TMR_INTR_EN(id))
+#define tmr_disable_irq(id)	__raw_clearl(_BV(id), TMR_INTR_EN(id))
+#define tmr_irq_status(id)	(__raw_readl(TMR_INTR_STATUS(id)) & _BV(id))
+#define tmr_irq_clear(id)	__raw_clearl(_BV(id), TMR_INTR_STATUS(id))
 
 #ifndef __ASSEMBLY__
 #ifdef CONFIG_DUOWEN_TMR

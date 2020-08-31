@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Aug 31 09:24:58 2020
+# Mon Aug 31 13:51:49 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -236,7 +236,11 @@ CONFIG_TICKLESS=y
 # Timing facility (delay) support
 #
 CONFIG_LPS_NO_LPS=y
-# CONFIG_TIMER is not set
+CONFIG_TIMER=y
+CONFIG_TIMER_31BIT=y
+CONFIG_TIMER_ONESHOT=y
+CONFIG_MAX_TIMERS=1
+# CONFIG_TIMER_TEST is not set
 
 #
 # Address space layout (xip) support
@@ -451,8 +455,8 @@ CONFIG_TEST_VERBOSE=y
 CONFIG_TEST_BENCH=y
 CONFIG_TEST_BENCH_LOCAL=y
 # CONFIG_TEST_BENCH_REMOTE is not set
-# CONFIG_TEST_BENCH_DIDT is not set
-CONFIG_TEST_BENCH_START_DELAY=64
+CONFIG_TEST_BENCH_DIDT=y
+CONFIG_TEST_BENCH_START_DELAY=0
 # CONFIG_TEST_BENCH_DEBUG is not set
 
 #
@@ -501,7 +505,7 @@ CONFIG_BIT_HWEIGHT64=y
 # Bitmap operations
 #
 CONFIG_ARCH_HAS_BITS_PER_UNIT_64=y
-# CONFIG_BIT_FIND_CLEAR is not set
+CONFIG_BIT_FIND_CLEAR=y
 
 #
 # Mathematic operations
