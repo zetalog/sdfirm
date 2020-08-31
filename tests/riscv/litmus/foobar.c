@@ -7,19 +7,24 @@
 /* This C source is a product of litmus7 and includes source that is        */
 /* governed by the CeCILL-B license.                                        */
 /****************************************************************************/
+/* Includes */
+#include <target/arch.h>
+#include <target/litmus.h>
+#include <target/bh.h>
+#include <target/cmdline.h>
 
 /* Parameters */
 #define SIZE_OF_TEST 100
 #define NUMBER_OF_RUN 10
+#if NR_CPUS >= 4
 #define AVAIL 4
+#else
+#define AVAIL NR_CPUS
+#endif
 #define STRIDE 1
 #define MAX_LOOP 0
 #define N 2
 #define AFF_INCR (1)
-/* Includes */
-#include <target/litmus.h>
-#include <target/bh.h>
-#include <target/cmdline.h>
 
 /* params */
 typedef struct {
