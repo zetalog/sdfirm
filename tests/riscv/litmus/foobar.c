@@ -27,16 +27,46 @@
 #define AFF_INCR (1)
 
 /* params */
-typedef struct {
+typedef struct _param_t param_t;
+typedef struct _parg_t parg_t;
+typedef struct _zyva_t zyva_t;
+
+struct _param_t {
   int verbose;
-  int size_of_test,max_run;
+  int size_of_test, max_run;
   int stride;
   aff_mode_t aff_mode;
   int ncpus, ncpus_used;
   int do_change;
   cpus_t *cm;
-} param_t;
+};
 
+struct _parg_t {
+  int th_id; /* I am running on this thread */
+  int *cpu; /* On this cpu */
+  zyva_t *_a;   /* In this context */
+};
+
+struct _zyva_t {
+  int z_id;
+  int *cpus;
+/* Shared variables */
+  int *y;
+  int *x;
+/* Final content of observed  registers */
+  int *out_1_x5;
+  int *out_1_x7;
+/* Check data */
+  pb_t *fst_barrier;
+/* Barrier for litmus loop */
+  int volatile *barrier;
+/* Instance seed */
+  st_t seed;
+/* Parameters */
+  parg_t parg[N];
+};
+
+static param_t prm;
 
 /* Full memory barrier */
 
@@ -85,20 +115,6 @@ static count_t g_ngroups[SCANSZ];
 
 
 typedef struct {
-/* Shared variables */
-  int *y;
-  int *x;
-/* Final content of observed  registers */
-  int *out_1_x5;
-  int *out_1_x7;
-/* Check data */
-  pb_t *fst_barrier;
-/* Barrier for litmus loop */
-  int volatile *barrier;
-/* Instance seed */
-  st_t seed;
-/* Parameters */
-  param_t *_p;
 } ctx_t;
 
 inline static int final_cond(int _out_1_x5,int _out_1_x7) {
@@ -176,10 +192,10 @@ static void just_dump_outcomes(FILE *fhist, hist_t *h) {
 /* Prefetch (and check) global values */
 /**************************************/
 
-static void check_globals(ctx_t *_a) {
+static void check_globals(zyva_t *_a) {
   int *y = _a->y;
   int *x = _a->x;
-  for (int _i = _a->_p->size_of_test-1 ; _i >= 0 ; _i--) {
+  for (int _i = prm.size_of_test-1 ; _i >= 0 ; _i--) {
     if (rand_bit(&(_a->seed)) && y[_i] != 0) fatal("MP, check_globals failed");
     if (rand_bit(&(_a->seed)) && x[_i] != 0) fatal("MP, check_globals failed");
   }
@@ -190,24 +206,9 @@ static void check_globals(ctx_t *_a) {
 /* Litmus code */
 /***************/
 
-typedef struct {
-  int th_id; /* I am running on this thread */
-  int *cpu; /* On this cpu */
-  ctx_t *_a;   /* In this context */
-} parg_t;
-
-typedef struct {
-  pm_t *p_mutex;
-  pb_t *p_barrier;
-  param_t *_p;
-  int z_id;
-  int *cpus;
-} zyva_t;
-
 #define NT N
 
 static tsc_t g_start;
-static param_t prm;
 static cmd_t g_def = {
   0, NUMBER_OF_RUN, SIZE_OF_TEST, STRIDE, AVAIL, 0, 0,
   aff_incr, 1, 1, AFF_INCR, NULL, NULL, -1, MAX_LOOP,
@@ -216,12 +217,12 @@ static cmd_t g_def = {
 static cmd_t g_cmd;
 static int g_max_exe;
 static int g_n_th;
+static int g_n_run;
 static int g_next_cpu;
 static int g_delta;
 static int g_start_scan;
 static int g_max_start;
 static int *g_aff_cpu;
-static zyva_t *g_zarg;
 
 static cpus_t *g_def_all_cpus;
 static cpus_t *g_all_cpus;
@@ -230,18 +231,12 @@ static int *g_aff_cpus;
 static zyva_t *g_zargs;
 static hist_t *g_hists;
 static hist_t *g_hist;
-static pm_t *g_mutex;
-static pb_t *g_barrier;
 
-static parg_t g_parg[N];
-static ctx_t g_ctx;
-static int g_n_run;
-static int g_n_exe;
 
 static void *P0(void *_vb) {
   mbar();
   parg_t *_b = (parg_t *)_vb;
-  ctx_t *_a = _b->_a;
+  zyva_t *_a = _b->_a;
 #if 0
   int _ecpu = _b->cpu[_b->th_id];
   force_one_affinity(_ecpu,AVAIL,_a->_p->verbose,"MP");
@@ -249,8 +244,8 @@ static void *P0(void *_vb) {
   check_globals(_a);
   int _th_id = _b->th_id;
   int volatile *barrier = _a->barrier;
-  int _size_of_test = _a->_p->size_of_test;
-  int _stride = _a->_p->stride;
+  int _size_of_test = prm.size_of_test;
+  int _stride = prm.stride;
   for (int _j = _stride ; _j > 0 ; _j--) {
     for (int _i = _size_of_test-_j ; _i >= 0 ; _i -= _stride) {
       barrier_wait(_th_id,_i,&barrier[_i]);
@@ -280,7 +275,7 @@ asm __volatile__ (
 static void *P1(void *_vb) {
   mbar();
   parg_t *_b = (parg_t *)_vb;
-  ctx_t *_a = _b->_a;
+  zyva_t *_a = _b->_a;
 #if 0
   int _ecpu = _b->cpu[_b->th_id];
   force_one_affinity(_ecpu,AVAIL,_a->_p->verbose,"MP");
@@ -288,8 +283,8 @@ static void *P1(void *_vb) {
   check_globals(_a);
   int _th_id = _b->th_id;
   int volatile *barrier = _a->barrier;
-  int _size_of_test = _a->_p->size_of_test;
-  int _stride = _a->_p->stride;
+  int _size_of_test = prm.size_of_test;
+  int _stride = prm.stride;
   int *out_1_x5 = _a->out_1_x5;
   int *out_1_x7 = _a->out_1_x7;
   for (int _j = _stride ; _j > 0 ; _j--) {
@@ -328,6 +323,9 @@ targ_t g_targs[NR_CPUS];
 
 static void zyva(int cpu, int p, f_t *fun, void *arg)
 {
+#ifdef CONFIG_TEST_LITMUS_DEBUG
+  printf("ZYVA: CPU%d: P%d\n", cpu, p);
+#endif
   g_targs[cpu].p = p;
   g_targs[cpu].fun = fun;
   g_targs[cpu].arg = arg;
@@ -337,8 +335,8 @@ static void zyva(int cpu, int p, f_t *fun, void *arg)
 /* Context allocation, freeing and reinitialization    */
 /*******************************************************/
 
-static void init(ctx_t *_a) {
-  int size_of_test = _a->_p->size_of_test;
+static void init(zyva_t *_a) {
+  int size_of_test = prm.size_of_test;
 
   _a->seed = rand();
   _a->out_1_x5 = malloc_check(size_of_test*sizeof(*(_a->out_1_x5)), "ctx->out_1_x5");
@@ -349,7 +347,7 @@ static void init(ctx_t *_a) {
   _a->barrier = malloc_check(size_of_test*sizeof(*(_a->barrier)), "ctx->barrier");
 }
 
-static void finalize(ctx_t *_a) {
+static void finalize(zyva_t *_a) {
   free_check((void *)_a->y, "ctx->y");
   free_check((void *)_a->x, "ctx->x");
   free_check((void *)_a->out_1_x5, "ctx->out_1_x5");
@@ -358,8 +356,8 @@ static void finalize(ctx_t *_a) {
   free_check((void *)_a->barrier, "ctx->barrier");
 }
 
-static void reinit(ctx_t *_a) {
-  for (int _i = _a->_p->size_of_test-1 ; _i >= 0 ; _i--) {
+static void reinit(zyva_t *_a) {
+  for (int _i = prm.size_of_test-1 ; _i >= 0 ; _i--) {
     _a->y[_i] = 0;
     _a->x[_i] = 0;
     _a->out_1_x5[_i] = -239487;
@@ -517,8 +515,6 @@ void litmus_start(FILE *out) {
   g_zargs = malloc_check(sizeof(zyva_t) * g_max_exe, "g_zargs");
   g_hists = alloc_hists(g_max_exe, "g_hists");
   g_hist = &(g_hists[g_n_th]);
-  g_mutex = pm_create();
-  g_barrier = pb_create(g_max_exe);
   g_next_cpu = 0;
   g_delta = g_cmd.aff_incr;
   if (g_delta <= 0) {
@@ -529,133 +525,110 @@ void litmus_start(FILE *out) {
   }
   g_start_scan=0, g_max_start=gcd(g_delta,g_all_cpus->sz);
   g_aff_cpu = g_aff_cpus;
-  g_n_exe = 0;
-}
-
-void litmus_exe_start(FILE *out)
-{
-  zyva_t *p = g_zarg = &g_zargs[g_n_exe];
-  p->_p = &prm;
-  p->p_mutex = g_mutex; p->p_barrier = g_barrier; 
-  p->z_id = g_n_exe;
-  p->cpus = g_aff_cpu;
-  if (g_cmd.aff_mode != aff_incr) {
-    g_aff_cpu += N;
-  } else {
-    for (int i=0 ; i < N ; i++) {
-      *g_aff_cpu = g_all_cpus->cpu[g_next_cpu]; g_aff_cpu++;
-      g_next_cpu += g_delta; g_next_cpu %= g_all_cpus->sz;
-      if (g_next_cpu == g_start_scan) {
-        g_start_scan++ ; g_start_scan %= g_max_start;
-        g_next_cpu = g_start_scan;
+  for (int k=0; k < g_max_exe; k++) {
+    zyva_t *p = &g_zargs[k];
+    p->z_id = k;
+    p->cpus = g_aff_cpu;
+    if (g_cmd.aff_mode != aff_incr) {
+      g_aff_cpu += N;
+    } else {
+      for (int i=0 ; i < N ; i++) {
+        *g_aff_cpu = g_all_cpus->cpu[g_next_cpu]; g_aff_cpu++;
+        g_next_cpu += g_delta; g_next_cpu %= g_all_cpus->sz;
+        if (g_next_cpu == g_start_scan) {
+          g_start_scan++ ; g_start_scan %= g_max_start;
+          g_next_cpu = g_start_scan;
+        }
       }
     }
-  }
-  /* Make this operation asynchronous */
-  /* pb_wait(p->p_barrier); */
-  g_ctx._p = p->_p;
-
-  init(&g_ctx);
-  for (int _p = N-1 ; _p >= 0 ; _p--) {
-    g_parg[_p].th_id = _p; g_parg[_p]._a = &g_ctx;
-    g_parg[_p].cpu = &(p->cpus[0]);
+    init(p);
+    for (int _p = N-1 ; _p >= 0 ; _p--) {
+      p->parg[_p].th_id = _p; p->parg[_p]._a = p;
+      p->parg[_p].cpu = &(p->cpus[0]);
+    }
   }
   g_n_run = 0;
 }
 
 void litmus_run_start(FILE *out) {
-  zyva_t *p = g_zarg = &g_zargs[g_n_exe];
-  param_t *_b = p->_p;
   memset(g_targs, 0, sizeof(g_targs));
 
-  if (_b->aff_mode == aff_random) {
-    pb_wait(p->p_barrier);
-    if (p->z_id == 0) perm_prefix_ints(&g_ctx.seed,p->cpus,_b->ncpus_used,_b->ncpus);
-    pb_wait(p->p_barrier);
-  } else if (_b->aff_mode == aff_scan) {
-    pb_wait(p->p_barrier);
-    int idx_scan = g_n_run % SCANSZ;
-    int *from =  &cpu_scan[SCANLINE*idx_scan];
-    from += N*p->z_id;
-    for (int k = 0 ; k < N ; k++) p->cpus[k] = from[k];
-    pb_wait(p->p_barrier);
-  } else {
-  }
-  if (_b->verbose>1) fprintf(stderr,"Run %i of %i\r", g_n_run, _b->max_run);
-  reinit(&g_ctx);
-  if (_b->do_change) perm_funs(&g_ctx.seed,g_fun,N);
-  for (int _p = NT-1 ; _p >= 0 ; _p--) {
+  for (int k=0; k < g_max_exe; k++) {
+    zyva_t *p = &g_zargs[k];
+
+    if (prm.aff_mode == aff_random) {
+      if (p->z_id == 0)
+        perm_prefix_ints(&(p->seed),p->cpus,prm.ncpus_used,prm.ncpus);
+    } else if (prm.aff_mode == aff_scan) {
+      int idx_scan = g_n_run % SCANSZ;
+      int *from =  &cpu_scan[SCANLINE*idx_scan];
+      from += N*p->z_id;
+      for (int i = 0 ; i < N ; i++) p->cpus[i] = from[i];
+    } else {
+    }
+    if (prm.verbose>1) fprintf(stderr,"Run %i of %i\r", g_n_run, prm.max_run);
+    reinit(p);
+    if (prm.do_change) perm_funs(&(p->seed),g_fun,N);
+    for (int _p = NT-1 ; _p >= 0 ; _p--) {
 #if 0
-    launch(&g_cpus[_p],g_fun[_p],&g_parg[_p]);
+      launch(&g_cpus[_p],g_fun[_p],&g_parg[_p]);
 #endif
-    parg_t *parg = (parg_t *)&g_parg[_p];;
-    int _ecpu = parg->cpu[parg->th_id];
-    zyva(_ecpu, _p, g_fun[_p], &g_parg[_p]);
-    /* force_one_affinity(_ecpu,AVAIL,_a->_p->verbose,"MP"); */
+      parg_t *parg = (parg_t *)&(p->parg[_p]);
+      int _ecpu = parg->cpu[parg->th_id];
+      zyva(_ecpu, _p, g_fun[_p], parg);
+    }
   }
   litmus_exec("foobar");
-#if 0
-  if (_b->do_change) perm_cpus(&g_ctx.seed,g_cpus,NT);
-#endif
 }
 
 void litmus_run_stop(FILE *out)
 {
-  zyva_t *p = g_zarg = &g_zargs[g_n_exe];
-  param_t *_b = p->_p;
-
+  for (int k=0; k < g_max_exe; k++) {
+    zyva_t *p = &g_zargs[k];
 #if 0
-  for (int _p = NT-1; _p >= 0 ; _p--) {
-    join(&g_cpus[_p]);
-  }
-#endif
-  /* Log final states */
-  for (int _i = _b->size_of_test-1 ; _i >= 0 ; _i--) {
-    int _out_1_x5_i = g_ctx.out_1_x5[_i];
-    int _out_1_x7_i = g_ctx.out_1_x7[_i];
-    outcome_t o;
-    int cond;
-    hist_t *hist;
-
-    if (p->z_id < g_n_th)
-      hist = &(g_hists[p->z_id]);
-    else
-      hist = g_hist;
-    cond = final_ok(final_cond(_out_1_x5_i,_out_1_x7_i));
-    o[out_1_x5_f] = _out_1_x5_i;
-    o[out_1_x7_f] = _out_1_x7_i;
-    add_outcome(hist,1,o,cond);
-    if (_b->aff_mode == aff_scan && p->cpus[0] >= 0 && cond) {
-      pm_lock(p->p_mutex);
-      g_ngroups[g_n_run % SCANSZ]++;
-      pm_unlock(p->p_mutex);
-    } else if (_b->aff_mode == aff_topo && p->cpus[0] >= 0 && cond) {
-      pm_lock(p->p_mutex);
-      g_ngroups[0]++;
-      pm_unlock(p->p_mutex);
+    if (prm.do_change) perm_cpus(&(p->seed),g_cpus,NT);
+    for (int _p = NT-1; _p >= 0 ; _p--) {
+      join(&g_cpus[_p]);
     }
-    if (cond) { hist->n_pos++; } else { hist->n_neg++; }
+#endif
+    /* Log final states */
+    for (int _i = prm.size_of_test-1 ; _i >= 0 ; _i--) {
+      int _out_1_x5_i = p->out_1_x5[_i];
+      int _out_1_x7_i = p->out_1_x7[_i];
+      outcome_t o;
+      int cond;
+      hist_t *hist;
+
+      if (p->z_id < g_n_th)
+        hist = &(g_hists[p->z_id]);
+      else
+        hist = g_hist;
+      cond = final_ok(final_cond(_out_1_x5_i,_out_1_x7_i));
+      o[out_1_x5_f] = _out_1_x5_i;
+      o[out_1_x7_f] = _out_1_x7_i;
+      add_outcome(hist,1,o,cond);
+      if (prm.aff_mode == aff_scan && p->cpus[0] >= 0 && cond) {
+        g_ngroups[g_n_run % SCANSZ]++;
+      } else if (prm.aff_mode == aff_topo && p->cpus[0] >= 0 && cond) {
+        g_ngroups[0]++;
+      }
+      if (cond) { hist->n_pos++; } else { hist->n_neg++; }
+    }
   }
   g_n_run++;
-  if (g_n_run < _b->max_run) {
-    litmus_raise(LITMUS_EVT_RUN_START);
-  } else {
-    litmus_raise(LITMUS_EVT_CLOSE);
-  }
 }
 
-void litmus_exe_stop(FILE *out)
+bool litmus_closed(void) {
+  return g_n_run >= prm.max_run;
+}
+
+void litmus_stop(FILE *out)
 {
-  finalize(&g_ctx);
-  g_n_exe++;
-  if (g_n_exe < g_max_exe) {
-    litmus_raise(LITMUS_EVT_EXE_START);
-  } else {
-    litmus_raise(LITMUS_EVT_CLOSE);
-  }
-}
+  for (int k=0; k < g_max_exe; k++) {
+    zyva_t *p = &g_zargs[k];
 
-void litmus_stop(FILE *out) {
+    finalize(p);
+  }
   count_t n_outs = prm.size_of_test; n_outs *= prm.max_run;
   for (int k=0 ; k < g_n_th ; k++) {
     hist_t *hk = &g_hists[k];
@@ -666,8 +639,6 @@ void litmus_stop(FILE *out) {
   }
   cpus_free(g_all_cpus, "g_all_cpus");
   tsc_t total = timeofday() - g_start;
-  pm_free(g_mutex);
-  pb_free(g_barrier);
 
   n_outs *= g_max_exe;
   if (sum_outs(g_hist->outcomes) != n_outs || g_hist->n_pos + g_hist->n_neg != n_outs) {
@@ -681,7 +652,6 @@ void litmus_stop(FILE *out) {
   cpus_free(prm.cm, "prm.cm");
   if (g_def_all_cpus != g_cmd.aff_cpus)
     cpus_free(g_def_all_cpus, "g_def_all_cpus");
-  litmus_raise(LITMUS_EVT_CLOSE);
 }
 
 int MP(int argc, char **argv, FILE *out) {

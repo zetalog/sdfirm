@@ -240,15 +240,12 @@ int parse_cmd(int argc, char **argv, cmd_t *def, cmd_t *p);
 /* Thread launch and join */
 
 #define LITMUS_STA_IDLE		0
-#define LITMUS_STA_EXE_LOOP	1
-#define LITMUS_STA_RUN_LOOP	2
+#define LITMUS_STA_BUSY		2
 
 #define LITMUS_EVT_OPEN		_BV(0)
 #define LITMUS_EVT_CLOSE	_BV(1)
-#define LITMUS_EVT_EXE_START	_BV(2)
-#define LITMUS_EVT_EXE_STOP	_BV(3)
-#define LITMUS_EVT_RUN_START	_BV(4)
-#define LITMUS_EVT_RUN_STOP	_BV(5)
+#define LITMUS_EVT_RUN_START	_BV(2)
+#define LITMUS_EVT_RUN_STOP	_BV(3)
 
 typedef uint16_t litmus_evt_t;
 typedef uint8_t litmus_sta_t;
@@ -259,10 +256,9 @@ void litmus_raise(litmus_evt_t event);
 
 void litmus_start(FILE *out);
 void litmus_stop(FILE *out);
-void litmus_exe_start(FILE *out);
-void litmus_exe_stop(FILE *out);
 void litmus_run_start(FILE *out);
 void litmus_run_stop(FILE *out);
+bool litmus_closed(void);
 int MP(int argc, char **argv, FILE *out);
 
 #ifdef CONFIG_TEST_LITMUS

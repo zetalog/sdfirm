@@ -1308,12 +1308,6 @@ static void litmus_dbg_evt(litmus_evt_t event)
 	case LITMUS_EVT_CLOSE:
 		printf("E: CLOSE\n");
 		break;
-	case LITMUS_EVT_EXE_START:
-		printf("E: EXE START\n");
-		break;
-	case LITMUS_EVT_EXE_STOP:
-		printf("E: EXE STOP\n");
-		break;
 	case LITMUS_EVT_RUN_START:
 		printf("E: RUN START\n");
 		break;
@@ -1332,11 +1326,8 @@ static void litmus_dbg_sta(litmus_sta_t state)
 	case LITMUS_STA_IDLE:
 		printf("S: IDLE\n");
 		break;
-	case LITMUS_STA_EXE_LOOP:
-		printf("S: EXE LOOP\n");
-		break;
-	case LITMUS_STA_RUN_LOOP:
-		printf("S: RUN LOOP\n");
+	case LITMUS_STA_BUSY:
+		printf("S: BUSY\n");
 		break;
 	default:
 		printf("S: UNKNOWN\n");
@@ -1365,6 +1356,19 @@ void litmus_enter(litmus_sta_t state)
 	}
 }
 
+#ifdef CONFIG_TEST_LITMUS_DEBUG
+#define litmus_invoke(step)			\
+	do {					\
+		printf(__stringify(step) "\n");	\
+		step(stderr);			\
+	} while (0)
+#else
+#define litmus_invoke(step)			\
+	do {					\
+		step(stderr);			\
+	} while (0)
+#endif
+
 static void litmus_handler(uint8_t __event)
 {
 	uint32_t event = litmus_event;
@@ -1373,36 +1377,26 @@ static void litmus_handler(uint8_t __event)
 	switch (litmus_state) {
 	case LITMUS_STA_IDLE:
 		if (event & LITMUS_EVT_OPEN) {
-			litmus_start(stderr);
-			litmus_enter(LITMUS_STA_EXE_LOOP);
-			litmus_raise(LITMUS_EVT_EXE_START);
-		}
-		break;
-	case LITMUS_STA_EXE_LOOP:
-		if (event & LITMUS_EVT_EXE_START) {
-			litmus_exe_start(stderr);
-			litmus_enter(LITMUS_STA_RUN_LOOP);
+			litmus_invoke(litmus_start);
+			litmus_enter(LITMUS_STA_BUSY);
 			litmus_raise(LITMUS_EVT_RUN_START);
 		}
-		if (event & LITMUS_EVT_EXE_STOP) {
-			litmus_exe_stop(stderr);
-		}
-		if (event & LITMUS_EVT_CLOSE) {
-			litmus_stop(stderr);
-			litmus_enter(LITMUS_STA_IDLE);
-		}
 		break;
-	case LITMUS_STA_RUN_LOOP:
+	case LITMUS_STA_BUSY:
 		if (event & LITMUS_EVT_RUN_START) {
-			litmus_run_start(stderr);
+			litmus_invoke(litmus_run_start);
 			litmus_raise(LITMUS_EVT_RUN_STOP);
 		}
 		if (event & LITMUS_EVT_RUN_STOP) {
-			litmus_run_stop(stderr);
+			litmus_invoke(litmus_run_stop);
+			if (litmus_closed())
+				litmus_raise(LITMUS_EVT_CLOSE);
+			else
+				litmus_raise(LITMUS_EVT_RUN_START);
 		}
 		if (event & LITMUS_EVT_CLOSE) {
-			litmus_enter(LITMUS_STA_EXE_LOOP);
-			litmus_raise(LITMUS_EVT_EXE_STOP);
+			litmus_invoke(litmus_stop);
+			litmus_enter(LITMUS_STA_IDLE);
 		}
 		break;
 	}
