@@ -1,5 +1,4 @@
 obj-y :=
-#obj-y += utils.rel
-obj-y += foobar.rel
+obj-y += MP.rel
 
 CFLAGS += -DASS -DFORCE_AFFINITY

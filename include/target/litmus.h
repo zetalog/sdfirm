@@ -28,17 +28,11 @@ typedef int			intmax_t;
 #define malloc(sz)		(void *)heap_alloc(sz)
 #define free(ptr)		heap_free((caddr_t)ptr)
 #ifdef CONFIG_TEST_VERBOSE
-#define fprintf(f, ...)		printf(__VA_ARGS__)
-#define vfprintf(f, fmt, args)	vprintf(fmt, args)
+#define litmus_log(...)		printf(__VA_ARGS__)
 #else
-#define fprintf(f, ...)		do { } while (0)
-#define vfprintf(f, fmt, args)	do { } while (0)
+#define litmus_log(...)		do { } while (0)
 #endif
-#define fflush(f)		do { } while (0)
-#define fopen(p, m)		((FILE *)-1)
-#define fclose(f)		do { } while (0)
-#define EXIT_SUCCESS		CPU_EXEC_SUCCESS
-#define exit(ecode)		do { } while (0)
+#define litmus_fatal(...)	printf(__VA_ARGS__)
 #define timeofday()		clock()
 
 /* type of state for pseudorandom  generators */
@@ -48,7 +42,7 @@ typedef uint64_t count_t;
 typedef tsc_count_t tsc_t;
 
 typedef void* f_t(void *);
-typedef void dump_outcome(FILE *chan, intmax_t *o, count_t c, int show);
+typedef void dump_outcome(intmax_t *o, count_t c, int show);
 
 #define PCTR "llu"
 #define PTSC "%llu"
@@ -65,14 +59,11 @@ uint32_t rand_k(st_t *st, uint32_t n);
 /* Misc */
 /********/
 
-#define errlog			stderr
-#define log_error(...)		fprintf(errlog, __VA_ARGS__)
-#define fatal(...)		printf(__VA_ARGS__)
 int gcd(int a, int b);
 int find_string(char *t[], int sz, char *s);
 void *malloc_check(size_t sz, const char *name);
 void free_check(void *p, const char *name);
-void pp_ints(FILE *fp, int *p, int n);
+void pp_ints(bool force_info, int *p, int n);
 
 /***********/
 /* CPU set */
@@ -86,8 +77,8 @@ typedef struct {
 
 cpus_t *cpus_create(int sz, const char *name);
 void cpus_free(cpus_t *p, const char *name);
-void cpus_dump(FILE *fp, cpus_t *p);
-void cpus_dump_test(FILE *fp, int *p, int sz, cpus_t *cm, int nprocs);
+void cpus_dump(bool force_info, cpus_t *p);
+void cpus_dump_test(int *p, int sz, cpus_t *cm, int nprocs);
 
 cpus_t *coremap_seq(int navail, int nways, const char *name);
 void custom_affinity(st_t *st, cpus_t *cm, int **color, int *diff,
@@ -101,8 +92,6 @@ typedef struct {
 	int sz;
 	int *t;
 } ints_t;
-
-void ints_dump(ints_t *p);
 
 /************************/
 /* Histogram structure  */
@@ -119,7 +108,7 @@ void free_outs(outs_t *p);
 outs_t *add_outcome_outs(outs_t *p, intmax_t *o, int sz, count_t v, int show);
 int finals_outs(outs_t *p);
 count_t sum_outs(outs_t *p);
-void dump_outs(FILE *chan, dump_outcome *dout, outs_t *p,
+void dump_outs(dump_outcome *dout, outs_t *p,
 	       intmax_t *buff, int sz) ;
 outs_t *merge_outs(outs_t *p,outs_t *q, int sz);
 
@@ -146,7 +135,6 @@ typedef struct {
 	prfproc_t *t;
 } prfdirs_t;
 
-void prefetch_dump(prfdirs_t *p);
 int parse_prefetch(char *p, prfdirs_t *r);
 void set_prefetch(prfdirs_t *p, prfdir_t d);
 
@@ -254,12 +242,11 @@ void litmus_launch(void);
 void litmus_exec(const char *test);
 void litmus_raise(litmus_evt_t event);
 
-void litmus_start(FILE *out);
-void litmus_stop(FILE *out);
-void litmus_run_start(FILE *out);
-void litmus_run_stop(FILE *out);
+void litmus_start(void);
+void litmus_stop(void);
+void litmus_run_start(void);
+void litmus_run_stop(void);
 bool litmus_closed(void);
-int MP(int argc, char **argv, FILE *out);
 
 #ifdef CONFIG_TEST_LITMUS
 void litmus_init(void);

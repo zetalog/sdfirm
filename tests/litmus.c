@@ -14,7 +14,6 @@
 /* "http://www.cecill.info". We also give a copy in LICENSE.txt.            */
 /****************************************************************************/
 #include <target/litmus.h>
-#include <target/cmdline.h>
 
 int gcd(int a, int b)
 {
@@ -65,32 +64,20 @@ void free_check(void *p, const char *name)
 		free(p);
 }
 
-void pp_ints(FILE *fp, int *p, int n)
+void pp_ints(bool force_info, int *p, int n)
 {
 	int k;
 
 	if (n > 0) {
-		if (!fp)
+		if (force_info)
 			printf("%i", p[0]);
 		else
-			fprintf(fp, "%i", p[0]);
+			litmus_log("%i", p[0]);
 		for (k = 1; k < n; k++) {
-			if (!fp)
+			if (force_info)
 				printf(",%i", p[k]);
 			else
-				fprintf(fp, ",%i", p[k]);
-		}
-	}
-}
-
-void ints_dump(ints_t *p)
-{
-	int k;
-
-	if (p->sz > 0) {
-		printf("%i:%i", 0, p->t[0]);
-		for (k = 1; k < p->sz; k++) {
-			printf(",%i:%i", k, p->t[k]);
+				litmus_log(",%i", p[k]);
 		}
 	}
 }
@@ -111,26 +98,26 @@ void cpus_free(cpus_t *p, const char *name)
 	free_check(p, name);
 }
 
-void cpus_dump(FILE *fp, cpus_t *p)
+void cpus_dump(bool force_info, cpus_t *p)
 {
-	pp_ints(fp, p->cpu, p->sz);
+	pp_ints(force_info, p->cpu, p->sz);
 }
 
-void cpus_dump_test(FILE *fp, int *p, int sz, cpus_t *cm, int nprocs)
+void cpus_dump_test(int *p, int sz, cpus_t *cm, int nprocs)
 {
 	int k, i;
 
 	for (k = 0; k < sz; k += nprocs) {
-		fprintf(fp, "[");
-		pp_ints(fp, &p[k], nprocs);
-		fprintf(fp, "] {");
+		litmus_log("[");
+		pp_ints(false, &p[k], nprocs);
+		litmus_log("] {");
 		if (nprocs > 0) {
-			fprintf(fp, "%i", cm->cpu[p[k]]);
+			litmus_log("%i", cm->cpu[p[k]]);
 			for (i = 1; i < nprocs; i++) {
-				fprintf(fp, ",%i", cm->cpu[p[k+i]]);
+				litmus_log(",%i", cm->cpu[p[k+i]]);
 			}
 		}
-		fprintf(fp, "}\n");
+		litmus_log("}\n");
 	}
 }
 
@@ -289,7 +276,7 @@ static int find_one_proc(int prev, st_t *st, int *cm, mapcore_t *mc,
 		k %= mc->ncores;
 	} while (k != k0);
 	if (found < 0)
-		fatal("Cannot allocate threads");
+		litmus_fatal("Cannot allocate threads");
 	return found;
 }
 
@@ -477,15 +464,15 @@ int finals_outs(outs_t *p)
 	return r;
 }
 
-void dump_outs(FILE *chan, dump_outcome *dout, outs_t *p,
+void dump_outs(dump_outcome *dout, outs_t *p,
 	       intmax_t *buff, int sz)
 {
 	for (; p; p = p->next) {
 		buff[sz-1] = p->k;
 		if (p->c > 0) {
-			dout(chan,buff,p->c,p->show);
+			dout(buff,p->c,p->show);
 		} else if (p->down) {
-			dump_outs(chan, dout, p->down, buff, sz-1);
+			dump_outs(dout, p->down, buff, sz-1);
 		}
 	}
 }
@@ -534,34 +521,6 @@ static prfone_t *get_name_slot(prfproc_t *p, char *name)
 	return NULL; /* Name not found */
 }
 
-void prefetch_dump(prfdirs_t *p)
-{
-	prfproc_t *q = p->t;
-	int some = 0;
-	int _p, _v;
-
-	for (_p = 0; _p < p->nthreads; _p++) {
-		int nvars = q[_p].nvars;
-		prfone_t *r = q[_p].t;
-
-		for (_v = 0; _v < nvars; _v++) {
-			prfdir_t dir = r[_v].dir;
-			if (dir != none) {
-				__unused char c = 'I';
-				if (dir == flush) c = 'F';
-				else if (dir == touch) c = 'T';
-				else if (dir == touch_store) c = 'W';
-				if (some) {
-					printf(",");
-				} else {
-					some = 1;
-				}
-				printf("%i:%s=%c", _p, r[_v].name, c);
-			}
-		}
-	}
-}
-
 void set_prefetch(prfdirs_t *p, prfdir_t d)
 {
 	prfproc_t *q = p->t;
@@ -601,8 +560,8 @@ int parse_prefetch(char *p, prfdirs_t *r)
 		*p = '\0';
 		loc_slot = get_name_slot(&r->t[proc], p0);
 		if (loc_slot == NULL) {
-			printf("Proc %i does not access variable %s\n",
-			       proc, p0);
+			litmus_log("Proc %i does not access variable %s\n",
+				 proc, p0);
 			*p = '=';
 			return 0;
 		}
@@ -741,6 +700,46 @@ void pb_wait(pb_t *p)
 /* Command line */
 /****************/
 
+static void ints_dump(ints_t *p)
+{
+	int k;
+
+	if (p->sz > 0) {
+		printf("%i:%i", 0, p->t[0]);
+		for (k = 1; k < p->sz; k++) {
+			printf(",%i:%i", k, p->t[k]);
+		}
+	}
+}
+
+static void prefetch_dump(prfdirs_t *p)
+{
+	prfproc_t *q = p->t;
+	int some = 0;
+	int _p, _v;
+
+	for (_p = 0; _p < p->nthreads; _p++) {
+		int nvars = q[_p].nvars;
+		prfone_t *r = q[_p].t;
+
+		for (_v = 0; _v < nvars; _v++) {
+			prfdir_t dir = r[_v].dir;
+			if (dir != none) {
+				__unused char c = 'I';
+				if (dir == flush) c = 'F';
+				else if (dir == touch) c = 'T';
+				else if (dir == touch_store) c = 'W';
+				if (some) {
+					litmus_log(",");
+				} else {
+					some = 1;
+				}
+				printf("%i:%s=%c", _p, r[_v].name, c);
+			}
+		}
+	}
+}
+
 static void usage(char *prog, cmd_t *d)
 {
 	printf("usage: %s (options)*\n", prog);
@@ -766,7 +765,7 @@ static void usage(char *prog, cmd_t *d)
 			printf("\n");
 		}
 		printf("  -p <ns> specify logical processors (default '");
-		cpus_dump(NULL, d->aff_cpus);
+		cpus_dump(true, d->aff_cpus);
 		printf("')\n");
 		printf("  +ra     randomise affinity%s\n",
 		       d->aff_mode == aff_random ? " (default)" : "");
@@ -1274,25 +1273,15 @@ cpus_t *read_force_affinity(int n_avail, int verbose, const char *name)
 	if (n_avail <= r->sz)
 		return r;
 	if (verbose) {
-		fprintf(errlog, "Read affinity: '");
-		cpus_dump(errlog, r);
-		fprintf(errlog, "'\n");
+		litmus_log("Read affinity: '");
+		cpus_dump(false, r);
+		litmus_log("'\n");
 	}
 	cpus_free(r, name);
 	return NULL;
 }
 #endif
 #endif
-
-static int do_litmus(int argc, char **argv)
-{
-	return MP(argc, argv, stderr);
-}
-
-DEFINE_COMMAND(litmus, do_litmus, "Run memory model litmus tests",
-	"litmus -h\n"
-	"    -display test usage\n"
-);
 
 bh_t litmus_bh;
 litmus_evt_t litmus_event;
@@ -1360,12 +1349,12 @@ void litmus_enter(litmus_sta_t state)
 #define litmus_invoke(step)			\
 	do {					\
 		printf(__stringify(step) "\n");	\
-		step(stderr);			\
+		step();				\
 	} while (0)
 #else
 #define litmus_invoke(step)			\
 	do {					\
-		step(stderr);			\
+		step();				\
 	} while (0)
 #endif
 
@@ -1416,7 +1405,10 @@ void litmus_exec(const char *test)
 
 	fn = bench_test_find(test);
 	if (!fn) {
-		fatal(test);
+		litmus_fatal(test);
+		litmus_run_stop();
+		litmus_stop();
+		litmus_enter(LITMUS_STA_IDLE);
 		return;
 	}
 	bench_simple(CPU_ALL, fn, true);

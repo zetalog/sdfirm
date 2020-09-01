@@ -70,12 +70,15 @@
  *        the runnning cores.
  * META:  A case that implements a pattern running style for all other
  *        non-meta cases.
+ * SIMPLE:A case that is used by bench_simple, and shouldn't be run
+ *        directly by "bench" command".
  */
 #define CPU_EXEC_SYNC	0x00000001
 #define CPU_EXEC_RAND	0x00000002
 #define CPU_EXEC_NOSMP	0x00000004
 #define CPU_EXEC_SHARE	0x00000008
 #define CPU_EXEC_META	0x80000000
+#define CPU_EXEC_SIMPLE	0x40000000 /* used by bench_simple */
 
 #define CPU_EXEC_SUCCESS	1
 #define CPU_EXEC_FAILURE	0

@@ -9,8 +9,8 @@
 /****************************************************************************/
 /* Includes */
 #include <target/arch.h>
+#include <target/barrier.h>
 #include <target/litmus.h>
-#include <target/bh.h>
 #include <target/cmdline.h>
 
 /* Parameters */
@@ -68,21 +68,11 @@ struct _zyva_t {
 
 static param_t prm;
 
-/* Full memory barrier */
-
-inline static void mbar(void) {
-#ifdef CONFIG_RISCV
-  asm __volatile__ ("fence rw,rw" ::: "memory");
-#else
-  asm __volatile__ ("mfence" ::: "memory");
-#endif
-}
-
 /* Barriers macros */
 inline static void barrier_wait(unsigned int id, unsigned int k, int volatile *b) {
   if ((k % N) == id) {
     *b = 1 ;
-    mbar();
+    mb();
   } else {
     while (*b == 0) ;
   }
@@ -179,13 +169,13 @@ static void merge_hists(hist_t *h0, hist_t *h1) {
 }
 
 
-static void do_dump_outcome(FILE *fhist, intmax_t *o, count_t c, int show) {
-  fprintf(fhist,"%-6"PCTR"%c>1:x5=%i; 1:x7=%i;\n",c,show ? '*' : ':',(int)o[out_1_x5_f],(int)o[out_1_x7_f]);
+static void do_dump_outcome(intmax_t *o, count_t c, int show) {
+  litmus_log("%-6"PCTR"%c>1:x5=%i; 1:x7=%i;\n",c,show ? '*' : ':',(int)o[out_1_x5_f],(int)o[out_1_x7_f]);
 }
 
-static void just_dump_outcomes(FILE *fhist, hist_t *h) {
+static void just_dump_outcomes(hist_t *h) {
   outcome_t buff ;
-  dump_outs(fhist,do_dump_outcome,h->outcomes,buff,NOUTS) ;
+  dump_outs(do_dump_outcome,h->outcomes,buff,NOUTS) ;
 }
 
 /**************************************/
@@ -196,8 +186,8 @@ static void check_globals(zyva_t *_a) {
   int *y = _a->y;
   int *x = _a->x;
   for (int _i = prm.size_of_test-1 ; _i >= 0 ; _i--) {
-    if (rand_bit(&(_a->seed)) && y[_i] != 0) fatal("MP, check_globals failed");
-    if (rand_bit(&(_a->seed)) && x[_i] != 0) fatal("MP, check_globals failed");
+    if (rand_bit(&(_a->seed)) && y[_i] != 0) litmus_fatal("MP, check_globals failed");
+    if (rand_bit(&(_a->seed)) && x[_i] != 0) litmus_fatal("MP, check_globals failed");
   }
   pb_wait(_a->fst_barrier);
 }
@@ -234,7 +224,7 @@ static hist_t *g_hist;
 
 
 static void *P0(void *_vb) {
-  mbar();
+  mb();
   parg_t *_b = (parg_t *)_vb;
   zyva_t *_a = _b->_a;
 #if 0
@@ -268,12 +258,12 @@ asm __volatile__ (
 #endif
     }
   }
-  mbar();
+  mb();
   return NULL;
 }
 
 static void *P1(void *_vb) {
-  mbar();
+  mb();
   parg_t *_b = (parg_t *)_vb;
   zyva_t *_a = _b->_a;
 #if 0
@@ -309,7 +299,7 @@ asm __volatile__ (
 #endif
     }
   }
-  mbar();
+  mb();
   return NULL;
 }
 
@@ -370,25 +360,25 @@ static f_t *g_fun[] = {&P0,&P1};
 cpu_exec_cpu_t g_cpus[NT];
 
 #ifdef ASS
-static void ass(FILE *out) { }
+static void ass(void) { }
 #else
-#include "foobar.h"
+#include "MP.h"
 #endif
 
-static void prelude(FILE *out) {
-  fprintf(out,"%s\n","%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-  fprintf(out,"%s\n","% Results for ./tests/dummy/foobar.litmus %");
-  fprintf(out,"%s\n","%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-  fprintf(out,"%s\n","RISCV MP");
-  fprintf(out,"%s\n","\"PodWW Rfe PodRR Fre\"");
-  fprintf(out,"%s\n","{0:x5=1; 0:x6=x; 0:x7=y; 1:x6=y; 1:x8=x;}");
-  fprintf(out,"%s\n"," P0          | P1          ;");
-  fprintf(out,"%s\n"," sw x5,0(x6) | lw x5,0(x6) ;");
-  fprintf(out,"%s\n"," sw x5,0(x7) | lw x7,0(x8) ;");
-  fprintf(out,"%s\n","");
-  fprintf(out,"%s\n","exists (1:x5=1 /\\ 1:x7=0)");
-  fprintf(out,"Generated assembler\n");
-  ass(out);
+static void prelude(void) {
+  litmus_log("%s\n","%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+  litmus_log("%s\n","% Results for ./tests/dummy/MP.litmus %");
+  litmus_log("%s\n","%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+  litmus_log("%s\n","RISCV MP");
+  litmus_log("%s\n","\"PodWW Rfe PodRR Fre\"");
+  litmus_log("%s\n","{0:x5=1; 0:x6=x; 0:x7=y; 1:x6=y; 1:x8=x;}");
+  litmus_log("%s\n"," P0          | P1          ;");
+  litmus_log("%s\n"," sw x5,0(x6) | lw x5,0(x6) ;");
+  litmus_log("%s\n"," sw x5,0(x7) | lw x7,0(x8) ;");
+  litmus_log("%s\n","");
+  litmus_log("%s\n","exists (1:x5=1 /\\ 1:x7=0)");
+  litmus_log("Generated assembler\n");
+  ass();
 }
 
 static int color_0[] = {0, -1};
@@ -398,47 +388,46 @@ static int diff[] = {1, 0, -1};
 
 #define ENOUGH 10
 
-static void postlude(FILE *out,cmd_t *cmd,hist_t *hist,count_t p_true,count_t p_false,tsc_t total) {
-  fprintf(out,"Test MP Allowed\n");
-  fprintf(out,"Histogram (%i states)\n",finals_outs(hist->outcomes));
-  just_dump_outcomes(out,hist);
+static void postlude(cmd_t *cmd,hist_t *hist,count_t p_true,count_t p_false,tsc_t total) {
+  litmus_log("Test MP Allowed\n");
+  litmus_log("Histogram (%i states)\n",finals_outs(hist->outcomes));
+  just_dump_outcomes(hist);
   __unused int cond = p_true > 0;
-  fprintf(out,"%s\n",cond?"Ok":"No");
-  fprintf(out,"\nWitnesses\n");
-  fprintf(out,"Positive: %" PCTR ", Negative: %" PCTR "\n",p_true,p_false);
-  fprintf(out,"Condition %s is %svalidated\n","exists (1:x5=1 /\\ 1:x7=0)",cond ? "" : "NOT ");
+  litmus_log("%s\n",cond?"Ok":"No");
+  litmus_log("\nWitnesses\n");
+  litmus_log("Positive: %" PCTR ", Negative: %" PCTR "\n",p_true,p_false);
+  litmus_log("Condition %s is %svalidated\n","exists (1:x5=1 /\\ 1:x7=0)",cond ? "" : "NOT ");
 #ifndef CONFIG_TEST_VERBOSE
   printf("%s: %s\n","exists (1:x5=1 /\\ 1:x7=0)",cond ? "OK" : "NG");
 #endif
-  fprintf(out,"Hash=2939da84098a543efdbb91e30585ab71\n");
-  fprintf(out,"Cycle=Rfe PodRR Fre PodWW\n");
-  fprintf(out,"Relax MP %s %s\n",p_true > 0 ? "Ok" : "No","");
-  fprintf(out,"Safe=Rfe Fre PodWW PodRR\n");
-  fprintf(out,"Generator=diy7 (version 7.51+4(dev))\n");
-  fprintf(out,"Com=Rf Fr\n");
-  fprintf(out,"Orig=PodWW Rfe PodRR Fre\n");
+  litmus_log("Hash=2939da84098a543efdbb91e30585ab71\n");
+  litmus_log("Cycle=Rfe PodRR Fre PodWW\n");
+  litmus_log("Relax MP %s %s\n",p_true > 0 ? "Ok" : "No","");
+  litmus_log("Safe=Rfe Fre PodWW PodRR\n");
+  litmus_log("Generator=diy7 (version 7.51+4(dev))\n");
+  litmus_log("Com=Rf Fr\n");
+  litmus_log("Orig=PodWW Rfe PodRR Fre\n");
   if (cmd->aff_mode == aff_custom) {
-    fprintf(out,"Affinity=[0] [1] ; (1,0)\n");
+    litmus_log("Affinity=[0] [1] ; (1,0)\n");
   }
   __unused count_t cond_true = p_true;
   __unused count_t cond_false = p_false;
-  fprintf(out,"Observation MP %s %" PCTR " %" PCTR "\n",!cond_true ? "Never" : !cond_false ? "Always" : "Sometimes",cond_true,cond_false);
+  litmus_log("Observation MP %s %" PCTR " %" PCTR "\n",!cond_true ? "Never" : !cond_false ? "Always" : "Sometimes",cond_true,cond_false);
   if (p_true > 0) {
     if (cmd->aff_mode == aff_scan) {
       for (int k = 0 ; k < SCANSZ ; k++) {
         count_t c = g_ngroups[k];
-        if ((c*100)/p_true > ENOUGH) { fprintf(out,"Topology %-6" PCTR":> %s\n",c,group[k]); }
+        if ((c*100)/p_true > ENOUGH) { litmus_log("Topology %-6" PCTR":> %s\n",c,group[k]); }
       }
     } else if (cmd->aff_mode == aff_topo) {
-      fprintf(out,"Topology %-6" PCTR ":> %s\n",g_ngroups[0],cmd->aff_topo);
+      litmus_log("Topology %-6" PCTR ":> %s\n",g_ngroups[0],cmd->aff_topo);
     }
   }
-  fprintf(out,"Time MP %.2f\n",total / 1000000.0);
-  fflush(out);
+  litmus_log("Time MP %.2f\n",total / 1000000.0);
 }
 
-void litmus_start(FILE *out) {
-  if (g_cmd.prelude) prelude(out);
+void litmus_start(void) {
+  if (g_cmd.prelude) prelude();
   g_start = timeofday();
 /* Set some parameters */
   prm.verbose = g_cmd.verbose;
@@ -449,7 +438,7 @@ void litmus_start(FILE *out) {
   if (g_cmd.aff_mode == aff_topo) {
     ntopo = find_string(group,SCANSZ,g_cmd.aff_topo);
     if (ntopo < 0) {
-      log_error("Bad topology %s, reverting to scan affinity\n",g_cmd.aff_topo);
+      litmus_log("Bad topology %s, reverting to scan affinity\n",g_cmd.aff_topo);
       g_cmd.aff_mode = aff_scan; g_cmd.aff_topo = NULL;
     }
   }
@@ -458,7 +447,7 @@ void litmus_start(FILE *out) {
   prm.cm = coremap_seq(g_def_all_cpus->sz,2,"prm.cm");
 /* Computes number of test concurrent instances */
   int n_avail = g_cmd.avail > 0 ? g_cmd.avail : g_cmd.aff_cpus->sz;
-  if (n_avail >  g_cmd.aff_cpus->sz) log_error("Warning: avail=%i, available=%i\n",n_avail, g_cmd.aff_cpus->sz);
+  if (n_avail >  g_cmd.aff_cpus->sz) litmus_log("Warning: avail=%i, available=%i\n",n_avail, g_cmd.aff_cpus->sz);
   if (g_cmd.n_exe > 0) {
     g_max_exe = g_cmd.n_exe;
   } else {
@@ -473,25 +462,25 @@ void litmus_start(FILE *out) {
   prm.ncpus_used = N*g_max_exe;
 /* Show parameters to user */
   if (prm.verbose) {
-    log_error( "MP: n=%i, r=%i, s=%i",g_max_exe,prm.max_run,prm.size_of_test);
-    log_error(", st=%i",prm.stride);
+    litmus_log( "MP: n=%i, r=%i, s=%i",g_max_exe,prm.max_run,prm.size_of_test);
+    litmus_log(", st=%i",prm.stride);
     if (g_cmd.aff_mode == aff_incr) {
-      log_error( ", i=%i",g_cmd.aff_incr);
+      litmus_log( ", i=%i",g_cmd.aff_incr);
     } else if (g_cmd.aff_mode == aff_random) {
-      log_error(", +ra");
+      litmus_log(", +ra");
     } else if (g_cmd.aff_mode == aff_custom) {
-      log_error(", +ca");
+      litmus_log(", +ca");
     } else if (g_cmd.aff_mode == aff_scan) {
-      log_error(", +sa");
+      litmus_log(", +sa");
     }
-    log_error(", p='");
-    cpus_dump(stderr,g_cmd.aff_cpus);
-    log_error("'");
-    log_error("\n");
+    litmus_log(", p='");
+    cpus_dump(false, g_cmd.aff_cpus);
+    litmus_log("'");
+    litmus_log("\n");
     if (prm.verbose > 1 && prm.cm) {
-      log_error("logical proc -> core: ");
-      cpus_dump(stderr,prm.cm);
-      log_error("\n");
+      litmus_log("logical proc -> core: ");
+      cpus_dump(false, prm.cm);
+      litmus_log("\n");
     }
   }
   if (g_cmd.aff_mode == aff_random) {
@@ -502,8 +491,8 @@ void litmus_start(FILE *out) {
     st_t seed = 0;
     custom_affinity(&seed,prm.cm,color,diff,g_all_cpus,g_max_exe,g_aff_cpus);
     if (prm.verbose) {
-      log_error("thread allocation: \n");
-      cpus_dump_test(stderr,g_aff_cpus,g_n_aff_cpus,prm.cm,N);
+      litmus_log("thread allocation: \n");
+      cpus_dump_test(g_aff_cpus,g_n_aff_cpus,prm.cm,N);
     }
   } else if (g_cmd.aff_mode == aff_topo) {
     int *from = &cpu_scan[ntopo * SCANLINE];
@@ -550,7 +539,7 @@ void litmus_start(FILE *out) {
   g_n_run = 0;
 }
 
-void litmus_run_start(FILE *out) {
+void litmus_run_start(void) {
   memset(g_targs, 0, sizeof(g_targs));
 
   for (int k=0; k < g_max_exe; k++) {
@@ -566,7 +555,7 @@ void litmus_run_start(FILE *out) {
       for (int i = 0 ; i < N ; i++) p->cpus[i] = from[i];
     } else {
     }
-    if (prm.verbose>1) fprintf(stderr,"Run %i of %i\r", g_n_run, prm.max_run);
+    if (prm.verbose>1) litmus_log("Run %i of %i\r", g_n_run, prm.max_run);
     reinit(p);
     if (prm.do_change) perm_funs(&(p->seed),g_fun,N);
     for (int _p = NT-1 ; _p >= 0 ; _p--) {
@@ -578,10 +567,10 @@ void litmus_run_start(FILE *out) {
       zyva(_ecpu, _p, g_fun[_p], parg);
     }
   }
-  litmus_exec("foobar");
+  litmus_exec("litmus_MP");
 }
 
-void litmus_run_stop(FILE *out)
+void litmus_run_stop(void)
 {
   for (int k=0; k < g_max_exe; k++) {
     zyva_t *p = &g_zargs[k];
@@ -622,18 +611,16 @@ bool litmus_closed(void) {
   return g_n_run >= prm.max_run;
 }
 
-void litmus_stop(FILE *out)
+void litmus_stop(void)
 {
-  for (int k=0; k < g_max_exe; k++) {
-    zyva_t *p = &g_zargs[k];
+  for (int k=0; k < g_max_exe; k++)
+    finalize(&g_zargs[k]);
 
-    finalize(p);
-  }
   count_t n_outs = prm.size_of_test; n_outs *= prm.max_run;
   for (int k=0 ; k < g_n_th ; k++) {
     hist_t *hk = &g_hists[k];
     if (sum_outs(hk->outcomes) != n_outs || hk->n_pos + hk->n_neg != n_outs) {
-      fatal("MP, sum_hist");
+      litmus_fatal("MP, sum_hist");
     }
     merge_hists(g_hist,hk);
   }
@@ -642,10 +629,10 @@ void litmus_stop(FILE *out)
 
   n_outs *= g_max_exe;
   if (sum_outs(g_hist->outcomes) != n_outs || g_hist->n_pos + g_hist->n_neg != n_outs) {
-    fatal("MP, sum_hist") ;
+    litmus_fatal("MP, sum_hist") ;
   }
   count_t p_true = g_hist->n_pos, p_false = g_hist->n_neg;
-  postlude(out,&g_cmd,g_hist,p_true,p_false,total);
+  postlude(&g_cmd,g_hist,p_true,p_false,total);
   free_hists(g_max_exe, g_hists, "g_hists");
   free_check(g_zargs, "g_zargs");
   free_check(g_aff_cpus, "g_aff_cpus");
@@ -654,22 +641,29 @@ void litmus_stop(FILE *out)
     cpus_free(g_def_all_cpus, "g_def_all_cpus");
 }
 
-int MP(int argc, char **argv, FILE *out) {
+static int MP(int argc, char **argv) {
   g_def_all_cpus = read_force_affinity(AVAIL,0,"g_def_all_cpus");
   if (g_def_all_cpus->sz < N) {
     cpus_free(g_def_all_cpus, "g_def_all_cpus");
-    return EXIT_SUCCESS;
+    return -EINVAL;
   }
   g_def.aff_cpus = g_def_all_cpus;
   g_cmd = g_def;
-  if (parse_cmd(argc,argv,&g_def,&g_cmd) == 0) {
-    litmus_launch();
-  } else if (g_def_all_cpus != g_cmd.aff_cpus)
-    cpus_free(g_def_all_cpus, "g_def_all_cpus");
-  return EXIT_SUCCESS;
+  if (parse_cmd(argc,argv,&g_def,&g_cmd) != 0) {
+    if (g_def_all_cpus != g_cmd.aff_cpus)
+      cpus_free(g_def_all_cpus, "g_def_all_cpus");
+    return -EINVAL;
+  }
+  litmus_launch();
+  return 0;
 }
 
-int foobar(caddr_t percpu_area) {
+DEFINE_COMMAND(MP, MP, "Run memory model litmus tests - " "MP",
+	"MP" " -h\n"
+	"    -display test usage\n"
+);
+
+int litmus_MP(caddr_t percpu_area) {
   int cpu = smp_processor_id();
   targ_t *targ = &(g_targs[cpu]);
 
@@ -678,5 +672,5 @@ int foobar(caddr_t percpu_area) {
   return 0;
 }
 
-__define_testfn(foobar, 0, SMP_CACHE_BYTES,
-		CPU_EXEC_META, 1, CPU_WAIT_INFINITE);
+__define_testfn(litmus_MP, 0, SMP_CACHE_BYTES,
+		CPU_EXEC_SIMPLE, 1, CPU_WAIT_INFINITE);
