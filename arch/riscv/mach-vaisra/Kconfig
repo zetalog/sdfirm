@@ -38,6 +38,7 @@ config VAISRA_TB
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select SYS_EXIT_S
+	select ARCH_HAS_BOOT_LOAD if VAISRA_SIM_LOAD
 
 config VAISRA_BBL
 	bool "Berkeley boot loader (BBL)"
@@ -60,6 +61,9 @@ config VAISRA_BOOT_RAM
 	  When BOOT_MODE=ram is configured in vaisra_beta environment,
 	  vaisra resets from 0x80000000 instead of resetting from internal
 	  ROM address.
+
+config VAISRA_SIM_LOAD
+	bool "Enable loading by simulator"
 
 menuconfig VAISRA_SPIKE
 	bool "Compare vaisra program with spike"

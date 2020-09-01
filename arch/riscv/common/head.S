@@ -251,6 +251,7 @@ ENTRY(__start)
 	j	__abi_start_warm
 
 secondary_wait_for_abi_relocate:
+	fence	rw, rw
 	la	t0, abi_relocate_done
 	REG_L	t1, 0(t0)
 	/* Reduce the bus traffic so that boot hart may proceed faster */

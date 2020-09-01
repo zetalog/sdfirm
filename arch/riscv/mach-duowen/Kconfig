@@ -93,6 +93,7 @@ config DUOWEN_TB
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select SYS_EXIT_S
+	select ARCH_HAS_BOOT_LOAD if DUOWEN_SIM_LOAD
 
 endchoice
 
@@ -192,6 +193,9 @@ config DUOWEN_FPGA_SMP
 	bool "Enable FGPA SMP environment"
 	depends DUOWEN_FPGA
 	depends DUOWEN_IMC || (DUOWEN_APC && SMP)
+
+config DUOWEN_SIM_LOAD
+	bool "Enable loading by simulator"
 
 menuconfig DUOWEN_MSG
 	bool "Duowen shared message support"
