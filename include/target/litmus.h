@@ -22,7 +22,10 @@
 #include <target/bench.h>
 #include <target/heap.h>
 #include <target/panic.h>
+#include <target/barrier.h>
 #include <time.h>
+
+#define AVAIL NR_CPUS
 
 typedef int			intmax_t;
 #define malloc(sz)		(void *)heap_alloc(sz)
