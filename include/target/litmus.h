@@ -30,11 +30,13 @@
 typedef int			intmax_t;
 #define malloc(sz)		(void *)heap_alloc(sz)
 #define free(ptr)		heap_free((caddr_t)ptr)
+#define fflush(f)		do { } while (0)
 #ifdef CONFIG_TEST_VERBOSE
-#define litmus_log(...)		printf(__VA_ARGS__)
+#define fprintf(f, ...)		printf(__VA_ARGS__)
 #else
-#define litmus_log(...)		do { } while (0)
+#define fprintf(f, ...)		do { } while (0)
 #endif
+#define litmus_log(...)		fprintf(stderr, __VA_ARGS__)
 #define litmus_fatal(...)	printf(__VA_ARGS__)
 #define timeofday()		clock()
 
@@ -148,7 +150,9 @@ void set_prefetch(prfdirs_t *p, prfdir_t d);
 /* permutations */
 void perm_prefix_ints(unsigned *st, int *_t, int m, int n);
 void perm_funs(st_t *st, f_t *t[], int sz);
-void perm_cpus(st_t *st, cpu_exec_cpu_t t[], int sz) ;
+#if 0
+void perm_threads(st_t *st, pthread_t t[], int sz) ;
+#endif
 
 /********************/
 /* Thread utilities */

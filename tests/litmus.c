@@ -616,11 +616,12 @@ void perm_funs(unsigned *st, f_t *fun[], int n)
 	}
 }
 
-void perm_cpus(unsigned *st, cpu_exec_cpu_t thread[], int n)
+#if 0
+void perm_threads(unsigned *st, pthread_t thread[], int n)
 {
 	int k;
 	int j;
-	cpu_exec_cpu_t t;
+	pthread_t t;
 
 	for (k = 0; k < n-1; k++) {
 		j = k + rand_k(st, n - k);
@@ -628,6 +629,7 @@ void perm_cpus(unsigned *st, cpu_exec_cpu_t thread[], int n)
 		thread[j] = thread[k]; thread[k] = t;
 	}
 }
+#endif
 
 /*************************/
 /* Concurrency utilities */
