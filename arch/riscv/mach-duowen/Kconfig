@@ -82,11 +82,11 @@ config DUOWEN_BBL
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select SYS_EXIT_S if SIMULATION
-	select DUOWEN_NOC if DUOWEN_FPGA
 	select SBI
 	select SBI_PAYLOAD if !SIMULATION
 	select DUOWEN_SPI_FLASH
-	select DUOWEN_APC_BOOT_HOOK if DUOWEN_FPGA_SMP
+	select DUOWEN_NOC if DUOWEN_FPGA
+	select DUOWEN_APC_BOOT_HOOK if SMP
 
 config DUOWEN_TB
 	bool "Test bench"
@@ -178,21 +178,10 @@ config DUOWEN_ZEBU
 
 endchoice
 
-config DUOWEN_APC_MAX_CPUS
-	int "Number of VAISRA CPUs"
-	range 1 16
-	default 3 if DUOWEN_FPGA_SMP
-	default 16 if !DUOWEN_FPGA
-	depends DUOWEN_APC && SMP && (!DUOWEN_ASIC || SIMULATION)
-
-config DUOWEN_FPGA_DDR_MODEL
-	bool "Enable DDR model in VCS environment"
-	depends DUOWEN_FPGA && SIMULATION
-
-config DUOWEN_FPGA_SMP
-	bool "Enable FGPA SMP environment"
-	depends DUOWEN_FPGA
-	depends DUOWEN_IMC || (DUOWEN_APC && SMP)
+config DUOWEN_APC_3
+	bool "3 VAISRA CPUs"
+	depends SMP
+	depends DUOWEN_FPGA || DUOWEN_ZEBU
 
 config DUOWEN_SIM_LOAD
 	bool "Enable loading by simulator"
@@ -210,7 +199,7 @@ menuconfig DUOWEN_NOC
 	bool "Duowen network on chip (NoC) support"
 	depends !DUOWEN_ZSBL
 	select NCORE
-	select DUOWEN_FPGA_SMP if (DUOWEN_FPGA && SMP && DUOWEN_APC)
+	select DUOWEN_APC_3 if (DUOWEN_FPGA && SMP && DUOWEN_APC)
 	help
 	  NoC driver is required by FSBL or BBL before booting into Linux.
 
@@ -391,8 +380,30 @@ if DUOWEN_DMA
 
 endif
 
+menu "Duowen DDR controller/phy support"
+
+choice
+	prompt "DDR model"
+	default DUOWEN_DDR_512G if DUOWEN_ASIC
+	default DUOWEN_DDR_32M if DUOWEN_FPGA
+	default DUOWEN_DDR_32M if DUOWEN_ZEBU
+
+config DUOWEN_DDR_32M
+	bool "Fake 32M DDR memory model"
+	depends DUOWEN_FPGA || DUOWEN_ZEBU
+
+config DUOWEN_DDR_512G
+	bool "Real 512G DDR memory"
+	depends DUOWEN_ASIC || DUOWEN_ZEBU
+
+config DUOWEN_DDR_16G
+	bool "FPGA emulated 16G DDR memory"
+	depends DUOWEN_FPGA
+
+endchoice
+
 menuconfig DUOWEN_DDR
-	bool "Duowen DDR controller/phy support"
+	bool "Duowen DDR memory support"
 	depends DDR
 	select DW_UMCTL2
 
@@ -414,6 +425,8 @@ config DUOWEN_DDR_SPD_COUNT
 	depends I2C && I2C_MASTER
 
 endif
+
+endmenu
 
 endmenu
 

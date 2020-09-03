@@ -134,6 +134,55 @@
 #define soc_clk			soc_clk_sel
 #endif
 
+#ifdef CONFIG_DUOWEN_ZEBU
+#define CLK_INPUT		((clk_cat_t)0)
+#define CLK_SELECT		((clk_cat_t)1)
+#define CLK_OUTPUT		((clk_cat_t)2)
+#define CLK_DIV			((clk_cat_t)3)
+
+/* CLK_INPUT */
+#define CLK_PLL			CLK_INPUT
+#define XO_CLK			((clk_clk_t)0)
+#define TIC_CLK			((clk_clk_t)1)
+#define JTAG_CLK		((clk_clk_t)2)
+#define SOC_PLL			((clk_clk_t)3)
+#define DDR_BUS_PLL		((clk_clk_t)4)
+#define DDR_PLL			((clk_clk_t)5)
+#define PCIE_PLL		((clk_clk_t)6)
+#define COHFAB_PLL		((clk_clk_t)7)
+#define CL0_PLL			((clk_clk_t)8)
+#define CL1_PLL			((clk_clk_t)9)
+#define CL2_PLL			((clk_clk_t)10)
+#define CL3_PLL			((clk_clk_t)11)
+#define NR_INPUT_CLKS		(CL3_PLL + 1)
+#define xo_clk			clkid(CLK_INPUT, XO_CLK)
+#define tic_clk			clkid(CLK_INPUT, TIC_CLK)
+#define jtag_clk		clkid(CLK_INPUT, JTAG_CLK)
+#define soc_pll			clkid(CLK_PLL, SOC_PLL)
+#define ddr_bus_pll		clkid(CLK_PLL, DDR_BUS_PLL)
+#define ddr_pll			clkid(CLK_PLL, DDR_PLL)
+#define pcie_pll		clkid(CLK_PLL, PCIE_PLL)
+#define cohfab_pll		clkid(CLK_PLL, COHFAB_PLL)
+#define cl0_pll			clkid(CLK_PLL, CL0_PLL)
+#define cl1_pll			clkid(CLK_PLL, CL1_PLL)
+#define cl2_pll			clkid(CLK_PLL, CL2_PLL)
+#define cl3_pll			clkid(CLK_PLL, CL3_PLL)
+
+/* CLK_SELECT: CLK_SEL_CFG */
+#define SOC_CLK_SEL		((clk_clk_t)0)
+#define DDR_BUS_CLK_SEL		((clk_clk_t)1)
+#define DDR_CLK_SEL		((clk_clk_t)2)
+#define DDR_CLK_DIV4_SEL	((clk_clk_t)3)
+#define SD_RX_TX_CLK_SEL	((clk_clk_t)4)
+#define NR_SELECT_CLKS		(SD_RX_TX_CLK_SEL + 1)
+#define soc_clk_sel		clkid(CLK_SELECT, SOC_CLK_SEL)
+#define ddr_bus_clk_sel		clkid(CLK_SELECT, DDR_BUS_CLK_SEL)
+#define ddr_clk_sel		clkid(CLK_SELECT, DDR_CLK_SEL)
+#define ddr_clk_div4_sel	clkid(CLK_SELECT, DDR_CLK_DIV4_SEL)
+#define sd_rx_tx_clk_sel	clkid(CLK_SELECT, SD_RX_TX_CLK_SEL)
+#define soc_clk			soc_clk_sel
+#endif
+
 #ifdef CONFIG_DUOWEN_FPGA
 #define CLK_INPUT		((clk_cat_t)0)
 #define CLK_OUTPUT		((clk_cat_t)1)

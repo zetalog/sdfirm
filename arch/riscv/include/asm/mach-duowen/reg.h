@@ -129,13 +129,13 @@
 
 /* DDR memory region */
 #define DDR_BASE		ULL(0x0000000000)
-#ifdef CONFIG_DUOWEN_ASIC
+#ifdef CONFIG_DUOWEN_DDR_512G
 #define DDR_SIZE		SZ_512G
 #endif
-#ifdef CONFIG_DUOWEN_FPGA
-#ifdef CONFIG_DUOWEN_FPGA_DDR_MODEL
+#ifdef CONFIG_DUOWEN_DDR_32M
 #define DDR_SIZE		SZ_32M
-#else
+#endif
+#ifdef CONFIG_DUOWEN_DDR_16G
 #define DDR_SIZE		SZ_16G
 #endif
 
@@ -147,7 +147,6 @@
 #define APC_ROM_SIZE		0x20000
 #define APC_RAM_BASE		SFAB_RAM_BASE
 #define APC_RAM_SIZE		SFAB_RAM_SIZE
-#endif /* CONFIG_DUOWEN_APC */
 
 #ifdef CONFIG_DUOWEN_ZSBL
 #ifdef CONFIG_DUOWEN_BOOT_APC

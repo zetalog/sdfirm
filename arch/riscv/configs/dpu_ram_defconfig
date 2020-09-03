@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Aug 28 13:48:02 2020
+# Thu Sep  3 21:59:20 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -470,6 +470,7 @@ CONFIG_DW_PCIE=y
 #
 # CONFIG_TEST_VERBOSE is not set
 # CONFIG_TEST_BENCH is not set
+# CONFIG_TEST_LITMUS is not set
 
 #
 # RISCV system tests

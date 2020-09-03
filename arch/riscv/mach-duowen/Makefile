@@ -12,6 +12,7 @@ obj-$(CONFIG_CRCNTL) += crcntl.rel
 obj-$(CONFIG_CRCNTL) += clk.rel
 obj-$(CONFIG_DUOWEN_ASIC) += clk_asic.rel
 obj-$(CONFIG_DUOWEN_FPGA) += clk_fpga.rel
+obj-$(CONFIG_DUOWEN_ZEBU) += clk_zebu.rel
 obj-$(CONFIG_DUOWEN_UART) += uart.rel
 obj-$(CONFIG_DUOWEN_TMR) += tmr.rel
 obj-$(CONFIG_DUOWEN_DDR) += ddr.rel

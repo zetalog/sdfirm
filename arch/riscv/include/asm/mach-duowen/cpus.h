@@ -44,28 +44,22 @@
 
 #ifdef CONFIG_DUOWEN_IMC
 #define MAX_CPU_NUM		1
-#endif
+#define MAX_CPU_CLUSTERS	1
+#endif /* CONFIG_DUOWEN_IMC */
+
 #ifdef CONFIG_DUOWEN_APC
 #ifdef CONFIG_SMP
-#ifdef CONFIG_DUOWEN_APC_MAX_CPUS
-#define MAX_CPU_NUM		CONFIG_DUOWEN_APC_MAX_CPUS
-#else /* CONFIG_DUOWEN_APC_MAX_CPUS */
+#ifdef CONFIG_DUOWEN_APC_3
+#define MAX_CPU_NUM		3
+#define MAX_CPU_CLUSTERS	3
+#else /* CONFIG_DUOWEN_APC_3 */
 #define MAX_CPU_NUM		16
-#endif /* CONFIG_DUOWEN_APC_MAX_CPUS */
+#define MAX_CPU_CLUSTERS	4
+#endif /* CONFIG_DUOWEN_APC_3 */
 #else /* CONFIG_SMP */
 #define MAX_CPU_NUM		1
-#endif /* CONFIG_SMP */
-#endif
-
-#ifdef CONFIG_DUOWEN_ASIC
-#define MAX_CPU_CLUSTERS	4
-#endif
-#ifdef CONFIG_DUOWEN_FPGA
-#ifdef CONFIG_DUOWEN_FPGA_SMP
-#define MAX_CPU_CLUSTERS	3
-#else
 #define MAX_CPU_CLUSTERS	1
-#endif
-#endif
+#endif /* CONFIG_SMP */
+#endif /* CONFIG_DUOWEN_APC */
 
 #endif /* __CPUS_DUOWEN_H_INCLUDE__ */

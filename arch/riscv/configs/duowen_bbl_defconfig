@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Aug 28 13:43:48 2020
+# Thu Sep  3 21:55:35 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -194,7 +194,7 @@ CONFIG_DUOWEN_BBL=y
 # CONFIG_DUOWEN_ASIC is not set
 CONFIG_DUOWEN_FPGA=y
 # CONFIG_DUOWEN_ZEBU is not set
-CONFIG_DUOWEN_FPGA_DDR_MODEL=y
+# CONFIG_DUOWEN_SIM_LOAD is not set
 # CONFIG_DUOWEN_MSG is not set
 CONFIG_DUOWEN_NOC=y
 CONFIG_DUOWEN_UART=y
@@ -216,6 +216,13 @@ CONFIG_DUOWEN_FLASH_SS_8=y
 # CONFIG_DUOWEN_PCIE is not set
 # CONFIG_DUOWEN_SMMU is not set
 # CONFIG_DUOWEN_DMA is not set
+
+#
+# Duowen DDR controller/phy support
+#
+CONFIG_DUOWEN_DDR_32M=y
+# CONFIG_DUOWEN_DDR_512G is not set
+# CONFIG_DUOWEN_DDR_16G is not set
 
 #
 # Feature setup
@@ -462,6 +469,7 @@ CONFIG_NCORE=y
 #
 # CONFIG_TEST_VERBOSE is not set
 # CONFIG_TEST_BENCH is not set
+# CONFIG_TEST_LITMUS is not set
 
 #
 # RISCV system tests

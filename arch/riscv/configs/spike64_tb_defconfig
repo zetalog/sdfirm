@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Aug 28 13:45:14 2020
+# Thu Sep  3 21:56:50 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -416,6 +416,7 @@ CONFIG_TEST_BENCH_LOCAL=y
 # CONFIG_TEST_BENCH_REMOTE is not set
 CONFIG_TEST_BENCH_DIDT=y
 CONFIG_TEST_BENCH_START_DELAY=64
+# CONFIG_TEST_BENCH_DEBUG is not set
 
 #
 # Standard benchmark tests
@@ -447,6 +448,7 @@ CONFIG_DHRYSTONE_BENCH_PERCPU=y
 # Santiy check tests
 #
 # CONFIG_TLB_TEST is not set
+# CONFIG_TEST_LITMUS is not set
 
 #
 # RISCV system tests
