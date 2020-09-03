@@ -16,7 +16,7 @@
 
 #ifndef __ASSEMBLY__
 typedef struct {
-	char name[16];
+	char *name;
 	int (*cmd)(int, char *[]);
 	char *help;  /* short description */
 	char *usage; /* long description */
