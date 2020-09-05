@@ -49,6 +49,17 @@ void board_shutdown(void)
 }
 #endif
 
+#ifdef CONFIG_FINISH
+void board_finish(int code)
+{
+	if (code)
+		printf("Test failure.\n\n");
+	else
+		printf("Test success.\n\n");
+	htif_poweroff();
+}
+#endif
+
 void board_early_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);

@@ -388,6 +388,7 @@ static void postlude(FILE *out,cmd_t *cmd,hist_t *hist,count_t p_true,count_t p_
   }
   fprintf(out,"Time MP %.2f\n",total / 1000000.0);
   fflush(out);
+  litmus_observed(cond_true, cond_false);
 }
 
 void litmus_start(void) {

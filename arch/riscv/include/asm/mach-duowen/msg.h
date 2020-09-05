@@ -80,14 +80,20 @@
 		msg_apc_status(apc, ok ? MSG_OK : MSG_NG);	\
 		msg_apc_finish(apc);				\
 	} while (0)
-
-#define msg_imc_shutdown()					\
+#define msg_imc_success()					\
 	do {							\
 		msg_imc_test_start();				\
 		msg_imc_test_stop(true);			\
 	} while (0)
+#define msg_imc_failure()					\
+	do {							\
+		msg_imc_test_start();				\
+		msg_imc_test_stop(false);			\
+	} while (0)
 #else
-#define msg_imc_shutdown()		do { } while (0)
+#define msg_imc_success()		do { } while (0)
+#define msg_imc_falure()		do { } while (0)
 #endif
+#define msg_imc_shutdown()		msg_imc_success()
 
 #endif /* __MSG_DUOWEN_H_INCLUDE__ */

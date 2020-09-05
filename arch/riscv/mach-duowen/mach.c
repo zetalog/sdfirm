@@ -103,6 +103,16 @@ void board_reboot(void)
 }
 #endif
 
+#ifdef CONFIG_FINISH
+void board_finish(int code)
+{
+	if (code)
+		msg_imc_failure();
+	else
+		msg_imc_success();
+}
+#endif
+
 #ifdef CONFIG_DUOWEN_LOAD
 void board_boot(void)
 {

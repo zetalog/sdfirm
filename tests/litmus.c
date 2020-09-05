@@ -15,6 +15,12 @@
 /****************************************************************************/
 #include <target/litmus.h>
 
+#define LITMUS_NEVER		0
+#define LITMUS_SOMETIMES	1
+#define LITMUS_ALWAYS		2
+
+static uint8_t litmus_exist;
+
 int gcd(int a, int b)
 {
 	int tmp;
@@ -1414,6 +1420,15 @@ void litmus_exec(const char *test)
 		return;
 	}
 	bench_simple(CPU_ALL, fn, true);
+#ifdef CONFIG_TEST_LITMUS_FINISH
+	board_finish(litmus_exist);
+#endif
+}
+
+void litmus_observed(bool p_true, bool p_false)
+{
+	litmus_exist = !p_true ? LITMUS_NEVER :
+		(!p_false ? LITMUS_ALWAYS : LITMUS_SOMETIMES);
 }
 
 void litmus_init(void)

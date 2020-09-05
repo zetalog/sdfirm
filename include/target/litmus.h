@@ -254,6 +254,7 @@ void litmus_stop(void);
 void litmus_run_start(void);
 void litmus_run_stop(void);
 bool litmus_closed(void);
+void litmus_observed(bool p_true, bool p_false);
 
 #ifdef CONFIG_TEST_LITMUS
 void litmus_init(void);

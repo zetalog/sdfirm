@@ -633,6 +633,10 @@ menuconfig FP
 
 menu "Power management model (board) support"
 
+config FINISH
+	bool "Board exit with test result"
+	depends SIMULATION
+
 config SHUTDOWN
 	bool "Board shutdown support"
 
