@@ -48,7 +48,7 @@
 #define MSG_TEST_SUBITEM_LO	MSG_REG(0x04)
 #define MSG_TEST_SUBITEM_HI	MSG_REG(0x08)
 #define MSG_TEST_DONE		MSG_REG(0x0C)
-#define MSG_TEST_STATUS_APC(n)	MSG_REG(0x10 + (n) << 2)
+#define MSG_TEST_STATUS_APC(n)	MSG_REG(0x10 + ((n) << 2))
 #define MSG_TEST_STATUS_IMC	MSG_REG(0x50)
 #define MSG_MSG			MSG_REG(0x60)
 
@@ -56,25 +56,32 @@
 #define MSG_IMC			16
 
 /* TEST_STATUS */
-#define MSG_IDLE		0x0
-#define MSG_BUSY		0x1
-#define MSG_OK			0x2
-#define MSG_NG			0x3
+#define MSG_IDLE		_BV(0)
+#define MSG_BUSY		_BV(1)
+#define MSG_OK			_BV(2)
+#define MSG_NG			_BV(3)
 
 #ifdef CONFIG_DUOWEN_MSG
-#define msg_imc_status(status)		__raw_writel(status, MSG_TEST_STATUS_IMC)
-#define msg_imc_finish()		__raw_setl(_BV(MSG_IMC), MSG_TEST_DONE)
+#define msg_imc_status(status)			\
+	__raw_writel(status, MSG_TEST_STATUS_IMC)
+#define msg_apc_status(apc, status)		\
+	__raw_writel(status, MSG_TEST_STATUS_APC(apc))
 
-#define msg_apc_status(apc, status)	__raw_writel(status, MSG_TEST_STATUS_APC(apc))
-#define msg_apc_finish(apc)		__raw_setl(_BV(apc), MSG_TEST_DONE)
-
+#define msg_test_init()						\
+	do {							\
+		for (int apc = 0; apc < 16; apc++) 			\
+			msg_apc_status(apc, MSG_IDLE);		\
+		msg_imc_status(MSG_IDLE);			\
+	} while (0)
 #define msg_imc_test_start()		msg_imc_status(MSG_BUSY)
+#define msg_apc_test_start(apc)		msg_apc_status(apc, MSG_BUSY)
+#define msg_imc_finish()		__raw_setl(_BV(MSG_IMC), MSG_TEST_DONE)
+#define msg_apc_finish(apc)		__raw_setl(_BV(apc), MSG_TEST_DONE)
 #define msg_imc_test_stop(ok)					\
 	do {							\
 		msg_imc_status(ok ? MSG_OK : MSG_NG);		\
 		msg_imc_finish();				\
 	} while (0)
-#define msg_apc_test_start(apc)		msg_apc_status(apc, MSG_BUSY)
 #define msg_apc_test_stop(apc, ok)				\
 	do {							\
 		msg_apc_status(apc, ok ? MSG_OK : MSG_NG);	\
@@ -82,11 +89,13 @@
 	} while (0)
 #define msg_imc_success()					\
 	do {							\
+		msg_test_init();				\
 		msg_imc_test_start();				\
 		msg_imc_test_stop(true);			\
 	} while (0)
 #define msg_imc_failure()					\
 	do {							\
+		msg_test_init();				\
 		msg_imc_test_start();				\
 		msg_imc_test_stop(false);			\
 	} while (0)

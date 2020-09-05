@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sat Sep  5 13:41:59 2020
+# Sat Sep  5 16:34:24 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -25,7 +25,7 @@ CONFIG_BOOTLOADER=y
 # CONFIG_BOOT_ROM is not set
 CONFIG_COMMAND=y
 CONFIG_COMMAND_BATCH=y
-CONFIG_COMMAND_BATCH_COMMAND="litmus -st 2 -s 5k -r 20"
+CONFIG_COMMAND_BATCH_COMMAND="MP -st 2 -s 5 -r 2"
 CONFIG_CONSOLE=y
 CONFIG_CONSOLE_COMMAND=y
 CONFIG_CONSOLE_OUTPUT=y
@@ -281,6 +281,7 @@ CONFIG_FP=y
 #
 # Power management model (board) support
 #
+CONFIG_FINISH=y
 CONFIG_SHUTDOWN=y
 CONFIG_REBOOT=y
 # CONFIG_SUSPEND is not set
@@ -488,6 +489,7 @@ CONFIG_TEST_BENCH_START_DELAY=0
 #
 # CONFIG_TLB_TEST is not set
 CONFIG_TEST_LITMUS=y
+CONFIG_TEST_LITMUS_FINISH=y
 # CONFIG_TEST_LITMUS_DEBUG is not set
 
 #
