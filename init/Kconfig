@@ -134,6 +134,9 @@ config CONSOLE_230400
 config CONSOLE_115200
 	bool "115200"
 
+config CONSOLE_76800
+	bool "76800"
+
 config CONSOLE_57600
 	bool "57600"
 

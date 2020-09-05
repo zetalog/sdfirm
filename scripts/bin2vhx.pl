@@ -81,6 +81,7 @@ if ($#row > -1) {
 		unshift(@row, "00") while ($#row < $bytes_per_row - 1);
 	}
 	print OUTFILE @row;
+	print OUTFILE "\n";
 }
 
 close(INFILE);
