@@ -23,6 +23,12 @@ config DUOWEN_APC
 	select ARCH_HAS_DMA
 	select ARCH_HAS_IOMMU
 	select ARCH_HAS_PCI
+	select DUOWEN_APC_BOOT_HOOK if (SMP && !DUOWEN_SBL_LOAD)
+	select DUOWEN_APC_3 if (SMP && DUOWEN_FPGA)
+	help
+	  It is too late for vaisra to initialize its SMP cores in SBI due
+	  to the restrictions of the vaisra atomicity implementation, so
+	  they need to be done earlier via bootloader hooks.
 
 endchoice
 
@@ -49,29 +55,29 @@ config DUOWEN_ZSBL
 	select DUOWEN_BOOT
 	select DUOWEN_LOAD_ZSBL
 	select DUOWEN_BOOT_APC if DUOWEN_APC
-	select DUOWEN_APC_BOOT_HOOK if DUOWEN_APC
 	select XIP
 	select LOAD_DATA
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select DUOWEN_SPI_FLASH
 	select DUOWEN_SSI_FLASH
+	select DUOWEN_APC_INIT if DUOWEN_APC
 
 config DUOWEN_FSBL
 	bool "1-stage programmable bootloader (FSBL)"
 	select DUOWEN_BOOT
 	select DUOWEN_LOAD_FSBL
 	select DUOWEN_BOOT_APC if DUOWEN_APC
-	select DUOWEN_APC_BOOT_HOOK if DUOWEN_APC
 	select ARCH_HAS_BOOT_LOAD if !DUOWEN_FSBL_SPI
 	select XIP
 	select BFM if !DUOWEN_FSBL_SPI
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select DUOWEN_DDR
-	select DUOWEN_NOC
 	select DUOWEN_SPI_FLASH
 	select DUOWEN_SSI_FLASH
+	select DUOWEN_NOC
+	select DUOWEN_APC_INIT if (!DUOWEN_SBL_LOAD && DUOWEN_APC)
 
 config DUOWEN_BBL
 	bool "Berkeley bootloader (BBL)"
@@ -87,15 +93,15 @@ config DUOWEN_BBL
 	select SBI
 	select SBI_PAYLOAD if !SIMULATION
 	select DUOWEN_SPI_FLASH
-	select DUOWEN_NOC if DUOWEN_FPGA
-	select DUOWEN_APC_BOOT_HOOK if SMP
+	select DUOWEN_NOC if !DUOWEN_SBL_LOAD
+	select DUOWEN_APC_INIT if !DUOWEN_SBL_LOAD
 
 config DUOWEN_TB
 	bool "Test bench"
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select SYS_EXIT_S
-	select ARCH_HAS_BOOT_LOAD if DUOWEN_SIM_LOAD
+	select ARCH_HAS_BOOT_LOAD if (DUOWEN_SIM_LOAD || DUOWEN_SBL_LOAD)
 
 endchoice
 
@@ -188,6 +194,17 @@ config DUOWEN_APC_3
 config DUOWEN_SIM_LOAD
 	bool "Enable loading by simulator"
 
+config DUOWEN_SBL_LOAD
+	bool "Enable loading by bootloader (ZSBL/FSBL)"
+	depends !(DUOWEN_FPGA && DUOWEN_BBL)
+	depends !DUOWEN_ZSBL && !DUOWEN_FSBL_SPI && !DUOWEN_BBL_SPI
+	default y if DUOWEN_FSBL || DUOWEN_BBL
+	help
+	  This option is always invisible to ZSBL and visible to non SPI
+	  resident FSBL and BBL, TBs. But for the FPGA environment, BBL is
+	  booted directly via APC/DDR simulation mode, which also makes
+	  this option invisible.
+
 menuconfig DUOWEN_MSG
 	bool "Duowen shared message support"
 	depends SIMULATION
@@ -197,11 +214,14 @@ menuconfig DUOWEN_MSG
 
 endmenu
 
+config DUOWEN_APC_INIT
+	bool "Vaisra self initialization support"
+	depends DUOWEN_APC
+
 menuconfig DUOWEN_NOC
 	bool "Duowen network on chip (NoC) support"
-	depends !DUOWEN_ZSBL
+	depends DUOWEN_APC || !DUOWEN_ZSBL
 	select NCORE
-	select DUOWEN_APC_3 if (DUOWEN_FPGA && SMP && DUOWEN_APC)
 	help
 	  NoC driver is required by FSBL or BBL before booting into Linux.
 

@@ -76,7 +76,7 @@ uint8_t imc_boot_flash(void)
 }
 #endif
 
-#ifdef CONFIG_VAISRA_PMA
+#ifdef CONFIG_DUOWEN_APC_INIT
 void duowen_pma_init(void)
 {
 	int n = 0;

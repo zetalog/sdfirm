@@ -110,7 +110,9 @@
 #if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
 #ifdef CONFIG_DUOWEN_APC_BOOT_HOOK
 	.macro	boot0_hook
+#ifdef CONFIG_DUOWEN_APC_INIT
 	jal	ra, vaisra_cpu_init
+#endif
 	.endm
 	.macro	boot1_hook
 #if defined(CONFIG_DUOWEN_NOC) && defined(CONFIG_DUOWEN_APC)
@@ -118,7 +120,7 @@
 #endif
 	.endm
 	.macro	boot2_hook
-#ifdef CONFIG_VAISRA_PMA
+#ifdef CONFIG_DUOWEN_APC_INIT
 	jal	ra, duowen_pma_init
 #endif
 	.endm
@@ -128,12 +130,12 @@
 #ifndef __ASSEMBLY__
 void board_init_clock(void);
 void board_init_timestamp(void);
-#ifdef CONFIG_DUOWEN_APC
+#ifdef CONFIG_DUOWEN_APC_INIT
 void vaisra_cpu_init(void);
 #else
 #define vaisra_cpu_init()	do { } while (0)
 #endif
-#ifdef CONFIG_VAISRA_PMA
+#ifdef CONFIG_DUOWEN_APC_INIT
 void duowen_pma_init(void);
 #else
 #define duowem_pma_init()	do { } while (0)
