@@ -595,6 +595,7 @@ void litmus_stop(void) {
   free_check(g_aff_cpus,"g_aff_cpus");
   cpus_free(prm.cm,"prm.cm");
   if (g_def_all_cpus != g_cmd.aff_cpus) cpus_free(g_def_all_cpus,"g_def_all_cpus");
+  litmus_finish();
 }
 
 bool litmus_closed(void) {

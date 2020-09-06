@@ -1420,10 +1420,14 @@ void litmus_exec(const char *test)
 		return;
 	}
 	bench_simple(CPU_ALL, fn, true);
-#ifdef CONFIG_TEST_LITMUS_FINISH
-	board_finish(litmus_exist);
-#endif
 }
+
+#ifdef CONFIG_TEST_LITMUS_FINISH
+void litmus_finish(void)
+{
+	board_finish(litmus_exist);
+}
+#endif
 
 void litmus_observed(bool p_true, bool p_false)
 {

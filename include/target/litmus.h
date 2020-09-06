@@ -255,6 +255,11 @@ void litmus_run_start(void);
 void litmus_run_stop(void);
 bool litmus_closed(void);
 void litmus_observed(bool p_true, bool p_false);
+#ifdef CONFIG_TEST_LITMUS_FINISH
+void litmus_finish(void);
+#else
+#define litmus_finish()		do { } while (0)
+#endif
 
 #ifdef CONFIG_TEST_LITMUS
 void litmus_init(void);
