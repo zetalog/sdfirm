@@ -65,7 +65,11 @@ typedef struct { atomic64_count_t counter; } atomic64_t;
 #define INIT_ATOMIC(a, i)		((a)->counter = (i))
 
 #define smp_hw_atomic_read(v)		READ_ONCE((v)->counter)
+#define smp_hw_atomic32_read(v)		READ_ONCE((v)->counter)
+#define smp_hw_atomic64_read(v)		READ_ONCE((v)->counter)
 #define smp_hw_atomic_set(v, i)		WRITE_ONCE(((v)->counter), (i))
+#define smp_hw_atomic32_set(v, i)	WRITE_ONCE(((v)->counter), (i))
+#define smp_hw_atomic64_set(v, i)	WRITE_ONCE(((v)->counter), (i))
 
 #define smp_hw_atomic_read_acquire(v)	__smp_load_acquire(&(v)->counter)
 #define smp_hw_atomic_set_release(v, i)	__smp_store_release(&(v)->counter, (i))

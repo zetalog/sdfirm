@@ -7,6 +7,7 @@ config CPU_VAISRA
 	select CPU_SV48
 	select CPU_PMP
 	select CPU_COUNTERS
+	select ARCH_IS_ATOMIC_UNFAIR
 	select ARCH_HAS_HPM_EVENT if HPM
 
 # SiFive E51
@@ -435,15 +436,24 @@ config RISCV_ATOMIC_COUNT_64
 
 endchoice
 
+config ARCH_IS_ATOMIC_UNFAIR
+	bool
+
 choice
 	prompt "Type of SMP spinlock"
 	default RISCV_SPINLOCK_RAW
 
 config RISCV_SPINLOCK_RAW
 	bool "Raw spinlock"
+	depends !ARCH_IS_ATOMIC_UNFAIR
 	help
 	  May suffer from lock fairness, and dead locks due to cache
 	  contension.
+
+config RISCV_SPINLOCK_TICKET
+	bool "Ticket spinlock"
+	help
+	  Always fair, however may suffer from SMP cache performance.
 
 config RISCV_SPINLOCK_GENERIC
 	bool "Queued spinlock"

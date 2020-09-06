@@ -42,10 +42,69 @@
 #ifndef __SPINLOCK_RISCV_H_INCLUDE__
 #define __SPINLOCK_RISCV_H_INCLUDE__
 
+#include <target/atomic.h>
 #ifdef CONFIG_RISCV_SPINLOCK_GENERIC
 #include <asm-generic/spinlock.h>
 #endif
 #include <asm/vaisra_cache.h>
+
+#ifdef CONFIG_RISCV_SPINLOCK_TICKET
+/*
+ * Ticket locks are conceptually two parts, one indicating the current
+ * head of the queue, and the other indicating the current tail. The lock
+ * is acquired by atomically noting the tail and incrementing it by one
+ * (thus adding ourself to the queue and noting our position), then
+ * waiting until the head becomes equal to the the initial value of the
+ * tail.
+ * The pad bits in the middle are used to prevent the next_ticket number
+ * overflowing into the now_serving number.
+ *
+ *  31     15     0
+ *  +------+-------+
+ *  | next | owner |
+ *  +------+-------+
+ */
+#define TICKET_SHIFT	16
+#define TICKET_BITS	16
+#define TICKET_MASK	((ULL(1) << TICKET_BITS) - 1)
+
+typedef struct {
+	atomic32_t lock;
+} spinlock_t;
+
+#define DEFINE_SPINLOCK(lock)		spinlock_t lock = { 0 }
+#define smp_hw_spin_init(x)		INIT_ATOMIC(&((x)->lock), 0)
+
+static inline int smp_hw_spin_locked(spinlock_t *lock)
+{
+	uint32_t tmp = smp_hw_atomic32_read(&(lock->lock));
+
+	return !!(((tmp >> TICKET_SHIFT) ^ tmp) & TICKET_MASK);
+}
+
+static inline int smp_hw_spin_trylock(spinlock_t *lock)
+{
+	uint32_t tmp = smp_hw_atomic32_read(&(lock->lock));
+	uint32_t lockval = tmp & TICKET_MASK;
+	atomic32_count_t oldv = lockval | (lockval << TICKET_SHIFT);
+	atomic32_count_t newv = oldv + (UL(1) << TICKET_SHIFT);
+
+	return !!(smp_hw_atomic32_cmpxchg(&(lock->lock), oldv, newv) == oldv);
+}
+
+static inline void smp_hw_spin_lock(spinlock_t *lock)
+{
+	smp_hw_atomic32_add(ULL(1) << TICKET_SHIFT, &lock->lock);
+
+	while (!smp_hw_spin_locked(lock))
+		cpu_relax();
+}
+
+static inline void smp_hw_spin_unlock(spinlock_t *lock)
+{
+	smp_hw_atomic32_add(1, &(lock->lock));
+}
+#endif
 
 #ifdef CONFIG_RISCV_SPINLOCK_RAW
 typedef struct {
