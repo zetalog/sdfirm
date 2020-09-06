@@ -56,6 +56,11 @@ typedef uint16_t qspin_quater_t;
 #endif
 typedef struct { atomic_count_t counter; } atomic_t;
 
+typedef int32_t atomic32_count_t;
+typedef struct { atomic32_count_t counter; } atomic32_t;
+typedef int64_t atomic64_count_t;
+typedef struct { atomic64_count_t counter; } atomic64_t;
+
 #define ATOMIC_INIT(i)			{ (i) }
 #define INIT_ATOMIC(a, i)		((a)->counter = (i))
 
@@ -75,9 +80,10 @@ typedef struct { atomic_count_t counter; } atomic_t;
  * have the AQ or RL bits set.  These don't return anything, so there's only
  * one version to worry about.
  */
-#define ATOMIC_OP(op, asm_op, I, asm_type)				\
+#define ATOMIC_OP(op, asm_op, I, asm_type, prefix)			\
 static __always_inline							\
-void smp_hw_atomic_##op(atomic_count_t i, atomic_t *v)			\
+void smp_hw_atomic##prefix##_##op(atomic##prefix##_count_t i,		\
+				  atomic##prefix##_t *v)		\
 {									\
 	asm volatile(							\
 		"	amo" #asm_op "." #asm_type " zero, %1, %0"	\
@@ -90,12 +96,12 @@ void smp_hw_atomic_##op(atomic_count_t i, atomic_t *v)			\
  * There's two flavors of these: the arithmatic ops have both fetch and return
  * versions, while the logical ops only have fetch versions.
  */
-#define ATOMIC_FETCH_OP(op, asm_op, I, asm_type)			\
+#define ATOMIC_FETCH_OP(op, asm_op, I, asm_type, prefix)		\
 static __always_inline							\
-atomic_count_t smp_hw_atomic_fetch_##op##_relaxed(atomic_count_t i,	\
-						  atomic_t *v)		\
+atomic##prefix##_count_t smp_hw_atomic##prefix##_fetch_##op##_relaxed(	\
+	atomic##prefix##_count_t i, atomic##prefix##_t *v)		\
 {									\
-	register atomic_count_t ret;					\
+	register atomic##prefix##_count_t ret;				\
 	asm volatile(							\
 		"	amo" #asm_op "." #asm_type " %1, %2, %0"	\
 		: "+A" (v->counter), "=r" (ret)				\
@@ -104,9 +110,10 @@ atomic_count_t smp_hw_atomic_fetch_##op##_relaxed(atomic_count_t i,	\
 	return ret;							\
 }									\
 static __always_inline							\
-atomic_count_t smp_hw_atomic_fetch_##op(atomic_count_t i, atomic_t *v)	\
+atomic##prefix##_count_t smp_hw_atomic##prefix##_fetch_##op(		\
+	atomic##prefix##_count_t i, atomic##prefix##_t *v)		\
 {									\
-	register atomic_count_t ret;					\
+	register atomic##prefix##_count_t ret;				\
 	asm volatile(							\
 		"	amo" #asm_op "." #asm_type ".aqrl  %1, %2, %0"	\
 		: "+A" (v->counter), "=r" (ret)				\
@@ -114,60 +121,97 @@ atomic_count_t smp_hw_atomic_fetch_##op(atomic_count_t i, atomic_t *v)	\
 		: "memory");						\
 	return ret;							\
 }
-#define ATOMIC_OP_RETURN(op, asm_op, c_op, I, asm_type)			\
+#define ATOMIC_OP_RETURN(op, asm_op, c_op, I, asm_type, prefix)		\
 static __always_inline							\
-atomic_count_t smp_hw_atomic_##op##_return_relaxed(atomic_count_t i,	\
-						   atomic_t *v)		\
+atomic##prefix##_count_t smp_hw_atomic##prefix##_##op##_return_relaxed(	\
+	atomic##prefix##_count_t i, atomic##prefix##_t *v)		\
 {									\
-        return smp_hw_atomic_fetch_##op##_relaxed(i, v) c_op I;		\
+        return smp_hw_atomic##prefix##_fetch_##op##_relaxed(i, v)	\
+	       c_op I;							\
 }									\
 static __always_inline							\
-atomic_count_t smp_hw_atomic_##op##_return(atomic_count_t i,		\
-					   atomic_t *v)			\
+atomic##prefix##_count_t smp_hw_atomic##prefix##_##op##_return(		\
+	atomic##prefix##_count_t i, atomic##prefix##_t *v)		\
 {									\
-        return smp_hw_atomic_fetch_##op(i, v) c_op I;			\
+        return smp_hw_atomic##prefix##_fetch_##op(i, v) c_op I;		\
 }
 
+#define ATOMIC32_OPS(op, asm_op, I)	 ATOMIC_OP(op, asm_op, I, w, 32)
+#define ATOMIC64_OPS(op, asm_op, I)	 ATOMIC_OP(op, asm_op, I, d, 64)
 #ifdef CONFIG_RISCV_ATOMIC_COUNT_32
-#define ATOMIC_OPS(op, asm_op, I)	 ATOMIC_OP(op, asm_op, I, w)
+#define ATOMIC_OPS(op, asm_op, I)	 ATOMIC_OP(op, asm_op, I, w,)
 #endif
 #ifdef CONFIG_RISCV_ATOMIC_COUNT_64
-#define ATOMIC_OPS(op, asm_op, I)	 ATOMIC_OP(op, asm_op, I, d)
+#define ATOMIC_OPS(op, asm_op, I)	 ATOMIC_OP(op, asm_op, I, d,)
 #endif
 
+ATOMIC32_OPS(add, add,  i)
+ATOMIC32_OPS(sub, add, -i)
+ATOMIC32_OPS(and, and,  i)
+ATOMIC32_OPS( or,  or,  i)
+ATOMIC32_OPS(xor, xor,  i)
+ATOMIC64_OPS(add, add,  i)
+ATOMIC64_OPS(sub, add, -i)
+ATOMIC64_OPS(and, and,  i)
+ATOMIC64_OPS( or,  or,  i)
+ATOMIC64_OPS(xor, xor,  i)
 ATOMIC_OPS(add, add,  i)
 ATOMIC_OPS(sub, add, -i)
 ATOMIC_OPS(and, and,  i)
 ATOMIC_OPS( or,  or,  i)
 ATOMIC_OPS(xor, xor,  i)
 #undef ATOMIC_OP
+#undef ATOMIC32_OPS
+#undef ATOMIC64_OPS
 #undef ATOMIC_OPS
 
+#define ATOMIC32_OPS(op, asm_op, c_op, I)		\
+        ATOMIC_FETCH_OP( op, asm_op,       I, w, 32)	\
+        ATOMIC_OP_RETURN(op, asm_op, c_op, I, w, 32)
+#define ATOMIC64_OPS(op, asm_op, c_op, I)		\
+        ATOMIC_FETCH_OP( op, asm_op,       I, d, 64)	\
+        ATOMIC_OP_RETURN(op, asm_op, c_op, I, d, 64)
 #ifdef CONFIG_RISCV_ATOMIC_COUNT_32
 #define ATOMIC_OPS(op, asm_op, c_op, I)			\
-        ATOMIC_FETCH_OP( op, asm_op,       I, w)	\
-        ATOMIC_OP_RETURN(op, asm_op, c_op, I, w)
+        ATOMIC_FETCH_OP( op, asm_op,       I, w, )	\
+        ATOMIC_OP_RETURN(op, asm_op, c_op, I, w, )
 #endif
 #ifdef CONFIG_RISCV_ATOMIC_COUNT_64
 #define ATOMIC_OPS(op, asm_op, c_op, I)			\
-        ATOMIC_FETCH_OP( op, asm_op,       I, d)	\
-        ATOMIC_OP_RETURN(op, asm_op, c_op, I, d)
+        ATOMIC_FETCH_OP( op, asm_op,       I, d, )	\
+        ATOMIC_OP_RETURN(op, asm_op, c_op, I, d, )
 #endif
 
+ATOMIC32_OPS(add, add, +,  i)
+ATOMIC32_OPS(sub, add, +, -i)
+ATOMIC64_OPS(add, add, +,  i)
+ATOMIC64_OPS(sub, add, +, -i)
 ATOMIC_OPS(add, add, +,  i)
 ATOMIC_OPS(sub, add, +, -i)
+#undef ATOMIC32_OPS
+#undef ATOMIC64_OPS
 #undef ATOMIC_OPS
 
+#define ATOMIC32_OPS(op, asm_op, I)	ATOMIC_FETCH_OP(op, asm_op, I, w, 32)
+#define ATOMIC64_OPS(op, asm_op, I)	ATOMIC_FETCH_OP(op, asm_op, I, w, 64)
 #ifdef CONFIG_RISCV_ATOMIC_COUNT_32
-#define ATOMIC_OPS(op, asm_op, I)	ATOMIC_FETCH_OP(op, asm_op, I, w)
+#define ATOMIC_OPS(op, asm_op, I)	ATOMIC_FETCH_OP(op, asm_op, I, w, )
 #endif
 #ifdef CONFIG_RISCV_ATOMIC_COUNT_64
-#define ATOMIC_OPS(op, asm_op, I)	ATOMIC_FETCH_OP(op, asm_op, I, d)
+#define ATOMIC_OPS(op, asm_op, I)	ATOMIC_FETCH_OP(op, asm_op, I, d, )
 #endif
 
+ATOMIC32_OPS(and, and, i)
+ATOMIC32_OPS( or,  or, i)
+ATOMIC32_OPS(xor, xor, i)
+ATOMIC64_OPS(and, and, i)
+ATOMIC64_OPS( or,  or, i)
+ATOMIC64_OPS(xor, xor, i)
 ATOMIC_OPS(and, and, i)
 ATOMIC_OPS( or,  or, i)
 ATOMIC_OPS(xor, xor, i)
+#undef ATOMIC32_OPS
+#undef ATOMIC64_OPS
 #undef ATOMIC_OPS
 #undef ATOMIC_FETCH_OP
 #undef ATOMIC_OP_RETURN
@@ -452,8 +496,8 @@ ATOMIC_OPS(xor, xor, i)
 ({									\
 	typeof(*(ptr)) _o_ = (o);					\
 	typeof(*(ptr)) _n_ = (n);					\
-	(typeof(*(ptr))) __cmpxchg_release((ptr),			\
-					_o_, _n_, sizeof(*(ptr)));	\
+	(typeof(*(ptr))) __cmpxchg_release((ptr), _o_, _n_,		\
+					   sizeof(*(ptr)));		\
 })
 
 #define __cmpxchg(ptr, old, new, size)					\
@@ -513,68 +557,70 @@ ATOMIC_OPS(xor, xor, i)
 	cmpxchg((ptr), (o), (n));					\
 })
 
-#define ATOMIC_OP(c_t, size)						\
+#define ATOMIC_OP(c_t, size, prefix)					\
 static __always_inline							\
-c_t smp_hw_atomic_xchg_relaxed(atomic_t *v, c_t n)			\
+c_t smp_hw_atomic##prefix##_xchg_relaxed(atomic##prefix##_t *v, c_t n)	\
 {									\
 	return __xchg_relaxed(&(v->counter), n, size);			\
 }									\
 static __always_inline							\
-c_t smp_hw_atomic_xchg_acquire(atomic_t *v, c_t n)			\
+c_t smp_hw_atomic##prefix##_xchg_acquire(atomic##prefix##_t *v, c_t n)	\
 {									\
 	return __xchg_acquire(&(v->counter), n, size);			\
 }									\
 static __always_inline							\
-c_t smp_hw_atomic_xchg_release(atomic_t *v, c_t n)			\
+c_t smp_hw_atomic##prefix##_xchg_release(atomic##prefix##_t *v, c_t n)	\
 {									\
 	return __xchg_release(&(v->counter), n, size);			\
 }									\
 static __always_inline							\
-c_t smp_hw_atomic_xchg(atomic_t *v, c_t n)				\
+c_t smp_hw_atomic##prefix##_xchg(atomic##prefix##_t *v, c_t n)		\
 {									\
 	return __xchg(&(v->counter), n, size);				\
 }									\
 static __always_inline							\
-c_t smp_hw_atomic_cmpxchg_relaxed(atomic_t *v, c_t o, c_t n)		\
+c_t smp_hw_atomic##prefix##_cmpxchg_relaxed(atomic##prefix##_t *v,	\
+					    c_t o, c_t n)		\
 {									\
 	return __cmpxchg_relaxed(&(v->counter), o, n, size);		\
 }									\
 static __always_inline							\
-c_t smp_hw_atomic_cmpxchg_acquire(atomic_t *v, c_t o, c_t n)		\
+c_t smp_hw_atomic##prefix##_cmpxchg_acquire(atomic##prefix##_t *v,	\
+					    c_t o, c_t n)		\
 {									\
 	return __cmpxchg_acquire(&(v->counter), o, n, size);		\
 }									\
 static __always_inline							\
-c_t smp_hw_atomic_cmpxchg_release(atomic_t *v, c_t o, c_t n)		\
+c_t smp_hw_atomic##prefix##_cmpxchg_release(atomic##prefix##_t *v,	\
+					    c_t o, c_t n)		\
 {									\
 	return __cmpxchg_release(&(v->counter), o, n, size);		\
 }									\
 static __always_inline							\
-c_t smp_hw_atomic_cmpxchg(atomic_t *v, c_t o, c_t n)			\
+c_t smp_hw_atomic##prefix##_cmpxchg(atomic##prefix##_t *v, c_t o, c_t n)\
 {									\
 	return __cmpxchg(&(v->counter), o, n, size);			\
 }
 
+#define ATOMIC32_OPS()							\
+	ATOMIC_OP( int, 4, 32)
+#define ATOMIC64_OPS()							\
+	ATOMIC_OP(long, 8, 64)
 #ifdef CONFIG_RISCV_ATOMIC_COUNT_32
 #define ATOMIC_OPS()							\
-	ATOMIC_OP( int, 4)
+	ATOMIC_OP( int, 4, )
 #endif
 #ifdef CONFIG_RISCV_ATOMIC_COUNT_64
 #define ATOMIC_OPS()							\
-	ATOMIC_OP(long, 8)
+	ATOMIC_OP(long, 8, )
 #endif
 
+ATOMIC32_OPS()
+ATOMIC64_OPS()
 ATOMIC_OPS()
 
-#define atomic_xchg_relaxed		smp_hw_atomic_xchg_relaxed
-#define atomic_xchg_acquire		smp_hw_atomic_xchg_acquire
-#define atomic_xchg_release		smp_hw_atomic_xchg_release
-#define atomic_xchg			smp_hw_atomic_xchg
-#define atomic_cmpxchg_relaxed		smp_hw_atomic_cmpxchg_relaxed
-#define atomic_cmpxchg_acquire		smp_hw_atomic_cmpxchg_acquire
-#define atomic_cmpxchg_release		smp_hw_atomic_cmpxchg_release
-#define atomic_cmpxchg			smp_hw_atomic_cmpxchg
-
+#undef ATOMIC32_OPS
+#undef ATOMIC64_OPS
 #undef ATOMIC_OPS
 #undef ATOMIC_OP
 
@@ -599,6 +645,15 @@ ATOMIC_OPS()
 #define atomic_sub_return(i, v)		smp_hw_atomic_sub_return(i, v)
 #define atomic_add_return_relaxed(i, v)	smp_hw_atomic_add_return_relaxed(i, v)
 #define atomic_sub_return_relaxed(i, v)	smp_hw_atomic_sub_return_relaxed(i, v)
+
+#define atomic_xchg_relaxed		smp_hw_atomic_xchg_relaxed
+#define atomic_xchg_acquire		smp_hw_atomic_xchg_acquire
+#define atomic_xchg_release		smp_hw_atomic_xchg_release
+#define atomic_xchg			smp_hw_atomic_xchg
+#define atomic_cmpxchg_relaxed		smp_hw_atomic_cmpxchg_relaxed
+#define atomic_cmpxchg_acquire		smp_hw_atomic_cmpxchg_acquire
+#define atomic_cmpxchg_release		smp_hw_atomic_cmpxchg_release
+#define atomic_cmpxchg			smp_hw_atomic_cmpxchg
 
 static inline int
 smp_hw_atomic_fetch_and_acquire(int i, atomic_t *v)
