@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sat Sep  5 12:16:32 2020
+# Mon Sep  7 12:47:54 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -99,6 +99,7 @@ CONFIG_RISCV_SV39=y
 CONFIG_RISCV_ATOMIC_COUNT_32=y
 # CONFIG_RISCV_ATOMIC_COUNT_64 is not set
 CONFIG_RISCV_SPINLOCK_RAW=y
+# CONFIG_RISCV_SPINLOCK_TICKET is not set
 # CONFIG_RISCV_SPINLOCK_GENERIC is not set
 
 #
@@ -277,6 +278,7 @@ CONFIG_ARCH_HAS_FP=y
 #
 # Power management model (board) support
 #
+# CONFIG_FINISH is not set
 CONFIG_SHUTDOWN=y
 # CONFIG_REBOOT is not set
 # CONFIG_SUSPEND is not set

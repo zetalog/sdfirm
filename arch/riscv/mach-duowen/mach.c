@@ -76,7 +76,7 @@ uint8_t imc_boot_flash(void)
 }
 #endif
 
-#ifdef CONFIG_DUOWEN_APC_INIT
+#ifdef CONFIG_DUOWEN_PMA
 void duowen_pma_init(void)
 {
 	int n = 0;
@@ -86,6 +86,16 @@ void duowen_pma_init(void)
 		     ilog2_const(max(SZ_2M, DDR_SIZE)));
 	n += pma_set(n, PMA_AT_DEVICE,               DEV_BASE,
 		     ilog2_const(max(SZ_2M, DEV_SIZE)));
+
+#ifdef CONFIG_DUOWEN_LOAD_DDR_MODEL
+	{
+		void (*boot_entry)(void);
+
+		boot_entry = (void *)CONFIG_DUOWEN_BOOT_ADDR;
+		boot_entry();
+		unreachable();
+	}
+#endif
 }
 #endif
 
@@ -116,8 +126,8 @@ void board_finish(int code)
 #ifdef CONFIG_DUOWEN_LOAD
 void board_boot(void)
 {
-	uint8_t flash_sel = imc_boot_flash();
-	void (*boot_entry)(void);
+	__unused uint8_t flash_sel = imc_boot_flash();
+	void (*boot_entry)(void) = (void *)0x80;
 
 	board_init_clock();
 #ifdef CONFIG_DUOWEN_LOAD_SPI_FLASH
@@ -149,6 +159,7 @@ void board_boot(void)
 	}
 #endif
 	boot_entry();
+	unreachable();
 }
 #else
 #define board_boot()		do { } while (0)

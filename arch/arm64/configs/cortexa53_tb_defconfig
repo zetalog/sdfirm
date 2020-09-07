@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sat Sep  5 12:13:10 2020
+# Mon Sep  7 12:38:31 2020
 #
 CONFIG_ARM64=y
 
@@ -213,6 +213,7 @@ CONFIG_MMU_MAP_MEM=y
 #
 # Power management model (board) support
 #
+# CONFIG_FINISH is not set
 # CONFIG_SHUTDOWN is not set
 # CONFIG_REBOOT is not set
 # CONFIG_SUSPEND is not set

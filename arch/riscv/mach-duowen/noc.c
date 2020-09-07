@@ -41,8 +41,11 @@
 
 #include <target/arch.h>
 #include <target/noc.h>
+#include <target/clk.h>
 
 void duowen_noc_init(void)
 {
+	/* DDR clock must be enabled before configuring NoC */
+	clk_enable(ddr_clk);
 	ncore_init(MAX_CPU_CLUSTERS, 0, MAX_DDR_SEGMENTS, MAX_DDR_SEGMENTS);
 }

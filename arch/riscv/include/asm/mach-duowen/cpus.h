@@ -52,10 +52,13 @@
 #ifdef CONFIG_DUOWEN_APC_3
 #define MAX_CPU_NUM		3
 #define MAX_CPU_CLUSTERS	3
-#else /* CONFIG_DUOWEN_APC_3 */
+#elif defined(CONFIG_DUOWEN_APC_4)
+#define MAX_CPU_NUM		4
+#define MAX_CPU_CLUSTERS	4
+#else /* CONFIG_DUOWEN_APC_3/4 */
 #define MAX_CPU_NUM		16
 #define MAX_CPU_CLUSTERS	4
-#endif /* CONFIG_DUOWEN_APC_3 */
+#endif /* CONFIG_DUOWEN_APC_3/4 */
 #else /* CONFIG_SMP */
 #define MAX_CPU_NUM		1
 #define MAX_CPU_CLUSTERS	1

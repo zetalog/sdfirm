@@ -19,6 +19,9 @@
 
 	uart@ff63000000 {
 		interrupts = <0x54>;
+#ifdef CONFIG_DUOWEN_APC_4
+		interrupt-parent = <0x9>;
+#endif
 #ifdef CONFIG_DUOWEN_APC_3
 		interrupt-parent = <0x7>;
 #endif
@@ -49,6 +52,90 @@
 		#size-cells = <0x0>;
 		timebase-frequency = <0x989680>;
 
+#ifdef CONFIG_DUOWEN_APC_4
+		cpu-map {
+			cluster0 {
+				core0 {
+					cpu = <0x7>;
+				};
+			};
+			cluster1 {
+				core1 {
+					cpu = <0x5>;
+				};
+			};
+			cluster2 {
+				core2 {
+					cpu = <0x3>;
+				};
+			};
+			cluster3 {
+				core3 {
+					cpu = <0x1>;
+				};
+			};
+		};
+		cpu@0 {
+			phandle = <0x7>;
+			device_type = "cpu";
+			reg = <0x0>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x8>;
+			};
+		};
+		cpu@1 {
+			phandle = <0x5>;
+			device_type = "cpu";
+			reg = <0x1>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x6>;
+			};
+		};
+		cpu@2 {
+			phandle = <0x3>;
+			device_type = "cpu";
+			reg = <0x2>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x4>;
+			};
+		};
+		cpu@3 {
+			phandle = <0x1>;
+			device_type = "cpu";
+			reg = <0x3>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x2>;
+			};
+		};
+#endif
 #ifdef CONFIG_DUOWEN_APC_3
 		cpu-map {
 			cluster0 {
@@ -160,6 +247,9 @@
 		ranges;
 
 		interrupt-controller@ff70000000 {
+#ifdef CONFIG_DUOWEN_APC_4
+			phandle = <0x9>;
+#endif
 #ifdef CONFIG_DUOWEN_APC_3
 			phandle = <0x7>;
 #endif

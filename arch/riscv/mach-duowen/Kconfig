@@ -59,9 +59,11 @@ config DUOWEN_ZSBL
 	select LOAD_DATA
 	select SYS_ENTR_M
 	select SYS_EXIT_M
-	select DUOWEN_SPI_FLASH
-	select DUOWEN_SSI_FLASH
+	select DUOWEN_SPI_FLASH if !DUOWEN_APC
+	select DUOWEN_SSI_FLASH if !DUOWEN_APC
 	select DUOWEN_APC_INIT if DUOWEN_APC
+	select DUOWEN_NOC if DUOWEN_APC
+	select DUOWEN_PMA if DUOWEN_APC
 
 config DUOWEN_FSBL
 	bool "1-stage programmable bootloader (FSBL)"
@@ -76,8 +78,9 @@ config DUOWEN_FSBL
 	select DUOWEN_DDR
 	select DUOWEN_SPI_FLASH
 	select DUOWEN_SSI_FLASH
-	select DUOWEN_NOC
 	select DUOWEN_APC_INIT if (!DUOWEN_SBL_LOAD && DUOWEN_APC)
+	select DUOWEN_NOC if (!DUOWEN_SBL_LOAD && DUOWEN_APC)
+	select DUOWEN_PMA if (!DUOWEN_SBL_LOAD && DUOWEN_APC)
 
 config DUOWEN_BBL
 	bool "Berkeley bootloader (BBL)"
@@ -95,6 +98,8 @@ config DUOWEN_BBL
 	select DUOWEN_SPI_FLASH
 	select DUOWEN_NOC if !DUOWEN_SBL_LOAD
 	select DUOWEN_APC_INIT if !DUOWEN_SBL_LOAD
+	select DUOWEN_NOC if !DUOWEN_SBL_LOAD
+	select DUOWEN_PMA if !DUOWEN_SBL_LOAD
 
 config DUOWEN_TB
 	bool "Test bench"
@@ -144,9 +149,14 @@ config DUOWEN_LOAD_SPI_FLASH
 	depends DUOWEN_SPI_FLASH
 	depends DUOWEN_ZSBL || (DUOWEN_FSBL && DUOWEN_FSBL_SPI)
 
+config DUOWEN_LOAD_DDR_MODEL
+	bool "Enable load from DDR model"
+	depends DUOWEN_DDR_32M
+	depends DUOWEN_ZSBL || (DUOWEN_FSBL && DUOWEN_FSBL_SPI)
+
 config DUOWEN_BOOT_ADDR
 	hex "Bootloader SPI flash jump address"
-	depends DUOWEN_LOAD_SPI_FLASH
+	depends DUOWEN_LOAD_SPI_FLASH || DUOWEN_LOAD_DDR_MODEL
 
 config DUOWEN_LOAD_SSI_FLASH
 	bool "Enable load from SSI flash"
@@ -189,7 +199,12 @@ endchoice
 config DUOWEN_APC_3
 	bool "3 VAISRA CPUs"
 	depends SMP
-	depends DUOWEN_FPGA || DUOWEN_ZEBU
+	depends DUOWEN_FPGA
+
+config DUOWEN_APC_4
+	bool "4 VAISRA CPUs"
+	depends SMP
+	depends DUOWEN_ZEBU
 
 config DUOWEN_SIM_LOAD
 	bool "Enable loading by simulator"
@@ -215,12 +230,17 @@ menuconfig DUOWEN_MSG
 endmenu
 
 config DUOWEN_APC_INIT
-	bool "Vaisra self initialization support"
+	bool "Duowen vaisra initialization support"
 	depends DUOWEN_APC
+
+config DUOWEN_PMA
+	bool "Duowen physical memory attributes (PMA) support"
+	depends DUOWEN_APC
+	select VAISRA_PMA
 
 menuconfig DUOWEN_NOC
 	bool "Duowen network on chip (NoC) support"
-	depends DUOWEN_APC || !DUOWEN_ZSBL
+	depends DUOWEN_APC
 	select NCORE
 	help
 	  NoC driver is required by FSBL or BBL before booting into Linux.

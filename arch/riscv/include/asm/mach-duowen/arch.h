@@ -120,7 +120,7 @@
 #endif
 	.endm
 	.macro	boot2_hook
-#ifdef CONFIG_DUOWEN_APC_INIT
+#ifdef CONFIG_DUOWEN_PMA
 	jal	ra, duowen_pma_init
 #endif
 	.endm
@@ -135,7 +135,7 @@ void vaisra_cpu_init(void);
 #else
 #define vaisra_cpu_init()	do { } while (0)
 #endif
-#ifdef CONFIG_DUOWEN_APC_INIT
+#ifdef CONFIG_DUOWEN_PMA
 void duowen_pma_init(void);
 #else
 #define duowem_pma_init()	do { } while (0)

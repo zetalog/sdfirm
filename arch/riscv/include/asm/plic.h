@@ -174,7 +174,6 @@ void irqc_hw_handle_irq(void);
 #ifndef CONFIG_PLIC_COMPLETION
 void irqc_hw_ack_irq(irq_t irq);
 #endif
-
 #ifdef CONFIG_SBI
 /* PLIC requires no special initialization other than that is done
  * in SBI.
@@ -200,6 +199,26 @@ void irqc_hw_ack_irq(irq_t irq);
 /* Specially when a platform supports CLINT and uses that as IRQC */
 #define irqc_hw_ctrl_init()	do { } while (0)
 #define irqc_hw_handle_irq()	do { } while (0)
+#define irqc_hw_enable_irq(irq)		do { } while (0)
+#define irqc_hw_disable_irq(irq)	do { } while (0)
+#ifdef CONFIG_PLIC_MASK_PRIORITY
+#define irqc_hw_mask_irq(irq)		do { } while (0)
+#define irqc_hw_unmask_irq(irq)		do { } while (0)
+#endif
+#define irqc_hw_clear_irq(irq)		do { } while (0)
+#define irqc_hw_trigger_irq(irq)	do { } while (0)
+#define irqc_hw_configure_irq(irq, prio, trigger)	\
+					do { } while (0)
+#define irqc_hw_handle_irq()		do { } while (0)
+#ifdef CONFIG_PLIC_MASK_PRIORITY
+#define irqc_hw_ack_irq(irq)		do { } while (0)
+#endif
+#ifdef CONFIG_SMP
+#define irqc_hw_smp_init()		do { } while (0)
+#endif /* CONFIG_SMP */
+#ifdef CONFIG_MMU
+#define irqc_hw_mmu_init()		do { } while (0)
+#endif /* CONFIG_SMP */
 #endif /* CONFIG_PLIC */
 #endif /* ARCH_HAVE_IRQC */
 

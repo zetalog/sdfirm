@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sat Sep  5 12:13:52 2020
+# Mon Sep  7 12:40:31 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -85,6 +85,7 @@ CONFIG_RISCV_SV39=y
 # CONFIG_RISCV_ATOMIC_COUNT_32 is not set
 CONFIG_RISCV_ATOMIC_COUNT_64=y
 CONFIG_RISCV_SPINLOCK_RAW=y
+# CONFIG_RISCV_SPINLOCK_TICKET is not set
 # CONFIG_RISCV_SPINLOCK_GENERIC is not set
 
 #
