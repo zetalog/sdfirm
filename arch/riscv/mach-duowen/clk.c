@@ -234,7 +234,7 @@ struct output_clk output_clks[] = {
 		.clk_src = ddr_clk_div4_sel,
 #ifdef CONFIG_DUOWEN_DDR_EARLY_CLOCK
 		.flags = CLK_C,
-	}
+	},
 	[DDR_RST] = {
 		.clk_dep = invalid_clk,
 		.clk_src = ddr_clk,
