@@ -69,40 +69,56 @@
 #define TICKET_MASK	((ULL(1) << TICKET_BITS) - 1)
 
 typedef struct {
-	atomic32_t lock;
+	union {
+		uint64_t lock;
+		struct {
+			atomic32_t owner;
+			atomic32_t next;
+		};
+	};
 } spinlock_t;
 
 #define DEFINE_SPINLOCK(lock)		spinlock_t lock = { 0 }
-#define smp_hw_spin_init(x)		INIT_ATOMIC(&((x)->lock), 0)
+#define smp_hw_spin_init(x)		WRITE_ONCE(((x)->lock), 0)
+
+#define __ticket_matched(t, o)		((t) == (o))
 
 static inline int smp_hw_spin_locked(spinlock_t *lock)
 {
-	uint32_t tmp = smp_hw_atomic32_read(&(lock->lock));
+	uint32_t t = smp_hw_atomic32_read(&lock->next);
+	uint32_t o = smp_hw_atomic32_read(&lock->owner);
 
-	return !!(((tmp >> TICKET_SHIFT) ^ tmp) & TICKET_MASK);
+	return !__ticket_matched(t, o);
 }
 
 static inline int smp_hw_spin_trylock(spinlock_t *lock)
 {
-	uint32_t tmp = smp_hw_atomic32_read(&(lock->lock));
-	uint32_t lockval = tmp & TICKET_MASK;
-	atomic32_count_t oldv = lockval | (lockval << TICKET_SHIFT);
-	atomic32_count_t newv = oldv + (UL(1) << TICKET_SHIFT);
+	uint32_t t = smp_hw_atomic32_add_return(1, &lock->next);
+	uint32_t o = smp_hw_atomic32_read(&lock->owner);
 
-	return !!(smp_hw_atomic32_cmpxchg(&(lock->lock), oldv, newv) == oldv);
+	if (__ticket_matched(t - 1, o))
+		return 1;
+
+	smp_hw_atomic32_sub(1, &lock->next);
+	return 0;
 }
 
 static inline void smp_hw_spin_lock(spinlock_t *lock)
 {
-	smp_hw_atomic32_add(ULL(1) << TICKET_SHIFT, &lock->lock);
+	uint32_t t = smp_hw_atomic32_add_return(1, &lock->next);
+	uint32_t o;
 
-	while (!smp_hw_spin_locked(lock))
+	do {
+		o = smp_hw_atomic32_read(&lock->owner);
+		if (__ticket_matched(t - 1, o))
+			return;
 		cpu_relax();
+	} while (1);
 }
 
 static inline void smp_hw_spin_unlock(spinlock_t *lock)
 {
-	smp_hw_atomic32_add(1, &(lock->lock));
+	smp_hw_atomic32_add(1, &lock->owner);
 }
 #endif
 
