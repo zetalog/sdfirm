@@ -318,12 +318,8 @@
 #define PCIE_PCLK		((clk_clk_t)99)
 #define SD_BCLK			((clk_clk_t)100)
 #define SD_CCLK			((clk_clk_t)101)
-#ifdef CONFIG_DUOWEN_DDR_EARLY_CLOCK
 #define DDR_RST			((clk_clk_t)102)
 #define NR_OUTPUT_CLKS		(DDR_RST + 1)
-#else
-#define NR_OUTPUT_CLKS		(SD_CCLK + 1)
-#endif
 
 /* CLK_OUTPUT: CLK_EN_CFG0 */
 /* Integrated overall clocks */
@@ -360,9 +356,7 @@
 #define pcie_pclk		clkid(CLK_OUTPUT, PCIE_PCLK)
 #define sd_bclk			clkid(CLK_OUTPUT, SD_BCLK)
 #define sd_cclk			clkid(CLK_OUTPUT, SD_CCLK)
-#ifdef CONFIG_DUOWEN_DDR_EARLY_CLOCK
 #define ddr_rst			clkid(CLK_OUTPUT, DDR_RST)
-#endif
 /* Alias for AO domain clocks */
 #define imc_clk			sysfab_clk
 #define ram_aclk		sysfab_clk

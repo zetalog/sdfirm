@@ -6,7 +6,8 @@ void ddr_init(void)
 {
 	/* TODO: SPD initialization */
 	ddr_config_speed(ddr_spd);
-	ddr_hw_ctrl_init();
 	ddr_enable_speed(ddr_spd);
+
+	ddr_hw_ctrl_init();
 	ddr_hw_ctrl_start();
 }

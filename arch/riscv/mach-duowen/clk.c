@@ -232,7 +232,6 @@ struct output_clk output_clks[] = {
 	[DDR_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = ddr_clk_div4_sel,
-#ifdef CONFIG_DUOWEN_DDR_EARLY_CLOCK
 		.flags = CLK_C,
 	},
 	[DDR_RST] = {
@@ -240,10 +239,6 @@ struct output_clk output_clks[] = {
 		.clk_src = ddr_clk,
 		.flags = CLK_DDR_RST_F,
 	},
-#else
-		.flags = CLK_CR,
-	},
-#endif
 	/* 4.7 PCIE Clocks
 	 * +-> pcie_aux_clk              +-----+ -> pcie_alt_ref_clk_n
 	 * |                             | inv |
@@ -710,9 +705,7 @@ const char *output_clk_names[] = {
 	[DDR_BYPASS_PCLK] = "ddr_bypass_pclk",
 	[DDR_CLK] = "ddr_clk",
 	[DDR_BYPASS_PCLK] = "ddrp0_bypass_pclk",
-#ifdef CONFIG_DUOWEN_DDR_EARLY_CLOCK
 	[DDR_RST] = "ddr_rst",
-#endif
 	/* 4.7 PCIE Clocks */
 	[PCIE_POR] = "pcie_por",
 	[PCIE_PCLK] = "pcie_pclk",
