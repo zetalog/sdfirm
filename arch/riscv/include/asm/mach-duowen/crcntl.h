@@ -46,7 +46,6 @@
 #define __dw_pll_read(pll, reg)		duowen_pll_reg_read(pll, reg)
 #define __dw_pll_write(pll, reg, val)	duowen_pll_reg_write(pll, reg, val)
 
-#ifdef CONFIG_CRCNTL_UNIFIED
 #define DUOWEN_MAX_PLLS			9
 extern phys_addr_t duowen_pll_reg_base[];
 #define DW_PLL_BASE(pll)		duowen_pll_reg_base[pll]
@@ -57,14 +56,6 @@ extern phys_addr_t duowen_pll_reg_base[];
 #define DW_PLL_STATUS(pll)		DW_PLL_REG(pll, 0x0C)
 #define DW_PLL_REG_ACCESS(pll)		DW_PLL_REG(pll, 0x10)
 #define DW_PLL_REG_TIMING(pll)		DW_PLL_REG(pll, 0x14)
-#else
-#define DW_PLL_CFG0(pll)		CRCNTL_PLL_CFG0(pll)
-#define DW_PLL_CFG1(pll)		CRCNTL_PLL_CFG1(pll)
-#define DW_PLL_CFG2(pll)		CRCNTL_PLL_CFG2(pll)
-#define DW_PLL_STATUS(pll)		CRCNTL_PLL_STATUS(pll)
-#define DW_PLL_REG_ACCESS(pll)		CRCNTL_PLL_REG_ACCESS(pll)
-#define DW_PLL_REG_TIMING(pll)		CRCNTL_PLL_REG_TIMING(pll)
-#endif
 
 #include <driver/dw_pll5ghz_tsmc12ffc.h>
 
@@ -204,7 +195,6 @@ void crcntl_trace(bool enabling, const char *name);
 #define crcntl_trace_disable()		do { } while (0)
 #define crcntl_trace(enabling, name)	do { } while (0)
 #endif
-void crcntl_init(void);
 
 /* DUOWEN unitified PLL (crcntl, cluster, cohfab) API */
 #define duowen_pll_enable(pll, freq)		\

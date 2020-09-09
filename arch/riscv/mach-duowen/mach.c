@@ -167,7 +167,7 @@ void board_boot(void)
 
 void board_init_clock(void)
 {
-	crcntl_init();
+	duowen_clk_init();
 }
 
 void board_early_init(void)

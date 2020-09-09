@@ -105,7 +105,7 @@ struct output_clk output_clks[] = {
 	 * +--------+ -> +---------+ -> +--------------+ -> +-------------+ -> cohfab_clk
 	 * | xo_clk |    | soc_pll |    | soc_pll_div4 |    | soc_clk_sel |
 	 * +--------+    +---------+    +--------------+    +-------------+
-	 * |                       |    +--------------+ -> +-------------+ -> cohfab_cfg_hclk
+	 * |                       |    +--------------+ -> +-------------+ -> cohfab_cfg_clk
 	 * |                       |    | soc_pll_div2 |    | soc_clk_sel |
 	 * |                       +--> +--------------+    +-------------+
 	 * |                                                              ^
@@ -964,21 +964,75 @@ struct clk_driver clk_div = {
 /*===========================================================================
  * Clock tree APIs
  *===========================================================================*/
-static bool clk_hw_init = false;
+#define DUOWEN_CLK_REG_INIT	_BV(0)
+#define DUOWEN_CLK_IMC_INIT	_BV(1)
+#define DUOWEN_CLK_APC_INIT	_BV(2)
 
-void crcntl_init(void)
+static uint8_t clk_hw_init;
+
+#if 0
+#define __cohfab_clk	cohfab_clk
+#define __cl0_clk	cl0_clk
+#define __cl1_clk	cl1_clk
+#define __cl2_clk	cl2_clk
+#define __cl3_clk	cl3_clk
+#else
+#define __cohfab_clk	cohfab_pll
+#define __cl0_clk	cl0_pll
+#define __cl1_clk	cl1_pll
+#define __cl2_clk	cl2_pll
+#define __cl3_clk	cl3_pll
+#endif
+
+void duowen_clk_apc_init(void)
 {
-	if (!clk_hw_init) {
-		clk_pll_init();
-		clk_register_driver(CLK_OUTPUT, &clk_output);
-		clk_register_driver(CLK_DIV, &clk_div);
+	if (!(clk_hw_init & DUOWEN_CLK_APC_INIT)) {
+		clk_enable(cohfab_cfg_clk);
+		clk_enable(cohfab_hclk);
+		clk_enable(__cohfab_clk);
+		clk_enable(cluster0_hclk);
+		clk_enable(__cl0_clk);
+#ifdef CONFIG_SMP
+		clk_enable(cluster1_hclk);
+		clk_enable(cluster2_hclk);
+		clk_enable(__cl1_clk);
+		clk_enable(__cl2_clk);
+#ifndef CONFIG_DUOWEN_APC_3
+		clk_enable(cluster3_hclk);
+		clk_enable(__cl3_clk);
+#endif /* !CONFIG_DUOWEN_APC_3 */
+#endif /* CONFIG_SMP */
+		clk_hw_init |= DUOWEN_CLK_APC_INIT;
+	}
+}
 
+void duowen_clk_imc_init(void)
+{
+	if (!(clk_hw_init & DUOWEN_CLK_IMC_INIT)) {
 		/* Update the status of the default enabled clocks */
 		clk_enable(soc_pll);
 		clk_enable(sysfab_clk);
 		clk_enable(sysfab_half_clk);
+		clk_hw_init |= DUOWEN_CLK_IMC_INIT;
 	}
-	clk_hw_init = true;
+}
+
+#ifdef CONFIG_DUOWEN_IMC
+#define duowen_clk_boot()		duowen_clk_imc_init()
+#endif
+#ifdef CONFIG_DUOWEN_APC
+#define duowen_clk_boot()		duowen_clk_apc_init()
+#endif
+
+void duowen_clk_init(void)
+{
+	if (!(clk_hw_init & DUOWEN_CLK_REG_INIT)) {
+		clk_pll_init();
+		clk_register_driver(CLK_OUTPUT, &clk_output);
+		clk_register_driver(CLK_DIV, &clk_div);
+		clk_hw_init |= DUOWEN_CLK_REG_INIT;
+	}
+	duowen_clk_boot();
 }
 
 void clk_hw_ctrl_init(void)

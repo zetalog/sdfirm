@@ -45,7 +45,6 @@
 /*===========================================================================
  * DUOWEN unitified PLL (crcntl, cohfab, cluster) APIs
  *===========================================================================*/
-#ifdef CONFIG_CRCNTL_UNIFIED
 phys_addr_t duowen_pll_reg_base[DUOWEN_MAX_PLLS] = {
 	__CRCNTL_PLL_REG(0, 0),
 	__CRCNTL_PLL_REG(1, 0),
@@ -57,7 +56,6 @@ phys_addr_t duowen_pll_reg_base[DUOWEN_MAX_PLLS] = {
 	__DUOWEN_APC_CLK_BASE(2),
 	__DUOWEN_APC_CLK_BASE(3),
 };
-#endif
 
 void duowen_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val)
 {

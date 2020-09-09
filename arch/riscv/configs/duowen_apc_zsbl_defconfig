@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Sep  7 12:44:41 2020
+# Wed Sep  9 16:31:35 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -192,7 +192,6 @@ CONFIG_DUOWEN_UART=y
 CONFIG_DUOWEN_TMR=y
 # CONFIG_DUOWEN_TMR_CRCNTL_INIT is not set
 CONFIG_CRCNTL=y
-# CONFIG_CRCNTL_UNIFIED is not set
 # CONFIG_CRCNTL_TRACE is not set
 # CONFIG_DUOWEN_SPI_FLASH is not set
 # CONFIG_DUOWEN_SD is not set
@@ -206,6 +205,7 @@ CONFIG_CRCNTL=y
 CONFIG_DUOWEN_DDR_32M=y
 # CONFIG_DUOWEN_DDR_512G is not set
 # CONFIG_DUOWEN_DDR_16G is not set
+# CONFIG_DUOWEN_DDR_EARLY_CLOCK is not set
 
 #
 # Feature setup

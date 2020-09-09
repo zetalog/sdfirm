@@ -931,7 +931,6 @@ int bench_simple(uint64_t cpu_mask, struct cpu_exec_test *fn, bool sync)
 	}
 
 	if (sync) {
-		printf("syncing...\n");
 		spin_lock(&cpu_exec_lock);
 		while (1) {
 			spin_unlock(&cpu_exec_lock);

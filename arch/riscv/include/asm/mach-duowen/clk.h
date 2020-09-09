@@ -482,4 +482,8 @@ void clk_apply_pll(clk_clk_t clk, clk_freq_t freq);
 #define clk_apply_pll(clk, freq)		do { } while (0)
 #endif
 
+void duowen_clk_init(void);
+void duowen_imc_clk_init(void);
+void duowen_apc_clk_init(void);
+
 #endif /* __CLK_DUOWEN_H_INCLUDE__ */

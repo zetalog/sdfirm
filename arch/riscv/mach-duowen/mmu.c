@@ -98,11 +98,9 @@ void duowen_mmu_map_clk(void)
 			duowen_apc_clk_reg_base[i] = fix_to_virt(FIX_APC0 + i);
 		}
 	}
-#ifdef CONFIG_CRCNTL_UNIFIED
 	for (i = 0; i < 4; i++)
 		duowen_pll_reg_base[i] = CRCNTL_PLL_REG(i, 0);
 	duowen_pll_reg_base[4] = COHFAB_PLL_REG(0);
 	for (i = 0; i < 4; i++)
 		duowen_pll_reg_base[5 + i] = CLUSTER_PLL_REG(i, 0);
-#endif
 }
