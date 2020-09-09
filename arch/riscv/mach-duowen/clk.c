@@ -53,56 +53,54 @@ struct output_clk output_clks[] = {
 	/* 4.2 Cluster Clocks
 	 * +--------------------------------------------------------------+
 	 * |                                                              v
-	 * +--------+ -> +---------+ -> +--------------+    +-------------+ -> cluster_clk
+	 * +--------+ -> +---------+ -> +--------------+    +-------------+ -> cluster_hclk
 	 * | xo_clk |    | soc_pll |    | soc_pll_div4 |    | soc_clk_sel |
 	 * +--------+    +---------+    +--------------+ -> +-------------+
 	 */
-#if 0
 	[CLUSTER0_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = cl0_clk,
-		.flags = CLK_CR,
+		.clk_dep = cluster0_hclk,
+		.clk_src = cl0_clk_sel,
+		.flags = CLK_CR | CLK_COHFAB_CFG_F,
 	},
 	[CLUSTER1_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = cl1_clk,
-		.flags = CLK_CR,
+		.clk_dep = cluster1_hclk,
+		.clk_src = cl1_clk_sel,
+		.flags = CLK_CR | CLK_COHFAB_CFG_F,
 	},
 	[CLUSTER2_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = cl2_clk,
-		.flags = CLK_CR,
+		.clk_dep = cluster2_hclk,
+		.clk_src = cl2_clk_sel,
+		.flags = CLK_CR | CLK_COHFAB_CFG_F,
 	},
 	[CLUSTER3_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = cl3_clk,
-		.flags = CLK_CR,
+		.clk_dep = cluster3_hclk,
+		.clk_src = cl3_clk_sel,
+		.flags = CLK_CR | CLK_COHFAB_CFG_F,
 	},
-#endif
 	[CLUSTER0_HCLK] = {
-		.clk_dep = invalid_clk,
+		.clk_dep = cohfab_cfg_clk,
 		.clk_src = sysfab_clk,
 		.flags = CLK_CR,
 	},
 	[CLUSTER1_HCLK] = {
-		.clk_dep = invalid_clk,
+		.clk_dep = cohfab_cfg_clk,
 		.clk_src = sysfab_clk,
 		.flags = CLK_CR,
 	},
 	[CLUSTER2_HCLK] = {
-		.clk_dep = invalid_clk,
+		.clk_dep = cohfab_cfg_clk,
 		.clk_src = sysfab_clk,
 		.flags = CLK_CR,
 	},
 	[CLUSTER3_HCLK] = {
-		.clk_dep = invalid_clk,
+		.clk_dep = cohfab_cfg_clk,
 		.clk_src = sysfab_clk,
 		.flags = CLK_CR,
 	},
 	/* 4.3 Coherence Fabric Clocks
 	 * +--------------------------------------------------------------+
 	 * |                                                              v
-	 * +--------+ -> +---------+ -> +--------------+ -> +-------------+ -> cohfab_clk
+	 * +--------+ -> +---------+ -> +--------------+ -> +-------------+ -> cohfab_hclk
 	 * | xo_clk |    | soc_pll |    | soc_pll_div4 |    | soc_clk_sel |
 	 * +--------+    +---------+    +--------------+    +-------------+
 	 * |                       |    +--------------+ -> +-------------+ -> cohfab_cfg_clk
@@ -111,15 +109,13 @@ struct output_clk output_clks[] = {
 	 * |                                                              ^
 	 * +--------------------------------------------------------------+
 	 */
-#if 0
 	[COHFAB_CLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = cfab_clk,
-		.flags = CLK_CR,
+		.clk_dep = cohfab_hclk,
+		.clk_src = cohfab_clk_sel,
+		.flags = CLK_CR | CLK_COHFAB_CFG_F,
 	},
-#endif
 	[COHFAB_HCLK] = {
-		.clk_dep = invalid_clk,
+		.clk_dep = cohfab_cfg_clk,
 		.clk_src = sysfab_clk,
 		.flags = CLK_CR,
 	},
@@ -673,20 +669,16 @@ struct output_clk output_clks[] = {
 #ifdef CONFIG_CONSOLE_COMMAND
 const char *output_clk_names[] = {
 	/* 4.2 Cluster Clocks */
-#if 0
 	[CLUSTER0_CLK] = "cluster0_clk",
 	[CLUSTER1_CLK] = "cluster1_clk",
 	[CLUSTER2_CLK] = "cluster2_clk",
 	[CLUSTER3_CLK] = "cluster3_clk",
-#endif
 	[CLUSTER0_HCLK] = "cluster0_hclk",
 	[CLUSTER1_HCLK] = "cluster1_hclk",
 	[CLUSTER2_HCLK] = "cluster2_hclk",
 	[CLUSTER3_HCLK] = "cluster3_hclk",
 	/* 4.3 Coherence Fabric Clocks */
-#if 0
 	[COHFAB_CLK] = "cohfab_clk",
-#endif
 	[COHFAB_HCLK] = "cohfab_hclk",
 	[COHFAB_CFG_CLK] = "cohfab_cfg_clk",
 	/* 4.4 System Fabric Clocks */
@@ -808,10 +800,18 @@ static int enable_output_clk(clk_clk_t clk)
 	}
 	if (output_clks[clk].clk_src != invalid_clk)
 		clk_enable(output_clks[clk].clk_src);
-	if (output_clks[clk].flags & CLK_CLK_EN_F)
-		crcntl_clk_enable(clk);
-	if (output_clks[clk].flags & CLK_SW_RST_F)
-		crcntl_clk_deassert(clk);
+	if (output_clks[clk].flags & CLK_CLK_EN_F) {
+		if (output_clks[clk].flags & CLK_COHFAB_CFG_F)
+			cohfab_clk_enable(clk - COHFAB_CLK);
+		else
+			crcntl_clk_enable(clk);
+	}
+	if (output_clks[clk].flags & CLK_SW_RST_F) {
+		if (output_clks[clk].flags & CLK_COHFAB_CFG_F)
+			cohfab_clk_deassert(clk - COHFAB_CLK);
+		else
+			crcntl_clk_deassert(clk);
+	}
 	if (output_clks[clk].flags & CLK_DDR_RST_F)
 		crcntl_clk_deassert(DDR_CLK);
 	return 0;
@@ -833,10 +833,18 @@ static void disable_output_clk(clk_clk_t clk)
 		clk_disable(output_clks[clk].clk_src);
 	if (output_clks[clk].flags & CLK_DDR_RST_F)
 		crcntl_clk_assert(DDR_CLK);
-	if (output_clks[clk].flags & CLK_SW_RST_F)
-		crcntl_clk_assert(clk);
-	if (output_clks[clk].flags & CLK_CLK_EN_F)
-		crcntl_clk_disable(clk);
+	if (output_clks[clk].flags & CLK_SW_RST_F) {
+		if (output_clks[clk].flags & CLK_COHFAB_CFG_F)
+			cohfab_clk_assert(clk - COHFAB_CLK);
+		else
+			crcntl_clk_assert(clk);
+	}
+	if (output_clks[clk].flags & CLK_CLK_EN_F) {
+		if (output_clks[clk].flags & CLK_COHFAB_CFG_F)
+			cohfab_clk_disable(clk - COHFAB_CLK);
+		else
+			crcntl_clk_disable(clk);
+	}
 }
 
 static clk_freq_t get_output_clk_freq(clk_clk_t clk)
@@ -970,36 +978,16 @@ struct clk_driver clk_div = {
 
 static uint8_t clk_hw_init;
 
-#if 0
-#define __cohfab_clk	cohfab_clk
-#define __cl0_clk	cl0_clk
-#define __cl1_clk	cl1_clk
-#define __cl2_clk	cl2_clk
-#define __cl3_clk	cl3_clk
-#else
-#define __cohfab_clk	cohfab_pll
-#define __cl0_clk	cl0_pll
-#define __cl1_clk	cl1_pll
-#define __cl2_clk	cl2_pll
-#define __cl3_clk	cl3_pll
-#endif
-
 void duowen_clk_apc_init(void)
 {
 	if (!(clk_hw_init & DUOWEN_CLK_APC_INIT)) {
-		clk_enable(cohfab_cfg_clk);
-		clk_enable(cohfab_hclk);
-		clk_enable(__cohfab_clk);
-		clk_enable(cluster0_hclk);
-		clk_enable(__cl0_clk);
+		clk_enable(cohfab_clk);
+		clk_enable(cluster0_clk);
 #ifdef CONFIG_SMP
-		clk_enable(cluster1_hclk);
-		clk_enable(cluster2_hclk);
-		clk_enable(__cl1_clk);
-		clk_enable(__cl2_clk);
+		clk_enable(cluster1_clk);
+		clk_enable(cluster2_clk);
 #ifndef CONFIG_DUOWEN_APC_3
-		clk_enable(cluster3_hclk);
-		clk_enable(__cl3_clk);
+		clk_enable(cluster3_clk);
 #endif /* !CONFIG_DUOWEN_APC_3 */
 #endif /* CONFIG_SMP */
 		clk_hw_init |= DUOWEN_CLK_APC_INIT;

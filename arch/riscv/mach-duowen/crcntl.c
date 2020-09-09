@@ -77,7 +77,7 @@ uint8_t duowen_pll_reg_read(uint8_t pll, uint8_t reg)
 }
 
 /*===========================================================================
- * CRCNTL APIs
+ * CRCNTL SYSFAB APIs
  *===========================================================================*/
 bool crcntl_clk_asserted(clk_clk_t clk)
 {
@@ -156,6 +156,74 @@ void crcntl_clk_deselect(clk_clk_t clk)
 {
 	if (crcntl_clk_selected(clk))
 		__raw_setl(_BV(clk), CRCNTL_CLK_SEL_CFG);
+}
+
+/*===========================================================================
+ * CRCNTL COHFAB APIs
+ *===========================================================================*/
+bool cohfab_clk_asserted(clk_clk_t clk)
+{
+	if (clk)
+		return !!(__raw_readl(CLUSTER_RESET_CTRL(clk - 1)) &
+		       CLUSTER_POR_RST);
+	else
+		return !!(__raw_readl(COHFAB_RESET_CTRL(clk)) & COHFAB_RESET);
+}
+
+void cohfab_clk_assert(clk_clk_t clk)
+{
+	if (!cohfab_clk_asserted(clk)) {
+		if (clk)
+			__raw_setl(CLUSTER_POR_RST,
+				   CLUSTER_RESET_CTRL(clk - 1));
+		else
+			__raw_setl(COHFAB_RESET, COHFAB_RESET_CTRL(clk));
+	}
+}
+
+void cohfab_clk_deassert(clk_clk_t clk)
+{
+	if (cohfab_clk_asserted(clk)) {
+		if (clk)
+			__raw_clearl(CLUSTER_POR_RST,
+				     CLUSTER_RESET_CTRL(clk - 1));
+		else
+			__raw_clearl(COHFAB_RESET, COHFAB_RESET_CTRL(clk));
+	}
+}
+
+bool cohfab_clk_enabled(clk_clk_t clk)
+{
+	return !!(__raw_readl(COHFAB_CLK_CFG(clk)) & COHFAB_CLOCK_ON);
+}
+
+void cohfab_clk_enable(clk_clk_t clk)
+{
+	if (!cohfab_clk_enabled(clk))
+		__raw_setl(COHFAB_CLOCK_ON, COHFAB_CLK_CFG(clk));
+}
+
+void cohfab_clk_disable(clk_clk_t clk)
+{
+	if (cohfab_clk_enabled(clk))
+		__raw_clearl(COHFAB_CLOCK_ON, COHFAB_CLK_CFG(clk));
+}
+
+bool cohfab_clk_selected(clk_clk_t clk)
+{
+	return !(__raw_readl(COHFAB_CLK_CFG(clk)) & COHFAB_CLOCK_SEL);
+}
+
+void cohfab_clk_select(clk_clk_t clk)
+{
+	if (!cohfab_clk_selected(clk))
+		__raw_clearl(COHFAB_CLOCK_SEL, COHFAB_CLK_CFG(clk));
+}
+
+void cohfab_clk_deselect(clk_clk_t clk)
+{
+	if (cohfab_clk_selected(clk))
+		__raw_setl(COHFAB_CLOCK_SEL, COHFAB_CLK_CFG(clk));
 }
 
 #ifdef CONFIG_CRCNTL_TRACE

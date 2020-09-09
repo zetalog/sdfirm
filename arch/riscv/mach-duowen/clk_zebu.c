@@ -80,6 +80,41 @@ struct select_clk select_clks[] = {
 		},
 	},
 #endif
+	[COHFAB_CLK_SEL] = {
+		.clk_sels = {
+			cohfab_pll,
+			xo_clk,
+		},
+		.flags = CLK_COHFAB_CFG_F,
+	},
+	[CL0_CLK_SEL] = {
+		.clk_sels = {
+			cl0_pll,
+			xo_clk,
+		},
+		.flags = CLK_COHFAB_CFG_F,
+	},
+	[CL1_CLK_SEL] = {
+		.clk_sels = {
+			cl1_pll,
+			xo_clk,
+		},
+		.flags = CLK_COHFAB_CFG_F,
+	},
+	[CL2_CLK_SEL] = {
+		.clk_sels = {
+			cl2_pll,
+			xo_clk,
+		},
+		.flags = CLK_COHFAB_CFG_F,
+	},
+	[CL3_CLK_SEL] = {
+		.clk_sels = {
+			cl3_pll,
+			xo_clk,
+		},
+		.flags = CLK_COHFAB_CFG_F,
+	},
 };
 
 #ifdef CONFIG_CONSOLE_COMMAND
@@ -89,6 +124,11 @@ const char *sel_clk_names[NR_DIV_CLKS] = {
 	[DDR_CLK_SEL] = "ddr_clk_sel",
 	[DDR_CLK_DIV4_SEL] = "ddr_clk_div4_sel",
 	[SD_RX_TX_CLK_SEL] = "sd_rx_tx_clk_sel",
+	[COHFAB_CLK_SEL] = "cohfab_clk_sel",
+	[CL0_CLK_SEL] = "cl0_clk_sel",
+	[CL1_CLK_SEL] = "cl1_clk_sel",
+	[CL2_CLK_SEL] = "cl2_clk_sel",
+	[CL3_CLK_SEL] = "cl3_clk_sel",
 };
 
 static const char *get_clk_sel_name(clk_clk_t clk)
@@ -108,7 +148,10 @@ static int enable_clk_sel(clk_clk_t clk)
 	crcntl_trace(true, get_clk_sel_name(clk));
 	if (!(select_clks[clk].flags & CLK_CLK_SEL_F)) {
 		clk_enable(select_clks[clk].clk_sels[0]);
-		crcntl_clk_select(clk);
+		if (select_clks[clk].flags & CLK_COHFAB_CFG_F)
+			cohfab_clk_select(clk - COHFAB_CLK_SEL);
+		else
+			crcntl_clk_select(clk);
 		if (select_clks[clk].flags & CLK_CLK_EN_F) {
 			if (!(select_clks[clk].flags & CLK_HOMOLOG_SRC_F))
 				clk_disable(select_clks[clk].clk_sels[1]);
@@ -126,7 +169,10 @@ static void disable_clk_sel(clk_clk_t clk)
 	crcntl_trace(false, get_clk_sel_name(clk));
 	if (select_clks[clk].flags & CLK_CLK_SEL_F) {
 		clk_enable(select_clks[clk].clk_sels[1]);
-		crcntl_clk_deselect(clk);
+		if (select_clks[clk].flags & CLK_COHFAB_CFG_F)
+			cohfab_clk_deselect(clk - COHFAB_CLK_SEL);
+		else
+			crcntl_clk_deselect(clk);
 		if (select_clks[clk].flags & CLK_CLK_EN_F) {
 			if (!(select_clks[clk].flags & CLK_HOMOLOG_SRC_F))
 				clk_disable(select_clks[clk].clk_sels[0]);
@@ -138,9 +184,15 @@ static void disable_clk_sel(clk_clk_t clk)
 
 static clk_freq_t get_clk_sel_freq(clk_clk_t clk)
 {
+	bool selected;
+
 	if (clk >= NR_SELECT_CLKS)
 		return INVALID_FREQ;
-	if (crcntl_clk_selected(clk))
+	if (select_clks[clk].flags & CLK_COHFAB_CFG_F)
+		selected = cohfab_clk_selected(clk);
+	else
+		selected = crcntl_clk_selected(clk);
+	if (selected)
 		return clk_get_frequency(select_clks[clk].clk_sels[0]);
 	else
 		return clk_get_frequency(select_clks[clk].clk_sels[1]);
