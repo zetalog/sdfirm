@@ -669,6 +669,127 @@ struct output_clk output_clks[] = {
 		.flags = CLK_CR,
 	},
 #endif
+	/* 4.15 Thermal Sensor Clocks */
+	[CLUSTER0_APC0_CPU0_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster0_apc0_l2_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER0_APC0_CPU1_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster0_apc0_l2_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER0_APC1_CPU0_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster0_apc1_l2_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER0_APC1_CPU1_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster0_apc1_l2_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER0_APC0_L2_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster0_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER0_APC1_L2_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster0_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER1_APC0_CPU0_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster1_apc0_l2_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER1_APC0_CPU1_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster1_apc0_l2_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER1_APC1_CPU0_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster1_apc1_l2_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER1_APC1_CPU1_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster1_apc1_l2_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER1_APC0_L2_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster1_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER1_APC1_L2_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster1_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER2_APC0_CPU0_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster2_apc0_l2_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER2_APC0_CPU1_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster2_apc0_l2_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER2_APC1_CPU0_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster2_apc1_l2_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER2_APC1_CPU1_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster2_apc1_l2_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER2_APC0_L2_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster2_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER2_APC1_L2_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster2_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER3_APC0_CPU0_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster3_apc0_l2_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER3_APC0_CPU1_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster3_apc0_l2_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER3_APC1_CPU0_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster3_apc1_l2_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER3_APC1_CPU1_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster3_apc1_l2_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER3_APC0_L2_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster3_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
+	[CLUSTER3_APC1_L2_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cluster3_clk,
+		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+	},
 };
 
 #ifdef CONFIG_CONSOLE_COMMAND
@@ -774,6 +895,31 @@ const char *output_clk_names[] = {
 	[I2C11_CLK] = "i2c11_clk",
 	/* 4.15 Thermal Sensor Clocks */
 	[TSENSOR_CLK] = "tsensor_clk",
+	/* Cluster internal clock/reset */
+	[CLUSTER0_APC0_CPU0_CLK] = "cluster0_apc0_cpu0_clk",
+	[CLUSTER0_APC0_CPU1_CLK] = "cluster0_apc0_cpu1_clk",
+	[CLUSTER0_APC1_CPU0_CLK] = "cluster0_apc1_cpu0_clk",
+	[CLUSTER0_APC1_CPU1_CLK] = "cluster0_apc1_cpu1_clk",
+	[CLUSTER0_APC0_L2_CLK] = "cluster0_apc0_l2_clk",
+	[CLUSTER0_APC1_L2_CLK] = "cluster0_apc1_l2_clk",
+	[CLUSTER1_APC0_CPU0_CLK] = "cluster1_apc0_cpu0_clk",
+	[CLUSTER1_APC0_CPU1_CLK] = "cluster1_apc0_cpu1_clk",
+	[CLUSTER1_APC1_CPU0_CLK] = "cluster1_apc1_cpu0_clk",
+	[CLUSTER1_APC1_CPU1_CLK] = "cluster1_apc1_cpu1_clk",
+	[CLUSTER1_APC0_L2_CLK] = "cluster1_apc0_l2_clk",
+	[CLUSTER1_APC1_L2_CLK] = "cluster1_apc1_l2_clk",
+	[CLUSTER2_APC0_CPU0_CLK] = "cluster2_apc0_cpu0_clk",
+	[CLUSTER2_APC0_CPU1_CLK] = "cluster2_apc0_cpu1_clk",
+	[CLUSTER2_APC1_CPU0_CLK] = "cluster2_apc1_cpu0_clk",
+	[CLUSTER2_APC1_CPU1_CLK] = "cluster2_apc1_cpu1_clk",
+	[CLUSTER2_APC0_L2_CLK] = "cluster2_apc0_l2_clk",
+	[CLUSTER2_APC1_L2_CLK] = "cluster2_apc1_l2_clk",
+	[CLUSTER3_APC0_CPU0_CLK] = "cluster3_apc0_cpu0_clk",
+	[CLUSTER3_APC0_CPU1_CLK] = "cluster3_apc0_cpu1_clk",
+	[CLUSTER3_APC1_CPU0_CLK] = "cluster3_apc1_cpu0_clk",
+	[CLUSTER3_APC1_CPU1_CLK] = "cluster3_apc1_cpu1_clk",
+	[CLUSTER3_APC0_L2_CLK] = "cluster3_apc0_l2_clk",
+	[CLUSTER3_APC1_L2_CLK] = "cluster3_apc1_l2_clk",
 #if 0
 	[SYSFAB_DBG_CLK] = "sysfab_dbg_clk",
 	[SYSFAB_TIC_CLK] = "sysfab_tic_clk",
@@ -809,12 +955,16 @@ static int enable_output_clk(clk_clk_t clk)
 	if (output_clks[clk].flags & CLK_CLK_EN_F) {
 		if (output_clks[clk].flags & CLK_COHFAB_CFG_F)
 			cohfab_clk_enable(clk - COHFAB_CLK);
+		else if (output_clks[clk].flags & CLK_CLUSTER_CFG_F)
+			cluster_clk_enable(clk - CLUSTER0_APC0_CPU0_CLK);
 		else
 			crcntl_clk_enable(clk);
 	}
 	if (output_clks[clk].flags & CLK_SW_RST_F) {
 		if (output_clks[clk].flags & CLK_COHFAB_CFG_F)
 			cohfab_clk_deassert(clk - COHFAB_CLK);
+		else if (output_clks[clk].flags & CLK_CLUSTER_CFG_F)
+			cluster_clk_deassert(clk - CLUSTER0_APC0_CPU0_CLK);
 		else
 			crcntl_clk_deassert(clk);
 	}
@@ -842,12 +992,16 @@ static void disable_output_clk(clk_clk_t clk)
 	if (output_clks[clk].flags & CLK_SW_RST_F) {
 		if (output_clks[clk].flags & CLK_COHFAB_CFG_F)
 			cohfab_clk_assert(clk - COHFAB_CLK);
+		else if (output_clks[clk].flags & CLK_CLUSTER_CFG_F)
+			cluster_clk_assert(clk - CLUSTER0_APC0_CPU0_CLK);
 		else
 			crcntl_clk_assert(clk);
 	}
 	if (output_clks[clk].flags & CLK_CLK_EN_F) {
 		if (output_clks[clk].flags & CLK_COHFAB_CFG_F)
 			cohfab_clk_disable(clk - COHFAB_CLK);
+		else if (output_clks[clk].flags & CLK_CLUSTER_CFG_F)
+			cluster_clk_disable(clk - CLUSTER0_APC0_CPU0_CLK);
 		else
 			crcntl_clk_disable(clk);
 	}
@@ -984,18 +1138,54 @@ struct clk_driver clk_div = {
 
 static uint8_t clk_hw_init;
 
+#ifdef CONFIG_SMP
+#if defined(CONFIG_DUOWEN_APC_3)
+clk_t duowen_apc_clocks[MAX_CPU_NUM] = {
+	cluster0_apc0_cpu0_clk,
+	cluster1_apc0_cpu0_clk,
+	cluster2_apc0_cpu0_clk,
+};
+#elif defined(CONFIG_DUOWEN_APC_4)
+clk_t duowen_apc_clocks[MAX_CPU_NUM] = {
+	cluster0_apc0_cpu0_clk,
+	cluster1_apc0_cpu0_clk,
+	cluster2_apc0_cpu0_clk,
+	cluster3_apc0_cpu0_clk,
+};
+#else
+clk_t duowen_apc_clocks[MAX_CPU_NUM] = {
+	cluster0_apc0_cpu0_clk,
+	cluster0_apc0_cpu1_clk,
+	cluster0_apc1_cpu0_clk,
+	cluster0_apc1_cpu1_clk,
+	cluster1_apc0_cpu0_clk,
+	cluster1_apc0_cpu1_clk,
+	cluster1_apc1_cpu0_clk,
+	cluster1_apc1_cpu1_clk,
+	cluster2_apc0_cpu0_clk,
+	cluster2_apc0_cpu1_clk,
+	cluster2_apc1_cpu0_clk,
+	cluster2_apc1_cpu1_clk,
+	cluster3_apc0_cpu0_clk,
+	cluster3_apc0_cpu1_clk,
+	cluster3_apc1_cpu0_clk,
+	cluster3_apc1_cpu1_clk,
+};
+#endif
+#else
+clk_t duowen_apc_clocks[MAX_CPU_NUM] = {
+	cluster0_apc0_cpu0_clk,
+};
+#endif
+
 void duowen_clk_apc_init(void)
 {
+	int apc;
+
 	if (!(clk_hw_init & DUOWEN_CLK_APC_INIT)) {
 		clk_enable(cohfab_clk);
-		clk_enable(cluster0_clk);
-#ifdef CONFIG_SMP
-		clk_enable(cluster1_clk);
-		clk_enable(cluster2_clk);
-#ifndef CONFIG_DUOWEN_APC_3
-		clk_enable(cluster3_clk);
-#endif /* !CONFIG_DUOWEN_APC_3 */
-#endif /* CONFIG_SMP */
+		for (apc = 0; apc < MAX_CPU_NUM; apc++)
+			clk_enable(duowen_apc_clocks[apc]);
 		clk_hw_init |= DUOWEN_CLK_APC_INIT;
 	}
 }

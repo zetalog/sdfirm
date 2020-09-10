@@ -350,7 +350,33 @@
 #define CLUSTER1_CLK		((clk_clk_t)106)
 #define CLUSTER2_CLK		((clk_clk_t)107)
 #define CLUSTER3_CLK		((clk_clk_t)108)
-#define NR_OUTPUT_CLKS		(CLUSTER3_CLK + 1)
+
+/* CLK_OUTPUT: CLUSTER internal CLK_CG/RST_CTRL */
+#define CLUSTER0_APC0_CPU0_CLK	((clk_clk_t)112)
+#define CLUSTER0_APC0_CPU1_CLK	((clk_clk_t)113)
+#define CLUSTER0_APC1_CPU0_CLK	((clk_clk_t)114)
+#define CLUSTER0_APC1_CPU1_CLK	((clk_clk_t)115)
+#define CLUSTER0_APC0_L2_CLK	((clk_clk_t)116)
+#define CLUSTER0_APC1_L2_CLK	((clk_clk_t)117)
+#define CLUSTER1_APC0_CPU0_CLK	((clk_clk_t)118)
+#define CLUSTER1_APC0_CPU1_CLK	((clk_clk_t)119)
+#define CLUSTER1_APC1_CPU0_CLK	((clk_clk_t)120)
+#define CLUSTER1_APC1_CPU1_CLK	((clk_clk_t)121)
+#define CLUSTER1_APC0_L2_CLK	((clk_clk_t)122)
+#define CLUSTER1_APC1_L2_CLK	((clk_clk_t)123)
+#define CLUSTER2_APC0_CPU0_CLK	((clk_clk_t)124)
+#define CLUSTER2_APC0_CPU1_CLK	((clk_clk_t)125)
+#define CLUSTER2_APC1_CPU0_CLK	((clk_clk_t)126)
+#define CLUSTER2_APC1_CPU1_CLK	((clk_clk_t)127)
+#define CLUSTER2_APC0_L2_CLK	((clk_clk_t)128)
+#define CLUSTER2_APC1_L2_CLK	((clk_clk_t)129)
+#define CLUSTER3_APC0_CPU0_CLK	((clk_clk_t)130)
+#define CLUSTER3_APC0_CPU1_CLK	((clk_clk_t)131)
+#define CLUSTER3_APC1_CPU0_CLK	((clk_clk_t)132)
+#define CLUSTER3_APC1_CPU1_CLK	((clk_clk_t)133)
+#define CLUSTER3_APC0_L2_CLK	((clk_clk_t)134)
+#define CLUSTER3_APC1_L2_CLK	((clk_clk_t)135)
+#define NR_OUTPUT_CLKS		(CLUSTER3_APC1_L2_CLK + 1)
 
 /* CLK_OUTPUT: CLK_EN_CFG0 */
 /* Integrated overall clocks */
@@ -471,6 +497,32 @@
 #define cluster2_clk		clkid(CLK_OUTPUT, CLUSTER2_CLK)
 #define cluster3_clk		clkid(CLK_OUTPUT, CLUSTER3_CLK)
 
+/* CLK_OUT: CLUSTER internal CLK_CG/RST_CTRL */
+#define cluster0_apc0_cpu0_clk	clkid(CLK_OUTPUT, CLUSTER0_APC0_CPU0_CLK)
+#define cluster0_apc0_cpu1_clk	clkid(CLK_OUTPUT, CLUSTER0_APC0_CPU1_CLK)
+#define cluster0_apc1_cpu0_clk	clkid(CLK_OUTPUT, CLUSTER0_APC1_CPU0_CLK)
+#define cluster0_apc1_cpu1_clk	clkid(CLK_OUTPUT, CLUSTER0_APC1_CPU1_CLK)
+#define cluster0_apc0_l2_clk	clkid(CLK_OUTPUT, CLUSTER0_APC0_L2_CLK)
+#define cluster0_apc1_l2_clk	clkid(CLK_OUTPUT, CLUSTER0_APC1_L2_CLK)
+#define cluster1_apc0_cpu0_clk	clkid(CLK_OUTPUT, CLUSTER1_APC0_CPU0_CLK)
+#define cluster1_apc0_cpu1_clk	clkid(CLK_OUTPUT, CLUSTER1_APC0_CPU1_CLK)
+#define cluster1_apc1_cpu0_clk	clkid(CLK_OUTPUT, CLUSTER1_APC1_CPU0_CLK)
+#define cluster1_apc1_cpu1_clk	clkid(CLK_OUTPUT, CLUSTER1_APC1_CPU1_CLK)
+#define cluster1_apc0_l2_clk	clkid(CLK_OUTPUT, CLUSTER1_APC0_L2_CLK)
+#define cluster1_apc1_l2_clk	clkid(CLK_OUTPUT, CLUSTER1_APC1_L2_CLK)
+#define cluster2_apc0_cpu0_clk	clkid(CLK_OUTPUT, CLUSTER2_APC0_CPU0_CLK)
+#define cluster2_apc0_cpu1_clk	clkid(CLK_OUTPUT, CLUSTER2_APC0_CPU1_CLK)
+#define cluster2_apc1_cpu0_clk	clkid(CLK_OUTPUT, CLUSTER2_APC1_CPU0_CLK)
+#define cluster2_apc1_cpu1_clk	clkid(CLK_OUTPUT, CLUSTER2_APC1_CPU1_CLK)
+#define cluster2_apc0_l2_clk	clkid(CLK_OUTPUT, CLUSTER2_APC0_L2_CLK)
+#define cluster2_apc1_l2_clk	clkid(CLK_OUTPUT, CLUSTER2_APC1_L2_CLK)
+#define cluster3_apc0_cpu0_clk	clkid(CLK_OUTPUT, CLUSTER3_APC0_CPU0_CLK)
+#define cluster3_apc0_cpu1_clk	clkid(CLK_OUTPUT, CLUSTER3_APC0_CPU1_CLK)
+#define cluster3_apc1_cpu0_clk	clkid(CLK_OUTPUT, CLUSTER3_APC1_CPU0_CLK)
+#define cluster3_apc1_cpu1_clk	clkid(CLK_OUTPUT, CLUSTER3_APC1_CPU1_CLK)
+#define cluster3_apc0_l2_clk	clkid(CLK_OUTPUT, CLUSTER3_APC0_L2_CLK)
+#define cluster3_apc1_l2_clk	clkid(CLK_OUTPUT, CLUSTER3_APC1_L2_CLK)
+
 /* CLK_DIV */
 #define SOC_PLL_DIV2		((clk_clk_t)0)
 #define SOC_PLL_DIV4		((clk_clk_t)1)
@@ -503,7 +555,8 @@
 #define CLK_REVERSE_DEP_F	_BV(3)
 #define CLK_HOMOLOG_SRC_F	_BV(4)
 #define CLK_DDR_RST_F		_BV(5)
-#define CLK_COHFAB_CFG_F	_BV(6)
+#define CLK_COHFAB_CFG_F	_BV(6) /* cohfab/cluster clock/reset */
+#define CLK_CLUSTER_CFG_F	_BV(7) /* APC internal clock/reset */
 #define CLK_CR			(CLK_CLK_EN_F | CLK_SW_RST_F)
 #define CLK_C			CLK_CLK_EN_F
 #define CLK_R			CLK_SW_RST_F

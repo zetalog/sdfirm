@@ -226,6 +226,64 @@ void cohfab_clk_deselect(clk_clk_t clk)
 		__raw_setl(COHFAB_CLOCK_SEL, COHFAB_CLK_CFG(clk));
 }
 
+/*===========================================================================
+ * CRCNTL CLUSTER APIs
+ *===========================================================================*/
+bool cluster_clk_asserted(clk_clk_t clk)
+{
+	uint8_t cl = clk / CLUSTER_CLOCKS;
+	uint8_t rst = CLUSTER_RESET(clk % CLUSTER_CLOCKS);
+
+	return !!(__raw_readl(CLUSTER_RESET_CTRL(cl)) & _BV(rst));
+}
+
+void cluster_clk_assert(clk_clk_t clk)
+{
+	uint8_t cl = clk / CLUSTER_CLOCKS;
+	uint8_t rst = CLUSTER_RESET(clk % CLUSTER_CLOCKS);
+
+	if (!cluster_clk_asserted(clk))
+		__raw_setl(_BV(rst), CLUSTER_RESET_CTRL(cl));
+}
+
+void cluster_clk_deassert(clk_clk_t clk)
+{
+	uint8_t cl = clk / CLUSTER_CLOCKS;
+	uint8_t rst = CLUSTER_RESET(clk % CLUSTER_CLOCKS);
+
+	if (cluster_clk_asserted(clk))
+		__raw_clearl(_BV(rst), CLUSTER_RESET_CTRL(cl));
+}
+
+bool cluster_clk_enabled(clk_clk_t clk)
+{
+	uint8_t cl = clk / CLUSTER_CLOCKS;
+	uint8_t cg = clk % CLUSTER_CLOCKS;
+
+	return !!(__raw_readl(CLUSTER_CLK_CG_CFG(cl)) & _BV(cg));
+}
+
+void cluster_clk_enable(clk_clk_t clk)
+{
+	uint8_t cl = clk / CLUSTER_CLOCKS;
+	uint8_t cg = clk % CLUSTER_CLOCKS;
+
+	if (!cluster_clk_enabled(cl))
+		__raw_setl(_BV(cg), CLUSTER_CLK_CG_CFG(cl));
+}
+
+void cluster_clk_disable(clk_clk_t clk)
+{
+	uint8_t cl = clk / CLUSTER_CLOCKS;
+	uint8_t cg = clk % CLUSTER_CLOCKS;
+
+	if (cluster_clk_enabled(clk))
+		__raw_clearl(_BV(cg), CLUSTER_CLK_CFG(cl));
+}
+
+/*===========================================================================
+ * CRCNTL TRACE APIs
+ *===========================================================================*/
 #ifdef CONFIG_CRCNTL_TRACE
 bool crcntl_tracing;
 
@@ -246,6 +304,9 @@ void cncntl_trace(bool enabling, const char *name)
 }
 #endif
 
+/*===========================================================================
+ * CRCNTL generic APIs
+ *===========================================================================*/
 #ifdef CONFIG_MMU
 void clk_hw_mmu_init(void)
 {

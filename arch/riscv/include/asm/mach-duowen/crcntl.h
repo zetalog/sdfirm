@@ -101,7 +101,7 @@ extern caddr_t duowen_apc_clk_reg_base[];
 
 /* CLUSTER PLL clock control */
 #define CLUSTER_CLK_CFG(apc)		CLUSTER_PLL_REG(apc, 0x40)
-#define CLUSTER_CG_CFG(apc)		CLUSTER_PLL_REG(apc, 0x44)
+#define CLUSTER_CLK_CG_CFG(apc)		CLUSTER_PLL_REG(apc, 0x44)
 #define CLUSTER_RESET_CTRL(apc)		CLUSTER_PLL_REG(apc, 0x50)
 
 /* reset control */
@@ -139,18 +139,18 @@ extern caddr_t duowen_apc_clk_reg_base[];
 
 /* CLUSTER reset control */
 #define CLUSTER_POR_RST			_BV(0)
-#define CLUSTER_APC0_CPU0_RESET		_BV(4)
-#define CLUSTER_APC0_CPU1_RESET		_BV(5)
-#define CLUSTER_APC1_CPU0_RESET		_BV(6)
-#define CLUSTER_APC1_CPU1_RESET		_BV(7)
-#define CLUSTER_APC0_L2_RESET		_BV(8)
-#define CLUSTER_APC1_L2_RESET		_BV(9)
 #define CLUSTER_APC0_CPU0_DBG_RESET	_BV(12)
 #define CLUSTER_APC0_CPU1_DBG_RESET	_BV(13)
 #define CLUSTER_APC1_CPU0_DBG_RESET	_BV(14)
 #define CLUSTER_APC1_CPU1_DBG_RESET	_BV(15)
 #define CLUSTER_APC0_L2_DBG_RESET	_BV(16)
 #define CLUSTER_APC1_L2_DBG_RESET	_BV(17)
+
+#define CLUSTER_CLOCKS			6
+#define CLUSTER_RESET_OFFSET		4 /* convert cg to rst */
+#define CLUSTER_RESET(cg)		((cg) + CLUSTER_RESET_OFFSET)
+#define CLUSTER_DBG_RESET_OFFSET	12 /* convert cg to dbg rst */
+#define CLUSTER_DBG_RESET(cg)		((cg) + CLUSTER_DBG_RESET_OFFSET)
 
 /* power control */
 /* CRCNTL_WARM_RESET_DETECT_TIME */
@@ -228,6 +228,12 @@ void cohfab_clk_disable(clk_clk_t clk);
 bool cohfab_clk_selected(clk_clk_t clk);
 void cohfab_clk_select(clk_clk_t clk);
 void cohfab_clk_deselect(clk_clk_t clk);
+bool cluster_clk_asserted(clk_clk_t clk);
+void cluster_clk_assert(clk_clk_t clk);
+void cluster_clk_deassert(clk_clk_t clk);
+bool cluster_clk_enabled(clk_clk_t clk);
+void cluster_clk_enable(clk_clk_t clk);
+void cluster_clk_disable(clk_clk_t clk);
 #ifdef CONFIG_CRCNTL_TRACE
 void crcntl_trace_enable(void);
 void crcntl_trace_disable(void);
