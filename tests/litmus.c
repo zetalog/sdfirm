@@ -704,6 +704,79 @@ void pb_wait(pb_t *p)
 	pm_unlock(p->cond);
 }
 
+/* pthread based or flag */
+
+po_t *po_create(int nprocs)
+{
+	po_t *p = malloc_check(sizeof(*p), "po");
+	p->cond = pm_create();
+	p->nprocs = p->count = nprocs;
+	p->val = 0;
+	p->turn = 0;
+	return p;
+}
+
+void po_free(po_t *p)
+{
+	pm_free(p->cond);
+	free_check(p, "po");
+}
+
+void po_reinit(po_t *p)
+{
+	int t;
+
+	pm_lock(p->cond);
+	t = p->turn;
+	--p->count;
+	if (p->count == 0) {
+		p->count = p->nprocs;
+		p->val = 0;
+		p->turn = !t;
+		pm_unlock(p->cond);
+		smp_wmb();
+		//pc_broadcast(p->cond);
+		pm_lock(p->cond);
+	} else {
+		do {
+			pm_unlock(p->cond);
+			smp_rmb();
+			//pc_wait(p->cond);
+			pm_lock(p->cond);
+		} while (p->turn == t);
+	}
+	pm_unlock(p->cond);
+}
+
+int po_wait(po_t *p, int v)
+{
+	int t;
+	int r;
+
+	pm_lock(p->cond);
+	t = p->turn;
+	--p->count;
+	p->val = p->val || v;
+	if (p->count == 0) {
+		p->count = p->nprocs;
+		p->turn = !t;
+		pm_unlock(p->cond);
+		smp_wmb();
+		//pc_broadcast(p->cond);
+		pm_lock(p->cond);
+	} else {
+		do {
+			pm_unlock(p->cond);
+			smp_rmb();
+			//pc_wait(p->cond);
+			pm_lock(p->cond);
+		} while (p->turn == t);
+	}
+	r = p->val;
+	pm_unlock(p->cond);
+	return r;
+}
+
 /****************/
 /* Command line */
 /****************/

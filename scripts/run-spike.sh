@@ -15,6 +15,7 @@ SPIKE_ROM_SIZE=0x4000
 SPIKE_MEM_BASE=0x80000000
 SPIKE_MEM_SIZE=0x80000000
 SPIKE_MEM_CUST=no
+SPIKE_PROG=sdfirm
 
 usage()
 {
@@ -68,6 +69,12 @@ do
 done
 shift $(($OPTIND - 1))
 
+if [ -z $1 ]; then
+	SPIKE_PROG=${SCRIPT}/../sdfirm
+else
+	SPIKE_PROG=$1
+fi
+
 if [ "x${SPIKE_RBB}" = "xyes" ]; then
 	SPIKE_OPTS="--rbb-port=${SPIKE_RBB_PORT} ${SPIKE_OPTS}"
 fi
@@ -81,5 +88,5 @@ if [ "x${SPIKE_MEM_CUST}" = "xyes" ]; then
 	SPIKE_OPTS="-m${SPIKE_MEM_BASE}:${SPIKE_MEM_SIZE} ${SPIKE_OPTS}"
 fi
 
-echo "spike ${SPIKE_OPTS} ${SCRIPT}/../sdfirm ${SPIKE_PIPE}"
-eval spike ${SPIKE_OPTS} ${SCRIPT}/../sdfirm ${SPIKE_PIPE}
+echo "spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE}"
+eval spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE}

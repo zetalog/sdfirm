@@ -178,8 +178,23 @@ pb_t *pb_create(int nprocs);
 void pb_free(pb_t *p);
 void pb_wait(pb_t *p);
 
-/* Affinity */
+/* Or flag */
+typedef struct {
+	pm_t *cond;
+	int nprocs;
+	int count;
+	volatile int val;
+	volatile int turn;
+} po_t;
 
+po_t *po_create(int nprocs);
+void po_free(po_t *p);
+/* Initialize flag, must be called by all participant */
+void po_reinit(po_t *p);
+/* Return the 'or' of the v arguments of all participants */
+int po_wait(po_t *p, int v);
+
+/* Affinity */
 typedef enum {
 	aff_none,
 	aff_incr,

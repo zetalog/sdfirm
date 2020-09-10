@@ -6,6 +6,8 @@
 
 SCRIPT=`(cd \`dirname $0\`; pwd)`
 
+ARCH=riscv64
+QEMU=qemu-system-${ARCH}
 QEMU_OPTS=-nographic
 QEMU_MOPTS=
 
@@ -37,24 +39,24 @@ do
 done
 shift $(($OPTIND - 1))
 
-SCRIPT=`(cd \`dirname $0\`; pwd)`
-
-ARCH=riscv64
-QEMU=qemu-system-${ARCH}
-
-if [ ! -f ${SCRIPT}/../sdfirm ]; then
+if [ -z $1 ]; then
+	QEMU_PROG=${SCRIPT}/../sdfirm
+else
+	QEMU_PROG=$1
+fi
+if [ ! -f ${QEMU_PROG} ]; then
 	echo "warning: No -bios option specified."
 	echo "warning: This default will change in a future release."
 	echo "warning: See deprecation documentation for details."
 	QEMU_FIRM=""
 else
-	QEMU_FIRM="-bios ${SCRIPT}/../sdfirm"
+	QEMU_FIRM="-bios ${QEMU_PROG}"
 fi
 if [ "x${QEMU_DTS}" != "x" ]; then
 	QEMU_DTB="`echo ${QEMU_DTS%.*}`.dtb"
 	QEMU_MOPTS=",dumpdtb=${QEMU_DTB}"
 else
-	QEMU_FIRM="-bios ${SCRIPT}/../sdfirm"
+	QEMU_FIRM="-bios ${QEMU_PROG}"
 fi
 
 ${QEMU} ${QEMU_OPTS} -machine virt${QEMU_MOPTS} ${QEMU_FIRM} 2>/dev/null

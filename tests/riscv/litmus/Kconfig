@@ -8,4 +8,9 @@ menuconfig TESTS_LITMUS_RISCV
 
 if TESTS_LITMUS_RISCV
 
+config LITMUS_RISCV_DUMMY
+	bool "Dummy"
+
+source tests/riscv/litmus/Kconfig.litmus
+
 endif
