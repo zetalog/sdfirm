@@ -135,6 +135,11 @@ struct output_clk output_clks[] = {
 	 *                                                  | soc_clk_div2 |    scsr_pclk
 	 *                                                  +--------------+    wdt0/1_pclk
 	 */
+	[IMC_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_clk,
+		.flags = CLK_CR,
+	},
 	[PLIC_HCLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
@@ -682,6 +687,7 @@ const char *output_clk_names[] = {
 	[COHFAB_HCLK] = "cohfab_hclk",
 	[COHFAB_CFG_CLK] = "cohfab_cfg_clk",
 	/* 4.4 System Fabric Clocks */
+	[IMC_CLK] = "imc_clk",
 	[PLIC_HCLK] = "plic_hclk",
 	[TLMM_PCLK] = "tlmm_pclk",
 	[SCSR_PCLK] = "scsr_pclk",
@@ -998,8 +1004,7 @@ void duowen_clk_imc_init(void)
 {
 	if (!(clk_hw_init & DUOWEN_CLK_IMC_INIT)) {
 		/* Update the status of the default enabled clocks */
-		clk_enable(soc_pll);
-		clk_enable(sysfab_clk);
+		clk_enable(imc_clk);
 		clk_enable(sysfab_half_clk);
 		clk_hw_init |= DUOWEN_CLK_IMC_INIT;
 	}

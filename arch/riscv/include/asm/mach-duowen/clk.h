@@ -334,7 +334,7 @@
 #define TIMER3_CLK		((clk_clk_t)88) /* CLK_EN only */
 
 /* CLK_OUTPUT: CLK_EN_CFG3 */
-#define IMC_CLK			((clk_clk_t)96) /* SW_RST only */
+#define IMC_CLK			((clk_clk_t)96)
 
 /* Additional output clocks */
 #define COHFAB_CFG_CLK		((clk_clk_t)97)
@@ -389,7 +389,6 @@
 #define sd_cclk			clkid(CLK_OUTPUT, SD_CCLK)
 #define ddr_rst			clkid(CLK_OUTPUT, DDR_RST)
 /* Alias for AO domain clocks */
-#define imc_clk			sysfab_clk
 #define ram_aclk		sysfab_clk
 #define brom_hclk		sysfab_clk
 #define sd_hclk			sysfab_half_clk
@@ -428,6 +427,7 @@
 #define spi3_clk		clkid(CLK_OUTPUT, SPI3_CLK)
 #define spi4_clk		clkid(CLK_OUTPUT, SPI4_CLK)
 #define sd_clk			clkid(CLK_OUTPUT, SD_CLK)
+#define tsensor_clk		clkid(CLK_OUTPUT, TSENSOR_CLK)
 /* TODO: dependency clocks:
  * sd_tm_clk: depends sd_clk, sources soc_pll_div10/100
  */
@@ -459,8 +459,12 @@
 #define timer2_7_clk		clkid(CLK_OUTPUT, TIMER2_7_CLK)
 #define timer2_8_clk		clkid(CLK_OUTPUT, TIMER2_8_CLK)
 #define timer3_clk		clkid(CLK_OUTPUT, TIMER3_CLK)
-#define tsensor_clk		clkid(CLK_OUTPUT, TSENSOR_CLK)
 
+/* CLK_OUTPUT: CLK_EN_CFG3 */
+/* Integrated overall clocks */
+#define imc_clk			clkid(CLK_OUTPUT, IMC_CLK)
+
+/* CLK_OUTPUT: COHFAB/CLUSTER CLK_CFG */
 #define cohfab_clk		clkid(CLK_OUTPUT, COHFAB_CLK)
 #define cluster0_clk		clkid(CLK_OUTPUT, CLUSTER0_CLK)
 #define cluster1_clk		clkid(CLK_OUTPUT, CLUSTER1_CLK)

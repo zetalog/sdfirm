@@ -130,6 +130,13 @@
 	 */
 	.macro copy_sect, sva, eva, lab_exit, lab_loop
 	li	t2, RV_LARGE_LOAD_OFFSET
+#ifndef CONFIG_LOAD_TEXT
+	/* Find .data section load address */
+	la	t0, _stext
+	la	t1, _etext
+	sub	t1, t1, t0
+	add	t2, t2, t1
+#endif
 	la	t0, \sva
 	add	t2, t2, t0
 	la	t1, \eva

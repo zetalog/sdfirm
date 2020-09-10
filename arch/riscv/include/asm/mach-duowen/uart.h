@@ -93,6 +93,10 @@ void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
 void uart_hw_irq_ack(void);
 void uart_hw_irq_init(void);
 #endif
+#ifndef CONFIG_SYS_NOIRQ
+#define uart_hw_irq_init()	dw_uart_irq_init()
+#define uart_hw_irq_ack()	dw_uart_irq_ack()
+#endif
 
 #ifdef CONFIG_MMU
 void uart_hw_mmu_init(void);
