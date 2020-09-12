@@ -954,17 +954,17 @@ static int enable_output_clk(clk_clk_t clk)
 		clk_enable(output_clks[clk].clk_src);
 	if (output_clks[clk].flags & CLK_CLK_EN_F) {
 		if (output_clks[clk].flags & CLK_COHFAB_CFG_F)
-			cohfab_clk_enable(clk - COHFAB_CLK);
+			cohfab_clk_enable(clk);
 		else if (output_clks[clk].flags & CLK_CLUSTER_CFG_F)
-			cluster_clk_enable(clk - CLUSTER0_APC0_CPU0_CLK);
+			cluster_clk_enable(clk);
 		else
 			crcntl_clk_enable(clk);
 	}
 	if (output_clks[clk].flags & CLK_SW_RST_F) {
 		if (output_clks[clk].flags & CLK_COHFAB_CFG_F)
-			cohfab_clk_deassert(clk - COHFAB_CLK);
+			cohfab_clk_deassert(clk);
 		else if (output_clks[clk].flags & CLK_CLUSTER_CFG_F)
-			cluster_clk_deassert(clk - CLUSTER0_APC0_CPU0_CLK);
+			cluster_clk_deassert(clk);
 		else
 			crcntl_clk_deassert(clk);
 	}
@@ -991,17 +991,17 @@ static void disable_output_clk(clk_clk_t clk)
 		crcntl_clk_assert(DDR_CLK);
 	if (output_clks[clk].flags & CLK_SW_RST_F) {
 		if (output_clks[clk].flags & CLK_COHFAB_CFG_F)
-			cohfab_clk_assert(clk - COHFAB_CLK);
+			cohfab_clk_assert(clk);
 		else if (output_clks[clk].flags & CLK_CLUSTER_CFG_F)
-			cluster_clk_assert(clk - CLUSTER0_APC0_CPU0_CLK);
+			cluster_clk_assert(clk);
 		else
 			crcntl_clk_assert(clk);
 	}
 	if (output_clks[clk].flags & CLK_CLK_EN_F) {
 		if (output_clks[clk].flags & CLK_COHFAB_CFG_F)
-			cohfab_clk_disable(clk - COHFAB_CLK);
+			cohfab_clk_disable(clk);
 		else if (output_clks[clk].flags & CLK_CLUSTER_CFG_F)
-			cluster_clk_disable(clk - CLUSTER0_APC0_CPU0_CLK);
+			cluster_clk_disable(clk);
 		else
 			crcntl_clk_disable(clk);
 	}

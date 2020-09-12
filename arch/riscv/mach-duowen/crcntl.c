@@ -141,6 +141,132 @@ void crcntl_clk_disable(clk_clk_t clk)
 	}
 }
 
+/*===========================================================================
+ * CRCNTL COHFAB APIs
+ *===========================================================================*/
+bool cohfab_clk_asserted(clk_clk_t clk)
+{
+	clk_clk_t pll = COHFAB_CLK_PLL(clk);
+
+	if (pll == COHFAB_PLL)
+		return !!(__raw_readl(COHFAB_RESET_COHFAB(pll)) &
+			  COHFAB_RESET);
+	return !!(__raw_readl(COHFAB_RESET_CLUSTER(pll)) &
+		  CLUSTER_POR_RST);
+}
+
+void cohfab_clk_assert(clk_clk_t clk)
+{
+	clk_clk_t pll = COHFAB_CLK_PLL(clk);
+
+	if (cohfab_clk_asserted(clk))
+		return;
+	if (pll == COHFAB_PLL)
+		__raw_setl(COHFAB_RESET, COHFAB_RESET_COHFAB(pll));
+	else
+		__raw_setl(CLUSTER_POR_RST, COHFAB_RESET_CLUSTER(pll));
+}
+
+void cohfab_clk_deassert(clk_clk_t clk)
+{
+	clk_clk_t pll = COHFAB_CLK_PLL(clk);
+
+	if (!cohfab_clk_asserted(clk))
+		return;
+	if (pll == COHFAB_PLL)
+		__raw_clearl(COHFAB_RESET, COHFAB_RESET_COHFAB(pll));
+	else
+		__raw_clearl(CLUSTER_POR_RST, COHFAB_RESET_CLUSTER(pll));
+}
+
+bool cohfab_clk_enabled(clk_clk_t clk)
+{
+	clk_clk_t pll = COHFAB_CLK_PLL(clk);
+
+	return !!(__raw_readl(COHFAB_CLK_CFG(pll)) & COHFAB_CLOCK_ON);
+}
+
+void cohfab_clk_enable(clk_clk_t clk)
+{
+	clk_clk_t pll = COHFAB_CLK_PLL(clk);
+
+	if (cohfab_clk_enabled(clk))
+		return;
+	__raw_setl(COHFAB_CLOCK_ON, COHFAB_CLK_CFG(pll));
+}
+
+void cohfab_clk_disable(clk_clk_t clk)
+{
+	clk_clk_t pll = COHFAB_CLK_PLL(clk);
+
+	if (!cohfab_clk_enabled(clk))
+		return;
+	__raw_clearl(COHFAB_CLOCK_ON, COHFAB_CLK_CFG(pll));
+}
+
+/*===========================================================================
+ * CRCNTL CLUSTER APIs
+ *===========================================================================*/
+bool cluster_clk_asserted(clk_clk_t clk)
+{
+	uint8_t apc = CLUSTER_CLK_APC(clk);
+	uint8_t rst = CLUSTER_RESET(CLUSTER_CLK_CG(clk));
+
+	return !!(__raw_readl(CLUSTER_RESET_CTRL(apc)) & _BV(rst));
+}
+
+void cluster_clk_assert(clk_clk_t clk)
+{
+	uint8_t apc = CLUSTER_CLK_APC(clk);
+	uint8_t rst = CLUSTER_RESET(CLUSTER_CLK_CG(clk));
+
+	if (cluster_clk_asserted(clk))
+		return;
+	__raw_setl(_BV(rst), CLUSTER_RESET_CTRL(apc));
+}
+
+void cluster_clk_deassert(clk_clk_t clk)
+{
+	uint8_t apc = CLUSTER_CLK_APC(clk);
+	uint8_t rst = CLUSTER_RESET(CLUSTER_CLK_CG(clk));
+
+	if (!cluster_clk_asserted(clk))
+		return;
+	__raw_clearl(_BV(rst), CLUSTER_RESET_CTRL(apc));
+}
+
+bool cluster_clk_enabled(clk_clk_t clk)
+{
+	uint8_t apc = CLUSTER_CLK_APC(clk);
+	uint8_t cg = CLUSTER_CLK_CG(clk);
+
+	return !!(__raw_readl(CLUSTER_CLK_CG_CFG(apc)) & _BV(cg));
+}
+
+void cluster_clk_enable(clk_clk_t clk)
+{
+	uint8_t apc = CLUSTER_CLK_APC(clk);
+	uint8_t cg = CLUSTER_CLK_CG(clk);
+
+	if (cluster_clk_enabled(clk))
+		return;
+	__raw_setl(_BV(cg), CLUSTER_CLK_CG_CFG(apc));
+}
+
+void cluster_clk_disable(clk_clk_t clk)
+{
+	uint8_t apc = CLUSTER_CLK_APC(clk);
+	uint8_t cg = CLUSTER_CLK_CG(clk);
+
+	if (!cluster_clk_enabled(clk))
+		return;
+	__raw_clearl(_BV(cg), CLUSTER_CLK_CG_CFG(apc));
+}
+
+/*===========================================================================
+ * SYSFAB/COHFAB MUX APIs
+ *===========================================================================*/
+#ifdef CONFIG_CRCNTL_MUX
 bool crcntl_clk_selected(clk_clk_t clk)
 {
 	return !(__raw_readl(CRCNTL_CLK_SEL_CFG) & _BV(clk));
@@ -158,128 +284,31 @@ void crcntl_clk_deselect(clk_clk_t clk)
 		__raw_setl(_BV(clk), CRCNTL_CLK_SEL_CFG);
 }
 
-/*===========================================================================
- * CRCNTL COHFAB APIs
- *===========================================================================*/
-bool cohfab_clk_asserted(clk_clk_t clk)
-{
-	if (clk)
-		return !!(__raw_readl(CLUSTER_RESET_CTRL(clk - 1)) &
-		       CLUSTER_POR_RST);
-	else
-		return !!(__raw_readl(COHFAB_RESET_CTRL(clk)) & COHFAB_RESET);
-}
-
-void cohfab_clk_assert(clk_clk_t clk)
-{
-	if (!cohfab_clk_asserted(clk)) {
-		if (clk)
-			__raw_setl(CLUSTER_POR_RST,
-				   CLUSTER_RESET_CTRL(clk - 1));
-		else
-			__raw_setl(COHFAB_RESET, COHFAB_RESET_CTRL(clk));
-	}
-}
-
-void cohfab_clk_deassert(clk_clk_t clk)
-{
-	if (cohfab_clk_asserted(clk)) {
-		if (clk)
-			__raw_clearl(CLUSTER_POR_RST,
-				     CLUSTER_RESET_CTRL(clk - 1));
-		else
-			__raw_clearl(COHFAB_RESET, COHFAB_RESET_CTRL(clk));
-	}
-}
-
-bool cohfab_clk_enabled(clk_clk_t clk)
-{
-	return !!(__raw_readl(COHFAB_CLK_CFG(clk)) & COHFAB_CLOCK_ON);
-}
-
-void cohfab_clk_enable(clk_clk_t clk)
-{
-	if (!cohfab_clk_enabled(clk))
-		__raw_setl(COHFAB_CLOCK_ON, COHFAB_CLK_CFG(clk));
-}
-
-void cohfab_clk_disable(clk_clk_t clk)
-{
-	if (cohfab_clk_enabled(clk))
-		__raw_clearl(COHFAB_CLOCK_ON, COHFAB_CLK_CFG(clk));
-}
-
 bool cohfab_clk_selected(clk_clk_t clk)
 {
-	return !(__raw_readl(COHFAB_CLK_CFG(clk)) & COHFAB_CLOCK_SEL);
+	clk_clk_t pll = COHFAB_CLK_SEL_PLL(clk);
+
+	return !(__raw_readl(COHFAB_CLK_CFG(pll)) & COHFAB_CLOCK_SEL);
 }
 
 void cohfab_clk_select(clk_clk_t clk)
 {
-	if (!cohfab_clk_selected(clk))
-		__raw_clearl(COHFAB_CLOCK_SEL, COHFAB_CLK_CFG(clk));
+	clk_clk_t pll = COHFAB_CLK_SEL_PLL(clk);
+
+	if (cohfab_clk_selected(clk))
+		return;
+	__raw_clearl(COHFAB_CLOCK_SEL, COHFAB_CLK_CFG(pll));
 }
 
 void cohfab_clk_deselect(clk_clk_t clk)
 {
-	if (cohfab_clk_selected(clk))
-		__raw_setl(COHFAB_CLOCK_SEL, COHFAB_CLK_CFG(clk));
+	clk_clk_t pll = COHFAB_CLK_SEL_PLL(clk);
+
+	if (!cohfab_clk_selected(clk))
+		return;
+	__raw_setl(COHFAB_CLOCK_SEL, COHFAB_CLK_CFG(pll));
 }
-
-/*===========================================================================
- * CRCNTL CLUSTER APIs
- *===========================================================================*/
-bool cluster_clk_asserted(clk_clk_t clk)
-{
-	uint8_t cl = clk / CLUSTER_CLOCKS;
-	uint8_t rst = CLUSTER_RESET(clk % CLUSTER_CLOCKS);
-
-	return !!(__raw_readl(CLUSTER_RESET_CTRL(cl)) & _BV(rst));
-}
-
-void cluster_clk_assert(clk_clk_t clk)
-{
-	uint8_t cl = clk / CLUSTER_CLOCKS;
-	uint8_t rst = CLUSTER_RESET(clk % CLUSTER_CLOCKS);
-
-	if (!cluster_clk_asserted(clk))
-		__raw_setl(_BV(rst), CLUSTER_RESET_CTRL(cl));
-}
-
-void cluster_clk_deassert(clk_clk_t clk)
-{
-	uint8_t cl = clk / CLUSTER_CLOCKS;
-	uint8_t rst = CLUSTER_RESET(clk % CLUSTER_CLOCKS);
-
-	if (cluster_clk_asserted(clk))
-		__raw_clearl(_BV(rst), CLUSTER_RESET_CTRL(cl));
-}
-
-bool cluster_clk_enabled(clk_clk_t clk)
-{
-	uint8_t cl = clk / CLUSTER_CLOCKS;
-	uint8_t cg = clk % CLUSTER_CLOCKS;
-
-	return !!(__raw_readl(CLUSTER_CLK_CG_CFG(cl)) & _BV(cg));
-}
-
-void cluster_clk_enable(clk_clk_t clk)
-{
-	uint8_t cl = clk / CLUSTER_CLOCKS;
-	uint8_t cg = clk % CLUSTER_CLOCKS;
-
-	if (!cluster_clk_enabled(cl))
-		__raw_setl(_BV(cg), CLUSTER_CLK_CG_CFG(cl));
-}
-
-void cluster_clk_disable(clk_clk_t clk)
-{
-	uint8_t cl = clk / CLUSTER_CLOCKS;
-	uint8_t cg = clk % CLUSTER_CLOCKS;
-
-	if (cluster_clk_enabled(clk))
-		__raw_clearl(_BV(cg), CLUSTER_CLK_CFG(cl));
-}
+#endif
 
 /*===========================================================================
  * CRCNTL TRACE APIs
@@ -297,7 +326,7 @@ void crcntl_trace_disable(void)
 	crcntl_tracing = false;
 }
 
-void cncntl_trace(bool enabling, const char *name)
+void crcntl_trace(bool enabling, const char *name)
 {
 	if (crcntl_tracing)
 		printf("%c %s\n", enabling ? 'E' : 'D', name);

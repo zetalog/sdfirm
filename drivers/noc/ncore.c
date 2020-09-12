@@ -169,7 +169,7 @@ void ncore_init(uint8_t ncais, uint8_t nncbs, uint8_t ndirs, uint8_t ncmis)
 		k = (ncais + 31) / 32;
 		for (k = 0; k < ((ncais + 31) / 32); k++) {
 			if (ncais >= ((k + 1) * 32)) {
-				ncore_diru_enable_cas_group(j, k,
+				ncore_diru_enable_cas_group(i, k,
 							    0xFFFFFFFF);
 			} else {
 				su_mask = 0;

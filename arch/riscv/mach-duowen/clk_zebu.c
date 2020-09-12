@@ -149,7 +149,7 @@ static int enable_clk_sel(clk_clk_t clk)
 	if (!(select_clks[clk].flags & CLK_CLK_SEL_F)) {
 		clk_enable(select_clks[clk].clk_sels[0]);
 		if (select_clks[clk].flags & CLK_COHFAB_CFG_F)
-			cohfab_clk_select(clk - COHFAB_CLK_SEL);
+			cohfab_clk_select(clk);
 		else
 			crcntl_clk_select(clk);
 		if (select_clks[clk].flags & CLK_CLK_EN_F) {
@@ -170,7 +170,7 @@ static void disable_clk_sel(clk_clk_t clk)
 	if (select_clks[clk].flags & CLK_CLK_SEL_F) {
 		clk_enable(select_clks[clk].clk_sels[1]);
 		if (select_clks[clk].flags & CLK_COHFAB_CFG_F)
-			cohfab_clk_deselect(clk - COHFAB_CLK_SEL);
+			cohfab_clk_deselect(clk);
 		else
 			crcntl_clk_deselect(clk);
 		if (select_clks[clk].flags & CLK_CLK_EN_F) {

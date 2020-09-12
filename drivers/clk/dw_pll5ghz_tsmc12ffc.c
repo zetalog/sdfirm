@@ -64,9 +64,9 @@ static void dw_pll5ghz_tsmc12ffc_gear(uint8_t pll)
 	 * NOTE: 3us includes 1us preset duration.
 	 */
 	/* t_prst: preset */
-	udelay(1);
+	dw_pll5ghz_tsmc12ffc_delay(1);
 	/* t_gs: gearshift */
-	udelay(2);
+	dw_pll5ghz_tsmc12ffc_delay(2);
 	__raw_clearl(PLL_GEAR, DW_PLL_CFG1(pll));
 }
 #else

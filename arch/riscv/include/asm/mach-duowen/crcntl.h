@@ -96,11 +96,11 @@ extern caddr_t duowen_apc_clk_reg_base[];
 #define CRCNTL_PLL_REG_TIMING(pll)	CRCNTL_PLL_REG(pll, 0x14)
 
 /* COHFAB/CLUSTER PLL clock control */
-#define COHFAB_CLK_CFG(clk)		DW_PLL_REG((clk) - COHFAB_PLL, 0x40)
-#define COHFAB_RESET_CTRL(clk)		DW_PLL_REG((clk) - COHFAB_PLL, 0x44)
+#define COHFAB_CLK_CFG(pll)		DW_PLL_REG((pll), 0x40)
+#define COHFAB_RESET_COHFAB(pll)	DW_PLL_REG((pll), 0x44)
+#define COHFAB_RESET_CLUSTER(pll)	DW_PLL_REG((pll), 0x50)
 
 /* CLUSTER PLL clock control */
-#define CLUSTER_CLK_CFG(apc)		CLUSTER_PLL_REG(apc, 0x40)
 #define CLUSTER_CLK_CG_CFG(apc)		CLUSTER_PLL_REG(apc, 0x44)
 #define CLUSTER_RESET_CTRL(apc)		CLUSTER_PLL_REG(apc, 0x50)
 
@@ -146,11 +146,18 @@ extern caddr_t duowen_apc_clk_reg_base[];
 #define CLUSTER_APC0_L2_DBG_RESET	_BV(16)
 #define CLUSTER_APC1_L2_DBG_RESET	_BV(17)
 
+/* COHFAB/CLUSTER clock ID conversions */
 #define CLUSTER_CLOCKS			6
 #define CLUSTER_RESET_OFFSET		4 /* convert cg to rst */
 #define CLUSTER_RESET(cg)		((cg) + CLUSTER_RESET_OFFSET)
 #define CLUSTER_DBG_RESET_OFFSET	12 /* convert cg to dbg rst */
 #define CLUSTER_DBG_RESET(cg)		((cg) + CLUSTER_DBG_RESET_OFFSET)
+#define COHFAB_CLK_PLL(clk)		((clk) - COHFAB_CLK + COHFAB_PLL)
+#define COHFAB_CLK_SEL_PLL(clk)		((clk) - COHFAB_CLK_SEL + COHFAB_PLL)
+#define CLUSTER_CLK_APC(clk)		\
+	(((clk) - CLUSTER0_APC0_CPU0_CLK) / CLUSTER_CLOCKS)
+#define CLUSTER_CLK_CG(clk)		\
+	(((clk) - CLUSTER0_APC0_CPU0_CLK) % CLUSTER_CLOCKS)
 
 /* power control */
 /* CRCNTL_WARM_RESET_DETECT_TIME */
@@ -216,24 +223,26 @@ void crcntl_clk_deassert(clk_clk_t clk);
 bool crcntl_clk_enabled(clk_clk_t clk);
 void crcntl_clk_enable(clk_clk_t clk);
 void crcntl_clk_disable(clk_clk_t clk);
-bool crcntl_clk_selected(clk_clk_t clk);
-void crcntl_clk_select(clk_clk_t clk);
-void crcntl_clk_deselect(clk_clk_t clk);
 bool cohfab_clk_asserted(clk_clk_t clk);
 void cohfab_clk_assert(clk_clk_t clk);
 void cohfab_clk_deassert(clk_clk_t clk);
 bool cohfab_clk_enabled(clk_clk_t clk);
 void cohfab_clk_enable(clk_clk_t clk);
 void cohfab_clk_disable(clk_clk_t clk);
-bool cohfab_clk_selected(clk_clk_t clk);
-void cohfab_clk_select(clk_clk_t clk);
-void cohfab_clk_deselect(clk_clk_t clk);
 bool cluster_clk_asserted(clk_clk_t clk);
 void cluster_clk_assert(clk_clk_t clk);
 void cluster_clk_deassert(clk_clk_t clk);
 bool cluster_clk_enabled(clk_clk_t clk);
 void cluster_clk_enable(clk_clk_t clk);
 void cluster_clk_disable(clk_clk_t clk);
+#ifdef CONFIG_CRCNTL_MUX
+bool crcntl_clk_selected(clk_clk_t clk);
+void crcntl_clk_select(clk_clk_t clk);
+void crcntl_clk_deselect(clk_clk_t clk);
+bool cohfab_clk_selected(clk_clk_t clk);
+void cohfab_clk_select(clk_clk_t clk);
+void cohfab_clk_deselect(clk_clk_t clk);
+#endif
 #ifdef CONFIG_CRCNTL_TRACE
 void crcntl_trace_enable(void);
 void crcntl_trace_disable(void);

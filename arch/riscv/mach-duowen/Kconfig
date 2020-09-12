@@ -274,8 +274,13 @@ endif
 menuconfig CRCNTL
 	bool "Duowen clock/reset controller (CRCNTL) support"
 	select DW_PLL5GHZ_TSMC12FFC if DUOWEN_ASIC
+	select CRCNTL_MUX if !DUOWEN_FPGA
 
 if CRCNTL
+
+config CRCNTL_MUX
+	bool "Enable clock multiplexing support"
+	depends !DUOWEN_FPGA
 
 config CRCNTL_TRACE
 	bool "Enable clock tree enabling/disabling trace logs"
