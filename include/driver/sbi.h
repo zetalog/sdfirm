@@ -443,10 +443,10 @@ static inline int sbi_platform_system_shutdown(const struct sbi_platform *plat,
  * @return 0 on success and negative error code on failure
  */
 static inline int sbi_platform_process_irq(const struct sbi_platform *plat,
-					   u32 cause)
+					   u32 irq)
 {
 	if (plat && sbi_platform_ops(plat)->process_irq)
-		return sbi_platform_ops(plat)->process_irq(cause);
+		return sbi_platform_ops(plat)->process_irq(irq);
 	return 0;
 }
 #endif

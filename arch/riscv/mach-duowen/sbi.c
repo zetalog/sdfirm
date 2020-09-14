@@ -189,10 +189,10 @@ static int duowen_system_down(u32 type)
 	return 0;
 }
 
-static int duowen_process_irq(u32 cause)
+static int duowen_process_irq(u32 irq)
 {
 #ifdef CONFIG_VAISRA_RAS
-	if (cause == IRQ_M_NMI) {
+	if (irq == IRQ_M_NMI) {
 		sbi_process_vaisra_nmi();
 		return 0;
 	}
