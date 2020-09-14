@@ -1193,9 +1193,9 @@ void duowen_clk_apc_init(void)
 void duowen_clk_imc_init(void)
 {
 	if (!(clk_hw_init & DUOWEN_CLK_IMC_INIT)) {
+		clk_enable(sysfab_half_clk);
 		/* Update the status of the default enabled clocks */
 		clk_enable(imc_clk);
-		clk_enable(sysfab_half_clk);
 		clk_hw_init |= DUOWEN_CLK_IMC_INIT;
 	}
 }
