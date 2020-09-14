@@ -43,12 +43,16 @@
 #include <target/console.h>
 
 caddr_t virt_uart_reg_base = __VIRT_UART_BASE;
+caddr_t virt_test_reg_addr = __VIRT_TEST_ADDR;
 
 void virt_mmu_dump_maps(void)
 {
 	if (virt_uart_reg_base != __VIRT_UART_BASE)
 		printf("FIXMAP: %016llx -> %016llx: UART\n",
 		       __VIRT_UART_BASE, fix_to_virt(FIX_UART));
+	if (virt_test_reg_addr != __VIRT_TEST_ADDR)
+		printf("FIXMAP: %016llx -> %016llx: TEST\n",
+		       __VIRT_TEST_ADDR, fix_to_virt(FIX_TEST));
 }
 
 void virt_mmu_map_uart(int n)
@@ -57,5 +61,13 @@ void virt_mmu_map_uart(int n)
 		set_fixmap_io(FIX_UART, __VIRT_UART_BASE & PAGE_MASK);
 		virt_uart_reg_base = fix_to_virt(FIX_UART);
 	}
+	virt_mmu_map_test();
 }
 
+void virt_mmu_map_test(void)
+{
+	if (virt_test_reg_addr == __VIRT_TEST_ADDR) {
+		set_fixmap_io(FIX_TEST, __VIRT_TEST_ADDR & PAGE_MASK);
+		virt_test_reg_addr = fix_to_virt(FIX_TEST);
+	}
+}
