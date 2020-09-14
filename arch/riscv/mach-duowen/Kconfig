@@ -449,10 +449,6 @@ menuconfig DUOWEN_DDR
 	depends DDR
 	select DW_UMCTL2
 
-config DUOWEN_DDR_EARLY_CLOCK
-	bool "Enable early ddr_clk and late ddr_rst quirk"
-	depends EXPERIMENTAL
-
 if DUOWEN_DDR
 
 config DUOWEN_DDR_SPD_BUS_NUM
