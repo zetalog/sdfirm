@@ -30,6 +30,7 @@
 #endif
 		clock-frequency = <0x384000>;
 		reg = <0xff 0x63000000 0x0 0x100>;
+		reg-io-width = <0x4>;
 		compatible = "ns16550a";
 	};
 
