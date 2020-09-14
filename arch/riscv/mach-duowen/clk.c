@@ -1223,6 +1223,7 @@ void clk_hw_ctrl_init(void)
 	board_init_clock();
 }
 
+#ifdef CONFIG_CONSOLE_COMMAND
 static int do_crcntl_dump(int argc, char *argv[])
 {
 	int i;
@@ -1250,6 +1251,12 @@ static int do_crcntl_dump(int argc, char *argv[])
 	}
 	return 0;
 }
+#else
+static inline int do_crcntl_dump(int argc, char *argv[])
+{
+	return 0;
+}
+#endif
 
 static int do_crcntl(int argc, char *argv[])
 {
