@@ -110,14 +110,17 @@ static inline void smp_hw_spin_lock(spinlock_t *lock)
 
 	do {
 		o = smp_hw_atomic32_read(&lock->owner);
-		if (__ticket_matched(t - 1, o))
+		if (__ticket_matched(t - 1, o)) {
+			__atomic_acquire_fence();
 			return;
+		}
 		cpu_relax();
 	} while (1);
 }
 
 static inline void smp_hw_spin_unlock(spinlock_t *lock)
 {
+	__atomic_release_fence();
 	smp_hw_atomic32_add(1, &lock->owner);
 }
 #endif
