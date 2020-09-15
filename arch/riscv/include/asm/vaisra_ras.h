@@ -35,7 +35,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)vaisra_ras.h: VAISRA specific RAS (reli/avail/service-ability) interface
+ * @(#)vaisra_ras.h: VAISRA RAS (reli/avail/service-ability) interface
  * $Id: vaisra_ras.h,v 1.1 2020-07-28 09:09:00 zhenglv Exp $
  */
 
