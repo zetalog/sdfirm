@@ -10,17 +10,19 @@ LITMUS_ELFS=$LITMUS_SRCS
 LITMUS_CMD="-st 2 -s 5 -r 2"
 LITMUS_LOG=$LITMUS_SRCS/litmus_build.log
 LITMUS_JOBS=8
+LITMUS_RFSH=no
 
 usage()
 {
 	echo "Usage:"
 	echo "`basename $0` [-a arch] [-m mach]"
-	echo "		[-j jobs] [-o output]"
+	echo "		[-j jobs] [-o output] [-r]"
 	echo "Where:"
 	echo " -a arch: specify CPU architecture"
 	echo " -j jobs: specify number of build threads"
 	echo " -m mach: specify SoC architecure"
 	echo " -o path: specify ELF output directory"
+	echo " -r     : refresh ELF output results"
 	exit $1
 }
 
@@ -30,13 +32,14 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "a:m:o:" opt
+while getopts "a:m:o:r" opt
 do
 	case $opt in
 	a) LITMUS_ARCH=$OPTARG;;
 	j) LITMUS_JOBS=$OPTARG;;
 	m) LITMUS_MACH=$OPTARG;;
 	o) LITMUS_ELFS=$OPTARG;;
+	r) LITMUS_RFSH=yes;;
 	?) echo "Invalid argument $opt"
 	   fatal_usage;;
 	esac
@@ -103,13 +106,29 @@ build_litmus()
 	fi
 }
 
-litmus_tsts=`parse_litmus $LITMUS_SRCS/Makefile.litmus`
+refresh_build()
+{
+	while :
+	do
+		sleep 2
+		(
+			cd $LITMUS_SRCS
+			ls *.elf -tr
+		)
+	done
+}
 
-rm -f ${LITMUS_ELFS}/*.elf
-rm -f ${LITMUS_ELFS}/*.rom
-rm -f ${LITMUS_ELFS}/*.ram
+if [ "x$LITMUS_RFSH" = "xyes" ]; then
+	refresh_build
+else
+	litmus_tsts=`parse_litmus $LITMUS_SRCS/Makefile.litmus`
 
-echo "" > $LITMUS_LOG
-for t in $litmus_tsts; do
-	build_litmus $t
-done
+	rm -f ${LITMUS_ELFS}/*.elf
+	rm -f ${LITMUS_ELFS}/*.rom
+	rm -f ${LITMUS_ELFS}/*.ram
+
+	echo "" > $LITMUS_LOG
+	for t in $litmus_tsts; do
+		build_litmus $t
+	done
+fi
