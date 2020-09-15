@@ -149,15 +149,6 @@ config DUOWEN_LOAD_SPI_FLASH
 	depends DUOWEN_SPI_FLASH
 	depends DUOWEN_ZSBL || (DUOWEN_FSBL && DUOWEN_FSBL_SPI)
 
-config DUOWEN_LOAD_DDR_MODEL
-	bool "Enable load from DDR model"
-	depends DUOWEN_DDR_32M
-	depends DUOWEN_ZSBL || (DUOWEN_FSBL && DUOWEN_FSBL_SPI)
-
-config DUOWEN_BOOT_ADDR
-	hex "Bootloader SPI flash jump address"
-	depends DUOWEN_LOAD_SPI_FLASH || DUOWEN_LOAD_DDR_MODEL
-
 config DUOWEN_LOAD_SSI_FLASH
 	bool "Enable load from SSI flash"
 	depends DUOWEN_SSI_FLASH

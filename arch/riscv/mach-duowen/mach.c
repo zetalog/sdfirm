@@ -86,16 +86,6 @@ void duowen_pma_init(void)
 		     ilog2_const(max(SZ_2M, DDR_SIZE)));
 	n += pma_set(n, PMA_AT_DEVICE,               DEV_BASE,
 		     ilog2_const(max(SZ_2M, DEV_SIZE)));
-
-#ifdef CONFIG_DUOWEN_LOAD_DDR_MODEL
-	{
-		void (*boot_entry)(void);
-
-		boot_entry = (void *)CONFIG_DUOWEN_BOOT_ADDR;
-		boot_entry();
-		unreachable();
-	}
-#endif
 }
 #endif
 
@@ -124,43 +114,84 @@ void board_finish(int code)
 #endif
 
 #ifdef CONFIG_DUOWEN_LOAD
-void board_boot(void)
-{
-	__unused uint8_t flash_sel = imc_boot_flash();
-	void (*boot_entry)(void) = (void *)0x80;
-
-	board_init_clock();
 #ifdef CONFIG_DUOWEN_LOAD_SPI_FLASH
-	if (flash_sel == IMC_FLASH_SPI_LOAD) {
-		printf("Booting from SPI flash...\n");
-		boot_entry = (void *)CONFIG_DUOWEN_BOOT_ADDR;
-		clk_enable(spi_flash_pclk);
-		duowen_flash_set_frequency(min(DUOWEN_FLASH_FREQ,
-					       APB_CLK_FREQ));
-	}
-#endif
-#ifdef CONFIG_DUOWEN_LOAD_SSI_FLASH
-	if (flash_sel == IMC_FLASH_SSI_LOAD) {
-		uint32_t addr = 0;
-		uint32_t size = 500000;
-		unsigned char boot_file[] = "fsbl.bin";
-		int ret;
+void duowen_load_spi(void)
+{
+	void (*boot_entry)(void) = (void *)FLASH_BASE;
 
-		boot_entry = (void *)RAM_BASE;
-		ret = gpt_pgpt_init();
-		if (ret != 0)
-			printf("E(%d): Failed to init primary GPT.\n", ret);
-		ret = gpt_get_file_by_name(boot_file, &addr, &size);
-		if (ret <= 0)
-			printf("E(%d): Failed to get boot file.\n", ret);
-		printf("Booting from SSI flash addr=0x%lx, size=0x%lx...\n",
-		       addr, size);
-		duowen_ssi_flash_boot(boot_entry, addr, size);
-	}
-#endif
+	printf("Booting from SPI flash...\n");
+	clk_enable(spi_flash_pclk);
+	duowen_flash_set_frequency(min(DUOWEN_FLASH_FREQ,
+				       APB_CLK_FREQ));
 	boot_entry();
 	unreachable();
 }
+#else
+#define duowen_load_spi()		do { } while (0)
+#endif
+#ifdef CONFIG_DUOWEN_LOAD_SSI_FLASH
+void duowen_load_ssi(void)
+{
+#ifdef CONFIG_DUOWEN_ZSBL
+	void (*boot_entry)(void) = (void *)RAM_BASE;
+#endif
+#ifdef CONFIG_DUOWEN_FSBL
+	void (*boot_entry)(void) = (void *)0x80;
+#endif
+	uint32_t addr = 0;
+	uint32_t size = 500000;
+	unsigned char boot_file[] = "fsbl.bin";
+	int ret;
+
+	ret = gpt_pgpt_init();
+	if (ret != 0)
+		printf("SSI: primary GPT failure.\n");
+	ret = gpt_get_file_by_name(boot_file, &addr, &size);
+	if (ret <= 0)
+		printf("SSI: %s missing.\n", boot_file);
+	printf("Booting from SSI flash addr=0x%lx, size=0x%lx...\n",
+	       addr, size);
+#ifdef CONFIG_DUOWEN_FSBL
+	ddr_init();
+#endif
+	duowen_ssi_flash_boot(boot_entry, addr, size);
+#if defined(CONFIG_DUOWEN_IMC) && defined(CONFIG_DUOWEN_FSBL)
+	duowen_clk_apc_init();
+#else
+	boot_entry();
+	unreachable();
+#endif
+}
+#else
+#define duowen_load_ssi()		do { } while (0)
+#endif
+
+#if defined(CONFIG_DUOWEN_APC) && defined(CONFIG_DUOWEN_ZSBL)
+void duowen_load_ddr(void)
+{
+	void (*boot_entry)(void) = (void *)0x80;
+
+	printf("Booting from DDR...\n");
+	boot_entry();
+	unreachable();
+}
+
+void board_boot(void)
+{
+	duowen_load_ddr();
+}
+#else
+void board_boot(void)
+{
+	__unused uint8_t flash_sel = imc_boot_flash();
+
+	board_init_clock();
+	if (flash_sel == IMC_FLASH_SPI_LOAD)
+		duowen_load_spi();
+	if (flash_sel == IMC_FLASH_SSI_LOAD)
+		duowen_load_ssi();
+}
+#endif
 #else
 #define board_boot()		do { } while (0)
 #endif
