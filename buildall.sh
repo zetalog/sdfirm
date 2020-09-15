@@ -102,10 +102,11 @@ build_sdfirm riscv64 unleashed_fsbl
 build_sdfirm riscv64 duowen_imc_zsbl
 build_sdfirm riscv64 duowen_imc_spi
 build_sdfirm riscv64 duowen_imc_ssi
+build_sdfirm riscv64 duowen_imc_fsbl
 build_sdfirm riscv64 duowen_apc_zsbl
 build_sdfirm riscv64 duowen_apc_spi
 build_sdfirm riscv64 duowen_apc_ssi
-build_sdfirm riscv64 duowen_ram
+build_sdfirm riscv64 duowen_apc_fsbl
 build_sdfirm riscv64 duowen_ddr
 build_sdfirm riscv64 duowen_apc_litmus
 # DPU

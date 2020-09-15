@@ -42,6 +42,7 @@
 #include <target/arch.h>
 #include <target/noc.h>
 #include <target/clk.h>
+#include <target/ddr.h>
 
 void duowen_noc_init(void)
 {
@@ -49,7 +50,7 @@ void duowen_noc_init(void)
 	 * before configuring NoC.
 	 */
 	board_init_clock();
-	clk_enable(ddr_clk);
-	clk_enable(ddr_rst);
+	clk_enable(ddr_aclk);
+	clk_enable(ddr_arst);
 	ncore_init(MAX_CPU_CLUSTERS, 0, MAX_DDR_SEGMENTS, MAX_DDR_SEGMENTS);
 }
