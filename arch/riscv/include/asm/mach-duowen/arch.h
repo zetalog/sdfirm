@@ -138,7 +138,7 @@ void vaisra_cpu_init(void);
 #ifdef CONFIG_DUOWEN_PMA
 void duowen_pma_init(void);
 #else
-#define duowem_pma_init()	do { } while (0)
+#define duowen_pma_init()	do { } while (0)
 #endif
 #endif /* __ASSEMBLY__ */
 
