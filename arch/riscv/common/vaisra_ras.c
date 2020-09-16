@@ -125,14 +125,14 @@ void sbi_process_vaisra_nmi(void)
 	esr = csr_read(CSR_MDCES);
 	for (err = 0; err < MAX_DCES; err++) {
 		if (err_indicated(esr, err) && err_nmi_enabled(ecr0, err))
-			printf("%s\n", vaisra_dces[err].verbose);
+			sbi_printf("%s\n", vaisra_dces[err].verbose);
 	}
 
 	ecr0 = csr_read(CSR_MICEC);
 	esr = csr_read(CSR_MICES);
 	for (err = 0; err < MAX_DCES; err++) {
 		if (err_indicated(esr, err) && err_nmi_enabled(ecr0, err))
-			printf("%s\n", vaisra_ices[err].verbose);
+			sbi_printf("%s\n", vaisra_ices[err].verbose);
 	}
 
 	ecr0 = l2csr_read(L2CSR_L2EC0);
@@ -142,7 +142,7 @@ void sbi_process_vaisra_nmi(void)
 		if (err_indicated(esr, err) && (err > 31 ?
 		    err_nmi_enabled(ecr1, err - 32) :
 		    err_nmi_enabled(ecr0, err)))
-			printf("%s\n", vaisra_l2es[err].verbose);
+			sbi_printf("%s\n", vaisra_l2es[err].verbose);
 	}
 }
 #endif /* CONFIG_SBI */
