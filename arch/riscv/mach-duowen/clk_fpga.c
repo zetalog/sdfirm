@@ -95,9 +95,11 @@ struct clk_driver clk_input = {
 	.get_name = get_input_clk_name,
 };
 
+#ifdef CONFIG_CONSOLE_COMMAND
 void clk_pll_dump(void)
 {
 }
+#endif
 
 void clk_pll_init(void)
 {

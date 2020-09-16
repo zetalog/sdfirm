@@ -534,7 +534,11 @@
 #define CLK_C			CLK_CLK_EN_F
 #define CLK_R			CLK_SW_RST_F
 
+#ifdef CONFIG_CONSOLE_COMMAND
 void clk_pll_dump(void);
+#else
+#define clk_pll_dump()				do { } while (0)
+#endif
 void clk_pll_init(void);
 
 /* Enable clock tree core */
