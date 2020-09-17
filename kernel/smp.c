@@ -50,6 +50,7 @@
 #include <target/atomic.h>
 #include <target/paging.h>
 #include <target/cmdline.h>
+#include <target/arch.h>
 
 #ifdef CONFIG_SMP
 cpu_t smp_boot_cpu;
@@ -75,6 +76,7 @@ void smp_init(void)
 		timer_init();
 		task_init();
 		smp_hw_ctrl_init();
+		board_smp_init();
 		bench_init();
 	} else {
 		cpu_t cpu;
@@ -86,6 +88,7 @@ void smp_init(void)
 				while (!cpumask_test_cpu(cpu, &smp_online_cpus));
 			}
 		}
+		board_smp_init();
 		bench_init();
 		cmd_init();
 	}

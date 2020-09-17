@@ -83,6 +83,10 @@ void board_late_init(void)
 {
 }
 
+void board_smp_init(void)
+{
+}
+
 static int do_vaisra_shutdown(int argc, char *argv[])
 {
 	board_shutdown();

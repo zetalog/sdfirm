@@ -214,6 +214,13 @@ void board_late_init(void)
 	 *       initializing NoC.
 	 */
 	duowen_imc_noc_init();
+#ifndef CONFIG_SMP
+	board_boot();
+#endif
+}
+
+void board_smp_init(void)
+{
 	board_boot();
 }
 

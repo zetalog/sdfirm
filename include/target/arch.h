@@ -84,6 +84,9 @@ void board_resume(void);
 #endif
 void board_early_init(void);
 void board_late_init(void);
+#ifdef CONFIG_SMP
+void board_smp_init(void);
+#endif
 void appl_init(void);
 void modules_init(void);
 #endif
