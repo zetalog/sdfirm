@@ -42,7 +42,6 @@
 #include <target/arch.h>
 #include <target/noc.h>
 #include <target/clk.h>
-#include <target/ddr.h>
 
 void duowen_noc_init(void)
 {

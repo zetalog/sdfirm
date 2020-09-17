@@ -392,6 +392,8 @@
 #define brom_hclk		sysfab_clk
 #define sd_hclk			sysfab_half_clk
 /* clocke/reset alias required by DDR/PCIe drivers */
+#define ddr_prst		ddr_pclk
+#define ddr_arst		ddr_aclk
 #define pcie_aux_clk		xo_clk
 #define pcie_aclk		sysfab_clk
 #define pcie_alt_ref_clk	pcie_clk
