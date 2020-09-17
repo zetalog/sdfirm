@@ -5,9 +5,6 @@
 #include <target/arch.h>
 #include <target/heap.h>
 #include <target/paging.h>
-#include <string.h>
-#include <limits.h>
-#include <stdio.h>
 
 #ifndef CONFIG_MEM_HEAP
 #define MEM_ALLOC_ANYWHERE		(~(phys_addr_t)0)
@@ -684,11 +681,11 @@ void mem_free_all(void)
 	phys_addr_t start, end;
 
 	for_each_reserved_mem_region(i, &start, &end) {
-		con_printf("reserved: %016llx - %016llx\n", start, end);
+		con_dbg("reserved: %016llx - %016llx\n", start, end);
 		reserve_bootmem_region(start, end);
 	}
 	for_each_free_mem_range(i, &start, &end) {
-		con_printf("memory: %016llx - %016llx\n", start, end);
+		con_dbg("memory: %016llx - %016llx\n", start, end);
 		page_alloc_init(start, end - start);
 	}
 }

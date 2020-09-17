@@ -134,9 +134,9 @@ uint64_t l2csr_read(uint16_t csr);
 #define err_indicated(csr, err)			(!!((csr) & ERR_S(err)))
 
 #if defined(CONFIG_VAISRA_RAS) && defined(CONFIG_SBI)
-void sbi_process_vaisra_nmi(void);
+bool sbi_process_vaisra_nmi(void);
 #else
-#define sbi_process_vaisra_nmi()	do { } while (0)
+#define sbi_process_vaisra_nmi()		false
 #endif
 #endif /* __ASSEMBLER__ */
 

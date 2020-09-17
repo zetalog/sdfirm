@@ -43,6 +43,7 @@
 #include <target/smp.h>
 #include <target/percpu.h>
 #include <target/panic.h>
+#include <target/console.h>
 
 uint64_t __percpu_offset[NR_CPUS];
 caddr_t __percpu_alloc;
@@ -62,12 +63,12 @@ void percpu_init(void)
 	ptr = (caddr_t)page_alloc_pages(__percpu_pages);
 	BUG_ON(!ptr || __percpu_alloc);
 	__percpu_alloc = ptr;
-	printf("SMP allocating PERCPU area %016llx(%d).\n",
-	       (uint64_t)__percpu_alloc, __percpu_pages);
+	con_dbg("SMP allocating PERCPU area %016llx(%d).\n",
+		(uint64_t)__percpu_alloc, __percpu_pages);
 	for (i = 0; i < NR_CPUS; i++, ptr += size) {
 		__percpu_offset[i] = ((uint64_t)ptr) - PERCPU_START;
-		printf("CPU%d area: %016llx\n",
-		       i, PERCPU_START + __percpu_offset[i]);
+		con_dbg("CPU%d area: %016llx\n",
+			i, PERCPU_START + __percpu_offset[i]);
 		if (i == smp_boot_cpu)
 			memory_copy(PERCPU_START + __percpu_offset[i],
 				    PERCPU_START, size);

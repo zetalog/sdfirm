@@ -114,7 +114,7 @@ uint64_t l2csr_read(uint16_t csr)
 }
 
 #ifdef CONFIG_SBI
-void sbi_process_vaisra_nmi(void)
+bool sbi_process_vaisra_nmi(void)
 {
 	uint64_t ecr0, ecr1, esr;
 	int err;
@@ -144,5 +144,7 @@ void sbi_process_vaisra_nmi(void)
 		    err_nmi_enabled(ecr0, err)))
 			sbi_printf("%s\n", vaisra_l2es[err].verbose);
 	}
+
+	return false;
 }
 #endif /* CONFIG_SBI */
