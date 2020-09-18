@@ -15,14 +15,15 @@ LITMUS_RFSH=no
 usage()
 {
 	echo "Usage:"
-	echo "`basename $0` [-a arch] [-m mach]"
-	echo "		[-j jobs] [-o output] [-r]"
+	echo "`basename $0` [-a arch] [-m mach] [-r]"
+	echo "		[-j jobs] [-o output] [test]"
 	echo "Where:"
 	echo " -a arch: specify CPU architecture"
 	echo " -j jobs: specify number of build threads"
 	echo " -m mach: specify SoC architecure"
 	echo " -o path: specify ELF output directory"
 	echo " -r     : refresh ELF output results"
+	echo "    test: specify a single test"
 	exit $1
 }
 
@@ -62,6 +63,13 @@ parse_litmus()
 
 LITMUS_DEF=${LITMUS_MACH}_litmus_defconfig
 LITMUS_CFG=${SRCDIR}/arch/${LITMUS_ARCH}/configs/${LITMUS_DEF}
+
+if [ -z $1 ]; then
+	echo "Building all cases..."
+else
+	echo "Building $1 case..."
+	LITMUS_CASE=$1
+fi
 
 build_litmus()
 {
@@ -128,7 +136,11 @@ else
 	rm -f ${LITMUS_ELFS}/*.ram
 
 	echo "" > $LITMUS_LOG
-	for t in $litmus_tsts; do
-		build_litmus $t
-	done
+	if [ -z $LITMUS_CASE ]; then
+		for t in $litmus_tsts; do
+			build_litmus $t
+		done
+	else
+		build_litmus $LITMUS_CASE
+	fi
 fi
