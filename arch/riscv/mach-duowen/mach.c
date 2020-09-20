@@ -46,35 +46,26 @@
 #include <target/uefi.h>
 #include <target/cmdline.h>
 
-uint8_t imc_boot_cpu(void)
-{
-	uint32_t boot_mode = __raw_readl(SCSR_BOOT_MODE);
+#define __imc_boot_flash() (IMC_BOOT_FLASH_TYPE(__raw_readl(SCSR_BOOT_MODE)))
 
-	if (boot_mode & IMC_BOOT_SIM_IMC)
-		return boot_mode & IMC_BOOT_SIM_APC;
-	return boot_mode & IMC_BOOT_APC;
+uint8_t imc_boot_mode(void)
+{
+	uint8_t flash;
+
+	if (imc_sim_mode() == IMC_BOOT_SIM)
+		return __raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_DDR;
+
+	flash = __imc_boot_flash();
+	return flash == IMC_BOOT_FLASH ? IMC_BOOT_FLASH : IMC_BOOT_ROM;
 }
 
-uint8_t __imc_boot_flash(void)
-{
-	return IMC_BOOT_FLASH(__raw_readl(SCSR_BOOT_MODE));
-}
-
-#ifdef CONFIG_DUOWEN_ZSBL
 uint8_t imc_boot_flash(void)
 {
-	uint8_t flash = __imc_boot_flash();
+	if (imc_sim_mode() == IMC_BOOT_SIM)
+		return __raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_SSI;
 
-	return flash > IMC_FLASH_SPI_LOAD ? IMC_FLASH_SPI_LOAD : flash;
+	return __imc_boot_flash();
 }
-#else
-uint8_t imc_boot_flash(void)
-{
-	uint8_t flash = __imc_boot_flash();
-
-	return flash > IMC_FLASH_SSI_LOAD ? IMC_FLASH_SSI_LOAD : flash;
-}
-#endif
 
 #ifdef CONFIG_DUOWEN_PMA
 void duowen_pma_init(void)
@@ -236,6 +227,45 @@ static int do_duowen_reboot(int argc, char *argv[])
 	return 0;
 }
 
+const char *imc_boot2name(uint8_t boot_mode)
+{
+	switch (boot_mode) {
+	case IMC_BOOT_ROM:
+		return "rom";
+	case IMC_BOOT_FLASH:
+		return "flash";
+	case IMC_BOOT_RAM:
+		return "ram";
+	case IMC_BOOT_DDR:
+		return "ddr";
+	default:
+		return "unknown";
+	}
+}
+
+const char *imc_flash2name(uint8_t boot_flash)
+{
+	switch (boot_flash) {
+	case IMC_BOOT_SD:
+		return "sd";
+	case IMC_BOOT_SPI:
+		return "spi";
+	case IMC_BOOT_SSI:
+		return "ssi";
+	default:
+		return "unknown";
+	}
+}
+
+static int do_duowen_info(int argc, char *argv[])
+{
+	printf("SIM  : %s\n", imc_sim_mode() ? "sim" : "asic");
+	printf("CPU  : %s\n", imc_boot_cpu() ? "APC" : "IMC");
+	printf("Mode : %s\n", imc_boot2name(imc_boot_mode()));
+	printf("Flash: %s\n", imc_flash2name(imc_boot_flash()));
+	return 0;
+}
+
 static int do_duowen(int argc, char *argv[])
 {
 	if (argc < 2)
@@ -245,6 +275,8 @@ static int do_duowen(int argc, char *argv[])
 		return do_duowen_shutdown(argc, argv);
 	if (strcmp(argv[1], "reboot") == 0)
 		return do_duowen_reboot(argc, argv);
+	if (strcmp(argv[1], "info") == 0)
+		return do_duowen_info(argc, argv);
 	return -EINVAL;
 }
 
@@ -253,4 +285,6 @@ DEFINE_COMMAND(duowen, do_duowen, "DUOWEN SoC global commands",
 	"    -shutdown board\n"
 	"duowen reboot\n"
 	"    -reboot board\n"
+	"duowen info\n"
+	"    -simulation/boot mode information\n"
 );

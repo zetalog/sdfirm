@@ -84,18 +84,32 @@
 #define SCSR_MAJOR_MASK			REG_8BIT_MASK
 #define SCSR_MAJOR(value)		_GET_FV(SCSR_MAJOR, value)
 /* BOOT_MODE */
-#define IMC_BOOT_FLASH_OFFSET		0
-#define IMC_BOOT_FLASH_MASK		REG_2BIT_MASK
-#define IMC_BOOT_FLASH(value)		_GET_FV(IMC_BOOT_FLASH, value)
-#define IMC_FLASH_SD_LOAD		0x00
-#define IMC_FLASH_SSI_LOAD		0x01
-#define IMC_FLASH_SPI_LOAD		0x02
-#define IMC_FLASH_SPI_BOOT		0x03
-#define IMC_BOOT_IMC			0x0
-#define IMC_BOOT_APC			0x4
-#define IMC_BOOT_SIM			0x8
-#define IMC_BOOT_SIM_IMC		IMC_BOOT_SIM
-#define IMC_BOOT_SIM_APC		(IMC_BOOT_SIM | 0x2)
+#define IMC_BOOT_FLASH_TYPE_OFFSET	0
+#define IMC_BOOT_FLASH_TYPE_MASK	REG_2BIT_MASK
+#define IMC_BOOT_FLASH_TYPE(value)	_GET_FV(IMC_BOOT_FLASH_TYPE, value)
+/* SIM modes */
+#define IMC_BOOT_SIM			0x08
+#define IMC_BOOT_ASIC			0x00
+/* Boot CPUs */
+#define IMC_BOOT_IMC			0x00
+#define IMC_BOOT_APC			0x04
+/* Boot flashes */
+#define IMC_BOOT_SD			0x00
+#define IMC_BOOT_SSI			0x01
+#define IMC_BOOT_SPI			0x02
+/* Boot modes:
+ * BOOT_SIM=0: MODE is encoded in low 2-bits
+ *  MODE=3=BOOT_FLASH: external ROM
+ *  MODE=others: 0/1/2 encodes BOOT_SD/SSI/SPI boot flash
+ *       1=BOOT_ROM:    internal ROM
+ * BOOT_SIM=1: MODE is encoded in bit-1, FLASH is enocded in bit-0
+ *  MODE=0=BOOT_RAM:    internal SRAM
+ *  MODE=2=BOOT_DDR:    fake DDR model
+ */
+#define IMC_BOOT_ROM			0x01 /* BOOT_SD/SSI/SPI */
+#define IMC_BOOT_FLASH			0x03
+#define IMC_BOOT_RAM			0x00
+#define IMC_BOOT_DDR			0x02
 
 #define imc_get_boot_addr()				\
 	MAKELLONG(__raw_readl(SCSR_BOOT_ADDR_LO),	\
@@ -117,10 +131,12 @@
 		__raw_writel(HIDWORD(hart),		\
 			     SCSR_HART_ID_HI);		\
 	} while (0)
+#define imc_sim_mode()		(__raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_SIM)
+#define imc_boot_cpu()		(__raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_APC)
 
 #ifndef __ASSEMBLY__
-uint8_t imc_boot_cpu(void);
 uint8_t imc_boot_flash(void);
+uint8_t imc_boot_mode(void);
 #endif
 
 #endif /* __SCSR_DUOWEN_H_INCLUDE__ */
