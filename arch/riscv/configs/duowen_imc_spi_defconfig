@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Sep 18 13:44:29 2020
+# Mon Sep 21 00:00:41 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -22,7 +22,7 @@ CONFIG_BOOTLOADER=y
 # Bootloader options
 #
 # CONFIG_BOOT_LINUX is not set
-# CONFIG_BOOT_ROM is not set
+CONFIG_BOOT_ROM=y
 CONFIG_COMMAND=y
 # CONFIG_COMMAND_BATCH is not set
 CONFIG_CONSOLE=y
@@ -243,9 +243,9 @@ CONFIG_ARCH_HAS_FP=y
 #
 # Power management model (board) support
 #
-# CONFIG_FINISH is not set
+CONFIG_FINISH=y
 CONFIG_SHUTDOWN=y
-# CONFIG_REBOOT is not set
+CONFIG_REBOOT=y
 # CONFIG_SUSPEND is not set
 # CONFIG_HIBERNATE is not set
 # CONFIG_BULK is not set

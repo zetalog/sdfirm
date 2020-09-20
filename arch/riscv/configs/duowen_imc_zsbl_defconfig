@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Sep 18 13:44:55 2020
+# Sun Sep 20 23:53:01 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -154,7 +154,7 @@ CONFIG_DUOWEN_LOAD_SSI_FLASH=y
 CONFIG_DUOWEN_ASIC=y
 # CONFIG_DUOWEN_FPGA is not set
 # CONFIG_DUOWEN_ZEBU is not set
-CONFIG_DUOWEN_SIM_LOAD=y
+# CONFIG_DUOWEN_SIM_LOAD is not set
 CONFIG_DUOWEN_MSG=y
 CONFIG_DUOWEN_UART=y
 CONFIG_DUOWEN_TMR=y
@@ -241,9 +241,9 @@ CONFIG_ARCH_HAS_FP=y
 #
 # Power management model (board) support
 #
-# CONFIG_FINISH is not set
+CONFIG_FINISH=y
 CONFIG_SHUTDOWN=y
-# CONFIG_REBOOT is not set
+CONFIG_REBOOT=y
 # CONFIG_SUSPEND is not set
 # CONFIG_HIBERNATE is not set
 # CONFIG_BULK is not set
@@ -318,16 +318,7 @@ CONFIG_SD_SDSC=y
 # CONFIG_SD_SDHC is not set
 # CONFIG_SD_SDXC is not set
 # CONFIG_SD_SPI is not set
-CONFIG_SDHC=y
-# CONFIG_SDHC4 is not set
-
-#
-# DMA support
-#
-# CONFIG_SDHC_SDMA is not set
-# CONFIG_SDHC_PM is not set
-# CONFIG_SDHC_BUFFER is not set
-# CONFIG_SDHC_AUTO_CMD12 is not set
+# CONFIG_SDHC is not set
 # CONFIG_DDR is not set
 # CONFIG_IOMMU is not set
 CONFIG_ARCH_HAS_FDT=y
@@ -472,7 +463,7 @@ CONFIG_SDHCI=y
 CONFIG_SDHC_SD=y
 # CONFIG_SDHC_EMMC is not set
 # CONFIG_SDHC_UHSI is not set
-CONFIG_SDHC_UHSII=y
+# CONFIG_SDHC_UHSII is not set
 
 #
 # DDR controller drivers
