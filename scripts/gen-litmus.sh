@@ -144,7 +144,8 @@ else
 	rm -f ${LITMUS_ELFS}/*.elf
 	rm -f ${LITMUS_ELFS}/*.rom
 	rm -f ${LITMUS_ELFS}/*.ram
-	rm -f ${LITMUS_ELFS}/*.cfg
+	find ${LITMUS_ELFS} -not -name "make.cfg" -and -name "*.cfg" \
+	       | xargs rm -f
 	echo -n "" > $LITMUS_LOG
 	echo -n "" > $LITMUS_INCL
 	echo -n "" > $LITMUS_EXCL
