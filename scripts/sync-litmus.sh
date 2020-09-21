@@ -10,10 +10,13 @@ LITMUS_CPUS=4
 usage()
 {
 	echo "Usage:"
-	echo "`basename $0` [-c cpus] [-t path]"
+	echo "`basename $0` [-c cpus] [-t path] [mode]"
 	echo "Where:"
 	echo " -c num-cpus: specify number of CPUs"
 	echo " -s test-dir: specify litmus-tests-riscv directory"
+	echo "mode:         specify script execution mode"
+	echo "       build: the default mode, generate files"
+	echo "       clean: remove C files"
 	exit $1
 }
 
@@ -34,11 +37,34 @@ do
 done
 shift $(($OPTIND - 1))
 
-(
-	cd $LITMUS_TSTS
+if [ -z $1 ]; then
+	LITMUS_MODE=build
+else
+	LITMUS_MODE=$1
+fi
 
-	litmus7 -mode sdfirm -mach ./riscv.cfg \
-		-avail $LITMUS_CPUS -excl instructions.excl \
-		-o $LITMUS_SRCS \
-		"tests/non-mixed-size/@all"
+(
+	if [ "x$LITMUS_MODE" = "xbuild" ]; then
+		cd $LITMUS_TSTS
+
+		echo "Generating litmus test source..."
+		litmus7 -mode sdfirm -mach ./riscv.cfg \
+			-avail $LITMUS_CPUS -excl instructions.excl \
+			-o $LITMUS_SRCS \
+			"tests/non-mixed-size/@all"
+	fi
+	if [ "x$LITMUS_MODE" = "xclean" ]; then
+		cd $LITMUS_SRCS
+
+		echo "Removing generated litmus tests..."
+		echo "# Auto Generated Tests" > Makefile.litmus
+		echo "#" > Kconfig.litmus
+		echo "# Auto Generated Tests" >> Kconfig.litmus
+		echo "#" >> Kconfig.litmus
+		find . -not -name "dummy.c" -and -name "*.c" | xargs rm -f
+		rm -f *.h
+		rm -f *.awk
+		rm -f *.sh
+		rm -f src
+	fi
 )
