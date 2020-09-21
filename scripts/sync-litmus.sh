@@ -62,6 +62,7 @@ fi
 		echo "# Auto Generated Tests" >> Kconfig.litmus
 		echo "#" >> Kconfig.litmus
 		find . -not -name "dummy.c" -and -name "*.c" | xargs rm -f
+		find . -not -name "dummy.rel" -and -name "*.rel" | xargs rm -f
 		rm -f *.h
 		rm -f *.awk
 		rm -f *.sh
