@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Sep 22 12:04:42 2020
+# Tue Sep 22 13:23:33 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -81,23 +81,18 @@ CONFIG_CPU_SV39=y
 CONFIG_CPU_SV48=y
 CONFIG_RISCV_S=y
 CONFIG_RISCV_M=y
-CONFIG_RISCV_A=y
-# CONFIG_RISCV_F is not set
-# CONFIG_RISCV_D is not set
+# CONFIG_RISCV_A is not set
+CONFIG_RISCV_F=y
+CONFIG_RISCV_D=y
 CONFIG_RISCV_COUNTERS=y
-CONFIG_RISCV_PMP=y
+# CONFIG_RISCV_PMP is not set
 
 #
 # CPU architecture options
 #
 CONFIG_RISCV_WMO=y
 # CONFIG_RISCV_TSO is not set
-CONFIG_RISCV_ATOMIC_COUNT_32=y
-# CONFIG_RISCV_ATOMIC_COUNT_64 is not set
 CONFIG_ARCH_IS_ATOMIC_UNFAIR=y
-# CONFIG_RISCV_SPINLOCK_RAW is not set
-CONFIG_RISCV_SPINLOCK_TICKET=y
-# CONFIG_RISCV_SPINLOCK_GENERIC is not set
 
 #
 # Compiler options
@@ -197,7 +192,6 @@ CONFIG_CRCNTL_MUX=y
 # CONFIG_DUOWEN_DDR_32M is not set
 CONFIG_DUOWEN_DDR_512G=y
 # CONFIG_DUOWEN_DDR_16G is not set
-CONFIG_DUOWEN_DDR=y
 
 #
 # Feature setup
@@ -301,7 +295,7 @@ CONFIG_ARCH_HAS_DMA=y
 CONFIG_ARCH_HAS_SD=y
 # CONFIG_MMCSD is not set
 CONFIG_ARCH_HAS_DDR=y
-CONFIG_DDR=y
+# CONFIG_DDR is not set
 CONFIG_ARCH_HAS_PCI=y
 # CONFIG_PCI is not set
 CONFIG_ARCH_HAS_IOMMU=y
@@ -423,7 +417,7 @@ CONFIG_ARCH_HAS_SSI_SPI_1WIRE=y
 #
 # DDR controller drivers
 #
-CONFIG_DW_UMCTL2=y
+# CONFIG_DW_UMCTL2 is not set
 
 #
 # Serial Presence Detect (SPD) drivers
@@ -465,14 +459,13 @@ CONFIG_BIT_FLS8=y
 # CONFIG_BIT_FLS16 is not set
 # CONFIG_BIT_FFS16 is not set
 # CONFIG_BIT_FLS32 is not set
-CONFIG_BIT_FLS64=y
+# CONFIG_BIT_FLS64 is not set
 # CONFIG_BIT_FFS32 is not set
 # CONFIG_BIT_HWEIGHT64 is not set
 
 #
 # Bitmap operations
 #
-CONFIG_ARCH_HAS_BITS_PER_UNIT_32=y
 CONFIG_ARCH_HAS_BITS_PER_UNIT_64=y
 # CONFIG_BIT_FIND_CLEAR is not set
 
