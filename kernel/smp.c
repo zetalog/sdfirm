@@ -51,6 +51,7 @@
 #include <target/paging.h>
 #include <target/cmdline.h>
 #include <target/arch.h>
+#include <target/console.h>
 
 #ifdef CONFIG_SMP
 cpu_t smp_boot_cpu;
@@ -66,7 +67,7 @@ void smp_init(void)
 {
 	cpu_t cpu = smp_processor_id();
 
-	printf("SMP initializing CPU %d.\n", cpu);
+	con_dbg("SMP initializing CPU %d.\n", cpu);
 
 	if (smp_processor_id() != smp_boot_cpu) {
 		cpumask_set_cpu(cpu, &smp_online_cpus);

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Sep 21 00:07:46 2020
+# Tue Sep 22 11:52:10 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -305,6 +305,7 @@ CONFIG_ARCH_HAS_DMA=y
 # CONFIG_VIDEO is not set
 CONFIG_ARCH_HAS_SD=y
 # CONFIG_MMCSD is not set
+CONFIG_ARCH_HAS_DDR=y
 # CONFIG_DDR is not set
 CONFIG_ARCH_HAS_PCI=y
 # CONFIG_PCI is not set

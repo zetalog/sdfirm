@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sun Sep 20 23:53:01 2020
+# Tue Sep 22 11:51:33 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -319,7 +319,10 @@ CONFIG_SD_SDSC=y
 # CONFIG_SD_SDXC is not set
 # CONFIG_SD_SPI is not set
 # CONFIG_SDHC is not set
+CONFIG_ARCH_HAS_DDR=y
 # CONFIG_DDR is not set
+CONFIG_ARCH_HAS_PCI=y
+# CONFIG_PCI is not set
 # CONFIG_IOMMU is not set
 CONFIG_ARCH_HAS_FDT=y
 # CONFIG_FDT is not set
@@ -478,6 +481,7 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # PCI drivers
 #
+# CONFIG_DW_PCIE is not set
 
 #
 # NoC interconnect drivers

@@ -45,6 +45,7 @@
 #include <target/noc.h>
 #include <target/uefi.h>
 #include <target/cmdline.h>
+#include <target/ddr.h>
 
 #define __imc_boot_flash() (IMC_BOOT_FLASH_TYPE(__raw_readl(SCSR_BOOT_MODE)))
 
@@ -162,7 +163,8 @@ void duowen_load_ddr(void)
 {
 	void (*boot_entry)(void) = (void *)0x80;
 
-	printf("Booting from DDR...\n");
+	printf("Booting %d/%d from DDR...\n",
+	       smp_processor_id(), MAX_CPU_NUM);
 	boot_entry();
 	unreachable();
 }
@@ -177,9 +179,9 @@ void board_boot(void)
 	__unused uint8_t flash_sel = imc_boot_flash();
 
 	board_init_clock();
-	if (flash_sel == IMC_FLASH_SPI_LOAD)
+	if (flash_sel == IMC_BOOT_SPI)
 		duowen_load_spi();
-	if (flash_sel == IMC_FLASH_SSI_LOAD)
+	if (flash_sel == IMC_BOOT_SSI)
 		duowen_load_ssi();
 }
 #endif

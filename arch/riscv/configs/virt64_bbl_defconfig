@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Sep 15 16:14:35 2020
+# Tue Sep 22 11:47:49 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -220,7 +220,7 @@ CONFIG_LOAD_BASE=0x80000000
 CONFIG_MEM=y
 CONFIG_MEM_MAX_REGIONS=4
 CONFIG_MEM_RESIZE=y
-# CONFIG_PAGE is not set
+CONFIG_PAGE=y
 CONFIG_ARCH_HAS_FP=y
 # CONFIG_FP is not set
 

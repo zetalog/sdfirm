@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Sep 15 16:16:23 2020
+# Tue Sep 22 11:49:28 2020
 #
 CONFIG_ARM64=y
 
@@ -185,7 +185,7 @@ CONFIG_LOAD_BASE=0x0
 CONFIG_MEM=y
 CONFIG_MEM_MAX_REGIONS=1
 CONFIG_MEM_RESIZE=y
-# CONFIG_PAGE is not set
+CONFIG_PAGE=y
 CONFIG_ARCH_HAS_MMU=y
 CONFIG_ARCH_HAS_MMU_4K=y
 CONFIG_ARCH_HAS_MMU_16K=y

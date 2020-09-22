@@ -1,4 +1,5 @@
 #include <target/ddr.h>
+#include <target/clk.h>
 
 void dw_umctl2_start(void)
 {
