@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Sep 22 11:53:08 2020
+# Tue Sep 22 12:10:26 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -10,7 +10,7 @@ CONFIG_RISCV=y
 # Generic setup
 #
 CONFIG_VENDOR_NAME="SmartCore"
-CONFIG_PRODUCT_NAME="SmartCore DUOWEN Berkeley Bootloader (BBL)"
+CONFIG_PRODUCT_NAME="SmartCore DUOWEN Test Bench (FPGA litmus)"
 CONFIG_VENDOR_ID=990
 CONFIG_PRODUCT_ID=0
 CONFIG_SERIAL_NO=0

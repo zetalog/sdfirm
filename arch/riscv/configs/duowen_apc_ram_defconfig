@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Sep 22 11:52:44 2020
+# Tue Sep 22 12:04:42 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -10,19 +10,19 @@ CONFIG_RISCV=y
 # Generic setup
 #
 CONFIG_VENDOR_NAME="SmartCore"
-CONFIG_PRODUCT_NAME="SmartCo DUOWEN 1-stage Bootloader (IMC SSI FSBL)"
+CONFIG_PRODUCT_NAME="SmartCo DUOWEN Test Bench (APC RAM)"
 CONFIG_VENDOR_ID=990
 CONFIG_PRODUCT_ID=0
 CONFIG_SERIAL_NO=0
-CONFIG_BOOTLOADER=y
-# CONFIG_FIRMWARE is not set
+# CONFIG_BOOTLOADER is not set
+CONFIG_FIRMWARE=y
 # CONFIG_EMBEDDED is not set
 
 #
-# Bootloader options
+# Firmware options
 #
-# CONFIG_BOOT_LINUX is not set
-CONFIG_BOOT_ROM=y
+# CONFIG_GEM5 is not set
+# CONFIG_RIS is not set
 CONFIG_COMMAND=y
 # CONFIG_COMMAND_BATCH is not set
 CONFIG_CONSOLE=y
@@ -119,7 +119,6 @@ CONFIG_RISCV_ENTR_M=y
 # CONFIG_RISCV_EXIT_U is not set
 # CONFIG_RISCV_EXIT_S is not set
 CONFIG_RISCV_EXIT_M=y
-CONFIG_SYS_LOADER=y
 
 #
 # System peripherals
