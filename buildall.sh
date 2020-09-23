@@ -110,6 +110,7 @@ build_sdfirm riscv64 duowen_apc_spi
 build_sdfirm riscv64 duowen_apc_ram
 build_sdfirm riscv64 duowen_ddr
 build_sdfirm riscv64 duowen_fpga_litmus
+build_sdfirm riscv64 duowen_zebu_litmus
 # DPU
 build_sdfirm riscv64 dpu_rom
 build_sdfirm riscv64 dpu_flash
