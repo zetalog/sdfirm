@@ -532,6 +532,7 @@ void clk_apply_pll(clk_clk_t clk, clk_freq_t freq)
 	pll_clks[clk].freq = freq;
 }
 
+#ifdef CONFIG_CONSOLE_COMMAND
 void clk_pll_dump(void)
 {
 	int i;
@@ -554,6 +555,7 @@ void clk_pll_dump(void)
 		}
 	}
 }
+#endif
 
 void clk_pll_init(void)
 {

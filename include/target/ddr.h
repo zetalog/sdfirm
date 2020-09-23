@@ -69,4 +69,10 @@
 #define ddr_enable_speed(speed)		ddr_hw_enable_speed(speed)
 #define ddr_wait_dfi(cycles)		ddr_hw_wait_dfi(cycles)
 
+#ifdef CONFIG_DDR
+void ddr_init(void);
+#else
+#define ddr_init()			do { } while (0)
+#endif
+
 #endif /* __DDR_H_INCLUDE__ */

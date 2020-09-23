@@ -150,10 +150,12 @@ void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch)
 	ulong mcause = csr_read(CSR_MCAUSE);
 	ulong mtval = csr_read(CSR_MTVAL);
 	struct unpriv_trap *uptrap;
+	ulong irq;
 
 	if (mcause & (1UL << (__riscv_xlen - 1))) {
-		mcause &= ~(1UL << (__riscv_xlen - 1));
-		switch (mcause) {
+		irq = mcause & (~(1UL << (__riscv_xlen - 1)));
+
+		switch (irq) {
 		case IRQ_M_TIMER:
 			sbi_trap_log("%d: IRQ_M_TIMER\n", hartid);
 			sbi_timer_process(scratch);
@@ -164,7 +166,7 @@ void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch)
 			break;
 		default:
 			if (sbi_platform_process_irq(sbi_platform_ptr(scratch),
-						     mcause) != 0) {
+						     irq) != 0) {
 				sbi_trap_log("Unknown extarnal IRQ\n");
 				msg = "unhandled external interrupt";
 				goto trap_error;

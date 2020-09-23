@@ -72,7 +72,7 @@ uint8_t duowen_pll_reg_read(uint8_t pll, uint8_t reg)
 		     DW_PLL_REG_ACCESS(pll));
 	do {
 		val = __raw_readl(DW_PLL_REG_ACCESS(pll));
-	} while (val & PLL_REG_IDLE);
+	} while (!(val & PLL_REG_IDLE));
 	return PLL_REG_RDATA(val);
 }
 

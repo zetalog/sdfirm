@@ -46,6 +46,18 @@
 #define __dw_pll_read(pll, reg)		duowen_pll_reg_read(pll, reg)
 #define __dw_pll_write(pll, reg, val)	duowen_pll_reg_write(pll, reg, val)
 
+/* PLL IDs is kept AS IS to make base addresses simpler, see
+ * COHFAB_CLK_PLL() and COHFAB_CLK_SEL_PLL() for details.
+ */
+#define SOC_PLL			((clk_clk_t)0)
+#define DDR_BUS_PLL		((clk_clk_t)1)
+#define DDR_PLL			((clk_clk_t)2)
+#define PCIE_PLL		((clk_clk_t)3)
+#define COHFAB_PLL		((clk_clk_t)4)
+#define CL0_PLL			((clk_clk_t)5)
+#define CL1_PLL			((clk_clk_t)6)
+#define CL2_PLL			((clk_clk_t)7)
+#define CL3_PLL			((clk_clk_t)8)
 #define DUOWEN_MAX_PLLS			9
 extern phys_addr_t duowen_pll_reg_base[];
 #define DW_PLL_BASE(pll)		duowen_pll_reg_base[pll]
@@ -152,6 +164,7 @@ extern caddr_t duowen_apc_clk_reg_base[];
 #define CLUSTER_RESET(cg)		((cg) + CLUSTER_RESET_OFFSET)
 #define CLUSTER_DBG_RESET_OFFSET	12 /* convert cg to dbg rst */
 #define CLUSTER_DBG_RESET(cg)		((cg) + CLUSTER_DBG_RESET_OFFSET)
+/* Macros are correct given PLL indexes are fixed */
 #define COHFAB_CLK_PLL(clk)		((clk) - COHFAB_CLK + COHFAB_PLL)
 #define COHFAB_CLK_SEL_PLL(clk)		((clk) - COHFAB_CLK_SEL + COHFAB_PLL)
 #define CLUSTER_CLK_APC(clk)		\

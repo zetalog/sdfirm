@@ -45,36 +45,28 @@
 #include <target/noc.h>
 #include <target/uefi.h>
 #include <target/cmdline.h>
+#include <target/ddr.h>
 
-uint8_t imc_boot_cpu(void)
+#define __imc_boot_flash() (IMC_BOOT_FLASH_TYPE(__raw_readl(SCSR_BOOT_MODE)))
+
+uint8_t imc_boot_mode(void)
 {
-	uint32_t boot_mode = __raw_readl(SCSR_BOOT_MODE);
+	uint8_t flash;
 
-	if (boot_mode & IMC_BOOT_SIM_IMC)
-		return boot_mode & IMC_BOOT_SIM_APC;
-	return boot_mode & IMC_BOOT_APC;
+	if (imc_sim_mode() == IMC_BOOT_SIM)
+		return __raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_DDR;
+
+	flash = __imc_boot_flash();
+	return flash == IMC_BOOT_FLASH ? IMC_BOOT_FLASH : IMC_BOOT_ROM;
 }
 
-uint8_t __imc_boot_flash(void)
-{
-	return IMC_BOOT_FLASH(__raw_readl(SCSR_BOOT_MODE));
-}
-
-#ifdef CONFIG_DUOWEN_ZSBL
 uint8_t imc_boot_flash(void)
 {
-	uint8_t flash = __imc_boot_flash();
+	if (imc_sim_mode() == IMC_BOOT_SIM)
+		return __raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_SSI;
 
-	return flash > IMC_FLASH_SPI_LOAD ? IMC_FLASH_SPI_LOAD : flash;
+	return __imc_boot_flash();
 }
-#else
-uint8_t imc_boot_flash(void)
-{
-	uint8_t flash = __imc_boot_flash();
-
-	return flash > IMC_FLASH_SSI_LOAD ? IMC_FLASH_SSI_LOAD : flash;
-}
-#endif
 
 #ifdef CONFIG_DUOWEN_PMA
 void duowen_pma_init(void)
@@ -86,16 +78,6 @@ void duowen_pma_init(void)
 		     ilog2_const(max(SZ_2M, DDR_SIZE)));
 	n += pma_set(n, PMA_AT_DEVICE,               DEV_BASE,
 		     ilog2_const(max(SZ_2M, DEV_SIZE)));
-
-#ifdef CONFIG_DUOWEN_LOAD_DDR_MODEL
-	{
-		void (*boot_entry)(void);
-
-		boot_entry = (void *)CONFIG_DUOWEN_BOOT_ADDR;
-		boot_entry();
-		unreachable();
-	}
-#endif
 }
 #endif
 
@@ -124,43 +106,85 @@ void board_finish(int code)
 #endif
 
 #ifdef CONFIG_DUOWEN_LOAD
-void board_boot(void)
-{
-	__unused uint8_t flash_sel = imc_boot_flash();
-	void (*boot_entry)(void) = (void *)0x80;
-
-	board_init_clock();
 #ifdef CONFIG_DUOWEN_LOAD_SPI_FLASH
-	if (flash_sel == IMC_FLASH_SPI_LOAD) {
-		printf("Booting from SPI flash...\n");
-		boot_entry = (void *)CONFIG_DUOWEN_BOOT_ADDR;
-		clk_enable(spi_flash_pclk);
-		duowen_flash_set_frequency(min(DUOWEN_FLASH_FREQ,
-					       APB_CLK_FREQ));
-	}
-#endif
-#ifdef CONFIG_DUOWEN_LOAD_SSI_FLASH
-	if (flash_sel == IMC_FLASH_SSI_LOAD) {
-		uint32_t addr = 0;
-		uint32_t size = 500000;
-		unsigned char boot_file[] = "fsbl.bin";
-		int ret;
+void duowen_load_spi(void)
+{
+	void (*boot_entry)(void) = (void *)FLASH_BASE;
 
-		boot_entry = (void *)RAM_BASE;
-		ret = gpt_pgpt_init();
-		if (ret != 0)
-			printf("E(%d): Failed to init primary GPT.\n", ret);
-		ret = gpt_get_file_by_name(boot_file, &addr, &size);
-		if (ret <= 0)
-			printf("E(%d): Failed to get boot file.\n", ret);
-		printf("Booting from SSI flash addr=0x%lx, size=0x%lx...\n",
-		       addr, size);
-		duowen_ssi_flash_boot(boot_entry, addr, size);
-	}
-#endif
+	printf("Booting from SPI flash...\n");
+	clk_enable(spi_flash_pclk);
+	duowen_flash_set_frequency(min(DUOWEN_FLASH_FREQ,
+				       APB_CLK_FREQ));
 	boot_entry();
 	unreachable();
 }
+#else
+#define duowen_load_spi()		do { } while (0)
+#endif
+#ifdef CONFIG_DUOWEN_LOAD_SSI_FLASH
+void duowen_load_ssi(void)
+{
+#ifdef CONFIG_DUOWEN_ZSBL
+	void (*boot_entry)(void) = (void *)RAM_BASE;
+#endif
+#ifdef CONFIG_DUOWEN_FSBL
+	void (*boot_entry)(void) = (void *)0x80;
+#endif
+	uint32_t addr = 0;
+	uint32_t size = 500000;
+	unsigned char boot_file[] = "fsbl.bin";
+	int ret;
+
+	ret = gpt_pgpt_init();
+	if (ret != 0)
+		printf("SSI: primary GPT failure.\n");
+	ret = gpt_get_file_by_name(boot_file, &addr, &size);
+	if (ret <= 0)
+		printf("SSI: %s missing.\n", boot_file);
+	printf("Booting from SSI flash addr=0x%lx, size=0x%lx...\n",
+	       addr, size);
+#ifdef CONFIG_DUOWEN_FSBL
+	ddr_init();
+#endif
+	duowen_ssi_flash_boot(boot_entry, addr, size);
+#if defined(CONFIG_DUOWEN_IMC) && defined(CONFIG_DUOWEN_FSBL)
+	duowen_clk_apc_init();
+#else
+	boot_entry();
+	unreachable();
+#endif
+}
+#else
+#define duowen_load_ssi()		do { } while (0)
+#endif
+
+#if defined(CONFIG_DUOWEN_APC) && defined(CONFIG_DUOWEN_ZSBL)
+void duowen_load_ddr(void)
+{
+	void (*boot_entry)(void) = (void *)0x80;
+
+	printf("Booting %d/%d from DDR...\n",
+	       smp_processor_id(), MAX_CPU_NUM);
+	boot_entry();
+	unreachable();
+}
+
+void board_boot(void)
+{
+	duowen_load_ddr();
+}
+#else
+void board_boot(void)
+{
+	__unused uint8_t flash_sel = imc_boot_flash();
+
+	board_init_clock();
+	if (flash_sel == IMC_BOOT_SPI)
+		duowen_load_spi();
+	if (flash_sel == IMC_BOOT_SSI)
+		duowen_load_ssi();
+}
+#endif
 #else
 #define board_boot()		do { } while (0)
 #endif
@@ -183,6 +207,13 @@ void board_late_init(void)
 	 *       initializing NoC.
 	 */
 	duowen_imc_noc_init();
+#ifndef CONFIG_SMP
+	board_boot();
+#endif
+}
+
+void board_smp_init(void)
+{
 	board_boot();
 }
 
@@ -198,6 +229,45 @@ static int do_duowen_reboot(int argc, char *argv[])
 	return 0;
 }
 
+const char *imc_boot2name(uint8_t boot_mode)
+{
+	switch (boot_mode) {
+	case IMC_BOOT_ROM:
+		return "rom";
+	case IMC_BOOT_FLASH:
+		return "flash";
+	case IMC_BOOT_RAM:
+		return "ram";
+	case IMC_BOOT_DDR:
+		return "ddr";
+	default:
+		return "unknown";
+	}
+}
+
+const char *imc_flash2name(uint8_t boot_flash)
+{
+	switch (boot_flash) {
+	case IMC_BOOT_SD:
+		return "sd";
+	case IMC_BOOT_SPI:
+		return "spi";
+	case IMC_BOOT_SSI:
+		return "ssi";
+	default:
+		return "unknown";
+	}
+}
+
+static int do_duowen_info(int argc, char *argv[])
+{
+	printf("SIM  : %s\n", imc_sim_mode() ? "sim" : "asic");
+	printf("CPU  : %s\n", imc_boot_cpu() ? "APC" : "IMC");
+	printf("Mode : %s\n", imc_boot2name(imc_boot_mode()));
+	printf("Flash: %s\n", imc_flash2name(imc_boot_flash()));
+	return 0;
+}
+
 static int do_duowen(int argc, char *argv[])
 {
 	if (argc < 2)
@@ -207,6 +277,8 @@ static int do_duowen(int argc, char *argv[])
 		return do_duowen_shutdown(argc, argv);
 	if (strcmp(argv[1], "reboot") == 0)
 		return do_duowen_reboot(argc, argv);
+	if (strcmp(argv[1], "info") == 0)
+		return do_duowen_info(argc, argv);
 	return -EINVAL;
 }
 
@@ -215,4 +287,6 @@ DEFINE_COMMAND(duowen, do_duowen, "DUOWEN SoC global commands",
 	"    -shutdown board\n"
 	"duowen reboot\n"
 	"    -reboot board\n"
+	"duowen info\n"
+	"    -simulation/boot mode information\n"
 );

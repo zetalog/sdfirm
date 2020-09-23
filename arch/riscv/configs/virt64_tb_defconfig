@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Sep  9 16:30:18 2020
+# Tue Sep 22 11:50:23 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -59,6 +59,7 @@ CONFIG_CONSOLE_BANNER=y
 CONFIG_ARCH_VIRT=y
 CONFIG_CPU_VIRT64=y
 CONFIG_CPU_64G=y
+CONFIG_CPU_WMO=y
 CONFIG_CPU_64I=y
 # CONFIG_RISCV_32I is not set
 CONFIG_RISCV_64I=y
@@ -96,7 +97,7 @@ CONFIG_RISCV_SV39=y
 #
 # CPU architecture options
 #
-# CONFIG_RISCV_WMO is not set
+CONFIG_RISCV_WMO=y
 # CONFIG_RISCV_TSO is not set
 # CONFIG_RISCV_ATOMIC_COUNT_32 is not set
 CONFIG_RISCV_ATOMIC_COUNT_64=y

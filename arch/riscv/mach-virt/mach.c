@@ -57,12 +57,29 @@ void board_shutdown(void)
 #endif
 #endif
 
+#ifdef CONFIG_FINISH
+void board_finish(int code)
+{
+	if (code) {
+		printf("Test failure.\n\n");
+		virt_finish_fail();
+	} else {
+		printf("Test success.\n\n");
+		virt_finish_pass();
+	}
+}
+#endif
+
 void board_early_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);
 }
 
 void board_late_init(void)
+{
+}
+
+void board_smp_init(void)
 {
 }
 

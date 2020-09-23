@@ -45,8 +45,10 @@
 #define FIX_CLINT		(FIX_HOLE + 1)
 #define FIX_PLIC		(FIX_HOLE + 2)
 #define FIX_UART		(FIX_HOLE + 3)
-#define MMU_HW_MAX_FIXMAP	(FIX_UART + 1)
+#define FIX_TEST		(FIX_HOLE + 4)
+#define MMU_HW_MAX_FIXMAP	(FIX_TEST + 1)
 
+void virt_mmu_map_test(void);
 void virt_mmu_map_uart(int n);
 void virt_mmu_dump_maps(void);
 

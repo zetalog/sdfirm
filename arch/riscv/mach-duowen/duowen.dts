@@ -28,9 +28,18 @@
 #ifndef CONFIG_SMP
 		interrupt-parent = <0x3>;
 #endif
-		clock-frequency = <0x384000>;
+#ifdef CONFIG_DUOWEN_FPGA
+		clock-frequency = <0x989680>;
+#endif
+#ifdef CONFIG_DUOWEN_ZEBU
+		clock-frequency = <0x7735940>;
+#endif
+#ifdef CONFIG_DUOWEN_ASIC
+		clock-frequency = <0x7735940>;
+#endif
 		reg = <0xff 0x63000000 0x0 0x100>;
-		compatible = "ns16550a";
+		reg-io-width = <0x4>;
+		compatible = "snps,dw-apb-uart";
 	};
 
 	poweroff {

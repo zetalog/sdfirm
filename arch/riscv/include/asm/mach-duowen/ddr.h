@@ -56,8 +56,6 @@
 #include <driver/dw_umctl2.h>
 
 #define NR_DDR_SPEEDS		(DDR4_3200 + 1)
-#define ddr_prst		ddr_pclk
-#define ddr_arst		ddr_aclk
 
 #ifdef CONFIG_DUOWEN_DDR
 /* DDR frequency plans */

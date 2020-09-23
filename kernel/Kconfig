@@ -163,6 +163,7 @@ config ARCH_HAS_SMP
 menuconfig SMP
 	bool "Scheduling facility (SMP) support"
 	depends ARCH_HAS_SMP
+	select PAGE
 
 if SMP
 

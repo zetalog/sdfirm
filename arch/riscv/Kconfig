@@ -48,6 +48,7 @@ config ARCH_DUOWEN
 	select ARCH_HAS_PLIC
 	select ARCH_HAS_PLIC_EOI_EARLY
 	select ARCH_HAS_DDR
+	select ARCH_HAS_PCI
 	select ARCH_HAS_SD
 	select ARCH_HAS_I2C
 	select ARCH_HAS_SPI
