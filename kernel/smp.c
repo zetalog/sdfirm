@@ -67,7 +67,7 @@ void smp_init(void)
 {
 	cpu_t cpu = smp_processor_id();
 
-	con_printf("SMP initializing CPU %d.\n", cpu);
+	con_log("SMP initializing CPU %d.\n", cpu);
 
 	if (smp_processor_id() != smp_boot_cpu) {
 		cpumask_set_cpu(cpu, &smp_online_cpus);

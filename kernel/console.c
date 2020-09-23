@@ -182,6 +182,20 @@ void con_dbg(const char *fmt, ...)
 }
 #endif
 
+#ifdef CONFIG_CONSOLE_VERBOSE
+void con_log(const char *fmt, ...)
+{
+	va_list arg;
+
+	if (!console_enabled)
+		return;
+
+	va_start(arg, fmt);
+	vprintf(fmt, arg);
+	va_end(arg);
+}
+#endif
+
 void console_early_init(void)
 {
 	clk_hw_mmu_init();

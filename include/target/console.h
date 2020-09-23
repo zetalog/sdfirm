@@ -91,6 +91,11 @@ void con_printf(const char *fmt, ...);
 #define con_printf(...)			do { } while (0)
 #endif
 
+#ifdef CONFIG_CONSOLE_VERBOSE
+void con_log(const char *fmt, ...);
+#else
+#define con_log(...)			do { } while (0)
+#endif
 #ifdef CONFIG_CONSOLE_DEBUG
 void con_dbg(const char *fmt, ...);
 #else

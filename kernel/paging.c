@@ -424,8 +424,8 @@ static void __create_pgd_mapping(pgd_t *pgdir, phys_addr_t phys,
 	caddr_t addr, length, end, next;
 	pgd_t *pgdp = pgd_offset(pgdir, virt);
 
-	con_printf("LOWMAP: %016llx -> %016llx: %016llx %s\n",
-		   phys, virt, size, name ? name : "memory");
+	con_log("LOWMAP: %016llx -> %016llx: %016llx %s\n",
+		phys, virt, size, name ? name : "memory");
 
 	/* If the virtual and physical address don't have the same offset
 	 * within a page, we cannot map the region as the caller expects.
@@ -488,16 +488,16 @@ extern void simpoint_mem_restore(void);
 static void map_mem(pgd_t *pgdp)
 {
 #ifdef CONFIG_GEM5_STATIC_PAGES
-	con_printf("Simpoint: Start simpoint_pages_dump\n");
+	con_log("Simpoint: Start simpoint_pages_dump\n");
 	pages_list = simpoint_pages_dump();
 #else
-	con_printf("Simpoint: Start simpoint_pages_alloc\n");
+	con_log("Simpoint: Start simpoint_pages_alloc\n");
 	pages_list = simpoint_pages_alloc();
 #endif
-	con_printf("Simpoint: Start simpoint_pages_map\n");
+	con_log("Simpoint: Start simpoint_pages_map\n");
 	simpoint_pages_map(pgdp, pages_list);
 #if defined(CONFIG_GEM5_NOT_RESTORE_MEM) || !defined(CONFIG_GEM5_STATIC_PAGES)
-	con_printf("Simpoint: Start simpoint_mem_restore\n");
+	con_log("Simpoint: Start simpoint_mem_restore\n");
 	simpoint_mem_restore();
 #endif
 }

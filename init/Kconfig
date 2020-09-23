@@ -42,6 +42,7 @@ config FIRMWARE
 	bool "Device firmware"
 	select SYS_IRQ
 	select ARCH_HAS_BOOT_LOAD
+	select CONSOLE_VERBOSE if CONSOLE_OUTPUT
 	help
 	  Disallow dynamic allocation. IRQ is enabled. A runtime system.
 	  Allow booting from memory.
@@ -156,6 +157,9 @@ config CONSOLE_2400
 	bool "2400"
 
 endchoice
+
+config CONSOLE_VERBOSE
+	bool "Enable console logging messages"
 
 config CONSOLE_DEBUG
 	bool "Enable console debugging messages"

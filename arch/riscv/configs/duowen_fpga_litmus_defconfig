@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Sep 23 10:09:15 2020
+# Wed Sep 23 15:40:28 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -118,8 +118,6 @@ CONFIG_CLINT=y
 CONFIG_ARCH_HAS_PLIC=y
 CONFIG_ARCH_HAS_PLIC_EOI_EARLY=y
 # CONFIG_PLIC is not set
-# CONFIG_PLIC_COMPLETION_ENTRY is not set
-# CONFIG_PLIC_COMPLETION_EXIT is not set
 # CONFIG_HPM is not set
 # CONFIG_VAISRA_TBOX is not set
 CONFIG_VAISRA_PMA=y
