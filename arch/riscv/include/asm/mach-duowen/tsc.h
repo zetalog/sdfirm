@@ -59,17 +59,20 @@
 #ifndef __ASSEMBLY__
 #ifdef CONFIG_DUOWEN_IMC
 #define tsc_hw_ctrl_init()	board_init_timestamp()
-#ifdef CONFIG_DUOWEN_TMR_MTIME
-#define tsc_hw_read_counter()	csr_read(CSR_TIME)
-#else /* CONFIG_DUOWEN_TMR_MTIME */
+#if defined(CONFIG_RISCV_COUNTERS) || defined(CONFIG_SBI)
+#define tsc_hw_read_counter()	rdtime()
+#else
 #define tsc_hw_read_counter()	tmr_read_counter()
-#endif /* CONFIG_DUOWEN_TMR_MTIME */
 #endif
+#endif /* CONFIG_DUOWEN_IMC */
 
 #ifdef CONFIG_DUOWEN_APC
-#define CLINT_BASE		0xFF010F0000
+#define tsc_hw_ctrl_init()	do { } while (0)
+#if defined(CONFIG_RISCV_COUNTERS) || defined(CONFIG_SBI)
+#define tsc_hw_read_counter()	rdtime()
+#else
 #define tsc_hw_read_counter()	clint_read_mtime()
-#define tsc_hw_ctrl_init()
+#endif
 #endif /* CONFIG_DUOWEN_APC */
 #endif /* __ASSEMBLY__ */
 
