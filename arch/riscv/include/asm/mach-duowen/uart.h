@@ -51,7 +51,6 @@
 #define UART_CLK_ID		uart0_clk
 #ifdef CONFIG_MMU
 #define DUOWEN_UART_BASE	duowen_uart_reg_base
-extern caddr_t duowen_uart_reg_base;
 #else
 #define DUOWEN_UART_BASE	__DUOWEN_UART_BASE
 #endif

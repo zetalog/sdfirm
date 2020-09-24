@@ -24,6 +24,7 @@ void smp_hw_cpu_on(cpu_t cpu, caddr_t ep)
 {
 	smp_mb();
 	WRITE_ONCE(__cpu_up_entry[cpu], ep);
+	smp_mb();
 }
 
 void smp_hw_cpu_boot(void)

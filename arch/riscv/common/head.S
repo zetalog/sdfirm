@@ -342,6 +342,7 @@ secondary_start:
 	add	a4, a3, a4
 
 wait_for_cpu_up:
+	fence	rw, rw
 	REG_L	a7, (a4) /* entry */
 	beqz	a7, wait_for_cpu_up
 	fence
