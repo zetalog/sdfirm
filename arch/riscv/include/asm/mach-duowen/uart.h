@@ -67,6 +67,10 @@
 #endif
 #endif
 
+#ifdef CONFIG_DUOWEN_UART_ACCEL
+#define UART_CON_BAUDRATE		(SFAB_HALF_CLK_FREQ/16)
+#endif
+
 #ifdef CONFIG_DEBUG_PRINT
 void uart_hw_dbg_init(void);
 void uart_hw_dbg_start(void);

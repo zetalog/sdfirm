@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Sep 23 15:32:23 2020
+# Thu Sep 24 17:37:37 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -205,6 +205,7 @@ CONFIG_DUOWEN_APC_INIT=y
 CONFIG_DUOWEN_PMA=y
 CONFIG_DUOWEN_NOC=y
 CONFIG_DUOWEN_UART=y
+# CONFIG_DUOWEN_UART_ACCEL is not set
 CONFIG_DUOWEN_TMR=y
 # CONFIG_DUOWEN_TMR_CRCNTL_INIT is not set
 CONFIG_CRCNTL=y

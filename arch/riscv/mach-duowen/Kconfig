@@ -242,6 +242,17 @@ menuconfig DUOWEN_UART
 
 if DUOWEN_UART
 
+config DUOWEN_UART_ACCEL
+	bool "Enable DUOWEN UART acceleration support"
+	depends SIMULATION
+	help
+	  When this is selected, the UART baudrate generator frequency will
+	  be SYSFAB_HALF_CLK/16, making things happening quicker.
+	  In case your are using a UART master DPI VIP, selecting this is
+	  safe as the VIP cares no about the baudrate.
+	  This option is also useful for simulation acceleration.
+	  If unsure, say 'N'.
+
 endif
 
 menuconfig DUOWEN_TMR
