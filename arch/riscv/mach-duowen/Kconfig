@@ -242,6 +242,24 @@ menuconfig DUOWEN_UART
 
 if DUOWEN_UART
 
+choice
+	prompt "Console port"
+	default DUOWEN_UART_CON0
+
+config DUOWEN_UART_CON0
+	bool "UART0"
+
+config DUOWEN_UART_CON1
+	bool "UART1"
+
+config DUOWEN_UART_CON2
+	bool "UART2"
+
+config DUOWEN_UART_CON3
+	bool "UART3"
+
+endchoice
+
 config DUOWEN_UART_ACCEL
 	bool "Enable DUOWEN UART acceleration support"
 	depends SIMULATION

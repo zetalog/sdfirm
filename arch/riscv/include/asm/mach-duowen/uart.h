@@ -46,17 +46,37 @@
 #include <target/gpio.h>
 #include <target/clk.h>
 
+#ifdef CONFIG_DUOWEN_UART_CON0
 #define __DUOWEN_UART_BASE	UART0_BASE
-
 #define UART_CLK_ID		uart0_clk
+#define UART_CON_ID		0
+#define UART_CON_IRQ		IRQ_UART0
+#endif
+#ifdef CONFIG_DUOWEN_UART_CON1
+#define __DUOWEN_UART_BASE	UART1_BASE
+#define UART_CLK_ID		uart1_clk
+#define UART_CON_ID		1
+#define UART_CON_IRQ		IRQ_UART1
+#endif
+#ifdef CONFIG_DUOWEN_UART_CON2
+#define __DUOWEN_UART_BASE	UART2_BASE
+#define UART_CLK_ID		uart2_clk
+#define UART_CON_ID		2
+#define UART_CON_IRQ		IRQ_UART2
+#endif
+#ifdef CONFIG_DUOWEN_UART_CON3
+#define __DUOWEN_UART_BASE	UART3_BASE
+#define UART_CLK_ID		uart3_clk
+#define UART_CON_ID		3
+#define UART_CON_IRQ		IRQ_UART3
+#endif
+
 #ifdef CONFIG_MMU
 #define DUOWEN_UART_BASE	duowen_uart_reg_base
 #else
 #define DUOWEN_UART_BASE	__DUOWEN_UART_BASE
 #endif
 #define DW_UART_REG(n, offset)	(DUOWEN_UART_BASE + (offset))
-#define UART_CON_ID		0
-#define UART_CON_IRQ		IRQ_UART0
 
 #if defined(CONFIG_DW_UART)
 #include <driver/dw_uart.h>
