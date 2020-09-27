@@ -43,6 +43,8 @@
 /* Enable/disable trap logs */
 #define SBI_ECALL_ENABLE_LOG			30
 #define SBI_ECALL_DISABLE_LOG			31
+/* Testbench finish */
+#define SBI_ECALL_FINISH			32
 
 #define SBI_TLB_FLUSH_ALL			((unsigned long)-1)
 #define SBI_TLB_FLUSH_MAX_SIZE			(1UL << 30)
@@ -289,6 +291,7 @@ int sbi_system_early_init(struct sbi_scratch *scratch, bool cold_boot);
 int sbi_system_final_init(struct sbi_scratch *scratch, bool cold_boot);
 __noreturn void sbi_system_reboot(struct sbi_scratch *scratch, u32 type);
 __noreturn void sbi_system_shutdown(struct sbi_scratch *scratch, u32 type);
+void __noreturn sbi_finish_hang(void);
 
 __noreturn void sbi_init(void);
 #endif /* __ASSEMBLY__ */

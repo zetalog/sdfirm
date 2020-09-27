@@ -51,8 +51,7 @@
 #define FIX_APC3		(FIX_HOLE + 7)
 #define FIX_UART		(FIX_HOLE + 8)
 #define FIX_PLIC		(FIX_HOLE + 9)
-#define FIX_MSG			(FIX_HOLE + 10)
-#define MMU_HW_MAX_FIXMAP	(FIX_MSG + 1)
+#define MMU_HW_MAX_FIXMAP	(FIX_PLIC + 1)
 
 void duowen_mmu_dump_maps(void);
 #ifdef CONFIG_DUOWEN_UART
@@ -62,14 +61,6 @@ void duowen_mmu_dump_uart(void);
 #else
 #define duowen_mmu_map_uart(n)	do { } while (0)
 #define duowen_mmu_dump_uart()	do { } while (0)
-#endif
-#ifdef CONFIG_DUOWEN_MSG
-extern caddr_t duowen_msg_reg_base;
-void duowen_mmu_map_msg(void);
-void duowen_mmu_dump_msg(void);
-#else
-#define duowen_mmu_map_msg()	do { } while (0)
-#define duowen_mmu_dump_msg()	do { } while (0)
 #endif
 #ifdef CONFIG_CRCNTL
 void duowen_mmu_map_clk(void);

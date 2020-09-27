@@ -233,6 +233,16 @@ static void __noreturn init_warmboot(void)
 
 static atomic_t coldboot_lottery = ATOMIC_INIT(0);
 
+void __noreturn sbi_finish_hang(void)
+{
+	cpu_t hartid = sbi_current_hartid();
+	struct sbi_scratch *scratch = sbi_scratches[hartid];
+	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+
+	sbi_platform_system_finish(plat, 1);
+	hart_hang();
+}
+
 /**
  * Initialize OpenSBI library for current HART and jump to next
  * booting stage.

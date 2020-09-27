@@ -46,6 +46,7 @@
 #include <target/uefi.h>
 #include <target/cmdline.h>
 #include <target/ddr.h>
+#include <target/sbi.h>
 
 #define __imc_boot_flash() (IMC_BOOT_FLASH_TYPE(__raw_readl(SCSR_BOOT_MODE)))
 
@@ -82,20 +83,40 @@ void duowen_pma_init(void)
 #endif
 
 #ifdef CONFIG_SHUTDOWN
+#ifdef CONFIG_SBI
+void board_shutdown(void)
+{
+	sbi_shutdown();
+}
+#else
 void board_shutdown(void)
 {
 	msg_imc_shutdown();
 }
 #endif
+#endif
 
 #ifdef CONFIG_REBOOT
+#ifdef CONFIG_SBI
+void board_reboot(void)
+{
+	sbi_shutdown();
+}
+#else
 void board_reboot(void)
 {
 	msg_imc_shutdown();
 }
 #endif
+#endif
 
 #ifdef CONFIG_FINISH
+#ifdef CONFIG_SBI
+void board_finish(int code)
+{
+	sbi_finish(code);
+}
+#else
 void board_finish(int code)
 {
 	if (code)
@@ -103,6 +124,7 @@ void board_finish(int code)
 	else
 		msg_imc_success();
 }
+#endif
 #endif
 
 #ifdef CONFIG_DUOWEN_LOAD

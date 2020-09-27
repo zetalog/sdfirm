@@ -223,7 +223,7 @@ static void sbi_switch_u_mode(unsigned long next_addr)
 #define sbi_switch_u_mode(next_addr)	do { } while (0)
 #endif
 
-void __attribute__((noreturn))
+__noreturn void
 sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
 		     unsigned long next_addr, unsigned long next_mode)
 {

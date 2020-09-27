@@ -49,6 +49,7 @@ static void do_trap_error(struct pt_regs *regs, unsigned long addr,
 	else
 		printf("%s at " REG_FMT ".\n", str, addr);
 	show_regs(regs);
+	board_finish(1);
 	hart_hang();
 }
 

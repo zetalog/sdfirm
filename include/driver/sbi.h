@@ -88,6 +88,8 @@ struct sbi_platform_operations {
 
 	/** Handle platform specific IRQ */
 	int (*process_irq)(u32 cause);
+	/** Mark a bench test result and finish */
+	int (*system_finish)(u32 type);
 } __packed;
 
 /** Representation of a platform */
@@ -431,6 +433,22 @@ static inline int sbi_platform_system_shutdown(const struct sbi_platform *plat,
 {
 	if (plat && sbi_platform_ops(plat)->system_shutdown)
 		return sbi_platform_ops(plat)->system_shutdown(type);
+	return 0;
+}
+
+/**
+ * Finish the testbench with test result
+ *
+ * @param plat pointer to struct sbi_platform
+ * @param type type of the test result
+ *
+ * @return 0 on success and negative error code on failure
+ */
+static inline int sbi_platform_system_finish(const struct sbi_platform *plat,
+					     u32 type)
+{
+	if (plat && sbi_platform_ops(plat)->system_finish)
+		return sbi_platform_ops(plat)->system_finish(type);
 	return 0;
 }
 

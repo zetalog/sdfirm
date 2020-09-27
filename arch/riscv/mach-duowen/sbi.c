@@ -185,7 +185,16 @@ static int duowen_timer_init(bool cold_boot)
 
 static int duowen_system_down(u32 type)
 {
-	/* For now nothing to do. */
+	msg_imc_shutdown();
+	return 0;
+}
+
+static int duowen_system_finish(u32 code)
+{
+	if (code)
+		msg_imc_failure();
+	else
+		msg_imc_success();
 	return 0;
 }
 
@@ -219,6 +228,7 @@ const struct sbi_platform_operations platform_ops = {
 	.system_reboot		= duowen_system_down,
 	.system_shutdown	= duowen_system_down,
 	.process_irq		= duowen_process_irq,
+	.system_finish		= duowen_system_finish,
 };
 
 const struct sbi_platform platform = {

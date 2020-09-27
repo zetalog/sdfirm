@@ -63,7 +63,7 @@ extern uintptr_t __erodata[];
 #ifdef CONFIG_FINISH
 void board_finish(int code);
 #else
-#define board_finish()			do { } while (0)
+#define board_finish(code)		do { } while (0)
 #endif
 #ifdef CONFIG_SHUTDOWN
 void board_shutdown(void);

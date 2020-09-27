@@ -20,15 +20,14 @@ int sbi_system_final_init(struct sbi_scratch *scratch, bool cold_boot)
 	return sbi_platform_final_init(sbi_platform_ptr(scratch), cold_boot);
 }
 
-void __attribute__((noreturn))
+void __noreturn
 sbi_system_reboot(struct sbi_scratch *scratch, u32 type)
-
 {
 	sbi_platform_system_reboot(sbi_platform_ptr(scratch), type);
 	hart_hang();
 }
 
-void __attribute__((noreturn))
+void __noreturn
 sbi_system_shutdown(struct sbi_scratch *scratch, u32 type)
 {
 	/* First try the platform-specific method */

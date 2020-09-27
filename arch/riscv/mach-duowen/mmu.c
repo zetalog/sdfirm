@@ -75,7 +75,6 @@ void duowen_mmu_map_clk(void)
 	duowen_pll_reg_base[4] = COHFAB_PLL_REG(0);
 	for (i = 0; i < 4; i++)
 		duowen_pll_reg_base[5 + i] = CLUSTER_PLL_REG(i, 0);
-	duowen_mmu_map_msg();
 }
 
 void duowen_mmu_dump_clk(void)
@@ -94,7 +93,6 @@ void duowen_mmu_dump_clk(void)
 				__DUOWEN_APC_CLK_BASE(i),
 				fix_to_virt(FIX_APC0 + i), i);
 	}
-	duowen_mmu_dump_msg();
 }
 #endif
 
@@ -114,25 +112,6 @@ void duowen_mmu_dump_uart(void)
 	if (duowen_uart_reg_base != __DUOWEN_UART_BASE)
 		con_log("FIXMAP: %016llx -> %016llx: UART\n",
 			__DUOWEN_UART_BASE, fix_to_virt(FIX_UART));
-}
-#endif
-
-#ifdef CONFIG_DUOWEN_MSG
-caddr_t duowen_msg_reg_base = __DUOWEN_MSG_BASE;
-
-void duowen_mmu_map_msg(void)
-{
-	if (duowen_msg_reg_base == __DUOWEN_MSG_BASE) {
-		set_fixmap_io(FIX_MSG, __DUOWEN_MSG_BASE & PAGE_MASK);
-		duowen_msg_reg_base = fix_to_virt(FIX_MSG);
-	}
-}
-
-void duowen_mmu_dump_msg(void)
-{
-	if (duowen_msg_reg_base != __DUOWEN_MSG_BASE)
-		con_log("FIXMAP: %016llx -> %016llx: MSG\n",
-			__DUOWEN_MSG_BASE, fix_to_virt(FIX_MSG));
 }
 #endif
 

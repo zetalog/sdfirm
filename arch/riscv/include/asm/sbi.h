@@ -83,5 +83,6 @@
 		   hartmask, start, size, asid)
 #define sbi_enable_log()	SBI_CALL_0(SBI_ECALL_ENABLE_LOG)
 #define sbi_disable_log()	SBI_CALL_0(SBI_ECALL_DISABLE_LOG)
+#define sbi_finish(code)	SBI_CALL_1(SBI_ECALL_FINISH, code)
 
 #endif /* __SBI_RISCV_H_INCLUDE__ */

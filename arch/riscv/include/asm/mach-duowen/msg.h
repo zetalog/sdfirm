@@ -44,16 +44,7 @@
 
 #include <target/paging.h>
 
-#define __DUOWEN_MSG_BASE	(MSG_BASE & ~PAGE_SIZE)
-#define MSG_REG_OFFSET		(MSG_BASE - __DUOWEN_MSG_BASE)
-
-#ifdef CONFIG_MMU
-#define DUOWEN_MSG_BASE		duowen_msg_reg_base
-#else
-#define DUOWEN_MSG_BASE		__DUOWEN_MSG_BASE
-#endif
-
-#define MSG_REG(offset)		(DUOWEN_MSG_BASE + MSG_REG_OFFSET + (offset))
+#define MSG_REG(offset)		(MSG_BASE + (offset))
 
 #define MSG_TEST_ITEM		MSG_REG(0x00)
 #define MSG_TEST_SUBITEM_LO	MSG_REG(0x04)
