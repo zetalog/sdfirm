@@ -9,7 +9,7 @@
 	model = "riscv-smarco,duowen";
 
 	chosen {
-#ifdef CONFIG_DUOWEN_CONSOLE_UART0
+#ifdef CONFIG_DUOWEN_UART_DTS_CON
 		bootargs = [00];
 		stdout-path = "/uart@ff63000000";
 #else
@@ -17,6 +17,7 @@
 #endif
 	};
 
+#ifdef CONFIG_DUOWEN_UART_DTS
 	uart@ff63000000 {
 		interrupts = <0x54>;
 #ifdef CONFIG_DUOWEN_APC_4
@@ -41,6 +42,7 @@
 		reg-io-width = <0x4>;
 		compatible = "snps,dw-apb-uart";
 	};
+#endif
 
 	poweroff {
 		value = <0x5555>;
