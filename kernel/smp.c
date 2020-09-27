@@ -46,8 +46,8 @@
 #include <target/task.h>
 #include <target/jiffies.h>
 #include <target/percpu.h>
-#include <target/bench.h>
 #include <target/atomic.h>
+#include <target/bench.h>
 #include <target/paging.h>
 #include <target/cmdline.h>
 #include <target/arch.h>
@@ -102,26 +102,4 @@ void smp_init(void)
 	cmd_init();
 	bh_loop();
 }
-#endif
-
-#ifdef CONFIG_RISCV
-int ipi_sanity(caddr_t percpu_area)
-{
-	cpu_t cpu;
-
-#ifdef CONFIG_SBI
-	sbi_enable_log();
-#endif
-	for_each_cpu(cpu, &smp_online_cpus) {
-		printf("SMP: %d sending IPI to %d\n", smp_processor_id(), cpu);
-		if (cpu != smp_processor_id())
-			smp_cpu_off(cpu);
-	}
-#ifdef CONFIG_SBI
-	sbi_disable_log();
-#endif
-	return 1;
-}
-__define_testfn(ipi_sanity, 0, SMP_CACHE_BYTES,
-		CPU_EXEC_META, 1, CPU_WAIT_INFINITE);
 #endif

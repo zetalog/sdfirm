@@ -2,6 +2,7 @@
 #include <target/smp.h>
 #include <target/page.h>
 #include <target/barrier.h>
+#include <target/sbi.h>
 
 #ifndef asid2cpu
 #define asid2cpu(asid)		((cpu_t)(asid))

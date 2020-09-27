@@ -39,6 +39,11 @@
 #define SBI_ECALL_REMOTE_SFENCE_VMA_ASID	7
 #define SBI_ECALL_SHUTDOWN			8
 
+/* sdfirm specific SBI calls */
+/* Enable/disable trap logs */
+#define SBI_ECALL_ENABLE_LOG			30
+#define SBI_ECALL_DISABLE_LOG			31
+
 #define SBI_TLB_FLUSH_ALL			((unsigned long)-1)
 #define SBI_TLB_FLUSH_MAX_SIZE			(1UL << 30)
 
@@ -75,29 +80,8 @@ typedef unsigned long long	u64;
 #endif
 
 typedef unsigned long		ulong;
-typedef unsigned long		virtual_addr_t;
-typedef unsigned long		virtual_size_t;
-typedef unsigned long		physical_addr_t;
-typedef unsigned long		physical_size_t;
 
 #include <sbi/riscv_unpriv.h>
-
-#define SBI_ECALL(__num, __a0, __a1, __a2)                                    \
-	({                                                                    \
-		register unsigned long a0 asm("a0") = (unsigned long)(__a0);  \
-		register unsigned long a1 asm("a1") = (unsigned long)(__a1);  \
-		register unsigned long a2 asm("a2") = (unsigned long)(__a2);  \
-		register unsigned long a7 asm("a7") = (unsigned long)(__num); \
-		asm volatile("ecall"                                          \
-			     : "+r"(a0)                                       \
-			     : "r"(a1), "r"(a2), "r"(a7)                      \
-			     : "memory");                                     \
-		a0;                                                           \
-	})
-
-#define SBI_ECALL_0(__num) SBI_ECALL(__num, 0, 0, 0)
-#define SBI_ECALL_1(__num, __a0) SBI_ECALL(__num, __a0, 0, 0)
-#define SBI_ECALL_2(__num, __a0, __a1) SBI_ECALL(__num, __a0, __a1, 0)
 
 /** Representation of per-HART scratch space */
 struct sbi_scratch {
@@ -162,14 +146,6 @@ enum sbi_fifo_inplace_update_types {
 };
 
 #define SBI_TLB_INFO_SIZE			sizeof(struct sbi_tlb_info)
-
-#define sbi_ecall_console_putc(c) SBI_ECALL_1(SBI_ECALL_CONSOLE_PUTCHAR, (c));
-
-static inline void sbi_ecall_console_puts(const char *str)
-{
-	while (str && *str)
-		sbi_ecall_console_putc(*str++);
-}
 
 /** Get pointer to sbi_scratch for current HART */
 #define sbi_scratch_thishart_ptr() \

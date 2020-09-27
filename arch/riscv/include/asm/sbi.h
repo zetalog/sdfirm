@@ -42,21 +42,6 @@
 #ifndef __SBI_RISCV_H_INCLUDE__
 #define __SBI_RISCV_H_INCLUDE__
 
-#define SBI_SET_TIMER			0
-#define SBI_CONSOLE_PUTCHAR		1
-#define SBI_CONSOLE_GETCHAR		2
-#define SBI_CLEAR_IPI			3
-#define SBI_SEND_IPI			4
-#define SBI_REMOTE_FENCE_I		5
-#define SBI_REMOTE_SFENCE_VMA		6
-#define SBI_REMOTE_SFENCE_VMA_ASID	7
-#define SBI_SHUTDOWN			8
-
-/* sdfirm specific SBI calls */
-/* Enable/disable trap logs */
-#define SBI_ENABLE_LOG			30
-#define SBI_DISABLE_LOG			31
-
 #define SBI_CALL(which, arg0, arg1, arg2, arg3) ({		\
 	register uintptr_t a0 asm ("a0") = (uintptr_t)(arg0);	\
 	register uintptr_t a1 asm ("a1") = (uintptr_t)(arg1);	\
@@ -75,27 +60,28 @@
 #define SBI_CALL_1(which, arg0) SBI_CALL(which, arg0, 0, 0, 0)
 #define SBI_CALL_2(which, arg0, arg1) SBI_CALL(which, arg0, arg1, 0, 0)
 #define SBI_CALL_3(which, arg0, arg1, arg2) \
-		SBI_CALL(which, arg0, arg1, arg2, 0)
+		   SBI_CALL(which, arg0, arg1, arg2, 0)
 #define SBI_CALL_4(which, arg0, arg1, arg2, arg3) \
-		SBI_CALL(which, arg0, arg1, arg2, arg3)
+		   SBI_CALL(which, arg0, arg1, arg2, arg3)
 
-#define sbi_console_putchar(ch)	SBI_CALL_1(SBI_CONSOLE_PUTCHAR, ch)
-#define sbi_console_getchar()	SBI_CALL_0(SBI_CONSOLE_GETCHAR)
+#define sbi_console_putchar(ch)	SBI_CALL_1(SBI_ECALL_CONSOLE_PUTCHAR, ch)
+#define sbi_console_getchar()	SBI_CALL_0(SBI_ECALL_CONSOLE_GETCHAR)
 #if __riscv_xlen == 32
-#define sbi_set_timer(st)	SBI_CALL_2(SBI_SET_TIMER, (st), (st) >> 32)
+#define sbi_set_timer(st)	SBI_CALL_2(SBI_ECALL_SET_TIMER, (st), (st) >> 32)
 #else
-#define sbi_set_timer(st)	SBI_CALL_1(SBI_SET_TIMER, (st))
+#define sbi_set_timer(st)	SBI_CALL_1(SBI_ECALL_SET_TIMER, (st))
 #endif
-#define sbi_shutdown()		SBI_CALL_0(SBI_SHUTDOWN)
-#define sbi_clear_ipi()		SBI_CALL_0(SBI_CLEAR_IPI)
-#define sbi_send_ipi(hartmask)	SBI_CALL_1(SBI_SEND_IPI, hartmask)
+#define sbi_shutdown()		SBI_CALL_0(SBI_ECALL_SHUTDOWN)
+#define sbi_clear_ipi()		SBI_CALL_0(SBI_ECALL_CLEAR_IPI)
+#define sbi_send_ipi(hartmask)	SBI_CALL_1(SBI_ECALL_SEND_IPI, hartmask)
 #define sbi_remote_fence_i(hartmask)				\
-	SBI_CALL_1(SBI_REMOTE_FENCE_I, hartmask)
+	SBI_CALL_1(SBI_ECALL_REMOTE_FENCE_I, hartmask)
 #define sbi_remote_sfence_vma(hartmask, start, size)		\
-	SBI_CALL_3(SBI_REMOTE_SFENCE_VMA, hartmask, start, size)
+	SBI_CALL_3(SBI_ECALL_REMOTE_SFENCE_VMA, hartmask, start, size)
 #define sbi_remote_sfence_vma_asid(hartmask, start, size, asid)	\
-	SBI_CALL_4(SBI_REMOTE_SFENCE_VMA_ASID, hartmask, start, size, asid)
-#define sbi_enable_log()	SBI_CALL_0(SBI_ENABLE_LOG)
-#define sbi_disable_log()	SBI_CALL_0(SBI_DISABLE_LOG)
+	SBI_CALL_4(SBI_ECALL_REMOTE_SFENCE_VMA_ASID,		\
+		   hartmask, start, size, asid)
+#define sbi_enable_log()	SBI_CALL_0(SBI_ECALL_ENABLE_LOG)
+#define sbi_disable_log()	SBI_CALL_0(SBI_ECALL_DISABLE_LOG)
 
 #endif /* __SBI_RISCV_H_INCLUDE__ */

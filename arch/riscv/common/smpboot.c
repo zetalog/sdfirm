@@ -5,6 +5,7 @@
 #include <target/irq.h>
 #include <target/atomic.h>
 #include <target/sbi.h>
+#include <target/bench.h>
 
 enum ipi_message_type {
 	IPI_RESCHEDULE,
@@ -86,3 +87,19 @@ void smp_hw_ctrl_init(void)
 	irq_register_vector(IRQ_SOFT, smp_hw_handle_ipi);
 	irqc_enable_irq(IRQ_SOFT);
 }
+
+int ipi_sanity(caddr_t percpu_area)
+{
+	cpu_t cpu;
+
+	sbi_enable_log();
+	for_each_cpu(cpu, &smp_online_cpus) {
+		printf("SMP: %d sending IPI to %d\n", smp_processor_id(), cpu);
+		if (cpu != smp_processor_id())
+			smp_cpu_off(cpu);
+	}
+	sbi_disable_log();
+	return 1;
+}
+__define_testfn(ipi_sanity, 0, SMP_CACHE_BYTES,
+		CPU_EXEC_META, 1, CPU_WAIT_INFINITE);

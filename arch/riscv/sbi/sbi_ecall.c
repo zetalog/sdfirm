@@ -102,11 +102,11 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 		sbi_system_shutdown(scratch, 0);
 		ret = 0;
 		break;
-	case SBI_ENABLE_LOG:
+	case SBI_ECALL_ENABLE_LOG:
 		sbi_trap_log_on = true;
 		ret = 0;
 		break;
-	case SBI_DISABLE_LOG:
+	case SBI_ECALL_DISABLE_LOG:
 		sbi_trap_log_on = false;
 		ret = 0;
 		break;
