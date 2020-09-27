@@ -103,6 +103,7 @@ build_sdfirm riscv64 duowen_imc_zsbl
 build_sdfirm riscv64 duowen_imc_fsbl
 build_sdfirm riscv64 duowen_imc_spi
 build_sdfirm riscv64 duowen_apc_zsbl
+build_sdfirm riscv64 duowen_zebu_apc
 
 # DUOWEN simulations
 build_sdfirm riscv64 duowen_imc_ram
