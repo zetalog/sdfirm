@@ -69,13 +69,12 @@
 #define msg_apc_status(apc, status)		\
 	__raw_writel(status, MSG_TEST_STATUS_APC(apc))
 
-#define msg_test_init()						\
+#define msg_imc_test_start()					\
 	do {							\
-		for (int apc = 0; apc < 16; apc++) 			\
+		for (int apc = 0; apc < 16; apc++) 		\
 			msg_apc_status(apc, MSG_IDLE);		\
-		msg_imc_status(MSG_IDLE);			\
+		msg_imc_status(MSG_BUSY);			\
 	} while (0)
-#define msg_imc_test_start()		msg_imc_status(MSG_BUSY)
 #define msg_apc_test_start(apc)		msg_apc_status(apc, MSG_BUSY)
 #define msg_imc_finish()		__raw_setl(_BV(MSG_IMC), MSG_TEST_DONE)
 #define msg_apc_finish(apc)		__raw_setl(_BV(apc), MSG_TEST_DONE)
@@ -91,13 +90,11 @@
 	} while (0)
 #define msg_imc_success()					\
 	do {							\
-		msg_test_init();				\
 		msg_imc_test_start();				\
 		msg_imc_test_stop(true);			\
 	} while (0)
 #define msg_imc_failure()					\
 	do {							\
-		msg_test_init();				\
 		msg_imc_test_start();				\
 		msg_imc_test_stop(false);			\
 	} while (0)
