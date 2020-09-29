@@ -12,12 +12,16 @@ LITMUS_ELFS=$LITMUS_SRCS
 LITMUS_CMD="-st 2 -s 5 -r 2"
 LITMUS_JOBS=8
 LITMUS_RFSH=no
+LITMUS_STRIDE=2
+LITMUS_SOTEST=5
 
 usage()
 {
 	echo "Usage:"
 	echo "`basename $0` [-a arch] [-m mach] [-c comp]"
-	echo "		[-j jobs] [-o output] [-r] [test]"
+	echo "		[-j jobs] [-o path]"
+	echo "		[-s stride] [-t size_of_test]"
+	echo "		[-r] [test]"
 	echo "Where:"
 	echo " -a arch: specify CPU architecture"
 	echo " -m mach: specify SoC architecure"
@@ -25,6 +29,8 @@ usage()
 	echo " -j jobs: specify number of build threads"
 	echo " -o path: specify ELF output directory"
 	echo " -r     : refresh ELF output results"
+	echo " -s stride      : litmus stride (-st)"
+	echo " -t size_of_test: litmus size_of_test (-s)"
 	echo "    test: specify a single test"
 	exit $1
 }
@@ -35,7 +41,7 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "a:m:c:j:o:r" opt
+while getopts "a:m:c:j:o:rs:t:" opt
 do
 	case $opt in
 	a) ARCH=$OPTARG;;
@@ -44,6 +50,8 @@ do
 	j) LITMUS_JOBS=$OPTARG;;
 	o) LITMUS_ELFS=$OPTARG;;
 	r) LITMUS_RFSH=yes;;
+	s) LITMUS_STRIDE=$OPTARG;;
+	t) LITMUS_SOTEST=$OPTARG;;
 	?) echo "Invalid argument $opt"
 	   fatal_usage;;
 	esac
@@ -90,7 +98,7 @@ build_litmus()
 		cat $SRCDIR/defconfig | awk '{				\
 		if (match($0, /^CONFIG_COMMAND_BATCH_COMMAND/)) {	\
 			cfg=substr($0, 0, RLENGTH+2);			\
-			print cfg "'$CASE' -st 2 -s 5 -r 2\"";		\
+			print cfg "'$CASE' -st '$LITMUS_STRIDE' -s '$LITMUS_SOTEST' -r 1\"";		\
 		} else if (match($0, /^CONFIG_LITMUS_RISCV_DUMMY/)) {	\
 			print "# CONFIG_LITMUS_RISCV_DUMMY is not set"	\
 		} else if (match($0, /CONFIG_'$CASE' is not set/)) {	\
