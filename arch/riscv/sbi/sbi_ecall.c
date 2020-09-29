@@ -102,6 +102,11 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 		sbi_system_shutdown(scratch, 0);
 		ret = 0;
 		break;
+	case SBI_ECALL_FINISH:
+		sbi_trap_log("%d: ECALL_FINISH\n", source_hart);
+		sbi_system_finish(scratch, regs->a0);
+		ret = 0;
+		break;
 	case SBI_ECALL_ENABLE_LOG:
 		sbi_trap_log_on = true;
 		ret = 0;

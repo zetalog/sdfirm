@@ -38,3 +38,11 @@ sbi_system_shutdown(struct sbi_scratch *scratch, u32 type)
 	sbi_ipi_send_many(scratch, NULL, NULL, SBI_IPI_EVENT_HALT, NULL);
 	hart_hang();
 }
+
+void __noreturn
+sbi_system_finish(struct sbi_scratch *scratch, u32 code)
+{
+	sbi_platform_system_finish(sbi_platform_ptr(scratch), code);
+	sbi_ipi_send_many(scratch, NULL, NULL, SBI_IPI_EVENT_HALT, NULL);
+	hart_hang();
+}

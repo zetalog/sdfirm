@@ -143,12 +143,10 @@ static int fu540_console_getc(void)
 
 static int fu540_irqchip_init(bool cold_boot)
 {
-	cpu_t cpu = sbi_processor_id();
-
 	if (cold_boot)
 		plic_sbi_init_cold();
 	else
-		plic_sbi_init_warm(cpu);
+		plic_sbi_init_warm(sbi_processor_id());
 	return 0;
 }
 
