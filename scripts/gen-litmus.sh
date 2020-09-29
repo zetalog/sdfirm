@@ -5,7 +5,7 @@ SRCDIR=`(cd $SCRIPT/..; pwd)`
 
 ARCH=riscv
 MACH=spike64
-CROSS_COMPILE=riscv64-linux-gnu-
+CROSS_COMPILE=riscv64-linux-
 
 LITMUS_SRCS=$SRCDIR/tests/riscv/litmus/
 LITMUS_ELFS=$LITMUS_SRCS

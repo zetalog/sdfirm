@@ -13,7 +13,7 @@ usage()
 	echo "`basename $0` [-c cpus] [-t path] [mode]"
 	echo "Where:"
 	echo " -c num-cpus: specify number of CPUs"
-	echo " -s test-dir: specify litmus-tests-riscv directory"
+	echo " -t test-dir: specify litmus-tests-riscv directory"
 	echo "mode:         specify script execution mode"
 	echo "       build: the default mode, generate files"
 	echo "       clean: remove C files"
@@ -47,11 +47,13 @@ fi
 	if [ "x$LITMUS_MODE" = "xbuild" ]; then
 		cd $LITMUS_TSTS
 
+		LITMUS_FLAGS="-mode sdfirm -mach ./riscv.cfg \
+			-avail $LITMUS_CPUS -o $LITMUS_SRCS"
+		if [ -e instructions.excl ]; then
+			LITMUS_FLAGS = "$LITMUS_FLAGS -excl instructions.excl"
+		fi
 		echo "Generating litmus test source..."
-		litmus7 -mode sdfirm -mach ./riscv.cfg \
-			-avail $LITMUS_CPUS -excl instructions.excl \
-			-o $LITMUS_SRCS \
-			"tests/non-mixed-size/@all"
+		litmus7 $LITMUS_FLAGS "tests/non-mixed-size/@all"
 	fi
 	if [ "x$LITMUS_MODE" = "xclean" ]; then
 		cd $LITMUS_SRCS

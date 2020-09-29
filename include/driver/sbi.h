@@ -89,7 +89,7 @@ struct sbi_platform_operations {
 	/** Handle platform specific IRQ */
 	int (*process_irq)(u32 cause);
 	/** Mark a bench test result and finish */
-	int (*system_finish)(u32 type);
+	int (*system_finish)(u32 code);
 } __packed;
 
 /** Representation of a platform */
@@ -445,10 +445,10 @@ static inline int sbi_platform_system_shutdown(const struct sbi_platform *plat,
  * @return 0 on success and negative error code on failure
  */
 static inline int sbi_platform_system_finish(const struct sbi_platform *plat,
-					     u32 type)
+					     u32 code)
 {
 	if (plat && sbi_platform_ops(plat)->system_finish)
-		return sbi_platform_ops(plat)->system_finish(type);
+		return sbi_platform_ops(plat)->system_finish(code);
 	return 0;
 }
 
