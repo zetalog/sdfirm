@@ -36,7 +36,7 @@ done
 shift $(($OPTIND - 1))
 
 if [ -z $1 ]; then
-	echo "Building all litmus cases..."
+	echo "Building all litmus cases for ${MACH}..."
 fi
 
 SRCDIR=${LITMUS_TSTS}/${MACH}-tests-src
@@ -44,3 +44,35 @@ mkdir -p ${SRCDIR}
 ${SCRIPT}/scripts/sync-litmus.sh -c $LITMUS_CPUS -t $LITMUS_TSTS
 ${SCRIPT}/scripts/gen-litmus.sh -m ${MACH} -o ${SRCDIR} $1
 ${SCRIPT}/scripts/sync-litmus.sh clean
+
+if [ "x${MACH}" = "xspike64" ]; then
+	SMACH=spike
+fi
+if [ "x${MACH}" = "xspike32" ]; then
+	SMACH=spike
+fi
+if [ "x${MACH}" = "xvirt64" ]; then
+	SMACH=qemu
+fi
+if [ "x${SMACH}" = "x" ]; then
+	exit 0;
+fi
+
+LITMUS_INCL=`cat $SRCDIR/incl`
+if [ -x $SCRIPT/scripts/run-${SMACH}.sh ]; then
+	echo "Running all litmus cases on ${SMACH}..."
+	echo -n "" > ${SRCDIR}/succ
+	echo -n "" > ${SRCDIR}/fail
+	echo -n "" > ${SRCDIR}/litmus_run.log
+	for li in $LITMUS_INCL; do
+		rslt=`$SCRIPT/scripts/run-${SMACH}.sh \
+			-p${LITMUS_CPUS} ${SRCDIR}/${li}.elf \
+			| tee -a ${SRCDIR}/litmus_run.log | \
+			grep "success\|failure" --binary-file=text`
+		if [ "x${rslt}" = "xTest success." ]; then
+			echo "$li" >> ${SRCDIR}/succ
+		else
+			echo "$li" >> ${SRCDIR}/fail
+		fi
+	done
+fi

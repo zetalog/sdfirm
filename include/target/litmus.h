@@ -257,6 +257,22 @@ int parse_cmd(int argc, char **argv, cmd_t *def, cmd_t *p);
 #define LITMUS_EVT_RUN_START	_BV(2)
 #define LITMUS_EVT_RUN_STOP	_BV(3)
 
+#define LITMUS_WIT_NEVER_NG	0
+#define LITMUS_WIT_ALWAYS_OK	LITMUS_WIT_NEVER_NG
+#define LITMUS_WIT_SOMETIMES_NG	1
+#define LITMUS_WIT_SOMETIMES_OK	LITMUS_WIT_SOMETIMES_NG
+#define LITMUS_WIT_ALWAYS_NG	2
+
+/* Witness OK */
+#define LITMUS_WIT_NEVER_OK	LITMUS_WIT_ALWAYS_NG
+#define LITMUS_EXISTS_NEVER	LITMUS_WIT_NEVER_NG
+#define LITMUS_FORALL_ALWAYS	LITMUS_WIT_ALWAYS_OK
+/* Witness NG */
+#define LITMUS_EXISTS_ALWAYS	LITMUS_WIT_ALWAYS_NG
+#define LITMUS_FORALL_NEVER	LITMUS_WIT_NEVER_OK
+#define LITMUS_EXISTS_SOMETIMES	LITMUS_WIT_SOMETIMES_NG
+#define LITMUS_FORALL_SOMETIMES	LITMUS_WIT_SOMETIMES_OK
+
 typedef uint16_t litmus_evt_t;
 typedef uint8_t litmus_sta_t;
 
@@ -269,7 +285,7 @@ void litmus_stop(void);
 void litmus_run_start(void);
 void litmus_run_stop(void);
 bool litmus_closed(void);
-void litmus_observed(bool p_true, bool p_false);
+void litmus_observed(const char *cond, bool p_true, bool p_false);
 #ifdef CONFIG_TEST_LITMUS_FINISH
 void litmus_finish(void);
 #else

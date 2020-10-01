@@ -9,7 +9,6 @@ CROSS_COMPILE=riscv64-linux-
 
 LITMUS_SRCS=$SRCDIR/tests/riscv/litmus/
 LITMUS_ELFS=$LITMUS_SRCS
-LITMUS_CMD="-st 2 -s 5 -r 2"
 LITMUS_JOBS=8
 LITMUS_RFSH=no
 LITMUS_STRIDE=2
@@ -92,7 +91,6 @@ build_litmus()
 	(
 		cd $SRCDIR
 		CASE=$1
-		CMD="-st 2 -s 5 -r 2"
 		make $LITMUS_DEF > /dev/null
 		cp $SRCDIR/.config $SRCDIR/defconfig
 		cat $SRCDIR/defconfig | awk '{				\

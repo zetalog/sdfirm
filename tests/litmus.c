@@ -15,11 +15,7 @@
 /****************************************************************************/
 #include <target/litmus.h>
 
-#define LITMUS_NEVER		0
-#define LITMUS_SOMETIMES	1
-#define LITMUS_ALWAYS		2
-
-static uint8_t litmus_exist;
+static uint8_t litmus_witness;
 
 int gcd(int a, int b)
 {
@@ -1498,14 +1494,28 @@ void litmus_exec(const char *test)
 #ifdef CONFIG_TEST_LITMUS_FINISH
 void litmus_finish(void)
 {
-	board_finish(litmus_exist);
+	/* litmus_witness == 0 means success */
+	board_finish(litmus_witness);
 }
 #endif
 
-void litmus_observed(bool p_true, bool p_false)
+void litmus_observed(const char *cond, bool p_true, bool p_false)
 {
-	litmus_exist = !p_true ? LITMUS_NEVER :
-		(!p_false ? LITMUS_ALWAYS : LITMUS_SOMETIMES);
+	if (strncmp(cond, "forall", 6) == 0) {
+		if (!p_false)
+			litmus_witness = LITMUS_FORALL_ALWAYS;
+		else if (!p_true)
+			litmus_witness = LITMUS_FORALL_NEVER;
+		else
+			litmus_witness = LITMUS_FORALL_SOMETIMES;
+	} else {
+		if (!p_true)
+			litmus_witness = LITMUS_EXISTS_NEVER;
+		else if (!p_false)
+			litmus_witness = LITMUS_EXISTS_ALWAYS;
+		else
+			litmus_witness = LITMUS_EXISTS_SOMETIMES;
+	}
 }
 
 void litmus_init(void)
