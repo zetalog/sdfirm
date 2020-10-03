@@ -167,5 +167,10 @@ else
 		done
 	else
 		build_litmus $LITMUS_CASE
+		if [ $? -eq 0 ]; then
+			echo $LITMUS_CASE >> $LITMUS_INCL
+		else
+			echo $LITMUS_CASE >> $LITMUS_EXCL
+		fi
 	fi
 fi
