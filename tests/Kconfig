@@ -77,3 +77,13 @@ config TEST_LITMUS_DEBUG
 	bool "Enable litmus debugging messages"
 
 endif
+
+config TEST_MEMTESTER
+	bool "Enable memtester support"
+
+if TEST_MEMTESTER
+
+config MEMTESTER_NARROW_WRITES
+	bool "Enable narrow writes support"
+
+endif
