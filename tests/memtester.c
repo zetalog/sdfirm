@@ -13,6 +13,12 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <unistd.h>
+
+/* Some systems don't define MAP_LOCKED.  Define it to 0 here
+   so it's just a no-op when ORed with other constants. */
+#ifndef MAP_LOCKED
+  #define MAP_LOCKED 0
+#endif
 #else
 #include <target/cmdline.h>
 #include <target/heap.h>
@@ -43,7 +49,7 @@ typedef unsigned short volatile u16v;
 #elif (ULONG_MAX == 18446744073709551615ULL)
 #define rand64()		(((ul) rand32()) << 32 | ((ul) rand32()))
 #define rand_ul()		rand64()
-#define UL_ONEBITS		UL(0xffffffffffffffff)
+#define UL_ONEBITS		0xffffffffffffffffUL
 #define UL_LEN			64
 #define CHECKERBOARD1		0x5555555555555555
 #define CHECKERBOARD2		0xaaaaaaaaaaaaaaaa
@@ -819,12 +825,6 @@ static struct test {
 #endif
 	{ NULL, NULL }
 };
-
-/* Some systems don't define MAP_LOCKED.  Define it to 0 here
-   so it's just a no-op when ORed with other constants. */
-#ifndef MAP_LOCKED
-  #define MAP_LOCKED 0
-#endif
 
 #ifdef HOST
 int main(int argc, char **argv)
