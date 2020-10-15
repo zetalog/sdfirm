@@ -13,19 +13,19 @@ fatal()
 modify_kconfig()
 {
 	if [ "x$1" =  "x--disable" ]; then
-		echo "Disabling $2"
+		echo "Disabling CONFIG_$2"
 	else
-		echo "Enabling $2"
+		echo "Enabling CONFIG_$2"
 	fi
 	eval $MODCONFIG $@
-	cfg=`cat ./.config | grep ^$2=`
+	cfg=`cat ./.config | grep ^CONFIG_$2=`
 	if [ "x$1" =  "x--disable" ]; then
 		if [ "x$cfg" != "x" ]; then
-			fatal "Disable $2 failure, please check dependencies."
+			fatal "Disable CONFIG_$2 failure, please check dependencies."
 		fi
 	else
 		if [ "x$cfg" = "x" ]; then
-			fatal "Enable $2 failure, please check dependencies."
+			fatal "Enable CONFIG_$2 failure, please check dependencies."
 		fi
 	fi
 }
@@ -42,23 +42,23 @@ parse_kconfig()
 				val=substr(rem, RLENGTH+1);		\
 				if (match(val, /^y$/)) {		\
 					opt="--enable";		 	\
-					cmds=opt""s""p""cfg;		\
+					cmds=opt""s""cfg;		\
 				} else if (match(val, /^n$/)) {		\
 					opt="--disable";		\
-					cmds=opt""s""p""cfg;		\
+					cmds=opt""s""cfg;		\
 				} else if (match(val, /^m$/)) {		\
 					opt="--module";			\
-					cmds=opt""s""p""cfg;		\
+					cmds=opt""s""cfg;		\
 				} else if (match(val, /^[0-9]+$/)) {	\
 					opt="--set-val";		\
-					cmds=opt""s""p""cfg""s""val;	\
+					cmds=opt""s""cfg""s""val;	\
 				} else if (match(val, /^\".*\"$/)) {	\
 					str=substr(val, 1, RLENGTH);	\
 					opt="--set-str";		\
-					cmds=opt""s""p""cfg""s""str;	\
+					cmds=opt""s""cfg""s""str;	\
 				} else {				\
 					opt="--set-val";		\
-					cmds=opt""s""p""cfg""s""val;	\
+					cmds=opt""s""cfg""s""val;	\
 				}					\
 				print cmds;				\
 			}						\
@@ -105,12 +105,14 @@ fi
 if [ -z $2 ]; then
 	fatal_usage "Missing modconfig"
 fi
-if [ -z $3 ]; then
-	MODMODE=allno
-else
-	MODMODE=$3
-fi
 
 make $1
 apply_kconfig_file $2
-make ${MODMODE}config
+
+if [ -z $3 ]; then
+	echo "Configuration modification done."
+else
+	MODMODE=$3
+	make ${MODMODE}config
+	echo "Configuration ${MODMODE} modification done."
+fi
