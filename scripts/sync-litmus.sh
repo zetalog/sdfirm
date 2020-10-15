@@ -1,10 +1,12 @@
 #!/bin/sh
+#
+# Synchronize the generated litmus cases to the tests/riscv/litmus folder.
 
 SCRIPT=`(cd \`dirname $0\`; pwd)`
-SRCDIR=`(cd $SCRIPT/..; pwd)`
+SRCDIR=`(cd ${SCRIPT}/..; pwd)`
 
-LITMUS_TSTS=$HOME/workspace/memory-model/litmus-tests-riscv
-LITMUS_SRCS=$SRCDIR/tests/riscv/litmus/
+LITMUS_TSTS=${HOME}/workspace/memory-model/litmus-tests-riscv
+LITMUS_SRCS=${SRCDIR}/tests/riscv/litmus/
 LITMUS_CPUS=4
 
 usage()
@@ -44,19 +46,19 @@ else
 fi
 
 (
-	if [ "x$LITMUS_MODE" = "xbuild" ]; then
-		cd $LITMUS_TSTS
+	if [ "x${LITMUS_MODE}" = "xbuild" ]; then
+		cd ${LITMUS_TSTS}
 
 		LITMUS_FLAGS="-mode sdfirm -mach ./riscv.cfg \
-			-avail $LITMUS_CPUS -o $LITMUS_SRCS"
+			-avail ${LITMUS_CPUS} -o ${LITMUS_SRCS}"
 		if [ -e instructions.excl ]; then
-			LITMUS_FLAGS = "$LITMUS_FLAGS -excl instructions.excl"
+			LITMUS_FLAGS = "${LITMUS_FLAGS} -excl instructions.excl"
 		fi
 		echo "Generating litmus test source..."
-		litmus7 $LITMUS_FLAGS "tests/non-mixed-size/@all"
+		litmus7 ${LITMUS_FLAGS} "tests/non-mixed-size/@all"
 	fi
-	if [ "x$LITMUS_MODE" = "xclean" ]; then
-		cd $LITMUS_SRCS
+	if [ "x${LITMUS_MODE}" = "xclean" ]; then
+		cd ${LITMUS_SRCS}
 
 		echo "Removing generated litmus tests..."
 		echo "# Auto Generated Tests" > Makefile.litmus

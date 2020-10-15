@@ -1,14 +1,16 @@
 #!/bin/bash
+#
+# Generate litmus test case ELF executables.
 
 SCRIPT=`(cd \`dirname $0\`; pwd)`
-SRCDIR=`(cd $SCRIPT/..; pwd)`
+SRCDIR=`(cd ${SCRIPT}/..; pwd)`
 
 ARCH=riscv
 MACH=spike64
 CROSS_COMPILE=riscv64-linux-
 
-LITMUS_SRCS=$SRCDIR/tests/riscv/litmus/
-LITMUS_ELFS=$LITMUS_SRCS
+LITMUS_SRCS=${SRCDIR}/tests/riscv/litmus/
+LITMUS_ELFS=${LITMUS_SRCS}
 LITMUS_JOBS=8
 LITMUS_RFSH=no
 LITMUS_STRIDE=2
@@ -89,11 +91,11 @@ fi
 build_litmus()
 {
 	(
-		cd $SRCDIR
+		cd ${SRCDIR}
 		CASE=$1
-		make $LITMUS_DEF > /dev/null
-		cp $SRCDIR/.config $SRCDIR/defconfig
-		cat $SRCDIR/defconfig | awk '{				\
+		make ${LITMUS_DEF} > /dev/null
+		cp ${SRCDIR}/.config ${SRCDIR}/defconfig
+		cat ${SRCDIR}/defconfig | awk '{			\
 		if (match($0, /^CONFIG_COMMAND_BATCH_COMMAND/)) {	\
 			cfg=substr($0, 0, RLENGTH+2);			\
 			print cfg "'$CASE' -st '$LITMUS_STRIDE' -s '$LITMUS_SOTEST' -r 1\"";		\
@@ -103,18 +105,18 @@ build_litmus()
 			print "CONFIG_" "'$CASE'" "=y";			\
 		} else {						\
 			print
-		}}' > $SRCDIR/.config
-		rm -f $SRCDIR/defconfig
+		}}' > ${SRCDIR}/.config
+		rm -f ${SRCDIR}/defconfig
 		make clean > /dev/null
-		echo "===== $CASE =====" | tee -a $LITMUS_LOG
-		make -j $LITMUS_JOBS > /dev/null 2>>$LITMUS_LOG
+		echo "===== $CASE =====" | tee -a ${LITMUS_LOG}
+		make -j ${LITMUS_JOBS} > /dev/null 2>>${LITMUS_LOG}
 	)
 	built=$?
 
 	if [ $built -eq 0 ]; then
-		echo "$1 success." | tee -a $LITMUS_LOG
-		cp -f $SRCDIR/.config $LITMUS_ELFS/$1.cfg
-		cp -f $SRCDIR/sdfirm $LITMUS_ELFS/$1.elf
+		echo "$1 success." | tee -a ${LITMUS_LOG}
+		cp -f ${SRCDIR}/.config ${LITMUS_ELFS}/$1.cfg
+		cp -f ${SRCDIR}/sdfirm ${LITMUS_ELFS}/$1.elf
 		if [ -f ${SRCDIR}/arch/riscv/boot/sdfirm.rom ]; then
 			cp -f ${SRCDIR}/arch/riscv/boot/sdfirm.rom \
 			      ${LITMUS_ELFS}/$1.rom
@@ -125,7 +127,7 @@ build_litmus()
 		fi
 		return 0
 	else
-		echo "$1 failure." | tee -a $LITMUS_LOG
+		echo "$1 failure." | tee -a ${LITMUS_LOG}
 		return 1
 	fi
 }
@@ -136,41 +138,41 @@ refresh_build()
 	do
 		sleep 2
 		(
-			cd $LITMUS_SRCS
+			cd ${LITMUS_SRCS}
 			ls *.elf -tr
 		)
 	done
 }
 
-if [ "x$LITMUS_RFSH" = "xyes" ]; then
+if [ "x${LITMUS_RFSH}" = "xyes" ]; then
 	refresh_build
 else
-	litmus_tsts=`parse_litmus $LITMUS_SRCS/Makefile.litmus`
+	litmus_tsts=`parse_litmus ${LITMUS_SRCS}/Makefile.litmus`
 
 	rm -f ${LITMUS_ELFS}/*.elf
 	rm -f ${LITMUS_ELFS}/*.rom
 	rm -f ${LITMUS_ELFS}/*.ram
 	find ${LITMUS_ELFS} -not -name "make.cfg" -and -name "*.cfg" \
 	       | xargs rm -f
-	echo -n "" > $LITMUS_LOG
-	echo -n "" > $LITMUS_INCL
-	echo -n "" > $LITMUS_EXCL
+	echo -n "" > ${LITMUS_LOG}
+	echo -n "" > ${LITMUS_INCL}
+	echo -n "" > ${LITMUS_EXCL}
 
-	if [ -z $LITMUS_CASE ]; then
-		for t in $litmus_tsts; do
+	if [ -z ${LITMUS_CASE} ]; then
+		for t in ${litmus_tsts}; do
 			build_litmus $t
 			if [ $? -eq 0 ]; then
-				echo $t >> $LITMUS_INCL
+				echo $t >> ${LITMUS_INCL}
 			else
-				echo $t >> $LITMUS_EXCL
+				echo $t >> ${LITMUS_EXCL}
 			fi
 		done
 	else
-		build_litmus $LITMUS_CASE
+		build_litmus ${LITMUS_CASE}
 		if [ $? -eq 0 ]; then
-			echo $LITMUS_CASE >> $LITMUS_INCL
+			echo ${LITMUS_CASE} >> ${LITMUS_INCL}
 		else
-			echo $LITMUS_CASE >> $LITMUS_EXCL
+			echo ${LITMUS_CASE} >> ${LITMUS_EXCL}
 		fi
 	fi
 fi
