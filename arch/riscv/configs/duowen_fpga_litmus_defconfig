@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Sep 29 17:54:43 2020
+# Thu Oct 15 23:50:21 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -443,6 +443,7 @@ CONFIG_TEST_BENCH_START_DELAY=64
 CONFIG_TEST_LITMUS=y
 CONFIG_TEST_LITMUS_FINISH=y
 # CONFIG_TEST_LITMUS_DEBUG is not set
+# CONFIG_TEST_MEMTESTER is not set
 
 #
 # RISCV system tests

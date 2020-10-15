@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sun Sep 27 10:15:56 2020
+# Thu Oct 15 23:44:47 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -447,6 +447,7 @@ CONFIG_DHRYSTONE_BENCH_PERCPU=y
 #
 # CONFIG_TLB_TEST is not set
 # CONFIG_TEST_LITMUS is not set
+# CONFIG_TEST_MEMTESTER is not set
 
 #
 # RISCV system tests

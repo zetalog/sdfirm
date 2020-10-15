@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sun Sep 27 10:11:36 2020
+# Thu Oct 15 23:41:22 2020
 #
 CONFIG_ARM64=y
 
@@ -327,6 +327,7 @@ CONFIG_SPD_BUS_KHZ=60
 # CONFIG_TEST_VERBOSE is not set
 # CONFIG_TEST_BENCH is not set
 # CONFIG_TEST_LITMUS is not set
+# CONFIG_TEST_MEMTESTER is not set
 # CONFIG_RAVEN is not set
 
 #
