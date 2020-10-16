@@ -281,6 +281,24 @@ void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
 	else
 		BUG();
 
+	/* 3.4 Output frequency
+	 *
+	 * The VCO oscillating frequency Fvco is a function of the input
+	 * reference frequency Frefclk and of the multiplication/division
+	 * ratios:
+	 *        fbdiv
+	 * Fvco = ------ * Frefclk
+	 *        prediv
+	 * where:
+	 * fbdiv: feedback multiplication ratio
+	 * prediv: input frequency division ratio
+	 *                mfrac
+	 * fbdiv = mint + -----
+	 *                2^16
+	 * Then:
+	 * mint: ranges between 16 and 1039
+	 * mfrac: ranges between 0 and 6535
+	 */
 	do {
 		prediv++;
 		BUG_ON(prediv > 32);
