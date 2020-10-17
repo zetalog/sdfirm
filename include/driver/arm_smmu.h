@@ -82,13 +82,19 @@
 #define SMMU_CB_SIZE			\
 	(SMMU_HW_PAGESIZE << (SMMU_HW_NUMPAGENDXB + 1))
 #define __SMMU_CB_BASE(smmu)		(SMMU_BASE(smmu) + SMMU_GLOBAL_SIZE)
+/* Context Bank */
 #define SMMU_CB_BASE(smmu, n)		\
 	(__SMMU_CB_BASE(smmu) + (n) * SMMU_HW_PAGESIZE)
 
+/* Global Register Space 0 */
 #define SMMU_GR0_BASE(smmu)		SMMU_BASE(smmu)
+/* Global Register Space 1 */
 #define SMMU_GR1_BASE(smmu)		(SMMU_GR0_BASE(smmu) + SMMU_HW_PAGESIZE)
+/* Implementation Defined */
 #define SMMU_GID_BASE(smmu)		(SMMU_GR1_BASE(smmu) + SMMU_HW_PAGESIZE)
+/* Performance Monitor */
 #define SMMU_PM_BASE(smmu)		(SMMU_GID_BASE(smmu) + SMMU_HW_PAGESIZE)
+/* Security State Determination */
 #define SMMU_SSD_BASE(smmu)		(SMMU_PM_BASE(smmu) + SMMU_HW_PAGESIZE)
 
 #define SMMU_GR0_REG(smmu, offset)	(SMMU_GR0_BASE(smmu) + (offset))

@@ -15,6 +15,10 @@ choice
 config DUOWEN_IMC
 	bool "IMC - system fabric (SFAB)"
 	select CPU_CVA6
+	# Allow IMC to test IOMMU in testbench
+	select ARCH_HAS_DMA if DUOWEN_TB
+	select ARCH_HAS_IOMMU if DUOWEN_TB
+	select ARCH_HAS_PCI if DUOWEN_TB
 
 config DUOWEN_APC
 	bool "APC - coherence fabric (CFAB)"
@@ -454,7 +458,7 @@ endif
 
 menuconfig DUOWEN_SMMU
 	bool "Duowen SMMU controller support"
-	select SMMU_MMU500
+	select RVSMMU_SMARCO
 	help
 	  Duowen SMMU is an ARM SMMUv2 like IOMMU hardware, with
 	  necessary modifications in order to be used in the RISC-V

@@ -35,29 +35,38 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)iommu.h: DUOWEN input-output (IO) MMU interface
- * $Id: iommu.h,v 1.1 2020-10-17 07:40:00 zhenglv Exp $
+ * @(#)smarco_rvsmmu.h: SmarCo RISCV system mmu (RVSMMU) interfaces
+ * $Id: smarco_rvsmmu.h,v 1.1 2020-10-17 07:46:00 zhenglv Exp $
  */
 
-#ifndef __IOMMU_DUOWEN_H_INCLUDE__
-#define __IOMMU_DUOWEN_H_INCLUDE__
+#ifndef __SMARCO_RVSMMU_H_INLCUDE__
+#define __SMARCO_RVSMMU_H_INCLUDE__
 
-#include <target/arch.h>
+#include <target/generic.h>
+#include <driver/arm_smmuv2.h>
 
-#define SMMU_BASE(smmu)		(DMA_SMMU_BASE + ((smmu) << 22))
-#define SMMU_HW_MAX_CTRLS	2
-#define SMMU_HW_PAGESIZE	0x1000
-#define SMMU_HW_NUMSIDB		15
-#define SMMU_HW_NUMPAGENDXB	3
-#define SMMU_HW_NUMCB		16
+/* Physical Memory Protection */
+#define SMMU_PMP_BASE(smmu)		(SMMU_SSD_BASE(smmu) + SMMU_HW_PAGESIZE)
 
-#if defined(CONFIG_RVSMMU_SMARCO)
-#include <driver/smarco_rvsmmu.h>
-#ifndef ARCH_HAVE_IOMMU
-#define ARCH_HAVE_IOMMU		1
-#else
-#error "Multiple IOMMU controller defined"
-#endif
-#endif
+#define SMMU_PMP_REG(smmu, offset)	(SMMU_PMP_BASE(smmu) + (offset))
 
-#endif /* __IOMMU_DUOWEN_H_INCLUDE__ */
+/* RISCV Enable */
+#define SMMU_RISCV_EN(smmu)		SMMU_GR0_REG(smmu, 0x018)
+/* Invalidate PMA, RISCV */
+#define SMMU_TLBIPMA(smmu)		SMMU_GR0_REG(smmu, 0x0D0)
+/* Bypass PMP Selection */
+#define SMMU_BYPASS_PMP_SEL(smmu, n)	SMMU_GR0_REG(smmu, 0xE00 + ((n) << 2))
+/* Context Bank Attribute Registers */
+#define SMMU_CBA2R(smmu, n)		SMMU_GR1_REG(smmu, 0x800 + ((n) << 2))
+/* Translation Control Register 2 */
+#define SMMU_TCR2(smmu, n)		SMMU_CB_REG(smmu, n, 0x010)
+/* PMP Selection */
+#define SMMU_PMP_SEL(smmu, n)		SMMU_CB_REG(smmu, n, 0x14)
+/* Supervisor Address Translation and Protection Register, stage 1 */
+#define SMMU_SATP(smmu, n)		SMMU_CB_REG(smmu, n, 0x18)
+
+/* PMP Registers */
+#define SMMU_PMP_CFG(smmu, n)		SMMU_PMP_REG(smmu, 0x00 + ((n) << 3))
+#define SMMU_PMP_ADDR(smmu, n)		SMMU_PMP_REG(smmu, 0x20 + ((n) << 3))
+
+#endif /* __SMARCO_RVSMMU_H_INCLUDE__ */
