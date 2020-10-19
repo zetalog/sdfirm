@@ -52,7 +52,7 @@ fi
 		LITMUS_FLAGS="-mode sdfirm -mach ./riscv.cfg \
 			-avail ${LITMUS_CPUS} -o ${LITMUS_SRCS}"
 		if [ -e instructions.excl ]; then
-			LITMUS_FLAGS = "${LITMUS_FLAGS} -excl instructions.excl"
+			LITMUS_FLAGS="${LITMUS_FLAGS} -excl instructions.excl"
 		fi
 		echo "Generating litmus test source..."
 		litmus7 ${LITMUS_FLAGS} "tests/non-mixed-size/@all"

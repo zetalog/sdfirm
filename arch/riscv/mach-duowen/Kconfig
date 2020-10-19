@@ -458,7 +458,7 @@ endif
 
 menuconfig DUOWEN_SMMU
 	bool "Duowen SMMU controller support"
-	select RVSMMU_SMARCO
+	select SMARCO_RVSMMU
 	help
 	  Duowen SMMU is an ARM SMMUv2 like IOMMU hardware, with
 	  necessary modifications in order to be used in the RISC-V

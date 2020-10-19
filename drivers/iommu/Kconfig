@@ -81,41 +81,10 @@ config ARCH_HAS_SMMU_PTFS_v8_64KB
 	help
 	  64KB translation granule size.
 
-menuconfig ARM_SMMU
-	bool "ARM System Memory Management Unit (SMMU) support"
-	depends ARCH_HAS_SMMU
+config SMMU
+	bool "System memory management unit (SMMU) support"
 
-if ARM_SMMU
-
-choice
-	prompt "SMMU Architecture"
-
-config ARM_SMMUv1
-	bool "SMMUv1"
-	depends ARCH_HAS_SMMUv1
-	select ARCH_HAS_SMMU_SMRG
-	select ARCH_HAS_SMMU_SSDT
-
-config ARCH_SMMUv1_64KB
-	bool "SMMUv1 64KB"
-	depends ARCH_HAS_SMMUv1_64KB
-
-config ARM_SMMUv2
-	bool "SMMUv2"
-	depends ARCH_HAS_SMMUv2
-	select ARCH_HAS_SMMU_EXSMRG
-	select ARCH_HAS_SMMU_SSDT
-	select ARCH_HAS_SMMU_COMPINDEX
-
-config ARM_SMMUv3
-	bool "SMMUv3.0, 3.1 and 3.2"
-	depends ARCH_HAS_SMMUv3
-
-config SMARCO_RVSMMU
-	bool "SmarCo RISCV SMMU"
-	depends ARCH_HAS_RVSMMU
-
-endchoice
+if SMMU
 
 choice
 	prompt "Translation scheme"
@@ -135,6 +104,41 @@ endchoice
 config SMMU_SMRG
 	bool "Stream match register group (SMRG) support"
 	depends ARCH_HAS_SMMU_SMRG
+
+endif
+
+menuconfig ARM_SMMU
+	bool "ARM System Memory Management Unit (SMMU) support"
+	depends ARCH_HAS_SMMUv1
+	select SMMU
+
+if ARM_SMMU
+
+choice
+	prompt "SMMU Architecture"
+
+config ARM_SMMUv1
+	bool "ARM SMMUv1"
+	depends ARCH_HAS_SMMUv1
+	select ARCH_HAS_SMMU_SMRG
+	select ARCH_HAS_SMMU_SSDT
+
+config ARCH_SMMUv1_64KB
+	bool "ARM SMMUv1 64KB"
+	depends ARCH_HAS_SMMUv1_64KB
+
+config ARM_SMMUv2
+	bool "ARM SMMUv2"
+	depends ARCH_HAS_SMMUv2
+	select ARCH_HAS_SMMU_EXSMRG
+	select ARCH_HAS_SMMU_SSDT
+	select ARCH_HAS_SMMU_COMPINDEX
+
+config ARM_SMMUv3
+	bool "ARM SMMUv3.0, 3.1 and 3.2"
+	depends ARCH_HAS_SMMUv3
+
+endchoice
 
 config SMMU_SSDT
 	bool "Security state determination table (SSDT) support"
@@ -168,9 +172,9 @@ config SMMU_MMU500
 	select ARCH_HAS_SMMUv2
 	select ARM_SMMU
 
-config RVSMMU_SMARCO
-	bool "SmarCo RISC-V SMMU support"
+config SMARCO_RVSMMU
+	bool "SmarCo DUOWEN RISCV SMMU (RVSMMU) support"
 	select ARCH_HAS_RVSMMU
-	select ARM_SMMU
+	select SMMU
 
 endmenu

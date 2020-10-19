@@ -50,8 +50,9 @@
 #define SMMU_HW_NUMSIDB		15
 #define SMMU_HW_NUMPAGENDXB	3
 #define SMMU_HW_NUMCB		16
+#define SMMU_HW_NUMSMRG		32
 
-#if defined(CONFIG_RVSMMU_SMARCO)
+#if defined(CONFIG_SMARCO_RVSMMU)
 #include <driver/smarco_rvsmmu.h>
 #ifndef ARCH_HAVE_IOMMU
 #define ARCH_HAVE_IOMMU		1
