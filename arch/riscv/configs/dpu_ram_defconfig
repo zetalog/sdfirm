@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Oct 15 23:51:58 2020
+# Mon Oct 19 09:57:36 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -425,7 +425,9 @@ CONFIG_DW_SSI_SPI_MODE_STD=y
 #
 # IO MMU drivers
 #
+# CONFIG_SMMU is not set
 # CONFIG_SMMU_MMU500 is not set
+# CONFIG_SMARCO_RVSMMU is not set
 
 #
 # LCD drivers
