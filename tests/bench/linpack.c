@@ -149,13 +149,7 @@ int linpack(caddr_t percpu_area)
 	__printf("##########################################\n");
 #endif
 
-	outfile = fopen("Linpack.txt","a+");
-	if (outfile == NULL) {
-		do_printf(" Cannot open results file \n\n");
-		do_printf(" Press Enter\n\n");
-		int g = getchar();
-		exit(0);
-	}
+#define outfile stdout
 #if 0
 	__fprintf(outfile,
 		"########################################################\n\n");
@@ -503,10 +497,6 @@ int linpack(caddr_t percpu_area)
 #ifdef HOSTED
 	fclose(outfile);
 	printf("\n");
-	if (nopause) {
-		printf(" Press Enter\n\n");
-		int gg = getchar();
-	}
 #endif
 	return errors ? 0 : 1;
 }

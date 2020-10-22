@@ -3,11 +3,6 @@
 /* Global Variables: */
 
 #ifdef HOSTED
-#define __unused
-#define __define_testfn(__func, __size, __align, __flags, __repeat, __timeout)
-#define likely(cond)		cond
-#define unlikely(cond)		cond
-
 Rec_Pointer     Ptr_Glob,
                 Next_Ptr_Glob;
 int             Int_Glob;

@@ -250,6 +250,11 @@
 #include <errno.h>
 #include <stdint.h>
 
+#define __unused
+#define __define_testfn(__func, __size, __align, __flags, __repeat, __timeout)
+#define likely(cond)                    cond
+#define unlikely(cond)                  cond
+
 #define dhry_printf(...)                printf(__VA_ARGS__)
 #define dhry_fprintf(fp, ...)           fprintf(fp, __VA_ARGS__)
 #define dhry_strcpy                     strcpy

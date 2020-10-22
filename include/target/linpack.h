@@ -6,6 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+#include <stdarg.h>
+
+#define __unused
 #else
 #include <target/generic.h>
 #include <target/bench.h>
@@ -72,6 +76,10 @@ struct linpack_context {
 #define __printf(...)			printf(__VA_ARGS__)
 #define __fprintf(fp, ...)		fprintf(fp, __VA_ARGS__)
 #define __print_time(t)			print_time(t)
+#define spin_lock(__lock)		do { } while (0)
+#define spin_unlock(__lock)		do { } while (0)
+#define smp_processor_id()		0
+#define __define_testfn(__func, __size, __align, __flags, __repeat, __timeout)
 #else
 #ifdef CONFIG_TEST_VERBOSE
 #define __printf(...)			printf(__VA_ARGS__)
@@ -82,11 +90,11 @@ struct linpack_context {
 #define __fprintf(fp, fmt, ...)		do { } while (0)
 #define __print_time(t)			do { } while (0)
 #endif
+#endif
 #define do_printf(...)			__printf(__VA_ARGS__)
 #define do_fprintf(fp, ...)		__fprintf(fp, __VA_ARGS__)
 #define do_spin_lock(__lock)		spin_lock(__lock)
 #define do_spin_unlock(__lock)		spin_unlock(__lock)
-#endif
 #define fabs		__builtin_fabs
 
 void print_time(int row);

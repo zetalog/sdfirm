@@ -13,3 +13,5 @@
 *.mem
 *.swp
 *.bak
+*.o
+memtester
