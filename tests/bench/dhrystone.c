@@ -1,9 +1,10 @@
 #include <target/dhrystone.h>
-#include <target/cpus.h>
 
 /* Global Variables: */
 
 #ifdef HOSTED
+#define __unused
+#define __define_testfn(__func, __size, __align, __flags, __repeat, __timeout)
 #define likely(cond)		cond
 #define unlikely(cond)		cond
 
@@ -102,7 +103,7 @@ Boolean Func_3 (Enumeration Enum_Par_Val);
 
 
 #ifdef HOSTED
-void main (int argc, char *argv[])
+int main (int argc, char *argv[])
 #else
 int dhrystone (caddr_t percpu_area)
 #endif
@@ -374,7 +375,7 @@ int dhrystone (caddr_t percpu_area)
 #endif /* CONFIG_FP */
     Vax_Mips = Dhrystones_Per_Second / 1757;
     printf ("Number of runs:                             %d \n", Number_Of_Runs);
-    printf ("User time (us):                             %llu \n", (uint64_t)User_Time);
+    printf ("User time (us):                             %llu \n", User_Time);
     dhry_printf ("Microseconds for one run through Dhrystone: " DHRY_FMT " \n", Microseconds);
     dhry_printf ("Dhrystones per Second:                      " DHRY_FMT " \n", Dhrystones_Per_Second);
     printf ("VAX MIPS rating:                            " DHRY_FMT2 " \n", Vax_Mips);
@@ -399,14 +400,7 @@ int dhrystone (caddr_t percpu_area)
 #endif
 
 #ifdef HOSTED
-    if ((Ap = fopen("Dhry.txt","a+")) == NULL)
-    {
-       dhry_printf(" Can not open Dhry.txt\n\n");
-       dhry_printf(" Press Enter\n\n");
-       int g = getchar();
-       exit(1);
-    }
-    local_time();
+#define Ap stdout
 #else
 #define Ap ((void *)1)
 #endif
@@ -449,9 +443,9 @@ int dhrystone (caddr_t percpu_area)
       dhry_fprintf (Ap, " Wrong result Arr_1_Glob[8] Was %d Should be 7\n", Arr_1_Glob[8]);
       errors = errors + 1;
     }
-    if (Arr_2_Glob[8][7] != Number_Of_Runs + 10)
+    if (Arr_2_Glob[8][7] != Number_Of_Runs + 11)
     {
-      dhry_fprintf (Ap, " Wrong result Arr_2_Glob[8][7] Was %d Should be %d\n", Arr_2_Glob[8][7], Number_Of_Runs + 10);
+      dhry_fprintf (Ap, " Wrong result Arr_2_Glob[8][7] Was %d Should be %d\n", Arr_2_Glob[8][7], Number_Of_Runs + 11);
       errors = errors + 1;
     }
     if (Ptr_Glob->Discr != 0)
@@ -538,13 +532,6 @@ int dhrystone (caddr_t percpu_area)
     fclose(Ap);
 #endif
   }
-#if HOSTED
-  if (nopause)
-  {
-     dhry_printf(" Press Enter\n\n");
-     int g = getchar();
-  }
-#endif
 
   return errors ? 0 : 1;
 }

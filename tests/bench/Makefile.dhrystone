@@ -1,0 +1,15 @@
+all: dhrystone
+
+CC=$(CROSS_COMPILE)gcc
+CFLAGS=-O2 -DHOSTED -DCONFIG_DHRYSTONE_TIME_CLOCK=1 -DCONFIG_FP=1 -fno-inline -DREG=register -I../../include
+LDFLAGS=-s
+
+dhrystone.o: dhrystone.c dhry_1.c dhry_2.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+dhrystone: dhrystone.o
+	$(CC) $(LDFLAGS) $< -o $@
+
+clean:
+	@rm -f dhrystone
+	@rm -f *.o

@@ -248,6 +248,7 @@
 #include <stdlib.h> /* for strtoul */
 #include <stdarg.h>
 #include <errno.h>
+#include <stdint.h>
 
 #define dhry_printf(...)                printf(__VA_ARGS__)
 #define dhry_fprintf(fp, ...)           fprintf(fp, __VA_ARGS__)
@@ -265,6 +266,7 @@
 #include <target/bench.h>
 #include <target/percpu.h>
 #include <target/jiffies.h>
+#include <target/cpus.h>
 #endif
 
 #ifdef CONFIG_DHRYSTONE_TIME_TSC
@@ -274,8 +276,10 @@
 #endif
 #ifdef HAVE_TIME_H
 #include <time.h>
+
                 /* for time, clock */
 #ifdef HAVE_CLOCK
+#define HZ                 CLOCKS_PER_SEC
 #define Too_Small_Time     (2*HZ)
 #define dhrystone_time()   clock()
 #define Ticks_Per_Mic      1
