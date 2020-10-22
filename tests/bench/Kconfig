@@ -46,6 +46,7 @@ config DHRYSTONE_TIME
 
 choice
 	prompt "Time measure API"
+	default DHRYSTONE_TIME_TSC
 
 config DHRYSTONE_TIME_CLOCK
 	bool "clock()"

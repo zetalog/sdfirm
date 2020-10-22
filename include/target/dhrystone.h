@@ -237,9 +237,11 @@
 /* Compiler and system dependent definitions: */
 
 #define HAVE_STDBOOL_H
-#ifdef CONFIG_DHRYSTONE_TIME_CLOCK
+#if defined(CONFIG_DHRYSTONE_TIME_TIME) || defined(CONFIG_DHRYSTONE_TIME_CLOCK)
 #define HAVE_TIME_H
+#ifdef CONFIG_DHRYSTONE_TIME_CLOCK
 #define HAVE_CLOCK
+#endif
 #endif
 
 #ifdef HOSTED

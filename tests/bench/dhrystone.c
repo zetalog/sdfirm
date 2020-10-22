@@ -354,9 +354,16 @@ int dhrystone (caddr_t percpu_area)
   {
 #ifdef CONFIG_FP
 #ifdef HOSTED
+#ifdef HAVE_CLOCK
+    Microseconds = (float) User_Time
+                        / (float) Number_Of_Runs / Ticks_Per_Mic;
+    Dhrystones_Per_Second = (float) Number_Of_Runs * Mic_secs_Per_Second * Ticks_Per_Mic
+                        / (float) User_Time;
+#else
     Microseconds = (float) User_Time * Mic_secs_Per_Second
                         / (float) Number_Of_Runs;
     Dhrystones_Per_Second = (float) Number_Of_Runs / (float) User_Time;
+#endif
 #else
     Microseconds = (float) User_Time
                         / (float) Number_Of_Runs / Ticks_Per_Mic;
