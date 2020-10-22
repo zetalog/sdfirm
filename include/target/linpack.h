@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 
-#define __unused
+#define __unused		__attribute__((__unused__))
 #else
 #include <target/generic.h>
 #include <target/bench.h>

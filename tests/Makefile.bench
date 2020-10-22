@@ -1,0 +1,45 @@
+CC=$(CROSS_COMPILE)gcc
+STRIP=$(CROSS_COMPILE)strip
+
+CFLAGS =-O2 -DHOSTED -DCONFIG_FP=1 \
+	-Wall \
+	-Wshadow \
+	-Wwrite-strings \
+	-Wundef \
+	-Wstrict-prototypes \
+	-Wunused \
+	-Wunused-parameter \
+	-Wunused-function \
+	-Wunused-value \
+	-Wmissing-prototypes \
+	-Wmissing-declarations \
+	-Wno-format-security \
+	-Wdeclaration-after-statement \
+	-Wold-style-definition \
+	-finline-limit=0 \
+	-fno-builtin-strlen \
+	-fomit-frame-pointer \
+	-ffunction-sections \
+	-fdata-sections \
+	-fno-guess-branch-probability \
+	-funsigned-char \
+	-static-libgcc \
+	-falign-functions=1 \
+	-falign-jumps=1 \
+	-falign-labels=1 \
+	-falign-loops=1 \
+	-fno-unwind-tables \
+	-fno-asynchronous-unwind-tables \
+	-fno-builtin-printf
+
+%.o: %.c
+	@echo " CC     $<"
+	@$(CC) $(CFLAGS) $(CFLAGS_$*) -c $< -o $@
+
+%.unstrip: %.o
+	@echo " LD     $<"
+	@$(CC) $(CFLAGS) $(CFLAGS_$*) -static $< -o $@
+
+%.elf: %.unstrip
+	@echo " STRIP  $<"
+	@$(STRIP) -s --remove-section=.note --remove-section=.comment $< -o $@

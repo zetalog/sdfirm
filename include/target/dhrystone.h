@@ -250,7 +250,7 @@
 #include <errno.h>
 #include <stdint.h>
 
-#define __unused
+#define __unused			__attribute__((__unused__))
 #define __define_testfn(__func, __size, __align, __flags, __repeat, __timeout)
 #define likely(cond)                    cond
 #define unlikely(cond)                  cond

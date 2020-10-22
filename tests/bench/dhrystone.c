@@ -78,8 +78,8 @@ struct dhrystone_context *get_dhrystone;
 void Proc_1 (REG Rec_Pointer Ptr_Val_Par);
 void Proc_2 (One_Fifty *Int_Par_Ref);
 void Proc_3 (Rec_Pointer *Ptr_Ref_Par);
-void Proc_4 ();
-void Proc_5 ();
+void Proc_4 (void);
+void Proc_5 (void);
 void Proc_6 (Enumeration Enum_Val_Par, Enumeration *Enum_Ref_Par);
 void Proc_7 (One_Fifty Int_1_Par_Val, One_Fifty Int_2_Par_Val,
              One_Fifty *Int_Par_Ref);

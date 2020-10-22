@@ -1,0 +1,19 @@
+PROGS=dhrystone.elf linpack.elf
+
+include ../Makefile.bench
+
+all: $(PROGS)
+
+CFLAGS_dhrystone=\
+	-DCONFIG_DHRYSTONE_TIME_CLOCK=1 \
+	-fno-inline -DREG=register \
+	-I../../include
+
+CFLAGS_linpack=\
+	-I../../include
+
+clean:
+	@rm -f $(PROGS)
+	@rm -f *.unstrip
+	@rm -f *.o
+

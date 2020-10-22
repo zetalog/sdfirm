@@ -1,0 +1,16 @@
+PROGS=memtester.elf
+
+include Makefile.bench
+
+all: $(PROGS)
+
+CFLAGS_memtester=\
+	-DPOSIX \
+	-D_POSIX_C_SOURCE=200809L \
+	-D_FILE_OFFSET_BITS=64 \
+	-DCONFIG_MEMTESTER_NARROW_WRITES
+
+clean:
+	@rm -f $(PROGS)
+	@rm -f *.unstrip
+	@rm -f *.o

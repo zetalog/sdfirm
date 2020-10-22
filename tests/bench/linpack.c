@@ -34,7 +34,6 @@ static REAL lp_aa[200*200], lp_a[200*201], lp_b[200], lp_x[200];
 static int lp_ipvt[200];
 static REAL atime[9][15];
 static time_t startUsecs, usecs;
-static uint16_t phase;
 #else
 static DEFINE_SPINLOCK(linpack_lock);
 #ifdef CONFIG_LINPACK_SPECIFIC_PERCPU
@@ -60,7 +59,6 @@ struct linpack_context *get_linpack;
 #define atime			get_linpack->atime
 #define startUsecs		get_linpack->startUsecs
 #define usecs			get_linpack->usecs
-#define phase			get_linpack->phase
 #endif
 
 #ifdef CONFIG_LINPACK_CALIBRATION_TIMEOUT
@@ -74,26 +72,15 @@ struct linpack_context *get_linpack;
 #define LINPACK_CALIBRATION_REPEATS	10
 #endif
 
-uint64_t linpack_calibration_repeats(void)
+static uint64_t linpack_calibration_repeats(void)
 {
 	return LINPACK_CALIBRATION_REPEATS;
 }
 
-uint64_t linpack_calibration_timeout(void)
+static uint64_t linpack_calibration_timeout(void)
 {
 	return LINPACK_CALIBRATION_TIMEOUT;
 }
-
-#ifdef CONFIG_TESTOS
-static inline void linpack_indicate_phase(void)
-{
-	testos_indicate_phase_flags(smp_processor_id(), phase++);
-}
-#else
-static inline void linpack_indicate_phase(void)
-{
-}
-#endif
 
 static inline void start_time(void)
 {
@@ -106,7 +93,7 @@ static inline void end_time(void)
 }
 
 #ifdef HOSTED
-int main(int argc, char *argv[])
+int main(__unused int argc, __unused char *argv[])
 #else
 int linpack(caddr_t percpu_area)
 #endif
@@ -125,19 +112,8 @@ int linpack(caddr_t percpu_area)
 	int errors;
 	double runUsecs = linpack_calibration_timeout();
 	__unused FILE *outfile = NULL;
-#ifdef HOSTED
-	int nopause = 1;
 
-	if (argc > 1) {
-		switch (argv[1][0]) {
-		case 'N':
-			nopause = 0;
-			break;
-		case 'n':
-			nopause = 0;
-			break;
-		}
-	}
+#ifdef HOSTED
 	__printf("\n");
 
 #if 0
@@ -308,7 +284,6 @@ int linpack(caddr_t percpu_area)
 	/****************************************************************
 	 * Execute 5 passes                                             *
 	 ****************************************************************/
-	linpack_indicate_phase();
 //again:
 	tm2 = ntimes * overhead1;
 	atime[3][6] = 0;
@@ -334,7 +309,6 @@ int linpack(caddr_t percpu_area)
 		atime[3][6] = atime[3][6] + atime[3][j];
 	}
 	atime[3][6] = atime[3][6] / 5.0;
-	linpack_indicate_phase();
 	do_spin_lock(&linpack_lock);
 	do_fprintf(stderr, "CPU %d:\n", smp_processor_id());
 	do_fprintf(stderr,
@@ -367,7 +341,6 @@ int linpack(caddr_t percpu_area)
 	/****************************************************************
 	 * Execute 5 passes                                             *
 	 ****************************************************************/
-	linpack_indicate_phase();
 	tm2 = ntimes * overhead2;
 	atime[3][12] = 0;
 	for (j = 7; j < 12; j++) {
@@ -392,7 +365,6 @@ int linpack(caddr_t percpu_area)
 		atime[3][12] = atime[3][12] + atime[3][j];
 	}
 	atime[3][12] = atime[3][12] / 5.0;
-	linpack_indicate_phase();
 	do_spin_lock(&linpack_lock);
 	do_fprintf(stderr, "CPU %d:\n", smp_processor_id());
 	do_fprintf(stderr,

@@ -7,12 +7,14 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <limits.h>
-#ifdef HOST
+#ifdef HOSTED
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <unistd.h>
+
+#define __unused		__attribute__((__unused__))
 
 /* Some systems don't define MAP_LOCKED.  Define it to 0 here
    so it's just a no-op when ORed with other constants. */
@@ -64,10 +66,10 @@ typedef unsigned short volatile u16v;
 #define EXIT_FAIL_ADDRESSLINES  0x02
 #define EXIT_FAIL_OTHERTEST     0x04
 
-#ifdef HOST
+#ifdef HOSTED
 /* Sanity checks and portability helper macros. */
 #ifdef _SC_VERSION
-void check_posix_system(void)
+static void check_posix_system(void)
 {
 	if (sysconf(_SC_VERSION) < 198808L) {
 		fprintf(stderr,
@@ -81,7 +83,7 @@ void check_posix_system(void)
 #endif
 
 #ifdef _SC_PAGE_SIZE
-int memtester_pagesize(void)
+static int memtester_pagesize(void)
 {
 	int pagesize = sysconf(_SC_PAGE_SIZE);
 
@@ -100,7 +102,7 @@ int memtester_pagesize(void)
 static int use_phys = 0;
 static off_t physaddrbase = 0;
 /* Device to mmap memory from with -p, default is normal core */
-static char *device_name = "/dev/mem";
+static const char *device_name = "/dev/mem";
 static int device_specified = 0;
 
 /* Function definitions */
@@ -116,7 +118,8 @@ static ul memtester_testmask(void)
 	char *env_testmask = 0;
 	ul testmask = 0;
 
-	if (env_testmask = getenv("MEMTESTER_TEST_MASK")) {
+	env_testmask = getenv("MEMTESTER_TEST_MASK");
+	if (env_testmask) {
 		errno = 0;
 		testmask = strtoul(env_testmask, 0, 0);
 		if (errno) {
@@ -203,7 +206,7 @@ static int memtester_parseopt(int argc, char **argv, size_t pagesize)
 	return optind;
 }
 
-static int memtester_usephys(size_t wantbytes, void volatile **pbuf)
+static int memtester_usephys(size_t wantbytes, void __unused volatile **pbuf)
 {
 	int memfd;
 	void volatile *buf;
@@ -801,8 +804,8 @@ static int test_16bit_wide_random(ulv* bufa, ulv* bufb, size_t count)
 #endif
 
 static struct test {
-	char *name;
-	int (*fp)();
+	const char *name;
+	int (*fp)(ulv *, ulv *, size_t);
 } tests[] = {
 	{ "Random Value", test_random_value },
 	{ "Compare XOR", test_xor_comparison },
@@ -826,7 +829,7 @@ static struct test {
 	{ NULL, NULL }
 };
 
-#ifdef HOST
+#ifdef HOSTED
 int main(int argc, char **argv)
 #else
 static int do_memtester(int argc, char **argv)
@@ -924,11 +927,11 @@ static int do_memtester(int argc, char **argv)
 		return EXIT_FAIL_NONSTARTER;
 	}
 
-	if (argc < 2) {
+	if (argc < 1) {
 		loops = 0;
 	} else {
 		errno = 0;
-		loops = strtoul(argv[1], &loopsuffix, 0);
+		loops = strtoul(argv[0], &loopsuffix, 0);
 		if (errno != 0) {
 			fprintf(stderr, "failed to parse number of loops");
 			usage();
@@ -1082,7 +1085,7 @@ static int do_memtester(int argc, char **argv)
 	return exit_code;
 }
 
-#ifndef HOST
+#ifndef HOSTED
 DEFINE_COMMAND(memtester, do_memtester, "Memory stress tests",
 	"memtester <mem>[B|K|M|G] [loops]\n"
 );

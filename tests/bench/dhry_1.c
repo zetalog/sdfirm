@@ -83,7 +83,7 @@ void Proc_3 (Rec_Pointer *Ptr_Ref_Par)
 } /* Proc_3 */
 
 
-void Proc_4 () /* without parameters */
+void Proc_4 (void) /* without parameters */
 /*******/
     /* executed once */
 {
@@ -95,7 +95,7 @@ void Proc_4 () /* without parameters */
 } /* Proc_4 */
 
 
-void Proc_5 () /* without parameters */
+void Proc_5 (void) /* without parameters */
 /*******/
     /* executed once */
 {
