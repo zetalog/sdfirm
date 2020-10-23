@@ -349,28 +349,41 @@ int dhrystone (caddr_t percpu_area)
     printf ("Measured time too small to obtain meaningful results\n");
     printf ("Please increase number of runs\n");
     printf ("\n");
+    /* Vax_Mips is not trustworthy then, time output is added for the
+     * debugging purpose.
+     */
+    (void) dhrystone_time();
+    printf ("Begin time %lld, end time %lld: %s\n", Begin_Time, End_Time,
+            errno != 0 ? strerror(errno) : "no error");
+    Vax_Mips = -1;
   }
   else
   {
 #ifdef CONFIG_FP
 #ifdef HOSTED
 #ifdef HAVE_CLOCK
+    /* Microseconds based clock() */
     Microseconds = (float) User_Time
                         / (float) Number_Of_Runs / Ticks_Per_Mic;
     Dhrystones_Per_Second = (float) Number_Of_Runs * Mic_secs_Per_Second * Ticks_Per_Mic
                         / (float) User_Time;
 #else
+    /* Seconds based time() */
     Microseconds = (float) User_Time * Mic_secs_Per_Second
                         / (float) Number_Of_Runs;
     Dhrystones_Per_Second = (float) Number_Of_Runs / (float) User_Time;
 #endif
 #else
+    /* Microseconds based clock() or tsc_read_counter() */
     Microseconds = (float) User_Time
                         / (float) Number_Of_Runs / Ticks_Per_Mic;
     Dhrystones_Per_Second = (float) Number_Of_Runs * Mic_secs_Per_Second * Ticks_Per_Mic
                         / (float) User_Time;
 #endif
 #else /* CONFIG_FP */
+    /* CONFIG_FP=n is only possible for HOSTED=n version where floating
+     * pointer may be configured out, thus is microseconds based only.
+     */
     Microseconds = User_Time / Number_Of_Runs / Ticks_Per_Mic;
     Dhrystones_Per_Second = (long long) Number_Of_Runs * Mic_secs_Per_Second * Ticks_Per_Mic
                         / (long long) User_Time;
