@@ -96,7 +96,7 @@ $(error No compiler is defined.)
 endif
 
 # Finds dt-bindings
-DTC_INCLUDE    := $(srctree)/include $(srctree)/include/std
+DTC_INCLUDE    := include include/std $(srctree)/include $(srctree)/include/std
 
 dtc_cpp_flags  = -Wp,-MMD,$(depfile).pre.tmp -nostdinc		\
 		 $(addprefix -I,$(DTC_INCLUDE))			\

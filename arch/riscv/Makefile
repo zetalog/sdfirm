@@ -141,6 +141,7 @@ ifeq ($(CONFIG_FDT_BUILTIN),y)
 DTS_FILE := arch/$(ARCH)/common/fdt_builtin.dts
 $(DTS_FILE): $(MACHINE)$(machine-y).dts
 	@echo '  COPY    $(DTS_FILE) -> $(MACHINE)$(machine-y).dts'
+	$(Q)mkdir -p $(objtree)/arch/riscv/common
 	$(Q)cp -f $< $@
 endif
 CLEAN_FILES += arch/$(ARCH)/common/fdt_builtin.dts

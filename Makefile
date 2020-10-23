@@ -260,8 +260,8 @@ endif
 AWK		= awk
 PERL		= perl
 CHECK		= sparse
-SREC2VHX	= $(srctree)/scripts/basic/srec2vhx
-MKSUNXIBOOT	= $(srctree)/scripts/basic/mksunxiboot
+SREC2VHX	= $(objtree)/scripts/basic/srec2vhx
+MKSUNXIBOOT	= $(objtree)/scripts/basic/mksunxiboot
 BIN2VHX		= $(srctree)/scripts/bin2vhx.pl
 
 CHECKFLAGS     := -D__STDC__ $(CF)

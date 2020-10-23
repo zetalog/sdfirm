@@ -5,7 +5,7 @@ include ../Makefile.bench
 all: $(PROGS)
 
 CFLAGS_dhrystone=\
-	-DCONFIG_DHRYSTONE_TIME_CLOCK=1 \
+	-DCONFIG_DHRYSTONE_TIME_TIME=1 \
 	-fno-inline -DREG=register \
 	-I../../include
 
