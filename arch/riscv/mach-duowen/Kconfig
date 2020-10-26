@@ -202,6 +202,19 @@ config DUOWEN_ZEBU
 
 endchoice
 
+choice
+	prompt "xo_clk frequency"
+	depends DUOWEN_ZEBU
+	default DUOWEN_XO_125M
+
+config DUOWEN_XO_25M
+	bool "25MHz"
+
+config DUOWEN_XO_125M
+	bool "125MHz"
+
+endchoice
+
 config DUOWEN_APC_3
 	bool "3 VAISRA CPUs"
 	depends SMP

@@ -352,9 +352,11 @@ int dhrystone (caddr_t percpu_area)
     /* Vax_Mips is not trustworthy then, time output is added for the
      * debugging purpose.
      */
+#ifdef HOSTED
     (void) dhrystone_time();
     printf ("Begin time %lld, end time %lld: %s\n", Begin_Time, End_Time,
             errno != 0 ? strerror(errno) : "no error");
+#endif
     Vax_Mips = -1;
   }
   else

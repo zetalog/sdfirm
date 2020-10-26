@@ -286,7 +286,9 @@
 
                 /* for time, clock */
 #ifdef HAVE_CLOCK
+#ifdef HOSTED
 #define HZ                 CLOCKS_PER_SEC
+#endif
 #define Too_Small_Time     (2*HZ)
 #define dhrystone_time()   clock()
 #define Ticks_Per_Mic      1
