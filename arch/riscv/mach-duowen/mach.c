@@ -134,7 +134,7 @@ void duowen_load_spi(void)
 	void (*boot_entry)(void) = (void *)FLASH_BASE;
 
 	printf("Booting from SPI flash...\n");
-	clk_enable(spi_flash_pclk);
+	clk_enable(spi_flash_clk);
 	duowen_flash_set_frequency(min(DUOWEN_FLASH_FREQ,
 				       APB_CLK_FREQ));
 	boot_entry();

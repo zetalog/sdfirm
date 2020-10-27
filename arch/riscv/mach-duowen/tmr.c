@@ -62,19 +62,11 @@ void tmr_write_compare(uint8_t id, uint64_t count)
 	tmr_enable_cmp(id);
 }
 
-#ifdef CONFIG_DUOWEN_TMR_CRCNTL_INIT
-static void __tmr_enable_clock(void)
-{
-	crcntl_clk_enable(TIMER3_CLK);
-	crcntl_clk_deassert(TIMER3_PCLK);
-}
-#else
 static void __tmr_enable_clock(void)
 {
 	board_init_clock();
-	clk_enable(timer3_clk);
+	clk_enable(tmr3_clk);
 }
-#endif
 
 void tmr_ctrl_init(void)
 {

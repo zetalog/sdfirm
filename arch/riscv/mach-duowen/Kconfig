@@ -193,14 +193,51 @@ choice
 
 config DUOWEN_ASIC
 	bool "Real ASIC"
+	select DUOWEN_SOCv1_ASIC if DUOWEN_SOCv1
+	select DUOWEN_SOCv2_ASIC if DUOWEN_SOCv2
 
 config DUOWEN_FPGA
 	bool "S2C FPGA"
+	select DUOWEN_SOCv1_FPGA if DUOWEN_SOCv1
+	select DUOWEN_SOCv2_FPGA if DUOWEN_SOCv2
 
 config DUOWEN_ZEBU
 	bool "ZEBU"
+	select DUOWEN_SOCv1_ZEBU if DUOWEN_SOCv1
+	select DUOWEN_SOCv2_ZEBU if DUOWEN_SOCv2
 
 endchoice
+
+choice
+	prompt "SoC subversion"
+	depends CRCNTL
+	default DUOWEN_SOCv1
+
+config DUOWEN_SOCv1
+	bool "SVN 7288 and before"
+
+config DUOWEN_SOCv2
+	bool "SVN 7580 and after"
+
+endchoice
+
+config DUOWEN_SOCv1_ASIC
+	bool
+
+config DUOWEN_SOCv2_ASIC
+	bool
+
+config DUOWEN_SOCv1_FPGA
+	bool
+
+config DUOWEN_SOCv2_FPGA
+	bool
+
+config DUOWEN_SOCv1_ZEBU
+	bool
+
+config DUOWEN_SOCv2_ZEBU
+	bool
 
 choice
 	prompt "xo_clk frequency"
@@ -319,14 +356,6 @@ menuconfig DUOWEN_TMR
 	  as boot TSC.
 
 if DUOWEN_TMR
-
-config DUOWEN_TMR_CRCNTL_INIT
-	bool "Use raw CRCNTL APIs to enable and reset"
-	help
-	  By default, DUOWEN_TMR driver uses clock tree framework driver
-	  to control boot TMR (normally timer3) CLK_EN/SW_RST. While
-	  this option allows to use raw CRCNTL APIs instead.
-	  If unsure, say 'N'.
 
 endif
 

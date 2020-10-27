@@ -541,7 +541,7 @@ struct output_clk output_clks[] = {
 	 * | xo_clk |    | soc_pll |    | soc_pll_div4 |    | soc_clk_sel |
 	 * +--------+    +---------+    +--------------+    +-------------+
 	 */
-	[SPI_FLASH_PCLK] = {
+	[SPI_FLASH_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
 		.flags = CLK_CR,
@@ -875,7 +875,7 @@ const char *output_clk_names[] = {
 	[SPI3_CLK] = "spi3_clk",
 	[SPI4_CLK] = "spi4_clk",
 	/* 4.12 SPI Flash Clocks */
-	[SPI_FLASH_PCLK] = "spi_flash_pclk",
+	[SPI_FLASH_CLK] = "spi_flash_pclk",
 	/* 4.13 GPIO Clocks */
 	[GPIO0_PCLK] = "gpio0_pclk",
 	[GPIO1_PCLK] = "gpio1_pclk",

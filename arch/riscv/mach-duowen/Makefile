@@ -10,7 +10,8 @@ obj-$(CONFIG_MMU) += mmu.rel
 obj-$(CONFIG_TIMER) += gpt.rel
 
 obj-$(CONFIG_CRCNTL) += crcntl.rel
-obj-$(CONFIG_CRCNTL) += clk.rel
+obj-$(CONFIG_DUOWEN_SOCv1) += clk_socv1.rel
+obj-$(CONFIG_DUOWEN_SOCv2) += clk_socv2.rel
 obj-$(CONFIG_DUOWEN_ASIC) += clk_asic.rel
 obj-$(CONFIG_DUOWEN_FPGA) += clk_fpga.rel
 obj-$(CONFIG_DUOWEN_ZEBU) += clk_zebu.rel

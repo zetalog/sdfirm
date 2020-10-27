@@ -58,7 +58,7 @@
 #endif
 #endif
 
-#define DW_SSI_CLK_FREQ			(SFAB_HALF_CLK_FREQ) /* Hz */
+#define DW_SSI_CLK_FREQ			(APB_CLK_FREQ) /* Hz */
 
 #ifdef CONFIG_DW_SSI
 #define spi_hw_config_mode(mode)	dw_ssi_config_mode(SSI_ID, mode)
