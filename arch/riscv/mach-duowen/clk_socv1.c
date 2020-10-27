@@ -140,27 +140,27 @@ struct output_clk output_clks[] = {
 		.clk_src = sysfab_clk,
 		.flags = CLK_CR,
 	},
-	[PLIC_HCLK] = {
+	[PLIC_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
 		.flags = CLK_CR,
 	},
-	[TLMM_PCLK] = {
+	[TLMM_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_half_clk,
 		.flags = CLK_CR,
 	},
-	[SCSR_PCLK] = {
+	[SCSR_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_half_clk,
 		.flags = CLK_CR,
 	},
-	[WDT0_PCLK] = {
+	[WDT0_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_half_clk,
 		.flags = CLK_CR,
 	},
-	[WDT1_PCLK] = {
+	[WDT1_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_half_clk,
 		.flags = CLK_CR,
@@ -553,17 +553,17 @@ struct output_clk output_clks[] = {
 	 * | xo_clk |    | soc_pll |    | soc_pll_div4 |    | soc_clk_sel |    | soc_clk_div2 |
 	 * +--------+    +---------+    +--------------+    +-------------+    +--------------+
 	 */
-	[GPIO0_PCLK] = {
+	[GPIO0_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_half_clk,
 		.flags = CLK_CR,
 	},
-	[GPIO1_PCLK] = {
+	[GPIO1_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_half_clk,
 		.flags = CLK_CR,
 	},
-	[GPIO2_PCLK] = {
+	[GPIO2_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_half_clk,
 		.flags = CLK_CR,
@@ -809,11 +809,11 @@ const char *output_clk_names[] = {
 	[COHFAB_CFG_CLK] = "cohfab_cfg_clk",
 	/* 4.4 System Fabric Clocks */
 	[IMC_CLK] = "imc_clk",
-	[PLIC_HCLK] = "plic_hclk",
-	[TLMM_PCLK] = "tlmm_pclk",
-	[SCSR_PCLK] = "scsr_pclk",
-	[WDT0_PCLK] = "wdt0_pclk",
-	[WDT1_PCLK] = "wdt1_pclk",
+	[PLIC_CLK] = "plic_clk",
+	[TLMM_CLK] = "tlmm_clk",
+	[SCSR_CLK] = "scsr_clk",
+	[WDT0_CLK] = "wdt0_clk",
+	[WDT1_CLK] = "wdt1_clk",
 	/* 4.5 DMA Clocks */
 	[DMA_CLK] = "dma_clk",
 	[DMA_HCLK] = "dma_hclk",
@@ -877,9 +877,9 @@ const char *output_clk_names[] = {
 	/* 4.12 SPI Flash Clocks */
 	[SPI_FLASH_CLK] = "spi_flash_pclk",
 	/* 4.13 GPIO Clocks */
-	[GPIO0_PCLK] = "gpio0_pclk",
-	[GPIO1_PCLK] = "gpio1_pclk",
-	[GPIO2_PCLK] = "gpio2_pclk",
+	[GPIO0_CLK] = "gpio0_clk",
+	[GPIO1_CLK] = "gpio1_clk",
+	[GPIO2_CLK] = "gpio2_clk",
 	/* 4.14 I2C Clocks */
 	[I2C0_CLK] = "i2c0_clk",
 	[I2C1_CLK] = "i2c1_clk",

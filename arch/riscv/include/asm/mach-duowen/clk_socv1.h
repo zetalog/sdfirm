@@ -218,22 +218,22 @@
 #define CLUSTER3_HCLK		((clk_clk_t)15)
 #define COHFAB_HCLK		((clk_clk_t)16)
 #define COHFAB_PCLK		((clk_clk_t)17)
-#define SCSR_PCLK		((clk_clk_t)19)
-#define TLMM_PCLK		((clk_clk_t)20)
-#define PLIC_HCLK		((clk_clk_t)21)
+#define SCSR_CLK		((clk_clk_t)19)
+#define TLMM_CLK		((clk_clk_t)20)
+#define PLIC_CLK		((clk_clk_t)21)
 /* #define TIC_CLK			((clk_clk_t)23)  */
 #define CORESIGHT_CLK		((clk_clk_t)24)
 #define TIMER0_RST		((clk_clk_t)25) /* SW_RST only */
 #define TIMER1_RST		((clk_clk_t)26) /* SW_RST only */
 #define TIMER2_RST		((clk_clk_t)27) /* SW_RST only */
 #define TIMER3_RST		((clk_clk_t)28) /* SW_RST only */
-#define WDT0_PCLK		((clk_clk_t)29)
-#define WDT1_PCLK		((clk_clk_t)30)
+#define WDT0_CLK		((clk_clk_t)29)
+#define WDT1_CLK		((clk_clk_t)30)
 
 /* CLK_OUTPUT: CLK_EN_CFG1 */
-#define GPIO0_PCLK		((clk_clk_t)32)
-#define GPIO1_PCLK		((clk_clk_t)33)
-#define GPIO2_PCLK		((clk_clk_t)34)
+#define GPIO0_CLK		((clk_clk_t)32)
+#define GPIO1_CLK		((clk_clk_t)33)
+#define GPIO2_CLK		((clk_clk_t)34)
 #define UART0_CLK		((clk_clk_t)35)
 #define UART1_CLK		((clk_clk_t)36)
 #define UART2_CLK		((clk_clk_t)37)
@@ -349,17 +349,17 @@
 #define cluster2_hclk		clkid(CLK_OUTPUT, CLUSTER2_HCLK)
 #define cluster3_hclk		clkid(CLK_OUTPUT, CLUSTER3_HCLK)
 #define cohfab_hclk		clkid(CLK_OUTPUT, COHFAB_HCLK)
-#define scsr_pclk		clkid(CLK_OUTPUT, SCSR_PCLK)
-#define tlmm_pclk		clkid(CLK_OUTPUT, TLMM_PCLK)
-#define plic_hclk		clkid(CLK_OUTPUT, PLIC_HCLK)
+#define scsr_clk		clkid(CLK_OUTPUT, SCSR_CLK)
+#define tlmm_clk		clkid(CLK_OUTPUT, TLMM_CLK)
+#define plic_clk		clkid(CLK_OUTPUT, PLIC_CLK)
 /* #define tic_clk		clkid(CLK_OUTPUT, TIC_CLK) */
 #define coresight_clk		clkid(CLK_OUTPUT, CORESIGHT_CLK)
 #define timer0_rst		clkid(CLK_OUTPUT, TIMER0_RST)
 #define timer1_rst		clkid(CLK_OUTPUT, TIMER1_RST)
 #define timer2_rst		clkid(CLK_OUTPUT, TIMER2_RST)
 #define timer3_rst		clkid(CLK_OUTPUT, TIMER3_RST)
-#define wdt0_pclk		clkid(CLK_OUTPUT, WDT0_PCLK)
-#define wdt1_pclk		clkid(CLK_OUTPUT, WDT1_PCLK)
+#define wdt0_clk		clkid(CLK_OUTPUT, WDT0_CLK)
+#define wdt1_clk		clkid(CLK_OUTPUT, WDT1_CLK)
 /* Additional clocks */
 #define cohfab_cfg_clk		clkid(CLK_OUTPUT, COHFAB_CFG_CLK)
 #define dma_hclk		clkid(CLK_OUTPUT, DMA_HCLK)
@@ -382,9 +382,9 @@
 
 /* CLK_OUTPUT: CLK_EN_CFG1 */
 /* Internal bus clocks */
-#define gpio0_pclk		clkid(CLK_OUTPUT, GPIO0_PCLK)
-#define gpio1_pclk		clkid(CLK_OUTPUT, GPIO1_PCLK)
-#define gpio2_pclk		clkid(CLK_OUTPUT, GPIO2_PCLK)
+#define gpio0_clk		clkid(CLK_OUTPUT, GPIO0_CLK)
+#define gpio1_clk		clkid(CLK_OUTPUT, GPIO1_CLK)
+#define gpio2_clk		clkid(CLK_OUTPUT, GPIO2_CLK)
 /* Integrated overall clocks */
 #define uart0_clk		clkid(CLK_OUTPUT, UART0_CLK)
 #define uart1_clk		clkid(CLK_OUTPUT, UART1_CLK)

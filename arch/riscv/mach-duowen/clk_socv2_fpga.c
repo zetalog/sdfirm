@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2019
+ * Copyright (c) 2020
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,50 +35,75 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)irqc.h: DUOWEN specific IRQ controller interfaces
- * $Id: irqc.h,v 1.1 2019-10-12 11:20:00 zhenglv Exp $
+ * @(#)clk_socv2_asic.c: DUOWEN SoCv2 FPGA frequency plan implementation
+ * $Id: clk_socv2_asic.c,v 1.1 2020-10-27 12:01:00 zhenglv Exp $
  */
-
-#ifndef __IRQC_DUOWEN_H_INCLUDE__
-#define __IRQC_DUOWEN_H_INCLUDE__
 
 #include <target/clk.h>
 
-#ifndef ARCH_HAVE_IRQC
-#define ARCH_HAVE_IRQC		1
+uint32_t input_clks[NR_INPUT_CLKS] = {
+	[SOC_PLL] = SOC_PLL_FREQ,
+	[DDR_BUS_PLL] = DDR_BUS_PLL_FREQ,
+	[DDR_PLL] = DDR_PLL_FREQ,
+	[PCIE_PLL] = PCIE_PLL_FREQ,
+	[COHFAB_PLL] = CFAB_PLL_FREQ,
+	[CL0_PLL] = CL_PLL_FREQ,
+	[CL1_PLL] = CL_PLL_FREQ,
+	[CL2_PLL] = CL_PLL_FREQ,
+	[CL3_PLL] = CL_PLL_FREQ,
+	[SYSFAB_PLL] = SFAB_PLL_FREQ,
+	[XO_CLK] = XO_CLK_FREQ,
+};
+
+#ifdef CONFIG_CONSOLE_COMMAND
+const char *input_clk_names[NR_INPUT_CLKS] = {
+	[SOC_PLL] = "soc_pll",
+	[DDR_BUS_PLL] = "ddr_bus_pll",
+	[DDR_PLL] = "ddr_pll",
+	[PCIE_PLL] = "pcie_pll",
+	[COHFAB_PLL] = "cohfab_pll",
+	[CL0_PLL] = "cl0_pll",
+	[CL1_PLL] = "cl1_pll",
+	[CL2_PLL] = "cl2_pll",
+	[CL3_PLL] = "cl3_pll",
+	[SYSFAB_PLL] = "sysfab_pll",
+	[XO_CLK] = "xo_clk",
+};
+
+static const char *get_input_clk_name(clk_clk_t clk)
+{
+	if (clk >= NR_INPUT_CLKS)
+		return NULL;
+	return input_clk_names[clk];
+}
 #else
-#error "Multiple IRQ controller defined"
+#define get_input_clk_name	NULL
 #endif
 
-#define PLIC_HW_PRI_MAX		31
-#ifdef CONFIG_DUOWEN_IMC
-#define plic_hw_m_ctx(hartid)	16
-#define plic_hw_s_ctx(hartid)	32
-#endif
-#ifdef CONFIG_DUOWEN_APC
-#define plic_hw_m_ctx(hartid)	(hartid)
-#define plic_hw_s_ctx(hartid)	((hartid) + 16)
-#endif
+static clk_freq_t get_input_clk_freq(clk_clk_t clk)
+{
+	if (clk >= NR_INPUT_CLKS)
+		return INVALID_FREQ;
+	return input_clks[clk];
+}
 
-#include <asm/ri5cy_firq.h>
-#include <asm/plic.h>
+struct clk_driver clk_input = {
+	.max_clocks = NR_INPUT_CLKS,
+	.enable = NULL,
+	.disable = NULL,
+	.get_freq = get_input_clk_freq,
+	.set_freq = NULL,
+	.select = NULL,
+	.get_name = get_input_clk_name,
+};
 
-#define plic_hw_ctrl_init()		clk_enable(plic_clk)
-
-/* Internal IRQs */
-#ifdef CONFIG_DUOWEN_IMC
-#define plic_hw_enable_int(irq)		riscv_enable_firq(irq)
-#define plic_hw_disable_int(irq)	riscv_disable_firq(irq)
-#define plic_hw_clear_int(irq)		riscv_clear_firq(irq)
-#define plic_hw_trigger_int(irq)	riscv_trigger_firq(irq)
-#else
-#define plic_hw_enable_int(irq)		riscv_enable_irq(irq)
-#define plic_hw_disable_int(irq)	riscv_disable_irq(irq)
-#define plic_hw_clear_int(irq)		riscv_clear_irq(irq)
-#define plic_hw_trigger_int(irq)	riscv_trigger_irq(irq)
-#endif
-#ifdef CONFIG_MMU
-#define plic_hw_mmu_init()		do { } while (0)
+#ifdef CONFIG_CONSOLE_COMMAND
+void clk_pll_dump(void)
+{
+}
 #endif
 
-#endif /* __IRQC_DUOWEN_H_INCLUDE__ */
+void clk_pll_init(void)
+{
+	clk_register_driver(CLK_INPUT, &clk_input);
+}

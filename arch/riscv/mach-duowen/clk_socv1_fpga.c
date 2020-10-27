@@ -35,8 +35,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)clk_asic.c: DUOWEN FPGA frequency plan implementation
- * $Id: clk_asic.c,v 1.1 2020-06-30 14:31:00 zhenglv Exp $
+ * @(#)clk_socv1_asic.c: DUOWEN SoCv1 FPGA frequency plan implementation
+ * $Id: clk_socv1_asic.c,v 1.1 2020-06-30 14:31:00 zhenglv Exp $
  */
 
 #include <target/clk.h>

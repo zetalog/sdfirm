@@ -35,8 +35,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)clk_zebu.c: DUOWEN ZEBU frequency plan implementation
- * $Id: clk_zebu.c,v 1.1 2020-09-03 22:26:00 zhenglv Exp $
+ * @(#)clk_socv1_zebu.c: DUOWEN SoCv1 ZEBU frequency plan implementation
+ * $Id: clk_socv1_zebu.c,v 1.1 2020-09-03 22:26:00 zhenglv Exp $
  */
 
 #include <target/clk.h>
