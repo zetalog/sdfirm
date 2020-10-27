@@ -103,21 +103,21 @@ struct output_clk output_clks[] = {
 		.flags = CLK_CR,
 	},
 	/* 4.3 Coherence Fabric Clocks
-	 * +----------------------------+
-	 * |                            v
-	 * +----------> +----------+ -> +--------------+ -> cohfab_clk
-	 * |            | cfab_pll |    | cfab_clk_sel |
-	 * |            +----------+    +--------------+
-	 * +----------------------------+
-	 * |                            v
-	 * +----------> +----------+ -> +--------------+ -> cohfab_hclk
-	 * |            | sfab_pll |    | sfab_clk_sel |
-	 * |            +----------+    +--------------+
-	 * +----------------------------+
-	 * |                            v
-	 * +--------+ -> +---------+ -> +-------------+ --> cohfab_cfg_clk
-	 * | xo_clk |    | soc_pll |    | soc_clk_sel |
-	 * +--------+    +---------+    +-------------+
+	 * +------------------------------+
+	 * |                              v
+	 * +----------> +----------+ ---> +--------------+ -> cohfab_clk
+	 * |            | cfab_pll |      | cfab_clk_sel |
+	 * |            +----------+      +--------------+
+	 * +------------------------------+
+	 * |                              v
+	 * +----------> +----------+ ---> +--------------+ -> cohfab_hclk
+	 * |            | sfab_pll |      | sfab_clk_sel |
+	 * |            +----------+      +--------------+
+	 * +------------------------------+
+	 * |                              v
+	 * +--------+ -> +---------+ /2-> +-------------+ --> cohfab_cfg_clk
+	 * | xo_clk |    | soc_pll |      | soc_clk_sel |
+	 * +--------+    +---------+      +-------------+
 	 */
 	[COHFAB_CLK] = {
 		.clk_dep = cohfab_hclk,
@@ -131,94 +131,89 @@ struct output_clk output_clks[] = {
 	},
 	[COHFAB_CFG_CLK] = {
 		.clk_dep = sysfab_clk,
-		.clk_src = soc_clk,
+		.clk_src = soc_clk_div2, /* soc_pll_div2_sel */
 		.flags = 0,
 	},
 	/* 4.4 System Fabric Clocks
-	 * +----------------------------+
-	 * |                            v
-	 * +----------> +----------+ -> +--------------+ -> tlmm_pclk
-	 * |            | sfab_pll |    | sfab_clk_sel |    plic_pclk
-	 * |            +----------+    +--------------+    wdt0/1_pclk
-	 * +----------------------------+                   trm0/1/2/3_pclk
-	 * |                            v
-	 * +--------+ -> +---------+ -> +-------------+ --> imc_clk
-	 * | xo_clk |    | soc_pll |    | soc_clk_sel |     ram_aclk/rom_hclk
-	 * +--------+    +---------+    +-------------+     scsr_hclk
+	 * +------------------------------+
+	 * |                              v
+	 * +----------> +----------+ /2-> +--------------+ -> tlmm_pclk
+	 * |            | sfab_pll |      | sfab_clk_sel |    plic_pclk
+	 * |            +----------+      +--------------+    wdt0/1_pclk
+	 * +------------------------------+                   trm0/1/2/3_pclk
+	 * |                              v
+	 * +--------+ -> +---------+ ---> +-------------+ --> imc_clk
+	 * | xo_clk |    | soc_pll |      | soc_clk_sel |     ram_aclk/rom_hclk
+	 * +--------+    +---------+      +-------------+     scsr_hclk
 	 * |
-	 * +----------------------------------------------> tmr3_clk
+	 * +------------------------------------------------> tmr3_clk
 	 */
 	[IMC_CLK] = {
 		.clk_dep = invalid_clk,
-		.clk_src = soc_clk,
+		.clk_src = soc_clk_div2, /* soc_pll_div2_sel */
 		.flags = CLK_CR,
 	},
-	[PLIC_HCLK] = {
+	[PLIC_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
 		.flags = CLK_CR,
 	},
-	[TLMM_PCLK] = {
+	[TLMM_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
 		.flags = CLK_CR,
 	},
-	[SCSR_PCLK] = {
+	[SCSR_CLK] = {
 		.clk_dep = invalid_clk,
-		.clk_src = soc_clk,
+		.clk_src = soc_clk_div2, /* soc_pll_div2_sel */
 		.flags = CLK_CR,
 	},
-	[WDT0_PCLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
-	},
-	[WDT1_PCLK] = {
+	[WDT0_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
 		.flags = CLK_CR,
 	},
-	[TMR0_PCLK] = {
+	[WDT1_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
 		.flags = CLK_CR,
 	},
-	[TMR1_PCLK] = {
+	[TMR0_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
 		.flags = CLK_CR,
 	},
-	[TMR2_PCLK] = {
+	[TMR1_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
 		.flags = CLK_CR,
 	},
-	[TMR3_PCLK] = {
+	[TMR2_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_clk,
+		.flags = CLK_CR,
+	},
+	[TMR3_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
 		.flags = CLK_CR,
 	},
 	/* 4.5 DMA Clocks
-	 * +----------------------------+
-	 * |                            v
-	 * +----------> +----------+ -> +--------------+ -> dma_hclk
-	 * |            | sfab_clk |    | sfab_clk_sel |
-	 * |            +----------+    +--------------+
-	 * +----------------------------+
-	 * |                            v
-	 * +--------+ -> +---------+ -> +-------------+ --> dma_clk
-	 * | xo_clk |    | soc_clk |    | soc_clk_sel |
-	 * +--------+    +---------+    +-------------+
+	 * +------------------------------+
+	 * |                              v
+	 * +----------> +----------+ ---> +--------------+ -> dma_hclk
+	 * |            | sfab_clk |      | sfab_clk_sel |
+	 * |            +----------+      +--------------+
+	 * +------------------------------+
+	 * |                              v
+	 * +--------+ -> +---------+ /2-> +-------------+ --> dma_clk
+	 * | xo_clk |    | soc_clk |      | soc_clk_sel |
+	 * +--------+    +---------+      +-------------+
 	 */
 	[DMA_CLK] = {
-		.clk_dep = dma_hclk,
-		.clk_src = soc_clk,
+		.clk_dep = sysfab_clk, /* dma_hclk */
+		.clk_src = soc_clk_div2, /* soc_pll_div2_sel */
 		.flags = CLK_CR,
-	},
-	[DMA_HCLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_clk,
-		.flags = 0,
 	},
 	/* 4.6 DDR Clocks
 	 * +----------------------------+
@@ -235,11 +230,13 @@ struct output_clk output_clks[] = {
 	 * |                            v
 	 * +--------+ -> +---------+ -> +-------------+ ---> ddr_bypass_pclk
 	 * | xo_clk |    | ddr_pll |    | ddr_clk_sel |          
-	 * +--------+    +---------+    +-------------+ --------+
-	 *                              v                       v
-	 *           +------------------+ -> +------------------+ -> ddr_clk
-	 *           | ddr_clk_sel_div4 |    | ddr_clk_div4_sel |
-	 *           +------------------+    +------------------+
+	 * +--------+    +---------+    +-------------+ ---+
+	 *                              |                  |
+	 *                             /4                  |
+	 *                              v                  v
+	 *                              +------------------+ ------> ddr_clk
+	 *                              | ddr_clk_div4_sel |
+	 *                              +------------------+
 	 */
 	[DDR_POR] = {
 		 .clk_dep = invalid_clk,
@@ -490,13 +487,8 @@ struct output_clk output_clks[] = {
 	 *                               | xo_clk_div4 |
 	 *                               +-------------+
 	 */
-	[TSENSOR_PCLK] = {
-		.clk_dep = invalid_clk,
-		.clk_src = sysfab_clk,
-		.flags = 0,
-	},
 	[TSENSOR_CLK] = {
-		.clk_dep = tsensor_pclk,
+		.clk_dep = sysfab_clk, /* tsensor_pclk */
 		.clk_src = xo_clk_div4,
 		.flags = CLK_CR,
 	},
@@ -662,18 +654,17 @@ const char *output_clk_names[] = {
 	[COHFAB_CFG_CLK] = "cohfab_cfg_clk",
 	/* 4.4 System Fabric Clocks */
 	[IMC_CLK] = "imc_clk",
-	[PLIC_HCLK] = "plic_hclk",
-	[TLMM_PCLK] = "tlmm_pclk",
-	[SCSR_PCLK] = "scsr_pclk",
-	[TMR0_PCLK] = "tmr0_pclk",
-	[TMR1_PCLK] = "tmr1_pclk",
-	[TMR2_PCLK] = "tmr2_pclk",
-	[TMR3_PCLK] = "tmr3_pclk",
-	[WDT0_PCLK] = "wdt0_pclk",
-	[WDT1_PCLK] = "wdt1_pclk",
+	[PLIC_CLK] = "plic_clk",
+	[TLMM_CLK] = "tlmm_clk",
+	[SCSR_CLK] = "scsr_clk",
+	[TMR0_CLK] = "tmr0_clk",
+	[TMR1_CLK] = "tmr1_clk",
+	[TMR2_CLK] = "tmr2_clk",
+	[TMR3_CLK] = "tmr3_clk",
+	[WDT0_CLK] = "wdt0_clk",
+	[WDT1_CLK] = "wdt1_clk",
 	/* 4.5 DMA Clocks */
 	[DMA_CLK] = "dma_clk",
-	[DMA_HCLK] = "dma_hclk",
 	/* 4.6 DDR Clocks */
 	[DDR_POR] = "ddr_por",
 	[DDR_ACLK] = "ddr_aclk",
@@ -855,8 +846,8 @@ struct div_clk {
 };
 
 struct div_clk div_clks[NR_DIV_CLKS] = {
-	[SOC_PLL_DIV2] = {
-		.src = soc_pll,
+	[SOC_CLK_DIV2] = {
+		.src = soc_clk,
 		.div = 2,
 	},
 	[DDR_CLK_SEL_DIV4] = {
@@ -871,7 +862,7 @@ struct div_clk div_clks[NR_DIV_CLKS] = {
 
 #ifdef CONFIG_CONSOLE_COMMAND
 const char *div_clk_names[NR_DIV_CLKS] = {
-	[SOC_PLL_DIV2] = "soc_pll_div2",
+	[SOC_CLK_DIV2] = "soc_clk_div2",
 	[DDR_CLK_SEL_DIV4] = "ddr_clk_sel_div4",
 	[XO_CLK_DIV4] = "xo_clk_div4",
 };
@@ -983,7 +974,7 @@ void duowen_clk_apc_init(void)
 void duowen_clk_imc_init(void)
 {
 	if (!(clk_hw_init & DUOWEN_CLK_IMC_INIT)) {
-		clk_enable(sysfab_half_clk);
+		clk_enable(sysfab_clk);
 		/* Update the status of the default enabled clocks */
 		clk_enable(imc_clk);
 		clk_hw_init |= DUOWEN_CLK_IMC_INIT;

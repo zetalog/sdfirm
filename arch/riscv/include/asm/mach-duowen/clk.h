@@ -114,10 +114,11 @@
 #include <asm/mach/clk_socv1.h>
 #endif
 #ifdef CONFIG_DUOWEN_SOCv2
-#define IMC_CLK_FREQ		SOC_CLK_FREQ
+#define SFAB_PLL_FREQ		UL(100000000)
 #define APB_CLK_FREQ		SFAB_CLK_FREQ
-#define SOC_CLK_FREQ		(SOC_PLL_FREQ/2) /* 500MHz IMC/RAM/ROM */
-#define SFAB_CLK_FREQ		UL(100000000) /* 100MHz SFAB peripherals */
+#define SOC_CLK_FREQ		SOC_PLL_FREQ
+#define IMC_CLK_FREQ		(SOC_CLK_FREQ/2) /* 500MHz IMC/RAM/ROM */
+#define SFAB_CLK_FREQ		SFAB_PLL_FREQ /* 100MHz SFAB peripherals */
 #include <asm/mach/clk_socv2.h>
 #endif
 

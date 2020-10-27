@@ -35,8 +35,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)clk_asic.c: DUOWEN ASIC frequency plan implementation
- * $Id: clk_asic.c,v 1.1 2020-06-30 14:31:00 zhenglv Exp $
+ * @(#)clk_socv2_asic.c: DUOWEN SoCv2 ASIC frequency plan implementation
+ * $Id: clk_socv2_asic.c,v 1.1 2020-10-27 09:39:00 zhenglv Exp $
  */
 
 #include <target/clk.h>
@@ -44,26 +44,44 @@
 struct select_clk {
 	clk_t clk_sels[2];
 	uint8_t flags;
+	clk_t sel_bit;
 };
 
-struct select_clk select_clks[] = {
+struct select_clk select_clks[NR_SELECT_CLKS] = {
 	[SOC_CLK_SEL] = {
 		.clk_sels = {
-			soc_pll_div4,
+			soc_pll,
 			xo_clk,
 		},
+		.sel_bit = SOC_CLK_SEL,
 	},
 	[DDR_BUS_CLK_SEL] = {
 		.clk_sels = {
 			ddr_bus_pll,
 			xo_clk,
 		},
+		.sel_bit = DDR_BUS_CLK_SEL,
 	},
 	[DDR_CLK_SEL] = {
 		.clk_sels = {
 			ddr_pll,
 			xo_clk,
 		},
+		.sel_bit = DDR_CLK_SEL,
+	},
+	[PCIE_REF_CLK_SEL] = {
+		.clk_sels = {
+			pcie_pll,
+			xo_clk,
+		},
+		.sel_bit = PCIE_REF_CLK_SEL,
+	},
+	[SYSFAB_CLK_SEL] = {
+		.clk_sels = {
+			sysfab_pll,
+			xo_clk,
+		},
+		.sel_bit = SOC_CLK_SEL,
 	},
 	[DDR_CLK_DIV4_SEL] = {
 		.clk_sels = {
@@ -71,15 +89,8 @@ struct select_clk select_clks[] = {
 			ddr_clk_sel_div4,
 		},
 		.flags = CLK_HOMOLOG_SRC_F,
+		.sel_bit = DDR_CLK_SEL,
 	},
-#if 0
-	[SD_RX_TX_SEL] = {
-		.clk_sels = {
-			sd_hw_clk,
-			sd_sw_clk,
-		},
-	},
-#endif
 	[COHFAB_CLK_SEL] = {
 		.clk_sels = {
 			cohfab_pll,
@@ -115,15 +126,22 @@ struct select_clk select_clks[] = {
 		},
 		.flags = CLK_COHFAB_CFG_F,
 	},
+	[SYSFAB_CLK_SEL] = {
+		.clk_sels = {
+			sysfab_pll,
+			xo_clk,
+		},
+	},
 };
 
 #ifdef CONFIG_CONSOLE_COMMAND
-const char *sel_clk_names[NR_DIV_CLKS] = {
+const char *sel_clk_names[NR_SELECT_CLKS] = {
 	[SOC_CLK_SEL] = "soc_clk_sel",
 	[DDR_BUS_CLK_SEL] = "ddr_bus_clk_sel",
 	[DDR_CLK_SEL] = "ddr_clk_sel",
+	[PCIE_REF_CLK_SEL] = "pcie_ref_clk_sel",
+	[SYSFAB_CLK_SEL] = "sysfab_clk_sel",
 	[DDR_CLK_DIV4_SEL] = "ddr_clk_div4_sel",
-	[SD_RX_TX_CLK_SEL] = "sd_rx_tx_clk_sel",
 	[COHFAB_CLK_SEL] = "cohfab_clk_sel",
 	[CL0_CLK_SEL] = "cl0_clk_sel",
 	[CL1_CLK_SEL] = "cl1_clk_sel",
@@ -151,7 +169,7 @@ static int enable_clk_sel(clk_clk_t clk)
 		if (select_clks[clk].flags & CLK_COHFAB_CFG_F)
 			cohfab_clk_select(clk);
 		else
-			crcntl_clk_select(clk);
+			crcntl_clk_select(select_clks[clk].sel_bit);
 		if (select_clks[clk].flags & CLK_CLK_EN_F) {
 			if (!(select_clks[clk].flags & CLK_HOMOLOG_SRC_F))
 				clk_disable(select_clks[clk].clk_sels[1]);
@@ -172,7 +190,7 @@ static void disable_clk_sel(clk_clk_t clk)
 		if (select_clks[clk].flags & CLK_COHFAB_CFG_F)
 			cohfab_clk_deselect(clk);
 		else
-			crcntl_clk_deselect(clk);
+			crcntl_clk_deselect(select_clks[clk].sel_bit);
 		if (select_clks[clk].flags & CLK_CLK_EN_F) {
 			if (!(select_clks[clk].flags & CLK_HOMOLOG_SRC_F))
 				clk_disable(select_clks[clk].clk_sels[0]);
@@ -191,7 +209,7 @@ static clk_freq_t get_clk_sel_freq(clk_clk_t clk)
 	if (select_clks[clk].flags & CLK_COHFAB_CFG_F)
 		selected = cohfab_clk_selected(clk);
 	else
-		selected = crcntl_clk_selected(clk);
+		selected = crcntl_clk_selected(select_clks[clk].sel_bit);
 	if (selected)
 		return clk_get_frequency(select_clks[clk].clk_sels[0]);
 	else
@@ -260,6 +278,11 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 		.freq = CL_PLL_FREQ,
 		.enabled = false,
 	},
+	[SYSFAB_PLL] = {
+		.src = soc_vco,
+		.freq = SFAB_PLL_FREQ,
+		.enabled = false,
+	},
 };
 
 #ifdef CONFIG_CONSOLE_COMMAND
@@ -273,6 +296,7 @@ const char *pll_clk_names[NR_PLL_CLKS] = {
 	[CL1_PLL] = "cl1_pll",
 	[CL2_PLL] = "cl2_pll",
 	[CL3_PLL] = "cl3_pll",
+	[SYSFAB_PLL] = "sysfab_pll",
 };
 
 const char *get_pll_name(clk_clk_t clk)
@@ -287,20 +311,26 @@ const char *get_pll_name(clk_clk_t clk)
 
 static void __enable_pll(clk_clk_t clk)
 {
+	bool r = !!(clk > DUOWEN_MAX_PLLS);
+	clk_clk_t prclk = r ? clk - DUOWEN_MAX_PLLS : clk;
+
 	if (!pll_clks[clk].enabled) {
 		clk_enable(pll_clks[clk].src);
-		duowen_div_enable(clk,
+		duowen_div_enable(prclk,
 				  clk_get_frequency(pll_clks[clk].src),
-				  pll_clks[clk].freq, false);
+				  pll_clks[clk].freq, r);
 		pll_clks[clk].enabled = true;
 	}
 }
 
 static void __disable_pll(clk_clk_t clk)
 {
+	bool r = !!(clk > DUOWEN_MAX_PLLS);
+	clk_clk_t prclk = r ? clk - DUOWEN_MAX_PLLS : clk;
+
 	if (pll_clks[clk].enabled) {
 		pll_clks[clk].enabled = false;
-		duowen_div_disable(clk, false);
+		duowen_div_disable(prclk, r);
 		clk_disable(pll_clks[clk].src);
 	}
 }

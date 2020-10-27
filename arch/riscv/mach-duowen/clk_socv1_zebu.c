@@ -46,7 +46,7 @@ struct select_clk {
 	uint8_t flags;
 };
 
-struct select_clk select_clks[] = {
+struct select_clk select_clks[NR_SELECT_CLKS] = {
 	[SOC_CLK_SEL] = {
 		.clk_sels = {
 			soc_pll_div4,
@@ -118,7 +118,7 @@ struct select_clk select_clks[] = {
 };
 
 #ifdef CONFIG_CONSOLE_COMMAND
-const char *sel_clk_names[NR_DIV_CLKS] = {
+const char *sel_clk_names[NR_SELECT_CLKS] = {
 	[SOC_CLK_SEL] = "soc_clk_sel",
 	[DDR_BUS_CLK_SEL] = "ddr_bus_clk_sel",
 	[DDR_CLK_SEL] = "ddr_clk_sel",
