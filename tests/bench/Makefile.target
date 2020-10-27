@@ -16,4 +16,4 @@ clean:
 	@rm -f $(PROGS)
 	@rm -f *.unstrip
 	@rm -f *.o
-
+	@rm -f *.debug

@@ -1,7 +1,8 @@
 CC=$(CROSS_COMPILE)gcc
 STRIP=$(CROSS_COMPILE)strip
 
-CFLAGS =-O2 -DHOSTED -DCONFIG_FP=1 \
+CFLAGS =-O2 -g \
+	-DHOSTED -DCONFIG_FP=1 \
 	-Wall \
 	-Wshadow \
 	-Wwrite-strings \
@@ -39,6 +40,7 @@ CFLAGS =-O2 -DHOSTED -DCONFIG_FP=1 \
 %.unstrip: %.o
 	@echo " LD     $<"
 	@$(CC) $(CFLAGS) $(CFLAGS_$*) -static $< -o $@
+	@cp -f $@ $(basename $<).debug
 
 %.elf: %.unstrip
 	@echo " STRIP  $<"
