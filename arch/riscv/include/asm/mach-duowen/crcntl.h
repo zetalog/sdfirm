@@ -124,13 +124,6 @@ extern caddr_t duowen_apc_clk_reg_base[];
 #define CRCNTL_CLK_EN_CFG(n)		CRCNTL_REG(0x140 + ((n) << 2))
 #define CRCNTL_CLK_SEL_CFG		CRCNTL_REG(0x150)
 
-/* power control */
-#define CRCNTL_WARM_RESET_DETECT_TIME	CRCNTL_REG(0x100)
-#define CRCNTL_PWR_FSM_DELAY_TIME	CRCNTL_REG(0x104)
-#define CRCNTL_PWR_SHUTDOWN		CRCNTL_REG(0x108)
-#define CRCNTL_PS_HOLD			CRCNTL_REG(0x10C)
-#define CRCNTL_SW_GLOBAL_RST		CRCNTL_REG(0x110)
-
 /* COHFAB/CLUSTER clock control */
 #define COHFAB_CLOCK_SEL		_BV(0)
 #define COHFAB_CLOCK_ON			_BV(1)
@@ -172,32 +165,6 @@ extern caddr_t duowen_apc_clk_reg_base[];
 #define CLUSTER_CLK_CG(clk)		\
 	(((clk) - CLUSTER0_APC0_CPU0_CLK) % CLUSTER_CLOCKS)
 
-/* power control */
-/* CRCNTL_WARM_RESET_DETECT_TIME */
-#define PWR_WARM_RESET_DETECT_OFFSET	0
-#define PWR_WARM_RESET_DETECT_MASK	REG_8BIT_MASK
-#define PWR_WARM_RESET_DETECT(value)	_SET_FV(PWR_WARM_RESET_DETECT, value)
-/* CRCNTL_FSM_DELAY_TIME */
-#define PWR_WARM_RESET_DELAY_OFFSET	0
-#define PWR_WARM_RESET_DELAY_MASK	REG_16BIT_MASK
-#define PWR_WARM_RESET_DELAY(value)	_SET_FV(PWR_WARM_RESET_DELAY, value)
-#define PWR_SHUTDOWN_DELAY_OFFSET	16
-#define PWR_SHUTDOWN_DELAY_MASK		REG_16BIT_MASK
-#define PWR_SHUTDOWN_DELAY(value)	_SET_FV(PWR_SHUTDOWN_DELAY, value)
-
-/* CRCNTL_SHUTDOWN */
-#define PWR_SHUT_DN		_BV(0)
-/* CRCNTL_PS_HOLD */
-#define PWR_PS_HOLD		_BV(0)
-/* CRCNTL_SW_GLOBAL_RST */
-#define PWR_GLOBAL_RST		_BV(0)
-
-/* CRCNTL_RST_CAUSE */
-#define RST_SW_GLBAL		_BV(0)
-#define RST_WDT0		_BV(1)
-#define RST_WDT1		_BV(2)
-#define RST_WARM		_BV(3)
-
 /* CRCNTL_PLL_REG_ACCESS */
 #define PLL_REG_INVALID		_BV(25)
 #define PLL_REG_IDLE		_BV(24)
@@ -212,22 +179,6 @@ extern caddr_t duowen_apc_clk_reg_base[];
 #define PLL_REG_SEL(value)	_SET_FV(PLL_REG_SEL, value)
 #define PLL_REG_WRITE		_BV(1)
 #define PLL_REG_READ		_BV(0)
-
-/* TODO: Wait imc_rst_n, drive PS_HOLD, and wait for PMIC? */
-#define crcntl_power_up()						\
-	__raw_setl(PWR_PS_HOLD, CRCNTL_PS_HOLD)
-#define crcntl_power_down()						\
-	__raw_setl(PWR_SHUT_DN, CRCNTL_SHUTDOWN)
-#define crcntl_global_reset()						\
-	__raw_writel(PWR_GLOBAL_RST, CRCNTL_SW_GLOBAL_RST)
-#define crcntl_config_timing(wrst_detect, wrst_delay, shutdown_delay)	\
-	do {								\
-		__raw_writel_mask(PWR_WARM_RESET_DETECT(wrst_detect),	\
-				  CRCNTL_WARM_RESET_DETECT_TIME);	\
-		__raw_writel(PWR_WARM_RESET_DELAY(wrst_delay) |		\
-			     PWR_SHUTDOWN_DELAY(shutdown_delay),	\
-			     CRCNTL_FSM_DELAY_TIME);			\
-	} while (0)
 
 /* APIs here can be invoked w/o enabling clock tree core */
 bool crcntl_clk_asserted(clk_clk_t clk);
@@ -277,5 +228,74 @@ void crcntl_trace(bool enabling, const char *name);
 	dw_pll5ghz_tsmc12ffc_disable(pll, r)
 void duowen_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val);
 uint8_t duowen_pll_reg_read(uint8_t pll, uint8_t reg);
+
+/* power control */
+#ifdef CONFIG_DUOWEN_SOCv1
+#define CRCNTL_WARM_RESET_DETECT_TIME	CRCNTL_REG(0x100)
+#define CRCNTL_PWR_FSM_DELAY_TIME	CRCNTL_REG(0x104)
+#define CRCNTL_PWR_SHUTDOWN		CRCNTL_REG(0x108)
+#define CRCNTL_PS_HOLD			CRCNTL_REG(0x10C)
+#define CRCNTL_SW_GLOBAL_RST		CRCNTL_REG(0x110)
+
+/* CRCNTL_FSM_DELAY_TIME */
+#define PWR_WARM_RESET_DELAY_OFFSET	0
+#define PWR_WARM_RESET_DELAY_MASK	REG_16BIT_MASK
+#define PWR_WARM_RESET_DELAY(value)	_SET_FV(PWR_WARM_RESET_DELAY, value)
+#define PWR_SHUTDOWN_DELAY_OFFSET	16
+#define PWR_SHUTDOWN_DELAY_MASK		REG_16BIT_MASK
+#define PWR_SHUTDOWN_DELAY(value)	_SET_FV(PWR_SHUTDOWN_DELAY, value)
+
+#define crcntl_config_timing(wrst_detect, wrst_delay, shutdown_delay)	\
+	do {								\
+		__raw_writel_mask(PWR_WARM_RESET_DETECT(wrst_detect),	\
+				  CRCNTL_WARM_RESET_DETECT_TIME);	\
+		__raw_writel(PWR_WARM_RESET_DELAY(wrst_delay) |		\
+			     PWR_SHUTDOWN_DELAY(shutdown_delay),	\
+			     CRCNTL_FSM_DELAY_TIME);			\
+	} while (0)
+#endif
+#ifdef CONFIG_DUOWEN_SOCv2
+#define CRCNTL_WARM_RESET_DETECT_TIME	CRCNTL_REG(0x100)
+#define CRCNTL_WARM_RESET_DELAY_TIME	CRCNTL_REG(0x104)
+#define CRCNTL_SHUTDN_DELAY_TIME	CRCNTL_REG(0x108)
+#define CRCNTL_PWR_SHUTDOWN		CRCNTL_REG(0x10C)
+#define CRCNTL_PS_HOLD			CRCNTL_REG(0x110)
+#define CRCNTL_SW_GLOBAL_RST		CRCNTL_REG(0x114)
+
+#define crcntl_config_timing(wrst_detect, wrst_delay, shutdown_delay)	\
+	do {								\
+		__raw_writel_mask(PWR_WARM_RESET_DETECT(wrst_detect),	\
+				  CRCNTL_WARM_RESET_DETECT_TIME);	\
+		__raw_writel(wrst_delay, CRCNTL_WARM_RESET_DELAY_TIME);	\
+		__raw_writel(shutdown_delay, CRCNTL_SHUTDN_DELAY_TIME);	\
+	} while (0)
+#endif
+
+/* power control */
+/* CRCNTL_WARM_RESET_DETECT_TIME */
+#define PWR_WARM_RESET_DETECT_OFFSET	0
+#define PWR_WARM_RESET_DETECT_MASK	REG_8BIT_MASK
+#define PWR_WARM_RESET_DETECT(value)	_SET_FV(PWR_WARM_RESET_DETECT, value)
+
+/* CRCNTL_SHUTDOWN */
+#define PWR_SHUT_DN		_BV(0)
+/* CRCNTL_PS_HOLD */
+#define PWR_PS_HOLD		_BV(0)
+/* CRCNTL_SW_GLOBAL_RST */
+#define PWR_GLOBAL_RST		_BV(0)
+
+/* CRCNTL_RST_CAUSE */
+#define RST_SW_GLBAL		_BV(0)
+#define RST_WDT0		_BV(1)
+#define RST_WDT1		_BV(2)
+#define RST_WARM		_BV(3)
+
+/* TODO: Wait imc_rst_n, drive PS_HOLD, and wait for PMIC? */
+#define crcntl_power_up()						\
+	__raw_setl(PWR_PS_HOLD, CRCNTL_PS_HOLD)
+#define crcntl_power_down()						\
+	__raw_setl(PWR_SHUT_DN, CRCNTL_SHUTDOWN)
+#define crcntl_global_reset()						\
+	__raw_writel(PWR_GLOBAL_RST, CRCNTL_SW_GLOBAL_RST)
 
 #endif /* __CRCNTL_DUOWEN_H_INCLUDE__ */

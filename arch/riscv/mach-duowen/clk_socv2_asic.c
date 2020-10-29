@@ -44,53 +44,54 @@
 struct select_clk {
 	clk_t clk_sels[2];
 	uint8_t flags;
-	clk_t sel_bit;
 };
 
 struct select_clk select_clks[NR_SELECT_CLKS] = {
-	[SOC_CLK_SEL] = {
+	[SOC_CLK_DIV2_SEL] = {
 		.clk_sels = {
-			soc_pll,
+			sysfab_pll,
 			xo_clk,
 		},
-		.sel_bit = SOC_CLK_SEL,
-	},
-	[DDR_BUS_CLK_SEL] = {
-		.clk_sels = {
-			ddr_bus_pll,
-			xo_clk,
-		},
-		.sel_bit = DDR_BUS_CLK_SEL,
-	},
-	[DDR_CLK_SEL] = {
-		.clk_sels = {
-			ddr_pll,
-			xo_clk,
-		},
-		.sel_bit = DDR_CLK_SEL,
-	},
-	[PCIE_REF_CLK_SEL] = {
-		.clk_sels = {
-			pcie_pll,
-			xo_clk,
-		},
-		.sel_bit = PCIE_REF_CLK_SEL,
 	},
 	[SYSFAB_CLK_SEL] = {
 		.clk_sels = {
 			sysfab_pll,
 			xo_clk,
 		},
-		.sel_bit = SOC_CLK_SEL,
 	},
+	[DDR_BUS_CLK_SEL] = {
+		.clk_sels = {
+			ddr_bus_pll,
+			xo_clk,
+		},
+	},
+	[DDR_CLK_SEL] = {
+		.clk_sels = {
+			ddr_pll,
+			xo_clk,
+		},
+	},
+	[PCIE_REF_CLK_SEL] = {
+		.clk_sels = {
+			pcie_pll,
+			xo_clk,
+		},
+	},
+	[SOC_CLK_SEL] = {
+		.clk_sels = {
+			soc_pll,
+			xo_clk,
+		},
+	},
+#if 0
 	[DDR_CLK_DIV4_SEL] = {
 		.clk_sels = {
 			ddr_clk_sel,
 			ddr_clk_sel_div4,
 		},
 		.flags = CLK_HOMOLOG_SRC_F,
-		.sel_bit = DDR_CLK_SEL,
 	},
+#endif
 	[COHFAB_CLK_SEL] = {
 		.clk_sels = {
 			cohfab_pll,
@@ -126,21 +127,16 @@ struct select_clk select_clks[NR_SELECT_CLKS] = {
 		},
 		.flags = CLK_COHFAB_CFG_F,
 	},
-	[SYSFAB_CLK_SEL] = {
-		.clk_sels = {
-			sysfab_pll,
-			xo_clk,
-		},
-	},
 };
 
 #ifdef CONFIG_CONSOLE_COMMAND
 const char *sel_clk_names[NR_SELECT_CLKS] = {
-	[SOC_CLK_SEL] = "soc_clk_sel",
+	[SOC_CLK_SEL] = "soc_clk_div2_sel",
+	[SYSFAB_CLK_SEL] = "sysfab_clk_sel",
 	[DDR_BUS_CLK_SEL] = "ddr_bus_clk_sel",
 	[DDR_CLK_SEL] = "ddr_clk_sel",
 	[PCIE_REF_CLK_SEL] = "pcie_ref_clk_sel",
-	[SYSFAB_CLK_SEL] = "sysfab_clk_sel",
+	[SOC_CLK_SEL] = "soc_clk_sel",
 	[DDR_CLK_DIV4_SEL] = "ddr_clk_div4_sel",
 	[COHFAB_CLK_SEL] = "cohfab_clk_sel",
 	[CL0_CLK_SEL] = "cl0_clk_sel",
@@ -169,7 +165,7 @@ static int enable_clk_sel(clk_clk_t clk)
 		if (select_clks[clk].flags & CLK_COHFAB_CFG_F)
 			cohfab_clk_select(clk);
 		else
-			crcntl_clk_select(select_clks[clk].sel_bit);
+			crcntl_clk_select(clk);
 		if (select_clks[clk].flags & CLK_CLK_EN_F) {
 			if (!(select_clks[clk].flags & CLK_HOMOLOG_SRC_F))
 				clk_disable(select_clks[clk].clk_sels[1]);
@@ -190,7 +186,7 @@ static void disable_clk_sel(clk_clk_t clk)
 		if (select_clks[clk].flags & CLK_COHFAB_CFG_F)
 			cohfab_clk_deselect(clk);
 		else
-			crcntl_clk_deselect(select_clks[clk].sel_bit);
+			crcntl_clk_deselect(clk);
 		if (select_clks[clk].flags & CLK_CLK_EN_F) {
 			if (!(select_clks[clk].flags & CLK_HOMOLOG_SRC_F))
 				clk_disable(select_clks[clk].clk_sels[0]);
@@ -209,7 +205,7 @@ static clk_freq_t get_clk_sel_freq(clk_clk_t clk)
 	if (select_clks[clk].flags & CLK_COHFAB_CFG_F)
 		selected = cohfab_clk_selected(clk);
 	else
-		selected = crcntl_clk_selected(select_clks[clk].sel_bit);
+		selected = crcntl_clk_selected(clk);
 	if (selected)
 		return clk_get_frequency(select_clks[clk].clk_sels[0]);
 	else

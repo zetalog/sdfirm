@@ -504,4 +504,7 @@
 #define sysfab_clk		soc_clk_sel
 #define sysfab_half_clk		soc_clk_sel_div2
 
+/* SoCv1 specific clock flags */
+#define CLK_DDR_RST_F		_BV(7)
+
 #endif /* __CLK_SOCv1_DUOWEN_H_INCLUDE__ */

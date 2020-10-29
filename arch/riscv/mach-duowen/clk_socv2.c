@@ -131,18 +131,18 @@ struct output_clk output_clks[] = {
 	},
 	[COHFAB_CFG_CLK] = {
 		.clk_dep = sysfab_clk,
-		.clk_src = soc_clk_div2, /* soc_pll_div2_sel */
+		.clk_src = soc_clk,
 		.flags = 0,
 	},
 	/* 4.4 System Fabric Clocks
 	 * +------------------------------+
 	 * |                              v
-	 * +----------> +----------+ /2-> +--------------+ -> tlmm_pclk
+	 * +----------> +----------+ ---> +--------------+ -> tlmm_pclk
 	 * |            | sfab_pll |      | sfab_clk_sel |    plic_pclk
 	 * |            +----------+      +--------------+    wdt0/1_pclk
 	 * +------------------------------+                   trm0/1/2/3_pclk
 	 * |                              v
-	 * +--------+ -> +---------+ ---> +-------------+ --> imc_clk
+	 * +--------+ -> +---------+ /2-> +-------------+ --> imc_clk
 	 * | xo_clk |    | soc_pll |      | soc_clk_sel |     ram_aclk/rom_hclk
 	 * +--------+    +---------+      +-------------+     scsr_hclk
 	 * |
@@ -150,7 +150,7 @@ struct output_clk output_clks[] = {
 	 */
 	[IMC_CLK] = {
 		.clk_dep = invalid_clk,
-		.clk_src = soc_clk_div2, /* soc_pll_div2_sel */
+		.clk_src = soc_clk,
 		.flags = CLK_CR,
 	},
 	[PLIC_CLK] = {
@@ -165,7 +165,7 @@ struct output_clk output_clks[] = {
 	},
 	[SCSR_CLK] = {
 		.clk_dep = invalid_clk,
-		.clk_src = soc_clk_div2, /* soc_pll_div2_sel */
+		.clk_src = soc_clk,
 		.flags = CLK_CR,
 	},
 	[WDT0_CLK] = {
@@ -212,7 +212,7 @@ struct output_clk output_clks[] = {
 	 */
 	[DMA_CLK] = {
 		.clk_dep = sysfab_clk, /* dma_hclk */
-		.clk_src = soc_clk_div2, /* soc_pll_div2_sel */
+		.clk_src = soc_clk,
 		.flags = CLK_CR,
 	},
 	/* 4.6 DDR Clocks
@@ -265,8 +265,8 @@ struct output_clk output_clks[] = {
 	},
 	[DDR_RST] = {
 		.clk_dep = invalid_clk,
-		.clk_src = ddr_clk,
-		.flags = CLK_DDR_RST_F,
+		.clk_src = invalid_clk,
+		.flags = CLK_R,
 	},
 	/* 4.7 PCIE Clocks
 	 *                                       +-----+ -> pcie_alt_ref_clk_n
@@ -296,7 +296,7 @@ struct output_clk output_clks[] = {
 	},
 	[PCIE_CLK] = {
 		.clk_dep = pcie_pclk,
-		.clk_src = pcie_pll,
+		.clk_src = pcie_axi_clk,
 		.flags = CLK_CR,
 	},
 	[PCIE_PCLK] = {
@@ -503,15 +503,15 @@ struct output_clk output_clks[] = {
 		.clk_src = sysfab_half_clk,,
 		.flags = CLK_CR,
 	},
-	[TIC_CLK] = {
+	[TIC_RST] = {
 		.clk_dep = invalid_clk,
-		.clk_src = tic_xclk,
-		.flags = CLK_CR,
+		.clk_src = invalid_clk,
+		.flags = CLK_R,
 	},
-	[CORESIGHT_CLK] = {
+	[DBG_RST] = {
 		.clk_dep = invalid_clk,
-		.clk_src = sysfab_half_clk,,
-		.flags = CLK_CR,
+		.clk_src = invalid_clk,,
+		.flags = CLK_R,
 	},
 #endif
 	/* 4.15 Thermal Sensor Clocks */
@@ -671,7 +671,6 @@ const char *output_clk_names[] = {
 	[DDR_PCLK] = "ddr_pclk",
 	[DDR_BYPASS_PCLK] = "ddr_bypass_pclk",
 	[DDR_CLK] = "ddr_clk",
-	[DDR_BYPASS_PCLK] = "ddrp0_bypass_pclk",
 	[DDR_RST] = "ddr_rst",
 	/* 4.7 PCIE Clocks */
 	[PCIE_POR] = "pcie_por",
@@ -739,8 +738,8 @@ const char *output_clk_names[] = {
 #if 0
 	[SYSFAB_DBG_CLK] = "sysfab_dbg_clk",
 	[SYSFAB_TIC_CLK] = "sysfab_tic_clk",
-	[TIC_CLK] = "tic_clk",
-	[CORESIGHT_CLK] = "coresight_clk",
+	[TIC_RST] = "tic_rst",
+	[DBG_CLK] = "dbg_rst",
 #endif
 };
 
@@ -784,8 +783,6 @@ static int enable_output_clk(clk_clk_t clk)
 		else
 			crcntl_clk_deassert(clk);
 	}
-	if (output_clks[clk].flags & CLK_DDR_RST_F)
-		crcntl_clk_deassert(DDR_CLK);
 	return 0;
 }
 
@@ -803,8 +800,6 @@ static void disable_output_clk(clk_clk_t clk)
 	}
 	if (output_clks[clk].clk_src != invalid_clk)
 		clk_disable(output_clks[clk].clk_src);
-	if (output_clks[clk].flags & CLK_DDR_RST_F)
-		crcntl_clk_assert(DDR_CLK);
 	if (output_clks[clk].flags & CLK_SW_RST_F) {
 		if (output_clks[clk].flags & CLK_COHFAB_CFG_F)
 			cohfab_clk_assert(clk);
@@ -847,7 +842,7 @@ struct div_clk {
 
 struct div_clk div_clks[NR_DIV_CLKS] = {
 	[SOC_CLK_DIV2] = {
-		.src = soc_clk,
+		.src = soc_pll,
 		.div = 2,
 	},
 	[DDR_CLK_SEL_DIV4] = {
