@@ -4,9 +4,14 @@ include ../Makefile.bench
 
 all: $(PROGS)
 
+CFLAGS_dhrystone_besteffort=\
+	-O2 -DREG=register
+CFLAGS_dhrystone_groundrule=\
+	-fno-inline
+
 CFLAGS_dhrystone=\
+	$(CFLAGS_dhrystone_besteffort) \
 	-DCONFIG_DHRYSTONE_TIME_TIME=1 \
-	-fno-inline -DREG=register \
 	-I../../include
 
 CFLAGS_linpack=\

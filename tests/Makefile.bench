@@ -1,7 +1,7 @@
 CC=$(CROSS_COMPILE)gcc
 STRIP=$(CROSS_COMPILE)strip
 
-CFLAGS =-O2 -g \
+CFLAGS =-g \
 	-DHOSTED -DCONFIG_FP=1 \
 	-Wall \
 	-Wshadow \
