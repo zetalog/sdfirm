@@ -794,7 +794,7 @@ clean: archclean $(clean-dirs)
 		-o -name '*.rel' -o -name '*.sym' -o -name '*.lst' \
 		-o -name '*.hex' -o -name '*.mem' -o -name '*.lnk' \
 		-o -name '*.asm' -o -name '*.rst' -o -name '*.lib' \
-		-o -name '*.adb' \
+		-o -name '*.adb' -o -name '*.dtc' \
 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \) \
 		-type f -print | xargs rm -f
 

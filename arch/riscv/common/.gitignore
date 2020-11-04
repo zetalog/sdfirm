@@ -16,5 +16,6 @@
 *.lds
 *.dtb
 *.dtb.S
+*.dtc
 asm-offsets.s
 fdt_builtin.dts
