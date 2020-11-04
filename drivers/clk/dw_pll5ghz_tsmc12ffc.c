@@ -258,15 +258,12 @@ void dw_pll5ghz_tsmc12ffc_pwrup(uint8_t pll)
 	__dw_pll5ghz_tsmc12ffc_pwrup(pll, cfg);
 }
 
-void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
+static void __dw_pll5ghz_tsmc12ffc_config_fvco(uint8_t pll, uint64_t fvco)
 {
 	uint16_t mint, mfrac;
 	uint8_t prediv = 0;
 	uint32_t cfg = PLL_RANGE3;
 	uint64_t fbdiv;
-
-	if (__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED)
-		return;
 
 	if (fvco < ULL(2500000000))
 		BUG();
@@ -310,7 +307,14 @@ void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
 	__raw_writel(PLL_PREDIV(prediv - 1) |
 		     PLL_MINT(mint - 16) | PLL_MFRAC(mfrac),
 		     DW_PLL_CFG0(pll));
+}
 
+void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
+{
+	if (__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED)
+		return;
+
+	__dw_pll5ghz_tsmc12ffc_config_fvco(pll, fvco);
 	__dw_pll5ghz_tsmc12ffc_pwrup(pll, cfg);
 
 	/* P/R outputs:
@@ -320,6 +324,33 @@ void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
 	dw_pll5ghz_tsmc12ffc_bypass(pll, PLL_BYPASS_NONE);
 	dw_pll5ghz_tsmc12ffc_output_default(pll, false, false);
 	dw_pll5ghz_tsmc12ffc_output_default(pll, true, false);
+}
+
+static void __dw_pll5ghz_tsmc12ffc_config_fclk(uint8_t pll, uint64_t fvco,
+					       uint64_t fclkout, bool r)
+{
+	if (fclkout != INVALID_FREQ)
+		dw_pll5ghz_tsmc12ffc_enable(pll, fvco, fclkout, r);
+	else
+		dw_pll5ghz_tsmc12ffc_output_default(pll, r, false)
+}
+
+void dw_pll5ghz_tsmc12ffc_pwron2(uint8_t pll, uint64_t fvco
+				 uint64_t fpclk, uint64_t frclk)
+{
+	if (__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED)
+		return;
+
+	__dw_pll5ghz_tsmc12ffc_config_fvco(pll, fvco);
+	__dw_pll5ghz_tsmc12ffc_config_fclk(pll, fvco, fpclk, false);
+	__dw_pll5ghz_tsmc12ffc_config_fclk(pll, fvco, frclk, true);
+	__dw_pll5ghz_tsmc12ffc_pwrup(pll, cfg);
+
+	/* P/R outputs:
+	 *  1'b0: Fclkout = 0 or Fclkref/(P|R)
+	 *  1'b1: Fclkout = PLL output
+	 */
+	dw_pll5ghz_tsmc12ffc_bypass(pll, PLL_BYPASS_NONE);
 }
 
 void dw_pll5ghz_tsmc12ffc_disable(uint8_t pll, bool r)
