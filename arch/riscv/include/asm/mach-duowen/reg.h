@@ -136,6 +136,9 @@
 #ifdef CONFIG_DUOWEN_DDR_32M
 #define DDR_SIZE		SZ_32M
 #endif
+#ifdef CONFIG_DUOWEN_DDR_256M
+#define DDR_SIZE		SZ_256M
+#endif
 #ifdef CONFIG_DUOWEN_DDR_16G
 #define DDR_SIZE		SZ_16G
 #endif

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Oct 27 11:13:18 2020
+# Wed Nov  4 10:36:02 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -191,6 +191,7 @@ CONFIG_DUOWEN_SD=y
 # Duowen DDR controller/phy support
 #
 # CONFIG_DUOWEN_DDR_32M is not set
+# CONFIG_DUOWEN_DDR_256M is not set
 CONFIG_DUOWEN_DDR_512G=y
 # CONFIG_DUOWEN_DDR_16G is not set
 CONFIG_DUOWEN_DDR=y
