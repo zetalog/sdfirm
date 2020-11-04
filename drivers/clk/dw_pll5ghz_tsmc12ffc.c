@@ -262,21 +262,7 @@ static void __dw_pll5ghz_tsmc12ffc_config_fvco(uint8_t pll, uint64_t fvco)
 {
 	uint16_t mint, mfrac;
 	uint8_t prediv = 0;
-	uint32_t cfg = PLL_RANGE3;
 	uint64_t fbdiv;
-
-	if (fvco < ULL(2500000000))
-		BUG();
-	else if (fvco <= ULL(3750000000))
-		cfg = PLL_RANGE1;
-	else if (fvco > ULL(3750000000) && fvco <= ULL(4000000000))
-		cfg = PLL_RANGE2;
-	else if (fvco > ULL(4000000000) && fvco <= ULL(5000000000))
-		cfg = PLL_RANGE23;
-	else if (fvco <= ULL(6000000000))
-		cfg = PLL_RANGE3;
-	else
-		BUG();
 
 	/* 3.4 Output frequency
 	 *
@@ -311,6 +297,21 @@ static void __dw_pll5ghz_tsmc12ffc_config_fvco(uint8_t pll, uint64_t fvco)
 
 void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
 {
+	uint32_t cfg = PLL_RANGE3;
+
+	if (fvco < ULL(2500000000))
+		BUG();
+	else if (fvco <= ULL(3750000000))
+		cfg = PLL_RANGE1;
+	else if (fvco > ULL(3750000000) && fvco <= ULL(4000000000))
+		cfg = PLL_RANGE2;
+	else if (fvco > ULL(4000000000) && fvco <= ULL(5000000000))
+		cfg = PLL_RANGE23;
+	else if (fvco <= ULL(6000000000))
+		cfg = PLL_RANGE3;
+	else
+		BUG();
+
 	if (__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED)
 		return;
 
@@ -332,12 +333,27 @@ static void __dw_pll5ghz_tsmc12ffc_config_fclk(uint8_t pll, uint64_t fvco,
 	if (fclkout != INVALID_FREQ)
 		dw_pll5ghz_tsmc12ffc_enable(pll, fvco, fclkout, r);
 	else
-		dw_pll5ghz_tsmc12ffc_output_default(pll, r, false)
+		dw_pll5ghz_tsmc12ffc_output_default(pll, r, false);
 }
 
-void dw_pll5ghz_tsmc12ffc_pwron2(uint8_t pll, uint64_t fvco
+void dw_pll5ghz_tsmc12ffc_pwron2(uint8_t pll, uint64_t fvco,
 				 uint64_t fpclk, uint64_t frclk)
 {
+	uint32_t cfg = PLL_RANGE3;
+
+	if (fvco < ULL(2500000000))
+		BUG();
+	else if (fvco <= ULL(3750000000))
+		cfg = PLL_RANGE1;
+	else if (fvco > ULL(3750000000) && fvco <= ULL(4000000000))
+		cfg = PLL_RANGE2;
+	else if (fvco > ULL(4000000000) && fvco <= ULL(5000000000))
+		cfg = PLL_RANGE23;
+	else if (fvco <= ULL(6000000000))
+		cfg = PLL_RANGE3;
+	else
+		BUG();
+
 	if (__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED)
 		return;
 

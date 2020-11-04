@@ -189,7 +189,7 @@
 void dw_pll5ghz_tsmc12ffc_bypass(uint8_t pll, uint8_t mode);
 /* power on sequences */
 void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco);
-void dw_pll5ghz_tsmc12ffc_pwron2(uint8_t pll, uint64_t fvco
+void dw_pll5ghz_tsmc12ffc_pwron2(uint8_t pll, uint64_t fvco,
 				 uint64_t fpclk, uint64_t frclk);
 void dw_pll5ghz_tsmc12ffc_pwrup(uint8_t pll);
 /* power down sequence */
@@ -237,7 +237,7 @@ static __inline void dw_pll5ghz_tsmc12ffc_bypass(uint8_t pll, uint8_t mode)
 static __inline void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
 {
 }
-static __inline void dw_pll5ghz_tsmc12ffc_pwron2(uint8_t pll, uint64_t fvco
+static __inline void dw_pll5ghz_tsmc12ffc_pwron2(uint8_t pll, uint64_t fvco,
 						 uint64_t fpclk,
 						 uint64_t frclk)
 {

@@ -529,7 +529,7 @@ choice
 
 config DUOWEN_DDR_32M
 	bool "Fake 32M DDR memory model"
-	depends DUOWEN_FPGA || DUOWEN_ZEBU_SOCv1
+	depends DUOWEN_FPGA || DUOWEN_ZEBU
 
 config DUOWEN_DDR_256M
 	bool "Fake 256M DDR memory model"

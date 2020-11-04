@@ -545,9 +545,6 @@
 
 	memory@0 {
 		device_type = "memory";
-#ifdef CONFIG_DUOWEN_DDR_512G
-		reg = <0x0 0x0000000000 0x80 0x00000000>;
-#endif
 #ifdef CONFIG_DUOWEN_DDR_32M
 		reg = <0x0 0x0000000000 0x0 0x02000000>;
 #endif
@@ -556,6 +553,9 @@
 #endif
 #ifdef CONFIG_DUOWEN_DDR_16G
 		reg = <0x0 0x0000000000 0x4 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_512G
+		reg = <0x0 0x0000000000 0x80 0x00000000>;
 #endif
 	};
 
