@@ -380,44 +380,64 @@ struct clk_driver clk_pll = {
 
 struct vco_clk {
 	clk_freq_t freq;
+	clk_freq_t freq_p;
+	clk_freq_t freq_r;
 	bool enabled;
 };
 
 struct vco_clk vco_clks[NR_VCO_CLKS] = {
 	[SOC_VCO] = {
 		.freq = SOC_VCO_FREQ,
+		.freq_p = SOC_PLL_FREQ;
+		.freq_r = SFAB_PLL_FREQ;
 		.enabled = false,
 	},
 	[DDR_BUS_VCO] = {
 		.freq = DDR_BUS_VCO_FREQ,
+		.freq_p = DDR_BUS_PLL_FREQ,
+		.freq_r = INVALID_FREQ,
 		.enabled = false,
 	},
 	[DDR_VCO] = {
 		.freq = DDR_VCO_FREQ,
+		.freq_p = DDR_PLL_FREQ,
+		.freq_r = INVALID_FREQ,
 		.enabled = false,
 	},
 	[PCIE_VCO] = {
 		.freq = PCIE_VCO_FREQ,
+		.freq_p = PCIE_PLL_FREQ,
+		.freq_r = INVALID_FREQ,
 		.enabled = false,
 	},
 	[COHFAB_VCO] = {
 		.freq = COHFAB_VCO_FREQ,
+		.freq_p = CFAB_PLL_FREQ,
+		.freq_r = INVALID_FREQ,
 		.enabled = false,
 	},
 	[CL0_VCO] = {
 		.freq = CL_VCO_FREQ,
+		.freq_p = CL_PLL_FREQ,
+		.freq_r = INVALID_FREQ,
 		.enabled = false,
 	},
 	[CL1_VCO] = {
 		.freq = CL_VCO_FREQ,
+		.freq_p = CL_PLL_FREQ,
+		.freq_r = INVALID_FREQ,
 		.enabled = false,
 	},
 	[CL2_VCO] = {
 		.freq = CL_VCO_FREQ,
+		.freq_p = CL_PLL_FREQ,
+		.freq_r = INVALID_FREQ,
 		.enabled = false,
 	},
 	[CL3_VCO] = {
 		.freq = CL_VCO_FREQ,
+		.freq_p = CL_PLL_FREQ,
+		.freq_r = INVALID_FREQ,
 		.enabled = false,
 	},
 };
@@ -448,7 +468,9 @@ const char *get_vco_name(clk_clk_t clk)
 static void __enable_vco(clk_clk_t clk)
 {
 	if (!vco_clks[clk].enabled) {
-		duowen_pll_enable(clk, vco_clks[clk].freq);
+		duowen_pll_enable2(clk, vco_clks[clk].freq,
+				   vco_clks[clk].freq_p,
+				   vco_clks[clk].freq_r);
 		vco_clks[clk].enabled = true;
 	}
 }

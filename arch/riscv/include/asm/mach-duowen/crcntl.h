@@ -218,13 +218,16 @@ void crcntl_trace(bool enabling, const char *name);
 #endif
 
 /* DUOWEN unitified PLL (crcntl, cluster, cohfab) API */
-#define duowen_pll_enable(pll, freq)		\
+#define duowen_pll_enable(pll, freq)			\
 	dw_pll5ghz_tsmc12ffc_pwron(pll, (uint64_t)freq)
-#define duowen_pll_disable(pll)			\
+#define duowen_pll_enable2(pll, fvco, fpclk, frclk)	\
+	dw_pll5ghz_tsmc12ffc_pwron2(pll,		\
+		(uint64_t)fvco, (uint64_t)fpclk, (uint64_t)frclk)
+#define duowen_pll_disable(pll)				\
 	dw_pll5ghz_tsmc12ffc_pwrdn(pll)
-#define duowen_div_enable(pll, fvco, freq, r)	\
+#define duowen_div_enable(pll, fvco, freq, r)		\
 	dw_pll5ghz_tsmc12ffc_enable(pll, fvco, freq, r)
-#define duowen_div_disable(pll, r)		\
+#define duowen_div_disable(pll, r)			\
 	dw_pll5ghz_tsmc12ffc_disable(pll, r)
 void duowen_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val);
 uint8_t duowen_pll_reg_read(uint8_t pll, uint8_t reg);
