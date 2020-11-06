@@ -55,7 +55,7 @@ fi
 			LITMUS_FLAGS="${LITMUS_FLAGS} -excl instructions.excl"
 		fi
 		echo "Generating litmus test source..."
-		litmus7 ${LITMUS_FLAGS} "tests/non-mixed-size/@all"
+		litmus7 ${LITMUS_FLAGS} "tests/non-mixed-size/@all" 2>/dev/null
 	fi
 	if [ "x${LITMUS_MODE}" = "xclean" ]; then
 		cd ${LITMUS_SRCS}
