@@ -81,20 +81,6 @@ config DW_PLL5GHZ_TSMC12FFC_BYPASS_TEST
 
 endif
 
-choice
-	prompt "Default output P/R"
-	default DW_PLL5GHZ_TSMC12FFC_OUTPUT_PROG
-
-config DW_PLL5GHZ_TSMC12FFC_OUTPUT_PROG
-	bool "Programmable"
-
-config DW_PLL5GHZ_TSMC12FFC_OUTPUT_DIV2
-	bool "Fixed DIV2"
-	help
-	  Fixed output as (DIVCOVP/R=0, P/R=0).
-
-endchoice
-
 config DW_PLL5GHZ_TSMC12FFC_CNT_LOCKED
 	bool "Enable count locked signal"
 	depends EXPERIMENTAL
