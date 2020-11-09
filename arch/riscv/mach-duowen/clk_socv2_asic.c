@@ -131,7 +131,7 @@ struct select_clk select_clks[NR_SELECT_CLKS] = {
 
 #ifdef CONFIG_CONSOLE_COMMAND
 const char *sel_clk_names[NR_SELECT_CLKS] = {
-	[SOC_CLK_SEL] = "soc_clk_div2_sel",
+	[SOC_CLK_DIV2_SEL] = "soc_clk_div2_sel",
 	[SYSFAB_CLK_SEL] = "sysfab_clk_sel",
 	[DDR_BUS_CLK_SEL] = "ddr_bus_clk_sel",
 	[DDR_CLK_SEL] = "ddr_clk_sel",

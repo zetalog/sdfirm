@@ -71,10 +71,14 @@
 #define SCSR_CLINT_CFG			SCSR_REG(0xC0)
 #define SCSR_CHIP_LINK_CFG		SCSR_REG(0xC4)
 
-#define PMA_CFG_LO(n)			SCSR_REG(0x100 + (n) << 3)
-#define PMA_CFG_HI(n)			SCSR_REG(0x104 + (n) << 3)
-#define PMA_ADDR_LO(n)			SCSR_REG(0x140 + (n) << 3)
-#define PMA_ADDR_HI(n)			SCSR_REG(0x144 + (n) << 3)
+#define SCSR_CLAMP_CFG			SCSR_REG(0xD0)
+
+#define SCSR_CHIP_CFG			SCSR_REG(0xF0)
+
+#define SCSR_PMA_CFG_LO(n)		SCSR_REG(0x100 + ((n) << 3))
+#define SCSR_PMA_CFG_HI(n)		SCSR_REG(0x104 + ((n) << 3))
+#define SCSR_PMA_ADDR_LO(n)		SCSR_REG(0x140 + ((n) << 3))
+#define SCSR_PMA_ADDR_HI(n)		SCSR_REG(0x144 + ((n) << 3))
 
 /* SOC_HW_VERSION */
 #define SCSR_MINOR_OFFSET		0
@@ -111,6 +115,36 @@
 #define IMC_BOOT_RAM			0x00
 #define IMC_BOOT_DDR			0x02
 
+/* SHUTDN_REQ/ACK */
+#define IMC_DDR1_CTRL			15
+#define IMC_DDR1			14 /* DDR AXI */
+#define IMC_DDR0_CTRL			13
+#define IMC_DDR0			12 /* DDR AXI */
+#define IMC_PCIE_X4_1_DBI		11
+#define IMC_PCIE_X4_0_DBI		10
+#define IMC_PCIE_X8_DBI			9
+#define IMC_PCIE_X16_DBI		8
+#define IMC_PCIE_X4_1_SLV		7
+#define IMC_PCIE_X4_1_MST		6
+#define IMC_PCIE_X4_0_SLV		5
+#define IMC_PCIE_X4_0_MST		4
+#define IMC_PCIE_X8_SLV			3
+#define IMC_PCIE_X8_MST			2
+#define IMC_PCIE_X16_SLV		1
+#define IMC_PCIE_X16_MST		0
+#define IMC_MAX_AXI_PERIPHS		16
+
+/* UART_STATUS */
+#define IMC_UART3_LP_REQ_SCLK		7
+#define IMC_UART3_LP_REQ_PCLK		6
+#define IMC_UART2_LP_REQ_SCLK		5
+#define IMC_UART2_LP_REQ_PCLK		4
+#define IMC_UART1_LP_REQ_SCLK		3
+#define IMC_UART1_LP_REQ_PCLK		2
+#define IMC_UART0_LP_REQ_SCLK		1
+#define IMC_UART0_LP_REQ_PCLK		0
+#define IMC_MAX_APB_PERIPHS		8
+
 #define imc_get_boot_addr()				\
 	MAKELLONG(__raw_readl(SCSR_BOOT_ADDR_LO),	\
 		  __raw_readl(SCSR_BOOT_ADDR_HI))
@@ -134,9 +168,48 @@
 #define imc_sim_mode()		(__raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_SIM)
 #define imc_boot_cpu()		(__raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_APC)
 
+#define IMC_AXI_REQ(periph)		_BV(periph)
+#define IMC_AXI_ACTIVE(periph)		_BV((periph) + 16)
+#define IMC_AXI_ACK(periph)		_BV(periph)
+
+#define imc_axi_enter_low_power(periph)					\
+	do {								\
+		__raw_clearl(IMC_AXI_REQ(periph), SCSR_SHUTDN_REQ);	\
+		while (__raw_readl(SCSR_SHUTDN_ACK) &			\
+		       IMC_AXI_ACK(periph));				\
+	} while (0)
+#define imc_axi_exit_low_power(periph)					\
+	do {								\
+		__raw_setl(IMC_AXI_REQ(periph),	SCSR_BRINGUP_REQ);	\
+		while (!(__raw_readl(SCSR_BRINGUP_ACK) &		\
+		         IMC_AXI_ACK(periph)));				\
+	} while (0)
+#define imc_axi_is_low_power(periph)					\
+	(!(__raw_readl(SCSR_SHUTDN_ACK) & IMC_AXI_ACTIVE(periph)))
+#define imc_apb_is_low_power(periph)					\
+	(__raw_readl(SCSR_UART_STATUS) & _BV(periph))
+
+#define imc_pma_read_cfg(n)						\
+	MAKELLONG(__raw_readl(SCSR_PMA_CFG_LO(n)),			\
+		  __raw_readl(SCSR_PMA_CFG_HI(n)))
+#define imc_pma_write_cfg(n, v)						\
+	do {								\
+		__raw_writel(LOWORD(v), SCSR_PMA_CFG_LO(n));		\
+		__raw_writel(HIWORD(v), SCSR_PMA_CFG_HI(n));		\
+	} while (0)
+#define imc_pma_write_addr(n, a)					\
+	do {								\
+		__raw_writel(LOWORD(a), SCSR_PMA_ADDR_LO(n));		\
+		__raw_writel(HIWORD(a), SCSR_PMA_ADDR_HI(n));		\
+	} while (0)
+
 #ifndef __ASSEMBLY__
 uint8_t imc_boot_flash(void);
 uint8_t imc_boot_mode(void);
+void imc_axi_register_periphs(uint16_t periphs);
+void imc_axi_unregister_periphs(uint16_t periphs);
+int imc_pma_set(int n, unsigned long attr,
+		phys_addr_t addr, unsigned long log2len);
 #endif
 
 #endif /* __SCSR_DUOWEN_H_INCLUDE__ */

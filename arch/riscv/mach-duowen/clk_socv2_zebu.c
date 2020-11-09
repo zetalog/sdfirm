@@ -83,6 +83,7 @@ struct select_clk select_clks[NR_SELECT_CLKS] = {
 			xo_clk,
 		},
 	},
+#if 0
 	[DDR_CLK_DIV4_SEL] = {
 		.clk_sels = {
 			ddr_clk_sel,
@@ -90,6 +91,7 @@ struct select_clk select_clks[NR_SELECT_CLKS] = {
 		},
 		.flags = CLK_HOMOLOG_SRC_F,
 	},
+#endif
 	[COHFAB_CLK_SEL] = {
 		.clk_sels = {
 			cohfab_pll,

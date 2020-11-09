@@ -10,6 +10,7 @@ obj-$(CONFIG_MMU) += mmu.rel
 obj-$(CONFIG_TIMER) += gpt.rel
 
 obj-$(CONFIG_CRCNTL) += crcntl.rel
+obj-$(CONFIG_DUOWEN_SCSR) += scsr.rel
 obj-$(CONFIG_DUOWEN_SOCv1) += clk_socv1.rel
 obj-$(CONFIG_DUOWEN_SOCv2) += clk_socv2.rel
 obj-$(CONFIG_DUOWEN_SOCv1_ASIC) += clk_socv1_asic.rel

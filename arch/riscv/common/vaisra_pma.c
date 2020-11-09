@@ -124,7 +124,7 @@ static inline unsigned long csr_read_pmaaddr(int n)
 	return ret;
 }
 
-void csr_write_pmacfg(int n, unsigned long val)
+static void csr_write_pmacfg(int n, unsigned long val)
 {
 	switch (n) {
 	case 0:
@@ -144,7 +144,7 @@ void csr_write_pmacfg(int n, unsigned long val)
 	}
 }
 
-void csr_write_pmaaddr(int n, unsigned long val)
+static void csr_write_pmaaddr(int n, unsigned long val)
 {
 	switch (n) {
 	case 0:
@@ -200,7 +200,7 @@ void csr_write_pmaaddr(int n, unsigned long val)
 	};
 }
 
-void __pma_cfg(int n, unsigned long attr)
+static void __pma_cfg(int n, unsigned long attr)
 {
 	unsigned long cfgmask, pmacfg;
 	int pmacfg_index, pmacfg_shift;

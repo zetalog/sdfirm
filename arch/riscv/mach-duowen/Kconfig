@@ -376,6 +376,13 @@ config CRCNTL_TRACE
 
 endif
 
+menuconfig DUOWEN_SCSR
+	bool "Duowen system control/status registers support"
+
+if DUOWEN_SCSR
+
+endif
+
 menuconfig DUOWEN_I2C
 	bool "Duowen I2C master controller support"
 	depends I2C_MASTER
