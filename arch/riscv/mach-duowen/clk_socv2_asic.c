@@ -49,7 +49,7 @@ struct select_clk {
 struct select_clk select_clks[NR_SELECT_CLKS] = {
 	[SOC_CLK_DIV2_SEL] = {
 		.clk_sels = {
-			sysfab_pll,
+			soc_clk_div2,
 			xo_clk,
 		},
 	},
@@ -307,7 +307,7 @@ const char *get_pll_name(clk_clk_t clk)
 
 static void __enable_pll(clk_clk_t clk)
 {
-	bool r = !!(clk > DUOWEN_MAX_PLLS);
+	bool r = !!(clk >= DUOWEN_MAX_PLLS);
 	clk_clk_t prclk = r ? clk - DUOWEN_MAX_PLLS : clk;
 
 	if (!pll_clks[clk].enabled) {
@@ -321,7 +321,7 @@ static void __enable_pll(clk_clk_t clk)
 
 static void __disable_pll(clk_clk_t clk)
 {
-	bool r = !!(clk > DUOWEN_MAX_PLLS);
+	bool r = !!(clk >= DUOWEN_MAX_PLLS);
 	clk_clk_t prclk = r ? clk - DUOWEN_MAX_PLLS : clk;
 
 	if (pll_clks[clk].enabled) {
