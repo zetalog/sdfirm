@@ -95,25 +95,32 @@ void dw_pll5ghz_tsmc12ffc_relock(uint8_t pll)
 }
 
 static void dw_pll5ghz_tsmc12ffc_output_fclk(uint8_t pll, bool r,
-					     uint32_t en, bool enable)
+					     uint32_t en, bool enable,
+					     bool locked)
 {
 	uint32_t mask = r ? PLL_R(PLL_R_MASK) |
 			    PLL_DIVVCOR(PLL_DIVVCOR_MASK) :
 			    PLL_P(PLL_P_MASK) |
 			    PLL_DIVVCOP(PLL_DIVVCOP_MASK);
-	if ((__raw_readl(DW_PLL_CFG1(pll)) & mask) != en)
-		__raw_writel_mask(en, mask, DW_PLL_CFG1(pll));
+	uint32_t pr = r ? PLL_ENR : PLL_ENP;
+
+	if ((__raw_readl(DW_PLL_CFG1(pll)) & mask) != en) {
+		if (locked) {
+			/* Disabling ENP/ENR by masking it out */
+			mask |= pr;
+			/* TODO: Warn P/R changes
+			 * P/R/DIVVCOP/DIVVCOR are marked as: "Synchronous
+			 * to: Static" in "Table 2-5 Control register
+			 * pins". So users are warned if these pins are
+			 * meant to be dynamic driven by the high-level
+			 * applications (allowed but may not work correct).
+			 */
+			__raw_writel_mask(en, mask, DW_PLL_CFG1(pll));
+		} else
+			__raw_writel(en, DW_PLL_CFG1(pll));
+	}
 	if (enable)
-		__raw_setl(r ? PLL_ENR : PLL_ENP, DW_PLL_CFG1(pll));
-}
-
-void dw_pll5ghz_tsmc12ffc_disable(uint8_t pll, bool r)
-{
-	uint32_t en;
-
-	en = r ? PLL_DIVVCOR(0xF) | PLL_R(0x3F) :
-		 PLL_DIVVCOP(0xF) | PLL_P(0x3F);
-	dw_pll5ghz_tsmc12ffc_output_fclk(pll, r, en, false);
+		__raw_setl(pr, DW_PLL_CFG1(pll));
 }
 
 /* Normal oper: Fclkout = Fvco / (divvco{p|r} * {p|r})
@@ -133,7 +140,8 @@ void dw_pll5ghz_tsmc12ffc_disable(uint8_t pll, bool r)
 static void ____dw_pll5ghz_tsmc12ffc_config_fclk(uint8_t pll, uint64_t fvco,
 						 uint64_t freq, bool r,
 						 uint64_t div,
-						 uint32_t divcov32)
+						 uint32_t divcov32,
+						 bool locked)
 {
 	uint32_t en;
 	uint32_t divcov10 = 0;
@@ -148,11 +156,12 @@ static void ____dw_pll5ghz_tsmc12ffc_config_fclk(uint8_t pll, uint64_t fvco,
 	} while (1);
 	en = r ? PLL_DIVVCOR(divcov32 << 2 | divcov10) | PLL_R(pr - 1) :
 		 PLL_DIVVCOP(divcov32 << 2 | divcov10) | PLL_P(pr - 1);
-	dw_pll5ghz_tsmc12ffc_output_fclk(pll, r, en, false);
+	dw_pll5ghz_tsmc12ffc_output_fclk(pll, r, en, false, locked);
 }
 
 static void dw_pll5ghz_tsmc12ffc_config_sync(uint8_t pll, uint64_t fvco,
-					     uint64_t freq, bool r)
+					     uint64_t freq, bool r,
+					     bool locked)
 {
 	uint64_t div;
 	uint32_t divcov32;
@@ -170,40 +179,53 @@ static void dw_pll5ghz_tsmc12ffc_config_sync(uint8_t pll, uint64_t fvco,
 		div = 8;
 	}
 	____dw_pll5ghz_tsmc12ffc_config_fclk(pll, fvco, freq, r,
-					     div, divcov32);
+					     div, divcov32, locked);
 }
 
 #ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_BYPASS_SYNC
 static void dw_pll5ghz_tsmc12ffc_config_async(uint8_t pll, uint64_t fvco,
-					      uint64_t freq, bool r)
+					      uint64_t freq, bool r,
+					      bool locked)
 {
 	uint64_t div = 2;
 	uint32_t divcov32 = 0;
 
 	____dw_pll5ghz_tsmc12ffc_config_fclk(pll, fvco, freq, r,
-					     div, divcov32);
+					     div, divcov32, locked);
 }
 
 static void __dw_pll5ghz_tsmc12ffc_config_fclk(uint8_t pll, uint64_t fvco,
-					       uint64_t freq, bool r)
+					       uint64_t freq, bool r,
+					       bool locked)
 {
 	if (freq > ULL(1000000000))
-		dw_pll5ghz_tsmc12ffc_config_async(pll, fvco, freq, r);
+		dw_pll5ghz_tsmc12ffc_config_async(pll, fvco, freq, r, locked);
 	else
-		dw_pll5ghz_tsmc12ffc_config_sync(pll, fvco, freq, r);
+		dw_pll5ghz_tsmc12ffc_config_sync(pll, fvco, freq, r, locked);
 }
 #else
 static void __dw_pll5ghz_tsmc12ffc_config_fclk(uint8_t pll, uint64_t fvco,
-					       uint64_t freq, bool r)
+					       uint64_t freq, bool r,
+					       bool locked)
 {
-	dw_pll5ghz_tsmc12ffc_config_sync(pll, fvco, freq, r);
+	dw_pll5ghz_tsmc12ffc_config_sync(pll, fvco, freq, r, locked);
 }
 #endif /* CONFIG_DW_PLL5GHZ_TSMC12FFC_BYPASS_SYNC */
+
+static void dw_pll5ghz_tsmc12ffc_config_fclk_default(uint8_t pll, bool r,
+						     bool locked)
+{
+	uint32_t en;
+
+	en = r ? PLL_DIVVCOR(0xF) | PLL_R(0x3F) :
+		 PLL_DIVVCOP(0xF) | PLL_P(0x3F);
+	dw_pll5ghz_tsmc12ffc_output_fclk(pll, r, en, false, locked);
+}
 
 void dw_pll5ghz_tsmc12ffc_enable(uint8_t pll, uint64_t fvco,
 				 uint64_t freq, bool r)
 {
-	__dw_pll5ghz_tsmc12ffc_config_fclk(pll, fvco, freq, r);
+	__dw_pll5ghz_tsmc12ffc_config_fclk(pll, fvco, freq, r, true);
 	if (freq > ULL(1000000000))
 		dw_pll5ghz_tsmc12ffc_bypass_sync(pll, r, true);
 	__raw_setl(r ? PLL_ENR : PLL_ENP, DW_PLL_CFG1(pll));
@@ -215,9 +237,19 @@ void dw_pll5ghz_tsmc12ffc_enable(uint8_t pll, uint64_t fvco,
 	 */
 }
 
-static void __dw_pll5ghz_tsmc12ffc_pwrup(uint8_t pll, uint32_t cfg)
+void dw_pll5ghz_tsmc12ffc_disable(uint8_t pll, bool r)
 {
-	cfg |= PLL_GEAR;
+	dw_pll5ghz_tsmc12ffc_config_fclk_default(pll, r, true);
+}
+
+static void __dw_pll5ghz_tsmc12ffc_output_fvco(uint8_t pll, uint32_t range)
+{
+	uint32_t cfg;
+
+	cfg = __raw_readl(DW_PLL_CFG1(pll));
+	cfg &= ~(PLL_STATE_MASK | PLL_RESET_MASK);
+
+	cfg |= (range | PLL_GEAR);
 	__raw_writel(cfg, DW_PLL_CFG1(pll));
 	/* t_pwrstb */
 	dw_pll5ghz_tsmc12ffc_delay(1);
@@ -249,16 +281,32 @@ static void __dw_pll5ghz_tsmc12ffc_pwrup(uint8_t pll, uint32_t cfg)
 	while (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED));
 }
 
+static void dw_pll5ghz_tsmc12ffc_output_fvco(uint8_t pll, uint64_t fvco)
+{
+	uint32_t cfg = PLL_RANGE3;
+
+	if (fvco < ULL(2500000000))
+		BUG();
+	else if (fvco <= ULL(3750000000))
+		cfg = PLL_RANGE1;
+	else if (fvco > ULL(3750000000) && fvco <= ULL(4000000000))
+		cfg = PLL_RANGE2;
+	else if (fvco > ULL(4000000000) && fvco <= ULL(5000000000))
+		cfg = PLL_RANGE23;
+	else if (fvco <= ULL(6000000000))
+		cfg = PLL_RANGE3;
+	else
+		BUG();
+
+	__dw_pll5ghz_tsmc12ffc_output_fvco(pll, cfg);
+}
+
 void dw_pll5ghz_tsmc12ffc_pwrup(uint8_t pll)
 {
-	uint32_t cfg;
-
 	if (__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED)
 		return;
 
-	cfg = __raw_readl(DW_PLL_CFG1(pll));
-	cfg &= ~(PLL_STATE_MASK | PLL_RESET_MASK);
-	__dw_pll5ghz_tsmc12ffc_pwrup(pll, cfg);
+	__dw_pll5ghz_tsmc12ffc_output_fvco(pll, 0);
 }
 
 static void dw_pll5ghz_tsmc12ffc_config_fvco(uint8_t pll, uint64_t fvco)
@@ -300,70 +348,41 @@ static void dw_pll5ghz_tsmc12ffc_config_fvco(uint8_t pll, uint64_t fvco)
 
 void dw_pll5ghz_tsmc12ffc_pwron(uint8_t pll, uint64_t fvco)
 {
-	uint32_t cfg = PLL_RANGE3;
-
-	if (fvco < ULL(2500000000))
-		BUG();
-	else if (fvco <= ULL(3750000000))
-		cfg = PLL_RANGE1;
-	else if (fvco > ULL(3750000000) && fvco <= ULL(4000000000))
-		cfg = PLL_RANGE2;
-	else if (fvco > ULL(4000000000) && fvco <= ULL(5000000000))
-		cfg = PLL_RANGE23;
-	else if (fvco <= ULL(6000000000))
-		cfg = PLL_RANGE3;
-	else
-		BUG();
-
 	if (__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED)
 		return;
 
 	dw_pll5ghz_tsmc12ffc_config_fvco(pll, fvco);
-	__dw_pll5ghz_tsmc12ffc_pwrup(pll, cfg);
+	dw_pll5ghz_tsmc12ffc_config_fclk_default(pll, false, false);
+	dw_pll5ghz_tsmc12ffc_config_fclk_default(pll, true, false);
+	dw_pll5ghz_tsmc12ffc_output_fvco(pll, fvco);
 
 	/* P/R outputs:
 	 *  1'b0: Fclkout = 0 or Fclkref/(P|R)
 	 *  1'b1: Fclkout = PLL output
 	 */
 	dw_pll5ghz_tsmc12ffc_bypass(pll, PLL_BYPASS_NONE);
-	dw_pll5ghz_tsmc12ffc_disable(pll, false);
-	dw_pll5ghz_tsmc12ffc_disable(pll, true);
 }
 
 static void dw_pll5ghz_tsmc12ffc_config_fclk(uint8_t pll, uint64_t fvco,
 					     uint64_t fclkout, bool r)
 {
 	if (fclkout != INVALID_FREQ)
-		__dw_pll5ghz_tsmc12ffc_config_fclk(pll, fvco, fclkout, r);
+		__dw_pll5ghz_tsmc12ffc_config_fclk(pll, fvco, fclkout,
+						   r, false);
 	else
-		dw_pll5ghz_tsmc12ffc_disable(pll, r);
+		dw_pll5ghz_tsmc12ffc_config_fclk_default(pll, r, false);
 }
 
 void dw_pll5ghz_tsmc12ffc_pwron2(uint8_t pll, uint64_t fvco,
 				 uint64_t fpclk, uint64_t frclk)
 {
-	uint32_t cfg = PLL_RANGE3;
-
-	if (fvco < ULL(2500000000))
-		BUG();
-	else if (fvco <= ULL(3750000000))
-		cfg = PLL_RANGE1;
-	else if (fvco > ULL(3750000000) && fvco <= ULL(4000000000))
-		cfg = PLL_RANGE2;
-	else if (fvco > ULL(4000000000) && fvco <= ULL(5000000000))
-		cfg = PLL_RANGE23;
-	else if (fvco <= ULL(6000000000))
-		cfg = PLL_RANGE3;
-	else
-		BUG();
-
 	if (__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED)
 		return;
 
 	dw_pll5ghz_tsmc12ffc_config_fvco(pll, fvco);
 	dw_pll5ghz_tsmc12ffc_config_fclk(pll, fvco, fpclk, false);
 	dw_pll5ghz_tsmc12ffc_config_fclk(pll, fvco, frclk, true);
-	__dw_pll5ghz_tsmc12ffc_pwrup(pll, cfg);
+	dw_pll5ghz_tsmc12ffc_output_fvco(pll, fvco);
 
 	/* P/R outputs:
 	 *  1'b0: Fclkout = 0 or Fclkref/(P|R)

@@ -388,8 +388,8 @@ struct vco_clk {
 struct vco_clk vco_clks[NR_VCO_CLKS] = {
 	[SOC_VCO] = {
 		.freq = SOC_VCO_FREQ,
-		.freq_p = SOC_PLL_FREQ;
-		.freq_r = SFAB_PLL_FREQ;
+		.freq_p = SOC_PLL_FREQ,
+		.freq_r = SFAB_PLL_FREQ,
 		.enabled = false,
 	},
 	[DDR_BUS_VCO] = {
