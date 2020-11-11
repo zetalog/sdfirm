@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Nov  9 09:47:41 2020
+# Wed Nov 11 17:06:17 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -217,6 +217,7 @@ CONFIG_DUOWEN_UART_CON0=y
 CONFIG_DUOWEN_TMR=y
 CONFIG_CRCNTL=y
 # CONFIG_CRCNTL_TRACE is not set
+# CONFIG_DUOWEN_SCSR is not set
 # CONFIG_DUOWEN_SPI_FLASH is not set
 # CONFIG_DUOWEN_SD is not set
 # CONFIG_DUOWEN_PCIE is not set

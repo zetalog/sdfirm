@@ -10,4 +10,56 @@ menuconfig DDR
 
 if DDR
 
+choice
+	prompt "Custom default SPD"
+	default DDR_SPD_3200
+	help
+	  The DDR core use maximum supported SPD as default SPD. However
+	  users may select an alternative custom value instead of the
+	  maximum data rate.
+
+config DDR_SPD_3200
+	bool "3200"
+
+config DDR_SPD_2933
+	bool "2933"
+
+config DDR_SPD_2666
+	bool "2666"
+
+config DDR_SPD_2400
+	bool "2400"
+
+config DDR_SPD_2133
+	bool "2133"
+
+config DDR_SPD_1866
+	bool "1866"
+
+config DDR_SPD_1600
+	bool "1600"
+
+config DDR_SPD_1333
+	bool "1333"
+
+config DDR_SPD_1066
+	bool "1066"
+
+config DDR_SPD_800
+	bool "800"
+
+config DDR_SPD_667
+	bool "667"
+
+config DDR_SPD_400
+	bool "400"
+
+config DDR_SPD_266
+	bool "266"
+
+config DDR_SPD_200
+	bool "200"
+
+endchoice
+
 endif

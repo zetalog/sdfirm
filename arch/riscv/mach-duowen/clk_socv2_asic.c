@@ -83,15 +83,6 @@ struct select_clk select_clks[NR_SELECT_CLKS] = {
 			xo_clk,
 		},
 	},
-#if 0
-	[DDR_CLK_DIV4_SEL] = {
-		.clk_sels = {
-			ddr_clk_sel,
-			ddr_clk_sel_div4,
-		},
-		.flags = CLK_HOMOLOG_SRC_F,
-	},
-#endif
 	[COHFAB_CLK_SEL] = {
 		.clk_sels = {
 			cohfab_pll,
@@ -137,7 +128,6 @@ const char *sel_clk_names[NR_SELECT_CLKS] = {
 	[DDR_CLK_SEL] = "ddr_clk_sel",
 	[PCIE_REF_CLK_SEL] = "pcie_ref_clk_sel",
 	[SOC_CLK_SEL] = "soc_clk_sel",
-	[DDR_CLK_DIV4_SEL] = "ddr_clk_div4_sel",
 	[COHFAB_CLK_SEL] = "cohfab_clk_sel",
 	[CL0_CLK_SEL] = "cl0_clk_sel",
 	[CL1_CLK_SEL] = "cl1_clk_sel",

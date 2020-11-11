@@ -103,21 +103,21 @@ struct output_clk output_clks[] = {
 		.flags = CLK_CR,
 	},
 	/* 4.3 Coherence Fabric Clocks
-	 * +------------------------------+
-	 * |                              v
-	 * +----------> +----------+ ---> +--------------+ -> cohfab_clk
-	 * |            | cfab_pll |      | cfab_clk_sel |
-	 * |            +----------+      +--------------+
-	 * +------------------------------+
-	 * |                              v
-	 * +----------> +----------+ ---> +--------------+ -> cohfab_hclk
-	 * |            | sfab_pll |      | sfab_clk_sel |
-	 * |            +----------+      +--------------+
-	 * +------------------------------+
-	 * |                              v
-	 * +--------+ -> +---------+ /2-> +-------------+ --> cohfab_cfg_clk
-	 * | xo_clk |    | soc_pll |      | soc_clk_sel |
-	 * +--------+    +---------+      +-------------+
+	 * +-----------------------------+
+	 * |                             v
+	 * +----------> +----------+ --> +--------------+ -> cohfab_clk
+	 * |            | cfab_pll |     | cfab_clk_sel |
+	 * |            +----------+     +--------------+
+	 * +-----------------------------+
+	 * |                             v
+	 * +----------> +----------+ --> +--------------+ -> cohfab_hclk
+	 * |            | sfab_pll |     | sfab_clk_sel |
+	 * |            +----------+     +--------------+
+	 * +-----------------------------+
+	 * |                         /2  v
+	 * +--------+ -> +---------+ --> +-------------+ --> cohfab_cfg_clk
+	 * | xo_clk |    | soc_pll |     | soc_clk_sel |
+	 * +--------+    +---------+     +-------------+
 	 */
 	[COHFAB_CLK] = {
 		.clk_dep = cohfab_hclk,
@@ -135,18 +135,18 @@ struct output_clk output_clks[] = {
 		.flags = 0,
 	},
 	/* 4.4 System Fabric Clocks
-	 * +------------------------------+
-	 * |                              v
-	 * +----------> +----------+ ---> +--------------+ -> tlmm_pclk
-	 * |            | sfab_pll |      | sfab_clk_sel |    plic_pclk
-	 * |            +----------+      +--------------+    wdt0/1_pclk
-	 * +------------------------------+                   trm0/1/2/3_pclk
-	 * |                              v
-	 * +--------+ -> +---------+ /2-> +-------------+ --> imc_clk
-	 * | xo_clk |    | soc_pll |      | soc_clk_sel |     ram_aclk/rom_hclk
-	 * +--------+    +---------+      +-------------+     scsr_hclk
+	 * +-----------------------------+
+	 * |                             v
+	 * +----------> +----------+ --> +--------------+ -> tlmm_pclk
+	 * |            | sfab_pll |     | sfab_clk_sel |    plic_pclk
+	 * |            +----------+     +--------------+    wdt0/1_pclk
+	 * +-----------------------------+                   trm0/1/2/3_pclk
+	 * |                         /2  v
+	 * +--------+ -> +---------+ --> +-------------+ --> imc_clk
+	 * | xo_clk |    | soc_pll |     | soc_clk_sel |     ram_aclk/rom_hclk
+	 * +--------+    +---------+     +-------------+     scsr_hclk
 	 * |
-	 * +------------------------------------------------> tmr3_clk
+	 * +-----------------------------------------------> tmr3_clk
 	 */
 	[IMC_CLK] = {
 		.clk_dep = invalid_clk,
@@ -199,16 +199,16 @@ struct output_clk output_clks[] = {
 		.flags = CLK_CR,
 	},
 	/* 4.5 DMA Clocks
-	 * +------------------------------+
-	 * |                              v
-	 * +----------> +----------+ ---> +--------------+ -> dma_hclk
-	 * |            | sfab_clk |      | sfab_clk_sel |
-	 * |            +----------+      +--------------+
-	 * +------------------------------+
-	 * |                              v
-	 * +--------+ -> +---------+ /2-> +-------------+ --> dma_clk
-	 * | xo_clk |    | soc_clk |      | soc_clk_sel |
-	 * +--------+    +---------+      +-------------+
+	 * +-----------------------------+
+	 * |                             v
+	 * +----------> +----------+ --> +--------------+ -> dma_hclk
+	 * |            | sfab_pll |     | sfab_clk_sel |
+	 * |            +----------+     +--------------+
+	 * +-----------------------------+
+	 * |                         /2  v
+	 * +--------+ -> +---------+ --> +-------------+ --> dma_clk
+	 * | xo_clk |    | soc_pll |     | soc_clk_sel |
+	 * +--------+    +---------+     +-------------+
 	 */
 	[DMA_CLK] = {
 		.clk_dep = sysfab_clk, /* dma_hclk */
@@ -220,7 +220,7 @@ struct output_clk output_clks[] = {
 	 * |                            v
 	 * +-------> +-------------+ -> +-----------------+ ------> ddr_aclk
 	 * |         | ddr_bus_pll |    | ddr_bus_clk_sel |
-	 * +         +-------------+    +-----------------+
+	 * |         +-------------+    +-----------------+
 	 * +----------------------------+
 	 * |                            v
 	 * +----------> +----------+ -> +--------------+ ---------> ddr_pclk
@@ -231,11 +231,10 @@ struct output_clk output_clks[] = {
 	 * +--------+ -> +---------+ -> +-------------+ ---> ddr_bypass_pclk
 	 * | xo_clk |    | ddr_pll |    | ddr_clk_sel |          
 	 * +--------+    +---------+    +-------------+ ---+
-	 *                              |                  |
-	 *                             /4                  |
+	 *                            /4|                  |
 	 *                              v                  v
 	 *                              +------------------+ ------> ddr_clk
-	 *                              | ddr_clk_div4_sel |
+	 *                              | ddr_clk_sel_div4 |
 	 *                              +------------------+
 	 */
 	[DDR_POR] = {
@@ -254,13 +253,13 @@ struct output_clk output_clks[] = {
 		.flags = CLK_CR,
 	},
 	[DDR_BYPASS_PCLK] = {
-		.clk_dep = ddr_clk_div4_sel,
-		.clk_src = ddr_clk_sel,
-		.flags = CLK_C | CLK_REVERSE_DEP_F,
+		.clk_dep = invalid_clk,
+		.clk_src = ddr_clk_sel_div4,
+		.flags = CLK_C,
 	},
 	[DDR_CLK] = {
 		.clk_dep = invalid_clk,
-		.clk_src = ddr_clk_div4_sel,
+		.clk_src = ddr_clk_sel,
 		.flags = CLK_C,
 	},
 	[DDR_RST] = {
@@ -759,12 +758,8 @@ static int enable_output_clk(clk_clk_t clk)
 		return -EINVAL;
 
 	crcntl_trace(true, get_output_clk_name(clk));
-	if (output_clks[clk].clk_dep != invalid_clk) {
-		if (output_clks[clk].flags & CLK_REVERSE_DEP_F)
-			clk_disable(output_clks[clk].clk_dep);
-		else
-			clk_enable(output_clks[clk].clk_dep);
-	}
+	if (output_clks[clk].clk_dep != invalid_clk)
+		clk_enable(output_clks[clk].clk_dep);
 	if (output_clks[clk].clk_src != invalid_clk)
 		clk_enable(output_clks[clk].clk_src);
 	if (output_clks[clk].flags & CLK_CLK_EN_F) {
@@ -792,12 +787,8 @@ static void disable_output_clk(clk_clk_t clk)
 		return;
 
 	crcntl_trace(false, get_output_clk_name(clk));
-	if (output_clks[clk].clk_dep != invalid_clk) {
-		if (output_clks[clk].flags & CLK_REVERSE_DEP_F)
-			clk_enable(output_clks[clk].clk_dep);
-		else
-			clk_disable(output_clks[clk].clk_dep);
-	}
+	if (output_clks[clk].clk_dep != invalid_clk)
+		clk_disable(output_clks[clk].clk_dep);
 	if (output_clks[clk].clk_src != invalid_clk)
 		clk_disable(output_clks[clk].clk_src);
 	if (output_clks[clk].flags & CLK_SW_RST_F) {

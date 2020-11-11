@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Nov  9 09:46:29 2020
+# Wed Nov 11 17:05:02 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -171,6 +171,7 @@ CONFIG_DUOWEN_TMR=y
 CONFIG_CRCNTL=y
 CONFIG_CRCNTL_MUX=y
 # CONFIG_CRCNTL_TRACE is not set
+# CONFIG_DUOWEN_SCSR is not set
 CONFIG_DUOWEN_SPI_FLASH=y
 # CONFIG_DUOWEN_FLASH_DIVIDER_8 is not set
 CONFIG_DUOWEN_FLASH_DIVIDER_16=y
@@ -333,6 +334,20 @@ CONFIG_SD_SDSC=y
 # CONFIG_SDHC is not set
 CONFIG_ARCH_HAS_DDR=y
 CONFIG_DDR=y
+CONFIG_DDR_SPD_3200=y
+# CONFIG_DDR_SPD_2933 is not set
+# CONFIG_DDR_SPD_2666 is not set
+# CONFIG_DDR_SPD_2400 is not set
+# CONFIG_DDR_SPD_2133 is not set
+# CONFIG_DDR_SPD_1866 is not set
+# CONFIG_DDR_SPD_1600 is not set
+# CONFIG_DDR_SPD_1333 is not set
+# CONFIG_DDR_SPD_1066 is not set
+# CONFIG_DDR_SPD_800 is not set
+# CONFIG_DDR_SPD_667 is not set
+# CONFIG_DDR_SPD_400 is not set
+# CONFIG_DDR_SPD_266 is not set
+# CONFIG_DDR_SPD_200 is not set
 CONFIG_ARCH_HAS_PCI=y
 # CONFIG_PCI is not set
 # CONFIG_IOMMU is not set

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Nov  9 09:49:07 2020
+# Wed Nov 11 17:07:43 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -306,6 +306,20 @@ CONFIG_SPIFLASH_ERASE_4K=y
 # CONFIG_VIDEO is not set
 CONFIG_ARCH_HAS_DDR=y
 CONFIG_DDR=y
+CONFIG_DDR_SPD_3200=y
+# CONFIG_DDR_SPD_2933 is not set
+# CONFIG_DDR_SPD_2666 is not set
+# CONFIG_DDR_SPD_2400 is not set
+# CONFIG_DDR_SPD_2133 is not set
+# CONFIG_DDR_SPD_1866 is not set
+# CONFIG_DDR_SPD_1600 is not set
+# CONFIG_DDR_SPD_1333 is not set
+# CONFIG_DDR_SPD_1066 is not set
+# CONFIG_DDR_SPD_800 is not set
+# CONFIG_DDR_SPD_667 is not set
+# CONFIG_DDR_SPD_400 is not set
+# CONFIG_DDR_SPD_266 is not set
+# CONFIG_DDR_SPD_200 is not set
 CONFIG_ARCH_HAS_PCI=y
 # CONFIG_PCI is not set
 # CONFIG_IOMMU is not set

@@ -104,7 +104,6 @@
 #define DDR_CLK_SEL		((clk_clk_t)3)
 #define PCIE_REF_CLK_SEL	((clk_clk_t)4)
 #define SOC_CLK_SEL		((clk_clk_t)5) /* SOC_PLL P clock */
-#define DDR_CLK_DIV4_SEL	((clk_clk_t)6)
 #define COHFAB_CLK_SEL		((clk_clk_t)7)
 #define CL0_CLK_SEL		((clk_clk_t)8)
 #define CL1_CLK_SEL		((clk_clk_t)9)
@@ -118,7 +117,6 @@
 #define ddr_clk_sel		clkid(CLK_SELECT, DDR_CLK_SEL)
 #define pcie_ref_clk_sel	clkid(CLK_SELECT, PCIE_REF_CLK_SEL)
 #define soc_clk_sel		clkid(CLK_SELECT, SOC_CLK_SEL)
-#define ddr_clk_div4_sel	clkid(CLK_SELECT, DDR_CLK_DIV4_SEL)
 #define cohfab_clk_sel		clkid(CLK_SELECT, COHFAB_CLK_SEL)
 #define cl0_clk_sel		clkid(CLK_SELECT, CL0_CLK_SEL)
 #define cl1_clk_sel		clkid(CLK_SELECT, CL1_CLK_SEL)
@@ -160,7 +158,6 @@
 #define DDR_CLK_SEL		((clk_clk_t)3)
 #define PCIE_REF_CLK_SEL	((clk_clk_t)4)
 #define SOC_CLK_SEL		((clk_clk_t)5)
-#define DDR_CLK_DIV4_SEL	((clk_clk_t)6)
 #define COHFAB_CLK_SEL		((clk_clk_t)7)
 #define CL0_CLK_SEL		((clk_clk_t)8)
 #define CL1_CLK_SEL		((clk_clk_t)9)
@@ -173,7 +170,6 @@
 #define ddr_clk_sel		clkid(CLK_SELECT, DDR_CLK_SEL)
 #define pcie_ref_clk_sel	clkid(CLK_SELECT, PCIE_REF_CLK_SEL)
 #define soc_clk_sel		clkid(CLK_SELECT, SOC_CLK_SEL)
-#define ddr_clk_div4_sel	clkid(CLK_SELECT, DDR_CLK_DIV4_SEL)
 #define cohfab_clk_sel		clkid(CLK_SELECT, COHFAB_CLK_SEL)
 #define cl0_clk_sel		clkid(CLK_SELECT, CL0_CLK_SEL)
 #define cl1_clk_sel		clkid(CLK_SELECT, CL1_CLK_SEL)
@@ -213,7 +209,6 @@
 #define ddr_clk_sel		ddr_pll
 #define pcie_ref_clk_sel	pcie_pll
 #define soc_clk_sel		soc_pll
-#define ddr_clk_div4_sel	ddr_clk_sel_div4
 #define cohfab_clk_sel		cohfab_pll
 #define cl0_clk_sel		cl0_pll
 #define cl1_clk_sel		cl1_pll
