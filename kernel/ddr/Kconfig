@@ -51,6 +51,9 @@ config DDR_SPD_800
 config DDR_SPD_667
 	bool "667"
 
+config DDR_SPD_533
+	bool "533"
+
 config DDR_SPD_400
 	bool "400"
 
