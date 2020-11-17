@@ -532,11 +532,15 @@ choice
 	default DUOWEN_DDR_512G if DUOWEN_ASIC
 	default DUOWEN_DDR_32M if DUOWEN_FPGA
 	default DUOWEN_DDR_32M if DUOWEN_ZEBU_SOCv1
-	default DUOWEN_DDR_256M if DUOWEN_ZEBU_SOCv1
+	default DUOWEN_DDR_128M if DUOWEN_ZEBU_SOCv2
 
 config DUOWEN_DDR_32M
 	bool "Fake 32M DDR memory model"
 	depends DUOWEN_FPGA || DUOWEN_ZEBU
+
+config DUOWEN_DDR_128M
+	bool "Fake 128M DDR memory model"
+	depends DUOWEN_ZEBU_SOCv2
 
 config DUOWEN_DDR_256M
 	bool "Fake 256M DDR memory model"

@@ -253,7 +253,7 @@ struct output_clk output_clks[] = {
 		.flags = CLK_CR,
 	},
 	[DDR_BYPASS_PCLK] = {
-		.clk_dep = invalid_clk,
+		.clk_dep = ddr_clk,
 		.clk_src = ddr_clk_sel_div4,
 		.flags = CLK_C,
 	},
