@@ -69,6 +69,7 @@
 #define CL1_VCO			CL1_PLL
 #define CL2_VCO			CL2_PLL
 #define CL3_VCO			CL3_PLL
+#define ETH_VCO			ETH_PLL
 #define NR_VCO_CLKS		DUOWEN_MAX_PLLS
 #define soc_vco			clkid(CLK_VCO, SOC_VCO)
 #define ddr_bus_vco		clkid(CLK_VCO, DDR_BUS_VCO)
@@ -79,6 +80,7 @@
 #define cl1_vco			clkid(CLK_VCO, CL1_VCO)
 #define cl2_vco			clkid(CLK_VCO, CL2_VCO)
 #define cl3_vco			clkid(CLK_VCO, CL3_VCO)
+#define eth_vco			clkid(CLK_VCO, ETH_VCO)
 
 /* CLK_PLL */
 /* P PLL_OUT clocks use same name as PLLs, R PLL_OUT clocks are defined
@@ -95,6 +97,7 @@
 #define cl1_pll			clkid(CLK_PLL, CL1_PLL)
 #define cl2_pll			clkid(CLK_PLL, CL2_PLL)
 #define cl3_pll			clkid(CLK_PLL, CL3_PLL)
+#define eth_pll			clkid(CLK_PLL, ETH_PLL)
 #define sysfab_pll		clkid(CLK_PLL, SYSFAB_PLL)
 
 /* CLK_SELECT: CLK_SEL_CFG */
@@ -146,6 +149,7 @@
 #define cl1_pll			clkid(CLK_PLL, CL1_PLL)
 #define cl2_pll			clkid(CLK_PLL, CL2_PLL)
 #define cl3_pll			clkid(CLK_PLL, CL3_PLL)
+#define eth_pll			clkid(CLK_PLL, ETH_PLL)
 #define sysfab_pll		clkid(CLK_PLL, SYSFAB_PLL)
 #define xo_clk			clkid(CLK_INPUT, XO_CLK)
 #define tic_clk			clkid(CLK_INPUT, TIC_CLK)
@@ -199,6 +203,7 @@
 #define cl1_pll			clkid(CLK_PLL, CL1_PLL)
 #define cl2_pll			clkid(CLK_PLL, CL2_PLL)
 #define cl3_pll			clkid(CLK_PLL, CL3_PLL)
+#define eth_pll			clkid(CLK_PLL, ETH_PLL)
 #define sysfab_pll		clkid(CLK_PLL, SYSFAB_PLL)
 #define xo_clk			clkid(CLK_INPUT, XO_CLK)
 #define tic_clk			clkid(CLK_INPUT, TIC_CLK)
@@ -448,9 +453,11 @@
 #define SOC_CLK_DIV2		((clk_clk_t)0)
 #define DDR_CLK_SEL_DIV4	((clk_clk_t)1)
 #define XO_CLK_DIV4		((clk_clk_t)2)
-#define NR_DIV_CLKS		(XO_CLK_DIV4 + 1)
+#define ETH_CLK_DIV2		((clk_clk_t)3)
+#define NR_DIV_CLKS		(ETH_CLK_DIV2 + 1)
 #define soc_clk_div2		clkid(CLK_DIV, SOC_CLK_DIV2)
 #define ddr_clk_sel_div4	clkid(CLK_DIV, DDR_CLK_SEL_DIV4)
 #define xo_clk_div4		clkid(CLK_DIV, XO_CLK_DIV4)
+#define eth_clk_div2		clkid(CLK_DIV, ETH_CLK_DIV2)
 
 #endif /* __CLK_SOCv2_DUOWEN_H_INCLUDE__ */

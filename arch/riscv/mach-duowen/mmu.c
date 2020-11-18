@@ -51,6 +51,7 @@ caddr_t duowen_apc_clk_reg_base[4] = {
 	__DUOWEN_APC_CLK_BASE(2),
 	__DUOWEN_APC_CLK_BASE(3),
 };
+caddr_t duowen_eth_clk_reg_base = __DUOWEN_ETH_CLK_BASE;
 
 void duowen_mmu_map_clk(void)
 {
@@ -70,11 +71,16 @@ void duowen_mmu_map_clk(void)
 			duowen_apc_clk_reg_base[i] = fix_to_virt(FIX_APC0 + i);
 		}
 	}
+	if (duowen_eth_clk_reg_base == __DUOWEN_ETH_CLK_BASE) {
+		set_fixmap_io(FIX_ETH, __DUOWEN_ETH_CLK_BASE & PAGE_MASK);
+		duowen_eth_clk_reg_base = fix_to_virt(FIX_ETH);
+	}
 	for (i = 0; i < 4; i++)
 		duowen_pll_reg_base[i] = CRCNTL_PLL_REG(i, 0);
 	duowen_pll_reg_base[4] = COHFAB_PLL_REG(0);
 	for (i = 0; i < 4; i++)
 		duowen_pll_reg_base[5 + i] = CLUSTER_PLL_REG(i, 0);
+	duowen_pll_reg_base[9] = ETH_PLL_REG(0);
 }
 
 void duowen_mmu_dump_clk(void)
@@ -93,6 +99,9 @@ void duowen_mmu_dump_clk(void)
 				__DUOWEN_APC_CLK_BASE(i),
 				fix_to_virt(FIX_APC0 + i), i);
 	}
+	if (duowen_eth_clk_reg_base != __DUOWEN_ETH_CLK_BASE)
+		con_log("FIXMAP: %016llx -> %016llx: ETH\n",
+			__DUOWEN_ETH_CLK_BASE, fix_to_virt(FIX_ETH));
 }
 #endif
 

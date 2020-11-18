@@ -223,6 +223,7 @@ uint32_t input_clks[NR_INPUT_CLKS] = {
 	[CL1_PLL] = CL_PLL_FREQ,
 	[CL2_PLL] = CL_PLL_FREQ,
 	[CL3_PLL] = CL_PLL_FREQ,
+	[ETH_PLL] = ETH_PLL_FREQ,
 	[SYSFAB_PLL] = SFAB_PLL_FREQ,
 };
 
@@ -238,6 +239,7 @@ const char *input_clk_names[NR_INPUT_CLKS] = {
 	[CL1_PLL] = "cl1_pll",
 	[CL2_PLL] = "cl2_pll",
 	[CL3_PLL] = "cl3_pll",
+	[ETH_PLL] = "eth_pll",
 	[SYSFAB_PLL] = "sysfab_pll",
 };
 

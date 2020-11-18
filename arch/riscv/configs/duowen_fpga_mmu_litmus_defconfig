@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Nov 11 17:06:55 2020
+# Wed Nov 18 15:37:02 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -200,9 +200,9 @@ CONFIG_DUOWEN_APC_BOOT_HOOK=y
 # CONFIG_DUOWEN_ASIC is not set
 CONFIG_DUOWEN_FPGA=y
 # CONFIG_DUOWEN_ZEBU is not set
-CONFIG_DUOWEN_SOCv1=y
-# CONFIG_DUOWEN_SOCv2 is not set
-CONFIG_DUOWEN_SOCv1_FPGA=y
+# CONFIG_DUOWEN_SOCv1 is not set
+CONFIG_DUOWEN_SOCv2=y
+CONFIG_DUOWEN_SOCv2_FPGA=y
 CONFIG_DUOWEN_APC_3=y
 CONFIG_DUOWEN_SIM_LOAD=y
 # CONFIG_DUOWEN_SBL_LOAD is not set
@@ -231,6 +231,8 @@ CONFIG_CRCNTL=y
 # Duowen DDR controller/phy support
 #
 CONFIG_DUOWEN_DDR_32M=y
+# CONFIG_DUOWEN_DDR_64M is not set
+# CONFIG_DUOWEN_DDR_128M is not set
 # CONFIG_DUOWEN_DDR_256M is not set
 # CONFIG_DUOWEN_DDR_512G is not set
 # CONFIG_DUOWEN_DDR_16G is not set

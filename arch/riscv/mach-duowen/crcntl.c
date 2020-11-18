@@ -55,6 +55,7 @@ phys_addr_t duowen_pll_reg_base[DUOWEN_MAX_PLLS] = {
 	__DUOWEN_APC_CLK_BASE(1),
 	__DUOWEN_APC_CLK_BASE(2),
 	__DUOWEN_APC_CLK_BASE(3),
+	__DUOWEN_ETH_CLK_BASE,
 };
 
 void duowen_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val)

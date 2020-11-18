@@ -264,6 +264,11 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 		.freq = CL_PLL_FREQ,
 		.enabled = false,
 	},
+	[ETH_PLL] = {
+		.src = eth_vco,
+		.freq = ETH_PLL_FREQ,
+		.enabled = false,
+	},
 	[SYSFAB_PLL] = {
 		.src = soc_vco,
 		.freq = SFAB_PLL_FREQ,
@@ -282,6 +287,7 @@ const char *pll_clk_names[NR_PLL_CLKS] = {
 	[CL1_PLL] = "cl1_pll",
 	[CL2_PLL] = "cl2_pll",
 	[CL3_PLL] = "cl3_pll",
+	[ETH_PLL] = "eth_pll",
 	[SYSFAB_PLL] = "sysfab_pll",
 };
 
@@ -430,6 +436,12 @@ struct vco_clk vco_clks[NR_VCO_CLKS] = {
 		.freq_r = INVALID_FREQ,
 		.enabled = false,
 	},
+	[ETH_VCO] = {
+		.freq = ETH_VCO_FREQ,
+		.freq_p = ETH_PLL_FREQ,
+		.freq_r = INVALID_FREQ,
+		.enabled = false,
+	},
 };
 
 #ifdef CONFIG_CONSOLE_COMMAND
@@ -443,6 +455,7 @@ const char *vco_clk_names[NR_VCO_CLKS] = {
 	[CL1_VCO] = "cl1_vco",
 	[CL2_VCO] = "cl2_vco",
 	[CL3_VCO] = "cl3_vco",
+	[ETH_VCO] = "eth_vco",
 };
 
 const char *get_vco_name(clk_clk_t clk)

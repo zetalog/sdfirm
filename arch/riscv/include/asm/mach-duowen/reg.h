@@ -82,6 +82,9 @@
 #define TIMER3_BASE		ULL(0xFF66300000)
 #define SD_BASE			ULL(0xFF67000000)
 #define FLASH_BASE		ULL(0xFF68000000)
+#define XGMAC_BASE		ULL(0xFF6A000000)
+#define ETH_PLL_BASE		ULL(0xFF6A100000)
+#define XPCS_BASE		ULL(0xFF6A200000)
 #define PLIC_BASE		ULL(0xFF70000000)
 #define SFAB_ROM_BASE		ULL(0xFF7FF00000) /* Boot ROM */
 #define SFAB_ROM_SIZE		0x100000
@@ -130,11 +133,11 @@
 
 /* DDR memory region */
 #define DDR_BASE		ULL(0x0000000000)
-#ifdef CONFIG_DUOWEN_DDR_512G
-#define DDR_SIZE		SZ_512G
-#endif
 #ifdef CONFIG_DUOWEN_DDR_32M
 #define DDR_SIZE		SZ_32M
+#endif
+#ifdef CONFIG_DUOWEN_DDR_64M
+#define DDR_SIZE		SZ_64M
 #endif
 #ifdef CONFIG_DUOWEN_DDR_128M
 #define DDR_SIZE		SZ_128M
@@ -144,6 +147,9 @@
 #endif
 #ifdef CONFIG_DUOWEN_DDR_16G
 #define DDR_SIZE		SZ_16G
+#endif
+#ifdef CONFIG_DUOWEN_DDR_512G
+#define DDR_SIZE		SZ_512G
 #endif
 
 /* PCIe memory region */

@@ -58,7 +58,8 @@
 #define CL1_PLL			((clk_clk_t)6)
 #define CL2_PLL			((clk_clk_t)7)
 #define CL3_PLL			((clk_clk_t)8)
-#define DUOWEN_MAX_PLLS			9
+#define ETH_PLL			((clk_clk_t)9)
+#define DUOWEN_MAX_PLLS			10
 extern phys_addr_t duowen_pll_reg_base[];
 #define DW_PLL_BASE(pll)		duowen_pll_reg_base[pll]
 #define DW_PLL_REG(pll, offset)		(DW_PLL_BASE(pll) + (offset))
@@ -74,6 +75,7 @@ extern phys_addr_t duowen_pll_reg_base[];
 #define __DUOWEN_CLK_BASE		CRCNTL_BASE
 #define __DUOWEN_CFAB_CLK_BASE		COHFAB_PLL_BASE
 #define __DUOWEN_APC_CLK_BASE(n)	(CLUSTER0_BASE + ((n) << 20))
+#define __DUOWEN_ETH_CLK_BASE		ETH_PLL_BASE
 #ifdef CONFIG_MMU
 #define DUOWEN_CLK_BASE			duowen_clk_reg_base
 extern caddr_t duowen_clk_reg_base;
@@ -81,10 +83,13 @@ extern caddr_t duowen_clk_reg_base;
 extern caddr_t duowen_cfab_clk_reg_base;
 #define DUOWEN_APC_CLK_BASE(n)		duowen_apc_clk_reg_base[n]
 extern caddr_t duowen_apc_clk_reg_base[];
+#define DUOWEN_ETH_CLK_BASE		duowen_eth_clk_reg_base
+extern caddr_t duowen_eth_clk_reg_base;
 #else
 #define DUOWEN_CLK_BASE			__DUOWEN_CLK_BASE
 #define DUOWEN_CFAB_CLK_BASE		__DUOWEN_CFAB_CLK_BASE
 #define DUOWEN_APC_CLK_BASE(n)		__DUOWEN_APC_CLK_BASE(n)
+#define DUOWEN_ETH_CLK_BASE		__DUOWEN_ETH_CLK_BASE
 #endif
 
 /* XXX: This implementation is based on undocumented PLL RTL
@@ -96,16 +101,11 @@ extern caddr_t duowen_apc_clk_reg_base[];
 #define CRCNTL_REG(offset)		(DUOWEN_CLK_BASE + (offset))
 #define COHFAB_PLL_REG(offset)		(DUOWEN_CFAB_CLK_BASE + (offset))
 #define CLUSTER_PLL_REG(n, offset)	(DUOWEN_APC_CLK_BASE(n) + (offset))
+#define ETH_PLL_REG(offset)		(DUOWEN_ETH_CLK_BASE + (offset))
 
 /* PLL control */
 #define __CRCNTL_PLL_REG(pll, offset)	__CRCNTL_REG(((pll) << 6) + (offset))
 #define CRCNTL_PLL_REG(pll, offset)	CRCNTL_REG(((pll) << 6) + (offset))
-#define CRCNTL_PLL_CFG0(pll)		CRCNTL_PLL_REG(pll, 0x00)
-#define CRCNTL_PLL_CFG1(pll)		CRCNTL_PLL_REG(pll, 0x04)
-#define CRCNTL_PLL_CFG2(pll)		CRCNTL_PLL_REG(pll, 0x08)
-#define CRCNTL_PLL_STATUS(pll)		CRCNTL_PLL_REG(pll, 0x0C)
-#define CRCNTL_PLL_REG_ACCESS(pll)	CRCNTL_PLL_REG(pll, 0x10)
-#define CRCNTL_PLL_REG_TIMING(pll)	CRCNTL_PLL_REG(pll, 0x14)
 
 /* COHFAB/CLUSTER PLL clock control */
 #define COHFAB_CLK_CFG(pll)		DW_PLL_REG((pll), 0x40)
@@ -165,7 +165,7 @@ extern caddr_t duowen_apc_clk_reg_base[];
 #define CLUSTER_CLK_CG(clk)		\
 	(((clk) - CLUSTER0_APC0_CPU0_CLK) % CLUSTER_CLOCKS)
 
-/* CRCNTL_PLL_REG_ACCESS */
+/* DW_PLL_REG_ACCESS */
 #define PLL_REG_INVALID		_BV(25)
 #define PLL_REG_IDLE		_BV(24)
 #define PLL_REG_RDATA_OFFSET	16
