@@ -568,7 +568,7 @@
 		compatible = "simple-bus";
 		ranges;
 
-		interrupt-controller@ff70000000 {
+		plic: interrupt-controller@ff70000000 {
 #ifdef CONFIG_SMP
 #ifdef CONFIG_DUOWEN_APC_3
 			phandle = <0x7>;
@@ -595,6 +595,28 @@
 			interrupts-extended = <0x2 0x3 0x2 0x7>;
 			reg = <0xff 0x10f0000 0x0 0x10000>;
 			compatible = "riscv,clint0";
+		};
+
+		/* DMA SMMU */
+		dmasmmu: iommu@ff08000000 {
+			compatible = "smarco,rvsmmu";
+			reg = <0xff 0x8000000 0x0 0x20000>;
+			interrupt-parent = <&plic>;
+			interrupts = <83>;
+			interrupt-names = "combined";
+			dma_coherent;
+			#iommu-cells = <1>;
+		};
+
+		/* PCIe SMMU */
+		pciesmmu: iommu@ff08400000 {
+			compatible = "smarco,rvsmmu";
+			reg = <0xff 0x8400000 0x0 0x20000>;
+			interrupt-parent = <&plic>;
+			interrupts = <80>;
+			interrupt-names = "combined";
+			dma_coherent;
+			#iommu-cells = <1>;
 		};
 	};
 };
