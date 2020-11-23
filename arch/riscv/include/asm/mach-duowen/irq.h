@@ -257,39 +257,12 @@
 #define IRQ_TIMER2_6		EXT_IRQ(187)
 #define IRQ_TIMER2_7		EXT_IRQ(188)
 
-/* Timer3_0 is used as IMC RISCV timer IRQ */
-/* #define IRQ_TIMER3_0		EXT_IRQ(189) */
-#define IRQ_TIMER3_1		EXT_IRQ(189)
-#define IRQ_TIMER3_2		EXT_IRQ(190)
-#define IRQ_TIMER3_3		EXT_IRQ(191)
-#define IRQ_TIMER3_4		EXT_IRQ(192)
-#define IRQ_TIMER3_5		EXT_IRQ(193)
-#define IRQ_TIMER3_6		EXT_IRQ(194)
-#define IRQ_TIMER3_7		EXT_IRQ(195)
-#define IRQ_TIMER3_8		EXT_IRQ(196)
-#define IRQ_TIMER3_9		EXT_IRQ(197)
-#define IRQ_TIMER3_10		EXT_IRQ(198)
-#define IRQ_TIMER3_11		EXT_IRQ(199)
-#define IRQ_TIMER3_12		EXT_IRQ(200)
-#define IRQ_TIMER3_13		EXT_IRQ(201)
-#define IRQ_TIMER3_14		EXT_IRQ(202)
-#define IRQ_TIMER3_15		EXT_IRQ(203)
-#define IRQ_TIMER3_16		EXT_IRQ(204)
-#define IRQ_TIMER3_17		EXT_IRQ(205)
-#define IRQ_TIMER3_18		EXT_IRQ(206)
-#define IRQ_TIMER3_19		EXT_IRQ(207)
-#define IRQ_TIMER3_20		EXT_IRQ(208)
-#define IRQ_TIMER3_21		EXT_IRQ(209)
-#define IRQ_TIMER3_22		EXT_IRQ(210)
-#define IRQ_TIMER3_23		EXT_IRQ(211)
-#define IRQ_TIMER3_24		EXT_IRQ(212)
-#define IRQ_TIMER3_25		EXT_IRQ(213)
-#define IRQ_TIMER3_26		EXT_IRQ(214)
-#define IRQ_TIMER3_27		EXT_IRQ(215)
-#define IRQ_TIMER3_28		EXT_IRQ(216)
-#define IRQ_TIMER3_29		EXT_IRQ(217)
-#define IRQ_TIMER3_30		EXT_IRQ(218)
-#define IRQ_TIMER3_31		EXT_IRQ(219)
+#define IRQ_XGMAC_LPI		EXT_IRQ(193) /* XGMAC low power */
+#define IRQ_XGMAC_PMT		EXT_IRQ(194) /* XGMAC power management */
+#define IRQ_XGMAC_SBD		EXT_IRQ(195) /* XGMAC sideband */
+#define IRQ_XPCS_SBD		EXT_IRQ(196) /* XGMAC physical coding sublayer */
+#define IRQ_SBD_RX(ch)		IRQ_IRQ(197 + (ch)) /* channel sideband RX */
+#define IRQ_SBD_TX(ch)		IRQ_IRQ(205 + (ch)) /* channel sideband TX */
 
 #define IRQ_TSENS0		EXT_IRQ(220)
 #define IRQ_TSENS1		EXT_IRQ(221)
