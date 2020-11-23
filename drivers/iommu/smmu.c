@@ -3,6 +3,7 @@
 #include <target/iommu.h>
 #include <target/console.h>
 #include <target/spinlock.h>
+#include <target/panic.h>
 
 #define TLB_LOOP_TIMEOUT		1000000	/* 1s! */
 #define TLB_SPIN_COUNT			10
@@ -16,12 +17,54 @@
  */
 #define QCOM_DUMMY_VAL			-1
 
-struct arm_smmu_dev smmu_devs[SMMU_HW_MAX_CTRLS];
+struct smmu_device smmu_devices[NR_IOMMU_DEVICES];
+struct smmu_stream smmu_streams[NR_IOMMU_GROUPS];
+struct smmu_context smmu_contexts[NR_IOMMU_DOMAINS];
 DEFINE_SPINLOCK(smmu_global_lock);
 DEFINE_SPINLOCK(smmu_context_lock);
 
+void smmu_gr_restore(smmu_gr_t gr)
+{
+	smmu_device_ctrl.gr = gr;
+}
+
+smmu_gr_t smmu_gr_save(smmu_gr_t gr)
+{
+	smmu_gr_t sgr = smmu_device_ctrl.gr;
+
+	smmu_gr_restore(gr);
+	return sgr;
+}
+
+void smmu_group_select(void)
+{
+	smmu_sme_t sme = smmu_stream_ctrl.sme;
+	smmu_gr_t gr = smmu_sme_gr(sme);
+
+	BUG_ON(smmu_sme_dev(sme) != iommu_dev);
+	smmu_gr_restore(gr);
+}
+
+void smmu_cb_restore(smmu_cb_t cb)
+{
+	smmu_device_ctrl.cb = cb;
+}
+
+smmu_cb_t smmu_cb_save(smmu_cb_t cb)
+{
+	smmu_cb_t scb = smmu_device_ctrl.cb;
+
+	smmu_cb_restore(cb);
+	return scb;
+}
+
+void smmu_domain_select(void)
+{
+	smmu_cb_restore(smmu_context_ctrl.cb);
+}
+
 /* Wait for any pending TLB invalidations to complete */
-static void __arm_smmu_tlb_sync(caddr_t sync, caddr_t status)
+static void __smmu_tlb_sync(caddr_t sync, caddr_t status)
 {
 	unsigned int spin_cnt, delay;
 	uint32_t reg;
@@ -39,212 +82,309 @@ static void __arm_smmu_tlb_sync(caddr_t sync, caddr_t status)
 	con_printf("TLB sync timed out -- SMMU may be deadlocked\n");
 }
 
-void arm_smmu_tlb_sync_context(int smmu, int cbndx)
+void smmu_tlb_sync_context(void)
 {
 	irq_flags_t flags;
 
 	spin_lock_irqsave(&smmu_context_lock, flags);
-	__arm_smmu_tlb_sync(SMMU_CB_TLBSYNC(smmu, cbndx),
-			    SMMU_CB_TLBSTATUS(smmu, cbndx));
+	__smmu_tlb_sync(SMMU_CB_TLBSYNC(iommu_dev, smmu_cb),
+			SMMU_CB_TLBSTATUS(iommu_dev, smmu_cb));
 	spin_unlock_irqrestore(&smmu_context_lock, flags);
 }
 
-void arm_smmu_tlb_sync_global(int smmu)
+void smmu_tlb_sync_global(void)
 {
 	irq_flags_t flags;
 
 	spin_lock_irqsave(&smmu_global_lock, flags);
-	__arm_smmu_tlb_sync(SMMU_sTLBGSYNC(smmu), SMMU_sTLBGSTATUS(smmu));
+	__smmu_tlb_sync(SMMU_sTLBGSYNC(iommu_dev),
+			SMMU_sTLBGSTATUS(iommu_dev));
 	spin_unlock_irqrestore(&smmu_global_lock, flags);
 }
 
-void arm_smmu_tlb_inv_context_s1(int smmu, int cbndx, uint16_t asid)
+void smmu_tlb_inv_context_s1(void)
 {
 	/* The TLBI write may be relaxed, so ensure that PTEs cleared by the
 	 * current CPU are visible beforehand.
 	 */
 	wmb();
-	__raw_writel(SMMU_ASID(asid), SMMU_CB_TLBIASID(smmu, cbndx));
-	arm_smmu_tlb_sync_context(smmu, cbndx);
+	__raw_writel(SMMU_ASID(smmu_context_ctrl.asid),
+		     SMMU_CB_TLBIASID(iommu_dev, smmu_cb));
+	smmu_tlb_sync_context();
 }
 
-void arm_smmu_tlb_inv_context_s2(int smmu, int cbndx, uint16_t vmid)
+static void smmu_tlb_inv_range_s1(unsigned long iova, size_t size,
+				  size_t granule, caddr_t reg)
 {
-	/* See above */
+	if (smmu_device_ctrl.features & SMMU_FEAT_COHERENT_WALK)
+		wmb();
+
+	if (smmu_context_ctrl.fmt == SMMU_CONTEXT_AARCH64) {
+		iova >>= 12;
+		iova |= (uint64_t)smmu_context_ctrl.asid << 48;
+		do {
+			__raw_writeq(iova, reg);
+			iova += granule >> 12;
+		} while (size -= granule);
+	} else {
+		iova = (iova >> 12) << 12;
+		iova |= smmu_context_ctrl.asid;
+		do {
+			__raw_writel(iova, reg);
+			iova += granule;
+		} while (size -= granule);
+	}
+}
+
+void smmu_tlb_inv_walk_s1(unsigned long iova, size_t size, size_t granule)
+{
+	smmu_tlb_inv_range_s1(iova, size, granule,
+			      SMMU_CB_TLBIVA(iommu_dev, smmu_cb));
+	smmu_tlb_sync_context();
+}
+
+void smmu_tlb_inv_leaf_s1(unsigned long iova, size_t size, size_t granule)
+{
+	smmu_tlb_inv_range_s1(iova, size, granule,
+			      SMMU_CB_TLBIVAL(iommu_dev, smmu_cb));
+	smmu_tlb_sync_context();
+}
+
+void smmu_tlb_add_page_s1(unsigned long iova, size_t granule)
+{
+	smmu_tlb_inv_range_s1(iova, granule, granule,
+			      SMMU_CB_TLBIVAL(iommu_dev, smmu_cb));
+}
+
+#ifdef CONFIG_ARCH_HAS_SMMU_S2
+void smmu_tlb_inv_context_s2(void)
+{
+	/* The TLBI write may be relaxed, so ensure that PTEs cleared by the
+	 * current CPU are visible beforehand.
+	 */
 	wmb();
-	__raw_writel(SMMU_VMID(vmid), SMMU_TLBIVMID(smmu));
-	arm_smmu_tlb_sync_global(smmu);
+	__raw_writel(SMMU_VMID(smmu_context_ctrl.vmid),
+		     SMMU_TLBIVMID(iommu_dev));
+	smmu_tlb_sync_global();
 }
 
-void arm_smmu_tlb_inv_walk_s1(int smmu, int cbndx,
-			      uint16_t asid, unsigned long iova,
-			      size_t size, size_t granule)
+static void smmu_tlb_inv_range_s2(unsigned long iova, size_t size,
+				  size_t granule, caddr_t reg)
 {
-	arm_smmu_tlb_inv_range_s1(smmu, cbndx, asid, iova,
-				  size, granule, SMMU_CB_TLBIVA);
-	arm_smmu_tlb_sync_context(smmu, cbndx);
+	if (smmu_device_ctrl.features & SMMU_FEAT_COHERENT_WALK)
+		wmb();
+
+	iova >>= 12;
+	do {
+		if (smmu_context_ctrl.fmt == SMMU_CONTEXT_AARCH64)
+			__raw_writeq(iova, reg);
+		else
+			__raw_writel(iova, reg);
+		iova += granule >> 12;
+	} while (size -= granule);
 }
 
-void arm_smmu_tlb_inv_leaf_s1(int smmu, int cbndx,
-			      uint16_t asid, unsigned long iova,
-			      size_t size, size_t granule)
+void smmu_tlb_inv_walk_s2(unsigned long iova, size_t size, size_t granule)
 {
-	arm_smmu_tlb_inv_range_s1(smmu, cbndx, asid, iova,
-				  size, granule, SMMU_CB_TLBIVAL);
-	arm_smmu_tlb_sync_context(smmu, cbndx);
+	smmu_tlb_inv_range_s2(iova, size, granule,
+			      SMMU_CB_S2_TLBIIPAS2(iommu_dev, smmu_cb));
+	smmu_tlb_sync_context();
 }
 
-void arm_smmu_tlb_add_page_s1(int smmu, int cbndx,
-			      uint16_t asid, unsigned long iova,
-			      size_t granule)
+void smmu_tlb_inv_leaf_s2(unsigned long iova, size_t size, size_t granule)
 {
-	arm_smmu_tlb_inv_range_s1(smmu, cbndx, asid, iova,
-				  granule, granule, SMMU_CB_TLBIVAL);
+	smmu_tlb_inv_range_s2(iova, size, granule,
+			      SMMU_CB_S2_TLBIIPAS2L(iommu_dev, smmu_cb));
+	smmu_tlb_sync_context();
 }
+
+void smmu_tlb_add_page_s2(unsigned long iova, size_t granule)
+{
+	smmu_tlb_inv_range_s2(iova, granule, granule,
+			      SMMU_CB_S2_TLBIIPAS2L(iommu_dev, smmu_cb));
+}
+
+void smmu_tlb_inv_any_s2_v1(unsigned long iova, size_t size, size_t granule)
+{
+	smmu_tlb_inv_range_s2(iova, granule, granule,
+			      SMMU_CB_S2_TLBIIPAS2L(iommu_dev, smmu_cb));
+}
+
+void smmu_tlb_add_page_s2_v1(unsigned long iova, size_t granule)
+{
+	smmu_tlb_inv_context_s2();
+}
+#endif
+
+smmu_cb_t smmu_alloc_cb(smmu_cb_t start, smmu_cb_t end)
+{
+	smmu_cb_t cb;
+
+	cb = find_next_clear_bit(smmu_device_ctrl.context_map,
+				 end, start);
+	if (cb == end)
+		return INVALID_SMMU_CB;
+	test_bit(cb, smmu_device_ctrl.context_map);
+	return cb;
+}
+
+void smmu_free_cb(smmu_cb_t cb)
+{
+	clear_bit(cb, smmu_device_ctrl.context_map);
+}
+
+int smmu_init_domain_context(void)
+{
+	int start;
+	unsigned long ias, oas;
+	iommu_lpae_t fmt;
+
+	if (iommu_domain_ctrl.type == IOMMU_DOMAIN_IDENTITY) {
+		smmu_context_ctrl.stage = SMMU_DOMAIN_BYPASS;
+		return 0;
+	}
+
+	if (!(smmu_device_ctrl.features & SMMU_FEAT_TRANS_S1))
+		smmu_context_ctrl.stage = SMMU_DOMAIN_S2;
+	if (!(smmu_device_ctrl.features & SMMU_FEAT_TRANS_S2))
+		smmu_context_ctrl.stage = SMMU_DOMAIN_S1;
+
+#ifdef CONFIG_ARM
+	if (smmu_device_ctrl.features & SMMU_FEAT_PTFS_AARCH32_L)
+		smmu_context_ctrl.fmt = SMMU_CONTEXT_AARCH32_L;
+	else if (smmu_device_ctrl.features & SMMU_FEAT_PTFS_AARCH32_S)
+		smmu_context_ctrl.fmt = SMMU_CONTEXT_AARCH32_S;
+	else
+		smmu_context_ctrl.fmt = SMMU_CONTEXT_NONE;
+#endif
+#ifdef CONFIG_ARM64
+	if (smmu_device_ctrl.features & (SMMU_FEAT_PTFS_AARCH64_64K |
+					 SMMU_FEAT_PTFS_AARCH64_16K |
+					 SMMU_FEAT_PTFS_AARCH64_4K))
+		smmu_context_ctrl.fmt = SMMU_CONTEXT_AARCH64;
+	else
+		smmu_context_ctrl.fmt = SMMU_CONTEXT_NONE;
+#endif
+#ifdef CONFIG_RISCV
+	if (smmu_device_ctrl.features & SMMU_FEAT_PTFS_RISCV_SV39)
+		smmu_context_ctrl.fmt = SMMU_CONTEXT_RISCV_SV39;
+	else
+		smmu_context_ctrl.fmt = SMMU_CONTEXT_NONE;
+#endif
+
+	if (smmu_context_ctrl.fmt == SMMU_CONTEXT_NONE)
+		return 0;
+
+	switch (smmu_context_ctrl.stage) {
+	case SMMU_DOMAIN_S1:
+		smmu_context_ctrl.type = SMMU_CBAR_TYPE_S1_TRANS_S2_BYPASS;
+		start = smmu_device_ctrl.max_s2_cbs;
+		ias = smmu_device_ctrl.va_size;
+		oas = smmu_device_ctrl.ipa_size;
+#ifdef CONFIG_ARM64
+		if (smmu_context_ctrl.fmt == SMMU_CONTEXT_AARCH64)
+			fmt = ARM_64_LPAE_S1;
+		else if (smmu_context_ctrl.fmt == SMMU_CONTEXT_AARCH32_L) {
+			fmt = ARM_64_LPAE_S1;
+			ias = min(ias, UL(32));
+			oas = min(oas, UL(40));
+		} else {
+			fmt = ARM_V7S;
+			ias = min(ias, UL(32));
+			oas = min(oas, UL(32));
+		}
+#endif
+#ifdef CONFIG_RISCV
+		if (smmu_context_ctrl.fmt == SMMU_CONTEXT_RISCV_SV39) {
+			fmt = RISCV_64_LPAE_S1;
+			ias = min(ias, UL(39));
+			oas = min(oas, UL(55));
+		} else if (smmu_context_ctrl.fmt == SMMU_CONTEXT_RISCV_SV39) {
+			fmt = RISCV_64_LPAE_S1;
+			ias = min(ias, UL(48));
+			oas = min(oas, UL(55));
+		} else {
+			fmt = RISCV_32_LPAE_S1;
+			ias = min(ias, UL(32));
+			oas = min(oas, UL(32));
+		}
+#endif
+		break;
+#ifdef CONFIG_ARCH_HAS_SMMU_S2
+	case SMMU_DOMAIN_NESTED:
+	case SMMU_DOMAIN_S2:
+		break;
+#endif
+	default:
+		return -EINVAL;
+	}
+
+	smmu_context_ctrl.cb = smmu_alloc_cb(start,
+		smmu_device_ctrl.max_s1_cbs);
+	smmu_context_ctrl.irpt = smmu_context_ctrl.cb;
+
+#ifdef CONFIG_ARCH_HAS_SMMU_S2
+	if (smmu_context_ctrl.stage == SMMU_DOMAIN_S2)
+		smmu_context_ctrl.vmid = smmu_context_ctrl.cb + 1;
+	else
+#endif
+		smmu_context_ctrl.asid = smmu_context_ctrl.cb;
 
 #if 0
-void arm_smmu_tlb_inv_walk_s2(int smmu, int cbndx, unsigned long iova,
-			      size_t size, size_t granule)
-{
-	arm_smmu_tlb_inv_range_s2(smmu, cbndx, iova, size, granule,
-				  SMMU_CB_S2_TLBIIPAS2);
-	arm_smmu_tlb_sync_context(smmu, cbndx);
-}
-
-void arm_smmu_tlb_inv_leaf_s2(int smmu, int cbndx, unsigned long iova,
-			      size_t size, size_t granule)
-{
-	arm_smmu_tlb_inv_range_s2(smmu, cbndx, iova, size, granule,
-				  SMMU_CB_S2_TLBIIPAS2L);
-	arm_smmu_tlb_sync_context(smmu, cbndx);
-}
-
-void arm_smmu_tlb_add_page_s2(int smmu, int cbndx,
-			      unsigned long iova, size_t granule)
-{
-	arm_smmu_tlb_inv_range_s2(smmu, cbndx, iova, granule, granule,
-				  SMMU_CB_S2_TLBIIPAS2L);
-}
+	smmu_init_context_bank(&pgtbl_cfg);
+	smmu_write_context_back(...);
 #endif
 
-void arm_smmu_tlb_inv_any_s2_v1(int smmu, int cbndx,
-				uint16_t vmid, unsigned long iova,
-				size_t size, size_t granule)
-{
-	arm_smmu_tlb_inv_context_s2(smmu, cbndx, vmid);
+	/* TODO: register IRQs */
+	return 0;
 }
 
-/* On MMU-401 at least, the cost of firing off multiple TLBIVMIDs appears
- * almost negligible, but the benefit of getting the first one in as far
- * ahead of the sync as possible is significant, hence we don't just make
- * this a no-op and call arm_smmu_tlb_inv_context_s2() from .iotlb_sync as
- * you might think.
- */
-void arm_smmu_tlb_add_page_s2_v1(int smmu, int cbndx,
-				 uint16_t vmid, unsigned long iova,
-				 size_t granule)
+void smmu_probe_ids(void)
 {
-	if (smmu_devs[smmu].features & SMMU_FEAT_COHERENT_WALK)
-		wmb();
-	__raw_writel(vmid, SMMU_TLBIVMID(smmu));
+	__unused uint32_t id;
+
+	id = __raw_readl(SMMU_IDR0(iommu_dev));
+	smmu_trans_regimes(id);
+	smmu_trans_ops(id);
+	smmu_ptfs_arch32(id);
+	smmu_probe_cttw(id);
+	smmu_max_streams(id);
+	smmu_max_smrgs(id);
+
+	id = __raw_readl(SMMU_IDR1(iommu_dev));
+	smmu_max_pages(id);
+	smmu_probe_hafdbs(id);
+	smmu_probe_smcd(id);
+	smmu_max_cbs(id);
+
+	id = __raw_readl(SMMU_IDR2(iommu_dev));
+	smmu_pa_sizes(id);
+	smmu_va_size(id);
+	smmu_ptfs_arch64(id);
+	smmu_probe_vmid(id);
+
+	if (smmu_device_ctrl.features & SMMU_FEAT_PTFS_ARCH32_S)
+		iommu_device_ctrl.pgsize_bitmap |=
+			SZ_4K | SZ_64K | SZ_1M | SZ_16M;
+	if (smmu_device_ctrl.features &
+	    (SMMU_FEAT_PTFS_ARCH32_L | SMMU_FEAT_PTFS_ARCH64_4K))
+		iommu_device_ctrl.pgsize_bitmap |= SZ_4K | SZ_2M | SZ_1G;
+	if (smmu_device_ctrl.features &	SMMU_FEAT_PTFS_ARCH64_16K)
+		iommu_device_ctrl.pgsize_bitmap |= SZ_16K | SZ_32M;
+	if (smmu_device_ctrl.features & SMMU_FEAT_PTFS_ARCH64_64K)
+		iommu_device_ctrl.pgsize_bitmap |= SZ_64K | SZ_512M;
 }
 
-#ifdef CONFIG_SMMU_SMRG
-__init void smmu_smrg_init(int smmu)
-{
-	int i;
-
-	/* Reset stream mapping groups: Initial values mark all SMRn as
-	 * invalid and all S2CRn as bypass unless overridden.
-	 */
-	for (i = 0; i < smmu->num_mapping_groups; ++i)
-		arm_smmu_write_sme(smmu, i);
-}
-
-#define arm_smmu_max_smrs(dev, id)					\
-	do {								\
-		(dev)->streamid_mask = (dev)->max_streams - 1;		\
-		if ((id) & SMMU_SMS) {					\
-			(dev)->features |= SMMU_FEAT_SMRG;		\
-			(dev)->max_streams = SMMU_NUMSMRG(id);		\
-		}							\
-	} while (0)
-
-/* The width of SMR's mask field depends on sCR0_EXIDENABLE, so this function
- * should be called after sCR0 is written.
- */
-static void arm_smmu_test_smr_masks(int smmu)
-{
-	uint32_t smr;
-	struct arm_smmu_dev *dev = &arm_smmu_devs[smmu];
-
-	/* SMR.ID bits may not be preserved if the corresponding MASK bits
-	 * are set, so check each one separately. We can reject masters
-	 * later if they try to claim IDs outside these masks.
-	 */
-	smr = SMMU_SMR_ID(dev->streamid_mask);
-	__raw_writel(smr, SMMU_SMR(smmu, 0));
-	smr = __raw_readl(SMMU_SMR(smmu, 0));
-	dev->streamid_mask = _GET_FV(SMMU_SMR_ID, smr);
-
-	smr = SMMU_SMR_MASK(dev->streamid_mask);
-	__raw_writel(smr, SMMU_SMR(smmu, 0));
-	smr = __raw_readl(SMMU_SMR(smmu, 0));
-	dev->smr_mask_mask = _GET_FV(SMMU_SMR_MASK, smr);
-}
-#else
-#define arm_smmu_max_smrs(dev, id)		do { } while (0)
-#define arm_smmu_test_smr_masks(smmu)		do { } while (0)
-#endif
-
-#define arm_smmu_page_sizes(dev)					\
-	do {								\
-		if ((dev)->features & SMMU_FEAT_PTFS_ARCH32_S)		\
-			(dev)->pgsize_bitmap |=				\
-				SZ_4K | SZ_64K | SZ_1M | SZ_16M;	\
-		if ((dev)->features & (SMMU_FEAT_PTFS_ARCH32_L |	\
-				       SMMU_FEAT_PTFS_ARCH64_4K))	\
-			(dev)->pgsize_bitmap |= SZ_4K | SZ_2M | SZ_1G;	\
-		if ((dev)->features & SMMU_FEAT_PTFS_ARCH64_16K)	\
-			(dev)->pgsize_bitmap |= SZ_16K | SZ_32M;	\
-		if ((dev)->features & SMMU_FEAT_PTFS_ARCH64_64K)	\
-			(dev)->pgsize_bitmap |= SZ_64K | SZ_512M;	\
-	} while (0)
-
-void arm_smmu_probe_ids(int smmu)
-{
-	uint32_t id;
-	struct arm_smmu_dev *dev = &smmu_devs[smmu];
-
-	id = __raw_readl(SMMU_IDR0(smmu));
-	arm_smmu_trans_regimes(dev, id);
-	arm_smmu_arch32_ptfs(dev, id);
-	arm_smmu_max_streams(dev, id);
-	arm_smmu_max_smrs(dev, id);
-	arm_smmu_probe_cttw(dev, id);
-
-	id = __raw_readl(SMMU_IDR1(smmu));
-	arm_smmu_max_pages(dev, id);
-	arm_smmu_max_cbs(dev, id);
-
-	id = __raw_readl(SMMU_IDR2(smmu));
-	arm_smmu_pa_sizes(dev, id);
-	arm_smmu_arch64_ptfs(dev, id);
-
-	arm_smmu_page_sizes(dev);
-}
-
-static void arm_smmu_write_context_bank(int smmu, int idx,
-					struct arm_smmu_cb *cb,
-					uint8_t cbar, bool stage1,
-					uint16_t asid, uint16_t vmid,
-					uint8_t irptndx)
+static void smmu_write_context_bank(struct arm_smmu_cb *cb,
+				    uint8_t cbar, bool stage1,
+				    uint16_t asid, uint16_t vmid,
+				    uint8_t irptndx)
 {
 	uint32_t reg;
 
 	/* Unassigned context banks only need disabling */
 	if (!cb) {
-		__raw_writel(0, SMMU_CB_SCTLR(smmu, idx));
+		__raw_writel(0, SMMU_CB_SCTLR(iommu_dev, smmu_cb));
 		return;
 	}
 
@@ -256,9 +396,9 @@ static void arm_smmu_write_context_bank(int smmu, int idx,
 	reg = 0;
 #endif
 	/* 16-bit VMIDs live in CBA2R */
-	if (smmu_devs[smmu].features & SMMU_FEAT_VMID16)
+	if (smmu_devices[iommu_dev].features & SMMU_FEAT_VMID16)
 		reg |= SMMU_CBA2R_VMID16(vmid);
-	__raw_writel(reg, SMMU_CBA2R(smmu, idx));
+	__raw_writel(reg, SMMU_CBA2R(iommu_dev, smmu_cb));
 #endif
 
 	/* CBAR */
@@ -273,11 +413,11 @@ static void arm_smmu_write_context_bank(int smmu, int idx,
 	if (stage1) {
 		reg |= SMMU_CBAR_BPSHCFG(SMMU_NON_SHAREABLE) |
 		       SMMU_CBAR_MEMATTR(SMMU_MEM_NORMAL_WB);
-	} else if (!(smmu_devs[smmu].features & SMMU_FEAT_VMID16)) {
+	} else if (!(smmu_device_ctrl.features & SMMU_FEAT_VMID16)) {
 		/* 8-bit VMIDs live in CBAR */
 		reg |= SMMU_CBAR_VMID(vmid);
 	}
-	__raw_writel(reg, SMMU_CBAR(smmu, idx));
+	__raw_writel(reg, SMMU_CBAR(iommu_dev, smmu_cb));
 
 	/* TCR
 	 * We must write this before the TTBRs, since it determines the
@@ -285,25 +425,27 @@ static void arm_smmu_write_context_bank(int smmu, int idx,
 	 */
 #ifdef CONFIG_ARM_SMMUv1
 	if (stage1)
-		__raw_writel(cb->tcr[1], SMMU_CB_TCR2(smmu, idx));
+		__raw_writel(cb->tcr[1], SMMU_CB_TCR2(iommu_dev, smmu_cb));
 #endif
-	__raw_writel(cb->tcr[0], SMMU_CB_TCR(smmu, idx));
+	__raw_writel(cb->tcr[0], SMMU_CB_TCR(iommu_dev, smmu_cb));
 
 	/* TTBRs */
 #ifdef CONFIG_SMMU_ARCH32_S
-	__raw_writel(asid, SMMU_CB_CONTEXTIDR(smmu, idx));
-	__raw_writel(cb->ttbr[0], SMMU_CB_TTBR0(smmu, idx));
-	__raw_writel(cb->ttbr[1], SMMU_CB_TTBR1(smmu, idx));
+	__raw_writel(asid, SMMU_CB_CONTEXTIDR(iommu_dev, smmu_cb));
+	__raw_writel(cb->ttbr[0], SMMU_CB_TTBR0(iommu_dev, smmu_cb));
+	__raw_writel(cb->ttbr[1], SMMU_CB_TTBR1(iommu_dev, smmu_cb));
 #else
-	__raw_writel(cb->ttbr[0], SMMU_CB_TTBR0(smmu, idx));
+	__raw_writel(cb->ttbr[0], SMMU_CB_TTBR0(iommu_dev, smmu_cb));
 	if (stage1)
-		__raw_writel(cb->ttbr[1], SMMU_CB_TTBR1(smmu, idx));
+		__raw_writel(cb->ttbr[1], SMMU_CB_TTBR1(iommu_dev, smmu_cb));
 #endif
 
 	/* MAIRs (stage-1 only) */
 	if (stage1) {
-		__raw_writel(cb->mair[0], SMMU_CB_MAIR(smmu, idx, 0));
-		__raw_writel(cb->mair[1], SMMU_CB_MAIR(smmu, idx, 1));
+		__raw_writel(cb->mair[0],
+			     SMMU_CB_MAIR(iommu_dev, smmu_cb, 0));
+		__raw_writel(cb->mair[1],
+			     SMMU_CB_MAIR(iommu_dev, smmu_cb, 1));
 	}
 
 	/* SCTLR */
@@ -314,44 +456,54 @@ static void arm_smmu_write_context_bank(int smmu, int idx,
 #ifdef CONFIG_SMMU_BIG_ENDIAN
 	reg |= SMMU_C_E;
 #endif
-	__raw_writel(reg, SMMU_CB_SCTLR(smmu, idx));
+	__raw_writel(reg, SMMU_CB_SCTLR(iommu_dev, smmu_cb));
 }
 
-void arm_smmu_exit(int smmu)
+#if 0
+void arm_smmu_iotlb_sync(struct iommu_iotlb_gather *gather)
 {
-	arm_smmu_disable(smmu);
+	if (smmu_device_ctrl.version == ARM_SMMU_V2 ||
+	    smmu_domain_ctrl.stage == ARM_SMMU_DOMAIN_S1)
+		smmu_tlb_sync_context();
+	else
+		smmu_tlb_sync_global();
 }
+#endif
 
-__init void arm_smmu_init(int smmu)
+static void smmu_device_reset(void)
 {
 	uint32_t reg;
 	int i;
-	struct arm_smmu_dev *dev = &smmu_devs[smmu];
-
-	arm_smmu_probe_ids(smmu);
+	__unused smmu_gr_t sgr;
+	__unused smmu_cb_t scb;
 
 	/* Clear global FSR */
-	arm_smmu_clear_global_fault(smmu);
+	smmu_clear_global_fault();
 
-	for (i = 0; i < dev->max_streams; i++) {
-		arm_smmu_write_s2cr(smmu, i, SMMU_S2CR_TYPE_INIT,
-				    0, 0, false);
-		arm_smmu_write_smr(smmu, i, 0, 0, false);
+	/* Reset stream mapping groups */
+	for (i = 0; i < smmu_device_ctrl.max_streams; i++) {
+		sgr = smmu_gr_save(i);
+		smmu_stream_ctrl.count = 0;
+		smmu_stream_ctrl.sme = INVALID_SMMU_SME;
+		smmu_write_s2cr(SMMU_S2CR_TYPE_INIT, 0, 0, false);
+		smmu_write_smr(0, 0, false);
+		smmu_gr_restore(sgr);
 	}
 
 	/* Make sure all context banks are disabled and clear CB_FSR  */
-	for (i = 0; i < dev->max_s1_cbs; i++) {
-		arm_smmu_write_context_bank(smmu, i, NULL,
-					    SMMU_CBAR_TYPE_S2_TRANS,
-					    false, 0, 0, 0);
-		__raw_writel(SMMU_FSR_FAULT, SMMU_CB_FSR(smmu, i));
+	for (i = 0; i < smmu_device_ctrl.max_s1_cbs; i++) {
+		scb = smmu_cb_save(i);
+		smmu_write_context_bank(NULL, SMMU_CBAR_TYPE_S2_TRANS,
+					false, 0, 0, 0);
+		__raw_writel(SMMU_FSR_FAULT, SMMU_CB_FSR(iommu_dev, smmu_cb));
+		smmu_cb_restore(scb);
 	}
 
 	/* Invalidate the TLB, just in case */
-	__raw_writel(QCOM_DUMMY_VAL, SMMU_TLBIALLH(smmu));
-	__raw_writel(QCOM_DUMMY_VAL, SMMU_TLBIALLNSNH(smmu));
+	__raw_writel(QCOM_DUMMY_VAL, SMMU_TLBIALLH(iommu_dev));
+	__raw_writel(QCOM_DUMMY_VAL, SMMU_TLBIALLNSNH(iommu_dev));
 
-	reg = __raw_readl(SMMU_sCR0(smmu));
+	reg = __raw_readl(SMMU_sCR0(iommu_dev));
 
 	/* Enable fault reporting */
 	reg |= (SMMU_GFRE | SMMU_GFIE | SMMU_GCFGFRE | SMMU_GCFGFIE);
@@ -359,8 +511,6 @@ __init void arm_smmu_init(int smmu)
 	/* Disable TLB broadcasting. */
 	reg |= (SMMU_VMIDPNE | SMMU_PTM);
 
-	/* Enable client access, handling unmatched streams as appropriate */
-	reg &= ~SMMU_CLIENTPD;
 #ifdef CONFIG_SMMU_DISABLE_BYPASS
 	reg |= SMMU_USFCFG;
 #else
@@ -373,14 +523,105 @@ __init void arm_smmu_init(int smmu)
 	/* Don't upgrade barriers */
 	reg &= ~(SMMU_BSU(SMMU_BSU_MASK));
 
-	if (dev->features & SMMU_FEAT_VMID16)
+	if (smmu_device_ctrl.features & SMMU_FEAT_VMID16)
 		reg |= SMMU_VMID16EN;
 
-	if (dev->features & SMMU_FEAT_EXIDS)
+	if (smmu_device_ctrl.features & SMMU_FEAT_EXIDS)
 		reg |= SMMU_EXIDENABLE;
 
-	arm_smmu_tlb_sync_global(smmu);
-	__raw_writel(reg, SMMU_sCR0(smmu));
+	reg = smmu_hw_ctrl_reset(reg);
 
-	arm_smmu_test_smr_masks(smmu);
+	smmu_tlb_sync_global();
+	__raw_writel(reg, SMMU_sCR0(iommu_dev));
+
+	/* Enable client access, handling unmatched streams as appropriate */
+	smmu_enable();
+}
+
+iommu_grp_t smmu_find_sme(smmu_gr_t gr, smmu_gr_t sm)
+{
+	iommu_grp_t grp = INVALID_IOMMU_GRP, sgrp;
+	smmu_sme_t sme;
+	smmu_gr_t sme_gr, sme_sm;
+
+	sgrp = iommu_group_save(grp);
+	for (grp = 0; grp < NR_IOMMU_GROUPS; ++grp) {
+		iommu_group_restore(sgrp);
+		sgrp = iommu_group_save(grp);
+
+		/* Skip other SMMU devices */
+		if (iommu_group_ctrl.dev != iommu_dev)
+			continue;
+
+		sme = smmu_stream_ctrl.sme;
+		BUG_ON(smmu_sme_dev(sme) != iommu_dev);
+		sme_gr = smmu_sme_gr(sme);
+		sme_sm = smmu_sme_sm(sme);
+
+		/* No harm to re-use matched existing stream mapping */
+		if ((sm & sme_sm) == sm && !((gr ^ sme_gr) & ~sme_sm))
+			break;
+
+		/* Avoid conflict stream mapping */
+		if (!((gr ^ sme_gr) & ~(sme_sm | sm))) {
+			con_log("smmu: conflict stream: 0x%04x/0x%04x.",
+				gr, sm);
+			iommu_group_restore(sgrp);
+			return INVALID_IOMMU_GRP;
+		}
+	}
+	iommu_group_restore(sgrp);
+	return grp == INVALID_IOMMU_GRP ? iommu_alloc_group() : grp;
+}
+
+void smmu_free_sme(iommu_grp_t grp)
+{
+	iommu_grp_t sgrp;
+
+	sgrp = iommu_group_save(grp);
+	if (smmu_stream_ctrl.count > 0)
+		smmu_stream_ctrl.count--;
+	if (smmu_stream_ctrl.count == 0) {
+		smmu_stream_ctrl.sme = INVALID_SMMU_SME;
+		smmu_write_s2cr(SMMU_S2CR_TYPE_INIT, 0, 0, false);
+		smmu_write_smr(0, 0, false);
+		iommu_free_group(grp);
+	}
+	iommu_group_restore(sgrp);
+}
+
+iommu_grp_t smmu_alloc_sme(smmu_sme_t sme)
+{
+	iommu_dev_t dev, sdev;
+	iommu_grp_t grp, sgrp;
+	smmu_gr_t gr, sm;
+
+	dev = smmu_sme_dev(sme);
+	gr = smmu_sme_gr(sme);
+	sm = smmu_sme_sm(sme);
+	sdev = iommu_device_save(dev);
+	grp = smmu_find_sme(gr, sm);
+	if (grp != INVALID_IOMMU_GRP) {
+		sgrp = iommu_group_save(grp);
+		if (smmu_stream_ctrl.count == 0) {
+			smmu_stream_ctrl.sme = sme;
+			smmu_write_smr(gr, sm, true);
+		}
+		smmu_stream_ctrl.count++;
+		iommu_group_restore(sgrp);
+	}
+	iommu_device_restore(sdev);
+	return grp;
+}
+
+void smmu_device_exit(void)
+{
+	smmu_disable();
+}
+
+void smmu_device_init(void)
+{
+	smmu_probe_ids();
+	smmu_device_reset();
+	smmu_test_smr_masks();
 }

@@ -47,6 +47,8 @@
 #include <target/cmdline.h>
 #include <target/ddr.h>
 #include <target/sbi.h>
+#include <target/dma.h>
+#include <target/pci.h>
 
 #define __imc_boot_flash() (IMC_BOOT_FLASH_TYPE(__raw_readl(SCSR_BOOT_MODE)))
 
@@ -232,6 +234,8 @@ void board_late_init(void)
 #ifndef CONFIG_SMP
 	board_boot();
 #endif
+	smmu_dma_alloc_sme();
+	smmu_pcie_alloc_sme();
 }
 
 void board_smp_init(void)

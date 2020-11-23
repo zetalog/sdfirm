@@ -495,6 +495,23 @@ config DUOWEN_PCIE
 
 if DUOWEN_PCIE
 
+choice
+	prompt "PCIe link mode"
+
+config DUOWEN_PCIE_X4_4
+	bool "4 x X4"
+
+config DUOWEN_PCIE_X8_1_X4_2
+	bool "1 x X8 + 2 x X4"
+
+config DUOWEN_PCIE_X8_2
+	bool "2 x X8"
+
+config DUOWEN_PCIE_X16_1
+	bool "1 x X16"
+
+endchoice
+
 config DUOWEN_PCIE_TEST
 	bool "Enable PCIE EP/RC(Root Complex) basic test"
 	default n

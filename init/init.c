@@ -46,6 +46,11 @@ void mtd_init(void);
 #else
 #define mtd_init()
 #endif
+#ifdef CONFIG_IOMMU
+void iommu_init(void);
+#else
+#define iommu_init();
+#endif
 
 #ifdef CONFIG_LCD
 void lcd_init(void);
@@ -163,6 +168,7 @@ void modules_init(void)
 	ddr_init();
 	usb_init();
 	mtd_init();
+	iommu_init();
 
 	/* subsys */
 	led_init();	/* on GPIO */

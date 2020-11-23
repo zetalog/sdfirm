@@ -10,4 +10,10 @@
 #endif
 #endif
 
+#ifdef CONFIG_DW_DMA
+void smmu_dma_alloc_sme(void);
+#else
+#define smmu_dma_alloc_sme()		do { } while (0)
+#endif
+
 #endif /* __DMA_DUOWEN_H_INCLUDE__ */

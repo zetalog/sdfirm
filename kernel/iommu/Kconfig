@@ -7,7 +7,33 @@ config ARCH_HAS_IOMMU
 
 menuconfig IOMMU
 	bool "I/O memory management unit (IOMMU) support"
+	select BIT_FFS64
 
 if IOMMU
+
+config IOMMU_MAX_DEVICES
+	int "Number of devices"
+	range 1 8
+	default 1
+
+config IOMMU_MAX_GROUPS
+	int "Number of groups"
+	range 1 64
+
+config IOMMU_MAX_DOMAINS
+	int "Number of domains"
+	range 1 256
+
+choice
+	prompt "Default domain type"
+	default IOMMU_DEF_DOMAIN_TRANSLATED
+
+config IOMMU_DEF_DOMAIN_TRANSLATED
+	bool "Translated"
+
+config IOMMU_DEF_DOMAIN_PASSTHROUGH
+	bool "Passthrough"
+
+endchoice
 
 endif

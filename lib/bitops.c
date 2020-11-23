@@ -271,6 +271,40 @@ uint8_t __ffs32(uint32_t dword)
 }
 #endif
 
+#ifdef CONFIG_BIT_FFS64
+uint8_t __ffs64(uint64_t qword)
+{
+	uint8_t num = 0;
+
+	if (!qword)
+		return 0;
+
+	if ((qword & 0xffffffff) == 0) {
+		num += 32;
+		qword >>= 32;
+	}
+	if ((qword & 0xffff) == 0) {
+		num += 16;
+		qword >>= 16;
+	}
+	if ((qword & 0xff) == 0) {
+		num += 8;
+		qword >>= 8;
+	}
+	if ((qword & 0xf) == 0) {
+		num += 4;
+		qword >>= 4;
+	}
+	if ((qword & 0x3) == 0) {
+		num += 2;
+		qword >>= 2;
+	}
+	if ((qword & 0x1) == 0)
+		num += 1;
+	return num;
+}
+#endif
+
 #ifdef CONFIG_BIT_FLS16
 uint8_t __fls16(uint16_t word)
 {

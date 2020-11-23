@@ -57,6 +57,7 @@ bits_t find_next_clear_bit(const bits_t *addr,
 uint8_t __ffs8(uint8_t word);
 uint8_t __ffs16(uint16_t word);
 uint8_t __ffs32(uint32_t dword);
+uint8_t __ffs64(uint64_t qword);
 uint8_t __fls8(uint8_t x);
 uint8_t __fls16(uint16_t word);
 uint8_t __fls32(uint32_t dword);

@@ -43,6 +43,7 @@
 #define __ARM_SMMU_H_INCLUDE__
 
 #include <target/generic.h>
+#include <target/irq.h>
 
 /* Architecture specific definition needs to provide base address and
  * address space layout:
@@ -52,9 +53,10 @@
  * SMMU_HW_NUMPAGENDXB, NUMPAGES = 2^(NUMPAGENDXB+1)
  * SMMU_HW_NUMCB
  * SMMU_HW_IAS
- * SMMU_HW_NUMSIDB
+ *
+ * sdfirm implements inlined drivers, which requires soc specific
+ * configurations via Kconfig, and ID register is useless then.
  */
-
 #if SMMU_HW_PAGESIZE == 0x1000
 #define SMMU_PAGESHIFT			12
 #elif SMMU_HW_PAGESIZE == 0x10000
@@ -62,20 +64,6 @@
 #else
 #error "Unsupported SMMU_HW_PAGESIZE."
 #endif
-
-#ifdef CONFIG_SMMU_MAX_STREAMS
-#if ((1 << SMMU_HW_NUMSIDB) < CONFIG_SMMU_MAX_STREAMS)
-#error "Too many configured streams"
-#else
-#define SMMU_MAX_STREAMS		CONFIG_SMMU_MAX_STREAMS
-#endif
-#else /* CONFIG_SMMU_MAX_STREAMS */
-#define SMMU_MAX_STREAMS		_BV(SMMU_HW_NUMSIDB)
-#endif /* CONFIG_SMMU_MAX_STREAMS */
-
-/* sdfirm implements inlined drivers, which requires soc specific
- * configurations via Kconfig, and ID register is useless then.
- */
 #define SMMU_NUMPAGES			(ULL(1) << (SMMU_HW_NUMPAGENDXB + 1))
 #define SMMU_GLOBAL_SIZE		\
 	(SMMU_HW_PAGESIZE << (SMMU_HW_NUMPAGENDXB + 1))
@@ -390,12 +378,18 @@
  * 15.5.8 SMMU_CBn_FAR, Fault Address Register
  */
 #define SMMU_FADDR_OFFSET		0
-#if SMMU_HW_IAS == 0
+#if SMMU_HW_IAS == 32
 #define SMMU_FADDR_MASK			REG_32BIT_MASK
-#elif SMMU_HW_IAS == 1
+#elif SMMU_HW_IAS == 36
 #define SMMU_FADDR_MASK			REG_36BIT_MASK
-#elif SMMU_HW_IAS == 2
+#elif SMMU_HW_IAS == 40
 #define SMMU_FADDR_MASK			REG_40BIT_MASK
+#elif SMMU_HW_IAS == 42
+#define SMMU_FADDR_MASK			REG_42BIT_MASK
+#elif SMMU_HW_IAS == 44
+#define SMMU_FADDR_MASK			REG_44BIT_MASK
+#elif SMMU_HW_IAS == 48
+#define SMMU_FADDR_MASK			REG_48BIT_MASK
 #else
 #error "Missing SMMU_HW_IAS"
 #endif
@@ -553,9 +547,11 @@
 #define SMMU_SMR_MASK_OFFSET		16
 #define SMMU_SMR_MASK_MASK		REG_15BIT_MASK
 #define SMMU_SMR_MASK(value)		_SET_FV(SMMU_SMR_MASK, value)
+#define smmu_smr_mask(value)		_GET_FV(SMMU_SMR_MASK, value)
 #define SMMU_SMR_ID_OFFSET		0
 #define SMMU_SMR_ID_MASK		REG_15BIT_MASK
 #define SMMU_SMR_ID(value)		_SET_FV(SMMU_SMR_ID, value)
+#define smmu_smr_id(value)		_GET_FV(SMMU_SMR_ID, value)
 
 /* 10.6.26 SMMU_STLBIALL, TLB Invalidate All */
 
@@ -778,53 +774,159 @@
 
 /* Long-descriptor translation table format */
 
-#define arm_smmu_enable(smmu)			\
-	__raw_setl(SMMU_CLIENTPD, SMMU_sCR0(smmu))
-#define arm_smmu_disable(smmu)			\
-	__raw_clearl(SMMU_CLIENTPD, SMMU_sCR0(smmu))
+#define smmu_enable()				\
+	__raw_clearl(SMMU_CLIENTPD, SMMU_sCR0(iommu_dev))
+#define smmu_disable()				\
+	__raw_setl(SMMU_CLIENTPD, SMMU_sCR0(iommu_dev))
 
-#define arm_smmu_get_global_fault(smmu)		\
-	__raw_readl(SMMU_sGFSR(smmu))
-#define arm_smmu_set_global_fault(smmu, fault)	\
-	__raw_writel(fault, SMMU_sGFSR(smmu));
-#define arm_smmu_clear_global_fault(smmu)	\
-	arm_smmu_set_global_fault(smmu, (arm_smmu_get_global_fault(smmu)))
+#define smmu_get_global_fault()			\
+	__raw_readl(SMMU_sGFSR(iommu_dev))
+#define smmu_set_global_fault(fault)		\
+	__raw_writel(fault, SMMU_sGFSR(iommu_dev))
+#define smmu_clear_global_fault()		\
+	smmu_set_global_fault(smmu_get_global_fault())
 
-#define arm_smmu_write_s2cr(smmu, idx, type, cbndx, priv, valid)	\
+#define smmu_write_s2cr(type, cbndx, priv, valid)			\
 	do {								\
 		uint32_t reg = SMMU_S2CR_TYPE(type) |			\
 			       SMMU_S2CR_CBNDX(cbndx) |			\
 			       SMMU_S2CR_PRIVCFG(priv);			\
-		if (valid && smmu_devs[smmu].features & SMMU_FEAT_EXIDS)\
+		if (valid &&						\
+		    smmu_device_ctrl.features &	SMMU_FEAT_EXIDS)	\
 			reg |= SMMU_S2CR_EXIDVALID;			\
-		__raw_writel(reg, SMMU_S2CR(smmu, idx));		\
+		__raw_writel(reg, SMMU_S2CR(iommu_dev, smmu_gr));	\
 	} while (0)
-
-#ifdef CONFIG_SMMU_SMRG
-#define arm_smmu_write_smr(smmu, idx, id, mask, valid)	\
-	__raw_writel(SMMU_SMR_ID(id) |			\
-		     SMMU_SMR_MASK(mask) |		\
-		     valid ? SMMU_SMR_VALID : 0,	\
-		     SMMU_SMR(smmu, idx))
+#ifdef CONFIG_ARCH_IS_SMMU_SM
+#ifdef SMMU_HW_NUMSMRG
+#define smmu_max_smrgs(id)						\
+	do {								\
+		smmu_device_ctrl.features |= SMMU_FEAT_STREAM_MATCH;	\
+		smmu_device_ctrl.max_streams = SMMU_HW_NUMSMRG;		\
+	} while (0)
 #else
-#define arm_smmu_write_smr(smmu, idx, id, mask, valid)	\
-	do { } while (0)
+#define smmu_max_smrgs(id)						\
+	do {								\
+		if ((id) & SMMU_SMS) {					\
+			smmu_device_ctrl.features |=			\
+				SMMU_FEAT_STREAM_MATCH;			\
+			smmu_device_ctrl.max_streams = SMMU_NUMSMRG(id);\
+		}							\
+	} while (0)
+#endif
+#ifdef CONFIG_SMMU_SMCD
+#define smmu_probe_smcd(id)						\
+	do {								\
+		smmu_device_ctrl.features |= SMMU_FEAT_SMCD;		\
+	} while (0)
+#else
+#define smmu_probe_smcd(id)		do { } while (0)
+#endif
+#define smmu_write_smr(id, mask, valid)					\
+	do {								\
+		uint32_t reg = SMMU_SMR_ID(id) | SMMU_SMR_MASK(mask);	\
+		if (valid &&						\
+		    smmu_device_ctrl.features & SMMU_FEAT_EXIDS)	\
+			reg |= SMMU_SMR_VALID;				\
+		__raw_writel(reg, SMMU_SMR(iommu_dev, smmu_gr));	\
+	} while (0)
+/* The width of SMR's mask field depends on sCR0_EXIDENABLE, so this function
+ * should be called after sCR0 is written.
+ *
+ * SMR.ID bits may not be preserved if the corresponding MASK bits are set,
+ * so check each one separately. We can reject masters later if they try to
+ * claim IDs outside these masks.
+ */
+#define smmu_test_smr(smr)						\
+	do {								\
+		__raw_writel(smr, SMMU_SMR(iommu_dev, smmu_gr));	\
+		smr = __raw_readl(SMMU_SMR(iommu_dev, smmu_gr));	\
+	} while (0)
+#define smmu_test_smr_masks()						\
+	do {								\
+		uint32_t smr;						\
+		iommu_dom_t sdom;					\
+		sdom = iommu_group_save(NR_IOMMU_GROUPS);		\
+		smr = SMMU_SMR_ID(smmu_device_ctrl.streamid_mask);	\
+		smmu_test_smr(smr);					\
+		smmu_device_ctrl.streamid_mask = smmu_smr_id(smr);	\
+		smr = SMMU_SMR_MASK(smmu_device_ctrl.streamid_mask);	\
+		smmu_test_smr(smr);					\
+		smmu_device_ctrl.smr_mask_mask = smmu_smr_mask(smr);	\
+		iommu_group_restore(sdom);				\
+	} while (0)
+#else
+#define smmu_max_smrgs(id)		do { } while (0)
+#define smmu_probe_smcd(id)		do { } while (0)
+#define smmu_write_smr(id, mask, valid)	do { } while (0)
+#define smmu_test_smr_masks()		do { } while (0)
 #endif
 
-struct arm_smmu_dev {
+typedef uint16_t smmu_gr_t; /* smmu stream id */
+typedef uint8_t smmu_cb_t; /* smmu context bank id */
+typedef iommu_t smmu_sme_t; /* iommu device and smmu stream mapping group */
+#define SMMU_SME_MASK(iommu, gr, sm)	MAKELLONG(MAKELONG(gr, sm), iommu)
+#define SMMU_SME(iommu, gr)		SMMU_SME_MASK(iommu, gr, 0)
+#define smmu_sme_dev(sme)		((iommu_dev_t)HIDWORD(sme))
+#define smmu_sme_gr(sme)		LOWORD(LODWORD(sme))
+#define smmu_sme_sm(sme)		HIWORD(LODWORD(sme))
+
+#define SMMU_MAX_CBS			128
+#define INVALID_SMMU_CB			SMMU_MAX_CBS
+#define INVALID_SMMU_SME		SMMU_SME(INVALID_IOMMU_DEV, 0)
+
+struct smmu_device {
 	uint32_t features;
 #define SMMU_FEAT_TRANS_S1		(1 << 0)
 #define SMMU_FEAT_TRANS_S2		(1 << 1)
 #define SMMU_FEAT_TRANS_NESTED		(1 << 2)
+#define SMMU_FEAT_TRANS_OPS		(1 << 3)
+#ifdef CONFIG_ARCH_HAS_SMMU_PTFS_v8_4KB
 #define SMMU_FEAT_PTFS_ARCH64_4K	(1 << 4)
+#else
+#define SMMU_FEAT_PTFS_ARCH64_4K	0
+#endif
+#ifdef CONFIG_ARCH_HAS_SMMU_PTFS_v8_16KB
 #define SMMU_FEAT_PTFS_ARCH64_16K	(1 << 5)
+#else
+#define SMMU_FEAT_PTFS_ARCH64_16K	0
+#endif
+#if defined(CONFIG_ARCH_HAS_SMMUv1_64KB) || \
+    defined(CONFIG_ARCH_HAS_SMMU_PTFS_v8_64KB)
 #define SMMU_FEAT_PTFS_ARCH64_64K	(1 << 6)
+#else
+#define SMMU_FEAT_PTFS_ARCH64_64K	0
+#endif
+#ifdef CONFIG_ARCH_HAS_SMMU_PTFS_LONG
 #define SMMU_FEAT_PTFS_ARCH32_L		(1 << 7)
+#else
+#define SMMU_FEAT_PTFS_ARCH32_L		0
+#endif
+#ifdef CONFIG_ARCH_HAS_SMMU_PTFS_SHORT
 #define SMMU_FEAT_PTFS_ARCH32_S		(1 << 8)
-#define SMMU_FEAT_EXIDS			(1 << 9)
-#define SMMU_FEAT_SMRG			(1 << 10)
-#define SMMU_FEAT_COHERENT_WALK		(1 << 11)
-#define SMMU_FEAT_VMID16		(1 << 12)
+#else
+#define SMMU_FEAT_PTFS_ARCH32_S		0
+#endif
+#ifdef CONFIG_ARCH_HAS_SMMU_PTFS_SV48
+#define SMMU_FEAT_PTFS_RISCV_SV48	(1 << 9)
+#else
+#define SMMU_FEAT_PTFS_RISCV_SV48	0
+#endif
+#ifdef CONFIG_ARCH_HAS_SMMU_PTFS_SV39
+#define SMMU_FEAT_PTFS_RISCV_SV39	(1 << 10)
+#else
+#define SMMU_FEAT_PTFS_RISCV_SV39	0
+#endif
+#ifdef CONFIG_ARCH_HAS_SMMU_PTFS_SV32
+#define SMMU_FEAT_PTFS_RISCV_SV32	(1 << 11)
+#else
+#define SMMU_FEAT_PTFS_RISCV_SV32	0
+#endif
+#define SMMU_FEAT_EXIDS			(1 << 12)
+#define SMMU_FEAT_STREAM_MATCH		(1 << 13)
+#define SMMU_FEAT_COHERENT_WALK		(1 << 14)
+#define SMMU_FEAT_VMID16		(1 << 15)
+#define SMMU_FEAT_HARDWARE_ACCESS	(1 << 16)
+#define SMMU_FEAT_HARDWARE_DIRTY	(1 << 17)
 	int max_streams;
 	uint16_t streamid_mask;
 	uint16_t smr_mask_mask;
@@ -832,10 +934,32 @@ struct arm_smmu_dev {
 	unsigned int pgshift;
 	uint32_t max_s1_cbs;
 	uint32_t max_s2_cbs;
+	uint32_t max_context_irqs;
 	uint8_t ipa_size;
 	uint8_t opa_size;
 	uint8_t va_size;
-	unsigned long pgsize_bitmap;
+
+	smmu_gr_t gr;
+	smmu_cb_t cb;
+	DECLARE_BITMAP(context_map, SMMU_MAX_CBS);
+#if 0
+	struct arm_smmu_cb		*cbs;
+	atomic_t			irptndx;
+	u32				num_global_irqs;
+#endif
+};
+
+struct smmu_stream {
+	iommu_grp_t grp;
+
+	/* S2CR entry */
+	int count;
+	uint32_t s2cr_type : 2;
+	uint32_t s2cr_priv : 2;
+/*	smmu_cb_t cb; */
+
+	/* SMR entry */
+	smmu_sme_t sme;
 };
 
 struct arm_smmu_cb {
@@ -844,97 +968,31 @@ struct arm_smmu_cb {
 	uint32_t mair[2];
 };
 
-#if 0
-enum arm_smmu_context {
-	SMMU_CONTEXT_NONE,
-	SMMU_CONTEXT_AARCH64,
-	SMMU_CONTEXT_AARCH32_L,
-	SMMU_CONTEXT_AARCH32_S,
-};
-
-struct arm_smmu_cfg {
-	uint8_t cbndx;
-	uint8_t irptndx;
+struct smmu_context {
+	uint8_t fmt;
+#define SMMU_CONTEXT_NONE	0
+#define SMMU_CONTEXT_AARCH64	(1 << 0)
+#define SMMU_CONTEXT_AARCH32_L	(1 << 1)
+#define SMMU_CONTEXT_AARCH32_S	(1 << 2)
+#define SMMU_CONTEXT_RISCV_SV48	(1 << 3)
+#define SMMU_CONTEXT_RISCV_SV39	(1 << 4)
+#define SMMU_CONTEXT_RISCV_SV32	(1 << 5)
+	uint8_t stage;
+#define SMMU_DOMAIN_BYPASS	0
+#define SMMU_DOMAIN_S1		1
+#define SMMU_DOMAIN_S2		2
+#define SMMU_DOMAIN_NESTED	3
 	union {
 		uint16_t asid;
+#ifdef CONFIG_ARCH_HAS_SMMU_S2
 		uint16_t vmid;
-	};
-	enum arm_smmu_cbar_type cbar;
-	enum arm_smmu_context fmt;
-};
 #endif
-
-static inline uint8_t arm_smmu_size2bits(uint8_t size)
-{
-        switch (size) {
-        case 0:
-                return 32;
-        case 1:
-                return 36;
-        case 2:
-                return 40;
-        case 3:
-                return 42;
-        case 4:
-                return 44;
-        case 5:
-        default:
-                return 48;
-        }
-}
-
-#define arm_smmu_trans_regimes(dev, id)					\
-	do {								\
-		if ((id) & SMMU_S1TS)					\
-			(dev)->features |= SMMU_FEAT_TRANS_S1;		\
-		if ((id) & SMMU_S2TS)					\
-			(dev)->features |= SMMU_FEAT_TRANS_S2;		\
-		if ((id) & SMMU_NTS)					\
-			(dev)->features |= SMMU_FEAT_TRANS_NESTED;	\
-	} while (0)
-
-#define arm_smmu_probe_cttw(dev, id)					\
-	do {								\
-		if ((id) & SMMU_CTTW)					\
-			(dev)->features |= SMMU_FEAT_COHERENT_WALK;	\
-	} while (0)
-
-#define arm_smmu_max_pages(dev, id)					\
-	do {								\
-		(dev)->pgshift = ((id) & SMMU_PAGESIZE) ? 16 : 12;	\
-		(dev)->numpage = 1 << (SMMU_NUMPAGENDXB(id) + 1);	\
-	} while (0)
-
-#define arm_smmu_max_cbs(dev, id)					\
-	do {								\
-		(dev)->max_s2_cbs = SMMU_NUMS2CB(id);			\
-		(dev)->max_s1_cbs = SMMU_NUMCB(id);			\
-	} while (0)
-
-#define arm_smmu_32_tlb_inv_range_s1(smmu,idx,asid,iova,size,gran,reg)	\
-	do {								\
-		(iova) = SMMU_32_VA((iova) >> SMMU_CB_VA_SHIFT) |	\
-			 SMMU_32_ASID(asid);				\
-		do {							\
-			__raw_writel(iova, reg((smmu), (idx)));		\
-			(iova) += (gran);				\
-		} while ((size) -= (gran));				\
-	} while (0)
-
-#define arm_smmu_32_tlb_inv_range_s2(smmu, idx, iova, size, gran, reg)	\
-	do {								\
-		(iova) >>= SMMU_CB_VA_SHIFT;				\
-		do {							\
-			__raw_writel((iova), reg((smmu), (idx)));	\
-			(iova) += (gran) >> 12;				\
-		} while ((size) -= (gran));				\
-	} while (0)
-
-#define arm_smmu_pa_sizes(dev, id)					\
-	do {								\
-		(dev)->ipa_size = arm_smmu_size2bits(SMMU_IAS(id));	\
-		(dev)->opa_size = arm_smmu_size2bits(SMMU_OAS(id));	\
-	} while (0)
+	};
+	smmu_cb_t cb;
+	irq_t irpt;
+	/* CBAR */
+	uint8_t type;
+};
 
 #if 0
 #define ARM_SMMU_CB_TCR2		0x10
@@ -943,59 +1001,192 @@ static inline uint8_t arm_smmu_size2bits(uint8_t size)
 #define TCR2_AS				_BV(4)
 #define ARM_SMMU_CB_TCR			0x30
 
-/* Maximum number of context banks per SMMU */
-#define ARM_SMMU_MAX_CBS		128
-
-struct arm_smmu_device {
-	DECLARE__BVMAP(context_map, ARM_SMMU_MAX_CBS);
-	struct arm_smmu_cb		*cbs;
-	atomic_t			irptndx;
-	u32				num_global_irqs;
-	u32				num_context_irqs;
-};
 #define INVALID_IRPTNDX			0xff
 
-enum arm_smmu_domain_stage {
-	ARM_SMMU_DOMAIN_S1 = 0,
-	ARM_SMMU_DOMAIN_S2,
-	ARM_SMMU_DOMAIN_NESTED,
-	ARM_SMMU_DOMAIN_BYPASS,
-};
-
 struct arm_smmu_domain {
-	struct arm_smmu_cfg		cfg;
-	enum arm_smmu_domain_stage	stage;
-	bool				non_strict;
+	bool non_strict;
+	uint8_t irptndx;
 };
 #endif
 
-void arm_smmu_tlb_sync_global(int smmu);
-void arm_smmu_tlb_sync_context(int smmu, int cbndx);
-void arm_smmu_tlb_inv_context_s1(int smmu, int cbndx, uint16_t asid);
-void arm_smmu_tlb_inv_context_s2(int smmu, int cbndx, uint16_t vmid);
-void arm_smmu_tlb_inv_walk_s1(int smmu, int cbndx,
-			      uint16_t asid, unsigned long iova,
-			      size_t size, size_t granule);
-void arm_smmu_tlb_inv_leaf_s1(int smmu, int cbndx,
-			      uint16_t asid, unsigned long iova,
-			      size_t size, size_t granule);
-void arm_smmu_tlb_add_page_s1(int smmu, int cbndx,
-			      uint16_t asid, unsigned long iova,
-			      size_t granule);
-void arm_smmu_tlb_inv_walk_s2(int smmu, int cbndx, unsigned long iova,
-			      size_t size, size_t granule);
-void arm_smmu_tlb_inv_leaf_s2(int smmu, int cbndx, unsigned long iova,
-			      size_t size, size_t granule);
-void arm_smmu_tlb_add_page_s2(int smmu, int cbndx,
-			      unsigned long iova, size_t granule);
-void arm_smmu_tlb_inv_any_s2_v1(int smmu, int cbndx,
-				uint16_t vmid, unsigned long iova,
-				size_t size, size_t granule);
-void arm_smmu_tlb_add_page_s2_v1(int smmu, int cbndx,
-				 uint16_t vmid, unsigned long iova,
-				 size_t granule);
+#ifdef SMMU_HW_TRANS
+#define smmu_trans_regimes(id)						\
+	(smmu_device_ctrl.features |= SMMU_HW_TRANS)
+#else
+#define smmu_trans_regimes(id)						\
+	do {								\
+		if ((id) & SMMU_S1TS)					\
+			smmu_device_ctrl.features |= SMMU_FEAT_TRANS_S1;\
+		if ((id) & SMMU_S2TS)					\
+			smmu_device_ctrl.features |= SMMU_FEAT_TRANS_S2;\
+		if ((id) & SMMU_NTS)					\
+			smmu_device_ctrl.features |=			\
+				SMMU_FEAT_TRANS_NESTED;			\
+	} while (0)
+#endif
+#ifdef CONFIG_SMMU_CTTW
+#define smmu_probe_cttw(id)						\
+	do {								\
+		if ((id) & SMMU_CTTW)					\
+			smmu_device_ctrl.features |=			\
+				SMMU_FEAT_COHERENT_WALK;		\
+	} while (0)
+#else
+#define smmu_probe_cttw(id)						\
+	do { } while (0)
+#endif
+#ifdef SMMU_HW_PAGESIZE
+#define smmu_page_size(id)						\
+	do {								\
+		smmu_device_ctrl.pgshift = SMMU_PAGESHIFT;		\
+	} while (0)
+#else
+#error "Firmware shouldn't support dynamic PAGE_SIZE."
+#define smmu_page_size(id)						\
+	do {								\
+		smmu_device_ctrl.pgshift =				\
+			((id) & SMMU_PAGESIZE) ? 16 : 12;		\
+	} while (0)
+#endif
+#ifdef SMMU_HW_NUMPAGENDXB
+#define smmu_max_pages(id)						\
+	do {								\
+		smmu_page_size(id);					\
+		smmu_device_ctrl.numpage = SMMU_NUMPAGES;		\
+	} while (0)
+#else
+#error "Firmware shouldn't support dynamic PAGE_INDEX."
+#define smmu_max_pages(id)						\
+	do {								\
+		smmu_page_size(id);					\
+		smmu_device_ctrl.numpage =				\
+			_BV(SMMU_NUMPAGENDXB(id) + 1);			\
+	} while (0)
+#endif
+#ifdef SMMU_HW_NUMCB
+#define smmu_max_s1cbs(id)						\
+	do {								\
+		smmu_device_ctrl.max_s1_cbs = SMMU_HW_NUMCB;		\
+	} while (0)
+#else
+#error "Firmware shouldn't support dynamic S1CB."
+#define smmu_max_s1cbs(id)						\
+	do {								\
+		smmu_device_ctrl.max_s1_cbs = SMMU_NUMCB(id);		\
+	} while (0)
+#endif
+#ifdef SMMU_HW_NUMS2CB
+#define smmu_max_s2cbs(id)						\
+	do {								\
+		smmu_device_ctrl.max_s2_cbs = SMMU_HW_NUMS2CB;		\
+	} while (0)
+#else
+#define smmu_max_s2cbs(id)						\
+	do {								\
+		smmu_device_ctrl.max_s2_cbs = SMMU_NUMS2CB(id);		\
+	} while (0)
+#endif
+#define smmu_max_cbs(id)						\
+	do {								\
+		smmu_max_s1cbs(id);					\
+		smmu_max_s2cbs(id);					\
+	} while (0)
+#define smmu_size2bits(as)						\
+	((as) < 3 : 32 + (as) << 2 ? ((as) > 3 ? 28 + (as) << 2 : 42))
+#ifdef SMMU_HW_IAS
+#define smmu_ipa_size(id)						\
+	do {								\
+		smmu_device_ctrl.ipa_size = SMMU_HW_IAS;		\
+	} while (0)
+#else
+#define smmu_ipa_size(id)						\
+	do {								\
+		smmu_device_ctrl.ipa_size =				\
+			smmu_size2bits(SMMU_IAS(id));			\
+	} while (0)
+#endif
+#ifdef SMMU_HW_OAS
+#define smmu_opa_size(id)						\
+	do {								\
+		smmu_device_ctrl.opa_size = SMMU_HW_OAS;		\
+	} while (0)
+#else
+#define smmu_opa_size(id)						\
+	do {								\
+		smmu_device_ctrl.opa_size =				\
+			smmu_size2bits(SMMU_OAS(id));			\
+	} while (0)
+#endif
+#define smmu_pa_sizes(id)						\
+	do {								\
+		smmu_ipa_size(id);					\
+		smmu_opa_size(id);					\
+	} while (0)
 
-void arm_smmu_exit(int smmu);
-void arm_smmu_init(int smmu);
+#define arm_smmu_32_tlb_inv_range_s1(idx, asid, iova, size, gran, reg)	\
+	do {								\
+		(iova) = SMMU_32_VA((iova) >> SMMU_CB_VA_SHIFT) |	\
+			 SMMU_32_ASID(asid);				\
+		do {							\
+			__raw_writel(iova,				\
+				     reg((iommu_dev), (smmu_cb)));	\
+			(iova) += (gran);				\
+		} while ((size) -= (gran));				\
+	} while (0)
+
+#define arm_smmu_32_tlb_inv_range_s2(iova, size, gran, reg)		\
+	do {								\
+		(iova) >>= SMMU_CB_VA_SHIFT;				\
+		do {							\
+			__raw_writel((iova),				\
+				     reg((iommu_dev), (smmu_cb)));	\
+			(iova) += (gran) >> 12;				\
+		} while ((size) -= (gran));				\
+	} while (0)
+
+void smmu_gr_restore(smmu_gr_t gr);
+smmu_gr_t smmu_gr_save(smmu_gr_t gr);
+#define smmu_gr			smmu_device_ctrl.gr
+void smmu_cb_restore(smmu_cb_t cb);
+smmu_cb_t smmu_cb_save(smmu_cb_t cb);
+#define smmu_cb			smmu_device_ctrl.cb
+
+extern struct smmu_device smmu_devices[];
+extern struct smmu_stream smmu_streams[];
+extern struct smmu_context smmu_contexts[];
+#define smmu_device_ctrl		smmu_devices[iommu_dev]
+#define smmu_stream_ctrl		smmu_streams[iommu_grp]
+#define smmu_context_ctrl		smmu_contexts[iommu_dom]
+
+void smmu_tlb_sync_global(void);
+void smmu_tlb_sync_context(void);
+void smmu_tlb_inv_context_s1(void);
+void smmu_tlb_inv_walk_s1(unsigned long iova, size_t size, size_t granule);
+void smmu_tlb_inv_leaf_s1(unsigned long iova, size_t size, size_t granule);
+void smmu_tlb_add_page_s1(unsigned long iova, size_t granule);
+#ifdef CONFIG_ARCH_HAS_SMMU_S2
+void smmu_tlb_inv_context_s2(void);
+void smmu_tlb_inv_walk_s2(unsigned long iova, size_t size, size_t granule);
+void smmu_tlb_inv_leaf_s2(unsigned long iova, size_t size, size_t granule);
+void smmu_tlb_add_page_s2(unsigned long iova, size_t granule);
+void smmu_tlb_inv_any_s2_v1(unsigned long iova, size_t size, size_t granule);
+void smmu_tlb_add_page_s2_v1(unsigned long iova, size_t granule);
+#endif
+
+#ifdef CONFIG_SMMU
+iommu_grp_t smmu_alloc_sme(smmu_sme_t sme);
+void smmu_free_sme(iommu_grp_t grp);
+smmu_cb_t smmu_alloc_cb(smmu_cb_t start, smmu_cb_t end);
+void smmu_free_cb(smmu_cb_t cb);
+#else
+#define smmu_alloc_sme(grp, sme)		INVALID_IOMMU_GROUP
+#define smmu_free_sme(grp)			do { } while (0)
+#endif
+
+void smmu_group_select(void);
+void smmu_domain_select(void);
+
+void smmu_device_exit(void);
+void smmu_device_init(void);
 
 #endif /* __ARM_SMMU_H_INCLUDE__ */

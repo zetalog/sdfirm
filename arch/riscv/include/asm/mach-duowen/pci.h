@@ -189,4 +189,10 @@ struct duowen_pcie_subsystem
 
 void pci_platform_init(void);
 
+#ifdef CONFIG_DW_PCIE
+void smmu_pcie_alloc_sme(void);
+#else
+#define smmu_pcie_alloc_sme()		do { } while (0)
+#endif
+
 #endif /* __PCI_DUOWEN_H_INCLUDE__ */

@@ -35,29 +35,35 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)dma.c: DUOWEN specific DMAC implementation
- * $Id: dma.c,v 1.1 2020-11-24 23:20:00 zhenglv Exp $
+ * @(#)pcie.c: DUOWEN specific PCIe implementation
+ * $Id: pcie.c,v 1.1 2020-11-24 23:40:00 zhenglv Exp $
  */
 
-#include <target/dma.h>
+#include <target/pci.h>
 #include <target/iommu.h>
 
-iommu_grp_t duowen_dma_iommus[8];
+iommu_grp_t duowen_pcie_iommus[4];
 
-void smmu_dma_alloc_sme(void)
+#ifdef CONFIG_DUOWEN_PCIE_X4_4
+void smmu_pcie_alloc_sme(void)
 {
-	duowen_dma_iommus[0] = iommu_register_master(SMMU_SME_DMA_TPU0);
-	duowen_dma_iommus[1] = iommu_register_master(SMMU_SME_DMA_TPU1);
-	duowen_dma_iommus[2] = iommu_register_master(SMMU_SME_DMA_TPU2);
-	duowen_dma_iommus[3] = iommu_register_master(SMMU_SME_DMA_TPU3);
-	duowen_dma_iommus[4] = iommu_register_master(SMMU_SME_DMA_TPU4);
-	duowen_dma_iommus[5] = iommu_register_master(SMMU_SME_DMA_TPU5);
-	duowen_dma_iommus[6] = iommu_register_master(SMMU_SME_DMA_TPU6);
-	duowen_dma_iommus[7] = iommu_register_master(SMMU_SME_DMA_TPU7);
 }
+#endif
 
-void dma_hw_ctrl_init(void)
+#ifdef CONFIG_DUOWEN_PCIE_X8_1_X4_2
+void smmu_pcie_alloc_sme(void)
 {
-	/* TODO: clock enabling */
-        dw_dma_init();
 }
+#endif
+
+#ifdef CONFIG_DUOWEN_PCIE_X8_2
+void smmu_pcie_alloc_sme(void)
+{
+}
+#endif
+
+#ifdef CONFIG_DUOWEN_PCIE_X16_1
+void smmu_pcie_alloc_sme(void)
+{
+}
+#endif

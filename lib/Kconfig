@@ -7,13 +7,10 @@ menu "Library setup"
 menu "Bit-wise operations"
 
 config BIT_FLS8
-	bool "fls"
+	bool "fls8"
 
 config BIT_FLS16
 	bool "fls16"
-
-config BIT_FFS16
-	bool "ffs16"
 
 config BIT_FLS32
 	bool "fls32"
@@ -21,8 +18,14 @@ config BIT_FLS32
 config BIT_FLS64
 	bool "fls64"
 
+config BIT_FFS16
+	bool "ffs16"
+
 config BIT_FFS32
 	bool "ffs32"
+
+config BIT_FFS64
+	bool "ffs64"
 
 config BIT_HWEIGHT64
 	bool "hweight64"

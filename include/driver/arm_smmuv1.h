@@ -43,7 +43,7 @@
 #define __ARM_SMMUv1_H_INCLUDE__
 
 #include <target/generic.h>
-#include <driver/arm_smmu.h>
+#include <driver/smmu.h>
 
 /* 10.6.1 SMMU_IDR0-7, Identification registers */
 #define SMMU_PTFS			_BV(24)
@@ -79,42 +79,74 @@
 	(SMMU_C_MULTI | SMMU_C_SS |				\
 	 SMMU_C_EF | SMMU_C_PF | SMMU_C_TF | SMMU_FSR_IGN)
 
-#define arm_smmu_arch32_ptfs(dev, id)					\
-	do {								\
-		if (!((id) & SMMU_PTFS_NO_ARCH32_L)) 			\
-			(dev)->features |= SMMU_FEAT_PTFS_ARCH32_L;	\
-	} while (0)
-
-#ifdef CONFIG_ARM_SMMUv1_64KB
-#define arm_smmu_arch64_ptfs(dev, id)					\
-	do {								\
-		(dev)->va_size = (dev)->ipa_size;			\
-		(dev)->features |= SMMU_FEAT_PTFS_AARCH64_64K;		\
-	} while (0)
+#ifdef SMMU_HW_TRANS
+#define smmu_trans_ops(id)						\
+	(smmu_device_ctrl.features |= SMMU_HW_TRANS)
 #else
-#define arm_smmu_arch64_ptfs(dev, id)					\
+#define smmu_trans_ops(id)						\
 	do {								\
-		(dev)->va_size = (dev)->ipa_size;			\
+		if ((id) & SMMU_S1TS)					\
+			smmu_device_ctrl.features |=			\
+				SMMU_FEAT_TRANS_OPS;			\
 	} while (0)
 #endif
-
-#define arm_smmu_max_streams(dev, id)					\
-	((dev)->max_streams = (1 << SMMU_NUMSIDB(id)))
-
-#define arm_smmu_tlb_inv_range_s1(smmu,idx,asid,iova,size,gran,reg)	\
+#ifdef SMMU_HW_PTFS
+#define smmu_ptfs_arch32(id)						\
+	(smmu_device_ctrl.features |= SMMU_HW_PTFS)
+#else
+#define smmu_ptfs_arch32(id)						\
 	do {								\
-		if (smmu_devs[smmu].features & SMMU_FEAT_COHERENT_WALK)	\
+		if (!((id) & SMMU_PTFS_NO_ARCH32_L)) 			\
+			smmu_device_ctrl.features |=			\
+				SMMU_FEAT_PTFS_ARCH32_L;		\
+	} while (0)
+#endif
+#ifdef CONFIG_ARM_SMMUv1_64KB
+#define smmu_ptfs_arch64(id)						\
+	do {								\
+		smmu_device_ctrl.features |= SMMU_FEAT_PTFS_AARCH64_64K;\
+	} while (0)
+#else
+#define smmu_ptfs_arch64(id)						\
+	do { } while (0)
+#endif
+#ifdef SMMU_HW_NUMSIDB
+#define smmu_max_streams(id)						\
+	do {								\
+		smmu_device_ctrl.max_streams = _BV(SMMU_HW_NUMSIDB);	\
+		smmu_device_ctrl.streamid_mask =			\
+			smmu_device_ctrl.max_streams - 1;		\
+	} while (0)
+#else
+#define smmu_max_streams(id)						\
+	do {								\
+		smmu_device_ctrl.max_streams = _BV(SMMU_NUMSIDB(id));	\
+		smmu_device_ctrl.streamid_mask =			\
+			smmu_device_ctrl.max_streams - 1;		\
+	} while (0)
+#endif
+#define smmu_probe_hafdbs(id)						\
+	do { } while (0)
+#define smmu_va_size(id)						\
+	do {								\
+		smmu_device_ctrl.va_size = smmu_device_ctrl.ipa_size;	\
+	} while (0)
+#define smmu_probe_vmid(id)						\
+	do { } while (0)
+
+#define arm_smmu_tlb_inv_range_s1(asid, iova, size, gran, reg)		\
+	do {								\
+		if (smmu_device_ctrl.features & SMMU_FEAT_COHERENT_WALK)\
 			wmb();						\
-		arm_smmu_32_tlb_inv_range_s1(smmu, idx, asid, iova,	\
-					     size, gran, reg);	  	\
+		arm_smmu_32_tlb_inv_range_s1(asid, iova, size,		\
+					     gran, reg);	  	\
 	} while (0)
 
-#define arm_smmu_tlb_inv_range_s2(smmu,idx,iova,size,gran,reg)		\
+#define arm_smmu_tlb_inv_range_s2(iova, size, gran, reg)		\
 	do {								\
-		if (smmu_devs[smmu].features & SMMU_FEAT_COHERENT_WALK)	\
+		if (smmu_device_ctrl.features & SMMU_FEAT_COHERENT_WALK)\
 			wmb();						\
-		arm_smmu_32_tlb_inv_range_s2(smmu, idx, iova,		\
-					     size, gran, reg);		\
+		arm_smmu_32_tlb_inv_range_s2(iova, size, gran, reg);	\
 	} while (0)
 
 #endif /* __ARM_SMMUv1_H_INCLUDE__ */
