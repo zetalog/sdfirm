@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Nov 18 15:33:43 2020
+# Fri Nov 27 12:49:09 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -182,6 +182,8 @@ CONFIG_SBI_RISCV_NEXT_S=y
 #
 # CONFIG_DUOWEN_IMC is not set
 CONFIG_DUOWEN_APC=y
+CONFIG_DUOWEN_SOC0=y
+# CONFIG_DUOWEN_SOC1 is not set
 # CONFIG_DUOWEN_ZSBL is not set
 # CONFIG_DUOWEN_FSBL is not set
 # CONFIG_DUOWEN_BBL is not set
@@ -555,10 +557,11 @@ CONFIG_DHRYSTONE_BENCH_PERCPU=y
 #
 # CONFIG_BIT_FLS8 is not set
 # CONFIG_BIT_FLS16 is not set
-# CONFIG_BIT_FFS16 is not set
 # CONFIG_BIT_FLS32 is not set
 CONFIG_BIT_FLS64=y
+# CONFIG_BIT_FFS16 is not set
 CONFIG_BIT_FFS32=y
+# CONFIG_BIT_FFS64 is not set
 CONFIG_BIT_HWEIGHT64=y
 
 #

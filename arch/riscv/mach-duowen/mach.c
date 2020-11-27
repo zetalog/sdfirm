@@ -152,7 +152,7 @@ void duowen_load_ssi(void)
 	void (*boot_entry)(void) = (void *)RAM_BASE;
 #endif
 #ifdef CONFIG_DUOWEN_FSBL
-	void (*boot_entry)(void) = (void *)0x80;
+	void (*boot_entry)(void) = (void *)(DDR_BASE + 0x80);
 #endif
 	uint32_t addr = 0;
 	uint32_t size = 500000;
@@ -185,7 +185,7 @@ void duowen_load_ssi(void)
 #if defined(CONFIG_DUOWEN_APC) && defined(CONFIG_DUOWEN_ZSBL)
 void duowen_load_ddr(void)
 {
-	void (*boot_entry)(void) = (void *)0x80;
+	void (*boot_entry)(void) = (void *)(DDR_BASE + 0x80);
 
 	printf("Booting %d/%d from DDR...\n",
 	       smp_processor_id(), MAX_CPU_NUM);

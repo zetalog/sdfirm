@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Nov 11 17:02:50 2020
+# Fri Nov 27 12:45:47 2020
 #
 CONFIG_ARM64=y
 
@@ -430,10 +430,11 @@ CONFIG_DHRYSTONE_BENCH_PERCPU=y
 #
 # CONFIG_BIT_FLS8 is not set
 # CONFIG_BIT_FLS16 is not set
-# CONFIG_BIT_FFS16 is not set
 CONFIG_BIT_FLS32=y
 # CONFIG_BIT_FLS64 is not set
+# CONFIG_BIT_FFS16 is not set
 # CONFIG_BIT_FFS32 is not set
+# CONFIG_BIT_FFS64 is not set
 CONFIG_BIT_HWEIGHT64=y
 
 #

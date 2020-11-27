@@ -65,4 +65,19 @@
 #endif /* CONFIG_SMP */
 #endif /* CONFIG_DUOWEN_APC */
 
+#ifdef CONFIG_DUOWEN_SOC0
+#define HART_BASE		0
+#endif
+#ifdef CONFIG_DUOWEN_SOC1
+#define HART_BASE		16
+#endif
+#if defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
+	.macro get_arch_smpid reg
+	addi	\reg, \reg, -HART_BASE
+	.endm
+#define ARCH_HAVE_SMPID		1
+#endif
+#define BOOT_HART		HART_BASE
+#define HART_ALL		((CPU_TO_MASK(MAX_CPU_NUM)-1) << HART_BASE)
+
 #endif /* __CPUS_DUOWEN_H_INCLUDE__ */

@@ -36,6 +36,20 @@ config DUOWEN_APC
 
 endchoice
 
+choice
+	prompt "Socket selection"
+	default DUOWEN_SOC0
+	help
+	  Affects SoC base addresses and APC hart IDs.
+
+config DUOWEN_SOC0
+	bool "socket 0"
+
+config DUOWEN_SOC1
+	bool "socket 1"
+
+endchoice
+
 config DUOWEN_BOOT
 	bool
 

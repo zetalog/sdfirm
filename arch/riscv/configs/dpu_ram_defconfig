@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Nov 11 17:07:52 2020
+# Fri Nov 27 12:50:46 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -330,6 +330,7 @@ CONFIG_DDR_SPD_3200=y
 # CONFIG_DDR_SPD_1066 is not set
 # CONFIG_DDR_SPD_800 is not set
 # CONFIG_DDR_SPD_667 is not set
+# CONFIG_DDR_SPD_533 is not set
 # CONFIG_DDR_SPD_400 is not set
 # CONFIG_DDR_SPD_266 is not set
 # CONFIG_DDR_SPD_200 is not set
@@ -507,10 +508,11 @@ CONFIG_PCIE_ROLE_RC=y
 #
 CONFIG_BIT_FLS8=y
 CONFIG_BIT_FLS16=y
-# CONFIG_BIT_FFS16 is not set
 CONFIG_BIT_FLS32=y
 # CONFIG_BIT_FLS64 is not set
+# CONFIG_BIT_FFS16 is not set
 # CONFIG_BIT_FFS32 is not set
+# CONFIG_BIT_FFS64 is not set
 # CONFIG_BIT_HWEIGHT64 is not set
 
 #

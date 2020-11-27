@@ -42,7 +42,7 @@
 #ifndef __SMP_DUOWEN_H_INCLUDE__
 #define __SMP_DUOWEN_H_INCLUDE__
 
-#define smp_hw_cpu_hart(cpu)	(cpu)
-#define smp_hw_hart_cpu(hart)	(hart)
+#define smp_hw_cpu_hart(cpu)	((cpu) + HART_BASE)
+#define smp_hw_hart_cpu(hart)	((hart) - HART_BASE)
 
 #endif /* __SMP_DUOWEN_H_INCLUDE__ */
