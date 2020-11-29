@@ -54,7 +54,12 @@ static inline uint8_t sbi_processor_id(void)
 
 	asm volatile ("add	%0, sp, zero\n" : "=r" (t));
 	t -= (SBI_PERCPU_STACKS_START + 1);
-	return smp_hw_hart_cpu((uint8_t)(t >> PERCPU_STACK_SHIFT));
+	return (uint8_t)(t >> PERCPU_STACK_SHIFT);
+}
+
+static inline uint8_t sbi_hart_id(void)
+{
+	return smp_hw_cpu_hart(sbi_processor_id());
 }
 
 static inline uint8_t abi_processor_id(void)
@@ -64,6 +69,11 @@ static inline uint8_t abi_processor_id(void)
 	asm volatile ("add	%0, sp, zero\n" : "=r" (t));
 	t -= (ABI_PERCPU_STACKS_START + 1);
 	return (uint8_t)(t >> PERCPU_STACK_SHIFT);
+}
+
+static inline uint8_t abi_hart_id(void)
+{
+	return smp_hw_cpu_hart(abi_processor_id());
 }
 
 static inline uintptr_t __smp_processor_stack_top(void)
@@ -82,13 +92,16 @@ void smp_hw_ctrl_init(void);
 #endif /* __ASSEMBLY__ */
 #ifdef CONFIG_RISCV_EXIT_M
 #define __smp_processor_id()	sbi_processor_id()
+#define riscv_hart_id()		sbi_hart_id()
 #endif
 #ifdef CONFIG_RISCV_EXIT_S
 #define __smp_processor_id()	abi_processor_id()
+#define riscv_hart_id()		abi_hart_id()
 #endif
 #else /* CONFIG_SMP */
 #define sbi_processor_id()	0
 #define abi_processor_id()	0
+#define riscv_hart_id()		0
 #endif /* CONFIG_SMP */
 
 #endif /* __RISCV_SMP_H_INCLUDE__ */

@@ -44,7 +44,7 @@
 
 #ifdef CONFIG_SPIKE_BOOT_CPU
 #define smp_hw_cpu_hart(cpu)	((cpu) + 1)
-#define smp_hw_hart_cpu(cpu)	((cpu) - 1)
+#define smp_hw_hart_cpu(hart)	((hart) - 1)
 #else
 #define smp_hw_cpu_hart(cpu)	(cpu)
 #define smp_hw_hart_cpu(hart)	(hart)

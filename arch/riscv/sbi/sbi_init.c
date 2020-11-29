@@ -124,7 +124,7 @@ static void wait_for_coldboot(struct sbi_scratch *scratch, u32 cpu)
 	csr_write(CSR_MIE, saved_mie);
 
 	/* Clear current HART IPI */
-	sbi_platform_ipi_clear(plat, smp_hw_cpu_hart(cpu));
+	sbi_platform_ipi_clear(plat, cpu);
 }
 
 static void wake_coldboot_harts(struct sbi_scratch *scratch, u32 cpu)

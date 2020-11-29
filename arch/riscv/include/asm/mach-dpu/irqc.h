@@ -61,8 +61,8 @@ extern caddr_t dpu_plic_ctx_base[2];
 #endif
 
 #define PLIC_HW_PRI_MAX			31
-#define plic_hw_m_ctx(hartid)		(hartid)
-#define plic_hw_s_ctx(hartid)		PLIC_CTX_NONE
+#define plic_hw_m_ctx(cpu)		(cpu)
+#define plic_hw_s_ctx(cpu)		PLIC_CTX_NONE
 
 #include <asm/ri5cy_firq.h>
 #include <asm/plic.h>

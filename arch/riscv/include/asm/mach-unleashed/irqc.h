@@ -63,8 +63,8 @@ extern caddr_t sifive_plic_reg_base;
 #define plic_hw_s_ctx(cpu)	PLIC_CTX_NONE
 #endif
 #ifdef CONFIG_UNLEASHED_U54
-#define plic_hw_m_ctx(cpu)	((((cpu) + 1) << 1) - 1)
-#define plic_hw_s_ctx(cpu)	(((cpu) + 1) << 1)
+#define plic_hw_m_ctx(cpu)	((smp_hw_cpu_hart(cpu) << 1) - 1)
+#define plic_hw_s_ctx(cpu)	(smp_hw_cpu_hart(cpu) << 1)
 #endif
 
 #include <asm/plic.h>

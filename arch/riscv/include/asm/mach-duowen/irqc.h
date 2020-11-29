@@ -51,13 +51,32 @@
 #endif
 
 #define PLIC_HW_PRI_MAX		31
+/* PLIC contexts
+ * +----------+----------+----------+----------+----------+----------+
+ * | 0-15     | 16       | 17-32    | 33-48    | 49       | 50-65    |
+ * +----------+----------+----------+----------+----------+----------+
+ * | S0 APC M | S0 IMC M | S0 APC S | S1 APC M | S1 IMC M | S1 APC S |
+ * +----------+----------+----------+----------+----------+----------+
+ */
 #ifdef CONFIG_DUOWEN_IMC
-#define plic_hw_m_ctx(hartid)	16
-#define plic_hw_s_ctx(hartid)	32
+#ifdef CONFIG_DUOWEN_SOC0
+#define plic_hw_m_ctx(cpu)	16
+#define plic_hw_s_ctx(cpu)	PLIC_CTX_NONE
+#endif /* CONFIG_DUOWEN_SOC0 */
+#ifdef CONFIG_DUOWEN_SOC1
+#define plic_hw_m_ctx(cpu)	49
+#define plic_hw_s_ctx(cpu)	PLIC_CTX_NONE
+#endif /* CONFIG_DUOWEN_SOC1 */
 #endif
 #ifdef CONFIG_DUOWEN_APC
-#define plic_hw_m_ctx(hartid)	(hartid)
-#define plic_hw_s_ctx(hartid)	((hartid) + 16)
+#ifdef CONFIG_DUOWEN_SOC0
+#define plic_hw_m_ctx(cpu)	(cpu)
+#define plic_hw_s_ctx(cpu)	((cpu) + 17)
+#endif /* CONFIG_DUOWEN_SOC0 */
+#ifdef CONFIG_DUOWEN_SOC1
+#define plic_hw_m_ctx(cpu)	(smp_hw_cpu_hart(cpu) + 33)
+#define plic_hw_s_ctx(cpu)	(smp_hw_cpu_hart(cpu) + 50)
+#endif /* CONFIG_DUOWEN_SOC1 */
 #endif
 
 #include <asm/ri5cy_firq.h>

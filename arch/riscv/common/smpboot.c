@@ -36,12 +36,11 @@ void smp_hw_cpu_boot(void)
 static void send_ipi_single(int cpu, enum ipi_message_type op)
 {
 	cpu_mask_t mask;
-	int hartid = smp_hw_cpu_hart(cpu);
 
 	memset(&mask, 0, sizeof (mask));
 	smp_mb__before_atomic();
 	set_bit(op, (bits_t *)&ipi_data[cpu].bits);
-	cpumask_set_cpu(hartid, &mask);
+	cpumask_set_cpu(cpu, &mask);
 	smp_mb__after_atomic();
 
 	sbi_send_ipi(cpumask_bits(&mask));
