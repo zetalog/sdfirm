@@ -9,6 +9,7 @@ menuconfig IOMMU
 	bool "I/O memory management unit (IOMMU) support"
 	select BIT_FFS64
 	select BIT_FLS64
+	select DMA
 
 if IOMMU
 

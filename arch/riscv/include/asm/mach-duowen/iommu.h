@@ -63,6 +63,7 @@
 
 #if defined(CONFIG_SMARCO_RVSMMU)
 #include <driver/smarco_rvsmmu.h>
+#include <target/iommu_armv8.h>
 #ifndef ARCH_HAVE_IOMMU
 #define ARCH_HAVE_IOMMU		1
 
@@ -93,9 +94,23 @@
 #define iommu_hw_domain_select()			smmu_domain_select()
 #define iommu_hw_alloc_master(iommu)			smmu_alloc_sme(iommu)
 
+#define iommu_hw_tlb_flush_all()			\
+	smmu_tlb_inv_context_s1()
+#define iommu_hw_tlb_flush_walk(iova, size, granule)	\
+	smmu_tlb_inv_walk_s1(iova, size, granule)
+#define iommu_hw_tlb_flush_leaf(iova, size, granule)	\
+	smmu_tlb_inv_leaf_s1(iova, size, granule)
+#define iommu_hw_tlb_add_page(iova, granule)	\
+	smmu_tlb_add_page_s1(iova, granule)
+
 #define iommu_hw_map(iova, pgsize, paddr, prot)		0
 #define iommu_hw_unmap(iova, pgsize, gather)		0
 #define iommu_hw_iotlb_sync(gather)			do { } while (0)
+
+#define iommu_hw_alloc_table(cfg)			\
+	arm_64_lpae_alloc_pgtable_s1(cfg)
+#define iommu_hw_free_table()				\
+	arm_lpae_free_pgtable()
 
 #define smmu_hw_ctrl_reset(reg)				(reg)
 

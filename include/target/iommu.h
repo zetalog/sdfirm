@@ -67,17 +67,37 @@ typedef uint8_t iommu_dev_t;
 typedef uint8_t iommu_dom_t;
 typedef uint8_t iommu_grp_t;
 
-/* IO page table formats */
-typedef uint8_t iommu_lpae_t;
-#define ARM_32_LPAE_S1		0
-#define ARM_32_LPAE_S2		1
-#define ARM_64_LPAE_S1		2
-#define ARM_64_LPAE_S2		3
-#define ARM_V7S			4
-#define RISCV_32_LPAE_S1	5
-#define RISCV_64_LPAE_S1	6
+#define IOMMU_READ	(1 << 0)
+#define IOMMU_WRITE	(1 << 1)
+#define IOMMU_CACHE	(1 << 2) /* DMA cache coherency */
+#define IOMMU_NOEXEC	(1 << 3)
+#define IOMMU_MMIO	(1 << 4) /* e.g. things like MSI doorbells */
+/* The bus includes a privilege level as part of its access type, and
+ * certain devices are capable of issuing transactions marked as either
+ * 'supervisor' or 'user', the IOMMU_PRIV flag requests that the other
+ * given permission flags only apply to accesses at the higher privilege
+ * level, and that unprivileged transactions should have as little access
+ * as possible. This would usually imply the same permissions as kernel
+ * mappings on the CPU, if the IOMMU page table format is equivalent.
+ */
+#define IOMMU_PRIV	(1 << 5)
+/* Non-coherent masters can use this page protection flag to set cacheable
+ * memory attributes for only a transparent outer level of cache, also
+ * known as the last-level or system cache.
+ */
+#define IOMMU_SYS_CACHE_ONLY	(1 << 6)
 
-/* SoC specific descriptor */
+struct iommu_iotlb_gather {
+	unsigned long start;
+	unsigned long end;
+	size_t pgsize;
+};
+
+#include <target/iommu-pgtable.h>
+
+/* SoC specific descriptor, used to indicate an IOMMU master controlling a
+ * translation group.
+ */
 typedef uint64_t iommu_t;
 
 #include <driver/iommu.h>
@@ -90,12 +110,6 @@ struct scatterlist {
 #ifdef CONFIG_NEED_SG_DMA_LENGTH
 	unsigned int dma_length;
 #endif
-};
-
-struct iommu_iotlb_gather {
-	unsigned long start;
-	unsigned long end;
-	size_t pgsize;
 };
 
 struct iommu_device {
@@ -125,6 +139,7 @@ struct iommu_domain {
 #define IOMMU_DOMAIN_DEFAULT		IOMMU_DOMAIN_IDENTITY
 #endif
 	unsigned long pgsize_bitmap;
+	iommu_fmt_t fmt;
 };
 
 iommu_grp_t iommu_alloc_group(void);

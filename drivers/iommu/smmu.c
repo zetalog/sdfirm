@@ -233,11 +233,16 @@ void smmu_free_cb(smmu_cb_t cb)
 	clear_bit(cb, smmu_device_ctrl.context_map);
 }
 
+void smmu_init_context_bank(iommu_cfg_t *cfg)
+{
+}
+
 int smmu_init_domain_context(void)
 {
 	int start;
 	unsigned long ias, oas;
-	iommu_lpae_t fmt;
+	iommu_cfg_t pgtbl_cfg;
+	iommu_fmt_t fmt;
 
 	if (iommu_domain_ctrl.type == IOMMU_DOMAIN_IDENTITY) {
 		smmu_context_ctrl.stage = SMMU_DOMAIN_BYPASS;
@@ -296,15 +301,15 @@ int smmu_init_domain_context(void)
 #endif
 #ifdef CONFIG_RISCV
 		if (smmu_context_ctrl.fmt == SMMU_CONTEXT_RISCV_SV39) {
-			fmt = RISCV_64_LPAE_S1;
+			fmt = RISCV_64_SV39_S1;
 			ias = min(ias, UL(39));
 			oas = min(oas, UL(55));
-		} else if (smmu_context_ctrl.fmt == SMMU_CONTEXT_RISCV_SV39) {
-			fmt = RISCV_64_LPAE_S1;
+		} else if (smmu_context_ctrl.fmt == SMMU_CONTEXT_RISCV_SV48) {
+			fmt = RISCV_64_SV48_S1;
 			ias = min(ias, UL(48));
 			oas = min(oas, UL(55));
 		} else {
-			fmt = RISCV_32_LPAE_S1;
+			fmt = RISCV_32_SV32_S1;
 			ias = min(ias, UL(32));
 			oas = min(oas, UL(32));
 		}
@@ -330,8 +335,20 @@ int smmu_init_domain_context(void)
 #endif
 		smmu_context_ctrl.asid = smmu_context_ctrl.cb;
 
-#if 0
+	pgtbl_cfg.fmt = fmt;
+	pgtbl_cfg.pgsize_bitmap = iommu_device_ctrl.pgsize_bitmap;
+	pgtbl_cfg.ias = ias;
+	pgtbl_cfg.oas = oas;
+	pgtbl_cfg.coherent_walk = \
+		smmu_device_ctrl.features & SMMU_FEAT_COHERENT_WALK;
+
+	if (!iommu_pgtable_alloc(&pgtbl_cfg))
+		return -ENOMEM;
+	iommu_domain_ctrl.fmt = fmt;
+	iommu_domain_ctrl.pgsize_bitmap = pgtbl_cfg.pgsize_bitmap;
+
 	smmu_init_context_bank(&pgtbl_cfg);
+#if 0
 	smmu_write_context_back(...);
 #endif
 

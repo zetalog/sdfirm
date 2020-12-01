@@ -292,6 +292,13 @@ int iommu_unmap(unsigned long iova, size_t size)
 	return unmapped;
 }
 
+bool iommu_pgtable_alloc(iommu_cfg_t *cfg)
+{
+	BUG_ON(!cfg || cfg->fmt >= NR_IOMMU_PGTABLE_FMTS);
+
+	return iommu_hw_alloc_table(cfg);
+}
+
 /* ======================================================================
  * IOMMU Initializers
  * ====================================================================== */
@@ -332,6 +339,7 @@ void iommu_init(void)
 		sdom = iommu_domain_save(dom);
 		iommu_domain_ctrl.id = dom;
 		iommu_domain_ctrl.grp = INVALID_IOMMU_GRP;
+		iommu_domain_ctrl.fmt = INVALID_IOMMU_FMT;
 		iommu_domain_restore(sdom);
 	}
 	/* Non-allocatable devices are lauched directly */

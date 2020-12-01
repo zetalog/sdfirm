@@ -35,29 +35,86 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)dma.c: DUOWEN specific DMAC implementation
- * $Id: dma.c,v 1.1 2020-11-24 23:20:00 zhenglv Exp $
+ * @(#)iommu-pgtable.h: IOMMU page table translation formats
+ * $Id: iommu-pgtable.h,v 1.1 2020-11-30 13:45:00 zhenglv Exp $
  */
 
-#include <target/dma.h>
-#include <target/iommu.h>
+#ifndef __IOMMU_PGTABLE_H_INCLUDE__
+#define __IOMMU_PGTABLE_H_INCLUDE__
 
-iommu_grp_t duowen_dma_iommus[8];
+typedef enum io_pgtable_fmt {
+	ARM_32_LPAE_S1,
+	ARM_32_LPAE_S2,
+	ARM_64_LPAE_S1,
+	ARM_64_LPAE_S2,
+	ARM_V7S,
+	ARM_MALI_LPAE,
+	RISCV_32_SV32_S1,
+	RISCV_64_SV39_S1,
+	RISCV_64_SV48_S1,
+	NR_IOMMU_PGTABLE_FMTS,
+} iommu_fmt_t;
+#define INVALID_IOMMU_FMT	NR_IOMMU_PGTABLE_FMTS
 
-void smmu_dma_alloc_sme(void)
-{
-	duowen_dma_iommus[0] = iommu_register_master(SMMU_SME_DMA_TBU0);
-	duowen_dma_iommus[1] = iommu_register_master(SMMU_SME_DMA_TBU1);
-	duowen_dma_iommus[2] = iommu_register_master(SMMU_SME_DMA_TBU2);
-	duowen_dma_iommus[3] = iommu_register_master(SMMU_SME_DMA_TBU3);
-	duowen_dma_iommus[4] = iommu_register_master(SMMU_SME_DMA_TBU4);
-	duowen_dma_iommus[5] = iommu_register_master(SMMU_SME_DMA_TBU5);
-	duowen_dma_iommus[6] = iommu_register_master(SMMU_SME_DMA_TBU6);
-	duowen_dma_iommus[7] = iommu_register_master(SMMU_SME_DMA_TBU7);
-}
+/* struct io_pgtable_cfg - Configuration data for a set of page tables.
+ *
+ * pgsize_bitmap: A bitmap of page sizes supported by this set of page
+ *                tables.
+ * ias:           Input address (iova) size, in bits.
+ * oas:           Output address (paddr) size, in bits.
+ * coherent_walk  A flag to indicate whether or not page table walks made
+ *                by the IOMMU are coherent with the CPU caches.
+ */
+typedef struct io_pgtable_cfg {
+	iommu_fmt_t fmt;
+	unsigned long pgsize_bitmap;
+	unsigned int ias;
+	unsigned int oas;
+	bool coherent_walk;
 
-void dma_hw_ctrl_init(void)
-{
-	/* TODO: clock enabling */
-        dw_dma_init();
-}
+	/* Low-level data specific to the table format */
+	union {
+		struct {
+			uint64_t ttbr;
+			struct {
+				uint32_t ips:3;
+				uint32_t tg:2;
+				uint32_t sh:2;
+				uint32_t orgn:2;
+				uint32_t irgn:2;
+				uint32_t tsz:6;
+			} tcr;
+			uint64_t mair;
+		} arm_lpae_s1_cfg;
+
+		struct {
+			uint64_t vttbr;
+			struct {
+				uint32_t ps:3;
+				uint32_t tg:2;
+				uint32_t sh:2;
+				uint32_t orgn:2;
+				uint32_t irgn:2;
+				uint32_t sl:2;
+				uint32_t tsz:6;
+			} vtcr;
+		} arm_lpae_s2_cfg;
+
+		struct {
+			uint32_t ttbr;
+			uint32_t tcr;
+			uint32_t nmrr;
+			uint32_t prrr;
+		} arm_v7s_cfg;
+
+		struct {
+			uint64_t transtab;
+			uint64_t memattr;
+		} arm_mali_lpae_cfg;
+	};
+} iommu_cfg_t;
+
+bool iommu_pgtable_alloc(iommu_cfg_t *cfg);
+void iommu_pgtable_free(void);
+
+#endif /* __IO_PGTABLE_H_INCLUDE__ */

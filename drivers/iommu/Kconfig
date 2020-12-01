@@ -222,4 +222,10 @@ config SMARCO_RVSMMU
 	select ARCH_HAS_SMMU_PTFS_SV39
 	select SMMU
 
+config IOMMU_PGTABLE_ARMv8
+	bool "ARMv8 I/O page table support"
+
+config IOMMU_PGTABLE_RISCV
+	bool "RISC-V I/O page table support"
+
 endmenu

@@ -59,7 +59,6 @@ enum irqreturn {
 	IRQ_WAKE_THREAD		= (1 << 1),
 };
 typedef enum irqreturn irqreturn_t;
-typedef caddr_t dma_addr_t;
 
 typedef struct {
     int32_t alloc_index;
@@ -123,7 +122,6 @@ typedef struct dma_chip_str{
 #define DMA_OK  0
 #define DMA_ERROR  (-1)
 
-#define BIT(nr)			(1UL << (nr))
 #define le64_to_cpu(x)		((uint64_t)(x))
 #define cpu_to_le64(x)		((uint64_t)(x))
 #define le32_to_cpu(x)		(x)
@@ -131,10 +129,10 @@ typedef struct dma_chip_str{
 #define upper_32_bits(n)	((uint32_t)(((n) >> 16) >> 16))
 #define lower_32_bits(n)	((uint32_t)(n))
 
-#define DMA_SUPPORTS_MEM_TO_MEM	BIT(0)
-#define DMA_SUPPORTS_MEM_TO_DEV	BIT(1)
-#define DMA_SUPPORTS_DEV_TO_MEM	BIT(2)
-#define DMA_SUPPORTS_DEV_TO_DEV	BIT(3)
+#define DMA_SUPPORTS_MEM_TO_MEM	_BV(0)
+#define DMA_SUPPORTS_MEM_TO_DEV	_BV(1)
+#define DMA_SUPPORTS_DEV_TO_MEM	_BV(2)
+#define DMA_SUPPORTS_DEV_TO_DEV	_BV(3)
 
 #define AXI_DMA_BUSWIDTHS		  \
 	(DMA_SLAVE_BUSWIDTH_1_BYTE	| \
@@ -199,10 +197,10 @@ typedef struct dma_chip_str{
 #define CH_INTCLEAR		0x098 /* W Chan Interrupt Clear */
 
 #define DMAC_EN_POS			0
-#define DMAC_EN_MASK			BIT(DMAC_EN_POS)
+#define DMAC_EN_MASK			_BV(DMAC_EN_POS)
 
 #define INT_EN_POS			1
-#define INT_EN_MASK			BIT(INT_EN_POS)
+#define INT_EN_MASK			_BV(INT_EN_POS)
 
 #define DMAC_CHAN_EN_SHIFT		0
 #define DMAC_CHAN_EN_WE_SHIFT		8
@@ -210,9 +208,9 @@ typedef struct dma_chip_str{
 #define DMAC_CHAN_SUSP_SHIFT		16
 #define DMAC_CHAN_SUSP_WE_SHIFT		24
 
-#define CH_CTL_H_ARLEN_EN		BIT(6)
+#define CH_CTL_H_ARLEN_EN		_BV(6)
 #define CH_CTL_H_ARLEN_POS		7
-#define CH_CTL_H_AWLEN_EN		BIT(15)
+#define CH_CTL_H_AWLEN_EN		_BV(15)
 #define CH_CTL_H_AWLEN_POS		16
 
 enum {
@@ -229,11 +227,11 @@ enum {
 	DW_DMAC_ARWLEN_MAX		= DW_DMAC_ARWLEN_256
 };
 
-#define CH_CTL_H_LLI_LAST		BIT(30)
-#define CH_CTL_H_LLI_VALID		BIT(31)
+#define CH_CTL_H_LLI_LAST		_BV(30)
+#define CH_CTL_H_LLI_VALID		_BV(31)
 
 /* CH_CTL_L */
-#define CH_CTL_L_LAST_WRITE_EN		BIT(30)
+#define CH_CTL_L_LAST_WRITE_EN		_BV(30)
 
 #define CH_CTL_L_DST_MSIZE_POS		18
 #define CH_CTL_L_SRC_MSIZE_POS		14
@@ -261,8 +259,8 @@ enum {
 	DW_DMAC_CH_CTL_L_NOINC
 };
 
-#define CH_CTL_L_DST_MAST		BIT(2)
-#define CH_CTL_L_SRC_MAST		BIT(0)
+#define CH_CTL_L_DST_MAST		_BV(2)
+#define CH_CTL_L_SRC_MAST		_BV(0)
 
 #define CH_CFG_H_PRIORITY_POS		17
 #define CH_CFG_H_HS_SEL_DST_POS		4
@@ -295,31 +293,31 @@ enum {
 
 enum {
 	DW_DMAC_IRQ_NONE		= 0,
-	DW_DMAC_IRQ_BLOCK_TRF		= BIT(0),
-	DW_DMAC_IRQ_DMA_TRF		= BIT(1),
-	DW_DMAC_IRQ_SRC_TRAN		= BIT(3),
-	DW_DMAC_IRQ_DST_TRAN		= BIT(4),
-	DW_DMAC_IRQ_SRC_DEC_ERR	= BIT(5),
-	DW_DMAC_IRQ_DST_DEC_ERR	= BIT(6),
-	DW_DMAC_IRQ_SRC_SLV_ERR	= BIT(7),
-	DW_DMAC_IRQ_DST_SLV_ERR	= BIT(8),
-	DW_DMAC_IRQ_LLI_RD_DEC_ERR	= BIT(9),
-	DW_DMAC_IRQ_LLI_WR_DEC_ERR	= BIT(10),
-	DW_DMAC_IRQ_LLI_RD_SLV_ERR	= BIT(11),
-	DW_DMAC_IRQ_LLI_WR_SLV_ERR	= BIT(12),
-	DW_DMAC_IRQ_INVALID_ERR	= BIT(13),
-	DW_DMAC_IRQ_MULTIBLKTYPE_ERR	= BIT(14),
-	DW_DMAC_IRQ_DEC_ERR		= BIT(16),
-	DW_DMAC_IRQ_WR2RO_ERR		= BIT(17),
-	DW_DMAC_IRQ_RD2RWO_ERR	= BIT(18),
-	DW_DMAC_IRQ_WRONCHEN_ERR	= BIT(19),
-	DW_DMAC_IRQ_SHADOWREG_ERR	= BIT(20),
-	DW_DMAC_IRQ_WRONHOLD_ERR	= BIT(21),
-	DW_DMAC_IRQ_LOCK_CLEARED	= BIT(27),
-	DW_DMAC_IRQ_SRC_SUSPENDED	= BIT(28),
-	DW_DMAC_IRQ_SUSPENDED		= BIT(29),
-	DW_DMAC_IRQ_DISABLED		= BIT(30),
-	DW_DMAC_IRQ_ABORTED		= BIT(31),
+	DW_DMAC_IRQ_BLOCK_TRF		= _BV(0),
+	DW_DMAC_IRQ_DMA_TRF		= _BV(1),
+	DW_DMAC_IRQ_SRC_TRAN		= _BV(3),
+	DW_DMAC_IRQ_DST_TRAN		= _BV(4),
+	DW_DMAC_IRQ_SRC_DEC_ERR	= _BV(5),
+	DW_DMAC_IRQ_DST_DEC_ERR	= _BV(6),
+	DW_DMAC_IRQ_SRC_SLV_ERR	= _BV(7),
+	DW_DMAC_IRQ_DST_SLV_ERR	= _BV(8),
+	DW_DMAC_IRQ_LLI_RD_DEC_ERR	= _BV(9),
+	DW_DMAC_IRQ_LLI_WR_DEC_ERR	= _BV(10),
+	DW_DMAC_IRQ_LLI_RD_SLV_ERR	= _BV(11),
+	DW_DMAC_IRQ_LLI_WR_SLV_ERR	= _BV(12),
+	DW_DMAC_IRQ_INVALID_ERR	= _BV(13),
+	DW_DMAC_IRQ_MULTIBLKTYPE_ERR	= _BV(14),
+	DW_DMAC_IRQ_DEC_ERR		= _BV(16),
+	DW_DMAC_IRQ_WR2RO_ERR		= _BV(17),
+	DW_DMAC_IRQ_RD2RWO_ERR	= _BV(18),
+	DW_DMAC_IRQ_WRONCHEN_ERR	= _BV(19),
+	DW_DMAC_IRQ_SHADOWREG_ERR	= _BV(20),
+	DW_DMAC_IRQ_WRONHOLD_ERR	= _BV(21),
+	DW_DMAC_IRQ_LOCK_CLEARED	= _BV(27),
+	DW_DMAC_IRQ_SRC_SUSPENDED	= _BV(28),
+	DW_DMAC_IRQ_SUSPENDED		= _BV(29),
+	DW_DMAC_IRQ_DISABLED		= _BV(30),
+	DW_DMAC_IRQ_ABORTED		= _BV(31),
 	DW_DMAC_IRQ_ALL_ERR		= (GENMASK(21, 16) | GENMASK(14, 5)),
 	DW_DMAC_IRQ_ALL		= GENMASK(31, 0)
 };

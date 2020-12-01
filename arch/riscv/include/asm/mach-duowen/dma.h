@@ -12,6 +12,7 @@
 
 #ifdef CONFIG_DW_DMA
 void smmu_dma_alloc_sme(void);
+void dma_hw_ctrl_init(void);
 #else
 #define smmu_dma_alloc_sme()		do { } while (0)
 #endif

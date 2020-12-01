@@ -452,4 +452,63 @@ unsigned long __xchg(unsigned long x, volatile void *ptr, int size)
 		return x;
 	}
 }
+
+unsigned long __cmpxchg(volatile void *ptr,
+			unsigned long old, unsigned long new, int size)
+{
+	unsigned long ret;
+	irq_flags_t flags;
+
+	switch (size) {
+	case 1:
+#ifdef __cmpxchg_u8
+		return __cmpxchg_u8(ptr, old, new, size);
+#else
+		irq_local_save(flags);
+		ret = *(uint8_t *)ptr;
+		if (ret == old)
+			*(uint8_t *)ptr = (uint8_t)new;
+		irq_local_restore(flags);
+		return ret;
+#endif /* __cmpxchg_u8 */
+	case 2:
+#ifdef __cmpxchg_u16
+		return __cmpxchg_u16(ptr, old, new, size);
+#else
+		irq_local_save(flags);
+		ret = *(uint16_t *)ptr;
+		if (ret == old)
+			*(uint16_t *)ptr = (uint16_t)new;
+		irq_local_restore(flags);
+		return ret;
+#endif /* __cmpxchg_u16 */
+	case 4:
+#ifdef __cmpxchg_u32
+		return __cmpxchg_u32(ptr, old, new, size);
+#else
+		irq_local_save(flags);
+		ret = *(uint32_t *)ptr;
+		if (ret == old)
+			*(uint32_t *)ptr = (uint32_t)new;
+		irq_local_restore(flags);
+		return ret;
+#endif /* __cmpxchg_u32 */
+#ifdef CONFIG_64BIT
+	case 8:
+#ifdef __cmpxchg_u64
+		return __cmpxchg_u64(ptr, old, new, size);
+#else
+		irq_local_save(flags);
+		ret = *(uint64_t *)ptr;
+		if (ret == old)
+			*(uint64_t *)ptr = (uint64_t)new;
+		irq_local_restore(flags);
+		return ret;
+#endif /* __cmpxchg_u64 */
+#endif /* CONFIG_64BIT */
+	default:
+		BUG();
+		return new;
+	}
+}
 #endif

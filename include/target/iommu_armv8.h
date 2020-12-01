@@ -35,29 +35,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)dma.c: DUOWEN specific DMAC implementation
- * $Id: dma.c,v 1.1 2020-11-24 23:20:00 zhenglv Exp $
+ * @(#)iommu-pgtable-arm.h: ARM IOMMU page table translation formats
+ * $Id: iommu-pgtable-arm.h,v 1.1 2020-11-30 14:36:00 zhenglv Exp $
  */
 
-#include <target/dma.h>
-#include <target/iommu.h>
+#ifndef __IOMMU_PGTABLE_ARM_H_INCLUDE__
+#define __IOMMU_PGTABLE_ARM_H_INCLUDE__
 
-iommu_grp_t duowen_dma_iommus[8];
+bool arm_64_lpae_alloc_pgtable_s1(struct io_pgtable_cfg *cfg);
+void arm_lpae_free_pgtable(void);
+int arm_lpae_map(unsigned long iova, phys_addr_t paddr,
+		 size_t size, int iommu_prot);
+size_t arm_lpae_unmap(unsigned long iova, size_t size);
+phys_addr_t arm_lpae_iova_to_phys(unsigned long iova);
 
-void smmu_dma_alloc_sme(void)
-{
-	duowen_dma_iommus[0] = iommu_register_master(SMMU_SME_DMA_TBU0);
-	duowen_dma_iommus[1] = iommu_register_master(SMMU_SME_DMA_TBU1);
-	duowen_dma_iommus[2] = iommu_register_master(SMMU_SME_DMA_TBU2);
-	duowen_dma_iommus[3] = iommu_register_master(SMMU_SME_DMA_TBU3);
-	duowen_dma_iommus[4] = iommu_register_master(SMMU_SME_DMA_TBU4);
-	duowen_dma_iommus[5] = iommu_register_master(SMMU_SME_DMA_TBU5);
-	duowen_dma_iommus[6] = iommu_register_master(SMMU_SME_DMA_TBU6);
-	duowen_dma_iommus[7] = iommu_register_master(SMMU_SME_DMA_TBU7);
-}
-
-void dma_hw_ctrl_init(void)
-{
-	/* TODO: clock enabling */
-        dw_dma_init();
-}
+#endif /* __IOMMU_PGTABLE_ARM_H_INCLUDE__ */

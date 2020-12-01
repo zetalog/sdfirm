@@ -161,8 +161,8 @@ static inline void chan_disable(dma_chan_t *chan)
 	uint32_t val;
 
 	val = dma_reg_get32(chan->chip, DMAC_CHEN);
-	val &= ~(BIT(chan->id) << DMAC_CHAN_EN_SHIFT);
-	val |=   BIT(chan->id) << DMAC_CHAN_EN_WE_SHIFT;
+	val &= ~(_BV(chan->id) << DMAC_CHAN_EN_SHIFT);
+	val |=   _BV(chan->id) << DMAC_CHAN_EN_WE_SHIFT;
 	dma_reg_set32(chan->chip, DMAC_CHEN, val);
 }
 
@@ -171,8 +171,8 @@ static inline void chan_enable(dma_chan_t *chan)
 	uint32_t val;
 
 	val = dma_reg_get32(chan->chip, DMAC_CHEN);
-	val |= BIT(chan->id) << DMAC_CHAN_EN_SHIFT |
-	       BIT(chan->id) << DMAC_CHAN_EN_WE_SHIFT;
+	val |= _BV(chan->id) << DMAC_CHAN_EN_SHIFT |
+	       _BV(chan->id) << DMAC_CHAN_EN_WE_SHIFT;
 	dma_reg_set32(chan->chip, DMAC_CHEN, val);
 }
 
@@ -182,7 +182,7 @@ static inline bool chan_is_hw_enable(dma_chan_t *chan)
 
 	val = dma_reg_get32(chan->chip, DMAC_CHEN);
 
-	return !!(val & (BIT(chan->id) << DMAC_CHAN_EN_SHIFT));
+	return !!(val & (_BV(chan->id) << DMAC_CHAN_EN_SHIFT));
 }
 
 static void dma_hw_init(dma_chip_t *chip)
@@ -200,7 +200,7 @@ static uint32_t chan_get_xfer_width(dma_chan_t *chan, dma_addr_t src,
 {
 	uint32_t max_width = chan->chip->hdata->m_data_width;
 
-	return __ffs32(src | dst | len | BIT(max_width));
+	return __ffs32(src | dst | len | _BV(max_width));
 }
 
 static int dma_pool_init(void)
@@ -648,8 +648,8 @@ static inline void chan_resume(dma_chan_t *chan)
 	uint32_t val;
 
 	val = dma_reg_get32(chan->chip, DMAC_CHEN);
-	val &= ~(BIT(chan->id) << DMAC_CHAN_SUSP_SHIFT);
-	val |=  (BIT(chan->id) << DMAC_CHAN_SUSP_WE_SHIFT);
+	val &= ~(_BV(chan->id) << DMAC_CHAN_SUSP_SHIFT);
+	val |=  (_BV(chan->id) << DMAC_CHAN_SUSP_WE_SHIFT);
 	dma_reg_set32(chan->chip, DMAC_CHEN, val);
 }
 

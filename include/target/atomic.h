@@ -101,6 +101,15 @@ unsigned long __xchg(unsigned long x, volatile void *ptr, int size);
 		__xchg((unsigned long)(x), (ptr), sizeof(*(ptr))));	\
 })
 #endif /* xchg */
+#ifndef cmpxchg
+unsigned long __cmpxchg(volatile void *ptr,
+			unsigned long old, unsigned long new, int size);
+#define cmpxchg(ptr, o, n) ({						\
+	((__typeof__(*(ptr)))__cmpxchg((ptr),				\
+		(unsigned long)(o), (unsigned long)(n),			\
+		sizeof(*(ptr))));					\
+})
+#endif /* cmpxchg */
 #endif /* CONFIG_SMP */
 
 #ifndef xchg_relaxed
