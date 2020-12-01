@@ -2,7 +2,7 @@
 # DMA Devices
 #
 
-config ARCH_HAS_DMA
+config ARCH_HAS_DMAC
 	bool
 
 menuconfig DMA

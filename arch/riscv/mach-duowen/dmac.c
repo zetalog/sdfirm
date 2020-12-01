@@ -56,7 +56,7 @@ void smmu_dma_alloc_sme(void)
 	duowen_dma_iommus[7] = iommu_register_master(SMMU_SME_DMA_TBU7);
 }
 
-void dma_hw_ctrl_init(void)
+void dmac_hw_ctrl_init(void)
 {
 	/* TODO: clock enabling */
         dw_dma_init();

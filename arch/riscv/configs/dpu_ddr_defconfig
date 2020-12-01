@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Nov 27 12:50:55 2020
+# Wed Dec  2 14:59:00 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -317,7 +317,7 @@ CONFIG_ARCH_HAS_SPI=y
 # CONFIG_SPI is not set
 CONFIG_ARCH_HAS_I2C=y
 # CONFIG_I2C is not set
-CONFIG_ARCH_HAS_DMA=y
+CONFIG_ARCH_HAS_DMAC=y
 # CONFIG_DMA is not set
 # CONFIG_USB is not set
 # CONFIG_SCS is not set
@@ -415,6 +415,8 @@ CONFIG_DW_UART_FIFO_MEM_INTERNAL=y
 # CONFIG_SMMU is not set
 # CONFIG_SMMU_MMU500 is not set
 # CONFIG_SMARCO_RVSMMU is not set
+# CONFIG_IOMMU_PGTABLE_ARMv8 is not set
+# CONFIG_IOMMU_PGTABLE_RISCV is not set
 
 #
 # LCD drivers

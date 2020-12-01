@@ -56,6 +56,9 @@ void __flush_dcache_area(void *addr, size_t size);
 void __clean_dcache_area(void *addr, size_t size);
 void __inval_dcache_area(void *addr, size_t size);
 
+void __dma_map_area(const void *, size_t, int);
+void __dma_unmap_area(const void *, size_t, int);
+
 #define __flush_dcache_addr(addr)	dc_civac((uint64_t)(addr))
 #define __clean_dcache_addr(addr)	dc_cvac((uint64_t)(addr))
 #define __inval_dcache_addr(addr)	dc_ivac((uint64_t)(addr))

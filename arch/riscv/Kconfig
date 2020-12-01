@@ -52,7 +52,7 @@ config ARCH_DUOWEN
 	select ARCH_HAS_SD
 	select ARCH_HAS_I2C
 	select ARCH_HAS_SPI
-	select ARCH_HAS_DMA
+	select ARCH_HAS_DMAC
 	select ARCH_HAS_FDT
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_APB_40
@@ -76,7 +76,7 @@ config ARCH_DUOWEN
 	select DUOWEN_PCIE if PCI
 	select DUOWEN_I2C if I2C_MASTER
 	select DUOWEN_DDR if DDR
-	select DUOWEN_DMA if DMA
+	select DUOWEN_DMAC if DMA
 	select DUOWEN_SMMU if IOMMU
 	select VAISRA_RAS if RAS
 	help
@@ -93,7 +93,7 @@ config ARCH_DPU
 	select ARCH_HAS_GPIO
 	select ARCH_HAS_I2C
 	select ARCH_HAS_SPI
-	select ARCH_HAS_DMA
+	select ARCH_HAS_DMAC
 	select ARCH_HAS_DDR
 	select ARCH_HAS_PCI
 	select ARCH_HAS_PLIC

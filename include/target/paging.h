@@ -18,7 +18,7 @@
 #define virt_to_phys(x)		(((phys_addr_t)(x) - PAGE_OFFSET + PHYS_OFFSET))
 #define phys_to_virt(x)		(((caddr_t)(x) - PHYS_OFFSET + PAGE_OFFSET))
 #define __pa(x)			virt_to_phys((caddr_t)(x))
-#define __va(x)			((void *)phys_to_virt((phys_addr_t)(x)))
+#define __va(x)			phys_to_virt((phys_addr_t)(x))
 
 /* Convert a physical address to a Page Frame Number and back */
 #define phys_to_pfn(paddr)	((pfn_t)((paddr) >> PAGE_SHIFT))
@@ -209,7 +209,7 @@ extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
 #endif /* !__ASSEMBLY__ */
 #else
 #define __pa(x)			((phys_addr_t)(caddr_t)(x))
-#define __va(x)			((void *)((caddr_t)(x)))
+#define __va(x)			((caddr_t)(x))
 #endif /* CONFIG_ARCH_HAS_MMU */
 
 #include <driver/mmu.h>

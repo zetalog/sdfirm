@@ -16,7 +16,7 @@ config DUOWEN_IMC
 	bool "IMC - system fabric (SFAB)"
 	select CPU_CVA6
 	# Allow IMC to test IOMMU in testbench
-	select ARCH_HAS_DMA if DUOWEN_TB
+	select ARCH_HAS_DMAC if DUOWEN_TB
 	select ARCH_HAS_IOMMU if DUOWEN_TB
 	select ARCH_HAS_PCI if DUOWEN_TB
 
@@ -24,7 +24,7 @@ config DUOWEN_APC
 	bool "APC - coherence fabric (CFAB)"
 	select CPU_VAISRA
 	select VAISRA_PMA
-	select ARCH_HAS_DMA
+	select ARCH_HAS_DMAC
 	select ARCH_HAS_IOMMU
 	select ARCH_HAS_PCI
 	select DUOWEN_APC_BOOT_HOOK if (SMP && !DUOWEN_SBL_LOAD)
@@ -548,11 +548,11 @@ if DUOWEN_SMMU
 
 endif
 
-menuconfig DUOWEN_DMA
+menuconfig DUOWEN_DMAC
 	bool "Duowen DMA controller support"
 	select DW_DMA
 
-if DUOWEN_DMA
+if DUOWEN_DMAC
 
 endif
 

@@ -40,6 +40,7 @@
  */
 
 #include <target/linkage.h>
+#include <target/dma.h>
 
        .macro  dcache_line_size, reg, tmp
        mrs     \tmp, ctr_el0
@@ -93,3 +94,15 @@ ENTRY(__inval_dcache_area)
 	dcache_by_line_op ivac, sy, x0, x1, x2, x3
 	ret
 ENDPIPROC(__inval_dcache_area)
+
+ENTRY(__dma_map_area)
+	cmp	w2, #DMA_FROM_DEVICE
+	b.eq	__inval_dcache_area
+	b	__clean_dcache_area
+ENDPIPROC(__dma_map_area)
+
+ENTRY(__dma_unmap_area)
+	cmp	w2, #DMA_TO_DEVICE
+	b.ne	__inval_dcache_area
+	ret
+ENDPIPROC(__dma_unmap_area)

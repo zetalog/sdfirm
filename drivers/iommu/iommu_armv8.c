@@ -120,12 +120,12 @@
 #define ARM_LPAE_MAIR_ATTR_IDX_INC_OCACHE	3
 
 /* IOPTE accessors */
-#define iopte_deref(pte,d) __va(iopte_to_paddr(pte, d))
+#define iopte_deref(pte,d)		((void *)__va(iopte_to_paddr(pte, d)))
 
 #define iopte_type(pte,l)					\
 	(((pte) >> ARM_LPAE_PTE_TYPE_SHIFT) & ARM_LPAE_PTE_TYPE_MASK)
 
-#define iopte_prot(pte)	((pte) & ARM_LPAE_PTE_ATTR_MASK)
+#define iopte_prot(pte)			((pte) & ARM_LPAE_PTE_ATTR_MASK)
 
 struct arm_lpae_io_pgtable {
 	struct io_pgtable_cfg cfg;
