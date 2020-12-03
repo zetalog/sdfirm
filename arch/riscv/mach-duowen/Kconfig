@@ -571,6 +571,7 @@ config DUOWEN_DDR_32M
 
 config DUOWEN_DDR_64M
 	bool "Fake 64M DDR memory model"
+	depends DUOWEN_ZEBU_SOCv2
 
 config DUOWEN_DDR_128M
 	bool "Fake 128M DDR memory model"
