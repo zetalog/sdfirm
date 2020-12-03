@@ -80,6 +80,8 @@ endif
 
 config TEST_MEMTESTER
 	bool "Enable memtester support"
+	select STRING_GETOPT
+	select STRING_STRTOULL
 
 if TEST_MEMTESTER
 

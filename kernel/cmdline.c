@@ -2,6 +2,7 @@
 #include <target/readline.h>
 #include <target/cmdline.h>
 #include <target/console.h>
+#include <getopt.h>
 
 #define foreach_cmd(cmdp)		\
 	for (cmdp = __cmd_start; cmdp < __cmd_end; cmdp++)
@@ -104,6 +105,7 @@ int cmd_execute(int argc, char * argv[])
 	cmdp = find_cmd(argv[0]);
 	if (cmdp == NULL)
 		return -1;
+	getopt_reset();
 	return cmdp->cmd(argc, argv);
 }
 

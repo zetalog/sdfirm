@@ -10,6 +10,10 @@ typedef void	*FILE;
 #define stderr	NULL
 #define stdout	NULL
 
+#ifndef EOF
+#define EOF	(-1)
+#endif
+
 int sprintf(char *, const char *, ...);
 int snprintf(char *, size_t, const char *, ...);
 int vsprintf(char *, const char *, va_list);

@@ -1,6 +1,13 @@
 #include <target/dma.h>
 
+struct dma_channel {
+	dma_t dma;
+	bool coherent;
+};
+
 #define dma_is_direct(dma)		true
+
+struct dma_channel dma_channels[DMAC_MAX_CHANNELS];
 
 void dma_direct_sync_single_for_cpu(dma_addr_t addr, size_t size,
 				    dma_dir_t dir)
@@ -26,8 +33,9 @@ dma_addr_t dma_direct_map_page(dma_t dma, struct page *page,
 	if (!dma_is_coherent(dma) && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
 		dma_hw_sync_dev(phys, size, dir);
 	return dma_addr;
-#endif
+#else
 	return 0;
+#endif
 }
 
 void dma_direct_unmap_page(dma_t dma, dma_addr_t addr, size_t size,
@@ -43,6 +51,7 @@ dma_addr_t dma_map_page_attrs(dma_t dma, struct page *page,
 			      size_t offset, size_t size, dma_dir_t dir,
 			      unsigned long attrs)
 {
+#if 0
 	dma_addr_t addr;
 
 	if (dma_is_direct(dma))
@@ -50,15 +59,20 @@ dma_addr_t dma_map_page_attrs(dma_t dma, struct page *page,
 					   offset, size, dir, attrs);
 	else
 		addr = dma_hw_map_page(dma, page, offset, size, dir, attrs);
+#else
+	return 0;
+#endif
 }
 
 void dma_unmap_page_attrs(dma_t dma, dma_addr_t addr, size_t size,
 			  dma_dir_t dir, unsigned long attrs)
 {
+#if 0
 	if (dma_is_direct(dma))
 		dma_direct_unmap_page(dma, addr, size, dir, attrs);
 	else
 		dma_hw_unmap_page(dma, addr, size, dir, attrs);
+#endif
 }
 
 dma_addr_t dma_map_single_attrs(dma_t dma, void *ptr, size_t size,
@@ -91,7 +105,15 @@ void dma_sync_single_for_dev(dma_addr_t addr, size_t size, dma_dir_t dir)
 {
 }
 
+void dma_channels_init(void)
+{
+	uint8_t i;
+	for (i = 0; i < DMAC_MAX_CHANNELS; i++)
+		dma_channels[i].dma = INVALID_DMA;
+	dmac_hw_ctrl_init();
+}
+
 void dma_init(void)
 {
-	dmac_hw_ctrl_init();
+	dma_channels_init();
 }

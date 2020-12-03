@@ -148,6 +148,10 @@ config STRING_UUID
 	bool "uuid"
 	select PRINT_SNPRINTF
 
+config STRING_GETOPT
+	bool "getopt"
+	select PRINT_PRINTF
+
 config STRING_BYTELIST
 	bool "byte list"
 

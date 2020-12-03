@@ -24,6 +24,7 @@
 #else
 #include <target/cmdline.h>
 #include <target/heap.h>
+#include <getopt.h>
 
 typedef long off_t;
 typedef long ptrdiff_t;
@@ -66,6 +67,10 @@ typedef unsigned short volatile u16v;
 #define EXIT_FAIL_ADDRESSLINES  0x02
 #define EXIT_FAIL_OTHERTEST     0x04
 
+/* Global vars - so tests have access to this information */
+static int use_phys = 0;
+static off_t physaddrbase = 0;
+
 #ifdef HOSTED
 /* Sanity checks and portability helper macros. */
 #ifdef _SC_VERSION
@@ -98,9 +103,6 @@ static int memtester_pagesize(void)
 #define memtester_pagesize()		8192
 #endif
 
-/* Global vars - so tests have access to this information */
-static int use_phys = 0;
-static off_t physaddrbase = 0;
 /* Device to mmap memory from with -p, default is normal core */
 static const char *device_name = "/dev/mem";
 static int device_specified = 0;
@@ -232,6 +234,74 @@ static int memtester_usephys(size_t wantbytes, void __unused volatile **pbuf)
 	}
 	return 1;
 }
+#else
+#define mlock(a, s)			-1
+#define munlock(a, s)			do { } while (0)
+#define check_posix_system()		do { } while (0)
+
+static void usage(void)
+{
+	fprintf(stderr, "\n"
+		"Usage: memtester [-p physaddrbase] <mem>[B|K|M|G] [loops]\n");
+}
+
+#define memtester_pagesize()				PAGE_SIZE
+#define memtester_testmask()				0
+
+static int memtester_parseopt(int argc, char **argv, size_t pagesize)
+{
+	int opt;
+	char *addrsuffix;
+
+	while ((opt = getopt(argc, argv, "p:")) != -1) {
+		switch (opt) {
+		case 'p':
+			errno = 0;
+			physaddrbase = (off_t)strtoull(optarg, &addrsuffix, 16);
+			if (errno != 0) {
+				fprintf(stderr,
+					"failed to parse physaddrbase arg; "
+					"should be hex address (0x123...)\n");
+				usage();
+				return -EXIT_FAIL_NONSTARTER;
+			}
+			if (*addrsuffix != '\0') {
+				/* got an invalid character in the address */
+				fprintf(stderr,
+					"failed to parse physaddrbase arg; "
+					"should be hex address (0x123...)\n");
+				usage();
+				return -EXIT_FAIL_NONSTARTER;
+			}
+			if (physaddrbase & (pagesize - 1)) {
+				fprintf(stderr,
+					"bad physaddrbase arg; "
+					"does not start on page boundary\n");
+				usage();
+				return -EXIT_FAIL_NONSTARTER;
+			}
+			/* okay, got address */
+			use_phys = 1;
+			break;
+		default: /* '?' */
+			usage();
+			return -EXIT_FAIL_NONSTARTER;
+		}
+	}
+
+	return optind;
+}
+
+static int memtester_usephys(size_t wantbytes, void volatile **pbuf)
+{
+	if (!use_phys)
+		return 0;
+
+	/* TODO: mmap if MMU is enabled */
+	*pbuf = (void *)physaddrbase;
+	return 1;
+}
+#endif
 
 static void memtester_badregion(ulv *p1, ulv *p2, size_t i)
 {
@@ -265,36 +335,6 @@ static void memtester_badaddr(size_t i)
 			"0x%08lx.\n", (ul)(i * sizeof(ul)));
 	}
 }
-#else
-#define mlock(a, s)			-1
-#define munlock(a, s)			do { } while (0)
-#define check_posix_system()		do { } while (0)
-
-static void usage(void)
-{
-	fprintf(stderr, "\n"
-		"Usage: memtester <mem>[B|K|M|G] [loops]\n");
-}
-
-#define memtester_pagesize()				PAGE_SIZE
-#define memtester_testmask()				0
-#define memtester_parseopt(argc, argv, pagesize)	0
-#define memtester_usephys(size, pbuf)			0
-
-static void memtester_badregion(ulv *p1, ulv *p2, size_t i)
-{
-	fprintf(stderr, 
-		"FAILURE: 0x%08lx != 0x%08lx at offset 0x%08lx.\n", 
-		(ul)*p1, (ul)*p2, (ul)(i * sizeof(ul)));
-}
-
-static void memtester_badaddr(size_t i)
-{
-	fprintf(stderr, 
-		"FAILURE: possible bad address line at offset 0x%08lx.\n", 
-		(ul)(i * sizeof(ul)));
-}
-#endif
 
 static char progress[] = "-\\|/";
 
@@ -992,7 +1032,7 @@ static int do_memtester(int argc, char **argv)
 				switch (errno) {
 				case EAGAIN: /* BSDs */
 				case ENOMEM:
-					perror("reducing...\n");
+					printf("reducing...\n");
 					free((void *)buf);
 					buf = NULL;
 					wantbytes -= pagesize;
@@ -1087,6 +1127,6 @@ static int do_memtester(int argc, char **argv)
 
 #ifndef HOSTED
 DEFINE_COMMAND(memtester, do_memtester, "Memory stress tests",
-	"memtester <mem>[B|K|M|G] [loops]\n"
+	"memtester [-p physaddrbase] <mem>[B|K|M|G] [loops]\n"
 );
 #endif

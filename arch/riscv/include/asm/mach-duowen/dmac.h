@@ -10,6 +10,8 @@
 #endif
 #endif
 
+#define INVALID_DMA		-1
+
 #ifdef CONFIG_DW_DMA
 void smmu_dma_alloc_sme(void);
 void dmac_hw_ctrl_init(void);
