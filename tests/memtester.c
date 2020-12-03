@@ -235,7 +235,7 @@ static int memtester_usephys(size_t wantbytes, void __unused volatile **pbuf)
 	return 1;
 }
 #else
-#define mlock(a, s)			-1
+#define mlock(a, s)			0
 #define munlock(a, s)			do { } while (0)
 #define check_posix_system()		do { } while (0)
 
@@ -897,7 +897,7 @@ static int do_memtester(int argc, char **argv)
 	if ((int)pagesize < 0)
 		return -pagesize;
 	pagesizemask = (ptrdiff_t) ~(pagesize - 1);
-	printf("pagesizemask is 0x%tx\n", pagesizemask);
+	printf("pagesizemask is 0x%lx\n", pagesizemask);
     
 	/* If MEMTESTER_TEST_MASK is set, we use its value as a mask of
 	 * which tests we run.
