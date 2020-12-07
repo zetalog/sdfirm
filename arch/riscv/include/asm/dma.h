@@ -42,10 +42,16 @@
 #ifndef __DMA_RISCV_H_INCLUDE__
 #define __DMA_RISCV_H_INCLUDE__
 
-#define dma_hw_sync_dev(paddr, size, dir)	do { } while (0)
-#define dma_hw_sync_cpu(paddr, size, dir)	do { } while (0)
-#define dma_hw_sync_cpu_all()			do { } while (0)
+#include <target/barrier.h>
 
-/* #include <asm/mach/dma.h> */
+typedef phys_addr_t dma_addr_t;
+
+#define dma_hw_sync_dev(dma, phys, size, dir)	dma_mb()
+#define dma_hw_sync_cpu(dma, phys, size, dir)	dma_mb()
+#define dma_hw_sync_cpu_all()			dma_mb()
+
+#ifndef __ASSEMBLY__
+#include <asm/mach/dma.h>
+#endif
 
 #endif /* __DMA_RISCV_H_INCLUDE__ */

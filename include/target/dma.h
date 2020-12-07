@@ -45,6 +45,7 @@
 #include <target/generic.h>
 #include <asm/dma.h>
 
+/* dma_dir_t */
 #define DMA_BIDIRECTIONAL	0
 #define DMA_TO_DEVICE		1
 #define DMA_FROM_DEVICE		2
@@ -58,34 +59,34 @@ typedef uint8_t dma_t;
 typedef uint16_t dma_t;
 #endif
 
-typedef uint8_t dma_dir_t;
+/* SoC specific DMA offset, should be defined in asm/mach/dma.h */
+#ifdef DMA_HW_PHYS_OFFSET
+#define DMA_PHYS_OFFSET		DMA_HW_PHYS_OFFSET
+#else
+#define DMA_PHYS_OFFSET		0
+#endif
 
-typedef phys_addr_t dma_addr_t;
+typedef uint8_t dma_dir_t;
 
 #include <driver/dmac.h>
 
+#define __phys_to_dma(phys_addr)	((phys_addr) - DMA_PHYS_OFFSET)
+#define __dma_to_phys(dma_addr)		((dma_addr) + DMA_PHYS_OFFSET)
+
+void dma_register_channel(dma_t dma, irq_handler cmpl);
+
 /* DMA direct */
-void dma_direct_sync_single_for_cpu(dma_addr_t addr, size_t size,
-				    dma_dir_t dir);
+dma_addr_t dma_direct_map(dma_t dma, void *phys, size_t size, dma_dir_t dir);
+void dma_direct_unmap(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir);
+void dma_direct_sync_cpu(dma_t dma, dma_addr_t addr, size_t size,
+			 dma_dir_t dir);
+void dma_direct_sync_dev(dma_t dma, dma_addr_t addr, size_t size,
+			 dma_dir_t dir);
 
-dma_addr_t dma_direct_map_page(dma_t dma, struct page *page,
-			       unsigned long offset, size_t size,
-			       dma_dir_t dir, unsigned long attrs);
-void dma_direct_unmap_page(dma_t dma, dma_addr_t addr, size_t size,
-			   dma_dir_t dir, unsigned long attrs);
-dma_addr_t dma_map_page_attrs(dma_t dma, struct page *page,
-			      size_t offset, size_t size, dma_dir_t dir,
-			      unsigned long attrs);
-void dma_unmap_page_attrs(dma_t dma, dma_addr_t addr, size_t size,
-			  dma_dir_t dir, unsigned long attrs);
-dma_addr_t dma_map_single_attrs(dma_t dma, void *ptr, size_t size,
-				dma_dir_t dir, unsigned long attrs);
-void dma_unmap_single_attrs(dma_t dma, dma_addr_t addr, size_t size,
-			    dma_dir_t dir, unsigned long attrs);
-
-dma_addr_t dma_map_single(void *pages, size_t size, dma_dir_t dir);
-void dma_unmap_single(dma_addr_t dma, size_t size, dma_dir_t dir);
-void dma_sync_single_for_dev(dma_addr_t addr, size_t size, dma_dir_t dir);
+dma_addr_t dma_map_single(dma_t dma, void *ptr, size_t size, dma_dir_t dir);
+void dma_unmap_single(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir);
+void dma_sync_cpu(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir);
+void dma_sync_dev(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir);
 #endif /* __ASSEMBLY__ */
 
 #endif /* __DMA_H_INCLUDE__ */

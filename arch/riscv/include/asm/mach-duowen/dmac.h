@@ -15,6 +15,11 @@
 #ifdef CONFIG_DW_DMA
 void smmu_dma_alloc_sme(void);
 void dmac_hw_ctrl_init(void);
+
+dma_addr_t dma_hw_map_single(dma_t dma, void *ptr,
+			     size_t size, dma_dir_t dir);
+void dma_hw_unmap_single(dma_t dma, dma_addr_t addr,
+			 size_t size, dma_dir_t dir);
 #else
 #define smmu_dma_alloc_sme()		do { } while (0)
 #endif

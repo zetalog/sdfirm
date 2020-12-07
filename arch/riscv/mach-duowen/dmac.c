@@ -56,6 +56,17 @@ void smmu_dma_alloc_sme(void)
 	duowen_dma_iommus[7] = iommu_register_master(SMMU_SME_DMA_TBU7);
 }
 
+dma_addr_t dma_hw_map_single(dma_t dma, void *ptr,
+			     size_t size, dma_dir_t dir)
+{
+	return (dma_addr_t)ptr;
+}
+
+void dma_hw_unmap_single(dma_t dma, dma_addr_t addr,
+			 size_t size, dma_dir_t dir)
+{
+}
+
 void dmac_hw_ctrl_init(void)
 {
 	/* TODO: clock enabling */

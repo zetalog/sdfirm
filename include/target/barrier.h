@@ -128,7 +128,7 @@ void __write_once_size(volatile void *p, void *res, int size)
 #endif
 
 #ifndef __dma_mb
-#define __dma_mb	mb()
+#define __dma_mb()	mb()
 #endif
 
 #ifndef __dma_rmb
