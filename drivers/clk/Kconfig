@@ -5,6 +5,9 @@
 
 menu "Clock drivers"
 
+config ARCH_HAS_DW_PLL5GHZ_TIMING
+	bool
+
 menuconfig DW_PLL5GHZ_TSMC12FFC
 	bool "Synopsys DWC PLL5GHz TSMC12FFCNS support"
 	depends CLK
@@ -89,9 +92,16 @@ config DW_PLL5GHZ_TSMC12FFC_CNT_LOCKED
 	  detect an unexpected PLL lock states.
 	  If unsure, say 'N'.
 
+config DW_PLL5GHZ_TSMC12FFC_SOC_TIMING
+	bool "Enable SoC timing support"
+	depends ARCH_HAS_DW_PLL5GHZ_TIMING
+	help
+	  In DUOWEN SoC new version, there are timing indicator bits
+	  can be used by the software to poll.
+
 config DW_PLL5GHZ_TSMC12FFC_ACCEL
 	bool "Enable acceleration for emulation"
-	depends SIMULATION
+	depends SIMULATION && !DW_PLL5GHZ_TSMC12FFC_SOC_TIMING
 	help
 	  In emulation environment, t_pwrstb, t_trst and t_pwron can be
 	  omit to accelerate emulation.

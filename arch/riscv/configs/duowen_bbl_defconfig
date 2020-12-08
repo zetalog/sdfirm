@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Dec  2 14:53:35 2020
+# Tue Dec  8 18:12:24 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -241,8 +241,8 @@ CONFIG_DUOWEN_DDR_32M=y
 # CONFIG_DUOWEN_DDR_64M is not set
 # CONFIG_DUOWEN_DDR_128M is not set
 # CONFIG_DUOWEN_DDR_256M is not set
-# CONFIG_DUOWEN_DDR_512G is not set
 # CONFIG_DUOWEN_DDR_16G is not set
+# CONFIG_DUOWEN_DDR_512G is not set
 
 #
 # Feature setup
@@ -299,6 +299,8 @@ CONFIG_NO_ZERO_BSS=y
 # CONFIG_HEAP is not set
 # CONFIG_MEM is not set
 # CONFIG_PAGE is not set
+CONFIG_ARCH_HAS_DMAC=y
+# CONFIG_DMA is not set
 CONFIG_ARCH_HAS_FP=y
 # CONFIG_FP is not set
 
@@ -341,8 +343,6 @@ CONFIG_ARCH_HAS_SPI=y
 # CONFIG_SPI is not set
 CONFIG_ARCH_HAS_I2C=y
 # CONFIG_I2C is not set
-CONFIG_ARCH_HAS_DMAC=y
-# CONFIG_DMA is not set
 # CONFIG_USB is not set
 # CONFIG_SCS is not set
 # CONFIG_MTD is not set
@@ -373,6 +373,7 @@ CONFIG_ARCH_HAS_APB_40=y
 #
 # Clock drivers
 #
+CONFIG_ARCH_HAS_DW_PLL5GHZ_TIMING=y
 # CONFIG_DW_PLL5GHZ_TSMC12FFC is not set
 
 #
@@ -558,6 +559,7 @@ CONFIG_PRINT_PRINTF=y
 CONFIG_STRING_STRTOUL=y
 CONFIG_STRING_STRTOULL=y
 # CONFIG_STRING_UUID is not set
+# CONFIG_STRING_GETOPT is not set
 # CONFIG_STRING_BYTELIST is not set
 
 #

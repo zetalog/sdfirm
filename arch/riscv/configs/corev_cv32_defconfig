@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Dec  2 14:59:11 2020
+# Tue Dec  8 18:18:38 2020
 #
 CONFIG_32BIT=y
 CONFIG_RISCV=y
@@ -180,6 +180,7 @@ CONFIG_MEM=y
 CONFIG_MEM_MAX_REGIONS=4
 CONFIG_MEM_RESIZE=y
 # CONFIG_PAGE is not set
+# CONFIG_DMA is not set
 CONFIG_ARCH_HAS_FP=y
 # CONFIG_FP is not set
 
@@ -218,7 +219,6 @@ CONFIG_UART_115200=y
 # CONFIG_UART is not set
 # CONFIG_SPI is not set
 # CONFIG_I2C is not set
-# CONFIG_DMA is not set
 # CONFIG_USB is not set
 # CONFIG_SCS is not set
 # CONFIG_MTD is not set
@@ -400,6 +400,7 @@ CONFIG_PRINT_PRINTF=y
 CONFIG_STRING_STRTOUL=y
 CONFIG_STRING_STRTOULL=y
 # CONFIG_STRING_UUID is not set
+# CONFIG_STRING_GETOPT is not set
 # CONFIG_STRING_BYTELIST is not set
 
 #

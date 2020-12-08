@@ -376,6 +376,7 @@ endif
 menuconfig CRCNTL
 	bool "Duowen clock/reset controller (CRCNTL) support"
 	select DW_PLL5GHZ_TSMC12FFC if DUOWEN_ASIC
+	select ARCH_HAS_DW_PLL5GHZ_TIMING if DUOWEN_SOCv2
 	select CRCNTL_MUX if !DUOWEN_FPGA
 
 if CRCNTL

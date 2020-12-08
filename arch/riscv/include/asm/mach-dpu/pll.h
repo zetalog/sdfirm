@@ -57,7 +57,7 @@ extern caddr_t dpu_pll_reg_base;
 #define NR_PLLS				6
 
 /* DW PLL5GHz TSMC12FFC registers */
-#define DW_PLL_REFCLK_FREQ		XIN_FREQ
+#define DW_PLL_F_REFCLK(pll)		XIN_FREQ
 #define DW_PLL_CFG0(pll)		PLL_REG(pll, 0x00)
 #define DW_PLL_CFG1(pll)		PLL_REG(pll, 0x04)
 #define DW_PLL_STATUS(pll)		PLL_REG(pll, 0x08)

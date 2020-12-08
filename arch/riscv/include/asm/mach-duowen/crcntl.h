@@ -42,9 +42,16 @@
 #ifndef __CRCNTL_DUOWEN_H_INCLUDE__
 #define __CRCNTL_DUOWEN_H_INCLUDE__
 
-#define DW_PLL_REFCLK_FREQ		XO_CLK_FREQ
+#define DW_PLL_F_REFCLK(pll)		XO_CLK_FREQ
 #define __dw_pll_read(pll, reg)		duowen_pll_reg_read(pll, reg)
 #define __dw_pll_write(pll, reg, val)	duowen_pll_reg_write(pll, reg, val)
+#define __dw_pll_wait(pll, timing)	duowen_pll_wait_timing(pll, timing)
+#define DW_PLL_T_SPO			22 /* until enp/enr can be set */
+#define DW_PLL_T_GS			21 /* until gearshif can be unset */
+#define DW_PLL_T_PRST			20 /* during PRESET */
+#define DW_PLL_T_TRST			19 /* until pwron can be set */
+#define DW_PLL_T_PWRON			18 /* until rst_n can be set */
+#define DW_PLL_T_PWRSTB			17 /* until test_rst_n can be set */
 
 /* PLL IDs is kept AS IS to make base addresses simpler, see
  * COHFAB_CLK_PLL() and COHFAB_CLK_SEL_PLL() for details.
@@ -69,6 +76,11 @@ extern phys_addr_t duowen_pll_reg_base[];
 #define DW_PLL_STATUS(pll)		DW_PLL_REG(pll, 0x0C)
 #define DW_PLL_REG_ACCESS(pll)		DW_PLL_REG(pll, 0x10)
 #define DW_PLL_REG_TIMING(pll)		DW_PLL_REG(pll, 0x14)
+#define DW_PLL_HW_CFG(pll)		DW_PLL_REG(pll, 0x18)
+#define DW_PLL_REFCLK_FREQ(pll)		DW_PLL_REG(pll, 0x1C)
+#define DW_PLL_CLK_P_FREQ(pll)		DW_PLL_REG(pll, 0x20)
+#define DW_PLL_CLK_R_FREQ(pll)		DW_PLL_REG(pll, 0x24)
+#define DW_PLL_CNT(pll)			DW_PLL_REG(pll, 0x28)
 
 #include <driver/dw_pll5ghz_tsmc12ffc.h>
 
@@ -180,6 +192,33 @@ extern caddr_t duowen_eth_clk_reg_base;
 #define PLL_REG_WRITE		_BV(1)
 #define PLL_REG_READ		_BV(0)
 
+/* PLL_HW_CFG */
+#define PLL_WAIT_T(timing)	_BV(timing)
+#define PLL_HW_CFG_BUSY		_BV(16)
+#define PLL_OPTION_OFFSET	4
+#define PLL_OPTION_MASK		REG_4BIT_MASK
+#define PLL_OPTION(value)	_SET_FV(PLL_OPTION, value)
+/* Pre-defined PLL output options */
+#define PLL_OPTION_2500M	1
+#define PLL_OPTION_2000M	2
+#define PLL_OPTION_1800M	3
+#define PLL_OPTION_1000M	4
+#define PLL_OPTION_800M		5
+#define PLL_OPTION_666M		6
+#define PLL_OPTION_600M		7
+#define PLL_OPTION_533M		8
+#define PLL_OPTION_466M		9
+#define PLL_OPTION_400M		10
+#define PLL_OPTION_100M		11
+#define PLL_OPTION_156250K	12
+#define PLL_HW_START		_BV(1)
+
+/* PLL_CNT */
+#define PLL_CNT_EN		_BV(16)
+#define PLL_COUNTER_OFFSET	0
+#define PLL_COUNTER_MASK	REG_10BIT_MASK
+#define PLL_COUNTER(value)	_GET_FV(PLL_COUNTER, value)
+
 /* APIs here can be invoked w/o enabling clock tree core */
 bool crcntl_clk_asserted(clk_clk_t clk);
 void crcntl_clk_assert(clk_clk_t clk);
@@ -231,6 +270,8 @@ void crcntl_trace(bool enabling, const char *name);
 	dw_pll5ghz_tsmc12ffc_disable(pll, r)
 void duowen_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val);
 uint8_t duowen_pll_reg_read(uint8_t pll, uint8_t reg);
+#define duowen_pll_wait_timing(pll, timing)		\
+	(!!(__raw_readl(DW_PLL_HW_CFG(pll)) & PLL_WAIT_T(timing)))
 
 /* power control */
 #ifdef CONFIG_DUOWEN_SOCv1
