@@ -27,10 +27,11 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "hp:t:" opt
+while getopts "hnp:t:" opt
 do
 	case $opt in
 	h) usage 0;;
+	n) QEMU_OPTS="-netdev type=tap,script=qemu-ifup,downscript=qemu-ifdown,id=net0 -device virtio-net-device,netdev=net0 ${QEMU_OPTS}";;
 	p) QEMU_OPTS="-smp $OPTARG ${QEMU_OPTS}";;
 	t) QEMU_DTS=$OPTARG;;
 	?) echo "Invalid argument $opt"
