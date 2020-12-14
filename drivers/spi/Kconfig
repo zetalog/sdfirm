@@ -26,7 +26,7 @@ config ARCH_HAS_SSI_SPI
 config ARCH_HAS_SSI_SSP
 	bool
 
-config ARCH_HAS_SSI_MICROWAVE
+config ARCH_HAS_SSI_MICROWIRE
 	bool
 
 config ARCH_HAS_SSI_SPI_1WIRE
@@ -146,7 +146,7 @@ config DW_SSI_DFLT_FRF_SSP
 
 config DW_SSI_DFLT_FRF_MICROWIRE
 	bool "NatSemi Microwire"
-	depends ARCH_HAS_SSI_MICROWAVE
+	depends ARCH_HAS_SSI_MICROWIRE
 
 endchoice
 

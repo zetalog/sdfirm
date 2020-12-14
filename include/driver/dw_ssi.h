@@ -129,7 +129,7 @@
 #define SSI_FRF(value)		_SET_FV(SSI_FRF, value)
 #define SSI_FRF_SPI		0
 #define SSI_FRF_SSP		1
-#define SSI_FRF_MICROWAVE	2
+#define SSI_FRF_MICROWIRE	2
 #ifdef CONFIG_DW_SSI_MAX_XFER_SIZE_16
 #define DW_SSI_MAX_XFER_SIZE	16
 #define SSI_DFS_OFFSET		0
