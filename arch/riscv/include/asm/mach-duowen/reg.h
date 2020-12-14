@@ -152,8 +152,35 @@
 #ifdef CONFIG_DUOWEN_DDR_256M
 #define DDR_SIZE		SZ_256M
 #endif
+#ifdef CONFIG_DUOWEN_DDR_512M
+#define DDR_SIZE		SZ_512M
+#endif
+#ifdef CONFIG_DUOWEN_DDR_1G
+#define DDR_SIZE		SZ_1G
+#endif
+#ifdef CONFIG_DUOWEN_DDR_2G
+#define DDR_SIZE		SZ_2G
+#endif
+#ifdef CONFIG_DUOWEN_DDR_4G
+#define DDR_SIZE		SZ_4G
+#endif
+#ifdef CONFIG_DUOWEN_DDR_8G
+#define DDR_SIZE		SZ_8G
+#endif
 #ifdef CONFIG_DUOWEN_DDR_16G
 #define DDR_SIZE		SZ_16G
+#endif
+#ifdef CONFIG_DUOWEN_DDR_32G
+#define DDR_SIZE		SZ_32G
+#endif
+#ifdef CONFIG_DUOWEN_DDR_64G
+#define DDR_SIZE		SZ_64G
+#endif
+#ifdef CONFIG_DUOWEN_DDR_128G
+#define DDR_SIZE		SZ_128G
+#endif
+#ifdef CONFIG_DUOWEN_DDR_256G
+#define DDR_SIZE		SZ_256G
 #endif
 #ifdef CONFIG_DUOWEN_DDR_512G
 #define DDR_SIZE		SZ_512G
