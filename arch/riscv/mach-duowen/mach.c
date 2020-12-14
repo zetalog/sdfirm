@@ -50,27 +50,6 @@
 #include <target/dma.h>
 #include <target/pci.h>
 
-#define __imc_boot_flash() (IMC_BOOT_FLASH_TYPE(__raw_readl(SCSR_BOOT_MODE)))
-
-uint8_t imc_boot_mode(void)
-{
-	uint8_t flash;
-
-	if (imc_sim_mode() == IMC_BOOT_SIM)
-		return __raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_DDR;
-
-	flash = __imc_boot_flash();
-	return flash == IMC_BOOT_FLASH ? IMC_BOOT_FLASH : IMC_BOOT_ROM;
-}
-
-uint8_t imc_boot_flash(void)
-{
-	if (imc_sim_mode() == IMC_BOOT_SIM)
-		return __raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_SSI;
-
-	return __imc_boot_flash();
-}
-
 #ifdef CONFIG_DUOWEN_PMA
 void duowen_pma_init(void)
 {
@@ -200,12 +179,15 @@ void board_boot(void)
 #else
 void board_boot(void)
 {
-	__unused uint8_t flash_sel = imc_boot_flash();
+	__unused uint8_t load_sel = imc_load_from();
 
 	board_init_clock();
-	if (flash_sel == IMC_BOOT_SPI)
-		duowen_load_spi();
-	if (flash_sel == IMC_BOOT_SSI)
+#if 0
+	/* TODO: SD boot */
+	if (load_sel == IMC_BOOT_SD)
+		duowen_load_sd();
+	if (load_sel == IMC_BOOT_SSI)
+#endif
 		duowen_load_ssi();
 }
 #endif
@@ -255,42 +237,15 @@ static int do_duowen_reboot(int argc, char *argv[])
 	return 0;
 }
 
-const char *imc_boot2name(uint8_t boot_mode)
-{
-	switch (boot_mode) {
-	case IMC_BOOT_ROM:
-		return "rom";
-	case IMC_BOOT_FLASH:
-		return "flash";
-	case IMC_BOOT_RAM:
-		return "ram";
-	case IMC_BOOT_DDR:
-		return "ddr";
-	default:
-		return "unknown";
-	}
-}
-
-const char *imc_flash2name(uint8_t boot_flash)
-{
-	switch (boot_flash) {
-	case IMC_BOOT_SD:
-		return "sd";
-	case IMC_BOOT_SPI:
-		return "spi";
-	case IMC_BOOT_SSI:
-		return "ssi";
-	default:
-		return "unknown";
-	}
-}
-
 static int do_duowen_info(int argc, char *argv[])
 {
-	printf("SIM  : %s\n", imc_sim_mode() ? "sim" : "asic");
-	printf("CPU  : %s\n", imc_boot_cpu() ? "APC" : "IMC");
-	printf("Mode : %s\n", imc_boot2name(imc_boot_mode()));
-	printf("Flash: %s\n", imc_flash2name(imc_boot_flash()));
+	printf("SIM : %s\n", imc_sim_mode() ? "sim" : "asic");
+	printf("CPU : %s\n", imc_boot_cpu() ? "APC" : "IMC");
+	if (imc_sim_mode() == IMC_BOOT_ASIC)
+		printf("BOOT: %s\n", imc_boot_from() ? "SPI" : "ROM");
+	else
+		printf("BOOT: %s\n", imc_sim_boot_from() ? "DDR" : "RAM");
+	printf("LOAD: %s\n", imc_load_from() ? "SSI0" : "SD");
 	return 0;
 }
 

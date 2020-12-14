@@ -88,32 +88,39 @@
 #define SCSR_MAJOR_MASK			REG_8BIT_MASK
 #define SCSR_MAJOR(value)		_GET_FV(SCSR_MAJOR, value)
 /* BOOT_MODE */
-#define IMC_BOOT_FLASH_TYPE_OFFSET	0
-#define IMC_BOOT_FLASH_TYPE_MASK	REG_2BIT_MASK
-#define IMC_BOOT_FLASH_TYPE(value)	_GET_FV(IMC_BOOT_FLASH_TYPE, value)
-/* SIM modes */
-#define IMC_BOOT_SIM			0x08
+/* Boot modes:
+ * SIM type is encoded in bit-3:
+ *  SIM=0(asic): real chip
+ *  SIM=1(sim): simulators
+ * Boot CPU is encoded in bit-2:
+ *  CPU=0(imc): boot from IMC boot addresses
+ *  CPU=1(apc): boot from APC boot addresses
+ * Boot rom (boot from) is encoded in bit-1, but in different SIM type, it
+ * encodes different usages:
+ *  SIM type is asic:
+ *   MODE=0(ROM): internal ROM:
+ *   MODE=1(SPI): external ROM, i.e., SPI flash
+ *  SIM type is sim:
+ *   MODE=0(RAM): internal SRAM
+ *   MODE=1(DDR): external DDR
+ * Boot storage (load from) is enocded in bit-0:
+ *  FLASH=0(SD): SDHC is used for locating next loaders
+ *  FLASH=1(SSI): SSI0 flash is used for locating next loaders
+ */
+/* SIM types */
 #define IMC_BOOT_ASIC			0x00
+#define IMC_BOOT_SIM			0x08
 /* Boot CPUs */
 #define IMC_BOOT_IMC			0x00
 #define IMC_BOOT_APC			0x04
-/* Boot flashes */
+/* Boot roms (boot from) */
+#define IMC_BOOT_ROM			0x00 /* IMC_BOOT_ASIC */
+#define IMC_BOOT_SPI			0x02 /* IMC_BOOT_ASIC */
+#define IMC_BOOT_RAM			0x00 /* IMC_BOOT_SIM */
+#define IMC_BOOT_DDR			0x02 /* IMC_BOOT_SIM */
+/* Boot storages (load from) */
 #define IMC_BOOT_SD			0x00
 #define IMC_BOOT_SSI			0x01
-#define IMC_BOOT_SPI			0x02
-/* Boot modes:
- * BOOT_SIM=0: MODE is encoded in low 2-bits
- *  MODE=3=BOOT_FLASH: external ROM
- *  MODE=others: 0/1/2 encodes BOOT_SD/SSI/SPI boot flash
- *       1=BOOT_ROM:    internal ROM
- * BOOT_SIM=1: MODE is encoded in bit-1, FLASH is enocded in bit-0
- *  MODE=0=BOOT_RAM:    internal SRAM
- *  MODE=2=BOOT_DDR:    fake DDR model
- */
-#define IMC_BOOT_ROM			0x01 /* BOOT_SD/SSI/SPI */
-#define IMC_BOOT_FLASH			0x03
-#define IMC_BOOT_RAM			0x00
-#define IMC_BOOT_DDR			0x02
 
 /* SHUTDN_REQ/ACK */
 #define IMC_DDR1_CTRL			15
@@ -167,6 +174,9 @@
 	} while (0)
 #define imc_sim_mode()		(__raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_SIM)
 #define imc_boot_cpu()		(__raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_APC)
+#define imc_boot_from()		(__raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_SPI)
+#define imc_sim_boot_from()	(__raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_DDR)
+#define imc_load_from()		(__raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_SSI)
 
 #define IMC_AXI_REQ(periph)		_BV(periph)
 #define IMC_AXI_ACTIVE(periph)		_BV((periph) + 16)
@@ -204,8 +214,6 @@
 	} while (0)
 
 #ifndef __ASSEMBLY__
-uint8_t imc_boot_flash(void);
-uint8_t imc_boot_mode(void);
 void imc_axi_register_periphs(uint16_t periphs);
 void imc_axi_unregister_periphs(uint16_t periphs);
 int imc_pma_set(int n, unsigned long attr,
