@@ -209,6 +209,8 @@ void board_early_init(void)
 
 void board_late_init(void)
 {
+	duowen_ssi_irq_init();
+	duowen_ssi_flash_init();
 	/* TODO: DDR/CFAB/APC AXI clocks need to be enabled before
 	 *       initializing NoC.
 	 */
