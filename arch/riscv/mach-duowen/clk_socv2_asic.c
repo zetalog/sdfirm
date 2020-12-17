@@ -294,6 +294,7 @@ const char *pll_clk_names[NR_PLL_CLKS] = {
 	[CL3_PLL] = "cl3_pll",
 	[ETH_PLL] = "eth_pll",
 	[SYSFAB_PLL] = "sysfab_pll",
+	[SGMII_PLL] = "sgmii_pll",
 };
 
 const char *get_pll_name(clk_clk_t clk)

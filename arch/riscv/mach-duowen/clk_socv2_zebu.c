@@ -225,6 +225,7 @@ uint32_t input_clks[NR_INPUT_CLKS] = {
 	[CL3_PLL] = CL_PLL_FREQ,
 	[ETH_PLL] = ETH_PLL_FREQ,
 	[SYSFAB_PLL] = SFAB_PLL_FREQ,
+	[SGMII_PLL] = SGMII_PLL_FREQ,
 };
 
 #ifdef CONFIG_CONSOLE_COMMAND
@@ -241,6 +242,7 @@ const char *input_clk_names[NR_INPUT_CLKS] = {
 	[CL3_PLL] = "cl3_pll",
 	[ETH_PLL] = "eth_pll",
 	[SYSFAB_PLL] = "sysfab_pll",
+	[SGMII_PLL] = "sgmii_pll",
 };
 
 static const char *get_input_clk_name(clk_clk_t clk)
