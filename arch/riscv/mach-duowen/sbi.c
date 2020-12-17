@@ -65,12 +65,26 @@ static int duowen_early_init(bool cold_boot)
 	return 0;
 }
 
+static int duowen_ether_init(void)
+{
+	/* Enable ethernet clocks:
+	 *
+	 * As long as kernel clock driver is not implemented, we'll enable
+	 * clocks before entering Linux kernel.
+	 */
+	clk_enable(eth_alt_ref_clk);
+	clk_enable(sgmii_ref_clk);
+	return 0;
+}
+
 static int duowen_final_init(bool cold_boot)
 {
 	void *fdt;
 
 	if (!cold_boot)
 		return 0;
+
+	duowen_ether_init();
 
 	fdt = sbi_scratch_thishart_arg1_ptr();
 	duowen_modify_dt(fdt);

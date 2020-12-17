@@ -274,6 +274,11 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 		.freq = SFAB_PLL_FREQ,
 		.enabled = false,
 	},
+	[SGMII_PLL] = {
+		.src = eth_vco,
+		.freq = SGMII_PLL_FREQ,
+		.enabled = false,
+	},
 };
 
 #ifdef CONFIG_CONSOLE_COMMAND
@@ -439,7 +444,7 @@ struct vco_clk vco_clks[NR_VCO_CLKS] = {
 	[ETH_VCO] = {
 		.freq = ETH_VCO_FREQ,
 		.freq_p = ETH_PLL_FREQ,
-		.freq_r = INVALID_FREQ,
+		.freq_r = SGMII_PLL_FREQ,
 		.enabled = false,
 	},
 };

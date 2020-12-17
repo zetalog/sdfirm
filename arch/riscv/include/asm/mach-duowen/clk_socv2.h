@@ -86,8 +86,9 @@
 /* P PLL_OUT clocks use same name as PLLs, R PLL_OUT clocks are defined
  * here.
  */
-#define SYSFAB_PLL		DUOWEN_MAX_PLLS
-#define NR_PLL_CLKS		(SYSFAB_PLL + 1)
+#define SYSFAB_PLL		(DUOWEN_MAX_PLLS + SOC_PLL)
+#define SGMII_PLL		(DUOWEN_MAX_PLLS + ETH_PLL)
+#define NR_PLL_CLKS		(SGMII_PLL + 1)
 #define soc_pll			clkid(CLK_PLL, SOC_PLL)
 #define ddr_bus_pll		clkid(CLK_PLL, DDR_BUS_PLL)
 #define ddr_pll			clkid(CLK_PLL, DDR_PLL)
@@ -99,6 +100,7 @@
 #define cl3_pll			clkid(CLK_PLL, CL3_PLL)
 #define eth_pll			clkid(CLK_PLL, ETH_PLL)
 #define sysfab_pll		clkid(CLK_PLL, SYSFAB_PLL)
+#define sgmii_pll		clkid(CLK_PLL, SGMII_PLL)
 
 /* CLK_SELECT: CLK_SEL_CFG */
 #define SOC_CLK_DIV2_SEL	((clk_clk_t)0) /* SOC_PLL P clock div2 */
@@ -136,9 +138,10 @@
 /* CLK_INPUT */
 #define CLK_PLL			CLK_INPUT
 #define SYSFAB_PLL		((clk_clk_t)(DUOWEN_MAX_PLLS + 0))
-#define XO_CLK			((clk_clk_t)(DUOWEN_MAX_PLLS + 1))
-#define TIC_CLK			((clk_clk_t)(DUOWEN_MAX_PLLS + 2))
-#define JTAG_CLK		((clk_clk_t)(DUOWEN_MAX_PLLS + 3))
+#define SGMII_PLL		((clk_clk_t)(DUOWEN_MAX_PLLS + 1))
+#define XO_CLK			((clk_clk_t)(DUOWEN_MAX_PLLS + 2))
+#define TIC_CLK			((clk_clk_t)(DUOWEN_MAX_PLLS + 3))
+#define JTAG_CLK		((clk_clk_t)(DUOWEN_MAX_PLLS + 4))
 #define NR_INPUT_CLKS		(JTAG_CLK + 1)
 #define soc_pll			clkid(CLK_PLL, SOC_PLL)
 #define ddr_bus_pll		clkid(CLK_PLL, DDR_BUS_PLL)
@@ -151,6 +154,7 @@
 #define cl3_pll			clkid(CLK_PLL, CL3_PLL)
 #define eth_pll			clkid(CLK_PLL, ETH_PLL)
 #define sysfab_pll		clkid(CLK_PLL, SYSFAB_PLL)
+#define sgmii_pll		clkid(CLK_PLL, SGMII_PLL)
 #define xo_clk			clkid(CLK_INPUT, XO_CLK)
 #define tic_clk			clkid(CLK_INPUT, TIC_CLK)
 #define jtag_clk		clkid(CLK_INPUT, JTAG_CLK)
@@ -190,9 +194,10 @@
 #define CLK_PLL			CLK_INPUT
 #define CLK_SELECT		CLK_INPUT
 #define SYSFAB_PLL		((clk_clk_t)(DUOWEN_MAX_PLLS + 0))
-#define XO_CLK			((clk_clk_t)(DUOWEN_MAX_PLLS + 1))
-#define TIC_CLK			((clk_clk_t)(DUOWEN_MAX_PLLS + 2))
-#define JTAG_CLK		((clk_clk_t)(DUOWEN_MAX_PLLS + 3))
+#define SGMII_PLL		((clk_clk_t)(DUOWEN_MAX_PLLS + 1))
+#define XO_CLK			((clk_clk_t)(DUOWEN_MAX_PLLS + 2))
+#define TIC_CLK			((clk_clk_t)(DUOWEN_MAX_PLLS + 3))
+#define JTAG_CLK		((clk_clk_t)(DUOWEN_MAX_PLLS + 4))
 #define NR_INPUT_CLKS		(JTAG_CLK + 1)
 #define soc_pll			clkid(CLK_PLL, SOC_PLL)
 #define ddr_bus_pll		clkid(CLK_PLL, DDR_BUS_PLL)
@@ -205,6 +210,7 @@
 #define cl3_pll			clkid(CLK_PLL, CL3_PLL)
 #define eth_pll			clkid(CLK_PLL, ETH_PLL)
 #define sysfab_pll		clkid(CLK_PLL, SYSFAB_PLL)
+#define sgmii_pll		clkid(CLK_PLL, SGMII_PLL)
 #define xo_clk			clkid(CLK_INPUT, XO_CLK)
 #define tic_clk			clkid(CLK_INPUT, TIC_CLK)
 #define jtag_clk		clkid(CLK_INPUT, JTAG_CLK)
@@ -375,6 +381,8 @@
 #define pcie_aclk		pcie_axi_clk
 #define pcie_alt_ref_clk	pcie_clk
 #define pcie_rst		pcie_alt_ref_clk
+#define eth_alt_ref_clk		eth_pll
+#define sgmii_ref_clk		sgmii_pll
 
 /* CLK_OUTPUT: CLK_EN_CFG1 */
 /* Internal bus clocks */

@@ -21,6 +21,7 @@
 #define IRQ_PTIMER3	29 /* EL3 physical timer */
 #define IRQ_PTIMER1	30 /* EL1 physical timer */
 
+#ifndef __ASSEMBLY__
 typedef __unused uint64_t irq_flags_t;
 
 #define irq_hw_flags_save(x)					\
@@ -41,16 +42,19 @@ typedef __unused uint64_t irq_flags_t;
 	"msr	daifset, #3		// local_irq_disable\n"	\
 	: : : "memory")
 #define irq_hw_ctrl_init()
+#endif /* __ASSEMBLY__ */
 
 #include <asm/mach/irq.h>
 
 #define FALKOR_MIDR	0x510fc000
 
+#ifndef __ASSEMBLY__
 struct pt_regs {
 	unsigned long x0;
 	unsigned long spsr;
 	unsigned long elr;
 	unsigned long regs[31];
 };
+#endif /* __ASSEMBLY__ */
 
 #endif /* __IRQ_ARM64_H_INCLUDE__ */

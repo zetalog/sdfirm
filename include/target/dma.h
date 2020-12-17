@@ -43,6 +43,7 @@
 #define __DMA_H_INCLUDE__
 
 #include <target/generic.h>
+#include <target/irq.h>
 #include <asm/dma.h>
 
 /* dma_dir_t */
