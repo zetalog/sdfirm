@@ -612,9 +612,9 @@
 #else /* CONFIG_SMP */
 			phandle = <0x3>;
 #endif /* CONFIG_SMP */
-			riscv,ndev = <0x35>;
+			riscv,ndev = <0xf0>;
 			reg = <0xff 0x70000000 0x0 0x4000000>;
-			interrupts-extended = <0x2 0x52 0x2 0xa3>;
+			interrupts-extended = <0x2 0xb 0x2 0x9>;
 			interrupt-controller;
 			compatible = "riscv,plic0";
 			#interrupt-cells = <0x1>;
