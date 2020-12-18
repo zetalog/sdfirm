@@ -293,6 +293,7 @@
 #define SPI4_CLK		((clk_clk_t)55)
 #define SPI_FLASH_CLK		((clk_clk_t)56)
 #define SD_CLK			((clk_clk_t)57)
+#define ETH_CLK			((clk_clk_t)58)
 #define TSENSOR_CLK		((clk_clk_t)63)
 
 /* CLK_OUTPUT: CLK_EN_CFG2 */
@@ -303,6 +304,8 @@
 /* Additional output clocks */
 #define COHFAB_CFG_CLK		((clk_clk_t)97)
 #define PCIE_PCLK		((clk_clk_t)98)
+#define ETH_ALT_REF_CLK		((clk_clk_t)99)
+#define SGMII_REF_CLK		((clk_clk_t)100)
 
 /* CLK_OUTPUT: CLUSTER/COHFAB CLK_CFG */
 #define COHFAB_CLK		((clk_clk_t)104)
@@ -371,6 +374,8 @@
 /* Additional clocks */
 #define cohfab_cfg_clk		clkid(CLK_OUTPUT, COHFAB_CFG_CLK)
 #define pcie_pclk		clkid(CLK_OUTPUT, PCIE_PCLK)
+#define eth_alt_ref_clk		clkid(CLK_OUTPUT, ETH_ALT_REF_CLK)
+#define sgmii_ref_clk		clkid(CLK_OUTPUT, SGMII_REF_CLK)
 /* Alias for AO domain clocks */
 #define ram_clk			soc_clk
 #define rom_clk			soc_clk
@@ -381,8 +386,6 @@
 #define pcie_aclk		pcie_axi_clk
 #define pcie_alt_ref_clk	pcie_clk
 #define pcie_rst		pcie_alt_ref_clk
-#define eth_alt_ref_clk		eth_pll
-#define sgmii_ref_clk		sgmii_pll
 
 /* CLK_OUTPUT: CLK_EN_CFG1 */
 /* Internal bus clocks */
@@ -413,6 +416,7 @@
 #define spi3_clk		clkid(CLK_OUTPUT, SPI3_CLK)
 #define spi4_clk		clkid(CLK_OUTPUT, SPI4_CLK)
 #define sd_clk			clkid(CLK_OUTPUT, SD_CLK)
+#define eth_clk			clkid(CLK_OUTPUT, ETH_CLK)
 #define tsensor_clk		clkid(CLK_OUTPUT, TSENSOR_CLK)
 /* TODO: dependency clocks:
  * sd_tm_clk: depends sd_clk, sources soc_pll_div10/100

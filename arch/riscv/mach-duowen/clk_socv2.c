@@ -315,6 +315,23 @@ struct output_clk output_clks[] = {
 		.clk_src = sysfab_clk,
 		.flags = CLK_CR,
 	},
+	/* 4.9 ETH Clocks
+	 */
+	[ETH_CLK] = {
+		.clk_dep = invalid_clk,
+		.clk_src = sysfab_clk,
+		.flags = CLK_CR,
+	},
+	[ETH_ALT_REF_CLK] = {
+		.clk_dep = eth_clk,
+		.clk_src = eth_pll,
+		.flags = 0,
+	},
+	[SGMII_REF_CLK] = {
+		.clk_dep = eth_clk,
+		.clk_src = sgmii_pll,
+		.flags = 0,
+	},
 	/* 4.9 UART Clocks
 	 * +-----------------------------+
 	 * |                             v
@@ -677,6 +694,10 @@ const char *output_clk_names[] = {
 	[PCIE_CLK] = "pcie_clk",
 	/* 4.8 SD Clocks */
 	[SD_CLK] = "sd_clk",
+	/* 4.9 ETH Clocks */
+	[ETH_CLK] = "eth_clk",
+	[ETH_ALT_REF_CLK] = "eth_alt_ref_clk",
+	[SGMII_REF_CLK] = "sgmii_ref_clk",
 	/* 4.9 UART Clocks */
 	[UART0_CLK] = "uart0_clk",
 	[UART1_CLK] = "uart1_clk",
