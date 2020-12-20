@@ -1,0 +1,400 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "Network drivers"
+
+config ARCH_IS_DW_XPCS_XGXS_DTE
+	bool
+
+config ARCH_IS_DW_XPCS_XGXS_PHY
+	bool
+
+config ARCH_IS_DW_XPCS_10000BASE_X
+	bool
+
+config ARCH_IS_DW_XPCS_1000BASE_X
+	bool
+
+config ARCH_HAS_DW_XPCS_1000BASE_X
+	bool
+
+config ARCH_IS_DW_XPCS_BACKPLANE
+	bool
+
+config ARCH_IS_DW_XPCS_10000BASE_R
+	bool
+
+config ARCH_HAS_DW_XPCS_10000BASE_KX4
+	bool
+
+config ARCH_HAS_DW_XPCS_10000BASE_KR
+	bool
+
+config ARCH_HAS_DW_XPCS_5000BASE_KR
+	bool
+
+config ARCH_HAS_DW_XPCS_2500BASE_KX
+	bool
+
+config ARCH_HAS_DW_XPCS_1000BASE_KX
+	bool
+
+config ARCH_IS_DW_XPCS_MDIO
+	bool
+
+config ARCH_IS_DW_XPCS_MCI
+	bool
+
+config ARCH_IS_DW_XPCS_APB
+	bool
+
+config ARCH_IS_DW_XPCS_APB_INDIRECT
+	bool
+	select ARCH_IS_DW_XPCS_APB
+
+config ARCH_IS_DW_XPCS_PHY_SNPS_XAUI
+	bool
+
+config ARCH_IS_DW_XPCS_PHY_GEN1_3G
+	bool
+	select ARCH_IS_DW_XPCS_PHY_SNPS_XAUI
+
+config ARCH_IS_DW_XPCS_PHY_GEN2_3G
+	bool
+	select ARCH_IS_DW_XPCS_PHY_SNPS_XAUI
+
+config ARCH_IS_DW_XPCS_PHY_GEN2_6G
+	bool
+	select ARCH_IS_DW_XPCS_PHY_SNPS_XAUI
+
+config ARCH_IS_DW_XPCS_PHY_GEN4_3G
+	bool
+	select ARCH_IS_DW_XPCS_PHY_SNPS_XAUI
+
+config ARCH_IS_DW_XPCS_PHY_GEN4_6G
+	bool
+	select ARCH_IS_DW_XPCS_PHY_SNPS_XAUI
+
+config ARCH_IS_DW_XPCS_PHY_GEN5_10G
+	bool
+	select ARCH_IS_DW_XPCS_PHY_SNPS_XAUI
+
+config ARCH_IS_DW_XPCS_PHY_GEN5_12G
+	bool
+	select ARCH_IS_DW_XPCS_PHY_SNPS_XAUI
+
+config ARCH_IS_DW_XPCS_PHY_GEN5_16G
+	bool
+	select ARCH_IS_DW_XPCS_PHY_SNPS_XAUI
+
+config ARCH_IS_DW_XPCS_PHY_RX_LSB
+	bool
+	depends !ARCH_IS_DW_XPCS_PHY_SNPS_XAUI
+
+config ARCH_IS_DW_XPCS_PHY_TX_LSB
+	bool
+	depends !ARCH_IS_DW_XPCS_PHY_SNPS_XAUI
+
+config ARCH_HAS_DW_XPCS_PHY_RDY
+	bool
+	depends !ARCH_IS_DW_XPCS_PHY_SNPS_XAUI
+
+config ARCH_HAS_DW_XPCS_KRTR
+	bool
+
+config ARCH_HAS_DW_XPCS_FEC
+	bool
+
+config ARCH_HAS_DW_XPCS_FEC_FORWARD
+	bool
+
+config ARCH_HAS_DW_XPCS_AN
+	bool
+
+config ARCH_HAS_DW_XPCS_EEE
+	bool
+
+config ARCH_HAS_DW_XPCS_GPIO
+	bool
+
+config ARCH_IS_DW_XPCS_SGMII
+	bool
+
+config ARCH_IS_DW_XPCS_QSGMII
+	bool
+
+config ARCH_HAS_DW_XPCS_USXGMII
+	bool
+
+config ARCH_IS_DW_XPCS_XGMII_SDR
+	bool
+
+config ARCH_IS_DW_XPCS_XGMII_DDR
+	bool
+
+config ARCH_IS_DW_XPCS_XGMII_DDW
+	bool
+
+config ARCH_HAS_DW_XPCS_GMII
+	bool
+
+config ARCH_HAS_DW_XPCS_RXAUI
+	bool
+
+config ARCH_HAS_DW_XPCS_SGMII_AN
+	bool
+
+config DW_XPCS
+	bool "Synopsys DesignWare ethernet PCS (XPCS) support"
+
+if DW_XPCS
+
+config DW_XPCS_PMA_PMD_MMD
+	bool
+
+config DW_XPCS_PCS_MMD
+	bool
+	select DW_XPCS_PCS
+
+config DW_XPCS_AN_MMD
+	bool
+
+config DW_XPCS_VS_MII_MMD
+	bool
+
+config DW_XPCS_1000BASE_X
+	bool
+
+config DW_XPCS_PCS
+	bool
+
+choice
+	prompt "Mode of operation"
+
+config DW_XPCS_XGXS
+	bool "XGXS PCS"
+	depends ARCH_IS_DW_XPCS_XGXS_DTE || ARCH_IS_DW_XPCS_XGXS_PHY
+
+config DW_XPCS_10000BASE_X
+	bool "10000BASE-X PCS"
+	depends ARCH_IS_DW_XPCS_10000BASE_X
+	select DW_XPCS_PCS_MMD
+	select DW_XPCS_PMA_PMD_MMD
+
+config DW_XPCS_BACKPLANE
+	bool "Backplane ethernet PCS"
+	depends ARCH_IS_DW_XPCS_BACKPLANE
+	select DW_XPCS_AN_MMD
+	select DW_XPCS_PMA_PMD_MMD
+	select DW_XPCS_PCS_MMD
+
+config DW_XPCS_1000BASE_X_ONLY
+	bool "1000BASE-X PCS"
+	depends ARCH_IS_DW_XPCS_1000BASE_X
+	select DW_XPCS_1000BASE_X
+	select DW_XPCS_PCS_MMD
+	select DW_XPCS_VS_MII_MMD
+
+config DW_XPCS_10000BASE_R
+	bool "10000BASE-R PCS"
+	depends ARCH_IS_DW_XPCS_10000BASE_R
+	select DW_XPCS_PCS_MMD
+
+endchoice
+
+config DW_XPCS_1000BASE_X_ADD
+	bool "Add 1000BASE-X PCS support"
+	depends ARCH_HAS_DW_XPCS_1000BASE_X && \
+		(DW_XPCS_XGXS || DW_XPCS_10000BASE_X || DW_XPCS_10000BASE_R)
+	select DW_XPCS_1000BASE_X
+
+if DW_XPCS_XGXS
+
+choice
+	prompt "XGXS mode"
+
+config DW_XPCS_XGXS_DTE
+	bool "XGXS in DTE"
+	depends ARCH_IS_DW_XPCS_XGXS_DTE
+
+config DW_XPCS_XGXS_PHY
+	bool "XGXS in PHY"
+	depends ARCH_IS_DW_XPCS_XGXS_PHY
+
+endchoice
+
+endif
+
+config DW_XPCS_KX4
+	bool
+
+config DW_XPCS_KR
+	bool
+
+config DW_XPCS_KX
+	bool
+
+if DW_XPCS_BACKPLANE
+
+menu "Backplane ethernet PCS speed"
+
+config DW_XPCS_10000BASE_KX4
+	bool "10000BASE-KX4"
+	depends ARCH_HAS_DW_XPCS_10000BASE_KX4
+	select DW_XPCS_KX4
+
+config DW_XPCS_10000BASE_KR
+	bool "10000BASE-KR"
+	depends ARCH_HAS_DW_XPCS_10000BASE_KR
+	select DW_XPCS_KR
+
+config DW_XPCS_5000BASE_KR
+	bool "5000BASE-KR"
+	depends ARCH_HAS_DW_XPCS_5000BASE_KR
+	select DW_XPCS_KR
+
+config DW_XPCS_2500BASE_KX
+	bool "2500BASE-KX"
+	depends ARCH_HAS_DW_XPCS_2500BASE_KX
+	select DW_XPCS_KX
+
+config DW_XPCS_1000BASE_KX
+	bool "1000BASE-KX"
+	depends ARCH_HAS_DW_XPCS_1000BASE_KX
+	select DW_XPCS_KX
+
+endmenu
+
+endif
+
+choice
+	prompt "Management interface"
+
+config DW_XPCS_MDIO
+	bool "MDIO"
+	depends ARCH_IS_DW_XPCS_MDIO
+
+config DW_XPCS_MCI
+	bool "Micro-controller"
+	depends ARCH_IS_DW_XPCS_MCI
+
+config DW_XPCS_APB
+	bool "APB3"
+	depends ARCH_IS_DW_XPCS_APB
+
+endchoice
+
+config DW_XPCS_RPCS_ONLY
+	bool
+	default y if (DW_XPCS_10000BASE_R && !DW_XPCS_1000BASE_X_ONLY) || \
+		     (!DW_XPCS_KX4 && !DW_XPCS_KX)
+
+config DW_XPCS_RPCS
+	bool
+	default y if DW_XPCS_10000BASE_R || DW_XPCS_KR
+
+config DW_XPCS_USXGMII
+	bool "Enable USXGMII support"
+	depends DW_XPCS_RPCS
+	depends ARCH_HAS_DW_XPCS_USXGMII
+
+config DW_XPCS_KRTR
+	bool "Enable clause 72 KR training support"
+	depends DW_XPCS_KR && ARCH_IS_DW_XPCS_PHY_SNPS_XAUI
+	depends ARCH_HAS_DW_XPCS_KRTR
+
+config DW_XPCS_FEC
+	bool "Enable forward error correction (FEC) support"
+	depends DW_XPCS_KR
+	depends ARCH_HAS_DW_XPCS_FEC
+
+config DW_XPCS_FEC_FORWARD
+	bool "Enable error forwarding support"
+	depends DW_XPCS_FEC
+	depends ARCH_HAS_DW_XPCS_FEC_FORWARD
+
+config DW_XPCS_AN
+	bool "Enable clause 37 auto-negotiation support"
+	depends ARCH_HAS_DW_XPCS_AN
+	depends (DW_XPCS_1000BASE_X_ADD || DW_XPCS_KX) && !DW_XPCS_USXGMII
+
+if (DW_XPCS_AN && (DW_XPCS_1000BASE_X || DW_XPCS_KX)) || \
+   DW_XPCS_1000BASE_X_ONLY
+
+choice
+	prompt "PHY mode"
+
+config DW_XPCS_SGMII
+	bool "SGMII"
+	depends ARCH_IS_DW_XPCS_SGMII
+
+config DW_XPCS_QSGMII
+	bool "QSGMII"
+	depends ARCH_IS_DW_XPCS_QSGMII
+
+endchoice
+
+endif
+
+config DW_XPCS_SINGLE_LANE
+	bool
+	default y if !DW_XPCS_KX && \
+		     !DW_XPCS_1000BASE_X_ONLY && !DW_XPCS_10000BASE_R
+
+if !DW_XPCS_SINGLE_LANE
+
+config DW_XPCS_MAX_LANES
+	int "Number of lanes"
+	range 1 4
+	default 4
+
+endif
+
+if !((!DW_XPCS_KX4 && !DW_XPCS_KR) || DW_XPCS_1000BASE_X_ONLY || \
+     DW_XPCS_USXGMII)
+
+choice
+	prompt "XGMII interface"
+
+config DW_XPCS_XGMII_SDR
+	bool "Single data rate (SDR)"
+	depends ARCH_IS_DW_XPCS_XGMII_SDR
+
+config DW_XPCS_XGMII_DDR
+	bool "Dual data rate (DDR)"
+	depends ARCH_IS_DW_XPCS_XGMII_DDR
+
+config DW_XPCS_XGMII_DDW
+	bool "Dual data rate (DDW)"
+	depends ARCH_IS_DW_XPCS_XGMII_DDW
+
+endchoice
+
+endif
+
+config DW_XPCS_SGMII_AN
+	bool "Enable SGMII PHY automate support"
+	depends DW_XPCS_SGMII
+	depends ARCH_HAS_DW_XPCS_SGMII_AN
+
+config DW_XPCS_GMII
+	bool "Enable GMII support"
+	depends ARCH_HAS_DW_XPCS_GMII
+
+config DW_XPCS_RXAUI
+	bool "Enable RXAUI support"
+	depends ARCH_HAS_DW_XPCS_RXAUI
+
+config DW_XPCS_EEE
+	bool "Enable energy efficiency ethernet (EEE) support"
+	depends ARCH_HAS_DW_XPCS_EEE
+
+config DW_XPCS_GPIO
+	bool "Enable GPIO support"
+	depends ARCH_HAS_DW_XPCS_GPIO
+
+endif
+
+endmenu

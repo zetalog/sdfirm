@@ -47,6 +47,8 @@
 #include <target/ras.h>
 #include <target/noc.h>
 
+#include <asm/mach/eth.h>
+
 static void duowen_modify_dt(void *fdt)
 {
 }
@@ -67,13 +69,7 @@ static int duowen_early_init(bool cold_boot)
 
 static int duowen_ether_init(void)
 {
-	/* Enable ethernet clocks:
-	 *
-	 * As long as kernel clock driver is not implemented, we'll enable
-	 * clocks before entering Linux kernel.
-	 */
-	clk_enable(eth_alt_ref_clk);
-	clk_enable(sgmii_ref_clk);
+	dw_xpcs_init_10g();
 	return 0;
 }
 

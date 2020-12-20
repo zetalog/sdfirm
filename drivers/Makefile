@@ -23,3 +23,4 @@ obj-$(CONFIG_IOMMU) += iommu/
 obj-$(CONFIG_DDR) += ddr/
 obj-y += spd/
 obj-y += noc/
+obj-y += net/

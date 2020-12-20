@@ -653,6 +653,33 @@ endif
 
 endmenu
 
+menuconfig DUOWEN_ETH
+	bool "Duowen ethernet XGMAC/XPCS support"
+	select DW_XPCS
+	select ARCH_IS_DW_XPCS_BACKPLANE
+	select ARCH_HAS_DW_XPCS_10000BASE_KX4
+	select ARCH_HAS_DW_XPCS_10000BASE_KR
+	select ARCH_HAS_DW_XPCS_5000BASE_KR
+	select ARCH_HAS_DW_XPCS_2500BASE_KX
+	select ARCH_HAS_DW_XPCS_1000BASE_KX
+	select ARCH_IS_DW_XPCS_APB_INDIRECT
+	select ARCH_IS_DW_XPCS_PHY_GEN5_16G
+	select ARCH_IS_DW_XPCS_SGMII
+	select ARCH_HAS_DW_XPCS_KRTR
+	select ARCH_HAS_DW_XPCS_AN
+	select ARCH_HAS_DW_XPCS_EEE
+	select ARCH_HAS_DW_XPCS_FEC
+	select ARCH_HAS_DW_XPCS_FEC_FORWARD
+	select ARCH_IS_DW_XPCS_XGMII_SDR
+	select ARCH_HAS_DW_XPCS_RXAUI
+
+if DUOWEN_ETH
+
+config DUOWEN_ETH_LOOPBACK
+	bool "Enable loopback test"
+
+endif
+
 endmenu
 
 endif
