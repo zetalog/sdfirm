@@ -67,6 +67,8 @@
 #define SR(mmd, offset)			((mmd) + 0x0000 + (offset))
 #define VR(mmd, offset)			((mmd) + 0x8000 + (offset))
 
+#define DWCXS_REG(offset)		(DW_XPCS_BASE + (offset))
+
 #ifdef CONFIG_DW_XPCS_PMA_PMD_MMD
 /* PMA MMD Standard (SR) and Vendor Specific (VR) Register (except SERDES
  * Registers) address block

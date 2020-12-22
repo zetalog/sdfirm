@@ -46,6 +46,7 @@
 #define DWCXS_APBI_MMD			0xFF
 #define DWCXS_APBI_BASE(addr)		((addr) >> 8)
 #define DWCXS_APBI_ADDR(addr)		((addr) & 0xff)
+#define DWCXS_APBI_REG(offset)	DWCXS_REG((offset) << DW_XPCS_APBI_OFFSET)
 
 uint16_t xpcs_base;
 
@@ -55,9 +56,9 @@ uint16_t dw_xpcs_read(unsigned long addr)
 
 	if (xpcs_base != base) {
 		xpcs_base = base;
-		__raw_writew(base, DWCXS_APBI_MMD << DW_XPCS_APBI_OFFSET);
+		__raw_writew(base, DWCXS_APBI_REG(DWCXS_APBI_MMD));
 	}
-	return __raw_readw(DWCXS_APBI_ADDR(addr) << DW_XPCS_APBI_OFFSET);
+	return __raw_readw(DWCXS_APBI_REG(DWCXS_APBI_ADDR(addr)));
 }
 
 void dw_xpcs_write(unsigned long addr, uint16_t val)
@@ -66,9 +67,9 @@ void dw_xpcs_write(unsigned long addr, uint16_t val)
 
 	if (xpcs_base != base) {
 		xpcs_base = base;
-		__raw_writew(base, DWCXS_APBI_MMD << DW_XPCS_APBI_OFFSET);
+		__raw_writew(base, DWCXS_APBI_REG(DWCXS_APBI_MMD));
 	}
-	__raw_writew(val, DWCXS_APBI_ADDR(addr) << DW_XPCS_APBI_OFFSET);
+	__raw_writew(val, DWCXS_APBI_REG(DWCXS_APBI_ADDR(addr)));
 }
 #else /* CONFIG_ARCH_IS_DW_XPCS_APB_INDIRECT */
 uint16_t dw_xpcs_read(unsigned long addr)
