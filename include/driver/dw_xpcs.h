@@ -119,6 +119,7 @@
 #define SR_PMA_TYPE_OFFSET		0
 #define SR_PMA_TYPE_MASK		REG_6BIT_MASK
 #define SR_PMA_TYPE(value)		_SET_FV(SR_PMA_TYPE, value)
+#define sr_pma_type(value)		_GET_FV(SR_PMA_TYPE, value)
 #define SR_PMA_10000BASE_CX4		0x00
 #define SR_PMA_10000BASE_EW		0x01
 #define SR_PMA_10000BASE_LW		0x02
@@ -228,6 +229,7 @@
 #define SR_PCS_TYPE_OFFSET		0
 #define SR_PCS_TYPE_MASK		REG_4BIT_MASK
 #define SR_PCS_TYPE(value)		_SET_FV(SR_PCS_TYPE, value)
+#define sr_pcs_type(value)		_GET_FV(SR_PCS_TYPE, value)
 #define SR_PCS_10000BASE_R		0x00
 #define SR_PCS_10000BASE_X		0x01
 #define SR_PCS_25000BASE_X		0x0E

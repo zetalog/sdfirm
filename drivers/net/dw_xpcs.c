@@ -97,17 +97,22 @@ void dw_xpcs_init_10g(void)
 
 	dw_xpcs_write(PMA_MMD, SR_PMA_CTRL1,
 		      SR_PMA_RST | SR_PMA_SS_10G);
-
 	dw_xpcs_hw_sram_init();
 	dw_xpcs_power_init();
+
 	dw_xpcs_an_init();
 
 	dw_xpcs_hw_ctrl_init();
 
 	dw_xpcs_write(PMA_MMD, SR_PMA_CTRL2,
 		      SR_PMA_TYPE(DW_XPCS_PMA_TYPE));
-	dw_xpcs_write(XS_PCS_MMD, SR_XS_PCS_CTRL2,
-		      SR_PCS_TYPE(DW_XPCS_PCS_TYPE));
+	dw_xpcs_hw_sram_init();
+	dw_xpcs_power_init();
 
+	if (DW_XPCS_PCS_TYPE !=
+	    sr_pcs_type(dw_xpcs_write(XS_PCS_MMD, SR_XS_PCS_CTRL2))) {
+		dw_xpcs_write(XS_PCS_MMD, SR_XS_PCS_CTRL2,
+			      SR_PCS_TYPE(DW_XPCS_PCS_TYPE));
+	}
 	while (!(dw_xpcs_read(XS_PCS_MMD, SR_XS_PCS_STS1) & SR_PCS_RLU));
 }

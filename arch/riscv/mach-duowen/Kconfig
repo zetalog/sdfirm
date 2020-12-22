@@ -476,6 +476,24 @@ menuconfig DUOWEN_SSI_FLASH
 
 if DUOWEN_SSI_FLASH
 
+choice
+	prompt "Duowen SSI flash"
+	default DUOWEN_SSI_FLASH_SPI0
+
+config DUOWEN_SSI_FLASH_SPI0
+	bool "SPI0"
+
+config DUOWEN_SSI_FLASH_SPI1
+	bool "SPI1"
+
+config DUOWEN_SSI_FLASH_SPI2
+	bool "SPI2"
+
+config DUOWEN_SSI_FLASH_SPI3
+	bool "SPI3"
+
+endchoice
+
 config DUOWEN_SSI_FLASH_FREQ
 	int "Duowen SSI flash frequency"
 	range 100000 80000000

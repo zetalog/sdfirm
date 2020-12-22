@@ -128,7 +128,7 @@ void dw_ssi_init_master(int n, uint8_t frf, uint8_t tmod,
 	dw_ssi_tmods[n] = tmod;
 	dw_ssi_probe_fifo(n, SSI_TXFTLR, txfifo);
 	dw_ssis[n].tx_fifo_depth = (uint8_t)(txfifo - 1);
-	dw_ssi_probe_fifo(n, SSI_RXFTLR, txfifo);
+	dw_ssi_probe_fifo(n, SSI_RXFTLR, rxfifo);
 	dw_ssis[n].rx_fifo_depth = (uint8_t)(rxfifo - 1);
 	__raw_writel(dw_ssis[n].tx_fifo_depth, SSI_TXFTLR(n));
 	__raw_writel(0, SSI_RXFTLR(n));
