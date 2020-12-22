@@ -1179,7 +1179,7 @@ void smmu_free_sme(iommu_grp_t grp);
 smmu_cb_t smmu_alloc_cb(smmu_cb_t start, smmu_cb_t end);
 void smmu_free_cb(smmu_cb_t cb);
 #else
-#define smmu_alloc_sme(grp, sme)		INVALID_IOMMU_GROUP
+#define smmu_alloc_sme(grp, sme)		INVALID_IOMMU_GRP
 #define smmu_free_sme(grp)			do { } while (0)
 #endif
 

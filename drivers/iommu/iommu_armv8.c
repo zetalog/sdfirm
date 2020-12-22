@@ -310,7 +310,7 @@ static int __arm_lpae_map(unsigned long iova, phys_addr_t paddr,
 			  arm_lpae_iopte *ptep)
 {
 	struct arm_lpae_io_pgtable *data = &arm_io_pgtables[iommu_dom];
-	arm_lpae_iopte *cptep, pte;
+	arm_lpae_iopte *cptep = NULL, pte;
 	size_t block_size = ARM_LPAE_BLOCK_SIZE(lvl, data);
 	size_t tblsz = ARM_LPAE_GRANULE(data);
 	struct io_pgtable_cfg *cfg = &data->cfg;
@@ -447,7 +447,7 @@ static void __arm_lpae_free_pgtable(int lvl, arm_lpae_iopte *ptep)
 	if (lvl == ARM_LPAE_MAX_LEVELS - 1)
 		end = ptep;
 	else
-		end = (void *)ptep + table_size;
+		end = (uint8_t *)ptep + table_size;
 
 	while (ptep != end) {
 		arm_lpae_iopte pte = *ptep++;
@@ -694,7 +694,7 @@ bool arm_64_lpae_alloc_pgtable_s1(struct io_pgtable_cfg *cfg)
 {
 	struct arm_lpae_io_pgtable *data = &arm_io_pgtables[iommu_dom];
 	uint64_t reg;
-	typeof(&cfg->arm_lpae_s1_cfg.tcr) tcr = &cfg->arm_lpae_s1_cfg.tcr;
+	struct arm_lpae_s1_tcr *tcr = &cfg->arm_lpae_s1_cfg.tcr;
 	bool tg1;
 
 	if (!arm_lpae_alloc_pgtable(cfg))

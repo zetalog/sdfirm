@@ -76,7 +76,7 @@ typedef struct io_pgtable_cfg {
 	union {
 		struct {
 			uint64_t ttbr;
-			struct {
+			struct arm_lpae_s1_tcr {
 				uint32_t ips:3;
 				uint32_t tg:2;
 				uint32_t sh:2;

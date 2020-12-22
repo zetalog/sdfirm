@@ -312,7 +312,7 @@
 #else
 #define smmu_probe_vmid(id)						\
 	do {								\
-		if ((id) & ID2_VMID16)					\
+		if ((id) & SMMU_VMID16S)				\
 			smmu_device_ctrl.features |= SMMU_FEAT_VMID16;	\
 	} while (0)
 #endif
