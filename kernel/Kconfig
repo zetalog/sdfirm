@@ -764,6 +764,9 @@ source kernel/iommu/Kconfig
 source kernel/fdt/Kconfig
 source kernel/uefi/Kconfig
 
+config ARCH_HAS_ETH
+	bool
+
 config ARCH_HAS_RAS
 	bool
 

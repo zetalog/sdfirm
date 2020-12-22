@@ -64,6 +64,7 @@ config ARCH_DUOWEN
 	select ARCH_HAS_RAS
 	select ARCH_HAS_NOC
 	select ARCH_HAS_UEFI
+	select ARCH_HAS_ETH
 	select RISCV_COUNTERS if SBI
 	select FDT_BUILTIN if SBI_FDT
 	select DUOWEN_TMR

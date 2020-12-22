@@ -42,10 +42,6 @@
 #ifndef __DW_XPCS_H_INCLUDE__
 #define __DW_XPCS_H_INCLUDE__
 
-#define PMA_MMD				0x10000
-#define XS_DTE_MMD			0x50000
-#define XS_PHY_MMD			0x40000
-#define PCS_MMD				0x30000
 #ifdef CONFIG_DW_XPCS_XGXS_DTE
 #define XS_PCS_MMD			XS_DTE_MMD
 #define XS_PMA_MMD			XS_DTE_MMD
@@ -58,14 +54,13 @@
 #define XS_PCS_MMD			PCS_MMD
 #define XS_PMA_MMD			PMA_MMD
 #endif
-#define AN_MMD				0x70000
-#define VS_MII_1_MMD			0x1A0000
-#define VS_MII_2_MMD			0x1B0000
-#define VS_MII_3_MMD			0x1C0000
-#define VS_MMD1				0x1E0000
-#define VS_MII_MMD			0x1F0000
-#define SR(mmd, offset)			((mmd) + 0x0000 + (offset))
-#define VR(mmd, offset)			((mmd) + 0x8000 + (offset))
+#define VS_MII_1_MMD			0x1A
+#define VS_MII_2_MMD			0x1B
+#define VS_MII_3_MMD			0x1C
+#define VS_MMD1				0x1E
+#define VS_MII_MMD			0x1F
+#define SR(offset)			(0x0000 + (offset))
+#define VR(offset)			(0x8000 + (offset))
 
 #define DWCXS_REG(offset)		(DW_XPCS_BASE + (offset))
 
@@ -73,34 +68,34 @@
 /* PMA MMD Standard (SR) and Vendor Specific (VR) Register (except SERDES
  * Registers) address block
  */
-#define SR_PMA_CTRL1			SR(PMA_MMD, 0x0000)
-#define SR_PMA_STATUS1			SR(PMA_MMD, 0x0001)
-#define SR_PMA_DEV_ID_1			SR(PMA_MMD, 0x0002)
-#define SR_PMA_DEV_ID_2			SR(PMA_MMD, 0x0003)
-#define SR_PMA_SPD_ABL			SR(PMA_MMD, 0x0004)
-#define SR_PMA_DEV_PKG1			SR(PMA_MMD, 0x0005)
-#define SR_PMA_DEV_PKG2			SR(PMA_MMD, 0x0006)
-#define SR_PMA_CTRL2			SR(PMA_MMD, 0x0007)
-#define SR_PMA_STATUS2			SR(PMA_MMD, 0x0008)
-#define SR_PMA_TX_DIS			SR(PMA_MMD, 0x0009)
-#define SR_PMA_RX_SIG_DET		SR(PMA_MMD, 0x000A)
-#define SR_PMA_EXT_ABL			SR(PMA_MMD, 0x000B)
-#define SR_PMA_PKG1			SR(PMA_MMD, 0x000E)
-#define SR_PMA_PKG2			SR(PMA_MMD, 0x000F)
-#define SR_PMA_2PT5G_5G_EXT_ABL		SR(PMA_MMD, 0x0015)
-#define SR_PMA_KX_CTRL			SR(PMA_MMD, 0x00A0)
-#define SR_PMA_KX_STS			SR(PMA_MMD, 0x00A1)
-#define SR_PMA_TIME_SYNC_PMA_ABL	SR(PMA_MMD, 0x0708)
-#define SR_PMA_TIME_SYNC_TX_MAX_DLY_LWR	SR(PMA_MMD, 0x0709)
-#define SR_PMA_TIME_SYNC_TX_MAX_DLY_UPR	SR(PMA_MMD, 0x070A)
-#define SR_PMA_TIME_SYNC_TX_MIN_DLY_LWR	SR(PMA_MMD, 0x070B)
-#define SR_PMA_TIME_SYNC_TX_MIN_DLY_UPR	SR(PMA_MMD, 0x070C)
-#define SR_PMA_TIME_SYNC_RX_MAX_DLY_LWR	SR(PMA_MMD, 0x070D)
-#define SR_PMA_TIME_SYNC_RX_MAX_DLY_UPR	SR(PMA_MMD, 0x070E)
-#define SR_PMA_TIME_SYNC_RX_MIN_DLY_LWR	SR(PMA_MMD, 0x070F)
-#define SR_PMA_TIME_SYNC_RX_MIN_DLY_UPR	SR(PMA_MMD, 0x0710)
-#define VR_PMA_DIG_CTRL1		VR(PMA_MMD, 0x0000)
-#define VR_PMA_DIG_STS			VR(PMA_MMD, 0x0010)
+#define SR_PMA_CTRL1			SR(0x0000)
+#define SR_PMA_STATUS1			SR(0x0001)
+#define SR_PMA_DEV_ID_1			SR(0x0002)
+#define SR_PMA_DEV_ID_2			SR(0x0003)
+#define SR_PMA_SPD_ABL			SR(0x0004)
+#define SR_PMA_DEV_PKG1			SR(0x0005)
+#define SR_PMA_DEV_PKG2			SR(0x0006)
+#define SR_PMA_CTRL2			SR(0x0007)
+#define SR_PMA_STATUS2			SR(0x0008)
+#define SR_PMA_TX_DIS			SR(0x0009)
+#define SR_PMA_RX_SIG_DET		SR(0x000A)
+#define SR_PMA_EXT_ABL			SR(0x000B)
+#define SR_PMA_PKG1			SR(0x000E)
+#define SR_PMA_PKG2			SR(0x000F)
+#define SR_PMA_2PT5G_5G_EXT_ABL		SR(0x0015)
+#define SR_PMA_KX_CTRL			SR(0x00A0)
+#define SR_PMA_KX_STS			SR(0x00A1)
+#define SR_PMA_TIME_SYNC_PMA_ABL	SR(0x0708)
+#define SR_PMA_TIME_SYNC_TX_MAX_DLY_LWR	SR(0x0709)
+#define SR_PMA_TIME_SYNC_TX_MAX_DLY_UPR	SR(0x070A)
+#define SR_PMA_TIME_SYNC_TX_MIN_DLY_LWR	SR(0x070B)
+#define SR_PMA_TIME_SYNC_TX_MIN_DLY_UPR	SR(0x070C)
+#define SR_PMA_TIME_SYNC_RX_MAX_DLY_LWR	SR(0x070D)
+#define SR_PMA_TIME_SYNC_RX_MAX_DLY_UPR	SR(0x070E)
+#define SR_PMA_TIME_SYNC_RX_MIN_DLY_LWR	SR(0x070F)
+#define SR_PMA_TIME_SYNC_RX_MIN_DLY_UPR	SR(0x0710)
+#define VR_PMA_DIG_CTRL1		VR(0x0000)
+#define VR_PMA_DIG_STS			VR(0x0010)
 
 /* SR_PMA_CTRL1 */
 #define SR_PMA_RST			_BV(15)
@@ -116,9 +111,9 @@
 	(SR_PMA_SS13 | SR_PMA_SS6 | SR_PMA_SS52(0))
 
 #define dw_xpcs_enable_loopback()		\
-	dw_xpcs_set(SR_PMA_CTRL1, SR_PMA_LB)
+	dw_xpcs_set(PMA_MMD, SR_PMA_CTRL1, SR_PMA_LB)
 #define dw_xpcs_disable_loopback()		\
-	dw_xpcs_clear(SR_PMA_CTRL1, SR_PMA_LB)
+	dw_xpcs_clear(PMA_MMD, SR_PMA_CTRL1, SR_PMA_LB)
 
 /* SR_PMA_CTRL2 */
 #define SR_PMA_TYPE_OFFSET		0
@@ -145,33 +140,33 @@
 
 /* Optional registers */
 #ifdef CONFIG_DW_XPCS_KR
-#define SR_PMA_KR_PMD_CTRL		SR(PMA_MMD, 0x0096)
-#define SR_PMA_KR_PMD_STS		SR(PMA_MMD, 0x0097)
-#define SR_PMA_KR_LP_CEU		SR(PMA_MMD, 0x0098)
-#define SR_PMA_KR_LP_CESTS		SR(PMA_MMD, 0x0099)
-#define SR_PMA_KR_LD_CEU		SR(PMA_MMD, 0x009A)
-#define SR_PMA_KR_LD_CESTS		SR(PMA_MMD, 0x009B)
-#define VR_PMA_KRTR_PRBS_CTRL0		VR(PMA_MMD, 0x0003)
-#define VR_PMA_KRTR_PRBS_CTRL1		VR(PMA_MMD, 0x0004)
-#define VR_PMA_KRTR_PRBS_CTRL2		VR(PMA_MMD, 0x0005)
-#define VR_PMA_KRTR_TIMER_CTRL0		VR(PMA_MMD, 0x0006)
-#define VR_PMA_KRTR_TIMER_CTRL1		VR(PMA_MMD, 0x0007)
-#define VR_PMA_KRTR_TIMER_CTRL2		VR(PMA_MMD, 0x0008)
-#define VR_PMA_KRTR_RX_EQ_CTRL		VR(PMA_MMD, 0x0009)
-#define VR_PMA_KRTR_TX_EQ_STS_CTRL	VR(PMA_MMD, 0x000B)
-#define VR_PMA_KRTR_TX_EQ_CFF_CTRL	VR(PMA_MMD, 0x000C)
-#define VR_PMA_KRTR_TX_EQ_STS		VR(PMA_MMD, 0x000D)
-#define VR_PMA_KRTR_RX_EQ_CEU		VR(PMA_MMD, 0x000E)
-#define VR_PMA_KRTR_RX_EQ_STS_CTRL	VR(PMA_MMD, 0x000F)
+#define SR_PMA_KR_PMD_CTRL		SR(0x0096)
+#define SR_PMA_KR_PMD_STS		SR(0x0097)
+#define SR_PMA_KR_LP_CEU		SR(0x0098)
+#define SR_PMA_KR_LP_CESTS		SR(0x0099)
+#define SR_PMA_KR_LD_CEU		SR(0x009A)
+#define SR_PMA_KR_LD_CESTS		SR(0x009B)
+#define VR_PMA_KRTR_PRBS_CTRL0		VR(0x0003)
+#define VR_PMA_KRTR_PRBS_CTRL1		VR(0x0004)
+#define VR_PMA_KRTR_PRBS_CTRL2		VR(0x0005)
+#define VR_PMA_KRTR_TIMER_CTRL0		VR(0x0006)
+#define VR_PMA_KRTR_TIMER_CTRL1		VR(0x0007)
+#define VR_PMA_KRTR_TIMER_CTRL2		VR(0x0008)
+#define VR_PMA_KRTR_RX_EQ_CTRL		VR(0x0009)
+#define VR_PMA_KRTR_TX_EQ_STS_CTRL	VR(0x000B)
+#define VR_PMA_KRTR_TX_EQ_CFF_CTRL	VR(0x000C)
+#define VR_PMA_KRTR_TX_EQ_STS		VR(0x000D)
+#define VR_PMA_KRTR_RX_EQ_CEU		VR(0x000E)
+#define VR_PMA_KRTR_RX_EQ_STS_CTRL	VR(0x000F)
 #endif /* CONFIG_DW_XPCS_KR */
 #ifdef CONFIG_DW_XPCS_FEC
-#define SR_PMA_KR_FEC_ABL		SR(PMA_MMD, 0x00AA)
-#define SR_PMA_KR_FEC_CTRL		SR(PMA_MMD, 0x00AB)
-#define SR_PMA_KR_FEC_CORR_BLK1		SR(PMA_MMD, 0x00AC)
-#define SR_PMA_KR_FEC_CORR_BLK2		SR(PMA_MMD, 0x00AD)
+#define SR_PMA_KR_FEC_ABL		SR(0x00AA)
+#define SR_PMA_KR_FEC_CTRL		SR(0x00AB)
+#define SR_PMA_KR_FEC_CORR_BLK1		SR(0x00AC)
+#define SR_PMA_KR_FEC_CORR_BLK2		SR(0x00AD)
 #endif /* CONFIG_DW_XPCS_FEC */
 #ifdef CONFIG_DW_XPCS_GPIO
-#define VR_PMA_GPIO			VR(PMA_MMD, 0x0015)
+#define VR_PMA_GPIO			VR(0x0015)
 #endif /* CONFIG_DW_XPCS_GPIO */
 #endif
 
@@ -179,33 +174,33 @@
 /* PCS MMD/DTE XS MMD/PHY XS MMD Standard (SR) and Vendor Specifc (VR)
  * Registers address block
  */
-#define SR_XS_PCS_CTRL1			SR(XS_PCS_MMD, 0x0000)
-#define SR_XS_PCS_STS1			SR(XS_PCS_MMD, 0x0001)
-#define SR_XS_PCS_DEV_ID1		SR(XS_PCS_MMD, 0x0002)
-#define SR_XS_PCS_DEV_ID2		SR(XS_PCS_MMD, 0x0003)
-#define SR_XS_PCS_SPD_ABL		SR(XS_PCS_MMD, 0x0004)
-#define SR_XS_PCS_DEV_PKG1		SR(XS_PCS_MMD, 0x0005)
-#define SR_XS_PCS_DEV_PKG2		SR(XS_PCS_MMD, 0x0006)
-#define SR_XS_PCS_CTRL2			SR(XS_PCS_MMD, 0x0007)
-#define SR_XS_PCS_STS2			SR(XS_PCS_MMD, 0x0008)
-#define SR_XS_PCS_STS3			SR(XS_PCS_MMD, 0x0009)
-#define SR_XS_PCS_PKG1			SR(XS_PCS_MMD, 0x000E)
-#define SR_XS_PCS_PKG2			SR(XS_PCS_MMD, 0x000F)
-#define SR_XS_PCS_LSTS			SR(XS_PCS_MMD, 0x0018)
-#define SR_PCS_TIME_SYNC_PCS_ABL	SR(XS_PCS_MMD, 0x0708)
-#define SR_PCS_TIME_SYNC_TX_MAX_DLY_LWR	SR(XS_PCS_MMD, 0x0709)
-#define SR_PCS_TIME_SYNC_TX_MAX_DLY_UPR	SR(XS_PCS_MMD, 0x070A)
-#define SR_PCS_TIME_SYNC_TX_MIN_DLY_LWR	SR(XS_PCS_MMD, 0x070B)
-#define SR_PCS_TIME_SYNC_TX_MIN_DLY_UPR	SR(XS_PCS_MMD, 0x070C)
-#define SR_PCS_TIME_SYNC_RX_MAX_DLY_LWR	SR(XS_PCS_MMD, 0x070D)
-#define SR_PCS_TIME_SYNC_RX_MAX_DLY_UPR	SR(XS_PCS_MMD, 0x070E)
-#define SR_PCS_TIME_SYNC_RX_MIN_DLY_LWR	SR(XS_PCS_MMD, 0x070F)
-#define SR_PCS_TIME_SYNC_RX_MIN_DLY_UPR	SR(XS_PCS_MMD, 0x0710)
-#define VR_XS_PCS_DIG_CTRL1		VR(XS_PCS_MMD, 0x0000)
-#define VR_XS_PCS_DIG_CTRL2		VR(XS_PCS_MMD, 0x0001)
-#define VR_XS_PCS_XAUI_CTRL		VR(XS_PCS_MMD, 0x0004)
-#define VR_XS_PCS_DEBUG_CTRL		VR(XS_PCS_MMD, 0x0005)
-#define VR_XS_PCS_DIG_STS		VR(XS_PCS_MMD, 0x0010)
+#define SR_XS_PCS_CTRL1			SR(0x0000)
+#define SR_XS_PCS_STS1			SR(0x0001)
+#define SR_XS_PCS_DEV_ID1		SR(0x0002)
+#define SR_XS_PCS_DEV_ID2		SR(0x0003)
+#define SR_XS_PCS_SPD_ABL		SR(0x0004)
+#define SR_XS_PCS_DEV_PKG1		SR(0x0005)
+#define SR_XS_PCS_DEV_PKG2		SR(0x0006)
+#define SR_XS_PCS_CTRL2			SR(0x0007)
+#define SR_XS_PCS_STS2			SR(0x0008)
+#define SR_XS_PCS_STS3			SR(0x0009)
+#define SR_XS_PCS_PKG1			SR(0x000E)
+#define SR_XS_PCS_PKG2			SR(0x000F)
+#define SR_XS_PCS_LSTS			SR(0x0018)
+#define SR_PCS_TIME_SYNC_PCS_ABL	SR(0x0708)
+#define SR_PCS_TIME_SYNC_TX_MAX_DLY_LWR	SR(0x0709)
+#define SR_PCS_TIME_SYNC_TX_MAX_DLY_UPR	SR(0x070A)
+#define SR_PCS_TIME_SYNC_TX_MIN_DLY_LWR	SR(0x070B)
+#define SR_PCS_TIME_SYNC_TX_MIN_DLY_UPR	SR(0x070C)
+#define SR_PCS_TIME_SYNC_RX_MAX_DLY_LWR	SR(0x070D)
+#define SR_PCS_TIME_SYNC_RX_MAX_DLY_UPR	SR(0x070E)
+#define SR_PCS_TIME_SYNC_RX_MIN_DLY_LWR	SR(0x070F)
+#define SR_PCS_TIME_SYNC_RX_MIN_DLY_UPR	SR(0x0710)
+#define VR_XS_PCS_DIG_CTRL1		VR(0x0000)
+#define VR_XS_PCS_DIG_CTRL2		VR(0x0001)
+#define VR_XS_PCS_XAUI_CTRL		VR(0x0004)
+#define VR_XS_PCS_DEBUG_CTRL		VR(0x0005)
+#define VR_XS_PCS_DIG_STS		VR(0x0010)
 
 /* SR_XS_PCS_CTRL1 */
 #define SR_PCS_RST			_BV(15)
@@ -269,49 +264,49 @@
 
 /* Optional registers */
 #ifdef CONFIG_DW_XPCS_EEE
-#define SR_XS_PCS_EEE_ABL		SR(XS_PCS_MMD, 0x0014)
-#define SR_XS_PCS_EEE_ABL2		SR(XS_PCS_MMD, 0x0015)
-#define SR_XS_PCS_EEE_WKERR		SR(XS_PCS_MMD, 0x0016)
-#define VR_XS_PCS_EEE_MCTRL0		VR(XS_PCS_MMD, 0x0006)
-#define VR_XS_PCS_EEE_TXTIMER		VR(XS_PCS_MMD, 0x0008)
-#define VR_XS_PCS_EEE_RXTIMER		VR(XS_PCS_MMD, 0x0009)
-#define VR_XS_PCS_EEE_MCTRL1		VR(XS_PCS_MMD, 0x000B)
+#define SR_XS_PCS_EEE_ABL		SR(0x0014)
+#define SR_XS_PCS_EEE_ABL2		SR(0x0015)
+#define SR_XS_PCS_EEE_WKERR		SR(0x0016)
+#define VR_XS_PCS_EEE_MCTRL0		VR(0x0006)
+#define VR_XS_PCS_EEE_TXTIMER		VR(0x0008)
+#define VR_XS_PCS_EEE_RXTIMER		VR(0x0009)
+#define VR_XS_PCS_EEE_MCTRL1		VR(0x000B)
 #endif /* CONFIG_DW_XPCS_EEE */
 #ifdef CONFIG_DW_XPCS_RPCS
-#define SR_XS_PCS_KR_STS1		SR(XS_PCS_MMD, 0x0020)
-#define SR_XS_PCS_KR_STS2		SR(XS_PCS_MMD, 0x0021)
-#define SR_XS_PCS_TP_A0			SR(XS_PCS_MMD, 0x0022)
-#define SR_XS_PCS_TP_A1			SR(XS_PCS_MMD, 0x0023)
-#define SR_XS_PCS_TP_A2			SR(XS_PCS_MMD, 0x0024)
-#define SR_XS_PCS_TP_A3			SR(XS_PCS_MMD, 0x0025)
-#define SR_XS_PCS_TP_B0			SR(XS_PCS_MMD, 0x0026)
-#define SR_XS_PCS_TP_B1			SR(XS_PCS_MMD, 0x0027)
-#define SR_XS_PCS_TP_B2			SR(XS_PCS_MMD, 0x0028)
-#define SR_XS_PCS_TP_B3			SR(XS_PCS_MMD, 0x0029)
-#define SR_XS_PCS_TP_CTRL		SR(XS_PCS_MMD, 0x002A)
-#define SR_XS_PCS_TP_ERRCTR		SR(XS_PCS_MMD, 0x002B)
-#define VR_XS_PCS_KR_CTRL		VR(XS_PCS_MMD, 0x0007)
+#define SR_XS_PCS_KR_STS1		SR(0x0020)
+#define SR_XS_PCS_KR_STS2		SR(0x0021)
+#define SR_XS_PCS_TP_A0			SR(0x0022)
+#define SR_XS_PCS_TP_A1			SR(0x0023)
+#define SR_XS_PCS_TP_A2			SR(0x0024)
+#define SR_XS_PCS_TP_A3			SR(0x0025)
+#define SR_XS_PCS_TP_B0			SR(0x0026)
+#define SR_XS_PCS_TP_B1			SR(0x0027)
+#define SR_XS_PCS_TP_B2			SR(0x0028)
+#define SR_XS_PCS_TP_B3			SR(0x0029)
+#define SR_XS_PCS_TP_CTRL		SR(0x002A)
+#define SR_XS_PCS_TP_ERRCTR		SR(0x002B)
+#define VR_XS_PCS_KR_CTRL		VR(0x0007)
 #else /* CONFIG_DW_XPCS_RPCS */
-#define SR_XS_PCS_TCTRL			SR(XS_PCS_MMD, 0x0019)
-#define VR_XS_PCS_DIG_ERRCNT_SEL	VR(XS_PCS_MMD, 0x0002)
-#define VR_XS_PCS_ICG_ERRCNT1		VR(XS_PCS_MMD, 0x0011)
+#define SR_XS_PCS_TCTRL			SR(0x0019)
+#define VR_XS_PCS_DIG_ERRCNT_SEL	VR(0x0002)
+#define VR_XS_PCS_ICG_ERRCNT1		VR(0x0011)
 #endif /* CONFIG_DW_XPCS_RPCS */
 #ifdef CONFIG_ARCH_HAS_DW_XPCS_RSVDPARAM_19
-#define VR_XS_PCS_AM_CTRL		VR(XS_PCS_MMD, 0x000A)
+#define VR_XS_PCS_AM_CTRL		VR(0x000A)
 #endif /* CONFIG_ARCH_HAS_DW_XPCS_RSVDPARAM_19 */
 #ifndef CONFIG_DW_XPCS_SINGLE_LANE
-#define VR_XS_PCS_ICG_ERRCNT2		VR(XS_PCS_MMD, 0x0012)
-#define VR_XS_PCS_DSKW_ERRCTR		VR(XS_PCS_MMD, 0x0013)
-#define VR_XS_PCS_TPM_ERRCTR		VR(XS_PCS_MMD, 0x0014)
+#define VR_XS_PCS_ICG_ERRCNT2		VR(0x0012)
+#define VR_XS_PCS_DSKW_ERRCTR		VR(0x0013)
+#define VR_XS_PCS_TPM_ERRCTR		VR(0x0014)
 #endif /* CONFIG_DW_XPCS_SINGLE_LANE */
 #ifdef CONFIG_DW_XPCS_GPIO
-#define VR_XS_PCS_GPIO			VR(XS_PCS_MMD, 0x0015)
+#define VR_XS_PCS_GPIO			VR(0x0015)
 #endif /* CONFIG_DW_XPCS_GPIO */
 #endif
 
 #if defined(CONFIG_DW_XPCS_PMA_PMD_MMD) || defined(CONFIG_DW_XPCS_XGXS)
 /* SERDES Registers address block */
-#define VR_XS_PMA_RX_LSTS			VR(XS_PMA_MMD, 0x0020)
+#define VR_XS_PMA_RX_LSTS		VR(0x0020)
 
 /* UP3 */
 #ifdef CONFIG_ARCH_IS_DW_XPCS_PHY_GEN1_3G
@@ -346,26 +341,26 @@
 
 /* RSVEDPARAM0 */
 #ifdef CONFIG_ARCH_HAS_DW_XPCS_RSVDPARAM_0
-#define VR_XS_PMA_Consumer_10G_RX_IQ_CTRL0	VR(XS_PMA_MMD, 0x006B)
+#define VR_XS_PMA_Consumer_10G_RX_IQ_CTRL0	VR(0x006B)
 
 /* Optional registers */
 #ifndef CONFIG_DW_XPCS_SINGLE_LANE
-#define VR_XS_PMA_Consumer_10G_RX_IQ_CTRL1	VR(XS_PMA_MMD, 0x006C)
-#define VR_XS_PMA_Consumer_10G_RX_IQ_CTRL2	VR(XS_PMA_MMD, 0x006D)
-#define VR_XS_PMA_Consumer_10G_RX_IQ_CTRL3	VR(XS_PMA_MMD, 0x006E)
+#define VR_XS_PMA_Consumer_10G_RX_IQ_CTRL1	VR(0x006C)
+#define VR_XS_PMA_Consumer_10G_RX_IQ_CTRL2	VR(0x006D)
+#define VR_XS_PMA_Consumer_10G_RX_IQ_CTRL3	VR(0x006E)
 #endif /* CONFIG_DW_XPCS_SINGLE_LANE */
 #endif
 
 /* RSVDPARAM19 */
 #ifdef CONFIG_ARCH_HAS_DW_XPCS_RSVDPARAM_19
-#define VR_XS_PMA_Consumer_10G_TX_TERM_CTRL	VR(XS_PMA_MMD, 0x003C)
-#define VR_XS_PMA_Consumer_10G_RX_TERM_CTRL	VR(XS_PMA_MMD, 0x0064)
+#define VR_XS_PMA_Consumer_10G_TX_TERM_CTRL	VR(0x003C)
+#define VR_XS_PMA_Consumer_10G_RX_TERM_CTRL	VR(0x0064)
 #endif
 
 #ifdef CONFIG_ARCH_IS_DW_XPCS_PHY_SNPS_XAUI
-#define VR_XS_PMA_SNPS_CR_CTRL			VR(XS_PMA_MMD, 0x00A0)
-#define VR_XS_PMA_SNPS_CR_ADDR			VR(XS_PMA_MMD, 0x00A1)
-#define VR_XS_PMA_SNPS_CR_DATA			VR(XS_PMA_MMD, 0x00A2)
+#define VR_XS_PMA_SNPS_CR_CTRL			VR(0x00A0)
+#define VR_XS_PMA_SNPS_CR_ADDR			VR(0x00A1)
+#define VR_XS_PMA_SNPS_CR_DATA			VR(0x00A2)
 #endif
 #endif
 
@@ -373,33 +368,33 @@
 /* Auto-negotiation (AN) MMD Standard (SR) and Vendor Specific (VR)
  * address block
  */
-#define SR_AN_CTRL				SR(AN_MMD, 0x0000)
-#define SR_AN_STS				SR(AN_MMD, 0x0001)
-#define SR_AN_DEV_ID1				SR(AN_MMD, 0x0002)
-#define SR_AN_DEV_ID2				SR(AN_MMD, 0x0003)
-#define SR_AN_DEV_PKG1				SR(AN_MMD, 0x0005)
-#define SR_AN_DEV_PKG2				SR(AN_MMD, 0x0006)
-#define SR_AN_PKG1				SR(AN_MMD, 0x000E)
-#define SR_AN_PKG2				SR(AN_MMD, 0x000F)
-#define SR_AN_ADV1				SR(AN_MMD, 0x0010)
-#define SR_AN_ADV2				SR(AN_MMD, 0x0011)
-#define SR_AN_ADV3				SR(AN_MMD, 0x0012)
-#define SR_AN_LP_ABL1				SR(AN_MMD, 0x0013)
-#define SR_AN_LP_ABL2				SR(AN_MMD, 0x0014)
-#define SR_AN_LP_ABL3				SR(AN_MMD, 0x0015)
-#define SR_AN_XNP_TX1				SR(AN_MMD, 0x0016)
-#define SR_AN_XNP_TX2				SR(AN_MMD, 0x0017)
-#define SR_AN_XNP_TX3				SR(AN_MMD, 0x0018)
-#define SR_AN_LP_XNP_ABL1			SR(AN_MMD, 0x0019)
-#define SR_AN_LP_XNP_ABL2			SR(AN_MMD, 0x001A)
-#define SR_AN_LP_XNP_ABL3			SR(AN_MMD, 0x001B)
-#define SR_AN_COMP_STS				SR(AN_MMD, 0x0030)
-#define VR_AN_DIG_CTRL1				VR(AN_MMD, 0x0000)
-#define VR_AN_INTR_MSK				VR(AN_MMD, 0x0001)
-#define VR_AN_INTR				VR(AN_MMD, 0x0002)
-#define VR_AN_KR_MODE_CTRL			VR(AN_MMD, 0x0003)
-#define VR_AN_TIMER_CTRL0			VR(AN_MMD, 0x0004)
-#define VR_AN_TIMER_CTRL1			VR(AN_MMD, 0x0005)
+#define SR_AN_CTRL				SR(0x0000)
+#define SR_AN_STS				SR(0x0001)
+#define SR_AN_DEV_ID1				SR(0x0002)
+#define SR_AN_DEV_ID2				SR(0x0003)
+#define SR_AN_DEV_PKG1				SR(0x0005)
+#define SR_AN_DEV_PKG2				SR(0x0006)
+#define SR_AN_PKG1				SR(0x000E)
+#define SR_AN_PKG2				SR(0x000F)
+#define SR_AN_ADV1				SR(0x0010)
+#define SR_AN_ADV2				SR(0x0011)
+#define SR_AN_ADV3				SR(0x0012)
+#define SR_AN_LP_ABL1				SR(0x0013)
+#define SR_AN_LP_ABL2				SR(0x0014)
+#define SR_AN_LP_ABL3				SR(0x0015)
+#define SR_AN_XNP_TX1				SR(0x0016)
+#define SR_AN_XNP_TX2				SR(0x0017)
+#define SR_AN_XNP_TX3				SR(0x0018)
+#define SR_AN_LP_XNP_ABL1			SR(0x0019)
+#define SR_AN_LP_XNP_ABL2			SR(0x001A)
+#define SR_AN_LP_XNP_ABL3			SR(0x001B)
+#define SR_AN_COMP_STS				SR(0x0030)
+#define VR_AN_DIG_CTRL1				VR(0x0000)
+#define VR_AN_INTR_MSK				VR(0x0001)
+#define VR_AN_INTR				VR(0x0002)
+#define VR_AN_KR_MODE_CTRL			VR(0x0003)
+#define VR_AN_TIMER_CTRL0			VR(0x0004)
+#define VR_AN_TIMER_CTRL1			VR(0x0005)
 
 /* SR_AN_CTRL */
 #define SR_AN_RST				_BV(15)
@@ -409,18 +404,18 @@
 #define SR_AN_RSTRT_AN				_BV(9)
 
 #define dw_xpcs_an_enabled()			\
-	(!!(dw_xpcs_read(SR_AN_CTRL) & SR_AN_EN))
+	(!!(dw_xpcs_read(AN_MMD, SR_AN_CTRL) & SR_AN_EN))
 #define dw_xpcs_an_enable()			\
-	dw_xpcs_set(SR_AN_CTRL, SR_AN_EN)
+	dw_xpcs_set(AN_MMD, SR_AN_CTRL, SR_AN_EN)
 #define dw_xpcs_an_disable()			\
-	dw_xpcs_clear(SR_AN_CTRL, SR_AN_EN)
+	dw_xpcs_clear(AN_MMD, SR_AN_CTRL, SR_AN_EN)
 
 /* Optional registers */
 #ifdef CONFIG_DW_XPCS_EEE
-#define SR_AN_EEE_ABL1				SR(AN_MMD, 0x003C)
-#define SR_AN_EEE_LP_ABL1			SR(AN_MMD, 0x003D)
-#define SR_AN_EEE_ABL2				SR(AN_MMD, 0x003E)
-#define SR_AN_EEE_LP_ABL2			SR(AN_MMD, 0x003F)
+#define SR_AN_EEE_ABL1				SR(0x003C)
+#define SR_AN_EEE_LP_ABL1			SR(0x003D)
+#define SR_AN_EEE_ABL2				SR(0x003E)
+#define SR_AN_EEE_LP_ABL2			SR(0x003F)
 #endif /* CONFIG_DW_XPCS_EEE */
 
 #define dw_xpcs_an_init()			\
@@ -436,98 +431,98 @@
 /* Vendor Specific MII_1 MMD Standard (SR) and Vendor Specific (VR)
  * Registers address block
  */
-#define SR_MII_1_CTRL				SR(VS_MII_1_MMD, 0x0000)
-#define SR_MII_1_STS				SR(VS_MII_1_MMD, 0x0001)
-#define SR_MII_1_DEV_ID1			SR(VS_MII_1_MMD, 0x0002)
-#define SR_MII_1_DEV_ID2			SR(VS_MII_1_MMD, 0x0003)
-#define SR_MII_1_AN_ADV				SR(VS_MII_1_MMD, 0x0004)
-#define SR_MII_1_LP_BABL			SR(VS_MII_1_MMD, 0x0005)
-#define SR_MII_1_AN_EXPN			SR(VS_MII_1_MMD, 0x0006)
-#define SR_MII_1_EXT_STS			SR(VS_MII_1_MMD, 0x000F)
-#define VR_MII_1_DIG_CTRL1			VR(VS_MII_1_MMD, 0x0000)
-#define VR_MII_1_AN_CTRL			VR(VS_MII_1_MMD, 0x0001)
-#define VR_MII_1_AN_INTR_STS			VR(VS_MII_1_MMD, 0x0002)
-#define VR_MII_1_TC				VR(VS_MII_1_MMD, 0x0003)
-#define VR_MII_1_DBG_CTRL			VR(VS_MII_1_MMD, 0x0005)
-#define VR_MII_1_EEE_MCTRL0			VR(VS_MII_1_MMD, 0x0006)
-#define VR_MII_1_EEE_TXTIMER			VR(VS_MII_1_MMD, 0x0008)
-#define VR_MII_1_EEE_RXTIMER			VR(VS_MII_1_MMD, 0x0009)
-#define VR_MII_1_LINK_TIMER_CTRL		VR(VS_MII_1_MMD, 0x000A)
-#define VR_MII_1_EEE_MCTRL1			VR(VS_MII_1_MMD, 0x000B)
-#define VR_MII_1_DIG_STS			VR(VS_MII_1_MMD, 0x0010)
-#define VR_MII_1_ICG_ERRCNT1			VR(VS_MII_1_MMD, 0x0011)
-#define VR_MII_1_GPIO				VR(VS_MII_1_MMD, 0x0015)
-#define VR_MII_1_DIG_CTRL2			VR(VS_MII_1_MMD, 0x00E1)
-#define VR_MII_1_DIG_ERRCNT_SEL			VR(VS_MII_1_MMD, 0x00E2)
+#define SR_MII_1_CTRL				SR(0x0000)
+#define SR_MII_1_STS				SR(0x0001)
+#define SR_MII_1_DEV_ID1			SR(0x0002)
+#define SR_MII_1_DEV_ID2			SR(0x0003)
+#define SR_MII_1_AN_ADV				SR(0x0004)
+#define SR_MII_1_LP_BABL			SR(0x0005)
+#define SR_MII_1_AN_EXPN			SR(0x0006)
+#define SR_MII_1_EXT_STS			SR(0x000F)
+#define VR_MII_1_DIG_CTRL1			VR(0x0000)
+#define VR_MII_1_AN_CTRL			VR(0x0001)
+#define VR_MII_1_AN_INTR_STS			VR(0x0002)
+#define VR_MII_1_TC				VR(0x0003)
+#define VR_MII_1_DBG_CTRL			VR(0x0005)
+#define VR_MII_1_EEE_MCTRL0			VR(0x0006)
+#define VR_MII_1_EEE_TXTIMER			VR(0x0008)
+#define VR_MII_1_EEE_RXTIMER			VR(0x0009)
+#define VR_MII_1_LINK_TIMER_CTRL		VR(0x000A)
+#define VR_MII_1_EEE_MCTRL1			VR(0x000B)
+#define VR_MII_1_DIG_STS			VR(0x0010)
+#define VR_MII_1_ICG_ERRCNT1			VR(0x0011)
+#define VR_MII_1_GPIO				VR(0x0015)
+#define VR_MII_1_DIG_CTRL2			VR(0x00E1)
+#define VR_MII_1_DIG_ERRCNT_SEL			VR(0x00E2)
 
 /* Vendor Specific MII_2 MMD Standard (SR) and Vendor Specific (VR)
  * Registers address block
  */
-#define SR_MII_2_CTRL				SR(VS_MII_2_MMD, 0x0000)
-#define SR_MII_2_STS				SR(VS_MII_2_MMD, 0x0001)
-#define SR_MII_2_DEV_ID1			SR(VS_MII_2_MMD, 0x0002)
-#define SR_MII_2_DEV_ID2			SR(VS_MII_2_MMD, 0x0003)
-#define SR_MII_2_AN_ADV				SR(VS_MII_2_MMD, 0x0004)
-#define SR_MII_2_LP_BABL			SR(VS_MII_2_MMD, 0x0005)
-#define SR_MII_2_AN_EXPN			SR(VS_MII_2_MMD, 0x0006)
-#define SR_MII_2_EXT_STS			SR(VS_MII_2_MMD, 0x000F)
-#define VR_MII_2_DIG_CTRL1			VR(VS_MII_2_MMD, 0x0000)
-#define VR_MII_2_AN_CTRL			VR(VS_MII_2_MMD, 0x0001)
-#define VR_MII_2_AN_INTR_STS			VR(VS_MII_2_MMD, 0x0002)
-#define VR_MII_2_TC				VR(VS_MII_2_MMD, 0x0003)
-#define VR_MII_2_DBG_CTRL			VR(VS_MII_2_MMD, 0x0005)
-#define VR_MII_2_EEE_MCTRL0			VR(VS_MII_2_MMD, 0x0006)
-#define VR_MII_2_EEE_TXTIMER			VR(VS_MII_2_MMD, 0x0008)
-#define VR_MII_2_EEE_RXTIMER			VR(VS_MII_2_MMD, 0x0009)
-#define VR_MII_2_LINK_TIMER_CTRL		VR(VS_MII_2_MMD, 0x000A)
-#define VR_MII_2_EEE_MCTRL1			VR(VS_MII_2_MMD, 0x000B)
-#define VR_MII_2_DIG_STS			VR(VS_MII_2_MMD, 0x0010)
-#define VR_MII_2_ICG_ERRCNT1			VR(VS_MII_2_MMD, 0x0011)
-#define VR_MII_2_GPIO				VR(VS_MII_2_MMD, 0x0015)
-#define VR_MII_2_DIG_CTRL2			VR(VS_MII_2_MMD, 0x00E1)
-#define VR_MII_2_DIG_ERRCNT_SEL			VR(VS_MII_2_MMD, 0x00E2)
+#define SR_MII_2_CTRL				SR(0x0000)
+#define SR_MII_2_STS				SR(0x0001)
+#define SR_MII_2_DEV_ID1			SR(0x0002)
+#define SR_MII_2_DEV_ID2			SR(0x0003)
+#define SR_MII_2_AN_ADV				SR(0x0004)
+#define SR_MII_2_LP_BABL			SR(0x0005)
+#define SR_MII_2_AN_EXPN			SR(0x0006)
+#define SR_MII_2_EXT_STS			SR(0x000F)
+#define VR_MII_2_DIG_CTRL1			VR(0x0000)
+#define VR_MII_2_AN_CTRL			VR(0x0001)
+#define VR_MII_2_AN_INTR_STS			VR(0x0002)
+#define VR_MII_2_TC				VR(0x0003)
+#define VR_MII_2_DBG_CTRL			VR(0x0005)
+#define VR_MII_2_EEE_MCTRL0			VR(0x0006)
+#define VR_MII_2_EEE_TXTIMER			VR(0x0008)
+#define VR_MII_2_EEE_RXTIMER			VR(0x0009)
+#define VR_MII_2_LINK_TIMER_CTRL		VR(0x000A)
+#define VR_MII_2_EEE_MCTRL1			VR(0x000B)
+#define VR_MII_2_DIG_STS			VR(0x0010)
+#define VR_MII_2_ICG_ERRCNT1			VR(0x0011)
+#define VR_MII_2_GPIO				VR(0x0015)
+#define VR_MII_2_DIG_CTRL2			VR(0x00E1)
+#define VR_MII_2_DIG_ERRCNT_SEL			VR(0x00E2)
 
 /* Vendor Specific MII_3 MMD Standard (SR) and Vendor Specific (VR)
  * Registers address block
  */
-#define SR_MII_3_CTRL				SR(VS_MII_2_MMD, 0x0000)
-#define SR_MII_3_STS				SR(VS_MII_2_MMD, 0x0001)
-#define SR_MII_3_DEV_ID1			SR(VS_MII_2_MMD, 0x0002)
-#define SR_MII_3_DEV_ID2			SR(VS_MII_2_MMD, 0x0003)
-#define SR_MII_3_AN_ADV				SR(VS_MII_2_MMD, 0x0004)
-#define SR_MII_3_LP_BABL			SR(VS_MII_2_MMD, 0x0005)
-#define SR_MII_3_AN_EXPN			SR(VS_MII_2_MMD, 0x0006)
-#define SR_MII_3_EXT_STS			SR(VS_MII_2_MMD, 0x000F)
-#define VR_MII_3_DIG_CTRL1			VR(VS_MII_2_MMD, 0x0000)
-#define VR_MII_3_AN_CTRL			VR(VS_MII_2_MMD, 0x0001)
-#define VR_MII_3_AN_INTR_STS			VR(VS_MII_2_MMD, 0x0002)
-#define VR_MII_3_TC				VR(VS_MII_2_MMD, 0x0003)
-#define VR_MII_3_DBG_CTRL			VR(VS_MII_2_MMD, 0x0005)
-#define VR_MII_3_EEE_MCTRL0			VR(VS_MII_2_MMD, 0x0006)
-#define VR_MII_3_EEE_TXTIMER			VR(VS_MII_2_MMD, 0x0008)
-#define VR_MII_3_EEE_RXTIMER			VR(VS_MII_2_MMD, 0x0009)
-#define VR_MII_3_LINK_TIMER_CTRL		VR(VS_MII_2_MMD, 0x000A)
-#define VR_MII_3_EEE_MCTRL1			VR(VS_MII_2_MMD, 0x000B)
-#define VR_MII_3_DIG_STS			VR(VS_MII_2_MMD, 0x0010)
-#define VR_MII_3_ICG_ERRCNT1			VR(VS_MII_2_MMD, 0x0011)
-#define VR_MII_3_GPIO				VR(VS_MII_2_MMD, 0x0015)
-#define VR_MII_3_DIG_CTRL2			VR(VS_MII_2_MMD, 0x00E1)
-#define VR_MII_3_DIG_ERRCNT_SEL			VR(VS_MII_2_MMD, 0x00E2)
+#define SR_MII_3_CTRL				SR(0x0000)
+#define SR_MII_3_STS				SR(0x0001)
+#define SR_MII_3_DEV_ID1			SR(0x0002)
+#define SR_MII_3_DEV_ID2			SR(0x0003)
+#define SR_MII_3_AN_ADV				SR(0x0004)
+#define SR_MII_3_LP_BABL			SR(0x0005)
+#define SR_MII_3_AN_EXPN			SR(0x0006)
+#define SR_MII_3_EXT_STS			SR(0x000F)
+#define VR_MII_3_DIG_CTRL1			VR(0x0000)
+#define VR_MII_3_AN_CTRL			VR(0x0001)
+#define VR_MII_3_AN_INTR_STS			VR(0x0002)
+#define VR_MII_3_TC				VR(0x0003)
+#define VR_MII_3_DBG_CTRL			VR(0x0005)
+#define VR_MII_3_EEE_MCTRL0			VR(0x0006)
+#define VR_MII_3_EEE_TXTIMER			VR(0x0008)
+#define VR_MII_3_EEE_RXTIMER			VR(0x0009)
+#define VR_MII_3_LINK_TIMER_CTRL		VR(0x000A)
+#define VR_MII_3_EEE_MCTRL1			VR(0x000B)
+#define VR_MII_3_DIG_STS			VR(0x0010)
+#define VR_MII_3_ICG_ERRCNT1			VR(0x0011)
+#define VR_MII_3_GPIO				VR(0x0015)
+#define VR_MII_3_DIG_CTRL2			VR(0x00E1)
+#define VR_MII_3_DIG_ERRCNT_SEL			VR(0x00E2)
 #endif
 
 /* Vendor Specific MMD1 Registers address block */
-#define SR_VSMMD_PMA_ID1			SR(VS_MMD1, 0x0000)
-#define SR_VSMMD_PMA_ID2			SR(VS_MMD1, 0x0001)
-#define SR_VSMMD_DEV_ID1			SR(VS_MMD1, 0x0002)
-#define SR_VSMMD_DEV_ID2			SR(VS_MMD1, 0x0003)
-#define SR_VSMMD_PCS_ID1			SR(VS_MMD1, 0x0004)
-#define SR_VSMMD_PCS_ID2			SR(VS_MMD1, 0x0005)
-#define SR_VSMMD_AN_ID1				SR(VS_MMD1, 0x0006)
-#define SR_VSMMD_AN_ID2				SR(VS_MMD1, 0x0007)
-#define SR_VSMMD_STS				SR(VS_MMD1, 0x0008)
-#define SR_VSMMD_CTRL				SR(VS_MMD1, 0x0009)
-#define SR_VSMMD_PKGID1				SR(VS_MMD1, 0x000E)
-#define SR_VSMMD_PKGID2				SR(VS_MMD1, 0x000F)
+#define SR_VSMMD_PMA_ID1			SR(0x0000)
+#define SR_VSMMD_PMA_ID2			SR(0x0001)
+#define SR_VSMMD_DEV_ID1			SR(0x0002)
+#define SR_VSMMD_DEV_ID2			SR(0x0003)
+#define SR_VSMMD_PCS_ID1			SR(0x0004)
+#define SR_VSMMD_PCS_ID2			SR(0x0005)
+#define SR_VSMMD_AN_ID1				SR(0x0006)
+#define SR_VSMMD_AN_ID2				SR(0x0007)
+#define SR_VSMMD_STS				SR(0x0008)
+#define SR_VSMMD_CTRL				SR(0x0009)
+#define SR_VSMMD_PKGID1				SR(0x000E)
+#define SR_VSMMD_PKGID2				SR(0x000F)
 
 #ifdef CONFIG_DW_XPCS_VS_MII_MMD
 /* Vendor Specific MII MMD Standard (SR) and Vendor Specific (VR)
@@ -535,77 +530,76 @@
  */
 #if defined(CONFIG_ARCH_IS_DW_XPCS_1000BASE_X) || \
     defined(CONFIG_DW_XPCS_AN)
-#define SR_MII_CTRL				SR(VS_MII_MMD, 0x0000)
-#define SR_MII_STS				SR(VS_MII_MMD, 0x0001)
-#define SR_MII_DEV_ID1				SR(VS_MII_MMD, 0x0002)
-#define SR_MII_DEV_ID2				SR(VS_MII_MMD, 0x0003)
-#define SR_MII_AN_ADV				SR(VS_MII_MMD, 0x0004)
-#define SR_MII_LP_BABL				SR(VS_MII_MMD, 0x0005)
-#define SR_MII_AN_EXPN				SR(VS_MII_MMD, 0x0006)
-#define SR_MII_EXT_STS				SR(VS_MII_MMD, 0x000F)
-#define VR_MII_DIG_CTRL1			VR(VS_MII_MMD, 0x0000)
-#define VR_MII_AN_CTRL				VR(VS_MII_MMD, 0x0001)
-#define VR_MII_AN_INTR_STS			VR(VS_MII_MMD, 0x0002)
-#define VR_MII_LINK_TIMER_CTRL			VR(VS_MII_MMD, 0x000A)
+#define SR_MII_CTRL				SR(0x0000)
+#define SR_MII_STS				SR(0x0001)
+#define SR_MII_DEV_ID1				SR(0x0002)
+#define SR_MII_DEV_ID2				SR(0x0003)
+#define SR_MII_AN_ADV				SR(0x0004)
+#define SR_MII_LP_BABL				SR(0x0005)
+#define SR_MII_AN_EXPN				SR(0x0006)
+#define SR_MII_EXT_STS				SR(0x000F)
+#define VR_MII_DIG_CTRL1			VR(0x0000)
+#define VR_MII_AN_CTRL				VR(0x0001)
+#define VR_MII_AN_INTR_STS			VR(0x0002)
+#define VR_MII_LINK_TIMER_CTRL			VR(0x000A)
 
 #ifdef CONFIG_DW_XPCS_GPIO
-#define VR_MII_GPIO				VR(VS_MII_MMD, 0x0015)
+#define VR_MII_GPIO				VR(0x0015)
 #endif /* CONFIG_DW_XPCS_GPIO */
 #endif /* CONFIG_ARCH_IS_DW_XPCS_1000BASE_X */
 
 #ifdef CONFIG_ARCH_IS_DW_XPCS_1000BASE_X
-#define SR_MII_TIME_SYNC_ABL			SR(VS_MII_MMD, 0x0708)
-#define SR_MII_TIME_SYNC_TX_MAX_DLY_LWR		SR(VS_MII_MMD, 0x0709)
-#define SR_MII_TIME_SYNC_TX_MAX_DLY_UPR		SR(VS_MII_MMD, 0x070A)
-#define SR_MII_TIME_SYNC_TX_MIN_DLY_LWR		SR(VS_MII_MMD, 0x070B)
-#define SR_MII_TIME_SYNC_TX_MIN_DLY_UPR		SR(VS_MII_MMD, 0x070C)
-#define SR_MII_TIME_SYNC_RX_MAX_DLY_LWR		SR(VS_MII_MMD, 0x070D)
-#define SR_MII_TIME_SYNC_RX_MAX_DLY_UPR		SR(VS_MII_MMD, 0x070E)
-#define SR_MII_TIME_SYNC_RX_MIN_DLY_LWR		SR(VS_MII_MMD, 0x070F)
-#define SR_MII_TIME_SYNC_RX_MIN_DLY_UPR		SR(VS_MII_MMD, 0x0710)
-#define VR_MII_TC				VR(VS_MII_MMD, 0x0003)
-#define VR_MII_DBG_CTRL				VR(VS_MII_MMD, 0x0005)
-#define VR_MII_DIG_STS				VR(VS_MII_MMD, 0x0010)
-#define VR_MII_ICG_ERRCNT1			VR(VS_MII_MMD, 0x0011)
-#define VR_MII_MISC_STS				VR(VS_MII_MMD, 0x0018)
-#define VR_MII_RX_LSTS				VR(VS_MII_MMD, 0x0020)
-#define VR_MII_SNPS_CR_CTRL			VR(VS_MII_MMD, 0x00A0)
-#define VR_MII_SNPS_CR_ADDR			VR(VS_MII_MMD, 0x00A1)
-#define VR_MII_SNPS_CR_DATA			VR(VS_MII_MMD, 0x00A2)
-#define VR_MII_DIG_CTRL2			VR(VS_MII_MMD, 0x00E1)
-#define VR_MII_DIG_ERRCNT_SEL			VR(VS_MII_MMD, 0x00E2)
+#define SR_MII_TIME_SYNC_ABL			SR(0x0708)
+#define SR_MII_TIME_SYNC_TX_MAX_DLY_LWR		SR(0x0709)
+#define SR_MII_TIME_SYNC_TX_MAX_DLY_UPR		SR(0x070A)
+#define SR_MII_TIME_SYNC_TX_MIN_DLY_LWR		SR(0x070B)
+#define SR_MII_TIME_SYNC_TX_MIN_DLY_UPR		SR(0x070C)
+#define SR_MII_TIME_SYNC_RX_MAX_DLY_LWR		SR(0x070D)
+#define SR_MII_TIME_SYNC_RX_MAX_DLY_UPR		SR(0x070E)
+#define SR_MII_TIME_SYNC_RX_MIN_DLY_LWR		SR(0x070F)
+#define SR_MII_TIME_SYNC_RX_MIN_DLY_UPR		SR(0x0710)
+#define VR_MII_TC				VR(0x0003)
+#define VR_MII_DBG_CTRL				VR(0x0005)
+#define VR_MII_DIG_STS				VR(0x0010)
+#define VR_MII_ICG_ERRCNT1			VR(0x0011)
+#define VR_MII_MISC_STS				VR(0x0018)
+#define VR_MII_RX_LSTS				VR(0x0020)
+#define VR_MII_SNPS_CR_CTRL			VR(0x00A0)
+#define VR_MII_SNPS_CR_ADDR			VR(0x00A1)
+#define VR_MII_SNPS_CR_DATA			VR(0x00A2)
+#define VR_MII_DIG_CTRL2			VR(0x00E1)
+#define VR_MII_DIG_ERRCNT_SEL			VR(0x00E2)
 
 #ifdef CONFIG_DW_XPCS_EEE
-#define VR_MII_EEE_MCTRL0			VR(VS_MII_MMD, 0x0006)
-#define VR_MII_EEE_TXTIMER			VR(VS_MII_MMD, 0x0008)
-#define VR_MII_EEE_RXTIMER			VR(VS_MII_MMD, 0x0009)
-#define VR_MII_EEE_MCTRL1			VR(VS_MII_MMD, 0x000B)
+#define VR_MII_EEE_MCTRL0			VR(0x0006)
+#define VR_MII_EEE_TXTIMER			VR(0x0008)
+#define VR_MII_EEE_RXTIMER			VR(0x0009)
+#define VR_MII_EEE_MCTRL1			VR(0x000B)
 #endif /* CONFIG_DW_XPCS_EEE */
 #endif /* CONFIG_ARCH_IS_DW_XPCS_1000BASE_X */
 
 /* RSVDPARAM_0 */
 #ifdef CONFIG_ARCH_IS_DW_XPCS_1000BASE_X
-#define VR_MII_Consumer_10G_TX_TERM_CTRL	VR(VS_MII_MMD, 0x003C)
-#define VR_MII_Consumer_10G_RX_TERM_CTRL	VR(VS_MII_MMD, 0x0064)
-#define VR_MII_Consumer_10G_RX_IQ_CTRL0		VR(VS_MII_MMD, 0x006B)
+#define VR_MII_Consumer_10G_TX_TERM_CTRL	VR(0x003C)
+#define VR_MII_Consumer_10G_RX_TERM_CTRL	VR(0x0064)
+#define VR_MII_Consumer_10G_RX_IQ_CTRL0		VR(0x006B)
 #endif /* CONFIG_ARCH_IS_DW_XPCS_1000BASE_X */
 #endif
 
-void dw_xpcs_write(unsigned long addr, uint16_t value);
-uint16_t dw_xpcs_read(unsigned long addr);
+uint16_t dw_xpcs_read(int mmd, uint16_t addr);
+void dw_xpcs_write(int mmd, uint16_t addr, uint16_t value);
 
-#define dw_xpcs_set(addr, value)			\
+#define dw_xpcs_set(mmd, addr, value)			\
 	do {						\
-		uint16_t __v = dw_xpcs_read(addr);	\
+		uint16_t __v = dw_xpcs_read(mmd, addr);	\
 		__v |= (value);				\
-		dw_xpcs_write(addr, __v);		\
+		dw_xpcs_write(mmd, addr, __v);		\
 	} while (0)
-
-#define dw_xpcs_clear(addr, value)			\
+#define dw_xpcs_clear(mmd, addr, value)			\
 	do {						\
-		uint16_t __v = dw_xpcs_read(addr);	\
+		uint16_t __v = dw_xpcs_read(mmd, addr);	\
 		__v &= ~(value);			\
-		dw_xpcs_write(addr, __v);		\
+		dw_xpcs_write(mmd, addr, __v);		\
 	} while (0)
 
 #ifdef CONFIG_DW_XPCS

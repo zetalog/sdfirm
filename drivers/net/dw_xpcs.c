@@ -39,47 +39,54 @@
  * $Id: dw_xpcs.c,v 1.0 2020-12-20 17:20:00 zhenglv Exp $
  */
 
-#include <asm/mach/eth.h>
+#include <target/eth.h>
 
 #ifdef CONFIG_ARCH_IS_DW_XPCS_APB
 #ifdef CONFIG_ARCH_IS_DW_XPCS_APB_INDIRECT
 #define DWCXS_APBI_MMD			0xFF
 #define DWCXS_APBI_BASE(addr)		((addr) >> 8)
 #define DWCXS_APBI_ADDR(addr)		((addr) & 0xff)
-#define DWCXS_APBI_REG(offset)	DWCXS_REG((offset) << DW_XPCS_APBI_OFFSET)
+#define DWCXS_APBI_REG(offset)		\
+	DWCXS_REG((offset) << DW_XPCS_APBI_OFFSET)
 
 uint16_t xpcs_base;
 
-uint16_t dw_xpcs_read(unsigned long addr)
+uint16_t dw_xpcs_read(int mmd, uint16_t addr)
 {
-	uint16_t base = DWCXS_APBI_BASE(addr);
+	caddr_t reg = (caddr_t)mmd << 16 | addr;
+	uint16_t base = DWCXS_APBI_BASE(reg);
 
 	if (xpcs_base != base) {
 		xpcs_base = base;
 		__raw_writew(base, DWCXS_APBI_REG(DWCXS_APBI_MMD));
 	}
-	return __raw_readw(DWCXS_APBI_REG(DWCXS_APBI_ADDR(addr)));
+	return __raw_readw(DWCXS_APBI_REG(DWCXS_APBI_ADDR(reg)));
 }
 
-void dw_xpcs_write(unsigned long addr, uint16_t val)
+void dw_xpcs_write(int mmd, uint16_t addr, uint16_t value)
 {
-	uint16_t base = DWCXS_APBI_BASE(addr);
+	caddr_t reg = (caddr_t)mmd << 16 | addr;
+	uint16_t base = DWCXS_APBI_BASE(reg);
 
 	if (xpcs_base != base) {
 		xpcs_base = base;
 		__raw_writew(base, DWCXS_APBI_REG(DWCXS_APBI_MMD));
 	}
-	__raw_writew(val, DWCXS_APBI_REG(DWCXS_APBI_ADDR(addr)));
+	__raw_writew(value, DWCXS_APBI_REG(DWCXS_APBI_ADDR(reg)));
 }
 #else /* CONFIG_ARCH_IS_DW_XPCS_APB_INDIRECT */
-uint16_t dw_xpcs_read(unsigned long addr)
+uint16_t dw_xpcs_read(int mmd, uint16_t addr)
 {
-	return (uint16_t)__raw_readl(addr);
+	caddr_t reg = (caddr_t)mmd << 16 | addr;
+
+	return (uint16_t)__raw_readl(reg);
 }
 
-void dw_xpcs_write(unsigned long addr, uint16_t val)
+void dw_xpcs_write(int mmd, uint16_t addr, uint16_t value)
 {
-	__raw_writel((uint32_t)val, addr);
+	caddr_t reg = (caddr_t)mmd << 16 | addr;
+
+	__raw_writel((uint32_t)val, reg);
 }
 #endif /* CONFIG_ARCH_IS_DW_XPCS_APB_INDIRECT */
 #endif /* CONFIG_ARCH_IS_DW_XPCS_APB */
@@ -88,13 +95,19 @@ void dw_xpcs_init_10g(void)
 {
 	dw_xpcs_hw_clock_init();
 
-	dw_xpcs_write(SR_PMA_CTRL1, SR_PMA_RST | SR_PMA_SS_10G);
+	dw_xpcs_write(PMA_MMD, SR_PMA_CTRL1,
+		      SR_PMA_RST | SR_PMA_SS_10G);
+
 	dw_xpcs_hw_sram_init();
 	dw_xpcs_power_init();
 	dw_xpcs_an_init();
 
-	dw_xpcs_write(SR_PMA_CTRL2, SR_PMA_TYPE(DW_XPCS_PMA_TYPE));
-	dw_xpcs_write(SR_XS_PCS_CTRL2, SR_PCS_TYPE(DW_XPCS_PCS_TYPE));
+	dw_xpcs_hw_ctrl_init();
 
-	while (dw_xpcs_read(SR_XS_PCS_STS1) & SR_PCS_RLU);
+	dw_xpcs_write(PMA_MMD, SR_PMA_CTRL2,
+		      SR_PMA_TYPE(DW_XPCS_PMA_TYPE));
+	dw_xpcs_write(XS_PCS_MMD, SR_XS_PCS_CTRL2,
+		      SR_PCS_TYPE(DW_XPCS_PCS_TYPE));
+
+	while (!(dw_xpcs_read(XS_PCS_MMD, SR_XS_PCS_STS1) & SR_PCS_RLU));
 }
