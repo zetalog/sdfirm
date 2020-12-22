@@ -214,9 +214,13 @@ struct dw_ssi_ctx {
 	uint8_t tmod;		/* TR/TO/RO/EEPROM */
 	uint8_t tx_fifo_depth;	/* depth of the FIFO buffer */
 	uint8_t rx_fifo_depth;	/* depth of the FIFO buffer */
-#ifdef CONFIG_DW_SSI_XFER
-	uint8_t spi_type;	/* STD/DUAL/QUAD/OCTAL */
+	uint8_t spi_frf;	/* STD/DUAL/QUAD/OCTAL */
 	uint8_t spi_mode;	/* SCPOL/SCPH */
+	uint8_t eeprom_inst_len;
+	uint8_t eeprom_addr_len;
+	uint8_t spi_wait;	/* wait cycles */
+	uint16_t sckdv;		/* sck divisor */
+#ifdef CONFIG_DW_SSI_XFER
 	void *tx;
 	void *tx_end;
 	void *rx;
@@ -238,9 +242,6 @@ struct dw_ssi_ctx {
 		dw_ssi_disable_irqs(n, SSI_ALL_IRQS);	\
 		dw_ssi_enable_ctrl(n);			\
 	} while (0)
-#define dw_ssi_config_mode(n, mode)			\
-	__raw_writel_mask(SSI_SPI_MODE(mode),		\
-			  SSI_SPI_MODE_MASK, SSI_CTRLR0(n))
 #define dw_ssi_config_xfer(n, tmod)			\
 	__raw_writel_mask(SSI_TMOD(tmod),		\
 			  SSI_TMOD_MASK, SSI_CTRLR0(n))
@@ -259,12 +260,15 @@ struct dw_ssi_ctx {
 
 uint8_t dw_ssi_read_byte(int n);
 void dw_ssi_write_byte(int n, uint8_t byte);
+void dw_ssi_config_mode(int n, uint8_t mode);
 void dw_ssi_config_freq(int n, uint32_t freq);
 void dw_ssi_init_master(int n, uint8_t frf, uint8_t tmod,
 			uint16_t txfifo, uint16_t rxfifo);
 void dw_ssi_init_spi(int n, uint8_t spi_frf,
 		     uint8_t inst_l, uint8_t addr_l,
 		     uint8_t wait_cycles);
+void dw_ssi_start_ctrl(int n);
+#define dw_ssi_stop_ctrl(n)		dw_ssi_disable_ctrl(n)
 
 #ifdef CONFIG_DW_SSI_FIFO_DEPTH
 #define DW_SSI_TX_FIFO_DEPTH		CONFIG_DW_SSI_TX_FIFO_DEPTH

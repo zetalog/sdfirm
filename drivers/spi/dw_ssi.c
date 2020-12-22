@@ -48,7 +48,6 @@
 typedef uint8_t dw_ssi_data;
 
 struct dw_ssi_ctx dw_ssis[NR_DW_SSIS];
-uint8_t dw_ssi_tmods[NR_DW_SSIS];
 
 #ifdef CONFIG_CLK
 uint32_t dw_ssi_get_clk_freq(void)
@@ -58,6 +57,11 @@ uint32_t dw_ssi_get_clk_freq(void)
 #else
 #define dw_ssi_get_clk_freq()		(APB_CLK_FREQ / 1000)
 #endif
+
+void dw_ssi_config_mode(int n, uint8_t mode)
+{
+	dw_ssis[n].spi_mode = mode;
+}
 
 void dw_ssi_config_freq(int n, uint32_t freq)
 {
@@ -77,14 +81,14 @@ void dw_ssi_config_freq(int n, uint32_t freq)
 	sckdv = (uint16_t)div32u(f_ssi_clk, freq);
 	/* Ensure Fsclk_out is less than requested, and even value. */
 	sckdv = (sckdv + 1) & 0xFFFE;
-	__raw_writel(sckdv, SSI_BAUDR(n));
+	dw_ssis[n].sckdv = sckdv;
 }
 
 void dw_ssi_switch_xfer(int n, uint8_t tmod)
 {
-	if (tmod != dw_ssi_tmods[n]) {
+	if (tmod != dw_ssis[n].tmod) {
 		dw_ssi_config_xfer(n, tmod);
-		dw_ssi_tmods[n] = tmod;
+		dw_ssis[n].tmod = tmod;
 	}
 }
 
@@ -119,19 +123,24 @@ void dw_ssi_init_master(int n, uint8_t frf, uint8_t tmod,
 	if (n >= NR_DW_SSIS)
 		return;
 
-	dw_ssi_disable_ctrl(n);
+	dw_ssis[n].frf = frf;
+	dw_ssis[n].tmod = tmod;
+	/* Default to standard SPI wires */
+	dw_ssis[n].spi_frf = SSI_SPI_FRF_STD;
 	/* Default to SPI_MODE_0 */
-	__raw_writel(SSI_FRF(SSI_FRF_SPI) | SSI_TMOD(tmod) |
-		     SSI_SPI_FRF(frf) | SSI_SPI_MODE(SPI_MODE_0) |
-		     SSI_DFS(DW_SSI_XFER_SIZE - 1),
-		     SSI_CTRLR0(n));
-	dw_ssi_tmods[n] = tmod;
+	dw_ssis[n].spi_mode = SPI_MODE_0;
+
+	dw_ssi_disable_ctrl(n);
+	/* TODO: Probe DFS
+	 * Currently the DFS is configured as firmware to save ROM
+	 * consumption, we may need to probe it.
+	 */
 	dw_ssi_probe_fifo(n, SSI_TXFTLR, txfifo);
 	dw_ssis[n].tx_fifo_depth = (uint8_t)(txfifo - 1);
 	dw_ssi_probe_fifo(n, SSI_RXFTLR, rxfifo);
 	dw_ssis[n].rx_fifo_depth = (uint8_t)(rxfifo - 1);
-	__raw_writel(dw_ssis[n].tx_fifo_depth, SSI_TXFTLR(n));
-	__raw_writel(0, SSI_RXFTLR(n));
+
+	/* reset the controller */
 	dw_ssi_disable_irqs(n, SSI_ALL_IRQS);
 	dw_ssi_enable_ctrl(n);
 }
@@ -140,21 +149,47 @@ void dw_ssi_init_spi(int n, uint8_t spi_frf,
 		     uint8_t inst_l, uint8_t addr_l,
 		     uint8_t wait_cycles)
 {
-	uint32_t ctrl = SSI_TRANS_TYPE(0);
+	if (n >= NR_DW_SSIS)
+		return;
+
+	dw_ssis[n].spi_frf = spi_frf;
+	dw_ssis[n].eeprom_inst_len = inst_l;
+	dw_ssis[n].eeprom_addr_len = addr_l;
+	dw_ssis[n].spi_wait = wait_cycles;
+}
+
+void dw_ssi_start_ctrl(int n)
+{
+	uint32_t ctrl;
 
 	if (n >= NR_DW_SSIS)
 		return;
 
-	dw_ssi_disable_ctrl(n);
-	if (spi_frf != SSI_SPI_FRF_STD) {
+	/* Configure CTRLR0 */
+	__raw_writel(SSI_FRF(dw_ssis[n].frf) |
+		     SSI_TMOD(dw_ssis[n].tmod) |
+		     SSI_SPI_FRF(dw_ssis[n].spi_frf) |
+		     SSI_SPI_MODE(dw_ssis[n].spi_mode) |
+		     SSI_DFS(DW_SSI_XFER_SIZE - 1),
+		     SSI_CTRLR0(n));
+
+	/* Configure FIFO */
+	__raw_writel(dw_ssis[n].tx_fifo_depth, SSI_TXFTLR(n));
+	__raw_writel(0, SSI_RXFTLR(n));
+
+	/* Configure SPI_CTRLR0 */
+	ctrl = SSI_TRANS_TYPE(0);
+	if (dw_ssis[n].spi_frf != SSI_SPI_FRF_STD)
 		ctrl |= SSI_TRANS_TYPE(2);
-		__raw_writel_mask(SSI_SPI_FRF(spi_frf),
-				  SSI_SPI_FRF_MASK,
-				  SSI_CTRLR0(n));
+	if (dw_ssis[n].tmod == SSI_TMOD_EEPROM_READ) {
+		ctrl |= SSI_INST_L(dw_ssis[n].eeprom_inst_len >> 2) |
+			SSI_ADDR_L(dw_ssis[n].eeprom_addr_len >> 2);
 	}
-	ctrl |= SSI_INST_L(inst_l >> 2) | SSI_ADDR_L(addr_l >> 2) |
-		SSI_WAIT_CYCLES(wait_cycles);
+	ctrl |= SSI_WAIT_CYCLES(dw_ssis[n].spi_wait);
 	__raw_writel(ctrl, SSI_SPI_CTRLR0(n));
+
+	/* Configure BAUDR */
+	__raw_writel(dw_ssis[n].sckdv, SSI_BAUDR(n));
 	dw_ssi_enable_ctrl(n);
 }
 

@@ -87,7 +87,7 @@
 #define spi_hw_ctrl_init()					\
 	do {							\
 		clk_enable(DW_SSI_CLK);				\
-		dw_ssi_init_master(SSI_ID, SSI_SPI_FRF_STD,	\
+		dw_ssi_init_master(SSI_ID, SSI_FRF_SPI,		\
 				   SSI_TMOD_EEPROM_READ, 8, 8);	\
 		dw_ssi_init_spi(SSI_ID, SSI_SPI_FRF_STD,	\
 				8, 24, 0);			\
