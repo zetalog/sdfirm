@@ -46,8 +46,7 @@
 #include <target/delay.h>
 #include <target/ras.h>
 #include <target/noc.h>
-
-#include <asm/mach/eth.h>
+#include <target/eth.h>
 
 static void duowen_modify_dt(void *fdt)
 {

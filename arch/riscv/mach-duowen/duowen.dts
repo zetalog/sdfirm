@@ -622,6 +622,73 @@
 			compatible = "riscv,clint0";
 		};
 
+#ifdef CONFIG_DUOWEN_ETH
+		stmmac_axi_setup: stmmac-axi-config {
+			snps,wr_osr_lmt = <0x3f>;
+			snps,rd_osr_lmt = <0x3f>;
+			snps,blen = <0 0 0 32 16 8 4>;
+		};
+		mtl_rx_setup: rx-queues-config {
+			snps,rx-queues-to-use = <1>;
+			snps,rx-sched-sp;
+			queue0 {
+				snps,dcb-algorithm;
+				snps,map-to-dma-channel = <0x0>;
+				snps,priority = <0x0>;
+			};
+		};
+		mtl_tx_setup: tx-queues-config {
+			snps,tx-queues-to-use = <2>;
+			snps,tx-sched-wrr;
+			queue0 {
+				snps,weight = <0x10>;
+				snps,dcb-algorithm;
+				snps,priority = <0x0>;
+			};
+			queue1 {
+				snps,avb-algorithm;
+				snps,send_slope = <0x1000>;
+				snps,idle_slope = <0x1000>;
+				snps,high_credit = <0x3e800>;
+				snps,low_credit = <0xffc18000>;
+				snps,priority = <0x1>;
+			};
+		};
+		xgmac0: ethernet@ff6a000000 {
+			compatible = "snps,dwxgmac-2.20", "snps,dwxgmac";
+			reg = <0xff 0x6a000000 0x0 0x100000>;
+			interrupt-parent = <&plic>;
+			interrupts = <195 194 193>;
+			interrupt-names = "macirq", "eth_wake_irq", "eth_lpi";
+			mac-address = [c69ded9a297c];
+			max-frame-size = <3800>;
+			phy-mode = "xgmii";
+			snps,multicast-filter-bins = <256>;
+			snps,perfect-filter-entries = <128>;
+			rx-fifo-depth = <16384>;
+			tx-fifo-depth = <16384>;
+			/* Need a clock driver:
+			 * clocks = <&clock>;
+			 * clock-names = "stmmaceth";
+			 */
+			snps,axi-config = <&stmmac_axi_setup>;
+			snps,mtl-rx-config = <&mtl_rx_setup>;
+			snps,mtl-tx-config = <&mtl_tx_setup>;
+			/* MDIO is used for external phy configuration,
+			 * The internal phy use apb slave interface.
+			 * Default to internal phy.
+			 */
+			mdio0 {
+				address-cells = <1>;
+				size-cells = <0>;
+				compatible = "snps,dwmac-apbi";
+				xpcs0: ethernet-phy@0 {
+					reg = <0xff 0x6a200000 0x0 0x200000>;
+				};
+			};
+		};
+#endif /* CONFIG_DUOWEN_ETH */
+
 		/* DMA SMMU */
 		dmasmmu: iommu@ff08000000 {
 			compatible = "smarco,rvsmmu";
