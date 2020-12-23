@@ -92,8 +92,8 @@
 		dw_ssi_init_spi(SSI_ID, SSI_SPI_FRF_STD,	\
 				8, 24, 0);			\
 	} while (0)
-#define spi_hw_ctrl_start()		dw_ssi_enable_ctrl(SSI_ID)
-#define spi_hw_ctrl_stop()		dw_ssi_disable_ctrl(SSI_ID)
+#define spi_hw_ctrl_start()		dw_ssi_start_ctrl(SSI_ID)
+#define spi_hw_ctrl_stop()		dw_ssi_stop_ctrl(SSI_ID)
 #endif
 
 #ifdef CONFIG_DUOWEN_SSI_FLASH

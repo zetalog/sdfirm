@@ -110,7 +110,7 @@ void dw_xpcs_init_10g(void)
 	dw_xpcs_power_init();
 
 	if (DW_XPCS_PCS_TYPE !=
-	    sr_pcs_type(dw_xpcs_write(XS_PCS_MMD, SR_XS_PCS_CTRL2))) {
+	    sr_pcs_type(dw_xpcs_read(XS_PCS_MMD, SR_XS_PCS_CTRL2))) {
 		dw_xpcs_write(XS_PCS_MMD, SR_XS_PCS_CTRL2,
 			      SR_PCS_TYPE(DW_XPCS_PCS_TYPE));
 	}

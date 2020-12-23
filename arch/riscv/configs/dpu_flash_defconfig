@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Dec 14 13:52:08 2020
+# Wed Dec 23 10:56:05 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -470,6 +470,11 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # CONFIG_NCORE is not set
 # CONFIG_MONACO is not set
+
+#
+# Network drivers
+#
+# CONFIG_DW_XPCS is not set
 
 #
 # Test setup

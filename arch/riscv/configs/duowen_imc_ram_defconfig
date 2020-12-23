@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Dec 14 13:50:20 2020
+# Wed Dec 23 10:54:16 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -177,8 +177,18 @@ CONFIG_CRCNTL_MUX=y
 # CONFIG_DUOWEN_DDR_64M is not set
 # CONFIG_DUOWEN_DDR_128M is not set
 # CONFIG_DUOWEN_DDR_256M is not set
+# CONFIG_DUOWEN_DDR_512M is not set
+# CONFIG_DUOWEN_DDR_1G is not set
+# CONFIG_DUOWEN_DDR_2G is not set
+# CONFIG_DUOWEN_DDR_4G is not set
+# CONFIG_DUOWEN_DDR_8G is not set
 # CONFIG_DUOWEN_DDR_16G is not set
+# CONFIG_DUOWEN_DDR_32G is not set
+# CONFIG_DUOWEN_DDR_64G is not set
+# CONFIG_DUOWEN_DDR_128G is not set
+# CONFIG_DUOWEN_DDR_256G is not set
 CONFIG_DUOWEN_DDR_512G=y
+# CONFIG_DUOWEN_ETH is not set
 
 #
 # Feature setup
@@ -291,6 +301,7 @@ CONFIG_ARCH_HAS_FDT=y
 # CONFIG_FDT is not set
 CONFIG_ARCH_HAS_UEFI=y
 # CONFIG_UEFI is not set
+CONFIG_ARCH_HAS_ETH=y
 CONFIG_ARCH_HAS_RAS=y
 # CONFIG_RAS is not set
 # CONFIG_PERF is not set
@@ -426,6 +437,11 @@ CONFIG_SPD_BUS_KHZ=60
 CONFIG_ARCH_HAS_NOC=y
 CONFIG_NCORE=y
 # CONFIG_MONACO is not set
+
+#
+# Network drivers
+#
+# CONFIG_DW_XPCS is not set
 
 #
 # Test setup
