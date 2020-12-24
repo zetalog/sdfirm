@@ -75,7 +75,13 @@
 #define PCIE_PLL_FREQ		UL(100000000) /* 100MHz */
 #define CFAB_PLL_FREQ		UL(2000000000) /* 2GHz */
 #define CL_PLL_FREQ		UL(2500000000) /* 2.5GHz */
+#if defined(DUOWEN_ETH_156250KHZ)
 #define ETH_PLL_FREQ		UL(156250000) /* 156.25MHz */
+#elif defined(DUOWEN_ETH_78125KHZ)
+#define ETH_PLL_FREQ		UL(78125000) /* 78.125MHz */
+#else
+#define ETH_PLL_FREQ		UL(78125000) /* 78.125MHz */
+#endif
 #define SGMII_PLL_FREQ		UL(125000000) /* 125MHz */
 #endif
 #ifdef CONFIG_DUOWEN_FPGA

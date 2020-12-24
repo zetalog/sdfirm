@@ -693,8 +693,26 @@ menuconfig DUOWEN_ETH
 
 if DUOWEN_ETH
 
+choice
+	prompt "Alter reference clock frequency"
+	default DUOWEN_ETH_78125KHZ
+
+config DUOWEN_ETH_156250KHZ
+	bool "156.25MHz"
+
+config DUOWEN_ETH_78125KHZ
+	bool "78.125KHz"
+
+endchoice
+
+config DUOWEN_ETH_INIT
+	bool "Enable board late initialization of ethernet"
+	depends SIMULATION
+	depends !SBI
+
 config DUOWEN_ETH_LOOPBACK
 	bool "Enable loopback test"
+	depends SIMULATION
 
 endif
 

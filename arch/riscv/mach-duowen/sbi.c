@@ -66,12 +66,6 @@ static int duowen_early_init(bool cold_boot)
 	return 0;
 }
 
-static int duowen_ether_init(void)
-{
-	dw_xpcs_init_10g();
-	return 0;
-}
-
 static int duowen_final_init(bool cold_boot)
 {
 	void *fdt;
@@ -79,7 +73,7 @@ static int duowen_final_init(bool cold_boot)
 	if (!cold_boot)
 		return 0;
 
-	duowen_ether_init();
+	duowen_eth_init();
 
 	fdt = sbi_scratch_thishart_arg1_ptr();
 	duowen_modify_dt(fdt);

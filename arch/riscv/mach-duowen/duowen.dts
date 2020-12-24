@@ -668,29 +668,35 @@
 			rx-fifo-depth = <16384>;
 			tx-fifo-depth = <16384>;
 			/* Need a clock driver:
-			 * clocks = <&clock>;
+			 * clocks = <&sdfirm_clock eth_alt_ref_clk>;
 			 * clock-names = "stmmaceth";
 			 */
 			snps,axi-config = <&stmmac_axi_setup>;
 			snps,mtl-rx-config = <&mtl_rx_setup>;
 			snps,mtl-tx-config = <&mtl_tx_setup>;
-			/* MDIO is used for external phy configuration,
-			 * The internal phy use apb slave interface.
-			 * Default to internal phy.
+			/* MDIO is used for external phy configuration.
+			 * The internal phy uses apb slave interface.
+			 * Default to the internal phy.
 			 */
 			mdio0 {
 				address-cells = <1>;
 				size-cells = <0>;
-				compatible = "snps,dwmac-apbi";
-				xpcs0: ethernet-phy@0 {
-					reg = <0xff 0x6a200000 0x0 0x200000>;
+				compatible = "snps,dwmac-mdio";
+				pma_mmd: ethernet-phy@1 {
+					reg = <1>;
+				};
+				xs_pcs_mmd: ethernet-phy@3 {
+					reg = <3>;
+				};
+				an_mmd: ethernet-phy@7 {
+					reg = <7>;
 				};
 			};
 		};
 #endif /* CONFIG_DUOWEN_ETH */
 
 		/* DMA SMMU */
-		dmasmmu: iommu@ff08000000 {
+		dma_smmu: iommu@ff08000000 {
 			compatible = "smarco,rvsmmu";
 			reg = <0xff 0x8000000 0x0 0x20000>;
 			interrupt-parent = <&plic>;
@@ -701,7 +707,7 @@
 		};
 
 		/* PCIe SMMU */
-		pciesmmu: iommu@ff08400000 {
+		pcie_smmu: iommu@ff08400000 {
 			compatible = "smarco,rvsmmu";
 			reg = <0xff 0x8400000 0x0 0x20000>;
 			interrupt-parent = <&plic>;

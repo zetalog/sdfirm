@@ -30,4 +30,10 @@
 		clk_enable(sgmii_ref_clk);		\
 	} while (0)
 
+#ifdef CONFIG_DUOWEN_ETH
+#define duowen_eth_init()		dw_xpcs_init_10g()
+#else
+#define duowen_eth_init()		dw_xpcs_hw_clock_init()
+#endif
+
 #endif /* __ETH_DUOWEN_H_INCLUDE__ */

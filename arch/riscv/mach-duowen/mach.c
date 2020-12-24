@@ -49,6 +49,7 @@
 #include <target/sbi.h>
 #include <target/dma.h>
 #include <target/pci.h>
+#include <target/eth.h>
 
 #ifdef CONFIG_DUOWEN_PMA
 void duowen_pma_init(void)
@@ -220,6 +221,8 @@ void board_late_init(void)
 #endif
 	smmu_dma_alloc_sme();
 	smmu_pcie_alloc_sme();
+
+	duowen_eth_init();
 }
 
 void board_smp_init(void)
