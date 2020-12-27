@@ -89,6 +89,7 @@
 #endif
 #endif
 
+#ifdef ARCH_HAVE_IOMMU
 #define iommu_hw_ctrl_init()				smmu_device_init()
 #define iommu_hw_group_select()				smmu_group_select()
 #define iommu_hw_domain_select()			smmu_domain_select()
@@ -113,5 +114,6 @@
 	arm_lpae_free_pgtable()
 
 #define smmu_hw_ctrl_reset(reg)				(reg)
+#endif /* ARCH_HAVE_IOMMU */
 
 #endif /* __IOMMU_DUOWEN_H_INCLUDE__ */

@@ -67,9 +67,38 @@ typedef uint16_t dma_t;
 #define DMA_PHYS_OFFSET		0
 #endif
 
+#ifndef CONFIG_MAX_CHANNELS
+#define MAX_CHANNELS		0
+#else
+#define MAX_CHANNELS		CONFIG_MAX_CHANNELS
+#endif
+
 typedef uint8_t dma_dir_t;
 
+struct dma_channel {
+	bool coherent;
+	bool indirect;
+	bool has_range;
+	phys_addr_t phys_base;
+	dma_addr_t dma_base;
+};
+
 #include <driver/dmac.h>
+
+#if NR_DMAS > 1
+extern dma_t dma_sdma;
+extern struct dma_channel dma_channels[NR_DMAS];
+#define dma_channel_ctrl		dma_channels[dma_sdma]
+
+void dma_channel_restore(dma_t dma);
+dma_t dma_channel_save(dma_t dma);
+#else
+#define dma_sdma			0
+struct dma_channel dma_channel_ctrl;
+
+#define dma_channel_restore(dma)	do { } while (0)
+#define dma_channel_save(dma)		dma_sdma
+#endif
 
 #define __phys_to_dma(phys_addr)	((phys_addr) - DMA_PHYS_OFFSET)
 #define __dma_to_phys(dma_addr)		((dma_addr) + DMA_PHYS_OFFSET)

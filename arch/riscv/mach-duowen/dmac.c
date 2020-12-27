@@ -44,6 +44,7 @@
 
 iommu_grp_t duowen_dma_iommus[8];
 
+#ifdef CONFIG_DUOWEN_SMMU
 void smmu_dma_alloc_sme(void)
 {
 	duowen_dma_iommus[0] = iommu_register_master(SMMU_SME_DMA_TBU0);
@@ -55,6 +56,7 @@ void smmu_dma_alloc_sme(void)
 	duowen_dma_iommus[6] = iommu_register_master(SMMU_SME_DMA_TBU6);
 	duowen_dma_iommus[7] = iommu_register_master(SMMU_SME_DMA_TBU7);
 }
+#endif
 
 dma_addr_t dma_hw_map_single(dma_t dma, void *ptr,
 			     size_t size, dma_dir_t dir)

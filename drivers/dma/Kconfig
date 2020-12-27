@@ -6,10 +6,16 @@
 menu "DMA host drivers"
 
 menuconfig DW_DMA
-	bool "Synopsys DesignWare DMA support"
+	bool "Synopsys DesignWare AXI DMAC support"
 	select BIT_FFS32
 
 if DW_DMA
+
+config DW_DMA_CH_ABORT
+	bool "Enable channel abort support"
+
+config DW_DMA_CH_MULTI_BLK
+	bool "Enable channel multi-block support"
 
 config DW_DMA_MAX_BLK_SIZE
 	hex "Maximum DMA block size"

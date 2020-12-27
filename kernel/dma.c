@@ -42,27 +42,31 @@
 #include <target/dma.h>
 #include <target/panic.h>
 
-#ifndef CONFIG_MAX_CHANNELS
-#define MAX_CHANNELS			0
-#else
-#define MAX_CHANNELS			CONFIG_MAX_CHANNELS
-#endif
-
-struct dma_channel {
-	bool coherent;
-	bool indirect;
-	bool has_range;
-	phys_addr_t phys_base;
-	dma_addr_t dma_base;
-};
-
 #define sdma2dma(dma)			dma_nr_table[sdma]
 
 irq_handler dma_handlers[MAX_CHANNELS];
 dma_t dma_nr_table[MAX_CHANNELS];
 uint8_t dma_nr_regs = 0;
+
+#if NR_DMAS > 1
 dma_t dma_sdma = INVALID_DMA;
 struct dma_channel dma_channels[NR_DMAS];
+
+void dma_channel_restore(dma_t dma)
+{
+	dma_sdma = dma;
+}
+
+dma_t dma_channel_save(dma_t dma)
+{
+	dma_t rdma = dma_sdma;
+
+	dma_channel_restore(dma);
+	return rdma;
+}
+#else
+struct dma_channel dma_channel_ctrl;
+#endif
 
 /* Given a DMA channel ID, find an index to our dma_channels */
 dma_t dma2sdma(dma_t dma)

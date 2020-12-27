@@ -612,7 +612,7 @@ static  void chan_handle_err(dma_chan_t *chan, uint32_t status)
 	spin_unlock_irqrestore(&chan->lock, flags);
 }
 
-irqreturn_t dw_dma_interrupt(int irq, void *dev_id)
+void dw_dma_interrupt(int irq, void *dev_id)
 {
 	dma_chip_t *chip = dev_id;
 	dma_chan_t *chan;
@@ -639,8 +639,6 @@ irqreturn_t dw_dma_interrupt(int irq, void *dev_id)
 	}
 
 	dma_irq_enable(chip);
-
-	return IRQ_HANDLED;
 }
 
 static inline void chan_resume(dma_chan_t *chan)
@@ -673,7 +671,7 @@ void dw_dma_init(void)
 
         chip->hdata->nr_channels = DMAC_MAX_CHANNELS;
         chip->hdata->nr_masters = DMAC_MAX_MASTERS;
-        chip->hdata->m_data_width = DW_DMA_M_DATA_WIDTH;
+        chip->hdata->m_data_width = DW_DMA_M_DATA_WIDTH(0);
 
         for (tmp = 0; tmp < chip->hdata->nr_channels; tmp++) {
 		chip->hdata->block_size[tmp] = DMAC_MAX_BLK_SIZE;
