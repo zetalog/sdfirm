@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2019
+ * Copyright (c) 2020
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,48 +35,60 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)sd.h: duowen specific secure digital controller interface
- * $Id: sd.h,v 1.1 2019-10-09 15:47:00 zhenglv Exp $
+ * @(#)sd.c: DUOWEN specific SD card implementation
+ * $Id: sd.c,v 1.1 2020-12-30 17:06:00 zhenglv Exp $
  */
 
-#ifndef __SD_DUOWEN_H_INCLUDE__
-#define __SD_DUOWEN_H_INCLUDE__
+#include <target/mmc.h>
+#include <target/efi.h>
+#include <target/cmdline.h>
+#include <target/mem.h>
+#include <target/mtd.h>
 
-#include <target/clk.h>
+void duowen_sd_init(void)
+{
+}
 
-#define SDHC_REG(n, offset)	(SD_BASE + (offset))
-#define SD_FREQ_MIN	25000000
-#define SD_FREQ_MAX	25000000
+void duowen_sd_copy(void *buf, uint32_t addr, uint32_t size)
+{
+}
 
-#define SD_CLASS2	1
-#define SD_CLASS5	1
-#define SD_CLASS8	1
-#define SD_CLASS10	1
+static int do_sd(int argc, char *argv[])
+{
+	uint8_t gpt_buf[GPT_LBA_SIZE];
+	gpt_header hdr;
+	uint64_t partition_entries_lba_end;
+	gpt_partition_entry *gpt_entries;
+	uint64_t i;
+	uint32_t j;
+	int err;
+	uint32_t num_entries;
 
-#ifdef CONFIG_DUOWEN_SD
-#include <driver/sdhci.h>
-#ifndef ARCH_HAVE_SD
-#define ARCH_HAVE_SD		1
-#else
-#error "Multiple SD controller defined"
-#endif
-#endif
+	err = mmc_card_read_sync(0, (uint8_t *)&hdr,
+				 GPT_HEADER_LBA, 1);
+	if (err)
+		return -EINVAL;
+	mem_print_data(0, &hdr, 1, sizeof (gpt_header));
+	partition_entries_lba_end = (hdr.partition_entries_lba +
+		(hdr.num_partition_entries * hdr.partition_entry_size +
+		 GPT_LBA_SIZE - 1) / GPT_LBA_SIZE);
+	for (i = hdr.partition_entries_lba;
+	     i < partition_entries_lba_end; i++) {
+		mmc_card_read_sync(0, gpt_buf, i, 1);
+		gpt_entries = (gpt_partition_entry *)gpt_buf;
+		num_entries = GPT_LBA_SIZE / hdr.partition_entry_size;
+		for (j = 0; j < num_entries; j++) {
+			printf("%s:\n",
+			       uuid_export(gpt_entries[j].partition_type_guid.u.uuid));
+			printf("%016llX - %016llX \n",
+			       gpt_entries[j].first_lba,
+			       gpt_entries[i].last_lba);
+		}
+	}
+	return 0;
+}
 
-#define mmc_hw_ctrl_init()					\
-	do {							\
-		clk_enable(sd_clk);				\
-		sdhci_init(SD_FREQ_MIN, SD_FREQ_MAX);		\
-	} while (0)
-#define mmc_hw_slot_select(sid)		do { } while (0)
-#define mmc_hw_card_detect()		sdhci_detect_card()
-#define mmc_hw_set_clock(clock)		sdhci_set_clock(clock)
-#define mmc_hw_set_width(width)		sdhci_set_width(width)
-#define mmc_hw_card_busy()		sdhci_card_busy()
-#define mmc_hw_send_command(cmd, arg)	sdhci_send_command(cmd, arg)
-#define mmc_hw_recv_response(resp, size)	\
-	sdhci_recv_response(resp, size)
-#define mmc_hw_tran_data(dat, len, cnt)	sdhci_tran_data(dat, len, cnt)
-#define mmc_hw_irq_init()		sdhci_irq_init()
-#define mmc_hw_irq_poll()		sdhci_irq_poll()
-
-#endif /* __SD_DUOWEN_H_INCLUDE__ */
+DEFINE_COMMAND(sd, do_sd, "SD card commands",
+	"gpt ...\n"
+	"    - print GPT entry information\n"
+);

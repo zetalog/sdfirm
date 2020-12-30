@@ -184,6 +184,12 @@ config DUOWEN_LOAD_SSI_FLASH
 	select UEFI
 	select UEFI_GPT
 
+config DUOWEN_LOAD_SD
+	bool "Enable load from SD card"
+	depends DUOWEN_SD
+	select UEFI
+	select UEFI_GPT
+
 config DUOWEN_BOOT_STACK
 	bool "Enable boot from stack"
 	help
