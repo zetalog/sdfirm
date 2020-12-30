@@ -605,9 +605,9 @@ void dw_xpcs_write(int mmd, uint16_t addr, uint16_t value);
 	} while (0)
 
 #ifdef CONFIG_DW_XPCS
-void dw_xpcs_init_10g(void);
+void dw_xpcs_link_up(void);
 #else
-#define dw_xpcs_init_10g()		do { } while (0)
+#define dw_xpcs_link_up()		do { } while (0)
 #endif
 
 #endif /* __DW_XPCS_H_INCLUDE__ */

@@ -39,6 +39,9 @@ void tick_init(void);
 	__tsc_div(tsc_read_counter(), TSC_FREQ)
 #define tick_init()			do { } while (0)
 #endif
-#endif
+
+/* Jiffies based simple random bytes */
+void get_random_bytes(uint8_t *buf, size_t bytes);
+#endif /* __ASSEMBLY__ */
 
 #endif /* __JIFFIES_H_INCLUDE__ */

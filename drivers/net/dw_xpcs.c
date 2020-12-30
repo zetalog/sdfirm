@@ -91,10 +91,26 @@ void dw_xpcs_write(int mmd, uint16_t addr, uint16_t value)
 #endif /* CONFIG_ARCH_IS_DW_XPCS_APB_INDIRECT */
 #endif /* CONFIG_ARCH_IS_DW_XPCS_APB */
 
-void dw_xpcs_init_10g(void)
+#ifdef CONFIG_ARCH_IS_DW_XPCS_MDIO
+uint16_t dw_xpcs_read(int mmd, uint16_t addr)
 {
-	dw_xpcs_hw_clock_init();
+	uint16_t value = 0;
+	uint32_t reg_addr = MII_ADDR_C45 | mmd << 16 | addr;
 
+	(void)mdio_read(DW_XPCS_PHY_ADDR, reg_addr, &value);
+	return value;
+}
+
+void dw_xpcs_write(int mmd, uint16_t addr, uint16_t value)
+{
+	uint32_t reg_addr = MII_ADDR_C45 | mmd << 16 | addr;
+
+	(void)mdio_write(DW_XPCS_PHY_ADDR, reg_addr, value);
+}
+#endif /* CONFIG_ARCH_IS_DW_XPCS_MDIO */
+
+void dw_xpcs_link_up(void)
+{
 	dw_xpcs_write(PMA_MMD, SR_PMA_CTRL1,
 		      SR_PMA_RST | SR_PMA_SS_10G);
 	dw_xpcs_hw_sram_init();

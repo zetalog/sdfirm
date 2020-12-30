@@ -69,6 +69,7 @@
 
 #include <target/generic.h>
 #include <target/cmdline.h>
+#include <target/jiffies.h>
 
 /* Period parameters */  
 #define N		624
@@ -233,3 +234,13 @@ int main(void)
 	return 0;
 }
 #endif
+
+void get_random_bytes(uint8_t *buf, size_t bytes)
+{
+	int i;
+
+	srand(tick_get_counter());
+
+	for (i = 0; i < bytes; i++)
+		buf[i] = (uint8_t)rand();
+}

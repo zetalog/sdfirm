@@ -5,6 +5,7 @@
 menuconfig NET
 	bool "Networking support"
 	select HEAP
+	select CRYPTO_RAND
 
 if NET
 

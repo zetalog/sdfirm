@@ -59,6 +59,7 @@
 #ifndef __ASSEMBLY__
 #include <target/atomic.h>
 #include <target/spinlock.h>
+#include <target/clk.h>
 
 typedef char			s8;
 typedef unsigned char		u8;

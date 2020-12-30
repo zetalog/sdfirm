@@ -222,7 +222,7 @@ void board_late_init(void)
 	smmu_dma_alloc_sme();
 	smmu_pcie_alloc_sme();
 
-	duowen_eth_init();
+	duowen_eth_test();
 }
 
 void board_smp_init(void)

@@ -2,6 +2,8 @@
 #define __IO_H_INCLUDE__
 
 #include <target/types.h>
+#include <target/jiffies.h>
+#include <target/delay.h>
 
 #define O_RDONLY	0x01
 #define O_WRONLY	0x02
@@ -25,5 +27,23 @@ typedef void (*io_cb)(void);
 typedef boolean (*iotest_cb)(void);
 typedef void (*iordwr_cb)(uint8_t *c);
 typedef boolean (*iobyte_cb)(uint8_t *c);
+
+#define __raw_read_poll(op, a, v, cond, delay_us, timeout_ms)	\
+({								\
+	tick_t timeout = tick_get_counter() + timeout_ms;	\
+	while (1) {						\
+		v = __raw_read##op(a);				\
+		if (cond)					\
+			break;					\
+		if (timeout_ms &&				\
+		    time_after(timeout, tick_get_counter())) {	\
+			v = __raw_read##op(a);			\
+			break;					\
+		}						\
+		if (delay_us)					\
+			udelay(delay_us);			\
+	}							\
+	(cond) ? true : false;					\
+})
 
 #endif /* __IO_H_INCLUDE__ */

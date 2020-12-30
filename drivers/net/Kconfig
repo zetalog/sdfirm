@@ -5,6 +5,15 @@
 
 menu "Network drivers"
 
+menuconfig DW_XGMAC
+	bool "Synopsys DesignWare 10G ethernet MAC (XGMAC) support"
+	select DW_XPCS
+	select CRYPTO_RAND
+
+if DW_XGMAC
+
+endif
+
 config ARCH_IS_DW_XPCS_XGXS_DTE
 	bool
 
@@ -146,7 +155,7 @@ config ARCH_HAS_DW_XPCS_RXAUI
 config ARCH_HAS_DW_XPCS_SGMII_AN
 	bool
 
-config DW_XPCS
+menuconfig DW_XPCS
 	bool "Synopsys DesignWare ethernet PCS (XPCS) support"
 
 if DW_XPCS

@@ -679,17 +679,11 @@
 			 * Default to the internal phy.
 			 */
 			mdio0 {
-				address-cells = <1>;
-				size-cells = <0>;
+				#address-cells = <1>;
+				#size-cells = <0>;
 				compatible = "snps,dwmac-mdio";
-				pma_mmd: ethernet-phy@1 {
-					reg = <1>;
-				};
-				xs_pcs_mmd: ethernet-phy@3 {
-					reg = <3>;
-				};
-				an_mmd: ethernet-phy@7 {
-					reg = <7>;
+				ethernet-phy@0 {
+					reg = <0>;
 				};
 			};
 		};
