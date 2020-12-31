@@ -197,11 +197,13 @@ typedef uint8_t mmc_r3_t[4];
 
 #define MMC_ACMD_NONE			64
 
-#ifdef CONFIG_MMC
+#if defined(CONFIG_MMC)
 #include <target/mmc_phy.h>
-#endif
-#ifdef CONFIG_SD
+#elif defined(CONFIG_SD)
 #include <target/sd_phy.h>
+#else
+#define MMC_PHY_SLOT
+#define MMC_SPI_SLOT
 #endif
 
 /* bc */

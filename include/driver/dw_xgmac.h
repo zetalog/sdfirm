@@ -367,8 +367,8 @@
 void dw_xgmac_init_ctrl(void);
 bool dw_xgmac_mdio_read(uint16_t phyaddr, uint32_t phyreg,
 			uint16_t *phydata);
-bool dw_xgmac_mdio_write(uint16_t phyaddr, uint16_t phyreg,
-			 uint32_t phydata);
+bool dw_xgmac_mdio_write(uint16_t phyaddr, uint32_t phyreg,
+			 uint16_t phydata);
 #else
 #define dw_xgmac_init_ctrl()			do { } while (0)
 #define dw_xgmac_mdio_read(addr, reg)		0

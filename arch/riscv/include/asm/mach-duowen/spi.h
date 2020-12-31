@@ -97,7 +97,6 @@
 #endif
 
 #ifdef CONFIG_DUOWEN_SSI_FLASH
-typedef void (*duowen_boot_cb)(void *, uint32_t, uint32_t);
 void duowen_ssi_flash_init(void);
 void duowen_ssi_flash_copy(void *buf, uint32_t addr, uint32_t size);
 void duowen_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size);

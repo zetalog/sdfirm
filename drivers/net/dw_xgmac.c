@@ -76,7 +76,7 @@ bool dw_xgmac_mdio_read(uint16_t phyaddr, uint32_t phyreg, uint16_t *phydata)
 	return true;
 }
 
-bool dw_xgmac_mdio_write(uint16_t phyaddr, uint16_t phyreg, uint32_t phydata)
+bool dw_xgmac_mdio_write(uint16_t phyaddr, uint32_t phyreg, uint16_t phydata)
 {
 	uint32_t mdio_addr;
 	uint32_t mdio_data = MDIO_SBusy;
@@ -126,8 +126,9 @@ void dw_xgmac_init_ctrl(void)
 
 	dw_xgmac_set_ether(dw_xgmac_ctrl.ether_addr, 0);
 	for (addr = 0; addr < MII_PHYADDR_MAX; addr++) {
-		dw_xgmac_mdio_read(addr, MII_PHYSID1, &id1);
-		dw_xgmac_mdio_read(addr, MII_PHYSID1, &id2);
-		printf("phy: %d, id: %08x\n", MAKELONG(id2, id1));
+		printf("phy %d: probing\n", addr);
+		dw_xgmac_mdio_read(addr, MII_ADDR_C45 | MII_PHYSID1, &id1);
+		dw_xgmac_mdio_read(addr, MII_ADDR_C45 | MII_PHYSID1, &id2);
+		printf("phy %d: id - %08x\n", addr, MAKELONG(id2, id1));
 	}
 }

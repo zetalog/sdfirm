@@ -42,6 +42,7 @@
 #include <target/spiflash.h>
 #include <target/cmdline.h>
 #include <target/mem.h>
+#include <target/uefi.h>
 #include <target/efi.h>
 #include <target/irq.h>
 

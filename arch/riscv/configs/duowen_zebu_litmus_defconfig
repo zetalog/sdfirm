@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Dec 24 16:26:27 2020
+# Thu Dec 31 13:49:14 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -155,6 +155,7 @@ CONFIG_VAISRA_PMA=y
 # CONFIG_VAISRA_PMA_EARLY_WRITE_ACK is not set
 CONFIG_ARCH_HAS_SBI_IPI=y
 CONFIG_ARCH_HAS_SBI_TIMER=y
+CONFIG_ARCH_HAS_SBI_CLOCK=y
 # CONFIG_SBI is not set
 
 #
@@ -483,6 +484,7 @@ CONFIG_ARCH_HAS_NOC=y
 #
 # Network drivers
 #
+# CONFIG_DW_XGMAC is not set
 # CONFIG_DW_XPCS is not set
 
 #

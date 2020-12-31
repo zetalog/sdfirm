@@ -728,11 +728,6 @@ endchoice
 
 config DUOWEN_ETH_INIT
 	bool "Enable board late initialization of ethernet"
-	depends SIMULATION
-	depends !SBI
-
-config DUOWEN_ETH_TEST
-	bool "Enable ethernet link test"
 	depends !DUOWEN_BBL
 
 config DUOWEN_ETH_LOOPBACK

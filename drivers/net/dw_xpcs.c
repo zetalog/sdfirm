@@ -51,7 +51,7 @@
 
 uint16_t xpcs_base;
 
-uint16_t dw_xpcs_read(int mmd, uint16_t addr)
+uint16_t dw_xpcs_read(uint16_t mmd, uint16_t addr)
 {
 	caddr_t reg = (caddr_t)mmd << 16 | addr;
 	uint16_t base = DWCXS_APBI_BASE(reg);
@@ -63,7 +63,7 @@ uint16_t dw_xpcs_read(int mmd, uint16_t addr)
 	return __raw_readw(DWCXS_APBI_REG(DWCXS_APBI_ADDR(reg)));
 }
 
-void dw_xpcs_write(int mmd, uint16_t addr, uint16_t value)
+void dw_xpcs_write(uint16_t mmd, uint16_t addr, uint16_t value)
 {
 	caddr_t reg = (caddr_t)mmd << 16 | addr;
 	uint16_t base = DWCXS_APBI_BASE(reg);
@@ -75,37 +75,37 @@ void dw_xpcs_write(int mmd, uint16_t addr, uint16_t value)
 	__raw_writew(value, DWCXS_APBI_REG(DWCXS_APBI_ADDR(reg)));
 }
 #else /* CONFIG_ARCH_IS_DW_XPCS_APB_INDIRECT */
-uint16_t dw_xpcs_read(int mmd, uint16_t addr)
+uint16_t dw_xpcs_read(uint16_t mmd, uint16_t addr)
 {
 	caddr_t reg = (caddr_t)mmd << 16 | addr;
 
 	return (uint16_t)__raw_readl(reg);
 }
 
-void dw_xpcs_write(int mmd, uint16_t addr, uint16_t value)
+void dw_xpcs_write(uint16_t mmd, uint16_t addr, uint16_t value)
 {
 	caddr_t reg = (caddr_t)mmd << 16 | addr;
 
-	__raw_writel((uint32_t)val, reg);
+	__raw_writel((uint32_t)value, reg);
 }
 #endif /* CONFIG_ARCH_IS_DW_XPCS_APB_INDIRECT */
 #endif /* CONFIG_ARCH_IS_DW_XPCS_APB */
 
 #ifdef CONFIG_ARCH_IS_DW_XPCS_MDIO
-uint16_t dw_xpcs_read(int mmd, uint16_t addr)
+uint16_t dw_xpcs_read(uint16_t mmd, uint16_t addr)
 {
 	uint16_t value = 0;
-	uint32_t reg_addr = MII_ADDR_C45 | mmd << 16 | addr;
+	uint32_t reg = MII_ADDR_C45 | (uint32_t)mmd << 16 | addr;
 
-	(void)mdio_read(DW_XPCS_PHY_ADDR, reg_addr, &value);
+	(void)mdio_read(DW_XPCS_PHY_ADDR, reg, &value);
 	return value;
 }
 
-void dw_xpcs_write(int mmd, uint16_t addr, uint16_t value)
+void dw_xpcs_write(uint16_t mmd, uint16_t addr, uint16_t value)
 {
-	uint32_t reg_addr = MII_ADDR_C45 | mmd << 16 | addr;
+	uint32_t reg = MII_ADDR_C45 | (uint32_t)mmd << 16 | addr;
 
-	(void)mdio_write(DW_XPCS_PHY_ADDR, reg_addr, value);
+	(void)mdio_write(DW_XPCS_PHY_ADDR, reg, value);
 }
 #endif /* CONFIG_ARCH_IS_DW_XPCS_MDIO */
 

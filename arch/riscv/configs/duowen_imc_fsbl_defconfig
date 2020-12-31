@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Dec 24 16:24:30 2020
+# Thu Dec 31 13:47:16 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -127,6 +127,7 @@ CONFIG_ARCH_HAS_PLIC=y
 CONFIG_ARCH_HAS_PLIC_EOI_EARLY=y
 # CONFIG_PLIC is not set
 # CONFIG_HPM is not set
+CONFIG_ARCH_HAS_SBI_CLOCK=y
 # CONFIG_SBI is not set
 
 #
@@ -149,6 +150,7 @@ CONFIG_DUOWEN_FSBL=y
 # CONFIG_DUOWEN_FSBL_SPI is not set
 CONFIG_DUOWEN_LOAD=y
 CONFIG_DUOWEN_LOAD_SSI_FLASH=y
+# CONFIG_DUOWEN_LOAD_SD is not set
 # CONFIG_DUOWEN_BOOT_STACK is not set
 
 #
@@ -545,6 +547,7 @@ CONFIG_NCORE=y
 #
 # Network drivers
 #
+# CONFIG_DW_XGMAC is not set
 # CONFIG_DW_XPCS is not set
 
 #

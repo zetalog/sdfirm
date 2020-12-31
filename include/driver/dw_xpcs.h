@@ -588,8 +588,8 @@
 #endif /* CONFIG_ARCH_IS_DW_XPCS_1000BASE_X */
 #endif
 
-uint16_t dw_xpcs_read(int mmd, uint16_t addr);
-void dw_xpcs_write(int mmd, uint16_t addr, uint16_t value);
+uint16_t dw_xpcs_read(uint16_t mmd, uint16_t addr);
+void dw_xpcs_write(uint16_t mmd, uint16_t addr, uint16_t value);
 
 #define dw_xpcs_set(mmd, addr, value)			\
 	do {						\

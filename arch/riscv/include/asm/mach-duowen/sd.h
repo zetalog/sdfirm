@@ -62,6 +62,7 @@
 #endif
 #endif
 
+#ifdef CONFIG_DW_MSHC
 #define mmc_hw_ctrl_init()					\
 	do {							\
 		clk_enable(sd_clk);				\
@@ -78,5 +79,16 @@
 #define mmc_hw_tran_data(dat, len, cnt)	sdhci_tran_data(dat, len, cnt)
 #define mmc_hw_irq_init()		sdhci_irq_init()
 #define mmc_hw_irq_poll()		sdhci_irq_poll()
+#endif
+
+#ifdef CONFIG_DUOWEN_SD
+void duowen_sd_init(void);
+void duowen_sd_copy(void *buf, uint32_t addr, uint32_t size);
+void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size);
+#else
+#define duowen_sd_init()			do { } while (0)
+#define duowen_sd_copy(buf, addr, size)		do { } while (0)
+#define duowen_sd_boot(boot, addr, size)	do { } while (0)
+#endif
 
 #endif /* __SD_DUOWEN_H_INCLUDE__ */

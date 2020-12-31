@@ -55,10 +55,10 @@
 #define duowen_eth_init()		duowen_eth_clock_init()
 #endif
 
-#ifdef CONFIG_DUOWEN_ETH_TEST
-#define duowen_eth_test()		duowen_eth_init()
+#ifdef CONFIG_DUOWEN_ETH_INIT
+#define duowen_eth_late_init()		duowen_eth_init()
 #else
-#define duowen_eth_test()		do { } while (0)
+#define duowen_eth_late_init()		do { } while (0)
 #endif
 
 #endif /* __ETH_DUOWEN_H_INCLUDE__ */

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Dec 24 16:27:15 2020
+# Thu Dec 31 13:50:05 2020
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -465,6 +465,7 @@ CONFIG_PCIE_ROLE_RC=y
 #
 # Network drivers
 #
+# CONFIG_DW_XGMAC is not set
 # CONFIG_DW_XPCS is not set
 
 #

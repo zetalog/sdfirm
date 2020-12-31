@@ -125,6 +125,7 @@ void duowen_load_spi(void)
 #else
 #define duowen_load_spi()		do { } while (0)
 #endif
+
 #ifdef CONFIG_DUOWEN_LOAD_SSI_FLASH
 void duowen_load_ssi(void)
 {
@@ -162,6 +163,43 @@ void duowen_load_ssi(void)
 #define duowen_load_ssi()		do { } while (0)
 #endif
 
+#ifdef CONFIG_DUOWEN_LOAD_SD
+void duowen_load_sd(void)
+{
+#ifdef CONFIG_DUOWEN_ZSBL
+	void (*boot_entry)(void) = (void *)RAM_BASE;
+#endif
+#ifdef CONFIG_DUOWEN_FSBL
+	void (*boot_entry)(void) = (void *)(DDR_BASE + 0x80);
+#endif
+	uint32_t addr = 0;
+	uint32_t size = 500000;
+	unsigned char boot_file[] = "fsbl.bin";
+	int ret;
+
+	ret = gpt_pgpt_init();
+	if (ret != 0)
+		printf("SD: primary GPT failure.\n");
+	ret = gpt_get_file_by_name(boot_file, &addr, &size);
+	if (ret <= 0)
+		printf("SD: %s missing.\n", boot_file);
+	printf("Booting from SD card addr=0x%lx, size=0x%lx...\n",
+	       addr, size);
+#ifdef CONFIG_DUOWEN_FSBL
+	ddr_init();
+#endif
+	duowen_sd_boot(boot_entry, addr, size);
+#if defined(CONFIG_DUOWEN_IMC) && defined(CONFIG_DUOWEN_FSBL)
+	duowen_clk_apc_init();
+#else
+	boot_entry();
+	unreachable();
+#endif
+}
+#else
+#define duowen_load_sd()		do { } while (0)
+#endif
+
 #if defined(CONFIG_DUOWEN_APC) && defined(CONFIG_DUOWEN_ZSBL)
 void duowen_load_ddr(void)
 {
@@ -183,12 +221,9 @@ void board_boot(void)
 	__unused uint8_t load_sel = imc_load_from();
 
 	board_init_clock();
-#if 0
-	/* TODO: SD boot */
 	if (load_sel == IMC_BOOT_SD)
 		duowen_load_sd();
 	if (load_sel == IMC_BOOT_SSI)
-#endif
 		duowen_load_ssi();
 }
 #endif
@@ -211,18 +246,15 @@ void board_early_init(void)
 void board_late_init(void)
 {
 	duowen_ssi_irq_init();
+	duowen_sd_init();
 	duowen_ssi_flash_init();
-	/* TODO: DDR/CFAB/APC AXI clocks need to be enabled before
-	 *       initializing NoC.
-	 */
 	duowen_imc_noc_init();
 #ifndef CONFIG_SMP
 	board_boot();
 #endif
 	smmu_dma_alloc_sme();
 	smmu_pcie_alloc_sme();
-
-	duowen_eth_test();
+	duowen_eth_late_init();
 }
 
 void board_smp_init(void)

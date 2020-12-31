@@ -40,6 +40,7 @@
  */
 
 #include <target/mmc.h>
+#include <target/uefi.h>
 #include <target/efi.h>
 #include <target/cmdline.h>
 #include <target/mem.h>
@@ -51,6 +52,39 @@ void duowen_sd_init(void)
 
 void duowen_sd_copy(void *buf, uint32_t addr, uint32_t size)
 {
+}
+
+static inline uint8_t duowen_sd_read(uint32_t addr)
+{
+	uint8_t byte = 0;
+
+	return byte;
+}
+
+void __duowen_sd_boot(void *boot, uint32_t addr, uint32_t size)
+{
+	int i;
+	uint8_t *dst = boot;
+	void (*boot_entry)(void) = boot;
+
+	for (i = 0; i < size; i++, addr++)
+		dst[i] = duowen_sd_read(addr);
+	boot_entry();
+}
+
+void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size)
+{
+	duowen_boot_cb boot_func;
+#ifdef CONFIG_DUOWEN_BOOT_STACK
+	__align(32) uint8_t boot_from_stack[256];
+
+	boot_func = (duowen_boot_cb)boot_from_stack;
+	memcpy(boot_from_stack, __duowen_ssi_flash_boot, 256);
+#else
+	boot_func = __duowen_sd_boot;
+#endif
+	boot_func(boot, addr, size);
+	unreachable();
 }
 
 static int do_sd(int argc, char *argv[])
