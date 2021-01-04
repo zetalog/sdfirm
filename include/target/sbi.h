@@ -6,6 +6,7 @@
 #include <target/jiffies.h>
 #include <target/console.h>
 #include <target/atomic.h>
+#include <target/clk.h>
 
 #define OPENSBI_VERSION_MAJOR 0
 #define OPENSBI_VERSION_MINOR 4
@@ -43,6 +44,11 @@
 /* Enable/disable trap logs */
 #define SBI_ECALL_ENABLE_LOG			30
 #define SBI_ECALL_DISABLE_LOG			31
+/* Clock framework */
+#define SBI_ECALL_GET_CLK_FREQ			40
+#define SBI_ECALL_SET_CLK_FREQ			41
+#define SBI_ECALL_ENABLE_CLK			42
+#define SBI_ECALL_DISABLE_CLK			43
 /* Testbench finish */
 #define SBI_ECALL_FINISH			32
 
@@ -286,6 +292,21 @@ static inline int sbi_getc(void)
 {
 	return -1;
 }
+#endif
+
+#ifdef CONFIG_CLK
+unsigned long sbi_clock_get_freq(unsigned long clkid);
+void sbi_clock_set_freq(unsigned long clkid, unsigned long freq);
+void sbi_clock_enable(unsigned long clkid);
+void sbi_clock_disable(unsigned long clkid);
+#else
+static inline unsigned long sbi_clock_get_freq(unsigned long clkid)
+{
+	return INVALID_FREQ;
+}
+#define sbi_clock_set_freq(clkid, freq)		do { } while (0)
+#define sbi_clock_enable(clkid, freq)		do { } while (0)
+#define sbi_clock_disable(clkid, freq)		do { } while (0)
 #endif
 
 int sbi_system_early_init(struct sbi_scratch *scratch, bool cold_boot);

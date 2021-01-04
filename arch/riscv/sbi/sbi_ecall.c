@@ -115,6 +115,26 @@ int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
 		sbi_trap_log_on = false;
 		ret = 0;
 		break;
+	case SBI_ECALL_GET_CLK_FREQ:
+		sbi_trap_log("%d: ECALL_GET_CLK_FREQ\n", source_hart);
+		regs->a0 = sbi_clock_get_freq(regs->a0);
+		ret = 0;
+		break;
+	case SBI_ECALL_SET_CLK_FREQ:
+		sbi_trap_log("%d: ECALL_SET_CLK_FREQ\n", source_hart);
+		sbi_clock_set_freq(regs->a0, regs->a1);
+		ret = 0;
+		break;
+	case SBI_ECALL_ENABLE_CLK:
+		sbi_trap_log("%d: ECALL_ENABLE_CLK\n", source_hart);
+		sbi_clock_enable(regs->a0);
+		ret = 0;
+		break;
+	case SBI_ECALL_DISABLE_CLK:
+		sbi_trap_log("%d: ECALL_DISABLE_CLK\n", source_hart);
+		sbi_clock_disable(regs->a0);
+		ret = 0;
+		break;
 	default:
 		regs->a0 = -ENOTSUP;
 		ret	 = 0;
