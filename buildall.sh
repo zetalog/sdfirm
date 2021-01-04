@@ -22,7 +22,13 @@ build_sdfirm()
 	echo "Building ${arch} ${prog}..."
 	make ${prog}_defconfig > /dev/null
 	if [ "x$update_defconfigs" = "xyes" ]; then
-		cp -f ./.config arch/${SUBARCH}/configs/${prog}_defconfig
+		pl=`diff -u ./.config arch/${SUBARCH}/configs/${prog}_defconfig | grep '^+' | wc -l`
+		ml=`diff -u ./.config arch/${SUBARCH}/configs/${prog}_defconfig | grep '^-' | wc -l`
+		if [ $pl -gt 2 -o $ml -gt 2 ]; then
+			echo "Updating ${arch} ${prog}..."
+			cp -f ./.config \
+				arch/${SUBARCH}/configs/${prog}_defconfig
+		fi
 	fi
 	make clean > /dev/null
 	make > /dev/null

@@ -189,7 +189,7 @@ struct reset_clk reset_clks[NR_RESET_CLKS] = {
 	},
 };
 
-#ifdef CONFIG_CONSOLE_COMMAND
+#ifdef CONFIG_CLK_MNEMONICS
 const char *reset_clk_names[NR_RESET_CLKS] = {
 	[SRST_GPDPU] = "srst_gpdpu",
 	[SRST_PCIE0] = "srst_pcie0",
@@ -292,7 +292,7 @@ struct dep_clk dep_clks[NR_DEP_CLKS] = {
 	},
 };
 
-#ifdef CONFIG_CONSOLE_COMMAND
+#ifdef CONFIG_CLK_MNEMONICS
 const char *dep_clk_names[NR_DEP_CLKS] = {
 	[VPU_CLK] = "vpu_clk",
 };
@@ -430,7 +430,7 @@ struct sel_clk sel_clks[NR_SEL_CLKS] = {
 	},
 };
 
-#ifdef CONFIG_CONSOLE_COMMAND
+#ifdef CONFIG_CLK_MNEMONICS
 const char *sel_clk_names[NR_SEL_CLKS] = {
 	[IMC_CLK] = "imc_clk",
 	[PE_CLK] = "pe_clk",
@@ -653,7 +653,7 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 	},
 };
 
-#ifdef CONFIG_CONSOLE_COMMAND
+#ifdef CONFIG_CLK_MNEMONICS
 const char *pll_clk_names[NR_PLL_CLKS] = {
 	[PLL0_P] = "pll0_p",
 	[PLL1_P] = "pll1_p",
@@ -807,7 +807,7 @@ struct vco_clk vco_clks[NR_VCO_CLKS] = {
 	},
 };
 
-#ifdef CONFIG_CONSOLE_COMMAND
+#ifdef CONFIG_CLK_MNEMONICS
 const char *vco_clk_names[NR_VCO_CLKS] = {
 	[PLL0_VCO] = "pll0_vco",
 	[PLL1_VCO] = "pll1_vco",
@@ -893,7 +893,7 @@ uint32_t input_clks[NR_INPUT_CLKS] = {
 	[PCIE_PHY_CLK] = PCIE_PHY_CLK_FREQ,
 };
 
-#ifdef CONFIG_CONSOLE_COMMAND
+#ifdef CONFIG_CLK_MNEMONICS
 const char *input_clk_names[NR_INPUT_CLKS] = {
 	[XIN] = "xin",
 	[PCIE_PHY_CLK] = "pcie_phy_clk",

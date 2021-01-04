@@ -738,12 +738,16 @@ config ARCH_HAS_CLK
 menuconfig CLK
 	bool "Clock tree framework support"
 	select STRING_STRTOUL
+	select CLK_MNEMONICS if CONSOLE_COMMAND
 
 if CLK
 
 config CLK_MAX_DRIVERS
 	int "Maximum clock drivers"
 	range 1 10
+
+config CLK_MNEMONICS
+	bool "Enable verbose clock names"
 
 endif
 

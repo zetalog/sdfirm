@@ -57,7 +57,7 @@ uint32_t input_clks[NR_INPUT_CLKS] = {
 	[XO_CLK] = XO_CLK_FREQ,
 };
 
-#ifdef CONFIG_CONSOLE_COMMAND
+#ifdef CONFIG_CLK_MNEMONICS
 const char *input_clk_names[NR_INPUT_CLKS] = {
 	[SOC_PLL] = "soc_pll",
 	[DDR_BUS_PLL] = "ddr_bus_pll",

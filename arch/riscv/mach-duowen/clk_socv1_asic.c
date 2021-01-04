@@ -117,7 +117,7 @@ struct select_clk select_clks[NR_SELECT_CLKS] = {
 	},
 };
 
-#ifdef CONFIG_CONSOLE_COMMAND
+#ifdef CONFIG_CLK_MNEMONICS
 const char *sel_clk_names[NR_SELECT_CLKS] = {
 	[SOC_CLK_SEL] = "soc_clk_sel",
 	[DDR_BUS_CLK_SEL] = "ddr_bus_clk_sel",
@@ -262,7 +262,7 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 	},
 };
 
-#ifdef CONFIG_CONSOLE_COMMAND
+#ifdef CONFIG_CLK_MNEMONICS
 const char *pll_clk_names[NR_PLL_CLKS] = {
 	[SOC_PLL] = "soc_pll",
 	[DDR_BUS_PLL] = "ddr_bus_pll",
@@ -396,7 +396,7 @@ struct vco_clk vco_clks[NR_VCO_CLKS] = {
 	},
 };
 
-#ifdef CONFIG_CONSOLE_COMMAND
+#ifdef CONFIG_CLK_MNEMONICS
 const char *vco_clk_names[NR_VCO_CLKS] = {
 	[SOC_VCO] = "soc_vco",
 	[DDR_BUS_VCO] = "ddr_bus_vco",
@@ -486,7 +486,7 @@ uint32_t input_clks[NR_INPUT_CLKS] = {
 	[XO_CLK] = XO_CLK_FREQ,
 };
 
-#ifdef CONFIG_CONSOLE_COMMAND
+#ifdef CONFIG_CLK_MNEMONICS
 const char *input_clk_names[NR_INPUT_CLKS] = {
 	[XO_CLK] = "xo_clk",
 };

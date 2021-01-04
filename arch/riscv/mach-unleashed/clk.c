@@ -42,7 +42,7 @@
 #include <target/clk.h>
 #include <target/paging.h>
 
-#ifdef CONFIG_CONSOLE_COMMAND
+#ifdef CONFIG_CLK_MNEMONICS
 const char *output_clk_names[NR_OUTPUT_CLKS] = {
 	[CORECLK] = "coreclk",
 	[TLCLK] = "tlclk",
@@ -142,7 +142,7 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 	},
 };
 
-#ifdef CONFIG_CONSOLE_COMMAND
+#ifdef CONFIG_CLK_MNEMONICS
 const char *pll_clk_names[NR_PLL_CLKS] = {
 	[COREPLL] = "corepll",
 	[DDRPLL] = "ddrpll",
@@ -216,7 +216,7 @@ uint32_t input_clks[NR_INPUT_CLKS] = {
 	[RTCCLK] = RTCCLK_FREQ,
 };
 
-#ifdef CONFIG_CONSOLE_COMMAND
+#ifdef CONFIG_CLK_MNEMONICS
 const char *input_clk_names[NR_INPUT_CLKS] = {
 	[HFCLK] = "hfclk",
 	[RTCCLK] = "rtcclk",

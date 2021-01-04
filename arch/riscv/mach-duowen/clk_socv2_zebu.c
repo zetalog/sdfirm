@@ -120,7 +120,7 @@ struct select_clk select_clks[NR_SELECT_CLKS] = {
 	},
 };
 
-#ifdef CONFIG_CONSOLE_COMMAND
+#ifdef CONFIG_CLK_MNEMONICS
 const char *sel_clk_names[NR_SELECT_CLKS] = {
 	[SOC_CLK_DIV2_SEL] = "soc_clk_div2_sel",
 	[SYSFAB_CLK_SEL] = "sysfab_clk_sel",
@@ -228,7 +228,7 @@ uint32_t input_clks[NR_INPUT_CLKS] = {
 	[SGMII_PLL] = SGMII_PLL_FREQ,
 };
 
-#ifdef CONFIG_CONSOLE_COMMAND
+#ifdef CONFIG_CLK_MNEMONICS
 const char *input_clk_names[NR_INPUT_CLKS] = {
 	[XO_CLK] = "xo_clk",
 	[SOC_PLL] = "soc_pll",

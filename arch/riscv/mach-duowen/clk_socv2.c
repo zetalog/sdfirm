@@ -653,7 +653,7 @@ struct output_clk output_clks[] = {
 	},
 };
 
-#ifdef CONFIG_CONSOLE_COMMAND
+#ifdef CONFIG_CLK_MNEMONICS
 const char *output_clk_names[] = {
 	/* 4.2 Cluster Clocks */
 	[CLUSTER0_CLK] = "cluster0_clk",
@@ -867,7 +867,7 @@ struct div_clk div_clks[NR_DIV_CLKS] = {
 	},
 };
 
-#ifdef CONFIG_CONSOLE_COMMAND
+#ifdef CONFIG_CLK_MNEMONICS
 const char *div_clk_names[NR_DIV_CLKS] = {
 	[SOC_CLK_DIV2] = "soc_clk_div2",
 	[DDR_CLK_SEL_DIV4] = "ddr_clk_sel_div4",

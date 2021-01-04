@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Dec 31 13:48:52 2020
+# Mon Jan  4 12:28:02 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -284,6 +284,7 @@ CONFIG_REBOOT=y
 CONFIG_ARCH_HAS_CLK=y
 CONFIG_CLK=y
 CONFIG_CLK_MAX_DRIVERS=6
+# CONFIG_CLK_MNEMONICS is not set
 
 #
 # Human Interface Devices (HID) support
