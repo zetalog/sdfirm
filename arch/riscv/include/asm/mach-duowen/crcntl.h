@@ -53,20 +53,6 @@
 #define DW_PLL_T_PWRON			18 /* until rst_n can be set */
 #define DW_PLL_T_PWRSTB			17 /* until test_rst_n can be set */
 
-/* PLL IDs is kept AS IS to make base addresses simpler, see
- * COHFAB_CLK_PLL() and COHFAB_CLK_SEL_PLL() for details.
- */
-#define SOC_PLL			((clk_clk_t)0)
-#define DDR_BUS_PLL		((clk_clk_t)1)
-#define DDR_PLL			((clk_clk_t)2)
-#define PCIE_PLL		((clk_clk_t)3)
-#define COHFAB_PLL		((clk_clk_t)4)
-#define CL0_PLL			((clk_clk_t)5)
-#define CL1_PLL			((clk_clk_t)6)
-#define CL2_PLL			((clk_clk_t)7)
-#define CL3_PLL			((clk_clk_t)8)
-#define ETH_PLL			((clk_clk_t)9)
-#define DUOWEN_MAX_PLLS			10
 extern phys_addr_t duowen_pll_reg_base[];
 #define DW_PLL_BASE(pll)		duowen_pll_reg_base[pll]
 #define DW_PLL_REG(pll, offset)		(DW_PLL_BASE(pll) + (offset))

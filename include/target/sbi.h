@@ -294,7 +294,7 @@ static inline int sbi_getc(void)
 }
 #endif
 
-#ifdef CONFIG_CLK
+#ifdef CONFIG_ARCH_HAS_SBI_CLOCK
 unsigned long sbi_clock_get_freq(unsigned long clkid);
 void sbi_clock_set_freq(unsigned long clkid, unsigned long freq);
 void sbi_clock_enable(unsigned long clkid);
@@ -305,8 +305,8 @@ static inline unsigned long sbi_clock_get_freq(unsigned long clkid)
 	return INVALID_FREQ;
 }
 #define sbi_clock_set_freq(clkid, freq)		do { } while (0)
-#define sbi_clock_enable(clkid, freq)		do { } while (0)
-#define sbi_clock_disable(clkid, freq)		do { } while (0)
+#define sbi_clock_enable(clkid)			do { } while (0)
+#define sbi_clock_disable(clkid)		do { } while (0)
 #endif
 
 int sbi_system_early_init(struct sbi_scratch *scratch, bool cold_boot);

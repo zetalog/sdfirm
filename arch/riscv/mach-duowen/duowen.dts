@@ -1,4 +1,5 @@
 #include <target/arch.h>
+#include <dt-bindings/clock/sbi-clock-duowen.h>
 
 /dts-v1/;
 
@@ -622,6 +623,13 @@
 			compatible = "riscv,clint0";
 		};
 
+
+		crcntl: crcntl-clock@ff60000000 {
+			compatible = "smarco,duowen-crcntl";
+			reg = <0xff 0x60000000 0x0 0x1000>;
+			#clock-cells = <1>;
+		};
+
 #ifdef CONFIG_DUOWEN_ETH
 		stmmac_axi_setup: stmmac-axi-config {
 			snps,wr_osr_lmt = <0x3f>;
@@ -667,10 +675,8 @@
 			snps,perfect-filter-entries = <128>;
 			rx-fifo-depth = <16384>;
 			tx-fifo-depth = <16384>;
-			/* Need a clock driver:
-			 * clocks = <&sdfirm_clock eth_alt_ref_clk>;
-			 * clock-names = "stmmaceth";
-			 */
+			clocks = <&crcntl sysfab_clk>;
+			clock-names = "stmmaceth";
 			snps,axi-config = <&stmmac_axi_setup>;
 			snps,mtl-rx-config = <&mtl_rx_setup>;
 			snps,mtl-tx-config = <&mtl_tx_setup>;
