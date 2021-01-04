@@ -84,6 +84,8 @@
 #define SMMU_SME_PCIE_TBU1	SMMU_SME(IOMMU_PCIE, 1)
 #define SMMU_SME_PCIE_TBU2	SMMU_SME(IOMMU_PCIE, 2)
 #define SMMU_SME_PCIE_TBU3	SMMU_SME(IOMMU_PCIE, 3)
+
+#define NR_IOMMUS		12
 #else
 #error "Multiple IOMMU controller defined"
 #endif

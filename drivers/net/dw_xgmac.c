@@ -119,16 +119,25 @@ static void dw_xgmac_set_ether(unsigned char *addr, unsigned int reg_n)
 
 void dw_xgmac_init_ctrl(void)
 {
-	uint16_t addr, id1 = 0, id2 = 0;
+	uint16_t phy, dev = 0, id1 = 0, id2 = 0;
 
+	/* Configure clk_csr parameters */
 	dw_xgmac_ctrl.clk_rate = clk_get_frequency(DW_XGMAC_CLK_SRC);
-	eth_random_addr(dw_xgmac_ctrl.ether_addr);
 
+	/* Configure ethernet address */
+	eth_random_addr(dw_xgmac_ctrl.ether_addr);
 	dw_xgmac_set_ether(dw_xgmac_ctrl.ether_addr, 0);
-	for (addr = 0; addr < MII_PHYADDR_MAX; addr++) {
-		printf("phy %d: probing\n", addr);
-		dw_xgmac_mdio_read(addr, MII_ADDR_C45 | MII_PHYSID1, &id1);
-		dw_xgmac_mdio_read(addr, MII_ADDR_C45 | MII_PHYSID1, &id2);
-		printf("phy %d: id - %08x\n", addr, MAKELONG(id2, id1));
+
+	/* Probe MDIO devices */
+	for (phy = 0; phy < MII_PHYADDR_MAX; phy++) {
+		printf("phy%d-dev%d: probing\n", phy, dev);
+		dw_xgmac_mdio_read(phy,
+			MII_ADDR_C45 | ((uint32_t)dev) << 16 | MII_PHYSID1,
+			&id1);
+		dw_xgmac_mdio_read(phy,
+			MII_ADDR_C45 | ((uint32_t)dev) << 16 | MII_PHYSID1,
+			&id2);
+		printf("phy%d-dev%d: id - %08x\n",
+		       phy, dev, MAKELONG(id2, id1));
 	}
 }

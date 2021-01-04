@@ -498,7 +498,7 @@ static void smmu_device_reset(void)
 	smmu_clear_global_fault();
 
 	/* Reset stream mapping groups */
-	for (i = 0; i < smmu_device_ctrl.max_streams; i++) {
+	for (i = 0; i < NR_IOMMU_GROUPS; i++) {
 		sgr = smmu_gr_save(i);
 		smmu_stream_ctrl.count = 0;
 		smmu_stream_ctrl.sme = INVALID_SMMU_SME;
