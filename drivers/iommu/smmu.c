@@ -360,6 +360,7 @@ void smmu_probe_ids(void)
 {
 	__unused uint32_t id;
 
+	printf("Probing IDs...\n");
 	id = __raw_readl(SMMU_IDR0(iommu_dev));
 	smmu_trans_regimes(id);
 	smmu_trans_ops(id);
@@ -495,21 +496,29 @@ static void smmu_device_reset(void)
 	__unused smmu_cb_t scb;
 
 	/* Clear global FSR */
+	printf("Clearing global faults...\n");
 	smmu_clear_global_fault();
 
 	/* Reset stream mapping groups */
+	printf("Resetting %d (fw reported) stream mapping groups...\n",
+	       NR_IOMMU_GROUPS);
 	for (i = 0; i < NR_IOMMU_GROUPS; i++) {
 		sgr = smmu_gr_save(i);
 		smmu_stream_ctrl.count = 0;
 		smmu_stream_ctrl.sme = INVALID_SMMU_SME;
+		printf("Writing group %d S2CR...\n", i);
 		smmu_write_s2cr(SMMU_S2CR_TYPE_INIT, 0, 0, false);
+		printf("Writing group &d SMR...\n", i);
 		smmu_write_smr(0, 0, false);
 		smmu_gr_restore(sgr);
 	}
 
 	/* Make sure all context banks are disabled and clear CB_FSR  */
+	printf("Resetting %d (hw reported) context banks...\n",
+	       smmu_device_ctrl.max_s1_cbs);
 	for (i = 0; i < smmu_device_ctrl.max_s1_cbs; i++) {
 		scb = smmu_cb_save(i);
+		printf("Writing context bank %d...\n", i);
 		smmu_write_context_bank(NULL, SMMU_CBAR_TYPE_S2_TRANS,
 					false, 0, 0, 0);
 		__raw_writel(SMMU_FSR_FAULT, SMMU_CB_FSR(iommu_dev, smmu_cb));
@@ -517,9 +526,11 @@ static void smmu_device_reset(void)
 	}
 
 	/* Invalidate the TLB, just in case */
+	printf("Invalidating TLBs...\n");
 	__raw_writel(QCOM_DUMMY_VAL, SMMU_TLBIALLH(iommu_dev));
 	__raw_writel(QCOM_DUMMY_VAL, SMMU_TLBIALLNSNH(iommu_dev));
 
+	printf("Configuring sCR0...\n");
 	reg = __raw_readl(SMMU_sCR0(iommu_dev));
 
 	/* Enable fault reporting */
@@ -548,9 +559,11 @@ static void smmu_device_reset(void)
 
 	reg = smmu_hw_ctrl_reset(reg);
 
+	printf("Synchronizing global TLBs...\n");
 	smmu_tlb_sync_global();
 	__raw_writel(reg, SMMU_sCR0(iommu_dev));
 
+	printf("Enabling client accesses...\n");
 	/* Enable client access, handling unmatched streams as appropriate */
 	smmu_enable();
 }

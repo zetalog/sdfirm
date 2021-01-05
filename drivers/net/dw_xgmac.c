@@ -50,7 +50,6 @@ bool dw_xgmac_mdio_read(uint16_t phyaddr, uint32_t phyreg, uint16_t *phydata)
 {
 	uint32_t mdio_addr;
 	uint32_t mdio_data = MDIO_SBusy;
-	uint32_t tmp;
 
 	if (phyreg & MII_ADDR_C45) {
 		phyaddr &= ~MII_ADDR_C45;
@@ -63,14 +62,10 @@ bool dw_xgmac_mdio_read(uint16_t phyaddr, uint32_t phyreg, uint16_t *phydata)
 	mdio_data |= MDIO_CR(dw_xgmac_clk_csr());
 	mdio_data |= MDIO_CMD(MDIO_SINGLE_READ);
 
-	if (!__raw_read_poll(l, MDIO_Single_Command_Address,
-			     tmp, !(tmp & MDIO_SBusy), 100, 100))
-		return false;
+	while (dw_xgmac_mdio_busy());
 	__raw_writel(mdio_addr, MDIO_Single_Command_Address);
 	__raw_writel(mdio_data, MDIO_Single_Command_Control_Data);
-	if (!__raw_read_poll(l, MDIO_Single_Command_Address,
-			     tmp, !(tmp & MDIO_SBusy), 100, 100))
-		return false;
+	while (dw_xgmac_mdio_busy());
 
 	*phydata = MDIO_SDATA(__raw_readl(MDIO_Single_Command_Control_Data));
 	return true;
@@ -80,7 +75,6 @@ bool dw_xgmac_mdio_write(uint16_t phyaddr, uint32_t phyreg, uint16_t phydata)
 {
 	uint32_t mdio_addr;
 	uint32_t mdio_data = MDIO_SBusy;
-	uint32_t tmp;
 
 	if (phyreg & MII_ADDR_C45) {
 		phyaddr &= ~MII_ADDR_C45;
@@ -94,14 +88,10 @@ bool dw_xgmac_mdio_write(uint16_t phyaddr, uint32_t phyreg, uint16_t phydata)
 	mdio_data |= MDIO_CMD(MDIO_SINGLE_WRITE);
 	mdio_data |= MDIO_SDATA(phydata);
 
-	if (!__raw_read_poll(l, MDIO_Single_Command_Address,
-			     tmp, !(tmp & MDIO_SBusy), 100, 100))
-		return false;
+	while (dw_xgmac_mdio_busy());
 	__raw_writel(mdio_addr, MDIO_Single_Command_Address);
 	__raw_writel(mdio_data, MDIO_Single_Command_Control_Data);
-	if (!__raw_read_poll(l, MDIO_Single_Command_Address,
-			     tmp, !(tmp & MDIO_SBusy), 100, 100))
-		return false;
+	while (dw_xgmac_mdio_busy());
 
 	return true;
 }

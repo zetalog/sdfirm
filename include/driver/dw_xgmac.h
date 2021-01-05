@@ -278,7 +278,7 @@
 #define MDIO_SDATA(value)		_SET_FV(MDIO_SDATA, value)
 
 #define dw_xgmac_mdio_busy()		\
-	(!!(__raw_readl(MDIO_Single_Command_Address) & MDIO_SBusy))
+	(!!(__raw_readl(MDIO_Single_Command_Control_Data) & MDIO_SBusy))
 
 /* Mac Transaction Layer (MTL) Common/General Registers */
 #define MTL_Operation_Mode		DWCXG_MTL_REG(0x000)
