@@ -12,6 +12,10 @@ menuconfig DW_XGMAC
 
 if DW_XGMAC
 
+config DW_XGMAC_MDIO_FAST
+	bool "Enable faster clock on MDIO"
+	depends SIMULATION
+
 endif
 
 config ARCH_IS_DW_XPCS_XGXS_DTE

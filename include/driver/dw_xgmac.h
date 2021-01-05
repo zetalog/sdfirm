@@ -276,6 +276,11 @@
 #define MDIO_SDATA_OFFSET		0
 #define MDIO_SDATA_MASK			REG_16BIT_MASK
 #define MDIO_SDATA(value)		_SET_FV(MDIO_SDATA, value)
+#ifdef CONFIG_DW_XGMAC_MDIO_FAST
+#define MDIO_DATA_DEFAULT		(MDIO_SBusy | MDIO_CRS)
+#else
+#define MDIO_DATA_DEFAULT		MDIO_SBusy
+#endif
 
 #define dw_xgmac_mdio_busy()		\
 	(!!(__raw_readl(MDIO_Single_Command_Control_Data) & MDIO_SBusy))

@@ -49,7 +49,7 @@ static uint32_t dw_xgmac_mdio_c22(uint16_t phyaddr, uint32_t phyreg)
 bool dw_xgmac_mdio_read(uint16_t phyaddr, uint32_t phyreg, uint16_t *phydata)
 {
 	uint32_t mdio_addr;
-	uint32_t mdio_data = MDIO_SBusy;
+	uint32_t mdio_data = MDIO_DATA_DEFAULT;
 
 	if (phyreg & MII_ADDR_C45) {
 		phyaddr &= ~MII_ADDR_C45;
@@ -74,7 +74,7 @@ bool dw_xgmac_mdio_read(uint16_t phyaddr, uint32_t phyreg, uint16_t *phydata)
 bool dw_xgmac_mdio_write(uint16_t phyaddr, uint32_t phyreg, uint16_t phydata)
 {
 	uint32_t mdio_addr;
-	uint32_t mdio_data = MDIO_SBusy;
+	uint32_t mdio_data = MDIO_DATA_DEFAULT;
 
 	if (phyreg & MII_ADDR_C45) {
 		phyaddr &= ~MII_ADDR_C45;
