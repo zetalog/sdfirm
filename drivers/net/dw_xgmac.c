@@ -124,6 +124,9 @@ void dw_xgmac_init_ctrl(void)
 	/* Configure clk_csr parameters */
 	dw_xgmac_ctrl.clk_rate = clk_get_frequency(DW_XGMAC_CLK_SRC);
 
+	/* Reset PCS */
+	dw_xpcs_link_up();
+
 	/* Configure ethernet address */
 	eth_random_addr(dw_xgmac_ctrl.ether_addr);
 	dw_xgmac_set_ether(dw_xgmac_ctrl.ether_addr, 0);

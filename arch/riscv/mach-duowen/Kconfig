@@ -680,8 +680,7 @@ endmenu
 
 menuconfig DUOWEN_ETH
 	bool "Duowen ethernet XGMAC/XPCS support"
-	select DW_XPCS if DUOWEN_ETH_XPCS
-	select DW_XGMAC if DUOWEN_ETH_XGMAC
+	select DW_XGMAC
 	select ARCH_IS_DW_XPCS_BACKPLANE
 	select ARCH_HAS_DW_XPCS_10000BASE_KX4
 	select ARCH_HAS_DW_XPCS_10000BASE_KR
@@ -699,20 +698,6 @@ menuconfig DUOWEN_ETH
 	select ARCH_HAS_DW_XPCS_RXAUI
 
 if DUOWEN_ETH
-
-choice
-	prompt "Link driver"
-	default DUOWEN_ETH_XPCS
-
-config DUOWEN_ETH_XGMAC
-	bool "XGMAC"
-	select ARCH_IS_DW_XPCS_MDIO
-
-config DUOWEN_ETH_XPCS
-	bool "XPCS"
-	select ARCH_IS_DW_XPCS_APB_INDIRECT
-
-endchoice
 
 choice
 	prompt "Alter reference clock frequency"

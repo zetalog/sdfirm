@@ -34,23 +34,13 @@
 	} while (0)
 
 #ifdef CONFIG_DUOWEN_ETH
-#ifdef CONFIG_DUOWEN_ETH_XGMAC
 #define duowen_eth_init()				\
 	do {						\
 		duowen_eth_clock_init();		\
 		dw_xgmac_init_ctrl();			\
-		dw_xpcs_link_up();			\
 	} while (0)
 #define eth_hw_mdio_read(a, r, d)	dw_xgmac_mdio_read(a, r, d)
 #define eth_hw_mdio_write(a, r, d)	dw_xgmac_mdio_write(a, r, d)
-#endif
-#ifdef CONFIG_DUOWEN_ETH_XPCS
-#define duowen_eth_init()				\
-	do {						\
-		duowen_eth_clock_init();		\
-		dw_xpcs_link_up();			\
-	} while (0)
-#endif
 #else
 #define duowen_eth_init()		duowen_eth_clock_init()
 #endif
