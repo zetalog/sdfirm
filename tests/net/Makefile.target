@@ -1,0 +1,15 @@
+PROGS=loopback.elf
+
+include ../Makefile.bench
+
+all: $(PROGS)
+
+LIBS=/usr/lib/x86_64-linux-gnu/libpcap.a
+
+CFLAGS_loopback=
+
+clean:
+	@rm -f $(PROGS)
+	@rm -f *.unstrip
+	@rm -f *.o
+	@rm -f *.debug

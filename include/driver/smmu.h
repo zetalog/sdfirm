@@ -844,15 +844,15 @@
 #define smmu_test_smr_masks()						\
 	do {								\
 		uint32_t smr;						\
-		iommu_dom_t sdom;					\
-		sdom = iommu_group_save(NR_IOMMU_GROUPS);		\
+		iommu_grp_t sgrp;					\
+		sgrp = iommu_group_save(NR_IOMMU_GROUPS);		\
 		smr = SMMU_SMR_ID(smmu_device_ctrl.streamid_mask);	\
 		smmu_test_smr(smr);					\
 		smmu_device_ctrl.streamid_mask = smmu_smr_id(smr);	\
 		smr = SMMU_SMR_MASK(smmu_device_ctrl.streamid_mask);	\
 		smmu_test_smr(smr);					\
 		smmu_device_ctrl.smr_mask_mask = smmu_smr_mask(smr);	\
-		iommu_group_restore(sdom);				\
+		iommu_group_restore(sgrp);				\
 	} while (0)
 #else
 #define smmu_max_smrgs(id)		do { } while (0)

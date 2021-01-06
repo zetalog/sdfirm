@@ -16,3 +16,4 @@
 *.o
 *.unstrip
 *.elf
+*.debug

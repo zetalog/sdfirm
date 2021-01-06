@@ -30,4 +30,5 @@ obj-$(CONFIG_DUOWEN_SSI_FLASH) += ssi_flash.rel
 obj-$(CONFIG_DUOWEN_SD) += sd.rel
 obj-$(CONFIG_DUOWEN_APC_INIT) += vaisra.rel
 obj-$(CONFIG_DUOWEN_NOC) += noc.rel
+obj-$(CONFIG_DUOWEN_SMMU) += smmu.rel
 obj-$(CONFIG_UEFI) += uefi.rel

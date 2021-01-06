@@ -39,7 +39,7 @@ CFLAGS =-g \
 
 %.unstrip: %.o
 	@echo " LD     $<"
-	@$(CC) $(CFLAGS) $(CFLAGS_$*) -static $< -o $@
+	@$(CC) $(CFLAGS) $(CFLAGS_$*) -static $< -o $@ $(LIBS)
 	@cp -f $@ $(basename $<).debug
 
 %.elf: %.unstrip

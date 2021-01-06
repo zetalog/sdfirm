@@ -502,13 +502,13 @@ static void smmu_device_reset(void)
 	/* Reset stream mapping groups */
 	printf("Resetting %d (fw reported) stream mapping groups...\n",
 	       NR_IOMMU_GROUPS);
-	for (i = 0; i < NR_IOMMU_GROUPS; i++) {
+	for (i = 0; i < SMMU_HW_NUMSMES(iommu_dev); i++) {
 		sgr = smmu_gr_save(i);
 		smmu_stream_ctrl.count = 0;
 		smmu_stream_ctrl.sme = INVALID_SMMU_SME;
 		printf("Writing group %d S2CR...\n", i);
 		smmu_write_s2cr(SMMU_S2CR_TYPE_INIT, 0, 0, false);
-		printf("Writing group &d SMR...\n", i);
+		printf("Writing group %d SMR...\n", i);
 		smmu_write_smr(0, 0, false);
 		smmu_gr_restore(sgr);
 	}
