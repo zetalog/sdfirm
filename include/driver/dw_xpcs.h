@@ -588,6 +588,12 @@
 #endif /* CONFIG_ARCH_IS_DW_XPCS_1000BASE_X */
 #endif
 
+#ifndef ARCH_IS_DW_XPCS_PHY_SNPS_XAUI
+#define dw_xpcs_is_int_sram_done()		true
+#define dw_xpcs_ext_sram_done()			true
+#define dw_xpcs_power_init()			do { } while (0)
+#endif
+
 uint16_t dw_xpcs_read(uint16_t mmd, uint16_t addr);
 void dw_xpcs_write(uint16_t mmd, uint16_t addr, uint16_t value);
 
