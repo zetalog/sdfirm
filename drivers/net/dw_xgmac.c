@@ -121,6 +121,7 @@ void dw_xgmac_init_ctrl(void)
 	eth_random_addr(dw_xgmac_ctrl.ether_addr);
 	dw_xgmac_set_ether(dw_xgmac_ctrl.ether_addr, 0);
 
+#ifdef CONFIG_DW_XGMAC_ENUM
 	/* Probe MDIO devices */
 	for (phy = 0; phy < MII_PHYADDR_MAX; phy++) {
 		printf("phy%d-dev%d: probing\n", phy, dev);
@@ -133,4 +134,5 @@ void dw_xgmac_init_ctrl(void)
 		printf("phy%d-dev%d: id - %08x\n",
 		       phy, dev, MAKELONG(id2, id1));
 	}
+#endif
 }
