@@ -17,8 +17,8 @@
 
 #define dw_xpcs_hw_sram_init()				\
 	do {						\
-		while (!dw_xpcs_is_int_sram_done());	\
-		dw_xpcs_ext_sram_done();		\
+		dw_xpcs_int_sram_init();		\
+		dw_xpcs_ext_sram_init();		\
 	} while (0)
 
 #ifdef CONFIG_DUOWEN_ETH_LOOPBACK

@@ -97,7 +97,11 @@
 #define dw_xpcs_is_int_sram_done()					\
 	(dw_xpcs_read(XS_PMA_MMD, VR_XS_PMA_Gen5_12G_16G_SRAM) &	\
 	 VR_PMA_INIT_DN)
-#define dw_xpcs_ext_sram_done()						\
+#define dw_xpcs_int_sram_init()						\
+	do {								\
+		while (!dw_xpcs_is_int_sram_done());			\
+	} while (0)
+#define dw_xpcs_ext_sram_init()						\
 	dw_xpcs_write(XS_PMA_MMD, VR_XS_PMA_Gen5_12G_16G_SRAM,		\
 		      VR_PMA_EXT_LD_DN)
 
