@@ -675,8 +675,9 @@
 			snps,perfect-filter-entries = <128>;
 			rx-fifo-depth = <16384>;
 			tx-fifo-depth = <16384>;
-			clocks = <&crcntl sysfab_clk>;
-			clock-names = "stmmaceth";
+			clocks = <&crcntl sbi_sysfab_clk>,
+			         <&crcntl sbi_sgmii_ref_clk>;
+			clock-names = "stmmaceth ptp_ref";
 			snps,axi-config = <&stmmac_axi_setup>;
 			snps,mtl-rx-config = <&mtl_rx_setup>;
 			snps,mtl-tx-config = <&mtl_tx_setup>;
