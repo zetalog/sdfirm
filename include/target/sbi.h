@@ -30,27 +30,27 @@
 #define SBI_IPI_EVENT_SFENCE_VMA_ASID		0x8
 #define SBI_IPI_EVENT_HALT			0x10
 
-#define SBI_ECALL_SET_TIMER			0
-#define SBI_ECALL_CONSOLE_PUTCHAR		1
-#define SBI_ECALL_CONSOLE_GETCHAR		2
-#define SBI_ECALL_CLEAR_IPI			3
-#define SBI_ECALL_SEND_IPI			4
-#define SBI_ECALL_REMOTE_FENCE_I		5
-#define SBI_ECALL_REMOTE_SFENCE_VMA		6
-#define SBI_ECALL_REMOTE_SFENCE_VMA_ASID	7
-#define SBI_ECALL_SHUTDOWN			8
+#define SBI_ECALL_SET_TIMER			0x0
+#define SBI_ECALL_CONSOLE_PUTCHAR		0x1
+#define SBI_ECALL_CONSOLE_GETCHAR		0x2
+#define SBI_ECALL_CLEAR_IPI			0x3
+#define SBI_ECALL_SEND_IPI			0x4
+#define SBI_ECALL_REMOTE_FENCE_I		0x5
+#define SBI_ECALL_REMOTE_SFENCE_VMA		0x6
+#define SBI_ECALL_REMOTE_SFENCE_VMA_ASID	0x7
+#define SBI_ECALL_SHUTDOWN			0x8
 
 /* sdfirm specific SBI calls */
-/* Enable/disable trap logs */
-#define SBI_ECALL_ENABLE_LOG			30
-#define SBI_ECALL_DISABLE_LOG			31
-/* Clock framework */
-#define SBI_ECALL_GET_CLK_FREQ			40
-#define SBI_ECALL_SET_CLK_FREQ			41
-#define SBI_ECALL_ENABLE_CLK			42
-#define SBI_ECALL_DISABLE_CLK			43
 /* Testbench finish */
-#define SBI_ECALL_FINISH			32
+#define SBI_ECALL_FINISH			0x20
+/* Enable/disable trap logs */
+#define SBI_ECALL_ENABLE_LOG			0x30
+#define SBI_ECALL_DISABLE_LOG			0x31
+/* Clock framework */
+#define SBI_ECALL_GET_CLK_FREQ			0x40
+#define SBI_ECALL_SET_CLK_FREQ			0x41
+#define SBI_ECALL_ENABLE_CLK			0x42
+#define SBI_ECALL_DISABLE_CLK			0x43
 
 #define SBI_TLB_FLUSH_ALL			((unsigned long)-1)
 #define SBI_TLB_FLUSH_MAX_SIZE			(1UL << 30)
