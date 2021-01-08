@@ -677,7 +677,7 @@
 			tx-fifo-depth = <16384>;
 			clocks = <&crcntl sbi_sysfab_clk>,
 			         <&crcntl sbi_sgmii_ref_clk>;
-			clock-names = "stmmaceth ptp_ref";
+			clock-names = "stmmaceth", "ptp_ref";
 			snps,axi-config = <&stmmac_axi_setup>;
 			snps,mtl-rx-config = <&mtl_rx_setup>;
 			snps,mtl-tx-config = <&mtl_tx_setup>;
