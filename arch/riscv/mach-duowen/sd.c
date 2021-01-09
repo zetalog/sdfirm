@@ -46,6 +46,16 @@
 #include <target/mem.h>
 #include <target/mtd.h>
 
+void duowen_mshc_init(void)
+{
+	__unused mmc_slot_t sslot;
+
+	clk_enable(sd_clk);
+	sslot = mmc_slot_save(0);
+	sdhci_init(SD_FREQ_MIN, SD_FREQ_MAX);
+	mmc_slot_restore(sslot);
+}
+
 void duowen_sd_init(void)
 {
 }

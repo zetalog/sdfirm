@@ -63,11 +63,9 @@
 #endif
 
 #ifdef CONFIG_DW_MSHC
-#define mmc_hw_ctrl_init()					\
-	do {							\
-		clk_enable(sd_clk);				\
-		sdhci_init(SD_FREQ_MIN, SD_FREQ_MAX);		\
-	} while (0)
+void duowen_mshc_init(void);
+
+#define mmc_hw_ctrl_init()		duowen_mshc_init()
 #define mmc_hw_slot_select(sid)		do { } while (0)
 #define mmc_hw_card_detect()		sdhci_detect_card()
 #define mmc_hw_set_clock(clock)		sdhci_set_clock(clock)
