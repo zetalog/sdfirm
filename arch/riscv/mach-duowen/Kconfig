@@ -716,9 +716,26 @@ config DUOWEN_ETH_INIT
 	bool "Enable board late initialization of ethernet"
 	depends !DUOWEN_BBL
 
+config DUOWEN_ETH_GENERIC
+	bool "Enable Linux dwmac-generic driver support"
+	help
+	  By default, dwmac-duowen driver will be used to locate XPCS and
+	  probe phy devices.
+	  If unsure, say 'N'.
+
 config DUOWEN_ETH_LOOPBACK
-	bool "Enable loopback test"
-	depends SIMULATION
+	bool "Enable loopback connection"
+	depends SIMULATION && !DUOWEN_ETH_MAC2MAC
+	help
+	  In case there is no real ethernet connected by the XPCS, this
+	  option enables testability of sending/receiving packets.
+
+config DUOWEN_ETH_MAC2MAC
+	bool "Enable mac-to-mac connection"
+	depends DUOWEN_ZEBU
+	help
+	  Reporting to Linux kernel with fixed-link to enable MAC-to-MAC
+	  test environment.
 
 endif
 

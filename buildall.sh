@@ -71,6 +71,14 @@ if [ ! -x Image ]; then
 	touch Image
 	PSEUDO_IMAGE=yes
 fi
+
+# Save environments and clear them to allow build_sdfirm() to determine
+# via ${SUBARCH} and ${RISCV64}
+SAVED_ARCH=${ARCH}
+SAVED_CROSS=${CROSS_COMPILE}
+unset ARCH
+unset CROSS_COMPILE
+
 build_sdfirm riscv64 spike64_bbl
 build_sdfirm riscv64 virt64_bbl
 build_sdfirm riscv64 unleashed_bbl
@@ -130,3 +138,7 @@ build_sdfirm riscv64 dpu_ram
 build_sdfirm riscv64 dpu_ddr
 # core-v-verif
 build_sdfirm riscv32 corev_cv32
+
+# Restore environments
+export ARCH=${SAVED_ARCH}
+export CROSS_COMPILE=${SAVED_CROSS}
