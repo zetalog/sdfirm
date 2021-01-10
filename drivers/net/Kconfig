@@ -16,6 +16,9 @@ config DW_XGMAC_MDIO_FAST
 	bool "Enable faster clock on MDIO"
 	depends SIMULATION
 
+config DW_XGMAC_MDIO_PROBE
+	bool "Enable auto PHY probing"
+
 endif
 
 config ARCH_IS_DW_XPCS_XGXS_DTE

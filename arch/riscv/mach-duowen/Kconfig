@@ -701,6 +701,18 @@ menuconfig DUOWEN_ETH
 if DUOWEN_ETH
 
 choice
+	prompt "PHY mode"
+	default DUOWEN_ETH_10000BASE_KR
+
+config DUOWEN_ETH_10000BASE_KX4
+	bool "usxgmii"
+
+config DUOWEN_ETH_10000BASE_KR
+	bool "10gbase-kr"
+
+endchoice
+
+choice
 	prompt "Alter reference clock frequency"
 	default DUOWEN_ETH_78125KHZ
 

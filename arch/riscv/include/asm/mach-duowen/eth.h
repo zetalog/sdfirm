@@ -9,8 +9,14 @@
 #define DW_XPCS_BASE		XPCS_BASE
 #define DW_XPCS_PHY_ADDR	0
 #define DW_XPCS_APBI_OFFSET	1
+#ifdef CONFIG_DUOWEN_ETH_10000BASE_KX4
+#define DW_XPCS_PMA_TYPE	SR_PMA_10000BASE_KX4
+#define DW_XPCS_PCS_TYPE	SR_PCS_10000BASE_X
+#endif
+#ifdef CONFIG_DUOWEN_ETH_10000BASE_KR
 #define DW_XPCS_PMA_TYPE	SR_PMA_10000BASE_KR
 #define DW_XPCS_PCS_TYPE	SR_PCS_10000BASE_R
+#endif
 
 #include <driver/dw_xgmac.h>
 #include <driver/dw_xpcs.h>

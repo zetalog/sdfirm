@@ -674,7 +674,12 @@
 			interrupt-names = "macirq", "eth_wake_irq", "eth_lpi";
 			mac-address = [c69ded9a297c];
 			max-frame-size = <3800>;
-			phy-mode = "xgmii";
+#ifdef CONFIG_DUOWEN_ETH_10000BASE_KX4
+			phy-mode = "usxgmii";
+#endif
+#ifdef CONFIG_DUOWEN_ETH_10000BASE_KR
+			phy-mode = "10gbase-kr";
+#endif
 			snps,multicast-filter-bins = <256>;
 			snps,perfect-filter-entries = <128>;
 			rx-fifo-depth = <16384>;
