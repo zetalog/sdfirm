@@ -1,20 +1,7 @@
 #include <target/uefi.h>
-
-#ifndef GPT_LOCAL_TEST
 #include <asm/mach/spi.h>
-#endif
 
-#define GPT_UTIL_DEBUG
-
-//static struct gpt_header gpt_header_copy = {0};
-
-/* Copy of Primary GPT */
-static uint8_t gpt_pgpt[GPT_SECTOR_SIZE * GPT_PGPT_SECTOR_CNT] = {0};
-#if 0
-static struct gpt_header *gpt_header_ptr = (struct gpt_header *)(gpt_pgpt + GPT_SECTOR_SIZE * 1);
-#endif
-static struct gpt_entry *gpt_entries_start =
-	(struct gpt_entry *)(gpt_pgpt + GPT_SECTOR_SIZE * 2);
+//#define GPT_UTIL_DEBUG
 
 #ifdef GPT_UTIL_DEBUG
 static void gpt_header_print(struct gpt_header *header)
@@ -67,34 +54,18 @@ static void gpt_entry_print(struct gpt_entry *entry)
 #endif
 
 #ifdef GPT_LOCAL_TEST
+static uint8_t *g_image_start = NULL;
 int gpt_pgpt_init(uint8_t *image_start)
-#else
-int gpt_pgpt_init(void)
-#endif
 {
-	/* PGPT header is at the 2nd sector */
-	uint32_t flash_addr = GPT_SECTOR_SIZE;
-	uint32_t copy_size = GPT_SECTOR_SIZE;
-#ifdef GPT_UTIL_DEBUG
-	printf("Debug: Enter %s\n", __func__);
-	printf("Debug: Copy flash addr = 0x%x, size = 0x%x\n",
-	       flash_addr, copy_size);
-#endif
-
-#ifdef GPT_LOCAL_TEST
-	/* Copy header and all entries in one time */
-	if (image_start == NULL)
-		return -1;
-	memcpy(gpt_pgpt, image_start, sizeof(gpt_pgpt));
-#else
-	/* Copy header only */
-	uefi_hw_gpt_copy(gpt_pgpt + GPT_SECTOR_SIZE, flash_addr, copy_size);
-#endif
-#ifdef GPT_UTIL_DEBUG
-	gpt_header_print((struct gpt_header *)(gpt_pgpt + GPT_SECTOR_SIZE));
-#endif
+	g_image_start = image_start;
 	return 0;
 }
+#else
+int gpt_pgpt_init(void)
+{
+	return 0;
+}
+#endif
 
 static int gpt_entry_check_name(struct gpt_entry *entry, uint8_t *name_str)
 {
@@ -116,6 +87,12 @@ static int gpt_entry_check_name(struct gpt_entry *entry, uint8_t *name_str)
 int gpt_get_part_by_name(uint8_t *part_name, uint32_t *offset,
 			 uint32_t *size, uint16_t *pad_size)
 {
+	/* PGPT header is at the 2nd sector */
+	uint32_t flash_addr_header = GPT_SECTOR_SIZE;
+	uint32_t copy_size_header = GPT_SECTOR_SIZE;
+	uint8_t gpt_pgpt[GPT_SECTOR_SIZE * GPT_PGPT_SECTOR_CNT] = {0};
+	struct gpt_entry *gpt_entries_start =
+			(struct gpt_entry *)(gpt_pgpt + GPT_SECTOR_SIZE * 2);
 	uint32_t flash_addr = GPT_SECTOR_SIZE * GPT_PART_START_SECTOR;
 	uint32_t copy_size = sizeof(struct gpt_entry);
 	int i;
@@ -126,6 +103,19 @@ int gpt_get_part_by_name(uint8_t *part_name, uint32_t *offset,
 	if (part_name == NULL) return -1;
 	if (offset == NULL) return -1;
 	if (size == NULL) return -1;
+
+#ifdef GPT_LOCAL_TEST
+	/* Copy header and all entries in one time */
+	if (g_image_start == NULL)
+		return -1;
+	memcpy(gpt_pgpt, g_image_start, sizeof(gpt_pgpt));
+#else
+	/* Copy header only */
+	uefi_hw_gpt_copy(gpt_pgpt + GPT_SECTOR_SIZE, flash_addr_header, copy_size_header);
+#endif
+#ifdef GPT_UTIL_DEBUG
+	gpt_header_print((struct gpt_header *)(gpt_pgpt + GPT_SECTOR_SIZE));
+#endif
 
 	for (i = 0; i < GPT_PGPT_PART_CNT; i++) {
 		struct gpt_entry *entry_ptr = gpt_entries_start + i;
@@ -175,8 +165,6 @@ int gpt_get_file_by_name(uint8_t *file_name, uint32_t *offset, uint32_t *size)
 	*size -= pad_size;
 	return ret;
 }
-
-//int dpu_ssi_flash_find(uint32_t *addr, uint32_t *size);
 
 #ifdef GPT_LOCAL_TEST
 #include <stdio.h>
