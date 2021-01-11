@@ -666,7 +666,7 @@
 #ifdef CONFIG_DUOWEN_ETH_GENERIC
 			compatible = "snps,dwxgmac-2.20", "snps,dwxgmac";
 #else
-			compatible = "smarco,duowen-xgmac2";
+			compatible = "smarco,duowen-xgmac2", "snps,dwxgmac";
 #endif
 			reg = <0xff 0x6a000000 0x0 0x100000>;
 			interrupt-parent = <&plic>;
