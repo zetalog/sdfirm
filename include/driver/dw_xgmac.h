@@ -368,13 +368,238 @@
 #define DMA_CH_Tx_Desc_Write_Ring_Offset(n)	DWCXG_DMA_CH_REG(n, 0x078)
 #define DMA_CH_Rx_Desc_Write_Ring_Offset(n)	DWCXG_DMA_CH_REG(n, 0x07C)
 
+/* 8.4 Transmit Descriptor */
+/* 8.4.1 Transmit Normal Descriptor (Read Format) */
+/* TDES0 -> XGMAC_TDES0_BUF1AP[31:0]
+ * TDES1 -> XGMAC_TDES1_BUF2AP[31:0] or XGMAC_TDES1_BUF1AP[64:32]
+ */
+#define XGMAC_TDES2_IOC			_BV(31)
+#define XGMAC_TDES2_TTSE		_BV(30)
+#define XGMAC_TDES2_TMWD		_BV(30)
+#define XGMAC_TDES2_B2L_OFFSET		16
+#define XGMAC_TDES2_B2L_MASK		REG_14BIT_MASK
+#define XGMAC_TDES2_B2L(value)		_SET_FV(XGMAC_TDES2_B2L, value)
+#define XGMAC_TDES2_VTIR_OFFSET		14
+#define XGMAC_TDES2_VTIR_MASK		REG_2BIT_MASK
+#define XGMAC_TDES2_VTIR(value)		_SET_FV(XGMAC_TDES2_VTIR, value)
+#define XGMAC_TDES2_HL_OFFSET		0
+#define XGMAC_TDES2_HL_MASK		REG_14BIT_MASK
+#define XGMAC_TDES2_HL(value)		_SET_FV(XGMAC_TDES2_HL, value)
+#define XGMAC_TDES2_B1L(value)		XGMAC_TDES2_HL(value)
+#define XGMAC_TDES3_OWN			_BV(31)
+#define XGMAC_TDES3_CTXT		_BV(30)
+#define XGMAC_TDES3_FD			_BV(29)
+#define XGMAC_TDES3_LD			_BV(28)
+#define XGMAC_TDES3_CPC_OFFSET		26
+#define XGMAC_TDES3_CPC_MASK		REG_2BIT_MASK
+#define XGMAC_TDES3_CPC(value)		_SET_FV(XGMAC_TDES3_CPC, value)
+#define XGMAC_TDES3_SAIC_OFFSET		23
+#define XGMAC_TDES3_SAIC_MASK		REG_3BIT_MASK
+#define XGMAC_TDES3_SAIC(value)		_SET_FV(XGMAC_TDES3_SAIC, value)
+#define XGMAC_TDES3_VNP(value)		XGMAC_TDES3_SAIC(value)
+#define XGMAC_TDES3_THL_OFFSET		19
+#define XGMAC_TDES3_THL_MASK		REG_4BIT_MASK
+#define XGMAC_TDES3_THL(value)		_SET_FV(XGMAC_TDES3_THL, value)
+#define XGMAC_TDES3_SLOTNUM(value)	XGMAC_TDES3_THL(value)
+#define XGMAC_TDES3_TSE			_BV(18)
+#define XGMAC_TDES3_CIC_OFFSET		16
+#define XGMAC_TDES3_CIC_MASK		REG_2BIT_MASK
+#define XGMAC_TDES3_CIC(value)		_SET_FV(XGMAC_TDES3_CIC, value)
+#define XGMAC_CIC_CRC_PAD_INSERTION	0
+#define XGMAC_CIC_CRC_INSERTION		1
+#define XGMAC_CIC_NONE			2
+#define XGMAC_CIC_CRC_REPLACEMENT	3
+#define XGMAC_TDES3_FL_OFFSET		0
+#define XGMAC_TDES3_FL_MASK		REG_15BIT_MASK
+#define XGMAC_TDES3_FL(value)		_SET_FV(XGMAC_TDES3_FL)
+#define XGMAC_TDES3_TPL_OFFSET		0
+#define XGMAC_TDES3_TPL_MASK		REG_17BIT_MASK
+#define XGMAC_TDES3_TPL(value)		_SET_FV(XGMAC_TDES3_TPL, value)
+/* 8.4.2 Transmit Normal Descriptor (Write-Back Format) */
+#if 0
+#define XGMAC_TDES3_OWN			_BV(31)
+#define XGMAC_TDES3_CTXT		_BV(30)
+#define XGMAC_TDES3_FD			_BV(29)
+#define XGMAC_TDES3_LD			_BV(28)
+#endif
+#define XGMAC_TDES3_DERR		_BV(27)
+/* 8.4.3 Transmit Context Descriptor */
+/* TDES0 -> XGMAC_TDES0_TTSL[31:0]
+ * TDES1 -> XGMAC_TDES1_TTSH[31:0]
+ */
+#define XGMAC_TDES2_IVT_OFFSET		16
+#define XGMAC_TDES2_IVT_MASK		REG_16BIT_MASK
+#define XGMAC_TDES2_IVT(value)		_SET_FV(XGMAC_TDES2_IVT, value)
+#define XGMAC_TDES2_MSS_OFFSET		0
+#define XGMAC_TDES2_MSS_MASK		REG_14BIT_MASK
+#define XGMAC_TDES2_MSS(value)		_SET_FV(XGMAC_TDES2_MSS, value)
+#if 0
+#define XGMAC_TDES3_OWN			_BV(31)
+#define XGMAC_TDES3_CTXT		_BV(30)
+#endif
+#define XGMAC_TDES3_CDE			_BV(29)
+#define XGMAC_TDES3_OSTC		_BV(27)
+#define XGMAC_TDES3_TCMSSV		_BV(26)
+#define XGMAC_TDES3_PIDV		_BV(20)
+#define XGMAC_TDES3_IVTIR_OFFSET	18
+#define XGMAC_TDES3_IVTIR_MASK		REG_2BIT_MASK
+#define XGMAC_TDES3_IVTIR(value)	_SET_FV(XGMAC_TDES3_IVTIR, value)
+#define XGMAC_TDES3_IVLTV		_BV(17)
+#define XGMAC_TDES3_VLTV		_BV(16)
+#define XGMAC_TDES3_VT_OFFSET		0
+#define XGMAC_TDES3_VT_MASK		REG_16BIT_MASK
+#define XGMAC_TDES3_VT(value)		_SET_FV(XGMAC_TDES3_VT, value)
+
+/* 8.5 Receive Descriptor */
+/* 8.5.1 Receive Normal Descriptor (Read Format) */
+/* RDES0 -> XGMAC_RDES0_BUF1AP[31:0]
+ * RDES1 -> XGMAC_RDES1_BUF1AP[63:32]
+ * RDES2 -> XGMAC_RDES2_BUF2AP[31:0]
+ */
+#define XGMAC_RDES3_OWN			_BV(31)
+#define XGMAC_RDES3_IOC			_BV(30)
+#define XGMAC_RDES3_BUF2APH_OFFSET	0
+#define XGMAC_RDES3_BUF2APH_MASK	REG_30BIT_MASK
+#define XGMAC_RDES3_BUF2APH(value)	_SET_FV(XGMAC_RDES3_BUF2APH, value)
+/* 8.5.2 Receive Normal Descriptor (Write-Back Format) */
+/* RDES0 -> XGMAC_RDES0_ELRD
+ * RDES1 -> XGMAC_RDES1_RSSH
+ */
+#define XGMAC_RDES0_IVT_OFFSET		16
+#define XGMAC_RDES0_IVT_MASK		REG_16BIT_MASK
+#define XGMAC_RDES0_IVT(value)		_GET_FV(XGMAC_RDES0_IVT, value)
+#define XGMAC_RDES0_OVT_OFFSET		0
+#define XGMAC_RDES0_OVT_MASK		REG_16BIT_MASK
+#define XGMAC_RDES0_OVT(value)		_GET_FV(XGMAC_RDES0_OVT, value)
+#define XGMAC_RDES0_VNID_OFFSET		8
+#define XGMAC_RDES0_VNID_MASK		REG_24BIT_MASK
+#define XGMAC_RDES0_VNID(value)		_GET_FV(XGMAC_RDES0_VNID, value)
+#define XGMAC_RDES0_VSID(value)		XGMAC_RDES0_VNID(value)
+#define XGMAC_RDES0_OL2L3_OFFSET	0
+#define XGMAC_RDES0_OL2L3_MASK		REG_3BIT_MASK
+#define XGMAC_RDES0_OL2L3(value)	_GET_FV(XGMAC_RDES0_OL2L3, value)
+#define XGMAC_RDES2_L3L4FM_OFFSET	29
+#define XGMAC_RDES2_L3L4FM_MASK		REG_3BIT_MASK
+#define XGMAC_RDES2_L3L4FM(value)	_GET_FV(XGMAC_RDES2_L3L4FM, value)
+#define XGMAC_RDES2_L4FM		_BV(28)
+#define XGMAC_RDES2_L3FM		_BV(27)
+#define XGMAC_RDES2_MADRM_OFFSET	19
+#define XGMAC_RDES2_MADRM_MASK		REG_8BIT_MASK
+#define XGMAC_RDES2_MADRM(value)	_GET_FV(XGMAC_RDES2_MADRM, value)
+#define XGMAC_RDES2_HF			_BV(18)
+#define XGMAC_RDES2_DAF			_BV(17)
+#define XGMAC_RDES2_SAF			_BV(16)
+#define XGMAC_RDES2_VF			_BV(15)
+#define XGMAC_RDES2_RPNG		_BV(14)
+#define XGMAC_RDES2_IOS			_BV(13)
+#define XGMAC_RDES2_ELD			_BV(12)
+#define XGMAC_RDES2_TNP			_BV(11)
+#define XGMAC_RDES2_HL_OFFSET		2
+#define XGMAC_RDES2_HL_MASK		REG_8BIT_MASK
+#define XGMAC_RDES2_HL(value)		_GET_FV(XGMAC_RDES2_HL, value)
+#define XGMAC_RDES2_AVTDP		_BV(1)
+#define XGMAC_RDES2_AVTCP		_BV(0)
+#define XGMAC_RDES3_OWN			_BV(31)
+#define XGMAC_RDES3_CTXT		_BV(30)
+#define XGMAC_RDES3_FD			_BV(29)
+#define XGMAC_RDES3_LD			_BV(28)
+#define XGMAC_RDES3_CDA			_BV(27)
+#define XGMAC_RDES3_RSV			_BV(26)
+#define XGMAC_RDES3_ISP			_BV(25)
+#define XGMAC_RDES3_ETM			_BV(24)
+#define XGMAC_RDES3_NCP			_BV(24)
+#define XGMAC_RDES3_L34T_OFFSET		20
+#define XGMAC_RDES3_L34T(value)		_GET_FV(XGMAC_RDES3_L34T, value)
+#define XGMAC_RDES3_ET_OFFSET		16
+#define XGMAC_RDES3_ET_MASK		REG_4BIT_MASK
+#define XGMAC_RDES3_ET(value)		_GET_FV(XGMAC_RDES3_ET, value)
+#define XGMAC_RDES3_LT(value)		XGMAC_RDES3_ET(value)
+#define XGMAC_RDES3_ES			_BV(15)
+#define XGMAC_RDES3_PL_OFFSET		0
+#define XGMAC_RDES3_PL_MASK		REG_14BIT_MASK
+#define XGMAC_RDES3_PL(value)		_GET_FV(XGMAC_RDES3_PL, value)
+/* 8.5.3 Receive Context Descriptor */
+/* RDES0 -> XGMAC_RDES0_RTSL
+ * RDES1 -> XGMAC_RDES1_RTSH
+ */
+#if 0
+#define XGMAC_RDES3_OWN			_BV(31)
+#define XGMAC_RDES3_CTXT		_BV(30)
+#endif
+#define XGMAC_RDES3_TSD			_BV(6)
+#define XGMAC_RDES3_PRPNG		_BV(5)
+#define XGMAC_RDES3_TSA			_BV(4)
+#define XGMAC_RDES3_PMT_OFFSET		0
+#define XGMAC_RDES3_PMT_MASK		REG_4BIT_MASK
+#define XGMAC_RDES3_PMT(value)		_GET_FV(XGMAC_RDES3_PMT, value)
+
+/* Rx IPC status */
+enum rx_frame_status {
+	rx_good_frame = 0x0,
+	rx_discard_frame = 0x1,
+	rx_not_ls = 0x2,
+	rx_dma_own = 0x4,
+};
+
+/* Tx status */
+enum tx_frame_status {
+	tx_done = 0x0,
+	tx_not_ls = 0x1,
+	tx_err = 0x2,
+	tx_dma_own = 0x4,
+};
+
+struct dw_xgmac_desc {
+	uint32_t des0;
+	uint32_t des1;
+	uint32_t des2;
+	uint32_t des3;
+};
+
 #ifdef CONFIG_DW_XGMAC
+#define dw_xgmac_get_tx_len(p)			\
+	((p)->des2 & XGMAC_TDES2_B1L)
+#define dw_xgmac_get_tx_owner(p)		\
+	(((p)->des3 & XGMAC_TDES3_OWN) > 0)
+#define dw_xgmac_set_tx_owner(p)		\
+	((p)->des3 |= XGMAC_TDES3_OWN)
+#define dw_xgmac_set_rx_owner(p)		\
+	((p)->des3 |= XGMAC_RDES3_OWN)
+#define dw_xgmac_enable_rx_ic(p)		\
+	((p)->des3 |= XGMAC_RDES3_IOC)
+#define dw_xgmac_disable_rx_ic(p)		\
+	((p)->des3 &= ~XGMAC_RDES3_IOC)
+#define dw_xgmac_get_tx_ls(p)			\
+	(((p)->des3 & XGMAC_RDES3_LD) > 0)
+#define dw_xgmac_get_rx_frame_len(p)		\
+	((p)->des3 & XGMAC_RDES3_PL)
+int dw_xgmac_get_tx_status(struct dw_xgmac_desc *p);
+int dw_xgmac_get_rx_status(struct dw_xgmac_desc *p);
+void dw_xgmac_init_rx_desc(struct dw_xgmac_desc *p);
+void dw_xgmac_init_tx_desc(struct dw_xgmac_desc *p);
+void dw_xgmac_prepare_tx_desc(struct dw_xgmac_desc *p, bool is_fs,
+			      int len, bool csum_flag, bool tx_own, bool ls);
+
 void dw_xgmac_init_ctrl(void);
 bool dw_xgmac_mdio_read(uint16_t phyaddr, uint32_t phyreg,
 			uint16_t *phydata);
 bool dw_xgmac_mdio_write(uint16_t phyaddr, uint32_t phyreg,
 			 uint16_t phydata);
 #else
+#define dw_xgmac_get_tx_status(p)		tx_err
+#define dw_xgmac_get_rx_status(p)		rx_discard_frame
+#define dw_xgmac_get_tx_owner(p)		false
+#define dw_xgmac_set_tx_owner(p)		do { } while (0)
+#define dw_xgmac_set_rx_owner(p)		do { } while (0)
+#define dw_xgmac_enable_rx_ic(p)		do { } while (0)
+#define dw_xgmac_disable_rx_ic(p)		do { } while (0)
+#define dw_xgmac_get_tx_len(p)			0
+#define dw_xgmac_get_tx_ls(p)			false
+#define dw_xgmac_get_rx_frame_len(p)		0
+#define dw_xgmac_init_rx_desc(p)		do { } while (0)
+#define dw_xgmac_init_tx_desc(p)		do { } while (0)
+#define dw_xgmac_prepare_tx_desc(p, is_fs, len, csum_flag, tx_own, ls)	\
+	do { } while (0)
 #define dw_xgmac_init_ctrl()			do { } while (0)
 #define dw_xgmac_mdio_read(addr, reg)		0
 #define dw_xgmac_mdio_write(addr, reg, data)	do { } while (0)

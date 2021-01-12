@@ -129,6 +129,74 @@ static dw_xgmac_mdio_probe(void)
 #define dw_xgmac_mdio_probe()		do { } while (0)
 #endif
 
+int dw_xgmac_get_tx_status(struct dw_xgmac_desc *p)
+{
+	uint32_t tdes3 = p->des3;
+	int ret = tx_done;
+
+	if (tdes3 & XGMAC_TDES3_OWN)
+		return tx_dma_own;
+	if (!(tdes3 & XGMAC_TDES3_LD))
+		return tx_not_ls;
+	return ret;
+}
+
+int dw_xgmac_get_rx_status(struct dw_xgmac_desc *p)
+{
+	uint32_t rdes3 = p->des3;
+
+	if (rdes3 & XGMAC_RDES3_OWN)
+		return rx_dma_own;
+	if (rdes3 & XGMAC_RDES3_CTXT)
+		return rx_discard_frame;
+	if (!(rdes3 & XGMAC_RDES3_LD))
+		return rx_not_ls;
+	if ((rdes3 & XGMAC_RDES3_ES) && (rdes3 & XGMAC_RDES3_LD))
+		return rx_discard_frame;
+	return rx_good_frame;
+}
+
+void dw_xgmac_init_rx_desc(struct dw_xgmac_desc *p)
+{
+	dw_xgmac_set_rx_owner(p);
+#ifdef CONFIG_SYS_IRQ
+	dw_xgmac_enable_rx_ic(p);
+#endif
+}
+
+void dw_xgmac_init_tx_desc(struct dw_xgmac_desc *p)
+{
+	p->des0 = p->des1 = p->des2 = p->des3 = 0;
+}
+
+void dw_xgmac_prepare_tx_desc(struct dw_xgmac_desc *p, bool is_fs,
+			      int len, bool csum_flag, bool tx_own, bool ls)
+{
+	uint32_t tdes3 = p->des3;
+
+	p->des2 |= XGMAC_TDES2_B1L(len);
+	if (is_fs)
+		tdes3 |= XGMAC_TDES3_FD;
+	else
+		tdes3 &= ~XGMAC_TDES3_FD;
+	if (csum_flag)
+		tdes3 |= XGMAC_TDES3_CIC(XGMAC_CIC_CRC_REPLACEMENT);
+	else
+		tdes3 &= ~XGMAC_TDES3_CIC(XGMAC_TDES3_CIC_MASK);
+	if (ls)
+		tdes3 |= XGMAC_TDES3_LD;
+	else
+		tdes3 &= ~XGMAC_TDES3_LD;
+	if (tx_own)
+		tdes3 |= XGMAC_TDES3_OWN;
+
+	/* DMA barrier for the first own frame */
+	if (is_fs && tx_own)
+		dma_wmb();
+
+	p->des3 = tdes3;
+}
+
 void dw_xgmac_init_ctrl(void)
 {
 	/* Configure clk_csr parameters */

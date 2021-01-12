@@ -9,6 +9,8 @@ echo -e "\nuptime: $(cut -d' ' -f1 /proc/uptime) seconds\n" >> /dev/console
 
 ip addr add 127.0.0.1/8 dev lo
 ip link set lo up
+ip addr add 192.168.100.1/8 dev eth0
+ip link set eth0 up
 
 dhrystone 50
 #dhrystone 200000000

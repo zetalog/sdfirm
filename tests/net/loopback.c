@@ -14,6 +14,7 @@
 //#define DEBUG
 
 #define __unused		__attribute__((__unused__))
+#define max(a, b)		((a) < (b) ? (b) : (a))
 
 typedef struct {
 	unsigned char dest_addr[6];
@@ -26,7 +27,8 @@ typedef struct {
 #define FRAME_SIZE	80
 
 static __u8 frame[FRAME_SIZE];
-static int sock = -1;
+static int sock_rx = -1;
+static int sock_tx = -1;
 static __u8 ETH_TYPE[2] = { 0x99, 0x99 };
 static __u8 payload[] = { 'V', 'Y', 'A' };
 static char *ifname = NULL;
@@ -35,16 +37,26 @@ static char ifhwaddr[ETH_ALEN];
 
 static void close_sock(void)
 {
-	if (sock >= 0) {
-		close(sock);
-		sock = -1;
+	if (sock_rx >= 0) {
+		close(sock_rx);
+		sock_rx = -1;
+	}
+	if (sock_tx >= 0) {
+		close(sock_tx);
+		sock_tx = -1;
 	}
 }
 
 static int open_sock(void)
 {
-	sock = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-	if (sock < 0) {
+	sock_rx = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+	if (sock_rx < 0) {
+		fprintf(stderr, "%s: socket(AF_PACKET): %s\n",
+			ifname, strerror(errno));
+		return -EFAULT;
+	}
+	sock_tx = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+	if (sock_tx < 0) {
 		fprintf(stderr, "%s: socket(AF_PACKET): %s\n",
 			ifname, strerror(errno));
 		return -EFAULT;
@@ -59,7 +71,7 @@ static int get_ifhwaddr(char *hwaddr)
 
 	memset(&ifr, 0, sizeof(ifr));
 	strncpy(ifr.ifr_name, ifname, IFNAMSIZ);
-	ret = ioctl(sock, SIOCGIFHWADDR, &ifr);
+	ret = ioctl(sock_rx, SIOCGIFHWADDR, &ifr);
 	if (ret < 0) {
 		fprintf(stderr, "%s: ioctl(SIOCGIFHWADDR): %s\n",
 			ifname, strerror(errno));
@@ -76,7 +88,7 @@ static int get_ifindex(int *index)
 
 	memset(&ifr, 0, sizeof(ifr));
 	strncpy(ifr.ifr_name, ifname, IFNAMSIZ);
-	ret = ioctl(sock, SIOCGIFINDEX, &ifr);
+	ret = ioctl(sock_rx, SIOCGIFINDEX, &ifr);
 	if (ret < 0) {
 		fprintf(stderr, "%s: ioctl(SIOCGIFINDEX): %s\n",
 			ifname, strerror(errno));
@@ -142,7 +154,7 @@ static int loopback_recv(void)
 	sll.sll_family = AF_PACKET;
 	sll.sll_ifindex = ifindex;
 	sll.sll_protocol = htons(ETH_P_ALL);
-	ret = bind(sock, (struct sockaddr *)&sll, slen);
+	ret = bind(sock_rx, (struct sockaddr *)&sll, slen);
 	if (ret < 0) {
 		fprintf(stderr, "%s: bind(AF_PACKET): %s\n",
 			ifname, strerror(errno));
@@ -152,7 +164,7 @@ static int loopback_recv(void)
 	memset(&mr, 0, sizeof(mr));
 	mr.mr_ifindex = ifindex;
 	mr.mr_type = PACKET_MR_PROMISC;
-	ret = setsockopt(sock, SOL_PACKET, PACKET_ADD_MEMBERSHIP,
+	ret = setsockopt(sock_rx, SOL_PACKET, PACKET_ADD_MEMBERSHIP,
 			 (const char *)&mr, sizeof(mr));
 	if (ret < 0) {
 		fprintf(stderr,
@@ -187,18 +199,19 @@ static int do_loopback(void)
 		FD_ZERO(&wfds);
 
 		if (nr_rx < NUM_OF_PACKETS)
-			FD_SET(sock, &rfds);
+			FD_SET(sock_rx, &rfds);
 		if (nr_tx < NUM_OF_PACKETS)
-			FD_SET(sock, &wfds);
-		ret = select(sock+1, &rfds, &wfds, NULL, NULL);
+			FD_SET(sock_tx, &wfds);
+		ret = select(max(sock_rx, sock_tx)+1,
+			     &rfds, &wfds, NULL, NULL);
 		if (ret < 0) {
 			fprintf(stderr, "%s: select(): %s\n",
 				ifname, strerror(errno));
 			break;
 		}
 		if (ret > 0) {
-			if (FD_ISSET(sock, &rfds)) {
-				len = recvfrom(sock, frame, FRAME_SIZE, 0,
+			if (FD_ISSET(sock_rx, &rfds)) {
+				len = recvfrom(sock_rx, frame, FRAME_SIZE, 0,
 					       (struct sockaddr *)&sll, &slen);
 				if (len < 0) {
 					fprintf(stderr,
@@ -206,29 +219,27 @@ static int do_loopback(void)
 						ifname, strerror(errno));
 					return len;
 				}
-				if (loopback_recv_data(len) == 0) {
-					fprintf(stdout, "%s: RX %d\n",
-						ifname, nr_rx);
+				printf("recv: %d\n", nr_rx);
+				if (loopback_recv_data(len) == 0)
 					nr_rx++;
-				}
 			}
-			if (FD_ISSET(sock, &wfds)) {
+			if (FD_ISSET(sock_tx, &wfds)) {
 				memset((void *)&sll, 0, slen);
 				sll.sll_family = AF_PACKET;
 				sll.sll_ifindex = ifindex;
 				sll.sll_halen = ETH_ALEN;
 				memcpy((void *)(sll.sll_addr),
 				       (void *)ifhwaddr, ETH_ALEN);
+				slen = sizeof(sll);
 
-				len = sendto(sock, frame, FRAME_SIZE, 0,
+				len = sendto(sock_tx, frame, FRAME_SIZE, 0,
 					     (struct sockaddr *)&sll, slen);
 				if (len < 0) {
 					fprintf(stderr, "%s: sendto(): %s\n",
 						ifname, strerror(errno));
 					return len;
 				}
-				fprintf(stdout, "%s: TX %d\n",
-					ifname, nr_tx);
+				printf("send: %d\n", nr_tx);
 				nr_tx++;
 			}
 		}
