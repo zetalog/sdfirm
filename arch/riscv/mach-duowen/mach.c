@@ -110,36 +110,23 @@ void board_finish(int code)
 #endif
 
 #ifdef CONFIG_DUOWEN_LOAD
-#ifdef CONFIG_DUOWEN_LOAD_SPI_FLASH
-void duowen_load_spi(void)
-{
-	void (*boot_entry)(void) = (void *)FLASH_BASE;
-
-	printf("Booting from SPI flash...\n");
-	clk_enable(spi_flash_clk);
-	duowen_flash_set_frequency(min(DUOWEN_FLASH_FREQ,
-				       APB_CLK_FREQ));
-	boot_entry();
-	unreachable();
-}
-#else
-#define duowen_load_spi()		do { } while (0)
-#endif
-
 #ifdef CONFIG_DUOWEN_LOAD_SSI_FLASH
 void duowen_load_ssi(void)
 {
 #ifdef CONFIG_DUOWEN_ZSBL
 	void (*boot_entry)(void) = (void *)RAM_BASE;
+	unsigned char boot_file[] = "fsbl.bin";
 #endif
 #ifdef CONFIG_DUOWEN_FSBL
 	void (*boot_entry)(void) = (void *)(DDR_BASE + 0x80);
+	unsigned char boot_file[] = "bbl.bin";
 #endif
 	uint32_t addr = 0;
 	uint32_t size = 500000;
-	unsigned char boot_file[] = "fsbl.bin";
 	int ret;
 
+	printf("Booting %s to SSI flash entry=0x%lx...\n",
+	       boot_file, (unsigned long)boot_entry);
 	ret = gpt_pgpt_init();
 	if (ret != 0)
 		printf("SSI: primary GPT failure.\n");
@@ -168,15 +155,18 @@ void duowen_load_sd(void)
 {
 #ifdef CONFIG_DUOWEN_ZSBL
 	void (*boot_entry)(void) = (void *)RAM_BASE;
+	unsigned char boot_file[] = "fsbl.bin";
 #endif
 #ifdef CONFIG_DUOWEN_FSBL
 	void (*boot_entry)(void) = (void *)(DDR_BASE + 0x80);
+	unsigned char boot_file[] = "bbl.bin";
 #endif
 	uint32_t addr = 0;
 	uint32_t size = 500000;
-	unsigned char boot_file[] = "fsbl.bin";
 	int ret;
 
+	printf("Booting %s to SD card entry=0x%lx...\n",
+	       boot_file, (unsigned long)boot_entry);
 	ret = gpt_pgpt_init();
 	if (ret != 0)
 		printf("SD: primary GPT failure.\n");

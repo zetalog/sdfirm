@@ -173,11 +173,6 @@ config DUOWEN_LOAD_SRAM
 	  simulator. This kind of ROM is only used by the DDR
 	  verification VCS bench.
 
-config DUOWEN_LOAD_SPI_FLASH
-	bool "Enable load from SPI flash"
-	depends DUOWEN_SPI_FLASH
-	depends DUOWEN_ZSBL || (DUOWEN_FSBL && DUOWEN_FSBL_SPI)
-
 config DUOWEN_LOAD_SSI_FLASH
 	bool "Enable load from SSI flash"
 	depends DUOWEN_SSI_FLASH
