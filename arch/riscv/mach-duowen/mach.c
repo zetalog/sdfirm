@@ -243,7 +243,7 @@ void board_late_init(void)
 	board_boot();
 #endif
 	smmu_dma_alloc_sme();
-	smmu_pcie_alloc_sme();
+	//smmu_pcie_alloc_sme();
 	duowen_eth_late_init();
 }
 

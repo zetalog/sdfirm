@@ -531,22 +531,26 @@ config DUOWEN_PCIE
 
 if DUOWEN_PCIE
 
-choice
-	prompt "PCIe link mode"
+config DEFAULT_LINK_MODE
+	int "Duowen PCIE subsystem link mode (0~4)"
+	range 0 4
+	default 3
+	help
+	  0: LINK_MODE_4_4_4_4
+	  1: LINK_MODE_8_4_0_4
+	  2: LINK_MODE_8_8_0_0
+	  3: LINK_MODE_16_0_0_0
+	  4: LINK_MODE_ZEBU
 
-config DUOWEN_PCIE_X4_4
-	bool "4 x X4"
+config CHIPLINK
+	bool "Enable 2 socket chiplink connection"
+	default n
 
-config DUOWEN_PCIE_X8_1_X4_2
-	bool "1 x X8 + 2 x X4"
-
-config DUOWEN_PCIE_X8_2
-	bool "2 x X8"
-
-config DUOWEN_PCIE_X16_1
-	bool "1 x X16"
-
-endchoice
+config PCIE_SPPED_GEN1
+	bool "Limit link speed to GEN1"
+	default n
+	help
+	  This option should only be enabled for chiplink implementation on ZEBU
 
 config DUOWEN_PCIE_TEST
 	bool "Enable PCIE EP/RC(Root Complex) basic test"
