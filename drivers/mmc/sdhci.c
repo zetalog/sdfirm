@@ -399,11 +399,12 @@ void sdhci_set_width(uint8_t width)
 	sdhci_writeb(host, ctrl, SDHCI_HOST_CONTROL);
 }
 
-void sdhci_init(uint32_t f_min, uint32_t f_max)
+void sdhci_init(void *base, uint32_t f_min, uint32_t f_max)
 {
 	struct sdhci_host *host = mmc2sdhci();
 	uint32_t caps, caps_1;
 
+	host->ioaddr = base;
 	caps = sdhci_readl(host, SDHCI_CAPABILITIES);
 
 #ifdef CONFIG_SDHCI_SDMA

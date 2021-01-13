@@ -461,15 +461,15 @@ menuconfig DUOWEN_SSI_FLASH
 	bool "Duowen SSI flash support"
 	depends SPI_MASTER
 	select DW_SSI
+	select MTD
+	select SPIFLASH_W25Q32
 	select ARCH_HAS_SSI_FIFO
 	select ARCH_HAS_SSI_XFER_32
 	select ARCH_HAS_SSI_FRF
 	select ARCH_HAS_SSI_SPI
 	select ARCH_HAS_SSI_SPI_1WIRE
 	select ARCH_HAS_SPIFLASH
-	select MTD
 	select MEM if COMMAND
-	select SPIFLASH_W25Q32
 	select STRING_UUID
 	help
 	  The DUOWN SoC also contains a DW_SSI controller that can be used
@@ -519,6 +519,7 @@ endif
 menuconfig DUOWEN_SD
 	bool "Duowen MSHC controller support"
 	select DW_MSHC
+	select STRING_UUID
 
 if MSHC
 
