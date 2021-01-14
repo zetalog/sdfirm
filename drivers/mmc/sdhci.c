@@ -13,26 +13,20 @@ struct sdhci_host *mmc2sdhci(void)
 
 static void sdhci_reset(uint8_t mask)
 {
-	struct sdhci_host *host = mmc2sdhci();
-	unsigned long timeout;
+	uint8_t tmp;
 
 	/* Wait max 100 ms */
-	timeout = 100;
-	sdhci_writeb(host, mask, SDHCI_SOFTWARE_RESET);
-	while (sdhci_readb(host, SDHCI_SOFTWARE_RESET) & mask) {
-		if (timeout == 0) {
-			printf("%s: Reset 0x%x never completed.\n",
-			       __func__, (int)mask);
-			return;
-		}
-		timeout--;
-		mdelay(1);
+	__raw_writeb(mask, SDHC_SOFTWARE_RESET(mmc_sid));
+	if (!__raw_read_poll(b, SDHC_SOFTWARE_RESET(mmc_sid), tmp,
+			     !(tmp & mask), 0, 100)) {
+		printf("%s: Reset 0x%x never completed.\n",
+		       __func__, (int)mask);
+		return;
 	}
 }
 
 static void sdhci_transfer_pio(uint32_t *block)
 {
-	struct sdhci_host *host = mmc2sdhci();
 	uint8_t type = mmc_get_block_data();
 	int i;
 	uint32_t *offs;
@@ -40,9 +34,9 @@ static void sdhci_transfer_pio(uint32_t *block)
 	for (i = 0; i < mmc_slot_ctrl.block_len; i += 4) {
 		offs = block + i;
 		if (type == MMC_SLOT_BLOCK_READ)
-			*offs = sdhci_readl(host, SDHCI_BUFFER);
+			*offs = __raw_readl(SDHC_BUFFER_DATA_PORT(mmc_sid));
 		else
-			sdhci_writel(host, *offs, SDHCI_BUFFER);
+			__raw_writel(*offs, SDHC_BUFFER_DATA_PORT(mmc_sid));
 	}
 }
 
@@ -51,14 +45,11 @@ static void sdhci_transfer_data(void)
 	unsigned int stat, rdy, mask, timeout, block = 0;
 	bool transfer_done = false;
 	uint32_t *buf = (uint32_t *)mmc_slot_ctrl.block_data;
-#ifdef CONFIG_SDHCI_SDMA
-	struct sdhci_host *host = mmc2sdhci();
+#ifdef CONFIG_SDHC_SDMA
 	uint32_t start_addr = 0;
 	unsigned char ctrl;
 
-	ctrl = sdhci_readb(host, SDHCI_HOST_CONTROL);
-	ctrl &= ~SDHCI_CTRL_DMA_MASK;
-	sdhci_writeb(host, ctrl, SDHCI_HOST_CONTROL);
+	sdhc_config_dma(mmc_sid, SDHC_SDMA);
 #endif
 
 	timeout = 1000000;
@@ -79,7 +70,7 @@ static void sdhci_transfer_data(void)
 			sdhci_transfer_pio(buf);
 			block += mmc_slot_ctrl.block_len;
 			if (++block >= mmc_slot_ctrl.block_cnt) {
-				/* Keep looping until the SDHCI_INT_DATA_END is
+				/* Keep looping until the SDHC_INT_DATA_END is
 				 * cleared, even if we finished sending all the
 				 * blocks.
 				 */
@@ -87,12 +78,13 @@ static void sdhci_transfer_data(void)
 				continue;
 			}
 		}
-#ifdef CONFIG_SDHCI_SDMA
+#ifdef CONFIG_SDHC_SDMA
 		if (!transfer_done && (stat & SDHC_DMA_INTERRUPT)) {
 			sdhc_clear_irq(mmc_sid, SDHC_DMA_INTERRUPT);
-			start_addr &= ~(SDHCI_DEFAULT_BOUNDARY_SIZE - 1);
-			start_addr += SDHCI_DEFAULT_BOUNDARY_SIZE;
-			sdhci_writel(host, start_addr, SDHCI_DMA_ADDRESS);
+			start_addr &= ~(SDHC_DEFAULT_BOUNDARY_SIZE - 1);
+			start_addr += SDHC_DEFAULT_BOUNDARY_SIZE;
+			__raw_writel(start_addr,
+				     SDHC_SDMA_SYSTEM_ADDRESS(mmc_sid));
 		}
 #endif
 		if (timeout-- > 0)
@@ -113,12 +105,11 @@ static void sdhci_transfer_data(void)
  */
 static void sdhc_wait_transfer(void)
 {
-	while (sdhc_state_present(mmc_sic, SDHC_COMMAND_INHIBIT));
+	while (sdhc_state_present(mmc_sid, SDHC_COMMAND_INHIBIT));
 }
 
 void sdhci_send_command(uint8_t cmd, uint32_t arg)
 {
-	struct sdhci_host *host = mmc2sdhci();
 	uint8_t type = mmc_get_block_data();
 	__unused size_t trans_bytes;
 	uint32_t mask, flags, mode;
@@ -129,54 +120,54 @@ void sdhci_send_command(uint8_t cmd, uint32_t arg)
 
 	mask = SDHC_COMMAND_COMPLETE;
 	if (!(rsp & MMC_RSP_PRESENT))
-		flags = SDHCI_CMD_RESP_NONE;
+		flags = SDHC_RESPONSE_TYPE_SELECT(SDHC_NO_RESPONSE);
 	else if (rsp & MMC_RSP_136)
-		flags = SDHCI_CMD_RESP_LONG;
+		flags = SDHC_RESPONSE_TYPE_SELECT(SDHC_RESPONSE_LENGTH_136);
 	else if (rsp & MMC_RSP_BUSY) {
-		flags = SDHCI_CMD_RESP_SHORT_BUSY;
+		flags = SDHC_RESPONSE_TYPE_SELECT(SDHC_RESPONSE_LENGTH_48_BUSY);
 		if (type)
 			mask |= SDHC_TRANSFER_COMPLETE;
 	} else
-		flags = SDHCI_CMD_RESP_SHORT;
+		flags = SDHC_RESPONSE_TYPE_SELECT(SDHC_RESPONSE_LENGTH_48);
 
 	if (rsp & MMC_RSP_CRC)
-		flags |= SDHCI_CMD_CRC;
+		flags |= SDHC_COMMAND_CRC_CHECK_ENABLE;
 	if (rsp & MMC_RSP_OPCODE)
-		flags |= SDHCI_CMD_INDEX;
+		flags |= SDHC_COMMAND_INDEX_CHECK_ENABLE;
 
 	if (type)
-		flags |= SDHCI_CMD_DATA;
+		flags |= SDHC_DATA_PRESENT_SELECT;
 
 	/* Set Transfer mode regarding to data flag */
 	if (type) {
 		__raw_writeb(0xE, SDHC_TIMEOUT_CONTROL(mmc_sid));
-		mode = SDHCI_TRNS_BLK_CNT_EN;
+		mode = SDHC_BLOCK_COUNT_ENABLE;
 		trans_bytes = mmc_slot_ctrl.block_cnt *
 			      mmc_slot_ctrl.block_len;
 		if (mmc_slot_ctrl.block_cnt > 1)
-			mode |= SDHCI_TRNS_MULTI;
+			mode |= SDHC_MULTI_SINGLE_BLOCK_SELECT;
 		if (type == MMC_SLOT_BLOCK_READ)
-			mode |= SDHCI_TRNS_READ;
+			mode |= SDHC_DATA_TRANSFER_DIRECTION_SELECT;
 
-#ifdef CONFIG_SDHCI_SDMA
+#ifdef CONFIG_SDHC_SDMA
 		/* TODO: Bounce buffer */
 		start_addr = (uint32_t)mmc_slot_ctrl->block_data;
-		sdhci_writel(host, start_addr, SDHCI_DMA_ADDRESS);
-		mode |= SDHCI_TRNS_DMA;
+		__raw_writel(start_addr, SDHC_SDMA_SYSTEM_ADDRESS(mmc_sid));
+		mode |= SDHC_DMA_ENABLE;
 #endif
-		sdhci_writew(host,
-			     SDHCI_MAKE_BLKSZ(SDHCI_DEFAULT_BOUNDARY_ARG,
-			     mmc_slot_ctrl.block_len),
-			     SDHCI_BLOCK_SIZE);
-		sdhci_writew(host, mmc_slot_ctrl.block_cnt,
-			     SDHCI_BLOCK_COUNT);
-		sdhci_writew(host, mode, SDHCI_TRANSFER_MODE);
+		__raw_writew(
+			SDHC_SDMA_BUFFER_BOUNDARY(SDHC_DEFAULT_BOUNDARY_ARG) |
+			SDHC_TRANSFER_BLOCK_SIZE(mmc_slot_ctrl.block_len),
+			SDHC_BLOCK_SIZE(mmc_sid));
+		__raw_writew(mmc_slot_ctrl.block_cnt,
+			     SDHC_16BIT_BLOCK_COUNT(mmc_sid));
+		__raw_writew(mode, SDHC_TRANSFER_MODE(mmc_sid));
 	} else if (rsp & MMC_RSP_BUSY) {
 		__raw_writeb(0xE, SDHC_TIMEOUT_CONTROL(mmc_sid));
 	}
 
-	sdhci_writel(host, arg, SDHCI_ARGUMENT);
-	sdhci_writew(host, SDHCI_MAKE_CMD(cmd, flags), SDHCI_COMMAND);
+	__raw_writel(arg, SDHC_ARGUMENT(mmc_sid));
+	__raw_writel(SDHC_CMD(cmd, flags), SDHC_COMMAND(mmc_sid));
 }
 
 static void sdhci_decode_reg(uint8_t *resp, uint8_t size, uint32_t reg)
@@ -193,7 +184,6 @@ static void sdhci_decode_reg(uint8_t *resp, uint8_t size, uint32_t reg)
 
 void sdhci_recv_response(uint8_t *resp, uint8_t size)
 {
-	struct sdhci_host *host = mmc2sdhci();
 	uint8_t rsp = mmc_slot_ctrl.rsp;
 	int i;
 	uint32_t reg;
@@ -204,16 +194,16 @@ void sdhci_recv_response(uint8_t *resp, uint8_t size)
 		len = 0;
 		for (i = 0; i < 4; i++) {
 			len += 4;
-			reg = sdhci_readl(host,
-					  SDHCI_RESPONSE + (3-i)*4) << 8;
+			reg = __raw_readl(SDHC_RESPONSE(
+				mmc_sid, (3-i)*4)) << 8;
 			if (i != 3)
-				reg |= sdhci_readb(host,
-						   SDHCI_RESPONSE + (3-i)*4-1);
+				reg |= __raw_readb(SDHC_RESPONSE(
+					mmc_sid, (3-i)*4-1));
 			sdhci_decode_reg(resp + i,
 					 size >= len ? 4 : 0, reg);
 		}
 	} else {
-		reg = sdhci_readl(host, SDHCI_RESPONSE);
+		reg = __raw_readl(SDHC_RESPONSE(mmc_sid, 0));
 		sdhci_decode_reg(resp, size, reg);
 	}
 	sdhci_stop_transfer();
@@ -231,32 +221,28 @@ bool sdhci_card_busy(void)
 
 static void sdhci_set_power(uint8_t power)
 {
-	struct sdhci_host *host = mmc2sdhci();
-	uint8_t pwr = 0;
-
 	if (power != (uint8_t)-1) {
-		switch (1 << power) {
-		case MMC_OCR_170_195:
-			pwr = SDHCI_POWER_180;
-			break;
-		case MMC_OCR_29_30:
-		case MMC_OCR_30_31:
-			pwr = SDHCI_POWER_300;
-			break;
-		case MMC_OCR_32_33:
-		case MMC_OCR_33_34:
-			pwr = SDHCI_POWER_330;
-			break;
-		}
-	}
-
-	if (pwr == 0) {
-		sdhci_writeb(host, 0, SDHCI_POWER_CONTROL);
+		sdhc_power_off(mmc_sid);
 		return;
 	}
 
-	pwr |= SDHCI_POWER_ON;
-	sdhci_writeb(host, pwr, SDHCI_POWER_CONTROL);
+	switch (1 << power) {
+	case MMC_OCR_170_195:
+		sdhc_power_on_vdd1(mmc_sid, SDHC_SD_BUS_POWER_180);
+		sdhc_power_on_vdd2(mmc_sid, SDHC_SD_BUS_POWER_180);
+		break;
+	case MMC_OCR_29_30:
+	case MMC_OCR_30_31:
+		sdhc_power_on_vdd1(mmc_sid, SDHC_SD_BUS_POWER_300);
+		break;
+	case MMC_OCR_32_33:
+	case MMC_OCR_33_34:
+		sdhc_power_on_vdd1(mmc_sid, SDHC_SD_BUS_POWER_330);
+		break;
+	default:
+		sdhc_power_off(mmc_sid);
+		break;
+	}
 }
 
 void sdhc_start_clock(void)
@@ -308,13 +294,12 @@ bool sdhci_set_clock(uint32_t clock)
 {
 	struct sdhci_host *host = mmc2sdhci();
 	uint32_t div, clk = 0;
-	uint32_t ctrl;
 
 	sdhc_stop_clock();
 	sdhc_disable_pll();
 
 	/* 1. calculate a divisor */
-	if (SDHCI_GET_VERSION(host) >= SDHCI_SPEC_300) {
+	if (SDHC_SPEC(host) >= SDHC_SPECIFICATION_VERSION_300) {
 		/* Host Controller supports Programmable Clock Mode? */
 		if (host->clk_mul) {
 			for (div = 1; div <= 1024; div++) {
@@ -330,7 +315,7 @@ bool sdhci_set_clock(uint32_t clock)
 				div = 1;
 			} else {
 				for (div = 2;
-				     div < SDHCI_MAX_DIV_SPEC_300;
+				     div < SDHC_MAX_DIV_SPEC_300;
 				     div += 2) {
 					if ((host->max_clk / div) <= clock)
 						break;
@@ -341,7 +326,7 @@ bool sdhci_set_clock(uint32_t clock)
 		clk |= SDHC_10BIT_DIVIDED_CLOCK(div);
 	} else {
 		/* Version 2.00 divisors must be a power of 2. */
-		for (div = 1; div < SDHCI_MAX_DIV_SPEC_200; div *= 2) {
+		for (div = 1; div < SDHC_MAX_DIV_SPEC_200; div *= 2) {
 			if ((host->max_clk / div) <= clock)
 				break;
 		}
@@ -361,19 +346,15 @@ bool sdhci_set_clock(uint32_t clock)
 	if (!sdhc_clock_stabilised())
 		return false;
 
-#ifdef CONFIG_SDHC_SPEC_4_10
 	/* 5. set PLL Enable */
 	sdhc_enable_pll();
-#endif
 
 	sdhc_start_clock();
 
-	ctrl = sdhci_readb(host, SDHCI_HOST_CONTROL);
 	if (clock > 26000000)
-		ctrl |= SDHCI_CTRL_HISPD;
+		sdhc_enable_high_speed(mmc_sid);
 	else
-		ctrl &= ~SDHCI_CTRL_HISPD;
-	sdhci_writeb(host, ctrl, SDHCI_HOST_CONTROL);
+		sdhc_disable_high_speed(mmc_sid);
 	return true;
 }
 
@@ -383,49 +364,50 @@ void sdhci_set_width(uint8_t width)
 	uint32_t ctrl;
 
 	/* Set bus width */
-	ctrl = sdhci_readb(host, SDHCI_HOST_CONTROL);
+	ctrl = __raw_readb(SDHC_HOST_CONTROL_1(mmc_sid));
 	if (width == 8) {
-		ctrl &= ~SDHCI_CTRL_4BITBUS;
-		if ((SDHCI_GET_VERSION(host) >= SDHCI_SPEC_300))
-			ctrl |= SDHCI_CTRL_8BITBUS;
+		ctrl &= ~SDHC_DATA_TRANSFER_WIDTH;
+		if ((SDHC_SPEC(host) >=
+		     SDHC_SPECIFICATION_VERSION_300))
+			ctrl |= SDHC_EXTENDED_DATA_TRANSFER_WIDTH;
 	} else {
-		if ((SDHCI_GET_VERSION(host) >= SDHCI_SPEC_300))
-			ctrl &= ~SDHCI_CTRL_8BITBUS;
+		if ((SDHC_SPEC(host) >=
+		     SDHC_SPECIFICATION_VERSION_300))
+			ctrl &= ~SDHC_EXTENDED_DATA_TRANSFER_WIDTH;
 		if (width == 4)
-			ctrl |= SDHCI_CTRL_4BITBUS;
+			ctrl |= SDHC_DATA_TRANSFER_WIDTH;
 		else
-			ctrl &= ~SDHCI_CTRL_4BITBUS;
+			ctrl &= ~SDHC_DATA_TRANSFER_WIDTH;
 	}
-	sdhci_writeb(host, ctrl, SDHCI_HOST_CONTROL);
+	__raw_writeb(ctrl, SDHC_HOST_CONTROL_1(mmc_sid));
 }
 
 void sdhci_init(void *base, uint32_t f_min, uint32_t f_max)
 {
 	struct sdhci_host *host = mmc2sdhci();
-	uint32_t caps, caps_1;
+	uint32_t caps_0, caps_1;
 
 	host->ioaddr = base;
-	caps = sdhci_readl(host, SDHCI_CAPABILITIES);
+	caps_0 = __raw_readl(SDHC_CAPABILITIES_0(mmc_sid));
 
-#ifdef CONFIG_SDHCI_SDMA
-	BUG_ON(!(caps & SDHCI_CAN_DO_SDMA));
+#ifdef CONFIG_SDHC_SDMA
+	BUG_ON(!(caps_0 & SDHC_CAP_SDMA_SUPPORT));
 #endif
-	host->version = sdhci_readw(host, SDHCI_HOST_VERSION);
+	host->version = __raw_readw(SDHC_HOST_CONTROLLER_VERSION(mmc_sid));
 
 	/* Check whether the clock multiplier is supported or not */
-	if (SDHCI_GET_VERSION(host) >= SDHCI_SPEC_300) {
-		caps_1 = sdhci_readl(host, SDHCI_CAPABILITIES_1);
-		host->clk_mul = (caps_1 & SDHCI_CLOCK_MUL_MASK) >>
-				SDHCI_CLOCK_MUL_SHIFT;
+	if (SDHC_SPEC(host) >= SDHC_SPECIFICATION_VERSION_300) {
+		caps_1 = __raw_readl(SDHC_CAPABILITIES_1(mmc_sid));
+		host->clk_mul = SDHC_CAP_CLOCK_MULTIPLIER(caps_1);
 	}
 
 	if (host->max_clk == 0) {
-		if (SDHCI_GET_VERSION(host) >= SDHCI_SPEC_300)
-			host->max_clk = (caps & SDHCI_CLOCK_V3_BASE_MASK) >>
-					SDHCI_CLOCK_BASE_SHIFT;
+		if (SDHC_SPEC(host) >= SDHC_SPECIFICATION_VERSION_300)
+			host->max_clk =
+				SDHC_CAP_8BIT_BASE_CLOCK_FREQUENCY(caps_0);
 		else
-			host->max_clk = (caps & SDHCI_CLOCK_BASE_MASK) >>
-					SDHCI_CLOCK_BASE_SHIFT;
+			host->max_clk =
+				SDHC_CAP_6BIT_BASE_CLOCK_FREQUENCY(caps_0);
 		host->max_clk *= 1000000;
 		if (host->clk_mul)
 			host->max_clk *= host->clk_mul;
@@ -438,22 +420,22 @@ void sdhci_init(void *base, uint32_t f_min, uint32_t f_max)
 	if (f_min)
 		mmc_slot_ctrl.f_min = f_min;
 	else {
-		if (SDHCI_GET_VERSION(host) >= SDHCI_SPEC_300)
+		if (SDHC_SPEC(host) >= SDHC_SPECIFICATION_VERSION_300)
 			mmc_slot_ctrl.f_min =
-				mmc_slot_ctrl.f_max / SDHCI_MAX_DIV_SPEC_300;
+				mmc_slot_ctrl.f_max / SDHC_MAX_DIV_SPEC_300;
 		else
 			mmc_slot_ctrl.f_min =
-				mmc_slot_ctrl.f_max / SDHCI_MAX_DIV_SPEC_200;
+				mmc_slot_ctrl.f_max / SDHC_MAX_DIV_SPEC_200;
 	}
 	printf("clock: %dHz ~ %dHz\n",
 	       mmc_slot_ctrl.f_min, mmc_slot_ctrl.f_max);
 
 	mmc_slot_ctrl.host_ocr = SD_OCR_HCS;
-	if (caps & SDHCI_CAN_VDD_330)
+	if (caps_0 & SDHC_CAP_VOLTAGE_SUPPORT_330)
 		mmc_slot_ctrl.host_ocr |= (MMC_OCR_32_33 | MMC_OCR_33_34);
-	if (caps & SDHCI_CAN_VDD_300)
+	if (caps_0 & SDHC_CAP_VOLTAGE_SUPPORT_300)
 		mmc_slot_ctrl.host_ocr |= (MMC_OCR_29_30 | MMC_OCR_30_31);
-	if (caps & SDHCI_CAN_VDD_180)
+	if (caps_0 & SDHC_CAP_VOLTAGE_SUPPORT_180)
 		mmc_slot_ctrl.host_ocr |= MMC_OCR_170_195;
 
 	mmc_slot_ctrl.host_scr.bus_widths = 4;
@@ -462,8 +444,8 @@ void sdhci_init(void *base, uint32_t f_min, uint32_t f_max)
 #endif
 
 	/* Since Host Controller Version3.0 */
-	if (SDHCI_GET_VERSION(host) >= SDHCI_SPEC_300) {
-		if (caps & SDHCI_CAN_DO_8BIT)
+	if (SDHC_SPEC(host) >= SDHC_SPECIFICATION_VERSION_300) {
+		if (caps_0 & SDHC_8BIT_SUPPORT_FOR_EMBEDDED_DEVICE)
 			mmc_slot_ctrl.host_scr.bus_widths = 8;
 	}
 
@@ -472,7 +454,7 @@ void sdhci_init(void *base, uint32_t f_min, uint32_t f_max)
 	 */
 	sdhc_mask_all_irqs(mmc_sid);
 
-	sdhci_reset(SDHCI_RESET_ALL);
+	sdhci_reset(SDHC_SOFTWARE_RESET_FOR_ALL);
 	sdhci_set_power(__fls32(
 			MMC_OCR_VOLTAGE_RANGE(mmc_slot_ctrl.host_ocr)));
 }
@@ -559,6 +541,6 @@ void sdhci_stop_transfer(void)
 {
 	sdhc_disable_irq(mmc_sid, SDHC_COMMAND_MASK | SDHC_TRANSFER_MASK);
 	sdhc_clear_all_irqs(mmc_sid);
-	sdhci_reset(SDHCI_RESET_CMD);
-	sdhci_reset(SDHCI_RESET_DATA);
+	sdhci_reset(SDHC_SOFTWARE_RESET_FOR_CMD_LINE);
+	sdhci_reset(SDHC_SOFTWARE_RESET_FOR_DAT_LINE);
 }
