@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Jan 13 13:52:46 2021
+# Fri Jan 15 09:22:52 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -351,7 +351,26 @@ CONFIG_SD_SDSC=y
 # CONFIG_SD_SDHC is not set
 # CONFIG_SD_SDXC is not set
 # CONFIG_SD_SPI is not set
-# CONFIG_SDHC is not set
+CONFIG_SDHC=y
+CONFIG_SDHC_SPEC_100=y
+CONFIG_SDHC_SPEC_200=y
+CONFIG_SDHC_SPEC_300=y
+CONFIG_SDHC_SPEC_400=y
+CONFIG_SDHC_SPEC_410=y
+CONFIG_SDHC_SPEC_420=y
+CONFIG_SDHC_SPEC_500=y
+CONFIG_SDHC_SD=y
+# CONFIG_SDHC_EMMC is not set
+# CONFIG_SDHC_UHSI is not set
+# CONFIG_SDHC_UHSII is not set
+
+#
+# DMA support
+#
+# CONFIG_SDHC_SDMA is not set
+# CONFIG_SDHC_PM is not set
+# CONFIG_SDHC_BUFFER is not set
+# CONFIG_SDHC_AUTO_CMD12 is not set
 CONFIG_ARCH_HAS_DDR=y
 # CONFIG_DDR is not set
 CONFIG_ARCH_HAS_PCI=y
@@ -500,11 +519,6 @@ CONFIG_DW_MSHC_SD=y
 # CONFIG_DW_MSHC_SDMA is not set
 # CONFIG_DW_MSHC_ADMA2 is not set
 # CONFIG_DW_MSHC_ADMA3 is not set
-CONFIG_SDHCI=y
-CONFIG_SDHC_SD=y
-# CONFIG_SDHC_EMMC is not set
-# CONFIG_SDHC_UHSI is not set
-# CONFIG_SDHC_UHSII is not set
 
 #
 # DDR controller drivers

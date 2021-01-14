@@ -120,14 +120,62 @@ config UHSII
 	bool "UHS-II bus protocol support"
 	depends ARCH_HAS_UHSII
 
+if UHSII
+
+config UHSII_CTS
+	bool "Enable command issuing during CTS"
+
+config UHSII_TID
+	bool "Enable support of TID check"
+
+endif
+
 menuconfig SDHC
-	bool "Secure digital host controller (SDHC) support"
-	depends SD
+	bool "Secure Digital Host Controller (SDHC) support"
+	select ARCH_HAS_SDHC
+	select BIT_FLS32
 
 if SDHC
 
-config SDHC4
-	bool "Enable host version 4 support"
+config SDHC_SPEC_100
+	bool
+
+config SDHC_SPEC_200
+	bool
+	select SDHC_SPEC_100
+
+config SDHC_SPEC_300
+	bool
+	select SDHC_SPEC_200
+
+config SDHC_SPEC_400
+	bool
+	select SDHC_SPEC_300
+
+config SDHC_SPEC_410
+	bool
+	select SDHC_SPEC_400
+
+config SDHC_SPEC_420
+	bool
+	select SDHC_SPEC_410
+
+config SDHC_SPEC_500
+	bool
+	select SDHC_SPEC_420
+
+config SDHC_SD
+	bool "SD mode support"
+
+config SDHC_EMMC
+	bool "eMMC mode support"
+
+config SDHC_UHSI
+	bool "UHS-I mode support"
+	select SDHC_SD
+
+config SDHC_UHSII
+	bool "UHS-II mode support"
 
 menu "DMA support"
 
@@ -152,16 +200,6 @@ config SDHC_AUTO_CMD12
 config SDHC_AUTO_CMD23
 	bool "Auto CMD23 support"
 	depends SDHC4
-
-if UHSII
-
-config UHSII_CTS
-	bool "Enable command issuing during CTS"
-
-config UHSII_TID
-	bool "Enable support of TID check"
-
-endif
 
 endif
 

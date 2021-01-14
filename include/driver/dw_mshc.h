@@ -46,9 +46,8 @@
 #define SD_CLASS2	1
 #endif
 
-#include <driver/sdhci.h>
+#include <target/sdhc.h>
 
-#define sdhc_hw_ctrl_init()		dw_mshc_init()
 void dw_mshc_init(void);
 
 #endif /* __DW_MSHC_H_INCLUDE__ */

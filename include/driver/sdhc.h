@@ -43,11 +43,7 @@
 #define __SDHC_DRIVER_H_INCLUDE__
 
 #ifdef CONFIG_ARCH_HAS_SDHC
-#include <asm/mach/sdhc.h>
-#endif
-
-#ifndef ARCH_HAVE_SDHC
-#define sdhc_hw_ctrl_init()
+//#include <asm/mach/sdhc.h>
 #endif
 
 #endif /* __SDHC_DRIVER_H_INCLUDE__ */

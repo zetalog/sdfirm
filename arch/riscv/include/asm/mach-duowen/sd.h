@@ -54,7 +54,7 @@
 #define SD_CLASS10	1
 
 #ifdef CONFIG_DUOWEN_SD
-#include <driver/sdhci.h>
+#include <driver/dw_mshc.h>
 #ifndef ARCH_HAVE_SD
 #define ARCH_HAVE_SD		1
 #else
@@ -67,16 +67,16 @@ void duowen_mshc_init(void);
 
 #define mmc_hw_ctrl_init()		duowen_mshc_init()
 #define mmc_hw_slot_select(sid)		do { } while (0)
-#define mmc_hw_card_detect()		sdhci_detect_card()
-#define mmc_hw_set_clock(clock)		sdhci_set_clock(clock)
-#define mmc_hw_set_width(width)		sdhci_set_width(width)
-#define mmc_hw_card_busy()		sdhci_card_busy()
-#define mmc_hw_send_command(cmd, arg)	sdhci_send_command(cmd, arg)
+#define mmc_hw_card_detect()		sdhc_detect_card()
+#define mmc_hw_set_clock(clock)		sdhc_set_clock(clock)
+#define mmc_hw_set_width(width)		sdhc_set_width(width)
+#define mmc_hw_card_busy()		sdhc_card_busy()
+#define mmc_hw_send_command(cmd, arg)	sdhc_send_command(cmd, arg)
 #define mmc_hw_recv_response(resp, size)	\
-	sdhci_recv_response(resp, size)
-#define mmc_hw_tran_data(dat, len, cnt)	sdhci_tran_data(dat, len, cnt)
-#define mmc_hw_irq_init()		sdhci_irq_init()
-#define mmc_hw_irq_poll()		sdhci_irq_poll()
+	sdhc_recv_response(resp, size)
+#define mmc_hw_tran_data(dat, len, cnt)	sdhc_tran_data(dat, len, cnt)
+#define mmc_hw_irq_init()		sdhc_irq_init()
+#define mmc_hw_irq_poll()		sdhc_irq_poll()
 #endif
 
 #ifdef CONFIG_DUOWEN_SD

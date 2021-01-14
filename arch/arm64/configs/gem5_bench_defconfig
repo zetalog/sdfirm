@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Dec 31 13:45:15 2020
+# Thu Jan 14 23:58:51 2021
 #
 CONFIG_ARM64=y
 
@@ -361,7 +361,6 @@ CONFIG_UART_PL011=y
 # MMC host drivers
 #
 # CONFIG_DW_MSHC is not set
-# CONFIG_SDHCI is not set
 
 #
 # DDR controller drivers

@@ -7,8 +7,8 @@ menu "MMC host drivers"
 
 menuconfig DW_MSHC
 	bool "Synopsys DesignWare Mobile Storage Host (MSHC) support"
-	select SDHCI
-	select SDHC_SPEC_5
+	select SDHC
+	select SDHC_SPEC_500
 
 if DW_MSHC
 
@@ -258,51 +258,6 @@ endchoice
 endmenu
 
 endif
-
-endif
-
-menuconfig SDHCI
-	bool "Secure Digital Host Controller (SDHC) support"
-	select ARCH_HAS_SDHC
-	select BIT_FLS32
-
-if SDHCI
-
-config SDHC_SPEC_1
-	bool
-
-config SDHC_SPEC_2
-	bool
-	select SDHC_SPEC_1
-
-config SDHC_SPEC_3
-	bool
-	select SDHC_SPEC_2
-
-config SDHC_SPEC_4
-	bool
-	select SDHC_SPEC_3
-
-config SDHC_SPEC_4_10
-	bool
-	select SDHC_SPEC_4
-
-config SDHC_SPEC_5
-	bool
-	select SDHC_SPEC_4_10
-
-config SDHC_SD
-	bool "SD mode support"
-
-config SDHC_EMMC
-	bool "eMMC mode support"
-
-config SDHC_UHSI
-	bool "UHS-I mode support"
-	select SDHC_SD
-
-config SDHC_UHSII
-	bool "UHS-II mode support"
 
 endif
 

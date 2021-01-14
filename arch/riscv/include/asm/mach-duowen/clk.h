@@ -125,7 +125,6 @@
 #define SOC_HALF_CLK_FREQ	(SOC_PLL_FREQ/2)
 #define SFAB_CLK_FREQ		(SOC_PLL_FREQ/4) /* Used by IMC/RAM/ROM/PLIC */
 #define SFAB_HALF_CLK_FREQ	(SFAB_CLK_FREQ/2)
-#define SD_TM_CLK_FREQ		(SOC_PLL_FREQ/10/100)
 #include <asm/mach/clk_socv1.h>
 #endif
 #ifdef CONFIG_DUOWEN_SOCv2

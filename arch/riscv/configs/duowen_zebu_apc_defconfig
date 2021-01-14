@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Jan  4 12:27:04 2021
+# Fri Jan 15 00:01:31 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -461,7 +461,6 @@ CONFIG_ARCH_HAS_SSI_SPI_1WIRE=y
 # MMC host drivers
 #
 # CONFIG_DW_MSHC is not set
-# CONFIG_SDHCI is not set
 
 #
 # DDR controller drivers

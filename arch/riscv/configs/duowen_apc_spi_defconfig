@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Jan  4 12:27:19 2021
+# Fri Jan 15 00:01:47 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -504,7 +504,6 @@ CONFIG_SPIFLASH_W25Q32=y
 # MMC host drivers
 #
 # CONFIG_DW_MSHC is not set
-# CONFIG_SDHCI is not set
 
 #
 # DDR controller drivers
