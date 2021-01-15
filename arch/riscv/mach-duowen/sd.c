@@ -46,10 +46,16 @@
 #include <target/mem.h>
 #include <target/mtd.h>
 
+void duowen_sd_power(void)
+{
+	__raw_setl(IMC_SD_HOST_REG_VOL_STABLE, SCSR_SD_STABLE);
+}
+
 void duowen_mshc_init(void)
 {
 	__unused mmc_slot_t sslot;
 
+	duowen_sd_power();
 	clk_enable(sd_clk);
 	sslot = mmc_slot_save(0);
 	sdhc_init(SD_FREQ_MIN, SD_FREQ_MAX);
@@ -97,7 +103,7 @@ void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size)
 	unreachable();
 }
 
-static int do_sd(int argc, char *argv[])
+static int do_sd_gpt(int argc, char *argv[])
 {
 	uint8_t gpt_buf[GPT_LBA_SIZE];
 	gpt_header hdr;
@@ -132,7 +138,76 @@ static int do_sd(int argc, char *argv[])
 	return 0;
 }
 
+static int do_sd_status(int argc, char *argv[])
+{
+	uint32_t status = __raw_readl(SCSR_SD_STATUS);
+
+	printf("Bus Power Control Interface Singnals:\n");
+	printf("sd_vdd1_on: %d\n", !!(status & IMC_SD_VDD1_ON));
+	switch (IMC_SD_VDD1_SEL(status)) {
+	case 5:
+		printf("sd_vdd1_sel: 1.8V\n");
+		break;
+	case 6:
+		printf("sd_vdd1_sel: 3.0V\n");
+		break;
+	case 7:
+		printf("sd_vdd1_sel: 3.3V\n");
+		break;
+	default:
+		printf("sd_vdd1_sel: unknown\n");
+		break;
+	}
+	printf("SD/eMMC Card Interface Singnals:\n");
+	switch (IMC_SD_DATXFER_WIDTH(status)) {
+	case 0:
+		printf("sd_datxfer_width: 1-bit\n");
+		break;
+	case 1:
+		printf("sd_datxfer_width: 4-bit\n");
+		break;
+	default:
+		printf("sd_datxfer_width: 8-bit\n");
+		break;
+	}
+	printf("Misc Singnals:\n");
+	switch (IMC_SD_UHSI_DRV_STH(status)) {
+	default:
+	case 0:
+		printf("uhs1_drv_sth: B\n");
+		break;
+	case 1:
+		printf("uhs1_drv_sth: A\n");
+		break;
+	case 2:
+		printf("uhs1_drv_sth: C\n");
+		break;
+	case 3:
+		printf("uhs1_drv_sth: D\n");
+		break;
+	}
+	printf("uhs1_swvolt_en: %s\n",
+	       status & IMC_SD_UHSI_SWVOLT_EN ?
+	       "1.8V" : "3.3V");
+
+	return 0;
+}
+
+static int do_sd(int argc, char *argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+
+	if (strcmp(argv[1], "gpt") == 0)
+		return do_sd_gpt(argc, argv);
+	if (strcmp(argv[1], "status") == 0)
+		return do_sd_status(argc, argv);
+	return -ENODEV;
+}
+
 DEFINE_COMMAND(sd, do_sd, "SD card commands",
 	"gpt ...\n"
 	"    - print GPT entry information\n"
+	"status...\n"
+	"    - print SD power status information\n"
 );

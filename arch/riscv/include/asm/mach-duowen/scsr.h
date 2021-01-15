@@ -152,6 +152,22 @@
 #define IMC_UART0_LP_REQ_PCLK		0
 #define IMC_MAX_APB_PERIPHS		8
 
+/* SD_STABLE */
+#define IMC_SD_HOST_REG_VOL_STABLE	_BV(0)
+
+/* SD_STATUS */
+#define IMC_SD_DATXFER_WIDTH_OFFSET	7
+#define IMC_SD_DATXFER_WIDTH_MASK	REG_2BIT_MASK
+#define IMC_SD_DATXFER_WIDTH(value)	_GET_FV(IMC_SD_DATXFER_WIDTH, value)
+#define IMC_SD_VDD1_SEL_OFFSET		4
+#define IMC_SD_VDD1_SEL_MASK		REG_3BIT_MASK
+#define IMC_SD_VDD1_SEL(value)		_GET_FV(IMC_SD_VDD1_SEL, value)
+#define IMC_SD_UHSI_DRV_STH_OFFSET	2
+#define IMC_SD_UHSI_DRV_STH_MASK	REG_2BIT_MASK
+#define IMC_SD_UHSI_DRV_STH(value)	_GET_FV(IMC_SD_UHSI_DRV_STH, value)
+#define IMC_SD_VDD1_ON			_BV(1)
+#define IMC_SD_UHSI_SWVOLT_EN		_BV(0)
+
 #define imc_get_boot_addr()				\
 	MAKELLONG(__raw_readl(SCSR_BOOT_ADDR_LO),	\
 		  __raw_readl(SCSR_BOOT_ADDR_HI))
