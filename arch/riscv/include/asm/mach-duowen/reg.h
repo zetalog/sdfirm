@@ -48,6 +48,9 @@
 #ifdef CONFIG_DUOWEN_SOC1
 #define SOC_BASE		ULL(0x80000000000)
 #endif
+#ifdef CONFIG_DUOWEN_SOC_DUAL
+#define SOC_BASE		0
+#endif
 
 /* System fabric */
 #define CRCNTL_BASE		(SOC_BASE + ULL(0xFF60000000))

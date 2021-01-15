@@ -77,6 +77,11 @@
 #define plic_hw_m_ctx(cpu)	(smp_hw_cpu_hart(cpu) + 33)
 #define plic_hw_s_ctx(cpu)	(smp_hw_cpu_hart(cpu) + 50)
 #endif /* CONFIG_DUOWEN_SOC1 */
+#ifdef CONFIG_DUOWEN_SOC_DUAL
+/* TODO: support of 2 PLIC controllers */
+#define plic_hw_m_ctx(cpu)	(cpu)
+#define plic_hw_s_ctx(cpu)	((cpu) + 17)
+#endif /* CONFIG_DUOWEN_SOC_DUAL */
 #endif
 
 #include <asm/ri5cy_firq.h>

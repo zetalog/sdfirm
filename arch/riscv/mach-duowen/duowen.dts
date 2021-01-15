@@ -21,7 +21,7 @@
 #ifdef CONFIG_DUOWEN_UART_DTS
 	uart@ff63000000 {
 		interrupts = <0x54>;
-		interrupt-parent = <&plic>;
+		interrupt-parent = <&plic0>;
 #ifdef CONFIG_DUOWEN_FPGA
 		clock-frequency = <0x989680>;
 #endif
@@ -116,6 +116,154 @@
 		};
 #else /* CONFIG_DUOWEN_APC_3 */
 #ifdef CONFIG_DUOWEN_APC_4
+#ifdef CONFIG_DUOWEN_SOC_DUAL
+		cpu-map {
+			cluster0 {
+				core0 {
+					cpu = <&cpu0>;
+				};
+			};
+			cluster1 {
+				core0 {
+					cpu = <&cpu1>;
+				};
+			};
+			cluster2 {
+				core0 {
+					cpu = <&cpu2>;
+				};
+			};
+			cluster3 {
+				core0 {
+					cpu = <&cpu3>;
+				};
+			};
+			cluster4 {
+				core0 {
+					cpu = <&cpu4>;
+				};
+			};
+			cluster5 {
+				core0 {
+					cpu = <&cpu5>;
+				};
+			};
+			cluster6 {
+				core0 {
+					cpu = <&cpu6>;
+				};
+			};
+			cluster7 {
+				core0 {
+					cpu = <&cpu7>;
+				};
+			};
+		};
+		cpu0: cpu@0 {
+			device_type = "cpu";
+			reg = <0x0>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu0_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu1: cpu@1 {
+			device_type = "cpu";
+			reg = <0x1>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu1_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu2: cpu@2 {
+			device_type = "cpu";
+			reg = <0x2>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu2_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu3: cpu@3 {
+			device_type = "cpu";
+			reg = <0x3>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu3_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu4: cpu@4 {
+			device_type = "cpu";
+			reg = <0x10>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu0_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu5: cpu@5 {
+			device_type = "cpu";
+			reg = <0x11>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu1_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu6: cpu@6 {
+			device_type = "cpu";
+			reg = <0x12>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu2_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu7: cpu@7 {
+			device_type = "cpu";
+			reg = <0x13>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu3_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+#else /* CONFIG_DUOWEN_SOC_DUAL */
 		cpu-map {
 			cluster0 {
 				core0 {
@@ -190,7 +338,540 @@
 				compatible = "riscv,cpu-intc";
 			};
 		};
+#endif /* CONFIG_DUOWEN_SOC_DUAL */
 #else /* CONFIG_DUOWEN_APC_4 */
+#ifdef CONFIG_DUOWEN_SOC_DUAL
+		cpu-map {
+			cluster0 {
+				core0 {
+					cpu = <&cpu0>;
+				};
+				core1 {
+					cpu = <&cpu1>;
+				};
+				core2 {
+					cpu = <&cpu2>;
+				};
+				core3 {
+					cpu = <&cpu3>;
+				};
+			};
+			cluster1 {
+				core0 {
+					cpu = <&cpu4>;
+				};
+				core1 {
+					cpu = <&cpu5>;
+				};
+				core2 {
+					cpu = <&cpu6>;
+				};
+				core3 {
+					cpu = <&cpu7>;
+				};
+			};
+			cluster2 {
+				core0 {
+					cpu = <&cpu8>;
+				};
+				core1 {
+					cpu = <&cpu9>;
+				};
+				core2 {
+					cpu = <&cpu10>;
+				};
+				core3 {
+					cpu = <&cpu11>;
+				};
+			};
+			cluster3 {
+				core0 {
+					cpu = <&cpu12>;
+				};
+				core1 {
+					cpu = <&cpu13>;
+				};
+				core2 {
+					cpu = <&cpu14>;
+				};
+				core3 {
+					cpu = <&cpu15>;
+				};
+			};
+			cluster4 {
+				core0 {
+					cpu = <&cpu16>;
+				};
+				core1 {
+					cpu = <&cpu17>;
+				};
+				core2 {
+					cpu = <&cpu18>;
+				};
+				core3 {
+					cpu = <&cpu19>;
+				};
+			};
+			cluster5 {
+				core0 {
+					cpu = <&cpu20>;
+				};
+				core1 {
+					cpu = <&cpu21>;
+				};
+				core2 {
+					cpu = <&cpu22>;
+				};
+				core3 {
+					cpu = <&cpu23>;
+				};
+			};
+			cluster6 {
+				core0 {
+					cpu = <&cpu24>;
+				};
+				core1 {
+					cpu = <&cpu25>;
+				};
+				core2 {
+					cpu = <&cpu26>;
+				};
+				core3 {
+					cpu = <&cpu27>;
+				};
+			};
+			cluster7 {
+				core0 {
+					cpu = <&cpu28>;
+				};
+				core1 {
+					cpu = <&cpu29>;
+				};
+				core2 {
+					cpu = <&cpu30>;
+				};
+				core3 {
+					cpu = <&cpu31>;
+				};
+			};
+		};
+		cpu0: cpu@0 {
+			device_type = "cpu";
+			reg = <0xf>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu0_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu1: cpu@1 {
+			device_type = "cpu";
+			reg = <0xe>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu1_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu2: cpu@2 {
+			device_type = "cpu";
+			reg = <0xd>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu2_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu3: cpu@3 {
+			device_type = "cpu";
+			reg = <0xc>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu3_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu4: cpu@4 {
+			device_type = "cpu";
+			reg = <0xb>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu4_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu5: cpu@5 {
+			device_type = "cpu";
+			reg = <0xa>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu5_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu6: cpu@6 {
+			device_type = "cpu";
+			reg = <0x9>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu6_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu7: cpu@7 {
+			device_type = "cpu";
+			reg = <0x8>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu7_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu8: cpu@8 {
+			device_type = "cpu";
+			reg = <0x7>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu8_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu9: cpu@9 {
+			device_type = "cpu";
+			reg = <0x6>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu9_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu10: cpu@10 {
+			device_type = "cpu";
+			reg = <0x5>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu10_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu11: cpu@11 {
+			device_type = "cpu";
+			reg = <0x4>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu11_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu12: cpu@12 {
+			device_type = "cpu";
+			reg = <0x3>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu12_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu13: cpu@13 {
+			device_type = "cpu";
+			reg = <0x2>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu13_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu14: cpu@14 {
+			device_type = "cpu";
+			reg = <0x1>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu14_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu15: cpu@15 {
+			device_type = "cpu";
+			reg = <0x0>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu15_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu16: cpu@16 {
+			device_type = "cpu";
+			reg = <0x1f>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu16_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu17: cpu@17 {
+			device_type = "cpu";
+			reg = <0x1e>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu17_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu18: cpu@18 {
+			device_type = "cpu";
+			reg = <0x1d>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu18_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu19: cpu@19 {
+			device_type = "cpu";
+			reg = <0x1c>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu19_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu20: cpu@20 {
+			device_type = "cpu";
+			reg = <0x1b>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu20_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu21: cpu@21 {
+			device_type = "cpu";
+			reg = <0x1a>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu21_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu22: cpu@22 {
+			device_type = "cpu";
+			reg = <0x19>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu22_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu23: cpu@23 {
+			device_type = "cpu";
+			reg = <0x18>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu23_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu24: cpu@24 {
+			device_type = "cpu";
+			reg = <0x17>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu24_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu25: cpu@25 {
+			device_type = "cpu";
+			reg = <0x16>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu25_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu26: cpu@26 {
+			device_type = "cpu";
+			reg = <0x15>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu26_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu27: cpu@27 {
+			device_type = "cpu";
+			reg = <0x14>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu27_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu28: cpu@28 {
+			device_type = "cpu";
+			reg = <0x13>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu28_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu29: cpu@29 {
+			device_type = "cpu";
+			reg = <0x12>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu29_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu30: cpu@30 {
+			device_type = "cpu";
+			reg = <0x11>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu30_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu31: cpu@31 {
+			device_type = "cpu";
+			reg = <0x10>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu31_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+#else /* CONFIG_DUOWEN_SOC_DUAL */
 		cpu-map {
 			cluster0 {
 				core0 {
@@ -457,6 +1138,7 @@
 				compatible = "riscv,cpu-intc";
 			};
 		};
+#endif /* CONFIG_DUOWEN_SOC_DUAL */
 #endif /* CONFIG_DUOWEN_APC_4 */
 #endif /* CONFIG_DUOWEN_APC_3 */
 #else /* CONFIG_SMP */
@@ -487,51 +1169,102 @@
 	memory@0 {
 		device_type = "memory";
 #ifdef CONFIG_DUOWEN_DDR_32M
-		reg = <0x0 0x0000000000 0x0 0x02000000>;
+		reg = <0x0 0x00000000 0x0 0x02000000>;
 #endif
 #ifdef CONFIG_DUOWEN_DDR_64M
-		reg = <0x0 0x0000000000 0x0 0x04000000>;
+		reg = <0x0 0x00000000 0x0 0x04000000>;
 #endif
 #ifdef CONFIG_DUOWEN_DDR_128M
-		reg = <0x0 0x0000000000 0x0 0x08000000>;
+		reg = <0x0 0x00000000 0x0 0x08000000>;
 #endif
 #ifdef CONFIG_DUOWEN_DDR_256M
-		reg = <0x0 0x0000000000 0x0 0x10000000>;
+		reg = <0x0 0x00000000 0x0 0x10000000>;
 #endif
 #ifdef CONFIG_DUOWEN_DDR_512M
-		reg = <0x0 0x0000000000 0x0 0x20000000>;
+		reg = <0x0 0x00000000 0x0 0x20000000>;
 #endif
 #ifdef CONFIG_DUOWEN_DDR_1G
-		reg = <0x0 0x0000000000 0x0 0x40000000>;
+		reg = <0x0 0x00000000 0x0 0x40000000>;
 #endif
 #ifdef CONFIG_DUOWEN_DDR_2G
-		reg = <0x0 0x0000000000 0x0 0x80000000>;
+		reg = <0x0 0x00000000 0x0 0x80000000>;
 #endif
 #ifdef CONFIG_DUOWEN_DDR_4G
-		reg = <0x0 0x0000000000 0x1 0x00000000>;
+		reg = <0x0 0x00000000 0x1 0x00000000>;
 #endif
 #ifdef CONFIG_DUOWEN_DDR_8G
-		reg = <0x0 0x0000000000 0x2 0x00000000>;
+		reg = <0x0 0x00000000 0x2 0x00000000>;
 #endif
 #ifdef CONFIG_DUOWEN_DDR_16G
-		reg = <0x0 0x0000000000 0x4 0x00000000>;
+		reg = <0x0 0x00000000 0x4 0x00000000>;
 #endif
 #ifdef CONFIG_DUOWEN_DDR_32G
-		reg = <0x0 0x0000000000 0x8 0x00000000>;
+		reg = <0x0 0x00000000 0x8 0x00000000>;
 #endif
 #ifdef CONFIG_DUOWEN_DDR_64G
-		reg = <0x0 0x0000000000 0x10 0x00000000>;
+		reg = <0x0 0x00000000 0x10 0x00000000>;
 #endif
 #ifdef CONFIG_DUOWEN_DDR_128G
-		reg = <0x0 0x0000000000 0x20 0x00000000>;
+		reg = <0x0 0x00000000 0x20 0x00000000>;
 #endif
 #ifdef CONFIG_DUOWEN_DDR_256G
-		reg = <0x0 0x0000000000 0x40 0x00000000>;
+		reg = <0x0 0x00000000 0x40 0x00000000>;
 #endif
 #ifdef CONFIG_DUOWEN_DDR_512G
-		reg = <0x0 0x0000000000 0x80 0x00000000>;
+		reg = <0x0 0x00000000 0x80 0x00000000>;
 #endif
 	};
+
+#ifdef CONFIG_DUOWEN_SOC_DUAL
+	memory@1 {
+		device_type = "memory";
+#ifdef CONFIG_DUOWEN_DDR_32M
+		reg = <0x800 0x00000000 0x800 0x02000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_64M
+		reg = <0x800 0x00000000 0x800 0x04000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_128M
+		reg = <0x800 0x00000000 0x800 0x08000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_256M
+		reg = <0x800 0x00000000 0x800 0x10000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_512M
+		reg = <0x800 0x00000000 0x800 0x20000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_1G
+		reg = <0x800 0x00000000 0x800 0x40000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_2G
+		reg = <0x800 0x00000000 0x800 0x80000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_4G
+		reg = <0x800 0x00000000 0x801 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_8G
+		reg = <0x800 0x00000000 0x802 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_16G
+		reg = <0x800 0x00000000 0x804 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_32G
+		reg = <0x800 0x00000000 0x808 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_64G
+		reg = <0x800 0x00000000 0x810 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_128G
+		reg = <0x800 0x00000000 0x820 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_256G
+		reg = <0x800 0x00000000 0x840 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_512G
+		reg = <0x800 0x00000000 0x880 0x00000000>;
+#endif
+	};
+#endif /* CONFIG_DUOWEN_SOC_DUAL */
 
 	soc {
 		#address-cells = <0x2>;
@@ -539,42 +1272,70 @@
 		compatible = "simple-bus";
 		ranges;
 
-		plic: interrupt-controller@ff70000000 {
+		plic0: interrupt-controller@ff70000000 {
 			riscv,ndev = <0xf0>;
 			reg = <0xff 0x70000000 0x0 0x4000000>;
 			interrupts-extended = <
 #ifdef CONFIG_SMP
 #ifdef CONFIG_DUOWEN_APC_3
-				&cpu0_intc 0xb &cpu1_intc 0xb
-				&cpu2_intc 0xb &cpu0_intc 0x9
-				&cpu1_intc 0x9 &cpu2_intc 0x9
+				&cpu0_intc  0xb        &cpu1_intc  0xb
+				&cpu2_intc  0xb        &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff
+				&cpu0_intc  0x9        &cpu1_intc  0x9
+				&cpu2_intc  0x9        &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
 #else /* CONFIG_DUOWEN_APC_3 */
 #ifdef CONFIG_DUOWEN_APC_4
-				&cpu0_intc 0xb &cpu1_intc 0xb
-				&cpu2_intc 0xb &cpu3_intc 0xb
-				&cpu0_intc 0x9 &cpu1_intc 0x9
-				&cpu2_intc 0x9 &cpu3_intc 0x9
+				&cpu0_intc  0xb        &cpu1_intc  0xb
+				&cpu2_intc  0xb        &cpu3_intc  0xb
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff
+				&cpu0_intc  0x9        &cpu1_intc  0x9
+				&cpu2_intc  0x9        &cpu3_intc  0x9
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
 #else /* CONFIG_DUOWEN_APC_4 */
-				&cpu0_intc  0xb &cpu1_intc  0xb
-				&cpu2_intc  0xb &cpu3_intc  0xb
-				&cpu4_intc  0xb &cpu5_intc  0xb
-				&cpu6_intc  0xb &cpu7_intc  0xb
-				&cpu8_intc  0xb &cpu9_intc  0xb
-				&cpu10_intc 0xb &cpu11_intc 0xb
-				&cpu12_intc 0xb &cpu13_intc 0xb
-				&cpu14_intc 0xb &cpu15_intc 0xb
-				&cpu0_intc  0x9 &cpu1_intc  0x9
-				&cpu2_intc  0x9 &cpu3_intc  0x9
-				&cpu4_intc  0x9 &cpu5_intc  0x9
-				&cpu6_intc  0x9 &cpu7_intc  0x9
-				&cpu8_intc  0x9 &cpu9_intc  0x9
-				&cpu10_intc 0x9 &cpu11_intc 0x9
-				&cpu12_intc 0x9 &cpu13_intc 0x9
-				&cpu14_intc 0x9 &cpu15_intc 0x9
+				&cpu0_intc  0xb        &cpu1_intc  0xb
+				&cpu2_intc  0xb        &cpu3_intc  0xb
+				&cpu4_intc  0xb        &cpu5_intc  0xb
+				&cpu6_intc  0xb        &cpu7_intc  0xb
+				&cpu8_intc  0xb        &cpu9_intc  0xb
+				&cpu10_intc 0xb        &cpu11_intc 0xb
+				&cpu12_intc 0xb        &cpu13_intc 0xb
+				&cpu14_intc 0xb        &cpu15_intc 0xb
+				&cpu0_intc  0xffffffff
+				&cpu0_intc  0x9        &cpu1_intc  0x9
+				&cpu2_intc  0x9        &cpu3_intc  0x9
+				&cpu4_intc  0x9        &cpu5_intc  0x9
+				&cpu6_intc  0x9        &cpu7_intc  0x9
+				&cpu8_intc  0x9        &cpu9_intc  0x9
+				&cpu10_intc 0x9        &cpu11_intc 0x9
+				&cpu12_intc 0x9        &cpu13_intc 0x9
+				&cpu14_intc 0x9        &cpu15_intc 0x9
 #endif /* CONFIG_DUOWEN_APC_4 */
 #endif /* CONFIG_DUOWEN_APC_3 */
 #else /* CONFIG_SMP */
-				&cpu0_intc 0xb &cpu0_intc 0x9
+				&cpu0_intc  0xb        &cpu0_intc  0x9
 #endif /* CONFIG_SMP */
 			>;
 			interrupt-controller;
@@ -583,52 +1344,179 @@
 			#address-cells = <0x0>;
 		};
 
+#ifdef CONFIG_DUOWEN_SOC_DUAL
+		plic1: interrupt-controller@8ff70000000 {
+			riscv,ndev = <0xf0>;
+			reg = <0x8ff 0x70000000 0x0 0x4000000>;
+			interrupts-extended = <
+#ifdef CONFIG_DUOWEN_APC_4
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu4_intc  0xb        &cpu5_intc  0xb
+				&cpu6_intc  0xb        &cpu7_intc  0xb
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff
+				&cpu4_intc  0x9        &cpu5_intc  0x9
+				&cpu6_intc  0x9        &cpu7_intc  0x9
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+#else /* CONFIG_DUOWEN_APC_4 */
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu16_intc 0xb        &cpu17_intc 0xb
+				&cpu18_intc 0xb        &cpu19_intc 0xb
+				&cpu20_intc 0xb        &cpu21_intc 0xb
+				&cpu22_intc 0xb        &cpu23_intc 0xb
+				&cpu24_intc 0xb        &cpu25_intc 0xb
+				&cpu26_intc 0xb        &cpu27_intc 0xb
+				&cpu28_intc 0xb        &cpu29_intc 0xb
+				&cpu30_intc 0xb        &cpu31_intc 0xb
+				&cpu0_intc  0xffffffff
+				&cpu16_intc 0x9        &cpu17_intc 0x9
+				&cpu18_intc 0x9        &cpu19_intc 0x9
+				&cpu20_intc 0x9        &cpu21_intc 0x9
+				&cpu22_intc 0x9        &cpu23_intc 0x9
+				&cpu24_intc 0x9        &cpu25_intc 0x9
+				&cpu26_intc 0x9        &cpu27_intc 0x9
+				&cpu28_intc 0x9        &cpu29_intc 0x9
+				&cpu30_intc 0x9        &cpu31_intc 0x9
+#endif /* CONFIG_DUOWEN_APC_4 */
+			>;
+			interrupt-controller;
+			compatible = "riscv,plic0";
+			#interrupt-cells = <0x1>;
+			#address-cells = <0x0>;
+		};
+#endif /* CONFIG_DUOWEN_SOC_DUAL */
+
 		clint@ff010f0000 {
 			interrupts-extended = <
 #ifdef CONFIG_SMP
 #ifdef CONFIG_DUOWEN_APC_3
-				&cpu0_intc 3 &cpu0_intc 7
-				&cpu1_intc 3 &cpu1_intc 7
-				&cpu2_intc 3 &cpu2_intc 7
+				&cpu0_intc  0x3        &cpu0_intc  0x7
+				&cpu1_intc  0x3        &cpu1_intc  0x7
+				&cpu2_intc  0x3        &cpu2_intc  0x7
 #else /* CONFIG_DUOWEN_APC_3 */
 #ifdef CONFIG_DUOWEN_APC_4
-				&cpu0_intc 3 &cpu0_intc 7
-				&cpu1_intc 3 &cpu1_intc 7
-				&cpu2_intc 3 &cpu2_intc 7
-				&cpu3_intc 3 &cpu3_intc 7
+				&cpu0_intc  0x3        &cpu0_intc  0x7
+				&cpu1_intc  0x3        &cpu1_intc  0x7
+				&cpu2_intc  0x3        &cpu2_intc  0x7
+				&cpu3_intc  0x3        &cpu3_intc  0x7
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+#ifdef CONFIG_DUOWEN_SOC_DUAL
+				&cpu4_intc  0x3        &cpu4_intc  0x7
+				&cpu5_intc  0x3        &cpu5_intc  0x7
+				&cpu6_intc  0x3        &cpu6_intc  0x7
+				&cpu7_intc  0x3        &cpu7_intc  0x7
+#endif /* CONFIG_DUOWEN_SOC_DUAL */
 #else /* CONFIG_DUOWEN_APC_4 */
-				&cpu0_intc  3 &cpu0_intc  7
-				&cpu1_intc  3 &cpu1_intc  7
-				&cpu2_intc  3 &cpu2_intc  7
-				&cpu3_intc  3 &cpu3_intc  7
-				&cpu4_intc  3 &cpu4_intc  7
-				&cpu5_intc  3 &cpu5_intc  7
-				&cpu6_intc  3 &cpu6_intc  7
-				&cpu7_intc  3 &cpu7_intc  7
-				&cpu8_intc  3 &cpu8_intc  7
-				&cpu9_intc  3 &cpu9_intc  7
-				&cpu10_intc 3 &cpu10_intc 7
-				&cpu11_intc 3 &cpu11_intc 7
-				&cpu12_intc 3 &cpu12_intc 7
-				&cpu13_intc 3 &cpu13_intc 7
-				&cpu14_intc 3 &cpu14_intc 7
-				&cpu15_intc 3 &cpu15_intc 7
+				&cpu0_intc  0x3        &cpu0_intc  0x7
+				&cpu1_intc  0x3        &cpu1_intc  0x7
+				&cpu2_intc  0x3        &cpu2_intc  0x7
+				&cpu3_intc  0x3        &cpu3_intc  0x7
+				&cpu4_intc  0x3        &cpu4_intc  0x7
+				&cpu5_intc  0x3        &cpu5_intc  0x7
+				&cpu6_intc  0x3        &cpu6_intc  0x7
+				&cpu7_intc  0x3        &cpu7_intc  0x7
+				&cpu8_intc  0x3        &cpu8_intc  0x7
+				&cpu9_intc  0x3        &cpu9_intc  0x7
+				&cpu10_intc 0x3        &cpu10_intc 0x7
+				&cpu11_intc 0x3        &cpu11_intc 0x7
+				&cpu12_intc 0x3        &cpu12_intc 0x7
+				&cpu13_intc 0x3        &cpu13_intc 0x7
+				&cpu14_intc 0x3        &cpu14_intc 0x7
+				&cpu15_intc 0x3        &cpu15_intc 0x7
+#ifdef CONFIG_DUOWEN_SOC_DUAL
+				&cpu16_intc 0x3        &cpu16_intc 0x7
+				&cpu17_intc 0x3        &cpu17_intc 0x7
+				&cpu18_intc 0x3        &cpu18_intc 0x7
+				&cpu19_intc 0x3        &cpu19_intc 0x7
+				&cpu20_intc 0x3        &cpu20_intc 0x7
+				&cpu21_intc 0x3        &cpu21_intc 0x7
+				&cpu22_intc 0x3        &cpu22_intc 0x7
+				&cpu23_intc 0x3        &cpu23_intc 0x7
+				&cpu24_intc 0x3        &cpu24_intc 0x7
+				&cpu25_intc 0x3        &cpu25_intc 0x7
+				&cpu26_intc 0x3        &cpu26_intc 0x7
+				&cpu27_intc 0x3        &cpu27_intc 0x7
+				&cpu28_intc 0x3        &cpu28_intc 0x7
+				&cpu29_intc 0x3        &cpu29_intc 0x7
+				&cpu30_intc 0x3        &cpu30_intc 0x7
+				&cpu31_intc 0x3        &cpu31_intc 0x7
+#endif /* CONFIG_DUOWEN_SOC_DUAL */
 #endif /* CONFIG_DUOWEN_APC_4 */
 #endif /* CONFIG_DUOWEN_APC_3 */
 #else /* CONFIG_SMP */
-				&cpu0_intc 3 &cpu0_intc 7
+				&cpu0_intc  0x3        &cpu0_intc  0x7
 #endif /* CONFIG_SMP */
 			>;
 			reg = <0xff 0x10f0000 0x0 0x10000>;
 			compatible = "riscv,clint0";
 		};
 
-
-		crcntl: crcntl-clock@ff60000000 {
+		crcntl0: crcntl-clock@ff60000000 {
 			compatible = "smarco,duowen-crcntl";
 			reg = <0xff 0x60000000 0x0 0x1000>;
 			#clock-cells = <1>;
 		};
+
+#ifdef CONFIG_DUOWEN_SOC_DUAL
+		crcntl1: crcntl-clock@8ff60000000 {
+			compatible = "smarco,duowen-crcntl";
+			reg = <0x8ff 0x60000000 0x0 0x1000>;
+			#clock-cells = <1>;
+		};
+#endif
 
 #ifdef CONFIG_DUOWEN_ETH
 		stmmac_axi_setup: stmmac-axi-config {
@@ -669,7 +1557,7 @@
 			compatible = "smarco,duowen-xgmac2", "snps,dwxgmac";
 #endif
 			reg = <0xff 0x6a000000 0x0 0x100000>;
-			interrupt-parent = <&plic>;
+			interrupt-parent = <&plic0>;
 			interrupts = <195 194 193>;
 			interrupt-names = "macirq", "eth_wake_irq", "eth_lpi";
 			mac-address = [c69ded9a297c];
@@ -684,8 +1572,8 @@
 			snps,perfect-filter-entries = <128>;
 			rx-fifo-depth = <16384>;
 			tx-fifo-depth = <16384>;
-			clocks = <&crcntl sbi_sysfab_clk>,
-			         <&crcntl sbi_sgmii_ref_clk>;
+			clocks = <&crcntl0 sbi_sysfab_clk>,
+			         <&crcntl0 sbi_sgmii_ref_clk>;
 			clock-names = "stmmaceth", "ptp_ref";
 			snps,axi-config = <&stmmac_axi_setup>;
 			snps,mtl-rx-config = <&mtl_rx_setup>;
@@ -719,7 +1607,7 @@
 		dma_smmu: iommu@ff08000000 {
 			compatible = "smarco,duowen-rvsmmu";
 			reg = <0xff 0x8000000 0x0 0x20000>;
-			interrupt-parent = <&plic>;
+			interrupt-parent = <&plic0>;
 			interrupts = <83>;
 			interrupt-names = "combined";
 			dma_coherent;
@@ -730,7 +1618,7 @@
 		pcie_smmu: iommu@ff08400000 {
 			compatible = "smarco,duowen-rvsmmu";
 			reg = <0xff 0x8400000 0x0 0x20000>;
-			interrupt-parent = <&plic>;
+			interrupt-parent = <&plic0>;
 			interrupts = <80>;
 			interrupt-names = "combined";
 			dma_coherent;

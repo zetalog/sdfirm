@@ -48,6 +48,10 @@ config DUOWEN_SOC0
 config DUOWEN_SOC1
 	bool "socket 1"
 
+config DUOWEN_SOC_DUAL
+	bool "dual sockets"
+	depends SMP && DUOWEN_BBL && !DUOWEN_APC_3
+
 endchoice
 
 config DUOWEN_BOOT
