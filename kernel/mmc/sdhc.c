@@ -211,6 +211,28 @@ void sdhc_send_command(uint8_t cmd, uint32_t arg)
 
 	__raw_writel(arg, SDHC_ARGUMENT(mmc_sid));
 	__raw_writel(SDHC_CMD(cmd, flags), SDHC_COMMAND(mmc_sid));
+
+	do {
+		flags = sdhc_irq_status(mmc_sid);
+		if (flags & SDHC_ERROR_INTERRUPT)
+			break;
+	} while ((flags & mask) != mask);
+
+	if ((flags & (SDHC_ERROR_INTERRUPT | mask)) == mask) {
+		mmc_cmd_success();
+		sdhc_clear_irq(mmc_sid, flags);
+	} else {
+		if (flags & SDHC_ERR_COMMAND_INDEX_ERROR)
+			mmc_cmd_failure(MMC_ERR_ILLEGAL_COMMAND);
+		else if (flags & (SDHC_ERR_COMMAND_CRC_ERROR |
+				 SDHC_ERR_DATA_CRC_ERROR))
+			mmc_cmd_failure(MMC_ERR_COM_CRC_ERROR);
+		else if (flags & (SDHC_ERR_COMMAND_END_BIT_ERROR |
+				 SDHC_ERR_DATA_END_BIT_ERROR))
+			mmc_cmd_failure(MMC_ERR_CHECK_PATTERN);
+		else
+			mmc_cmd_failure(MMC_ERR_TIMEOUT);
+	}
 }
 
 static void sdhc_decode_reg(uint8_t *resp, uint8_t size, uint32_t reg)
