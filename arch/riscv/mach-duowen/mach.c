@@ -129,7 +129,7 @@ void duowen_load_ssi(void)
 	uint32_t size = 500000;
 	int ret;
 
-	printf("Booting %s to SSI flash entry=0x%lx...\n",
+	printf("Booting %s from SSI flash to entry=0x%lx...\n",
 	       boot_file, (unsigned long)boot_entry);
 	ret = gpt_pgpt_init();
 	if (ret != 0)
@@ -169,7 +169,7 @@ void duowen_load_sd(void)
 	uint32_t size = 500000;
 	int ret;
 
-	printf("Booting %s to SD card entry=0x%lx...\n",
+	printf("Booting %s from SD card to entry=0x%lx...\n",
 	       boot_file, (unsigned long)boot_entry);
 	ret = gpt_pgpt_init();
 	if (ret != 0)
@@ -197,7 +197,7 @@ void duowen_load_sd(void)
 #if defined(CONFIG_DUOWEN_APC) && defined(CONFIG_DUOWEN_ZSBL)
 void duowen_load_ddr(void)
 {
-	void (*boot_entry)(void) = (void *)(DDR_BASE + 0x80);
+	void (*boot_entry)(void) = (void *)(__DDR_BASE + 0x80);
 
 	printf("Booting %d/%d from DDR...\n",
 	       smp_processor_id(), MAX_CPU_NUM);

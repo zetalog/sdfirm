@@ -99,7 +99,7 @@ void udelay(uint32_t time)
 
 static uint8_t duowen_get_link_mode(struct duowen_pcie_subsystem *pcie_subsystem)
 {
-	return CONFIG_DEFAULT_LINK_MODE;
+	return DEFAULT_LINK_MODE;
 }
 
 void reset_init(struct duowen_pcie_subsystem *pcie_subsystem)
@@ -142,7 +142,7 @@ void dw_controller_init(struct duowen_pcie_subsystem *pcie_subsystem, int index)
 	uint8_t port = APB_PORT_X16 + index;
 	uint64_t base = pcie_subsystem->cfg_apb[X16 + index];
 
-#ifdef CONFIG_PCIE_ROLE_RC
+#ifdef CONFIG_DW_PCIE_RC
 	write_apb((base + 0), 0xc810010, port);
 #else
 	write_apb((base + 0), 0xc810000, port);
@@ -354,7 +354,7 @@ static void subsys_link_init_post(struct duowen_pcie_subsystem *pcie_subsys)
 
 	switch (mode) {
 		case LINK_MODE_4_4_4_4:
-#ifdef CONFIG_PCIE_ROLE_RC
+#ifdef CONFIG_DW_PCIE_RC
 			write_apb(pcie_subsys->cfg_apb[X4_0], 0xc018010, APB_PORT_X4_0);
 #else
 			write_apb(pcie_subsys->cfg_apb[X4_0], 0xc018000, APB_PORT_X4_0);
@@ -363,7 +363,7 @@ static void subsys_link_init_post(struct duowen_pcie_subsystem *pcie_subsys)
 			break;
 #endif
 		case LINK_MODE_8_4_0_4:
-#ifdef CONFIG_PCIE_ROLE_RC
+#ifdef CONFIG_DW_PCIE_RC
 			write_apb(pcie_subsys->cfg_apb[X4_1], 0xc018010, APB_PORT_X4_1);
 #else
 			write_apb(pcie_subsys->cfg_apb[X4_1], 0xc018000, APB_PORT_X4_1);
@@ -372,7 +372,7 @@ static void subsys_link_init_post(struct duowen_pcie_subsystem *pcie_subsys)
 			break;
 #endif
 		case LINK_MODE_8_8_0_0:
-#ifdef CONFIG_PCIE_ROLE_RC
+#ifdef CONFIG_DW_PCIE_RC
 			write_apb(pcie_subsys->cfg_apb[X8], 0xc018010, APB_PORT_X8);
 #else
 			write_apb(pcie_subsys->cfg_apb[X8], 0xc018000, APB_PORT_X8);
@@ -381,7 +381,7 @@ static void subsys_link_init_post(struct duowen_pcie_subsystem *pcie_subsys)
 			break;
 #endif
 		case LINK_MODE_16_0_0_0:
-#ifdef CONFIG_PCIE_ROLE_RC
+#ifdef CONFIG_DW_PCIE_RC
 			write_apb(pcie_subsys->cfg_apb[X16], 0xc018010, APB_PORT_X16);
 #else
 			write_apb(pcie_subsys->cfg_apb[X16], 0xc018000, APB_PORT_X16);
@@ -390,7 +390,7 @@ static void subsys_link_init_post(struct duowen_pcie_subsystem *pcie_subsys)
 			break;
 #endif
 		case LINK_MODE_ZEBU:
-#ifdef CONFIG_PCIE_ROLE_RC
+#ifdef CONFIG_DW_PCIE_RC
 			write_apb(pcie_subsys->cfg_apb[X4_1], 0xc018010, APB_PORT_X4_1);
 #else
 			write_apb(pcie_subsys->cfg_apb[X4_1], 0xc018000, APB_PORT_X4_1);
@@ -561,7 +561,7 @@ void pci_platform_init(void)
 
 	subsys_link_init_post(pcie_subsys);
 
-#if defined(CONFIG_PCIE_ROLE_RC) && defined(CONFIG_CHIPLINK)
+#if defined(CONFIG_DW_PCIE_RC) && defined(CONFIG_DUOWEN_PCIE_CHIPLINK)
 	printf("rc start\n");
 
 	uint8_t mode = duowen_get_link_mode(&pcie_subsystem);
@@ -641,7 +641,7 @@ void pci_platform_init(void)
 			break;
 		controller++;
 	}
-#ifdef CONFIG_PCIE_ROLE_RC
+#ifdef CONFIG_DW_PCIE_RC
 	uint64_t val;
 
 	irqc_configure_irq(IRQ_PCIE_X16_MSI, 0, IRQ_LEVEL_TRIGGERED);

@@ -43,6 +43,12 @@
 #include <target/noc.h>
 #include <target/clk.h>
 
+#ifdef CONFIG_DUOWEN_SOC_DUAL
+#define MAX_SOC_SOCKETS		2
+#else
+#define MAX_SOC_SOCKETS		1
+#endif
+
 void duowen_noc_init(void)
 {
 	/* DDR clock must be enabled and DDR reset must be released
@@ -51,5 +57,6 @@ void duowen_noc_init(void)
 	board_init_clock();
 	clk_enable(ddr_aclk);
 	clk_enable(ddr_arst);
-	ncore_init(MAX_CPU_CLUSTERS, 0, MAX_DDR_SEGMENTS, MAX_DDR_SEGMENTS);
+	ncore_init(MAX_SOC_SOCKETS * MAX_CPU_CLUSTERS, 0,
+		   MAX_DDR_SEGMENTS, MAX_DDR_SEGMENTS);
 }

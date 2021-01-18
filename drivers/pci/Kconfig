@@ -17,10 +17,17 @@ menuconfig DW_PCIE
 
 if DW_PCIE
 
-config PCIE_ROLE_RC
-	bool "Setup PCIE Core as RC"
+config DW_PCIE_RC
+	bool "Enable PCIe root complex (RC) support"
 	depends ARCH_IS_DW_PCIE_RC
 	default y
+
+config DW_PCIE_SPEED_GEN1
+	bool "Enable GEN1 link speed limitation support"
+	default n
+	help
+	  This option should only be enabled for chiplink implementation
+	  on ZEBU.
 
 endif
 

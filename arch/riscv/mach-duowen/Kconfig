@@ -54,10 +54,8 @@ endchoice
 
 config DUOWEN_SOC_DUAL
 	bool "Enable dual sockets"
-	depends SMP && DUOWEN_BBL && !DUOWEN_APC_3
-	select PCI
-	select CHIPLINK
-	select PCIE_SPPED_GEN1
+	depends SMP && !DUOWEN_APC_3
+	select DUOWEN_PCIE_CHIPLINK if PCI
 
 config DUOWEN_BOOT
 	bool
@@ -540,8 +538,8 @@ config DUOWEN_PCIE
 
 if DUOWEN_PCIE
 
-config DEFAULT_LINK_MODE
-	int "Duowen PCIE subsystem link mode (0~4)"
+config DUOWEN_PCIE_LINK_MODE
+	int "PCIe subsystem link mode (0~4)"
 	range 0 4
 	default 4 if DUOWEN_ZEBU
 	default 3 if !DUOWEN_ZEBU
@@ -552,22 +550,17 @@ config DEFAULT_LINK_MODE
 	  3: LINK_MODE_16_0_0_0
 	  4: LINK_MODE_ZEBU
 
-config CHIPLINK
+config DUOWEN_PCIE_CHIPLINK
 	bool "Enable 2 socket chiplink connection"
+	select DW_PCIE_SPEED_GEN1 if DUOWEN_ZEBU
 	default n
-
-config PCIE_SPPED_GEN1
-	bool "Limit link speed to GEN1"
-	default n
-	help
-	  This option should only be enabled for chiplink implementation on ZEBU
 
 config DUOWEN_PCIE_TEST
 	bool "Enable PCIE EP/RC(Root Complex) basic test"
 	default n
 	help
 	  When this option is enabled, basic test on either EP
-	  or RC will be implemented, depends on whether PCIE_ROLE_RC
+	  or RC will be implemented, depends on whether DW_PCIE_RC
 	  is checked
 
 endif

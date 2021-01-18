@@ -288,7 +288,7 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
         break;
     }
 
-#ifdef CONFIG_PCIE_ROLE_RC
+#ifdef CONFIG_DW_PCIE_RC
     write_apb((base + 0), 0xc810010, port);
 #else
     write_apb((base + 0), 0xc810000, port);
@@ -467,7 +467,7 @@ void pci_platform_init(void)
             break;
         controller++;
     }
-#ifdef CONFIG_PCIE_ROLE_RC
+#ifdef CONFIG_DW_PCIE_RC
     uint64_t val;
 
     irqc_configure_irq(IRQ_PCIE_X16_MSI, 0, IRQ_LEVEL_TRIGGERED);

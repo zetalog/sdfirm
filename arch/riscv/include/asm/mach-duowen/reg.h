@@ -141,7 +141,8 @@
 #endif /* CONFIG_DUOWEN_IMC */
 
 /* DDR memory region */
-#define DDR_BASE		(SOC_BASE + ULL(0x0000000000))
+#define __DDR_BASE		ULL(0x0000000000)
+#define DDR_BASE		(SOC_BASE + __DDR_BASE)
 #ifdef CONFIG_DUOWEN_DDR_32M
 #define DDR_SIZE		SZ_32M
 #endif

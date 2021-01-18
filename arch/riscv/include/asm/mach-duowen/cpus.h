@@ -54,16 +54,26 @@
 #define MAX_CPU_CLUSTERS	3
 #elif defined(CONFIG_DUOWEN_APC_4)
 #ifdef CONFIG_DUOWEN_SOC_DUAL
+#ifdef CONFIG_DUOWEN_BBL
 #define MAX_CPU_NUM		8
 #define MAX_CPU_CLUSTERS	8
+#else /* CONFIG_DUOWEN_BBL */
+#define MAX_CPU_NUM		4
+#define MAX_CPU_CLUSTERS	4
+#endif /* CONFIG_DUOWEN_BBL */
 #else /* CONFIG_DUOWEN_SOC_DUAL */
 #define MAX_CPU_NUM		4
 #define MAX_CPU_CLUSTERS	4
 #endif /* CONFIG_DUOWEN_SOC_DUAL */
 #else /* CONFIG_DUOWEN_APC_3/4 */
 #ifdef CONFIG_DUOWEN_SOC_DUAL
+#ifdef CONFIG_DUOWEN_BBL
 #define MAX_CPU_NUM		32
 #define MAX_CPU_CLUSTERS	8
+#else /* CONFIG_DUOWEN_BBL */
+#define MAX_CPU_NUM		16
+#define MAX_CPU_CLUSTERS	4
+#endif /* CONFIG_DUOWEN_BBL */
 #else /* CONFIG_DUOWEN_SOC_DUAL */
 #define MAX_CPU_NUM		16
 #define MAX_CPU_CLUSTERS	4
@@ -71,8 +81,13 @@
 #endif /* CONFIG_DUOWEN_APC_3/4 */
 #else /* CONFIG_SMP */
 #ifdef CONFIG_DUOWEN_SOC_DUAL
+#ifdef CONFIG_DUOWEN_BBL
 #define MAX_CPU_NUM		2
 #define MAX_CPU_CLUSTERS	2
+#else /* CONFIG_DUOWEN_BBL */
+#define MAX_CPU_NUM		1
+#define MAX_CPU_CLUSTERS	1
+#endif /* CONFIG_DUOWEN_BBL */
 #else /* CONFIG_DUOWEN_SOC_DUAL */
 #define MAX_CPU_NUM		1
 #define MAX_CPU_CLUSTERS	1

@@ -300,7 +300,7 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
 			PCIE_IATU_UPPER_TARGET_ADDR_OFF_OUTBOUND, 0x4, upper_32_bits(pci_addr));
 	dw_pcie_write_atu(pci, DW_PCIE_REGION_OUTBOUND, index,
 			PCIE_IATU_REGION_CTRL1_OFF_OUTBOUND, 0x4, type);
-	//#ifdef CONFIG_PCIE_ROLE_RC
+//#ifdef CONFIG_DW_PCIE_RC
 	val = PCIE_ATU_ENABLE;
 	if ((type == PCIE_ATU_TYPE_CFG0) || (type == PCIE_ATU_TYPE_CFG1))
 		val |= BIT(28);
@@ -639,7 +639,7 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
 
 	dw_pcie_setup(pci);
 
-#ifdef CONFIG_PCIE_ROLE_RC
+#ifdef CONFIG_DW_PCIE_RC
 	/* Setup RC BARs */
 	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_BASE_ADDRESS_0, 0x00000004, 0x4);
 	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_BASE_ADDRESS_1, 0x00000000, 0x4);
@@ -683,7 +683,7 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
 	//dw_pcie_prog_outbound_atu(pci, 0, PCIE_ATU_TYPE_MEM, 0x100000, 0x100000, 0x100000);
 #endif
 
-#ifdef CONFIG_PCIE_SPPED_GEN1
+#ifdef CONFIG_DW_PCIE_SPEED_GEN1
 	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, 0xa0, 0x4); // link_control2_link_status
 	val &= 0xfffffff0;
 	val |= 0x1;
@@ -708,7 +708,7 @@ void dw_pcie_enable_msi(struct pcie_port *pp)
 	dw_pcie_dbi_ro_wr_dis(pci);
 }
 
-#ifndef CONFIG_PCIE_ROLE_RC
+#ifndef CONFIG_DW_PCIE_RC
 void dw_pcie_ep_dma_test(struct pcie_port *pp)
 {
 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Jan 18 16:42:39 2021
+# Tue Jan 19 12:03:36 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -480,6 +480,7 @@ CONFIG_SPD_BUS_KHZ=60
 # PCI drivers
 #
 CONFIG_DW_PCIE=y
+# CONFIG_DW_PCIE_SPEED_GEN1 is not set
 
 #
 # NoC interconnect drivers
