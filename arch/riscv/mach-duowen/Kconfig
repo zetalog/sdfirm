@@ -44,15 +44,20 @@ choice
 
 config DUOWEN_SOC0
 	bool "socket 0"
+	select ARCH_IS_DW_PCIE_RC
 
 config DUOWEN_SOC1
 	bool "socket 1"
-
-config DUOWEN_SOC_DUAL
-	bool "dual sockets"
-	depends SMP && DUOWEN_BBL && !DUOWEN_APC_3
+	select ARCH_IS_DW_PCIE_EP
 
 endchoice
+
+config DUOWEN_SOC_DUAL
+	bool "Enable dual sockets"
+	depends SMP && DUOWEN_BBL && !DUOWEN_APC_3
+	select PCI
+	select CHIPLINK
+	select PCIE_SPPED_GEN1
 
 config DUOWEN_BOOT
 	bool
@@ -538,7 +543,8 @@ if DUOWEN_PCIE
 config DEFAULT_LINK_MODE
 	int "Duowen PCIE subsystem link mode (0~4)"
 	range 0 4
-	default 3
+	default 4 if DUOWEN_ZEBU
+	default 3 if !DUOWEN_ZEBU
 	help
 	  0: LINK_MODE_4_4_4_4
 	  1: LINK_MODE_8_4_0_4

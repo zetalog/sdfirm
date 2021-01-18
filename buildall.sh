@@ -79,6 +79,7 @@ SAVED_CROSS=${CROSS_COMPILE}
 unset ARCH
 unset CROSS_COMPILE
 
+# All linux booting BBL
 build_sdfirm riscv64 spike64_bbl
 build_sdfirm riscv64 virt64_bbl
 build_sdfirm riscv64 unleashed_bbl
@@ -99,38 +100,30 @@ build_sdfirm arm64 ddr_umctl2_tb
 # disabled due to spl size limitation
 #build_sdfirm arm64 nanopi_neo2_spl
 
-build_sdfirm riscv32 spike32_tb
+# RV32M1 Vega
 build_sdfirm riscv32 vega_ri5cy
-
+# Emulators
+build_sdfirm riscv32 spike32_tb
 build_sdfirm riscv64 spike64_tb
 build_sdfirm riscv64 spike64_nocon
 build_sdfirm riscv64 virt64_tb
+# DUOWEN Vaisra TB
 build_sdfirm riscv64 vaisra_tb
 build_sdfirm riscv64 vaisra_nocon
 build_sdfirm riscv64 vaisra_fsbl
-
+# SiFive unleashed
 build_sdfirm riscv64 unleashed_zsbl
 build_sdfirm riscv64 unleashed_fsbl
-
 # DUOWEN ROMs
 build_sdfirm riscv64 duowen_imc_zsbl
 build_sdfirm riscv64 duowen_imc_fsbl
 build_sdfirm riscv64 duowen_imc_spi
 build_sdfirm riscv64 duowen_apc_zsbl
-build_sdfirm riscv64 duowen_zebu_imc_zsbl
-build_sdfirm riscv64 duowen_zebu_apc
-
 # DUOWEN simulations
 build_sdfirm riscv64 duowen_imc_ram
 build_sdfirm riscv64 duowen_apc_spi
 build_sdfirm riscv64 duowen_apc_ram
 build_sdfirm riscv64 duowen_ddr
-build_sdfirm riscv64 duowen_zebu_imc_ram
-build_sdfirm riscv64 duowen_zebu_apc_ram
-build_sdfirm riscv64 duowen_fpga_litmus
-build_sdfirm riscv64 duowen_fpga_mmu_litmus
-build_sdfirm riscv64 duowen_zebu_litmus
-build_sdfirm riscv64 duowen_zebu_mmu_litmus
 # DPU
 build_sdfirm riscv64 dpu_rom
 build_sdfirm riscv64 dpu_flash

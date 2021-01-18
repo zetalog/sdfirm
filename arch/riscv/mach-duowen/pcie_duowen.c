@@ -583,7 +583,7 @@ void pci_platform_init(void)
 	addr = PCIE_SUBSYS_ADDR_START;
 	if (mode == LINK_MODE_ZEBU)
 		addr += PCIE_CORE_X4_1_ADDR_START;
-	__raw_writeq(0x11111111, (0x10 + 0x80000000000));
+	__raw_writel(0x11111111, (0x10 + 0x80000000000));
 
 	asm volatile("fence rw, rw\n\t");
 
@@ -591,26 +591,26 @@ void pci_platform_init(void)
 	while (val != 0x11111111)
 		val = __raw_readl(0x10);
 
-	__raw_writeq(0x22222222, (0x14 + 0x80000000000));
+	__raw_writel(0x22222222, (0x14 + 0x80000000000));
 	printf("rc end\n");
 
-	//__raw_writeq(0x64646464, (0x80000000000 + 0x10));
-	//__raw_writeq(0x64646464, (PCIE_SUBSYS_ADDR_START + 512*GB + 0x10));
+	//__raw_writel(0x64646464, (0x80000000000 + 0x10));
+	//__raw_writel(0x64646464, (PCIE_SUBSYS_ADDR_START + 512*GB + 0x10));
 #else
 	printf("ep start\n");
 	uint8_t mode = duowen_get_link_mode(&pcie_subsystem);
 	uint8_t index = (mode == 3)? 0: 3;
 	if (mode != LINK_MODE_ZEBU)
-		__raw_writeq(0x11111111, (PCIE_SUBSYS_ADDR_START + 0x10));
+		__raw_writel(0x11111111, (PCIE_SUBSYS_ADDR_START + 0x10));
 	else
-		__raw_writeq(0x11111111, 0x10);
+		__raw_writel(0x11111111, 0x10);
 
 	asm volatile("fence rw, rw\n\t");
 
 	val = 0;
 	while (val != 0x11111111)
 		val = __raw_readl(0x10 + 0x80000000000);
-	__raw_writeq(0x22222222, 0x14);
+	__raw_writel(0x22222222, 0x14);
 	printf("ep end\n");
 
 #endif
@@ -659,8 +659,8 @@ void pci_platform_init(void)
 	// trigger EP VIP INTA interrupt
 	__raw_writel(0x2, MSG_REG(0x80));
 
-	__raw_writeq(0x64646464, (PCIE_SUBSYS_ADDR_START + 0x10));
-	val = __raw_readq(PCIE_SUBSYS_ADDR_START + 0x10);
+	__raw_writel(0x64646464, (PCIE_SUBSYS_ADDR_START + 0x10));
+	val = __raw_readl(PCIE_SUBSYS_ADDR_START + 0x10);
 	if (val == 0x64646464)
 		printf("MEM64 Read/Write transaction passed\n");
 

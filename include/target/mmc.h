@@ -102,6 +102,36 @@ typedef uint8_t mmc_r1_t[4];
 typedef uint8_t mmc_r2_t[16];
 typedef uint8_t mmc_r3_t[4];
 
+enum mmc_bus_mode {
+	MMC_LEGACY,
+	MMC_HS,
+	SD_HS,
+	MMC_HS_52,
+	MMC_DDR_52,
+	UHS_SDR12,
+	UHS_SDR25,
+	UHS_SDR50,
+	UHS_DDR50,
+	UHS_SDR104,
+	MMC_HS_200,
+	MMC_HS_400,
+	MMC_HS_400_ES,
+	MMC_MODES_END
+};
+
+struct mmc_mode {
+	enum mmc_bus_mode mode;
+	uint32_t widths;
+#define MMC_MODE_8BIT		_BV(30)
+#define MMC_MODE_4BIT		_BV(29)
+#define MMC_MODE_1BIT		_BV(28)
+#define MMC_MODE_SPI		_BV(27)
+
+#ifdef CONFIG_MMC_TUNING
+	uint32_t tuning;
+#endif
+};
+
 #include <driver/mmc.h>
 
 #ifdef MMC_HW_DATA_ALIGN
@@ -405,6 +435,7 @@ typedef uint8_t mmc_r3_t[4];
 #define MMC_OCR_LOW_VOLTAGE		MMC_OCR_170_195
 #define MMC_OCR_HIGH_VOLTAGE		MMC_OCR_27_36
 #define MMC_OCR_DUAL_VOLTAGE		(MMC_OCR_170_195 | MMC_OCR_27_36)
+#define MMC_OCR_MAX_VOLTAGES		23
 #define MMC_OCR_VOLTAGE_RANGE_OFFSET	0
 #define MMC_OCR_VOLTAGE_RANGE_MASK	REG_24BIT_MASK
 #define MMC_OCR_VOLTAGE_RANGE(value)	_GET_FV(MMC_OCR_VOLTAGE_RANGE, value)
@@ -710,6 +741,7 @@ void mmc_set_block_data(uint8_t type);
 uint8_t mmc_get_block_data(void);
 void mmc_wait_busy(void);
 
+uint32_t mmc_mode2freq(enum mmc_bus_mode mode);
 mmc_card_t mmc_register_card(mmc_rca_t rca);
 int mmc_card_read_async(mmc_rca_t rca, uint8_t *buf,
 			mmc_lba_t lba, size_t cnt);

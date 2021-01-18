@@ -234,6 +234,68 @@ mmc_slot_t mmc_slot_save(mmc_slot_t slot)
 }
 #endif
 
+static const struct mmc_mode mmc_modes[] = {
+#ifdef CONFIG_MMC_UHSI
+	{
+		.mode = UHS_SDR104,
+		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+#ifdef CONFIG_MMC_TUNING
+		.tuning = MMC_CMD_SEND_TUNING_BLOCK,
+#endif
+	},
+	{
+		.mode = UHS_SDR50,
+		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+	},
+	{
+		.mode = UHS_DDR50,
+		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+	},
+	{
+		.mode = UHS_SDR25,
+		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+	},
+#endif
+	{
+		.mode = SD_HS,
+		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+	},
+#ifdef CONFIG_MMC_UHSI
+	{
+		.mode = UHS_SDR12,
+		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+	},
+#endif
+	{
+		.mode = MMC_LEGACY,
+		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+	}
+};
+
+uint32_t mmc_mode2freq(enum mmc_bus_mode mode)
+{
+	static const int freqs[] = {
+	      [MMC_LEGACY]	= 25000000,
+	      [MMC_HS]		= 26000000,
+	      [SD_HS]		= 50000000,
+	      [MMC_HS_52]	= 52000000,
+	      [MMC_DDR_52]	= 52000000,
+	      [UHS_SDR12]	= 25000000,
+	      [UHS_SDR25]	= 50000000,
+	      [UHS_SDR50]	= 100000000,
+	      [UHS_DDR50]	= 50000000,
+	      [UHS_SDR104]	= 208000000,
+	      [MMC_HS_200]	= 200000000,
+	      [MMC_HS_400]	= 200000000,
+	      [MMC_HS_400_ES]	= 200000000,
+	};
+
+	if (mode >= MMC_MODES_END)
+		return 0;
+	else
+		return freqs[mode];
+}
+
 uint8_t mmc_crc7_update(uint8_t crc, uint8_t data)
 {
 	int i;

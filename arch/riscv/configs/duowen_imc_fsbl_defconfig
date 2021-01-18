@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Jan 15 09:22:22 2021
+# Mon Jan 18 16:30:53 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -550,6 +550,7 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # PCI drivers
 #
+CONFIG_ARCH_IS_DW_PCIE_RC=y
 # CONFIG_DW_PCIE is not set
 
 #

@@ -326,6 +326,9 @@
 #define SDHC_10BIT_DIVIDED_CLOCK_MASK		REG_10BIT_MASK
 #define SDHC_10BIT_DIVIDED_CLOCK(value)		\
 	_SET_FV(SDHC_10BIT_DIVIDED_CLOCK, value)
+#define SDHC_8BIT_DIVIDED_CLOCK_MAX_DIV		256
+#define SDHC_10BIT_DIVIDED_CLOCK_MAX_DIV	2046
+#define SDHC_10BIT_PROGRAMMABLE_CLOCK_MAX_DIV	1024
 #define SDHC_CLOCK_GENERATOR_SELECT		_BV(5)
 /* 0: Divided Clock Mode, 1: Programmable Clock Mode */
 #ifdef CONFIG_SDHC_SPEC_410
@@ -623,9 +626,6 @@
 	SDHC_SPECIFICATION_VERSION_NUMBER((x)->version)
 
 /* Other definitions */
-#define SDHC_MAX_DIV_SPEC_200	256
-#define SDHC_MAX_DIV_SPEC_300	2046
-
 #define SDHC_INTERNAL_CLOCK_STABLE_TOUT_MS	150
 
 /* Host SDMA buffer boundary.
@@ -682,13 +682,13 @@ struct sdhc_host {
 	__raw_writel(SDHC_ALL_INTERRUPT_MASK, SDHC_INTERRUPT_STATUS(mmc))
 
 #define sdhc_power_off(mmc)			\
-	__raw_writel(0, SDHC_POWER_CONTROL(mmc))
+	__raw_writeb(0, SDHC_POWER_CONTROL(mmc))
 #define sdhc_power_on_vdd1(mmc, power)		\
-	__raw_writel(SDHC_SD_BUS_VOLTAGE_SELECT_FOR_VDD1(power) |	\
+	__raw_writeb(SDHC_SD_BUS_VOLTAGE_SELECT_FOR_VDD1(power) |	\
 		     SDHC_SD_BUS_POWER_FOR_VDD1, SDHC_POWER_CONTROL(mmc))
 #ifdef CONFIG_SDHC_UHSII
 #define sdhc_power_on_vdd2(mmc, power)		\
-	__raw_setl_mask(SDHC_SD_BUS_VOLTAGE_SELECT_FOR_VDD2(power) |	\
+	__raw_setb_mask(SDHC_SD_BUS_VOLTAGE_SELECT_FOR_VDD2(power) |	\
 			SDHC_SD_BUS_POWER_FOR_VDD2,			\
 			SDHC_SD_BUS_VOLTAGE_SELECT_FOR_VDD2(		\
 			SDHC_SD_BUS_VOLTAGE_SELECT_FOR_VDD2_MASK) |	\

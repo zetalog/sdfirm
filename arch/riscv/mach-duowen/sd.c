@@ -58,7 +58,7 @@ void duowen_mshc_init(void)
 	duowen_sd_power();
 	clk_enable(sd_clk);
 	sslot = mmc_slot_save(0);
-	sdhc_init(SD_FREQ_MIN, SD_FREQ_MAX);
+	sdhc_init(0, 0);
 	mmc_slot_restore(sslot);
 }
 

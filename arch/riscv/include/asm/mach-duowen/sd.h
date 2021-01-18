@@ -45,8 +45,6 @@
 #include <target/clk.h>
 
 #define SDHC_REG(n, offset)	(SD_BASE + (offset))
-#define SD_FREQ_MIN	25000000
-#define SD_FREQ_MAX	25000000
 
 #define SD_CLASS2	1
 #define SD_CLASS5	1

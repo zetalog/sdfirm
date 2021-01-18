@@ -61,12 +61,10 @@ void duowen_pma_init(void)
 		     ilog2_const(max(SZ_2M, DDR_SIZE)));
 	n += pma_set(n, PMA_AT_DEVICE,               DEV_BASE,
 		     ilog2_const(max(SZ_2M, DEV_SIZE)));
-#ifdef CONFIG_DUOWEN_SOC_DUAL
 	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER, SOC1_BASE + DDR_BASE,
 		     ilog2_const(max(SZ_2M, DDR_SIZE)));
 	n += pma_set(n, PMA_AT_DEVICE,               SOC1_BASE + DEV_BASE,
 		     ilog2_const(max(SZ_2M, DEV_SIZE)));
-#endif /* CONFIG_DUOWEN_SOC_DUAL */
 }
 #endif
 
@@ -245,6 +243,7 @@ void board_late_init(void)
 	duowen_sd_init();
 	duowen_ssi_flash_init();
 	duowen_imc_noc_init();
+	pci_platform_init();
 #ifndef CONFIG_SMP
 	board_boot();
 #endif

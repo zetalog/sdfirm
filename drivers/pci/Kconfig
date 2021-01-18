@@ -5,6 +5,12 @@
 
 menu "PCI drivers"
 
+config ARCH_IS_DW_PCIE_RC
+	bool
+
+config ARCH_IS_DW_PCIE_EP
+	bool
+
 menuconfig DW_PCIE
 	bool "Synopsys DesignWare PCI-Express (PCIe) support"
 	depends ARCH_HAS_PCI
@@ -13,6 +19,7 @@ if DW_PCIE
 
 config PCIE_ROLE_RC
 	bool "Setup PCIE Core as RC"
+	depends ARCH_IS_DW_PCIE_RC
 	default y
 
 endif

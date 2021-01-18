@@ -209,8 +209,8 @@ void sdhc_send_command(uint8_t cmd, uint32_t arg)
 		__raw_writeb(0xE, SDHC_TIMEOUT_CONTROL(mmc_sid));
 	}
 
-	__raw_writel(arg, SDHC_ARGUMENT(mmc_sid));
-	__raw_writel(SDHC_CMD(cmd, flags), SDHC_COMMAND(mmc_sid));
+	__raw_writew(arg, SDHC_ARGUMENT(mmc_sid));
+	__raw_writew(SDHC_CMD(cmd, flags), SDHC_COMMAND(mmc_sid));
 
 	do {
 		flags = sdhc_irq_status(mmc_sid);
@@ -286,7 +286,7 @@ bool sdhc_card_busy(void)
 
 static void sdhc_set_power(uint8_t power)
 {
-	if (power != (uint8_t)-1) {
+	if (power >= MMC_OCR_MAX_VOLTAGES) {
 		sdhc_power_off(mmc_sid);
 		return;
 	}
@@ -367,7 +367,9 @@ bool sdhc_set_clock(uint32_t clock)
 	if (SDHC_SPEC(host) >= SDHC_SPEC_300) {
 		/* Host Controller supports Programmable Clock Mode? */
 		if (host->clk_mul) {
-			for (div = 1; div <= 1024; div++) {
+			for (div = 1;
+			     div <= SDHC_10BIT_PROGRAMMABLE_CLOCK_MAX_DIV;
+			     div++) {
 				if ((host->max_clk / div) <= clock)
 					break;
 			}
@@ -377,21 +379,22 @@ bool sdhc_set_clock(uint32_t clock)
 		} else {
 			/* Version 3.00 divisors must be a multiple of 2. */
 			if (host->max_clk <= clock) {
-				div = 1;
+				div = 0;
 			} else {
 				for (div = 2;
-				     div < SDHC_MAX_DIV_SPEC_300;
+				     div <= SDHC_10BIT_DIVIDED_CLOCK_MAX_DIV;
 				     div += 2) {
 					if ((host->max_clk / div) <= clock)
 						break;
 				}
+				div >>= 1;
 			}
-			div >>= 1;
 		}
 		clk |= SDHC_10BIT_DIVIDED_CLOCK(div);
 	} else {
 		/* Version 2.00 divisors must be a power of 2. */
-		for (div = 1; div < SDHC_MAX_DIV_SPEC_200; div *= 2) {
+		for (div = 1; div <= SDHC_8BIT_DIVIDED_CLOCK_MAX_DIV;
+		     div <<= 1) {
 			if ((host->max_clk / div) <= clock)
 				break;
 		}
@@ -461,19 +464,17 @@ void sdhc_init(uint32_t f_min, uint32_t f_max)
 	if (SDHC_SPEC(host) >= SDHC_SPEC_300) {
 		caps_1 = __raw_readl(SDHC_CAPABILITIES_1(mmc_sid));
 		host->clk_mul = SDHC_CAP_CLOCK_MULTIPLIER(caps_1);
-	}
+	} else
+		host->clk_mul = 0;
 
-	if (host->max_clk == 0) {
-		if (SDHC_SPEC(host) >= SDHC_SPEC_300)
-			host->max_clk =
-				SDHC_CAP_8BIT_BASE_CLOCK_FREQUENCY(caps_0);
-		else
-			host->max_clk =
-				SDHC_CAP_6BIT_BASE_CLOCK_FREQUENCY(caps_0);
-		host->max_clk *= 1000000;
-		if (host->clk_mul)
-			host->max_clk *= host->clk_mul;
-	}
+	if (SDHC_SPEC(host) >= SDHC_SPEC_300)
+		host->max_clk = SDHC_CAP_8BIT_BASE_CLOCK_FREQUENCY(caps_0);
+	else
+		host->max_clk = SDHC_CAP_6BIT_BASE_CLOCK_FREQUENCY(caps_0);
+	host->max_clk *= 1000000;
+	if (host->clk_mul)
+		host->max_clk *= host->clk_mul;
+
 	BUG_ON(host->max_clk == 0);
 	if (f_max && (f_max < host->max_clk))
 		mmc_slot_ctrl.f_max = f_max;
@@ -483,11 +484,11 @@ void sdhc_init(uint32_t f_min, uint32_t f_max)
 		mmc_slot_ctrl.f_min = f_min;
 	else {
 		if (SDHC_SPEC(host) >= SDHC_SPEC_300)
-			mmc_slot_ctrl.f_min =
-				mmc_slot_ctrl.f_max / SDHC_MAX_DIV_SPEC_300;
+			mmc_slot_ctrl.f_min = mmc_slot_ctrl.f_max /
+				SDHC_10BIT_DIVIDED_CLOCK_MAX_DIV;
 		else
-			mmc_slot_ctrl.f_min =
-				mmc_slot_ctrl.f_max / SDHC_MAX_DIV_SPEC_200;
+			mmc_slot_ctrl.f_min = mmc_slot_ctrl.f_max /
+				SDHC_8BIT_DIVIDED_CLOCK_MAX_DIV;
 	}
 	printf("clock: %dHz ~ %dHz\n",
 	       mmc_slot_ctrl.f_min, mmc_slot_ctrl.f_max);
