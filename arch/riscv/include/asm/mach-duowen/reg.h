@@ -42,14 +42,16 @@
 #ifndef __REG_DUOWEN_H_INCLUDE__
 #define __REG_DUOWEN_H_INCLUDE__
 
+#define SOC0_BASE		0
+#define SOC1_BASE		ULL(0x80000000000)
 #ifdef CONFIG_DUOWEN_SOC0
-#define SOC_BASE		0
+#define SOC_BASE		SOC0_BASE
 #endif
 #ifdef CONFIG_DUOWEN_SOC1
-#define SOC_BASE		ULL(0x80000000000)
+#define SOC_BASE		SOC1_BASE
 #endif
 #ifdef CONFIG_DUOWEN_SOC_DUAL
-#define SOC_BASE		0
+#define SOC_BASE		SOC0_BASE
 #endif
 
 /* System fabric */
