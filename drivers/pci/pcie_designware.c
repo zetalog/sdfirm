@@ -663,7 +663,7 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
 		PCI_COMMAND_MASTER | PCI_COMMAND_SERR;
 	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_COMMAND, val, 0x4);
 
-#ifndef CONFIG_CHIPLINK
+#ifndef CONFIG_DUOWEN_PCIE_CHIPLINK
 	dw_pcie_prog_outbound_atu(pci, 0, PCIE_ATU_TYPE_CFG0, pp->cfg_bar0, 0x0, pp->cfg_size);
 	dw_pcie_prog_outbound_atu(pci, 1, PCIE_ATU_TYPE_CFG1, pp->cfg_bar1, 0x0, pp->cfg_size);
 #endif
@@ -681,6 +681,7 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
 	val |= 0x6;
 	dw_pcie_wr_own_conf(pp, PCI_COMMAND, 4, val);
 	//dw_pcie_prog_outbound_atu(pci, 0, PCIE_ATU_TYPE_MEM, 0x100000, 0x100000, 0x100000);
+	dw_pcie_prog_outbound_atu(pci, 0, PCIE_ATU_TYPE_MEM, 0, 0x100000, 0x100000);
 #endif
 
 #ifdef CONFIG_DW_PCIE_SPEED_GEN1
