@@ -215,20 +215,25 @@ choice
 config DUOWEN_ASIC
 	bool "Real ASIC"
 	select DUOWEN_SOCv2_ASIC if DUOWEN_SOCv2
+	select DUOWEN_SOCv3_ASIC if DUOWEN_SOCv3
 
 config DUOWEN_ZEBU
 	bool "ZEBU"
 	select DUOWEN_SOCv2_ZEBU if DUOWEN_SOCv2
+	select DUOWEN_SOCv3_ZEBU if DUOWEN_SOCv3
 
 endchoice
 
 choice
-	prompt "SoC subversion"
+	prompt "SoC type"
 	depends CRCNTL
 	default DUOWEN_SOCv2
 
 config DUOWEN_SOCv2
-	bool "SVN 7580 and after"
+	bool "logic top"
+
+config DUOWEN_SOCv3
+	bool "pad top"
 
 endchoice
 
@@ -236,6 +241,12 @@ config DUOWEN_SOCv2_ASIC
 	bool
 
 config DUOWEN_SOCv2_ZEBU
+	bool
+
+config DUOWEN_SOCv3_ASIC
+	bool
+
+config DUOWEN_SOCv3_ZEBU
 	bool
 
 choice
@@ -558,6 +569,7 @@ choice
 	prompt "DDR model"
 	default DUOWEN_DDR_32M if DUOWEN_SOCv2_ASIC && !DUOWEN_DDR
 	default DUOWEN_DDR_512G if DUOWEN_SOCv2_ASIC && DUOWEN_DDR
+	default DUOWEN_DDR_512G if DUOWEN_SOCv3_ASIC
 	default DUOWEN_DDR_256M if DUOWEN_ZEBU && !DUOWEN_DDR
 	default DUOWEN_DDR_2G if DUOWEN_ZEBU && DUOWEN_DDR
 

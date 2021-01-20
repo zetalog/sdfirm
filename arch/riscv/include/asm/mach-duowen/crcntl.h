@@ -260,7 +260,6 @@ uint8_t duowen_pll_reg_read(uint8_t pll, uint8_t reg);
 	(!!(__raw_readl(DW_PLL_HW_CFG(pll)) & PLL_WAIT_T(timing)))
 
 /* power control */
-#ifdef CONFIG_DUOWEN_SOCv2
 #define CRCNTL_WARM_RESET_DETECT_TIME	CRCNTL_REG(0x100)
 #define CRCNTL_WARM_RESET_DELAY_TIME	CRCNTL_REG(0x104)
 #define CRCNTL_SHUTDN_DELAY_TIME	CRCNTL_REG(0x108)
@@ -275,7 +274,6 @@ uint8_t duowen_pll_reg_read(uint8_t pll, uint8_t reg);
 		__raw_writel(wrst_delay, CRCNTL_WARM_RESET_DELAY_TIME);	\
 		__raw_writel(shutdown_delay, CRCNTL_SHUTDN_DELAY_TIME);	\
 	} while (0)
-#endif
 
 /* power control */
 /* CRCNTL_WARM_RESET_DETECT_TIME */

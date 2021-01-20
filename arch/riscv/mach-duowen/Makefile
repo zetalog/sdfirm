@@ -8,12 +8,12 @@ obj-$(CONFIG_SBI) += sbi.rel
 obj-$(CONFIG_MEM) += mem.rel
 obj-$(CONFIG_MMU) += mmu.rel
 obj-$(CONFIG_TIMER) += gpt.rel
+obj-$(CONFIG_CLK) += clk.rel
 
 obj-$(CONFIG_CRCNTL) += crcntl.rel
+obj-$(CONFIG_DUOWEN_ASIC) += clk_asic.rel
+obj-$(CONFIG_DUOWEN_ZEBU) += clk_zebu.rel
 obj-$(CONFIG_DUOWEN_SCSR) += scsr.rel
-obj-$(CONFIG_DUOWEN_SOCv2) += clk_socv2.rel
-obj-$(CONFIG_DUOWEN_SOCv2_ASIC) += clk_socv2_asic.rel
-obj-$(CONFIG_DUOWEN_SOCv2_ZEBU) += clk_socv2_zebu.rel
 obj-$(CONFIG_DUOWEN_UART) += uart.rel
 obj-$(CONFIG_DUOWEN_TMR) += tmr.rel
 obj-$(CONFIG_DUOWEN_DDR) += ddr.rel

@@ -107,14 +107,13 @@
 #define AHB_CLK_FREQ		SFAB_CLK_FREQ
 #define CFAB_CLK_FREQ		CFAB_PLL_FREQ
 
-#ifdef CONFIG_DUOWEN_SOCv2
 #define SFAB_PLL_FREQ		UL(100000000)
 #define APB_CLK_FREQ		SFAB_CLK_FREQ
 #define SOC_CLK_FREQ		SOC_PLL_FREQ
 #define IMC_CLK_FREQ		(SOC_CLK_FREQ/2) /* 500MHz IMC/RAM/ROM */
 #define SFAB_CLK_FREQ		SFAB_PLL_FREQ /* 100MHz SFAB peripherals */
-#include <asm/mach/clk_socv2.h>
-#endif
+
+#include <dt-bindings/clock/sbi-clock-duowen.h>
 
 /* Clock flags, used by clk drivers to indicate clock features */
 #define CLK_CLK_SEL_F		_BV(0)
