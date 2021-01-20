@@ -48,6 +48,7 @@
 #define GPT_LBA_SIZE		512
 #define GPT_HEADER_LBA		1
 #define GPT_HEADER_BYTES	92
+#define GPT_PART_NAME_U16_LEN	36
 
 typedef struct {
 	uint64_t signature;
@@ -81,7 +82,7 @@ typedef struct {
 	uint64_t first_lba;
 	uint64_t last_lba;
 	uint64_t attributes;
-	uint16_t name[36];  /* UTF-16 */
+	uint16_t name[GPT_PART_NAME_U16_LEN];  /* UTF-16 */
 } __packed gpt_partition_entry;
 
 #endif /* __EFI_TARGET_H_INCLUDE__ */
