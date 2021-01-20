@@ -129,6 +129,8 @@ void duowen_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 	unreachable();
 }
 
+#define PAGES_PER_LBA (GPT_LBA_SIZE / FLASH_PAGE_SIZE)
+
 static int do_flash_gpt(int argc, char *argv[])
 {
 	uint8_t gpt_buf[FLASH_PAGE_SIZE];
@@ -138,27 +140,57 @@ static int do_flash_gpt(int argc, char *argv[])
 	uint64_t i;
 	uint32_t j;
 	uint32_t num_entries;
+	int k;
+	int i_part = 0;
+	int i_page = 0;
 
 	duowen_ssi_flash_copy(&hdr,
 		GPT_HEADER_LBA * GPT_LBA_SIZE, GPT_HEADER_BYTES);
-	mem_print_data(0, &hdr, 1, sizeof (gpt_header));
 	partition_entries_lba_end = (hdr.partition_entries_lba +
 		(hdr.num_partition_entries * hdr.partition_entry_size +
 		 FLASH_PAGE_SIZE - 1) / FLASH_PAGE_SIZE);
 	for (i = hdr.partition_entries_lba;
 	     i < partition_entries_lba_end; i++) {
-		duowen_ssi_flash_copy(gpt_buf, i * FLASH_PAGE_SIZE,
-				  FLASH_PAGE_SIZE);
-		gpt_entries = (gpt_partition_entry *)gpt_buf;
-		num_entries = FLASH_PAGE_SIZE / hdr.partition_entry_size;
-		for (j = 0; j < num_entries; j++) {
-			printf("%s:\n",
-			       uuid_export(gpt_entries[j].partition_type_guid.u.uuid));
-			printf("%016llX - %016llX \n",
-			       gpt_entries[j].first_lba,
-			       gpt_entries[i].last_lba);
+		for (i_page = 0; i_page < PAGES_PER_LBA; i_page++) {
+			duowen_ssi_flash_copy(gpt_buf, 
+					(i * PAGES_PER_LBA + i_page) * FLASH_PAGE_SIZE,
+					FLASH_PAGE_SIZE);
+			gpt_entries = (gpt_partition_entry *)gpt_buf;
+			num_entries = FLASH_PAGE_SIZE / hdr.partition_entry_size;
+			for (j = 0; j < num_entries; j++) {
+				/* Stop at empty entry with UUID = 0 */
+				unsigned char name_str[GPT_PART_NAME_U16_LEN + 1] = {0};
+				uint32_t *uuid_u32_ptr = (uint32_t *)
+						&gpt_entries[j].partition_guid.u.uuid;
+				int uuid_u32_cnt = sizeof(guid_t) / sizeof(uint32_t);
+				for (k = 0; k < uuid_u32_cnt; k++) {
+					if (uuid_u32_ptr[k] != 0)
+						break;
+				}
+				if (k >= uuid_u32_cnt)
+					goto last_part_done;
+
+				/* Convert partition name to C string */
+				for (k = 0; k < GPT_PART_NAME_U16_LEN; k++) {
+					if (gpt_entries[j].name[k] == 0)
+						break;
+					name_str[k] = (unsigned char)gpt_entries[j].name[k];
+				}
+#if 0
+				/* Stop at partition with NULL name */
+				if (k <= 0)
+					goto last_part_done;
+#endif
+				i_part++;
+				printf("%d", i_part);
+				printf(" %lld %lld", gpt_entries[j].first_lba, gpt_entries[j].last_lba);
+				printf(" %s", uuid_export(gpt_entries[j].partition_guid.u.uuid));
+				printf(" %s", name_str);
+				printf("\n");
+			}
 		}
 	}
+last_part_done:
 	return 0;
 }
 
