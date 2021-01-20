@@ -130,7 +130,9 @@ static void write_dbi(struct dw_pcie *pci, enum dw_pcie_access_type type, uint32
 #ifdef IPBENCH
 	axi_write_c(pci->dbi_base + dbi_offset, val, pci->axi_dbi_port);
 #else
+#ifdef CONFIG_DUOWEN_PCIE_DEBUG_ENABLE
 	printf("AXIWrite: Addr: 0x%llx, Data: 0x%x\n", pci->dbi_base + dbi_offset, val);
+#endif
 	writel(pci->dbi_base + dbi_offset, val);
 #endif
 
@@ -680,8 +682,7 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
 	dw_pcie_rd_own_conf(pp, PCI_COMMAND, 4, &val);
 	val |= 0x6;
 	dw_pcie_wr_own_conf(pp, PCI_COMMAND, 4, val);
-	//dw_pcie_prog_outbound_atu(pci, 0, PCIE_ATU_TYPE_MEM, 0x100000, 0x100000, 0x100000);
-	dw_pcie_prog_outbound_atu(pci, 0, PCIE_ATU_TYPE_MEM, 0, 0x100000, 0x100000);
+	//dw_pcie_prog_outbound_atu(pci, 0, PCIE_ATU_TYPE_MEM, pp->mem_base, 0x100000, 0x100000);
 #endif
 
 #ifdef CONFIG_DW_PCIE_SPEED_GEN1

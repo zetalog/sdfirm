@@ -59,13 +59,17 @@ uint32_t read_apb(uint64_t addr, uint8_t port)
 #else
 	data = readl(addr);
 #endif
+#ifdef CONFIG_DUOWEN_PCIE_DEBUG_ENABLE
 	printf("ReadAPB: addr: 0x%08x; data: 0x%08x, port: %d\n", addr, data, port);
+#endif
 	return data;
 }
 
 void write_apb(uint64_t addr, uint32_t data, uint8_t port)
 {
+#ifdef CONFIG_DUOWEN_PCIE_DEBUG_ENABLE
 	printf("WriteAPB: addr: 0x%llx; data: 0x%x port: %d\n", addr, data, port);
+#endif
 #ifdef IPBENCH
 	apb_write_c(addr, data, port);
 #else
