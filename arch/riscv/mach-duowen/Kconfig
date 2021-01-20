@@ -28,7 +28,6 @@ config DUOWEN_APC
 	select ARCH_HAS_IOMMU
 	select ARCH_HAS_PCI
 	select DUOWEN_APC_BOOT_HOOK if (SMP && !DUOWEN_SBL_LOAD)
-	select DUOWEN_APC_3 if (SMP && DUOWEN_FPGA)
 	help
 	  It is too late for vaisra to initialize its SMP cores in SBI due
 	  to the restrictions of the vaisra atomicity implementation, so
@@ -54,7 +53,7 @@ endchoice
 
 config DUOWEN_SOC_DUAL
 	bool "Enable dual sockets"
-	depends SMP && !DUOWEN_APC_3
+	depends SMP
 	select DUOWEN_PCIE_CHIPLINK if PCI
 
 config DUOWEN_BOOT
@@ -215,17 +214,10 @@ choice
 
 config DUOWEN_ASIC
 	bool "Real ASIC"
-	select DUOWEN_SOCv1_ASIC if DUOWEN_SOCv1
 	select DUOWEN_SOCv2_ASIC if DUOWEN_SOCv2
-
-config DUOWEN_FPGA
-	bool "S2C FPGA"
-	select DUOWEN_SOCv1_FPGA if DUOWEN_SOCv1
-	select DUOWEN_SOCv2_FPGA if DUOWEN_SOCv2
 
 config DUOWEN_ZEBU
 	bool "ZEBU"
-	select DUOWEN_SOCv1_ZEBU if DUOWEN_SOCv1
 	select DUOWEN_SOCv2_ZEBU if DUOWEN_SOCv2
 
 endchoice
@@ -233,29 +225,14 @@ endchoice
 choice
 	prompt "SoC subversion"
 	depends CRCNTL
-	default DUOWEN_SOCv1
-
-config DUOWEN_SOCv1
-	bool "SVN 7288 and before"
+	default DUOWEN_SOCv2
 
 config DUOWEN_SOCv2
 	bool "SVN 7580 and after"
 
 endchoice
 
-config DUOWEN_SOCv1_ASIC
-	bool
-
 config DUOWEN_SOCv2_ASIC
-	bool
-
-config DUOWEN_SOCv1_FPGA
-	bool
-
-config DUOWEN_SOCv2_FPGA
-	bool
-
-config DUOWEN_SOCv1_ZEBU
 	bool
 
 config DUOWEN_SOCv2_ZEBU
@@ -274,29 +251,20 @@ config DUOWEN_XO_125M
 
 endchoice
 
-config DUOWEN_APC_3
-	bool "3 VAISRA CPUs"
-	depends SMP
-	depends DUOWEN_FPGA
-
 config DUOWEN_APC_4
 	bool "4 VAISRA CPUs"
 	depends SMP
-	depends DUOWEN_ZEBU
 
 config DUOWEN_SIM_LOAD
 	bool "Enable loading by simulator"
 
 config DUOWEN_SBL_LOAD
 	bool "Enable loading by bootloader (ZSBL/FSBL)"
-	depends !(DUOWEN_FPGA && DUOWEN_BBL)
 	depends !DUOWEN_ZSBL && !DUOWEN_FSBL_SPI && !DUOWEN_BBL_SPI
 	default y if DUOWEN_FSBL || DUOWEN_BBL
 	help
 	  This option is always invisible to ZSBL and visible to non SPI
-	  resident FSBL and BBL, TBs. But for the FPGA environment, BBL is
-	  booted directly via APC/DDR simulation mode, which also makes
-	  this option invisible.
+	  resident FSBL and BBL, TBs.
 
 menuconfig DUOWEN_MSG
 	bool "Duowen shared message support"
@@ -385,14 +353,13 @@ menuconfig CRCNTL
 	bool "Duowen clock/reset controller (CRCNTL) support"
 	select ARCH_HAS_SBI_CLOCK
 	select DW_PLL5GHZ_TSMC12FFC if DUOWEN_ASIC
-	select ARCH_HAS_DW_PLL5GHZ_TIMING if DUOWEN_SOCv2
-	select CRCNTL_MUX if !DUOWEN_FPGA
+	select ARCH_HAS_DW_PLL5GHZ_TIMING
+	select CRCNTL_MUX
 
 if CRCNTL
 
 config CRCNTL_MUX
 	bool "Enable clock multiplexing support"
-	depends !DUOWEN_FPGA
 
 config CRCNTL_TRACE
 	bool "Enable clock tree enabling/disabling trace logs"
@@ -589,73 +556,55 @@ menu "Duowen DDR controller/phy support"
 
 choice
 	prompt "DDR model"
-	default DUOWEN_DDR_32M if DUOWEN_ASIC && !DUOWEN_DDR
-	default DUOWEN_DDR_512G if DUOWEN_ASIC && DUOWEN_DDR
-	default DUOWEN_DDR_32M if DUOWEN_SOCv1_ZEBU
-	default DUOWEN_DDR_64M if DUOWEN_SOCv2_ZEBU && !DUOWEN_DDR
-	default DUOWEN_DDR_8G if DUOWEN_SOCv2_ZEBU && DUOWEN_DDR
-	default DUOWEN_DDR_32M if DUOWEN_FPGA && !DUOWEN_DDR
-	default DUOWEN_DDR_16G if DUOWEN_FPGA && DUOWEN_DDR
+	default DUOWEN_DDR_32M if DUOWEN_SOCv2_ASIC && !DUOWEN_DDR
+	default DUOWEN_DDR_512G if DUOWEN_SOCv2_ASIC && DUOWEN_DDR
+	default DUOWEN_DDR_256M if DUOWEN_ZEBU && !DUOWEN_DDR
+	default DUOWEN_DDR_2G if DUOWEN_ZEBU && DUOWEN_DDR
 
 config DUOWEN_DDR_32M
 	bool "Fake 32M DDR memory"
-	depends DUOWEN_ASIC || DUOWEN_ZEBU || DUOWEN_FPGA
 
 config DUOWEN_DDR_64M
 	bool "Fake 64M DDR memory"
-	depends DUOWEN_ASIC || DUOWEN_SOCv2_ZEBU
 
 config DUOWEN_DDR_128M
 	bool "Fake 128M DDR memory"
-	depends DUOWEN_ASIC || DUOWEN_SOCv2_ZEBU
 
 config DUOWEN_DDR_256M
 	bool "Fake 256M DDR memory"
-	depends DUOWEN_ASIC || DUOWEN_SOCv2_ZEBU
 
 config DUOWEN_DDR_512M
 	bool "Fake 512M DDR memory"
-	depends DUOWEN_ASIC || DUOWEN_SOCv2_ZEBU
 
 config DUOWEN_DDR_1G
 	bool "Real/fake 1G DDR memory"
-	depends DUOWEN_ASIC || DUOWEN_SOCv2_ZEBU
 
 config DUOWEN_DDR_2G
 	bool "Real/fake 2G DDR memory"
-	depends DUOWEN_ASIC || DUOWEN_SOCv2_ZEBU
 
 config DUOWEN_DDR_4G
 	bool "Real/fake 4G DDR memory"
-	depends DUOWEN_ASIC || DUOWEN_SOCv2_ZEBU
 
 config DUOWEN_DDR_8G
 	bool "Real/fake 8G DDR memory"
-	depends DUOWEN_ASIC || DUOWEN_SOCv2_ZEBU
 
 config DUOWEN_DDR_16G
 	bool "Real/fake 16G DDR memory"
-	depends DUOWEN_ASIC || DUOWEN_SOCv2_ZEBU || DUOWEN_FPGA
 
 config DUOWEN_DDR_32G
 	bool "Real/fake 32G DDR memory"
-	depends DUOWEN_ASIC || DUOWEN_SOCv2_ZEBU
 
 config DUOWEN_DDR_64G
 	bool "Real/fake 64G DDR memory"
-	depends DUOWEN_ASIC || DUOWEN_SOCv2_ZEBU
 
 config DUOWEN_DDR_128G
 	bool "Real/fake 64G DDR memory"
-	depends DUOWEN_ASIC || DUOWEN_SOCv2_ZEBU
 
 config DUOWEN_DDR_256G
 	bool "Real/fake 256G DDR memory"
-	depends DUOWEN_ASIC || DUOWEN_SOCv2_ZEBU
 
 config DUOWEN_DDR_512G
 	bool "Real/fake 512G DDR memory"
-	depends DUOWEN_ASIC || DUOWEN_ZEBU
 
 endchoice
 

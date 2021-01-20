@@ -100,7 +100,7 @@
 	} while (0)
 #else
 #define msg_imc_success()		do { } while (0)
-#define msg_imc_falure()		do { } while (0)
+#define msg_imc_failure()		do { } while (0)
 #endif
 #define msg_imc_shutdown()		msg_imc_success()
 

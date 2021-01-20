@@ -927,13 +927,7 @@ struct clk_driver clk_div = {
 static uint8_t clk_hw_init;
 
 #ifdef CONFIG_SMP
-#if defined(CONFIG_DUOWEN_APC_3)
-clk_t duowen_apc_clocks[MAX_CPU_NUM] = {
-	cluster0_apc0_cpu0_clk,
-	cluster1_apc0_cpu0_clk,
-	cluster2_apc0_cpu0_clk,
-};
-#elif defined(CONFIG_DUOWEN_APC_4)
+#if defined(CONFIG_DUOWEN_APC_4)
 clk_t duowen_apc_clocks[MAX_CPU_NUM] = {
 	cluster0_apc0_cpu0_clk,
 	cluster1_apc0_cpu0_clk,

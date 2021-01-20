@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Jan 18 18:30:49 2021
+# Wed Jan 20 15:14:08 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -185,11 +185,10 @@ CONFIG_DUOWEN_LOAD=y
 # Simulation options
 #
 CONFIG_DUOWEN_ASIC=y
-# CONFIG_DUOWEN_FPGA is not set
 # CONFIG_DUOWEN_ZEBU is not set
-# CONFIG_DUOWEN_SOCv1 is not set
 CONFIG_DUOWEN_SOCv2=y
 CONFIG_DUOWEN_SOCv2_ASIC=y
+# CONFIG_DUOWEN_APC_4 is not set
 # CONFIG_DUOWEN_SIM_LOAD is not set
 # CONFIG_DUOWEN_MSG is not set
 CONFIG_DUOWEN_APC_INIT=y
@@ -291,9 +290,9 @@ CONFIG_ARCH_HAS_FP=y
 #
 # Power management model (board) support
 #
-# CONFIG_FINISH is not set
-# CONFIG_SHUTDOWN is not set
-# CONFIG_REBOOT is not set
+CONFIG_FINISH=y
+CONFIG_SHUTDOWN=y
+CONFIG_REBOOT=y
 # CONFIG_SUSPEND is not set
 # CONFIG_HIBERNATE is not set
 # CONFIG_BULK is not set

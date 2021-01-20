@@ -260,30 +260,6 @@ uint8_t duowen_pll_reg_read(uint8_t pll, uint8_t reg);
 	(!!(__raw_readl(DW_PLL_HW_CFG(pll)) & PLL_WAIT_T(timing)))
 
 /* power control */
-#ifdef CONFIG_DUOWEN_SOCv1
-#define CRCNTL_WARM_RESET_DETECT_TIME	CRCNTL_REG(0x100)
-#define CRCNTL_PWR_FSM_DELAY_TIME	CRCNTL_REG(0x104)
-#define CRCNTL_PWR_SHUTDOWN		CRCNTL_REG(0x108)
-#define CRCNTL_PS_HOLD			CRCNTL_REG(0x10C)
-#define CRCNTL_SW_GLOBAL_RST		CRCNTL_REG(0x110)
-
-/* CRCNTL_FSM_DELAY_TIME */
-#define PWR_WARM_RESET_DELAY_OFFSET	0
-#define PWR_WARM_RESET_DELAY_MASK	REG_16BIT_MASK
-#define PWR_WARM_RESET_DELAY(value)	_SET_FV(PWR_WARM_RESET_DELAY, value)
-#define PWR_SHUTDOWN_DELAY_OFFSET	16
-#define PWR_SHUTDOWN_DELAY_MASK		REG_16BIT_MASK
-#define PWR_SHUTDOWN_DELAY(value)	_SET_FV(PWR_SHUTDOWN_DELAY, value)
-
-#define crcntl_config_timing(wrst_detect, wrst_delay, shutdown_delay)	\
-	do {								\
-		__raw_writel_mask(PWR_WARM_RESET_DETECT(wrst_detect),	\
-				  CRCNTL_WARM_RESET_DETECT_TIME);	\
-		__raw_writel(PWR_WARM_RESET_DELAY(wrst_delay) |		\
-			     PWR_SHUTDOWN_DELAY(shutdown_delay),	\
-			     CRCNTL_FSM_DELAY_TIME);			\
-	} while (0)
-#endif
 #ifdef CONFIG_DUOWEN_SOCv2
 #define CRCNTL_WARM_RESET_DETECT_TIME	CRCNTL_REG(0x100)
 #define CRCNTL_WARM_RESET_DELAY_TIME	CRCNTL_REG(0x104)

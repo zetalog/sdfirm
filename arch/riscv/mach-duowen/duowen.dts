@@ -22,9 +22,6 @@
 	uart@ff63000000 {
 		interrupts = <0x54>;
 		interrupt-parent = <&plic0>;
-#ifdef CONFIG_DUOWEN_FPGA
-		clock-frequency = <0x989680>;
-#endif
 #ifdef CONFIG_DUOWEN_ZEBU
 		clock-frequency = <0x7735940>;
 #endif
@@ -57,64 +54,6 @@
 		timebase-frequency = <0x989680>;
 
 #ifdef CONFIG_SMP
-#ifdef CONFIG_DUOWEN_APC_3
-		cpu-map {
-			cluster0 {
-				core0 {
-					cpu = <&cpu0>;
-				};
-			};
-			cluster1 {
-				core0 {
-					cpu = <&cpu1>;
-				};
-			};
-			cluster2 {
-				core0 {
-					cpu = <&cpu2>;
-				};
-			};
-		};
-		cpu0: cpu@0 {
-			device_type = "cpu";
-			reg = <0x0>;
-			status = "okay";
-			compatible = "riscv";
-			riscv,isa = "rv64imafdsu";
-			mmu-type = "riscv,sv48";
-			cpu0_intc: interrupt-controller {
-				#interrupt-cells = <0x1>;
-				interrupt-controller;
-				compatible = "riscv,cpu-intc";
-			};
-		};
-		cpu1: cpu@1 {
-			device_type = "cpu";
-			reg = <0x1>;
-			status = "okay";
-			compatible = "riscv";
-			riscv,isa = "rv64imafdsu";
-			mmu-type = "riscv,sv48";
-			cpu1_intc: interrupt-controller {
-				#interrupt-cells = <0x1>;
-				interrupt-controller;
-				compatible = "riscv,cpu-intc";
-			};
-		};
-		cpu2: cpu@2 {
-			device_type = "cpu";
-			reg = <0x2>;
-			status = "okay";
-			compatible = "riscv";
-			riscv,isa = "rv64imafdsu";
-			mmu-type = "riscv,sv48";
-			cpu2_intc: interrupt-controller {
-				#interrupt-cells = <0x1>;
-				interrupt-controller;
-				compatible = "riscv,cpu-intc";
-			};
-		};
-#else /* CONFIG_DUOWEN_APC_3 */
 #ifdef CONFIG_DUOWEN_APC_4
 #ifdef CONFIG_DUOWEN_SOC_DUAL
 		cpu-map {
@@ -1140,7 +1079,6 @@
 		};
 #endif /* CONFIG_DUOWEN_SOC_DUAL */
 #endif /* CONFIG_DUOWEN_APC_4 */
-#endif /* CONFIG_DUOWEN_APC_3 */
 #else /* CONFIG_SMP */
 		cpu-map {
 			cluster0 {
@@ -1277,25 +1215,6 @@
 			reg = <0xff 0x70000000 0x0 0x4000000>;
 			interrupts-extended = <
 #ifdef CONFIG_SMP
-#ifdef CONFIG_DUOWEN_APC_3
-				&cpu0_intc  0xb        &cpu1_intc  0xb
-				&cpu2_intc  0xb        &cpu0_intc  0xffffffff
-				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
-				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
-				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
-				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
-				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
-				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
-				&cpu0_intc  0xffffffff
-				&cpu0_intc  0x9        &cpu1_intc  0x9
-				&cpu2_intc  0x9        &cpu0_intc  0xffffffff
-				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
-				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
-				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
-				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
-				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
-				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
-#else /* CONFIG_DUOWEN_APC_3 */
 #ifdef CONFIG_DUOWEN_APC_4
 				&cpu0_intc  0xb        &cpu1_intc  0xb
 				&cpu2_intc  0xb        &cpu3_intc  0xb
@@ -1333,7 +1252,6 @@
 				&cpu12_intc 0x9        &cpu13_intc 0x9
 				&cpu14_intc 0x9        &cpu15_intc 0x9
 #endif /* CONFIG_DUOWEN_APC_4 */
-#endif /* CONFIG_DUOWEN_APC_3 */
 #else /* CONFIG_SMP */
 				&cpu0_intc  0xb        &cpu0_intc  0x9
 #endif /* CONFIG_SMP */
@@ -1431,11 +1349,6 @@
 		clint@ff010f0000 {
 			interrupts-extended = <
 #ifdef CONFIG_SMP
-#ifdef CONFIG_DUOWEN_APC_3
-				&cpu0_intc  0x3        &cpu0_intc  0x7
-				&cpu1_intc  0x3        &cpu1_intc  0x7
-				&cpu2_intc  0x3        &cpu2_intc  0x7
-#else /* CONFIG_DUOWEN_APC_3 */
 #ifdef CONFIG_DUOWEN_APC_4
 				&cpu0_intc  0x3        &cpu0_intc  0x7
 				&cpu1_intc  0x3        &cpu1_intc  0x7
@@ -1495,7 +1408,6 @@
 				&cpu31_intc 0x3        &cpu31_intc 0x7
 #endif /* CONFIG_DUOWEN_SOC_DUAL */
 #endif /* CONFIG_DUOWEN_APC_4 */
-#endif /* CONFIG_DUOWEN_APC_3 */
 #else /* CONFIG_SMP */
 				&cpu0_intc  0x3        &cpu0_intc  0x7
 #endif /* CONFIG_SMP */

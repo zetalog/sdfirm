@@ -24,9 +24,6 @@
 #define ETH_PLL			9
 #define DUOWEN_MAX_PLLS		10
 
-#ifdef CONFIG_DUOWEN_SOCv1
-#include <dt-bindings/clock/sbi-clock-duowen-socv1.h>
-#endif
 #ifdef CONFIG_DUOWEN_SOCv2
 #include <dt-bindings/clock/sbi-clock-duowen-socv2.h>
 #endif

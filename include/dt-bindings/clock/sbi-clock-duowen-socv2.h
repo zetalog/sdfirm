@@ -152,48 +152,6 @@
 #define cl3_clk_sel		clkid(CLK_SELECT, CL3_CLK_SEL)
 #endif
 
-#ifdef CONFIG_DUOWEN_FPGA
-#define CLK_INPUT		0
-#define CLK_OUTPUT		1
-#define CLK_DIV			2
-
-/* CLK_INPUT */
-#define CLK_PLL			CLK_INPUT
-#define CLK_SELECT		CLK_INPUT
-#define SYSFAB_PLL		(DUOWEN_MAX_PLLS + 0)
-#define SGMII_PLL		(DUOWEN_MAX_PLLS + 1)
-#define XO_CLK			(DUOWEN_MAX_PLLS + 2)
-#define TIC_CLK			(DUOWEN_MAX_PLLS + 3)
-#define JTAG_CLK		(DUOWEN_MAX_PLLS + 4)
-#define NR_INPUT_CLKS		(JTAG_CLK + 1)
-#define soc_pll			clkid(CLK_PLL, SOC_PLL)
-#define ddr_bus_pll		clkid(CLK_PLL, DDR_BUS_PLL)
-#define ddr_pll			clkid(CLK_PLL, DDR_PLL)
-#define pcie_pll		clkid(CLK_PLL, PCIE_PLL)
-#define cohfab_pll		clkid(CLK_PLL, COHFAB_PLL)
-#define cl0_pll			clkid(CLK_PLL, CL0_PLL)
-#define cl1_pll			clkid(CLK_PLL, CL1_PLL)
-#define cl2_pll			clkid(CLK_PLL, CL2_PLL)
-#define cl3_pll			clkid(CLK_PLL, CL3_PLL)
-#define eth_pll			clkid(CLK_PLL, ETH_PLL)
-#define sysfab_pll		clkid(CLK_PLL, SYSFAB_PLL)
-#define sgmii_pll		clkid(CLK_PLL, SGMII_PLL)
-#define xo_clk			clkid(CLK_INPUT, XO_CLK)
-#define tic_clk			clkid(CLK_INPUT, TIC_CLK)
-#define jtag_clk		clkid(CLK_INPUT, JTAG_CLK)
-#define soc_clk_div2_sel	soc_clk_div2
-#define sysfab_clk_sel		sysfab_pll
-#define ddr_bus_clk_sel		ddr_bus_pll
-#define ddr_clk_sel		ddr_pll
-#define pcie_ref_clk_sel	pcie_pll
-#define soc_clk_sel		soc_pll
-#define cohfab_clk_sel		cohfab_pll
-#define cl0_clk_sel		cl0_pll
-#define cl1_clk_sel		cl1_pll
-#define cl2_clk_sel		cl2_pll
-#define cl3_clk_sel		cl3_pll
-#endif
-
 /* Alias for select clocks */
 #define pcie_axi_clk_sel	soc_clk_sel
 #define sysfab_500m_clk_sel	soc_clk_div2_sel
