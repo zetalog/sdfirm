@@ -48,37 +48,58 @@
 
 #define SCSR_REG(offset)		(SCSR_BASE + (offset))
 #define SCSR_HW_VERSION			SCSR_REG(0x00)
+#define SCSR_HART_ID_LO			SCSR_REG(0x18)
+#define SCSR_HART_ID_HI			SCSR_REG(0x1C)
+#define SCSR_IMC_IPI			SCSR_REG(0x20)
+#define SCSR_UART_STATUS		SCSR_REG(0x90)
+#define SCSR_TIMER_PAUSE_EN0		SCSR_REG(0x94)
+#define SCSR_TIMER_PAUSE_EN1		SCSR_REG(0x98)
+#define SCSR_SD_STABLE			SCSR_REG(0x9C)
+#define SCSR_SD_STATUS			SCSR_REG(0xA0)
+#define SCSR_WDT_PAUSE_EN		SCSR_REG(0xA4)
+#define SCSR_CLINT_CFG			SCSR_REG(0xC0)
+#define SCSR_PHASE_FLAG			SCSR_REG(0xFC)
+#define SCSR_PMA_CFG_LO(n)		SCSR_REG(0x100 + ((n) << 3))
+#define SCSR_PMA_CFG_HI(n)		SCSR_REG(0x104 + ((n) << 3))
+#define SCSR_PMA_ADDR_LO(n)		SCSR_REG(0x140 + ((n) << 3))
+#define SCSR_PMA_ADDR_HI(n)		SCSR_REG(0x144 + ((n) << 3))
+
+#ifdef CONFIG_DUOWEN_SOCv2
 #define SCSR_BOOT_MODE			SCSR_REG(0x04)
 #define SCSR_BOOT_ADDR_LO		SCSR_REG(0x08)
 #define SCSR_BOOT_ADDR_HI		SCSR_REG(0x0C)
 #define SCSR_BOOT_ADDR_CFG_LO		SCSR_REG(0x10)
 #define SCSR_BOOT_ADDR_CFG_HI		SCSR_REG(0x14)
-#define SCSR_HART_ID_LO			SCSR_REG(0x18)
-#define SCSR_HART_ID_HI			SCSR_REG(0x1C)
-
-#define SCSR_SHUTDN_REQ			SCSR_REG(0x80)
-#define SCSR_BRINGUP_REQ		SCSR_REG(0x84)
-#define SCSR_SHUTDN_ACK			SCSR_REG(0x88)
-#define SCSR_BRINGUP_ACK		SCSR_REG(0x8C)
-#define SCSR_UART_STATUS		SCSR_REG(0x90)
-#define SCSR_TIMER_PAUSE		SCSR_REG(0x94)
-#define SCSR_TIMER_STATUS		SCSR_REG(0x98)
-#define SCSR_SD_STABLE			SCSR_REG(0x9C)
-#define SCSR_SD_STATUS			SCSR_REG(0xA0)
-#define SCSR_SPI_STATUS			SCSR_REG(0xA4)
-#define SCSR_I2C_STATUS			SCSR_REG(0xA8)
-
-#define SCSR_CLINT_CFG			SCSR_REG(0xC0)
 #define SCSR_CHIP_LINK_CFG		SCSR_REG(0xC4)
-
 #define SCSR_CLAMP_CFG			SCSR_REG(0xD0)
-
 #define SCSR_CHIP_CFG			SCSR_REG(0xF0)
+#endif /* CONFIG_DUOWEN_SOCv2 */
 
-#define SCSR_PMA_CFG_LO(n)		SCSR_REG(0x100 + ((n) << 3))
-#define SCSR_PMA_CFG_HI(n)		SCSR_REG(0x104 + ((n) << 3))
-#define SCSR_PMA_ADDR_LO(n)		SCSR_REG(0x140 + ((n) << 3))
-#define SCSR_PMA_ADDR_HI(n)		SCSR_REG(0x144 + ((n) << 3))
+#ifdef CONFIG_DUOWEN_SOCv3
+#define LCSR_REG(offset)		(LCSR_BASE + (offset))
+
+#define SCSR_BOOT_MODE			LCSR_REG(0x00)
+#define SCSR_SOCKET_ID			LCSR_REG(0x04)
+#define SCSR_BOOT_ADDR_LO		LCSR_REG(0x08)
+#define SCSR_BOOT_ADDR_HI		LCSR_REG(0x0C)
+#define SCSR_C0_APC0_BOOT_ADDR_LO	LCSR_REG(0x10)
+#define SCSR_C0_APC0_BOOT_ADDR_HI	LCSR_REG(0x14)
+#define SCSR_C0_APC1_BOOT_ADDR_LO	LCSR_REG(0x18)
+#define SCSR_C0_APC1_BOOT_ADDR_HI	LCSR_REG(0x1C)
+#define SCSR_C1_APC0_BOOT_ADDR_LO	LCSR_REG(0x20)
+#define SCSR_C1_APC0_BOOT_ADDR_HI	LCSR_REG(0x24)
+#define SCSR_C1_APC1_BOOT_ADDR_LO	LCSR_REG(0x28)
+#define SCSR_C1_APC1_BOOT_ADDR_HI	LCSR_REG(0x2C)
+#define SCSR_C2_APC0_BOOT_ADDR_LO	LCSR_REG(0x30)
+#define SCSR_C2_APC0_BOOT_ADDR_HI	LCSR_REG(0x34)
+#define SCSR_C2_APC1_BOOT_ADDR_LO	LCSR_REG(0x38)
+#define SCSR_C2_APC1_BOOT_ADDR_HI	LCSR_REG(0x3C)
+#define SCSR_C3_APC0_BOOT_ADDR_LO	LCSR_REG(0x40)
+#define SCSR_C3_APC0_BOOT_ADDR_HI	LCSR_REG(0x44)
+#define SCSR_C3_APC1_BOOT_ADDR_LO	LCSR_REG(0x48)
+#define SCSR_C3_APC1_BOOT_ADDR_HI	LCSR_REG(0x4C)
+#define SCSR_PARTIAL_GOOD		LCSR_REG(0x50)
+#endif /* CONFIG_DUOWEN_SOCv3 */
 
 /* SOC_HW_VERSION */
 #define SCSR_MINOR_OFFSET		0
@@ -194,27 +215,6 @@
 #define imc_sim_boot_from()	(__raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_DDR)
 #define imc_load_from()		(__raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_SSI)
 
-#define IMC_AXI_REQ(periph)		_BV(periph)
-#define IMC_AXI_ACTIVE(periph)		_BV((periph) + 16)
-#define IMC_AXI_ACK(periph)		_BV(periph)
-
-#define imc_axi_enter_low_power(periph)					\
-	do {								\
-		__raw_clearl(IMC_AXI_REQ(periph), SCSR_SHUTDN_REQ);	\
-		while (__raw_readl(SCSR_SHUTDN_ACK) &			\
-		       IMC_AXI_ACK(periph));				\
-	} while (0)
-#define imc_axi_exit_low_power(periph)					\
-	do {								\
-		__raw_setl(IMC_AXI_REQ(periph),	SCSR_BRINGUP_REQ);	\
-		while (!(__raw_readl(SCSR_BRINGUP_ACK) &		\
-		         IMC_AXI_ACK(periph)));				\
-	} while (0)
-#define imc_axi_is_low_power(periph)					\
-	(!(__raw_readl(SCSR_SHUTDN_ACK) & IMC_AXI_ACTIVE(periph)))
-#define imc_apb_is_low_power(periph)					\
-	(__raw_readl(SCSR_UART_STATUS) & _BV(periph))
-
 #define imc_pma_read_cfg(n)						\
 	MAKELLONG(__raw_readl(SCSR_PMA_CFG_LO(n)),			\
 		  __raw_readl(SCSR_PMA_CFG_HI(n)))
@@ -230,8 +230,6 @@
 	} while (0)
 
 #ifndef __ASSEMBLY__
-void imc_axi_register_periphs(uint16_t periphs);
-void imc_axi_unregister_periphs(uint16_t periphs);
 int imc_pma_set(int n, unsigned long attr,
 		phys_addr_t addr, unsigned long log2len);
 #endif

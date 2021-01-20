@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Jan 20 14:37:25 2021
+# Wed Jan 20 16:03:06 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -159,6 +159,7 @@ CONFIG_DUOWEN_LOAD_SD=y
 CONFIG_DUOWEN_ASIC=y
 # CONFIG_DUOWEN_ZEBU is not set
 CONFIG_DUOWEN_SOCv2=y
+# CONFIG_DUOWEN_SOCv3 is not set
 CONFIG_DUOWEN_SOCv2_ASIC=y
 # CONFIG_DUOWEN_SIM_LOAD is not set
 # CONFIG_DUOWEN_MSG is not set
