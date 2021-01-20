@@ -541,6 +541,11 @@ config DUOWEN_PCIE_TEST
 	  or RC will be implemented, depends on whether DW_PCIE_RC
 	  is checked
 
+config DUOWEN_PCIE_DEBUG_ENABLE
+	bool "Show more PCIE related registers access footprint"
+	default n
+	help
+          Controls whether to print register configueration information
 endif
 
 menuconfig DUOWEN_SMMU
