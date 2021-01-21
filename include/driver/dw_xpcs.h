@@ -588,7 +588,7 @@
 #endif /* CONFIG_ARCH_IS_DW_XPCS_1000BASE_X */
 #endif
 
-#ifndef ARCH_IS_DW_XPCS_PHY_SNPS_XAUI
+#ifndef CONFIG_ARCH_IS_DW_XPCS_PHY_SNPS_XAUI
 #define dw_xpcs_int_sram_init()			do { } while (0)
 #define dw_xpcs_ext_sram_init()			do { } while (0)
 #define dw_xpcs_power_init()			do { } while (0)

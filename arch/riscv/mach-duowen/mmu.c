@@ -124,8 +124,50 @@ void duowen_mmu_dump_uart(void)
 }
 #endif
 
+#ifdef CONFIG_DUOWEN_GPIO
+caddr_t duowen_gpio_reg_base[3] = {
+	__DUOWEN_GPIO_BASE(0),
+	__DUOWEN_GPIO_BASE(1),
+	__DUOWEN_GPIO_BASE(2),
+};
+caddr_t duowen_tlmm_reg_base = __DUOWEN_TLMM_BASE;
+
+void duowen_mmu_map_gpio(void)
+{
+	int i;
+
+	for (i = 0; i < 3; i++) {
+		if (duowen_gpio_reg_base[i] == __DUOWEN_GPIO_BASE(i)) {
+			set_fixmap_io(FIX_GPIO0 + i,
+				      __DUOWEN_GPIO_BASE(i) & PAGE_MASK);
+			duowen_gpio_reg_base[i] = fix_to_virt(FIX_GPIO0 + i);
+		}
+	}
+	if (duowen_tlmm_reg_base == __DUOWEN_TLMM_BASE) {
+		set_fixmap_io(FIX_TLMM, __DUOWEN_TLMM_BASE & PAGE_MASK);
+		duowen_tlmm_reg_base = fix_to_virt(FIX_TLMM);
+	}
+}
+
+void duowen_mmu_dump_gpio(void)
+{
+	int i;
+
+	for (i = 0; i < 3; i++) {
+		if (duowen_gpio_reg_base[i] != __DUOWEN_GPIO_BASE(i))
+			con_log("FIXMAP: %016llx -> %016llx: GPIO%d\n",
+				__DUOWEN_GPIO_BASE(i),
+				fix_to_virt(FIX_GPIO0 + i), i);
+	}
+	if (duowen_tlmm_reg_base != __DUOWEN_TLMM_BASE)
+		con_log("FIXMAP: %016llx -> %016llx: TLMM\n",
+			__DUOWEN_TLMM_BASE, fix_to_virt(FIX_TLMM));
+}
+#endif
+
 void duowen_mmu_dump_maps(void)
 {
+	duowen_mmu_dump_gpio();
 	duowen_mmu_dump_clk();
 	duowen_mmu_dump_uart();
 }

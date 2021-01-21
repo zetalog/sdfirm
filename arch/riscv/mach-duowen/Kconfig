@@ -385,6 +385,21 @@ if DUOWEN_SCSR
 
 endif
 
+config DUOWEN_TLMM
+	bool
+
+menuconfig DUOWEN_GPIO
+	bool "Duowen GPIO/TLMM controller support"
+	select DW_GPIO
+	select DUOWEN_TLMM
+
+if DUOWEN_GPIO
+
+config DUOWEN_GPIO_PORT
+	bool "Enable multiple port GPIO support"
+
+endif
+
 menuconfig DUOWEN_I2C
 	bool "Duowen I2C master controller support"
 	depends I2C_MASTER

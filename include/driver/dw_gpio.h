@@ -108,5 +108,7 @@ void dw_gpio_config_pad(uint8_t n, uint8_t p, uint8_t pin,
 			uint8_t pad, uint8_t drv);
 void dw_gpio_config_irq(uint8_t n, uint8_t pin, uint8_t mode);
 void dw_gpio_write_pin(uint8_t n, uint8_t p, uint8_t pin, uint8_t value);
+uint32_t dw_gpio_read_port(uint8_t n, uint8_t p);
+void dw_gpio_write_port(uint8_t n, uint8_t p, uint32_t value);
 
 #endif /* __DW_GPIO_H_INCLUDE__ */

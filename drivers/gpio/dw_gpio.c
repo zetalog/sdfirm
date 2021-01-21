@@ -28,3 +28,13 @@ void dw_gpio_write_pin(uint8_t n, uint8_t p, uint8_t pin, uint8_t value)
 	else
 		__raw_clearl(_BV(pin), GPIO_SWPORT_DR(n, p));
 }
+
+void dw_gpio_write_port(uint8_t n, uint8_t p, uint32_t value)
+{
+	__raw_writel(value, GPIO_SWPORT_DR(n, p));
+}
+
+uint32_t dw_gpio_read_port(uint8_t n, uint8_t p)
+{
+	return __raw_readl(GPIO_SWPORT_DR(n, p));
+}
