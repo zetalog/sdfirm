@@ -185,8 +185,8 @@
 #define DDR_BYPASS_PCLK		5 /* CLK_EN only */
 #define DDR_PCLK		6
 #define DDR_ACLK		7
-#define DDR_CLK			8
-#define DDR_RST			9
+#define DDR_CLK			8 /* CLK_EN only */
+#define DDR_RST			9 /* SW_RST only */
 #define SYSFAB_DBG_CLK		10
 #define SYSFAB_TIC_CLK		11
 #define CLUSTER0_HCLK		12
@@ -194,11 +194,12 @@
 #define CLUSTER2_HCLK		14
 #define CLUSTER3_HCLK		15
 #define COHFAB_HCLK		16
+#ifdef CONFIG_DUOWEN_SOCv3
+#define LCSR_CLK		18
+#endif /* CONFIG_DUOWEN_SOCv3 */
 #define SCSR_CLK		19
 #define TLMM_CLK		20
 #define PLIC_CLK		21
-#define TIC_RST			23 /* SW_RST only */
-#define DBG_RST			24 /* SW_RST only */
 #define TMR0_CLK		25
 #define TMR1_CLK		26
 #define TMR2_CLK		27
@@ -300,6 +301,9 @@
 #define cluster2_hclk		clkid(CLK_OUTPUT, CLUSTER2_HCLK)
 #define cluster3_hclk		clkid(CLK_OUTPUT, CLUSTER3_HCLK)
 #define cohfab_hclk		clkid(CLK_OUTPUT, COHFAB_HCLK)
+#ifdef CONFIG_DUOWEN_SOCv3
+#define lcsr_clk		clkid(CLK_OUTPUT, LCSR_CLK)
+#endif /* CONFIG_DUOWEN_SOCv3 */
 #define scsr_clk		clkid(CLK_OUTPUT, SCSR_CLK)
 #define tlmm_clk		clkid(CLK_OUTPUT, TLMM_CLK)
 #define plic_clk		clkid(CLK_OUTPUT, PLIC_CLK)

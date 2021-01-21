@@ -115,7 +115,6 @@ extern caddr_t duowen_eth_clk_reg_base;
 #define CLUSTER_RESET_CTRL(apc)		CLUSTER_PLL_REG(apc, 0x50)
 
 /* reset control */
-#define CRCNTL_RST_CAUSE		CRCNTL_REG(0x120)
 #define CRCNTL_SW_RST_CFG(n)		CRCNTL_REG(0x130 + ((n) << 2))
 
 /* clock control */
@@ -259,13 +258,16 @@ uint8_t duowen_pll_reg_read(uint8_t pll, uint8_t reg);
 #define duowen_pll_wait_timing(pll, timing)		\
 	(!!(__raw_readl(DW_PLL_HW_CFG(pll)) & PLL_WAIT_T(timing)))
 
-/* power control */
+/* global power/reset control */
 #define CRCNTL_WARM_RESET_DETECT_TIME	CRCNTL_REG(0x100)
 #define CRCNTL_WARM_RESET_DELAY_TIME	CRCNTL_REG(0x104)
 #define CRCNTL_SHUTDN_DELAY_TIME	CRCNTL_REG(0x108)
 #define CRCNTL_PWR_SHUTDOWN		CRCNTL_REG(0x10C)
 #define CRCNTL_PS_HOLD			CRCNTL_REG(0x110)
 #define CRCNTL_SW_GLOBAL_RST		CRCNTL_REG(0x114)
+#define CRCNTL_WARM_RST_INTR		CRCNTL_REG(0x118)
+#define CRCNTL_WARM_RST_INTR_CLR	CRCNTL_REG(0x11C)
+#define CRCNTL_RST_CAUSE		CRCNTL_REG(0x120)
 
 #define crcntl_config_timing(wrst_detect, wrst_delay, shutdown_delay)	\
 	do {								\
@@ -290,9 +292,8 @@ uint8_t duowen_pll_reg_read(uint8_t pll, uint8_t reg);
 
 /* CRCNTL_RST_CAUSE */
 #define RST_SW_GLBAL		_BV(0)
-#define RST_WDT0		_BV(1)
-#define RST_WDT1		_BV(2)
-#define RST_WARM		_BV(3)
+#define RST_WDT			_BV(1)
+#define RST_WARM		_BV(2)
 
 /* TODO: Wait imc_rst_n, drive PS_HOLD, and wait for PMIC? */
 #define crcntl_power_up()						\
