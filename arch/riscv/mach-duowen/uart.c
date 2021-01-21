@@ -42,6 +42,30 @@
 #include <target/console.h>
 #include <target/paging.h>
 
+void uart_hw_con_init(void)
+{
+	gpio_config_mux(UART_CON_PORT_IO, UART_CON_PIN_SIN,
+			TLMM_GROUP_FUNCTION);
+	gpio_config_mux(UART_CON_PORT_IO, UART_CON_PIN_SOUT,
+			TLMM_GROUP_FUNCTION);
+	gpio_config_mux(UART_CON_PORT_MODEM, UART_CON_PIN_CTS,
+			TLMM_GROUP_FUNCTION);
+	gpio_config_mux(UART_CON_PORT_MODEM, UART_CON_PIN_RTS,
+			TLMM_GROUP_FUNCTION);
+	gpio_config_mux(UART_CON_PORT_MODEM, UART_CON_PIN_DSR,
+			TLMM_GROUP_FUNCTION);
+	gpio_config_mux(UART_CON_PORT_MODEM, UART_CON_PIN_DTR,
+			TLMM_GROUP_FUNCTION);
+	gpio_config_mux(UART_CON_PORT_MODEM, UART_CON_PIN_RI,
+			TLMM_GROUP_FUNCTION);
+	gpio_config_mux(UART_CON_PORT_MODEM, UART_CON_PIN_DCD,
+			TLMM_GROUP_FUNCTION);
+
+	board_init_clock();
+	clk_enable(UART_CLK_ID);
+	dw_uart_con_init(clk_get_frequency(UART_CLK_ID));
+}
+
 #ifdef CONFIG_MMU
 void uart_hw_mmu_init(void)
 {

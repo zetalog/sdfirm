@@ -55,6 +55,16 @@ void duowen_mshc_init(void)
 {
 	__unused mmc_slot_t sslot;
 
+	gpio_config_mux(GPIO1A, pad_gpio_32, TLMM_GROUP_FUNCTION);
+	gpio_config_mux(GPIO1A, pad_gpio_33, TLMM_GROUP_FUNCTION);
+	gpio_config_mux(GPIO1A, pad_gpio_34, TLMM_GROUP_FUNCTION);
+	gpio_config_mux(GPIO1A, pad_gpio_35, TLMM_GROUP_FUNCTION);
+	gpio_config_mux(GPIO1A, pad_gpio_36, TLMM_GROUP_FUNCTION);
+	gpio_config_mux(GPIO1A, pad_gpio_37, TLMM_GROUP_FUNCTION);
+	gpio_config_mux(GPIO1A, pad_gpio_38, TLMM_GROUP_FUNCTION);
+	gpio_config_mux(GPIO1A, pad_gpio_39, TLMM_GROUP_FUNCTION);
+	gpio_config_mux(GPIO1A, pad_gpio_40, TLMM_GROUP_FUNCTION);
+
 	duowen_sd_power();
 	clk_enable(sd_clk);
 	sslot = mmc_slot_save(0);

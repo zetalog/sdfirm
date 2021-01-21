@@ -49,21 +49,45 @@
 #define DW_SSI_CLK		spi0_clk
 #define DW_SSI_BASE(n)		SPI0_BASE
 #define SSI_ID			0
+#define SSI_PORT		GPIO1B
+#define SSI_PIN_RXD		pad_gpio_48
+#define SSI_PIN_TXD		pad_gpio_49
+#define SSI_PIN_SCK		pad_gpio_50
+#define SSI_PIN_SS		pad_gpio_51
+#define SSI_PIN_SS_IN		pad_gpio_52
 #endif
 #ifdef CONFIG_DUOWEN_SSI_FLASH_SPI1
 #define DW_SSI_CLK		spi1_clk
 #define DW_SSI_BASE(n)		SPI1_BASE
 #define SSI_ID			1
+#define SSI_PORT		GPIO1B
+#define SSI_PIN_RXD		pad_gpio_56
+#define SSI_PIN_TXD		pad_gpio_57
+#define SSI_PIN_SCK		pad_gpio_58
+#define SSI_PIN_SS		pad_gpio_59
+#define SSI_PIN_SS_IN		pad_gpio_60
 #endif
 #ifdef CONFIG_DUOWEN_SSI_FLASH_SPI2
 #define DW_SSI_CLK		spi2_clk
 #define DW_SSI_BASE(n)		SPI2_BASE
 #define SSI_ID			2
+#define SSI_PORT		GPIO1C
+#define SSI_PIN_RXD		pad_gpio_64
+#define SSI_PIN_TXD		pad_gpio_65
+#define SSI_PIN_SCK		pad_gpio_66
+#define SSI_PIN_SS		pad_gpio_67
+#define SSI_PIN_SS_IN		pad_gpio_68
 #endif
 #ifdef CONFIG_DUOWEN_SSI_FLASH_SPI3
 #define DW_SSI_CLK		spi3_clk
 #define DW_SSI_BASE(n)		SPI3_BASE
 #define SSI_ID			3
+#define SSI_PORT		GPIO1D
+#define SSI_PIN_RXD		pad_gpio_72
+#define SSI_PIN_TXD		pad_gpio_73
+#define SSI_PIN_SCK		pad_gpio_74
+#define SSI_PIN_SS		pad_gpio_75
+#define SSI_PIN_SS_IN		pad_gpio_76
 #endif
 
 #ifdef CONFIG_DW_SSI
@@ -84,14 +108,7 @@
 #define spi_hw_write_byte(byte)		dw_ssi_write_byte(SSI_ID, byte)
 #define spi_hw_chip_select(chip)	dw_ssi_select_chip(SSI_ID, chip)
 #define spi_hw_deselect_chips()		dw_ssi_deselect_chips(SSI_ID)
-#define spi_hw_ctrl_init()					\
-	do {							\
-		clk_enable(DW_SSI_CLK);				\
-		dw_ssi_init_master(SSI_ID, SSI_FRF_SPI,		\
-				   SSI_TMOD_EEPROM_READ, 8, 8);	\
-		dw_ssi_init_spi(SSI_ID, SSI_SPI_FRF_STD,	\
-				8, 24, 0);			\
-	} while (0)
+void spi_hw_ctrl_init(void);
 #define spi_hw_ctrl_start()		dw_ssi_start_ctrl(SSI_ID)
 #define spi_hw_ctrl_stop()		dw_ssi_stop_ctrl(SSI_ID)
 #endif

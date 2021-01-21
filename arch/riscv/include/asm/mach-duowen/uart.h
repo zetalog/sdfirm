@@ -51,24 +51,64 @@
 #define UART_CLK_ID		uart0_clk
 #define UART_CON_ID		0
 #define UART_CON_IRQ		IRQ_UART0
+#define UART_CON_PORT_IO	GPIO1B
+#define UART_CON_PORT_MODEM	GPIO2A
+#define UART_CON_PIN_SIN	pad_gpio_54
+#define UART_CON_PIN_SOUT	pad_gpio_55
+#define UART_CON_PIN_CTS	pad_gpio_80
+#define UART_CON_PIN_RTS	pad_gpio_81
+#define UART_CON_PIN_DSR	pad_gpio_82
+#define UART_CON_PIN_DTR	pad_gpio_83
+#define UART_CON_PIN_RI		pad_gpio_84
+#define UART_CON_PIN_DCD	pad_gpio_85
 #endif
 #ifdef CONFIG_DUOWEN_UART_CON1
 #define __DUOWEN_UART_BASE	UART1_BASE
 #define UART_CLK_ID		uart1_clk
 #define UART_CON_ID		1
 #define UART_CON_IRQ		IRQ_UART1
+#define UART_CON_PORT_IO	GPIO1B
+#define UART_CON_PORT_MODEM	GPIO2A
+#define UART_CON_PIN_SIN	pad_gpio_62
+#define UART_CON_PIN_SOUT	pad_gpio_63
+#define UART_CON_PIN_CTS	pad_gpio_88
+#define UART_CON_PIN_RTS	pad_gpio_89
+#define UART_CON_PIN_DSR	pad_gpio_90
+#define UART_CON_PIN_DTR	pad_gpio_91
+#define UART_CON_PIN_RI		pad_gpio_92
+#define UART_CON_PIN_DCD	pad_gpio_93
 #endif
 #ifdef CONFIG_DUOWEN_UART_CON2
 #define __DUOWEN_UART_BASE	UART2_BASE
 #define UART_CLK_ID		uart2_clk
 #define UART_CON_ID		2
 #define UART_CON_IRQ		IRQ_UART2
+#define UART_CON_PORT_IO	GPIO1C
+#define UART_CON_PORT_MODEM	GPIO2A
+#define UART_CON_PIN_SIN	pad_gpio_70
+#define UART_CON_PIN_SOUT	pad_gpio_71
+#define UART_CON_PIN_CTS	pad_gpio_96
+#define UART_CON_PIN_RTS	pad_gpio_97
+#define UART_CON_PIN_DSR	pad_gpio_98
+#define UART_CON_PIN_DTR	pad_gpio_99
+#define UART_CON_PIN_RI		pad_gpio_100
+#define UART_CON_PIN_DCD	pad_gpio_101
 #endif
 #ifdef CONFIG_DUOWEN_UART_CON3
 #define __DUOWEN_UART_BASE	UART3_BASE
 #define UART_CLK_ID		uart3_clk
 #define UART_CON_ID		3
 #define UART_CON_IRQ		IRQ_UART3
+#define UART_CON_PORT_IO	GPIO1D
+#define UART_CON_PORT_MODEM	GPIO2A
+#define UART_CON_PIN_SIN	pad_gpio_78
+#define UART_CON_PIN_SOUT	pad_gpio_79
+#define UART_CON_PIN_CTS	pad_gpio_104
+#define UART_CON_PIN_RTS	pad_gpio_105
+#define UART_CON_PIN_DSR	pad_gpio_106
+#define UART_CON_PIN_DTR	pad_gpio_107
+#define UART_CON_PIN_RI		pad_gpio_108
+#define UART_CON_PIN_DCD	pad_gpio_109
 #endif
 
 #ifdef CONFIG_MMU
@@ -101,12 +141,7 @@ void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
 
 #ifdef CONFIG_CONSOLE
 #ifdef CONFIG_CLK
-#define uart_hw_con_init()						\
-	do {								\
-		board_init_clock();					\
-		clk_enable(UART_CLK_ID);				\
-		dw_uart_con_init(clk_get_frequency(UART_CLK_ID));	\
-	} while (0)
+void uart_hw_con_init(void);
 #else
 #define uart_hw_con_init()	do { } while (0)
 #endif

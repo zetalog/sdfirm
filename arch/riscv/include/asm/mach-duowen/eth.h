@@ -38,17 +38,35 @@
 		clk_enable(eth_alt_ref_clk);		\
 		clk_enable(sgmii_ref_clk);		\
 	} while (0)
+#define duowen_eth_gpio_init()				\
+	do {						\
+		gpio_config_mux(GPIO2C, pad_gpio_144,	\
+				TLMM_GROUP_FUNCTION);	\
+		gpio_config_mux(GPIO2C, pad_gpio_145,	\
+				TLMM_GROUP_FUNCTION);	\
+		gpio_config_mux(GPIO2C, pad_gpio_146,	\
+				TLMM_GROUP_FUNCTION);	\
+		gpio_config_mux(GPIO2C, pad_gpio_147,	\
+				TLMM_GROUP_FUNCTION);	\
+		gpio_config_mux(GPIO2C, pad_gpio_148,	\
+				TLMM_GROUP_FUNCTION);	\
+	} while (0)
 
 #ifdef CONFIG_DUOWEN_ETH
 #define duowen_eth_init()				\
 	do {						\
+		duowen_eth_gpio_init();			\
 		duowen_eth_clock_init();		\
 		dw_xgmac_init_ctrl();			\
 	} while (0)
 #define eth_hw_mdio_read(a, r, d)	dw_xgmac_mdio_read(a, r, d)
 #define eth_hw_mdio_write(a, r, d)	dw_xgmac_mdio_write(a, r, d)
 #else
-#define duowen_eth_init()		duowen_eth_clock_init()
+#define duowen_eth_init()				\
+	do {						\
+		duowen_eth_gpio_init();			\
+		duowen_eth_clock_init();		\
+	} while (0)
 #endif
 
 #ifdef CONFIG_DUOWEN_ETH_INIT

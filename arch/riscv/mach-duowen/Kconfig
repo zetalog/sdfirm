@@ -305,6 +305,7 @@ menuconfig DUOWEN_NOC
 menuconfig DUOWEN_UART
 	bool "Duowen UART controller support"
 	select DW_UART
+	select GPIO
 
 if DUOWEN_UART
 
@@ -471,6 +472,7 @@ menuconfig DUOWEN_SSI_FLASH
 	select ARCH_HAS_SPIFLASH
 	select MEM if COMMAND
 	select STRING_UUID
+	select GPIO
 	help
 	  The DUOWN SoC also contains a DW_SSI controller that can be used
 	  to interface with the external SSI flashes. However, the
@@ -520,6 +522,7 @@ menuconfig DUOWEN_SD
 	bool "Duowen MSHC controller support"
 	select DW_MSHC
 	select STRING_UUID
+	select GPIO
 
 if MSHC
 
@@ -681,6 +684,7 @@ menuconfig DUOWEN_ETH
 	select ARCH_HAS_DW_XPCS_RXAUI
 	select ARCH_IS_DW_XPCS_MDIO
 	select ARCH_IS_DW_XPCS_PHY_GEN5_16G if DUOWEN_ASIC
+	select GPIO
 
 if DUOWEN_ETH
 

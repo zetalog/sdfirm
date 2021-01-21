@@ -51,6 +51,21 @@
 
 mtd_t board_flash = INVALID_MTD_ID;
 
+void spi_hw_ctrl_init(void)
+{
+	gpio_config_mux(SSI_PORT, SSI_PIN_RXD, TLMM_GROUP_FUNCTION);
+	gpio_config_mux(SSI_PORT, SSI_PIN_TXD, TLMM_GROUP_FUNCTION);
+	gpio_config_mux(SSI_PORT, SSI_PIN_SCK, TLMM_GROUP_FUNCTION);
+	gpio_config_mux(SSI_PORT, SSI_PIN_SS, TLMM_GROUP_FUNCTION);
+	gpio_config_mux(SSI_PORT, SSI_PIN_SS_IN, TLMM_GROUP_FUNCTION);
+
+	clk_enable(DW_SSI_CLK);
+	dw_ssi_init_master(SSI_ID, SSI_FRF_SPI,
+			   SSI_TMOD_EEPROM_READ, 8, 8);
+	dw_ssi_init_spi(SSI_ID, SSI_SPI_FRF_STD,
+			8, 24, 0);
+}
+
 void duowen_ssi_flash_init(void)
 {
 	board_flash = spiflash_register_bank(0);
