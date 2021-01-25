@@ -62,7 +62,7 @@ void port_config_pad(uint8_t port, uint8_t pin, uint8_t pad, uint8_t drv)
 	} else {
 		gpio_direct_output(port, pin);
 		if (pad & GPIO_PAD_DIGITAL_IO) {
-			if (!(pad & GPIO_PAD_NO_PULL)) {
+			if (pad & GPIO_PAD_PULL_MASK) {
 				if (pad & GPIO_PAD_PULL_UP)
 					cfg |= PCR_PS;
 				cfg |= PCR_PE;

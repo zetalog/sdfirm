@@ -49,19 +49,20 @@ void tlmm_config_pad(uint8_t gpio, uint8_t pad, uint8_t drv)
 	if (gpio >= TLMM_NR_GPIOS)
 		return;
 
-	switch (pad & GPIO_PAD_PULL_MASK) {
-	case GPIO_PAD_NO_PULL:
-		cfg |= TLMM_GPIO_PULL(TLMM_NO_PULL);
-		break;
-	case GPIO_PAD_PULL_DOWN:
-		cfg |= TLMM_GPIO_PULL(TLMM_PULL_DOWN);
-		break;
-	case GPIO_PAD_PULL_UP:
-		cfg |= TLMM_GPIO_PULL(TLMM_PULL_UP);
-		break;
-	case GPIO_PAD_KEEPER:
+	if (pad & GPIO_PAD_KEEPER)
 		cfg |= TLMM_GPIO_PULL(TLMM_KEEPER);
-		break;
+	else {
+		switch (pad & GPIO_PAD_PULL_MASK) {
+		case GPIO_PAD_PULL_DOWN:
+			cfg |= TLMM_GPIO_PULL(TLMM_PULL_DOWN);
+			break;
+		case GPIO_PAD_PULL_UP:
+			cfg |= TLMM_GPIO_PULL(TLMM_PULL_UP);
+			break;
+		default:
+			cfg |= TLMM_GPIO_PULL(TLMM_NO_PULL);
+			break;
+		}
 	}
 	if (drv != GPIO_DRIVE_IN) {
 		cfg |= TLMM_GPIO_OE;

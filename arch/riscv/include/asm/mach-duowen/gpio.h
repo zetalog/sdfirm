@@ -115,9 +115,6 @@
 #define GPIO2C				DUOWEN_GPIOP(2, 2)
 #define GPIO2D				DUOWEN_GPIOP(2, 3)
 
-#define duowen_gpio_is_porta(gpio)	\
-	(0 == (duowen_gpio_port(gpio) & GPIO0D))
-
 #define pad_gpio_0			DUOWEN_GPIO(0, 0, 0)
 #define pad_gpio_1			DUOWEN_GPIO(0, 0, 1)
 #define pad_gpio_2			DUOWEN_GPIO(0, 0, 2)

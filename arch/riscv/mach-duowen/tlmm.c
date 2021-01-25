@@ -215,23 +215,23 @@ void tlmm_config_pad(uint16_t gpio, uint8_t pad, uint8_t drv)
 		return;
 
 	switch (pad & GPIO_PAD_PULL_MASK) {
-	case GPIO_PAD_NO_PULL:
-		cfg |= TLMM_PAD_PULL(TLMM_PAD_NO_PULL);
-		break;
 	case GPIO_PAD_PULL_DOWN:
 		cfg |= TLMM_PAD_PULL(TLMM_PAD_PULL_DOWN);
 		break;
 	case GPIO_PAD_PULL_UP:
-		if (pad & GPIO_PAD_MEDIUM_PULL)
+		if (pad & GPIO_PAD_STRONG_PULL)
 			cfg |= TLMM_PAD_PULL(TLMM_PAD_STRONG_PULL_UP);
 		else
 			cfg |= TLMM_PAD_PULL(TLMM_PAD_PULL_UP);
+		break;
+	default:
+		cfg |= TLMM_PAD_PULL(TLMM_PAD_NO_PULL);
 		break;
 	}
 	if (drv == GPIO_DRIVE_IN) {
 		cfg |= TLMM_PAD_IE;
 		/* Enable Schmitt Trigger */
-		if (pad & GPIO_PAD_KEEPER)
+		if (pad & GPIO_PAD_SCHMITT_TRIG)
 			cfg |= TLMM_PAD_ST;
 	} else {
 		/* TODO: drive strength */
