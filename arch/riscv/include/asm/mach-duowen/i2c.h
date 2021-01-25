@@ -8,7 +8,7 @@
  * DW_I2Cx_BASE: the base address of the I2C register block
  */
 #define DW_I2C_BASE(n)		(I2C0_BASE + 0x100000 * n)
-#define DW_I2C_FREQ		SFAB_HALF_CLK_FREQ
+#define DW_I2C_FREQ		APB_CLK_FREQ
 
 
 #ifdef CONFIG_DW_I2C
