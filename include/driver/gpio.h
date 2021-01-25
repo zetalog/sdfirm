@@ -64,14 +64,12 @@
 #define gpio_hw_disable_irq(port, pin)			do { } while (0)
 #define gpio_hw_irq_status(port, pin)			0
 #define gpio_hw_clear_irq(port, pin)			do { } while (0)
+#define gpio_hw_config_irq(port, pin, mode)		do { } while (0)
 #define gpio_hw_mmu_init()				do { } while (0)
 #else
 #ifdef CONFIG_SYS_NOIRQ
-#define gpio_hw_config_irq(port, pin, mode)		do { } while (0)
 #define gpio_hw_enable_irq(port, pin)			do { } while (0)
 #define gpio_hw_disable_irq(port, pin)			do { } while (0)
-#define gpio_hw_irq_status(port, pin)			0
-#define gpio_hw_clear_irq(port, pin)			do { } while (0)
 #endif /* CONFIG_SYS_NOIRQ */
 #ifndef CONFIG_MMU
 #define gpio_hw_mmu_init()				do { } while (0)

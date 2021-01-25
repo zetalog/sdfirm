@@ -392,7 +392,7 @@ config DUOWEN_TLMM
 menuconfig DUOWEN_GPIO
 	bool "Duowen GPIO/TLMM controller support"
 	select DW_GPIO
-	select DUOWEN_TLMM
+	select DUOWEN_TLMM if DUOWEN_SOCv3
 
 if DUOWEN_GPIO
 

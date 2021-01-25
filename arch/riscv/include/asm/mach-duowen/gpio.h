@@ -115,6 +115,9 @@
 #define GPIO2C				DUOWEN_GPIOP(2, 2)
 #define GPIO2D				DUOWEN_GPIOP(2, 3)
 
+#define duowen_gpio_is_porta(gpio)	\
+	(0 == (duowen_gpio_port(gpio) & GPIO0D))
+
 #define pad_gpio_0			DUOWEN_GPIO(0, 0, 0)
 #define pad_gpio_1			DUOWEN_GPIO(0, 0, 1)
 #define pad_gpio_2			DUOWEN_GPIO(0, 0, 2)
@@ -277,17 +280,12 @@
 #define pad_gpio_159			DUOWEN_GPIO(2, 3, 7)
 
 #ifndef CONFIG_SYS_NOIRQ
-#define gpio_hw_config_irq(port, pin, mode)	\
-	dw_gpio_config_irq(0, pin, mode)
-#define gpio_hw_enable_irq(port, pin)		\
-	dw_gpio_enable_irq(0, pin)
-#define gpio_hw_disable_irq(port, pin)		\
-	dw_gpio_disable_irq(0, pin)
-#define gpio_hw_irq_status(port, pin)		\
-	dw_gpio_irq_status(0, pin)
-#define gpio_hw_clear_irq(port, pin)		\
-	dw_gpio_clear_irq(0, pin)
+void gpio_hw_enable_irq(uint8_t port, uint16_t pin);
+void gpio_hw_disable_irq(uint8_t port, uint16_t pin);
 #endif /* CONFIG_SYS_NOIRQ */
+void gpio_hw_config_irq(uint8_t port, uint16_t pin, uint8_t trig);
+uint8_t gpio_hw_irq_status(uint8_t port, uint16_t pin);
+void gpio_hw_clear_irq(uint8_t port, uint16_t pin);
 uint8_t gpio_hw_read_pin(uint8_t port, uint16_t pin);
 void gpio_hw_write_pin(uint8_t port, uint16_t pin, uint8_t val);
 void gpio_hw_config_pad(uint8_t port, uint16_t pin,

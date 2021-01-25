@@ -49,6 +49,7 @@ void gpio_hw_config_pad(uint8_t port, uint16_t pin,
 
 	dw_gpio_config_pad(duowen_gpiop_chip(port),
 			   duowen_gpiop_port(port), pin, pad, drv);
+	tlmm_config_pad(pin, pad, drv);
 }
 #else /* CONFIG_DUOWEN_GPIO_PORT */
 uint16_t duowen_gpios[NR_GPIOS] = {
@@ -250,8 +251,87 @@ void gpio_hw_config_pad(uint8_t port, uint16_t pin,
 	gpios = duowen_gpios[pin];
 	dw_gpio_config_pad(duowen_gpio_chip(gpios), duowen_gpio_port(gpios),
 			   duowen_gpio_pin(gpios), pad, drv);
+	tlmm_config_pad(gpios, pad, drv);
 }
 #endif /* CONFIG_DUOWEN_GPIO_PORT */
+
+void gpio_hw_config_irq(uint8_t port, uint16_t pin, uint8_t trig)
+{
+	uint16_t gpios;
+
+	if (pin > ARRAY_SIZE(duowen_gpios))
+		return;
+
+	gpios = duowen_gpios[pin];
+	if (duowen_gpio_is_porta(gpios)) {
+		dw_gpio_config_irq(duowen_gpio_chip(gpios),
+				   duowen_gpio_pin(gpios), trig);
+	}
+	tlmm_config_irq(gpios, trig);
+}
+
+#ifndef CONFIG_SYS_NOIRQ
+void gpio_hw_enable_irq(uint8_t port, uint16_t pin)
+{
+	uint16_t gpios;
+
+	if (pin > ARRAY_SIZE(duowen_gpios))
+		return;
+
+	gpios = duowen_gpios[pin];
+	if (duowen_gpio_is_porta(gpios)) {
+		dw_gpio_enable_irq(duowen_gpio_chip(gpios),
+				   duowen_gpio_pin(gpios));
+	}
+	tlmm_enable_irq(gpios);
+}
+
+void gpio_hw_disable_irq(uint8_t port, uint16_t pin)
+{
+	uint16_t gpios;
+
+	if (pin > ARRAY_SIZE(duowen_gpios))
+		return;
+
+	gpios = duowen_gpios[pin];
+	if (duowen_gpio_is_porta(gpios)) {
+		dw_gpio_disable_irq(duowen_gpio_chip(gpios),
+				    duowen_gpio_pin(gpios));
+	}
+	tlmm_disable_irq(gpios);
+}
+#endif
+
+void gpio_hw_clear_irq(uint8_t port, uint16_t pin)
+{
+	uint16_t gpios;
+
+	if (pin > ARRAY_SIZE(duowen_gpios))
+		return;
+
+	gpios = duowen_gpios[pin];
+	if (duowen_gpio_is_porta(gpios)) {
+		dw_gpio_clear_irq(duowen_gpio_chip(gpios),
+				  duowen_gpio_pin(gpios));
+	}
+	tlmm_clear_irq(gpios);
+}
+
+uint8_t gpio_hw_irq_status(uint8_t port, uint16_t pin)
+{
+	uint16_t gpios;
+	bool gpio_irq = 0;
+
+	if (pin > ARRAY_SIZE(duowen_gpios))
+		return 0;
+
+	gpios = duowen_gpios[pin];
+	if (duowen_gpio_is_porta(gpios)) {
+		gpio_irq = dw_gpio_irq_status(duowen_gpio_chip(gpios),
+					      duowen_gpio_pin(gpios));
+	}
+	return gpio_irq & tlmm_irq_status(gpios);
+}
 
 void gpio_hw_ctrl_init(void)
 {

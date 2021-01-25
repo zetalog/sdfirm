@@ -41,7 +41,6 @@
 
 #include <target/gpio.h>
 
-#ifdef CONFIG_DUOWEN_SOCv3
 struct tlmm_group {
 	uint8_t port;
 	uint16_t pin;
@@ -208,6 +207,52 @@ void tlmm_config_mux(uint8_t port, uint16_t pin, uint8_t mux)
 	}
 }
 
+void tlmm_config_pad(uint16_t gpio, uint8_t pad, uint8_t drv)
+{
+	uint32_t cfg = 0;
+
+	if (gpio >= NR_TLMM_GPIOS)
+		return;
+
+	switch (pad & GPIO_PAD_PULL_MASK) {
+	case GPIO_PAD_NO_PULL:
+		cfg |= TLMM_PAD_PULL(TLMM_PAD_NO_PULL);
+		break;
+	case GPIO_PAD_PULL_DOWN:
+		cfg |= TLMM_PAD_PULL(TLMM_PAD_PULL_DOWN);
+		break;
+	case GPIO_PAD_PULL_UP:
+		if (pad & GPIO_PAD_MEDIUM_PULL)
+			cfg |= TLMM_PAD_PULL(TLMM_PAD_STRONG_PULL_UP);
+		else
+			cfg |= TLMM_PAD_PULL(TLMM_PAD_PULL_UP);
+		break;
+	}
+	if (drv == GPIO_DRIVE_IN) {
+		cfg |= TLMM_PAD_IE;
+		/* Enable Schmitt Trigger */
+		if (pad & GPIO_PAD_KEEPER)
+			cfg |= TLMM_PAD_ST;
+	} else {
+		/* TODO: drive strength */
+	}
+	__raw_writel_mask(cfg, TLMM_PAD_MASK, TLMM_PAD_GPIO_CFG(gpio));
+}
+
+void tlmm_config_irq(uint16_t gpio, uint8_t trig)
+{
+	uint32_t mode = 0;
+
+	if (gpio >= NR_TLMM_GPIOS)
+		return;
+
+	if (!(trig & GPIO_IRQ_HIGH))
+		mode |= TLMM_INTR_TRIGGER_LOW;
+	if ((trig & GPIO_IRQ_LEVEL_TRIG) == GPIO_IRQ_EDGE_TRIG)
+		mode |= TLMM_INTR_TRIGGER_EDGE;
+	tlmm_set_trigger_mode(gpio, mode);
+}
+
 void tlmm_init(void)
 {
 	uint8_t i;
@@ -216,4 +261,3 @@ void tlmm_init(void)
 		tlmm_group_cache[i] = tlmm_get_function(i);
 	}
 }
-#endif /* CONFIG_DUOWEN_SOCv3 */

@@ -42,23 +42,35 @@
 #include <target/console.h>
 #include <target/paging.h>
 
+static inline void uart_config_pad(bool rxtx, uint16_t pin,
+				   uint8_t pad, uint8_t func)
+{
+	if (rxtx) {
+		gpio_config_pad(UART_CON_PORT_DATA, pin, pad, 8);
+		gpio_config_mux(UART_CON_PORT_DATA, pin, func);
+	} else {
+		gpio_config_pad(UART_CON_PORT_CTRL, pin, pad, 8);
+		gpio_config_mux(UART_CON_PORT_CTRL, pin, func);
+	}
+}
+
 void uart_hw_con_init(void)
 {
-	gpio_config_mux(UART_CON_PORT_IO, UART_CON_PIN_SIN,
+	uart_config_pad(true, UART_CON_PIN_RXD, GPIO_PAD_PULL_DOWN,
 			TLMM_GROUP_FUNCTION);
-	gpio_config_mux(UART_CON_PORT_IO, UART_CON_PIN_SOUT,
+	uart_config_pad(true, UART_CON_PIN_TXD, GPIO_PAD_PULL_DOWN,
 			TLMM_GROUP_FUNCTION);
-	gpio_config_mux(UART_CON_PORT_MODEM, UART_CON_PIN_CTS,
+	uart_config_pad(false, UART_CON_PIN_CTS, GPIO_PAD_PULL_UP,
 			TLMM_GROUP_FUNCTION);
-	gpio_config_mux(UART_CON_PORT_MODEM, UART_CON_PIN_RTS,
+	uart_config_pad(false, UART_CON_PIN_RTS, GPIO_PAD_PULL_UP,
 			TLMM_GROUP_FUNCTION);
-	gpio_config_mux(UART_CON_PORT_MODEM, UART_CON_PIN_DSR,
+	uart_config_pad(false, UART_CON_PIN_DSR, GPIO_PAD_PULL_UP,
 			TLMM_GROUP_FUNCTION);
-	gpio_config_mux(UART_CON_PORT_MODEM, UART_CON_PIN_DTR,
+	uart_config_pad(false, UART_CON_PIN_DTR, GPIO_PAD_PULL_UP,
 			TLMM_GROUP_FUNCTION);
-	gpio_config_mux(UART_CON_PORT_MODEM, UART_CON_PIN_RI,
+	uart_config_pad(false, UART_CON_PIN_RI, GPIO_PAD_PULL_UP,
 			TLMM_GROUP_FUNCTION);
-	gpio_config_mux(UART_CON_PORT_MODEM, UART_CON_PIN_DCD,
+	uart_config_pad(false, UART_CON_PIN_DCD, GPIO_PAD_PULL_UP,
 			TLMM_GROUP_FUNCTION);
 
 	board_init_clock();

@@ -87,6 +87,33 @@
 #define TLMM_GROUP(n, value)		_SET_FVn(n, TLMM_GROUP, value)
 #define tlmm_group(n, value)		_GET_FVn(n, TLMM_GROUP, value)
 
+/* PAD_GPIO_CFG */
+#define TLMM_PAD_PULL_OFFSET		0
+#define TLMM_PAD_PULL_MASK		REG_2BIT_MASK
+#define TLMM_PAD_PULL(value)		_SET_FV(TLMM_PAD_PULL, value)
+#define TLMM_PAD_NO_PULL		0
+#define TLMM_PAD_PULL_UP		1
+#define TLMM_PAD_PULL_DOWN		2
+#define TLMM_PAD_STRONG_PULL_UP		3
+#define TLMM_PAD_ST			_BV(2)
+#define TLMM_PAD_IE			_BV(3)
+#define TLMM_INTR_EN			_BV(4)
+#define TLMM_INTR_CLR			_BV(5)
+#define TLMM_INTR_TRIGGER_MODE_OFFSET	6
+#define TLMM_INTR_TRIGGER_MODE_MASK	REG_2BIT_MASK
+#define TLMM_INTR_TRIGGER_MODE(value)	_SET_FV(TLMM_INTR_TRIGGER_MODE, value)
+#define TLMM_INTR_TRIGGER_LOW		1
+#define TLMM_INTR_TRIGGER_EDGE		2
+#define TLMM_INTR_TRIGGER_LEVEL_HIGH	0
+#define TLMM_INTR_TRIGGER_LEVEL_LOW	TLMM_INTR_TRIGGER_LOW
+#define TLMM_INTR_TRIGGER_EDGE_HIGH	TLMM_INTR_TRIGGER_EDGE
+#define TLMM_INTR_TRIGGER_EDGE_LOW	(TLMM_INTR_TRIGGER_EDGE | TLMM_INTR_TRIGGER_LOW)
+#define TLMM_PAD_MASK			\
+	(TLMM_PAD_PULL(TLMM_PAD_PULL_MASK) | TLMM_PAD_ST | TLMM_PAD_IE)
+
+/* PAD_GPIO_STS */
+#define TLMM_INTR_STS			_BV(0)
+
 /* Function select values */
 #define TLMM_GROUP_GPIO			0
 #define TLMM_GROUP_FUNCTION		1
@@ -151,22 +178,43 @@
 #define TLMM_GROUP_29_GPIO2C_144_148	0
 #define TLMM_GROUP_29_ETH		1
 
+#define NR_TLMM_GPIOS			160
 #define NR_TLMM_GROUPS			29
 #define INVALID_TLMM_GROUP		32
 
-#define tlmm_set_function(group, func)				\
-	__raw_writel_mask(TLMM_GROUP(group, func),		\
-			  TLMM_GROUP(group, TLMM_GROUP_MASK),	\
+#define tlmm_set_function(group, func)					\
+	__raw_writel_mask(TLMM_GROUP(group, func),			\
+			  TLMM_GROUP(group, TLMM_GROUP_MASK),		\
 			  TLMM_PAD_FUNCTION_SELECT(group))
-#define tlmm_get_function(group)				\
+#define tlmm_get_function(group)					\
 	tlmm_group(group, __raw_readl(TLMM_PAD_FUNCTION_SELECT(group)))
+#define tlmm_set_trigger_mode(gpio, mode)				\
+	__raw_writel_mask(TLMM_INTR_TRIGGER_MODE(mode),			\
+		TLMM_INTR_TRIGGER_MODE(TLMM_INTR_TRIGGER_MODE_MASK),	\
+		TLMM_PAD_GPIO_CFG(gpio))
 
-#ifdef CONFIG_DUOWEN_SOCv3
+#ifdef CONFIG_DUOWEN_TLMM
 void tlmm_config_mux(uint8_t port, uint16_t pin, uint8_t mux);
+void tlmm_config_pad(uint16_t gpio, uint8_t pad, uint8_t drv);
+void tlmm_config_irq(uint16_t gpio, uint8_t trig);
+#define tlmm_enable_irq(gpio)			\
+	__raw_setl(TLMM_INTR_EN, TLMM_PAD_GPIO_CFG(gpio))
+#define tlmm_disable_irq(gpio)			\
+	__raw_clearl(TLMM_INTR_EN, TLMM_PAD_GPIO_CFG(gpio))
+#define tlmm_clear_irq(gpio)			\
+	__raw_setl(TLMM_INTR_CLR, TLMM_PAD_GPIO_CFG(gpio))
+#define tlmm_irq_status(gpio)			\
+	(!!__raw_readl(TLMM_PAD_GPIO_STATUS(gpio)) & TLMM_INTR_STS)
 void tlmm_init(void);
-#else
+#else /* CONFIG_DUOWEN_TLMM */
 #define tlmm_config_mux(port, pin, mux)		do { } while (0)
+#define tlmm_config_pad(pin, pad, drv)		do { } while (0)
+#define tlmm_config_irq(gpio, trig)		do { } while (0)
+#define tlmm_enable_irq(gpio)			do { } while (0)
+#define tlmm_disable_irq(gpio)			do { } while (0)
+#define tlmm_clear_irq(gpio)			do { } while (0)
+#define tlmm_irq_status(gpio)			0
 #define tlmm_init()				do { } while (0)
-#endif
+#endif /* CONFIG_DUOWEN_TLMM */
 
 #endif /* __TLMM_DUOWEN_H_INCLUDE__ */
