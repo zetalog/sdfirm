@@ -130,8 +130,13 @@ struct output_clk output_clks[] = {
 		.flags = CLK_CR,
 	},
 	[COHFAB_CFG_CLK] = {
-		.clk_dep = sysfab_clk,
-		.clk_src = soc_clk,
+		.clk_dep = ddr_aclk,
+#ifdef CONFIG_DUOWEN_SOCv2
+		.clk_src = dma_clk,
+#endif
+#ifdef CONFIG_DUOWEN_SOCv3
+		.clk_src = pcie_clk,
+#endif
 		.flags = 0,
 	},
 	/* 4.4 System Fabric Clocks
@@ -245,9 +250,9 @@ struct output_clk output_clks[] = {
 	 *                              +------------------+
 	 */
 	[DDR_POR] = {
-		 .clk_dep = invalid_clk,
-		 .clk_src = invalid_clk,
-		 .flags = CLK_R,
+		.clk_dep = invalid_clk,
+		.clk_src = invalid_clk,
+		.flags = CLK_R,
 	},
 	[DDR_ACLK] = {
 		.clk_dep = invalid_clk,

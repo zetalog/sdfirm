@@ -55,8 +55,7 @@ void duowen_noc_init(void)
 	 * before configuring NoC.
 	 */
 	board_init_clock();
-	clk_enable(ddr_aclk);
-	clk_enable(ddr_arst);
+	clk_enable(cohfab_cfg_clk);
 	ncore_init(MAX_SOC_SOCKETS * MAX_CPU_CLUSTERS, 0,
 		   MAX_DDR_SEGMENTS, MAX_DDR_SEGMENTS);
 }

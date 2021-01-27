@@ -127,6 +127,7 @@
 #define BOOT_HART		HART_BASE
 #ifdef CONFIG_DUOWEN_SOC_DUAL
 #ifdef CONFIG_DUOWEN_BBL
+#define MAX_HARTS		32
 #define HART_ALL				\
 	((CPU_TO_MASK(MAX_CPU_NUM>>1)-1) |	\
 	 ((CPU_TO_MASK(MAX_CPU_NUM>>1)-1) << 16))
