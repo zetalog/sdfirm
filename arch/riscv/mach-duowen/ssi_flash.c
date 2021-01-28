@@ -51,13 +51,19 @@
 
 mtd_t board_flash = INVALID_MTD_ID;
 
+static inline void spi_config_pad(uint16_t pin, uint8_t pad, uint8_t func)
+{
+	gpio_config_pad(SSI_PORT, pin, pad, 8);
+	gpio_config_mux(SSI_PORT, pin, func);
+}
+
 void spi_hw_ctrl_init(void)
 {
-	gpio_config_mux(SSI_PORT, SSI_PIN_RXD, TLMM_GROUP_FUNCTION);
-	gpio_config_mux(SSI_PORT, SSI_PIN_TXD, TLMM_GROUP_FUNCTION);
-	gpio_config_mux(SSI_PORT, SSI_PIN_SCK, TLMM_GROUP_FUNCTION);
-	gpio_config_mux(SSI_PORT, SSI_PIN_SS, TLMM_GROUP_FUNCTION);
-	gpio_config_mux(SSI_PORT, SSI_PIN_SS_IN, TLMM_GROUP_FUNCTION);
+	spi_config_pad(SSI_PIN_RXD, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
+	spi_config_pad(SSI_PIN_TXD, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
+	spi_config_pad(SSI_PIN_SCK, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
+	spi_config_pad(SSI_PIN_SS, GPIO_PAD_PULL_UP, TLMM_PAD_FUNCTION);
+	spi_config_pad(SSI_PIN_SS_IN, GPIO_PAD_PULL_UP, TLMM_PAD_FUNCTION);
 
 	clk_enable(DW_SSI_CLK);
 	dw_ssi_init_master(SSI_ID, SSI_FRF_SPI,

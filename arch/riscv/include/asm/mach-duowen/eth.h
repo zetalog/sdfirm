@@ -38,18 +38,28 @@
 		clk_enable(eth_alt_ref_clk);		\
 		clk_enable(sgmii_ref_clk);		\
 	} while (0)
+#define duowen_eth_gpio_cfg(pin, pad, func)		\
+	do {						\
+		gpio_config_pad(GPIO2C, pin, pad, 8);	\
+		gpio_config_mux(GPIO2C, pin, func);	\
+	} while (0)
 #define duowen_eth_gpio_init()				\
 	do {						\
-		gpio_config_mux(GPIO2C, pad_gpio_144,	\
-				TLMM_GROUP_FUNCTION);	\
-		gpio_config_mux(GPIO2C, pad_gpio_145,	\
-				TLMM_GROUP_FUNCTION);	\
-		gpio_config_mux(GPIO2C, pad_gpio_146,	\
-				TLMM_GROUP_FUNCTION);	\
-		gpio_config_mux(GPIO2C, pad_gpio_147,	\
-				TLMM_GROUP_FUNCTION);	\
-		gpio_config_mux(GPIO2C, pad_gpio_148,	\
-				TLMM_GROUP_FUNCTION);	\
+		duowen_eth_gpio_cfg(pad_gpio_144,	\
+				    GPIO_PAD_PULL_DOWN,	\
+				    TLMM_PAD_FUNCTION);	\
+		duowen_eth_gpio_cfg(pad_gpio_145,	\
+				    GPIO_PAD_PULL_DOWN,	\
+				    TLMM_PAD_FUNCTION);	\
+		duowen_eth_gpio_cfg(pad_gpio_146,	\
+				    GPIO_PAD_PULL_DOWN,	\
+				    TLMM_PAD_FUNCTION);	\
+		duowen_eth_gpio_cfg(pad_gpio_147,	\
+				    GPIO_PAD_PULL_DOWN,	\
+				    TLMM_PAD_FUNCTION);	\
+		duowen_eth_gpio_cfg(pad_gpio_148,	\
+				    GPIO_PAD_PULL_DOWN,	\
+				    TLMM_PAD_FUNCTION);	\
 	} while (0)
 
 #ifdef CONFIG_DUOWEN_ETH

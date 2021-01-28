@@ -51,19 +51,25 @@ void duowen_sd_power(void)
 	__raw_setl(IMC_SD_HOST_REG_VOL_STABLE, SCSR_SD_STABLE);
 }
 
+static inline void duowen_sd_gpio(uint16_t pin, uint8_t pad, uint8_t mux)
+{
+	gpio_config_pad(GPIO1A, pin, pad, 8);
+	gpio_config_mux(GPIO1A, pin, mux);
+}
+
 void duowen_mshc_init(void)
 {
 	__unused mmc_slot_t sslot;
 
-	gpio_config_mux(GPIO1A, pad_gpio_32, TLMM_GROUP_FUNCTION);
-	gpio_config_mux(GPIO1A, pad_gpio_33, TLMM_GROUP_FUNCTION);
-	gpio_config_mux(GPIO1A, pad_gpio_34, TLMM_GROUP_FUNCTION);
-	gpio_config_mux(GPIO1A, pad_gpio_35, TLMM_GROUP_FUNCTION);
-	gpio_config_mux(GPIO1A, pad_gpio_36, TLMM_GROUP_FUNCTION);
-	gpio_config_mux(GPIO1A, pad_gpio_37, TLMM_GROUP_FUNCTION);
-	gpio_config_mux(GPIO1A, pad_gpio_38, TLMM_GROUP_FUNCTION);
-	gpio_config_mux(GPIO1A, pad_gpio_39, TLMM_GROUP_FUNCTION);
-	gpio_config_mux(GPIO1A, pad_gpio_40, TLMM_GROUP_FUNCTION);
+	duowen_sd_gpio(pad_gpio_32, GPIO_PAD_PULL_UP, TLMM_PAD_FUNCTION);
+	duowen_sd_gpio(pad_gpio_33, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
+	duowen_sd_gpio(pad_gpio_34, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
+	duowen_sd_gpio(pad_gpio_35, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
+	duowen_sd_gpio(pad_gpio_36, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
+	duowen_sd_gpio(pad_gpio_37, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
+	duowen_sd_gpio(pad_gpio_38, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
+	duowen_sd_gpio(pad_gpio_39, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
+	duowen_sd_gpio(pad_gpio_40, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
 
 	duowen_sd_power();
 	clk_enable(sd_clk);

@@ -287,7 +287,7 @@ uint8_t gpio_hw_read_pin(uint8_t port, uint16_t pin);
 void gpio_hw_write_pin(uint8_t port, uint16_t pin, uint8_t val);
 void gpio_hw_config_pad(uint8_t port, uint16_t pin,
 			uint8_t pad, uint8_t drv);
-#define gpio_hw_config_mux(port, pin, mux)	tlmm_config_mux(port, pin, mux)
+void gpio_hw_config_mux(uint8_t port, uint16_t pin, uint8_t mux);
 #ifdef CONFIG_DUOWEN_GPIO_PORT
 uint32_t gpio_hw_read_port(uint8_t port, uint32_t mask);
 void gpio_hw_write_port(uint8_t port, uint32_t value);

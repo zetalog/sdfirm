@@ -57,21 +57,21 @@ static inline void uart_config_pad(bool rxtx, uint16_t pin,
 void uart_hw_con_init(void)
 {
 	uart_config_pad(true, UART_CON_PIN_RXD, GPIO_PAD_PULL_DOWN,
-			TLMM_GROUP_FUNCTION);
+			TLMM_PAD_FUNCTION);
 	uart_config_pad(true, UART_CON_PIN_TXD, GPIO_PAD_PULL_DOWN,
-			TLMM_GROUP_FUNCTION);
+			TLMM_PAD_FUNCTION);
 	uart_config_pad(false, UART_CON_PIN_CTS, GPIO_PAD_PULL_UP,
-			TLMM_GROUP_FUNCTION);
+			TLMM_PAD_FUNCTION);
 	uart_config_pad(false, UART_CON_PIN_RTS, GPIO_PAD_PULL_UP,
-			TLMM_GROUP_FUNCTION);
+			TLMM_PAD_FUNCTION);
 	uart_config_pad(false, UART_CON_PIN_DSR, GPIO_PAD_PULL_UP,
-			TLMM_GROUP_FUNCTION);
+			TLMM_PAD_FUNCTION);
 	uart_config_pad(false, UART_CON_PIN_DTR, GPIO_PAD_PULL_UP,
-			TLMM_GROUP_FUNCTION);
+			TLMM_PAD_FUNCTION);
 	uart_config_pad(false, UART_CON_PIN_RI, GPIO_PAD_PULL_UP,
-			TLMM_GROUP_FUNCTION);
+			TLMM_PAD_FUNCTION);
 	uart_config_pad(false, UART_CON_PIN_DCD, GPIO_PAD_PULL_UP,
-			TLMM_GROUP_FUNCTION);
+			TLMM_PAD_FUNCTION);
 
 	board_init_clock();
 	clk_enable(UART_CLK_ID);
