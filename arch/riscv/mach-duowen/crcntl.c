@@ -89,6 +89,7 @@ bool crcntl_clk_asserted(clk_clk_t clk)
 	return !!(__raw_readl(CRCNTL_SW_RST_CFG(n)) & _BV(bit));
 }
 
+#ifdef CONFIG_CRCNTL_RESET
 void crcntl_clk_assert(clk_clk_t clk)
 {
 	uint8_t n, bit;
@@ -99,6 +100,11 @@ void crcntl_clk_assert(clk_clk_t clk)
 		__raw_setl(_BV(bit), CRCNTL_SW_RST_CFG(n));
 	}
 }
+#else
+void crcntl_clk_assert(clk_clk_t clk)
+{
+}
+#endif
 
 void crcntl_clk_deassert(clk_clk_t clk)
 {

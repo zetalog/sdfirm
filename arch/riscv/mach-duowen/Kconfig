@@ -373,6 +373,10 @@ if CRCNTL
 config CRCNTL_MUX
 	bool "Enable clock multiplexing support"
 
+config CRCNTL_RESET
+	bool "Enable auto reset on gated clock support"
+	depends !(DUOWEN_ZEBU && DUOWEN_NOC)
+
 config CRCNTL_TRACE
 	bool "Enable clock tree enabling/disabling trace logs"
 	depends EXPERIMENTAL

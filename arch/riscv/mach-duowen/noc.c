@@ -51,11 +51,15 @@
 
 void duowen_noc_init(void)
 {
-	/* DDR clock must be enabled and DDR reset must be released
-	 * before configuring NoC.
+	/* NoC connects to fabrics and DDR/PCIes. So their clocks must
+	 * be enabled before configuring NoC.
 	 */
 	board_init_clock();
-	clk_enable(cohfab_cfg_clk);
+	/* Ensured required clocks */
+	duowen_clk_imc_init();
+	duowen_clk_apc_init();
+	clk_enable(ddr_aclk);
+	clk_enable(pcie_aclk);
 	ncore_init(MAX_SOC_SOCKETS * MAX_CPU_CLUSTERS, 0,
 		   MAX_DDR_SEGMENTS, MAX_DDR_SEGMENTS);
 }

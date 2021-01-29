@@ -130,7 +130,7 @@ struct output_clk output_clks[] = {
 		.flags = CLK_CR,
 	},
 	[COHFAB_CFG_CLK] = {
-		.clk_dep = ddr_aclk,
+		.clk_dep = sysfab_clk,
 #ifdef CONFIG_DUOWEN_SOCv2
 		.clk_src = dma_clk,
 #endif
