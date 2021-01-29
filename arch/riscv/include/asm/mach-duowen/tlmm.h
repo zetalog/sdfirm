@@ -93,7 +93,7 @@
 #define TLMM_PAD_DEBUG			2
 #define TLMM_PAD_DRIVE_12MA		_BV(5)
 #define TLMM_PAD_MASK			\
-	(TLMM_PAD_PULL(TLMM_PAD_PULL_MASK) | TLMM_PAD_ST)
+	(TLMM_PAD_PULL(TLMM_PAD_PULL_MASK) | TLMM_PAD_ST | TLMM_PAD_DRIVE_12MA)
 
 /* TLMM_IE_CTRL */
 #define TLMM_PAD_IE			_BV(0)
@@ -159,6 +159,7 @@
 #define TLMM_GROUP_29_ETH		1
 
 #define NR_TLMM_GPIOS			160
+#define INVALID_TLMM_GPIO		NR_TLMM_GPIOS
 
 #define tlmm_input_enable()	__raw_setl(TLMM_PAD_IE, TLMM_PAD_IE_CTRL)
 

@@ -277,54 +277,61 @@ uint16_t duowen_gpios[NR_GPIOS] = {
 	pad_gpio_159,
 };
 
+static inline uint16_t duowen_gpio_from_pin(uint16_t pin)
+{
+	uint16_t gpio;
+
+	for (gpio = 0; gpio < ARRAY_SIZE(duowen_gpios); gpio++) {
+		if (pin == duowen_gpios[gpio])
+			return gpio;
+	}
+	return INVALID_TLMM_GPIO;
+}
+
 uint8_t gpio_hw_read_pin(uint8_t port, uint16_t pin)
 {
-	uint16_t gpios;
+	uint16_t gpio = duowen_gpio_from_pin(pin);
 
-	if (pin > ARRAY_SIZE(duowen_gpios))
+	if (gpio == INVALID_TLMM_GPIO)
 		return 0;
 
-	gpios = duowen_gpios[pin];
-	return dw_gpio_read_pin(duowen_gpio_chip(gpios),
-				duowen_gpio_port(gpios),
-				duowen_gpio_pin(gpios));
+	return dw_gpio_read_pin(duowen_gpio_chip(pin),
+				duowen_gpio_port(pin),
+				duowen_gpio_pin(pin));
 }
 
 void gpio_hw_write_pin(uint8_t port, uint16_t pin, uint8_t val)
 {
-	uint16_t gpios;
+	uint16_t gpio = duowen_gpio_from_pin(pin);
 
-	if (pin > ARRAY_SIZE(duowen_gpios))
+	if (gpio == INVALID_TLMM_GPIO)
 		return;
 
-	gpios = duowen_gpios[pin];
-	dw_gpio_write_pin(duowen_gpio_chip(gpios), duowen_gpio_port(gpios),
-			  duowen_gpio_pin(gpios), val);
+	dw_gpio_write_pin(duowen_gpio_chip(pin), duowen_gpio_port(pin),
+			  duowen_gpio_pin(pin), val);
 }
 
 void gpio_hw_config_pad(uint8_t port, uint16_t pin,
 			uint8_t pad, uint8_t drv)
 {
-	uint16_t gpios;
+	uint16_t gpio = duowen_gpio_from_pin(pin);
 
-	if (pin > ARRAY_SIZE(duowen_gpios))
+	if (gpio == INVALID_TLMM_GPIO)
 		return;
 
-	gpios = duowen_gpios[pin];
-	dw_gpio_config_pad(duowen_gpio_chip(gpios), duowen_gpio_port(gpios),
-			   duowen_gpio_pin(gpios), pad, drv);
-	tlmm_config_pad(gpios, pad, drv);
+	dw_gpio_config_pad(duowen_gpio_chip(pin), duowen_gpio_port(pin),
+			   duowen_gpio_pin(pin), pad, drv);
+	tlmm_config_pad(gpio, pad, drv);
 }
 
 void gpio_hw_config_mux(uint8_t port, uint16_t pin, uint8_t mux)
 {
-	__unused uint16_t gpios;
+	uint16_t gpio = duowen_gpio_from_pin(pin);
 
-	if (pin > ARRAY_SIZE(duowen_gpios))
+	if (gpio == INVALID_TLMM_GPIO)
 		return;
 
-	gpios = duowen_gpios[pin];
-	tlmm_config_mux(gpios, mux);
+	tlmm_config_mux(gpio, mux);
 }
 
 static bool duowen_gpio_is_porta(uint16_t gpios)
@@ -334,70 +341,65 @@ static bool duowen_gpio_is_porta(uint16_t gpios)
 
 void gpio_hw_config_irq(uint8_t port, uint16_t pin, uint8_t trig)
 {
-	uint16_t gpios;
+	uint16_t gpio = duowen_gpio_from_pin(pin);
 
-	if (pin > ARRAY_SIZE(duowen_gpios))
+	if (gpio == INVALID_TLMM_GPIO)
 		return;
 
-	gpios = duowen_gpios[pin];
-	if (duowen_gpio_is_porta(gpios))
-		dw_gpio_config_irq(duowen_gpio_chip(gpios),
-				   duowen_gpio_pin(gpios), trig);
+	if (duowen_gpio_is_porta(pin))
+		dw_gpio_config_irq(duowen_gpio_chip(pin),
+				   duowen_gpio_pin(pin), trig);
 }
 
 #ifndef CONFIG_SYS_NOIRQ
 void gpio_hw_enable_irq(uint8_t port, uint16_t pin)
 {
-	uint16_t gpios;
+	uint16_t gpio = duowen_gpio_from_pin(pin);
 
-	if (pin > ARRAY_SIZE(duowen_gpios))
+	if (gpio == INVALID_TLMM_GPIO)
 		return;
 
-	gpios = duowen_gpios[pin];
-	if (duowen_gpio_is_porta(gpios))
-		dw_gpio_enable_irq(duowen_gpio_chip(gpios),
-				   duowen_gpio_pin(gpios));
+	if (duowen_gpio_is_porta(pin))
+		dw_gpio_enable_irq(duowen_gpio_chip(pin),
+				   duowen_gpio_pin(pin));
 }
 
 void gpio_hw_disable_irq(uint8_t port, uint16_t pin)
 {
-	uint16_t gpios;
+	uint16_t gpio = duowen_gpio_from_pin(pin);
 
-	if (pin > ARRAY_SIZE(duowen_gpios))
+	if (gpio == INVALID_TLMM_GPIO)
 		return;
 
-	gpios = duowen_gpios[pin];
-	if (duowen_gpio_is_porta(gpios))
-		dw_gpio_disable_irq(duowen_gpio_chip(gpios),
-				    duowen_gpio_pin(gpios));
+	if (duowen_gpio_is_porta(pin))
+		dw_gpio_disable_irq(duowen_gpio_chip(pin),
+				    duowen_gpio_pin(pin));
 }
 #endif
 
 void gpio_hw_clear_irq(uint8_t port, uint16_t pin)
 {
-	uint16_t gpios;
+	uint16_t gpio = duowen_gpio_from_pin(pin);
 
-	if (pin > ARRAY_SIZE(duowen_gpios))
+	if (gpio == INVALID_TLMM_GPIO)
 		return;
 
-	gpios = duowen_gpios[pin];
-	if (duowen_gpio_is_porta(gpios))
-		dw_gpio_clear_irq(duowen_gpio_chip(gpios),
-				  duowen_gpio_pin(gpios));
+	if (duowen_gpio_is_porta(pin))
+		dw_gpio_clear_irq(duowen_gpio_chip(pin),
+				  duowen_gpio_pin(pin));
 }
 
 uint8_t gpio_hw_irq_status(uint8_t port, uint16_t pin)
 {
-	uint16_t gpios;
+	uint16_t gpio = duowen_gpio_from_pin(pin);
 	bool girq = 0;
 
-	if (pin > ARRAY_SIZE(duowen_gpios))
+	if (gpio == INVALID_TLMM_GPIO)
 		return 0;
 
-	gpios = duowen_gpios[pin];
-	if (duowen_gpio_is_porta(gpios))
-		girq = dw_gpio_irq_status(duowen_gpio_chip(gpios),
-					  duowen_gpio_pin(gpios));
+	if (duowen_gpio_is_porta(pin))
+		girq = dw_gpio_irq_status(duowen_gpio_chip(pin),
+					  duowen_gpio_pin(pin));
 	return girq;
 }
 #endif /* CONFIG_DUOWEN_GPIO_PORT */
