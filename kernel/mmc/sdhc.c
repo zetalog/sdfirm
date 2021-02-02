@@ -203,7 +203,7 @@ void sdhc_send_command(uint8_t cmd, uint32_t arg)
 		__raw_writeb(0xE, SDHC_TIMEOUT_CONTROL(mmc_sid));
 	}
 
-	__raw_writew(arg, SDHC_ARGUMENT(mmc_sid));
+	__raw_writel(arg, SDHC_ARGUMENT(mmc_sid));
 	__raw_writew(SDHC_CMD(cmd, flags), SDHC_COMMAND(mmc_sid));
 
 	do {

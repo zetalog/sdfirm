@@ -71,11 +71,11 @@ void duowen_mshc_init(void)
 	duowen_sd_gpio(pad_gpio_39, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
 	duowen_sd_gpio(pad_gpio_40, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
 
-	duowen_sd_power();
 	clk_enable(sd_clk);
 	sslot = mmc_slot_save(0);
 	sdhc_init(0, 0);
-	sdhc_set_clock(MMC_FREQ_IDENTIFICATION);
+	/* SoC power stable PIN assignment */
+	duowen_sd_power();
 	mmc_slot_restore(sslot);
 }
 

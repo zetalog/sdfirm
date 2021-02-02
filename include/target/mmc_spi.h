@@ -89,6 +89,8 @@
 #define mmc_hw_recv_response(resp, len)	mmc_spi_recv(resp, len)
 #define mmc_hw_tran_data(dat, len, cnt)	mmc_spi_tran(dat, len, cnt)
 #define mmc_hw_card_busy()		mmc_spi_busy()
+#define mmc_hw_set_clock(clock)		do { } while (0)
+#define mmc_hw_set_width(width)		do { } while (0)
 #endif
 
 void mmc_spi_init(void);

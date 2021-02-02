@@ -43,6 +43,50 @@
 #include <target/cmdline.h>
 #include <target/jiffies.h>
 
+/* 4.2.3 Card Initialization and Identification Process
+ * Application Notes:
+ * The host shall set ACMD41 timeout more than 1 second to abort repeat of
+ * issueing ACMD41 when the card does not indicate ready. The timeout
+ * count starts from the first ACMD41 which is set voltage window in the
+ * argument.
+ */
+#define SD_READY_TIMEOUT_MS		1000
+/* 4.6.2.1 Read
+ * For a Standard Capacity SD Memory Card, the times after which a timeout
+ * condition for read operations occurs are (card independent) either 100
+ * times longer than the typical access times for these operations given
+ * below or 100ms (the lower of the two). The read access time is defined
+ * as the sum of the two times given by the CSD parameters TAAC and NSAC.
+ * A High Capacity SD Memory Card and Extended Capacity SD Memory Card
+ * indicate TAAC and NSAC as fixed value, the host should use 100ms
+ * timeout (mimimum) for single and multiple read operation rather than
+ * using TAAC and NSAC.
+ */
+#define SD_READ_TIMEOUT_MS		100
+/* 4.6.2.2 Write
+ * For a Standard Capacity SD Memory Card, the times after which a timeout
+ * condition for write operations occurs are (card independent) either 100
+ * times longer than the typical access times for these operations given
+ * below or 250ms (the lower of the two). The R2W_FACTOR field in the CSD
+ * is used to calculate the typical block program time obtained by
+ * multiplying the read access time by this factor. High Capacity SD
+ * Memory Card and Extended SD Memory Card indicate R2W_FACTOR as a fixed
+ * value.
+ * In case of High Capacity SD Memory Card, maximum length of busy is
+ * defined as 250ms for all write operation.
+ * Application Notes:
+ * The host should use a fixed timeout for write operation rather than
+ * using a timeout calculated from the R2W_FACTOR parameter.
+ * It is strongly recommended for hosts to implement more than 500ms
+ * timeout value even if the card indicates the 250ms maximum busy length.
+ * Even if the card supports Speed Class, any multiple block write
+ * operation may indicate a busy period of up to a maximum 250ms. The sum
+ * of the busy period over an AU is limited by Speed Class.
+ * In UHS-II mode, refer to the UHS-II Addendum about host timeout
+ * setting.
+ */
+#define SD_WRITE_TIMEOUT_MS		500
+
 #ifdef CONFIG_SD_SPI
 bool sd_spi_mode = true;
 #else
@@ -821,7 +865,7 @@ void sd_send_acmd(void)
 		break;
 	case SD_ACMD_SEND_OP_COND:
 		mmc_slot_ctrl.rsp = MMC_R3;
-		arg = mmc_slot_ctrl.host_ocr;
+		arg = SD_OCR_HCS | mmc_slot_ctrl.host_ocr;
 		break;
 	case SD_ACMD_SET_CLR_CARD_DETECT:
 		mmc_slot_ctrl.rsp = MMC_R1;

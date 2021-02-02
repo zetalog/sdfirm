@@ -141,7 +141,11 @@ void sd_spi_send_acmd(void)
 		break;
 	case SD_ACMD_SEND_OP_COND:
 		mmc_slot_ctrl.rsp = MMC_R1;
+#if 0
+		arg = SD_OCR_HCS;
+#else
 		arg = mmc_slot_ctrl.host_ocr;
+#endif
 		break;
 	case SD_ACMD_SET_CLR_CARD_DETECT:
 		mmc_slot_ctrl.rsp = MMC_R1;
