@@ -36,7 +36,7 @@ typedef boolean (*iobyte_cb)(uint8_t *c);
 		if (cond)					\
 			break;					\
 		if (timeout_ms &&				\
-		    time_after(timeout, tick_get_counter())) {	\
+		    time_before(timeout, tick_get_counter())) {	\
 			v = __raw_read##op(a);			\
 			break;					\
 		}						\
