@@ -75,6 +75,7 @@ void duowen_mshc_init(void)
 	clk_enable(sd_clk);
 	sslot = mmc_slot_save(0);
 	sdhc_init(0, 0);
+	sdhc_set_clock(MMC_FREQ_IDENTIFICATION);
 	mmc_slot_restore(sslot);
 }
 

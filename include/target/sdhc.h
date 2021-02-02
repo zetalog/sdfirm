@@ -625,9 +625,6 @@
 #define SDHC_SPEC(x)					\
 	SDHC_SPECIFICATION_VERSION_NUMBER((x)->version)
 
-/* Other definitions */
-#define SDHC_INTERNAL_CLOCK_STABLE_TOUT_MS	150
-
 /* Host SDMA buffer boundary.
  * Valid values from 4K to 512K in powers of 2.
  */
@@ -698,13 +695,17 @@ struct sdhc_host {
 #define sdhc_power_on_vdd2(mmc, power)		do { } while (0)
 #endif
 
-#define sdhc_state_present(mmc, state)		\
+#define sdhc_state_present(mmc, state)				\
 	(__raw_readl(SDHC_PRESENT_STATE(mmc)) & (state))
-
-#define sdhc_set_clock_step(mmc, step)		\
+#define sdhc_set_clock_step(mmc, step)				\
 	__raw_setw(step, SDHC_CLOCK_CONTROL(mmc))
-#define sdhc_clear_clock_step(mmc, step)	\
+#define sdhc_clear_clock_step(mmc, step)			\
 	__raw_clearw(step, SDHC_CLOCK_CONTROL(mmc))
+#define sdhc_software_reset(mmc, mask)				\
+	do {							\
+		__raw_writeb(mask, SDHC_SOFTWARE_RESET(mmc));	\
+		while (__raw_readb(SDHC_SOFTWARE_RESET(mmc)));	\
+	} while (0)
 
 #ifdef CONFIG_SDHC_SD
 #define sdhc_enable_high_speed(mmc)		\

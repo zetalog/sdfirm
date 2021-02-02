@@ -102,6 +102,8 @@ typedef uint8_t mmc_r1_t[4];
 typedef uint8_t mmc_r2_t[16];
 typedef uint8_t mmc_r3_t[4];
 
+#define MMC_FREQ_IDENTIFICATION		400000
+
 enum mmc_bus_mode {
 	MMC_LEGACY,
 	MMC_HS,
@@ -575,6 +577,7 @@ typedef struct {
 typedef void (*mmc_cmpl_cb)(mmc_rca_t rca, uint8_t op, bool result);
 
 struct mmc_slot {
+	enum mmc_bus_mode mode;
 	uint8_t state;
 	uint8_t cmd;
 	uint8_t acmd;
@@ -742,6 +745,7 @@ uint8_t mmc_get_block_data(void);
 void mmc_wait_busy(void);
 
 uint32_t mmc_mode2freq(enum mmc_bus_mode mode);
+bool mmc_mode_isddr(enum mmc_bus_mode mode);
 mmc_card_t mmc_register_card(mmc_rca_t rca);
 int mmc_card_read_async(mmc_rca_t rca, uint8_t *buf,
 			mmc_lba_t lba, size_t cnt);

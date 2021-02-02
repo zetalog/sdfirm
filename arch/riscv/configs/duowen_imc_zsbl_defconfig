@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Jan 29 18:58:25 2021
+# Tue Feb  2 09:58:06 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -373,6 +373,7 @@ CONFIG_SDHC_SD=y
 # CONFIG_SDHC_PM is not set
 # CONFIG_SDHC_BUFFER is not set
 # CONFIG_SDHC_AUTO_CMD12 is not set
+# CONFIG_SDHC_ACCEL is not set
 CONFIG_ARCH_HAS_DDR=y
 # CONFIG_DDR is not set
 CONFIG_ARCH_HAS_PCI=y

@@ -296,6 +296,30 @@ uint32_t mmc_mode2freq(enum mmc_bus_mode mode)
 		return freqs[mode];
 }
 
+bool mmc_mode_isddr(enum mmc_bus_mode mode)
+{
+	static const int ddrs[] = {
+	      [MMC_LEGACY]	= false,
+	      [MMC_HS]		= false,
+	      [SD_HS]		= false,
+	      [MMC_HS_52]	= false,
+	      [MMC_DDR_52]	= true,
+	      [UHS_SDR12]	= false,
+	      [UHS_SDR25]	= false,
+	      [UHS_SDR50]	= false,
+	      [UHS_DDR50]	= true,
+	      [UHS_SDR104]	= false,
+	      [MMC_HS_200]	= false,
+	      [MMC_HS_400]	= true,
+	      [MMC_HS_400_ES]	= true,
+	};
+
+	if (mode >= MMC_MODES_END)
+		return false;
+	else
+		return ddrs[mode];
+}
+
 uint8_t mmc_crc7_update(uint8_t crc, uint8_t data)
 {
 	int i;
@@ -476,6 +500,7 @@ int mmc_read_blocks(uint8_t *buf, mmc_lba_t lba,
 
 void mmc_reset_slot(void)
 {
+	mmc_slot_ctrl.mode = MMC_LEGACY;
 	mmc_slot_ctrl.op = MMC_OP_NO_OP;
 	mmc_slot_ctrl.cmd = MMC_CMD_NONE;
 	mmc_slot_ctrl.dat = mmc_slot_buf;
@@ -485,6 +510,8 @@ void mmc_reset_slot(void)
 	mmc_slot_ctrl.event = 0;
 	mmc_slot_ctrl.flags = 0;
 	mmc_phy_reset_slot();
+	mmc_hw_set_width(1);
+	mmc_hw_set_clock(MMC_FREQ_IDENTIFICATION);
 	mmc_hw_card_detect();
 }
 

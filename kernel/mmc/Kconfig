@@ -201,6 +201,10 @@ config SDHC_AUTO_CMD23
 	bool "Auto CMD23 support"
 	depends SDHC4
 
+config SDHC_ACCEL
+	bool "Enable simulation acceleration"
+	depends SIMULATION
+
 endif
 
 endif

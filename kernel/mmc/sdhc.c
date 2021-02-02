@@ -43,27 +43,21 @@
 #include <target/delay.h>
 #include <target/jiffies.h>
 
+#define SDHC_TRANSFER_TOUT_US		(2*1000*1000)
+
 struct sdhc_host sdhc_hosts[NR_MMC_SLOTS];
+
+#ifdef CONFIG_SDHC_ACCEL
+#define sdhc_udelay(us)			do { } while (0)
+#else
+#define sdhc_udelay(us)			udelay(us)
+#endif
 
 struct sdhc_host *mmc2sdhc(void)
 {
 	if (mmc_sid >= NR_MMC_SLOTS)
 		return NULL;
 	return sdhc_hosts + mmc_sid;
-}
-
-static void sdhc_reset(uint8_t mask)
-{
-	uint8_t tmp;
-
-	/* Wait max 100 ms */
-	__raw_writeb(mask, SDHC_SOFTWARE_RESET(mmc_sid));
-	if (!__raw_read_poll(b, SDHC_SOFTWARE_RESET(mmc_sid), tmp,
-			     !(tmp & mask), 0, 100)) {
-		printf("%s: Reset 0x%x never completed.\n",
-		       __func__, (int)mask);
-		return;
-	}
 }
 
 static void sdhc_transfer_pio(uint32_t *block)
@@ -83,16 +77,16 @@ static void sdhc_transfer_pio(uint32_t *block)
 
 static void sdhc_transfer_data(void)
 {
-	unsigned int stat, rdy, mask, timeout, block = 0;
+	unsigned int stat, rdy, mask, block = 0;
 	bool transfer_done = false;
 	uint32_t *buf = (uint32_t *)mmc_slot_ctrl.block_data;
+	unsigned int timeout = SDHC_TRANSFER_TOUT_US;
 #ifdef CONFIG_SDHC_SDMA
 	uint32_t start_addr = 0;
 
 	sdhc_config_dma(mmc_sid, SDHC_SDMA);
 #endif
 
-	timeout = 1000000;
 	rdy = SDHC_BUFFER_READ_READY | SDHC_BUFFER_WRITE_READY;
 	mask = SDHC_BUFFER_READ_ENABLE | SDHC_BUFFER_WRITE_ENABLE;
 	do {
@@ -128,7 +122,7 @@ static void sdhc_transfer_data(void)
 		}
 #endif
 		if (timeout-- > 0)
-			udelay(10);
+			sdhc_udelay(1);
 		else {
 			printf("%s: Transfer data timeout\n", __func__);
 			mmc_cmd_failure(MMC_ERR_TIMEOUT);
@@ -321,30 +315,23 @@ void sdhc_stop_clock(void)
 	sdhc_clear_clock_step(mmc_sid, SDHC_CLOCK_ENABLE);
 }
 
-static bool sdhc_clock_stabilised(void)
+static void sdhc_clock_stabilise(void)
 {
-	tick_t timeout = SDHC_INTERNAL_CLOCK_STABLE_TOUT_MS;
+	while (!(__raw_readw(SDHC_CLOCK_CONTROL(mmc_sid)) &
+	       SDHC_INTERNAL_CLOCK_STABLE));
+}
 
-	do {
-		if (__raw_readw(SDHC_CLOCK_CONTROL(mmc_sid)) &
-		    SDHC_INTERNAL_CLOCK_STABLE)
-			break;
-		if (timeout == 0) {
-			printf("Internal clock not stabilised.\n");
-			return false;
-		}
-		timeout--;
-		mdelay(1);
-	} while (1);
-	return true;
+static void sdhc_enable_clock(void)
+{
+	sdhc_set_clock_step(mmc_sid, SDHC_INTERNAL_CLOCK_ENABLE);
+	sdhc_clock_stabilise();
 }
 
 #ifdef CONFIG_SDHC_SPEC_410
 static void sdhc_enable_pll(void)
 {
 	sdhc_set_clock_step(mmc_sid, SDHC_PLL_ENABLE);
-	if (!sdhc_clock_stabilised())
-		return;
+	sdhc_clock_stabilise();
 }
 static void sdhc_disable_pll(void)
 {
@@ -408,13 +395,9 @@ bool sdhc_set_clock(uint32_t clock)
 	__raw_writew(clk, SDHC_CLOCK_CONTROL(mmc_sid));
 
 	/* 3. set Internal Clock Enable */
-	sdhc_set_clock_step(mmc_sid, SDHC_INTERNAL_CLOCK_ENABLE);
+	sdhc_enable_clock();
 
-	/* 4. check Internal Clock Stable */
-	if (!sdhc_clock_stabilised())
-		return false;
-
-	/* 5. set PLL Enable */
+	/* 4. set PLL Enable */
 	sdhc_enable_pll();
 
 	sdhc_start_clock();
@@ -517,7 +500,7 @@ void sdhc_init(uint32_t f_min, uint32_t f_max)
 	 */
 	sdhc_mask_all_irqs(mmc_sid);
 
-	sdhc_reset(SDHC_SOFTWARE_RESET_FOR_ALL);
+	sdhc_software_reset(mmc_sid, SDHC_SOFTWARE_RESET_FOR_ALL);
 	sdhc_set_power(__fls32(
 			MMC_OCR_VOLTAGE_RANGE(mmc_slot_ctrl.host_ocr)));
 }
@@ -604,6 +587,6 @@ void sdhc_stop_transfer(void)
 {
 	sdhc_disable_irq(mmc_sid, SDHC_COMMAND_MASK | SDHC_TRANSFER_MASK);
 	sdhc_clear_all_irqs(mmc_sid);
-	sdhc_reset(SDHC_SOFTWARE_RESET_FOR_CMD_LINE);
-	sdhc_reset(SDHC_SOFTWARE_RESET_FOR_DAT_LINE);
+	sdhc_software_reset(mmc_sid, SDHC_SOFTWARE_RESET_FOR_CMD_LINE);
+	sdhc_software_reset(mmc_sid, SDHC_SOFTWARE_RESET_FOR_DAT_LINE);
 }
