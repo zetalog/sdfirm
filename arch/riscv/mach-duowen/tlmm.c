@@ -77,8 +77,12 @@ void tlmm_config_pad(uint16_t gpio, uint8_t pad, uint8_t drv)
 			cfg |= TLMM_PAD_ST;
 	} else {
 		/* Set 12mA if required drive strength > 8mA */
-		if (drv > 8)
-			cfg |= TLMM_PAD_DRIVE_12MA;
+		if (drv >= 11)
+			cfg |= TLMM_PAD_DRIVE(TLMM_PAD_DRIVE_11MA);
+		else if (drv >= 8)
+			cfg |= TLMM_PAD_DRIVE(TLMM_PAD_DRIVE_8MA);
+		else if (drv >= 6)
+			cfg |= TLMM_PAD_DRIVE(TLMM_PAD_DRIVE_6MA);
 	}
 	__raw_writel_mask(cfg, TLMM_PAD_MASK, TLMM_PAD_GPIO_CFG(gpio));
 }
