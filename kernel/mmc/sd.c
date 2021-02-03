@@ -442,6 +442,14 @@ static mmc_csd_t sd_decode_csd(mmc_r2_t raw_csd)
 		cmult = MMC_CSD1_C_SIZE_MULT(csd1);
 	}
 	csd.capacity = (csize + 1) << (cmult + 2);
+#ifdef CONFIG_MMC_DEBUG
+	printf("CSD_STRUCTURE: %d\n", csd.csd_structure);
+	printf("TRAN_SPEED: %d\n", csd.tran_speed);
+	printf("CAPACITY: %d\n", csd.capacity);
+	printf("BL_LEN: %d\n", csd.read_bl_len);
+	printf("BL_PARTIAL: %d\n", csd.read_bl_partial);
+	printf("BLK_MISALIGN: %d\n", csd.read_blk_misalign);
+#endif
 	return csd;
 }
 

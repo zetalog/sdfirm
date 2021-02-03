@@ -53,7 +53,9 @@
  * SD registers
  *===========================================================================*/
 /* 128-bit registers */
-#define SDHC_RESPONSE(n, byte)		SDHC_REG(n, 0x10 + (byte))
+#define SDHC_RESPONSE8(n, byte)		SDHC_REG(n, 0x10 + (byte))
+#define SDHC_RESPONSE16(n, half)	SDHC_REG(n, 0x10 + ((half) << 1))
+#define SDHC_RESPONSE32(n, word)	SDHC_REG(n, 0x10 + ((word) << 2))
 
 /* 64-bit registers */
 #define SDHC_CAPABILITIES(n)		SDHC_REG(n, 0x040)

@@ -252,17 +252,17 @@ void sdhc_recv_response(uint8_t *resp, uint8_t size)
 		/* CRC is stripped so we need to do some shifting. */
 		len = 0;
 		for (i = 0; i < 4; i++) {
-			len += 4;
-			reg = __raw_readl(SDHC_RESPONSE(
-				mmc_sid, (3-i)*4)) << 8;
+			reg = __raw_readl(
+				SDHC_RESPONSE32(mmc_sid, 3-i)) << 8;
 			if (i != 3)
-				reg |= __raw_readb(SDHC_RESPONSE(
-					mmc_sid, (3-i)*4-1));
-			sdhc_decode_reg(resp + i,
-					 size >= len ? 4 : 0, reg);
+				reg |= __raw_readb(
+					SDHC_RESPONSE8(mmc_sid, (3-i)*4-1));
+			sdhc_decode_reg(resp + len,
+					size >= len ? 4 : 0, reg);
+			len += 4;
 		}
 	} else {
-		reg = __raw_readl(SDHC_RESPONSE(mmc_sid, 0));
+		reg = __raw_readl(SDHC_RESPONSE32(mmc_sid, 0));
 		sdhc_decode_reg(resp, size, reg);
 	}
 	sdhc_stop_transfer();
