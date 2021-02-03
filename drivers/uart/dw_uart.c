@@ -99,6 +99,7 @@ void dw_uart_con_init(uint32_t freq)
 	__raw_writel(LOBYTE(divisor), UART_DLL(UART_CON_ID));
 	__raw_writel(HIBYTE(divisor), UART_DLH(UART_CON_ID));
 	dw_uart_config_frac(UART_CON_ID, fraction);
+	dw_uart_wait_busy(UART_CON_ID);
 	__raw_clearl(LCR_DLAB, UART_LCR(UART_CON_ID));
 	/* Configure parameters */
 	__raw_writel(dw_uart_convert_params(UART_DEF_PARAMS),
