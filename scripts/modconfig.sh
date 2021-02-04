@@ -3,6 +3,7 @@
 SCRIPT=`(cd \`dirname $0\`; pwd)`
 SRCTREE=`(cd ${SCRIPT}/..; pwd)`
 MODCONFIG=${SRCTREE}/scripts/config
+VERBOSE=no
 
 fatal()
 {
@@ -83,8 +84,9 @@ apply_kconfig_file()
 usage()
 {
 	echo "Usage:"
-	echo "`basename $0` defconfig modconfig [mode]"
+	echo "`basename $0` [-v] defconfig modconfig [mode]"
 	echo "Where:"
+	echo "      [-v]: specify verbosity of defconfig"
 	echo " defconfig: specify default configuration"
 	echo " modconfig: specify configuration modification file"
 	echo " mode: old    - oldconfig after configuration"
@@ -99,6 +101,16 @@ fatal_usage()
 	usage 1
 }
 
+while getopts "v" opt
+do
+	case $opt in
+	v) VERBOSE=yes;;
+	?) echo "Invalid argument $opt"
+	   fatal_usage;;
+	esac
+done
+shift $(($OPTIND - 1))
+
 if [ -z $1 ]; then
 	fatal_usage "Missing defconfig"
 fi
@@ -106,7 +118,11 @@ if [ -z $2 ]; then
 	fatal_usage "Missing modconfig"
 fi
 
-make $1
+if [ "x${VERBOSE}" = "xyes" ]; then
+	make $1
+else
+	make $1 > /dev/null
+fi
 apply_kconfig_file $2
 
 if [ -z $3 ]; then
