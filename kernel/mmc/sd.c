@@ -713,7 +713,8 @@ void sd_resp_r1(void)
 	raise_bits(mmc_slot_ctrl.flags, MMC_SLOT_CARD_STATUS_VALID);
 	mmc_slot_ctrl.csr = MAKELONG(MAKEWORD(r1[0], r1[1]),
 				     MAKEWORD(r1[2], r1[3]));
-	if (mmc_slot_ctrl.cmd == MMC_CMD_APP_CMD) {
+	if (mmc_slot_ctrl.cmd == MMC_CMD_APP_CMD &&
+	    !(mmc_slot_ctrl.flags & MMC_SLOT_WAIT_APP_CMD)) {
 		switch (mmc_slot_ctrl.acmd) {
 		case SD_ACMD_SD_STATUS:
 			/* TODO: parse SD_STATUS */
@@ -874,7 +875,7 @@ void sd_send_acmd(void)
 		break;
 	case SD_ACMD_SEND_OP_COND:
 		mmc_slot_ctrl.rsp = MMC_R3;
-		arg = SD_OCR_HCS | mmc_slot_ctrl.host_ocr;
+		arg = mmc_slot_ctrl.host_ocr;
 		break;
 	case SD_ACMD_SET_CLR_CARD_DETECT:
 		mmc_slot_ctrl.rsp = MMC_R1;
@@ -884,6 +885,7 @@ void sd_send_acmd(void)
 		mmc_slot_ctrl.rsp = MMC_R1;
 		/* 64-bits SCR register */
 		MMC_BLOCK(READ, 8, 1);
+		mmc_slot_ctrl.block_data = mmc_slot_ctrl.sd_regs;
 		break;
 	default:
 		break;

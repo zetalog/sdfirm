@@ -464,6 +464,7 @@ typedef struct {
 #define sd_state_enter(state)	mmc_state_set(SD_STATE_##state)
 
 #define MMC_PHY_SLOT				\
+	uint8_t sd_regs[8];			\
 	sd_cid_t cid;				\
 	sd_scr_t host_scr;			\
 	sd_scr_t card_scr;			\
