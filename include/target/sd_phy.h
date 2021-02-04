@@ -262,6 +262,8 @@ typedef struct {
 } __packed sd_cid_t;
 
 /* 5.3.3 CSD Register (CSD Version 2.0) */
+#define SD_CSD3_CSD_VERSION_1_0		0
+#define SD_CSD3_CSD_VERSION_2_0		1
 /* CSD2 */
 #define SD_CSD20_2_C_SIZE_OFFSET	0
 #define SD_CSD20_2_C_SIZE_MASK		REG_6BIT_MASK

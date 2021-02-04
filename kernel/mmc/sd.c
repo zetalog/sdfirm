@@ -426,13 +426,16 @@ static mmc_csd_t sd_decode_csd(mmc_r2_t raw_csd)
 	csd.write_bl_len = MMC_CSD0_WRITE_BL_LEN(csd0);
 	csd.write_bl_partial = !!(MMC_CSD0_WRITE_BL_PARTIAL & csd0);
 	csd.write_blk_misalign = !!(MMC_CSD2_WRITE_BLK_MISALIGN & csd2);
-#ifdef CONFIG_MMC_DEBUG
 	if (csd.read_bl_len != csd.write_bl_len)
 		printf("Mismatched BL_LEN: READ - %d, WRITE - %d\n",
 		       csd.read_bl_len, csd.write_bl_len);
-#endif
 	csd.dsr_imp = !!(MMC_CSD2_DSR_IMP & csd2);
-	if (mmc_slot_ctrl.card_ocr & SD_OCR_HCS) {
+	if (csd.csd_structure == SD_CSD3_CSD_VERSION_2_0) {
+		if (csd.read_bl_len != 9) {
+			printf("Mismatched BL_LEN: FIXED(9) - %d\n",
+			       csd.read_bl_len);
+			csd.read_bl_len = csd.write_bl_len = 9;
+		}
 		csize = SD_CSD20_2_C_SIZE(csd2) << 16 |
 			SD_CSD20_1_C_SIZE(csd1);
 		cmult = 8;
@@ -445,10 +448,8 @@ static mmc_csd_t sd_decode_csd(mmc_r2_t raw_csd)
 #ifdef CONFIG_MMC_DEBUG
 	printf("CSD_STRUCTURE: %d\n", csd.csd_structure);
 	printf("TRAN_SPEED: %d\n", csd.tran_speed);
-	printf("CAPACITY: %d\n", csd.capacity);
-	printf("BL_LEN: %d\n", csd.read_bl_len);
-	printf("BL_PARTIAL: %d\n", csd.read_bl_partial);
-	printf("BLK_MISALIGN: %d\n", csd.read_blk_misalign);
+	printf("Block number: %d\n", csd.capacity);
+	printf("Block length: %d\n", _BV(csd.read_bl_len));
 #endif
 	return csd;
 }
