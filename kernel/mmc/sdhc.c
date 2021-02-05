@@ -76,6 +76,9 @@ static void sdhc_transfer_pio(uint32_t *block)
 }
 
 #ifdef CONFIG_SDHC_SDMA
+#define sdhc_dma_boundary()		\
+	SDHC_SDMA_BUFFER_BOUNDARY(SDHC_DEFAULT_BOUNDARY_ARG)
+
 static void sdhc_dma_config(uint8_t mode)
 {
 	sdhc_config_dma(mmc_sid, SDHC_SDMA);
@@ -98,9 +101,10 @@ static void sdhc_dma_close(void)
 	__raw_writel(start_addr, SDHC_SDMA_SYSTEM_ADDRESS(mmc_sid));
 }
 #else
+#define sdhc_dma_boundary()		0
+#define sdhc_dma_config(mode)		do { } while (0)
 #define sdhc_dma_open()			false
 #define sdhc_dma_close()		do { } while (0)
-#define sdhc_dma_config(mode)		do { } while (0)
 #endif
 
 static void sdhc_transfer_data(void)
@@ -118,6 +122,7 @@ static void sdhc_transfer_data(void)
 		stat = sdhc_irq_status(mmc_sid);
 		if (stat & SDHC_ERROR_INTERRUPT) {
 			printf("Error detected in status(0x%X)!\n", stat);
+			sdhc_stop_transfer();
 			mmc_dat_failure(MMC_ERR_CARD_LOOSE_BUS);
 			return;
 		}
@@ -143,10 +148,12 @@ static void sdhc_transfer_data(void)
 			sdhc_udelay(1);
 		else {
 			printf("Transfer data timeout\n");
+			sdhc_stop_transfer();
 			mmc_dat_failure(MMC_ERR_TIMEOUT);
 			return;
 		}
 	} while (!(stat & SDHC_TRANSFER_COMPLETE));
+	sdhc_stop_transfer();
 	mmc_dat_success();
 }
 
@@ -167,9 +174,6 @@ void sdhc_send_command(uint8_t cmd, uint32_t arg)
 	__unused size_t trans_bytes;
 	uint32_t mask, flags, mode;
 	uint8_t rsp = mmc_slot_ctrl.rsp;
-#ifdef CONFIG_SDHC_SDMA
-	uint32_t start_addr;
-#endif
 
 	sdhc_wait_transfer();
 	sdhc_start_transfer();
@@ -207,8 +211,7 @@ void sdhc_send_command(uint8_t cmd, uint32_t arg)
 
 		if (sdhc_dma_open())
 			mode |= SDHC_DMA_ENABLE;
-		__raw_writew(
-			SDHC_SDMA_BUFFER_BOUNDARY(SDHC_DEFAULT_BOUNDARY_ARG) |
+		__raw_writew(sdhc_dma_boundary() |
 			SDHC_TRANSFER_BLOCK_SIZE(mmc_slot_ctrl.block_len),
 			SDHC_BLOCK_SIZE(mmc_sid));
 		__raw_writew(mmc_slot_ctrl.block_cnt,
@@ -228,8 +231,8 @@ void sdhc_send_command(uint8_t cmd, uint32_t arg)
 	} while ((flags & mask) != mask);
 
 	if ((flags & (SDHC_ERROR_INTERRUPT | mask)) == mask) {
+		sdhc_clear_irq(mmc_sid, mask);
 		mmc_cmd_success();
-		sdhc_clear_irq(mmc_sid, flags);
 	} else {
 		printf("Error detected in status(0x%X)!\n", flags);
 		if (flags & SDHC_ERR_COMMAND_INDEX_ERROR)
@@ -259,6 +262,7 @@ static void sdhc_decode_reg(uint8_t *resp, uint8_t size, uint32_t reg)
 
 void sdhc_recv_response(uint8_t *resp, uint8_t size)
 {
+	uint8_t type = mmc_get_block_data();
 	uint8_t rsp = mmc_slot_ctrl.rsp;
 	int i;
 	uint32_t reg;
@@ -281,7 +285,8 @@ void sdhc_recv_response(uint8_t *resp, uint8_t size)
 		reg = __raw_readl(SDHC_RESPONSE32(mmc_sid, 0));
 		sdhc_decode_reg(resp, size, reg);
 	}
-	sdhc_stop_transfer();
+	if (!type)
+		sdhc_stop_transfer();
 }
 
 void sdhc_tran_data(uint8_t *dat, uint32_t len, uint16_t cnt)
