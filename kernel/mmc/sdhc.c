@@ -75,26 +75,50 @@ static void sdhc_transfer_pio(uint32_t *block)
 	}
 }
 
+#ifdef CONFIG_SDHC_SDMA
+static void sdhc_dma_config(uint8_t mode)
+{
+	sdhc_config_dma(mmc_sid, SDHC_SDMA);
+}
+
+static bool sdhc_dma_open(void)
+{
+	uint32_t start_addr;
+
+	/* TODO: DMA remap */
+	mmc_slot_ctrl.dat = (uint32_t)mmc_slot_ctrl.block_data;
+	__raw_writel(mmc_slot_ctrl.dat, SDHC_SDMA_SYSTEM_ADDRESS(mmc_sid));
+}
+
+static void sdhc_dma_close(void)
+{
+	mmc_slot_ctrl.dat &= ~(SDHC_DEFAULT_BOUNDARY_SIZE - 1);
+	mmc_slot_ctrl.dat += SDHC_DEFAULT_BOUNDARY_SIZE;
+	__raw_writel(mmc_slot_ctrl.dat, SDHC_SDMA_SYSTEM_ADDRESS(mmc_sid));
+	__raw_writel(start_addr, SDHC_SDMA_SYSTEM_ADDRESS(mmc_sid));
+}
+#else
+#define sdhc_dma_open()			false
+#define sdhc_dma_close()		do { } while (0)
+#define sdhc_dma_config(mode)		do { } while (0)
+#endif
+
 static void sdhc_transfer_data(void)
 {
 	unsigned int stat, rdy, mask, block = 0;
 	bool transfer_done = false;
 	uint32_t *buf = (uint32_t *)mmc_slot_ctrl.block_data;
 	unsigned int timeout = SDHC_TRANSFER_TOUT_US;
-#ifdef CONFIG_SDHC_SDMA
-	uint32_t start_addr = 0;
 
-	sdhc_config_dma(mmc_sid, SDHC_SDMA);
-#endif
+	sdhc_dma_config(SDHC_SDMA);
 
 	rdy = SDHC_BUFFER_READ_READY | SDHC_BUFFER_WRITE_READY;
 	mask = SDHC_BUFFER_READ_ENABLE | SDHC_BUFFER_WRITE_ENABLE;
 	do {
 		stat = sdhc_irq_status(mmc_sid);
 		if (stat & SDHC_ERROR_INTERRUPT) {
-			printf("%s: Error detected in status(0x%X)!\n",
-			       __func__, stat);
-			mmc_cmd_failure(MMC_ERR_CARD_LOOSE_BUS);
+			printf("Error detected in status(0x%X)!\n", stat);
+			mmc_dat_failure(MMC_ERR_CARD_LOOSE_BUS);
 			return;
 		}
 		if (!transfer_done && (stat & rdy)) {
@@ -102,7 +126,6 @@ static void sdhc_transfer_data(void)
 				continue;
 			sdhc_clear_irq(mmc_sid, rdy);
 			sdhc_transfer_pio(buf);
-			block += mmc_slot_ctrl.block_len;
 			if (++block >= mmc_slot_ctrl.block_cnt) {
 				/* Keep looping until the SDHC_INT_DATA_END is
 				 * cleared, even if we finished sending all the
@@ -112,23 +135,19 @@ static void sdhc_transfer_data(void)
 				continue;
 			}
 		}
-#ifdef CONFIG_SDHC_SDMA
 		if (!transfer_done && (stat & SDHC_DMA_INTERRUPT)) {
 			sdhc_clear_irq(mmc_sid, SDHC_DMA_INTERRUPT);
-			start_addr &= ~(SDHC_DEFAULT_BOUNDARY_SIZE - 1);
-			start_addr += SDHC_DEFAULT_BOUNDARY_SIZE;
-			__raw_writel(start_addr,
-				     SDHC_SDMA_SYSTEM_ADDRESS(mmc_sid));
+			sdhc_dma_close();
 		}
-#endif
 		if (timeout-- > 0)
 			sdhc_udelay(1);
 		else {
-			printf("%s: Transfer data timeout\n", __func__);
-			mmc_cmd_failure(MMC_ERR_TIMEOUT);
+			printf("Transfer data timeout\n");
+			mmc_dat_failure(MMC_ERR_TIMEOUT);
 			return;
 		}
 	} while (!(stat & SDHC_TRANSFER_COMPLETE));
+	mmc_dat_success();
 }
 
 /* No command will be sent by driver if card is busy, so driver must wait
@@ -186,12 +205,8 @@ void sdhc_send_command(uint8_t cmd, uint32_t arg)
 		if (type == MMC_SLOT_BLOCK_READ)
 			mode |= SDHC_DATA_TRANSFER_DIRECTION_SELECT;
 
-#ifdef CONFIG_SDHC_SDMA
-		/* TODO: Bounce buffer */
-		start_addr = (uint32_t)mmc_slot_ctrl.block_data;
-		__raw_writel(start_addr, SDHC_SDMA_SYSTEM_ADDRESS(mmc_sid));
-		mode |= SDHC_DMA_ENABLE;
-#endif
+		if (sdhc_dma_open())
+			mode |= SDHC_DMA_ENABLE;
 		__raw_writew(
 			SDHC_SDMA_BUFFER_BOUNDARY(SDHC_DEFAULT_BOUNDARY_ARG) |
 			SDHC_TRANSFER_BLOCK_SIZE(mmc_slot_ctrl.block_len),
@@ -216,6 +231,7 @@ void sdhc_send_command(uint8_t cmd, uint32_t arg)
 		mmc_cmd_success();
 		sdhc_clear_irq(mmc_sid, flags);
 	} else {
+		printf("Error detected in status(0x%X)!\n", flags);
 		if (flags & SDHC_ERR_COMMAND_INDEX_ERROR)
 			mmc_cmd_failure(MMC_ERR_ILLEGAL_COMMAND);
 		else if (flags & (SDHC_ERR_COMMAND_CRC_ERROR |
@@ -270,7 +286,7 @@ void sdhc_recv_response(uint8_t *resp, uint8_t size)
 
 void sdhc_tran_data(uint8_t *dat, uint32_t len, uint16_t cnt)
 {
-	mmc_dat_success();
+	sdhc_transfer_data();
 }
 
 bool sdhc_card_busy(void)
@@ -526,6 +542,7 @@ void sdhc_handle_irq(void)
 	}
 	/* Handle cmd/data IRQs */
 	if (irqs & SDHC_ERROR_INTERRUPT_MASK) {
+		printf("Error detected in status(0x%X)!\n", irqs);
 		if (irqs & SDHC_COMMAND_INDEX_ERROR)
 			mmc_cmd_failure(MMC_ERR_ILLEGAL_COMMAND);
 		else if (irqs & SDHC_CURRENT_LIMIT_ERROR)
@@ -542,7 +559,6 @@ void sdhc_handle_irq(void)
 	if (irqs & SDHC_COMMAND_COMPLETE) {
 		if (type)
 			sdhc_transfer_data();
-		mmc_cmd_success();
 	}
 }
 

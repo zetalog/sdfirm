@@ -672,7 +672,7 @@ struct sdhc_host {
 #define sdhc_unmask_irq(mmc, irqs)		\
 	__raw_setl(irqs, SDHC_INTERRUPT_SIGNAL(mmc))
 #define sdhc_clear_irq(mmc, irqs)		\
-	__raw_setl(irqs, SDHC_INTERRUPT_STATUS(mmc))
+	__raw_writel(irqs, SDHC_INTERRUPT_STATUS(mmc))
 #define sdhc_irq_status(mmc)			\
 	__raw_readl(SDHC_INTERRUPT_STATUS(mmc))
 #define sdhc_mask_all_irqs(mmc)			\

@@ -369,6 +369,7 @@ void mmc_dat_complete(uint8_t err)
 		mmc_event_raise(MMC_EVENT_CMD_FAILURE);
 		return;
 	}
+	mmc_phy_stop_dat();
 	mmc_event_raise(MMC_EVENT_CMD_SUCCESS);
 }
 
@@ -388,7 +389,7 @@ void mmc_rsp_complete(uint8_t err)
 		mmc_event_raise(MMC_EVENT_CMD_SUCCESS);
 		return;
 	}
-	mmc_phy_tran_dat();
+	mmc_phy_start_dat();
 }
 
 void mmc_cmd_complete(uint8_t err)

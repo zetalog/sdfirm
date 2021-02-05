@@ -713,19 +713,6 @@ void sd_resp_r1(void)
 	raise_bits(mmc_slot_ctrl.flags, MMC_SLOT_CARD_STATUS_VALID);
 	mmc_slot_ctrl.csr = MAKELONG(MAKEWORD(r1[0], r1[1]),
 				     MAKEWORD(r1[2], r1[3]));
-	if (mmc_slot_ctrl.cmd == MMC_CMD_APP_CMD &&
-	    !(mmc_slot_ctrl.flags & MMC_SLOT_WAIT_APP_CMD)) {
-		switch (mmc_slot_ctrl.acmd) {
-		case SD_ACMD_SD_STATUS:
-			/* TODO: parse SD_STATUS */
-			break;
-		case SD_ACMD_SEND_SCR:
-			mmc_slot_ctrl.host_scr = sd_decode_scr();
-			mmc_slot_ctrl.scr_valid = true;
-			break;
-		}
-	} else {
-	}
 }
 
 bool sd_resp_r1b(void)
@@ -864,7 +851,8 @@ void sd_send_acmd(void)
 	case SD_ACMD_SD_STATUS:
 		mmc_slot_ctrl.rsp = MMC_R1;
 		/* 512-bits SD status */
-		MMC_BLOCK(READ, 64, 1);
+		MMC_BLOCK(READ, SD_SD_STATUS_DATA_LEN, 1);
+		mmc_slot_ctrl.block_data = mmc_slot_ctrl.sd_data;
 		break;
 	case SD_ACMD_SEND_NUM_WR_BLOCKS:
 		mmc_slot_ctrl.rsp = MMC_R1;
@@ -884,8 +872,8 @@ void sd_send_acmd(void)
 	case SD_ACMD_SEND_SCR:
 		mmc_slot_ctrl.rsp = MMC_R1;
 		/* 64-bits SCR register */
-		MMC_BLOCK(READ, 8, 1);
-		mmc_slot_ctrl.block_data = mmc_slot_ctrl.sd_regs;
+		MMC_BLOCK(READ, SD_SCR_DATA_LEN, 1);
+		mmc_slot_ctrl.block_data = mmc_slot_ctrl.sd_data;
 		break;
 	default:
 		break;
@@ -1074,11 +1062,27 @@ void mmc_phy_send_cmd(void)
 		sd_send_cmd();
 }
 
-void mmc_phy_tran_dat(void)
+void mmc_phy_start_dat(void)
 {
 	mmc_hw_tran_data(mmc_slot_ctrl.block_data,
 			 mmc_slot_ctrl.block_len,
 			 mmc_slot_ctrl.block_cnt);
+}
+
+void mmc_phy_stop_dat(void)
+{
+	if (mmc_slot_ctrl.cmd == MMC_CMD_APP_CMD) {
+		switch (mmc_slot_ctrl.acmd) {
+		case SD_ACMD_SD_STATUS:
+			/* TODO: parse SD_STATUS */
+			break;
+		case SD_ACMD_SEND_SCR:
+			mmc_slot_ctrl.host_scr = sd_decode_scr();
+			mmc_slot_ctrl.scr_valid = true;
+			break;
+		}
+	} else {
+	}
 }
 
 void mmc_phy_reset_slot(void)

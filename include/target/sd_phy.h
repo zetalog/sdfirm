@@ -463,8 +463,12 @@ typedef struct {
 #define sd_state_le(state)	(mmc_state_get() <= SD_STATE_##state)
 #define sd_state_enter(state)	mmc_state_set(SD_STATE_##state)
 
+#define SD_SD_STATUS_DATA_LEN		64
+#define SD_SCR_DATA_LEN			8
+#define SD_MAX_DATA_LEN			SD_SD_STATUS_DATA_LEN
+
 #define MMC_PHY_SLOT				\
-	uint8_t sd_regs[8];			\
+	uint8_t sd_data[SD_MAX_DATA_LEN];	\
 	sd_cid_t cid;				\
 	sd_scr_t host_scr;			\
 	sd_scr_t card_scr;			\
@@ -504,8 +508,9 @@ uint8_t sd_get_vhs(void);
 void mmc_phy_reset_slot(void);
 void mmc_phy_handle_seq(void);
 void mmc_phy_handle_stm(void);
-void mmc_phy_recv_rsp(void);
 void mmc_phy_send_cmd(void);
-void mmc_phy_tran_dat(void);
+void mmc_phy_recv_rsp(void);
+void mmc_phy_start_dat(void);
+void mmc_phy_stop_dat(void);
 
 #endif /* __SD_PHY_H_INCLUDE__ */
