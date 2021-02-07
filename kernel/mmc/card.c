@@ -181,10 +181,7 @@ int mmc_card_read_async(mmc_rca_t rca, uint8_t *buf,
 	mem_cards[cid].lba = lba;
 	mem_cards[cid].cnt = cnt;
 	mem_cards[cid].res = false;
-	if (!(mmc_slot_ctrl.flags & MMC_SLOT_CARD_SELECT))
-		mmc_card_select_card(rca);
-	else
-		mmc_card_start_tran(rca);
+	mmc_card_start_tran(rca);
 	return 0;
 }
 

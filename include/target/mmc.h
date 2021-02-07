@@ -335,10 +335,13 @@ struct mmc_mode {
 #define mmc_cmd_is_gen_r()	(mmc_cmd_is_r() && mmc_cmd_is(MMC_CMD_GEN_CMD))
 #define mmc_cmd_is_app()				\
 	mmc_cmd_is(MMC_CMD_APP_CMD)
+#define mmc_acmd_is(_acmd)				\
+	(!!(mmc_cmd_is_app() && (mmc_slot_ctrl.acmd == (_acmd)))
 #else
-#define mmc_cmd_is_gen_w()	false
-#define mmc_cmd_is_gen_r()	false
+#define mmc_cmd_is_gen_w()				false
+#define mmc_cmd_is_gen_r()				false
 #define mmc_cmd_is_app()				false
+#define mmc_acmd_is(_acmd)				false
 #endif
 
 /* 7.10 Responses */
@@ -598,8 +601,12 @@ struct mmc_slot {
 	(MMC_SLOT_BLOCK_READ | MMC_SLOT_BLOCK_WRITE)
 #define MMC_SLOT_CARD_DETECT		_BV(8)
 #define MMC_SLOT_CARD_SELECT		_BV(9)
-#define MMC_SLOT_TRANS_STOPPED		_BV(10)
+#define MMC_SLOT_TRANS_START		_BV(10)
+#define MMC_SLOT_TRANS_STOP		_BV(11)
 	mmc_event_t event;
+	uint8_t *trans_buf;
+	uint16_t trans_cnt;
+	uint16_t trans_len;
 	/* SDSC Card (CCS=0) uses byte unit address and SDHC and SDXC
 	 * Cards (CCS=1) use block unit address (512 Bytes unit).
 	 */
@@ -653,10 +660,6 @@ struct mmc_slot {
 #define MMC_EVENT_CARD_INSERT	_BV(7)
 #define MMC_EVENT_CARD_REMOVE	_BV(8)
 #define MMC_EVENT_CARD_BUSY	_BV(9)
-#define MMC_EVENT_SELECT_CARD	_BV(10) /* SPI */
-#define MMC_EVENT_DESELECT_CARD	_BV(11) /* SPI */
-#define MMC_EVENT_START_TRAN	_BV(12)
-#define MMC_EVENT_STOP_TRAN	_BV(13)
 
 #define MMC_OP_NO_OP			0
 #define MMC_OP_IDENTIFY_CARD		1

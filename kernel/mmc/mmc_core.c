@@ -456,45 +456,27 @@ int mmc_start_op(uint8_t op, mmc_cmpl_cb cb)
 	mmc_slot_ctrl.cmd = MMC_CMD_NONE;
 	mmc_debug_op(op);
 
-	switch (op) {
-	case MMC_OP_IDENTIFY_CARD:
-		mmc_event_raise(MMC_EVENT_POWER_ON);
-		break;
-	case MMC_OP_SELECT_CARD:
-		mmc_event_raise(MMC_EVENT_SELECT_CARD);
-		break;
-	case MMC_OP_DESELECT_CARD:
-		mmc_event_raise(MMC_EVENT_DESELECT_CARD);
-		break;
-	case MMC_OP_READ_BLOCKS:
-		mmc_event_raise(MMC_EVENT_START_TRAN);
-		break;
-	}
+	mmc_phy_handle_seq();
 	return 0;
 }
 
 int mmc_read_blocks(uint8_t *buf, mmc_lba_t lba,
 		    size_t cnt, mmc_cmpl_cb cb)
 {
-	uint32_t len = 1 << mmc_slot_ctrl.csd.read_bl_len;
-	uint16_t calc_cnt;
-
 	BUG_ON(!IS_ALIGNED(lba, MMC_DATA_ALIGN));
 
 	if (mmc_slot_ctrl.card_ocr & MMC_OCR_CCS) {
-		len = MMC_DEF_BL_LEN;
 		mmc_slot_ctrl.address = lba;
-		calc_cnt = cnt;
+		mmc_slot_ctrl.trans_len = MMC_DEF_BL_LEN;
+		mmc_slot_ctrl.trans_cnt = cnt;
 	} else {
-		len = 1 << mmc_slot_ctrl.csd.read_bl_len;
+		uint16_t len = 1 << mmc_slot_ctrl.csd.read_bl_len;
+
 		mmc_slot_ctrl.address = lba * len;
-		calc_cnt = cnt * len / MMC_DEF_BL_LEN;
+		mmc_slot_ctrl.trans_len = len;
+		mmc_slot_ctrl.trans_cnt = cnt * len / MMC_DEF_BL_LEN;
 	}
-	MMC_BLOCK(READ, len, calc_cnt);
-	if (buf)
-		mmc_slot_ctrl.block_data = buf;
-	else
-		mmc_slot_ctrl.block_data = mmc_slot_ctrl.dat;
+	mmc_slot_ctrl.trans_buf = buf;
 	__mmc_read_blocks(cb);
 	return 0;
 }
