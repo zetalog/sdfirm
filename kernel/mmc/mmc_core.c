@@ -370,6 +370,7 @@ void mmc_dat_complete(uint8_t err)
 		return;
 	}
 	mmc_phy_stop_dat();
+	mmc_set_block_data(0);
 	mmc_event_raise(MMC_EVENT_CMD_SUCCESS);
 }
 
