@@ -360,19 +360,12 @@ static void sd_handle_read_blocks(bool is_op)
 		if (!(mmc_slot_ctrl.flags & MMC_SLOT_TRANS_START)) {
 			raise_bits(mmc_slot_ctrl.flags, MMC_SLOT_TRANS_START);
 			unraise_bits(mmc_slot_ctrl.flags, MMC_SLOT_TRANS_STOP);
-			MMC_BLOCK(READ, mmc_slot_ctrl.trans_len,
-				  mmc_slot_ctrl.trans_cnt);
-			if (mmc_slot_ctrl.trans_buf)
-				mmc_slot_ctrl.block_data =
-					mmc_slot_ctrl.trans_buf;
-			else
-				mmc_slot_ctrl.block_data =
-					mmc_slot_ctrl.sd_data;
-			if (mmc_slot_ctrl.block_cnt > 1)
+			if (mmc_slot_ctrl.trans_cnt > 1)
 				mmc_cmd(MMC_CMD_READ_MULTIPLE_BLOCK);
 			else
 				mmc_cmd(MMC_CMD_READ_SINGLE_BLOCK);
 		} else if (mmc_slot_ctrl.flags & MMC_SLOT_TRANS_STOP) {
+			unraise_bits(mmc_slot_ctrl.flags, MMC_SLOT_TRANS_START);
 			if (is_op)
 				mmc_op_success();
 		} else {
@@ -843,6 +836,16 @@ void mmc_phy_recv_rsp(void)
 		sd_recv_rsp();
 }
 
+static void sd_set_block_data(bool trans)
+{
+	if (trans && mmc_slot_ctrl.trans_buf)
+		mmc_slot_ctrl.block_data = mmc_slot_ctrl.trans_buf;
+	else {
+		/* Note: register width shouldn't exceed MMC_DEF_BL_LEN */
+		mmc_slot_ctrl.block_data = mmc_slot_ctrl.dat;
+	}
+}
+
 void sd_send_acmd(void)
 {
 	uint32_t arg = 0;
@@ -856,7 +859,7 @@ void sd_send_acmd(void)
 		mmc_slot_ctrl.rsp = MMC_R1;
 		/* 512-bits SD status */
 		MMC_BLOCK(READ, SD_SD_STATUS_DATA_LEN, 1);
-		mmc_slot_ctrl.block_data = mmc_slot_ctrl.sd_data;
+		sd_set_block_data(false);
 		break;
 	case SD_ACMD_SEND_NUM_WR_BLOCKS:
 		mmc_slot_ctrl.rsp = MMC_R1;
@@ -877,7 +880,7 @@ void sd_send_acmd(void)
 		mmc_slot_ctrl.rsp = MMC_R1;
 		/* 64-bits SCR register */
 		MMC_BLOCK(READ, SD_SCR_DATA_LEN, 1);
-		mmc_slot_ctrl.block_data = mmc_slot_ctrl.sd_data;
+		sd_set_block_data(false);
 		break;
 	default:
 		break;
@@ -941,13 +944,15 @@ void sd_send_cmd(void)
 #endif
 #ifdef SD_CLASS2
 	case MMC_CMD_READ_SINGLE_BLOCK:
-		MMC_BLOCK(READ, mmc_slot_ctrl.block_len, 1);
+		MMC_BLOCK(READ, mmc_slot_ctrl.trans_len, 1);
+		sd_set_block_data(true);
 		mmc_slot_ctrl.rsp = MMC_R1;
 		arg = mmc_slot_ctrl.address;
 		break;
 	case MMC_CMD_READ_MULTIPLE_BLOCK:
-		MMC_BLOCK(READ, mmc_slot_ctrl.block_len,
-			  mmc_slot_ctrl.block_cnt);
+		MMC_BLOCK(READ, mmc_slot_ctrl.trans_len,
+			  mmc_slot_ctrl.trans_cnt);
+		sd_set_block_data(true);
 		mmc_slot_ctrl.rsp = MMC_R1;
 		arg = mmc_slot_ctrl.address;
 		break;
@@ -969,7 +974,15 @@ void sd_send_cmd(void)
 #endif
 #ifdef SD_CLASS4
 	case MMC_CMD_WRITE_BLOCK:
+		MMC_BLOCK(WRITE, mmc_slot_ctrl.trans_len, 1);
+		sd_set_block_data(true);
+		mmc_slot_ctrl.rsp = MMC_R1;
+		arg = mmc_slot_ctrl.address;
+		break;
 	case MMC_CMD_WRITE_MULTIPLE_BLOCK:
+		MMC_BLOCK(WRITE, mmc_slot_ctrl.trans_len,
+			  mmc_slot_ctrl.trans_cnt);
+		sd_set_block_data(true);
 		mmc_slot_ctrl.rsp = MMC_R1;
 		arg = mmc_slot_ctrl.address;
 		break;

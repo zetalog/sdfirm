@@ -76,15 +76,16 @@ struct sdhc_host sdhc_host_ctrl;
 static void sdhc_transfer_pio(uint32_t *block)
 {
 	uint8_t type = mmc_get_block_data();
-	int i;
-	uint32_t *offs;
+	uint32_t *dat = block;
+	uint16_t len = mmc_slot_ctrl.block_len / 4;
 
-	for (i = 0; i < mmc_slot_ctrl.block_len; i += 4) {
-		offs = block + i;
+	while (len) {
 		if (type == MMC_SLOT_BLOCK_READ)
-			*offs = __raw_readl(SDHC_BUFFER_DATA_PORT(mmc_sid));
+			*dat = __raw_readl(SDHC_BUFFER_DATA_PORT(mmc_sid));
 		else
-			__raw_writel(*offs, SDHC_BUFFER_DATA_PORT(mmc_sid));
+			__raw_writel(*dat, SDHC_BUFFER_DATA_PORT(mmc_sid));
+		dat++;
+		len--;
 	}
 }
 
@@ -559,8 +560,8 @@ void sdhc_handle_irq(irq_t irq)
 			sdhc_clear_irq(mmc_sid,
 				       sdhc_host_ctrl.irq_complete_mask);
 			sdhc_transfer_pio(buf);
-			sdhc_stop_transfer();
-			mmc_blk_success();
+			if (mmc_blk_success())
+				sdhc_stop_transfer();
 			goto exit_irq;
 		}
 	}

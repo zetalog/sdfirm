@@ -468,7 +468,6 @@ typedef struct {
 #define SD_MAX_DATA_LEN			SD_SD_STATUS_DATA_LEN
 
 #define MMC_PHY_SLOT				\
-	uint8_t sd_data[SD_MAX_DATA_LEN];	\
 	sd_cid_t cid;				\
 	sd_scr_t host_scr;			\
 	sd_scr_t card_scr;			\

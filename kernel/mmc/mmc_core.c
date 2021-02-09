@@ -374,11 +374,14 @@ void mmc_dat_complete(uint8_t err)
 	mmc_event_raise(MMC_EVENT_CMD_SUCCESS);
 }
 
-void mmc_blk_success(void)
+bool mmc_blk_success(void)
 {
-	mmc_slot_ctrl.trans_cnt--;
-	if (mmc_slot_ctrl.trans_cnt == 0)
+	mmc_slot_ctrl.block_cnt--;
+	if (mmc_slot_ctrl.block_cnt == 0) {
 		mmc_dat_success();
+		return true;
+	}
+	return false;
 }
 
 void mmc_rsp_complete(uint8_t err)
@@ -487,7 +490,7 @@ int mmc_read_blocks(uint8_t *buf, mmc_lba_t lba,
 
 		mmc_slot_ctrl.address = lba * len;
 		mmc_slot_ctrl.trans_len = len;
-		mmc_slot_ctrl.trans_cnt = cnt * len / MMC_DEF_BL_LEN;
+		mmc_slot_ctrl.trans_cnt = cnt * (len / MMC_DEF_BL_LEN);
 	}
 	mmc_slot_ctrl.trans_buf = buf;
 	__mmc_read_blocks(cb);

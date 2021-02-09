@@ -726,7 +726,7 @@ void mmc_rsp_complete(uint8_t err);
 #define mmc_rsp_failure(err)	mmc_rsp_complete(err)
 void mmc_dat_complete(uint8_t err);
 /* Used as block data completion instead of mmc_dat_success() */
-void mmc_blk_success(void);
+bool mmc_blk_success(void);
 #define mmc_dat_success()	mmc_dat_complete(MMC_ERR_NO_ERROR)
 #define mmc_dat_failure(err)	mmc_dat_complete(err)
 void mmc_send_acmd(uint8_t acmd);
