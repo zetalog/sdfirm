@@ -776,78 +776,12 @@ int get_data_size(char *arg, int default_size)
 	return default_size;
 }
 
-#define DEFAULT_LINE_LENGTH_BYTES	16
-#define MAX_LINE_LENGTH_BYTES		64
-#define DISP_LINE_LEN			16
-
-void mem_print_data(caddr_t addr, const void *data,
-		    uint8_t width, size_t count)
-{
-	/* linebuf as a union causes proper alignment */
-	union linebuf {
-		uint64_t uq[MAX_LINE_LENGTH_BYTES/sizeof(uint64_t) + 1];
-		uint32_t ui[MAX_LINE_LENGTH_BYTES/sizeof(uint32_t) + 1];
-		uint16_t us[MAX_LINE_LENGTH_BYTES/sizeof(uint16_t) + 1];
-		uint8_t  uc[MAX_LINE_LENGTH_BYTES/sizeof(uint8_t) + 1];
-	} lb;
-	int i;
-	uint64_t x;
-	size_t linelen = DISP_LINE_LEN / width;
-
-	if (linelen*width > MAX_LINE_LENGTH_BYTES)
-		linelen = MAX_LINE_LENGTH_BYTES / width;
-	if (linelen < 1)
-		linelen = DEFAULT_LINE_LENGTH_BYTES / width;
-
-	while (count) {
-		unsigned int thislinelen = linelen;
-		printf("%08lx:", addr);
-
-		/* check for overflow condition */
-		if (count < thislinelen)
-			thislinelen = count;
-
-		/* Copy from memory into linebuf and print hex values */
-		for (i = 0; i < thislinelen; i++) {
-			if (width == 4)
-				x = lb.ui[i] = *(volatile uint32_t *)data;
-			else if (width == 8)
-				x = lb.uq[i] = *(volatile uint64_t *)data;
-			else if (width == 2)
-				x = lb.us[i] = *(volatile uint16_t *)data;
-			else
-				x = lb.uc[i] = *(volatile uint8_t *)data;
-			printf(" %0*llx", width * 2, (long long)x);
-			data += width;
-		}
-
-		while (thislinelen < linelen) {
-			/* fill line with whitespace for nice ASCII print */
-			for (i = 0; i < width*2+1; i++)
-				printf(" ");
-			linelen--;
-		}
-
-		/* Print data in ASCII characters */
-		for (i = 0; i < thislinelen * width; i++) {
-			if (!isprint(lb.uc[i]) || lb.uc[i] >= 0x80)
-				lb.uc[i] = '.';
-		}
-		lb.uc[i] = '\0';
-		printf("    %s\n", lb.uc);
-
-		/* update references */
-		addr += thislinelen * width;
-		count -= thislinelen;
-	}
-}
-
 static int do_mem_display(int argc, char * argv[])
 {
 	int size;
 	unsigned long addr = 0;
-	unsigned long length = 0;
-	void *buf = NULL;
+	__unused unsigned long length = 0;
+	__unused void *buf = NULL;
 
 	if (argc < 3)
 		return -EINVAL;
@@ -858,7 +792,7 @@ static int do_mem_display(int argc, char * argv[])
 		length = strtoul(argv[3], NULL, 0);
 
 	buf = (void *)(unsigned long)addr;
-	mem_print_data(addr, buf, size, length);
+	hexdump(addr, buf, size, length);
 	return 0;
 }
 
@@ -866,7 +800,7 @@ static int do_mem_read(int argc, char * argv[])
 {
 	int size;
 	caddr_t addr;
-	unsigned long value = -1;
+	__unused unsigned long value = -1;
 
 	if (argc < 4)
 		return -EINVAL;
@@ -890,7 +824,7 @@ static int do_mem_read(int argc, char * argv[])
 	default:
 		break;
 	}
-	mem_print_data(addr, &value, size, 1);
+	hexdump(addr, &value, size, 1);
 	return 0;
 }
 
@@ -898,7 +832,7 @@ static int do_mem_write(int argc, char * argv[])
 {
 	int size;
 	caddr_t addr;
-	unsigned long value;
+	__unused unsigned long value;
 
 	if (argc < 5)
 		return -EINVAL;

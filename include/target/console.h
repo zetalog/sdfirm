@@ -65,6 +65,7 @@ static inline int console_input_init(void)
 int console_output_space(void);
 void console_output_handler(void);
 int console_output_init(void);
+void hexdump(caddr_t addr, const void *data, uint8_t width, size_t count);
 #else
 #define console_output_handler()	do { } while (0)
 static inline int console_output_init(void)
@@ -75,6 +76,7 @@ static inline int console_output_space(void)
 {
 	return 1;
 }
+#define hexdump(addr, data, width, count)	do { } while (0)
 #endif
 
 /* Console command line related */
@@ -85,10 +87,11 @@ void console_init(void);
 void console_late_init(void);
 void con_printf(const char *fmt, ...);
 #else
-#define console_early_init()		do { } while (0)
-#define console_init()			do { } while (0)
-#define console_late_init()		do { } while (0)
-#define con_printf(...)			do { } while (0)
+#define console_early_init()			do { } while (0)
+#define console_init()				do { } while (0)
+#define console_late_init()			do { } while (0)
+#define con_printf(...)				do { } while (0)
+#define hexdump(addr, data, width, count)	do { } while (0)
 #endif
 
 #ifdef CONFIG_CONSOLE_VERBOSE

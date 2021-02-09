@@ -235,8 +235,7 @@ static int do_card_dump(int argc, char *argv[])
 	if (mmc_card_read_sync(rca, mem_card_buf, lba, cnt))
 		printf("read_blocks %016x(%d) failure.\n", lba, cnt);
 	else
-		mem_print_data(0, mem_card_buf, 1,
-			       cnt * MMC_DEF_BL_LEN);
+		hexdump(0, mem_card_buf, 1, cnt * MMC_DEF_BL_LEN);
 	return 0;
 }
 

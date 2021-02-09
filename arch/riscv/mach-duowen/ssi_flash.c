@@ -235,7 +235,7 @@ static int do_flash_dump(int argc, char *argv[])
 		return -EINVAL;
 	}
 	duowen_ssi_flash_copy(buffer, addr, size);
-	mem_print_data(0, buffer, 1, size);
+	hexdump(0, buffer, 1, size);
 	return 0;
 }
 

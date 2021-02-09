@@ -80,8 +80,6 @@ void mem_free(phys_addr_t base, phys_addr_t size);
 void mem_init(void);
 void mem_free_all(void);
 void mem_dump_all(void);
-void mem_print_data(caddr_t addr, const void *data,
-		    uint8_t width, size_t count);
 #else
 #define mem_start()		RAM_START
 #define mem_end()		RAMEND
@@ -89,8 +87,6 @@ void mem_print_data(caddr_t addr, const void *data,
 #define mem_reserve(base, size)	do { } while (0)
 #define mem_remove(base, size)	do { } while (0)
 #define mem_init()		do { } while (0)
-#define mem_print_data(addr, data, width, count)	\
-	do { } while (0)
 #endif
 #endif /* __ASSEMBLY__ */
 

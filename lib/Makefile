@@ -11,6 +11,7 @@ obj-y += errno.rel
 obj-y += time.rel
 obj-$(CONFIG_PRINT_VSNPRINTF) += vsnprintf.rel
 obj-$(CONFIG_CONSOLE_OUTPUT) += printf.rel
+obj-$(CONFIG_CONSOLE_OUTPUT) += hexdump.rel
 obj-$(CONFIG_CRC16_CCITT) += crc16_ccitt.rel
 obj-$(CONFIG_CRC32) += crc32_table.rel
 obj-$(CONFIG_FONTS) += font/

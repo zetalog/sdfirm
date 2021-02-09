@@ -140,8 +140,8 @@ void cmd_console(void)
 
 void cmd_dump_sect(void)
 {
-	mem_print_data((caddr_t)__cmd_start, (void *)__cmd_start, 8,
-		       (caddr_t)__cmd_end - (caddr_t)__cmd_start);
+	hexdump((caddr_t)__cmd_start, (void *)__cmd_start, 8,
+		(caddr_t)__cmd_end - (caddr_t)__cmd_start);
 }
 
 #ifdef CONFIG_COMMAND_BATCH

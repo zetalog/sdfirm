@@ -99,7 +99,7 @@ static int do_flash_gpt(int argc, char *argv[])
 
 	dpu_ssi_flash_copy(&hdr,
 		GPT_HEADER_LBA * GPT_LBA_SIZE, GPT_HEADER_BYTES);
-	mem_print_data(0, &hdr, 1, sizeof (gpt_header));
+	hexdump(0, &hdr, 1, sizeof (gpt_header));
 	partition_entries_lba_end = (hdr.partition_entries_lba +
 		(hdr.num_partition_entries * hdr.partition_entry_size +
 		 FLASH_PAGE_SIZE - 1) / FLASH_PAGE_SIZE);
@@ -140,7 +140,7 @@ static int do_flash_dump(int argc, char *argv[])
 		return -EINVAL;
 	}
 	dpu_ssi_flash_copy(buffer, addr, size);
-	mem_print_data(0, buffer, 1, size);
+	hexdump(0, buffer, 1, size);
 	return 0;
 }
 
