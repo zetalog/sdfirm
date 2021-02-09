@@ -53,7 +53,7 @@
 
 #if NR_MMC_SLOTS > 1
 struct sdhc_host sdhc_hosts[NR_MMC_SLOTS];
-#define mmc_host_ctrl sdhc_hosts[mmc_sid]
+#define sdhc_host_ctrl sdhc_hosts[mmc_sid]
 
 mmc_slot_t sdhc_irq2sid(irq_t irq)
 {
@@ -70,7 +70,7 @@ struct sdhc_host sdhc_host_ctrl;
 #define sdhc_irq2sid(irq)		mmc_sid
 #endif
 
-#define SDHC_SPEC()					\
+#define sdhc_spec()			\
 	SDHC_SPECIFICATION_VERSION_NUMBER(sdhc_host_ctrl.version)
 
 static void sdhc_transfer_pio(uint32_t *block)
@@ -119,56 +119,6 @@ static void sdhc_dma_close(void)
 #define sdhc_dma_open()			false
 #define sdhc_dma_close()		do { } while (0)
 #endif
-
-static void sdhc_transfer_data(void)
-{
-	unsigned int stat, rdy, mask, block = 0;
-	bool transfer_done = false;
-	uint32_t *buf = (uint32_t *)mmc_slot_ctrl.block_data;
-	unsigned int timeout = SDHC_TRANSFER_TOUT_US;
-
-	sdhc_dma_config(SDHC_SDMA);
-
-	rdy = SDHC_BUFFER_READ_READY | SDHC_BUFFER_WRITE_READY;
-	mask = SDHC_BUFFER_READ_ENABLE | SDHC_BUFFER_WRITE_ENABLE;
-	do {
-		stat = sdhc_irq_status(mmc_sid);
-		if (stat & SDHC_ERROR_INTERRUPT) {
-			printf("Error detected in status(0x%X)!\n", stat);
-			sdhc_stop_transfer();
-			mmc_dat_failure(MMC_ERR_CARD_LOOSE_BUS);
-			return;
-		}
-		if (!transfer_done && (stat & rdy)) {
-			if (!sdhc_state_present(mmc_sid, mask))
-				continue;
-			sdhc_clear_irq(mmc_sid, rdy);
-			sdhc_transfer_pio(buf);
-			if (++block >= mmc_slot_ctrl.block_cnt) {
-				/* Keep looping until the SDHC_INT_DATA_END is
-				 * cleared, even if we finished sending all the
-				 * blocks.
-				 */
-				transfer_done = true;
-				continue;
-			}
-		}
-		if (!transfer_done && (stat & SDHC_DMA_INTERRUPT)) {
-			sdhc_clear_irq(mmc_sid, SDHC_DMA_INTERRUPT);
-			sdhc_dma_close();
-		}
-		if (timeout-- > 0)
-			sdhc_udelay(1);
-		else {
-			printf("Transfer data timeout\n");
-			sdhc_stop_transfer();
-			mmc_dat_failure(MMC_ERR_TIMEOUT);
-			return;
-		}
-	} while (!(stat & SDHC_TRANSFER_COMPLETE));
-	sdhc_stop_transfer();
-	mmc_dat_success();
-}
 
 /* No command will be sent by driver if card is busy, so driver must wait
  * for card ready state.
@@ -237,28 +187,8 @@ void sdhc_send_command(uint8_t cmd, uint32_t arg)
 	__raw_writel(arg, SDHC_ARGUMENT(mmc_sid));
 	__raw_writew(SDHC_CMD(cmd, flags), SDHC_COMMAND(mmc_sid));
 
-	do {
-		flags = sdhc_irq_status(mmc_sid);
-		if (flags & SDHC_ERROR_INTERRUPT)
-			break;
-	} while ((flags & mask) != mask);
-
-	if ((flags & (SDHC_ERROR_INTERRUPT | mask)) == mask) {
-		sdhc_clear_irq(mmc_sid, mask);
-		mmc_cmd_success();
-	} else {
-		printf("Error detected in status(0x%X)!\n", flags);
-		if (flags & SDHC_ERR_COMMAND_INDEX_ERROR)
-			mmc_cmd_failure(MMC_ERR_ILLEGAL_COMMAND);
-		else if (flags & (SDHC_ERR_COMMAND_CRC_ERROR |
-				 SDHC_ERR_DATA_CRC_ERROR))
-			mmc_cmd_failure(MMC_ERR_COM_CRC_ERROR);
-		else if (flags & (SDHC_ERR_COMMAND_END_BIT_ERROR |
-				 SDHC_ERR_DATA_END_BIT_ERROR))
-			mmc_cmd_failure(MMC_ERR_CHECK_PATTERN);
-		else
-			mmc_cmd_failure(MMC_ERR_TIMEOUT);
-	}
+	sdhc_host_ctrl.trans = SDHC_TRANS_CMD;
+	sdhc_host_ctrl.irq_complete_mask = mask;
 }
 
 static void sdhc_decode_reg(uint8_t *resp, uint8_t size, uint32_t reg)
@@ -298,13 +228,17 @@ void sdhc_recv_response(uint8_t *resp, uint8_t size)
 		reg = __raw_readl(SDHC_RESPONSE32(mmc_sid, 0));
 		sdhc_decode_reg(resp, size, reg);
 	}
-	if (!type)
+	if (type) {
+		sdhc_host_ctrl.trans = SDHC_TRANS_DAT;
+		sdhc_host_ctrl.irq_complete_mask =
+			SDHC_BUFFER_READ_READY | SDHC_BUFFER_WRITE_READY;
+	} else
 		sdhc_stop_transfer();
 }
 
 void sdhc_tran_data(uint8_t *dat, uint32_t len, uint16_t cnt)
 {
-	sdhc_transfer_data();
+	sdhc_dma_config(SDHC_SDMA);
 }
 
 bool sdhc_card_busy(void)
@@ -384,7 +318,7 @@ bool sdhc_set_clock(uint32_t clock)
 	sdhc_disable_pll();
 
 	/* 1. calculate a divisor */
-	if (SDHC_SPEC() >= SDHC_SPEC_300) {
+	if (sdhc_spec() >= SDHC_SPEC_300) {
 		/* Host Controller supports Programmable Clock Mode? */
 		if (sdhc_host_ctrl.clk_mul) {
 			for (div = 1;
@@ -451,10 +385,10 @@ void sdhc_set_width(uint8_t width)
 	ctrl = __raw_readb(SDHC_HOST_CONTROL_1(mmc_sid));
 	if (width == 8) {
 		ctrl &= ~SDHC_DATA_TRANSFER_WIDTH;
-		if ((SDHC_SPEC() >= SDHC_SPEC_300))
+		if ((sdhc_spec() >= SDHC_SPEC_300))
 			ctrl |= SDHC_EXTENDED_DATA_TRANSFER_WIDTH;
 	} else {
-		if ((SDHC_SPEC() >= SDHC_SPEC_300))
+		if ((sdhc_spec() >= SDHC_SPEC_300))
 			ctrl &= ~SDHC_EXTENDED_DATA_TRANSFER_WIDTH;
 		if (width == 4)
 			ctrl |= SDHC_DATA_TRANSFER_WIDTH;
@@ -477,13 +411,13 @@ void sdhc_init(uint32_t f_min, uint32_t f_max, irq_t irq)
 		__raw_readw(SDHC_HOST_CONTROLLER_VERSION(mmc_sid));
 
 	/* Check whether the clock multiplier is supported or not */
-	if (SDHC_SPEC() >= SDHC_SPEC_300) {
+	if (sdhc_spec() >= SDHC_SPEC_300) {
 		caps_1 = __raw_readl(SDHC_CAPABILITIES_1(mmc_sid));
 		sdhc_host_ctrl.clk_mul = SDHC_CAP_CLOCK_MULTIPLIER(caps_1);
 	} else
 		sdhc_host_ctrl.clk_mul = 0;
 
-	if (SDHC_SPEC() >= SDHC_SPEC_300)
+	if (sdhc_spec() >= SDHC_SPEC_300)
 		sdhc_host_ctrl.max_clk =
 			SDHC_CAP_8BIT_BASE_CLOCK_FREQUENCY(caps_0);
 	else
@@ -501,7 +435,7 @@ void sdhc_init(uint32_t f_min, uint32_t f_max, irq_t irq)
 	if (f_min)
 		mmc_slot_ctrl.f_min = f_min;
 	else {
-		if (SDHC_SPEC() >= SDHC_SPEC_300)
+		if (sdhc_spec() >= SDHC_SPEC_300)
 			mmc_slot_ctrl.f_min = mmc_slot_ctrl.f_max /
 				SDHC_10BIT_DIVIDED_CLOCK_MAX_DIV;
 		else
@@ -525,7 +459,7 @@ void sdhc_init(uint32_t f_min, uint32_t f_max, irq_t irq)
 #endif
 
 	/* Since Host Controller Version3.0 */
-	if (SDHC_SPEC() >= SDHC_SPEC_300) {
+	if (sdhc_spec() >= SDHC_SPEC_300) {
 		if (caps_0 & SDHC_8BIT_SUPPORT_FOR_EMBEDDED_DEVICE)
 			mmc_slot_ctrl.host_scr.bus_widths = 8;
 	}
@@ -540,6 +474,15 @@ void sdhc_init(uint32_t f_min, uint32_t f_max, irq_t irq)
 			MMC_OCR_VOLTAGE_RANGE(mmc_slot_ctrl.host_ocr)));
 
 	sdhc_host_ctrl.irq = irq;
+	sdhc_host_ctrl.trans = SDHC_TRANS_NON;
+}
+
+void sdhc_err_failure(uint8_t err)
+{
+	if (sdhc_host_ctrl.trans == SDHC_TRANS_DAT)
+		mmc_dat_failure(MMC_ERR_CARD_LOOSE_BUS);
+	else if (sdhc_host_ctrl.trans == SDHC_TRANS_CMD)
+		mmc_cmd_failure(err);
 }
 
 void sdhc_handle_irq(irq_t irq)
@@ -547,11 +490,11 @@ void sdhc_handle_irq(irq_t irq)
 	__unused mmc_slot_t slot = sdhc_irq2sid(irq);
 	__unused mmc_slot_t sslot;
 	uint32_t irqs;
-	uint8_t type;
+	uint32_t mask;
+	uint32_t *buf;
 
 	sslot = mmc_slot_save(slot);
 	irqs = sdhc_irq_status(mmc_sid);
-	type = mmc_get_block_data();
 
 	if (irqs & SDHC_CARD_DETECTION_MASK) {
 		if (irqs & SDHC_CARD_INSERTION) {
@@ -567,26 +510,62 @@ void sdhc_handle_irq(irq_t irq)
 				mmc_event_raise(MMC_EVENT_CARD_REMOVE);
 		}
 	}
-	/* Handle cmd/data IRQs */
+
+	/* Handle error IRQs */
 	if (irqs & SDHC_ERROR_INTERRUPT_MASK) {
 		printf("Error detected in status(0x%X)!\n", irqs);
 		if (irqs & SDHC_COMMAND_INDEX_ERROR)
-			mmc_cmd_failure(MMC_ERR_ILLEGAL_COMMAND);
-		else if (irqs & SDHC_CURRENT_LIMIT_ERROR)
-			mmc_cmd_failure(MMC_ERR_CARD_NON_COMP_VOLT);
-		else if (irqs & SDHC_TRANSFER_TIMEOUT)
-			mmc_cmd_failure(MMC_ERR_TIMEOUT);
-		else if (irqs & SDHC_TRANSFER_FAILURE)
-			mmc_cmd_failure(MMC_ERR_CARD_LOOSE_BUS);
+			sdhc_err_failure(MMC_ERR_ILLEGAL_COMMAND);
+		else if (irqs & (SDHC_ERR_COMMAND_CRC_ERROR |
+				 SDHC_ERR_DATA_CRC_ERROR))
+			sdhc_err_failure(MMC_ERR_COM_CRC_ERROR);
+		else if (irqs & (SDHC_ERR_COMMAND_END_BIT_ERROR |
+				 SDHC_ERR_DATA_END_BIT_ERROR))
+			sdhc_err_failure(MMC_ERR_CHECK_PATTERN);
+#if 0
 		else
-			mmc_cmd_failure(MMC_ERR_CARD_LOOSE_BUS);
+			sdhc_err_failure(MMC_ERR_TIMEOUT);
+#endif
+		else if (irqs & SDHC_CURRENT_LIMIT_ERROR)
+			sdhc_err_failure(MMC_ERR_CARD_NON_COMP_VOLT);
+		else if (irqs & SDHC_TRANSFER_TIMEOUT)
+			sdhc_err_failure(MMC_ERR_TIMEOUT);
+		else if (irqs & SDHC_TRANSFER_FAILURE)
+			sdhc_err_failure(MMC_ERR_CARD_LOOSE_BUS);
+		else
+			sdhc_err_failure(MMC_ERR_CARD_LOOSE_BUS);
 		sdhc_clear_irq(mmc_sid, SDHC_ERROR_INTERRUPT_MASK);
-		return;
+		sdhc_stop_transfer();
+		goto exit_irq;
 	}
-	if (irqs & SDHC_COMMAND_COMPLETE) {
-		if (type)
-			sdhc_transfer_data();
+	/* Handle cmd line IRQs */
+	if (sdhc_host_ctrl.trans == SDHC_TRANS_CMD) {
+		mask = irqs & sdhc_host_ctrl.irq_complete_mask;
+		if (mask) {
+			sdhc_clear_irq(mmc_sid, mask);
+			unraise_bits(sdhc_host_ctrl.irq_complete_mask, mask);
+		}
+		if (!sdhc_host_ctrl.irq_complete_mask) {
+			mmc_cmd_success();
+			goto exit_irq;
+		}
 	}
+	/* Handle dat line IRQs */
+	if (sdhc_host_ctrl.trans == SDHC_TRANS_DAT) {
+		mask = SDHC_BUFFER_READ_ENABLE | SDHC_BUFFER_WRITE_ENABLE;
+		buf = (uint32_t *)mmc_slot_ctrl.block_data;
+		if (sdhc_state_present(mmc_sid, mask) &&
+		    irqs & sdhc_host_ctrl.irq_complete_mask) {
+			sdhc_clear_irq(mmc_sid,
+				       sdhc_host_ctrl.irq_complete_mask);
+			sdhc_transfer_pio(buf);
+			sdhc_stop_transfer();
+			mmc_blk_success();
+			goto exit_irq;
+		}
+	}
+
+exit_irq:
 	mmc_slot_restore(sslot);
 }
 
@@ -623,6 +602,7 @@ void sdhc_detect_card(void)
 
 void sdhc_start_transfer(void)
 {
+	sdhc_host_ctrl.trans = SDHC_TRANS_NON;
 	sdhc_clear_all_irqs(mmc_sid);
 	sdhc_enable_irq(mmc_sid, SDHC_COMMAND_MASK | SDHC_TRANSFER_MASK);
 }
@@ -631,6 +611,7 @@ void sdhc_stop_transfer(void)
 {
 	sdhc_disable_irq(mmc_sid, SDHC_COMMAND_MASK | SDHC_TRANSFER_MASK);
 	sdhc_clear_all_irqs(mmc_sid);
+	sdhc_host_ctrl.trans = SDHC_TRANS_NON;
 	sdhc_software_reset(mmc_sid, SDHC_SOFTWARE_RESET_FOR_CMD_LINE);
 	sdhc_software_reset(mmc_sid, SDHC_SOFTWARE_RESET_FOR_DAT_LINE);
 }

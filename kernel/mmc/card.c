@@ -190,13 +190,20 @@ int mmc_card_read_sync(mmc_rca_t rca, uint8_t *buf,
 {
 	int ret;
 	mmc_card_t cid;
+	irq_flags_t flags;
 
 	ret = mmc_card_read_async(rca, buf, lba, cnt);
 	if (ret)
 		return ret;
 	cid = mmc_rca2card(rca);
 	BUG_ON(cid == INVALID_MMC_CARD);
-	bh_sync();
+	while (mmc_op_busy()) {
+		irq_local_save(flags);
+		irq_local_enable();
+		bh_sync();
+		irq_local_disable();
+		irq_local_restore(flags);
+	}
 	return mem_cards[cid].res ? 0 : -EINVAL;
 }
 

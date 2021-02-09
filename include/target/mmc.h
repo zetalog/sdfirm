@@ -706,6 +706,7 @@ uint32_t mmc_decode_tran_speed(uint8_t tran_speed);
 
 int mmc_start_op(uint8_t op, mmc_cmpl_cb cb);
 void mmc_op_complete(bool result);
+bool mmc_op_busy(void);
 #define mmc_op_success()		mmc_op_complete(true)
 #define mmc_op_failure()		mmc_op_complete(false)
 #define mmc_identify_card()		mmc_start_op(MMC_OP_IDENTIFY_CARD, NULL)
@@ -724,6 +725,8 @@ void mmc_rsp_complete(uint8_t err);
 #define mmc_rsp_success()	mmc_rsp_complete(MMC_ERR_NO_ERROR)
 #define mmc_rsp_failure(err)	mmc_rsp_complete(err)
 void mmc_dat_complete(uint8_t err);
+/* Used as block data completion instead of mmc_dat_success() */
+void mmc_blk_success(void);
 #define mmc_dat_success()	mmc_dat_complete(MMC_ERR_NO_ERROR)
 #define mmc_dat_failure(err)	mmc_dat_complete(err)
 void mmc_send_acmd(uint8_t acmd);

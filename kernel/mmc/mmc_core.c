@@ -374,6 +374,13 @@ void mmc_dat_complete(uint8_t err)
 	mmc_event_raise(MMC_EVENT_CMD_SUCCESS);
 }
 
+void mmc_blk_success(void)
+{
+	mmc_slot_ctrl.trans_cnt--;
+	if (mmc_slot_ctrl.trans_cnt == 0)
+		mmc_dat_success();
+}
+
 void mmc_rsp_complete(uint8_t err)
 {
 	uint8_t type = mmc_get_block_data();
@@ -447,9 +454,14 @@ void mmc_op_complete(bool result)
 		cb(mmc_slot_ctrl.rca, op, result);
 }
 
+bool mmc_op_busy(void)
+{
+	return !!(mmc_slot_ctrl.op != MMC_OP_NO_OP);
+}
+
 int mmc_start_op(uint8_t op, mmc_cmpl_cb cb)
 {
-	if (mmc_slot_ctrl.op != MMC_OP_NO_OP)
+	if (mmc_op_busy())
 		return -EBUSY;
 
 	mmc_slot_ctrl.op = op;
