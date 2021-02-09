@@ -73,6 +73,8 @@ struct sdhc_host sdhc_host_ctrl;
 #define sdhc_spec()			\
 	SDHC_SPECIFICATION_VERSION_NUMBER(sdhc_host_ctrl.version)
 
+static void sdhc_handle_irq(irq_t irq);
+
 static void sdhc_transfer_pio(uint32_t *block)
 {
 	uint8_t type = mmc_get_block_data();
@@ -486,7 +488,27 @@ void sdhc_err_failure(uint8_t err)
 		mmc_cmd_failure(err);
 }
 
-void sdhc_handle_irq(irq_t irq)
+#ifdef SYS_REALTIME
+void sdhc_irq_poll(void)
+{
+	sdhc_irq_handler();
+}
+
+#define sdhc_irq_ack()		do { } while (0)
+#else
+void sdhc_irq_init(void)
+{
+	irq_t irq = sdhc_host_ctrl.irq;
+
+	irqc_configure_irq(irq, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(irq, sdhc_handle_irq);
+	irqc_enable_irq(irq);
+}
+
+#define sdhc_irq_ack()		irqc_ack_irq(sdhc_host_ctrl.irq);
+#endif
+
+static void sdhc_handle_irq(irq_t irq)
 {
 	__unused mmc_slot_t slot = sdhc_irq2sid(irq);
 	__unused mmc_slot_t sslot;
@@ -567,6 +589,7 @@ void sdhc_handle_irq(irq_t irq)
 	}
 
 exit_irq:
+	sdhc_irq_ack();
 	mmc_slot_restore(sslot);
 }
 
@@ -582,17 +605,6 @@ void sdhc_irq_handler(void)
 		mmc_slot_restore(sslot);
 	}
 }
-
-#ifdef SYS_REALTIME
-void sdhc_irq_poll(void)
-{
-	sdhc_irq_handler();
-}
-#else
-void sdhc_irq_init(void)
-{
-}
-#endif
 
 void sdhc_detect_card(void)
 {

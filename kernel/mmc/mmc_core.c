@@ -55,10 +55,12 @@ __align(MMC_DATA_ALIGN) uint8_t mmc_slot_buf[MMC_DEF_BL_LEN];
 #endif
 
 #ifdef SYS_REALTIME
-#define mmc_irq_init()		irq_register_poller(mmc_bh)
+#define mmc_irq_init_noirq()	irq_register_poller(mmc_bh)
+#define mmc_irq_init_irq()	do { } while (0)
 #define mmc_irq_poll(event)	mmc_hw_irq_poll()
 #else
-#define mmc_irq_init()		mmc_hw_irq_init()
+#define mmc_irq_init_noirq()	do { } while (0)
+#define mmc_irq_init_irq()	mmc_hw_irq_init()
 #define mmc_irq_poll(event)	do { } while (0)
 #endif
 
@@ -568,7 +570,8 @@ void mmcsd_init(void)
 	for (slot = 0; slot < NR_MMC_SLOTS; slot++) {
 		sslot = mmc_slot_save(slot);
 		mmc_reset_slot();
+		mmc_irq_init_irq();
 		mmc_slot_restore(sslot);
 	}
-	mmc_irq_init();
+	mmc_irq_init_noirq();
 }

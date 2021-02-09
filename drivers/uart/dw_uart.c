@@ -133,12 +133,10 @@ bool dw_uart_con_poll(void)
 
 void dw_uart_handle_irq(irq_t irq)
 {
-#if 0
-	uint8_t irq;
+	uint8_t uirq;
 
-	irq = dw_uart_con_irq_id();
-#endif
-	if (irq != UART_IRQ_RBFI)
+	uirq = dw_uart_con_irq_id();
+	if (uirq != UART_IRQ_RBFI)
 		return;
 
 	irqc_mask_irq(UART_CON_IRQ);
