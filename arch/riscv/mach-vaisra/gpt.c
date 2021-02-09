@@ -45,7 +45,7 @@
 #include <target/sbi.h>
 #include <target/irq.h>
 
-void riscv_timer(void)
+void riscv_timer(irq_t irq)
 {
 	irqc_clear_irq(IRQ_TIMER);
 	irqc_disable_irq(IRQ_TIMER);
@@ -56,7 +56,7 @@ void riscv_timer(void)
 void gpt_hw_irq_poll(void)
 {
 	if (riscv_irq_raised(IRQ_TIMER))
-		riscv_timer();
+		riscv_timer(IRQ_TIMER);
 }
 #endif
 

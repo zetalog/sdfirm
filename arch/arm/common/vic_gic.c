@@ -44,7 +44,7 @@
 
 irq_handler __vic_hw_vector_table[NR_IRQS];
 
-extern void __bad_interrupt(void);
+extern void __bad_interrupt(irq_t irq);
 
 void vic_hw_register_irq(irq_t nr, irq_handler h)
 {

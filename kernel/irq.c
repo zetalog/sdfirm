@@ -17,7 +17,7 @@ uint8_t irq_nr_regs = 0;
 cpu_mask_t smp_online_cpus = C(0);
 #endif
 
-extern void __bad_interrupt(void);
+extern void __bad_interrupt(irq_t irq);
 
 /* 0 ~ NR_IRQS-1 is allowed. */
 void irq_register_vector(irq_t nr, irq_handler h)
@@ -38,7 +38,7 @@ boolean do_IRQ(irq_t nr)
 	BUG_ON(nr >= NR_IRQS || nr <= 0);
 	for (curr = 0; curr < irq_nr_regs; curr++) {
 		if (nr == irq_nr_table[curr]) {
-			irq_handlers[curr]();
+			irq_handlers[curr](nr);
 			return true;
 		}
 	}

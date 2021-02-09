@@ -8,7 +8,7 @@
 /* TODO use hvc sbi_console like Linux kernel */
 #else
 #ifdef CONFIG_DUOWEN_IMC
-void tmr_irq_handler(void)
+void tmr_irq_handler(irq_t irq)
 {
 	uint8_t cpu = smp_processor_id();
 
@@ -23,7 +23,7 @@ void tmr_irq_handler(void)
 void gpt_hw_irq_poll(void)
 {
 	if (riscv_irq_raised(IRQ_TIMER))
-		tmr_irq_handler();
+		tmr_irq_handler(IRQ_TIMER);
 }
 #endif
 
@@ -49,7 +49,7 @@ void gpt_hw_ctrl_init(void)
 }
 #endif
 #ifdef CONFIG_DUOWEN_APC
-void clint_irq_handler(void)
+void clint_irq_handler(irq_t irq)
 {
 	uint8_t cpu = smp_processor_id();
 
@@ -63,7 +63,7 @@ void clint_irq_handler(void)
 void gpt_hw_irq_poll(void)
 {
 	if (riscv_irq_raised(IRQ_TIMER))
-		clint_irq_handler();
+		clint_irq_handler(IRQ_TIMER);
 }
 #endif
 

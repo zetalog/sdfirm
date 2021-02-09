@@ -347,7 +347,7 @@ static inline void sym##_inject_err(uint32_t err, uint64_t addr)\
 {								\
 	__imem_inject_err(name, err);				\
 }								\
-static inline void sym##_handle_err(void)			\
+static inline void sym##_handle_err(irq_t irq)			\
 {								\
 	struct imem_err e;					\
 	__imem_handle_err(name, &e);				\

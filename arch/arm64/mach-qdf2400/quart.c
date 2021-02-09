@@ -60,7 +60,7 @@ static inline void __uart##n##_dm_ack_irq(void)				\
 	irq_t uart_irq = UART_DM_IRQ(n);				\
 	irqc_enable_irq(uart_irq);					\
 }									\
-static inline void __uart##n##_dm_handle_irq(void)			\
+static inline void __uart##n##_dm_handle_irq(irq_t irq)			\
 {									\
 	irq_t uart_irq = UART_DM_IRQ(n);				\
 	irqc_disable_irq(uart_irq);					\

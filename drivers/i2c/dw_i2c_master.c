@@ -43,7 +43,7 @@ static irq_flags_t irq_flags;
 /* Interrupts cared about:
  *	- RX_FULL : auto cleared
  */
-void dw_i2c_irq_handler(void)
+void dw_i2c_irq_handler(irq_t irq)
 {
 	/* The IRQ handler do not automatically mask irq for hardware, as
 	 * there is no return value indicated by the handler.

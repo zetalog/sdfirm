@@ -34,7 +34,7 @@ typedef __unused uint8_t irq_flags_t;
 #ifndef CONFIG_CC_ISR_VECTOR
 #define _VECTOR(N)	(N)
 #define DEFINE_ISR(vector)	\
-	void vector##_isr(void)
+	void vector##_isr(irq_t irq)
 #endif
 
 /* include mach/irq.h to locate NR_IRQS */

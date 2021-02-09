@@ -11,7 +11,7 @@ __noreturn void hart_hang(void)
 	__builtin_unreachable();
 }
 
-__noreturn void __bad_interrupt(void)
+__noreturn void __bad_interrupt(irq_t irq)
 {
 	hart_hang();
 }

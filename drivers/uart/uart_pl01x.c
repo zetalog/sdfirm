@@ -117,7 +117,7 @@ uint8_t pl01x_read_byte(void)
 }
 
 #ifdef CONFIG_SYS_IRQ
-static void pl01x_handle_irq(void)
+static void pl01x_handle_irq(irq_t irq)
 {
 	irqc_disable_irq(UART_CON_IRQ);
 	pl01x_mask_irq(UART_CON_ID, UART_RXI);

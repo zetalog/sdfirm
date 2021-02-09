@@ -409,7 +409,7 @@ void dpu_pcie_handle_irq(int int_type)
         printf("Unknown IRQ number: 0x%x\n", int_type);
 }
 
-void dpu_pcie_msi_handler(void)
+void dpu_pcie_msi_handler(irq_t irq)
 {
     printf("bird: Receive PCIE MSI interrupt\n");
 	irqc_mask_irq(IRQ_PCIE_X16_MSI);
@@ -418,7 +418,7 @@ void dpu_pcie_msi_handler(void)
     irqc_ack_irq(IRQ_PCIE_X16_MSI);
 }
 
-void dpu_pcie_inta_handler(void)
+void dpu_pcie_inta_handler(irq_t irq)
 {
     printf("bird: Receive PCIE INTA interrupt\n");
 	irqc_mask_irq(IRQ_PCIE_X16_INTA);

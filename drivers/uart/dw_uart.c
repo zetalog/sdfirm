@@ -131,11 +131,13 @@ bool dw_uart_con_poll(void)
 #ifndef CONFIG_SYS_NOIRQ
 #define dw_uart_con_irq_id()	IIR_IID(__raw_readl(UART_IIR(UART_CON_ID)))
 
-void dw_uart_handle_irq(void)
+void dw_uart_handle_irq(irq_t irq)
 {
+#if 0
 	uint8_t irq;
 
 	irq = dw_uart_con_irq_id();
+#endif
 	if (irq != UART_IRQ_RBFI)
 		return;
 

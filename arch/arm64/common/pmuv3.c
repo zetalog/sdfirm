@@ -44,8 +44,13 @@
 #include <target/irq.h>
 #include <asm/reg.h>
 
-#ifndef CONFIG_IRQ_POLLING
-void pmu_handle_irq(void)
+#ifdef SYS_REALTIME
+static inline int pmu_irq_init(void)
+{
+	return 0;
+}
+#else
+void pmu_handle_irq(irq_t irq)
 {
 	uint32_t ovs = read_sysreg(PMOVSCLR_EL0);
 	int evt;
@@ -62,11 +67,6 @@ int pmu_irq_init(void)
 	irqc_configure_irq(IRQ_PMU, 0, IRQ_LEVEL_TRIGGERED);
 	irq_register_vector(IRQ_PMU, pmu_handle_irq);
 	irqc_enable_irq(IRQ_PMU);
-	return 0;
-}
-#else
-static inline int pmu_irq_init(void)
-{
 	return 0;
 }
 #endif

@@ -52,7 +52,7 @@
 irq_handler __VIC_HW_ALIGN __vic_hw_vector_table[NR_IRQS+NR_TRAPS];
 
 extern irq_handler __lovec[NR_TRAPS];
-extern void __bad_interrupt(void);
+extern void __bad_interrupt(irq_t irq);
 
 void vic_hw_register_trap(irq_t nr, irq_handler h)
 {

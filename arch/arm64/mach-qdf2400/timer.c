@@ -33,7 +33,7 @@ void gpt_hw_oneshot_timeout(timeout_t tout_ms)
 	__systick_unmask_irq();
 }
 
-static void gpt_hw_handle_irq(void)
+static void gpt_hw_handle_irq(irq_t irq)
 {
 	if (__systick_poll()) {
 		__systick_mask_irq();
@@ -44,7 +44,7 @@ static void gpt_hw_handle_irq(void)
 #ifdef SYS_BOOTLOAD
 void gpt_hw_irq_poll(void)
 {
-	gpt_hw_handle_irq();
+	gpt_hw_handle_irq(IRQ_TIMER);
 }
 
 #define gpt_hw_irq_enable()

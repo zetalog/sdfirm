@@ -18,42 +18,42 @@ static void dpu_gpio_handler(struct dpu_gpio_irq *girq)
 	printf("GPIO%d IRQ\n", girq->irq - IRQ_GPIO0);
 }
 
-static void dpu_gpio0_handler(void)
+static void dpu_gpio0_handler(irq_t irq)
 {
 	dpu_gpio_handler(&dpu_gpio_irqs[0]);
 }
 
-static void dpu_gpio1_handler(void)
+static void dpu_gpio1_handler(irq_t irq)
 {
 	dpu_gpio_handler(&dpu_gpio_irqs[1]);
 }
 
-static void dpu_gpio2_handler(void)
+static void dpu_gpio2_handler(irq_t irq)
 {
 	dpu_gpio_handler(&dpu_gpio_irqs[2]);
 }
 
-static void dpu_gpio3_handler(void)
+static void dpu_gpio3_handler(irq_t irq)
 {
 	dpu_gpio_handler(&dpu_gpio_irqs[3]);
 }
 
-static void dpu_gpio4_handler(void)
+static void dpu_gpio4_handler(irq_t irq)
 {
 	dpu_gpio_handler(&dpu_gpio_irqs[4]);
 }
 
-static void dpu_gpio5_handler(void)
+static void dpu_gpio5_handler(irq_t irq)
 {
 	dpu_gpio_handler(&dpu_gpio_irqs[5]);
 }
 
-static void dpu_gpio6_handler(void)
+static void dpu_gpio6_handler(irq_t irq)
 {
 	dpu_gpio_handler(&dpu_gpio_irqs[6]);
 }
 
-static void dpu_gpio7_handler(void)
+static void dpu_gpio7_handler(irq_t irq)
 {
 	dpu_gpio_handler(&dpu_gpio_irqs[7]);
 }

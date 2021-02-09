@@ -21,8 +21,8 @@
 
 #ifdef CONFIG_CC_ISR_VECTOR
 #define DEFINE_ISR(vector, ...)	\
-	void vector(void) __attribute__ ((signal,__INTR_ATTRS)) __VA_ARGS__;\
-	void vector(void)
+	void vector(irq_t irq) __attribute__ ((signal,__INTR_ATTRS)) __VA_ARGS__;\
+	void vector(irq_t irq)
 #define _VECTOR(N) __vector_ ## N
 #endif
 #define ISR_BLOCK

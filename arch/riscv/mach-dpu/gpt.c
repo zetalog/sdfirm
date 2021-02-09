@@ -4,7 +4,7 @@
 #include <target/sbi.h>
 #include <target/irq.h>
 
-void tmr_irq_handler(void)
+void tmr_irq_handler(irq_t irq)
 {
 	uint8_t cpu = smp_processor_id();
 

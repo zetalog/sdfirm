@@ -147,7 +147,7 @@ static int do_flash_dump(int argc, char *argv[])
 #ifdef CONFIG_DPU_SIM_SSI_IRQ
 static uint32_t dw_ssi_irqs;
 
-static void dpu_ssi_handler(void)
+static void dpu_ssi_handler(irq_t irq)
 {
 	uint32_t irqs = dw_ssi_irqs_status(SSI_ID);
 

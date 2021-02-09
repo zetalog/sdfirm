@@ -46,7 +46,7 @@ static void send_ipi_single(int cpu, enum ipi_message_type op)
 	sbi_send_ipi(cpumask_bits(&mask));
 }
 
-void smp_hw_handle_ipi(void)
+void smp_hw_handle_ipi(irq_t irq)
 {
 	unsigned long *pending_ipis = &ipi_data[smp_processor_id()].bits;
 

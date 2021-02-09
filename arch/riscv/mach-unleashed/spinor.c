@@ -43,7 +43,7 @@
 #include <target/barrier.h>
 #include <target/efi.h>
 #include <target/cmdline.h>
-#include <target/mem.h>
+#include <target/console.h>
 
 #ifdef CONFIG_UNLEASHED_FLASH_QSPI0
 #define SPINOR_BASE				QSPI0_FLASH_BASE

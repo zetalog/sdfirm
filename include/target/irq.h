@@ -54,7 +54,7 @@ typedef uint8_t irq_t;
 #elif NR_IRQS <= 65536
 typedef uint16_t irq_t;
 #endif
-typedef void (*irq_handler)(void);
+typedef void (*irq_handler)(irq_t irq);
 
 #ifdef CONFIG_ARCH_HAS_VIC
 #include <driver/vic.h>
