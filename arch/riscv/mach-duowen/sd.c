@@ -73,7 +73,7 @@ void duowen_mshc_init(void)
 
 	clk_enable(sd_clk);
 	sslot = mmc_slot_save(0);
-	sdhc_init(0, 0);
+	sdhc_init(0, 0, IRQ_SD);
 	/* SoC power stable PIN assignment */
 	duowen_sd_power();
 	mmc_slot_restore(sslot);

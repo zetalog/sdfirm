@@ -43,6 +43,7 @@
 #define __SDHC_H_INCLUDE__
 
 #include <target/arch.h>
+#include <target/irq.h>
 
 #ifndef SDHC_REG
 #define SDHC_REG(n, offset)		(SDHC##n##_BASE + (offset))
@@ -624,9 +625,6 @@
 #define SDHC_SPEC_410			4
 #define SDHC_SPEC_420			5
 
-#define SDHC_SPEC(x)					\
-	SDHC_SPECIFICATION_VERSION_NUMBER((x)->version)
-
 /* Host SDMA buffer boundary.
  * Valid values from 4K to 512K in powers of 2.
  */
@@ -637,10 +635,16 @@ struct sdhc_host {
 	unsigned int version;
 	unsigned int max_clk;   /* Maximum Base Clock frequency */
 	unsigned int clk_mul;   /* Clock Multiplier value */
+	irq_t irq;
 #if 0
 	struct gpio_desc pwr_gpio;	/* Power GPIO */
 	struct gpio_desc cd_gpio;	/* Card Detect GPIO */
 #endif
+	unsigned int irq_complete_mask;
+	uint8_t trans;
+#define SDHC_TRANS_NON			0
+#define SDHC_TRANS_CMD			1
+#define SDHC_TRANS_DAT			2
 };
 
 #define __sdhc_enable_irq(mmc, irqs)	\
@@ -736,6 +740,6 @@ void sdhc_irq_init(void);
 void sdhc_irq_poll(void);
 void sdhc_start_transfer(void);
 void sdhc_stop_transfer(void);
-void sdhc_init(uint32_t f_min, uint32_t f_max);
+void sdhc_init(uint32_t f_min, uint32_t f_max, irq_t irq);
 
 #endif /* __SDHC_H_INCLUDE__ */

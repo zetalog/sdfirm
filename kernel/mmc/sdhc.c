@@ -45,20 +45,33 @@
 
 #define SDHC_TRANSFER_TOUT_US		(2*1000*1000)
 
-struct sdhc_host sdhc_hosts[NR_MMC_SLOTS];
-
 #ifdef CONFIG_SDHC_ACCEL
 #define sdhc_udelay(us)			do { } while (0)
 #else
 #define sdhc_udelay(us)			udelay(us)
 #endif
 
-struct sdhc_host *mmc2sdhc(void)
+#if NR_MMC_SLOTS > 1
+struct sdhc_host sdhc_hosts[NR_MMC_SLOTS];
+#define mmc_host_ctrl sdhc_hosts[mmc_sid]
+
+mmc_slot_t sdhc_irq2sid(irq_t irq)
 {
-	if (mmc_sid >= NR_MMC_SLOTS)
-		return NULL;
-	return sdhc_hosts + mmc_sid;
+	mmc_slot_t slot;
+
+	for (slot = 0; slot < NR_MMC_SLOTS; slot++) {
+		if (sdhc_hosts[slot].irq = irq)
+			return slot;
+	}
+	return INVALID_MMC_SLOT;
 }
+#else
+struct sdhc_host sdhc_host_ctrl;
+#define sdhc_irq2sid(irq)		mmc_sid
+#endif
+
+#define SDHC_SPEC()					\
+	SDHC_SPECIFICATION_VERSION_NUMBER(sdhc_host_ctrl.version)
 
 static void sdhc_transfer_pio(uint32_t *block)
 {
@@ -365,20 +378,19 @@ static void sdhc_disable_pll(void)
 
 bool sdhc_set_clock(uint32_t clock)
 {
-	struct sdhc_host *host = mmc2sdhc();
 	uint32_t div, clk = 0;
 
 	sdhc_stop_clock();
 	sdhc_disable_pll();
 
 	/* 1. calculate a divisor */
-	if (SDHC_SPEC(host) >= SDHC_SPEC_300) {
+	if (SDHC_SPEC() >= SDHC_SPEC_300) {
 		/* Host Controller supports Programmable Clock Mode? */
-		if (host->clk_mul) {
+		if (sdhc_host_ctrl.clk_mul) {
 			for (div = 1;
 			     div <= SDHC_10BIT_PROGRAMMABLE_CLOCK_MAX_DIV;
 			     div++) {
-				if ((host->max_clk / div) <= clock)
+				if ((sdhc_host_ctrl.max_clk / div) <= clock)
 					break;
 			}
 
@@ -386,13 +398,14 @@ bool sdhc_set_clock(uint32_t clock)
 			div--;
 		} else {
 			/* Version 3.00 divisors must be a multiple of 2. */
-			if (host->max_clk <= clock) {
+			if (sdhc_host_ctrl.max_clk <= clock) {
 				div = 0;
 			} else {
 				for (div = 2;
 				     div <= SDHC_10BIT_DIVIDED_CLOCK_MAX_DIV;
 				     div += 2) {
-					if ((host->max_clk / div) <= clock)
+					if ((sdhc_host_ctrl.max_clk / div) <=
+					    clock)
 						break;
 				}
 				div >>= 1;
@@ -403,7 +416,7 @@ bool sdhc_set_clock(uint32_t clock)
 		/* Version 2.00 divisors must be a power of 2. */
 		for (div = 1; div <= SDHC_8BIT_DIVIDED_CLOCK_MAX_DIV;
 		     div <<= 1) {
-			if ((host->max_clk / div) <= clock)
+			if ((sdhc_host_ctrl.max_clk / div) <= clock)
 				break;
 		}
 		div >>= 1;
@@ -432,17 +445,16 @@ bool sdhc_set_clock(uint32_t clock)
 
 void sdhc_set_width(uint8_t width)
 {
-	struct sdhc_host *host = mmc2sdhc();
 	uint32_t ctrl;
 
 	/* Set bus width */
 	ctrl = __raw_readb(SDHC_HOST_CONTROL_1(mmc_sid));
 	if (width == 8) {
 		ctrl &= ~SDHC_DATA_TRANSFER_WIDTH;
-		if ((SDHC_SPEC(host) >= SDHC_SPEC_300))
+		if ((SDHC_SPEC() >= SDHC_SPEC_300))
 			ctrl |= SDHC_EXTENDED_DATA_TRANSFER_WIDTH;
 	} else {
-		if ((SDHC_SPEC(host) >= SDHC_SPEC_300))
+		if ((SDHC_SPEC() >= SDHC_SPEC_300))
 			ctrl &= ~SDHC_EXTENDED_DATA_TRANSFER_WIDTH;
 		if (width == 4)
 			ctrl |= SDHC_DATA_TRANSFER_WIDTH;
@@ -452,9 +464,8 @@ void sdhc_set_width(uint8_t width)
 	__raw_writeb(ctrl, SDHC_HOST_CONTROL_1(mmc_sid));
 }
 
-void sdhc_init(uint32_t f_min, uint32_t f_max)
+void sdhc_init(uint32_t f_min, uint32_t f_max, irq_t irq)
 {
-	struct sdhc_host *host = mmc2sdhc();
 	uint32_t caps_0, caps_1;
 
 	caps_0 = __raw_readl(SDHC_CAPABILITIES_0(mmc_sid));
@@ -462,32 +473,35 @@ void sdhc_init(uint32_t f_min, uint32_t f_max)
 #ifdef CONFIG_SDHC_SDMA
 	BUG_ON(!(caps_0 & SDHC_CAP_SDMA_SUPPORT));
 #endif
-	host->version = __raw_readw(SDHC_HOST_CONTROLLER_VERSION(mmc_sid));
+	sdhc_host_ctrl.version =
+		__raw_readw(SDHC_HOST_CONTROLLER_VERSION(mmc_sid));
 
 	/* Check whether the clock multiplier is supported or not */
-	if (SDHC_SPEC(host) >= SDHC_SPEC_300) {
+	if (SDHC_SPEC() >= SDHC_SPEC_300) {
 		caps_1 = __raw_readl(SDHC_CAPABILITIES_1(mmc_sid));
-		host->clk_mul = SDHC_CAP_CLOCK_MULTIPLIER(caps_1);
+		sdhc_host_ctrl.clk_mul = SDHC_CAP_CLOCK_MULTIPLIER(caps_1);
 	} else
-		host->clk_mul = 0;
+		sdhc_host_ctrl.clk_mul = 0;
 
-	if (SDHC_SPEC(host) >= SDHC_SPEC_300)
-		host->max_clk = SDHC_CAP_8BIT_BASE_CLOCK_FREQUENCY(caps_0);
+	if (SDHC_SPEC() >= SDHC_SPEC_300)
+		sdhc_host_ctrl.max_clk =
+			SDHC_CAP_8BIT_BASE_CLOCK_FREQUENCY(caps_0);
 	else
-		host->max_clk = SDHC_CAP_6BIT_BASE_CLOCK_FREQUENCY(caps_0);
-	host->max_clk *= 1000000;
-	if (host->clk_mul)
-		host->max_clk *= host->clk_mul;
+		sdhc_host_ctrl.max_clk =
+			SDHC_CAP_6BIT_BASE_CLOCK_FREQUENCY(caps_0);
+	sdhc_host_ctrl.max_clk *= 1000000;
+	if (sdhc_host_ctrl.clk_mul)
+		sdhc_host_ctrl.max_clk *= sdhc_host_ctrl.clk_mul;
 
-	BUG_ON(host->max_clk == 0);
-	if (f_max && (f_max < host->max_clk))
+	BUG_ON(sdhc_host_ctrl.max_clk == 0);
+	if (f_max && (f_max < sdhc_host_ctrl.max_clk))
 		mmc_slot_ctrl.f_max = f_max;
 	else
-		mmc_slot_ctrl.f_max = host->max_clk;
+		mmc_slot_ctrl.f_max = sdhc_host_ctrl.max_clk;
 	if (f_min)
 		mmc_slot_ctrl.f_min = f_min;
 	else {
-		if (SDHC_SPEC(host) >= SDHC_SPEC_300)
+		if (SDHC_SPEC() >= SDHC_SPEC_300)
 			mmc_slot_ctrl.f_min = mmc_slot_ctrl.f_max /
 				SDHC_10BIT_DIVIDED_CLOCK_MAX_DIV;
 		else
@@ -511,7 +525,7 @@ void sdhc_init(uint32_t f_min, uint32_t f_max)
 #endif
 
 	/* Since Host Controller Version3.0 */
-	if (SDHC_SPEC(host) >= SDHC_SPEC_300) {
+	if (SDHC_SPEC() >= SDHC_SPEC_300) {
 		if (caps_0 & SDHC_8BIT_SUPPORT_FOR_EMBEDDED_DEVICE)
 			mmc_slot_ctrl.host_scr.bus_widths = 8;
 	}
@@ -524,12 +538,20 @@ void sdhc_init(uint32_t f_min, uint32_t f_max)
 	sdhc_software_reset(mmc_sid, SDHC_SOFTWARE_RESET_FOR_ALL);
 	sdhc_set_power(__fls32(
 			MMC_OCR_VOLTAGE_RANGE(mmc_slot_ctrl.host_ocr)));
+
+	sdhc_host_ctrl.irq = irq;
 }
 
-void sdhc_handle_irq(void)
+void sdhc_handle_irq(irq_t irq)
 {
-	uint32_t irqs = sdhc_irq_status(mmc_sid);
-	uint8_t type = mmc_get_block_data();
+	__unused mmc_slot_t slot = sdhc_irq2sid(irq);
+	__unused mmc_slot_t sslot;
+	uint32_t irqs;
+	uint8_t type;
+
+	sslot = mmc_slot_save(slot);
+	irqs = sdhc_irq_status(mmc_sid);
+	type = mmc_get_block_data();
 
 	if (irqs & SDHC_CARD_DETECTION_MASK) {
 		if (irqs & SDHC_CARD_INSERTION) {
@@ -565,6 +587,7 @@ void sdhc_handle_irq(void)
 		if (type)
 			sdhc_transfer_data();
 	}
+	mmc_slot_restore(sslot);
 }
 
 void sdhc_irq_handler(void)
@@ -575,7 +598,7 @@ void sdhc_irq_handler(void)
 	sslot = mmc_slot_save(slot);
 	for (slot = 0; slot < NR_MMC_SLOTS; slot++) {
 		sslot = mmc_slot_save(slot);
-		sdhc_handle_irq();
+		sdhc_handle_irq(sdhc_host_ctrl.irq);
 		mmc_slot_restore(sslot);
 	}
 }
