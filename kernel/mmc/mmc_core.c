@@ -382,7 +382,8 @@ bool mmc_blk_success(void)
 	if (mmc_slot_ctrl.block_cnt == 0) {
 		mmc_dat_success();
 		return true;
-	}
+	} else
+		mmc_slot_ctrl.block_data += mmc_slot_ctrl.block_len;
 	return false;
 }
 

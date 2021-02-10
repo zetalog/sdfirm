@@ -489,6 +489,19 @@ void sdhc_err_failure(uint8_t err)
 }
 
 #ifdef SYS_REALTIME
+static void sdhc_irq_handler(void)
+{
+	mmc_slot_t slot;
+	__unused mmc_slot_t sslot;
+
+	sslot = mmc_slot_save(slot);
+	for (slot = 0; slot < NR_MMC_SLOTS; slot++) {
+		sslot = mmc_slot_save(slot);
+		sdhc_handle_irq(sdhc_host_ctrl.irq);
+		mmc_slot_restore(sslot);
+	}
+}
+
 void sdhc_irq_poll(void)
 {
 	sdhc_irq_handler();
@@ -591,19 +604,6 @@ static void sdhc_handle_irq(irq_t irq)
 exit_irq:
 	sdhc_irq_ack();
 	mmc_slot_restore(sslot);
-}
-
-void sdhc_irq_handler(void)
-{
-	mmc_slot_t slot;
-	__unused mmc_slot_t sslot;
-
-	sslot = mmc_slot_save(slot);
-	for (slot = 0; slot < NR_MMC_SLOTS; slot++) {
-		sslot = mmc_slot_save(slot);
-		sdhc_handle_irq(sdhc_host_ctrl.irq);
-		mmc_slot_restore(sslot);
-	}
 }
 
 void sdhc_detect_card(void)
