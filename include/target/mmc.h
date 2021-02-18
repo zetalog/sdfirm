@@ -102,8 +102,6 @@ typedef uint8_t mmc_r1_t[4];
 typedef uint8_t mmc_r2_t[16];
 typedef uint8_t mmc_r3_t[4];
 
-#define MMC_FREQ_IDENTIFICATION		400000
-
 enum mmc_bus_mode {
 	MMC_IDENT,
 	MMC_LEGACY,
@@ -583,6 +581,7 @@ typedef void (*mmc_cmpl_cb)(mmc_rca_t rca, uint8_t op, bool result);
 
 struct mmc_slot {
 	enum mmc_bus_mode mode;
+	uint32_t default_speed;
 	uint8_t state;
 	uint8_t cmd;
 	uint8_t acmd;
@@ -751,6 +750,7 @@ void mmc_event_restore(mmc_event_t event);
 void mmc_set_block_data(uint8_t type);
 uint8_t mmc_get_block_data(void);
 void mmc_wait_busy(void);
+void mmc_config_mode(enum mmc_bus_mode mode);
 
 uint32_t mmc_mode2freq(enum mmc_bus_mode mode);
 bool mmc_mode_isddr(enum mmc_bus_mode mode);

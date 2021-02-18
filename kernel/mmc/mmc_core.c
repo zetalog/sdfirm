@@ -296,13 +296,13 @@ static const struct mmc_mode mmc_modes[] = {
 	},
 	{
 		.mode = MMC_HS_400,
-		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.widths = MMC_MODE_8BIT | MMC_MODE_4BIT | MMC_MODE_1BIT,
 		.freq = 200000000,
 		.is_ddr = true,
 	},
 	{
 		.mode = MMC_HS_400_ES,
-		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.widths = MMC_MODE_8BIT | MMC_MODE_4BIT | MMC_MODE_1BIT,
 		.freq = 200000000,
 		.is_ddr = true,
 	},
@@ -314,7 +314,7 @@ static const struct mmc_mode mmc_modes[] = {
 	{
 		.mode = MMC_IDENT,
 		.widths = MMC_MODE_1BIT,
-		.freq = MMC_FREQ_IDENTIFICATION,
+		.freq = 400000,
 	},
 };
 
@@ -332,6 +332,17 @@ bool mmc_mode_isddr(enum mmc_bus_mode mode)
 		return false;
 	else
 		return mmc_modes[mode].is_ddr;
+}
+
+void mmc_config_mode(enum mmc_bus_mode mode)
+{
+	mmc_slot_ctrl.mode = mode;
+	if (mode == MMC_LEGACY)
+		mmc_hw_set_clock(mmc_slot_ctrl.default_speed);
+	else
+		mmc_hw_set_clock(mmc_mode2freq(mode));
+	/* TODO: set bus width via SWITCH/ACMD_SET_BUS_WIDTH */
+	mmc_hw_set_width(1);
 }
 
 uint8_t mmc_crc7_update(uint8_t crc, uint8_t data)
@@ -514,7 +525,7 @@ int mmc_read_blocks(uint8_t *buf, mmc_lba_t lba,
 
 void mmc_reset_slot(void)
 {
-	mmc_slot_ctrl.mode = MMC_LEGACY;
+	mmc_slot_ctrl.default_speed = 400000;
 	mmc_slot_ctrl.op = MMC_OP_NO_OP;
 	mmc_slot_ctrl.cmd = MMC_CMD_NONE;
 	mmc_slot_ctrl.dat = mmc_slot_buf;
@@ -524,8 +535,7 @@ void mmc_reset_slot(void)
 	mmc_slot_ctrl.event = 0;
 	mmc_slot_ctrl.flags = 0;
 	mmc_phy_reset_slot();
-	mmc_hw_set_width(1);
-	mmc_hw_set_clock(MMC_FREQ_IDENTIFICATION);
+	mmc_config_mode(MMC_IDENT);
 	mmc_hw_card_detect();
 }
 
