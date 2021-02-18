@@ -244,82 +244,94 @@ static const struct mmc_mode mmc_modes[] = {
 #ifdef CONFIG_MMC_TUNING
 		.tuning = MMC_CMD_SEND_TUNING_BLOCK,
 #endif
+		.freq = 208000000,
 	},
 	{
 		.mode = UHS_SDR50,
 		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.freq = 100000000,
 	},
 	{
 		.mode = UHS_DDR50,
 		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.freq = 50000000,
+		.is_ddr = true,
 	},
 	{
 		.mode = UHS_SDR25,
 		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.freq = 50000000,
+	},
+	{
+		.mode = UHS_SDR12,
+		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.freq = 25000000,
 	},
 #endif
 	{
 		.mode = SD_HS,
 		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.freq = 50000000,
 	},
-#ifdef CONFIG_MMC_UHSI
 	{
-		.mode = UHS_SDR12,
+		.mode = MMC_HS,
 		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.freq = 26000000,
 	},
-#endif
+	{
+		.mode = MMC_HS_52,
+		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.freq = 52000000,
+	},
+	{
+		.mode = MMC_DDR_52,
+		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.freq = 52000000,
+		.is_ddr = true,
+	},
+	{
+		.mode = MMC_HS_200,
+		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.freq = 200000000,
+	},
+	{
+		.mode = MMC_HS_400,
+		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.freq = 200000000,
+		.is_ddr = true,
+	},
+	{
+		.mode = MMC_HS_400_ES,
+		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.freq = 200000000,
+		.is_ddr = true,
+	},
 	{
 		.mode = MMC_LEGACY,
 		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
-	}
+		.freq = 25000000,
+	},
+	{
+		.mode = MMC_IDENT,
+		.widths = MMC_MODE_1BIT,
+		.freq = MMC_FREQ_IDENTIFICATION,
+	},
 };
 
 uint32_t mmc_mode2freq(enum mmc_bus_mode mode)
 {
-	static const int freqs[] = {
-	      [MMC_LEGACY]	= 25000000,
-	      [MMC_HS]		= 26000000,
-	      [SD_HS]		= 50000000,
-	      [MMC_HS_52]	= 52000000,
-	      [MMC_DDR_52]	= 52000000,
-	      [UHS_SDR12]	= 25000000,
-	      [UHS_SDR25]	= 50000000,
-	      [UHS_SDR50]	= 100000000,
-	      [UHS_DDR50]	= 50000000,
-	      [UHS_SDR104]	= 208000000,
-	      [MMC_HS_200]	= 200000000,
-	      [MMC_HS_400]	= 200000000,
-	      [MMC_HS_400_ES]	= 200000000,
-	};
-
 	if (mode >= MMC_MODES_END)
 		return 0;
 	else
-		return freqs[mode];
+		return mmc_modes[mode].freq;
 }
 
 bool mmc_mode_isddr(enum mmc_bus_mode mode)
 {
-	static const int ddrs[] = {
-	      [MMC_LEGACY]	= false,
-	      [MMC_HS]		= false,
-	      [SD_HS]		= false,
-	      [MMC_HS_52]	= false,
-	      [MMC_DDR_52]	= true,
-	      [UHS_SDR12]	= false,
-	      [UHS_SDR25]	= false,
-	      [UHS_SDR50]	= false,
-	      [UHS_DDR50]	= true,
-	      [UHS_SDR104]	= false,
-	      [MMC_HS_200]	= false,
-	      [MMC_HS_400]	= true,
-	      [MMC_HS_400_ES]	= true,
-	};
-
 	if (mode >= MMC_MODES_END)
 		return false;
 	else
-		return ddrs[mode];
+		return mmc_modes[mode].is_ddr;
 }
 
 uint8_t mmc_crc7_update(uint8_t crc, uint8_t data)

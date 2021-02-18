@@ -105,6 +105,7 @@ typedef uint8_t mmc_r3_t[4];
 #define MMC_FREQ_IDENTIFICATION		400000
 
 enum mmc_bus_mode {
+	MMC_IDENT,
 	MMC_LEGACY,
 	MMC_HS,
 	SD_HS,
@@ -128,10 +129,11 @@ struct mmc_mode {
 #define MMC_MODE_4BIT		_BV(29)
 #define MMC_MODE_1BIT		_BV(28)
 #define MMC_MODE_SPI		_BV(27)
-
 #ifdef CONFIG_MMC_TUNING
 	uint32_t tuning;
 #endif
+	uint32_t freq;
+	bool is_ddr;
 };
 
 #include <driver/mmc.h>
