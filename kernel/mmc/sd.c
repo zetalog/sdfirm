@@ -488,10 +488,10 @@ sd_scr_t sd_decode_scr(void)
 	uint8_t *buf = (uint8_t *)mmc_slot_ctrl.block_data;
 	uint8_t sd_specx;
 
-	scr0 = MAKELONG(MAKEWORD(buf[4], buf[5]),
-			MAKEWORD(buf[6], buf[7]));
-	scr1 = MAKELONG(MAKEWORD(buf[0], buf[1]),
-			MAKEWORD(buf[2], buf[3]));
+	scr0 = MAKELONG(MAKEWORD(buf[7], buf[6]),
+			MAKEWORD(buf[5], buf[4]));
+	scr1 = MAKELONG(MAKEWORD(buf[3], buf[2]),
+			MAKEWORD(buf[1], buf[0]));
 	scr.scr_structure = SD_SCR1_SCR_STRUCTURE(scr1);
 	sd_specx = SD_SCR1_SD_SPECX(scr1);
 	if (sd_specx)
