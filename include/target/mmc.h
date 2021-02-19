@@ -685,6 +685,7 @@ struct mmc_slot {
 #define MMC_ERR_TIMEOUT			8 /* communication timeout */
 
 #define MMC_FREQ_OD			400000 /* f_OD */
+#define MMC_FREQ_PP			25000000 /* f_PP */
 
 #ifdef CONFIG_DEBUG_PRINT
 #define mmc_debug(tag, val)	dbg_print((tag), (val))

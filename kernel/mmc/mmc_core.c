@@ -237,6 +237,7 @@ mmc_slot_t mmc_slot_save(mmc_slot_t slot)
 #endif
 
 static const struct mmc_mode mmc_modes[] = {
+#ifdef CONFIG_SD
 #ifdef CONFIG_MMC_UHSI
 	{
 		.mode = UHS_SDR104,
@@ -271,8 +272,9 @@ static const struct mmc_mode mmc_modes[] = {
 	{
 		.mode = SD_HS,
 		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
-		.freq = 50000000,
+		.freq = SD_FREQ_HS,
 	},
+#endif
 	{
 		.mode = MMC_HS,
 		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
@@ -309,7 +311,7 @@ static const struct mmc_mode mmc_modes[] = {
 	{
 		.mode = MMC_LEGACY,
 		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
-		.freq = 25000000,
+		.freq = MMC_FREQ_PP,
 	},
 	{
 		.mode = MMC_IDENT,

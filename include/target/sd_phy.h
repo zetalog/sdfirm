@@ -319,6 +319,9 @@ typedef struct {
 #define SD_VERSION_5		5
 #define SD_VERSION_6		6
 
+#define SD_FREQ_PP		MMC_FREQ_PP
+#define SD_FREQ_HS		50000000
+
 typedef struct {
 	uint8_t scr_structure : 4;
 	uint8_t version : 4;
