@@ -423,9 +423,19 @@ static sd_cid_t sd_decode_cid(mmc_r2_t raw_cid)
 			   MAKEWORD(raw_cid[5], raw_cid[6]));
 	cid.prv = raw_cid[7];
 	memcpy(cid.pnm, &raw_cid[8], 5);
+#ifdef CONFIG_MMC_DEBUG
+	printf("MDT: %d\n", cid.mdt);
+	printf("PSN: %d\n", cid.psn);
+	printf("PRV: %d\n", cid.prv);
+	printf("PNM: %.5s\n", cid.pnm);
+#endif
 #endif
 	cid.oid = MAKEWORD(raw_cid[10], raw_cid[11]);
 	cid.mid = raw_cid[12];
+#ifdef CONFIG_MMC_DEBUG
+	printf("OID: %d\n", cid.oid);
+	printf("MID: %d\n", cid.mid);
+#endif
 	return cid;
 }
 
@@ -507,6 +517,12 @@ sd_scr_t sd_decode_scr(void)
 	scr.ex_security = SD_SCR1_EX_SECURITY(scr1);
 	scr.bus_widths = SD_SCR1_SD_BUS_WIDTHS(scr1);
 	scr.cmd_support = SD_SCR1_CMD_SUPPORT(scr1);
+#ifdef CONFIG_MMC_DEBUG
+	printf("SCR_STRUCTURE: %d\n", scr.scr_structure);
+	printf("Version: %d\n", scr.version);
+	printf("BUS_WIDTHS: 0x%02x\n", scr.bus_widths);
+	printf("CMD_SUPPORT: 0x%02x\n", scr.cmd_support);
+#endif
 	return scr;
 }
 
@@ -818,6 +834,10 @@ void sd_resp_r6(void)
 	mmc_slot_ctrl.rca = MAKEWORD(r6[2], r6[3]);
 	/* Decode card status */
 	cs = MAKEWORD(r6[0], r6[1]);
+#ifdef CONFIG_MMC_DEBUG
+	printf("RCA: %d\n", mmc_slot_ctrl.rca);
+	printf("Card status: 0x%04x\n", cs);
+#endif
 	if (cs & SD_R6_COM_CRC_ERROR)
 		raise_bits(mmc_slot_ctrl.csr, MMC_DET_COM_CRC_ERROR);
 	else
