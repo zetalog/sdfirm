@@ -318,12 +318,20 @@ static const struct mmc_mode mmc_modes[] = {
 	},
 };
 
-uint32_t mmc_mode2freq(enum mmc_bus_mode mode)
+uint32_t mmc_mode_speed(enum mmc_bus_mode mode)
 {
 	if (mode >= MMC_MODES_END)
 		return 0;
 	else
 		return mmc_modes[mode].freq;
+}
+
+uint32_t mmc_mode_width(enum mmc_bus_mode mode)
+{
+	if (mode >= MMC_MODES_END)
+		return 0;
+	else
+		return mmc_modes[mode].widths;
 }
 
 bool mmc_mode_isddr(enum mmc_bus_mode mode)
@@ -336,16 +344,28 @@ bool mmc_mode_isddr(enum mmc_bus_mode mode)
 
 void mmc_config_mode(enum mmc_bus_mode mode)
 {
-	uint32_t speed;
-
 	mmc_slot_ctrl.mode = mode;
+}
+
+void mmc_select_modes(enum mmc_bus_mode mode, uint32_t card_widths)
+{
+	uint32_t speed;
+	uint32_t mode_widths;
+
+	mmc_slot_ctrl.select_mode = mode;
 	if (mode == MMC_LEGACY)
 		speed = mmc_slot_ctrl.default_speed;
 	else
-		speed = mmc_mode2freq(mode);
+		speed = mmc_mode_speed(mode);
 	if (speed != mmc_slot_ctrl.config_speed)
 		mmc_config_clock(speed);
-	/* TODO: set bus width via SWITCH/ACMD_SET_BUS_WIDTH */
+	mode_widths = mmc_mode_width(mode);
+	if (mode_widths & card_widths & MMC_MODE_8BIT)
+		mmc_slot_ctrl.expect_width = 8;
+	else if (mode_widths & card_widths & MMC_MODE_4BIT)
+		mmc_slot_ctrl.expect_width = 4;
+	else
+		mmc_slot_ctrl.expect_width = 1;
 }
 
 uint8_t mmc_crc7_update(uint8_t crc, uint8_t data)
@@ -550,9 +570,10 @@ void mmc_reset_slot(void)
 	mmc_slot_ctrl.flags = 0;
 	mmc_phy_reset_slot();
 	/* Reset modes */
+	mmc_config_mode(MMC_IDENT);
 	mmc_config_width(1);
 	mmc_config_clock(MMC_FREQ_OD);
-	mmc_config_mode(MMC_IDENT);
+	mmc_select_modes(MMC_IDENT, MMC_MODE_1BIT);
 	mmc_hw_card_detect();
 }
 

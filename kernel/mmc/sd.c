@@ -312,6 +312,26 @@ static void sd_handle_identify_card(bool is_op)
 		mmc_op_failure();
 }
 
+static void sd_handle_select_mode(bool is_op)
+{
+	if (mmc_state_is(stby)) {
+		if (!mmc_slot_ctrl.csd_valid)
+			mmc_cmd(MMC_CMD_SEND_CSD);
+		else if (!mmc_slot_ctrl.scr_valid)
+			mmc_send_acmd(SD_ACMD_SEND_SCR);
+		else if (mmc_slot_ctrl.config_width !=
+			 mmc_slot_ctrl.expect_width)
+			mmc_send_acmd(SD_ACMD_SET_BUS_WIDTH);
+		else if (is_op) {
+			mmc_config_mode(mmc_slot_ctrl.select_mode);
+			mmc_op_success();
+		}
+	} else if (mmc_state_is(__ina))
+		mmc_cmd(MMC_CMD_GO_INACTIVE_STATE);
+	else if (mmc_state_is(ina))
+		mmc_op_failure();
+}
+
 static void sd_handle_select_card(bool is_op)
 {
 	if (mmc_state_is(tran)) {
@@ -326,10 +346,8 @@ static void sd_handle_select_card(bool is_op)
 		if (sd_spi_mode) {
 			mmc_slot_ctrl.cmd = MMC_CMD_SELECT_DESELECT_CARD;
 			mmc_event_raise(MMC_EVENT_CMD_SUCCESS);
-		} else if (!mmc_slot_ctrl.csd_valid)
-			mmc_cmd(MMC_CMD_SEND_CSD);
-		else if (!mmc_slot_ctrl.scr_valid)
-			mmc_send_acmd(SD_ACMD_SEND_SCR);
+		} else if (mmc_slot_ctrl.select_mode == mmc_slot_ctrl.mode)
+			sd_handle_select_mode(false);
 		else
 			mmc_cmd(MMC_CMD_SELECT_DESELECT_CARD);
 	}
@@ -384,6 +402,8 @@ void mmc_phy_handle_seq(void)
 {
 	if (mmc_op_is(MMC_OP_IDENTIFY_CARD))
 		sd_handle_identify_card(true);
+	if (mmc_op_is(MMC_OP_SELECT_MODE))
+		sd_handle_select_mode(true);
 	if (mmc_op_is(MMC_OP_SELECT_CARD))
 		sd_handle_select_card(true);
 	if (mmc_op_is(MMC_OP_DESELECT_CARD))
@@ -482,7 +502,7 @@ sd_scr_t sd_decode_scr(void)
 	scr.data_stat_after_erase = !!(SD_SCR1_DATA_STAT_AFTER_ERASE & scr1);
 	scr.sd_security = SD_SCR1_SD_SECURITY(scr1);
 	scr.ex_security = SD_SCR1_EX_SECURITY(scr1);
-	scr.bus_widths = 1 << SD_SCR1_SD_BUS_WIDTHS(scr1);
+	scr.bus_widths = SD_SCR1_SD_BUS_WIDTHS(scr1);
 	scr.cmd_support = SD_SCR1_CMD_SUPPORT(scr1);
 	return scr;
 }
@@ -564,7 +584,7 @@ void mmc_phy_handle_stm(void)
 			mmc_event_raise(MMC_EVENT_CARD_BUSY);
 	} else if (flags & MMC_EVENT_CMD_SUCCESS &&
 		   mmc_slot_ctrl.flags & MMC_SLOT_WAIT_APP_CMD &&
-		   mmc_cmd_is(MMC_CMD_APP_CMD)) {
+		   mmc_cmd_is_app()) {
 		mmc_app_cmd_complete();
 		unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
 	} else if (flags & MMC_EVENT_POWER_ON) {
@@ -697,6 +717,29 @@ void mmc_phy_handle_stm(void)
 	mmc_event_restore(flags);
 }
 
+static void sd_recv_acmd(void)
+{
+	uint32_t card_widths = MMC_MODE_1BIT;
+
+	switch (mmc_slot_ctrl.acmd) {
+	case SD_ACMD_SET_BUS_WIDTH:
+		mmc_config_clock(mmc_slot_ctrl.expect_width);
+		break;
+	case SD_ACMD_SD_STATUS:
+		/* TODO: parse SD_STATUS */
+		break;
+	case SD_ACMD_SEND_SCR:
+		mmc_slot_ctrl.host_scr = sd_decode_scr();
+		mmc_slot_ctrl.scr_valid = true;
+		if (mmc_slot_ctrl.host_scr.bus_widths & SD_BUS_WIDTH_4BIT)
+			card_widths = MMC_MODE_4BIT;
+		/* Switch to F_PP */
+		if (mmc_slot_ctrl.mode == MMC_IDENT)
+			mmc_select_modes(MMC_LEGACY, card_widths);
+		break;
+	}
+}
+
 void sd_resp_r0(void)
 {
 	mmc_hw_recv_response(NULL, 0);
@@ -710,6 +753,9 @@ void sd_resp_r1(void)
 	raise_bits(mmc_slot_ctrl.flags, MMC_SLOT_CARD_STATUS_VALID);
 	mmc_slot_ctrl.csr = MAKELONG(MAKEWORD(r1[0], r1[1]),
 				     MAKEWORD(r1[2], r1[3]));
+	if (mmc_cmd_is_app() && !mmc_get_block_data() &&
+	    mmc_slot_ctrl.flags & MMC_SLOT_WAIT_APP_ACMD)
+		sd_recv_acmd();
 }
 
 bool sd_resp_r1b(void)
@@ -727,9 +773,6 @@ void sd_resp_r2(void)
 		mmc_slot_ctrl.csd = sd_decode_csd(r2);
 		mmc_slot_ctrl.csd_valid = true;
 		mmc_slot_ctrl.default_speed = mmc_slot_ctrl.csd.tran_speed;
-		/* Switch to F_PP */
-		if (mmc_slot_ctrl.mode == MMC_IDENT)
-			mmc_config_mode(MMC_LEGACY);
 	} else
 		mmc_slot_ctrl.cid = sd_decode_cid(r2);
 }
@@ -853,11 +896,16 @@ static void sd_set_block_data(bool trans)
 void sd_send_acmd(void)
 {
 	uint32_t arg = 0;
+	uint8_t width;
 
 	switch (mmc_slot_ctrl.acmd) {
 	case SD_ACMD_SET_BUS_WIDTH:
 		mmc_slot_ctrl.rsp = MMC_R1;
-		arg = sd_bus_width(mmc_slot_ctrl.bus_width);
+		if (mmc_slot_ctrl.expect_width == 4)
+			width = SD_BUS_WIDTH_4BIT;
+		else
+			width = SD_BUS_WIDTH_1BIT;
+		arg = sd_bus_width(width);
 		break;
 	case SD_ACMD_SD_STATUS:
 		mmc_slot_ctrl.rsp = MMC_R1;
@@ -1092,18 +1140,8 @@ void mmc_phy_start_dat(void)
 
 void mmc_phy_stop_dat(void)
 {
-	if (mmc_slot_ctrl.cmd == MMC_CMD_APP_CMD) {
-		switch (mmc_slot_ctrl.acmd) {
-		case SD_ACMD_SD_STATUS:
-			/* TODO: parse SD_STATUS */
-			break;
-		case SD_ACMD_SEND_SCR:
-			mmc_slot_ctrl.host_scr = sd_decode_scr();
-			mmc_slot_ctrl.scr_valid = true;
-			break;
-		}
-	} else {
-	}
+	if (mmc_cmd_is_app() && mmc_get_block_data())
+		sd_recv_acmd();
 }
 
 void mmc_phy_reset_slot(void)

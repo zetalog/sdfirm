@@ -297,6 +297,8 @@ typedef struct {
 #define SD_SCR1_SD_BUS_WIDTHS_OFFSET	16
 #define SD_SCR1_SD_BUS_WIDTHS_MASK	REG_4BIT_MASK
 #define SD_SCR1_SD_BUS_WIDTHS(value)	_GET_FV(SD_SCR1_SD_BUS_WIDTHS, value)
+#define SD_BUS_WIDTH_1BIT		_BV(0)
+#define SD_BUS_WIDTH_4BIT		_BV(2)
 #define SD_SCR1_SD_SPEC3		_BV(15)
 #define SD_SCR1_EX_SECURITY_OFFSET	11
 #define SD_SCR1_EX_SECURITY_MASK	REG_4BIT_MASK
@@ -477,8 +479,7 @@ typedef struct {
 	bool voltage_ready;			\
 	uint8_t card_version;			\
 	uint32_t wr_blk_erase_count : 23;	\
-	sd_speed_t speed;			\
-	uint8_t bus_width;
+	sd_speed_t speed;
 
 #ifdef CONFIG_SD_SPI
 #define MMC_SPI_SLOT				\

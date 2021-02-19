@@ -584,6 +584,8 @@ struct mmc_slot {
 	uint32_t default_speed; /* Calculated from CSD */
 	uint32_t config_speed;
 	uint8_t config_width;
+	enum mmc_bus_mode select_mode;
+	uint8_t expect_width;
 	uint8_t state;
 	uint8_t cmd;
 	uint8_t acmd;
@@ -666,10 +668,11 @@ struct mmc_slot {
 
 #define MMC_OP_NO_OP			0
 #define MMC_OP_IDENTIFY_CARD		1
-#define MMC_OP_SELECT_CARD		2
-#define MMC_OP_DESELECT_CARD		3
-#define MMC_OP_READ_BLOCKS		4
-#define MMC_OP_WRITE_BLOCKS		5
+#define MMC_OP_SELECT_MODE		2 /* select width/clock */
+#define MMC_OP_SELECT_CARD		3
+#define MMC_OP_DESELECT_CARD		4
+#define MMC_OP_READ_BLOCKS		5
+#define MMC_OP_WRITE_BLOCKS		6
 
 #define MMC_ERR_NO_ERROR		0
 #define MMC_ERR_CARD_IS_BUSY		1 /* card is busy */
@@ -715,6 +718,7 @@ bool mmc_op_busy(void);
 #define mmc_op_success()		mmc_op_complete(true)
 #define mmc_op_failure()		mmc_op_complete(false)
 #define mmc_identify_card()		mmc_start_op(MMC_OP_IDENTIFY_CARD, NULL)
+#define mmc_select_mode(cmpl)		mmc_start_op(MMC_OP_SELECT_MODE, cmpl)
 #define mmc_select_card(cmpl)		mmc_start_op(MMC_OP_SELECT_CARD, cmpl)
 #define mmc_deselect_card(cmpl)		mmc_start_op(MMC_OP_DESELECT_CARD, cmpl)
 #define __mmc_read_blocks(cmpl)		mmc_start_op(MMC_OP_READ_BLOCKS, cmpl)
@@ -754,11 +758,13 @@ void mmc_event_restore(mmc_event_t event);
 void mmc_set_block_data(uint8_t type);
 uint8_t mmc_get_block_data(void);
 void mmc_wait_busy(void);
-void mmc_config_mode(enum mmc_bus_mode mode);
+void mmc_select_modes(enum mmc_bus_mode mode, uint32_t card_wdiths);
 void mmc_config_width(uint8_t width);
 void mmc_config_clock(uint32_t speed);
+void mmc_config_mode(enum mmc_bus_mode mode);
 
-uint32_t mmc_mode2freq(enum mmc_bus_mode mode);
+uint32_t mmc_mode_speed(enum mmc_bus_mode mode);
+uint32_t mmc_mode_width(enum mmc_bus_mode mode);
 bool mmc_mode_isddr(enum mmc_bus_mode mode);
 mmc_card_t mmc_register_card(mmc_rca_t rca);
 int mmc_card_read_async(mmc_rca_t rca, uint8_t *buf,
