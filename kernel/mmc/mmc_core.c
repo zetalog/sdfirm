@@ -241,7 +241,7 @@ static const struct mmc_mode mmc_modes[] = {
 #ifdef CONFIG_MMC_UHSI
 	{
 		.mode = UHS_SDR104,
-		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.flags = MMC_MODE_4BIT | MMC_MODE_1BIT,
 #ifdef CONFIG_MMC_TUNING
 		.tuning = MMC_CMD_SEND_TUNING_BLOCK,
 #endif
@@ -249,73 +249,71 @@ static const struct mmc_mode mmc_modes[] = {
 	},
 	{
 		.mode = UHS_SDR50,
-		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.flags = MMC_MODE_4BIT | MMC_MODE_1BIT,
 		.freq = 100000000,
 	},
 	{
 		.mode = UHS_DDR50,
-		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.flags = MMC_MODE_DDR | MMC_MODE_4BIT | MMC_MODE_1BIT,
 		.freq = 50000000,
-		.is_ddr = true,
 	},
 	{
 		.mode = UHS_SDR25,
-		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.flags = MMC_MODE_4BIT | MMC_MODE_1BIT,
 		.freq = 50000000,
 	},
 	{
 		.mode = UHS_SDR12,
-		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.flags = MMC_MODE_4BIT | MMC_MODE_1BIT,
 		.freq = 25000000,
 	},
 #endif
 	{
 		.mode = SD_HS,
-		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.flags = MMC_MODE_4BIT | MMC_MODE_1BIT,
 		.freq = SD_FREQ_HS,
 	},
 #endif
 	{
 		.mode = MMC_HS,
-		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.flags = MMC_MODE_4BIT | MMC_MODE_1BIT,
 		.freq = 26000000,
 	},
 	{
 		.mode = MMC_HS_52,
-		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.flags = MMC_MODE_4BIT | MMC_MODE_1BIT,
 		.freq = 52000000,
 	},
 	{
 		.mode = MMC_DDR_52,
-		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.flags = MMC_MODE_DDR | MMC_MODE_4BIT | MMC_MODE_1BIT,
 		.freq = 52000000,
-		.is_ddr = true,
 	},
 	{
 		.mode = MMC_HS_200,
-		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.flags = MMC_MODE_4BIT | MMC_MODE_1BIT,
 		.freq = 200000000,
 	},
 	{
 		.mode = MMC_HS_400,
-		.widths = MMC_MODE_8BIT | MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.flags = MMC_MODE_DDR |
+			  MMC_MODE_8BIT | MMC_MODE_4BIT | MMC_MODE_1BIT,
 		.freq = 200000000,
-		.is_ddr = true,
 	},
 	{
 		.mode = MMC_HS_400_ES,
-		.widths = MMC_MODE_8BIT | MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.flags = MMC_MODE_DDR |
+			  MMC_MODE_8BIT | MMC_MODE_4BIT | MMC_MODE_1BIT,
 		.freq = 200000000,
-		.is_ddr = true,
 	},
 	{
 		.mode = MMC_LEGACY,
-		.widths = MMC_MODE_4BIT | MMC_MODE_1BIT,
+		.flags = MMC_MODE_4BIT | MMC_MODE_1BIT,
 		.freq = MMC_FREQ_PP,
 	},
 	{
 		.mode = MMC_IDENT,
-		.widths = MMC_MODE_1BIT,
+		.flags = MMC_MODE_1BIT,
 		.freq = MMC_FREQ_OD,
 	},
 };
@@ -348,7 +346,7 @@ uint32_t mmc_mode_width(enum mmc_bus_mode mode)
 
 	if (!m)
 		return 0;
-	return m->widths;
+	return MMC_MODE_WIDTH(m->flags);
 }
 
 bool mmc_mode_isddr(enum mmc_bus_mode mode)
@@ -357,7 +355,7 @@ bool mmc_mode_isddr(enum mmc_bus_mode mode)
 
 	if (!m)
 		return 0;
-	return m->is_ddr;
+	return !!(m->flags & MMC_MODE_DDR);
 }
 
 void mmc_config_mode(enum mmc_bus_mode mode)
@@ -368,7 +366,7 @@ void mmc_config_mode(enum mmc_bus_mode mode)
 void mmc_select_modes(enum mmc_bus_mode mode, uint32_t card_widths)
 {
 	uint32_t speed;
-	uint32_t mode_widths;
+	uint32_t widths;
 
 	mmc_slot_ctrl.select_mode = mode;
 	if (mode == MMC_LEGACY)
@@ -377,10 +375,10 @@ void mmc_select_modes(enum mmc_bus_mode mode, uint32_t card_widths)
 		speed = mmc_mode_speed(mode);
 	if (speed != mmc_slot_ctrl.config_speed)
 		mmc_config_clock(speed);
-	mode_widths = mmc_mode_width(mode);
-	if (mode_widths & card_widths & MMC_MODE_8BIT)
+	widths = mmc_mode_width(mode) & card_widths;
+	if (widths & MMC_MODE_8BIT)
 		mmc_slot_ctrl.expect_width = 8;
-	else if (mode_widths & card_widths & MMC_MODE_4BIT)
+	else if (widths & MMC_MODE_4BIT)
 		mmc_slot_ctrl.expect_width = 4;
 	else
 		mmc_slot_ctrl.expect_width = 1;

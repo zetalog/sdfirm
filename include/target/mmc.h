@@ -122,16 +122,20 @@ enum mmc_bus_mode {
 
 struct mmc_mode {
 	enum mmc_bus_mode mode;
-	uint32_t widths;
-#define MMC_MODE_8BIT		_BV(30)
-#define MMC_MODE_4BIT		_BV(29)
-#define MMC_MODE_1BIT		_BV(28)
-#define MMC_MODE_SPI		_BV(27)
+	uint32_t flags;
+#define MMC_MODE_SPI		_BV(31)
+#define MMC_MODE_DDR		_BV(30)
+#define MMC_MODE_WIDTH_OFFSET	0
+#define MMC_MODE_WIDTH_MASK	REG_4BIT_MASK
+#define MMC_MODE_WIDTH(value)	_GET_FV(MMC_MODE_WIDTH, value)
+#define MMC_MODE_8BIT		_BV(3)
+#define MMC_MODE_4BIT		_BV(2)
+#define MMC_MODE_1BIT		_BV(0)
+	uint32_t freq;
+
 #ifdef CONFIG_MMC_TUNING
 	uint32_t tuning;
 #endif
-	uint32_t freq;
-	bool is_ddr;
 };
 
 #include <driver/mmc.h>

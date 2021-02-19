@@ -738,11 +738,11 @@ void mmc_phy_handle_stm(void)
 
 static void sd_recv_acmd(void)
 {
-	uint32_t card_widths = MMC_MODE_1BIT;
+	uint32_t arg;
 
 	switch (mmc_slot_ctrl.acmd) {
 	case SD_ACMD_SET_BUS_WIDTH:
-		mmc_config_clock(mmc_slot_ctrl.expect_width);
+		mmc_config_width(mmc_slot_ctrl.expect_width);
 		break;
 	case SD_ACMD_SD_STATUS:
 		/* TODO: parse SD_STATUS */
@@ -751,10 +751,12 @@ static void sd_recv_acmd(void)
 		mmc_slot_ctrl.host_scr = sd_decode_scr();
 		mmc_slot_ctrl.scr_valid = true;
 		if (mmc_slot_ctrl.host_scr.bus_widths & SD_BUS_WIDTH_4BIT)
-			card_widths = MMC_MODE_4BIT;
+			arg = MMC_MODE_4BIT;
+		else
+			arg = MMC_MODE_1BIT;
 		/* Switch to F_PP */
 		if (mmc_slot_ctrl.mode == MMC_IDENT)
-			mmc_select_modes(MMC_LEGACY, card_widths);
+			mmc_select_modes(MMC_LEGACY, arg);
 		break;
 	}
 }
