@@ -483,10 +483,13 @@ static mmc_csd_t sd_decode_csd(mmc_r2_t raw_csd)
 sd_scr_t sd_decode_scr(void)
 {
 	sd_scr_t scr;
+	__unused uint32_t scr0;
 	uint32_t scr1;
 	uint8_t *buf = (uint8_t *)mmc_slot_ctrl.block_data;
 	uint8_t sd_specx;
 
+	scr0 = MAKELONG(MAKEWORD(buf[4], buf[5]),
+			MAKEWORD(buf[6], buf[7]));
 	scr1 = MAKELONG(MAKEWORD(buf[0], buf[1]),
 			MAKEWORD(buf[2], buf[3]));
 	scr.scr_structure = SD_SCR1_SCR_STRUCTURE(scr1);
