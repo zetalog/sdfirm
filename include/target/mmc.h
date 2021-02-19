@@ -581,7 +581,9 @@ typedef void (*mmc_cmpl_cb)(mmc_rca_t rca, uint8_t op, bool result);
 
 struct mmc_slot {
 	enum mmc_bus_mode mode;
-	uint32_t default_speed;
+	uint32_t default_speed; /* Calculated from CSD */
+	uint32_t config_speed;
+	uint8_t config_width;
 	uint8_t state;
 	uint8_t cmd;
 	uint8_t acmd;
@@ -679,6 +681,8 @@ struct mmc_slot {
 #define MMC_ERR_CHECK_PATTERN		7 /* check pattern error */
 #define MMC_ERR_TIMEOUT			8 /* communication timeout */
 
+#define MMC_FREQ_OD			400000 /* f_OD */
+
 #ifdef CONFIG_DEBUG_PRINT
 #define mmc_debug(tag, val)	dbg_print((tag), (val))
 #endif
@@ -751,6 +755,8 @@ void mmc_set_block_data(uint8_t type);
 uint8_t mmc_get_block_data(void);
 void mmc_wait_busy(void);
 void mmc_config_mode(enum mmc_bus_mode mode);
+void mmc_config_width(uint8_t width);
+void mmc_config_clock(uint32_t speed);
 
 uint32_t mmc_mode2freq(enum mmc_bus_mode mode);
 bool mmc_mode_isddr(enum mmc_bus_mode mode);
