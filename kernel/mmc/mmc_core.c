@@ -318,28 +318,44 @@ static const struct mmc_mode mmc_modes[] = {
 	},
 };
 
+static const struct mmc_mode *mmc_mode_find(enum mmc_bus_mode mode)
+{
+	int i;
+	const struct mmc_mode *m;
+
+	for (i = 0; i < ARRAY_SIZE(mmc_modes); i++) {
+		m = &(mmc_modes[i]);
+		if (m->mode == mode)
+			return m;
+	}
+	return NULL;
+}
+
 uint32_t mmc_mode_speed(enum mmc_bus_mode mode)
 {
-	if (mode >= MMC_MODES_END)
+	const struct mmc_mode *m = mmc_mode_find(mode);
+
+	if (!m)
 		return 0;
-	else
-		return mmc_modes[mode].freq;
+	return m->freq;
 }
 
 uint32_t mmc_mode_width(enum mmc_bus_mode mode)
 {
-	if (mode >= MMC_MODES_END)
+	const struct mmc_mode *m = mmc_mode_find(mode);
+
+	if (!m)
 		return 0;
-	else
-		return mmc_modes[mode].widths;
+	return m->widths;
 }
 
 bool mmc_mode_isddr(enum mmc_bus_mode mode)
 {
-	if (mode >= MMC_MODES_END)
-		return false;
-	else
-		return mmc_modes[mode].is_ddr;
+	const struct mmc_mode *m = mmc_mode_find(mode);
+
+	if (!m)
+		return 0;
+	return m->is_ddr;
 }
 
 void mmc_config_mode(enum mmc_bus_mode mode)
