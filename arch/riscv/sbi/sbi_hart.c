@@ -234,14 +234,14 @@ sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
 		break;
 	case PRV_S:
 		if (!misa_extension('S'))
-			hart_hang();
+			bh_panic();
 		break;
 	case PRV_U:
 		if (!misa_extension('U'))
-			hart_hang();
+			bh_panic();
 		break;
 	default:
-		hart_hang();
+		bh_panic();
 	}
 
 	val = csr_read(CSR_MSTATUS);

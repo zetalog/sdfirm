@@ -46,6 +46,8 @@
 #include <target/mem.h>
 #include <target/mtd.h>
 
+mtd_t board_sdcard = INVALID_MTD_ID;
+
 void duowen_sd_power(void)
 {
 	__raw_setl(IMC_SD_HOST_REG_VOL_STABLE, SCSR_SD_STABLE);
@@ -85,6 +87,16 @@ void duowen_sd_init(void)
 
 void duowen_sd_copy(void *buf, uint32_t addr, uint32_t size)
 {
+	mtd_t smtd;
+	int i;
+	uint8_t *dst = buf;
+
+	smtd = mtd_save_device(board_sdcard);
+	mtd_open(OPEN_READ, addr, size);
+	for (i = 0; i < size; i++)
+		dst[i] = mtd_read_byte();
+	mtd_close();
+	mtd_restore_device(smtd);
 }
 
 static inline uint8_t duowen_sd_read(uint32_t addr)
@@ -112,7 +124,7 @@ void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size)
 	__align(32) uint8_t boot_from_stack[256];
 
 	boot_func = (duowen_boot_cb)boot_from_stack;
-	memcpy(boot_from_stack, __duowen_ssi_flash_boot, 256);
+	memcpy(boot_from_stack, __duowen_sd_boot, 256);
 #else
 	boot_func = __duowen_sd_boot;
 #endif

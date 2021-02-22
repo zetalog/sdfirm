@@ -132,11 +132,15 @@ void duowen_load_ssi(void)
 	printf("Booting %s from SSI flash to entry=0x%lx...\n",
 	       boot_file, (unsigned long)boot_entry);
 	ret = gpt_pgpt_init();
-	if (ret != 0)
+	if (ret != 0) {
 		printf("SSI: primary GPT failure.\n");
+		bh_panic();
+	}
 	ret = gpt_get_file_by_name(boot_file, &addr, &size);
-	if (ret <= 0)
+	if (ret <= 0) {
 		printf("SSI: %s missing.\n", boot_file);
+		bh_panic();
+	}
 	printf("Booting from SSI flash addr=0x%lx, size=0x%lx...\n",
 	       addr, size);
 #ifdef CONFIG_DUOWEN_FSBL
@@ -172,11 +176,15 @@ void duowen_load_sd(void)
 	printf("Booting %s from SD card to entry=0x%lx...\n",
 	       boot_file, (unsigned long)boot_entry);
 	ret = gpt_pgpt_init();
-	if (ret != 0)
+	if (ret != 0) {
 		printf("SD: primary GPT failure.\n");
+		bh_panic();
+	}
 	ret = gpt_get_file_by_name(boot_file, &addr, &size);
-	if (ret <= 0)
+	if (ret <= 0) {
 		printf("SD: %s missing.\n", boot_file);
+		bh_panic();
+	}
 	printf("Booting from SD card addr=0x%lx, size=0x%lx...\n",
 	       addr, size);
 #ifdef CONFIG_DUOWEN_FSBL

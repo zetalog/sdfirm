@@ -180,7 +180,6 @@ struct pt_regs {
 #ifndef __ASSEMBLY__
 #include <asm/mach/irq.h>
 
-__noreturn void hart_hang(void);
 void show_regs(struct pt_regs *regs);
 #endif
 

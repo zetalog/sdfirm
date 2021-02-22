@@ -115,6 +115,9 @@ bh_t bh_register_handler(bh_cb handler)
 void bh_panic(void)
 {
 	idle_debug(IDLE_DEBUG_SID, DBG_SRC_IDLE);
+	while (1)
+		wait_irq();
+	__builtin_unreachable();
 }
 
 static void __bh_sync(boolean recursive)

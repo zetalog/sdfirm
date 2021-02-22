@@ -51,7 +51,7 @@ void dbg_panic(const text_char_t *file, int line);
 #define BUG()						\
 	dbg_panic(__FILE__, __LINE__)
 #else
-#define BUG()				do { } while (0)
+#define BUG()				do { wait_irq(); } while (0)
 #endif
 #define BUG_ON(expr)					\
 	do {						\

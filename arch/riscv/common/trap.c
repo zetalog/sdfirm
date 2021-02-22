@@ -50,7 +50,7 @@ static void do_trap_error(struct pt_regs *regs, unsigned long addr,
 		printf("%s at " REG_FMT ".\n", str, addr);
 	show_regs(regs);
 	board_finish(1);
-	hart_hang();
+	bh_panic();
 }
 
 #define DO_ERROR_INFO(name, str)			\

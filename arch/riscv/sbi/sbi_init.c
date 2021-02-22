@@ -93,7 +93,7 @@ static void wait_for_coldboot(struct sbi_scratch *scratch, u32 cpu)
 
 	if (cpu >= NR_CPUS ||
 	    (COLDBOOT_WAIT_BITMAP_SIZE <= cpu))
-		hart_hang();
+		bh_panic();
 
 	/* Save MIE CSR */
 	saved_mie = csr_read(CSR_MIE);
@@ -157,26 +157,26 @@ static void __noreturn init_coldboot(void)
 
 	rc = sbi_system_early_init(scratch, true);
 	if (rc)
-		hart_hang();
+		bh_panic();
 
 	rc = sbi_hart_init(scratch, hartid, true);
 	if (rc)
-		hart_hang();
+		bh_panic();
 
 	rc = sbi_console_init(scratch);
 	if (rc)
-		hart_hang();
+		bh_panic();
 
 	rc = sbi_platform_irqchip_init(plat, true);
 	if (rc)
-		hart_hang();
+		bh_panic();
 
 	sbi_ipi_init(scratch, true);
 	sbi_timer_init(scratch, true);
 
 	rc = sbi_system_final_init(scratch, true);
 	if (rc)
-		hart_hang();
+		bh_panic();
 
 	sbi_boot_prints();
 
@@ -198,32 +198,32 @@ static void __noreturn init_warmboot(void)
 		wait_for_coldboot(scratch, smp_hw_hart_cpu(hartid));
 
 	if (sbi_platform_hart_disabled(plat, hartid))
-		hart_hang();
+		bh_panic();
 
 	rc = sbi_system_early_init(scratch, false);
 	if (rc)
-		hart_hang();
+		bh_panic();
 
 	rc = sbi_hart_init(scratch, hartid, false);
 	if (rc)
-		hart_hang();
+		bh_panic();
 
 	rc = sbi_platform_irqchip_init(plat, false);
 	if (rc)
-		hart_hang();
+		bh_panic();
 
 	sbi_ipi_init(scratch, false);
 	sbi_timer_init(scratch, false);
 
 	rc = sbi_system_final_init(scratch, false);
 	if (rc)
-		hart_hang();
+		bh_panic();
 
 	sbi_hart_mark_available(hartid);
 
 	if (sbi_platform_has_hart_hotplug(plat))
 		/* TODO: To be implemented in-future. */
-		hart_hang();
+		bh_panic();
 	else {
 		sbi_boot_hart_prints();
 		sbi_hart_switch_mode(hartid, scratch->next_arg1,
@@ -240,7 +240,7 @@ void __noreturn sbi_finish_hang(void)
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 
 	sbi_platform_system_finish(plat, 1);
-	hart_hang();
+	bh_panic();
 }
 
 /**
@@ -264,7 +264,7 @@ void __noreturn sbi_init(void)
 	bool coldboot = false;
 
 	if (sbi_platform_hart_disabled(plat, hartid))
-		hart_hang();
+		bh_panic();
 
 	sbi_scratches[hartid] = scratch;
 

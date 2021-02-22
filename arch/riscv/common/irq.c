@@ -5,15 +5,9 @@
 
 uint32_t irq_nesting;
 
-__noreturn void hart_hang(void)
-{
-	while (1) wait_irq();
-	__builtin_unreachable();
-}
-
 __noreturn void __bad_interrupt(irq_t irq)
 {
-	hart_hang();
+	bh_panic();
 }
 
 static void riscv_handle_irq(irq_t irq)
@@ -45,5 +39,5 @@ void do_riscv_interrupt(struct pt_regs *regs)
 
 	printf("Unexpected interrupt cause 0x%lx\n", regs->cause);
 	show_regs(regs);
-	hart_hang();
+	bh_panic();
 }

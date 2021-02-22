@@ -22,7 +22,7 @@ struct bh_entry {
 
 /* bottom halves */
 void bh_run(bh_t bh, uint8_t event);
-void bh_panic(void);
+__noreturn void bh_panic(void);
 void bh_suspend(bh_t bh);
 void bh_resume(bh_t bh);
 #ifdef CONFIG_SMP

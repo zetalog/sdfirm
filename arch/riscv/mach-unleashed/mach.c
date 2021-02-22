@@ -65,7 +65,7 @@ void board_early_init(void)
 #endif
 	board_cache_init();
 #ifdef CONFIG_UNLEASHED_FSBL_INIT_ONLY
-	hart_hang();
+	bh_panic();
 #endif
 #endif
 }

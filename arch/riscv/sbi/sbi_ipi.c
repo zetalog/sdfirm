@@ -124,7 +124,7 @@ void sbi_ipi_process(struct sbi_scratch *scratch)
 			break;
 		case SBI_IPI_EVENT_HALT:
 			sbi_trap_log("%d: IPI_EVENT_HALT\n", hartid);
-			hart_hang();
+			bh_panic();
 			break;
 		default:
 			break;
