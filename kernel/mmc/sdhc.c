@@ -89,6 +89,16 @@ static void sdhc_transfer_pio(uint32_t *block)
 		dat++;
 		len--;
 	}
+
+#ifdef CONFIG_MMC_DEBUG
+	if (mmc_slot_ctrl.block_len < 512) {
+		int i;
+		con_dbg("DATA: \n");
+		for (i = 0; i < mmc_slot_ctrl.block_len; i++)
+			con_dbg("%02x ", ((uint8_t *)block)[i]);
+		con_dbg("\n");
+	}
+#endif
 }
 
 #ifdef CONFIG_SDHC_SDMA
@@ -177,6 +187,12 @@ void sdhc_send_command(uint8_t cmd, uint32_t arg)
 
 		if (sdhc_dma_open())
 			mode |= SDHC_DMA_ENABLE;
+#ifdef CONFIG_MMC_DEBUG
+		con_dbg("BLOCK_SIZE: %04lx\n",
+			SDHC_TRANSFER_BLOCK_SIZE(mmc_slot_ctrl.block_len));
+		con_dbg("BLOCK_COUNT: %04lx\n", mmc_slot_ctrl.block_cnt);
+		con_dbg("TRANSFER_MODE: %04lx\n", mode);
+#endif
 		__raw_writew(sdhc_dma_boundary() |
 			SDHC_TRANSFER_BLOCK_SIZE(mmc_slot_ctrl.block_len),
 			SDHC_BLOCK_SIZE(mmc_sid));
@@ -187,6 +203,10 @@ void sdhc_send_command(uint8_t cmd, uint32_t arg)
 		__raw_writeb(0xE, SDHC_TIMEOUT_CONTROL(mmc_sid));
 	}
 
+#ifdef CONFIG_MMC_DEBUG
+	con_dbg("COMMAND: %04lx\n", SDHC_COMMAND(mmc_sid));
+	con_dbg("ARGUMENT: %08lx\n", arg);
+#endif
 	__raw_writel(arg, SDHC_ARGUMENT(mmc_sid));
 	__raw_writew(SDHC_CMD(cmd, flags), SDHC_COMMAND(mmc_sid));
 
@@ -238,6 +258,13 @@ void sdhc_recv_response(uint8_t *resp, uint8_t size)
 			SDHC_BUFFER_READ_READY | SDHC_BUFFER_WRITE_READY;
 	} else
 		sdhc_stop_transfer();
+
+#ifdef CONFIG_MMC_DEBUG
+	con_dbg("RESPONSE: \n");
+	for (i = 0; i < size; i++)
+		con_dbg("%02x ", resp[i]);
+	con_dbg("\n");
+#endif
 }
 
 void sdhc_tran_data(uint8_t *dat, uint32_t len, uint16_t cnt)
