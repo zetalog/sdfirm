@@ -194,16 +194,17 @@ void sdhc_send_command(uint8_t cmd, uint32_t arg)
 	sdhc_host_ctrl.irq_complete_mask = mask;
 }
 
+/* TODO: This function is endianess related. */
 static void sdhc_decode_reg(uint8_t *resp, uint8_t size, uint32_t reg)
 {
 	if (size > 0)
-		resp[3] = HIBYTE(HIWORD(reg));
+		resp[0] = HIBYTE(HIWORD(reg));
 	if (size > 1)
-		resp[2] = LOBYTE(HIWORD(reg));
+		resp[1] = LOBYTE(HIWORD(reg));
 	if (size > 2)
-		resp[1] = HIBYTE(LOWORD(reg));
+		resp[2] = HIBYTE(LOWORD(reg));
 	if (size > 3)
-		resp[0] = LOBYTE(LOWORD(reg));
+		resp[3] = LOBYTE(LOWORD(reg));
 }
 
 void sdhc_recv_response(uint8_t *resp, uint8_t size)

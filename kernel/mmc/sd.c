@@ -417,12 +417,12 @@ static sd_cid_t sd_decode_cid(mmc_r2_t raw_cid)
 	sd_cid_t cid;
 
 #ifdef CONFIG_MMC_CID_ALL_FIELDS
-	cid.crc = raw_cid[0] >> 1;
-	cid.mdt = MAKEWORD(raw_cid[1], raw_cid[2]);
-	cid.psn = MAKELONG(MAKEWORD(raw_cid[3], raw_cid[4]),
-			   MAKEWORD(raw_cid[5], raw_cid[6]));
-	cid.prv = raw_cid[7];
-	memcpy(cid.pnm, &raw_cid[8], 5);
+	cid.crc = raw_cid[15] >> 1;
+	cid.mdt = MAKEWORD(raw_cid[14], raw_cid[13]);
+	cid.psn = MAKELONG(MAKEWORD(raw_cid[12], raw_cid[11]),
+			   MAKEWORD(raw_cid[10], raw_cid[9]));
+	cid.prv = raw_cid[8];
+	memcpy(cid.pnm, &raw_cid[3], 5);
 #ifdef CONFIG_MMC_DEBUG
 	printf("MDT: %d\n", cid.mdt);
 	printf("PSN: %d\n", cid.psn);
@@ -430,8 +430,8 @@ static sd_cid_t sd_decode_cid(mmc_r2_t raw_cid)
 	printf("PNM: %.5s\n", cid.pnm);
 #endif
 #endif
-	cid.oid = MAKEWORD(raw_cid[10], raw_cid[11]);
-	cid.mid = raw_cid[12];
+	cid.oid = MAKEWORD(raw_cid[2], raw_cid[1]);
+	cid.mid = raw_cid[0];
 #ifdef CONFIG_MMC_DEBUG
 	printf("OID: %d\n", cid.oid);
 	printf("MID: %d\n", cid.mid);
@@ -445,14 +445,14 @@ static mmc_csd_t sd_decode_csd(mmc_r2_t raw_csd)
 	mmc_csd_t csd;
 	uint32_t csize, cmult;
 
-	csd0 = MAKELONG(MAKEWORD(raw_csd[12], raw_csd[13]),
-			MAKEWORD(raw_csd[14], raw_csd[15]));
-	csd1 = MAKELONG(MAKEWORD(raw_csd[8], raw_csd[9]),
-			MAKEWORD(raw_csd[10], raw_csd[11]));
-	csd2 = MAKELONG(MAKEWORD(raw_csd[4], raw_csd[5]),
-			MAKEWORD(raw_csd[6], raw_csd[7]));
-	csd3 = MAKELONG(MAKEWORD(raw_csd[0], raw_csd[1]),
-			MAKEWORD(raw_csd[2], raw_csd[3]));
+	csd0 = MAKELONG(MAKEWORD(raw_csd[15], raw_csd[14]),
+			MAKEWORD(raw_csd[13], raw_csd[12]));
+	csd1 = MAKELONG(MAKEWORD(raw_csd[11], raw_csd[10]),
+			MAKEWORD(raw_csd[9], raw_csd[8]));
+	csd2 = MAKELONG(MAKEWORD(raw_csd[7], raw_csd[6]),
+			MAKEWORD(raw_csd[5], raw_csd[4]));
+	csd3 = MAKELONG(MAKEWORD(raw_csd[3], raw_csd[2]),
+			MAKEWORD(raw_csd[1], raw_csd[0]));
 
 	csd.csd_structure = MMC_CSD3_CSD_STRUCTURE(csd3);
 	csd.tran_speed = MMC_CSD3_TRAN_SPEED(csd3);
@@ -530,8 +530,8 @@ uint32_t sd_decode_ocr(mmc_r3_t raw_ocr)
 {
 	uint32_t ocr;
 
-	ocr = MAKELONG(MAKEWORD(raw_ocr[0], raw_ocr[1]),
-		       MAKEWORD(raw_ocr[2], raw_ocr[3]));
+	ocr = MAKELONG(MAKEWORD(raw_ocr[3], raw_ocr[2]),
+		       MAKEWORD(raw_ocr[1], raw_ocr[0]));
 	return ocr;
 }
 
@@ -772,8 +772,8 @@ void sd_resp_r1(void)
 
 	mmc_hw_recv_response(r1, 4);
 	raise_bits(mmc_slot_ctrl.flags, MMC_SLOT_CARD_STATUS_VALID);
-	mmc_slot_ctrl.csr = MAKELONG(MAKEWORD(r1[0], r1[1]),
-				     MAKEWORD(r1[2], r1[3]));
+	mmc_slot_ctrl.csr = MAKELONG(MAKEWORD(r1[3], r1[2]),
+				     MAKEWORD(r1[1], r1[0]));
 	if (mmc_cmd_is_app() && !mmc_get_block_data() &&
 	    mmc_slot_ctrl.flags & MMC_SLOT_WAIT_APP_ACMD)
 		sd_recv_acmd();
@@ -833,9 +833,9 @@ void sd_resp_r6(void)
 	mmc_hw_recv_response(r6, 4);
 
 	/* Decode RCA */
-	mmc_slot_ctrl.rca = MAKEWORD(r6[2], r6[3]);
+	mmc_slot_ctrl.rca = MAKEWORD(r6[1], r6[0]);
 	/* Decode card status */
-	cs = MAKEWORD(r6[0], r6[1]);
+	cs = MAKEWORD(r6[3], r6[2]);
 #ifdef CONFIG_MMC_DEBUG
 	printf("RCA: %d\n", mmc_slot_ctrl.rca);
 	printf("Card status: 0x%04x\n", cs);
@@ -860,11 +860,11 @@ bool sd_resp_r7(void)
 	sd_r7_t r7;
 
 	mmc_hw_recv_response(r7, 4);
-	if (r7[0] != SD_CHECK_PATTERN) {
+	if (r7[3] != SD_CHECK_PATTERN) {
 		mmc_rsp_failure(MMC_ERR_CHECK_PATTERN);
 		return false;
 	}
-	if (r7[1] != sd_get_vhs()) {
+	if (r7[2] != sd_get_vhs()) {
 		mmc_rsp_failure(MMC_ERR_CARD_NON_COMP_VOLT);
 		return false;
 	}

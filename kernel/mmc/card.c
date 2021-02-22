@@ -44,6 +44,7 @@
 #include <target/page.h>
 #include <target/cmdline.h>
 #include <target/mem.h>
+#include <target/irq.h>
 
 #ifdef CONFIG_MMC_SELECTED_CARD
 #define MMC_SELECTED_CARD	CONFIG_MMC_SELECTED_CARD

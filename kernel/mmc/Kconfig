@@ -38,6 +38,20 @@ config MMC_MAX_CARDS
 	range 1 8
 	default 1
 
+config MMC_CID_ALL_FIELDS
+	bool "Enable storing of all CID register fields"
+	depends EXPERIMENTAL
+	help
+	  A card is identified by its CID number. This method requires the
+	  card to have an unique CID number. To ensure uniqueness of CIDs
+	  the CID register contains 24 bits (MID and OID fields) which are
+	  defined by the MMCA.
+	  This option needs to be enabled in order to have more CID
+	  register fields saved by sdfirm during rumtime. Be aware that
+	  these fields are still used for debugging purpose and not for
+	  improving the uniqueness of CIDs.
+	  If unsure, say 'N'.
+
 config MMC_DEBUG
 	bool "MMC debug message support"
 	depends DEBUG_PRINT || CONSOLE
@@ -58,20 +72,6 @@ config SD
 endchoice
 
 if MMC
-
-config MMC_CID_ALL_FIELDS
-	bool "Enable storing of all CID register fields"
-	depends EXPRIMENTAL
-	help
-	  A card is identified by its CID number. This method requires the
-	  card to have an unique CID number. To ensure uniqueness of CIDs
-	  the CID register contains 24 bits (MID and OID fields) which are
-	  defined by the MMCA.
-	  This option needs to be enabled in order to have more CID
-	  register fields saved by sdfirm during rumtime. Be aware that
-	  these fields are still used for debugging purpose and not for
-	  improving the uniqueness of CIDs.
-	  If unsure, say 'N'.
 
 config MMC_ASYNC
 	bool "Enable asynchronous mode support"
