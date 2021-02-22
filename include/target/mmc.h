@@ -584,12 +584,14 @@ typedef struct {
 typedef void (*mmc_cmpl_cb)(mmc_rca_t rca, uint8_t op, bool result);
 
 struct mmc_slot {
+	enum mmc_bus_mode select_mode;
 	enum mmc_bus_mode mode;
 	uint32_t default_speed; /* Calculated from CSD */
 	uint32_t config_speed;
+#ifdef CONFIG_MMC_WIDTH
 	uint8_t config_width;
-	enum mmc_bus_mode select_mode;
 	uint8_t expect_width;
+#endif
 	uint8_t state;
 	uint8_t cmd;
 	uint8_t acmd;
@@ -764,9 +766,20 @@ void mmc_set_block_data(uint8_t type);
 uint8_t mmc_get_block_data(void);
 void mmc_wait_busy(void);
 void mmc_select_modes(enum mmc_bus_mode mode, uint32_t card_wdiths);
-void mmc_config_width(uint8_t width);
-void mmc_config_clock(uint32_t speed);
 void mmc_config_mode(enum mmc_bus_mode mode);
+bool mmc_mode_configured(void);
+void mmc_config_clock(uint32_t speed);
+#ifdef CONFIG_MMC_WIDTH
+void mmc_config_width(uint8_t width);
+void mmc_expect_width(uint8_t width);
+bool mmc_width_configured(void);
+#define mmc_bus_width()				mmc_slot_ctrl.expect_width
+#else
+#define mmc_config_width(width)			do { } while (0)
+#define mmc_expect_width(width)			do { } while (0)
+#define mmc_width_configured()			true
+#define mmc_bus_width()				1
+#endif
 
 uint32_t mmc_mode_speed(enum mmc_bus_mode mode);
 uint32_t mmc_mode_width(enum mmc_bus_mode mode);

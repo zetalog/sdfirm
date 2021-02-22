@@ -363,6 +363,14 @@ void mmc_config_mode(enum mmc_bus_mode mode)
 	mmc_slot_ctrl.mode = mode;
 }
 
+bool mmc_mode_configured(void)
+{
+	if (mmc_slot_ctrl.select_mode != mmc_slot_ctrl.mode ||
+	    mmc_slot_ctrl.mode == MMC_IDENT)
+		return false;
+	return true;
+}
+
 void mmc_select_modes(enum mmc_bus_mode mode, uint32_t card_widths)
 {
 	uint32_t speed;
@@ -377,11 +385,11 @@ void mmc_select_modes(enum mmc_bus_mode mode, uint32_t card_widths)
 		mmc_config_clock(speed);
 	widths = mmc_mode_width(mode) & card_widths;
 	if (widths & MMC_MODE_8BIT)
-		mmc_slot_ctrl.expect_width = 8;
+		mmc_expect_width(8);
 	else if (widths & MMC_MODE_4BIT)
-		mmc_slot_ctrl.expect_width = 4;
+		mmc_expect_width(4);
 	else
-		mmc_slot_ctrl.expect_width = 1;
+		mmc_expect_width(1);
 }
 
 uint8_t mmc_crc7_update(uint8_t crc, uint8_t data)
@@ -562,11 +570,23 @@ int mmc_read_blocks(uint8_t *buf, mmc_lba_t lba,
 	return 0;
 }
 
+#ifdef CONFIG_MMC_WIDTH
+bool mmc_width_configured(void)
+{
+	return !!(mmc_slot_ctrl.config_width == mmc_slot_ctrl.expect_width);
+}
+
 void mmc_config_width(uint8_t width)
 {
 	mmc_slot_ctrl.config_width = width;
 	mmc_hw_set_width(mmc_slot_ctrl.config_width);
 }
+
+void mmc_expect_width(uint8_t width)
+{
+	mmc_slot_ctrl.expect_width = width;
+}
+#endif
 
 void mmc_config_clock(uint32_t speed)
 {

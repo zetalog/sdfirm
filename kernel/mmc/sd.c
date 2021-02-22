@@ -319,12 +319,12 @@ static void sd_handle_select_mode(bool is_op)
 			mmc_cmd(MMC_CMD_SEND_CSD);
 		else if (!mmc_slot_ctrl.scr_valid)
 			mmc_send_acmd(SD_ACMD_SEND_SCR);
-		else if (mmc_slot_ctrl.config_width !=
-			 mmc_slot_ctrl.expect_width)
+		else if (!mmc_width_configured())
 			mmc_send_acmd(SD_ACMD_SET_BUS_WIDTH);
-		else if (is_op) {
+		else {
 			mmc_config_mode(mmc_slot_ctrl.select_mode);
-			mmc_op_success();
+			if (is_op)
+				mmc_op_success();
 		}
 	} else if (mmc_state_is(__ina))
 		mmc_cmd(MMC_CMD_GO_INACTIVE_STATE);
@@ -346,9 +346,9 @@ static void sd_handle_select_card(bool is_op)
 		if (sd_spi_mode) {
 			mmc_slot_ctrl.cmd = MMC_CMD_SELECT_DESELECT_CARD;
 			mmc_event_raise(MMC_EVENT_CMD_SUCCESS);
-		} else if (mmc_slot_ctrl.select_mode == mmc_slot_ctrl.mode)
+		} else if (!mmc_mode_configured())
 			sd_handle_select_mode(false);
-		else
+		if (mmc_mode_configured())
 			mmc_cmd(MMC_CMD_SELECT_DESELECT_CARD);
 	}
 }
@@ -742,7 +742,7 @@ static void sd_recv_acmd(void)
 
 	switch (mmc_slot_ctrl.acmd) {
 	case SD_ACMD_SET_BUS_WIDTH:
-		mmc_config_width(mmc_slot_ctrl.expect_width);
+		mmc_config_width(mmc_bus_width());
 		break;
 	case SD_ACMD_SD_STATUS:
 		/* TODO: parse SD_STATUS */
@@ -750,7 +750,8 @@ static void sd_recv_acmd(void)
 	case SD_ACMD_SEND_SCR:
 		mmc_slot_ctrl.host_scr = sd_decode_scr();
 		mmc_slot_ctrl.scr_valid = true;
-		if (mmc_slot_ctrl.host_scr.bus_widths & SD_BUS_WIDTH_4BIT)
+		if (mmc_slot_ctrl.host_scr.bus_widths &
+		    SD_BUS_WIDTH_4BIT_SUPPORT)
 			arg = MMC_MODE_4BIT;
 		else
 			arg = MMC_MODE_1BIT;
@@ -929,11 +930,11 @@ void sd_send_acmd(void)
 	switch (mmc_slot_ctrl.acmd) {
 	case SD_ACMD_SET_BUS_WIDTH:
 		mmc_slot_ctrl.rsp = MMC_R1;
-		if (mmc_slot_ctrl.expect_width == 4)
+		if (mmc_bus_width() == 4)
 			width = SD_BUS_WIDTH_4BIT;
 		else
 			width = SD_BUS_WIDTH_1BIT;
-		arg = sd_bus_width(width);
+		arg = SD_BUS_WIDTH(width);
 		break;
 	case SD_ACMD_SD_STATUS:
 		mmc_slot_ctrl.rsp = MMC_R1;
