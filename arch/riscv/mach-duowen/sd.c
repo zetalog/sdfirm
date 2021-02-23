@@ -83,6 +83,17 @@ void duowen_mshc_init(void)
 
 void duowen_sd_init(void)
 {
+	__unused mmc_slot_t sslot;
+
+	if (!mmc_slot_wait_state(DUOWEN_SD_SLOT, MMC_STATE_stby))
+		return;
+
+	sslot = mmc_slot_save(DUOWEN_SD_SLOT);
+	mmc_select_mode(NULL);
+	mmc_slot_restore(sslot);
+
+	if (!mmc_slot_wait_state(DUOWEN_SD_SLOT, MMC_STATE_tran))
+		return;
 }
 
 void duowen_sd_copy(void *buf, uint32_t addr, uint32_t size)

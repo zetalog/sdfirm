@@ -315,17 +315,24 @@ static void sd_handle_identify_card(bool is_op)
 static void sd_handle_select_mode(bool is_op)
 {
 	if (mmc_state_is(stby)) {
-		if (!mmc_slot_ctrl.csd_valid)
-			mmc_cmd(MMC_CMD_SEND_CSD);
-		else if (!mmc_slot_ctrl.scr_valid)
-			mmc_send_acmd(SD_ACMD_SEND_SCR);
-		else if (!mmc_width_configured())
-			mmc_send_acmd(SD_ACMD_SET_BUS_WIDTH);
-		else {
-			mmc_config_mode(mmc_slot_ctrl.select_mode);
-			if (is_op)
-				mmc_op_success();
+		if (sd_spi_mode) {
+			mmc_slot_ctrl.cmd = MMC_CMD_SELECT_DESELECT_CARD;
+			mmc_event_raise(MMC_EVENT_CMD_SUCCESS);
+		} else {
+			if (!mmc_slot_ctrl.csd_valid)
+				mmc_cmd(MMC_CMD_SEND_CSD);
+			else if (!mmc_slot_ctrl.scr_valid)
+				mmc_send_acmd(SD_ACMD_SEND_SCR);
+			else if (!mmc_width_configured())
+				mmc_send_acmd(SD_ACMD_SET_BUS_WIDTH);
+			else {
+				mmc_config_mode(mmc_slot_ctrl.select_mode);
+				mmc_cmd(MMC_CMD_SELECT_DESELECT_CARD);
+			}
 		}
+	} else if (mmc_state_is(tran)) {
+		if (is_op)
+			mmc_op_success();
 	} else if (mmc_state_is(__ina))
 		mmc_cmd(MMC_CMD_GO_INACTIVE_STATE);
 	else if (mmc_state_is(ina))
@@ -342,15 +349,8 @@ static void sd_handle_select_card(bool is_op)
 		mmc_cmd(MMC_CMD_GO_INACTIVE_STATE);
 	else if (mmc_state_is(ina))
 		mmc_op_failure();
-	else {
-		if (sd_spi_mode) {
-			mmc_slot_ctrl.cmd = MMC_CMD_SELECT_DESELECT_CARD;
-			mmc_event_raise(MMC_EVENT_CMD_SUCCESS);
-		} else if (!mmc_mode_configured())
-			sd_handle_select_mode(false);
-		if (mmc_mode_configured())
-			mmc_cmd(MMC_CMD_SELECT_DESELECT_CARD);
-	}
+	else
+		sd_handle_select_mode(false);
 }
 
 static void sd_handle_deselect_card(bool is_op)

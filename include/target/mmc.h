@@ -789,5 +789,6 @@ int mmc_card_read_async(mmc_rca_t rca, uint8_t *buf,
 			mmc_lba_t lba, size_t cnt);
 int mmc_card_read_sync(mmc_rca_t rca, uint8_t *buf,
 		       mmc_lba_t lba, size_t cnt);
+bool mmc_slot_wait_state(mmc_slot_t slot, uint8_t state);
 
 #endif /* __MMC_H_INCLUDE__ */

@@ -51,6 +51,8 @@
 #define SD_CLASS8	1
 #define SD_CLASS10	1
 
+#define DUOWEN_SD_SLOT		0
+
 #ifdef CONFIG_DUOWEN_SD
 #include <driver/dw_mshc.h>
 #ifndef ARCH_HAVE_SD

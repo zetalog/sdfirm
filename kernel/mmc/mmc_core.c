@@ -657,6 +657,31 @@ uint32_t mmc_decode_tran_speed(uint8_t tran_speed)
 	       fmult[MMC_TRAN_SPEED_MULT(tran_speed)];
 }
 
+bool mmc_slot_wait_state(mmc_slot_t slot, uint8_t state)
+{
+	uint32_t states = _BV(state) | _BV(MMC_STATE_ina);
+	bool sync = true;
+	__unused mmc_slot_t sslot;
+	irq_flags_t flags;
+
+	sslot = mmc_slot_save(slot);
+	while (!(_BV(mmc_slot_ctrl.state) & states)) {
+		mmc_slot_restore(sslot);
+		irq_local_save(flags);
+		irq_local_enable();
+		bh_sync();
+		irq_local_disable();
+		irq_local_restore(flags);
+		sslot = mmc_slot_save(slot);
+	}
+	if (mmc_state_is(ina)) {
+		if (state != MMC_STATE_ina)
+			sync = false;
+	}
+	mmc_slot_restore(sslot);
+	return sync;
+}
+
 void mmcsd_init(void)
 {
 	mmc_slot_t slot;
