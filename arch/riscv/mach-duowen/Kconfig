@@ -525,6 +525,7 @@ endif
 menuconfig DUOWEN_SD
 	bool "Duowen MSHC controller support"
 	select DW_MSHC
+	select MTD
 	select STRING_UUID
 	select GPIO
 

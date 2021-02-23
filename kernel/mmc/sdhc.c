@@ -260,10 +260,12 @@ void sdhc_recv_response(uint8_t *resp, uint8_t size)
 		sdhc_stop_transfer();
 
 #ifdef CONFIG_MMC_DEBUG
-	con_dbg("RESPONSE: \n");
-	for (i = 0; i < size; i++)
-		con_dbg("%02x ", resp[i]);
-	con_dbg("\n");
+	if (size > 0) {
+		con_dbg("RESPONSE: \n");
+		for (i = 0; i < size; i++)
+			con_dbg("%02x ", resp[i]);
+		con_dbg("\n");
+	}
 #endif
 }
 

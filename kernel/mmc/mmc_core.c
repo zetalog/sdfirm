@@ -129,6 +129,7 @@ const char *mmc_event_name(mmc_event_t event)
 const char *mmc_op_names[] = {
 	"NO_OP",
 	"IDENTIFY_CARD",
+	"SELECT_MODE",
 	"SELECT_CARD",
 	"DESELECT_CARD",
 	"READ_BLOCKS",
