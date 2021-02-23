@@ -6,22 +6,23 @@
 #   mkimg.sh ./img-root ./gpt.img
 
 SCRIPT=`(cd \`dirname $0\`; pwd)`
-MKIMG_PRINT=no
+MKIMG_PRINT=yes
 MKIMG_INPUT=${SCRIPT}/img-root
 MKIMG_OUTPUT=${SCRIPT}/gpt.img
 MKIMG_BLKSZ=1024
 MKIMG_PADSZ=2
-MKIMG_KBYTES=4096
+MKIMG_KBYTES=32768
 MKIMG_GUID="73646669-726D-6470-7500-0000"
 
 usage()
 {
 	echo "Usage:"
-	echo "`basename $0` [-p] [input] [output]"
+	echo "`basename $0` [-p] [input] [output] [capacity-KB]"
 	echo "Where:"
 	echo " -p:     print partition information"
 	echo " input:  specify input binary directory"
 	echo " output: specify output image file"
+	echo " capacity: specify storage capacity in KB(1024B). Default 32768KB (32MB)"
 	exit $1
 }
 
@@ -49,6 +50,10 @@ if [[ $# -gt 1 ]]
 then
 	MKIMG_OUTPUT=$2
 fi
+if [[ $# -gt 2 ]]
+then
+	MKIMG_KBYTES=$3
+fi
 
 let img_size=${MKIMG_KBYTES}*1024
 let block_cnt=${img_size}/${MKIMG_BLKSZ}
@@ -67,7 +72,7 @@ fi
 
 # Get a list of  input files
 cd ${MKIMG_INPUT}
-input_list=`find . -maxdepth 1 -type f | cut -d / -f 2`
+input_list=`find . -maxdepth 1 -type f | cut -d / -f 2 | sort`
 cd -
 echo "============================================================"
 echo "Creating GPT Image..."
@@ -80,10 +85,10 @@ echo "block count: ${block_cnt}"
 
 # Create an empty image
 dd if=/dev/zero of=${MKIMG_OUTPUT} bs=${MKIMG_BLKSZ} \
-	count=${block_cnt} >/dev/null 2>&1
+	count=${block_cnt}
 echo "------------------------------------------------------------"
 echo "Initializing GPT table..."
-sgdisk --clear ${MKIMG_OUTPUT} >/dev/null 2>&1
+sgdisk --clear ${MKIMG_OUTPUT}
 
 part_num=1
 for f in ${input_list}
@@ -104,13 +109,13 @@ do
 	echo "partition size: ${part_size}bytes, ${part_size_kbyte}KB"
 	sgdisk --new 0:0:+${part_size_kbyte}KB \
 		--change-name 0:${f} --partition-guid 0:${part_guid} \
-		${MKIMG_OUTPUT} >/dev/null 2>&1
+		${MKIMG_OUTPUT}
 	let part_num+=1
 done
 # One more partition for all remaining space
 echo "------------------------------------------------------------"
 echo "Adding global GPT partition..."
-sgdisk --new 0:0:-0 ${MKIMG_OUTPUT} >/dev/null 2>&1
+sgdisk --new 0:0:-0 ${MKIMG_OUTPUT}
 
 if [ "x${MKIMG_PRINT}" = "xyes" ]; then
 	echo "------------------------------------------------------------"
@@ -137,7 +142,7 @@ do
 	echo "end: ${part_end}"
 	echo "size: ${file_size}"
 	dd if=${MKIMG_INPUT}/${f} of=${MKIMG_OUTPUT} bs=1 count=${file_size} \
-		seek=${dd_seek} conv=notrunc >/dev/null 2>&1
+		seek=${dd_seek} conv=notrunc
 	let part_num+=1
 done
 
