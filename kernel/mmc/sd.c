@@ -700,9 +700,9 @@ void mmc_phy_handle_stm(void)
 		if (flags & MMC_EVENT_CMD_SUCCESS) {
 			if (mmc_cmd_is(MMC_CMD_SEND_CSD))
 				mmc_state_enter(stby);
-			if (mmc_cmd_is(MMC_CMD_SEND_CID))
+			else if (mmc_cmd_is(MMC_CMD_SEND_CID))
 				mmc_state_enter(stby);
-			if (mmc_cmd_is(MMC_CMD_SELECT_DESELECT_CARD))
+			else if (mmc_cmd_is(MMC_CMD_SELECT_DESELECT_CARD))
 				mmc_state_enter(tran);
 			else
 				mmc_state_enter(stby);
