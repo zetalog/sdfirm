@@ -239,7 +239,7 @@ static int do_flash_dump(int argc, char *argv[])
 	return 0;
 }
 
-#ifdef CONFIG_DUOWEN_SIM_SSI_IRQ
+#ifdef CONFIG_DUOWEN_SSI_FLASH_IRQ
 static uint32_t dw_ssi_irqs;
 
 static void duowen_ssi_handler(irq_t irq)
@@ -275,7 +275,7 @@ static int do_flash_irq(int argc, char *argv[])
 	mtd_open(OPEN_READ, 0, 8);
 	mtd_close();
 	mtd_restore_device(smtd);
-	printf("IRQ test ready.\n");
+	printf("IRQ test enabled.\n");
 
 	dw_ssi_irqs = 0;
 
@@ -295,6 +295,7 @@ static int do_flash_irq(int argc, char *argv[])
 #else
 static int do_flash_irq(int argc, char *argv[])
 {
+	printf("IRQ test disabled.\n");
 	return -EINVAL;
 }
 #endif

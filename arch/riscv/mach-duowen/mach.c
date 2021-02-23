@@ -247,14 +247,27 @@ void board_early_init(void)
 
 void board_late_init(void)
 {
+	__unused uint8_t load_sel = imc_load_from();
+
+	/* Bench test initialization */
 	duowen_ssi_irq_init();
-	duowen_sd_init();
-	duowen_ssi_flash_init();
+
+	/* Bootloader initialization */
+	if (load_sel == IMC_BOOT_SD)
+		duowen_sd_init();
+	if (load_sel == IMC_BOOT_SSI)
+		duowen_ssi_flash_init();
+
+	/* Coherence initialization */
 	duowen_imc_noc_init();
 	pci_platform_init();
+
+	/* Non-BBL bootloader initialization */
 #ifndef CONFIG_SMP
 	board_boot();
 #endif
+
+	/* BBL bootloader initialization */
 	smmu_dma_alloc_sme();
 	//smmu_pcie_alloc_sme();
 	duowen_eth_late_init();

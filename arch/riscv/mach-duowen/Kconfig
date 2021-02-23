@@ -477,6 +477,7 @@ menuconfig DUOWEN_SSI_FLASH
 	select MEM if COMMAND
 	select STRING_UUID
 	select GPIO
+	select DUOWEN_SSI_FLASH_IRQ if DUOWEN_TB && SYS_IRQ
 	help
 	  The DUOWN SoC also contains a DW_SSI controller that can be used
 	  to interface with the external SSI flashes. However, the
@@ -519,6 +520,10 @@ config DUOWEN_SSI_FLASH_FREQ
 	  It's tested that 8MHz is working for the case of "ROM booting
 	  SSI" in the simulation environment, for the non-simulation
 	  environment, it's preferred to use 1MHz by design.
+
+config DUOWEN_SSI_FLASH_IRQ
+	bool "Enable special IRQ tests"
+	depends SYS_IRQ
 
 endif
 

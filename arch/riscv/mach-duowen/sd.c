@@ -246,8 +246,8 @@ static int do_sd(int argc, char *argv[])
 }
 
 DEFINE_COMMAND(sd, do_sd, "SD card commands",
-	"gpt ...\n"
+	"gpt\n"
 	"    - print GPT entry information\n"
-	"status...\n"
+	"status\n"
 	"    - print SD power status information\n"
 );

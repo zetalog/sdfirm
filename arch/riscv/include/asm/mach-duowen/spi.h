@@ -55,6 +55,7 @@
 #define SSI_PIN_SCK		pad_gpio_50
 #define SSI_PIN_SS		pad_gpio_51
 #define SSI_PIN_SS_IN		pad_gpio_52
+#define IRQ_SPI			IRQ_SPI_MST0
 #endif
 #ifdef CONFIG_DUOWEN_SSI_FLASH_SPI1
 #define DW_SSI_CLK		spi1_clk
@@ -66,6 +67,7 @@
 #define SSI_PIN_SCK		pad_gpio_58
 #define SSI_PIN_SS		pad_gpio_59
 #define SSI_PIN_SS_IN		pad_gpio_60
+#define IRQ_SPI			IRQ_SPI_MST1
 #endif
 #ifdef CONFIG_DUOWEN_SSI_FLASH_SPI2
 #define DW_SSI_CLK		spi2_clk
@@ -77,6 +79,7 @@
 #define SSI_PIN_SCK		pad_gpio_66
 #define SSI_PIN_SS		pad_gpio_67
 #define SSI_PIN_SS_IN		pad_gpio_68
+#define IRQ_SPI			IRQ_SPI_MST2
 #endif
 #ifdef CONFIG_DUOWEN_SSI_FLASH_SPI3
 #define DW_SSI_CLK		spi3_clk
@@ -88,6 +91,7 @@
 #define SSI_PIN_SCK		pad_gpio_74
 #define SSI_PIN_SS		pad_gpio_75
 #define SSI_PIN_SS_IN		pad_gpio_76
+#define IRQ_SPI			IRQ_SPI_MST3
 #endif
 
 #ifdef CONFIG_DW_SSI
@@ -123,7 +127,7 @@ void duowen_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size);
 #define duowen_ssi_flash_boot(boot, addr, size)	do { } while (0)
 #endif
 
-#ifdef CONFIG_DUOWEN_SIM_SSI_IRQ
+#ifdef CONFIG_DUOWEN_SSI_FLASH_IRQ
 void duowen_ssi_irq_init(void);
 #else
 #define duowen_ssi_irq_init()		do { } while (0)
