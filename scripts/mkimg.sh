@@ -6,7 +6,8 @@
 #   mkimg.sh ./img-root ./gpt.img
 
 SCRIPT=`(cd \`dirname $0\`; pwd)`
-MKIMG_PRINT=yes
+MKIMG_PRINT=no
+MKIMG_VERBOSE=no
 MKIMG_INPUT=${SCRIPT}/img-root
 MKIMG_OUTPUT=${SCRIPT}/gpt.img
 MKIMG_BLKSZ=1024
@@ -17,12 +18,14 @@ MKIMG_GUID="73646669-726D-6470-7500-0000"
 usage()
 {
 	echo "Usage:"
-	echo "`basename $0` [-p] [input] [output] [capacity-KB]"
+	echo "`basename $0` [-p] [input] [output] [capacity]"
 	echo "Where:"
-	echo " -p:     print partition information"
-	echo " input:  specify input binary directory"
-	echo " output: specify output image file"
-	echo " capacity: specify storage capacity in KB(1024B). Default 32768KB (32MB)"
+	echo " -p:       print partition information"
+	echo " -v:       verbosity of partition command"
+	echo " input:    specify input binary directory"
+	echo " output:   specify output image file"
+	echo " capacity: specify storage capacity in KB (1024B)"
+	echo "           default 32768 (32MB)"
 	exit $1
 }
 
@@ -32,10 +35,17 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "p" opt
+fatal_exit()
+{
+	echo $1
+	exit 1
+}
+
+while getopts "pv" opt
 do
 	case $opt in
 	p) MKIMG_PRINT=yes;;
+	v) MKIMG_VERBOSE=yes;;
 	?) echo "Invalid argument $opt"
 	   fatal_usage;;
 	esac
@@ -61,13 +71,15 @@ part_align=${MKIMG_BLKSZ}
 
 if [[ ! -d ${MKIMG_INPUT} ]]
 then
-	echo "Error: Input directory ${MKIMG_INPUT} not exists."
-	usage 1
+	fatal_usage "Input directory ${MKIMG_INPUT} doesn't exist."
 fi
 if [[ -f ${MKIMG_OUTPUT} ]]
 then
-	echo "Error: Output file ${MKIMG_OUTPUT} exists. Remove it first!"
-	usage 1
+	fatal_usage "Output file ${MKIMG_OUTPUT} exists. Remove it first!"
+fi
+
+if [ "x${MKIMG_VERBOSE}" = "xno" ]; then
+	mkimg_log=">/dev/null 2>&1"
 fi
 
 # Get a list of  input files
@@ -85,10 +97,16 @@ echo "block count: ${block_cnt}"
 
 # Create an empty image
 dd if=/dev/zero of=${MKIMG_OUTPUT} bs=${MKIMG_BLKSZ} \
-	count=${block_cnt}
+	count=${block_cnt} ${mkimg_log}
+if [ $? != 0 ]; then
+	fatal_exit "Failed to create empty image ${MKIMG_OUTPUT}."
+fi
 echo "------------------------------------------------------------"
 echo "Initializing GPT table..."
-sgdisk --clear ${MKIMG_OUTPUT}
+sgdisk --clear ${MKIMG_OUTPUT} ${mkimg_log}
+if [ $? != 0 ]; then
+	fatal_exit "Failed to initialize ${MKIMG_OUTPUT} GPT table."
+fi
 
 part_num=1
 for f in ${input_list}
@@ -109,13 +127,19 @@ do
 	echo "partition size: ${part_size}bytes, ${part_size_kbyte}KB"
 	sgdisk --new 0:0:+${part_size_kbyte}KB \
 		--change-name 0:${f} --partition-guid 0:${part_guid} \
-		${MKIMG_OUTPUT}
+		${MKIMG_OUTPUT} ${mkimg_log}
+	if [ $? != 0 ]; then
+		fatal_exit "Failed to add ${MKIMG_OUTPUT} partition ${f}."
+	fi
 	let part_num+=1
 done
 # One more partition for all remaining space
 echo "------------------------------------------------------------"
 echo "Adding global GPT partition..."
-sgdisk --new 0:0:-0 ${MKIMG_OUTPUT}
+sgdisk --new 0:0:-0 ${MKIMG_OUTPUT} ${mkimg_log}
+if [ $? != 0 ]; then
+	fatal_exit "Failed to add ${MKIMG_OUTPUT} global GPT partition."
+fi
 
 if [ "x${MKIMG_PRINT}" = "xyes" ]; then
 	echo "------------------------------------------------------------"
@@ -142,7 +166,10 @@ do
 	echo "end: ${part_end}"
 	echo "size: ${file_size}"
 	dd if=${MKIMG_INPUT}/${f} of=${MKIMG_OUTPUT} bs=1 count=${file_size} \
-		seek=${dd_seek} conv=notrunc
+		seek=${dd_seek} conv=notrunc ${mkimg_log}
+	if [ $? != 0 ]; then
+		fatal_exit "Failed to copy ${f} to ${MKIMG_OUTPUT} partition."
+	fi
 	let part_num+=1
 done
 
