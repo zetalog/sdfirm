@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Feb 22 15:52:44 2021
+# Wed Feb 24 15:25:51 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -267,6 +267,7 @@ CONFIG_MTD_BLOCK_RW=y
 # CONFIG_MTD_FLASH is not set
 # CONFIG_MTD_DATAFLASH is not set
 # CONFIG_MTD_SPIFLASH is not set
+# CONFIG_MTD_MMCARD is not set
 # CONFIG_SCSI is not set
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set

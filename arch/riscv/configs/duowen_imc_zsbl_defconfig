@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Feb 22 15:52:52 2021
+# Wed Feb 24 15:25:59 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -319,8 +319,8 @@ CONFIG_ARCH_HAS_I2C=y
 # CONFIG_USB is not set
 # CONFIG_SCS is not set
 CONFIG_MTD=y
-CONFIG_MTD_MAX_CHIPS=1
-CONFIG_MTD_MAX_DEVS=1
+CONFIG_MTD_MAX_CHIPS=2
+CONFIG_MTD_MAX_DEVS=2
 # CONFIG_MTD_CONCAT is not set
 CONFIG_MTD_BLOCK_RW=y
 # CONFIG_MTD_FLASH is not set
@@ -336,6 +336,7 @@ CONFIG_SPIFLASH_MODE_3=y
 CONFIG_SPIFLASH_ERASE_4K=y
 # CONFIG_SPIFLASH_ERASE_32K is not set
 # CONFIG_SPIFLASH_ERASE_64K is not set
+CONFIG_MTD_MMCARD=y
 # CONFIG_SCSI is not set
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
