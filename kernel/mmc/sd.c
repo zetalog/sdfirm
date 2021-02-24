@@ -487,6 +487,8 @@ static mmc_csd_t sd_decode_csd(mmc_r2_t raw_csd)
 	printf("Block number: %d\n", csd.capacity);
 	printf("Block length: %d\n", _BV(csd.read_bl_len));
 #endif
+	mmc_slot_ctrl.capacity_len = _BV(csd.read_bl_len);
+	mmc_slot_ctrl.capacity_cnt = csd.capacity;
 	return csd;
 }
 

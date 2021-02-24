@@ -44,7 +44,7 @@
 #include <target/efi.h>
 #include <target/cmdline.h>
 #include <target/mem.h>
-#include <target/mtd.h>
+#include <target/mmcard.h>
 
 mtd_t board_sdcard = INVALID_MTD_ID;
 
@@ -95,9 +95,7 @@ void duowen_sd_init(void)
 	if (!mmc_slot_wait_state(DUOWEN_SD_SLOT, MMC_STATE_tran))
 		return;
 
-#if 0
-	board_sdcard = mmcard_register_bank(mmc_slot_rca(DUOWEN_SD_SLOT));
-#endif
+	board_sdcard = mmcard_register_card(DUOWEN_SD_CARD);
 	if (board_sdcard == INVALID_MTD_ID)
 		bh_panic();
 }
@@ -160,7 +158,7 @@ static int do_sd_gpt(int argc, char *argv[])
 	int err;
 	uint32_t num_entries;
 
-	err = mmc_card_read_sync(0, (uint8_t *)&hdr,
+	err = mmc_card_read_sync(DUOWEN_SD_CARD, (uint8_t *)&hdr,
 				 GPT_HEADER_LBA, 1);
 	if (err)
 		return -EINVAL;
@@ -170,7 +168,7 @@ static int do_sd_gpt(int argc, char *argv[])
 		 GPT_LBA_SIZE - 1) / GPT_LBA_SIZE);
 	for (i = hdr.partition_entries_lba;
 	     i < partition_entries_lba_end; i++) {
-		mmc_card_read_sync(0, gpt_buf, i, 1);
+		mmc_card_read_sync(DUOWEN_SD_CARD, gpt_buf, i, 1);
 		gpt_entries = (gpt_partition_entry *)gpt_buf;
 		num_entries = GPT_LBA_SIZE / hdr.partition_entry_size;
 		for (j = 0; j < num_entries; j++) {

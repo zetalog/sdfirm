@@ -647,6 +647,9 @@ struct mmc_slot {
 	mmc_rca_t rca;
 	mmc_card_t mmc_cid;
 	mmc_cmpl_cb op_cb;
+	/* Capacity */
+	uint8_t capacity_len;
+	uint64_t capacity_cnt;
 	MMC_PHY_SLOT
 	MMC_SPI_SLOT
 };
@@ -784,11 +787,18 @@ bool mmc_width_configured(void);
 uint32_t mmc_mode_speed(enum mmc_bus_mode mode);
 uint32_t mmc_mode_width(enum mmc_bus_mode mode);
 bool mmc_mode_isddr(enum mmc_bus_mode mode);
-mmc_card_t mmc_register_card(mmc_rca_t rca);
-int mmc_card_read_async(mmc_rca_t rca, uint8_t *buf,
-			mmc_lba_t lba, size_t cnt);
-int mmc_card_read_sync(mmc_rca_t rca, uint8_t *buf,
-		       mmc_lba_t lba, size_t cnt);
 bool mmc_slot_wait_state(mmc_slot_t slot, uint8_t state);
+
+/* MMC internal slot specific card APIs */
+mmc_card_t mmc_register_card(mmc_rca_t rca);
+
+/* MMC external card APIs */
+int mmc_card_read_async(mmc_card_t cid, uint8_t *buf,
+			mmc_lba_t lba, size_t cnt);
+int mmc_card_read_sync(mmc_card_t cid, uint8_t *buf,
+		       mmc_lba_t lba, size_t cnt);
+mmc_slot_t mmc_card_slot(mmc_card_t cid);
+bool mmc_card_busy(mmc_card_t cid);
+bool mmc_card_capacity(mmc_card_t cid, uint8_t *blk_len, uint64_t *blk_cnt);
 
 #endif /* __MMC_H_INCLUDE__ */

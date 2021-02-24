@@ -145,4 +145,7 @@ endchoice
 
 endif
 
+config MTD_MMCARD
+	bool "Multimedia card (MMC) device support"
+
 endif

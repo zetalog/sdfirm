@@ -9,3 +9,4 @@ obj-$(CONFIG_MTD_BLOCK) += mtd_block.rel
 obj-$(CONFIG_MTD_FLASH) += mtd_flash.rel
 obj-$(CONFIG_MTD_DATAFLASH) += mtd_dataflash.rel
 obj-$(CONFIG_MTD_SPIFLASH) += mtd_spiflash.rel
+obj-$(CONFIG_MTD_MMCARD) += mtd_mmcard.rel
