@@ -88,7 +88,7 @@ mmc_slot_t mmc_card_slot(mmc_card_t card)
 	return mem_cards[card].sid;
 }
 
-bool mmc_card_capacity(mmc_card_t cid, uint8_t *blk_len, uint64_t *blk_cnt)
+bool mmc_card_capacity(mmc_card_t cid, uint16_t *blk_len, uint64_t *blk_cnt)
 {
 	__unused mmc_slot_t sslot;
 	bool result = false;
@@ -166,6 +166,8 @@ int mmc_card_read_async(mmc_card_t cid, uint8_t *buf,
 
 	if (!buf)
 		return -EINVAL;
+	if (cid >= mmc_nr_cards)
+		return -ENODEV;
 	if (mem_cards[cid].tran)
 		return -EBUSY;
 	mem_cards[cid].tran = MMC_OP_READ_BLOCKS;

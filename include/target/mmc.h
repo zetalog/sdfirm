@@ -648,7 +648,7 @@ struct mmc_slot {
 	mmc_card_t mmc_cid;
 	mmc_cmpl_cb op_cb;
 	/* Capacity */
-	uint8_t capacity_len;
+	uint16_t capacity_len;
 	uint64_t capacity_cnt;
 	MMC_PHY_SLOT
 	MMC_SPI_SLOT
@@ -799,6 +799,6 @@ int mmc_card_read_sync(mmc_card_t cid, uint8_t *buf,
 		       mmc_lba_t lba, size_t cnt);
 mmc_slot_t mmc_card_slot(mmc_card_t cid);
 bool mmc_card_busy(mmc_card_t cid);
-bool mmc_card_capacity(mmc_card_t cid, uint8_t *blk_len, uint64_t *blk_cnt);
+bool mmc_card_capacity(mmc_card_t cid, uint16_t *blk_len, uint64_t *blk_cnt);
 
 #endif /* __MMC_H_INCLUDE__ */

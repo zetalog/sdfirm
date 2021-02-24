@@ -47,8 +47,8 @@ struct mmcard_info {
 	mtd_t mtd;
 	mtd_size_t offset;
 	mtd_size_t length;
-	uint64_t blk_len;
-	uint8_t blk_cnt;
+	uint64_t blk_cnt;
+	uint16_t blk_len;
 	bool registered;
 	uint8_t buffer[MMC_DEF_BL_LEN];
 	uint8_t buffered;
@@ -121,7 +121,7 @@ mtd_chip_t mmcard_chip = {
 
 mtd_t mmcard_register_card(mmc_card_t cid)
 {
-	uint8_t blk_len;
+	uint16_t blk_len;
 	uint64_t blk_cnt;
 	
 	/* Already registered */

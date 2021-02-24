@@ -158,17 +158,19 @@ static int do_sd_gpt(int argc, char *argv[])
 	int err;
 	uint32_t num_entries;
 
-	err = mmc_card_read_sync(DUOWEN_SD_CARD, (uint8_t *)&hdr,
-				 GPT_HEADER_LBA, 1);
+	err = mmc_card_read_sync(DUOWEN_SD_CARD, gpt_buf,
+				 GPT_HEADER_LBA * GPT_LBA_SIZE, 1);
 	if (err)
 		return -EINVAL;
+	memcpy(&hdr, gpt_buf, sizeof (gpt_header));
 	hexdump(0, &hdr, 1, sizeof (gpt_header));
 	partition_entries_lba_end = (hdr.partition_entries_lba +
 		(hdr.num_partition_entries * hdr.partition_entry_size +
 		 GPT_LBA_SIZE - 1) / GPT_LBA_SIZE);
 	for (i = hdr.partition_entries_lba;
 	     i < partition_entries_lba_end; i++) {
-		mmc_card_read_sync(DUOWEN_SD_CARD, gpt_buf, i, 1);
+		mmc_card_read_sync(DUOWEN_SD_CARD, gpt_buf,
+				   i * GPT_LBA_SIZE, 1);
 		gpt_entries = (gpt_partition_entry *)gpt_buf;
 		num_entries = GPT_LBA_SIZE / hdr.partition_entry_size;
 		for (j = 0; j < num_entries; j++) {

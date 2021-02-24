@@ -971,6 +971,20 @@ void sd_send_acmd(void)
 	mmc_hw_send_command(mmc_slot_ctrl.acmd, arg);
 }
 
+static uint32_t sd_block_address(void)
+{
+	uint32_t address;
+
+	if (mmc_slot_ctrl.card_ocr & SD_OCR_CCS)
+		address = mmc_slot_ctrl.address / mmc_slot_ctrl.capacity_len;
+	else
+		address = mmc_slot_ctrl.address;
+#ifdef CONFIG_MMC_DEBUG
+	printf("ARGUMENT(address): 0x%08lx\n", address);
+#endif
+	return address;
+}
+
 void sd_send_cmd(void)
 {
 	uint32_t arg = 0;
@@ -1023,6 +1037,7 @@ void sd_send_cmd(void)
 	case MMC_CMD_SET_BLOCKLEN:
 		mmc_slot_ctrl.rsp = MMC_R1;
 		arg = mmc_slot_ctrl.block_len;
+		/* TODO: Fix capacity_len/capacity_cnt */
 		break;
 #endif
 #ifdef SD_CLASS2
@@ -1030,18 +1045,18 @@ void sd_send_cmd(void)
 		MMC_BLOCK(READ, mmc_slot_ctrl.trans_len, 1);
 		sd_set_block_data(true);
 		mmc_slot_ctrl.rsp = MMC_R1;
-		arg = mmc_slot_ctrl.address;
+		arg = sd_block_address();
 		break;
 	case MMC_CMD_READ_MULTIPLE_BLOCK:
 		MMC_BLOCK(READ, mmc_slot_ctrl.trans_len,
 			  mmc_slot_ctrl.trans_cnt);
 		sd_set_block_data(true);
 		mmc_slot_ctrl.rsp = MMC_R1;
-		arg = mmc_slot_ctrl.address;
+		arg = sd_block_address();
 		break;
 	case SD_CMD_SEND_TUNING_BLOCK:
 		mmc_slot_ctrl.rsp = MMC_R1;
-		arg = mmc_slot_ctrl.address;
+		arg = 0;
 		break;
 #endif
 #if defined(SD_CLASS2) || defined(SD_CLASS4)
@@ -1060,14 +1075,14 @@ void sd_send_cmd(void)
 		MMC_BLOCK(WRITE, mmc_slot_ctrl.trans_len, 1);
 		sd_set_block_data(true);
 		mmc_slot_ctrl.rsp = MMC_R1;
-		arg = mmc_slot_ctrl.address;
+		arg = sd_block_address();
 		break;
 	case MMC_CMD_WRITE_MULTIPLE_BLOCK:
 		MMC_BLOCK(WRITE, mmc_slot_ctrl.trans_len,
 			  mmc_slot_ctrl.trans_cnt);
 		sd_set_block_data(true);
 		mmc_slot_ctrl.rsp = MMC_R1;
-		arg = mmc_slot_ctrl.address;
+		arg = sd_block_address();
 		break;
 	case MMC_CMD_PROGRAM_CSD:
 		mmc_slot_ctrl.rsp = MMC_R1;
@@ -1088,7 +1103,7 @@ void sd_send_cmd(void)
 	case SD_CMD_ERASE_WR_BLK_START:
 	case SD_CMD_ERASE_WR_BLK_END:
 		mmc_slot_ctrl.rsp = MMC_R1;
-		arg = mmc_slot_ctrl.address;
+		arg = sd_block_address();
 		break;
 	case MMC_CMD_ERASE:
 		mmc_slot_ctrl.rsp = MMC_R1b;
