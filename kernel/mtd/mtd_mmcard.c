@@ -45,13 +45,15 @@
 struct mmcard_info {
 	mmc_card_t cid;
 	mtd_t mtd;
-	mtd_size_t offset;
+	mtd_addr_t offset;
 	mtd_size_t length;
 	uint64_t blk_cnt;
 	uint16_t blk_len;
 	bool registered;
+	bool buffered;
 	uint8_t buffer[MMC_DEF_BL_LEN];
-	uint8_t buffered;
+	mtd_addr_t buffered_address;
+	uint16_t nr_buffered_blks;
 };
 
 struct mtd_info mmcard_infos[NR_MMC_CARDS];
@@ -70,19 +72,47 @@ static mmc_card_t mmcard_mtd2cid(mtd_t mtd)
 	return INVALID_MMC_CARD;
 }
 
+static bool mmcard_buffered(mtd_addr_t addr)
+{
+	mtd_addr_t blk_off;
+	uint16_t blk_cnt;
+	bool result;
+
+	blk_off = ALIGN_DOWN(mmcard_privs[mmcard_cid].offset,
+			     MMC_DEF_BL_LEN);
+	if (mmcard_privs[mmcard_cid].buffered &&
+	    blk_off == mmcard_privs[mmcard_cid].buffered_address)
+		return true;
+	blk_cnt = MMC_DEF_BL_LEN / mmcard_privs[mmcard_cid].blk_len;
+
+	result = mmc_card_read_sync(mmcard_cid,
+				    mmcard_privs[mmcard_cid].buffer,
+				    blk_off, blk_cnt);
+	if (!result) {
+		con_printf("Failed to read %08lx\n", blk_off);
+		return false;
+	}
+	mmcard_privs[mmcard_cid].buffered_address = blk_off;
+	mmcard_privs[mmcard_cid].nr_buffered_blks = blk_cnt;
+	mmcard_privs[mmcard_cid].buffered = true;
+	return false;
+}
+
 static uint8_t mmcard_read(void)
 {
 	uint8_t byte = 0;
+	mtd_addr_t offset;
 
-#if 0
-	if (mmcard_privs[mmcard_cid].length) {
-		__mmcard_spi_exchange(SF_READ_DATA,
-			mmcard_privs[mmcard_cid].offset);
-		byte = spi_read_byte();
+	if (mmcard_buffered(mmcard_privs[mmcard_cid].offset)) {
+		offset = mmcard_privs[mmcard_cid].offset -
+			 mmcard_privs[mmcard_cid].buffered_address;
+		if (offset >= MMC_DEF_BL_LEN)
+			con_printf("Wrong offset %016llx\n", offset);
+		else
+			byte = mmcard_privs[mmcard_cid].buffer[offset];
 		mmcard_privs[mmcard_cid].offset++;
 		mmcard_privs[mmcard_cid].length--;
 	}
-#endif
 	return byte;
 }
 
@@ -100,15 +130,18 @@ static boolean mmcard_open(uint8_t mode, mtd_addr_t addr, mtd_size_t size)
 {
 	mmc_card_t cid = mmcard_mtd2cid(mtd_id);
 
+	if (cid >= NR_MMC_CARDS || !mmcard_privs[cid].registered)
+		return false;
+
+	mmcard_cid = cid;
 	mmcard_privs[cid].offset = addr;
 	mmcard_privs[cid].length = size;
-	mmcard_cid = cid;
 	return true;
 }
 
 static void mmcard_close(void)
 {
-	mmcard_privs[mmcard_cid].buffered = 0;
+	mmcard_privs[mmcard_cid].buffered = false;
 }
 
 mtd_chip_t mmcard_chip = {
