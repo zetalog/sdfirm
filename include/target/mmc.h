@@ -710,7 +710,7 @@ extern uint8_t mmc_slot_bufs[NR_MMC_SLOTS][MMC_DEF_BL_LEN];
 #define mmc_slot_buf mmc_slot_bufs[mmc_sid]
 #else
 #define mmc_slot_save(sid)	0
-#define mmc_slot_restore(rca)
+#define mmc_slot_restore(sid)
 #define mmc_sid			0
 extern struct mmc_slot mmc_slot_ctrl;
 extern uint8_t mmc_slot_buf[MMC_DEF_BL_LEN];

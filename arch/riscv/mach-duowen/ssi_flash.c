@@ -75,6 +75,8 @@ void spi_hw_ctrl_init(void)
 void duowen_ssi_flash_init(void)
 {
 	board_flash = spiflash_register_bank(0);
+	if (board_flash == INVALID_MTD_ID)
+		bh_panic();
 }
 
 void duowen_ssi_flash_copy(void *buf, uint32_t addr, uint32_t size)

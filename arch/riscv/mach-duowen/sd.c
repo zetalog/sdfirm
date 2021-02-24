@@ -94,6 +94,12 @@ void duowen_sd_init(void)
 
 	if (!mmc_slot_wait_state(DUOWEN_SD_SLOT, MMC_STATE_tran))
 		return;
+
+#if 0
+	board_sdcard = mmcard_register_bank(mmc_slot_rca(DUOWEN_SD_SLOT));
+#endif
+	if (board_sdcard == INVALID_MTD_ID)
+		bh_panic();
 }
 
 void duowen_sd_copy(void *buf, uint32_t addr, uint32_t size)
