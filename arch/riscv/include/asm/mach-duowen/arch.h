@@ -85,8 +85,6 @@
 #endif
 
 #ifndef __ASSEMBLY__
-typedef void (*duowen_boot_cb)(void *, uint32_t, uint32_t);
-
 void board_init_clock(void);
 void board_init_timestamp(void);
 #ifdef CONFIG_DUOWEN_APC_INIT

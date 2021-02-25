@@ -116,11 +116,21 @@ void board_finish(int code)
 #endif
 
 #ifdef CONFIG_DUOWEN_LOAD
+#if defined(CONFIG_DUOWEN_ZSBL) && !defined(CONFIG_DUOWEN_BOOT_STACK)
+#ifdef CONFIG_DUOWEN_BOOT_OFFSET
+#define BOOT_OFFSET		CONFIG_DUOWEN_BOOT_OFFSET
+#else
+#define BOOT_OFFSET		0x4000
+#endif
+#else
+#define BOOT_OFFSET		0x0
+#endif
+
 #ifdef CONFIG_DUOWEN_LOAD_SSI_FLASH
 void duowen_load_ssi(void)
 {
 #ifdef CONFIG_DUOWEN_ZSBL
-	void (*boot_entry)(void) = (void *)RAM_BASE;
+	void (*boot_entry)(void) = (void *)(RAM_BASE + BOOT_OFFSET);
 	char boot_file[] = "fsbl.bin";
 #endif
 #ifdef CONFIG_DUOWEN_FSBL
@@ -164,7 +174,7 @@ void duowen_load_ssi(void)
 void duowen_load_sd(void)
 {
 #ifdef CONFIG_DUOWEN_ZSBL
-	void (*boot_entry)(void) = (void *)RAM_BASE;
+	void (*boot_entry)(void) = (void *)(RAM_BASE + BOOT_OFFSET);
 	char boot_file[] = "fsbl.bin";
 #endif
 #ifdef CONFIG_DUOWEN_FSBL

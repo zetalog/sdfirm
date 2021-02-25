@@ -98,38 +98,263 @@ void duowen_sd_init(void)
 		bh_panic();
 }
 
-static inline uint8_t duowen_sd_read(uint32_t addr)
-{
-	uint8_t byte = 0;
+#ifdef CONFIG_DUOWEN_BOOT_STACK
+typedef void (*duowen_boot_cb)(void *, uint16_t, uint32_t, uint32_t);
 
-	return byte;
+static inline bool __duowen_sd_xfer_dat(uint8_t *block, uint16_t blk_len,
+					uint32_t off, uint16_t len,
+					bool last_block)
+{
+	uint32_t dat;
+	uint32_t *dwdat = (uint32_t *)block;
+	uint32_t dwoff = off / 4;
+	uint32_t dwlen = blk_len / 4, dwlength = len / 4;
+	uint32_t dwoffset = 0;
+	uint32_t irqs;
+	bool result = true;
+
+	/* ==================================================
+	 * Recv data
+	 * ================================================== */
+	do {
+		irqs = sdhc_irq_status(0);
+		if (irqs & SDHC_ERROR_INTERRUPT_MASK) {
+			result = false;
+			goto exit_xfer;
+		}
+		if (sdhc_state_present(0, SDHC_BUFFER_READ_ENABLE) &&
+		    irqs & SDHC_BUFFER_READ_READY) {
+			sdhc_clear_irq(0, SDHC_BUFFER_READ_READY);
+			break;
+		}
+	} while (0);
+
+	while (dwlen) {
+		dat = __raw_readl(SDHC_BUFFER_DATA_PORT(0));
+		if (dwoffset == dwoff && dwlength)
+			*dwdat = dat;
+		dwdat++;
+		dwlen--;
+		if (dwlength)
+			dwlength--;
+		if (dwoffset < dwoff)
+			dwoffset++;
+	}
+
+	if (!last_block)
+		return true;
+
+exit_xfer:
+	/* ==================================================
+	 * Stop transfer
+	 * ================================================== */
+	sdhc_disable_irq(0, SDHC_COMMAND_MASK | SDHC_TRANSFER_MASK);
+	sdhc_clear_all_irqs(0);
+	sdhc_software_reset(0, SDHC_SOFTWARE_RESET_FOR_CMD_LINE);
+	sdhc_software_reset(0, SDHC_SOFTWARE_RESET_FOR_DAT_LINE);
+	return result;
 }
 
-void __duowen_sd_boot(void *boot, uint32_t addr, uint32_t size)
+/* TODO: This function is endianess related. */
+static inline void __duowen_sd_decode_reg(uint8_t *resp,
+					  uint8_t size, uint32_t reg)
 {
+	if (size > 0)
+		resp[0] = HIBYTE(HIWORD(reg));
+	if (size > 1)
+		resp[1] = LOBYTE(HIWORD(reg));
+	if (size > 2)
+		resp[2] = HIBYTE(LOWORD(reg));
+	if (size > 3)
+		resp[3] = LOBYTE(LOWORD(reg));
+}
+
+static inline bool __duowen_sd_xfer_cmd(uint8_t cmd, uint32_t arg,
+		uint32_t block_cnt, uint16_t block_len)
+{
+	bool type = !!(cmd != MMC_CMD_STOP_TRANSMISSION);
+	uint8_t rsp = cmd == MMC_CMD_STOP_TRANSMISSION ? MMC_R1b : MMC_R1;
+	__unused size_t trans_bytes;
+	uint32_t mask, flags, mode, cmpl_mask;
+	uint32_t irqs;
 	int i;
+	uint32_t reg;
+	bool result = true;
+	uint8_t len;
+	mmc_r1_t r1;
+	uint8_t *resp = r1;
+	uint8_t size = 4;
+
+	/* ==================================================
+	 * Start transfer
+	 * ================================================== */
+	while (sdhc_state_present(0, SDHC_COMMAND_INHIBIT));
+	sdhc_clear_all_irqs(0);
+	sdhc_enable_irq(0, SDHC_COMMAND_MASK | SDHC_TRANSFER_MASK);
+
+	/* ==================================================
+	 * Send command
+	 * ================================================== */
+	mask = SDHC_COMMAND_COMPLETE;
+	if (!(rsp & MMC_RSP_PRESENT))
+		flags = SDHC_RESPONSE_TYPE_SELECT(SDHC_NO_RESPONSE);
+	else if (rsp & MMC_RSP_136)
+		flags = SDHC_RESPONSE_TYPE_SELECT(SDHC_RESPONSE_LENGTH_136);
+	else if (rsp & MMC_RSP_BUSY) {
+		flags = SDHC_RESPONSE_TYPE_SELECT(SDHC_RESPONSE_LENGTH_48_BUSY);
+		if (type)
+			mask |= SDHC_TRANSFER_COMPLETE;
+	} else
+		flags = SDHC_RESPONSE_TYPE_SELECT(SDHC_RESPONSE_LENGTH_48);
+
+	if (rsp & MMC_RSP_CRC)
+		flags |= SDHC_COMMAND_CRC_CHECK_ENABLE;
+	if (rsp & MMC_RSP_OPCODE)
+		flags |= SDHC_COMMAND_INDEX_CHECK_ENABLE;
+
+	if (type)
+		flags |= SDHC_DATA_PRESENT_SELECT;
+
+	/* Set Transfer mode regarding to data flag */
+	if (type) {
+		__raw_writeb(0xE, SDHC_TIMEOUT_CONTROL(0));
+		mode = SDHC_BLOCK_COUNT_ENABLE;
+		trans_bytes = block_cnt * block_len;
+		if (block_cnt > 1)
+			mode |= SDHC_MULTI_SINGLE_BLOCK_SELECT;
+		if (type)
+			mode |= SDHC_DATA_TRANSFER_DIRECTION_SELECT;
+
+		__raw_writew(SDHC_TRANSFER_BLOCK_SIZE(block_len),
+			     SDHC_BLOCK_SIZE(0));
+		__raw_writew(block_cnt,
+			     SDHC_16BIT_BLOCK_COUNT(0));
+		__raw_writew(mode, SDHC_TRANSFER_MODE(0));
+	} else if (rsp & MMC_RSP_BUSY) {
+		__raw_writeb(0xE, SDHC_TIMEOUT_CONTROL(0));
+	}
+
+	__raw_writel(arg, SDHC_ARGUMENT(0));
+	__raw_writew(SDHC_CMD(cmd, flags), SDHC_COMMAND(0));
+
+	/* ==================================================
+	 * Recv response
+	 * ================================================== */
+	do {
+		irqs = sdhc_irq_status(0);
+
+		if (irqs & SDHC_ERROR_INTERRUPT_MASK) {
+			result = false;
+			goto exit_xfer;
+		}
+
+		cmpl_mask = irqs & mask;
+		if (cmpl_mask) {
+			sdhc_clear_irq(0, cmpl_mask);
+			unraise_bits(mask, cmpl_mask);
+		}
+		if (!mask)
+			break;
+	} while (0);
+
+	if (rsp & MMC_RSP_136) {
+		/* CRC is stripped so we need to do some shifting. */
+		len = 0;
+		for (i = 0; i < 4; i++) {
+			reg = __raw_readl(
+				SDHC_RESPONSE32(0, 3-i)) << 8;
+			if (i != 3)
+				reg |= __raw_readb(
+					SDHC_RESPONSE8(0, (3-i)*4-1));
+			__duowen_sd_decode_reg(resp + len,
+					       size >= len ? 4 : 0, reg);
+			len += 4;
+		}
+	} else {
+		reg = __raw_readl(SDHC_RESPONSE32(0, 0));
+		__duowen_sd_decode_reg(resp, size, reg);
+	}
+
+	if (type)
+		return true;
+
+exit_xfer:
+	/* ==================================================
+	 * Stop transfer
+	 * ================================================== */
+	sdhc_disable_irq(0, SDHC_COMMAND_MASK | SDHC_TRANSFER_MASK);
+	sdhc_clear_all_irqs(0);
+	sdhc_software_reset(0, SDHC_SOFTWARE_RESET_FOR_CMD_LINE);
+	sdhc_software_reset(0, SDHC_SOFTWARE_RESET_FOR_DAT_LINE);
+	return result;
+}
+
+void __duowen_sd_boot(void *boot, uint16_t block_len,
+		      uint32_t addr, uint32_t size)
+{
 	uint8_t *dst = boot;
 	void (*boot_entry)(void) = boot;
+	uint32_t block_cnt, cnt;
+	uint32_t address, offset;
+	uint16_t length;
+	uint8_t cmd;
+	uint32_t total_size;
 
-	for (i = 0; i < size; i++, addr++)
-		dst[i] = duowen_sd_read(addr);
+#define is_last_blk(cnt, block_cnt)	(((cnt) + 1) == block_cnt)
+
+	address = ALIGN_DOWN(addr, block_len);
+	total_size = address - addr + size;
+	block_cnt = ALIGN_UP(total_size, block_len) / block_len;
+	cmd = block_cnt > 1 ?
+	      MMC_CMD_READ_MULTIPLE_BLOCK : MMC_CMD_READ_SINGLE_BLOCK;
+	if (!__duowen_sd_xfer_cmd(cmd, address, block_cnt, block_len))
+		BUG();
+	cnt = 0;
+	do {
+		if (cnt)
+			offset += block_len;
+		else
+			offset = addr - address;
+		if (is_last_blk(cnt, block_cnt))
+			length = total_size & (block_len - 1);
+		else
+			length = block_len;
+		if (!__duowen_sd_xfer_dat(dst, block_len, offset, length,
+					  is_last_blk(cnt, block_cnt)))
+			BUG();
+		cnt++;
+	} while (cnt != block_cnt);
+	cmd = MMC_CMD_STOP_TRANSMISSION;
+	if (!__duowen_sd_xfer_cmd(cmd, 0, 0, 0))
+		BUG();
 	boot_entry();
 }
 
 void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size)
 {
+	uint16_t capacity_len;
+	uint64_t capacity_cnt;
 	duowen_boot_cb boot_func;
-#ifdef CONFIG_DUOWEN_BOOT_STACK
-	__align(32) uint8_t boot_from_stack[256];
+	__align(32) uint8_t boot_from_stack[1024];
+
+	if (!mmc_card_capacity(DUOWEN_SD_CARD, &capacity_len, &capacity_cnt))
+		BUG();
 
 	boot_func = (duowen_boot_cb)boot_from_stack;
 	memcpy(boot_from_stack, __duowen_sd_boot, 256);
-#else
-	boot_func = __duowen_sd_boot;
-#endif
-	boot_func(boot, addr, size);
+	boot_func(boot, capacity_len, addr, size);
 	unreachable();
 }
+#else
+void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size)
+{
+	void (*boot_entry)(void) = boot;
+
+	gpt_mtd_copy(board_sdcard, boot, addr, size);
+	boot_entry();
+	unreachable();
+}
+#endif
 
 static int do_sd_status(int argc, char *argv[])
 {

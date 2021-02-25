@@ -621,9 +621,9 @@ struct mmc_slot {
 	/* SDSC Card (CCS=0) uses byte unit address and SDHC and SDXC
 	 * Cards (CCS=1) use block unit address (512 Bytes unit).
 	 */
-	uint32_t address;
-	uint16_t block_cnt;
-	uint32_t block_len;
+	uint64_t address;
+	uint64_t block_cnt;
+	uint16_t block_len;
 	uint8_t *block_data;
 	tick_t start_tick;
 	tick_t start_busy;

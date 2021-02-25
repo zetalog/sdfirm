@@ -75,36 +75,39 @@ void duowen_ssi_flash_init(void)
 		bh_panic();
 }
 
-static inline void duowen_ssi_flash_select(uint32_t chips)
+#ifdef CONFIG_DUOWEN_BOOT_STACK
+typedef void (*duowen_boot_cb)(void *, uint32_t, uint32_t);
+
+static inline void __duowen_ssi_flash_select(uint32_t chips)
 {
-	__raw_clearl(SSI_EN, SSI_SSIENR(0));
-	__raw_writel(chips, SSI_SER(0));
-	__raw_setl(SSI_EN, SSI_SSIENR(0));
+	__raw_clearl(SSI_EN, SSI_SSIENR(SSI_ID));
+	__raw_writel(chips, SSI_SER(SSI_ID));
+	__raw_setl(SSI_EN, SSI_SSIENR(SSI_ID));
 }
 
-static inline void duowen_ssi_flash_writeb(uint8_t byte)
+static inline void __duowen_ssi_flash_writeb(uint8_t byte)
 {
-	while (!(__raw_readl(SSI_RISR(0)) & SSI_TXEI));
-	__raw_writel(byte, SSI_DR(0, 0));
+	while (!(__raw_readl(SSI_RISR(SSI_ID)) & SSI_TXEI));
+	__raw_writel(byte, SSI_DR(SSI_ID, 0));
 }
 
-static inline uint8_t duowen_ssi_flash_readb(void)
+static inline uint8_t __duowen_ssi_flash_readb(void)
 {
-        while (!(__raw_readl(SSI_RISR(0)) & SSI_RXFI));
-        return __raw_readl(SSI_DR(0, 0));
+        while (!(__raw_readl(SSI_RISR(SSI_ID)) & SSI_RXFI));
+        return __raw_readl(SSI_DR(SSI_ID, 0));
 }
 
-static inline uint8_t duowen_ssi_flash_read(uint32_t addr)
+static inline uint8_t __duowen_ssi_flash_read(uint32_t addr)
 {
 	uint8_t byte;
 
-	duowen_ssi_flash_select(_BV(0));
-	duowen_ssi_flash_writeb(SF_READ_DATA);
-	duowen_ssi_flash_writeb((uint8_t)(addr >> 16));
-	duowen_ssi_flash_writeb((uint8_t)(addr >> 8));
-	duowen_ssi_flash_writeb((uint8_t)(addr >> 0));
-	byte = duowen_ssi_flash_readb();
-	duowen_ssi_flash_select(0);
+	__duowen_ssi_flash_select(_BV(0));
+	__duowen_ssi_flash_writeb(SF_READ_DATA);
+	__duowen_ssi_flash_writeb((uint8_t)(addr >> 16));
+	__duowen_ssi_flash_writeb((uint8_t)(addr >> 8));
+	__duowen_ssi_flash_writeb((uint8_t)(addr >> 0));
+	byte = __duowen_ssi_flash_readb();
+	__duowen_ssi_flash_select(0);
 	return byte;
 }
 
@@ -115,29 +118,35 @@ void __duowen_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 	void (*boot_entry)(void) = boot;
 
 	for (i = 0; i < size; i++, addr++)
-		dst[i] = duowen_ssi_flash_read(addr);
+		dst[i] = __duowen_ssi_flash_read(addr);
 	boot_entry();
 }
 
 void duowen_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 {
 	duowen_boot_cb boot_func;
-#ifdef CONFIG_DUOWEN_BOOT_STACK
 	__align(32) uint8_t boot_from_stack[256];
 
 	boot_func = (duowen_boot_cb)boot_from_stack;
 	memcpy(boot_from_stack, __duowen_ssi_flash_boot, 256);
-#else
-	boot_func = __duowen_ssi_flash_boot;
-#endif
 	boot_func(boot, addr, size);
 	unreachable();
 }
+#else
+void duowen_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
+{
+	void (*boot_entry)(void) = boot;
+
+	gpt_mtd_copy(board_flash, boot, addr, size);
+	boot_entry();
+	unreachable();
+}
+#endif
 
 static int do_flash_dump(int argc, char *argv[])
 {
 	uint8_t buffer[GPT_LBA_SIZE];
-	uint32_t addr = 128;
+	uint32_t addr = 512;
 	size_t size = 32;
 
 	if (argc > 2)
@@ -234,7 +243,7 @@ static int do_flash(int argc, char *argv[])
 DEFINE_COMMAND(flash, do_flash, "SSI flash commands",
 	"dump [addr] [size]\n"
 	"    - dump content of SSI flash\n"
-	"      addr: default to 128\n"
+	"      addr: default to 512\n"
 	"      size: default to 32\n"
 	"gpt\n"
 	"    - dump GPT partitions from SSI flash\n"

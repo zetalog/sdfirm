@@ -189,6 +189,7 @@ config DUOWEN_LOAD_SD
 
 config DUOWEN_BOOT_STACK
 	bool "Enable boot from stack"
+	depends DUOWEN_ZSBL
 	help
 	  By default, each bootloader's .text section should be in
 	  a different memory region. Enable this option only if the next
@@ -198,6 +199,16 @@ config DUOWEN_BOOT_STACK
 	  the stack of the current bootloader, please do not enable this
 	  option.
 	  If unsure, say 'N'.
+
+config DUOWEN_BOOT_OFFSET
+	hex "SRAM offset for FSBL"
+	depends !DUWOEN_BOOT_STACK && DUOWEN_ZSBL
+	default 0x4000
+	help
+	  ZSBL loads FSBL to SRAM start addresses, while SRAM may still be
+	  used as ZSBL .data/.bss sections during the image loading. This
+	  option allows FSBL to be loaded without affecting ZSBL's
+	  .data/.bss sections.
 
 endif
 

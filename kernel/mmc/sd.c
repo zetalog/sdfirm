@@ -1019,7 +1019,6 @@ void sd_send_cmd(void)
 		break;
 	case SD_CMD_VOLTAGE_SWITCH:
 		mmc_slot_ctrl.rsp = MMC_R1;
-		arg = 0;
 		break;
 	case MMC_CMD_STOP_TRANSMISSION:
 		mmc_slot_ctrl.rsp = MMC_R1b;
