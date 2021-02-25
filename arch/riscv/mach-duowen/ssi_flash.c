@@ -46,9 +46,6 @@
 #include <target/efi.h>
 #include <target/irq.h>
 
-#define FLASH_PAGE_SIZE		256
-#define FLASH_TOTAL_SIZE	4000000
-
 mtd_t board_flash = INVALID_MTD_ID;
 
 static inline void spi_config_pad(uint16_t pin, uint8_t pad, uint8_t func)
@@ -152,11 +149,9 @@ void duowen_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 	unreachable();
 }
 
-#define PAGES_PER_LBA (GPT_LBA_SIZE / FLASH_PAGE_SIZE)
-
 static int do_flash_gpt(int argc, char *argv[])
 {
-	uint8_t gpt_buf[FLASH_PAGE_SIZE];
+	uint8_t gpt_buf[GPT_LBA_SIZE];
 	gpt_header hdr;
 	uint64_t partition_entries_lba_end;
 	gpt_partition_entry *gpt_entries;
@@ -165,52 +160,48 @@ static int do_flash_gpt(int argc, char *argv[])
 	uint32_t num_entries;
 	int k;
 	int i_part = 0;
-	int i_page = 0;
 
 	duowen_ssi_flash_copy(&hdr,
 		GPT_HEADER_LBA * GPT_LBA_SIZE, GPT_HEADER_BYTES);
 	partition_entries_lba_end = (hdr.partition_entries_lba +
 		(hdr.num_partition_entries * hdr.partition_entry_size +
-		 FLASH_PAGE_SIZE - 1) / FLASH_PAGE_SIZE);
+		 GPT_LBA_SIZE - 1) / GPT_LBA_SIZE);
 	for (i = hdr.partition_entries_lba;
 	     i < partition_entries_lba_end; i++) {
-		for (i_page = 0; i_page < PAGES_PER_LBA; i_page++) {
-			duowen_ssi_flash_copy(gpt_buf, 
-					(i * PAGES_PER_LBA + i_page) * FLASH_PAGE_SIZE,
-					FLASH_PAGE_SIZE);
-			gpt_entries = (gpt_partition_entry *)gpt_buf;
-			num_entries = FLASH_PAGE_SIZE / hdr.partition_entry_size;
-			for (j = 0; j < num_entries; j++) {
-				/* Stop at empty entry with UUID = 0 */
-				unsigned char name_str[GPT_PART_NAME_U16_LEN + 1] = {0};
-				uint32_t *uuid_u32_ptr = (uint32_t *)
-						&gpt_entries[j].partition_guid.u.uuid;
-				int uuid_u32_cnt = sizeof(guid_t) / sizeof(uint32_t);
-				for (k = 0; k < uuid_u32_cnt; k++) {
-					if (uuid_u32_ptr[k] != 0)
-						break;
-				}
-				if (k >= uuid_u32_cnt)
-					goto last_part_done;
-
-				/* Convert partition name to C string */
-				for (k = 0; k < GPT_PART_NAME_U16_LEN; k++) {
-					if (gpt_entries[j].name[k] == 0)
-						break;
-					name_str[k] = (unsigned char)gpt_entries[j].name[k];
-				}
-#if 0
-				/* Stop at partition with NULL name */
-				if (k <= 0)
-					goto last_part_done;
-#endif
-				i_part++;
-				printf("%d", i_part);
-				printf(" %lld %lld", gpt_entries[j].first_lba, gpt_entries[j].last_lba);
-				printf(" %s", uuid_export(gpt_entries[j].partition_guid.u.uuid));
-				printf(" %s", name_str);
-				printf("\n");
+		duowen_ssi_flash_copy(gpt_buf, i * GPT_LBA_SIZE,
+				      GPT_LBA_SIZE);
+		gpt_entries = (gpt_partition_entry *)gpt_buf;
+		num_entries = GPT_LBA_SIZE / hdr.partition_entry_size;
+		for (j = 0; j < num_entries; j++) {
+			/* Stop at empty entry with UUID = 0 */
+			unsigned char name_str[GPT_PART_NAME_U16_LEN + 1] = {0};
+			uint32_t *uuid_u32_ptr = (uint32_t *)
+					&gpt_entries[j].partition_guid.u.uuid;
+			int uuid_u32_cnt = sizeof(guid_t) / sizeof(uint32_t);
+			for (k = 0; k < uuid_u32_cnt; k++) {
+				if (uuid_u32_ptr[k] != 0)
+					break;
 			}
+			if (k >= uuid_u32_cnt)
+				goto last_part_done;
+
+			/* Convert partition name to C string */
+			for (k = 0; k < GPT_PART_NAME_U16_LEN; k++) {
+				if (gpt_entries[j].name[k] == 0)
+					break;
+				name_str[k] = (unsigned char)gpt_entries[j].name[k];
+			}
+#if 0
+			/* Stop at partition with NULL name */
+			if (k <= 0)
+				goto last_part_done;
+#endif
+			i_part++;
+			printf("%d", i_part);
+			printf(" %lld %lld", gpt_entries[j].first_lba, gpt_entries[j].last_lba);
+			printf(" %s", uuid_export(gpt_entries[j].partition_guid.u.uuid));
+			printf(" %s", name_str);
+			printf("\n");
 		}
 	}
 last_part_done:
@@ -219,7 +210,7 @@ last_part_done:
 
 static int do_flash_dump(int argc, char *argv[])
 {
-	uint8_t buffer[FLASH_PAGE_SIZE];
+	uint8_t buffer[GPT_LBA_SIZE];
 	uint32_t addr = 128;
 	size_t size = 32;
 
@@ -227,13 +218,9 @@ static int do_flash_dump(int argc, char *argv[])
 		addr = strtoul(argv[2], NULL, 0);
 	if (argc > 3)
 		size = strtoul(argv[3], NULL, 0);
-	if (size >= FLASH_TOTAL_SIZE) {
-		printf("addr should be less than %d\n", FLASH_TOTAL_SIZE);
-		return -EINVAL;
-	}
-	if (size > FLASH_PAGE_SIZE) {
+	if (size > GPT_LBA_SIZE) {
 		printf("size should be less or equal than %d\n",
-		       FLASH_PAGE_SIZE);
+		       GPT_LBA_SIZE);
 		return -EINVAL;
 	}
 	duowen_ssi_flash_copy(buffer, addr, size);
