@@ -75,7 +75,7 @@ void dpu_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 static int do_flash_dump(int argc, char *argv[])
 {
 	uint8_t buffer[GPT_LBA_SIZE];
-	__unused uint32_t addr = 128;
+	uint32_t addr = 128;
 	size_t size = 32;
 
 	if (argc > 2)

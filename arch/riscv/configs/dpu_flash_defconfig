@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Feb 25 15:13:12 2021
+# Thu Feb 25 15:39:47 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -328,7 +328,8 @@ CONFIG_ARCH_HAS_PCI=y
 # CONFIG_IOMMU is not set
 CONFIG_ARCH_HAS_FDT=y
 # CONFIG_FDT is not set
-# CONFIG_UEFI is not set
+CONFIG_UEFI=y
+CONFIG_UEFI_GPT=y
 # CONFIG_RAS is not set
 # CONFIG_PERF is not set
 

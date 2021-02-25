@@ -141,8 +141,6 @@ config DPU_BOOT_ADDR
 config DPU_LOAD_SSI_FLASH
 	bool "Enable load from SSI flash"
 	depends DPU_SSI_FLASH
-	select UEFI
-	select UEFI_GPT
 
 config DPU_BOOT_STACK
 	bool "Enable boot from stack"
@@ -384,13 +382,14 @@ menuconfig DPU_SSI_FLASH
 	bool "DPU SSI flash support"
 	depends SPI_MASTER
 	select DW_SSI
+	select UEFI
+	select UEFI_GPT
 	select ARCH_HAS_SSI_FIFO
 	select ARCH_HAS_SSI_XFER_32
 	select ARCH_HAS_SSI_FRF
 	select ARCH_HAS_SSI_SPI
 	select ARCH_HAS_SSI_SPI_1WIRE
 	select ARCH_HAS_SPIFLASH
-	select MTD
 	select MEM if COMMAND
 	select SPIFLASH_W25Q32
 	select STRING_UUID

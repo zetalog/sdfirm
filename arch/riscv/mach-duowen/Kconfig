@@ -182,14 +182,10 @@ config DUOWEN_LOAD_SRAM
 config DUOWEN_LOAD_SSI_FLASH
 	bool "Enable load from SSI flash"
 	depends DUOWEN_SSI_FLASH
-	select UEFI
-	select UEFI_GPT
 
 config DUOWEN_LOAD_SD
 	bool "Enable load from SD card"
 	depends DUOWEN_SD
-	select UEFI
-	select UEFI_GPT
 
 config DUOWEN_BOOT_STACK
 	bool "Enable boot from stack"
@@ -466,7 +462,8 @@ menuconfig DUOWEN_SSI_FLASH
 	bool "Duowen SSI flash support"
 	depends SPI_MASTER
 	select DW_SSI
-	select MTD
+	select UEFI
+	select UEFI_GPT
 	select SPIFLASH_W25Q32
 	select ARCH_HAS_SSI_FIFO
 	select ARCH_HAS_SSI_XFER_32
@@ -530,6 +527,8 @@ endif
 menuconfig DUOWEN_SD
 	bool "Duowen MSHC controller support"
 	select DW_MSHC
+	select UEFI
+	select UEFI_GPT
 	select MTD_MMCARD
 	select STRING_UUID
 	select GPIO
