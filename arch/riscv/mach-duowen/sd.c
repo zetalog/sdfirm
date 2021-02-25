@@ -157,7 +157,8 @@ static int do_sd_gpt(int argc, char *argv[])
 	uint32_t j;
 	uint32_t num_entries;
 
-	duowen_sd_copy(gpt_buf, GPT_HEADER_LBA * GPT_LBA_SIZE, 1);
+	duowen_sd_copy(gpt_buf, GPT_HEADER_LBA * GPT_LBA_SIZE,
+		       GPT_HEADER_BYTES);
 	memcpy(&hdr, gpt_buf, sizeof (gpt_header));
 	hexdump(0, &hdr, 1, sizeof (gpt_header));
 	partition_entries_lba_end = (hdr.partition_entries_lba +
@@ -165,7 +166,7 @@ static int do_sd_gpt(int argc, char *argv[])
 		 GPT_LBA_SIZE - 1) / GPT_LBA_SIZE);
 	for (i = hdr.partition_entries_lba;
 	     i < partition_entries_lba_end; i++) {
-		duowen_sd_copy(gpt_buf, i * GPT_LBA_SIZE, 1);
+		duowen_sd_copy(gpt_buf, i * GPT_LBA_SIZE, GPT_LBA_SIZE);
 		gpt_entries = (gpt_partition_entry *)gpt_buf;
 		num_entries = GPT_LBA_SIZE / hdr.partition_entry_size;
 		for (j = 0; j < num_entries; j++) {
