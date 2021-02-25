@@ -2,9 +2,6 @@
 # UEFI Firmware
 #
 
-config ARCH_HAS_UEFI
-	bool
-
 menuconfig UEFI
 	bool "Unified extensible firmware interface (UEFI) support"
 

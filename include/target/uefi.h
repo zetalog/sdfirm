@@ -109,12 +109,6 @@ struct gpt_header {
 	uint8_t  reserved2[512 - 92];
 } __attribute__ ((packed));
 
-#ifdef CONFIG_ARCH_HAS_UEFI
-#include <asm/mach/uefi.h>
-#endif
-#ifndef ARCH_HAVE_UEFI
-#endif
-
 #ifdef CONFIG_UEFI
 #ifdef GPT_LOCAL_TEST
 int gpt_pgpt_init(uint8_t *image_start);

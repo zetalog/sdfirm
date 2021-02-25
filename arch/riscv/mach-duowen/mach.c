@@ -50,6 +50,8 @@
 #include <target/dma.h>
 #include <target/pci.h>
 #include <target/eth.h>
+#include <target/mmc.h>
+#include <target/spi.h>
 
 #ifdef CONFIG_DUOWEN_PMA
 void duowen_pma_init(void)

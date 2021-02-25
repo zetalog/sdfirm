@@ -41,7 +41,7 @@
 
 #include <target/spi.h>
 #include <target/barrier.h>
-#include <target/efi.h>
+#include <target/uefi.h>
 #include <target/cmdline.h>
 #include <target/console.h>
 
