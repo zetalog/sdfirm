@@ -2,6 +2,9 @@
 #define __UEFI_H_INCLUDE__
 
 #include <target/generic.h>
+#include <target/efi.h>
+#include <target/uuid.h>
+#include <target/mtd.h>
 
 /* Size of Sector (Logical Block) */
 #define GPT_SECTOR_SIZE_SHIFT	9
@@ -110,17 +113,27 @@ struct gpt_header {
 #include <asm/mach/uefi.h>
 #endif
 #ifndef ARCH_HAVE_UEFI
-#define uefi_hw_gpt_copy(ptr, addr, size)	do { } while (0)
 #endif
 
+#ifdef CONFIG_UEFI
 #ifdef GPT_LOCAL_TEST
 int gpt_pgpt_init(uint8_t *image_start);
 #else
 int gpt_pgpt_init(void);
 #endif
-int gpt_get_part_by_name(uint8_t *part_name, uint32_t *offset,
-			 uint32_t *size, uint16_t *pad_size);
-int gpt_get_file_by_name(uint8_t *file_name, uint32_t *offset,
-			 uint32_t *size);
+int gpt_get_part_by_name(mtd_t mtd, const char *part_name,
+			 mtd_addr_t *offset, mtd_size_t *size,
+			 uint16_t *pad_size);
+int gpt_get_file_by_name(mtd_t mtd, const char *file_name,
+			 mtd_addr_t *offset, mtd_size_t *size);
+void gpt_mtd_copy(mtd_t mtd, void *buf, mtd_addr_t addr, mtd_size_t size);
+void gpt_mtd_dump(mtd_t mtd);
+#else
+#define gpt_pgpt_init()				do { } while (0)
+#define gpt_get_file_by_name(mtd, n, o, s)	-EINVAL
+#define gpt_get_part_by_name(mtd, n, o, s, p)	-EINVAL
+#define gpt_mtd_copy(mtd, b, a, s)		do { } while (0)
+#define gpt_mtd_dump(mtd)			do { } while (0)
+#endif
 
 #endif /* __UEFI_H_INCLUDE__ */

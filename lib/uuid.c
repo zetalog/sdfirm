@@ -64,6 +64,13 @@ const char *uuid_export(uuid_t u)
 	return s;
 }
 
+bool uuid_empty(uuid_t *u)
+{
+	uuid_t uuid_zero = { 0 };
+
+	return !!(memcmp(u, &uuid_zero, sizeof (uuid_t)) == 0);
+}
+
 #if 0
 bool guid_equal(const guid_t *a, const guid_t *b)
 {

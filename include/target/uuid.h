@@ -64,5 +64,6 @@ typedef struct {
 } guid_t;
 
 const char *uuid_export(uuid_t u);
+bool uuid_empty(uuid_t *u);
 
 #endif /* __UUID_TARGET_H_INCLUDE__ */

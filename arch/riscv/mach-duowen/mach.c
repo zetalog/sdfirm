@@ -119,11 +119,11 @@ void duowen_load_ssi(void)
 {
 #ifdef CONFIG_DUOWEN_ZSBL
 	void (*boot_entry)(void) = (void *)RAM_BASE;
-	unsigned char boot_file[] = "fsbl.bin";
+	char boot_file[] = "fsbl.bin";
 #endif
 #ifdef CONFIG_DUOWEN_FSBL
 	void (*boot_entry)(void) = (void *)(DDR_BASE + 0x80);
-	unsigned char boot_file[] = "bbl.bin";
+	char boot_file[] = "bbl.bin";
 #endif
 	uint32_t addr = 0;
 	uint32_t size = 500000;
@@ -136,7 +136,7 @@ void duowen_load_ssi(void)
 		printf("SSI: primary GPT failure.\n");
 		bh_panic();
 	}
-	ret = gpt_get_file_by_name(boot_file, &addr, &size);
+	ret = gpt_get_file_by_name(board_flash, boot_file, &addr, &size);
 	if (ret <= 0) {
 		printf("SSI: %s missing.\n", boot_file);
 		bh_panic();
@@ -163,11 +163,11 @@ void duowen_load_sd(void)
 {
 #ifdef CONFIG_DUOWEN_ZSBL
 	void (*boot_entry)(void) = (void *)RAM_BASE;
-	unsigned char boot_file[] = "fsbl.bin";
+	char boot_file[] = "fsbl.bin";
 #endif
 #ifdef CONFIG_DUOWEN_FSBL
 	void (*boot_entry)(void) = (void *)(DDR_BASE + 0x80);
-	unsigned char boot_file[] = "bbl.bin";
+	char boot_file[] = "bbl.bin";
 #endif
 	uint32_t addr = 0;
 	uint32_t size = 500000;
@@ -180,7 +180,7 @@ void duowen_load_sd(void)
 		printf("SD: primary GPT failure.\n");
 		bh_panic();
 	}
-	ret = gpt_get_file_by_name(boot_file, &addr, &size);
+	ret = gpt_get_file_by_name(board_sdcard, boot_file, &addr, &size);
 	if (ret <= 0) {
 		printf("SD: %s missing.\n", boot_file);
 		bh_panic();

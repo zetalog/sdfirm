@@ -43,6 +43,7 @@
 #define __SD_DUOWEN_H_INCLUDE__
 
 #include <target/clk.h>
+#include <target/mtd.h>
 
 #define SDHC_REG(n, offset)	(SD_BASE + (offset))
 
@@ -82,12 +83,14 @@ void duowen_mshc_init(void);
 
 #ifdef CONFIG_DUOWEN_SD
 void duowen_sd_init(void);
-void duowen_sd_copy(void *buf, uint32_t addr, uint32_t size);
 void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size);
+
+extern mtd_t board_sdcard;
 #else
 #define duowen_sd_init()			do { } while (0)
-#define duowen_sd_copy(buf, addr, size)		do { } while (0)
 #define duowen_sd_boot(boot, addr, size)	do { } while (0)
+
+#define board_sdcard				INVALID_MTD_ID
 #endif
 
 #endif /* __SD_DUOWEN_H_INCLUDE__ */

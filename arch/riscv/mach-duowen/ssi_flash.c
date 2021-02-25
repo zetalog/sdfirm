@@ -43,7 +43,6 @@
 #include <target/cmdline.h>
 #include <target/mem.h>
 #include <target/uefi.h>
-#include <target/efi.h>
 #include <target/irq.h>
 
 mtd_t board_flash = INVALID_MTD_ID;
@@ -74,20 +73,6 @@ void duowen_ssi_flash_init(void)
 	board_flash = spiflash_register_bank(0);
 	if (board_flash == INVALID_MTD_ID)
 		bh_panic();
-}
-
-void duowen_ssi_flash_copy(void *buf, uint32_t addr, uint32_t size)
-{
-	mtd_t smtd;
-	int i;
-	uint8_t *dst = buf;
-
-	smtd = mtd_save_device(board_flash);
-	mtd_open(OPEN_READ, addr, size);
-	for (i = 0; i < size; i++)
-		dst[i] = mtd_read_byte();
-	mtd_close();
-	mtd_restore_device(smtd);
 }
 
 static inline void duowen_ssi_flash_select(uint32_t chips)
@@ -149,65 +134,6 @@ void duowen_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 	unreachable();
 }
 
-static int do_flash_gpt(int argc, char *argv[])
-{
-	uint8_t gpt_buf[GPT_LBA_SIZE];
-	gpt_header hdr;
-	uint64_t partition_entries_lba_end;
-	gpt_partition_entry *gpt_entries;
-	uint64_t i;
-	uint32_t j;
-	uint32_t num_entries;
-	int k;
-	int i_part = 0;
-
-	duowen_ssi_flash_copy(&hdr,
-		GPT_HEADER_LBA * GPT_LBA_SIZE, GPT_HEADER_BYTES);
-	partition_entries_lba_end = (hdr.partition_entries_lba +
-		(hdr.num_partition_entries * hdr.partition_entry_size +
-		 GPT_LBA_SIZE - 1) / GPT_LBA_SIZE);
-	for (i = hdr.partition_entries_lba;
-	     i < partition_entries_lba_end; i++) {
-		duowen_ssi_flash_copy(gpt_buf, i * GPT_LBA_SIZE,
-				      GPT_LBA_SIZE);
-		gpt_entries = (gpt_partition_entry *)gpt_buf;
-		num_entries = GPT_LBA_SIZE / hdr.partition_entry_size;
-		for (j = 0; j < num_entries; j++) {
-			/* Stop at empty entry with UUID = 0 */
-			unsigned char name_str[GPT_PART_NAME_U16_LEN + 1] = {0};
-			uint32_t *uuid_u32_ptr = (uint32_t *)
-					&gpt_entries[j].partition_guid.u.uuid;
-			int uuid_u32_cnt = sizeof(guid_t) / sizeof(uint32_t);
-			for (k = 0; k < uuid_u32_cnt; k++) {
-				if (uuid_u32_ptr[k] != 0)
-					break;
-			}
-			if (k >= uuid_u32_cnt)
-				goto last_part_done;
-
-			/* Convert partition name to C string */
-			for (k = 0; k < GPT_PART_NAME_U16_LEN; k++) {
-				if (gpt_entries[j].name[k] == 0)
-					break;
-				name_str[k] = (unsigned char)gpt_entries[j].name[k];
-			}
-#if 0
-			/* Stop at partition with NULL name */
-			if (k <= 0)
-				goto last_part_done;
-#endif
-			i_part++;
-			printf("%d", i_part);
-			printf(" %lld %lld", gpt_entries[j].first_lba, gpt_entries[j].last_lba);
-			printf(" %s", uuid_export(gpt_entries[j].partition_guid.u.uuid));
-			printf(" %s", name_str);
-			printf("\n");
-		}
-	}
-last_part_done:
-	return 0;
-}
-
 static int do_flash_dump(int argc, char *argv[])
 {
 	uint8_t buffer[GPT_LBA_SIZE];
@@ -223,7 +149,7 @@ static int do_flash_dump(int argc, char *argv[])
 		       GPT_LBA_SIZE);
 		return -EINVAL;
 	}
-	duowen_ssi_flash_copy(buffer, addr, size);
+	gpt_mtd_copy(board_flash, buffer, addr, size);
 	hexdump(0, buffer, 1, size);
 	return 0;
 }
@@ -296,8 +222,10 @@ static int do_flash(int argc, char *argv[])
 
 	if (strcmp(argv[1], "dump") == 0)
 		return do_flash_dump(argc, argv);
-	if (strcmp(argv[1], "gpt") == 0)
-		return do_flash_gpt(argc, argv);
+	if (strcmp(argv[1], "gpt") == 0) {
+		gpt_mtd_dump(board_flash);
+		return 0;
+	}
 	if (strcmp(argv[1], "irq") == 0)
 		return do_flash_irq(argc, argv);
 	return -ENODEV;

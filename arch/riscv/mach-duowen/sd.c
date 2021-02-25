@@ -39,9 +39,7 @@
  * $Id: sd.c,v 1.1 2020-12-30 17:06:00 zhenglv Exp $
  */
 
-#include <target/mmc.h>
 #include <target/uefi.h>
-#include <target/efi.h>
 #include <target/cmdline.h>
 #include <target/mem.h>
 #include <target/mmcard.h>
@@ -100,20 +98,6 @@ void duowen_sd_init(void)
 		bh_panic();
 }
 
-void duowen_sd_copy(void *buf, uint32_t addr, uint32_t size)
-{
-	mtd_t smtd;
-	int i;
-	uint8_t *dst = buf;
-
-	smtd = mtd_save_device(board_sdcard);
-	mtd_open(OPEN_READ, addr, size);
-	for (i = 0; i < size; i++)
-		dst[i] = mtd_read_byte();
-	mtd_close();
-	mtd_restore_device(smtd);
-}
-
 static inline uint8_t duowen_sd_read(uint32_t addr)
 {
 	uint8_t byte = 0;
@@ -145,39 +129,6 @@ void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size)
 #endif
 	boot_func(boot, addr, size);
 	unreachable();
-}
-
-static int do_sd_gpt(int argc, char *argv[])
-{
-	uint8_t gpt_buf[GPT_LBA_SIZE];
-	gpt_header hdr;
-	uint64_t partition_entries_lba_end;
-	gpt_partition_entry *gpt_entries;
-	uint64_t i;
-	uint32_t j;
-	uint32_t num_entries;
-
-	duowen_sd_copy(gpt_buf, GPT_HEADER_LBA * GPT_LBA_SIZE,
-		       GPT_HEADER_BYTES);
-	memcpy(&hdr, gpt_buf, sizeof (gpt_header));
-	hexdump(0, &hdr, 1, sizeof (gpt_header));
-	partition_entries_lba_end = (hdr.partition_entries_lba +
-		(hdr.num_partition_entries * hdr.partition_entry_size +
-		 GPT_LBA_SIZE - 1) / GPT_LBA_SIZE);
-	for (i = hdr.partition_entries_lba;
-	     i < partition_entries_lba_end; i++) {
-		duowen_sd_copy(gpt_buf, i * GPT_LBA_SIZE, GPT_LBA_SIZE);
-		gpt_entries = (gpt_partition_entry *)gpt_buf;
-		num_entries = GPT_LBA_SIZE / hdr.partition_entry_size;
-		for (j = 0; j < num_entries; j++) {
-			printf("%s:\n",
-			       uuid_export(gpt_entries[j].partition_type_guid.u.uuid));
-			printf("%016llX - %016llX \n",
-			       gpt_entries[j].first_lba,
-			       gpt_entries[i].last_lba);
-		}
-	}
-	return 0;
 }
 
 static int do_sd_status(int argc, char *argv[])
@@ -240,8 +191,10 @@ static int do_sd(int argc, char *argv[])
 	if (argc < 2)
 		return -EINVAL;
 
-	if (strcmp(argv[1], "gpt") == 0)
-		return do_sd_gpt(argc, argv);
+	if (strcmp(argv[1], "gpt") == 0) {
+		gpt_mtd_dump(board_sdcard);
+		return 0;
+	}
 	if (strcmp(argv[1], "status") == 0)
 		return do_sd_status(argc, argv);
 	return -ENODEV;

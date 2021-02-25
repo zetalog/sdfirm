@@ -1,5 +1,4 @@
 #include <target/uefi.h>
-#include <asm/mach/spi.h>
 
 //#define GPT_UTIL_DEBUG
 
@@ -55,6 +54,7 @@ static void gpt_entry_print(struct gpt_entry *entry)
 
 #ifdef GPT_LOCAL_TEST
 static uint8_t *g_image_start = NULL;
+
 int gpt_pgpt_init(uint8_t *image_start)
 {
 	g_image_start = image_start;
@@ -67,11 +67,12 @@ int gpt_pgpt_init(void)
 }
 #endif
 
-static int gpt_entry_check_name(struct gpt_entry *entry, uint8_t *name_str)
+static int gpt_entry_check_name(struct gpt_entry *entry, const char *name_str)
 {
 	int i;
-	if (entry == NULL) return -1;
-	if (name_str == NULL) return -1;
+
+	if (entry == NULL || name_str == NULL)
+		return -1;
 	for (i = 0; i < GPT_PART_NAME_LEN; i++) {
 		if (name_str[i] == '\0' && (uint8_t)(entry->name[i]) == '\0')
 			return 0;
@@ -84,8 +85,9 @@ static int gpt_entry_check_name(struct gpt_entry *entry, uint8_t *name_str)
 /*
  * Return Partition Number (1...GPT_PGPT_PART_CNT) if found.
  */
-int gpt_get_part_by_name(uint8_t *part_name, uint32_t *offset,
-			 uint32_t *size, uint16_t *pad_size)
+int gpt_get_part_by_name(mtd_t mtd, const char *part_name,
+			 mtd_addr_t *offset, mtd_size_t *size,
+			 uint16_t *pad_size)
 {
 	/* PGPT header is at the 2nd sector */
 	uint32_t flash_addr_header = GPT_SECTOR_SIZE;
@@ -100,18 +102,18 @@ int gpt_get_part_by_name(uint8_t *part_name, uint32_t *offset,
 #ifdef GPT_UTIL_DEBUG
 	printf("Debug: Enter %s\n", __func__);
 #endif
-	if (part_name == NULL) return -1;
-	if (offset == NULL) return -1;
-	if (size == NULL) return -1;
+	if (part_name == NULL || offset == NULL || size == NULL)
+		return -EINVAL;
 
 #ifdef GPT_LOCAL_TEST
 	/* Copy header and all entries in one time */
 	if (g_image_start == NULL)
-		return -1;
+		return -EINVAL;
 	memcpy(gpt_pgpt, g_image_start, sizeof(gpt_pgpt));
 #else
 	/* Copy header only */
-	uefi_hw_gpt_copy(gpt_pgpt + GPT_SECTOR_SIZE, flash_addr_header, copy_size_header);
+	gpt_mtd_copy(mtd, gpt_pgpt + GPT_SECTOR_SIZE,
+		     flash_addr_header, copy_size_header);
 #endif
 #ifdef GPT_UTIL_DEBUG
 	gpt_header_print((struct gpt_header *)(gpt_pgpt + GPT_SECTOR_SIZE));
@@ -124,44 +126,52 @@ int gpt_get_part_by_name(uint8_t *part_name, uint32_t *offset,
 		unsigned char *guid_bytes =
 			(unsigned char *)(&entry_ptr->partition_guid);
 #ifdef GPT_LOCAL_TEST
-		/* No need to copy, because all data is copied in gpt_pgpt_init() */
+		/* No need to copy, because all data is copied in
+		 * gpt_pgpt_init().
+		 */
 #else
 #ifdef GPT_UTIL_DEBUG
-		printf("Debug: Copy Partition Entry %d flash addr = 0x%x size = 0x%x\n", i, flash_addr, copy_size);
+		printf("Copying partion%d addr=0x%x size=0x%x..\n",
+		       i, flash_addr, copy_size);
 #endif
-		uefi_hw_gpt_copy(entry_ptr, flash_addr, copy_size);
+		gpt_mtd_copy(mtd, entry_ptr, flash_addr, copy_size);
 		flash_addr += copy_size;
 #endif
 #ifdef GPT_UTIL_DEBUG
-		printf("Debug: Checking partition %d\n", (i + 1));
+		printf("Checking partition%d...\n", (i + 1));
 		gpt_entry_print(entry_ptr);
 #endif
 		/* Stop searching at empty entry */
-		if (guid_words[0] == 0 && guid_words[1] == 0 && guid_words[2] == 0 && guid_words[3] == 0)
+		if (guid_words[0] == 0 && guid_words[1] == 0 &&
+		    guid_words[2] == 0 && guid_words[3] == 0)
 			break;
-		if (gpt_entry_check_name(entry_ptr, part_name) != 0) {
+		if (gpt_entry_check_name(entry_ptr, part_name) != 0)
 			continue;
-		}
-		*offset = (uint32_t)(entry_ptr->lba_start << GPT_SECTOR_SIZE_SHIFT);
-		*size = (uint32_t)((entry_ptr->lba_end + 1 - entry_ptr->lba_start) << GPT_SECTOR_SIZE_SHIFT);
+		*offset = (uint32_t)(entry_ptr->lba_start <<
+				     GPT_SECTOR_SIZE_SHIFT);
+		*size = (uint32_t)((entry_ptr->lba_end + 1 -
+				    entry_ptr->lba_start) <<
+				   GPT_SECTOR_SIZE_SHIFT);
 		*pad_size = guid_bytes[14];
 		*pad_size <<= 8;
 		*pad_size += guid_bytes[15];
 #ifdef GPT_UTIL_DEBUG
-		//for (int j = 0; j < sizeof(struct gpt_guid); j++) printf("%d-%02x ", j, guid_bytes[j]);
-		printf("Debug: Found partition %d name = %s offset = %d size = %d pad_size = %d\n", (i + 1), part_name, *offset, *size, *pad_size);
+		printf("Found partition%d: name=%s offset=%d size=%d pad_size=%d\n",
+		       i + 1, part_name, *offset, *size, *pad_size);
 		gpt_entry_print(entry_ptr);
 #endif
-		return (i + 1);
+		return i + 1;
 	}
 	return 0;
 }
 
-int gpt_get_file_by_name(uint8_t *file_name, uint32_t *offset, uint32_t *size)
+int gpt_get_file_by_name(mtd_t mtd, const char *file_name,
+			 mtd_addr_t *offset, mtd_size_t *size)
 {
 	int ret;
 	uint16_t pad_size;
-	ret = gpt_get_part_by_name(file_name, offset, size, &pad_size);
+
+	ret = gpt_get_part_by_name(mtd, file_name, offset, size, &pad_size);
 	*size -= pad_size;
 	return ret;
 }
@@ -184,39 +194,45 @@ int main(int argc, char **argv)
 	uint16_t pad_size;
 	int ret;
 
-	if (argc >= 2) {
+	if (argc >= 2)
 		image_file_name = argv[1];
-	}
 
-	printf("Open image file %s\n", image_file_name);
+	printf("Opening image file %s...\n", image_file_name);
 	image_file_fd = fopen(image_file_name, "r");
 	if (image_file_fd == NULL) {
-		printf("Error: Failed to open image file %s\n", image_file_name);
-		return -1;
+		printf("Error: Failed to open image%s.\n", image_file_name);
+		return -ENODEV;
 	}
 
 	f_size = 1;
 	f_nmemb = DATA_BUF_SIZE;
-	printf("Read image header data. size = %ld\n", (f_size * f_nmemb));
+	printf("Reading image header, size=%ld...\n", (f_size * f_nmemb));
 	f_ret = fread(data_buf, f_size, f_nmemb, image_file_fd);
 	if (f_ret != f_nmemb) {
-		printf("Error: Failed to read image header data. nmemb = %ld, ret = %ld\n", f_nmemb, f_ret);
+		printf("Error: Failed to read image header, nmemb=%ld.\n",
+		       f_nmemb);
 		goto err_exit;
 	}
 
-	printf("Initiate Primary GPT\n");
+	printf("Initializing primary GPT..\n");
 	ret = gpt_pgpt_init(data_buf);
 	if (ret != 0) {
-		printf("Error: Failed to initiate Primary GPT. ret = %d\n", ret);
+		printf("Error: Failed to initialize Primary GPT.\n");
 		goto err_exit;
 	}
 
-	gpt_get_part_by_name("not-exist", &part_offset, &part_size, &pad_size);
-	gpt_get_file_by_name("not-exist", &part_offset, &part_size);
-	gpt_get_part_by_name("fsbl.bin", &part_offset, &part_size, &pad_size);
-	gpt_get_file_by_name("fsbl.bin", &part_offset, &part_size);
-	gpt_get_part_by_name("config", &part_offset, &part_size, &pad_size);
-	gpt_get_file_by_name("config", &part_offset, &part_size);
+	gpt_get_part_by_name(0, "not-exist",
+			     &part_offset, &part_size, &pad_size);
+	gpt_get_file_by_name(0, "not-exist",
+			     &part_offset, &part_size);
+	gpt_get_part_by_name(0, "fsbl.bin",
+			     &part_offset, &part_size, &pad_size);
+	gpt_get_file_by_name(0, "fsbl.bin",
+			     &part_offset, &part_size);
+	gpt_get_part_by_name(0, "config",
+			     &part_offset, &part_size, &pad_size);
+	gpt_get_file_by_name(0, "config",
+			     &part_offset, &part_size);
 
 err_exit:
 	if (image_file_fd != NULL)
@@ -224,3 +240,73 @@ err_exit:
 	return 0;
 }
 #endif
+
+static void gpt_dump_partition(int id, gpt_partition_entry *entry)
+{
+	char name[GPT_PART_NAME_U16_LEN + 1] = { 0 };
+	int i;
+
+	/* Convert partition name to ASCII string */
+	for (i = 0; i < GPT_PART_NAME_U16_LEN; i++) {
+		if (entry->name[i] == 0)
+			break;
+		name[i] = (unsigned char)entry->name[i];
+	}
+
+	printf("%02d %s %s %lld %lld\n", id,
+	       uuid_export(entry->partition_guid.u.uuid), name,
+	       entry->first_lba, entry->last_lba);
+}
+
+void gpt_mtd_copy(mtd_t mtd, void *buf, mtd_addr_t addr, mtd_size_t size)
+{
+	mtd_t smtd;
+	int i;
+	uint8_t *dst = buf;
+
+	if (mtd == INVALID_MTD_ID)
+		return;
+
+	smtd = mtd_save_device(mtd);
+	mtd_open(OPEN_READ, addr, size);
+	for (i = 0; i < size; i++)
+		dst[i] = mtd_read_byte();
+	mtd_close();
+	mtd_restore_device(smtd);
+}
+
+void gpt_mtd_dump(mtd_t mtd)
+{
+	uint8_t gpt_buf[GPT_LBA_SIZE];
+	gpt_header hdr;
+	uint64_t partition_entries_lba_end;
+	gpt_partition_entry *gpt_entries;
+	uint64_t i;
+	uint32_t j;
+	uint32_t num_entries;
+	int part = 0;
+
+	if (mtd == INVALID_MTD_ID) {
+		printf("Invalid MTD device\n");
+		return;
+	}
+	gpt_mtd_copy(mtd, &hdr, GPT_HEADER_LBA * GPT_LBA_SIZE,
+		     GPT_HEADER_BYTES);
+	partition_entries_lba_end = (hdr.partition_entries_lba +
+		(hdr.num_partition_entries * hdr.partition_entry_size +
+		 GPT_LBA_SIZE - 1) / GPT_LBA_SIZE);
+	for (i = hdr.partition_entries_lba;
+	     i < partition_entries_lba_end; i++) {
+		gpt_mtd_copy(mtd, gpt_buf, i * GPT_LBA_SIZE, GPT_LBA_SIZE);
+		gpt_entries = (gpt_partition_entry *)gpt_buf;
+		num_entries = GPT_LBA_SIZE / hdr.partition_entry_size;
+		for (j = 0; j < num_entries; j++) {
+			/* Stop with empty UUID */
+			if (uuid_empty(&gpt_entries[j].partition_guid.u.uuid))
+				return;
+
+			part++;
+			gpt_dump_partition(part, &gpt_entries[j]);
+		}
+	}
+}

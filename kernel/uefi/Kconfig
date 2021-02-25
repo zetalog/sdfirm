@@ -12,6 +12,7 @@ if UEFI
 
 config UEFI_GPT
 	bool "UEFI GUID partition table (GPT) support"
+	select MTD
 
 endif
 

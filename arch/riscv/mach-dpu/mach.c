@@ -78,7 +78,7 @@ void board_boot(void)
 	if (flash_sel == IMC_FLASH_SSI) {
 		uint32_t addr = 0;
 		uint32_t size = 500000;
-		unsigned char boot_file[] = "fsbl.bin";
+		char boot_file[] = "fsbl.bin";
 		int ret;
 
 		boot_entry = (void *)RAM_BASE;
@@ -88,7 +88,8 @@ void board_boot(void)
 			printf("Error: Failed to initiate Primary GPT. ret = %d\n", ret);
 		}
 		printf("Getting boot file %s...\n", boot_file);
-		ret = gpt_get_file_by_name(boot_file, &addr, &size);
+		ret = gpt_get_file_by_name(board_flash, boot_file,
+					   &addr, &size);
 		if (ret <= 0) {
 			printf("Error: Failed to get boot file. ret = %d\n", ret);
 		}
