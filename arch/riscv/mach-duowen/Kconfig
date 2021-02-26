@@ -187,7 +187,7 @@ config DUOWEN_LOAD_SD
 	bool "Enable load from SD card"
 	depends DUOWEN_SD
 
-config DUOWEN_BOOT_STACK
+menuconfig DUOWEN_BOOT_STACK
 	bool "Enable boot from stack"
 	depends DUOWEN_ZSBL
 	help
@@ -199,6 +199,27 @@ config DUOWEN_BOOT_STACK
 	  the stack of the current bootloader, please do not enable this
 	  option.
 	  If unsure, say 'N'.
+
+if DUOWEN_BOOT_STACK
+
+menuconfig DUOWEN_BOOT_STACK_TEST
+	bool "Enable boot from stack test command"
+	depends EXPERIMENTAL && COMMAND
+
+if DUOWEN_BOOT_STACK_TEST
+
+config DUOWEN_BOOT_STACK_TEST_DUMP
+	bool "Dump destination boot function"
+
+config DUOWEN_BOOT_STACK_TEST_FUNC
+	bool "Test source boot function"
+
+config DUOWEN_BOOT_STACK_TEST_JUMP
+	bool "Jump boot entry"
+
+endif
+
+endif
 
 config DUOWEN_BOOT_OFFSET
 	hex "SRAM offset for FSBL"
@@ -543,7 +564,7 @@ menuconfig DUOWEN_SD
 	select STRING_UUID
 	select GPIO
 
-if MSHC
+if DUOWEN_SD
 
 endif
 

@@ -489,6 +489,7 @@ static mmc_csd_t sd_decode_csd(mmc_r2_t raw_csd)
 #endif
 	mmc_slot_ctrl.capacity_len = _BV(csd.read_bl_len);
 	mmc_slot_ctrl.capacity_cnt = csd.capacity;
+	mmc_slot_ctrl.high_capacity = !!(mmc_slot_ctrl.card_ocr & SD_OCR_CCS);
 	return csd;
 }
 
@@ -975,7 +976,7 @@ static uint32_t sd_block_address(void)
 {
 	uint32_t address;
 
-	if (mmc_slot_ctrl.card_ocr & SD_OCR_CCS)
+	if (mmc_slot_ctrl.high_capacity)
 		address = mmc_slot_ctrl.address / mmc_slot_ctrl.capacity_len;
 	else
 		address = mmc_slot_ctrl.address;

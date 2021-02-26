@@ -650,6 +650,7 @@ struct mmc_slot {
 	/* Capacity */
 	uint16_t capacity_len;
 	uint64_t capacity_cnt;
+	bool high_capacity;
 	MMC_PHY_SLOT
 	MMC_SPI_SLOT
 };

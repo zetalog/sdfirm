@@ -44,6 +44,7 @@
 #include <target/mem.h>
 #include <target/uefi.h>
 #include <target/irq.h>
+#include <asm/mach/boot.h>
 
 mtd_t board_flash = INVALID_MTD_ID;
 
@@ -68,7 +69,7 @@ void spi_hw_ctrl_init(void)
 			8, 24, 0);
 }
 
-void duowen_ssi_flash_init(void)
+void duowen_ssi_init(void)
 {
 	board_flash = spiflash_register_bank(0);
 	if (board_flash == INVALID_MTD_ID)
@@ -76,28 +77,26 @@ void duowen_ssi_flash_init(void)
 }
 
 #ifdef CONFIG_DUOWEN_BOOT_STACK
-typedef void (*duowen_boot_cb)(void *, uint32_t, uint32_t);
-
-static inline void __duowen_ssi_flash_select(uint32_t chips)
+static __always_inline void __duowen_ssi_flash_select(uint32_t chips)
 {
 	__raw_clearl(SSI_EN, SSI_SSIENR(SSI_ID));
 	__raw_writel(chips, SSI_SER(SSI_ID));
 	__raw_setl(SSI_EN, SSI_SSIENR(SSI_ID));
 }
 
-static inline void __duowen_ssi_flash_writeb(uint8_t byte)
+static __always_inline void __duowen_ssi_flash_writeb(uint8_t byte)
 {
 	while (!(__raw_readl(SSI_RISR(SSI_ID)) & SSI_TXEI));
 	__raw_writel(byte, SSI_DR(SSI_ID, 0));
 }
 
-static inline uint8_t __duowen_ssi_flash_readb(void)
+static __always_inline uint8_t __duowen_ssi_flash_readb(void)
 {
         while (!(__raw_readl(SSI_RISR(SSI_ID)) & SSI_RXFI));
         return __raw_readl(SSI_DR(SSI_ID, 0));
 }
 
-static inline uint8_t __duowen_ssi_flash_read(uint32_t addr)
+static __always_inline uint8_t __duowen_ssi_flash_read(uint32_t addr)
 {
 	uint8_t byte;
 
@@ -111,29 +110,35 @@ static inline uint8_t __duowen_ssi_flash_read(uint32_t addr)
 	return byte;
 }
 
-void __duowen_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
+__align(4)
+void __duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size)
 {
 	int i;
 	uint8_t *dst = boot;
 	void (*boot_entry)(void) = boot;
 
-	for (i = 0; i < size; i++, addr++)
+#define is_last(index, length)		(((index) + 1) == length)
+
+	for (i = 0; i < size; i++, addr++) {
 		dst[i] = __duowen_ssi_flash_read(addr);
+		__boot_dump8(dst[i], is_last(i, size));
+	}
 	boot_entry();
 }
 
-void duowen_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
+void duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size)
 {
-	duowen_boot_cb boot_func;
-	__align(32) uint8_t boot_from_stack[256];
+	boot_cb boot_func;
+	__align(32) uint8_t boot_from_stack[1024];
 
-	boot_func = (duowen_boot_cb)boot_from_stack;
-	memcpy(boot_from_stack, __duowen_ssi_flash_boot, 256);
+	__boot_copy(boot_from_stack, __duowen_ssi_boot,
+		    sizeof(boot_from_stack));
+	boot_func = DUOWEN_BOOT_STACK_ASSIGN_FUNC(__duowen_ssi_boot,
+						  boot_from_stack);
 	boot_func(boot, addr, size);
-	unreachable();
 }
 #else
-void duowen_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
+void duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size)
 {
 	void (*boot_entry)(void) = boot;
 
@@ -224,6 +229,8 @@ static int do_flash_irq(int argc, char *argv[])
 }
 #endif
 
+DUOWEN_BOOT_STACK_TEST_FUNC(do_flash_boot, duowen_ssi_boot);
+
 static int do_flash(int argc, char *argv[])
 {
 	if (argc < 2)
@@ -237,6 +244,7 @@ static int do_flash(int argc, char *argv[])
 	}
 	if (strcmp(argv[1], "irq") == 0)
 		return do_flash_irq(argc, argv);
+	DUOWEN_BOOT_STACK_TEST_EXEC(do_flash_boot);
 	return -ENODEV;
 }
 
@@ -249,4 +257,5 @@ DEFINE_COMMAND(flash, do_flash, "SSI flash commands",
 	"    - dump GPT partitions from SSI flash\n"
 	"irq\n"
 	"    - testing SSI IRQ\n"
+	DUOWEN_BOOT_STACK_TEST_HELP
 );

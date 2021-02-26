@@ -2,6 +2,7 @@
 #define __COMPILER_SDCC_H_INCLUDE__
 
 #define inline
+#define __always_inline			inline
 
 #ifndef __ASSEMBLY__
 typedef unsigned char * va_list;

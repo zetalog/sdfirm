@@ -13,26 +13,26 @@ void dpu_ssi_flash_init(void)
 	board_flash = spiflash_register_bank(0);
 }
 
-static inline void dpu_ssi_flash_select(uint32_t chips)
+static __always_inline void dpu_ssi_flash_select(uint32_t chips)
 {
 	__raw_clearl(SSI_EN, SSI_SSIENR(0));
 	__raw_writel(chips, SSI_SER(0));
 	__raw_setl(SSI_EN, SSI_SSIENR(0));
 }
 
-static inline void dpu_ssi_flash_writeb(uint8_t byte)
+static __always_inline void dpu_ssi_flash_writeb(uint8_t byte)
 {
 	while (!(__raw_readl(SSI_RISR(0)) & SSI_TXEI));
 	__raw_writel(byte, SSI_DR(0, 0));
 }
 
-static inline uint8_t dpu_ssi_flash_readb(void)
+static __always_inline uint8_t dpu_ssi_flash_readb(void)
 {
         while (!(__raw_readl(SSI_RISR(0)) & SSI_RXFI));
         return __raw_readl(SSI_DR(0, 0));
 }
 
-static inline uint8_t dpu_ssi_flash_read(uint32_t addr)
+static __always_inline uint8_t dpu_ssi_flash_read(uint32_t addr)
 {
 	uint8_t byte;
 
@@ -46,6 +46,7 @@ static inline uint8_t dpu_ssi_flash_read(uint32_t addr)
 	return byte;
 }
 
+__align(4)
 void __dpu_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 {
 	int i;
@@ -64,7 +65,8 @@ void dpu_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 	__align(32) uint8_t boot_from_stack[256];
 
 	boot_func = (dpu_boot_cb)boot_from_stack;
-	memcpy(boot_from_stack, __dpu_ssi_flash_boot, 256);
+	memcpy(boot_from_stack, __dpu_ssi_flash_boot,
+	       sizeof (boot_from_stack));
 #else
 	boot_func = __dpu_ssi_flash_boot;
 #endif

@@ -158,7 +158,7 @@ void duowen_load_ssi(void)
 #ifdef CONFIG_DUOWEN_FSBL
 	ddr_init();
 #endif
-	duowen_ssi_flash_boot(boot_entry, addr, size);
+	duowen_ssi_boot(boot_entry, addr, size);
 #if defined(CONFIG_DUOWEN_IMC) && defined(CONFIG_DUOWEN_FSBL)
 	duowen_clk_apc_init();
 #else
@@ -268,7 +268,7 @@ void board_late_init(void)
 	if (load_sel == IMC_BOOT_SD)
 		duowen_sd_init();
 	if (load_sel == IMC_BOOT_SSI)
-		duowen_ssi_flash_init();
+		duowen_ssi_init();
 
 	/* Coherence initialization */
 	duowen_imc_noc_init();
