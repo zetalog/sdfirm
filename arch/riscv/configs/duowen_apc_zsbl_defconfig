@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Feb 25 15:12:16 2021
+# Fri Feb 26 09:35:58 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -180,6 +180,7 @@ CONFIG_DUOWEN_APC_BOOT_HOOK=y
 CONFIG_DUOWEN_LOAD=y
 # CONFIG_DUOWEN_LOAD_SRAM is not set
 # CONFIG_DUOWEN_BOOT_STACK is not set
+CONFIG_DUOWEN_BOOT_OFFSET=0x4000
 
 #
 # Simulation options

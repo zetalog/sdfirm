@@ -202,7 +202,7 @@ config DUOWEN_BOOT_STACK
 
 config DUOWEN_BOOT_OFFSET
 	hex "SRAM offset for FSBL"
-	depends !DUWOEN_BOOT_STACK && DUOWEN_ZSBL
+	depends !DUOWEN_BOOT_STACK && DUOWEN_ZSBL
 	default 0x4000
 	help
 	  ZSBL loads FSBL to SRAM start addresses, while SRAM may still be
@@ -482,7 +482,6 @@ menuconfig DUOWEN_SSI_FLASH
 	select ARCH_HAS_SSI_SPI
 	select ARCH_HAS_SSI_SPI_1WIRE
 	select ARCH_HAS_SPIFLASH
-	select MEM if COMMAND
 	select STRING_UUID
 	select GPIO
 	select DUOWEN_SSI_FLASH_IRQ if DUOWEN_TB && SYS_IRQ

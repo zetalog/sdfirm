@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Feb 25 15:11:56 2021
+# Fri Feb 26 09:04:44 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -151,7 +151,6 @@ CONFIG_DUOWEN_FSBL=y
 CONFIG_DUOWEN_LOAD=y
 CONFIG_DUOWEN_LOAD_SSI_FLASH=y
 CONFIG_DUOWEN_LOAD_SD=y
-# CONFIG_DUOWEN_BOOT_STACK is not set
 
 #
 # Simulation options
@@ -267,9 +266,7 @@ CONFIG_LOAD_BASE=0xFF80000000
 # CONFIG_NO_ZERO_BSS is not set
 # CONFIG_NO_ZERO_GPR is not set
 # CONFIG_HEAP is not set
-CONFIG_MEM=y
-CONFIG_MEM_MAX_REGIONS=3
-# CONFIG_MEM_RESIZE is not set
+# CONFIG_MEM is not set
 # CONFIG_PAGE is not set
 CONFIG_ARCH_HAS_DMAC=y
 # CONFIG_DMA is not set
@@ -317,7 +314,7 @@ CONFIG_ARCH_HAS_SPI=y
 CONFIG_SPI=y
 CONFIG_SPI_MASTER=y
 # CONFIG_SPI_SLAVE is not set
-CONFIG_SPI_MAX_DEVICES=2
+CONFIG_SPI_MAX_DEVICES=1
 CONFIG_ARCH_HAS_I2C=y
 # CONFIG_I2C is not set
 # CONFIG_USB is not set

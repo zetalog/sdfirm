@@ -390,7 +390,6 @@ menuconfig DPU_SSI_FLASH
 	select ARCH_HAS_SSI_SPI
 	select ARCH_HAS_SSI_SPI_1WIRE
 	select ARCH_HAS_SPIFLASH
-	select MEM if COMMAND
 	select SPIFLASH_W25Q32
 	select STRING_UUID
 	help
