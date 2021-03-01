@@ -76,7 +76,9 @@ void duowen_ssi_init(void)
 		bh_panic();
 }
 
-#ifdef CONFIG_DUOWEN_BOOT_STACK
+#ifdef CONFIG_DUOWEN_BOOT_PROT
+typedef void (*boot_cb)(void *, uint32_t, uint32_t);
+
 static __always_inline void __duowen_ssi_flash_select(uint32_t chips)
 {
 	__raw_clearl(SSI_EN, SSI_SSIENR(SSI_ID));
@@ -129,12 +131,9 @@ void __duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size)
 void duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size)
 {
 	boot_cb boot_func;
-	__align(32) uint8_t boot_from_stack[1024];
+	DUOWEN_BOOT_PROT_FUNC_DEFINE(1024);
 
-	__boot_copy(boot_from_stack, __duowen_ssi_boot,
-		    sizeof(boot_from_stack));
-	boot_func = DUOWEN_BOOT_STACK_ASSIGN_FUNC(__duowen_ssi_boot,
-						  boot_from_stack);
+	DUOWEN_BOOT_PROT_FUNC_ASSIGN(boot_cb, __duowen_ssi_boot, boot_func);
 	boot_func(boot, addr, size);
 }
 #else
@@ -229,7 +228,7 @@ static int do_flash_irq(int argc, char *argv[])
 }
 #endif
 
-DUOWEN_BOOT_STACK_TEST_FUNC(do_flash_boot, duowen_ssi_boot);
+DUOWEN_BOOT_PROT_TEST_FUNC(do_flash_boot, duowen_ssi_boot);
 
 static int do_flash(int argc, char *argv[])
 {
@@ -244,7 +243,7 @@ static int do_flash(int argc, char *argv[])
 	}
 	if (strcmp(argv[1], "irq") == 0)
 		return do_flash_irq(argc, argv);
-	DUOWEN_BOOT_STACK_TEST_EXEC(do_flash_boot);
+	DUOWEN_BOOT_PROT_TEST_EXEC(do_flash_boot);
 	return -ENODEV;
 }
 
@@ -257,5 +256,5 @@ DEFINE_COMMAND(flash, do_flash, "SSI flash commands",
 	"    - dump GPT partitions from SSI flash\n"
 	"irq\n"
 	"    - testing SSI IRQ\n"
-	DUOWEN_BOOT_STACK_TEST_HELP
+	DUOWEN_BOOT_PROT_TEST_HELP
 );

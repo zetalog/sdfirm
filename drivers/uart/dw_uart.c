@@ -91,8 +91,9 @@ void dw_uart_con_init(uint32_t freq)
 	dw_uart_16750_disable(UART_CON_ID);
 	dw_uart_irda_disable(UART_CON_ID);
 
-	__raw_setl(LCR_DLAB, UART_LCR(UART_CON_ID));
-	dw_uart_wait_busy(UART_CON_ID);
+	do {
+		__raw_setl(LCR_DLAB, UART_LCR(UART_CON_ID));
+	} while (!dw_uart_is_busy(UART_CON_ID));
 	/* Configure baudrate */
 	dw_uart_convert_baudrate(freq, UART_CON_BAUDRATE,
 				 divisor, fraction);

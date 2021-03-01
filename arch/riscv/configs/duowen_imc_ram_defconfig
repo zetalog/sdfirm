@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Feb 26 09:06:54 2021
+# Mon Mar  1 16:48:48 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -141,6 +141,10 @@ CONFIG_DUOWEN_TB=y
 #
 # Bootloader/firmware options
 #
+CONFIG_DUOWEN_BOOT_PROT=y
+CONFIG_DUOWEN_BOOT_PROT_STRONG=y
+CONFIG_DUOWEN_BOOT_PROT_DEBUG=y
+CONFIG_DUOWEN_BOOT_PROT_TEST=y
 
 #
 # Simulation options

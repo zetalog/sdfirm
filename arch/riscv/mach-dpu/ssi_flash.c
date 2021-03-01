@@ -62,7 +62,7 @@ void dpu_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 {
 	dpu_boot_cb boot_func;
 #ifdef CONFIG_DPU_BOOT_STACK
-	__align(32) uint8_t boot_from_stack[256];
+	__align(4) uint8_t boot_from_stack[512];
 
 	boot_func = (dpu_boot_cb)boot_from_stack;
 	memcpy(boot_from_stack, __dpu_ssi_flash_boot,

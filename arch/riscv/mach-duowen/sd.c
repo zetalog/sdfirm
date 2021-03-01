@@ -99,7 +99,9 @@ void duowen_sd_init(void)
 		bh_panic();
 }
 
-#ifdef CONFIG_DUOWEN_BOOT_STACK
+#ifdef CONFIG_DUOWEN_BOOT_PROT
+typedef void (*boot_cb)(void *, bool, uint16_t, uint32_t, uint32_t);
+
 static __always_inline bool __sdhc_xfer_dat(uint8_t *block, uint16_t blk_len,
 					    uint32_t off, uint16_t len,
 					    bool last_block)
@@ -269,7 +271,7 @@ static __always_inline bool __sdhc_xfer_cmd(uint8_t cmd, uint32_t arg,
 				reg |= __raw_readb(
 					SDHC_RESPONSE8(0, (3-i)*4-1));
 			__sdhc_decode_reg(resp + len,
-					       size >= len ? 4 : 0, reg);
+					  size >= len ? 4 : 0, reg);
 			len += 4;
 		}
 	} else {
@@ -292,7 +294,8 @@ exit_xfer:
 }
 
 __align(4)
-void __sdhc_boot(void *boot, uint32_t addr, uint32_t size)
+void __sdhc_boot(void *boot, bool block_ccs, uint16_t block_len,
+		 uint32_t addr, uint32_t size)
 {
 	uint8_t *dst = boot;
 	uint32_t block_cnt, cnt;
@@ -300,14 +303,6 @@ void __sdhc_boot(void *boot, uint32_t addr, uint32_t size)
 	uint16_t length;
 	uint8_t cmd;
 	uint32_t total_size;
-	bool block_ccs = true;
-	uint16_t block_len;
-	__unused mmc_slot_t sslot;
-
-	sslot = mmc_slot_save(DUOWEN_SD_SLOT);
-	block_len = mmc_slot_ctrl.capacity_len;
-	block_ccs = mmc_slot_ctrl.high_capacity;
-	mmc_slot_restore(sslot);
 
 #define is_first_blk(cnt)		((cnt) == 0)
 #define is_last_blk(cnt, block_cnt)	(((cnt) + 1) == block_cnt)
@@ -317,9 +312,8 @@ void __sdhc_boot(void *boot, uint32_t addr, uint32_t size)
 	block_cnt = ALIGN_UP(total_size, block_len) / block_len;
 	cmd = block_cnt > 1 ?
 	      MMC_CMD_READ_MULTIPLE_BLOCK : MMC_CMD_READ_SINGLE_BLOCK;
-	if (!__sdhc_xfer_cmd(cmd,
-				  block_ccs ? address / block_len : address,
-				  block_cnt, block_len))
+	if (!__sdhc_xfer_cmd(cmd, block_ccs ? address / block_len : address,
+			     block_cnt, block_len))
 		BUG();
 	cnt = 0;
 	offset = addr - address;
@@ -331,7 +325,7 @@ void __sdhc_boot(void *boot, uint32_t addr, uint32_t size)
 		if (is_first_blk(cnt))
 			length -= offset;
 		if (!__sdhc_xfer_dat(dst, block_len, offset, length,
-					  is_last_blk(cnt, block_cnt)))
+				     is_last_blk(cnt, block_cnt)))
 			BUG();
 		cnt++;
 		offset = 0;
@@ -345,14 +339,20 @@ void __sdhc_boot(void *boot, uint32_t addr, uint32_t size)
 void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size)
 {
 	boot_cb boot_func;
-	__align(32) uint8_t boot_from_stack[1024];
+	bool block_ccs = true;
+	uint16_t block_len;
+	__unused mmc_slot_t sslot;
+	DUOWEN_BOOT_PROT_FUNC_DEFINE(2048);
 
-	__boot_copy(boot_from_stack, __sdhc_boot, sizeof(boot_from_stack));
-	boot_func = DUOWEN_BOOT_STACK_ASSIGN_FUNC(__sdhc_boot,
-						  boot_from_stack);
-	boot_func(boot, addr, size);
+	sslot = mmc_slot_save(DUOWEN_SD_SLOT);
+	block_len = mmc_slot_ctrl.capacity_len;
+	block_ccs = mmc_slot_ctrl.high_capacity;
+	mmc_slot_restore(sslot);
+
+	DUOWEN_BOOT_PROT_FUNC_ASSIGN(boot_cb, __sdhc_boot, boot_func);
+	boot_func(boot, block_ccs, block_len, addr, size);
 }
-#else /* CONFIG_DUOWEN_BOOT_STACK */
+#else
 void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size)
 {
 	void (*boot_entry)(void) = boot;
@@ -361,7 +361,7 @@ void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size)
 	boot_entry();
 	unreachable();
 }
-#endif /* CONFIG_DUOWEN_BOOT_STACK */
+#endif
 
 static int do_sd_status(int argc, char *argv[])
 {
@@ -418,7 +418,7 @@ static int do_sd_status(int argc, char *argv[])
 	return 0;
 }
 
-DUOWEN_BOOT_STACK_TEST_FUNC(do_sd_boot, duowen_sd_boot);
+DUOWEN_BOOT_PROT_TEST_FUNC(do_sd_boot, duowen_sd_boot);
 
 static int do_sd(int argc, char *argv[])
 {
@@ -431,7 +431,7 @@ static int do_sd(int argc, char *argv[])
 	}
 	if (strcmp(argv[1], "status") == 0)
 		return do_sd_status(argc, argv);
-	DUOWEN_BOOT_STACK_TEST_EXEC(do_sd_boot);
+	DUOWEN_BOOT_PROT_TEST_EXEC(do_sd_boot);
 	return -ENODEV;
 }
 
@@ -440,5 +440,5 @@ DEFINE_COMMAND(sd, do_sd, "SD card commands",
 	"    - print GPT entry information\n"
 	"status\n"
 	"    - print SD power status information\n"
-	DUOWEN_BOOT_STACK_TEST_HELP
+	DUOWEN_BOOT_PROT_TEST_HELP
 );

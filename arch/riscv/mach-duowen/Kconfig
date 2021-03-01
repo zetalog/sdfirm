@@ -88,6 +88,7 @@ config DUOWEN_ZSBL
 	select DUOWEN_APC_INIT if DUOWEN_APC
 	select DUOWEN_NOC if DUOWEN_APC
 	select DUOWEN_PMA if DUOWEN_APC
+	select DUOWEN_BOOT_PROT if DUOWEN_IMC
 
 config DUOWEN_FSBL
 	bool "1-stage programmable bootloader (FSBL)"
@@ -159,6 +160,42 @@ config DUOWEN_BBL_SPI
 	bool "Build SPI flash resident BBL"
 	depends DUOWEN_BBL
 
+menuconfig DUOWEN_BOOT_PROT
+	bool "Enable boot .data protection"
+	depends DUOWEN_ZSBL || DUOWEN_TB
+	help
+	  By default, each bootloader's .data section should be in
+	  a different memory region. Enable this option only if the next
+	  bootloader resides on SRAM low end, and the region is conflict
+	  with the current bootloader. However, if the next bootloader
+	  occupies the high end of the SRAM region, which is conflict with
+	  the stack of the current bootloader, please do not enable this
+	  option.
+	  If unsure, say 'N'.
+
+if DUOWEN_BOOT_PROT
+
+config DUOWEN_BOOT_PROT_STRONG
+	bool "Enable boot .text protection"
+	help
+	  By default, each bootloader's .text section should be in
+	  a different memory region. Enable this option only if the next
+	  bootloader resides on SRAM low end, and the region is conflict
+	  with the current bootloader. However, if the next bootloader
+	  occupies the high end of the SRAM region, which is conflict with
+	  the stack of the current bootloader, please do not enable this
+	  option.
+	  If unsure, say 'N'.
+
+config DUOWEN_BOOT_PROT_DEBUG
+	bool "Enable boot protection debugging messages"
+
+config DUOWEN_BOOT_PROT_TEST
+	bool "Enable boot protection test command"
+	depends EXPERIMENTAL && COMMAND
+
+endif
+
 menuconfig DUOWEN_LOAD
 	bool "Enable bootloader"
 	depends DUOWEN_LOAD_ZSBL || DUOWEN_LOAD_FSBL
@@ -187,43 +224,10 @@ config DUOWEN_LOAD_SD
 	bool "Enable load from SD card"
 	depends DUOWEN_SD
 
-menuconfig DUOWEN_BOOT_STACK
-	bool "Enable boot from stack"
-	depends DUOWEN_ZSBL
-	help
-	  By default, each bootloader's .text section should be in
-	  a different memory region. Enable this option only if the next
-	  bootloader resides on SRAM low end, and the region is conflict
-	  with the current bootloader. However, if the next bootloader
-	  occupies the high end of the SRAM region, which is conflict with
-	  the stack of the current bootloader, please do not enable this
-	  option.
-	  If unsure, say 'N'.
-
-if DUOWEN_BOOT_STACK
-
-menuconfig DUOWEN_BOOT_STACK_TEST
-	bool "Enable boot from stack test command"
-	depends EXPERIMENTAL && COMMAND
-
-if DUOWEN_BOOT_STACK_TEST
-
-config DUOWEN_BOOT_STACK_TEST_DUMP
-	bool "Dump destination boot function"
-
-config DUOWEN_BOOT_STACK_TEST_FUNC
-	bool "Test source boot function"
-
-config DUOWEN_BOOT_STACK_TEST_JUMP
-	bool "Jump boot entry"
-
-endif
-
-endif
-
 config DUOWEN_BOOT_OFFSET
 	hex "SRAM offset for FSBL"
-	depends !DUOWEN_BOOT_STACK && DUOWEN_ZSBL
+	depends !DUOWEN_BOOT_PROT
+	depends DUOWEN_IMC && DUOWEN_ZSBL
 	default 0x4000
 	help
 	  ZSBL loads FSBL to SRAM start addresses, while SRAM may still be
