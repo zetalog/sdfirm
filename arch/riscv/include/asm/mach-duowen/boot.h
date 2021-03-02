@@ -39,14 +39,14 @@ static __always_inline void __boot_dbg(uint8_t byte)
 
 static __always_inline void __boot_dump8(uint8_t byte, bool last)
 {
-	if (LOHALF(byte) > 9)
-		__boot_dbg('a' + LOHALF(byte) - 10);
-	else
-		__boot_dbg('0' + LOHALF(byte));
 	if (HIHALF(byte) > 9)
 		__boot_dbg('a' + HIHALF(byte) - 10);
 	else
 		__boot_dbg('0' + HIHALF(byte));
+	if (LOHALF(byte) > 9)
+		__boot_dbg('a' + LOHALF(byte) - 10);
+	else
+		__boot_dbg('0' + LOHALF(byte));
 	if (last)
 		__boot_dbg('\n');
 	else
@@ -82,6 +82,7 @@ static int func(int argc, char *argv[])			\
 	if (argc > 3)					\
 		size = strtoul(argv[3], NULL, 0);	\
 	boot((void *)SFAB_RAM_BASE, addr, size);	\
+	hexdump(addr, (void *)SFAB_RAM_BASE, 1, size);	\
 	return 0;					\
 }
 #define DUOWEN_BOOT_PROT_TEST_EXEC(func)		\

@@ -116,7 +116,7 @@ void board_finish(int code)
 #endif
 
 #ifdef CONFIG_DUOWEN_LOAD
-#if defined(CONFIG_DUOWEN_ZSBL) && !defined(CONFIG_DUOWEN_BOOT_STACK)
+#if defined(CONFIG_DUOWEN_ZSBL) && !defined(CONFIG_DUOWEN_BOOT_PROT)
 #ifdef CONFIG_DUOWEN_BOOT_OFFSET
 #define BOOT_OFFSET		CONFIG_DUOWEN_BOOT_OFFSET
 #else

@@ -103,14 +103,14 @@ void duowen_sd_init(void)
 typedef void (*boot_cb)(void *, bool, uint16_t, uint32_t, uint32_t);
 
 static __always_inline bool __sdhc_xfer_dat(uint8_t *block, uint16_t blk_len,
-					    uint32_t off, uint16_t len,
+					    uint16_t off, uint16_t len,
 					    bool last_block)
 {
 	uint32_t dat;
 	uint32_t *dwdat = (uint32_t *)block;
-	uint32_t dwoff = off / 4;
-	uint32_t dwlen = blk_len / 4, dwlength = len / 4;
-	uint32_t dwoffset = 0;
+	uint16_t dwoff = off / 4;
+	uint16_t dwlen = blk_len / 4, dwlength = len / 4;
+	uint16_t dwoffset = 0;
 	uint32_t irqs;
 	bool result = true;
 
@@ -128,19 +128,19 @@ static __always_inline bool __sdhc_xfer_dat(uint8_t *block, uint16_t blk_len,
 			sdhc_clear_irq(0, SDHC_BUFFER_READ_READY);
 			break;
 		}
-	} while (0);
+	} while (1);
 
 	while (dwlen) {
 		dat = __raw_readl(SDHC_BUFFER_DATA_PORT(0));
 		if (dwoffset == dwoff) {
 			if (dwlength) {
 				*dwdat = dat;
+				dwdat++;
 				dwlength--;
 				__boot_dump32(dat, !dwlength);
 			}
 		} else
 			dwoffset++;
-		dwdat++;
 		dwlen--;
 	}
 
@@ -259,7 +259,7 @@ static __always_inline bool __sdhc_xfer_cmd(uint8_t cmd, uint32_t arg,
 		}
 		if (!mask)
 			break;
-	} while (0);
+	} while (1);
 
 	if (rsp & MMC_RSP_136) {
 		/* CRC is stripped so we need to do some shifting. */
@@ -299,8 +299,8 @@ void __sdhc_boot(void *boot, bool block_ccs, uint16_t block_len,
 {
 	uint8_t *dst = boot;
 	uint32_t block_cnt, cnt;
-	uint32_t address, offset;
-	uint16_t length;
+	uint32_t address;
+	uint16_t offset, length;
 	uint8_t cmd;
 	uint32_t total_size;
 
@@ -318,9 +318,10 @@ void __sdhc_boot(void *boot, bool block_ccs, uint16_t block_len,
 	cnt = 0;
 	offset = addr - address;
 	do {
+		length = 0;
 		if (is_last_blk(cnt, block_cnt))
 			length = total_size & (block_len - 1);
-		else
+		if (!length)
 			length = block_len;
 		if (is_first_blk(cnt))
 			length -= offset;
@@ -328,6 +329,7 @@ void __sdhc_boot(void *boot, bool block_ccs, uint16_t block_len,
 				     is_last_blk(cnt, block_cnt)))
 			BUG();
 		cnt++;
+		dst += length;
 		offset = 0;
 	} while (cnt < block_cnt);
 	cmd = MMC_CMD_STOP_TRANSMISSION;
@@ -350,7 +352,7 @@ void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size)
 	mmc_slot_restore(sslot);
 
 	DUOWEN_BOOT_PROT_FUNC_ASSIGN(boot_cb, __sdhc_boot, boot_func);
-	boot_func(boot, block_ccs, block_len, addr, size);
+	boot_func(boot, block_ccs, block_len, addr, ALIGN_UP(size, 4));
 }
 #else
 void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size)
