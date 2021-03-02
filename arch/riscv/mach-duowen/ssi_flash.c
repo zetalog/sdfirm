@@ -117,7 +117,6 @@ void __duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size)
 {
 	int i;
 	uint8_t *dst = boot;
-	void (*boot_entry)(void) = boot;
 
 #define is_last(index, length)		(((index) + 1) == length)
 
@@ -125,7 +124,7 @@ void __duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size)
 		dst[i] = __duowen_ssi_flash_read(addr);
 		__boot_dump8(dst[i], is_last(i, size));
 	}
-	boot_entry();
+	__boot_jump(boot);
 }
 
 void duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size)

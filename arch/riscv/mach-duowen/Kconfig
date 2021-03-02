@@ -193,6 +193,8 @@ config DUOWEN_BOOT_PROT_DEBUG
 config DUOWEN_BOOT_PROT_TEST
 	bool "Enable boot protection test command"
 	depends EXPERIMENTAL && COMMAND
+	depends DUOWEN_TB
+	select DUOWEN_BOOT_PROT_DEBUG
 
 endif
 
