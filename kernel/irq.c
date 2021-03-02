@@ -2,7 +2,7 @@
 #include <target/panic.h>
 #include <target/percpu.h>
 
-#ifndef CONFIG_CC_ISR_VECTOR
+#if !defined(CONFIG_CC_ISR_VECTOR) && !defined(CONFIG_SYS_NOIRQ)
 #ifndef ARCH_HAVE_VIC
 #ifndef CONFIG_MAX_VECTORS
 #define MAX_VECTORS	0
@@ -13,9 +13,6 @@
 irq_handler irq_handlers[MAX_VECTORS];
 irq_t irq_nr_table[MAX_VECTORS];
 uint8_t irq_nr_regs = 0;
-#ifndef CONFIG_SMP
-cpu_mask_t smp_online_cpus = C(0);
-#endif
 
 extern void __bad_interrupt(irq_t irq);
 
@@ -58,7 +55,7 @@ void irq_smp_vectors_init(void)
 {
 	irqc_hw_smp_init();
 }
-#else
+#else /* ARCH_HAVE_VIC */
 void irq_vectors_init(void)
 {
 	vic_hw_vectors_init();
@@ -72,8 +69,17 @@ void irq_register_vector(irq_t nr, irq_handler h)
 void irq_smp_vectors_init(void)
 {
 }
-#endif
-#endif
+#endif /* ARCH_HAVE_VIC */
+#else /* !CONFIG_CC_ISR_VECTOR && !CONFIG_SYS_NOIRQ */
+boolean do_IRQ(irq_t nr)
+{
+	return false;
+}
+
+void irq_smp_vectors_init(void)
+{
+}
+#endif /* !CONFIG_CC_ISR_VECTOR && !CONFIG_SYS_NOIRQ */
 
 #ifdef CONFIG_SMP
 struct smp_poll {
@@ -90,6 +96,7 @@ DEFINE_PERCPU(struct smp_poll, smp_polls);
 #else
 DECLARE_BITMAP(irq_poll_regs, NR_BHS);
 boolean irq_is_polling;
+cpu_mask_t smp_online_cpus = C(0);
 #endif
 
 boolean irq_poll_bh(void)

@@ -77,7 +77,7 @@ typedef void (*irq_handler)(irq_t irq);
 void irq_init(void);
 void irq_smp_init(void);
 
-#ifndef CONFIG_CC_ISR_VECTOR
+#if !defined(CONFIG_CC_ISR_VECTOR) && !defined(CONFIG_SYS_NOIRQ)
 void irq_register_vector(irq_t nr, irq_handler isr);
 void irq_vectors_init(void);
 #else
