@@ -309,6 +309,8 @@ endif
 menuconfig DPU_UART
 	bool "DPU UART controller support"
 	select DW_UART
+	select ARCH_HAS_NS16550_FIFO_16
+	select ARCH_HAS_DW_UART_FIFO_MEM_INTERNAL
 
 if DPU_UART
 

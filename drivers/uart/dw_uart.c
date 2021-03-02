@@ -84,6 +84,7 @@ void dw_uart_con_init(uint32_t freq)
 {
 	uint16_t divisor;
 	uint8_t fraction;
+	bool latched = false;
 
 	/* Configure UART mode */
 	dw_uart_modem_disable(UART_CON_ID);
@@ -91,17 +92,20 @@ void dw_uart_con_init(uint32_t freq)
 	dw_uart_16750_disable(UART_CON_ID);
 	dw_uart_irda_disable(UART_CON_ID);
 
-	do {
+	while (!latched) {
 		__raw_setl(LCR_DLAB, UART_LCR(UART_CON_ID));
-	} while (!dw_uart_is_busy(UART_CON_ID));
+		latched = !!dw_uart_is_baud(UART_CON_ID);
+	}
 	/* Configure baudrate */
 	dw_uart_convert_baudrate(freq, UART_CON_BAUDRATE,
 				 divisor, fraction);
 	__raw_writel(LOBYTE(divisor), UART_DLL(UART_CON_ID));
 	__raw_writel(HIBYTE(divisor), UART_DLH(UART_CON_ID));
 	dw_uart_config_frac(UART_CON_ID, fraction);
-	dw_uart_wait_busy(UART_CON_ID);
-	__raw_clearl(LCR_DLAB, UART_LCR(UART_CON_ID));
+	while (latched) {
+		__raw_clearl(LCR_DLAB, UART_LCR(UART_CON_ID));
+		latched = !!dw_uart_is_baud(UART_CON_ID);
+	}
 	/* Configure parameters */
 	__raw_writel(dw_uart_convert_params(UART_DEF_PARAMS),
 		     UART_LCR(UART_CON_ID));

@@ -258,15 +258,14 @@
 #define dw_uart_modem_disable(n)		\
 	__raw_writel_mask(0, MCR_MODEM_MASK, UART_MCR(n))
 
+#define dw_uart_is_baud(n)		(__raw_readl(UART_LCR(n)) & LCR_DLAB)
 #ifdef CONFIG_DW_UART_16550_COMPATIBLE
-#define dw_uart_is_busy(n)		(__raw_readl(UART_LCR(n)) & LCR_DLAB)
+#define dw_uart_is_busy(n)		false
 #else
 /* UART Status Register - USR */
 #define USR_BUSY		_BV(0) /* UART busy */
 #define dw_uart_is_busy(n)		(__raw_readl(UART_USR(n)) & USR_BUSY)
 #endif
-
-#define dw_uart_wait_busy(n)		while (!dw_uart_is_busy(n))
 
 #define dw_uart_write_poll(n)		\
 	(!!(__raw_readl(UART_LSR(n)) & LSR_THRE))
@@ -275,8 +274,8 @@
 #define dw_uart_read_byte(n)		__raw_readl(UART_RBR(n))
 #define dw_uart_write_byte(n, byte)				\
 	do {							\
-		if (!dw_uart_is_busy(n))			\
-			__raw_writel((byte), UART_THR(n));	\
+		while (dw_uart_is_baud(n));			\
+		__raw_writel((byte), UART_THR(n));		\
 	} while (0)
 
 #define dw_uart_disable_all_irqs(n)	__raw_writel(0, UART_IER(n))

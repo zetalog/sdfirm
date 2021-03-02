@@ -219,8 +219,8 @@ void duowen_load_ddr(void)
 {
 	void (*boot_entry)(void) = (void *)(__DDR_BASE + 0x80);
 
-	printf("Booting %d/%d from DDR...\n",
-	       smp_processor_id(), MAX_CPU_NUM);
+	if (smp_processor_id() == 0)
+		printf("Booting %d cores from DDR...\n", MAX_CPU_NUM);
 	boot_entry();
 	unreachable();
 }

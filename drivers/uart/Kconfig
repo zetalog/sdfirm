@@ -118,6 +118,42 @@ config CON_DW_UART
 config DBG_DW_UART
 	bool
 
+config ARCH_HAS_DW_UART_FIFO_MEM_EXTERNAL
+	bool
+
+config ARCH_HAS_DW_UART_FIFO_MEM_USER
+	bool
+
+config ARCH_HAS_DW_UART_FIFO_MEM_INTERNAL
+	bool
+
+config ARCH_HAS_DW_UART_16550_COMPATIBLE
+	bool
+
+config ARCH_HAS_DW_UART_AFCE_MODE
+	bool
+
+config ARCH_HAS_DW_UART_SIR_MODE
+	bool
+
+config ARCH_HAS_DW_UART_FIFO_ACCESS
+	bool
+
+config ARCH_HAS_DW_UART_ADDITIONAL_FEATURES
+	bool
+
+config ARCH_HAS_DW_UART_FIFO_STAT
+	bool
+	select ARCH_HAS_DW_UART_ADDITIONAL_FEATURES
+
+config ARCH_HAS_DW_UART_SHADOW
+	bool
+	select ARCH_HAS_DW_UART_ADDITIONAL_FEATURES
+
+config ARCH_HAS_DW_UART_ADD_ENCODED_PARAMS
+	bool
+	select ARCH_HAS_DW_UART_ADDITIONAL_FEATURES
+
 menuconfig DW_UART
 	bool "Synopsys DesignWare APB UART support"
 	select CON_DW_UART if CONSOLE
@@ -133,30 +169,39 @@ choice
 
 config DW_UART_FIFO_NONE
 	bool "0"
+	depends ARCH_HAS_NS16550_FIFO_0
 
 config DW_UART_FIFO_16
 	bool "16"
+	depends ARCH_HAS_NS16550_FIFO_16
 
 config DW_UART_FIFO_32
 	bool "32"
+	depends ARCH_HAS_NS16550_FIFO_32
 
 config DW_UART_FIFO_64
 	bool "64"
+	depends ARCH_HAS_NS16550_FIFO_64
 
 config DW_UART_FIFO_128
 	bool "128"
+	depends ARCH_HAS_NS16550_FIFO_128
 
 config DW_UART_FIFO_256
 	bool "256"
+	depends ARCH_HAS_NS16550_FIFO_256
 
 config DW_UART_FIFO_512
 	bool "512"
+	depends ARCH_HAS_NS16550_FIFO_512
 
 config DW_UART_FIFO_1024
 	bool "1024"
+	depends ARCH_HAS_NS16550_FIFO_1024
 
 config DW_UART_FIFO_2048
 	bool "2048"
+	depends ARCH_HAS_NS16550_FIFO_2048
 
 endchoice
 
@@ -166,9 +211,15 @@ choice
 
 config DW_UART_FIFO_MEM_EXTERNAL
 	bool "External"
+	depends ARCH_HAS_DW_UART_FIFO_MEM_EXTERNAL
+
+config DW_UART_FIFO_MEM_USER
+	bool "External"
+	depends ARCH_HAS_DW_UART_FIFO_MEM_USER
 
 config DW_UART_FIFO_MEM_INTERNAL
 	bool "Internal"
+	depends ARCH_HAS_DW_UART_FIFO_MEM_INTERNAL
 	depends !DW_UART_FIFO_2048 && !DW_UART_FIFO_1024 && !DW_UART_FIFO_512
 
 endchoice
@@ -188,19 +239,23 @@ config DW_UART_DLF_SIZE
 
 config DW_UART_16550_COMPATIBLE
 	bool "Enable 16550-compatible mode"
+	depends ARCH_HAS_DW_UART_16550_COMPATIBLE
 	help
 	  Configure the peripheral to be fully 16550 compatible. This is
 	  achieved by not having the busy functionality implemented.
 
 config DW_UART_AFCE_MODE
 	bool "Enable 16750-compatible auto flow control mode"
+	depends ARCH_HAS_DW_UART_AFCE_MODE
 	depends !DW_UART_FIFO_NONE
 
 config DW_UART_SIR_MODE
 	bool "Enable IrDA 1.0 SIR infrared mode"
+	depends ARCH_HAS_DW_UART_SIR_MODE
 
 config DW_UART_FIFO_ACCESS
 	bool "Enable FIFO access test mode"
+	depends ARCH_HAS_DW_UART_FIFO_ACCESS
 
 config DW_UART_ADDITIONAL_FEATURES
 	bool "Enable additional registers"
