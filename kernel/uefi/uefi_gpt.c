@@ -52,20 +52,10 @@ static void gpt_entry_print(struct gpt_entry *entry)
 }
 #endif
 
-#ifdef GPT_LOCAL_TEST
-static uint8_t *g_image_start = NULL;
-
-int gpt_pgpt_init(uint8_t *image_start)
-{
-	g_image_start = image_start;
-	return 0;
-}
-#else
 int gpt_pgpt_init(void)
 {
 	return 0;
 }
-#endif
 
 static int gpt_entry_check_name(struct gpt_entry *entry, const char *name_str)
 {
@@ -92,9 +82,9 @@ int gpt_get_part_by_name(mtd_t mtd, const char *part_name,
 	/* PGPT header is at the 2nd sector */
 	uint32_t flash_addr_header = GPT_SECTOR_SIZE;
 	uint32_t copy_size_header = GPT_SECTOR_SIZE;
-	uint8_t gpt_pgpt[GPT_SECTOR_SIZE * GPT_PGPT_SECTOR_CNT] = {0};
-	struct gpt_entry *gpt_entries_start =
-			(struct gpt_entry *)(gpt_pgpt + GPT_SECTOR_SIZE * 2);
+	/* For the PGPT header (1 sector) or a GPT entry (1/4 sector) */
+	uint8_t sector_buffer[GPT_SECTOR_SIZE] = {0};
+	struct gpt_entry *entry_ptr = (struct gpt_entry *)sector_buffer;
 	uint32_t flash_addr = GPT_SECTOR_SIZE * GPT_PART_START_SECTOR;
 	uint32_t copy_size = sizeof(struct gpt_entry);
 	int i;
@@ -105,38 +95,23 @@ int gpt_get_part_by_name(mtd_t mtd, const char *part_name,
 	if (part_name == NULL || offset == NULL || size == NULL)
 		return -EINVAL;
 
-#ifdef GPT_LOCAL_TEST
-	/* Copy header and all entries in one time */
-	if (g_image_start == NULL)
-		return -EINVAL;
-	memcpy(gpt_pgpt, g_image_start, sizeof(gpt_pgpt));
-#else
-	/* Copy header only */
-	gpt_mtd_copy(mtd, gpt_pgpt + GPT_SECTOR_SIZE,
+	gpt_mtd_copy(mtd, sector_buffer,
 		     flash_addr_header, copy_size_header);
-#endif
 #ifdef GPT_UTIL_DEBUG
-	gpt_header_print((struct gpt_header *)(gpt_pgpt + GPT_SECTOR_SIZE));
+	gpt_header_print((struct gpt_header *)sector_buffer);
 #endif
 
 	for (i = 0; i < GPT_PGPT_PART_CNT; i++) {
-		struct gpt_entry *entry_ptr = gpt_entries_start + i;
 		uint32_t *guid_words =
 			(uint32_t *)(&entry_ptr->partition_guid);
 		unsigned char *guid_bytes =
 			(unsigned char *)(&entry_ptr->partition_guid);
-#ifdef GPT_LOCAL_TEST
-		/* No need to copy, because all data is copied in
-		 * gpt_pgpt_init().
-		 */
-#else
 #ifdef GPT_UTIL_DEBUG
 		printf("Copying partion%d addr=0x%x size=0x%x..\n",
 		       i, flash_addr, copy_size);
 #endif
 		gpt_mtd_copy(mtd, entry_ptr, flash_addr, copy_size);
 		flash_addr += copy_size;
-#endif
 #ifdef GPT_UTIL_DEBUG
 		printf("Checking partition%d...\n", (i + 1));
 		gpt_entry_print(entry_ptr);
@@ -175,71 +150,6 @@ int gpt_get_file_by_name(mtd_t mtd, const char *file_name,
 	*size -= pad_size;
 	return ret;
 }
-
-#ifdef GPT_LOCAL_TEST
-#include <stdio.h>
-
-#define DATA_BUF_SIZE (GPT_SECTOR_SIZE * GPT_PGPT_SECTOR_CNT)
-
-static char image_file_default[] ="gpt.img";
-
-int main(int argc, char **argv)
-{
-	char *image_file_name = image_file_default;
-	FILE *image_file_fd = NULL;
-	char data_buf[DATA_BUF_SIZE] = {0};
-	size_t f_ret, f_size, f_nmemb;
-	uint32_t part_offset;
-	uint32_t part_size;
-	uint16_t pad_size;
-	int ret;
-
-	if (argc >= 2)
-		image_file_name = argv[1];
-
-	printf("Opening image file %s...\n", image_file_name);
-	image_file_fd = fopen(image_file_name, "r");
-	if (image_file_fd == NULL) {
-		printf("Error: Failed to open image%s.\n", image_file_name);
-		return -ENODEV;
-	}
-
-	f_size = 1;
-	f_nmemb = DATA_BUF_SIZE;
-	printf("Reading image header, size=%ld...\n", (f_size * f_nmemb));
-	f_ret = fread(data_buf, f_size, f_nmemb, image_file_fd);
-	if (f_ret != f_nmemb) {
-		printf("Error: Failed to read image header, nmemb=%ld.\n",
-		       f_nmemb);
-		goto err_exit;
-	}
-
-	printf("Initializing primary GPT..\n");
-	ret = gpt_pgpt_init(data_buf);
-	if (ret != 0) {
-		printf("Error: Failed to initialize Primary GPT.\n");
-		goto err_exit;
-	}
-
-	gpt_get_part_by_name(0, "not-exist",
-			     &part_offset, &part_size, &pad_size);
-	gpt_get_file_by_name(0, "not-exist",
-			     &part_offset, &part_size);
-	gpt_get_part_by_name(0, "fsbl.bin",
-			     &part_offset, &part_size, &pad_size);
-	gpt_get_file_by_name(0, "fsbl.bin",
-			     &part_offset, &part_size);
-	gpt_get_part_by_name(0, "config",
-			     &part_offset, &part_size, &pad_size);
-	gpt_get_file_by_name(0, "config",
-			     &part_offset, &part_size);
-
-err_exit:
-	if (image_file_fd != NULL)
-		fclose(image_file_fd);
-	return 0;
-}
-#endif
 
 static void gpt_dump_partition(int id, gpt_partition_entry *entry)
 {
