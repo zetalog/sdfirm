@@ -1,8 +1,8 @@
 #include <target/uefi.h>
 
-//#define GPT_UTIL_DEBUG
+//#define CONFIG_UEFI_GPT_DEBUG
 
-#ifdef GPT_UTIL_DEBUG
+#ifdef CONFIG_UEFI_GPT_DEBUG
 static void gpt_header_print(struct gpt_header *header)
 {
 	unsigned char *byte_ptr;
@@ -89,7 +89,7 @@ int gpt_get_part_by_name(mtd_t mtd, const char *part_name,
 	uint32_t copy_size = sizeof(struct gpt_entry);
 	int i;
 
-#ifdef GPT_UTIL_DEBUG
+#ifdef CONFIG_UEFI_GPT_DEBUG
 	printf("Debug: Enter %s\n", __func__);
 #endif
 	if (part_name == NULL || offset == NULL || size == NULL)
@@ -97,7 +97,7 @@ int gpt_get_part_by_name(mtd_t mtd, const char *part_name,
 
 	gpt_mtd_copy(mtd, sector_buffer,
 		     flash_addr_header, copy_size_header);
-#ifdef GPT_UTIL_DEBUG
+#ifdef CONFIG_UEFI_GPT_DEBUG
 	gpt_header_print((struct gpt_header *)sector_buffer);
 #endif
 
@@ -106,13 +106,13 @@ int gpt_get_part_by_name(mtd_t mtd, const char *part_name,
 			(uint32_t *)(&entry_ptr->partition_guid);
 		unsigned char *guid_bytes =
 			(unsigned char *)(&entry_ptr->partition_guid);
-#ifdef GPT_UTIL_DEBUG
+#ifdef CONFIG_UEFI_GPT_DEBUG
 		printf("Copying partion%d addr=0x%x size=0x%x..\n",
 		       i, flash_addr, copy_size);
 #endif
 		gpt_mtd_copy(mtd, entry_ptr, flash_addr, copy_size);
 		flash_addr += copy_size;
-#ifdef GPT_UTIL_DEBUG
+#ifdef CONFIG_UEFI_GPT_DEBUG
 		printf("Checking partition%d...\n", (i + 1));
 		gpt_entry_print(entry_ptr);
 #endif
@@ -130,7 +130,7 @@ int gpt_get_part_by_name(mtd_t mtd, const char *part_name,
 		*pad_size = guid_bytes[14];
 		*pad_size <<= 8;
 		*pad_size += guid_bytes[15];
-#ifdef GPT_UTIL_DEBUG
+#ifdef CONFIG_UEFI_GPT_DEBUG
 		printf("Found partition%d: name=%s offset=%d size=%d pad_size=%d\n",
 		       i + 1, part_name, *offset, *size, *pad_size);
 		gpt_entry_print(entry_ptr);
