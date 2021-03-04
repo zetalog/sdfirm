@@ -41,6 +41,48 @@
 
 #include <target/arch.h>
 
+#ifdef CONFIG_SMP
+#if defined(CONFIG_DUOWEN_APC_4)
+caddr_t duowen_apc_boot_addr[MAX_CPU_NUM] = {
+	SCSR_C0_APC0_BOOT_ADDR_LO,
+	SCSR_C1_APC0_BOOT_ADDR_LO,
+	SCSR_C2_APC0_BOOT_ADDR_LO,
+	SCSR_C3_APC0_BOOT_ADDR_LO,
+};
+#else
+caddr_t duowen_apc_boot_addr[MAX_CPU_NUM] = {
+	SCSR_C0_APC0_BOOT_ADDR_LO,
+	SCSR_C0_APC0_BOOT_ADDR_LO,
+	SCSR_C0_APC1_BOOT_ADDR_LO,
+	SCSR_C0_APC1_BOOT_ADDR_LO,
+	SCSR_C1_APC0_BOOT_ADDR_LO,
+	SCSR_C1_APC0_BOOT_ADDR_LO,
+	SCSR_C1_APC1_BOOT_ADDR_LO,
+	SCSR_C1_APC1_BOOT_ADDR_LO,
+	SCSR_C2_APC0_BOOT_ADDR_LO,
+	SCSR_C2_APC0_BOOT_ADDR_LO,
+	SCSR_C2_APC1_BOOT_ADDR_LO,
+	SCSR_C2_APC1_BOOT_ADDR_LO,
+	SCSR_C3_APC0_BOOT_ADDR_LO,
+	SCSR_C3_APC0_BOOT_ADDR_LO,
+	SCSR_C3_APC1_BOOT_ADDR_LO,
+	SCSR_C3_APC1_BOOT_ADDR_LO,
+};
+#endif
+#else
+caddr_t duowen_apc_boot_addr[MAX_CPU_NUM] = {
+	SCSR_C0_APC0_BOOT_ADDR_LO,
+};
+#endif
+
+void apc_set_boot_addr(caddr_t addr)
+{
+	cpu_t cpu;
+
+	for (cpu = 0; cpu < MAX_CPU_NUM; cpu++)
+		__apc_set_boot_addr(duowen_apc_boot_addr[cpu], addr);
+}
+
 static void __pma_cfg(int n, unsigned long attr)
 {
 	unsigned long cfgmask, pmacfg;

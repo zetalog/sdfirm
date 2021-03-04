@@ -977,12 +977,12 @@ clk_t duowen_apc_clocks[MAX_CPU_NUM] = {
 
 void duowen_clk_apc_init(void)
 {
-	int apc;
+	cpu_t cpu;
 
 	if (!(clk_hw_init & DUOWEN_CLK_APC_INIT)) {
 		clk_enable(cohfab_clk);
-		for (apc = 0; apc < MAX_CPU_NUM; apc++)
-			clk_enable(duowen_apc_clocks[apc]);
+		for (cpu = 0; cpu < MAX_CPU_NUM; cpu++)
+			clk_enable(duowen_apc_clocks[cpu]);
 		clk_hw_init |= DUOWEN_CLK_APC_INIT;
 	}
 }

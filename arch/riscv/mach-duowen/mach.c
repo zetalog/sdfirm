@@ -160,6 +160,7 @@ void duowen_load_ssi(void)
 #endif
 	duowen_ssi_boot(boot_entry, addr, size);
 #if defined(CONFIG_DUOWEN_IMC) && defined(CONFIG_DUOWEN_FSBL)
+	apc_set_boot_addr((caddr_t)boot_entry);
 	duowen_clk_apc_init();
 #else
 	boot_entry();
@@ -204,6 +205,7 @@ void duowen_load_sd(void)
 #endif
 	duowen_sd_boot(boot_entry, addr, size);
 #if defined(CONFIG_DUOWEN_IMC) && defined(CONFIG_DUOWEN_FSBL)
+	apc_set_boot_addr((caddr_t)boot_entry);
 	duowen_clk_apc_init();
 #else
 	boot_entry();
@@ -311,6 +313,8 @@ static int do_duowen_info(int argc, char *argv[])
 	else
 		printf("BOOT: %s\n", imc_sim_boot_from() ? "DDR" : "RAM");
 	printf("LOAD: %s\n", imc_load_from() ? "SSI0" : "SD");
+	printf("IMC : %016llx\n", imc_get_boot_addr());
+	printf("APC : %016llx\n", apc_get_boot_addr());
 	return 0;
 }
 

@@ -66,10 +66,10 @@
 
 #ifdef CONFIG_DUOWEN_SOCv2
 #define SCSR_BOOT_MODE			SCSR_REG(0x04)
-#define SCSR_BOOT_ADDR_LO		SCSR_REG(0x08)
-#define SCSR_BOOT_ADDR_HI		SCSR_REG(0x0C)
-#define SCSR_BOOT_ADDR_CFG_LO		SCSR_REG(0x10)
-#define SCSR_BOOT_ADDR_CFG_HI		SCSR_REG(0x14)
+#define SCSR_IMC_BOOT_ADDR_LO		SCSR_REG(0x08)
+#define SCSR_IMC_BOOT_ADDR_HI		SCSR_REG(0x0C)
+#define SCSR_IMC_BOOT_ADDR_CFG_LO	SCSR_REG(0x10)
+#define SCSR_IMC_BOOT_ADDR_CFG_HI	SCSR_REG(0x14)
 #define SCSR_CHIP_LINK_CFG		SCSR_REG(0xC4)
 #define SCSR_CLAMP_CFG			SCSR_REG(0xD0)
 #define SCSR_CHIP_CFG			SCSR_REG(0xF0)
@@ -80,8 +80,10 @@
 
 #define SCSR_BOOT_MODE			LCSR_REG(0x00)
 #define SCSR_SOCKET_ID			LCSR_REG(0x04)
-#define SCSR_BOOT_ADDR_LO		LCSR_REG(0x08)
-#define SCSR_BOOT_ADDR_HI		LCSR_REG(0x0C)
+#define SCSR_IMC_BOOT_ADDR_LO		LCSR_REG(0x08)
+#define SCSR_IMC_BOOT_ADDR_HI		LCSR_REG(0x0C)
+#define SCSR_IMC_BOOT_ADDR_CFG_LO	SCSR_IMC_BOOT_ADDR_LO
+#define SCSR_IMC_BOOT_ADDR_CFG_HI	SCSR_IMC_BOOT_ADDR_HI
 #define SCSR_C0_APC0_BOOT_ADDR_LO	LCSR_REG(0x10)
 #define SCSR_C0_APC0_BOOT_ADDR_HI	LCSR_REG(0x14)
 #define SCSR_C0_APC1_BOOT_ADDR_LO	LCSR_REG(0x18)
@@ -190,14 +192,14 @@
 #define IMC_SD_UHSI_SWVOLT_EN		_BV(0)
 
 #define imc_get_boot_addr()				\
-	MAKELLONG(__raw_readl(SCSR_BOOT_ADDR_LO),	\
-		  __raw_readl(SCSR_BOOT_ADDR_HI))
+	MAKELLONG(__raw_readl(SCSR_IMC_BOOT_ADDR_LO),	\
+		  __raw_readl(SCSR_IMC_BOOT_ADDR_HI))
 #define imc_set_boot_addr(addr)				\
 	do {						\
 		__raw_writel(LODWORD(addr),		\
-			     SCSR_BOOT_ADDR_CFG_LO);	\
+			     SCSR_IMC_BOOT_ADDR_CFG_LO);\
 		__raw_writel(HIDWORD(addr),		\
-			     SCSR_BOOT_ADDR_CFG_HI);	\
+			     SCSR_IMC_BOOT_ADDR_CFG_HI);\
 	} while (0)
 #define imc_get_hart_id()				\
 	MAKELLONG(__raw_readl(SCSR_HART_ID_LO),		\
@@ -230,6 +232,20 @@
 	} while (0)
 
 #ifndef __ASSEMBLY__
+#ifdef CONFIG_DUOWEN_SOCv3
+void apc_set_boot_addr(caddr_t addr);
+#define __apc_set_boot_addr(reg, addr)			\
+	do {						\
+		__raw_writel(LODWORD(addr), reg);	\
+		__raw_writel(HIDWORD(addr), reg + 4);	\
+	} while (0)
+#define apc_get_boot_addr()					\
+	MAKELLONG(__raw_readl(SCSR_C0_APC0_BOOT_ADDR_LO),	\
+		  __raw_readl(SCSR_C0_APC0_BOOT_ADDR_HI))
+#else
+#define apc_set_boot_addr(addr)		imc_set_boot_addr(addr)
+#define apc_get_boot_addr()		imc_get_boot_addr()
+#endif
 int imc_pma_set(int n, unsigned long attr,
 		phys_addr_t addr, unsigned long log2len);
 #endif

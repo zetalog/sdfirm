@@ -100,6 +100,7 @@ config DUOWEN_FSBL
 	select BFM if !DUOWEN_FSBL_SPI
 	select SYS_ENTR_M
 	select SYS_EXIT_M
+	select DUOWEN_SCSR if DUOWEN_IMC
 	select DUOWEN_DDR
 	select DUOWEN_SPI_FLASH
 	select DUOWEN_SSI_FLASH
