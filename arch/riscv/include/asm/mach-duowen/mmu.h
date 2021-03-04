@@ -56,7 +56,7 @@
 #define FIX_GPIO1		(FIX_HOLE + 12)
 #define FIX_GPIO2		(FIX_HOLE + 13)
 #define FIX_TLMM		(FIX_HOLE + 14)
-#define FIX_SCSR		(FIX_HOLD + 15)
+#define FIX_SCSR		(FIX_HOLE + 15)
 #define MMU_HW_MAX_FIXMAP	(FIX_SCSR + 1)
 
 void duowen_mmu_dump_maps(void);

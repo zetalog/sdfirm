@@ -89,7 +89,6 @@ config DUOWEN_ZSBL
 	select DUOWEN_NOC if DUOWEN_APC
 	select DUOWEN_PMA if DUOWEN_APC
 	select DUOWEN_BOOT_PROT if DUOWEN_IMC
-	select DUOWEN_SCSR
 
 config DUOWEN_FSBL
 	bool "1-stage programmable bootloader (FSBL)"
@@ -101,7 +100,6 @@ config DUOWEN_FSBL
 	select BFM if !DUOWEN_FSBL_SPI
 	select SYS_ENTR_M
 	select SYS_EXIT_M
-	select DUOWEN_SCSR if DUOWEN_IMC
 	select DUOWEN_DDR
 	select DUOWEN_SPI_FLASH
 	select DUOWEN_SSI_FLASH
@@ -157,7 +155,6 @@ config DUOWEN_APC_BOOT_HOOK
 config DUOWEN_FSBL_SPI
 	bool "Build SPI flash resident FSBL"
 	depends DUOWEN_FSBL
-	select DUOWEN_SCSR
 
 config DUOWEN_BBL_SPI
 	bool "Build SPI flash resident BBL"

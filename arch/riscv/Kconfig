@@ -71,6 +71,7 @@ config ARCH_DUOWEN
 	select CLINT if DUOWEN_APC
 	select PLIC if !SYS_NOIRQ
 	select CRCNTL if CLK
+	select DUOWEN_SCSR
 	select DUOWEN_GPIO if GPIO
 	select DUOWEN_UART if CONSOLE || DEBUG_PRINT
 	select DUOWEN_SSI_FLASH if SPI_MASTER

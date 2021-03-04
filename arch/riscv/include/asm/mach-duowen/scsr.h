@@ -52,7 +52,7 @@
 #else
 #define __SCSR_BASE			__DUOWEN_SCSR_BASE
 #endif
-#define SCSR_REG(offset)		(SCSR_BASE + (offset))
+#define SCSR_REG(offset)		(__SCSR_BASE + (offset))
 #define SCSR_HW_VERSION			SCSR_REG(0x00)
 #define SCSR_HART_ID_LO			SCSR_REG(0x18)
 #define SCSR_HART_ID_HI			SCSR_REG(0x1C)

@@ -346,6 +346,7 @@ void crcntl_trace(bool enabling, const char *name)
 #ifdef CONFIG_MMU
 void clk_hw_mmu_init(void)
 {
+	duowen_mmu_map_scsr();
 	duowen_mmu_map_clk();
 }
 #endif

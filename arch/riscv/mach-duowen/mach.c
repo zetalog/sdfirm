@@ -255,7 +255,6 @@ void board_init_clock(void)
 void board_early_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);
-	duowen_mmu_map_scsr();
 	board_init_timestamp();
 	crcntl_power_up();
 }
