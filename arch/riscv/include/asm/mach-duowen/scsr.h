@@ -46,6 +46,12 @@
 
 #include <target/amba.h>
 
+#define __DUOWEN_SCSR_BASE		SCSR_BASE
+#ifdef CONFIG_MMU
+#define __SCSR_BASE			duowen_scsr_reg_base
+#else
+#define __SCSR_BASE			__DUOWEN_SCSR_BASE
+#endif
 #define SCSR_REG(offset)		(SCSR_BASE + (offset))
 #define SCSR_HW_VERSION			SCSR_REG(0x00)
 #define SCSR_HART_ID_LO			SCSR_REG(0x18)

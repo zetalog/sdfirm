@@ -56,7 +56,8 @@
 #define FIX_GPIO1		(FIX_HOLE + 12)
 #define FIX_GPIO2		(FIX_HOLE + 13)
 #define FIX_TLMM		(FIX_HOLE + 14)
-#define MMU_HW_MAX_FIXMAP	(FIX_TLMM + 1)
+#define FIX_SCSR		(FIX_HOLD + 15)
+#define MMU_HW_MAX_FIXMAP	(FIX_SCSR + 1)
 
 void duowen_mmu_dump_maps(void);
 #ifdef CONFIG_DUOWEN_UART
@@ -82,6 +83,14 @@ void duowen_mmu_dump_gpio(void);
 #else
 #define duowen_mmu_map_gpio()	do { } while (0)
 #define duowen_mmu_dump_gpio()	do { } while (0)
+#endif
+#ifdef CONFIG_DUOWEN_SCSR
+extern caddr_t duowen_scsr_reg_base;
+void duowen_mmu_map_scsr(void);
+void duowen_mmu_dump_scsr(void);
+#else
+#define duowen_mmu_map_scsr()	do { } while (0)
+#define duowen_mmu_dump_scsr()	do { } while (0)
 #endif
 
 #endif /* __MMU_DUOWEN_H_INCLUDE__ */

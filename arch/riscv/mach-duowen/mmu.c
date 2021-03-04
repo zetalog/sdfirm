@@ -165,8 +165,28 @@ void duowen_mmu_dump_gpio(void)
 }
 #endif
 
+#ifdef CONFIG_DUOWEN_SCSR
+caddr_t duowen_scsr_reg_base = __DUOWEN_SCSR_BASE;
+
+void duowen_mmu_map_scsr(void)
+{
+	if (duowen_scsr_reg_base == __DUOWEN_SCSR_BASE) {
+		set_fixmap_io(FIX_SCSR, __DUOWEN_SCSR_BASE & PAGE_MASK);
+		duowen_scsr_reg_base = fix_to_virt(FIX_SCSR);
+	}
+}
+
+void duowen_mmu_dump_scsr(void)
+{
+	if (duowen_scsr_reg_base != __DUOWEN_SCSR_BASE)
+		con_log("FIXMAP: %016llx -> %016llx: SCSR\n",
+			__DUOWEN_SCSR_BASE, fix_to_virt(FIX_SCSR));
+}
+#endif
+
 void duowen_mmu_dump_maps(void)
 {
+	duowen_mmu_dump_scsr();
 	duowen_mmu_dump_gpio();
 	duowen_mmu_dump_clk();
 	duowen_mmu_dump_uart();
