@@ -41,6 +41,7 @@
 
 #include <target/arch.h>
 
+#ifdef CONFIG_DUOWEN_SOCv3
 #ifdef CONFIG_SMP
 #if defined(CONFIG_DUOWEN_APC_4)
 caddr_t duowen_apc_boot_addr[MAX_CPU_NUM] = {
@@ -82,6 +83,7 @@ void apc_set_boot_addr(caddr_t addr)
 	for (cpu = 0; cpu < MAX_CPU_NUM; cpu++)
 		__apc_set_boot_addr(duowen_apc_boot_addr[cpu], addr);
 }
+#endif /* CONFIG_DUOWEN_SOCv3 */
 
 static void __pma_cfg(int n, unsigned long attr)
 {
