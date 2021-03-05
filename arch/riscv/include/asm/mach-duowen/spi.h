@@ -121,6 +121,8 @@ void spi_hw_ctrl_init(void);
 #ifdef CONFIG_DUOWEN_SSI_FLASH
 void duowen_ssi_init(void);
 void duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size);
+/* Test command */
+int do_flash(int argc, char *argv[]);
 
 extern mtd_t board_flash;
 #else

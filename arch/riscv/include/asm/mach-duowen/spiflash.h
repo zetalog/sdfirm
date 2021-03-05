@@ -49,7 +49,7 @@
 #ifdef CONFIG_DUOWEN_SSI_FLASH_FREQ
 #define SPIFLASH_HW_MAX_FREQ		(CONFIG_DUOWEN_SSI_FLASH_FREQ/1000)
 #else
-#define SPIFLASH_HW_MAX_FREQ		1000
+#define SPIFLASH_HW_MAX_FREQ		50000
 #endif
 
 #include <driver/spiflash_w25q32.h>

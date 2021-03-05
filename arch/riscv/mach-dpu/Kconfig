@@ -404,9 +404,7 @@ if DPU_SSI_FLASH
 config DPU_SSI_FLASH_FREQ
 	int "DPU SSI flash frequency"
 	range 100000 80000000
-	default 1000000 if !SIMULATION
-	default 8000000 if SIMULATION
-	depends EXPERIMENTAL
+	default 50000000
 	help
 	  The SPINOR flash uses the "EEPROM read" protocol that the CS
 	  should be kept active during the entire transaction. However,

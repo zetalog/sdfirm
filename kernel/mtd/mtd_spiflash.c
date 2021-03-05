@@ -1,5 +1,10 @@
 #include <target/spiflash.h>
 
+#ifdef CONFIG_SPIFLASH_APB_DELAY
+#define spiflash_apb_delay(count)	apb_delay(count)
+#else
+#define spiflash_apb_delay(count)	do { } while (0)
+#endif
 #ifdef CONFIG_SPIFLASH_MODE_0
 #define SPIFLASH_SPI_MODE		SPI_MODE(SPI_MODE_0)
 #endif
@@ -62,16 +67,23 @@ void spiflash_deselect(void)
 
 static void __spiflash_spi_exchange(uint8_t opcode, mtd_addr_t addr)
 {
+	spiflash_apb_delay(APB_DELAY);
 	spi_write_byte(opcode);
+	spiflash_apb_delay(APB_DELAY);
 	spi_write_byte((uint8_t)(addr >> 16));
+	spiflash_apb_delay(APB_DELAY);
 	spi_write_byte((uint8_t)(addr >> 8));
+	spiflash_apb_delay(APB_DELAY);
 	spi_write_byte((uint8_t)(addr >> 0));
 }
 
 static void spiflash_spi_exchange(uint8_t opcode, mtd_addr_t addr)
 {
-	spi_select_device(spiflash_privs[spiflash_bid].spi);
+	__unused uint8_t status;
+
 	__spiflash_spi_exchange(opcode, addr);
+	spi_select_device(spiflash_privs[spiflash_bid].spi);
+	status = spi_read_byte();
 	spi_deselect_device();
 }
 
@@ -173,9 +185,9 @@ static uint8_t spiflash_read(void)
 	uint8_t byte = 0;
 
 	if (spiflash_privs[spiflash_bid].length) {
-		spi_select_device(spiflash_privs[spiflash_bid].spi);
 		__spiflash_spi_exchange(SF_READ_DATA,
 			spiflash_privs[spiflash_bid].offset);
+		spi_select_device(spiflash_privs[spiflash_bid].spi);
 		byte = spi_read_byte();
 		spiflash_privs[spiflash_bid].offset++;
 		spiflash_privs[spiflash_bid].length--;
@@ -186,10 +198,11 @@ static uint8_t spiflash_read(void)
 
 static void spiflash_write(uint8_t byte)
 {
+
 	if (spiflash_privs[spiflash_bid].length) {
-		spi_select_device(spiflash_privs[spiflash_bid].spi);
 		__spiflash_spi_exchange(SF_PAGE_PROGRAM,
 			spiflash_privs[spiflash_bid].offset);
+		spi_select_device(spiflash_privs[spiflash_bid].spi);
 		spi_write_byte(byte);
 		spiflash_privs[spiflash_bid].offset++;
 		spiflash_privs[spiflash_bid].length--;

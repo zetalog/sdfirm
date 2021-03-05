@@ -229,7 +229,7 @@ static int do_flash_irq(int argc, char *argv[])
 
 DUOWEN_BOOT_PROT_TEST_FUNC(do_flash_boot, duowen_ssi_boot);
 
-static int do_flash(int argc, char *argv[])
+int do_flash(int argc, char *argv[])
 {
 	if (argc < 2)
 		return -EINVAL;
