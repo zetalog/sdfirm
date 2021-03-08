@@ -138,11 +138,8 @@ void duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size)
 #else
 void duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size)
 {
-	void (*boot_entry)(void) = boot;
-
 	gpt_mtd_copy(board_flash, boot, addr, size);
-	boot_entry();
-	unreachable();
+	__boot_jump(boot);
 }
 #endif
 

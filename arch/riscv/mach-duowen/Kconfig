@@ -155,11 +155,17 @@ config DUOWEN_APC_BOOT_HOOK
 
 config DUOWEN_APC_BOOT_ADDR
 	bool "Enable APC boot entry address"
-	depends DUOWEN_APC && DUOWEN_ZSBL
+	depends DUOWEN_FSBL || (DUOWEN_APC && DUOWEN_ZSBL)
 	help
-	  Users can specify boot entry via BOOT_ADDR register. Enabling
-	  this to allow APC selfboot rom to jump to the user specified
-	  entry point.
+	  Users can specify boot entry via BOOT_ADDR register.
+	  Enabling this means that the APC hardware always boots from
+	  APC_ROM_BASE, and FSBL can ask APC selfboot rom to jump to the
+	  user specified entry point by configuring BOOT_ADDR register.
+	  Disabling this means that the APC hardware boots form the
+	  address specified by the BOOT_ADDR register, and APC selfboot
+	  rom can only jump to the entry point addressed at 0x80.
+	  The behavior is silicon version dependent. Ask your chip vendor
+	  to obtain the exact behavior.
 
 config DUOWEN_FSBL_SPI
 	bool "Build SPI flash resident FSBL"

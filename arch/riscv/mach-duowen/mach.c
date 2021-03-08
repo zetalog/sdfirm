@@ -56,6 +56,11 @@
 
 #define APC_BOOT_ENTRY		(__DDR_BASE + 0x80)
 #define IMC_BOOT_ENTRY		(RAM_BASE + BOOT_OFFSET)
+#ifdef CONFIG_DUOWEN_APC_BOOT_ADDR
+#define APC_SELF_BOOT_ENTRY	APC_BOOT_ENTRY
+#else
+#define APC_SELF_BOOT_ENTRY	APC_ROM_BASE
+#endif
 
 #ifdef CONFIG_DUOWEN_PMA
 void duowen_pma_init(void)
@@ -164,7 +169,7 @@ void duowen_load_ssi(void)
 #endif
 	duowen_ssi_boot(boot_entry, addr, size);
 #if defined(CONFIG_DUOWEN_IMC) && defined(CONFIG_DUOWEN_FSBL)
-	apc_set_boot_addr((caddr_t)APC_BOOT_ENTRY);
+	apc_set_boot_addr((caddr_t)APC_SELF_BOOT_ENTRY);
 	duowen_clk_apc_init();
 #endif
 }
