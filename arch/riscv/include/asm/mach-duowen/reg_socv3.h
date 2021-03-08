@@ -58,7 +58,7 @@
 #define SFAB_ROM_SIZE		0x100000
 #define FLASH_BASE		ULL(0xFF88000000)
 #define SFAB_RAM_BASE		ULL(0xFF80000000) /* Sys Mem */
-#define SFAB_RAM_SIZE		0x200000
+#define SFAB_RAM_SIZE		0x100000
 
 /* System fabric */
 #define CRCNTL_BASE		(SOC_BASE + ULL(0xFF60000000))
