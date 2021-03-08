@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Mar  4 18:01:33 2021
+# Mon Mar  8 14:40:41 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -195,6 +195,7 @@ CONFIG_DUOWEN_TB=y
 #
 CONFIG_DUOWEN_APC_BOOT_HOOK=y
 # CONFIG_DUOWEN_BOOT_PROT is not set
+# CONFIG_DUOWEN_BOOT_DEBUG is not set
 
 #
 # Simulation options

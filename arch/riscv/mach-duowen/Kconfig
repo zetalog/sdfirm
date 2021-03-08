@@ -89,6 +89,7 @@ config DUOWEN_ZSBL
 	select DUOWEN_NOC if DUOWEN_APC
 	select DUOWEN_PMA if DUOWEN_APC
 	select DUOWEN_BOOT_PROT if DUOWEN_IMC
+	select DUOWEN_BOOT_JUMP
 
 config DUOWEN_FSBL
 	bool "1-stage programmable bootloader (FSBL)"
@@ -152,6 +153,14 @@ config DUOWEN_APC_BOOT_HOOK
 	select ARCH_HAS_BOOT1
 	select ARCH_HAS_BOOT2
 
+config DUOWEN_APC_BOOT_ADDR
+	bool "Enable APC boot entry address"
+	depends DUOWEN_APC && DUOWEN_ZSBL
+	help
+	  Users can specify boot entry via BOOT_ADDR register. Enabling
+	  this to allow APC selfboot rom to jump to the user specified
+	  entry point.
+
 config DUOWEN_FSBL_SPI
 	bool "Build SPI flash resident FSBL"
 	depends DUOWEN_FSBL
@@ -159,6 +168,13 @@ config DUOWEN_FSBL_SPI
 config DUOWEN_BBL_SPI
 	bool "Build SPI flash resident BBL"
 	depends DUOWEN_BBL
+
+config DUOWEN_BOOT_JUMP
+	bool "Enable CPU to jump boot entry"
+	depends DUOWEN_ZSBL
+	depends !DUOWEN_BOOT_PROT_TEST
+	help
+	  Enabling this allows the BOOT CPU to jump to the boot entry.
 
 menuconfig DUOWEN_BOOT_PROT
 	bool "Enable boot .data protection"
@@ -187,16 +203,16 @@ config DUOWEN_BOOT_PROT_STRONG
 	  option.
 	  If unsure, say 'N'.
 
-config DUOWEN_BOOT_PROT_DEBUG
-	bool "Enable boot protection debugging messages"
-
 config DUOWEN_BOOT_PROT_TEST
 	bool "Enable boot protection test command"
 	depends EXPERIMENTAL && COMMAND
 	depends DUOWEN_TB
-	select DUOWEN_BOOT_PROT_DEBUG
+	select DUOWEN_BOOT_DEBUG
 
 endif
+
+config DUOWEN_BOOT_DEBUG
+	bool "Enable boot safe debugging messages"
 
 menuconfig DUOWEN_LOAD
 	bool "Enable bootloader"

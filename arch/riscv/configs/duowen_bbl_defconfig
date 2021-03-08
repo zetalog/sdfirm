@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Mar  4 17:57:32 2021
+# Mon Mar  8 14:25:12 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -24,10 +24,9 @@ CONFIG_BOOTLOADER=y
 #
 CONFIG_BOOT_LINUX=y
 # CONFIG_BOOT_ROM is not set
-CONFIG_COMMAND=y
-# CONFIG_COMMAND_BATCH is not set
+# CONFIG_COMMAND is not set
 CONFIG_CONSOLE=y
-CONFIG_CONSOLE_COMMAND=y
+# CONFIG_CONSOLE_COMMAND is not set
 CONFIG_CONSOLE_OUTPUT=y
 # CONFIG_CONSOLE_OUTPUT_CR is not set
 CONFIG_CONSOLE_PRINT_BUFFER_SIZE=1024
@@ -195,6 +194,7 @@ CONFIG_DUOWEN_BBL=y
 #
 # CONFIG_DUOWEN_APC_BOOT_HOOK is not set
 # CONFIG_DUOWEN_BBL_SPI is not set
+# CONFIG_DUOWEN_BOOT_DEBUG is not set
 
 #
 # Simulation options

@@ -30,7 +30,7 @@ static __always_inline void __boot_copy(uint8_t *dst, void *src,
 	} while (0)
 #endif
 
-#ifdef CONFIG_DUOWEN_BOOT_PROT_DEBUG
+#ifdef CONFIG_DUOWEN_BOOT_DEBUG
 static __always_inline void __boot_dbg(uint8_t byte)
 {
 	while (!dw_uart_write_poll(UART_CON_ID));
@@ -68,6 +68,30 @@ static __always_inline void __boot_dump32(uint32_t dword, bool last)
 #define __boot_dump32(dword, last)		do { } while (0)
 #endif
 
+#ifdef CONFIG_DUOWEN_BOOT_JUMP
+static __always_inline void __boot_jump(void *boot)
+{
+	void (*boot_entry)(void) = boot;
+
+	__boot_dbg('J');
+	__boot_dbg('u');
+	__boot_dbg('m');
+	__boot_dbg('p');
+	__boot_dbg('\n');
+	boot_entry();
+	unreachable();
+}
+#else
+static __always_inline void __boot_jump(void *boot)
+{
+	__boot_dbg('B');
+	__boot_dbg('o');
+	__boot_dbg('o');
+	__boot_dbg('t');
+	__boot_dbg('\n');
+}
+#endif
+
 #ifdef CONFIG_DUOWEN_BOOT_PROT_TEST
 #define DUOWEN_BOOT_PROT_TEST_HELP			\
 	"boot [addr] [size]\n"				\
@@ -90,19 +114,10 @@ static int func(int argc, char *argv[])			\
 		if (strcmp(argv[1], "boot") == 0)	\
 			return func(argc, argv);	\
 	} while (0)
-#define __boot_jump(boot_entry)			do { } while (0)
 #else
 #define DUOWEN_BOOT_PROT_TEST_HELP
 #define DUOWEN_BOOT_PROT_TEST_FUNC(func, boot)
 #define DUOWEN_BOOT_PROT_TEST_EXEC(func)
-
-static __always_inline void __boot_jump(void *boot)
-{
-	void (*boot_entry)(void) = boot;
-
-	boot_entry();
-	unreachable();
-}
 #endif
 #endif /* __ASSEMBLY__ */
 

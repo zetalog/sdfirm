@@ -52,6 +52,10 @@
 #include <target/eth.h>
 #include <target/mmc.h>
 #include <target/spi.h>
+#include <asm/mach/boot.h>
+
+#define APC_BOOT_ENTRY		(__DDR_BASE + 0x80)
+#define IMC_BOOT_ENTRY		(RAM_BASE + BOOT_OFFSET)
 
 #ifdef CONFIG_DUOWEN_PMA
 void duowen_pma_init(void)
@@ -130,11 +134,11 @@ void board_finish(int code)
 void duowen_load_ssi(void)
 {
 #ifdef CONFIG_DUOWEN_ZSBL
-	void (*boot_entry)(void) = (void *)(RAM_BASE + BOOT_OFFSET);
+	void (*boot_entry)(void) = (void *)IMC_BOOT_ENTRY;
 	char boot_file[] = "fsbl.bin";
 #endif
 #ifdef CONFIG_DUOWEN_FSBL
-	void (*boot_entry)(void) = (void *)(DDR_BASE + 0x80);
+	void (*boot_entry)(void) = (void *)APC_BOOT_ENTRY;
 	char boot_file[] = "bbl.bin";
 #endif
 	uint32_t addr = 0;
@@ -160,11 +164,8 @@ void duowen_load_ssi(void)
 #endif
 	duowen_ssi_boot(boot_entry, addr, size);
 #if defined(CONFIG_DUOWEN_IMC) && defined(CONFIG_DUOWEN_FSBL)
-	apc_set_boot_addr((caddr_t)boot_entry);
+	apc_set_boot_addr((caddr_t)APC_BOOT_ENTRY);
 	duowen_clk_apc_init();
-#else
-	boot_entry();
-	unreachable();
 #endif
 }
 #else
@@ -175,11 +176,11 @@ void duowen_load_ssi(void)
 void duowen_load_sd(void)
 {
 #ifdef CONFIG_DUOWEN_ZSBL
-	void (*boot_entry)(void) = (void *)(RAM_BASE + BOOT_OFFSET);
+	void (*boot_entry)(void) = (void *)IMC_BOOT_ENTRY;
 	char boot_file[] = "fsbl.bin";
 #endif
 #ifdef CONFIG_DUOWEN_FSBL
-	void (*boot_entry)(void) = (void *)(DDR_BASE + 0x80);
+	void (*boot_entry)(void) = (void *)APC_BOOT_ENTRY;
 	char boot_file[] = "bbl.bin";
 #endif
 	uint32_t addr = 0;
@@ -205,11 +206,8 @@ void duowen_load_sd(void)
 #endif
 	duowen_sd_boot(boot_entry, addr, size);
 #if defined(CONFIG_DUOWEN_IMC) && defined(CONFIG_DUOWEN_FSBL)
-	apc_set_boot_addr((caddr_t)boot_entry);
+	apc_set_boot_addr((caddr_t)APC_BOOT_ENTRY);
 	duowen_clk_apc_init();
-#else
-	boot_entry();
-	unreachable();
 #endif
 }
 #else
@@ -219,12 +217,15 @@ void duowen_load_sd(void)
 #if defined(CONFIG_DUOWEN_APC) && defined(CONFIG_DUOWEN_ZSBL)
 void duowen_load_ddr(void)
 {
-	void (*boot_entry)(void) = (void *)(__DDR_BASE + 0x80);
+#ifdef CONFIG_DUOWEN_APC_BOOT_ADDR
+	void *boot_addr = apc_get_boot_addr();
+#else
+	void *boot_addr = (void *)APC_BOOT_ENTRY;
+#endif
 
 	if (smp_processor_id() == 0)
 		printf("Booting %d cores from DDR...\n", MAX_CPU_NUM);
-	boot_entry();
-	unreachable();
+	__boot_jump(boot_addr);
 }
 
 void board_boot(void)
