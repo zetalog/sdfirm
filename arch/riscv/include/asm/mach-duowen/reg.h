@@ -50,7 +50,7 @@
 #endif
 
 /* Reserved APC selfboot bootloader RAM */
-#define ASBL_RAM_SIZE		0x400 /* APC ZSBL */
+#define ASBL_RAM_SIZE		0x8000 /* APC ZSBL */
 #define ZSBL_RAM_SIZE		SFAB_RAM_SIZE
 #define FSBL_RAM_SIZE		(SFAB_RAM_SIZE - ASBL_RAM_SIZE)
 #ifdef CONFIG_DUOWEN_IMC
