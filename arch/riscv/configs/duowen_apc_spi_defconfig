@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Mar  9 10:10:46 2021
+# Tue Mar  9 11:39:33 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -179,6 +179,7 @@ CONFIG_DUOWEN_FSBL_SPI=y
 CONFIG_DUOWEN_LOAD=y
 CONFIG_DUOWEN_LOAD_SSI_FLASH=y
 CONFIG_DUOWEN_LOAD_SD=y
+# CONFIG_DUOWEN_LOAD_DDR_BACKDOOR is not set
 
 #
 # Simulation options

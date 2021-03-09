@@ -248,6 +248,14 @@ config DUOWEN_LOAD_SD
 	bool "Enable load from SD card"
 	depends DUOWEN_SD
 
+config DUOWEN_LOAD_DDR_BACKDOOR
+	bool "Enable load from DDR backdoor"
+	depends DUOWEN_FSBL
+	depends SIMULATION
+	help
+	  Enabling this allow BBL to be loaded from DDR backdoor. This is
+	  useful in simulation environment.
+
 config DUOWEN_BOOT_OFFSET
 	hex "SRAM offset for FSBL"
 	depends !DUOWEN_BOOT_PROT
