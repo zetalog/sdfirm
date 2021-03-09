@@ -941,16 +941,8 @@ struct clk_driver clk_div = {
 
 static uint8_t clk_hw_init;
 
-#ifdef CONFIG_SMP
-#if defined(CONFIG_DUOWEN_APC_4)
-clk_t duowen_apc_clocks[MAX_CPU_NUM] = {
-	cluster0_apc0_cpu0_clk,
-	cluster1_apc0_cpu0_clk,
-	cluster2_apc0_cpu0_clk,
-	cluster3_apc0_cpu0_clk,
-};
-#else
-clk_t duowen_apc_clocks[MAX_CPU_NUM] = {
+#ifdef CONFIG_DUOWEN_APC_16
+clk_t duowen_apc_clocks[MAX_APC_NUM] = {
 	cluster0_apc0_cpu0_clk,
 	cluster0_apc0_cpu1_clk,
 	cluster0_apc1_cpu0_clk,
@@ -969,7 +961,15 @@ clk_t duowen_apc_clocks[MAX_CPU_NUM] = {
 	cluster3_apc1_cpu1_clk,
 };
 #endif
-#else
+#ifdef CONFIG_DUOWEN_APC_4
+clk_t duowen_apc_clocks[MAX_APC_NUM] = {
+	cluster0_apc0_cpu0_clk,
+	cluster1_apc0_cpu0_clk,
+	cluster2_apc0_cpu0_clk,
+	cluster3_apc0_cpu0_clk,
+};
+#endif
+#ifdef CONFIG_DUOWEN_APC_1
 clk_t duowen_apc_clocks[MAX_CPU_NUM] = {
 	cluster0_apc0_cpu0_clk,
 };
@@ -981,7 +981,7 @@ void duowen_clk_apc_init(void)
 
 	if (!(clk_hw_init & DUOWEN_CLK_APC_INIT)) {
 		clk_enable(cohfab_clk);
-		for (cpu = 0; cpu < MAX_CPU_NUM; cpu++)
+		for (cpu = 0; cpu < MAX_APC_NUM; cpu++)
 			clk_enable(duowen_apc_clocks[cpu]);
 		clk_hw_init |= DUOWEN_CLK_APC_INIT;
 	}

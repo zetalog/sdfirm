@@ -318,9 +318,23 @@ config DUOWEN_XO_125M
 
 endchoice
 
+choice
+	prompt "VAISRA CPUs"
+	default DUOWEN_APC_16
+
+config DUOWEN_APC_16
+	bool "16"
+	depends DUOWEN_IMC || SMP
+
 config DUOWEN_APC_4
-	bool "4 VAISRA CPUs"
-	depends SMP
+	bool "4"
+	depends DUOWEN_IMC || SMP
+
+config DUOWEN_APC_1
+	bool "1"
+	depends DUOWEN_IMC || !SMP
+
+endchoice
 
 config DUOWEN_SIM_LOAD
 	bool "Enable loading by simulator"
