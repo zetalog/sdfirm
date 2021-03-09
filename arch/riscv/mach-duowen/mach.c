@@ -211,7 +211,7 @@ void duowen_load_sd(void)
 #endif
 	duowen_sd_boot(boot_entry, addr, size);
 #if defined(CONFIG_DUOWEN_IMC) && defined(CONFIG_DUOWEN_FSBL)
-	apc_set_boot_addr((caddr_t)APC_BOOT_ENTRY);
+	apc_set_boot_addr((caddr_t)APC_SELF_BOOT_ENTRY);
 	duowen_clk_apc_init();
 #endif
 }
