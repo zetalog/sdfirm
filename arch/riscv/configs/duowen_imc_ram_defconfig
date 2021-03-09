@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Mar  9 10:10:34 2021
+# Tue Mar  9 14:59:05 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -133,6 +133,7 @@ CONFIG_DUOWEN_IMC=y
 # CONFIG_DUOWEN_APC is not set
 CONFIG_DUOWEN_SOC0=y
 # CONFIG_DUOWEN_SOC1 is not set
+# CONFIG_DUOWEN_ASBL is not set
 # CONFIG_DUOWEN_ZSBL is not set
 # CONFIG_DUOWEN_FSBL is not set
 # CONFIG_DUOWEN_BBL is not set

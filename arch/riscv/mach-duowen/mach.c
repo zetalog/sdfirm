@@ -219,7 +219,7 @@ void duowen_load_sd(void)
 #define duowen_load_sd()		do { } while (0)
 #endif
 
-#if defined(CONFIG_DUOWEN_APC) && defined(CONFIG_DUOWEN_ZSBL)
+#ifdef CONFIG_DUOWEN_ASBL
 void duowen_load_ddr(void)
 {
 #ifdef CONFIG_DUOWEN_APC_BOOT_ADDR

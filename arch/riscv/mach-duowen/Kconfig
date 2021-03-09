@@ -62,6 +62,9 @@ config DUOWEN_BOOT
 config DUOWEN_FIRM
 	bool
 
+config DUOWEN_LOAD_ASBL
+	bool
+
 config DUOWEN_LOAD_ZSBL
 	bool
 
@@ -73,6 +76,21 @@ config DUOWEN_LOAD_BBL
 
 choice
 	prompt "Program type"
+
+config DUOWEN_ASBL
+	bool "APC selfboot bootloader (ASBL)"
+	depends DUOWEN_APC
+	select DUOWEN_BOOT
+	select DUOWEN_LOAD_ASBL
+	select DUOWEN_BOOT_APC
+	select XIP
+	select LOAD_DATA
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select DUOWEN_APC_INIT
+	select DUOWEN_NOC
+	select DUOWEN_PMA
+	select DUOWEN_BOOT_JUMP
 
 config DUOWEN_ZSBL
 	bool "0-stage ROM bootloader (ZSBL)"
@@ -141,7 +159,8 @@ menu "Bootloader/firmware options"
 config DUOWEN_BOOT_APC
 	bool "Enable boot from APC"
 	depends DUOWEN_APC
-	depends DUOWEN_BOOT && (DUOWEN_LOAD_ZSBL || DUOWEN_LOAD_FSBL)
+	depends DUOWEN_BOOT
+	depends DUOWEN_LOAD_ASBL || DUOWEN_LOAD_ZSBL || DUOWEN_LOAD_FSBL
 	help
 	  Use internal SRAM as RAM for APC program instead of using DDR.
 	  This is normally used for APC ZSBL/FSBL configuration.
@@ -155,7 +174,7 @@ config DUOWEN_APC_BOOT_HOOK
 
 config DUOWEN_APC_BOOT_ADDR
 	bool "Enable APC boot entry address"
-	depends DUOWEN_FSBL || (DUOWEN_APC && DUOWEN_ZSBL)
+	depends DUOWEN_FSBL || DUOWEN_ASBL
 	help
 	  Users can specify boot entry via BOOT_ADDR register.
 	  Enabling this means that the APC hardware always boots from
@@ -177,7 +196,7 @@ config DUOWEN_BBL_SPI
 
 config DUOWEN_BOOT_JUMP
 	bool "Enable CPU to jump boot entry"
-	depends DUOWEN_ZSBL
+	depends DUOWEN_ZSBL || DUOWEN_ASBL
 	depends !DUOWEN_BOOT_PROT_TEST
 	help
 	  Enabling this allows the BOOT CPU to jump to the boot entry.
@@ -222,7 +241,7 @@ config DUOWEN_BOOT_DEBUG
 
 menuconfig DUOWEN_LOAD
 	bool "Enable bootloader"
-	depends DUOWEN_LOAD_ZSBL || DUOWEN_LOAD_FSBL
+	depends DUOWEN_LOAD_ASBL || DUOWEN_LOAD_ZSBL || DUOWEN_LOAD_FSBL
 	help
 	  Enable ZSBL/FSBL loader function. The firmware will jump to SPI
 	  flash or load next image from SSI flash/SDHC card.
@@ -231,13 +250,13 @@ if DUOWEN_LOAD
 
 config DUOWEN_LOAD_SRAM
 	bool "Enable load from SRAM"
-	depends DUOWEN_APC && DUOWEN_ZSBL
+	depends DUOWEN_ASBL
 	depends SIMULATION
 	help
-	  Enable APC ROM to jump to the SRAM base instead of jumping to the
-	  DDR entry point. This is only used in the simulation
-	  environment, where the next bootloader is loaded by the
-	  simulator. This kind of ROM is only used by the DDR
+	  Enable APC selfboot ROM to jump to the SRAM base instead of
+	  jumping to the DDR entry point. This is only used in the
+	  simulation environment, where the next bootloader is loaded by
+	  the simulator. This kind of ROM is only used by the DDR
 	  verification VCS bench.
 
 config DUOWEN_LOAD_SSI_FLASH
@@ -259,7 +278,7 @@ config DUOWEN_LOAD_DDR_BACKDOOR
 config DUOWEN_BOOT_OFFSET
 	hex "SRAM offset for FSBL"
 	depends !DUOWEN_BOOT_PROT
-	depends DUOWEN_IMC && DUOWEN_ZSBL
+	depends DUOWEN_ZSBL
 	default 0x4000
 	help
 	  ZSBL loads FSBL to SRAM start addresses, while SRAM may still be
@@ -349,7 +368,10 @@ config DUOWEN_SIM_LOAD
 
 config DUOWEN_SBL_LOAD
 	bool "Enable loading by bootloader (ZSBL/FSBL)"
-	depends !DUOWEN_ZSBL && !DUOWEN_FSBL_SPI && !DUOWEN_BBL_SPI
+	depends !DUOWEN_ASBL
+	depends !DUOWEN_ZSBL
+	depends !DUOWEN_FSBL_SPI
+	depends !DUOWEN_BBL_SPI
 	default y if DUOWEN_FSBL || DUOWEN_BBL
 	help
 	  This option is always invisible to ZSBL and visible to non SPI

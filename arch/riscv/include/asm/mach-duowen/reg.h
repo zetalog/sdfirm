@@ -49,11 +49,19 @@
 #include <asm/mach/reg_socv3.h>
 #endif
 
+/* Reserved APC selfboot bootloader RAM */
+#define ASBL_RAM_SIZE		0x400 /* APC ZSBL */
+#define ZSBL_RAM_SIZE		SFAB_RAM_SIZE
+#define FSBL_RAM_SIZE		(SFAB_RAM_SIZE - ASBL_RAM_SIZE)
 #ifdef CONFIG_DUOWEN_IMC
 #define IMC_ROM_BASE		SFAB_ROM_BASE
 #define IMC_ROM_SIZE		0xE0000
 #define IMC_RAM_BASE		SFAB_RAM_BASE
-#define IMC_RAM_SIZE		SFAB_RAM_SIZE
+#ifdef CONFIG_DUOWEN_FSBL
+#define IMC_RAM_SIZE		FSBL_RAM_SIZE
+#else
+#define IMC_RAM_SIZE		ZSBL_RAM_SIZE
+#endif
 #endif /* CONFIG_DUOWEN_IMC */
 
 /* DDR memory region */
@@ -105,9 +113,13 @@
 
 #define APC_ROM_BASE		(SFAB_ROM_BASE + 0xE0000)
 #define APC_ROM_SIZE		0x20000
-#define APC_RAM_BASE		SFAB_RAM_BASE
-#define APC_RAM_SIZE		SFAB_RAM_SIZE
+#define APC_RAM_SIZE		ASBL_RAM_SIZE
+#define APC_RAM_BASE		(SFAB_RAM_BASE + FSBL_RAM_SIZE)
 
+#ifdef CONFIG_DUOWEN_ASBL
+#define ROM_BASE		APC_ROM_BASE
+#define ROMEND			(APC_ROM_BASE + APC_ROM_SIZE)
+#endif
 #ifdef CONFIG_DUOWEN_ZSBL
 #ifdef CONFIG_DUOWEN_BOOT_APC
 #define ROM_BASE		APC_ROM_BASE
