@@ -167,7 +167,9 @@ void duowen_load_ssi(void)
 #ifdef CONFIG_DUOWEN_FSBL
 	ddr_init();
 #endif
+#ifndef CONFIG_DUOWEN_LOAD_DDR_BACKDOOR
 	duowen_ssi_boot(boot_entry, addr, size);
+#endif
 #if defined(CONFIG_DUOWEN_IMC) && defined(CONFIG_DUOWEN_FSBL)
 	apc_set_boot_addr((caddr_t)APC_SELF_BOOT_ENTRY);
 	duowen_clk_apc_init();
@@ -209,7 +211,9 @@ void duowen_load_sd(void)
 #ifdef CONFIG_DUOWEN_FSBL
 	ddr_init();
 #endif
+#ifndef CONFIG_DUOWEN_LOAD_DDR_BACKDOOR
 	duowen_sd_boot(boot_entry, addr, size);
+#endif
 #if defined(CONFIG_DUOWEN_IMC) && defined(CONFIG_DUOWEN_FSBL)
 	apc_set_boot_addr((caddr_t)APC_SELF_BOOT_ENTRY);
 	duowen_clk_apc_init();
