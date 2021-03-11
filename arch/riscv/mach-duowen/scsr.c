@@ -42,46 +42,12 @@
 #include <target/arch.h>
 
 #ifdef CONFIG_DUOWEN_SOCv3
-#ifdef CONFIG_DUOWEN_APC_4
-caddr_t duowen_apc_boot_addr[MAX_APC_NUM] = {
-	SCSR_C0_APC0_BOOT_ADDR_LO,
-	SCSR_C1_APC0_BOOT_ADDR_LO,
-	SCSR_C2_APC0_BOOT_ADDR_LO,
-	SCSR_C3_APC0_BOOT_ADDR_LO,
-};
-#endif
-#ifdef CONFIG_DUOWEN_APC_16
-caddr_t duowen_apc_boot_addr[MAX_APC_NUM] = {
-	SCSR_C0_APC0_BOOT_ADDR_LO,
-	SCSR_C0_APC0_BOOT_ADDR_LO,
-	SCSR_C0_APC1_BOOT_ADDR_LO,
-	SCSR_C0_APC1_BOOT_ADDR_LO,
-	SCSR_C1_APC0_BOOT_ADDR_LO,
-	SCSR_C1_APC0_BOOT_ADDR_LO,
-	SCSR_C1_APC1_BOOT_ADDR_LO,
-	SCSR_C1_APC1_BOOT_ADDR_LO,
-	SCSR_C2_APC0_BOOT_ADDR_LO,
-	SCSR_C2_APC0_BOOT_ADDR_LO,
-	SCSR_C2_APC1_BOOT_ADDR_LO,
-	SCSR_C2_APC1_BOOT_ADDR_LO,
-	SCSR_C3_APC0_BOOT_ADDR_LO,
-	SCSR_C3_APC0_BOOT_ADDR_LO,
-	SCSR_C3_APC1_BOOT_ADDR_LO,
-	SCSR_C3_APC1_BOOT_ADDR_LO,
-};
-#endif
-#ifdef CONFIG_DUOWEN_APC_1
-caddr_t duowen_apc_boot_addr[MAX_APC_NUM] = {
-	SCSR_C0_APC0_BOOT_ADDR_LO,
-};
-#endif
-
-void apc_set_boot_addr(caddr_t addr)
+void apc_set_jump_addr(caddr_t addr)
 {
 	cpu_t cpu;
 
 	for (cpu = 0; cpu < MAX_APC_NUM; cpu++)
-		__apc_set_boot_addr(duowen_apc_boot_addr[cpu], addr);
+		__apc_set_jump_addr(CPU_TO_APC(cpu), addr);
 }
 #endif /* CONFIG_DUOWEN_SOCv3 */
 

@@ -102,6 +102,9 @@
 #endif /* CONFIG_SMP */
 #endif /* CONFIG_DUOWEN_APC */
 
+#define CPUS_PER_APC		2
+#define CPU_TO_APC(cpu)		((cpu) / CPUS_PER_APC)
+
 #ifdef CONFIG_DUOWEN_SOC0
 #define HART_BASE		0
 #endif /* CONFIG_DUOWEN_SOC0 */

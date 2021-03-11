@@ -90,23 +90,11 @@
 #define SCSR_IMC_BOOT_ADDR_HI		LCSR_REG(0x0C)
 #define SCSR_IMC_BOOT_ADDR_CFG_LO	SCSR_IMC_BOOT_ADDR_LO
 #define SCSR_IMC_BOOT_ADDR_CFG_HI	SCSR_IMC_BOOT_ADDR_HI
-#define SCSR_C0_APC0_BOOT_ADDR_LO	LCSR_REG(0x10)
-#define SCSR_C0_APC0_BOOT_ADDR_HI	LCSR_REG(0x14)
-#define SCSR_C0_APC1_BOOT_ADDR_LO	LCSR_REG(0x18)
-#define SCSR_C0_APC1_BOOT_ADDR_HI	LCSR_REG(0x1C)
-#define SCSR_C1_APC0_BOOT_ADDR_LO	LCSR_REG(0x20)
-#define SCSR_C1_APC0_BOOT_ADDR_HI	LCSR_REG(0x24)
-#define SCSR_C1_APC1_BOOT_ADDR_LO	LCSR_REG(0x28)
-#define SCSR_C1_APC1_BOOT_ADDR_HI	LCSR_REG(0x2C)
-#define SCSR_C2_APC0_BOOT_ADDR_LO	LCSR_REG(0x30)
-#define SCSR_C2_APC0_BOOT_ADDR_HI	LCSR_REG(0x34)
-#define SCSR_C2_APC1_BOOT_ADDR_LO	LCSR_REG(0x38)
-#define SCSR_C2_APC1_BOOT_ADDR_HI	LCSR_REG(0x3C)
-#define SCSR_C3_APC0_BOOT_ADDR_LO	LCSR_REG(0x40)
-#define SCSR_C3_APC0_BOOT_ADDR_HI	LCSR_REG(0x44)
-#define SCSR_C3_APC1_BOOT_ADDR_LO	LCSR_REG(0x48)
-#define SCSR_C3_APC1_BOOT_ADDR_HI	LCSR_REG(0x4C)
+#define SCSR_APC_JUMP_ADDR_LO(apc)	LCSR_REG(0x10 + ((apc) << 3))
+#define SCSR_APC_JUMP_ADDR_HI(apc)	LCSR_REG(0x14 + ((apc) << 3))
 #define SCSR_PARTIAL_GOOD		LCSR_REG(0x50)
+#define SCSR_APC_BOOT_ADDR_LO		LCSR_REG(0x60)
+#define SCSR_APC_BOOT_ADDR_HI		LCSR_REG(0x64)
 #endif /* CONFIG_DUOWEN_SOCv3 */
 
 /* SOC_HW_VERSION */
@@ -239,18 +227,33 @@
 
 #ifndef __ASSEMBLY__
 #ifdef CONFIG_DUOWEN_SOCv3
-void apc_set_boot_addr(caddr_t addr);
-#define __apc_set_boot_addr(reg, addr)			\
+#define apc_get_boot_addr()				\
+	MAKELLONG(__raw_readl(SCSR_APC_BOOT_ADDR_LO),	\
+		  __raw_readl(SCSR_APC_BOOT_ADDR_HI))
+#define apc_set_boot_addr(addr)				\
 	do {						\
-		__raw_writel(LODWORD(addr), reg);	\
-		__raw_writel(HIDWORD(addr), reg + 4);	\
+		__raw_writel(LODWORD(addr),		\
+			     SCSR_APC_BOOT_ADDR_CFG_LO);\
+		__raw_writel(HIDWORD(addr),		\
+			     SCSR_APC_BOOT_ADDR_CFG_HI);\
 	} while (0)
-#define apc_get_boot_addr()					\
-	MAKELLONG(__raw_readl(SCSR_C0_APC0_BOOT_ADDR_LO),	\
-		  __raw_readl(SCSR_C0_APC0_BOOT_ADDR_HI))
+
+void apc_set_jump_addr(caddr_t addr);
+#define __apc_set_jump_addr(apc, addr)				\
+	do {							\
+		__raw_writel(LODWORD(addr),			\
+			     SCSR_APC_JUMP_ADDR_LO(apc));	\
+		__raw_writel(HIDWORD(addr),			\
+			     SCSR_APC_JUMP_ADDR_HI(apc));	\
+	} while (0)
+#define apc_get_jump_addr()					\
+	MAKELLONG(__raw_readl(SCSR_APC_JUMP_ADDR_LO(0)),	\
+		  __raw_readl(SCSR_APC_JUMP_ADDR_HI(0)))
 #else
 #define apc_set_boot_addr(addr)		imc_set_boot_addr(addr)
 #define apc_get_boot_addr()		imc_get_boot_addr()
+#define apc_set_jump_addr(addr)		imc_set_boot_addr(addr)
+#define apc_get_jump_addr()		imc_get_boot_addr()
 #endif
 int imc_pma_set(int n, unsigned long attr,
 		phys_addr_t addr, unsigned long log2len);

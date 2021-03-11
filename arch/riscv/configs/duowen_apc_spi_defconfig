@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Mar  9 14:59:17 2021
+# Thu Mar 11 11:03:30 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -174,7 +174,7 @@ CONFIG_DUOWEN_FSBL=y
 #
 CONFIG_DUOWEN_BOOT_APC=y
 # CONFIG_DUOWEN_APC_BOOT_HOOK is not set
-# CONFIG_DUOWEN_APC_BOOT_ADDR is not set
+# CONFIG_DUOWEN_APC_JUMP_ADDR is not set
 CONFIG_DUOWEN_FSBL_SPI=y
 # CONFIG_DUOWEN_BOOT_DEBUG is not set
 CONFIG_DUOWEN_LOAD=y

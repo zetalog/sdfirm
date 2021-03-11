@@ -49,7 +49,7 @@
 #include <asm/mach/reg_socv3.h>
 #endif
 
-/* Reserved APC selfboot bootloader RAM */
+/* Reserved APC self-bootloader RAM */
 #define ASBL_RAM_SIZE		0x8000 /* APC ZSBL */
 #define ZSBL_RAM_SIZE		SFAB_RAM_SIZE
 #define FSBL_RAM_SIZE		(SFAB_RAM_SIZE - ASBL_RAM_SIZE)

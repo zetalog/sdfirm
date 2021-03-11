@@ -78,7 +78,7 @@ choice
 	prompt "Program type"
 
 config DUOWEN_ASBL
-	bool "APC selfboot bootloader (ASBL)"
+	bool "APC self-bootloader (ASBL)"
 	depends DUOWEN_APC
 	select DUOWEN_BOOT
 	select DUOWEN_LOAD_ASBL
@@ -172,17 +172,23 @@ config DUOWEN_APC_BOOT_HOOK
 	select ARCH_HAS_BOOT1
 	select ARCH_HAS_BOOT2
 
-config DUOWEN_APC_BOOT_ADDR
-	bool "Enable APC boot entry address"
+config DUOWEN_APC_JUMP_ADDR
+	bool "Enable APC jump entry address"
 	depends DUOWEN_FSBL || DUOWEN_ASBL
 	help
-	  Users can specify boot entry via BOOT_ADDR register.
+	  Users can specify the APC jump entries via SCSR_APC_JUMP_ADDR
+	  registers.
+
 	  Enabling this means that the APC hardware always boots from
-	  APC_ROM_BASE, and FSBL can ask APC selfboot rom to jump to the
-	  user specified entry point by configuring BOOT_ADDR register.
+	  APC_ROM_BASE (or controlled by SCSR_APC_BOOT_ADDR register), and
+	  the FSBL can ask APC self-bootloader (ASBL) to jump to the user
+	  specified entry points configured via SCSR_APC_JUMP_ADDR
+	  registers.
 	  Disabling this means that the APC hardware boots form the
-	  address specified by the BOOT_ADDR register, and APC selfboot
-	  rom can only jump to the entry point addressed at 0x80.
+	  addresses specified by the SCSR_APC_JUMP_ADDR registers, and the
+	  APC self-bootloader (ASBL) can only jump to the entry point
+	  addressed at 0x80 (hard coded in the ASBL).
+
 	  The behavior is silicon version dependent. Ask your chip vendor
 	  to obtain the exact behavior.
 
@@ -253,10 +259,10 @@ config DUOWEN_LOAD_SRAM
 	depends DUOWEN_ASBL
 	depends SIMULATION
 	help
-	  Enable APC selfboot ROM to jump to the SRAM base instead of
-	  jumping to the DDR entry point. This is only used in the
-	  simulation environment, where the next bootloader is loaded by
-	  the simulator. This kind of ROM is only used by the DDR
+	  Enable APC self-bootloader (ASBL) to jump to the SRAM base
+	  instead of jumping to the DDR entry point. This is only used in
+	  the simulation environment, where the next bootloader is loaded
+	  by the simulator. This kind of ROM is only used by the DDR
 	  verification VCS bench.
 
 config DUOWEN_LOAD_SSI_FLASH

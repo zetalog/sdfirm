@@ -54,12 +54,13 @@
 #include <target/spi.h>
 #include <asm/mach/boot.h>
 
-#define APC_BOOT_ENTRY		(__DDR_BASE + 0x80)
+#define APC_JUMP_ENTRY		(__DDR_BASE + 0x80)
+#define APC_BOOT_ENTRY		APC_ROM_BASE
 #define IMC_BOOT_ENTRY		(RAM_BASE + BOOT_OFFSET)
-#ifdef CONFIG_DUOWEN_APC_BOOT_ADDR
-#define APC_SELF_BOOT_ENTRY	APC_BOOT_ENTRY
+#ifdef CONFIG_DUOWEN_APC_JUMP_ADDR
+#define APC_SELF_ENTRY		APC_JUMP_ENTRY
 #else
-#define APC_SELF_BOOT_ENTRY	APC_ROM_BASE
+#define APC_SELF_ENTRY		APC_BOOT_ENTRY
 #endif
 
 #ifdef CONFIG_DUOWEN_PMA
@@ -143,7 +144,7 @@ void duowen_load_ssi(void)
 	char boot_file[] = "fsbl.bin";
 #endif
 #ifdef CONFIG_DUOWEN_FSBL
-	void (*boot_entry)(void) = (void *)APC_BOOT_ENTRY;
+	void (*boot_entry)(void) = (void *)APC_SELF_ENTRY;
 	char boot_file[] = "bbl.bin";
 #endif
 	uint32_t addr = 0;
@@ -171,7 +172,7 @@ void duowen_load_ssi(void)
 	duowen_ssi_boot(boot_entry, addr, size);
 #endif
 #if defined(CONFIG_DUOWEN_IMC) && defined(CONFIG_DUOWEN_FSBL)
-	apc_set_boot_addr((caddr_t)APC_SELF_BOOT_ENTRY);
+	apc_set_jump_addr((caddr_t)boot_entry);
 	duowen_clk_apc_init();
 #endif
 }
@@ -187,7 +188,7 @@ void duowen_load_sd(void)
 	char boot_file[] = "fsbl.bin";
 #endif
 #ifdef CONFIG_DUOWEN_FSBL
-	void (*boot_entry)(void) = (void *)APC_BOOT_ENTRY;
+	void (*boot_entry)(void) = (void *)APC_SELF_ENTRY;
 	char boot_file[] = "bbl.bin";
 #endif
 	uint32_t addr = 0;
@@ -215,7 +216,7 @@ void duowen_load_sd(void)
 	duowen_sd_boot(boot_entry, addr, size);
 #endif
 #if defined(CONFIG_DUOWEN_IMC) && defined(CONFIG_DUOWEN_FSBL)
-	apc_set_boot_addr((caddr_t)APC_SELF_BOOT_ENTRY);
+	apc_set_jump_addr((caddr_t)boot_entry);
 	duowen_clk_apc_init();
 #endif
 }
@@ -226,10 +227,10 @@ void duowen_load_sd(void)
 #ifdef CONFIG_DUOWEN_ASBL
 void duowen_load_ddr(void)
 {
-#ifdef CONFIG_DUOWEN_APC_BOOT_ADDR
-	void *boot_addr = apc_get_boot_addr();
+#ifdef CONFIG_DUOWEN_APC_JUMP_ADDR
+	void *boot_addr = apc_get_jump_addr();
 #else
-	void *boot_addr = (void *)APC_BOOT_ENTRY;
+	void *boot_addr = (void *)APC_JUMP_ENTRY;
 #endif
 
 	if (smp_processor_id() == 0)
@@ -324,7 +325,8 @@ static int do_duowen_info(int argc, char *argv[])
 		printf("BOOT: %s\n", imc_sim_boot_from() ? "DDR" : "RAM");
 	printf("LOAD: %s\n", imc_load_from() ? "SSI0" : "SD");
 	printf("IMC : %016llx\n", imc_get_boot_addr());
-	printf("APC : %016llx\n", apc_get_boot_addr());
+	printf("APCB: %016llx\n", apc_get_boot_addr());
+	printf("APCJ: %016llx\n", apc_get_jump_addr());
 	return 0;
 }
 
