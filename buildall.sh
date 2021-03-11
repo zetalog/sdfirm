@@ -114,15 +114,34 @@ build_sdfirm riscv64 vaisra_fsbl
 # SiFive unleashed
 build_sdfirm riscv64 unleashed_zsbl
 build_sdfirm riscv64 unleashed_fsbl
+###########################################################################
 # DUOWEN ROMs
-build_sdfirm riscv64 duowen_imc_zsbl
-build_sdfirm riscv64 duowen_imc_fsbl
-build_sdfirm riscv64 duowen_imc_spi
+###########################################################################
+# Product
+build_sdfirm riscv64 duowen_rom_imc
+build_sdfirm riscv64 duowen_rom_apc
+# Accelerator
+build_sdfirm riscv64 duowen_zsbl
 build_sdfirm riscv64 duowen_asbl
+###########################################################################
+# DUOWEN bootloaders
+###########################################################################
+# Product
+build_sdfirm riscv64 duowen_rom_fsbl
+# Accelerator
+build_sdfirm riscv64 duowen_fsbl
+# SPI FSBL
+# Product
+build_sdfirm riscv64 duowen_spi_imc
+build_sdfirm riscv64 duowen_spi_apc
+# Accelerator
+build_sdfirm riscv64 duowen_fsbl_imc
+build_sdfirm riscv64 duowen_fsbl_apc
+###########################################################################
 # DUOWEN simulations
-build_sdfirm riscv64 duowen_imc_ram
-build_sdfirm riscv64 duowen_apc_spi
-build_sdfirm riscv64 duowen_apc_ram
+###########################################################################
+build_sdfirm riscv64 duowen_ram_imc
+build_sdfirm riscv64 duowen_ram_apc
 build_sdfirm riscv64 duowen_ddr
 # DPU
 build_sdfirm riscv64 dpu_rom

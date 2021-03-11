@@ -93,7 +93,7 @@ static void sdhc_transfer_pio(uint32_t *block)
 #ifdef CONFIG_MMC_DEBUG
 	if (mmc_slot_ctrl.block_len < 512) {
 		int i;
-		con_dbg("DATA: \n");
+		con_dbg("sdhc: DATA: \n");
 		for (i = 0; i < mmc_slot_ctrl.block_len; i++)
 			con_dbg("%02x ", ((uint8_t *)block)[i]);
 		con_dbg("\n");
@@ -188,10 +188,10 @@ void sdhc_send_command(uint8_t cmd, uint32_t arg)
 		if (sdhc_dma_open())
 			mode |= SDHC_DMA_ENABLE;
 #ifdef CONFIG_MMC_DEBUG
-		con_dbg("BLOCK_SIZE: %04lx\n",
+		con_dbg("sdhc: BLOCK_SIZE: %04lx\n",
 			SDHC_TRANSFER_BLOCK_SIZE(mmc_slot_ctrl.block_len));
-		con_dbg("BLOCK_COUNT: %04lx\n", mmc_slot_ctrl.block_cnt);
-		con_dbg("TRANSFER_MODE: %04lx\n", mode);
+		con_dbg("sdhc: BLOCK_COUNT: %04lx\n", mmc_slot_ctrl.block_cnt);
+		con_dbg("sdhc: TRANSFER_MODE: %04lx\n", mode);
 #endif
 		__raw_writew(sdhc_dma_boundary() |
 			SDHC_TRANSFER_BLOCK_SIZE(mmc_slot_ctrl.block_len),
@@ -204,8 +204,8 @@ void sdhc_send_command(uint8_t cmd, uint32_t arg)
 	}
 
 #ifdef CONFIG_MMC_DEBUG
-	con_dbg("COMMAND: %04lx\n", SDHC_COMMAND(mmc_sid));
-	con_dbg("ARGUMENT: %08lx\n", arg);
+	con_dbg("sdhc: COMMAND: %04lx\n", SDHC_COMMAND(mmc_sid));
+	con_dbg("sdhc: ARGUMENT: %08lx\n", arg);
 #endif
 	__raw_writel(arg, SDHC_ARGUMENT(mmc_sid));
 	__raw_writew(SDHC_CMD(cmd, flags), SDHC_COMMAND(mmc_sid));
@@ -261,7 +261,7 @@ void sdhc_recv_response(uint8_t *resp, uint8_t size)
 
 #ifdef CONFIG_MMC_DEBUG
 	if (size > 0) {
-		con_dbg("RESPONSE: \n");
+		con_dbg("sdhc: RESPONSE: \n");
 		for (i = 0; i < size; i++)
 			con_dbg("%02x ", resp[i]);
 		con_dbg("\n");
@@ -475,8 +475,10 @@ void sdhc_init(uint32_t f_min, uint32_t f_max, irq_t irq)
 			mmc_slot_ctrl.f_min = mmc_slot_ctrl.f_max /
 				SDHC_8BIT_DIVIDED_CLOCK_MAX_DIV;
 	}
-	printf("clock: %dHz ~ %dHz\n",
-	       mmc_slot_ctrl.f_min, mmc_slot_ctrl.f_max);
+#ifdef CONFIG_MMC_DEBUG
+	con_dbg("sdhc: clock: %dHz ~ %dHz\n",
+		mmc_slot_ctrl.f_min, mmc_slot_ctrl.f_max);
+#endif
 
 	mmc_slot_ctrl.host_ocr = SD_OCR_HCS;
 	if (caps_0 & SDHC_CAP_VOLTAGE_SUPPORT_330)
@@ -579,7 +581,7 @@ static void sdhc_handle_irq(irq_t irq)
 
 	/* Handle error IRQs */
 	if (irqs & SDHC_ERROR_INTERRUPT_MASK) {
-		printf("Error detected in status(0x%X)!\n", irqs);
+		printf("sdhc: Error detected in status(0x%X)!\n", irqs);
 		if (irqs & SDHC_COMMAND_INDEX_ERROR)
 			sdhc_err_failure(MMC_ERR_ILLEGAL_COMMAND);
 		else if (irqs & (SDHC_ERR_COMMAND_CRC_ERROR |

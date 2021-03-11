@@ -43,7 +43,6 @@ config MMC_WIDTH
 
 config MMC_CID_ALL_FIELDS
 	bool "Enable storing of all CID register fields"
-	depends EXPERIMENTAL
 	help
 	  A card is identified by its CID number. This method requires the
 	  card to have an unique CID number. To ensure uniqueness of CIDs
