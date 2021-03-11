@@ -195,6 +195,7 @@ config DUOWEN_APC_JUMP_ADDR
 config DUOWEN_FSBL_SPI
 	bool "Build SPI flash resident FSBL"
 	depends DUOWEN_FSBL
+	select DUOWEN_BOOT_JUMP if DUOWEN_APC
 
 config DUOWEN_BBL_SPI
 	bool "Build SPI flash resident BBL"
@@ -202,7 +203,7 @@ config DUOWEN_BBL_SPI
 
 config DUOWEN_BOOT_JUMP
 	bool "Enable CPU to jump boot entry"
-	depends DUOWEN_ZSBL || DUOWEN_ASBL
+	depends DUOWEN_ZSBL || DUOWEN_ASBL || (DUOWEN_FSBL_SPI && DUOWEN_APC)
 	depends !DUOWEN_BOOT_PROT_TEST
 	help
 	  Enabling this allows the BOOT CPU to jump to the boot entry.
@@ -274,12 +275,13 @@ config DUOWEN_LOAD_SD
 	depends DUOWEN_SD
 
 config DUOWEN_LOAD_DDR_BACKDOOR
-	bool "Enable load from DDR backdoor"
+	bool "Enable load to DDR backdoor"
 	depends DUOWEN_FSBL
 	depends SIMULATION
 	help
-	  Enabling this allow BBL to be loaded from DDR backdoor. This is
-	  useful in simulation environment.
+	  Enabling this to allow BBL to be loaded from the DDR backdoor.
+	  This is useful in simulation environment as FSBL can then do
+	  nothing for copying BBL.
 
 config DUOWEN_BOOT_OFFSET
 	hex "SRAM offset for FSBL"

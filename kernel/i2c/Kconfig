@@ -40,6 +40,7 @@ config I2C_DEVICE_ID
 
 config I2C_CMD_TOOL
 	bool "Enable I2C command tool"
+	depends COMMAND
 	default y
 
 endif
