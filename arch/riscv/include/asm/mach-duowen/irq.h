@@ -257,12 +257,22 @@
 #define IRQ_TIMER2_6		EXT_IRQ(187)
 #define IRQ_TIMER2_7		EXT_IRQ(188)
 
-#define IRQ_XGMAC_LPI		EXT_IRQ(193) /* XGMAC low power */
-#define IRQ_XGMAC_PMT		EXT_IRQ(194) /* XGMAC power management */
-#define IRQ_XGMAC_SBD		EXT_IRQ(195) /* XGMAC sideband */
-#define IRQ_XPCS_SBD		EXT_IRQ(196) /* XGMAC physical coding sublayer */
-#define IRQ_SBD_RX(ch)		IRQ_IRQ(197 + (ch)) /* channel sideband RX */
-#define IRQ_SBD_TX(ch)		IRQ_IRQ(205 + (ch)) /* channel sideband TX */
+#define IRQ_WDT0_0		EXT_IRQ(189)
+#define IRQ_WDT0_1		EXT_IRQ(190)
+#define IRQ_WDT1_0		EXT_IRQ(191)
+#define IRQ_WDT1_1		EXT_IRQ(192)
+
+#define IRQ_XGMAC_LPI		EXT_IRQ(194) /* XGMAC low power */
+#define IRQ_XGMAC_PMT		EXT_IRQ(195) /* XGMAC power management */
+#define IRQ_XGMAC_SBD		EXT_IRQ(196) /* XGMAC sideband */
+#define IRQ_XPCS_SBD		EXT_IRQ(197) /* XGMAC physical coding sublayer */
+#define IRQ_SBD_RX(ch)		EXT_IRQ(198 + (ch)) /* channel sideband RX */
+#define IRQ_SBD_TX(ch)		EXT_IRQ(206 + (ch)) /* channel sideband TX */
+
+#define IRQ_DDR0_AWPOISON	EXT_IRQ(214)
+#define IRQ_DDR0_ARPOISON	EXT_IRQ(215)
+#define IRQ_DDR1_AWPOISON	EXT_IRQ(216)
+#define IRQ_DDR1_ARPOISON	EXT_IRQ(217)
 
 #define IRQ_TSENS0		EXT_IRQ(220)
 #define IRQ_TSENS1		EXT_IRQ(221)

@@ -1470,7 +1470,7 @@
 #endif
 			reg = <0xff 0x6a000000 0x0 0x100000>;
 			interrupt-parent = <&plic0>;
-			interrupts = <195 194 193>;
+			interrupts = <196 195 194>;
 			interrupt-names = "macirq", "eth_wake_irq", "eth_lpi";
 			mac-address = [c69ded9a297c];
 			max-frame-size = <3800>;
