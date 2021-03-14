@@ -83,12 +83,12 @@ void duowen_mshc_init(void);
 
 #ifdef CONFIG_DUOWEN_SD
 void duowen_sd_init(void);
-void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size);
+void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size, bool jump);
 
 extern mtd_t board_sdcard;
 #else
 #define duowen_sd_init()			do { } while (0)
-#define duowen_sd_boot(boot, addr, size)	do { } while (0)
+#define duowen_sd_boot(boot, addr, size, jump)	do { } while (0)
 
 #define board_sdcard				INVALID_MTD_ID
 #endif

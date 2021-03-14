@@ -90,7 +90,6 @@ config DUOWEN_ASBL
 	select DUOWEN_APC_INIT
 	select DUOWEN_NOC
 	select DUOWEN_PMA
-	select DUOWEN_BOOT_JUMP
 
 config DUOWEN_ZSBL
 	bool "0-stage ROM bootloader (ZSBL)"
@@ -107,7 +106,6 @@ config DUOWEN_ZSBL
 	select DUOWEN_NOC if DUOWEN_APC
 	select DUOWEN_PMA if DUOWEN_APC
 	select DUOWEN_BOOT_PROT if DUOWEN_IMC
-	select DUOWEN_BOOT_JUMP
 
 config DUOWEN_FSBL
 	bool "1-stage programmable bootloader (FSBL)"
@@ -125,6 +123,7 @@ config DUOWEN_FSBL
 	select DUOWEN_APC_INIT if (!DUOWEN_SBL_LOAD && DUOWEN_APC)
 	select DUOWEN_NOC if (!DUOWEN_SBL_LOAD && DUOWEN_APC)
 	select DUOWEN_PMA if (!DUOWEN_SBL_LOAD && DUOWEN_APC)
+	select DUOWEN_BOOT_PROT if DUOWEN_LOAD_IMC_FIRMWARE
 
 config DUOWEN_BBL
 	bool "Berkeley bootloader (BBL)"
@@ -172,41 +171,13 @@ config DUOWEN_APC_BOOT_HOOK
 	select ARCH_HAS_BOOT1
 	select ARCH_HAS_BOOT2
 
-config DUOWEN_APC_JUMP_ADDR
-	bool "Enable APC jump entry address"
-	depends DUOWEN_FSBL || DUOWEN_ASBL
-	help
-	  Users can specify the APC jump entries via SCSR_APC_JUMP_ADDR
-	  registers.
-
-	  Enabling this means that the APC hardware always boots from
-	  APC_ROM_BASE (or controlled by SCSR_APC_BOOT_ADDR register), and
-	  the FSBL can ask APC self-bootloader (ASBL) to jump to the user
-	  specified entry points configured via SCSR_APC_JUMP_ADDR
-	  registers.
-	  Disabling this means that the APC hardware boots form the
-	  addresses specified by the SCSR_APC_JUMP_ADDR registers, and the
-	  APC self-bootloader (ASBL) can only jump to the entry point
-	  addressed at 0x80 (hard coded in the ASBL).
-
-	  The behavior is silicon version dependent. Ask your chip vendor
-	  to obtain the exact behavior.
-
 config DUOWEN_FSBL_SPI
 	bool "Build SPI flash resident FSBL"
 	depends DUOWEN_FSBL
-	select DUOWEN_BOOT_JUMP if DUOWEN_APC
 
 config DUOWEN_BBL_SPI
 	bool "Build SPI flash resident BBL"
 	depends DUOWEN_BBL
-
-config DUOWEN_BOOT_JUMP
-	bool "Enable CPU to jump boot entry"
-	depends DUOWEN_ZSBL || DUOWEN_ASBL || (DUOWEN_FSBL_SPI && DUOWEN_APC)
-	depends !DUOWEN_BOOT_PROT_TEST
-	help
-	  Enabling this allows the BOOT CPU to jump to the boot entry.
 
 menuconfig DUOWEN_BOOT_PROT
 	bool "Enable boot .data protection"
@@ -266,13 +237,18 @@ config DUOWEN_LOAD_SRAM
 	  by the simulator. This kind of ROM is only used by the DDR
 	  verification VCS bench.
 
+config DUOWEN_LOAD_FLASH
+	bool
+
 config DUOWEN_LOAD_SSI_FLASH
 	bool "Enable load from SSI flash"
 	depends DUOWEN_SSI_FLASH
+	select DUOWEN_LOAD_FLASH
 
 config DUOWEN_LOAD_SD
 	bool "Enable load from SD card"
 	depends DUOWEN_SD
+	select DUOWEN_LOAD_FLASH
 
 config DUOWEN_LOAD_DDR_BACKDOOR
 	bool "Enable load to DDR backdoor"
@@ -282,6 +258,15 @@ config DUOWEN_LOAD_DDR_BACKDOOR
 	  Enabling this to allow BBL to be loaded from the DDR backdoor.
 	  This is useful in simulation environment as FSBL can then do
 	  nothing for copying BBL.
+
+config DUOWEN_LOAD_IMC_FIRMWARE
+	bool "Enable load of IMC firmware"
+	depends DUOWEN_FSBL
+	help
+	  By default, FSBL only loads APC runtime firmware (named as
+	  bbl.bin) and IMC will be powered off or left in a WFI loop.
+	  Enabling this to allow FSBL to load an IMC runtime firmware
+	  (named as imc.bin).
 
 config DUOWEN_BOOT_OFFSET
 	hex "SRAM offset for FSBL"

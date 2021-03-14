@@ -77,7 +77,7 @@ void duowen_ssi_init(void)
 }
 
 #ifdef CONFIG_DUOWEN_BOOT_PROT
-typedef void (*boot_cb)(void *, uint32_t, uint32_t);
+typedef void (*boot_cb)(void *, uint32_t, uint32_t, bool);
 
 static __always_inline void __duowen_ssi_flash_select(uint32_t chips)
 {
@@ -113,7 +113,7 @@ static __always_inline uint8_t __duowen_ssi_flash_read(uint32_t addr)
 }
 
 __align(4)
-void __duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size)
+void __duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size, bool jump)
 {
 	int i;
 	uint8_t *dst = boot;
@@ -124,22 +124,24 @@ void __duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size)
 		dst[i] = __duowen_ssi_flash_read(addr);
 		__boot_dump8(dst[i], is_last(i, size));
 	}
-	__boot_jump(boot);
+	if (jump)
+		__boot_jump(boot);
 }
 
-void duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size)
+void duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size, bool jump)
 {
 	boot_cb boot_func;
 	DUOWEN_BOOT_PROT_FUNC_DEFINE(1024);
 
 	DUOWEN_BOOT_PROT_FUNC_ASSIGN(boot_cb, __duowen_ssi_boot, boot_func);
-	boot_func(boot, addr, size);
+	boot_func(boot, addr, size, jump);
 }
 #else
-void duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size)
+void duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size, bool jump)
 {
 	gpt_mtd_copy(board_flash, boot, addr, size);
-	__boot_jump(boot);
+	if (jump)
+		__boot_jump(boot);
 }
 #endif
 

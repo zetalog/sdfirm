@@ -120,14 +120,14 @@ void spi_hw_ctrl_init(void);
 
 #ifdef CONFIG_DUOWEN_SSI_FLASH
 void duowen_ssi_init(void);
-void duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size);
+void duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size, bool jump);
 /* Test command */
 int do_flash(int argc, char *argv[]);
 
 extern mtd_t board_flash;
 #else
 #define duowen_ssi_init()			do { } while (0)
-#define duowen_ssi_boot(boot, addr, size)	do { } while (0)
+#define duowen_ssi_boot(boot, addr, size, jump)	do { } while (0)
 
 #define board_flash			INVALID_MTD_ID
 #endif

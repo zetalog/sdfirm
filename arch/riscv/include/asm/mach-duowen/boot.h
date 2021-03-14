@@ -68,29 +68,18 @@ static __always_inline void __boot_dump32(uint32_t dword, bool last)
 #define __boot_dump32(dword, last)		do { } while (0)
 #endif
 
-#ifdef CONFIG_DUOWEN_BOOT_JUMP
 static __always_inline void __boot_jump(void *boot)
 {
 	void (*boot_entry)(void) = boot;
 
-	__boot_dbg('J');
-	__boot_dbg('u');
-	__boot_dbg('m');
-	__boot_dbg('p');
-	__boot_dbg('\n');
-	boot_entry();
-	unreachable();
-}
-#else
-static __always_inline void __boot_jump(void *boot)
-{
 	__boot_dbg('B');
 	__boot_dbg('o');
 	__boot_dbg('o');
 	__boot_dbg('t');
 	__boot_dbg('\n');
+	boot_entry();
+	unreachable();
 }
-#endif
 
 #ifdef CONFIG_DUOWEN_BOOT_PROT_TEST
 #define DUOWEN_BOOT_PROT_TEST_HELP			\
@@ -105,7 +94,7 @@ static int func(int argc, char *argv[])			\
 		addr = strtoul(argv[2], NULL, 0);	\
 	if (argc > 3)					\
 		size = strtoul(argv[3], NULL, 0);	\
-	boot((void *)SFAB_RAM_BASE, addr, size);	\
+	boot((void *)SFAB_RAM_BASE, addr, size, false);	\
 	hexdump(addr, (void *)SFAB_RAM_BASE, 1, size);	\
 	return 0;					\
 }

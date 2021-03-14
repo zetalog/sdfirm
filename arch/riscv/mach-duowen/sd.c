@@ -100,7 +100,7 @@ void duowen_sd_init(void)
 }
 
 #ifdef CONFIG_DUOWEN_BOOT_PROT
-typedef void (*boot_cb)(void *, bool, uint16_t, uint32_t, uint32_t);
+typedef void (*boot_cb)(void *, bool, uint16_t, uint32_t, uint32_t, bool);
 
 static __always_inline bool __sdhc_xfer_dat(uint8_t *block, uint16_t blk_len,
 					    uint16_t off, uint16_t len,
@@ -295,7 +295,7 @@ exit_xfer:
 
 __align(4)
 void __sdhc_boot(void *boot, bool block_ccs, uint16_t block_len,
-		 uint32_t addr, uint32_t size)
+		 uint32_t addr, uint32_t size, bool jump)
 {
 	uint8_t *dst = boot;
 	uint32_t block_cnt, cnt;
@@ -335,10 +335,11 @@ void __sdhc_boot(void *boot, bool block_ccs, uint16_t block_len,
 	cmd = MMC_CMD_STOP_TRANSMISSION;
 	if (!__sdhc_xfer_cmd(cmd, 0, 0, 0))
 		BUG();
-	__boot_jump(boot);
+	if (jump)
+		__boot_jump(boot);
 }
 
-void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size)
+void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size, bool jump)
 {
 	boot_cb boot_func;
 	bool block_ccs = true;
@@ -352,13 +353,14 @@ void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size)
 	mmc_slot_restore(sslot);
 
 	DUOWEN_BOOT_PROT_FUNC_ASSIGN(boot_cb, __sdhc_boot, boot_func);
-	boot_func(boot, block_ccs, block_len, addr, ALIGN_UP(size, 4));
+	boot_func(boot, block_ccs, block_len, addr, ALIGN_UP(size, 4), jump);
 }
 #else
-void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size)
+void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size, bool jump)
 {
 	gpt_mtd_copy(board_sdcard, boot, addr, size);
-	__boot_jump(boot);
+	if (jump)
+		__boot_jump(boot);
 }
 #endif
 

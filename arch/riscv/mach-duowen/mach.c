@@ -57,11 +57,7 @@
 #define APC_JUMP_ENTRY		(__DDR_BASE + 0x80)
 #define APC_BOOT_ENTRY		APC_ROM_BASE
 #define IMC_BOOT_ENTRY		(RAM_BASE + BOOT_OFFSET)
-#ifdef CONFIG_DUOWEN_APC_JUMP_ADDR
 #define APC_SELF_ENTRY		APC_JUMP_ENTRY
-#else
-#define APC_SELF_ENTRY		APC_BOOT_ENTRY
-#endif
 
 #ifdef CONFIG_DUOWEN_PMA
 void duowen_pma_init(void)
@@ -125,7 +121,6 @@ void board_finish(int code)
 #endif
 #endif
 
-#ifdef CONFIG_DUOWEN_LOAD
 #if defined(CONFIG_DUOWEN_ZSBL) && !defined(CONFIG_DUOWEN_BOOT_PROT)
 #ifdef CONFIG_DUOWEN_BOOT_OFFSET
 #define BOOT_OFFSET		CONFIG_DUOWEN_BOOT_OFFSET
@@ -136,114 +131,103 @@ void board_finish(int code)
 #define BOOT_OFFSET		0x0
 #endif
 
-#ifdef CONFIG_DUOWEN_LOAD_SSI_FLASH
-void duowen_load_ssi(void)
-{
-#ifdef CONFIG_DUOWEN_ZSBL
-	void (*boot_entry)(void) = (void *)IMC_BOOT_ENTRY;
-	char boot_file[] = "fsbl.bin";
-#endif
 #ifdef CONFIG_DUOWEN_FSBL
-	void (*boot_entry)(void) = (void *)APC_SELF_ENTRY;
-	char boot_file[] = "bbl.bin";
+#define duowen_boot_ddr()			ddr_init()
+#else
+#define duowen_boot_ddr()			do { } while (0)
 #endif
+
+#ifdef CONFIG_DUOWEN_LOAD_FLASH
+typedef void (*boot_cb)(void *, uint32_t, uint32_t, bool);
+
+static void __duowen_load_file(mtd_t mtd, boot_cb boot,
+			       const char *file, void *entry,
+			       const char *name, bool jump)
+{
 	uint32_t addr = 0;
 	uint32_t size = 500000;
 	int ret;
 
-	printf("Booting %s from SSI flash to entry=0x%lx...\n",
-	       boot_file, (unsigned long)boot_entry);
-	ret = gpt_pgpt_init();
-	if (ret != 0) {
-		printf("SSI: primary GPT failure.\n");
-		bh_panic();
-	}
-	ret = gpt_get_file_by_name(board_flash, boot_file, &addr, &size);
+	printf("boot(%s): booting %s to entry=0x%lx...\n",
+	       name, file, (unsigned long)entry);
+	ret = gpt_get_file_by_name(mtd, file, &addr, &size);
 	if (ret <= 0) {
-		printf("SSI: %s missing.\n", boot_file);
+		printf("boot(%s): %s missing.\n", name, file);
 		bh_panic();
 	}
-	printf("Booting from SSI flash addr=0x%lx, size=0x%lx...\n",
-	       addr, size);
-#ifdef CONFIG_DUOWEN_FSBL
-	ddr_init();
-#endif
+	printf("boot(%s): booting %s from addr=0x%lx, size=0x%lx...\n",
+	       name, file, addr, size);
 #ifndef CONFIG_DUOWEN_LOAD_DDR_BACKDOOR
-	duowen_ssi_boot(boot_entry, addr, size);
-#endif
-#if defined(CONFIG_DUOWEN_IMC) && defined(CONFIG_DUOWEN_FSBL)
-	apc_set_jump_addr((caddr_t)boot_entry);
-	duowen_clk_apc_init();
+	boot(entry, addr, size, jump);
 #endif
 }
+
+void duowen_load_file(mtd_t mtd, boot_cb boot, const char *file,
+		      caddr_t entry, const char *name)
+{
+	__duowen_load_file(mtd, boot, file, (void *)entry, name, false);
+}
+
+void duowen_boot_file(mtd_t mtd, boot_cb boot, const char *file,
+		      caddr_t entry, const char *name)
+{
+	__duowen_load_file(mtd, boot, file, (void *)entry, name, true);
+	unreachable();
+}
+
+static void duowen_load_flash(mtd_t mtd, boot_cb boot, const char *name)
+{
+	int ret;
+
+	ret = gpt_pgpt_init();
+	if (ret != 0) {
+		printf("boot(%s): primary GPT failure.\n", name);
+		bh_panic();
+	}
+	duowen_boot_ddr();
+#ifdef CONFIG_DUOWEN_ZSBL
+	duowen_boot_file(mtd, boot, "fsbl.bin", IMC_BOOT_ENTRY, name);
+#endif /* CONFIG_DUOWEN_ZSBL */
+#ifdef CONFIG_DUOWEN_FSBL
+#ifdef CONFIG_DUOWEN_APC
+#ifdef CONFIG_DUOWEN_LOAD_IMC_FIRMWARE
+	duowen_load_file(mtd, boot, "imc.bin", IMC_BOOT_ENTRY, name);
+	imc_set_boot_addr(IMC_BOOT_ENTRY);
+	duowen_clk_imc_init();
+#endif /* CONFIG_DUOWEN_LOAD_IMC_FIRMWARE */
+	duowen_boot_file(mtd, boot, "bbl.bin", APC_SELF_ENTRY, name);
+#else /* CONFIG_DUOWEN_APC */
+	duowen_load_file(mtd, boot, "bbl.bin", APC_SELF_ENTRY, name);
+	apc_set_jump_addr(APC_SELF_ENTRY);
+	duowen_clk_apc_init();
+#ifdef CONFIG_DUOWEN_LOAD_IMC_FIRMWARE
+	duowen_boot_file(mtd, boot, "imc.bin", IMC_BOOT_ENTRY, name);
+#else /* CONFIG_DUOWEN_LOAD_IMC_FIRMWARE */
+	bh_panic();
+#endif /* CONFIG_DUOWEN_LOAD_IMC_FIRMWARE */
+#endif /* CONFIG_DUOWEN_APC */
+#endif /* CONFIG_DUOWEN_FSBL */
+}
+
+#ifdef CONFIG_DUOWEN_LOAD_SSI_FLASH
+static void duowen_load_ssi(void)
+{
+	duowen_load_flash(board_flash, duowen_ssi_boot, "ssi");
+}
 #else
-#define duowen_load_ssi()		do { } while (0)
+#define duowen_load_ssi()			do { } while (0)
 #endif
 
 #ifdef CONFIG_DUOWEN_LOAD_SD
-void duowen_load_sd(void)
+static void duowen_load_sd(void)
 {
-#ifdef CONFIG_DUOWEN_ZSBL
-	void (*boot_entry)(void) = (void *)IMC_BOOT_ENTRY;
-	char boot_file[] = "fsbl.bin";
-#endif
-#ifdef CONFIG_DUOWEN_FSBL
-	void (*boot_entry)(void) = (void *)APC_SELF_ENTRY;
-	char boot_file[] = "bbl.bin";
-#endif
-	uint32_t addr = 0;
-	uint32_t size = 500000;
-	int ret;
-
-	printf("Booting %s from SD card to entry=0x%lx...\n",
-	       boot_file, (unsigned long)boot_entry);
-	ret = gpt_pgpt_init();
-	if (ret != 0) {
-		printf("SD: primary GPT failure.\n");
-		bh_panic();
-	}
-	ret = gpt_get_file_by_name(board_sdcard, boot_file, &addr, &size);
-	if (ret <= 0) {
-		printf("SD: %s missing.\n", boot_file);
-		bh_panic();
-	}
-	printf("Booting from SD card addr=0x%lx, size=0x%lx...\n",
-	       addr, size);
-#ifdef CONFIG_DUOWEN_FSBL
-	ddr_init();
-#endif
-#ifndef CONFIG_DUOWEN_LOAD_DDR_BACKDOOR
-	duowen_sd_boot(boot_entry, addr, size);
-#endif
-#if defined(CONFIG_DUOWEN_IMC) && defined(CONFIG_DUOWEN_FSBL)
-	apc_set_jump_addr((caddr_t)boot_entry);
-	duowen_clk_apc_init();
-#endif
+	duowen_load_flash(board_sdcard, duowen_sd_boot, "sd");
 }
 #else
-#define duowen_load_sd()		do { } while (0)
+#define duowen_load_sd()			do { } while (0)
 #endif
 
-#ifdef CONFIG_DUOWEN_ASBL
-void duowen_load_ddr(void)
-{
-#ifdef CONFIG_DUOWEN_APC_JUMP_ADDR
-	void *boot_addr = apc_get_jump_addr();
-#else
-	void *boot_addr = (void *)APC_JUMP_ENTRY;
-#endif
-
-	if (smp_processor_id() == 0)
-		printf("Booting %d cores from DDR...\n", MAX_CPU_NUM);
-	__boot_jump(boot_addr);
-}
-
-void board_boot(void)
-{
-	duowen_load_ddr();
-}
-#else
-void board_boot(void)
+void board_boot_early(void)
 {
 	__unused uint8_t load_sel = imc_load_from();
 
@@ -253,10 +237,27 @@ void board_boot(void)
 	if (load_sel == IMC_BOOT_SSI)
 		duowen_load_ssi();
 }
-#endif
-#else
-#define board_boot()		do { } while (0)
-#endif
+#else /* CONFIG_DUOWEN_LOAD_FLASH */
+#define board_boot_early()			do { } while (0)
+#endif /* CONFIG_DUOWEN_LOAD_FLASH */
+
+#ifdef CONFIG_DUOWEN_BOOT_APC
+void duowen_load_ddr(void)
+{
+	void *boot_addr = (void *)apc_get_jump_addr();
+
+	if (smp_processor_id() == 0)
+		printf("boot(ddr): booting %d cores...\n", MAX_CPU_NUM);
+	__boot_jump(boot_addr);
+}
+
+void board_boot_late(void)
+{
+	duowen_load_ddr();
+}
+#else /* CONFIG_DUOWEN_BOOT_APC */
+#define board_boot_late()			do { } while (0)
+#endif /* CONFIG_DUOWEN_BOOT_APC */
 
 void board_init_clock(void)
 {
@@ -288,9 +289,7 @@ void board_late_init(void)
 	pci_platform_init();
 
 	/* Non-BBL bootloader initialization */
-#ifndef CONFIG_SMP
-	board_boot();
-#endif
+	board_boot_early();
 
 	/* BBL bootloader initialization */
 	smmu_dma_alloc_sme();
@@ -300,7 +299,7 @@ void board_late_init(void)
 
 void board_smp_init(void)
 {
-	board_boot();
+	board_boot_late();
 }
 
 static int do_duowen_shutdown(int argc, char *argv[])
