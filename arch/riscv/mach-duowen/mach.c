@@ -192,8 +192,8 @@ static void duowen_load_flash(mtd_t mtd, boot_cb boot, const char *name)
 	/* For APC FSBL, boot jump is done in SMP style. Thus it's always
 	 * safe to load bbl.bin prior to any other boot steps.
 	 */
-	duowen_load_file(mtd, boot, "bbl.bin", APC_SELF_ENTRY, name);
-	apc_set_jump_addr(APC_SELF_ENTRY);
+	duowen_load_file(mtd, boot, "bbl.bin", APC_JUMP_ENTRY, name);
+	apc_set_jump_addr(APC_JUMP_ENTRY);
 	duowen_clk_apc_init();
 #ifdef CONFIG_DUOWEN_APC
 #ifdef CONFIG_DUOWEN_LOAD_IMC_FIRMWARE
@@ -240,7 +240,17 @@ void board_boot_early(void)
 		duowen_load_ssi();
 }
 #else /* CONFIG_DUOWEN_LOAD_FLASH */
-#define board_boot_early()			do { } while (0)
+void board_boot_early(void)
+{
+#ifdef CONFIG_DUOWEN_ASBL
+	/* The default jump address is APC_BOOT_ENTRY which is the entry
+	 * point of the ASBL. To avoid recursively executing ASBL, resets
+	 * it to APC_JUMP_ENTRY.
+	 */
+	if (apc_get_jump_addr() == APC_BOOT_ENTRY)
+		apc_set_jump_addr(APC_JUMP_ENTRY);
+#endif /* CONFIG_DUOWEN_ASBL */
+}
 #endif /* CONFIG_DUOWEN_LOAD_FLASH */
 
 #ifdef CONFIG_DUOWEN_BOOT_APC
