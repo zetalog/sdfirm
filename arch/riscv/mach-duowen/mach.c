@@ -189,17 +189,19 @@ static void duowen_load_flash(mtd_t mtd, boot_cb boot, const char *name)
 	duowen_boot_file(mtd, boot, "fsbl.bin", IMC_BOOT_ENTRY, name);
 #endif /* CONFIG_DUOWEN_ZSBL */
 #ifdef CONFIG_DUOWEN_FSBL
+	/* For APC FSBL, boot jump is done in SMP style. Thus it's always
+	 * safe to load bbl.bin prior to any other boot steps.
+	 */
+	duowen_load_file(mtd, boot, "bbl.bin", APC_SELF_ENTRY, name);
+	apc_set_jump_addr(APC_SELF_ENTRY);
+	duowen_clk_apc_init();
 #ifdef CONFIG_DUOWEN_APC
 #ifdef CONFIG_DUOWEN_LOAD_IMC_FIRMWARE
 	duowen_load_file(mtd, boot, "imc.bin", IMC_BOOT_ENTRY, name);
 	imc_set_boot_addr(IMC_BOOT_ENTRY);
 	duowen_clk_imc_init();
 #endif /* CONFIG_DUOWEN_LOAD_IMC_FIRMWARE */
-	duowen_boot_file(mtd, boot, "bbl.bin", APC_SELF_ENTRY, name);
 #else /* CONFIG_DUOWEN_APC */
-	duowen_load_file(mtd, boot, "bbl.bin", APC_SELF_ENTRY, name);
-	apc_set_jump_addr(APC_SELF_ENTRY);
-	duowen_clk_apc_init();
 #ifdef CONFIG_DUOWEN_LOAD_IMC_FIRMWARE
 	duowen_boot_file(mtd, boot, "imc.bin", IMC_BOOT_ENTRY, name);
 #else /* CONFIG_DUOWEN_LOAD_IMC_FIRMWARE */
