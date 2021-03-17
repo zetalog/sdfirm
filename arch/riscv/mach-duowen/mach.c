@@ -58,6 +58,16 @@
 #define APC_BOOT_ENTRY		APC_ROM_BASE
 #define IMC_BOOT_ENTRY		(RAM_BASE + BOOT_OFFSET)
 
+unsigned long duowen_soc_base = SOC0_BASE;
+
+void duowen_dual_init(void)
+{
+	if (imc_socket_id() == 1)
+		duowen_soc_base = SOC1_BASE;
+	duowen_pll_init();
+	duowen_mmu_init();
+}
+
 #ifdef CONFIG_DUOWEN_PMA
 void duowen_pma_soc_init(void)
 {

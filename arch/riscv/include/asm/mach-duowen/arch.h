@@ -62,32 +62,44 @@
 #endif
 
 #if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
-#ifdef CONFIG_DUOWEN_APC_BOOT_HOOK
 	.macro	boot0_hook
+#ifdef CONFIG_DUOWEN_APC_BOOT_HOOK
 #ifdef CONFIG_DUOWEN_LOAD_SRAM
 	jal	ra, duowen_load_sram
 #endif
 #ifdef CONFIG_DUOWEN_APC_INIT
 	jal	ra, vaisra_cpu_init
 #endif
+#endif
 	.endm
 	.macro	boot1_hook
+	jal	ra, duowen_dual_init
 #ifdef CONFIG_DUOWEN_PMA
 	jal	ra, duowen_pma_soc_init
 #endif
+#ifdef CONFIG_DUOWEN_APC_BOOT_HOOK
 #if defined(CONFIG_DUOWEN_NOC) && defined(CONFIG_DUOWEN_APC)
 	jal	ra, duowen_noc_init
 #endif
+#endif
 	.endm
 	.macro	boot2_hook
+#ifdef CONFIG_DUOWEN_APC_BOOT_HOOK
 #ifdef CONFIG_DUOWEN_PMA
 	jal	ra, duowen_pma_cpu_init
 #endif
-	.endm
 #endif
+	.endm
 #endif
 
 #ifndef __ASSEMBLY__
+void duowen_dual_init(void);
+void duowen_pll_init(void);
+#ifdef CONFIG_MMU
+void duowen_mmu_init(void);
+#else
+#define duowen_mmu_init()	do { } while (0)
+#endif
 void board_init_clock(void);
 void board_init_timestamp(void);
 #ifdef CONFIG_DUOWEN_APC_INIT

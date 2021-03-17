@@ -165,11 +165,8 @@ config DUOWEN_BOOT_APC
 	  This is normally used for APC ZSBL/FSBL configuration.
 
 config DUOWEN_APC_BOOT_HOOK
-	bool "Enable boot ROM hooks"
+	bool "Enable APC boot ROM hooks"
 	depends DUOWEN_APC
-	select ARCH_HAS_BOOT0
-	select ARCH_HAS_BOOT1
-	select ARCH_HAS_BOOT2
 
 config DUOWEN_FSBL_SPI
 	bool "Build SPI flash resident FSBL"
@@ -228,7 +225,7 @@ if DUOWEN_LOAD
 
 config DUOWEN_LOAD_SRAM
 	bool "Enable load from SRAM"
-	depends DUOWEN_ASBL
+	depends DUOWEN_ASBL && DUOWEN_APC_BOOT_HOOK
 	depends SIMULATION
 	help
 	  Enable APC self-bootloader (ASBL) to jump to the SRAM base

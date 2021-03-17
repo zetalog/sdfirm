@@ -139,6 +139,10 @@
 #define IMC_BOOT_SD			0x00
 #define IMC_BOOT_SSI			0x01
 
+/* SOCKET_ID */
+#define IMC_SOCKET_ID			_BV(1)
+#define IMC_CHIP_LINK			_BV(0)
+
 /* SHUTDN_REQ/ACK */
 #define IMC_DDR1_CTRL			15
 #define IMC_DDR1			14 /* DDR AXI */
@@ -211,6 +215,8 @@
 #define imc_sim_boot_from()	(__raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_DDR)
 #define imc_load_from()		(__raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_SSI)
 
+#define imc_socket_id()					\
+	(__raw_readl(SCSR_SOCKET_ID) & IMC_SOCKET_ID ? 1 : 0)
 #define imc_pma_read_cfg(n)						\
 	MAKELLONG(__raw_readl(SCSR_PMA_CFG_LO(n)),			\
 		  __raw_readl(SCSR_PMA_CFG_HI(n)))

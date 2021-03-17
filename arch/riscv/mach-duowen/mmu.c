@@ -43,15 +43,10 @@
 #include <target/console.h>
 
 #ifdef CONFIG_CRCNTL
-caddr_t duowen_clk_reg_base = __DUOWEN_CLK_BASE;
-caddr_t duowen_cfab_clk_reg_base = __DUOWEN_CFAB_CLK_BASE;
-caddr_t duowen_apc_clk_reg_base[4] = {
-	__DUOWEN_APC_CLK_BASE(0),
-	__DUOWEN_APC_CLK_BASE(1),
-	__DUOWEN_APC_CLK_BASE(2),
-	__DUOWEN_APC_CLK_BASE(3),
-};
-caddr_t duowen_eth_clk_reg_base = __DUOWEN_ETH_CLK_BASE;
+caddr_t duowen_clk_reg_base;
+caddr_t duowen_cfab_clk_reg_base;
+caddr_t duowen_apc_clk_reg_base[4];
+caddr_t duowen_eth_clk_reg_base;
 
 void duowen_mmu_map_clk(void)
 {
@@ -106,7 +101,7 @@ void duowen_mmu_dump_clk(void)
 #endif
 
 #ifdef CONFIG_DUOWEN_UART
-caddr_t duowen_uart_reg_base = __DUOWEN_UART_BASE;
+caddr_t duowen_uart_reg_base;
 
 void duowen_mmu_map_uart(int n)
 {
@@ -125,12 +120,8 @@ void duowen_mmu_dump_uart(void)
 #endif
 
 #ifdef CONFIG_DUOWEN_GPIO
-caddr_t duowen_gpio_reg_base[3] = {
-	__DUOWEN_GPIO_BASE(0),
-	__DUOWEN_GPIO_BASE(1),
-	__DUOWEN_GPIO_BASE(2),
-};
-caddr_t duowen_tlmm_reg_base = __DUOWEN_TLMM_BASE;
+caddr_t duowen_gpio_reg_base[3];
+caddr_t duowen_tlmm_reg_base;
 
 void duowen_mmu_map_gpio(void)
 {
@@ -166,7 +157,7 @@ void duowen_mmu_dump_gpio(void)
 #endif
 
 #ifdef CONFIG_DUOWEN_SCSR
-caddr_t duowen_scsr_reg_base = __DUOWEN_SCSR_BASE;
+caddr_t duowen_scsr_reg_base;
 
 void duowen_mmu_map_scsr(void)
 {
@@ -190,4 +181,29 @@ void duowen_mmu_dump_maps(void)
 	duowen_mmu_dump_gpio();
 	duowen_mmu_dump_clk();
 	duowen_mmu_dump_uart();
+}
+
+void duowen_mmu_init(void)
+{
+#ifdef CONFIG_CRCNTL
+	duowen_clk_reg_base = __DUOWEN_CLK_BASE;
+	duowen_cfab_clk_reg_base = __DUOWEN_CFAB_CLK_BASE;
+	duowen_apc_clk_reg_base[0] = __DUOWEN_APC_CLK_BASE(0);
+	duowen_apc_clk_reg_base[1] = __DUOWEN_APC_CLK_BASE(1);
+	duowen_apc_clk_reg_base[2] = __DUOWEN_APC_CLK_BASE(2);
+	duowen_apc_clk_reg_base[3] = __DUOWEN_APC_CLK_BASE(3);
+	duowen_eth_clk_reg_base = __DUOWEN_ETH_CLK_BASE;
+#endif
+#ifdef CONFIG_DUOWEN_UART
+	duowen_uart_reg_base = __DUOWEN_UART_BASE;
+#endif
+#ifdef CONFIG_DUOWEN_GPIO
+	duowen_gpio_reg_base[0] = __DUOWEN_GPIO_BASE(0);
+	duowen_gpio_reg_base[1] = __DUOWEN_GPIO_BASE(1);
+	duowen_gpio_reg_base[2] = __DUOWEN_GPIO_BASE(2);
+	duowen_tlmm_reg_base = __DUOWEN_TLMM_BASE;
+#endif
+#ifdef CONFIG_DUOWEN_SCSR
+	duowen_scsr_reg_base = __DUOWEN_SCSR_BASE;
+#endif
 }

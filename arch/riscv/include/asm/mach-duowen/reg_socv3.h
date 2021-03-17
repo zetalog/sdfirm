@@ -42,14 +42,13 @@
 #ifndef __REG_SOCv3_DUOWEN_H_INCLUDE__
 #define __REG_SOCv3_DUOWEN_H_INCLUDE__
 
+#ifndef __ASSEMBLY__
+unsigned long duowen_soc_base;
+#endif
+
 #define SOC0_BASE		0
 #define SOC1_BASE		ULL(0x80000000000)
-#ifdef CONFIG_DUOWEN_SOC0
-#define SOC_BASE		SOC0_BASE
-#endif
-#ifdef CONFIG_DUOWEN_SOC1
-#define SOC_BASE		SOC1_BASE
-#endif
+#define SOC_BASE		duowen_soc_base
 
 /* Local fabric */
 #define LCSR_BASE		ULL(0xFF91000000)
@@ -134,7 +133,7 @@
 #define MSG_BASE		(SOC_BASE + ULL(0xFF601FFF00))
 
 #define DEV_BASE		(SOC_BASE + ULL(0xFF00000000))
-#define DEV_SIZE		(SOC_BASE + ULL(0x0100000000))
+#define DEV_SIZE		ULL(0x0100000000)
 
 /* DDR memory region */
 #define __DDR_BASE		ULL(0x0000000000)

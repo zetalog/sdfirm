@@ -76,7 +76,7 @@ uint8_t __fls64(uint64_t quad);
 #define __ilog2_u16(n)	__fls16(n)
 #define __ilog2_u32(n)	__fls32(n)
 #define __ilog2_u64(n)	__fls64(n)
-extern uint8_t ____ilog2_NaN(void);
+extern __noreturn uint8_t ____ilog2_NaN(void);
 #define ilog2_const(n)			\
 (					\
 	(n) < 1 ? ____ilog2_NaN() :	\

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Mar 15 10:29:26 2021
+# Wed Mar 17 15:42:35 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -110,6 +110,9 @@ CONFIG_RISCV_ENTR_M=y
 # CONFIG_RISCV_EXIT_S is not set
 CONFIG_RISCV_EXIT_M=y
 CONFIG_SYS_LOADER=y
+CONFIG_ARCH_HAS_BOOT0=y
+CONFIG_ARCH_HAS_BOOT1=y
+CONFIG_ARCH_HAS_BOOT2=y
 
 #
 # System peripherals

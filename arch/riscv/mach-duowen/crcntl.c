@@ -45,18 +45,21 @@
 /*===========================================================================
  * DUOWEN unitified PLL (crcntl, cohfab, cluster) APIs
  *===========================================================================*/
-phys_addr_t duowen_pll_reg_base[DUOWEN_MAX_PLLS] = {
-	__CRCNTL_PLL_REG(0, 0),
-	__CRCNTL_PLL_REG(1, 0),
-	__CRCNTL_PLL_REG(2, 0),
-	__CRCNTL_PLL_REG(3, 0),
-	__DUOWEN_CFAB_CLK_BASE,
-	__DUOWEN_APC_CLK_BASE(0),
-	__DUOWEN_APC_CLK_BASE(1),
-	__DUOWEN_APC_CLK_BASE(2),
-	__DUOWEN_APC_CLK_BASE(3),
-	__DUOWEN_ETH_CLK_BASE,
-};
+phys_addr_t duowen_pll_reg_base[DUOWEN_MAX_PLLS];
+
+void duowen_pll_init(void)
+{
+	duowen_pll_reg_base[0] = __CRCNTL_PLL_REG(0, 0);
+	duowen_pll_reg_base[1] = __CRCNTL_PLL_REG(1, 0);
+	duowen_pll_reg_base[2] = __CRCNTL_PLL_REG(2, 0);
+	duowen_pll_reg_base[3] = __CRCNTL_PLL_REG(3, 0);
+	duowen_pll_reg_base[4] = __DUOWEN_CFAB_CLK_BASE;
+	duowen_pll_reg_base[5] = __DUOWEN_APC_CLK_BASE(0);
+	duowen_pll_reg_base[6] = __DUOWEN_APC_CLK_BASE(1);
+	duowen_pll_reg_base[7] = __DUOWEN_APC_CLK_BASE(2);
+	duowen_pll_reg_base[8] = __DUOWEN_APC_CLK_BASE(3);
+	duowen_pll_reg_base[9] = __DUOWEN_ETH_CLK_BASE;
+}
 
 void duowen_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val)
 {

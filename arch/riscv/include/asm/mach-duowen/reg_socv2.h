@@ -131,7 +131,7 @@
 #define MSG_BASE		(SOC_BASE + ULL(0xFF601FFF00))
 
 #define DEV_BASE		(SOC_BASE + ULL(0xFF00000000))
-#define DEV_SIZE		(SOC_BASE + ULL(0x0080000000))
+#define DEV_SIZE		ULL(0x0080000000)
 
 /* DDR memory region */
 #define __DDR_BASE		ULL(0x0000000000)
