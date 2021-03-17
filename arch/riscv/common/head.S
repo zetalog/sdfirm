@@ -215,11 +215,11 @@ ENTRY(__start)
 
 	/* Jump to warm boot if it is not the boot core */
 	get_hartid a6
-	li	t0, 1
-	sll	t0, t0, a6
-	get_hartmask t1
-	and	t0, t0, t1
-	beqz	t0, secondary_park
+	li	a4, 1
+	sll	a4, a4, a6
+	get_hartmask a5
+	and	a4, a4, a5
+	beqz	a4, secondary_park
 	/* Pick up boot core */
 	li	a7, BOOT_HART
 	bne	a6, a7, secondary_wait_for_abi_relocate
