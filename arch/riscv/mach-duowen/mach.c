@@ -57,14 +57,28 @@
 #define APC_JUMP_ENTRY		(__DDR_BASE + 0x80)
 #define APC_BOOT_ENTRY		APC_ROM_BASE
 #define IMC_BOOT_ENTRY		(RAM_BASE + BOOT_OFFSET)
-#define APC_SELF_ENTRY		APC_JUMP_ENTRY
 
 #ifdef CONFIG_DUOWEN_PMA
-void duowen_pma_init(void)
+void duowen_pma_soc_init(void)
 {
 	int n = 0;
 
-	/* PMA configured for vaisra_beta test bench */
+	/* Enable SoC PMA */
+	n += imc_pma_set(n, PMA_AT_NORMAL | PMA_S_INNER, DDR_BASE,
+			 ilog2_const(max(SZ_2M, DDR_SIZE)));
+	n += imc_pma_set(n, PMA_AT_DEVICE,               DEV_BASE,
+			 ilog2_const(max(SZ_2M, DEV_SIZE)));
+	n += imc_pma_set(n, PMA_AT_NORMAL | PMA_S_INNER, SOC1_BASE + DDR_BASE,
+			 ilog2_const(max(SZ_2M, DDR_SIZE)));
+	n += imc_pma_set(n, PMA_AT_DEVICE,               SOC1_BASE + DEV_BASE,
+			 ilog2_const(max(SZ_2M, DEV_SIZE)));
+}
+
+void duowen_pma_cpu_init(void)
+{
+	int n = 0;
+
+	/* Enable CPU PMA */
 	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER, DDR_BASE,
 		     ilog2_const(max(SZ_2M, DDR_SIZE)));
 	n += pma_set(n, PMA_AT_DEVICE,               DEV_BASE,

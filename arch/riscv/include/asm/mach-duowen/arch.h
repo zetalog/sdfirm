@@ -72,13 +72,16 @@
 #endif
 	.endm
 	.macro	boot1_hook
+#ifdef CONFIG_DUOWEN_PMA
+	jal	ra, duowen_pma_soc_init
+#endif
 #if defined(CONFIG_DUOWEN_NOC) && defined(CONFIG_DUOWEN_APC)
 	jal	ra, duowen_noc_init
 #endif
 	.endm
 	.macro	boot2_hook
 #ifdef CONFIG_DUOWEN_PMA
-	jal	ra, duowen_pma_init
+	jal	ra, duowen_pma_cpu_init
 #endif
 	.endm
 #endif
@@ -92,10 +95,13 @@ void vaisra_cpu_init(void);
 #else
 #define vaisra_cpu_init()	do { } while (0)
 #endif
+void duowen_smmu_init(void);
 #ifdef CONFIG_DUOWEN_PMA
-void duowen_pma_init(void);
+void duowen_pma_cpu_init(void);
+void duowen_pma_soc_init(void);
 #else
-#define duowen_pma_init()	do { } while (0)
+#define duowen_pma_cpu_init()	do { } while (0)
+#define duowen_pma_soc_init()	do { } while (0)
 #endif
 #endif /* __ASSEMBLY__ */
 
