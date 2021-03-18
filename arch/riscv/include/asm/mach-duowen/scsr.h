@@ -217,6 +217,8 @@
 
 #define imc_socket_id()					\
 	(__raw_readl(SCSR_SOCKET_ID) & IMC_SOCKET_ID ? 1 : 0)
+#define imc_chip_link()					\
+	(!!(__raw_readl(SCSR_SOCKET_ID) & IMC_CHIP_LINK))
 #define imc_pma_read_cfg(n)						\
 	MAKELLONG(__raw_readl(SCSR_PMA_CFG_LO(n)),			\
 		  __raw_readl(SCSR_PMA_CFG_HI(n)))

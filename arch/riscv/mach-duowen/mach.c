@@ -325,7 +325,8 @@ void board_late_init(void)
 
 	/* Coherence initialization */
 	duowen_imc_noc_init();
-	pci_platform_init();
+	if (imc_chip_link())
+		pci_platform_init();
 
 	/* Non-BBL bootloader initialization */
 	board_boot_early();
