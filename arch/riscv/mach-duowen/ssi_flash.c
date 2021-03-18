@@ -145,7 +145,7 @@ void duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size, bool jump)
 }
 #endif
 
-static int do_flash_dump(int argc, char *argv[])
+static int do_flash_read(int argc, char *argv[])
 {
 	uint8_t buffer[GPT_LBA_SIZE];
 	uint32_t addr = 512;
@@ -162,6 +162,29 @@ static int do_flash_dump(int argc, char *argv[])
 	}
 	mtd_load(board_flash, buffer, addr, size);
 	hexdump(0, buffer, 1, size);
+	return 0;
+}
+
+static int do_flash_write(int argc, char *argv[])
+{
+	uint8_t buffer[GPT_LBA_SIZE];
+	uint32_t addr = 512;
+	size_t size = 32;
+	uint8_t byte = 'T';
+
+	if (argc > 2)
+		addr = strtoul(argv[2], NULL, 0);
+	if (argc > 3)
+		size = strtoul(argv[3], NULL, 0);
+	if (size > GPT_LBA_SIZE) {
+		printf("size should be less or equal than %d\n",
+		       GPT_LBA_SIZE);
+		return -EINVAL;
+	}
+	if (argc > 4)
+		byte = strtoul(argv[4], NULL, 0);
+	memset(buffer, byte, size);
+	mtd_store(board_flash, buffer, addr, size);
 	return 0;
 }
 
@@ -233,8 +256,10 @@ int do_flash(int argc, char *argv[])
 	if (argc < 2)
 		return -EINVAL;
 
-	if (strcmp(argv[1], "dump") == 0)
-		return do_flash_dump(argc, argv);
+	if (strcmp(argv[1], "read") == 0)
+		return do_flash_read(argc, argv);
+	if (strcmp(argv[1], "write") == 0)
+		return do_flash_write(argc, argv);
 	if (strcmp(argv[1], "gpt") == 0) {
 		gpt_mtd_dump(board_flash);
 		return 0;
@@ -246,10 +271,15 @@ int do_flash(int argc, char *argv[])
 }
 
 DEFINE_COMMAND(flash, do_flash, "SSI flash commands",
-	"dump [addr] [size]\n"
-	"    - dump content of SSI flash\n"
+	"read [addr] [size]\n"
+	"    - read content of SSI flash\n"
 	"      addr: default to 512\n"
 	"      size: default to 32\n"
+	"write [addr] [size] [byte]\n"
+	"    - write content of SSI flash\n"
+	"      addr: default to 512\n"
+	"      size: default to 32\n"
+	"      byte: byte value\n"
 	"gpt\n"
 	"    - dump GPT partitions from SSI flash\n"
 	"irq\n"

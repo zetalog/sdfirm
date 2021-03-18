@@ -796,8 +796,12 @@ mmc_card_t mmc_register_card(mmc_rca_t rca);
 /* MMC external card APIs */
 int mmc_card_read_async(mmc_card_t cid, uint8_t *buf,
 			mmc_lba_t lba, size_t cnt);
+int mmc_card_write_async(mmc_card_t cid, uint8_t *buf,
+			 mmc_lba_t lba, size_t cnt);
 int mmc_card_read_sync(mmc_card_t cid, uint8_t *buf,
 		       mmc_lba_t lba, size_t cnt);
+int mmc_card_write_sync(mmc_card_t cid, uint8_t *buf,
+			mmc_lba_t lba, size_t cnt);
 mmc_slot_t mmc_card_slot(mmc_card_t cid);
 bool mmc_card_busy(mmc_card_t cid);
 bool mmc_card_capacity(mmc_card_t cid, uint16_t *blk_len, uint64_t *blk_cnt);

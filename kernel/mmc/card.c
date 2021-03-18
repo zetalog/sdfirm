@@ -181,6 +181,28 @@ int mmc_card_read_async(mmc_card_t cid, uint8_t *buf,
 	return 0;
 }
 
+int mmc_card_write_async(mmc_card_t cid, uint8_t *buf,
+			 mmc_lba_t lba, size_t cnt)
+{
+	__unused mmc_slot_t sslot;
+
+	if (!buf)
+		return -EINVAL;
+	if (cid >= mmc_nr_cards)
+		return -ENODEV;
+	if (mem_cards[cid].tran)
+		return -EBUSY;
+	mem_cards[cid].tran = MMC_OP_WRITE_BLOCKS;
+	mem_cards[cid].buf = buf;
+	mem_cards[cid].lba = lba;
+	mem_cards[cid].cnt = cnt;
+	mem_cards[cid].res = false;
+	sslot = mmc_slot_save(mmc_card_slot(cid));
+	mmc_slot_start_tran(mem_cards[cid].rca);
+	mmc_slot_restore(sslot);
+	return 0;
+}
+
 bool mmc_card_busy(mmc_card_t cid)
 {
 	__unused mmc_slot_t sslot;
@@ -211,6 +233,25 @@ int mmc_card_read_sync(mmc_card_t cid, uint8_t *buf,
 	return mem_cards[cid].res ? 0 : -EINVAL;
 }
 
+int mmc_card_write_sync(mmc_card_t cid, uint8_t *buf,
+			mmc_lba_t lba, size_t cnt)
+{
+	int ret;
+	irq_flags_t flags;
+
+	ret = mmc_card_write_async(cid, buf, lba, cnt);
+	if (ret)
+		return ret;
+	while (mmc_card_busy(cid)) {
+		irq_local_save(flags);
+		irq_local_enable();
+		bh_sync();
+		irq_local_disable();
+		irq_local_restore(flags);
+	}
+	return mem_cards[cid].res ? 0 : -EINVAL;
+}
+
 static int do_card_list(int argc, char *argv[])
 {
 	mmc_card_t cid;
@@ -225,7 +266,8 @@ static int do_card_list(int argc, char *argv[])
 }
 
 __align(MMC_DATA_ALIGN) uint8_t mem_card_buf[2 * MMC_DEF_BL_LEN];
-static int do_card_dump(int argc, char *argv[])
+
+static int do_card_read(int argc, char *argv[])
 {
 	mmc_card_t cid;
 	mmc_lba_t lba = 0;
@@ -250,6 +292,32 @@ static int do_card_dump(int argc, char *argv[])
 	return 0;
 }
 
+static int do_card_write(int argc, char *argv[])
+{
+	mmc_card_t cid;
+	mmc_lba_t lba = 0;
+	size_t cnt = 1;
+	uint8_t byte = 'T';
+
+	if (argc < 3)
+		return -EINVAL;
+	cid = strtoul(argv[2], 0, 0);
+	if (argc > 3)
+		lba = (mmc_lba_t)strtoul(argv[3], 0, 0);
+	if (argc > 4)
+		cnt = (size_t)strtoul(argv[4], 0, 0);
+	if (cnt > 2)
+		cnt = 2;
+	if (cnt < 1)
+		cnt = 1;
+	if (argc > 5)
+		byte = (uint8_t)strtoul(argv[5], 0, 0);
+	memset(mem_card_buf, byte, 2 * MMC_DEF_BL_LEN);
+	if (mmc_card_write_sync(cid, mem_card_buf, lba, cnt))
+		printf("write_blocks %016x(%d) failure.\n", lba, cnt);
+	return 0;
+}
+
 static int do_card(int argc, char *argv[])
 {
 	if (argc < 2)
@@ -257,14 +325,18 @@ static int do_card(int argc, char *argv[])
 
 	if (strcmp(argv[1], "list") == 0)
 		return do_card_list(argc, argv);
-	if (strcmp(argv[1], "dump") == 0)
-		return do_card_dump(argc, argv);
+	if (strcmp(argv[1], "read") == 0)
+		return do_card_read(argc, argv);
+	if (strcmp(argv[1], "write") == 0)
+		return do_card_write(argc, argv);
 	return 0;
 }
 
 DEFINE_COMMAND(mmcsd, do_card, "MMC/SD card commands",
 	"list\n"
 	"    - list slots and cards\n"
-	"dump card lba cnt\n"
-	"    - dump content of number (cnt) of blocks (lba)\n"
+	"read card lba cnt\n"
+	"    - read content of number (cnt) of blocks (lba)\n"
+	"write card lba cnt byte\n"
+	"    - write content of number (cnt) of blocks (lba)\n"
 );

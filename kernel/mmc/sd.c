@@ -398,6 +398,32 @@ static void sd_handle_read_blocks(bool is_op)
 		sd_handle_select_card(false);
 }
 
+static void sd_handle_write_blocks(bool is_op)
+{
+	if (mmc_state_is(tran)) {
+		if (!(mmc_slot_ctrl.flags & MMC_SLOT_TRANS_START)) {
+			raise_bits(mmc_slot_ctrl.flags, MMC_SLOT_TRANS_START);
+			unraise_bits(mmc_slot_ctrl.flags, MMC_SLOT_TRANS_STOP);
+			if (mmc_slot_ctrl.trans_cnt > 1)
+				mmc_cmd(MMC_CMD_WRITE_MULTIPLE_BLOCK);
+			else
+				mmc_cmd(MMC_CMD_WRITE_BLOCK);
+		} else if (mmc_slot_ctrl.flags & MMC_SLOT_TRANS_STOP) {
+			unraise_bits(mmc_slot_ctrl.flags, MMC_SLOT_TRANS_START);
+			if (is_op)
+				mmc_op_success();
+		} else {
+			mmc_set_block_data(0);
+			mmc_cmd(MMC_CMD_STOP_TRANSMISSION);
+		}
+	} else if (mmc_state_is(__ina))
+		mmc_cmd(MMC_CMD_GO_INACTIVE_STATE);
+	else if (mmc_state_is(ina))
+		mmc_op_failure();
+	else if (mmc_state_is(stby))
+		sd_handle_select_card(false);
+}
+
 void mmc_phy_handle_seq(void)
 {
 	if (mmc_op_is(MMC_OP_IDENTIFY_CARD))
@@ -410,6 +436,8 @@ void mmc_phy_handle_seq(void)
 		sd_handle_deselect_card(true);
 	if (mmc_op_is(MMC_OP_READ_BLOCKS))
 		sd_handle_read_blocks(true);
+	if (mmc_op_is(MMC_OP_WRITE_BLOCKS))
+		sd_handle_write_blocks(true);
 }
 
 static sd_cid_t sd_decode_cid(mmc_r2_t raw_cid)

@@ -49,6 +49,7 @@
 
 #define SD_CLASS2	1
 #define SD_CLASS5	1
+#define SD_CLASS7	1
 #define SD_CLASS8	1
 #define SD_CLASS10	1
 
