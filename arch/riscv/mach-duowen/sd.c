@@ -358,7 +358,7 @@ void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size, bool jump)
 #else
 void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size, bool jump)
 {
-	gpt_mtd_copy(board_sdcard, boot, addr, size);
+	mtd_load(board_sdcard, boot, addr, size);
 	if (jump)
 		__boot_jump(boot);
 }

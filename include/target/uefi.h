@@ -120,13 +120,11 @@ int gpt_get_part_by_name(mtd_t mtd, const char *part_name,
 			 uint16_t *pad_size);
 int gpt_get_file_by_name(mtd_t mtd, const char *file_name,
 			 mtd_addr_t *offset, mtd_size_t *size);
-void gpt_mtd_copy(mtd_t mtd, void *buf, mtd_addr_t addr, mtd_size_t size);
 void gpt_mtd_dump(mtd_t mtd);
 #else
 #define gpt_pgpt_init()				do { } while (0)
 #define gpt_get_file_by_name(mtd, n, o, s)	-EINVAL
 #define gpt_get_part_by_name(mtd, n, o, s, p)	-EINVAL
-#define gpt_mtd_copy(mtd, b, a, s)		do { } while (0)
 #define gpt_mtd_dump(mtd)			do { } while (0)
 #endif
 

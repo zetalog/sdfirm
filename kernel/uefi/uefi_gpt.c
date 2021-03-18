@@ -95,7 +95,7 @@ int gpt_get_part_by_name(mtd_t mtd, const char *part_name,
 	if (part_name == NULL || offset == NULL || size == NULL)
 		return -EINVAL;
 
-	gpt_mtd_copy(mtd, sector_buffer,
+	mtd_load(mtd, sector_buffer,
 		     flash_addr_header, copy_size_header);
 #ifdef CONFIG_UEFI_GPT_DEBUG
 	gpt_header_print((struct gpt_header *)sector_buffer);
@@ -110,7 +110,7 @@ int gpt_get_part_by_name(mtd_t mtd, const char *part_name,
 		printf("gpt: Copying partion%d addr=0x%x size=0x%x..\n",
 		       i, flash_addr, copy_size);
 #endif
-		gpt_mtd_copy(mtd, entry_ptr, flash_addr, copy_size);
+		mtd_load(mtd, entry_ptr, flash_addr, copy_size);
 		flash_addr += copy_size;
 #ifdef CONFIG_UEFI_GPT_DEBUG
 		printf("gpt: Checking partition%d...\n", (i + 1));
@@ -168,23 +168,6 @@ static void gpt_dump_partition(int id, gpt_partition_entry *entry)
 	       entry->first_lba, entry->last_lba);
 }
 
-void gpt_mtd_copy(mtd_t mtd, void *buf, mtd_addr_t addr, mtd_size_t size)
-{
-	mtd_t smtd;
-	int i;
-	uint8_t *dst = buf;
-
-	if (mtd == INVALID_MTD_ID)
-		return;
-
-	smtd = mtd_save_device(mtd);
-	mtd_open(OPEN_READ, addr, size);
-	for (i = 0; i < size; i++)
-		dst[i] = mtd_read_byte();
-	mtd_close();
-	mtd_restore_device(smtd);
-}
-
 void gpt_mtd_dump(mtd_t mtd)
 {
 	uint8_t gpt_buf[GPT_LBA_SIZE];
@@ -200,14 +183,14 @@ void gpt_mtd_dump(mtd_t mtd)
 		printf("gpt: Error: Invalid MTD device\n");
 		return;
 	}
-	gpt_mtd_copy(mtd, &hdr, GPT_HEADER_LBA * GPT_LBA_SIZE,
+	mtd_load(mtd, &hdr, GPT_HEADER_LBA * GPT_LBA_SIZE,
 		     GPT_HEADER_BYTES);
 	partition_entries_lba_end = (hdr.partition_entries_lba +
 		(hdr.num_partition_entries * hdr.partition_entry_size +
 		 GPT_LBA_SIZE - 1) / GPT_LBA_SIZE);
 	for (i = hdr.partition_entries_lba;
 	     i < partition_entries_lba_end; i++) {
-		gpt_mtd_copy(mtd, gpt_buf, i * GPT_LBA_SIZE, GPT_LBA_SIZE);
+		mtd_load(mtd, gpt_buf, i * GPT_LBA_SIZE, GPT_LBA_SIZE);
 		gpt_entries = (gpt_partition_entry *)gpt_buf;
 		num_entries = GPT_LBA_SIZE / hdr.partition_entry_size;
 		for (j = 0; j < num_entries; j++) {

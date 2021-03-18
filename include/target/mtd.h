@@ -99,6 +99,9 @@ void mtd_write_buffer(mtd_addr_t addr,
 mtd_addr_t mtd_page_offset(mtd_addr_t addr, uint8_t pageorder);
 mtd_size_t mtd_page_size(uint8_t pageorder);
 
+void mtd_load(mtd_t mtd, void *buf, mtd_addr_t addr, mtd_size_t size);
+void mtd_store(mtd_t mtd, void *buf, mtd_addr_t addr, mtd_size_t size);
+
 mtd_cid_t mtd_register_chip(mtd_chip_t *chip);
 mtd_t mtd_add_device(struct mtd_info *info);
 #ifdef CONFIG_MTD_CONCAT

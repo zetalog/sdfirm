@@ -89,7 +89,7 @@ static int do_flash_dump(int argc, char *argv[])
 		       GPT_LBA_SIZE);
 		return -EINVAL;
 	}
-	gpt_mtd_copy(board_flash, buffer, addr, size);
+	mtd_load(board_flash, buffer, addr, size);
 	hexdump(0, buffer, 1, size);
 	return 0;
 }

@@ -457,6 +457,40 @@ void mtd_concat_init(void)
 #define mtd_concat_init()
 #endif
 
+void mtd_load(mtd_t mtd, void *buf, mtd_addr_t addr, mtd_size_t size)
+{
+	mtd_t smtd;
+	int i;
+	uint8_t *dst = buf;
+
+	if (mtd == INVALID_MTD_ID)
+		return;
+
+	smtd = mtd_save_device(mtd);
+	mtd_open(OPEN_READ, addr, size);
+	for (i = 0; i < size; i++)
+		dst[i] = mtd_read_byte();
+	mtd_close();
+	mtd_restore_device(smtd);
+}
+
+void mtd_store(mtd_t mtd, void *buf, mtd_addr_t addr, mtd_size_t size)
+{
+	mtd_t smtd;
+	int i;
+	uint8_t *dst = buf;
+
+	if (mtd == INVALID_MTD_ID)
+		return;
+
+	smtd = mtd_save_device(mtd);
+	mtd_open(OPEN_WRITE, addr, size);
+	for (i = 0; i < size; i++)
+		mtd_write_byte(dst[i]);
+	mtd_close();
+	mtd_restore_device(smtd);
+}
+
 void mtd_init(void)
 {
 	mtd_concat_init();
