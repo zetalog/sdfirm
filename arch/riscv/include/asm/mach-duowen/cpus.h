@@ -115,29 +115,6 @@
 #define HART_BASE		16
 #endif /* CONFIG_DUOWEN_BBL */
 #endif /* CONFIG_DUOWEN_SOC1 */
-#if defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
-#ifdef CONFIG_DUOWEN_DUAL
-#ifdef CONFIG_DUOWEN_BBL
-	.macro get_arch_smpid reg
-	andi	t0, \reg, 0xF0
-	andi	\reg, \reg, 0xF
-	beqz	t0, 2222f
-	addi	\reg, \reg, (MAX_CPU_NUM / 2)
-2222:
-	.endm
-#else /* CONFIG_DUOWEN_BBL */
-	.macro get_arch_smpid reg
-	addi	\reg, \reg, -HART_BASE
-	.endm
-#endif /* CONFIG_DUOWEN_BBL */
-#else /* CONFIG_DUOWEN_DUAL */
-	.macro get_arch_smpid reg
-	addi	\reg, \reg, -HART_BASE
-	.endm
-#endif /* CONFIG_DUOWEN_DUAL */
-#define ARCH_HAVE_SMPID		1
-#endif
-#define BOOT_HART		HART_BASE
 #ifdef CONFIG_DUOWEN_SOC_DUAL
 #ifdef CONFIG_DUOWEN_BBL
 #define MAX_HARTS		32

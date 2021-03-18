@@ -116,7 +116,7 @@ ENTRY(__sbi_entry)
 	get_hartid s6
 
 	/* Jump to warm boot if it is not the first core booting. */
-	li	s7, BOOT_HART
+	get_arch_hartboot s7
 	bne	s6, s7, secondary_wait_for_sbi_relocate
 
 	/* Allow main firmware to save info */

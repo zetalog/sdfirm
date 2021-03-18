@@ -47,20 +47,8 @@
 #define CPUS_PER_CLUSTER	CONFIG_SPIKE_SMP_CPUS
 #define CLUSTERS_PER_RAIL	1
 #define MAX_CPU_RAILS		1
-#define BOOT_HART		1
 #define MAX_HARTS		(CONFIG_SPIKE_SMP_CPUS + 1)
 #define HART_ALL		((CPU_TO_MASK(MAX_HARTS)-1)-1)
-#if defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
-	.macro get_arch_smpid reg
-	beqz	\reg, 7770f
-	addi	\reg, \reg, -1
-	j	7771f
-7770:
-	li	\reg, 4
-7771:
-	.endm
-#define ARCH_HAVE_SMPID		1
-#endif
 #else /* CONFIG_SPIKE_BOOT_CPU */
 #define CPUS_PER_CLUSTER	CONFIG_SPIKE_SMP_CPUS
 #define CLUSTERS_PER_RAIL	CONFIG_SPIKE_SMP_CLUSTERS

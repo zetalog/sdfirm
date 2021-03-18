@@ -90,6 +90,32 @@
 #endif
 #endif
 	.endm
+#ifdef CONFIG_DUOWEN_DUAL
+#ifdef CONFIG_DUOWEN_BBL
+	.macro get_arch_smpid reg
+	andi	t0, \reg, 0xF0
+	andi	\reg, \reg, 0xF
+	beqz	t0, 2222f
+	addi	\reg, \reg, (MAX_CPU_NUM / 2)
+2222:
+	.endm
+#else /* CONFIG_DUOWEN_BBL */
+	.macro get_arch_smpid reg
+	addi	\reg, \reg, -HART_BASE
+	.endm
+#endif /* CONFIG_DUOWEN_BBL */
+#else /* CONFIG_DUOWEN_DUAL */
+	.macro get_arch_smpid reg
+	addi	\reg, \reg, -HART_BASE
+	.endm
+#endif /* CONFIG_DUOWEN_DUAL */
+	.macro get_arch_hartmask reg
+	li	\reg, HART_ALL
+	.endm
+	.macro get_arch_hartboot reg
+	li	\reg, HART_BASE
+	.endm
+#define ARCH_HAVE_BOOT_SMP	1
 #endif
 
 #ifndef __ASSEMBLY__

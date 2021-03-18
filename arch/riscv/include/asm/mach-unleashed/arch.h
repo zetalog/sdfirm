@@ -49,6 +49,27 @@
 #include <asm/mach/pwm.h>
 #include <asm/mach/msel.h>
 
+#if defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
+#ifdef CONFIG_UNLEASHED_U54
+	.macro get_arch_smpid reg
+	beqz	\reg, 7770f
+	addi	\reg, \reg, -1
+	j	7771f
+7770:
+	li	\reg, 4
+7771:
+	.endm
+	.macro get_arch_hartmask reg
+	li	\reg, HART_ALL
+	.endm
+	/* Boot hart is the first U54 CPU */
+	.macro get_arch_hartboot reg
+	li	\reg, 1
+	.endm
+#define ARCH_HAVE_BOOT_SMP	1
+#endif /* CONFIG_UNLEASHED_U54 */
+#endif
+
 #ifndef __ASSEMBLY__
 void board_init_clock(void);
 

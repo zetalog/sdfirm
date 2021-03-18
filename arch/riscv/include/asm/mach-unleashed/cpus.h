@@ -51,31 +51,31 @@
 #ifdef CONFIG_UNLEASHED_U54_HART1
 #define HART1			C(1)
 #define CPU0			C(0)
-#else
+#else /* CONFIG_UNLEASHED_U54_HART1 */
 #define HART1			0
 #define CPU0			0
-#endif
+#endif /* CONFIG_UNLEASHED_U54_HART1 */
 #ifdef CONFIG_UNLEASHED_U54_HART2
 #define HART2			C(2)
 #define CPU1			C(1)
-#else
+#else /* CONFIG_UNLEASHED_U54_HART2 */
 #define HART2			0
 #define CPU1			0
-#endif
+#endif /* CONFIG_UNLEASHED_U54_HART2 */
 #ifdef CONFIG_UNLEASHED_U54_HART3
 #define HART3			C(3)
 #define CPU2			C(2)
-#else
+#else /* CONFIG_UNLEASHED_U54_HART3 */
 #define HART3			0
 #define CPU2			0
-#endif
+#endif /* CONFIG_UNLEASHED_U54_HART3 */
 #ifdef CONFIG_UNLEASHED_U54_HART4
 #define HART4			C(4)
 #define CPU3			C(3)
-#else
+#else /* CONFIG_UNLEASHED_U54_HART4 */
 #define HART4			0
 #define CPU3			0
-#endif
+#endif /* CONFIG_UNLEASHED_U54_HART4 */
 #define CPU_ALL			(CPU0 | CPU1 | CPU2 | CPU3)
 #define HART_ALL		(HART1 | HART2 | HART3 | HART4)
 #else /* CONFIG_UNLEASHED_U54_HART_MASK */
@@ -83,22 +83,10 @@
 #endif /* CONFIG_UNLEASHED_U54_HART_MASK */
 #ifdef CONFIG_SMP
 #define MAX_CPU_NUM		4 /* Excluding E51 */
-#else
+#else /* CONFIG_SMP */
 #define MAX_CPU_NUM		1
-#endif
-#define BOOT_HART		1
+#endif /* CONFIG_SMP */
 #define MAX_HARTS		5
-#if defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
-	.macro get_arch_smpid reg
-	beqz	\reg, 7770f
-	addi	\reg, \reg, -1
-	j	7771f
-7770:
-	li	\reg, 4
-7771:
-	.endm
-#define ARCH_HAVE_SMPID		1
-#endif
 #define CPUS_PER_CLUSTER	MAX_CPU_NUM
 #define CLUSTERS_PER_RAIL	1
 #define MAX_CPU_RAILS		1

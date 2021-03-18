@@ -69,21 +69,11 @@ struct scratch {
 
 #include <asm/mach/cpus.h>
 
-#ifndef BOOT_HART
-#define BOOT_HART		0
-#endif
 #ifndef MAX_HARTS
 #define MAX_HARTS		NR_CPUS
 #endif
 #ifndef HART_ALL
 #define HART_ALL		CPU_ALL
-#endif
-
-#if defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
-#ifndef ARCH_HAVE_SMPID
-	.macro get_arch_smpid reg
-	.endm
-#endif
 #endif
 
 #endif /* __RISCV_CPUS_H_INCLUDE__ */

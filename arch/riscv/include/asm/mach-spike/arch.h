@@ -48,4 +48,29 @@
  * instructions, registers.
  */
 
+/* Architecture specific bootloader macros */
+#if defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
+#ifdef CONFIG_SMP
+#ifdef CONFIG_SPIKE_BOOT_CPU
+/* This mode is used to simulate U54/APC boots where E51/IMC exist */
+	.macro get_arch_smpid reg
+	beqz	\reg, 7770f
+	addi	\reg, \reg, -1
+	j	7771f
+7770:
+	li	\reg, 4
+7771:
+	.endm
+	.macro get_arch_hartmask reg
+	li	\reg, HART_ALL
+	.endm
+	/* BOOT_HART is 1 to skip hart0 (E51/IMC) */
+	.macro get_arch_hartboot reg
+	li	\reg, 1
+	.endm
+#define ARCH_HAVE_BOOT_SMP	1
+#endif /* CONFIG_SPIKE_BOOT_CPU */
+#endif /* CONFIG_SMP */
+#endif
+
 #endif /* __ARCH_SPIKE_H_INCLUDE__ */

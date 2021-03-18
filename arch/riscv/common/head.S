@@ -68,10 +68,6 @@
 #endif
 	.endm
 
-	.macro get_hartmask reg
-	li	\reg, HART_ALL
-	.endm
-
 	.macro get_hartid reg
 	csrr	\reg, CSR_MHARTID
 	.endm
@@ -217,11 +213,11 @@ ENTRY(__start)
 	get_hartid a6
 	li	a4, 1
 	sll	a4, a4, a6
-	get_hartmask a5
+	get_arch_hartmask a5
 	and	a4, a4, a5
 	beqz	a4, secondary_park
 	/* Pick up boot core */
-	li	a7, BOOT_HART
+	get_arch_hartboot a7
 	bne	a6, a7, secondary_wait_for_abi_relocate
 
 #ifdef CONFIG_LOAD_TEXT
@@ -295,7 +291,7 @@ ENTRY(__sbi_exit)
 	init_gpsptp
 
 	get_hartid a6
-	li	a7, BOOT_HART
+	get_arch_hartboot a7
 	bne	a6, a7, secondary_start
 
 #ifdef CONFIG_MMU

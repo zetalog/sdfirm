@@ -85,4 +85,17 @@ unsigned long get_sp(void);
 unsigned long get_tp(void);
 #endif
 
+#if defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
+#ifndef ARCH_HAVE_BOOT_SMP
+	.macro get_arch_smpid reg
+	.endm
+	.macro get_arch_hartmask reg
+	li	\reg, HART_ALL
+	.endm
+	.macro get_arch_hartboot reg
+	li	\reg, 0
+	.endm
+#endif
+#endif
+
 #endif /* __ARCH_RISCV_H_INCLUDE__ */
