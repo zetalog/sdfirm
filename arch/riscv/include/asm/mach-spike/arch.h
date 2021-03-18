@@ -68,7 +68,6 @@
 	.macro get_arch_hartboot reg
 	li	\reg, 1
 	.endm
-#define ARCH_HAVE_BOOT_SMP	1
 #endif /* CONFIG_SPIKE_BOOT_CPU */
 #endif /* CONFIG_SMP */
 #endif

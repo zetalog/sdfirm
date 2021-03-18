@@ -48,6 +48,7 @@
 
 #define __VEC
 
+#include <asm/mach/reg.h>
 #include <asm/mach/scsr.h>
 #include <asm/mach/flash.h>
 #include <asm/mach/msg.h>
@@ -90,7 +91,7 @@
 #endif
 #endif
 	.endm
-#ifdef CONFIG_DUOWEN_DUAL
+#ifdef CONFIG_DUOWEN_SOC_DUAL
 #ifdef CONFIG_DUOWEN_BBL
 	.macro get_arch_smpid reg
 	andi	t0, \reg, 0xF0
@@ -99,23 +100,43 @@
 	addi	\reg, \reg, (MAX_CPU_NUM / 2)
 2222:
 	.endm
-#else /* CONFIG_DUOWEN_BBL */
-	.macro get_arch_smpid reg
-	addi	\reg, \reg, -HART_BASE
+	.macro get_arch_hartboot reg
+	li	\reg, SOC0_HART
 	.endm
-#endif /* CONFIG_DUOWEN_BBL */
-#else /* CONFIG_DUOWEN_DUAL */
-	.macro get_arch_smpid reg
-	addi	\reg, \reg, -HART_BASE
-	.endm
-#endif /* CONFIG_DUOWEN_DUAL */
 	.macro get_arch_hartmask reg
 	li	\reg, HART_ALL
 	.endm
-	.macro get_arch_hartboot reg
-	li	\reg, HART_BASE
+#else /* CONFIG_DUOWEN_BBL */
+	.macro get_arch_smpid reg
+	li	t1, SOC0_HART
+	li	t0, SCSR_SOCKET_ID
+	lw	t0, 0(t0)
+	andi	t0, t0, 2
+	beqz	t0, 3333f
+	addi	t1, t1, SOC1_HART
+3333:
+	add	\reg, \reg, t1
 	.endm
-#define ARCH_HAVE_BOOT_SMP	1
+	.macro get_arch_hartboot reg
+	li	\reg, SOC0_HART
+	li	t0, SCSR_SOCKET_ID
+	lw	t0, 0(t0)
+	andi	t0, t0, 2
+	beqz	t0, 4444f
+	addi	\reg, \reg, SOC1_HART
+4444:
+	.endm
+	.macro get_arch_hartmask reg
+	li	t0, CPU_ALL
+	li	t0, SCSR_SOCKET_ID
+	lw	t0, 0(t0)
+	andi	t0, t0, 2
+	beqz	t0, 5555f
+	slli	\reg, \reg, SOC1_HART
+5555:
+	.endm
+#endif /* CONFIG_DUOWEN_BBL */
+#endif /* CONFIG_DUOWEN_SOC_DUAL */
 #endif
 
 #ifndef __ASSEMBLY__

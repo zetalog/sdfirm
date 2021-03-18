@@ -105,6 +105,11 @@
 #define CPUS_PER_APC		2
 #define CPU_TO_APC(cpu)		((cpu) / CPUS_PER_APC)
 
+/* hartid bases */
+#define SOC0_HART		0
+#define SOC1_HART		16
+
+#ifdef CONFIG_DUOWEN_SOCv2
 #ifdef CONFIG_DUOWEN_SOC0
 #define HART_BASE		0
 #endif /* CONFIG_DUOWEN_SOC0 */
@@ -115,17 +120,24 @@
 #define HART_BASE		16
 #endif /* CONFIG_DUOWEN_BBL */
 #endif /* CONFIG_DUOWEN_SOC1 */
+#endif /* CONFIG_DUOWEN_SOCv2 */
+#ifdef CONFIG_DUOWEN_SOCv3
+#ifndef __ASSEMBLY__
+extern unsigned long duowen_hart_base;
+#endif
+#define HART_BASE		duowen_hart_base
+#endif
+
 #ifdef CONFIG_DUOWEN_SOC_DUAL
 #ifdef CONFIG_DUOWEN_BBL
 #define MAX_HARTS		32
 #define HART_ALL				\
 	((CPU_TO_MASK(MAX_CPU_NUM>>1)-1) |	\
-	 ((CPU_TO_MASK(MAX_CPU_NUM>>1)-1) << 16))
+	 ((CPU_TO_MASK(MAX_CPU_NUM>>1)-1) << SOC1_HART))
 #else /* CONFIG_DUOWEN_BBL */
 #define HART_ALL		((CPU_TO_MASK(MAX_CPU_NUM)-1) << HART_BASE)
 #endif /* CONFIG_DUOWEN_BBL */
-#else /* CONFIG_DUOWEN_SOC_DUAL */
-#define HART_ALL		((CPU_TO_MASK(MAX_CPU_NUM)-1) << HART_BASE)
+#define ARCH_HAVE_BOOT_SMP	1
 #endif /* CONFIG_DUOWEN_SOC_DUAL */
 
 #endif /* __CPUS_DUOWEN_H_INCLUDE__ */
