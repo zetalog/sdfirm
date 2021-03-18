@@ -48,7 +48,6 @@
 
 #define __VEC
 
-#include <asm/mach/reg.h>
 #include <asm/mach/scsr.h>
 #include <asm/mach/flash.h>
 #include <asm/mach/msg.h>
@@ -75,10 +74,10 @@
 	.endm
 	.macro	boot1_hook
 	jal	ra, duowen_dual_init
+#ifdef CONFIG_DUOWEN_APC_BOOT_HOOK
 #ifdef CONFIG_DUOWEN_PMA
 	jal	ra, duowen_pma_soc_init
 #endif
-#ifdef CONFIG_DUOWEN_APC_BOOT_HOOK
 #if defined(CONFIG_DUOWEN_NOC) && defined(CONFIG_DUOWEN_APC)
 	jal	ra, duowen_noc_init
 #endif
@@ -115,7 +114,7 @@
 	beqz	t0, 3333f
 	addi	t1, t1, SOC1_HART
 3333:
-	add	\reg, \reg, t1
+	sub	\reg, \reg, t1
 	.endm
 	.macro get_arch_hartboot reg
 	li	\reg, SOC0_HART
@@ -127,7 +126,7 @@
 4444:
 	.endm
 	.macro get_arch_hartmask reg
-	li	t0, CPU_ALL
+	li	\reg, CPU_ALL
 	li	t0, SCSR_SOCKET_ID
 	lw	t0, 0(t0)
 	andi	t0, t0, 2

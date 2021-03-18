@@ -46,11 +46,11 @@
  * wait_irq, cpu_relax, etc., as long as the CPU/Cache definitions and
  * configurable system bus targets (CPU/Cache, peripheral nodes).
  */
-#include <asm/mach/arch.h>
 #include <asm/reg.h>
 #include <asm/pmp.h>
 #include <asm/fp.h>
 #include <asm/counters.h>
+#include <asm/mach/arch.h>
 
 #ifdef CONFIG_ARCH_HAS_NOVEC
 #ifdef VEC_BASE
