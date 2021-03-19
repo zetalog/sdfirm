@@ -194,9 +194,7 @@
 #define CLUSTER2_HCLK		14
 #define CLUSTER3_HCLK		15
 #define COHFAB_HCLK		16
-#ifdef CONFIG_DUOWEN_SOCv3
 #define LCSR_CLK		18
-#endif /* CONFIG_DUOWEN_SOCv3 */
 #define SCSR_CLK		19
 #define TLMM_CLK		20
 #define PLIC_CLK		21
@@ -301,9 +299,7 @@
 #define cluster2_hclk		clkid(CLK_OUTPUT, CLUSTER2_HCLK)
 #define cluster3_hclk		clkid(CLK_OUTPUT, CLUSTER3_HCLK)
 #define cohfab_hclk		clkid(CLK_OUTPUT, COHFAB_HCLK)
-#ifdef CONFIG_DUOWEN_SOCv3
 #define lcsr_clk		clkid(CLK_OUTPUT, LCSR_CLK)
-#endif /* CONFIG_DUOWEN_SOCv3 */
 #define scsr_clk		clkid(CLK_OUTPUT, SCSR_CLK)
 #define tlmm_clk		clkid(CLK_OUTPUT, TLMM_CLK)
 #define plic_clk		clkid(CLK_OUTPUT, PLIC_CLK)

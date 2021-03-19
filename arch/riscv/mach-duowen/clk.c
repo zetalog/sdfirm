@@ -131,12 +131,7 @@ struct output_clk output_clks[] = {
 	},
 	[COHFAB_CFG_CLK] = {
 		.clk_dep = sysfab_clk,
-#ifdef CONFIG_DUOWEN_SOCv2
-		.clk_src = dma_clk,
-#endif
-#ifdef CONFIG_DUOWEN_SOCv3
 		.clk_src = pcie_clk,
-#endif
 		.flags = 0,
 	},
 	/* 4.4 System Fabric Clocks
@@ -173,13 +168,11 @@ struct output_clk output_clks[] = {
 		.clk_src = soc_clk,
 		.flags = CLK_CR,
 	},
-#ifdef CONFIG_DUOWEN_SOCv3
 	[LCSR_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = soc_clk,
 		.flags = CLK_CR,
 	},
-#endif /* CONFIG_DUOWEN_SOCv3 */
 	[WDT0_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
@@ -685,9 +678,7 @@ const char *output_clk_names[] = {
 	[PLIC_CLK] = "plic_clk",
 	[TLMM_CLK] = "tlmm_clk",
 	[SCSR_CLK] = "scsr_clk",
-#ifdef CONFIG_DUOWEN_SOCv3
 	[LCSR_CLK] = "lcsr_clk",
-#endif /* CONFIG_DUOWEN_SOCv3 */
 	[TMR0_CLK] = "tmr0_clk",
 	[TMR1_CLK] = "tmr1_clk",
 	[TMR2_CLK] = "tmr2_clk",

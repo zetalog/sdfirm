@@ -70,18 +70,6 @@
 #define SCSR_PMA_ADDR_LO(n)		SCSR_REG(0x140 + ((n) << 3))
 #define SCSR_PMA_ADDR_HI(n)		SCSR_REG(0x144 + ((n) << 3))
 
-#ifdef CONFIG_DUOWEN_SOCv2
-#define SCSR_BOOT_MODE			SCSR_REG(0x04)
-#define SCSR_IMC_BOOT_ADDR_LO		SCSR_REG(0x08)
-#define SCSR_IMC_BOOT_ADDR_HI		SCSR_REG(0x0C)
-#define SCSR_IMC_BOOT_ADDR_CFG_LO	SCSR_REG(0x10)
-#define SCSR_IMC_BOOT_ADDR_CFG_HI	SCSR_REG(0x14)
-#define SCSR_CHIP_LINK_CFG		SCSR_REG(0xC4)
-#define SCSR_CLAMP_CFG			SCSR_REG(0xD0)
-#define SCSR_CHIP_CFG			SCSR_REG(0xF0)
-#endif /* CONFIG_DUOWEN_SOCv2 */
-
-#ifdef CONFIG_DUOWEN_SOCv3
 #define LCSR_REG(offset)		(LCSR_BASE + (offset))
 
 #define SCSR_BOOT_MODE			LCSR_REG(0x00)
@@ -95,7 +83,6 @@
 #define SCSR_PARTIAL_GOOD		LCSR_REG(0x50)
 #define SCSR_APC_BOOT_ADDR_LO		LCSR_REG(0x60)
 #define SCSR_APC_BOOT_ADDR_HI		LCSR_REG(0x64)
-#endif /* CONFIG_DUOWEN_SOCv3 */
 
 /* SOC_HW_VERSION */
 #define SCSR_MINOR_OFFSET		0
@@ -234,7 +221,6 @@
 	} while (0)
 
 #ifndef __ASSEMBLY__
-#ifdef CONFIG_DUOWEN_SOCv3
 #define apc_get_boot_addr()				\
 	MAKELLONG(__raw_readl(SCSR_APC_BOOT_ADDR_LO),	\
 		  __raw_readl(SCSR_APC_BOOT_ADDR_HI))
@@ -257,12 +243,6 @@ void apc_set_jump_addr(caddr_t addr);
 #define apc_get_jump_addr()					\
 	MAKELLONG(__raw_readl(SCSR_APC_JUMP_ADDR_LO(0)),	\
 		  __raw_readl(SCSR_APC_JUMP_ADDR_HI(0)))
-#else
-#define apc_set_boot_addr(addr)		imc_set_boot_addr(addr)
-#define apc_get_boot_addr()		imc_get_boot_addr()
-#define apc_set_jump_addr(addr)		imc_set_boot_addr(addr)
-#define apc_get_jump_addr()		imc_get_boot_addr()
-#endif
 int imc_pma_set(int n, unsigned long attr,
 		phys_addr_t addr, unsigned long log2len);
 #endif

@@ -120,21 +120,6 @@ void reset_init(struct duowen_pcie_subsystem *pcie_subsystem)
 	write_apb((base + RESET_PHY), 0xf, port);
 	// #100ns
 
-#ifndef CONFIG_DUOWEN_SOCv3
-	switch (link_mode) {
-		case LINK_MODE_ZEBU:
-		case LINK_MODE_4_4_4_4:
-			write_apb((base + RESET_CORE_X4_0), 0xff, port);
-		case LINK_MODE_8_4_0_4:
-			write_apb((base + RESET_CORE_X4_1), 0xff, port);
-		case LINK_MODE_8_8_0_0:
-			write_apb((base + RESET_CORE_X8), 0xff, port);
-		case LINK_MODE_16_0_0_0:
-			write_apb((base + RESET_CORE_X16), 0xff, port);
-			break;
-	}
-#endif
-
 #ifndef TEST
 	while ((data & 0xf) != 0xf) {
 		data = read_apb((base + SRAM_STATUS), port);
@@ -200,7 +185,7 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
 	// #10ns
 	write_apb((base + SUBSYS_CONTROL), link_mode, port);
 
-#ifdef CONFIG_DUOWEN_SOCv3
+#ifdef CONFIG_DUOWEN
 	switch (link_mode) {
 		case LINK_MODE_ZEBU:
 		case LINK_MODE_4_4_4_4:

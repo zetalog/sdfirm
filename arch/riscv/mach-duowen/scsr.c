@@ -41,7 +41,6 @@
 
 #include <target/arch.h>
 
-#ifdef CONFIG_DUOWEN_SOCv3
 void apc_set_jump_addr(caddr_t addr)
 {
 	cpu_t cpu;
@@ -49,7 +48,6 @@ void apc_set_jump_addr(caddr_t addr)
 	for (cpu = 0; cpu < MAX_APC_NUM; cpu++)
 		__apc_set_jump_addr(CPU_TO_APC(cpu), addr);
 }
-#endif /* CONFIG_DUOWEN_SOCv3 */
 
 static void __pma_cfg(int n, unsigned long attr)
 {
