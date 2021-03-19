@@ -117,26 +117,18 @@ build_sdfirm riscv64 unleashed_fsbl
 ###########################################################################
 # DUOWEN ROMs
 ###########################################################################
-# Product
+# ROM ZSBL
 build_sdfirm riscv64 duowen_rom_imc
+# ROM ASBL
 build_sdfirm riscv64 duowen_rom_apc
-# Accelerator
-build_sdfirm riscv64 duowen_zsbl
-build_sdfirm riscv64 duowen_asbl
 ###########################################################################
 # DUOWEN bootloaders
 ###########################################################################
-# Product
-build_sdfirm riscv64 duowen_rom_fsbl
-# Accelerator
+# ROM FSBL
 build_sdfirm riscv64 duowen_fsbl
-# SPI FSBL
-# Product
+# SPI XSBL
 build_sdfirm riscv64 duowen_spi_imc
 build_sdfirm riscv64 duowen_spi_apc
-# Accelerator
-build_sdfirm riscv64 duowen_fsbl_imc
-build_sdfirm riscv64 duowen_fsbl_apc
 ###########################################################################
 # DUOWEN simulations
 ###########################################################################
