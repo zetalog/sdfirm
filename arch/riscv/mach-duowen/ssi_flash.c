@@ -81,9 +81,7 @@ typedef void (*boot_cb)(void *, uint32_t, uint32_t, bool);
 
 static __always_inline void __duowen_ssi_flash_select(uint32_t chips)
 {
-	__raw_clearl(SSI_EN, SSI_SSIENR(SSI_ID));
 	__raw_writel(chips, SSI_SER(SSI_ID));
-	__raw_setl(SSI_EN, SSI_SSIENR(SSI_ID));
 }
 
 static __always_inline void __duowen_ssi_flash_writeb(uint8_t byte)
@@ -102,11 +100,11 @@ static __always_inline uint8_t __duowen_ssi_flash_read(uint32_t addr)
 {
 	uint8_t byte;
 
-	__duowen_ssi_flash_select(_BV(0));
 	__duowen_ssi_flash_writeb(SF_READ_DATA);
 	__duowen_ssi_flash_writeb((uint8_t)(addr >> 16));
 	__duowen_ssi_flash_writeb((uint8_t)(addr >> 8));
 	__duowen_ssi_flash_writeb((uint8_t)(addr >> 0));
+	__duowen_ssi_flash_select(_BV(0));
 	byte = __duowen_ssi_flash_readb();
 	__duowen_ssi_flash_select(0);
 	return byte;

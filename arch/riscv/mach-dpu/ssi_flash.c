@@ -15,9 +15,7 @@ void dpu_ssi_flash_init(void)
 
 static __always_inline void dpu_ssi_flash_select(uint32_t chips)
 {
-	__raw_clearl(SSI_EN, SSI_SSIENR(0));
 	__raw_writel(chips, SSI_SER(0));
-	__raw_setl(SSI_EN, SSI_SSIENR(0));
 }
 
 static __always_inline void dpu_ssi_flash_writeb(uint8_t byte)
@@ -36,11 +34,11 @@ static __always_inline uint8_t dpu_ssi_flash_read(uint32_t addr)
 {
 	uint8_t byte;
 
-	dpu_ssi_flash_select(_BV(0));
 	dpu_ssi_flash_writeb(SF_READ_DATA);
 	dpu_ssi_flash_writeb((uint8_t)(addr >> 16));
 	dpu_ssi_flash_writeb((uint8_t)(addr >> 8));
 	dpu_ssi_flash_writeb((uint8_t)(addr >> 0));
+	dpu_ssi_flash_select(_BV(0));
 	byte = dpu_ssi_flash_readb();
 	dpu_ssi_flash_select(0);
 	return byte;
