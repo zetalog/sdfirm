@@ -555,7 +555,7 @@ int mmc_read_blocks(uint8_t *buf, mmc_lba_t lba,
 {
 	BUG_ON(!IS_ALIGNED(lba, MMC_DATA_ALIGN));
 
-	if (mmc_slot_ctrl.card_ocr & MMC_OCR_CCS) {
+	if (mmc_slot_ctrl.high_capacity) {
 		mmc_slot_ctrl.address = lba;
 		mmc_slot_ctrl.trans_len = MMC_DEF_BL_LEN;
 		mmc_slot_ctrl.trans_cnt = cnt;

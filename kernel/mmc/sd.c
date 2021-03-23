@@ -1004,10 +1004,8 @@ static uint32_t sd_block_address(void)
 {
 	uint32_t address;
 
-	if (mmc_slot_ctrl.high_capacity)
-		address = mmc_slot_ctrl.address / mmc_slot_ctrl.capacity_len;
-	else
-		address = mmc_slot_ctrl.address;
+	/* high capacity should be checked in mmc_core.c */
+	address = mmc_slot_ctrl.address;
 #ifdef CONFIG_MMC_DEBUG
 	printf("ARGUMENT(address): 0x%08lx\n", address);
 #endif
