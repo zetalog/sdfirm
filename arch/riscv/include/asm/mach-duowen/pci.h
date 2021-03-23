@@ -55,12 +55,12 @@
 #endif
 
 #ifdef SDFIRM
-  #include <driver/pcie_designware.h>
-  #ifdef CONFIG_DUOWEN_SOC0
-    #define SOCKET_OFFSET	0
-  #else
-    #define SOCKET_OFFSET	0x80000000000
-  #endif
+#include <driver/pcie_designware.h>
+#ifdef CONFIG_DUOWEN_SOC0
+#define SOCKET_OFFSET	0
+#else
+#define SOCKET_OFFSET	0x80000000000
+#endif
 #else
 #include "pcie_designware.h"
 #endif
@@ -182,19 +182,21 @@ void init_duowen_pcie_subsystem(void);
 
 struct duowen_pcie_subsystem
 {
-    uint64_t cfg_apb[5];
-    uint8_t link_mode;
-    uint8_t ctrl_cnt;
+	uint64_t cfg_apb[5];
+	uint8_t link_mode;
+	uint8_t ctrl_cnt;
+	int socket_id;
+	bool chiplink;
 
 #ifdef IPBENCH
-    //uint8_t port_
+	//uint8_t port_
 #endif
 
-    struct dw_pcie *controller;
+	struct dw_pcie *controller;
 
-    //uint8_t (* get_link_mode)(struct duowen_pcie_subsystem *pcie_subsystem);
-    //uint32_t (* apb_read)(uint64_t *addr);
-    //void (* apb_write)(uint64_t *addr, uint32_t val);
+	//uint8_t (* get_link_mode)(struct duowen_pcie_subsystem *pcie_subsystem);
+	//uint32_t (* apb_read)(uint64_t *addr);
+	//void (* apb_write)(uint64_t *addr, uint32_t val);
 };
 
 void pci_platform_init(void);

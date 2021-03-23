@@ -15,6 +15,8 @@ struct dw_pcie controllers[] =
 		.pp.cfg_size = PCIE_CORE_CFG_SIZE,
 		.pp.mem_base = 0,
 		.pp.mem_size = PCIE_CORE_MEM_SIZE,
+		.pp.chiplink = 0,
+		.pp.role = ROLE_RC,
 	},
 
 	// X8
@@ -26,6 +28,8 @@ struct dw_pcie controllers[] =
 		.pp.cfg_size = PCIE_CORE_CFG_SIZE,
 		.pp.mem_base = 0,
 		.pp.mem_size = PCIE_CORE_MEM_SIZE,
+		.pp.chiplink = 0,
+		.pp.role = ROLE_RC,
 	},
 
 	// X4_0
@@ -37,6 +41,8 @@ struct dw_pcie controllers[] =
 		.pp.cfg_size = PCIE_CORE_CFG_SIZE,
 		.pp.mem_base = 0,
 		.pp.mem_size = PCIE_CORE_MEM_SIZE,
+		.pp.chiplink = 0,
+		.pp.role = ROLE_RC,
 	},
 
 	//X4_1
@@ -48,6 +54,8 @@ struct dw_pcie controllers[] =
 		.pp.cfg_size = PCIE_CORE_CFG_SIZE,
 		.pp.mem_base = 0,
 		.pp.mem_size = PCIE_CORE_MEM_SIZE,
+		.pp.chiplink = 0,
+		.pp.role = ROLE_RC,
 	},
 };
 
@@ -60,7 +68,7 @@ uint32_t read_apb(uint64_t addr, uint8_t port)
 	data = readl(addr);
 #endif
 #ifdef CONFIG_DUOWEN_PCIE_DEBUG_ENABLE
-	printf("ReadAPB: addr: 0x%08x; data: 0x%08x, port: %d\n", addr, data, port);
+	printf("ReadAPB: addr: 0x%llx; data: 0x%08x, port: %d\n", addr, data, port);
 #endif
 	return data;
 }
@@ -103,13 +111,12 @@ void udelay(uint32_t time)
 
 static uint8_t duowen_get_link_mode(struct duowen_pcie_subsystem *pcie_subsystem)
 {
-	return DEFAULT_LINK_MODE;
+	return pcie_subsystem->link_mode;
 }
 
 void reset_init(struct duowen_pcie_subsystem *pcie_subsystem)
 {
 	uint64_t base = pcie_subsystem->cfg_apb[SUBSYS];
-	uint8_t link_mode = pcie_subsystem->link_mode;
 	uint8_t port = APB_PORT_SUBSYS;
 	uint32_t data = 0;
 
@@ -133,12 +140,13 @@ void dw_controller_init(struct duowen_pcie_subsystem *pcie_subsystem, int index)
 {
 	uint8_t port = APB_PORT_X16 + index;
 	uint64_t base = pcie_subsystem->cfg_apb[X16 + index];
+	struct dw_pcie *controller = pcie_subsystem->controller;
+	int role = (controller + index)->pp.role;
 
-#ifdef CONFIG_DW_PCIE_RC
-	write_apb((base + 0), 0xc810010, port);
-#else
-	write_apb((base + 0), 0xc810000, port);
-#endif
+	if (role == ROLE_EP )
+		write_apb((base + 0), 0xc810000, port);
+	else
+		write_apb((base + 0), 0xc810010, port);
 }
 
 void wait_controller_linkup(struct duowen_pcie_subsystem *pcie_subsystem, int index)
@@ -179,44 +187,20 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
 	struct dw_pcie *controller = pcie_subsystem->controller;
 	uint8_t port = APB_PORT_SUBSYS;
 	uint8_t link_mode = pcie_subsystem->link_mode;
+	bool chiplink = pcie_subsystem->chiplink;
+	int socket_id = pcie_subsystem->socket_id;
 
 	//assert(link_mode != LINK_MODE_INVALID);
 
 	// #10ns
 	write_apb((base + SUBSYS_CONTROL), link_mode, port);
+	write_apb((base + RESET_CORE_X4_0), 0xff, port);
+	write_apb((base + RESET_CORE_X4_1), 0xff, port);
+	write_apb((base + RESET_CORE_X8), 0xff, port);
+	write_apb((base + RESET_CORE_X16), 0xff, port);
 
-#ifdef CONFIG_DUOWEN
-	switch (link_mode) {
-		case LINK_MODE_ZEBU:
-		case LINK_MODE_4_4_4_4:
-			write_apb((base + RESET_CORE_X4_0), 0xff, port);
-		case LINK_MODE_8_4_0_4:
-			write_apb((base + RESET_CORE_X4_1), 0xff, port);
-		case LINK_MODE_8_8_0_0:
-			write_apb((base + RESET_CORE_X8), 0xff, port);
-		case LINK_MODE_16_0_0_0:
-			write_apb((base + RESET_CORE_X16), 0xff, port);
-			break;
-	}
-#endif
 	switch (link_mode) {
 		case LINK_MODE_4_4_4_4:     // 0: In DPU, X4_0
-#ifdef DPU
-			(controller + X16)->lane_num = 0;
-			(controller + X8)->lane_num = 0;
-			(controller + X4_0)->lane_num = 4;
-			(controller + X4_1)->lane_num = 0;
-
-			(controller + X16)->active = false;
-			(controller + X8)->active = false;
-			(controller + X4_0)->active = true;
-			(controller + X4_1)->active = false;
-
-			(controller + X16)->order = 0xff;
-			(controller + X8)->order = 0xff;
-			(controller + X4_0)->order = 0;
-			(controller + X4_1)->order = 0xff;
-#else
 			(controller + X16)->lane_num = 4;
 			(controller + X8)->lane_num = 4;
 			(controller + X4_0)->lane_num = 4;
@@ -232,25 +216,8 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
 			(controller + X4_0)->order = 2;
 			(controller + X4_1)->order = 3;
 
-#endif
 			break;
 		case LINK_MODE_8_4_0_4:     // 1: In DPU, X4_1
-#ifdef DPU
-			(controller + X16)->lane_num = 0;
-			(controller + X8)->lane_num = 0;
-			(controller + X4_0)->lane_num = 0;
-			(controller + X4_1)->lane_num = 4;
-
-			(controller + X16)->active = false;
-			(controller + X8)->active = false;
-			(controller + X4_0)->active = false;
-			(controller + X4_1)->active = true;
-
-			(controller + X16)->order = 0xff;
-			(controller + X8)->order = 0xff;
-			(controller + X4_0)->order = 0xff;
-			(controller + X4_1)->order = 0;
-#else
 			(controller + X16)->lane_num = 8;
 			(controller + X8)->lane_num = 4;
 			(controller + X4_0)->lane_num = 0;
@@ -265,25 +232,9 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
 			(controller + X8)->order = 1;
 			(controller + X4_0)->order = 0xff;
 			(controller + X4_1)->order = 2;
-#endif
+
 			break;
 		case LINK_MODE_8_8_0_0:     // 2: In DPU, X8
-#ifdef DPU
-			(controller + X16)->lane_num = 0;
-			(controller + X8)->lane_num = 4;
-			(controller + X4_0)->lane_num = 0;
-			(controller + X4_1)->lane_num = 0;
-
-			(controller + X16)->active = false;
-			(controller + X8)->active = true;
-			(controller + X4_0)->active = false;
-			(controller + X4_1)->active = false;
-
-			(controller + X16)->order = 0xff;
-			(controller + X8)->order = 0;
-			(controller + X4_0)->order = 0xff;
-			(controller + X4_1)->order = 0xff;
-#else
 			(controller + X16)->lane_num = 8;
 			(controller + X8)->lane_num = 8;
 			(controller + X4_0)->lane_num = 0;
@@ -298,25 +249,9 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
 			(controller + X8)->order = 1;
 			(controller + X4_0)->order = 0xff;
 			(controller + X4_1)->order = 0xff;
-#endif
+
 			break;
 		case LINK_MODE_16_0_0_0:    //  3: In DPU: X16
-#ifdef DPU
-			(controller + X16)->lane_num = 4;
-			(controller + X8)->lane_num = 0;
-			(controller + X4_0)->lane_num = 0;
-			(controller + X4_1)->lane_num = 0;
-
-			(controller + X16)->active = true;
-			(controller + X8)->active = false;
-			(controller + X4_0)->active = false;
-			(controller + X4_1)->active = false;
-
-			(controller + X16)->order = 0;
-			(controller + X8)->order = 0xff;
-			(controller + X4_0)->order = 0xff;
-			(controller + X4_1)->order = 0xff;
-#else
 			(controller + X16)->lane_num = 16;
 			(controller + X8)->lane_num = 0;
 			(controller + X4_0)->lane_num = 0;
@@ -331,7 +266,7 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
 			(controller + X8)->order = 0xff;
 			(controller + X4_0)->order = 0xff;
 			(controller + X4_1)->order = 0xff;
-#endif
+
 			break;
 		case LINK_MODE_ZEBU:
 			(controller + X16)->lane_num = 0;
@@ -349,66 +284,54 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
 			(controller + X4_0)->order = 0xff;
 			(controller + X4_1)->order = 0x0;
 	}
+
+	if (chiplink)
+		(controller + X4_1)->pp.chiplink = 1;
+
+	if (socket_id)
+		(controller + X4_1)->pp.role = ROLE_EP;
+
 	subsys_controllers_init(pcie_subsystem, dw_controller_init);
 }
 
 static void subsys_link_init_post(struct duowen_pcie_subsystem *pcie_subsys)
 {
 	uint8_t mode = duowen_get_link_mode(pcie_subsys);
-	uint64_t base;
-	uint32_t data;
+	int id = pcie_subsys->socket_id;
+	bool chiplink = pcie_subsys->chiplink;
 
 	switch (mode) {
 		case LINK_MODE_4_4_4_4:
-#ifdef CONFIG_DW_PCIE_RC
 			write_apb(pcie_subsys->cfg_apb[X4_0], 0xc018010, APB_PORT_X4_0);
-#else
-			write_apb(pcie_subsys->cfg_apb[X4_0], 0xc018000, APB_PORT_X4_0);
-#endif
-#ifdef DPU
-			break;
-#endif
+
 		case LINK_MODE_8_4_0_4:
-#ifdef CONFIG_DW_PCIE_RC
-			write_apb(pcie_subsys->cfg_apb[X4_1], 0xc018010, APB_PORT_X4_1);
-#else
-			write_apb(pcie_subsys->cfg_apb[X4_1], 0xc018000, APB_PORT_X4_1);
-#endif
-#ifdef DPU
-			break;
-#endif
+			// Only X4_1 ctrl in both side will possilbly be used as underlay of chiplink
+			if (chiplink && id)
+				write_apb(pcie_subsys->cfg_apb[X4_1], 0xc018000, APB_PORT_X4_1);
+			else
+				write_apb(pcie_subsys->cfg_apb[X4_1], 0xc018010, APB_PORT_X4_1);
+
 		case LINK_MODE_8_8_0_0:
-#ifdef CONFIG_DW_PCIE_RC
 			write_apb(pcie_subsys->cfg_apb[X8], 0xc018010, APB_PORT_X8);
-#else
-			write_apb(pcie_subsys->cfg_apb[X8], 0xc018000, APB_PORT_X8);
-#endif
-#ifdef DPU
-			break;
-#endif
+
 		case LINK_MODE_16_0_0_0:
-#ifdef CONFIG_DW_PCIE_RC
 			write_apb(pcie_subsys->cfg_apb[X16], 0xc018010, APB_PORT_X16);
-#else
-			write_apb(pcie_subsys->cfg_apb[X16], 0xc018000, APB_PORT_X16);
-#endif
-#ifdef DPU
+
 			break;
-#endif
-		case LINK_MODE_ZEBU:
-#ifdef CONFIG_DW_PCIE_RC
-			write_apb(pcie_subsys->cfg_apb[X4_1], 0xc018010, APB_PORT_X4_1);
-#else
-			write_apb(pcie_subsys->cfg_apb[X4_1], 0xc018000, APB_PORT_X4_1);
-#endif
+
+		case LINK_MODE_ZEBU: // 0_0_0_4
+			if (chiplink && id)
+				write_apb(pcie_subsys->cfg_apb[X4_1], 0xc018000, APB_PORT_X4_1);
+			else
+				write_apb(pcie_subsys->cfg_apb[X4_1], 0xc018010, APB_PORT_X4_1);
+
 			break;
 	}
 	subsys_controllers_init(pcie_subsys, wait_controller_linkup);
 } 
 
-void instance_subsystem(struct duowen_pcie_subsystem *pcie_subsystem)
+void instance_subsystem(struct duowen_pcie_subsystem *pcie_subsystem, int socket_id, bool chiplink)
 {
-	uint8_t i;
 	memset(pcie_subsystem, 0, sizeof(*pcie_subsystem));
 
 	pcie_subsystem->cfg_apb[X16] = CFG_APB_CORE_X16;
@@ -417,9 +340,20 @@ void instance_subsystem(struct duowen_pcie_subsystem *pcie_subsystem)
 	pcie_subsystem->cfg_apb[X4_1] = CFG_APB_CORE_X4_1;
 	pcie_subsystem->cfg_apb[SUBSYS] = CFG_APB_SUBSYS;
 
-	pcie_subsystem->link_mode = duowen_get_link_mode(pcie_subsystem);
+	pcie_subsystem->link_mode = DEFAULT_LINK_MODE;
 	pcie_subsystem->controller = &controllers[0];
 	pcie_subsystem->ctrl_cnt = (sizeof(controllers)/sizeof(struct dw_pcie));
+	pcie_subsystem->socket_id = socket_id;
+	pcie_subsystem->chiplink = chiplink;
+
+	if (chiplink)
+		pcie_subsystem->link_mode = LINK_MODE_4_4_4_4;
+
+#ifdef CONFIG_DUOWEN_ZEBU
+	if (chiplink)
+		pcie_subsystem->link_mode = LINK_MODE_ZEBU;
+#endif
+
 }
 
 #ifndef TEST
@@ -504,7 +438,6 @@ void duowen_pcie_inta_handler(irq_t irq)
 
 uint32_t dw_get_pci_conf_reg(int bus, int dev, int fun, int reg, uint8_t index) {
 	struct pcie_port *pp = &(controllers[index].pp);
-	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
 	uint64_t pci_addr, cpu_addr, base;
 	uint32_t val;
 
@@ -522,7 +455,6 @@ uint32_t dw_get_pci_conf_reg(int bus, int dev, int fun, int reg, uint8_t index) 
 
 void dw_set_pci_conf_reg(int bus, int dev, int fun, int reg, uint32_t val, uint8_t index) {
 	struct pcie_port *pp = &(controllers[index].pp);
-	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
 	uint64_t pci_addr, cpu_addr, base;
 
 	if (bus > 1) {
@@ -542,13 +474,15 @@ void pci_platform_init(void)
 	struct dw_pcie *controller;
 	struct pcie_port *pp = &(controllers[0].pp);
 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
-	int i, bus, dev, fun, reg;
-	volatile uint32_t val, tmp;
-	uint64_t addr, base0, base1;
+	int i, chiplink = 0, socket_id = 0;
+	volatile uint32_t val;
 
-
+#ifdef CONFIG_DUOWEN_PCIE_CHIPLINK
+	chiplink = imc_chip_link();
+	socket_id = imc_socket_id();
+#endif
 	pcie_subsys = &pcie_subsystem;
-	instance_subsystem(pcie_subsys);
+	instance_subsystem(pcie_subsys, socket_id, chiplink);
 
 #ifndef TEST
 	clock_init();
@@ -560,84 +494,72 @@ void pci_platform_init(void)
 
 	for(i = 0; i < pcie_subsys->ctrl_cnt; i++) {
 		if (controller->active == true) {
-			dw_pcie_setup_rc(&(controller->pp));
+			dw_pcie_setup_ctrl(&(controller->pp));
 		}
 		controller++;
 	}
 
 	subsys_link_init_post(pcie_subsys);
 
-#if defined(CONFIG_DW_PCIE_RC) && defined(CONFIG_DUOWEN_PCIE_CHIPLINK)
-	printf("rc start\n");
 
-	uint8_t mode = duowen_get_link_mode(&pcie_subsystem);
-	uint8_t index = (mode == 3)? 0: 3;
-	/* For Chiplink test, rc side */
-	dw_pcie_write_dbi(pci, DW_PCIE_CDM, 0x20, 0x0, 0x4);
-	//setup_ep();
+	// This part carry out an simple communication test between dual sockets
+	// via X4_1 ctrls in both side
+	// The way is as follows:
+	// -- Socket0 sends 0x11111111 to 0x80000000010 which is in remote socket1 DDR range;
+	// -- Socket1 sends 0x11111111 to 0x10 which is in remote socket0 DDR range;
+	// -- Socket0 read data from addr 0x10 in its local DDR range
+	// -- Socket1 read data from addr 0x80000000010 in its local DDR range
+	// -- When both side get the data equals to 0x11111111, test passed
 
-	if (mode == 3) {
-		// ep BAR
-		dw_set_pci_conf_reg(1, 0, 0, 0x10, 0x0, index);
+	if (chiplink) {
+		if (!socket_id) {
+			printf("rc start\n");
 
-		// ep command reg
-		val = dw_get_pci_conf_reg(1, 0, 0, 0x4, index);
-		val |= 0x6;
-		dw_set_pci_conf_reg(1, 0, 0, 0x4, val, index);
-	}
-	// setup ep inbound ATU
-	addr = PCIE_SUBSYS_ADDR_START;
-	if (mode == LINK_MODE_ZEBU)
-		addr += PCIE_CORE_X4_1_ADDR_START;
-	__raw_writel(0x11111111, (0x10 + 0x80000000000));
+			/* For Chiplink test, rc side */
+			dw_pcie_write_dbi(pci, DW_PCIE_CDM, 0x20, 0x0, 0x4);
+			//setup_ep();
 
-	asm volatile("fence rw, rw\n\t");
-
-	val = 0;
-	while (val != 0x11111111)
-		val = __raw_readl(0x10);
-
-	__raw_writel(0x22222222, (0x14 + 0x80000000000));
-	printf("rc end\n");
-
-	//__raw_writel(0x64646464, (0x80000000000 + 0x10));
-	//__raw_writel(0x64646464, (PCIE_SUBSYS_ADDR_START + 512*GB + 0x10));
-#else
-	printf("ep start\n");
-	uint8_t mode = duowen_get_link_mode(&pcie_subsystem);
-	uint8_t index = (mode == 3)? 0: 3;
-	if (mode != LINK_MODE_ZEBU)
-		__raw_writel(0x11111111, (PCIE_SUBSYS_ADDR_START + 0x10));
-	else
-		__raw_writel(0x11111111, 0x10);
-
-	asm volatile("fence rw, rw\n\t");
-
-	val = 0;
-	while (val != 0x11111111)
-		val = __raw_readl(0x10 + 0x80000000000);
-	__raw_writel(0x22222222, 0x14);
-	printf("ep end\n");
-
+#if 0
+			// ep BAR
+			dw_set_pci_conf_reg(1, 0, 0, 0x10, 0x0, index);
+			// ep command reg
+			val = dw_get_pci_conf_reg(1, 0, 0, 0x4, index);
+			val |= 0x6;
+			dw_set_pci_conf_reg(1, 0, 0, 0x4, val, index);
 #endif
 
+			// test starts: sends test data to socket1's ddr
+			__raw_writel(0x11111111, (0x10 + 0x80000000000));
 
+			asm volatile("fence rw, rw\n\t");
 
+			val = 0;
+			while (val != 0x11111111)
+				val = __raw_readl(0x10);
+
+			printf("rc end\n");
+		} else {
+
+			//__raw_writel(0x64646464, (0x80000000000 + 0x10));
+			//__raw_writel(0x64646464, (PCIE_SUBSYS_ADDR_START + 512*GB + 0x10));
+			printf("ep start\n");
+
+			// sends test data to socket0's ddr
+			__raw_writel(0x11111111, 0x10);
+
+			asm volatile("fence rw, rw\n\t");
+
+			val = 0;
+			while (val != 0x11111111)
+				val = __raw_readl(0x10 + 0x80000000000);
+
+			printf("ep end\n");
+		}
+	}
 	//int sub_bus;
 	//sub_bus = pci_enum(1);
 	// TODO: construct(0, 1, sub_bus), and updata HB bus resource(0x18) via dbi bus
 
-	/*
-	   base0 = pp->cfg_bar0;
-	   bus = 1;
-	   for (dev = 0; dev < 32; dev++) {
-	   for (fun = 0; fun < 8; fun++){
-	   val = __raw_readl(PCIE_SUBSYS_ADDR_START + pp->cfg_bar0 + pci_addr(bus, dev, fun, 0));
-	   if (val != 0xffffffff)
-	   printf("BDF(%d-%d-%d) found, ID: 0x%x\n", bus, dev, fun, val);
-	   }
-	   }
-	   */
 #ifdef CONFIG_DUOWEN_PCIE_TEST
 	printf("bird: PCIE TEST start\n");
 	// find which controller is in use, and enable its MSI int
