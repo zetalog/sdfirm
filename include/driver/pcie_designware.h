@@ -382,9 +382,16 @@ struct pcie_port {
 	//struct irq_chip		*msi_irq_chip;
 	uint32_t			num_vectors;
 	uint32_t			irq_mask[MAX_MSI_CTRLS];
+	int		chiplink;
+	int		role;
 	//struct pci_bus		*root_bus;
 	//raw_spinlock_t		lock;
 	//DECLARE_BITMAP(msi_irq_in_use, MAX_MSI_IRQS);
+};
+
+enum ctrl_role {
+	ROLE_RC = 0,
+	ROLE_EP
 };
 
 enum dw_pcie_as_type {
@@ -455,7 +462,7 @@ void dw_pcie_disable_atu(struct dw_pcie *pci, int index,
 			 enum dw_pcie_region_type type);
 void dw_pcie_setup(struct dw_pcie *pci);
 void dw_pcie_enable_msi(struct pcie_port *pp);
-#ifndef CONFIG_DW_PCIEE_RC
+#ifndef CONFIG_DW_PCIE_RC
 void dw_pcie_ep_dma_test(struct pcie_port *pp);
 #endif
 
@@ -483,9 +490,10 @@ static inline void dw_pcie_dbi_ro_wr_dis(struct dw_pcie *pci)
 
 void dw_pcie_msi_init(struct pcie_port *pp);
 void dw_pcie_free_msi(struct pcie_port *pp);
-void dw_pcie_setup_rc(struct pcie_port *pp);
+void dw_pcie_setup_ctrl(struct pcie_port *pp);
 int dw_pcie_host_init(struct pcie_port *pp);
 void dw_pcie_host_deinit(struct pcie_port *pp);
 int dw_pcie_allocate_domains(struct pcie_port *pp);
+uint32_t form_pci_addr(int bus, int dev, int fun);
 
 #endif /* _PCIE_DESIGNWARE_H */

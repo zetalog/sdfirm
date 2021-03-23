@@ -185,6 +185,8 @@ struct duowen_pcie_subsystem
     uint64_t cfg_apb[5];
     uint8_t link_mode;
     uint8_t ctrl_cnt;
+    int socket_id;
+    bool chiplink;
 
 #ifdef IPBENCH
     //uint8_t port_
