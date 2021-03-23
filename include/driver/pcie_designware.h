@@ -117,10 +117,10 @@
 
 /* Register address builder */
 #define PCIE_GET_ATU_OUTB_UNR_REG_OFFSET(region) \
-		((region) << 9)
+	((region) << 9)
 
 #define PCIE_GET_ATU_INB_UNR_REG_OFFSET(region) \
-		(((region) << 9) | BIT(8))
+	(((region) << 9) | BIT(8))
 
 #define MAX_MSI_IRQS			256
 #define MAX_MSI_IRQS_PER_CTRL		32
@@ -294,13 +294,13 @@ enum dw_pcie_device_mode {
 };
 
 enum dw_pcie_access_type {
-    DW_PCIE_CDM,
-    DW_PCIE_SHADOW,
-    DW_PCIE_ELBI,
-    DW_PCIE_ATU,
-    DW_PCIE_DMA,
-    DW_PCIE_MSI_TABLE,
-    DW_PCIE_MSI_PBA
+	DW_PCIE_CDM,
+	DW_PCIE_SHADOW,
+	DW_PCIE_ELBI,
+	DW_PCIE_ATU,
+	DW_PCIE_DMA,
+	DW_PCIE_MSI_TABLE,
+	DW_PCIE_MSI_PBA
 };
 
 struct pci_bus {
@@ -310,7 +310,7 @@ struct pci_bus {
 	//struct list_head devices;	/* List of devices on this bus */
 	//struct pci_dev	*self;		/* Bridge device as seen by parent */
 	//struct list_head slots;		/* List of slots on this bus;
-					   //protected by pci_slot_mutex */
+	//protected by pci_slot_mutex */
 	//struct resource *resource[PCI_BRIDGE_RESOURCE_NUM];
 	//struct list_head resources;	/* Address space routed to this bus */
 	//struct resource busn_res;	/* Bus numbers routed to this bus */
@@ -344,9 +344,9 @@ struct dw_pcie_host_ops {
 	int (*rd_own_conf)(struct pcie_port *pp, int where, int size, uint32_t *val);
 	int (*wr_own_conf)(struct pcie_port *pp, int where, int size, uint32_t val);
 	int (*rd_other_conf)(struct pcie_port *pp, struct pci_bus *bus,
-			     unsigned int devfn, int where, int size, uint32_t *val);
+			unsigned int devfn, int where, int size, uint32_t *val);
 	int (*wr_other_conf)(struct pcie_port *pp, struct pci_bus *bus,
-			     unsigned int devfn, int where, int size, uint32_t val);
+			unsigned int devfn, int where, int size, uint32_t val);
 	int (*host_init)(struct pcie_port *pp);
 	void (*scan_bus)(struct pcie_port *pp);
 	void (*set_num_vectors)(struct pcie_port *pp);
@@ -355,8 +355,8 @@ struct dw_pcie_host_ops {
 
 struct pcie_port {
 	uint8_t			primary_bus_nr;
-    uint8_t         second_bus_nr;
-    uint8_t         sub_bus_nr;
+	uint8_t         second_bus_nr;
+	uint8_t         sub_bus_nr;
 	uint64_t		cfg_bar0;
 	uint64_t		cfg_bar1;
 	uint64_t		cfg_size;
@@ -364,10 +364,10 @@ struct pcie_port {
 	uint64_t		io_size;
 	uint64_t		mem_base;
 	uint64_t		mem_size;
-    uint64_t        prefetch_base;
-    uint64_t        prefetch_size;
-    struct list_head        *pcie_dev; // In resource decrease order
-    struct list_head        *pcie_bridge; 
+	uint64_t        prefetch_base;
+	uint64_t        prefetch_size;
+	struct list_head        *pcie_dev; // In resource decrease order
+	struct list_head        *pcie_bridge;
 	//struct resource		*cfg;
 	//struct resource		*io;
 	//struct resource		*mem;
@@ -382,9 +382,16 @@ struct pcie_port {
 	//struct irq_chip		*msi_irq_chip;
 	uint32_t			num_vectors;
 	uint32_t			irq_mask[MAX_MSI_CTRLS];
+	int		chiplink;
+	int		role;
 	//struct pci_bus		*root_bus;
 	//raw_spinlock_t		lock;
 	//DECLARE_BITMAP(msi_irq_in_use, MAX_MSI_IRQS);
+};
+
+enum ctrl_role {
+	ROLE_RC = 0,
+	ROLE_EP
 };
 
 enum dw_pcie_as_type {
@@ -396,9 +403,9 @@ enum dw_pcie_as_type {
 struct dw_pcie_ops {
 	uint64_t	(*cpu_addr_fixup)(struct dw_pcie *pcie, uint64_t cpu_addr);
 	uint32_t	(*read_dbi)(struct dw_pcie *pcie, enum dw_pcie_access_type type,
-                    uint32_t reg, size_t size);
+			uint32_t reg, size_t size);
 	void	(*write_dbi)(struct dw_pcie *pcie, enum dw_pcie_access_type type,
-                    uint32_t reg, size_t size, uint32_t val);
+			uint32_t reg, size_t size, uint32_t val);
 	int	(*link_up)(struct dw_pcie *pcie);
 	int	(*start_link)(struct dw_pcie *pcie);
 	void	(*stop_link)(struct dw_pcie *pcie);
@@ -407,15 +414,15 @@ struct dw_pcie_ops {
 struct dw_pcie {
 	struct device		*dev;
 	uint64_t 	dbi_base;
-    uint64_t    mem32_base;
-    uint64_t    mem32_size;
-    uint64_t    mem64_base;
-    uint64_t    mem64_size;
-    uint64_t    io_base;
-    uint64_t    io_size;
-    uint32_t    lane_num;
-    uint8_t     axi_dbi_port;
-    uint8_t     order;
+	uint64_t    mem32_base;
+	uint64_t    mem32_size;
+	uint64_t    mem64_base;
+	uint64_t    mem64_size;
+	uint64_t    io_base;
+	uint64_t    io_size;
+	uint32_t    lane_num;
+	uint8_t     axi_dbi_port;
+	uint8_t     order;
 	/* Used when iatu_unroll_enabled is true */
 	void 		*atu_base;
 	uint32_t			num_viewport;
@@ -423,14 +430,14 @@ struct dw_pcie {
 	struct pcie_port	pp;
 	//struct dw_pcie_ep	ep;
 	const struct dw_pcie_ops *ops;
-    bool        active;
+	bool        active;
 	unsigned int		version;
 };
 
 #define to_dw_pcie_from_pp(port) container_of((port), struct dw_pcie, pp)
 
 #define to_dw_pcie_from_ep(endpoint)   \
-		container_of((endpoint), struct dw_pcie, ep)
+	container_of((endpoint), struct dw_pcie, ep)
 
 uint8_t dw_pcie_find_capability(struct dw_pcie *pci, uint8_t cap);
 uint16_t dw_pcie_find_ext_capability(struct dw_pcie *pci, uint8_t cap);
@@ -447,15 +454,15 @@ void dw_pcie_write_atu(struct dw_pcie *pci, enum dw_pcie_region_type region, uin
 int dw_pcie_link_up(struct dw_pcie *pci);
 int dw_pcie_wait_for_link(struct dw_pcie *pci);
 void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index,
-			       int type, uint64_t cpu_addr, uint64_t pci_addr,
-			       uint64_t size);
+		int type, uint64_t cpu_addr, uint64_t pci_addr,
+		uint64_t size);
 int dw_pcie_prog_inbound_atu(struct dw_pcie *pci, int index, int bar,
-			     uint64_t cpu_addr, enum dw_pcie_as_type as_type);
+		uint64_t cpu_addr, enum dw_pcie_as_type as_type);
 void dw_pcie_disable_atu(struct dw_pcie *pci, int index,
-			 enum dw_pcie_region_type type);
+		enum dw_pcie_region_type type);
 void dw_pcie_setup(struct dw_pcie *pci);
 void dw_pcie_enable_msi(struct pcie_port *pp);
-#ifndef CONFIG_DW_PCIEE_RC
+#ifndef CONFIG_DW_PCIE_RC
 void dw_pcie_ep_dma_test(struct pcie_port *pp);
 #endif
 
@@ -483,9 +490,10 @@ static inline void dw_pcie_dbi_ro_wr_dis(struct dw_pcie *pci)
 
 void dw_pcie_msi_init(struct pcie_port *pp);
 void dw_pcie_free_msi(struct pcie_port *pp);
-void dw_pcie_setup_rc(struct pcie_port *pp);
+void dw_pcie_setup_ctrl(struct pcie_port *pp);
 int dw_pcie_host_init(struct pcie_port *pp);
 void dw_pcie_host_deinit(struct pcie_port *pp);
 int dw_pcie_allocate_domains(struct pcie_port *pp);
+uint32_t form_pci_addr(int bus, int dev, int fun);
 
 #endif /* _PCIE_DESIGNWARE_H */

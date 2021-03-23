@@ -302,7 +302,7 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
 			PCIE_IATU_UPPER_TARGET_ADDR_OFF_OUTBOUND, 0x4, upper_32_bits(pci_addr));
 	dw_pcie_write_atu(pci, DW_PCIE_REGION_OUTBOUND, index,
 			PCIE_IATU_REGION_CTRL1_OFF_OUTBOUND, 0x4, type);
-//#ifdef CONFIG_DW_PCIE_RC
+	//#ifdef CONFIG_DW_PCIE_RC
 	val = PCIE_ATU_ENABLE;
 	if ((type == PCIE_ATU_TYPE_CFG0) || (type == PCIE_ATU_TYPE_CFG1))
 		val |= BIT(28);
@@ -632,64 +632,65 @@ void dw_pcie_setup(struct dw_pcie *pci)
 }
 
 
-void dw_pcie_setup_rc(struct pcie_port *pp)
+void dw_pcie_setup_ctrl(struct pcie_port *pp)
 {
 	uint32_t val;
 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+	int role = pp->role;
+	bool chiplink = pp->chiplink;
 
 	dw_pcie_dbi_ro_wr_en(pci);
 
 	dw_pcie_setup(pci);
 
-#ifdef CONFIG_DW_PCIE_RC
-	/* Setup RC BARs */
-	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_BASE_ADDRESS_0, 0x00000004, 0x4);
-	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_BASE_ADDRESS_1, 0x00000000, 0x4);
+	if (role == ROLE_RC) {
+		/* Setup RC BARs */
+		dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_BASE_ADDRESS_0, 0x00000004, 0x4);
+		dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_BASE_ADDRESS_1, 0x00000000, 0x4);
 
-	/* Setup interrupt pins */
-	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCI_INTERRUPT_LINE, 0x4);
-	val &= 0xffff00ff;
-	val |= 0x00000100;
-	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_INTERRUPT_LINE, val, 0x4);
+		/* Setup interrupt pins */
+		val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCI_INTERRUPT_LINE, 0x4);
+		val &= 0xffff00ff;
+		val |= 0x00000100;
+		dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_INTERRUPT_LINE, val, 0x4);
 
-	/* Setup bus numbers */
-	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCI_PRIMARY_BUS, 0x4);
-	val &= 0xff000000;
-	val |= 0x00ff0100;
-	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_PRIMARY_BUS, val, 0x4);
+		/* Setup bus numbers */
+		val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCI_PRIMARY_BUS, 0x4);
+		val &= 0xff000000;
+		val |= 0x00ff0100;
+		dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_PRIMARY_BUS, val, 0x4);
 
-	/* Setup command register */
-	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCI_COMMAND, 0x4);
-	val &= 0xffff0000;
-	val |= PCI_COMMAND_IO | PCI_COMMAND_MEMORY |
-		PCI_COMMAND_MASTER | PCI_COMMAND_SERR;
-	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_COMMAND, val, 0x4);
+		/* Setup command register */
+		val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCI_COMMAND, 0x4);
+		val &= 0xffff0000;
+		val |= PCI_COMMAND_IO | PCI_COMMAND_MEMORY |
+			PCI_COMMAND_MASTER | PCI_COMMAND_SERR;
+		dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_COMMAND, val, 0x4);
 
-#ifndef CONFIG_DUOWEN_PCIE_CHIPLINK
-	dw_pcie_prog_outbound_atu(pci, 0, PCIE_ATU_TYPE_CFG0, pp->cfg_bar0, 0x0, pp->cfg_size);
-	dw_pcie_prog_outbound_atu(pci, 1, PCIE_ATU_TYPE_CFG1, pp->cfg_bar1, 0x0, pp->cfg_size);
-#endif
+		dw_pcie_prog_outbound_atu(pci, 0, PCIE_ATU_TYPE_CFG0, pp->cfg_bar0, 0x0, pp->cfg_size);
+		dw_pcie_prog_outbound_atu(pci, 1, PCIE_ATU_TYPE_CFG1, pp->cfg_bar1, 0x0, pp->cfg_size);
+		dw_pcie_prog_outbound_atu(pci, 2, PCIE_ATU_TYPE_MEM, pp->mem_base, 0x0, pp->mem_size);
+		dw_pcie_wr_own_conf(pp, PCI_BASE_ADDRESS_0, 4, 0);
 
-	dw_pcie_prog_outbound_atu(pci, 2, PCIE_ATU_TYPE_MEM, pp->mem_base, 0x0, pp->mem_size);
-	dw_pcie_wr_own_conf(pp, PCI_BASE_ADDRESS_0, 4, 0);
+		/* Program correct class for RC */
+		dw_pcie_wr_own_conf(pp, PCI_CLASS_DEVICE, 2, PCI_CLASS_BRIDGE_PCI);
+	} else {
+		/* Choose Storage class for EP test seems reasonably */
+		dw_pcie_wr_own_conf(pp, PCI_CLASS_DEVICE, 2, PCI_CLASS_STORAGE_OTHER);
+		dw_pcie_wr_own_conf(pp, PCI_BASE_ADDRESS_0, 4, 0);
+		dw_pcie_rd_own_conf(pp, PCI_COMMAND, 4, &val);
+		val |= 0x6;
+		dw_pcie_wr_own_conf(pp, PCI_COMMAND, 4, val);
+		//dw_pcie_prog_outbound_atu(pci, 0, PCIE_ATU_TYPE_MEM, pp->mem_base, 0x100000, 0x100000);
+	}
 
-	/* Program correct class for RC */
-	dw_pcie_wr_own_conf(pp, PCI_CLASS_DEVICE, 2, PCI_CLASS_BRIDGE_PCI);
-#else
-	/* Choose Storage class for EP test seems reasonably */
-	dw_pcie_wr_own_conf(pp, PCI_CLASS_DEVICE, 2, PCI_CLASS_STORAGE_OTHER);
-	dw_pcie_wr_own_conf(pp, PCI_BASE_ADDRESS_0, 4, 0);
-	dw_pcie_rd_own_conf(pp, PCI_COMMAND, 4, &val);
-	val |= 0x6;
-	dw_pcie_wr_own_conf(pp, PCI_COMMAND, 4, val);
-	//dw_pcie_prog_outbound_atu(pci, 0, PCIE_ATU_TYPE_MEM, pp->mem_base, 0x100000, 0x100000);
-#endif
-
-#ifdef CONFIG_DW_PCIE_SPEED_GEN1
-	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, 0xa0, 0x4); // link_control2_link_status
-	val &= 0xfffffff0;
-	val |= 0x1;
-	dw_pcie_write_dbi(pci, DW_PCIE_CDM, 0xa0, val, 0x4);
+#ifdef CONFIG_DUOWEN_ZEBU
+	if (chiplink) {
+		val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, 0xa0, 0x4); // link_control2_link_status
+		val &= 0xfffffff0;
+		val |= 0x1;
+		dw_pcie_write_dbi(pci, DW_PCIE_CDM, 0xa0, val, 0x4);
+	}
 #endif
 
 	dw_pcie_rd_own_conf(pp, PCIE_LINK_WIDTH_SPEED_CONTROL, 4, &val);
@@ -753,7 +754,7 @@ int dw_pcie_host_init(struct pcie_port *pp)
 
 	pre_platform_init();// pcie_init_2_3_3
 
-	dw_pcie_setup_rc(pp);
+	dw_pcie_setup_ctrl(pp);
 
 	//post_platform_init(pci); // pcie_establish_link
 
