@@ -56,8 +56,6 @@ void duowen_noc_init(void)
 	 */
 	board_init_clock();
 	/* Ensured required clocks */
-	duowen_clk_imc_init();
-	duowen_clk_apc_init();
 	clk_enable(ddr_aclk);
 	clk_enable(pcie_aclk);
 	ncore_init(MAX_SOC_SOCKETS * MAX_CPU_CLUSTERS, 0,
