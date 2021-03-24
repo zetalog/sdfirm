@@ -553,8 +553,6 @@ int mmc_start_op(uint8_t op, mmc_cmpl_cb cb)
 int mmc_read_blocks(uint8_t *buf, mmc_lba_t lba,
 		    size_t cnt, mmc_cmpl_cb cb)
 {
-	BUG_ON(!IS_ALIGNED(lba, MMC_DATA_ALIGN));
-
 	if (mmc_slot_ctrl.high_capacity) {
 		mmc_slot_ctrl.address = lba;
 		mmc_slot_ctrl.trans_len = MMC_DEF_BL_LEN;
