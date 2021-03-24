@@ -48,6 +48,7 @@
 #define SDHC_REG(n, offset)	(SD_BASE + (offset))
 
 #define SD_CLASS2	1
+#define SD_CLASS4	1
 #define SD_CLASS5	1
 #define SD_CLASS7	1
 #define SD_CLASS8	1

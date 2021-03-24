@@ -256,6 +256,8 @@ void sdhc_recv_response(uint8_t *resp, uint8_t size)
 		sdhc_host_ctrl.trans = SDHC_TRANS_DAT;
 		sdhc_host_ctrl.irq_complete_mask =
 			SDHC_BUFFER_READ_READY | SDHC_BUFFER_WRITE_READY;
+		sdhc_host_ctrl.irq_complete_mask |=
+			SDHC_TRANSFER_COMPLETE;
 	} else
 		sdhc_stop_transfer();
 
@@ -269,9 +271,25 @@ void sdhc_recv_response(uint8_t *resp, uint8_t size)
 #endif
 }
 
+#ifdef CONFIG_SDHC_SDMA
+#define sdhc_pio_config() do {} while (0)
+#else
+static void sdhc_pio_config(uint8_t *dat, uint32_t len, uint16_t cnt)
+{
+	uint8_t type;
+	uint32_t *buf;
+	type = mmc_get_block_data();
+	buf = (uint32_t *)mmc_slot_ctrl.block_data;
+	if (type == MMC_SLOT_BLOCK_WRITE)
+		for (int i = 0; i < cnt; i++)
+			sdhc_transfer_pio(buf);
+}
+#endif
+
 void sdhc_tran_data(uint8_t *dat, uint32_t len, uint16_t cnt)
 {
 	sdhc_dma_config(SDHC_SDMA);
+	sdhc_pio_config(dat, len, cnt);
 }
 
 bool sdhc_card_busy(void)
@@ -560,6 +578,7 @@ static void sdhc_handle_irq(irq_t irq)
 	uint32_t irqs;
 	uint32_t mask;
 	uint32_t *buf;
+	uint8_t type = mmc_get_block_data();
 
 	sslot = mmc_slot_save(slot);
 	irqs = sdhc_irq_status(mmc_sid);
@@ -624,6 +643,14 @@ static void sdhc_handle_irq(irq_t irq)
 		buf = (uint32_t *)mmc_slot_ctrl.block_data;
 		if (sdhc_state_present(mmc_sid, mask) &&
 		    irqs & sdhc_host_ctrl.irq_complete_mask) {
+			sdhc_clear_irq(mmc_sid,
+				       sdhc_host_ctrl.irq_complete_mask);
+			if (type == MMC_SLOT_BLOCK_READ)
+				sdhc_transfer_pio(buf);
+			if (mmc_blk_success())
+				sdhc_stop_transfer();
+			goto exit_irq;
+		} else if (irqs & sdhc_host_ctrl.irq_complete_mask) {
 			sdhc_clear_irq(mmc_sid,
 				       sdhc_host_ctrl.irq_complete_mask);
 			sdhc_transfer_pio(buf);

@@ -569,6 +569,25 @@ int mmc_read_blocks(uint8_t *buf, mmc_lba_t lba,
 	return 0;
 }
 
+int mmc_write_blocks(uint8_t *buf, mmc_lba_t lba,
+		    size_t cnt, mmc_cmpl_cb cb)
+{
+	if (mmc_slot_ctrl.high_capacity) {
+		mmc_slot_ctrl.address = lba;
+		mmc_slot_ctrl.trans_len = MMC_DEF_BL_LEN;
+		mmc_slot_ctrl.trans_cnt = cnt;
+	} else {
+		uint16_t len = 1 << mmc_slot_ctrl.csd.write_bl_len;
+
+		mmc_slot_ctrl.address = lba * len;
+		mmc_slot_ctrl.trans_len = len;
+		mmc_slot_ctrl.trans_cnt = cnt * (len / MMC_DEF_BL_LEN);
+	}
+	mmc_slot_ctrl.trans_buf = buf;
+	__mmc_write_blocks(cb);
+	return 0;
+}
+
 #ifdef CONFIG_MMC_WIDTH
 bool mmc_width_configured(void)
 {
