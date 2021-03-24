@@ -163,6 +163,9 @@
 #define USR_TFE			_BV(2) /* TX FIFO empty */
 #define USR_TFNF		_BV(1) /* TX FIFO not full */
 #endif
+#ifndef CONFIG_DW_UART_16550_COMPATIBLE
+#define USR_BUSY		_BV(0) /* UART busy */
+#endif
 #ifdef CONFIG_DW_UART_DLF
 #define UART_DLF(n)		DW_UART_REG(n, 0xC0)
 #endif
@@ -262,8 +265,6 @@
 #ifdef CONFIG_DW_UART_16550_COMPATIBLE
 #define dw_uart_is_busy(n)		false
 #else
-/* UART Status Register - USR */
-#define USR_BUSY		_BV(0) /* UART busy */
 #define dw_uart_is_busy(n)		(__raw_readl(UART_USR(n)) & USR_BUSY)
 #endif
 
