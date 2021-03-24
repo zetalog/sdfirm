@@ -45,7 +45,7 @@
 #ifdef SD_CLASS2
 #define MMC_CLASS2	1
 #endif
-#ifdef SD_CLASS7
+#ifdef SD_CLASS4
 #define MMC_CLASS4	1
 #endif
 #ifdef SD_CLASS5
