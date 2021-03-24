@@ -736,6 +736,8 @@ bool mmc_op_busy(void);
 #define __mmc_write_blocks(cmpl)	mmc_start_op(MMC_OP_WRITE_BLOCKS, cmpl)
 int mmc_read_blocks(uint8_t *buf, mmc_lba_t lba,
 		    size_t cnt, mmc_cmpl_cb cb);
+int mmc_write_blocks(uint8_t *buf, mmc_lba_t lba,
+		    size_t cnt, mmc_cmpl_cb cb);
 
 void mmc_cmd(uint8_t cmd);
 void mmc_cmd_complete(uint8_t err);

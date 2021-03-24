@@ -130,6 +130,9 @@ void mmc_slot_start_tran(mmc_rca_t rca)
 	if (mem_cards[cid].tran == MMC_OP_READ_BLOCKS)
 		mmc_read_blocks(mem_cards[cid].buf, mem_cards[cid].lba,
 				mem_cards[cid].cnt, mmc_slot_complete);
+	else if (mem_cards[cid].tran == MMC_OP_WRITE_BLOCKS)
+		mmc_write_blocks(mem_cards[cid].buf, mem_cards[cid].lba,
+				mem_cards[cid].cnt, mmc_slot_complete);
 }
 
 void mmc_slot_complete(mmc_rca_t rca, uint8_t op, bool result)
