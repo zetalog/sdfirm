@@ -334,15 +334,21 @@ void instance_subsystem(struct duowen_pcie_subsystem *pcie_subsystem, int socket
 {
 	memset(pcie_subsystem, 0, sizeof(*pcie_subsystem));
 
-	pcie_subsystem->cfg_apb[X16] = CFG_APB_CORE_X16;
-	pcie_subsystem->cfg_apb[X8] = CFG_APB_CORE_X8;
-	pcie_subsystem->cfg_apb[X4_0] = CFG_APB_CORE_X4_0;
-	pcie_subsystem->cfg_apb[X4_1] = CFG_APB_CORE_X4_1;
-	pcie_subsystem->cfg_apb[SUBSYS] = CFG_APB_SUBSYS;
-
 	pcie_subsystem->link_mode = DEFAULT_LINK_MODE;
 	pcie_subsystem->controller = &controllers[0];
 	pcie_subsystem->ctrl_cnt = (sizeof(controllers)/sizeof(struct dw_pcie));
+
+	for (int i = 0; i < pcie_subsystem->ctrl_cnt; i++) {
+		controllers[i].dbi_base += SOC_BASE;
+		controllers[i].pp.cfg_bar0 += SOC_BASE;
+		controllers[i].pp.cfg_bar1 += SOC_BASE;
+	}
+
+	pcie_subsystem->cfg_apb[X16] = CFG_APB_CORE_X16 + SOC_BASE;
+	pcie_subsystem->cfg_apb[X8] = CFG_APB_CORE_X8 + SOC_BASE;
+	pcie_subsystem->cfg_apb[X4_0] = CFG_APB_CORE_X4_0 + SOC_BASE;
+	pcie_subsystem->cfg_apb[X4_1] = CFG_APB_CORE_X4_1 + SOC_BASE;
+	pcie_subsystem->cfg_apb[SUBSYS] = CFG_APB_SUBSYS + SOC_BASE;
 	pcie_subsystem->socket_id = socket_id;
 	pcie_subsystem->chiplink = chiplink;
 

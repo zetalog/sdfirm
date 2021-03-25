@@ -56,11 +56,6 @@
 
 #ifdef SDFIRM
 #include <driver/pcie_designware.h>
-#ifdef CONFIG_DUOWEN_SOC0
-#define SOCKET_OFFSET	0
-#else
-#define SOCKET_OFFSET	0x80000000000
-#endif
 #else
 #include "pcie_designware.h"
 #endif
@@ -127,21 +122,21 @@
 #define CFG_AXI_CORE_X4_0           0x0
 #define CFG_AXI_CORE_X4_1           0x0
 #else
-#define CFG_APB_SUBSYS              (0xff09000000ULL + SOCKET_OFFSET)
-#define CFG_APB_CORE_X16            (0xff09001000ULL + SOCKET_OFFSET)
-#define CFG_APB_CORE_X8             (0xff09002000ULL + SOCKET_OFFSET)
-#define CFG_APB_CORE_X4_0           (0xff09003000ULL + SOCKET_OFFSET)
-#define CFG_APB_CORE_X4_1           (0xff09004000ULL + SOCKET_OFFSET)
+#define CFG_APB_SUBSYS              0xff09000000ULL
+#define CFG_APB_CORE_X16            0xff09001000ULL
+#define CFG_APB_CORE_X8             0xff09002000ULL
+#define CFG_APB_CORE_X4_0           0xff09003000ULL
+#define CFG_APB_CORE_X4_1           0xff09004000ULL
 
-#define CFG_APB_PHY_0               (0xff09180000ULL + SOCKET_OFFSET)
-#define CFG_APB_PHY_1               (0xff09280000ULL + SOCKET_OFFSET)
-#define CFG_APB_PHY_2               (0xff09380000ULL + SOCKET_OFFSET)
-#define CFG_APB_PHY_3               (0xff09480000ULL + SOCKET_OFFSET)
+#define CFG_APB_PHY_0               0xff09180000ULL
+#define CFG_APB_PHY_1               0xff09280000ULL
+#define CFG_APB_PHY_2               0xff09380000ULL
+#define CFG_APB_PHY_3               0xff09480000ULL
 
-#define CFG_AXI_CORE_X16            (0xff09100000ULL + SOCKET_OFFSET)
-#define CFG_AXI_CORE_X8             (0xff09200000ULL + SOCKET_OFFSET)
-#define CFG_AXI_CORE_X4_0           (0xff09300000ULL + SOCKET_OFFSET)
-#define CFG_AXI_CORE_X4_1           (0xff09400000ULL + SOCKET_OFFSET)
+#define CFG_AXI_CORE_X16            0xff09100000ULL
+#define CFG_AXI_CORE_X8             0xff09200000ULL
+#define CFG_AXI_CORE_X4_0           0xff09300000ULL
+#define CFG_AXI_CORE_X4_1           0xff09400000ULL
 #endif
 
 #define KB                          (1UL << 10)
@@ -149,7 +144,7 @@
 #define GB                          (1UL << 30)
 
 #define PCIE_CORE_RANGE			512*GB
-#define PCIE_SUBSYS_ADDR_START      (0x40000000000ULL + SOCKET_OFFSET)
+#define PCIE_SUBSYS_ADDR_START      0x40000000000ULL
 #define PCIE_CORE_X16_ADDR_START    0
 #define PCIE_CORE_X8_ADDR_START     PCIE_CORE_X16_ADDR_START + PCIE_CORE_RANGE
 #define PCIE_CORE_X4_0_ADDR_START   PCIE_CORE_X8_ADDR_START + PCIE_CORE_RANGE
