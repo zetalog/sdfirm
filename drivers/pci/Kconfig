@@ -5,10 +5,10 @@
 
 menu "PCI drivers"
 
-config ARCH_IS_DW_PCIE_RC
+config ARCH_HAS_DW_PCIE_RC
 	bool
 
-config ARCH_IS_DW_PCIE_EP
+config ARCH_HAS_DW_PCIE_EP
 	bool
 
 menuconfig DW_PCIE
@@ -19,7 +19,7 @@ if DW_PCIE
 
 config DW_PCIE_RC
 	bool "Enable PCIe root complex (RC) support"
-	depends ARCH_IS_DW_PCIE_RC
+	depends ARCH_HAS_DW_PCIE_RC
 	default y
 
 config DW_PCIE_SPEED_GEN1

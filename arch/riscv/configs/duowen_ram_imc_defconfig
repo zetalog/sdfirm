@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Mar 19 14:32:35 2021
+# Thu Mar 25 17:09:12 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -134,8 +134,6 @@ CONFIG_ARCH_HAS_SBI_CLOCK=y
 #
 CONFIG_DUOWEN_IMC=y
 # CONFIG_DUOWEN_APC is not set
-CONFIG_DUOWEN_SOC0=y
-# CONFIG_DUOWEN_SOC1 is not set
 # CONFIG_DUOWEN_ASBL is not set
 # CONFIG_DUOWEN_ZSBL is not set
 # CONFIG_DUOWEN_FSBL is not set
@@ -554,7 +552,6 @@ CONFIG_SPD_EE1004=y
 #
 # PCI drivers
 #
-CONFIG_ARCH_IS_DW_PCIE_RC=y
 # CONFIG_DW_PCIE is not set
 
 #

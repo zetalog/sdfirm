@@ -35,22 +35,6 @@ config DUOWEN_APC
 
 endchoice
 
-choice
-	prompt "Socket selection"
-	default DUOWEN_SOC0
-	help
-	  Affects SoC base addresses and APC hart IDs.
-
-config DUOWEN_SOC0
-	bool "socket 0"
-	select ARCH_IS_DW_PCIE_RC
-
-config DUOWEN_SOC1
-	bool "socket 1"
-	select ARCH_IS_DW_PCIE_EP
-
-endchoice
-
 config DUOWEN_SOC_DUAL
 	bool "Enable dual sockets"
 	depends SMP
@@ -609,20 +593,41 @@ endif
 config DUOWEN_PCIE
 	bool "Duowen PCI-Express (PCIe) support"
 	select DW_PCIE
+	select ARCH_HAS_DW_PCIE_RC
+	select ARCH_HAS_DW_PCIE_EP
 
 if DUOWEN_PCIE
 
-config DUOWEN_PCIE_LINK_MODE
-	int "PCIe subsystem link mode (0~4)"
-	range 0 4
-	default 4 if DUOWEN_ZEBU
-	default 3 if !DUOWEN_ZEBU
+choice
+	prompt "Default subsystem link mode"
+	default DUOWEN_PCIE_LINK_MODE_3 if !DUOWEN_ZEBU
+	default DUOWEN_PCIE_LINK_MODE_4 if DUOWEN_ZEBU
 	help
-	  0: LINK_MODE_4_4_4_4
-	  1: LINK_MODE_8_4_0_4
-	  2: LINK_MODE_8_8_0_0
-	  3: LINK_MODE_16_0_0_0
-	  4: LINK_MODE_ZEBU
+	  Give default link mode. However, when chiplink is detected. The
+	  PCIe subsystem will automatically uses a suitable configuration
+	  that contains an x4 channel during runtime.
+
+config DUOWEN_PCIE_LINK_MODE_0
+	bool "x4 x4 x4 x4"
+	depends !DUOWEN_ZEBU
+
+config DUOWEN_PCIE_LINK_MODE_1
+	bool "x8 x4 x4"
+	depends !DUOWEN_ZEBU
+
+config DUOWEN_PCIE_LINK_MODE_2
+	bool "x8 x8"
+	depends !DUOWEN_ZEBU
+
+config DUOWEN_PCIE_LINK_MODE_3
+	bool "x16"
+	depends !DUOWEN_ZEBU
+
+config DUOWEN_PCIE_LINK_MODE_4
+	bool "x4"
+	depends DUOWEN_ZEBU
+
+endchoice
 
 config DUOWEN_PCIE_CHIPLINK
 	bool "Enable 2 socket chiplink connection"

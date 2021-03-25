@@ -442,6 +442,7 @@ endif
 menuconfig DPU_PCI_SUBSYS
 	bool "DPU PCIe subsystem support"
 	select DW_PCIE
+	select ARCH_HAS_DW_PCIE_RC
 
 if DPU_PCI_SUBSYS
 

@@ -87,21 +87,35 @@
 #define SRAM_CONTROL                0x1c
 #define SRAM_STATUS                 0x20
 
-#define LINK_MODE_4_4_4_4           0x0
-#define LINK_MODE_8_4_0_4           0x1
-#define LINK_MODE_8_8_0_0           0x2
-#define LINK_MODE_16_0_0_0          0x3
-#define LINK_MODE_ZEBU              0x4
-#define LINK_MODE_INVALID           0xff
+#define LINK_MODE_4_4_4_4		0x0
+#define LINK_MODE_8_4_0_4		0x1
+#define LINK_MODE_8_8_0_0		0x2
+#define LINK_MODE_16_0_0_0		0x3
+#define LINK_MODE_ZEBU			0x4
+#define LINK_MODE_INVALID		0xff
 
-#define LINK_MODE_0                 LINK_MODE_4_4_4_4
-#define LINK_MODE_1                 LINK_MODE_8_4_0_4
-#define LINK_MODE_2                 LINK_MODE_8_8_0_0
-#define LINK_MODE_3                 LINK_MODE_16_0_0_0
+#define LINK_MODE_0			LINK_MODE_4_4_4_4
+#define LINK_MODE_1			LINK_MODE_8_4_0_4
+#define LINK_MODE_2			LINK_MODE_8_8_0_0
+#define LINK_MODE_3			LINK_MODE_16_0_0_0
+#define LINK_MODE_4			LINK_MODE_ZEBU
 
-#ifdef CONFIG_DUOWEN_PCIE_LINK_MODE
-#define DEFAULT_LINK_MODE		CONFIG_DUOWEN_PCIE_LINK_MODE
-#else
+#ifdef CONFIG_DUOWEN_PCIE_LINK_MODE_0
+#define DEFAULT_LINK_MODE		LINK_MODE_0
+#endif
+#ifdef CONFIG_DUOWEN_PCIE_LINK_MODE_1
+#define DEFAULT_LINK_MODE		LINK_MODE_1
+#endif
+#ifdef CONFIG_DUOWEN_PCIE_LINK_MODE_2
+#define DEFAULT_LINK_MODE		LINK_MODE_2
+#endif
+#ifdef CONFIG_DUOWEN_PCIE_LINK_MODE_3
+#define DEFAULT_LINK_MODE		LINK_MODE_3
+#endif
+#ifdef CONFIG_DUOWEN_PCIE_LINK_MODE_4
+#define DEFAULT_LINK_MODE		LINK_MODE_4
+#endif
+#ifndef DEFAULT_LINK_MODE
 #define DEFAULT_LINK_MODE		LINK_MODE_16_0_0_0
 #endif
 
