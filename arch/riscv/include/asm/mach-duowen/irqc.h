@@ -59,14 +59,8 @@
  * +----------+----------+----------+----------+----------+----------+
  */
 #ifdef CONFIG_DUOWEN_IMC
-#ifdef CONFIG_DUOWEN_SOC0
-#define plic_hw_m_ctx(cpu)	16
+#define plic_hw_m_ctx(cpu)	(imc_socket_id() == 1 ? 49 : 16)
 #define plic_hw_s_ctx(cpu)	PLIC_CTX_NONE
-#endif /* CONFIG_DUOWEN_SOC0 */
-#ifdef CONFIG_DUOWEN_SOC1
-#define plic_hw_m_ctx(cpu)	49
-#define plic_hw_s_ctx(cpu)	PLIC_CTX_NONE
-#endif /* CONFIG_DUOWEN_SOC1 */
 #endif /* CONFIG_DUOWEN_IMC */
 
 #ifdef CONFIG_DUOWEN_APC

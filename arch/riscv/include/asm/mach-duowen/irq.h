@@ -269,10 +269,10 @@
 #define IRQ_SBD_RX(ch)		EXT_IRQ(198 + (ch)) /* channel sideband RX */
 #define IRQ_SBD_TX(ch)		EXT_IRQ(206 + (ch)) /* channel sideband TX */
 
-#define IRQ_DDR0_AWPOISON	EXT_IRQ(214)
-#define IRQ_DDR0_ARPOISON	EXT_IRQ(215)
-#define IRQ_DDR1_AWPOISON	EXT_IRQ(216)
-#define IRQ_DDR1_ARPOISON	EXT_IRQ(217)
+#define IRQ_DDR0_AWPOISON_1	EXT_IRQ(214)
+#define IRQ_DDR0_ARPOISON_1	EXT_IRQ(215)
+#define IRQ_DDR1_AWPOISON_1	EXT_IRQ(216)
+#define IRQ_DDR1_ARPOISON_1	EXT_IRQ(217)
 
 #define IRQ_TSENS0		EXT_IRQ(220)
 #define IRQ_TSENS1		EXT_IRQ(221)
