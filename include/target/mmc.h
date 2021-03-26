@@ -97,6 +97,12 @@ typedef uint16_t mmc_slot_t;
 typedef uint16_t mmc_card_t;
 typedef uint16_t mmc_rca_t;
 typedef uint16_t mmc_event_t;
+/* XXX: Block Based Offset/Count
+ *
+ * Since our default block length is 512, using uint32_t can cover 1TB
+ * capacity size.
+ * And we can have one single data type for block offset and block count.
+ */
 typedef uint32_t mmc_lba_t;
 typedef uint8_t mmc_r1_t[4];
 typedef uint8_t mmc_r2_t[16];
