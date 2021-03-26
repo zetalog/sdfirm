@@ -1,0 +1,124 @@
+#include <target/arch.h>
+#if 0
+#include <dt-bindings/clock/sbi-clock-dpu.h>
+#endif
+
+/dts-v1/;
+
+/ {
+	#address-cells = <0x2>;
+	#size-cells = <0x2>;
+	compatible = "riscv-smarco";
+	model = "riscv-smarco,dpu";
+
+	chosen {
+#ifdef CONFIG_DPU_UART_DTS_CON
+		bootargs = [00];
+		stdout-path = "/uart@4015000";
+#else
+		bootargs = "console=hvc0 earlycon=sbi";
+#endif
+	};
+
+#ifdef CONFIG_DPU_UART_DTS
+	uart@4015000 {
+		interrupts = <0x54>;
+		interrupt-parent = <&plic0>;
+#ifdef CONFIG_DUOWEN_ZEBU
+		clock-frequency = <0x7735940>;
+#endif
+#ifdef CONFIG_DUOWEN_ASIC
+		clock-frequency = <0x7735940>;
+#endif
+		reg = <0x0 0x04015000 0x0 0x100>;
+		reg-io-width = <0x4>;
+		compatible = "snps,dw-apb-uart";
+	};
+#endif
+
+	poweroff {
+		value = <0x5555>;
+		offset = <0x0>;
+		regmap = <0x4>;
+		compatible = "syscsr-poweroff";
+	};
+
+	reboot {
+		value = <0x7777>;
+		offset = <0x0>;
+		regmap = <0x4>;
+		compatible = "syscsr-reboot";
+	};
+
+	cpus {
+		#address-cells = <0x1>;
+		#size-cells = <0x0>;
+		timebase-frequency = <0x989680>;
+
+		cpu-map {
+			cluster0 {
+				core0 {
+					cpu = <&cpu0>;
+				};
+			};
+		};
+		cpu0: cpu@0 {
+			device_type = "cpu";
+			reg = <0x0>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu0_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+
+	};
+
+	memory@0 {
+		device_type = "memory";
+#ifdef CONFIG_DPU_SIM_DDR_BOOT
+		reg = <0x8 0x00000000 0x0 0x20000000>;
+#else
+		reg = <0x4 0x00000000 0xC 0x00000000>;
+#endif
+	};
+
+	soc {
+		#address-cells = <0x2>;
+		#size-cells = <0x2>;
+		compatible = "simple-bus";
+		ranges;
+
+		plic0: interrupt-controller@10000000 {
+			riscv,ndev = <0xf0>;
+			reg = <0x0 0x10000000 0x0 0x4000000>;
+			interrupts-extended = <
+				&cpu0_intc  0xb        &cpu0_intc  0x9
+			>;
+			interrupt-controller;
+			compatible = "riscv,plic0";
+			#interrupt-cells = <0x1>;
+			#address-cells = <0x0>;
+		};
+
+		tmr0: tmr@4015c00 {
+			interrupts-extended = <
+				&cpu0_intc  0x3        &cpu0_intc  0x7
+			>;
+			reg = <0x0 0x04015C00 0x0 0x100>;
+			compatible = "riscv,tmr0";
+		};
+
+#if 0
+		pll0: pll@4014000 {
+			compatible = "smarco,dpu-pll";
+			reg = <0x0 0x04014000 0x0 0x1000>;
+			#clock-cells = <1>;
+		};
+#endif
+	};
+};

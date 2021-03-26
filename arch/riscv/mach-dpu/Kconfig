@@ -325,6 +325,17 @@ config DPU_UART_VIP
 	  selecting this is safe as the VIP cares no about the baudrate.
 	  If unsure, say 'Y'.
 
+config DPU_UART_DTS
+	bool "Enable dw-apb-uart driver in DTS"
+	depends FDT
+
+config DPU_UART_DTS_CON
+	bool "Enable dw-apc-uart console in DTS"
+	depends DPU_UART_DTS
+	help
+	  By default, sbi/hvc0 will be used as console. Enabling this
+	  option to allow DTS to report dw-apb-uart as console.
+
 endif
 
 menuconfig DPU_I2C
