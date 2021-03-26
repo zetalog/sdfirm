@@ -163,7 +163,7 @@ err_exit:
 }
 
 int mmc_card_read_async(mmc_card_t cid, uint8_t *buf,
-			mmc_lba_t lba, size_t cnt)
+			mmc_lba_t lba, mmc_lba_t cnt)
 {
 	__unused mmc_slot_t sslot;
 
@@ -185,7 +185,7 @@ int mmc_card_read_async(mmc_card_t cid, uint8_t *buf,
 }
 
 int mmc_card_write_async(mmc_card_t cid, uint8_t *buf,
-			 mmc_lba_t lba, size_t cnt)
+			 mmc_lba_t lba, mmc_lba_t cnt)
 {
 	__unused mmc_slot_t sslot;
 
@@ -218,7 +218,7 @@ bool mmc_card_busy(mmc_card_t cid)
 }
 
 int mmc_card_read_sync(mmc_card_t cid, uint8_t *buf,
-		       mmc_lba_t lba, size_t cnt)
+		       mmc_lba_t lba, mmc_lba_t cnt)
 {
 	int ret;
 	irq_flags_t flags;
@@ -237,7 +237,7 @@ int mmc_card_read_sync(mmc_card_t cid, uint8_t *buf,
 }
 
 int mmc_card_write_sync(mmc_card_t cid, uint8_t *buf,
-			mmc_lba_t lba, size_t cnt)
+			mmc_lba_t lba, mmc_lba_t cnt)
 {
 	int ret;
 	irq_flags_t flags;
