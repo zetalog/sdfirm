@@ -87,7 +87,7 @@ static bool mmcard_buffered(mtd_addr_t addr)
 
 	result = mmc_card_read_sync(mmcard_cid,
 				    mmcard_privs[mmcard_cid].buffer,
-				    blk_off, blk_cnt);
+				    blk_off / MMC_DEF_BL_LEN, blk_cnt);
 	if (result != 0) {
 		con_printf("Failed to read %08lx\n", blk_off);
 		return false;
