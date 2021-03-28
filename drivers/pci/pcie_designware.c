@@ -8,17 +8,22 @@
 void axi_read_c(uint64_t addr, uint32_t *data, int port);
 void axi_write_c(uint64_t addr, uint32_t data, int port);
 #else
-uint32_t axi_read_c(uint64_t addr, uint8_t port)
+void axi_read_c(uint64_t addr, uint32_t *data, int port)
 {
-	return 0;
+	*data = readl(addr);
+#ifdef CONFIG_DW_PCIE_DEBUG
+	printf("AXIRead: 0x%llx=0x%x\n", addr, *data);
+#endif
 }
 
-void axi_write_c(uint64_t addr, uint32_t val, uint8_t port)
+void axi_write_c(uint64_t addr, uint32_t data, int port)
 {
-	printf("WriteAXI: addr: 0x%08x, data: 0x%08x, port: %d\n", addr, val, port);
+#ifdef CONFIG_DW_PCIE_DEBUG
+	printf("AXIWrite: 0x%llx=0x%x\n", addr, data);
+#endif
+	writel(addr, data);
 }
 #endif
-
 
 static uint64_t format_dbi_addr(enum dw_pcie_access_type type, uint32_t reg)
 {
@@ -60,11 +65,7 @@ static uint32_t read_dbi(struct dw_pcie *pci, enum dw_pcie_access_type type, uin
 	uint64_t dbi_offset;
 
 	dbi_offset = format_dbi_addr(type, reg);
-#ifdef IPBENCH
 	axi_read_c((pci->dbi_base + dbi_offset), &val, pci->axi_dbi_port);
-#else
-	val = readl(pci->dbi_base + dbi_offset);
-#endif
 
 	return val;
 }
@@ -127,14 +128,7 @@ static void write_dbi(struct dw_pcie *pci, enum dw_pcie_access_type type, uint32
 
 	dbi_offset = format_dbi_addr(type, reg);
 
-#ifdef IPBENCH
 	axi_write_c(pci->dbi_base + dbi_offset, val, pci->axi_dbi_port);
-#else
-#ifdef CONFIG_DUOWEN_PCIE_DEBUG_ENABLE
-	printf("AXIWrite: Addr: 0x%llx, Data: 0x%x\n", pci->dbi_base + dbi_offset, val);
-#endif
-	writel(pci->dbi_base + dbi_offset, val);
-#endif
 
 }
 

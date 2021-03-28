@@ -29,6 +29,9 @@ config DW_PCIE_SPEED_GEN1
 	  This option should only be enabled for chiplink implementation
 	  on ZEBU.
 
+config DW_PCIE_DEBUG
+	bool "Enable register access debugging support"
+
 endif
 
 endmenu
