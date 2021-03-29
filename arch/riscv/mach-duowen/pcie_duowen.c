@@ -10,8 +10,8 @@ struct dw_pcie controllers[] =
 	{
 		.axi_dbi_port = AXI_DBI_PORT_X16,
 		.dbi_base = CFG_AXI_CORE_X16,
-		.pp.cfg_bar0 = PCIE_CORE_X16_CFG0_START,
-		.pp.cfg_bar1 = PCIE_CORE_X16_CFG1_START,
+		.pp.cfg_bar0 = PCIE_CORE_CFG0_START,
+		.pp.cfg_bar1 = PCIE_CORE_CFG1_START,
 		.pp.cfg_size = PCIE_CORE_CFG_SIZE,
 		.pp.mem_base = 0,
 		.pp.mem_size = PCIE_CORE_MEM_SIZE,
@@ -23,8 +23,8 @@ struct dw_pcie controllers[] =
 	{
 		.axi_dbi_port = AXI_DBI_PORT_X8,
 		.dbi_base = CFG_AXI_CORE_X8,
-		.pp.cfg_bar0 = PCIE_CORE_X8_CFG0_START,
-		.pp.cfg_bar1 = PCIE_CORE_X8_CFG1_START,
+		.pp.cfg_bar0 = PCIE_CORE_CFG0_START,
+		.pp.cfg_bar1 = PCIE_CORE_CFG1_START,
 		.pp.cfg_size = PCIE_CORE_CFG_SIZE,
 		.pp.mem_base = 0,
 		.pp.mem_size = PCIE_CORE_MEM_SIZE,
@@ -36,8 +36,8 @@ struct dw_pcie controllers[] =
 	{
 		.axi_dbi_port = AXI_DBI_PORT_X4_0,
 		.dbi_base = CFG_AXI_CORE_X4_0,
-		.pp.cfg_bar0 = PCIE_CORE_X4_0_CFG0_START,
-		.pp.cfg_bar1 = PCIE_CORE_X4_0_CFG1_START,
+		.pp.cfg_bar0 = PCIE_CORE_CFG0_START,
+		.pp.cfg_bar1 = PCIE_CORE_CFG1_START,
 		.pp.cfg_size = PCIE_CORE_CFG_SIZE,
 		.pp.mem_base = 0,
 		.pp.mem_size = PCIE_CORE_MEM_SIZE,
@@ -49,8 +49,8 @@ struct dw_pcie controllers[] =
 	{
 		.axi_dbi_port = AXI_DBI_PORT_X4_1,
 		.dbi_base = CFG_AXI_CORE_X4_1,
-		.pp.cfg_bar0 = PCIE_CORE_X4_1_CFG0_START,
-		.pp.cfg_bar1 = PCIE_CORE_X4_1_CFG1_START,
+		.pp.cfg_bar0 = PCIE_CORE_CFG0_START,
+		.pp.cfg_bar1 = PCIE_CORE_CFG1_START,
 		.pp.cfg_size = PCIE_CORE_CFG_SIZE,
 		.pp.mem_base = 0,
 		.pp.mem_size = PCIE_CORE_MEM_SIZE,
@@ -84,7 +84,6 @@ void write_apb(uint64_t addr, uint32_t data, uint8_t port)
 	writel(addr, data);
 #endif
 }
-
 
 #ifdef IPBENCH
 #define COUNTER_ADDR    0xf0000000
@@ -327,7 +326,10 @@ static void subsys_link_init_post(struct duowen_pcie_subsystem *pcie_subsys)
 
 			break;
 	}
+
+#ifdef CONFIG_DUOWEN_PCIE_CHIPLINK
 	subsys_controllers_init(pcie_subsys, wait_controller_linkup);
+#endif
 } 
 
 void instance_subsystem(struct duowen_pcie_subsystem *pcie_subsystem, int socket_id, bool chiplink)
@@ -454,7 +456,7 @@ uint32_t dw_get_pci_conf_reg(int bus, int dev, int fun, int reg, uint8_t index) 
 	}
 	pci_addr = form_pci_addr(bus, dev, fun);
 
-	base = PCIE_SUBSYS_ADDR_START;
+	base = PCIE_SUBSYS_ADDR_START + PCIE_CORE_RANGE * index;
 	val = __raw_readl(base + cpu_addr + pci_addr + reg);
 	return val;
 }
@@ -470,7 +472,7 @@ void dw_set_pci_conf_reg(int bus, int dev, int fun, int reg, uint32_t val, uint8
 	}
 	pci_addr = form_pci_addr(bus, dev, fun);
 
-	base = PCIE_SUBSYS_ADDR_START;
+	base = PCIE_SUBSYS_ADDR_START + PCIE_CORE_RANGE * index;
 	__raw_writel(val, base + cpu_addr + pci_addr + reg);
 }
 //void setup_ep()
