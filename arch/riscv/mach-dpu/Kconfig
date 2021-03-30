@@ -21,6 +21,13 @@ config DPU_CVA6
 
 endchoice
 
+config DPU_GEN2
+	bool "DPU GEN2 chipset"
+	help
+	  DPU GEN2 tunes GEN1 design with tsensor added and address space
+	  layout changed. It also include S-context PLIC IRQ so that it
+	  can boot a Linux kernel as its runtime firmware.
+
 config DPU_BOOT
 	bool
 
@@ -196,7 +203,15 @@ config DPU_SIM_DDR_BOOT
 	  RAM model, and sizes 512MB. The CPU will boot the the start
 	  address of DDR1 (0x08_0000_0000).
 
+config DPU_SIM_BACKDOOR
+	bool "Load SRAM/DDR contents via backdoor"
+
 endif
+
+config DPU_SIM_TSENSOR_IRQ
+	bool "Enable thermal sensor IRQ testing support"
+	depends DPU_GEN2
+	depends SYS_IRQ
 
 endmenu
 
@@ -436,6 +451,20 @@ menuconfig DPU_DDR
 	select MATH_DIV32
 
 if DPU_DDR
+
+choice
+	prompt "Interleave mode"
+
+config DPU_DDR_INTLV_DDR01
+	bool "Interleaved DDR0/DDR1"
+
+config DPU_DDR_NINTLV_DDR0
+	bool "Non-interleaved DDR0"
+
+config DPU_DDR_NINTLV_DDR1
+	bool "Non-interleaved DDR1"
+
+endchoice
 
 config DPU_DDR_SPD_BUS_NUM
 	int "I2C Bus (Master) Number for DDR SPDs"

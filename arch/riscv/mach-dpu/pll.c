@@ -143,7 +143,11 @@ struct freqplan *freqplans[NR_PLLS] = {
 	[DDR_CLK] = NULL,
 	[AXI_CLK] = bus_freqplan,
 	[VPU_BCLK] = NULL,
+#ifdef CONFIG_DPU_GEN2
+	[TSENSOR_XO_CLK] = NULL,
+#else /* CONFIG_DPU_GEN2 */
 	[PCIE_REF_CLK] = NULL,
+#endif /* CONFIG_DPU_GEN2 */
 };
 
 struct freqplan freqplans_def[NR_PLLS] = {
@@ -171,11 +175,19 @@ struct freqplan freqplans_def[NR_PLLS] = {
 		.f_pll_pclk = PLL4_P_FREQ,
 		.f_pll_rclk = PLL4_R_FREQ,
 	},
+#ifdef CONFIG_DPU_GEN2
+	[TSENSOR_XO_CLK] = {
+		.f_pll_vco = PLL5_VCO_FREQ,
+		.f_pll_pclk = PLL5_P_FREQ,
+		.f_pll_rclk = INVALID_FREQ,
+	},
+#else /* CONFIG_DPU_GEN2 */
 	[PCIE_REF_CLK] = {
 		.f_pll_vco = PLL5_VCO_FREQ,
 		.f_pll_pclk = PLL5_P_FREQ,
 		.f_pll_rclk = INVALID_FREQ,
 	},
+#endif /* CONFIG_DPU_GEN2 */
 };
 
 static struct freqplan *freqplan_get(int pll, int plan)

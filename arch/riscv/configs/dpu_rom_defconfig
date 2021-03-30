@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Mar  5 14:06:37 2021
+# Tue Mar 30 15:38:47 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -132,6 +132,7 @@ CONFIG_ARCH_HAS_SBI_TIMER=y
 #
 # CONFIG_DPU_CV32E40P is not set
 CONFIG_DPU_CVA6=y
+# CONFIG_DPU_GEN2 is not set
 CONFIG_DPU_BOOT=y
 CONFIG_DPU_LOAD_ZSBL=y
 CONFIG_DPU_BOOT_ROM=y
@@ -157,6 +158,7 @@ CONFIG_DPU_BOOT_VPU=y
 #
 # CONFIG_DPU_SIM_CLK is not set
 # CONFIG_DPU_SIM_DDR_BOOT is not set
+# CONFIG_DPU_SIM_BACKDOOR is not set
 CONFIG_DPU_TCSR=y
 CONFIG_DPU_TCSR_LOW_POWER=y
 # CONFIG_DPU_TCSR_SIM_FINISH is not set

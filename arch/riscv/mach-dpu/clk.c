@@ -53,7 +53,11 @@ struct reset_clk {
 	uint16_t axi_periphs;
 };
 
+#ifdef CONFIG_DPU_GEN2
+#define CLK_RST_MAP	ULL(0x00001FFFFFFF)
+#else /* CONFIG_DPU_GEN2 */
 #define CLK_RST_MAP	ULL(0x000007FFFFFF)
+#endif /* CONFIG_DPU_GEN2 */
 
 struct reset_clk reset_clks[NR_RESET_CLKS] = {
 	[SRST_GPDPU] = {
@@ -179,6 +183,20 @@ struct reset_clk reset_clks[NR_RESET_CLKS] = {
 		.clk_src = invalid_clk,
 		.flags = CLK_SRST_F,
 	},
+#ifdef CONFIG_DPU_GEN2
+	[SRST_PCIE0_POR] = {
+		.clk_src = apb_clk,
+		.flags = CLK_SRST_F,
+	},
+	[SRST_TSENSOR_XO] = {
+		.clk_src = tsensor_xo_clk,
+		.flags = CLK_SRST_F,
+	},
+	[SRST_TSENSOR_METS] = {
+		.clk_src = tsensor_mets_clk,
+		.flags = CLK_SRST_F,
+	},
+#else /* CONFIG_DPU_GEN2 */
 	[SRST_PCIE0_POR] = {
 		.clk_src = pcie_ref_clk,
 		.flags = CLK_SRST_F,
@@ -187,6 +205,7 @@ struct reset_clk reset_clks[NR_RESET_CLKS] = {
 		.clk_src = pcie_ref_clk,
 		.flags = CLK_SRST_F,
 	},
+#endif /* CONFIG_DPU_GEN2 */
 };
 
 #ifdef CONFIG_CLK_MNEMONICS
@@ -218,6 +237,10 @@ const char *reset_clk_names[NR_RESET_CLKS] = {
 	[SRST_DDR1_POR] = "srst_ddr1_por",
 	[SRST_PCIE0_POR] = "srst_pcie0_por",
 	[SRST_PCIE1_POR] = "srst_pcie1_por",
+#ifdef CONFIG_DPU_GEN2
+	[SRST_TSENSOR_XO] = "srst_tsensor_xo",
+	[SRST_TSENSOR_METS] = "srst_tsensor_mets",
+#endif /* CONFIG_DPU_GEN2 */
 };
 
 static const char *get_reset_clk_name(clk_clk_t clk)
@@ -400,13 +423,6 @@ struct sel_clk sel_clks[NR_SEL_CLKS] = {
 		},
 		.allow_gating = true,
 	},
-	[PCIE_REF_CLK] = {
-		.clk_sels = {
-			pll5_p,
-			pcie_phy_clk,
-		},
-		.allow_gating = true,
-	},
 	[DDR_BYPASS_PCLK] = {
 		.clk_sels = {
 			pll2_r,
@@ -428,6 +444,30 @@ struct sel_clk sel_clks[NR_SEL_CLKS] = {
 		},
 		.allow_gating = true,
 	},
+#ifdef CONFIG_DPU_GEN2
+	[TSENSOR_XO_CLK] = {
+		.clk_sels = {
+			pll5_p,
+			xin,
+		},
+		.allow_gating = true,
+	},
+	[TSENSOR_METS_CLK] = {
+		.clk_sels = {
+			pll5_r,
+			xin,
+		},
+		.allow_gating = true,
+	},
+#else /* CONFIG_DPU_GEN2 */
+	[PCIE_REF_CLK] = {
+		.clk_sels = {
+			pll5_p,
+			pcie_phy_clk,
+		},
+		.allow_gating = true,
+	},
+#endif /* CONFIG_DPU_GEN2 */
 };
 
 #ifdef CONFIG_CLK_MNEMONICS
@@ -437,10 +477,15 @@ const char *sel_clk_names[NR_SEL_CLKS] = {
 	[DDR_CLK] = "ddr_clk",
 	[AXI_CLK] = "axi_clk",
 	[VPU_BCLK] = "vpu_bclk",
-	[PCIE_REF_CLK] = "pcie_ref_clk",
 	[DDR_BYPASS_PCLK] = "ddr_bypass_pclk",
 	[APB_CLK] = "apb_clk",
 	[VPU_CCLK] = "vpu_cclk",
+#ifdef CONFIG_DPU_GEN2
+	[TSENSOR_XO_CLK] = "tsensor_xo_clk",
+	[TSENSOR_METS_CLK] = "tsensor_mets_clk",
+#else /* CONFIG_DPU_GEN2 */
+	[PCIE_REF_CLK] = "pcie_ref_clk",
+#endif /* CONFIG_DPU_GEN2 */
 };
 
 static const char *get_clk_sel_name(clk_clk_t clk)
@@ -651,6 +696,13 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 		.freq = PLL4_R_FREQ,
 		.enabled = false,
 	},
+#ifdef CONFIG_DPU_GEN2
+	[PLL5_R] = {
+		.src = pll5_vco,
+		.freq = PLL5_R_FREQ,
+		.enabled = false,
+	},
+#endif /* CONFIG_DPU_GEN2 */
 };
 
 #ifdef CONFIG_CLK_MNEMONICS
@@ -663,6 +715,10 @@ const char *pll_clk_names[NR_PLL_CLKS] = {
 	[PLL5_P] = "pll5_p",
 	[PLL2_R] = "pll2_r",
 	[PLL3_R] = "pll3_r",
+	[PLL4_R] = "pll4_r",
+#ifdef CONFIG_DPU_GEN2
+	[PLL5_R] = "pll5_r",
+#endif /* CONFIG_DPU_GEN2 */
 };
 
 const char *get_pll_name(clk_clk_t clk)

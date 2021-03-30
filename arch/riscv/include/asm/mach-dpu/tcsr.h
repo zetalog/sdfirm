@@ -46,7 +46,16 @@
 
 #include <target/amba.h>
 
-#define TCSR_REG(offset)		(TCSR_BASE + (offset))
+#define __DPU_TCSR_BASE			TCSR_BASE
+#ifdef CONFIG_MMU
+#define DPU_TCSR_BASE			dpu_tcsr_reg_base
+#ifndef __ASSEMBLY__
+extern caddr_t dpu_tcsr_reg_base;
+#endif
+#else
+#define DPU_TCSR_BASE			__DPU_TCSR_BASE
+#endif
+#define TCSR_REG(offset)		(DPU_TCSR_BASE + (offset))
 #define TCSR_MSG_REG(offset)		TCSR_REG(0xFFF00 + (offset))
 #define TCSR_SOC_HW_VERSION		TCSR_REG(0x00)
 #define TCSR_BOOT_MODE			TCSR_REG(0x04)
@@ -54,6 +63,7 @@
 #define TCSR_BOOT_ADDR_HI		TCSR_REG(0x14)
 #define TCSR_HART_ID_LO			TCSR_REG(0x18)
 #define TCSR_HART_ID_HI			TCSR_REG(0x1C)
+#define TCSR_DDR_INTERLEAVE		TCSR_REG(0x20)
 #define TCSR_VPU_HIGH_ADDR		TCSR_REG(0x70)
 #define TCSR_SHUTDN_REQ			TCSR_REG(0x80)
 #define TCSR_BRINGUP_REQ		TCSR_REG(0x84)
@@ -171,5 +181,22 @@ void imc_axi_unregister_periphs(uint16_t periphs);
 #define imc_axi_unregister_periphs(periphs)	do { } while (0)
 #define imc_apb_is_low_power(periph)		false
 #endif
+
+#ifdef CONFIG_DPU_DDR_INTLV_DDR01
+#define IMC_DDR_INTLV		0
+#endif
+#ifdef CONFIG_DPU_DDR_NINTLV_DDR0
+#define IMC_DDR_INTLV		1
+#endif
+#ifdef CONFIG_DPU_DDR_NINTLV_DDR1
+#define IMC_DDR_INTLV		2
+#endif
+
+#ifdef CONFIG_DDR
+#define imc_config_ddr_intlv()			\
+	__raw_writel(IMC_DDR_INTLV, TCSR_DDR_INTERLEAVE)
+#else
+#define imc_config_ddr_intlv()			do { } while (0)
+#endif /* CONFIG_DDR */
 
 #endif /* __TCSR_DPU_H_INCLUDE__ */

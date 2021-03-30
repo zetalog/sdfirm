@@ -18,6 +18,7 @@ struct dw_pcie controllers[] =
         .pp.mem_size = 3*GB,
     },
 
+#ifndef CONFIG_DPU_GEN2
     // X8
     {
         .axi_dbi_port = AXI_DBI_PORT_X8,
@@ -50,6 +51,7 @@ struct dw_pcie controllers[] =
         .pp.mem_base = 0,
         .pp.mem_size = PCIE_CORE_MEM_SIZE,
     },
+#endif /* CONFIG_DPU_GEN2 */
 };
 
 uint32_t read_apb(uint64_t addr, uint8_t port)

@@ -35,67 +35,28 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)arch.h: DPU machine specific definitions
- * $Id: arch.h,v 1.1 2020-03-02 16:11:00 zhenglv Exp $
+ * @(#)tsensor.h: DPU thermal sensor (TSENS) definitions
+ * $Id: tsensor.h,v 1.1 2020-05-20 14:37:00 zhenglv Exp $
  */
 
-#ifndef __ARCH_DPU_H_INCLUDE__
-#define __ARCH_DPU_H_INCLUDE__
+#ifndef __TSENSOR_DPU_H_INCLUDE__
+#define __TSENSOR_DPU_H_INCLUDE__
 
-#define ARCH_HAVE_INT_IRQS	1
-#define __VEC
-#define __VEC_ALIGN		8
+#define TSENS_REG(offset)		(TSENSOR_BASE + (offset))
+#define TSENS_METS_CFG			0x5C
+#define TSENS_CFG_BASE			TSENS_REG(TSENS_METS_CFG)
+#define TSENS_CFG_REG(offset)		(TSENS_CFG_BASE + (offset))
+#define REG_METS_CONFIG_RUN		0x0500
+#define TC_PADDR_REG_PE16_METS_CONFIG_ADDR	TSENS_CFG_REG(0x00)
+#define TC_PADDR_REG_VPU_METS_CONFIG_ADDR	TSENS_CFG_REG(0x04)
+#define TC_PADDR_REG_DDR_METS_CONFIG_ADDR	TSENS_CFG_REG(0x08)
+#define TC_PADDR_REG_PCIE_METS_CONFIG_ADDR	TSENS_CFG_REG(0x0C)
+#define TC_PADDR_REG_NOC_METS_CONFIG_ADDR	TSENS_CFG_REG(0x10)
 
-#include <asm/mach/tcsr.h>
-#include <asm/mach/flash.h>
-#include <asm/mach/pe.h>
-#include <asm/mach/vpu.h>
-#include <asm/mach/tsensor.h>
-
-/* This file is intended to be used for implementing SoC specific
- * instructions, registers.
- */
-
-#define XIN_FREQ		UL(25000000)	/* 25MHz */
-#define PCIE_PHY_CLK_FREQ	UL(25000000)	/* 25MHz */
-#define PLL0_VCO_FREQ		ULL(3200000000)	/* 3.2GHz */
-#define PLL1_VCO_FREQ		ULL(4800000000)	/* 4.8GHz */
-#define PLL2_VCO_FREQ		ULL(3200000000)	/* 3.2GHz */
-#define PLL3_VCO_FREQ		ULL(3200000000)	/* 3.2GHz */
-#define PLL4_VCO_FREQ		ULL(4000000000)	/* 4GHz */
-#define PLL5_VCO_FREQ		ULL(2800000000) /* 2.8GHz */
-#define PLL0_P_FREQ		UL(800000000)	/* 800MHz */
-#define PLL1_P_FREQ		UL(1200000000)	/* 1.2GHz */
-#define PLL2_P_FREQ		UL(666000000)	/* 666MHz */
-#define PLL2_R_FREQ		UL(50000000)	/* 50MHz */
-#define PLL3_P_FREQ		UL(800000000)	/* 800MHz */
-#define PLL3_R_FREQ		UL(100000000)	/* 100MHz */
-#define PLL4_P_FREQ		UL(1000000000)	/* 1GHz */
-#define PLL4_R_FREQ		UL(1000000000)	/* 1GHz */
-#define PLL5_P_FREQ		UL(25000000)	/* 25MHz */
-#define PLL5_R_FREQ		UL(6000000)	/* 6MHz */
-#define IMC_CLK_FREQ		PLL0_P_FREQ
-#define PE_CLK_FREQ		PLL1_P_FREQ
-#define AXI_CLK_FREQ		PLL3_P_FREQ
-#define APB_CLK_FREQ		PLL3_R_FREQ
-#define VPU_BCLK_FREQ		PLL4_P_FREQ
-#define VPU_CCLK_FREQ		PLL4_R_FREQ
-#define PCIE_REF_CLK_FREQ	PLL5_P_FREQ
-
-#ifndef __ASSEMBLY__
-#ifdef CONFIG_CLK
-void board_init_clock(void);
+#ifdef CONFIG_DPU_SIM_TSENSOR_IRQ
+void dpu_tsensor_irq_init(void);
 #else
-#define board_init_clock()	do { } while (0)
+#define dpu_tsensor_irq_init()		do { } while (0)
 #endif
-void board_init_timestamp(void);
 
-#ifdef CONFIG_MMU
-void dpu_mmu_dump_maps(void);
-void dpu_mmu_map_uart(int n);
-void dpu_mmu_map_gpio(void);
-void dpu_mmu_map_pll(void);
-#endif
-#endif /* __ASSEMBLY__ */
-
-#endif /* __ARCH_DPU_H_INCLUDE__ */
+#endif /* __TSENSOR_DPU_H_INCLUDE__ */

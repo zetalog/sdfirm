@@ -184,6 +184,10 @@ struct duowen_pcie_subsystem
     //void (* apb_write)(uint64_t *addr, uint32_t val);
 };
 
+#ifdef CONFIG_PCI
 void pci_platform_init(void);
+#else
+#define pci_platform_init()			do { } while (0)
+#endif
 
 #endif /* __PCI_DPU_H_INCLUDE__ */

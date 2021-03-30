@@ -89,10 +89,18 @@
 #define PLL2_P			DDR_CLK
 #define PLL3_P			AXI_CLK
 #define PLL4_P			VPU_BCLK
-#define PLL5_P			PCIE_REF_CLK
 #define PLL2_R			DDR_BYPASS_PCLK
 #define PLL3_R			APB_CLK
+
+#ifdef CONFIG_DPU_GEN2
+#define PLL5_P			VPU_CCLK
+#define PLL4_R			TSENSOR_XO_CLK
+#define PLL5_R			TSENSOR_METS_CLK
+#else /* CONFIG_DPU_GEN2 */
+#define PLL5_P			PCIE_REF_CLK
 #define PLL4_R			VPU_CCLK
+#endif /* CONFIG_DPU_GEN2 */
+
 #define NR_PLL_CLKS		NR_SEL_CLKS
 #define pll0_p			clkid(CLK_PLL, PLL0_P)
 #define pll1_p			clkid(CLK_PLL, PLL1_P)
@@ -103,6 +111,9 @@
 #define pll2_r			clkid(CLK_PLL, PLL2_R)
 #define pll3_r			clkid(CLK_PLL, PLL3_R)
 #define pll4_r			clkid(CLK_PLL, PLL4_R)
+#ifdef CONFIG_DPU_GEN2
+#define pll5_r			clkid(CLK_PLL, PLL5_R)
+#endif /* CONFIG_DPU_GEN2 */
 
 #define CLK_IS_PLL_RCLK(clk)	(!!((clk) >= NR_PLLS))
 #define CLK_TO_PLL(clk, isrclk)	((isrclk) ? ((clk) - NR_PLLS + 2) : (clk))
@@ -113,20 +124,36 @@
 #define DDR_CLK			((clk_clk_t)2) /* PLL2_P */
 #define AXI_CLK			((clk_clk_t)3) /* PLL3_P */
 #define VPU_BCLK		((clk_clk_t)4) /* PLL4_P */
-#define PCIE_REF_CLK		((clk_clk_t)5) /* PLL5_P */
 #define DDR_BYPASS_PCLK		((clk_clk_t)6) /* PLL2_R */
 #define APB_CLK			((clk_clk_t)7) /* PLL3_R */
+
+#ifdef CONFIG_DPU_GEN2
+#define VPU_CCLK		((clk_clk_t)5) /* PLL5_P */
+#define TSENSOR_XO_CLK		((clk_clk_t)8) /* PLL4_R */
+#define TSENSOR_METS_CLK	((clk_clk_t)9) /* PLL5_R */
+#define NR_SEL_CLKS		(TSENSOR_METS_CCLK + 1)
+#else /* CONFIG_DPU_GEN2 */
+#define PCIE_REF_CLK		((clk_clk_t)5) /* PLL5_P */
 #define VPU_CCLK		((clk_clk_t)8) /* PLL4_R */
 #define NR_SEL_CLKS		(VPU_CCLK + 1)
+#endif /* CONFIG_DPU_GEN2 */
+
 #define imc_clk			clkid(CLK_SEL, IMC_CLK)
 #define pe_clk			clkid(CLK_SEL, PE_CLK)
 #define ddr_clk			clkid(CLK_SEL, DDR_CLK)
 #define axi_clk			clkid(CLK_SEL, AXI_CLK)
 #define vpu_bclk		clkid(CLK_SEL, VPU_BCLK)
-#define pcie_ref_clk		clkid(CLK_SEL, PCIE_REF_CLK)
 #define ddr_bypass_pclk		clkid(CLK_SEL, DDR_BYPASS_PCLK)
 #define apb_clk			clkid(CLK_SEL, APB_CLK)
 #define vpu_cclk		clkid(CLK_SEL, VPU_CCLK)
+
+#ifdef CONFIG_DPU_GEN2
+#define tsensor_xo_clk		clkid(CLK_SEL, TSENSOR_XO_CLK)
+#define tsensor_mets_clk	clkid(CLK_SEL, TSENSOR_METS_CLK)
+#else /* CONFIG_DPU_GEN2 */
+#define pcie_ref_clk		clkid(CLK_SEL, PCIE_REF_CLK)
+#endif /* CONFIG_DPU_GEN2 */
+
 /* XXX: Do not confuse:
  *      The ddr_clk named in CLKRST is actually the core_ddr_clk (the
  *      uMCTL2 clock) in DesignWare specification where the ddr_clk refers
@@ -189,6 +216,10 @@
 #define srst_ddr1_por		clkid(CLK_RESET, SRST_DDR0_POR)
 #define srst_pcie0_por		clkid(CLK_RESET, SRST_PCIE0_POR)
 #define srst_pcie1_por		clkid(CLK_RESET, SRST_PCIE1_POR)
+#ifdef CONFIG_DPU_GEN2
+#define srst_tsensor_xo		clkid(CLK_RESET, SRST_TSENSOR_XO)
+#define srst_tsensor_mets	clkid(CLK_RESET, SRST_TSENSOR_METS)
+#endif /* CONFIG_DPU_GEN2 */
 #define por_arst		clkid(CLK_RESET, POR_ARST)
 
 /* DDR reset alias */

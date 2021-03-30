@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Mar 26 14:02:42 2021
+# Tue Mar 30 15:58:07 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -161,6 +161,7 @@ CONFIG_SBI_RISCV_NEXT_S=y
 #
 # CONFIG_DPU_CV32E40P is not set
 CONFIG_DPU_CVA6=y
+# CONFIG_DPU_GEN2 is not set
 CONFIG_DPU_FIRM=y
 # CONFIG_DPU_BOOT_ROM is not set
 # CONFIG_DPU_BOOT_RAM is not set
@@ -180,6 +181,7 @@ CONFIG_DPU_FIRM_SIZE=0x800000
 # CONFIG_DPU_SIM_CLK is not set
 # CONFIG_DPU_SIM_GPIO_IRQ is not set
 CONFIG_DPU_SIM_DDR_BOOT=y
+# CONFIG_DPU_SIM_BACKDOOR is not set
 # CONFIG_DPU_TCSR is not set
 CONFIG_DPU_PLL=y
 # CONFIG_DPU_PLL_FREQPLAN_PE is not set
@@ -454,6 +456,7 @@ CONFIG_SPD_BUS_KHZ=60
 #
 CONFIG_DW_PCIE=y
 # CONFIG_DW_PCIE_SPEED_GEN1 is not set
+# CONFIG_DW_PCIE_DEBUG is not set
 
 #
 # NoC interconnect drivers

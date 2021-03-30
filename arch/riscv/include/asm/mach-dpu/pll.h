@@ -97,7 +97,11 @@ extern caddr_t dpu_pll_reg_base;
 	__raw_clearl(DPU_GMUX_EN(r), PLL_GMUX_CFG(pll))
 
 /* Soft reset registers */
+#ifdef CONFIG_DPU_GEN2
+#define SRST_BASE			PLL_REG(NR_PLLS, 0x14)
+#else /* CONFIG_DPU_GEN2 */
 #define SRST_BASE			PLL_REG(NR_PLLS, 0)
+#endif /* CONFIG_DPU_GEN2 */
 #define SRST_REG(offset)		(SRST_BASE + (offset))
 #define SRST_1BIT_REG(off, n)		REG_1BIT_ADDR(SRST_BASE+(off), n)
 
@@ -139,9 +143,17 @@ extern caddr_t dpu_pll_reg_base;
 #define SRST_DDR1_POR			24
 #define SRST_PCIE0_POR			25
 #define SRST_PCIE1_POR			26
+#ifdef CONFIG_DPU_GEN2
+#define SRST_TSENSOR_XO			27
+#define SRST_TSENSOR_METS		28
+#endif /* CONFIG_DPU_GEN2 */
 #define POR_ARST			32
 
+#ifdef CONFIG_DPU_GEN2
+#define NR_PLL_RSTS			(SRST_TSENSOR_METS + 1)
+#else /* CONFIG_DPU_GEN2 */
 #define NR_PLL_RSTS			(SRST_PCIE1_POR + 1)
+#endif /* CONFIG_DPU_GEN2 */
 
 /* PLL register access */
 #define PLL_REG_ACCESS(pll)		SRST_REG(0x08 + ((pll) << 2))

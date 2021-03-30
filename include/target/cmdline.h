@@ -38,7 +38,11 @@ int cmd_init(void);
 void cmd_dump_sect(void);
 int cmd_parse(char *line, char *argv[]);
 int cmd_execute(int argc, char * argv[]);
+void cmd_batch(void);
 #else
+static inline void cmd_batch(void)
+{
+}
 static inline int cmd_execute(int argc, char * argv[])
 {
 	return -ENODEV;

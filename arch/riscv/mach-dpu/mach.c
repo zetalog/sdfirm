@@ -43,6 +43,7 @@
 #include <target/irq.h>
 #include <target/clk.h>
 #include <target/spi.h>
+#include <target/pci.h>
 #include <target/uefi.h>
 #include <target/cmdline.h>
 
@@ -60,44 +61,69 @@ void board_reboot(void)
 #endif
 
 #ifdef CONFIG_DPU_LOAD
+#ifdef CONFIG_DPU_LOAD_SPI_FLASH
+static void dpu_boot_spi(void)
+{
+	void (*boot_entry)(void);
+
+	printf("boot(spi): booting...\n");
+	boot_entry = (void *)CONFIG_DPU_BOOT_ADDR;
+	clk_enable(srst_flash);
+	dpu_flash_set_frequency(min(DPU_FLASH_FREQ, APB_CLK_FREQ));
+	boot_entry();
+}
+#else
+#define dpu_boot_spi()		do { } while (0)
+#endif
+
+#ifdef CONFIG_DPU_LOAD_SSI_FLASH
+static void dpu_boot_ssi(void)
+{
+	uint32_t addr = 0;
+	uint32_t size = 500000;
+	void (*boot_entry)(void);
+	int ret;
+
+	dpu_pe_boot();
+#ifndef CONFIG_DPU_SIM_BACKDOOR
+#ifdef CONFIG_DPU_LOAD_ZSBL
+#define DPU_BOOT_FILE	"fsbl.bin"
+	boot_entry = (void *)SRAM_BASE;
+#endif
+#ifdef CONFIG_DPU_LOAD_FSBL
+#define DPU_BOOT_FILE	"bbl.bin"
+	boot_entry = (void *)DDR_DATA_BASE;
+#endif
+	ret = gpt_pgpt_init();
+	if (ret != 0)
+		printf("Error: Failed to init partition.\n");
+	printf("boot(ssi): loading %s...\n", DPU_BOOT_FILE);
+	ret = gpt_get_file_by_name(board_flash, DPU_BOOT_FILE,
+				   &addr, &size);
+	if (ret <= 0)
+		printf("Error: Failed to load file.\n");
+	printf("boot(ssi): validating content - 0x%lx(0x%lx)...\n",
+	       addr, size);
+	dpu_ssi_flash_boot(boot_entry, addr, size);
+#endif /* CONFIG_DPU_SIM_BACKDOOR */
+	printf("boot(ssi): validating SSI contents...\n");
+	cmd_batch();
+	printf("boot(ssi): booting...\n");
+	boot_entry();
+}
+#else
+#define dpu_boot_ssi()			do { } while (0)
+#endif
+
 void board_boot(void)
 {
 	uint8_t flash_sel = imc_boot_flash();
-	void (*boot_entry)(void);
 
 	board_init_clock();
-#ifdef CONFIG_DPU_LOAD_SPI_FLASH
-	if (flash_sel == IMC_FLASH_SPI) {
-		printf("Booting from SPI flash...\n");
-		boot_entry = (void *)CONFIG_DPU_BOOT_ADDR;
-		clk_enable(srst_flash);
-		dpu_flash_set_frequency(min(DPU_FLASH_FREQ, APB_CLK_FREQ));
-	}
-#endif
-#ifdef CONFIG_DPU_LOAD_SSI_FLASH
-	if (flash_sel == IMC_FLASH_SSI) {
-		uint32_t addr = 0;
-		uint32_t size = 500000;
-		char boot_file[] = "fsbl.bin";
-		int ret;
-
-		boot_entry = (void *)RAM_BASE;
-		printf("Initiating Primary GPT from SSI flash...\n");
-		ret = gpt_pgpt_init();
-		if (ret != 0) {
-			printf("Error: Failed to initiate Primary GPT. ret = %d\n", ret);
-		}
-		printf("Getting boot file %s...\n", boot_file);
-		ret = gpt_get_file_by_name(board_flash, boot_file,
-					   &addr, &size);
-		if (ret <= 0) {
-			printf("Error: Failed to get boot file. ret = %d\n", ret);
-		}
-		printf("Booting from SSI flash addr = 0x%lx, size = 0x%lx...\n", addr, size);
-		dpu_ssi_flash_boot(boot_entry, addr, size);
-	}
-#endif
-	boot_entry();
+	if (flash_sel == IMC_FLASH_SPI)
+		dpu_boot_spi();
+	if (flash_sel == IMC_FLASH_SSI)
+		dpu_boot_ssi();
 }
 #else
 #define board_boot()		do { } while (0)
@@ -107,13 +133,16 @@ void board_early_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);
 	board_init_timestamp();
+	imc_config_ddr_intlv();
 }
 
 void board_late_init(void)
 {
 	dpu_gpio_irq_init();
+	dpu_tsensor_irq_init();
 	dpu_ssi_irq_init();
 	dpu_ssi_flash_init();
+	pci_platform_init();
 	board_boot();
 }
 
