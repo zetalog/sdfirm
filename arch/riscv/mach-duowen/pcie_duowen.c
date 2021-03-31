@@ -327,9 +327,8 @@ static void subsys_link_init_post(struct duowen_pcie_subsystem *pcie_subsys)
 			break;
 	}
 
-#ifdef CONFIG_DUOWEN_PCIE_CHIPLINK
-	subsys_controllers_init(pcie_subsys, wait_controller_linkup);
-#endif
+	if (chiplink)
+		subsys_controllers_init(pcie_subsys, wait_controller_linkup);
 } 
 
 void instance_subsystem(struct duowen_pcie_subsystem *pcie_subsystem, int socket_id, bool chiplink)

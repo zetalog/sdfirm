@@ -38,7 +38,8 @@ endchoice
 config DUOWEN_SOC_DUAL
 	bool "Enable dual sockets"
 	depends SMP
-	select DUOWEN_PCIE_CHIPLINK if PCI
+	select PCI
+	select DUOWEN_PCIE_CHIPLINK
 
 config DUOWEN_BOOT
 	bool
@@ -590,7 +591,7 @@ if DUOWEN_SD
 
 endif
 
-config DUOWEN_PCIE
+menuconfig DUOWEN_PCIE
 	bool "Duowen PCI-Express (PCIe) support"
 	select DW_PCIE
 	select ARCH_HAS_DW_PCIE_RC
@@ -624,7 +625,7 @@ config DUOWEN_PCIE_LINK_MODE_3
 	depends !DUOWEN_ZEBU
 
 config DUOWEN_PCIE_LINK_MODE_4
-	bool "x4"
+	bool "x4 (ZeBu only)"
 	depends DUOWEN_ZEBU
 
 endchoice

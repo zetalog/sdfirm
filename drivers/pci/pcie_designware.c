@@ -630,14 +630,12 @@ void dw_pcie_setup_ctrl(struct pcie_port *pp)
 {
 	uint32_t val;
 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
-	int role = pp->role;
-	bool chiplink = pp->chiplink;
 
 	dw_pcie_dbi_ro_wr_en(pci);
 
 	dw_pcie_setup(pci);
 
-	if (role == ROLE_RC) {
+	if (pp->role == ROLE_RC) {
 		/* Setup RC BARs */
 		dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_BASE_ADDRESS_0, 0x00000004, 0x4);
 		dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_BASE_ADDRESS_1, 0x00000000, 0x4);
@@ -679,7 +677,7 @@ void dw_pcie_setup_ctrl(struct pcie_port *pp)
 	}
 
 #ifdef CONFIG_DUOWEN_ZEBU
-	if (chiplink) {
+	if (pp->chiplink) {
 		val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, 0xa0, 0x4); // link_control2_link_status
 		val &= 0xfffffff0;
 		val |= 0x1;
