@@ -131,7 +131,7 @@
 #define VPU_CCLK		((clk_clk_t)5) /* PLL5_P */
 #define TSENSOR_XO_CLK		((clk_clk_t)8) /* PLL4_R */
 #define TSENSOR_METS_CLK	((clk_clk_t)9) /* PLL5_R */
-#define NR_SEL_CLKS		(TSENSOR_METS_CCLK + 1)
+#define NR_SEL_CLKS		(TSENSOR_METS_CLK + 1)
 #else /* CONFIG_DPU_GEN2 */
 #define PCIE_REF_CLK		((clk_clk_t)5) /* PLL5_P */
 #define VPU_CCLK		((clk_clk_t)8) /* PLL4_R */

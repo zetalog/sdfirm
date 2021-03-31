@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Mar 30 15:57:57 2021
+# Wed Mar 31 10:51:18 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -162,7 +162,6 @@ CONFIG_DPU_BOOT_VPU=y
 CONFIG_DPU_SIM_GPIO_IRQ=y
 CONFIG_DPU_SIM_SSI_IRQ=y
 # CONFIG_DPU_SIM_DDR_BOOT is not set
-# CONFIG_DPU_SIM_BACKDOOR is not set
 CONFIG_DPU_TCSR=y
 CONFIG_DPU_TCSR_LOW_POWER=y
 CONFIG_DPU_TCSR_SIM_FINISH=y

@@ -203,8 +203,9 @@ config DPU_SIM_DDR_BOOT
 	  RAM model, and sizes 512MB. The CPU will boot the the start
 	  address of DDR1 (0x08_0000_0000).
 
-config DPU_SIM_BACKDOOR
-	bool "Load SRAM/DDR contents via backdoor"
+config DPU_SIM_SSI_BACKDOOR
+	bool "Load SSI flash contents via backdoor"
+	depends DPU_LOAD_SSI_FLASH
 
 endif
 

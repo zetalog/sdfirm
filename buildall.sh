@@ -84,7 +84,7 @@ build_sdfirm riscv64 spike64_bbl
 build_sdfirm riscv64 virt64_bbl
 build_sdfirm riscv64 unleashed_bbl
 build_sdfirm riscv64 k210_bbl
-build_sdfirm riscv64 dpu_bbl
+build_sdfirm riscv64 dpu2_bbl
 build_sdfirm riscv64 duowen_bbl
 if [ "x$PSEUDO_IMAGE" = "xyes" ]; then
 	echo "Deleting pseudo image..."
@@ -141,6 +141,9 @@ build_sdfirm riscv64 dpu_rom
 build_sdfirm riscv64 dpu_flash
 build_sdfirm riscv64 dpu_ram
 build_sdfirm riscv64 dpu_ddr
+# DPU GEN2
+build_sdfirm riscv64 dpu2_ram
+build_sdfirm riscv64 dpu2_ddr
 # core-v-verif
 build_sdfirm riscv32 corev_cv32
 

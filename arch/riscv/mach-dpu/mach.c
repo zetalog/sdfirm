@@ -73,19 +73,37 @@ static void dpu_boot_spi(void)
 	boot_entry();
 }
 #else
-#define dpu_boot_spi()		do { } while (0)
+#define dpu_boot_spi()				do { } while (0)
 #endif
 
 #ifdef CONFIG_DPU_LOAD_SSI_FLASH
-static void dpu_boot_ssi(void)
+#ifdef CONFIG_DPU_SIM_SSI_BACKDOOR
+#define dpu_load_ssi(boot_entry, boot_file)	do { } while (0)
+#else /* CONFIG_DPU_SIM_SSI_BACKDOOR */
+static void dpu_load_ssi(void *boot_entry, const char *boot_file)
 {
 	uint32_t addr = 0;
 	uint32_t size = 500000;
-	void (*boot_entry)(void);
 	int ret;
 
+	ret = gpt_pgpt_init();
+	if (ret != 0)
+		printf("Error: Failed to init partition.\n");
+	printf("boot(ssi): loading %s...\n", boot_file);
+	ret = gpt_get_file_by_name(board_flash, boot_file, &addr, &size);
+	if (ret <= 0)
+		printf("Error: Failed to load file.\n");
+	printf("boot(ssi): validating content - 0x%lx(0x%lx)...\n",
+	       addr, size);
+	dpu_ssi_flash_boot(boot_entry, addr, size);
+}
+#endif /* CONFIG_DPU_SIM_SSI_BACKDOOR */
+
+static void dpu_boot_ssi(void)
+{
+	void (*boot_entry)(void);
+
 	dpu_pe_boot();
-#ifndef CONFIG_DPU_SIM_BACKDOOR
 #ifdef CONFIG_DPU_LOAD_ZSBL
 #define DPU_BOOT_FILE	"fsbl.bin"
 	boot_entry = (void *)SRAM_BASE;
@@ -94,25 +112,14 @@ static void dpu_boot_ssi(void)
 #define DPU_BOOT_FILE	"bbl.bin"
 	boot_entry = (void *)DDR_DATA_BASE;
 #endif
-	ret = gpt_pgpt_init();
-	if (ret != 0)
-		printf("Error: Failed to init partition.\n");
-	printf("boot(ssi): loading %s...\n", DPU_BOOT_FILE);
-	ret = gpt_get_file_by_name(board_flash, DPU_BOOT_FILE,
-				   &addr, &size);
-	if (ret <= 0)
-		printf("Error: Failed to load file.\n");
-	printf("boot(ssi): validating content - 0x%lx(0x%lx)...\n",
-	       addr, size);
-	dpu_ssi_flash_boot(boot_entry, addr, size);
-#endif /* CONFIG_DPU_SIM_BACKDOOR */
+	dpu_load_ssi(boot_entry, DPU_BOOT_FILE);
 	printf("boot(ssi): validating SSI contents...\n");
 	cmd_batch();
 	printf("boot(ssi): booting...\n");
 	boot_entry();
 }
 #else
-#define dpu_boot_ssi()			do { } while (0)
+#define dpu_boot_ssi()				do { } while (0)
 #endif
 
 void board_boot(void)
@@ -126,7 +133,7 @@ void board_boot(void)
 		dpu_boot_ssi();
 }
 #else
-#define board_boot()		do { } while (0)
+#define board_boot()				do { } while (0)
 #endif
 
 void board_early_init(void)

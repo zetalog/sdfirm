@@ -144,7 +144,7 @@ struct freqplan *freqplans[NR_PLLS] = {
 	[AXI_CLK] = bus_freqplan,
 	[VPU_BCLK] = NULL,
 #ifdef CONFIG_DPU_GEN2
-	[TSENSOR_XO_CLK] = NULL,
+	[VPU_CCLK] = NULL,
 #else /* CONFIG_DPU_GEN2 */
 	[PCIE_REF_CLK] = NULL,
 #endif /* CONFIG_DPU_GEN2 */
@@ -176,7 +176,7 @@ struct freqplan freqplans_def[NR_PLLS] = {
 		.f_pll_rclk = PLL4_R_FREQ,
 	},
 #ifdef CONFIG_DPU_GEN2
-	[TSENSOR_XO_CLK] = {
+	[VPU_CCLK] = {
 		.f_pll_vco = PLL5_VCO_FREQ,
 		.f_pll_pclk = PLL5_P_FREQ,
 		.f_pll_rclk = INVALID_FREQ,
