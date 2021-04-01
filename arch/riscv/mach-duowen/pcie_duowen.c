@@ -487,7 +487,13 @@ void pci_platform_init(void)
 #ifdef CONFIG_DUOWEN_PCIE_CHIPLINK
 	chiplink = imc_chip_link();
 	socket_id = imc_socket_id();
+
+	if (rom_get_chiplink_ready())
+		return;
+
+	rom_set_chiplink_ready();
 #endif
+
 	pcie_subsys = &pcie_subsystem;
 	instance_subsystem(pcie_subsys, socket_id, chiplink);
 
