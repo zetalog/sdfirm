@@ -726,6 +726,24 @@ config DUOWEN_DDR_512G
 
 endchoice
 
+choice
+	prompt "Dual socket memory region in DTS"
+	depends DUOWEN_BBL && DUOWEN_SOC_DUAL
+	default DUOWEN_DDR_DUAL_SOC0
+	help
+	  For Linux kernel that only support SV39, only single socket DDR
+	  can be used by the kernel early PAGE_OFFSET mapping mechanism so
+	  that VA won't be invalid, otherwise VA upper bits cannot be
+	  ensured to be all 0s or all 1s.
+
+config DUOWEN_DDR_DUAL_SOC0
+	bool "Socket 0 DDR"
+
+config DUOWEN_DDR_DUAL_SOC1
+	bool "Socket 1 DDR"
+
+endchoice
+
 menuconfig DUOWEN_DDR
 	bool "Duowen DDR memory support"
 	depends DDR
