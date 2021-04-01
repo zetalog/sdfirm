@@ -103,6 +103,17 @@ void duowen_pma_cpu_init(void)
 }
 #endif
 
+void duowen_hart_map_init(void)
+{
+	uint16_t harts;
+
+	harts = apc_get_cpu_map();
+	if (imc_socket_id() == 0)
+		rom_set_s0_apc_map(harts);
+	else
+		rom_set_s1_apc_map(harts);
+}
+
 #ifdef CONFIG_SHUTDOWN
 #ifdef CONFIG_SBI
 void board_shutdown(void)
@@ -219,6 +230,7 @@ static void duowen_load_flash(mtd_t mtd, boot_cb boot, const char *name)
 	/* For APC FSBL, boot jump is done in SMP style. Thus it's always
 	 * safe to load bbl.bin prior to any other boot steps.
 	 */
+	duowen_hart_map_init();
 	duowen_load_file(mtd, boot, "bbl.bin", APC_JUMP_ENTRY, name);
 	apc_set_jump_addr(APC_JUMP_ENTRY);
 	duowen_clk_apc_init();
@@ -366,6 +378,8 @@ static int do_duowen_info(int argc, char *argv[])
 	printf("IMC : %016llx\n", imc_get_boot_addr());
 	printf("APCB: %016llx\n", apc_get_boot_addr());
 	printf("APCJ: %016llx\n", apc_get_jump_addr());
+	printf("CPU:  %016llx\n", apc_get_cpu_map());
+	printf("L2:   %016llx\n", apc_get_l2_map());
 	return 0;
 }
 

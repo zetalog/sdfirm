@@ -57,6 +57,12 @@
 #define MAX_CPU_CLUSTERS	1
 #endif /* CONFIG_DUOWEN_IMC */
 
+#ifdef CONFIG_DUOWEN_APC_4
+#define GOOD_CPU_NUM		4
+#else /* CONFIG_DUOWEN_APC_4 */
+#define GOOD_CPU_NUM		16
+#endif /* CONFIG_DUOWEN_APC_4 */
+
 #ifdef CONFIG_DUOWEN_APC
 #ifdef CONFIG_SMP
 #if defined(CONFIG_DUOWEN_APC_4)

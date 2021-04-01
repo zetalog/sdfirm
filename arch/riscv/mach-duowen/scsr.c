@@ -70,7 +70,8 @@ int imc_pma_set(int n, unsigned long attr,
 		phys_addr_t addr, unsigned long log2len)
 {
 	unsigned long addrmask, pmaaddr;
-	bool tor = !IS_ALIGNED(addr, PMA_GRAIN_ALIGN) || log2len < PMA_GRAIN_SHIFT;
+	bool tor = !IS_ALIGNED(addr, PMA_GRAIN_ALIGN) ||
+		   log2len < PMA_GRAIN_SHIFT;
 
 	/* check parameters */
 	if (n >= PMA_COUNT || log2len > __riscv_xlen || log2len < PMA_SHIFT)
@@ -104,4 +105,72 @@ int imc_pma_set(int n, unsigned long attr,
 	imc_pma_write_addr(n, pmaaddr);
 	__pma_cfg(n, attr);
 	return 1;
+}
+
+uint8_t apc_expand_l2_map(uint8_t map)
+{
+	uint8_t mask = map;
+
+	mask = ((mask & 0x08) << 3) | ((mask & 0x04) << 2) |
+	       ((mask & 0x02) << 1) | (mask & 0x01);
+	mask = mask & (mask << 1);
+	return mask;
+}
+
+uint16_t apc_expand_apc_map(uint8_t map)
+{
+	uint16_t mask = map;
+
+	mask = ((mask & 0x80) << 7) | ((mask & 0x40) << 6) |
+	       ((mask & 0x20) << 5) | ((mask & 0x10) << 4) |
+	       ((mask & 0x08) << 3) | ((mask & 0x04) << 2) |
+	       ((mask & 0x02) << 1) | (mask & 0x01);
+	mask = mask & (mask << 1);
+	return mask;
+}
+
+uint8_t apc_get_apc_map(void)
+{
+	uint32_t mask = apc_get_apc_mask() >> 1;
+
+	mask &= apc_expand_l2_map(apc_get_l2_map());
+	mask = ((mask & 0x10101010) >> 3) | (mask & 0x01010101);
+	mask = ((mask & 0x03000300) >> 6) | (mask & 0x00030003);
+	mask = ((mask & 0x000f0000) >> 12) | (mask & 0x0000000f);
+	return (uint8_t)mask;
+}
+
+uint16_t apc_get_cpu_map(void)
+{
+	uint32_t mask = apc_get_cpu_mask() >> 2;
+
+	mask &= apc_expand_apc_map(apc_get_apc_map());
+	mask = ((mask & 0x30303030) >> 2) | (mask & 0x03030303);
+	mask = ((mask & 0x0f000f00) >> 4) | (mask & 0x000f000f);
+	mask = ((mask & 0x00ff0000) >> 8) | (mask & 0x000000ff);
+	return (uint16_t)mask;
+}
+
+uint8_t apc_get_l2_map(void)
+{
+	uint32_t mask = apc_get_cluster_mask();
+
+	mask &= apc_get_l2_mask();
+	mask = (mask & 0x00010001) | ((mask & 0x01000100) >> 7);
+	mask = (mask & 0x00000003) | ((mask & 0x00030000) >> 14);
+	return (uint8_t)mask;
+}
+
+uint16_t rom_get_s0_apc_map(void)
+{
+	if (__raw_readl(ROM_STATUS) & ROM_S0_APC_VALID)
+		return ROM_GET_S0_APC(__raw_readl(ROM_APC_MAP));
+	return CPU_TO_MASK(GOOD_CPU_NUM>>1)-1;
+}
+
+uint16_t rom_get_s1_apc_map(void)
+{
+	if (__raw_readl(ROM_STATUS) & ROM_S1_APC_VALID)
+		return ROM_GET_S1_APC(__raw_readl(ROM_APC_MAP));
+	return CPU_TO_MASK(GOOD_CPU_NUM>>1)-1;
 }
