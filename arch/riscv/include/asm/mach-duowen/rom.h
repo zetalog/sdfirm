@@ -47,10 +47,10 @@
  * ROM uses SCSR SW_MSG to pass shared configurables.
  *
  * SW_MSG_0:
- * 31     5        4        3        2        1          0
- * +------+--------+--------+--------+--------+----------+
- * | RSVD | IMC_S1 | IMC_S0 | APC_S1 | APC_S0 | CHIPLINK |
- * +------+--------+--------+--------+--------+----------+
+ * 31     6          5        4        3        2        1          0
+ * +------+----------+--------+--------+--------+--------+----------+
+ * | RSVD | PLICCNTL | IMC_S1 | IMC_S0 | APC_S1 | APC_S0 | CHIPLINK |
+ * +------+----------+--------+--------+--------+--------+----------+
  * SW_MSG_1:
  * +-----------------------+-----------------------+
  * | Socket 1 Partial Good | Socket 0 Partial Good |
@@ -66,6 +66,7 @@
 #define ROM_S1_APC_VALID	_BV(2)
 #define ROM_S0_IMC_VALID	_BV(3)
 #define ROM_S1_IMC_VALID	_BV(4)
+#define ROM_PLICCNTRL_DONE	_BV(5)
 /* ROM_APC_MAP */
 #define ROM_S0_APC_OFFSET	0
 #define ROM_S0_APC_MASK		REG_16BIT_MASK
@@ -80,6 +81,10 @@
 	(!!(__raw_readl(ROM_STATUS) & ROM_CHIPLINK_READY))
 #define rom_set_chiplink_ready()				\
 	__raw_setl(ROM_CHIPLINK_READY, ROM_STATUS)
+#define rom_get_pliccntl_done()				\
+	(!!(__raw_readl(ROM_STATUS) & ROM_PLICCNTL_DONE))
+#define rom_set_pliccntl_done()				\
+	__raw_setl(ROM_PLICCNTL_DONE, ROM_STATUS)
 #define rom_set_s0_apc_map(harts)				\
 	do {							\
 		__raw_writel_mask(ROM_SET_S0_APC(harts),	\

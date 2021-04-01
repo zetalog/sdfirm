@@ -52,15 +52,15 @@
 
 #define PLIC_HW_PRI_MAX		31
 /* PLIC contexts
- * +----------+----------+----------+----------+----------+----------+
- * | 0-15     | 16       | 17-32    | 33-48    | 49       | 50-65    |
- * +----------+----------+----------+----------+----------+----------+
- * | S0 APC M | S0 IMC M | S0 APC S | S1 APC M | S1 IMC M | S1 APC S |
- * +----------+----------+----------+----------+----------+----------+
+ * +--------+--------+--------+--------+--------+--------+--------+--------+
+ * | 0-15   | 16     | 17-32  | 33     | 34-49  | 50     | 51-66  | 67     |
+ * +--------+--------+--------+--------+--------+--------+--------+--------+
+ * | S0APCM | S0IMCM | S0APCS | S0IMCS | S1APCM | S1IMCM | S1APCS | S1IMCS |
+ * +--------+--------+--------+--------+--------+--------+--------+--------+
  */
 #ifdef CONFIG_DUOWEN_IMC
-#define plic_hw_m_ctx(cpu)	(imc_socket_id() == 1 ? 49 : 16)
-#define plic_hw_s_ctx(cpu)	PLIC_CTX_NONE
+#define plic_hw_m_ctx(cpu)	(imc_socket_id() == 1 ? 50 : 16)
+#define plic_hw_s_ctx(cpu)	(imc_socket_id() == 1 ? 67 : 33)
 #endif /* CONFIG_DUOWEN_IMC */
 
 #ifdef CONFIG_DUOWEN_APC
@@ -71,7 +71,7 @@
 	 (smp_hw_cpu_hart(cpu) + 33) : (cpu))
 #define plic_hw_s_ctx(cpu)		\
 	(imc_socket_id() == 1 ?		\
-	 (smp_hw_cpu_hart(cpu) + 50) : ((cpu) + 17))
+	 (smp_hw_cpu_hart(cpu) + 51) : ((cpu) + 17))
 #else /* CONFIG_DUOWEN_SOC_DUAL */
 #define plic_hw_m_ctx(cpu)	(cpu)
 #define plic_hw_s_ctx(cpu)	((cpu) + 17)
