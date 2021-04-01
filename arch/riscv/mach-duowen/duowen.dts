@@ -1235,6 +1235,7 @@
 				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
 				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
 				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff
 #else /* CONFIG_DUOWEN_APC_4 */
 				&cpu0_intc  0xb        &cpu1_intc  0xb
 				&cpu2_intc  0xb        &cpu3_intc  0xb
@@ -1253,6 +1254,7 @@
 				&cpu10_intc 0x9        &cpu11_intc 0x9
 				&cpu12_intc 0x9        &cpu13_intc 0x9
 				&cpu14_intc 0x9        &cpu15_intc 0x9
+				&cpu0_intc  0xffffffff
 #endif /* CONFIG_DUOWEN_APC_4 */
 #else /* CONFIG_SMP */
 				&cpu0_intc  0xb        &cpu0_intc  0x9
@@ -1287,6 +1289,7 @@
 				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
 				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
 				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff
 				&cpu4_intc  0xb        &cpu5_intc  0xb
 				&cpu6_intc  0xb        &cpu7_intc  0xb
 				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
@@ -1304,6 +1307,7 @@
 				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
 				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
 				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff
 #else /* CONFIG_DUOWEN_APC_4 */
 				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
 				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
@@ -1322,6 +1326,7 @@
 				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
 				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
 				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff
 				&cpu16_intc 0xb        &cpu17_intc 0xb
 				&cpu18_intc 0xb        &cpu19_intc 0xb
 				&cpu20_intc 0xb        &cpu21_intc 0xb
@@ -1339,6 +1344,7 @@
 				&cpu26_intc 0x9        &cpu27_intc 0x9
 				&cpu28_intc 0x9        &cpu29_intc 0x9
 				&cpu30_intc 0x9        &cpu31_intc 0x9
+				&cpu0_intc  0xffffffff
 #endif /* CONFIG_DUOWEN_APC_4 */
 			>;
 			interrupt-controller;
