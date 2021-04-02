@@ -50,6 +50,47 @@
 #error "Multiple IRQ controller defined"
 #endif
 
+#define PLIC_GATEWAY_BASE		0x4001000
+#define PLIC_SOCKET_CNTL_BASE		0x4002000
+
+#define PLIC_GATEWAYR_BASE(offset)	(PLIC_GATEWAY_BASE + (offset))
+
+#define PLIC_ISPENDR_BASE		PLIC_GATEWAY_BASE(0x100)
+#define PLIC_ICPENDR_BASE		PLIC_GATEWAY_BASE(0x180)
+#define PLIC_ISCLAIMR_BASE		PLIC_GATEWAY_BASE(0x200)
+#define PLIC_ICCLAIMR_BASE		PLIC_GATEWAY_BASE(0x280)
+#define PLIC_ICFGR_BASE			PLIC_GATEWAY_BASE(0x300)
+
+#define PLIC_ISPENDR(irq)		PLIC_1BIT_REG(PLIC_ISPENDR_BASE, irq)
+#define PLIC_ICPENDR(irq)		PLIC_1BIT_REG(PLIC_ICPENDR_BASE, irq)
+#define PLIC_ISCLAIMR(irq)		PLIC_1BIT_REG(PLIC_ISCLAIMR_BASE, irq)
+#define PLIC_ICCLAIMR(irq)		PLIC_1BIT_REG(PLIC_ICCLAIMR_BASE, irq)
+#define PLIC_ICFGR(irq)			PLIC_1BIT_REG(PLIC_ICFGR_BASE, irq)
+
+#define PLIC_SOCKET_CNTL(soc)			\
+	PLIC_REG(PLIC_SOCKET_CNTL_BASE + ((soc) << 2))
+
+/* PLIC_SOCKET_CNTL */
+#define PLIC_SOCKET_CONN_DISCONN		_BV(0)
+#define PLIC_SOCKET_CONN_DISCONN_RETRY		_BV(1)
+#define PLIC_SOCKET_CONN_DISCONN_OUTSTANDING	_BV(31)
+
+#define plic_socket_outstanding(soc)		\
+	(__raw_readl(PLIC_SOCKET_CNTL(soc)) &	\
+	 PLIC_SOCKET_CONN_DISCONN_OUTSTANDING)
+#define plic_socket_connect(soc)			\
+	do {						\
+		__raw_setl(PLIC_SOCKET_CONN_DISCONN,	\
+			   PLIC_SOCKET_CNTL(soc));	\
+		while (plic_socket_outstanding(soc));	\
+	} while (0)
+#define plic_socket_disconnect(soc)			\
+	do {						\
+		__raw_clearl(PLIC_SOCKET_CONN_DISCONN,	\
+			     PLIC_SOCKET_CNTL(soc));	\
+		while (plic_socket_outstanding(soc));	\
+	} while (0)
+
 #define PLIC_HW_PRI_MAX		31
 /* PLIC contexts
  * +--------+--------+--------+--------+--------+--------+--------+--------+
@@ -89,14 +130,14 @@
 #define plic_hw_disable_int(irq)	riscv_disable_firq(irq)
 #define plic_hw_clear_int(irq)		riscv_clear_firq(irq)
 #define plic_hw_trigger_int(irq)	riscv_trigger_firq(irq)
-#else
+#else /* CONFIG_DUOWEN_IMC */
 #define plic_hw_enable_int(irq)		riscv_enable_irq(irq)
 #define plic_hw_disable_int(irq)	riscv_disable_irq(irq)
 #define plic_hw_clear_int(irq)		riscv_clear_irq(irq)
 #define plic_hw_trigger_int(irq)	riscv_trigger_irq(irq)
-#endif
+#endif /* CONFIG_DUOWEN_IMC */
 #ifdef CONFIG_MMU
 #define plic_hw_mmu_init()		do { } while (0)
-#endif
+#endif /* CONFIG_MMU */
 
 #endif /* __IRQC_DUOWEN_H_INCLUDE__ */

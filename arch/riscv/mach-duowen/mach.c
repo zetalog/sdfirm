@@ -114,6 +114,17 @@ void duowen_hart_map_init(void)
 		rom_set_s1_apc_map(harts);
 }
 
+void duowen_plic_dual_init(void)
+{
+	if (imc_chip_link() && !rom_get_pliccntl_done()) {
+		if (imc_socket_id() == 0)
+			plic_socket_connect(1);
+		else
+			plic_socket_connect(0);
+		rom_set_pliccntl_done();
+	}
+}
+
 #ifdef CONFIG_SHUTDOWN
 #ifdef CONFIG_SBI
 void board_shutdown(void)
@@ -337,8 +348,12 @@ void board_late_init(void)
 
 	/* Coherence initialization */
 	duowen_imc_noc_init();
-
+	/* PCIe dual socket connection, must be done prior than all other
+	 * dual socket operations.
+	 */
 	pci_platform_init();
+	/* PLIC socket connection */
+	duowen_plic_dual_init();
 
 	/* Non-BBL bootloader initialization */
 	board_boot_early();
