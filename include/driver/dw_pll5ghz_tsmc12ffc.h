@@ -98,9 +98,6 @@
 /* PLL_STATUS */
 #define PLL_LOCKED		_BV(0)
 #define PLL_STANDBYEFF		_BV(1)
-#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_CNT_LOCKED
-#define PLL_CNT_LOCKED		_BV(2)
-#endif
 /* XXX: DPU CFG and STATUS bits:
  *
  * DPU PLL2 actually contains 2 PLLs, each PLL is used for 1 DDR

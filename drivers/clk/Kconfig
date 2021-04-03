@@ -84,13 +84,17 @@ config DW_PLL5GHZ_TSMC12FFC_BYPASS_TEST
 
 endif
 
-config DW_PLL5GHZ_TSMC12FFC_CNT_LOCKED
-	bool "Enable count locked signal"
-	depends EXPERIMENTAL
+config DW_PLL5GHZ_TSMC12FFC_DYNAMIC
+	bool "Enable dynamic changing of static PINs"
 	help
-	  In DUOWEN SoC, a special cnt_locked signal can be used to
-	  detect an unexpected PLL lock states.
-	  If unsure, say 'N'.
+	  According to the databook, vco_mode, lowfreq, prediv,
+	  divvcop|r, p|r are "static" PINs that can only be changed
+	  before PLL reset.
+	  Enabling this option to allow dynamically changing static PINs
+	  via a PLL reset.
+	  NOTE that this may cause system clock down, thus care should
+	  be taken to switch system clocks to an external source before
+	  performing this change.
 
 config DW_PLL5GHZ_TSMC12FFC_SOC_TIMING
 	bool "Enable SoC timing support"

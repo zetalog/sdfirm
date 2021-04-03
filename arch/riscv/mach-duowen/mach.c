@@ -114,6 +114,7 @@ void duowen_hart_map_init(void)
 		rom_set_s1_apc_map(harts);
 }
 
+#ifdef CONFIG_DUOWEN_SOC_DUAL
 void duowen_plic_dual_init(void)
 {
 	if (imc_chip_link() && !rom_get_pliccntl_done()) {
@@ -124,6 +125,7 @@ void duowen_plic_dual_init(void)
 		rom_set_pliccntl_done();
 	}
 }
+#endif /* CONFIG_DUOWEN_SOC_DUAL */
 
 #ifdef CONFIG_SHUTDOWN
 #ifdef CONFIG_SBI

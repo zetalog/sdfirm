@@ -68,6 +68,11 @@ extern phys_addr_t duowen_pll_reg_base[];
 #define DW_PLL_CLK_R_FREQ(pll)		DW_PLL_REG(pll, 0x24)
 #define DW_PLL_CNT(pll)			DW_PLL_REG(pll, 0x28)
 
+/* PLL_STATUS
+ * Vendor specific bits
+ */
+#define PLL_CNT_LOCKED		_BV(2)
+
 #include <driver/dw_pll5ghz_tsmc12ffc.h>
 
 #define __DUOWEN_CLK_BASE		CRCNTL_BASE
