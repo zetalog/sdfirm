@@ -131,7 +131,7 @@ void cmd_console(void)
 {
 	console_late_init();
 	readline_register_handler(cmd_console_handler);
-	con_dbg("Command section: %016llx - %016llx\n",
+	con_dbg("cmd: Command section: %016llx - %016llx\n",
 		__cmd_start, __cmd_end);
 }
 #else

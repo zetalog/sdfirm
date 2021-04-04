@@ -324,22 +324,9 @@ void cohfab_clk_deselect(clk_clk_t clk)
  * CRCNTL TRACE APIs
  *===========================================================================*/
 #ifdef CONFIG_CRCNTL_TRACE
-bool crcntl_tracing;
-
-void crcntl_trace_enable(void)
-{
-	crcntl_tracing = true;
-}
-
-void crcntl_trace_disable(void)
-{
-	crcntl_tracing = false;
-}
-
 void crcntl_trace(bool enabling, const char *name)
 {
-	if (crcntl_tracing)
-		printf("%c %s\n", enabling ? 'E' : 'D', name);
+	con_dbg("crcntl: %c %s\n", enabling ? 'E' : 'D', name);
 }
 #endif
 

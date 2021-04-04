@@ -48,6 +48,12 @@
 
 #define PLL_FMT_PR(r)		((r) ? 'r' : 'p')
 
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_TRACE
+#define dw_pll_trace(...)	con_dbg(__VA_ARGS__)
+#else
+#define dw_pll_trace(...)	do { } while (0)
+#endif
+
 #ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_SOC_TIMING
 static void dw_pll5ghz_tsmc12ffc_wait(uint8_t pll, uint32_t timing)
 {
@@ -192,9 +198,9 @@ static void dw_pll5ghz_tsmc12ffc_output_fclk(uint8_t pll, bool r,
 	uint32_t enpr = r ? PLL_ENR : PLL_ENP;
 
 	if ((__raw_readl(DW_PLL_CFG1(pll)) & mask) != cfg) {
-		con_dbg("pll(%d): CFG1(%08llx) divvco%c=%d %c=%d\n",
-			pll, cfg, PLL_FMT_PR(r), divvcopr,
-			PLL_FMT_PR(r), pr);
+		dw_pll_trace("pll(%d): CFG1(%08llx) divvco%c=%d %c=%d\n",
+			     pll, cfg, PLL_FMT_PR(r), divvcopr,
+			     PLL_FMT_PR(r), pr);
 		if (locked)
 			dw_pll5ghz_tsmc12ffc_dynamic(pll, cfg, mask);
 		else
@@ -337,8 +343,8 @@ static void __dw_pll5ghz_tsmc12ffc_pwrup(uint8_t pll)
 	 *      can go wrong.
 	 */
 	dw_pll5ghz_tsmc12ffc_wait(pll, DW_PLL_T_PWRON);
-	con_dbg("pll(%d): CFG1(%08llx) reset\n",
-		pll, __raw_readl(DW_PLL_CFG1(pll)));
+	dw_pll_trace("pll(%d): CFG1(%08llx) reset\n",
+		     pll, __raw_readl(DW_PLL_CFG1(pll)));
 	__raw_setl(PLL_RESET, DW_PLL_CFG1(pll));
 	/* TODO: t_prst
 	 * At least 1us, the default ANAREG07 setting ensures 1us for
@@ -355,9 +361,9 @@ static void __dw_pll5ghz_tsmc12ffc_output_fvco(uint8_t pll, uint32_t range)
 	uint32_t cfg;
 
 	cfg = __raw_readl(DW_PLL_CFG1(pll));
-	con_dbg("pll(%d): CFG1(%08x) vco_mode=%d, lowfreq=%d\n",
-		pll, cfg, !!(range & PLL_VCO_MODE),
-		!!(range & PLL_LOWFREQ));
+	dw_pll_trace("pll(%d): CFG1(%08x) vco_mode=%d, lowfreq=%d\n",
+		     pll, cfg, !!(range & PLL_VCO_MODE),
+		     !!(range & PLL_LOWFREQ));
 
 	cfg &= ~(PLL_STATE_MASK | PLL_RESET_MASK);
 	cfg |= range;
@@ -428,8 +434,8 @@ static void dw_pll5ghz_tsmc12ffc_config_fvco(uint8_t pll, uint64_t fvco)
 	} while (mint < 16);
 	cfg = PLL_PREDIV(prediv - 1) |
 	      PLL_MINT(mint - 16) | PLL_MFRAC(mfrac);
-	con_dbg("pll(%d): CFG0(%08llx) prediv=%d\n",
-		pll, cfg, prediv - 1);
+	dw_pll_trace("pll(%d): CFG0(%08llx) prediv=%d\n",
+		     pll, cfg, prediv - 1);
 	__raw_writel(cfg, DW_PLL_CFG0(pll));
 }
 

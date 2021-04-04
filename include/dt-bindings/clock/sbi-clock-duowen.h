@@ -109,6 +109,21 @@
 #define cl1_clk_sel		clkid(CLK_SELECT, CL1_CLK_SEL)
 #define cl2_clk_sel		clkid(CLK_SELECT, CL2_CLK_SEL)
 #define cl3_clk_sel		clkid(CLK_SELECT, CL3_CLK_SEL)
+
+/* In ASIC environment, dynamic PLL changes are prevented by automatically
+ * switching to xo_clk before changing P/R clkouts. Thus the select clocks
+ * are controlled by the PLL clocks.
+ */
+#define soc_clk_src		soc_pll
+#define sysfab_clk_src		sysfab_pll
+#define ddr_bus_clk_src		ddr_bus_pll
+#define ddr_clk_src		ddr_pll
+#define pcie_ref_clk_src	pcie_pll
+#define cohfab_clk_src		cohfab_pll
+#define cl0_clk_src		cl0_pll
+#define cl1_clk_src		cl1_pll
+#define cl2_clk_src		cl2_pll
+#define cl3_clk_src		cl3_pll
 #endif
 
 #ifdef CONFIG_DUOWEN_ZEBU
@@ -165,17 +180,29 @@
 #define cl1_clk_sel		clkid(CLK_SELECT, CL1_CLK_SEL)
 #define cl2_clk_sel		clkid(CLK_SELECT, CL2_CLK_SEL)
 #define cl3_clk_sel		clkid(CLK_SELECT, CL3_CLK_SEL)
+
+/* In ZeBu environment, the select clocks need to be programmed to output
+ * PLL P/R clkouts. Thus the PLL clocks are controlled by the select
+ * clocks.
+ */
+#define soc_clk_src		soc_clk_sel
+#define sysfab_clk_src		sysfab_clk_sel
+#define ddr_bus_clk_src		ddr_bus_clk_sel
+#define ddr_clk_src		ddr_clk_sel
+#define pcie_ref_clk_src	pcie_ref_clk_sel
+#define cohfab_clk_src		cohfab_clk_sel
+#define cl0_clk_src		cl0_clk_sel
+#define cl1_clk_src		cl1_clk_sel
+#define cl2_clk_src		cl2_clk_sel
+#define cl3_clk_src		cl3_clk_sel
 #endif
 
 /* Alias for select clocks */
-#define pcie_axi_clk_sel	soc_clk_sel
-#define sysfab_500m_clk_sel	soc_clk_div2_sel
-#define sysfab_100m_clk_sel	sysfab_clk_sel
-#define sysfab_100m_clk		sysfab_100m_clk_sel
-#define sysfab_500m_clk		sysfab_500m_clk_sel
+#define sysfab_100m_clk		sysfab_clk_src
+#define sysfab_500m_clk		soc_clk_div2_sel
 #define soc_clk			sysfab_500m_clk
 #define sysfab_clk		sysfab_100m_clk
-#define pcie_axi_clk		pcie_axi_clk_sel
+#define pcie_axi_clk		soc_clk_src
 
 /* CLK_OUTPUT: CLK_EN_CFG0 */
 #define DMA_CLK			0

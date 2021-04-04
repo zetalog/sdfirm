@@ -64,22 +64,22 @@ struct output_clk output_clks[] = {
 	 */
 	[CLUSTER0_CLK] = {
 		.clk_dep = cluster0_hclk,
-		.clk_src = cl0_clk_sel,
+		.clk_src = cl0_clk_src,
 		.flags = CLK_CR | CLK_COHFAB_CFG_F,
 	},
 	[CLUSTER1_CLK] = {
 		.clk_dep = cluster1_hclk,
-		.clk_src = cl1_clk_sel,
+		.clk_src = cl1_clk_src,
 		.flags = CLK_CR | CLK_COHFAB_CFG_F,
 	},
 	[CLUSTER2_CLK] = {
 		.clk_dep = cluster2_hclk,
-		.clk_src = cl2_clk_sel,
+		.clk_src = cl2_clk_src,
 		.flags = CLK_CR | CLK_COHFAB_CFG_F,
 	},
 	[CLUSTER3_CLK] = {
 		.clk_dep = cluster3_hclk,
-		.clk_src = cl3_clk_sel,
+		.clk_src = cl3_clk_src,
 		.flags = CLK_CR | CLK_COHFAB_CFG_F,
 	},
 	[CLUSTER0_HCLK] = {
@@ -121,7 +121,7 @@ struct output_clk output_clks[] = {
 	 */
 	[COHFAB_CLK] = {
 		.clk_dep = cohfab_hclk,
-		.clk_src = cohfab_clk_sel,
+		.clk_src = cohfab_clk_src,
 		.flags = CLK_CR | CLK_COHFAB_CFG_F,
 	},
 	[COHFAB_HCLK] = {
@@ -249,7 +249,7 @@ struct output_clk output_clks[] = {
 	},
 	[DDR_ACLK] = {
 		.clk_dep = invalid_clk,
-		.clk_src = ddr_bus_clk_sel,
+		.clk_src = ddr_bus_clk_src,
 		.flags = CLK_CR,
 	},
 	[DDR_PCLK] = {
@@ -264,7 +264,7 @@ struct output_clk output_clks[] = {
 	},
 	[DDR_CLK] = {
 		.clk_dep = invalid_clk,
-		.clk_src = ddr_clk_sel,
+		.clk_src = ddr_clk_src,
 		.flags = CLK_C,
 	},
 	[DDR_RST] = {
@@ -864,7 +864,7 @@ struct div_clk div_clks[NR_DIV_CLKS] = {
 		.div = 2,
 	},
 	[DDR_CLK_SEL_DIV4] = {
-		.src = ddr_clk_sel,
+		.src = ddr_clk_src,
 		.div = 4,
 	},
 	[XO_CLK_DIV4] = {

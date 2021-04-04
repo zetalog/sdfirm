@@ -8,12 +8,16 @@ menu "Clock drivers"
 config ARCH_HAS_DW_PLL5GHZ_TIMING
 	bool
 
+config ARCH_HAS_DW_PLL5GHZ_DYNAMIC
+	bool
+
 menuconfig DW_PLL5GHZ_TSMC12FFC
 	bool "Synopsys DWC PLL5GHz TSMC12FFCNS support"
 	depends CLK
 	select BIT_FLS8
 	select MATH_DIV32
 	select MATH_DIV64
+	select DW_PLL5GHZ_TSMC12FFC_DYNAMIC if ARCH_HAS_DW_PLL5GHZ_DYNAMIC
 	help
 	  This clock-multiplying PLL macro-cell is designed for a TSMC 12nm
 	  FFC CMOS technology. The PLL topology has an analog loop with a
@@ -86,6 +90,7 @@ endif
 
 config DW_PLL5GHZ_TSMC12FFC_DYNAMIC
 	bool "Enable dynamic changing of static PINs"
+	depends ARCH_HAS_DW_PLL5GHZ_DYNAMIC
 	help
 	  According to the databook, vco_mode, lowfreq, prediv,
 	  divvcop|r, p|r are "static" PINs that can only be changed
@@ -110,6 +115,10 @@ config DW_PLL5GHZ_TSMC12FFC_ACCEL
 	  In emulation environment, t_pwrstb, t_trst and t_pwron can be
 	  omit to accelerate emulation.
 	  If unsure, say 'N'.
+
+config DW_PLL5GHZ_TSMC12FFC_TRACE
+	bool "Enable debugging messages"
+	depends CONSOLE_DEBUG
 
 endif
 

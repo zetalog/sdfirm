@@ -156,10 +156,7 @@ static int enable_clk_sel(clk_clk_t clk)
 			cohfab_clk_select(clk);
 		else
 			crcntl_clk_select(clk);
-		if (select_clks[clk].flags & CLK_CLK_EN_F) {
-			if (!(select_clks[clk].flags & CLK_HOMOLOG_SRC_F))
-				clk_disable(select_clks[clk].clk_sels[1]);
-		} else
+		if (!(select_clks[clk].flags & CLK_CLK_EN_F))
 			select_clks[clk].flags |= CLK_CLK_EN_F;
 		select_clks[clk].flags |= CLK_CLK_SEL_F;
 	}
@@ -172,15 +169,18 @@ static void disable_clk_sel(clk_clk_t clk)
 		return;
 	crcntl_trace(false, get_clk_sel_name(clk));
 	if (select_clks[clk].flags & CLK_CLK_SEL_F) {
+		/* The PLL select clocks on ZeBu are used to gate the PLLs.
+		 * Since there is no control over PLL clocks, the select
+		 * clocks are programmed as the child nodes of the PLL
+		 * clocks, and should always be enabled by the child nodes
+		 * of the PLL clocks.
+		 */
 		clk_enable(select_clks[clk].clk_sels[1]);
 		if (select_clks[clk].flags & CLK_COHFAB_CFG_F)
 			cohfab_clk_deselect(clk);
 		else
 			crcntl_clk_deselect(clk);
-		if (select_clks[clk].flags & CLK_CLK_EN_F) {
-			if (!(select_clks[clk].flags & CLK_HOMOLOG_SRC_F))
-				clk_disable(select_clks[clk].clk_sels[0]);
-		} else
+		if (!(select_clks[clk].flags & CLK_CLK_EN_F))
 			select_clks[clk].flags |= CLK_CLK_EN_F;
 		select_clks[clk].flags &= ~CLK_CLK_SEL_F;
 	}

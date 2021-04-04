@@ -237,12 +237,8 @@ void cohfab_clk_select(clk_clk_t clk);
 void cohfab_clk_deselect(clk_clk_t clk);
 #endif
 #ifdef CONFIG_CRCNTL_TRACE
-void crcntl_trace_enable(void);
-void crcntl_trace_disable(void);
 void crcntl_trace(bool enabling, const char *name);
 #else
-#define crcntl_trace_enable()		do { } while (0)
-#define crcntl_trace_disable()		do { } while (0)
 #define crcntl_trace(enabling, name)	do { } while (0)
 #endif
 

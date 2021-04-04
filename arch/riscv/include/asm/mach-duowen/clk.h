@@ -121,8 +121,12 @@
 #define CLK_SW_RST_F		_BV(2)
 #define CLK_COHFAB_CFG_F	_BV(3) /* cohfab/cluster clock/reset */
 #define CLK_CLUSTER_CFG_F	_BV(4) /* APC internal clock/reset */
-#define CLK_REVERSE_DEP_F	_BV(5)
-#define CLK_HOMOLOG_SRC_F	_BV(6)
+/* XXX: CLK_PLL_SEL_F:
+ *
+ * Some select clocks marked by this flag are controlled internally by the
+ * PLL clocks.
+ */
+#define CLK_PLL_SEL_F		_BV(5) /* CLK_SEL for PLL P/R clkout */
 #define CLK_CR			(CLK_CLK_EN_F | CLK_SW_RST_F)
 #define CLK_C			CLK_CLK_EN_F
 #define CLK_R			CLK_SW_RST_F

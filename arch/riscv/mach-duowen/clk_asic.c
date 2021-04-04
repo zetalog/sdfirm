@@ -58,65 +58,70 @@ struct select_clk select_clks[NR_SELECT_CLKS] = {
 			sysfab_pll,
 			xo_clk,
 		},
+		.flags = CLK_PLL_SEL_F,
 	},
 	[DDR_BUS_CLK_SEL] = {
 		.clk_sels = {
 			ddr_bus_pll,
 			xo_clk,
 		},
+		.flags = CLK_PLL_SEL_F,
 	},
 	[DDR_CLK_SEL] = {
 		.clk_sels = {
 			ddr_pll,
 			xo_clk,
 		},
+		.flags = CLK_PLL_SEL_F,
 	},
 	[PCIE_REF_CLK_SEL] = {
 		.clk_sels = {
 			pcie_pll,
 			xo_clk,
 		},
+		.flags = CLK_PLL_SEL_F,
 	},
 	[SOC_CLK_SEL] = {
 		.clk_sels = {
 			soc_pll,
 			xo_clk,
 		},
+		.flags = CLK_PLL_SEL_F,
 	},
 	[COHFAB_CLK_SEL] = {
 		.clk_sels = {
 			cohfab_pll,
 			xo_clk,
 		},
-		.flags = CLK_COHFAB_CFG_F,
+		.flags = CLK_COHFAB_CFG_F | CLK_PLL_SEL_F,
 	},
 	[CL0_CLK_SEL] = {
 		.clk_sels = {
 			cl0_pll,
 			xo_clk,
 		},
-		.flags = CLK_COHFAB_CFG_F,
+		.flags = CLK_COHFAB_CFG_F | CLK_PLL_SEL_F,
 	},
 	[CL1_CLK_SEL] = {
 		.clk_sels = {
 			cl1_pll,
 			xo_clk,
 		},
-		.flags = CLK_COHFAB_CFG_F,
+		.flags = CLK_COHFAB_CFG_F | CLK_PLL_SEL_F,
 	},
 	[CL2_CLK_SEL] = {
 		.clk_sels = {
 			cl2_pll,
 			xo_clk,
 		},
-		.flags = CLK_COHFAB_CFG_F,
+		.flags = CLK_COHFAB_CFG_F | CLK_PLL_SEL_F,
 	},
 	[CL3_CLK_SEL] = {
 		.clk_sels = {
 			cl3_pll,
 			xo_clk,
 		},
-		.flags = CLK_COHFAB_CFG_F,
+		.flags = CLK_COHFAB_CFG_F | CLK_PLL_SEL_F,
 	},
 };
 
@@ -151,15 +156,13 @@ static int enable_clk_sel(clk_clk_t clk)
 		return -EINVAL;
 	crcntl_trace(true, get_clk_sel_name(clk));
 	if (!(select_clks[clk].flags & CLK_CLK_SEL_F)) {
-		clk_enable(select_clks[clk].clk_sels[0]);
+		if (!(select_clks[clk].flags & CLK_PLL_SEL_F))
+			clk_enable(select_clks[clk].clk_sels[0]);
 		if (select_clks[clk].flags & CLK_COHFAB_CFG_F)
 			cohfab_clk_select(clk);
 		else
 			crcntl_clk_select(clk);
-		if (select_clks[clk].flags & CLK_CLK_EN_F) {
-			if (!(select_clks[clk].flags & CLK_HOMOLOG_SRC_F))
-				clk_disable(select_clks[clk].clk_sels[1]);
-		} else
+		if (!(select_clks[clk].flags & CLK_CLK_EN_F))
 			select_clks[clk].flags |= CLK_CLK_EN_F;
 		select_clks[clk].flags |= CLK_CLK_SEL_F;
 	}
@@ -177,10 +180,7 @@ static void disable_clk_sel(clk_clk_t clk)
 			cohfab_clk_deselect(clk);
 		else
 			crcntl_clk_deselect(clk);
-		if (select_clks[clk].flags & CLK_CLK_EN_F) {
-			if (!(select_clks[clk].flags & CLK_HOMOLOG_SRC_F))
-				clk_disable(select_clks[clk].clk_sels[0]);
-		} else
+		if (!(select_clks[clk].flags & CLK_CLK_EN_F))
 			select_clks[clk].flags |= CLK_CLK_EN_F;
 		select_clks[clk].flags &= ~CLK_CLK_SEL_F;
 	}
@@ -214,6 +214,7 @@ struct clk_driver clk_select = {
 
 struct pll_clk {
 	clk_t src;
+	clk_t sel;
 	clk_freq_t freq;
 	bool enabled;
 };
@@ -221,61 +222,73 @@ struct pll_clk {
 struct pll_clk pll_clks[NR_PLL_CLKS] = {
 	[SOC_PLL] = {
 		.src = soc_vco,
+		.sel = soc_clk_sel,
 		.freq = SOC_PLL_FREQ,
 		.enabled = false,
 	},
 	[DDR_BUS_PLL] = {
 		.src = ddr_bus_vco,
+		.sel = ddr_bus_clk_sel,
 		.freq = DDR_BUS_PLL_FREQ,
 		.enabled = false,
 	},
 	[DDR_PLL] = {
 		.src = ddr_vco,
+		.sel = ddr_clk_sel,
 		.freq = DDR_PLL_FREQ,
 		.enabled = false,
 	},
 	[PCIE_PLL] = {
 		.src = pcie_vco,
+		.sel = pcie_ref_clk_sel,
 		.freq = PCIE_PLL_FREQ,
 		.enabled = false,
 	},
 	[COHFAB_PLL] = {
 		.src = cohfab_vco,
+		.sel = cohfab_clk_sel,
 		.freq = CFAB_PLL_FREQ,
 		.enabled = false,
 	},
 	[CL0_PLL] = {
 		.src = cl0_vco,
+		.sel = cl0_clk_sel,
 		.freq = CL_PLL_FREQ,
 		.enabled = false,
 	},
 	[CL1_PLL] = {
 		.src = cl1_vco,
+		.sel = cl1_clk_sel,
 		.freq = CL_PLL_FREQ,
 		.enabled = false,
 	},
 	[CL2_PLL] = {
 		.src = cl2_vco,
+		.sel = cl2_clk_sel,
 		.freq = CL_PLL_FREQ,
 		.enabled = false,
 	},
 	[CL3_PLL] = {
 		.src = cl3_vco,
+		.sel = cl3_clk_sel,
 		.freq = CL_PLL_FREQ,
 		.enabled = false,
 	},
 	[ETH_PLL] = {
 		.src = eth_vco,
+		.sel = invalid_clk,
 		.freq = ETH_PLL_FREQ,
 		.enabled = false,
 	},
 	[SYSFAB_PLL] = {
 		.src = soc_vco,
+		.sel = sysfab_clk_sel,
 		.freq = SFAB_PLL_FREQ,
 		.enabled = false,
 	},
 	[SGMII_PLL] = {
 		.src = eth_vco,
+		.sel = invalid_clk,
 		.freq = SGMII_PLL_FREQ,
 		.enabled = false,
 	},
@@ -313,10 +326,33 @@ static void __enable_pll(clk_clk_t clk)
 	clk_clk_t prclk = r ? clk - DUOWEN_MAX_PLLS : clk;
 
 	if (!pll_clks[clk].enabled) {
+		/* XXX: Protect Dynamic PLL Change
+		 *
+		 * The PLL might be the source of the system clocks (CPU,
+		 * BUS, etc.). Since the possible dynamic PLL change may
+		 * disable VCO internally to lead to the unpredictable
+		 * system hangs, switching to the xo_clk can help to
+		 * ensure a safer P/R clkout enabling.
+		 */
+		if (pll_clks[clk].sel != invalid_clk) {
+			clk_disable(pll_clks[clk].sel);
+			/* XXX: Ensure Lowest Power Mode
+			 *
+			 * Stay sourcing xo_clk to utilize the low power
+			 * consumption mode.
+			 */
+			if (pll_clks[clk].freq != XO_CLK_FREQ)
+				goto exit_xo_clk;
+		}
+
 		clk_enable(pll_clks[clk].src);
 		duowen_div_enable(prclk,
 				  clk_get_frequency(pll_clks[clk].src),
 				  pll_clks[clk].freq, r);
+		if (pll_clks[clk].sel != invalid_clk)
+			clk_enable(pll_clks[clk].sel);
+
+exit_xo_clk:
 		pll_clks[clk].enabled = true;
 	}
 }
@@ -328,6 +364,15 @@ static void __disable_pll(clk_clk_t clk)
 
 	if (pll_clks[clk].enabled) {
 		pll_clks[clk].enabled = false;
+
+		/* XXX: Ensure System Clocking
+		 *
+		 * The PLL might be the source of the system clocks (CPU,
+		 * BUS, etc.). Make sure it's still clocking after
+		 * disabling the P/R clkout by switching to the xo_clk.
+		 */
+		if (pll_clks[clk].sel != invalid_clk)
+			clk_disable(pll_clks[clk].sel);
 		duowen_div_disable(prclk, r);
 		clk_disable(pll_clks[clk].src);
 	}
@@ -584,9 +629,23 @@ void clk_apply_vco(clk_clk_t clk, clk_freq_t freq)
 
 void clk_apply_pll(clk_clk_t clk, clk_freq_t freq)
 {
+	bool r = !!(clk >= DUOWEN_MAX_PLLS);
+
 	if (clk >= NR_PLL_CLKS)
 		return;
 	pll_clks[clk].freq = freq;
+
+	/* XXX: Avoid Dynamic PLL Change
+	 *
+	 * This API should be used right after clk_apply_vco(). The usage
+	 * should only affect static PLL changes. So changes P/R clkouts
+	 * presets accordingly to avoid dynamic PLL changes in the follow
+	 * up clk_enable() invocations.
+	 */
+	if (r)
+		vco_clks[clk].freq_r = freq;
+	else
+		vco_clks[clk].freq_p = freq;
 }
 
 #ifdef CONFIG_CONSOLE_COMMAND
