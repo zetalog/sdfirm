@@ -341,7 +341,7 @@ static void __enable_pll(clk_clk_t clk)
 			 * Stay sourcing xo_clk to utilize the low power
 			 * consumption mode.
 			 */
-			if (pll_clks[clk].freq != XO_CLK_FREQ)
+			if (pll_clks[clk].freq == XO_CLK_FREQ)
 				goto exit_xo_clk;
 		}
 
