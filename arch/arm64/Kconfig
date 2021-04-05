@@ -52,6 +52,7 @@ config ARCH_GEM5
 	select ARCH_HAS_PMU
 	select ARCH_HAS_GICv2
 	select ARCH_HAS_IDLE
+	select ARCH_HAS_CONSOLE_EARLY
 	select MATH_GCD32
 	select BIT_FLS32
 	select ARCH_HAS_BOOT_LOAD

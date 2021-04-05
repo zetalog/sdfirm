@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Jan 14 23:57:37 2021
+# Mon Apr  5 21:31:50 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -24,6 +24,7 @@ CONFIG_BOOTLOADER=y
 CONFIG_BOOT_LINUX=y
 # CONFIG_BOOT_ROM is not set
 # CONFIG_COMMAND is not set
+CONFIG_ARCH_HAS_CONSOLE_EARLY=y
 CONFIG_CONSOLE=y
 # CONFIG_CONSOLE_COMMAND is not set
 CONFIG_CONSOLE_OUTPUT=y

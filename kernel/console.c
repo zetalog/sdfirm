@@ -20,6 +20,12 @@
 DECLARE_CIRCBF16(console_output_buffer, CONSOLE_BUFFER_SIZE);
 static console_handler console_console_handler = NULL;
 
+#ifdef CONFIG_ARCH_HAS_CONSOLE_EARLY
+bool console_enabled = true;
+#else
+bool console_enabled = false;
+#endif
+
 #ifdef CONFIG_CONSOLE_OUTPUT_CR
 static void append_cr(int c)
 {
@@ -60,6 +66,7 @@ void console_output_handler(void)
 int console_output_init(void)
 {
 	uart_hw_con_init();
+	console_enabled = true;
 	return 0;
 }
 #endif
@@ -150,12 +157,6 @@ static void console_bh_handler(uint8_t events)
 	}
 }
 
-#ifdef CONFIG_MMU_IDMAP_DEVICE
-bool console_enabled = true;
-#else
-bool console_enabled = false;
-#endif
-
 void con_printf(const char *fmt, ...)
 {
 	va_list arg;
@@ -201,7 +202,6 @@ void console_early_init(void)
 	clk_hw_mmu_init();
 	gpio_hw_mmu_init();
 	uart_hw_mmu_init();
-	console_enabled = true;
 }
 
 #ifdef CONFIG_CONSOLE_DEBUG_BOOT

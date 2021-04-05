@@ -96,6 +96,9 @@ config COMMAND_BATCH_COMMAND
 	string "Batch commands"
 	depends COMMAND_BATCH
 
+config ARCH_HAS_CONSOLE_EARLY
+	bool
+
 menuconfig CONSOLE
 	bool "Enable console on (possibly) UART0"
 	select PRINT_PRINTF
