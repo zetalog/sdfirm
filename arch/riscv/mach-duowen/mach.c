@@ -103,11 +103,18 @@ void duowen_pma_cpu_init(void)
 }
 #endif
 
+#ifdef CONFIG_DUOWEN_APC_PARTIAL_GOOD
+#define duowen_get_partial_good()	CONFIG_DUOWEN_APC_PARTIAL_GOOD_MASK
+#else
+/* TODO: Read from a flash cfg.bin */
+#define duowen_get_partial_good()	apc_get_cpu_map()
+#endif
+
 void duowen_hart_map_init(void)
 {
 	uint16_t harts;
 
-	harts = apc_get_cpu_map();
+	harts = duowen_get_partial_good();
 	if (imc_socket_id() == 0)
 		rom_set_s0_apc_map(harts);
 	else
