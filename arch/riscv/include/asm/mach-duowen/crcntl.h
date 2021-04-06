@@ -235,6 +235,8 @@ void crcntl_clk_deselect(clk_clk_t clk);
 bool cohfab_clk_selected(clk_clk_t clk);
 void cohfab_clk_select(clk_clk_t clk);
 void cohfab_clk_deselect(clk_clk_t clk);
+#define crcntl_clk_sel_read()		__raw_readl(CRCNTL_CLK_SEL_CFG)
+#define crcntl_clk_sel_write(sels)	__raw_writel(sels, CRCNTL_CLK_SEL_CFG)
 #endif
 #ifdef CONFIG_CRCNTL_TRACE
 void crcntl_trace(bool enabling, const char *name);

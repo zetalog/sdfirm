@@ -121,12 +121,14 @@
 #define CLK_SW_RST_F		_BV(2)
 #define CLK_COHFAB_CFG_F	_BV(3) /* cohfab/cluster clock/reset */
 #define CLK_CLUSTER_CFG_F	_BV(4) /* APC internal clock/reset */
-/* XXX: CLK_PLL_SEL_F:
+/* XXX: CLK_PLL_SEL_F/CLK_DIV_SEL_F:
  *
  * Some select clocks marked by this flag are controlled internally by the
  * PLL clocks.
  */
 #define CLK_PLL_SEL_F		_BV(5) /* CLK_SEL for PLL P/R clkout */
+#define CLK_DIV_SEL_F		_BV(6) /* CLK_SEL for PLL DIV */
+#define CLK_MUX_SEL_F		(CLK_PLL_SEL_F | CLK_DIV_SEL_F)
 #define CLK_CR			(CLK_CLK_EN_F | CLK_SW_RST_F)
 #define CLK_C			CLK_CLK_EN_F
 #define CLK_R			CLK_SW_RST_F
@@ -146,9 +148,25 @@ void clk_hw_mmu_init(void);
 #ifdef CONFIG_DUOWEN_ASIC
 void clk_apply_vco(clk_clk_t clk, clk_freq_t freq);
 void clk_apply_pll(clk_clk_t clk, clk_freq_t freq);
+/* XXX: Protect Dynamic PLL Change
+ *
+ * For ASIC environment, CLK_SELECT is managed by the CLK_PLL and CLK_DIV.
+ */
+#define clk_select_mux(clk)			\
+	do {					\
+		if (clk != invalid_clk)		\
+			clk_enable(clk);	\
+	} while (0)
+#define clk_deselect_mux(clk)			\
+	do {					\
+		if (clk != invalid_clk)		\
+			clk_disable(clk);	\
+	} while (0)
 #else
 #define clk_apply_vco(clk, freq)		do { } while (0)
 #define clk_apply_pll(clk, freq)		do { } while (0)
+#define clk_select_mux(clk)			do { } while (0)
+#define clk_deselect_mux(clk)			do { } while (0)
 #endif
 
 void duowen_clk_init(void);

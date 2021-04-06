@@ -843,32 +843,43 @@ static clk_freq_t get_output_clk_freq(clk_clk_t clk)
 	return clk_get_frequency(output_clks[clk].clk_src);
 }
 
+static int set_output_clk_freq(clk_clk_t clk, clk_freq_t freq)
+{
+	if (clk >= NR_OUTPUT_CLKS)
+		return -EINVAL;
+	return clk_set_frequency(output_clks[clk].clk_src, freq);
+}
+
 struct clk_driver clk_output = {
 	.max_clocks = NR_OUTPUT_CLKS,
 	.enable = enable_output_clk,
 	.disable = disable_output_clk,
 	.select = NULL,
 	.get_freq = get_output_clk_freq,
-	.set_freq = NULL,
+	.set_freq = set_output_clk_freq,
 	.get_name = get_output_clk_name,
 };
 
 struct div_clk {
 	clk_t src;
+	clk_t mux;
 	uint8_t div;
 };
 
 struct div_clk div_clks[NR_DIV_CLKS] = {
 	[SOC_CLK_DIV2] = {
 		.src = soc_pll,
+		.mux = soc_clk_div2_sel,
 		.div = 2,
 	},
 	[DDR_CLK_SEL_DIV4] = {
 		.src = ddr_clk_src,
+		.mux = invalid_clk,
 		.div = 4,
 	},
 	[XO_CLK_DIV4] = {
 		.src = xo_clk,
+		.mux = invalid_clk,
 		.div = 4,
 	},
 };
@@ -892,10 +903,16 @@ static const char *get_pll_div_name(clk_clk_t clk)
 
 static int enable_pll_div(clk_clk_t clk)
 {
+	int ret;
+
 	if (clk >= NR_DIV_CLKS)
 		return -EINVAL;
 	crcntl_trace(true, get_pll_div_name(clk));
-	return clk_enable(div_clks[clk].src);
+	ret = clk_enable(div_clks[clk].src);
+	if (ret)
+		return ret;
+	clk_select_mux(div_clks[clk].mux);
+	return 0;
 }
 
 static void disable_pll_div(clk_clk_t clk)
@@ -903,6 +920,7 @@ static void disable_pll_div(clk_clk_t clk)
 	if (clk >= NR_DIV_CLKS)
 		return;
 	crcntl_trace(false, get_pll_div_name(clk));
+	clk_deselect_mux(div_clks[clk].mux);
 	clk_disable(div_clks[clk].src);
 }
 
@@ -913,12 +931,20 @@ static clk_freq_t get_pll_div_freq(clk_clk_t clk)
 	return clk_get_frequency(div_clks[clk].src) / div_clks[clk].div;
 }
 
+static int set_pll_div_freq(clk_clk_t clk, clk_freq_t freq)
+{
+	if (clk >= NR_DIV_CLKS)
+		return -EINVAL;
+	return clk_set_frequency(div_clks[clk].src,
+				 freq * div_clks[clk].div);
+}
+
 struct clk_driver clk_div = {
 	.max_clocks = NR_DIV_CLKS,
 	.enable = enable_pll_div,
 	.disable = disable_pll_div,
 	.get_freq = get_pll_div_freq,
-	.set_freq = NULL,
+	.set_freq = set_pll_div_freq,
 	.select = NULL,
 	.get_name = get_pll_div_name,
 };
