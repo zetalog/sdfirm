@@ -215,6 +215,7 @@ struct clk_driver clk_select = {
 struct pll_clk {
 	clk_t src;
 	clk_t sel;
+	clk_t alt;
 	clk_freq_t freq;
 	bool enabled;
 };
@@ -223,72 +224,84 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 	[SOC_PLL] = {
 		.src = soc_vco,
 		.sel = soc_clk_sel,
+		.alt = sysfab_clk_sel,
 		.freq = SOC_PLL_FREQ,
 		.enabled = false,
 	},
 	[DDR_BUS_PLL] = {
 		.src = ddr_bus_vco,
 		.sel = ddr_bus_clk_sel,
+		.alt = invalid_clk,
 		.freq = DDR_BUS_PLL_FREQ,
 		.enabled = false,
 	},
 	[DDR_PLL] = {
 		.src = ddr_vco,
 		.sel = ddr_clk_sel,
+		.alt = invalid_clk,
 		.freq = DDR_PLL_FREQ,
 		.enabled = false,
 	},
 	[PCIE_PLL] = {
 		.src = pcie_vco,
 		.sel = pcie_ref_clk_sel,
+		.alt = invalid_clk,
 		.freq = PCIE_PLL_FREQ,
 		.enabled = false,
 	},
 	[COHFAB_PLL] = {
 		.src = cohfab_vco,
 		.sel = cohfab_clk_sel,
+		.alt = invalid_clk,
 		.freq = CFAB_PLL_FREQ,
 		.enabled = false,
 	},
 	[CL0_PLL] = {
 		.src = cl0_vco,
 		.sel = cl0_clk_sel,
+		.alt = invalid_clk,
 		.freq = CL_PLL_FREQ,
 		.enabled = false,
 	},
 	[CL1_PLL] = {
 		.src = cl1_vco,
 		.sel = cl1_clk_sel,
+		.alt = invalid_clk,
 		.freq = CL_PLL_FREQ,
 		.enabled = false,
 	},
 	[CL2_PLL] = {
 		.src = cl2_vco,
 		.sel = cl2_clk_sel,
+		.alt = invalid_clk,
 		.freq = CL_PLL_FREQ,
 		.enabled = false,
 	},
 	[CL3_PLL] = {
 		.src = cl3_vco,
 		.sel = cl3_clk_sel,
+		.alt = invalid_clk,
 		.freq = CL_PLL_FREQ,
 		.enabled = false,
 	},
 	[ETH_PLL] = {
 		.src = eth_vco,
 		.sel = invalid_clk,
+		.alt = invalid_clk,
 		.freq = ETH_PLL_FREQ,
 		.enabled = false,
 	},
 	[SYSFAB_PLL] = {
 		.src = soc_vco,
 		.sel = sysfab_clk_sel,
+		.alt = soc_clk_sel,
 		.freq = SFAB_PLL_FREQ,
 		.enabled = false,
 	},
 	[SGMII_PLL] = {
 		.src = eth_vco,
 		.sel = invalid_clk,
+		.alt = invalid_clk,
 		.freq = SGMII_PLL_FREQ,
 		.enabled = false,
 	},
@@ -341,14 +354,20 @@ static void __enable_pll(clk_clk_t clk)
 			 * Stay sourcing xo_clk to utilize the low power
 			 * consumption mode.
 			 */
-			if (pll_clks[clk].freq == XO_CLK_FREQ)
+			if (pll_clks[clk].freq == XO_CLK_FREQ &&
+			    pll_clks[clk].alt == invalid_clk)
 				goto exit_xo_clk;
 		}
+		if (pll_clks[clk].alt != invalid_clk)
+			clk_disable(pll_clks[clk].alt);
 
 		clk_enable(pll_clks[clk].src);
 		duowen_div_enable(prclk,
 				  clk_get_frequency(pll_clks[clk].src),
 				  pll_clks[clk].freq, r);
+
+		if (pll_clks[clk].alt != invalid_clk)
+			clk_enable(pll_clks[clk].alt);
 		if (pll_clks[clk].sel != invalid_clk)
 			clk_enable(pll_clks[clk].sel);
 
