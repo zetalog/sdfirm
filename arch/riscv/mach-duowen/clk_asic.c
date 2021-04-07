@@ -295,7 +295,7 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 	[SYSFAB_PLL] = {
 		.src = soc_vco,
 		.mux = sysfab_clk_sel,
-		.alt = _BV(SOC_CLK_SEL),
+		.alt = _BV(SOC_CLK_SEL) | _BV(SOC_CLK_DIV2_SEL),
 		.freq = SFAB_PLL_FREQ,
 		.enabled = false,
 	},
@@ -351,7 +351,7 @@ static void __enable_pll(clk_clk_t clk)
 		 * ensure a safer P/R clkout enabling.
 		 */
 		clk_deselect_mux(pll_clks[clk].mux);
-		/* XXX: Ensure Lowest Power Mode
+		/* XXX: Lowest Power Consumption P/R
 		 *
 		 * Stay sourcing xo_clk to utilize the low power
 		 * consumption mode.
@@ -389,6 +389,8 @@ static void __disable_pll(clk_clk_t clk)
 {
 	bool r = !!(clk >= DUOWEN_MAX_PLLS);
 	clk_clk_t prclk = r ? clk - DUOWEN_MAX_PLLS : clk;
+	uint32_t clk_sels = 0;
+	uint32_t alt;
 
 	if (pll_clks[clk].enabled) {
 		pll_clks[clk].enabled = false;
@@ -400,8 +402,26 @@ static void __disable_pll(clk_clk_t clk)
 		 * disabling the P/R clkout by switching to the xo_clk.
 		 */
 		clk_deselect_mux(pll_clks[clk].mux);
+		alt = pll_clks[clk].alt;
+		if (alt) {
+			/* XXX: No Cohfab Clock Selection Masking
+			 *
+			 * To avoid complications, no cohfab clock
+			 * selection are masked as alternative masks.
+			 */
+			clk_sels = crcntl_clk_sel_read();
+			crcntl_clk_sel_write(clk_sels | alt);
+		}
 		duowen_div_disable(prclk, r);
-		clk_disable(pll_clks[clk].src);
+		/* XXX: Lowest Power Consumption VCO
+		 *
+		 * And VCO is also disabled when all related P/R outputs
+		 * are deselected (clocking with xo_clk).
+		 */
+		if ((clk_sels & alt) == alt)
+			clk_disable(pll_clks[clk].src);
+		else if (alt)
+			crcntl_clk_sel_write(clk_sels);
 	}
 }
 
@@ -436,7 +456,7 @@ static int set_pll_freq(clk_clk_t clk, clk_freq_t freq)
 
 	if (pll_clks[clk].freq != freq) {
 		__disable_pll(clk);
-		pll_clks[clk].freq = freq;
+		clk_apply_pll(clk, freq);
 	}
 	__enable_pll(clk);
 	return 0;
@@ -595,7 +615,7 @@ static int set_vco_freq(clk_clk_t clk, clk_freq_t freq)
 
 	if (vco_clks[clk].freq != freq) {
 		__disable_vco(clk);
-		vco_clks[clk].freq = freq;
+		clk_apply_vco(clk, freq);
 	}
 	__enable_vco(clk);
 	return 0;
