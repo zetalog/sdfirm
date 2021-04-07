@@ -47,6 +47,10 @@
 
 mtd_t board_sdcard = INVALID_MTD_ID;
 
+#ifdef CONFIG_DUOWEN_SD_IPDV
+#define duowen_sd_power()		do { } while (0)
+#define duowen_sd_gpio(pin, pad, mux)	do { } while (0)
+#else
 void duowen_sd_power(void)
 {
 	__raw_setl(IMC_SD_HOST_REG_VOL_STABLE, SCSR_SD_STABLE);
@@ -57,6 +61,7 @@ static inline void duowen_sd_gpio(uint16_t pin, uint8_t pad, uint8_t mux)
 	gpio_config_pad(GPIO1A, pin, pad, 8);
 	gpio_config_mux(GPIO1A, pin, mux);
 }
+#endif
 
 void duowen_mshc_init(void)
 {
@@ -364,6 +369,9 @@ void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size, bool jump)
 }
 #endif
 
+#ifdef CONFIG_DUOWEN_SD_IPDV
+#define do_sd_status(argc, argv)	(-ENODEV)
+#else
 static int do_sd_status(int argc, char *argv[])
 {
 	uint32_t status = __raw_readl(SCSR_SD_STATUS);
@@ -418,10 +426,11 @@ static int do_sd_status(int argc, char *argv[])
 
 	return 0;
 }
+#endif
 
 DUOWEN_BOOT_PROT_TEST_FUNC(do_sd_boot, duowen_sd_boot);
 
-static int do_sd(int argc, char *argv[])
+int do_sd(int argc, char *argv[])
 {
 	if (argc < 2)
 		return -EINVAL;

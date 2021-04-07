@@ -43,6 +43,7 @@
 #define __SD_DUOWEN_H_INCLUDE__
 
 #include <target/clk.h>
+#include <target/gpio.h>
 #include <target/mtd.h>
 
 #define SDHC_REG(n, offset)	(SD_BASE + (offset))

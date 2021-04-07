@@ -301,6 +301,7 @@ static int do_card_write(int argc, char *argv[])
 	mmc_lba_t lba = 0;
 	size_t cnt = 1;
 	uint8_t byte = 'T';
+	int i;
 
 	if (argc < 3)
 		return -EINVAL;
@@ -316,7 +317,7 @@ static int do_card_write(int argc, char *argv[])
 	if (argc > 5)
 		byte = (uint8_t)strtoul(argv[5], 0, 0);
 	memset(mem_card_buf, byte, 2 * MMC_DEF_BL_LEN);
-	for (int i = 0; i < (2*MMC_DEF_BL_LEN); i += 16)
+	for (i = 0; i < (2*MMC_DEF_BL_LEN); i += 16)
 		*((uint8_t *)mem_card_buf + i) = byte + (uint8_t)i;
 	if (mmc_card_write_sync(cid, mem_card_buf, lba, cnt))
 		printf("write_blocks %016x(%d) failure.\n", lba, cnt);
