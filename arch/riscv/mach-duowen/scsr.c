@@ -113,7 +113,7 @@ uint8_t apc_expand_l2_map(uint8_t map)
 
 	mask = ((mask & 0x08) << 3) | ((mask & 0x04) << 2) |
 	       ((mask & 0x02) << 1) | (mask & 0x01);
-	mask = mask & (mask << 1);
+	mask = mask | (mask << 1);
 	return mask;
 }
 
@@ -125,29 +125,29 @@ uint16_t apc_expand_apc_map(uint8_t map)
 	       ((mask & 0x20) << 5) | ((mask & 0x10) << 4) |
 	       ((mask & 0x08) << 3) | ((mask & 0x04) << 2) |
 	       ((mask & 0x02) << 1) | (mask & 0x01);
-	mask = mask & (mask << 1);
+	mask = mask | (mask << 1);
 	return mask;
 }
 
 uint8_t apc_get_apc_map(void)
 {
-	uint32_t mask = apc_get_apc_mask() >> 1;
+	uint32_t mask = apc_get_apc_mask();
 
-	mask &= apc_expand_l2_map(apc_get_l2_map());
-	mask = ((mask & 0x10101010) >> 3) | (mask & 0x01010101);
+	mask = ((mask & 0x08080808) >> 2) | (mask & 0x01010101);
 	mask = ((mask & 0x03000300) >> 6) | (mask & 0x00030003);
 	mask = ((mask & 0x000f0000) >> 12) | (mask & 0x0000000f);
+	mask &= apc_expand_l2_map(apc_get_l2_map());
 	return (uint8_t)mask;
 }
 
 uint16_t apc_get_cpu_map(void)
 {
-	uint32_t mask = apc_get_cpu_mask() >> 2;
+	uint32_t mask = apc_get_cpu_mask();
 
-	mask &= apc_expand_apc_map(apc_get_apc_map());
-	mask = ((mask & 0x30303030) >> 2) | (mask & 0x03030303);
+	mask = ((mask & 0x18181818) >> 1) | (mask & 0x03030303);
 	mask = ((mask & 0x0f000f00) >> 4) | (mask & 0x000f000f);
 	mask = ((mask & 0x00ff0000) >> 8) | (mask & 0x000000ff);
+	mask &= apc_expand_apc_map(apc_get_apc_map());
 	return (uint16_t)mask;
 }
 
@@ -155,9 +155,9 @@ uint8_t apc_get_l2_map(void)
 {
 	uint32_t mask = apc_get_cluster_mask();
 
-	mask &= apc_get_l2_mask();
 	mask = (mask & 0x00010001) | ((mask & 0x01000100) >> 7);
 	mask = (mask & 0x00000003) | ((mask & 0x00030000) >> 14);
+	mask &= apc_get_l2_mask();
 	return (uint8_t)mask;
 }
 
