@@ -155,9 +155,9 @@ uint8_t apc_get_l2_map(void)
 {
 	uint32_t mask = apc_get_cluster_mask();
 
+	mask &= apc_get_l2_mask();
 	mask = (mask & 0x00010001) | ((mask & 0x01000100) >> 7);
 	mask = (mask & 0x00000003) | ((mask & 0x00030000) >> 14);
-	mask &= apc_get_l2_mask();
 	return (uint8_t)mask;
 }
 
