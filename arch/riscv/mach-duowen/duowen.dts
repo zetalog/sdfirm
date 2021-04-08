@@ -1,3 +1,9 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+/*
+ *  Copyright (C) 2021 CAS SmartCore Co., Ltd.
+ *    Author: 2021 Lv Zheng <zhenglv@smarco.cn>
+ */
+
 #include <target/arch.h>
 #include <dt-bindings/clock/sbi-clock-duowen.h>
 
@@ -48,11 +54,114 @@
 		compatible = "syscsr-reboot";
 	};
 
+#ifndef CONFIG_DUOWEN_DDR_DUAL_SOC1
+	memory@0 {
+		device_type = "memory";
+#ifdef CONFIG_DUOWEN_DDR_32M
+		reg = <0x0 0x00000000 0x0 0x02000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_64M
+		reg = <0x0 0x00000000 0x0 0x04000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_128M
+		reg = <0x0 0x00000000 0x0 0x08000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_256M
+		reg = <0x0 0x00000000 0x0 0x10000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_512M
+		reg = <0x0 0x00000000 0x0 0x20000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_1G
+		reg = <0x0 0x00000000 0x0 0x40000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_2G
+		reg = <0x0 0x00000000 0x0 0x80000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_4G
+		reg = <0x0 0x00000000 0x1 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_8G
+		reg = <0x0 0x00000000 0x2 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_16G
+		reg = <0x0 0x00000000 0x4 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_32G
+		reg = <0x0 0x00000000 0x8 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_64G
+		reg = <0x0 0x00000000 0x10 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_128G
+		reg = <0x0 0x00000000 0x20 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_256G
+		reg = <0x0 0x00000000 0x40 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_512G
+		reg = <0x0 0x00000000 0x80 0x00000000>;
+#endif
+	};
+#endif /* CONFIG_DUOWEN_DDR_DUAL_SOC1 */
+
+#ifdef CONFIG_DUOWEN_DDR_DUAL_SOC1
+	memory@1 {
+		device_type = "memory";
+#ifdef CONFIG_DUOWEN_DDR_32M
+		reg = <0x800 0x00000000 0x0 0x02000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_64M
+		reg = <0x800 0x00000000 0x0 0x04000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_128M
+		reg = <0x800 0x00000000 0x0 0x08000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_256M
+		reg = <0x800 0x00000000 0x0 0x10000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_512M
+		reg = <0x800 0x00000000 0x0 0x20000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_1G
+		reg = <0x800 0x00000000 0x0 0x40000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_2G
+		reg = <0x800 0x00000000 0x0 0x80000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_4G
+		reg = <0x800 0x00000000 0x1 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_8G
+		reg = <0x800 0x00000000 0x2 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_16G
+		reg = <0x800 0x00000000 0x4 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_32G
+		reg = <0x800 0x00000000 0x8 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_64G
+		reg = <0x800 0x00000000 0x10 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_128G
+		reg = <0x800 0x00000000 0x20 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_256G
+		reg = <0x800 0x00000000 0x40 0x00000000>;
+#endif
+#ifdef CONFIG_DUOWEN_DDR_512G
+		reg = <0x800 0x00000000 0x80 0x00000000>;
+#endif
+	};
+#endif /* CONFIG_DUOWEN_DDR_DUAL_SOC1 */
+
 	cpus {
 		#address-cells = <0x1>;
 		#size-cells = <0x0>;
 		timebase-frequency = <0x989680>;
 
+#ifdef CONFIG_DUOWEN_APC
 #ifdef CONFIG_SMP
 #ifdef CONFIG_DUOWEN_APC_4
 #ifdef CONFIG_DUOWEN_SOC_DUAL
@@ -1100,111 +1209,31 @@
 				compatible = "riscv,cpu-intc";
 			};
 		};
-
 #endif /* CONFIG_SMP */
+#endif /* CONFIG_DUOWEN_APC */
+#ifdef CONFIG_DUOWEN_IMC
+		cpu-map {
+			cluster0 {
+				core0 {
+					cpu = <&cpu0>;
+				};
+			};
+		};
+		cpu0: cpu@0 {
+			device_type = "cpu";
+			reg = <0x0>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu0_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+#endif /* CONFIG_DUOWEN_IMC */
 	};
-
-#ifndef CONFIG_DUOWEN_DDR_DUAL_SOC1
-	memory@0 {
-		device_type = "memory";
-#ifdef CONFIG_DUOWEN_DDR_32M
-		reg = <0x0 0x00000000 0x0 0x02000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_64M
-		reg = <0x0 0x00000000 0x0 0x04000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_128M
-		reg = <0x0 0x00000000 0x0 0x08000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_256M
-		reg = <0x0 0x00000000 0x0 0x10000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_512M
-		reg = <0x0 0x00000000 0x0 0x20000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_1G
-		reg = <0x0 0x00000000 0x0 0x40000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_2G
-		reg = <0x0 0x00000000 0x0 0x80000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_4G
-		reg = <0x0 0x00000000 0x1 0x00000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_8G
-		reg = <0x0 0x00000000 0x2 0x00000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_16G
-		reg = <0x0 0x00000000 0x4 0x00000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_32G
-		reg = <0x0 0x00000000 0x8 0x00000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_64G
-		reg = <0x0 0x00000000 0x10 0x00000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_128G
-		reg = <0x0 0x00000000 0x20 0x00000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_256G
-		reg = <0x0 0x00000000 0x40 0x00000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_512G
-		reg = <0x0 0x00000000 0x80 0x00000000>;
-#endif
-	};
-#endif /* CONFIG_DUOWEN_DDR_DUAL_SOC1 */
-
-#ifdef CONFIG_DUOWEN_DDR_DUAL_SOC1
-	memory@1 {
-		device_type = "memory";
-#ifdef CONFIG_DUOWEN_DDR_32M
-		reg = <0x800 0x00000000 0x0 0x02000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_64M
-		reg = <0x800 0x00000000 0x0 0x04000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_128M
-		reg = <0x800 0x00000000 0x0 0x08000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_256M
-		reg = <0x800 0x00000000 0x0 0x10000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_512M
-		reg = <0x800 0x00000000 0x0 0x20000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_1G
-		reg = <0x800 0x00000000 0x0 0x40000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_2G
-		reg = <0x800 0x00000000 0x0 0x80000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_4G
-		reg = <0x800 0x00000000 0x1 0x00000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_8G
-		reg = <0x800 0x00000000 0x2 0x00000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_16G
-		reg = <0x800 0x00000000 0x4 0x00000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_32G
-		reg = <0x800 0x00000000 0x8 0x00000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_64G
-		reg = <0x800 0x00000000 0x10 0x00000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_128G
-		reg = <0x800 0x00000000 0x20 0x00000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_256G
-		reg = <0x800 0x00000000 0x40 0x00000000>;
-#endif
-#ifdef CONFIG_DUOWEN_DDR_512G
-		reg = <0x800 0x00000000 0x80 0x00000000>;
-#endif
-	};
-#endif /* CONFIG_DUOWEN_DDR_DUAL_SOC1 */
 
 	soc {
 		#address-cells = <0x2>;
@@ -1212,6 +1241,7 @@
 		compatible = "simple-bus";
 		ranges;
 
+#ifdef CONFIG_DUOWEN_APC
 		plic0: interrupt-controller@ff70000000 {
 			riscv,ndev = <0xf0>;
 			reg = <0xff 0x70000000 0x0 0x4000000>;
@@ -1423,6 +1453,37 @@
 			reg = <0xff 0x10f0000 0x0 0x10000>;
 			compatible = "riscv,clint0";
 		};
+#endif /* CONFIG_DUOWEN_APC */
+#ifdef CONFIG_DUOWEN_IMC
+		plic0: interrupt-controller@ff70000000 {
+			riscv,ndev = <0xf0>;
+			reg = <0xff 0x70000000 0x0 0x4000000>;
+			interrupts-extended = <
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xb
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0x9
+			>;
+			interrupt-controller;
+			compatible = "riscv,plic0";
+			#interrupt-cells = <0x1>;
+			#address-cells = <0x0>;
+		};
+#endif /* CONFIG_DUOWEN_IMC */
 
 		crcntl0: crcntl-clock@ff60000000 {
 			compatible = "smarco,duowen-crcntl";

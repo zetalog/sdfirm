@@ -334,14 +334,14 @@ const char *get_pll_name(clk_clk_t clk)
 #define get_pll_name		NULL
 #endif
 
-static void __enable_pll(clk_clk_t clk)
+static void __enable_pll(clk_clk_t clk, bool force)
 {
 	bool r = !!(clk >= DUOWEN_MAX_PLLS);
 	clk_clk_t prclk = r ? clk - DUOWEN_MAX_PLLS : clk;
 	uint32_t clk_sels = 0;
 	uint32_t alt;
 
-	if (!pll_clks[clk].enabled) {
+	if (!pll_clks[clk].enabled || force) {
 		/* XXX: Protect Dynamic PLL Change
 		 *
 		 * The PLL might be the source of the system clocks (CPU,
@@ -430,7 +430,7 @@ static int enable_pll(clk_clk_t clk)
 	if (clk >= NR_PLL_CLKS)
 		return -EINVAL;
 	crcntl_trace(true, get_pll_name(clk));
-	__enable_pll(clk);
+	__enable_pll(clk, false);
 	return 0;
 }
 
@@ -455,10 +455,9 @@ static int set_pll_freq(clk_clk_t clk, clk_freq_t freq)
 		return -EINVAL;
 
 	if (pll_clks[clk].freq != freq) {
-		__disable_pll(clk);
 		clk_apply_pll(clk, freq);
+		__enable_pll(clk, true);
 	}
-	__enable_pll(clk);
 	return 0;
 }
 
