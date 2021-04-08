@@ -112,7 +112,6 @@ config DUOWEN_FSBL
 
 config DUOWEN_BBL
 	bool "Berkeley bootloader (BBL)"
-	depends DUOWEN_APC
 	select DUOWEN_BOOT
 	select DUOWEN_LOAD_BBL
 	select ARCH_HAS_BOOT_LOAD if !DUOWEN_BBL_SPI

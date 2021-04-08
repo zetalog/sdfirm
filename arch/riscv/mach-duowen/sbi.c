@@ -136,6 +136,7 @@ static int duowen_irqchip_init(bool cold_boot)
 	return 0;
 }
 
+#ifdef CONFIG_DUOWEN_APC
 void duowen_ipi_send(u32 target_cpu)
 {
 	clint_set_ipi(target_cpu);
@@ -178,6 +179,45 @@ void duowen_timer_event_start(u64 next_event)
 
 	clint_set_mtimecmp(cpu, next_event);
 }
+#endif /* CONFIG_DUOWEN_APC */
+
+#ifdef CONFIG_DUOWEN_IMC
+void duowen_ipi_send(u32 target_cpu)
+{
+}
+
+void duowen_ipi_sync(u32 target_cpu)
+{
+}
+
+void duowen_ipi_clear(u32 target_cpu)
+{
+}
+
+static int duowen_ipi_init(bool cold_boot)
+{
+	return 0;
+}
+
+u64 duowen_timer_value(void)
+{
+	return tmr_read_counter();
+}
+
+void duowen_timer_event_stop(void)
+{
+	__unused cpu_t cpu = smp_processor_id();
+
+	tmr_disable_cmp(cpu);
+}
+
+void duowen_timer_event_start(u64 next_event)
+{
+	__unused cpu_t cpu = smp_processor_id();
+
+	tmr_write_compare(cpu, next_event);
+}
+#endif /* CONFIG_DUOWEN_IMC */
 
 static int duowen_timer_init(bool cold_boot)
 {

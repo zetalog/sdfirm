@@ -69,6 +69,7 @@
 #ifndef __ASSEMBLY__
 #ifdef CONFIG_DUOWEN_TMR
 uint64_t tmr_read_counter(void);
+void tmr_write_compare(uint8_t id, uint64_t count);
 void tmr_ctrl_init(void);
 #else
 #define tmr_read_counter()	0

@@ -85,7 +85,8 @@ build_sdfirm riscv64 virt64_bbl
 build_sdfirm riscv64 unleashed_bbl
 build_sdfirm riscv64 k210_bbl
 build_sdfirm riscv64 dpu2_bbl
-build_sdfirm riscv64 duowen_bbl
+build_sdfirm riscv64 duowen_bbl_apc
+build_sdfirm riscv64 duowen_bbl_imc
 if [ "x$PSEUDO_IMAGE" = "xyes" ]; then
 	echo "Deleting pseudo image..."
 	rm -f Image

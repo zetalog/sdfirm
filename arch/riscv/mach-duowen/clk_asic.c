@@ -225,7 +225,7 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 	[SOC_PLL] = {
 		.src = soc_vco,
 		.mux = soc_clk_sel,
-		.alt = _BV(SYSFAB_CLK_SEL) | _BV(SOC_CLK_DIV2_SEL),
+		.alt = _BV(SYSFAB_CLK_SEL) | _BV(SOC_CLK_DIV2_SEL), /* 0x03 */
 		.freq = SOC_PLL_FREQ,
 		.enabled = false,
 	},
@@ -295,7 +295,7 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 	[SYSFAB_PLL] = {
 		.src = soc_vco,
 		.mux = sysfab_clk_sel,
-		.alt = _BV(SOC_CLK_SEL) | _BV(SOC_CLK_DIV2_SEL),
+		.alt = _BV(SOC_CLK_SEL) | _BV(SOC_CLK_DIV2_SEL), /* 0x21 */
 		.freq = SFAB_PLL_FREQ,
 		.enabled = false,
 	},
