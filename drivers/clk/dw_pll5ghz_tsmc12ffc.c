@@ -235,7 +235,15 @@ static void ____dw_pll5ghz_tsmc12ffc_config_fclk(uint8_t pll, uint64_t fvco,
 
 	fvco = div64u(fvco, div);
 	do {
-		pr = (uint32_t)div64u(fvco, freq);
+		/* XXX: Fvco/Fpr Cannot Divide Exactly
+		 *
+		 * Due to the limitation of divvco 3:2 bits, we may not
+		 * be able to divide exactly here. Obtain a possible big
+		 * enough P/R value to ensure the output frequency is
+		 * always slower than expected to meet the timing
+		 * requirement.
+		 */
+		pr = (uint32_t)div64u(fvco + (freq - 1), freq);
 		if (pr <= 64)
 			break;
 		next_div(fvco, divvco32, divvco10, div);
