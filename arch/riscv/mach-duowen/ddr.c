@@ -44,8 +44,8 @@
 #include <target/jiffies.h>
 
 struct ddr_speed {
-	uint64_t f_pll_vco;
-	uint32_t f_pll_clk;
+	clk_freq_t f_pll_vco;
+	clk_freq_t f_pll_clk;
 };
 
 struct ddr_speed ddr_speeds[NR_DDR_SPEEDS] = {
@@ -116,6 +116,17 @@ static struct ddr_speed *ddr_get_speed(int speed)
 	if (speed > NR_DDR_SPEEDS)
 		return NULL;
 	return &ddr_speeds[speed];
+}
+
+int ddr_clk_speed(clk_freq_t freq)
+{
+	int speed;
+
+	for (speed = 0; speed < NR_DDR_SPEEDS; speed++) {
+		if (ddr_speeds[speed].f_pll_clk == freq)
+			return speed;
+	}
+	return DDR_SPEED_DEFAULT;
 }
 
 clk_freq_t ddr_get_fvco(int speed)

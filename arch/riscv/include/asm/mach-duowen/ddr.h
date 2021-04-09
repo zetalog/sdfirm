@@ -56,14 +56,21 @@
 #include <driver/dw_umctl2.h>
 
 #define NR_DDR_SPEEDS		(DDR4_3200 + 1)
+#define DDR_SPEED_DEFAULT	DDR4_2400
 
 #ifdef CONFIG_DUOWEN_DDR
 /* DDR frequency plans */
 #define ddr_hw_ctrl_init()	dw_umctl2_init()
 #define ddr_hw_ctrl_start()	dw_umctl2_start()
+int ddr_clk_speed(clk_freq_t freq);
+clk_freq_t ddr_get_fvco(int speed);
+clk_freq_t ddr_get_fclk(int speed);
 void ddr_hw_config_speed(uint8_t speed);
 void ddr_hw_enable_speed(uint8_t speed);
 void ddr_hw_wait_dfi(uint32_t cycles);
+#define ddr_clk_fvco(fclk, fvco_orig)	ddr_get_fvco(ddr_clk_speed(fclk))
+#else
+#define ddr_clk_fvco(fclk, fvco_orig)	fvco_orig
 #endif
 
 #endif /* __DDR_DUOWEN_H_INCLUDE__ */

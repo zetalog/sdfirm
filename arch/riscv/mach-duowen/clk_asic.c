@@ -40,6 +40,7 @@
  */
 
 #include <target/clk.h>
+#include <target/ddr.h>
 
 struct select_clk {
 	clk_t clk_sels[2];
@@ -155,8 +156,8 @@ static int enable_clk_sel(clk_clk_t clk)
 {
 	if (clk >= NR_SELECT_CLKS)
 		return -EINVAL;
-	crcntl_trace(true, get_clk_sel_name(clk));
 	if (!(select_clks[clk].flags & CLK_CLK_SEL_F)) {
+		crcntl_trace(true, get_clk_sel_name(clk));
 		if (!(select_clks[clk].flags & CLK_MUX_SEL_F))
 			clk_enable(select_clks[clk].clk_sels[0]);
 		if (select_clks[clk].flags & CLK_COHFAB_CFG_F)
@@ -174,8 +175,8 @@ static void disable_clk_sel(clk_clk_t clk)
 {
 	if (clk >= NR_SELECT_CLKS)
 		return;
-	crcntl_trace(false, get_clk_sel_name(clk));
 	if (select_clks[clk].flags & CLK_CLK_SEL_F) {
+		crcntl_trace(false, get_clk_sel_name(clk));
 		clk_enable(select_clks[clk].clk_sels[1]);
 		if (select_clks[clk].flags & CLK_COHFAB_CFG_F)
 			cohfab_clk_deselect(clk);
@@ -340,8 +341,12 @@ static void __enable_pll(clk_clk_t clk, bool force)
 	clk_clk_t prclk = r ? clk - DUOWEN_MAX_PLLS : clk;
 	uint32_t clk_sels = 0;
 	uint32_t alt;
+	clk_freq_t fvco_orig, fvco, fclk;
 
 	if (!pll_clks[clk].enabled || force) {
+		crcntl_trace(true, get_pll_name(clk));
+		fclk = pll_clks[clk].freq;
+		alt = pll_clks[clk].alt;
 		/* XXX: Protect Dynamic PLL Change
 		 *
 		 * The PLL might be the source of the system clocks (CPU,
@@ -357,10 +362,8 @@ static void __enable_pll(clk_clk_t clk, bool force)
 		 * consumption mode.
 		 */
 		if (pll_clks[clk].mux != invalid_clk &&
-		    pll_clks[clk].alt == 0 &&
-		    pll_clks[clk].freq == XO_CLK_FREQ)
+		    alt == 0 && fclk == XO_CLK_FREQ)
 			goto exit_xo_clk;
-		alt = pll_clks[clk].alt;
 		if (alt) {
 			/* XXX: No Cohfab Clock Selection Masking
 			 *
@@ -370,16 +373,18 @@ static void __enable_pll(clk_clk_t clk, bool force)
 			clk_sels = crcntl_clk_sel_read();
 			crcntl_clk_sel_write(clk_sels | alt);
 		}
-
+		fvco_orig = fvco = clk_get_frequency(pll_clks[clk].src);
+		if (clk == DDR_PLL)
+			fvco = ddr_clk_fvco(fclk, fvco_orig);
+		if (fvco != fvco_orig) {
+			clk_apply_vco(prclk, fvco);
+			clk_disable(pll_clks[clk].src);
+		}
 		clk_enable(pll_clks[clk].src);
-		duowen_div_enable(prclk,
-				  clk_get_frequency(pll_clks[clk].src),
-				  pll_clks[clk].freq, r);
-
+		duowen_div_enable(prclk, fvco, fclk, r);
 		if (alt)
 			crcntl_clk_sel_write(clk_sels);
 		clk_select_mux(pll_clks[clk].mux);
-
 exit_xo_clk:
 		pll_clks[clk].enabled = true;
 	}
@@ -393,8 +398,9 @@ static void __disable_pll(clk_clk_t clk)
 	uint32_t alt;
 
 	if (pll_clks[clk].enabled) {
+		crcntl_trace(false, get_pll_name(clk));
+		alt = pll_clks[clk].alt;
 		pll_clks[clk].enabled = false;
-
 		/* XXX: Ensure System Clocking
 		 *
 		 * The PLL might be the source of the system clocks (CPU,
@@ -402,7 +408,6 @@ static void __disable_pll(clk_clk_t clk)
 		 * disabling the P/R clkout by switching to the xo_clk.
 		 */
 		clk_deselect_mux(pll_clks[clk].mux);
-		alt = pll_clks[clk].alt;
 		if (alt) {
 			/* XXX: No Cohfab Clock Selection Masking
 			 *
@@ -429,7 +434,6 @@ static int enable_pll(clk_clk_t clk)
 {
 	if (clk >= NR_PLL_CLKS)
 		return -EINVAL;
-	crcntl_trace(true, get_pll_name(clk));
 	__enable_pll(clk, false);
 	return 0;
 }
@@ -438,7 +442,6 @@ static void disable_pll(clk_clk_t clk)
 {
 	if (clk >= NR_PLL_CLKS)
 		return;
-	crcntl_trace(false, get_pll_name(clk));
 	__disable_pll(clk);
 }
 
@@ -568,6 +571,7 @@ const char *get_vco_name(clk_clk_t clk)
 static void __enable_vco(clk_clk_t clk)
 {
 	if (!vco_clks[clk].enabled) {
+		crcntl_trace(true, get_vco_name(clk));
 		duowen_pll_enable2(clk, vco_clks[clk].freq,
 				   vco_clks[clk].freq_p,
 				   vco_clks[clk].freq_r);
@@ -578,6 +582,7 @@ static void __enable_vco(clk_clk_t clk)
 static void __disable_vco(clk_clk_t clk)
 {
 	if (vco_clks[clk].enabled) {
+		crcntl_trace(false, get_vco_name(clk));
 		vco_clks[clk].enabled = false;
 		duowen_pll_disable(clk);
 	}
@@ -587,7 +592,6 @@ static int enable_vco(clk_clk_t clk)
 {
 	if (clk >= NR_VCO_CLKS)
 		return -EINVAL;
-	crcntl_trace(true, get_vco_name(clk));
 	__enable_vco(clk);
 	return 0;
 }
@@ -596,7 +600,6 @@ static void disable_vco(clk_clk_t clk)
 {
 	if (clk >= NR_VCO_CLKS)
 		return;
-	crcntl_trace(false, get_vco_name(clk));
 	__disable_vco(clk);
 }
 
@@ -676,6 +679,7 @@ void clk_apply_vco(clk_clk_t clk, clk_freq_t freq)
 void clk_apply_pll(clk_clk_t clk, clk_freq_t freq)
 {
 	bool r = !!(clk >= DUOWEN_MAX_PLLS);
+	clk_clk_t prclk = r ? clk - DUOWEN_MAX_PLLS : clk;
 
 	if (clk >= NR_PLL_CLKS)
 		return;
@@ -689,9 +693,9 @@ void clk_apply_pll(clk_clk_t clk, clk_freq_t freq)
 	 * up clk_enable() invocations.
 	 */
 	if (r)
-		vco_clks[clk].freq_r = freq;
+		vco_clks[prclk].freq_r = freq;
 	else
-		vco_clks[clk].freq_p = freq;
+		vco_clks[prclk].freq_p = freq;
 }
 
 #ifdef CONFIG_CONSOLE_COMMAND
