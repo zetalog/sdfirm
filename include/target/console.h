@@ -85,12 +85,12 @@ void console_handle_irq(void);
 void console_early_init(void);
 void console_init(void);
 void console_late_init(void);
-void con_printf(const char *fmt, ...);
+void con_err(const char *fmt, ...);
 #else
 #define console_early_init()			do { } while (0)
 #define console_init()				do { } while (0)
 #define console_late_init()			do { } while (0)
-#define con_printf(...)				do { } while (0)
+#define con_err(...)				do { } while (0)
 #define hexdump(addr, data, width, count)	do { } while (0)
 #endif
 

@@ -40,6 +40,7 @@
  */
 
 #include <target/mmc.h>
+#include <target/console.h>
 
 mmc_rca_t mmc_spi_rca;
 spi_t spi_card;
@@ -65,7 +66,7 @@ static void mmc_spi_debug_on(void)
 static void mmc_spi_debug_off(void)
 {
 	if (mmc_spi_debug & MMC_SPI_DEBUG_ENABLE)
-		printf("\n");
+		con_dbg("\n");
 	mmc_spi_debug = 0;
 }
 
@@ -81,10 +82,10 @@ static void mmc_spi_debug_busy(uint8_t rx)
 {
 	if (mmc_spi_debug & MMC_SPI_DEBUG_ENABLE) {
 		if (!(mmc_spi_debug & MMC_SPI_DEBUG_BUSY)) {
-			printf("  BUSY: %02x", rx);
+			con_dbg("mmc_spi:   BUSY: %02x", rx);
 			mmc_spi_debug |= MMC_SPI_DEBUG_BUSY;
 		} else
-			printf(" %02x", mmc_slot_ctrl.r1);
+			con_dbg(" %02x", mmc_slot_ctrl.r1);
 	}
 }
 
@@ -92,7 +93,7 @@ static void mmc_spi_debug_rsp(void)
 {
 	if (mmc_spi_debug & MMC_SPI_DEBUG_ENABLE) {
 		if (!(mmc_spi_debug & MMC_SPI_DEBUG_RSP))
-			printf("\n  RSP  : %02x", mmc_slot_ctrl.r1);
+			con_dbg("\nmmc_spi:  RSP  : %02x", mmc_slot_ctrl.r1);
 		mmc_spi_debug |= MMC_SPI_DEBUG_RSP;
 	}
 }
@@ -101,12 +102,12 @@ static void mmc_spi_debug_txrx(uint8_t tx, uint8_t rx)
 {
 	if (mmc_spi_debug & MMC_SPI_DEBUG_ENABLE) {
 		if (mmc_spi_debug_is_rsp())
-			printf(" %02x", rx);
+			con_dbg(" %02x", rx);
 		else if (!mmc_spi_debug_is_cmd()) {
-			printf("  CMD%2d: %02x", (tx & 0x3f), tx);
+			con_dbg("mmc_spi:  CMD%2d: %02x", (tx & 0x3f), tx);
 			mmc_spi_debug |= MMC_SPI_DEBUG_CMD;
 		} else if (!mmc_spi_debug_is_wait())
-			printf(" %02x", tx);
+			con_dbg(" %02x", tx);
 	}
 }
 #else

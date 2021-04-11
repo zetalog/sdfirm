@@ -79,7 +79,7 @@ static void __smmu_tlb_sync(caddr_t sync, caddr_t status)
 		}
 		udelay(delay);
 	}
-	con_printf("TLB sync timed out -- SMMU may be deadlocked\n");
+	con_err("TLB sync timed out -- SMMU may be deadlocked\n");
 }
 
 void smmu_tlb_sync_context(void)

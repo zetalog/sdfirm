@@ -807,8 +807,8 @@ static int set_pll_freq(clk_clk_t clk, clk_freq_t freq)
 		ret = clk_set_frequency(pll_clks[clk].src,
 					freqplan_get_fvco(clk, i));
 	if (ret) {
-		con_printf("PLL(%d): set frequency(%lld) failure.\n",
-			   clk, freq);
+		con_err("PLL(%d): set frequency(%lld) failure.\n",
+			clk, freq);
 		return ret;
 	}
 	__enable_pll(clk);

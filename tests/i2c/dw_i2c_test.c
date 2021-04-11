@@ -24,9 +24,9 @@ static void print_data_buf(uint8_t *buf, int size)
 	if (size <= 0) return;
 
 	for (int i = 0; i < size; i++) {
-		con_printf("%X ", buf[i]);
+		printf("%X ", buf[i]);
 	}
-	con_printf("\n");
+	printf("\n");
 	return;
 }
 
@@ -35,7 +35,7 @@ int i2c_test_init(void)
 	int i;
 	caddr_t slave_base = DW_I2C_BASE(I2C_DEV_NUM_SLAVE);
 
-	con_printf("I2C Test: Initiate data bufers\n");
+	printf("I2C Test: Initiate data bufers\n");
 	for (i = 0; i < DATA_BUF_SIZE; i++) {
 		data_buf_master_tx[i] = 0xA0 + i;
 		data_buf_slave_tx[i] = 0x80 + i;
@@ -43,10 +43,10 @@ int i2c_test_init(void)
 		data_buf_slave_rx[i] = 0xFF;
 	}
 
-	con_printf("I2C Test: Prepare Slave\n");
+	printf("I2C Test: Prepare Slave\n");
 	i2c_slave_init(slave_base, I2C_SLAVE_ADDR);
 
-	con_printf("I2C Test: Prepare Master\n");
+	printf("I2C Test: Prepare Master\n");
 	/* TODO Select Master */
 	i2c_apply_frequency();
 
@@ -63,7 +63,7 @@ int i2c_test_start(void)
 	/*
 	 * Transfer Test
 	 */	
-	con_printf("I2C Test: Transfer from Slave to Master\n");
+	printf("I2C Test: Transfer from Slave to Master\n");
 	/* Prepare bulk data for slave */
 	for (i = 0; i < DATA_BUF_SIZE; i++) {
 		__raw_writel((uint32_t)data_buf_slave_tx[i], slave_base + IC_DATA_CMD);
@@ -77,26 +77,26 @@ int i2c_test_start(void)
 	for (i = 0; i < DATA_BUF_SIZE; i++) {
 		if (data_buf_master_rx[i] != data_buf_slave_tx[i]) {
 			check_error++;
-			con_printf("I2C Test Error: data[%d] 0x %X != %X\n", i, 
+			printf("I2C Test Error: data[%d] 0x %X != %X\n", i, 
 					data_buf_master_rx[i], data_buf_slave_rx[i]);
 		}
 	}
 	if (check_error == 0) {
-		con_printf("I2C Test: Transfer from Slave to Master: OK\n");
+		printf("I2C Test: Transfer from Slave to Master: OK\n");
 	} else {
-		con_printf("I2C Test: Transfer from Slave to Master: %d Error\n", check_error);
+		printf("I2C Test: Transfer from Slave to Master: %d Error\n", check_error);
 	}
-	con_printf("Data at Slave\n");
+	printf("Data at Slave\n");
 	print_data_buf(data_buf_slave_tx, DATA_BUF_SIZE);
-	con_printf("Data at Master\n");
+	printf("Data at Master\n");
 	print_data_buf(data_buf_master_rx, DATA_BUF_SIZE);
 
 	/*
 	 * Get device ID of slave
 	 */	
-	con_printf("I2C Test: Get device ID of Slave\n");
+	printf("I2C Test: Get device ID of Slave\n");
 	val = i2c_probe_devid(I2C_SLAVE_ADDR);
-	con_printf("I2C Test: Get device ID of Slave = 0x%x\n", val);
+	printf("I2C Test: Get device ID of Slave = 0x%x\n", val);
 
 	/* TODO General Call */
 
@@ -109,9 +109,7 @@ int i2c_test_start(void)
 
 void i2c_slave_init(caddr_t base, uint8_t addr)
 {
-#ifdef DW_I2C_DEBUG
-	con_printf("Debug: Enter %s\n", __func__);
-#endif
+	con_dbg("dw_i2c: Debug: Enter %s\n", __func__);
 	__raw_writel(0, base + IC_ENABLE);
 	__raw_writel(0 /* IC_SLAVE_DISABLE */
 				 | IC_CON_RE /* IC_RESTART_EN */

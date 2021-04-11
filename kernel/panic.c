@@ -1,6 +1,6 @@
 #include <target/generic.h>
 #include <target/bh.h>
-#include <target/uart.h>
+#include <target/console.h>
 
 #ifdef CONFIG_DEBUG_PRINT
 void dbg_putchar(uint8_t val)
@@ -49,7 +49,7 @@ void dbg_panic(const text_char_t *file, int line)
 #ifdef CONFIG_CONSOLE_OUTPUT
 void dbg_panic(const text_char_t *file, int line)
 {
-	printf("%d PANIC: %s:%d", smp_processor_id(), file, line);
+	con_err("%d PANIC: %s:%d", smp_processor_id(), file, line);
 	while (1)
 		bh_panic();
 }

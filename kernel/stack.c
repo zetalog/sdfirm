@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <target/console.h>
 
 #ifdef __GNUC__
 const char __stack_chk_fmt_fail[] = \
@@ -16,6 +16,6 @@ void *__stack_chk_guard = (void*)0x0AFF;
  */
 void __stack_chk_fail(void)
 {
-	printf(__stack_chk_fmt_fail, __builtin_return_address(0));
+	con_err(__stack_chk_fmt_fail, __builtin_return_address(0));
 }
 #endif

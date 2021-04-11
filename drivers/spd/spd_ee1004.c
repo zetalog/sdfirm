@@ -4,7 +4,13 @@
 
 #include "spd_ee1004.h"
 
-#define SPD_EE1004_DEBUG
+#define CONFIG_SPD_EE1004_DEBUG
+
+#ifdef CONFIG_SPD_EE1004_DEBUG
+#define spd_dbg(...)			con_dbg(__VA_ARGS__)
+#else
+#define spd_dbg(...)			do { } while (0)
+#endif
 
 #ifdef CONFIG_SPD_BUS_KHZ
 #define SPD_BUS_KHZ CONFIG_SPD_BUS_KHZ
@@ -19,19 +25,12 @@ int spd_hw_init(void)
 	unsigned int i2c_master = SPD_BUS_NUM;
 	uint16_t i2c_freq = SPD_BUS_KHZ;
 
-#ifdef SPD_EE1004_DEBUG
-	con_printf("Debug: Enter %s\n", __func__);
-#endif
-
+	spd_dbg("spd_ee1004: Debug: Enter %s\n", __func__);
 	dw_i2c_init();
-#ifdef SPD_EE1004_DEBUG
-	con_printf("Debug: Select I2C Master = %u\n", i2c_master);
-#endif
+	spd_dbg("spd_ee1004: Debug: Select I2C Master = %u\n", i2c_master);
 	i2c_master_select(i2c_master);
 	i2c_master_init();
-#ifdef SPD_EE1004_DEBUG
-	con_printf("Debug: Set I2C frequency = %u KHz\n", i2c_freq);
-#endif
+	spd_dbg("spd_ee1004: Debug: Set I2C frequency = %u KHz\n", i2c_freq);
 	i2c_set_frequency(i2c_freq);
 	return 0;
 }
@@ -41,26 +40,23 @@ static int spd_ee_set_page(uint8_t new_page)
 	uint8_t dsc;
 	int ret;
 
-	if (new_page > 0) {
+	if (new_page > 0)
 		new_page = 1;
-	}
 
 	/* No need to switch page. */
-	if ((new_page == 0 && ee_page == 0) || (new_page != 0 && ee_page != 0)) {
+	if ((new_page == 0 && ee_page == 0) ||
+	    (new_page != 0 && ee_page != 0))
 		return 0;
-	}
 
-	if (ee_page == 0) {
+	if (ee_page == 0)
 		dsc = SPD_DSC_SPA0;
-	} else {
+	else
 		dsc = SPD_DSC_SPA1;
-	}
-#ifdef SPD_EE1004_DEBUG
-	con_printf("Debug: Set EE page to = %u\n", new_page);
-#endif
+	spd_dbg("spd_ee1004: Debug: Set EE page to = %u\n", new_page);
 	ret = dw_i2c_write_bytes((dsc >> 1), &dsc, 1, 1); /* XXX DSC repeats as Data */
 	if (ret < 0) {
-		con_printf("Error: Failed to send DSC SPAx = %u\n", dsc);
+		con_err("spd_ee1004: Error: Failed to send DSC SPAx = %u\n",
+			dsc);
 		return ret;
 	}
 	ee_page = new_page;
@@ -71,13 +67,14 @@ static int spd_ee_dummy_write(uint8_t dev, uint8_t addr)
 {
 	uint8_t dsc;
 	int ret;
+
 	dsc = SPD_DSC_WSPD | (dev << 1);
-#ifdef SPD_EE1004_DEBUG
-	con_printf("Debug: Do dummy write. dsc = 0x%x, addr = 0x%x\n", dsc, addr);
-#endif
+	spd_dbg("spd_ee1004: Debug: Do dummy write. dsc = 0x%x, addr = 0x%x\n",
+		dsc, addr);
 	ret = dw_i2c_write_bytes((dsc >> 1), &addr, 1, 1);
 	if (ret != 1) {
-		con_printf("Error: Failed to do dummy write. dsc = 0x%x, ret = %d\n", dsc, ret);
+		con_err("spd_ee1004: Error: Failed to do dummy write. dsc = 0x%x, ret = %d\n",
+			dsc, ret);
 		return ret;
 	}
 	return 0;
@@ -91,12 +88,12 @@ static int spd_ee_byte_write(uint8_t dev, uint8_t addr, uint8_t data)
 	int ret;
 
 	dsc = SPD_DSC_WSPD | (dev << 1);
-#ifdef SPD_EE1004_DEBUG
-	con_printf("Debug: Do dummy wirte. dsc = 0x%x, addr = 0x%x, data = 0x%x\n", dsc, addr, data);
-#endif
+	spd_dbg("spd_ee1004: Debug: Do dummy wirte. dsc = 0x%x, addr = 0x%x, data = 0x%x\n",
+		dsc, addr, data);
 	ret = dw_i2c_write_bytes((dsc >> 1), buf, sizeof(buf), 1);
 	if (ret != 1) {
-		con_printf("Error: Failed to do byte wirte. dsc = 0x%x, ret = %d\n", dsc, ret);
+		con_err("spd_ee1004: Error: Failed to do byte wirte. dsc = 0x%x, ret = %d\n",
+			dsc, ret);
 		return ret;
 	}
 	return 1;
@@ -120,12 +117,12 @@ static int spd_ee_page_write(uint8_t dev, uint8_t addr, uint8_t *data, int len)
 		i2c_tx_buf[i + 1] = data[i];
 	}
 	i2c_tx_len = len + 1;
-#ifdef SPD_EE1004_DEBUG
-	con_printf("Debug: Do page wirte. dsc = 0x%x, addr = 0x%x, len = 0x%x\n", dsc, addr, len);
-#endif
+	spd_dbg("spd_ee1004: Debug: Do page wirte. dsc = 0x%x, addr = 0x%x, len = 0x%x\n",
+		dsc, addr, len);
 	ret = dw_i2c_write_bytes((dsc >> 1), i2c_tx_buf, i2c_tx_len, 1);
 	if (ret != i2c_tx_len) {
-		con_printf("Error: Failed to do page wirte. dsc = 0x%x, ret = %d\n", dsc, ret);
+		con_err("spd_ee1004: Error: Failed to do page wirte. dsc = 0x%x, ret = %d\n",
+			dsc, ret);
 		return ret;
 	}
 	return len;
@@ -160,15 +157,16 @@ int spd_hw_read_bytes(uint8_t dev, uint16_t addr, uint8_t *buffer, int len)
 	int ret;
 
 	if (buffer == NULL) {
-		con_printf("Error: Invalid buffer = %p\n", buffer);
+		con_err("spd_ee1004: Error: Invalid buffer = %p\n", buffer);
 		return -1;
 	}
 	if (dev >= SPD_COUNT) {
-		con_printf("Error: Invalid SPD num = %u\n", dev);
+		con_err("spd_ee1004: Error: Invalid SPD num = %u\n", dev);
 		return -1;
 	}
 	if (addr >= SPD_EE_SIZE || (addr + len) > SPD_EE_SIZE) {
-		con_printf("Error: Invalid EE addr = 0x%x, len = %d\n", addr, len);
+		con_err("spd_ee1004: Error: Invalid EE addr = 0x%x, len = %d\n",
+			addr, len);
 		return -1;
 	}
 
@@ -190,12 +188,12 @@ int spd_hw_read_bytes(uint8_t dev, uint16_t addr, uint8_t *buffer, int len)
 		uint8_t this_addr = (uint8_t)addr;
 		spd_ee_set_page(0);
 		spd_ee_dummy_write(dev, this_addr);
-#ifdef SPD_EE1004_DEBUG
-		con_printf("Debug: Read EE page 0. dsc = 0x%x, len = %d\n", dsc, this_len);
-#endif
+		spd_dbg("spd_ee1004: Debug: Read EE page 0. dsc = 0x%x, len = %d\n",
+			dsc, this_len);
 		ret = dw_i2c_read_bytes((dsc >> 1), buffer, this_len, 1);
 		if (ret < 0) {
-			con_printf("Error: Failed to read EE page 0. dsc = 0x%x, len = %d, ret = %d\n", dsc, this_len, ret);
+			con_err("spd_ee1004: Error: Failed to read EE page 0. dsc = 0x%x, len = %d, ret = %d\n",
+				dsc, this_len, ret);
 			return -1;
 		}
 	}
@@ -210,12 +208,12 @@ int spd_hw_read_bytes(uint8_t dev, uint16_t addr, uint8_t *buffer, int len)
 		}
 		spd_ee_set_page(1);
 		spd_ee_dummy_write(dev, this_addr);
-#ifdef SPD_EE1004_DEBUG
-		con_printf("Debug: Read EE page 1. dsc = 0x%x, len = %d\n", dsc, this_len);
-#endif
+		spd_dbg("spd_ee1004: Debug: Read EE page 1. dsc = 0x%x, len = %d\n",
+			dsc, this_len);
 		ret = dw_i2c_read_bytes((dsc >> 1), (buffer + len_in_page_0), this_len, 1);
 		if (ret < 0) {
-			con_printf("Error: Failed to read EE page 1. dsc = 0x%x, len = %d, ret = %d\n", dsc, this_len, ret);
+			con_err("spd_ee1004: Error: Failed to read EE page 1. dsc = 0x%x, len = %d, ret = %d\n",
+				dsc, this_len, ret);
 			return -1;
 		}
 	}
@@ -232,15 +230,15 @@ int spd_hw_write_bytes(uint8_t dev, uint16_t addr, uint8_t *buffer, int len)
 	int ret;
 
 	if (buffer == NULL) {
-		con_printf("Error: Invalid buffer = %p\n", buffer);
+		con_err("spd_ee1004: Error: Invalid buffer = %p\n", buffer);
 		return -1;
 	}
 	if (dev >= SPD_COUNT) {
-		con_printf("Error: Invalid SPD num = %u\n", dev);
+		con_err("spd_ee1004: Error: Invalid SPD num = %u\n", dev);
 		return -1;
 	}
 	if (addr >= SPD_EE_SIZE || (addr + len) > SPD_EE_SIZE) {
-		con_printf("Error: Invalid EE addr = 0x%x, len = %d\n", addr, len);
+		con_err("spd_ee1004: Error: Invalid EE addr = 0x%x, len = %d\n", addr, len);
 		return -1;
 	}
 
@@ -262,7 +260,8 @@ int spd_hw_write_bytes(uint8_t dev, uint16_t addr, uint8_t *buffer, int len)
 		this_addr = (uint8_t)addr;
 		ret = spd_ee_write_in_page(dev, 0, this_addr, buffer, this_len);
 		if (ret < 0) {
-			con_printf("Error: Failed to write EE page 0. dsc = 0x%x, addr = 0x%x, len = %d, ret = %d\n", dsc, this_addr, this_len, ret);
+			con_err("spd_ee1004: Error: Failed to write EE page 0. dsc = 0x%x, addr = 0x%x, len = %d, ret = %d\n",
+				dsc, this_addr, this_len, ret);
 			return -1;
 		}
 	}
@@ -276,7 +275,8 @@ int spd_hw_write_bytes(uint8_t dev, uint16_t addr, uint8_t *buffer, int len)
 		}
 		ret = spd_ee_write_in_page(dev, 1, this_addr, buffer, this_len);
 		if (ret < 0) {
-			con_printf("Error: Failed to write EE page 1. dsc = 0x%x, addr = 0x%x, len = %d, ret = %d\n", dsc, this_addr, this_len, ret);
+			con_err("spd_ee1004: Error: Failed to write EE page 1. dsc = 0x%x, addr = 0x%x, len = %d, ret = %d\n",
+				dsc, this_addr, this_len, ret);
 			return -1;
 		}
 	}

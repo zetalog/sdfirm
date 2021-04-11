@@ -157,7 +157,7 @@ static void console_bh_handler(uint8_t events)
 	}
 }
 
-void con_printf(const char *fmt, ...)
+void con_err(const char *fmt, ...)
 {
 	va_list arg;
 

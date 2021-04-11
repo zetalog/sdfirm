@@ -266,8 +266,8 @@ static dma_desc_t *axi_desc_get(dma_chan_t *chan)
 
 	desc = dma_desc_alloc(&phys_tmp);
 	if (unlikely(!desc)) {
-		con_printf("chan %d: not enough descriptors\n",
-			   chan->id);
+		con_err("dw_dma: chan %d: not enough descriptors\n",
+			chan->id);
 		return NULL;
 	}
 	if (chan->descs_allocated == 0)
@@ -295,8 +295,8 @@ static void axi_desc_put(dma_desc_t *desc)
 	dma_desc_free(desc);
 	descs_put++;
 	chan->descs_allocated = chan->descs_allocated -descs_put;
-	con_printf("chan %d: %d descs put, %d still allocated\n",
-		   chan->id,descs_put,chan->descs_allocated);
+	con_log("dw_dma: chan %d: %d descs put, %d still allocated\n",
+		chan->id,descs_put,chan->descs_allocated);
 }
 
 static void write_desc_llp(dma_desc_t *desc, dma_addr_t adr)
@@ -316,7 +316,7 @@ static int chan_block_xfer_start(dma_chan_t *chan, dma_desc_t *first)
 	uint8_t lms = 0;
 
 	if (unlikely(chan_is_hw_enable(chan))) {
-		con_printf("chan %d : is non-idle!\n", chan->id);
+		con_err("dw_dma: chan %d : is non-idle!\n", chan->id);
 		return DMA_ERROR;
 	}
 
@@ -353,7 +353,7 @@ static int32_t chan_block_xfer_start_single(dma_chan_t *chan,
 	uint8_t lms = 0;
 
 	if (unlikely(chan_is_hw_enable(chan))) {
-		con_printf("chan %d : is non-idle!\n", chan->id);
+		con_err("dw_dma: chan %d : is non-idle!\n", chan->id);
 		return DMA_ERROR;
 	}
 
@@ -387,7 +387,7 @@ static void chan_start_first_queued(uint8_t chanid)
 	dma_chan_t *chan = chip->chan[chanid];
 
 	desc = chan->first;
-	con_printf("chan %d : started!\n", chan->id);
+	con_log("dw_dma: chan %d : started!\n", chan->id);
 	chan_block_xfer_start(chan, desc);
 }
 
@@ -442,8 +442,8 @@ dma_chan_prep_dma_memcpy(uint8_t chanid, dma_addr_t dst_adr,
 	dma_chan_t *chan = chip->chan[chanid];
 	uint8_t lms = 0;
 	
-	con_printf("chan %d: memcpy: src: %pad dst: %pad length: %zd \n",
-		   chan->id,&src_adr, &dst_adr, len);
+	con_log("dw_dma: chan %d: memcpy: src: %pad dst: %pad length: %zd \n",
+		chan->id,&src_adr, &dst_adr, len);
 
 	max_block_ts = chan->chip->hdata->block_size[chan->id];
 
@@ -519,8 +519,8 @@ dma_chan_prep_dma_memcpy_sinlge_block(uint8_t chanid, dma_addr_t dst_adr,
 	dma_chan_t *chan = chip->chan[chanid];
 	uint8_t lms = 0;
 	
-	con_printf("chan %d: memcpy: src: %pad dst: %pad length: %zd \n",
-		   chan->id,&src_adr, &dst_adr, len);
+	con_log("dw_dma: chan %d: memcpy: src: %pad dst: %pad length: %zd \n",
+		chan->id,&src_adr, &dst_adr, len);
 
 	max_block_ts = chan->chip->hdata->block_size[chan->id];
 
@@ -576,8 +576,8 @@ static void chan_block_xfer_complete(dma_chan_t *chan)
 
 	spin_lock_irqsave(&chan->lock, flags);
 	if (unlikely(chan_is_hw_enable(chan))) {
-		con_printf("chan %d: caught DW_DMAC_IRQ_DMA_TRF, but channel not idle!\n",
-			   chan->id);
+		con_err("dw_dma: chan %d: caught DW_DMAC_IRQ_DMA_TRF, but channel not idle!\n",
+			chan->id);
 		chan_disable(chan);
 	}
 
@@ -610,8 +610,8 @@ void dw_dma_interrupt(int irq, void *dev_id)
 		status = chan_irq_read(chan);
 		chan_irq_clear(chan, status);
 
-		con_printf("chan %d: %u IRQ status: 0x%08x\n",
-			   chan->id, i, status);
+		con_log("dw_dma: chan %d: %u IRQ status: 0x%08x\n",
+			chan->id, i, status);
 
 		if (status & DW_DMAC_IRQ_ALL_ERR)
 			chan_handle_err(chan, status);
@@ -644,7 +644,7 @@ static void dw_dma_init_bank(void)
 	int i;
 	uint32_t tmp;
 
-	con_printf("dw_dma_init_bank\n");
+	con_dbg("dw_dma: dw_dma_init_bank\n");
 
 	chip->reg_base = DW_DMA_REG_BASE;
 
@@ -669,7 +669,7 @@ void dw_dma_init(void)
 	uint64_t src = 0xff05040000;
 	uint32_t len = 136;
 	
-	con_printf("dw_dma_init\n");
+	con_dbg("dw_dma: dw_dma_init\n");
 
 	dw_dma_init_bank();
 
@@ -721,8 +721,8 @@ int32_t dma_multi_block_memcpy(void *dst, void *src, size_t len)
 	ret = dma_chan_prep_dma_memcpy(chanid,
 		(dma_addr_t)dst, (dma_addr_t)src, len);
 	if (ret == DMA_ERROR) {
-		con_printf("chan %d: dma_chan_prep_dma_memcpy error \n",
-			   chanid);
+		con_err("dw_dma: chan %d: dma_chan_prep_dma_memcpy error \n",
+			chanid);
 		return DMA_ERROR;
 	}
 
@@ -752,8 +752,8 @@ int32_t dma_single_block_memcpy(void *dst, void *src, size_t len)
 	ret = dma_chan_prep_dma_memcpy_sinlge_block(chanid,
 		(dma_addr_t)dst, (dma_addr_t)src, len);
 	if (ret == DMA_ERROR) {
-		con_printf("chan %d: dma_chan_prep_dma_memcpy error \n",
-			   chanid);
+		con_err("dw_dma: chan %d: dma_chan_prep_dma_memcpy error \n",
+			chanid);
 		return DMA_ERROR;
 	}
 

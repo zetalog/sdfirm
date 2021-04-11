@@ -1,8 +1,11 @@
 #include <target/uefi.h>
+#include <target/console.h>
 
 //#define CONFIG_UEFI_GPT_DEBUG
 
 #ifdef CONFIG_UEFI_GPT_DEBUG
+#define gpt_dbg(...)		gpt_dbg(__VA_ARGS__)
+
 static void gpt_header_print(struct gpt_header *header)
 {
 	unsigned char *byte_ptr;
@@ -10,24 +13,24 @@ static void gpt_header_print(struct gpt_header *header)
 	if (header == NULL)
 		return;
 	byte_ptr = (unsigned char *)(&header->disk_guid);
-	printf("GPT header @ %p\n", header);
-	printf("  size = 0x%x\n", header->size);
-	printf("  first_usable_lba = 0x%lx\n",
-	       header->first_usable_lba);
-	printf("  last_usable_lba = 0x%lx\n",
-	       header->last_usable_lba);
-	printf("  partition_entry_lba = 0x%lx\n",
-	       header->partition_entry_lba);
-	printf("  npartition_entries = 0x%x\n",
-	       header->npartition_entries);
-	printf("  sizeof_partition_entry = 0x%x\n",
-	       header->sizeof_partition_entry);
-	printf("  disk_guid = ");
-	printf("%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X\n",
-	       byte_ptr[3], byte_ptr[2], byte_ptr[1], byte_ptr[0],
-	       byte_ptr[5], byte_ptr[4], byte_ptr[7], byte_ptr[6],
-	       byte_ptr[9], byte_ptr[8], byte_ptr[10], byte_ptr[11],
-	       byte_ptr[12], byte_ptr[13], byte_ptr[14], byte_ptr[15]);
+	gpt_dbg("uefi_gpt: GPT header @ %p\n", header);
+	gpt_dbg("uefi_gpt:  size = 0x%x\n", header->size);
+	gpt_dbg("uefi_gpt:  first_usable_lba = 0x%lx\n",
+		header->first_usable_lba);
+	gpt_dbg("uefi_gpt:  last_usable_lba = 0x%lx\n",
+		header->last_usable_lba);
+	gpt_dbg("uefi_gpt:  partition_entry_lba = 0x%lx\n",
+		header->partition_entry_lba);
+	gpt_dbg("uefi_gpt:  npartition_entries = 0x%x\n",
+		header->npartition_entries);
+	gpt_dbg("uefi_gpt:  sizeof_partition_entry = 0x%x\n",
+		header->sizeof_partition_entry);
+	gpt_dbg("uefi_gpt:  disk_guid = ");
+	gpt_dbg("uefi_gpt:%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X\n",
+		byte_ptr[3], byte_ptr[2], byte_ptr[1], byte_ptr[0],
+		byte_ptr[5], byte_ptr[4], byte_ptr[7], byte_ptr[6],
+		byte_ptr[9], byte_ptr[8], byte_ptr[10], byte_ptr[11],
+		byte_ptr[12], byte_ptr[13], byte_ptr[14], byte_ptr[15]);
 }
 
 static void gpt_entry_print(struct gpt_entry *entry)
@@ -38,18 +41,23 @@ static void gpt_entry_print(struct gpt_entry *entry)
 	if (entry == NULL)
 		return;
 	byte_ptr = (unsigned char *)(&entry->partition_guid);
-	printf("%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X ",
-	       byte_ptr[3], byte_ptr[2], byte_ptr[1], byte_ptr[0],
-	       byte_ptr[5], byte_ptr[4], byte_ptr[7], byte_ptr[6],
-	       byte_ptr[9], byte_ptr[8], byte_ptr[10], byte_ptr[11],
-	       byte_ptr[12], byte_ptr[13], byte_ptr[14], byte_ptr[15]);
-	printf("%016lx ", entry->lba_start);
-	printf("%016lx ", entry->lba_end);
+	gpt_dbg("uefi_gpt: %02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X ",
+		byte_ptr[3], byte_ptr[2], byte_ptr[1], byte_ptr[0],
+		byte_ptr[5], byte_ptr[4], byte_ptr[7], byte_ptr[6],
+		byte_ptr[9], byte_ptr[8], byte_ptr[10], byte_ptr[11],
+		byte_ptr[12], byte_ptr[13], byte_ptr[14], byte_ptr[15]);
+	gpt_dbg("uefi_gpt: %016lx ", entry->lba_start);
+	gpt_dbg("uefi_gpt: %016lx ", entry->lba_end);
+	gpt_dbg("uefi_gpt: ");
 	for (i = 0; i < (GPT_PART_NAME_LEN * sizeof(uint16_t)); i++)
 		printf("%02x", *(((unsigned char *)(entry->name)) + i));
 	printf("\n");
 	return;
 }
+#else
+#define gpt_dbg(...)			do { } while (0)
+#define gpt_header_print(header)	do { } while (0)
+#define gpt_entry_print(entry)		do { } while (0)
 #endif
 
 int gpt_pgpt_init(void)
@@ -89,33 +97,25 @@ int gpt_get_part_by_name(mtd_t mtd, const char *part_name,
 	uint32_t copy_size = sizeof(struct gpt_entry);
 	int i;
 
-#ifdef CONFIG_UEFI_GPT_DEBUG
-	printf("gpt: Enter %s\n", __func__);
-#endif
+	gpt_dbg("uefi_gpt: Enter %s\n", __func__);
 	if (part_name == NULL || offset == NULL || size == NULL)
 		return -EINVAL;
 
 	mtd_load(mtd, sector_buffer,
 		     flash_addr_header, copy_size_header);
-#ifdef CONFIG_UEFI_GPT_DEBUG
 	gpt_header_print((struct gpt_header *)sector_buffer);
-#endif
 
 	for (i = 0; i < GPT_PGPT_PART_CNT; i++) {
 		uint32_t *guid_words =
 			(uint32_t *)(&entry_ptr->partition_guid);
 		unsigned char *guid_bytes =
 			(unsigned char *)(&entry_ptr->partition_guid);
-#ifdef CONFIG_UEFI_GPT_DEBUG
-		printf("gpt: Copying partion%d addr=0x%x size=0x%x..\n",
-		       i, flash_addr, copy_size);
-#endif
+		gpt_dbg("uefi_gpt: Copying partion%d addr=0x%x size=0x%x..\n",
+			i, flash_addr, copy_size);
 		mtd_load(mtd, entry_ptr, flash_addr, copy_size);
 		flash_addr += copy_size;
-#ifdef CONFIG_UEFI_GPT_DEBUG
-		printf("gpt: Checking partition%d...\n", (i + 1));
+		gpt_dbg("uefi_gpt: Checking partition%d...\n", (i + 1));
 		gpt_entry_print(entry_ptr);
-#endif
 		/* Stop searching at empty entry */
 		if (guid_words[0] == 0 && guid_words[1] == 0 &&
 		    guid_words[2] == 0 && guid_words[3] == 0)
@@ -130,11 +130,9 @@ int gpt_get_part_by_name(mtd_t mtd, const char *part_name,
 		*pad_size = guid_bytes[14];
 		*pad_size <<= 8;
 		*pad_size += guid_bytes[15];
-#ifdef CONFIG_UEFI_GPT_DEBUG
-		printf("gpt: Found partition%d: name=%s offset=%d size=%d pad_size=%d\n",
-		       i + 1, part_name, *offset, *size, *pad_size);
+		gpt_dbg("uefi_gpt: Found partition%d: name=%s offset=%d size=%d pad_size=%d\n",
+			i + 1, part_name, *offset, *size, *pad_size);
 		gpt_entry_print(entry_ptr);
-#endif
 		return i + 1;
 	}
 	return 0;
@@ -180,7 +178,7 @@ void gpt_mtd_dump(mtd_t mtd)
 	int part = 0;
 
 	if (mtd == INVALID_MTD_ID) {
-		printf("gpt: Error: Invalid MTD device\n");
+		printf("Error: Invalid MTD device\n");
 		return;
 	}
 	mtd_load(mtd, &hdr, GPT_HEADER_LBA * GPT_LBA_SIZE,

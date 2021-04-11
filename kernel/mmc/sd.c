@@ -452,17 +452,17 @@ static sd_cid_t sd_decode_cid(mmc_r2_t raw_cid)
 	cid.prv = raw_cid[8];
 	memcpy(cid.pnm, &raw_cid[3], 5);
 #ifdef CONFIG_MMC_DEBUG
-	printf("MDT: %d\n", cid.mdt);
-	printf("PSN: %d\n", cid.psn);
-	printf("PRV: %d\n", cid.prv);
-	printf("PNM: %.5s\n", cid.pnm);
+	con_dbg("sd: MDT: %d\n", cid.mdt);
+	con_dbg("sd: PSN: %d\n", cid.psn);
+	con_dbg("sd: PRV: %d\n", cid.prv);
+	con_dbg("sd: PNM: %.5s\n", cid.pnm);
 #endif
 #endif
 	cid.oid = MAKEWORD(raw_cid[2], raw_cid[1]);
 	cid.mid = raw_cid[0];
 #ifdef CONFIG_MMC_DEBUG
-	printf("OID: %d\n", cid.oid);
-	printf("MID: %d\n", cid.mid);
+	con_dbg("sd: OID: %d\n", cid.oid);
+	con_dbg("sd: MID: %d\n", cid.mid);
 #endif
 	return cid;
 }
@@ -491,13 +491,13 @@ static mmc_csd_t sd_decode_csd(mmc_r2_t raw_csd)
 	csd.write_bl_partial = !!(MMC_CSD0_WRITE_BL_PARTIAL & csd0);
 	csd.write_blk_misalign = !!(MMC_CSD2_WRITE_BLK_MISALIGN & csd2);
 	if (csd.read_bl_len != csd.write_bl_len)
-		printf("Mismatched BL_LEN: READ - %d, WRITE - %d\n",
-		       csd.read_bl_len, csd.write_bl_len);
+		con_err("sd: Mismatched BL_LEN: READ - %d, WRITE - %d\n",
+			csd.read_bl_len, csd.write_bl_len);
 	csd.dsr_imp = !!(MMC_CSD2_DSR_IMP & csd2);
 	if (csd.csd_structure == SD_CSD3_CSD_VERSION_2_0) {
 		if (csd.read_bl_len != 9) {
-			printf("Mismatched BL_LEN: FIXED(9) - %d\n",
-			       csd.read_bl_len);
+			con_err("sd: Mismatched BL_LEN: FIXED(9) - %d\n",
+				csd.read_bl_len);
 			csd.read_bl_len = csd.write_bl_len = 9;
 		}
 		csize = SD_CSD20_2_C_SIZE(csd2) << 16 |
@@ -510,10 +510,10 @@ static mmc_csd_t sd_decode_csd(mmc_r2_t raw_csd)
 	}
 	csd.capacity = (csize + 1) << (cmult + 2);
 #ifdef CONFIG_MMC_DEBUG
-	printf("CSD_STRUCTURE: %d\n", csd.csd_structure);
-	printf("TRAN_SPEED: %d\n", csd.tran_speed);
-	printf("Block number: %d\n", csd.capacity);
-	printf("Block length: %d\n", _BV(csd.read_bl_len));
+	con_dbg("sd: CSD_STRUCTURE: %d\n", csd.csd_structure);
+	con_dbg("sd: TRAN_SPEED: %d\n", csd.tran_speed);
+	con_dbg("sd: Block number: %d\n", csd.capacity);
+	con_dbg("sd: Block length: %d\n", _BV(csd.read_bl_len));
 #endif
 	mmc_slot_ctrl.capacity_len = _BV(csd.read_bl_len);
 	mmc_slot_ctrl.capacity_cnt = csd.capacity;
@@ -549,10 +549,10 @@ sd_scr_t sd_decode_scr(void)
 	scr.bus_widths = SD_SCR1_SD_BUS_WIDTHS(scr1);
 	scr.cmd_support = SD_SCR1_CMD_SUPPORT(scr1);
 #ifdef CONFIG_MMC_DEBUG
-	printf("SCR_STRUCTURE: %d\n", scr.scr_structure);
-	printf("Version: %d\n", scr.version);
-	printf("BUS_WIDTHS: 0x%02x\n", scr.bus_widths);
-	printf("CMD_SUPPORT: 0x%02x\n", scr.cmd_support);
+	con_dbg("sd: SCR_STRUCTURE: %d\n", scr.scr_structure);
+	con_dbg("sd: Version: %d\n", scr.version);
+	con_dbg("sd: BUS_WIDTHS: 0x%02x\n", scr.bus_widths);
+	con_dbg("sd: CMD_SUPPORT: 0x%02x\n", scr.cmd_support);
 #endif
 	return scr;
 }
@@ -869,8 +869,8 @@ void sd_resp_r6(void)
 	/* Decode card status */
 	cs = MAKEWORD(r6[3], r6[2]);
 #ifdef CONFIG_MMC_DEBUG
-	printf("RCA: %d\n", mmc_slot_ctrl.rca);
-	printf("Card status: 0x%04x\n", cs);
+	con_dbg("sd: RCA: %d\n", mmc_slot_ctrl.rca);
+	con_dbg("sd: Card status: 0x%04x\n", cs);
 #endif
 	if (cs & SD_R6_COM_CRC_ERROR)
 		raise_bits(mmc_slot_ctrl.csr, MMC_DET_COM_CRC_ERROR);
@@ -1007,7 +1007,7 @@ static uint32_t sd_block_address(void)
 	/* high capacity should be checked in mmc_core.c */
 	address = mmc_slot_ctrl.address;
 #ifdef CONFIG_MMC_DEBUG
-	printf("ARGUMENT(address): 0x%08lx\n", address);
+	con_dbg("sd: ARGUMENT(address): 0x%08lx\n", address);
 #endif
 	return address;
 }

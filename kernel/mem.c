@@ -357,8 +357,8 @@ static phys_addr_t mem_find_in_range(phys_addr_t size, phys_addr_t align,
 		 * so we use WARN_ONCE() here to see the stack trace if
 		 * fail happens.
 		 */
-		con_printf("memblock: bottom-up allocation failed, "
-			   "memory hotunplug may be affected\n");
+		con_err("mem: bottom-up allocation failed, "
+			"memory hotunplug may be affected\n");
 	}
 	return __mem_find_range_top_down(start, end, size, align);
 }
@@ -407,8 +407,8 @@ static int mem_double_array(struct mem_type *type,
 	new_array = (struct mem_region *)
 		(addr ? virt_to_ptr(__va(addr)) : NULL);
 	if (!addr) {
-		con_printf("memblock: Failed to double %s array from %ld to %ld entries !\n",
-			   mem_type_name(type), type->max, type->max * 2);
+		con_err("mem: Failed to double %s array from %ld to %ld entries !\n",
+			mem_type_name(type), type->max, type->max * 2);
 		return -1;
 	}
 
@@ -535,7 +535,7 @@ void mem_remove(phys_addr_t base, phys_addr_t size)
 
 void mem_free(phys_addr_t base, phys_addr_t size)
 {
-	con_dbg("mem_free: [%#016llx-%#016llx]\n",
+	con_dbg("mem(free): [%#016llx-%#016llx]\n",
 		(unsigned long long)base,
 		(unsigned long long)base + size - 1);
 	mem_remove_range(&mem_reserved_regions, base, size);
@@ -620,7 +620,7 @@ void mem_add(phys_addr_t base, phys_addr_t size)
 {
 	struct mem_type *type = &mem_memory_regions;
 
-	con_dbg("mem_add: [%#016llx-%#016llx]\n",
+	con_dbg("mem(add): [%#016llx-%#016llx]\n",
 		(unsigned long long)base,
 		(unsigned long long)base + size - 1);
 	mem_add_range(type, base, size);
@@ -630,7 +630,7 @@ void mem_reserve(phys_addr_t base, phys_addr_t size)
 {
 	struct mem_type *type = &mem_reserved_regions;
 
-	con_dbg("mem_reserve: [%#016llx-%#016llx]\n",
+	con_dbg("mem(reserve): [%#016llx-%#016llx]\n",
 		(unsigned long long)base,
 		(unsigned long long)base + size - 1);
 	mem_add_range(type, base, size);
@@ -681,11 +681,11 @@ void mem_free_all(void)
 	phys_addr_t start, end;
 
 	for_each_reserved_mem_region(i, &start, &end) {
-		con_dbg("reserved: %016llx - %016llx\n", start, end);
+		con_dbg("mem: reserved: %016llx - %016llx\n", start, end);
 		reserve_bootmem_region(start, end);
 	}
 	for_each_free_mem_range(i, &start, &end) {
-		con_dbg("memory: %016llx - %016llx\n", start, end);
+		con_dbg("mem: memory: %016llx - %016llx\n", start, end);
 		page_alloc_init(start, end - start);
 	}
 }

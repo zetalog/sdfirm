@@ -42,6 +42,7 @@
 #include <target/mmc.h>
 #include <target/bh.h>
 #include <target/irq.h>
+#include <target/console.h>
 
 bh_t mmc_bh = INVALID_BH;
 
@@ -166,22 +167,22 @@ void mmc_debug(uint8_t tag, uint32_t val)
 {
 	switch (tag) {
 	case MMC_DEBUG_STATE:
-		printf("state %s\n", mmc_state_name(val));
+		con_dbg("mmc: state %s\n", mmc_state_name(val));
 		break;
 	case MMC_DEBUG_EVENT:
-		printf("event %s\n", mmc_event_name(val));
+		con_dbg("mmc: event %s\n", mmc_event_name(val));
 		break;
 	case MMC_DEBUG_ERROR:
-		printf("\nerror %s\n", mmc_error_name(val));
+		con_dbg("\nmmc: error %s\n", mmc_error_name(val));
 		break;
 	case MMC_DEBUG_CMD:
-		printf("cmd%d %s\n", val, mmc_cmd_name(val));
+		con_dbg("mmc: cmd%d %s\n", val, mmc_cmd_name(val));
 		break;
 	case MMC_DEBUG_OP:
-		printf("op %s\n", mmc_op_name(val));
+		con_dbg("mmc: op %s\n", mmc_op_name(val));
 		break;
 	case MMC_DEBUG_ACMD:
-		printf("acmd%d %s\n", val, mmc_acmd_name(val));
+		con_dbg("mmc: acmd%d %s\n", val, mmc_acmd_name(val));
 		break;
 	default:
 		BUG();

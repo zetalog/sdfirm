@@ -581,7 +581,7 @@ static void sdhc_handle_irq(irq_t irq)
 
 	/* Handle error IRQs */
 	if (irqs & SDHC_ERROR_INTERRUPT_MASK) {
-		printf("sdhc: Error detected in status(0x%X)!\n", irqs);
+		con_err("sdhc: Error detected in status(0x%X)!\n", irqs);
 		if (irqs & SDHC_COMMAND_INDEX_ERROR)
 			sdhc_err_failure(MMC_ERR_ILLEGAL_COMMAND);
 		else if (irqs & (SDHC_ERR_COMMAND_CRC_ERROR |

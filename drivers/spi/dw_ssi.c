@@ -228,7 +228,7 @@ static void dw_writer(int n)
 		if (dw_ssis[n].tx_end - dw_ssis[n].len)
 			txw = *(dw_ssi_data *)(dw_ssis[n].tx);
 		dw_ssi_write_dr(n, txw);
-		con_printf("%s: tx=0x%02x\n", __func__, txw);
+		con_dbg("dw_ssi: %s: tx=0x%02x\n", __func__, txw);
 		dw_ssis[n].tx += DW_SSI_XFER_SIZE >> 3;
 	}
 }
@@ -247,7 +247,7 @@ static bool dw_reader(int n)
 
 	while (max--) {
 		rxw = dw_ssi_read_dr(n);
-		con_printf("%s: rx=0x%02x\n", __func__, rxw);
+		con_dbg("dw_ssi: %s: rx=0x%02x\n", __func__, rxw);
 		if (dw_ssis[n].rx_end - dw_ssis[n].len)
 			*(dw_ssi_data *)(dw_ssis[n].rx) = rxw;
 		dw_ssis[n].rx += DW_SSI_XFER_SIZE >> 3;
@@ -288,8 +288,8 @@ int dw_ssi_xfer(int n, const void *txdata, size_t txbytes, void *rxdata)
 	cr0 |= SSI_TMOD(dw_ssis[n].tmod);
 
 	dw_ssis[n].len = bitlen >> 3;
-	con_printf("%s: rx=%p tx=%p len=%d [bytes]\n",
-		   __func__, rx, tx, dw_ssis[n].len);
+	con_dbg("dw_ssi: %s: rx=%p tx=%p len=%d [bytes]\n",
+		__func__, rx, tx, dw_ssis[n].len);
 
 	dw_ssis[n].tx = (void *)tx;
 	dw_ssis[n].tx_end = dw_ssis[n].tx + dw_ssis[n].len;
@@ -297,7 +297,7 @@ int dw_ssi_xfer(int n, const void *txdata, size_t txbytes, void *rxdata)
 	dw_ssis[n].rx_end = dw_ssis[n].rx + dw_ssis[n].len;
 
 	dw_ssi_disable_ctrl(n);
-	con_printf("%s: cr0=%08x\n", __func__, cr0);
+	con_dbg("dw_ssi: %s: cr0=%08x\n", __func__, cr0);
 	if (__raw_readl(SSI_CTRLR0(n)) != cr0)
 		__raw_writel(cr0, SSI_CTRLR0(n));
 	dw_ssi_enable_ctrl(n);

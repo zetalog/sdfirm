@@ -166,6 +166,7 @@ config CONSOLE_VERBOSE
 
 config CONSOLE_DEBUG
 	bool "Enable console debugging messages"
+	select CONSOLE_VERBOSE
 	depends EXPERIMENTAL
 
 config CONSOLE_BANNER

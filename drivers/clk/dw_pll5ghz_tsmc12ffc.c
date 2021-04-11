@@ -141,7 +141,7 @@ static void dw_pll5ghz_tsmc12ffc_clear_gear(uint8_t pll)
 static void dw_pll5ghz_tsmc12ffc_dynamic(uint8_t pll, uint32_t cfg,
 					 uint32_t mask)
 {
-	con_printf("pll(%d): dynamically changing static PINs!\n", pll);
+	con_log("pll(%d): dynamically changing static PINs!\n", pll);
 	dw_pll5ghz_tsmc12ffc_pwrdn(pll);
 	__raw_writel_mask(cfg, mask, DW_PLL_CFG1(pll));
 	dw_pll5ghz_tsmc12ffc_pwrup(pll);
@@ -159,7 +159,7 @@ static void dw_pll5ghz_tsmc12ffc_dynamic(uint8_t pll, uint32_t cfg,
 	 *
 	 * NOTE that the issue cannot be detected unless console is ready.
 	 */
-	con_printf("pll(%d): statically changing static PINs!\n", pll);
+	con_err("pll(%d): statically changing static PINs!\n", pll);
 	__raw_writel_mask(cfg, mask, DW_PLL_CFG1(pll));
 }
 #endif

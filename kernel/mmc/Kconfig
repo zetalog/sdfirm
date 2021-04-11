@@ -57,6 +57,7 @@ config MMC_CID_ALL_FIELDS
 config MMC_DEBUG
 	bool "MMC debug message support"
 	depends DEBUG_PRINT || CONSOLE
+	select CONSOLE_DEBUG
 
 choice
 	prompt "Physical layer"

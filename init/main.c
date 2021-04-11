@@ -67,7 +67,7 @@ void system_init(void)
 	percpu_init();
 
 #ifdef CONFIG_GEM5
-	con_printf("Simpoint: Start simpoint_entry\n");
+	con_log("Simpoint: Start simpoint_entry\n");
 	simpoint_entry();
 #endif
 	ris_entry();

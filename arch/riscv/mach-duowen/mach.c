@@ -206,15 +206,15 @@ static void __duowen_load_file(mtd_t mtd, boot_cb boot,
 	uint32_t size = 500000;
 	int ret;
 
-	printf("boot(%s): booting %s to entry=0x%lx...\n",
-	       name, file, (unsigned long)entry);
+	con_log("boot(%s): booting %s to entry=0x%lx...\n",
+		name, file, (unsigned long)entry);
 	ret = gpt_get_file_by_name(mtd, file, &addr, &size);
 	if (ret <= 0) {
-		printf("boot(%s): %s missing.\n", name, file);
+		con_err("boot(%s): %s missing.\n", name, file);
 		bh_panic();
 	}
-	printf("boot(%s): booting %s from addr=0x%lx, size=0x%lx...\n",
-	       name, file, addr, size);
+	con_log("boot(%s): booting %s from addr=0x%lx, size=0x%lx...\n",
+		name, file, addr, size);
 #ifndef CONFIG_DUOWEN_LOAD_DDR_BACKDOOR
 	boot(entry, addr, size, jump);
 #endif
@@ -239,7 +239,7 @@ static void duowen_load_flash(mtd_t mtd, boot_cb boot, const char *name)
 
 	ret = gpt_pgpt_init();
 	if (ret != 0) {
-		printf("boot(%s): primary GPT failure.\n", name);
+		con_err("boot(%s): primary GPT failure.\n", name);
 		bh_panic();
 	}
 	duowen_boot_ddr();
@@ -318,7 +318,7 @@ void duowen_load_ddr(void)
 	void *boot_addr = (void *)apc_get_jump_addr();
 
 	if (smp_processor_id() == 0)
-		printf("boot(ddr): booting %d cores...\n", MAX_CPU_NUM);
+		con_log("boot(ddr): booting %d cores...\n", MAX_CPU_NUM);
 	__boot_jump(boot_addr);
 }
 
