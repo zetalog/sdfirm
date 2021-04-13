@@ -471,9 +471,11 @@
 	(__raw_readl(DIRUCASAR(ncore_su_diru(diru), su)) & _BV(NCORE_SU_ID(su)))
 
 #ifdef CONFIG_NCORE
-void ncore_init(uint8_t ncais, uint8_t nncbs, uint8_t ndirs, uint8_t ncmis);
+void ncore_init(uint8_t ncais, uint32_t cai_mask,
+		uint8_t nncbs, uint8_t ndirs, uint8_t ncmis);
 #else
-#define ncore_init(ncais, nncbs, ndirs, ncmis)	do { } while (0)
+#define ncore_init(ncais, cai_mask, nncbs, ndirs, ncmis)	\
+	do { } while (0)
 #endif
 
 #endif /* __NCORE_NOC_H_INCLUDE__ */

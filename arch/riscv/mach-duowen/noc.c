@@ -51,6 +51,8 @@
 
 void duowen_noc_init(void)
 {
+	uint32_t nr_clusters = MAX_SOC_SOCKETS * MAX_CPU_CLUSTERS;
+
 	/* NoC connects to fabrics and DDR/PCIes. So their clocks must
 	 * be enabled before configuring NoC.
 	 */
@@ -58,6 +60,6 @@ void duowen_noc_init(void)
 	/* Ensured required clocks */
 	clk_enable(ddr_aclk);
 	clk_enable(pcie_aclk);
-	ncore_init(MAX_SOC_SOCKETS * MAX_CPU_CLUSTERS, 0,
-		   MAX_DDR_SEGMENTS, MAX_DDR_SEGMENTS);
+	ncore_init(nr_clusters, CPU_TO_MASK(nr_clusters) - 1,
+		   0, MAX_DDR_SEGMENTS, MAX_DDR_SEGMENTS);
 }
