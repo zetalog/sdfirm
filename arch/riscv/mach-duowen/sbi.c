@@ -75,6 +75,7 @@ static int duowen_final_init(bool cold_boot)
 	if (!cold_boot)
 		return 0;
 
+	duowen_gpio_init();
 	duowen_eth_init();
 
 	fdt = sbi_scratch_thishart_arg1_ptr();

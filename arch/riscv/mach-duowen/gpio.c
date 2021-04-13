@@ -1,6 +1,50 @@
 #include <target/gpio.h>
 #include <target/clk.h>
 
+struct duowen_pad {
+	uint32_t port;
+	uint16_t pin;
+	uint8_t func;
+	uint8_t pad;
+	uint8_t drive;
+};
+
+struct duowen_pad duowen_pads[] = {
+	/* uart0 */
+	{ GPIO1B, pad_gpio_54, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_DOWN, 8 },
+	{ GPIO1B, pad_gpio_55, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_DOWN, 8 },
+	{ GPIO2A, pad_gpio_80, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	{ GPIO2A, pad_gpio_81, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	{ GPIO2A, pad_gpio_82, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	{ GPIO2A, pad_gpio_83, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	{ GPIO2A, pad_gpio_84, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	{ GPIO2A, pad_gpio_85, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	/* uart1 */
+	{ GPIO1B, pad_gpio_62, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_DOWN, 8 },
+	{ GPIO1B, pad_gpio_63, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_DOWN, 8 },
+	{ GPIO2A, pad_gpio_88, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	{ GPIO2A, pad_gpio_89, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	{ GPIO2A, pad_gpio_90, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	{ GPIO2A, pad_gpio_91, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	{ GPIO2A, pad_gpio_92, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	{ GPIO2A, pad_gpio_93, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+};
+
+/* This function is used by SBI to pass pin configurations to the Linux
+ * kernel.
+ */
+void duowen_gpio_init(void)
+{
+	int i;
+	struct duowen_pad *p;
+
+	for (i = 0; i < ARRAY_SIZE(duowen_pads); i++) {
+		p = &(duowen_pads[i]);
+		gpio_config_pad(p->port, p->pin, p->pad, p->drive);
+		gpio_config_mux(p->port, p->pin, p->func);
+	}
+}
+
 #ifdef CONFIG_DUOWEN_GPIO_PORT
 uint8_t gpio_hw_read_pin(uint8_t port, uint16_t pin)
 {

@@ -302,6 +302,9 @@ void duowen_gpio_irq_init(void);
 #ifdef CONFIG_MMU
 #define gpio_hw_mmu_init()			duowen_mmu_map_gpio()
 #endif /* CONFIG_MMU */
+void duowen_gpio_init(void);
+#else
+#define duowen_gpio_init()			do { } while (0)
 #endif /* CONFIG_GPIO */
 
 #endif /* __GPIO_DUOWEN_H_INCLUDE__ */

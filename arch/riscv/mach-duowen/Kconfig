@@ -114,6 +114,7 @@ config DUOWEN_BBL
 	bool "Berkeley bootloader (BBL)"
 	select DUOWEN_BOOT
 	select DUOWEN_LOAD_BBL
+	select GPIO
 	select ARCH_HAS_BOOT_LOAD if !DUOWEN_BBL_SPI
 	select XIP if !DUOWEN_BBL_SPI
 	select BFM if !DUOWEN_BBL_SPI
