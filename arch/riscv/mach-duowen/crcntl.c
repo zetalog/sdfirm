@@ -80,6 +80,26 @@ uint8_t duowen_pll_reg_read(uint8_t pll, uint8_t reg)
 	return PLL_REG_RDATA(val);
 }
 
+#define pll_cnt_elapsed(o, n)	\
+	((uint16_t)((n>=o) ? (n-o) : (PLL_CNT_COUNTER_MASK-o+n+1)))
+
+void duowen_pll_wait_cmpclk(uint8_t pll, uint16_t cycles)
+{
+	uint16_t cnt;
+
+	/* Also reset counter to 0 */
+	__raw_writel(PLL_CNT_EN, DW_PLL_CNT(pll));
+	do {
+		cnt = pll_cnt_counter(__raw_readl(DW_PLL_CNT(pll)));
+	} while (pll_cnt_elapsed(0, cnt) < cycles);
+	__raw_writel(0, DW_PLL_CNT(pll));
+}
+
+bool duowen_pll_wait_timing(uint8_t pll, uint8_t timing)
+{
+	return !!(__raw_readl(DW_PLL_HW_CFG(pll)) & PLL_WAIT_T(timing));
+}
+
 /*===========================================================================
  * CRCNTL SYSFAB APIs
  *===========================================================================*/

@@ -202,8 +202,14 @@ extern caddr_t dpu_pll_reg_base;
 #define dpu_pll_reg_select_ddr1()				\
 	__raw_setl(PLL_REG_PLL2_SEL, PLL_REG_ACCESS(2))
 
-#define __dw_pll_read(pll, reg)		dpu_pll_reg_read(pll, reg)
-#define __dw_pll_write(pll, reg, val)	dpu_pll_reg_write(pll, reg, val)
+#define __dw_pll_read(pll, reg)			dpu_pll_reg_read(pll, reg)
+#define __dw_pll_write(pll, reg, val)		dpu_pll_reg_write(pll, reg, val)
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_ACCEL
+#define __dw_pll_wait_cmpclk(pll, cycles)	wmb()
+#else
+/* 40 loops of cmpclk cycles should ensure at least 1us */
+#define __dw_pll_wait_cmpclk(pll, cycles)	udelay(((cycles) + 39) / 40)
+#endif
 #include <driver/dw_pll5ghz_tsmc12ffc.h>
 
 #ifndef __ASSEMBLY__

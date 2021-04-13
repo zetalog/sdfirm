@@ -14,8 +14,6 @@ config ARCH_HAS_DW_PLL5GHZ_DYNAMIC
 menuconfig DW_PLL5GHZ_TSMC12FFC
 	bool "Synopsys DWC PLL5GHz TSMC12FFCNS support"
 	depends CLK
-	select BIT_FLS8
-	select MATH_DIV32
 	select MATH_DIV64
 	select DW_PLL5GHZ_TSMC12FFC_DYNAMIC if ARCH_HAS_DW_PLL5GHZ_DYNAMIC
 	help
@@ -71,6 +69,22 @@ if DW_PLL5GHZ_TSMC12FFC_REG_ACCESS
 
 config DW_PLL5GHZ_TSMC12FFC_PRSTDUR
 	bool "Enable preset duration adjustment"
+	select BIT_FLS32
+	select BIT_FLS8
+	select MATH_DIV32
+	help
+	  The t_prst time interval between the end of the power-down
+	  state and the start of the internal gearshift state, is required
+	  for a proper analog preset, and it precedes a fast loop phase
+	  settling. This timing is internally controlled but should be at
+	  least 1μs long. The preset duration can be changed via analog
+	  bits prstdur at register ANAREG07. The default value equals 64
+	  comparison clock intervals, which translates to 3.2μs at a 20MHz
+	  comparison frequency and to 1.282μs at 50MHz. For comparison
+	  frequencies above 64MHz the prstdur value should be increased.
+	  It's safe to leave this feature disabled if your comparison
+	  frequency is below 64MHz.
+	  If unsure, say 'N'.
 
 config DW_PLL5GHZ_TSMC12FFC_BYPASS_SYNC
 	bool "Enable bypass clock resynchronization circuits"

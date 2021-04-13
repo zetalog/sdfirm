@@ -54,16 +54,31 @@
 #define dw_pll_trace(...)	do { } while (0)
 #endif
 
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_PRSTDUR
+static void dw_pll5ghz_tsmc12ffc_prstdur(uint8_t pll)
+{
+	uint8_t prstdur;
+	uint32_t freq = DW_PLL_F_REFCLK(pll);
+
+	if (freq < 4000000)
+		freq = 4000000;
+	prstdur = __fls8(__roundup32(div32u(freq + 999999, 1000000))) - 2;
+	dw_pll_write(pll, PLL_ANAREG07, PLL_PRSTDUR(prstdur));
+}
+#else
+#define dw_pll5ghz_tsmc12ffc_prstdur(pll)	do { } while (0)
+#endif
+
 #ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_SOC_TIMING
 static void dw_pll5ghz_tsmc12ffc_wait(uint8_t pll, uint32_t timing)
 {
-	while (__dw_pll_wait(pll, timing));
+	while (__dw_pll_wait_timing(pll, timing));
 }
 #else
 #ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_ACCEL
-#define dw_pll5ghz_tsmc12ffc_delay(us)	wmb()
+#define dw_pll5ghz_tsmc12ffc_ndelay(us)	wmb()
 #else
-#define dw_pll5ghz_tsmc12ffc_delay(us)	udelay(us)
+#define dw_pll5ghz_tsmc12ffc_ndelay(us)	udelay(((us) + 999) / 1000)
 #endif
 
 #ifndef DW_PLL_T_SPO
@@ -89,52 +104,118 @@ static void dw_pll5ghz_tsmc12ffc_wait(uint8_t pll, uint32_t timing)
 {
 	switch (timing) {
 	case DW_PLL_T_TRST:
-		dw_pll5ghz_tsmc12ffc_delay(1);
-		/* ndelay(50); */
+		/* 50ns */
+		dw_pll5ghz_tsmc12ffc_ndelay(50);
 		break;
 	case DW_PLL_T_PWRON:
-		dw_pll5ghz_tsmc12ffc_delay(1);
+		/* The IP complains PWRON and RST_N set simultaneously. */
+		wmb();
 		break;
 	case DW_PLL_T_PRST:
-		dw_pll5ghz_tsmc12ffc_delay(1);
+		/* Relationship of prstdur[2:0] and cmpclk cycles
+		 *
+		 * Internally controlled by prstdur at ANAREG07, at least
+		 * 1us. So instead of wait cycles,
+		 * dw_pll5ghz_tsmc12ffc_prstdur() should be invoked.
+		 *
+		 * Default 64 cycles of cmpclk (means 3.2us at 20MHz
+		 * cmpclk and 1.282us at 50MHz cmpclk) which works for
+		 * most of the cases..
+		 * +--------------+---------------+
+		 * | prstdur[2:0] | cmpclk cycles |
+		 * +--------------+---------------+
+		 * | 0            | 4             |
+		 * | 1            | 8             |
+		 * | 2            | 16            |
+		 * | 3            | 32            |
+		 * | 4            | 64            |
+		 * | 5            | 128           |
+		 * | 6            | 128           |
+		 * | 7            | 128           |
+		 * +--------------+---------------+
+		 */
+		dw_pll5ghz_tsmc12ffc_prstdur(pll);
 		break;
 	case DW_PLL_T_GS:
-		dw_pll5ghz_tsmc12ffc_delay(2);
+		/* Fast startup:
+		 * The t_gs time interval corresponds to the phase
+		 * settling time loop at gear_shift state, after the
+		 * internal preset state and should last for minimum of
+		 * Relock:
+		 * The t_gs time interval can be shorter than the times
+		 * above, but at least 2us should be used during this
+		 * period.
+		 * The PLL only leaves the transition states and gets to
+		 * normal operation after gear_shift is set to low and
+		 * lock flag is asserted high. During the Fast Startup
+		 * transition state the gear_shift must be set to high
+		 * during 1 minimum of 100 loops comparison clock cycles
+		 * or 3us (3us includes 1us t_prstdur).
+		 */
+		__dw_pll_wait_cmpclk(pll, 100);
 		break;
 	case DW_PLL_T_SPO:
+		/* The output enabling enp/enr can be asserted high either
+		 * before or after the lock flag is activated. But at
+		 * least t_spo of 40 loop cmpclk cycles should be reserved
+		 * after the gear_shift falling transition to allow for
+		 * normal phase settling.
+		 */
+		__dw_pll_wait_cmpclk(pll, 40);
 		break;
 	case DW_PLL_T_PWRSTB:
-		dw_pll5ghz_tsmc12ffc_delay(1);
-		/* ndelay(500); */
+		/* 500ns */
+		dw_pll5ghz_tsmc12ffc_ndelay(500);
 		break;
 	}
 }
 #endif
 
-#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_GEAR
-static void dw_pll5ghz_tsmc12ffc_set_gear(uint8_t pll)
+static void __dw_pll5ghz_tsmc12ffc_set_gear(uint8_t pll)
 {
 	__raw_setl(PLL_GEAR_SHIFT, DW_PLL_CFG1(pll));
 }
 
-static void dw_pll5ghz_tsmc12ffc_clear_gear(uint8_t pll)
+static void __dw_pll5ghz_tsmc12ffc_clear_gear(uint8_t pll)
 {
-	/* The PLL only leaves the transition states and gets to normal
-	 * operation after gear_shift is set to low and lock flag is
-	 * asserted high. During the Fast Startup transition state the
-	 * gear_shift must be set to high during 1 minimum of 100 loops
-	 * comparison clock cycles or 3us.
-	 * NOTE: 3us includes 1us preset duration.
-	 */
-	/* t_prst: preset */
-	dw_pll5ghz_tsmc12ffc_wait(pll, DW_PLL_T_PRST);
 	/* t_gs: gearshift */
 	dw_pll5ghz_tsmc12ffc_wait(pll, DW_PLL_T_GS);
 	__raw_clearl(PLL_GEAR_SHIFT, DW_PLL_CFG1(pll));
+	/* t_spo: static phase offset */
+	dw_pll5ghz_tsmc12ffc_wait(pll, DW_PLL_T_SPO);
 }
+
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_GEAR
+#define dw_pll5ghz_tsmc12ffc_set_gear(pll)	\
+	__dw_pll5ghz_tsmc12ffc_set_gear(pll)
+#define dw_pll5ghz_tsmc12ffc_clear_gear(pll)	\
+	__dw_pll5ghz_tsmc12ffc_clear_gear(pll)
 #else
 #define dw_pll5ghz_tsmc12ffc_set_gear(pll)	do { } while (0)
 #define dw_pll5ghz_tsmc12ffc_clear_gear(pll)	do { } while (0)
+#endif
+
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_BYPASS_TEST
+void dw_pll5ghz_tsmc12ffc_bypass_test(uint8_t pll, bool bypass)
+{
+	dw_pll_write(pll, PLL_ANAREG05, bypass ? PLL_TEST_BYPASS : 0);
+}
+#else
+#define dw_pll5ghz_tsmc12ffc_bypass_test(pll, bypass)	do { } while (0)
+#endif
+
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_BYPASS_SYNC
+void dw_pll5ghz_tsmc12ffc_bypass_sync(uint8_t pll, bool r, bool bypass)
+{
+	uint8_t sync;
+
+	sync = dw_pll_read(pll, PLL_ANAREG06);
+	sync |= r ? PLL_BYPASS_SYNC_R : PLL_BYPASS_SYNC_P;
+	dw_pll_write(pll, PLL_ANAREG06, sync);
+}
+#else
+#define dw_pll5ghz_tsmc12ffc_bypass_sync(pll, r, bypass)	\
+	do { } while (0)
 #endif
 
 #ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_DYNAMIC
@@ -164,6 +245,9 @@ static void dw_pll5ghz_tsmc12ffc_dynamic(uint8_t pll, uint32_t cfg,
 }
 #endif
 
+/* XXX: Since standby incorporates t_spo phase settling, it should be
+ *      invoked with enp/enr cleared.
+ */
 void dw_pll5ghz_tsmc12ffc_standby(uint8_t pll)
 {
 	if (PLL_OPMODE(__raw_readl(DW_PLL_STATUS(pll))) == PLL_LOCKED) {
@@ -176,11 +260,12 @@ void dw_pll5ghz_tsmc12ffc_standby(uint8_t pll)
 void dw_pll5ghz_tsmc12ffc_relock(uint8_t pll)
 {
 	if (__raw_readl(DW_PLL_STATUS(pll)) & PLL_STANDBYEFF) {
-		dw_pll5ghz_tsmc12ffc_set_gear(pll);
+		__dw_pll5ghz_tsmc12ffc_set_gear(pll);
 		__raw_writel_mask(PLL_RESET | PLL_PWRON,
 				  PLL_RESET | PLL_STATE_MASK,
 				  DW_PLL_CFG1(pll));
-		dw_pll5ghz_tsmc12ffc_clear_gear(pll);
+		dw_pll5ghz_tsmc12ffc_wait(pll, DW_PLL_T_PRST);
+		__dw_pll5ghz_tsmc12ffc_clear_gear(pll);
 		while (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED));
 	}
 }
@@ -320,13 +405,6 @@ void dw_pll5ghz_tsmc12ffc_enable(uint8_t pll, uint64_t fvco,
 	if (freq > ULL(1000000000))
 		dw_pll5ghz_tsmc12ffc_bypass_sync(pll, r, true);
 	__raw_setl(r ? PLL_ENR : PLL_ENP, DW_PLL_CFG1(pll));
-	/* TODO: t_spo
-	 * Should wait t_spo whenever P/R clocks are changed. If the P/R
-	 * parameters cannot be changed after the PLL is locked, the
-	 * re-lock sequence should be used for changing the P/R parameters
-	 * instead of a simple static phase offset (SPO) lock loop.
-	 */
-	dw_pll5ghz_tsmc12ffc_wait(pll, DW_PLL_T_SPO);
 }
 
 void dw_pll5ghz_tsmc12ffc_disable(uint8_t pll, bool r)
@@ -354,12 +432,8 @@ static void __dw_pll5ghz_tsmc12ffc_pwrup(uint8_t pll)
 	dw_pll_trace("pll(%d): CFG1(%08llx) reset\n",
 		     pll, __raw_readl(DW_PLL_CFG1(pll)));
 	__raw_setl(PLL_RESET, DW_PLL_CFG1(pll));
-	/* TODO: t_prst
-	 * At least 1us, the default ANAREG07 setting ensures 1us for
-	 * refclk < 50MHz, should be able to handle most of the xo_clk
-	 * cases.
-	 * This timing is ensured in dw_pll5ghz_tsmc12ffc_clear_gear().
-	 */
+	/* t_prst: preset */
+	dw_pll5ghz_tsmc12ffc_wait(pll, DW_PLL_T_PRST);
 	dw_pll5ghz_tsmc12ffc_clear_gear(pll);
 	while (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED));
 }
@@ -495,6 +569,9 @@ void dw_pll5ghz_tsmc12ffc_pwron2(uint8_t pll, uint64_t fvco,
 	dw_pll5ghz_tsmc12ffc_bypass(pll, PLL_BYPASS_NONE);
 }
 
+/* XXX: Since pwrdn incorporates t_spo phase settling, it should be
+ *      invoked with enp/enr cleared.
+ */
 void dw_pll5ghz_tsmc12ffc_pwrdn(uint8_t pll)
 {
 	if (!(__raw_readl(DW_PLL_STATUS(pll)) & PLL_LOCKED))
@@ -543,34 +620,6 @@ uint8_t dw_pll_read(uint8_t pll, uint8_t reg)
 		return 0;
 	return __dw_pll_read(pll, reg);
 }
-
-#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_BYPASS_TEST
-void dw_pll5ghz_tsmc12ffc_bypass_test(uint8_t pll, bool bypass)
-{
-	dw_pll_write(pll, PLL_ANAREG05, bypass ? PLL_TEST_BYPASS : 0);
-}
-#endif
-
-#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_BYPASS_SYNC
-void dw_pll5ghz_tsmc12ffc_bypass_sync(uint8_t pll, bool r, bool bypass)
-{
-	uint8_t sync;
-
-	sync = dw_pll_read(pll, PLL_ANAREG06);
-	sync |= r ? PLL_BYPASS_SYNC_R : PLL_BYPASS_SYNC_P;
-	dw_pll_write(pll, PLL_ANAREG06, sync);
-}
-#endif
-
-#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_PRSTDUR
-void dw_pll5ghz_tsmc12ffc_prstdur(uint8_t pll)
-{
-	uint8_t prstdur;
-
-	prstdur = __fls8(div32u(DW_PLL_F_REFCLK(pll), 1000000) - 1) - 1;
-	dw_pll_write(pll, PLL_ANAREG07, PLL_PRSTDUR(prstdur));
-}
-#endif
 
 static int do_pll_reg_access(int argc, char * argv[])
 {
