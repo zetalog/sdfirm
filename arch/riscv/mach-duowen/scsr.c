@@ -113,7 +113,7 @@ int imc_pma_set(int n, unsigned long attr,
 /* ====================================================================== *
  * Partial Goods                                                          *
  * ====================================================================== */
-static uint8_t apc_expand_l2_map(uint8_t map)
+static uint8_t apc_expand_cluster_map(uint8_t map)
 {
 	uint8_t mask = map;
 
@@ -156,24 +156,24 @@ static uint8_t apc_contract_cpu_map(uint16_t map)
 	return (uint8_t)mask;
 }
 
-uint8_t apc_get_l2_map(void)
+uint8_t apc_get_cluster_map(void)
 {
 	uint32_t mask = apc_get_cluster_mask();
 
-	mask &= apc_get_l2_mask();
+	mask &= apc_get_scu_mask();
 	mask = (mask & 0x00010001) | ((mask & 0x01000100) >> 7);
 	mask = (mask & 0x00000003) | ((mask & 0x00030000) >> 14);
 	return (uint8_t)mask;
 }
 
-void apc_set_l2_map(uint8_t map)
+void apc_set_cluster_map(uint8_t map)
 {
 	uint32_t mask = map;
 
 	mask = (mask & 0x00000003) | ((mask & 0x0000000c) << 14);
 	mask = (mask & 0x00010001) | ((mask & 0x00020002) << 7);
 	apc_set_cluster_mask(mask);
-	apc_set_l2_mask(mask);
+	apc_set_scu_mask(mask);
 }
 
 uint8_t apc_get_apc_map(void)
@@ -183,7 +183,7 @@ uint8_t apc_get_apc_map(void)
 	mask = ((mask & 0x08080808) >> 2) | (mask & 0x01010101);
 	mask = ((mask & 0x03000300) >> 6) | (mask & 0x00030003);
 	mask = ((mask & 0x000f0000) >> 12) | (mask & 0x0000000f);
-	mask &= apc_expand_l2_map(apc_get_l2_map());
+	mask &= apc_expand_cluster_map(apc_get_cluster_map());
 	return (uint8_t)mask;
 }
 
@@ -194,7 +194,7 @@ void apc_set_apc_map(uint8_t map)
 	mask = (mask & 0x0000000f) | ((mask & 0x000000f0) << 12);
 	mask = (mask & 0x00030003) | ((mask & 0x000c000c) << 6);
 	mask = (mask & 0x01010101) | ((mask & 0x02020202) << 2);
-	apc_set_l2_map(apc_contract_apc_map(map));
+	apc_set_cluster_map(apc_contract_apc_map(map));
 	apc_set_apc_mask(mask);
 }
 
@@ -268,7 +268,7 @@ uint8_t rom_get_cluster_num(void)
 {
 	uint32_t nr_clusters;
 
-	if (imc_chip_link())
+	if (soc_chip_link())
 		nr_clusters = 2 * __MAX_CPU_CLUSTERS;
 	else
 		nr_clusters = __MAX_CPU_CLUSTERS;
@@ -281,7 +281,7 @@ uint8_t rom_get_cluster_map(void)
 	bool soc0 = !!(imc_socket_id() == 0);
 
 	map1 = __rom_get_cluster_map(soc0);
-	if (imc_chip_link()) {
+	if (soc_chip_link()) {
 		map2 = __rom_get_cluster_map(!soc0);
 		if (soc0)
 			return map1 | map2 << 4;

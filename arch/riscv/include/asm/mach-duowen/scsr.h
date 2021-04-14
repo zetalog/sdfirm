@@ -215,8 +215,15 @@
 #define APC_CLUSTER_MASK						\
 	(APC_CLUSTER0_CLAMP | APC_CLUSTER1_CLAMP |			\
 	 APC_CLUSTER2_CLAMP | APC_CLUSTER3_CLAMP)
-#define APC_CLUSTER(value)		_GET_FV(APC_CLUSTER, value)
-#define apc_cluster(value)		_SET_FV(APC_CLUSTER, value)
+#define APC_GET_CLUSTER(value)		_GET_FV(APC_CLUSTER, value)
+#define APC_SET_CLUSTER(value)		_SET_FV(APC_CLUSTER, value)
+#define APC_CLUSTER_SCU_OFFSET		7
+#define APC_CLUSTER_SCU_MASK						\
+	((APC_CLUSTER0_CACHE_DISABLE | APC_CLUSTER1_CACHE_DISABLE |	\
+	  APC_CLUSTER2_CACHE_DISABLE | APC_CLUSTER3_CACHE_DISABLE)	\
+	 >> APC_CLUSTER_SCU_OFFSET)
+#define APC_GET_CLUSTER_SCU(value)	_GET_FV(APC_CLUSTER_SCU, value)
+#define APC_SET_CLUSTER_SCU(value)	_SET_FV(APC_CLUSTER_SCU, value)
 #define APC_CLUSTER_APC_OFFSET		1
 #define APC_CLUSTER_APC_MASK						\
 	((APC_CLUSTER0_APC0_CLAMP | APC_CLUSTER0_APC1_CLAMP |		\
@@ -224,8 +231,8 @@
 	  APC_CLUSTER2_APC0_CLAMP | APC_CLUSTER2_APC1_CLAMP |		\
 	  APC_CLUSTER3_APC0_CLAMP | APC_CLUSTER3_APC1_CLAMP)		\
 	 >> APC_CLUSTER_APC_OFFSET)
-#define APC_CLUSTER_APC(value)		_GET_FV(APC_CLUSTER_APC, value)
-#define apc_cluster_apc(value)		_SET_FV(APC_CLUSTER_APC, value)
+#define APC_GET_CLUSTER_APC(value)	_GET_FV(APC_CLUSTER_APC, value)
+#define APC_SET_CLUSTER_APC(value)	_SET_FV(APC_CLUSTER_APC, value)
 #define APC_CLUSTER_CPU_OFFSET		2
 #define APC_CLUSTER_CPU_MASK						\
 	((APC_CLUSTER0_APC0_CPU0_CLAMP | APC_CLUSTER0_APC0_CPU1_CLAMP |	\
@@ -237,15 +244,8 @@
 	  APC_CLUSTER3_APC0_CPU0_CLAMP | APC_CLUSTER3_APC0_CPU1_CLAMP |	\
 	  APC_CLUSTER3_APC1_CPU0_CLAMP | APC_CLUSTER3_APC1_CPU1_CLAMP)	\
 	 >> APC_CLUSTER_CPU_OFFSET)
-#define APC_CLUSTER_CPU(value)		_GET_FV(APC_CLUSTER_CPU, value)
-#define apc_cluster_cpu(value)		_SET_FV(APC_CLUSTER_CPU, value)
-#define APC_CLUSTER_L2_OFFSET		7
-#define APC_CLUSTER_L2_MASK						\
-	((APC_CLUSTER0_CACHE_DISABLE | APC_CLUSTER1_CACHE_DISABLE |	\
-	  APC_CLUSTER2_CACHE_DISABLE | APC_CLUSTER3_CACHE_DISABLE)	\
-	 >> APC_CLUSTER_L2_OFFSET)
-#define APC_CLUSTER_L2(value)		_GET_FV(APC_CLUSTER_L2, value)
-#define apc_cluster_l2(value)		_SET_FV(APC_CLUSTER_L2, value)
+#define APC_GET_CLUSTER_CPU(value)	_GET_FV(APC_CLUSTER_CPU, value)
+#define APC_SET_CLUSTER_CPU(value)	_SET_FV(APC_CLUSTER_CPU, value)
 
 #ifndef __ASSEMBLY__
 #define imc_get_boot_addr()				\
@@ -304,33 +304,33 @@
 	} while (0)
 
 #define apc_get_partial_good()	(~(__raw_readl(SCSR_PARTIAL_GOOD)))
-#define apc_get_cluster_mask()	APC_CLUSTER(apc_get_partial_good())
-#define apc_get_l2_mask()	APC_CLUSTER_L2(apc_get_partial_good())
-#define apc_get_apc_mask()	APC_CLUSTER_APC(apc_get_partial_good())
-#define apc_get_cpu_mask()	APC_CLUSTER_CPU(apc_get_partial_good())
-#define apc_set_cluster_mask(mask)				\
-	__raw_writel_mask(apc_cluster(~(mask)),			\
-			  apc_cluster(APC_CLUSTER_MASK),	\
+#define apc_get_cluster_mask()	APC_GET_CLUSTER(apc_get_partial_good())
+#define apc_get_scu_mask()	APC_GET_CLUSTER_SCU(apc_get_partial_good())
+#define apc_get_apc_mask()	APC_GET_CLUSTER_APC(apc_get_partial_good())
+#define apc_get_cpu_mask()	APC_GET_CLUSTER_CPU(apc_get_partial_good())
+#define apc_set_cluster_mask(mask)					\
+	__raw_writel_mask(APC_SET_CLUSTER(~(mask)),			\
+			  APC_SET_CLUSTER(APC_CLUSTER_MASK),		\
 			  SCSR_PARTIAL_GOOD)
-#define apc_set_l2_mask(mask)					\
-	__raw_writel_mask(apc_cluster_l2(~(mask)),		\
-			  apc_cluster_l2(APC_CLUSTER_L2_MASK),	\
+#define apc_set_scu_mask(mask)						\
+	__raw_writel_mask(APC_SET_CLUSTER_SCU(~(mask)),			\
+			  APC_SET_CLUSTER_SCU(APC_CLUSTER_SCU_MASK),	\
 			  SCSR_PARTIAL_GOOD)
-#define apc_set_apc_mask(mask)					\
-	__raw_writel_mask(apc_cluster_apc(~(mask)),		\
-			  apc_cluster_apc(APC_CLUSTER_APC_MASK),\
+#define apc_set_apc_mask(mask)						\
+	__raw_writel_mask(APC_SET_CLUSTER_APC(~(mask)),			\
+			  APC_SET_CLUSTER_APC(APC_CLUSTER_APC_MASK),	\
 			  SCSR_PARTIAL_GOOD)
-#define apc_set_cpu_mask(mask)					\
-	__raw_writel_mask(apc_cluster_cpu(~(mask)),		\
-			  apc_cluster_cpu(APC_CLUSTER_CPU_MASK),\
+#define apc_set_cpu_mask(mask)						\
+	__raw_writel_mask(APC_SET_CLUSTER_CPU(~(mask)),			\
+			  APC_SET_CLUSTER_CPU(APC_CLUSTER_CPU_MASK),	\
 			  SCSR_PARTIAL_GOOD)
 
 uint16_t apc_get_cpu_map(void);
 void apc_set_cpu_map(uint16_t map);
 uint8_t apc_get_apc_map(void);
 void apc_set_apc_map(uint8_t map);
-uint8_t apc_get_l2_map(void);
-void apc_set_l2_map(uint8_t map);
+uint8_t apc_get_cluster_map(void);
+void apc_set_cluster_map(uint8_t map);
 void apc_set_jump_addr(caddr_t addr);
 #define __apc_set_jump_addr(apc, addr)				\
 	do {							\

@@ -124,7 +124,7 @@ void duowen_hart_map_init(void)
 
 void duowen_plic_dual_init(void)
 {
-	if (imc_chip_link() && !rom_get_pliccntl_done()) {
+	if (soc_chip_link() && !rom_get_pliccntl_done()) {
 		if (imc_socket_id() == 0)
 			plic_socket_connect(1);
 		else
@@ -391,18 +391,18 @@ static int do_duowen_reboot(int argc, char *argv[])
 
 static int do_duowen_info(int argc, char *argv[])
 {
-	printf("SIM : %s\n", imc_sim_mode() ? "sim" : "asic");
-	printf("CPU : %s\n", imc_boot_cpu() ? "APC" : "IMC");
+	printf("SIM :    %s\n", imc_sim_mode() ? "sim" : "asic");
+	printf("CPU :    %s\n", imc_boot_cpu() ? "APC" : "IMC");
 	if (imc_sim_mode() == IMC_BOOT_ASIC)
-		printf("BOOT: %s\n", imc_boot_from() ? "SPI" : "ROM");
+		printf("BOOT:    %s\n", imc_boot_from() ? "SPI" : "ROM");
 	else
-		printf("BOOT: %s\n", imc_sim_boot_from() ? "DDR" : "RAM");
-	printf("LOAD: %s\n", imc_load_from() ? "SSI0" : "SD");
-	printf("IMC : %016llx\n", imc_get_boot_addr());
-	printf("APCB: %016llx\n", apc_get_boot_addr());
-	printf("APCJ: %016llx\n", apc_get_jump_addr());
-	printf("CPU:  %016llx\n", apc_get_cpu_map());
-	printf("L2:   %016llx\n", apc_get_l2_map());
+		printf("BOOT:    %s\n", imc_sim_boot_from() ? "DDR" : "RAM");
+	printf("LOAD:    %s\n", imc_load_from() ? "SSI0" : "SD");
+	printf("IMCBOOT: 0x%016llx\n", imc_get_boot_addr());
+	printf("APCBOOT: 0x%016llx\n", apc_get_boot_addr());
+	printf("APCJUMP: 0x%016llx\n", apc_get_jump_addr());
+	printf("CPU:     0x%04x\n", apc_get_cpu_map());
+	printf("CLUSTER: 0x%02x\n", apc_get_cluster_map());
 	return 0;
 }
 

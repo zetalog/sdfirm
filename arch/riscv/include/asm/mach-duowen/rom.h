@@ -100,6 +100,9 @@
 		__raw_setl(ROM_S1_APC_VALID, ROM_STATUS);	\
 	} while (0)
 
+#define soc_chip_link()						\
+	(imc_chip_link() && rom_get_chiplink_ready())
+
 #ifndef __ASSEMBLY__
 uint16_t rom_get_s0_apc_map(void);
 uint16_t rom_get_s1_apc_map(void);

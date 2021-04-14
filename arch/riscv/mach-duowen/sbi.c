@@ -79,9 +79,13 @@ static int duowen_final_init(bool cold_boot)
 	duowen_eth_init();
 
 #ifdef CONFIG_SBI_BOOT_PRINTS
+	sbi_printf("Chiplink PCIe: %c\n",
+		   rom_get_chiplink_ready() ? 'Y' : 'N');
+	sbi_printf("Chiplink PLIC: %c\n",
+		   rom_get_pliccntl_done() ? 'Y' : 'N');
 	sbi_printf("APC clusters: %d - %02x\n",
 		   rom_get_cluster_num(), rom_get_cluster_map());
-	sbi_printf("APC CPUs: S0=%08x S1=%08x\n",
+	sbi_printf("APC CPUs: S0=%04x S1=%04x\n",
 		   rom_get_s0_apc_map(), rom_get_s1_apc_map());
 #endif
 
