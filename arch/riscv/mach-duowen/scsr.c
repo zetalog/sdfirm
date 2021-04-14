@@ -268,7 +268,11 @@ uint8_t rom_get_cluster_num(void)
 {
 	uint32_t nr_clusters;
 
-	if (soc_chip_link())
+	/* The API is invoked by NoC initialization, which is prior than
+	 * PCIe chiplink connection, thus imc_chip_link() is invoked
+	 * rather than soc_chip_link().
+	 */
+	if (imc_chip_link())
 		nr_clusters = 2 * __MAX_CPU_CLUSTERS;
 	else
 		nr_clusters = __MAX_CPU_CLUSTERS;
@@ -281,7 +285,11 @@ uint8_t rom_get_cluster_map(void)
 	bool soc0 = !!(imc_socket_id() == 0);
 
 	map1 = __rom_get_cluster_map(soc0);
-	if (soc_chip_link()) {
+	/* The API is invoked by NoC initialization, which is prior than
+	 * PCIe chiplink connection, thus imc_chip_link() is invoked
+	 * rather than soc_chip_link().
+	 */
+	if (imc_chip_link()) {
 		map2 = __rom_get_cluster_map(!soc0);
 		if (soc0)
 			return map1 | map2 << 4;
