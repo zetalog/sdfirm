@@ -78,6 +78,13 @@ static int duowen_final_init(bool cold_boot)
 	duowen_gpio_init();
 	duowen_eth_init();
 
+#ifdef CONFIG_SBI_BOOT_PRINTS
+	sbi_printf("APC clusters: %d - %02x\n",
+		   rom_get_cluster_num(), rom_get_cluster_map());
+	sbi_printf("APC CPUs: S0=%08x S1=%08x\n",
+		   rom_get_s0_apc_map(), rom_get_s1_apc_map());
+#endif
+
 	fdt = sbi_scratch_thishart_arg1_ptr();
 	duowen_modify_dt(fdt);
 	return 0;

@@ -49,6 +49,9 @@ void apc_set_jump_addr(caddr_t addr)
 		__apc_set_jump_addr(CPU_TO_APC(cpu), addr);
 }
 
+/* ====================================================================== *
+ * SoC PMA                                                                *
+ * ====================================================================== */
 static void __pma_cfg(int n, unsigned long attr)
 {
 	unsigned long cfgmask, pmacfg;
@@ -107,7 +110,10 @@ int imc_pma_set(int n, unsigned long attr,
 	return 1;
 }
 
-uint8_t apc_expand_l2_map(uint8_t map)
+/* ====================================================================== *
+ * Partial Goods                                                          *
+ * ====================================================================== */
+static uint8_t apc_expand_l2_map(uint8_t map)
 {
 	uint8_t mask = map;
 
@@ -117,7 +123,7 @@ uint8_t apc_expand_l2_map(uint8_t map)
 	return mask;
 }
 
-uint16_t apc_expand_apc_map(uint8_t map)
+static uint16_t apc_expand_apc_map(uint8_t map)
 {
 	uint16_t mask = map;
 
@@ -127,6 +133,47 @@ uint16_t apc_expand_apc_map(uint8_t map)
 	       ((mask & 0x02) << 1) | (mask & 0x01);
 	mask = mask | (mask << 1);
 	return mask;
+}
+
+static uint8_t apc_contract_apc_map(uint8_t map)
+{
+	uint8_t mask = map;
+
+	mask = ((mask & 0xaa) >> 1) | (mask & 0x55);
+	mask = ((mask & 0x44) >> 1) | (mask & 0x11);
+	mask = ((mask & 0x30) >> 2) | (mask & 0x03);
+	return mask;
+}
+
+static uint8_t apc_contract_cpu_map(uint16_t map)
+{
+	uint16_t mask = map;
+
+	mask = ((mask & 0xaaaa) >> 1) | (mask & 0x5555);
+	mask = ((mask & 0x4444) >> 1) | (mask & 0x1111);
+	mask = ((mask & 0x3030) >> 2) | (mask & 0x0303);
+	mask = ((mask & 0x0f00) >> 4) | (mask & 0x000f);
+	return (uint8_t)mask;
+}
+
+uint8_t apc_get_l2_map(void)
+{
+	uint32_t mask = apc_get_cluster_mask();
+
+	mask &= apc_get_l2_mask();
+	mask = (mask & 0x00010001) | ((mask & 0x01000100) >> 7);
+	mask = (mask & 0x00000003) | ((mask & 0x00030000) >> 14);
+	return (uint8_t)mask;
+}
+
+void apc_set_l2_map(uint8_t map)
+{
+	uint32_t mask = map;
+
+	mask = (mask & 0x00000003) | ((mask & 0x0000000c) << 14);
+	mask = (mask & 0x00010001) | ((mask & 0x00020002) << 7);
+	apc_set_cluster_mask(mask);
+	apc_set_l2_mask(mask);
 }
 
 uint8_t apc_get_apc_map(void)
@@ -140,6 +187,17 @@ uint8_t apc_get_apc_map(void)
 	return (uint8_t)mask;
 }
 
+void apc_set_apc_map(uint8_t map)
+{
+	uint32_t mask = map;
+
+	mask = (mask & 0x0000000f) | ((mask & 0x000000f0) << 12);
+	mask = (mask & 0x00030003) | ((mask & 0x000c000c) << 6);
+	mask = (mask & 0x01010101) | ((mask & 0x02020202) << 2);
+	apc_set_l2_map(apc_contract_apc_map(map));
+	apc_set_apc_mask(mask);
+}
+
 uint16_t apc_get_cpu_map(void)
 {
 	uint32_t mask = apc_get_cpu_mask();
@@ -151,26 +209,84 @@ uint16_t apc_get_cpu_map(void)
 	return (uint16_t)mask;
 }
 
-uint8_t apc_get_l2_map(void)
+void apc_set_cpu_map(uint16_t map)
 {
-	uint32_t mask = apc_get_cluster_mask();
+	uint32_t mask = map;
 
-	mask &= apc_get_l2_mask();
-	mask = (mask & 0x00010001) | ((mask & 0x01000100) >> 7);
-	mask = (mask & 0x00000003) | ((mask & 0x00030000) >> 14);
-	return (uint8_t)mask;
+	mask = (mask & 0x000000ff) | ((mask & 0x0000ff00) << 8);
+	mask = (mask & 0x000f000f) | ((mask & 0x00f000f0) << 4);
+	mask = (mask & 0x03030303) | ((mask & 0x0c0c0c0c) << 1);
+	apc_set_apc_map(apc_contract_cpu_map(map));
+	apc_set_cpu_mask(mask);
 }
 
 uint16_t rom_get_s0_apc_map(void)
 {
 	if (__raw_readl(ROM_STATUS) & ROM_S0_APC_VALID)
 		return ROM_GET_S0_APC(__raw_readl(ROM_APC_MAP));
-	return CPU_TO_MASK(GOOD_CPU_NUM>>1)-1;
+	return CPU_TO_MASK(GOOD_CPU_NUM)-1;
 }
 
 uint16_t rom_get_s1_apc_map(void)
 {
 	if (__raw_readl(ROM_STATUS) & ROM_S1_APC_VALID)
 		return ROM_GET_S1_APC(__raw_readl(ROM_APC_MAP));
-	return CPU_TO_MASK(GOOD_CPU_NUM>>1)-1;
+	return CPU_TO_MASK(GOOD_CPU_NUM)-1;
+}
+
+uint8_t rom_get_s0_cluster_map(void)
+{
+	uint8_t map;
+
+	if (__raw_readl(ROM_STATUS) & ROM_S0_APC_VALID) {
+		map = rom_get_s0_apc_map();
+		return apc_contract_apc_map(apc_contract_cpu_map(map));
+	}
+	return _BV(__MAX_CPU_CLUSTERS)-1;
+}
+
+uint8_t rom_get_s1_cluster_map(void)
+{
+	uint8_t map;
+
+	if (__raw_readl(ROM_STATUS) & ROM_S1_APC_VALID) {
+		map = rom_get_s1_apc_map();
+		return apc_contract_apc_map(apc_contract_cpu_map(map));
+	}
+	return _BV(__MAX_CPU_CLUSTERS)-1;
+}
+
+static uint8_t __rom_get_cluster_map(bool soc0)
+{
+	if (soc0)
+		return rom_get_s0_cluster_map();
+	else
+		return rom_get_s1_cluster_map();
+}
+
+uint8_t rom_get_cluster_num(void)
+{
+	uint32_t nr_clusters;
+
+	if (imc_chip_link())
+		nr_clusters = 2 * __MAX_CPU_CLUSTERS;
+	else
+		nr_clusters = __MAX_CPU_CLUSTERS;
+	return nr_clusters;
+}
+
+uint8_t rom_get_cluster_map(void)
+{
+	uint8_t map1, map2;
+	bool soc0 = !!(imc_socket_id() == 0);
+
+	map1 = __rom_get_cluster_map(soc0);
+	if (imc_chip_link()) {
+		map2 = __rom_get_cluster_map(!soc0);
+		if (soc0)
+			return map1 | map2 << 4;
+		else
+			return map2 | map1 << 4;
+	}
+	return map1;
 }

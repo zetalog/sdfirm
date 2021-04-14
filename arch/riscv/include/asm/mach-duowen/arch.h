@@ -161,11 +161,7 @@ void duowen_pma_soc_init(void);
 #define duowen_pma_cpu_init()	do { } while (0)
 #define duowen_pma_soc_init()	do { } while (0)
 #endif
-#ifdef CONFIG_DUOWEN_SOC_DUAL
 void duowen_plic_dual_init(void);
-#else
-#define duowen_plic_dual_init()	do { } while (0)
-#endif
 #endif /* __ASSEMBLY__ */
 
 #endif /* __ARCH_DUOWEN_H_INCLUDE__ */

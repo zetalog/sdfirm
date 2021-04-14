@@ -81,9 +81,9 @@
 	(!!(__raw_readl(ROM_STATUS) & ROM_CHIPLINK_READY))
 #define rom_set_chiplink_ready()				\
 	__raw_setl(ROM_CHIPLINK_READY, ROM_STATUS)
-#define rom_get_pliccntl_done()				\
+#define rom_get_pliccntl_done()					\
 	(!!(__raw_readl(ROM_STATUS) & ROM_PLICCNTL_DONE))
-#define rom_set_pliccntl_done()				\
+#define rom_set_pliccntl_done()					\
 	__raw_setl(ROM_PLICCNTL_DONE, ROM_STATUS)
 #define rom_set_s0_apc_map(harts)				\
 	do {							\
@@ -103,6 +103,10 @@
 #ifndef __ASSEMBLY__
 uint16_t rom_get_s0_apc_map(void);
 uint16_t rom_get_s1_apc_map(void);
+uint8_t rom_get_s0_cluster_map(void);
+uint8_t rom_get_s1_cluster_map(void);
+uint8_t rom_get_cluster_num(void);
+uint8_t rom_get_cluster_map(void);
 #endif /* __ASSEMBLY__ */
 
 #endif /* __ROM_DUOWEN_H_INCLUDE__ */

@@ -43,16 +43,8 @@
 #include <target/noc.h>
 #include <target/clk.h>
 
-#ifdef CONFIG_DUOWEN_SOC_DUAL
-#define MAX_SOC_SOCKETS		2
-#else
-#define MAX_SOC_SOCKETS		1
-#endif
-
 void duowen_noc_init(void)
 {
-	uint32_t nr_clusters = MAX_SOC_SOCKETS * MAX_CPU_CLUSTERS;
-
 	/* NoC connects to fabrics and DDR/PCIes. So their clocks must
 	 * be enabled before configuring NoC.
 	 */
@@ -60,6 +52,6 @@ void duowen_noc_init(void)
 	/* Ensured required clocks */
 	clk_enable(ddr_aclk);
 	clk_enable(pcie_aclk);
-	ncore_init(nr_clusters, CPU_TO_MASK(nr_clusters) - 1,
+	ncore_init(rom_get_cluster_num(), rom_get_cluster_map(),
 		   0, MAX_DDR_SEGMENTS, MAX_DDR_SEGMENTS);
 }
