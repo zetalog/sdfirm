@@ -1287,7 +1287,24 @@
 				&cpu0_intc  0xffffffff
 #endif /* CONFIG_DUOWEN_APC_4 */
 #else /* CONFIG_SMP */
-				&cpu0_intc  0xb        &cpu0_intc  0x9
+				&cpu0_intc  0xb        &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff
+				&cpu0_intc  0x9        &cpu1_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff
 #endif /* CONFIG_SMP */
 			>;
 			interrupt-controller;
