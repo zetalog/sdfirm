@@ -256,6 +256,14 @@ uint8_t rom_get_s1_cluster_map(void)
 	return _BV(__MAX_CPU_CLUSTERS)-1;
 }
 
+static uint16_t __rom_get_apc_map(bool soc0)
+{
+	if (soc0)
+		return rom_get_s0_apc_map();
+	else
+		return rom_get_s1_apc_map();
+}
+
 static uint8_t __rom_get_cluster_map(bool soc0)
 {
 	if (soc0)
@@ -295,6 +303,22 @@ uint8_t rom_get_cluster_map(void)
 			return map1 | map2 << 4;
 		else
 			return map2 | map1 << 4;
+	}
+	return map1;
+}
+
+uint32_t rom_get_apc_map(void)
+{
+	uint32_t map1, map2;
+	bool soc0 = !!(imc_socket_id() == 0);
+
+	map1 = (uint32_t)__rom_get_apc_map(soc0);
+	if (imc_chip_link()) {
+		map2 = (uint32_t)__rom_get_apc_map(!soc0);
+		if (soc0)
+			return map1 | map2 << 16;
+		else
+			return map2 | map1 << 16;
 	}
 	return map1;
 }

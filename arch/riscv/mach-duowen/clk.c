@@ -995,11 +995,14 @@ clk_t duowen_apc_clocks[MAX_CPU_NUM] = {
 void duowen_clk_apc_init(void)
 {
 	cpu_t cpu;
+	uint32_t map = rom_get_apc_map();
 
 	if (!(clk_hw_init & DUOWEN_CLK_APC_INIT)) {
 		clk_enable(cohfab_clk);
-		for (cpu = 0; cpu < MAX_APC_NUM; cpu++)
-			clk_enable(duowen_apc_clocks[cpu]);
+		for (cpu = 0; cpu < MAX_APC_NUM; cpu++) {
+			if (CPU_TO_MASK(cpu) & map)
+				clk_enable(duowen_apc_clocks[cpu]);
+		}
 		clk_hw_init |= DUOWEN_CLK_APC_INIT;
 	}
 }

@@ -106,6 +106,7 @@
 #ifndef __ASSEMBLY__
 uint16_t rom_get_s0_apc_map(void);
 uint16_t rom_get_s1_apc_map(void);
+uint32_t rom_get_apc_map(void);
 uint8_t rom_get_s0_cluster_map(void);
 uint8_t rom_get_s1_cluster_map(void);
 uint8_t rom_get_cluster_num(void);
