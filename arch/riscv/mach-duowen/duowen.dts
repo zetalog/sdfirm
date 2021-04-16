@@ -7,6 +7,9 @@
 #include <target/arch.h>
 #include <dt-bindings/clock/sbi-clock-duowen.h>
 
+#define DUOWEN_APB_CLK_FREQ 100000000
+#define DUOWEN_UART_SPEED 6250000
+
 /dts-v1/;
 
 / {
@@ -18,25 +21,88 @@
 	chosen {
 #ifdef CONFIG_DUOWEN_UART_DTS_CON
 		bootargs = [00];
-		stdout-path = "/uart@ff63000000";
+		stdout-path = "/uart0@ff63000000";
 #else
 		bootargs = "console=hvc0 earlycon=sbi";
 #endif
 	};
 
 #ifdef CONFIG_DUOWEN_UART_DTS
-	uart@ff63000000 {
-		interrupts = <0x54>;
+	uart0@ff63000000 {
+		interrupts = <84>;
 		interrupt-parent = <&plic0>;
 #ifdef CONFIG_DUOWEN_ZEBU
-		clock-frequency = <0x7735940>;
+		clock-frequency = <DUOWEN_APB_CLK_FREQ>;
 #endif
 #ifdef CONFIG_DUOWEN_ASIC
-		clock-frequency = <0x7735940>;
+		clock-frequency = <DUOWEN_APB_CLK_FREQ>;
+#endif
+		current-speed = <DUOWEN_UART_SPEED>;
+		reg = <0xff 0x63000000 0x0 0x100>;
+		reg-io-width = <4>;
+		reg-shift = <2>;
+		compatible = "snps,dw-apb-uart";
+	};
+#else
+	uart0@ff63000000 {
+		interrupts = <84>;
+		interrupt-parent = <&plic0>;
+#ifdef CONFIG_DUOWEN_ZEBU
+		clock-frequency = <DUOWEN_APB_CLK_FREQ>;
+#endif
+#ifdef CONFIG_DUOWEN_ASIC
+		clock-frequency = <DUOWEN_APB_CLK_FREQ>;
 #endif
 		reg = <0xff 0x63000000 0x0 0x100>;
-		reg-io-width = <0x4>;
+		reg-io-width = <4>;
+		reg-shift = <2>;
 		compatible = "snps,dw-apb-uart";
+		status = "disabled";
+	};
+	uart1@ff63100000 {
+		interrupts = <85>;
+		interrupt-parent = <&plic0>;
+#ifdef CONFIG_DUOWEN_ZEBU
+		clock-frequency = <DUOWEN_APB_CLK_FREQ>;
+#endif
+#ifdef CONFIG_DUOWEN_ASIC
+		clock-frequency = <DUOWEN_APB_CLK_FREQ>;
+#endif
+		reg = <0xff 0x63100000 0x0 0x100>;
+		reg-io-width = <4>;
+		reg-shift = <2>;
+		compatible = "snps,dw-apb-uart";
+		status = "okay";
+	};
+	uart2@ff63200000 {
+		interrupts = <86>;
+		interrupt-parent = <&plic0>;
+#ifdef CONFIG_DUOWEN_ZEBU
+		clock-frequency = <DUOWEN_APB_CLK_FREQ>;
+#endif
+#ifdef CONFIG_DUOWEN_ASIC
+		clock-frequency = <DUOWEN_APB_CLK_FREQ>;
+#endif
+		reg = <0xff 0x63200000 0x0 0x100>;
+		reg-io-width = <4>;
+		reg-shift = <2>;
+		compatible = "snps,dw-apb-uart";
+		status = "okay";
+	};
+	uart3@ff63300000 {
+		interrupts = <87>;
+		interrupt-parent = <&plic0>;
+#ifdef CONFIG_DUOWEN_ZEBU
+		clock-frequency = <DUOWEN_APB_CLK_FREQ>;
+#endif
+#ifdef CONFIG_DUOWEN_ASIC
+		clock-frequency = <DUOWEN_APB_CLK_FREQ>;
+#endif
+		reg = <0xff 0x63300000 0x0 0x100>;
+		reg-io-width = <4>;
+		reg-shift = <2>;
+		compatible = "snps,dw-apb-uart";
+		status = "okay";
 	};
 #endif
 
