@@ -9,6 +9,7 @@
 
 #define DUOWEN_APB_CLK_FREQ 100000000
 #define DUOWEN_UART_SPEED 6250000
+#define DUOWEN_UART_CLK_DIRECT
 
 /dts-v1/;
 
@@ -62,11 +63,16 @@
 	uart1@ff63100000 {
 		interrupts = <85>;
 		interrupt-parent = <&plic0>;
+#ifdef DUOWEN_UART_CLK_DIRECT
 #ifdef CONFIG_DUOWEN_ZEBU
 		clock-frequency = <DUOWEN_APB_CLK_FREQ>;
 #endif
 #ifdef CONFIG_DUOWEN_ASIC
 		clock-frequency = <DUOWEN_APB_CLK_FREQ>;
+#endif
+#else
+		clocks = <&crcntl0 sbi_uart1_clk>, <&crcntl0 sbi_uart1_clk>;
+		clock-names = "baudclk", "apb_pclk";
 #endif
 		reg = <0xff 0x63100000 0x0 0x100>;
 		reg-io-width = <4>;
@@ -77,11 +83,16 @@
 	uart2@ff63200000 {
 		interrupts = <86>;
 		interrupt-parent = <&plic0>;
+#ifdef DUOWEN_UART_CLK_DIRECT
 #ifdef CONFIG_DUOWEN_ZEBU
 		clock-frequency = <DUOWEN_APB_CLK_FREQ>;
 #endif
 #ifdef CONFIG_DUOWEN_ASIC
 		clock-frequency = <DUOWEN_APB_CLK_FREQ>;
+#endif
+#else
+		clocks = <&crcntl0 sbi_uart2_clk>, <&crcntl0 sbi_uart2_clk>;
+		clock-names = "baudclk", "apb_pclk";
 #endif
 		reg = <0xff 0x63200000 0x0 0x100>;
 		reg-io-width = <4>;
@@ -92,11 +103,16 @@
 	uart3@ff63300000 {
 		interrupts = <87>;
 		interrupt-parent = <&plic0>;
+#ifdef DUOWEN_UART_CLK_DIRECT
 #ifdef CONFIG_DUOWEN_ZEBU
 		clock-frequency = <DUOWEN_APB_CLK_FREQ>;
 #endif
 #ifdef CONFIG_DUOWEN_ASIC
 		clock-frequency = <DUOWEN_APB_CLK_FREQ>;
+#endif
+#else
+		clocks = <&crcntl0 sbi_uart3_clk>, <&crcntl0 sbi_uart3_clk>;
+		clock-names = "baudclk", "apb_pclk";
 #endif
 		reg = <0xff 0x63300000 0x0 0x100>;
 		reg-io-width = <4>;
