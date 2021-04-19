@@ -87,6 +87,8 @@
 #endif
 #endif /* CONFIG_DUOWEN_UART_ACCEL */
 
+#define I2C_MASTER_SPEED 400000
+
 /* PLL IDs is kept AS IS to make base addresses simpler, see
  * COHFAB_CLK_PLL() and COHFAB_CLK_SEL_PLL() for details.
  */
