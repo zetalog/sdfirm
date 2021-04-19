@@ -129,6 +129,103 @@
 	};
 #endif /* CONFIG_DUOWEN_UART_DTS */
 
+	i2c0@ff64000000 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "snps,designware-i2c";
+		reg = <0xff 0x64000000 0x0 0x1000>;
+		interrupts = <146>;
+		interrupt-parent = <&plic0>;
+		clock-frequency = <I2C_MASTER_SPEED>;
+		clocks = <&crcntl0 sbi_i2c0_clk>;
+		clock-names = "pclk";
+		status = "okay";
+	};
+	i2c1@ff64100000 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "snps,designware-i2c";
+		reg = <0xff 0x64100000 0x0 0x1000>;
+		interrupts = <147>;
+		interrupt-parent = <&plic0>;
+		clock-frequency = <I2C_MASTER_SPEED>;
+		clocks = <&crcntl0 sbi_i2c1_clk>;
+		clock-names = "pclk";
+		status = "okay";
+	};
+	i2c2@ff64200000 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "snps,designware-i2c";
+		reg = <0xff 0x64200000 0x0 0x1000>;
+		interrupts = <148>;
+		interrupt-parent = <&plic0>;
+		clock-frequency = <I2C_MASTER_SPEED>;
+		clocks = <&crcntl0 sbi_i2c2_clk>;
+		clock-names = "pclk";
+		status = "okay";
+	};
+	i2c3@ff64300000 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "snps,designware-i2c";
+		reg = <0xff 0x64300000 0x0 0x1000>;
+		interrupts = <149>;
+		interrupt-parent = <&plic0>;
+		clock-frequency = <I2C_MASTER_SPEED>;
+		clocks = <&crcntl0 sbi_i2c3_clk>;
+		clock-names = "pclk";
+		status = "okay";
+	};
+	i2c4@ff64400000 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "snps,designware-i2c";
+		reg = <0xff 0x64400000 0x0 0x1000>;
+		interrupts = <150>;
+		interrupt-parent = <&plic0>;
+		clock-frequency = <I2C_MASTER_SPEED>;
+		clocks = <&crcntl0 sbi_i2c4_clk>;
+		clock-names = "pclk";
+		status = "okay";
+	};
+	i2c5@ff64500000 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "snps,designware-i2c";
+		reg = <0xff 0x64500000 0x0 0x1000>;
+		interrupts = <151>;
+		interrupt-parent = <&plic0>;
+		clock-frequency = <I2C_MASTER_SPEED>;
+		clocks = <&crcntl0 sbi_i2c5_clk>;
+		clock-names = "pclk";
+		status = "okay";
+	};
+	i2c6@ff64600000 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "snps,designware-i2c";
+		reg = <0xff 0x64600000 0x0 0x1000>;
+		interrupts = <152>;
+		interrupt-parent = <&plic0>;
+		clock-frequency = <I2C_MASTER_SPEED>;
+		clocks = <&crcntl0 sbi_i2c6_clk>;
+		clock-names = "pclk";
+		status = "okay";
+	};
+	i2c7@ff64700000 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "snps,designware-i2c";
+		reg = <0xff 0x64700000 0x0 0x1000>;
+		interrupts = <153>;
+		interrupt-parent = <&plic0>;
+		clock-frequency = <I2C_MASTER_SPEED>;
+		clocks = <&crcntl0 sbi_i2c7_clk>;
+		clock-names = "pclk";
+		status = "okay";
+	};
+
 	poweroff {
 		value = <0x5555>;
 		offset = <0x0>;
