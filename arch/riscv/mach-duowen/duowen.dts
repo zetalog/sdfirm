@@ -129,6 +129,7 @@
 	};
 #endif /* CONFIG_DUOWEN_UART_DTS */
 
+#ifdef CONFIG_DUOWEN_I2C_MASTER_DTS
 	i2c0@ff64000000 {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -225,6 +226,7 @@
 		clock-names = "pclk";
 		status = "okay";
 	};
+#endif
 
 	poweroff {
 		value = <0x5555>;
