@@ -496,6 +496,16 @@ menuconfig DUOWEN_I2C
 
 if DUOWEN_I2C
 
+config DUOWEN_I2C_MASTER_DTS
+	bool "Enable dw-apb-i2c driver for masters in DTS"
+	depends FDT
+endif
+
+config DUOWEN_I2C_SLAVE_DTS
+	bool "Enable dw-apb-i2c driver for slaves in DTS"
+	depends FDT
+endif
+
 endif
 
 menuconfig DUOWEN_SPI_FLASH
