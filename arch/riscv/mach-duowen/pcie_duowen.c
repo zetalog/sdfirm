@@ -488,10 +488,11 @@ void pci_platform_init(void)
 	chiplink = imc_chip_link();
 	socket_id = imc_socket_id();
 
-	if (rom_get_chiplink_ready())
-		return;
-
-	rom_set_chiplink_ready();
+	if (chiplink) {
+		if (rom_get_chiplink_ready())
+			return;
+		rom_set_chiplink_ready();
+	}
 #endif
 
 	pcie_subsys = &pcie_subsystem;
