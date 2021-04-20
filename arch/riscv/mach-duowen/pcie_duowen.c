@@ -514,8 +514,10 @@ void pci_platform_init(void)
 
 	subsys_link_init_post(pcie_subsys);
 
+#ifdef CONFIG_DUOWEN_PCIE_SMMU_BYPASS
 	/* bypass pcie smmu temporarily*/
 	__raw_writel(0x9f0001, (void *)0xff08400000);
+#endif
 
 	// This part carry out an simple communication test between dual sockets
 	// via X4_1 ctrls in both side

@@ -226,7 +226,7 @@
 		clock-names = "pclk";
 		status = "okay";
 	};
-#endif
+#endif /* CONFIG_DUOWEN_I2C_MASTER_DTS */
 
 	poweroff {
 		value = <0x5555>;
@@ -1811,6 +1811,7 @@
 			#iommu-cells = <1>;
 		};
 
+#ifdef CONFIG_DUOWEN_PCIE_DTS
 		pcie@ff09100000 {
 			compatible = "smartcore,duowen-pcie";
 			reg = < 0xff 0x9100000 0x00 0x80000 0x400 0xe0000000 0x00 0x2000000 >;
@@ -1841,6 +1842,7 @@
 			num-lanes = < 0x8 >;
 			status = "disabled";
 		};
+#endif /* CONFIG_DUOWEN_PCIE_DTS */
 
 	};
 };
