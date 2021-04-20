@@ -514,6 +514,8 @@ void pci_platform_init(void)
 
 	subsys_link_init_post(pcie_subsys);
 
+	/* bypass pcie smmu temporarily*/
+	__raw_writel(0x9f0001, (void *)0xff08400000);
 
 	// This part carry out an simple communication test between dual sockets
 	// via X4_1 ctrls in both side
