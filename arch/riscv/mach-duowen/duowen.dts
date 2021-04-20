@@ -1704,7 +1704,7 @@
 		};
 #endif
 
-#ifdef CONFIG_DUOWEN_ETH
+#ifdef CONFIG_DUOWEN_ETH_DTS
 		stmmac_axi_setup: stmmac-axi-config {
 			snps,wr_osr_lmt = <0x3f>;
 			snps,rd_osr_lmt = <0x3f>;
@@ -1787,7 +1787,7 @@
 			};
 #endif
 		};
-#endif /* CONFIG_DUOWEN_ETH */
+#endif /* CONFIG_DUOWEN_ETH_DTS */
 
 		/* DMA SMMU */
 		dma_smmu: iommu@ff08000000 {

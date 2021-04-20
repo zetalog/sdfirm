@@ -497,14 +497,12 @@ menuconfig DUOWEN_I2C
 if DUOWEN_I2C
 
 config DUOWEN_I2C_MASTER_DTS
-	bool "Enable dw-apb-i2c driver for masters in DTS"
+	bool "Enable dw-apb-i2c master driver in DTS"
 	depends FDT
-endif
 
 config DUOWEN_I2C_SLAVE_DTS
-	bool "Enable dw-apb-i2c driver for slaves in DTS"
+	bool "Enable dw-apb-i2c slave driver in DTS"
 	depends FDT
-endif
 
 endif
 
@@ -881,6 +879,9 @@ config DUOWEN_ETH_MAC2MAC
 	help
 	  Reporting to Linux kernel with fixed-link to enable MAC-to-MAC
 	  test environment.
+
+config DUOWEN_ETH_DTS
+	bool "Enable stmmac/dwmac driver in DTS"
 
 endif
 
