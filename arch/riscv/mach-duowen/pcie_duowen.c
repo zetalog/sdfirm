@@ -1,6 +1,7 @@
 #include <target/pci.h>
 #include <target/clk.h>
 #include <target/irq.h>
+#include <target/console.h>
 
 struct duowen_pcie_subsystem pcie_subsystem;
 
@@ -68,7 +69,8 @@ uint32_t read_apb(uint64_t addr, uint8_t port)
 	data = readl(addr);
 #endif
 #ifdef CONFIG_DUOWEN_PCIE_DEBUG_ENABLE
-	printf("ReadAPB: addr: 0x%llx; data: 0x%08x, port: %d\n", addr, data, port);
+	con_dbg("ReadAPB: addr: 0x%llx; data: 0x%08x, port: %d\n",
+		addr, data, port);
 #endif
 	return data;
 }
@@ -76,7 +78,8 @@ uint32_t read_apb(uint64_t addr, uint8_t port)
 void write_apb(uint64_t addr, uint32_t data, uint8_t port)
 {
 #ifdef CONFIG_DUOWEN_PCIE_DEBUG_ENABLE
-	printf("WriteAPB: addr: 0x%llx; data: 0x%x port: %d\n", addr, data, port);
+	con_dbg("WriteAPB: addr: 0x%llx; data: 0x%x port: %d\n",
+		addr, data, port);
 #endif
 #ifdef IPBENCH
 	apb_write_c(addr, data, port);
@@ -150,22 +153,14 @@ void dw_controller_init(struct duowen_pcie_subsystem *pcie_subsystem, int index)
 
 void wait_controller_linkup(struct duowen_pcie_subsystem *pcie_subsystem, int index)
 {
-	uint8_t i = 0, port = APB_PORT_X16 + index;
+	uint8_t port = APB_PORT_X16 + index;
 	uint32_t data;
 	uint64_t base = pcie_subsystem->cfg_apb[X16 + index];
 
 	data = read_apb((base + 0x10), port);
-	printf("wait controller %d smlh&rdlh ready\n", index);
-	while ((data & ( BIT(0) | BIT(11) )) != ( BIT(0) | BIT(11) )) {
+	con_log("pcie: wait controller %d smlh&rdlh ready\n", index);
+	while ((data & ( BIT(0) | BIT(11) )) != ( BIT(0) | BIT(11) ))
 		data = read_apb((base + 0x10), APB_PORT_X16);
-		printf("count: %d: link_status is : 0x%x\n", i,data);
-		i++;
-		if (i > 100) {
-			printf("controller %d: failed to establish link up\n", index);
-			break;
-		}
-	}
-
 }
 
 static void subsys_controllers_init(struct duowen_pcie_subsystem *pcie_subsystem, void (*func)(struct duowen_pcie_subsystem *, int))
@@ -531,7 +526,7 @@ void pci_platform_init(void)
 
 	if (chiplink) {
 		if (!socket_id) {
-			printf("rc start\n");
+			con_log("chiplink: rc start\n");
 
 			/* For Chiplink test, rc side */
 			dw_pcie_write_dbi(pci, DW_PCIE_CDM, 0x20, 0x0, 0x4);
@@ -555,12 +550,12 @@ void pci_platform_init(void)
 			while (val != 0x11111111)
 				val = __raw_readl(0x10);
 
-			printf("rc end\n");
+			con_log("chiplink: rc end\n");
 		} else {
 
 			//__raw_writel(0x64646464, (0x80000000000 + 0x10));
 			//__raw_writel(0x64646464, (PCIE_SUBSYS_ADDR_START + 512*GB + 0x10));
-			printf("ep start\n");
+			con_log("chiplink: ep start\n");
 
 			// sends test data to socket0's ddr
 			__raw_writel(0x11111111, 0x10);
@@ -571,7 +566,7 @@ void pci_platform_init(void)
 			while (val != 0x11111111)
 				val = __raw_readl(0x10 + 0x80000000000);
 
-			printf("ep end\n");
+			con_log("chiplink: ep end\n");
 		}
 	}
 	//int sub_bus;

@@ -455,7 +455,7 @@
 		__raw_setl(_BV(sid),				\
 			   DIRUSFER(ncore_su_diru(diru)));	\
 	} while (0)
-#define ncore_diru_enable_sfs(diru, sus)			\
+#define ncore_diru_enable_sfs(diru, su_mask)			\
 	__raw_writel((su_mask), DIRUSFER(ncore_su_diru(diru)))
 /* DIRUCASER */
 #define ncore_diru_enable_cas(diru, su)				\
