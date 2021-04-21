@@ -63,11 +63,11 @@ void percpu_init(void)
 	ptr = (caddr_t)page_alloc_pages(__percpu_pages);
 	BUG_ON(!ptr || __percpu_alloc);
 	__percpu_alloc = ptr;
-	con_log("SMP allocating PERCPU area %016llx(%d).\n",
+	con_log("smp: Allocating PERCPU area %016llx(%d).\n",
 		(uint64_t)__percpu_alloc, __percpu_pages);
 	for (i = 0; i < NR_CPUS; i++, ptr += size) {
 		__percpu_offset[i] = ((uint64_t)ptr) - PERCPU_START;
-		con_log("CPU%d area: %016llx\n",
+		con_log("smp: CPU%d area: %016llx\n",
 			i, PERCPU_START + __percpu_offset[i]);
 		if (i == smp_boot_cpu)
 			memory_copy(PERCPU_START + __percpu_offset[i],

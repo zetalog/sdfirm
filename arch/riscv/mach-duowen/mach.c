@@ -205,14 +205,14 @@ static void __duowen_load_file(mtd_t mtd, boot_cb boot,
 	uint32_t size = 500000;
 	int ret;
 
-	con_log("boot(%s): booting %s to entry=0x%lx...\n",
+	con_log("boot(%s): Booting %s to entry=0x%lx...\n",
 		name, file, (unsigned long)entry);
 	ret = gpt_get_file_by_name(mtd, file, &addr, &size);
 	if (ret <= 0) {
 		con_err("boot(%s): %s missing.\n", name, file);
 		bh_panic();
 	}
-	con_log("boot(%s): booting %s from addr=0x%lx, size=0x%lx...\n",
+	con_log("boot(%s): Booting %s from addr=0x%lx, size=0x%lx...\n",
 		name, file, addr, size);
 #ifndef CONFIG_DUOWEN_LOAD_DDR_BACKDOOR
 	boot(entry, addr, size, jump);
@@ -317,7 +317,7 @@ void duowen_load_ddr(void)
 	void *boot_addr = (void *)apc_get_jump_addr();
 
 	if (smp_processor_id() == 0)
-		con_log("boot(ddr): booting %d cores...\n", MAX_CPU_NUM);
+		con_log("boot(ddr): Booting %d cores...\n", MAX_CPU_NUM);
 	__boot_jump(boot_addr);
 }
 

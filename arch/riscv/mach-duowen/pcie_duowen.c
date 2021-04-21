@@ -158,7 +158,7 @@ void wait_controller_linkup(struct duowen_pcie_subsystem *pcie_subsystem, int in
 	uint64_t base = pcie_subsystem->cfg_apb[X16 + index];
 
 	data = read_apb((base + 0x10), port);
-	con_log("pcie: wait controller %d smlh&rdlh ready\n", index);
+	con_log("pcie: Waiting for controller %d smlh&rdlh ready\n", index);
 	while ((data & ( BIT(0) | BIT(11) )) != ( BIT(0) | BIT(11) ))
 		data = read_apb((base + 0x10), APB_PORT_X16);
 }
@@ -526,7 +526,7 @@ void pci_platform_init(void)
 
 	if (chiplink) {
 		if (!socket_id) {
-			con_log("chiplink: rc start\n");
+			con_log("chiplink: RC start\n");
 
 			/* For Chiplink test, rc side */
 			dw_pcie_write_dbi(pci, DW_PCIE_CDM, 0x20, 0x0, 0x4);
@@ -550,12 +550,11 @@ void pci_platform_init(void)
 			while (val != 0x11111111)
 				val = __raw_readl(0x10);
 
-			con_log("chiplink: rc end\n");
+			con_log("chiplink: RC end\n");
 		} else {
-
 			//__raw_writel(0x64646464, (0x80000000000 + 0x10));
 			//__raw_writel(0x64646464, (PCIE_SUBSYS_ADDR_START + 512*GB + 0x10));
-			con_log("chiplink: ep start\n");
+			con_log("chiplink: EP start\n");
 
 			// sends test data to socket0's ddr
 			__raw_writel(0x11111111, 0x10);
@@ -566,7 +565,7 @@ void pci_platform_init(void)
 			while (val != 0x11111111)
 				val = __raw_readl(0x10 + 0x80000000000);
 
-			con_log("chiplink: ep end\n");
+			con_log("chiplink: EP end\n");
 		}
 	}
 	//int sub_bus;

@@ -594,8 +594,8 @@ iommu_grp_t smmu_find_sme(smmu_gr_t gr, smmu_gr_t sm)
 
 		/* Avoid conflict stream mapping */
 		if (!((gr ^ sme_gr) & ~(sme_sm | sm))) {
-			con_log("smmu: conflict stream: 0x%04x/0x%04x.",
-				gr, sm);
+			con_printf("smmu: conflict stream: 0x%04x/0x%04x.",
+				   gr, sm);
 			iommu_group_restore(sgrp);
 			return INVALID_IOMMU_GRP;
 		}

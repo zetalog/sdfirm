@@ -311,7 +311,7 @@ iommu_grp_t iommu_register_master(iommu_t iommu)
 	if (grp != INVALID_IOMMU_GRP) {
 		iommu_group_select(grp);
 		dom = iommu_alloc_domain(IOMMU_DOMAIN_DEFAULT);
-		con_log("smmu: No domain space.\n");
+		con_log("iommu: No domain space.\n");
 		BUG_ON(dom == INVALID_IOMMU_DOM);
 		iommu_group_ctrl.dom = dom;
 		iommu_group_ctrl.default_dom = dom;

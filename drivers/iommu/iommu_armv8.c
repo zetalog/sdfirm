@@ -199,7 +199,7 @@ static void *__arm_lpae_alloc_pages(size_t size, struct io_pgtable_cfg *cfg)
 	return pages;
 
 out_unmap:
-	con_log("Cannot accommodate DMA translation for IOMMU page tables\n");
+	con_printf("iommu_armv8: Cannot accommodate DMA translation for IOMMU page tables\n");
 	dma_unmap_single(iommu_group_ctrl.id, dma, size, DMA_TO_DEVICE);
 	page_free_pages(p, nr_pages);
 	return NULL;
@@ -672,7 +672,7 @@ static bool arm_lpae_alloc_pgtable(struct io_pgtable_cfg *cfg)
 		return false;
 #if 0
 	if (cfg->dma_pfn_offset) {
-		con_log("Cannot accommodate DMA offset for IOMMU tables\n");
+		con_printf("iommu_armv8: Cannot accommodate DMA offset for IOMMU tables\n");
 		return false;
 	}
 #endif

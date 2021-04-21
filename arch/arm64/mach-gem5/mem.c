@@ -23,7 +23,7 @@ void mem_hw_range_init(void)
 #endif
 
 #ifdef CONFIG_GEM5_STATIC_PAGES
-	con_log("Reserved Simpoint pages: start = %p, end= %p\n",
+	con_log("mem: Reserved Simpoint pages: start = %p, end= %p\n",
 		simpoint_pages_start,
 		(simpoint_pages_end - simpoint_pages_start));
 	mem_reserve((phys_addr_t)simpoint_pages_start,
