@@ -284,7 +284,7 @@ void rom_set_s1_apc_map(uint16_t map)
 
 uint8_t rom_get_s0_cluster_map(void)
 {
-	uint8_t map;
+	uint16_t map;
 
 	map = rom_get_s0_apc_map();
 	return apc_contract_apc_map(apc_contract_cpu_map(map));
@@ -292,7 +292,7 @@ uint8_t rom_get_s0_cluster_map(void)
 
 uint8_t rom_get_s1_cluster_map(void)
 {
-	uint8_t map;
+	uint16_t map;
 
 	map = rom_get_s1_apc_map();
 	return apc_contract_apc_map(apc_contract_cpu_map(map));
