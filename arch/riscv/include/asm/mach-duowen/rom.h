@@ -85,20 +85,6 @@
 	(!!(__raw_readl(ROM_STATUS) & ROM_PLICCNTL_DONE))
 #define rom_set_pliccntl_done()					\
 	__raw_setl(ROM_PLICCNTL_DONE, ROM_STATUS)
-#define rom_set_s0_apc_map(harts)				\
-	do {							\
-		__raw_writel_mask(ROM_SET_S0_APC(harts),	\
-			ROM_SET_S0_APC(ROM_S0_APC_MASK),	\
-			ROM_APC_MAP);				\
-		__raw_setl(ROM_S0_APC_VALID, ROM_STATUS);	\
-	} while (0)
-#define rom_set_s1_apc_map(harts)				\
-	do {							\
-		__raw_writel_mask(ROM_SET_S1_APC(harts),	\
-			ROM_SET_S1_APC(ROM_S1_APC_MASK),	\
-			ROM_APC_MAP);				\
-		__raw_setl(ROM_S1_APC_VALID, ROM_STATUS);	\
-	} while (0)
 
 #define soc_chip_link()						\
 	(imc_chip_link() && rom_get_chiplink_ready())
@@ -106,6 +92,8 @@
 #ifndef __ASSEMBLY__
 uint16_t rom_get_s0_apc_map(void);
 uint16_t rom_get_s1_apc_map(void);
+void rom_set_s0_apc_map(uint16_t map);
+void rom_set_s1_apc_map(uint16_t map);
 uint32_t rom_get_apc_map(void);
 uint8_t rom_get_s0_cluster_map(void);
 uint8_t rom_get_s1_cluster_map(void);

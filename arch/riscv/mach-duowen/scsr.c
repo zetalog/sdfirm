@@ -248,36 +248,54 @@ uint16_t rom_get_s0_apc_map(void)
 {
 	if (__raw_readl(ROM_STATUS) & ROM_S0_APC_VALID)
 		return ROM_GET_S0_APC(__raw_readl(ROM_APC_MAP));
-	return CPU_TO_MASK(GOOD_CPU_NUM)-1;
+	return GOOD_CPU_MASK;
 }
 
 uint16_t rom_get_s1_apc_map(void)
 {
 	if (__raw_readl(ROM_STATUS) & ROM_S1_APC_VALID)
 		return ROM_GET_S1_APC(__raw_readl(ROM_APC_MAP));
-	return CPU_TO_MASK(GOOD_CPU_NUM)-1;
+	return GOOD_CPU_MASK;
+}
+
+void rom_set_s0_apc_map(uint16_t map)
+{
+	__raw_writel_mask(ROM_SET_S0_APC(map),
+			  ROM_SET_S0_APC(ROM_S0_APC_MASK),
+			  ROM_APC_MAP);
+	/* For APC 4 cores configuration, partial good function is
+	 * disabled.
+	 */
+	if (__GOOD_CPU_MASK == GOOD_CPU_MASK)
+		__raw_setl(ROM_S0_APC_VALID, ROM_STATUS);
+}
+
+void rom_set_s1_apc_map(uint16_t map)
+{
+	__raw_writel_mask(ROM_SET_S1_APC(map),
+			  ROM_SET_S1_APC(ROM_S1_APC_MASK),
+			  ROM_APC_MAP);
+	/* For APC 4 cores configuration, partial good function is
+	 * disabled.
+	 */
+	if (__GOOD_CPU_MASK == GOOD_CPU_MASK)
+		__raw_setl(ROM_S1_APC_VALID, ROM_STATUS);
 }
 
 uint8_t rom_get_s0_cluster_map(void)
 {
 	uint8_t map;
 
-	if (__raw_readl(ROM_STATUS) & ROM_S0_APC_VALID) {
-		map = rom_get_s0_apc_map();
-		return apc_contract_apc_map(apc_contract_cpu_map(map));
-	}
-	return _BV(__MAX_CPU_CLUSTERS)-1;
+	map = rom_get_s0_apc_map();
+	return apc_contract_apc_map(apc_contract_cpu_map(map));
 }
 
 uint8_t rom_get_s1_cluster_map(void)
 {
 	uint8_t map;
 
-	if (__raw_readl(ROM_STATUS) & ROM_S1_APC_VALID) {
-		map = rom_get_s1_apc_map();
-		return apc_contract_apc_map(apc_contract_cpu_map(map));
-	}
-	return _BV(__MAX_CPU_CLUSTERS)-1;
+	map = rom_get_s1_apc_map();
+	return apc_contract_apc_map(apc_contract_cpu_map(map));
 }
 
 static uint16_t __rom_get_apc_map(bool soc0)

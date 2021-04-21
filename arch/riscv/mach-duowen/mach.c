@@ -107,7 +107,7 @@ void duowen_pma_cpu_init(void)
 #define duowen_get_partial_good()	CONFIG_DUOWEN_APC_PARTIAL_GOOD_MASK
 #else
 /* TODO: Read from a flash cfg.bin */
-#define duowen_get_partial_good()	apc_get_cpu_map()
+#define duowen_get_partial_good()	GOOD_CPU_MASK
 #endif
 
 void duowen_hart_map_init(void)

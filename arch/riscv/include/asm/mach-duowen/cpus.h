@@ -64,6 +64,22 @@
 #else /* CONFIG_DUOWEN_APC_4 */
 #define GOOD_CPU_NUM		16
 #endif /* CONFIG_DUOWEN_APC_4 */
+/* APC 4 Cores Usage:
+ *
+ * In this configuration, mhartid always returns 0/1/2/3, while partial
+ * goods is actually different, definining natural partial goods as
+ * __GOOD_CPU_MASK, and the actual partial goods as GOOD_CPU_MASK here.
+ */
+#define __GOOD_CPU_MASK		(CPU_TO_MASK(GOOD_CPU_NUM) - 1)
+#ifdef CONFIG_DUOWEN_APC_4_1111
+#define GOOD_CPU_MASK		0x1111
+#endif /* CONFIG_DUOWEN_APC_4_1111 */
+#ifdef CONFIG_DUOWEN_APC_4_3100
+#define GOOD_CPU_MASK		0x0017
+#endif /* CONFIG_DUOWEN_APC_4_3100 */
+#ifndef GOOD_CPU_MASK
+#define GOOD_CPU_MASK		__GOOD_CPU_MASK
+#endif /* GOOD_CPU_MASK */
 
 #ifdef CONFIG_DUOWEN_APC
 #ifdef CONFIG_SMP

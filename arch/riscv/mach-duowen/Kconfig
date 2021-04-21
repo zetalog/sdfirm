@@ -320,6 +320,19 @@ config DUOWEN_APC_1
 
 endchoice
 
+choice
+	prompt "APC layout"
+	depends DUOWEN_APC_4
+	default DUOWEN_APC_4_1111
+
+config DUOWEN_APC_4_1111
+	bool "Cluster0/1/2/3 1core"
+
+config DUOWEN_APC_4_3100
+	bool "Cluster0 3cores, cluster1 1core"
+
+endchoice
+
 config DUOWEN_SIM_LOAD
 	bool "Enable loading by simulator"
 
