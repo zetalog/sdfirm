@@ -355,6 +355,7 @@ config DUOWEN_PMA
 menuconfig DUOWEN_NOC
 	bool "Duowen network on chip (NoC) support"
 	depends DUOWEN_APC
+	select ARCH_HAS_NCORE_RECONF
 	select NCORE
 	help
 	  NoC driver is required by FSBL or BBL before booting into Linux.

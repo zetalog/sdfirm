@@ -115,11 +115,70 @@ void ncore_discover(void)
 	}
 }
 
-void ncore_init(uint8_t ncais, uint32_t cai_mask,
+#ifdef CONFIG_NCORE_RECONF
+void ncore_caiu_enable_snoop_filters(uint8_t dir, uint8_t ncais,
+				     uint64_t cai_mask)
+{
+	ncore_diru_enable_sfs(dir, cai_mask);
+}
+
+void ncore_ncbu_enable_snoop_messages(uint8_t dir, uint8_t nncbs)
+{
+	uint32_t ncb_mask = _BV(nncbs) - 1;
+
+	ncore_diru_enable_cas_group(dir, NCORE_SU_NCBU, ncb_mask);
+}
+
+void ncore_caiu_enable_snoop_messages(uint8_t dir,
+				      uint8_t ncais, uint64_t cai_mask)
+{
+	uint8_t j;
+	uint8_t ncai_regs = (ncais + 31) / 32;
+	uint64_t mask = cai_mask;
+
+	for (j = 0; j < ncai_regs; j++) {
+		ncore_diru_enable_cas_group(dir, NCORE_SU_CAIU + j,
+					    (uint32_t)mask);
+		mask >>= 32;
+	}
+}
+#else
+void ncore_caiu_enable_snoop_filters(uint8_t dir, uint8_t ncais,
+				     uint64_t cai_mask)
+{
+	uint8_t j;
+
+	for (j = 0; j < ncais; j++) {
+		if (_BV(j) & cai_mask)
+			ncore_diru_enable_sf(dir, j);
+	}
+}
+
+void ncore_ncbu_enable_snoop_messages(uint8_t dir, uint8_t nncbs)
+{
+	uint8_t i;
+
+	for (i = 0; i < nncbs; i++) {
+		ncore_diru_enable_cas(dir, ncore_su_ncbu(i));
+	}
+}
+
+void ncore_caiu_enable_snoop_messages(uint8_t dir, uint8_t ncais,
+				      uint64_t cai_mask)
+{
+	uint8_t j;
+
+	for (j = 0; j < ncais; j++) {
+		if (_BV(j) & cai_mask)
+			ncore_diru_enable_cas(dir, ncore_su_caiu(j));
+	}
+}
+#endif
+
+void ncore_init(uint8_t ncais, uint64_t cai_mask,
 		uint8_t nncbs, uint8_t ndirs, uint8_t ncmis)
 {
 	uint8_t i, j;
-	uint32_t ncb_mask = _BV(nncbs) - 1;
 
 	/* 6.1.1 Directory Initialization */
 	for (i = 0; i < ndirs; i++) {
@@ -130,14 +189,7 @@ void ncore_init(uint8_t ncais, uint32_t cai_mask,
 		}
 		ncore_su_mnt_wait_active(ncore_su_diru(i));
 		/* Enable snoop filters */
-#if 1 /* Support reconfiguration of NoC */
-		ncore_diru_enable_sfs(i, cai_mask);
-#else
-		for (j = 0; j < ncais; j++) {
-			if (_BV(j) & cai_mask)
-				ncore_diru_enable_sf(i, j);
-		}
-#endif
+		ncore_caiu_enable_snoop_filters(i, ncais, cai_mask);
 	}
 	/* 6.1.2 Coherent Memory Interface Initialization */
 	for (i = 0; i < ncmis; i++) {
@@ -158,16 +210,9 @@ void ncore_init(uint8_t ncais, uint32_t cai_mask,
 		/* Enable proxy cache lookups */
 		__raw_writel(NCBUPC_LookupEn, NCBUPCTCR(ncore_su_ncbu(i)));
 	}
-	if (ncb_mask) {
+	for (i = 0; i < ndirs; i++) {
 		/* Enable snoop messages */
-		for (j = 0; j < ndirs; j++) {
-#if 1 /* Support reconfiguration of NoC */
-			ncore_diru_enable_cas_group(j, NCORE_SU_NCBU,
-						    ncb_mask);
-#else
-			ncore_diru_enable_cas(j, ncore_su_ncbu(i));
-#endif
-		}
+		ncore_ncbu_enable_snoop_messages(i, nncbs);
 	}
 	for (i = 0; i < nncbs; i++) {
 		/* Enable proxy cache fills */
@@ -177,14 +222,7 @@ void ncore_init(uint8_t ncais, uint32_t cai_mask,
 	/* 6.1.4 Coherent Agent Interface Initialization */
 	for (i = 0; i < ndirs; i++) {
 		/* Enable snoop messages */
-#if 1 /* Support reconfiguration of NoC */
-		ncore_diru_enable_sfs(i, cai_mask);
-#else
-		for (j = 0; j < ncais; j++) {
-			if (_BV(j) & cai_mask)
-				ncore_diru_enable_cas(i, ncore_su_caiu(j));
-		}
-#endif
+		ncore_caiu_enable_snoop_messages(i, ncais, cai_mask);
 	}
 }
 

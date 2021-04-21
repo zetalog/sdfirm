@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Apr 20 10:27:15 2021
+# Wed Apr 21 10:57:57 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -505,7 +505,9 @@ CONFIG_DW_PCIE_RC=y
 # NoC interconnect drivers
 #
 CONFIG_ARCH_HAS_NOC=y
+CONFIG_ARCH_HAS_NCORE_RECONF=y
 CONFIG_NCORE=y
+CONFIG_NCORE_RECONF=y
 # CONFIG_MONACO is not set
 
 #

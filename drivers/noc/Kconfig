@@ -8,10 +8,23 @@ menu "NoC interconnect drivers"
 config ARCH_HAS_NOC
 	bool
 
+config ARCH_HAS_NCORE_RECONF
+	bool
+
 menuconfig NCORE
 	bool "Arteris Ncore interconnect support"
+	select NCORE_RECONF if ARCH_HAS_NCORE_RECONF
 
 if NCORE
+
+config NCORE_RECONF
+	bool "Enable reconfiguration of NoC"
+	depends ARCH_HAS_NCORE_RECONF
+	help
+	  For number of CAIs (normally equivalent to the number of CPU
+	  cores) that is less than 32, it is possible to configure them
+	  all at once using masks. By doing this, reconfiguration of NoC
+	  is allowed.
 
 endif
 

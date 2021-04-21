@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Apr 13 14:28:42 2021
+# Wed Apr 21 10:50:24 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -523,7 +523,9 @@ CONFIG_SPD_BUS_KHZ=60
 # NoC interconnect drivers
 #
 CONFIG_ARCH_HAS_NOC=y
+CONFIG_ARCH_HAS_NCORE_RECONF=y
 CONFIG_NCORE=y
+CONFIG_NCORE_RECONF=y
 # CONFIG_MONACO is not set
 
 #
