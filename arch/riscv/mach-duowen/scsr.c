@@ -40,6 +40,7 @@
  */
 
 #include <target/arch.h>
+#include <target/console.h>
 
 void apc_set_jump_addr(caddr_t addr)
 {
@@ -52,6 +53,29 @@ void apc_set_jump_addr(caddr_t addr)
 /* ====================================================================== *
  * SoC PMA                                                                *
  * ====================================================================== */
+#ifdef CONFIG_DUOWEN_PMA_DEBUG
+void imc_pma_write_addr(int n, phys_addr_t addr)
+{
+	con_dbg("soc_pma: ADDR_LO: %016llx=%08lx\n",
+		SCSR_PMA_ADDR_LO(n), LOWORD(addr));
+	con_dbg("soc_pma: ADDR_HI: %016llx=%08lx\n",
+		SCSR_PMA_ADDR_HI(n), HIWORD(addr));
+	__imc_pma_write_addr(n, addr);
+}
+
+void imc_pma_write_cfg(int n, unsigned long cfg)
+{
+	con_dbg("soc_pma: CFG_LO: %016llx=%08lx\n",
+		SCSR_PMA_CFG_LO(n), LOWORD(cfg));
+	con_dbg("soc_pma: CFG_HI: %016llx=%08lx\n",
+		SCSR_PMA_CFG_HI(n), HIWORD(cfg));
+	__imc_pma_write_cfg(n, cfg);
+}
+#else
+#define imc_pma_write_addr(n, addr)	__imc_pma_write_addr(n, addr)
+#define imc_pma_write_cfg(n, cfg)	__imc_pma_write_cfg(n, cfg)
+#endif
+
 static void __pma_cfg(int n, unsigned long attr)
 {
 	unsigned long cfgmask, pmacfg;

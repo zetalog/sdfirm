@@ -347,10 +347,18 @@ config DUOWEN_APC_INIT
 	bool "Duowen vaisra initialization support"
 	depends DUOWEN_APC
 
-config DUOWEN_PMA
+menuconfig DUOWEN_PMA
 	bool "Duowen physical memory attributes (PMA) support"
 	depends DUOWEN_APC
 	select VAISRA_PMA
+
+if DUOWEN_PMA
+
+config DUOWEN_PMA_DEBUG
+	bool "Enable debugging messages"
+	depends CONSOLE_DEBUG
+
+endif
 
 menuconfig DUOWEN_NOC
 	bool "Duowen network on chip (NoC) support"

@@ -281,12 +281,12 @@
 #define imc_pma_read_cfg(n)						\
 	MAKELLONG(__raw_readl(SCSR_PMA_CFG_LO(n)),			\
 		  __raw_readl(SCSR_PMA_CFG_HI(n)))
-#define imc_pma_write_cfg(n, v)						\
+#define __imc_pma_write_cfg(n, v)					\
 	do {								\
 		__raw_writel(LOWORD(v), SCSR_PMA_CFG_LO(n));		\
 		__raw_writel(HIWORD(v), SCSR_PMA_CFG_HI(n));		\
 	} while (0)
-#define imc_pma_write_addr(n, a)					\
+#define __imc_pma_write_addr(n, a)					\
 	do {								\
 		__raw_writel(LOWORD(a), SCSR_PMA_ADDR_LO(n));		\
 		__raw_writel(HIWORD(a), SCSR_PMA_ADDR_HI(n));		\
