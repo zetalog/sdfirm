@@ -512,7 +512,7 @@ void pci_platform_init(void)
 
 #ifdef CONFIG_DUOWEN_PCIE_SMMU_BYPASS
 	/* bypass pcie smmu temporarily*/
-	__raw_writel(0x9f0001, (void *)0xff08400000);
+	__raw_writel(0x9f0001, (caddr_t)0xff08400000);
 #endif
 
 	// This part carry out an simple communication test between dual sockets
