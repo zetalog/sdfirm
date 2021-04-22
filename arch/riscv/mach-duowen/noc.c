@@ -53,8 +53,6 @@ void duowen_noc_init(void)
 	/* Ensured required clocks */
 	clk_enable(ddr_aclk);
 	clk_enable(pcie_aclk);
-	con_log("noc: Initializing %d clusters - %02x.\n",
-		rom_get_cluster_num(), rom_get_cluster_map());
 	ncore_init(rom_get_cluster_num(), rom_get_cluster_map(),
 		   0, MAX_DDR_SEGMENTS, MAX_DDR_SEGMENTS);
 }

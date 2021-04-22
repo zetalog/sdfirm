@@ -370,6 +370,7 @@ if DUOWEN_PMA
 config DUOWEN_PMA_DEBUG
 	bool "Enable debugging messages"
 	depends CONSOLE_DEBUG
+	depends !DUOWEN_BBL
 
 endif
 
@@ -487,6 +488,7 @@ config CRCNTL_RESET
 config CRCNTL_TRACE
 	bool "Enable clock tree enabling/disabling trace logs"
 	depends CONSOLE_DEBUG
+	depends !DUOWEN_BBL
 
 endif
 
@@ -715,8 +717,10 @@ config DUOWEN_PCIE_TEST
 	  or RC will be implemented, depends on whether DW_PCIE_RC
 	  is checked
 
-config DUOWEN_PCIE_DEBUG_ENABLE
-	bool "Show more PCIE related registers access footprint"
+config DUOWEN_PCIE_DEBUG
+	bool "Enable debugging messages"
+	depends CONSOLE_DEBUG
+	depends !DUOWEN_BBL
 	default n
 	help
           Controls whether to print register configueration information
