@@ -44,6 +44,7 @@
 #include <target/clk.h>
 #include <target/noc.h>
 #include <target/uefi.h>
+#include <target/console.h>
 #include <target/cmdline.h>
 #include <target/ddr.h>
 #include <target/sbi.h>
@@ -127,6 +128,8 @@ void duowen_hart_map_init(void)
 		rom_set_s0_apc_map(harts);
 	else
 		rom_set_s1_apc_map(harts);
+	con_log("partial_good(%d): Applying partial goods: 0x%04x.\n",
+		imc_socket_id(), harts);
 	apc_set_cpu_map(harts);
 }
 
