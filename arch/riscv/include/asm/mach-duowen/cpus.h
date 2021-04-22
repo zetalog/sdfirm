@@ -53,6 +53,7 @@
 #endif
 
 #define __MAX_CPU_CLUSTERS	4
+#define __MAX_CPU_CORES		16
 
 #ifdef CONFIG_DUOWEN_IMC
 #define MAX_CPU_NUM		1
@@ -62,7 +63,7 @@
 #ifdef CONFIG_DUOWEN_APC_4
 #define GOOD_CPU_NUM		4
 #else /* CONFIG_DUOWEN_APC_4 */
-#define GOOD_CPU_NUM		16
+#define GOOD_CPU_NUM		__MAX_CPU_CORES
 #endif /* CONFIG_DUOWEN_APC_4 */
 /* APC 4 Cores Usage:
  *
@@ -99,14 +100,14 @@
 #else /* CONFIG_DUOWEN_APC_4 */
 #ifdef CONFIG_DUOWEN_SOC_DUAL
 #ifdef CONFIG_DUOWEN_BBL
-#define MAX_CPU_NUM		32
+#define MAX_CPU_NUM		(2 * __MAX_CPU_CORES)
 #define MAX_CPU_CLUSTERS	(2 * __MAX_CPU_CLUSTERS)
 #else /* CONFIG_DUOWEN_BBL */
-#define MAX_CPU_NUM		16
+#define MAX_CPU_NUM		__MAX_CPU_CORES
 #define MAX_CPU_CLUSTERS	__MAX_CPU_CLUSTERS
 #endif /* CONFIG_DUOWEN_BBL */
 #else /* CONFIG_DUOWEN_SOC_DUAL */
-#define MAX_CPU_NUM		16
+#define MAX_CPU_NUM		__MAX_CPU_CORES
 #define MAX_CPU_CLUSTERS	__MAX_CPU_CLUSTERS
 #endif /* CONFIG_DUOWEN_SOC_DUAL */
 #endif /* CONFIG_DUOWEN_APC_4 */
