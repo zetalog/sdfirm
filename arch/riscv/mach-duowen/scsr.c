@@ -57,18 +57,18 @@ void apc_set_jump_addr(caddr_t addr)
 void imc_pma_write_addr(int n, phys_addr_t addr)
 {
 	con_dbg("soc_pma: ADDR_LO: %016llx=%08lx\n",
-		SCSR_PMA_ADDR_LO(n), LOWORD(addr));
+		SCSR_PMA_ADDR_LO(n), LODWORD(addr));
 	con_dbg("soc_pma: ADDR_HI: %016llx=%08lx\n",
-		SCSR_PMA_ADDR_HI(n), HIWORD(addr));
+		SCSR_PMA_ADDR_HI(n), HIDWORD(addr));
 	__imc_pma_write_addr(n, addr);
 }
 
 void imc_pma_write_cfg(int n, unsigned long cfg)
 {
 	con_dbg("soc_pma: CFG_LO: %016llx=%08lx\n",
-		SCSR_PMA_CFG_LO(n), LOWORD(cfg));
+		SCSR_PMA_CFG_LO(n), LODWORD(cfg));
 	con_dbg("soc_pma: CFG_HI: %016llx=%08lx\n",
-		SCSR_PMA_CFG_HI(n), HIWORD(cfg));
+		SCSR_PMA_CFG_HI(n), HIDWORD(cfg));
 	__imc_pma_write_cfg(n, cfg);
 }
 #else

@@ -283,13 +283,13 @@
 		  __raw_readl(SCSR_PMA_CFG_HI(n)))
 #define __imc_pma_write_cfg(n, v)					\
 	do {								\
-		__raw_writel(LOWORD(v), SCSR_PMA_CFG_LO(n));		\
-		__raw_writel(HIWORD(v), SCSR_PMA_CFG_HI(n));		\
+		__raw_writel(LODWORD(v), SCSR_PMA_CFG_LO(n));		\
+		__raw_writel(HIDWORD(v), SCSR_PMA_CFG_HI(n));		\
 	} while (0)
 #define __imc_pma_write_addr(n, a)					\
 	do {								\
-		__raw_writel(LOWORD(a), SCSR_PMA_ADDR_LO(n));		\
-		__raw_writel(HIWORD(a), SCSR_PMA_ADDR_HI(n));		\
+		__raw_writel(LODWORD(a), SCSR_PMA_ADDR_LO(n));		\
+		__raw_writel(HIDWORD(a), SCSR_PMA_ADDR_HI(n));		\
 	} while (0)
 
 #define apc_get_boot_addr()				\

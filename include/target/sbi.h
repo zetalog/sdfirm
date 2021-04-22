@@ -57,6 +57,8 @@
 
 #define SBI_TLB_FIFO_NUM_ENTRIES		8
 
+#define SBI_HARTMASK_MAX_BITS			128
+
 #define EXTRACT_FIELD(val, which)		\
 	(((val) & (which)) / ((which) & ~((which)-1)))
 #define INSERT_FIELD(val, which, fieldval)	\

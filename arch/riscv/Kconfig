@@ -23,6 +23,7 @@ config RISCV
 	select RISCV_F if (FP && CPU_F)
 	select RISCV_D if (FP && CPU_D)
 	select ARCH_HAS_THREAD
+	select STRING_STRNCMP if FDT
 	default y
 	# even on 32-bit, physical (and DMA) addresses are > 32-bits
 

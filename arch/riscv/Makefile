@@ -124,6 +124,7 @@ platdirs := $(patsubst %,arch/riscv/plat-%/,$(plat-y))
 
 core-y				+= arch/riscv/common/
 core-$(CONFIG_SBI)		+= arch/riscv/sbi/
+core-$(CONFIG_FDT)		+= arch/riscv/fdt/
 drivers-y			+= $(MACHINE)
 
 all: $(KBUILD_IMAGE)
