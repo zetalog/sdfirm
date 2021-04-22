@@ -132,7 +132,8 @@ unsigned long duowen_soc_base;
 
 #define MSG_BASE		(SOC_BASE + ULL(0xFF601FFF00))
 
-#define DEV_BASE		(SOC_BASE + ULL(0xFF00000000))
+#define __DEV_BASE		ULL(0xFF00000000)
+#define DEV_BASE		(SOC_BASE + __DEV_BASE)
 #define DEV_SIZE		ULL(0x0100000000)
 
 /* DDR memory region */

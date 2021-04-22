@@ -977,20 +977,30 @@ clk_t duowen_apc_clocks[MAX_APC_NUM] = {
 	cluster3_apc1_cpu0_clk,
 	cluster3_apc1_cpu1_clk,
 };
-#endif
+#endif /* CONFIG_DUOWEN_APC_16 */
 #ifdef CONFIG_DUOWEN_APC_4
+#ifdef CONFIG_DUOWEN_APC_4_1111
 clk_t duowen_apc_clocks[MAX_APC_NUM] = {
 	cluster0_apc0_cpu0_clk,
 	cluster1_apc0_cpu0_clk,
 	cluster2_apc0_cpu0_clk,
 	cluster3_apc0_cpu0_clk,
 };
-#endif
+#endif /* CONFIG_DUOWEN_APC_4_1111 */
+#ifdef CONFIG_DUOWEN_APC_4_3100
+clk_t duowen_apc_clocks[MAX_APC_NUM] = {
+	cluster0_apc0_cpu0_clk,
+	cluster0_apc0_cpu1_clk,
+	cluster0_apc1_cpu0_clk,
+	cluster1_apc0_cpu0_clk,
+};
+#endif /* CONFIG_DUOWEN_APC_4_3100 */
+#endif /* CONFIG_DUOWEN_APC_4 */
 #ifdef CONFIG_DUOWEN_APC_1
 clk_t duowen_apc_clocks[MAX_CPU_NUM] = {
 	cluster0_apc0_cpu0_clk,
 };
-#endif
+#endif /* CONFIG_DUOWEN_APC_1 */
 
 void duowen_clk_apc_init(void)
 {
