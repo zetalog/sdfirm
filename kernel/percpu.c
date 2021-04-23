@@ -67,7 +67,7 @@ void percpu_init(void)
 		(uint64_t)__percpu_alloc, __percpu_pages);
 	for (i = 0; i < NR_CPUS; i++, ptr += size) {
 		__percpu_offset[i] = ((uint64_t)ptr) - PERCPU_START;
-		con_log("smp: CPU%d area: %016llx\n",
+		con_dbg("smp: CPU%d area: %016llx\n",
 			i, PERCPU_START + __percpu_offset[i]);
 		if (i == smp_boot_cpu)
 			memory_copy(PERCPU_START + __percpu_offset[i],
