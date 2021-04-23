@@ -25,7 +25,7 @@ struct sbi_scratch *sbi_scratches[MAX_HARTS];
 #ifdef CONFIG_SBI_BOOT_PRINTS
 void sbi_boot_hart_prints(void)
 {
-	u32 hartid = sbi_current_hartid();
+	uint32_t hartid = sbi_current_hartid();
 	struct sbi_scratch *scratch = sbi_scratches[hartid];
 	caddr_t sp;
 
@@ -66,7 +66,7 @@ void sbi_boot_prints(void)
 	sbi_printf("Firmware Base          : 0x%lx\n",
 		   scratch->fw_start);
 	sbi_printf("Firmware Size          : %d KB\n",
-		   (u32)(scratch->fw_size / 1024));
+		   (uint32_t)(scratch->fw_size / 1024));
 	/* Generic details */
 	sbi_printf("Runtime SBI Version    : %d.%d\n",
 		   sbi_ecall_version_major(), sbi_ecall_version_minor());
@@ -86,7 +86,7 @@ static DEFINE_SPINLOCK(coldboot_lock);
 static unsigned long coldboot_done = 0;
 static unsigned long coldboot_wait_bitmap = 0;
 
-static void wait_for_coldboot(struct sbi_scratch *scratch, u32 cpu)
+static void wait_for_coldboot(struct sbi_scratch *scratch, uint32_t cpu)
 {
 	unsigned long saved_mie;
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
@@ -127,7 +127,7 @@ static void wait_for_coldboot(struct sbi_scratch *scratch, u32 cpu)
 	sbi_platform_ipi_clear(plat, cpu);
 }
 
-static void wake_coldboot_harts(struct sbi_scratch *scratch, u32 cpu)
+static void wake_coldboot_harts(struct sbi_scratch *scratch, uint32_t cpu)
 {
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 	int i;

@@ -19,32 +19,33 @@ bool sbi_trap_log_enabled(void)
 	return sbi_trap_log_on;
 }
 
-u16 sbi_ecall_version_major(void)
+uint16_t sbi_ecall_version_major(void)
 {
 	return SBI_ECALL_VERSION_MAJOR;
 }
 
-u16 sbi_ecall_version_minor(void)
+uint16_t sbi_ecall_version_minor(void)
 {
 	return SBI_ECALL_VERSION_MINOR;
 }
 
-int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
+int sbi_ecall_handler(uint32_t hartid, ulong mcause, struct pt_regs *regs,
 		      struct sbi_scratch *scratch)
 {
 	int ret = -ENOTSUP;
 	struct unpriv_trap uptrap;
 	__unused struct sbi_tlb_info tlb_info;
-	u32 source_hart = sbi_current_hartid();
+	uint32_t source_hart = sbi_current_hartid();
 
 	switch (regs->a7) {
 	case SBI_ECALL_SET_TIMER:
 		sbi_trap_log("%d: ECALL_SET_TIMER\n", source_hart);
 #if __riscv_xlen == 32
 		sbi_timer_event_start(scratch,
-				      (((u64)regs->a1 << 32) | (u64)regs->a0));
+				      (((uint64_t)regs->a1 << 32) |
+				        (uint64_t)regs->a0));
 #else
-		sbi_timer_event_start(scratch, (u64)regs->a0);
+		sbi_timer_event_start(scratch, (uint64_t)regs->a0);
 #endif
 		ret = 0;
 		break;

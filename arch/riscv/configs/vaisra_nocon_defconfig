@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Jan 15 00:00:11 2021
+# Fri Apr 23 10:55:11 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -285,7 +285,8 @@ CONFIG_UART_115200=y
 # CONFIG_VIDEO is not set
 # CONFIG_DDR is not set
 # CONFIG_IOMMU is not set
-# CONFIG_FDT is not set
+CONFIG_ARCH_HAS_FDT=y
+CONFIG_FDT=y
 # CONFIG_UEFI is not set
 # CONFIG_RAS is not set
 # CONFIG_PERF is not set
@@ -483,12 +484,12 @@ CONFIG_STDLIB=y
 #
 # Print operations
 #
-# CONFIG_PRINT_VSNPRINTF is not set
-# CONFIG_PRINT_SNPRINTF is not set
+CONFIG_PRINT_VSNPRINTF=y
+CONFIG_PRINT_SNPRINTF=y
 # CONFIG_PRINT_VPRINTF is not set
 # CONFIG_PRINT_SPRINTF is not set
 # CONFIG_PRINT_PRINTF is not set
-# CONFIG_PRINT_FP is not set
+CONFIG_PRINT_FP=y
 
 #
 # String operations

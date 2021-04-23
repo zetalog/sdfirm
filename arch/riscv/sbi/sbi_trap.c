@@ -13,7 +13,7 @@ static void __noreturn sbi_trap_error(const char *msg, int rc,
 				      ulong mcause, ulong mtval,
 				      struct pt_regs *regs)
 {
-	__unused u32 hartid = sbi_current_hartid();
+	__unused uint32_t hartid = sbi_current_hartid();
 
 	sbi_printf("%s: hart%d: %s (error %d)\n", __func__, hartid, msg, rc);
 	sbi_printf("%s: hart%d: mcause=0x%" PRILX " mtval=0x%" PRILX "\n",
@@ -146,7 +146,7 @@ void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch)
 {
 	int rc = -ENOTSUP;
 	const char *msg = "trap handler failed";
-	u32 hartid = sbi_current_hartid();
+	uint32_t hartid = sbi_current_hartid();
 	ulong mcause = csr_read(CSR_MCAUSE);
 	ulong mtval = csr_read(CSR_MTVAL);
 	struct unpriv_trap *uptrap;

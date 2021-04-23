@@ -8,9 +8,24 @@
  */
 
 #include <target/sbi.h>
+#include <target/fdt.h>
 #include <target/uart.h>
 #include <target/irq.h>
 #include <target/delay.h>
+
+static int k210_final_init(bool cold_boot)
+{
+	void *fdt;
+
+	if (!cold_boot)
+		return 0;
+
+	fdt = sbi_scratch_thishart_arg1_ptr();
+	fdt_cpu_fixup(fdt);
+	fdt_fixups(fdt);
+
+	return 0;
+}
 
 static void k210_console_putc(char ch)
 {
@@ -31,17 +46,17 @@ static int k210_irqchip_init(bool cold_boot)
 	return 0;
 }
 
-void k210_ipi_send(u32 target_cpu)
+void k210_ipi_send(uint32_t target_cpu)
 {
 	clint_set_ipi(target_cpu);
 }
 
-void k210_ipi_sync(u32 target_cpu)
+void k210_ipi_sync(uint32_t target_cpu)
 {
 	clint_sync_ipi(target_cpu);
 }
 
-void k210_ipi_clear(u32 target_cpu)
+void k210_ipi_clear(uint32_t target_cpu)
 {
 	clint_clear_ipi(target_cpu);
 }
@@ -55,7 +70,7 @@ static int k210_ipi_init(bool cold_boot)
 	return 0;
 }
 
-u64 k210_timer_value(void)
+uint64_t k210_timer_value(void)
 {
 	return clint_read_mtime();
 }
@@ -67,7 +82,7 @@ void k210_timer_event_stop(void)
 	clint_unset_mtimecmp(cpu);
 }
 
-void k210_timer_event_start(u64 next_event)
+void k210_timer_event_start(uint64_t next_event)
 {
 	cpu_t cpu = sbi_processor_id();
 
@@ -81,17 +96,19 @@ static int k210_timer_init(bool cold_boot)
 	return 0;
 }
 
-static int k210_system_reboot(u32 type)
+static int k210_system_reboot(uint32_t type)
 {
 	return 0;
 }
 
-static int k210_system_shutdown(u32 type)
+static int k210_system_shutdown(uint32_t type)
 {
 	return 0;
 }
 
 const struct sbi_platform_operations platform_ops = {
+	.final_init = k210_final_init,
+
 	.console_putc = k210_console_putc,
 	.console_getc = k210_console_getc,
 

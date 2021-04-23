@@ -50,6 +50,8 @@
 
 static void duowen_modify_dt(void *fdt)
 {
+	fdt_cpu_fixup(fdt);
+	fdt_fixups(fdt);
 }
 
 static int duowen_early_init(bool cold_boot)
@@ -94,13 +96,13 @@ static int duowen_final_init(bool cold_boot)
 	return 0;
 }
 
-static u32 duowen_pmp_region_count(u32 hartid)
+static uint32_t duowen_pmp_region_count(uint32_t hartid)
 {
 	return 1;
 }
 
-static int duowen_pmp_region_info(u32 hartid, u32 index, ulong *prot,
-				 ulong *addr, ulong *log2size)
+static int duowen_pmp_region_info(uint32_t hartid, uint32_t index,
+				  ulong *prot, ulong *addr, ulong *log2size)
 {
 	int ret = 0;
 
@@ -149,17 +151,17 @@ static int duowen_irqchip_init(bool cold_boot)
 }
 
 #ifdef CONFIG_DUOWEN_APC
-void duowen_ipi_send(u32 target_cpu)
+void duowen_ipi_send(uint32_t target_cpu)
 {
 	clint_set_ipi(target_cpu);
 }
 
-void duowen_ipi_sync(u32 target_cpu)
+void duowen_ipi_sync(uint32_t target_cpu)
 {
 	clint_sync_ipi(target_cpu);
 }
 
-void duowen_ipi_clear(u32 target_cpu)
+void duowen_ipi_clear(uint32_t target_cpu)
 {
 	clint_clear_ipi(target_cpu);
 }
@@ -173,7 +175,7 @@ static int duowen_ipi_init(bool cold_boot)
 	return 0;
 }
 
-u64 duowen_timer_value(void)
+uint64_t duowen_timer_value(void)
 {
 	return clint_read_mtime();
 }
@@ -185,24 +187,31 @@ void duowen_timer_event_stop(void)
 	clint_unset_mtimecmp(cpu);
 }
 
-void duowen_timer_event_start(u64 next_event)
+void duowen_timer_event_start(uint64_t next_event)
 {
 	cpu_t cpu = sbi_processor_id();
 
 	clint_set_mtimecmp(cpu, next_event);
 }
+
+static bool duowen_hart_disabled(uint32_t hartid)
+{
+	if (__GOOD_CPU_MASK == GOOD_CPU_MASK)
+		return ~rom_get_apc_map() & CPU_TO_MASK(hartid);
+	return false;
+}
 #endif /* CONFIG_DUOWEN_APC */
 
 #ifdef CONFIG_DUOWEN_IMC
-void duowen_ipi_send(u32 target_cpu)
+void duowen_ipi_send(uint32_t target_cpu)
 {
 }
 
-void duowen_ipi_sync(u32 target_cpu)
+void duowen_ipi_sync(uint32_t target_cpu)
 {
 }
 
-void duowen_ipi_clear(u32 target_cpu)
+void duowen_ipi_clear(uint32_t target_cpu)
 {
 }
 
@@ -211,7 +220,7 @@ static int duowen_ipi_init(bool cold_boot)
 	return 0;
 }
 
-u64 duowen_timer_value(void)
+uint64_t duowen_timer_value(void)
 {
 	return tmr_read_counter();
 }
@@ -223,11 +232,16 @@ void duowen_timer_event_stop(void)
 	tmr_disable_cmp(cpu);
 }
 
-void duowen_timer_event_start(u64 next_event)
+void duowen_timer_event_start(uint64_t next_event)
 {
 	__unused cpu_t cpu = smp_processor_id();
 
 	tmr_write_compare(cpu, next_event);
+}
+
+static bool duowen_hart_disabled(uint32_t hartid)
+{
+	return false;
 }
 #endif /* CONFIG_DUOWEN_IMC */
 
@@ -238,13 +252,13 @@ static int duowen_timer_init(bool cold_boot)
 	return 0;
 }
 
-static int duowen_system_down(u32 type)
+static int duowen_system_down(uint32_t type)
 {
 	msg_imc_shutdown();
 	return 0;
 }
 
-static int duowen_system_finish(u32 code)
+static int duowen_system_finish(uint32_t code)
 {
 	if (code)
 		msg_imc_failure();
@@ -253,7 +267,7 @@ static int duowen_system_finish(u32 code)
 	return 0;
 }
 
-static int duowen_process_irq(u32 irq)
+static int duowen_process_irq(uint32_t irq)
 {
 #ifdef CONFIG_VAISRA_RAS
 	if (irq == IRQ_M_NMI) {
@@ -284,6 +298,7 @@ const struct sbi_platform_operations platform_ops = {
 	.system_shutdown	= duowen_system_down,
 	.process_irq		= duowen_process_irq,
 	.system_finish		= duowen_system_finish,
+	.hart_disabled		= duowen_hart_disabled,
 };
 
 const struct sbi_platform platform = {

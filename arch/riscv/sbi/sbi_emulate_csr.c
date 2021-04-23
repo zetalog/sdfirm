@@ -11,9 +11,9 @@
 
 #ifndef CONFIG_ARCH_HAS_SBI_TIMER
 #warning "ARCH_HAS_SBI_TIMER is not defined, using pseudo timer"
-u64 sbi_timer;
+uint64_t sbi_timer;
 
-u64 sbi_timer_value(struct sbi_scratch *scratch)
+uint64_t sbi_timer_value(struct sbi_scratch *scratch)
 {
 	return sbi_timer++;
 }

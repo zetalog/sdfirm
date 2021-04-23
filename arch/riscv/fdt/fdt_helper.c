@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: BSD-2-Clause
-/*
+/* SPDX-License-Identifier: BSD-2-Clause
+ *
  * fdt_helper.c - Flat Device Tree manipulation helper routines
  * Implement helper routines on top of libfdt for OpenSBI usage
  *
@@ -104,7 +104,7 @@ int fdt_get_node_addr_size(void *fdt, int node, unsigned long *addr,
 	return 0;
 }
 
-int fdt_parse_hart_id(void *fdt, int cpu_offset, u32 *hartid)
+int fdt_parse_hart_id(void *fdt, int cpu_offset, uint32_t *hartid)
 {
 	int len;
 	const void *prop;
@@ -132,9 +132,9 @@ int fdt_parse_hart_id(void *fdt, int cpu_offset, u32 *hartid)
 	return 0;
 }
 
-int fdt_parse_max_hart_id(void *fdt, u32 *max_hartid)
+int fdt_parse_max_hart_id(void *fdt, uint32_t *max_hartid)
 {
-	u32 hartid;
+	uint32_t hartid;
 	int err, cpu_offset, cpus_offset;
 
 	if (!fdt)
@@ -175,9 +175,8 @@ int fdt_parse_shakti_uart_node(void *fdt, int nodeoffset,
 		return -ENODEV;
 	uart->addr = reg_addr;
 
-	/**
-	 * UART address is mandaotry. clock-frequency and current-speed
-	 * may not be present. Don't return error.
+	/* UART address is mandaotry. clock-frequency and current-speed may
+	 * not be present. Don't return error.
 	 */
 	val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "clock-frequency", &len);
 	if (len > 0 && val)
@@ -209,9 +208,8 @@ int fdt_parse_sifive_uart_node(void *fdt, int nodeoffset,
 		return -ENODEV;
 	uart->addr = reg_addr;
 
-	/**
-	 * UART address is mandaotry. clock-frequency and current-speed
-	 * may not be present. Don't return error.
+	/* UART address is mandaotry. clock-frequency and current-speed may
+	 * not be present. Don't return error.
 	 */
 	val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "clock-frequency", &len);
 	if (len > 0 && val)
@@ -247,9 +245,8 @@ int fdt_parse_uart8250_node(void *fdt, int nodeoffset,
 		return -ENODEV;
 	uart->addr = reg_addr;
 
-	/**
-	 * UART address is mandaotry. clock-frequency and current-speed
-	 * may not be present. Don't return error.
+	/* UART address is mandaotry. clock-frequency and current-speed may
+	 * not be present. Don't return error.
 	 */
 	val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "clock-frequency", &len);
 	if (len > 0 && val)
@@ -279,7 +276,7 @@ int fdt_parse_uart8250_node(void *fdt, int nodeoffset,
 }
 
 int fdt_parse_uart8250(void *fdt, struct platform_uart_data *uart,
-		   const char *compatible)
+		       const char *compatible)
 {
 	int nodeoffset;
 
@@ -334,8 +331,8 @@ int fdt_parse_clint_node(void *fdt, int nodeoffset, bool for_timer,
 	const fdt32_t *val;
 	unsigned long reg_addr, reg_size;
 	int i, rc, count, cpu_offset, cpu_intc_offset;
-	u32 phandle, hwirq, hartid, first_hartid, last_hartid;
-	u32 match_hwirq = (for_timer) ? IRQ_M_TIMER : IRQ_M_SOFT;
+	uint32_t phandle, hwirq, hartid, first_hartid, last_hartid;
+	uint32_t match_hwirq = (for_timer) ? IRQ_M_TIMER : IRQ_M_SOFT;
 
 	if (nodeoffset < 0 || !clint || !fdt)
 		return -ENODEV;

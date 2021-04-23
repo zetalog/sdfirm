@@ -50,8 +50,8 @@
 
 #define __kbd_hw_read_cols()		(KBD_COLS)
 #define __kbd_hw_read_rows()		(KBD_ROWS)
-#define __kbd_hw_write_row_ports(u8)	(KBD_PORT_R = u8)
-#define __kbd_hw_write_col_ports(u8)	(KBD_PORT_C = u8)
+#define __kbd_hw_write_row_ports(byte)	(KBD_PORT_R = byte)
+#define __kbd_hw_write_col_ports(byte)	(KBD_PORT_C = byte)
 
 /* driver implementations */
 #ifdef CONFIG_KBD_AT90SCR100_MAX_ROWS

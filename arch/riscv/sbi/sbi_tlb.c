@@ -71,8 +71,8 @@ static void sbi_tlb_local_flush(struct sbi_tlb_info *tinfo)
 static void sbi_tlb_entry_process(struct sbi_scratch *scratch,
 				  struct sbi_tlb_info *tinfo)
 {
-	u32 i;
-	u64 m;
+	uint32_t i;
+	uint64_t m;
 	struct sbi_scratch *rscratch = NULL;
 	unsigned long *rtlb_sync = NULL;
 
@@ -90,7 +90,7 @@ static void sbi_tlb_entry_process(struct sbi_scratch *scratch,
 static void sbi_tlb_fifo_process_count(struct sbi_scratch *scratch, int count)
 {
 	struct sbi_tlb_info tinfo;
-	u32 deq_count = 0;
+	uint32_t deq_count = 0;
 	struct sbi_fifo *tlb_fifo =
 		sbi_scratch_offset_ptr(scratch, tlb_fifo_off);
 
@@ -194,13 +194,14 @@ static int sbi_tlb_fifo_update_cb(void *in, void *data)
 	return ret;
 }
 
-int sbi_tlb_fifo_update(struct sbi_scratch *rscratch, u32 hartid, void *data)
+int sbi_tlb_fifo_update(struct sbi_scratch *rscratch,
+			uint32_t hartid, void *data)
 {
 	int ret;
 	struct sbi_fifo *tlb_fifo_r;
 	struct sbi_scratch *lscratch;
 	struct sbi_tlb_info *tinfo = data;
-	u32 curr_hartid = sbi_current_hartid();
+	uint32_t curr_hartid = sbi_current_hartid();
 
 	/*
 	 * If address range to flush is too big then simply

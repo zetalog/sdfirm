@@ -35,13 +35,13 @@ static int virt_final_init(bool cold_boot)
 	return 0;
 }
 
-static u32 virt_pmp_region_count(u32 hartid)
+static uint32_t virt_pmp_region_count(uint32_t hartid)
 {
 	return 1;
 }
 
-static int virt_pmp_region_info(u32 hartid, u32 index, ulong *prot, ulong *addr,
-				ulong *log2size)
+static int virt_pmp_region_info(uint32_t hartid, uint32_t index,
+				ulong *prot, ulong *addr, ulong *log2size)
 {
 	int ret = 0;
 
@@ -93,17 +93,17 @@ static int virt_irqchip_init(bool cold_boot)
 	return 0;
 }
 
-void virt_ipi_send(u32 target_cpu)
+void virt_ipi_send(uint32_t target_cpu)
 {
 	clint_set_ipi(target_cpu);
 }
 
-void virt_ipi_sync(u32 target_cpu)
+void virt_ipi_sync(uint32_t target_cpu)
 {
 	clint_sync_ipi(target_cpu);
 }
 
-void virt_ipi_clear(u32 target_cpu)
+void virt_ipi_clear(uint32_t target_cpu)
 {
 	clint_clear_ipi(target_cpu);
 }
@@ -117,7 +117,7 @@ static int virt_ipi_init(bool cold_boot)
 	return 0;
 }
 
-u64 virt_timer_value(void)
+uint64_t virt_timer_value(void)
 {
 	return clint_read_mtime();
 }
@@ -129,7 +129,7 @@ void virt_timer_event_stop(void)
 	clint_unset_mtimecmp(cpu);
 }
 
-void virt_timer_event_start(u64 next_event)
+void virt_timer_event_start(uint64_t next_event)
 {
 	cpu_t cpu = sbi_processor_id();
 
@@ -143,7 +143,7 @@ static int virt_timer_init(bool cold_boot)
 	return 0;
 }
 
-static int virt_system_down(u32 type)
+static int virt_system_down(uint32_t type)
 {
 	/* Tell the "finisher" that the simulation
 	 * was successful so that QEMU exits

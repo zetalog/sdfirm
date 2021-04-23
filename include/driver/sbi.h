@@ -47,13 +47,13 @@ struct sbi_platform_operations {
 	int (*final_init)(bool cold_boot);
 
 	/** Get number of PMP regions for given HART */
-	u32 (*pmp_region_count)(u32 hartid);
+	uint32_t (*pmp_region_count)(uint32_t hartid);
 	/**
 	 * Get PMP regions details (namely: protection, base address,
 	 * and size) for given HART
 	 */
-	int (*pmp_region_info)(u32 hartid, u32 index, ulong *prot, ulong *addr,
-			       ulong *log2size);
+	int (*pmp_region_info)(uint32_t hartid, uint32_t index,
+			       ulong *prot, ulong *addr, ulong *log2size);
 
 	/** Write a character to the platform console output */
 	void (*console_putc)(char ch);
@@ -64,32 +64,35 @@ struct sbi_platform_operations {
 	int (*irqchip_init)(bool cold_boot);
 
 	/** Send IPI to a target SMP CPU */
-	void (*ipi_send)(u32 target_cpu);
+	void (*ipi_send)(uint32_t target_cpu);
 	/** Wait for target SMP CPU to acknowledge IPI */
-	void (*ipi_sync)(u32 target_cpu);
+	void (*ipi_sync)(uint32_t target_cpu);
 	/** Clear IPI for a target SMP CPU */
-	void (*ipi_clear)(u32 target_cpu);
+	void (*ipi_clear)(uint32_t target_cpu);
 	/** Initialize IPI for current HART */
 	int (*ipi_init)(bool cold_boot);
 
 	/** Get platform timer value */
-	u64 (*timer_value)(void);
+	uint64_t (*timer_value)(void);
 	/** Start platform timer event for current HART */
-	void (*timer_event_start)(u64 next_event);
+	void (*timer_event_start)(uint64_t next_event);
 	/** Stop platform timer event for current HART */
 	void (*timer_event_stop)(void);
 	/** Initialize platform timer for current HART */
 	int (*timer_init)(bool cold_boot);
 
 	/** Reboot the platform */
-	int (*system_reboot)(u32 type);
+	int (*system_reboot)(uint32_t type);
 	/** Shutdown or poweroff the platform */
-	int (*system_shutdown)(u32 type);
+	int (*system_shutdown)(uint32_t type);
 
 	/** Handle platform specific IRQ */
-	int (*process_irq)(u32 cause);
+	int (*process_irq)(uint32_t cause);
 	/** Mark a bench test result and finish */
-	int (*system_finish)(u32 code);
+	int (*system_finish)(uint32_t code);
+
+	/** hartid overridden */
+	bool (*hart_disabled)(uint32_t hartid);
 } __packed;
 
 /** Representation of a platform */
@@ -99,19 +102,19 @@ struct sbi_platform {
 	 * It's a 32-bit value where upper 16-bits are major number
 	 * and lower 16-bits are minor number
 	 */
-	u32 opensbi_version;
+	uint32_t opensbi_version;
 	/**
 	 * OpenSBI platform version released by vendor.
 	 * It's a 32-bit value where upper 16-bits are major number
 	 * and lower 16-bits are minor number
 	 */
-	u32 platform_version;
+	uint32_t platform_version;
 	/** Name of the platform */
 	char name[64];
 	/** Supported features */
-	u64 features;
+	uint64_t features;
 	/** Mask representing the set of disabled HARTs */
-	u64 disabled_hart_mask;
+	uint64_t disabled_hart_mask;
 	/** Pointer to sbi platform operations */
 	unsigned long platform_ops_addr;
 	/** Pointer to system firmware specific context */
@@ -169,10 +172,14 @@ static inline const char *sbi_platform_name(const struct sbi_platform *plat)
  * @return TRUE if HART is disabled and FALSE otherwise
  */
 static inline bool sbi_platform_hart_disabled(const struct sbi_platform *plat,
-					      u32 hartid)
+					      uint32_t hartid)
 {
-	if (plat && (plat->disabled_hart_mask & (1 << hartid)))
-		return true;
+	if (plat) {
+		if (sbi_platform_ops(plat)->hart_disabled)
+			return sbi_platform_ops(plat)->hart_disabled(hartid);
+		else if (plat->disabled_hart_mask & (1 << hartid))
+			return true;
+	}
 	return false;
 }
 
@@ -216,8 +223,9 @@ static inline int sbi_platform_final_init(const struct sbi_platform *plat,
  *
  * @return number of PMP regions
  */
-static inline u32 sbi_platform_pmp_region_count(const struct sbi_platform *plat,
-						u32 hartid)
+static inline
+uint32_t sbi_platform_pmp_region_count(const struct sbi_platform *plat,
+				       uint32_t hartid)
 {
 	if (plat && sbi_platform_ops(plat)->pmp_region_count)
 		return sbi_platform_ops(plat)->pmp_region_count(hartid);
@@ -238,7 +246,8 @@ static inline u32 sbi_platform_pmp_region_count(const struct sbi_platform *plat,
  * @return 0 on success and negative error code on failure
  */
 static inline int sbi_platform_pmp_region_info(const struct sbi_platform *plat,
-						u32 hartid, u32 index,
+						uint32_t hartid,
+						uint32_t index,
 						ulong *prot, ulong *addr,
 						ulong *log2size)
 {
@@ -301,7 +310,7 @@ static inline int sbi_platform_irqchip_init(const struct sbi_platform *plat,
  * @param target_cpu SMP CPU ID of IPI target
  */
 static inline void sbi_platform_ipi_send(const struct sbi_platform *plat,
-					 u32 target_cpu)
+					 uint32_t target_cpu)
 {
 	if (plat && sbi_platform_ops(plat)->ipi_send)
 		sbi_platform_ops(plat)->ipi_send(target_cpu);
@@ -314,7 +323,7 @@ static inline void sbi_platform_ipi_send(const struct sbi_platform *plat,
  * @param target_cpu SMP CPU ID of IPI target
  */
 static inline void sbi_platform_ipi_sync(const struct sbi_platform *plat,
-					 u32 target_cpu)
+					 uint32_t target_cpu)
 {
 	if (plat && sbi_platform_ops(plat)->ipi_sync)
 		sbi_platform_ops(plat)->ipi_sync(target_cpu);
@@ -327,7 +336,7 @@ static inline void sbi_platform_ipi_sync(const struct sbi_platform *plat,
  * @param target_hart SMP CPU ID of IPI target
  */
 static inline void sbi_platform_ipi_clear(const struct sbi_platform *plat,
-					  u32 target_cpu)
+					  uint32_t target_cpu)
 {
 	if (plat && sbi_platform_ops(plat)->ipi_clear)
 		sbi_platform_ops(plat)->ipi_clear(target_cpu);
@@ -356,7 +365,7 @@ static inline int sbi_platform_ipi_init(const struct sbi_platform *plat,
  *
  * @return 64bit timer value
  */
-static inline u64 sbi_platform_timer_value(const struct sbi_platform *plat)
+static inline uint64_t sbi_platform_timer_value(const struct sbi_platform *plat)
 {
 	if (plat && sbi_platform_ops(plat)->timer_value)
 		return sbi_platform_ops(plat)->timer_value();
@@ -370,7 +379,8 @@ static inline u64 sbi_platform_timer_value(const struct sbi_platform *plat)
  * @param next_event timer value when timer event will happen
  */
 static inline void
-sbi_platform_timer_event_start(const struct sbi_platform *plat, u64 next_event)
+sbi_platform_timer_event_start(const struct sbi_platform *plat,
+			       uint64_t next_event)
 {
 	if (plat && sbi_platform_ops(plat)->timer_event_start)
 		sbi_platform_ops(plat)->timer_event_start(next_event);
@@ -413,7 +423,7 @@ static inline int sbi_platform_timer_init(const struct sbi_platform *plat,
  * @return 0 on success and negative error code on failure
  */
 static inline int sbi_platform_system_reboot(const struct sbi_platform *plat,
-					     u32 type)
+					     uint32_t type)
 {
 	if (plat && sbi_platform_ops(plat)->system_reboot)
 		return sbi_platform_ops(plat)->system_reboot(type);
@@ -429,7 +439,7 @@ static inline int sbi_platform_system_reboot(const struct sbi_platform *plat,
  * @return 0 on success and negative error code on failure
  */
 static inline int sbi_platform_system_shutdown(const struct sbi_platform *plat,
-					       u32 type)
+					       uint32_t type)
 {
 	if (plat && sbi_platform_ops(plat)->system_shutdown)
 		return sbi_platform_ops(plat)->system_shutdown(type);
@@ -445,7 +455,7 @@ static inline int sbi_platform_system_shutdown(const struct sbi_platform *plat,
  * @return 0 on success and negative error code on failure
  */
 static inline int sbi_platform_system_finish(const struct sbi_platform *plat,
-					     u32 code)
+					     uint32_t code)
 {
 	if (plat && sbi_platform_ops(plat)->system_finish)
 		return sbi_platform_ops(plat)->system_finish(code);
@@ -461,7 +471,7 @@ static inline int sbi_platform_system_finish(const struct sbi_platform *plat,
  * @return 0 on success and negative error code on failure
  */
 static inline int sbi_platform_process_irq(const struct sbi_platform *plat,
-					   u32 irq)
+					   uint32_t irq)
 {
 	if (plat && sbi_platform_ops(plat)->process_irq)
 		return sbi_platform_ops(plat)->process_irq(irq);

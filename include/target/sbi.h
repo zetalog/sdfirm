@@ -69,22 +69,9 @@
 #include <target/spinlock.h>
 #include <target/clk.h>
 
-typedef char			s8;
-typedef unsigned char		u8;
-
-typedef short			s16;
-typedef unsigned short		u16;
-
-typedef int			s32;
-typedef unsigned int		u32;
-
 #if __riscv_xlen == 64
-typedef long			s64;
-typedef unsigned long		u64;
 #define PRILX			"016lx"
 #elif __riscv_xlen == 32
-typedef long long		s64;
-typedef unsigned long long	u64;
 #define PRILX			"08lx"
 #else
 #error "Unexpected __riscv_xlen"
@@ -144,10 +131,10 @@ struct sbi_tlb_info {
 struct sbi_fifo {
 	void *queue;
 	spinlock_t qlock;
-	u16 entry_size;
-	u16 num_entries;
-	u16 avail;
-	u16 tail;
+	uint16_t entry_size;
+	uint16_t num_entries;
+	uint16_t avail;
+	uint16_t tail;
 };
 
 enum sbi_fifo_inplace_update_types {
@@ -180,14 +167,14 @@ void sbi_scratch_free_offset(unsigned long offset);
 
 #ifdef CONFIG_ARCH_HAS_SBI_IPI
 int sbi_ipi_send_many(struct sbi_scratch *scratch, struct unpriv_trap *uptrap,
-		      ulong *pmask, u32 event, void *data);
+		      ulong *pmask, uint32_t event, void *data);
 void sbi_ipi_clear_smode(struct sbi_scratch *scratch);
 void sbi_ipi_process(struct sbi_scratch *scratch);
 int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot);
 #else
 static inline int sbi_ipi_send_many(struct sbi_scratch *scratch,
 				    struct unpriv_trap *uptrap,
-				    ulong *pmask, u32 event, void *data)
+				    ulong *pmask, uint32_t event, void *data)
 {
 	return 0;
 }
@@ -199,9 +186,9 @@ static inline int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
 }
 #endif
 
-u16 sbi_ecall_version_major(void);
-u16 sbi_ecall_version_minor(void);
-int sbi_ecall_handler(u32 hartid, ulong mcause, struct pt_regs *regs,
+uint16_t sbi_ecall_version_major(void);
+uint16_t sbi_ecall_version_minor(void);
+int sbi_ecall_handler(uint32_t hartid, ulong mcause, struct pt_regs *regs,
 		      struct sbi_scratch *scratch);
 
 int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
@@ -210,13 +197,13 @@ void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch);
 bool sbi_trap_log_enabled(void);
 void sbi_trap_log(const char *fmt, ...);
 
-int sbi_misaligned_load_handler(u32 hartid, ulong mcause,
+int sbi_misaligned_load_handler(uint32_t hartid, ulong mcause,
 				struct pt_regs *regs,
 				struct sbi_scratch *scratch);
-int sbi_misaligned_store_handler(u32 hartid, ulong mcause,
+int sbi_misaligned_store_handler(uint32_t hartid, ulong mcause,
 				 struct pt_regs *regs,
 				 struct sbi_scratch *scratch);
-int sbi_illegal_insn_handler(u32 hartid, ulong mcause,
+int sbi_illegal_insn_handler(uint32_t hartid, ulong mcause,
 			     struct pt_regs *regs,
 			     struct sbi_scratch *scratch);
 
@@ -227,23 +214,24 @@ int sbi_emulate_csr_write(int csr_num, struct pt_regs *regs,
 
 int sbi_fifo_dequeue(struct sbi_fifo *fifo, void *data);
 int sbi_fifo_enqueue(struct sbi_fifo *fifo, void *data);
-void sbi_fifo_init(struct sbi_fifo *fifo, void *queue_mem, u16 entries,
-		   u16 entry_size);
+void sbi_fifo_init(struct sbi_fifo *fifo, void *queue_mem,
+		   uint16_t entries, uint16_t entry_size);
 bool sbi_fifo_is_empty(struct sbi_fifo *fifo);
 bool sbi_fifo_is_full(struct sbi_fifo *fifo);
 int sbi_fifo_inplace_update(struct sbi_fifo *fifo, void *in,
 			    int (*fptr)(void *in, void *data));
-u16 sbi_fifo_avail(struct sbi_fifo *fifo);
+uint16_t sbi_fifo_avail(struct sbi_fifo *fifo);
 
-int sbi_tlb_fifo_update(struct sbi_scratch *scratch, u32 hartid, void *data);
+int sbi_tlb_fifo_update(struct sbi_scratch *scratch,
+			uint32_t hartid, void *data);
 void sbi_tlb_fifo_process(struct sbi_scratch *scratch);
 int sbi_tlb_fifo_init(struct sbi_scratch *scratch, bool cold_boot);
 void sbi_tlb_fifo_sync(struct sbi_scratch *scratch);
 
-u64 sbi_timer_value(struct sbi_scratch *scratch);
+uint64_t sbi_timer_value(struct sbi_scratch *scratch);
 #ifdef CONFIG_ARCH_HAS_SBI_TIMER
 void sbi_timer_event_stop(struct sbi_scratch *scratch);
-void sbi_timer_event_start(struct sbi_scratch *scratch, u64 next_event);
+void sbi_timer_event_start(struct sbi_scratch *scratch, uint64_t next_event);
 void sbi_timer_process(struct sbi_scratch *scratch);
 int sbi_timer_init(struct sbi_scratch *scratch, bool cold_boot);
 #else
@@ -256,19 +244,20 @@ static inline int sbi_timer_init(struct sbi_scratch *scratch, bool cold_boot)
 }
 #endif
 
-int sbi_hart_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot);
+int sbi_hart_init(struct sbi_scratch *scratch,
+		  uint32_t hartid, bool cold_boot);
 void *sbi_hart_get_trap_info(struct sbi_scratch *scratch);
 void sbi_hart_set_trap_info(struct sbi_scratch *scratch, void *data);
 void sbi_hart_pmp_dump(struct sbi_scratch *scratch);
 __noreturn void sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
 				     unsigned long next_addr,
 				     unsigned long next_mode);
-void sbi_hart_mark_available(u32 hartid);
+void sbi_hart_mark_available(uint32_t hartid);
 ulong sbi_hart_available_mask(void);
-void sbi_hart_unmark_available(u32 hartid);
+void sbi_hart_unmark_available(uint32_t hartid);
 struct sbi_scratch *sbi_hart_id_to_scratch(struct sbi_scratch *scratch,
-					   u32 hartid);
-u32 sbi_current_hartid(void);
+					   uint32_t hartid);
+uint32_t sbi_current_hartid(void);
 
 #ifdef CONFIG_CONSOLE
 int sbi_console_init(struct sbi_scratch *scratch);
@@ -313,9 +302,9 @@ static inline unsigned long sbi_clock_get_freq(unsigned long clkid)
 
 int sbi_system_early_init(struct sbi_scratch *scratch, bool cold_boot);
 int sbi_system_final_init(struct sbi_scratch *scratch, bool cold_boot);
-__noreturn void sbi_system_reboot(struct sbi_scratch *scratch, u32 type);
-__noreturn void sbi_system_shutdown(struct sbi_scratch *scratch, u32 type);
-void __noreturn sbi_system_finish(struct sbi_scratch *scratch, u32 code);
+__noreturn void sbi_system_reboot(struct sbi_scratch *scratch, uint32_t type);
+__noreturn void sbi_system_shutdown(struct sbi_scratch *scratch, uint32_t type);
+void __noreturn sbi_system_finish(struct sbi_scratch *scratch, uint32_t code);
 void __noreturn sbi_finish_hang(void);
 
 __noreturn void sbi_init(void);

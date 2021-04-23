@@ -57,7 +57,7 @@ Sfr(KBLS,	0x9C);		/* Keyboard Level Selector */
 #endif
 
 #define __KBD_HW_MAX_SCANS		(__KBD_HW_ROW_MAX * __KBD_HW_COL_MAX)
-#define __kbd_hw_write_ports(u8)	(KBD_PORT = u8)
+#define __kbd_hw_write_ports(byte)	(KBD_PORT = byte)
 #define __kbd_hw_read_cols()		(KBD_PORT & __KBD_HW_COL_MASK)
 
 /* driver implementations */

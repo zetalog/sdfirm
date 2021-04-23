@@ -42,6 +42,10 @@
 #ifndef __PMP_RISCV_H_INCLUDE__
 #define __PMP_RISCV_H_INCLUDE__
 
+#ifndef PMP_COUNT
+#define PMP_COUNT			16
+#endif
+
 #ifndef PMP_G
 #define PMP_G				0
 #endif

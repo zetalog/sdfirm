@@ -7,10 +7,8 @@
  *   Atish Patra <atish.patra@wdc.com>
  */
 
-#if 0
-#include <target/fdt.h>
-#endif
 #include <target/sbi.h>
+#include <target/fdt.h>
 #include <target/uart.h>
 #include <target/irq.h>
 #include <target/delay.h>
@@ -30,36 +28,14 @@
 
 static void fu540_modify_dt(void *fdt)
 {
-#if 0
-	u32 i, size;
-	int chosen_offset, err;
-	int cpu_offset;
-	char cpu_node[32] = "";
-	const char *mmu_type;
+	fdt_cpu_fixup(fdt);
+	fdt_fixups(fdt);
 
-	for (i = 0; i < FU540_HART_COUNT; i++) {
-		sbi_sprintf(cpu_node, "/cpus/cpu@%d", i);
-		cpu_offset = fdt_path_offset(fdt, cpu_node);
-		mmu_type   = fdt_getprop(fdt, cpu_offset, "mmu-type", NULL);
-		if (mmu_type && (!strcmp(mmu_type, "riscv,sv39") ||
-				 !strcmp(mmu_type, "riscv,sv48")))
-			continue;
-		else
-			fdt_setprop_string(fdt, cpu_offset, "status", "masked");
-		memset(cpu_node, 0, sizeof(cpu_node));
-	}
-	size = fdt_totalsize(fdt);
-	err  = fdt_open_into(fdt, fdt, size + 256);
-	if (err < 0)
-		sbi_printf(
-			"Device Tree can't be expanded to accmodate new node");
-
-	chosen_offset = fdt_path_offset(fdt, "/chosen");
-	fdt_setprop_string(fdt, chosen_offset, "stdout-path",
-			   "/soc/serial@10010000:115200");
-
-	plic_fdt_fixup(fdt, "riscv,plic0");
-#endif
+	/* SiFive Freedom U540 has an erratum that prevents S-mode
+	 * software to access a PMP protected region using 1GP table
+	 * mapping, so always add the no-map attribute on this latform.
+	 */
+	fdt_reserved_memory_nomap_fixup(fdt);
 }
 
 static int fu540_final_init(bool cold_boot)
@@ -76,13 +52,13 @@ static int fu540_final_init(bool cold_boot)
 }
 
 #ifdef CONFIG_UNLEASHED_U54
-static u32 fu540_pmp_region_count(u32 hartid)
+static uint32_t fu540_pmp_region_count(uint32_t hartid)
 {
 	return 1;
 }
 
-static int fu540_pmp_region_info(u32 hartid, u32 index, ulong *prot,
-				 ulong *addr, ulong *log2size)
+static int fu540_pmp_region_info(uint32_t hartid, uint32_t index,
+				 ulong *prot, ulong *addr, ulong *log2size)
 {
 	int ret = 0;
 
@@ -99,13 +75,13 @@ static int fu540_pmp_region_info(u32 hartid, u32 index, ulong *prot,
 	return ret;
 }
 #else
-static u32 fu540_pmp_region_count(u32 hartid)
+static uint32_t fu540_pmp_region_count(uint32_t hartid)
 {
 	return 0;
 }
 
-static int fu540_pmp_region_info(u32 hartid, u32 index, ulong *prot,
-				 ulong *addr, ulong *log2size)
+static int fu540_pmp_region_info(uint32_t hartid, uint32_t index,
+				 ulong *prot, ulong *addr, ulong *log2size)
 {
 	return 0;
 }
@@ -150,17 +126,17 @@ static int fu540_irqchip_init(bool cold_boot)
 	return 0;
 }
 
-void fu540_ipi_send(u32 target_cpu)
+void fu540_ipi_send(uint32_t target_cpu)
 {
 	clint_set_ipi(target_cpu);
 }
 
-void fu540_ipi_sync(u32 target_cpu)
+void fu540_ipi_sync(uint32_t target_cpu)
 {
 	clint_sync_ipi(target_cpu);
 }
 
-void fu540_ipi_clear(u32 target_cpu)
+void fu540_ipi_clear(uint32_t target_cpu)
 {
 	clint_clear_ipi(target_cpu);
 }
@@ -174,7 +150,7 @@ static int fu540_ipi_init(bool cold_boot)
 	return 0;
 }
 
-u64 fu540_timer_value(void)
+uint64_t fu540_timer_value(void)
 {
 	return clint_read_mtime();
 }
@@ -186,7 +162,7 @@ void fu540_timer_event_stop(void)
 	clint_unset_mtimecmp(cpu);
 }
 
-void fu540_timer_event_start(u64 next_event)
+void fu540_timer_event_start(uint64_t next_event)
 {
 	cpu_t cpu = sbi_processor_id();
 
@@ -200,7 +176,7 @@ static int fu540_timer_init(bool cold_boot)
 	return 0;
 }
 
-static int fu540_system_down(u32 type)
+static int fu540_system_down(uint32_t type)
 {
 	/* For now nothing to do. */
 	return 0;

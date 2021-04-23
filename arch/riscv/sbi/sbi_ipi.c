@@ -17,10 +17,10 @@ struct sbi_ipi_data {
 static unsigned long ipi_data_off;
 
 static int sbi_ipi_send(struct sbi_scratch *scratch, cpu_t cpu,
-			u32 event, void *data)
+			uint32_t event, void *data)
 {
 	int ret;
-	u32 hartid = smp_hw_cpu_hart(cpu);
+	uint32_t hartid = smp_hw_cpu_hart(cpu);
 	struct sbi_scratch *remote_scratch = NULL;
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 	struct sbi_ipi_data *ipi_data;
@@ -55,11 +55,11 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, cpu_t cpu,
 }
 
 int sbi_ipi_send_many(struct sbi_scratch *scratch, struct unpriv_trap *uptrap,
-		      ulong *pmask, u32 event, void *data)
+		      ulong *pmask, uint32_t event, void *data)
 {
 	ulong i, m;
 	ulong mask = sbi_hart_available_mask();
-	u32 hartid = sbi_current_hartid();
+	uint32_t hartid = sbi_current_hartid();
 
 	if (pmask) {
 		mask &= load_ulong(pmask, scratch, uptrap);
@@ -96,7 +96,7 @@ void sbi_ipi_process(struct sbi_scratch *scratch)
 	struct sbi_ipi_data *ipi_data =
 			sbi_scratch_offset_ptr(scratch, ipi_data_off);
 
-	u32 hartid = sbi_current_hartid();
+	uint32_t hartid = sbi_current_hartid();
 	sbi_platform_ipi_clear(plat, smp_hw_hart_cpu(hartid));
 
 	ipi_type = atomic_xchg(&ipi_data->ipi_type, 0);

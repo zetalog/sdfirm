@@ -10,12 +10,12 @@
 #include <target/sbi.h>
 
 union reg_data {
-	u8 data_bytes[8];
+	uint8_t data_bytes[8];
 	ulong data_ulong;
-	u64 data_u64;
+	uint64_t data_u64;
 };
 
-int sbi_misaligned_load_handler(u32 hartid, ulong mcause,
+int sbi_misaligned_load_handler(uint32_t hartid, ulong mcause,
 				struct pt_regs *regs,
 				struct sbi_scratch *scratch)
 {
@@ -118,7 +118,7 @@ int sbi_misaligned_load_handler(u32 hartid, ulong mcause,
 	return 0;
 }
 
-int sbi_misaligned_store_handler(u32 hartid, ulong mcause,
+int sbi_misaligned_store_handler(uint32_t hartid, ulong mcause,
 				 struct pt_regs *regs,
 				 struct sbi_scratch *scratch)
 {

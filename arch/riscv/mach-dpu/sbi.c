@@ -70,13 +70,13 @@ static int dpu_early_init(bool cold_boot)
 	return 0;
 }
 
-static u32 dpu_pmp_region_count(u32 hartid)
+static uint32_t dpu_pmp_region_count(uint32_t hartid)
 {
 	return 1;
 }
 
-static int dpu_pmp_region_info(u32 hartid, u32 index, ulong *prot,
-				 ulong *addr, ulong *log2size)
+static int dpu_pmp_region_info(uint32_t hartid, uint32_t index,
+			       ulong *prot, ulong *addr, ulong *log2size)
 {
 	int ret = 0;
 
@@ -124,15 +124,15 @@ static int dpu_irqchip_init(bool cold_boot)
 	return 0;
 }
 
-void dpu_ipi_send(u32 target_cpu)
+void dpu_ipi_send(uint32_t target_cpu)
 {
 }
 
-void dpu_ipi_sync(u32 target_cpu)
+void dpu_ipi_sync(uint32_t target_cpu)
 {
 }
 
-void dpu_ipi_clear(u32 target_cpu)
+void dpu_ipi_clear(uint32_t target_cpu)
 {
 }
 
@@ -145,7 +145,7 @@ static int dpu_ipi_init(bool cold_boot)
 	return 0;
 }
 
-u64 dpu_timer_value(void)
+uint64_t dpu_timer_value(void)
 {
 	return tmr_read_counter();
 }
@@ -157,7 +157,7 @@ void dpu_timer_event_stop(void)
 	tmr_disable_cmp(cpu);
 }
 
-void dpu_timer_event_start(u64 next_event)
+void dpu_timer_event_start(uint64_t next_event)
 {
 	__unused cpu_t cpu = smp_processor_id();
 
@@ -171,7 +171,7 @@ static int dpu_timer_init(bool cold_boot)
 	return 0;
 }
 
-static int dpu_system_down(u32 type)
+static int dpu_system_down(uint32_t type)
 {
 	imc_sim_finish();
 	return 0;

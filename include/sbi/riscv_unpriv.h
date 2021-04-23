@@ -18,28 +18,28 @@ struct unpriv_trap {
 	unsigned long tval;
 };
 
-#define DECLARE_UNPRIVILEGED_LOAD_FUNCTION(type)       \
-	type load_##type(const type *addr,             \
-			 struct sbi_scratch *scratch,  \
+#define DECLARE_UNPRIVILEGED_LOAD_FUNCTION(type, __type)   \
+	__type load_##type(const __type *addr,             \
+			 struct sbi_scratch *scratch,      \
 			 struct unpriv_trap *trap);
 
-#define DECLARE_UNPRIVILEGED_STORE_FUNCTION(type)      \
-	void store_##type(type *addr, type val,        \
-			  struct sbi_scratch *scratch, \
+#define DECLARE_UNPRIVILEGED_STORE_FUNCTION(type, __type) \
+	void store_##type(__type *addr, __type val,       \
+			  struct sbi_scratch *scratch,    \
 			  struct unpriv_trap *trap);
 
-DECLARE_UNPRIVILEGED_LOAD_FUNCTION(u8)
-DECLARE_UNPRIVILEGED_LOAD_FUNCTION(u16)
-DECLARE_UNPRIVILEGED_LOAD_FUNCTION(s8)
-DECLARE_UNPRIVILEGED_LOAD_FUNCTION(s16)
-DECLARE_UNPRIVILEGED_LOAD_FUNCTION(s32)
-DECLARE_UNPRIVILEGED_STORE_FUNCTION(u8)
-DECLARE_UNPRIVILEGED_STORE_FUNCTION(u16)
-DECLARE_UNPRIVILEGED_STORE_FUNCTION(u32)
-DECLARE_UNPRIVILEGED_LOAD_FUNCTION(u32)
-DECLARE_UNPRIVILEGED_LOAD_FUNCTION(u64)
-DECLARE_UNPRIVILEGED_STORE_FUNCTION(u64)
-DECLARE_UNPRIVILEGED_LOAD_FUNCTION(ulong)
+DECLARE_UNPRIVILEGED_LOAD_FUNCTION(u8, uint8_t)
+DECLARE_UNPRIVILEGED_LOAD_FUNCTION(u16, uint16_t)
+DECLARE_UNPRIVILEGED_LOAD_FUNCTION(s8, int8_t)
+DECLARE_UNPRIVILEGED_LOAD_FUNCTION(s16, int16_t)
+DECLARE_UNPRIVILEGED_LOAD_FUNCTION(s32, int32_t)
+DECLARE_UNPRIVILEGED_STORE_FUNCTION(u8, uint8_t)
+DECLARE_UNPRIVILEGED_STORE_FUNCTION(u16, uint16_t)
+DECLARE_UNPRIVILEGED_STORE_FUNCTION(u32, uint32_t)
+DECLARE_UNPRIVILEGED_LOAD_FUNCTION(u32, uint32_t)
+DECLARE_UNPRIVILEGED_LOAD_FUNCTION(u64, uint64_t)
+DECLARE_UNPRIVILEGED_STORE_FUNCTION(u64, uint64_t)
+DECLARE_UNPRIVILEGED_LOAD_FUNCTION(ulong, unsigned long)
 
 ulong get_insn(ulong mepc, ulong *mstatus);
 

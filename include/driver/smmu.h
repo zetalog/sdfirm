@@ -943,9 +943,9 @@ struct smmu_device {
 	smmu_cb_t cb;
 	DECLARE_BITMAP(context_map, SMMU_MAX_CBS);
 #if 0
-	struct arm_smmu_cb		*cbs;
-	atomic_t			irptndx;
-	u32				num_global_irqs;
+	struct arm_smmu_cb *cbs;
+	atomic_t irptndx;
+	uint32_t num_global_irqs;
 #endif
 };
 

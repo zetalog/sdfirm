@@ -21,14 +21,14 @@ int sbi_system_final_init(struct sbi_scratch *scratch, bool cold_boot)
 }
 
 void __noreturn
-sbi_system_reboot(struct sbi_scratch *scratch, u32 type)
+sbi_system_reboot(struct sbi_scratch *scratch, uint32_t type)
 {
 	sbi_platform_system_reboot(sbi_platform_ptr(scratch), type);
 	bh_panic();
 }
 
 void __noreturn
-sbi_system_shutdown(struct sbi_scratch *scratch, u32 type)
+sbi_system_shutdown(struct sbi_scratch *scratch, uint32_t type)
 {
 	/* First try the platform-specific method */
 	sbi_platform_system_shutdown(sbi_platform_ptr(scratch), type);
@@ -40,7 +40,7 @@ sbi_system_shutdown(struct sbi_scratch *scratch, u32 type)
 }
 
 void __noreturn
-sbi_system_finish(struct sbi_scratch *scratch, u32 code)
+sbi_system_finish(struct sbi_scratch *scratch, uint32_t code)
 {
 	sbi_platform_system_finish(sbi_platform_ptr(scratch), code);
 	sbi_ipi_send_many(scratch, NULL, NULL, SBI_IPI_EVENT_HALT, NULL);

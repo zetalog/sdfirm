@@ -16,10 +16,10 @@ static __unused uint8_t sbi_mode_switched = PRV_M;
  */
 unsigned int sbi_current_hartid()
 {
-	return (u32)csr_read(CSR_MHARTID);
+	return (uint32_t)csr_read(CSR_MHARTID);
 }
 
-static void mstatus_init(struct sbi_scratch *scratch, u32 hartid)
+static void mstatus_init(struct sbi_scratch *scratch, uint32_t hartid)
 {
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 
@@ -48,7 +48,7 @@ static void mstatus_init(struct sbi_scratch *scratch, u32 hartid)
 }
 
 #if defined(CONFIG_SBI_RISCV_F) || defined(CONFIG_SBI_RISCV_D)
-static int fp_init(u32 hartid)
+static int fp_init(uint32_t hartid)
 {
 	int i;
 
@@ -64,7 +64,7 @@ static int fp_init(u32 hartid)
 	return 0;
 }
 #else
-static int fp_init(u32 hartid)
+static int fp_init(uint32_t hartid)
 {
 	unsigned long fd_mask;
 
@@ -82,7 +82,7 @@ static int fp_init(u32 hartid)
 }
 #endif
 
-static int delegate_traps(struct sbi_scratch *scratch, u32 hartid)
+static int delegate_traps(struct sbi_scratch *scratch, uint32_t hartid)
 {
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 	unsigned long interrupts, exceptions;
@@ -111,9 +111,9 @@ static int delegate_traps(struct sbi_scratch *scratch, u32 hartid)
 }
 
 #ifdef CONFIG_RISCV_PMP
-static int pmp_init(struct sbi_scratch *scratch, u32 hartid)
+static int pmp_init(struct sbi_scratch *scratch, uint32_t hartid)
 {
-	u32 i, count;
+	uint32_t i, count;
 	ulong prot, log2size;
 	phys_addr_t addr;
 	__unused unsigned long fw_start;
@@ -143,7 +143,7 @@ static int pmp_init(struct sbi_scratch *scratch, u32 hartid)
 	return 0;
 }
 #else
-static int pmp_init(struct sbi_scratch *scratch, u32 hartid)
+static int pmp_init(struct sbi_scratch *scratch, uint32_t hartid)
 {
 	return 0;
 }
@@ -151,7 +151,7 @@ static int pmp_init(struct sbi_scratch *scratch, u32 hartid)
 
 static unsigned long trap_info_offset;
 
-int sbi_hart_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
+int sbi_hart_init(struct sbi_scratch *scratch, uint32_t hartid, bool cold_boot)
 {
 	int rc;
 
@@ -265,14 +265,14 @@ sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
 DEFINE_SPINLOCK(avail_hart_mask_lock);
 static volatile unsigned long avail_hart_mask = 0;
 
-void sbi_hart_mark_available(u32 hartid)
+void sbi_hart_mark_available(uint32_t hartid)
 {
 	spin_lock(&avail_hart_mask_lock);
 	avail_hart_mask |= (1UL << hartid);
 	spin_unlock(&avail_hart_mask_lock);
 }
 
-void sbi_hart_unmark_available(u32 hartid)
+void sbi_hart_unmark_available(uint32_t hartid)
 {
 	spin_lock(&avail_hart_mask_lock);
 	avail_hart_mask &= ~(1UL << hartid);
@@ -293,7 +293,7 @@ ulong sbi_hart_available_mask(void)
 typedef struct sbi_scratch *(*h2s)(ulong hartid);
 
 struct sbi_scratch *sbi_hart_id_to_scratch(struct sbi_scratch *scratch,
-					   u32 hartid)
+					   uint32_t hartid)
 {
 	return ((h2s)scratch->hartid_to_scratch)(hartid);
 }

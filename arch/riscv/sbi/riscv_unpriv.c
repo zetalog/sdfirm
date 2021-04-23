@@ -9,13 +9,13 @@
 
 #include <target/sbi.h>
 
-#define DEFINE_UNPRIVILEGED_LOAD_FUNCTION(type, insn, insnlen)                \
-	type load_##type(const type *addr,                                    \
-			struct sbi_scratch *scratch,                          \
-			struct unpriv_trap *trap)                             \
+#define DEFINE_UNPRIVILEGED_LOAD_FUNCTION(type, __type, insn, insnlen)        \
+	__type load_##type(const __type *addr,                                \
+			   struct sbi_scratch *scratch,                       \
+			   struct unpriv_trap *trap)                          \
 	{                                                                     \
 		register ulong __mstatus asm("a2");                           \
-		type val = 0;                                                 \
+		__type val = 0;                                               \
 		trap->ilen = insnlen;                                         \
 		trap->cause = 0;                                              \
 		trap->tval = 0;                                               \
@@ -30,8 +30,8 @@
 		return val;                                                   \
 	}
 
-#define DEFINE_UNPRIVILEGED_STORE_FUNCTION(type, insn, insnlen)               \
-	void store_##type(type *addr, type val,                               \
+#define DEFINE_UNPRIVILEGED_STORE_FUNCTION(type, __type, insn, insnlen)       \
+	void store_##type(__type *addr, __type val,                           \
 			struct sbi_scratch *scratch,                          \
 			struct unpriv_trap *trap)                             \
 	{                                                                     \
@@ -49,45 +49,45 @@
 		sbi_hart_set_trap_info(scratch, NULL);                        \
 	}
 
-DEFINE_UNPRIVILEGED_LOAD_FUNCTION(u8, lbu, 4)
-DEFINE_UNPRIVILEGED_LOAD_FUNCTION(u16, lhu, 4)
-DEFINE_UNPRIVILEGED_LOAD_FUNCTION(s8, lb, 4)
-DEFINE_UNPRIVILEGED_LOAD_FUNCTION(s16, lh, 4)
-DEFINE_UNPRIVILEGED_LOAD_FUNCTION(s32, lw, 2)
-DEFINE_UNPRIVILEGED_STORE_FUNCTION(u8, sb, 4)
-DEFINE_UNPRIVILEGED_STORE_FUNCTION(u16, sh, 4)
-DEFINE_UNPRIVILEGED_STORE_FUNCTION(u32, sw, 2)
+DEFINE_UNPRIVILEGED_LOAD_FUNCTION(u8, uint8_t, lbu, 4)
+DEFINE_UNPRIVILEGED_LOAD_FUNCTION(u16, uint16_t, lhu, 4)
+DEFINE_UNPRIVILEGED_LOAD_FUNCTION(s8, int8_t, lb, 4)
+DEFINE_UNPRIVILEGED_LOAD_FUNCTION(s16, int16_t, lh, 4)
+DEFINE_UNPRIVILEGED_LOAD_FUNCTION(s32, int32_t, lw, 2)
+DEFINE_UNPRIVILEGED_STORE_FUNCTION(u8, uint8_t, sb, 4)
+DEFINE_UNPRIVILEGED_STORE_FUNCTION(u16, uint16_t, sh, 4)
+DEFINE_UNPRIVILEGED_STORE_FUNCTION(u32, uint32_t, sw, 2)
 #if __riscv_xlen == 64
-DEFINE_UNPRIVILEGED_LOAD_FUNCTION(u32, lwu, 4)
-DEFINE_UNPRIVILEGED_LOAD_FUNCTION(u64, ld, 2)
-DEFINE_UNPRIVILEGED_STORE_FUNCTION(u64, sd, 2)
-DEFINE_UNPRIVILEGED_LOAD_FUNCTION(ulong, ld, 2)
+DEFINE_UNPRIVILEGED_LOAD_FUNCTION(u32, uint32_t, lwu, 4)
+DEFINE_UNPRIVILEGED_LOAD_FUNCTION(u64, uint64_t, ld, 2)
+DEFINE_UNPRIVILEGED_STORE_FUNCTION(u64, uint64_t, sd, 2)
+DEFINE_UNPRIVILEGED_LOAD_FUNCTION(ulong, unsigned long, ld, 2)
 #else
-DEFINE_UNPRIVILEGED_LOAD_FUNCTION(u32, lw, 2)
-DEFINE_UNPRIVILEGED_LOAD_FUNCTION(ulong, lw, 2)
+DEFINE_UNPRIVILEGED_LOAD_FUNCTION(u32, uint32_t, lw, 2)
+DEFINE_UNPRIVILEGED_LOAD_FUNCTION(ulong, unsigned long, lw, 2)
 
-u64 load_u64(const u64 *addr,
-	     struct sbi_scratch *scratch, struct unpriv_trap *trap)
+uint64_t load_u64(const uint64_t *addr,
+		  struct sbi_scratch *scratch, struct unpriv_trap *trap)
 {
-	u64 ret = load_u32((u32 *)addr, scratch, trap);
+	uint64_t ret = load_u32((uint32_t *)addr, scratch, trap);
 
 	if (trap->cause)
 		return 0;
-	ret |= ((u64)load_u32((u32 *)addr + 1, scratch, trap) << 32);
+	ret |= ((uint64_t)load_u32((uint32_t *)addr + 1, scratch, trap) << 32);
 	if (trap->cause)
 		return 0;
 
 	return ret;
 }
 
-void store_u64(u64 *addr, u64 val,
+void store_u64(uint64_t *addr, uint64_t val,
 	       struct sbi_scratch *scratch, struct unpriv_trap *trap)
 {
-	store_u32((u32 *)addr, val, scratch, trap);
+	store_u32((uint32_t *)addr, val, scratch, trap);
 	if (trap->cause)
 		return;
 
-	store_u32((u32 *)addr + 1, val >> 32, scratch, trap);
+	store_u32((uint32_t *)addr + 1, val >> 32, scratch, trap);
 	if (trap->cause)
 		return;
 }

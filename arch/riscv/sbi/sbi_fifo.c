@@ -9,8 +9,8 @@
  */
 #include <target/sbi.h>
 
-void sbi_fifo_init(struct sbi_fifo *fifo, void *queue_mem, u16 entries,
-		   u16 entry_size)
+void sbi_fifo_init(struct sbi_fifo *fifo, void *queue_mem,
+		   uint16_t entries, uint16_t entry_size)
 {
 	fifo->queue	  = queue_mem;
 	fifo->num_entries = entries;
@@ -26,9 +26,9 @@ static inline bool __sbi_fifo_is_full(struct sbi_fifo *fifo)
 	return (fifo->avail == fifo->num_entries) ? true : false;
 }
 
-u16 sbi_fifo_avail(struct sbi_fifo *fifo)
+uint16_t sbi_fifo_avail(struct sbi_fifo *fifo)
 {
-	u16 ret;
+	uint16_t ret;
 
 	if (!fifo)
 		return 0;
@@ -54,9 +54,9 @@ bool sbi_fifo_is_full(struct sbi_fifo *fifo)
 /* Note: must be called with fifo->qlock held */
 static inline void __sbi_fifo_enqueue(struct sbi_fifo *fifo, void *data)
 {
-	u32 head;
+	uint32_t head;
 
-	head = (u32)fifo->tail + fifo->avail;
+	head = (uint32_t)fifo->tail + fifo->avail;
 	if (head >= fifo->num_entries)
 		head = head - fifo->num_entries;
 
@@ -130,7 +130,8 @@ int sbi_fifo_inplace_update(struct sbi_fifo *fifo, void *in,
 		index = fifo->tail + i;
 		if (index >= fifo->num_entries)
 			index = index - fifo->num_entries;
-		entry = (void *)fifo->queue + (u32)index * fifo->entry_size;
+		entry = (void *)fifo->queue +
+			(uint32_t)index * fifo->entry_size;
 		ret = fptr(in, entry);
 
 		if (ret == SBI_FIFO_SKIP || ret == SBI_FIFO_UPDATED) {
@@ -172,7 +173,7 @@ int sbi_fifo_dequeue(struct sbi_fifo *fifo, void *data)
 		return -ENOENT;
 	}
 
-	memcpy(data, fifo->queue + (u32)fifo->tail * fifo->entry_size,
+	memcpy(data, fifo->queue + (uint32_t)fifo->tail * fifo->entry_size,
 	       fifo->entry_size);
 
 	fifo->avail--;

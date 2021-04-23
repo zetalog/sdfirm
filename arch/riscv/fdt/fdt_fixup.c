@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: BSD-2-Clause
-/*
+/* SPDX-License-Identifier: BSD-2-Clause
+ *
  * fdt_fixup.c - Flat Device Tree parsing helper routines
  * Implement helper routines to parse FDT nodes on top of
  * libfdt for OpenSBI usage
@@ -15,7 +15,7 @@ void fdt_cpu_fixup(void *fdt)
 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 	int err, cpu_offset, cpus_offset;
-	u32 hartid;
+	uint32_t hartid;
 
 	err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 32);
 	if (err < 0)
@@ -38,7 +38,7 @@ void fdt_cpu_fixup(void *fdt)
 
 void fdt_plic_fixup(void *fdt, const char *compat)
 {
-	u32 *cells;
+	uint32_t *cells;
 	int i, cells_count;
 	int plic_off;
 
@@ -46,12 +46,13 @@ void fdt_plic_fixup(void *fdt, const char *compat)
 	if (plic_off < 0)
 		return;
 
-	cells = (u32 *)fdt_getprop(fdt, plic_off,
-				   "interrupts-extended", &cells_count);
+	cells = (uint32_t *)fdt_getprop(fdt, plic_off,
+					"interrupts-extended",
+					&cells_count);
 	if (!cells)
 		return;
 
-	cells_count = cells_count / sizeof(u32);
+	cells_count = cells_count / sizeof(uint32_t);
 	if (!cells_count)
 		return;
 
@@ -74,9 +75,9 @@ static int fdt_resv_memory_update_node(void *fdt, unsigned long addr,
 	fdt32_t *val;
 	char name[32];
 
-	addr_high = (u64)addr >> 32;
+	addr_high = (uint64_t)addr >> 32;
 	addr_low = addr;
-	size_high = (u64)size >> 32;
+	size_high = (uint64_t)size >> 32;
 	size_low = size;
 
 	if (na > 1 && addr_high)
@@ -91,10 +92,9 @@ static int fdt_resv_memory_update_node(void *fdt, unsigned long addr,
 		return subnode;
 
 	if (no_map) {
-		/*
-		 * Tell operating system not to create a virtual
-		 * mapping of the region as part of its standard
-		 * mapping of system memory.
+		/* Tell operating system not to create a virtual mapping of
+		 * the region as part of its standard mapping of system
+		 * memory.
 		 */
 		err = fdt_setprop_empty(fdt, subnode, "no-map");
 		if (err < 0)
@@ -118,32 +118,33 @@ static int fdt_resv_memory_update_node(void *fdt, unsigned long addr,
 	return 0;
 }
 
-/**
- * We use PMP to protect OpenSBI firmware to safe-guard it from buggy S-mode
- * software, see pmp_init() in lib/sbi/sbi_hart.c. The protected memory region
- * information needs to be conveyed to S-mode software (e.g.: operating system)
- * via some well-known method.
+/* PMP is used to protect SBI firmware to safe-guard it from buggy S-mode
+ * software, see pmp_init(). The protected memory region information needs
+ * to be conveyed to S-mode software (e.g.: operating system) via some
+ * well-known method.
  *
- * With device tree, this can be done by inserting a child node of the reserved
- * memory node which is used to specify one or more regions of reserved memory.
+ * With device tree, this can be done by inserting a child node of the
+ * reserved memory node which is used to specify one or more regions of
+ * reserved memory.
  *
  * For the reserved memory node bindings, see Linux kernel documentation at
  * Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt
  *
- * Some additional memory spaces may be protected by platform codes via PMP as
- * well, and corresponding child nodes will be inserted.
+ * Some additional memory spaces may be protected by platform codes via PMP
+ * as well, and corresponding child nodes will be inserted.
  */
 int fdt_reserved_memory_fixup(void *fdt)
 {
 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-	unsigned long prot, addr, size;
+	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+	unsigned long prot, size;
+	phys_addr_t addr;
 	int parent, i, j;
 	int err;
 	int na = fdt_address_cells(fdt, 0);
 	int ns = fdt_size_cells(fdt, 0);
 
-	/*
-	 * Expand the device tree to accommodate new node
+	/* Expand the device tree to accommodate new node
 	 * by the following estimated size:
 	 *
 	 * Each PMP memory region entry occupies 64 bytes.
@@ -161,13 +162,11 @@ int fdt_reserved_memory_fixup(void *fdt)
 		if (parent < 0)
 			return parent;
 
-		/*
-		 * reserved-memory node has 3 required properties:
+		/* reserved-memory node has 3 required properties:
 		 * - #address-cells: the same value as the root node
 		 * - #size-cells: the same value as the root node
 		 * - ranges: should be empty
 		 */
-
 		err = fdt_setprop_empty(fdt, parent, "ranges");
 		if (err < 0)
 			return err;
@@ -181,31 +180,34 @@ int fdt_reserved_memory_fixup(void *fdt)
 			return err;
 	}
 
-#if 0
-	/*
-	 * We assume the given device tree does not contain any memory region
+	/* Assumes the given device tree does not contain any memory region
 	 * child node protected by PMP. Normally PMP programming happens at
-	 * M-mode firmware. The memory space used by OpenSBI is protected.
+	 * M-mode firmware. The memory space used by SBI is protected.
 	 * Some additional memory spaces may be protected by platform codes.
 	 *
 	 * With above assumption, we create child nodes directly.
 	 */
-	if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_PMP)) {
-		/*
-		 * Update the DT with firmware start & size even if PMP is not
-		 * supported. This makes sure that supervisor OS is always
-		 * aware of OpenSBI resident memory area.
+	if (!sbi_platform_has_pmp(plat)) {
+		/* Update the DT with firmware start & size even if PMP is
+		 * not supported. This makes sure that supervisor OS is
+		 * always aware of SBI resident memory area.
 		 */
 		addr = scratch->fw_start & ~(scratch->fw_size - 1UL);
-		size = (1UL << log2roundup(scratch->fw_size));
+		size = (1UL << __ilog2_u64(__roundup64(scratch->fw_size)));
 		return fdt_resv_memory_update_node(fdt, addr, size,
 						   0, parent, true);
 	}
 
-	for (i = 0, j = 0; i < sbi_hart_pmp_count(scratch); i++) {
-		err = sbi_hart_pmp_get(scratch, i, &prot, &addr, &size);
+	for (i = 0, j = 0; i < PMP_COUNT; i++) {
+		unsigned long log2len;
+
+		err = pmp_get(i, &prot, &addr, &log2len);
 		if (err)
 			continue;
+		if (log2len < __riscv_xlen)
+			size = 1UL << log2len;
+		else
+			size = 0;
 		if (!(prot & PMP_A))
 			continue;
 		if (prot & (PMP_R | PMP_W | PMP_X))
@@ -214,7 +216,6 @@ int fdt_reserved_memory_fixup(void *fdt)
 		fdt_resv_memory_update_node(fdt, addr, size, j, parent, false);
 		j++;
 	}
-#endif
 
 	return 0;
 }
@@ -230,10 +231,9 @@ int fdt_reserved_memory_nomap_fixup(void *fdt)
 		return parent;
 
 	fdt_for_each_subnode(subnode, fdt, parent) {
-		/*
-		 * Tell operating system not to create a virtual
-		 * mapping of the region as part of its standard
-		 * mapping of system memory.
+		/* Tell operating system not to create a virtual mapping of
+		 * the region as part of its standard mapping of system
+		 * memory.
 		 */
 		err = fdt_setprop_empty(fdt, subnode, "no-map");
 		if (err < 0)

@@ -23,7 +23,7 @@ static int system_opcode_insn(ulong insn, struct pt_regs *regs,
 {
 	int do_write, rs1_num = (insn >> 15) & 0x1f;
 	ulong rs1_val = GET_RS1(insn, regs);
-	int csr_num   = (u32)insn >> 20;
+	int csr_num   = (uint32_t)insn >> 20;
 	ulong csr_val, new_csr_val;
 
 	/* TODO: Ensure that we got CSR read/write instruction */
@@ -102,7 +102,7 @@ static illegal_insn_func illegal_insn_table[32] = {
 	truly_illegal_insn  /* 31 */
 };
 
-int sbi_illegal_insn_handler(u32 hartid, ulong mcause,
+int sbi_illegal_insn_handler(uint32_t hartid, ulong mcause,
 			     struct pt_regs *regs,
 			     struct sbi_scratch *scratch)
 {

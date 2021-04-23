@@ -364,9 +364,9 @@
 #define GET_RS2C(insn, regs)		(*REG_PTR(insn, SH_RS2C, regs))
 #define GET_SP(regs)			(*REG_PTR(2, 0, regs))
 #define SET_RD(insn, regs, val)		(*REG_PTR(insn, SH_RD, regs) = (val))
-#define IMM_I(insn)			((s32)(insn) >> 20)
-#define IMM_S(insn)			(((s32)(insn) >> 25 << 5) | \
-					 (s32)(((insn) >> 7) & 0x1f))
+#define IMM_I(insn)			((int32_t)(insn) >> 20)
+#define IMM_S(insn)			(((int32_t)(insn) >> 25 << 5) | \
+					 (int32_t)(((insn) >> 7) & 0x1f))
 #define MASK_FUNCT3			0x7000
 
 #ifdef CONFIG_RISCV_EXIT_M

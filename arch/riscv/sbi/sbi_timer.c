@@ -9,7 +9,7 @@
 
 #include <target/sbi.h>
 
-u64 sbi_timer_value(struct sbi_scratch *scratch)
+uint64_t sbi_timer_value(struct sbi_scratch *scratch)
 {
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 
@@ -24,7 +24,7 @@ void sbi_timer_event_stop(struct sbi_scratch *scratch)
 	sbi_platform_timer_event_stop(sbi_platform_ptr(scratch));
 }
 
-void sbi_timer_event_start(struct sbi_scratch *scratch, u64 next_event)
+void sbi_timer_event_start(struct sbi_scratch *scratch, uint64_t next_event)
 {
 	sbi_platform_timer_event_start(sbi_platform_ptr(scratch), next_event);
 	csr_clear(CSR_MIP, IR_STI);

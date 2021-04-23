@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Jan 14 23:57:57 2021
+# Fri Apr 23 10:51:43 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -324,7 +324,8 @@ CONFIG_ARCH_HAS_SD=y
 # CONFIG_MMCSD is not set
 # CONFIG_DDR is not set
 # CONFIG_IOMMU is not set
-# CONFIG_FDT is not set
+CONFIG_ARCH_HAS_FDT=y
+CONFIG_FDT=y
 # CONFIG_UEFI is not set
 # CONFIG_RAS is not set
 # CONFIG_PERF is not set
@@ -498,7 +499,7 @@ CONFIG_PRINT_PRINTF=y
 #
 # String operations
 #
-# CONFIG_STRING_STRNCMP is not set
+CONFIG_STRING_STRNCMP=y
 CONFIG_STRING_STRTOUL=y
 CONFIG_STRING_STRTOULL=y
 CONFIG_STRING_UUID=y
