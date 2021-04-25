@@ -34,18 +34,25 @@ APPELFS="		\
 	bench/linpack	\
 	net/loopback	\
 "
-
 for d in ${APPDIRS}; do
 	(
-	cd ${SDFIRM_DIR}/tests/$d
+	echo "Generating ${d} applications..."
+	cd ${SDFIRM_DIR}/tests/${d}
 	make -f Makefile.target clean
 	make -f Makefile.target
 	)
 done
 for f in ${APPELFS}; do
+	echo "Creating ${f} application..."
 	cp -f ${SDFIRM_DIR}/tests/${f}.elf ${TOP}/obj/bench/`basename ${f}`
 done
 
+# Build memory model application tests
+if [ "x${LITMUS}" != "x" ]; then
+	${SCRIPT}/build_litmus.sh ${LITMUS}
+fi
+
+# Build linux image along with rootfs
 ${SCRIPT}/build_module.sh $1
 
 cp -f ${TOP}/obj/linux-riscv/arch/${ARCH}/boot/Image ${SDFIRM_DIR}/Image
