@@ -52,13 +52,12 @@
 #define DMA_FROM_DEVICE		2
 #define DMA_NONE		3
 
+#ifndef __ASSEMBLY__
 typedef uint16_t dma_caps_t;
-
 #define DMA_CAP_MEM_TO_DEV	_BV(DMA_TO_DEVICE)
 #define DMA_CAP_DEV_TO_MEM	_BV(DMA_FROM_DEVICE)
 #define DMA_CAP_COHERENT	_BV(4)
 
-#ifndef __ASSEMBLY__
 /* DMA channel ID */
 #if NR_DMAS <= 256
 typedef uint8_t dma_t;

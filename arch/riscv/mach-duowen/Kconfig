@@ -323,13 +323,16 @@ endchoice
 choice
 	prompt "APC layout"
 	depends DUOWEN_APC_4
-	default DUOWEN_APC_4_1111
+	default DUOWEN_APC_4_3100
+
+config DUOWEN_APC_4_3100
+	bool "Cluster0 3cores, cluster1 1core"
 
 config DUOWEN_APC_4_1111
 	bool "Cluster0/1/2/3 1core"
 
-config DUOWEN_APC_4_3100
-	bool "Cluster0 3cores, cluster1 1core"
+config DUOWEN_APC_4_4000
+	bool "Cluster0 4cores"
 
 endchoice
 
