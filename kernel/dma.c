@@ -44,7 +44,6 @@
 
 #define sdma2dma(dma)			dma_nr_table[sdma]
 
-irq_handler dma_handlers[MAX_CHANNELS];
 dma_t dma_nr_table[MAX_CHANNELS];
 uint8_t dma_nr_regs = 0;
 
@@ -113,7 +112,7 @@ bool dma_is_coherent(dma_t dma)
 
 	if (!chan)
 		return false;
-	return chan->coherent;
+	return !!(chan->caps & DMA_CAP_COHERENT);
 }
 
 bool dma_is_direct(dma_t dma)
@@ -126,15 +125,32 @@ bool dma_is_direct(dma_t dma)
 }
 
 /* 0 ~ NR_DMAS-1 is allowed. */
-void dma_register_channel(dma_t dma, irq_handler h)
+void dma_register_channel(dma_t dma, dma_caps_t caps, irq_handler h)
 {
-	uint8_t curr = dma_nr_regs;
+	dma_t curr = dma_nr_regs;
+	struct dma_channel *chan = dma2chan(dma);
 
 	BUG_ON(dma <= 0 || dma >= NR_DMAS);
 	BUG_ON(curr == MAX_CHANNELS);
 	dma_nr_table[curr] = dma;
 	dma_nr_regs++;
-	dma_handlers[curr] = h;
+	chan = dma2chan(dma);
+	chan->caps = caps;
+	chan->handler = h;
+}
+
+dma_t dma_request_channel(uint8_t direction)
+{
+	dma_t dma;
+	struct dma_channel *chan;
+
+	for (dma = 0; dma < MAX_CHANNELS; dma++) {
+		chan = dma2chan(dma);
+		if (chan->caps & _BV(direction) &&
+		    chan->direction == DMA_NONE)
+			return dma;
+	}
+	return INVALID_DMA;
 }
 
 void dma_direct_sync_cpu(dma_t dma, dma_addr_t addr, size_t size,
@@ -205,6 +221,7 @@ void dma_unmap_single(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir)
 		dma_hw_unmap_single(dma, addr, size, dir);
 }
 
+/* Initialize DMA engines */
 void dma_channels_init(void)
 {
 	dmac_hw_ctrl_init();
@@ -213,4 +230,25 @@ void dma_channels_init(void)
 void dma_init(void)
 {
 	dma_channels_init();
+}
+
+phys_addr_t dmatest_rx_addr;
+phys_addr_t dmatest_tx_addr;
+dma_t dmatest_tx_chan;
+dma_t dmatest_rx_chan;
+DECLARE_CIRCBF8(dmatest_rx_buf, 32);
+DECLARE_CIRCBF8(dmatest_tx_buf, 32);
+
+void dmatest(void)
+{
+	dmatest_rx_chan = dma_request_channel(DMA_FROM_DEVICE);
+	dmatest_tx_chan = dma_request_channel(DMA_TO_DEVICE);
+
+	/* TODO: dma_alloc_coherent of DMA buffers */
+	dmatest_rx_addr = dma_map_single(dmatest_rx_chan,
+					 dmatest_rx_buf.buffer,
+					 32, DMA_FROM_DEVICE);
+	dmatest_tx_addr = dma_map_single(dmatest_tx_chan,
+					 dmatest_tx_buf.buffer,
+					 32, DMA_TO_DEVICE);
 }

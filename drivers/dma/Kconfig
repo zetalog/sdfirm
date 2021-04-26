@@ -5,14 +5,272 @@
 
 menu "DMA host drivers"
 
+config ARCH_IS_DW_DMA_IRQ_COMBINED
+	bool
+
+config ARCH_IS_DW_DMA_IRQ_CHANNEL_COMMONREG
+	bool
+
+config ARCH_IS_DW_DMA_IRQ_ALL
+	bool
+
+config ARCH_HAS_DW_DMA_SLVIF_STATUS
+	bool
+
+config ARCH_HAS_DW_DMA_CORE_STATUS
+	bool
+
+config ARCH_HAS_DW_DMA_HOLD_IO
+	bool
+
+config ARCH_HAS_DW_DMA_UNALIGNED_XFER
+	bool
+
+config ARCH_IS_DW_DMA_CHANNEL8
+	bool
+
+config ARCH_IS_DW_DMA_CHANNEL16
+	bool
+
+config ARCH_HAS_DW_DMA_MULT_ARB
+	bool
+	depends ARCH_IS_DW_DMA_CHANNEL16
+
+config ARCH_HAS_DW_DMA_CH_ABORT
+	bool
+
+config ARCH_HAS_DW_DMA_LAST_WRITE
+	bool
+
+config ARCH_HAS_DW_DMA_ENDIAN_SELECTION
+	bool
+
+config ARCH_IS_DW_DMA_MSTIF1
+	bool
+
+config ARCH_IS_DW_DMA_MSTIF2
+	bool
+
+config ARCH_IS_DW_DMA_M_LE
+	bool
+
+config ARCH_IS_DW_DMA_M_BE
+	bool
+
+config ARCH_IS_DW_DMA_M_ADDR32
+	bool
+
+config ARCH_IS_DW_DMA_M_ADDR49
+	bool
+
+config ARCH_IS_DW_DMA_M_ADDR48
+	bool
+
+config ARCH_IS_DW_DMA_M_DATA32
+	bool
+
+config ARCH_IS_DW_DMA_M_DATA64
+	bool
+
+config ARCH_IS_DW_DMA_M_DATA128
+	bool
+
+config ARCH_IS_DW_DMA_M_DATA256
+	bool
+
+config ARCH_IS_DW_DMA_M_DATA512
+	bool
+
+config ARCH_IS_DW_DMA_M_BURSTLEN4
+	bool
+
+config ARCH_IS_DW_DMA_M_BURSTLEN5
+	bool
+
+config ARCH_IS_DW_DMA_M_BURSTLEN6
+	bool
+
+config ARCH_IS_DW_DMA_M_BURSTLEN7
+	bool
+
+config ARCH_IS_DW_DMA_M_BURSTLEN8
+	bool
+
+config ARCH_IS_DW_DMA_S_DATA32
+	bool
+
+config ARCH_IS_DW_DMA_S_DATA64
+	bool
+
 menuconfig DW_DMA
 	bool "Synopsys DesignWare AXI DMAC support"
 	select BIT_FFS32
 
 if DW_DMA
 
+choice
+	prompt "Number of channels"
+
+config DW_DMA_CHANNEL8
+	bool "8"
+	depends ARCH_IS_DW_DMA_CHANNEL8
+
+config DW_DMA_CHANNEL16
+	bool "16"
+	depends ARCH_IS_DW_DMA_CHANNEL16
+
+endchoice
+
+choice
+	prompt "Interrupt PINs"
+
+config DW_DMA_IRQ_COMBINED
+	bool "Combined only"
+	depends ARCH_IS_DW_DMA_IRQ_COMBINED
+
+config DW_DMA_IRQ_CHANNEL_COMMONREG
+	bool "Channel and COMMONREG"
+	depends ARCH_IS_DW_DMA_IRQ_CHANNEL_COMMONREG
+
+config DW_DMA_IRQ_ALL
+	bool "All"
+	depends ARCH_IS_DW_DMA_IRQ_ALL
+
+endchoice
+
+config DW_DMA_SLVIF_STATUS
+	bool "Enable slave bus status indication support"
+	depends ARCH_HAS_DW_DMA_SLVIF_STATUS
+
+config DW_DMA_CORE_STATUS
+	bool "Enable internal status indication support"
+	depends ARCH_HAS_DW_DMA_CORE_STATUS
+
+config DW_DMA_HOLD_IO
+	bool "Enable hold_req/hol_ack IO support"
+	depends ARCH_HAS_DW_DMA_HOLD_IO
+
+config DW_DMA_UNALIGNED_XFER
+	bool "Enable unaligned transfer support"
+	depends ARCH_HAS_DW_DMA_UNALIGNED_XFER
+
 config DW_DMA_CH_ABORT
 	bool "Enable channel abort support"
+	depends ARCH_HAS_DW_DMA_CH_ABORT
+
+config DW_DMA_LAST_WRITE
+	bool "Enable transfer completion indication support"
+	depends ARCH_HAS_DW_DMA_LAST_WRITE
+
+choice
+	prompt "Number of AXI master interfaces"
+
+config DW_DMA_MSTIF1
+	bool "1"
+	depends ARCH_IS_DW_DMA_MSTIF1
+
+config DW_DMA_MSTIF2
+	bool "2"
+	depends ARCH_IS_DW_DMA_MSTIF2
+
+endchoice
+
+choice
+	prompt "Master interface endian format"
+	depends !ARCH_HAS_DW_DMA_ENDIAN_SELECTION
+	help
+	  Statically selects master interface endian format if endian
+	  selection PIN is not enabled.
+
+config DW_DMA_M_LE
+	bool "little endian"
+	depends ARCH_IS_DW_DMA_M_LE
+
+config DW_DMA_M_BE
+	bool "big endian"
+	depends ARCH_IS_DW_DMA_M_BE
+
+endchoice
+
+choice
+	prompt "Master interface address bus width"
+
+config DW_DMA_M_ADDR32
+	bool "32"
+	depends ARCH_IS_DW_DMA_M_ADDR32
+
+config DW_DMA_M_ADDR49
+	bool "49"
+	depends ARCH_IS_DW_DMA_M_ADDR49
+
+config DW_DMA_M_ADDR64
+	bool "64"
+	depends ARCH_IS_DW_DMA_M_ADDR64
+
+endchoice
+
+choice
+	prompt "Master interface data bus width"
+
+config DW_DMA_M_DATA32
+	bool "32"
+	depends ARCH_IS_DW_DMA_M_DATA32
+
+config DW_DMA_M_DATA64
+	bool "64"
+	depends ARCH_IS_DW_DMA_M_DATA64
+
+config DW_DMA_M_DATA128
+	bool "128"
+	depends ARCH_IS_DW_DMA_M_DATA128
+
+config DW_DMA_M_DATA256
+	bool "256"
+	depends ARCH_IS_DW_DMA_M_DATA256
+
+config DW_DMA_M_DATA512
+	bool "512"
+	depends ARCH_IS_DW_DMA_M_DATA512
+
+endchoice
+
+choice
+	prompt "Master interface burst length width"
+
+config DW_DMA_M_BURSTLEN4
+	bool "4"
+	depends ARCH_IS_DW_DMA_M_BURSTLEN4
+
+config DW_DMA_M_BURSTLEN5
+	bool "5"
+	depends ARCH_IS_DW_DMA_M_BURSTLEN5
+
+config DW_DMA_M_BURSTLEN6
+	bool "6"
+	depends ARCH_IS_DW_DMA_M_BURSTLEN6
+
+config DW_DMA_M_BURSTLEN7
+	bool "7"
+	depends ARCH_IS_DW_DMA_M_BURSTLEN7
+
+config DW_DMA_M_BURSTLEN8
+	bool "8"
+	depends ARCH_IS_DW_DMA_M_BURSTLEN8
+
+endchoice
+
+choice
+	prompt "Slave interface data bus width"
+
+config DW_DMA_S_DATA32
+	bool "32"
+	depends ARCH_IS_DW_DMA_S_DATA32
+
+config DW_DMA_S_DATA64
+	bool "64"
+	depends ARCH_IS_DW_DMA_S_DATA64
+
+endchoice
 
 config DW_DMA_CH_MULTI_BLK
 	bool "Enable channel multi-block support"

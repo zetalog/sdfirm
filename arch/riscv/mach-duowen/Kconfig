@@ -741,6 +741,14 @@ endif
 menuconfig DUOWEN_DMAC
 	bool "Duowen DMA controller support"
 	select DW_DMA
+	select ARCH_IS_DW_DMA_CHANNEL8
+	select ARCH_IS_DW_DMA_IRQ_ALL
+	select ARCH_IS_DW_DMA_MSTIF1
+	select ARCH_IS_DW_DMA_M_LE
+	select ARCH_IS_DW_DMA_M_ADDR49
+	select ARCH_IS_DW_DMA_M_DATA256
+	select ARCH_IS_DW_DMA_M_BURSTLEN8
+	select ARCH_IS_DW_DMA_S_DATA32
 
 if DUOWEN_DMAC
 

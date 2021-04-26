@@ -3,8 +3,6 @@
 
 #define DW_DMA_REG(n, offset)		(DMA_BASE + (offset))
 #define NR_DW_DMAS			1
-#define DW_DMA_MAX_MASTERS(n)		2 /* snps,dma-masters */
-#define DW_DMA_M_DATA_WIDTH(n)		8 /* snps,data-width */
 
 #if defined(CONFIG_DW_DMA)
 #include <driver/dw_dma.h>
@@ -16,9 +14,6 @@
 #endif
 
 #define INVALID_DMA			-1
-
-#define DUOWEN_DMAC_CHANNEL_BASE	0
-#define DUOWEN_DMAC_MAX_CHANNELS	8
 
 #ifdef CONFIG_DW_DMA
 #ifdef CONFIG_DUOWEN_SMMU

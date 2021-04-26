@@ -52,6 +52,12 @@
 #define DMA_FROM_DEVICE		2
 #define DMA_NONE		3
 
+typedef uint16_t dma_caps_t;
+
+#define DMA_CAP_MEM_TO_DEV	_BV(DMA_TO_DEVICE)
+#define DMA_CAP_DEV_TO_MEM	_BV(DMA_FROM_DEVICE)
+#define DMA_CAP_COHERENT	_BV(4)
+
 #ifndef __ASSEMBLY__
 /* DMA channel ID */
 #if NR_DMAS <= 256
@@ -76,11 +82,13 @@ typedef uint16_t dma_t;
 typedef uint8_t dma_dir_t;
 
 struct dma_channel {
-	bool coherent;
+	dma_caps_t caps;
 	bool indirect;
 	bool has_range;
 	phys_addr_t phys_base;
 	dma_addr_t dma_base;
+	uint8_t direction;
+	irq_handler handler;
 };
 
 #include <driver/dmac.h>
@@ -103,7 +111,8 @@ struct dma_channel dma_channel_ctrl;
 #define __phys_to_dma(phys_addr)	((phys_addr) - DMA_PHYS_OFFSET)
 #define __dma_to_phys(dma_addr)		((dma_addr) + DMA_PHYS_OFFSET)
 
-void dma_register_channel(dma_t dma, irq_handler cmpl);
+void dma_register_channel(dma_t dma, dma_caps_t caps, irq_handler cmpl);
+dma_t dma_request_channel(uint8_t direction);
 
 /* DMA direct */
 dma_addr_t dma_direct_map(dma_t dma, void *phys, size_t size, dma_dir_t dir);

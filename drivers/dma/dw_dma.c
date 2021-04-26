@@ -45,7 +45,7 @@
 
 dma_chip_t chip_var;
 dma_chip_t *chip = &chip_var;
-dma_chan_t chan_var[DMAC_MAX_CHANNELS];
+dma_chan_t chan_var[DW_DMA_MAX_CHANNELS];
 
 dw_dma_hcfg_t  hdata_var;
 dw_dma_hcfg_t *hdata = &hdata_var;
@@ -651,10 +651,10 @@ static void dw_dma_init_bank(void)
 	for (i = 0; i < DW_DMA_MAX_POOLS; i++)
 		u64LocADDR[i] = (uint64_t)u64POOL_ADDR[i];
 
-	for (tmp = 0; tmp < DMAC_MAX_CHANNELS; tmp++)
+	for (tmp = 0; tmp < DW_DMA_MAX_CHANNELS; tmp++)
 		chip->chan[tmp] = &chan_var[tmp];
 
-	for (i = 0; i < DMAC_MAX_CHANNELS; i++) {
+	for (i = 0; i < DW_DMA_MAX_CHANNELS; i++) {
 		dma_chan_t *chan = chip->chan[i];
 		chan->chip = chip;
 		chan->id = i;

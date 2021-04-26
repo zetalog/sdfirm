@@ -45,10 +45,16 @@
 #include <target/generic.h>
 #include <target/spinlock.h>
 
-#ifndef DW_DMA_MAX_CHANNELS
-#define DW_DMA_MAX_CHANNELS(n)		8 /* dma-channels */
+#ifdef CONFIG_DW_DMA_CHANNEL8
+#define DW_DMA_MAX_CHANNELS		8 /* dma-channels */
 #endif
-#ifndef DW_DMA_MAX_MASTERS
+#ifdef CONFIG_DW_DMA_CHANNEL16
+#define DW_DMA_MAX_CHANNELS		16 /* dma-channels */
+#endif
+#ifdef CONFIG_DW_DMA_MSTIF2
+#define DW_DMA_MAX_MASTERS(n)		2 /* snps,dma-masters */
+#endif
+#ifdef CONFIG_DW_DMA_MSTIF1
 #define DW_DMA_MAX_MASTERS(n)		1 /* snps,dma-masters */
 #endif
 #ifndef DW_DMA_M_ADDR_WIDTH
@@ -63,8 +69,6 @@
 #ifndef DW_DMA_S_DATA_WIDTH
 #define DW_DMA_S_DATA_WIDTH(n)		32
 #endif
-#define DMAC_MAX_CHANNELS		8
-#define DMAC_MAX_MASTERS		2
 
 #ifdef CONFIG_DW_DMC_MAX_BLK_SIZE
 #define DMAC_MAX_BLK_SIZE	CONFIG_DW_DMC_MAX_BLK_SIZE
@@ -98,6 +102,11 @@
 #define DMAC_COMMONREG_INTSTATUSREG(n)		DW_DMA_REG(n, 0x50)
 #define DMAC_RESETREG				DW_DMA_REG(n, 0x58)
 
+/* 5.1.2 DMAC_COMPVERREG */
+#define DMA_DMAC_COMPVER_OFFSET		0
+#define DMA_DMAC_COMPVER_MASK		REG_32BIT_MASK
+#define DMA_DMAC_COMPVER(value)		_GET_FV(DMA_DMAC_COMPVER, value)
+
 /* 5.1.3 DMAC_CFGREG */
 #define DMA_DMAC_EN			_BV(0)
 #define DMA_INT_EN			_BV(0)
@@ -105,12 +114,12 @@
 /* 5.1.4 DMAC_CHENREG */
 /* DMAC_CHENREG_LO */
 #define DMA_CH_EN(n)			REG32_1BIT_OFFSET(n)
-#define DMA_CH_EN_WE(n)			REG32_1BIT_OFFSET((n) + 8)
-#define DMA_CH_SUSP(n)			REG32_1BIT_OFFSET((n) + 16)
-#define DMA_CH_SUSP_WE(n)		REG32_1BIT_OFFSET((n) + 24)
+#define DMA_CH_EN_WE(n)			REG32_1BIT_OFFSET((n) + DW_DMA_MAX_CHANNELS)
+#define DMA_CH_SUSP(n)			REG32_1BIT_OFFSET((n) + 2 * DW_DMA_MAX_CHANNELS)
+#define DMA_CH_SUSP_WE(n)		REG32_1BIT_OFFSET((n) + 3 * DW_DMA_MAX_CHANNELS)
 /* DMAC_CHENREG_HI */
 #define DMA_CH_ABORT(n)			REG32_1BIT_OFFSET(n)
-#define DMA_CH_ABORT_WE(n)		REG32_1BIT_OFFSET((n) + 8)
+#define DMA_CH_ABORT_WE(n)		REG32_1BIT_OFFSET((n) + DW_DMA_MAX_CHANNELS)
 
 /* 5.1.8 DMAC_INTSTATUSREG */
 #define DMA_CommonReg_IntStat		_BV(16)
@@ -372,8 +381,8 @@ typedef struct dw_dma_ctx {
 	uint32_t nr_channels;
 	uint32_t nr_masters;
 	uint32_t m_data_width;
-	uint32_t block_size[DMAC_MAX_CHANNELS];
-	uint32_t priority[DMAC_MAX_CHANNELS];
+	uint32_t block_size[DW_DMA_MAX_CHANNELS];
+	uint32_t priority[DW_DMA_MAX_CHANNELS];
 	uint32_t rw_burst_len;
 	bool restrict_burst_len;
 } dw_dma_hcfg_t;
@@ -418,7 +427,7 @@ typedef struct dma_chip_str {
 	caddr_t core_clk;
 	caddr_t cfgr_clk;
 	dw_dma_hcfg_t *hdata;
-	dma_chan_t *chan[DMAC_MAX_CHANNELS];
+	dma_chan_t *chan[DW_DMA_MAX_CHANNELS];
 } dma_chip_t;
 
 #define DMA_OK  0
