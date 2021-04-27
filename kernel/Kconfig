@@ -171,7 +171,7 @@ config ARCH_HAS_QSPINLOCK
 	bool
 
 config SMP_WAIT_BOOT
-	bool "Wait other CPUs to boot up"
+	bool "Enable wait for SMP bring-up"
 
 endif
 

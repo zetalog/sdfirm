@@ -63,11 +63,17 @@ void smp_boot(void)
 	cpumask_set_cpu(smp_boot_cpu, &smp_online_cpus);
 }
 
+#ifdef CONFIG_SMP_WAIT_BOOT
+#define SMP_WAIT_BOOT_MS		2000
+#else /* CONFIG_SMP_WAIT_BOOT */
+#define SMP_WAIT_BOOT_MS		0
+#endif /* CONFIG_SMP_WAIT_BOOT */
+
 void smp_init(void)
 {
 	cpu_t cpu = smp_processor_id();
 
-	con_log("smp: Initializing CPU %d.\n", cpu);
+	con_log("smp: Bringing up CPU %d...\n", cpu);
 
 	if (smp_processor_id() != smp_boot_cpu) {
 		cpumask_set_cpu(cpu, &smp_online_cpus);
@@ -81,14 +87,29 @@ void smp_init(void)
 		bench_init();
 	} else {
 		cpu_t cpu;
+		cpu_t nr_online_cpus;
+		tick_t smp_wait;
 
 		smp_hw_ctrl_init();
 		for (cpu = 0; cpu < NR_CPUS; cpu++) {
-			if (cpu != smp_boot_cpu) {
+			if (cpu != smp_boot_cpu)
 				smp_cpu_on(cpu, (caddr_t)smp_init);
-				while (!cpumask_test_cpu(cpu, &smp_online_cpus));
-			}
 		}
+		do {
+			nr_online_cpus = 0;
+			smp_wait = tick_get_counter() + SMP_WAIT_BOOT_MS;
+			for (cpu = 0; cpu < NR_CPUS; cpu++) {
+				if (cpumask_test_cpu(cpu, &smp_online_cpus))
+					nr_online_cpus++;
+			}
+			if (nr_online_cpus >= NR_CPUS)
+				break;
+			if (time_after(tick_get_counter(), smp_wait)) {
+				con_err("smp: Bring up CPUs timeout - %d/%d!\n",
+					nr_online_cpus, NR_CPUS);
+				break;
+			}
+		} while (1);
 		board_smp_init();
 		bench_init();
 		cmd_init();
