@@ -54,6 +54,14 @@ struct duowen_pad duowen_pads[] = {
 	{ GPIO2A, pad_gpio_108, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
 	{ GPIO2A, pad_gpio_109, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
 #endif
+#ifndef CONFIG_DUOWEN_SSI_FLASH_SPI0
+	/* flash0 */
+	{ GPIO1B, pad_gpio_48, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_DOWN, 8 },
+	{ GPIO1B, pad_gpio_49, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_DOWN, 8 },
+	{ GPIO1B, pad_gpio_50, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_DOWN, 8 },
+	{ GPIO1B, pad_gpio_51, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	{ GPIO1B, pad_gpio_52, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+#endif
 };
 
 /* This function is used by SBI to pass pin configurations to the Linux
