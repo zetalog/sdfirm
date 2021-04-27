@@ -10,6 +10,7 @@ struct duowen_pad {
 };
 
 struct duowen_pad duowen_pads[] = {
+#ifndef CONFIG_DUOWEN_UART_CON0
 	/* uart0 */
 	{ GPIO1B, pad_gpio_54, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_DOWN, 8 },
 	{ GPIO1B, pad_gpio_55, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_DOWN, 8 },
@@ -19,6 +20,8 @@ struct duowen_pad duowen_pads[] = {
 	{ GPIO2A, pad_gpio_83, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
 	{ GPIO2A, pad_gpio_84, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
 	{ GPIO2A, pad_gpio_85, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+#endif
+#ifndef CONFIG_DUOWEN_UART_CON1
 	/* uart1 */
 	{ GPIO1B, pad_gpio_62, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_DOWN, 8 },
 	{ GPIO1B, pad_gpio_63, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_DOWN, 8 },
@@ -28,6 +31,29 @@ struct duowen_pad duowen_pads[] = {
 	{ GPIO2A, pad_gpio_91, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
 	{ GPIO2A, pad_gpio_92, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
 	{ GPIO2A, pad_gpio_93, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+#endif
+#ifndef CONFIG_DUOWEN_UART_CON2
+	/* uart2 */
+	{ GPIO1C, pad_gpio_70, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_DOWN, 8 },
+	{ GPIO1C, pad_gpio_71, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_DOWN, 8 },
+	{ GPIO2A, pad_gpio_96, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	{ GPIO2A, pad_gpio_97, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	{ GPIO2A, pad_gpio_98, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	{ GPIO2A, pad_gpio_99, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	{ GPIO2A, pad_gpio_100, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	{ GPIO2A, pad_gpio_101, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+#endif
+#ifndef CONFIG_DUOWEN_UART_CON3
+	/* uart3 */
+	{ GPIO1D, pad_gpio_78, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_DOWN, 8 },
+	{ GPIO1D, pad_gpio_79, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_DOWN, 8 },
+	{ GPIO2A, pad_gpio_104, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	{ GPIO2A, pad_gpio_105, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	{ GPIO2A, pad_gpio_106, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	{ GPIO2A, pad_gpio_107, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	{ GPIO2A, pad_gpio_108, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+	{ GPIO2A, pad_gpio_109, TLMM_PAD_FUNCTION, GPIO_PAD_PULL_UP, 8 },
+#endif
 };
 
 /* This function is used by SBI to pass pin configurations to the Linux
