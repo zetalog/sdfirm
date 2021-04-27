@@ -57,6 +57,7 @@ typedef uint16_t dma_caps_t;
 #define DMA_CAP_MEM_TO_DEV	_BV(DMA_TO_DEVICE)
 #define DMA_CAP_DEV_TO_MEM	_BV(DMA_FROM_DEVICE)
 #define DMA_CAP_COHERENT	_BV(4)
+#define DMA_CAP_HAS_RANGE	_BV(5)
 
 /* DMA channel ID */
 #if NR_DMAS <= 256
@@ -83,7 +84,6 @@ typedef uint8_t dma_dir_t;
 struct dma_channel {
 	dma_caps_t caps;
 	bool indirect;
-	bool has_range;
 	phys_addr_t phys_base;
 	dma_addr_t dma_base;
 	uint8_t direction;
@@ -110,18 +110,21 @@ struct dma_channel dma_channel_ctrl;
 #define __phys_to_dma(phys_addr)	((phys_addr) - DMA_PHYS_OFFSET)
 #define __dma_to_phys(dma_addr)		((dma_addr) + DMA_PHYS_OFFSET)
 
-void dma_register_channel(dma_t dma, dma_caps_t caps, irq_handler cmpl);
-dma_t dma_request_channel(uint8_t direction);
+void dma_register_channel(dma_t dma, dma_caps_t caps);
+void dma_config_range(dma_t dma, phys_addr_t phys_base, dma_addr_t dma_base);
+dma_t dma_request_channel(uint8_t direction, irq_handler cmpl);
 
 /* DMA direct */
-dma_addr_t dma_direct_map(dma_t dma, void *phys, size_t size, dma_dir_t dir);
+dma_addr_t dma_direct_map(dma_t dma, phys_addr_t phys, size_t size,
+			  dma_dir_t dir);
 void dma_direct_unmap(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir);
 void dma_direct_sync_cpu(dma_t dma, dma_addr_t addr, size_t size,
 			 dma_dir_t dir);
 void dma_direct_sync_dev(dma_t dma, dma_addr_t addr, size_t size,
 			 dma_dir_t dir);
 
-dma_addr_t dma_map_single(dma_t dma, void *ptr, size_t size, dma_dir_t dir);
+dma_addr_t dma_map_single(dma_t dma, phys_addr_t ptr, size_t size,
+			  dma_dir_t dir);
 void dma_unmap_single(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir);
 void dma_sync_cpu(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir);
 void dma_sync_dev(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir);

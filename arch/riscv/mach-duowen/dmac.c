@@ -39,6 +39,7 @@
  * $Id: dma.c,v 1.1 2020-11-24 23:20:00 zhenglv Exp $
  */
 
+#include <target/clk.h>
 #include <target/dma.h>
 #include <target/iommu.h>
 
@@ -58,7 +59,7 @@ void smmu_dma_alloc_sme(void)
 }
 #endif
 
-dma_addr_t dma_hw_map_single(dma_t dma, void *ptr,
+dma_addr_t dma_hw_map_single(dma_t dma, phys_addr_t ptr,
 			     size_t size, dma_dir_t dir)
 {
 	return (dma_addr_t)ptr;
@@ -71,6 +72,6 @@ void dma_hw_unmap_single(dma_t dma, dma_addr_t addr,
 
 void dmac_hw_ctrl_init(void)
 {
-	/* TODO: clock enabling */
-        dw_dma_init();
+	clk_enable(dma_clk);
+        dw_dma_dev_init();
 }

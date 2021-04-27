@@ -40,6 +40,7 @@
  */
 
 #include <target/dma.h>
+#include <target/paging.h>
 #include <target/panic.h>
 
 #define sdma2dma(dma)			dma_nr_table[sdma]
@@ -92,7 +93,7 @@ phys_addr_t dma_to_phys(dma_t dma, dma_addr_t addr)
 {
 	struct dma_channel *chan = dma2chan(dma);
 
-	if (!chan || !chan->has_range)
+	if (!chan || !(chan->caps & DMA_CAP_HAS_RANGE))
 		return __dma_to_phys(addr);
 	return addr - chan->dma_base + chan->phys_base;
 }
@@ -101,7 +102,7 @@ dma_addr_t phys_to_dma(dma_t dma, phys_addr_t phys)
 {
 	struct dma_channel *chan = dma2chan(dma);
 
-	if (!chan || !chan->has_range)
+	if (!chan || !(chan->caps & DMA_CAP_HAS_RANGE))
 		return __phys_to_dma(phys);
 	return phys - chan->phys_base + chan->dma_base;
 }
@@ -125,7 +126,7 @@ bool dma_is_direct(dma_t dma)
 }
 
 /* 0 ~ NR_DMAS-1 is allowed. */
-void dma_register_channel(dma_t dma, dma_caps_t caps, irq_handler h)
+void dma_register_channel(dma_t dma, dma_caps_t caps)
 {
 	dma_t curr = dma_nr_regs;
 	struct dma_channel *chan = dma2chan(dma);
@@ -136,10 +137,20 @@ void dma_register_channel(dma_t dma, dma_caps_t caps, irq_handler h)
 	dma_nr_regs++;
 	chan = dma2chan(dma);
 	chan->caps = caps;
-	chan->handler = h;
 }
 
-dma_t dma_request_channel(uint8_t direction)
+void dma_config_range(dma_t dma, phys_addr_t phys_base, dma_addr_t dma_base)
+{
+	struct dma_channel *chan = dma2chan(dma);
+
+	if (!chan)
+		return;
+	chan->caps |= DMA_CAP_HAS_RANGE;
+	chan->phys_base = phys_base;
+	chan->dma_base = dma_base;
+}
+
+dma_t dma_request_channel(uint8_t direction, irq_handler h)
 {
 	dma_t dma;
 	struct dma_channel *chan;
@@ -147,8 +158,11 @@ dma_t dma_request_channel(uint8_t direction)
 	for (dma = 0; dma < MAX_CHANNELS; dma++) {
 		chan = dma2chan(dma);
 		if (chan->caps & _BV(direction) &&
-		    chan->direction == DMA_NONE)
+		    chan->direction == DMA_NONE) {
+			chan->direction = direction;
+			chan->handler = h;
 			return dma;
+		}
 	}
 	return INVALID_DMA;
 }
@@ -193,7 +207,8 @@ void dma_sync_dev(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir)
 		dma_hw_sync_dev(dma, phys, size, dir);
 }
 
-dma_addr_t dma_direct_map(dma_t dma, void *phys, size_t size, dma_dir_t dir)
+dma_addr_t dma_direct_map(dma_t dma, phys_addr_t phys, size_t size,
+			  dma_dir_t dir)
 {
 	dma_hw_sync_dev(dma, phys, size, dir);
 	return phys_to_dma(dma, (phys_addr_t)phys);
@@ -205,7 +220,8 @@ void dma_direct_unmap(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir)
 	dma_hw_sync_cpu(dma, phys, size, dir);
 }
 
-dma_addr_t dma_map_single(dma_t dma, void *ptr, size_t size, dma_dir_t dir)
+dma_addr_t dma_map_single(dma_t dma, phys_addr_t ptr, size_t size,
+			  dma_dir_t dir)
 {
 	if (dma_is_direct(dma))
 		return dma_direct_map(dma, ptr, size, dir);
@@ -241,14 +257,14 @@ DECLARE_CIRCBF8(dmatest_tx_buf, 32);
 
 void dmatest(void)
 {
-	dmatest_rx_chan = dma_request_channel(DMA_FROM_DEVICE);
-	dmatest_tx_chan = dma_request_channel(DMA_TO_DEVICE);
+	dmatest_rx_chan = dma_request_channel(DMA_FROM_DEVICE, NULL);
+	dmatest_tx_chan = dma_request_channel(DMA_TO_DEVICE, NULL);
 
 	/* TODO: dma_alloc_coherent of DMA buffers */
 	dmatest_rx_addr = dma_map_single(dmatest_rx_chan,
-					 dmatest_rx_buf.buffer,
+					 __pa(dmatest_rx_buf.buffer),
 					 32, DMA_FROM_DEVICE);
 	dmatest_tx_addr = dma_map_single(dmatest_tx_chan,
-					 dmatest_tx_buf.buffer,
+					 __pa(dmatest_tx_buf.buffer),
 					 32, DMA_TO_DEVICE);
 }

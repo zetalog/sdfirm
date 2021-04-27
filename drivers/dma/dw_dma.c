@@ -663,53 +663,6 @@ static void dw_dma_init_bank(void)
 	}
 }
 
-void dw_dma_init(void)
-{
-	uint64_t dst = 0xff05000000;
-	uint64_t src = 0xff05040000;
-	uint32_t len = 136;
-	
-	con_dbg("dw_dma: dw_dma_init\n");
-
-	dw_dma_init_bank();
-
-#if 0
-	ret = dw_dma_single_block(dst, src, len);
-
-	chip->irq = DW_DMA_INT_NUM;
-	chip->reg_base = DW_DMA_REG_BASE;
-
-	chip->core_clk = DW_DMA_CORE_CLK;
-	chip->cfgr_clk =  DW_DMA_CORE_CLK;
-
-        chip->hdata->nr_channels = DMAC_MAX_CHANNELS;
-        chip->hdata->nr_masters = DMAC_MAX_MASTERS;
-        chip->hdata->m_data_width = DW_DMA_M_DATA_WIDTH(0);
-
-        for (tmp = 0; tmp < chip->hdata->nr_channels; tmp++) {
-		chip->hdata->block_size[tmp] = DMAC_MAX_BLK_SIZE;
-		chip->hdata->priority[tmp] = tmp;
-	}
-	chip->hdata->restrict_burst_len = true;
-	chip->hdata->rw_burst_len = DW_DMAC_ARWLEN_64;
-        
-	for (tmp = 0; tmp < chip->hdata->nr_channels; tmp++) {
-		chip->chan[tmp] = &chan_var[tmp];
-	}
-        
-	for (i = 0; i <  chip->hdata->nr_channels; i++) {
-		dma_chan_t *chan = chip->chan[i];
-		chan->chip = chip;
-		chan->id = i;
-		chan->chan_reg_base = chip->reg_base +
-			COMMON_REG_LEN + i * CHAN_REG_LEN;
-	}
-	dma_pool_init();    
-	dma_resume(chip);
-	dma_hw_init(chip);
-#endif
-}
-
 int32_t dma_multi_block_memcpy(void *dst, void *src, size_t len)
 {
 	uint8_t chanid = 0;
@@ -770,4 +723,79 @@ int32_t dma_single_block_memcpy(void *dst, void *src, size_t len)
 		return DMA_OK;
 	}
 	return DMA_ERROR;
+}
+
+static void dw_dma_handle_irq(irq_t irq)
+{
+}
+
+#ifdef SYS_REALTIME
+static void dw_dma_irq_handler(void)
+{
+}
+
+void dw_dma_irq_poll(void)
+{
+	dw_dma_irq_handler();
+}
+
+#define dw_dma_irq_ack()	do { } while (0)
+#else
+void dw_dma_irq_init(void)
+{
+	irq_t irq = dma_chan.irq;
+
+	irqc_configure_irq(irq, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(irq, dw_dma_handle_irq);
+	irqc_enable_irq(irq);
+}
+
+#define sdhc_irq_ack()		irqc_ack_irq(dma_chan.irq);
+#endif
+
+void dw_dma_dev_init(void)
+{
+	uint64_t dst = 0xff05000000;
+	uint64_t src = 0xff05040000;
+	uint32_t len = 136;
+
+	con_dbg("dw_dma: dw_dma_init\n");
+
+	dw_dma_init_bank();
+
+#if 0
+	ret = dw_dma_single_block(dst, src, len);
+
+	chip->irq = DW_DMA_INT_NUM;
+	chip->reg_base = DW_DMA_REG_BASE;
+
+	chip->core_clk = DW_DMA_CORE_CLK;
+	chip->cfgr_clk =  DW_DMA_CORE_CLK;
+
+        chip->hdata->nr_channels = DMAC_MAX_CHANNELS;
+        chip->hdata->nr_masters = DMAC_MAX_MASTERS;
+        chip->hdata->m_data_width = DW_DMA_M_DATA_WIDTH(0);
+
+        for (tmp = 0; tmp < chip->hdata->nr_channels; tmp++) {
+		chip->hdata->block_size[tmp] = DMAC_MAX_BLK_SIZE;
+		chip->hdata->priority[tmp] = tmp;
+	}
+	chip->hdata->restrict_burst_len = true;
+	chip->hdata->rw_burst_len = DW_DMAC_ARWLEN_64;
+
+	for (tmp = 0; tmp < chip->hdata->nr_channels; tmp++) {
+		chip->chan[tmp] = &chan_var[tmp];
+	}
+
+	for (i = 0; i <  chip->hdata->nr_channels; i++) {
+		dma_chan_t *chan = chip->chan[i];
+		chan->chip = chip;
+		chan->id = i;
+		chan->chan_reg_base = chip->reg_base +
+			COMMON_REG_LEN + i * CHAN_REG_LEN;
+	}
+	dma_pool_init();
+	dma_resume(chip);
+	dma_hw_init(chip);
+#endif
 }
