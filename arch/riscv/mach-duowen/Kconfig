@@ -643,6 +643,10 @@ config DUOWEN_SSI_FLASH_IRQ
 	bool "Enable special IRQ tests"
 	depends SYS_IRQ
 
+config DUOWEN_SSI_MASTER_DTS
+	bool "Enable dw-apb-ssi driver in DTS"
+	depends FDT
+
 endif
 
 menuconfig DUOWEN_SD
