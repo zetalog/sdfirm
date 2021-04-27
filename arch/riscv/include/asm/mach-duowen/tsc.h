@@ -53,27 +53,24 @@
 #define DW_TIMERS_TSC		0
 #define DW_TIMERS_TSC_CLK	TIMER3_CLK
 
+/* TMR and CLINT are all implemented as 64-bit timestamp */
+#define CLINT_TIME_WIDTH	64
+
 #define TSC_FREQ		XO_CLK_FREQ
-#define TSC_MAX			((ULL(1) << DW_TIMERS_WIDTH) - 1)
+#define TSC_MAX			((ULL(1) << CLINT_TIME_WIDTH) - 1)
 
 #ifndef __ASSEMBLY__
-#ifdef CONFIG_DUOWEN_IMC
 #define tsc_hw_ctrl_init()	board_init_timestamp()
 #if defined(CONFIG_RISCV_COUNTERS) || defined(CONFIG_SBI)
 #define tsc_hw_read_counter()	rdtime()
-#else
+#else /* CONFIG_RISCV_COUNTERS || CONFIG_SBI */
+#ifdef CONFIG_DUOWEN_IMC
 #define tsc_hw_read_counter()	tmr_read_counter()
-#endif
 #endif /* CONFIG_DUOWEN_IMC */
-
 #ifdef CONFIG_DUOWEN_APC
-#define tsc_hw_ctrl_init()	do { } while (0)
-#if defined(CONFIG_RISCV_COUNTERS) || defined(CONFIG_SBI)
-#define tsc_hw_read_counter()	rdtime()
-#else
 #define tsc_hw_read_counter()	clint_read_mtime()
-#endif
 #endif /* CONFIG_DUOWEN_APC */
+#endif /* CONFIG_RISCV_COUNTERS || CONFIG_SBI */
 #endif /* __ASSEMBLY__ */
 
 #endif /* __TSC_DUOWEN_H_INCLUDE__ */

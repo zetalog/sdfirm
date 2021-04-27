@@ -35,6 +35,11 @@ extern volatile tick_t jiffies;
 #define tick_get_counter()		jiffies
 void tick_init(void);
 #else
+/* XXX: Restriction of Tickless API
+ *
+ * Care should be taken that this macro only works if tsc_count_t is
+ * 64-bit width and TSC_FREQ is less than 2^32Hz to ensure 32-bit tick_t.
+ */
 #define tick_get_counter()		\
 	__tsc_div(tsc_read_counter(), TSC_FREQ)
 #define tick_init()			do { } while (0)
