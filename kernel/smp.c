@@ -95,16 +95,16 @@ void smp_init(void)
 			if (cpu != smp_boot_cpu)
 				smp_cpu_on(cpu, (caddr_t)smp_init);
 		}
+		smp_wait = tick_get_counter() + SMP_WAIT_BOOT_MS;
 		do {
 			nr_online_cpus = 0;
-			smp_wait = tick_get_counter() + SMP_WAIT_BOOT_MS;
 			for (cpu = 0; cpu < NR_CPUS; cpu++) {
 				if (cpumask_test_cpu(cpu, &smp_online_cpus))
 					nr_online_cpus++;
 			}
 			if (nr_online_cpus >= NR_CPUS)
 				break;
-			if (time_after(tick_get_counter(), smp_wait)) {
+			if (time_after_eq(tick_get_counter(), smp_wait)) {
 				con_err("smp: Bring up CPUs timeout - %d/%d!\n",
 					nr_online_cpus, NR_CPUS);
 				break;
