@@ -13,9 +13,16 @@
 static bool fdt_cpu_disabled(void *fdt, int cpu_offset)
 {
 	const char *status;
+	int len;
 
-	status = fdt_getprop(fdt, cpu_offset, "status", NULL);
-	return !!(status && strcmp(status, "disabled") == 0);
+	status = fdt_getprop(fdt, cpu_offset, "status", &len);
+	if (!status)
+		return false;
+	if (len > 0) {
+		if (!strcmp(status, "okay") || !strcmp(status, "ok"))
+			return false;
+	}
+	return true;
 }
 
 void fdt_cpu_fixup(void *fdt)
@@ -39,8 +46,7 @@ void fdt_cpu_fixup(void *fdt)
 			continue;
 
 		if (sbi_platform_hart_disabled(plat, hartid))
-			fdt_setprop_string(fdt, cpu_offset, "status",
-					   "disabled");
+			fdt_setprop_string(fdt, cpu_offset, "status", "");
 	}
 }
 
