@@ -10,6 +10,14 @@
 #include <target/fdt.h>
 #include <target/sbi.h>
 
+static bool fdt_cpu_disabled(void *fdt, int cpu_offset)
+{
+	const char *status;
+
+	status = fdt_getprop(fdt, cpu_offset, "status", NULL);
+	return !!(status && strcmp(status, "disabled") == 0);
+}
+
 void fdt_cpu_fixup(void *fdt)
 {
 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
@@ -36,17 +44,18 @@ void fdt_cpu_fixup(void *fdt)
 	}
 }
 
-void fdt_plic_fixup(void *fdt, const char *compat)
+void fdt_irq_fixup(void *fdt, const char *compat)
 {
 	uint32_t *cells;
 	int i, cells_count;
-	int plic_off;
+	int irqc_offset, cpu_offset, irq_offset;
+	uint32_t phandle;
 
-	plic_off = fdt_node_offset_by_compatible(fdt, 0, compat);
-	if (plic_off < 0)
+	irqc_offset = fdt_node_offset_by_compatible(fdt, 0, compat);
+	if (irqc_offset < 0)
 		return;
 
-	cells = (uint32_t *)fdt_getprop(fdt, plic_off,
+	cells = (uint32_t *)fdt_getprop(fdt, irqc_offset,
 					"interrupts-extended",
 					&cells_count);
 	if (!cells)
@@ -57,8 +66,19 @@ void fdt_plic_fixup(void *fdt, const char *compat)
 		return;
 
 	for (i = 0; i < (cells_count / 2); i++) {
-		if (fdt32_to_cpu(cells[2 * i + 1]) == IRQ_M_EXT)
+		switch (fdt32_to_cpu(cells[2 * i + 1])) {
+		case IRQ_M_SOFT:
+		case IRQ_M_TIMER:
+		case IRQ_M_EXT:
 			cells[2 * i + 1] = cpu_to_fdt32(0xffffffff);
+			break;
+		default:
+			phandle = fdt32_to_cpu(cells[2 * i]);
+			irq_offset = fdt_node_offset_by_phandle(fdt, phandle);
+			cpu_offset = fdt_parent_offset(fdt, irq_offset);
+			if (fdt_cpu_disabled(fdt, cpu_offset))
+				cells[2 * i + 1] = cpu_to_fdt32(0xffffffff);
+		}
 	}
 }
 
@@ -245,7 +265,5 @@ int fdt_reserved_memory_nomap_fixup(void *fdt)
 
 void fdt_fixups(void *fdt)
 {
-	fdt_plic_fixup(fdt, "riscv,plic0");
-
 	fdt_reserved_memory_fixup(fdt);
 }

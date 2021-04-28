@@ -108,7 +108,7 @@ int fdt_parse_compat_addr(void *fdt, unsigned long *addr,
 			  const char *compatible);
 
 void fdt_cpu_fixup(void *fdt);
-void fdt_plic_fixup(void *fdt, const char *compat);
+void fdt_irq_fixup(void *fdt, const char *compat);
 int fdt_reserved_memory_fixup(void *fdt);
 int fdt_reserved_memory_nomap_fixup(void *fdt);
 void fdt_fixups(void *fdt);

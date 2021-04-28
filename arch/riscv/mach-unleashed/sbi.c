@@ -29,6 +29,8 @@
 static void fu540_modify_dt(void *fdt)
 {
 	fdt_cpu_fixup(fdt);
+	fdt_irq_fixup(fdt, "riscv,clint0");
+	fdt_irq_fixup(fdt, "riscv,plic0");
 	fdt_fixups(fdt);
 
 	/* SiFive Freedom U540 has an erratum that prevents S-mode

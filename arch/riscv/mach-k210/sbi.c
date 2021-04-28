@@ -22,6 +22,8 @@ static int k210_final_init(bool cold_boot)
 
 	fdt = sbi_scratch_thishart_arg1_ptr();
 	fdt_cpu_fixup(fdt);
+	fdt_irq_fixup(fdt, "riscv,clint0");
+	fdt_irq_fixup(fdt, "riscv,plic0");
 	fdt_fixups(fdt);
 
 	return 0;
