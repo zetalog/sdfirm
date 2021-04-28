@@ -100,7 +100,7 @@ extern bool smp_initialized;
 typedef int cpu_mask_t;
 extern cpu_mask_t smp_online_cpus;
 
-#define cpumask_bits(maskp)		C(0)
+#define cpumask_bits(maskp)		(maskp)
 #define cpumask_set_cpu(cpu, maskp)	(*(maskp) = 1)
 #define cpumask_clear_cpu(cpu, maskp)	(*(maskp) = 0)
 #define cpumask_test_cpu(cpu, maskp)	(C(cpu) == *(maskp))

@@ -389,6 +389,22 @@ config NO_ZERO_GPR
 
 endmenu
 
+menu "Address space allocator (stack) support"
+
+config STACK_CUST
+	bool "Enable customized percpu stack size"
+	help
+	  By default percpu stack size is 1 page (4KB). It can be
+	  customized using this option.
+
+config STACK_SHIFT
+	int "Percpu stack shift"
+	range 4 16
+	depends STACK_CUST
+	default 12
+
+endmenu
+
 config ARCH_HAS_HEAP
 	bool
 

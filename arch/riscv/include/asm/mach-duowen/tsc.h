@@ -53,11 +53,9 @@
 #define DW_TIMERS_TSC		0
 #define DW_TIMERS_TSC_CLK	TIMER3_CLK
 
-/* TMR and CLINT are all implemented as 64-bit timestamp */
-#define CLINT_TIME_WIDTH	64
-
 #define TSC_FREQ		XO_CLK_FREQ
-#define TSC_MAX			((ULL(1) << CLINT_TIME_WIDTH) - 1)
+/* TMR and CLINT are all implemented as 64-bit timestamp */
+#define TSC_MAX			ULL(0xFFFFFFFFFFFFFFFF)
 
 #ifndef __ASSEMBLY__
 #define tsc_hw_ctrl_init()	board_init_timestamp()
