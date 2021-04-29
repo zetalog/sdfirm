@@ -19,7 +19,6 @@ menuconfig SBI
 	select RISCV_COUNTERS
 	select BIT_FLS64
 	select BIT_FFS32
-	select FDT if ARCH_HAS_FDT
 	select SBI_RISCV_F if RISCV_F
 	select SBI_RISCV_D if RISCV_D
 	select SBI_RISCV_C if RISCV_C
@@ -102,6 +101,7 @@ endif
 
 config SBI_FDT
 	bool "Enable SBI device tree binary"
+	select FDT if ARCH_HAS_FDT
 	help
 	  When device tree is enabled in SBI, platform may choose to use
 	  builtin FDT via selecting FDT_BUILTIN in the scope of ARCH_xxx.

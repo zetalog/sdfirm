@@ -107,10 +107,18 @@ int fdt_parse_clint_node(void *fdt, int nodeoffset, bool for_timer,
 int fdt_parse_compat_addr(void *fdt, unsigned long *addr,
 			  const char *compatible);
 
+#ifdef CONFIG_SBI_FDT
 void fdt_cpu_fixup(void *fdt);
 void fdt_irq_fixup(void *fdt, const char *compat);
 int fdt_reserved_memory_fixup(void *fdt);
 int fdt_reserved_memory_nomap_fixup(void *fdt);
 void fdt_fixups(void *fdt);
+#else
+#define fdt_cpu_fixup(fdt)			do { } while (0)
+#define fdt_irq_fixup(fdt, compat)		do { } while (0)
+#define fdt_reserved_memory_fixup(fdt)		do { } while (0)
+#define fdt_reserved_memory_nomap_fixup(fdt)	do { } while (0)
+#define fdt_fixups(fdt)				do { } while (0)
+#endif
 
 #endif /* __FDT_RISCV_H_INCLUDE__ */

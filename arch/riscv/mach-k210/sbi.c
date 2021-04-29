@@ -13,19 +13,20 @@
 #include <target/irq.h>
 #include <target/delay.h>
 
-static int k210_final_init(bool cold_boot)
+static void k210_modify_fdt(void *fdt)
 {
-	void *fdt;
-
-	if (!cold_boot)
-		return 0;
-
-	fdt = sbi_scratch_thishart_arg1_ptr();
 	fdt_cpu_fixup(fdt);
 	fdt_irq_fixup(fdt, "riscv,clint0");
 	fdt_irq_fixup(fdt, "riscv,plic0");
 	fdt_fixups(fdt);
+}
 
+static int k210_final_init(bool cold_boot)
+{
+	if (!cold_boot)
+		return 0;
+
+	k210_modify_fdt(sbi_scratch_thishart_arg1_ptr());
 	return 0;
 }
 

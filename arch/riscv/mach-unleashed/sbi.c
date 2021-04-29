@@ -26,7 +26,7 @@
 #endif /* CONFIG_UNLEASHED_U54 */
 #define FU540_HART_ID_DISABLED			~(FU540_ENABLED_HART_MASK)
 
-static void fu540_modify_dt(void *fdt)
+static void fu540_modify_fdt(void *fdt)
 {
 	fdt_cpu_fixup(fdt);
 	fdt_irq_fixup(fdt, "riscv,clint0");
@@ -42,14 +42,10 @@ static void fu540_modify_dt(void *fdt)
 
 static int fu540_final_init(bool cold_boot)
 {
-	void *fdt;
-
 	if (!cold_boot)
 		return 0;
 
-	fdt = sbi_scratch_thishart_arg1_ptr();
-	fu540_modify_dt(fdt);
-
+	fu540_modify_fdt(sbi_scratch_thishart_arg1_ptr());
 	return 0;
 }
 

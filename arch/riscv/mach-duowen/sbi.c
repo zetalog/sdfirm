@@ -48,7 +48,7 @@
 #include <target/noc.h>
 #include <target/eth.h>
 
-static void duowen_modify_dt(void *fdt)
+static void duowen_modify_fdt(void *fdt)
 {
 	fdt_cpu_fixup(fdt);
 	fdt_irq_fixup(fdt, "riscv,clint0");
@@ -74,8 +74,6 @@ static int duowen_early_init(bool cold_boot)
 
 static int duowen_final_init(bool cold_boot)
 {
-	void *fdt;
-
 	if (!cold_boot)
 		return 0;
 
@@ -93,8 +91,7 @@ static int duowen_final_init(bool cold_boot)
 		   rom_get_s0_apc_map(), rom_get_s1_apc_map());
 #endif
 
-	fdt = sbi_scratch_thishart_arg1_ptr();
-	duowen_modify_dt(fdt);
+	duowen_modify_fdt(sbi_scratch_thishart_arg1_ptr());
 	return 0;
 }
 
