@@ -71,7 +71,13 @@
 #define SCSR_PMA_ADDR_LO(n)		SCSR_REG(0x140 + ((n) << 3))
 #define SCSR_PMA_ADDR_HI(n)		SCSR_REG(0x144 + ((n) << 3))
 
-#define LCSR_REG(offset)		(LCSR_BASE + (offset))
+#define __DUOWEN_LCSR_BASE		LCSR_BASE
+#ifdef CONFIG_MMU
+#define __LCSR_BASE			duowen_lcsr_reg_base
+#else
+#define __LCSR_BASE			__DUOWEN_LCSR_BASE
+#endif
+#define LCSR_REG(offset)		(__LCSR_BASE + (offset))
 
 #define SCSR_BOOT_MODE			LCSR_REG(0x00)
 #define SCSR_SOCKET_ID			LCSR_REG(0x04)
