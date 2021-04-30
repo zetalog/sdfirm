@@ -1911,5 +1911,23 @@
 		};
 #endif /* CONFIG_DUOWEN_PCIE_DTS */
 
+#ifdef CONFIG_DUOWEN_DMAC_DTS
+		dma:dma@ff03000000 {
+			compatible = "snps,axi-dma-1.01a";
+			reg = < 0xff 0x3000000 0x0 0x100000 >;
+			clocks = <&crcntl0 sbi_dma_clk>,
+				 <&crcntl0 sbi_sysfab_clk>;
+			clock-names = "core-clk", "cfgr-clk";
+			interrupt-parent = <&plic0>;
+			interrupts = <65>;
+			interrupts-names = "dma";
+			dma-channels = <8>;
+			snps,dma-masters = <1>;
+			snps,data-width = <5>;
+			snps,block-size = <0x80 0x80 0x80 0x80 0x80 0x80 0x80 0x80>;
+			snps,priority = <0 1 2 3 4 5 6 7>;
+			snps,axi-max-burst-len = <16>;
+		};
+#endif/*CONFIG_DUOWEN_DMAC_DTS*/
 	};
 };
