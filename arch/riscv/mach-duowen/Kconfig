@@ -385,6 +385,15 @@ menuconfig DUOWEN_NOC
 	help
 	  NoC driver is required by FSBL or BBL before booting into Linux.
 
+if DUOWEN_NOC
+
+config DUOWEN_NOC_DEBUG
+	bool "Enable debugging messages"
+	depends CONSOLE_DEBUG
+	depends !DUOWEN_BBL
+
+endif
+
 menuconfig DUOWEN_UART
 	bool "Duowen UART controller support"
 	select DW_UART

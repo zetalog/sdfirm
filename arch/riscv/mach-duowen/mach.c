@@ -73,10 +73,20 @@ void duowen_dual_init(void)
 }
 
 #ifdef CONFIG_DUOWEN_PMA
+#ifdef CONFIG_DUOWEN_PMA_DEBUG
+static void duowen_pma_debug(void)
+{
+	console_init();
+}
+#else
+#define duowen_pma_debug()			do { } while (0)
+#endif
+
 void duowen_pma_soc_init(void)
 {
 	int n = 0;
 
+	duowen_pma_debug();
 	/* Enable SoC PMA */
 	n += imc_pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
 			 SOC0_BASE + __DDR_BASE,
@@ -96,6 +106,7 @@ void duowen_pma_cpu_init(void)
 {
 	int n = 0;
 
+	duowen_pma_debug();
 	/* Enable CPU PMA */
 	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
 		     SOC0_BASE + __DDR_BASE,
