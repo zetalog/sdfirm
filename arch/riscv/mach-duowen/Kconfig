@@ -768,6 +768,10 @@ menuconfig DUOWEN_DMAC
 
 if DUOWEN_DMAC
 
+config DUOWEN_DMAC_DTS
+	bool "Enable dw-axi-dmac driver in DTS"
+	depends FDT
+
 endif
 
 menu "Duowen DDR controller/phy support"
