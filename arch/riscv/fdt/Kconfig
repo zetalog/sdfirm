@@ -1,0 +1,14 @@
+#
+# Flattened device tree (FDT)
+#
+
+if FDT
+
+menu "RISCV specific device tree options"
+
+config FDT_FIXUP_RESIZE
+	bool "Enable resizing for the FDT fixups"
+
+endmenu
+
+endif

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Apr 28 14:12:28 2021
+# Mon May 10 15:13:38 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -140,6 +140,11 @@ CONFIG_SBI_RISCV_NEXT_S=y
 # CONFIG_SBI_PAYLOAD is not set
 # CONFIG_SBI_FDT is not set
 # CONFIG_SBI_CSR_MIMPID is not set
+
+#
+# RISCV specific device tree options
+#
+# CONFIG_FDT_FIXUP_RESIZE is not set
 
 #
 # Simulated RISCV (SPIKE) board options

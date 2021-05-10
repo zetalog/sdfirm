@@ -10,6 +10,14 @@
 #include <target/fdt.h>
 #include <target/sbi.h>
 
+#ifdef CONFIG_FDT_FIXUP_RESIZE
+#define FDT_FIXUP_SIZE			(6 * NR_CPUS) /* 6 = disabled - ok */
+#define FDT_FIXUP_STATUS_UNAVAILABLE	"disabled"
+#else
+#define FDT_FIXUP_SIZE			0
+#define FDT_FIXUP_STATUS_UNAVAILABLE	""
+#endif
+
 static bool fdt_cpu_disabled(void *fdt, int cpu_offset)
 {
 	const char *status;
@@ -32,7 +40,7 @@ void fdt_cpu_fixup(void *fdt)
 	int err, cpu_offset, cpus_offset;
 	uint32_t hartid;
 
-	err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 32);
+	err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + FDT_FIXUP_SIZE);
 	if (err < 0)
 		return;
 
@@ -46,7 +54,8 @@ void fdt_cpu_fixup(void *fdt)
 			continue;
 
 		if (sbi_platform_hart_disabled(plat, hartid))
-			fdt_setprop_string(fdt, cpu_offset, "status", "");
+			fdt_setprop_string(fdt, cpu_offset, "status",
+					   FDT_FIXUP_STATUS_UNAVAILABLE);
 	}
 }
 

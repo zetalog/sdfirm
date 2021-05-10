@@ -266,6 +266,7 @@ endchoice
 
 source "arch/riscv/common/Kconfig"
 source "arch/riscv/sbi/Kconfig"
+source "arch/riscv/fdt/Kconfig"
 
 endmenu
 
