@@ -187,8 +187,8 @@ static void *__arm_lpae_alloc_pages(size_t size, struct io_pgtable_cfg *cfg)
 
 	pages = page_address(p);
 	if (!cfg->coherent_walk) {
-		dma = dma_map_single(iommu_group_ctrl.id, pages, size,
-				     DMA_TO_DEVICE);
+		dma = dma_map_single(iommu_group_ctrl.id, (phys_addr_t)pages,
+				     size, DMA_TO_DEVICE);
 		/* We depend on the IOMMU being able to work with any physical
 		 * address directly, so if the DMA layer suggests otherwise by
 		 * translating or truncating them, that bodes very badly...
@@ -447,7 +447,7 @@ static void __arm_lpae_free_pgtable(int lvl, arm_lpae_iopte *ptep)
 	if (lvl == ARM_LPAE_MAX_LEVELS - 1)
 		end = ptep;
 	else
-		end = (uint8_t *)ptep + table_size;
+		end = (arm_lpae_iopte *)((uint8_t *)ptep + table_size);
 
 	while (ptep != end) {
 		arm_lpae_iopte pte = *ptep++;
