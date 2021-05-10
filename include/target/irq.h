@@ -45,6 +45,10 @@
 #include <target/bh.h>
 #include <asm/irq.h>
 
+#ifndef INVALID_IRQ
+#define INVALID_IRQ		NR_IRQS
+#endif
+
 #define IRQ_LEVEL_TRIGGERED	0
 #define IRQ_EDGE_TRIGGERED	1
 

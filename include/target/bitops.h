@@ -211,4 +211,6 @@ uint8_t hweight64(uint64_t quad);
 #define bits_raised(i, bits)		(((i) & (bits)) == (bits))
 #define bits_raised_any(i, bits)	((i) & (bits))
 
+#include <target/endian.h>
+
 #endif /* __BITOPS_H_INCLUDE__ */
