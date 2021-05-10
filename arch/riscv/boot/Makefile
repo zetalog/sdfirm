@@ -22,7 +22,7 @@ $(obj)/sdfirm.srec: sdfirm.strip FORCE
 OBJCOPYFLAGS_sdfirm.bin		+=-O binary
 OBJCOPYFLAGS_sdfirm.srec	+=-O srec
 
-ifeq ($(CONFIG_SIMULATION),y)
+ifneq ($(CONFIG_VERILOG_DATA_WIDTH),)
 $(obj)/sdfirm.rom: $(obj)/sdfirm.bin FORCE
 	$(call if_changed,bin2vhx)
 	@echo '  Small Device Firmware: $@ is ready'

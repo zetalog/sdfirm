@@ -62,7 +62,7 @@ CFLAGS += $(call cc-option,-mstrict-align)
 # Default target when executing plain make
 boot		:= arch/riscv/boot
 KBUILD_IMAGE	:= sdfirm.bin sdfirm.srec
-ifeq ($(CONFIG_SIMULATION),y)
+ifneq ($(CONFIG_VERILOG_DATA_WIDTH),)
 KBUILD_IMAGE	+= sdfirm.ram sdfirm.rom
 endif
 
@@ -153,7 +153,7 @@ sdfirm.bin: sdfirm.strip
 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
 sdfirm.srec: sdfirm.strip
 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
-ifeq ($(CONFIG_SIMULATION),y)
+ifneq ($(CONFIG_VERILOG_DATA_WIDTH),)
 sdfirm.rom: sdfirm.bin
 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
 sdfirm.ram: sdfirm.srec

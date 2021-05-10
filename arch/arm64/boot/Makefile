@@ -27,7 +27,7 @@ MKSUNXIBOOTFLAGS_sunxi-spl.bin	+="sun50i-h5-nanopi-neo2"
 endif
 OBJCOPYFLAGS_sdfirm.bin		+=-O binary
 OBJCOPYFLAGS_sdfirm.srec	+=-O srec
-ifeq ($(CONFIG_SIMULATION),y)
+ifneq ($(CONFIG_VERILOG_DATA_WIDTH),)
 $(obj)/sdfirm.vhx: $(obj)/sdfirm.srec FORCE
 	$(call if_changed,srec2vhx)
 	@echo '  Small Device Firmware: $@ is ready'

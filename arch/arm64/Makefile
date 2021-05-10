@@ -135,7 +135,7 @@ drivers-y			+= $(MACHINE)
 
 # Default target when executing plain make
 KBUILD_IMAGE := sdfirm.bin sdfirm.srec
-ifeq ($(CONFIG_SIMULATION),y)
+ifneq ($(CONFIG_VERILOG_DATA_WIDTH),)
 KBUILD_IMAGE += sdfirm.vhx
 endif
 ifdef CONFIG_SUNXI_SPL
@@ -161,7 +161,7 @@ sdfirm.bin: sdfirm.strip
 	$(Q)$(MAKE) $(build)=$(boot) MACHINE=$(MACHINE) $(boot)/$@
 sdfirm.srec: sdfirm.strip
 	$(Q)$(MAKE) $(build)=$(boot) MACHINE=$(MACHINE) $(boot)/$@
-ifeq ($(CONFIG_SIMULATION),y)
+ifneq ($(CONFIG_VERILOG_DATA_WIDTH),)
 sdfirm.vhx: sdfirm.bin
 	$(Q)$(MAKE) $(build)=$(boot) MACHINE=$(MACHINE) $(boot)/$@
 endif
