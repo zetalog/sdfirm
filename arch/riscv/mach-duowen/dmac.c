@@ -43,19 +43,19 @@
 #include <target/dma.h>
 #include <target/iommu.h>
 
-iommu_grp_t duowen_dma_iommus[8];
+iommu_grp_t duowen_dmac_iommus[NR_DMAC_DMAS];
 
 #ifdef CONFIG_DUOWEN_SMMU
 void smmu_dma_alloc_sme(void)
 {
-	duowen_dma_iommus[0] = iommu_register_master(SMMU_SME_DMA_TBU0);
-	duowen_dma_iommus[1] = iommu_register_master(SMMU_SME_DMA_TBU1);
-	duowen_dma_iommus[2] = iommu_register_master(SMMU_SME_DMA_TBU2);
-	duowen_dma_iommus[3] = iommu_register_master(SMMU_SME_DMA_TBU3);
-	duowen_dma_iommus[4] = iommu_register_master(SMMU_SME_DMA_TBU4);
-	duowen_dma_iommus[5] = iommu_register_master(SMMU_SME_DMA_TBU5);
-	duowen_dma_iommus[6] = iommu_register_master(SMMU_SME_DMA_TBU6);
-	duowen_dma_iommus[7] = iommu_register_master(SMMU_SME_DMA_TBU7);
+	duowen_dmac_iommus[0] = iommu_register_master(SMMU_SME_DMA_TBU0);
+	duowen_dmac_iommus[1] = iommu_register_master(SMMU_SME_DMA_TBU1);
+	duowen_dmac_iommus[2] = iommu_register_master(SMMU_SME_DMA_TBU2);
+	duowen_dmac_iommus[3] = iommu_register_master(SMMU_SME_DMA_TBU3);
+	duowen_dmac_iommus[4] = iommu_register_master(SMMU_SME_DMA_TBU4);
+	duowen_dmac_iommus[5] = iommu_register_master(SMMU_SME_DMA_TBU5);
+	duowen_dmac_iommus[6] = iommu_register_master(SMMU_SME_DMA_TBU6);
+	duowen_dmac_iommus[7] = iommu_register_master(SMMU_SME_DMA_TBU7);
 }
 #endif
 
@@ -70,8 +70,21 @@ void dma_hw_unmap_single(dma_t dma, dma_addr_t addr,
 {
 }
 
+void dmac_hw_chan_init(void)
+{
+	int dma = dma_current();
+
+	/* DMAC channels are the first channels in our DMA resource list.
+	 */
+	dw_dma_chan_init(dma, 0, dma, dma, DW_DMA_CHAN_IRQ(dma));
+}
+
 void dmac_hw_ctrl_init(void)
 {
+	dma_t dma;
+
 	clk_enable(dma_clk);
-        dw_dma_dev_init();
+	for (dma = 0; dma < NR_DMAS; dma++)
+		dma_register_channel(dma, DW_DMAC_CAPS);
+        dw_dma_chip_init(0, DW_DMA_CHIP_IRQ);
 }

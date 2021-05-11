@@ -65,7 +65,6 @@
 
 #if defined(CONFIG_SMARCO_RVSMMU)
 #include <driver/smarco_rvsmmu.h>
-#include <target/iommu_armv8.h>
 #ifndef ARCH_HAVE_IOMMU
 #define ARCH_HAVE_IOMMU		1
 
@@ -114,10 +113,8 @@
 #define iommu_hw_unmap(iova, pgsize, gather)		0
 #define iommu_hw_iotlb_sync(gather)			do { } while (0)
 
-#define iommu_hw_alloc_table(cfg)			\
-	arm_64_lpae_alloc_pgtable_s1(cfg)
-#define iommu_hw_free_table()				\
-	arm_lpae_free_pgtable()
+#define iommu_hw_alloc_table(cfg)			0
+#define iommu_hw_free_table()				do { } while (0)
 
 #define smmu_hw_ctrl_reset(reg)				(reg)
 

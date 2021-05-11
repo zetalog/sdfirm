@@ -121,7 +121,7 @@ choice
 
 config SMMU_ARCH64
 	bool "ARCH64"
-	depends ARM_SMMUv2 || SMARCO_RVSMMU
+	depends ARM_SMMUv2
 
 config SMMU_ARCH32_S
 	bool "ARCH32 short"
@@ -130,6 +130,14 @@ config SMMU_ARCH32_S
 config SMMU_ARCH32_L
 	bool "ARCH32 long"
 	depends ARCH_HAS_SMMU_PTFS_LONG
+
+config SMMU_SV39
+	bool "RISCV SV39"
+	depends ARCH_HAS_SMMU_PTFS_SV39
+
+config SMMU_SV48
+	bool "RISCV SV48"
+	depends ARCH_HAS_SMMU_PTFS_SV48
 
 endchoice
 
@@ -214,8 +222,6 @@ config SMMU_MMU500
 config SMARCO_RVSMMU
 	bool "SmarCo DUOWEN RISCV SMMU (RVSMMU) support"
 	select ARCH_HAS_RVSMMU
-	select ARCH_HAS_SMMU_PTFS_v8_4KB
-	select ARCH_HAS_SMMU_PTFS_v8_64KB
 	select ARCH_IS_SMMU_SM
 	select ARCH_HAS_SMMU_BTM
 	select ARCH_HAS_SMMU_VMID16

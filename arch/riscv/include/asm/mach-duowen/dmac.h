@@ -1,8 +1,53 @@
+/*
+ * ZETALOG's Personal COPYRIGHT
+ *
+ * Copyright (c) 2021
+ *    ZETALOG - "Lv ZHENG".  All rights reserved.
+ *    Author: Lv "Zetalog" Zheng
+ *    Internet: zhenglv@hotmail.com
+ *
+ * This COPYRIGHT used to protect Personal Intelligence Rights.
+ * Redistribution and use in source and binary forms with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *    This product includes software developed by the Lv "Zetalog" ZHENG.
+ * 3. Neither the name of this software nor the names of its developers may
+ *    be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ * 4. Permission of redistribution and/or reuse of souce code partially only
+ *    granted to the developer(s) in the companies ZETALOG worked.
+ * 5. Any modification of this software should be published to ZETALOG unless
+ *    the above copyright notice is no longer declaimed.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE ZETALOG AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE ZETALOG OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * @(#)dmac.h: DUOWEN specific DMA controller implementation
+ * $Id: dmac.h,v 1.1 2021-09-02 21:52:00 zhenglv Exp $
+ */
+
 #ifndef __DMAC_DUOWEN_H_INCLUDE__
 #define __DMAC_DUOWEN_H_INCLUDE__
 
-#define DW_DMA_REG(n, offset)		(DMA_BASE + (offset))
-#define NR_DW_DMAS			1
+#define DW_DMA_BASE(n)		DMA_BASE
+#define DW_DMA_MAX_CHIPS	1
+#define DW_DMA_MAX_CHANS	8
+#define DW_DMAC_CAPS		(DMA_CAP_MEM_TO_DEV | DMA_CAP_DEV_TO_MEM | \
+				 DMA_CAP_MEM_TO_MEM | DMA_CAP_DEV_TO_DEV | \
+				 DMA_CAP_COHERENT)
 
 #if defined(CONFIG_DW_DMA)
 #include <driver/dw_dma.h>
@@ -13,7 +58,13 @@
 #endif
 #endif
 
-#define INVALID_DMA			-1
+#ifdef CONFIG_DUOWEN_DMAC_IRQ_CHANNEL
+#define DW_DMA_DEV_IRQ		IRQ_DMAC_CMNREG
+#define DW_DMA_CHAN_IRQ(n)	(IRQ_DMAC_CH0 + (n))
+#else
+#define DW_DMA_CHIP_IRQ		IRQ_DMAC
+#define DW_DMA_CHAN_IRQ(n)	INVALID_IRQ
+#endif
 
 #ifdef CONFIG_DW_DMA
 #ifdef CONFIG_DUOWEN_SMMU
@@ -30,5 +81,9 @@ void dma_hw_unmap_single(dma_t dma, dma_addr_t addr,
 #else
 #define smmu_dma_alloc_sme()		do { } while (0)
 #endif
+
+#define dmac_hw_irq_poll()		do { } while (0)
+#define dmac_hw_irq_init()		do { } while (0)
+#define dmac_hw_irq_handle()		do { } while (0)
 
 #endif /* __DMAC_DUOWEN_H_INCLUDE__ */

@@ -7,7 +7,6 @@ obj-y:=
 obj-y += panic.rel
 obj-y += bh.rel
 obj-y += irq.rel
-obj-$(CONFIG_DMA) += dma.rel
 obj-y += delay.rel
 obj-y += stack.rel
 obj-y += smp.rel
@@ -34,6 +33,7 @@ obj-$(CONFIG_MMU) += paging.rel
 
 obj-y += io/
 obj-y += uart/
+obj-$(CONFIG_DMA) += dma/
 obj-$(CONFIG_SPI) += spi/
 obj-$(CONFIG_I2C) += i2c/
 obj-$(CONFIG_USB) += usb/

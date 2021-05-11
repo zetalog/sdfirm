@@ -35,137 +35,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)dma.c: direct memory access (DMA) implementation
- * $Id: dma.c,v 1.0 2020-12-6 10:20:00 zhenglv Exp $
+ * @(#)dmar.c: direct memory access (DMA) remap implementation
+ * $Id: dmar.c,v 1.0 2020-12-6 10:20:00 zhenglv Exp $
  */
 
 #include <target/dma.h>
 #include <target/paging.h>
 #include <target/panic.h>
-
-#define sdma2dma(dma)			dma_nr_table[sdma]
-
-dma_t dma_nr_table[MAX_CHANNELS];
-uint8_t dma_nr_regs = 0;
-
-#if NR_DMAS > 1
-dma_t dma_sdma = INVALID_DMA;
-struct dma_channel dma_channels[NR_DMAS];
-
-void dma_channel_restore(dma_t dma)
-{
-	dma_sdma = dma;
-}
-
-dma_t dma_channel_save(dma_t dma)
-{
-	dma_t rdma = dma_sdma;
-
-	dma_channel_restore(dma);
-	return rdma;
-}
-#else
-struct dma_channel dma_channel_ctrl;
-#endif
-
-/* Given a DMA channel ID, find an index to our dma_channels */
-dma_t dma2sdma(dma_t dma)
-{
-	uint8_t sdma;
-
-	for (sdma = 0; sdma < dma_nr_regs; sdma++) {
-		if (dma_nr_table[sdma] == dma)
-			return sdma;
-	}
-	return INVALID_DMA;
-}
-
-struct dma_channel *dma2chan(dma_t dma)
-{
-	dma_t sdma = dma2sdma(dma);
-
-	if (sdma == INVALID_DMA)
-		return NULL;
-	return &dma_channels[sdma];
-}
-
-phys_addr_t dma_to_phys(dma_t dma, dma_addr_t addr)
-{
-	struct dma_channel *chan = dma2chan(dma);
-
-	if (!chan || !(chan->caps & DMA_CAP_HAS_RANGE))
-		return __dma_to_phys(addr);
-	return addr - chan->dma_base + chan->phys_base;
-}
-
-dma_addr_t phys_to_dma(dma_t dma, phys_addr_t phys)
-{
-	struct dma_channel *chan = dma2chan(dma);
-
-	if (!chan || !(chan->caps & DMA_CAP_HAS_RANGE))
-		return __phys_to_dma(phys);
-	return phys - chan->phys_base + chan->dma_base;
-}
-
-bool dma_is_coherent(dma_t dma)
-{
-	struct dma_channel *chan = dma2chan(dma);
-
-	if (!chan)
-		return false;
-	return !!(chan->caps & DMA_CAP_COHERENT);
-}
-
-bool dma_is_direct(dma_t dma)
-{
-	struct dma_channel *chan = dma2chan(dma);
-
-	if (!chan)
-		return true;
-	return !chan->indirect;
-}
-
-/* 0 ~ NR_DMAS-1 is allowed. */
-void dma_register_channel(dma_t dma, dma_caps_t caps)
-{
-	dma_t curr = dma_nr_regs;
-	struct dma_channel *chan = dma2chan(dma);
-
-	BUG_ON(dma <= 0 || dma >= NR_DMAS);
-	BUG_ON(curr == MAX_CHANNELS);
-	dma_nr_table[curr] = dma;
-	dma_nr_regs++;
-	chan = dma2chan(dma);
-	chan->caps = caps;
-}
-
-void dma_config_range(dma_t dma, phys_addr_t phys_base, dma_addr_t dma_base)
-{
-	struct dma_channel *chan = dma2chan(dma);
-
-	if (!chan)
-		return;
-	chan->caps |= DMA_CAP_HAS_RANGE;
-	chan->phys_base = phys_base;
-	chan->dma_base = dma_base;
-}
-
-dma_t dma_request_channel(uint8_t direction, irq_handler h)
-{
-	dma_t dma;
-	struct dma_channel *chan;
-
-	for (dma = 0; dma < MAX_CHANNELS; dma++) {
-		chan = dma2chan(dma);
-		if (chan->caps & _BV(direction) &&
-		    chan->direction == DMA_NONE) {
-			chan->direction = direction;
-			chan->handler = h;
-			return dma;
-		}
-	}
-	return INVALID_DMA;
-}
 
 void dma_direct_sync_cpu(dma_t dma, dma_addr_t addr, size_t size,
 			 dma_dir_t dir)
@@ -235,36 +111,4 @@ void dma_unmap_single(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir)
 		dma_direct_unmap(dma, addr, size, dir);
 	else
 		dma_hw_unmap_single(dma, addr, size, dir);
-}
-
-/* Initialize DMA engines */
-void dma_channels_init(void)
-{
-	dmac_hw_ctrl_init();
-}
-
-void dma_init(void)
-{
-	dma_channels_init();
-}
-
-phys_addr_t dmatest_rx_addr;
-phys_addr_t dmatest_tx_addr;
-dma_t dmatest_tx_chan;
-dma_t dmatest_rx_chan;
-DECLARE_CIRCBF8(dmatest_rx_buf, 32);
-DECLARE_CIRCBF8(dmatest_tx_buf, 32);
-
-void dmatest(void)
-{
-	dmatest_rx_chan = dma_request_channel(DMA_FROM_DEVICE, NULL);
-	dmatest_tx_chan = dma_request_channel(DMA_TO_DEVICE, NULL);
-
-	/* TODO: dma_alloc_coherent of DMA buffers */
-	dmatest_rx_addr = dma_map_single(dmatest_rx_chan,
-					 __pa(dmatest_rx_buf.buffer),
-					 32, DMA_FROM_DEVICE);
-	dmatest_tx_addr = dma_map_single(dmatest_tx_chan,
-					 __pa(dmatest_tx_buf.buffer),
-					 32, DMA_TO_DEVICE);
 }

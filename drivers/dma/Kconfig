@@ -5,13 +5,40 @@
 
 menu "DMA host drivers"
 
-config ARCH_IS_DW_DMA_IRQ_COMBINED
+config ARCH_IS_DW_DMA_CHANNEL8
 	bool
 
-config ARCH_IS_DW_DMA_IRQ_CHANNEL_COMMONREG
+config ARCH_IS_DW_DMA_CHANNEL16
 	bool
 
-config ARCH_IS_DW_DMA_IRQ_ALL
+config ARCH_IS_DW_DMA_HSIF0
+	bool
+
+config ARCH_IS_DW_DMA_HSIF1
+	bool
+
+config ARCH_IS_DW_DMA_HSIF2
+	bool
+
+config ARCH_IS_DW_DMA_HSIF4
+	bool
+
+config ARCH_IS_DW_DMA_HSIF8
+	bool
+
+config ARCH_IS_DW_DMA_HSIF16
+	bool
+
+config ARCH_IS_DW_DMA_HSIF32
+	bool
+
+config ARCH_IS_DW_DMA_HSIF64
+	bool
+
+config ARCH_HAS_DW_DMA_IRQ_COMBINED
+	bool
+
+config ARCH_HAS_DW_DMA_IRQ_CHANNEL_COMMONREG
 	bool
 
 config ARCH_HAS_DW_DMA_SLVIF_STATUS
@@ -26,12 +53,6 @@ config ARCH_HAS_DW_DMA_HOLD_IO
 config ARCH_HAS_DW_DMA_UNALIGNED_XFER
 	bool
 
-config ARCH_IS_DW_DMA_CHANNEL8
-	bool
-
-config ARCH_IS_DW_DMA_CHANNEL16
-	bool
-
 config ARCH_HAS_DW_DMA_MULT_ARB
 	bool
 	depends ARCH_IS_DW_DMA_CHANNEL16
@@ -42,13 +63,43 @@ config ARCH_HAS_DW_DMA_CH_ABORT
 config ARCH_HAS_DW_DMA_LAST_WRITE
 	bool
 
-config ARCH_HAS_DW_DMA_ENDIAN_SELECTION
+config ARCH_HAS_DW_DMA_DEBUG_PORTS
+	bool
+
+config ARCH_HAS_DW_DMA_M_QOS
 	bool
 
 config ARCH_IS_DW_DMA_MSTIF1
 	bool
 
 config ARCH_IS_DW_DMA_MSTIF2
+	bool
+
+config ARCH_IS_DW_DMA_M_OSR16
+	bool
+
+config ARCH_IS_DW_DMA_M_OSR32
+	bool
+
+config ARCH_IS_DW_DMA_M_OSR48
+	bool
+
+config ARCH_IS_DW_DMA_M_OSR64
+	bool
+
+config ARCH_IS_DW_DMA_M_OSR80
+	bool
+
+config ARCH_IS_DW_DMA_M_OSR96
+	bool
+
+config ARCH_IS_DW_DMA_M_OSR112
+	bool
+
+config ARCH_IS_DW_DMA_M_OSR128
+	bool
+
+config ARCH_HAS_DW_DMA_M_ENDIAN
 	bool
 
 config ARCH_IS_DW_DMA_M_LE
@@ -102,11 +153,130 @@ config ARCH_IS_DW_DMA_S_DATA32
 config ARCH_IS_DW_DMA_S_DATA64
 	bool
 
+config ARCH_IS_DW_DMA_C_MSIZE1
+	bool
+
+config ARCH_IS_DW_DMA_C_MSIZE4
+	bool
+
+config ARCH_IS_DW_DMA_C_MSIZE8
+	bool
+
+config ARCH_IS_DW_DMA_C_MSIZE16
+	bool
+
+config ARCH_IS_DW_DMA_C_MSIZE32
+	bool
+
+config ARCH_IS_DW_DMA_C_MSIZE64
+	bool
+
+config ARCH_IS_DW_DMA_C_MSIZE128
+	bool
+
+config ARCH_IS_DW_DMA_C_MSIZE256
+	bool
+
+config ARCH_IS_DW_DMA_C_MSIZE512
+	bool
+
+config ARCH_IS_DW_DMA_C_MSIZE1024
+	bool
+
+config ARCH_IS_DW_DMA_C_BLOCKTS2
+	bool
+
+config ARCH_IS_DW_DMA_C_BLOCKTS3
+	bool
+
+config ARCH_IS_DW_DMA_C_BLOCKTS4
+	bool
+
+config ARCH_IS_DW_DMA_C_BLOCKTS5
+	bool
+
+config ARCH_IS_DW_DMA_C_BLOCKTS6
+	bool
+
+config ARCH_IS_DW_DMA_C_BLOCKTS7
+	bool
+
+config ARCH_IS_DW_DMA_C_BLOCKTS8
+	bool
+
+config ARCH_IS_DW_DMA_C_BLOCKTS9
+	bool
+
+config ARCH_IS_DW_DMA_C_BLOCKTS10
+	bool
+
+config ARCH_IS_DW_DMA_C_BLOCKTS11
+	bool
+
+config ARCH_IS_DW_DMA_C_BLOCKTS12
+	bool
+
+config ARCH_IS_DW_DMA_C_BLOCKTS13
+	bool
+
+config ARCH_IS_DW_DMA_C_BLOCKTS14
+	bool
+
+config ARCH_IS_DW_DMA_C_BLOCKTS15
+	bool
+
+config ARCH_IS_DW_DMA_C_BLOCKTS16
+	bool
+
+config ARCH_IS_DW_DMA_C_BLOCKTS17
+	bool
+
+config ARCH_IS_DW_DMA_C_BLOCKTS18
+	bool
+
+config ARCH_IS_DW_DMA_C_BLOCKTS19
+	bool
+
+config ARCH_IS_DW_DMA_C_BLOCKTS20
+	bool
+
+config ARCH_IS_DW_DMA_C_BLOCKTS21
+	bool
+
+config ARCH_IS_DW_DMA_C_BLOCKTS22
+	bool
+
+config ARCH_IS_DW_DMA_C_BURSTLEN1
+	bool
+
+config ARCH_IS_DW_DMA_C_BURSTLEN4
+	bool
+
+config ARCH_IS_DW_DMA_C_BURSTLEN8
+	bool
+
+config ARCH_IS_DW_DMA_C_BURSTLEN16
+	bool
+
+config ARCH_IS_DW_DMA_C_BURSTLEN32
+	bool
+
+config ARCH_IS_DW_DMA_C_BURSTLEN64
+	bool
+
+config ARCH_IS_DW_DMA_C_BURSTLEN128
+	bool
+
+config ARCH_IS_DW_DMA_C_BURSTLEN256
+	bool
+
 menuconfig DW_DMA
 	bool "Synopsys DesignWare AXI DMAC support"
-	select BIT_FFS32
+	select BIT_FFS16
 
 if DW_DMA
+
+menu "Top level parameters"
 
 choice
 	prompt "Number of channels"
@@ -122,19 +292,52 @@ config DW_DMA_CHANNEL16
 endchoice
 
 choice
+	prompt "Number of handshaking interfaces"
+
+config DW_DMA_HSIF0
+	bool "0"
+	depends ARCH_IS_DW_DMA_HSIF0
+
+config DW_DMA_HSIF1
+	bool "1"
+	depends ARCH_IS_DW_DMA_HSIF1
+
+config DW_DMA_HSIF2
+	bool "2"
+	depends ARCH_IS_DW_DMA_HSIF2
+
+config DW_DMA_HSIF4
+	bool "4"
+	depends ARCH_IS_DW_DMA_HSIF4
+
+config DW_DMA_HSIF8
+	bool "8"
+	depends ARCH_IS_DW_DMA_HSIF8
+
+config DW_DMA_HSIF16
+	bool "16"
+	depends ARCH_IS_DW_DMA_HSIF16
+
+config DW_DMA_HSIF32
+	bool "32"
+	depends ARCH_IS_DW_DMA_HSIF32
+
+config DW_DMA_HSIF64
+	bool "64"
+	depends ARCH_IS_DW_DMA_HSIF64
+
+endchoice
+
+choice
 	prompt "Interrupt PINs"
 
 config DW_DMA_IRQ_COMBINED
 	bool "Combined only"
-	depends ARCH_IS_DW_DMA_IRQ_COMBINED
+	depends ARCH_HAS_DW_DMA_IRQ_COMBINED
 
 config DW_DMA_IRQ_CHANNEL_COMMONREG
 	bool "Channel and COMMONREG"
-	depends ARCH_IS_DW_DMA_IRQ_CHANNEL_COMMONREG
-
-config DW_DMA_IRQ_ALL
-	bool "All"
-	depends ARCH_IS_DW_DMA_IRQ_ALL
+	depends ARCH_HAS_DW_DMA_IRQ_CHANNEL_COMMONREG
 
 endchoice
 
@@ -162,6 +365,18 @@ config DW_DMA_LAST_WRITE
 	bool "Enable transfer completion indication support"
 	depends ARCH_HAS_DW_DMA_LAST_WRITE
 
+config DW_DMA_DEBUG_PORTS
+	bool "Enable debug ports support"
+	depends ARCH_HAS_DW_DMA_DEBUG_PORTS
+
+endmenu
+
+menu "Master interface configuration parameters"
+
+config DW_DMA_M_QOS
+	bool "Enable QoS support"
+	depends ARCH_HAS_DW_DMA_M_QOS
+
 choice
 	prompt "Number of AXI master interfaces"
 
@@ -176,24 +391,61 @@ config DW_DMA_MSTIF2
 endchoice
 
 choice
-	prompt "Master interface endian format"
-	depends !ARCH_HAS_DW_DMA_ENDIAN_SELECTION
+	prompt "Outstanding request limit"
+
+config DW_DMA_M_OSR16
+	bool "16"
+	depends ARCH_IS_DW_DMA_M_OSR16
+
+config DW_DMA_M_OSR32
+	bool "32"
+	depends ARCH_IS_DW_DMA_M_OSR32
+
+config DW_DMA_M_OSR48
+	bool "48"
+	depends ARCH_IS_DW_DMA_M_OSR48
+
+config DW_DMA_M_OSR64
+	bool "64"
+	depends ARCH_IS_DW_DMA_M_OSR64
+
+config DW_DMA_M_OSR80
+	bool "80"
+	depends ARCH_IS_DW_DMA_M_OSR80
+
+config DW_DMA_M_OSR96
+	bool "96"
+	depends ARCH_IS_DW_DMA_M_OSR96
+
+config DW_DMA_M_OSR112
+	bool "112"
+	depends ARCH_IS_DW_DMA_M_OSR112
+
+config DW_DMA_M_OSR128
+	bool "128"
+	depends ARCH_IS_DW_DMA_M_OSR128
+
+endchoice
+
+choice
+	prompt "Endian format"
+	depends ARCH_HAS_DW_DMA_M_ENDIAN
 	help
 	  Statically selects master interface endian format if endian
 	  selection PIN is not enabled.
 
 config DW_DMA_M_LE
-	bool "little endian"
+	bool "LE (little)"
 	depends ARCH_IS_DW_DMA_M_LE
 
 config DW_DMA_M_BE
-	bool "big endian"
+	bool "BE (big)"
 	depends ARCH_IS_DW_DMA_M_BE
 
 endchoice
 
 choice
-	prompt "Master interface address bus width"
+	prompt "Address bus width"
 
 config DW_DMA_M_ADDR32
 	bool "32"
@@ -210,7 +462,7 @@ config DW_DMA_M_ADDR64
 endchoice
 
 choice
-	prompt "Master interface data bus width"
+	prompt "Data bus width"
 
 config DW_DMA_M_DATA32
 	bool "32"
@@ -235,7 +487,7 @@ config DW_DMA_M_DATA512
 endchoice
 
 choice
-	prompt "Master interface burst length width"
+	prompt "Burst length width"
 
 config DW_DMA_M_BURSTLEN4
 	bool "4"
@@ -259,8 +511,12 @@ config DW_DMA_M_BURSTLEN8
 
 endchoice
 
+endmenu
+
+menu "Slave interface configuration parameters"
+
 choice
-	prompt "Slave interface data bus width"
+	prompt "Data bus width"
 
 config DW_DMA_S_DATA32
 	bool "32"
@@ -272,20 +528,188 @@ config DW_DMA_S_DATA64
 
 endchoice
 
-config DW_DMA_CH_MULTI_BLK
-	bool "Enable channel multi-block support"
+endmenu
 
-config DW_DMA_MAX_BLK_SIZE
-	hex "Maximum DMA block size"
-	range 0x32 0x200000
-	default 0x32
+menu "Channel x configuration parameters"
 
-config DW_DMA_MAX_POOLS
-	int "Number of DMA pools"
+choice
+	prompt "Maximum burst transaction size"
+
+config DW_DMA_C_MSIZE1
+	bool "1"
+	depends ARCH_IS_DW_DMA_C_MSIZE1
+
+config DW_DMA_C_MSIZE4
+	bool "4"
+	depends ARCH_IS_DW_DMA_C_MSIZE4
+
+config DW_DMA_C_MSIZE8
+	bool "8"
+	depends ARCH_IS_DW_DMA_C_MSIZE8
+
+config DW_DMA_C_MSIZE16
+	bool "16"
+	depends ARCH_IS_DW_DMA_C_MSIZE16
+
+config DW_DMA_C_MSIZE32
+	bool "32"
+	depends ARCH_IS_DW_DMA_C_MSIZE32
+
+config DW_DMA_C_MSIZE64
+	bool "64"
+	depends ARCH_IS_DW_DMA_C_MSIZE64
+
+config DW_DMA_C_MSIZE128
+	bool "128"
+	depends ARCH_IS_DW_DMA_C_MSIZE128
+
+config DW_DMA_C_MSIZE256
+	bool "256"
+	depends ARCH_IS_DW_DMA_C_MSIZE256
+
+config DW_DMA_C_MSIZE512
+	bool "512"
+	depends ARCH_IS_DW_DMA_C_MSIZE512
+
+config DW_DMA_C_MSIZE1024
+	bool "1024"
+	depends ARCH_IS_DW_DMA_C_MSIZE1024
+
+endchoice
+
+choice
+	prompt "Maximum block transfer size"
+
+config DW_DMA_C_BLOCKTS2
+	bool "4"
+	depends ARCH_IS_DW_DMA_C_BLOCKTS2
+
+config DW_DMA_C_BLOCKTS3
+	bool "8"
+	depends ARCH_IS_DW_DMA_C_BLOCKTS3
+
+config DW_DMA_C_BLOCKTS4
+	bool "16"
+	depends ARCH_IS_DW_DMA_C_BLOCKTS4
+
+config DW_DMA_C_BLOCKTS5
+	bool "32"
+	depends ARCH_IS_DW_DMA_C_BLOCKTS5
+
+config DW_DMA_C_BLOCKTS6
+	bool "64"
+	depends ARCH_IS_DW_DMA_C_BLOCKTS6
+
+config DW_DMA_C_BLOCKTS7
+	bool "128"
+	depends ARCH_IS_DW_DMA_C_BLOCKTS7
+
+config DW_DMA_C_BLOCKTS8
+	bool "256"
+	depends ARCH_IS_DW_DMA_C_BLOCKTS8
+
+config DW_DMA_C_BLOCKTS9
+	bool "512"
+	depends ARCH_IS_DW_DMA_C_BLOCKTS9
+
+config DW_DMA_C_BLOCKTS10
+	bool "1024"
+	depends ARCH_IS_DW_DMA_C_BLOCKTS10
+
+config DW_DMA_C_BLOCKTS11
+	bool "2048"
+	depends ARCH_IS_DW_DMA_C_BLOCKTS11
+
+config DW_DMA_C_BLOCKTS12
+	bool "4096"
+	depends ARCH_IS_DW_DMA_C_BLOCKTS12
+
+config DW_DMA_C_BLOCKTS13
+	bool "8192"
+	depends ARCH_IS_DW_DMA_C_BLOCKTS13
+
+config DW_DMA_C_BLOCKTS14
+	bool "16384"
+	depends ARCH_IS_DW_DMA_C_BLOCKTS14
+
+config DW_DMA_C_BLOCKTS15
+	bool "32768"
+	depends ARCH_IS_DW_DMA_C_BLOCKTS15
+
+config DW_DMA_C_BLOCKTS16
+	bool "65536"
+	depends ARCH_IS_DW_DMA_C_BLOCKTS16
+
+config DW_DMA_C_BLOCKTS17
+	bool "131072"
+	depends ARCH_IS_DW_DMA_C_BLOCKTS17
+
+config DW_DMA_C_BLOCKTS18
+	bool "262144"
+	depends ARCH_IS_DW_DMA_C_BLOCKTS18
+
+config DW_DMA_C_BLOCKTS19
+	bool "524288"
+	depends ARCH_IS_DW_DMA_C_BLOCKTS19
+
+config DW_DMA_C_BLOCKTS20
+	bool "1048576"
+	depends ARCH_IS_DW_DMA_C_BLOCKTS20
+
+config DW_DMA_C_BLOCKTS21
+	bool "2097152"
+	depends ARCH_IS_DW_DMA_C_BLOCKTS21
+
+config DW_DMA_C_BLOCKTS22
+	bool "4194304"
+	depends ARCH_IS_DW_DMA_C_BLOCKTS22
+
+endchoice
+
+choice
+	prompt "Maximum burst length"
+
+config DW_DMA_C_BURSTLEN1
+	bool "1"
+	depends ARCH_IS_DW_DMA_C_BURSTLEN1
+
+config DW_DMA_C_BURSTLEN4
+	bool "4"
+	depends ARCH_IS_DW_DMA_C_BURSTLEN4
+
+config DW_DMA_C_BURSTLEN8
+	bool "8"
+	depends ARCH_IS_DW_DMA_C_BURSTLEN8
+
+config DW_DMA_C_BURSTLEN16
+	bool "16"
+	depends ARCH_IS_DW_DMA_C_BURSTLEN16
+
+config DW_DMA_C_BURSTLEN32
+	bool "32"
+	depends ARCH_IS_DW_DMA_C_BURSTLEN32
+
+config DW_DMA_C_BURSTLEN64
+	bool "64"
+	depends ARCH_IS_DW_DMA_C_BURSTLEN64
+
+config DW_DMA_C_BURSTLEN128
+	bool "128"
+	depends ARCH_IS_DW_DMA_C_BURSTLEN128
+
+config DW_DMA_C_BURSTLEN256
+	bool "256"
+	depends ARCH_IS_DW_DMA_C_BURSTLEN256
+
+endchoice
+
+endmenu
+
+config DW_DMA_MAX_DESCS
+	int "Number of DMA pool descriptors"
 	range 1 100
-	default 1
+	default 64
 
 endif
 
 endmenu
-

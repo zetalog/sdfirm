@@ -44,20 +44,34 @@
 
 #include <target/generic.h>
 #include <target/irq.h>
+#include <target/heap.h>
 #include <asm/dma.h>
 
+#ifndef INVALID_DMA
+#define INVALID_DMA		NR_DMAS
+#endif
+
 /* dma_dir_t */
-#define DMA_BIDIRECTIONAL	0
-#define DMA_TO_DEVICE		1
-#define DMA_FROM_DEVICE		2
-#define DMA_NONE		3
+/* Channel direction */
+#define DMA_BIDIRECTIONAL	(DMA_TO_DEVICE | DMA_FROM_DEVICE)
+#define DMA_TO_DEVICE		DMA_CAP_MEM_TO_DEV
+#define DMA_FROM_DEVICE		DMA_CAP_DEV_TO_MEM
+#define DMA_NONE		0
+
+/* Transfer direction */
+#define DMA_MEM_TO_MEM		0
+#define DMA_MEM_TO_DEV		1
+#define DMA_DEV_TO_MEM		2
+#define DMA_DEV_TO_DEV		3
 
 #ifndef __ASSEMBLY__
 typedef uint16_t dma_caps_t;
-#define DMA_CAP_MEM_TO_DEV	_BV(DMA_TO_DEVICE)
-#define DMA_CAP_DEV_TO_MEM	_BV(DMA_FROM_DEVICE)
-#define DMA_CAP_COHERENT	_BV(4)
-#define DMA_CAP_HAS_RANGE	_BV(5)
+#define DMA_CAP_MEM_TO_MEM	_BV(DMA_MEM_TO_MEM)
+#define DMA_CAP_MEM_TO_DEV	_BV(DMA_MEM_TO_DEV)
+#define DMA_CAP_DEV_TO_MEM	_BV(DMA_DEV_TO_MEM)
+#define DMA_CAP_DEV_TO_DEV	_BV(DMA_DEV_TO_DEV)
+#define DMA_CAP_COHERENT	_BV(5)
+#define DMA_CAP_HAS_RANGE	_BV(6)
 
 /* DMA channel ID */
 #if NR_DMAS <= 256
@@ -80,6 +94,7 @@ typedef uint16_t dma_t;
 #endif
 
 typedef uint8_t dma_dir_t;
+typedef void (*dma_handler)(dma_t dma, bool success);
 
 struct dma_channel {
 	dma_caps_t caps;
@@ -87,7 +102,7 @@ struct dma_channel {
 	phys_addr_t phys_base;
 	dma_addr_t dma_base;
 	uint8_t direction;
-	irq_handler handler;
+	dma_handler handler;
 };
 
 #include <driver/dmac.h>
@@ -110,9 +125,21 @@ struct dma_channel dma_channel_ctrl;
 #define __phys_to_dma(phys_addr)	((phys_addr) - DMA_PHYS_OFFSET)
 #define __dma_to_phys(dma_addr)		((dma_addr) + DMA_PHYS_OFFSET)
 
+#define dma_alloc_coherent(size)	heap_alloc(size)
+#define dma_free(phys)			heap_free(phys)
+
 void dma_register_channel(dma_t dma, dma_caps_t caps);
 void dma_config_range(dma_t dma, phys_addr_t phys_base, dma_addr_t dma_base);
-dma_t dma_request_channel(uint8_t direction, irq_handler cmpl);
+bool dma_is_coherent(dma_t dma);
+bool dma_is_direct(dma_t dma);
+uint8_t dma_direction(dma_t dma);
+
+phys_addr_t dma_to_phys(dma_t dma, dma_addr_t addr);
+dma_addr_t phys_to_dma(dma_t dma, phys_addr_t phys);
+
+dma_t dma_request_channel(uint8_t direction, dma_handler cmpl);
+dma_t dma_current(void);
+bool do_DMA(dma_t dma, bool success);
 
 /* DMA direct */
 dma_addr_t dma_direct_map(dma_t dma, phys_addr_t phys, size_t size,

@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2019
+ * Copyright (c) 2021
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,7 +35,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)dw_dma.h: Synopsys DesignWare DMA interface
+ * @(#)dw_dma.h: Synopsys DesignWare AXI DMAC interface
  * $Id: dw_dma.h,v 1.0 2020-2-6 10:58:00 syl Exp $
  */
 
@@ -45,39 +45,280 @@
 #include <target/generic.h>
 #include <target/spinlock.h>
 
+#ifdef CONFIG_DW_DMA_MAX_DESCS
+#define DW_DMA_MAX_DESCS		CONFIG_DW_DMA_MAX_DESCS
+#endif
+#ifndef DW_DMA_MAX_DESCS
+#define DW_DMA_MAX_DESCS		DW_DMA_MAX_CHANS
+#endif
+
+/* Table 3-1 Top Level Parameters */
+#ifndef DW_DMA_MAX_CHANNELS
 #ifdef CONFIG_DW_DMA_CHANNEL8
 #define DW_DMA_MAX_CHANNELS		8 /* dma-channels */
 #endif
 #ifdef CONFIG_DW_DMA_CHANNEL16
 #define DW_DMA_MAX_CHANNELS		16 /* dma-channels */
 #endif
+#endif /* DW_DMA_MAX_CHANNELS */
+#ifndef DW_DMA_MAX_HSIFS
+#ifdef CONFIG_DW_DMA_HSIF0
+#define DW_DMA_MAX_HSIFS		0
+#endif
+#ifdef CONFIG_DW_DMA_HSIF1
+#define DW_DMA_MAX_HSIFS		1
+#endif
+#ifdef CONFIG_DW_DMA_HSIF2
+#define DW_DMA_MAX_HSIFS		2
+#endif
+#ifdef CONFIG_DW_DMA_HSIF4
+#define DW_DMA_MAX_HSIFS		4
+#endif
+#ifdef CONFIG_DW_DMA_HSIF8
+#define DW_DMA_MAX_HSIFS		8
+#endif
+#ifdef CONFIG_DW_DMA_HSIF16
+#define DW_DMA_MAX_HSIFS		16
+#endif
+#ifdef CONFIG_DW_DMA_HSIF32
+#define DW_DMA_MAX_HSIFS		32
+#endif
+#endif /* DW_DMA_MAX_HSIFS */
+
+/* Table 3-2 Master Interface Configuration Parameters */
+#ifndef DW_DMA_MAX_MASTERS
 #ifdef CONFIG_DW_DMA_MSTIF2
 #define DW_DMA_MAX_MASTERS(n)		2 /* snps,dma-masters */
 #endif
 #ifdef CONFIG_DW_DMA_MSTIF1
 #define DW_DMA_MAX_MASTERS(n)		1 /* snps,dma-masters */
 #endif
-#ifndef DW_DMA_MAX_HSIFS
-#define DW_DMA_MAX_HSIFS		2
-#endif
+#endif /* DW_DMA_MAX_MASTERS */
 #ifndef DW_DMA_M_ADDR_WIDTH
+#ifdef CONFIG_DW_DMA_M_ADDR32
 #define DW_DMA_M_ADDR_WIDTH(n)		32
 #endif
+#ifdef CONFIG_DW_DMA_M_ADDR48
+#define DW_DMA_M_ADDR_WIDTH(n)		48
+#endif
+#ifdef CONFIG_DW_DMA_M_ADDR49
+#define DW_DMA_M_ADDR_WIDTH(n)		49
+#endif
+#ifdef CONFIG_DW_DMA_M_ADDR50
+#define DW_DMA_M_ADDR_WIDTH(n)		50
+#endif
+#ifdef CONFIG_DW_DMA_M_ADDR51
+#define DW_DMA_M_ADDR_WIDTH(n)		51
+#endif
+#ifdef CONFIG_DW_DMA_M_ADDR52
+#define DW_DMA_M_ADDR_WIDTH(n)		52
+#endif
+#ifdef CONFIG_DW_DMA_M_ADDR53
+#define DW_DMA_M_ADDR_WIDTH(n)		53
+#endif
+#ifdef CONFIG_DW_DMA_M_ADDR54
+#define DW_DMA_M_ADDR_WIDTH(n)		54
+#endif
+#ifdef CONFIG_DW_DMA_M_ADDR55
+#define DW_DMA_M_ADDR_WIDTH(n)		55
+#endif
+#ifdef CONFIG_DW_DMA_M_ADDR56
+#define DW_DMA_M_ADDR_WIDTH(n)		56
+#endif
+#ifdef CONFIG_DW_DMA_M_ADDR57
+#define DW_DMA_M_ADDR_WIDTH(n)		57
+#endif
+#ifdef CONFIG_DW_DMA_M_ADDR58
+#define DW_DMA_M_ADDR_WIDTH(n)		58
+#endif
+#ifdef CONFIG_DW_DMA_M_ADDR59
+#define DW_DMA_M_ADDR_WIDTH(n)		59
+#endif
+#ifdef CONFIG_DW_DMA_M_ADDR60
+#define DW_DMA_M_ADDR_WIDTH(n)		60
+#endif
+#ifdef CONFIG_DW_DMA_M_ADDR61
+#define DW_DMA_M_ADDR_WIDTH(n)		61
+#endif
+#ifdef CONFIG_DW_DMA_M_ADDR62
+#define DW_DMA_M_ADDR_WIDTH(n)		62
+#endif
+#ifdef CONFIG_DW_DMA_M_ADDR63
+#define DW_DMA_M_ADDR_WIDTH(n)		63
+#endif
+#ifdef CONFIG_DW_DMA_M_ADDR64
+#define DW_DMA_M_ADDR_WIDTH(n)		64
+#endif
+#endif /* DW_DMA_M_ADDR_WIDTH */
 #ifndef DW_DMA_M_DATA_WIDTH
+#ifdef CONFIG_DW_DMA_M_DATA32
 #define DW_DMA_M_DATA_WIDTH(n)		32 /* snps,data-width */
 #endif
+#ifdef CONFIG_DW_DMA_M_DATA64
+#define DW_DMA_M_DATA_WIDTH(n)		64 /* snps,data-width */
+#endif
+#ifdef CONFIG_DW_DMA_M_DATA128
+#define DW_DMA_M_DATA_WIDTH(n)		128 /* snps,data-width */
+#endif
+#ifdef CONFIG_DW_DMA_M_DATA256
+#define DW_DMA_M_DATA_WIDTH(n)		256 /* snps,data-width */
+#endif
+#ifdef CONFIG_DW_DMA_M_DATA512
+#define DW_DMA_M_DATA_WIDTH(n)		512 /* snps,data-width */
+#endif
+#endif /* DW_DMA_M_DATA_WIDTH */
 #ifndef DW_DMA_M_BURSTLEN_WIDTH
+#ifdef CONFIG_DW_DMA_M_BURSTLEN4
 #define DW_DMA_M_BURSTLEN_WIDTH(n)	4 /* snps,axi-max-burst-len */
 #endif
+#ifdef CONFIG_DW_DMA_M_BURSTLEN5
+#define DW_DMA_M_BURSTLEN_WIDTH(n)	5 /* snps,axi-max-burst-len */
+#endif
+#ifdef CONFIG_DW_DMA_M_BURSTLEN6
+#define DW_DMA_M_BURSTLEN_WIDTH(n)	6 /* snps,axi-max-burst-len */
+#endif
+#ifdef CONFIG_DW_DMA_M_BURSTLEN7
+#define DW_DMA_M_BURSTLEN_WIDTH(n)	7 /* snps,axi-max-burst-len */
+#endif
+#ifdef CONFIG_DW_DMA_M_BURSTLEN8
+#define DW_DMA_M_BURSTLEN_WIDTH(n)	8 /* snps,axi-max-burst-len */
+#endif
+#endif /* DW_DMA_M_BURSTLEN_WIDTH */
+
+/* Table 3-3 Slave Interface Configuration Parameters */
 #ifndef DW_DMA_S_DATA_WIDTH
+#ifdef CONFIG_DW_DMA_S_DATA32
 #define DW_DMA_S_DATA_WIDTH(n)		32
 #endif
-
-#ifdef CONFIG_DW_DMC_MAX_BLK_SIZE
-#define DMAC_MAX_BLK_SIZE	CONFIG_DW_DMC_MAX_BLK_SIZE
-#else
-#define DMAC_MAX_BLK_SIZE	0x200000
+#ifdef CONFIG_DW_DMA_S_DATA64
+#define DW_DMA_S_DATA_WIDTH(n)		64
 #endif
+#endif /* DW_DMA_S_DATA_WIDTH */
+
+/* Table 3-6 Channel x Configuration Parameters */
+#ifndef DW_DMA_C_MAX_MSIZE
+#ifdef CONFIG_DW_DMA_C_MSIZE1
+#define DW_DMA_C_MAX_MSIZE(n, x)	DMA_MSIZE1
+#endif
+#ifdef CONFIG_DW_DMA_C_MSIZE4
+#define DW_DMA_C_MAX_MSIZE(n, x)	DMA_MSIZE4
+#endif
+#ifdef CONFIG_DW_DMA_C_MSIZE8
+#define DW_DMA_C_MAX_MSIZE(n, x)	DMA_MSIZE8
+#endif
+#ifdef CONFIG_DW_DMA_C_MSIZE16
+#define DW_DMA_C_MAX_MSIZE(n, x)	DMA_MSIZE16
+#endif
+#ifdef CONFIG_DW_DMA_C_MSIZE32
+#define DW_DMA_C_MAX_MSIZE(n, x)	DMA_MSIZE32
+#endif
+#ifdef CONFIG_DW_DMA_C_MSIZE64
+#define DW_DMA_C_MAX_MSIZE(n, x)	DMA_MSIZE64
+#endif
+#ifdef CONFIG_DW_DMA_C_MSIZE128
+#define DW_DMA_C_MAX_MSIZE(n, x)	DMA_MSIZE128
+#endif
+#ifdef CONFIG_DW_DMA_C_MSIZE256
+#define DW_DMA_C_MAX_MSIZE(n, x)	DMA_MSIZE256
+#endif
+#ifdef CONFIG_DW_DMA_C_MSIZE512
+#define DW_DMA_C_MAX_MSIZE(n, x)	DMA_MIZE512
+#endif
+#ifdef CONFIG_DW_DMA_C_MSIZE1024
+#define DW_DMA_C_MAX_MSIZE(n, x)	DMA_MSIZE1024
+#endif
+#endif /* DW_DMA_C_MAX_MSIZE */
+#ifndef DW_DMA_C_MAX_BLOCKTS
+#ifdef CONFIG_DW_DMA_C_BLOCKTS2
+#define DW_DMA_C_MAX_BLOCKTS(n, x)	_BV(2)
+#endif
+#ifdef CONFIG_DW_DMA_C_BLOCKTS3
+#define DW_DMA_C_MAX_BLOCKTS(n, x)	_BV(3)
+#endif
+#ifdef CONFIG_DW_DMA_C_BLOCKTS4
+#define DW_DMA_C_MAX_BLOCKTS(n, x)	_BV(4)
+#endif
+#ifdef CONFIG_DW_DMA_C_BLOCKTS5
+#define DW_DMA_C_MAX_BLOCKTS(n, x)	_BV(5)
+#endif
+#ifdef CONFIG_DW_DMA_C_BLOCKTS6
+#define DW_DMA_C_MAX_BLOCKTS(n, x)	_BV(6)
+#endif
+#ifdef CONFIG_DW_DMA_C_BLOCKTS7
+#define DW_DMA_C_MAX_BLOCKTS(n, x)	_BV(7)
+#endif
+#ifdef CONFIG_DW_DMA_C_BLOCKTS8
+#define DW_DMA_C_MAX_BLOCKTS(n, x)	_BV(8)
+#endif
+#ifdef CONFIG_DW_DMA_C_BLOCKTS9
+#define DW_DMA_C_MAX_BLOCKTS(n, x)	_BV(9)
+#endif
+#ifdef CONFIG_DW_DMA_C_BLOCKTS10
+#define DW_DMA_C_MAX_BLOCKTS(n, x)	_BV(10)
+#endif
+#ifdef CONFIG_DW_DMA_C_BLOCKTS11
+#define DW_DMA_C_MAX_BLOCKTS(n, x)	_BV(11)
+#endif
+#ifdef CONFIG_DW_DMA_C_BLOCKTS12
+#define DW_DMA_C_MAX_BLOCKTS(n, x)	_BV(12)
+#endif
+#ifdef CONFIG_DW_DMA_C_BLOCKTS13
+#define DW_DMA_C_MAX_BLOCKTS(n, x)	_BV(13)
+#endif
+#ifdef CONFIG_DW_DMA_C_BLOCKTS14
+#define DW_DMA_C_MAX_BLOCKTS(n, x)	_BV(14)
+#endif
+#ifdef CONFIG_DW_DMA_C_BLOCKTS15
+#define DW_DMA_C_MAX_BLOCKTS(n, x)	_BV(15)
+#endif
+#ifdef CONFIG_DW_DMA_C_BLOCKTS16
+#define DW_DMA_C_MAX_BLOCKTS(n, x)	_BV(16)
+#endif
+#ifdef CONFIG_DW_DMA_C_BLOCKTS17
+#define DW_DMA_C_MAX_BLOCKTS(n, x)	_BV(17)
+#endif
+#ifdef CONFIG_DW_DMA_C_BLOCKTS18
+#define DW_DMA_C_MAX_BLOCKTS(n, x)	_BV(18)
+#endif
+#ifdef CONFIG_DW_DMA_C_BLOCKTS19
+#define DW_DMA_C_MAX_BLOCKTS(n, x)	_BV(19)
+#endif
+#ifdef CONFIG_DW_DMA_C_BLOCKTS20
+#define DW_DMA_C_MAX_BLOCKTS(n, x)	_BV(20)
+#endif
+#ifdef CONFIG_DW_DMA_C_BLOCKTS21
+#define DW_DMA_C_MAX_BLOCKTS(n, x)	_BV(21)
+#endif
+#ifdef CONFIG_DW_DMA_C_BLOCKTS22
+#define DW_DMA_C_MAX_BLOCKTS(n, x)	_BV(22)
+#endif
+#endif /* DW_DMA_C_MAX_BLOCKTS */
+#ifndef DW_DMA_C_MAX_BURSTLEN
+#ifdef CONFIG_DW_DMA_C_BURSTLEN1
+#define DW_DMA_MAX_C_BURSTLEN(n, x)	1
+#endif
+#ifdef CONFIG_DW_DMA_C_BURSTLEN4
+#define DW_DMA_C_MAX_BURSTLEN(n, x)	4
+#endif
+#ifdef CONFIG_DW_DMA_C_BURSTLEN8
+#define DW_DMA_C_MAX_BURSTLEN(n, x)	8
+#endif
+#ifdef CONFIG_DW_DMA_C_BURSTLEN16
+#define DW_DMA_C_MAX_BURSTLEN(n, x)	16
+#endif
+#ifdef CONFIG_DW_DMA_C_BURSTLEN32
+#define DW_DMA_C_MAX_BURSTLEN(n, x)	32
+#endif
+#ifdef CONFIG_DW_DMA_C_BURSTLEN64
+#define DW_DMA_C_MAX_BURSTLEN(n, x)	64
+#endif
+#ifdef CONFIG_DW_DMA_C_BURSTLEN128
+#define DW_DMA_C_MAX_BURSTLEN(n, x)	128
+#endif
+#ifdef CONFIG_DW_DMA_C_BURSTLEN256
+#define DW_DMA_C_MAX_BURSTLEN(n, x)	256
+#endif
+#endif /* DW_DMA_C_MAX_BURSTLEN */
 
 #ifndef DW_DMA_BASE
 #define DW_DMA_BASE(n)		(DW_DMA##n##_BASE)
@@ -88,9 +329,14 @@
 #ifndef NR_DW_DMAS
 #define NR_DW_DMAS		1
 #endif
+
+#define INVALID_DW_DMA_CHIP	DW_DMA_MAX_CHIPS
+#define INVALID_DW_DMA_CHAN	DW_DMA_MAX_CHANS
+
 /* x is 0...DMAC_MAX_ChANNELS */
 #define DW_DMA_CHREG(n, x, offset)		\
 	DW_DMA_REG((n), 0x100 + ((x) << 8) + (offset))
+#define DW_DMA_LLI(lli, offset)			(((caddr_t)(lli)) + (offset))
 
 #define DMAC_IDREG(n)				DW_DMA_REG(n, 0x00)
 #define DMAC_COMPVERREG(n)			DW_DMA_REG(n, 0x08)
@@ -114,7 +360,7 @@
 #define DMAC_COMMONREG_INTSTATUS_ENABLEREG(n)	DW_DMA_REG(n, 0x40)
 #define DMAC_COMMONREG_INTSIGNAL_ENABLEREG(n)	DW_DMA_REG(n, 0x48)
 #define DMAC_COMMONREG_INTSTATUSREG(n)		DW_DMA_REG(n, 0x50)
-#define DMAC_RESETREG				DW_DMA_REG(n, 0x58)
+#define DMAC_RESETREG(n)			DW_DMA_REG(n, 0x58)
 
 /* 5.1.2 DMAC_COMPVERREG */
 #define DMA_DMAC_COMPVER_OFFSET		0
@@ -186,6 +432,7 @@
 #define DMA_MXIF_LPDLY_MASK			REG_8BIT_MASK
 #define DMA_MXIF_LPDLY(value)			_SET_FV(DMA_MXIF_LPDLY, value)
 
+/* 5.2 DW_axi_dmac_mem_map/Channelx_Registers_Address_Block Registers */
 #define DMA_CH_SAR(n, x)			DW_DMA_CHREG(n, x, 0x00)
 #define DMA_CH_DAR(n, x)			DW_DMA_CHREG(n, x, 0x08)
 #define DMA_CH_BLOCK_TS(n, x)			DW_DMA_CHREG(n, x, 0x10)
@@ -194,11 +441,15 @@
 #define DMA_CH_CTL_HI(n, x)			DW_DMA_CHREG(n, x, 0x1C)
 #if DW_DMA_MAX_CHANNELS <= 8 && DW_DMA_MAX_HSIFS <= 16
 #define DMA_CH_CFG(n, x)			DW_DMA_CHREG(n, x, 0x20)
+#define DMA_CH_CFG_LO(n, x)			DW_DMA_CHREG(n, x, 0x20)
+#define DMA_CH_CFG_HI(n, x)			DW_DMA_CHREG(n, x, 0x24)
 #else /* DW_DMA_MAX_CHANNELS > 8 */
 #define DMA_CH_CFG2(n, x)			DW_DMA_CHREG(n, x, 0x20)
 #endif /* DW_DMA_MAX_CHANNELS */
 #define DMA_CH_LLP(n, x)			DW_DMA_CHREG(n, x, 0x28)
 #define DMA_CH_STATUSREG(n, x)			DW_DMA_CHREG(n, x, 0x30)
+#define DMA_CH_STATUSREG_LO(n, x)		DW_DMA_CHREG(n, x, 0x30)
+#define DMA_CH_STATUSREG_HI(n, x)		DW_DMA_CHREG(n, x, 0x34)
 #define DMA_CH_SWHSSRCREG(n, x)			DW_DMA_CHREG(n, x, 0x38)
 #define DMA_CH_SWHSDSTREG(n, x)			DW_DMA_CHREG(n, x, 0x40)
 #define DMA_CH_BLK_TFR_RESUMEREQREG(n, x)	DW_DMA_CHREG(n, x, 0x48)
@@ -218,26 +469,40 @@
 #define DMA_NonPosted_LastWrite_En	_BV(30)
 #define DMA_AW_CACHE_OFFSET		26
 #define DMA_AW_CACHE_MASK		REG_4BIT_MASK
-#define DMA_AW_CACHE(value)		_SET_FV(DMAC_AW_CACHE, value)
+#define DMA_AW_CACHE(value)		_SET_FV(DMA_AW_CACHE, value)
 #define DMA_AR_CACHE_OFFSET		22
 #define DMA_AR_CACHE_MASK		REG_4BIT_MASK
-#define DMA_AR_CACHE(value)		_SET_FV(DMAC_AR_CACHE, value)
+#define DMA_AR_CACHE(value)		_SET_FV(DMA_AR_CACHE, value)
 #define DMA_DST_MSIZE_OFFSET		18
 #define DMA_DST_MSIZE_MASK		REG_4BIT_MASK
-#define DMA_DST_MSIZE(value)		_SET_FV(DMAC_DST_MSIZE, value)
+#define DMA_DST_MSIZE(value)		_SET_FV(DMA_DST_MSIZE, value)
 #define DMA_SRC_MSIZE_OFFSET		14
 #define DMA_SRC_MSIZE_MASK		REG_4BIT_MASK
-#define DMA_SRC_MSIZE(value)		_SET_FV(DMAC_SRC_MSIZE, value)
-#define DMA_DST_TR_WIDTH_OFFSET	11
+#define DMA_SRC_MSIZE(value)		_SET_FV(DMA_SRC_MSIZE, value)
+#define DMA_MSIZE1			0
+#define DMA_MSIZE4			1
+#define DMA_MSIZE8			2
+#define DMA_MSIZE16			3
+#define DMA_MSIZE32			4
+#define DMA_MSIZE64			5
+#define DMA_MSIZE128			6
+#define DMA_MSIZE256			7
+#define DMA_MSIZE512			8
+#define DMA_MSIZE1024			9
+#define DMA_DST_TR_WIDTH_OFFSET		11
 #define DMA_DST_TR_WIDTH_MASK		REG_3BIT_MASK
-#define DMA_DST_TR_WIDTH(value)		_SET_FV(DMAC_DST_TR_WIDTH, value)
-#define DMA_SRC_TR_WIDTH_OFFSET	8
+#define DMA_DST_TR_WIDTH(value)		_SET_FV(DMA_DST_TR_WIDTH, value)
+#define DMA_SRC_TR_WIDTH_OFFSET		8
 #define DMA_SRC_TR_WIDTH_MASK		REG_3BIT_MASK
-#define DMA_SRC_TR_WIDTH(value)		_SET_FV(DMAC_SRC_TR_WIDTH, value)
+#define DMA_SRC_TR_WIDTH(value)		_SET_FV(DMA_SRC_TR_WIDTH, value)
 #define DMA_DINC			_BV(6)
 #define DMA_SINC			_BV(4)
-#define DMA_DMS				_BV(2)
-#define DMA_SMS				_BV(0)
+#define DMA_DMS_OFFSET			2
+#define DMA_DMS_MASK			REG_1BIT_MASK
+#define DMA_DMS(value)			_SET_FV(DMA_DMS, value)
+#define DMA_SMS_OFFSET			0
+#define DMA_SMS_MASK			REG_1BIT_MASK
+#define DMA_SMS(value)			_SET_FV(DMA_DMS, value)
 /* CHx_CTL_HI */
 #define DMA_SHADOWREG_OR_LLI_VALID	_BV(31)
 #define DMA_SHADOWREG_OR_LLI_LAST	_BV(30)
@@ -246,35 +511,113 @@
 #define DMA_SRC_STAT_EN			_BV(24)
 #define DMA_AWLEN_OFFSET		16
 #define DMA_AWLEN_MASK			REG_8BIT_MASK
-#define DMA_AWLEN(value)		_SET_FV(DMAC_AWLEN, value)
+#define DMA_AWLEN(value)		_SET_FV(DMA_AWLEN, value)
 #define DMA_AWLEN_EN			_BV(15)
 #define DMA_ARLEN_OFFSET		7
 #define DMA_ARLEN_MASK			REG_8BIT_MASK
-#define DMA_ARLEN(value)		_SET_FV(DMAC_ARLEN, value)
+#define DMA_ARLEN(value)		_SET_FV(DMA_ARLEN, value)
 #define DMA_ARLEN_EN			_BV(6)
+#define DMA_MAX_AMBA_BURSTLEN		256
 #define DMA_AW_PROT_OFFSET		3
 #define DMA_AW_PROT_MASK		REG_3BIT_MASK
-#define DMA_AW_PROT(value)		_SET_FV(DMAC_AW_PROT, value)
+#define DMA_AW_PROT(value)		_SET_FV(DMA_AW_PROT, value)
 #define DMA_AR_PROT_OFFSET		0
 #define DMA_AR_PROT_MASK		REG_3BIT_MASK
-#define DMA_AR_PROT(value)		_SET_FV(DMAC_AR_PROT, value)
+#define DMA_AR_PROT(value)		_SET_FV(DMA_AR_PROT, value)
 
 #if DW_DMA_MAX_CHANNELS <= 8
 /* 5.2.5 CHx_CFG */
 /* CHx_CFG_LO */
-#ifdef CONFIG_DW_DMA_CH_MULTI_BLK
 #define DMA_DST_MULTBLK_TYPE_OFFSET	2
 #define DMA_DST_MULTBLK_TYPE_MASK	REG_2BIT_MASK
-#define DMA_DST_MULTBLK_TYPE(value)	_SET_FV(DMAC_DST_MULTBLK_TYPE, value)
+#define DMA_DST_MULTBLK_TYPE(value)	_SET_FV(DMA_DST_MULTBLK_TYPE, value)
 #define DMA_SRC_MULTBLK_TYPE_OFFSET	0
 #define DMA_SRC_MULTBLK_TYPE_MASK	REG_2BIT_MASK
-#define DMA_SRC_MULTBLK_TYPE(value)	_SET_FV(DMAC_SRC_MULTBLK_TYPE, value)
+#define DMA_SRC_MULTBLK_TYPE(value)	_SET_FV(DMA_SRC_MULTBLK_TYPE, value)
 #define DMA_MULTBLK_TYPE_CONTIGUOUS		0
 #define DMA_MULTBLK_TYPE_RELOAD			1
 #define DMA_MULTBLK_TYPE_SHADOW_REGISTER	2
 #define DMA_MULTBLK_TYPE_LINKED_LIST		3
-#endif
+/* CHx_CFG_HI */
+#define DMA_TT_FC_OFFSET		0
+#define DMA_TT_FC_MASK			REG_3BIT_MASK
+#define DMA_TT_FC(value)		_SET_FV(DMA_TT_FC, value)
+#define DMA_TT_MEM_TO_MEM_FC_DMAC	0
+#define DMA_TT_MEM_TO_PER_FC_DMAC	1
+#define DMA_TT_PER_TO_MEM_FC_DMAC	2
+#define DMA_TT_PER_TO_PER_FC_DMAC	3
+#define DMA_TT_PER_TO_MEM_FC_SRC	4
+#define DMA_TT_PER_TO_PER_FC_SRC	5
+#define DMA_TT_MEM_TO_PER_FC_DST	6
+#define DMA_TT_PER_TO_PER_FC_DST	7
+#define DMA_HS_SEL_SRC			_BV(3)
+#define DMA_HS_SEL_DST			_BV(4)
+#define DMA_SRC_HWHS_POL		_BV(5)
+#define DMA_DST_HWHS_POL		_BV(6)
+#define DMA_SRC_PER(n)			REG32_1BIT_OFFSET((n) + 7)
+#define DMA_DST_PER(n)			REG32_1BIT_OFFSET((n) + 12)
+#define DMA_CH_PRIOR_OFFSET		17
+#define DMA_CH_PRIOR_MASK		REG_3BIT_MASK
+#define DMA_CH_PRIOR(value)		_SET_FV(DMA_CH_PRIOR, value)
+#define DMA_LOCK_CH			_BV(20)
+#define DMA_LOCK_CH_L_OFFSET		21
+#define DMA_LOCK_CH_L_MASK		REG_2BIT_MASK
+#define DMA_LOCK_CH_L(value)		_SET_FV(DMA_LOCK_CH_L, value)
+#define DMA_SRC_OSR_LMT_OFFSET		23
+#define DMA_SRC_OSR_LMT_MASK		REG_4BIT_MASK
+#define DMA_SRC_OSR_LMT(value)		_SET_FV(DMA_SRC_OSR_LMT, value)
+#define DMA_DST_OSR_LMT_OFFSET		27
+#define DMA_DST_OSR_LMT_MASK		REG_4BIT_MASK
+#define DMA_DST_OSR_LMT(value)		_SET_FV(DMA_DST_OSR_LMT, value)
 #endif /* DW_DMA_MAX_CHANNELS <= 8 */
+
+/* 5.2.7 CHx_LLP */
+#define DMA_LMS_OFFSET			0
+#define DMA_LMS_MASK			REG_1BIT_MASK
+#define DMA_LMS(value)			_SET_FV(DMA_LMS, value)
+
+/* DMA_SMS/DMA_DMS/DMA_LMS */
+#define DMA_MS_AXI1			0
+#define DMA_MS_AXI2			1
+
+/* 5.2.8 CHx_STATUSREG */
+/* CHx_STATUSREG_LO */
+#define DMA_CMPLTD_BLK_TFR_SIZE_OFFSET	0
+#define DMA_CMPLTD_BLK_TFR_SIZE_MASK	REG_22BIT_MASK
+#define DMA_CMPLTD_BLK_TFR_SIZE(value)	_GET_FV(DMA_CMPLTD_BLK_TFR_SIZE, value)
+/* CHx_STATUSREG_HI */
+#define DMA_DATA_LEFT_IN_FIFO_OFFSET	0
+#define DMA_DATA_LEFT_IN_FIFO_MASK	REG_15BIT_MASK
+#define DMA_DATA_LEFT_IN_FIFO(value)	_GET_FV(DMA_DATA_LEFT_IN_FIFO, value)
+
+/* 5.2.9 CHx_SWHSSRCREG */
+#define DMA_SWHS_REQ_SRC		_BV(0)
+#define DMA_SWHS_REQ_SRC_WE		_BV(1)
+#define DMA_SWHS_SGLREQ_SRC		_BV(2)
+#define DMA_SWHS_SGLREQ_SRC_WE		_BV(3)
+
+/* 5.2.10 CHx_SWHSDSTREG */
+#define DMA_SWHS_REQ_DST		_BV(0)
+#define DMA_SWHS_REQ_DST_WE		_BV(1)
+#define DMA_SWHS_SGLREQ_DST		_BV(2)
+#define DMA_SWHS_SGLREQ_DST_WE		_BV(3)
+#define DMA_SWHS_LST_DST		_BV(4)
+#define DMA_SWHS_LST_DST_WE		_BV(5)
+
+/* 5.2.11 CHx_BLK_TFR_RESUMEREQREG */
+#define DMA_BLK_TFR_RESUMEREQ		_BV(0)
+
+/* 5.2.14 CHx_SSTAT */
+#define DMA_SSTAT(n)			REG_1BIT_OFFSET(n)
+
+/* 5.2.15 CHx_DSTAT */
+#define DMA_DSTAT(n)			REG_1BIT_OFFSET(n)
+
+/* 5.2.16 CHx_SSTATAR */
+#define DMA_SSTATAR(n)			REG_1BIT_OFFSET(n)
+
+/* 5.2.17 CHx_DSTATAR */
+#define DMA_DSTATAR(n)			REG_1BIT_OFFSET(n)
 
 /* 5.2.18 CHx_INTSTATUS_ENABLEREG
  * 5.2.19 CHx_INTSTATUS
@@ -306,6 +649,29 @@
 #define DMA_SRC_TRANSCOMP_Int			_BV(3)
 #define DMA_DMA_TFR_DONE_Int			_BV(1)
 #define DMA_BLOCK_TFR_DONE_Int			_BV(0)
+
+/* 2.13.2.4 Linked List */
+#define DMA_LLI_CH_SAR(lli)			DW_DMA_LLI(lli, 0x00)
+#define DMA_LLI_CH_SAR_LO(lli)			DW_DMA_LLI(lli, 0x00)
+#define DMA_LLI_CH_SAR_HI(lli)			DW_DMA_LLI(lli, 0x04)
+#define DMA_LLI_CH_DAR(lli)			DW_DMA_LLI(lli, 0x08)
+#define DMA_LLI_CH_DAR_LO(lli)			DW_DMA_LLI(lli, 0x08)
+#define DMA_LLI_CH_DAR_HI(lli)			DW_DMA_LLI(lli, 0x0C)
+#define DMA_LLI_CH_BLOCK_TS(lli)		DW_DMA_LLI(lli, 0x10)
+#define DMA_LLI_CH_BLOCK_TS_LO(lli)		DW_DMA_LLI(lli, 0x10)
+#define DMA_LLI_CH_BLOCK_TS_HI(lli)		DW_DMA_LLI(lli, 0x14)
+#define DMA_LLI_CH_LLP(lli)			DW_DMA_LLI(lli, 0x18)
+#define DMA_LLI_CH_LLP_LO(lli)			DW_DMA_LLI(lli, 0x18)
+#define DMA_LLI_CH_LLP_HI(lli)			DW_DMA_LLI(lli, 0x1C)
+#define DMA_LLI_CH_CTL(lli)			DW_DMA_LLI(lli, 0x20)
+#define DMA_LLI_CH_CTL_LO(lli)			DW_DMA_LLI(lli, 0x20)
+#define DMA_LLI_CH_CTL_HI(lli)			DW_DMA_LLI(lli, 0x24)
+#define DMA_LLI_CH_SSTAT(lli)			DW_DMA_LLI(lli, 0x28)
+#define DMA_LLI_CH_DSTAT(lli)			DW_DMA_LLI(lli, 0x2C)
+#define DMA_LLI_CH_LLP_STATUS(lli)		DW_DMA_LLI(lli, 0x30)
+#define DMA_LLI_CH_LLP_STATUS_LO(lli)		DW_DMA_LLI(lli, 0x30)
+#define DMA_LLI_CH_LLP_STATUS_HI(lli)		DW_DMA_LLI(lli, 0x34)
+#define DMA_LLI_DESC_SIZE			0x40
 
 #define DW_DMAC_IRQ_ALL					\
 	(DMA_CH_ABORTED_Int |				\
@@ -387,300 +753,144 @@
 #define dw_dma_channel_aborted(n, c)				\
 	(!!(__raw_readl(DMAC_CHENREG_HI(n)) & DMA_CH_ABORT(c)))
 
-#define dw_dmac_disable_irq(n, x, irqs)				\
-	__raw_clearl(irqs, DMAC_CH_INTSTATUS_ENABLEREG(n, x))
+#define dw_dmac_disable_rirq(n, x, irqs)			\
+	__raw_clearl(irqs, DMA_CH_INTSTATUS_ENABLEREG(n, x))
+#define dw_dmac_disable_all_rirqs(n, x)				\
+	__raw_writel(0, DMA_CH_INTSTATUS_ENABLEREG(n, x))
+#define dw_dmac_enable_rirq(n, x, irqs)				\
+	__raw_setl(irqs, DMA_CH_INTSTATUS_ENABLEREG(n, x))
 #define dw_dmac_enable_irq(n, x, irqs)				\
-	__raw_setl(irqs, DMAC_CH_INTSTATUS_ENABLEREG(n, x))
-#define dw_dmac_trigger_irq(n, x, irqs)				\
-	__raw_setl(irqs, DMAC_CH_INTSIGNAL_ENABLEREG(n, x))
+	__raw_setl(irqs, DMA_CH_INTSIGNAL_ENABLEREG(n, x))
+#define dw_dmac_disable_irq(n, x, irqs)				\
+	__raw_clearl(irqs, DMA_CH_INTSIGNAL_ENABLEREG(n, x))
 #define dw_dmac_clear_irq(n, x, irqs)				\
-	__raw_setl(irqs, DMAC_CH_INTCLEARREG(n, x))
+	__raw_setl(irqs, DMA_CH_INTCLEARREG(n, x))
 #define dw_dmac_irq_status(n, x)				\
-	__raw_readl(DMAC_CH_INTSTATUS(n, x))
+	__raw_readl(DMA_CH_INTSTATUS(n, x))
 
-typedef struct {
-	int32_t alloc_index;
-	int32_t allocated_num;
-	int32_t free_num;
-} desc_stuct_t;
-
-typedef struct dw_dma_ctx {
-	uint32_t nr_channels;
-	uint32_t nr_masters;
-	uint32_t m_data_width;
-	uint32_t block_size[DW_DMA_MAX_CHANNELS];
-	uint32_t priority[DW_DMA_MAX_CHANNELS];
-	uint32_t rw_burst_len;
-	bool restrict_burst_len;
-} dw_dma_hcfg_t;
+#define dw_dmac_config_multblk(n, x, type)			\
+	__raw_writel_mask(DMA_SRC_MULTBLK_TYPE(type) | 		\
+		DMA_DST_MULTBLK_TYPE(type),			\
+		DMA_SRC_MULTBLK_TYPE(DMA_SRC_MULTBLK_TYPE_MASK)|\
+		DMA_DST_MULTBLK_TYPE(DMA_DST_MULTBLK_TYPE_MASK),\
+		DMA_CH_CFG_LO(n, x))
+#define dw_dmac_config_tt_fc(n, x, tt_fc)			\
+	__raw_writel_mask(DMA_TT_FC(tt_fc),			\
+			  DMA_TT_FC(DMA_TT_FC_MASK),		\
+			  DMA_CH_CFG_HI(n, x))
+#define dw_dmac_config_priority(n, x, prior)			\
+	__raw_writel_mask(DMA_CH_PRIOR(prior),			\
+			  DMA_CH_PRIOR(DMA_CH_PRIOR_MASK),	\
+			  DMA_CH_CFG_HI(n, x))
+#define DMA_HWHS_POL_MASK		(DMA_SRC_HWHS_POL | DMA_DST_HWHS_POL)
+#define DMA_HS_SEL_MASK			(DMA_HS_SEL_SRC | DMA_HS_SEL_DST)
+#define DMA_HWHS_POL_ACTIVE_HIGH	0
+#define DMA_HWHS_POL_ACTIVE_LOW		DMA_HWHS_POL_MASK
+#define dw_dmac_config_handshaking_hw(n, x, low)		\
+	__raw_writel_mask((low) ? DMA_HWHS_POL_ACTIVE_LOW :	\
+			  DMA_HWHS_POL_ACTIVE_HIGH,		\
+			  DMA_HS_SEL_MASK | DMA_HWHS_POL_MASK,	\
+			  DMA_CH_CFG_HI(n, x))
+#define dw_dmac_config_handshaking_sw(n, x)			\
+	__raw_writel_mask(DMA_HS_SEL_SRC | DMA_HS_SEL_DST,	\
+		          DMA_HS_SEL_MASK,			\
+			  DMA_CH_CFG_HI(n, x))
 
 /* Figure 2-32 DW_axi_dmac Linked List Item (Descriptor) */
-typedef struct {
+struct dw_dma_lli {
 	uint64_t sar;
 	uint64_t dar;
-	uint32_t block_ts_lo;
-	uint32_t reserved1;
+	uint64_t block_ts;
 	uint64_t llp;
 	uint32_t ctl_lo;
 	uint32_t ctl_hi;
 	uint32_t sstat;
 	uint32_t dstat;
 	uint32_t status_lo;
-	uint32_t ststus_hi;
-	uint64_t reserved2;
-} dma_lli_t;
+	uint32_t status_hi;
+	uint64_t reserved1;
+} __packed __align(8);
 
-typedef struct  {
-	dma_lli_t lli;
-	dma_addr_t phys;
-	struct dma_chan_str *chan;
-	int32_t	desc_id;
-	int32_t desc_status; /* 0:free, 1:allocated */
-	struct list_head desc_list;
-} dma_desc_t;
+/*===========================================================================
+ * LLI_SAR
+ *===========================================================================*/
+#define dw_dma_lli_set_sar(lli, addr)			\
+	__raw_writeq_le(addr, DMA_LLI_CH_SAR(lli))
+/*===========================================================================
+ * LLI_DAR
+ *===========================================================================*/
+#define dw_dma_lli_set_dar(lli, addr)			\
+	__raw_writeq_le(addr, DMA_LLI_CH_DAR(lli))
+/*===========================================================================
+ * LLI_BLOCK_TS
+ *===========================================================================*/
+#define dw_dma_lli_set_block_ts(lli, block_ts)		\
+	__raw_writeq_le(block_ts, DMA_LLI_CH_BLOCK_TS(lli))
+/*===========================================================================
+ * LLI_LLP
+ *===========================================================================*/
+#define dw_dma_lli_set_llp(lli, addr, lms)		\
+	__raw_writeq_le(addr | DMA_LMS(lms), DMA_LLI_CH_LLP(lli))
+/*===========================================================================
+ * LLI_CTL
+ *===========================================================================*/
+#define dw_dma_lli_set_ctl(lli)				\
+	__raw_writeq_le(DMA_SHADOWREG_OR_LLI_VALID,	\
+			DMA_LLI_CH_CTL_HI(lli))
+#define dw_dma_lli_set_last(lli)			\
+	__raw_setl_le(DMA_SHADOWREG_OR_LLI_LAST,	\
+		      DMA_LLI_CH_CTL_HI(lli))
+#define dw_dma_lli_set_sms(lli, ms)			\
+	__raw_clearl_le(DMA_SMS(ms), DMA_LLI_CH_CTL_LO(lli))
+#define dw_dma_lli_set_dms(lli, ms)			\
+	__raw_clearl_le(DMA_DMS(ms), DMA_LLI_CH_CTL_LO(lli))
+#define dw_dma_lli_set_arlen(lli, len)			\
+	__raw_setl_le(DMA_ARLEN(len) | DMA_ARLEN_EN,	\
+		      DMA_LLI_CH_CTL_HI(lli))
+#define dw_dma_lli_set_awlen(lli, len)			\
+	__raw_setl_le(DMA_AWLEN(len) | DMA_AWLEN_EN,	\
+		      DMA_LLI_CH_CTL_HI(lli))
+#define dw_dma_lli_set_src(lli, msize, tr_width)	\
+	__raw_setl_le(DMA_SRC_MSIZE(msize) | 		\
+		      DMA_SRC_TR_WIDTH(tr_width) |	\
+		      DMA_SINC, DMA_LLI_CH_CTL_LO(lli))
+#define dw_dma_lli_set_dst(lli, msize, tr_width)	\
+	__raw_setl_le(DMA_DST_MSIZE(msize) | 		\
+		      DMA_DST_TR_WIDTH(tr_width) |	\
+		      DMA_DINC, DMA_LLI_CH_CTL_LO(lli))
 
-typedef struct dma_chan_str {
-	struct dma_chip_str *chip;
-	caddr_t	chan_reg_base;
-	uint8_t id;
-	spinlock_t lock;
-	int32_t descs_allocated;
-	dma_desc_t *first;
-} dma_chan_t;
-
-typedef struct dma_chip_str {
-	int32_t irq;
-	caddr_t reg_base;
-	caddr_t core_clk;
-	caddr_t cfgr_clk;
-	dw_dma_hcfg_t *hdata;
-	dma_chan_t *chan[DW_DMA_MAX_CHANNELS];
-} dma_chip_t;
-
-#define DMA_OK  0
-#define DMA_ERROR  (-1)
-
-#define le64_to_cpu(x)		((uint64_t)(x))
-#define cpu_to_le64(x)		((uint64_t)(x))
-#define le32_to_cpu(x)		(x)
-#define cpu_to_le32(x)		(x)
-#define upper_32_bits(n)	((uint32_t)(((n) >> 16) >> 16))
-#define lower_32_bits(n)	((uint32_t)(n))
-
-#define DMA_SUPPORTS_MEM_TO_MEM	_BV(0)
-#define DMA_SUPPORTS_MEM_TO_DEV	_BV(1)
-#define DMA_SUPPORTS_DEV_TO_MEM	_BV(2)
-#define DMA_SUPPORTS_DEV_TO_DEV	_BV(3)
-
-#define AXI_DMA_BUSWIDTHS		  \
-	(DMA_SLAVE_BUSWIDTH_1_BYTE	| \
-	DMA_SLAVE_BUSWIDTH_2_BYTES	| \
-	DMA_SLAVE_BUSWIDTH_4_BYTES	| \
-	DMA_SLAVE_BUSWIDTH_8_BYTES	| \
-	DMA_SLAVE_BUSWIDTH_16_BYTES	| \
-	DMA_SLAVE_BUSWIDTH_32_BYTES	| \
-	DMA_SLAVE_BUSWIDTH_64_BYTES)
-	
-#ifdef CONFIG_DW_DMA_MAX_POOLS
-#define DW_DMA_POOL_NUM		CONFIG_DW_DMA_MAX_POOLS
-#else
-#define DW_DMA_POOL_NUM		100
-#endif
-#define DW_DMA_INT_NUM		3
-#define DW_DMA_REG_BASE		0xf0000000
-#define DW_DMA_CORE_CLK		0xf0000000
-#define DW_DMA_CFGR_CLK		0xf0000100
-#define ALLOCATED 1
-
-#define COMMON_REG_LEN		0x100
-#define CHAN_REG_LEN		0x100
-
-#define DMAC_ID			0x000 /* R DMAC ID */
-#define DMAC_COMPVER		0x008 /* R DMAC Component Version */
-#define DMAC_CFG		0x010 /* R/W DMAC Configuration */
-#define DMAC_CHEN		0x018 /* R/W DMAC Channel Enable */
-#define DMAC_CHEN_L		0x018 /* R/W DMAC Channel Enable 00-31 */
-#define DMAC_CHEN_H		0x01C /* R/W DMAC Channel Enable 32-63 */
-#define DMAC_INTSTATUS		0x030 /* R DMAC Interrupt Status */
-#define DMAC_COMMON_INTCLEAR	0x038 /* W DMAC Interrupt Clear */
-#define DMAC_COMMON_INTSTATUS_ENA 0x040 /* R DMAC Interrupt Status Enable */
-#define DMAC_COMMON_INTSIGNAL_ENA 0x048 /* R/W DMAC Interrupt Signal Enable */
-#define DMAC_COMMON_INTSTATUS	0x050 /* R DMAC Interrupt Status */
-#define DMAC_RESET		0x058 /* R DMAC Reset Register1 */
-
-#define CH_SAR			0x000 /* R/W Chan Source Address */
-#define CH_DAR			0x008 /* R/W Chan Destination Address */
-#define CH_BLOCK_TS		0x010 /* R/W Chan Block Transfer Size */
-#define CH_CTL			0x018 /* R/W Chan Control */
-#define CH_CTL_L		0x018 /* R/W Chan Control 00-31 */
-#define CH_CTL_H		0x01C /* R/W Chan Control 32-63 */
-#define CH_CFG			0x020 /* R/W Chan Configuration */
-#define CH_CFG_L		0x020 /* R/W Chan Configuration 00-31 */
-#define CH_CFG_H		0x024 /* R/W Chan Configuration 32-63 */
-#define CH_LLP			0x028 /* R/W Chan Linked List Pointer */
-#define CH_STATUS		0x030 /* R Chan Status */
-#define CH_SWHSSRC		0x038 /* R/W Chan SW Handshake Source */
-#define CH_SWHSDST		0x040 /* R/W Chan SW Handshake Destination */
-#define CH_BLK_TFR_RESUMEREQ	0x048 /* W Chan Block Transfer Resume Req */
-#define CH_AXI_ID		0x050 /* R/W Chan AXI ID */
-#define CH_AXI_QOS		0x058 /* R/W Chan AXI QOS */
-#define CH_SSTAT		0x060 /* R Chan Source Status */
-#define CH_DSTAT		0x068 /* R Chan Destination Status */
-#define CH_SSTATAR		0x070 /* R/W Chan Source Status Fetch Addr */
-#define CH_DSTATAR		0x078 /* R/W Chan Destination Status Fetch Addr */
-#define CH_INTSTATUS_ENA	0x080 /* R/W Chan Interrupt Status Enable */
-#define CH_INTSTATUS		0x088 /* R/W Chan Interrupt Status */
-#define CH_INTSIGNAL_ENA	0x090 /* R/W Chan Interrupt Signal Enable */
-#define CH_INTCLEAR		0x098 /* W Chan Interrupt Clear */
-
-#define DMAC_EN_POS			0
-#define DMAC_EN_MASK			_BV(DMAC_EN_POS)
-
-#define INT_EN_POS			1
-#define INT_EN_MASK			_BV(INT_EN_POS)
-
-#define DMAC_CHAN_EN_SHIFT		0
-#define DMAC_CHAN_EN_WE_SHIFT		8
-
-#define DMAC_CHAN_SUSP_SHIFT		16
-#define DMAC_CHAN_SUSP_WE_SHIFT		24
-
-#define CH_CTL_H_ARLEN_EN		_BV(6)
-#define CH_CTL_H_ARLEN_POS		7
-#define CH_CTL_H_AWLEN_EN		_BV(15)
-#define CH_CTL_H_AWLEN_POS		16
-
-enum {
-	DW_DMAC_ARWLEN_1		= 0,
-	DW_DMAC_ARWLEN_2		= 1,
-	DW_DMAC_ARWLEN_4		= 3,
-	DW_DMAC_ARWLEN_8		= 7,
-	DW_DMAC_ARWLEN_16		= 15,
-	DW_DMAC_ARWLEN_32		= 31,
-	DW_DMAC_ARWLEN_64		= 63,
-	DW_DMAC_ARWLEN_128		= 127,
-	DW_DMAC_ARWLEN_256		= 255,
-	DW_DMAC_ARWLEN_MIN		= DW_DMAC_ARWLEN_1,
-	DW_DMAC_ARWLEN_MAX		= DW_DMAC_ARWLEN_256
+struct dw_dma_desc {
+	struct dw_dma_lli lli;
+	dma_t dma;
+	phys_addr_t phys;
+	struct list_head link;
 };
 
-#define CH_CTL_H_LLI_LAST		_BV(30)
-#define CH_CTL_H_LLI_VALID		_BV(31)
-
-/* CH_CTL_L */
-#define CH_CTL_L_LAST_WRITE_EN		_BV(30)
-
-#define CH_CTL_L_DST_MSIZE_POS		18
-#define CH_CTL_L_SRC_MSIZE_POS		14
-
-enum {
-	DW_DMAC_BURST_TRANS_LEN_1	= 0,
-	DW_DMAC_BURST_TRANS_LEN_4,
-	DW_DMAC_BURST_TRANS_LEN_8,
-	DW_DMAC_BURST_TRANS_LEN_16,
-	DW_DMAC_BURST_TRANS_LEN_32,
-	DW_DMAC_BURST_TRANS_LEN_64,
-	DW_DMAC_BURST_TRANS_LEN_128,
-	DW_DMAC_BURST_TRANS_LEN_256,
-	DW_DMAC_BURST_TRANS_LEN_512,
-	DW_DMAC_BURST_TRANS_LEN_1024
+struct dw_dma_pool {
+	struct list_head descs;
 };
 
-#define CH_CTL_L_DST_WIDTH_POS		11
-#define CH_CTL_L_SRC_WIDTH_POS		8
-
-#define CH_CTL_L_DST_INC_POS		6
-#define CH_CTL_L_SRC_INC_POS		4
-enum {
-	DW_DMAC_CH_CTL_L_INC		= 0,
-	DW_DMAC_CH_CTL_L_NOINC
+struct dw_dma_chan {
+	uint8_t chip;
+	uint8_t chan;
+	dma_t dma;
+	irq_t irq;
+	uint32_t priority;
+	bool device_fc;
+	struct list_head descs;
 };
 
-#define CH_CTL_L_DST_MAST		_BV(2)
-#define CH_CTL_L_SRC_MAST		_BV(0)
-
-#define CH_CFG_H_PRIORITY_POS		17
-#define CH_CFG_H_HS_SEL_DST_POS		4
-#define CH_CFG_H_HS_SEL_SRC_POS		3
-enum {
-	DW_DMAC_HS_SEL_HW		= 0,
-	DW_DMAC_HS_SEL_SW
+struct dw_dma_chip {
+	irq_t irq;
+	uint32_t nr_channels;
+	uint32_t nr_masters;
 };
 
-#define CH_CFG_H_TT_FC_POS		0
-enum {
-	DW_DMAC_TT_FC_MEM_TO_MEM_DMAC	= 0,
-	DW_DMAC_TT_FC_MEM_TO_PER_DMAC,
-	DW_DMAC_TT_FC_PER_TO_MEM_DMAC,
-	DW_DMAC_TT_FC_PER_TO_PER_DMAC,
-	DW_DMAC_TT_FC_PER_TO_MEM_SRC,
-	DW_DMAC_TT_FC_PER_TO_PER_SRC,
-	DW_DMAC_TT_FC_MEM_TO_PER_DST,
-	DW_DMAC_TT_FC_PER_TO_PER_DST
-};
-
-#define CH_CFG_L_DST_MULTBLK_TYPE_POS	2
-#define CH_CFG_L_SRC_MULTBLK_TYPE_POS	0
-enum {
-	DW_DMAC_MBLK_TYPE_CONTIGUOUS	= 0,
-	DW_DMAC_MBLK_TYPE_RELOAD,
-	DW_DMAC_MBLK_TYPE_SHADOW_REG,
-	DW_DMAC_MBLK_TYPE_LL
-};
-
-enum {
-	DW_DMAC_IRQ_NONE		= 0,
-	DW_DMAC_IRQ_BLOCK_TRF		= _BV(0),
-	DW_DMAC_IRQ_DMA_TRF		= _BV(1),
-	DW_DMAC_IRQ_SRC_TRAN		= _BV(3),
-	DW_DMAC_IRQ_DST_TRAN		= _BV(4),
-	DW_DMAC_IRQ_SRC_DEC_ERR	= _BV(5),
-	DW_DMAC_IRQ_DST_DEC_ERR	= _BV(6),
-	DW_DMAC_IRQ_SRC_SLV_ERR	= _BV(7),
-	DW_DMAC_IRQ_DST_SLV_ERR	= _BV(8),
-	DW_DMAC_IRQ_LLI_RD_DEC_ERR	= _BV(9),
-	DW_DMAC_IRQ_LLI_WR_DEC_ERR	= _BV(10),
-	DW_DMAC_IRQ_LLI_RD_SLV_ERR	= _BV(11),
-	DW_DMAC_IRQ_LLI_WR_SLV_ERR	= _BV(12),
-	DW_DMAC_IRQ_INVALID_ERR	= _BV(13),
-	DW_DMAC_IRQ_MULTIBLKTYPE_ERR	= _BV(14),
-	DW_DMAC_IRQ_DEC_ERR		= _BV(16),
-	DW_DMAC_IRQ_WR2RO_ERR		= _BV(17),
-	DW_DMAC_IRQ_RD2RWO_ERR	= _BV(18),
-	DW_DMAC_IRQ_WRONCHEN_ERR	= _BV(19),
-	DW_DMAC_IRQ_SHADOWREG_ERR	= _BV(20),
-	DW_DMAC_IRQ_WRONHOLD_ERR	= _BV(21),
-	DW_DMAC_IRQ_LOCK_CLEARED	= _BV(27),
-	DW_DMAC_IRQ_SRC_SUSPENDED	= _BV(28),
-	DW_DMAC_IRQ_SUSPENDED		= _BV(29),
-	DW_DMAC_IRQ_DISABLED		= _BV(30),
-	DW_DMAC_IRQ_ABORTED		= _BV(31),
-};
-
-enum {
-	DW_DMAC_TRANS_WIDTH_8		= 0,
-	DW_DMAC_TRANS_WIDTH_16,
-	DW_DMAC_TRANS_WIDTH_32,
-	DW_DMAC_TRANS_WIDTH_64,
-	DW_DMAC_TRANS_WIDTH_128,
-	DW_DMAC_TRANS_WIDTH_256,
-	DW_DMAC_TRANS_WIDTH_512,
-	DW_DMAC_TRANS_WIDTH_MAX	= DW_DMAC_TRANS_WIDTH_512
-};
-
-enum dma_slave_buswidth {
-	DMA_SLAVE_BUSWIDTH_UNDEFINED = 0,
-	DMA_SLAVE_BUSWIDTH_1_BYTE = 1,
-	DMA_SLAVE_BUSWIDTH_2_BYTES = 2,
-	DMA_SLAVE_BUSWIDTH_3_BYTES = 3,
-	DMA_SLAVE_BUSWIDTH_4_BYTES = 4,
-	DMA_SLAVE_BUSWIDTH_8_BYTES = 8,
-	DMA_SLAVE_BUSWIDTH_16_BYTES = 16,
-	DMA_SLAVE_BUSWIDTH_32_BYTES = 32,
-	DMA_SLAVE_BUSWIDTH_64_BYTES = 64,
-};
-
-void dw_dma_dev_init(void);
-void dw_dma_interrupt(int irq, void *dev_id);
+void dw_dma_chip_init(int chip, irq_t irq);
+void dw_dma_chan_init(dma_t id, int chip, int chan,
+		      dma_t dma, irq_t irq);
+void dw_dma_irq_handle(int chip, int chan);
+int dw_dma_memcpy_async(dma_t id, dma_addr_t dst, dma_addr_t src, size_t len);
+int dw_dma_memcpy_sync(dma_t id, dma_addr_t dst, dma_addr_t src, size_t len);
 
 #endif /* __DW_DMA_H_INCLUDE__ */
