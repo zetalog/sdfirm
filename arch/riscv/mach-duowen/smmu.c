@@ -33,6 +33,6 @@ smmu_sme_t smu_pcie_smes[NR_PCIE_IOMMUS] = {
  */
 void duowen_smmu_early_init(void)
 {
-	smmu_riscv_enable(IOMMU_DMAC);
-	smmu_riscv_enable(IOMMU_PCIE);
+	smmu_enable_global_bypass(IOMMU_DMAC);
+	smmu_enable_global_bypass(IOMMU_PCIE);
 }

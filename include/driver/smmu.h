@@ -774,10 +774,10 @@
 
 /* Long-descriptor translation table format */
 
-#define smmu_enable()				\
-	__raw_clearl(SMMU_CLIENTPD, SMMU_sCR0(iommu_dev))
-#define smmu_disable()				\
-	__raw_setl(SMMU_CLIENTPD, SMMU_sCR0(iommu_dev))
+#define smmu_enable(smmu)				\
+	__raw_clearl(SMMU_CLIENTPD, SMMU_sCR0(smmu))
+#define smmu_disable(smmu)				\
+	__raw_setl(SMMU_CLIENTPD, SMMU_sCR0(smmu))
 
 #define smmu_get_global_fault()			\
 	__raw_readl(SMMU_sGFSR(iommu_dev))

@@ -61,8 +61,6 @@
 #define SMMU_HW_OAS		48
 #define SMMU_HW_UBS		48
 
-#define SMMU_HW_NUMSMES(n)	smmu_num_sms[n]
-
 /* iommu_dev_t */
 #define IOMMU_DMAC		0
 #define IOMMU_PCIE		1
@@ -72,6 +70,8 @@
 #if defined(CONFIG_DUOWEN_SMMU_SV)
 #ifndef ARCH_HAVE_IOMMU
 #define ARCH_HAVE_IOMMU		1
+
+#define SMMU_HW_NUMSMES(n)	smmu_num_sms[n]
 
 /* smmu_sme_t */
 #define SMMU_SME_DMA_TBU0	SMMU_SME(IOMMU_DMAC, 0)

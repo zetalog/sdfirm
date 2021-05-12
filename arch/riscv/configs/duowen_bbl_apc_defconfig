@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed May 12 13:42:33 2021
+# Wed May 12 16:59:59 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -241,6 +241,7 @@ CONFIG_DUOWEN_FLASH_SS_8=y
 # CONFIG_DUOWEN_SD is not set
 # CONFIG_DUOWEN_PCIE is not set
 CONFIG_DUOWEN_SMMU=y
+# CONFIG_DUOWEN_SMMU_DTS is not set
 # CONFIG_DUOWEN_DMAC is not set
 
 #

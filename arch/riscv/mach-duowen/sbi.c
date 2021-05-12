@@ -47,6 +47,7 @@
 #include <target/ras.h>
 #include <target/noc.h>
 #include <target/eth.h>
+#include <target/iommu.h>
 
 static void duowen_modify_fdt(void *fdt)
 {
@@ -67,8 +68,10 @@ static int duowen_early_init(bool cold_boot)
 	duowen_pma_cpu_init();
 #endif
 
-	if (cold_boot)
+	if (cold_boot) {
 		board_init_timestamp();
+		duowen_smmu_early_init();
+	}
 	return 0;
 }
 

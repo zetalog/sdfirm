@@ -565,7 +565,7 @@ static void smmu_device_reset(void)
 
 	printf("Enabling client accesses...\n");
 	/* Enable client access, handling unmatched streams as appropriate */
-	smmu_enable();
+	smmu_enable(iommu_dev);
 }
 
 iommu_grp_t smmu_find_sme(smmu_gr_t gr, smmu_gr_t sm)
@@ -646,7 +646,7 @@ iommu_grp_t smmu_alloc_sme(smmu_sme_t sme)
 
 void smmu_device_exit(void)
 {
-	smmu_disable();
+	smmu_disable(iommu_dev);
 }
 
 void smmu_device_init(void)

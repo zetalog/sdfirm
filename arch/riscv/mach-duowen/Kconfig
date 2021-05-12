@@ -755,6 +755,10 @@ config DUOWEN_SMMU_SV
 	depends RISCV_EXIT_S
 	select SMARCO_RVSMMU
 
+config DUOWEN_SMMU_DTS
+	bool "Enable smarco-riscv-smmu driver in DTS"
+	depends FDT
+
 endif
 
 menuconfig DUOWEN_DMAC

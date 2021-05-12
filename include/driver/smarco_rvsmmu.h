@@ -77,4 +77,10 @@
 #define smmu_riscv_disable(smmu)	\
 	__raw_clearl(SMMU_RISCV_EN, SMMU_RISCV(smmu))
 
+#define smmu_enable_global_bypass(smmu)		\
+	do {					\
+		smmu_riscv_enable(smmu);	\
+		smmu_disable(smmu);		\
+	} while (0)
+
 #endif /* __SMARCO_RVSMMU_H_INCLUDE__ */

@@ -1856,9 +1856,10 @@
 		};
 #endif /* CONFIG_DUOWEN_ETH_DTS */
 
+#ifdef CONFIG_DUOWEN_SMMU_DTS
 		/* DMA SMMU */
 		dma_smmu: iommu@ff08000000 {
-			compatible = "smarco,duowen-rvsmmu";
+			compatible = "smarco,riscv-smmu";
 			reg = <0xff 0x8000000 0x0 0x20000>;
 			interrupt-parent = <&plic0>;
 			interrupts = <83>;
@@ -1869,7 +1870,7 @@
 
 		/* PCIe SMMU */
 		pcie_smmu: iommu@ff08400000 {
-			compatible = "smarco,duowen-rvsmmu";
+			compatible = "smarco,riscv-smmu";
 			reg = <0xff 0x8400000 0x0 0x20000>;
 			interrupt-parent = <&plic0>;
 			interrupts = <80>;
@@ -1877,6 +1878,7 @@
 			dma_coherent;
 			#iommu-cells = <1>;
 		};
+#endif /* CONFIG_DUOWEN_SMMU_DTS */
 
 #ifdef CONFIG_DUOWEN_PCIE_DTS
 		pcie@ff09100000 {
