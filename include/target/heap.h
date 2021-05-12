@@ -124,6 +124,7 @@
  * default version is the same as size_t.
  */
 
+#ifndef __ASSEMBLY__
 #if CONFIG_HEAP_SIZE > 0xFFFFFFFF
 typedef uint64_t heap_size_t;
 #elif CONFIG_HEAP_SIZE > 0xFFFF
@@ -184,5 +185,6 @@ caddr_t heap_sbrk(heap_offset_t bytes);
 #define heap_free(ptr)				do { } while (0)
 #define heap_sbrk(bytes)			((caddr_t)0)
 #endif
+#endif /* __ASSEMBLY__ */
 
 #endif /* __HEAP_H_INCLUDE__ */

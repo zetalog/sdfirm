@@ -43,7 +43,6 @@
 #define __IOMMU_H_INCLUDE__
 
 #include <target/generic.h>
-#include <target/arch.h>
 
 #ifdef CONFIG_IOMMU_MAX_DEVICES
 #define NR_IOMMU_DEVICES	CONFIG_IOMMU_MAX_DEVICES

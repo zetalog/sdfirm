@@ -64,14 +64,16 @@
 #define DMA_DEV_TO_MEM		2
 #define DMA_DEV_TO_DEV		3
 
-#ifndef __ASSEMBLY__
-typedef uint16_t dma_caps_t;
+/* dma_cpas_t */
 #define DMA_CAP_MEM_TO_MEM	_BV(DMA_MEM_TO_MEM)
 #define DMA_CAP_MEM_TO_DEV	_BV(DMA_MEM_TO_DEV)
 #define DMA_CAP_DEV_TO_MEM	_BV(DMA_DEV_TO_MEM)
 #define DMA_CAP_DEV_TO_DEV	_BV(DMA_DEV_TO_DEV)
 #define DMA_CAP_COHERENT	_BV(5)
 #define DMA_CAP_HAS_RANGE	_BV(6)
+
+#ifndef __ASSEMBLY__
+typedef uint16_t dma_caps_t;
 
 /* DMA channel ID */
 #if NR_DMAS <= 256

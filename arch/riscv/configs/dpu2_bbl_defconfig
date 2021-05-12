@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon May 10 15:03:11 2021
+# Wed May 12 13:42:06 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -152,7 +152,7 @@ CONFIG_SBI_FDT_BUILTIN=y
 # CONFIG_SBI_CSR_MIMPID is not set
 
 #
-# RISCV specific FDT fixups
+# RISCV specific device tree options
 #
 # CONFIG_FDT_FIXUP_RESIZE is not set
 

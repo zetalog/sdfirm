@@ -67,8 +67,9 @@
 #define IOMMU_DMAC		0
 #define IOMMU_PCIE		1
 
-#if defined(CONFIG_SMARCO_RVSMMU)
 #include <driver/smarco_rvsmmu.h>
+
+#if defined(CONFIG_DUOWEN_SMMU_SV)
 #ifndef ARCH_HAVE_IOMMU
 #define ARCH_HAVE_IOMMU		1
 

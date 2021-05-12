@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon May 10 15:04:06 2021
+# Wed May 12 13:48:07 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -159,7 +159,7 @@ CONFIG_SBI_FDT_BUILTIN=y
 # CONFIG_SBI_CSR_MIMPID is not set
 
 #
-# RISCV specific FDT fixups
+# RISCV specific device tree options
 #
 # CONFIG_FDT_FIXUP_RESIZE is not set
 
@@ -217,7 +217,7 @@ CONFIG_DUOWEN_FLASH_SS_8=y
 # CONFIG_DUOWEN_FLASH_SS_32 is not set
 # CONFIG_DUOWEN_SD is not set
 # CONFIG_DUOWEN_PCIE is not set
-# CONFIG_DUOWEN_SMMU is not set
+CONFIG_DUOWEN_SMMU=y
 # CONFIG_DUOWEN_DMAC is not set
 
 #
@@ -357,6 +357,7 @@ CONFIG_ARCH_HAS_DDR=y
 # CONFIG_DDR is not set
 CONFIG_ARCH_HAS_PCI=y
 # CONFIG_PCI is not set
+CONFIG_ARCH_HAS_IOMMU=y
 # CONFIG_IOMMU is not set
 CONFIG_ARCH_HAS_FDT=y
 CONFIG_FDT=y

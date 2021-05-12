@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Apr 28 14:13:58 2021
+# Wed May 12 14:10:56 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -214,7 +214,7 @@ CONFIG_DUOWEN_PCIE_CHIPLINK=y
 # CONFIG_DUOWEN_PCIE_SMMU_BYPASS is not set
 # CONFIG_DUOWEN_PCIE_DTS is not set
 # CONFIG_DUOWEN_PCIE_TEST is not set
-# CONFIG_DUOWEN_SMMU is not set
+CONFIG_DUOWEN_SMMU=y
 # CONFIG_DUOWEN_DMAC is not set
 
 #
