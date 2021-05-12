@@ -22,3 +22,9 @@ smmu_sme_t smu_pcie_smes[NR_PCIE_IOMMUS] = {
 	SMMU_SME_PCIE_TBU2,
 	SMMU_SME_PCIE_TBU3,
 };
+
+void duowen_smmu_early_init(void)
+{
+	smmu_riscv_enable(IOMMU_DMAC);
+	smmu_riscv_enable(IOMMU_PCIE);
+}

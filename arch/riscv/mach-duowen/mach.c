@@ -53,6 +53,7 @@
 #include <target/eth.h>
 #include <target/mmc.h>
 #include <target/spi.h>
+#include <target/iommu.h>
 #include <asm/mach/boot.h>
 
 #define APC_JUMP_ENTRY		(__DDR_BASE + 0x80)
@@ -100,6 +101,8 @@ void duowen_pma_soc_init(void)
 	n += imc_pma_set(n, PMA_AT_DEVICE,
 			 SOC1_BASE + __DEV_BASE,
 			 ilog2_const(max(SZ_2M, DEV_SIZE)));
+
+	duowen_smmu_early_init();
 }
 
 void duowen_pma_cpu_init(void)

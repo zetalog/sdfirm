@@ -63,24 +63,24 @@
 
 #define SMMU_HW_NUMSMES(n)	smmu_num_sms[n]
 
+/* iommu_dev_t */
+#define IOMMU_DMAC		0
+#define IOMMU_PCIE		1
+
 #if defined(CONFIG_SMARCO_RVSMMU)
 #include <driver/smarco_rvsmmu.h>
 #ifndef ARCH_HAVE_IOMMU
 #define ARCH_HAVE_IOMMU		1
 
-/* iommu_dev_t */
-#define IOMMU_DMA		0
-#define IOMMU_PCIE		1
-
 /* smmu_sme_t */
-#define SMMU_SME_DMA_TBU0	SMMU_SME(IOMMU_DMA, 0)
-#define SMMU_SME_DMA_TBU1	SMMU_SME(IOMMU_DMA, 1)
-#define SMMU_SME_DMA_TBU2	SMMU_SME(IOMMU_DMA, 2)
-#define SMMU_SME_DMA_TBU3	SMMU_SME(IOMMU_DMA, 3)
-#define SMMU_SME_DMA_TBU4	SMMU_SME(IOMMU_DMA, 4)
-#define SMMU_SME_DMA_TBU5	SMMU_SME(IOMMU_DMA, 5)
-#define SMMU_SME_DMA_TBU6	SMMU_SME(IOMMU_DMA, 6)
-#define SMMU_SME_DMA_TBU7	SMMU_SME(IOMMU_DMA, 7)
+#define SMMU_SME_DMA_TBU0	SMMU_SME(IOMMU_DMAC, 0)
+#define SMMU_SME_DMA_TBU1	SMMU_SME(IOMMU_DMAC, 1)
+#define SMMU_SME_DMA_TBU2	SMMU_SME(IOMMU_DMAC, 2)
+#define SMMU_SME_DMA_TBU3	SMMU_SME(IOMMU_DMAC, 3)
+#define SMMU_SME_DMA_TBU4	SMMU_SME(IOMMU_DMAC, 4)
+#define SMMU_SME_DMA_TBU5	SMMU_SME(IOMMU_DMAC, 5)
+#define SMMU_SME_DMA_TBU6	SMMU_SME(IOMMU_DMAC, 6)
+#define SMMU_SME_DMA_TBU7	SMMU_SME(IOMMU_DMAC, 7)
 #define NR_DMA_IOMMUS		8
 #define SMMU_SME_PCIE_TBU0	SMMU_SME(IOMMU_PCIE, 0)
 #define SMMU_SME_PCIE_TBU1	SMMU_SME(IOMMU_PCIE, 1)
@@ -120,5 +120,7 @@
 
 extern smmu_gr_t smmu_num_sms[];
 #endif /* ARCH_HAVE_IOMMU */
+
+void duowen_smmu_early_init(void);
 
 #endif /* __IOMMU_DUOWEN_H_INCLUDE__ */

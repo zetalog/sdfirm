@@ -51,7 +51,7 @@
 #define SMMU_PMP_REG(smmu, offset)	(SMMU_PMP_BASE(smmu) + (offset))
 
 /* RISCV Enable */
-#define SMMU_RISCV_EN(smmu)		SMMU_GR0_REG(smmu, 0x018)
+#define SMMU_RISCV(smmu)		SMMU_GR0_REG(smmu, 0x018)
 /* Invalidate PMA, RISCV */
 #define SMMU_TLBIPMA(smmu)		SMMU_GR0_REG(smmu, 0x0D0)
 /* Bypass PMP Selection */
@@ -68,5 +68,13 @@
 /* PMP Registers */
 #define SMMU_PMP_CFG(smmu, n)		SMMU_PMP_REG(smmu, 0x00 + ((n) << 3))
 #define SMMU_PMP_ADDR(smmu, n)		SMMU_PMP_REG(smmu, 0x20 + ((n) << 3))
+
+/* SMARCO SMMU 3.2 register descriptions */
+#define SMMU_RISCV_EN			_BV(0)
+
+#define smmu_riscv_enable(smmu)		\
+	__raw_setl(SMMU_RISCV_EN, SMMU_RISCV(smmu))
+#define smmu_riscv_disable(smmu)	\
+	__raw_clearl(SMMU_RISCV_EN, SMMU_RISCV(smmu))
 
 #endif /* __SMARCO_RVSMMU_H_INCLUDE__ */
