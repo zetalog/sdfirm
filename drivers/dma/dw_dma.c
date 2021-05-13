@@ -220,6 +220,7 @@ int dw_dma_memcpy_async(dma_t id, dma_addr_t dst, dma_addr_t src, size_t len)
 	__unused int chip, chan;
 	int ret = 0;
 	struct dw_dma_lli *lli;
+	uint8_t dinc = DMA_INCR, sinc = DMA_INCR;
 
 	BUG_ON(id >= DW_DMA_MAX_CHANS);
 	chip = dw_dma_chans[id].chip;
@@ -264,14 +265,27 @@ int dw_dma_memcpy_async(dma_t id, dma_addr_t dst, dma_addr_t src, size_t len)
 			burstlen = DW_DMA_C_MAX_BURSTLEN(chip, chan);
 		dw_dma_lli_set_arlen(lli, burstlen);
 		dw_dma_lli_set_awlen(lli, burstlen);
+
+		switch (dma_direction(dw_dma_chans[id].dma)) {
+		case DMA_MEM_TO_DEV:
+			dinc = DMA_FIXED;
+			break;
+		case DMA_DEV_TO_MEM:
+			sinc = DMA_FIXED;
+			break;
+		case DMA_DEV_TO_DEV:
+			dinc = DMA_FIXED;
+			sinc = DMA_FIXED;
+			break;
+		}
 #if 1
-		dw_dma_lli_set_dst(lli, DMA_MSIZE4, xfer_width);
-		dw_dma_lli_set_src(lli, DMA_MSIZE4, xfer_width);
+		dw_dma_lli_set_dst(lli, DMA_MSIZE4, xfer_width, dinc);
+		dw_dma_lli_set_src(lli, DMA_MSIZE4, xfer_width, sinc);
 #else
 		dw_dma_lli_set_dst(lli, DW_DMA_M_MAX_MSIZE(chip, chan),
-				   xfer_width);
+				   xfer_width, dinc);
 		dw_dma_lli_set_src(lli, DW_DMA_M_MAX_MSIZE(chip, chan),
-				   xfer_width);
+				   xfer_width, sinc);
 #endif
 
 		/* Source master always uses AXI1 master */

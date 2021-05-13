@@ -68,6 +68,10 @@
 		reg-io-width = <4>;
 		reg-shift = <2>;
 		compatible = "snps,dw-apb-uart";
+#ifdef CONFIG_DUOWEN_DMAC_DTS
+		dmas = <&dma 0>, <&dma 1>;
+		dma-names = "tx", "rx";
+#endif
 #ifdef CONFIG_DUOWEN_UART_CON1
 #ifdef CONFIG_DUOWEN_UART_DTS_CON
 		status = "okay";
@@ -1929,6 +1933,8 @@
 			snps,block-size = <0x80 0x80 0x80 0x80 0x80 0x80 0x80 0x80>;
 			snps,priority = <0 1 2 3 4 5 6 7>;
 			snps,axi-max-burst-len = <16>;
+			#dma-cells = <1>;
+			status = "okay";
 		};
 #endif /*CONFIG_DUOWEN_DMAC_DTS*/
 	};

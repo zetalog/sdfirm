@@ -132,6 +132,18 @@ choice
 	  This setting lets you define what baudrate is for the serial
 	  port.
 
+config CONSOLE_1152000
+	bool "1152000"
+
+config CONSOLE_921600
+	bool "921600"
+
+config CONSOLE_576000
+	bool "576000"
+
+config CONSOLE_460800
+	bool "460800"
+
 config CONSOLE_230400
 	bool "230400"
 
@@ -158,6 +170,30 @@ config CONSOLE_4800
 
 config CONSOLE_2400
 	bool "2400"
+
+config CONSOLE_500000
+	bool "500000"
+
+config CONSOLE_1000000
+	bool "1000000"
+
+config CONSOLE_1500000
+	bool "1500000"
+
+config CONSOLE_2000000
+	bool "2000000"
+
+config CONSOLE_2500000
+	bool "2500000"
+
+config CONSOLE_3000000
+	bool "3000000"
+
+config CONSOLE_3500000
+	bool "3500000"
+
+config CONSOLE_4000000
+	bool "4000000"
 
 endchoice
 

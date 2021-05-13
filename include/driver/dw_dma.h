@@ -44,6 +44,7 @@
 
 #include <target/generic.h>
 #include <target/spinlock.h>
+#include <target/amba.h>
 
 #ifdef CONFIG_DW_DMA_MAX_DESCS
 #define DW_DMA_MAX_DESCS		CONFIG_DW_DMA_MAX_DESCS
@@ -495,8 +496,14 @@
 #define DMA_SRC_TR_WIDTH_OFFSET		8
 #define DMA_SRC_TR_WIDTH_MASK		REG_3BIT_MASK
 #define DMA_SRC_TR_WIDTH(value)		_SET_FV(DMA_SRC_TR_WIDTH, value)
-#define DMA_DINC			_BV(6)
-#define DMA_SINC			_BV(4)
+#define DMA_DINC_OFFSET			6
+#define DMA_DINC_MASK			REG_1BIT_MASK
+#define DMA_DINC(value)			_SET_FV(DMA_DINC, value)
+#define DMA_SINC_OFFSET			4
+#define DMA_SINC_MASK			REG_1BIT_MASK
+#define DMA_SINC(value)			_SET_FV(DMA_SINC, value)
+#define DMA_INCR			0
+#define DMA_FIXED			1
 #define DMA_DMS_OFFSET			2
 #define DMA_DMS_MASK			REG_1BIT_MASK
 #define DMA_DMS(value)			_SET_FV(DMA_DMS, value)
@@ -850,14 +857,14 @@ struct dw_dma_lli {
 #define dw_dma_lli_set_awlen(lli, len)			\
 	__raw_setl_le(DMA_AWLEN(len) | DMA_AWLEN_EN,	\
 		      DMA_LLI_CH_CTL_HI(lli))
-#define dw_dma_lli_set_src(lli, msize, tr_width)	\
+#define dw_dma_lli_set_src(lli, msize, tr_width, incr)	\
 	__raw_setl_le(DMA_SRC_MSIZE(msize) | 		\
 		      DMA_SRC_TR_WIDTH(tr_width) |	\
-		      DMA_SINC, DMA_LLI_CH_CTL_LO(lli))
-#define dw_dma_lli_set_dst(lli, msize, tr_width)	\
+		      DMA_SINC(incr), DMA_LLI_CH_CTL_LO(lli))
+#define dw_dma_lli_set_dst(lli, msize, tr_width, incr)	\
 	__raw_setl_le(DMA_DST_MSIZE(msize) | 		\
 		      DMA_DST_TR_WIDTH(tr_width) |	\
-		      DMA_DINC, DMA_LLI_CH_CTL_LO(lli))
+		      DMA_DINC(incr), DMA_LLI_CH_CTL_LO(lli))
 
 struct dw_dma_desc {
 	struct dw_dma_lli lli;
