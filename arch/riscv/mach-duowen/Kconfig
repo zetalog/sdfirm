@@ -357,6 +357,57 @@ menuconfig DUOWEN_MSG
 
 endmenu
 
+if FDT
+
+menu "Linux device tree options"
+
+config DUOWEN_UART_DTS
+	bool "Enable dw-apb-uart driver in DTS"
+
+if DUOWEN_UART_DTS
+
+config DUOWEN_UART_DTS_CON
+	bool "Enable dw-apc-uart console in DTS"
+	depends DUOWEN_UART_DTS
+	help
+	  By default, sbi/hvc0 will be used as console. Enabling this
+	  option to allow DTS to report dw-apb-uart as console.
+
+config DUOWEN_UART_DTS_CLK_FREQ
+	bool "Enable static clock frequency in DTS"
+	help
+	  By default, CRCNTL clocks are defined to enable dynamic clock
+	  frequency for Linux kernel driver. Enabling this option to
+	  define "clock-frequency" DTS attrbutes to enable static clock
+	  frequency for Linux kernel driver.
+	  Note that, firmware must enable UART clocks prior than entering
+	  Linux if this option is enabled.
+	  If unsure, say 'N'.
+
+endif
+
+config DUOWEN_DMAC_DTS
+	bool "Enable dw-axi-dmac driver in DTS"
+
+config DUOWEN_I2C_MASTER_DTS
+	bool "Enable dw-apb-i2c master driver in DTS"
+
+config DUOWEN_I2C_SLAVE_DTS
+	bool "Enable dw-apb-i2c slave driver in DTS"
+
+config DUOWEN_SSI_MASTER_DTS
+	bool "Enable dw-apb-ssi driver in DTS"
+
+config DUOWEN_PCIE_DTS
+	bool "Enable pcie-designware driver in DTS"
+
+config DUOWEN_SMMU_DTS
+	bool "Enable smarco-riscv-smmu driver in DTS"
+
+endmenu
+
+endif
+
 config DUOWEN_APC_INIT
 	bool "Duowen vaisra initialization support"
 	depends DUOWEN_APC
@@ -435,32 +486,6 @@ config DUOWEN_UART_ACCEL
 	  This option is also useful for simulation acceleration.
 	  If unsure, say 'N'.
 
-config DUOWEN_UART_DTS
-	bool "Enable dw-apb-uart driver in DTS"
-	depends FDT
-
-if DUOWEN_UART_DTS
-
-config DUOWEN_UART_DTS_CON
-	bool "Enable dw-apc-uart console in DTS"
-	depends DUOWEN_UART_DTS
-	help
-	  By default, sbi/hvc0 will be used as console. Enabling this
-	  option to allow DTS to report dw-apb-uart as console.
-
-config DUOWEN_UART_DTS_CLK_FREQ
-	bool "Enable static clock frequency in DTS"
-	help
-	  By default, CRCNTL clocks are defined to enable dynamic clock
-	  frequency for Linux kernel driver. Enabling this option to
-	  define "clock-frequency" DTS attrbutes to enable static clock
-	  frequency for Linux kernel driver.
-	  Note that, firmware must enable UART clocks prior than entering
-	  Linux if this option is enabled.
-	  If unsure, say 'N'.
-
-endif
-
 endif
 
 menuconfig DUOWEN_TMR
@@ -530,14 +555,6 @@ menuconfig DUOWEN_I2C
 	select DW_I2C
 
 if DUOWEN_I2C
-
-config DUOWEN_I2C_MASTER_DTS
-	bool "Enable dw-apb-i2c master driver in DTS"
-	depends FDT
-
-config DUOWEN_I2C_SLAVE_DTS
-	bool "Enable dw-apb-i2c slave driver in DTS"
-	depends FDT
 
 endif
 
@@ -650,10 +667,6 @@ config DUOWEN_SSI_FLASH_IRQ
 	bool "Enable special IRQ tests"
 	depends SYS_IRQ
 
-config DUOWEN_SSI_MASTER_DTS
-	bool "Enable dw-apb-ssi driver in DTS"
-	depends FDT
-
 endif
 
 menuconfig DUOWEN_SD
@@ -720,9 +733,6 @@ config DUOWEN_PCIE_SMMU_BYPASS
 	  the SMMU engine, and this option need not to be enabled.
 	  If unsure, say 'N'.
 
-config DUOWEN_PCIE_DTS
-	bool "Enable pcie-designware driver in DTS"
-
 config DUOWEN_PCIE_TEST
 	bool "Enable PCIE EP/RC(Root Complex) basic test"
 	default n
@@ -755,10 +765,6 @@ config DUOWEN_SMMU_SV
 	depends RISCV_EXIT_S
 	select SMARCO_RVSMMU
 
-config DUOWEN_SMMU_DTS
-	bool "Enable smarco-riscv-smmu driver in DTS"
-	depends FDT
-
 endif
 
 menuconfig DUOWEN_DMAC
@@ -787,10 +793,6 @@ if DUOWEN_DMAC
 config DUOWEN_DMAC_IRQ_CHANNEL
 	bool "Enable channel based IRQ"
 	depends !DUOWEN_BBL
-
-config DUOWEN_DMAC_DTS
-	bool "Enable dw-axi-dmac driver in DTS"
-	depends FDT
 
 endif
 
