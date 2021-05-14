@@ -1886,7 +1886,7 @@
 
 #ifdef CONFIG_DUOWEN_PCIE_DTS
 		pcie@ff09100000 {
-			compatible = "smartcore,duowen-pcie";
+			compatible = "smarco,duowen-pcie";
 			reg = < 0xff 0x9100000 0x00 0x80000 0x400 0xe0000000 0x00 0x2000000 >;
 			reg-names = "dbi\0config";
 			#address-cells = < 0x03 >;
@@ -1898,10 +1898,11 @@
 			ctrl_base = < 0x400 0x0 >;
 			num-viewport = < 0x0 >;
 			num-lanes = < 0x8 >;
+			max-link-speed = <4>;
 		};
 
 		pcie@ff09200000 {
-			compatible = "smartcore,duowen-pcie";
+			compatible = "smarco,duowen-pcie";
 			reg = < 0xff 0x9200000 0x00 0x80000 0x480 0xe0000000 0x00 0x2000000 >;
 			reg-names = "dbi\0config";
 			#address-cells = < 0x03 >;
@@ -1913,7 +1914,8 @@
 			ctrl_base = < 0x480 0x0 >;
 			num-viewport = < 0x0 >;
 			num-lanes = < 0x8 >;
-			status = "disabled";
+			max-link-speed = <4>;
+			/* status = "disabled"; */
 		};
 #endif /* CONFIG_DUOWEN_PCIE_DTS */
 
