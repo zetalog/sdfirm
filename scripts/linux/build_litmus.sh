@@ -6,6 +6,38 @@ TOP=`pwd`
 SCRIPT=`(cd \`dirname $0\`; pwd)`
 SRCDIR=`(cd ${SCRIPT}/..; pwd)`
 
+# Default options
+LITMUS_REBUILD=no
+LITMUS_ARCHIVE=no
+
+usage()
+{
+	echo "Usage:"
+	echo "`basename $0` [-a] [-r] [cores]"
+	echo "Where:"
+	echo " -a:          generate litmus source archive"
+	echo " -r:          rebuild litmus binaries"
+	echo "cores:        specify number of CPUs"
+	exit $1
+}
+
+fatal_usage()
+{
+	echo $1
+	usage 1
+}
+
+while getopts "ar" opt
+do
+	case $opt in
+	a) LITMUS_ARCHIVE=yes;;
+	r) LITMUS_REBUILD=yes;;
+	?) echo "Invalid argument $opt"
+	   fatal_usage;;
+	esac
+done
+shift $(($OPTIND - 1))
+
 LITMUS_CORES=$1
 if [ "x${LITMUS_CORES}" = "x" ]; then
 	LITMUS_CORES=4
@@ -24,7 +56,10 @@ if [ -d ${LITMUS_SRCS} ]; then
 	echo "Generating ${LITMUS_CORES}cores litmus binary from source..."
 	(
 		cd ${LITMUS_SRCS}
-		make -f Makefile.litmus GCC=${CROSS_COMPILE}gcc clean >/dev/null
+		if [ "x${LITMUS_REBUILD}" = "xyes" ]; then
+			make -f Makefile.litmus GCC=${CROSS_COMPILE}gcc \
+				clean >/dev/null
+		fi
 		make -f Makefile.litmus GCC=${CROSS_COMPILE}gcc
 	)
 	LITMUS_TAR=no
@@ -34,10 +69,15 @@ else
 	echo "Generating ${LITMUS_CORES}cores litmus binary from repository..."
 	(
 		cd ${LITMUS_ROOT}
-		make hw-tests CORES=${LITMUS_CORES} GCC=${CROSS_COMPILE}gcc clean >/dev/null
+		if [ "x${LITMUS_REBUILD}" = "xyes" ]; then
+			make hw-tests CORES=${LITMUS_CORES} \
+				GCC=${CROSS_COMPILE}gcc clean >/dev/null
+		fi
 		make hw-tests CORES=${LITMUS_CORES} GCC=${CROSS_COMPILE}gcc
 	)
-	LITMUS_TAR=yes
+	if [ "x${LITMUS_ARCHIVE}" = "xyes" ]; then
+		LITMUS_TAR=yes
+	fi
 	LITMUS_RUN=${LITMUS_SRCS}/hw-tests
 fi
 mkdir -p ${TOP}/obj/bench

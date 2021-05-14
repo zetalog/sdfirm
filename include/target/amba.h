@@ -44,12 +44,21 @@
 
 #include <target/types.h>
 
-#define AXI_AXPROT_PRIVILEDGED		_BV(0)
-#define AXI_AXPROT_NON_PRIVILEDGED	0
-#define AXI_AXPROT_NON_SECURE		_BV(1)
-#define AXI_AXPROT_SECURE		0
-#define AXI_AXPROT_INSTRUCTION		_BV(2)
-#define AXI_AXPROT_DATA			0
+#define AXI_AXLEN_MAX_AXI3		16
+#define AXI_AXLEN_MAX_AXI4		256
+
+#define AXI_AXSIZE_1			0
+#define AXI_AXSIZE_2			1
+#define AXI_AXSIZE_4			2
+#define AXI_AXSIZE_8			3
+#define AXI_AXSIZE_16			4
+#define AXI_AXSIZE_32			5
+#define AXI_AXSIZE_64			6
+#define AXI_AXSIZE_128			7
+
+#define AXI_AXBURST_FIXED		0
+#define AXI_AXBURST_INCR		1 /* align cache line */
+#define AXI_AXBURST_WRAP		2 /* align AxSize */
 
 #define AXI_AXCACHE_BUFFERABLE		_BV(0)
 #define AXI_AXCACHE_NON_BUFFERABLE	0
@@ -58,9 +67,15 @@
 #define AXI_AXCACHE_READ_ALLOCATE	_BV(2)
 #define AXI_AXCACHE_WRITE_ALLOCATE	_BV(3)
 
-#define AXI_AXBURST_FIXED		0
-#define AXI_AXBURST_INCR		1 /* align cache line */
-#define AXI_AXBURST_WRAP		2 /* align AxSize */
+#define AXI_AXPROT_PRIVILEDGED		_BV(0)
+#define AXI_AXPROT_NON_PRIVILEDGED	0
+#define AXI_AXPROT_NON_SECURE		_BV(1)
+#define AXI_AXPROT_SECURE		0
+#define AXI_AXPROT_INSTRUCTION		_BV(2)
+#define AXI_AXPROT_DATA			0
+
+#define AXI_AXLOCK_NORMAL		0
+#define AXI_AXLOCK_EXCLUSIVE		1
 
 #define __bus_aligned			__align(AXI_AXSIZE_BYTES)
 

@@ -32,25 +32,9 @@ else
 	LINUX_PATH=`(cd $LINUX_DIR; pwd)`
 	LINUX_DIR=`dirname $LINUX_PATH`
 fi
-if [ -z $BBL ]; then
-	BBL=riscv-pk
-fi
-if [ "x$BBL" = "xsdfirm" ]; then
-	if [ -z $SDFIRM_DIR ]; then
-		SDFIRM_DIR=sdfirm
-		SDFIRM_PATH=$TOP/sdfirm
-	else
-		SDFIRM_PATH=`(cd $SDFIRM_DIR; pwd)`
-		SDFIRM_DIR=`dirname $SDFIRM_PATH`
-	fi
-	if [ -z $MACH ]; then
-		MACH=spike64
-	fi
-fi
 INITRAMFS_DIR=obj/initramfs/$ARCH
 INITRAMFS_FILELIST=obj/initramfs/list-$ARCH
 BBL_DIR=obj/bbl
-
 ARCHIVES_DIR=$TOP/archive
 
 function clean_all()
@@ -69,7 +53,8 @@ function build_busybox()
 	cd $BUSYBOX_PATH
 	mkdir -pv $TOP/obj/busybox-$ARCH
 	cp $SCRIPT/config/$BUSYBOX_CONFIG ./.config
-	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE O=$TOP/obj/busybox-$ARCH/ oldconfig
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
+		O=$TOP/obj/busybox-$ARCH/ oldconfig
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
 	cd $TOP/obj/busybox-$ARCH
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE -j6
@@ -156,17 +141,20 @@ function build_linux()
 	cd $LINUX_PATH
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE distclean
 	cp $SCRIPT/config/$LINUX_CONFIG arch/$ARCH/configs/my_defconfig
-	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE O=$TOP/obj/linux-$ARCH/ my_defconfig
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
+		O=$TOP/obj/linux-$ARCH/ my_defconfig
 	ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE $LINUX_PATH/scripts/config \
 		--file $TOP/obj/linux-$ARCH/.config \
 		--set-str INITRAMFS_SOURCE $TOP/$INITRAMFS_FILELIST
-	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE O=$TOP/obj/linux-$ARCH/ -j6
-	if [ ! -f $TOP/obj/linux-$ARCH/vmlinux ]
-	then
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
+		O=$TOP/obj/linux-$ARCH/ -j6
+	if [ ! -f $TOP/obj/linux-$ARCH/vmlinux ]; then
 		echo "Error: Failed to build Linux"
 		exit 1
 	fi
-	${CROSS_COMPILE}objcopy --only-keep-debug $TOP/obj/linux-$ARCH/vmlinux $TOP/obj/linux-$ARCH/kernel.sym
+	${CROSS_COMPILE}objcopy \
+		--only-keep-debug $TOP/obj/linux-$ARCH/vmlinux \
+		$TOP/obj/linux-$ARCH/kernel.sym
 	cd -
 }
 
@@ -177,21 +165,27 @@ function build_sdfirm()
 	mkdir -p $TOP/obj/sdfirm-$ARCH
 	cd $SDFIRM_PATH
 	if [ -x $TOP/obj/sdfirm-$ARCH ]; then
-		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE O=$TOP/obj/sdfirm-$ARCH/ distclean
+		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
+			O=$TOP/obj/sdfirm-$ARCH/ distclean
 	fi
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE distclean
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE distclean
-	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE O=$TOP/obj/sdfirm-$ARCH/ ${MACH}_bbl_defconfig
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
+		O=$TOP/obj/sdfirm-$ARCH/ ${MACH}_bbl_defconfig
 	ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPLE $SDFIRM_PATH/scripts/config \
 		--file $TOP/obj/sdfirm-$ARCH/.config \
-		--set-str SBI_PAYLOAD_PATH $TOP/obj/linux-$ARCH/arch/$ARCH/boot/Image
-	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE O=$TOP/obj/sdfirm-$ARCH/ -j6
+		--set-str SBI_PAYLOAD_PATH \
+		$TOP/obj/linux-$ARCH/arch/$ARCH/boot/Image
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
+		O=$TOP/obj/sdfirm-$ARCH/ -j6
 	if [ ! -f $TOP/obj/sdfirm-$ARCH/sdfirm ]
 	then
 		echo "Error: Failed to build sdfirm"
 		exit 1
 	fi
-	${CROSS_COMPILE}objcopy --only-keep-debug $TOP/obj/sdfirm-$ARCH/sdfirm $TOP/obj/sdfirm-$ARCH/sdfirm.sym
+	${CROSS_COMPILE}objcopy \
+		--only-keep-debug $TOP/obj/sdfirm-$ARCH/sdfirm \
+		$TOP/obj/sdfirm-$ARCH/sdfirm.sym
 	cd -
 }
 
@@ -201,7 +195,9 @@ function build_riscv-pk()
 	rm -rf $TOP/$BBL_DIR
 	mkdir -pv $TOP/$BBL_DIR
 	cd $BBL_DIR
-	$SCRIPT/riscv-pk/configure  --enable-logo --host=riscv64-unknown-linux-gnu --with-payload=$TOP/obj/linux-$ARCH/vmlinux
+	$SCRIPT/riscv-pk/configure \
+		--enable-logo --host=riscv64-unknown-linux-gnu \
+		--with-payload=$TOP/obj/linux-$ARCH/vmlinux
 	make
 	cd -
 }
@@ -218,53 +214,97 @@ function build_bbl()
 
 cd $TOP
 
+usage()
+{
+	echo "Usage:"
+	echo "`basename $0` [-m] [-s] [-u] [-a] [target]"
+	echo "Where:"
+	echo " -m bbl:      specify rebuild of M-mode program"
+	echo " -s:          specify rebuild of S-mode program"
+	echo " -u:          specify rebuild of U-mode programs"
+	echo " -a:          specify rebuild of all modes programs"
+	echo " target:      specify build type (default build)"
+	echo "  build       build specified modules (default mode)"
+	echo "  clean       build specified modules"
+	exit $1
+}
+
+fatal_usage()
+{
+	echo $1
+	usage 1
+}
+
+while getopts "am:su" opt
+do
+	case $opt in
+	a) M_MODE=yes
+	   S_MODE=yes
+	   U_MODE=yes;;
+	m) M_MODE=yes
+	   BBL=$OPTARG;;
+	s) S_MODE=yes;;
+	u) U_MODE=yes;;
+	?) echo "Invalid argument $opt"
+	   fatal_usage;;
+	esac
+done
+shift $(($OPTIND - 1))
+
 echo "== Prepare =="
-if [ ! -f $SCRIPT/config/$LINUX_CONFIG ]
-then
-	echo "Linux config not found $LINUX_CONFIG"
-	exit 1
+if [ "x${M_MODE}" = "xyes" ]; then
+	if [ -z $BBL ]; then
+		BBL=riscv-pk
+	fi
+	if [ "x$BBL" = "xsdfirm" ]; then
+		if [ -z $SDFIRM_DIR ]; then
+			SDFIRM_DIR=sdfirm
+			SDFIRM_PATH=$TOP/sdfirm
+		else
+			if [ ! -d $SDFIRM_DIR ]; then
+				echo "Sdfirm source $SDFIRM_DIR not found"
+				exit 1
+			fi
+			SDFIRM_PATH=`(cd $SDFIRM_DIR; pwd)`
+			SDFIRM_DIR=`dirname $SDFIRM_PATH`
+		fi
+		if [ -z $MACH ]; then
+			MACH=spike64
+		fi
+	fi
+fi
+if [ "x${S_MODE}" = "xyes" ]; then
+	if [ ! -f $SCRIPT/config/$LINUX_CONFIG ]; then
+		echo "Linux config not found $LINUX_CONFIG"
+		exit 1
+	fi
+	if [ ! -d $LINUX_DIR ]; then
+		echo "Linux source $LINUX_DIR not found"
+		exit 1
+	fi
+fi
+if [ "x${U_MODE}" = "xyes" ]; then
+	if [ ! -f $SCRIPT/config/$BUSYBOX_CONFIG ]; then
+		echo "Busybox config not found $BUSYBOX_CONFIG"
+		exit 1
+	fi
+	if [ ! -d $BUSYBOX_DIR ]; then
+		echo "Busybox source $BUSYBOX_DIR not found"
+		exit 1
+	fi
 fi
 
-if [ ! -f $SCRIPT/config/$BUSYBOX_CONFIG ]
-then
-	echo "Busybox config not found $BUSYBOX_CONFIG"
-	exit 1
-fi
-
-if [ ! -d $LINUX_DIR ]
-then
-	echo "Linux source $LINUX_DIR not found"
-	exit 1
-fi
-
-if [ ! -d $BUSYBOX_DIR ]
-then
-	echo "Busybox source $BUSYBOX_DIR not found"
-	exit 1
-fi
-
-if [ $# -eq 1 ]
-then
-	if [ "$1" == "clean" ]
-	then
-		clean_all
-	elif [ "$1" == "busybox" ]
-	then
+if [ "x$1" = "xclean" ]; then
+	clean_all
+else
+	if [ "x${U_MODE}" = "xyes" ]; then
 		build_busybox
-	elif [ "$1" == "initramfs" ]
-	then
 		build_initramfs
-	elif [ "$1" == "linux" ]
-	then
+	fi
+	if [ "x${S_MODE}" = "xyes" ]; then
 		build_linux
-	elif [ "$1" == "bbl" ]
-	then
+	fi
+	if [ "x${M_MODE}" = "xyes" ]; then
 		build_bbl
 	fi
-else
-		clean_all
-		build_busybox
-		build_initramfs
-		build_linux
-		build_bbl
 fi
