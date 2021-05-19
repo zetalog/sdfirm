@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu May 13 16:23:04 2021
+# Wed May 19 19:03:55 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -203,6 +203,10 @@ CONFIG_DUOWEN_ASIC=y
 CONFIG_DUOWEN_APC_16=y
 # CONFIG_DUOWEN_APC_4 is not set
 # CONFIG_DUOWEN_APC_1 is not set
+# CONFIG_DUOWEN_APC_4_3100 is not set
+# CONFIG_DUOWEN_APC_4_1111 is not set
+# CONFIG_DUOWEN_APC_4_4000 is not set
+# CONFIG_DUOWEN_APC_1_1000 is not set
 # CONFIG_DUOWEN_SIM_LOAD is not set
 CONFIG_DUOWEN_APC_INIT=y
 CONFIG_DUOWEN_PMA=y

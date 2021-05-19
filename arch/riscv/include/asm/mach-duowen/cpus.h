@@ -60,11 +60,11 @@
 #define MAX_CPU_CLUSTERS	1
 #endif /* CONFIG_DUOWEN_IMC */
 
-#ifdef CONFIG_DUOWEN_APC_4
-#define GOOD_CPU_NUM		4
-#else /* CONFIG_DUOWEN_APC_4 */
+#ifdef CONFIG_DUOWEN_APC_16
 #define GOOD_CPU_NUM		__MAX_CPU_CORES
-#endif /* CONFIG_DUOWEN_APC_4 */
+#else /* CONFIG_DUOWEN_APC_16 */
+#define GOOD_CPU_NUM		MAX_APC_NUM
+#endif /* CONFIG_DUOWEN_APC_16 */
 /* APC 4 Cores Usage:
  *
  * In this configuration, mhartid always returns 0/1/2/3, while partial
@@ -81,6 +81,9 @@
 #ifdef CONFIG_DUOWEN_APC_4_4000
 #define GOOD_CPU_MASK		__GOOD_CPU_MASK
 #endif /* CONFIG_DUOWEN_APC_4_4000 */
+#ifdef CONFIG_DUOWEN_APC_1_1000
+#define GOOD_CPU_MASK		__GOOD_CPU_MASK
+#endif /* CONFIG_DUOWEN_APC_1_0001 */
 #ifndef GOOD_CPU_MASK
 #define GOOD_CPU_MASK		__GOOD_CPU_MASK
 #endif /* GOOD_CPU_MASK */

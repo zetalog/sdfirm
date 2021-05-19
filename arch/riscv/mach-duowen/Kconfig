@@ -320,17 +320,23 @@ endchoice
 
 choice
 	prompt "APC layout"
-	depends DUOWEN_APC_4
-	default DUOWEN_APC_4_3100
+	default DUOWEN_APC_4_3100 if DUOWEN_APC_4
 
 config DUOWEN_APC_4_3100
 	bool "Cluster0 3cores, cluster1 1core"
+	depends DUOWEN_APC_4
 
 config DUOWEN_APC_4_1111
 	bool "Cluster0/1/2/3 1core"
+	depends DUOWEN_APC_4
 
 config DUOWEN_APC_4_4000
 	bool "Cluster0 4cores"
+	depends DUOWEN_APC_4
+
+config DUOWEN_APC_1_1000
+	bool "Cluster0 1core"
+	depends DUOWEN_APC_1
 
 endchoice
 
@@ -709,11 +715,9 @@ config DUOWEN_PCIE_LINK_MODE_1
 
 config DUOWEN_PCIE_LINK_MODE_2
 	bool "x8 x8"
-	depends !DUOWEN_ZEBU
 
 config DUOWEN_PCIE_LINK_MODE_3
 	bool "x16"
-	depends !DUOWEN_ZEBU
 
 config DUOWEN_PCIE_LINK_MODE_4
 	bool "x4 (ZeBu only)"

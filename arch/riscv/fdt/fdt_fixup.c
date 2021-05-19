@@ -153,6 +153,36 @@ static int fdt_resv_memory_update_node(void *fdt, unsigned long addr,
 	return 0;
 }
 
+#ifdef CONFIG_RISCV_PMP
+static void fdt_fixup_pmp(void *fdt, int parent)
+{
+	int err;
+	unsigned long log2len;
+	unsigned long prot, size;
+	phys_addr_t addr;
+	int i, j;
+
+	for (i = 0, j = 0; i < PMP_COUNT; i++) {
+		err = pmp_get(i, &prot, &addr, &log2len);
+		if (err)
+			continue;
+		if (log2len < __riscv_xlen)
+			size = 1UL << log2len;
+		else
+			size = 0;
+		if (!(prot & PMP_A))
+			continue;
+		if (prot & (PMP_R | PMP_W | PMP_X))
+			continue;
+
+		fdt_resv_memory_update_node(fdt, addr, size, j, parent, false);
+		j++;
+	}
+}
+#else
+#define fdt_fixup_pmp(fdt, parent)	do { } while (0)
+#endif
+
 /* PMP is used to protect SBI firmware to safe-guard it from buggy S-mode
  * software, see pmp_init(). The protected memory region information needs
  * to be conveyed to S-mode software (e.g.: operating system) via some
@@ -172,9 +202,9 @@ int fdt_reserved_memory_fixup(void *fdt)
 {
 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
-	unsigned long prot, size;
+	unsigned long size;
 	phys_addr_t addr;
-	int parent, i, j;
+	int parent;
 	int err;
 	int na = fdt_address_cells(fdt, 0);
 	int ns = fdt_size_cells(fdt, 0);
@@ -233,26 +263,7 @@ int fdt_reserved_memory_fixup(void *fdt)
 						   0, parent, true);
 	}
 
-#ifdef CONFIG_RISCV_PMP
-	for (i = 0, j = 0; i < PMP_COUNT; i++) {
-		unsigned long log2len;
-
-		err = pmp_get(i, &prot, &addr, &log2len);
-		if (err)
-			continue;
-		if (log2len < __riscv_xlen)
-			size = 1UL << log2len;
-		else
-			size = 0;
-		if (!(prot & PMP_A))
-			continue;
-		if (prot & (PMP_R | PMP_W | PMP_X))
-			continue;
-
-		fdt_resv_memory_update_node(fdt, addr, size, j, parent, false);
-		j++;
-	}
-#endif
+	fdt_fixup_pmp(fdt, parent);
 
 	return 0;
 }

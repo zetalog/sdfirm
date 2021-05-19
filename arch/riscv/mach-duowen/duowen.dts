@@ -19,19 +19,19 @@
 #ifdef CONFIG_DUOWEN_UART_DTS_CON
 		bootargs = [00];
 #ifdef CONFIG_DUOWEN_UART_CON0
-		stdout-path = "/uart0@ff63000000";
+		stdout-path = "/uart0@ff63000000 rdinit=/sbin/init";
 #endif
 #ifdef CONFIG_DUOWEN_UART_CON1
-		stdout-path = "/uart1@ff63100000";
+		stdout-path = "/uart1@ff63100000 rdinit=/sbin/init";
 #endif
 #ifdef CONFIG_DUOWEN_UART_CON2
-		stdout-path = "/uart2@ff63200000";
+		stdout-path = "/uart2@ff63200000 rdinit=/sbin/init";
 #endif
 #ifdef CONFIG_DUOWEN_UART_CON3
-		stdout-path = "/uart3@ff63300000";
+		stdout-path = "/uart3@ff63300000 rdinit=/sbin/init";
 #endif
 #else
-		bootargs = "console=hvc0 earlycon=sbi";
+		bootargs = "console=hvc0 earlycon=sbi rdinit=/sbin/init";
 #endif
 	};
 
