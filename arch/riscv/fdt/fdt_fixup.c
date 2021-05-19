@@ -233,6 +233,7 @@ int fdt_reserved_memory_fixup(void *fdt)
 						   0, parent, true);
 	}
 
+#ifdef CONFIG_RISCV_PMP
 	for (i = 0, j = 0; i < PMP_COUNT; i++) {
 		unsigned long log2len;
 
@@ -251,6 +252,7 @@ int fdt_reserved_memory_fixup(void *fdt)
 		fdt_resv_memory_update_node(fdt, addr, size, j, parent, false);
 		j++;
 	}
+#endif
 
 	return 0;
 }
