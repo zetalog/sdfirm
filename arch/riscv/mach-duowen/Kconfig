@@ -152,9 +152,13 @@ config DUOWEN_APC_BOOT_HOOK
 	bool "Enable APC boot ROM hooks"
 	depends DUOWEN_APC
 
+config DUOWEN_HAS_APC_PARTIAL_GOOD
+	bool
+
 config DUOWEN_APC_PARTIAL_GOOD
 	bool "Enable pre-set APC partial good"
 	depends DUOWEN_LOAD_FSBL
+	depends DUOWEN_HAS_APC_PARTIAL_GOOD
 	help
 	  This is useful for the partial good calibration test program.
 
@@ -307,6 +311,7 @@ choice
 config DUOWEN_APC_16
 	bool "16"
 	depends DUOWEN_IMC || SMP
+	select DUOWEN_HAS_APC_PARTIAL_GOOD
 
 config DUOWEN_APC_4
 	bool "4"
@@ -333,10 +338,12 @@ config DUOWEN_APC_4_1111
 config DUOWEN_APC_4_4000
 	bool "Cluster0 4cores"
 	depends DUOWEN_APC_4
+	select DUOWEN_HAS_APC_PARTIAL_GOOD
 
 config DUOWEN_APC_1_1000
 	bool "Cluster0 1core"
 	depends DUOWEN_APC_1
+	select DUOWEN_HAS_APC_PARTIAL_GOOD
 
 endchoice
 

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed May 19 19:03:43 2021
+# Thu May 20 17:08:31 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -154,6 +154,7 @@ CONFIG_DUOWEN_FSBL=y
 #
 # Bootloader/firmware options
 #
+CONFIG_DUOWEN_HAS_APC_PARTIAL_GOOD=y
 # CONFIG_DUOWEN_APC_PARTIAL_GOOD is not set
 CONFIG_DUOWEN_FSBL_SPI=y
 # CONFIG_DUOWEN_BOOT_DEBUG is not set
