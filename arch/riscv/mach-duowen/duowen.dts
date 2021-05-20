@@ -68,7 +68,7 @@
 		reg-io-width = <4>;
 		reg-shift = <2>;
 		compatible = "snps,dw-apb-uart";
-#ifdef CONFIG_DUOWEN_DMAC_DTS
+#ifdef CONFIG_DUOWEN_UART_DTS_DMA
 		dmas = <&dma 0>, <&dma 1>;
 		dma-names = "tx", "rx";
 #endif
