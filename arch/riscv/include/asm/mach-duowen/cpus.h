@@ -44,14 +44,41 @@
 
 #ifdef CONFIG_DUOWEN_APC_16
 #define MAX_APC_NUM		16
-#endif
+#endif /* CONFIG_DUOWEN_APC_16 */
 #ifdef CONFIG_DUOWEN_APC_4
 #define MAX_APC_NUM		4
-#endif
+#endif /* CONFIG_DUOWEN_APC_4 */
 #ifdef CONFIG_DUOWEN_APC_1
 #define MAX_APC_NUM		1
-#endif
+#endif /* CONFIG_DUOWEN_APC_1 */
 
+/* APC 4 Cores Usage:
+ *
+ * In this configuration, mhartid always returns 0/1/2/3, while partial
+ * goods is actually different, definining natural partial goods as
+ * __GOOD_CPU_MASK, and the actual partial goods as GOOD_CPU_MASK here.
+ */
+#define __GOOD_CPU_MASK		(CPU_TO_MASK(MAX_APC_NUM) - 1)
+#ifdef CONFIG_DUOWEN_APC_4_3100
+#define GOOD_CPU_MASK		0x0017
+#endif /* CONFIG_DUOWEN_APC_4_3100 */
+#ifdef CONFIG_DUOWEN_APC_4_1111
+#define GOOD_CPU_MASK		0x1111
+#endif /* CONFIG_DUOWEN_APC_4_1111 */
+#ifndef GOOD_CPU_MASK
+#define GOOD_CPU_MASK		__GOOD_CPU_MASK
+#endif /* GOOD_CPU_MASK */
+
+/* MAX_CPU_NUM: Used by SMP subsystem to determine the number of CPUs
+ * MAX_CPU_CLUSTERS:   Used by NoC code to determine the maximum number of
+ *                     clusters. However, the actual clusters are masked
+ *                     by partial good result.
+ *                     Also used by SMP bench to determine cluster/CPU
+ *                     relationship.
+ * __MAX_CPU_CORES:    Used only by APC clock driver base address array.
+ * __MAX_CPU_CLUSTERS: Used only by SCSR ROM driver to indicate per-socket
+ *                     ROM information.
+ */
 #define __MAX_CPU_CLUSTERS	4
 #define __MAX_CPU_CORES		16
 
@@ -60,72 +87,23 @@
 #define MAX_CPU_CLUSTERS	1
 #endif /* CONFIG_DUOWEN_IMC */
 
-#ifdef CONFIG_DUOWEN_APC_16
-#define GOOD_CPU_NUM		__MAX_CPU_CORES
-#else /* CONFIG_DUOWEN_APC_16 */
-#define GOOD_CPU_NUM		MAX_APC_NUM
-#endif /* CONFIG_DUOWEN_APC_16 */
-/* APC 4 Cores Usage:
- *
- * In this configuration, mhartid always returns 0/1/2/3, while partial
- * goods is actually different, definining natural partial goods as
- * __GOOD_CPU_MASK, and the actual partial goods as GOOD_CPU_MASK here.
- */
-#define __GOOD_CPU_MASK		(CPU_TO_MASK(GOOD_CPU_NUM) - 1)
-#ifdef CONFIG_DUOWEN_APC_4_3100
-#define GOOD_CPU_MASK		0x0017
-#endif /* CONFIG_DUOWEN_APC_4_3100 */
-#ifdef CONFIG_DUOWEN_APC_4_1111
-#define GOOD_CPU_MASK		0x1111
-#endif /* CONFIG_DUOWEN_APC_4_1111 */
-#ifdef CONFIG_DUOWEN_APC_4_4000
-#define GOOD_CPU_MASK		__GOOD_CPU_MASK
-#endif /* CONFIG_DUOWEN_APC_4_4000 */
-#ifdef CONFIG_DUOWEN_APC_1_1000
-#define GOOD_CPU_MASK		__GOOD_CPU_MASK
-#endif /* CONFIG_DUOWEN_APC_1_0001 */
-#ifndef GOOD_CPU_MASK
-#define GOOD_CPU_MASK		__GOOD_CPU_MASK
-#endif /* GOOD_CPU_MASK */
-
 #ifdef CONFIG_DUOWEN_APC
 #ifdef CONFIG_SMP
-#if defined(CONFIG_DUOWEN_APC_4)
 #ifdef CONFIG_DUOWEN_SOC_DUAL
 #ifdef CONFIG_DUOWEN_BBL
-#define MAX_CPU_NUM		8
+#define MAX_CPU_NUM		(2 * MAX_APC_NUM)
 #define MAX_CPU_CLUSTERS	(2 * __MAX_CPU_CLUSTERS)
 #else /* CONFIG_DUOWEN_BBL */
-#define MAX_CPU_NUM		4
+#define MAX_CPU_NUM		MAX_APC_NUM
 #define MAX_CPU_CLUSTERS	__MAX_CPU_CLUSTERS
 #endif /* CONFIG_DUOWEN_BBL */
 #else /* CONFIG_DUOWEN_SOC_DUAL */
-#define MAX_CPU_NUM		4
+#define MAX_CPU_NUM		MAX_APC_NUM
 #define MAX_CPU_CLUSTERS	__MAX_CPU_CLUSTERS
 #endif /* CONFIG_DUOWEN_SOC_DUAL */
-#else /* CONFIG_DUOWEN_APC_4 */
-#ifdef CONFIG_DUOWEN_SOC_DUAL
-#ifdef CONFIG_DUOWEN_BBL
-#define MAX_CPU_NUM		(2 * __MAX_CPU_CORES)
-#define MAX_CPU_CLUSTERS	(2 * __MAX_CPU_CLUSTERS)
-#else /* CONFIG_DUOWEN_BBL */
-#define MAX_CPU_NUM		__MAX_CPU_CORES
-#define MAX_CPU_CLUSTERS	__MAX_CPU_CLUSTERS
-#endif /* CONFIG_DUOWEN_BBL */
-#else /* CONFIG_DUOWEN_SOC_DUAL */
-#define MAX_CPU_NUM		__MAX_CPU_CORES
-#define MAX_CPU_CLUSTERS	__MAX_CPU_CLUSTERS
-#endif /* CONFIG_DUOWEN_SOC_DUAL */
-#endif /* CONFIG_DUOWEN_APC_4 */
 #else /* CONFIG_SMP */
 #ifdef CONFIG_DUOWEN_SOC_DUAL
-#ifdef CONFIG_DUOWEN_BBL
-#define MAX_CPU_NUM		2
-#define MAX_CPU_CLUSTERS	2
-#else /* CONFIG_DUOWEN_BBL */
-#define MAX_CPU_NUM		1
-#define MAX_CPU_CLUSTERS	1
-#endif /* CONFIG_DUOWEN_BBL */
+#error "Do not support dual socket as SMP is not configured!"
 #else /* CONFIG_DUOWEN_SOC_DUAL */
 #define MAX_CPU_NUM		1
 #define MAX_CPU_CLUSTERS	1

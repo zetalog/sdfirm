@@ -4,13 +4,16 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
 
 mount -t proc none /proc
 mount -t sysfs none /sys
+mount -t devtmpfs none /dev
 
 echo -e "\nuptime: $(cut -d' ' -f1 /proc/uptime) seconds\n" >> /dev/console
 
 ip addr add 127.0.0.1/8 dev lo
 ip link set lo up
-ip addr add 192.168.100.1/8 dev eth0
-ip link set eth0 up
+if [ -e /dev/eth0 ]; then
+	ip addr add 192.168.100.1/8 dev eth0
+	ip link set eth0 up
+fi
 
 dhrystone 50
 #dhrystone 200000000
