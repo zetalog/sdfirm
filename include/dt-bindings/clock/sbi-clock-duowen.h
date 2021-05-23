@@ -9,6 +9,8 @@
 
 #include <dt-bindings/clock/sbi-clock.h>
 
+#define clkid2(clkid)		((clkid) | ((CLK_DUAL) << 8))
+
 #ifdef CONFIG_DUOWEN_ASIC
 #define XO_CLK_FREQ		25000000 /* 25MHz */
 #define SOC_PLL_FREQ		1000000000 /* 1GHz */
@@ -138,8 +140,16 @@
 #define CL2_PLL			7
 #define CL3_PLL			8
 #define ETH_PLL			9
+#define __DUOWEN_MAX_PLLS	10
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define DUOWEN_MAX_PLLS		(2 * __DUOWEN_MAX_PLLS)
+#define socpll(pll, soc)	((soc) ? __DUOWEN_MAX_PLLS + (pll): (pll))
+#else /* CONFIG_DUOWEN_BBL_DUAL */
 #define DUOWEN_MAX_PLLS		10
+#define socpll(pll, soc)	(pll)
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 
+#define CLK_DUAL		8 /* DUAL socket clock bit */
 #ifdef CONFIG_DUOWEN_ASIC
 #define CLK_INPUT		0
 #define CLK_VCO			1
@@ -156,6 +166,12 @@
 #define xo_clk			clkid(CLK_INPUT, XO_CLK)
 #define tic_clk			clkid(CLK_INPUT, TIC_CLK)
 #define jtag_clk		clkid(CLK_INPUT, JTAG_CLK)
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define CLK_INPUT2		(CLK_INPUT | CLK_DUAL)
+#define xo_clk2			clkid(CLK_INPUT2, XO_CLK)
+#define tic_clk2		clkid(CLK_INPUT2, TIC_CLK)
+#define jtag_clk2		clkid(CLK_INPUT2, JTAG_CLK)
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 
 /* CLK_VCO */
 #define SOC_VCO			SOC_PLL
@@ -168,6 +184,20 @@
 #define CL2_VCO			CL2_PLL
 #define CL3_VCO			CL3_PLL
 #define ETH_VCO			ETH_PLL
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+/* Only used as vco_clks indexes */
+#define SOC_VCO2		(__DUOWEN_MAX_PLLS + SOC_PLL)
+#define DDR_BUS_VCO2		(__DUOWEN_MAX_PLLS + DDR_BUS_PLL)
+#define DDR_VCO2		(__DUOWEN_MAX_PLLS + DDR_PLL)
+#define PCIE_VCO2		(__DUOWEN_MAX_PLLS + PCIE_PLL)
+#define COHFAB_VCO2		(__DUOWEN_MAX_PLLS + COHFAB_PLL)
+#define CL0_VCO2		(__DUOWEN_MAX_PLLS + CL0_PLL)
+#define CL1_VCO2		(__DUOWEN_MAX_PLLS + CL1_PLL)
+#define CL2_VCO2		(__DUOWEN_MAX_PLLS + CL2_PLL)
+#define CL3_VCO2		(__DUOWEN_MAX_PLLS + CL3_PLL)
+#define ETH_VCO2		(__DUOWEN_MAX_PLLS + ETH_PLL)
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
+#define __NR_VCO_CLKS		__DUOWEN_MAX_PLLS
 #define NR_VCO_CLKS		DUOWEN_MAX_PLLS
 #define soc_vco			clkid(CLK_VCO, SOC_VCO)
 #define ddr_bus_vco		clkid(CLK_VCO, DDR_BUS_VCO)
@@ -179,14 +209,31 @@
 #define cl2_vco			clkid(CLK_VCO, CL2_VCO)
 #define cl3_vco			clkid(CLK_VCO, CL3_VCO)
 #define eth_vco			clkid(CLK_VCO, ETH_VCO)
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define CLK_VCO2		(CLK_VCO | CLK_DUAL)
+#define soc_vco2		clkid(CLK_VCO2, SOC_VCO)
+#define ddr_bus_vco2		clkid(CLK_VCO2, DDR_BUS_VCO)
+#define ddr_vco2		clkid(CLK_VCO2, DDR_VCO)
+#define pcie_vco2		clkid(CLK_VCO2, PCIE_VCO)
+#define cohfab_vco2		clkid(CLK_VCO2, COHFAB_VCO)
+#define cl0_vco2		clkid(CLK_VCO2, CL0_VCO)
+#define cl1_vco2		clkid(CLK_VCO2, CL1_VCO)
+#define cl2_vco2		clkid(CLK_VCO2, CL2_VCO)
+#define cl3_vco2		clkid(CLK_VCO2, CL3_VCO)
+#define eth_vco2		clkid(CLK_VCO2, ETH_VCO)
+#define clk2vco(clk, soc)	((soc) ? __NR_VCO_CLKS + (clk) : (clk))
+#else
+#define clk2vco(clk, soc)	(clk)
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 
 /* CLK_PLL */
 /* P PLL_OUT clocks use same name as PLLs, R PLL_OUT clocks are defined
  * here.
  */
-#define SYSFAB_PLL		(DUOWEN_MAX_PLLS + SOC_PLL)
-#define SGMII_PLL		(DUOWEN_MAX_PLLS + ETH_PLL)
-#define NR_PLL_CLKS		(SGMII_PLL + 1)
+#define SYSFAB_PLL		(__DUOWEN_MAX_PLLS + SOC_PLL)
+#define SGMII_PLL		(__DUOWEN_MAX_PLLS + ETH_PLL)
+#define __NR_PLL_CLKS		(__DUOWEN_MAX_PLLS * 2)
+#define NR_PLL_CLKS		(DUOWEN_MAX_PLLS * 2)
 #define soc_pll			clkid(CLK_PLL, SOC_PLL)
 #define ddr_bus_pll		clkid(CLK_PLL, DDR_BUS_PLL)
 #define ddr_pll			clkid(CLK_PLL, DDR_PLL)
@@ -199,6 +246,37 @@
 #define eth_pll			clkid(CLK_PLL, ETH_PLL)
 #define sysfab_pll		clkid(CLK_PLL, SYSFAB_PLL)
 #define sgmii_pll		clkid(CLK_PLL, SGMII_PLL)
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define CLK_PLL2		(CLK_PLL | CLK_DUAL)
+/* Only used as pll_clks indexes */
+#define SOC_PLL2		(DUOWEN_MAX_PLLS + SOC_PLL)
+#define DDR_BUS_PLL2		(DUOWEN_MAX_PLLS + DDR_BUS_PLL)
+#define DDR_PLL2		(DUOWEN_MAX_PLLS + DDR_PLL)
+#define PCIE_PLL2		(DUOWEN_MAX_PLLS + PCIE_PLL)
+#define COHFAB_PLL2		(DUOWEN_MAX_PLLS + COHFAB_PLL)
+#define CL0_PLL2		(DUOWEN_MAX_PLLS + CL0_PLL)
+#define CL1_PLL2		(DUOWEN_MAX_PLLS + CL1_PLL)
+#define CL2_PLL2		(DUOWEN_MAX_PLLS + CL2_PLL)
+#define CL3_PLL2		(DUOWEN_MAX_PLLS + CL3_PLL)
+#define ETH_PLL2		(DUOWEN_MAX_PLLS + ETH_PLL)
+#define SYSFAB_PLL2		(DUOWEN_MAX_PLLS + SYSFAB_PLL)
+#define SGMII_PLL2		(DUOWEN_MAX_PLLS + SGMII_PLL)
+#define soc_pll2		clkid(CLK_PLL2, SOC_PLL)
+#define ddr_bus_pll2		clkid(CLK_PLL2, DDR_BUS_PLL)
+#define ddr_pll2		clkid(CLK_PLL2, DDR_PLL)
+#define pcie_pll2		clkid(CLK_PLL2, PCIE_PLL)
+#define cohfab_pll2		clkid(CLK_PLL2, COHFAB_PLL)
+#define cl0_pll2		clkid(CLK_PLL2, CL0_PLL)
+#define cl1_pll2		clkid(CLK_PLL2, CL1_PLL)
+#define cl2_pll2		clkid(CLK_PLL2, CL2_PLL)
+#define cl3_pll2		clkid(CLK_PLL2, CL3_PLL)
+#define eth_pll2		clkid(CLK_PLL2, ETH_PLL)
+#define sysfab_pll2		clkid(CLK_PLL2, SYSFAB_PLL)
+#define sgmii_pll2		clkid(CLK_PLL2, SGMII_PLL)
+#define clk2pll(clk, soc)	((soc) ? __NR_PLL_CLKS + (clk) : (clk))
+#else
+#define clk2pll(clk, soc)	(clk)
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 
 /* CLK_SELECT: CLK_SEL_CFG */
 #define SOC_CLK_DIV2_SEL	0 /* SOC_PLL P clock div2 */
@@ -225,6 +303,21 @@
 #define cl1_clk_sel		clkid(CLK_SELECT, CL1_CLK_SEL)
 #define cl2_clk_sel		clkid(CLK_SELECT, CL2_CLK_SEL)
 #define cl3_clk_sel		clkid(CLK_SELECT, CL3_CLK_SEL)
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define CLK_SELECT2		(CLK_SELECT | CLK_DUAL)
+#define soc_clk_div2_sel2	clkid(CLK_SELECT2, SOC_CLK_DIV2_SEL)
+#define sysfab_clk_sel2		clkid(CLK_SELECT2, SYSFAB_CLK_SEL)
+#define soc_clk_sel2		clkid(CLK_SELECT2, SOC_CLK_SEL)
+#define ddr_bus_clk_sel2	clkid(CLK_SELECT2, DDR_BUS_CLK_SEL)
+#define ddr_clk_sel2		clkid(CLK_SELECT2, DDR_CLK_SEL)
+#define pcie_ref_clk_sel2	clkid(CLK_SELECT2, PCIE_REF_CLK_SEL)
+#define soc_clk_sel2		clkid(CLK_SELECT2, SOC_CLK_SEL)
+#define cohfab_clk_sel2		clkid(CLK_SELECT2, COHFAB_CLK_SEL)
+#define cl0_clk_sel2		clkid(CLK_SELECT2, CL0_CLK_SEL)
+#define cl1_clk_sel2		clkid(CLK_SELECT2, CL1_CLK_SEL)
+#define cl2_clk_sel2		clkid(CLK_SELECT2, CL2_CLK_SEL)
+#define cl3_clk_sel2		clkid(CLK_SELECT2, CL3_CLK_SEL)
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 
 /* In ASIC environment, dynamic PLL changes are prevented by automatically
  * switching to xo_clk before changing P/R clkouts. Thus the select clocks
@@ -241,7 +334,20 @@
 #define cl1_clk_src		cl1_pll
 #define cl2_clk_src		cl2_pll
 #define cl3_clk_src		cl3_pll
-#endif
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define soc_clk_div2_src2	soc_clk_div22
+#define soc_clk_src2		soc_pll2
+#define sysfab_clk_src2		sysfab_pll2
+#define ddr_bus_clk_src2	ddr_bus_pll2
+#define ddr_clk_src2		ddr_pll2
+#define pcie_ref_clk_src2	pcie_pll2
+#define cohfab_clk_src2		cohfab_pll2
+#define cl0_clk_src2		cl0_pll2
+#define cl1_clk_src2		cl1_pll2
+#define cl2_clk_src2		cl2_pll2
+#define cl3_clk_src2		cl3_pll2
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
+#endif /* CONFIG_DUOWEN_ASIC */
 
 #ifdef CONFIG_DUOWEN_ZEBU
 #define CLK_INPUT		0
@@ -251,11 +357,11 @@
 
 /* CLK_INPUT */
 #define CLK_PLL			CLK_INPUT
-#define SYSFAB_PLL		(DUOWEN_MAX_PLLS + 0)
-#define SGMII_PLL		(DUOWEN_MAX_PLLS + 1)
-#define XO_CLK			(DUOWEN_MAX_PLLS + 2)
-#define TIC_CLK			(DUOWEN_MAX_PLLS + 3)
-#define JTAG_CLK		(DUOWEN_MAX_PLLS + 4)
+#define SYSFAB_PLL		(__DUOWEN_MAX_PLLS + 0)
+#define SGMII_PLL		(__DUOWEN_MAX_PLLS + 1)
+#define XO_CLK			(__DUOWEN_MAX_PLLS + 2)
+#define TIC_CLK			(__DUOWEN_MAX_PLLS + 3)
+#define JTAG_CLK		(__DUOWEN_MAX_PLLS + 4)
 #define NR_INPUT_CLKS		(JTAG_CLK + 1)
 #define soc_pll			clkid(CLK_PLL, SOC_PLL)
 #define ddr_bus_pll		clkid(CLK_PLL, DDR_BUS_PLL)
@@ -272,6 +378,25 @@
 #define xo_clk			clkid(CLK_INPUT, XO_CLK)
 #define tic_clk			clkid(CLK_INPUT, TIC_CLK)
 #define jtag_clk		clkid(CLK_INPUT, JTAG_CLK)
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define CLK_INPUT2		(CLK_INPUT | CLK_DUAL)
+#define CLK_PLL2		(CLK_PLL | CLK_DUAL)
+#define soc_pll2		clkid(CLK_PLL2, SOC_PLL)
+#define ddr_bus_pll2		clkid(CLK_PLL2, DDR_BUS_PLL)
+#define ddr_pll2		clkid(CLK_PLL2, DDR_PLL)
+#define pcie_pll2		clkid(CLK_PLL2, PCIE_PLL)
+#define cohfab_pll2		clkid(CLK_PLL2, COHFAB_PLL)
+#define cl0_pll2		clkid(CLK_PLL2, CL0_PLL)
+#define cl1_pll2		clkid(CLK_PLL2, CL1_PLL)
+#define cl2_pll2		clkid(CLK_PLL2, CL2_PLL)
+#define cl3_pll2		clkid(CLK_PLL2, CL3_PLL)
+#define eth_pll2		clkid(CLK_PLL2, ETH_PLL)
+#define sysfab_pll2		clkid(CLK_PLL2, SYSFAB_PLL)
+#define sgmii_pll2		clkid(CLK_PLL2, SGMII_PLL)
+#define xo_clk2			clkid(CLK_INPUT2, XO_CLK)
+#define tic_clk2		clkid(CLK_INPUT2, TIC_CLK)
+#define jtag_clk2		clkid(CLK_INPUT2, JTAG_CLK)
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 
 /* CLK_SELECT: CLK_SEL_CFG */
 #define SOC_CLK_DIV2_SEL	0
@@ -297,6 +422,20 @@
 #define cl1_clk_sel		clkid(CLK_SELECT, CL1_CLK_SEL)
 #define cl2_clk_sel		clkid(CLK_SELECT, CL2_CLK_SEL)
 #define cl3_clk_sel		clkid(CLK_SELECT, CL3_CLK_SEL)
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define CLK_SELECT2		(CLK_SELECT | CLK_DUAL)
+#define soc_clk_div2_sel2	clkid(CLK_SELECT2, SOC_CLK_DIV2_SEL)
+#define sysfab_clk_sel2		clkid(CLK_SELECT2, SYSFAB_CLK_SEL)
+#define ddr_bus_clk_sel2	clkid(CLK_SELECT2, DDR_BUS_CLK_SEL)
+#define ddr_clk_sel2		clkid(CLK_SELECT2, DDR_CLK_SEL)
+#define pcie_ref_clk_sel2	clkid(CLK_SELECT2, PCIE_REF_CLK_SEL)
+#define soc_clk_sel2		clkid(CLK_SELECT2, SOC_CLK_SEL)
+#define cohfab_clk_sel2		clkid(CLK_SELECT2, COHFAB_CLK_SEL)
+#define cl0_clk_sel2		clkid(CLK_SELECT2, CL0_CLK_SEL)
+#define cl1_clk_sel2		clkid(CLK_SELECT2, CL1_CLK_SEL)
+#define cl2_clk_sel2		clkid(CLK_SELECT2, CL2_CLK_SEL)
+#define cl3_clk_sel2		clkid(CLK_SELECT2, CL3_CLK_SEL)
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 
 /* In ZeBu environment, the select clocks need to be programmed to output
  * PLL P/R clkouts. Thus the PLL clocks are controlled by the select
@@ -313,7 +452,20 @@
 #define cl1_clk_src		cl1_clk_sel
 #define cl2_clk_src		cl2_clk_sel
 #define cl3_clk_src		cl3_clk_sel
-#endif
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define soc_clk_div2_src2	soc_clk_div2_sel2
+#define soc_clk_src2		soc_clk_sel2
+#define sysfab_clk_src2		sysfab_clk_sel2
+#define ddr_bus_clk_src2	ddr_bus_clk_sel2
+#define ddr_clk_src2		ddr_clk_sel2
+#define pcie_ref_clk_src2	pcie_ref_clk_sel2
+#define cohfab_clk_src2		cohfab_clk_sel2
+#define cl0_clk_src2		cl0_clk_sel2
+#define cl1_clk_src2		cl1_clk_sel2
+#define cl2_clk_src2		cl2_clk_sel2
+#define cl3_clk_src2		cl3_clk_sel2
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
+#endif /* CONFIG_DUOWEN_ZEBU */
 
 /* Alias for select clocks */
 #define sysfab_100m_clk		sysfab_clk_src
@@ -321,6 +473,13 @@
 #define soc_clk			sysfab_500m_clk
 #define sysfab_clk		sysfab_100m_clk
 #define pcie_axi_clk		soc_clk_src
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define sysfab_100m_clk2	sysfab_clk_src2
+#define sysfab_500m_clk2	soc_clk_div2_src2
+#define soc_clk2		sysfab_500m_clk2
+#define sysfab_clk2		sysfab_100m_clk2
+#define pcie_axi_clk2		soc_clk_src2
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 
 /* CLK_OUTPUT: CLK_EN_CFG0 */
 #define DMA_CLK			0
@@ -438,7 +597,6 @@
 #define pcie_clk		clkid(CLK_OUTPUT, PCIE_CLK)
 #define sysfab_dbg_clk		clkid(CLK_OUTPUT, SYSFAB_DBG_CLK)
 #define sysfab_tic_clk		clkid(CLK_OUTPUT, SYSFAB_TIC_CLK)
-/* Internal bus clocks */
 #define cluster0_hclk		clkid(CLK_OUTPUT, CLUSTER0_HCLK)
 #define cluster1_hclk		clkid(CLK_OUTPUT, CLUSTER1_HCLK)
 #define cluster2_hclk		clkid(CLK_OUTPUT, CLUSTER2_HCLK)
@@ -456,11 +614,48 @@
 #define tmr3_clk		clkid(CLK_OUTPUT, TMR3_CLK)
 #define wdt0_clk		clkid(CLK_OUTPUT, WDT0_CLK)
 #define wdt1_clk		clkid(CLK_OUTPUT, WDT1_CLK)
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define CLK_OUTPUT2		(CLK_OUTPUT | CLK_DUAL)
+#define dma_clk2		clkid(CLK_OUTPUT2, DMA_CLK)
+#define ddr_por2		clkid(CLK_OUTPUT2, DDR_POR)
+#define ddr_bypass_pclk2	clkid(CLK_OUTPUT2, DDR_BYPASS_PCLK)
+#define ddr_pclk2		clkid(CLK_OUTPUT2, DDR_PCLK)
+#define ddr_aclk2		clkid(CLK_OUTPUT2, DDR_ACLK)
+#define ddr_clk2		clkid(CLK_OUTPUT2, DDR_CLK)
+#define ddr_rst2		clkid(CLK_OUTPUT2, DDR_RST)
+#define pcie_por2		clkid(CLK_OUTPUT2, PCIE_POR)
+#define pcie_clk2		clkid(CLK_OUTPUT2, PCIE_CLK)
+#define sysfab_dbg_clk2		clkid(CLK_OUTPUT2, SYSFAB_DBG_CLK)
+#define sysfab_tic_clk2		clkid(CLK_OUTPUT2, SYSFAB_TIC_CLK)
+#define cluster0_hclk2		clkid(CLK_OUTPUT2, CLUSTER0_HCLK)
+#define cluster1_hclk2		clkid(CLK_OUTPUT2, CLUSTER1_HCLK)
+#define cluster2_hclk2		clkid(CLK_OUTPUT2, CLUSTER2_HCLK)
+#define cluster3_hclk2		clkid(CLK_OUTPUT2, CLUSTER3_HCLK)
+#define cohfab_hclk2		clkid(CLK_OUTPUT2, COHFAB_HCLK)
+#define lcsr_clk2		clkid(CLK_OUTPUT2, LCSR_CLK)
+#define scsr_clk2		clkid(CLK_OUTPUT2, SCSR_CLK)
+#define tlmm_clk2		clkid(CLK_OUTPUT2, TLMM_CLK)
+#define plic_clk2		clkid(CLK_OUTPUT2, PLIC_CLK)
+#define tic_rst2		clkid(CLK_OUTPUT2, TIC_RST)
+#define dbg_rst2		clkid(CLK_OUTPUT2, DBG_RST)
+#define tmr0_clk2		clkid(CLK_OUTPUT2, TMR0_CLK)
+#define tmr1_clk2		clkid(CLK_OUTPUT2, TMR1_CLK)
+#define tmr2_clk2		clkid(CLK_OUTPUT2, TMR2_CLK)
+#define tmr3_clk2		clkid(CLK_OUTPUT2, TMR3_CLK)
+#define wdt0_clk2		clkid(CLK_OUTPUT2, WDT0_CLK)
+#define wdt1_clk2		clkid(CLK_OUTPUT2, WDT1_CLK)
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 /* Additional clocks */
 #define cohfab_cfg_clk		clkid(CLK_OUTPUT, COHFAB_CFG_CLK)
 #define pcie_pclk		clkid(CLK_OUTPUT, PCIE_PCLK)
 #define eth_alt_ref_clk		clkid(CLK_OUTPUT, ETH_ALT_REF_CLK)
 #define sgmii_ref_clk		clkid(CLK_OUTPUT, SGMII_REF_CLK)
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define cohfab_cfg_clk2		clkid(CLK_OUTPUT2, COHFAB_CFG_CLK)
+#define pcie_pclk2		clkid(CLK_OUTPUT2, PCIE_PCLK)
+#define eth_alt_ref_clk2	clkid(CLK_OUTPUT2, ETH_ALT_REF_CLK)
+#define sgmii_ref_clk2		clkid(CLK_OUTPUT2, SGMII_REF_CLK)
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 /* Alias for AO domain clocks */
 #define ram_clk			soc_clk
 #define rom_clk			soc_clk
@@ -471,13 +666,23 @@
 #define pcie_aclk		pcie_axi_clk
 #define pcie_alt_ref_clk	pcie_clk
 #define pcie_rst		pcie_alt_ref_clk
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define ram_clk2		soc_clk2
+#define rom_clk2		soc_clk2
+/* clocke/reset alias required by DDR/PCIe drivers */
+#define ddr_prst2		ddr_pclk2
+#define ddr_arst2		ddr_aclk2
+#define pcie_aux_clk2		xo_clk2
+#define pcie_aclk2		pcie_axi_clk2
+#define pcie_alt_ref_clk2	pcie_clk2
+#define pcie_rst2		pcie_alt_ref_clk2
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 
 /* CLK_OUTPUT: CLK_EN_CFG1 */
-/* Internal bus clocks */
+/* Integrated overall clocks */
 #define gpio0_clk		clkid(CLK_OUTPUT, GPIO0_CLK)
 #define gpio1_clk		clkid(CLK_OUTPUT, GPIO1_CLK)
 #define gpio2_clk		clkid(CLK_OUTPUT, GPIO2_CLK)
-/* Integrated overall clocks */
 #define uart0_clk		clkid(CLK_OUTPUT, UART0_CLK)
 #define uart1_clk		clkid(CLK_OUTPUT, UART1_CLK)
 #define uart2_clk		clkid(CLK_OUTPUT, UART2_CLK)
@@ -503,6 +708,36 @@
 #define sd_clk			clkid(CLK_OUTPUT, SD_CLK)
 #define eth_clk			clkid(CLK_OUTPUT, ETH_CLK)
 #define tsensor_clk		clkid(CLK_OUTPUT, TSENSOR_CLK)
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define gpio0_clk2		clkid(CLK_OUTPUT2, GPIO0_CLK)
+#define gpio1_clk2		clkid(CLK_OUTPUT2, GPIO1_CLK)
+#define gpio2_clk2		clkid(CLK_OUTPUT2, GPIO2_CLK)
+#define uart0_clk2		clkid(CLK_OUTPUT2, UART0_CLK)
+#define uart1_clk2		clkid(CLK_OUTPUT2, UART1_CLK)
+#define uart2_clk2		clkid(CLK_OUTPUT2, UART2_CLK)
+#define uart3_clk2		clkid(CLK_OUTPUT2, UART3_CLK)
+#define i2c0_clk2		clkid(CLK_OUTPUT2, I2C0_CLK)
+#define i2c1_clk2		clkid(CLK_OUTPUT2, I2C1_CLK)
+#define i2c2_clk2		clkid(CLK_OUTPUT2, I2C2_CLK)
+#define i2c3_clk2		clkid(CLK_OUTPUT2, I2C3_CLK)
+#define i2c4_clk2		clkid(CLK_OUTPUT2, I2C4_CLK)
+#define i2c5_clk2		clkid(CLK_OUTPUT2, I2C5_CLK)
+#define i2c6_clk2		clkid(CLK_OUTPUT2, I2C6_CLK)
+#define i2c7_clk2		clkid(CLK_OUTPUT2, I2C7_CLK)
+#define i2c8_clk2		clkid(CLK_OUTPUT2, I2C8_CLK)
+#define i2c9_clk2		clkid(CLK_OUTPUT2, I2C9_CLK)
+#define i2c10_clk2		clkid(CLK_OUTPUT2, I2C10_CLK)
+#define i2c11_clk2		clkid(CLK_OUTPUT2, I2C11_CLK)
+#define spi_flash_clk2		clkid(CLK_OUTPUT2, SPI_FLASH_CLK)
+#define spi0_clk2		clkid(CLK_OUTPUT2, SPI0_CLK)
+#define spi1_clk2		clkid(CLK_OUTPUT2, SPI1_CLK)
+#define spi2_clk2		clkid(CLK_OUTPUT2, SPI2_CLK)
+#define spi3_clk2		clkid(CLK_OUTPUT2, SPI3_CLK)
+#define spi4_clk2		clkid(CLK_OUTPUT2, SPI4_CLK)
+#define sd_clk2			clkid(CLK_OUTPUT2, SD_CLK)
+#define eth_clk2		clkid(CLK_OUTPUT2, ETH_CLK)
+#define tsensor_clk2		clkid(CLK_OUTPUT2, TSENSOR_CLK)
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 /* TODO: dependency clocks:
  * sd_tm_clk: depends sd_clk, sources soc_pll_div10/100
  */
@@ -512,6 +747,9 @@
 /* CLK_OUTPUT: CLK_EN_CFG3 */
 /* Integrated overall clocks */
 #define imc_clk			clkid(CLK_OUTPUT, IMC_CLK)
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define imc_clk2		clkid(CLK_OUTPUT2, IMC_CLK)
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 
 /* CLK_OUTPUT: COHFAB/CLUSTER CLK_CFG */
 #define cohfab_clk		clkid(CLK_OUTPUT, COHFAB_CLK)
@@ -519,6 +757,13 @@
 #define cluster1_clk		clkid(CLK_OUTPUT, CLUSTER1_CLK)
 #define cluster2_clk		clkid(CLK_OUTPUT, CLUSTER2_CLK)
 #define cluster3_clk		clkid(CLK_OUTPUT, CLUSTER3_CLK)
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define cohfab_clk2		clkid(CLK_OUTPUT2, COHFAB_CLK)
+#define cluster0_clk2		clkid(CLK_OUTPUT2, CLUSTER0_CLK)
+#define cluster1_clk2		clkid(CLK_OUTPUT2, CLUSTER1_CLK)
+#define cluster2_clk2		clkid(CLK_OUTPUT2, CLUSTER2_CLK)
+#define cluster3_clk2		clkid(CLK_OUTPUT2, CLUSTER3_CLK)
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 
 /* CLK_OUT: CLUSTER internal CLK_CG/RST_CTRL */
 #define cluster0_apc0_cpu0_clk	clkid(CLK_OUTPUT, CLUSTER0_APC0_CPU0_CLK)
@@ -545,6 +790,32 @@
 #define cluster3_apc1_cpu1_clk	clkid(CLK_OUTPUT, CLUSTER3_APC1_CPU1_CLK)
 #define cluster3_apc0_l2_clk	clkid(CLK_OUTPUT, CLUSTER3_APC0_L2_CLK)
 #define cluster3_apc1_l2_clk	clkid(CLK_OUTPUT, CLUSTER3_APC1_L2_CLK)
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define cluster0_apc0_cpu0_clk2	clkid(CLK_OUTPUT2, CLUSTER0_APC0_CPU0_CLK)
+#define cluster0_apc0_cpu1_clk2	clkid(CLK_OUTPUT2, CLUSTER0_APC0_CPU1_CLK)
+#define cluster0_apc1_cpu0_clk2	clkid(CLK_OUTPUT2, CLUSTER0_APC1_CPU0_CLK)
+#define cluster0_apc1_cpu1_clk2	clkid(CLK_OUTPUT2, CLUSTER0_APC1_CPU1_CLK)
+#define cluster0_apc0_l2_clk2	clkid(CLK_OUTPUT2, CLUSTER0_APC0_L2_CLK)
+#define cluster0_apc1_l2_clk2	clkid(CLK_OUTPUT2, CLUSTER0_APC1_L2_CLK)
+#define cluster1_apc0_cpu0_clk2	clkid(CLK_OUTPUT2, CLUSTER1_APC0_CPU0_CLK)
+#define cluster1_apc0_cpu1_clk2	clkid(CLK_OUTPUT2, CLUSTER1_APC0_CPU1_CLK)
+#define cluster1_apc1_cpu0_clk2	clkid(CLK_OUTPUT2, CLUSTER1_APC1_CPU0_CLK)
+#define cluster1_apc1_cpu1_clk2	clkid(CLK_OUTPUT2, CLUSTER1_APC1_CPU1_CLK)
+#define cluster1_apc0_l2_clk2	clkid(CLK_OUTPUT2, CLUSTER1_APC0_L2_CLK)
+#define cluster1_apc1_l2_clk2	clkid(CLK_OUTPUT2, CLUSTER1_APC1_L2_CLK)
+#define cluster2_apc0_cpu0_clk2	clkid(CLK_OUTPUT2, CLUSTER2_APC0_CPU0_CLK)
+#define cluster2_apc0_cpu1_clk2	clkid(CLK_OUTPUT2, CLUSTER2_APC0_CPU1_CLK)
+#define cluster2_apc1_cpu0_clk2	clkid(CLK_OUTPUT2, CLUSTER2_APC1_CPU0_CLK)
+#define cluster2_apc1_cpu1_clk2	clkid(CLK_OUTPUT2, CLUSTER2_APC1_CPU1_CLK)
+#define cluster2_apc0_l2_clk2	clkid(CLK_OUTPUT2, CLUSTER2_APC0_L2_CLK)
+#define cluster2_apc1_l2_clk2	clkid(CLK_OUTPUT2, CLUSTER2_APC1_L2_CLK)
+#define cluster3_apc0_cpu0_clk2	clkid(CLK_OUTPUT2, CLUSTER3_APC0_CPU0_CLK)
+#define cluster3_apc0_cpu1_clk2	clkid(CLK_OUTPUT2, CLUSTER3_APC0_CPU1_CLK)
+#define cluster3_apc1_cpu0_clk2	clkid(CLK_OUTPUT2, CLUSTER3_APC1_CPU0_CLK)
+#define cluster3_apc1_cpu1_clk2	clkid(CLK_OUTPUT2, CLUSTER3_APC1_CPU1_CLK)
+#define cluster3_apc0_l2_clk2	clkid(CLK_OUTPUT2, CLUSTER3_APC0_L2_CLK)
+#define cluster3_apc1_l2_clk2	clkid(CLK_OUTPUT2, CLUSTER3_APC1_L2_CLK)
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 
 /* CLK_DIV */
 #define SOC_CLK_DIV2		0
@@ -556,6 +827,13 @@
 #define ddr_clk_sel_div4	clkid(CLK_DIV, DDR_CLK_SEL_DIV4)
 #define xo_clk_div4		clkid(CLK_DIV, XO_CLK_DIV4)
 #define eth_clk_div2		clkid(CLK_DIV, ETH_CLK_DIV2)
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define CLK_DIV2		(CLK_DIV | CLK_DUAL)
+#define soc_clk_div22		clkid(CLK_DIV2, SOC_CLK_DIV2)
+#define ddr_clk_sel_div42	clkid(CLK_DIV2, DDR_CLK_SEL_DIV4)
+#define xo_clk_div42		clkid(CLK_DIV2, XO_CLK_DIV4)
+#define eth_clk_div22		clkid(CLK_DIV2, ETH_CLK_DIV2)
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 
 /* Linux clk-duowen bindings */
 #define sbi_soc_clk		0
@@ -604,5 +882,55 @@
 #define sbi_pcie_alt_ref_clk	43
 #define sbi_eth_alt_ref_clk	44
 #define sbi_sgmii_ref_clk	45
+
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define sbi_dual_clk		64
+#define sbi_soc_clk2		(sbi_soc_clk | sbi_dual_clk)
+#define sbi_sysfab_clk2		(sbi_sysfab_clk | sbi_dual_clk)
+#define sbi_cohfab_clk2		(sbi_cohfab_clk | sbi_dual_clk)
+#define sbi_cluster0_clk2	(sbi_cluster0_clk | sbi_dual_clk)
+#define sbi_cluster1_clk2	(sbi_cluster1_clk | sbi_dual_clk)
+#define sbi_cluster2_clk2	(sbi_cluster2_clk | sbi_dual_clk)
+#define sbi_cluster3_clk2	(sbi_cluster3_clk | sbi_dual_clk)
+#define sbi_dma_clk2		(sbi_dma_clk | sbi_dual_clk)
+#define sbi_tmr0_clk2		(sbi_tmr0_clk | sbi_dual_clk)
+#define sbi_tmr1_clk2		(sbi_tmr1_clk | sbi_dual_clk)
+#define sbi_tmr2_clk2		(sbi_tmr2_clk | sbi_dual_clk)
+#define sbi_wdt0_clk2		(sbi_wdt0_clk | sbi_dual_clk)
+#define sbi_wdt1_clk2		(sbi_wdt1_clk | sbi_dual_clk)
+#define sbi_tlmm_clk2		(sbi_tlmm_clk | sbi_dual_clk)
+#define sbi_gpio0_clk2		(sbi_gpio0_clk | sbi_dual_clk)
+#define sbi_gpio1_clk2		(sbi_gpio1_clk | sbi_dual_clk)
+#define sbi_gpio2_clk2		(sbi_gpio2_clk | sbi_dual_clk)
+#define sbi_uart0_clk2		(sbi_uart0_clk | sbi_dual_clk)
+#define sbi_uart1_clk2		(sbi_uart1_clk | sbi_dual_clk)
+#define sbi_uart2_clk2		(sbi_uart2_clk | sbi_dual_clk)
+#define sbi_uart3_clk2		(sbi_uart3_clk | sbi_dual_clk)
+#define sbi_i2c0_clk2		(sbi_i2c0_clk | sbi_dual_clk)
+#define sbi_i2c1_clk2		(sbi_i2c1_clk | sbi_dual_clk)
+#define sbi_i2c2_clk2		(sbi_i2c2_clk | sbi_dual_clk)
+#define sbi_i2c3_clk2		(sbi_i2c3_clk | sbi_dual_clk)
+#define sbi_i2c4_clk2		(sbi_i2c4_clk | sbi_dual_clk)
+#define sbi_i2c5_clk2		(sbi_i2c5_clk | sbi_dual_clk)
+#define sbi_i2c6_clk2		(sbi_i2c6_clk | sbi_dual_clk)
+#define sbi_i2c7_clk2		(sbi_i2c7_clk | sbi_dual_clk)
+#define sbi_i2c8_clk2		(sbi_i2c8_clk | sbi_dual_clk)
+#define sbi_i2c9_clk2		(sbi_i2c9_clk | sbi_dual_clk)
+#define sbi_i2c10_clk2		(sbi_i2c10_clk | sbi_dual_clk)
+#define sbi_i2c11_clk2		(sbi_i2c11_clk | sbi_dual_clk)
+#define sbi_spi0_clk2		(sbi_spi0_clk | sbi_dual_clk)
+#define sbi_spi1_clk2		(sbi_spi1_clk | sbi_dual_clk)
+#define sbi_spi2_clk2		(sbi_spi2_clk | sbi_dual_clk)
+#define sbi_spi3_clk2		(sbi_spi3_clk | sbi_dual_clk)
+#define sbi_spi4_clk2		(sbi_spi4_clk | sbi_dual_clk)
+#define sbi_sd_clk2		(sbi_sd_clk | sbi_dual_clk)
+#define sbi_tsensor_clk2	(sbi_tsensor_clk | sbi_dual_clk)
+#define sbi_pcie_pclk2		(sbi_pcie_pclk | sbi_dual_clk)
+#define sbi_pcie_aclk2		(sbi_pcie_aclk | sbi_dual_clk)
+#define sbi_pcie_aux_clk2	(sbi_pcie_aux_clk | sbi_dual_clk)
+#define sbi_pcie_alt_ref_clk2	(sbi_pcie_alt_ref_clk | sbi_dual_clk)
+#define sbi_eth_alt_ref_clk2	(sbi_eth_alt_ref_clk | sbi_dual_clk)
+#define sbi_sgmii_ref_clk2	(sbi_sgmii_ref_clk | sbi_dual_clk)
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 
 #endif /* __DT_BINDINGS_CLOCK_SBI_DUOWEN_H */

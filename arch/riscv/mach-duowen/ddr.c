@@ -145,6 +145,32 @@ clk_freq_t ddr_get_fclk(int speed)
 	return ds ? ds->f_pll_clk: INVALID_FREQ;
 }
 
+/* XXX: Dual Socket Runtime
+ *
+ * DDR speed APIs are developed for being used for single socket runtime,
+ * or dual socket bootstrap, cannot be applied to dual socket runtime.
+ * With the following untested interfaces, the APIs now can be applied to
+ * dual socket runtime.
+ */
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+static void __ddr_hw_enable_speed2(uint8_t speed)
+{
+	if (speed > DDR2_667)
+		clk_enable(ddr_clk2);
+	else
+		clk_enable(ddr_bypass_pclk2);
+}
+
+static void __ddr_hw_config_speed2(clk_freq_t fvco, clk_freq_t fpll)
+{
+	clk_apply_vco(DDR_VCO2, DDR_VCO, fvco);
+	clk_apply_pll(DDR_PLL2, DDR_PLL, fpll);
+}
+#else /* CONFIG_DUOWEN_BBL_DUAL */
+#define __ddr_hw_enable_speed2(speed)		do { } while (0)
+#define __ddr_hw_config_speed2(fvco, fpll)	do { } while (0)
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
+
 void ddr_hw_enable_speed(uint8_t speed)
 {
 	struct ddr_speed *ds;
@@ -155,6 +181,7 @@ void ddr_hw_enable_speed(uint8_t speed)
 			clk_enable(ddr_clk);
 		else
 			clk_enable(ddr_bypass_pclk);
+		__ddr_hw_enable_speed2(speed);
 	}
 }
 
@@ -164,8 +191,9 @@ void ddr_hw_config_speed(uint8_t speed)
 
 	ds = ddr_get_speed(speed);
 	if (ds) {
-		clk_apply_vco(DDR_VCO, ds->f_pll_vco);
-		clk_apply_pll(DDR_PLL, ds->f_pll_clk);
+		clk_apply_vco(DDR_VCO, DDR_VCO, ds->f_pll_vco);
+		clk_apply_pll(DDR_PLL, DDR_PLL, ds->f_pll_clk);
+		__ddr_hw_config_speed2(ds->f_pll_vco, ds->f_pll_clk);
 	}
 }
 

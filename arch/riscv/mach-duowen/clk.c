@@ -46,7 +46,7 @@
 struct output_clk {
 	clk_t clk_dep;
 	clk_t clk_src;
-	uint8_t flags;
+	CLK_DEC_FLAGS_RO
 };
 
 struct output_clk output_clks[] = {
@@ -65,42 +65,42 @@ struct output_clk output_clks[] = {
 	[CLUSTER0_CLK] = {
 		.clk_dep = cluster0_hclk,
 		.clk_src = cl0_clk_src,
-		.flags = CLK_CR | CLK_COHFAB_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_COHFAB_CFG_F)
 	},
 	[CLUSTER1_CLK] = {
 		.clk_dep = cluster1_hclk,
 		.clk_src = cl1_clk_src,
-		.flags = CLK_CR | CLK_COHFAB_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_COHFAB_CFG_F)
 	},
 	[CLUSTER2_CLK] = {
 		.clk_dep = cluster2_hclk,
 		.clk_src = cl2_clk_src,
-		.flags = CLK_CR | CLK_COHFAB_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_COHFAB_CFG_F)
 	},
 	[CLUSTER3_CLK] = {
 		.clk_dep = cluster3_hclk,
 		.clk_src = cl3_clk_src,
-		.flags = CLK_CR | CLK_COHFAB_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_COHFAB_CFG_F)
 	},
 	[CLUSTER0_HCLK] = {
 		.clk_dep = cohfab_cfg_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[CLUSTER1_HCLK] = {
 		.clk_dep = cohfab_cfg_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[CLUSTER2_HCLK] = {
 		.clk_dep = cohfab_cfg_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[CLUSTER3_HCLK] = {
 		.clk_dep = cohfab_cfg_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	/* 4.3 Coherence Fabric Clocks
 	 * +-----------------------------+
@@ -122,17 +122,17 @@ struct output_clk output_clks[] = {
 	[COHFAB_CLK] = {
 		.clk_dep = cohfab_hclk,
 		.clk_src = cohfab_clk_src,
-		.flags = CLK_CR | CLK_COHFAB_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_COHFAB_CFG_F)
 	},
 	[COHFAB_HCLK] = {
 		.clk_dep = cohfab_cfg_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[COHFAB_CFG_CLK] = {
 		.clk_dep = sysfab_clk,
 		.clk_src = pcie_clk,
-		.flags = 0,
+		CLK_DEF_FLAGS_RO(0)
 	},
 	/* 4.4 System Fabric Clocks
 	 * +-----------------------------+
@@ -151,57 +151,57 @@ struct output_clk output_clks[] = {
 	[IMC_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = soc_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[PLIC_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[TLMM_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[SCSR_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = soc_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[LCSR_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = soc_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[WDT0_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[WDT1_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[TMR0_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[TMR1_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[TMR2_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[TMR3_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	/* 4.5 DMA Clocks
 	 * +-----------------------------+
@@ -218,7 +218,7 @@ struct output_clk output_clks[] = {
 	[DMA_CLK] = {
 		.clk_dep = sysfab_clk, /* dma_hclk */
 		.clk_src = soc_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	/* 4.6 DDR Clocks
 	 * +----------------------------+
@@ -245,32 +245,32 @@ struct output_clk output_clks[] = {
 	[DDR_POR] = {
 		.clk_dep = invalid_clk,
 		.clk_src = invalid_clk,
-		.flags = CLK_R,
+		CLK_DEF_FLAGS_RO(CLK_R)
 	},
 	[DDR_ACLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = ddr_bus_clk_src,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[DDR_PCLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[DDR_BYPASS_PCLK] = {
 		.clk_dep = ddr_clk,
 		.clk_src = ddr_clk_sel_div4,
-		.flags = CLK_C,
+		CLK_DEF_FLAGS_RO(CLK_C)
 	},
 	[DDR_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = ddr_clk_src,
-		.flags = CLK_C,
+		CLK_DEF_FLAGS_RO(CLK_C)
 	},
 	[DDR_RST] = {
 		.clk_dep = invalid_clk,
 		.clk_src = invalid_clk,
-		.flags = CLK_R,
+		CLK_DEF_FLAGS_RO(CLK_R)
 	},
 	/* 4.7 PCIE Clocks
 	 *                                       +-----+ -> pcie_alt_ref_clk_n
@@ -296,17 +296,17 @@ struct output_clk output_clks[] = {
 	[PCIE_POR] = {
 		.clk_dep = invalid_clk,
 		.clk_src = invalid_clk,
-		.flags = CLK_R,
+		CLK_DEF_FLAGS_RO(CLK_R)
 	},
 	[PCIE_CLK] = {
 		.clk_dep = pcie_pclk,
 		.clk_src = pcie_axi_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[PCIE_PCLK] = {
 		.clk_dep = pcie_por,
 		.clk_src = sysfab_clk,
-		.flags = 0,
+		CLK_DEF_FLAGS_RO(0)
 	},
 	/* 4.8 SD Clocks
 	 * +--------------------------------------------+
@@ -318,24 +318,24 @@ struct output_clk output_clks[] = {
 	[SD_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	/* 4.9 ETH Clocks
 	 */
 	[ETH_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[ETH_ALT_REF_CLK] = {
 		.clk_dep = eth_clk,
 		.clk_src = eth_pll,
-		.flags = 0,
+		CLK_DEF_FLAGS_RO(0)
 	},
 	[SGMII_REF_CLK] = {
 		.clk_dep = eth_clk,
 		.clk_src = sgmii_pll,
-		.flags = 0,
+		CLK_DEF_FLAGS_RO(0)
 	},
 	/* 4.9 UART Clocks
 	 * +-----------------------------+
@@ -347,22 +347,22 @@ struct output_clk output_clks[] = {
 	[UART0_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[UART1_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[UART2_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[UART3_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	/* 4.10 SPI Clocks
 	 * +-----------------------------+
@@ -374,27 +374,27 @@ struct output_clk output_clks[] = {
 	[SPI0_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[SPI1_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[SPI2_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[SPI3_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[SPI4_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	/* 4.11 SPI Flash Clocks
 	 * +-----------------------------+
@@ -406,7 +406,7 @@ struct output_clk output_clks[] = {
 	[SPI_FLASH_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	/* 4.12 GPIO Clocks
 	 * +-----------------------------+
@@ -418,17 +418,17 @@ struct output_clk output_clks[] = {
 	[GPIO0_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[GPIO1_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[GPIO2_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	/* 4.13 I2C Clocks
 	 * +-----------------------------+
@@ -440,62 +440,62 @@ struct output_clk output_clks[] = {
 	[I2C0_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[I2C1_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[I2C2_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[I2C3_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[I2C4_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[I2C5_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[I2C6_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[I2C7_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[I2C8_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[I2C9_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[I2C10_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[I2C11_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_clk,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	/* 4.14 Thermal Sensor Clocks
 	 * +-----------------------------+
@@ -511,150 +511,150 @@ struct output_clk output_clks[] = {
 	[TSENSOR_CLK] = {
 		.clk_dep = sysfab_clk, /* tsensor_pclk */
 		.clk_src = xo_clk_div4,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 #if 0
 	[SYSFAB_DBG_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_half_clk,,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[SYSFAB_TIC_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = sysfab_half_clk,,
-		.flags = CLK_CR,
+		CLK_DEF_FLAGS_RO(CLK_CR)
 	},
 	[TIC_RST] = {
 		.clk_dep = invalid_clk,
 		.clk_src = invalid_clk,
-		.flags = CLK_R,
+		CLK_DEF_FLAGS_RO(CLK_R)
 	},
 	[DBG_RST] = {
 		.clk_dep = invalid_clk,
 		.clk_src = invalid_clk,,
-		.flags = CLK_R,
+		CLK_DEF_FLAGS_RO(CLK_R)
 	},
 #endif
 	/* 4.15 Thermal Sensor Clocks */
 	[CLUSTER0_APC0_CPU0_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster0_apc0_l2_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER0_APC0_CPU1_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster0_apc0_l2_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER0_APC1_CPU0_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster0_apc1_l2_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER0_APC1_CPU1_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster0_apc1_l2_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER0_APC0_L2_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster0_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER0_APC1_L2_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster0_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER1_APC0_CPU0_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster1_apc0_l2_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER1_APC0_CPU1_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster1_apc0_l2_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER1_APC1_CPU0_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster1_apc1_l2_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER1_APC1_CPU1_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster1_apc1_l2_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER1_APC0_L2_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster1_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER1_APC1_L2_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster1_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER2_APC0_CPU0_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster2_apc0_l2_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER2_APC0_CPU1_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster2_apc0_l2_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER2_APC1_CPU0_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster2_apc1_l2_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER2_APC1_CPU1_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster2_apc1_l2_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER2_APC0_L2_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster2_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER2_APC1_L2_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster2_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER3_APC0_CPU0_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster3_apc0_l2_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER3_APC0_CPU1_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster3_apc0_l2_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER3_APC1_CPU0_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster3_apc1_l2_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER3_APC1_CPU1_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster3_apc1_l2_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER3_APC0_L2_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster3_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 	[CLUSTER3_APC1_L2_CLK] = {
 		.clk_dep = invalid_clk,
 		.clk_src = cluster3_clk,
-		.flags = CLK_CR | CLK_CLUSTER_CFG_F,
+		CLK_DEF_FLAGS_RO(CLK_CR | CLK_CLUSTER_CFG_F)
 	},
 };
 
@@ -860,6 +860,89 @@ struct clk_driver clk_output = {
 	.get_name = get_output_clk_name,
 };
 
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+static int enable_output_clk2(clk_clk_t clk)
+{
+	if (clk >= NR_OUTPUT_CLKS)
+		return -EINVAL;
+
+	crcntl_trace(true, get_output_clk_name(clk));
+	if (clkid2(output_clks[clk].clk_dep) != invalid_clk)
+		clk_enable(clkid2(output_clks[clk].clk_dep));
+	if (clkid2(output_clks[clk].clk_src) != invalid_clk)
+		clk_enable(clkid2(output_clks[clk].clk_src));
+	if (output_clks[clk].flags & CLK_CLK_EN_F) {
+		if (output_clks[clk].flags & CLK_COHFAB_CFG_F)
+			__cohfab_clk_enable(clk, 1);
+		else if (output_clks[clk].flags & CLK_CLUSTER_CFG_F)
+			__cluster_clk_enable(clk, 1);
+		else
+			__crcntl_clk_enable(clk, 1);
+	}
+	if (output_clks[clk].flags & CLK_SW_RST_F) {
+		if (output_clks[clk].flags & CLK_COHFAB_CFG_F)
+			__cohfab_clk_deassert(clk, 1);
+		else if (output_clks[clk].flags & CLK_CLUSTER_CFG_F)
+			__cluster_clk_deassert(clk, 1);
+		else
+			__crcntl_clk_deassert(clk, 1);
+	}
+	return 0;
+}
+
+static void disable_output_clk2(clk_clk_t clk)
+{
+	if (clk >= NR_OUTPUT_CLKS)
+		return;
+
+	crcntl_trace(false, get_output_clk_name(clk));
+	if (clkid2(output_clks[clk].clk_dep) != invalid_clk)
+		clk_disable(clkid2(output_clks[clk].clk_dep));
+	if (clkid2(output_clks[clk].clk_src) != invalid_clk)
+		clk_disable(clkid2(output_clks[clk].clk_src));
+	if (output_clks[clk].flags & CLK_SW_RST_F) {
+		if (output_clks[clk].flags & CLK_COHFAB_CFG_F)
+			__cohfab_clk_assert(clk, 1);
+		else if (output_clks[clk].flags & CLK_CLUSTER_CFG_F)
+			__cluster_clk_assert(clk, 1);
+		else
+			__crcntl_clk_assert(clk, 1);
+	}
+	if (output_clks[clk].flags & CLK_CLK_EN_F) {
+		if (output_clks[clk].flags & CLK_COHFAB_CFG_F)
+			__cohfab_clk_disable(clk, 1);
+		else if (output_clks[clk].flags & CLK_CLUSTER_CFG_F)
+			__cluster_clk_disable(clk, 1);
+		else
+			__crcntl_clk_disable(clk, 1);
+	}
+}
+
+static clk_freq_t get_output_clk_freq2(clk_clk_t clk)
+{
+	if (clk >= NR_OUTPUT_CLKS)
+		return INVALID_FREQ;
+	return clk_get_frequency(clkid2(output_clks[clk].clk_src));
+}
+
+static int set_output_clk_freq2(clk_clk_t clk, clk_freq_t freq)
+{
+	if (clk >= NR_OUTPUT_CLKS)
+		return -EINVAL;
+	return clk_set_frequency(clkid2(output_clks[clk].clk_src), freq);
+}
+
+struct clk_driver clk_output2 = {
+	.max_clocks = NR_OUTPUT_CLKS,
+	.enable = enable_output_clk2,
+	.disable = disable_output_clk2,
+	.select = NULL,
+	.get_freq = get_output_clk_freq2,
+	.set_freq = set_output_clk_freq2,
+	.get_name = get_output_clk_name,
+};
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
+
 struct div_clk {
 	clk_t src;
 	clk_t mux;
@@ -949,6 +1032,57 @@ struct clk_driver clk_div = {
 	.get_name = get_pll_div_name,
 };
 
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+static int enable_pll_div2(clk_clk_t clk)
+{
+	int ret;
+
+	if (clk >= NR_DIV_CLKS)
+		return -EINVAL;
+	crcntl_trace(true, get_pll_div_name(clk));
+	ret = clk_enable(clkid2(div_clks[clk].src));
+	if (ret)
+		return ret;
+	clk_select_mux(clkid2(div_clks[clk].mux));
+	return 0;
+}
+
+static void disable_pll_div2(clk_clk_t clk)
+{
+	if (clk >= NR_DIV_CLKS)
+		return;
+	crcntl_trace(false, get_pll_div_name(clk));
+	clk_deselect_mux(clkid2(div_clks[clk].mux));
+	clk_disable(clkid2(div_clks[clk].src));
+}
+
+static clk_freq_t get_pll_div_freq2(clk_clk_t clk)
+{
+	if (clk >= NR_DIV_CLKS)
+		return INVALID_FREQ;
+	return clk_get_frequency(clkid2(div_clks[clk].src) /
+				 clkid2(div_clks[clk].div));
+}
+
+static int set_pll_div_freq2(clk_clk_t clk, clk_freq_t freq)
+{
+	if (clk >= NR_DIV_CLKS)
+		return -EINVAL;
+	return clk_set_frequency(clkid2(div_clks[clk].src),
+				 freq * clkid2(div_clks[clk].div));
+}
+
+struct clk_driver clk_div2 = {
+	.max_clocks = NR_DIV_CLKS,
+	.enable = enable_pll_div2,
+	.disable = disable_pll_div2,
+	.get_freq = get_pll_div_freq2,
+	.set_freq = set_pll_div_freq2,
+	.select = NULL,
+	.get_name = get_pll_div_name,
+};
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
+
 /*===========================================================================
  * Clock tree APIs
  *===========================================================================*/
@@ -1015,6 +1149,10 @@ void duowen_clk_init(void)
 		clk_pll_init();
 		clk_register_driver(CLK_OUTPUT, &clk_output);
 		clk_register_driver(CLK_DIV, &clk_div);
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+		clk_register_driver(CLK_OUTPUT2, &clk_output2);
+		clk_register_driver(CLK_DIV2, &clk_div2);
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 		clk_hw_init |= DUOWEN_CLK_REG_INIT;
 	}
 	duowen_clk_boot();

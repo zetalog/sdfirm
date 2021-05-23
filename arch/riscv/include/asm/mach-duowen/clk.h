@@ -90,6 +90,40 @@
 #define CLK_C			CLK_CLK_EN_F
 #define CLK_R			CLK_SW_RST_F
 
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define CLK_DEC_FLAGS			\
+	uint8_t flags0;			\
+	uint8_t flags1;
+#define CLK_DEF_FLAGS(__flags)		\
+	.flags0 = __flags,		\
+	.flags1 = __flags,
+#define CLK_DEC_FLAGS_RO		\
+	uint8_t flags;
+#define CLK_DEF_FLAGS_RO(__flags)	\
+	.flags = __flags,
+#define clk_read_flags(soc, clk)		\
+	((soc) ? (clk).flags1 : (clk).flags0)
+#define clk_write_flags(soc, clk, __flags)	\
+	((soc) ? (clk).flags1 = (__flags) : (clk).flags0 = (__flags))
+#define clk_set_flags(soc, clk, __flags)	\
+	((soc) ? (clk).flags1 |= (__flags) : (clk).flags0 |= (__flags))
+#define clk_clear_flags(soc, clk, __flags)	\
+	((soc) ? (clk).flags1 &= ~(__flags) : (clk).flags0 &= ~(__flags))
+#else /* CONFIG_DUOWEN_BBL_DUAL */
+#define CLK_DEC_FLAGS			\
+	uint8_t flags;
+#define CLK_DEF_FLAGS(__flags)		\
+	.flags = __flags,
+#define CLK_DEC_FLAGS_RO		\
+	uint8_t flags;
+#define CLK_DEF_FLAGS_RO(__flags)	\
+	.flags = __flags,
+#define clk_read_flags(soc, clk)		((clk).flags)
+#define clk_write_flags(soc, clk, __flags)	((clk).flags = (__flags))
+#define clk_set_flags(soc, clk, __flags)	((clk).flags |= (__flags))
+#define clk_clear_flags(soc, clk, __flags)	((clk).flags &= ~(__flags))
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
+
 #ifdef CONFIG_CONSOLE_COMMAND
 void clk_pll_dump(void);
 #else
@@ -103,8 +137,8 @@ void clk_hw_ctrl_init(void);
 void clk_hw_mmu_init(void);
 #endif
 #ifdef CONFIG_DUOWEN_ASIC
-void clk_apply_vco(clk_clk_t clk, clk_freq_t freq);
-void clk_apply_pll(clk_clk_t clk, clk_freq_t freq);
+void clk_apply_vco(clk_clk_t vco, clk_clk_t clk, clk_freq_t freq);
+void clk_apply_pll(clk_clk_t pll, clk_clk_t clk, clk_freq_t freq);
 /* XXX: Protect Dynamic PLL Change
  *
  * For ASIC environment, CLK_SELECT is managed by the CLK_PLL and CLK_DIV.
@@ -120,8 +154,8 @@ void clk_apply_pll(clk_clk_t clk, clk_freq_t freq);
 			clk_disable(clk);	\
 	} while (0)
 #else
-#define clk_apply_vco(clk, freq)		do { } while (0)
-#define clk_apply_pll(clk, freq)		do { } while (0)
+#define clk_apply_vco(vco, clk, freq)		do { } while (0)
+#define clk_apply_pll(pll, clk, freq)		do { } while (0)
 #define clk_select_mux(clk)			do { } while (0)
 #define clk_deselect_mux(clk)			do { } while (0)
 #endif

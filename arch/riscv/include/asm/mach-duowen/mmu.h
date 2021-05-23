@@ -42,23 +42,59 @@
 #ifndef __MMU_DUOWEN_H_INCLUDE__
 #define __MMU_DUOWEN_H_INCLUDE__
 
-#define FIX_CLINT		(FIX_HOLE + 1)
-#define FIX_CRCNTL		(FIX_HOLE + 2)
-#define FIX_CFAB		(FIX_HOLE + 3)
-#define FIX_APC0		(FIX_HOLE + 4)
-#define FIX_APC1		(FIX_HOLE + 5)
-#define FIX_APC2		(FIX_HOLE + 6)
-#define FIX_APC3		(FIX_HOLE + 7)
-#define FIX_ETH			(FIX_HOLE + 8)
-#define FIX_UART		(FIX_HOLE + 9)
-#define FIX_PLIC		(FIX_HOLE + 10)
-#define FIX_GPIO0		(FIX_HOLE + 11)
-#define FIX_GPIO1		(FIX_HOLE + 12)
-#define FIX_GPIO2		(FIX_HOLE + 13)
-#define FIX_TLMM		(FIX_HOLE + 14)
-#define FIX_SCSR		(FIX_HOLE + 15)
-#define FIX_LCSR		(FIX_HOLE + 16)
-#define MMU_HW_MAX_FIXMAP	(FIX_LCSR + 1)
+#define __FIX_PLIC		1
+#define __FIX_CRCNTL		2
+#define __FIX_CFAB		3
+#define __FIX_APC0		4
+#define __FIX_APC1		5
+#define __FIX_APC2		6
+#define __FIX_APC3		7
+#define __FIX_ETH		8
+#define __FIX_UART		9
+#define __FIX_GPIO0		10
+#define __FIX_GPIO1		11
+#define __FIX_GPIO2		12
+#define __FIX_TLMM		13
+#define __FIX_SCSR		14
+#define __FIX_LCSR		15
+#define __FIX_MAX		(__FIX_LCSR + 1)
+#define __MMU_HW_MAX_FIXMAP	(FIX_HOLE + __FIX_MAX)
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define __FIX_HOLE(soc)		(FIX_HOLE + ((soc) ? __FIX_MAX : 0))
+#define FIX_PLIC(soc)		(__FIX_HOLE(soc) + __FIX_PLIC)
+#define FIX_CRCNTL(soc)		(__FIX_HOLE(soc) + __FIX_CRCNTL)
+#define FIX_CFAB(soc)		(__FIX_HOLE(soc) + __FIX_CFAB)
+#define FIX_APC0(soc)		(__FIX_HOLE(soc) + __FIX_APC0)
+#define FIX_APC1(soc)		(__FIX_HOLE(soc) + __FIX_APC1)
+#define FIX_APC2(soc)		(__FIX_HOLE(soc) + __FIX_APC2)
+#define FIX_APC3(soc)		(__FIX_HOLE(soc) + __FIX_APC3)
+#define FIX_ETH(soc)		(__FIX_HOLE(soc) + __FIX_ETH)
+#define FIX_UART(soc)		(__FIX_HOLE(soc) + __FIX_UART)
+#define FIX_GPIO0(soc)		(__FIX_HOLE(soc) + __FIX_GPIO0)
+#define FIX_GPIO1(soc)		(__FIX_HOLE(soc) + __FIX_GPIO1)
+#define FIX_GPIO2(soc)		(__FIX_HOLE(soc) + __FIX_GPIO2)
+#define FIX_TLMM(soc)		(__FIX_HOLE(soc) + __FIX_TLMM)
+#define FIX_SCSR(soc)		(__FIX_HOLE(soc) + __FIX_SCSR)
+#define FIX_LCSR(soc)		(__FIX_HOLE(soc) + __FIX_LCSR)
+#define MMU_HW_MAX_FIXMAP	(__FIX_HOLE(1) + __FIX_MAX)
+#else /* CONFIG_DUOWEN_BBL_DUAL */
+#define FIX_PLIC(soc)		(FIX_HOLE + __FIX_PLIC)
+#define FIX_CRCNTL(soc)		(FIX_HOLE + __FIX_CRCNTL)
+#define FIX_CFAB(soc)		(FIX_HOLE + __FIX_CFAB)
+#define FIX_APC0(soc)		(FIX_HOLE + __FIX_APC0)
+#define FIX_APC1(soc)		(FIX_HOLE + __FIX_APC1)
+#define FIX_APC2(soc)		(FIX_HOLE + __FIX_APC2)
+#define FIX_APC3(soc)		(FIX_HOLE + __FIX_APC3)
+#define FIX_ETH(soc)		(FIX_HOLE + __FIX_ETH)
+#define FIX_UART(soc)		(FIX_HOLE + __FIX_UART)
+#define FIX_GPIO0(soc)		(FIX_HOLE + __FIX_GPIO0)
+#define FIX_GPIO1(soc)		(FIX_HOLE + __FIX_GPIO1)
+#define FIX_GPIO2(soc)		(FIX_HOLE + __FIX_GPIO2)
+#define FIX_TLMM(soc)		(FIX_HOLE + __FIX_TLMM)
+#define FIX_SCSR(soc)		(FIX_HOLE + __FIX_SCSR)
+#define FIX_LCSR(soc)		(FIX_HOLE + __FIX_LCSR)
+#define MMU_HW_MAX_FIXMAP	(FIX_HOLE + __FIX_MAX)
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 
 void duowen_mmu_dump_maps(void);
 #ifdef CONFIG_DUOWEN_UART
@@ -72,9 +108,11 @@ void duowen_mmu_dump_uart(void);
 #ifdef CONFIG_CRCNTL
 void duowen_mmu_map_clk(void);
 void duowen_mmu_dump_clk(void);
+void duowen_mmu_init_clk(void);
 #else
 #define duowen_mmu_map_clk()	do { } while (0)
 #define duowen_mmu_dump_clk()	do { } while (0)
+#define duowen_mmu_init_clk()	do { } while (0)
 #endif
 #ifdef CONFIG_DUOWEN_GPIO
 extern caddr_t duowen_gpio_reg_base[];

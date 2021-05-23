@@ -47,19 +47,46 @@
  *===========================================================================*/
 phys_addr_t duowen_pll_reg_base[DUOWEN_MAX_PLLS];
 
+#ifdef CONFIG_DUOWEN_BBL_DUAL
 void duowen_pll_init(void)
 {
-	duowen_pll_reg_base[0] = __CRCNTL_PLL_REG(0, 0);
-	duowen_pll_reg_base[1] = __CRCNTL_PLL_REG(1, 0);
-	duowen_pll_reg_base[2] = __CRCNTL_PLL_REG(2, 0);
-	duowen_pll_reg_base[3] = __CRCNTL_PLL_REG(3, 0);
-	duowen_pll_reg_base[4] = __DUOWEN_CFAB_CLK_BASE;
-	duowen_pll_reg_base[5] = __DUOWEN_APC_CLK_BASE(0);
-	duowen_pll_reg_base[6] = __DUOWEN_APC_CLK_BASE(1);
-	duowen_pll_reg_base[7] = __DUOWEN_APC_CLK_BASE(2);
-	duowen_pll_reg_base[8] = __DUOWEN_APC_CLK_BASE(3);
-	duowen_pll_reg_base[9] = __DUOWEN_ETH_CLK_BASE;
+	duowen_pll_reg_base[0] = __CRCNTL_PLL_REG(0, 0, 0);
+	duowen_pll_reg_base[1] = __CRCNTL_PLL_REG(0, 1, 0);
+	duowen_pll_reg_base[2] = __CRCNTL_PLL_REG(0, 2, 0);
+	duowen_pll_reg_base[3] = __CRCNTL_PLL_REG(0, 3, 0);
+	duowen_pll_reg_base[4] = __DUOWEN_CFAB_CLK_BASE(0);
+	duowen_pll_reg_base[5] = __DUOWEN_APC_CLK_BASE(0, 0);
+	duowen_pll_reg_base[6] = __DUOWEN_APC_CLK_BASE(0, 1);
+	duowen_pll_reg_base[7] = __DUOWEN_APC_CLK_BASE(0, 2);
+	duowen_pll_reg_base[8] = __DUOWEN_APC_CLK_BASE(0, 3);
+	duowen_pll_reg_base[9] = __DUOWEN_ETH_CLK_BASE(0);
+	duowen_pll_reg_base[10] = __CRCNTL_PLL_REG(1, 0, 0);
+	duowen_pll_reg_base[11] = __CRCNTL_PLL_REG(1, 1, 0);
+	duowen_pll_reg_base[12] = __CRCNTL_PLL_REG(1, 2, 0);
+	duowen_pll_reg_base[13] = __CRCNTL_PLL_REG(1, 3, 0);
+	duowen_pll_reg_base[14] = __DUOWEN_CFAB_CLK_BASE(1);
+	duowen_pll_reg_base[15] = __DUOWEN_APC_CLK_BASE(1, 0);
+	duowen_pll_reg_base[16] = __DUOWEN_APC_CLK_BASE(1, 1);
+	duowen_pll_reg_base[17] = __DUOWEN_APC_CLK_BASE(1, 2);
+	duowen_pll_reg_base[18] = __DUOWEN_APC_CLK_BASE(1, 3);
+	duowen_pll_reg_base[19] = __DUOWEN_ETH_CLK_BASE(1);
 }
+#else /* CONFIG_DUOWEN_BBL_DUAL */
+void duowen_pll_init(void)
+{
+	/* Adaptive base addresses for both socket0 and socket1 */
+	duowen_pll_reg_base[0] = __CRCNTL_PLL_REG(imc_socket_id(), 0, 0);
+	duowen_pll_reg_base[1] = __CRCNTL_PLL_REG(imc_socket_id(), 1, 0);
+	duowen_pll_reg_base[2] = __CRCNTL_PLL_REG(imc_socket_id(), 2, 0);
+	duowen_pll_reg_base[3] = __CRCNTL_PLL_REG(imc_socket_id(), 3, 0);
+	duowen_pll_reg_base[4] = __DUOWEN_CFAB_CLK_BASE(imc_socket_id());
+	duowen_pll_reg_base[5] = __DUOWEN_APC_CLK_BASE(imc_socket_id(), 0);
+	duowen_pll_reg_base[6] = __DUOWEN_APC_CLK_BASE(imc_socket_id(), 1);
+	duowen_pll_reg_base[7] = __DUOWEN_APC_CLK_BASE(imc_socket_id(), 2);
+	duowen_pll_reg_base[8] = __DUOWEN_APC_CLK_BASE(imc_socket_id(), 3);
+	duowen_pll_reg_base[9] = __DUOWEN_ETH_CLK_BASE(imc_socket_id());
+}
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 
 void duowen_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val)
 {
@@ -103,240 +130,250 @@ bool duowen_pll_wait_timing(uint8_t pll, uint8_t timing)
 /*===========================================================================
  * CRCNTL SYSFAB APIs
  *===========================================================================*/
-bool crcntl_clk_asserted(clk_clk_t clk)
+bool __crcntl_clk_asserted(clk_clk_t clk, uint8_t soc)
 {
 	uint8_t n, bit;
 
 	bit = clk & REG_5BIT_MASK;
 	n = clk >> 5;
-	return !!(__raw_readl(CRCNTL_SW_RST_CFG(n)) & _BV(bit));
+	return !!(__raw_readl(CRCNTL_SW_RST_CFG(soc, n)) & _BV(bit));
 }
 
 #ifdef CONFIG_CRCNTL_RESET
-void crcntl_clk_assert(clk_clk_t clk)
+void __crcntl_clk_assert(clk_clk_t clk, uint8_t soc)
 {
 	uint8_t n, bit;
 
-	if (!crcntl_clk_asserted(clk)) {
+	if (!__crcntl_clk_asserted(clk, soc)) {
 		bit = clk & REG_5BIT_MASK;
 		n = clk >> 5;
-		__raw_setl(_BV(bit), CRCNTL_SW_RST_CFG(n));
+		__raw_setl(_BV(bit), CRCNTL_SW_RST_CFG(soc, n));
 	}
 }
 #else
-void crcntl_clk_assert(clk_clk_t clk)
+void __crcntl_clk_assert(clk_clk_t clk, uint8_t soc)
 {
 }
 #endif
 
-void crcntl_clk_deassert(clk_clk_t clk)
+void __crcntl_clk_deassert(clk_clk_t clk, uint8_t soc)
 {
 	uint8_t n, bit;
 
-	if (crcntl_clk_asserted(clk)) {
+	if (__crcntl_clk_asserted(clk, soc)) {
 		bit = clk & REG_5BIT_MASK;
 		n = clk >> 5;
-		__raw_clearl(_BV(bit), CRCNTL_SW_RST_CFG(n));
+		__raw_clearl(_BV(bit), CRCNTL_SW_RST_CFG(soc, n));
 	}
 }
 
-bool crcntl_clk_enabled(clk_clk_t clk)
+bool __crcntl_clk_enabled(clk_clk_t clk, uint8_t soc)
 {
 	uint8_t n, bit;
 
 	bit = clk & REG_5BIT_MASK;
 	n = clk >> 5;
-	return !!(__raw_readl(CRCNTL_CLK_EN_CFG(n)) & _BV(bit));
+	return !!(__raw_readl(CRCNTL_CLK_EN_CFG(soc, n)) & _BV(bit));
 }
 
-void crcntl_clk_enable(clk_clk_t clk)
+void __crcntl_clk_enable(clk_clk_t clk, uint8_t soc)
 {
 	uint8_t n, bit;
 
-	if (!crcntl_clk_enabled(clk)) {
+	if (!__crcntl_clk_enabled(clk, soc)) {
 		bit = clk & REG_5BIT_MASK;
 		n = clk >> 5;
-		__raw_setl(_BV(bit), CRCNTL_CLK_EN_CFG(n));
+		__raw_setl(_BV(bit), CRCNTL_CLK_EN_CFG(soc, n));
 	}
 }
 
-void crcntl_clk_disable(clk_clk_t clk)
+void __crcntl_clk_disable(clk_clk_t clk, uint8_t soc)
 {
 	uint8_t n, bit;
 
-	if (crcntl_clk_enabled(clk)) {
+	if (__crcntl_clk_enabled(clk, soc)) {
 		bit = clk & REG_5BIT_MASK;
 		n = clk >> 5;
-		__raw_clearl(_BV(bit), CRCNTL_CLK_EN_CFG(n));
+		__raw_clearl(_BV(bit), CRCNTL_CLK_EN_CFG(soc, n));
 	}
 }
 
 /*===========================================================================
  * CRCNTL COHFAB APIs
  *===========================================================================*/
-bool cohfab_clk_asserted(clk_clk_t clk)
+bool __cohfab_clk_asserted(clk_clk_t clk, uint8_t soc)
 {
 	clk_clk_t pll = COHFAB_CLK_PLL(clk);
 
 	if (pll == COHFAB_PLL)
-		return !!(__raw_readl(COHFAB_RESET_COHFAB(pll)) &
+		return !!(__raw_readl(COHFAB_RESET_COHFAB(soc, pll)) &
 			  COHFAB_RESET);
-	return !!(__raw_readl(COHFAB_RESET_CLUSTER(pll)) &
+	return !!(__raw_readl(COHFAB_RESET_CLUSTER(soc, pll)) &
 		  CLUSTER_POR_RST);
 }
 
-void cohfab_clk_assert(clk_clk_t clk)
+void __cohfab_clk_assert(clk_clk_t clk, uint8_t soc)
 {
 	clk_clk_t pll = COHFAB_CLK_PLL(clk);
 
-	if (cohfab_clk_asserted(clk))
+	if (__cohfab_clk_asserted(clk, soc))
 		return;
 	if (pll == COHFAB_PLL)
-		__raw_setl(COHFAB_RESET, COHFAB_RESET_COHFAB(pll));
+		__raw_setl(COHFAB_RESET, COHFAB_RESET_COHFAB(soc, pll));
 	else
-		__raw_setl(CLUSTER_POR_RST, COHFAB_RESET_CLUSTER(pll));
+		__raw_setl(CLUSTER_POR_RST, COHFAB_RESET_CLUSTER(soc, pll));
 }
 
-void cohfab_clk_deassert(clk_clk_t clk)
+void __cohfab_clk_deassert(clk_clk_t clk, uint8_t soc)
 {
 	clk_clk_t pll = COHFAB_CLK_PLL(clk);
 
-	if (!cohfab_clk_asserted(clk))
+	if (!__cohfab_clk_asserted(clk, soc))
 		return;
 	if (pll == COHFAB_PLL)
-		__raw_clearl(COHFAB_RESET, COHFAB_RESET_COHFAB(pll));
+		__raw_clearl(COHFAB_RESET, COHFAB_RESET_COHFAB(soc, pll));
 	else
-		__raw_clearl(CLUSTER_POR_RST, COHFAB_RESET_CLUSTER(pll));
+		__raw_clearl(CLUSTER_POR_RST, COHFAB_RESET_CLUSTER(soc, pll));
 }
 
-bool cohfab_clk_enabled(clk_clk_t clk)
+bool __cohfab_clk_enabled(clk_clk_t clk, uint8_t soc)
 {
 	clk_clk_t pll = COHFAB_CLK_PLL(clk);
 
-	return !!(__raw_readl(COHFAB_CLK_CFG(pll)) & COHFAB_CLOCK_ON);
+	return !!(__raw_readl(COHFAB_CLK_CFG(soc, pll)) & COHFAB_CLOCK_ON);
 }
 
-void cohfab_clk_enable(clk_clk_t clk)
+void __cohfab_clk_enable(clk_clk_t clk, uint8_t soc)
 {
 	clk_clk_t pll = COHFAB_CLK_PLL(clk);
 
-	if (cohfab_clk_enabled(clk))
+	if (__cohfab_clk_enabled(clk, soc))
 		return;
-	__raw_setl(COHFAB_CLOCK_ON, COHFAB_CLK_CFG(pll));
+	__raw_setl(COHFAB_CLOCK_ON, COHFAB_CLK_CFG(soc, pll));
 }
 
-void cohfab_clk_disable(clk_clk_t clk)
+void __cohfab_clk_disable(clk_clk_t clk, uint8_t soc)
 {
 	clk_clk_t pll = COHFAB_CLK_PLL(clk);
 
-	if (!cohfab_clk_enabled(clk))
+	if (!__cohfab_clk_enabled(clk, soc))
 		return;
-	__raw_clearl(COHFAB_CLOCK_ON, COHFAB_CLK_CFG(pll));
+	__raw_clearl(COHFAB_CLOCK_ON, COHFAB_CLK_CFG(soc, pll));
 }
 
 /*===========================================================================
  * CRCNTL CLUSTER APIs
  *===========================================================================*/
-bool cluster_clk_asserted(clk_clk_t clk)
+bool __cluster_clk_asserted(clk_clk_t clk, uint8_t soc)
 {
 	uint8_t apc = CLUSTER_CLK_APC(clk);
 	uint8_t rst = CLUSTER_RESET(CLUSTER_CLK_CG(clk));
 
-	return !!(__raw_readl(CLUSTER_RESET_CTRL(apc)) & _BV(rst));
+	return !!(__raw_readl(CLUSTER_RESET_CTRL(soc, apc)) & _BV(rst));
 }
 
-void cluster_clk_assert(clk_clk_t clk)
+void __cluster_clk_assert(clk_clk_t clk, uint8_t soc)
 {
 	uint8_t apc = CLUSTER_CLK_APC(clk);
 	uint8_t rst = CLUSTER_RESET(CLUSTER_CLK_CG(clk));
 
-	if (cluster_clk_asserted(clk))
+	if (__cluster_clk_asserted(clk, soc))
 		return;
-	__raw_setl(_BV(rst), CLUSTER_RESET_CTRL(apc));
+	__raw_setl(_BV(rst), CLUSTER_RESET_CTRL(soc, apc));
 }
 
-void cluster_clk_deassert(clk_clk_t clk)
+void __cluster_clk_deassert(clk_clk_t clk, uint8_t soc)
 {
 	uint8_t apc = CLUSTER_CLK_APC(clk);
 	uint8_t rst = CLUSTER_RESET(CLUSTER_CLK_CG(clk));
 
-	if (!cluster_clk_asserted(clk))
+	if (!__cluster_clk_asserted(clk, soc))
 		return;
-	__raw_clearl(_BV(rst), CLUSTER_RESET_CTRL(apc));
+	__raw_clearl(_BV(rst), CLUSTER_RESET_CTRL(soc, apc));
 }
 
-bool cluster_clk_enabled(clk_clk_t clk)
+bool __cluster_clk_enabled(clk_clk_t clk, uint8_t soc)
 {
 	uint8_t apc = CLUSTER_CLK_APC(clk);
 	uint8_t cg = CLUSTER_CLK_CG(clk);
 
-	return !!(__raw_readl(CLUSTER_CLK_CG_CFG(apc)) & _BV(cg));
+	return !!(__raw_readl(CLUSTER_CLK_CG_CFG(soc, apc)) & _BV(cg));
 }
 
-void cluster_clk_enable(clk_clk_t clk)
+void __cluster_clk_enable(clk_clk_t clk, uint8_t soc)
 {
 	uint8_t apc = CLUSTER_CLK_APC(clk);
 	uint8_t cg = CLUSTER_CLK_CG(clk);
 
-	if (cluster_clk_enabled(clk))
+	if (__cluster_clk_enabled(clk, soc))
 		return;
-	__raw_setl(_BV(cg), CLUSTER_CLK_CG_CFG(apc));
+	__raw_setl(_BV(cg), CLUSTER_CLK_CG_CFG(soc, apc));
 }
 
-void cluster_clk_disable(clk_clk_t clk)
+void __cluster_clk_disable(clk_clk_t clk, uint8_t soc)
 {
 	uint8_t apc = CLUSTER_CLK_APC(clk);
 	uint8_t cg = CLUSTER_CLK_CG(clk);
 
-	if (!cluster_clk_enabled(clk))
+	if (!__cluster_clk_enabled(clk, soc))
 		return;
-	__raw_clearl(_BV(cg), CLUSTER_CLK_CG_CFG(apc));
+	__raw_clearl(_BV(cg), CLUSTER_CLK_CG_CFG(soc, apc));
 }
 
 /*===========================================================================
  * SYSFAB/COHFAB MUX APIs
  *===========================================================================*/
 #ifdef CONFIG_CRCNTL_MUX
-bool crcntl_clk_selected(clk_clk_t clk)
+bool __crcntl_clk_selected(clk_clk_t clk, uint8_t soc)
 {
-	return !(__raw_readl(CRCNTL_CLK_SEL_CFG) & _BV(clk));
+	return !(__raw_readl(CRCNTL_CLK_SEL_CFG(soc)) & _BV(clk));
 }
 
-void crcntl_clk_select(clk_clk_t clk)
+void __crcntl_clk_select(clk_clk_t clk, uint8_t soc)
 {
-	if (!crcntl_clk_selected(clk))
-		__raw_clearl(_BV(clk), CRCNTL_CLK_SEL_CFG);
+	if (!__crcntl_clk_selected(clk, soc))
+		__raw_clearl(_BV(clk), CRCNTL_CLK_SEL_CFG(soc));
 }
 
-void crcntl_clk_deselect(clk_clk_t clk)
+void __crcntl_clk_deselect(clk_clk_t clk, uint8_t soc)
 {
-	if (crcntl_clk_selected(clk))
-		__raw_setl(_BV(clk), CRCNTL_CLK_SEL_CFG);
+	if (__crcntl_clk_selected(clk, soc))
+		__raw_setl(_BV(clk), CRCNTL_CLK_SEL_CFG(soc));
 }
 
-bool cohfab_clk_selected(clk_clk_t clk)
+bool __cohfab_clk_selected(clk_clk_t clk, uint8_t soc)
 {
 	clk_clk_t pll = COHFAB_CLK_SEL_PLL(clk);
 
-	return !(__raw_readl(COHFAB_CLK_CFG(pll)) & COHFAB_CLOCK_SEL);
+	return !(__raw_readl(COHFAB_CLK_CFG(soc, pll)) & COHFAB_CLOCK_SEL);
 }
 
-void cohfab_clk_select(clk_clk_t clk)
+void __cohfab_clk_select(clk_clk_t clk, uint8_t soc)
 {
 	clk_clk_t pll = COHFAB_CLK_SEL_PLL(clk);
 
-	if (cohfab_clk_selected(clk))
+	if (__cohfab_clk_selected(clk, soc))
 		return;
-	__raw_clearl(COHFAB_CLOCK_SEL, COHFAB_CLK_CFG(pll));
+	__raw_clearl(COHFAB_CLOCK_SEL, COHFAB_CLK_CFG(soc, pll));
 }
 
-void cohfab_clk_deselect(clk_clk_t clk)
+void __cohfab_clk_deselect(clk_clk_t clk, uint8_t soc)
 {
 	clk_clk_t pll = COHFAB_CLK_SEL_PLL(clk);
 
-	if (!cohfab_clk_selected(clk))
+	if (!__cohfab_clk_selected(clk, soc))
 		return;
-	__raw_setl(COHFAB_CLOCK_SEL, COHFAB_CLK_CFG(pll));
+	__raw_setl(COHFAB_CLOCK_SEL, COHFAB_CLK_CFG(soc, pll));
+}
+
+uint32_t __crcntl_clk_sel_read(uint8_t soc)
+{
+	return __raw_readl(CRCNTL_CLK_SEL_CFG(soc));
+}
+
+void __crcntl_clk_sel_write(uint32_t sels, uint8_t soc)
+{
+	__raw_writel(sels, CRCNTL_CLK_SEL_CFG(soc));
 }
 #endif
 

@@ -61,7 +61,7 @@
 #ifdef CONFIG_DUOWEN_UART_DTS_CLK_FREQ
 		clock-frequency = <APB_CLK_FREQ>;
 #else
-		clocks = <&crcntl0 sbi_uart1_clk>, <&crcntl0 sbi_uart1_clk>;
+		clocks = <&crcntl sbi_uart1_clk>, <&crcntl sbi_uart1_clk>;
 		clock-names = "baudclk", "apb_pclk";
 #endif
 		reg = <0xff 0x63100000 0x0 0x100>;
@@ -89,7 +89,7 @@
 #ifdef CONFIG_DUOWEN_UART_DTS_CLK_FREQ
 		clock-frequency = <APB_CLK_FREQ>;
 #else
-		clocks = <&crcntl0 sbi_uart2_clk>, <&crcntl0 sbi_uart2_clk>;
+		clocks = <&crcntl sbi_uart2_clk>, <&crcntl sbi_uart2_clk>;
 		clock-names = "baudclk", "apb_pclk";
 #endif
 		reg = <0xff 0x63200000 0x0 0x100>;
@@ -113,7 +113,7 @@
 #ifdef CONFIG_DUOWEN_UART_DTS_CLK_FREQ
 		clock-frequency = <APB_CLK_FREQ>;
 #else
-		clocks = <&crcntl0 sbi_uart3_clk>, <&crcntl0 sbi_uart3_clk>;
+		clocks = <&crcntl sbi_uart3_clk>, <&crcntl sbi_uart3_clk>;
 		clock-names = "baudclk", "apb_pclk";
 #endif
 		reg = <0xff 0x63300000 0x0 0x100>;
@@ -142,7 +142,7 @@
 		interrupts = <146>;
 		interrupt-parent = <&plic0>;
 		clock-frequency = <I2C_MASTER_SPEED>;
-		clocks = <&crcntl0 sbi_i2c0_clk>;
+		clocks = <&crcntl sbi_i2c0_clk>;
 		clock-names = "pclk";
 		status = "okay";
 	};
@@ -154,7 +154,7 @@
 		interrupts = <147>;
 		interrupt-parent = <&plic0>;
 		clock-frequency = <I2C_MASTER_SPEED>;
-		clocks = <&crcntl0 sbi_i2c1_clk>;
+		clocks = <&crcntl sbi_i2c1_clk>;
 		clock-names = "pclk";
 		status = "okay";
 	};
@@ -166,7 +166,7 @@
 		interrupts = <148>;
 		interrupt-parent = <&plic0>;
 		clock-frequency = <I2C_MASTER_SPEED>;
-		clocks = <&crcntl0 sbi_i2c2_clk>;
+		clocks = <&crcntl sbi_i2c2_clk>;
 		clock-names = "pclk";
 		status = "okay";
 	};
@@ -178,7 +178,7 @@
 		interrupts = <149>;
 		interrupt-parent = <&plic0>;
 		clock-frequency = <I2C_MASTER_SPEED>;
-		clocks = <&crcntl0 sbi_i2c3_clk>;
+		clocks = <&crcntl sbi_i2c3_clk>;
 		clock-names = "pclk";
 		status = "okay";
 	};
@@ -190,7 +190,7 @@
 		interrupts = <150>;
 		interrupt-parent = <&plic0>;
 		clock-frequency = <I2C_MASTER_SPEED>;
-		clocks = <&crcntl0 sbi_i2c4_clk>;
+		clocks = <&crcntl sbi_i2c4_clk>;
 		clock-names = "pclk";
 		status = "okay";
 	};
@@ -202,7 +202,7 @@
 		interrupts = <151>;
 		interrupt-parent = <&plic0>;
 		clock-frequency = <I2C_MASTER_SPEED>;
-		clocks = <&crcntl0 sbi_i2c5_clk>;
+		clocks = <&crcntl sbi_i2c5_clk>;
 		clock-names = "pclk";
 		status = "okay";
 	};
@@ -214,7 +214,7 @@
 		interrupts = <152>;
 		interrupt-parent = <&plic0>;
 		clock-frequency = <I2C_MASTER_SPEED>;
-		clocks = <&crcntl0 sbi_i2c6_clk>;
+		clocks = <&crcntl sbi_i2c6_clk>;
 		clock-names = "pclk";
 		status = "okay";
 	};
@@ -226,7 +226,7 @@
 		interrupts = <153>;
 		interrupt-parent = <&plic0>;
 		clock-frequency = <I2C_MASTER_SPEED>;
-		clocks = <&crcntl0 sbi_i2c7_clk>;
+		clocks = <&crcntl sbi_i2c7_clk>;
 		clock-names = "pclk";
 		status = "okay";
 	};
@@ -240,7 +240,7 @@
 		reg = <0xff 0x62000000 0x0 0x100>;
 		interrupts = <158>;
 		interrupt-parent = <&plic0>;
-		clocks = <&crcntl0 sbi_spi0_clk>;
+		clocks = <&crcntl sbi_spi0_clk>;
 		clock-names = "pclk";
 		reg-io-width = <4>;
 		num-cs = <1>;
@@ -266,7 +266,7 @@
 		reg = <0xff 0x62100000 0x0 0x100>;
 		interrupts = <159>;
 		interrupt-parent = <&plic0>;
-		clocks = <&crcntl0 sbi_spi1_clk>;
+		clocks = <&crcntl sbi_spi1_clk>;
 		clock-names = "pclk";
 		reg-io-width = <4>;
 		num-cs = <1>;
@@ -279,7 +279,7 @@
 		reg = <0xff 0x62200000 0x0 0x100>;
 		interrupts = <160>;
 		interrupt-parent = <&plic0>;
-		clocks = <&crcntl0 sbi_spi2_clk>;
+		clocks = <&crcntl sbi_spi2_clk>;
 		clock-names = "pclk";
 		reg-io-width = <4>;
 		num-cs = <1>;
@@ -292,7 +292,7 @@
 		reg = <0xff 0x62300000 0x0 0x100>;
 		interrupts = <161>;
 		interrupt-parent = <&plic0>;
-		clocks = <&crcntl0 sbi_spi3_clk>;
+		clocks = <&crcntl sbi_spi3_clk>;
 		clock-names = "pclk";
 		reg-io-width = <4>;
 		num-cs = <1>;
@@ -1761,19 +1761,12 @@
 		};
 #endif /* CONFIG_DUOWEN_IMC */
 
-		crcntl0: crcntl-clock@ff60000000 {
+		crcntl: crcntl-clock@ff60000000 {
 			compatible = "smarco,duowen-crcntl";
 			reg = <0xff 0x60000000 0x0 0x1000>;
+			/* reg = <0x8ff 0x60000000 0x0 0x1000>; */
 			#clock-cells = <1>;
 		};
-
-#ifdef CONFIG_DUOWEN_SOC_DUAL
-		crcntl1: crcntl-clock@8ff60000000 {
-			compatible = "smarco,duowen-crcntl";
-			reg = <0x8ff 0x60000000 0x0 0x1000>;
-			#clock-cells = <1>;
-		};
-#endif
 
 #ifdef CONFIG_DUOWEN_ETH_DTS
 		stmmac_axi_setup: stmmac-axi-config {
@@ -1829,8 +1822,8 @@
 			snps,perfect-filter-entries = <128>;
 			rx-fifo-depth = <16384>;
 			tx-fifo-depth = <16384>;
-			clocks = <&crcntl0 sbi_sysfab_clk>,
-			         <&crcntl0 sbi_sgmii_ref_clk>;
+			clocks = <&crcntl sbi_sysfab_clk>,
+			         <&crcntl sbi_sgmii_ref_clk>;
 			clock-names = "stmmaceth", "ptp_ref";
 			snps,axi-config = <&stmmac_axi_setup>;
 			snps,mtl-rx-config = <&mtl_rx_setup>;
@@ -1923,8 +1916,8 @@
 		dma:dma@ff03000000 {
 			compatible = "snps,axi-dma-1.01a";
 			reg = < 0xff 0x3000000 0x0 0x100000 >;
-			clocks = <&crcntl0 sbi_dma_clk>,
-				 <&crcntl0 sbi_sysfab_clk>;
+			clocks = <&crcntl sbi_dma_clk>,
+				 <&crcntl sbi_sysfab_clk>;
 			clock-names = "core-clk", "cfgr-clk";
 			interrupt-parent = <&plic0>;
 			interrupts = <65>;

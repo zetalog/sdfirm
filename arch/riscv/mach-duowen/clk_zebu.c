@@ -43,7 +43,7 @@
 
 struct select_clk {
 	clk_t clk_sels[2];
-	uint8_t flags;
+	CLK_DEC_FLAGS
 };
 
 struct select_clk select_clks[NR_SELECT_CLKS] = {
@@ -88,35 +88,35 @@ struct select_clk select_clks[NR_SELECT_CLKS] = {
 			cohfab_pll,
 			xo_clk,
 		},
-		.flags = CLK_COHFAB_CFG_F,
+		CLK_DEF_FLAGS(CLK_COHFAB_CFG_F)
 	},
 	[CL0_CLK_SEL] = {
 		.clk_sels = {
 			cl0_pll,
 			xo_clk,
 		},
-		.flags = CLK_COHFAB_CFG_F,
+		CLK_DEF_FLAGS(CLK_COHFAB_CFG_F)
 	},
 	[CL1_CLK_SEL] = {
 		.clk_sels = {
 			cl1_pll,
 			xo_clk,
 		},
-		.flags = CLK_COHFAB_CFG_F,
+		CLK_DEF_FLAGS(CLK_COHFAB_CFG_F)
 	},
 	[CL2_CLK_SEL] = {
 		.clk_sels = {
 			cl2_pll,
 			xo_clk,
 		},
-		.flags = CLK_COHFAB_CFG_F,
+		CLK_DEF_FLAGS(CLK_COHFAB_CFG_F)
 	},
 	[CL3_CLK_SEL] = {
 		.clk_sels = {
 			cl3_pll,
 			xo_clk,
 		},
-		.flags = CLK_COHFAB_CFG_F,
+		CLK_DEF_FLAGS(CLK_COHFAB_CFG_F)
 	},
 };
 
@@ -150,15 +150,15 @@ static int enable_clk_sel(clk_clk_t clk)
 	if (clk >= NR_SELECT_CLKS)
 		return -EINVAL;
 	crcntl_trace(true, get_clk_sel_name(clk));
-	if (!(select_clks[clk].flags & CLK_CLK_SEL_F)) {
+	if (!(clk_read_flags(0, select_clks[clk]) & CLK_CLK_SEL_F)) {
 		clk_enable(select_clks[clk].clk_sels[0]);
-		if (select_clks[clk].flags & CLK_COHFAB_CFG_F)
+		if (clk_read_flags(0, select_clks[clk]) & CLK_COHFAB_CFG_F)
 			cohfab_clk_select(clk);
 		else
 			crcntl_clk_select(clk);
-		if (!(select_clks[clk].flags & CLK_CLK_EN_F))
-			select_clks[clk].flags |= CLK_CLK_EN_F;
-		select_clks[clk].flags |= CLK_CLK_SEL_F;
+		if (!(clk_read_flags(0, select_clks[clk]) & CLK_CLK_EN_F))
+			clk_set_flags(0, select_clks[clk], CLK_CLK_EN_F);
+		clk_set_flags(0, select_clks[clk], CLK_CLK_SEL_F);
 	}
 	return 0;
 }
@@ -168,7 +168,7 @@ static void disable_clk_sel(clk_clk_t clk)
 	if (clk >= NR_SELECT_CLKS)
 		return;
 	crcntl_trace(false, get_clk_sel_name(clk));
-	if (select_clks[clk].flags & CLK_CLK_SEL_F) {
+	if (clk_read_flags(0, select_clks[clk]) & CLK_CLK_SEL_F) {
 		/* The PLL select clocks on ZeBu are used to gate the PLLs.
 		 * Since there is no control over PLL clocks, the select
 		 * clocks are programmed as the child nodes of the PLL
@@ -176,13 +176,13 @@ static void disable_clk_sel(clk_clk_t clk)
 		 * of the PLL clocks.
 		 */
 		clk_enable(select_clks[clk].clk_sels[1]);
-		if (select_clks[clk].flags & CLK_COHFAB_CFG_F)
+		if (clk_read_flags(0, select_clks[clk]) & CLK_COHFAB_CFG_F)
 			cohfab_clk_deselect(clk);
 		else
 			crcntl_clk_deselect(clk);
-		if (!(select_clks[clk].flags & CLK_CLK_EN_F))
-			select_clks[clk].flags |= CLK_CLK_EN_F;
-		select_clks[clk].flags &= ~CLK_CLK_SEL_F;
+		if (!(clk_read_flags(0, select_clks[clk]) & CLK_CLK_EN_F))
+			clk_set_flags(0, select_clks[clk], CLK_CLK_EN_F);
+		clk_clear_flags(0, select_clks[clk], CLK_CLK_SEL_F);
 	}
 }
 
@@ -192,7 +192,7 @@ static clk_freq_t get_clk_sel_freq(clk_clk_t clk)
 
 	if (clk >= NR_SELECT_CLKS)
 		return INVALID_FREQ;
-	if (select_clks[clk].flags & CLK_COHFAB_CFG_F)
+	if (clk_read_flags(0, select_clks[clk]) & CLK_COHFAB_CFG_F)
 		selected = cohfab_clk_selected(clk);
 	else
 		selected = crcntl_clk_selected(clk);
@@ -211,6 +211,75 @@ struct clk_driver clk_select = {
 	.select = NULL,
 	.get_name = get_clk_sel_name,
 };
+
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+static int enable_clk_sel2(clk_clk_t clk)
+{
+	if (clk >= NR_SELECT_CLKS)
+		return -EINVAL;
+	crcntl_trace(true, get_clk_sel_name(clk));
+	if (!(clk_read_flags(1, select_clks[clk]) & CLK_CLK_SEL_F)) {
+		clk_enable(clkid2(select_clks[clk].clk_sels[0]));
+		if (clk_read_flags(1, select_clks[clk]) & CLK_COHFAB_CFG_F)
+			__cohfab_clk_select(clk, 1);
+		else
+			__crcntl_clk_select(clk, 1);
+		if (!(clk_read_flags(1, select_clks[clk]) & CLK_CLK_EN_F))
+			clk_set_flags(1, select_clks[clk], CLK_CLK_EN_F);
+		clk_set_flags(1, select_clks[clk], CLK_CLK_SEL_F);
+	}
+	return 0;
+}
+
+static void disable_clk_sel2(clk_clk_t clk)
+{
+	if (clk >= NR_SELECT_CLKS)
+		return;
+	crcntl_trace(false, get_clk_sel_name(clk));
+	if (clk_read_flags(1, select_clks[clk]) & CLK_CLK_SEL_F) {
+		/* The PLL select clocks on ZeBu are used to gate the PLLs.
+		 * Since there is no control over PLL clocks, the select
+		 * clocks are programmed as the child nodes of the PLL
+		 * clocks, and should always be enabled by the child nodes
+		 * of the PLL clocks.
+		 */
+		clk_enable(clkid2(select_clks[clk].clk_sels[1]));
+		if (clk_read_flags(1, select_clks[clk]) & CLK_COHFAB_CFG_F)
+			__cohfab_clk_deselect(clk, 1);
+		else
+			__crcntl_clk_deselect(clk, 1);
+		if (!(clk_read_flags(1, select_clks[clk]) & CLK_CLK_EN_F))
+			clk_set_flags(1, select_clks[clk], CLK_CLK_EN_F);
+		clk_clear_flags(1, select_clks[clk], CLK_CLK_SEL_F);
+	}
+}
+
+static clk_freq_t get_clk_sel_freq(clk_clk_t clk)
+{
+	bool selected;
+
+	if (clk >= NR_SELECT_CLKS)
+		return INVALID_FREQ;
+	if (clk_read_flags(1, select_clks[clk]) & CLK_COHFAB_CFG_F)
+		selected = __cohfab_clk_selected(clk, 1);
+	else
+		selected = __crcntl_clk_selected(clk, 1);
+	if (selected)
+		return clk_get_frequency(clkid2(select_clks[clk].clk_sels[0]));
+	else
+		return clk_get_frequency(clkid2(select_clks[clk].clk_sels[1]));
+}
+
+struct clk_driver clk_select2 = {
+	.max_clocks = NR_SELECT_CLKS,
+	.enable = enable_clk_sel2,
+	.disable = disable_clk_sel2,
+	.get_freq = get_clk_sel_freq2,
+	.set_freq = NULL,
+	.select = NULL,
+	.get_name = get_clk_sel_name,
+};
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 
 uint32_t input_clks[NR_INPUT_CLKS] = {
 	[XO_CLK] = XO_CLK_FREQ,
@@ -272,6 +341,18 @@ struct clk_driver clk_input = {
 	.get_name = get_input_clk_name,
 };
 
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+struct clk_driver clk_input2 = {
+	.max_clocks = NR_INPUT_CLKS,
+	.enable = NULL,
+	.disable = NULL,
+	.get_freq = get_input_clk_freq,
+	.set_freq = NULL,
+	.select = NULL,
+	.get_name = get_input_clk_name,
+};
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
+
 #ifdef CONFIG_CONSOLE_COMMAND
 void clk_pll_dump(void)
 {
@@ -295,4 +376,8 @@ void clk_pll_init(void)
 {
 	clk_register_driver(CLK_INPUT, &clk_input);
 	clk_register_driver(CLK_SELECT, &clk_select);
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+	clk_register_driver(CLK_INPUT2, &clk_input2);
+	clk_register_driver(CLK_SELECT2, &clk_select2);
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 }

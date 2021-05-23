@@ -86,24 +86,44 @@ extern phys_addr_t duowen_pll_reg_base[];
 
 #include <driver/dw_pll5ghz_tsmc12ffc.h>
 
-#define __DUOWEN_CLK_BASE		CRCNTL_BASE
-#define __DUOWEN_CFAB_CLK_BASE		COHFAB_PLL_BASE
-#define __DUOWEN_APC_CLK_BASE(n)	(CLUSTER0_BASE + ((n) << 20))
-#define __DUOWEN_ETH_CLK_BASE		ETH_PLL_BASE
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define __CLUSTER_PLL_BASE(n)		(__CLUSTER0_BASE + ((n) << 20))
+#define __DUOWEN_CLK_BASE(soc)		(__SOC_BASE(soc) + __CRCNTL_BASE)
+#define __DUOWEN_CFAB_CLK_BASE(soc)	(__SOC_BASE(soc) + __COHFAB_PLL_BASE)
+#define __DUOWEN_APC_CLK_BASE(soc, n)	\
+	(__SOC_BASE(soc) + __CLUSTER_PLL_BASE(n))
+#define __DUOWEN_ETH_CLK_BASE(soc)	(__SOC_BASE(soc) + __ETH_PLL_BASE)
+#else /* CONFIG_DUOWEN_BBL_DUAL */
+#define __DUOWEN_CLK_BASE(soc)		CRCNTL_BASE
+#define __DUOWEN_CFAB_CLK_BASE(soc)	COHFAB_PLL_BASE
+#define __DUOWEN_APC_CLK_BASE(soc, n)	(CLUSTER0_BASE + ((n) << 20))
+#define __DUOWEN_ETH_CLK_BASE(soc)	ETH_PLL_BASE
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 #ifdef CONFIG_MMU
-#define DUOWEN_CLK_BASE			duowen_clk_reg_base
+#ifdef CONFIG_DUOWEN_BBL_DUAL
+#define DUOWEN_CLK_BASE(soc)		duowen_clk_reg_base[soc]
+extern caddr_t duowen_clk_reg_base[];
+#define DUOWEN_CFAB_CLK_BASE(soc)	duowen_cfab_clk_reg_base[soc]
+extern caddr_t duowen_cfab_clk_reg_base[];
+#define DUOWEN_APC_CLK_BASE(soc, n)	duowen_apc_clk_reg_base[soc][n]
+extern caddr_t duowen_apc_clk_reg_base[][4];
+#define DUOWEN_ETH_CLK_BASE(soc)	duowen_eth_clk_reg_base[soc]
+extern caddr_t duowen_eth_clk_reg_base[];
+#else /* CONFIG_DUOWEN_BBL_DUAL */
+#define DUOWEN_CLK_BASE(soc)		duowen_clk_reg_base
 extern caddr_t duowen_clk_reg_base;
-#define DUOWEN_CFAB_CLK_BASE		duowen_cfab_clk_reg_base
+#define DUOWEN_CFAB_CLK_BASE(soc)	duowen_cfab_clk_reg_base
 extern caddr_t duowen_cfab_clk_reg_base;
-#define DUOWEN_APC_CLK_BASE(n)		duowen_apc_clk_reg_base[n]
+#define DUOWEN_APC_CLK_BASE(soc, n)	duowen_apc_clk_reg_base[n]
 extern caddr_t duowen_apc_clk_reg_base[];
-#define DUOWEN_ETH_CLK_BASE		duowen_eth_clk_reg_base
+#define DUOWEN_ETH_CLK_BASE(soc)	duowen_eth_clk_reg_base
 extern caddr_t duowen_eth_clk_reg_base;
+#endif /* CONFIG_DUOWEN_BBL_DUAL */
 #else
-#define DUOWEN_CLK_BASE			__DUOWEN_CLK_BASE
-#define DUOWEN_CFAB_CLK_BASE		__DUOWEN_CFAB_CLK_BASE
-#define DUOWEN_APC_CLK_BASE(n)		__DUOWEN_APC_CLK_BASE(n)
-#define DUOWEN_ETH_CLK_BASE		__DUOWEN_ETH_CLK_BASE
+#define DUOWEN_CLK_BASE(soc)		__DUOWEN_CLK_BASE(soc)
+#define DUOWEN_CFAB_CLK_BASE(soc)	__DUOWEN_CFAB_CLK_BASE(soc)
+#define DUOWEN_APC_CLK_BASE(soc, n)	__DUOWEN_APC_CLK_BASE(soc, n)
+#define DUOWEN_ETH_CLK_BASE(soc)	__DUOWEN_ETH_CLK_BASE(soc)
 #endif
 
 /* XXX: This implementation is based on undocumented PLL RTL
@@ -111,31 +131,33 @@ extern caddr_t duowen_eth_clk_reg_base;
  * NOTE: all CRCNTL registers are only 32-bit accessiable.
  */
 
-#define __CRCNTL_REG(offset)		(__DUOWEN_CLK_BASE + (offset))
-#define CRCNTL_REG(offset)		(DUOWEN_CLK_BASE + (offset))
-#define COHFAB_PLL_REG(offset)		(DUOWEN_CFAB_CLK_BASE + (offset))
-#define CLUSTER_PLL_REG(n, offset)	(DUOWEN_APC_CLK_BASE(n) + (offset))
-#define ETH_PLL_REG(offset)		(DUOWEN_ETH_CLK_BASE + (offset))
+#define __CRCNTL_REG(soc, offset)	(__DUOWEN_CLK_BASE(soc) + (offset))
+#define CRCNTL_REG(soc, offset)		(DUOWEN_CLK_BASE(soc) + (offset))
+#define COHFAB_PLL_REG(soc, offset)	(DUOWEN_CFAB_CLK_BASE(soc) + (offset))
+#define CLUSTER_PLL_REG(soc, n, offset)	(DUOWEN_APC_CLK_BASE(soc, n) + (offset))
+#define ETH_PLL_REG(soc, offset)	(DUOWEN_ETH_CLK_BASE(soc) + (offset))
 
 /* PLL control */
-#define __CRCNTL_PLL_REG(pll, offset)	__CRCNTL_REG(((pll) << 6) + (offset))
-#define CRCNTL_PLL_REG(pll, offset)	CRCNTL_REG(((pll) << 6) + (offset))
+#define __CRCNTL_PLL_REG(soc, pll, offset)	\
+	__CRCNTL_REG(soc, ((pll) << 6) + (offset))
+#define CRCNTL_PLL_REG(soc, pll, offset)	\
+	CRCNTL_REG(soc, ((pll) << 6) + (offset))
 
 /* COHFAB/CLUSTER PLL clock control */
-#define COHFAB_CLK_CFG(pll)		DW_PLL_REG((pll), 0x40)
-#define COHFAB_RESET_COHFAB(pll)	DW_PLL_REG((pll), 0x44)
-#define COHFAB_RESET_CLUSTER(pll)	DW_PLL_REG((pll), 0x50)
+#define COHFAB_CLK_CFG(soc, pll)	DW_PLL_REG(socpll(pll, soc), 0x40)
+#define COHFAB_RESET_COHFAB(soc, pll)	DW_PLL_REG(socpll(pll, soc), 0x44)
+#define COHFAB_RESET_CLUSTER(soc, pll)	DW_PLL_REG(socpll(pll, soc), 0x50)
 
 /* CLUSTER PLL clock control */
-#define CLUSTER_CLK_CG_CFG(apc)		CLUSTER_PLL_REG(apc, 0x44)
-#define CLUSTER_RESET_CTRL(apc)		CLUSTER_PLL_REG(apc, 0x50)
+#define CLUSTER_CLK_CG_CFG(soc, apc)	CLUSTER_PLL_REG(soc, apc, 0x44)
+#define CLUSTER_RESET_CTRL(soc, apc)	CLUSTER_PLL_REG(soc, apc, 0x50)
 
 /* reset control */
-#define CRCNTL_SW_RST_CFG(n)		CRCNTL_REG(0x130 + ((n) << 2))
+#define CRCNTL_SW_RST_CFG(soc, n)	CRCNTL_REG(soc, 0x130 + ((n) << 2))
 
 /* clock control */
-#define CRCNTL_CLK_EN_CFG(n)		CRCNTL_REG(0x140 + ((n) << 2))
-#define CRCNTL_CLK_SEL_CFG		CRCNTL_REG(0x150)
+#define CRCNTL_CLK_EN_CFG(soc, n)	CRCNTL_REG(soc, 0x140 + ((n) << 2))
+#define CRCNTL_CLK_SEL_CFG(soc)		CRCNTL_REG(soc, 0x150)
 
 /* COHFAB/CLUSTER clock control */
 #define COHFAB_CLOCK_SEL		_BV(0)
@@ -221,33 +243,85 @@ extern caddr_t duowen_eth_clk_reg_base;
 #define PLL_COUNTER(value)	_GET_FV(PLL_COUNTER, value)
 
 /* APIs here can be invoked w/o enabling clock tree core */
-bool crcntl_clk_asserted(clk_clk_t clk);
-void crcntl_clk_assert(clk_clk_t clk);
-void crcntl_clk_deassert(clk_clk_t clk);
-bool crcntl_clk_enabled(clk_clk_t clk);
-void crcntl_clk_enable(clk_clk_t clk);
-void crcntl_clk_disable(clk_clk_t clk);
-bool cohfab_clk_asserted(clk_clk_t clk);
-void cohfab_clk_assert(clk_clk_t clk);
-void cohfab_clk_deassert(clk_clk_t clk);
-bool cohfab_clk_enabled(clk_clk_t clk);
-void cohfab_clk_enable(clk_clk_t clk);
-void cohfab_clk_disable(clk_clk_t clk);
-bool cluster_clk_asserted(clk_clk_t clk);
-void cluster_clk_assert(clk_clk_t clk);
-void cluster_clk_deassert(clk_clk_t clk);
-bool cluster_clk_enabled(clk_clk_t clk);
-void cluster_clk_enable(clk_clk_t clk);
-void cluster_clk_disable(clk_clk_t clk);
+bool __crcntl_clk_asserted(clk_clk_t clk, uint8_t soc);
+void __crcntl_clk_assert(clk_clk_t clk, uint8_t soc);
+void __crcntl_clk_deassert(clk_clk_t clk, uint8_t soc);
+bool __crcntl_clk_enabled(clk_clk_t clk, uint8_t soc);
+void __crcntl_clk_enable(clk_clk_t clk, uint8_t soc);
+void __crcntl_clk_disable(clk_clk_t clk, uint8_t soc);
+bool __cohfab_clk_asserted(clk_clk_t clk, uint8_t soc);
+void __cohfab_clk_assert(clk_clk_t clk, uint8_t soc);
+void __cohfab_clk_deassert(clk_clk_t clk, uint8_t soc);
+bool __cohfab_clk_enabled(clk_clk_t clk, uint8_t soc);
+void __cohfab_clk_enable(clk_clk_t clk, uint8_t soc);
+void __cohfab_clk_disable(clk_clk_t clk, uint8_t soc);
+bool __cluster_clk_asserted(clk_clk_t clk, uint8_t soc);
+void __cluster_clk_assert(clk_clk_t clk, uint8_t soc);
+void __cluster_clk_deassert(clk_clk_t clk, uint8_t soc);
+bool __cluster_clk_enabled(clk_clk_t clk, uint8_t soc);
+void __cluster_clk_enable(clk_clk_t clk, uint8_t soc);
+void __cluster_clk_disable(clk_clk_t clk, uint8_t soc);
+#define crcntl_clk_asserted(clk)		\
+	__crcntl_clk_asserted(clk, imc_socket_id())
+#define crcntl_clk_assert(clk)			\
+	__crcntl_clk_assert(clk, imc_socket_id())
+#define crcntl_clk_deassert(clk)		\
+	__crcntl_clk_deassert(clk, imc_socket_id())
+#define crcntl_clk_enabled(clk)			\
+	__crcntl_clk_enabled(clk, imc_socket_id())
+#define crcntl_clk_enable(clk)			\
+	__crcntl_clk_enable(clk, imc_socket_id())
+#define crcntl_clk_disable(clk)			\
+	__crcntl_clk_disable(clk, imc_socket_id())
+#define cohfab_clk_asserted(clk)		\
+	__cohfab_clk_asserted(clk, imc_socket_id())
+#define cohfab_clk_assert(clk)			\
+	__cohfab_clk_assert(clk, imc_socket_id())
+#define cohfab_clk_deassert(clk)		\
+	__cohfab_clk_deassert(clk, imc_socket_id())
+#define cohfab_clk_enabled(clk)			\
+	__cohfab_clk_enabled(clk, imc_socket_id())
+#define cohfab_clk_enable(clk)			\
+	__cohfab_clk_enable(clk, imc_socket_id())
+#define cohfab_clk_disable(clk)			\
+	__cohfab_clk_disable(clk, imc_socket_id())
+#define cluster_clk_asserted(clk)		\
+	__cluster_clk_asserted(clk, imc_socket_id())
+#define cluster_clk_assert(clk)			\
+	__cluster_clk_assert(clk, imc_socket_id())
+#define cluster_clk_deassert(clk)		\
+	__cluster_clk_deassert(clk, imc_socket_id())
+#define cluster_clk_enabled(clk)		\
+	__cluster_clk_enabled(clk, imc_socket_id())
+#define cluster_clk_enable(clk)			\
+	__cluster_clk_enable(clk, imc_socket_id())
+#define cluster_clk_disable(clk)		\
+	__cluster_clk_disable(clk, imc_socket_id())
 #ifdef CONFIG_CRCNTL_MUX
-bool crcntl_clk_selected(clk_clk_t clk);
-void crcntl_clk_select(clk_clk_t clk);
-void crcntl_clk_deselect(clk_clk_t clk);
-bool cohfab_clk_selected(clk_clk_t clk);
-void cohfab_clk_select(clk_clk_t clk);
-void cohfab_clk_deselect(clk_clk_t clk);
-#define crcntl_clk_sel_read()		__raw_readl(CRCNTL_CLK_SEL_CFG)
-#define crcntl_clk_sel_write(sels)	__raw_writel(sels, CRCNTL_CLK_SEL_CFG)
+bool __crcntl_clk_selected(clk_clk_t clk, uint8_t soc);
+void __crcntl_clk_select(clk_clk_t clk, uint8_t soc);
+void __crcntl_clk_deselect(clk_clk_t clk, uint8_t soc);
+bool __cohfab_clk_selected(clk_clk_t clk, uint8_t soc);
+void __cohfab_clk_select(clk_clk_t clk, uint8_t soc);
+void __cohfab_clk_deselect(clk_clk_t clk, uint8_t soc);
+uint32_t __crcntl_clk_sel_read(uint8_t soc);
+void __crcntl_clk_sel_write(uint32_t sels, uint8_t soc);
+#define crcntl_clk_selected(clk)		\
+	__crcntl_clk_selected(clk, imc_socket_id())
+#define crcntl_clk_select(clk)			\
+	__crcntl_clk_select(clk, imc_socket_id())
+#define crcntl_clk_deselect(clk)		\
+	__crcntl_clk_deselect(clk, imc_socket_id())
+#define cohfab_clk_selected(clk)		\
+	__cohfab_clk_selected(clk, imc_socket_id())
+#define cohfab_clk_select(clk)			\
+	__cohfab_clk_select(clk, imc_socket_id())
+#define cohfab_clk_deselect(clk)		\
+	__cohfab_clk_deselect(clk, imc_socket_id())
+#define crcntl_clk_sel_read()			\
+	__crcntl_clk_sel_read(imc_socket_id())
+#define crcntl_clk_sel_write(sels)		\
+	__crcntl_clk_sel_write(sels, imc_socket_id())
 #endif
 #ifdef CONFIG_CRCNTL_TRACE
 void crcntl_trace(bool enabling, const char *name);
@@ -273,15 +347,15 @@ void duowen_pll_wait_cmpclk(uint8_t pll, uint16_t cycles);
 bool duowen_pll_wait_timing(uint8_t pll, uint8_t timing);
 
 /* global power/reset control */
-#define CRCNTL_WARM_RESET_DETECT_TIME	CRCNTL_REG(0x100)
-#define CRCNTL_WARM_RESET_DELAY_TIME	CRCNTL_REG(0x104)
-#define CRCNTL_SHUTDN_DELAY_TIME	CRCNTL_REG(0x108)
-#define CRCNTL_PWR_SHUTDOWN		CRCNTL_REG(0x10C)
-#define CRCNTL_PS_HOLD			CRCNTL_REG(0x110)
-#define CRCNTL_SW_GLOBAL_RST		CRCNTL_REG(0x114)
-#define CRCNTL_WARM_RST_INTR		CRCNTL_REG(0x118)
-#define CRCNTL_WARM_RST_INTR_CLR	CRCNTL_REG(0x11C)
-#define CRCNTL_RST_CAUSE		CRCNTL_REG(0x120)
+#define CRCNTL_WARM_RESET_DETECT_TIME	CRCNTL_REG(imc_socket_id(), 0x100)
+#define CRCNTL_WARM_RESET_DELAY_TIME	CRCNTL_REG(imc_socket_id(), 0x104)
+#define CRCNTL_SHUTDN_DELAY_TIME	CRCNTL_REG(imc_socket_id(), 0x108)
+#define CRCNTL_PWR_SHUTDOWN		CRCNTL_REG(imc_socket_id(), 0x10C)
+#define CRCNTL_PS_HOLD			CRCNTL_REG(imc_socket_id(), 0x110)
+#define CRCNTL_SW_GLOBAL_RST		CRCNTL_REG(imc_socket_id(), 0x114)
+#define CRCNTL_WARM_RST_INTR		CRCNTL_REG(imc_socket_id(), 0x118)
+#define CRCNTL_WARM_RST_INTR_CLR	CRCNTL_REG(imc_socket_id(), 0x11C)
+#define CRCNTL_RST_CAUSE		CRCNTL_REG(imc_socket_id(), 0x120)
 
 #define crcntl_config_timing(wrst_detect, wrst_delay, shutdown_delay)	\
 	do {								\
