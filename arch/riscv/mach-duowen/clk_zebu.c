@@ -254,7 +254,7 @@ static void disable_clk_sel2(clk_clk_t clk)
 	}
 }
 
-static clk_freq_t get_clk_sel_freq(clk_clk_t clk)
+static clk_freq_t get_clk_sel_freq2(clk_clk_t clk)
 {
 	bool selected;
 

@@ -91,32 +91,47 @@
 #define CLK_R			CLK_SW_RST_F
 
 #ifdef CONFIG_DUOWEN_BBL_DUAL
-#define CLK_DEC_FLAGS			\
-	uint8_t flags0;			\
+#define CLK_DEC_FLAGS					\
+	uint8_t flags0;					\
 	uint8_t flags1;
-#define CLK_DEF_FLAGS(__flags)		\
-	.flags0 = __flags,		\
+#define CLK_DEF_FLAGS(__flags)				\
+	.flags0 = __flags,				\
 	.flags1 = __flags,
-#define CLK_DEC_FLAGS_RO		\
+#define CLK_DEC_FLAGS_RO				\
 	uint8_t flags;
-#define CLK_DEF_FLAGS_RO(__flags)	\
+#define CLK_DEF_FLAGS_RO(__flags)			\
 	.flags = __flags,
-#define clk_read_flags(soc, clk)		\
+#define clk_read_flags(soc, clk)			\
 	((soc) ? (clk).flags1 : (clk).flags0)
-#define clk_write_flags(soc, clk, __flags)	\
-	((soc) ? (clk).flags1 = (__flags) : (clk).flags0 = (__flags))
-#define clk_set_flags(soc, clk, __flags)	\
-	((soc) ? (clk).flags1 |= (__flags) : (clk).flags0 |= (__flags))
-#define clk_clear_flags(soc, clk, __flags)	\
-	((soc) ? (clk).flags1 &= ~(__flags) : (clk).flags0 &= ~(__flags))
+#define clk_write_flags(soc, clk, __flags)		\
+	do {						\
+		if (soc)				\
+			(clk).flags1 = (__flags);	\
+		else					\
+			(clk).flags0 = (__flags);	\
+	} while (0)
+#define clk_set_flags(soc, clk, __flags)		\
+	do {						\
+		if (soc)				\
+			(clk).flags1 |= (__flags);	\
+		else					\
+			(clk).flags0 |= (__flags);	\
+	} while (0)
+#define clk_clear_flags(soc, clk, __flags)		\
+	do {						\
+		if (soc)				\
+			(clk).flags1 &= ~(__flags);	\
+		else					\
+			(clk).flags0 &= ~(__flags);	\
+	} while (0)
 #else /* CONFIG_DUOWEN_BBL_DUAL */
-#define CLK_DEC_FLAGS			\
+#define CLK_DEC_FLAGS					\
 	uint8_t flags;
-#define CLK_DEF_FLAGS(__flags)		\
+#define CLK_DEF_FLAGS(__flags)				\
 	.flags = __flags,
-#define CLK_DEC_FLAGS_RO		\
+#define CLK_DEC_FLAGS_RO				\
 	uint8_t flags;
-#define CLK_DEF_FLAGS_RO(__flags)	\
+#define CLK_DEF_FLAGS_RO(__flags)			\
 	.flags = __flags,
 #define clk_read_flags(soc, clk)		((clk).flags)
 #define clk_write_flags(soc, clk, __flags)	((clk).flags = (__flags))
