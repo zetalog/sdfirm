@@ -297,14 +297,15 @@ endchoice
 
 choice
 	prompt "xo_clk frequency"
-	depends DUOWEN_ZEBU
-	default DUOWEN_XO_125M
+	default DUOWEN_XO_25M if DUOWEN_ASIC
+	default DUOWEN_XO_125M if DUOWEN_ZEBU
 
 config DUOWEN_XO_25M
 	bool "25MHz"
 
 config DUOWEN_XO_125M
 	bool "125MHz"
+	depends DUOWEN_ZEBU
 
 endchoice
 
@@ -527,6 +528,21 @@ menuconfig CRCNTL
 	select CRCNTL_MUX
 
 if CRCNTL
+
+choice
+	prompt "PLL type"
+
+config DUOWEN_PLL_REAL
+	bool "Real"
+	depends DUOWEN_ASIC
+
+config DUOWEN_PLL_FAKE
+	bool "Fake"
+	help
+	  This happens in VCS testbench and ZeBu where PLL frequency is
+	  forced by RTL.
+
+endchoice
 
 config CRCNTL_MUX
 	bool "Enable clock multiplexing support"

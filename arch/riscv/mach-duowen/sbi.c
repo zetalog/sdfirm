@@ -70,7 +70,10 @@ static int duowen_early_init(bool cold_boot)
 
 	if (cold_boot) {
 		board_init_timestamp();
+#ifdef CONFIG_DUOWEN_APC
+		/* Do not use SMMU when booting Linux with IMC */
 		duowen_smmu_early_init();
+#endif /* CONFIG_DUOWEN_APC */
 	}
 	return 0;
 }

@@ -11,7 +11,7 @@
 
 #define clkid2(clkid)		((clkid) | ((CLK_DUAL) << 8))
 
-#ifdef CONFIG_DUOWEN_ASIC
+#ifdef CONFIG_DUOWEN_PLL_REAL
 #define XO_CLK_FREQ		25000000 /* 25MHz */
 #define SOC_PLL_FREQ		1000000000 /* 1GHz */
 #define DDR_BUS_PLL_FREQ	800000000
@@ -30,7 +30,7 @@
 #endif
 #define SGMII_PLL_FREQ		125000000 /* 125MHz */
 #endif
-#ifdef CONFIG_DUOWEN_ZEBU
+#ifdef CONFIG_DUOWEN_PLL_FAKE
 #ifdef CONFIG_DUOWEN_XO_25M
 #define XO_CLK_FREQ		25000000
 #endif
@@ -150,7 +150,7 @@
 #endif /* CONFIG_DUOWEN_BBL_DUAL */
 
 #define CLK_DUAL		8 /* DUAL socket clock bit */
-#ifdef CONFIG_DUOWEN_ASIC
+#ifdef CONFIG_DUOWEN_PLL_REAL
 #define CLK_INPUT		0
 #define CLK_VCO			1
 #define CLK_PLL			2
@@ -347,9 +347,9 @@
 #define cl2_clk_src2		cl2_pll2
 #define cl3_clk_src2		cl3_pll2
 #endif /* CONFIG_DUOWEN_BBL_DUAL */
-#endif /* CONFIG_DUOWEN_ASIC */
+#endif /* CONFIG_DUOWEN_PLL_REAL */
 
-#ifdef CONFIG_DUOWEN_ZEBU
+#ifdef CONFIG_DUOWEN_PLL_FAKE
 #define CLK_INPUT		0
 #define CLK_SELECT		1
 #define CLK_OUTPUT		2
@@ -465,7 +465,7 @@
 #define cl2_clk_src2		cl2_clk_sel2
 #define cl3_clk_src2		cl3_clk_sel2
 #endif /* CONFIG_DUOWEN_BBL_DUAL */
-#endif /* CONFIG_DUOWEN_ZEBU */
+#endif /* CONFIG_DUOWEN_PLL_FAKE */
 
 /* Alias for select clocks */
 #define sysfab_100m_clk		sysfab_clk_src

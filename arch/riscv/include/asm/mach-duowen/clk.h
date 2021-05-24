@@ -60,7 +60,7 @@
 #define clk_freq_t		uint64_t
 #define invalid_clk		clkid(0xFF, 0xFF)
 
-#ifdef CONFIG_DUOWEN_ASIC
+#ifdef CONFIG_DUOWEN_PLL_REAL
 #define SOC_VCO_FREQ		ULL(4000000000) /* 4GHz */
 #define DDR_BUS_VCO_FREQ	ULL(3200000000) /* 3.2GHz */
 #define DDR_VCO_FREQ		ULL(3200000000) /* 3.2GHz */
@@ -151,7 +151,7 @@ void clk_hw_ctrl_init(void);
 #ifdef CONFIG_MMU
 void clk_hw_mmu_init(void);
 #endif
-#ifdef CONFIG_DUOWEN_ASIC
+#ifdef CONFIG_DUOWEN_PLL_REAL
 void clk_apply_vco(clk_clk_t vco, clk_clk_t clk, clk_freq_t freq);
 void clk_apply_pll(clk_clk_t pll, clk_clk_t clk, clk_freq_t freq);
 /* XXX: Protect Dynamic PLL Change
@@ -168,12 +168,12 @@ void clk_apply_pll(clk_clk_t pll, clk_clk_t clk, clk_freq_t freq);
 		if (clk != invalid_clk)		\
 			clk_disable(clk);	\
 	} while (0)
-#else
+#else /* CONFIG_DUOWEN_PLL_REAL */
 #define clk_apply_vco(vco, clk, freq)		do { } while (0)
 #define clk_apply_pll(pll, clk, freq)		do { } while (0)
 #define clk_select_mux(clk)			do { } while (0)
 #define clk_deselect_mux(clk)			do { } while (0)
-#endif
+#endif /* CONFIG_DUOWEN_PLL_REAL */
 
 void duowen_clk_init(void);
 void duowen_clk_imc_init(void);
