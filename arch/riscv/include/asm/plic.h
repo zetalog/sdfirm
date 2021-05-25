@@ -152,9 +152,11 @@
 #endif
 
 #ifdef CONFIG_PLIC
+void plic_init_default(void);
 void plic_sbi_init_cold(void);
 void plic_sbi_init_warm(cpu_t cpu);
 #else
+#define plic_init_default()		do { } while (0)
 #define plic_sbi_init_cold()		do { } while (0)
 #define plic_sbi_init_warm(cpu)		do { } while (0)
 #endif

@@ -144,13 +144,16 @@ void duowen_hart_map_init(void)
 	apc_set_cpu_map(harts);
 }
 
-void duowen_plic_dual_init(void)
+void duowen_plic_init(void)
 {
-	if (soc_chip_link() && !rom_get_pliccntl_done()) {
-		if (imc_socket_id() == 0)
-			plic_socket_connect(1);
-		else
-			plic_socket_connect(0);
+	if (!rom_get_pliccntl_done()) {
+		plic_init_default();
+		if (soc_chip_link()) {
+			if (imc_socket_id() == 0)
+				plic_socket_connect(1);
+			else
+				plic_socket_connect(0);
+		}
 		rom_set_pliccntl_done();
 	}
 }
@@ -382,8 +385,8 @@ void board_late_init(void)
 	 * dual socket operations.
 	 */
 	pci_platform_init();
-	/* PLIC socket connection */
-	duowen_plic_dual_init();
+	/* PLIC parital goods and socket connection */
+	duowen_plic_init();
 
 	/* Non-BBL bootloader initialization */
 	board_boot_early();

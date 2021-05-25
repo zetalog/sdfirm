@@ -43,6 +43,44 @@
 #include <target/smp.h>
 #include <target/irq.h>
 
+#ifdef CONFIG_SBI
+/* Do not handle IRQs in M mode.
+ * If S mode is a part of this firmware, handle IRQs.
+ * If S mode is not a part of this firmware, do not handle IRQs.
+ */
+#define PLIC_PRI_M		PLIC_PRI_MAX
+#ifdef CONFIG_SBI_PAYLOAD
+#define PLIC_PRI_S		PLIC_PRI_MAX
+#else /* CONFIG_SBI_PAYLOAD */
+#define PLIC_PRI_S		PLIC_PRI_DEF
+#endif /* CONFIG_SBI_PAYLOAD */
+#else /* CONFIG_SBI */
+#ifdef CONFIG_RISCV_EXIT_M
+#define PLIC_PRI_M		PLIC_PRI_DEF
+#else /* CONFIG_RISCV_EXIT_M */
+/* No IRQs in M mode */
+#define PLIC_PRI_M		PLIC_PRI_MAX
+#endif /* CONFIG_RISCV_EXIT_M */
+#ifdef CONFIG_RISCV_EXIT_S
+#define PLIC_PRI_S		PLIC_PRI_DEF
+#else /* CONFIG_RISCV_EXIT_S */
+/* No IRQs in S mode */
+#define PLIC_PRI_S		PLIC_PRI_MAX
+#endif /* CONFIG_RISCV_EXIT_S */
+#endif /* CONFIG_SBI */
+
+void plic_init_default(void)
+{
+	cpu_t cpu;
+
+	for (cpu = 0; cpu < NR_CPUS; cpu++) {
+		if (plic_hw_m_ctx(cpu) != PLIC_CTX_NONE)
+			plic_configure_threashold_m(cpu, PLIC_PRI_MAX);
+		if (plic_hw_s_ctx(cpu) != PLIC_CTX_NONE)
+			plic_configure_threashold_s(cpu, PLIC_PRI_MAX);
+	}
+}
+
 void plic_sbi_init_cold(void)
 {
 	irq_t irq;
@@ -56,14 +94,26 @@ void plic_sbi_init_warm(cpu_t cpu)
 	irq_t irq;
 
 	if (plic_hw_m_ctx(cpu) != PLIC_CTX_NONE) {
+		/* By default, IRQs should be disabled for all contexts,
+		 * so that it is ensured that no IRQ can arrive to the bad
+		 * cores.
+		 * The following lines are meant to re-disable IRQs for
+		 * the good cores.
+		 */
 		for (irq = 0; irq < NR_IRQS; irq++)
 			plic_disable_mirq(cpu, irq);
-		plic_configure_threashold_m(cpu, PLIC_PRI_MIN);
+		plic_configure_threashold_m(cpu, PLIC_PRI_M);
 	}
 	if (plic_hw_s_ctx(cpu) != PLIC_CTX_NONE) {
+		/* By default, IRQs should be disabled for all contexts,
+		 * so that it is ensured that no IRQ can arrive to the bad
+		 * cores.
+		 * The following lines are meant to re-disable IRQs for
+		 * the good cores.
+		 */
 		for (irq = 0; irq < NR_IRQS; irq++)
 			plic_disable_sirq(cpu, irq);
-		plic_configure_threashold_s(cpu, PLIC_PRI_NONE);
+		plic_configure_threashold_s(cpu, PLIC_PRI_S);
 	}
 }
 
