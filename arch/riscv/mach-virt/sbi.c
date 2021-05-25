@@ -88,8 +88,7 @@ static int virt_irqchip_init(bool cold_boot)
 {
 	if (cold_boot)
 		plic_sbi_init_cold();
-	else
-		plic_sbi_init_warm(sbi_processor_id());
+	plic_sbi_init_warm(sbi_processor_id());
 	return 0;
 }
 
