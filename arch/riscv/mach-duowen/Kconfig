@@ -33,6 +33,10 @@ config DUOWEN_APC
 
 endchoice
 
+config DUOWEN_SOC_DUAL_SPARSE
+	bool
+	depends !DUOWEN_APC_16
+
 config DUOWEN_SOC_DUAL
 	bool "Enable dual sockets"
 	depends SMP
@@ -127,6 +131,7 @@ config DUOWEN_BBL
 	select DUOWEN_NOC if !DUOWEN_SBL_LOAD
 	select DUOWEN_PMA if !DUOWEN_SBL_LOAD
 	select DUOWEN_PCIE_SMMU_BYPASS if (DUOWEN_PCIE && !DUOWEN_SMMU)
+	select DUOWEN_BBL_DUAL if DUOWEN_SOC_DUAL
 
 config DUOWEN_TB
 	bool "Test bench"
@@ -321,6 +326,7 @@ config DUOWEN_APC_16
 config DUOWEN_APC_4
 	bool "4"
 	depends DUOWEN_IMC || SMP
+	select DUOWEN_SOC_DUAL_SPARSE if DUOWEN_SOC_DUAL
 
 config DUOWEN_APC_1
 	bool "1"

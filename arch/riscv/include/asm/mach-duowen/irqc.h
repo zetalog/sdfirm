@@ -109,10 +109,10 @@
 /* TODO: support of 2 PLIC controllers */
 #define plic_hw_m_ctx(cpu)		\
 	(imc_socket_id() == 1 ?		\
-	 (smp_hw_cpu_hart(cpu) + 33) : (cpu))
+	 (smp_hw_cpu_hart(cpu) + 18) : (cpu))
 #define plic_hw_s_ctx(cpu)		\
 	(imc_socket_id() == 1 ?		\
-	 (smp_hw_cpu_hart(cpu) + 51) : ((cpu) + 17))
+	 (smp_hw_cpu_hart(cpu) + 35) : ((cpu) + 17))
 #else /* CONFIG_DUOWEN_SOC_DUAL */
 #define plic_hw_m_ctx(cpu)	(cpu)
 #define plic_hw_s_ctx(cpu)	((cpu) + 17)

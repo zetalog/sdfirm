@@ -92,6 +92,7 @@
 	.endm
 #ifdef CONFIG_DUOWEN_SOC_DUAL
 #ifdef CONFIG_DUOWEN_BBL
+#ifdef CONFIG_DUOWEN_SOC_DUAL_SPARSE
 	.macro get_arch_smpid reg
 	andi	t0, \reg, 0xF0
 	andi	\reg, \reg, 0xF
@@ -105,6 +106,7 @@
 	.macro get_arch_hartmask reg
 	li	\reg, HART_ALL
 	.endm
+#endif /* CONFIG_DUOWEN_SOC_DUAL_SPARSE */
 #else /* CONFIG_DUOWEN_BBL */
 	.macro get_arch_smpid reg
 	li	t1, SOC0_HART

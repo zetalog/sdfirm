@@ -86,7 +86,7 @@
 #ifdef PLIC_HW_PRI_DEF
 #define PLIC_PRI_DEF			PLIC_HW_PRI_DEF
 #else
-#define PLIC_PRI_DEF			PLIC_HW_PRI_MIN
+#define PLIC_PRI_DEF			PLIC_PRI_MIN
 #endif
 
 #define PLIC_IRQ_OFFSET(irq)		REG_1BIT_OFFSET(irq)

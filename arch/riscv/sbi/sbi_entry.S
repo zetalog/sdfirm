@@ -58,9 +58,9 @@
 	add	\__d4, \__s4, zero
 	.endm
 
-	.macro init_tp hartid, reg_tmp
+	.macro init_tp smpid, reg_tmp
 #ifdef CONFIG_SMP
-	slli	\reg_tmp, \hartid, PERCPU_STACK_SHIFT
+	slli	\reg_tmp, \smpid, PERCPU_STACK_SHIFT
 	la	tp, (SBI_PERCPU_STACKS_START + PERCPU_STACK_SIZE)
 	add	tp, tp, \reg_tmp
 #else
@@ -70,10 +70,10 @@
 	sub	tp, tp, \reg_tmp
 	.endm
 
-	.macro init_gpsptp hartid, reg_tmp
+	.macro init_gpsptp smpid, reg_tmp
 	init_gp
 #ifdef CONFIG_SMP
-	slli	\reg_tmp, \hartid, PERCPU_STACK_SHIFT
+	slli	\reg_tmp, \smpid, PERCPU_STACK_SHIFT
 	la	sp, (SBI_PERCPU_STACKS_START + PERCPU_STACK_SIZE)
 	add	sp, sp, \reg_tmp
 #else
@@ -84,9 +84,9 @@
 	add	sp, tp, zero
 	.endm
 
-	.macro get_tp hartid, reg_tmp, reg_res
+	.macro get_tp smpid, reg_tmp, reg_res
 #ifdef CONFIG_SMP
-	slli	\reg_tmp, \hartid, PERCPU_STACK_SHIFT
+	slli	\reg_tmp, \smpid, PERCPU_STACK_SHIFT
 	la	\reg_res, (SBI_PERCPU_STACKS_START + PERCPU_STACK_SIZE)
 	add	\reg_res, \reg_res, \reg_tmp
 #else
@@ -99,6 +99,14 @@
 	.macro get_smpid reg
 #ifdef CONFIG_SMP
 	csrr	\reg, CSR_MHARTID
+	get_arch_smpid \reg
+#else
+	li	\reg, 0
+#endif
+	.endm
+
+	.macro hart2smp	reg
+#ifdef CONFIG_SMP
 	get_arch_smpid \reg
 #else
 	li	\reg, 0
@@ -133,6 +141,7 @@ ENTRY(__sbi_entry)
 	/* hartid 0 */
 	li	t1, 0
 _scratch_init:
+	hart2smp t1
 	init_tp	t1, a5
 
 	/* Initialize scratch space */
@@ -268,6 +277,7 @@ secondary_wait_for_sbi_relocate:
 
 __sbi_entry_warm:
 	/* Init GP, SP, TP */
+	hart2smp s6
 	init_gpsptp s6, a5
 	/* update the mscratch */
 	csrw	CSR_MSCRATCH, tp
@@ -299,6 +309,7 @@ ENTRY(_hartid_to_scratch)
 	 * s0 -> Temporary
 	 * s1 -> HART Stack End
 	 */
+	hart2smp a0
 	get_tp	a0, s0, s1
 	sub	a0, s1, zero
 

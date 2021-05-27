@@ -125,10 +125,15 @@ extern unsigned long duowen_hart_base;
 
 #ifdef CONFIG_DUOWEN_SOC_DUAL
 #ifdef CONFIG_DUOWEN_BBL
+#ifdef CONFIG_DUOWEN_SOC_DUAL_SPARSE
+/* FIXME: This actually makes sbi_processor_id() returned as hartid */
 #define MAX_HARTS		32
 #define HART_ALL				\
 	((CPU_TO_MASK(MAX_CPU_NUM>>1)-1) |	\
 	 ((CPU_TO_MASK(MAX_CPU_NUM>>1)-1) << SOC1_HART))
+#else /* CONFIG_DUOWEN_SOC_DUAL_SPARSE */
+#define ARCH_HAVE_BOOT_SMP	1
+#endif /* CONFIG_DUOWEN_SOC_DUAL_SPARSE */
 #else /* CONFIG_DUOWEN_BBL */
 #define HART_ALL		((CPU_TO_MASK(MAX_CPU_NUM)-1) << HART_BASE)
 #endif /* CONFIG_DUOWEN_BBL */

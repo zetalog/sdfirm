@@ -57,6 +57,7 @@ extern caddr_t virt_plic_reg_base;
 #define PLIC_BASE		PLIC_REG_BASE
 #endif
 
+#define PLIC_HW_PRI_MAX		31
 #define plic_hw_m_ctx(cpu)	(((cpu) + 1) << 1)
 #define plic_hw_s_ctx(cpu)	((((cpu) + 1) << 1) + 1)
 

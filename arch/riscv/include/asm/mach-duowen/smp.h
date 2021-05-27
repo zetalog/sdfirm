@@ -43,6 +43,8 @@
 #define __SMP_DUOWEN_H_INCLUDE__
 
 #ifdef CONFIG_DUOWEN_SOC_DUAL
+#ifdef CONFIG_DUOWEN_BBL
+#ifdef CONFIG_DUOWEN_SOC_DUAL_SPARSE
 #define SOC_CPU_HALF		(MAX_CPU_NUM >> 1)
 #define SOC_CPU_MASK		(SOC_CPU_HALF - 1)
 #define SOC_CPU_BITS		(ilog2_const(SOC_CPU_MASK) + 1)
@@ -50,9 +52,17 @@
 				 ((!!(cpu & SOC_CPU_HALF)) << 4))
 #define smp_hw_hart_cpu(hart)   (((hart) & 0xF) +	\
 				 (!!((hart) & (0xF0)) << SOC_CPU_BITS))
-#else
+#else /* CONFIG_DUOWEN_SOC_DUAL_SPARSE */
+#define smp_hw_cpu_hart(cpu)	((cpu))
+#define smp_hw_hart_cpu(hart)	((hart))
+#endif /* CONFIG_DUOWEN_SOC_DUAL_SPARSE */
+#else /* CONFIG_DUOWEN_BBL */
 #define smp_hw_cpu_hart(cpu)	((cpu) + HART_BASE)
 #define smp_hw_hart_cpu(hart)	((hart) - HART_BASE)
-#endif
+#endif /* CONFIG_DUOWEN_BBL */
+#else /* CONFIG_DUOWEN_SOC_DUAL */
+#define smp_hw_cpu_hart(cpu)	((cpu) + HART_BASE)
+#define smp_hw_hart_cpu(hart)	((hart) - HART_BASE)
+#endif /* CONFIG_DUOWEN_SOC_DUAL */
 
 #endif /* __SMP_DUOWEN_H_INCLUDE__ */
