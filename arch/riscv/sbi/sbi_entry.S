@@ -107,7 +107,9 @@
 
 	.macro hart2smp	reg
 #ifdef CONFIG_SMP
+#ifdef CONFIG_SBI_HMO
 	get_arch_smpid \reg
+#endif /* CONFIG_SBI_HMO */
 #else
 	li	\reg, 0
 #endif

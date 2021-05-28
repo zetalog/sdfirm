@@ -47,44 +47,43 @@
  * ROM uses SCSR SW_MSG to pass shared configurables.
  *
  * SW_MSG_0:
- * 31     6          5        4        3        2        1          0
- * +------+----------+--------+--------+--------+--------+----------+
- * | RSVD | PLICCNTL | IMC_S1 | IMC_S0 | APC_S1 | APC_S0 | CHIPLINK |
- * +------+----------+--------+--------+--------+--------+----------+
+ * 31     2          1          0
+ * +------+----------+----------+
+ * | RSVD | PLICCNTL | CHIPLINK |
+ * +------+----------+----------+
  * SW_MSG_1:
- * +-----------------------+-----------------------+
- * | Socket 1 Partial Good | Socket 0 Partial Good |
- * +-----------------------+-----------------------+
+ * 32
+ * +------+-----+-----+------------------+
+ * | RSVD | IMC | APC | APC Partial Good |
+ * +------+-----+-----+------------------+
  */
 
-#define ROM_STATUS		SCSR_SW_MSG(0)
-#define ROM_APC_MAP		SCSR_SW_MSG(1)
+#define ROM_GBL_STATUS		SCSR_SW_MSG(0)
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+#define ROM_SOC_STATUS(soc)	__SCSR_SW_MSG(soc, 1)
+#else /* CONFIG_DUOWEN_SBI_DUAL */
+#define ROM_SOC_STATUS(soc)	SCSR_SW_MSG(1)
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 
-/* ROM_STATUS */
+/* ROM_GBL_STATUS */
 #define ROM_CHIPLINK_READY	_BV(0)
-#define ROM_S0_APC_VALID	_BV(1)
-#define ROM_S1_APC_VALID	_BV(2)
-#define ROM_S0_IMC_VALID	_BV(3)
-#define ROM_S1_IMC_VALID	_BV(4)
-#define ROM_PLICCNTL_DONE	_BV(5)
-/* ROM_APC_MAP */
-#define ROM_S0_APC_OFFSET	0
-#define ROM_S0_APC_MASK		REG_16BIT_MASK
-#define ROM_GET_S0_APC(value)	_GET_FV(ROM_S0_APC, value)
-#define ROM_SET_S0_APC(value)	_SET_FV(ROM_S0_APC, value)
-#define ROM_S1_APC_OFFSET	16
-#define ROM_S1_APC_MASK		REG_16BIT_MASK
-#define ROM_GET_S1_APC(value)	_GET_FV(ROM_S1_APC, value)
-#define ROM_SET_S1_APC(value)	_SET_FV(ROM_S1_APC, value)
+#define ROM_PLICCNTL_DONE	_BV(1)
+/* ROM_SOC_STATUS */
+#define ROM_APC_PG_OFFSET	0
+#define ROM_APC_PG_MASK		REG_16BIT_MASK
+#define ROM_GET_APC_PG(value)	_GET_FV(ROM_APC_PG, value)
+#define ROM_SET_APC_PG(value)	_SET_FV(ROM_APC_PG, value)
+#define ROM_APC_VALID		_BV(16)
+#define ROM_IMC_VALID		_BV(17)
 
 #define rom_get_chiplink_ready()				\
-	(!!(__raw_readl(ROM_STATUS) & ROM_CHIPLINK_READY))
+	(!!(__raw_readl(ROM_GBL_STATUS) & ROM_CHIPLINK_READY))
 #define rom_set_chiplink_ready()				\
-	__raw_setl(ROM_CHIPLINK_READY, ROM_STATUS)
+	__raw_setl(ROM_CHIPLINK_READY, ROM_GBL_STATUS)
 #define rom_get_pliccntl_done()					\
-	(!!(__raw_readl(ROM_STATUS) & ROM_PLICCNTL_DONE))
+	(!!(__raw_readl(ROM_GBL_STATUS) & ROM_PLICCNTL_DONE))
 #define rom_set_pliccntl_done()					\
-	__raw_setl(ROM_PLICCNTL_DONE, ROM_STATUS)
+	__raw_setl(ROM_PLICCNTL_DONE, ROM_GBL_STATUS)
 
 #define soc_chip_link()						\
 	(imc_chip_link() && rom_get_chiplink_ready())
@@ -92,11 +91,8 @@
 #ifndef __ASSEMBLY__
 uint16_t rom_get_s0_apc_map(void);
 uint16_t rom_get_s1_apc_map(void);
-void rom_set_s0_apc_map(uint16_t map);
-void rom_set_s1_apc_map(uint16_t map);
+void rom_set_apc_map(uint16_t map);
 uint32_t rom_get_apc_map(void);
-uint8_t rom_get_s0_cluster_map(void);
-uint8_t rom_get_s1_cluster_map(void);
 uint8_t rom_get_cluster_num(void);
 uint8_t rom_get_cluster_map(void);
 #endif /* __ASSEMBLY__ */

@@ -135,10 +135,7 @@ void duowen_hart_map_init(void)
 	uint16_t harts;
 
 	harts = duowen_get_partial_good();
-	if (imc_socket_id() == 0)
-		rom_set_s0_apc_map(harts);
-	else
-		rom_set_s1_apc_map(harts);
+	rom_set_apc_map(harts);
 	con_log("partial_good(%d): Applying partial goods: 0x%04x.\n",
 		imc_socket_id(), harts);
 	apc_set_cpu_map(harts);

@@ -124,7 +124,11 @@ void duowen_mmu_dump_gpio(void);
 #define duowen_mmu_dump_gpio()	do { } while (0)
 #endif
 #ifdef CONFIG_DUOWEN_SCSR
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+extern caddr_t duowen_scsr_reg_base[];
+#else /* CONFIG_DUOWEN_SBI_DUAL */
 extern caddr_t duowen_scsr_reg_base;
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 extern caddr_t duowen_lcsr_reg_base;
 void duowen_mmu_map_scsr(void);
 void duowen_mmu_dump_scsr(void);

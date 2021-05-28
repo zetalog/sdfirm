@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri May 28 10:13:27 2021
+# Fri May 28 13:05:40 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -180,6 +180,7 @@ CONFIG_SBI_NEXT_S=y
 # CONFIG_SBI_RISCV_NEXT_U is not set
 CONFIG_SBI_RISCV_NEXT_S=y
 # CONFIG_SBI_RISCV_NEXT_M is not set
+# CONFIG_SBI_HMO is not set
 CONFIG_SBI_BOOT_PRINTS=y
 CONFIG_SBI_PAYLOAD=y
 CONFIG_SBI_PAYLOAD_PATH="Image"
@@ -293,6 +294,8 @@ CONFIG_DUOWEN_DDR_32M=y
 # CONFIG_DUOWEN_DDR_128G is not set
 # CONFIG_DUOWEN_DDR_256G is not set
 # CONFIG_DUOWEN_DDR_512G is not set
+CONFIG_DUOWEN_DDR_DUAL_SOC0=y
+# CONFIG_DUOWEN_DDR_DUAL_SOC1 is not set
 # CONFIG_DUOWEN_ETH is not set
 
 #

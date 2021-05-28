@@ -72,6 +72,9 @@ config SBI_RISCV_NEXT_M
 
 endchoice
 
+config SBI_HMO
+	bool "Enable hart map offloading (HMO)"
+
 config SBI_BOOT_PRINTS
 	bool "Enable SBI boot prints"
 	depends CONSOLE_OUTPUT

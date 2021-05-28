@@ -63,7 +63,8 @@ unsigned long duowen_soc_base;
 /* System fabric */
 #define __CRCNTL_BASE		ULL(0xFF60000000)
 #define CRCNTL_BASE		(SOC_BASE + __CRCNTL_BASE)
-#define SCSR_BASE		(SOC_BASE + ULL(0xFF60100000))
+#define __SCSR_BASE		ULL(0xFF60100000)
+#define SCSR_BASE		(SOC_BASE + __SCSR_BASE)
 #define TLMM_BASE		(SOC_BASE + ULL(0xFF60200000))
 #define IMC_BASE		(SOC_BASE + ULL(0xFF60600000))
 #define GPIO0_BASE		(SOC_BASE + ULL(0xFF61000000))

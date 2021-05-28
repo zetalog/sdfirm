@@ -46,13 +46,22 @@
 
 #include <target/amba.h>
 
-#define __DUOWEN_SCSR_BASE		SCSR_BASE
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+#define __DUOWEN_SCSR_BASE(soc)		(__SOC_BASE(soc) + __SCSR_BASE)
+#else /* CONFIG_DUOWEN_SBI_DUAL */
+#define __DUOWEN_SCSR_BASE(soc)		SCSR_BASE
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 #ifdef CONFIG_MMU
-#define __SCSR_BASE			duowen_scsr_reg_base
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+#define DUOWEN_SCSR_BASE(soc)		duowen_scsr_reg_base[soc]
+#else /* CONFIG_DUOWEN_SBI_DUAL */
+#define DUOWEN_SCSR_BASE(soc)		duowen_scsr_reg_base
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 #else
-#define __SCSR_BASE			__DUOWEN_SCSR_BASE
+#define DUOWEN_SCSR_BASE(soc)		__DUOWEN_SCSR_BASE(soc)
 #endif
-#define SCSR_REG(offset)		(__SCSR_BASE + (offset))
+#define SCSR_REG(offset)		\
+	(DUOWEN_SCSR_BASE(imc_socket_id()) + (offset))
 #define SCSR_HW_VERSION			SCSR_REG(0x00)
 #define SCSR_HART_ID_LO			SCSR_REG(0x18)
 #define SCSR_HART_ID_HI			SCSR_REG(0x1C)
@@ -70,6 +79,9 @@
 #define SCSR_PMA_CFG_HI(n)		SCSR_REG(0x104 + ((n) << 3))
 #define SCSR_PMA_ADDR_LO(n)		SCSR_REG(0x140 + ((n) << 3))
 #define SCSR_PMA_ADDR_HI(n)		SCSR_REG(0x144 + ((n) << 3))
+
+#define __SCSR_REG(soc, offset)		(DUOWEN_SCSR_BASE(soc) + (offset))
+#define __SCSR_SW_MSG(soc, n)		__SCSR_REG(soc, 0xD0 + ((n) << 2))
 
 #define __DUOWEN_LCSR_BASE		LCSR_BASE
 #ifdef CONFIG_MMU

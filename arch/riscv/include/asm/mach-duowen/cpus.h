@@ -109,8 +109,14 @@
 #define CPU_TO_APC(cpu)		((cpu) / CPUS_PER_APC)
 
 /* hartid bases */
+#ifdef CONFIG_DUOWEN_IMC
+#define SOC0_HART		0
+#define SOC1_HART		32
+#endif /* CONFIG_DUOWEN_IMC */
+#ifdef CONFIG_DUOWEN_APC
 #define SOC0_HART		0
 #define SOC1_HART		16
+#endif /* CONFIG_DUOWEN_APC */
 
 #ifndef __ASSEMBLY__
 extern unsigned long duowen_hart_base;

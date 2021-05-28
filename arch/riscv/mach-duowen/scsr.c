@@ -244,74 +244,52 @@ void apc_set_cpu_map(uint16_t map)
 	apc_set_cpu_mask(mask);
 }
 
+static uint16_t __rom_get_apc_map(uint8_t soc)
+{
+	if (__raw_readl(ROM_SOC_STATUS(soc)) & ROM_APC_VALID)
+		return ROM_GET_APC_PG(__raw_readl(ROM_SOC_STATUS(soc)));
+	return GOOD_CPU_MASK;
+}
+
+static void __rom_set_apc_map(uint8_t soc, uint16_t map)
+{
+	__raw_writel_mask(ROM_SET_APC_PG(map),
+			  ROM_SET_APC_PG(ROM_APC_PG_MASK),
+			  ROM_SOC_STATUS(soc));
+	/* For APC 4 cores configuration, partial good function is
+	 * disabled.
+	 */
+	if (__GOOD_CPU_MASK == GOOD_CPU_MASK)
+		__raw_setl(ROM_APC_VALID, ROM_SOC_STATUS(soc));
+}
+
 uint16_t rom_get_s0_apc_map(void)
 {
-	if (__raw_readl(ROM_STATUS) & ROM_S0_APC_VALID)
-		return ROM_GET_S0_APC(__raw_readl(ROM_APC_MAP));
-	return GOOD_CPU_MASK;
+	if (imc_chip_link() || imc_socket_id() == 0)
+		return __rom_get_apc_map(0);
+	else
+		return 0;
 }
 
 uint16_t rom_get_s1_apc_map(void)
 {
-	if (__raw_readl(ROM_STATUS) & ROM_S1_APC_VALID)
-		return ROM_GET_S1_APC(__raw_readl(ROM_APC_MAP));
-	return GOOD_CPU_MASK;
+	if (imc_chip_link() || imc_socket_id() == 1)
+		return __rom_get_apc_map(1);
+	else
+		return 0;
 }
 
-void rom_set_s0_apc_map(uint16_t map)
+void rom_set_apc_map(uint16_t map)
 {
-	__raw_writel_mask(ROM_SET_S0_APC(map),
-			  ROM_SET_S0_APC(ROM_S0_APC_MASK),
-			  ROM_APC_MAP);
-	/* For APC 4 cores configuration, partial good function is
-	 * disabled.
-	 */
-	if (__GOOD_CPU_MASK == GOOD_CPU_MASK)
-		__raw_setl(ROM_S0_APC_VALID, ROM_STATUS);
+	__rom_set_apc_map(imc_socket_id(), map);
 }
 
-void rom_set_s1_apc_map(uint16_t map)
-{
-	__raw_writel_mask(ROM_SET_S1_APC(map),
-			  ROM_SET_S1_APC(ROM_S1_APC_MASK),
-			  ROM_APC_MAP);
-	/* For APC 4 cores configuration, partial good function is
-	 * disabled.
-	 */
-	if (__GOOD_CPU_MASK == GOOD_CPU_MASK)
-		__raw_setl(ROM_S1_APC_VALID, ROM_STATUS);
-}
-
-uint8_t rom_get_s0_cluster_map(void)
+static uint8_t __rom_get_cluster_map(uint8_t soc)
 {
 	uint16_t map;
 
-	map = rom_get_s0_apc_map();
+	map = __rom_get_apc_map(soc);
 	return apc_contract_apc_map(apc_contract_cpu_map(map));
-}
-
-uint8_t rom_get_s1_cluster_map(void)
-{
-	uint16_t map;
-
-	map = rom_get_s1_apc_map();
-	return apc_contract_apc_map(apc_contract_cpu_map(map));
-}
-
-static uint16_t __rom_get_apc_map(bool soc0)
-{
-	if (soc0)
-		return rom_get_s0_apc_map();
-	else
-		return rom_get_s1_apc_map();
-}
-
-static uint8_t __rom_get_cluster_map(bool soc0)
-{
-	if (soc0)
-		return rom_get_s0_cluster_map();
-	else
-		return rom_get_s1_cluster_map();
 }
 
 uint8_t rom_get_cluster_num(void)
@@ -331,36 +309,28 @@ uint8_t rom_get_cluster_num(void)
 
 uint8_t rom_get_cluster_map(void)
 {
-	uint8_t map1, map2;
-	bool soc0 = !!(imc_socket_id() == 0);
-
-	map1 = __rom_get_cluster_map(soc0);
 	/* The API is invoked by NoC initialization, which is prior than
 	 * PCIe chiplink connection, thus imc_chip_link() is invoked
 	 * rather than soc_chip_link().
 	 */
 	if (imc_chip_link()) {
-		map2 = __rom_get_cluster_map(!soc0);
-		if (soc0)
-			return map1 | map2 << 4;
-		else
-			return map2 | map1 << 4;
+		uint8_t map1, map2;
+
+		map1 = __rom_get_cluster_map(0);
+		map2 = __rom_get_cluster_map(1);
+		return map1 | map2 << 4;
 	}
-	return map1;
+	return __rom_get_cluster_map(imc_socket_id());
 }
 
 uint32_t rom_get_apc_map(void)
 {
-	uint32_t map1, map2;
-	bool soc0 = !!(imc_socket_id() == 0);
-
-	map1 = (uint32_t)__rom_get_apc_map(soc0);
 	if (imc_chip_link()) {
-		map2 = (uint32_t)__rom_get_apc_map(!soc0);
-		if (soc0)
-			return map1 | map2 << 16;
-		else
-			return map2 | map1 << 16;
+		uint32_t map1, map2;
+
+		map1 = (uint32_t)__rom_get_apc_map(0);
+		map2 = (uint32_t)__rom_get_apc_map(1);
+		return map1 | map2 << 16;
 	}
-	return map1;
+	return (uint32_t)__rom_get_apc_map(imc_socket_id());
 }
