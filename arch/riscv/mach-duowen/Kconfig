@@ -33,10 +33,6 @@ config DUOWEN_APC
 
 endchoice
 
-config DUOWEN_SOC_DUAL_SPARSE
-	bool
-	depends !DUOWEN_APC_16
-
 config DUOWEN_SOC_DUAL
 	bool "Enable dual sockets"
 	depends SMP
@@ -131,7 +127,7 @@ config DUOWEN_BBL
 	select DUOWEN_NOC if !DUOWEN_SBL_LOAD
 	select DUOWEN_PMA if !DUOWEN_SBL_LOAD
 	select DUOWEN_PCIE_SMMU_BYPASS if (DUOWEN_PCIE && !DUOWEN_SMMU)
-	select DUOWEN_BBL_DUAL if DUOWEN_SOC_DUAL
+	select DUOWEN_SBI_DUAL if (DUOWEN_APC && DUOWEN_SOC_DUAL)
 
 config DUOWEN_TB
 	bool "Test bench"
@@ -179,9 +175,14 @@ config DUOWEN_BBL_SPI
 	bool "Build SPI flash resident BBL"
 	depends DUOWEN_BBL
 
-config DUOWEN_BBL_DUAL
-	bool "Build dual socket version BBL"
-	depends DUOWEN_BBL || (DUOWEN_TB && SBI)
+config DUOWEN_SBI_DUAL
+	bool "Build dual socket version SBI"
+	depends SBI && DUOWEN_APC
+
+config DUOWEN_SBI_DUAL_SPARSE
+	bool
+	depends !DUOWEN_APC_16
+	depends DUOWEN_SBI_DUAL
 
 menuconfig DUOWEN_BOOT_PROT
 	bool "Enable boot .data protection"
@@ -254,6 +255,10 @@ config DUOWEN_LOAD_SD
 	depends DUOWEN_SD
 	select DUOWEN_LOAD_FLASH
 
+config DUOWEN_LOAD_GPT
+	bool
+	default y if !DUOWEN_LOAD_DDR_BACKDOOR
+
 config DUOWEN_LOAD_DDR_BACKDOOR
 	bool "Enable load to DDR backdoor"
 	depends DUOWEN_FSBL
@@ -262,6 +267,11 @@ config DUOWEN_LOAD_DDR_BACKDOOR
 	  Enabling this to allow BBL to be loaded from the DDR backdoor.
 	  This is useful in simulation environment as FSBL can then do
 	  nothing for copying BBL.
+
+config DUOWEN_TEST_DDR_BACKDOOR
+	bool "Enable GPT partition test"
+	depends DUOWEN_LOAD_DDR_BACKDOOR
+	select DUOWEN_LOAD_GPT
 
 config DUOWEN_LOAD_IMC_FIRMWARE
 	bool "Enable load of IMC firmware"
@@ -326,7 +336,7 @@ config DUOWEN_APC_16
 config DUOWEN_APC_4
 	bool "4"
 	depends DUOWEN_IMC || SMP
-	select DUOWEN_SOC_DUAL_SPARSE if DUOWEN_SOC_DUAL
+	select DUOWEN_SBI_DUAL_SPARSE if DUOWEN_SBI_DUAL
 
 config DUOWEN_APC_1
 	bool "1"
@@ -449,7 +459,7 @@ if DUOWEN_PMA
 config DUOWEN_PMA_DEBUG
 	bool "Enable debugging messages"
 	depends CONSOLE_DEBUG
-	depends !DUOWEN_BBL
+	depends !SBI
 
 endif
 
@@ -466,7 +476,7 @@ if DUOWEN_NOC
 config DUOWEN_NOC_DEBUG
 	bool "Enable debugging messages"
 	depends CONSOLE_DEBUG
-	depends !DUOWEN_BBL
+	depends !SBI
 
 endif
 
@@ -565,7 +575,7 @@ config CRCNTL_RESET
 config CRCNTL_TRACE
 	bool "Enable clock tree enabling/disabling trace logs"
 	depends CONSOLE_DEBUG
-	depends !DUOWEN_BBL
+	depends !SBI
 
 endif
 
@@ -784,7 +794,7 @@ config DUOWEN_PCIE_TEST
 config DUOWEN_PCIE_DEBUG
 	bool "Enable debugging messages"
 	depends CONSOLE_DEBUG
-	depends !DUOWEN_BBL
+	depends !SBI
 	default n
 	help
           Controls whether to print register configueration information
@@ -894,7 +904,7 @@ endchoice
 
 choice
 	prompt "Dual socket memory region in DTS"
-	depends DUOWEN_BBL && DUOWEN_SOC_DUAL
+	depends DUOWEN_SBI_DUAL && DUOWEN_BBL
 	default DUOWEN_DDR_DUAL_SOC0
 	help
 	  For Linux kernel that only support SV39, only single socket DDR

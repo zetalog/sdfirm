@@ -222,23 +222,35 @@ void board_finish(int code)
 #ifdef CONFIG_DUOWEN_LOAD_FLASH
 typedef void (*boot_cb)(void *, uint32_t, uint32_t, bool);
 
-static void __duowen_load_file(mtd_t mtd, boot_cb boot,
-			       const char *file, void *entry,
-			       const char *name, bool jump)
+#ifdef CONFIG_DUOWEN_LOAD_GPT
+static void __duowen_load_gpt(mtd_t mtd, const char *file,
+			      const char *name, uint32_t *addr,
+			      uint32_t *size)
 {
-	uint32_t addr = 0;
-	uint32_t size = 500000;
 	int ret;
 
-	con_log("boot(%s): Booting %s to entry=0x%lx...\n",
-		name, file, (unsigned long)entry);
-	ret = gpt_get_file_by_name(mtd, file, &addr, &size);
+	ret = gpt_get_file_by_name(mtd, file, addr, size);
 	if (ret <= 0) {
 		con_err("boot(%s): %s missing.\n", name, file);
 		bh_panic();
 	}
 	con_log("boot(%s): Booting %s from addr=0x%lx, size=0x%lx...\n",
 		name, file, addr, size);
+}
+#else /* CONFIG_DUOWEN_LOAD_GPT */
+#define __duowen_load_gpt(mtd, file, name, addr, size)	do { } while (0)
+#endif /* CONFIG_DUOWEN_LOAD_GPT */
+
+static void __duowen_load_file(mtd_t mtd, boot_cb boot,
+			       const char *file, void *entry,
+			       const char *name, bool jump)
+{
+	__unused uint32_t addr = 0;
+	__unused uint32_t size = 500000;
+
+	con_log("boot(%s): Booting %s to entry=0x%lx...\n",
+		name, file, (unsigned long)entry);
+	__duowen_load_gpt(mtd, file, name, &addr, &size);
 #ifndef CONFIG_DUOWEN_LOAD_DDR_BACKDOOR
 	boot(entry, addr, size, jump);
 #endif

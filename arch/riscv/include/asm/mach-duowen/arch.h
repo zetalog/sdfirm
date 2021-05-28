@@ -90,9 +90,11 @@
 #endif
 #endif
 	.endm
-#ifdef CONFIG_DUOWEN_SOC_DUAL
-#ifdef CONFIG_DUOWEN_BBL
-#ifdef CONFIG_DUOWEN_SOC_DUAL_SPARSE
+
+	/* SMP ID <-> HART ID conversions */
+#ifdef CONFIG_SBI
+#ifdef CONFIG_DUOWEN_SBI_DUAL_SPARSE
+	/* Dual socket version where MAX_APC_NUM != 16 */
 	.macro get_arch_smpid reg
 	andi	t0, \reg, 0xF0
 	andi	\reg, \reg, 0xF
@@ -106,8 +108,10 @@
 	.macro get_arch_hartmask reg
 	li	\reg, HART_ALL
 	.endm
-#endif /* CONFIG_DUOWEN_SOC_DUAL_SPARSE */
-#else /* CONFIG_DUOWEN_BBL */
+#define ARCH_HAVE_BOOT_SMP	1
+#endif /* CONFIG_DUOWEN_SBI_DUAL_SPARSE */
+#else /* CONFIG_SBI */
+	/* Local programs should identify local harts */
 	.macro get_arch_smpid reg
 	li	t1, SOC0_HART
 	li	t0, SCSR_SOCKET_ID
@@ -136,9 +140,9 @@
 	slli	\reg, \reg, SOC1_HART
 5555:
 	.endm
-#endif /* CONFIG_DUOWEN_BBL */
-#endif /* CONFIG_DUOWEN_SOC_DUAL */
-#endif
+#define ARCH_HAVE_BOOT_SMP	1
+#endif /* CONFIG_SBI */
+#endif /* __ASSEMBLY__ && !__DTS__ && !LINKER_SCRIPT */
 
 #ifndef __ASSEMBLY__
 void duowen_dual_init(void);

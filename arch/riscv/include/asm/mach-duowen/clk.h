@@ -90,7 +90,7 @@
 #define CLK_C			CLK_CLK_EN_F
 #define CLK_R			CLK_SW_RST_F
 
-#ifdef CONFIG_DUOWEN_BBL_DUAL
+#ifdef CONFIG_DUOWEN_SBI_DUAL
 #define CLK_DEC_FLAGS					\
 	uint8_t flags0;					\
 	uint8_t flags1;
@@ -124,7 +124,7 @@
 		else					\
 			(clk).flags0 &= ~(__flags);	\
 	} while (0)
-#else /* CONFIG_DUOWEN_BBL_DUAL */
+#else /* CONFIG_DUOWEN_SBI_DUAL */
 #define CLK_DEC_FLAGS					\
 	uint8_t flags;
 #define CLK_DEF_FLAGS(__flags)				\
@@ -137,7 +137,7 @@
 #define clk_write_flags(soc, clk, __flags)	((clk).flags = (__flags))
 #define clk_set_flags(soc, clk, __flags)	((clk).flags |= (__flags))
 #define clk_clear_flags(soc, clk, __flags)	((clk).flags &= ~(__flags))
-#endif /* CONFIG_DUOWEN_BBL_DUAL */
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 
 #ifdef CONFIG_CONSOLE_COMMAND
 void clk_pll_dump(void);

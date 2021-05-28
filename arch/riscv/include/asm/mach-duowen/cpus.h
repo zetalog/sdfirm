@@ -89,25 +89,19 @@
 
 #ifdef CONFIG_DUOWEN_APC
 #ifdef CONFIG_SMP
-#ifdef CONFIG_DUOWEN_SOC_DUAL
-#ifdef CONFIG_DUOWEN_BBL
+#ifdef CONFIG_SBI
 #define MAX_CPU_NUM		(2 * MAX_APC_NUM)
 #define MAX_CPU_CLUSTERS	(2 * __MAX_CPU_CLUSTERS)
-#else /* CONFIG_DUOWEN_BBL */
+#else /* CONFIG_SBI */
 #define MAX_CPU_NUM		MAX_APC_NUM
 #define MAX_CPU_CLUSTERS	__MAX_CPU_CLUSTERS
-#endif /* CONFIG_DUOWEN_BBL */
-#else /* CONFIG_DUOWEN_SOC_DUAL */
-#define MAX_CPU_NUM		MAX_APC_NUM
-#define MAX_CPU_CLUSTERS	__MAX_CPU_CLUSTERS
-#endif /* CONFIG_DUOWEN_SOC_DUAL */
+#endif /* CONFIG_SBI */
 #else /* CONFIG_SMP */
-#ifdef CONFIG_DUOWEN_SOC_DUAL
+#ifdef CONFIG_DUOWEN_SBI_DUAL
 #error "Do not support dual socket as SMP is not configured!"
-#else /* CONFIG_DUOWEN_SOC_DUAL */
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 #define MAX_CPU_NUM		1
 #define MAX_CPU_CLUSTERS	1
-#endif /* CONFIG_DUOWEN_SOC_DUAL */
 #endif /* CONFIG_SMP */
 #endif /* CONFIG_DUOWEN_APC */
 
@@ -123,21 +117,17 @@ extern unsigned long duowen_hart_base;
 #endif
 #define HART_BASE		duowen_hart_base
 
-#ifdef CONFIG_DUOWEN_SOC_DUAL
-#ifdef CONFIG_DUOWEN_BBL
-#ifdef CONFIG_DUOWEN_SOC_DUAL_SPARSE
+#ifdef CONFIG_SBI
+#ifdef CONFIG_DUOWEN_SBI_DUAL_SPARSE
 /* FIXME: This actually makes sbi_processor_id() returned as hartid */
 #define MAX_HARTS		32
 #define HART_ALL				\
 	((CPU_TO_MASK(MAX_CPU_NUM>>1)-1) |	\
 	 ((CPU_TO_MASK(MAX_CPU_NUM>>1)-1) << SOC1_HART))
-#else /* CONFIG_DUOWEN_SOC_DUAL_SPARSE */
-#define ARCH_HAVE_BOOT_SMP	1
-#endif /* CONFIG_DUOWEN_SOC_DUAL_SPARSE */
-#else /* CONFIG_DUOWEN_BBL */
+#endif /* CONFIG_DUOWEN_SBI_DUAL_SPARSE */
+#else /* CONFIG_SBI */
+/* Local programs uses special hart mask */
 #define HART_ALL		((CPU_TO_MASK(MAX_CPU_NUM)-1) << HART_BASE)
-#endif /* CONFIG_DUOWEN_BBL */
-#define ARCH_HAVE_BOOT_SMP	1
-#endif /* CONFIG_DUOWEN_SOC_DUAL */
+#endif /* CONFIG_SBI */
 
 #endif /* __CPUS_DUOWEN_H_INCLUDE__ */

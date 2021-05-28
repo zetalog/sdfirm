@@ -212,7 +212,7 @@ struct clk_driver clk_select = {
 	.get_name = get_clk_sel_name,
 };
 
-#ifdef CONFIG_DUOWEN_BBL_DUAL
+#ifdef CONFIG_DUOWEN_SBI_DUAL
 static int enable_clk_sel2(clk_clk_t clk)
 {
 	if (clk >= NR_SELECT_CLKS)
@@ -279,7 +279,7 @@ struct clk_driver clk_select2 = {
 	.select = NULL,
 	.get_name = get_clk_sel_name,
 };
-#endif /* CONFIG_DUOWEN_BBL_DUAL */
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 
 uint32_t input_clks[NR_INPUT_CLKS] = {
 	[XO_CLK] = XO_CLK_FREQ,
@@ -341,7 +341,7 @@ struct clk_driver clk_input = {
 	.get_name = get_input_clk_name,
 };
 
-#ifdef CONFIG_DUOWEN_BBL_DUAL
+#ifdef CONFIG_DUOWEN_SBI_DUAL
 struct clk_driver clk_input2 = {
 	.max_clocks = NR_INPUT_CLKS,
 	.enable = NULL,
@@ -351,7 +351,7 @@ struct clk_driver clk_input2 = {
 	.select = NULL,
 	.get_name = get_input_clk_name,
 };
-#endif /* CONFIG_DUOWEN_BBL_DUAL */
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 
 #ifdef CONFIG_CONSOLE_COMMAND
 void clk_pll_dump(void)
@@ -376,8 +376,8 @@ void clk_pll_init(void)
 {
 	clk_register_driver(CLK_INPUT, &clk_input);
 	clk_register_driver(CLK_SELECT, &clk_select);
-#ifdef CONFIG_DUOWEN_BBL_DUAL
+#ifdef CONFIG_DUOWEN_SBI_DUAL
 	clk_register_driver(CLK_INPUT2, &clk_input2);
 	clk_register_driver(CLK_SELECT2, &clk_select2);
-#endif /* CONFIG_DUOWEN_BBL_DUAL */
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 }

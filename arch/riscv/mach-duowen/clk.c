@@ -860,7 +860,7 @@ struct clk_driver clk_output = {
 	.get_name = get_output_clk_name,
 };
 
-#ifdef CONFIG_DUOWEN_BBL_DUAL
+#ifdef CONFIG_DUOWEN_SBI_DUAL
 static int enable_output_clk2(clk_clk_t clk)
 {
 	if (clk >= NR_OUTPUT_CLKS)
@@ -941,7 +941,7 @@ struct clk_driver clk_output2 = {
 	.set_freq = set_output_clk_freq2,
 	.get_name = get_output_clk_name,
 };
-#endif /* CONFIG_DUOWEN_BBL_DUAL */
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 
 struct div_clk {
 	clk_t src;
@@ -1032,7 +1032,7 @@ struct clk_driver clk_div = {
 	.get_name = get_pll_div_name,
 };
 
-#ifdef CONFIG_DUOWEN_BBL_DUAL
+#ifdef CONFIG_DUOWEN_SBI_DUAL
 static int enable_pll_div2(clk_clk_t clk)
 {
 	int ret;
@@ -1081,7 +1081,7 @@ struct clk_driver clk_div2 = {
 	.select = NULL,
 	.get_name = get_pll_div_name,
 };
-#endif /* CONFIG_DUOWEN_BBL_DUAL */
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 
 /*===========================================================================
  * Clock tree APIs
@@ -1149,10 +1149,10 @@ void duowen_clk_init(void)
 		clk_pll_init();
 		clk_register_driver(CLK_OUTPUT, &clk_output);
 		clk_register_driver(CLK_DIV, &clk_div);
-#ifdef CONFIG_DUOWEN_BBL_DUAL
+#ifdef CONFIG_DUOWEN_SBI_DUAL
 		clk_register_driver(CLK_OUTPUT2, &clk_output2);
 		clk_register_driver(CLK_DIV2, &clk_div2);
-#endif /* CONFIG_DUOWEN_BBL_DUAL */
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 		clk_hw_init |= DUOWEN_CLK_REG_INIT;
 	}
 	duowen_clk_boot();

@@ -59,7 +59,7 @@
 #define __FIX_LCSR		15
 #define __FIX_MAX		(__FIX_LCSR + 1)
 #define __MMU_HW_MAX_FIXMAP	(FIX_HOLE + __FIX_MAX)
-#ifdef CONFIG_DUOWEN_BBL_DUAL
+#ifdef CONFIG_DUOWEN_SBI_DUAL
 #define __FIX_HOLE(soc)		(FIX_HOLE + ((soc) ? __FIX_MAX : 0))
 #define FIX_PLIC(soc)		(__FIX_HOLE(soc) + __FIX_PLIC)
 #define FIX_CRCNTL(soc)		(__FIX_HOLE(soc) + __FIX_CRCNTL)
@@ -77,7 +77,7 @@
 #define FIX_SCSR(soc)		(__FIX_HOLE(soc) + __FIX_SCSR)
 #define FIX_LCSR(soc)		(__FIX_HOLE(soc) + __FIX_LCSR)
 #define MMU_HW_MAX_FIXMAP	(__FIX_HOLE(1) + __FIX_MAX)
-#else /* CONFIG_DUOWEN_BBL_DUAL */
+#else /* CONFIG_DUOWEN_SBI_DUAL */
 #define FIX_PLIC(soc)		(FIX_HOLE + __FIX_PLIC)
 #define FIX_CRCNTL(soc)		(FIX_HOLE + __FIX_CRCNTL)
 #define FIX_CFAB(soc)		(FIX_HOLE + __FIX_CFAB)
@@ -94,7 +94,7 @@
 #define FIX_SCSR(soc)		(FIX_HOLE + __FIX_SCSR)
 #define FIX_LCSR(soc)		(FIX_HOLE + __FIX_LCSR)
 #define MMU_HW_MAX_FIXMAP	(FIX_HOLE + __FIX_MAX)
-#endif /* CONFIG_DUOWEN_BBL_DUAL */
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 
 void duowen_mmu_dump_maps(void);
 #ifdef CONFIG_DUOWEN_UART

@@ -43,7 +43,7 @@
 #include <target/console.h>
 
 #ifdef CONFIG_CRCNTL
-#ifdef CONFIG_DUOWEN_BBL_DUAL
+#ifdef CONFIG_DUOWEN_SBI_DUAL
 caddr_t duowen_clk_reg_base[2];
 caddr_t duowen_cfab_clk_reg_base[2];
 caddr_t duowen_apc_clk_reg_base[2][4];
@@ -138,7 +138,7 @@ void duowen_mmu_init_clk(void)
 	__duowen_mmu_init_clk(0);
 	__duowen_mmu_init_clk(1);
 }
-#else /* CONFIG_DUOWEN_BBL_DUAL */
+#else /* CONFIG_DUOWEN_SBI_DUAL */
 caddr_t duowen_clk_reg_base;
 caddr_t duowen_cfab_clk_reg_base;
 caddr_t duowen_apc_clk_reg_base[4];
@@ -217,7 +217,7 @@ void duowen_mmu_init_clk(void)
 	duowen_apc_clk_reg_base[3] = __DUOWEN_APC_CLK_BASE(soc, 3);
 	duowen_eth_clk_reg_base = __DUOWEN_ETH_CLK_BASE(soc);
 }
-#endif /* CONFIG_DUOWEN_BBL_DUAL */
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 #endif /* CONFIG_CRCNTL */
 
 #ifdef CONFIG_DUOWEN_UART

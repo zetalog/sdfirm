@@ -86,21 +86,21 @@ extern phys_addr_t duowen_pll_reg_base[];
 
 #include <driver/dw_pll5ghz_tsmc12ffc.h>
 
-#ifdef CONFIG_DUOWEN_BBL_DUAL
+#ifdef CONFIG_DUOWEN_SBI_DUAL
 #define __CLUSTER_PLL_BASE(n)		(__CLUSTER0_BASE + ((n) << 20))
 #define __DUOWEN_CLK_BASE(soc)		(__SOC_BASE(soc) + __CRCNTL_BASE)
 #define __DUOWEN_CFAB_CLK_BASE(soc)	(__SOC_BASE(soc) + __COHFAB_PLL_BASE)
 #define __DUOWEN_APC_CLK_BASE(soc, n)	\
 	(__SOC_BASE(soc) + __CLUSTER_PLL_BASE(n))
 #define __DUOWEN_ETH_CLK_BASE(soc)	(__SOC_BASE(soc) + __ETH_PLL_BASE)
-#else /* CONFIG_DUOWEN_BBL_DUAL */
+#else /* CONFIG_DUOWEN_SBI_DUAL */
 #define __DUOWEN_CLK_BASE(soc)		CRCNTL_BASE
 #define __DUOWEN_CFAB_CLK_BASE(soc)	COHFAB_PLL_BASE
 #define __DUOWEN_APC_CLK_BASE(soc, n)	(CLUSTER0_BASE + ((n) << 20))
 #define __DUOWEN_ETH_CLK_BASE(soc)	ETH_PLL_BASE
-#endif /* CONFIG_DUOWEN_BBL_DUAL */
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 #ifdef CONFIG_MMU
-#ifdef CONFIG_DUOWEN_BBL_DUAL
+#ifdef CONFIG_DUOWEN_SBI_DUAL
 #define DUOWEN_CLK_BASE(soc)		duowen_clk_reg_base[soc]
 extern caddr_t duowen_clk_reg_base[];
 #define DUOWEN_CFAB_CLK_BASE(soc)	duowen_cfab_clk_reg_base[soc]
@@ -109,7 +109,7 @@ extern caddr_t duowen_cfab_clk_reg_base[];
 extern caddr_t duowen_apc_clk_reg_base[][4];
 #define DUOWEN_ETH_CLK_BASE(soc)	duowen_eth_clk_reg_base[soc]
 extern caddr_t duowen_eth_clk_reg_base[];
-#else /* CONFIG_DUOWEN_BBL_DUAL */
+#else /* CONFIG_DUOWEN_SBI_DUAL */
 #define DUOWEN_CLK_BASE(soc)		duowen_clk_reg_base
 extern caddr_t duowen_clk_reg_base;
 #define DUOWEN_CFAB_CLK_BASE(soc)	duowen_cfab_clk_reg_base
@@ -118,7 +118,7 @@ extern caddr_t duowen_cfab_clk_reg_base;
 extern caddr_t duowen_apc_clk_reg_base[];
 #define DUOWEN_ETH_CLK_BASE(soc)	duowen_eth_clk_reg_base
 extern caddr_t duowen_eth_clk_reg_base;
-#endif /* CONFIG_DUOWEN_BBL_DUAL */
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 #else
 #define DUOWEN_CLK_BASE(soc)		__DUOWEN_CLK_BASE(soc)
 #define DUOWEN_CFAB_CLK_BASE(soc)	__DUOWEN_CFAB_CLK_BASE(soc)

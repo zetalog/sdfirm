@@ -47,7 +47,7 @@
  *===========================================================================*/
 phys_addr_t duowen_pll_reg_base[DUOWEN_MAX_PLLS];
 
-#ifdef CONFIG_DUOWEN_BBL_DUAL
+#ifdef CONFIG_DUOWEN_SBI_DUAL
 void duowen_pll_init(void)
 {
 	duowen_pll_reg_base[0] = __CRCNTL_PLL_REG(0, 0, 0);
@@ -71,7 +71,7 @@ void duowen_pll_init(void)
 	duowen_pll_reg_base[18] = __DUOWEN_APC_CLK_BASE(1, 3);
 	duowen_pll_reg_base[19] = __DUOWEN_ETH_CLK_BASE(1);
 }
-#else /* CONFIG_DUOWEN_BBL_DUAL */
+#else /* CONFIG_DUOWEN_SBI_DUAL */
 void duowen_pll_init(void)
 {
 	/* Adaptive base addresses for both socket0 and socket1 */
@@ -86,7 +86,7 @@ void duowen_pll_init(void)
 	duowen_pll_reg_base[8] = __DUOWEN_APC_CLK_BASE(imc_socket_id(), 3);
 	duowen_pll_reg_base[9] = __DUOWEN_ETH_CLK_BASE(imc_socket_id());
 }
-#endif /* CONFIG_DUOWEN_BBL_DUAL */
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 
 void duowen_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val)
 {
