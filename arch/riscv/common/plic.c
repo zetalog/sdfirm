@@ -49,23 +49,30 @@
  * If S mode is not a part of this firmware, do not handle IRQs.
  */
 #define PLIC_PRI_M		PLIC_PRI_MAX
+#define PLIC_THR_M		PLIC_THR_NONE
 #ifdef CONFIG_SBI_PAYLOAD
 #define PLIC_PRI_S		PLIC_PRI_MAX
+#define PLIC_THR_S		PLIC_THR_NONE
 #else /* CONFIG_SBI_PAYLOAD */
 #define PLIC_PRI_S		PLIC_PRI_DEF
+#define PLIC_THR_S		PLIC_THR_ALL
 #endif /* CONFIG_SBI_PAYLOAD */
 #else /* CONFIG_SBI */
 #ifdef CONFIG_RISCV_EXIT_M
 #define PLIC_PRI_M		PLIC_PRI_DEF
+#define PLIC_THR_M		PLIC_THR_ALL
 #else /* CONFIG_RISCV_EXIT_M */
 /* No IRQs in M mode */
 #define PLIC_PRI_M		PLIC_PRI_MAX
+#define PLIC_THR_M		PLIC_THR_NONE
 #endif /* CONFIG_RISCV_EXIT_M */
 #ifdef CONFIG_RISCV_EXIT_S
 #define PLIC_PRI_S		PLIC_PRI_DEF
+#define PLIC_THR_S		PLIC_THR_ALL
 #else /* CONFIG_RISCV_EXIT_S */
 /* No IRQs in S mode */
 #define PLIC_PRI_S		PLIC_PRI_MAX
+#define PLIC_THR_S		PLIC_THR_NONE
 #endif /* CONFIG_RISCV_EXIT_S */
 #endif /* CONFIG_SBI */
 
@@ -75,9 +82,9 @@ void plic_init_default(void)
 
 	for (cpu = 0; cpu < NR_CPUS; cpu++) {
 		if (plic_hw_m_ctx(cpu) != PLIC_CTX_NONE)
-			plic_configure_threashold_m(cpu, PLIC_PRI_MAX);
+			plic_configure_threshold_m(cpu, PLIC_THR_NONE);
 		if (plic_hw_s_ctx(cpu) != PLIC_CTX_NONE)
-			plic_configure_threashold_s(cpu, PLIC_PRI_MAX);
+			plic_configure_threshold_s(cpu, PLIC_THR_NONE);
 	}
 }
 
@@ -102,7 +109,7 @@ void plic_sbi_init_warm(cpu_t cpu)
 		 */
 		for (irq = 0; irq < NR_IRQS; irq++)
 			plic_disable_mirq(cpu, irq);
-		plic_configure_threashold_m(cpu, PLIC_PRI_M);
+		plic_configure_threshold_m(cpu, PLIC_THR_M);
 	}
 	if (plic_hw_s_ctx(cpu) != PLIC_CTX_NONE) {
 		/* By default, IRQs should be disabled for all contexts,
@@ -113,7 +120,7 @@ void plic_sbi_init_warm(cpu_t cpu)
 		 */
 		for (irq = 0; irq < NR_IRQS; irq++)
 			plic_disable_sirq(cpu, irq);
-		plic_configure_threashold_s(cpu, PLIC_PRI_S);
+		plic_configure_threshold_s(cpu, PLIC_THR_S);
 	}
 }
 

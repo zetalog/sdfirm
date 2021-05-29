@@ -53,7 +53,7 @@ static void duowen_modify_fdt(void *fdt)
 {
 	fdt_cpu_fixup(fdt);
 	fdt_irq_fixup(fdt, "riscv,clint0");
-	fdt_irq_fixup(fdt, "riscv,plic0");
+	fdt_irqs_fixup(fdt, "riscv,plic0", PLIC_MAX_CHIPS);
 	fdt_fixups(fdt);
 }
 

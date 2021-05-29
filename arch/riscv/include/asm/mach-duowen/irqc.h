@@ -50,6 +50,12 @@
 #error "Multiple IRQ controller defined"
 #endif
 
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+#define PLIC_HW_MAX_CHIPS		2
+#else /* CONFIG_DUOWEN_SBI_DUAL */
+#define PLIC_HW_MAX_CHIPS		1
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
+
 #define PLIC_GATEWAY_BASE		0x4001000
 #define PLIC_SOCKET_CNTL_BASE		0x4002000
 
@@ -112,6 +118,10 @@
 #define plic_hw_s_ctx(cpu)		\
 	(imc_socket_id() == 1 ?		\
 	 (smp_hw_cpu_hart(cpu) + 35) : ((cpu) + 17))
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+#define plic_hw_irq_soc(eirq)		((eirq) >>= ilog2_const(__NR_EXT_IRQS))
+#define plic_hw_irq_ext(eirq)		((eirq) & (__NR_EXT_IRQS - 1))
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 #endif /* CONFIG_DUOWEN_APC */
 
 #include <asm/ri5cy_firq.h>

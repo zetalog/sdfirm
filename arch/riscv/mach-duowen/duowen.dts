@@ -1525,6 +1525,26 @@
 				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
 				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
 				&cpu0_intc  0xffffffff
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 #else /* CONFIG_DUOWEN_APC_4 */
 				&cpu0_intc  0xb        &cpu1_intc  0xb
 				&cpu2_intc  0xb        &cpu3_intc  0xb
@@ -1544,6 +1564,26 @@
 				&cpu12_intc 0x9        &cpu13_intc 0x9
 				&cpu14_intc 0x9        &cpu15_intc 0x9
 				&cpu0_intc  0xffffffff
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
+				&cpu0_intc  0xffffffff
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 #endif /* CONFIG_DUOWEN_APC_4 */
 #else /* CONFIG_SMP */
 				&cpu0_intc  0xb        &cpu0_intc  0xffffffff

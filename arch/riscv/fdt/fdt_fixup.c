@@ -59,42 +59,51 @@ void fdt_cpu_fixup(void *fdt)
 	}
 }
 
-void fdt_irq_fixup(void *fdt, const char *compat)
+void fdt_irqs_fixup(void *fdt, const char *compat, int num)
 {
 	uint32_t *cells;
 	int i, cells_count;
 	int irqc_offset, cpu_offset, irq_offset;
 	uint32_t phandle;
 
-	irqc_offset = fdt_node_offset_by_compatible(fdt, 0, compat);
-	if (irqc_offset < 0)
-		return;
+	irqc_offset = 0;
+	while (irqc_offset >= 0 && num) {
+		irqc_offset = fdt_node_offset_by_compatible(fdt, irqc_offset, compat);
+		if (irqc_offset < 0)
+			return;
 
-	cells = (uint32_t *)fdt_getprop(fdt, irqc_offset,
-					"interrupts-extended",
-					&cells_count);
-	if (!cells)
-		return;
+		cells = (uint32_t *)fdt_getprop(fdt, irqc_offset,
+						"interrupts-extended",
+						&cells_count);
+		if (!cells)
+			return;
 
-	cells_count = cells_count / sizeof(uint32_t);
-	if (!cells_count)
-		return;
+		cells_count = cells_count / sizeof(uint32_t);
+		if (!cells_count)
+			return;
 
-	for (i = 0; i < (cells_count / 2); i++) {
-		switch (fdt32_to_cpu(cells[2 * i + 1])) {
-		case IRQ_M_SOFT:
-		case IRQ_M_TIMER:
-		case IRQ_M_EXT:
-			cells[2 * i + 1] = cpu_to_fdt32(0xffffffff);
-			break;
-		default:
-			phandle = fdt32_to_cpu(cells[2 * i]);
-			irq_offset = fdt_node_offset_by_phandle(fdt, phandle);
-			cpu_offset = fdt_parent_offset(fdt, irq_offset);
-			if (fdt_cpu_disabled(fdt, cpu_offset))
+		for (i = 0; i < (cells_count / 2); i++) {
+			switch (fdt32_to_cpu(cells[2 * i + 1])) {
+			case IRQ_M_SOFT:
+			case IRQ_M_TIMER:
+			case IRQ_M_EXT:
 				cells[2 * i + 1] = cpu_to_fdt32(0xffffffff);
+				break;
+			default:
+				phandle = fdt32_to_cpu(cells[2 * i]);
+				irq_offset = fdt_node_offset_by_phandle(fdt, phandle);
+				cpu_offset = fdt_parent_offset(fdt, irq_offset);
+				if (fdt_cpu_disabled(fdt, cpu_offset))
+					cells[2 * i + 1] = cpu_to_fdt32(0xffffffff);
+			}
 		}
+		num--;
 	}
+}
+
+void fdt_irq_fixup(void *fdt, const char *compat)
+{
+	fdt_irqs_fixup(fdt, compat, 1);
 }
 
 static int fdt_resv_memory_update_node(void *fdt, unsigned long addr,

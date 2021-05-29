@@ -44,6 +44,12 @@
 
 #include <target/arch.h>
 
+#ifdef PLIC_HW_MAX_CHIPS
+#define PLIC_MAX_CHIPS			PLIC_HW_MAX_CHIPS
+#else /* PLIC_HW_MAX_CHIPS */
+#define PLIC_MAX_CHIPS			1
+#endif /* PLIC_HW_MAX_CHIPS */
+
 /* Global IRQ0 is "no interrupt" */
 #define IRQ_NOIRQ			0
 
@@ -51,6 +57,7 @@
 #define PLIC_MAX_CONTEXTS		15872
 #define PLIC_CTX_NONE			-1
 
+#if PLIC_MAX_CHIPS > 1
 #define PLIC_REG(offset)		(PLIC_BASE + (offset))
 #define PLIC_1BIT_REG(offset, irq)	\
 	REG_1BIT_ADDR(PLIC_BASE + (offset), irq)
@@ -58,10 +65,23 @@
 #ifdef PLIC_CTX_BASE
 #define PLIC_CONTEXT_REG(ctx, offset)	\
 	(PLIC_CTX_BASE + (ctx) * PLIC_CONTEXT_SIZE + (offset))
-#else
+#else /* PLIC_CTX_BASE */
 #define PLIC_CONTEXT_REG(ctx, offset)	\
 	PLIC_REG(PLIC_CONTEXT_BASE + (ctx) * PLIC_CONTEXT_SIZE + (offset))
-#endif
+#endif /* PLIC_CTX_BASE */
+#else /* PLIC_MAX_CHIPS == 1 */
+#define PLIC_REG(offset)		(PLIC_BASE + (offset))
+#define PLIC_1BIT_REG(offset, irq)	\
+	REG_1BIT_ADDR(PLIC_BASE + (offset), irq)
+
+#ifdef PLIC_CTX_BASE
+#define PLIC_CONTEXT_REG(ctx, offset)	\
+	(PLIC_CTX_BASE + (ctx) * PLIC_CONTEXT_SIZE + (offset))
+#else /* PLIC_CTX_BASE */
+#define PLIC_CONTEXT_REG(ctx, offset)	\
+	PLIC_REG(PLIC_CONTEXT_BASE + (ctx) * PLIC_CONTEXT_SIZE + (offset))
+#endif /* PLIC_CTX_BASE */
+#endif /* PLIC_MAX_CHIPS > 1 */
 
 #define PLIC_BLOCK_SIZE			0x1000
 #define PLIC_PRIORITYR_BASE		0
@@ -88,6 +108,9 @@
 #else
 #define PLIC_PRI_DEF			PLIC_PRI_MIN
 #endif
+/* Default priority threshold allows all IRQs */
+#define PLIC_THR_ALL			PLIC_PRI_NONE
+#define PLIC_THR_NONE			PLIC_PRI_MAX
 
 #define PLIC_IRQ_OFFSET(irq)		REG_1BIT_OFFSET(irq)
 #define PLIC_IRQ_MASK			REG_1BIT_MASK
@@ -119,10 +142,10 @@
 	plic_configure_priority(irq, PLIC_PRI_MIN)
 #define plic_configure_priority(irq, pri)		\
 	__raw_writel(pri, PLIC_PRIORITYR(irq))
-#define plic_configure_threashold_m(cpu, pri)		\
+#define plic_configure_threshold_m(cpu, pri)		\
 	__raw_writel(pri,				\
 		     PLIC_PRIORITY_THRESHOLDR(plic_hw_m_ctx(cpu)))
-#define plic_configure_threashold_s(cpu, pri)		\
+#define plic_configure_threshold_s(cpu, pri)		\
 	__raw_writel(pri,				\
 		     PLIC_PRIORITY_THRESHOLDR(plic_hw_s_ctx(cpu)))
 #define plic_claim_mirq(cpu)				\
