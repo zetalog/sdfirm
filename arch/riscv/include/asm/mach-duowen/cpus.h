@@ -111,7 +111,7 @@
 /* hartid bases */
 #ifdef CONFIG_DUOWEN_IMC
 #define SOC0_HART		0
-#define SOC1_HART		32
+#define SOC1_HART		0
 #endif /* CONFIG_DUOWEN_IMC */
 #ifdef CONFIG_DUOWEN_APC
 #define SOC0_HART		0
