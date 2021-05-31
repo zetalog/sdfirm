@@ -225,21 +225,17 @@ caddr_t duowen_uart_reg_base;
 
 void duowen_mmu_map_uart(int n)
 {
-	__unused uint8_t soc = imc_socket_id();
-
 	if (duowen_uart_reg_base == __DUOWEN_UART_BASE) {
-		set_fixmap_io(FIX_UART(soc), __DUOWEN_UART_BASE & PAGE_MASK);
-		duowen_uart_reg_base = fix_to_virt(FIX_UART(soc));
+		set_fixmap_io(FIX_UART, __DUOWEN_UART_BASE & PAGE_MASK);
+		duowen_uart_reg_base = fix_to_virt(FIX_UART);
 	}
 }
 
 void duowen_mmu_dump_uart(void)
 {
-	__unused uint8_t soc = imc_socket_id();
-
 	if (duowen_uart_reg_base != __DUOWEN_UART_BASE)
 		con_log("FIXMAP: %016llx -> %016llx: UART\n",
-			__DUOWEN_UART_BASE, fix_to_virt(FIX_UART(soc)));
+			__DUOWEN_UART_BASE, fix_to_virt(FIX_UART));
 }
 #endif
 
@@ -288,21 +284,17 @@ caddr_t duowen_lcsr_reg_base;
 
 static void duowen_mmu_map_lcsr(void)
 {
-	__unused uint8_t soc = imc_socket_id();
-
 	if (duowen_lcsr_reg_base == __DUOWEN_LCSR_BASE) {
-		set_fixmap_io(FIX_LCSR(soc), __DUOWEN_LCSR_BASE & PAGE_MASK);
-		duowen_lcsr_reg_base = fix_to_virt(FIX_LCSR(soc));
+		set_fixmap_io(FIX_LCSR, __DUOWEN_LCSR_BASE & PAGE_MASK);
+		duowen_lcsr_reg_base = fix_to_virt(FIX_LCSR);
 	}
 }
 
 static void duowen_mmu_dump_lcsr(void)
 {
-	__unused uint8_t soc = imc_socket_id();
-
 	if (duowen_lcsr_reg_base != __DUOWEN_LCSR_BASE)
 		con_log("FIXMAP: %016llx -> %016llx: LCSR\n",
-			__DUOWEN_LCSR_BASE, fix_to_virt(FIX_LCSR(soc)));
+			__DUOWEN_LCSR_BASE, fix_to_virt(FIX_LCSR));
 }
 
 static void duowen_mmu_init_lcsr(void)

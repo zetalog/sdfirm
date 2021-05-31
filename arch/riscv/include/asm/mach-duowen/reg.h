@@ -102,7 +102,12 @@ unsigned long duowen_soc_base;
 #define __ETH_PLL_BASE		ULL(0xFF6A100000)
 #define ETH_PLL_BASE		(SOC_BASE + __ETH_PLL_BASE)
 #define XPCS_BASE		(SOC_BASE + ULL(0xFF6A200000))
+#define __PLIC_BASE		ULL(0xFF70000000)
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+#define PLIC_BASE(soc)		(__SOC_BASE(soc) + ULL(0xFF70000000))
+#else /* CONFIG_DUOWEN_SBI_DUAL */
 #define PLIC_BASE		(SOC_BASE + ULL(0xFF70000000))
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 
 /* Config fabric */
 #define CLINT_BASE		(SOC_BASE + ULL(0xFF010F0000))

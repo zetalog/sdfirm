@@ -67,14 +67,19 @@
 #define PLIC_ICCLAIMR_BASE		PLIC_GATEWAY_BASE(0x280)
 #define PLIC_ICFGR_BASE			PLIC_GATEWAY_BASE(0x300)
 
-#define PLIC_ISPENDR(irq)		PLIC_1BIT_REG(PLIC_ISPENDR_BASE, irq)
-#define PLIC_ICPENDR(irq)		PLIC_1BIT_REG(PLIC_ICPENDR_BASE, irq)
-#define PLIC_ISCLAIMR(irq)		PLIC_1BIT_REG(PLIC_ISCLAIMR_BASE, irq)
-#define PLIC_ICCLAIMR(irq)		PLIC_1BIT_REG(PLIC_ICCLAIMR_BASE, irq)
-#define PLIC_ICFGR(irq)			PLIC_1BIT_REG(PLIC_ICFGR_BASE, irq)
+#define PLIC_ISPENDR(soc, irq)		\
+	PLIC_1BIT_REG(soc, PLIC_ISPENDR_BASE, irq)
+#define PLIC_ICPENDR(soc, irq)		\
+	PLIC_1BIT_REG(PLIC_ICPENDR_BASE, irq)
+#define PLIC_ISCLAIMR(soc, irq)		\
+	PLIC_1BIT_REG(PLIC_ISCLAIMR_BASE, irq)
+#define PLIC_ICCLAIMR(soc, irq)		\
+	PLIC_1BIT_REG(PLIC_ICCLAIMR_BASE, irq)
+#define PLIC_ICFGR(soc, irq)		\
+	PLIC_1BIT_REG(PLIC_ICFGR_BASE, irq)
 
 #define PLIC_SOCKET_CNTL(soc)			\
-	PLIC_REG(PLIC_SOCKET_CNTL_BASE + ((soc) << 2))
+	PLIC_REG(imc_socket_id(), PLIC_SOCKET_CNTL_BASE + ((soc) << 2))
 
 /* PLIC_SOCKET_CNTL */
 #define PLIC_SOCKET_CONN_DISCONN		_BV(0)
@@ -119,8 +124,10 @@
 	(imc_socket_id() == 1 ?		\
 	 (smp_hw_cpu_hart(cpu) + 35) : ((cpu) + 17))
 #ifdef CONFIG_DUOWEN_SBI_DUAL
-#define plic_hw_irq_soc(eirq)		((eirq) >>= ilog2_const(__NR_EXT_IRQS))
-#define plic_hw_irq_ext(eirq)		((eirq) & (__NR_EXT_IRQS - 1))
+#define plic_hw_cpu_soc(cpu)		\
+	(smp_hw_cpu_hart(cpu) < SOC1_HART ? 0 : 1)
+#define plic_hw_irq_soc(irq)		((irq) / __NR_EXT_IRQS)
+#define plic_hw_irq_irq(irq)		((irq) & (__NR_EXT_IRQS - 1))
 #endif /* CONFIG_DUOWEN_SBI_DUAL */
 #endif /* CONFIG_DUOWEN_APC */
 

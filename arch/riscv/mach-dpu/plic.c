@@ -55,9 +55,9 @@ caddr_t dpu_plic_ctx_base[2] = {
 void plic_hw_mmu_init(void)
 {
 	if (dpu_plic_reg_base == PLIC_REG_BASE) {
-		set_fixmap_io(FIX_PLIC_EN_0_31, PLIC_ENABLER(0) & PAGE_MASK);
-		set_fixmap_io(FIX_PLIC_PEND, PLIC_PENDINGR(0) & PAGE_MASK);
-		set_fixmap_io(FIX_PLIC_PRIO, PLIC_PRIORITYR(0) & PAGE_MASK);
+		set_fixmap_io(FIX_PLIC_EN_0_31, PLIC_ENABLER(0, 0) & PAGE_MASK);
+		set_fixmap_io(FIX_PLIC_PEND, PLIC_PENDINGR(0, 0) & PAGE_MASK);
+		set_fixmap_io(FIX_PLIC_PRIO, PLIC_PRIORITYR(0, 0) & PAGE_MASK);
 		dpu_plic_reg_base = fix_to_virt(FIX_PLIC_PRIO);
 		printf("FIXMAP: %016llx -> %016llx %016llx %016llx: PLIC\n",
 		       PLIC_REG_BASE, fix_to_virt(FIX_PLIC_PRIO),
