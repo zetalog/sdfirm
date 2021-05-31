@@ -67,6 +67,7 @@ config CPU_CVA6
 	select CPU_64G
 	select CPU_C
 	select CPU_S
+	select CPU_PMP
 	select CPU_SV39
 	select CPU_WMO
 

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri May 28 13:05:15 2021
+# Mon May 31 14:16:36 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -90,6 +90,7 @@ CONFIG_CPU_F=y
 CONFIG_CPU_D=y
 CONFIG_CPU_C=y
 CONFIG_CPU_COUNTERS=y
+CONFIG_CPU_PMP=y
 CONFIG_CPU_SV39=y
 CONFIG_RISCV_S=y
 CONFIG_RISCV_M=y
@@ -98,6 +99,7 @@ CONFIG_RISCV_F=y
 CONFIG_RISCV_D=y
 CONFIG_RISCV_C=y
 CONFIG_RISCV_COUNTERS=y
+CONFIG_RISCV_PMP=y
 
 #
 # CPU architecture options

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu May 13 16:24:16 2021
+# Mon May 31 14:03:33 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -89,6 +89,7 @@ CONFIG_CPU_A=y
 CONFIG_CPU_F=y
 CONFIG_CPU_D=y
 CONFIG_CPU_C=y
+CONFIG_CPU_PMP=y
 CONFIG_CPU_SV39=y
 CONFIG_RISCV_S=y
 CONFIG_RISCV_M=y
@@ -96,6 +97,7 @@ CONFIG_RISCV_A=y
 # CONFIG_RISCV_F is not set
 # CONFIG_RISCV_D is not set
 CONFIG_RISCV_C=y
+CONFIG_RISCV_PMP=y
 
 #
 # CPU architecture options
@@ -511,7 +513,7 @@ CONFIG_SPD_BUS_KHZ=60
 CONFIG_BIT_FLS8=y
 CONFIG_BIT_FLS16=y
 CONFIG_BIT_FLS32=y
-# CONFIG_BIT_FLS64 is not set
+CONFIG_BIT_FLS64=y
 # CONFIG_BIT_FFS16 is not set
 # CONFIG_BIT_FFS32 is not set
 # CONFIG_BIT_FFS64 is not set
