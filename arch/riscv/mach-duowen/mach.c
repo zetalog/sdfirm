@@ -211,7 +211,17 @@ void board_finish(int code)
 #endif
 
 #ifdef CONFIG_DUOWEN_FSBL
-#define duowen_boot_ddr()			ddr_init()
+/* TODO: Sort DDR APIs
+ *
+ * Note that ddr_init() has already been invoked by the subsystem
+ * initialization stuffs and it handles all DDR functionalities. However
+ * ddr_init() should only initialize DDR subsystem, with no
+ * functionalities embedded, while a training and initialization related
+ * API (e.x., ddr_config_memory_banks()) might be invoked here.
+ *
+ * #define duowen_boot_ddr()			ddr_init()
+ */
+#define duowen_boot_ddr()			do { } while (0)
 #else
 #define duowen_boot_ddr()			do { } while (0)
 #endif
