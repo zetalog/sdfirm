@@ -431,6 +431,18 @@ config RISCV_TSO
 	depends CPU_ZTSO
 	select RISCV_ZTSO
 
+config VAISRA_ATOMIC
+	bool "Enable speculation on non-ordering atomic instructions"
+	depends CPU_VAISRA
+	help
+	  Speculation is always enabled for atomic instructions w/ aq/rl
+	  ordering notation. By default, speculation isn't enabled for
+	  instructions w/o ordering notation to meet RVWMO requirements.
+	  However, enable this option can allow such instructions to be
+	  speculated, which might cause some violations against RVWMO.
+	  This option is only used by vaisra ROMs.
+	  If unsure, say 'N'.
+
 endchoice
 
 if RISCV_A

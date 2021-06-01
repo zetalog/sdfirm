@@ -42,6 +42,7 @@
 #include <target/irq.h>
 #include <target/smp.h>
 #include <target/irq.h>
+#include <target/sbi.h>
 
 #ifdef CONFIG_SBI
 /* Do not handle IRQs in M mode.
@@ -92,7 +93,7 @@ void plic_sbi_init_cold(void)
 {
 	irq_t irq;
 
-	for (irq = 0; irq < NR_IRQS; irq++)
+	for (irq = 0; irq < NR_EXT_IRQS; irq++)
 		plic_configure_priority(irq, PLIC_PRI_MIN);
 }
 
@@ -107,7 +108,7 @@ void plic_sbi_init_warm(cpu_t cpu)
 		 * The following lines are meant to re-disable IRQs for
 		 * the good cores.
 		 */
-		for (irq = 0; irq < NR_IRQS; irq++)
+		for (irq = 0; irq < NR_EXT_IRQS; irq++)
 			plic_disable_mirq(cpu, irq);
 		plic_configure_threshold_m(cpu, PLIC_THR_M);
 	}
@@ -118,7 +119,7 @@ void plic_sbi_init_warm(cpu_t cpu)
 		 * The following lines are meant to re-disable IRQs for
 		 * the good cores.
 		 */
-		for (irq = 0; irq < NR_IRQS; irq++)
+		for (irq = 0; irq < NR_EXT_IRQS; irq++)
 			plic_disable_sirq(cpu, irq);
 		plic_configure_threshold_s(cpu, PLIC_THR_S);
 	}
@@ -127,7 +128,7 @@ void plic_sbi_init_warm(cpu_t cpu)
 void irqc_hw_enable_irq(irq_t irq)
 {
 	if (irq >= IRQ_PLATFORM)
-		plic_enable_irq(irq - IRQ_PLATFORM);
+		plic_enable_irq(irq_ext(irq));
 	else
 		plic_hw_enable_int(irq);
 }
@@ -135,7 +136,7 @@ void irqc_hw_enable_irq(irq_t irq)
 void irqc_hw_disable_irq(irq_t irq)
 {
 	if (irq >= IRQ_PLATFORM)
-		plic_disable_irq(irq - IRQ_PLATFORM);
+		plic_disable_irq(irq_ext(irq));
 	else
 		plic_hw_disable_int(irq);
 }
@@ -143,7 +144,7 @@ void irqc_hw_disable_irq(irq_t irq)
 void irqc_hw_mask_irq(irq_t irq)
 {
 	if (irq >= IRQ_PLATFORM)
-		plic_mask_irq(irq - IRQ_PLATFORM);
+		plic_mask_irq(irq_ext(irq));
 	else
 		plic_hw_disable_int(irq);
 }
@@ -151,7 +152,7 @@ void irqc_hw_mask_irq(irq_t irq)
 void irqc_hw_unmask_irq(irq_t irq)
 {
 	if (irq >= IRQ_PLATFORM)
-		plic_unmask_irq(irq - IRQ_PLATFORM);
+		plic_unmask_irq(irq_ext(irq));
 	else
 		plic_hw_enable_int(irq);
 }
@@ -159,7 +160,7 @@ void irqc_hw_unmask_irq(irq_t irq)
 void irqc_hw_clear_irq(irq_t irq)
 {
 	if (irq >= IRQ_PLATFORM)
-		plic_clear_irq(irq - IRQ_PLATFORM);
+		plic_clear_irq(irq_ext(irq));
 	else
 		plic_hw_clear_int(irq);
 }
@@ -167,7 +168,7 @@ void irqc_hw_clear_irq(irq_t irq)
 void irqc_hw_trigger_irq(irq_t irq)
 {
 	if (irq >= IRQ_PLATFORM)
-		plic_set_irq(irq - IRQ_PLATFORM);
+		plic_set_irq(irq_ext(irq));
 	else
 		plic_hw_trigger_int(irq);
 }
@@ -175,7 +176,7 @@ void irqc_hw_trigger_irq(irq_t irq)
 void irqc_hw_configure_irq(irq_t irq, uint8_t prio, uint8_t trigger)
 {
 	if (irq >= IRQ_PLATFORM)
-		plic_configure_priority(irq - IRQ_PLATFORM,
+		plic_configure_priority(irq_ext(irq),
 					prio + PLIC_PRI_MIN);
 }
 
@@ -210,7 +211,7 @@ void irqc_hw_ack_irq(irq_t irq)
 {
 	__unused uint8_t cpu = smp_processor_id();
 
-	plic_irq_completion_verbose(cpu, irq - IRQ_PLATFORM, true);
+	plic_irq_completion_verbose(cpu, irq_ext(irq), true);
 }
 #endif
 
@@ -230,7 +231,7 @@ void irqc_hw_handle_irq(void)
 		printf("External IRQ %d\n", irq);
 #endif
 		plic_completion_entry(cpu, irq);
-		if (!do_IRQ(irq + IRQ_PLATFORM)) {
+		if (!do_IRQ(EXT_IRQ(irq))) {
 			/* No IRQ handler registered, disabling... */
 			plic_disable_irq(irq);
 			plic_irq_completion(cpu, irq);

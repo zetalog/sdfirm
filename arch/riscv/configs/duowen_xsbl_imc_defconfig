@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon May 31 14:37:55 2021
+# Tue Jun  1 18:17:42 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -103,6 +103,7 @@ CONFIG_RISCV_PMP=y
 #
 CONFIG_RISCV_WMO=y
 # CONFIG_RISCV_TSO is not set
+# CONFIG_VAISRA_ATOMIC is not set
 
 #
 # Compiler options

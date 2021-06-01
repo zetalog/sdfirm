@@ -124,6 +124,7 @@ struct pt_regs {
 #endif
 #define IRQ_PLATFORM		NR_INT_IRQS
 #define EXT_IRQ(irq)		(IRQ_PLATFORM + (irq))
+#define irq_ext(irq)		((irq) - IRQ_PLATFORM)
 
 #define EXC_INSN_MISALIGNED	0
 #define EXC_INSN_ACCESS		1
