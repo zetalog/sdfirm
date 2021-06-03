@@ -77,15 +77,19 @@
 #endif /* CONFIG_RISCV_EXIT_S */
 #endif /* CONFIG_SBI */
 
-void plic_init_default(void)
+void plic_init_default(uint64_t harts)
 {
 	cpu_t cpu;
 
 	for (cpu = 0; cpu < NR_CPUS; cpu++) {
-		if (plic_hw_m_ctx(cpu) != PLIC_CTX_NONE)
-			plic_configure_threshold_m(cpu, PLIC_THR_NONE);
-		if (plic_hw_s_ctx(cpu) != PLIC_CTX_NONE)
-			plic_configure_threshold_s(cpu, PLIC_THR_NONE);
+		if (!(harts & CPU_TO_MASK(cpu))) {
+			if (plic_hw_m_ctx(cpu) != PLIC_CTX_NONE)
+				plic_configure_threshold_m(cpu,
+							   PLIC_THR_NONE);
+			if (plic_hw_s_ctx(cpu) != PLIC_CTX_NONE)
+				plic_configure_threshold_s(cpu,
+							   PLIC_THR_NONE);
+		}
 	}
 }
 

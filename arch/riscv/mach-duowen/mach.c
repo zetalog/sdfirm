@@ -136,6 +136,7 @@ void duowen_hart_map_init(void)
 
 	harts = duowen_get_partial_good();
 	rom_set_apc_map(harts);
+	plic_init_default(harts);
 	con_log("partial_good(%d): Applying partial goods: 0x%04x.\n",
 		imc_socket_id(), harts);
 	apc_set_cpu_map(harts);
@@ -144,7 +145,6 @@ void duowen_hart_map_init(void)
 void duowen_plic_init(void)
 {
 	if (!rom_get_pliccntl_done()) {
-		plic_init_default();
 		if (soc_chip_link()) {
 			if (imc_socket_id() == 0)
 				plic_socket_connect(1);
