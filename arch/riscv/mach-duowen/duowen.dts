@@ -1965,7 +1965,7 @@
 			dma-channels = <8>;
 			snps,dma-masters = <1>;
 			snps,data-width = <5>;
-			snps,block-size = <0x80 0x80 0x80 0x80 0x80 0x80 0x80 0x80>;
+			snps,block-size = <0x200000 0x200000 0x200000 0x200000 0x200000 0x200000 0x200000 0x200000>;
 			snps,priority = <0 1 2 3 4 5 6 7>;
 			snps,axi-max-burst-len = <16>;
 			#dma-cells = <1>;
