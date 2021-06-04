@@ -44,23 +44,31 @@
 
 #include <target/arch.h>
 
-#define __DUOWEN_TLMM_BASE		TLMM_BASE
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+#define __DUOWEN_TLMM_BASE(soc)		(__SOC_BASE(soc) + __TLMM_BASE)
+#else /* CONFIG_DUOWEN_SBI_DUAL */
+#define __DUOWEN_TLMM_BASE(soc)		TLMM_BASE
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 #ifdef CONFIG_MMU
-#define __TLMM_BASE			duowen_tlmm_reg_base
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+#define DUOWEN_TLMM_BASE(soc)		duowen_tlmm_reg_base(soc)
+#else /* CONFIG_DUOWEN_SBI_DUAL */
+#define DUOWEN_TLMM_BASE(soc)		duowen_tlmm_reg_base
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 #else
-#define __TLMM_BASE			__DUOWEN_TLMM_BASE
+#define DUOWEN_TLMM_BASE(soc)		__DUOWEN_TLMM_BASE(soc)
 #endif
-#define TLMM_REG(offset)		(__TLMM_BASE + (offset))
+#define TLMM_REG(soc, offset)		(DUOWEN_TLMM_BASE(soc) + (offset))
 
-#define TLMM_PAD_GPIO_CFG(n)		(TLMM_REG((n) << 2))
-#define TLMM_PAD_IE_CTRL		TLMM_REG(0x300)
-#define TLMM_PAD_O_RST_N		TLMM_REG(0xC00)
-#define TLMM_PAD_PS_HOLD		TLMM_REG(0xC04)
-#define TLMM_PAD_SHUT_DOWN		TLMM_REG(0xC08)
-#define TLMM_PAD_PWM_OUT		TLMM_REG(0xC0C)
-#define TLMM_PAD_JTAG_TDO		TLMM_REG(0xC10)
-#define TLMM_PAD_XO_CLK			TLMM_REG(0xC14)
-#define TLMM_PAD_RTE_CONTROL		TLMM_REG(0xE00)
+#define TLMM_PAD_GPIO_CFG(soc, n)	(TLMM_REG(soc, (n) << 2))
+#define TLMM_PAD_IE_CTRL(soc)		TLMM_REG(soc, 0x300)
+#define TLMM_PAD_O_RST_N(soc)		TLMM_REG(soc, 0xC00)
+#define TLMM_PAD_PS_HOLD(soc)		TLMM_REG(soc, 0xC04)
+#define TLMM_PAD_SHUT_DOWN(soc)		TLMM_REG(soc, 0xC08)
+#define TLMM_PAD_PWM_OUT(soc)		TLMM_REG(soc, 0xC0C)
+#define TLMM_PAD_JTAG_TDO(soc)		TLMM_REG(soc, 0xC10)
+#define TLMM_PAD_XO_CLK(soc)		TLMM_REG(soc, 0xC14)
+#define TLMM_PAD_RTE_CONTROL(soc)	TLMM_REG(soc, 0xE00)
 
 /* PAD_GPIO_CFG */
 #define TLMM_PAD_PULL_OFFSET		0
@@ -155,7 +163,7 @@
 #define NR_TLMM_GPIOS			160
 #define INVALID_TLMM_GPIO		NR_TLMM_GPIOS
 
-#define tlmm_input_enable()	__raw_setl(TLMM_PAD_IE, TLMM_PAD_IE_CTRL)
+#define tlmm_input_enable(soc)	__raw_setl(TLMM_PAD_IE, TLMM_PAD_IE_CTRL(soc))
 
 #ifdef CONFIG_DUOWEN_TLMM
 void tlmm_config_mux(uint16_t gpio, uint8_t mux);

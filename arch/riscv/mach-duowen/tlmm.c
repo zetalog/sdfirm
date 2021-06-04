@@ -47,7 +47,7 @@ void tlmm_config_mux(uint16_t gpio, uint8_t mux)
 		return;
 
 	__raw_writel_mask(TLMM_PAD_SEL(mux), TLMM_PAD_SEL(TLMM_PAD_SEL_MASK),
-			  TLMM_PAD_GPIO_CFG(gpio));
+			  TLMM_PAD_GPIO_CFG(duowen_gpio_soc(gpio), gpio));
 }
 
 void tlmm_config_pad(uint16_t gpio, uint8_t pad, uint8_t drv)
@@ -84,5 +84,6 @@ void tlmm_config_pad(uint16_t gpio, uint8_t pad, uint8_t drv)
 		else if (drv >= 6)
 			cfg |= TLMM_PAD_DRIVE(TLMM_PAD_DRIVE_6MA);
 	}
-	__raw_writel_mask(cfg, TLMM_PAD_MASK, TLMM_PAD_GPIO_CFG(gpio));
+	__raw_writel_mask(cfg, TLMM_PAD_MASK,
+			  TLMM_PAD_GPIO_CFG(duowen_gpio_soc(gpio), gpio));
 }

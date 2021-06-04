@@ -115,7 +115,11 @@ void duowen_mmu_init_clk(void);
 #endif
 #ifdef CONFIG_DUOWEN_GPIO
 extern caddr_t duowen_gpio_reg_base[];
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+extern caddr_t duowen_tlmm_reg_base[];
+#else /* CONFIG_DUOWEN_SBI_DUAL */
 extern caddr_t duowen_tlmm_reg_base;
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 void duowen_mmu_map_gpio(void);
 void duowen_mmu_dump_gpio(void);
 #else

@@ -86,7 +86,8 @@ uint8_t gpio_hw_read_pin(uint8_t port, uint16_t pin)
 		return 0;
 
 	return dw_gpio_read_pin(duowen_gpiop_chip(port),
-				duowen_gpiop_port(port), pin);
+				duowen_gpiop_port(port),
+				duowen_gpio_pin(pin));
 }
 
 void gpio_hw_write_pin(uint8_t port, uint16_t pin, uint8_t val)
@@ -95,7 +96,8 @@ void gpio_hw_write_pin(uint8_t port, uint16_t pin, uint8_t val)
 		return;
 
 	dw_gpio_write_pin(duowen_gpiop_chip(port),
-			  duowen_gpiop_port(port), pin, val);
+			  duowen_gpiop_port(port),
+			  duowen_gpio_pin(pin), val);
 }
 
 uint32_t gpio_hw_read_port(uint8_t port, uint32_t mask)
@@ -126,7 +128,8 @@ void gpio_hw_config_pad(uint8_t port, uint16_t pin,
 		return;
 
 	dw_gpio_config_pad(duowen_gpiop_chip(port),
-			   duowen_gpiop_port(port), pin, pad, drv);
+			   duowen_gpiop_port(port),
+			   duowen_gpio_pin(pin), pad, drv);
 	tlmm_config_pad(pin, pad, drv);
 }
 
@@ -149,7 +152,8 @@ void gpio_hw_config_irq(uint8_t port, uint16_t pin, uint8_t trig)
 		return;
 
 	if (duowen_gpio_is_porta(port))
-		dw_gpio_config_irq(duowen_gpiop_chip(port), pin, trig);
+		dw_gpio_config_irq(duowen_gpiop_chip(port),
+				   duowen_gpio_pin(pin), trig);
 }
 
 #ifndef CONFIG_SYS_NOIRQ
@@ -159,7 +163,8 @@ void gpio_hw_enable_irq(uint8_t port, uint16_t pin)
 		return;
 
 	if (duowen_gpio_is_porta(port))
-		dw_gpio_enable_irq(duowen_gpiop_chip(port), pin);
+		dw_gpio_enable_irq(duowen_gpiop_chip(port),
+				   duowen_gpio_pin(pin));
 }
 
 void gpio_hw_disable_irq(uint8_t port, uint16_t pin)
@@ -168,7 +173,8 @@ void gpio_hw_disable_irq(uint8_t port, uint16_t pin)
 		return;
 
 	if (duowen_gpio_is_porta(port))
-		dw_gpio_disable_irq(duowen_gpiop_chip(port), pin);
+		dw_gpio_disable_irq(duowen_gpiop_chip(port),
+				    duowen_gpio_pin(pin));
 }
 #endif
 
@@ -178,7 +184,8 @@ void gpio_hw_clear_irq(uint8_t port, uint16_t pin)
 		return;
 
 	if (duowen_gpio_is_porta(port))
-		dw_gpio_clear_irq(duowen_gpiop_chip(port), pin);
+		dw_gpio_clear_irq(duowen_gpiop_chip(port),
+				  duowen_gpio_pin(pin));
 }
 
 uint8_t gpio_hw_irq_status(uint8_t port, uint16_t pin)
@@ -188,7 +195,8 @@ uint8_t gpio_hw_irq_status(uint8_t port, uint16_t pin)
 	if (port > GPIO_HW_MAX_PORTS)
 		return 0;
 	if (duowen_gpio_is_porta(port))
-		girq = dw_gpio_irq_status(duowen_gpiop_chip(port), pin);
+		girq = dw_gpio_irq_status(duowen_gpiop_chip(port),
+					  duowen_gpio_pin(pin));
 	return girq;
 }
 #else /* CONFIG_DUOWEN_GPIO_PORT */
