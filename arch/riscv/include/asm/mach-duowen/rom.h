@@ -52,12 +52,14 @@
  * | RSVD | PLICCNTL | CHIPLINK |
  * +------+----------+----------+
  * SW_MSG_1:
- * 32
- * +------+-----+-----+------------------+
- * | RSVD | IMC | APC | APC Partial Good |
- * +------+-----+-----+------------------+
+ * 32    23         18    17    16                  0
+ * +------+----------+-----+-----+------------------+
+ * | RSVD | BOOTHART | IMC | APC | APC Partial Good |
+ * +------+----------+-----+-----+------------------+
  */
 
+#define __ROM_GBL_STATUS	(__SCSR_BASE + ____SCSR_SW_MSG(0))
+#define __ROM_SOC_STATUS	(__SCSR_BASE + ____SCSR_SW_MSG(1))
 #define ROM_GBL_STATUS		SCSR_SW_MSG(0)
 #ifdef CONFIG_DUOWEN_SBI_DUAL
 #define ROM_SOC_STATUS(soc)	__SCSR_SW_MSG(soc, 1)
@@ -75,6 +77,10 @@
 #define ROM_SET_APC_PG(value)	_SET_FV(ROM_APC_PG, value)
 #define ROM_APC_VALID		_BV(16)
 #define ROM_IMC_VALID		_BV(17)
+#define ROM_BOOTHART_OFFSET	18
+#define ROM_BOOTHART_MASK	REG_4BIT_MASK
+#define ROM_SET_BOOTHART(value)	_SET_FV(ROM_BOOTHART, value)
+#define ROM_GET_BOOTHART(value)	_GET_FV(ROM_BOOTHART, value)
 
 #define rom_get_chiplink_ready()				\
 	(!!(__raw_readl(ROM_GBL_STATUS) & ROM_CHIPLINK_READY))

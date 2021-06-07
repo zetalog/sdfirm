@@ -91,7 +91,8 @@
 #endif
 	.endm
 
-	/* SMP ID <-> HART ID conversions */
+	/* SMP ID <-> HART ID conversions on APC */
+#ifdef CONFIG_DUOWEN_APC
 #ifdef CONFIG_SBI
 #ifdef CONFIG_DUOWEN_SBI_DUAL_SPARSE
 	/* Dual socket version where MAX_APC_NUM != 16 */
@@ -105,16 +106,34 @@
 	.macro get_arch_hartboot reg
 	li	\reg, SOC0_HART
 	.endm
+#else /* CONFIG_DUOWEN_SBI_DUAL_SPARSE */
+	.macro get_arch_smpid reg
+	.endm
+	.macro get_arch_hartboot reg
+	li	\reg, __SCSR_SOCKET_ID
+	lw	\reg, 0(t0)
+	andi	\reg, \reg, 2
+	li	t0, 0
+	beqz	\reg, 2222f
+	addi	t0, t0, SOC1_HART
+	li	\reg, SOC1_BASE
+2222:
+	li	t1, __ROM_SOC_STATUS
+	add	\reg, \reg, t1
+	lw	\reg, 0(\reg)
+	srliw	\reg, \reg, ROM_BOOTHART_OFFSET
+	andi	\reg, \reg, ROM_BOOTHART_MASK
+	add	\reg, \reg, t0
+	.endm
+#endif /* CONFIG_DUOWEN_SBI_DUAL_SPARSE */
 	.macro get_arch_hartmask reg
 	li	\reg, HART_ALL
 	.endm
-#define ARCH_HAVE_BOOT_SMP	1
-#endif /* CONFIG_DUOWEN_SBI_DUAL_SPARSE */
 #else /* CONFIG_SBI */
 	/* Local programs should identify local harts */
 	.macro get_arch_smpid reg
 	li	t1, SOC0_HART
-	li	t0, SCSR_SOCKET_ID
+	li	t0, __SCSR_SOCKET_ID
 	lw	t0, 0(t0)
 	andi	t0, t0, 2
 	beqz	t0, 3333f
@@ -122,26 +141,46 @@
 3333:
 	sub	\reg, \reg, t1
 	.endm
+#ifdef CONFIG_DUOWEN_ASBL
 	.macro get_arch_hartboot reg
-	li	\reg, SOC0_HART
-	li	t0, SCSR_SOCKET_ID
+	li	\reg, __SCSR_SOCKET_ID
+	lw	\reg, 0(t0)
+	andi	\reg, \reg, 2
+	li	t0, 0
+	beqz	\reg, 4444f
+	addi	t0, t0, SOC1_HART
+	li	\reg, SOC1_BASE
+4444:
+	li	t1, __ROM_SOC_STATUS
+	add	\reg, \reg, t1
+	lw	\reg, 0(\reg)
+	srliw	\reg, \reg, ROM_BOOTHART_OFFSET
+	andi	\reg, \reg, ROM_BOOTHART_MASK
+	add	\reg, \reg, t0
+	.endm
+#else /* CONFIG_DUOWEN_ASBL */
+	.macro get_arch_hartboot reg
+	li	\reg, BOOT_HART
+	li	t0, __SCSR_SOCKET_ID
 	lw	t0, 0(t0)
 	andi	t0, t0, 2
 	beqz	t0, 4444f
 	addi	\reg, \reg, SOC1_HART
 4444:
 	.endm
+#endif /* CONFIG_DUOWEN_ASBL */
 	.macro get_arch_hartmask reg
 	li	\reg, CPU_ALL
-	li	t0, SCSR_SOCKET_ID
+	li	t0, __SCSR_SOCKET_ID
 	lw	t0, 0(t0)
 	andi	t0, t0, 2
 	beqz	t0, 5555f
 	slli	\reg, \reg, SOC1_HART
 5555:
 	.endm
-#define ARCH_HAVE_BOOT_SMP	1
 #endif /* CONFIG_SBI */
+#define ARCH_HAVE_BOOT_SMP	1
+#endif /* CONFIG_DUOWEN_APC */
 #endif /* __ASSEMBLY__ && !__DTS__ && !LINKER_SCRIPT */
 
 #ifndef __ASSEMBLY__

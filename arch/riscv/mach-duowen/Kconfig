@@ -167,6 +167,12 @@ config DUOWEN_APC_PARTIAL_GOOD_MASK
 	hex "Partial good"
 	depends DUOWEN_APC_PARTIAL_GOOD
 
+config DUOWEN_APC_BOOT_HART_ID
+	int "Boot hart ID"
+	depends DUOWEN_APC_PARTIAL_GOOD && DUOWEN_APC
+	range 0 15
+	default 0
+
 config DUOWEN_FSBL_SPI
 	bool "Build SPI flash resident FSBL"
 	depends DUOWEN_FSBL
@@ -581,6 +587,7 @@ endif
 
 menuconfig DUOWEN_SCSR
 	bool "Duowen system control/status registers support"
+	select BIT_FFS16
 
 if DUOWEN_SCSR
 

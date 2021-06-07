@@ -73,7 +73,8 @@
 #define SCSR_SD_STATUS			SCSR_REG(0xA0)
 #define SCSR_WDT_PAUSE_EN		SCSR_REG(0xA4)
 #define SCSR_CLINT_CFG			SCSR_REG(0xC0)
-#define SCSR_SW_MSG(n)			SCSR_REG(0xD0 + ((n) << 2))
+#define ____SCSR_SW_MSG(n)		(0xD0 + ((n) << 2))
+#define SCSR_SW_MSG(n)			SCSR_REG(____SCSR_SW_MSG(n))
 #define SCSR_PHASE_FLAG			SCSR_REG(0xFC)
 #define SCSR_PMA_CFG_LO(n)		SCSR_REG(0x100 + ((n) << 3))
 #define SCSR_PMA_CFG_HI(n)		SCSR_REG(0x104 + ((n) << 3))
@@ -81,7 +82,7 @@
 #define SCSR_PMA_ADDR_HI(n)		SCSR_REG(0x144 + ((n) << 3))
 
 #define __SCSR_REG(soc, offset)		(DUOWEN_SCSR_BASE(soc) + (offset))
-#define __SCSR_SW_MSG(soc, n)		__SCSR_REG(soc, 0xD0 + ((n) << 2))
+#define __SCSR_SW_MSG(soc, n)		__SCSR_REG(soc, ____SCSR_SW_MSG(n))
 
 #define __DUOWEN_LCSR_BASE		LCSR_BASE
 #ifdef CONFIG_MMU
@@ -92,7 +93,9 @@
 #define LCSR_REG(offset)		(__LCSR_BASE + (offset))
 
 #define SCSR_BOOT_MODE			LCSR_REG(0x00)
-#define SCSR_SOCKET_ID			LCSR_REG(0x04)
+#define ____SCSR_SOCKET_ID		0x04
+#define __SCSR_SOCKET_ID		(LCSR_BASE + ____SCSR_SOCKET_ID)
+#define SCSR_SOCKET_ID			LCSR_REG(____SCSR_SOCKET_ID)
 #define SCSR_IMC_BOOT_ADDR_LO		LCSR_REG(0x08)
 #define SCSR_IMC_BOOT_ADDR_HI		LCSR_REG(0x0C)
 #define SCSR_IMC_BOOT_ADDR_CFG_LO	SCSR_IMC_BOOT_ADDR_LO

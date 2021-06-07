@@ -259,8 +259,17 @@ static void __rom_set_apc_map(uint8_t soc, uint16_t map)
 	/* For APC 4 cores configuration, partial good function is
 	 * disabled.
 	 */
-	if (__GOOD_CPU_MASK == GOOD_CPU_MASK)
+	if (__GOOD_CPU_MASK == GOOD_CPU_MASK) {
+		uint8_t hart;
+
 		__raw_setl(ROM_APC_VALID, ROM_SOC_STATUS(soc));
+		hart = __ffs16(map);
+		if (hart)
+			__raw_writel_mask(ROM_SET_BOOTHART(hart),
+					  ROM_SET_BOOTHART(ROM_BOOTHART_MASK),
+					  ROM_SOC_STATUS(soc));
+	}
+
 }
 
 uint16_t rom_get_s0_apc_map(void)

@@ -42,6 +42,20 @@
 #ifndef __CPUS_DUOWEN_H_INCLUDE__
 #define __CPUS_DUOWEN_H_INCLUDE__
 
+#ifdef CONFIG_DUOWEN_APC_BOOT_HART_ID
+#define BOOT_HART		CONFIG_DUOWEN_APC_BOOT_HART_ID
+#define BOOT_MASK		CPU_TO_MASK(BOOT_HART)
+#if BOOT_MASK & CONFIG_DUOWEN_APC_PARTIAL_GOOD_MASK
+#undef BOOT_MASK
+#define BOOT_MASK		CONFIG_DUOWEN_APC_PARTIAL_GOOD_MASK
+#else
+#error "Bad CONFIG_DUOWEN_APC_BOOT_HART_ID!"
+#endif
+#else /* CONFIG_DUOWEN_APC_BOOT_HART_ID */
+#define BOOT_HART		SOC0_HART
+#define BOOT_MASK		CPU_ALL
+#endif /* CONFIG_DUOWEN_APC_BOOT_HART_ID */
+
 #ifdef CONFIG_DUOWEN_APC_16
 #define MAX_APC_NUM		16
 #endif /* CONFIG_DUOWEN_APC_16 */
@@ -123,6 +137,7 @@ extern unsigned long duowen_hart_base;
 #endif
 #define HART_BASE		duowen_hart_base
 
+#ifdef CONFIG_DUOWEN_APC
 #ifdef CONFIG_SBI
 #ifdef CONFIG_DUOWEN_SBI_DUAL_SPARSE
 /* FIXME: This actually makes sbi_processor_id() returned as hartid */
@@ -135,5 +150,6 @@ extern unsigned long duowen_hart_base;
 /* Local programs uses special hart mask */
 #define HART_ALL		((CPU_TO_MASK(MAX_CPU_NUM)-1) << HART_BASE)
 #endif /* CONFIG_SBI */
+#endif /* CONFIG_DUOWEN_APC */
 
 #endif /* __CPUS_DUOWEN_H_INCLUDE__ */
