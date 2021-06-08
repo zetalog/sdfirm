@@ -46,17 +46,29 @@
 #include <target/arch.h>
 
 #ifdef CONFIG_DUOWEN_GPIO
-#define __DUOWEN_GPIO_BASE(n)	(GPIO0_BASE + ((n) << 20))
+#define __GPIO_HW_MAX_CTRLS		3
+
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+#define GPIO_HW_MAX_CTRLS		(2 * __GPIO_HW_MAX_CTRLS)
+#define __DUOWEN_GPIO_BASE(n)				\
+	(__SOC_BASE(!!((n) > __GPIO_HW_MAX_CTRLS)) +	\
+	 GPIO0_BASE +					\
+	 (((n) > __GPIO_HW_MAX_CTRLS ?			\
+	   (n) - __GPIO_HW_MAX_CTRLS : (n)) << 20))
+#else /* CONFIG_DUOWEN_SBI_DUAL */
+#define GPIO_HW_MAX_CTRLS		__GPIO_HW_MAX_CTRLS
+#define __DUOWEN_GPIO_BASE(n)		(GPIO0_BASE + ((n) << 20))
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 #ifdef CONFIG_MMU
-#define __GPIO_BASE(n)		duowen_gpio_reg_base[n]
+#define __GPIO_BASE(n)			duowen_gpio_reg_base[n]
 #else
-#define __GPIO_BASE(n)		__DUOWEN_GPIO_BASE(n)
+#define __GPIO_BASE(n)			__DUOWEN_GPIO_BASE(n)
 #endif
-#define DW_GPIO_REG(n, offset)	(__GPIO_BASE(n) + (offset))
+#define DW_GPIO_REG(n, offset)		(__GPIO_BASE(n) + (offset))
 #ifndef ARCH_HAVE_GPIO
 #include <driver/dw_gpio.h>
 #include <asm/mach/tlmm.h>
-#define ARCH_HAVE_GPIO		1
+#define ARCH_HAVE_GPIO			1
 #else
 #error "Multiple GPIO controller defined"
 #endif
@@ -65,8 +77,8 @@
 /* GPIO abstraction */
 #ifdef CONFIG_GPIO
 #ifdef CONFIG_DUOWEN_GPIO_PORT
+#define __GPIO_HW_MAX_PORTS		12
 /* APIs for multiple port GPIOs */
-#define GPIO_HW_MAX_PORTS		12
 #define DUOWEN_GPIOP_PORT_OFFSET	0
 #define DUOWEN_GPIOP_PORT_MASK		REG_2BIT_MASK
 #define DUOWEN_GPIOP_PORT(value)	_SET_FV(DUOWEN_GPIOP_PORT, value)
@@ -75,8 +87,21 @@
 #define DUOWEN_GPIOP_CHIP_MASK		REG_2BIT_MASK
 #define DUOWEN_GPIOP_CHIP(value)	_SET_FV(DUOWEN_GPIOP_CHIP, value)
 #define duowen_gpiop_chip(value)	_GET_FV(DUOWEN_GPIOP_CHIP, value)
-#define DUOWEN_GPIOP(chip, port)	\
-	(DUOWEN_GPIOP_CHIP(chip) | DUOWEN_GPIOP_PORT(port))
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+#define GPIO_HW_MAX_PORTS		(2 * __GPIO_HW_MAX_PORTS)
+#define DUOWEN_GPIOP_SOC_OFFSET		4
+#define DUOWEN_GPIOP_SOC_MASK		REG_1BIT_MASK
+#define DUOWEN_GPIOP_SOC(value)		_SET_FV(DUOWEN_GPIOP_SOC, value)
+#define duowen_gpiop_soc(value)		_GET_FV(DUOWEN_GPIOP_SOC, value)
+#else /* CONFIG_DUOWEN_SBI_DUAL */
+#define GPIO_HW_MAX_PORTS		__GPIO_HW_MAX_PORTS
+#define DUOWEN_GPIOP_SOC(value)		0
+#define duowen_gpiop_soc(value)		0
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
+#define DUOWEN_GPIOP(soc, chip, port)	\
+	(DUOWEN_GPIOP_SOC(soc) |	\
+	 DUOWEN_GPIOP_CHIP(chip) |	\
+	 DUOWEN_GPIOP_PORT(port))
 #define DUOWEN_GPIO_PIN_OFFSET		0
 #define DUOWEN_GPIO_PIN_MASK		REG_5BIT_MASK
 #define DUOWEN_GPIO_PIN(value)		_SET_FV(DUOWEN_GPIO_PIN, value)
@@ -98,8 +123,12 @@
 /* APIs for single port GPIOs */
 #define GPIO_HW_PORT			0
 #define GPIO_HW_MAX_PORTS		1
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+#define GPIO_HW_MAX_PINS		320
+#else /* CONFIG_DUOWEN_SBI_DUAL */
 #define GPIO_HW_MAX_PINS		160
-#define DUOWEN_GPIOP(chip, pin)		GPIO_HW_PORT
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
+#define DUOWEN_GPIOP(soc, chip, pin)	GPIO_HW_PORT
 #define DUOWEN_GPIO_PIN_OFFSET		0
 #define DUOWEN_GPIO_PIN_MASK		REG_5BIT_MASK
 #define DUOWEN_GPIO_PIN(value)		_SET_FV(DUOWEN_GPIO_PIN, value)
@@ -133,18 +162,32 @@
 	__DUOWEN_GPIO(imc_socket_id(), chip, port, pin)
 #endif /* CONFIG_DUOWEN_GPIO_PORT */
 
-#define GPIO0A				DUOWEN_GPIOP(0, 0)	
-#define GPIO0B				DUOWEN_GPIOP(0, 1)
-#define GPIO0C				DUOWEN_GPIOP(0, 2)
-#define GPIO0D				DUOWEN_GPIOP(0, 3)
-#define GPIO1A				DUOWEN_GPIOP(1, 0)
-#define GPIO1B				DUOWEN_GPIOP(1, 1)
-#define GPIO1C				DUOWEN_GPIOP(1, 2)
-#define GPIO1D				DUOWEN_GPIOP(1, 3)
-#define GPIO2A				DUOWEN_GPIOP(2, 0)
-#define GPIO2B				DUOWEN_GPIOP(2, 1)
-#define GPIO2C				DUOWEN_GPIOP(2, 2)
-#define GPIO2D				DUOWEN_GPIOP(2, 3)
+#define GPIO0A				DUOWEN_GPIOP(0, 0, 0)
+#define GPIO0B				DUOWEN_GPIOP(0, 0, 1)
+#define GPIO0C				DUOWEN_GPIOP(0, 0, 2)
+#define GPIO0D				DUOWEN_GPIOP(0, 0, 3)
+#define GPIO1A				DUOWEN_GPIOP(0, 1, 0)
+#define GPIO1B				DUOWEN_GPIOP(0, 1, 1)
+#define GPIO1C				DUOWEN_GPIOP(0, 1, 2)
+#define GPIO1D				DUOWEN_GPIOP(0, 1, 3)
+#define GPIO2A				DUOWEN_GPIOP(0, 2, 0)
+#define GPIO2B				DUOWEN_GPIOP(0, 2, 1)
+#define GPIO2C				DUOWEN_GPIOP(0, 2, 2)
+#define GPIO2D				DUOWEN_GPIOP(0, 2, 3)
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+#define GPIO20A				DUOWEN_GPIOP(1, 0, 0)
+#define GPIO20B				DUOWEN_GPIOP(1, 0, 1)
+#define GPIO20C				DUOWEN_GPIOP(1, 0, 2)
+#define GPIO20D				DUOWEN_GPIOP(1, 0, 3)
+#define GPIO21A				DUOWEN_GPIOP(1, 1, 0)
+#define GPIO21B				DUOWEN_GPIOP(1, 1, 1)
+#define GPIO21C				DUOWEN_GPIOP(1, 1, 2)
+#define GPIO21D				DUOWEN_GPIOP(1, 1, 3)
+#define GPIO22A				DUOWEN_GPIOP(1, 2, 0)
+#define GPIO22B				DUOWEN_GPIOP(1, 2, 1)
+#define GPIO22C				DUOWEN_GPIOP(1, 2, 2)
+#define GPIO22D				DUOWEN_GPIOP(1, 2, 3)
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 
 #ifdef CONFIG_DUOWEN_SBI_DUAL
 #define pad_gpio_0			__DUOWEN_GPIO(0, 0, 0, 0)
@@ -307,6 +350,167 @@
 #define pad_gpio_157			__DUOWEN_GPIO(0, 2, 3, 5)
 #define pad_gpio_158			__DUOWEN_GPIO(0, 2, 3, 6)
 #define pad_gpio_159			__DUOWEN_GPIO(0, 2, 3, 7)
+
+#define pad2_gpio_0			__DUOWEN_GPIO(1, 0, 0, 0)
+#define pad2_gpio_1			__DUOWEN_GPIO(1, 0, 0, 1)
+#define pad2_gpio_2			__DUOWEN_GPIO(1, 0, 0, 2)
+#define pad2_gpio_3			__DUOWEN_GPIO(1, 0, 0, 3)
+#define pad2_gpio_4			__DUOWEN_GPIO(1, 0, 0, 4)
+#define pad2_gpio_5			__DUOWEN_GPIO(1, 0, 0, 5)
+#define pad2_gpio_6			__DUOWEN_GPIO(1, 0, 0, 6)
+#define pad2_gpio_7			__DUOWEN_GPIO(1, 0, 0, 7)
+#define pad2_gpio_8			__DUOWEN_GPIO(1, 0, 1, 0)
+#define pad2_gpio_9			__DUOWEN_GPIO(1, 0, 1, 1)
+#define pad2_gpio_10			__DUOWEN_GPIO(1, 0, 1, 2)
+#define pad2_gpio_11			__DUOWEN_GPIO(1, 0, 1, 3)
+#define pad2_gpio_12			__DUOWEN_GPIO(1, 0, 1, 4)
+#define pad2_gpio_13			__DUOWEN_GPIO(1, 0, 1, 5)
+#define pad2_gpio_14			__DUOWEN_GPIO(1, 0, 1, 6)
+#define pad2_gpio_15			__DUOWEN_GPIO(1, 0, 1, 7)
+#define pad2_gpio_16			__DUOWEN_GPIO(1, 0, 2, 0)
+#define pad2_gpio_17			__DUOWEN_GPIO(1, 0, 2, 1)
+#define pad2_gpio_18			__DUOWEN_GPIO(1, 0, 2, 2)
+#define pad2_gpio_19			__DUOWEN_GPIO(1, 0, 2, 3)
+#define pad2_gpio_20			__DUOWEN_GPIO(1, 0, 2, 4)
+#define pad2_gpio_21			__DUOWEN_GPIO(1, 0, 2, 5)
+#define pad2_gpio_22			__DUOWEN_GPIO(1, 0, 2, 6)
+#define pad2_gpio_23			__DUOWEN_GPIO(1, 0, 2, 7)
+#define pad2_gpio_24			__DUOWEN_GPIO(1, 0, 3, 0)
+#define pad2_gpio_25			__DUOWEN_GPIO(1, 0, 3, 1)
+#define pad2_gpio_26			__DUOWEN_GPIO(1, 0, 3, 2)
+#define pad2_gpio_27			__DUOWEN_GPIO(1, 0, 3, 3)
+#define pad2_gpio_28			__DUOWEN_GPIO(1, 0, 3, 4)
+#define pad2_gpio_29			__DUOWEN_GPIO(1, 0, 3, 5)
+#define pad2_gpio_30			__DUOWEN_GPIO(1, 0, 3, 6)
+#define pad2_gpio_31			__DUOWEN_GPIO(1, 0, 3, 7)
+#define pad2_gpio_32			__DUOWEN_GPIO(1, 1, 0, 0)
+#define pad2_gpio_33			__DUOWEN_GPIO(1, 1, 0, 1)
+#define pad2_gpio_34			__DUOWEN_GPIO(1, 1, 0, 2)
+#define pad2_gpio_35			__DUOWEN_GPIO(1, 1, 0, 3)
+#define pad2_gpio_36			__DUOWEN_GPIO(1, 1, 0, 4)
+#define pad2_gpio_37			__DUOWEN_GPIO(1, 1, 0, 5)
+#define pad2_gpio_38			__DUOWEN_GPIO(1, 1, 0, 6)
+#define pad2_gpio_39			__DUOWEN_GPIO(1, 1, 0, 7)
+#define pad2_gpio_40			__DUOWEN_GPIO(1, 1, 0, 8)
+#define pad2_gpio_41			__DUOWEN_GPIO(1, 1, 0, 9)
+#define pad2_gpio_42			__DUOWEN_GPIO(1, 1, 0, 10)
+#define pad2_gpio_43			__DUOWEN_GPIO(1, 1, 0, 11)
+#define pad2_gpio_44			__DUOWEN_GPIO(1, 1, 0, 12)
+#define pad2_gpio_45			__DUOWEN_GPIO(1, 1, 0, 13)
+#define pad2_gpio_46			__DUOWEN_GPIO(1, 1, 0, 14)
+#define pad2_gpio_47			__DUOWEN_GPIO(1, 1, 0, 15)
+#define pad2_gpio_48			__DUOWEN_GPIO(1, 1, 1, 0)
+#define pad2_gpio_49			__DUOWEN_GPIO(1, 1, 1, 1)
+#define pad2_gpio_50			__DUOWEN_GPIO(1, 1, 1, 2)
+#define pad2_gpio_51			__DUOWEN_GPIO(1, 1, 1, 3)
+#define pad2_gpio_52			__DUOWEN_GPIO(1, 1, 1, 4)
+#define pad2_gpio_53			__DUOWEN_GPIO(1, 1, 1, 5)
+#define pad2_gpio_54			__DUOWEN_GPIO(1, 1, 1, 6)
+#define pad2_gpio_55			__DUOWEN_GPIO(1, 1, 1, 7)
+#define pad2_gpio_56			__DUOWEN_GPIO(1, 1, 1, 8)
+#define pad2_gpio_57			__DUOWEN_GPIO(1, 1, 1, 9)
+#define pad2_gpio_58			__DUOWEN_GPIO(1, 1, 1, 10)
+#define pad2_gpio_59			__DUOWEN_GPIO(1, 1, 1, 11)
+#define pad2_gpio_60			__DUOWEN_GPIO(1, 1, 1, 12)
+#define pad2_gpio_61			__DUOWEN_GPIO(1, 1, 1, 13)
+#define pad2_gpio_62			__DUOWEN_GPIO(1, 1, 1, 14)
+#define pad2_gpio_63			__DUOWEN_GPIO(1, 1, 1, 15)
+#define pad2_gpio_64			__DUOWEN_GPIO(1, 1, 2, 0)
+#define pad2_gpio_65			__DUOWEN_GPIO(1, 1, 2, 1)
+#define pad2_gpio_66			__DUOWEN_GPIO(1, 1, 2, 2)
+#define pad2_gpio_67			__DUOWEN_GPIO(1, 1, 2, 3)
+#define pad2_gpio_68			__DUOWEN_GPIO(1, 1, 2, 4)
+#define pad2_gpio_69			__DUOWEN_GPIO(1, 1, 2, 5)
+#define pad2_gpio_70			__DUOWEN_GPIO(1, 1, 2, 6)
+#define pad2_gpio_71			__DUOWEN_GPIO(1, 1, 2, 7)
+#define pad2_gpio_72			__DUOWEN_GPIO(1, 1, 3, 0)
+#define pad2_gpio_73			__DUOWEN_GPIO(1, 1, 3, 1)
+#define pad2_gpio_74			__DUOWEN_GPIO(1, 1, 3, 2)
+#define pad2_gpio_75			__DUOWEN_GPIO(1, 1, 3, 3)
+#define pad2_gpio_76			__DUOWEN_GPIO(1, 1, 3, 4)
+#define pad2_gpio_77			__DUOWEN_GPIO(1, 1, 3, 5)
+#define pad2_gpio_78			__DUOWEN_GPIO(1, 1, 3, 6)
+#define pad2_gpio_79			__DUOWEN_GPIO(1, 1, 3, 7)
+#define pad2_gpio_80			__DUOWEN_GPIO(1, 2, 0, 0)
+#define pad2_gpio_81			__DUOWEN_GPIO(1, 2, 0, 1)
+#define pad2_gpio_82			__DUOWEN_GPIO(1, 2, 0, 2)
+#define pad2_gpio_83			__DUOWEN_GPIO(1, 2, 0, 3)
+#define pad2_gpio_84			__DUOWEN_GPIO(1, 2, 0, 4)
+#define pad2_gpio_85			__DUOWEN_GPIO(1, 2, 0, 5)
+#define pad2_gpio_86			__DUOWEN_GPIO(1, 2, 0, 6)
+#define pad2_gpio_87			__DUOWEN_GPIO(1, 2, 0, 7)
+#define pad2_gpio_88			__DUOWEN_GPIO(1, 2, 0, 8)
+#define pad2_gpio_89			__DUOWEN_GPIO(1, 2, 0, 9)
+#define pad2_gpio_90			__DUOWEN_GPIO(1, 2, 0, 10)
+#define pad2_gpio_91			__DUOWEN_GPIO(1, 2, 0, 11)
+#define pad2_gpio_92			__DUOWEN_GPIO(1, 2, 0, 12)
+#define pad2_gpio_93			__DUOWEN_GPIO(1, 2, 0, 13)
+#define pad2_gpio_94			__DUOWEN_GPIO(1, 2, 0, 14)
+#define pad2_gpio_95			__DUOWEN_GPIO(1, 2, 0, 15)
+#define pad2_gpio_96			__DUOWEN_GPIO(1, 2, 0, 16)
+#define pad2_gpio_97			__DUOWEN_GPIO(1, 2, 0, 17)
+#define pad2_gpio_98			__DUOWEN_GPIO(1, 2, 0, 18)
+#define pad2_gpio_99			__DUOWEN_GPIO(1, 2, 0, 19)
+#define pad2_gpio_100			__DUOWEN_GPIO(1, 2, 0, 20)
+#define pad2_gpio_101			__DUOWEN_GPIO(1, 2, 0, 21)
+#define pad2_gpio_102			__DUOWEN_GPIO(1, 2, 0, 22)
+#define pad2_gpio_103			__DUOWEN_GPIO(1, 2, 0, 23)
+#define pad2_gpio_104			__DUOWEN_GPIO(1, 2, 0, 24)
+#define pad2_gpio_105			__DUOWEN_GPIO(1, 2, 0, 25)
+#define pad2_gpio_106			__DUOWEN_GPIO(1, 2, 0, 26)
+#define pad2_gpio_107			__DUOWEN_GPIO(1, 2, 0, 27)
+#define pad2_gpio_108			__DUOWEN_GPIO(1, 2, 0, 28)
+#define pad2_gpio_109			__DUOWEN_GPIO(1, 2, 0, 29)
+#define pad2_gpio_110			__DUOWEN_GPIO(1, 2, 0, 30)
+#define pad2_gpio_111			__DUOWEN_GPIO(1, 2, 0, 31)
+#define pad2_gpio_112			__DUOWEN_GPIO(1, 2, 1, 0)
+#define pad2_gpio_113			__DUOWEN_GPIO(1, 2, 1, 1)
+#define pad2_gpio_114			__DUOWEN_GPIO(1, 2, 1, 2)
+#define pad2_gpio_115			__DUOWEN_GPIO(1, 2, 1, 3)
+#define pad2_gpio_116			__DUOWEN_GPIO(1, 2, 1, 4)
+#define pad2_gpio_117			__DUOWEN_GPIO(1, 2, 1, 5)
+#define pad2_gpio_118			__DUOWEN_GPIO(1, 2, 1, 6)
+#define pad2_gpio_119			__DUOWEN_GPIO(1, 2, 1, 7)
+#define pad2_gpio_120			__DUOWEN_GPIO(1, 2, 1, 8)
+#define pad2_gpio_121			__DUOWEN_GPIO(1, 2, 1, 9)
+#define pad2_gpio_122			__DUOWEN_GPIO(1, 2, 1, 10)
+#define pad2_gpio_123			__DUOWEN_GPIO(1, 2, 1, 11)
+#define pad2_gpio_124			__DUOWEN_GPIO(1, 2, 1, 12)
+#define pad2_gpio_125			__DUOWEN_GPIO(1, 2, 1, 13)
+#define pad2_gpio_126			__DUOWEN_GPIO(1, 2, 1, 14)
+#define pad2_gpio_127			__DUOWEN_GPIO(1, 2, 1, 15)
+#define pad2_gpio_128			__DUOWEN_GPIO(1, 2, 1, 16)
+#define pad2_gpio_129			__DUOWEN_GPIO(1, 2, 1, 17)
+#define pad2_gpio_130			__DUOWEN_GPIO(1, 2, 1, 18)
+#define pad2_gpio_131			__DUOWEN_GPIO(1, 2, 1, 19)
+#define pad2_gpio_132			__DUOWEN_GPIO(1, 2, 1, 20)
+#define pad2_gpio_133			__DUOWEN_GPIO(1, 2, 1, 21)
+#define pad2_gpio_134			__DUOWEN_GPIO(1, 2, 1, 22)
+#define pad2_gpio_135			__DUOWEN_GPIO(1, 2, 1, 23)
+#define pad2_gpio_136			__DUOWEN_GPIO(1, 2, 1, 24)
+#define pad2_gpio_137			__DUOWEN_GPIO(1, 2, 1, 25)
+#define pad2_gpio_138			__DUOWEN_GPIO(1, 2, 1, 26)
+#define pad2_gpio_139			__DUOWEN_GPIO(1, 2, 1, 27)
+#define pad2_gpio_140			__DUOWEN_GPIO(1, 2, 1, 28)
+#define pad2_gpio_141			__DUOWEN_GPIO(1, 2, 1, 29)
+#define pad2_gpio_142			__DUOWEN_GPIO(1, 2, 1, 30)
+#define pad2_gpio_143			__DUOWEN_GPIO(1, 2, 1, 31)
+#define pad2_gpio_144			__DUOWEN_GPIO(1, 2, 2, 0)
+#define pad2_gpio_145			__DUOWEN_GPIO(1, 2, 2, 1)
+#define pad2_gpio_146			__DUOWEN_GPIO(1, 2, 2, 2)
+#define pad2_gpio_147			__DUOWEN_GPIO(1, 2, 2, 3)
+#define pad2_gpio_148			__DUOWEN_GPIO(1, 2, 2, 4)
+#define pad2_gpio_149			__DUOWEN_GPIO(1, 2, 2, 5)
+#define pad2_gpio_150			__DUOWEN_GPIO(1, 2, 2, 6)
+#define pad2_gpio_151			__DUOWEN_GPIO(1, 2, 2, 7)
+#define pad2_gpio_152			__DUOWEN_GPIO(1, 2, 3, 0)
+#define pad2_gpio_153			__DUOWEN_GPIO(1, 2, 3, 1)
+#define pad2_gpio_154			__DUOWEN_GPIO(1, 2, 3, 2)
+#define pad2_gpio_155			__DUOWEN_GPIO(1, 2, 3, 3)
+#define pad2_gpio_156			__DUOWEN_GPIO(1, 2, 3, 4)
+#define pad2_gpio_157			__DUOWEN_GPIO(1, 2, 3, 5)
+#define pad2_gpio_158			__DUOWEN_GPIO(1, 2, 3, 6)
+#define pad2_gpio_159			__DUOWEN_GPIO(1, 2, 3, 7)
 #else /* CONFIG_DUOWEN_SBI_DUAL */
 #define pad_gpio_0			DUOWEN_GPIO(0, 0, 0)
 #define pad_gpio_1			DUOWEN_GPIO(0, 0, 1)

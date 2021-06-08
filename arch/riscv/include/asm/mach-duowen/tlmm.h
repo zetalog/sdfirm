@@ -51,7 +51,7 @@
 #endif /* CONFIG_DUOWEN_SBI_DUAL */
 #ifdef CONFIG_MMU
 #ifdef CONFIG_DUOWEN_SBI_DUAL
-#define DUOWEN_TLMM_BASE(soc)		duowen_tlmm_reg_base(soc)
+#define DUOWEN_TLMM_BASE(soc)		duowen_tlmm_reg_base[soc]
 #else /* CONFIG_DUOWEN_SBI_DUAL */
 #define DUOWEN_TLMM_BASE(soc)		duowen_tlmm_reg_base
 #endif /* CONFIG_DUOWEN_SBI_DUAL */

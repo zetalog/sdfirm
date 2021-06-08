@@ -240,29 +240,29 @@ void duowen_mmu_dump_uart(void)
 #endif
 
 #ifdef CONFIG_DUOWEN_GPIO
-caddr_t duowen_gpio_reg_base[3];
+caddr_t duowen_gpio_reg_base[GPIO_HW_MAX_CTRLS];
 #ifdef CONFIG_DUOWEN_SBI_DUAL
 caddr_t duowen_tlmm_reg_base[2];
 
 static void __duowen_mmu_map_tlmm(uint8_t soc)
 {
-	if (duowen_tlmm_reg_base == __DUOWEN_TLMM_BASE(soc)) {
+	if (duowen_tlmm_reg_base[soc] == __DUOWEN_TLMM_BASE(soc)) {
 		set_fixmap_io(FIX_TLMM(soc),
 			      __DUOWEN_TLMM_BASE(soc) & PAGE_MASK);
-		duowen_tlmm_reg_base(soc) = fix_to_virt(FIX_TLMM(soc));
+		duowen_tlmm_reg_base[soc] = fix_to_virt(FIX_TLMM(soc));
 	}
 }
 
 static void __duowen_mmu_dump_tlmm(uint8_t soc)
 {
-	if (duowen_tlmm_reg_base(soc) != __DUOWEN_TLMM_BASE(soc))
+	if (duowen_tlmm_reg_base[soc] != __DUOWEN_TLMM_BASE(soc))
 		con_log("FIXMAP: %016llx -> %016llx: TLMM\n",
 			__DUOWEN_TLMM_BASE(soc), fix_to_virt(FIX_TLMM(soc)));
 }
 
 static void __duowen_mmu_init_tlmm(uint8_t soc)
 {
-	duowen_tlmm_reg_base(soc) = __DUOWEN_TLMM_BASE(soc);
+	duowen_tlmm_reg_base[soc] = __DUOWEN_TLMM_BASE(soc);
 }
 
 static void duowen_mmu_map_tlmm(void)
@@ -281,6 +281,46 @@ static void duowen_mmu_init_tlmm(void)
 {
 	__duowen_mmu_init_tlmm(0);
 	__duowen_mmu_init_tlmm(1);
+}
+
+void __duowen_mmu_map_gpioc(uint8_t soc)
+{
+	int i, j;
+
+	for (i = 0; i < __GPIO_HW_MAX_CTRLS; i++) {
+		j = __GPIO_HW_MAX_CTRLS * soc + i;
+		if (duowen_gpio_reg_base[j] == __DUOWEN_GPIO_BASE(j)) {
+			set_fixmap_io(FIX_GPIO0(soc) + i,
+				      __DUOWEN_GPIO_BASE(j) & PAGE_MASK);
+			duowen_gpio_reg_base[j] =
+				fix_to_virt(FIX_GPIO0(soc) + i);
+		}
+	}
+}
+
+void duowen_mmu_map_gpioc(void)
+{
+	__duowen_mmu_map_gpioc(0);
+	__duowen_mmu_map_gpioc(1);
+}
+
+void __duowen_mmu_dump_gpioc(uint8_t soc)
+{
+	int i, j;
+
+	for (i = 0; i < __GPIO_HW_MAX_CTRLS; i++) {
+		j = __GPIO_HW_MAX_CTRLS * soc + i;
+		if (duowen_gpio_reg_base[j] != __DUOWEN_GPIO_BASE(j))
+			con_log("FIXMAP: %016llx -> %016llx: GPIO%d\n",
+				__DUOWEN_GPIO_BASE(j),
+				fix_to_virt(FIX_GPIO0(soc) + i), i);
+	}
+}
+
+void duowen_mmu_dump_gpioc(void)
+{
+	__duowen_mmu_dump_gpioc(0);
+	__duowen_mmu_dump_gpioc(1);
 }
 #else /* CONFIG_DUOWEN_SBI_DUAL */
 caddr_t duowen_tlmm_reg_base;
@@ -311,14 +351,13 @@ static void duowen_mmu_init_tlmm(void)
 
 	duowen_tlmm_reg_base = __DUOWEN_TLMM_BASE(soc);
 }
-#endif /* CONFIG_DUOWEN_SBI_DUAL */
 
-void duowen_mmu_map_gpio(void)
+void duowen_mmu_map_gpioc(void)
 {
 	__unused uint8_t soc = imc_socket_id();
 	int i;
 
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < __GPIO_HW_MAX_CTRLS; i++) {
 		if (duowen_gpio_reg_base[i] == __DUOWEN_GPIO_BASE(i)) {
 			set_fixmap_io(FIX_GPIO0(soc) + i,
 				      __DUOWEN_GPIO_BASE(i) & PAGE_MASK);
@@ -326,10 +365,9 @@ void duowen_mmu_map_gpio(void)
 				fix_to_virt(FIX_GPIO0(soc) + i);
 		}
 	}
-	duowen_mmu_map_tlmm();
 }
 
-void duowen_mmu_dump_gpio(void)
+void duowen_mmu_dump_gpioc(void)
 {
 	__unused uint8_t soc = imc_socket_id();
 	int i;
@@ -340,6 +378,18 @@ void duowen_mmu_dump_gpio(void)
 				__DUOWEN_GPIO_BASE(i),
 				fix_to_virt(FIX_GPIO0(soc) + i), i);
 	}
+}
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
+
+void duowen_mmu_map_gpio(void)
+{
+	duowen_mmu_map_gpioc();
+	duowen_mmu_map_tlmm();
+}
+
+void duowen_mmu_dump_gpio(void)
+{
+	duowen_mmu_dump_gpioc();
 	duowen_mmu_dump_tlmm();
 }
 #endif
@@ -371,16 +421,16 @@ caddr_t duowen_scsr_reg_base[2];
 
 static void __duowen_mmu_map_scsr(uint8_t soc)
 {
-	if (duowen_scsr_reg_base == __DUOWEN_SCSR_BASE(soc)) {
+	if (duowen_scsr_reg_base[soc] == __DUOWEN_SCSR_BASE(soc)) {
 		set_fixmap_io(FIX_SCSR(soc),
 			      __DUOWEN_SCSR_BASE(soc) & PAGE_MASK);
-		duowen_scsr_reg_base(soc) = fix_to_virt(FIX_SCSR(soc));
+		duowen_scsr_reg_base[soc] = fix_to_virt(FIX_SCSR(soc));
 	}
 }
 
 static void __duowen_mmu_dump_scsr(uint8_t soc)
 {
-	if (duowen_scsr_reg_base(soc) != __DUOWEN_SCSR_BASE(soc))
+	if (duowen_scsr_reg_base[soc] != __DUOWEN_SCSR_BASE(soc))
 		con_log("FIXMAP: %016llx -> %016llx: SCSR\n",
 			__DUOWEN_SCSR_BASE(soc), fix_to_virt(FIX_SCSR(soc)));
 }
@@ -401,8 +451,8 @@ void duowen_mmu_dump_scsr(void)
 
 void duowen_mmu_init_scsr(void)
 {
-	duowen_scsr_reg_base[0] = __DUOWEN_SCSR_BASE[0];
-	duowen_scsr_reg_base[1] = __DUOWEN_SCSR_BASE[1];
+	duowen_scsr_reg_base[0] = __DUOWEN_SCSR_BASE(0);
+	duowen_scsr_reg_base[1] = __DUOWEN_SCSR_BASE(1);
 	duowen_mmu_init_lcsr();
 }
 #else /* CONFIG_DUOWEN_SBI_DUAL */

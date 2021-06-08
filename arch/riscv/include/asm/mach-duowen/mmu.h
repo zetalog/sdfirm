@@ -49,12 +49,12 @@
 #define __FIX_APC1		5
 #define __FIX_APC2		6
 #define __FIX_APC3		7
-#define __FIX_ETH		8
-#define __FIX_GPIO0		9
-#define __FIX_GPIO1		10
-#define __FIX_GPIO2		11
-#define __FIX_TLMM		12
-#define __FIX_SCSR		13
+#define __FIX_GPIO0		8
+#define __FIX_GPIO1		9
+#define __FIX_GPIO2		10
+#define __FIX_TLMM		11
+#define __FIX_SCSR		12
+#define __FIX_ETH		13
 /* Non-socket shareables */
 #define __FIX_UART		14
 #define __FIX_LCSR		15
@@ -71,12 +71,12 @@
 #define FIX_APC1(soc)		(__FIX_HOLE(soc) + __FIX_APC1)
 #define FIX_APC2(soc)		(__FIX_HOLE(soc) + __FIX_APC2)
 #define FIX_APC3(soc)		(__FIX_HOLE(soc) + __FIX_APC3)
-#define FIX_ETH(soc)		(__FIX_HOLE(soc) + __FIX_ETH)
 #define FIX_GPIO0(soc)		(__FIX_HOLE(soc) + __FIX_GPIO0)
 #define FIX_GPIO1(soc)		(__FIX_HOLE(soc) + __FIX_GPIO1)
 #define FIX_GPIO2(soc)		(__FIX_HOLE(soc) + __FIX_GPIO2)
 #define FIX_TLMM(soc)		(__FIX_HOLE(soc) + __FIX_TLMM)
 #define FIX_SCSR(soc)		(__FIX_HOLE(soc) + __FIX_SCSR)
+#define FIX_ETH(soc)		(__FIX_HOLE(soc) + __FIX_ETH)
 #define MMU_HW_MAX_FIXMAP	(__FIX_HOLE(1) + __FIX_MAX)
 #else /* CONFIG_DUOWEN_SBI_DUAL */
 #define FIX_PLIC(soc)		(FIX_HOLE + __FIX_PLIC)
@@ -86,12 +86,12 @@
 #define FIX_APC1(soc)		(FIX_HOLE + __FIX_APC1)
 #define FIX_APC2(soc)		(FIX_HOLE + __FIX_APC2)
 #define FIX_APC3(soc)		(FIX_HOLE + __FIX_APC3)
-#define FIX_ETH(soc)		(FIX_HOLE + __FIX_ETH)
 #define FIX_GPIO0(soc)		(FIX_HOLE + __FIX_GPIO0)
 #define FIX_GPIO1(soc)		(FIX_HOLE + __FIX_GPIO1)
 #define FIX_GPIO2(soc)		(FIX_HOLE + __FIX_GPIO2)
 #define FIX_TLMM(soc)		(FIX_HOLE + __FIX_TLMM)
 #define FIX_SCSR(soc)		(FIX_HOLE + __FIX_SCSR)
+#define FIX_ETH(soc)		(FIX_HOLE + __FIX_ETH)
 #define MMU_HW_MAX_FIXMAP	(FIX_HOLE + __FIX_MAX)
 #endif /* CONFIG_DUOWEN_SBI_DUAL */
 
