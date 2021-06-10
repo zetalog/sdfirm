@@ -51,8 +51,10 @@
 #endif
 
 #ifdef CONFIG_DUOWEN_SBI_DUAL
+#define PLIC_BASE(soc)			(__SOC_BASE(soc) + __PLIC_BASE)
 #define PLIC_HW_MAX_CHIPS		2
 #else /* CONFIG_DUOWEN_SBI_DUAL */
+#define PLIC_BASE			IRQC_BASE
 #define PLIC_HW_MAX_CHIPS		1
 #endif /* CONFIG_DUOWEN_SBI_DUAL */
 

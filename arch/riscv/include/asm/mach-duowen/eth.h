@@ -3,10 +3,16 @@
 
 #include <target/clk.h>
 
-#define DW_XGMAC_BASE		XGMAC_BASE
-#define DW_XGMAC_CLK_SRC	sysfab_clk
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+#define DW_XGMAC_BASE(soc)	(__SOC_BASE(soc) + XGMAC_BASE)
+#define DW_XPCS_BASE(soc)	(__SOC_BASE(soc) + XPCS_BASE)
+#define DW_XGMAC_CLK_SRC(soc)	((soc) ? sysfab_clk2 : sysfab_clk)
+#else /* CONFIG_DUOWEN_SBI_DUAL */
+#define DW_XGMAC_BASE(soc)	XGMAC_BASE
+#define DW_XPCS_BASE(soc)	XPCS_BASE
+#define DW_XGMAC_CLK_SRC(soc)	sysfab_clk
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 
-#define DW_XPCS_BASE		XPCS_BASE
 #define DW_XPCS_PHY_ADDR	0
 #define DW_XPCS_APBI_OFFSET	1
 #ifdef CONFIG_DUOWEN_ETH_10000BASE_KX4
