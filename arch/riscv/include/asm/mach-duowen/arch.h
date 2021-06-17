@@ -110,10 +110,10 @@
 	.macro get_arch_smpid reg
 	.endm
 	.macro get_arch_hartboot reg
-	li	\reg, __SCSR_SOCKET_ID
-	lw	\reg, 0(t0)
-	andi	\reg, \reg, 2
 	li	t0, 0
+	li	\reg, __SCSR_SOCKET_ID
+	lw	\reg, 0(\reg)
+	andi	\reg, \reg, IMC_SOCKET_ID
 	beqz	\reg, 2222f
 	addi	t0, t0, SOC1_HART
 	li	\reg, SOC1_BASE
@@ -135,7 +135,7 @@
 	li	t1, SOC0_HART
 	li	t0, __SCSR_SOCKET_ID
 	lw	t0, 0(t0)
-	andi	t0, t0, 2
+	andi	t0, t0, IMC_SOCKET_ID
 	beqz	t0, 3333f
 	addi	t1, t1, SOC1_HART
 3333:
@@ -143,10 +143,10 @@
 	.endm
 #ifdef CONFIG_DUOWEN_ASBL
 	.macro get_arch_hartboot reg
-	li	\reg, __SCSR_SOCKET_ID
-	lw	\reg, 0(t0)
-	andi	\reg, \reg, 2
 	li	t0, 0
+	li	\reg, __SCSR_SOCKET_ID
+	lw	\reg, 0(\reg)
+	andi	\reg, \reg, IMC_SOCKET_ID
 	beqz	\reg, 4444f
 	addi	t0, t0, SOC1_HART
 	li	\reg, SOC1_BASE
@@ -163,7 +163,7 @@
 	li	\reg, BOOT_HART
 	li	t0, __SCSR_SOCKET_ID
 	lw	t0, 0(t0)
-	andi	t0, t0, 2
+	andi	t0, t0, IMC_SOCKET_ID
 	beqz	t0, 4444f
 	addi	\reg, \reg, SOC1_HART
 4444:
@@ -173,7 +173,7 @@
 	li	\reg, CPU_ALL
 	li	t0, __SCSR_SOCKET_ID
 	lw	t0, 0(t0)
-	andi	t0, t0, 2
+	andi	t0, t0, IMC_SOCKET_ID
 	beqz	t0, 5555f
 	slli	\reg, \reg, SOC1_HART
 5555:
