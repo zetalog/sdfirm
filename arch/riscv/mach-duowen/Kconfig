@@ -103,9 +103,9 @@ config DUOWEN_FSBL
 	select DUOWEN_DDR
 	select DUOWEN_SPI_FLASH
 	select DUOWEN_SSI_FLASH
-	select DUOWEN_APC_INIT if (!DUOWEN_SBL_LOAD && DUOWEN_APC)
-	select DUOWEN_NOC if (!DUOWEN_SBL_LOAD && DUOWEN_APC)
-	select DUOWEN_PMA if (!DUOWEN_SBL_LOAD && DUOWEN_APC)
+	select DUOWEN_APC_INIT if (DUOWEN_APC && !DUOWEN_SBL_LOAD)
+	select DUOWEN_NOC if (DUOWEN_IMC || !DUOWEN_SBL_LOAD)
+	select DUOWEN_PMA if (DUOWEN_APC && !DUOWEN_SBL_LOAD)
 	select DUOWEN_BOOT_PROT if DUOWEN_LOAD_IMC_FIRMWARE
 
 config DUOWEN_BBL
@@ -471,13 +471,21 @@ endif
 
 menuconfig DUOWEN_NOC
 	bool "Duowen network on chip (NoC) support"
-	depends DUOWEN_APC
+	depends DUOWEN_APC || DUOWEN_FSBL
 	select ARCH_HAS_NCORE_RECONF
 	select NCORE
+	select DUOWEN_NOC_INIT_CLOCKS
 	help
 	  NoC driver is required by FSBL or BBL before booting into Linux.
 
 if DUOWEN_NOC
+
+config DUOWEN_NOC_INIT_CLOCKS
+	bool "Enable initialization of dependent clocks"
+	help
+	  On some SoC versions, it is required to initialize dependent
+	  clocks prior than initializing NoC as these clocks are gated by
+	  default on that SoC versions.
 
 config DUOWEN_NOC_DEBUG
 	bool "Enable debugging messages"
@@ -582,6 +590,9 @@ config CRCNTL_TRACE
 	bool "Enable clock tree enabling/disabling trace logs"
 	depends CONSOLE_DEBUG
 	depends !SBI
+
+config DUOWEN_PCIE_RAMP
+	bool "Enable PCIe ramp control support"
 
 endif
 

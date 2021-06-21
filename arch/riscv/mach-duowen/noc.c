@@ -45,8 +45,6 @@
 #include <target/console.h>
 
 #ifdef CONFIG_DUOWEN_NOC_DEBUG
-#define duowen_noc_debug()		do { } while (0)
-#else
 static void duowen_noc_debug(void)
 {
 	console_init();
@@ -54,9 +52,12 @@ static void duowen_noc_debug(void)
 		imc_socket_id(), imc_chip_link() ? "chiplink " : "",
 		rom_get_cluster_num(), rom_get_cluster_map());
 }
-#endif
+#else /* CONFIG_DUOWEN_NOC_DEBUG */
+#define duowen_noc_debug()		do { } while (0)
+#endif /* CONFIG_DUOWEN_NOC_DEBUG */
 
-void duowen_noc_init(void)
+#ifdef CONFIG_DUOWEN_NOC_INIT_CLOCKS
+static void duowen_noc_init_clocks(void)
 {
 	/* NoC connects to fabrics and DDR/PCIes. So their clocks must
 	 * be enabled before configuring NoC.
@@ -65,7 +66,20 @@ void duowen_noc_init(void)
 	/* Ensured required clocks */
 	clk_enable(ddr_aclk);
 	clk_enable(pcie_aclk);
-	duowen_noc_debug();
-	ncore_init(rom_get_cluster_num(), rom_get_cluster_map(),
-		   0, MAX_DDR_SEGMENTS, MAX_DDR_SEGMENTS);
+}
+#else /* CONFIG_DUOWEN_NOC_INIT_CLOCKS */
+#define duowen_noc_init_clocks()	do { } while (0)
+#endif /* CONFIG_DUOWEN_NOC_INIT_CLOCKS */
+
+void duowen_noc_init(void)
+{
+	if (!rom_get_noc_configured()) {
+		duowen_noc_init_clocks();
+		duowen_noc_debug();
+		crcntl_pcie_ramp(1);
+		ncore_init(rom_get_cluster_num(), rom_get_cluster_map(),
+			   0, MAX_DDR_SEGMENTS, MAX_DDR_SEGMENTS);
+		crcntl_pcie_ramp(15);
+		rom_set_noc_configured();
+	}
 }

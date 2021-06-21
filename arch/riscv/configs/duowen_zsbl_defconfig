@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Jun  7 11:23:57 2021
+# Mon Jun 21 18:09:02 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -198,6 +198,7 @@ CONFIG_DUOWEN_PLL_REAL=y
 # CONFIG_DUOWEN_PLL_FAKE is not set
 CONFIG_CRCNTL_MUX=y
 # CONFIG_CRCNTL_RESET is not set
+# CONFIG_DUOWEN_PCIE_RAMP is not set
 CONFIG_DUOWEN_SCSR=y
 CONFIG_DUOWEN_TLMM=y
 CONFIG_DUOWEN_GPIO=y

@@ -158,6 +158,7 @@ extern caddr_t duowen_eth_clk_reg_base;
 /* clock control */
 #define CRCNTL_CLK_EN_CFG(soc, n)	CRCNTL_REG(soc, 0x140 + ((n) << 2))
 #define CRCNTL_CLK_SEL_CFG(soc)		CRCNTL_REG(soc, 0x150)
+#define CRCNTL_PCIE_RAMP_CTRL(soc)	CRCNTL_REG(soc, 0x160)
 
 /* COHFAB/CLUSTER clock control */
 #define COHFAB_CLOCK_SEL		_BV(0)
@@ -242,6 +243,21 @@ extern caddr_t duowen_eth_clk_reg_base;
 #define PLL_COUNTER_MASK	REG_10BIT_MASK
 #define PLL_COUNTER(value)	_GET_FV(PLL_COUNTER, value)
 
+/* PCIE_RAMP_CTRL */
+#define PCIE_RAMP_IDLE			_BV(31)
+#define PCIE_RAMP_STEP_OFFSET		12
+#define PCIE_RAMP_STEP_MASK		REG_4BIT_MASK
+#define PCIE_RAMP_STEP(value)		_SET_FV(PCIE_RAMP_STEP, value)
+#define PCIE_RAMP_PERIOD_OFFSET		8
+#define PCIE_RAMP_PERIOD_MASK		REG_4BIT_MASK
+#define PCIE_RAMP_PERIOD(value)		_SET_FV(PCIE_RAMP_PERIOD, value)
+#define PCIE_RAMP_MAX_RATIO_OFFSET	4
+#define PCIE_RAMP_MAX_RATIO_MASK	REG_4BIT_MASK
+#define PCIE_RAMP_MAX_RATIO(value)	_SET_FV(PCIE_RAMP_MAX_RATIO, value)
+#define PCIE_RAMP_MIN_RATIO_OFFSET	0
+#define PCIE_RAMP_MIN_RATIO_MASK	REG_4BIT_MASK
+#define PCIE_RAMP_MIN_RATIO(value)	_SET_FV(PCIE_RAMP_MIN_RATIO, value)
+
 /* APIs here can be invoked w/o enabling clock tree core */
 bool __crcntl_clk_asserted(clk_clk_t clk, uint8_t soc);
 void __crcntl_clk_assert(clk_clk_t clk, uint8_t soc);
@@ -261,6 +277,11 @@ void __cluster_clk_deassert(clk_clk_t clk, uint8_t soc);
 bool __cluster_clk_enabled(clk_clk_t clk, uint8_t soc);
 void __cluster_clk_enable(clk_clk_t clk, uint8_t soc);
 void __cluster_clk_disable(clk_clk_t clk, uint8_t soc);
+#ifdef CONFIG_DUOWEN_PCIE_RAMP
+void crcntl_pcie_ramp(uint8_t ratio);
+#else /* CONFIG_DUOWEN_PCIE_RAMP */
+#define crcntl_pcie_ramp(ratio)			do { } while (0)
+#endif /* CONFIG_DUOWEN_PCIE_RAMP */
 #define crcntl_clk_asserted(clk)		\
 	__crcntl_clk_asserted(clk, imc_socket_id())
 #define crcntl_clk_assert(clk)			\

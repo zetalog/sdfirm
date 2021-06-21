@@ -343,3 +343,23 @@ uint32_t rom_get_apc_map(void)
 	}
 	return (uint32_t)__rom_get_apc_map(imc_socket_id());
 }
+
+static bool __rom_get_noc_configured(uint8_t soc)
+{
+	return (!!(__raw_readl(ROM_SOC_STATUS(soc)) & ROM_NOC_INIT));
+}
+
+static void __rom_set_noc_configured(uint8_t soc)
+{
+	__raw_setl(ROM_NOC_INIT, ROM_SOC_STATUS(soc));
+}
+
+bool rom_get_noc_configured(void)
+{
+	return __rom_get_noc_configured(imc_socket_id());
+}
+
+void rom_set_noc_configured(void)
+{
+	__rom_set_noc_configured(imc_socket_id());
+}

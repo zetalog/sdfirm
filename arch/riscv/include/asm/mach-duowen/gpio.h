@@ -114,7 +114,7 @@
 #define __DUOWEN_GPIO(soc, chip, port, pin)	\
 	(DUOWEN_GPIO_SOC(soc) | DUOWEN_GPIO_PIN(pin))
 #else /* CONFIG_DUOWEN_SBI_DUAL */
-#define duowen_gpio_soc(value)			imc_socket_id()
+#define duowen_gpio_soc(value)			0
 #define __DUOWEN_GPIO(soc, chip, port, pin)	DUOWEN_GPIO_PIN(pin)
 #endif /* CONFIG_DUOWEN_SBI_DUAL */
 #define DUOWEN_GPIO(soc, chip, port, pin)	\
@@ -152,7 +152,7 @@
 	 DUOWEN_GPIO_PORT(port) |		\
 	 DUOWEN_GPIO_PIN(pin))
 #else /* CONFIG_DUOWEN_SBI_DUAL */
-#define duowen_gpio_soc(value)			imc_socket_id()
+#define duowen_gpio_soc(value)			0
 #define __DUOWEN_GPIO(soc, chip, port, pin)	\
 	(DUOWEN_GPIO_CHIP(chip) |		\
 	 DUOWEN_GPIO_PORT(port) |		\

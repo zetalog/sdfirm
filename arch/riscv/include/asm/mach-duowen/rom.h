@@ -52,10 +52,10 @@
  * | RSVD | PLICCNTL | CHIPLINK |
  * +------+----------+----------+
  * SW_MSG_1:
- * 32    23         18    17    16                  0
- * +------+----------+-----+-----+------------------+
- * | RSVD | BOOTHART | IMC | APC | APC Partial Good |
- * +------+----------+-----+-----+------------------+
+ * 32    24    23         18    17    16                  0
+ * +------+-----+----------+-----+-----+------------------+
+ * | RSVD | NOC | BOOTHART | IMC | APC | APC Partial Good |
+ * +------+-----+----------+-----+-----+------------------+
  */
 
 #define __ROM_GBL_STATUS	(__SCSR_BASE + ____SCSR_SW_MSG(0))
@@ -81,7 +81,9 @@
 #define ROM_BOOTHART_MASK	REG_4BIT_MASK
 #define ROM_SET_BOOTHART(value)	_SET_FV(ROM_BOOTHART, value)
 #define ROM_GET_BOOTHART(value)	_GET_FV(ROM_BOOTHART, value)
+#define ROM_NOC_INIT		23
 
+/* global status */
 #define rom_get_chiplink_ready()				\
 	(!!(__raw_readl(ROM_GBL_STATUS) & ROM_CHIPLINK_READY))
 #define rom_set_chiplink_ready()				\
@@ -95,12 +97,15 @@
 	(imc_chip_link() && rom_get_chiplink_ready())
 
 #ifndef __ASSEMBLY__
+/* socket specific status */
 uint16_t rom_get_s0_apc_map(void);
 uint16_t rom_get_s1_apc_map(void);
 void rom_set_apc_map(uint16_t map);
 uint32_t rom_get_apc_map(void);
 uint8_t rom_get_cluster_num(void);
 uint8_t rom_get_cluster_map(void);
+bool rom_get_noc_configured(void);
+void rom_set_noc_configured(void);
 #endif /* __ASSEMBLY__ */
 
 #endif /* __ROM_DUOWEN_H_INCLUDE__ */

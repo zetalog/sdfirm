@@ -377,6 +377,18 @@ void __crcntl_clk_sel_write(uint32_t sels, uint8_t soc)
 }
 #endif
 
+#ifdef CONFIG_DUOWEN_PCIE_RAMP
+void crcntl_pcie_ramp(uint8_t ratio)
+{
+	__unused uint8_t soc = imc_socket_id();
+
+	__raw_writel_mask(PCIE_RAMP_MAX_RATIO(ratio),
+			  PCIE_RAMP_MAX_RATIO(PCIE_RAMP_MAX_RATIO_MASK),
+			  CRCNTL_PCIE_RAMP_CTRL(soc));
+	while (!(__raw_readl(CRCNTL_PCIE_RAMP_CTRL(soc)) & PCIE_RAMP_IDLE));
+}
+#endif /* CONFIG_DUOWEN_PCIE_RAMP */
+
 /*===========================================================================
  * CRCNTL TRACE APIs
  *===========================================================================*/
