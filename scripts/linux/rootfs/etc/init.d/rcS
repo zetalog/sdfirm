@@ -16,7 +16,8 @@ if [ -e /dev/eth0 ]; then
 fi
 
 dhrystone 50
-#dhrystone 200000000
+#litmus.sh
+#dhrystone 3000000000
 #linpack
 
 /bin/sh -i

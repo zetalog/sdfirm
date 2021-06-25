@@ -20,19 +20,19 @@
 		bootargs = [00];
 #ifdef CONFIG_DUOWEN_UART_CON0
 		stdout-path = "/uart0@ff63000000 rdinit=/sbin/init";
-#endif
+#endif /* CONFIG_DUOWEN_UART_CON0 */
 #ifdef CONFIG_DUOWEN_UART_CON1
 		stdout-path = "/uart1@ff63100000 rdinit=/sbin/init";
-#endif
+#endif /* CONFIG_DUOWEN_UART_CON1 */
 #ifdef CONFIG_DUOWEN_UART_CON2
 		stdout-path = "/uart2@ff63200000 rdinit=/sbin/init";
-#endif
+#endif /* CONFIG_DUOWEN_UART_CON2 */
 #ifdef CONFIG_DUOWEN_UART_CON3
 		stdout-path = "/uart3@ff63300000 rdinit=/sbin/init";
-#endif
-#else
+#endif /* CONFIG_DUOWEN_UART_CON3 */
+#else /* CONFIG_DUOWEN_UART_DTS_CON */
 		bootargs = "console=hvc0 earlycon=sbi rdinit=/sbin/init";
-#endif
+#endif /* CONFIG_DUOWEN_UART_DTS_CON */
 	};
 
 #ifdef CONFIG_DUOWEN_UART_DTS
@@ -71,7 +71,7 @@
 #ifdef CONFIG_DUOWEN_UART_DTS_DMA
 		dmas = <&dma 0>, <&dma 1>;
 		dma-names = "tx", "rx";
-#endif
+#endif /* CONFIG_DUOWEN_UART_DTS_DMA */
 #ifdef CONFIG_DUOWEN_UART_CON1
 #ifdef CONFIG_DUOWEN_UART_DTS_CON
 		status = "okay";
@@ -88,10 +88,10 @@
 		interrupt-parent = <&plic0>;
 #ifdef CONFIG_DUOWEN_UART_DTS_CLK_FREQ
 		clock-frequency = <APB_CLK_FREQ>;
-#else
+#else /* CONFIG_DUOWEN_UART_DTS_CLK_FREQ */
 		clocks = <&crcntl sbi_uart2_clk>, <&crcntl sbi_uart2_clk>;
 		clock-names = "baudclk", "apb_pclk";
-#endif
+#endif /* CONFIG_DUOWEN_UART_DTS_CLK_FREQ */
 		reg = <0xff 0x63200000 0x0 0x100>;
 		reg-io-width = <4>;
 		reg-shift = <2>;
@@ -112,10 +112,10 @@
 		interrupt-parent = <&plic0>;
 #ifdef CONFIG_DUOWEN_UART_DTS_CLK_FREQ
 		clock-frequency = <APB_CLK_FREQ>;
-#else
+#else /* CONFIG_DUOWEN_UART_DTS_CLK_FREQ */
 		clocks = <&crcntl sbi_uart3_clk>, <&crcntl sbi_uart3_clk>;
 		clock-names = "baudclk", "apb_pclk";
-#endif
+#endif /* CONFIG_DUOWEN_UART_DTS_CLK_FREQ */
 		reg = <0xff 0x63300000 0x0 0x100>;
 		reg-io-width = <4>;
 		reg-shift = <2>;
@@ -257,7 +257,7 @@
 			spi-cpol;
 			status = "okay";
 		};
-#endif
+#endif /* CONFIG_DUOWEN_SSI_FLASH_SPI0 */
 	};
 	spi1: spi@ff62100000 {
 		#address-cells = <1>;
@@ -298,7 +298,7 @@
 		num-cs = <1>;
 		status = "okay";
 	};
-#endif
+#endif /* CONFIG_DUOWEN_SSI_MASTER_DTS */
 	poweroff {
 		value = <0x5555>;
 		offset = <0x0>;
@@ -318,49 +318,49 @@
 		device_type = "memory";
 #ifdef CONFIG_DUOWEN_DDR_32M
 		reg = <0x0 0x00000000 0x0 0x02000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_32M */
 #ifdef CONFIG_DUOWEN_DDR_64M
 		reg = <0x0 0x00000000 0x0 0x04000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_64M */
 #ifdef CONFIG_DUOWEN_DDR_128M
 		reg = <0x0 0x00000000 0x0 0x08000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_128M */
 #ifdef CONFIG_DUOWEN_DDR_256M
 		reg = <0x0 0x00000000 0x0 0x10000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_256M */
 #ifdef CONFIG_DUOWEN_DDR_512M
 		reg = <0x0 0x00000000 0x0 0x20000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_512M */
 #ifdef CONFIG_DUOWEN_DDR_1G
 		reg = <0x0 0x00000000 0x0 0x40000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_1G */
 #ifdef CONFIG_DUOWEN_DDR_2G
 		reg = <0x0 0x00000000 0x0 0x80000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_2G */
 #ifdef CONFIG_DUOWEN_DDR_4G
 		reg = <0x0 0x00000000 0x1 0x00000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_4G */
 #ifdef CONFIG_DUOWEN_DDR_8G
 		reg = <0x0 0x00000000 0x2 0x00000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_8G */
 #ifdef CONFIG_DUOWEN_DDR_16G
 		reg = <0x0 0x00000000 0x4 0x00000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_16G */
 #ifdef CONFIG_DUOWEN_DDR_32G
 		reg = <0x0 0x00000000 0x8 0x00000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_32G */
 #ifdef CONFIG_DUOWEN_DDR_64G
 		reg = <0x0 0x00000000 0x10 0x00000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_64G */
 #ifdef CONFIG_DUOWEN_DDR_128G
 		reg = <0x0 0x00000000 0x20 0x00000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_128G */
 #ifdef CONFIG_DUOWEN_DDR_256G
 		reg = <0x0 0x00000000 0x40 0x00000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_256G */
 #ifdef CONFIG_DUOWEN_DDR_512G
 		reg = <0x0 0x00000000 0x80 0x00000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_512G */
 	};
 #endif /* CONFIG_DUOWEN_DDR_DUAL_SOC1 */
 
@@ -369,56 +369,61 @@
 		device_type = "memory";
 #ifdef CONFIG_DUOWEN_DDR_32M
 		reg = <0x800 0x00000000 0x0 0x02000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_32M */
 #ifdef CONFIG_DUOWEN_DDR_64M
 		reg = <0x800 0x00000000 0x0 0x04000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_64M */
 #ifdef CONFIG_DUOWEN_DDR_128M
 		reg = <0x800 0x00000000 0x0 0x08000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_128M */
 #ifdef CONFIG_DUOWEN_DDR_256M
 		reg = <0x800 0x00000000 0x0 0x10000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_256M */
 #ifdef CONFIG_DUOWEN_DDR_512M
 		reg = <0x800 0x00000000 0x0 0x20000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_512M */
 #ifdef CONFIG_DUOWEN_DDR_1G
 		reg = <0x800 0x00000000 0x0 0x40000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_1G */
 #ifdef CONFIG_DUOWEN_DDR_2G
 		reg = <0x800 0x00000000 0x0 0x80000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_2G */
 #ifdef CONFIG_DUOWEN_DDR_4G
 		reg = <0x800 0x00000000 0x1 0x00000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_4G */
 #ifdef CONFIG_DUOWEN_DDR_8G
 		reg = <0x800 0x00000000 0x2 0x00000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_8G */
 #ifdef CONFIG_DUOWEN_DDR_16G
 		reg = <0x800 0x00000000 0x4 0x00000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_16G */
 #ifdef CONFIG_DUOWEN_DDR_32G
 		reg = <0x800 0x00000000 0x8 0x00000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_32G */
 #ifdef CONFIG_DUOWEN_DDR_64G
 		reg = <0x800 0x00000000 0x10 0x00000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_64G */
 #ifdef CONFIG_DUOWEN_DDR_128G
 		reg = <0x800 0x00000000 0x20 0x00000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_128G */
 #ifdef CONFIG_DUOWEN_DDR_256G
 		reg = <0x800 0x00000000 0x40 0x00000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_256G */
 #ifdef CONFIG_DUOWEN_DDR_512G
 		reg = <0x800 0x00000000 0x80 0x00000000>;
-#endif
+#endif /* CONFIG_DUOWEN_DDR_512G */
 	};
 #endif /* CONFIG_DUOWEN_DDR_DUAL_SOC1 */
 
 	cpus {
 		#address-cells = <0x1>;
 		#size-cells = <0x0>;
-		timebase-frequency = <0x989680>;
+#ifdef CONFIG_DUOWEN_XO_25M
+		timebase-frequency = <25000000>;
+#endif /* CONFIG_DUOWEN_XO_25M */
+#ifdef CONFIG_DUOWEN_XO_125M
+		timebase-frequency = <125000000>;
+#endif /* CONFIG_DUOWEN_XO_125M */
 
 #ifdef CONFIG_DUOWEN_APC
 #ifdef CONFIG_SMP
@@ -1843,9 +1848,9 @@
 		xgmac0: ethernet@ff6a000000 {
 #ifdef CONFIG_DUOWEN_ETH_GENERIC
 			compatible = "snps,dwxgmac-2.20", "snps,dwxgmac";
-#else
+#else /* CONFIG_DUOWEN_ETH_GENERIC */
 			compatible = "smarco,duowen-xgmac2", "snps,dwxgmac";
-#endif
+#endif /* CONFIG_DUOWEN_ETH_GENERIC */
 			reg = <0xff 0x6a000000 0x0 0x100000>;
 			interrupt-parent = <&plic0>;
 			interrupts = <196 195 194>;
@@ -1854,10 +1859,10 @@
 			max-frame-size = <3800>;
 #ifdef CONFIG_DUOWEN_ETH_10000BASE_KX4
 			phy-mode = "usxgmii";
-#endif
+#endif /* CONFIG_DUOWEN_ETH_10000BASE_KX4 */
 #ifdef CONFIG_DUOWEN_ETH_10000BASE_KR
 			phy-mode = "10gbase-kr";
-#endif
+#endif /* CONFIG_DUOWEN_ETH_10000BASE_KR */
 			snps,multicast-filter-bins = <256>;
 			snps,perfect-filter-entries = <128>;
 			rx-fifo-depth = <16384>;
@@ -1879,7 +1884,7 @@
 #ifndef CONFIG_DUOWEN_ETH_GENERIC
 				smarco,has_xpcs;
 				smarco,probe_phy;
-#endif
+#endif /* CONFIG_DUOWEN_ETH_GENERIC */
 				ethernet-phy@0 {
 					reg = <0>;
 				};
@@ -1889,7 +1894,7 @@
 				speed = <10000>;
 				full-duplex;
 			};
-#endif
+#endif /* CONFIG_DUOWEN_ETH_MAC2MAC */
 		};
 #endif /* CONFIG_DUOWEN_ETH_DTS */
 
@@ -1971,6 +1976,6 @@
 			#dma-cells = <1>;
 			status = "okay";
 		};
-#endif /*CONFIG_DUOWEN_DMAC_DTS*/
+#endif /* CONFIG_DUOWEN_DMAC_DTS */
 	};
 };

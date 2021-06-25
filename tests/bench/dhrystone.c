@@ -392,7 +392,7 @@ int dhrystone (caddr_t percpu_area)
 #endif /* CONFIG_FP */
     Vax_Mips = Dhrystones_Per_Second / 1757;
     printf ("Number of runs:                             %d \n", Number_Of_Runs);
-    printf ("User time (us):                             %llu \n", User_Time);
+    printf ("User time (%s):                             %llu \n", DHRYSTONE_TIME_UNIT, User_Time);
     dhry_printf ("Microseconds for one run through Dhrystone: " DHRY_FMT " \n", Microseconds);
     dhry_printf ("Dhrystones per Second:                      " DHRY_FMT " \n", Dhrystones_Per_Second);
     printf ("VAX MIPS rating:                            " DHRY_FMT2 " \n", Vax_Mips);

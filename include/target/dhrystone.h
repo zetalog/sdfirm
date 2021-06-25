@@ -277,9 +277,10 @@
 #endif
 
 #ifdef CONFIG_DHRYSTONE_TIME_TSC
-#define dhrystone_time()   tsc_read_counter()
-#define Too_Small_Time     CONFIG_DHRYSTONE_TSC_TOO_SMALL
-#define Ticks_Per_Mic      TICKS_TO_MICROSECONDS
+#define dhrystone_time()   	tsc_read_counter()
+#define Too_Small_Time     	CONFIG_DHRYSTONE_TSC_TOO_SMALL
+#define Ticks_Per_Mic      	TICKS_TO_MICROSECONDS
+#define DHRYSTONE_TIME_UNIT	"us"
 #endif
 #ifdef HAVE_TIME_H
 #include <time.h>
@@ -287,14 +288,16 @@
                 /* for time, clock */
 #ifdef HAVE_CLOCK
 #ifdef HOSTED
-#define HZ                 CLOCKS_PER_SEC
+#define HZ			CLOCKS_PER_SEC
 #endif
-#define Too_Small_Time     (2*HZ)
-#define dhrystone_time()   clock()
-#define Ticks_Per_Mic      1
+#define Too_Small_Time		(2*HZ)
+#define dhrystone_time()	clock()
+#define Ticks_Per_Mic		1
+#define DHRYSTONE_TIME_UNIT	"us"
 #else /* HAVE_TIME */
-#define Too_Small_Time     2
-#define dhrystone_time()   time(NULL)
+#define Too_Small_Time		2
+#define dhrystone_time()	time(NULL)
+#define DHRYSTONE_TIME_UNIT	" s"
 #endif /* HAVE_CLOCK */
 #endif
 

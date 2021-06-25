@@ -1,3 +1,5 @@
+CONFIG_DHRYSTONE_BESTEFFORT=1
+
 PROGS=dhrystone.elf linpack.elf
 
 include ../Makefile.bench
@@ -8,9 +10,14 @@ CFLAGS_dhrystone_besteffort=\
 	-O2 -DREG=register
 CFLAGS_dhrystone_groundrule=\
 	-fno-inline
+ifdef CONFIG_DHRYSTONE_BESTEFFORT
+CFLAGS_dhrystone_basic=$(CFLAGS_dhrystone_besteffort)
+else
+CFLAGS_dhrystone_basic=$(CFLAGS_dhrystone_groundrule)
+endif
 
 CFLAGS_dhrystone=\
-	$(CFLAGS_dhrystone_besteffort) \
+	$(CFLAGS_dhrystone_basic) \
 	-DCONFIG_DHRYSTONE_TIME_TIME=1 \
 	-I../../include
 

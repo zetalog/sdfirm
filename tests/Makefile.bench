@@ -35,6 +35,7 @@ CFLAGS =-g \
 
 %.o: %.c
 	@echo " CC     $<"
+	@echo "$(CC) $(CFLAGS) $(CFLAGS_$*) -c $< -o $@"
 	@$(CC) $(CFLAGS) $(CFLAGS_$*) -c $< -o $@
 
 %.unstrip: %.o
