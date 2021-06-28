@@ -318,15 +318,9 @@ endchoice
 
 choice
 	prompt "xo_clk frequency"
-	default DUOWEN_XO_25M if DUOWEN_ASIC
-	default DUOWEN_XO_125M if DUOWEN_ZEBU
 
 config DUOWEN_XO_25M
 	bool "25MHz"
-
-config DUOWEN_XO_125M
-	bool "125MHz"
-	depends DUOWEN_ZEBU
 
 endchoice
 

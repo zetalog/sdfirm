@@ -418,12 +418,7 @@
 	cpus {
 		#address-cells = <0x1>;
 		#size-cells = <0x0>;
-#ifdef CONFIG_DUOWEN_XO_25M
 		timebase-frequency = <25000000>;
-#endif /* CONFIG_DUOWEN_XO_25M */
-#ifdef CONFIG_DUOWEN_XO_125M
-		timebase-frequency = <125000000>;
-#endif /* CONFIG_DUOWEN_XO_125M */
 
 #ifdef CONFIG_DUOWEN_APC
 #ifdef CONFIG_SMP

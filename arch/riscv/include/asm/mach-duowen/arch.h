@@ -116,14 +116,11 @@
 	andi	\reg, \reg, IMC_SOCKET_ID
 	beqz	\reg, 2222f
 	addi	t0, t0, SOC1_HART
-	li	\reg, SOC1_BASE
 2222:
-	li	t1, __ROM_SOC_STATUS
-	add	\reg, \reg, t1
+	li	\reg, __ROM_SOC_STATUS
 	lw	\reg, 0(\reg)
 	srliw	\reg, \reg, ROM_BOOTHART_OFFSET
 	andi	\reg, \reg, ROM_BOOTHART_MASK
-	add	\reg, \reg, t0
 	.endm
 #endif /* CONFIG_DUOWEN_SBI_DUAL_SPARSE */
 	.macro get_arch_hartmask reg

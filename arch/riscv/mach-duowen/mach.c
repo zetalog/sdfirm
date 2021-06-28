@@ -64,6 +64,13 @@ unsigned long duowen_hart_base = SOC0_HART;
 
 void duowen_dual_init(void)
 {
+	/* NOTE: Boot Core Specific Code in SBI Dual
+	 *
+	 * Even if a boot core is booting from socket 1, we still need the
+	 * SBI to prompt from socket 0. Thus the following logic is not
+	 * boot core bug free. It assumes that the code is always executed
+	 * by a socket 0 boot core in the SBI dual-socket evironment.
+	 */
 	if (imc_socket_id() == 1) {
 		duowen_soc_base = SOC1_BASE;
 		duowen_hart_base = SOC1_HART;
