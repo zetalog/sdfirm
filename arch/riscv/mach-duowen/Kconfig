@@ -163,15 +163,17 @@ config DUOWEN_APC_PARTIAL_GOOD
 	help
 	  This is useful for the partial good calibration test program.
 
+if DUOWEN_APC_PARTIAL_GOOD
+
 config DUOWEN_APC_PARTIAL_GOOD_MASK
 	hex "Partial good"
-	depends DUOWEN_APC_PARTIAL_GOOD
 
 config DUOWEN_APC_BOOT_HART_ID
 	int "Boot hart ID"
-	depends DUOWEN_APC_PARTIAL_GOOD && DUOWEN_APC
 	range 0 15
 	default 0
+
+endif
 
 config DUOWEN_FSBL_SPI
 	bool "Build SPI flash resident FSBL"
