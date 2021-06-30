@@ -471,6 +471,7 @@ menuconfig DUOWEN_NOC
 	select ARCH_HAS_NCORE_RECONF
 	select NCORE
 	select DUOWEN_NOC_INIT_CLOCKS
+	select DUOWEN_PCIE_RAMP
 	help
 	  NoC driver is required by FSBL or BBL before booting into Linux.
 
