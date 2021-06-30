@@ -9,13 +9,13 @@ include ../Makefile.bench
 all: $(PROGS)
 
 ifeq ($(CONFIG_DHRYSTONE_OPTIMISED),1)
-CFLGAS_dhrystone_opt=-O1 -DDHRYSTONE_OPT=1
+CFLAGS_dhrystone_opt=-O1 -DDHRYSTONE_OPT="1"
 endif
 ifeq ($(CONFIG_DHRYSTONE_OPTIMISED),2)
-CFLGAS_dhrystone_opt=-O2 -DDHRYSTONE_OPT=2
+CFLAGS_dhrystone_opt=-O2 -DDHRYSTONE_OPT="2"
 endif
 ifeq ($(CONFIG_DHRYSTONE_OPTIMISED),3)
-CFLGAS_dhrystone_opt=-O3 -DDHRYSTONE_OPT=3
+CFLAGS_dhrystone_opt=-O3 -DDHRYSTONE_OPT="3"
 endif
 CFLAGS_dhrystone_besteffort=\
 	$(CFLAGS_dhrystone_opt) -DREG=register
