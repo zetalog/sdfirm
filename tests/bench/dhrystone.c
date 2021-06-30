@@ -409,11 +409,16 @@ int dhrystone (caddr_t percpu_area)
     #define opt "0"
 #else
     #define options   "Optimised"
-    #define opt ""
+    #define opt "1"
 #endif
 #else
-    #define options   "Opt 3 64 Bit"
-    #define opt ""
+#ifdef CONFIG_CC_OPT_SPEED
+    #define options   "Optimised"
+    #define opt "1"
+#else
+    #define options   "Non-optimised"
+    #define opt "0"
+#endif
 #endif
 
 #ifdef HOSTED
