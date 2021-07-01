@@ -30,7 +30,7 @@ else
 CFLAGS_dhrystone_reg=
 endif
 CFLAGS_dhrystone_besteffort=\
-	$(CFLAGS_dhrystone_opt) $(CFLAGS_dhrystone_reg)
+	$(CFLAGS_dhrystone_opt) $(CFLAGS_dhrystone_reg) -finline-limit=0
 CFLAGS_dhrystone_groundrule=\
 	$(CFLAGS_dhrystone_opt) -DCNNT -fno-inline
 ifdef CONFIG_DHRYSTONE_BESTEFFORT

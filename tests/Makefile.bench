@@ -1,8 +1,17 @@
 CC=$(CROSS_COMPILE)gcc
 STRIP=$(CROSS_COMPILE)strip
 
-CFLAGS =-g \
-	-DHOSTED -DCONFIG_FP=1 \
+CFLAGS_align = \
+	-falign-functions=1 \
+	-falign-jumps=1 \
+	-falign-labels=1 \
+	-falign-loops=1
+CFLAGS_debug = \
+	-g \
+	-fomit-frame-pointer \
+	-fno-unwind-tables \
+	-fno-asynchronous-unwind-tables
+CFLAGS_warn = \
 	-Wall \
 	-Wshadow \
 	-Wwrite-strings \
@@ -16,22 +25,18 @@ CFLAGS =-g \
 	-Wmissing-declarations \
 	-Wno-format-security \
 	-Wdeclaration-after-statement \
-	-Wold-style-definition \
+	-Wold-style-definition
+CFLAGS =-DHOSTED -DCONFIG_FP=1 \
+	-static-libgcc \
 	-finline-limit=0 \
-	-fno-builtin-strlen \
-	-fomit-frame-pointer \
 	-ffunction-sections \
 	-fdata-sections \
-	-fno-guess-branch-probability \
+	-fno-builtin-strlen \
+	-fno-builtin-printf \
 	-funsigned-char \
-	-static-libgcc \
-	-falign-functions=1 \
-	-falign-jumps=1 \
-	-falign-labels=1 \
-	-falign-loops=1 \
-	-fno-unwind-tables \
-	-fno-asynchronous-unwind-tables \
-	-fno-builtin-printf
+	$(CFLAGS_align) \
+	$(CFLAGS_warn) \
+	$(CFLAGS_debug)
 
 %.o: %.c
 	@echo " CC     $<"
