@@ -408,8 +408,10 @@ int dhrystone (caddr_t percpu_area)
     #define options   "Non-optimised"
     #define opt "0"
 #else
-    /* -Ox */
     #define options   "Optimised"
+    /* Original optimization means -O, which makes opt="1", modified to
+     * support -Ox.
+     */
     #define opt DHRYSTONE_OPT
 #endif
 #else
@@ -433,6 +435,9 @@ int dhrystone (caddr_t percpu_area)
     dhry_fprintf (Ap, " Dhrystone Benchmark 2.1 %s via C/C++ \n", options);
 
     dhry_fprintf(Ap, " Classic Benchmark Ratings for CPUSpeed.txt where 100 MHz Pentium = 100\n");
+    /* Original code uses strtoul(opt) == 1, which means -O, modified to
+     * support -Ox.
+     */
     if (strtoul(opt, NULL, 10) >= 1)
     {
       dhry_fprintf(Ap, " Integer Dhry2 Opt %d\n\n", (int)(Vax_Mips / 130 * 100));

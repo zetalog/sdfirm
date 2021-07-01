@@ -290,7 +290,11 @@
 #ifdef HOSTED
 #define HZ			CLOCKS_PER_SEC
 #endif
+#ifdef SMALL_TIME
+#define Too_Small_Time		10000
+#else
 #define Too_Small_Time		(2*HZ)
+#endif
 #define dhrystone_time()	clock()
 #define Ticks_Per_Mic		1
 #define DHRYSTONE_TIME_UNIT	"us"
