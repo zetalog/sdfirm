@@ -77,4 +77,9 @@
 #define SBI_PINPAD(port, pin, pad, drive)	\
 	SBI_PIN(port, pin), SBI_PAD(pad, drive)
 
+#define sbi_pin_port(pinid)		((unsigned short)((pinid) >> 16))
+#define sbi_pin_pin(pinid)		((unsigned short)(pinid))
+#define sbi_pad_pad(pad)		((pad) >> 4)
+#define sbi_pad_drive(pad)		((unsigned char)((pad) & 0x0f))
+
 #endif /* __DT_BINDINGS_PINCTRL_SBI_H */

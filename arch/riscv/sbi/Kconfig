@@ -11,6 +11,9 @@ config ARCH_HAS_SBI_TIMER
 config ARCH_HAS_SBI_CLOCK
 	bool
 
+config ARCH_HAS_SBI_PINCTRL
+	bool
+
 menuconfig SBI
 	bool "Supervisor binary interface (SBI) support"
 	depends RISCV_ENTR_M && !RISCV_VIRQ

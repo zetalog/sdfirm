@@ -22,6 +22,7 @@ obj-$(CONFIG_CONSOLE_OUTPUT) += sbi_console.rel
 obj-$(CONFIG_ARCH_HAS_SBI_IPI) += sbi_ipi.rel
 obj-$(CONFIG_ARCH_HAS_SBI_TIMER) += sbi_timer.rel
 obj-$(CONFIG_ARCH_HAS_SBI_CLOCK) += sbi_clock.rel
+obj-$(CONFIG_ARCH_HAS_SBI_PINCTRL) += sbi_pinctrl.rel
 
 ifdef CONFIG_SBI_PAYLOAD
 sbi_payload: $(CONFIG_SBI_PAYLOAD_PATH)

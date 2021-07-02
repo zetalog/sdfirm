@@ -51,6 +51,8 @@
 #define SBI_ECALL_SET_CLK_FREQ			0x41
 #define SBI_ECALL_ENABLE_CLK			0x42
 #define SBI_ECALL_DISABLE_CLK			0x43
+#define SBI_ECALL_CONFIG_PIN_MUX		0x44
+#define SBI_ECALL_CONFIG_PIN_PAD		0x45
 
 #define SBI_TLB_FLUSH_ALL			((unsigned long)-1)
 #define SBI_TLB_FLUSH_MAX_SIZE			(1UL << 30)
@@ -298,6 +300,13 @@ static inline unsigned long sbi_clock_get_freq(unsigned long clkid)
 #define sbi_clock_set_freq(clkid, freq)		do { } while (0)
 #define sbi_clock_enable(clkid)			do { } while (0)
 #define sbi_clock_disable(clkid)		do { } while (0)
+#endif
+#ifdef CONFIG_ARCH_HAS_SBI_PINCTRL
+void sbi_pin_config_mux(unsigned long pinid, unsigned long mux);
+void sbi_pin_config_pad(unsigned long pinid, unsigned long cfg);
+#else
+#define sbi_pin_config_mux(pinid, mux)		do { } while (0)
+#define sbi_pin_config_pad(pinid, cfg)		do { } while (0)
 #endif
 
 int sbi_system_early_init(struct sbi_scratch *scratch, bool cold_boot);

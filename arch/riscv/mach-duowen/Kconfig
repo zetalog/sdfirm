@@ -608,6 +608,7 @@ menuconfig DUOWEN_GPIO
 	bool "Duowen GPIO/TLMM controller support"
 	select DW_GPIO
 	select DUOWEN_TLMM
+	select ARCH_HAS_SBI_PINCTRL
 
 if DUOWEN_GPIO
 

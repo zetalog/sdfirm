@@ -136,6 +136,16 @@ int sbi_ecall_handler(uint32_t hartid, ulong mcause, struct pt_regs *regs,
 		sbi_clock_disable(regs->a0);
 		ret = 0;
 		break;
+	case SBI_ECALL_CONFIG_PIN_MUX:
+		sbi_trap_log("%d: ECALL_CONFIG_PIN_MUX\n", source_hart);
+		sbi_pin_config_mux(regs->a0, regs->a1);
+		ret = 0;
+		break;
+	case SBI_ECALL_CONFIG_PIN_PAD:
+		sbi_trap_log("%d: ECALL_CONFIG_PIN_PAD\n", source_hart);
+		sbi_pin_config_pad(regs->a0, regs->a1);
+		ret = 0;
+		break;
 	default:
 		regs->a0 = -ENOTSUP;
 		ret	 = 0;
