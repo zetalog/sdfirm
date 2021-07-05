@@ -241,8 +241,15 @@
 #define HAVE_TIME_H
 #ifdef CONFIG_DHRYSTONE_TIME_CLOCK
 #define HAVE_CLOCK
-#endif
-#endif
+#endif /* CONFIG_DHRYSTONE_TIME_CLOCK */
+#endif /* CONFIG_DHRYSTONE_TIME_TIME || CONFIG_DHRYSTONE_TIME_CLOCK */
+
+/* Define cache warmup runs, 1 should be sufficient */
+#ifdef CONFIG_DHRYSTONE_WARMUPS
+#define DHRYSTONE_WARMUP_RUNS	CONFIG_DHRYSTONE_WARMUPS
+#else /* CONFIG_DHRYSTONE_WARMUPS */
+#define DHRYSTONE_WARMUP_RUNS	0
+#endif /* CONFIG_DHRYSTONE_WARMUPS */
 
 #ifdef HOSTED
 #include <stdio.h>
@@ -260,12 +267,12 @@
 #define dhry_printf(...)                printf(__VA_ARGS__)
 #define dhry_fprintf(fp, ...)           fprintf(fp, __VA_ARGS__)
 #define dhry_strcpy                     strcpy
-#else
+#else /* HOSTED */
 #ifdef CONFIG_TEST_VERBOSE
 #define dhry_printf(...)                printf(__VA_ARGS__)
-#else
+#else /* CONFIG_TEST_VERBOSE */
 #define dhry_printf(fmt, ...)           do { } while (0)
-#endif
+#endif /* CONFIG_TEST_VERBOSE */
 #define dhry_fprintf(fp, fmt, ...)      do { } while (0)
 #define dhry_strcpy                     __builtin_strcpy
 
@@ -274,14 +281,17 @@
 #include <target/percpu.h>
 #include <target/jiffies.h>
 #include <target/cpus.h>
-#endif
+#endif /* HOSTED */
 
 #ifdef CONFIG_DHRYSTONE_TIME_TSC
 #define dhrystone_time()   	tsc_read_counter()
+#if (DHRYSTONE_WARMUP_RUNS <= 0)
+#error "Please configure warmup runs!"
+#endif /* DHRYSTONE_WARMUP_RUNS == 0 */
 #define Too_Small_Time     	CONFIG_DHRYSTONE_TSC_TOO_SMALL
 #define Ticks_Per_Mic      	TICKS_TO_MICROSECONDS
 #define DHRYSTONE_TIME_UNIT	"us"
-#endif
+#endif /* CONFIG_DHRYSTONE_TIME_TSC */
 #ifdef HAVE_TIME_H
 #include <time.h>
 
@@ -289,40 +299,34 @@
 #ifdef HAVE_CLOCK
 #ifdef HOSTED
 #define HZ			CLOCKS_PER_SEC
-#endif
-#ifdef SMALL_TIME
+#endif /* HOSTED */
+#if (DHRYSTONE_WARMUP_RUNS > 0)
 #define Too_Small_Time		10000
-#else
+#else /* DHRYSTONE_WARMUP_RUNS > 0 */
 #define Too_Small_Time		(2*HZ)
-#endif
+#endif /* DHRYSTONE_WARMUP_RUNS > 0 */
 #define dhrystone_time()	clock()
 #define Ticks_Per_Mic		1
 #define DHRYSTONE_TIME_UNIT	"us"
-#else /* HAVE_TIME */
+#else /* HAVE_CLOCK */
 #define Too_Small_Time		2
 #define dhrystone_time()	time(NULL)
 #define DHRYSTONE_TIME_UNIT	" s"
 #endif /* HAVE_CLOCK */
-#endif
+#endif /* HAVE_TIME_H */
 
-/* Define cache warmup runs, 1 should be sufficient */
-#ifdef CONFIG_DHRYSTONE_WARMUPS
-#define DHRYSTONE_WARMUP_RUNS	CONFIG_DHRYSTONE_WARMUPS
-#else
-#define DHRYSTONE_WARMUP_RUNS	1
-#endif
 #ifdef CONFIG_FP
 #define Mic_secs_Per_Second     1000000.0
-#else
+#else /* CONFIG_FP */
 #define Mic_secs_Per_Second     1000000
-#endif
+#endif /* CONFIG_FP */
                 /* Berkeley UNIX C returns process times in seconds/HZ */
 
 #ifdef  NOSTRUCTASSIGN
 #define structassign(d, s)      memcpy(&(d), &(s), sizeof(d))
-#else
+#else /* NOSTRUCTASSIGN */
 #define structassign(d, s)      d = s
-#endif
+#endif /* NOSTRUCTASSIGN */
 
 #ifdef  NOENUM
 #define Ident_1 0
@@ -331,10 +335,10 @@
 #define Ident_4 3
 #define Ident_5 4
   typedef int   Enumeration;
-#else
+#else /* NOENUM */
   typedef       enum    {Ident_1=0, Ident_2, Ident_3, Ident_4, Ident_5}
                 Enumeration;
-#endif
+#endif /* NOENUM */
         /* for boolean and enumeration types in Ada, Pascal */
 
 #define Null 0
@@ -343,12 +347,12 @@
 #include <stdbool.h>
 
 typedef bool    Boolean;
-#else
+#else /* HAVE_STDBOOL_H */
 #define true  1
 #define false 0
 
 typedef int     Boolean;
-#endif
+#endif /* HAVE_STDBOOL_H */
 
 typedef int     One_Thirty;
 typedef int     One_Fifty;

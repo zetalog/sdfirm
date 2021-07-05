@@ -38,6 +38,8 @@ CFLAGS =-DHOSTED -DCONFIG_FP=1 \
 	$(CFLAGS_warn) \
 	$(CFLAGS_debug)
 
+#	-fno-guess-branch-probability \
+
 %.o: %.c
 	@echo " CC     $<"
 	@echo "$(CC) $(CFLAGS) $(CFLAGS_$*) -c $< -o $@"

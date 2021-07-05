@@ -11,17 +11,17 @@ char            Ch_1_Glob,
                 Ch_2_Glob;
 int             Arr_1_Glob [50];
 int             Arr_2_Glob [50] [50];
-#else
+#else /* HOSTED */
 #ifdef CONFIG_DHRYSTONE_TIMEOUT
 #define DHRYSTONE_TIMEOUT		CONFIG_DHRYSTONE_TIMEOUT
-#else
+#else /* CONFIG_DHRYSTONE_TIMEOUT */
 #define DHRYSTONE_TIMEOUT		(1 * 1000 * 1000)
-#endif
+#endif /* CONFIG_DHRYSTONE_TIMEOUT */
 #ifdef CONFIG_DHRYSTONE_REPEATS
 #define DHRYSTONE_REPEATS		CONFIG_DHRYSTONE_REPEATS
-#else
+#else /* CONFIG_DHRYSTONE_REPEATS */
 #define DHRYSTONE_REPEATS		5000000
-#endif
+#endif /* CONFIG_DHRYSTONE_REPEATS */
 
 uint64_t dhrystone_num_of_runs(void)
 {
@@ -33,7 +33,7 @@ uint64_t dhrystone_expected_timeout(void)
 {
 	return DHRYSTONE_TIMEOUT;
 }
-#endif
+#endif /* CONFIG_DHRYSTONE_TIME */
 
 #define TRACE_ID_MASK	0x000000FF
 #define TRACE_RUN_MASK	0xFFFFFF00
@@ -48,14 +48,14 @@ struct dhrystone_percpu {
 
 struct dhrystone_percpu dhrystone_ctx[MAX_CPU_NUM];
 #define get_dhrystone		(dhrystone_ctx[smp_processor_id()].ptr)
-#endif
+#endif /* CONFIG_DHRYSTONE_SPECIFIC_PERCPU */
 #ifdef CONFIG_DHRYSTONE_GENERIC_PERCPU
 DEFINE_PERCPU(struct dhrystone_context, dhrystone_ctx);
 #define get_dhrystone		this_cpu_ptr(&dhrystone_ctx)
-#endif
+#endif /* CONFIG_DHRYSTONE_GENERIC_PERCPU */
 #ifdef CONFIG_DHRYSTONE_BENCH_PERCPU
 struct dhrystone_context *get_dhrystone;
-#endif
+#endif /* CONFIG_DHRYSTONE_BENCH_PERCPU */
 #define Ptr_Glob		get_dhrystone->Ptr_Glob
 #define Next_Ptr_Glob		get_dhrystone->Next_Ptr_Glob
 #define Int_Glob		get_dhrystone->Int_Glob
@@ -64,16 +64,16 @@ struct dhrystone_context *get_dhrystone;
 #define Ch_2_Glob		get_dhrystone->Ch_2_Glob
 #define Arr_1_Glob		get_dhrystone->Arr_1_Glob
 #define Arr_2_Glob		get_dhrystone->Arr_2_Glob
-#endif
+#endif /* HOSTED */
 
 #ifndef REG
         Boolean Reg = false;
 #define REG
         /* REG becomes defined as empty */
         /* i.e. no register variables   */
-#else
+#else /* REG */
         Boolean Reg = true;
-#endif
+#endif /* REG */
 
 void Proc_1 (REG Rec_Pointer Ptr_Val_Par);
 void Proc_2 (One_Fifty *Int_Par_Ref);
@@ -99,9 +99,9 @@ Boolean Func_3 (Enumeration Enum_Par_Val);
 
 #ifdef HOSTED
 int main (int argc, char *argv[])
-#else
+#else /* HOSTED */
 int dhrystone (caddr_t percpu_area)
-#endif
+#endif /* HOSTED */
 
   /* main program, corresponds to procedures        */
   /* Main and Proc_0 in the Ada version             */
@@ -126,7 +126,7 @@ int dhrystone (caddr_t percpu_area)
                     End_Time;
 #ifdef CONFIG_DHRYSTONE_TIME
 	long long   Expected_End_Time;
-#endif
+#endif /* CONFIG_DHRYSTONE_TIME */
 #ifdef CONFIG_FP
 #define DHRY_FMT    "%6.1f"
 #define DHRY_FMT2   "%12.21f"
@@ -144,7 +144,7 @@ int dhrystone (caddr_t percpu_area)
 #ifndef HOSTED
         Rec_Type    Type_Glob,
                     Next_Type_Glob;
-#endif
+#endif /* HOSTED */
 
   /* end of variables for time measurement */
 
@@ -153,13 +153,13 @@ int dhrystone (caddr_t percpu_area)
 #ifdef HOSTED
   Next_Ptr_Glob = (Rec_Pointer) malloc (sizeof (Rec_Type));
   Ptr_Glob = (Rec_Pointer) malloc (sizeof (Rec_Type));
-#else
+#else /* HOSTED */
 #ifdef CONFIG_DHRYSTONE_BENCH_PERCPU
   get_dhrystone = (struct dhrystone_context *)percpu_area;
-#endif
+#endif /* CONFIG_DHRYSTONE_BENCH_PERCPU */
   Next_Ptr_Glob = &Next_Type_Glob;
   Ptr_Glob = &Type_Glob;
-#endif
+#endif /* HOSTED */
 
   Ptr_Glob->Ptr_Comp                    = Next_Ptr_Glob;
   Ptr_Glob->Discr                       = Ident_1;
@@ -181,7 +181,7 @@ int dhrystone (caddr_t percpu_area)
       dhry_printf("usage: ./gcc_dhry2 <Number of runs Example:1000000000> \n");
       return 0;
   }
-#endif
+#endif /* HOSTED */
 
   dhry_printf ("\n");
   dhry_printf ("Dhrystone Benchmark, Version 2.1 (Language: C)\n");
@@ -198,7 +198,7 @@ int dhrystone (caddr_t percpu_area)
   }
 #ifdef HOSTED
   Number_Of_Runs = atoi(argv[1]);
-#else
+#else /* HOSTED */
   Number_Of_Runs = dhrystone_num_of_runs();
 #ifdef CONFIG_DHRYSTONE_TIME
   Expected_End_Time = dhrystone_expected_timeout();
@@ -207,24 +207,17 @@ int dhrystone (caddr_t percpu_area)
     Expected_End_Time += dhrystone_time();
   }
 #endif /* CONFIG_DHRYSTONE_TIME */
-#endif
+#endif /* HOSTED */
 
+#if (DHRYSTONE_WARMUP_RUNS <= 0)
   dhry_printf ("Execution starts, %d runs through Dhrystone\n", Number_Of_Runs);
 
   Begin_Time = dhrystone_time();
+#endif /* DHRYSTONE_WARMUP_RUNS <= 0 */
   Number_Of_Runs += DHRYSTONE_WARMUP_RUNS;
 
   for (Run_Index = 0; Run_Index <= Number_Of_Runs; ++Run_Index)
   {
-
-    if (unlikely(Run_Index == DHRYSTONE_WARMUP_RUNS))
-    {
-      /***************/
-      /* Start timer */
-      /***************/
-
-      Begin_Time = dhrystone_time();
-    }
 
     Proc_5();
     Proc_4();
@@ -274,12 +267,25 @@ int dhrystone (caddr_t percpu_area)
         likely(Run_Index > DHRYSTONE_WARMUP_RUNS)) {
       if (time_after(dhrystone_time(), Expected_End_Time))
       {
-        Number_Of_Runs = Run_Index;
+        Number_Of_Runs = Run_Index + 1;
         break;
       }
     }
 #endif /* CONFIG_DHRYSTONE_TIME */
-#endif
+#endif /* HOSTED */
+
+#if (DHRYSTONE_WARMUP_RUNS > 0)
+    if (unlikely(Run_Index == (DHRYSTONE_WARMUP_RUNS - 1)))
+    {
+      /***************/
+      /* Start timer */
+      /***************/
+
+      dhry_printf ("Execution starts, %d runs through Dhrystone\n", Number_Of_Runs - DHRYSTONE_WARMUP_RUNS);
+
+      Begin_Time = dhrystone_time();
+    }
+#endif /* DHRYSTONE_WARMUP_RUNS > 0 */
   }  /* loop "for Run_Index" */
 
   /**************/
@@ -356,11 +362,12 @@ int dhrystone (caddr_t percpu_area)
     (void) dhrystone_time();
     printf ("Begin time %lld, end time %lld: %s\n", Begin_Time, End_Time,
             errno != 0 ? strerror(errno) : "no error");
-#endif
+#endif /* HOSTED */
     Vax_Mips = -1;
   }
   else
   {
+    printf ("Begin time %lld, end time %lld\n", Begin_Time, End_Time);
 #ifdef CONFIG_FP
 #ifdef HOSTED
 #ifdef HAVE_CLOCK
@@ -369,19 +376,19 @@ int dhrystone (caddr_t percpu_area)
                         / (float) Number_Of_Runs / Ticks_Per_Mic;
     Dhrystones_Per_Second = (float) Number_Of_Runs * Mic_secs_Per_Second * Ticks_Per_Mic
                         / (float) User_Time;
-#else
+#else /* HAVE_CLOCK */
     /* Seconds based time() */
     Microseconds = (float) User_Time * Mic_secs_Per_Second
                         / (float) Number_Of_Runs;
     Dhrystones_Per_Second = (float) Number_Of_Runs / (float) User_Time;
-#endif
-#else
+#endif /* HAVE_CLOCK */
+#else /* HOSTED */
     /* Microseconds based clock() or tsc_read_counter() */
     Microseconds = (float) User_Time
                         / (float) Number_Of_Runs / Ticks_Per_Mic;
     Dhrystones_Per_Second = (float) Number_Of_Runs * Mic_secs_Per_Second * Ticks_Per_Mic
                         / (float) User_Time;
-#endif
+#endif /* HOSTED */
 #else /* CONFIG_FP */
     /* CONFIG_FP=n is only possible for HOSTED=n version where floating
      * pointer may be configured out, thus is microseconds based only.
@@ -407,29 +414,29 @@ int dhrystone (caddr_t percpu_area)
 #ifdef CNNT
     #define options   "Non-optimised"
     #define opt "0"
-#else
+#else /* CNNT */
     #define options   "Optimised"
     /* Original optimization means -O, which makes opt="1", modified to
      * support -Ox.
      */
     #define opt DHRYSTONE_OPT
-#endif
-#else
+#endif /* CNNT */
+#else /* HOSTED */
 #ifdef CONFIG_CC_OPT_SPEED
     /* -O2 */
     #define options   "Optimised"
     #define opt "2"
-#else
+#else /* CONFIG_CC_OPT_SPEED */
     #define options   "Non-optimised"
     #define opt "0"
-#endif
-#endif
+#endif /* CONFIG_CC_OPT_SPEED */
+#endif /* HOSTED */
 
 #ifdef HOSTED
 #define Ap stdout
-#else
+#else /* HOSTED */
 #define Ap ((void *)1)
-#endif
+#endif /* HOSTED */
 
     dhry_fprintf (Ap, " #####################################################\n\n");
     dhry_fprintf (Ap, " Dhrystone Benchmark 2.1 %s via C/C++ \n", options);
@@ -559,7 +566,7 @@ int dhrystone (caddr_t percpu_area)
 
 #ifdef HOSTED
     fclose(Ap);
-#endif
+#endif /* HOSTED */
   }
 
   return errors ? 0 : 1;

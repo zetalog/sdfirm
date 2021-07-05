@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  *  Copyright (C) 2021 CAS SmartCore Co., Ltd.
- *    Author: 2021 Lv Zheng <zhenglv@smarco.cn>
+ *    Author: 2021 Lv Zheng <zhenglv@smart-core.cn>
  */
 
 #ifndef __DT_BINDINGS_CLOCK_SBI_DUOWEN_H
@@ -41,8 +41,8 @@
 #define DDR_BUS_PLL_FREQ	800000000
 #define DDR_PLL_FREQ		800000000
 #define PCIE_PLL_FREQ		100000000
-#define CFAB_PLL_FREQ		2000000000
-#define CL_PLL_FREQ		2500000000
+#define CFAB_PLL_FREQ		1400000000
+#define CL_PLL_FREQ		2000000000
 #define ETH_PLL_FREQ		156250000
 #define SGMII_PLL_FREQ		125000000
 #endif
