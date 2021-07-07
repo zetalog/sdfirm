@@ -17,7 +17,7 @@ fi
 
 dhrystone 50
 #litmus.sh
-#dhrystone 3000000000
+#dhrystone 200000000
 #linpack
 
 /bin/sh -i
