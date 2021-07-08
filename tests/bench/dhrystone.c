@@ -211,9 +211,9 @@ int dhrystone (caddr_t percpu_area)
 
 #if (DHRYSTONE_WARMUP_RUNS <= 0)
   dhry_printf ("Execution starts, %d runs through Dhrystone\n", Number_Of_Runs);
+#endif /* DHRYSTONE_WARMUP_RUNS <= 0 */
 
   Begin_Time = dhrystone_time();
-#endif /* DHRYSTONE_WARMUP_RUNS <= 0 */
   Number_Of_Runs += DHRYSTONE_WARMUP_RUNS;
 
   for (Run_Index = 0; Run_Index <= Number_Of_Runs; ++Run_Index)

@@ -363,3 +363,23 @@ void rom_set_noc_configured(void)
 {
 	__rom_set_noc_configured(imc_socket_id());
 }
+
+static bool __rom_get_pcie_link_mode(uint8_t soc)
+{
+	return ROM_GET_PCIE_LM(__raw_readl(ROM_SOC_STATUS(soc)));
+}
+
+static void __rom_set_pcie_link_mode(uint8_t soc, uint8_t mode)
+{
+	__raw_setl(ROM_SET_PCIE_LM(mode), ROM_SOC_STATUS(soc));
+}
+
+void rom_set_pcie_link_mode(uint8_t mode)
+{
+	__rom_set_pcie_link_mode(imc_socket_id(), mode);
+}
+
+uint8_t rom_get_pcie_link_mode(void)
+{
+	return __rom_get_pcie_link_mode(imc_socket_id());
+}

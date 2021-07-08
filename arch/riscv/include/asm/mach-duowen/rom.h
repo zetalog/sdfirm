@@ -47,15 +47,15 @@
  * ROM uses SCSR SW_MSG to pass shared configurables.
  *
  * SW_MSG_0:
- * 31     2          1          0
- * +------+----------+----------+
- * | RSVD | PLICCNTL | CHIPLINK |
- * +------+----------+----------+
+ * 31      2          1          0
+ *  +------+----------+----------+
+ *  | RSVD | PLICCNTL | CHIPLINK |
+ *  +------+----------+----------+
  * SW_MSG_1:
- * 32    24    23         18    17    16                  0
- * +------+-----+----------+-----+-----+------------------+
- * | RSVD | NOC | BOOTHART | IMC | APC | APC Partial Good |
- * +------+-----+----------+-----+-----+------------------+
+ * 32               24    23         18    17    16                  0
+ *  +----------------+-----+----------+-----+-----+------------------+
+ *  | PCIe Link Mode | NOC | BOOTHART | IMC | APC | APC Partial Good |
+ *  +----------------+-----+----------+-----+-----+------------------+
  */
 
 #define __ROM_GBL_STATUS	(__SCSR_BASE + ____SCSR_SW_MSG(0))
@@ -82,6 +82,51 @@
 #define ROM_SET_BOOTHART(value)	_SET_FV(ROM_BOOTHART, value)
 #define ROM_GET_BOOTHART(value)	_GET_FV(ROM_BOOTHART, value)
 #define ROM_NOC_INIT		23
+#define ROM_PCIE_LM_OFFSET	24
+#define ROM_PCIE_LM_MASK	REG_8BIT_MASK
+#define ROM_GET_PCIE_LM(value)	_GET_FV(ROM_PCIE_LM, value)
+#define ROM_SET_PCIE_LM(value)	_SET_FV(ROM_PCIE_LM, value)
+
+#define ROM_PCIE_LINK_MODE_0	0
+#define ROM_PCIE_LINK_MODE_4	1
+#define ROM_PCIE_LINK_MODE_8	2
+#define ROM_PCIE_LINK_MODE_16	3
+#define ROM_PCIE_LINK_CTRL_OFFSET(n)	REG_2BIT_OFFSET(n)
+#define ROM_PCIE_LINK_CTRL_MASK	REG_2BIT_MASK
+#define ROM_PCIE_LINK_CTRL(n, value)	\
+	_SET_FVn(n, ROM_PCIE_LINK_CTRL, value)
+#define rom_pcie_link_ctrl(n, value)	\
+	_GET_FV(n, ROM_PCIE_LINK_CTRL, value)
+#define ROM_LINK_MODE_16_0_0_0				\
+	(ROM_PCIE_LINK_CTRL(0, ROM_PCIE_LINK_MODE_16) |	\
+	 ROM_PCIE_LINK_CTRL(1, ROM_PCIE_LINK_MODE_0) |	\
+	 ROM_PCIE_LINK_CTRL(2, ROM_PCIE_LINK_MODE_0) |	\
+	 ROM_PCIE_LINK_CTRL(3, ROM_PCIE_LINK_MODE_0))
+#define ROM_LINK_MODE_8_8_0_0				\
+	(ROM_PCIE_LINK_CTRL(0, ROM_PCIE_LINK_MODE_8) |	\
+	 ROM_PCIE_LINK_CTRL(1, ROM_PCIE_LINK_MODE_8) |	\
+	 ROM_PCIE_LINK_CTRL(2, ROM_PCIE_LINK_MODE_0) |	\
+	 ROM_PCIE_LINK_CTRL(3, ROM_PCIE_LINK_MODE_0))
+#define ROM_LINK_MODE_8_4_0_4				\
+	(ROM_PCIE_LINK_CTRL(0, ROM_PCIE_LINK_MODE_8) |	\
+	 ROM_PCIE_LINK_CTRL(1, ROM_PCIE_LINK_MODE_4) |	\
+	 ROM_PCIE_LINK_CTRL(2, ROM_PCIE_LINK_MODE_0) |	\
+	 ROM_PCIE_LINK_CTRL(3, ROM_PCIE_LINK_MODE_4))
+#define ROM_LINK_MODE_4_4_4_4				\
+	(ROM_PCIE_LINK_CTRL(0, ROM_PCIE_LINK_MODE_4) |	\
+	 ROM_PCIE_LINK_CTRL(1, ROM_PCIE_LINK_MODE_4) |	\
+	 ROM_PCIE_LINK_CTRL(2, ROM_PCIE_LINK_MODE_4) |	\
+	 ROM_PCIE_LINK_CTRL(3, ROM_PCIE_LINK_MODE_4))
+#define ROM_LINK_MODE_ZEBU				\
+	(ROM_PCIE_LINK_CTRL(0, ROM_PCIE_LINK_MODE_0) |	\
+	 ROM_PCIE_LINK_CTRL(1, ROM_PCIE_LINK_MODE_0) |	\
+	 ROM_PCIE_LINK_CTRL(2, ROM_PCIE_LINK_MODE_0) |	\
+	 ROM_PCIE_LINK_CTRL(3, ROM_PCIE_LINK_MODE_4))
+#define ROM_LINK_MODE_INVALID				\
+	(ROM_PCIE_LINK_CTRL(0, ROM_PCIE_LINK_MODE_0) |	\
+	 ROM_PCIE_LINK_CTRL(1, ROM_PCIE_LINK_MODE_0) |	\
+	 ROM_PCIE_LINK_CTRL(2, ROM_PCIE_LINK_MODE_0) |	\
+	 ROM_PCIE_LINK_CTRL(3, ROM_PCIE_LINK_MODE_0))
 
 /* global status */
 #define rom_get_chiplink_ready()				\
@@ -106,6 +151,8 @@ uint8_t rom_get_cluster_num(void);
 uint8_t rom_get_cluster_map(void);
 bool rom_get_noc_configured(void);
 void rom_set_noc_configured(void);
+uint8_t rom_get_pcie_link_mode(void);
+void rom_set_pcie_link_mode(uint8_t mode);
 #endif /* __ASSEMBLY__ */
 
 #endif /* __ROM_DUOWEN_H_INCLUDE__ */

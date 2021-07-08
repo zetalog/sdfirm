@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Jun 28 11:20:26 2021
+# Thu Jul  8 15:26:41 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -142,6 +142,7 @@ CONFIG_ARCH_HAS_PLIC_EOI_EARLY=y
 # CONFIG_PLIC is not set
 # CONFIG_HPM is not set
 CONFIG_ARCH_HAS_SBI_CLOCK=y
+CONFIG_ARCH_HAS_SBI_PINCTRL=y
 # CONFIG_SBI is not set
 
 #

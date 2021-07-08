@@ -169,7 +169,8 @@ CONFIG_HAVE_PERF_EVENTS=y
 #
 # Kernel Performance Events And Counters
 #
-# CONFIG_PERF_EVENTS is not set
+CONFIG_PERF_EVENTS=y
+# CONFIG_DEBUG_PERF_USE_VMALLOC is not set
 # end of Kernel Performance Events And Counters
 
 # CONFIG_VM_EVENT_COUNTERS is not set
@@ -243,6 +244,13 @@ CONFIG_NR_CPUS=32
 CONFIG_TUNE_GENERIC=y
 # CONFIG_NUMA is not set
 # CONFIG_RISCV_ISA_C is not set
+
+#
+# supported PMU type
+#
+CONFIG_RISCV_BASE_PMU=y
+# end of supported PMU type
+
 CONFIG_FPU=y
 # end of Platform type
 
@@ -351,6 +359,7 @@ CONFIG_GCC_PLUGINS=y
 CONFIG_RT_MUTEXES=y
 CONFIG_BASE_SMALL=1
 # CONFIG_MODULES is not set
+CONFIG_MODULES_TREE_LOOKUP=y
 CONFIG_BLOCK=y
 CONFIG_BLK_SCSI_REQUEST=y
 CONFIG_BLK_DEV_BSG=y
@@ -1692,6 +1701,12 @@ CONFIG_RESET_CONTROLLER=y
 
 # CONFIG_POWERCAP is not set
 # CONFIG_MCB is not set
+
+#
+# Performance monitor support
+#
+# end of Performance monitor support
+
 # CONFIG_RAS is not set
 # CONFIG_USB4 is not set
 

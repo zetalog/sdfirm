@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Jul  1 15:13:46 2021
+# Thu Jul  8 15:27:03 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -164,6 +164,7 @@ CONFIG_VAISRA_PMA=y
 CONFIG_ARCH_HAS_SBI_IPI=y
 CONFIG_ARCH_HAS_SBI_TIMER=y
 CONFIG_ARCH_HAS_SBI_CLOCK=y
+CONFIG_ARCH_HAS_SBI_PINCTRL=y
 # CONFIG_SBI is not set
 
 #

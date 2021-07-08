@@ -326,11 +326,11 @@ static void subsys_link_init_post(struct duowen_pcie_subsystem *pcie_subsys)
 		subsys_controllers_init(pcie_subsys, wait_controller_linkup);
 } 
 
-void instance_subsystem(struct duowen_pcie_subsystem *pcie_subsystem, int socket_id, bool chiplink)
+void instance_subsystem(struct duowen_pcie_subsystem *pcie_subsystem,
+			int socket_id, bool chiplink, uint8_t linkmode)
 {
 	memset(pcie_subsystem, 0, sizeof(*pcie_subsystem));
 
-	pcie_subsystem->link_mode = DEFAULT_LINK_MODE;
 	pcie_subsystem->controller = &controllers[0];
 	pcie_subsystem->ctrl_cnt = (sizeof(controllers)/sizeof(struct dw_pcie));
 
@@ -347,15 +347,13 @@ void instance_subsystem(struct duowen_pcie_subsystem *pcie_subsystem, int socket
 	pcie_subsystem->cfg_apb[SUBSYS] = CFG_APB_SUBSYS + SOC_BASE;
 	pcie_subsystem->socket_id = socket_id;
 	pcie_subsystem->chiplink = chiplink;
-
-	if (chiplink)
-		pcie_subsystem->link_mode = LINK_MODE_4_4_4_4;
-
-#ifdef CONFIG_DUOWEN_ZEBU
-	if (chiplink)
-		pcie_subsystem->link_mode = LINK_MODE_ZEBU;
-#endif
-
+	if (linkmode == LINK_MODE_INVALID) {
+		if (chiplink)
+			linkmode = DEFAULT_CHIPLINK_LINK_MODE;
+		else
+			linkmode = DEFAULT_LINK_MODE;
+	}
+	pcie_subsystem->link_mode = linkmode;
 }
 
 #ifndef TEST
@@ -469,7 +467,27 @@ void dw_set_pci_conf_reg(int bus, int dev, int fun, int reg, uint32_t val, uint8
 	base = PCIE_SUBSYS_ADDR_START + PCIE_CORE_RANGE * index;
 	__raw_writel(val, base + cpu_addr + pci_addr + reg);
 }
-//void setup_ep()
+
+uint8_t duowen_pcie_link_modes[] = {
+	[LINK_MODE_0] = ROM_LINK_MODE_4_4_4_4,
+	[LINK_MODE_1] = ROM_LINK_MODE_8_4_0_4,
+	[LINK_MODE_2] = ROM_LINK_MODE_8_8_0_0,
+	[LINK_MODE_3] = ROM_LINK_MODE_16_0_0_0,
+	[LINK_MODE_4] = ROM_LINK_MODE_ZEBU,
+};
+
+/* Converts ROM link mode to PCIe link mode */
+static uint8_t duowen_pcie_link_mode(uint8_t mode)
+{
+	uint8_t i;
+
+	for (i = 0; i < ARRAY_SIZE(duowen_pcie_link_modes); i++) {
+		if (duowen_pcie_link_modes[i] == mode)
+			return i;
+	}
+	return LINK_MODE_INVALID;
+}
+
 void pci_platform_init(void)
 {
 	struct duowen_pcie_subsystem *pcie_subsys;
@@ -477,6 +495,7 @@ void pci_platform_init(void)
 	struct pcie_port *pp = &(controllers[0].pp);
 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
 	int i, chiplink = 0, socket_id = 0;
+	uint8_t linkmode;
 	volatile uint32_t val;
 
 #ifdef CONFIG_DUOWEN_PCIE_CHIPLINK
@@ -489,9 +508,10 @@ void pci_platform_init(void)
 		rom_set_chiplink_ready();
 	}
 #endif
+	linkmode = duowen_pcie_link_mode(rom_get_pcie_link_mode());
 
 	pcie_subsys = &pcie_subsystem;
-	instance_subsystem(pcie_subsys, socket_id, chiplink);
+	instance_subsystem(pcie_subsys, socket_id, chiplink, linkmode);
 
 #ifndef TEST
 	clock_init();
