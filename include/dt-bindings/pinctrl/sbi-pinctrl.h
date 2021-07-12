@@ -33,8 +33,11 @@
 #define GPIO_PAD_SCHMITT_TRIG	0x80
 /* Re-use schmitt trigger unless being complained */
 #define GPIO_PAD_KEEPER		0x80
-#define GPIO_PAD_PULL_MASK	\
+
+#define GPIO_PAD_PULL_MASK		\
 	(GPIO_PAD_PULL_UP | GPIO_PAD_PULL_DOWN)
+#define GPIO_PAD_IO_MASK		0x08
+#define GPIO_PAD_PULL_STRENGTH_MASK	0x30
 
 #define GPIO_PAD_PP		(GPIO_PAD_DIGITAL_IO | GPIO_PAD_PUSH_PULL)
 #define GPIO_PAD_OD		(GPIO_PAD_DIGITAL_IO | GPIO_PAD_OPEN_DRAIN)

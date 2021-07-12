@@ -1,65 +1,55 @@
 
-                  SiFive Unleashed Development Environment
+                  Duowen Development Environment
 
-1. JTAG/UART -> microUSB
-   1st COM port: JTAG
-   2nd COM port: UART
-2. Power/Reset (power button, reset button)
-3. Special step on Windows for openocd:
-   Use USB Driver Tool to select libusb-windows on 1st COM port.
-
-===== DEBUGGING E51 =====
-4. Compile SDFIRM as FSBL:
-   $ make unleashed_fsbl_defconfig
+===== DEBUGGING IMC =====
+4. Compile SDFIRM as RAM TB:
+   $ make duowen_ram_imc_defconfig
    $ make
-   $ cp sdfirm unleashed_fsbl
+   $ cp sdfirm ram.elf
 5. Startup openocd session, the configuration file is:
-   sdfirm/arch/riscv/mach-unleashed/openocd-e51.cfg
-   $ openocd -f openocd-e51.cfg
+   sdfirm/arch/riscv/mach-duowen/openocd-imc.cfg
+   $ openocd -f openocd-imc.cfg
 6. Startup GDB session:
    $ riscv64-unknown-elf-gdb
 7. In GDB shell, type the following commands:
-   (gdb) target remote :3333
-   (gdb) load unleashed_fsbl
+   (gdb) set remotetimeout unlimited
+   (gdb) target extended-remote :3333
+   (gdb) info threads
+   (gdb) load ram.elf
    (gdb) flushregs
-   (gdb) symbol-file unleashed_fsbl (for debugging symbols)
+   (gdb) symbol-file ram.elf (for debugging symbols)
    (gdb) continue
-   NOTE: If the image is a bootstrap fsbl, you can exit openocd gdb server
-         after pc reaches to the waiting loop.
-===== DEBUGGING U54 =====
-9. Compile SDFIRM as BBL:
-   $ make unleashed_bbl_defconfig
+===== DEBUGGING APC =====
+9. Compile SDFIRM as RAM TB:
+   $ make duowen_ram_apc_defconfig
    $ make
-   $ cp sdfirm unleashed_bbl
-10.Special steps for running U54:
-   Remove SD card from the slot to make sure no system is booted by U54,
-   otherwise, GDB cannot reset core states.
-11.Startup openocd session, the configuration file is:
-   sdfirm/arch/riscv/mach-unleashed/openocd-u54.cfg
-   $ openocd -f openocd-u54.cfg
-12.Startup GDB session:
+   $ cp sdfirm ram.elf
+10.Startup openocd session, the configuration file is:
+   sdfirm/arch/riscv/mach-duowen/openocd-apc.cfg
+   $ openocd -f openocd-apc.cfg
+11.Startup GDB session:
    $ riscv64-unknown-elf-gdb
-13.Run BBL in UP mode:
-   In GDB shell, type the following commands to run on a specific core:
-   NOTE: CONFIG_UNLEASHED_HART_MASK should be configured to select only
-         this core.
+12.Run program in UP mode (default):
+   In GDB shell, type the following commands:
+   (gdb) set remotetimeout unlimited
    (gdb) target remote :3333
    (gdb) info threads
-   (gdb) thread 2 (switch to U54 boot core, can be 2, 3, 4, 5)
-   (gdb) load unleashed_bbl
+   (gdb) thread 2 (switch to another core, can be 1-16)
+   (gdb) load ram.elf
    (gdb) flushregs
-   (gdb) symbol-file unleashed_bbl (for debugging symbols)
+   (gdb) symbol-file ram.elf (for debugging symbols)
    (gdb) continue
    NOTE: Sometimes, debugger switches to hart0, and hart1 still hangs.
          You may do the followings:
    (gdb) continue (let hart0 run)
    (gdb) thread 2
-   (gdb) load unleashed_bbl (reload firmware on hart1)
+   (gdb) load ram.elf (reload firmware on hart1)
    (gdb) continue (let hart1 run)
-14.Run BBL in SMP mode:
+13.Run program in SMP mode:
    In GDB shell, type the following commands to run on all cores:
+   (gdb) set remotetimeout unlimited
    (gdb) target remote :3333
-   (gdb) file unleashed_bbl
+   (gdb) file ram.elf
    (gdb) flushregs
    (gdb) thread apply all load
    (gdb) set scheduler-locking off
@@ -78,7 +68,7 @@
    (gdb) set disassemble-next-line on (auto disassemble)
    (gdb) si/ni (for assembly debugging)
    (gdb) s/n (for C debugging)
-18.Information:
+16.Information:
    (gdb) info register pc (dump register content)
    (gdb) examine /nfu <addr> (dump memory content)
          n: number of memory unit
