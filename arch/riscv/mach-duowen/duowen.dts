@@ -468,7 +468,7 @@
 		};
 		cpu0: cpu@0 {
 			device_type = "cpu";
-			reg = <0x0>;
+			reg = <0>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -481,7 +481,7 @@
 		};
 		cpu1: cpu@1 {
 			device_type = "cpu";
-			reg = <0x1>;
+			reg = <1>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -494,7 +494,7 @@
 		};
 		cpu2: cpu@2 {
 			device_type = "cpu";
-			reg = <0x2>;
+			reg = <2>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -507,7 +507,7 @@
 		};
 		cpu3: cpu@3 {
 			device_type = "cpu";
-			reg = <0x3>;
+			reg = <3>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -520,7 +520,7 @@
 		};
 		cpu4: cpu@4 {
 			device_type = "cpu";
-			reg = <0x10>;
+			reg = <16>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -533,7 +533,7 @@
 		};
 		cpu5: cpu@5 {
 			device_type = "cpu";
-			reg = <0x11>;
+			reg = <17>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -546,7 +546,7 @@
 		};
 		cpu6: cpu@6 {
 			device_type = "cpu";
-			reg = <0x12>;
+			reg = <18>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -559,7 +559,7 @@
 		};
 		cpu7: cpu@7 {
 			device_type = "cpu";
-			reg = <0x13>;
+			reg = <19>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -595,7 +595,7 @@
 		};
 		cpu0: cpu@0 {
 			device_type = "cpu";
-			reg = <0x0>;
+			reg = <0>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -608,7 +608,7 @@
 		};
 		cpu1: cpu@1 {
 			device_type = "cpu";
-			reg = <0x1>;
+			reg = <1>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -621,7 +621,7 @@
 		};
 		cpu2: cpu@2 {
 			device_type = "cpu";
-			reg = <0x2>;
+			reg = <2>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -634,7 +634,7 @@
 		};
 		cpu3: cpu@3 {
 			device_type = "cpu";
-			reg = <0x3>;
+			reg = <3>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -764,7 +764,7 @@
 		};
 		cpu0: cpu@0 {
 			device_type = "cpu";
-			reg = <0xf>;
+			reg = <0>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -777,7 +777,7 @@
 		};
 		cpu1: cpu@1 {
 			device_type = "cpu";
-			reg = <0xe>;
+			reg = <1>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -790,7 +790,7 @@
 		};
 		cpu2: cpu@2 {
 			device_type = "cpu";
-			reg = <0xd>;
+			reg = <2>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -803,7 +803,7 @@
 		};
 		cpu3: cpu@3 {
 			device_type = "cpu";
-			reg = <0xc>;
+			reg = <3>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -816,7 +816,7 @@
 		};
 		cpu4: cpu@4 {
 			device_type = "cpu";
-			reg = <0xb>;
+			reg = <4>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -829,7 +829,7 @@
 		};
 		cpu5: cpu@5 {
 			device_type = "cpu";
-			reg = <0xa>;
+			reg = <5>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -842,7 +842,7 @@
 		};
 		cpu6: cpu@6 {
 			device_type = "cpu";
-			reg = <0x9>;
+			reg = <6>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -855,7 +855,7 @@
 		};
 		cpu7: cpu@7 {
 			device_type = "cpu";
-			reg = <0x8>;
+			reg = <7>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -868,7 +868,7 @@
 		};
 		cpu8: cpu@8 {
 			device_type = "cpu";
-			reg = <0x7>;
+			reg = <8>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -881,7 +881,7 @@
 		};
 		cpu9: cpu@9 {
 			device_type = "cpu";
-			reg = <0x6>;
+			reg = <9>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -894,7 +894,7 @@
 		};
 		cpu10: cpu@10 {
 			device_type = "cpu";
-			reg = <0x5>;
+			reg = <10>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -907,7 +907,7 @@
 		};
 		cpu11: cpu@11 {
 			device_type = "cpu";
-			reg = <0x4>;
+			reg = <11>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -920,7 +920,7 @@
 		};
 		cpu12: cpu@12 {
 			device_type = "cpu";
-			reg = <0x3>;
+			reg = <12>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -933,7 +933,7 @@
 		};
 		cpu13: cpu@13 {
 			device_type = "cpu";
-			reg = <0x2>;
+			reg = <13>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -946,7 +946,7 @@
 		};
 		cpu14: cpu@14 {
 			device_type = "cpu";
-			reg = <0x1>;
+			reg = <14>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -959,7 +959,7 @@
 		};
 		cpu15: cpu@15 {
 			device_type = "cpu";
-			reg = <0x0>;
+			reg = <15>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -972,7 +972,7 @@
 		};
 		cpu16: cpu@16 {
 			device_type = "cpu";
-			reg = <0x1f>;
+			reg = <16>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -985,7 +985,7 @@
 		};
 		cpu17: cpu@17 {
 			device_type = "cpu";
-			reg = <0x1e>;
+			reg = <17>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -998,7 +998,7 @@
 		};
 		cpu18: cpu@18 {
 			device_type = "cpu";
-			reg = <0x1d>;
+			reg = <18>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1011,7 +1011,7 @@
 		};
 		cpu19: cpu@19 {
 			device_type = "cpu";
-			reg = <0x1c>;
+			reg = <19>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1024,7 +1024,7 @@
 		};
 		cpu20: cpu@20 {
 			device_type = "cpu";
-			reg = <0x1b>;
+			reg = <20>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1037,7 +1037,7 @@
 		};
 		cpu21: cpu@21 {
 			device_type = "cpu";
-			reg = <0x1a>;
+			reg = <21>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1050,7 +1050,7 @@
 		};
 		cpu22: cpu@22 {
 			device_type = "cpu";
-			reg = <0x19>;
+			reg = <22>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1063,7 +1063,7 @@
 		};
 		cpu23: cpu@23 {
 			device_type = "cpu";
-			reg = <0x18>;
+			reg = <23>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1076,7 +1076,7 @@
 		};
 		cpu24: cpu@24 {
 			device_type = "cpu";
-			reg = <0x17>;
+			reg = <24>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1089,7 +1089,7 @@
 		};
 		cpu25: cpu@25 {
 			device_type = "cpu";
-			reg = <0x16>;
+			reg = <25>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1102,7 +1102,7 @@
 		};
 		cpu26: cpu@26 {
 			device_type = "cpu";
-			reg = <0x15>;
+			reg = <26>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1115,7 +1115,7 @@
 		};
 		cpu27: cpu@27 {
 			device_type = "cpu";
-			reg = <0x14>;
+			reg = <27>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1128,7 +1128,7 @@
 		};
 		cpu28: cpu@28 {
 			device_type = "cpu";
-			reg = <0x13>;
+			reg = <28>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1141,7 +1141,7 @@
 		};
 		cpu29: cpu@29 {
 			device_type = "cpu";
-			reg = <0x12>;
+			reg = <29>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1154,7 +1154,7 @@
 		};
 		cpu30: cpu@30 {
 			device_type = "cpu";
-			reg = <0x11>;
+			reg = <30>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1167,7 +1167,7 @@
 		};
 		cpu31: cpu@31 {
 			device_type = "cpu";
-			reg = <0x10>;
+			reg = <31>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1239,7 +1239,7 @@
 		};
 		cpu0: cpu@0 {
 			device_type = "cpu";
-			reg = <0xf>;
+			reg = <0>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1252,7 +1252,7 @@
 		};
 		cpu1: cpu@1 {
 			device_type = "cpu";
-			reg = <0xe>;
+			reg = <1>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1265,7 +1265,7 @@
 		};
 		cpu2: cpu@2 {
 			device_type = "cpu";
-			reg = <0xd>;
+			reg = <2>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1278,7 +1278,7 @@
 		};
 		cpu3: cpu@3 {
 			device_type = "cpu";
-			reg = <0xc>;
+			reg = <3>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1291,7 +1291,7 @@
 		};
 		cpu4: cpu@4 {
 			device_type = "cpu";
-			reg = <0xb>;
+			reg = <4>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1304,7 +1304,7 @@
 		};
 		cpu5: cpu@5 {
 			device_type = "cpu";
-			reg = <0xa>;
+			reg = <5>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1317,7 +1317,7 @@
 		};
 		cpu6: cpu@6 {
 			device_type = "cpu";
-			reg = <0x9>;
+			reg = <6>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1330,7 +1330,7 @@
 		};
 		cpu7: cpu@7 {
 			device_type = "cpu";
-			reg = <0x8>;
+			reg = <7>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1343,7 +1343,7 @@
 		};
 		cpu8: cpu@8 {
 			device_type = "cpu";
-			reg = <0x7>;
+			reg = <8>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1356,7 +1356,7 @@
 		};
 		cpu9: cpu@9 {
 			device_type = "cpu";
-			reg = <0x6>;
+			reg = <9>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1369,7 +1369,7 @@
 		};
 		cpu10: cpu@10 {
 			device_type = "cpu";
-			reg = <0x5>;
+			reg = <10>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1382,7 +1382,7 @@
 		};
 		cpu11: cpu@11 {
 			device_type = "cpu";
-			reg = <0x4>;
+			reg = <11>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1395,7 +1395,7 @@
 		};
 		cpu12: cpu@12 {
 			device_type = "cpu";
-			reg = <0x3>;
+			reg = <12>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1408,7 +1408,7 @@
 		};
 		cpu13: cpu@13 {
 			device_type = "cpu";
-			reg = <0x2>;
+			reg = <13>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1421,7 +1421,7 @@
 		};
 		cpu14: cpu@14 {
 			device_type = "cpu";
-			reg = <0x1>;
+			reg = <14>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -1434,7 +1434,7 @@
 		};
 		cpu15: cpu@15 {
 			device_type = "cpu";
-			reg = <0x0>;
+			reg = <15>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
