@@ -262,21 +262,6 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
 			(controller + X4_1)->order = 0xff;
 
 			break;
-		case LINK_MODE_ZEBU:
-			(controller + X16)->lane_num = 0;
-			(controller + X8)->lane_num = 0;
-			(controller + X4_0)->lane_num = 0;
-			(controller + X4_1)->lane_num = 4;
-
-			(controller + X16)->active = false;
-			(controller + X8)->active = false;
-			(controller + X4_0)->active = false;
-			(controller + X4_1)->active = true;
-
-			(controller + X16)->order = 0xff;
-			(controller + X8)->order = 0xff;
-			(controller + X4_0)->order = 0xff;
-			(controller + X4_1)->order = 0x0;
 	}
 
 	if (chiplink)
@@ -312,18 +297,10 @@ static void subsys_link_init_post(struct duowen_pcie_subsystem *pcie_subsys)
 			write_apb(pcie_subsys->cfg_apb[X16], 0xc018010, APB_PORT_X16);
 
 			break;
-
-		case LINK_MODE_ZEBU: // 0_0_0_4
-			if (chiplink && id)
-				write_apb(pcie_subsys->cfg_apb[X4_1], 0xc018000, APB_PORT_X4_1);
-			else
-				write_apb(pcie_subsys->cfg_apb[X4_1], 0xc018010, APB_PORT_X4_1);
-
-			break;
 	}
 
 	if (chiplink)
-		subsys_controllers_init(pcie_subsys, wait_controller_linkup);
+		wait_controller_linkup(pcie_subsys, X4_1);
 } 
 
 void instance_subsystem(struct duowen_pcie_subsystem *pcie_subsystem,
@@ -473,7 +450,6 @@ uint8_t duowen_pcie_link_modes[] = {
 	[LINK_MODE_1] = ROM_LINK_MODE_8_4_0_4,
 	[LINK_MODE_2] = ROM_LINK_MODE_8_8_0_0,
 	[LINK_MODE_3] = ROM_LINK_MODE_16_0_0_0,
-	[LINK_MODE_4] = ROM_LINK_MODE_ZEBU,
 };
 
 /* Converts ROM link mode to PCIe link mode */
