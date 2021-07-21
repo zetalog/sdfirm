@@ -60,117 +60,96 @@
 #include "pcie_designware.h"
 #endif
 
-#define X16         0
-#define X8          1
-#define X4_0        2
-#define X4_1        3
-#define SUBSYS      4
+#define X16				0
+#define X8				1
+#define X4_0				2
+#define X4_1				3
+#define SUBSYS				4
 
-#define APB_PORT_X16                0x4
-#define APB_PORT_X8                 0x5
-#define APB_PORT_X4_0               0x6
-#define APB_PORT_X4_1               0x7
-#define APB_PORT_SUBSYS             0x8
+#define APB_PORT_X16			0x4
+#define APB_PORT_X8			0x5
+#define APB_PORT_X4_0			0x6
+#define APB_PORT_X4_1			0x7
+#define APB_PORT_SUBSYS			0x8
 
-#define AXI_DBI_PORT_X16            0x0
-#define AXI_DBI_PORT_X8             0x1
-#define AXI_DBI_PORT_X4_0           0x2
-#define AXI_DBI_PORT_X4_1           0x3
+#define AXI_DBI_PORT_X16		0x0
+#define AXI_DBI_PORT_X8			0x1
+#define AXI_DBI_PORT_X4_0		0x2
+#define AXI_DBI_PORT_X4_1		0x3
 
-#define RESET_CORE_X16              0x0
-#define RESET_CORE_X8               0x4
-#define RESET_CORE_X4_0             0x8
-#define RESET_CORE_X4_1             0xC
-#define RESET_PHY                   0x10
-#define SUBSYS_CONTROL              0x14
-#define REFCLK_CONTROL              0x18
-#define SRAM_CONTROL                0x1c
-#define SRAM_STATUS                 0x20
+#define RESET_CORE_X16			0x0
+#define RESET_CORE_X8			0x4
+#define RESET_CORE_X4_0			0x8
+#define RESET_CORE_X4_1			0xC
+#define RESET_PHY			0x10
+#define SUBSYS_CONTROL			0x14
+#define REFCLK_CONTROL			0x18
+#define SRAM_CONTROL			0x1c
+#define SRAM_STATUS			0x20
 
-#define LINK_MODE_4_4_4_4		0x0
-#define LINK_MODE_8_4_0_4		0x1
-#define LINK_MODE_8_8_0_0		0x2
-#define LINK_MODE_16_0_0_0		0x3
 #define LINK_MODE_INVALID		0xff
-#define LINK_MODE_0			LINK_MODE_4_4_4_4
-#define LINK_MODE_1			LINK_MODE_8_4_0_4
-#define LINK_MODE_2			LINK_MODE_8_8_0_0
-#define LINK_MODE_3			LINK_MODE_16_0_0_0
-
-#ifdef CONFIG_DUOWEN_PCIE_LINK_MODE_0
-#define DEFAULT_LINK_MODE		LINK_MODE_0
-#endif
-#ifdef CONFIG_DUOWEN_PCIE_LINK_MODE_1
-#define DEFAULT_LINK_MODE		LINK_MODE_1
-#endif
-#ifdef CONFIG_DUOWEN_PCIE_LINK_MODE_2
-#define DEFAULT_LINK_MODE		LINK_MODE_2
-#endif
-#ifdef CONFIG_DUOWEN_PCIE_LINK_MODE_3
-#define DEFAULT_LINK_MODE		LINK_MODE_3
-#endif
-#ifdef CONFIG_DUOWEN_PCIE_LINK_MODE_4
-#define DEFAULT_LINK_MODE		LINK_MODE_4
-#endif
-#define DEFAULT_CHIPLINK_LINK_MODE	LINK_MODE_4_4_4_4
-#ifndef DEFAULT_LINK_MODE
-#define DEFAULT_LINK_MODE		DEFAULT_CHIPLINK_LINK_MODE
-#endif
 
 #ifdef IPBENCH
-#define CFG_APB_SUBSYS              0x0
-#define CFG_APB_CORE_X16            0x0
-#define CFG_APB_CORE_X8             0x0
-#define CFG_APB_CORE_X4_0           0x0
-#define CFG_APB_CORE_X4_1           0x0
+#define CFG_APB_SUBSYS			0x0
+#define CFG_APB_CORE_X16		0x0
+#define CFG_APB_CORE_X8			0x0
+#define CFG_APB_CORE_X4_0		0x0
+#define CFG_APB_CORE_X4_1		0x0
 
-#define CFG_APB_PHY_0               0x0
-#define CFG_APB_PHY_1               0x0
-#define CFG_APB_PHY_2               0x0
-#define CFG_APB_PHY_3               0x0
+#define CFG_APB_PHY_0			0x0
+#define CFG_APB_PHY_1			0x0
+#define CFG_APB_PHY_2			0x0
+#define CFG_APB_PHY_3			0x0
 
-#define CFG_AXI_CORE_X16            0x0
-#define CFG_AXI_CORE_X8             0x0
-#define CFG_AXI_CORE_X4_0           0x0
-#define CFG_AXI_CORE_X4_1           0x0
+#define CFG_AXI_CORE_X16		0x0
+#define CFG_AXI_CORE_X8			0x0
+#define CFG_AXI_CORE_X4_0		0x0
+#define CFG_AXI_CORE_X4_1		0x0
 #else
-#define CFG_APB_SUBSYS              0xff09000000ULL
-#define CFG_APB_CORE_X16            0xff09001000ULL
-#define CFG_APB_CORE_X8             0xff09002000ULL
-#define CFG_APB_CORE_X4_0           0xff09003000ULL
-#define CFG_APB_CORE_X4_1           0xff09004000ULL
+#define CFG_APB_SUBSYS			ULL(0xff09000000)
+#define CFG_APB_CORE_X16		ULL(0xff09001000)
+#define CFG_APB_CORE_X8			ULL(0xff09002000)
+#define CFG_APB_CORE_X4_0		ULL(0xff09003000)
+#define CFG_APB_CORE_X4_1		ULL(0xff09004000)
 
-#define CFG_APB_PHY_0               0xff09180000ULL
-#define CFG_APB_PHY_1               0xff09280000ULL
-#define CFG_APB_PHY_2               0xff09380000ULL
-#define CFG_APB_PHY_3               0xff09480000ULL
+#define CFG_APB_PHY_0			ULL(0xff09180000)
+#define CFG_APB_PHY_1			ULL(0xff09280000)
+#define CFG_APB_PHY_2			ULL(0xff09380000)
+#define CFG_APB_PHY_3			ULL(0xff09480000)
 
-#define CFG_AXI_CORE_X16            0xff09100000ULL
-#define CFG_AXI_CORE_X8             0xff09200000ULL
-#define CFG_AXI_CORE_X4_0           0xff09300000ULL
-#define CFG_AXI_CORE_X4_1           0xff09400000ULL
+#define CFG_AXI_CORE_X16		ULL(0xff09100000)
+#define CFG_AXI_CORE_X8			ULL(0xff09200000)
+#define CFG_AXI_CORE_X4_0		ULL(0xff09300000)
+#define CFG_AXI_CORE_X4_1		ULL(0xff09400000)
 #endif
 
-#define KB                          (1UL << 10)
-#define MB                          (1UL << 20)
-#define GB                          (1UL << 30)
+#define KB				(1UL << 10)
+#define MB				(1UL << 20)
+#define GB				(1UL << 30)
 
 #define PCIE_CORE_RANGE			512*GB
-#define PCIE_SUBSYS_ADDR_START      0x40000000000ULL
-#define PCIE_CORE_X16_ADDR_START    0
-#define PCIE_CORE_X8_ADDR_START     PCIE_CORE_X16_ADDR_START + PCIE_CORE_RANGE
-#define PCIE_CORE_X4_0_ADDR_START   PCIE_CORE_X8_ADDR_START + PCIE_CORE_RANGE
-#define PCIE_CORE_X4_1_ADDR_START   PCIE_CORE_X4_0_ADDR_START + PCIE_CORE_RANGE
-#define PCIE_SUBSYS_ADDR_END        PCIE_CORE_X4_1_ADDR_START + PCIE_CORE_RANGE
+#define PCIE_SUBSYS_ADDR_START		ULL(0x40000000000)
+#define PCIE_CORE_X16_ADDR_START	0
+#define PCIE_CORE_X8_ADDR_START		\
+	(PCIE_CORE_X16_ADDR_START + PCIE_CORE_RANGE)
+#define PCIE_CORE_X4_0_ADDR_START	\
+	(PCIE_CORE_X8_ADDR_START + PCIE_CORE_RANGE)
+#define PCIE_CORE_X4_1_ADDR_START	\
+	(PCIE_CORE_X4_0_ADDR_START + PCIE_CORE_RANGE)
+#define PCIE_SUBSYS_ADDR_END		\
+	(PCIE_CORE_X4_1_ADDR_START + PCIE_CORE_RANGE)
 
-#define PCIE_CORE_CFG_SIZE      256*MB
-#define PCIE_CORE_MEM_SIZE      PCIE_CORE_RANGE - 2*PCIE_CORE_CFG_SIZE
-#define PCIE_CORE_CFG1_START     PCIE_CORE_RANGE - PCIE_CORE_CFG_SIZE
-#define PCIE_CORE_CFG0_START     PCIE_CORE_RANGE - 2*PCIE_CORE_CFG_SIZE
+#define PCIE_CORE_CFG_SIZE		256*MB
+#define PCIE_CORE_MEM_SIZE		\
+	(PCIE_CORE_RANGE - 2*PCIE_CORE_CFG_SIZE)
+#define PCIE_CORE_CFG1_START		\
+	(PCIE_CORE_RANGE - PCIE_CORE_CFG_SIZE)
+#define PCIE_CORE_CFG0_START		\
+	(PCIE_CORE_RANGE - 2*PCIE_CORE_CFG_SIZE)
 
 #ifdef CONFIG_DUOWEN_PCIE_TEST
-#define MSI_INT     0
-#define INTA_INT    1
+#define MSI_INT				0
+#define INTA_INT			1
 #endif
 
 #ifdef IPBENCH
@@ -178,12 +157,9 @@ void apb_read_c(uint32_t addr, uint32_t *data, int port);
 void apb_write_c(uint32_t addr, uint32_t data, int port);
 #endif
 
-void init_duowen_pcie_subsystem(void);
-
-
 struct duowen_pcie {
 	uint64_t cfg_apb[5];
-	uint8_t link_mode;
+	uint8_t linkmode;
 	int socket_id;
 	bool chiplink;
 };

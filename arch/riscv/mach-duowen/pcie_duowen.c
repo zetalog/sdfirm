@@ -142,6 +142,25 @@ void dw_set_pci_conf_reg(int bus, int dev, int fun, int reg,
 	__raw_writel(val, base + cpu_addr + pci_addr + reg);
 }
 
+uint8_t duowen_pcie_link_modes[] = {
+	[0] = ROM_LINK_MODE_4_4_4_4,
+	[1] = ROM_LINK_MODE_8_4_0_4,
+	[2] = ROM_LINK_MODE_8_8_0_0,
+	[3] = ROM_LINK_MODE_16_0_0_0,
+};
+
+/* Converts ROM link mode to PCIe link mode */
+static uint8_t duowen_pcie_link_mode(uint8_t mode)
+{
+	uint8_t i;
+
+	for (i = 0; i < ARRAY_SIZE(duowen_pcie_link_modes); i++) {
+		if (duowen_pcie_link_modes[i] == mode)
+			return i;
+	}
+	return LINK_MODE_INVALID;
+}
+
 static void duowen_pcie_reset(void)
 {
 	uint64_t base = duowen_pcie_cfg.cfg_apb[SUBSYS];
@@ -200,23 +219,22 @@ static void duowen_pcie_init_ctrls(void)
 
 static void duowen_pcie_pre_reset(void)
 {
+	uint8_t linkmode = duowen_pcie_cfg.linkmode;
 	uint64_t base = duowen_pcie_cfg.cfg_apb[SUBSYS];
 	uint8_t port = APB_PORT_SUBSYS;
-	uint8_t link_mode = duowen_pcie_cfg.link_mode;
 	bool chiplink = duowen_pcie_cfg.chiplink;
 	int socket_id = duowen_pcie_cfg.socket_id;
 
-	/* BUG_ON(link_mode == LINK_MODE_INVALID); */
-
 	/* #10ns */
-	write_apb((base + SUBSYS_CONTROL), link_mode, port);
+	write_apb((base + SUBSYS_CONTROL),
+		  duowen_pcie_link_mode(linkmode), port);
 	write_apb((base + RESET_CORE_X4_0), 0xff, port);
 	write_apb((base + RESET_CORE_X4_1), 0xff, port);
 	write_apb((base + RESET_CORE_X8), 0xff, port);
 	write_apb((base + RESET_CORE_X16), 0xff, port);
 
-	switch (link_mode) {
-	case LINK_MODE_4_4_4_4:
+	switch (linkmode) {
+	case ROM_LINK_MODE_4_4_4_4:
 		/* 0: In DPU, X4_0 */
 		duowen_pcie_ctrls[X16].lane_num = 4;
 		duowen_pcie_ctrls[X8].lane_num = 4;
@@ -233,7 +251,7 @@ static void duowen_pcie_pre_reset(void)
 		duowen_pcie_ctrls[X4_0].order = 2;
 		duowen_pcie_ctrls[X4_1].order = 3;
 		break;
-	case LINK_MODE_8_4_0_4:
+	case ROM_LINK_MODE_8_4_0_4:
 		/* 1: In DPU, X4_1 */
 		duowen_pcie_ctrls[X16].lane_num = 8;
 		duowen_pcie_ctrls[X8].lane_num = 4;
@@ -248,7 +266,7 @@ static void duowen_pcie_pre_reset(void)
 		duowen_pcie_ctrls[X4_0].order = 0xff;
 		duowen_pcie_ctrls[X4_1].order = 2;
 		break;
-	case LINK_MODE_8_8_0_0:
+	case ROM_LINK_MODE_8_8_0_0:
 		/* 2: In DPU, X8 */
 		duowen_pcie_ctrls[X16].lane_num = 8;
 		duowen_pcie_ctrls[X8].lane_num = 8;
@@ -263,7 +281,7 @@ static void duowen_pcie_pre_reset(void)
 		duowen_pcie_ctrls[X4_0].order = 0xff;
 		duowen_pcie_ctrls[X4_1].order = 0xff;
 		break;
-	case LINK_MODE_16_0_0_0:
+	case ROM_LINK_MODE_16_0_0_0:
 		/*  3: In DPU: X16 */
 		duowen_pcie_ctrls[X16].lane_num = 16;
 		duowen_pcie_ctrls[X8].lane_num = 0;
@@ -289,15 +307,14 @@ static void duowen_pcie_pre_reset(void)
 
 static void duowen_pcie_post_reset(void)
 {
-	uint8_t link_mode = duowen_pcie_cfg.link_mode;
 	int id = duowen_pcie_cfg.socket_id;
 	bool chiplink = duowen_pcie_cfg.chiplink;
 
-	switch (link_mode) {
-	case LINK_MODE_4_4_4_4:
+	switch (duowen_pcie_cfg.linkmode) {
+	case ROM_LINK_MODE_4_4_4_4:
 		write_apb(duowen_pcie_cfg.cfg_apb[X4_0], 0xc018010,
 			  APB_PORT_X4_0);
-	case LINK_MODE_8_4_0_4:
+	case ROM_LINK_MODE_8_4_0_4:
 		/* Only X4_1 ctrl in both side will possilbly be used as
 		 * underlay of chiplink
 		 */
@@ -307,10 +324,10 @@ static void duowen_pcie_post_reset(void)
 		else
 			write_apb(duowen_pcie_cfg.cfg_apb[X4_1], 0xc018010,
 				  APB_PORT_X4_1);
-	case LINK_MODE_8_8_0_0:
+	case ROM_LINK_MODE_8_8_0_0:
 		write_apb(duowen_pcie_cfg.cfg_apb[X8], 0xc018010,
 			  APB_PORT_X8);
-	case LINK_MODE_16_0_0_0:
+	case ROM_LINK_MODE_16_0_0_0:
 		write_apb(duowen_pcie_cfg.cfg_apb[X16], 0xc018010,
 			  APB_PORT_X16);
 		break;
@@ -319,9 +336,10 @@ static void duowen_pcie_post_reset(void)
 		duowen_pcie_wait_linkup(X4_1);
 } 
 
-void duowen_pcie_cfg_init(int socket_id, bool chiplink, uint8_t linkmode)
+void duowen_pcie_cfg_init(int socket_id, bool chiplink)
 {
 	int i;
+	uint8_t linkmode = rom_get_pcie_link_mode();
 
 	memset(&duowen_pcie_cfg, 0, sizeof(duowen_pcie_cfg));
 	for (i = 0; i < ARRAY_SIZE(duowen_pcie_ctrls); i++) {
@@ -336,13 +354,13 @@ void duowen_pcie_cfg_init(int socket_id, bool chiplink, uint8_t linkmode)
 	duowen_pcie_cfg.cfg_apb[SUBSYS] = CFG_APB_SUBSYS + SOC_BASE;
 	duowen_pcie_cfg.socket_id = socket_id;
 	duowen_pcie_cfg.chiplink = chiplink;
-	if (linkmode == LINK_MODE_INVALID) {
+	if (duowen_pcie_link_mode(linkmode) == LINK_MODE_INVALID) {
 		if (chiplink)
-			linkmode = DEFAULT_CHIPLINK_LINK_MODE;
+			linkmode = ROM_LINK_MODE_CHIPLINK;
 		else
-			linkmode = DEFAULT_LINK_MODE;
+			linkmode = ROM_LINK_MODE_DEFAULT;
 	}
-	duowen_pcie_cfg.link_mode = linkmode;
+	duowen_pcie_cfg.linkmode = linkmode;
 }
 
 #ifndef TEST
@@ -355,43 +373,23 @@ void duowen_pcie_clock_init(void)
 }
 #endif
 
-uint8_t duowen_pcie_link_modes[] = {
-	[LINK_MODE_0] = ROM_LINK_MODE_4_4_4_4,
-	[LINK_MODE_1] = ROM_LINK_MODE_8_4_0_4,
-	[LINK_MODE_2] = ROM_LINK_MODE_8_8_0_0,
-	[LINK_MODE_3] = ROM_LINK_MODE_16_0_0_0,
-};
-
-/* Converts ROM link mode to PCIe link mode */
-static uint8_t duowen_pcie_link_mode(uint8_t mode)
-{
-	uint8_t i;
-
-	for (i = 0; i < ARRAY_SIZE(duowen_pcie_link_modes); i++) {
-		if (duowen_pcie_link_modes[i] == mode)
-			return i;
-	}
-	return LINK_MODE_INVALID;
-}
-
 #ifdef CONFIG_DUOWEN_PCIE_TEST
 void duowen_pcie_handle_msi(bool en)
 {
-	uint8_t link_mode = duowen_pcie_cfg.link_mode;
 	int val;
 	uint64_t base;
 
-	switch (link_mode) {
-	case LINK_MODE_0:
+	switch (duowen_pcie_cfg.linkmode) {
+	case ROM_LINK_MODE_4_4_4_4:
 		base = duowen_pcie_cfg.cfg_apb[X4_1];
 		break;
-	case LINK_MODE_1:
+	case ROM_LINK_MODE_8_4_0_4:
 		base = duowen_pcie_cfg.cfg_apb[X4_0];
 		break;
-	case LINK_MODE_2:
+	case ROM_LINK_MODE_8_8_0_0:
 		base = duowen_pcie_cfg.cfg_apb[X8];
 		break;
-	case LINK_MODE_3:
+	case ROM_LINK_MODE_16_0_0_0:
 	default:
 		base = duowen_pcie_cfg.cfg_apb[X16];
 		break;
@@ -515,7 +513,6 @@ static void duowen_pcie_test(void)
 void pci_platform_init(void)
 {
 	int i, chiplink = 0, socket_id = 0;
-	uint8_t linkmode;
 	volatile uint32_t val;
 
 #ifdef CONFIG_DUOWEN_PCIE_CHIPLINK
@@ -528,8 +525,7 @@ void pci_platform_init(void)
 		rom_set_chiplink_ready();
 	}
 #endif
-	linkmode = duowen_pcie_link_mode(rom_get_pcie_link_mode());
-	duowen_pcie_cfg_init(socket_id, chiplink, linkmode);
+	duowen_pcie_cfg_init(socket_id, chiplink);
 
 #ifndef TEST
 	duowen_pcie_clock_init();
