@@ -400,42 +400,29 @@ enum dw_pcie_as_type {
 	DW_PCIE_AS_IO,
 };
 
-struct dw_pcie_ops {
-	uint64_t	(*cpu_addr_fixup)(struct dw_pcie *pcie, uint64_t cpu_addr);
-	uint32_t	(*read_dbi)(struct dw_pcie *pcie, enum dw_pcie_access_type type,
-			uint32_t reg, size_t size);
-	void	(*write_dbi)(struct dw_pcie *pcie, enum dw_pcie_access_type type,
-			uint32_t reg, size_t size, uint32_t val);
-	int	(*link_up)(struct dw_pcie *pcie);
-	int	(*start_link)(struct dw_pcie *pcie);
-	void	(*stop_link)(struct dw_pcie *pcie);
-};
-
 struct dw_pcie {
-	struct device		*dev;
-	uint64_t 	dbi_base;
-	uint64_t    mem32_base;
-	uint64_t    mem32_size;
-	uint64_t    mem64_base;
-	uint64_t    mem64_size;
-	uint64_t    io_base;
-	uint64_t    io_size;
-	uint32_t    lane_num;
-	uint8_t     axi_dbi_port;
-	uint8_t     order;
+	uint64_t dbi_base;
+	uint64_t mem32_base;
+	uint64_t mem32_size;
+	uint64_t mem64_base;
+	uint64_t mem64_size;
+	uint64_t io_base;
+	uint64_t io_size;
+	uint32_t lane_num;
+	uint8_t  axi_dbi_port;
+	uint8_t  order;
 	/* Used when iatu_unroll_enabled is true */
-	void 		*atu_base;
-	uint32_t			num_viewport;
-	uint8_t			iatu_unroll_enabled;
-	struct pcie_port	pp;
-	//struct dw_pcie_ep	ep;
-	const struct dw_pcie_ops *ops;
-	bool        active;
-	unsigned int		version;
+	void *atu_base;
+	uint32_t num_viewport;
+	uint8_t iatu_unroll_enabled;
+	struct pcie_port pp;
+	//struct dw_pcie_ep ep;
+	bool active;
+	unsigned int version;
 };
 
-#define to_dw_pcie_from_pp(port) container_of((port), struct dw_pcie, pp)
-
+#define to_dw_pcie_from_pp(port)	\
+	container_of((port), struct dw_pcie, pp)
 #define to_dw_pcie_from_ep(endpoint)   \
 	container_of((endpoint), struct dw_pcie, ep)
 

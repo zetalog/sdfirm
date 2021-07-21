@@ -13,14 +13,14 @@ void axi_read_c(uint64_t addr, uint32_t *data, int port)
 {
 	*data = readl(addr);
 #ifdef CONFIG_DW_PCIE_DEBUG
-	con_dbg("dw_pcie: AXIRead: 0x%llx=0x%x\n", addr, *data);
+	con_dbg("dw_pcie: AXI(R): 0x%llx=0x%x\n", addr, *data);
 #endif
 }
 
 void axi_write_c(uint64_t addr, uint32_t data, int port)
 {
 #ifdef CONFIG_DW_PCIE_DEBUG
-	con_dbg("dw_pcie: AXIWrite: 0x%llx=0x%x\n", addr, data);
+	con_dbg("dw_pcie: AXI(W): 0x%llx=0x%x\n", addr, data);
 #endif
 	writel(addr, data);
 }

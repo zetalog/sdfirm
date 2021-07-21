@@ -181,23 +181,11 @@ void apb_write_c(uint32_t addr, uint32_t data, int port);
 void init_duowen_pcie_subsystem(void);
 
 
-struct duowen_pcie_subsystem
-{
+struct duowen_pcie {
 	uint64_t cfg_apb[5];
 	uint8_t link_mode;
-	uint8_t ctrl_cnt;
 	int socket_id;
 	bool chiplink;
-
-#ifdef IPBENCH
-	//uint8_t port_
-#endif
-
-	struct dw_pcie *controller;
-
-	//uint8_t (* get_link_mode)(struct duowen_pcie_subsystem *pcie_subsystem);
-	//uint32_t (* apb_read)(uint64_t *addr);
-	//void (* apb_write)(uint64_t *addr, uint32_t val);
 };
 
 void pci_platform_init(void);
