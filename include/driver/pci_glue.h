@@ -1,5 +1,5 @@
-#ifndef __GLUE_H__
-#define __GLUE_H__
+#ifndef __PCI_GLUE_H__
+#define __PCI_GLUE_H__
 
 #ifndef SDFIRM
 #include <stdbool.h>
@@ -81,8 +81,4 @@ typedef unsigned long size_t;
 #define upper_32_bits(n) ((uint32_t)(((n) >> 16) >> 16))
 #define lower_32_bits(n) ((uint32_t)(n))
 
-#define dev_dbg(dev, fmt, ...)      printf(fmt, ##__VA_ARGS__)
-#define dev_info(dev, fmt, ...)     printf(fmt, ##__VA_ARGS__)
-#define dev_err(dev, fmt, ...)      printf(fmt, ##__VA_ARGS__)
-
-#endif
+#endif /* __PCI_GLUE_H__ */
