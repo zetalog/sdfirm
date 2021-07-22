@@ -219,11 +219,12 @@ static void duowen_pcie_init_ctrls(void)
 
 static void duowen_pcie_pre_reset(void)
 {
-	uint8_t linkmode = duowen_pcie_cfg.linkmode;
+	uint8_t linkmode = duowen_pcie_cfg.linkmode, mode;
 	uint64_t base = duowen_pcie_cfg.cfg_apb[SUBSYS];
 	uint8_t port = APB_PORT_SUBSYS;
 	bool chiplink = duowen_pcie_cfg.chiplink;
 	int socket_id = duowen_pcie_cfg.socket_id;
+	int i, order = 0;
 
 	/* #10ns */
 	write_apb((base + SUBSYS_CONTROL),
@@ -233,6 +234,20 @@ static void duowen_pcie_pre_reset(void)
 	write_apb((base + RESET_CORE_X8), 0xff, port);
 	write_apb((base + RESET_CORE_X16), 0xff, port);
 
+#if 1
+	for (i = 0; i < ARRAY_SIZE(duowen_pcie_ctrls); i++) {
+		mode = rom_pcie_link_ctrl(i, linkmode);
+		if (mode == ROM_PCIE_LINK_MODE_0) {
+			duowen_pcie_ctrls[i].active = false;
+			duowen_pcie_ctrls[i].lane_num = 0;
+			duowen_pcie_ctrls[i].order = 0xff;
+			continue;
+		}
+		duowen_pcie_ctrls[i].active = true;
+		duowen_pcie_ctrls[i].lane_num = ROM_PCIE_LINK_LANE(mode);
+		duowen_pcie_ctrls[i].order = order++;
+	}
+#else
 	switch (linkmode) {
 	case ROM_LINK_MODE_4_4_4_4:
 		/* 0: In DPU, X4_0 */
@@ -297,6 +312,7 @@ static void duowen_pcie_pre_reset(void)
 		duowen_pcie_ctrls[X4_1].order = 0xff;
 		break;
 	}
+#endif
 
 	if (chiplink)
 		duowen_pcie_ctrls[X4_1].pp.chiplink = 1;
@@ -309,7 +325,25 @@ static void duowen_pcie_post_reset(void)
 {
 	int id = duowen_pcie_cfg.socket_id;
 	bool chiplink = duowen_pcie_cfg.chiplink;
+	uint8_t linkmode = duowen_pcie_cfg.linkmode, mode;
+	int i;
 
+#if 1
+	for (i = 0; i < ARRAY_SIZE(duowen_pcie_ctrls); i++) {
+		mode = rom_pcie_link_ctrl(i, linkmode);
+		if (mode == ROM_PCIE_LINK_MODE_0)
+			continue;
+		/* Only X4_1 ctrl in both side will possilbly be used as
+		 * underlay of chiplink
+		 */
+		if (chiplink && id && (i == X4_1))
+			write_apb(duowen_pcie_cfg.cfg_apb[i], 0xc018000,
+				  APB_PORT_X16 + i);
+		else
+			write_apb(duowen_pcie_cfg.cfg_apb[i], 0xc018010,
+				  APB_PORT_X16 + i);
+	}
+#else
 	switch (duowen_pcie_cfg.linkmode) {
 	case ROM_LINK_MODE_4_4_4_4:
 		write_apb(duowen_pcie_cfg.cfg_apb[X4_0], 0xc018010,
@@ -332,6 +366,7 @@ static void duowen_pcie_post_reset(void)
 			  APB_PORT_X16);
 		break;
 	}
+#endif
 	if (chiplink)
 		duowen_pcie_wait_linkup(X4_1);
 } 
@@ -376,9 +411,20 @@ void duowen_pcie_clock_init(void)
 #ifdef CONFIG_DUOWEN_PCIE_TEST
 void duowen_pcie_handle_msi(bool en)
 {
-	int val;
-	uint64_t base;
+	int i;
+	uint8_t mode;
+	caddr_t base;
 
+#if 1
+	base = duowen_pcie_cfg.cfg_apb[X16];
+	for (i = 0; i < ARRAY_SIZE(duowen_pcie_ctrls); i++) {
+		mode = rom_pcie_link_ctrl(i, duowen_pcie_cfg.linkmode);
+		if (mode != ROM_PCIE_LINK_MODE_0) {
+			base = duowen_pcie_cfg.cfg_apb[i];
+			break;
+		}
+	}
+#else
 	switch (duowen_pcie_cfg.linkmode) {
 	case ROM_LINK_MODE_4_4_4_4:
 		base = duowen_pcie_cfg.cfg_apb[X4_1];
@@ -394,16 +440,12 @@ void duowen_pcie_handle_msi(bool en)
 		base = duowen_pcie_cfg.cfg_apb[X16];
 		break;
 	}
-
-	if (en)
-		val = 0;
-	else
-		val = 1;
+#endif
 
 	/* We just mask this interrupt, since there is no register we can
 	 * manipulate to clear the interrupt from VIP.
 	 */
-	__raw_writel(val, base + 0x44);
+	__raw_writel(en ? 0 : 1, base + 0x44);
 }
 
 void duowen_pcie_handle_inta(bool en)

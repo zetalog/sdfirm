@@ -763,10 +763,10 @@ choice
 	default DUOWEN_PCIE_LINK_MODE_0 if !DUOWEN_ZEBU
 	default DUOWEN_PCIE_LINK_MODE_1 if DUOWEN_ZEBU
 	help
-	  Give default link mode. However, when chiplink is detected. The
-	  PCIe subsystem will automatically uses a suitable configuration
-	  on the last controller that contains an x4 channel during
-	  runtime.
+	  Give default link mode. However, when chiplink is detected, the
+	  PCIe subsystem will automatically use a default link mode
+	  suitable for chiplink that contains an x4 channel on the last
+	  controller.
 
 config DUOWEN_PCIE_LINK_MODE_0
 	bool "x4 x4 x4 x4"
