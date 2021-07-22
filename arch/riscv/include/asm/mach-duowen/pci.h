@@ -60,11 +60,55 @@
 #include "pcie_designware.h"
 #endif
 
-#define X16				0
-#define X8				1
-#define X4_0				2
-#define X4_1				3
-#define SUBSYS				4
+#define PCIE_CORE_REG(x, offset)		\
+	(PCIE0_CUST_BASE + ((x) << 12) + (offset))
+#define PCIE_CORE_CHIPLINK			3
+#define PCIE_MAX_CORES				4
+#define PCIE_CFGINFO_LEVEL(x)			PCIE_CORE_REG(x, 0x000)
+#define PCIE_OBFF(x)				PCIE_CORE_REG(x, 0x004)
+#define PCIE_ELECTROMECHANICAL_CFG(x)		PCIE_CORE_REG(x, 0x00C)
+#define PCIE_LINK_STATUS(x)			PCIE_CORE_REG(x, 0x010)
+#define PCIE_INT_STATUS(x)			PCIE_CORE_REG(x, 0x014)
+#define PCIE_INT_STATUS_MASK(x)			PCIE_CORE_REG(x, 0x018)
+#define PCIE_AER_STATUS(x)			PCIE_CORE_REG(x, 0x01C)
+#define PCIE_AER_STATUS_MASK(x)			PCIE_CORE_REG(x, 0x020)
+#define PCIE_PME_STATUS(x)			PCIE_CORE_REG(x, 0x024)
+#define PCIE_PME_STATUS_MASK(x)			PCIE_CORE_REG(x, 0x028)
+#define PCIE_HP_STATUS(x)			PCIE_CORE_REG(x, 0x02C)
+#define PCIE_HP_STATUS_MASK(x)			PCIE_CORE_REG(x, 0x030)
+#define PCIE_PM_STATUS(x)			PCIE_CORE_REG(x, 0x034)
+#define PCIE_LINK_TRAINING_STATUS(x)		PCIE_CORE_REG(x, 0x038)
+#define PCIE_LINK_TRAINING_STATUS_MASK(x)	PCIE_CORE_REG(x, 0x03C)
+#define PCIE_MSI_INT_STATUS(x)			PCIE_CORE_REG(x, 0x040)
+#define PCIE_MSI_INT_STATUS_MASK(x)		PCIE_CORE_REG(x, 0x044)
+#define PCIE_LTR_REQ(x)				PCIE_CORE_REG(x, 0x048)
+#define PCIE_LTR_REQ_LATENCY(x)			PCIE_CORE_REG(x, 0x04C)
+#define PCIE_LTR_CORE_STATUS(x)			PCIE_CORE_REG(x, 0x050)
+#define PCIE_DEBUGINFO_EI(x)			PCIE_CORE_REG(x, 0x058)
+#define PCIE_DEBUGINFO0(x)			PCIE_CORE_REG(x, 0x05C)
+#define PCIE_DEBUGINFO1(x)			PCIE_CORE_REG(x, 0x060)
+#define PCIE_BDF(x)				PCIE_CORE_REG(x, 0x064)
+#define PCIE_SEND_VENDOR_MESSAGE_REQ(x)		PCIE_CORE_REG(x, 0x068)
+#define PCIE_SEND_VENDOR_MESSAGE_INFO0(x)	PCIE_CORE_REG(x, 0x06C)
+#define PCIE_SEND_VENDOR_MESSAGE_INFO1(x)	PCIE_CORE_REG(x, 0x070)
+#define PCIE_SEND_VENDOR_MESSAGE_INFO2(x)	PCIE_CORE_REG(x, 0x074)
+#define PCIE_SEND_VENDOR_MESSAGE_INFO3(x)	PCIE_CORE_REG(x, 0x078)
+#define PCIE_RECV_VENDOR_MESSAGE_VALID(x)	PCIE_CORE_REG(x, 0x088)
+#define PCIE_RECV_VENDOR_MESSAGE_INFO0(x)	PCIE_CORE_REG(x, 0x08C)
+#define PCIE_RECV_VENDOR_MESSAGE_INFO1(x)	PCIE_CORE_REG(x, 0x090)
+#define PCIE_RECV_VENDOR_MESSAGE_INFO2(x)	PCIE_CORE_REG(x, 0x094)
+#define PCIE_RECV_VENDOR_MESSAGE_INFO3(x)	PCIE_CORE_REG(x, 0x098)
+#define PCIE_RECV_VENDOR_MESSAGE_INFO4(x)	PCIE_CORE_REG(x, 0x09C)
+#define PCIE_LOCAL_DMA_INT(x)			PCIE_CORE_REG(x, 0x0A0)
+#define PCIE_LOCAL_DMA_INT_MASK(x)		PCIE_CORE_REG(x, 0x0A4)
+#define PCIE_LINK_DOWN_INT_STATUS(x)		PCIE_CORE_REG(x, 0x0A8)
+#define PCIE_LINK_DOWN_INT_STATUS_MASK(x)	PCIE_CORE_REG(x, 0x0AC)
+#define PCIE_BRIDGE_FLUSH_STATUS(x)		PCIE_CORE_REG(x, 0x0B0)
+#define PCIE_BRIDGE_FLUSH_STATUS_MASK(x)	PCIE_CORE_REG(x, 0x0B4)
+#define PCIE_CFG_MSI_PENDING(x)			PCIE_CORE_REG(x, 0x0B8)
+#define PCIE_DIAG_BUS_SEL(x)			PCIE_CORE_REG(x, 0x0BC)
+#define PCIE_DIAG_BUS(x, n)			\
+	PCIE_CORE_REG(x, 0x0C0 + ((n) << 2))
 
 #define DUOWEN_PCIE_LINK_MODE_0		0
 #define DUOWEN_PCIE_LINK_MODE_4		1
@@ -145,36 +189,14 @@
 
 #ifdef IPBENCH
 #define CFG_APB_SUBSYS			0x0
-#define CFG_APB_CORE_X16		0x0
-#define CFG_APB_CORE_X8			0x0
-#define CFG_APB_CORE_X4_0		0x0
-#define CFG_APB_CORE_X4_1		0x0
-
-#define CFG_APB_PHY_0			0x0
-#define CFG_APB_PHY_1			0x0
-#define CFG_APB_PHY_2			0x0
-#define CFG_APB_PHY_3			0x0
-
-#define CFG_AXI_CORE_X16		0x0
-#define CFG_AXI_CORE_X8			0x0
-#define CFG_AXI_CORE_X4_0		0x0
-#define CFG_AXI_CORE_X4_1		0x0
+#define CFG_APB_CORE(x)			0x0
+#define CFG_APB_PHY(x)			0x0
+#define CFG_AXI_CORE(x)			0
 #else
 #define CFG_APB_SUBSYS			ULL(0xff09000000)
-#define CFG_APB_CORE_X16		ULL(0xff09001000)
-#define CFG_APB_CORE_X8			ULL(0xff09002000)
-#define CFG_APB_CORE_X4_0		ULL(0xff09003000)
-#define CFG_APB_CORE_X4_1		ULL(0xff09004000)
-
-#define CFG_APB_PHY_0			ULL(0xff09180000)
-#define CFG_APB_PHY_1			ULL(0xff09280000)
-#define CFG_APB_PHY_2			ULL(0xff09380000)
-#define CFG_APB_PHY_3			ULL(0xff09480000)
-
-#define CFG_AXI_CORE_X16		ULL(0xff09100000)
-#define CFG_AXI_CORE_X8			ULL(0xff09200000)
-#define CFG_AXI_CORE_X4_0		ULL(0xff09300000)
-#define CFG_AXI_CORE_X4_1		ULL(0xff09400000)
+#define CFG_APB_CORE(x)			(ULL(0xff09001000) + ((x) << 12))
+#define CFG_APB_PHY(x)			(ULL(0xff09180000) + ((x) << 20))
+#define CFG_AXI_CORE(x)			(ULL(0xff09100000) + ((x) << 20))
 #endif
 
 #define KB				(1UL << 10)
@@ -212,7 +234,8 @@ void apb_write_c(uint32_t addr, uint32_t data, int port);
 #endif
 
 struct duowen_pcie {
-	uint64_t cfg_apb[5];
+	uint64_t core_base[PCIE_MAX_CORES];
+	uint64_t subsys_base;
 	uint8_t linkmode;
 	int socket_id;
 	bool chiplink;
