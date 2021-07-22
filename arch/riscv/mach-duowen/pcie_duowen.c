@@ -143,10 +143,10 @@ void dw_set_pci_conf_reg(int bus, int dev, int fun, int reg,
 }
 
 uint8_t duowen_pcie_link_modes[] = {
-	[0] = ROM_LINK_MODE_4_4_4_4,
-	[1] = ROM_LINK_MODE_8_4_0_4,
-	[2] = ROM_LINK_MODE_8_8_0_0,
-	[3] = ROM_LINK_MODE_16_0_0_0,
+	[0] = DUOWEN_PCIE_LINK_MODE_4_4_4_4,
+	[1] = DUOWEN_PCIE_LINK_MODE_8_4_0_4,
+	[2] = DUOWEN_PCIE_LINK_MODE_8_8_0_0,
+	[3] = DUOWEN_PCIE_LINK_MODE_16_0_0_0,
 };
 
 /* Converts ROM link mode to PCIe link mode */
@@ -234,85 +234,18 @@ static void duowen_pcie_pre_reset(void)
 	write_apb((base + RESET_CORE_X8), 0xff, port);
 	write_apb((base + RESET_CORE_X16), 0xff, port);
 
-#if 1
 	for (i = 0; i < ARRAY_SIZE(duowen_pcie_ctrls); i++) {
 		mode = rom_pcie_link_ctrl(i, linkmode);
-		if (mode == ROM_PCIE_LINK_MODE_0) {
+		if (mode == DUOWEN_PCIE_LINK_MODE_0) {
 			duowen_pcie_ctrls[i].active = false;
 			duowen_pcie_ctrls[i].lane_num = 0;
 			duowen_pcie_ctrls[i].order = 0xff;
 			continue;
 		}
 		duowen_pcie_ctrls[i].active = true;
-		duowen_pcie_ctrls[i].lane_num = ROM_PCIE_LINK_LANE(mode);
+		duowen_pcie_ctrls[i].lane_num = DUOWEN_PCIE_LINK_LANE(mode);
 		duowen_pcie_ctrls[i].order = order++;
 	}
-#else
-	switch (linkmode) {
-	case ROM_LINK_MODE_4_4_4_4:
-		/* 0: In DPU, X4_0 */
-		duowen_pcie_ctrls[X16].lane_num = 4;
-		duowen_pcie_ctrls[X8].lane_num = 4;
-		duowen_pcie_ctrls[X4_0].lane_num = 4;
-		duowen_pcie_ctrls[X4_1].lane_num = 4;
-
-		duowen_pcie_ctrls[X16].active = true;
-		duowen_pcie_ctrls[X8].active = true;
-		duowen_pcie_ctrls[X4_0].active = true;
-		duowen_pcie_ctrls[X4_1].active = true;
-
-		duowen_pcie_ctrls[X16].order = 0;
-		duowen_pcie_ctrls[X8].order = 1;
-		duowen_pcie_ctrls[X4_0].order = 2;
-		duowen_pcie_ctrls[X4_1].order = 3;
-		break;
-	case ROM_LINK_MODE_8_4_0_4:
-		/* 1: In DPU, X4_1 */
-		duowen_pcie_ctrls[X16].lane_num = 8;
-		duowen_pcie_ctrls[X8].lane_num = 4;
-		duowen_pcie_ctrls[X4_0].lane_num = 0;
-		duowen_pcie_ctrls[X4_1].lane_num = 4;
-		duowen_pcie_ctrls[X16].active = true;
-		duowen_pcie_ctrls[X8].active = true;
-		duowen_pcie_ctrls[X4_0].active = false;
-		duowen_pcie_ctrls[X4_1].active = true;
-		duowen_pcie_ctrls[X16].order = 0;
-		duowen_pcie_ctrls[X8].order = 1;
-		duowen_pcie_ctrls[X4_0].order = 0xff;
-		duowen_pcie_ctrls[X4_1].order = 2;
-		break;
-	case ROM_LINK_MODE_8_8_0_0:
-		/* 2: In DPU, X8 */
-		duowen_pcie_ctrls[X16].lane_num = 8;
-		duowen_pcie_ctrls[X8].lane_num = 8;
-		duowen_pcie_ctrls[X4_0].lane_num = 0;
-		duowen_pcie_ctrls[X4_1].lane_num = 0;
-		duowen_pcie_ctrls[X16].active = true;
-		duowen_pcie_ctrls[X8].active = true;
-		duowen_pcie_ctrls[X4_0].active = false;
-		duowen_pcie_ctrls[X4_1].active = false;
-		duowen_pcie_ctrls[X16].order = 0;
-		duowen_pcie_ctrls[X8].order = 1;
-		duowen_pcie_ctrls[X4_0].order = 0xff;
-		duowen_pcie_ctrls[X4_1].order = 0xff;
-		break;
-	case ROM_LINK_MODE_16_0_0_0:
-		/*  3: In DPU: X16 */
-		duowen_pcie_ctrls[X16].lane_num = 16;
-		duowen_pcie_ctrls[X8].lane_num = 0;
-		duowen_pcie_ctrls[X4_0].lane_num = 0;
-		duowen_pcie_ctrls[X4_1].lane_num = 0;
-		duowen_pcie_ctrls[X16].active = true;
-		duowen_pcie_ctrls[X8].active = false;
-		duowen_pcie_ctrls[X4_0].active = false;
-		duowen_pcie_ctrls[X4_1].active = false;
-		duowen_pcie_ctrls[X16].order = 0;
-		duowen_pcie_ctrls[X8].order = 0xff;
-		duowen_pcie_ctrls[X4_0].order = 0xff;
-		duowen_pcie_ctrls[X4_1].order = 0xff;
-		break;
-	}
-#endif
 
 	if (chiplink)
 		duowen_pcie_ctrls[X4_1].pp.chiplink = 1;
@@ -328,10 +261,9 @@ static void duowen_pcie_post_reset(void)
 	uint8_t linkmode = duowen_pcie_cfg.linkmode, mode;
 	int i;
 
-#if 1
 	for (i = 0; i < ARRAY_SIZE(duowen_pcie_ctrls); i++) {
 		mode = rom_pcie_link_ctrl(i, linkmode);
-		if (mode == ROM_PCIE_LINK_MODE_0)
+		if (mode == DUOWEN_PCIE_LINK_MODE_0)
 			continue;
 		/* Only X4_1 ctrl in both side will possilbly be used as
 		 * underlay of chiplink
@@ -343,30 +275,6 @@ static void duowen_pcie_post_reset(void)
 			write_apb(duowen_pcie_cfg.cfg_apb[i], 0xc018010,
 				  APB_PORT_X16 + i);
 	}
-#else
-	switch (duowen_pcie_cfg.linkmode) {
-	case ROM_LINK_MODE_4_4_4_4:
-		write_apb(duowen_pcie_cfg.cfg_apb[X4_0], 0xc018010,
-			  APB_PORT_X4_0);
-	case ROM_LINK_MODE_8_4_0_4:
-		/* Only X4_1 ctrl in both side will possilbly be used as
-		 * underlay of chiplink
-		 */
-		if (chiplink && id)
-			write_apb(duowen_pcie_cfg.cfg_apb[X4_1], 0xc018000,
-				  APB_PORT_X4_1);
-		else
-			write_apb(duowen_pcie_cfg.cfg_apb[X4_1], 0xc018010,
-				  APB_PORT_X4_1);
-	case ROM_LINK_MODE_8_8_0_0:
-		write_apb(duowen_pcie_cfg.cfg_apb[X8], 0xc018010,
-			  APB_PORT_X8);
-	case ROM_LINK_MODE_16_0_0_0:
-		write_apb(duowen_pcie_cfg.cfg_apb[X16], 0xc018010,
-			  APB_PORT_X16);
-		break;
-	}
-#endif
 	if (chiplink)
 		duowen_pcie_wait_linkup(X4_1);
 } 
@@ -391,9 +299,9 @@ void duowen_pcie_cfg_init(int socket_id, bool chiplink)
 	duowen_pcie_cfg.chiplink = chiplink;
 	if (duowen_pcie_link_mode(linkmode) == LINK_MODE_INVALID) {
 		if (chiplink)
-			linkmode = ROM_LINK_MODE_CHIPLINK;
+			linkmode = DUOWEN_PCIE_LINK_MODE_CHIPLINK;
 		else
-			linkmode = ROM_LINK_MODE_DEFAULT;
+			linkmode = DUOWEN_PCIE_LINK_MODE_DEFAULT;
 	}
 	duowen_pcie_cfg.linkmode = linkmode;
 }
@@ -415,32 +323,14 @@ void duowen_pcie_handle_msi(bool en)
 	uint8_t mode;
 	caddr_t base;
 
-#if 1
 	base = duowen_pcie_cfg.cfg_apb[X16];
 	for (i = 0; i < ARRAY_SIZE(duowen_pcie_ctrls); i++) {
 		mode = rom_pcie_link_ctrl(i, duowen_pcie_cfg.linkmode);
-		if (mode != ROM_PCIE_LINK_MODE_0) {
+		if (mode != DUOWEN_PCIE_LINK_MODE_0) {
 			base = duowen_pcie_cfg.cfg_apb[i];
 			break;
 		}
 	}
-#else
-	switch (duowen_pcie_cfg.linkmode) {
-	case ROM_LINK_MODE_4_4_4_4:
-		base = duowen_pcie_cfg.cfg_apb[X4_1];
-		break;
-	case ROM_LINK_MODE_8_4_0_4:
-		base = duowen_pcie_cfg.cfg_apb[X4_0];
-		break;
-	case ROM_LINK_MODE_8_8_0_0:
-		base = duowen_pcie_cfg.cfg_apb[X8];
-		break;
-	case ROM_LINK_MODE_16_0_0_0:
-	default:
-		base = duowen_pcie_cfg.cfg_apb[X16];
-		break;
-	}
-#endif
 
 	/* We just mask this interrupt, since there is no register we can
 	 * manipulate to clear the interrupt from VIP.
