@@ -169,7 +169,7 @@ void duowen_pcie_config_info(int index, uint32_t value)
 			  APB_PORT_X16 + index);
 	else
 		write_apb((base + 0),
-			  PCIE_device_type(PCIE_ROOT_COMPLEX),
+			  value | PCIE_device_type(PCIE_ROOT_COMPLEX),
 			  APB_PORT_X16 + index);
 }
 

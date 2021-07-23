@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -62,7 +63,9 @@ static uint32_t litmus_dump_readl(uint32_t reg)
 	return *((uint32_t *)((uint8_t *)litmus_mem_map + MSG_REG_BASE + reg));
 }
 
-void litmus_dump_start(void)
+bool litmus_dumping = false;
+
+static void __litmus_dump_start(void)
 {
 	litmus_dump_writel(MSG_DUMP_START_REQ, MSG_DUMP_CTRL);
 #ifdef LITMUS_DUMP_WAIT
@@ -70,12 +73,45 @@ void litmus_dump_start(void)
 #endif
 }
 
-void litmus_dump_stop(void)
+static void __litmus_dump_stop(void)
 {
 	litmus_dump_writel(MSG_DUMP_STOP_REQ, MSG_DUMP_CTRL);
 #ifdef LITMUS_DUMP_WAIT
 	while (litmus_dump_readl(MSG_DUMP_CTRL) != MSG_DUMP_STOP_REP);
 #endif
+}
+
+void litmus_dump_start(void)
+{
+	litmus_dumping = true;
+}
+
+void litmus_dump_stop(void)
+{
+	litmus_dumping = false;
+}
+
+typedef unsigned long long tsc_t;
+extern tsc_t timeofday(void);
+
+void __attribute__((__no_instrument_function__))
+__cyg_profile_func_enter(void *this_func, void *call_site)
+{
+	if (this_func == timeofday) {
+		if (litmus_dumping)
+			__litmus_dump_start();
+		else
+			__litmus_dump_stop();
+	}
+}
+
+void __attribute__((__no_instrument_function__))
+__cyg_profile_func_exit(void *this_func, void *call_site)
+{
+	if (this_func == timeofday) {
+		if (litmus_dumping)
+			litmus_dumping = false;
+	}
 }
 
 #ifdef LITMUS_DUMP_TEST
