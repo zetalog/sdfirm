@@ -114,11 +114,10 @@ uint32_t dw_get_pci_conf_reg(int bus, int dev, int fun, int reg,
 	uint64_t pci_addr, cpu_addr, base;
 	uint32_t val;
 
-	if (bus > 1) {
+	if (bus > 1)
 		cpu_addr = pp->cfg_bar1;
-	} else {
+	else
 		cpu_addr = pp->cfg_bar0;
-	}
 	pci_addr = form_pci_addr(bus, dev, fun);
 
 	base = PCIE_SUBSYS_ADDR_START + PCIE_CORE_RANGE * index;
@@ -131,11 +130,10 @@ void dw_set_pci_conf_reg(int bus, int dev, int fun, int reg,
 	struct pcie_port *pp = &(duowen_pcie_ctrls[index].pp);
 	uint64_t pci_addr, cpu_addr, base;
 
-	if (bus > 1) {
+	if (bus > 1)
 		cpu_addr = pp->cfg_bar1;
-	} else {
+	else
 		cpu_addr = pp->cfg_bar0;
-	}
 	pci_addr = form_pci_addr(bus, dev, fun);
 
 	base = PCIE_SUBSYS_ADDR_START + PCIE_CORE_RANGE * index;
@@ -161,38 +159,18 @@ static uint8_t duowen_pcie_link_mode(uint8_t mode)
 	return LINK_MODE_INVALID;
 }
 
-static void duowen_pcie_reset(void)
+void duowen_pcie_config_info(int index, uint32_t value)
 {
-	uint64_t base = duowen_pcie_cfg.subsys_base;
-	uint8_t port = APB_PORT_SUBSYS;
-	uint32_t data = 0;
-
-	write_apb((base + RESET_PHY), 0x10, port);
-	write_apb((base + SRAM_CONTROL), 0x0, port);
-	write_apb((base + REFCLK_CONTROL), 0x2, port);
-	/* #200ns */
-	write_apb((base + RESET_PHY), 0xf, port);
-	/* #100ns */
-
-#ifndef TEST
-	while ((data & 0xf) != 0xf) {
-		data = read_apb((base + SRAM_STATUS), port);
-	}
-#endif
-	write_apb((base + SRAM_CONTROL), 0x55, port);
-	/* write_apb((base + RESET_PHY), 0xff, port); */
-}
-
-void duowen_pcie_init_role(int index)
-{
-	uint8_t port = APB_PORT_X16 + index;
 	uint64_t base = duowen_pcie_cfg.core_base[index];
-	int role = duowen_pcie_ctrls[index].pp.role;
 
-	if (role == ROLE_EP)
-		write_apb((base + 0), 0xc810000, port);
+	if (duowen_pcie_ctrls[index].pp.role == ROLE_EP)
+		write_apb((base + 0),
+			  value | PCIE_device_type(PCIE_ENDPOINT),
+			  APB_PORT_X16 + index);
 	else
-		write_apb((base + 0), 0xc810010, port);
+		write_apb((base + 0),
+			  PCIE_device_type(PCIE_ROOT_COMPLEX),
+			  APB_PORT_X16 + index);
 }
 
 void duowen_pcie_wait_linkup(int index)
@@ -207,34 +185,85 @@ void duowen_pcie_wait_linkup(int index)
 		data = read_apb((base + 0x10), APB_PORT_X16);
 }
 
+static void duowen_pcie_pre_reset(void)
+{
+	uint64_t base = duowen_pcie_cfg.subsys_base;
+	uint8_t linkmode = duowen_pcie_cfg.linkmode;
+
+	/* #10ns */
+	write_apb((base + SUBSYS_CONTROL),
+		  duowen_pcie_link_mode(linkmode), APB_PORT_SUBSYS);
+	write_apb((base + RESET_CORE_X4_0), 0xff, APB_PORT_SUBSYS);
+	write_apb((base + RESET_CORE_X4_1), 0xff, APB_PORT_SUBSYS);
+	write_apb((base + RESET_CORE_X8), 0xff, APB_PORT_SUBSYS);
+	write_apb((base + RESET_CORE_X16), 0xff, APB_PORT_SUBSYS);
+}
+
+static void duowen_pcie_post_reset(void)
+{
+	uint64_t base = duowen_pcie_cfg.subsys_base;
+	uint32_t data = 0;
+
+	write_apb((base + RESET_PHY), 0x10, APB_PORT_SUBSYS);
+	write_apb((base + SRAM_CONTROL), 0x0, APB_PORT_SUBSYS);
+	write_apb((base + REFCLK_CONTROL), 0x2, APB_PORT_SUBSYS);
+	/* #200ns */
+	write_apb((base + RESET_PHY), 0xf, APB_PORT_SUBSYS);
+	/* #100ns */
+
+#ifndef TEST
+	while ((data & 0xf) != 0xf)
+		data = read_apb((base + SRAM_STATUS), APB_PORT_SUBSYS);
+#endif
+	write_apb((base + SRAM_CONTROL), 0x55, APB_PORT_SUBSYS);
+	/* write_apb((base + RESET_PHY), 0xff, APB_PORT_SUBSYS); */
+}
+
 static void duowen_pcie_init_ctrls(void)
 {
 	int i;
 
 	for (i = 0; i < PCIE_MAX_CORES; i++) {
-		if (duowen_pcie_ctrls[i].active == true)
-			duowen_pcie_init_role(i);
+		if (duowen_pcie_ctrls[i].active)
+			duowen_pcie_config_info(i, PCIE_LTSSM_DETECT);
 	}
 }
 
-static void duowen_pcie_pre_reset(void)
+static void duowen_pcie_reset_ctrls(void)
 {
-	uint8_t linkmode = duowen_pcie_cfg.linkmode, mode;
-	uint64_t base = duowen_pcie_cfg.subsys_base;
-	uint8_t port = APB_PORT_SUBSYS;
-	bool chiplink = duowen_pcie_cfg.chiplink;
-	int socket_id = duowen_pcie_cfg.socket_id;
-	int i, order = 0;
-
-	/* #10ns */
-	write_apb((base + SUBSYS_CONTROL),
-		  duowen_pcie_link_mode(linkmode), port);
-	write_apb((base + RESET_CORE_X4_0), 0xff, port);
-	write_apb((base + RESET_CORE_X4_1), 0xff, port);
-	write_apb((base + RESET_CORE_X8), 0xff, port);
-	write_apb((base + RESET_CORE_X16), 0xff, port);
+	int i;
 
 	for (i = 0; i < PCIE_MAX_CORES; i++) {
+		if (duowen_pcie_ctrls[i].active)
+			duowen_pcie_config_info(i, PCIE_LTSSM_ENABLE);
+	}
+}
+
+void duowen_pcie_cfg_init(int socket_id, bool chiplink)
+{
+	int i;
+	int order = 0;
+	uint8_t linkmode = rom_get_pcie_link_mode();
+	uint8_t mode;
+
+	/* Configuring duowen_pcie */
+	memset(&duowen_pcie_cfg, 0, sizeof(duowen_pcie_cfg));
+	for (i = 0; i < PCIE_MAX_CORES; i++)
+		duowen_pcie_cfg.core_base[i] = CFG_APB_CORE(i) + SOC_BASE;
+	duowen_pcie_cfg.subsys_base = CFG_APB_SUBSYS + SOC_BASE;
+	if (duowen_pcie_link_mode(linkmode) == LINK_MODE_INVALID) {
+		if (chiplink)
+			linkmode = DUOWEN_PCIE_LINK_MODE_CHIPLINK;
+		else
+			linkmode = DUOWEN_PCIE_LINK_MODE_DEFAULT;
+	}
+	duowen_pcie_cfg.linkmode = linkmode;
+
+	/* Configuring dw_pcie */
+	for (i = 0; i < PCIE_MAX_CORES; i++) {
+		duowen_pcie_ctrls[i].dbi_base += SOC_BASE;
+		duowen_pcie_ctrls[i].pp.cfg_bar0 += SOC_BASE;
+		duowen_pcie_ctrls[i].pp.cfg_bar1 += SOC_BASE;
 		mode = rom_pcie_link_ctrl(i, linkmode);
 		if (mode == DUOWEN_PCIE_LINK_MODE_0) {
 			duowen_pcie_ctrls[i].active = false;
@@ -246,61 +275,10 @@ static void duowen_pcie_pre_reset(void)
 		duowen_pcie_ctrls[i].lane_num = DUOWEN_PCIE_LINK_LANE(mode);
 		duowen_pcie_ctrls[i].order = order++;
 	}
-
 	if (chiplink)
 		duowen_pcie_ctrls[PCIE_CORE_CHIPLINK].pp.chiplink = 1;
 	if (socket_id)
 		duowen_pcie_ctrls[PCIE_CORE_CHIPLINK].pp.role = ROLE_EP;
-	duowen_pcie_init_ctrls();
-}
-
-static void duowen_pcie_post_reset(void)
-{
-	int id = duowen_pcie_cfg.socket_id;
-	bool chiplink = duowen_pcie_cfg.chiplink;
-	uint8_t linkmode = duowen_pcie_cfg.linkmode, mode;
-	int i;
-
-	for (i = 0; i < PCIE_MAX_CORES; i++) {
-		mode = rom_pcie_link_ctrl(i, linkmode);
-		if (mode == DUOWEN_PCIE_LINK_MODE_0)
-			continue;
-		/* Only X4_1 ctrl in both side will possilbly be used as
-		 * underlay of chiplink
-		 */
-		if (chiplink && id && (i == PCIE_CORE_CHIPLINK))
-			write_apb(duowen_pcie_cfg.core_base[i], 0xc018000,
-				  APB_PORT_X16 + i);
-		else
-			write_apb(duowen_pcie_cfg.core_base[i], 0xc018010,
-				  APB_PORT_X16 + i);
-	}
-	if (chiplink)
-		duowen_pcie_wait_linkup(PCIE_CORE_CHIPLINK);
-} 
-
-void duowen_pcie_cfg_init(int socket_id, bool chiplink)
-{
-	int i;
-	uint8_t linkmode = rom_get_pcie_link_mode();
-
-	memset(&duowen_pcie_cfg, 0, sizeof(duowen_pcie_cfg));
-	for (i = 0; i < PCIE_MAX_CORES; i++) {
-		duowen_pcie_ctrls[i].dbi_base += SOC_BASE;
-		duowen_pcie_ctrls[i].pp.cfg_bar0 += SOC_BASE;
-		duowen_pcie_ctrls[i].pp.cfg_bar1 += SOC_BASE;
-		duowen_pcie_cfg.core_base[i] = CFG_APB_CORE(i) + SOC_BASE;
-	}
-	duowen_pcie_cfg.subsys_base = CFG_APB_SUBSYS + SOC_BASE;
-	duowen_pcie_cfg.socket_id = socket_id;
-	duowen_pcie_cfg.chiplink = chiplink;
-	if (duowen_pcie_link_mode(linkmode) == LINK_MODE_INVALID) {
-		if (chiplink)
-			linkmode = DUOWEN_PCIE_LINK_MODE_CHIPLINK;
-		else
-			linkmode = DUOWEN_PCIE_LINK_MODE_DEFAULT;
-	}
-	duowen_pcie_cfg.linkmode = linkmode;
 }
 
 #ifndef TEST
@@ -317,13 +295,11 @@ void duowen_pcie_clock_init(void)
 void duowen_pcie_handle_msi(bool en)
 {
 	int i;
-	uint8_t mode;
 	caddr_t base;
 
 	base = duowen_pcie_cfg.core_base[0];
 	for (i = 0; i < PCIE_MAX_CORES; i++) {
-		mode = rom_pcie_link_ctrl(i, duowen_pcie_cfg.linkmode);
-		if (mode != DUOWEN_PCIE_LINK_MODE_0) {
+		if (duowen_pcie_ctrls[i].active) {
 			base = duowen_pcie_cfg.core_base[i];
 			break;
 		}
@@ -428,7 +404,7 @@ static void duowen_pcie_test(void)
 	printf("bird: PCIE TEST start\n");
 	/* Find which controller is in use, and enable its MSI int */
 	for (i = 0; i < PCIE_MAX_CORES; i++) {
-		if (duowen_pcie_ctrls[i].active == true) {
+		if (duowen_pcie_ctrls[i].active) {
 			__duowen_pcie_test(&(duowen_pcie_ctrls[i].pp));
 			pp = &(duowen_pcie_ctrls[i].pp);
 			break;
@@ -460,12 +436,16 @@ void pci_platform_init(void)
 	duowen_pcie_clock_init();
 #endif
 	duowen_pcie_pre_reset();
-	duowen_pcie_reset();
+	duowen_pcie_init_ctrls();
+	duowen_pcie_post_reset();
 	for (i = 0; i < PCIE_MAX_CORES; i++) {
-		if (duowen_pcie_ctrls[i].active == true)
+		if (duowen_pcie_ctrls[i].active)
 			dw_pcie_setup_ctrl(&(duowen_pcie_ctrls[i].pp));
 	}
-	duowen_pcie_post_reset();
+	duowen_pcie_reset_ctrls();
+	/* Wait until chiplink is established */
+	if (chiplink)
+		duowen_pcie_wait_linkup(PCIE_CORE_CHIPLINK);
 
 #ifdef CONFIG_DUOWEN_PCIE_SMMU_BYPASS
 	/* bypass pcie smmu temporarily*/

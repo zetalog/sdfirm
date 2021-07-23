@@ -60,10 +60,19 @@
 #include "pcie_designware.h"
 #endif
 
+#define PCIE_SUBSYS_REG(offset)			(PCIE_SUB_CUST_BASE + (offset))
 #define PCIE_CORE_REG(x, offset)		\
 	(PCIE0_CUST_BASE + ((x) << 12) + (offset))
-#define PCIE_CORE_CHIPLINK			3
+
+/* PCIe core_x[lane] IDs */
+#define PCIE_CORE_X16				0
+#define PCIE_CORE_X8				1
+#define PCIE_CORE_X4_0				2
+#define PCIE_CORE_X4_1				3
+#define PCIE_CORE_CHIPLINK			PCIE_CORE_X4_1
 #define PCIE_MAX_CORES				4
+
+/* PCIe core_x[lane] registers */
 #define PCIE_CFGINFO_LEVEL(x)			PCIE_CORE_REG(x, 0x000)
 #define PCIE_OBFF(x)				PCIE_CORE_REG(x, 0x004)
 #define PCIE_ELECTROMECHANICAL_CFG(x)		PCIE_CORE_REG(x, 0x00C)
@@ -109,6 +118,49 @@
 #define PCIE_DIAG_BUS_SEL(x)			PCIE_CORE_REG(x, 0x0BC)
 #define PCIE_DIAG_BUS(x, n)			\
 	PCIE_CORE_REG(x, 0x0C0 + ((n) << 2))
+
+/* PCIE_CFGINFO_LEVEL */
+#define PCIE_app_clk_req_n			_BV(28)
+#define PCIE_clkreq_in_n			_BV(27)
+#define PCIE_app_margining_ready		_BV(26)
+#define PCIE_app_margining_software_ready	_BV(25)
+#define PCIE_app_l1sub_disable			_BV(24)
+#define PCIE_app_hold_phy_rst			_BV(23)
+#define PCIE_app_clk_pm_en			_BV(21)
+#define PCIE_diag_ctrl_bus_OFFSET		18
+#define PCIE_diag_ctrl_bus_MASK			REG_3BIT_MASK
+#define PCIE_diag_ctrl_bus(value)		\
+	_SET_FV(PCIE_diag_ctrl_bus, value)
+#define PCIE_app_dbi_ro_wr_disable		_BV(17)
+#define PCIE_app_sris_mode			_BV(16)
+#define PCIE_app_ltssm_enable			_BV(15)
+#define PCIE_sys_aux_pwr_det			_BV(14)
+#define PCIE_apps_pm_xmt_pme			_BV(13)
+#define PCIE_outband_pwrup_cmd			_BV(12)
+#define PCIE_tx_lane_flip_en			_BV(11)
+#define PCIE_rx_lane_flip_en			_BV(10)
+#define PCIE_app_ready_entr_l23			_BV(9)
+#define PCIE_app_req_exit_l1			_BV(8)
+#define PCIE_app_xfer_pending			_BV(7)
+#define PCIE_app_init_rst			_BV(6)
+#define PCIE_device_type_OFFSET			2
+#define PCIE_device_type_MASK			REG_4BIT_MASK
+#define PCIE_device_type(value)			_SET_FV(PCIE_device_type, value)
+#define PCIE_ENDPOINT				0x00
+#define PCIE_LEGACY_ENDPOINT			0x01
+#define PCIE_ROOT_COMPLEX			0x04
+#define PCIE_app_pf_req_retry_en		_BV(1)
+#define PCIE_app_req_retry_en			_BV(0)
+#define PCIE_LTSSM_DETECT			\
+	(PCIE_clkreq_in_n |			\
+	 PCIE_app_margining_ready |		\
+	 PCIE_app_hold_phy_rst |		\
+	 PCIE_app_sris_mode)
+#define PCIE_LTSSM_ENABLE			\
+	(PCIE_clkreq_in_n |			\
+	 PCIE_app_margining_ready |		\
+	 PCIE_app_sris_mode |			\
+	 PCIE_app_ltssm_enable)
 
 #define DUOWEN_PCIE_LINK_MODE_0		0
 #define DUOWEN_PCIE_LINK_MODE_4		1
@@ -237,8 +289,6 @@ struct duowen_pcie {
 	uint64_t core_base[PCIE_MAX_CORES];
 	uint64_t subsys_base;
 	uint8_t linkmode;
-	int socket_id;
-	bool chiplink;
 };
 
 void pci_platform_init(void);
