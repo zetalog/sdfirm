@@ -65,8 +65,21 @@ static uint32_t litmus_dump_readl(uint32_t reg)
 
 bool litmus_dumping = false;
 
+#ifdef LITMUS_DUMP_TEST_INSTRUMENT
+static void __litmus_dump_debug(bool start)
+{
+	if (start)
+		printf("dumping start\n");
+	else
+		printf("dumping stop\n");
+}
+#else
+#define __litmus_dump_debug(start)		do { } while (0)
+#endif
+
 static void __litmus_dump_start(void)
 {
+	__litmus_dump_debug(true);
 	litmus_dump_writel(MSG_DUMP_START_REQ, MSG_DUMP_CTRL);
 #ifdef LITMUS_DUMP_WAIT
 	while (litmus_dump_readl(MSG_DUMP_CTRL) != MSG_DUMP_START_REP);
@@ -75,6 +88,7 @@ static void __litmus_dump_start(void)
 
 static void __litmus_dump_stop(void)
 {
+	__litmus_dump_debug(false);
 	litmus_dump_writel(MSG_DUMP_STOP_REQ, MSG_DUMP_CTRL);
 #ifdef LITMUS_DUMP_WAIT
 	while (litmus_dump_readl(MSG_DUMP_CTRL) != MSG_DUMP_STOP_REP);
@@ -115,10 +129,19 @@ __cyg_profile_func_exit(void *this_func, void *call_site)
 }
 
 #ifdef LITMUS_DUMP_TEST
+tsc_t timeofday(void)
+{
+	return 0;
+}
+
 void main(void)
 {
+#ifndef LITMUS_DUMP_TEST_INSTRUMENT
 	litmus_dump_init();
+#endif
 	litmus_dump_start();
+	timeofday();
+	timeofday();
 	litmus_dump_stop();
 	litmus_dump_exit();
 }
