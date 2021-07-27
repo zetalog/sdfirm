@@ -15,8 +15,8 @@ if [ -e /dev/eth0 ]; then
 	ip link set eth0 up
 fi
 
+litmus.sh || echo "Skip litmus tests"
 dhrystone 50
-#litmus.sh
 #dhrystone 200000000
 #linpack
 
