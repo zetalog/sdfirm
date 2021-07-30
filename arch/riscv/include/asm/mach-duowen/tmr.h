@@ -45,35 +45,55 @@
 #define TMR_BASE		TIMER3_BASE
 #define TMR_REG(offset)		(TMR_BASE + (offset))
 
-#define TMR_CNT_CTRL		TMR_REG(0x00)
-#define TMR_CMP_CTRL(n)		REG_1BIT_ADDR(TMR_REG(0x04), n)
-#define TMR_INTR_EN(n)		REG_1BIT_ADDR(TMR_REG(0x10), n)
-#define TMR_INTR_STATUS(n)	REG_1BIT_ADDR(TMR_REG(0x14), n)
-#define TMR_CNT_LO		TMR_REG(0x40)
-#define TMR_CNT_HI		TMR_REG(0x44)
-#define TMR_CMP_LO(n)		TMR_REG(0x200 + ((n) << 4))
-#define TMR_CMP_HI(n)		TMR_REG(0x204 + ((n) << 4))
-#define TMR_VAL(n)		TMR_REG(0x208 + ((n) << 4))
+#define TMR_CNT_CTRL		TMR_REG(0x000)
+#define TMR_CNT_LO		TMR_REG(0x040)
+#define TMR_CNT_HI		TMR_REG(0x044)
+#define TMR_WDT_CFG(n)		TMR_REG(0x100 + ((n) << 5))
+#define TMR_WDT_PERIOD(n)	TMR_REG(0x104 + ((n) << 5))
+#define TMR_WDT_CMP_LO(n)	TMR_REG(0x108 + ((n) << 5))
+#define TMR_WDT_CMP_HI(n)	TMR_REG(0x10C + ((n) << 5))
+#define TMR_WDT_DN_CNT(n)	TMR_REG(0x110 + ((n) << 5))
+#define TMR_CFG			TMR_REG(0x200)
+#define TMR_TVAL		TMR_REG(0x204)
+#define TMR_CMP_LO		TMR_REG(0x208)
+#define TMR_CMP_HI		TMR_REG(0x20C)
+#define TMR_INTR_STATUS		TMR_REG(0x210)
+#define TMR_INTR_CLR		TMR_REG(0x214)
 
 /* TMR_CNT_CTRL */
-#define TMR_EN			_BV(0)
+#define TMR_MTIME_EN		_BV(0)
 #define TMR_HALT_ON_DEBUG	_BV(1)
 
-#define tmr_enable_cmp(id)	__raw_setl(_BV(id), TMR_CMP_CTRL(id))
-#define tmr_disable_cmp(id)	__raw_clearl(_BV(id), TMR_CMP_CTRL(id))
-#define tmr_enable_irq(id)	__raw_setl(_BV(id), TMR_INTR_EN(id))
-#define tmr_disable_irq(id)	__raw_clearl(_BV(id), TMR_INTR_EN(id))
-#define tmr_irq_status(id)	(__raw_readl(TMR_INTR_STATUS(id)) & _BV(id))
-#define tmr_irq_clear(id)	__raw_clearl(_BV(id), TMR_INTR_STATUS(id))
+/* WDT_CFG_n */
+#define TMR_WDT_EN		_BV(0)
+
+/* TMR_CFG */
+#define TMR_EN			_BV(0)
+#define TMR_INTR_EN		_BV(1)
+
+/* TMR_INTR_STATUS
+ * TMR_INTR_CLR
+ */
+#define TMR_INTR		_BV(0)
+
+#define tmr_enable_cnt()	__raw_setl(TMR_MTIME_EN, TMR_CNT_CTRL)
+#define tmr_disable_cnt()	__raw_clearl(TMR_MTIME_EN, TMR_CNT_CTRL)
+#define tmr_enable_cmp()	__raw_setl(TMR_EN, TMR_CFG)
+#define tmr_disable_cmp()	__raw_clearl(TMR_EN, TMR_CFG)
+#define tmr_enable_irq()	__raw_setl(TMR_INTR_EN, TMR_CFG)
+#define tmr_disable_irq()	__raw_clearl(TMR_INTR_EN, TMR_CFG)
+#define tmr_irq_status()	(__raw_readl(TMR_INTR_STATUS) & TMR_INTR)
+#define tmr_irq_clear()		__raw_setl(TMR_INTR, TMR_INTR_CLR)
 
 #ifndef __ASSEMBLY__
 #ifdef CONFIG_DUOWEN_TMR
 uint64_t tmr_read_counter(void);
-void tmr_write_compare(uint8_t id, uint64_t count);
+void tmr_write_compare(uint64_t count);
 void tmr_ctrl_init(void);
 #else
-#define tmr_read_counter()	0
-#define tmr_ctrl_init()		do { } while (0)
+#define tmr_read_counter()		0
+#define tmr_write_compare(count)	do { } while (0)
+#define tmr_ctrl_init()			do { } while (0)
 #endif
 #endif
 

@@ -40,24 +40,12 @@ static void *litmus_mem_map = MAP_FAILED;
 static int litmus_dump_count = 0;
 static pthread_mutex_t litmus_dump_lock;
 
+static int litmus_dump_msg_init(void);
+
 int litmus_dump_init(void)
 {
 	pthread_mutex_init(&litmus_dump_lock, NULL);
-#ifndef LITMUS_DUMP_TEST_INSTRUMENT
-	litmus_mem_fd = open( "/dev/mem", O_RDWR | O_SYNC);
-	if (litmus_mem_fd == -1) {
-		perror("open /dev/mem");
-		return -ENODEV;
-	}
-	litmus_mem_map = (void *)mmap(0, PAGE_SIZE,
-				      PROT_READ | PROT_WRITE, MAP_SHARED,
-				      litmus_mem_fd, MSG_MAP_BASE);
-	if (litmus_mem_map == MAP_FAILED) {
-		perror("mmap /dev/mem");
-		return -ENOMEM;
-	}
-#endif
-	return 0;
+	return litmus_dump_msg_init();
 }
 
 void litmus_dump_exit(void)
@@ -89,34 +77,36 @@ litmus_dump_readl(uint32_t reg)
 	return *((uint32_t *)((uint8_t *)litmus_mem_map + MSG_REG_BASE + reg));
 }
 
-#ifdef LITMUS_DUMP_TEST_INSTRUMENT
-static void __litmus_dump_debug(bool start)
+#ifdef LITMUS_DUMP_DEBUG
+static void __litmus_dump_debug(int state)
 {
-	if (start)
-		printf("B: %d\n", litmus_dump_count);
-	else
-		printf("E: %d\n", litmus_dump_count);
+	printf("D%d: %d\n", state, litmus_dump_count);
 }
 #else
-#define __litmus_dump_debug(start)		do { } while (0)
+#define __litmus_dump_debug(state)		do { } while (0)
+#endif
+
+#ifdef LITMUS_DUMP_WAIT
+#define __litmus_dump_wait(state)		\
+	while (litmus_dump_readl(MSG_DUMP_CTRL) != (state));
+#else
+#define __litmus_dump_wait(state)		do { } while (0)
 #endif
 
 static void __litmus_dump_start(void)
 {
-	__litmus_dump_debug(true);
+	__litmus_dump_debug(MSG_DUMP_START_REQ);
 	litmus_dump_writel(MSG_DUMP_START_REQ, MSG_DUMP_CTRL);
-#ifdef LITMUS_DUMP_WAIT
-	while (litmus_dump_readl(MSG_DUMP_CTRL) != MSG_DUMP_START_REP);
-#endif
+	__litmus_dump_wait(MSG_DUMP_START_REP);
+	__litmus_dump_debug(MSG_DUMP_START_REP);
 }
 
 static void __litmus_dump_stop(void)
 {
+	__litmus_dump_debug(MSG_DUMP_STOP_REQ);
 	litmus_dump_writel(MSG_DUMP_STOP_REQ, MSG_DUMP_CTRL);
-#ifdef LITMUS_DUMP_WAIT
-	while (litmus_dump_readl(MSG_DUMP_CTRL) != MSG_DUMP_STOP_REP);
-#endif
-	__litmus_dump_debug(false);
+	__litmus_dump_wait(MSG_DUMP_STOP_REP);
+	__litmus_dump_debug(MSG_DUMP_STOP_REP);
 }
 
 void __attribute__((__no_instrument_function__))
@@ -124,7 +114,7 @@ __cyg_profile_func_enter(void *this_func, void *call_site)
 {
 	pthread_mutex_lock(&litmus_dump_lock);
 	if (this_func == pb_create) {
-		if (litmus_dump_count == 1)
+		if (litmus_dump_count == 0)
 			__litmus_dump_start();
 		litmus_dump_count++;
 	}
@@ -137,7 +127,7 @@ __cyg_profile_func_exit(void *this_func, void *call_site)
 	pthread_mutex_lock(&litmus_dump_lock);
 	if (this_func == pb_free) {
 		litmus_dump_count--;
-		if (litmus_dump_count == 1)
+		if (litmus_dump_count == 0)
 			__litmus_dump_stop();
 	}
 	if (this_func == parse_cmd) {
@@ -177,5 +167,27 @@ void main(void)
 	test();
 	test();
 	litmus_dump_exit();
+}
+
+static int litmus_dump_msg_init(void)
+{
+	return 0;
+}
+#else
+static int litmus_dump_msg_init(void)
+{
+	litmus_mem_fd = open( "/dev/mem", O_RDWR | O_SYNC);
+	if (litmus_mem_fd == -1) {
+		perror("open /dev/mem");
+		return -ENODEV;
+	}
+	litmus_mem_map = (void *)mmap(0, PAGE_SIZE,
+				      PROT_READ | PROT_WRITE, MAP_SHARED,
+				      litmus_mem_fd, MSG_MAP_BASE);
+	if (litmus_mem_map == MAP_FAILED) {
+		perror("mmap /dev/mem");
+		return -ENOMEM;
+	}
+	return 0;
 }
 #endif

@@ -231,16 +231,17 @@ uint64_t duowen_timer_value(void)
 
 void duowen_timer_event_stop(void)
 {
-	__unused cpu_t cpu = smp_processor_id();
-
-	tmr_disable_cmp(cpu);
+	tmr_disable_cmp();
+	tmr_disable_irq();
 }
 
 void duowen_timer_event_start(uint64_t next_event)
 {
-	__unused cpu_t cpu = smp_processor_id();
-
-	tmr_write_compare(cpu, next_event);
+	tmr_disable_irq();
+	if (tmr_irq_status())
+		tmr_irq_clear();
+	tmr_write_compare(next_event);
+	tmr_enable_irq();
 }
 
 static bool duowen_hart_disabled(uint32_t hartid)

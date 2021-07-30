@@ -54,12 +54,12 @@ uint64_t tmr_read_counter(void)
 	return MAKELLONG(lo, hi1);
 }
 
-void tmr_write_compare(uint8_t id, uint64_t count)
+void tmr_write_compare(uint64_t count)
 {
-	tmr_disable_cmp(id);
-	__raw_writel(LODWORD(count), TMR_CMP_LO(id));
-	__raw_writel(HIDWORD(count), TMR_CMP_HI(id));
-	tmr_enable_cmp(id);
+	tmr_disable_cmp();
+	__raw_writel(LODWORD(count), TMR_CMP_LO);
+	__raw_writel(HIDWORD(count), TMR_CMP_HI);
+	tmr_enable_cmp();
 }
 
 static void __tmr_enable_clock(void)
@@ -71,5 +71,5 @@ static void __tmr_enable_clock(void)
 void tmr_ctrl_init(void)
 {
 	__tmr_enable_clock();
-	__raw_setl(TMR_EN, TMR_CNT_CTRL);
+	tmr_enable_cnt();
 }
