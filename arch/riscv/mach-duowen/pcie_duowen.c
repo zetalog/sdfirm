@@ -156,7 +156,7 @@ static uint8_t duowen_pcie_link_mode(uint8_t mode)
 		if (duowen_pcie_link_modes[i] == mode)
 			return i;
 	}
-	return LINK_MODE_INVALID;
+	return DW_PCIE_LINK_MODE_INVALID;
 }
 
 void duowen_pcie_config_info(int index, uint32_t value)
@@ -165,11 +165,11 @@ void duowen_pcie_config_info(int index, uint32_t value)
 
 	if (duowen_pcie_ctrls[index].pp.role == ROLE_EP)
 		write_apb((base + 0),
-			  value | PCIE_device_type(PCIE_ENDPOINT),
+			  value | DW_PCIE_device_type(DW_PCIE_ENDPOINT),
 			  APB_PORT_X16 + index);
 	else
 		write_apb((base + 0),
-			  value | PCIE_device_type(PCIE_ROOT_COMPLEX),
+			  value | DW_PCIE_device_type(DW_PCIE_ROOT_COMPLEX),
 			  APB_PORT_X16 + index);
 }
 
@@ -179,10 +179,10 @@ void duowen_pcie_wait_linkup(int index)
 	uint32_t data;
 	uint64_t base = duowen_pcie_cfg.core_base[index];
 
-	data = read_apb((base + 0x10), port);
 	con_log("dw_pcie: Waiting for controller %d smlh&rdlh ready\n", index);
-	while ((data & ( BIT(0) | BIT(11) )) != ( BIT(0) | BIT(11) ))
-		data = read_apb((base + 0x10), APB_PORT_X16);
+	do {
+		data = read_apb((base + 0x10), port);
+	} while ((data & DW_PCIE_link_up) != DW_PCIE_link_up);
 }
 
 static void duowen_pcie_pre_reset(void)
@@ -191,12 +191,16 @@ static void duowen_pcie_pre_reset(void)
 	uint8_t linkmode = duowen_pcie_cfg.linkmode;
 
 	/* #10ns */
-	write_apb((base + SUBSYS_CONTROL),
-		  duowen_pcie_link_mode(linkmode), APB_PORT_SUBSYS);
-	write_apb((base + RESET_CORE_X4_0), 0xff, APB_PORT_SUBSYS);
-	write_apb((base + RESET_CORE_X4_1), 0xff, APB_PORT_SUBSYS);
-	write_apb((base + RESET_CORE_X8), 0xff, APB_PORT_SUBSYS);
-	write_apb((base + RESET_CORE_X16), 0xff, APB_PORT_SUBSYS);
+	write_apb((base + SUBSYS_CONTROL), duowen_pcie_link_mode(linkmode),
+		  APB_PORT_SUBSYS);
+	write_apb((base + RESET_CORE_X4_0), DW_PCIE_RESET_CTRL_ALL,
+		  APB_PORT_SUBSYS);
+	write_apb((base + RESET_CORE_X4_1), DW_PCIE_RESET_CTRL_ALL,
+		  APB_PORT_SUBSYS);
+	write_apb((base + RESET_CORE_X8), DW_PCIE_RESET_CTRL_ALL,
+		  APB_PORT_SUBSYS);
+	write_apb((base + RESET_CORE_X16), DW_PCIE_RESET_CTRL_ALL,
+		  APB_PORT_SUBSYS);
 }
 
 static void duowen_pcie_post_reset(void)
@@ -204,19 +208,24 @@ static void duowen_pcie_post_reset(void)
 	uint64_t base = duowen_pcie_cfg.subsys_base;
 	uint32_t data = 0;
 
+	/* What are these undocumented actions? */
 	write_apb((base + RESET_PHY), 0x10, APB_PORT_SUBSYS);
 	write_apb((base + SRAM_CONTROL), 0x0, APB_PORT_SUBSYS);
 	write_apb((base + REFCLK_CONTROL), 0x2, APB_PORT_SUBSYS);
+
 	/* #200ns */
-	write_apb((base + RESET_PHY), 0xf, APB_PORT_SUBSYS);
+	write_apb((base + RESET_PHY), DW_PCIE_RESET_PHY_ALL,
+		  APB_PORT_SUBSYS);
 	/* #100ns */
 
 #ifndef TEST
-	while ((data & 0xf) != 0xf)
+	do {
 		data = read_apb((base + SRAM_STATUS), APB_PORT_SUBSYS);
+	} while ((data & DW_PCIE_phy_sram_init_done_all) !=
+		 DW_PCIE_phy_sram_init_done_all);
 #endif
-	write_apb((base + SRAM_CONTROL), 0x55, APB_PORT_SUBSYS);
-	/* write_apb((base + RESET_PHY), 0xff, APB_PORT_SUBSYS); */
+	write_apb((base + SRAM_CONTROL), DW_PCIE_phy_sram_ext_ld_done_all,
+		  APB_PORT_SUBSYS);
 }
 
 static void duowen_pcie_init_ctrls(void)
@@ -225,7 +234,7 @@ static void duowen_pcie_init_ctrls(void)
 
 	for (i = 0; i < PCIE_MAX_CORES; i++) {
 		if (duowen_pcie_ctrls[i].active)
-			duowen_pcie_config_info(i, PCIE_LTSSM_DETECT);
+			duowen_pcie_config_info(i, DW_PCIE_LTSSM_DETECT);
 	}
 }
 
@@ -235,7 +244,7 @@ static void duowen_pcie_reset_ctrls(void)
 
 	for (i = 0; i < PCIE_MAX_CORES; i++) {
 		if (duowen_pcie_ctrls[i].active)
-			duowen_pcie_config_info(i, PCIE_LTSSM_ENABLE);
+			duowen_pcie_config_info(i, DW_PCIE_LTSSM_ENABLE);
 	}
 }
 
@@ -251,7 +260,7 @@ void duowen_pcie_cfg_init(int socket_id, bool chiplink)
 	for (i = 0; i < PCIE_MAX_CORES; i++)
 		duowen_pcie_cfg.core_base[i] = CFG_APB_CORE(i) + SOC_BASE;
 	duowen_pcie_cfg.subsys_base = CFG_APB_SUBSYS + SOC_BASE;
-	if (duowen_pcie_link_mode(linkmode) == LINK_MODE_INVALID) {
+	if (duowen_pcie_link_mode(linkmode) == DW_PCIE_LINK_MODE_INVALID) {
 		if (chiplink)
 			linkmode = DUOWEN_PCIE_LINK_MODE_CHIPLINK;
 		else

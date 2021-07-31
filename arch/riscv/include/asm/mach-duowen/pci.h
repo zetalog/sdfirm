@@ -72,6 +72,17 @@
 #define PCIE_CORE_CHIPLINK			PCIE_CORE_X4_1
 #define PCIE_MAX_CORES				4
 
+/* PCIe subsystem registers */
+#define PCIE_RESET_CONTROL_X16			PCIE_SUBSYS_REG(0x000)
+#define PCIE_RESET_CONTROL_X8			PCIE_SUBSYS_REG(0x004)
+#define PCIE_RESET_CONTROL_X4_0			PCIE_SUBSYS_REG(0x008)
+#define PCIE_RESET_CONTROL_X4_1			PCIE_SUBSYS_REG(0x00C)
+#define PCIE_RESET_CONTROL_PHY			PCIE_SUBSYS_REG(0x010)
+#define PCIE_SUBSYSTEM_CONTROL			PCIE_SUBSYS_REG(0x014)
+#define PCIE_REFCLK_CONTROL			PCIE_SUBSYS_REG(0x018)
+#define PCIE_SRAM_CONTROL			PCIE_SUBSYS_REG(0x01C)
+#define PCIE_SRAM_STATUS			PCIE_SUBSYS_REG(0x020)
+
 /* PCIe core_x[lane] registers */
 #define PCIE_CFGINFO_LEVEL(x)			PCIE_CORE_REG(x, 0x000)
 #define PCIE_OBFF(x)				PCIE_CORE_REG(x, 0x004)
@@ -119,53 +130,167 @@
 #define PCIE_DIAG_BUS(x, n)			\
 	PCIE_CORE_REG(x, 0x0C0 + ((n) << 2))
 
-/* PCIE_CFGINFO_LEVEL */
-#define PCIE_app_clk_req_n			_BV(28)
-#define PCIE_clkreq_in_n			_BV(27)
-#define PCIE_app_margining_ready		_BV(26)
-#define PCIE_app_margining_software_ready	_BV(25)
-#define PCIE_app_l1sub_disable			_BV(24)
-#define PCIE_app_hold_phy_rst			_BV(23)
-#define PCIE_app_clk_pm_en			_BV(21)
-#define PCIE_diag_ctrl_bus_OFFSET		18
-#define PCIE_diag_ctrl_bus_MASK			REG_3BIT_MASK
-#define PCIE_diag_ctrl_bus(value)		\
-	_SET_FV(PCIE_diag_ctrl_bus, value)
-#define PCIE_app_dbi_ro_wr_disable		_BV(17)
-#define PCIE_app_sris_mode			_BV(16)
-#define PCIE_app_ltssm_enable			_BV(15)
-#define PCIE_sys_aux_pwr_det			_BV(14)
-#define PCIE_apps_pm_xmt_pme			_BV(13)
-#define PCIE_outband_pwrup_cmd			_BV(12)
-#define PCIE_tx_lane_flip_en			_BV(11)
-#define PCIE_rx_lane_flip_en			_BV(10)
-#define PCIE_app_ready_entr_l23			_BV(9)
-#define PCIE_app_req_exit_l1			_BV(8)
-#define PCIE_app_xfer_pending			_BV(7)
-#define PCIE_app_init_rst			_BV(6)
-#define PCIE_device_type_OFFSET			2
-#define PCIE_device_type_MASK			REG_4BIT_MASK
-#define PCIE_device_type(value)			_SET_FV(PCIE_device_type, value)
-#define PCIE_ENDPOINT				0x00
-#define PCIE_LEGACY_ENDPOINT			0x01
-#define PCIE_ROOT_COMPLEX			0x04
-#define PCIE_app_pf_req_retry_en		_BV(1)
-#define PCIE_app_req_retry_en			_BV(0)
-#define PCIE_LTSSM_DETECT			\
-	(PCIE_clkreq_in_n |			\
-	 PCIE_app_margining_ready |		\
-	 PCIE_app_hold_phy_rst |		\
-	 PCIE_app_sris_mode)
-#define PCIE_LTSSM_ENABLE			\
-	(PCIE_clkreq_in_n |			\
-	 PCIE_app_margining_ready |		\
-	 PCIE_app_sris_mode |			\
-	 PCIE_app_ltssm_enable)
+/* PCIE_RESET_CONTROL_Xx */
+#define DW_PCIE_dbi_rst_n			_BV(7)
+#define DW_PCIE_core_rst_n			_BV(6)
+#define DW_PCIE_button_rst_n			_BV(5)
+#define DW_PCIE_non_sticky_rst_n		_BV(4)
+#define DW_PCIE_sticky_rst_n			_BV(3)
+#define DW_PCIE_perst_n				_BV(2)
+#define DW_PCIE_Slv_aresetn			_BV(1)
+#define DW_PCIE_Mstr_aresetn			_BV(0)
+/* Controller reset */
+#define DW_PCIE_RESET_CTRL_ALL			\
+	(DW_PCIE_dbi_rst_n |			\
+	 DW_PCIE_core_rst_n |			\
+	 DW_PCIE_button_rst_n |			\
+	 DW_PCIE_non_sticky_rst_n |		\
+	 DW_PCIE_sticky_rst_n |			\
+	 DW_PCIE_perst_n |			\
+	 DW_PCIE_Slv_aresetn |			\
+	 DW_PCIE_Mstr_aresetn)
 
-#define DUOWEN_PCIE_LINK_MODE_0		0
-#define DUOWEN_PCIE_LINK_MODE_4		1
-#define DUOWEN_PCIE_LINK_MODE_8		2
-#define DUOWEN_PCIE_LINK_MODE_16	3
+/* PCIE_RESET_CONTROL_PHY */
+#define DW_PCIE_phy_rst_d			_BV(3)
+#define DW_PCIE_phy_rst_c			_BV(2)
+#define DW_PCIE_phy_rst_b			_BV(1)
+#define DW_PCIE_phy_rst_a			_BV(0)
+#define DW_PCIE_RESET_PHY_ALL			\
+	(DW_PCIE_phy_rst_d |			\
+	 DW_PCIE_phy_rst_c |			\
+	 DW_PCIE_phy_rst_b |			\
+	 DW_PCIE_phy_rst_a)
+
+/* PCIE_SUBSYSTEM_CONTROL */
+#define DW_PCIE_link_mode_OFFSET		0
+#define DW_PCIE_link_mode_MASK			REG_2BIT_MASK
+#define DW_PCIE_link_mode(value)		\
+	_SET_FV(DW_PCIE_link_mode, value)
+/* Note:
+ * Available link modes for DUOWEN:
+ * 0: DUOWEN_PCIE_LINK_MODE_4_4_4_4
+ * 1: DUOWEN_PCIE_LINK_MODE_8_4_0_4
+ * 2: DUOWEN_PCIE_LINK_MODE_8_8_0_0
+ * 3: DUOWEN_PCIE_LINK_MODE_16_0_0_0
+ */
+#define DW_PCIE_LINK_MODE_INVALID		0xff
+
+/* PCIE_REFCLK_CONTROL */
+#define DW_PCIE_ref_use_pad			_BV(0)
+
+/* PCIE_SRAM_CONTROL */
+#define DW_PCIE_phy_sram_bypass(n)		_BV(((n) << 1) + 1)
+#define DW_PCIE_phy_sram_ext_ld_done(n)		_BV((n) << 1)
+#define DW_PCIE_phy_sram_bypass_all		\
+	(DW_PCIE_phy_sram_bypass(0) |		\
+	 DW_PCIE_phy_sram_bypass(1) |		\
+	 DW_PCIE_phy_sram_bypass(2) |		\
+	 DW_PCIE_phy_sram_bypass(3))
+#define DW_PCIE_phy_sram_ext_ld_done_all	\
+	(DW_PCIE_phy_sram_ext_ld_done(0) |	\
+	 DW_PCIE_phy_sram_ext_ld_done(1) |	\
+	 DW_PCIE_phy_sram_ext_ld_done(2) |	\
+	 DW_PCIE_phy_sram_ext_ld_done(3))
+
+/* PCIE_SRAM_STATUS */
+#define DW_PCIE_phy_sram_init_done(n)		_BV(n)
+#define DW_PCIE_phy_sram_init_done_all		\
+	(DW_PCIE_phy_sram_init_done(0) |	\
+	 DW_PCIE_phy_sram_init_done(1) |	\
+	 DW_PCIE_phy_sram_init_done(2) |	\
+	 DW_PCIE_phy_sram_init_done(3))
+
+/* PCIE_CFGINFO_LEVEL */
+#define DW_PCIE_app_clk_req_n			_BV(28)
+#define DW_PCIE_clkreq_in_n			_BV(27)
+#define DW_PCIE_app_margining_ready		_BV(26)
+#define DW_PCIE_app_margining_software_ready	_BV(25)
+#define DW_PCIE_app_l1sub_disable		_BV(24)
+#define DW_PCIE_app_hold_phy_rst		_BV(23)
+#define DW_PCIE_app_clk_pm_en			_BV(21)
+#define DW_PCIE_diag_ctrl_bus_OFFSET		18
+#define DW_PCIE_diag_ctrl_bus_MASK		REG_3BIT_MASK
+#define DW_PCIE_diag_ctrl_bus(value)		\
+	_SET_FV(DW_PCIE_diag_ctrl_bus, value)
+#define DW_PCIE_app_dbi_ro_wr_disable		_BV(17)
+#define DW_PCIE_app_sris_mode			_BV(16)
+#define DW_PCIE_app_ltssm_enable		_BV(15)
+#define DW_PCIE_sys_aux_pwr_det			_BV(14)
+#define DW_PCIE_apps_pm_xmt_pme			_BV(13)
+#define DW_PCIE_outband_pwrup_cmd		_BV(12)
+#define DW_PCIE_tx_lane_flip_en			_BV(11)
+#define DW_PCIE_rx_lane_flip_en			_BV(10)
+#define DW_PCIE_app_ready_entr_l23		_BV(9)
+#define DW_PCIE_app_req_exit_l1			_BV(8)
+#define DW_PCIE_app_xfer_pending		_BV(7)
+#define DW_PCIE_app_init_rst			_BV(6)
+#define DW_PCIE_device_type_OFFSET		2
+#define DW_PCIE_device_type_MASK		REG_4BIT_MASK
+#define DW_PCIE_device_type(value)		\
+	_SET_FV(DW_PCIE_device_type, value)
+#define DW_PCIE_ENDPOINT			0x00
+#define DW_PCIE_LEGACY_ENDPOINT			0x01
+#define DW_PCIE_ROOT_COMPLEX			0x04
+#define DW_PCIE_app_pf_req_retry_en		_BV(1)
+#define DW_PCIE_app_req_retry_en		_BV(0)
+#define DW_PCIE_LTSSM_DETECT			\
+	(DW_PCIE_clkreq_in_n |			\
+	 DW_PCIE_app_margining_ready |		\
+	 DW_PCIE_app_hold_phy_rst |		\
+	 DW_PCIE_app_sris_mode)
+#define DW_PCIE_LTSSM_ENABLE			\
+	(DW_PCIE_clkreq_in_n |			\
+	 DW_PCIE_app_margining_ready |		\
+	 DW_PCIE_app_sris_mode |		\
+	 DW_PCIE_app_ltssm_enable)
+
+/* PCIE_LINK_STATUS */
+#define DW_PCIE_smlh_link_up			_BV(11)
+#define DW_PCIE_smlh_ltssm_state_rcvry_eq	_BV(10)
+#define DW_PCIE_smlh_ltssm_state_OFFSET		4
+#define DW_PCIE_smlh_ltssm_state_MASK		REG_6BIT_MASK
+#define DW_PCIE_smlh_ltssm_state(value)		\
+	_GET_FV(DW_PCIE_smlh_ltssm_state, value)
+#define DW_PCIE_LTSSM_S_DETECT_QUIET		0
+#define DW_PCIE_LTSSM_S_DETECT_ACT		1
+#define DW_PCIE_LTSSM_S_POLL_ACTIVE		2
+#define DW_PCIE_LTSSM_S_POLL_COMPLETE		3
+#define DW_PCIE_LTSSM_S_POLL_CONFIG		4
+#define DW_PCIE_LTSSM_S_PRE_DETECT_QUIET	5
+#define DW_PCIE_LTSSM_S_DETECT_WAIT		6
+#define DW_PCIE_LTSSM_S_CFG_LINKWD_START	7
+#define DW_PCIE_LTSSM_S_CFG_LINKWD_ACEPT	8
+#define DW_PCIE_LTSSM_S_CFG_LANENUM_WAI		9
+#define DW_PCIE_LTSSM_S_CFG_LANENUM_ACEPT	10
+#define DW_PCIE_LTSSM_S_CFG_COMPLETE		11
+#define DW_PCIE_LTSSM_S_CFG_IDLE		12
+#define DW_PCIE_LTSSM_RCVRY_LOCK		13
+#define DW_PCIE_LTSSM_RCVRY_SPEED		14
+#define DW_PCIE_LTSSM_RCVRY_RCVRCFG		15
+#define DW_PCIE_LTSSM_RCVRY_IDLE		16
+#define DW_PCIE_LTSSM_L0			17
+#define DW_PCIE_LTSSM_L0S			18
+#define DW_PCIE_LTSSM_L123_SEND_EIDLE		19
+#define DW_PCIE_LTSSM_L1_IDLE			20
+#define DW_PCIE_LTSSM_L2_IDLE			21
+#define DW_PCIE_LTSSM_L2_WAKE			22
+#define DW_PCIE_LTSSM_S_DISABLED_ENTRY		23
+#define DW_PCIE_LTSSM_S_DISABLED_IDLE		24
+#define DW_PCIE_pm_curnt_state_OFFSET		1
+#define DW_PCIE_pm_curnt_state_MASK		REG_3BIT_MASK
+#define DW_PCIE_pm_curnt_state(value)		\
+	_GET_FV(DW_PCIE_pm_curnt_state, value)
+#define DW_PCIE_rdlh_link_up			_BV(0)
+#define DW_PCIE_link_up				\
+	(DW_PCIE_smlh_link_up | DW_PCIE_rdlh_link_up)
+
+/* The lane link information can be decoded from the following link modes
+ * encodings.
+ */
+#define DUOWEN_PCIE_LINK_MODE_0			0
+#define DUOWEN_PCIE_LINK_MODE_4			1
+#define DUOWEN_PCIE_LINK_MODE_8			2
+#define DUOWEN_PCIE_LINK_MODE_16		3
 #define DUOWEN_PCIE_LINK_LANE(mode)	(_BV((mode) - 1) << 2)
 #ifdef CONFIG_DUOWEN_PCIE_LINK_MODE_0
 #define DUOWEN_PCIE_LINK_MODE_DEFAULT	DUOWEN_PCIE_LINK_MODE_4_4_4_4
@@ -236,8 +361,6 @@
 #define REFCLK_CONTROL			0x18
 #define SRAM_CONTROL			0x1c
 #define SRAM_STATUS			0x20
-
-#define LINK_MODE_INVALID		0xff
 
 #ifdef IPBENCH
 #define CFG_APB_SUBSYS			0x0
