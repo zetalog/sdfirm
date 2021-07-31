@@ -59,6 +59,9 @@
 #else
 #include "pcie_designware.h"
 #endif
+#ifdef CONFIG_DUOWEN_PCIE_IPDV
+#include "pcie_ipdv.h"
+#endif
 
 #define PCIE_SUBSYS_REG(offset)			(PCIE_SUB_CUST_BASE + (offset))
 #define PCIE_CORE_REG(x, offset)		\
@@ -341,17 +344,6 @@
 	 DUOWEN_PCIE_LINK_CTRL(2, DUOWEN_PCIE_LINK_MODE_0) |	\
 	 DUOWEN_PCIE_LINK_CTRL(3, DUOWEN_PCIE_LINK_MODE_0))
 
-#define APB_PORT_X16			0x4
-#define APB_PORT_X8			0x5
-#define APB_PORT_X4_0			0x6
-#define APB_PORT_X4_1			0x7
-#define APB_PORT_SUBSYS			0x8
-
-#define AXI_DBI_PORT_X16		0x0
-#define AXI_DBI_PORT_X8			0x1
-#define AXI_DBI_PORT_X4_0		0x2
-#define AXI_DBI_PORT_X4_1		0x3
-
 #define RESET_CORE_X16			0x0
 #define RESET_CORE_X8			0x4
 #define RESET_CORE_X4_0			0x8
@@ -362,12 +354,12 @@
 #define SRAM_CONTROL			0x1c
 #define SRAM_STATUS			0x20
 
-#ifdef IPBENCH
-#define CFG_APB_SUBSYS			0x0
-#define CFG_APB_CORE(x)			0x0
-#define CFG_APB_PHY(x)			0x0
-#define CFG_AXI_CORE(x)			0
-#else
+#define AXI_DBI_PORT_X16		0x0
+#define AXI_DBI_PORT_X8			0x1
+#define AXI_DBI_PORT_X4_0		0x2
+#define AXI_DBI_PORT_X4_1		0x3
+
+#ifndef CONFIG_DUOWEN_PCIE_IPDV
 #define CFG_APB_SUBSYS			ULL(0xff09000000)
 #define CFG_APB_CORE(x)			(ULL(0xff09001000) + ((x) << 12))
 #define CFG_APB_PHY(x)			(ULL(0xff09180000) + ((x) << 20))
@@ -401,11 +393,6 @@
 #ifdef CONFIG_DUOWEN_PCIE_TEST
 #define MSI_INT				0
 #define INTA_INT			1
-#endif
-
-#ifdef IPBENCH
-void apb_read_c(uint32_t addr, uint32_t *data, int port);
-void apb_write_c(uint32_t addr, uint32_t data, int port);
 #endif
 
 struct duowen_pcie {

@@ -55,55 +55,26 @@ struct dw_pcie duowen_pcie_ctrls[PCIE_MAX_CORES] = {
 	},
 };
 
-uint32_t read_apb(uint64_t addr, uint8_t port)
+#ifndef CONFIG_DUOWEN_PCIE_IPDV
+uint32_t dw_pcie_read_apb(uint64_t addr)
 {
 	uint32_t data;
-#ifdef IPBENCH
-	apb_read_c(addr, &data, port);
-#else
+
 	data = readl(addr);
-#endif
 #ifdef CONFIG_DUOWEN_PCIE_DEBUG
-	con_dbg("dw_pcie: APB(R): addr: 0x%llx; data: 0x%08x, port: %d\n",
-		addr, data, port);
+	con_dbg("dw_pcie: APB(R): addr: 0x%llx; data: 0x%08x\n",
+		addr, data);
 #endif
 	return data;
 }
 
-void write_apb(uint64_t addr, uint32_t data, uint8_t port)
+void dw_pcie_write_apb(uint64_t addr, uint32_t data)
 {
 #ifdef CONFIG_DUOWEN_PCIE_DEBUG
-	con_dbg("dw_pcie: APB(W): addr: 0x%llx; data: 0x%x port: %d\n",
-		addr, data, port);
+	con_dbg("dw_pcie: APB(W): addr: 0x%llx; data: 0x%x\n",
+		addr, data);
 #endif
-#ifdef IPBENCH
-	apb_write_c(addr, data, port);
-#else
 	writel(addr, data);
-#endif
-}
-
-#ifdef IPBENCH
-#define COUNTER_ADDR		0xf0000000
-
-static uint32_t get_counter(void)
-{
-	uint32_t cnt;
-
-	cnt =  read_apb(COUNTER_ADDR, 8);
-	return cnt;
-}
-
-void udelay(uint32_t time)
-{
-	uint32_t current, next;
-
-	current = get_counter();
-	next = current + time * 125;
-
-	do {
-		current =  get_counter();
-	} while(current < next);
 }
 #endif
 
@@ -164,24 +135,23 @@ void duowen_pcie_config_info(int index, uint32_t value)
 	uint64_t base = duowen_pcie_cfg.core_base[index];
 
 	if (duowen_pcie_ctrls[index].pp.role == ROLE_EP)
-		write_apb((base + 0),
-			  value | DW_PCIE_device_type(DW_PCIE_ENDPOINT),
-			  APB_PORT_X16 + index);
+		dw_pcie_write_apb((base + 0),
+				  value |
+				  DW_PCIE_device_type(DW_PCIE_ENDPOINT));
 	else
-		write_apb((base + 0),
-			  value | DW_PCIE_device_type(DW_PCIE_ROOT_COMPLEX),
-			  APB_PORT_X16 + index);
+		dw_pcie_write_apb((base + 0),
+				  value |
+				  DW_PCIE_device_type(DW_PCIE_ROOT_COMPLEX));
 }
 
 void duowen_pcie_wait_linkup(int index)
 {
-	uint8_t port = APB_PORT_X16 + index;
 	uint32_t data;
 	uint64_t base = duowen_pcie_cfg.core_base[index];
 
 	con_log("dw_pcie: Waiting for controller %d smlh&rdlh ready\n", index);
 	do {
-		data = read_apb((base + 0x10), port);
+		data = dw_pcie_read_apb((base + 0x10));
 	} while ((data & DW_PCIE_link_up) != DW_PCIE_link_up);
 }
 
@@ -191,16 +161,16 @@ static void duowen_pcie_pre_reset(void)
 	uint8_t linkmode = duowen_pcie_cfg.linkmode;
 
 	/* #10ns */
-	write_apb((base + SUBSYS_CONTROL), duowen_pcie_link_mode(linkmode),
-		  APB_PORT_SUBSYS);
-	write_apb((base + RESET_CORE_X4_0), DW_PCIE_RESET_CTRL_ALL,
-		  APB_PORT_SUBSYS);
-	write_apb((base + RESET_CORE_X4_1), DW_PCIE_RESET_CTRL_ALL,
-		  APB_PORT_SUBSYS);
-	write_apb((base + RESET_CORE_X8), DW_PCIE_RESET_CTRL_ALL,
-		  APB_PORT_SUBSYS);
-	write_apb((base + RESET_CORE_X16), DW_PCIE_RESET_CTRL_ALL,
-		  APB_PORT_SUBSYS);
+	dw_pcie_write_apb((base + SUBSYS_CONTROL),
+			  duowen_pcie_link_mode(linkmode));
+	dw_pcie_write_apb((base + RESET_CORE_X4_0),
+			  DW_PCIE_RESET_CTRL_ALL);
+	dw_pcie_write_apb((base + RESET_CORE_X4_1),
+			  DW_PCIE_RESET_CTRL_ALL);
+	dw_pcie_write_apb((base + RESET_CORE_X8),
+			  DW_PCIE_RESET_CTRL_ALL);
+	dw_pcie_write_apb((base + RESET_CORE_X16),
+			  DW_PCIE_RESET_CTRL_ALL);
 }
 
 static void duowen_pcie_post_reset(void)
@@ -209,23 +179,22 @@ static void duowen_pcie_post_reset(void)
 	uint32_t data = 0;
 
 	/* What are these undocumented actions? */
-	write_apb((base + RESET_PHY), 0x10, APB_PORT_SUBSYS);
-	write_apb((base + SRAM_CONTROL), 0x0, APB_PORT_SUBSYS);
-	write_apb((base + REFCLK_CONTROL), 0x2, APB_PORT_SUBSYS);
+	dw_pcie_write_apb((base + RESET_PHY), 0x10);
+	dw_pcie_write_apb((base + SRAM_CONTROL), 0x0);
+	dw_pcie_write_apb((base + REFCLK_CONTROL), 0x2);
 
 	/* #200ns */
-	write_apb((base + RESET_PHY), DW_PCIE_RESET_PHY_ALL,
-		  APB_PORT_SUBSYS);
+	dw_pcie_write_apb((base + RESET_PHY), DW_PCIE_RESET_PHY_ALL);
 	/* #100ns */
 
 #ifndef TEST
 	do {
-		data = read_apb((base + SRAM_STATUS), APB_PORT_SUBSYS);
+		data = dw_pcie_read_apb((base + SRAM_STATUS));
 	} while ((data & DW_PCIE_phy_sram_init_done_all) !=
 		 DW_PCIE_phy_sram_init_done_all);
 #endif
-	write_apb((base + SRAM_CONTROL), DW_PCIE_phy_sram_ext_ld_done_all,
-		  APB_PORT_SUBSYS);
+	dw_pcie_write_apb((base + SRAM_CONTROL),
+			  DW_PCIE_phy_sram_ext_ld_done_all);
 }
 
 static void duowen_pcie_init_ctrls(void)
