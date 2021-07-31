@@ -5,7 +5,6 @@
 #include <target/console.h>
 #endif
 
-struct duowen_pcie duowen_pcie_cfg;
 struct dw_pcie duowen_pcie_ctrls[PCIE_MAX_CORES] = {
 	/* X16 */
 	[0] = {
@@ -52,6 +51,7 @@ struct dw_pcie duowen_pcie_ctrls[PCIE_MAX_CORES] = {
 		.pp.role = ROLE_RC,
 	},
 };
+static uint8_t duowen_pcie_linkmode;
 
 #ifndef CONFIG_DUOWEN_PCIE_IPDV
 uint32_t dw_pcie_read_apb(uint64_t addr)
@@ -155,14 +155,12 @@ static uint8_t duowen_pcie_link_mode(uint8_t mode)
 
 void duowen_pcie_config_info(int index, uint32_t value)
 {
-	uint64_t base = duowen_pcie_cfg.core_base[index];
-
 	if (duowen_pcie_ctrls[index].pp.role == ROLE_EP)
-		dw_pcie_write_apb((base + 0),
+		dw_pcie_write_apb(PCIE_CFGINFO_LEVEL(index),
 				  value |
 				  DW_PCIE_device_type(DW_PCIE_ENDPOINT));
 	else
-		dw_pcie_write_apb((base + 0),
+		dw_pcie_write_apb(PCIE_CFGINFO_LEVEL(index),
 				  value |
 				  DW_PCIE_device_type(DW_PCIE_ROOT_COMPLEX));
 }
@@ -170,53 +168,45 @@ void duowen_pcie_config_info(int index, uint32_t value)
 void duowen_pcie_wait_linkup(int index)
 {
 	uint32_t data;
-	uint64_t base = duowen_pcie_cfg.core_base[index];
 
 	con_log("dw_pcie: Waiting for controller %d smlh&rdlh ready\n", index);
 	do {
-		data = dw_pcie_read_apb((base + 0x10));
+		data = dw_pcie_read_apb(PCIE_LINK_STATUS(index));
 	} while ((data & DW_PCIE_link_up) != DW_PCIE_link_up);
 }
 
 static void duowen_pcie_pre_reset(void)
 {
-	uint64_t base = duowen_pcie_cfg.subsys_base;
-	uint8_t linkmode = duowen_pcie_cfg.linkmode;
+	int i;
 
 	/* #10ns */
-	dw_pcie_write_apb((base + SUBSYS_CONTROL),
-			  duowen_pcie_link_mode(linkmode));
-	dw_pcie_write_apb((base + RESET_CORE_X4_0),
-			  DW_PCIE_RESET_CTRL_ALL);
-	dw_pcie_write_apb((base + RESET_CORE_X4_1),
-			  DW_PCIE_RESET_CTRL_ALL);
-	dw_pcie_write_apb((base + RESET_CORE_X8),
-			  DW_PCIE_RESET_CTRL_ALL);
-	dw_pcie_write_apb((base + RESET_CORE_X16),
-			  DW_PCIE_RESET_CTRL_ALL);
+	dw_pcie_write_apb(PCIE_SUBSYSTEM_CONTROL,
+			  duowen_pcie_link_mode(duowen_pcie_linkmode));
+	for (i = 0; i < PCIE_MAX_CORES; i++)
+		dw_pcie_write_apb(PCIE_RESET_CONTROL(i),
+				  DW_PCIE_RESET_CTRL_ALL);
 }
 
 static void duowen_pcie_post_reset(void)
 {
-	uint64_t base = duowen_pcie_cfg.subsys_base;
-	uint32_t data = 0;
+	uint32_t data;
 
 	/* What are these undocumented actions? */
-	dw_pcie_write_apb((base + RESET_PHY), 0x10);
-	dw_pcie_write_apb((base + SRAM_CONTROL), 0x0);
-	dw_pcie_write_apb((base + REFCLK_CONTROL), 0x2);
+	dw_pcie_write_apb(PCIE_RESET_CONTROL_PHY, 0x10);
+	dw_pcie_write_apb(PCIE_SRAM_CONTROL, 0x0);
+	dw_pcie_write_apb(PCIE_REFCLK_CONTROL, 0x2);
 
 	/* #200ns */
-	dw_pcie_write_apb((base + RESET_PHY), DW_PCIE_RESET_PHY_ALL);
+	dw_pcie_write_apb(PCIE_RESET_CONTROL_PHY, DW_PCIE_RESET_PHY_ALL);
 	/* #100ns */
 
 #ifndef TEST
 	do {
-		data = dw_pcie_read_apb((base + SRAM_STATUS));
+		data = dw_pcie_read_apb(PCIE_SRAM_STATUS);
 	} while ((data & DW_PCIE_phy_sram_init_done_all) !=
 		 DW_PCIE_phy_sram_init_done_all);
 #endif
-	dw_pcie_write_apb((base + SRAM_CONTROL),
+	dw_pcie_write_apb(PCIE_SRAM_CONTROL,
 			  DW_PCIE_phy_sram_ext_ld_done_all);
 }
 
@@ -248,17 +238,13 @@ void duowen_pcie_cfg_init(int socket_id, bool chiplink)
 	uint8_t mode;
 
 	/* Configuring duowen_pcie */
-	memset(&duowen_pcie_cfg, 0, sizeof(duowen_pcie_cfg));
-	for (i = 0; i < PCIE_MAX_CORES; i++)
-		duowen_pcie_cfg.core_base[i] = CFG_APB_CORE(i) + SOC_BASE;
-	duowen_pcie_cfg.subsys_base = CFG_APB_SUBSYS + SOC_BASE;
 	if (duowen_pcie_link_mode(linkmode) == DW_PCIE_LINK_MODE_INVALID) {
 		if (chiplink)
 			linkmode = DUOWEN_PCIE_LINK_MODE_CHIPLINK;
 		else
 			linkmode = DUOWEN_PCIE_LINK_MODE_DEFAULT;
 	}
-	duowen_pcie_cfg.linkmode = linkmode;
+	duowen_pcie_linkmode = linkmode;
 
 	/* Configuring dw_pcie */
 	for (i = 0; i < PCIE_MAX_CORES; i++) {
@@ -286,20 +272,19 @@ void duowen_pcie_cfg_init(int socket_id, bool chiplink)
 void duowen_pcie_handle_msi(bool en)
 {
 	int i;
-	caddr_t base;
 
-	base = duowen_pcie_cfg.core_base[0];
 	for (i = 0; i < PCIE_MAX_CORES; i++) {
 		if (duowen_pcie_ctrls[i].active) {
-			base = duowen_pcie_cfg.core_base[i];
+			/* We just mask this interrupt, since there is no
+			 * register we can manipulate to clear the
+			 * interrupt from VIP.
+			 */
+			__raw_writel(en ? 0 : 1,
+				     PCIE_MSI_INT_STATUS_MASK(i));
 			break;
 		}
 	}
 
-	/* We just mask this interrupt, since there is no register we can
-	 * manipulate to clear the interrupt from VIP.
-	 */
-	__raw_writel(en ? 0 : 1, base + 0x44);
 }
 
 void duowen_pcie_handle_inta(bool en)

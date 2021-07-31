@@ -8,8 +8,8 @@
 #define IPBENCH_ADDR(addr)		((addr) & ~IPBENCH_BEASE(0xf))
 #define COUNTER_ADDR			IPBENCH_BASE(0xf)
 
-#define CFG_APB_SUBSYS			IPBENCH_BASE(0x8)
-#define CFG_APB_CORE(x)			IPBENCH_BASE(0x4 + (x))
+#define PCIE_SUB_CUST_BASE		IPBENCH_BASE(0x8)
+#define PCIE0_CUST_BASE			IPBENCH_BASE(0x4)
 #define CFG_APB_PHY(x)			0x0
 #define CFG_AXI_CORE(x)			IPBENCH_BASE(x)
 

@@ -76,10 +76,8 @@
 #define PCIE_MAX_CORES				4
 
 /* PCIe subsystem registers */
-#define PCIE_RESET_CONTROL_X16			PCIE_SUBSYS_REG(0x000)
-#define PCIE_RESET_CONTROL_X8			PCIE_SUBSYS_REG(0x004)
-#define PCIE_RESET_CONTROL_X4_0			PCIE_SUBSYS_REG(0x008)
-#define PCIE_RESET_CONTROL_X4_1			PCIE_SUBSYS_REG(0x00C)
+#define PCIE_RESET_CONTROL(n)			\
+	PCIE_SUBSYS_REG(0x000 + ((n) << 2))
 #define PCIE_RESET_CONTROL_PHY			PCIE_SUBSYS_REG(0x010)
 #define PCIE_SUBSYSTEM_CONTROL			PCIE_SUBSYS_REG(0x014)
 #define PCIE_REFCLK_CONTROL			PCIE_SUBSYS_REG(0x018)
@@ -344,19 +342,7 @@
 	 DUOWEN_PCIE_LINK_CTRL(2, DUOWEN_PCIE_LINK_MODE_0) |	\
 	 DUOWEN_PCIE_LINK_CTRL(3, DUOWEN_PCIE_LINK_MODE_0))
 
-#define RESET_CORE_X16			0x0
-#define RESET_CORE_X8			0x4
-#define RESET_CORE_X4_0			0x8
-#define RESET_CORE_X4_1			0xC
-#define RESET_PHY			0x10
-#define SUBSYS_CONTROL			0x14
-#define REFCLK_CONTROL			0x18
-#define SRAM_CONTROL			0x1c
-#define SRAM_STATUS			0x20
-
 #ifndef CONFIG_DUOWEN_PCIE_IPDV
-#define CFG_APB_SUBSYS			ULL(0xff09000000)
-#define CFG_APB_CORE(x)			(ULL(0xff09001000) + ((x) << 12))
 #define CFG_APB_PHY(x)			(ULL(0xff09180000) + ((x) << 20))
 #define CFG_AXI_CORE(x)			(ULL(0xff09100000) + ((x) << 20))
 #endif
@@ -389,12 +375,6 @@
 #define MSI_INT				0
 #define INTA_INT			1
 #endif
-
-struct duowen_pcie {
-	uint64_t core_base[PCIE_MAX_CORES];
-	uint64_t subsys_base;
-	uint8_t linkmode;
-};
 
 #ifndef CONFIG_DUOWEN_PCIE_IPDV
 uint32_t dw_pcie_read_apb(uint64_t addr);
