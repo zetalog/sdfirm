@@ -189,8 +189,6 @@ static void duowen_pcie_pre_reset(void)
 
 static void duowen_pcie_post_reset(void)
 {
-	uint32_t data;
-
 	/* What are these undocumented actions? */
 	dw_pcie_write_apb(PCIE_RESET_CONTROL_PHY, 0x10);
 	dw_pcie_write_apb(PCIE_SRAM_CONTROL, 0x0);
@@ -200,14 +198,7 @@ static void duowen_pcie_post_reset(void)
 	dw_pcie_write_apb(PCIE_RESET_CONTROL_PHY, DW_PCIE_RESET_PHY_ALL);
 	/* #100ns */
 
-#ifndef TEST
-	do {
-		data = dw_pcie_read_apb(PCIE_SRAM_STATUS);
-	} while ((data & DW_PCIE_phy_sram_init_done_all) !=
-		 DW_PCIE_phy_sram_init_done_all);
-#endif
-	dw_pcie_write_apb(PCIE_SRAM_CONTROL,
-			  DW_PCIE_phy_sram_ext_ld_done_all);
+	dw_pcie_sram_init();
 }
 
 static void duowen_pcie_init_ctrls(void)
@@ -289,13 +280,10 @@ void duowen_pcie_handle_msi(bool en)
 
 void duowen_pcie_handle_inta(bool en)
 {
-	if (en) {
-		/* trigger assert INTA msg */
-		__raw_writel(0x2, MSG_REG(0x80));
-	} else {
-		/* trigger de-assert INTA msg */
-		__raw_writel(0x4, MSG_REG(0x80));
-	}
+	/* en=true:  trigger assert INTA msg
+	 * en=false: trigger de-assert INTA msg
+	 */
+	__raw_writel(en ? 0x2 : 0x4, MSG_REG(0x80));
 }
 
 void duowen_pcie_handle_irq(int int_type)

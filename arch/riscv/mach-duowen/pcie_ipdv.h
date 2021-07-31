@@ -60,7 +60,14 @@ void dw_pcie_write_axi(uint64_t addr, uint32_t data)
 #ifdef TEST
 #define udelay(x)			usleep(x)
 #define duowen_pcie_clock_init()	do { } while (0)
+#define dw_pcie_sram_init()						\
+	do {								\
+		dw_pcie_write_apb(PCIE_SRAM_CONTROL,			\
+				  DW_PCIE_phy_sram_ext_ld_done_all);	\
+	} while (0)
 #else
+#define dw_pcie_sram_init()		__dw_pcie_sram_init()
+
 static inline void udelay(uint32_t time)
 {
 	uint32_t current, next;

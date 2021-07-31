@@ -376,11 +376,21 @@
 #define INTA_INT			1
 #endif
 
+#define __dw_pcie_sram_init()						\
+	do {								\
+		while (DW_PCIE_phy_sram_init_done_all !=		\
+		       (dw_pcie_read_apb(PCIE_SRAM_STATUS) &		\
+			DW_PCIE_phy_sram_init_done_all));		\
+		dw_pcie_write_apb(PCIE_SRAM_CONTROL,			\
+				  DW_PCIE_phy_sram_ext_ld_done_all);	\
+	} while (0)
+
 #ifndef CONFIG_DUOWEN_PCIE_IPDV
 uint32_t dw_pcie_read_apb(uint64_t addr);
 void dw_pcie_write_apb(uint64_t addr, uint32_t data);
 uint32_t dw_pcie_read_axi(uint64_t addr);
 void dw_pcie_write_axi(uint64_t addr, uint32_t data);
+#define dw_pcie_sram_init()		__dw_pcie_sram_init()
 #endif
 void pci_platform_init(void);
 
