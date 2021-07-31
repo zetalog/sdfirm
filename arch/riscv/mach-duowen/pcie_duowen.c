@@ -1,13 +1,14 @@
 #include <target/pci.h>
+#ifdef SDFIRM
 #include <target/clk.h>
 #include <target/irq.h>
 #include <target/console.h>
+#endif
 
 struct duowen_pcie duowen_pcie_cfg;
 struct dw_pcie duowen_pcie_ctrls[PCIE_MAX_CORES] = {
 	/* X16 */
 	[0] = {
-		.axi_dbi_port = AXI_DBI_PORT_X16,
 		.dbi_base = CFG_AXI_CORE(0),
 		.pp.cfg_bar0 = PCIE_CORE_CFG0_START,
 		.pp.cfg_bar1 = PCIE_CORE_CFG1_START,
@@ -19,7 +20,6 @@ struct dw_pcie duowen_pcie_ctrls[PCIE_MAX_CORES] = {
 	},
 	/* X8 */
 	[1] = {
-		.axi_dbi_port = AXI_DBI_PORT_X8,
 		.dbi_base = CFG_AXI_CORE(1),
 		.pp.cfg_bar0 = PCIE_CORE_CFG0_START,
 		.pp.cfg_bar1 = PCIE_CORE_CFG1_START,
@@ -31,7 +31,6 @@ struct dw_pcie duowen_pcie_ctrls[PCIE_MAX_CORES] = {
 	},
 	/* X4_0 */
 	[2] = {
-		.axi_dbi_port = AXI_DBI_PORT_X4_0,
 		.dbi_base = CFG_AXI_CORE(2),
 		.pp.cfg_bar0 = PCIE_CORE_CFG0_START,
 		.pp.cfg_bar1 = PCIE_CORE_CFG1_START,
@@ -43,7 +42,6 @@ struct dw_pcie duowen_pcie_ctrls[PCIE_MAX_CORES] = {
 	},
 	/* X4_1 */
 	[PCIE_CORE_CHIPLINK] = {
-		.axi_dbi_port = AXI_DBI_PORT_X4_1,
 		.dbi_base = CFG_AXI_CORE(3),
 		.pp.cfg_bar0 = PCIE_CORE_CFG0_START,
 		.pp.cfg_bar1 = PCIE_CORE_CFG1_START,
@@ -60,10 +58,9 @@ uint32_t dw_pcie_read_apb(uint64_t addr)
 {
 	uint32_t data;
 
-	data = readl(addr);
+	data = __raw_readl(addr);
 #ifdef CONFIG_DUOWEN_PCIE_DEBUG
-	con_dbg("dw_pcie: APB(R): addr: 0x%llx; data: 0x%08x\n",
-		addr, data);
+	con_dbg("dw_pcie: APB(R): 0x%llx=0x%08x\n", addr, data);
 #endif
 	return data;
 }
@@ -71,10 +68,36 @@ uint32_t dw_pcie_read_apb(uint64_t addr)
 void dw_pcie_write_apb(uint64_t addr, uint32_t data)
 {
 #ifdef CONFIG_DUOWEN_PCIE_DEBUG
-	con_dbg("dw_pcie: APB(W): addr: 0x%llx; data: 0x%x\n",
-		addr, data);
+	con_dbg("dw_pcie: APB(W): 0x%llx=0x%x\n", addr, data);
 #endif
-	writel(addr, data);
+	__raw_writel(addr, data);
+}
+
+uint32_t dw_pcie_read_axi(uint64_t addr)
+{
+	uint32_t data;
+
+	data = __raw_readl(addr);
+#ifdef CONFIG_DUOWEN_PCIE_DEBUG
+	con_dbg("dw_pcie: AXI(R): 0x%llx=0x%x\n", addr);
+#endif
+	return data;
+}
+
+void dw_pcie_write_axi(uint64_t addr, uint32_t data)
+{
+#ifdef CONFIG_DUOWEN_PCIE_DEBUG
+	con_dbg("dw_pcie: AXI(W): 0x%llx=0x%x\n", addr, data);
+#endif
+	__raw_writel(addr, data);
+}
+
+void duowen_pcie_clock_init(void)
+{
+	clk_enable(pcie_aclk);
+	clk_enable(pcie_pclk);
+	clk_enable(pcie_aux_clk);
+	clk_enable(pcie_alt_ref_clk);
 }
 #endif
 
@@ -259,16 +282,6 @@ void duowen_pcie_cfg_init(int socket_id, bool chiplink)
 		duowen_pcie_ctrls[PCIE_CORE_CHIPLINK].pp.role = ROLE_EP;
 }
 
-#ifndef TEST
-void duowen_pcie_clock_init(void)
-{
-	clk_enable(pcie_aclk);
-	clk_enable(pcie_pclk);
-	clk_enable(pcie_aux_clk);
-	clk_enable(pcie_alt_ref_clk);
-}
-#endif
-
 #ifdef CONFIG_DUOWEN_PCIE_TEST
 void duowen_pcie_handle_msi(bool en)
 {
@@ -410,9 +423,7 @@ void pci_platform_init(void)
 #endif
 	duowen_pcie_cfg_init(socket_id, chiplink);
 
-#ifndef TEST
 	duowen_pcie_clock_init();
-#endif
 	duowen_pcie_pre_reset();
 	duowen_pcie_init_ctrls();
 	duowen_pcie_post_reset();

@@ -1,29 +1,6 @@
+#include <target/pci.h>
 #ifdef SDFIRM
-#include <driver/pcie_designware.h>
 #include <target/console.h>
-#else
-#include "pcie_designware.h"
-#endif
-
-#ifdef IPBENCH
-void axi_read_c(uint64_t addr, uint32_t *data, int port);
-void axi_write_c(uint64_t addr, uint32_t data, int port);
-#else
-void axi_read_c(uint64_t addr, uint32_t *data, int port)
-{
-	*data = readl(addr);
-#ifdef CONFIG_DW_PCIE_DEBUG
-	con_dbg("dw_pcie: AXI(R): 0x%llx=0x%x\n", addr, *data);
-#endif
-}
-
-void axi_write_c(uint64_t addr, uint32_t data, int port)
-{
-#ifdef CONFIG_DW_PCIE_DEBUG
-	con_dbg("dw_pcie: AXI(W): 0x%llx=0x%x\n", addr, data);
-#endif
-	writel(addr, data);
-}
 #endif
 
 uint32_t form_pci_addr(int bus, int dev, int fun)
@@ -68,23 +45,16 @@ static uint64_t format_dbi_addr(enum dw_pcie_access_type type, uint32_t reg)
 static uint32_t read_dbi(struct dw_pcie *pci, enum dw_pcie_access_type type,
 			 uint32_t reg)
 {
-	uint32_t val;
 	uint64_t dbi_offset;
 
 	dbi_offset = format_dbi_addr(type, reg);
-	axi_read_c((pci->dbi_base + dbi_offset), &val, pci->axi_dbi_port);
-
-	return val;
+	return dw_pcie_read_axi(pci->dbi_base + dbi_offset);
 }
 
 uint32_t readl_dbi(struct dw_pcie *pci, enum dw_pcie_access_type type,
 		   uint32_t reg)
 {
-	uint32_t val;
-
-	val = read_dbi(pci, type, reg);
-
-	return val;
+	return read_dbi(pci, type, reg);
 }
 
 uint16_t readw_dbi(struct dw_pcie *pci, enum dw_pcie_access_type type,
@@ -140,8 +110,7 @@ static void write_dbi(struct dw_pcie *pci, enum dw_pcie_access_type type,
 	uint64_t dbi_offset;
 
 	dbi_offset = format_dbi_addr(type, reg);
-
-	axi_write_c(pci->dbi_base + dbi_offset, val, pci->axi_dbi_port);
+	dw_pcie_write_axi(pci->dbi_base + dbi_offset, val);
 }
 
 void dw_pcie_writel_dbi(struct dw_pcie *pci, enum dw_pcie_access_type type,
@@ -267,7 +236,7 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
 /* #ifdef CONFIG_DW_PCIE_RC */
 	val = PCIE_ATU_ENABLE;
 	if ((type == PCIE_ATU_TYPE_CFG0) || (type == PCIE_ATU_TYPE_CFG1))
-		val |= BIT(28);
+		val |= _BV(28);
 	dw_pcie_write_atu(pci, DW_PCIE_REGION_OUTBOUND, index,
 			  PCIE_IATU_REGION_CTRL2_OFF_OUTBOUND, 0x4, val);
 #else
@@ -392,7 +361,7 @@ void dw_pcie_setup(struct dw_pcie *pci)
 	}
 
 	/* Set fast link mode */
-	val |= BIT(7);
+	val |= _BV(7);
 	dw_pcie_write_dbi(pci, DW_PCIE_CDM,
 			  PCIE_PORT_LINK_CONTROL, val, 0x4);
 

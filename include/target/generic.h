@@ -14,10 +14,6 @@
 #include <target/version.h>
 #include <target/circbf.h>
 
-#ifndef offsetof
-#define offsetof(s, m)			((size_t)(&(((s *)0)->m)))
-#endif
-
 void system_init(void);
 void system_suspend(void);
 void system_resume(void);

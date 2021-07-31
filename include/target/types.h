@@ -42,8 +42,16 @@ typedef unsigned long			loff_t;
 #define	NULL				((void *)0L)
 #endif /* NULL */
 
-#undef offsetof
-#define offsetof(TYPE, MEMBER)		((size_t)&((TYPE *)0)->MEMBER)
+#ifndef offsetof
+#define offsetof(s, m)			((size_t)&((s *)0)->m)
+#endif
+#ifndef container_of
+#define container_of(p, s, m)			\
+	({					\
+		void *__t = (void *)p;		\
+		(s *)(__t - offsetof(s, m));	\
+	})
+#endif
 #endif /* __ASSEMBLY__ */
 
 #define _BV_UL(bit)			(UL(1) << (bit))

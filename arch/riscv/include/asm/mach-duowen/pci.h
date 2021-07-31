@@ -354,11 +354,6 @@
 #define SRAM_CONTROL			0x1c
 #define SRAM_STATUS			0x20
 
-#define AXI_DBI_PORT_X16		0x0
-#define AXI_DBI_PORT_X8			0x1
-#define AXI_DBI_PORT_X4_0		0x2
-#define AXI_DBI_PORT_X4_1		0x3
-
 #ifndef CONFIG_DUOWEN_PCIE_IPDV
 #define CFG_APB_SUBSYS			ULL(0xff09000000)
 #define CFG_APB_CORE(x)			(ULL(0xff09001000) + ((x) << 12))
@@ -401,6 +396,12 @@ struct duowen_pcie {
 	uint8_t linkmode;
 };
 
+#ifndef CONFIG_DUOWEN_PCIE_IPDV
+uint32_t dw_pcie_read_apb(uint64_t addr);
+void dw_pcie_write_apb(uint64_t addr, uint32_t data);
+uint32_t dw_pcie_read_axi(uint64_t addr);
+void dw_pcie_write_axi(uint64_t addr, uint32_t data);
+#endif
 void pci_platform_init(void);
 
 #ifdef CONFIG_DW_PCIE
