@@ -70,7 +70,7 @@ void dw_pcie_write_apb(uint64_t addr, uint32_t data)
 #ifdef CONFIG_DUOWEN_PCIE_DEBUG
 	con_dbg("dw_pcie: APB(W): 0x%llx=0x%x\n", addr, data);
 #endif
-	__raw_writel(addr, data);
+	__raw_writel(data, addr);
 }
 
 uint32_t dw_pcie_read_axi(uint64_t addr)
@@ -89,7 +89,7 @@ void dw_pcie_write_axi(uint64_t addr, uint32_t data)
 #ifdef CONFIG_DUOWEN_PCIE_DEBUG
 	con_dbg("dw_pcie: AXI(W): 0x%llx=0x%x\n", addr, data);
 #endif
-	__raw_writel(addr, data);
+	__raw_writel(data, addr);
 }
 
 void duowen_pcie_clock_init(void)
