@@ -152,11 +152,12 @@
 	 DW_PCIE_Mstr_aresetn)
 
 /* PCIE_RESET_CONTROL_PHY */
+#define DW_PCIE_phy_reset			_BV(4)
 #define DW_PCIE_phy_rst_d			_BV(3)
 #define DW_PCIE_phy_rst_c			_BV(2)
 #define DW_PCIE_phy_rst_b			_BV(1)
 #define DW_PCIE_phy_rst_a			_BV(0)
-#define DW_PCIE_RESET_PHY_ALL			\
+#define DW_PCIE_phy_rst_all			\
 	(DW_PCIE_phy_rst_d |			\
 	 DW_PCIE_phy_rst_c |			\
 	 DW_PCIE_phy_rst_b |			\
@@ -177,6 +178,7 @@
 #define DW_PCIE_LINK_MODE_INVALID		0xff
 
 /* PCIE_REFCLK_CONTROL */
+#define DW_PCIE_ref_clk_en			_BV(1)
 #define DW_PCIE_ref_use_pad			_BV(0)
 
 /* PCIE_SRAM_CONTROL */
@@ -187,6 +189,7 @@
 	 DW_PCIE_phy_sram_bypass(1) |		\
 	 DW_PCIE_phy_sram_bypass(2) |		\
 	 DW_PCIE_phy_sram_bypass(3))
+#define DW_PCIE_phy_sram_bypass_none		0
 #define DW_PCIE_phy_sram_ext_ld_done_all	\
 	(DW_PCIE_phy_sram_ext_ld_done(0) |	\
 	 DW_PCIE_phy_sram_ext_ld_done(1) |	\
