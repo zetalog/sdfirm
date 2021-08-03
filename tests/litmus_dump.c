@@ -17,6 +17,8 @@
 #define MSG_DUMP_START_REP		2
 #define MSG_DUMP_STOP_REQ		3
 #define MSG_DUMP_STOP_REP		0
+#define MSG_REG(reg)			\
+	((uint8_t *)litmus_mem_map + MSG_REG_BASE + (reg))
 
 #ifdef LITMUS_DUMP_TEST
 void parse_cmd(int argc, char **argv, void *def, void *p)
@@ -66,7 +68,7 @@ litmus_dump_writel(uint32_t val, uint32_t reg)
 {
 	if (litmus_mem_map == MAP_FAILED)
 		return;
-	*((uint32_t *)((uint8_t *)litmus_mem_map + MSG_REG_BASE + reg)) = val;
+	*((volatile uint32_t *)MSG_REG(reg)) = val;
 }
 
 static uint32_t __attribute__((__no_instrument_function__))
@@ -74,7 +76,7 @@ litmus_dump_readl(uint32_t reg)
 {
 	if (litmus_mem_map == MAP_FAILED)
 		return 0;
-	return *((uint32_t *)((uint8_t *)litmus_mem_map + MSG_REG_BASE + reg));
+	return *((volatile uint32_t *)MSG_REG(reg));
 }
 
 #ifdef LITMUS_DUMP_DEBUG
