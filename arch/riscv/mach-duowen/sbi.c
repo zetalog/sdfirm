@@ -231,26 +231,12 @@ uint64_t duowen_timer_value(void)
 
 void duowen_timer_event_stop(void)
 {
-	tmr_disable_cmp();
-	tmr_disable_irq();
+	tmr_write_compare(ULL(-1));
 }
 
 void duowen_timer_event_start(uint64_t next_event)
 {
-	tmr_disable_irq();
 	tmr_write_compare(next_event);
-	/* FIXME: Silicon Bug of IRQ Clearing
-	 *
-	 * The logic of the status flag appears to be level triggered
-	 * inside of the TMR component, so clearing the status before
-	 * resetting CMP won't work. While clearing it after resetting the
-	 * CMP may work occasionally. Despite of leaving side effects of
-	 * the loss of some interrupts occuring between CMP resetting and
-	 * the clearing action.
-	 */
-	if (tmr_irq_status())
-		tmr_irq_clear();
-	tmr_enable_irq();
 }
 
 static bool duowen_hart_disabled(uint32_t hartid)

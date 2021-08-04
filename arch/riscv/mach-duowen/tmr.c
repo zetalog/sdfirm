@@ -56,10 +56,8 @@ uint64_t tmr_read_counter(void)
 
 void tmr_write_compare(uint64_t count)
 {
-	tmr_disable_cmp();
 	__raw_writel(LODWORD(count), TMR_CMP_LO);
 	__raw_writel(HIDWORD(count), TMR_CMP_HI);
-	tmr_enable_cmp();
 }
 
 static void __tmr_enable_clock(void)

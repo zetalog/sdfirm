@@ -53,37 +53,25 @@
 #define TMR_WDT_CMP_LO(n)	TMR_REG(0x108 + ((n) << 5))
 #define TMR_WDT_CMP_HI(n)	TMR_REG(0x10C + ((n) << 5))
 #define TMR_WDT_DN_CNT(n)	TMR_REG(0x110 + ((n) << 5))
-#define TMR_CFG			TMR_REG(0x200)
 #define TMR_TVAL		TMR_REG(0x204)
 #define TMR_CMP_LO		TMR_REG(0x208)
 #define TMR_CMP_HI		TMR_REG(0x20C)
 #define TMR_INTR_STATUS		TMR_REG(0x210)
-#define TMR_INTR_CLR		TMR_REG(0x214)
 
 /* TMR_CNT_CTRL */
 #define TMR_MTIME_EN		_BV(0)
-#define TMR_HALT_ON_DEBUG	_BV(1)
+#define TMR_HALT_ON_IMC_DEBUG	_BV(1)
+#define TMR_HALT_ON_APC_DEBUG	_BV(2)
 
 /* WDT_CFG_n */
 #define TMR_WDT_EN		_BV(0)
 
-/* TMR_CFG */
-#define TMR_EN			_BV(0)
-#define TMR_INTR_EN		_BV(1)
-
-/* TMR_INTR_STATUS
- * TMR_INTR_CLR
- */
+/* TMR_INTR_STATUS */
 #define TMR_INTR		_BV(0)
 
 #define tmr_enable_cnt()	__raw_setl(TMR_MTIME_EN, TMR_CNT_CTRL)
 #define tmr_disable_cnt()	__raw_clearl(TMR_MTIME_EN, TMR_CNT_CTRL)
-#define tmr_enable_cmp()	__raw_setl(TMR_EN, TMR_CFG)
-#define tmr_disable_cmp()	__raw_clearl(TMR_EN, TMR_CFG)
-#define tmr_enable_irq()	__raw_setl(TMR_INTR_EN, TMR_CFG)
-#define tmr_disable_irq()	__raw_clearl(TMR_INTR_EN, TMR_CFG)
 #define tmr_irq_status()	(__raw_readl(TMR_INTR_STATUS) & TMR_INTR)
-#define tmr_irq_clear()		__raw_setl(TMR_INTR, TMR_INTR_CLR)
 
 #ifndef __ASSEMBLY__
 #ifdef CONFIG_DUOWEN_TMR
