@@ -1502,7 +1502,7 @@
 
 #ifdef CONFIG_DUOWEN_APC
 		plic0: interrupt-controller@ff70000000 {
-			riscv,ndev = <0xf0>;
+			riscv,ndev = <256>;
 			reg = <0xff 0x70000000 0x0 0x4000000>;
 			interrupts-extended = <
 #ifdef CONFIG_SMP
@@ -1608,13 +1608,16 @@
 			>;
 			interrupt-controller;
 			compatible = "riscv,plic0";
+			smarco,plic-irq-base = <0>;
+			smarco,plic-ctx-base = <0>;
+			smarco,plic-ctx-size = <34>;
 			#interrupt-cells = <0x1>;
 			#address-cells = <0x0>;
 		};
 
 #ifdef CONFIG_DUOWEN_SBI_DUAL
 		plic1: interrupt-controller@8ff70000000 {
-			riscv,ndev = <0xf0>;
+			riscv,ndev = <256>;
 			reg = <0x8ff 0x70000000 0x0 0x4000000>;
 			interrupts-extended = <
 #ifdef CONFIG_DUOWEN_APC_4
@@ -1695,6 +1698,9 @@
 			>;
 			interrupt-controller;
 			compatible = "riscv,plic0";
+			smarco,plic-irq-base = <257>;
+			smarco,plic-ctx-base = <34>;
+			smarco,plic-ctx-size = <34>;
 			#interrupt-cells = <0x1>;
 			#address-cells = <0x0>;
 		};
@@ -1772,7 +1778,7 @@
 #endif /* CONFIG_DUOWEN_APC */
 #ifdef CONFIG_DUOWEN_IMC
 		plic0: interrupt-controller@ff70000000 {
-			riscv,ndev = <0xf0>;
+			riscv,ndev = <256>;
 			reg = <0xff 0x70000000 0x0 0x4000000>;
 			interrupts-extended = <
 				&cpu0_intc  0xffffffff &cpu0_intc  0xffffffff
@@ -1796,6 +1802,9 @@
 			>;
 			interrupt-controller;
 			compatible = "riscv,plic0";
+			smarco,plic-irq-base = <0>;
+			smarco,plic-ctx-base = <0>;
+			smarco,plic-ctx-size = <34>;
 			#interrupt-cells = <0x1>;
 			#address-cells = <0x0>;
 		};
