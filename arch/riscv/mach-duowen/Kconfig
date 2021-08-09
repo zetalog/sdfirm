@@ -465,6 +465,20 @@ config DUOWEN_PMA_DEBUG
 
 endif
 
+menu "Duowen platform level interrupt controller (PLIC) support"
+
+config DUOWEN_PLIC_DUAL
+	bool "Enable remote socket IRQs"
+	help
+	  By default, each PLIC controller manages only local socket IRQs,
+	  allowing seperated IRQ domain. Enabling this to allow PLIC to
+	  send local IRQs to the remote socket so that remote CPUs could
+	  see IRQs shared between the sockets and finally can result in a
+	  single shared IRQ domain in the NUMA system configuration.
+	  If unsure, say 'N'.
+
+endmenu
+
 menuconfig DUOWEN_NOC
 	bool "Duowen network on chip (NoC) support"
 	depends DUOWEN_APC || DUOWEN_FSBL

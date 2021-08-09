@@ -149,6 +149,7 @@ void duowen_hart_map_init(void)
 	apc_set_cpu_map(harts);
 }
 
+#ifdef CONFIG_DUOWEN_PLIC_DUAL
 void duowen_plic_init(void)
 {
 	if (!rom_get_pliccntl_done()) {
@@ -161,6 +162,14 @@ void duowen_plic_init(void)
 		rom_set_pliccntl_done();
 	}
 }
+#else /* CONFIG_DUOWEN_PLIC_DUAL */
+void duowen_plic_init(void)
+{
+	if (!rom_get_pliccntl_done()) {
+		rom_set_pliccntl_done();
+	}
+}
+#endif /* CONFIG_DUOWEN_PLIC_DUAL */
 
 #ifdef CONFIG_SHUTDOWN
 #ifdef CONFIG_SBI
@@ -229,9 +238,9 @@ void board_finish(int code)
  * #define duowen_boot_ddr()			ddr_init()
  */
 #define duowen_boot_ddr()			do { } while (0)
-#else
+#else /* CONFIG_DUOWEN_FSBL */
 #define duowen_boot_ddr()			do { } while (0)
-#endif
+#endif /* CONFIG_DUOWEN_FSBL */
 
 #ifdef CONFIG_DUOWEN_LOAD_FLASH
 typedef void (*boot_cb)(void *, uint32_t, uint32_t, bool);

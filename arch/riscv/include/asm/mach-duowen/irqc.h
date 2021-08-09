@@ -88,8 +88,8 @@
 #define PLIC_SOCKET_CONN_DISCONN_RETRY		_BV(1)
 #define PLIC_SOCKET_CONN_DISCONN_OUTSTANDING	_BV(31)
 
-#define plic_socket_outstanding(soc)		\
-	(__raw_readl(PLIC_SOCKET_CNTL(soc)) &	\
+#define plic_socket_outstanding(soc)			\
+	(__raw_readl(PLIC_SOCKET_CNTL(soc)) &		\
 	 PLIC_SOCKET_CONN_DISCONN_OUTSTANDING)
 #define plic_socket_connect(soc)			\
 	do {						\
@@ -113,23 +113,39 @@
  * +--------+--------+--------+--------+--------+--------+--------+--------+
  */
 #ifdef CONFIG_DUOWEN_IMC
+#ifdef CONFIG_DUOWEN_PLIC_DUAL
 #define plic_hw_m_ctx(cpu)	(imc_socket_id() == 1 ? 50 : 16)
 #define plic_hw_s_ctx(cpu)	(imc_socket_id() == 1 ? 67 : 33)
+#else /* CONFIG_DUOWEN_PLIC_DUAL */
+#define plic_hw_m_ctx(cpu)	16
+#define plic_hw_s_ctx(cpu)	33
+#endif /* CONFIG_DUOWEN_PLIC_DUAL */
 #endif /* CONFIG_DUOWEN_IMC */
 
 #ifdef CONFIG_DUOWEN_APC
+#ifdef CONFIG_DUOWEN_PLIC_DUAL
 /* TODO: support of 2 PLIC controllers */
 #define plic_hw_m_ctx(cpu)		\
 	(imc_socket_id() == 1 ?		\
-	 (smp_hw_cpu_hart(cpu) + 18) : (cpu))
+	 (smp_hw_cpu_hart(cpu) + 18) : smp_hw_cpu_hart(cpu))
 #define plic_hw_s_ctx(cpu)		\
 	(imc_socket_id() == 1 ?		\
-	 (smp_hw_cpu_hart(cpu) + 35) : ((cpu) + 17))
+	 (smp_hw_cpu_hart(cpu) + 35) : (smp_hw_cpu_hart(cpu) + 17))
+#else /* CONFIG_DUOWEN_PLIC_DUAL */
+#define plic_hw_m_ctx(cpu)		\
+	(imc_socket_id() == 1 ?		\
+	 (smp_hw_cpu_hart(cpu) - 16) : smp_hw_cpu_hart(cpu))
+#define plic_hw_s_ctx(cpu)		\
+	((imc_socket_id() == 1 ?	\
+	  (smp_hw_cpu_hart(cpu) - 16) : smp_hw_cpu_hart(cpu)) + 17)
+#endif /* CONFIG_DUOWEN_PLIC_DUAL */
 #ifdef CONFIG_DUOWEN_SBI_DUAL
 #define plic_hw_cpu_soc(cpu)		\
 	(smp_hw_cpu_hart(cpu) < SOC1_HART ? 0 : 1)
-#define plic_hw_irq_soc(irq)		((irq) / __NR_EXT_IRQS)
-#define plic_hw_irq_irq(irq)		((irq) & (__NR_EXT_IRQS - 1))
+#define plic_hw_irq_soc(irq)		\
+	((irq) > __NR_EXT_IRQS ? 1 : 0)
+#define plic_hw_irq_irq(irq)		\
+	((irq) > __NR_EXT_IRQS ? ((irq) - __NR_EXT_IRQS) : (irq))
 #endif /* CONFIG_DUOWEN_SBI_DUAL */
 #endif /* CONFIG_DUOWEN_APC */
 

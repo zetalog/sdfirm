@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Jul  8 15:27:03 2021
+# Mon Aug  9 14:38:45 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -207,6 +207,11 @@ CONFIG_DUOWEN_MSG=y
 CONFIG_DUOWEN_APC_INIT=y
 CONFIG_DUOWEN_PMA=y
 # CONFIG_DUOWEN_PMA_DEBUG is not set
+
+#
+# Duowen platform level interrupt controller (PLIC) support
+#
+# CONFIG_DUOWEN_PLIC_DUAL is not set
 CONFIG_DUOWEN_NOC=y
 CONFIG_DUOWEN_NOC_INIT_CLOCKS=y
 # CONFIG_DUOWEN_NOC_DEBUG is not set

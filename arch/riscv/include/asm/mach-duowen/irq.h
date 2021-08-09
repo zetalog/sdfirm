@@ -281,14 +281,14 @@
 
 #define IRQ_FLASH		EXT_IRQ(224)
 
-#define __NR_EXT_IRQS		256
-#define IRQ_SOC0(irq)		(irq + 0)
+#define __NR_EXT_IRQS		255
+#define IRQ_SOC0(irq)		((irq) + 0)
 #ifdef CONFIG_DUOWEN_SBI_DUAL
-#define IRQ_SOC1(irq)		(irq + __NR_EXT_IRQS)
-#define NR_EXT_IRQS		(2 * __NR_EXT_IRQS)
+#define IRQ_SOC1(irq)		EXT_IRQ(irq_ext(irq) + __NR_EXT_IRQS)
+#define NR_EXT_IRQS		(2 * __NR_EXT_IRQS + 1)
 #else /* CONFIG_DUOWEN_SBI_DUAL */
 #define IRQ_SOC1(irq)		IRQ_NOIRQ
-#define NR_EXT_IRQS		__NR_EXT_IRQS
+#define NR_EXT_IRQS		(__NR_EXT_IRQS + 1)
 #endif /* CONFIG_DUOWEN_SBI_DUAL */
 
 #define NR_IRQS			(NR_INT_IRQS + NR_EXT_IRQS)
