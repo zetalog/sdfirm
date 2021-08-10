@@ -106,11 +106,11 @@
 		};
 
 		tmr0: tmr@4015c00 {
-			interrupts-extended = <
-				&cpu0_intc  0x3        &cpu0_intc  0x7
-			>;
-			reg = <0x0 0x04015C00 0x0 0x100>;
-			compatible = "riscv,tmr0";
+			interrupts-extended = <&cpu0_intc  0x7>;
+			reg = <0x0 0x04015C00 0x0 0x400>;
+			smarco,rvtimer-cmp-off = <0x200>;
+			smarco,rvtimer-val-off = <0x40>;
+			compatible = "smarco,rvtimer0";
 		};
 
 #if 0
