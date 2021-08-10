@@ -1714,7 +1714,7 @@
 		};
 #endif /* CONFIG_DUOWEN_SBI_DUAL */
 
-		clint@ff010f0000 {
+		clint0: clint@ff010f0000 {
 			interrupts-extended = <
 #ifdef CONFIG_SMP
 #ifdef CONFIG_DUOWEN_APC_4
@@ -1784,6 +1784,7 @@
 			compatible = "riscv,clint0";
 		};
 #endif /* CONFIG_DUOWEN_APC */
+
 #ifdef CONFIG_DUOWEN_IMC
 		plic0: interrupt-controller@ff70000000 {
 			riscv,ndev = <255>;
@@ -1815,6 +1816,13 @@
 			smarco,plic-ctx-size = <34>;
 			#interrupt-cells = <0x1>;
 			#address-cells = <0x0>;
+		};
+		timer3: rvtimer@ff66300000 {
+			interrupts-extended = <&cpu0_intc  0x7>;
+			reg = <0xff 0x66300000 0x0 0x400>;
+			smarco,rvtimer-cmp-off = <0x208>;
+			smarco,rvtimer-val-off = <0x40>;
+			compatible = "smarco,rvtimer0";
 		};
 #endif /* CONFIG_DUOWEN_IMC */
 
