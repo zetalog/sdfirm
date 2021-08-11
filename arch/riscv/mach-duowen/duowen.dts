@@ -39,7 +39,12 @@
 	uart0@ff63000000 {
 		interrupts = <84>;
 		interrupt-parent = <&plic0>;
+#ifdef CONFIG_DUOWEN_UART_DTS_CLK_FREQ
 		clock-frequency = <APB_CLK_FREQ>;
+#else
+		clocks = <&crcntl sbi_uart0_clk>, <&crcntl sbi_uart0_clk>;
+		clock-names = "baudclk", "apb_pclk";
+#endif
 		reg = <0xff 0x63000000 0x0 0x100>;
 		reg-io-width = <4>;
 		reg-shift = <2>;
@@ -131,6 +136,104 @@
 		status = "okay";
 #endif /* CONFIG_DUOWEN_UART_CON3 */
 	};
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+	uart4@8ff63000000 {
+		interrupts = <84>;
+		interrupt-parent = <&plic1>;
+#ifdef CONFIG_DUOWEN_UART_DTS_CLK_FREQ
+		clock-frequency = <APB_CLK_FREQ>;
+#else /* CONFIG_DUOWEN_UART_DTS_CLK_FREQ */
+		clocks = <&crcntl sbi_uart0_clk2>, <&crcntl sbi_uart0_clk2>;
+		clock-names = "baudclk", "apb_pclk";
+#endif /* CONFIG_DUOWEN_UART_DTS_CLK_FREQ */
+		reg = <0x8ff 0x63000000 0x0 0x100>;
+		reg-io-width = <4>;
+		reg-shift = <2>;
+		compatible = "snps,dw-apb-uart";
+#ifdef CONFIG_DUOWEN_UART_CON4
+#ifdef CONFIG_DUOWEN_UART_DTS_CON
+		status = "okay";
+		current-speed = <UART_CURRENT_SPEED>;
+#else /* CONFIG_DUOWEN_UART_DTS_CON */
+		status = "disabled";
+#endif /* CONFIG_DUOWEN_UART_DTS_CON */
+#else /* CONFIG_DUOWEN_UART_CON4 */
+		status = "okay";
+#endif /* CONFIG_DUOWEN_UART_CON4 */
+	};
+	uart5@8ff63100000 {
+		interrupts = <85>;
+		interrupt-parent = <&plic1>;
+#ifdef CONFIG_DUOWEN_UART_DTS_CLK_FREQ
+		clock-frequency = <APB_CLK_FREQ>;
+#else /* CONFIG_DUOWEN_UART_DTS_CLK_FREQ */
+		clocks = <&crcntl sbi_uart1_clk2>, <&crcntl sbi_uart1_clk2>;
+		clock-names = "baudclk", "apb_pclk";
+#endif /* CONFIG_DUOWEN_UART_DTS_CLK_FREQ */
+		reg = <0x8ff 0x63100000 0x0 0x100>;
+		reg-io-width = <4>;
+		reg-shift = <2>;
+		compatible = "snps,dw-apb-uart";
+#ifdef CONFIG_DUOWEN_UART_CON5
+#ifdef CONFIG_DUOWEN_UART_DTS_CON
+		status = "okay";
+		current-speed = <UART_CURRENT_SPEED>;
+#else /* CONFIG_DUOWEN_UART_DTS_CON */
+		status = "disabled";
+#endif /* CONFIG_DUOWEN_UART_DTS_CON */
+#else /* CONFIG_DUOWEN_UART_CON5 */
+		status = "okay";
+#endif /* CONFIG_DUOWEN_UART_CON5 */
+	};
+	uart6@8ff63200000 {
+		interrupts = <86>;
+		interrupt-parent = <&plic1>;
+#ifdef CONFIG_DUOWEN_UART_DTS_CLK_FREQ
+		clock-frequency = <APB_CLK_FREQ>;
+#else /* CONFIG_DUOWEN_UART_DTS_CLK_FREQ */
+		clocks = <&crcntl sbi_uart2_clk2>, <&crcntl sbi_uart2_clk2>;
+		clock-names = "baudclk", "apb_pclk";
+#endif /* CONFIG_DUOWEN_UART_DTS_CLK_FREQ */
+		reg = <0x8ff 0x63200000 0x0 0x100>;
+		reg-io-width = <4>;
+		reg-shift = <2>;
+		compatible = "snps,dw-apb-uart";
+#ifdef CONFIG_DUOWEN_UART_CON6
+#ifdef CONFIG_DUOWEN_UART_DTS_CON
+		status = "okay";
+		current-speed = <UART_CURRENT_SPEED>;
+#else /* CONFIG_DUOWEN_UART_DTS_CON */
+		status = "disabled";
+#endif /* CONFIG_DUOWEN_UART_DTS_CON */
+#else /* CONFIG_DUOWEN_UART_CON6 */
+		status = "okay";
+#endif /* CONFIG_DUOWEN_UART_CON6 */
+	};
+	uart7@8ff63300000 {
+		interrupts = <87>;
+		interrupt-parent = <&plic1>;
+#ifdef CONFIG_DUOWEN_UART_DTS_CLK_FREQ
+		clock-frequency = <APB_CLK_FREQ>;
+#else /* CONFIG_DUOWEN_UART_DTS_CLK_FREQ */
+		clocks = <&crcntl sbi_uart3_clk2>, <&crcntl sbi_uart3_clk2>;
+		clock-names = "baudclk", "apb_pclk";
+#endif /* CONFIG_DUOWEN_UART_DTS_CLK_FREQ */
+		reg = <0x8ff 0x63300000 0x0 0x100>;
+		reg-io-width = <4>;
+		reg-shift = <2>;
+		compatible = "snps,dw-apb-uart";
+#ifdef CONFIG_DUOWEN_UART_CON7
+#ifdef CONFIG_DUOWEN_UART_DTS_CON
+		status = "okay";
+		current-speed = <UART_CURRENT_SPEED>;
+#else /* CONFIG_DUOWEN_UART_DTS_CON */
+		status = "disabled";
+#endif /* CONFIG_DUOWEN_UART_DTS_CON */
+#else /* CONFIG_DUOWEN_UART_CON7 */
+		status = "okay";
+#endif /* CONFIG_DUOWEN_UART_CON7 */
+	};
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 #endif /* CONFIG_DUOWEN_UART_DTS */
 
 #ifdef CONFIG_DUOWEN_I2C_MASTER_DTS

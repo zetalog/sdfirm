@@ -535,6 +535,22 @@ config DUOWEN_UART_CON2
 config DUOWEN_UART_CON3
 	bool "UART3"
 
+config DUOWEN_UART_CON4
+	bool "UART4"
+	depends DUOWEN_SBI_DUAL
+
+config DUOWEN_UART_CON5
+	bool "UART5"
+	depends DUOWEN_SBI_DUAL
+
+config DUOWEN_UART_CON6
+	bool "UART6"
+	depends DUOWEN_SBI_DUAL
+
+config DUOWEN_UART_CON7
+	bool "UART7"
+	depends DUOWEN_SBI_DUAL
+
 endchoice
 
 config DUOWEN_UART_ACCEL
