@@ -191,7 +191,8 @@ static void duowen_pcie_post_reset(void)
 {
 	dw_pcie_write_apb(PCIE_RESET_CONTROL_PHY, DW_PCIE_phy_reset);
 	dw_pcie_write_apb(PCIE_SRAM_CONTROL, DW_PCIE_phy_sram_bypass_none);
-	dw_pcie_write_apb(PCIE_REFCLK_CONTROL, DW_PCIE_ref_clk_en);
+	dw_pcie_write_apb(PCIE_REFCLK_CONTROL,
+			  DW_PCIE_ref_clk_en | DW_PCIE_ref_use_pad);
 	/* #200ns */
 	dw_pcie_write_apb(PCIE_RESET_CONTROL_PHY, DW_PCIE_phy_rst_all);
 	/* #100ns */

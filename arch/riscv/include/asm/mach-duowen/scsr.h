@@ -46,6 +46,9 @@
 
 #include <target/amba.h>
 
+/*===========================================================================
+ * SCSR registers
+ *===========================================================================*/
 #ifdef CONFIG_DUOWEN_SBI_DUAL
 #define __DUOWEN_SCSR_BASE(soc)		(__SOC_BASE(soc) + __SCSR_BASE)
 #else /* CONFIG_DUOWEN_SBI_DUAL */
@@ -60,6 +63,7 @@
 #else
 #define DUOWEN_SCSR_BASE(soc)		__DUOWEN_SCSR_BASE(soc)
 #endif
+#define __SCSR_REG(soc, offset)		(DUOWEN_SCSR_BASE(soc) + (offset))
 #define SCSR_REG(offset)		\
 	(DUOWEN_SCSR_BASE(imc_socket_id()) + (offset))
 #define SCSR_HW_VERSION			SCSR_REG(0x00)
@@ -73,38 +77,16 @@
 #define SCSR_SD_STATUS			SCSR_REG(0xA0)
 #define SCSR_WDT_PAUSE_EN		SCSR_REG(0xA4)
 #define SCSR_CLINT_CFG			SCSR_REG(0xC0)
+#define SCSR_PLIC_CFG			SCSR_REG(0xC4)
+#define SCSR_AMU_CFG			SCSR_REG(0xC8)
 #define ____SCSR_SW_MSG(n)		(0xD0 + ((n) << 2))
+#define __SCSR_SW_MSG(soc, n)		__SCSR_REG(soc, ____SCSR_SW_MSG(n))
 #define SCSR_SW_MSG(n)			SCSR_REG(____SCSR_SW_MSG(n))
 #define SCSR_PHASE_FLAG			SCSR_REG(0xFC)
 #define SCSR_PMA_CFG_LO(n)		SCSR_REG(0x100 + ((n) << 3))
 #define SCSR_PMA_CFG_HI(n)		SCSR_REG(0x104 + ((n) << 3))
 #define SCSR_PMA_ADDR_LO(n)		SCSR_REG(0x140 + ((n) << 3))
 #define SCSR_PMA_ADDR_HI(n)		SCSR_REG(0x144 + ((n) << 3))
-
-#define __SCSR_REG(soc, offset)		(DUOWEN_SCSR_BASE(soc) + (offset))
-#define __SCSR_SW_MSG(soc, n)		__SCSR_REG(soc, ____SCSR_SW_MSG(n))
-
-#define __DUOWEN_LCSR_BASE		LCSR_BASE
-#ifdef CONFIG_MMU
-#define __LCSR_BASE			duowen_lcsr_reg_base
-#else
-#define __LCSR_BASE			__DUOWEN_LCSR_BASE
-#endif
-#define LCSR_REG(offset)		(__LCSR_BASE + (offset))
-
-#define SCSR_BOOT_MODE			LCSR_REG(0x00)
-#define ____SCSR_SOCKET_ID		0x04
-#define __SCSR_SOCKET_ID		(LCSR_BASE + ____SCSR_SOCKET_ID)
-#define SCSR_SOCKET_ID			LCSR_REG(____SCSR_SOCKET_ID)
-#define SCSR_IMC_BOOT_ADDR_LO		LCSR_REG(0x08)
-#define SCSR_IMC_BOOT_ADDR_HI		LCSR_REG(0x0C)
-#define SCSR_IMC_BOOT_ADDR_CFG_LO	SCSR_IMC_BOOT_ADDR_LO
-#define SCSR_IMC_BOOT_ADDR_CFG_HI	SCSR_IMC_BOOT_ADDR_HI
-#define SCSR_APC_JUMP_ADDR_LO(apc)	LCSR_REG(0x10 + ((apc) << 3))
-#define SCSR_APC_JUMP_ADDR_HI(apc)	LCSR_REG(0x14 + ((apc) << 3))
-#define SCSR_PARTIAL_GOOD		LCSR_REG(0x50)
-#define SCSR_APC_BOOT_ADDR_LO		LCSR_REG(0x60)
-#define SCSR_APC_BOOT_ADDR_HI		LCSR_REG(0x64)
 
 /* SOC_HW_VERSION */
 #define SCSR_MINOR_OFFSET		0
@@ -148,29 +130,6 @@
 #define IMC_BOOT_SD			0x00
 #define IMC_BOOT_SSI			0x01
 
-/* SOCKET_ID */
-#define IMC_SOCKET_ID			_BV(1)
-#define IMC_CHIP_LINK			_BV(0)
-
-/* SHUTDN_REQ/ACK */
-#define IMC_DDR1_CTRL			15
-#define IMC_DDR1			14 /* DDR AXI */
-#define IMC_DDR0_CTRL			13
-#define IMC_DDR0			12 /* DDR AXI */
-#define IMC_PCIE_X4_1_DBI		11
-#define IMC_PCIE_X4_0_DBI		10
-#define IMC_PCIE_X8_DBI			9
-#define IMC_PCIE_X16_DBI		8
-#define IMC_PCIE_X4_1_SLV		7
-#define IMC_PCIE_X4_1_MST		6
-#define IMC_PCIE_X4_0_SLV		5
-#define IMC_PCIE_X4_0_MST		4
-#define IMC_PCIE_X8_SLV			3
-#define IMC_PCIE_X8_MST			2
-#define IMC_PCIE_X16_SLV		1
-#define IMC_PCIE_X16_MST		0
-#define IMC_MAX_AXI_PERIPHS		16
-
 /* UART_STATUS */
 #define IMC_UART3_LP_REQ_SCLK		7
 #define IMC_UART3_LP_REQ_PCLK		6
@@ -197,6 +156,66 @@
 #define IMC_SD_UHSI_DRV_STH(value)	_GET_FV(IMC_SD_UHSI_DRV_STH, value)
 #define IMC_SD_VDD1_ON			_BV(1)
 #define IMC_SD_UHSI_SWVOLT_EN		_BV(0)
+
+/* CLINT_CFG */
+#define IMC_CLINT_BYPASS		_BV(0) /* bypass address translation */
+
+/* PLIC_CFG */
+#define IMC_PLIC_DUAL			_BV(0)
+
+/* AMU_CFG */
+#define IMC_AMU_BYPASS			_BV(0)
+
+#ifndef __ASSEMBLY__
+#define imc_plic_enable_dual()		\
+	__raw_setl(IMC_PLIC_DUAL, SCSR_PLIC_CFG)
+#define imc_plic_disable_dual()		\
+	__raw_clearl(IMC_PLIC_DUAL, SCSR_PLIC_CFG)
+#define imc_pma_read_cfg(n)						\
+	MAKELLONG(__raw_readl(SCSR_PMA_CFG_LO(n)),			\
+		  __raw_readl(SCSR_PMA_CFG_HI(n)))
+#define __imc_pma_write_cfg(n, v)					\
+	do {								\
+		__raw_writel(LODWORD(v), SCSR_PMA_CFG_LO(n));		\
+		__raw_writel(HIDWORD(v), SCSR_PMA_CFG_HI(n));		\
+	} while (0)
+#define __imc_pma_write_addr(n, a)					\
+	do {								\
+		__raw_writel(LODWORD(a), SCSR_PMA_ADDR_LO(n));		\
+		__raw_writel(HIDWORD(a), SCSR_PMA_ADDR_HI(n));		\
+	} while (0)
+int imc_pma_set(int n, unsigned long attr,
+		phys_addr_t addr, unsigned long log2len);
+#endif /* __ASSEMBLY__ */
+
+/*===========================================================================
+ * LCSR registers
+ *===========================================================================*/
+#define __DUOWEN_LCSR_BASE		LCSR_BASE
+#ifdef CONFIG_MMU
+#define __LCSR_BASE			duowen_lcsr_reg_base
+#else /* CONFIG_MMU */
+#define __LCSR_BASE			__DUOWEN_LCSR_BASE
+#endif /* CONFIG_MMU */
+#define LCSR_REG(offset)		(__LCSR_BASE + (offset))
+
+#define SCSR_BOOT_MODE			LCSR_REG(0x00)
+#define ____SCSR_SOCKET_ID		0x04
+#define __SCSR_SOCKET_ID		(LCSR_BASE + ____SCSR_SOCKET_ID)
+#define SCSR_SOCKET_ID			LCSR_REG(____SCSR_SOCKET_ID)
+#define SCSR_IMC_BOOT_ADDR_LO		LCSR_REG(0x08)
+#define SCSR_IMC_BOOT_ADDR_HI		LCSR_REG(0x0C)
+#define SCSR_IMC_BOOT_ADDR_CFG_LO	SCSR_IMC_BOOT_ADDR_LO
+#define SCSR_IMC_BOOT_ADDR_CFG_HI	SCSR_IMC_BOOT_ADDR_HI
+#define SCSR_APC_JUMP_ADDR_LO(apc)	LCSR_REG(0x10 + ((apc) << 3))
+#define SCSR_APC_JUMP_ADDR_HI(apc)	LCSR_REG(0x14 + ((apc) << 3))
+#define SCSR_PARTIAL_GOOD		LCSR_REG(0x50)
+#define SCSR_APC_BOOT_ADDR_LO		LCSR_REG(0x60)
+#define SCSR_APC_BOOT_ADDR_HI		LCSR_REG(0x64)
+
+/* SOCKET_ID */
+#define IMC_SOCKET_ID			_BV(1)
+#define IMC_CHIP_LINK			_BV(0)
 
 /* PARTIAL_GOOD */
 #define APC_CLUSTER0_CLAMP		_BV(0)
@@ -294,25 +313,10 @@
 #define imc_boot_from()		(__raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_SPI)
 #define imc_sim_boot_from()	(__raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_DDR)
 #define imc_load_from()		(__raw_readl(SCSR_BOOT_MODE) & IMC_BOOT_SSI)
-
 #define imc_socket_id()					\
 	(__raw_readl(SCSR_SOCKET_ID) & IMC_SOCKET_ID ? 1 : 0)
 #define imc_chip_link()					\
 	(!!(__raw_readl(SCSR_SOCKET_ID) & IMC_CHIP_LINK))
-#define imc_pma_read_cfg(n)						\
-	MAKELLONG(__raw_readl(SCSR_PMA_CFG_LO(n)),			\
-		  __raw_readl(SCSR_PMA_CFG_HI(n)))
-#define __imc_pma_write_cfg(n, v)					\
-	do {								\
-		__raw_writel(LODWORD(v), SCSR_PMA_CFG_LO(n));		\
-		__raw_writel(HIDWORD(v), SCSR_PMA_CFG_HI(n));		\
-	} while (0)
-#define __imc_pma_write_addr(n, a)					\
-	do {								\
-		__raw_writel(LODWORD(a), SCSR_PMA_ADDR_LO(n));		\
-		__raw_writel(HIDWORD(a), SCSR_PMA_ADDR_HI(n));		\
-	} while (0)
-
 #define apc_get_boot_addr()				\
 	MAKELLONG(__raw_readl(SCSR_APC_BOOT_ADDR_LO),	\
 		  __raw_readl(SCSR_APC_BOOT_ADDR_HI))
@@ -323,7 +327,6 @@
 		__raw_writel(HIDWORD(addr),		\
 			     SCSR_APC_BOOT_ADDR_CFG_HI);\
 	} while (0)
-
 #define apc_get_partial_good()	(~(__raw_readl(SCSR_PARTIAL_GOOD)))
 #define apc_get_cluster_mask()	APC_GET_CLUSTER(apc_get_partial_good())
 #define apc_get_scu_mask()	APC_GET_CLUSTER_SCU(apc_get_partial_good())
@@ -345,7 +348,6 @@
 	__raw_writel_mask(APC_SET_CLUSTER_CPU(~(mask)),			\
 			  APC_SET_CLUSTER_CPU(APC_CLUSTER_CPU_MASK),	\
 			  SCSR_PARTIAL_GOOD)
-
 uint16_t apc_get_cpu_map(void);
 void apc_set_cpu_map(uint16_t map);
 uint8_t apc_get_apc_map(void);
@@ -363,9 +365,7 @@ void apc_set_jump_addr(caddr_t addr);
 #define apc_get_jump_addr()					\
 	MAKELLONG(__raw_readl(SCSR_APC_JUMP_ADDR_LO(0)),	\
 		  __raw_readl(SCSR_APC_JUMP_ADDR_HI(0)))
-int imc_pma_set(int n, unsigned long attr,
-		phys_addr_t addr, unsigned long log2len);
-#endif
+#endif /* __ASSEMBLY__ */
 
 #include <asm/mach/rom.h>
 

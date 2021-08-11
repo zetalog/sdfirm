@@ -154,6 +154,7 @@ void duowen_plic_init(void)
 {
 	if (!rom_get_pliccntl_done()) {
 		if (soc_chip_link()) {
+			imc_plic_enable_dual();
 			if (imc_socket_id() == 0)
 				plic_socket_connect(1);
 			else
@@ -166,6 +167,7 @@ void duowen_plic_init(void)
 void duowen_plic_init(void)
 {
 	if (!rom_get_pliccntl_done()) {
+		imc_plic_disable_dual();
 		rom_set_pliccntl_done();
 	}
 }
