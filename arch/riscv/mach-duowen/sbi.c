@@ -74,6 +74,13 @@ static int duowen_early_init(bool cold_boot)
 		/* Do not use SMMU when booting Linux with IMC */
 		duowen_smmu_early_init();
 #endif /* CONFIG_DUOWEN_APC */
+#ifdef CONFIG_DUOWEN_IMC
+		/* Booting IMC kernel in DDR requires cohfab/ddr to work
+		 * at proper frequencies.
+		 */
+		clk_enable(cohfab_clk);
+		clk_enable(ddr_aclk);
+#endif /* CONFIG_DUOWEN_IMC */
 	}
 	return 0;
 }
