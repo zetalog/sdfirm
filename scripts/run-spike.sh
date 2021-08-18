@@ -1,15 +1,27 @@
 #!/bin/bash
 #
-# Run spike with OpenOCD Enabled
+# Run spike with debugging facility enabled
 #
-# This script is used to run spike and sdfirm with openocd enabled.
-# After running this script, type openocd -f arch/riscv/mach-spike/openocd-spike64.cfg.
+# This script is used to run spike and sdfirm with jtag/debug/trace
+# enabled.
+# 1. JTAG mode:
+#    Run spike with JTAG enabled:
+#    $ run-spike.sh -j 9824
+#    Launch openocd:
+#    $ openocd -f arch/riscv/mach-spike/openocd-spike64.cfg
+#    Launch gdb:
+#    $ riscv64-linux-gnu-gdb
+#    And see arch/riscv/mach-spike/readme.txt for more information.
+# 2. Embedded debugger/logger mode:
+#    $ run-spike.sh -d -l
+# 3. DTS dumper:
+#    $ run-spike.sh -t spike.dts
 
 SCRIPT=`(cd \`dirname $0\`; pwd)`
 
 SPIKE_OPTS=
 SPIKE_RBB_PORT=9824
-SPIKE_RBB=yes
+SPIKE_RBB=no
 SPIKE_PIPE=
 SPIKE_ROM_SIZE=0x4000
 SPIKE_MEM_BASE=0x80000000
@@ -22,16 +34,15 @@ usage()
 	echo "Usage:"
 	echo "`basename $0` [-p procs]"
 	echo "              [-b base] [-s size] [-e entry]"
-	echo "              [-j port] [-H]"
-        echo "              [-t file]"
+	echo "              [-j port]"
+	echo "              [-t file]"
 	echo "              [-d] [-l]"
 	echo "Where:"
 	echo " -p num-cpus: specify number of CPUs"
 	echo " -b mem-base: specify first memory region base"
 	echo " -s mem-size: specify first memory region size"
 	echo " -e entry:    specify entry point"
-	echo " -j rbb-port: specify jtag remote bitbang port (default 9824)"
-	echo " -H:          enable halt on reset"
+	echo " -j rbb-port: enable jtag remote bitbang (default 9824)"
 	echo " -t dts-file: dump device tree string file"
 	echo " -d:          enable single step debug"
 	echo " -l:          enable execution log"
@@ -44,7 +55,7 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "b:de:hj:lp:s:t:H" opt
+while getopts "b:de:hj:lp:s:t:" opt
 do
 	case $opt in
 	b) SPIKE_MEM_BASE=$OPTARG
@@ -61,8 +72,6 @@ do
 	t) SPIKE_OPTS="--dump-dts ${SPIKE_OPTS}"
 	   SPIKE_PIPE=">$OPTARG"
 	   SPIKE_RBB=no;;
-	H) SPIKE_OPTS="${SPIKE_OPTS} -H"
-	   SPIKE_RBB=yes;;
 	?) echo "Invalid argument $opt"
 	   fatal_usage;;
 	esac
@@ -76,7 +85,7 @@ else
 fi
 
 if [ "x${SPIKE_RBB}" = "xyes" ]; then
-	SPIKE_OPTS="--rbb-port=${SPIKE_RBB_PORT} ${SPIKE_OPTS}"
+	SPIKE_OPTS="-H --rbb-port=${SPIKE_RBB_PORT} ${SPIKE_OPTS}"
 fi
 if [ "x${SPIKE_MEM_CUST}" = "xyes" ]; then
 	((ram_size=$SPIKE_MEM_BASE))

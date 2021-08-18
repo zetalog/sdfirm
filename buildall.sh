@@ -108,7 +108,10 @@ build_sdfirm riscv32 vega_ri5cy
 build_sdfirm riscv32 spike32_tb
 build_sdfirm riscv64 spike64_tb
 build_sdfirm riscv64 spike64_nocon
+build_sdfirm riscv64 spike64_litmus
+build_sdfirm riscv64 spike64_task
 build_sdfirm riscv64 virt64_tb
+build_sdfirm riscv64 virt64_litmus
 # DUOWEN Vaisra TB
 build_sdfirm riscv64 vaisra_tb
 build_sdfirm riscv64 vaisra_nocon
