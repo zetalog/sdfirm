@@ -258,9 +258,8 @@ static bool bench_should_resume(cpu_t cpu)
 	return false;
 }
 
-static void bench_reset_timeout(void)
+static void bench_reset_timeout(cpu_t cpu)
 {
-	cpu_t cpu = smp_processor_id();
 	tick_t tick = tick_get_counter();
 
 	if (!time_before(tick, cpu_ctxs[cpu].async_timeout))
@@ -480,8 +479,9 @@ static inline tick_t __get_testfn_timeout(struct cpu_exec_test *fn,
 	return 0;
 }
 
-static void bench_reset_timeout(void)
+static void bench_reset_timeout(cpu_t cpu)
 {
+	cpu_ctxs[cpu].async_timeout = 0;
 	bench_raise_event(CPU_EVENT_TIME);
 }
 
@@ -507,8 +507,10 @@ static bool bench_should_resume(cpu_t cpu)
 
 static void bench_start(void)
 {
+	cpu_t cpu = smp_processor_id();
+
 	bench_timer_start();
-	bench_reset_timeout();
+	bench_reset_timeout(cpu);
 }
 
 static void bench_stop(void)
@@ -587,7 +589,7 @@ static void __bench_exec(cpu_t cpu)
 		if (bench_should_resume(cpu))
 			bench_raise_event(CPU_EVENT_TIME);
 		else
-			bench_reset_timeout();
+			bench_reset_timeout(cpu);
 	} else
 		bench_raise_event(CPU_EVENT_STOP);
 }
@@ -687,11 +689,13 @@ int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
 {
 	cpu_t cpu = smp_processor_id();
 	bool locked = false;
+	int nr_cpus;
 
 	spin_lock(&cpu_exec_lock);
 	cpu_didt_refcnt++;
 	if (cpu_didt_refcnt == 1) {
 		cpu_didt_cpu_mask = init_cpu_mask;
+		nr_cpus = hweight64(init_cpu_mask);
 		locked = true;
 	}
 	if (!locked) {
@@ -712,10 +716,15 @@ int bench_didt(uint64_t init_cpu_mask, struct cpu_exec_test *fn,
 			memory_set((caddr_t)cpu_didt_alloc, 0,
 				   cpu_didt_pages * PAGE_SIZE);
 		}
-		cpu_exec_stage = CPU_EXEC_BUSY;
 		do_printf("alloc: cpuexec: %016llx-%016llx(%d-%d)\n",
 			  (uint64_t)cpu_didt_alloc, size,
 			  cpus, cpu_didt_pages);
+		while (cpu_didt_refcnt != nr_cpus) {
+			spin_unlock(&cpu_exec_lock);
+			cpu_relax();
+			spin_lock(&cpu_exec_lock);
+		}
+		cpu_exec_stage = CPU_EXEC_BUSY;
 		locked = false;
 	}
 	spin_unlock(&cpu_exec_lock);

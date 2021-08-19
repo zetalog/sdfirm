@@ -314,9 +314,15 @@ typedef struct {
   int p;
 } targ_t;
 
-targ_t g_targs[AVAIL];
+targ_t *g_targs;
 
-static void zyva(int cpu, int p, f_t *fun, void *arg) {
+static void zyva(int p, f_t *fun, void *arg) {
+  parg_t *parg = (parg_t *)arg;
+  int cpu = parg->cpu[parg->th_id];
+  if (cpu >= g_n_aff_cpus) {
+    g_targs[cpu].fun = NULL;
+    return;
+  }
 #ifdef CONFIG_TEST_LITMUS_DEBUG
   printf("ZYVA: CPU%d: P%d\n", cpu, p);
 #endif
@@ -505,16 +511,16 @@ void litmus_start(void) {
       p->parg[_p].cpu = &(p->cpus[0]);
     }
   }
+  g_targs = malloc_check(g_n_aff_cpus * sizeof(targ_t), "g_targs");
   g_n_run = 0;
 }
 
 void litmus_run_start(void) {
-  memset(g_targs,0,sizeof(g_targs));
-
   for (int k=0 ; k < g_max_exe ; k++) {
     zyva_t *_a = &g_zargs[k];
     ctx_t *ctx = &(_a->ctx);
     param_t *_b = ctx->_p;
+    parg_t *parg = _a->parg;
     if (_b->aff_mode == aff_random) {
       if (_a->z_id == 0) perm_prefix_ints(&(ctx->seed),_a->cpus,_b->ncpus_used,_b->ncpus);
     } else if (_b->aff_mode == aff_scan) {
@@ -528,9 +534,7 @@ void litmus_run_start(void) {
     reinit(ctx);
     if (_b->do_change) perm_funs(&(ctx->seed),g_fun,N);
     for (int _p = NT-1 ; _p >= 0 ; _p--) {
-      parg_t *parg = (parg_t *)&(_a->parg[_p]);
-      int _ecpu = parg->cpu[parg->th_id];
-      zyva(_ecpu, _p, g_fun[_p], parg);
+      zyva(_p, g_fun[_p], &parg[_p]);
     }
   }
   litmus_exec("litmus_dummy");
@@ -590,6 +594,7 @@ void litmus_stop(void) {
   }
   count_t p_true = g_hist->n_pos, p_false = g_hist->n_neg;
   postlude(stderr,&g_cmd,g_hist,p_true,p_false,total);
+  free_check(g_targs, "g_targs");
   free_hists(g_max_exe,g_hists,"g_hists");
   free_check(g_zargs,"g_zargs");
   free_check(g_aff_cpus,"g_aff_cpus");
