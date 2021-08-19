@@ -121,7 +121,7 @@ typedef struct hist_t {
 } hist_t ;
 
 static hist_t *alloc_hists(int sz, const char *name) {
-  hist_t *p = malloc_check(sizeof(hist_t) * sz,name) ;
+  hist_t *p = malloc_check(sz*sizeof(hist_t),name) ;
   for (int k=0 ; k<sz ; k++) {
     p[k].outcomes = NULL ;
     p[k].n_pos = p[k].n_neg = 0 ;
@@ -428,7 +428,7 @@ void litmus_start(void) {
 /* Set affinity parameters */
   g_all_cpus = cmd->aff_cpus;
   g_n_aff_cpus = cmd->aff_mode == aff_random ? max(g_all_cpus->sz,N*g_max_exe) : N*g_max_exe;
-  g_aff_cpus = malloc_check(sizeof(int)*g_n_aff_cpus,"g_aff_cpus");
+  g_aff_cpus = malloc_check(g_n_aff_cpus*sizeof(int),"g_aff_cpus");
   prm.aff_mode = cmd->aff_mode;
   prm.ncpus = g_n_aff_cpus;
   prm.ncpus_used = N*g_max_exe;
@@ -473,7 +473,7 @@ void litmus_start(void) {
     }
   }
   g_n_th = g_max_exe-1;
-  g_zargs = malloc_check(sizeof(zyva_t) * g_max_exe,"g_zargs");
+  g_zargs = malloc_check(g_max_exe*sizeof(zyva_t),"g_zargs");
   g_hists = alloc_hists(g_max_exe,"g_hists");
   g_hist = &(g_hists[g_n_th]);
   int next_cpu = 0;
@@ -511,7 +511,7 @@ void litmus_start(void) {
       p->parg[_p].cpu = &(p->cpus[0]);
     }
   }
-  g_targs = malloc_check(g_n_aff_cpus * sizeof(targ_t), "g_targs");
+  g_targs = malloc_check(g_n_aff_cpus*sizeof(targ_t),"g_targs");
   g_n_run = 0;
 }
 
@@ -594,7 +594,7 @@ void litmus_stop(void) {
   }
   count_t p_true = g_hist->n_pos, p_false = g_hist->n_neg;
   postlude(stderr,&g_cmd,g_hist,p_true,p_false,total);
-  free_check(g_targs, "g_targs");
+  free_check(g_targs,"g_targs");
   free_hists(g_max_exe,g_hists,"g_hists");
   free_check(g_zargs,"g_zargs");
   free_check(g_aff_cpus,"g_aff_cpus");

@@ -17,7 +17,7 @@ usage()
 {
 	echo "Usage:"
 	echo "`basename $0` [-c cpus] [-f] [-g] [-m mach]"
-	echo "		[-r max_run] [-s stride] [-t size_of_test]"
+	echo "          [-r max_run] [-s stride] [-t size_of_test]"
 	echo "          [-p path] [test]"
 	echo "Where:"
 	echo " -c num-cpus: specify number of CPUs"
