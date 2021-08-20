@@ -12,9 +12,11 @@
 #    Launch gdb:
 #    $ riscv64-linux-gnu-gdb
 #    And see arch/riscv/mach-spike/readme.txt for more information.
-# 2. Embedded debugger/logger mode:
-#    $ run-spike.sh -d -l
-# 3. DTS dumper:
+# 2. Embedded trace logger mode:
+#    $ run-spike.sh -l cpulog
+# 3. Embedded single step debugger mode:
+#    $ run-spike.sh -d
+# 4. DTS dumper:
 #    $ run-spike.sh -t spike.dts
 
 SCRIPT=`(cd \`dirname $0\`; pwd)`
@@ -37,7 +39,7 @@ usage()
 	echo "              [-b base] [-s size] [-e entry]"
 	echo "              [-j port]"
 	echo "              [-t dts]"
-	echo "              [-c] [-d] [-l trace]"
+	echo "              [-d] [-l trace]"
 	echo "Where:"
 	echo " -p num-cpus:  specify number of CPUs"
 	echo " -b mem-base:  specify first memory region base"
@@ -46,7 +48,6 @@ usage()
 	echo " -j rbb-port:  enable jtag remote bitbang (default 9824)"
 	echo " -t dts-file:  dump device tree string file"
 	echo " -d:           enable single step debug"
-	echo " -c            enable split cpu trace logs"
 	echo " -l trace-log: enable execution log to files (default stderr)"
 	echo "               where trace-log can be some special file:"
 	echo "               stderr: output to the console"
@@ -60,7 +61,7 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "b:cde:hj:l:p:s:t:" opt
+while getopts "b:de:hj:l:p:s:t:" opt
 do
 	case $opt in
 	b) SPIKE_MEM_BASE=$OPTARG
@@ -72,10 +73,8 @@ do
 	h) usage 0;;
 	j) SPIKE_RBB_PORT=$OPTARG
 	   SPIKE_RBB=yes;;
-	l) SPIKE_OPTS="${SPIKE_OPTS} -l"
+	l) SPIKE_OPTS="${SPIKE_OPTS} -l --log-commits"
 	   SPIKE_TRACE=$OPTARG;;
-	c) SPIKE_OPTS="${SPIKE_OPTS} -l"
-	   SPIKE_TRACE=cpulog;;
 	p) SPIKE_OPTS="-p$OPTARG ${SPIKE_OPTS}";;
 	t) SPIKE_OPTS="--dump-dts ${SPIKE_OPTS}"
 	   SPIKE_PIPE=">$OPTARG"
@@ -115,17 +114,19 @@ split_cpulog()
 			rem=substr($0, RLENGTH+1);			\
 			if (match(rem, /^[0-9]+/)) {			\
 				cpu=substr(rem, 0, RLENGTH);		\
-				ins=substr(rem, RLENGTH+3);		\
+				ctx=substr(rem, RLENGTH+3);		\
 				fnm=pfx""cpu""sfx;			\
-				print ins >fnm;				\
+				if (match(ctx, /^0x[0-9a-f]+ /)) {	\
+					print ctx >fnm;			\
+				} else if (match(ctx, /^>>>>  /)) {	\
+					fun=substr(ctx, RLENGTH+1);	\
+					print "***** "fun" *****" >fnm;	\
+				} else {				\
+					print " - " ctx >fnm;		\
+				}					\
 			}						\
 		}							\
 	}'
-}
-
-function on_ctrl_c() {
-	echo ""
-	echo "Trace log analyzer interrupted!"
 }
 
 echo "spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE}"
@@ -137,13 +138,4 @@ else
 	rm -rf cpu*.log*
 	riscv64-linux-objdump -D -M numeric ${SPIKE_PROG} > ${SPIKE_PROG}.dis
 	eval spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE} 2> >(split_cpulog)
-
-	trap 'on_ctrl_c' INT
-	echo ""
-	echo "Analyzing cpu trace logs..."
-	TRACE_FILES=`ls cpu*.log`
-	for f in ${TRACE_FILES}; do
-		echo "Analyzing ${f}..."
-		${SCRIPT}/spike-disasm.py ${SPIKE_PROG}.dis $f ${f}.trace
-	done
 fi
