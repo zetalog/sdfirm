@@ -123,12 +123,27 @@ split_cpulog()
 	}'
 }
 
+function on_ctrl_c() {
+	echo ""
+	echo "Trace log analyzer interrupted!"
+}
+
 echo "spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE}"
 if [ "x${SPIKE_TRACE}" = "xstderr" ]; then
 	eval spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE}
 elif [ "x${SPIKE_TRACE}" != "xcpulog" ]; then
 	eval spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE} 2>${SPIKE_TRACE}
 else
-	rm -rf cpu*.log
+	rm -rf cpu*.log*
+	riscv64-linux-objdump -D -M numeric ${SPIKE_PROG} > ${SPIKE_PROG}.dis
 	eval spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE} 2> >(split_cpulog)
+
+	trap 'on_ctrl_c' INT
+	echo ""
+	echo "Analyzing cpu trace logs..."
+	TRACE_FILES=`ls cpu*.log`
+	for f in ${TRACE_FILES}; do
+		echo "Analyzing ${f}..."
+		${SCRIPT}/spike-disasm.py ${SPIKE_PROG}.dis $f ${f}.trace
+	done
 fi
