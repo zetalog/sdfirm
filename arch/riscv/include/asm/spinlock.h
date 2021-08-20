@@ -138,6 +138,7 @@ typedef struct {
 static inline void smp_hw_spin_unlock(spinlock_t *lock)
 {
 	smp_store_release(&lock->lock, 0);
+	nop();
 	vaisra_flush_dcache_addr((void *)(&lock->lock));
 }
 
