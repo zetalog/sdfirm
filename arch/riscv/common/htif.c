@@ -51,9 +51,13 @@ volatile int htif_console_buf = -1;
 bool htif_con_pending = false;
 DEFINE_SPINLOCK(htif_lock);
 
-#define TOHOST(base_int)	(uint64_t *)(base_int + TOHOST_OFFSET)
-#define FROMHOST(base_int)	(uint64_t *)(base_int + FROMHOST_OFFSET)
+#define TOHOST(base_int)	(volatile uint64_t *)(base_int + TOHOST_OFFSET)
+#define FROMHOST(base_int)	(volatile uint64_t *)(base_int + FROMHOST_OFFSET)
 
+#define WRITE_BUF(ch)		\
+	((*((volatile int *)&htif_console_buf)) = (ch))
+#define READ_BUF()		\
+	(*((volatile int *)&htif_console_buf))
 #define TOHOST_OFFSET		((uintptr_t)tohost - (uintptr_t)__htif_base)
 #define FROMHOST_OFFSET		((uintptr_t)fromhost - (uintptr_t)__htif_base)
 
@@ -88,7 +92,7 @@ static void __check_fromhost(void)
 		BUG();
 	switch (FROMHOST_CMD(fh)) {
 	case 0:
-		htif_console_buf = 1 + (uint8_t)FROMHOST_DATA(fh);
+		WRITE_BUF(1 + (uint8_t)FROMHOST_DATA(fh));
 		break;
 	case 1:
 		break;
@@ -109,11 +113,11 @@ bool htif_console_poll(void)
 	int ch;
 
 	spin_lock(&htif_lock);
-	ch = htif_console_buf;
+	ch = READ_BUF();
 	if (ch >= 0)
 		goto exit_succ;
 	__check_fromhost();
-	ch = htif_console_buf;
+	ch = READ_BUF();
 	if (ch >= 0)
 		goto exit_succ;
 	if (!htif_con_pending) {
@@ -130,9 +134,9 @@ int htif_console_read(void)
 	int ch = 0;
 
 	spin_lock(&htif_lock);
-	if (htif_console_buf >= 0) {
-		ch = htif_console_buf;
-		htif_console_buf = -1;
+	if (READ_BUF() >= 0) {
+		ch = READ_BUF();
+		WRITE_BUF(-1);
 		htif_con_pending = false;
 	}
 	spin_unlock(&htif_lock);

@@ -28,6 +28,7 @@ SPIKE_MEM_BASE=0x80000000
 SPIKE_MEM_SIZE=0x80000000
 SPIKE_MEM_CUST=no
 SPIKE_PROG=sdfirm
+SPIKE_TRACE=stderr
 
 usage()
 {
@@ -35,17 +36,21 @@ usage()
 	echo "`basename $0` [-p procs]"
 	echo "              [-b base] [-s size] [-e entry]"
 	echo "              [-j port]"
-	echo "              [-t file]"
-	echo "              [-d] [-l]"
+	echo "              [-t dts]"
+	echo "              [-c] [-d] [-l trace]"
 	echo "Where:"
-	echo " -p num-cpus: specify number of CPUs"
-	echo " -b mem-base: specify first memory region base"
-	echo " -s mem-size: specify first memory region size"
-	echo " -e entry:    specify entry point"
-	echo " -j rbb-port: enable jtag remote bitbang (default 9824)"
-	echo " -t dts-file: dump device tree string file"
-	echo " -d:          enable single step debug"
-	echo " -l:          enable execution log"
+	echo " -p num-cpus:  specify number of CPUs"
+	echo " -b mem-base:  specify first memory region base"
+	echo " -s mem-size:  specify first memory region size"
+	echo " -e entry:     specify entry point"
+	echo " -j rbb-port:  enable jtag remote bitbang (default 9824)"
+	echo " -t dts-file:  dump device tree string file"
+	echo " -d:           enable single step debug"
+	echo " -c            enable split cpu trace logs"
+	echo " -l trace-log: enable execution log to files (default stderr)"
+	echo "               where trace-log can be some special file:"
+	echo "               stderr: output to the console"
+	echo "               cpulog: split output to cpu*.log files"
 	exit $1
 }
 
@@ -55,7 +60,7 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "b:de:hj:lp:s:t:" opt
+while getopts "b:cde:hj:l:p:s:t:" opt
 do
 	case $opt in
 	b) SPIKE_MEM_BASE=$OPTARG
@@ -67,11 +72,15 @@ do
 	h) usage 0;;
 	j) SPIKE_RBB_PORT=$OPTARG
 	   SPIKE_RBB=yes;;
-	l) SPIKE_OPTS="${SPIKE_OPTS} -l";;
+	l) SPIKE_OPTS="${SPIKE_OPTS} -l"
+	   SPIKE_TRACE=$OPTARG;;
+	c) SPIKE_OPTS="${SPIKE_OPTS} -l"
+	   SPIKE_TRACE=cpulog;;
 	p) SPIKE_OPTS="-p$OPTARG ${SPIKE_OPTS}";;
 	t) SPIKE_OPTS="--dump-dts ${SPIKE_OPTS}"
 	   SPIKE_PIPE=">$OPTARG"
-	   SPIKE_RBB=no;;
+	   SPIKE_RBB=no
+	   SPIKE_TRACE=stderr;;
 	?) echo "Invalid argument $opt"
 	   fatal_usage;;
 	esac
@@ -97,5 +106,29 @@ if [ "x${SPIKE_MEM_CUST}" = "xyes" ]; then
 	SPIKE_OPTS="-m${SPIKE_MEM_BASE}:${SPIKE_MEM_SIZE} ${SPIKE_OPTS}"
 fi
 
+split_cpulog()
+{
+	awk '{								\
+		pfx="cpu";						\
+		sfx=".log";						\
+		if (match($0, /^core +/)) {				\
+			rem=substr($0, RLENGTH+1);			\
+			if (match(rem, /^[0-9]+/)) {			\
+				cpu=substr(rem, 0, RLENGTH);		\
+				ins=substr(rem, RLENGTH+3);		\
+				fnm=pfx""cpu""sfx;			\
+				print ins >fnm;				\
+			}						\
+		}							\
+	}'
+}
+
 echo "spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE}"
-eval spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE}
+if [ "x${SPIKE_TRACE}" = "xstderr" ]; then
+	eval spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE}
+elif [ "x${SPIKE_TRACE}" != "xcpulog" ]; then
+	eval spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE} 2>${SPIKE_TRACE}
+else
+	rm -rf cpu*.log
+	eval spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE} 2> >(split_cpulog)
+fi
