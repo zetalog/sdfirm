@@ -21,21 +21,23 @@ LITMUS_WAIT=no
 usage()
 {
 	echo "Usage:"
-	echo "`basename $0` [-a arch] [-m mach] [-c comp]"
-	echo "		[-j jobs] [-o path]"
-	echo "		[-r max_run] [-s stride] [-t size_of_test]"
-	echo "		[-w] [test]"
+	echo "`basename $0` [-a arch] [-m mach] [-g cross]"
+	echo "              [-j jobs] [-o path]"
+	echo "              [-r max_run] [-s stride] [-t size_of_test]"
+	echo "              [-w] [test]"
 	echo "Where:"
-	echo " -a arch: specify CPU architecture"
-	echo " -m mach: specify SoC architecure"
-	echo " -c comp: specify cross compiler prefix"
-	echo " -j jobs: specify number of build threads"
-	echo " -o path: specify ELF output directory"
-	echo " -w:      wait and refresh ELF output results"
+	echo " Options:"
+	echo " -a arch:         specify CPU architecture"
+	echo " -m mach:         specify SoC architecure"
+	echo " -g cross:        specify GCC cross compiler prefix"
+	echo " -j jobs:         specify number of build threads"
+	echo " -o path:         specify ELF output directory"
+	echo " -w:              wait and refresh ELF output results"
 	echo " -r max_run:      litmus max runs (-r)"
 	echo " -s stride:       litmus stride (-st)"
 	echo " -t size_of_test: litmus size_of_test (-s)"
-	echo "    test: specify a single test"
+	echo " Parameters:"
+	echo " test:            specify a single test"
 	exit $1
 }
 
@@ -45,12 +47,12 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "a:m:c:j:o:r:s:t:w" opt
+while getopts "a:m:g:j:o:r:s:t:w" opt
 do
 	case $opt in
 	a) ARCH=$OPTARG;;
 	m) MACH=$OPTARG;;
-	c) CROSS_COMPILE=$OPTARG;;
+	g) CROSS_COMPILE=$OPTARG;;
 	j) LITMUS_JOBS=$OPTARG;;
 	o) LITMUS_ELFS=$OPTARG;;
 	r) LITMUS_MAX_RUN=$OPTARG;;
@@ -154,15 +156,21 @@ if [ "x${LITMUS_WAIT}" = "xyes" ]; then
 else
 	litmus_tsts=`parse_litmus ${LITMUS_SRCS}/Makefile.litmus`
 
+	echo "Removing litmus binary from ${LITMUS_ELFS}..."
 	rm -f ${LITMUS_ELFS}/*.elf
 	rm -f ${LITMUS_ELFS}/*.rom
 	rm -f ${LITMUS_ELFS}/*.ram
-	ls ${LITMUS_ELFS}/*.cfg | grep -v make.cfg | xargs rm -f
+	if ls ${LITMUS_ELFS}/*.cfg >/dev/null 2>&1; then
+		echo -n ""
+	else
+		ls ${LITMUS_ELFS}/*.cfg | grep -v make.cfg | xargs rm -f
+	fi
 	echo -n "" > ${LITMUS_LOG}
 	echo -n "" > ${LITMUS_INCL}
 	echo -n "" > ${LITMUS_EXCL}
 
 	if [ -z ${LITMUS_CASE} ]; then
+		echo "Generating litmus binary to ${LITMUS_ELFS}..."
 		for t in ${litmus_tsts}; do
 			build_litmus $t
 			if [ $? -eq 0 ]; then
@@ -172,6 +180,7 @@ else
 			fi
 		done
 	else
+		echo "Generating ${LITMUS_CASE} binary to ${LITMUS_ELFS}..."
 		build_litmus ${LITMUS_CASE}
 		if [ $? -eq 0 ]; then
 			echo ${LITMUS_CASE} >> ${LITMUS_INCL}

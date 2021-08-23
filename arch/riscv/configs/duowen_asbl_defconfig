@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Aug  9 14:36:44 2021
+# Mon Aug 23 10:30:47 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -221,6 +221,10 @@ CONFIG_DUOWEN_UART_CON0=y
 # CONFIG_DUOWEN_UART_CON1 is not set
 # CONFIG_DUOWEN_UART_CON2 is not set
 # CONFIG_DUOWEN_UART_CON3 is not set
+# CONFIG_DUOWEN_UART_CON4 is not set
+# CONFIG_DUOWEN_UART_CON5 is not set
+# CONFIG_DUOWEN_UART_CON6 is not set
+# CONFIG_DUOWEN_UART_CON7 is not set
 CONFIG_DUOWEN_TMR=y
 CONFIG_CRCNTL=y
 CONFIG_DUOWEN_PLL_REAL=y
