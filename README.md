@@ -137,14 +137,12 @@ Running Linux test bench in spike:
     $ cd ..
     $ git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
     $ git clone git://busybox.net/busybox.git
-    $ git clone https://github.com/zetalog/tiny-linux
-    $ cd tiny-linux
-    $ LINUX_DIR=../linux BUSYBOX_DIR=../busybox SDFIRM_DIR=../sdfirm BBL=sdfirm MACH=spike64 ./script/build.sh
-    $ BBL=sdfirm ./script/run-spike.sh
+    $ MACH=spike64 ./sdfirm/scripts/linux/build_image.sh -f
+    $ ./sdfirm/scripts/run-spike.sh -p4 obj/sdfirm-riscv/sdfirm
 
 You can also do this in sdfirm folder:
 
-    $ cp ../tiny-linux/obj/linux-riscv/arch/riscv/boot/Image ./Image
+    $ cp ../obj/linux-riscv/arch/riscv/boot/Image ./Image
     $ make spike64_bbl_defconfig
     $ make menuconfig
     $ make clean
@@ -284,22 +282,20 @@ Running Linux test bench in qemu:
     $ cd ..
     $ git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
     $ git clone git://busybox.net/busybox.git
-    $ git clone https://github.com/zetalog/tiny-linux
-    $ cd tiny-linux
-    $ LINUX_DIR=../linux BUSYBOX_DIR=../busybox SDFIRM_DIR=../sdfirm BBL=sdfirm MACH=virt64 ./script/build.sh
-    $ BBL=sdfirm ./script/run-qemu.sh
+    $ MACH=virt64 ./sdfirm/scripts/linux/build_image.sh -f
+    $ ./sdfirm/scripts/run-qemu.sh -p4 obj/sdfirm-riscv/sdfirm
 
 You can also do this in sdfirm folder:
 
-    $ cp ../tiny-linux/obj/linux-riscv/arch/riscv/boot/Image ./Image
+    $ cp ../obj/linux-riscv/arch/riscv/boot/Image ./Image
     $ make virt64_bbl_defconfig
     $ make menuconfig
     $ make clean
     $ make
     $ ./scripts/run-qemu.sh -p4
 
-Build steps of SPIKE litmus benches
----------------------------------------
+Build steps of SPIKE baremetal litmus benches
+-------------------------------------------------
 
 An interesting functionality is sdfirm can be used to generate bare metal
 direct cases for being used in the IC development environments (VCS
@@ -389,4 +385,26 @@ NOTE: litmus.sh accepts "-m mach" option to allow you to generate cases
       prepared as arch/riscv/configs/mach_litmus_defconfig. And you can
       tune the default configuration to allow the litmus cases to run in
       a complicated environment (e.x., with MMU/IRQ enabled).
+
+Build steps of SPIKE linux litmus benches
+---------------------------------------------
+
+Another choice to run litmus tests is to run sdfirm as BBL and to boot a
+Linux kernel to run the litmus tests.
+
+Please refer to "Build steps of SPIKE test benches" chapter and run linux
+section. The only step you should modify is:
+
+    $ export LITMUS_ROOT=<path to litmus-tests-riscv>
+    $ MACH=spike64 ./sdfirm/scripts/linux/build_image.sh -f -u -c 4
+    $ ./sdfirm/scripts/run-spike.sh -p4 obj/sdfirm-riscv/sdfirm -u litmus.log
+
+Where "-u" enables userspace program (including litmus tests) builds and
+"-c 4" specifies 4 cores spike simulation. And in the userspace launch
+script sdfirm/scripts/linux/rootfs/etc/init.d/rcS, litmus tests will be
+automatically executed after booting Linux kernel to the userspace.
+The litmus.log files will contain litmus test result and can be used by
+mcompare to tell the test results.
+
+    $ mcompare7 -nohash litmus.log ${LITMUS_ROOT}/model-results/herd.logs
 
