@@ -3,6 +3,7 @@
 #include <target/mem.h>
 #include <target/uefi.h>
 #include <target/irq.h>
+#include <asm/mach/boot.h>
 
 #define FLASH_TOTAL_SIZE	4000000
 
@@ -26,8 +27,8 @@ static __always_inline void dpu_ssi_flash_writeb(uint8_t byte)
 
 static __always_inline uint8_t dpu_ssi_flash_readb(void)
 {
-        while (!(__raw_readl(SSI_RISR(0)) & SSI_RXFI));
-        return __raw_readl(SSI_DR(0, 0));
+	while (!(__raw_readl(SSI_RISR(0)) & SSI_RXFI));
+	return __raw_readl(SSI_DR(0, 0));
 }
 
 static __always_inline uint8_t dpu_ssi_flash_read(uint32_t addr)
@@ -51,8 +52,20 @@ void __dpu_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 	uint8_t *dst = boot;
 	void (*boot_entry)(void) = boot;
 
-	for (i = 0; i < size; i++, addr++)
+#define is_last(index, length)		(((index) + 1) == length)
+
+	for (i = 0; i < size; i++, addr++) {
 		dst[i] = dpu_ssi_flash_read(addr);
+		if ((i % 0x2000) == 0)
+			__boot_dump32(i, is_last(i, size));
+	}
+
+	__boot_dbg('\n');
+	__boot_dbg('B');
+	__boot_dbg('o');
+	__boot_dbg('o');
+	__boot_dbg('t');
+	__boot_dbg('\n');
 	boot_entry();
 }
 
@@ -60,11 +73,11 @@ void dpu_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 {
 	dpu_boot_cb boot_func;
 #ifdef CONFIG_DPU_BOOT_STACK
-	__align(4) uint8_t boot_from_stack[512];
+	__align(4) uint8_t boot_from_stack[1024];
 
 	boot_func = (dpu_boot_cb)boot_from_stack;
 	memcpy(boot_from_stack, __dpu_ssi_flash_boot,
-	       sizeof (boot_from_stack));
+	       sizeof(boot_from_stack));
 #else
 	boot_func = __dpu_ssi_flash_boot;
 #endif

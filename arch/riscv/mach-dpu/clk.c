@@ -439,7 +439,11 @@ struct sel_clk sel_clks[NR_SEL_CLKS] = {
 	},
 	[VPU_CCLK] = {
 		.clk_sels = {
+#ifdef CONFIG_DPU_GEN2
+			pll5_p,
+#else
 			pll4_r,
+#endif
 			xin,
 		},
 		.allow_gating = true,
@@ -447,7 +451,7 @@ struct sel_clk sel_clks[NR_SEL_CLKS] = {
 #ifdef CONFIG_DPU_GEN2
 	[TSENSOR_XO_CLK] = {
 		.clk_sels = {
-			pll5_p,
+			pll4_r,
 			xin,
 		},
 		.allow_gating = true,

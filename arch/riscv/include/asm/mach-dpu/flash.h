@@ -51,6 +51,7 @@
 #define FLASH_CFG(offset)	(FLASH_BASE + FLASH_CFG_OFFSET + (offset))
 
 #define DPU_FLASH_FREQ		80000000 /* 80MHz */
+#define DPU_FLASH_REAL_FREQ		4000000 /* 4MHz */
 
 #define SPI_CTRL		FLASH_CFG(0x00)
 #define SPI_DIVIDER		FLASH_CFG(0x04)
