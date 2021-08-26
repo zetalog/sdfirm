@@ -14,11 +14,11 @@ static void dpu_tsensor_handler(void)
 
 void dpu_tsensor_irq_conf(void)
 {
-	__raw_writel(REG_METS_CONFIG_RUN, TC_PADDR_PE16_METS_CONFIG_ADDR);
-	__raw_writel(REG_METS_CONFIG_RUN, TC_PADDR_VPU_METS_CONFIG_ADDR);
-	__raw_writel(REG_METS_CONFIG_RUN, TC_PADDR_DDR_METS_CONFIG_ADDR);
-	__raw_writel(REG_METS_CONFIG_RUN, TC_PADDR_PCIE_METS_CONFIG_ADDR);
-	__raw_writel(REG_METS_CONFIG_RUN, TC_PADDR_NOC_METS_CONFIG_ADDR);
+	__raw_writel(REG_METS_CONFIG_RUN, TC_PADDR_REG_PE16_METS_CONFIG_ADDR);
+	__raw_writel(REG_METS_CONFIG_RUN, TC_PADDR_REG_VPU_METS_CONFIG_ADDR);
+	__raw_writel(REG_METS_CONFIG_RUN, TC_PADDR_REG_DDR_METS_CONFIG_ADDR);
+	__raw_writel(REG_METS_CONFIG_RUN, TC_PADDR_REG_PCIE_METS_CONFIG_ADDR);
+	__raw_writel(REG_METS_CONFIG_RUN, TC_PADDR_REG_NOC_METS_CONFIG_ADDR);
 }
 
 void dpu_tsensor_irq_init(void)
@@ -40,7 +40,7 @@ static int dpu_tsensor_irq_trigger(void)
 		irq_local_enable();
 		irq_local_disable();
 	}
-	irq_ack_irq(IRQ_TSENSOR0);
+	irqc_ack_irq(IRQ_TSENSOR0);
 	irqc_unmask_irq(IRQ_TSENSOR0);
 	return 0;
 }
@@ -50,7 +50,7 @@ static int do_tsensor(int argc, char *argv[])
 	if (argc < 2)
 		return -EINVAL;
 
-	if (strcmp(argv[1]. "irq") == 0)
+	if (strcmp(argv[1], "irq") == 0)
 		return dpu_tsensor_irq_trigger();
 	return -EINVAL;
 }

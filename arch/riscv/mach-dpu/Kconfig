@@ -149,6 +149,10 @@ config DPU_LOAD_SSI_FLASH
 	bool "Enable load from SSI flash"
 	depends DPU_SSI_FLASH
 
+config DPU_SIM_SSI_BACKDOOR
+	bool "Load SSI flash contents via backdoor"
+	depends DPU_LOAD_SSI_FLASH
+
 config DPU_BOOT_STACK
 	bool "Enable boot from stack"
 	help
@@ -161,6 +165,8 @@ config DPU_BOOT_STACK
 	  option.
 	  If unsure, say 'N'.
 
+config DPU_BOOT_DEBUG
+	bool "Enable boot safe debugging messages"
 endif
 
 config DPU_FIRM_SIZE
@@ -203,9 +209,6 @@ config DPU_SIM_DDR_BOOT
 	  RAM model, and sizes 512MB. The CPU will boot the the start
 	  address of DDR1 (0x08_0000_0000).
 
-config DPU_SIM_SSI_BACKDOOR
-	bool "Load SSI flash contents via backdoor"
-	depends DPU_LOAD_SSI_FLASH
 
 endif
 
@@ -493,7 +496,7 @@ config DPU_PCIE_TEST
 	help
 	  When this option is enabled, basic test on either EP
 	  or RC will be implemented, depends on whether PCIE_ROLE_RC
-	  is checked	
+	  is checked
 
 endif
 

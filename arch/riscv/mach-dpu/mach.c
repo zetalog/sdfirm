@@ -69,7 +69,9 @@ static void dpu_boot_spi(void)
 	printf("boot(spi): booting...\n");
 	boot_entry = (void *)CONFIG_DPU_BOOT_ADDR;
 	clk_enable(srst_flash);
-	dpu_flash_set_frequency(min(DPU_FLASH_FREQ, APB_CLK_FREQ));
+	/* dpu_flash_set_frequency(min(DPU_FLASH_FREQ, APB_CLK_FREQ)); */
+	/* max spi speed is 5M,so here configure to 4M. */
+	dpu_flash_set_frequency(min(DPU_FLASH_FREQ, DPU_FLASH_REAL_FREQ));
 	boot_entry();
 }
 #else
@@ -106,7 +108,13 @@ static void dpu_boot_ssi(void)
 	dpu_pe_boot();
 #ifdef CONFIG_DPU_LOAD_ZSBL
 #define DPU_BOOT_FILE	"fsbl.bin"
+#ifndef CONFIG_DPU_BOOT_STACK
+	/* fsbl.bin can't copy to SRAM_BASE which is for .data/.bss of zsbl.bin */
+	boot_entry = (void *)(SRAM_BASE + 0x8000);
+#else
 	boot_entry = (void *)SRAM_BASE;
+#endif
+
 #endif
 #ifdef CONFIG_DPU_LOAD_FSBL
 #define DPU_BOOT_FILE	"bbl.bin"
@@ -140,7 +148,11 @@ void board_early_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);
 	board_init_timestamp();
+#ifdef CONFIG_DPU_GEN2
+#ifndef CONFIG_DPU_FIRM
 	imc_config_ddr_intlv();
+#endif
+#endif
 }
 
 void board_late_init(void)
@@ -149,7 +161,9 @@ void board_late_init(void)
 	dpu_tsensor_irq_init();
 	dpu_ssi_irq_init();
 	dpu_ssi_flash_init();
+#ifdef CONFIG_PCI
 	pci_platform_init();
+#endif
 	board_boot();
 }
 

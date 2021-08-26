@@ -45,13 +45,13 @@
 void dpu_pe_boot(void)
 {
 #ifdef CONFIG_DPU_GEN2
+	__raw_writel(0xfffffffe, SRST_REG(0));
+	/* axi_clk->pll3 pclk */
 	clk_enable(srst_pcie1);
+	/* pe_clk -> pll1 pclk */
 	clk_enable(srst_gpdpu);
-#if 0
-	__raw_writel(0xffffffff, 0x04014060);
-	__raw_writel(0xffffffff, PLL_REG_BASE + 0x60);
-#endif
 	__raw_writel(0xffffffff, SRST_REG(0));
+	while (!(__raw_readl(SRST_REG(0)) & 0x1));
 #else /* CONFIG_DPU_GEN2 */
 	clk_enable(srst_gpdpu);
 #endif /* CONFIG_DPU_GEN2 */
