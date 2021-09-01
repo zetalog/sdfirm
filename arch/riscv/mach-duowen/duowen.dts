@@ -401,6 +401,74 @@
 		num-cs = <1>;
 		status = "okay";
 	};
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+	spi4: spi@8ff62000000 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "snps,dw-apb-ssi";
+		reg = <0x8ff 0x62000000 0x0 0x100>;
+		interrupts = <158>;
+		interrupt-parent = <&plic1>;
+		clocks = <&crcntl sbi_spi0_clk>;
+		clock-names = "pclk";
+		reg-io-width = <4>;
+		num-cs = <1>;
+		status = "okay";
+
+#ifdef CONFIG_DUOWEN_SSI_FLASH_SPI0
+		spiflash: macronix@0 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+			reg = <0>;
+			compatible = "macronix,mx25l25635f", "jedec,spi-nor";
+			spi-max-frequency = <CONFIG_DUOWEN_SSI_FLASH_FREQ>;
+			spi-cpha;
+			spi-cpol;
+			status = "okay";
+		};
+#endif /* CONFIG_DUOWEN_SSI_FLASH_SPI0 */
+	};
+	spi5: spi@8ff62100000 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "snps,dw-apb-ssi";
+		reg = <0x8ff 0x62100000 0x0 0x100>;
+		interrupts = <159>;
+		interrupt-parent = <&plic1>;
+		clocks = <&crcntl sbi_spi1_clk>;
+		clock-names = "pclk";
+		reg-io-width = <4>;
+		num-cs = <1>;
+		status = "okay";
+	};
+	spi6: spi@8ff62200000 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "snps,dw-apb-ssi";
+		reg = <0x8ff 0x62200000 0x0 0x100>;
+		interrupts = <160>;
+		interrupt-parent = <&plic1>;
+		clocks = <&crcntl sbi_spi2_clk>;
+		clock-names = "pclk";
+		reg-io-width = <4>;
+		num-cs = <1>;
+		status = "okay";
+	};
+	spi7: spi@8ff62300000 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "snps,dw-apb-ssi";
+		reg = <0x8ff 0x62300000 0x0 0x100>;
+		interrupts = <161>;
+		interrupt-parent = <&plic1>;
+		clocks = <&crcntl sbi_spi3_clk>;
+		clock-names = "pclk";
+		reg-io-width = <4>;
+		num-cs = <1>;
+		status = "okay";
+	};
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
+
 #endif /* CONFIG_DUOWEN_SSI_MASTER_DTS */
 	poweroff {
 		value = <0x5555>;
