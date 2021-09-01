@@ -145,13 +145,21 @@ config DPU_BOOT_ADDR
 	depends DPU_LOAD_SPI_FLASH
 	default 0x00000080
 
+choice
+	prompt "Storage to load from"
+	default DPU_LOAD_SSI_FLASH
+
 config DPU_LOAD_SSI_FLASH
-	bool "Enable load from SSI flash"
+	bool "SSI flash"
 	depends DPU_SSI_FLASH
 
-config DPU_SIM_SSI_BACKDOOR
-	bool "Load SSI flash contents via backdoor"
-	depends DPU_LOAD_SSI_FLASH
+config DPU_LOAD_ROM
+	bool "ROM"
+
+config DPU_LOAD_FAKE_PCIE_MEM
+	bool "fake PCIe memory"
+
+endchoice	
 
 config DPU_BOOT_STACK
 	bool "Enable boot from stack"

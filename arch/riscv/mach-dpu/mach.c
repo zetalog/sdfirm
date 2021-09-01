@@ -78,10 +78,46 @@ static void dpu_boot_spi(void)
 #define dpu_boot_spi()				do { } while (0)
 #endif
 
+#ifdef CONFIG_DPU_LOAD_ROM
+static void dpu_load_rom(void *boot_entry)
+{
+	uint32_t addr;
+	uint32_t size;
+
+	addr = 0x14400080;
+	size = 128 * 1024;
+	printf("from rom\n");
+
+	memcpy(boot_entry, (void *)addr, size);
+}
+#else
+#define dpu_load_rom(boot_entry)				do { } while (0)
+#endif
+
+#ifdef CONFIG_DPU_LOAD_FAKE_PCIE_MEM
+static void dpu_load_fake_pcie_mem(void *boot_entry)
+{
+	printf("DMA mcu_code.hex from pcie model(RC VIP) DDR to mcu DDR\n");
+	/* =====pcie model========// */
+	printf("pcie start:\n");
+	uint64_t pcie_ddr_addr = (uint64_t) (boot_entry);
+	unsigned int pcie_inmem_addr = 0;
+	unsigned int x_slice_pcie = 67108864;
+	unsigned int y_slice_pcie = 1;
+	unsigned int x_full_pcie = x_slice_pcie;
+
+	/* transfer const data from memory to spm */
+	Pcie_DDR_Transfer((void *)&pcie_ddr_addr, 0, (void *)pcie_inmem_addr, 0,
+			  x_slice_pcie, y_slice_pcie, x_full_pcie, 0, 0, 0);
+	while (!(PCIE_DDR_TransferFinish(0)))
+		;
+	/* =====pcie model========// */
+}
+#else
+#define dpu_load_fake_pcie_mem(boot_entry)				do { } while (0)
+#endif
+
 #ifdef CONFIG_DPU_LOAD_SSI_FLASH
-#ifdef CONFIG_DPU_SIM_SSI_BACKDOOR
-#define dpu_load_ssi(boot_entry, boot_file)	do { } while (0)
-#else /* CONFIG_DPU_SIM_SSI_BACKDOOR */
 static void dpu_load_ssi(void *boot_entry, const char *boot_file)
 {
 	uint32_t addr = 0;
@@ -99,8 +135,13 @@ static void dpu_load_ssi(void *boot_entry, const char *boot_file)
 	       addr, size);
 	dpu_ssi_flash_boot(boot_entry, addr, size);
 }
-#endif /* CONFIG_DPU_SIM_SSI_BACKDOOR */
+#else
+#define dpu_load_ssi(boot_entry, boot_file)				do { } while (0)
+#endif
 
+#if defined(CONFIG_DPU_LOAD_ROM) \
+	|| defined(CONFIG_DPU_LOAD_FAKE_PCIE_MEM) \
+	|| defined(CONFIG_DPU_LOAD_SSI_FLASH)
 static void dpu_boot_ssi(void)
 {
 	void (*boot_entry)(void);
@@ -114,13 +155,21 @@ static void dpu_boot_ssi(void)
 #else
 	boot_entry = (void *)SRAM_BASE;
 #endif
-
 #endif
+
 #ifdef CONFIG_DPU_LOAD_FSBL
 #define DPU_BOOT_FILE	"bbl.bin"
 	boot_entry = (void *)DDR_DATA_BASE;
 #endif
+
+#if defined(CONFIG_DPU_LOAD_ROM) \
+	|| defined(CONFIG_DPU_LOAD_FAKE_PCIE_MEM)
+	boot_entry = (void *)DDR_DATA_BASE;
+#endif
+
 	dpu_load_ssi(boot_entry, DPU_BOOT_FILE);
+	dpu_load_rom(boot_entry);
+	dpu_load_fake_pcie_mem(boot_entry);
 	printf("boot(ssi): validating SSI contents...\n");
 	cmd_batch();
 	printf("boot(ssi): booting...\n");
