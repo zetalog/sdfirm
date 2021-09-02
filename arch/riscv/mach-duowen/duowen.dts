@@ -348,7 +348,6 @@
 		reg-io-width = <4>;
 		num-cs = <1>;
 		status = "okay";
-
 #ifdef CONFIG_DUOWEN_SSI_FLASH_SPI0
 		spiflash: macronix@0 {
 			#address-cells = <1>;
@@ -414,7 +413,6 @@
 		reg-io-width = <4>;
 		num-cs = <1>;
 		status = "okay";
-
 #ifdef CONFIG_DUOWEN_SSI_FLASH_SPI0
 		spiflash: macronix@0 {
 			#address-cells = <1>;
@@ -468,8 +466,8 @@
 		status = "okay";
 	};
 #endif /* CONFIG_DUOWEN_SBI_DUAL */
-
 #endif /* CONFIG_DUOWEN_SSI_MASTER_DTS */
+
 	poweroff {
 		value = <0x5555>;
 		offset = <0x0>;
