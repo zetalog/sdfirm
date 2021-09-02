@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Jun  1 18:19:52 2021
+# Thu Sep  2 15:24:38 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -167,7 +167,10 @@ CONFIG_DPU_BOOT_SSI_FLASH=y
 CONFIG_DPU_LOAD=y
 # CONFIG_DPU_LOAD_SPI_FLASH is not set
 CONFIG_DPU_LOAD_SSI_FLASH=y
+# CONFIG_DPU_LOAD_ROM is not set
+# CONFIG_DPU_LOAD_FAKE_PCIE_MEM is not set
 # CONFIG_DPU_BOOT_STACK is not set
+# CONFIG_DPU_BOOT_DEBUG is not set
 CONFIG_DPU_BOOT_PE=y
 CONFIG_DPU_BOOT_VPU=y
 
@@ -497,8 +500,6 @@ CONFIG_SPIFLASH_W25Q32=y
 # DDR controller drivers
 #
 CONFIG_DW_UMCTL2=y
-CONFIG_DDR4_UDIMM=y
-# CONFIG_DDR4_RDIMM is not set
 
 #
 # Serial Presence Detect (SPD) drivers
