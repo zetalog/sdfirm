@@ -1,5 +1,6 @@
 #include <target/clk.h>
 #include <target/delay.h>
+#include <target/cmdline.h>
 
 void __dpu_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val)
 {
@@ -231,3 +232,82 @@ clk_freq_t freqplan_get_frclk(int pll, int plan)
 	fp = freqplan_get(pll, plan);
 	return fp ? fp->f_pll_rclk : freqplans_def[pll].f_pll_rclk;
 }
+
+#ifdef CONFIG_DPU_GEN2
+static void freq_swal_cfg(enum dpu_freq_reduce_type reduce_type,
+			  enum dpu_freq_reduce_factor reduce_fac)
+{
+	int val = 0;
+
+	/*
+	 *bit[3:2]:sft_swallow_ctrl
+	 *bit[1]:sft_swallow_en 1:use sft_swallow_ctrl;0:use tsensor ctrl
+	 *	which is generated auto. according to temprature changes
+	 *bit[0]:swallow_en:to enable tsensor ctrl&sft_swallow_ctrl
+	 */
+	if (reduce_type == DPU_REDUCE_FREQ_SOFT) {
+		/* bit[1:0]=11:use sft_swallow_ctrl */
+		/* sft_swallow_ctrl=00:no changes */
+		/* sft_swallow_ctrl=01:1/2 clk_in */
+		/* sft_swallow_ctrl=10:1/4 clk_in */
+		/* sft_swallow_ctrl=11:1/8 clk_in */
+		val = (reduce_fac << 2) | 0x3;
+		printf("val_soft=%x\n", val);
+	} else if (reduce_type == DPU_REDUCE_FREQ_TSENSOR) {
+		/*bit[1:0]=01:use tsensor ctrl */
+		val = 0x1;
+		printf("val_tsensor=%x\n", val);
+	} else {
+		printf("reduce type error\n");
+	}
+
+	/* pll0 */
+	__raw_writel(val, SWAL_REG(0x0));
+	/* pll1 */
+	__raw_writel(val, SWAL_REG(0x4));
+	/* pll2 */
+	__raw_writel(val, SWAL_REG(0x8));
+	/* pll3 */
+	__raw_writel(val, SWAL_REG(0xc));
+	/* pll4 */
+	__raw_writel(val, SWAL_REG(0x10));
+
+}
+
+static int do_freq_reduce(int argc, char *argv[])
+{
+	int fac;
+
+	if (argc < 3)
+		return -EINVAL;
+
+	if (argc > 3) {
+		if (strcmp(argv[2], "soft") != 0)
+			return -EINVAL;
+		fac = strtoul(argv[3], NULL, 0);
+
+		freq_swal_cfg(DPU_REDUCE_FREQ_SOFT, fac);
+	} else {
+		if (strcmp(argv[2], "tsensor") != 0)
+			return -EINVAL;
+		freq_swal_cfg(DPU_REDUCE_FREQ_TSENSOR, 0);
+	}
+
+	return 0;
+}
+
+static int do_freq(int argc, char *argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+
+	if (strcmp(argv[1], "reduce") == 0)
+		return do_freq_reduce(argc, argv);
+	return -ENODEV;
+}
+
+DEFINE_COMMAND(freq, do_freq, "freq reduce tree",
+	"freq reduce soft/tsensor [0/1/2/3]\n"
+	"    -soft/tsensor reduce frequency\n"
+);
+#endif

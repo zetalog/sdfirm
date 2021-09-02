@@ -96,6 +96,10 @@ extern caddr_t dpu_pll_reg_base;
 #define dpu_gmux_disable(pll, r)	\
 	__raw_clearl(DPU_GMUX_EN(r), PLL_GMUX_CFG(pll))
 
+/*swallow registers*/
+#define SWAL_BASE			PLL_REG(NR_PLLS, 0)
+#define SWAL_REG(offset)		(SWAL_BASE + (offset))
+
 /* Soft reset registers */
 #ifdef CONFIG_DPU_GEN2
 #define SRST_BASE			PLL_REG(NR_PLLS, 0x14)
@@ -212,6 +216,16 @@ extern caddr_t dpu_pll_reg_base;
 #endif
 #include <driver/dw_pll5ghz_tsmc12ffc.h>
 
+enum dpu_freq_reduce_type {
+	DPU_REDUCE_FREQ_SOFT,
+	DPU_REDUCE_FREQ_TSENSOR,
+};
+enum dpu_freq_reduce_factor {
+	DPU_REDUCE_FREQ_FAC0,
+	DPU_REDUCE_FREQ_FAC1,
+	DPU_REDUCE_FREQ_FAC2,
+	DPU_REDUCE_FREQ_FAC3,
+};
 #ifndef __ASSEMBLY__
 void dpu_pll_soft_reset(uint8_t comp);
 void dpu_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val);
