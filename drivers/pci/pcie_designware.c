@@ -220,10 +220,10 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
 			  upper_32_bits(cpu_addr));
 	dw_pcie_write_atu(pci, DW_PCIE_REGION_OUTBOUND, index,
 			  PCIE_IATU_LWR_LIMIT_ADDR_OFF_OUTBOUND, 0x4,
-			  lower_32_bits(cpu_addr + size -1));
+			  lower_32_bits(cpu_addr + size - 1));
 	dw_pcie_write_atu(pci, DW_PCIE_REGION_OUTBOUND, index,
 			  PCIE_IATU_UPPER_LIMIT_ADDR_OFF_OUTBOUND, 0x4,
-			  upper_32_bits(cpu_addr + size -1));
+			  upper_32_bits(cpu_addr + size - 1));
 	dw_pcie_write_atu(pci, DW_PCIE_REGION_OUTBOUND, index,
 			  PCIE_IATU_LWR_TARGET_ADDR_OFF_OUTBOUND, 0x4,
 			  lower_32_bits(pci_addr));
@@ -355,7 +355,7 @@ void dw_pcie_setup(struct dw_pcie *pci)
 	case 16:
 		val |= PORT_LINK_MODE_16_LANES;
 		break;
-	default:;
+	default:
 		con_err("dw_pcie: num-lanes %u: invalid value\n", lanes);
 		return;
 	}
