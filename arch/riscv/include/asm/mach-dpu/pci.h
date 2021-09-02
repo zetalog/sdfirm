@@ -140,21 +140,21 @@
 
 #define PCIE_SUBSYS_ADDR_START      0xc00000000ULL
 #define PCIE_CORE_X16_ADDR_START    PCIE_SUBSYS_ADDR_START
-#define PCIE_CORE_X8_ADDR_START     PCIE_CORE_X16_ADDR_START + 4*GB
-#define PCIE_CORE_X4_0_ADDR_START   PCIE_CORE_X8_ADDR_START + 4*GB
-#define PCIE_CORE_X4_1_ADDR_START   PCIE_CORE_X4_0_ADDR_START + 4*GB
-#define PCIE_SUBSYS_ADDR_END        PCIE_CORE_X4_1_ADDR_START + 4*GB
+#define PCIE_CORE_X8_ADDR_START     (PCIE_CORE_X16_ADDR_START + 4*GB)
+#define PCIE_CORE_X4_0_ADDR_START   (PCIE_CORE_X8_ADDR_START + 4*GB)
+#define PCIE_CORE_X4_1_ADDR_START   (PCIE_CORE_X4_0_ADDR_START + 4*GB)
+#define PCIE_SUBSYS_ADDR_END        (PCIE_CORE_X4_1_ADDR_START + 4*GB)
 
-#define PCIE_CORE_CFG_SIZE      512*KB
+#define PCIE_CORE_CFG_SIZE      (512*KB)
 #define PCIE_CORE_MEM_SIZE      (4*GB - 512*KB)
-#define PCIE_CORE_X16_CFG0_START     PCIE_CORE_X8_ADDR_START - PCIE_CORE_CFG_SIZE
-#define PCIE_CORE_X16_CFG1_START     PCIE_CORE_X8_ADDR_START - 2*PCIE_CORE_CFG_SIZE
-#define PCIE_CORE_X8_CFG0_START     PCIE_CORE_X4_0_ADDR_START - PCIE_CORE_CFG_SIZE
-#define PCIE_CORE_X8_CFG1_START     PCIE_CORE_X4_0_ADDR_START - 2*PCIE_CORE_CFG_SIZE
-#define PCIE_CORE_X4_0_CFG0_START     PCIE_CORE_X4_1_ADDR_START - PCIE_CORE_CFG_SIZE
-#define PCIE_CORE_X4_0_CFG1_START     PCIE_CORE_X4_1_ADDR_START - 2*PCIE_CORE_CFG_SIZE
-#define PCIE_CORE_X4_1_CFG0_START     PCIE_SUBSYS_ADDR_END - PCIE_CORE_CFG_SIZE
-#define PCIE_CORE_X4_1_CFG1_START     PCIE_SUBSYS_ADDR_END - 2*PCIE_CORE_CFG_SIZE
+#define PCIE_CORE_X16_CFG0_START     (PCIE_CORE_X8_ADDR_START - PCIE_CORE_CFG_SIZE)
+#define PCIE_CORE_X16_CFG1_START     (PCIE_CORE_X8_ADDR_START - 2*PCIE_CORE_CFG_SIZE)
+#define PCIE_CORE_X8_CFG0_START     (PCIE_CORE_X4_0_ADDR_START - PCIE_CORE_CFG_SIZE)
+#define PCIE_CORE_X8_CFG1_START     (PCIE_CORE_X4_0_ADDR_START - 2*PCIE_CORE_CFG_SIZE)
+#define PCIE_CORE_X4_0_CFG0_START     (PCIE_CORE_X4_1_ADDR_START - PCIE_CORE_CFG_SIZE)
+#define PCIE_CORE_X4_0_CFG1_START     (PCIE_CORE_X4_1_ADDR_START - 2*PCIE_CORE_CFG_SIZE)
+#define PCIE_CORE_X4_1_CFG0_START     (PCIE_SUBSYS_ADDR_END - PCIE_CORE_CFG_SIZE)
+#define PCIE_CORE_X4_1_CFG1_START     (PCIE_SUBSYS_ADDR_END - 2*PCIE_CORE_CFG_SIZE)
 
 #ifdef CONFIG_DPU_PCIE_TEST
 #define MSI_INT     0
@@ -168,20 +168,19 @@ void apb_write_c(uint32_t addr, uint32_t data, int port);
 
 void init_duowen_pcie_subsystem(void);
 
-struct duowen_pcie_subsystem
-{
-    uint64_t cfg_apb[5];
-    uint8_t link_mode;
+struct duowen_pcie_subsystem {
+	uint64_t cfg_apb[5];
+	uint8_t link_mode;
 
 #ifdef IPBENCH
-    //uint8_t port_
+	//uint8_t port_
 #endif
 
-    struct dw_pcie *controller;
+	struct dw_pcie *controller;
 
-    //uint8_t (* get_link_mode)(struct duowen_pcie_subsystem *pcie_subsystem);
-    //uint32_t (* apb_read)(uint64_t *addr);
-    //void (* apb_write)(uint64_t *addr, uint32_t val);
+	//uint8_t (* get_link_mode)(struct duowen_pcie_subsystem *pcie_subsystem);
+	//uint32_t (* apb_read)(uint64_t *addr);
+	//void (* apb_write)(uint64_t *addr, uint32_t val);
 };
 
 #ifdef CONFIG_PCI
