@@ -8,7 +8,7 @@ struct duowen_pcie_subsystem pcie_subsystem;
 struct dw_pcie controllers[] = {
 	// X16
 	{
-		.axi_dbi_port = AXI_DBI_PORT_X16,
+		//.axi_dbi_port = AXI_DBI_PORT_X16,
 		.dbi_base = CFG_AXI_CORE_X16,
 		.pp.cfg_bar0 = 3*GB + 512*KB,
 		.pp.cfg_bar1 = 3*GB + 1*MB,
@@ -20,7 +20,7 @@ struct dw_pcie controllers[] = {
 #ifndef CONFIG_DPU_GEN2
 	// X8
 	{
-		.axi_dbi_port = AXI_DBI_PORT_X8,
+		//.axi_dbi_port = AXI_DBI_PORT_X8,
 		.dbi_base = CFG_AXI_CORE_X8,
 		.pp.cfg_bar0 = PCIE_CORE_X8_CFG0_START,
 		.pp.cfg_bar1 = PCIE_CORE_X8_CFG1_START,
@@ -31,7 +31,7 @@ struct dw_pcie controllers[] = {
 
 	// X4_0
 	{
-		.axi_dbi_port = AXI_DBI_PORT_X4_0,
+		//.axi_dbi_port = AXI_DBI_PORT_X4_0,
 		.dbi_base = CFG_AXI_CORE_X4_0,
 		.pp.cfg_bar0 = PCIE_CORE_X4_0_CFG0_START,
 		.pp.cfg_bar1 = PCIE_CORE_X4_0_CFG1_START,
@@ -42,7 +42,7 @@ struct dw_pcie controllers[] = {
 
 	//X4_1
 	{
-		.axi_dbi_port = AXI_DBI_PORT_X4_1,
+		//.axi_dbi_port = AXI_DBI_PORT_X4_1,
 		.dbi_base = CFG_AXI_CORE_X4_1,
 		.pp.cfg_bar0 = PCIE_CORE_X4_1_CFG0_START,
 		.pp.cfg_bar1 = PCIE_CORE_X4_1_CFG1_START,
@@ -56,23 +56,47 @@ struct dw_pcie controllers[] = {
 uint32_t read_apb(uint64_t addr, uint8_t port)
 {
 	uint32_t data;
+
 #ifdef IPBENCH
 	apb_read_c(addr, &data, port);
 #else
-	data = readl(addr);
+	data = __raw_readl(addr);
 #endif
-	printf("ReadAPB: addr: 0x%08x; data: 0x%08x, port: %d\n", addr, data, port);
+#ifdef CONFIG_DW_PCIE_DEBUG
+	con_dbg("ReadAPB: addr: 0x%x; data: 0x%x, port: %d\n", addr, data, port);
+#endif
 	return data;
 }
 
 void write_apb(uint64_t addr, uint32_t data, uint8_t port)
 {
-	printf("WriteAPB: addr: 0x%llx; data: 0x%x port: %d\n", addr, data, port);
+#ifdef CONFIG_DW_PCIE_DEBUG
+	con_dbg("WriteAPB: addr: 0x%x; data: 0x%x port: %d\n", addr, data, port);
+#endif
 #ifdef IPBENCH
 	apb_write_c(addr, data, port);
 #else
-	writel(addr, data);
+	__raw_writel(data, addr);
 #endif
+}
+
+uint32_t dw_pcie_read_axi(uint64_t addr)
+{
+	uint32_t data;
+
+	data = __raw_readl(addr);
+#ifdef CONFIG_DUOWEN_PCIE_DEBUG
+	con_dbg("dw_pcie: AXI(R): 0x%llx=0x%x\n", addr, data);
+#endif
+	return data;
+}
+
+void dw_pcie_write_axi(uint64_t addr, uint32_t data)
+{
+#ifdef CONFIG_DUOWEN_PCIE_DEBUG
+	con_dbg("dw_pcie: AXI(W): 0x%llx=0x%x\n", addr, data);
+#endif
+	__raw_writel(data, addr);
 }
 
 

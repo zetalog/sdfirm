@@ -9,6 +9,40 @@ uint32_t form_pci_addr(int bus, int dev, int fun)
 	/* return ((bus << 24) | (dev << 19) | (fun << 16)); */
 }
 
+#ifdef CONFIG_DPU_GEN2
+static uint64_t format_dbi_addr(enum dw_pcie_access_type type, uint32_t reg)
+{
+	/* uint64_t route0, route1, addr; */
+	uint32_t route1, addr;
+
+	/* BUG_ON(reg & 0x3 != 0); */
+	switch (type) {
+	case DW_PCIE_CDM:
+		/* route0 = 0; */
+		route1 = 0;
+		break;
+	case DW_PCIE_SHADOW:
+		/* route0 = 1; */
+		route1 = 2;
+		break;
+	case DW_PCIE_ATU:
+		/* route0 = 3; */
+		route1 = 6;
+		break;
+	case DW_PCIE_DMA:
+		/* route0 = 3; */
+		route1 = 7;
+		break;
+	default:
+		con_err("dw_pcie: Other types is not supported\n");
+		return 0xffffffff;
+	}
+
+	/* addr = (route0 << 31) | (route1 << 17) | (uint64_t)reg; */
+	addr = (route1 << 19) | reg;
+	return addr;
+}
+#else
 static uint64_t format_dbi_addr(enum dw_pcie_access_type type, uint32_t reg)
 {
 	/* uint64_t route0, route1, addr; */
@@ -41,6 +75,7 @@ static uint64_t format_dbi_addr(enum dw_pcie_access_type type, uint32_t reg)
 	addr = (route1 << 17) | reg;
 	return addr;
 }
+#endif
 
 static uint32_t read_dbi(struct dw_pcie *pci, enum dw_pcie_access_type type,
 			 uint32_t reg)

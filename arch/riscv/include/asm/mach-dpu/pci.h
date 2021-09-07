@@ -120,15 +120,14 @@
 #define CFG_AXI_CORE_X4_0           0x0
 #define CFG_AXI_CORE_X4_1           0x0
 #else
-#define CFG_APB_PHY_0               0x4500000UL
-#define CFG_APB_SUBSYS              0x4510000UL
-#define CFG_APB_CORE_X16            0x4511000UL
+#define CFG_APB_PHY_0               0x20000800UL
+#define CFG_APB_SUBSYS              0x20000000UL
+#define CFG_APB_CORE_X16            0x20000400UL
 #define CFG_APB_CORE_X8             0x4512000UL
 #define CFG_APB_CORE_X4_0           0x4513000UL
 #define CFG_APB_CORE_X4_1           0x4514000UL
 
-
-#define CFG_AXI_CORE_X16            0x4300000UL
+#define CFG_AXI_CORE_X16            0x20800000UL
 #define CFG_AXI_CORE_X8             0x4380000UL
 #define CFG_AXI_CORE_X4_0           0x4400000UL
 #define CFG_AXI_CORE_X4_1           0x4480000UL
@@ -185,8 +184,12 @@ struct duowen_pcie_subsystem {
 
 #ifdef CONFIG_PCI
 void pci_platform_init(void);
+uint32_t dw_pcie_read_axi(uint64_t addr);
+void dw_pcie_write_axi(uint64_t addr, uint32_t data);
 #else
 #define pci_platform_init()			do { } while (0)
+#define dw_pcie_read_axi(addr) do { } while (0)
+#define dw_pcie_write_axi(addr, data) do { } while (0)
 #endif
 
 #endif /* __PCI_DPU_H_INCLUDE__ */
