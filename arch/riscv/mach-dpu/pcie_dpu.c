@@ -133,13 +133,12 @@ void reset_init(struct duowen_pcie_subsystem *pcie_subsystem)
 	uint64_t base = pcie_subsystem->cfg_apb[SUBSYS];
 	uint8_t port = APB_PORT_SUBSYS;
 	uint8_t mode = duowen_get_link_mode(pcie_subsystem);
-	uint32_t data = 0;
 
-	write_apb((base + RESET_PHY), 0x10, port);
-	write_apb((base + SRAM_CONTROL), 0x0, port);
-	write_apb((base + REFCLK_CONTROL), 0x2, port);
+	write_apb((base + RESET_PHY), 0x00, port);
+//	write_apb((base + SRAM_CONTROL), 0x0, port);
+	write_apb((base + REFCLK_CONTROL), 0x3, port);//xkm use ref clk from pad
 	// #200ns
-	write_apb((base + RESET_PHY), 0xf, port);
+	write_apb((base + RESET_PHY), 0x1f, port);
 	// #100ns
 
 	if (mode == LINK_MODE_16_0_0_0)
@@ -150,11 +149,11 @@ void reset_init(struct duowen_pcie_subsystem *pcie_subsystem)
 		write_apb((base + RESET_CORE_X4_0), 0xff, port);
 	else
 		write_apb((base + RESET_CORE_X4_1), 0xff, port);
-
-	while ((data & 0x1) != 0x1)
+#if 0/*xkm: temply if0 here since rtl set it to fixed hz state*/
+	while ((data & 0xf) != 0xf)
 		data = read_apb((base + SRAM_STATUS), port);
-
-	write_apb((base + SRAM_CONTROL), 0x1, port);
+#endif
+  //  write_apb((base + SRAM_CONTROL), 0x55, port);//xkm:should be 0xaa,now don't set this register
 	//write_apb((base + RESET_PHY), 0xff, port);
 }
 
@@ -164,11 +163,12 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
 	struct dw_pcie *controller = pcie_subsystem->controller;
 	uint8_t port = APB_PORT_SUBSYS;
 	uint8_t link_mode = pcie_subsystem->link_mode;
+	uint32_t val;
 
 	//assert(link_mode != LINK_MODE_INVALID);
 
 	// #10ns
-	write_apb((base + SUBSYS_CONTROL), link_mode, port);
+	//write_apb((base + SUBSYS_CONTROL), link_mode, port);//xkm: there is no 0x14 reg
 
 	switch (link_mode) {
 	case LINK_MODE_4_4_4_4:	 // 0: In DPU, X4_0
@@ -278,7 +278,7 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
 		break;
 	case LINK_MODE_16_0_0_0:	//  3: In DPU: X16
 #ifdef DPU
-		(controller + X16)->lane_num = 4;
+		(controller + X16)->lane_num = 16;
 		(controller + X8)->lane_num = 0;
 		(controller + X4_0)->lane_num = 0;
 		(controller + X4_1)->lane_num = 0;
@@ -313,11 +313,34 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
 		break;
 	}
 
-#ifdef CONFIG_DW_PCIE_RC
+#ifdef CONFIG_DPU_PCIE_ROLE_RC
 	write_apb((base + 0), 0xc810010, port);
 #else
-	write_apb((base + 0), 0xc810000, port);
+	val = read_apb((base + 0), port);
+	printf("before setting=%x\n", val);//xkm:if no read this reg,the vcs will fail
+	/* xkm:can't write this reg,otherwise will case error */
+	/* write_apb((base + 0), 0xc810000, port); */
 #endif
+}
+
+void wait_controller_linkup(struct duowen_pcie_subsystem *pcie_subsys)
+{
+	uint8_t i = 0, port = APB_PORT_X16;
+	uint32_t data;
+	uint64_t base = pcie_subsys->cfg_apb[X16];
+
+	data = read_apb((base + 0x10), port);
+	printf("wait controller smlh&rdlh ready\n");
+	while ((data & (_BV(0) | _BV(11))) != (_BV(0) | _BV(11))) {
+		data = read_apb((base + 0x10), port);
+		printf("count %d: link_status is:0x%x\n", i, data);
+		i++;
+		if (i > 100) {
+			printf("controller failed to establish link up\n");
+			break;
+		}
+	}
+
 }
 
 static void subsys_link_init_post(struct duowen_pcie_subsystem *pcie_subsys)
@@ -341,12 +364,14 @@ static void subsys_link_init_post(struct duowen_pcie_subsystem *pcie_subsys)
 		break;
 #endif
 	case LINK_MODE_16_0_0_0:
-		write_apb(pcie_subsys->cfg_apb[X16], 0xc018010, APB_PORT_X16);
+		write_apb(pcie_subsys->cfg_apb[X16], 0xc018000, APB_PORT_X16);//xkm
 #ifdef DPU
 		break;
 #endif
 		break;
 	}
+
+	wait_controller_linkup(pcie_subsys);//xkm
 }
 
 void dw_controller_init(struct dw_pcie *pci)
@@ -377,10 +402,12 @@ void clock_init(void)
 	clk_enable(pcie0_aclk);
 	clk_enable(pcie0_pclk);
 	clk_enable(pcie0_aux_clk);
-	clk_enable(pcie0_ref_clk);
+	//clk_enable(pcie0_ref_clk);//xkm
+	clk_enable(apb_clk);//xkm
 	//__raw_writel(0x2, 0x401405c);
 
 	clk_enable(srst_pcie0);
+	/* still need this to give pcie power comes from apb_clk */
 	clk_enable(srst_pcie0_por);
 }
 
@@ -473,27 +500,31 @@ void pci_platform_init(void)
 	controller = pcie_subsys->controller;
 
 	for (i = 0; i < sizeof(controllers) / sizeof(struct dw_pcie); i++) {
+		if (i != 0)//xkm
+			break;
 		if (controller->active == true)
-			dw_pcie_setup_rc(&(controller->pp));
+			dw_pcie_setup_dpu2(&(controller->pp));
 
 		controller++;
 	}
 
 	subsys_link_init_post(pcie_subsys);
 
-	//__raw_writel(0xa0, base + 0x40);
-	//__raw_writel(0x80000c00, base + 0x44);
+	printf("pci=%p\n", pci);
+	/* change_link_speed(pci, pcie_subsys); */
 
 #ifdef CONFIG_DPU_PCIE_TEST
 	printf("bird: PCIE TEST start\n");
 	// find which controller is in use, and enable its MSI int
 	controller = pcie_subsys->controller;
 	for (i = 0; i < sizeof(controllers) / sizeof(struct dw_pcie); i++) {
+		if (i != 0)//xkm
+			break;
 		if (controller->active == true)
 			break;
 		controller++;
 	}
-#ifdef CONFIG_DW_PCIE_RC
+#ifdef CONFIG_DPU_PCIE_ROLE_RC
 	uint64_t val;
 
 	irqc_configure_irq(IRQ_PCIE_X16_MSI, 0, IRQ_LEVEL_TRIGGERED);

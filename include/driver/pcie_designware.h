@@ -13,6 +13,7 @@
 #define LINK_WAIT_IATU			9
 
 /* Synopsys-specific PCIe configuration registers */
+#define PCIE_MSI_CAPABILITY     0x50
 #define PCIE_PORT_FORCE_OFF     0x708
 #define PORT_LINK_NUM_MASK      GENMASK(7, 0)
 #define PORT_LINK_NUM(n)        FIELD_PREP(PORT_LINK_NUM_MASK, n)
@@ -477,6 +478,7 @@ static inline void dw_pcie_dbi_ro_wr_dis(struct dw_pcie *pci)
 void dw_pcie_msi_init(struct pcie_port *pp);
 void dw_pcie_free_msi(struct pcie_port *pp);
 void dw_pcie_setup_ctrl(struct pcie_port *pp);
+void dw_pcie_setup_dpu2(struct pcie_port *pp);
 int dw_pcie_host_init(struct pcie_port *pp);
 void dw_pcie_host_deinit(struct pcie_port *pp);
 int dw_pcie_allocate_domains(struct pcie_port *pp);

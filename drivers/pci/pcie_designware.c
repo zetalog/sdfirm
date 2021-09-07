@@ -245,8 +245,6 @@ void dw_pcie_write_atu(struct dw_pcie *pci, enum dw_pcie_region_type region,
 void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
 		uint64_t cpu_addr, uint64_t pci_addr, uint64_t size)
 {
-	uint32_t val;
-
 	dw_pcie_write_atu(pci, DW_PCIE_REGION_OUTBOUND, index,
 			  PCIE_IATU_LWR_BASE_ADDR_OFF_OUTBOUND, 0x4,
 			  lower_32_bits(cpu_addr));
@@ -267,8 +265,9 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
 			  upper_32_bits(pci_addr));
 	dw_pcie_write_atu(pci, DW_PCIE_REGION_OUTBOUND, index,
 			  PCIE_IATU_REGION_CTRL1_OFF_OUTBOUND, 0x4, type);
-#if 1
-/* #ifdef CONFIG_DW_PCIE_RC */
+#ifdef CONFIG_DW_PCIE_RC
+	uint32_t val;
+
 	val = PCIE_ATU_ENABLE;
 	if ((type == PCIE_ATU_TYPE_CFG0) || (type == PCIE_ATU_TYPE_CFG1))
 		val |= _BV(28);
@@ -277,7 +276,7 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
 #else
 	/* for EP: enable regine & bypass DMA request */
 	dw_pcie_write_atu(pci, DW_PCIE_REGION_OUTBOUND, index,
-			  PCIE_IATU_REGION_CTRL2_OFF_OUTBOUND, 0x4, 0x88);
+			  PCIE_IATU_REGION_CTRL2_OFF_OUTBOUND, 0x4, 0x88000000);
 #endif
 #if 0
 	/* Make sure ATU enable takes effect before any subsequent config
@@ -528,6 +527,102 @@ void dw_pcie_setup_ctrl(struct pcie_port *pp)
 	dw_pcie_wr_own_conf(pp, PCIE_LINK_WIDTH_SPEED_CONTROL, 4, val);
 	dw_pcie_dbi_ro_wr_dis(pci);
 }
+
+void dw_pcie_setup_dpu2_sub(struct dw_pcie *pci)
+{
+	uint32_t val, tmp;
+	uint32_t lanes = pci->lane_num;
+
+	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_MSI_CAPABILITY, 0x4);
+
+	/* pcie multiple message capable set to 4 vectors */
+	tmp = 0x2 << 17;
+	val |= tmp;
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_MSI_CAPABILITY, val, 0x4);
+
+	/* Conifg Fast Link Scale Factor is 64(16us) */
+	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_TIMER_CTRL_MAX_FUN_NUM_OFF, 0x4);
+	tmp = 0x2 << 29;
+	val |= tmp;
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_TIMER_CTRL_MAX_FUN_NUM_OFF, val, 0x4);
+
+	/* Set the number of lanes */
+	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_PORT_LINK_CONTROL, 0x4);
+	val &= ~PORT_LINK_MODE_MASK;
+	switch (lanes) {
+	case 4:
+		val |= PORT_LINK_MODE_4_LANES;
+		break;
+	case 8:
+		val |= PORT_LINK_MODE_8_LANES;
+		break;
+	case 16:
+		val |= PORT_LINK_MODE_16_LANES;
+		break;
+	default:
+		break;
+	}
+
+	val |= _BV(7); // set fast link mode
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_PORT_LINK_CONTROL, val, 0x4);
+
+	/* Set link width speed control register */
+	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_LINK_WIDTH_SPEED_CONTROL, 0x4);
+	val &= ~PORT_LOGIC_LINK_WIDTH_MASK;
+	switch (lanes) {
+	case 4:
+		val |= PORT_LOGIC_LINK_WIDTH_4_LANES;
+		break;
+	case 8:
+		val |= PORT_LOGIC_LINK_WIDTH_8_LANES;
+		break;
+	case 16:
+		val |= PORT_LOGIC_LINK_WIDTH_16_LANES;
+		break;
+	}
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_LINK_WIDTH_SPEED_CONTROL, val, 0x4);
+}
+
+void dw_pcie_setup_dpu2(struct pcie_port *pp)
+{
+	uint32_t val;
+	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+
+	dw_pcie_dbi_ro_wr_en(pci);
+	dw_pcie_setup_dpu2_sub(pci);
+
+	dw_pcie_prog_outbound_atu(pci, 0, PCIE_ATU_TYPE_MEM,
+			pp->mem_base, 0x10000000, pp->mem_size);
+
+	/* Choose Storage class for EP test seems reasonably */
+	dw_pcie_wr_own_conf(pp, PCI_CLASS_DEVICE, 2, PCI_CLASS_STORAGE_OTHER);
+
+#ifdef CONFIG_SIMULATION
+	dw_pcie_wr_own_conf(pp, PCI_BASE_ADDRESS_0, 4, 0);
+#endif
+	dw_pcie_rd_own_conf(pp, PCI_COMMAND, 4, &val);
+	val |= 0x6;
+	dw_pcie_wr_own_conf(pp, PCI_COMMAND, 4, val);
+
+#ifdef CONFIG_DW_PCIE_SPEED_GEN1
+	printf("gen1 speed cfg\n");
+	/* link_control2_link_status */
+	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, 0xa0, 0x4); 
+	val &= 0xfffffff0;
+	val |= 0x1;
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM, 0xa0, val, 0x4);
+#endif
+	dw_pcie_rd_own_conf(pp, PCIE_LINK_WIDTH_SPEED_CONTROL, 4, &val);
+	val |= PORT_LOGIC_SPEED_CHANGE;
+	dw_pcie_wr_own_conf(pp, PCIE_LINK_WIDTH_SPEED_CONTROL, 4, val);
+	dw_pcie_dbi_ro_wr_dis(pci);
+
+	 /* Enable MSI int */
+	dw_pcie_rd_own_conf(pp, PCIE_MSI_CAPABILITY, 4, &val);
+	val |= 0x10000;
+	dw_pcie_wr_own_conf(pp, PCIE_MSI_CAPABILITY, 4, val);
+}
+
 
 void dw_pcie_enable_msi(struct pcie_port *pp)
 {
