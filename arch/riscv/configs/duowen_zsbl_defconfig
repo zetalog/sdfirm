@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Aug 23 10:29:55 2021
+# Wed Sep  8 08:53:51 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -92,7 +92,7 @@ CONFIG_CPU_PMP=y
 CONFIG_CPU_SV39=y
 CONFIG_RISCV_S=y
 CONFIG_RISCV_M=y
-CONFIG_RISCV_A=y
+# CONFIG_RISCV_A is not set
 # CONFIG_RISCV_F is not set
 # CONFIG_RISCV_D is not set
 CONFIG_RISCV_C=y
@@ -104,11 +104,6 @@ CONFIG_RISCV_PMP=y
 CONFIG_RISCV_WMO=y
 # CONFIG_RISCV_TSO is not set
 # CONFIG_VAISRA_ATOMIC is not set
-CONFIG_RISCV_ATOMIC_COUNT_32=y
-# CONFIG_RISCV_ATOMIC_COUNT_64 is not set
-CONFIG_RISCV_SPINLOCK_RAW=y
-# CONFIG_RISCV_SPINLOCK_TICKET is not set
-# CONFIG_RISCV_SPINLOCK_GENERIC is not set
 
 #
 # Compiler options
@@ -632,7 +627,6 @@ CONFIG_BIT_FFS16=y
 #
 # Bitmap operations
 #
-CONFIG_ARCH_HAS_BITS_PER_UNIT_32=y
 CONFIG_ARCH_HAS_BITS_PER_UNIT_64=y
 # CONFIG_BIT_FIND_CLEAR is not set
 
