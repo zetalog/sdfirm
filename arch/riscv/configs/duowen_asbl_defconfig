@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Sep  6 18:30:15 2021
+# Thu Sep  9 17:06:08 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -208,7 +208,12 @@ CONFIG_DUOWEN_APC_16=y
 # CONFIG_DUOWEN_APC_1_1000 is not set
 # CONFIG_DUOWEN_SIM_LOAD is not set
 CONFIG_DUOWEN_APC_INIT=y
-CONFIG_DUOWEN_PMA=y
+
+#
+# Duowen physical memory attributes (PMA) support
+#
+CONFIG_DUOWEN_PMA_CPU=y
+CONFIG_DUOWEN_PMA_SOC=y
 
 #
 # Duowen platform level interrupt controller (PLIC) support

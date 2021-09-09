@@ -44,8 +44,16 @@
 
 #include <target/arch.h>
 
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+#define DUOWEN_SMMU_SOC(smmu)	(((smmu) & 0x02) >> 1)
+#define DUOWEN_SMMU_DEV(smmu)	((smmu) & 0x01)
+#define SMMU_BASE(smmu)		\
+	(__DMA_SMMU_BASE + (DUOWEN_SMMU_SOC(smmu) ? SOC1_BASE : SOC0_BASE) + (DUOWEN_SMMU_DEV(smmu) << 22))
+#define SMMU_HW_MAX_CTRLS	4
+#else
 #define SMMU_BASE(smmu)		(DMA_SMMU_BASE + ((smmu) << 22))
 #define SMMU_HW_MAX_CTRLS	2
+#endif
 #define SMMU_HW_TRANS		SMMU_FEAT_TRANS_S1
 #define SMMU_HW_PTFS		(SMMU_FEAT_PTFS_RISCV_SV39 | \
 				 SMMU_FEAT_PTFS_RISCV_SV48 | \
@@ -64,6 +72,10 @@
 /* iommu_dev_t */
 #define IOMMU_DMAC		0
 #define IOMMU_PCIE		1
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+#define IOMMU_DMAC1		2
+#define IOMMU_PCIE1		3
+#endif
 
 #include <driver/smarco_rvsmmu.h>
 

@@ -72,7 +72,8 @@ config DUOWEN_ASBL
 	select SYS_EXIT_M
 	select DUOWEN_APC_INIT
 	select DUOWEN_NOC
-	select DUOWEN_PMA
+	select DUOWEN_PMA_CPU
+	select DUOWEN_PMA_SOC
 
 config DUOWEN_ZSBL
 	bool "0-stage ROM bootloader (ZSBL)"
@@ -87,7 +88,8 @@ config DUOWEN_ZSBL
 	select DUOWEN_SSI_FLASH if !DUOWEN_APC
 	select DUOWEN_APC_INIT if DUOWEN_APC
 	select DUOWEN_NOC if DUOWEN_APC
-	select DUOWEN_PMA if DUOWEN_APC
+	select DUOWEN_PMA_CPU if DUOWEN_APC
+	select DUOWEN_PMA_SOC if DUOWEN_APC
 	select DUOWEN_BOOT_PROT if DUOWEN_IMC
 
 config DUOWEN_FSBL
@@ -105,7 +107,8 @@ config DUOWEN_FSBL
 	select DUOWEN_SSI_FLASH
 	select DUOWEN_APC_INIT if (DUOWEN_APC && !DUOWEN_SBL_LOAD)
 	select DUOWEN_NOC if (DUOWEN_IMC || !DUOWEN_SBL_LOAD)
-	select DUOWEN_PMA if (DUOWEN_APC && !DUOWEN_SBL_LOAD)
+	select DUOWEN_PMA_CPU if (DUOWEN_APC && !DUOWEN_SBL_LOAD)
+	select DUOWEN_PMA_SOC if (DUOWEN_APC && !DUOWEN_SBL_LOAD)
 	select DUOWEN_BOOT_PROT if DUOWEN_LOAD_IMC_FIRMWARE
 
 config DUOWEN_BBL
@@ -125,7 +128,8 @@ config DUOWEN_BBL
 	select DUOWEN_NOC if !DUOWEN_SBL_LOAD
 	select DUOWEN_APC_INIT if !DUOWEN_SBL_LOAD
 	select DUOWEN_NOC if !DUOWEN_SBL_LOAD
-	select DUOWEN_PMA if !DUOWEN_SBL_LOAD
+	select DUOWEN_PMA_CPU if !DUOWEN_SBL_LOAD
+	select DUOWEN_PMA_SOC if !DUOWEN_SBL_LOAD
 	select DUOWEN_PCIE_SMMU_BYPASS if (DUOWEN_PCIE && !DUOWEN_SMMU)
 	select DUOWEN_SBI_DUAL if (DUOWEN_APC && DUOWEN_SOC_DUAL)
 
@@ -451,19 +455,24 @@ config DUOWEN_APC_INIT
 	bool "Duowen vaisra initialization support"
 	depends DUOWEN_APC
 
-menuconfig DUOWEN_PMA
-	bool "Duowen physical memory attributes (PMA) support"
+menu "Duowen physical memory attributes (PMA) support"
+
+config DUOWEN_PMA_CPU
+	bool "Enable CPU specific PMA support"
 	depends DUOWEN_APC
 	select VAISRA_PMA
 
-if DUOWEN_PMA
+config DUOWEN_PMA_SOC
+	bool "Enable SoC global PMA support"
+	select DUOWEN_SMMU if DUOWEN_APC
 
 config DUOWEN_PMA_DEBUG
 	bool "Enable debugging messages"
 	depends CONSOLE_DEBUG
+	depends DUOWEN_PMA_CPU || DUOWEN_PMA_SOC
 	depends !SBI
 
-endif
+endmenu
 
 menu "Duowen platform level interrupt controller (PLIC) support"
 
@@ -843,6 +852,7 @@ endif
 
 menuconfig DUOWEN_SMMU
 	bool "Duowen SMMU controller support"
+	depends DUOWEN_APC
 	help
 	  Duowen SMMU is an ARM SMMUv2 like IOMMU hardware, with
 	  necessary modifications in order to be used in the RISC-V

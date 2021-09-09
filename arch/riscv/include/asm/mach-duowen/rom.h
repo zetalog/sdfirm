@@ -57,10 +57,10 @@
  *  | PCIe Link Mode | NOC | BOOTHART | IMC | APC | APC Partial Good |
  *  +----------------+-----+----------+-----+-----+------------------+
  * SW_MSG_2
- * 31      1      0
- *  +------+------+
- *  | RSVD | SMMU |
- *  +------+------+
+ * 31      2     1      0
+ *  +------+-----+------+
+ *  | RSVD | PMA | SMMU |
+ *  +------+-----+------+
  *
  */
 
@@ -97,6 +97,7 @@
 #define ROM_SET_PCIE_LM(value)	_SET_FV(ROM_PCIE_LM, value)
 /* ROM_SOC_STATUS2 */
 #define ROM_SMMU_INIT		0
+#define ROM_PMA_INIT		1
 
 /* global status */
 #define rom_get_chiplink_ready()				\
@@ -123,6 +124,8 @@ bool rom_get_noc_configured(void);
 void rom_set_noc_configured(void);
 bool rom_get_smmu_configured(void);
 void rom_set_smmu_configured(void);
+bool rom_get_pma_configured(void);
+void rom_set_pma_configured(void);
 uint8_t rom_get_pcie_link_mode(void);
 void rom_set_pcie_link_mode(uint8_t mode);
 #endif /* __ASSEMBLY__ */

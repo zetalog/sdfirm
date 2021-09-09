@@ -31,14 +31,29 @@ smmu_sme_t smu_pcie_smes[NR_PCIE_IOMMUS] = {
  * address spaces. It's required in RISCV environment to support DMA
  * direct mapping functionality.
  */
+static void duowen_smmu_enable_riscv(iommu_t iommu)
+{
+#ifdef CONFIG_DUOWEN_PMA_DEBUG
+	con_dbg("smmu: SMMU_RISCV(%d): %016llx\n",
+		iommu, SMMU_RISCV(iommu));
+#endif
+	smmu_enable_global_bypass(iommu);
+}
+
 void duowen_smmu_early_init(void)
 {
-	smmu_enable_global_bypass(IOMMU_DMAC);
-	smmu_enable_global_bypass(IOMMU_PCIE);
-#ifdef CONFIG_DUOWEN_PMA_DEBUG
-	con_dbg("smmu: SMMU_RISCV(IOMMU_DMAC): %016llx\n",
-		SMMU_RISCV(IOMMU_DMAC));
-	con_dbg("smmu: SMMU_RISCV(IOMMU_PCIE): %016llx\n",
-		SMMU_RISCV(IOMMU_PCIE));
-#endif
+	iommu_t iommu;
+
+	/* XXX: APC Only SMMU Support
+	 *
+	 * Do not use SMMU when booting Linux with IMC, thus
+	 * CONFIG_DUOWEN_SMMU depends on CONFIG_DUOWEN_APC.
+	 */
+
+	if (rom_get_smmu_configured())
+		return;
+
+	for (iommu = 0; iommu < SMMU_HW_MAX_CTRLS; iommu++)
+		duowen_smmu_enable_riscv(iommu);
+	rom_set_smmu_configured();
 }

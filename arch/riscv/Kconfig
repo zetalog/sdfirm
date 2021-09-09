@@ -73,7 +73,6 @@ config ARCH_DUOWEN
 	select ARCH_HAS_BOOT2
 	select DUOWEN_TMR
 	select DUOWEN_SCSR
-	select DUOWEN_SMMU
 	select RISCV_COUNTERS if SBI
 	select FDT_BUILTIN if SBI_FDT
 	select CLINT if DUOWEN_APC

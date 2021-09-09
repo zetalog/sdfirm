@@ -80,7 +80,6 @@ void duowen_dual_init(void)
 	duowen_mmu_init();
 }
 
-#ifdef CONFIG_DUOWEN_PMA
 #ifdef CONFIG_DUOWEN_PMA_DEBUG
 static void duowen_pma_debug(void)
 {
@@ -90,7 +89,8 @@ static void duowen_pma_debug(void)
 #define duowen_pma_debug()			do { } while (0)
 #endif
 
-void duowen_pma_soc_init(void)
+#ifdef CONFIG_DUOWEN_PMA_SOC
+static void __duowen_pma_soc_init(void)
 {
 	int n = 0;
 
@@ -110,6 +110,17 @@ void duowen_pma_soc_init(void)
 			 ilog2_const(max(SZ_2M, DEV_SIZE)));
 }
 
+void duowen_pma_soc_init(void)
+{
+	if (!rom_get_pma_configured()) {
+		__duowen_pma_soc_init();
+		rom_set_pma_configured();
+	}
+	duowen_smmu_early_init();
+}
+#endif
+
+#ifdef CONFIG_DUOWEN_PMA_CPU
 void duowen_pma_cpu_init(void)
 {
 	int n = 0;
@@ -173,18 +184,6 @@ void duowen_plic_init(void)
 	}
 }
 #endif /* CONFIG_DUOWEN_PLIC_DUAL */
-
-void duowen_smmu_init(void)
-{
-	if (!rom_get_smmu_configured()) {
-		duowen_pma_soc_init();
-#ifdef CONFIG_DUOWEN_APC
-		/* Do not use SMMU when booting Linux with IMC */
-		duowen_smmu_early_init();
-#endif /* CONFIG_DUOWEN_APC */
-		rom_set_smmu_configured();
-	}
-}
 
 #ifdef CONFIG_SHUTDOWN
 #ifdef CONFIG_SBI
@@ -437,8 +436,8 @@ void board_late_init(void)
 	pci_platform_init();
 	/* PLIC parital goods and socket connection */
 	duowen_plic_init();
-	/* SMMU RISCV mode and PMA configuration */
-	duowen_smmu_init();
+	/* SMMU RISCV mode and SoC PMA configuration */
+	duowen_pma_soc_init();
 
 	/* Non-BBL bootloader initialization */
 	board_boot_early();

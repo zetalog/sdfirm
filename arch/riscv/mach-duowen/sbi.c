@@ -60,8 +60,10 @@ static int duowen_early_init(bool cold_boot)
 {
 #ifndef CONFIG_DUOWEN_APC_BOOT_HOOK
 	vaisra_cpu_init();
-	if (cold_boot)
+	if (cold_boot) {
+		duowen_pma_soc_init();
 		duowen_apc_noc_init();
+	}
 	duowen_pma_cpu_init();
 #endif
 
