@@ -364,6 +364,26 @@ void rom_set_noc_configured(void)
 	__rom_set_noc_configured(imc_socket_id());
 }
 
+static bool __rom_get_smmu_configured(uint8_t soc)
+{
+	return (!!(__raw_readl(ROM_SOC_STATUS2(soc)) & ROM_SMMU_INIT));
+}
+
+static void __rom_set_smmu_configured(uint8_t soc)
+{
+	__raw_setl(ROM_SMMU_INIT, ROM_SOC_STATUS2(soc));
+}
+
+bool rom_get_smmu_configured(void)
+{
+	return __rom_get_smmu_configured(imc_socket_id());
+}
+
+void rom_set_smmu_configured(void)
+{
+	__rom_set_smmu_configured(imc_socket_id());
+}
+
 static bool __rom_get_pcie_link_mode(uint8_t soc)
 {
 	return ROM_GET_PCIE_LM(__raw_readl(ROM_SOC_STATUS(soc)));

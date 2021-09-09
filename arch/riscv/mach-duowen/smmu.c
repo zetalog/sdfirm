@@ -35,4 +35,10 @@ void duowen_smmu_early_init(void)
 {
 	smmu_enable_global_bypass(IOMMU_DMAC);
 	smmu_enable_global_bypass(IOMMU_PCIE);
+#ifdef CONFIG_DUOWEN_PMA_DEBUG
+	con_dbg("smmu: SMMU_RISCV(IOMMU_DMAC): %016llx\n",
+		SMMU_RISCV(IOMMU_DMAC));
+	con_dbg("smmu: SMMU_RISCV(IOMMU_PCIE): %016llx\n",
+		SMMU_RISCV(IOMMU_PCIE));
+#endif
 }

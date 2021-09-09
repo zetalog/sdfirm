@@ -56,15 +56,24 @@
  *  +----------------+-----+----------+-----+-----+------------------+
  *  | PCIe Link Mode | NOC | BOOTHART | IMC | APC | APC Partial Good |
  *  +----------------+-----+----------+-----+-----+------------------+
+ * SW_MSG_2
+ * 31      1      0
+ *  +------+------+
+ *  | RSVD | SMMU |
+ *  +------+------+
+ *
  */
 
 #define __ROM_GBL_STATUS	(__SCSR_BASE + ____SCSR_SW_MSG(0))
 #define __ROM_SOC_STATUS	(__SCSR_BASE + ____SCSR_SW_MSG(1))
+#define __ROM_SOC_STATUS2	(__SCSR_BASE + ____SCSR_SW_MSG(2))
 #define ROM_GBL_STATUS		SCSR_SW_MSG(0)
 #ifdef CONFIG_DUOWEN_SBI_DUAL
 #define ROM_SOC_STATUS(soc)	__SCSR_SW_MSG(soc, 1)
+#define ROM_SOC_STATUS2(soc)	__SCSR_SW_MSG(soc, 2)
 #else /* CONFIG_DUOWEN_SBI_DUAL */
 #define ROM_SOC_STATUS(soc)	SCSR_SW_MSG(1)
+#define ROM_SOC_STATUS2(soc)	SCSR_SW_MSG(2)
 #endif /* CONFIG_DUOWEN_SBI_DUAL */
 
 /* ROM_GBL_STATUS */
@@ -86,6 +95,8 @@
 #define ROM_PCIE_LM_MASK	REG_8BIT_MASK
 #define ROM_GET_PCIE_LM(value)	_GET_FV(ROM_PCIE_LM, value)
 #define ROM_SET_PCIE_LM(value)	_SET_FV(ROM_PCIE_LM, value)
+/* ROM_SOC_STATUS2 */
+#define ROM_SMMU_INIT		0
 
 /* global status */
 #define rom_get_chiplink_ready()				\
@@ -110,6 +121,8 @@ uint8_t rom_get_cluster_num(void);
 uint8_t rom_get_cluster_map(void);
 bool rom_get_noc_configured(void);
 void rom_set_noc_configured(void);
+bool rom_get_smmu_configured(void);
+void rom_set_smmu_configured(void);
 uint8_t rom_get_pcie_link_mode(void);
 void rom_set_pcie_link_mode(uint8_t mode);
 #endif /* __ASSEMBLY__ */

@@ -47,7 +47,6 @@
 #include <target/ras.h>
 #include <target/noc.h>
 #include <target/eth.h>
-#include <target/iommu.h>
 
 static void duowen_modify_fdt(void *fdt)
 {
@@ -61,19 +60,13 @@ static int duowen_early_init(bool cold_boot)
 {
 #ifndef CONFIG_DUOWEN_APC_BOOT_HOOK
 	vaisra_cpu_init();
-	if (cold_boot) {
-		duowen_pma_soc_init();
+	if (cold_boot)
 		duowen_apc_noc_init();
-	}
 	duowen_pma_cpu_init();
 #endif
 
 	if (cold_boot) {
 		board_init_timestamp();
-#ifdef CONFIG_DUOWEN_APC
-		/* Do not use SMMU when booting Linux with IMC */
-		duowen_smmu_early_init();
-#endif /* CONFIG_DUOWEN_APC */
 #ifdef CONFIG_DUOWEN_IMC
 		/* Booting IMC kernel in DDR requires cohfab/ddr to work
 		 * at proper frequencies.
