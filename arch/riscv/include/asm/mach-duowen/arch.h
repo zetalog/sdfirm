@@ -81,6 +81,9 @@
 #if defined(CONFIG_DUOWEN_NOC) && defined(CONFIG_DUOWEN_APC)
 	jal	ra, duowen_noc_init
 #endif
+#ifdef CONFIG_DUOWEN_SMMU
+	jal	ra, duowen_smmu_pma_init
+#endif
 #endif
 	.endm
 	.macro	boot2_hook

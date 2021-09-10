@@ -40,7 +40,7 @@ static void duowen_smmu_enable_riscv(iommu_t iommu)
 	smmu_enable_global_bypass(iommu);
 }
 
-void duowen_smmu_early_init(void)
+void duowen_smmu_pma_init(void)
 {
 	iommu_t iommu;
 

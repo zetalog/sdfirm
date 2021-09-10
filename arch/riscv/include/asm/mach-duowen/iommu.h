@@ -134,6 +134,10 @@
 extern smmu_gr_t smmu_num_sms[];
 #endif /* ARCH_HAVE_IOMMU */
 
-void duowen_smmu_early_init(void);
+#ifdef CONFIG_DUOWEN_SMMU
+void duowen_smmu_pma_init(void);
+#else
+#define duowen_smmu_pma_init()				do { } while (0)
+#endif
 
 #endif /* __IOMMU_DUOWEN_H_INCLUDE__ */

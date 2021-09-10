@@ -116,7 +116,6 @@ void duowen_pma_soc_init(void)
 		__duowen_pma_soc_init();
 		rom_set_pma_configured();
 	}
-	duowen_smmu_early_init();
 }
 #endif
 
@@ -428,6 +427,8 @@ void board_late_init(void)
 	if (load_sel == IMC_BOOT_SSI)
 		duowen_ssi_init();
 
+	/* SoC PMA configuration */
+	duowen_pma_soc_init();
 	/* Coherence initialization */
 	duowen_imc_noc_init();
 	/* PCIe dual socket connection, must be done prior than all other
@@ -436,8 +437,6 @@ void board_late_init(void)
 	pci_platform_init();
 	/* PLIC parital goods and socket connection */
 	duowen_plic_init();
-	/* SMMU RISCV mode and SoC PMA configuration */
-	duowen_pma_soc_init();
 
 	/* Non-BBL bootloader initialization */
 	board_boot_early();
