@@ -516,6 +516,12 @@ config DPU_INITIATE_DMA_BY_LOCAL
 	  for DMA through ATU configuration, so that EP can get the RC allocced
 	  addr by reading local DDR memroy.
 
+config DPU_TEST_DDR_BY_DMA
+	bool "Test DDR through DMA huge data when in zebu test"
+	default n
+	help
+	  When this option is enabled, can verify DDR through DMA huge data.
+
 endif
 endif
 
