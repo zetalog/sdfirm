@@ -506,6 +506,17 @@ config DPU_PCIE_TEST
 	  or RC will be implemented, depends on whether PCIE_ROLE_RC
 	  is checked
 
+if DPU_PCIE_TEST
+
+config DPU_INITIATE_DMA_BY_LOCAL
+	bool "Initiate DMA by local when in zebu test"
+	default n
+	help
+	  When this option is enabled, RC alloc and tell EP the allocced addr
+	  for DMA through ATU configuration, so that EP can get the RC allocced
+	  addr by reading local DDR memroy.
+
+endif
 endif
 
 endmenu

@@ -607,7 +607,7 @@ void dw_pcie_setup_dpu2(struct pcie_port *pp)
 #ifdef CONFIG_DW_PCIE_SPEED_GEN1
 	printf("gen1 speed cfg\n");
 	/* link_control2_link_status */
-	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, 0xa0, 0x4); 
+	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, 0xa0, 0x4);
 	val &= 0xfffffff0;
 	val |= 0x1;
 	dw_pcie_write_dbi(pci, DW_PCIE_CDM, 0xa0, val, 0x4);
