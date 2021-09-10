@@ -702,6 +702,139 @@ void dw_pcie_ep_dma_rc2ep(struct pcie_port *pp, uint8_t channel)
 #endif
 }
 
+void dw_pcie_ep_dma_ep2rc_api(struct pcie_port *pp, uint8_t channel,
+		uint64_t src, uint64_t dst, uint32_t size)
+{
+	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+
+	uint32_t val, data;
+#ifndef CONFIG_SIMULATION
+	uint32_t intflg;
+#endif
+	/* DMA write control 1 reg */
+	data = dw_pcie_read_dbi(pci, DW_PCIE_DMA, (0x200 + (channel * 0x200)), 0x4);
+	if ((data & 0x60) == 0x20) {
+		printf("DMA wr ch%d is in-progress\n", channel);
+		return;
+	}
+
+	// config max payload size/read request size, 0x78?
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM, 0x78, 0x50b0, 0x4);
+
+	// set DMA Engine Enable register
+	dw_pcie_write_dbi(pci, DW_PCIE_DMA, 0xc, 0x1, 0x4);
+	// set DMA write interrupt mask register
+	val = 0xffffffff;
+	dw_pcie_write_dbi(pci, DW_PCIE_DMA, 0x54, val, 0x4);
+
+	dw_pcie_rd_cdm_reg(pp, 0x54, 4, &val);//msi low addr
+	dw_pcie_write_dbi(pci, DW_PCIE_DMA, 0x60, val, 0x4);
+
+	dw_pcie_rd_cdm_reg(pp, 0x58, 4, &val);//msi high addr
+	dw_pcie_write_dbi(pci, DW_PCIE_DMA, 0x64, val, 0x4);
+
+	dw_pcie_rd_cdm_reg(pp, 0x5c, 4, &val);//msi data
+
+	data = dw_pcie_read_dbi(pci, DW_PCIE_DMA, 0x70, 0x4);//msi data reg
+	if ((channel % 2) == 1) {
+		data &= 0xffff;
+		data |= (val << 16);
+	} else {
+		data &= 0xffff0000;
+		data |= val;
+	}
+	dw_pcie_write_dbi(pci, DW_PCIE_DMA, 0x70, data, 0x4);
+
+	val = 0x04000018;//enable local & msi interrupt
+	// set DMA Channel control 1 register
+	dw_pcie_write_dbi(pci, DW_PCIE_DMA, (0x200 + (channel * 0x200)), val, 0x4);
+
+	//printf("size=%x\n",size);
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM, 0x84c, size, 0x4);
+	// set DMA transfer size register
+	dw_pcie_write_dbi(pci, DW_PCIE_DMA, (0x208 + (channel * 0x200)), size, 0x4);
+	// set DMA SAR low register
+	val = src & 0xffffffff;
+	//printf("src low addr=%x\n",val);
+	dw_pcie_write_dbi(pci, DW_PCIE_DMA, (0x20c + (channel * 0x200)), val, 0x4);
+	// set DMA SAR high register
+	val = ((src & 0xffffffff00000000) >> 32);
+	//printf("src high addr=%x\n",val);
+	dw_pcie_write_dbi(pci, DW_PCIE_DMA, (0x210 + (channel * 0x200)), val, 0x4);
+	// set DMA DAR low register
+	val = dst & 0xffffffff;
+	//printf("dst low addr=%x\n",val);
+	dw_pcie_write_dbi(pci, DW_PCIE_DMA, (0x214 + (channel * 0x200)), val, 0x4);
+	// set DMA DAR high register
+	val = ((dst & 0xffffffff00000000) >> 32);
+	//printf("dst high addr=%x\n",val);
+	dw_pcie_write_dbi(pci, DW_PCIE_DMA, (0x218 + (channel * 0x200)), val, 0x4);
+	// set DMA write doorbell register
+	dw_pcie_write_dbi(pci, DW_PCIE_DMA, 0x10, channel, 0x4);
+
+	val = dw_pcie_read_dbi(pci, DW_PCIE_DMA, 0x4c, 0x4);
+	//write channel 0 DMA done interrupt status
+	while (!(val & (1 << channel)))	{
+		val = dw_pcie_read_dbi(pci, DW_PCIE_DMA, 0x4c, 0x4);
+		if (val != 0) {
+			//printf("wr ch%d st=%x\n", channel, val);
+		}
+	}
+
+}
+
+
+void dma_ep2rc(struct pcie_port *pp, uint8_t channel, uint64_t src, uint64_t dst, uint32_t size)
+{
+	uint32_t times, lastsize, i, sizepertime, data;
+	uint64_t srcpertime, dstpertime;
+	struct dw_pcie *pci = NULL;
+	struct dw_pcie *controller;
+
+	controller = &controllers[0];
+	pci = to_dw_pcie_from_pp(&(controller->pp));
+
+
+	if (size > 0x400000) {
+		times = size / 0x400000;
+		lastsize = size % 0x400000;
+		if (lastsize)
+			times++;
+		else
+			lastsize = 0x400000;
+	} else {
+		times = 1;
+		lastsize = size;
+	}
+
+	printf("times=%d,lastsize=%x\n", times, lastsize);
+	srcpertime = src;
+	dstpertime = dst;
+	for (i = 0; i < times; i++) {
+		sizepertime = 0x400000;
+		if ((times - 1) == i) {
+			sizepertime = lastsize;
+			/* EP write to RC finished */
+			data = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_FLAG_REG, 0x4);
+			data &= 0xfffffff8;
+			data |= EP2RC_LAST_PKG_FLG;
+			/* EP write to RC finished */
+			dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_FLAG_REG, data, 0x4);
+			//printf("850 set to 1\n");
+		}
+		//printf("src=%llx,dst=%llx,size=%x\n",srcpertime,dstpertime,sizepertime);
+		dw_pcie_ep_dma_ep2rc_api(pp, channel, srcpertime, dstpertime, sizepertime);
+
+		srcpertime += 0x400000;
+		data = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_RC_RCVED_REG, 0x4);//RC rcved
+		while (!data) {//wait until RC rcved
+			data = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_RC_RCVED_REG, 0x4);//RC rcved
+		}
+		//printf("RC rcved %d\n",i);
+		dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_RC_RCVED_REG, 0, 0x4);
+	}
+}
+
 void dpu_pcie_inta_handler(irq_t irq)
 {
 	uint32_t val;
@@ -789,7 +922,35 @@ static void pcie_dma_bh_poll_handler(uint8_t events)//forever polling
 
 #endif
 
-#ifdef CONFIG_DPU_INITIATE_DMA_BY_LOCAL
+#ifndef CONFIG_DPU_INITIATE_DMA_BY_LOCAL
+	if (huge_data_finished == 1) {
+		huge_data_finished = 0;
+#ifdef CONFIG_DPU_TEST_DDR_BY_DMA
+		val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_RC_ADDR_LOW_REG, 0x4);//rc addr low
+		//printf("rc ddr addr low=%x\n",val);
+		src = val;
+		value = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_RC_ADDR_HI_REG, 0x4);//rc addr high
+		//printf("rc ddr addr high=%x\n",value);
+		src |= (value << 32);
+		printf("rc ddr addr=%llx\n", src);
+		val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_EP_ADDR_LOW_REG, 0x4);//ep addr low
+		//printf("ep ddr addr low=%x\n",val);
+		dst = val;
+		value = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_EP_ADDR_HI_REG, 0x4);//ep addr high
+		//printf("ep ddr addr high=%x\n",value);
+		dst |= (value << 32);
+		printf("ep ddr addr=%llx\n", dst);
+		/* huge data size */
+		val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_HUGE_DATA_SIZE_REG, 0x4);
+		printf("size=%x\n", val);
+		size = val;
+		dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_EP_RCVED_REG, 1, 0x4);//EP rcved
+		dma_ep2rc(&(controller->pp), 0, dst, src, size);
+
+
+#endif
+	}
+#else
 	asm("fence.i\n\t");
 	tmp = __raw_readl(0x800000000);
 	asm("fence.i\n\t");
