@@ -2165,6 +2165,27 @@
 			#dma-cells = <1>;
 			status = "okay";
 		};
+
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+		dma1:dma@8ff03000000 {
+			compatible = "snps,axi-dma-1.01a";
+			reg = < 0x8ff 0x3000000 0x0 0x100000 >;
+			clocks = <&crcntl sbi_dma_clk>,
+				 <&crcntl sbi_sysfab_clk>;
+			clock-names = "core-clk", "cfgr-clk";
+			interrupt-parent = <&plic1>;
+			interrupts = <65>;
+			interrupts-names = "dma1";
+			dma-channels = <8>;
+			snps,dma-masters = <1>;
+			snps,data-width = <5>;
+			snps,block-size = <0x200000 0x200000 0x200000 0x200000 0x200000 0x200000 0x200000 0x200000>;
+			snps,priority = <0 1 2 3 4 5 6 7>;
+			snps,axi-max-burst-len = <16>;
+			#dma-cells = <1>;
+			status = "okay";
+		};
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 #endif /* CONFIG_DUOWEN_DMAC_DTS */
 	};
 };
