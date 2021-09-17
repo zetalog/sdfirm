@@ -268,10 +268,14 @@ struct duowen_pcie_subsystem {
 void pci_platform_init(void);
 uint32_t dw_pcie_read_axi(uint64_t addr);
 void dw_pcie_write_axi(uint64_t addr, uint32_t data);
+void pcie_dw_dma_ep2rc(uint8_t channel, uint64_t src, uint32_t size);
+uint64_t rd_pcie_rsved_reg_4_baseaddr(uint32_t addr_low, uint32_t addr_hi);
 #else
 #define pci_platform_init()			do { } while (0)
 #define dw_pcie_read_axi(addr) do { } while (0)
 #define dw_pcie_write_axi(addr, data) do { } while (0)
+#define pcie_dw_dma_ep2rc(channel, src, size) do { } while (0)
+#define rd_pcie_rsved_reg_4_baseaddr(addr_low, addr_hi) do { } while (0)
 #endif
 
 #endif /* __PCI_DPU_H_INCLUDE__ */
