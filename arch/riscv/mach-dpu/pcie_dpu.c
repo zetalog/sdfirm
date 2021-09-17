@@ -1,6 +1,7 @@
 #include <target/pci.h>
 #include <target/clk.h>
 #include <target/irq.h>
+#include <target/page.h>
 #include <asm/mach/tcsr.h>
 
 
@@ -9,8 +10,8 @@ static int pcie_dma_bh_poll;
 #endif
 int huge_data_finished = 0;
 int dma_irq_triggered = false;
-
 struct duowen_pcie_subsystem pcie_subsystem;
+uint64_t ep_rsved_page_addr;
 
 struct dw_pcie controllers[] = {
 	// X16
@@ -835,6 +836,25 @@ void dma_ep2rc(struct pcie_port *pp, uint8_t channel, uint64_t src, uint64_t dst
 	}
 }
 
+void pcie_dw_dma_ep2rc(uint8_t channel, uint64_t src, uint32_t size)
+{
+	struct dw_pcie *controller;
+	uint32_t val;
+	struct dw_pcie *pci = NULL;
+	uint64_t dst, value;
+
+	controller = &controllers[0];
+	pci = to_dw_pcie_from_pp(&(controller->pp));
+
+	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_RC_ADDR_LOW_REG, 0x4);//rc addr low
+	dst = val;
+	value = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_RC_ADDR_HI_REG, 0x4);//rc addr high
+	dst |= (value << 32);
+	printf("rc ddr addr 4 result=%llx\n", dst);
+
+	dma_ep2rc(&(controller->pp), channel, src, dst, size);
+}
+
 void dpu_pcie_inta_handler(irq_t irq)
 {
 	uint32_t val;
@@ -948,6 +968,122 @@ static void pcie_dma_bh_poll_handler(uint8_t events)//forever polling
 		dma_ep2rc(&(controller->pp), 0, dst, src, size);
 
 
+#else
+		val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_EP_ADDR_LOW_REG, 0x4);//ep addr low
+		//printf("ep ddr addr low=%x\n",val);
+		dst = val;
+		value = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_EP_ADDR_HI_REG, 0x4);//ep addr high
+		//printf("ep ddr addr high=%x\n",value);
+		dst |= (value << 32);
+		printf("ep ddr addr=%llx\n", dst);
+
+		if (ep_rsved_page_addr == dst) {// invalid DMA
+			/* bit[2:0]:1 for malloc;2 for free;3 for dump */
+			tmp = dw_pcie_read_dbi(pci, DW_PCIE_CDM,
+					PCIE_CMD_REG, 0x4);
+			tmp &= 0x7;
+			//printf("val(1:malloc;2:free;3:dump)=%x\n",tmp);
+
+			if (tmp == MEM_ALLOC_REQ) {
+				val = dw_pcie_read_dbi(pci, DW_PCIE_CDM,
+						PCIE_TOTAL_SIZE_LW_REG, 0x4);
+				//printf("rc malloc size low=%x\n",val);
+				dst = val;
+				value = dw_pcie_read_dbi(pci, DW_PCIE_CDM,
+						PCIE_TOTAL_SIZE_HI_REG, 0x4);
+				value &= 0xf;
+				//printf("rc malloc size hi=%x\n",value);
+				dst |= (value << 32);
+				printf("rc malloc size=%llx\n", dst);
+
+				nr_pages = (dst/(1 << PAGE_SHIFT));
+				if ((dst%(1 << PAGE_SHIFT)))
+					nr_pages++;
+
+				addr64 = (uint64_t)page_alloc_pages(nr_pages);
+				printf("alloc ep addr = %llx\n", addr64);
+
+				val = addr64&0xffffffff;
+				dw_pcie_write_dbi(pci, DW_PCIE_CDM,
+						EP_ALLOCED_MEM_LW_REG, val, 0x4);
+
+				val = dw_pcie_read_dbi(pci, DW_PCIE_CDM,
+						EP_ALLOCED_MEM_HI_REG, 0x4);
+				val &= 0xfffffff0;
+				val |= ((uint32_t)((addr64&0xf00000000) >> 32));
+				dw_pcie_write_dbi(pci, DW_PCIE_CDM,
+						EP_ALLOCED_MEM_HI_REG, val, 0x4);
+
+				val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_FLAG_REG, 0x4);
+				val &= 0xfffffff8;
+				val |= EP2RC_MALLOC_OK_FLG;
+				dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_FLAG_REG, val, 0x4);
+			}
+
+			if (tmp == MEM_FREE_REQ) {
+				val = dw_pcie_read_dbi(pci, DW_PCIE_CDM,
+						PCIE_TOTAL_SIZE_LW_REG, 0x4);
+				//printf("rc free size low=%x\n",val);
+				dst = val;
+				value = dw_pcie_read_dbi(pci, DW_PCIE_CDM,
+						PCIE_TOTAL_SIZE_HI_REG, 0x4);
+				value &= 0xf;
+				//printf("rc free size hi=%x\n",value);
+				dst |= (value << 32);
+				printf("rc free size=%llx\n", dst);
+
+				nr_pages = (dst/(1 << PAGE_SHIFT));
+				if ((dst%(1 << PAGE_SHIFT)))
+					nr_pages++;
+
+				val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, RC_FREE_MEM_LW_REG, 0x4);
+				//printf("rc free addr low=%x\n",val);
+				dst = val;
+				val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, RC_FREE_MEM_HI_REG, 0x4);
+				val &= 0xf;
+				//printf("rc free addr high=%x\n",val);
+				value = val;
+				dst |= (value << 32);
+				//printf("rc free addr=%llx\n",dst);
+
+				page_free_pages(dst, nr_pages);
+				printf("free ep addr = %llx\n", dst);
+
+				val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_FLAG_REG, 0x4);
+				val &= 0xfffffff8;
+				val |= EP2RC_FREE_OK_FLG;
+				dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_FLAG_REG, val, 0x4);
+
+			}
+			if (tmp == MEM_DUMP_REQ) {
+				#ifdef CONFIG_PAGE
+				do_page_dump(0, 0);
+				#endif
+				val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_FLAG_REG, 0x4);
+				val &= 0xfffffff8;
+				val |= EP2RC_INVALID_FLG;
+				dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_FLAG_REG, val, 0x4);
+
+			}
+			val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_CMD_REG, 0x4);
+			val &= 0xfffffff8;
+			val |= INVALID_CMD_REQ;
+			dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_CMD_REG, val, 0x4);
+		} else {
+			printf("check ddr start\n");
+			asm("fence.i\n\t");
+			for (i = 0; i < 1; i++) {
+				printf("%llx:\n", (dst + i*0x400000));
+				for (j = 0; j < 4; j++) {
+					val = __raw_readl((dst+i*0x400000)+j*4);
+					printf("%08x ", val);
+				}
+				printf("\n");
+			}
+			asm("fence.i\n\t");
+			printf("check ddr end\n");
+		}
+		dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_EP_RCVED_REG, 1, 0x4);//EP rcved
 #endif
 	}
 #else
@@ -1023,9 +1159,56 @@ static void pcie_dma_bh_poll_handler(uint8_t events)//forever polling
 
 	}
 #endif
+	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_FLAG_REG, 0x4);
+	val &= 0x7;
+	if (val == RC2EP_RUN_MCU_CODE_FLG) {
+		//printf("run mcu code\n");
+		__raw_writel(0xfffffffe, SRST_REG(0));
+		__raw_writel(0xffffffff, SRST_REG(0));
+		while (!(__raw_readl(SRST_REG(0)) & 0x1))
+			;
+
+		val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_FLAG_REG, 0x4);
+		val &= 0xfffffff8;
+		val |= EP2RC_INVALID_FLG;
+		dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_FLAG_REG, val, 0x4);
+
+		val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_EP_ADDR_LOW_REG, 0x4);//ep addr low
+		//printf("ep ddr addr low=%x\n",val);
+		dst = val;
+		value = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_EP_ADDR_HI_REG, 0x4);//ep addr high
+		//printf("ep ddr addr high=%x\n",value);
+		dst |= (value << 32);
+		printf("mcu code run addr=%llx\n", dst);
+		boot_entry = (void *)dst;
+		boot_entry();
+
+		val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_FLAG_REG, 0x4);
+		val &= 0xfffffff8;
+		val |= EP2RC_RUN_MCU_OK_FLG;
+		dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_FLAG_REG, val, 0x4);
+
+		printf("returned from main\n");
+		// unreachable();
+	}
 }
 #endif
 
+uint64_t rd_pcie_rsved_reg_4_baseaddr(uint32_t addr_low, uint32_t addr_hi)
+{
+	uint32_t val;
+	uint64_t val64;
+	struct dw_pcie *controller;
+	struct dw_pcie *pci = NULL;
+
+	controller = &controllers[0];
+	pci = to_dw_pcie_from_pp(&(controller->pp));
+
+	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, addr_low, 0x4);//port logic rsved reg
+	val64 = dw_pcie_read_dbi(pci, DW_PCIE_CDM, addr_hi, 0x4);//port logic rsved reg
+	val64 = ((val64 << 32) | val);
+	return val64;
+}
 
 void pci_platform_init(void)
 {
@@ -1050,6 +1233,7 @@ void pci_platform_init(void)
 	reset_init(pcie_subsys);
 
 	controller = pcie_subsys->controller;
+	pci = to_dw_pcie_from_pp(&(controller->pp));
 
 	for (i = 0; i < sizeof(controllers) / sizeof(struct dw_pcie); i++) {
 		if (i != 0)//xkm
@@ -1219,6 +1403,47 @@ void pci_platform_init(void)
 		printf("fakeddr addr%x :%x\n", (num*4), val);
 	}
 	asm("fence.i\n\t");
+
+	j = 0;
+	for (i = 0; i < 27; i++) {
+		addr = 0x700 + (0x120 + i*4);
+		//num = 0x12345678 + i;
+		//num = 0xffffffff;
+		num = 0;
+		dw_pcie_write_dbi(pci, DW_PCIE_CDM, addr, num, 0x4);
+		val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, addr, 0x4);//port logic rsved reg
+		if (num == val) {
+			j++;
+			//printf("addr:%x,val=%x\n",addr,val);
+		}
+	}
+	printf("There are %d reserved regs can be used\n", j);
+
+#ifdef CONFIG_FIRMWARE
+	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_FLAG_REG, 0x4);
+	val &= 0xfffffff8;
+	val |= EP2RC_RUN_MCU_OK_FLG;
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_FLAG_REG, val, 0x4);
+#endif
+	/* Reserved 1 page(4KB) for invalid DMA just for generate interrupt */
+	addr64 = (uint64_t)page_alloc_pages(1);
+	ep_rsved_page_addr = addr64;
+	printf("Reserved addr = %llx\n", addr64);
+
+	addr = (uint32_t)(addr64 & 0xffffffff);
+	printf("EP rsved page low=%x\n", addr);
+	/* save EP reserved page LOW[31:0] for invalid DMA */
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM, EP_RSVED_MEM_LW_REG, addr, 0x4);
+	addr = (uint32_t)((addr64 & 0xffffffff00000000) >> 32);
+	addr <<= 4;
+	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, RC_FREE_MEM_HI_REG, 0x4);
+	val &= 0xffffff0f;//bit[7:4] to save reserved page HI[3:0]
+	val |= addr;
+	printf("EP rsved page hi[3:0] in [7:4] in %x\n", val);
+	/* save EP reserved page HI[3:0] for invalid DMA */
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM, RC_FREE_MEM_HI_REG, val, 0x4);
+
+
 
 	irq_local_enable();
 	pcie_dma_bh_poll = bh_register_handler(pcie_dma_bh_poll_handler);

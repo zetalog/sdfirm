@@ -163,7 +163,7 @@ static int do_page_alloc(int argc, char **argv)
 	return 0;
 }
 
-static int do_page_dump(int argc, char **argv)
+int do_page_dump(int argc, char **argv)
 {
 	struct page *page;
 
