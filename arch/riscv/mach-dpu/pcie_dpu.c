@@ -1194,6 +1194,131 @@ static void pcie_dma_bh_poll_handler(uint8_t events)//forever polling
 }
 #endif
 
+void change_link_speed(struct dw_pcie *pci, struct duowen_pcie_subsystem *pcie_subsys)
+{
+	//uint32_t lanes = pci->lane_num;
+	#define TEST_SPEED_NUM 10
+	uint32_t target_speed;
+	uint8_t  i;
+	uint32_t val;
+	enum {
+		GEN1 = 1,
+		GEN2 = 2,
+		GEN3 = 3,
+		GEN4 = 4,
+		GEN5 = 5
+	};
+	uint8_t current_speed, test_speed[TEST_SPEED_NUM];
+
+	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, 0x80, 0x4) & 0xf0000; // [19:16] bit
+	printf("0x80(val) before= 0x%x\n", val);
+	__raw_writel(val, TCSR_MSG_REG(0x80));
+	switch (val) {
+	case 0x10000:
+		current_speed = GEN1;
+		break;
+	case 0x20000:
+		current_speed = GEN2;
+		break;
+	case 0x30000:
+		current_speed = GEN3;
+		break;
+	case 0x40000:
+		current_speed = GEN4;
+		break;
+	case 0x50000:
+		current_speed = GEN5;
+		break;
+	default:
+		current_speed = GEN1;
+		break;
+	}
+	printf("current speed = %d\n", current_speed);
+	__raw_writel(current_speed, TCSR_MSG_REG(0x80));
+
+	switch (current_speed) {
+	case GEN2:
+		test_speed[0] = GEN1; // Gen2 -> Gen1
+		test_speed[1] = GEN2; // Gen1 -> Gen2
+		break;
+	case GEN3:
+		test_speed[0] = GEN2; // GEN3 -> GEN2
+		test_speed[1] = GEN1; // GEN2 -> GEN1
+		test_speed[2] = GEN2; // GEN1 -> GEN2
+		test_speed[3] = GEN3; // GEN2 -> GEN3
+		test_speed[4] = GEN2; // GEN3 -> GEN1
+		test_speed[5] = GEN2; // GEN1 -> GEN3
+		break;
+	case GEN4:
+		test_speed[0] = GEN3; // GEN4 -> GEN3
+		test_speed[1] = GEN2; // GEN3 -> GEN2
+		test_speed[2] = GEN1; // GEN2 -> GEN1
+
+		test_speed[3] = GEN2; // GEN1 -> GEN2
+		test_speed[4] = GEN3; // GEN2 -> GEN3
+		test_speed[5] = GEN4; // GEN3 -> GEN4
+
+		test_speed[6] = GEN2; // GEN4 -> GEN2
+		test_speed[7] = GEN4; // GEN2 -> GEN4
+
+		test_speed[8] = GEN1; // GEN4 -> GEN1
+		test_speed[9] = GEN4; // GEN1 -> GEN4
+		break;
+	default:
+		break;
+	}
+
+//	target_speed = dw_pcie_read_dbi(pci, DW_PCIE_CDM, 0xa0, 0x4);
+//	printf("0xa0(target) = 0x%x\n", val);
+	//dw_pcie_write_dbi(pci, DW_PCIE_CDM, 0xa0, val|0x1, 0x4);
+	for (i = 0; i < TEST_SPEED_NUM; i++) {
+		target_speed = dw_pcie_read_dbi(pci, DW_PCIE_CDM, 0xa0, 0x4);
+		printf("0xa0(target) = 0x%x\n", (target_speed & 0xf));
+		printf("test speed = 0x%x\n", test_speed[i]);
+		val = (target_speed & (~0xf)) | test_speed[i];
+		__raw_writel(val, TCSR_MSG_REG(0x80));
+		dw_pcie_write_dbi(pci, DW_PCIE_CDM, 0xa0, val, 0x4);
+#if 0
+		/* Set link width speed control register */
+		val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_LINK_WIDTH_SPEED_CONTROL, 0x4);
+		val &= ~PORT_LOGIC_LINK_WIDTH_MASK;
+		switch (lanes) {
+		case 4:
+			val |= PORT_LOGIC_LINK_WIDTH_4_LANES;
+			break;
+		case 8:
+			val |= PORT_LOGIC_LINK_WIDTH_8_LANES;
+			break;
+		case 16:
+			val |= PORT_LOGIC_LINK_WIDTH_16_LANES;
+			break;
+		}
+		dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_LINK_WIDTH_SPEED_CONTROL, val, 0x4);
+#endif
+		val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_LINK_WIDTH_SPEED_CONTROL, 0x4);
+		val &= ~PORT_LOGIC_SPEED_CHANGE;
+		dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_LINK_WIDTH_SPEED_CONTROL, val, 0x4);
+
+		val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_LINK_WIDTH_SPEED_CONTROL, 0x4);
+		val |= PORT_LOGIC_SPEED_CHANGE;
+		dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_LINK_WIDTH_SPEED_CONTROL, val, 0x4);
+
+		wait_controller_linkup(pcie_subsys);
+		val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, 0x80, 0x4);
+		__raw_writel(val, TCSR_MSG_REG(0x80)); //current speed
+		val = ((val & 0xf0000) >> 16);
+		printf("current speed = 0x%x\n", val);
+		__raw_writel(val, TCSR_MSG_REG(0x80)); //current speed
+		printf("test speed = 0x%x\n", test_speed[i]);
+		__raw_writel(test_speed[i], TCSR_MSG_REG(0x80)); //test speed
+		if (val != test_speed[i]) {
+			printf("0x80(val) after= 0x%x\n", val);
+			__raw_writel(0x2, TCSR_MSG_REG(0x80)); // change link speed test fail
+		}
+		__raw_writel(0x1, TCSR_MSG_REG(0x80)); // change link speed test pass
+	}
+}
+
 uint64_t rd_pcie_rsved_reg_4_baseaddr(uint32_t addr_low, uint32_t addr_hi)
 {
 	uint32_t val;
@@ -1246,9 +1371,6 @@ void pci_platform_init(void)
 
 	subsys_link_init_post(pcie_subsys);
 
-	printf("pci=%p\n", pci);
-	/* change_link_speed(pci, pcie_subsys); */
-
 #ifdef CONFIG_DPU_PCIE_TEST
 	printf("bird: PCIE TEST start\n");
 	// find which controller is in use, and enable its MSI int
@@ -1296,6 +1418,10 @@ void pci_platform_init(void)
 	val = __raw_readl(0xc00100000);
 	printf("cfg1: %x\n", val);
 #else
+
+#ifdef CONFIG_DPU_TEST_LINK_SPEED_CHANGE
+	change_link_speed(pci, pcie_subsys);
+#endif	
 	irqc_configure_irq(IRQ_PCIE_X16_LDMA, 0, IRQ_LEVEL_TRIGGERED);
 	irq_register_vector(IRQ_PCIE_X16_LDMA, dpu_pcie_inta_handler);
 	irqc_enable_irq(IRQ_PCIE_X16_LDMA);
