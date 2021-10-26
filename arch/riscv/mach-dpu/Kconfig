@@ -522,6 +522,12 @@ config DPU_TEST_DDR_BY_DMA
 	help
 	  When this option is enabled, can verify DDR through DMA huge data.
 
+config DPU_TEST_LINK_SPEED_CHANGE
+	bool "Test link speed change"
+	default n
+	help
+	  When this option is enabled, will test link speed change.
+
 endif
 endif
 
