@@ -51,7 +51,7 @@ struct sk_buff *alloc_skb(sk_size_t size)
 	if (!skb)
 		goto out;
 
-	data = malloc(size + sizeof (struct skb_shared_info));
+	data = heap_alloc(size + sizeof (struct skb_shared_info));
 	if (!data)
 		goto nodata;
 
@@ -70,7 +70,7 @@ struct sk_buff *alloc_skb(sk_size_t size)
 out:
 	return skb;
 nodata:
-	free(skb);
+	heap_free(skb);
 	return NULL;
 }
 

@@ -67,7 +67,8 @@ bool dw_xgmac_mdio_read(uint16_t phyaddr, uint32_t phyreg, uint16_t *phydata)
 	__raw_writel(mdio_data, MDIO_Single_Command_Control_Data);
 	while (dw_xgmac_mdio_busy());
 
-	*phydata = MDIO_SDATA(__raw_readl(MDIO_Single_Command_Control_Data));
+	mdio_data = __raw_readl(MDIO_Single_Command_Control_Data);
+	*phydata = mdio_sdata(mdio_data);
 	return true;
 }
 

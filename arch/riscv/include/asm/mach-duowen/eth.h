@@ -4,13 +4,18 @@
 #include <target/clk.h>
 
 #ifdef CONFIG_DUOWEN_SBI_DUAL
+#if 0
 #define DW_XGMAC_BASE(soc)	(__SOC_BASE(soc) + XGMAC_BASE)
 #define DW_XPCS_BASE(soc)	(__SOC_BASE(soc) + XPCS_BASE)
 #define DW_XGMAC_CLK_SRC(soc)	((soc) ? sysfab_clk2 : sysfab_clk)
+#endif
+#define DW_XGMAC_BASE		XGMAC_BASE
+#define DW_XPCS_BASE		XPCS_BASE
+#define DW_XGMAC_CLK_SRC	sysfab_clk
 #else /* CONFIG_DUOWEN_SBI_DUAL */
-#define DW_XGMAC_BASE(soc)	XGMAC_BASE
-#define DW_XPCS_BASE(soc)	XPCS_BASE
-#define DW_XGMAC_CLK_SRC(soc)	sysfab_clk
+#define DW_XGMAC_BASE		XGMAC_BASE
+#define DW_XPCS_BASE		XPCS_BASE
+#define DW_XGMAC_CLK_SRC	sysfab_clk
 #endif /* CONFIG_DUOWEN_SBI_DUAL */
 
 #define DW_XPCS_PHY_ADDR	0

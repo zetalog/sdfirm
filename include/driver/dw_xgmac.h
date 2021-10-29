@@ -276,6 +276,7 @@
 #define MDIO_SDATA_OFFSET		0
 #define MDIO_SDATA_MASK			REG_16BIT_MASK
 #define MDIO_SDATA(value)		_SET_FV(MDIO_SDATA, value)
+#define mdio_sdata(value)		_GET_FV(MDIO_SDATA, value)
 #ifdef CONFIG_DW_XGMAC_MDIO_FAST
 #define MDIO_DATA_DEFAULT		(MDIO_SBusy | MDIO_CRS)
 #else
