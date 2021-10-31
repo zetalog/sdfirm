@@ -44,10 +44,17 @@
 
 #include <target/smp.h>
 
+#ifndef CLINT_MTIMECMP_BASE
+#define CLINT_MTIMECMP_BASE	0x4000
+#endif
+#ifndef CLINT_MTIME_BASE
+#define CLINT_MTIME_BASE	0xBFF8
+#endif
+
 #define CLINT_REG(offset)	(CLINT_BASE + (offset))
 #define CLINT_MSIP(hart)	CLINT_REG((hart) << 2)
-#define CLINT_MTIMECMP(hart)	CLINT_REG(0x4000 + ((hart) << 3))
-#define CLINT_MTIME		CLINT_REG(0xBFF8)
+#define CLINT_MTIMECMP(hart)	CLINT_REG(CLINT_MTIMECMP_BASE + ((hart) << 3))
+#define CLINT_MTIME		CLINT_REG(CLINT_MTIME_BASE)
 
 #if !defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
 #ifdef CONFIG_CLINT

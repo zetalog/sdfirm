@@ -44,34 +44,47 @@
 
 #include <driver/dw_timers.h>
 
+#ifndef TMR_CNT_CTRL_BASE
+#define TMR_CNT_CTRL_BASE	0x00
+#endif
+#ifndef TMR_CNT_BASE
+#define TMR_CNT_BASE		0x40
+#endif
+
 #define TMR_BASE		TIMER_BASE
 #define TMR_REG(offset)		(TMR_BASE + (offset))
 
-#define TMR_CNT_CTRL		TMR_REG(0x00)
+#define TMR_CNT_CTRL		TMR_REG(TMR_CNT_CTRL_BASE)
+#define TMR_CNT_LO		TMR_REG(TMR_CNT_BASE)
+#define TMR_CNT_HI		TMR_REG(TMR_CNT_BASE + 0x04)
+#ifndef CONFIG_DPU_CLINT
 #define TMR_CMP_CTRL(n)		REG_1BIT_ADDR(TMR_REG(0x04), n)
 #define TMR_INTR_EN(n)		REG_1BIT_ADDR(TMR_REG(0x10), n)
 #define TMR_INTR_STATUS(n)	REG_1BIT_ADDR(TMR_REG(0x14), n)
-#define TMR_CNT_LO		TMR_REG(0x40)
-#define TMR_CNT_HI		TMR_REG(0x44)
 #define TMR_CMP_LO(n)		TMR_REG(0x200 + ((n) << 4))
 #define TMR_CMP_HI(n)		TMR_REG(0x204 + ((n) << 4))
 #define TMR_VAL(n)		TMR_REG(0x208 + ((n) << 4))
+#endif
 
 /* TMR_CNT_CTRL */
 #define TMR_EN			_BV(0)
 #define TMR_HALT_ON_DEBUG	_BV(1)
 
+#ifndef CONFIG_DPU_CLINT
 #define tmr_enable_cmp(id)	__raw_setl(_BV(id), TMR_CMP_CTRL(id))
 #define tmr_disable_cmp(id)	__raw_clearl(_BV(id), TMR_CMP_CTRL(id))
 #define tmr_enable_irq(id)	__raw_setl(_BV(id), TMR_INTR_EN(id))
 #define tmr_disable_irq(id)	__raw_clearl(_BV(id), TMR_INTR_EN(id))
 #define tmr_irq_status(id)	(__raw_readl(TMR_INTR_STATUS(id)) & _BV(id))
 #define tmr_irq_clear(id)	__raw_clearl(_BV(id), TMR_INTR_STATUS(id))
+#endif
 
 #ifndef __ASSEMBLY__
 uint64_t tmr_read_counter(void);
-void tmr_write_compare(uint8_t id, uint64_t count);
 void tmr_ctrl_init(void);
+#ifndef CONFIG_DPU_CLINT
+void tmr_write_compare(uint8_t id, uint64_t count);
+#endif
 #endif
 
 #endif /* __TMR_DPU_H_INCLUDE__ */

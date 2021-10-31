@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Jun  1 18:07:44 2021
+# Sun Oct 31 10:32:36 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -175,9 +175,12 @@ CONFIG_SBI_FDT_BUILTIN=y
 #
 # Smart Core DPU board options
 #
+CONFIG_DPU_GEN2=y
+# CONFIG_DPU_RES is not set
+CONFIG_DPU_IMC=y
+# CONFIG_DPU_APC is not set
 # CONFIG_DPU_CV32E40P is not set
 CONFIG_DPU_CVA6=y
-CONFIG_DPU_GEN2=y
 CONFIG_DPU_FIRM=y
 # CONFIG_DPU_BOOT_ROM is not set
 # CONFIG_DPU_BOOT_RAM is not set

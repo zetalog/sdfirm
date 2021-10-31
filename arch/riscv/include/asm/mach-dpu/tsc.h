@@ -49,14 +49,22 @@
 #define TSC_FREQ		(__TSC_FREQ/1000) /* kHz based */
 #define TSC_MAX			ULL(0xFFFFFFFFFFFFFFFF)
 
+#define CLINT_MTIMECMP_BASE	0x80
+#define CLINT_MTIME_BASE	0x3F8
+
 #include <asm/mach/tmr.h>
+#include <asm/clint.h>
 
 #ifndef __ASSEMBLY__
 #define tsc_hw_ctrl_init()	board_init_timestamp()
 #if defined(CONFIG_RISCV_COUNTERS) || defined(CONFIG_SBI)
 #define tsc_hw_read_counter()	rdtime()
 #else
+#ifdef CONFIG_DPU_CLINT
+#define tsc_hw_read_counter()	clint_read_mtime()
+#else
 #define tsc_hw_read_counter()	tmr_read_counter()
+#endif
 #endif
 #endif /* __ASSEMBLY__ */
 

@@ -111,6 +111,7 @@ config ARCH_DPU
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_APB_40
 	select DPU_TMR
+	select DPU_CLINT if DPU_RES
 	select RI5CY_FIRQ if (!SYS_NOIRQ && DPU_CV32E40P)
 	select FDT_BUILTIN if SBI_FDT
 	select DPU_PLIC if !SYS_NOIRQ

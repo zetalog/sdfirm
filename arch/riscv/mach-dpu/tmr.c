@@ -41,6 +41,16 @@
 
 #include <target/delay.h>
 
+#ifndef CONFIG_DPU_CLINT
+void tmr_write_compare(uint8_t id, uint64_t count)
+{
+	tmr_disable_cmp(id);
+	__raw_writel(LODWORD(count), TMR_CMP_LO(id));
+	__raw_writel(HIDWORD(count), TMR_CMP_HI(id));
+	tmr_enable_cmp(id);
+}
+#endif
+
 uint64_t tmr_read_counter(void)
 {
 	uint32_t hi1, hi2;
@@ -52,14 +62,6 @@ uint64_t tmr_read_counter(void)
 		hi2 = __raw_readl(TMR_CNT_HI);
 	} while (hi1 != hi2);
 	return MAKELLONG(lo, hi1);
-}
-
-void tmr_write_compare(uint8_t id, uint64_t count)
-{
-	tmr_disable_cmp(id);
-	__raw_writel(LODWORD(count), TMR_CMP_LO(id));
-	__raw_writel(HIDWORD(count), TMR_CMP_HI(id));
-	tmr_enable_cmp(id);
 }
 
 void tmr_ctrl_init(void)

@@ -7,6 +7,33 @@ if ARCH_DPU
 
 menu "Smart Core DPU board options"
 
+config DPU_GEN2
+	bool "DPU GEN2 chipset"
+	help
+	  DPU GEN2 tunes GEN1 design with tsensor added and address space
+	  layout changed. It also include S-context PLIC IRQ so that it
+	  can boot a Linux kernel as its runtime firmware.
+
+config DPU_RES
+	bool "DPU GEN2 RISC-V edge server (RES) support"
+	select DPU_GEN2
+	help
+	  A special customized SoC designed to run as RISC-V edge server.
+
+choice
+	prompt "Programmed CPUs"
+
+config DPU_IMC
+	bool "IMC"
+
+config DPU_APC
+	bool "APC"
+	depends DPU_RES
+
+endchoice
+
+if DPU_IMC
+
 choice
 	prompt "IMC CPU type"
 	default DPU_CV32E40P
@@ -21,12 +48,7 @@ config DPU_CVA6
 
 endchoice
 
-config DPU_GEN2
-	bool "DPU GEN2 chipset"
-	help
-	  DPU GEN2 tunes GEN1 design with tsensor added and address space
-	  layout changed. It also include S-context PLIC IRQ so that it
-	  can boot a Linux kernel as its runtime firmware.
+endif
 
 config DPU_BOOT
 	bool
@@ -291,10 +313,19 @@ endif
 
 menuconfig DPU_TMR
 	bool "DPU RISC-V timer support"
+	depends !DPU_RES
 	select DPU_TMR_FIRQ if RISCV_VIRQ
 	select ARCH_HAS_SBI_TIMER
 
 if DPU_TMR
+
+config DPU_CLINT
+	bool "DPU CLINT compatible timer/soft IRQ support"
+	depends DPU_RES
+
+if DPU_CLINT
+
+endif
 
 config DPU_TMR_FIRQ
 	bool "Enable extended fast interrupt support"

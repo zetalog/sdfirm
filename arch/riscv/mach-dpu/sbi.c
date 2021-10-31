@@ -47,6 +47,10 @@
 
 static void dpu_modify_dt(void *fdt)
 {
+	fdt_cpu_fixup(fdt);
+	fdt_irq_fixup(fdt, "riscv,clint0");
+	fdt_irqs_fixup(fdt, "riscv,plic0", PLIC_MAX_CHIPS);
+	fdt_fixups(fdt);
 }
 
 static int dpu_final_init(bool cold_boot)
@@ -123,6 +127,22 @@ static int dpu_irqchip_init(bool cold_boot)
 	return 0;
 }
 
+#ifdef CONFIG_DPU_APC
+void dpu_ipi_send(uint32_t target_cpu)
+{
+	clint_set_ipi(target_cpu);
+}
+
+void dpu_ipi_sync(uint32_t target_cpu)
+{
+	clint_sync_ipi(target_cpu);
+}
+
+void dpu_ipi_clear(uint32_t target_cpu)
+{
+	clint_clear_ipi(target_cpu);
+}
+#else /* CONFIG_DPU_APC */
 void dpu_ipi_send(uint32_t target_cpu)
 {
 }
@@ -134,6 +154,7 @@ void dpu_ipi_sync(uint32_t target_cpu)
 void dpu_ipi_clear(uint32_t target_cpu)
 {
 }
+#endif /* CONFIG_DPU_APC */
 
 static int dpu_ipi_init(bool cold_boot)
 {
@@ -144,6 +165,26 @@ static int dpu_ipi_init(bool cold_boot)
 	return 0;
 }
 
+#ifdef CONFIG_DPU_CLINT
+uint64_t dpu_timer_value(void)
+{
+	clint_read_mtime();
+}
+
+void dpu_timer_event_stop(void)
+{
+	cpu_t cpu = sbi_processor_id();
+
+	clint_unset_mtimecmp(cpu);
+}
+
+void dpu_timer_event_start(uint64_t next_event)
+{
+	cpu_t cpu = sbi_processor_id();
+
+	clint_set_mtimecmp(cpu, next_event);
+}
+#else
 uint64_t dpu_timer_value(void)
 {
 	return tmr_read_counter();
@@ -162,6 +203,7 @@ void dpu_timer_event_start(uint64_t next_event)
 
 	tmr_write_compare(cpu, next_event);
 }
+#endif
 
 static int dpu_timer_init(bool cold_boot)
 {
