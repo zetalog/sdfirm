@@ -146,6 +146,33 @@ config ARCH_VAISRA
 	help
 	  This enables support for smart core (SmarCo) vaisra riscv CPU bench platforms.
 
+config ARCH_DPULP
+	bool "SmarCo DPU-LP"
+	select CPU_CVA6
+	select DPULP_TCSR
+	select DPULP_TMR
+	select ARCH_IS_TICKLESS
+	select ARCH_HAS_TSC
+	select ARCH_HAS_TSC_CONST
+	select ARCH_HAS_GPT
+	select ARCH_HAS_IRQC
+	select ARCH_HAS_CLK
+	select ARCH_HAS_FDT
+	select ARCH_HAS_NOVEC
+	select ARCH_HAS_APB_40
+	select ARCH_HAS_GPIO
+	select ARCH_HAS_SPI
+	select ARCH_HAS_SD
+	select ARCH_HAS_DDR
+	select FDT_BUILTIN if SBI_FDT
+	select DPULP_GPIO if GPIO
+	select DPULP_SSI_FLASH if SPI_MASTER
+	select DPULP_UART if CONSOLE || DEBUG_PRINT
+	select DPULP_DDR if DDR
+	select HPM if (PERF && DPU_CVA6)
+	help
+	  This enables support for smart core (SmarCo) DPU-LP platform.
+
 config ARCH_UNLEASHED
 	bool "SiFive HiFive Unleashed (FU540)"
 	select ARCH_IS_TICKLESS
@@ -275,6 +302,7 @@ endmenu
 source "arch/riscv/mach-duowen/Kconfig"
 source "arch/riscv/mach-dpu/Kconfig"
 source "arch/riscv/mach-vaisra/Kconfig"
+source "arch/riscv/mach-dpulp/Kconfig"
 source "arch/riscv/mach-unleashed/Kconfig"
 source "arch/riscv/mach-k210/Kconfig"
 source "arch/riscv/mach-vega/Kconfig"

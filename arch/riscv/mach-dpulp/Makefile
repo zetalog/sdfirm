@@ -1,0 +1,13 @@
+obj-y += mach.rel
+obj-y += tsc.rel
+obj-$(CONFIG_MEM) += mem.rel
+obj-$(CONFIG_TIMER) += gpt.rel
+obj-$(CONFIG_DPULP_TCSR) += tcsr.rel
+obj-$(CONFIG_DPULP_TMR) += tmr.rel
+obj-$(CONFIG_DPULP_UART) += uart.rel
+#obj-$(CONFIG_DPULP_PLL) += pll.rel
+#obj-$(CONFIG_DPULP_PLL) += clk.rel
+#obj-$(CONFIG_DPULP_PLIC) += plic.rel
+#obj-$(CONFIG_DPULP_SPI_FLASH) += spi_flash.rel
+#obj-$(CONFIG_DPULP_SSI_FLASH) += ssi_flash.rel
+#obj-$(CONFIG_DPULP_SD) += sd.rel
