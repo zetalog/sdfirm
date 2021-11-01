@@ -44,8 +44,10 @@
 
 #include <target/clk.h>
 
+#define RAB_BASE		RAB0_CTRL_BASE
+
 #ifdef CONFIG_DPULP_RIO
-#include <driver/mobiveil_grio.h>
+#include <driver/mobiveil_rab.h>
 #ifndef ARCH_HAVE_RIO
 #define ARCH_HAVE_RIO		1
 #else

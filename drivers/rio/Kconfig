@@ -5,14 +5,14 @@
 
 menu "RIO controller drivers"
 
-config ARCH_IS_GRIO_SERIAL
+config ARCH_IS_RAB_SERIAL
 	bool
 
-menuconfig MOBIVEIL_GRIO
-	bool "MobiVeil Generic RapidIO (GRIO) interconnect support"
-	select SRIO if ARCH_IS_GRIO_SERIAL
+menuconfig MOBIVEIL_RAB
+	bool "MobiVeil RapidIO to AXI Bridge (RAB) controller support"
+	select SRIO if ARCH_IS_RAB_SERIAL
 
-if MOBIVEIL_GRIO
+if MOBIVEIL_RAB
 
 endif
 

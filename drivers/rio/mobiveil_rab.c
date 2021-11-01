@@ -35,13 +35,21 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)mobiveil_grio.h: MobiVeil Generic RapidIO (GRIO) interface
- * $Id: mobiveil_grio.h,v 1.0 2021-11-02 17:05:00 zhenglv Exp $
+ * @(#)mobiveil_rab.c: MobiVeil RapidIO to AXI Bridge (RAB) implementation
+ * $Id: mobiveil_rab.c,v 1.0 2021-11-02 17:05:00 zhenglv Exp $
  */
 
-#ifndef __MOBIVEIL_GRIO_H_INCLUDE__
-#define __MOBIVEIL_GRIO_H_INCLUDE__
+#include <target/rio.h>
 
-void mobiveil_grio_init_port(void);
+void rab_enum(void)
+{
+	__raw_setl(RAB_AMBA_PIO_Enable | RAB_RIO_PIO_Enable |
+		   RAB_Write_DMA_Enable | RAB_Read_DMA_Enable,
+		   RAB_CTRL);
+}
 
-#endif /* __MOBIVEIL_GRIO_H_INCLUDE__ */
+void rab_init_port(void)
+{
+	rab_enum();
+	srio_init_port();
+}

@@ -43,5 +43,5 @@
 
 void dpulp_rio_init(void)
 {
-	mobiveil_grio_init_port();
+	rab_init_port();
 }

@@ -320,8 +320,8 @@ config DPULP_DDR
 
 config DPULP_RIO
 	bool "DPULP RapidIO interconnect support"
-	select MOBIVEIL_GRIO
-	select ARCH_IS_GRIO_SERIAL
+	select MOBIVEIL_RAB
+	select ARCH_IS_RAB_SERIAL
 
 endmenu
 
