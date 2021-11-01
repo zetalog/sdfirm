@@ -38,18 +38,14 @@ config DPULP_BOOT_ROM
 	select DPULP_SSI_FLASH
 
 config DPULP_BOOT_RAM
-	bool "0-stage boot RAM bootloader (ZSBL)"
+	bool "RAM based test bench"
 	select ARCH_HAS_BOOT_LOAD
-	select DPULP_BOOT
-	select DPULP_LOAD_ZSBL
 	select XIP
 	select BFM
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select SYS_EXIT_S if DPULP_CVA6
 	select SYS_EXIT_U
-	select DPULP_SPI_FLASH
-	select DPULP_SSI_FLASH
 
 config DPULP_BOOT_SPI_FLASH
 	bool "0-stage/1-stage SPINOR bootloader (ZSBL/FSBL)"

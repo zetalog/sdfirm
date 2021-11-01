@@ -42,6 +42,11 @@
 #ifndef __CPUS_DPU_H_INCLUDE__
 #define __CPUS_DPU_H_INCLUDE__
 
+#ifdef CONFIG_DPU_IMC
 #define MAX_CPU_NUM		1
+#endif
+#ifdef CONFIG_DPU_APC
+#define MAX_CPU_NUM		4
+#endif
 
 #endif /* __CPUS_DPU_H_INCLUDE__ */

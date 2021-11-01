@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sat Aug 21 19:43:42 2021
+# Mon Nov  1 11:49:18 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -59,6 +59,7 @@ CONFIG_CONSOLE_BANNER=y
 # CONFIG_ARCH_DUOWEN is not set
 # CONFIG_ARCH_DPU is not set
 # CONFIG_ARCH_VAISRA is not set
+# CONFIG_ARCH_DPULP is not set
 # CONFIG_ARCH_UNLEASHED is not set
 # CONFIG_ARCH_K210 is not set
 # CONFIG_ARCH_VEGA is not set

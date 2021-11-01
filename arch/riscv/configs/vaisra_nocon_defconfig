@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Jun  1 18:16:12 2021
+# Mon Nov  1 11:51:16 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -34,6 +34,7 @@ CONFIG_COMMAND_BATCH_COMMAND="help; bench sync all vaisra_finish 1 0 1"
 # CONFIG_ARCH_DUOWEN is not set
 # CONFIG_ARCH_DPU is not set
 CONFIG_ARCH_VAISRA=y
+# CONFIG_ARCH_DPULP is not set
 # CONFIG_ARCH_UNLEASHED is not set
 # CONFIG_ARCH_K210 is not set
 # CONFIG_ARCH_VEGA is not set
