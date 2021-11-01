@@ -1,0 +1,19 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "RIO controller drivers"
+
+config ARCH_IS_GRIO_SERIAL
+	bool
+
+menuconfig MOBIVEIL_GRIO
+	bool "MobiVeil Generic RapidIO (GRIO) interconnect support"
+	select SRIO if ARCH_IS_GRIO_SERIAL
+
+if MOBIVEIL_GRIO
+
+endif
+
+endmenu
