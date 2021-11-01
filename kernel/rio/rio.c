@@ -43,4 +43,5 @@
 
 void rio_init(void)
 {
+	rio_hw_ctrl_init();
 }

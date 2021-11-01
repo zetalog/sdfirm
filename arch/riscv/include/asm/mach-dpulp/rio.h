@@ -55,11 +55,10 @@
 #endif
 #endif
 
-#ifdef CONFIG_MOBIVEIL_RIO
+#ifdef CONFIG_MOBIVEIL_RAB
 #define rio_hw_ctrl_init()		dpulp_rio_init()
 
 void dpulp_rio_init(void);
 #endif
-
 
 #endif /* __RIO_DPULP_H_INCLUDE__ */
