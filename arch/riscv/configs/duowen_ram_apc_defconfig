@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Nov  1 11:55:05 2021
+# Mon Nov  1 17:52:23 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -644,6 +644,11 @@ CONFIG_SPD_EE1004=y
 # PCI drivers
 #
 # CONFIG_DW_PCIE is not set
+
+#
+# RIO controller drivers
+#
+# CONFIG_MOBIVEIL_GRIO is not set
 
 #
 # NoC interconnect drivers

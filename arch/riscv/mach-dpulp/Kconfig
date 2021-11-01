@@ -318,6 +318,11 @@ endif
 config DPULP_DDR
 	bool
 
+config DPULP_RIO
+	bool "DPULP RapidIO interconnect support"
+	select MOBIVEIL_GRIO
+	select ARCH_IS_GRIO_SERIAL
+
 endmenu
 
 endif

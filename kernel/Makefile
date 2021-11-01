@@ -38,6 +38,7 @@ obj-$(CONFIG_SPI) += spi/
 obj-$(CONFIG_I2C) += i2c/
 obj-$(CONFIG_USB) += usb/
 obj-$(CONFIG_PCI) += pci/
+obj-$(CONFIG_RIO) += rio/
 obj-$(CONFIG_SCS) += scs/
 obj-$(CONFIG_MTD) += mtd/
 obj-$(CONFIG_SCSI) += scsi/

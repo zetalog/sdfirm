@@ -37,6 +37,7 @@ source drivers/mmc/Kconfig
 source drivers/ddr/Kconfig
 source drivers/spd/Kconfig
 source drivers/pci/Kconfig
+source drivers/rio/Kconfig
 
 source drivers/noc/Kconfig
 source drivers/net/Kconfig

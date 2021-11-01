@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Nov  1 11:32:59 2021
+# Mon Nov  1 17:58:38 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -167,6 +167,7 @@ CONFIG_DPULP_TMR=y
 CONFIG_DPULP_UART=y
 CONFIG_DPULP_UART_VIP=y
 # CONFIG_DPULP_SPI_FLASH is not set
+CONFIG_DPULP_RIO=y
 
 #
 # Feature setup
@@ -282,6 +283,10 @@ CONFIG_ARCH_HAS_SD=y
 # CONFIG_MMCSD is not set
 CONFIG_ARCH_HAS_DDR=y
 # CONFIG_DDR is not set
+CONFIG_ARCH_HAS_RIO=y
+CONFIG_RIO=y
+CONFIG_RIO_MAX_PORTS=1
+CONFIG_SRIO=y
 # CONFIG_IOMMU is not set
 CONFIG_ARCH_HAS_FDT=y
 # CONFIG_FDT is not set
@@ -394,6 +399,12 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # PCI drivers
 #
+
+#
+# RIO controller drivers
+#
+CONFIG_ARCH_IS_GRIO_SERIAL=y
+CONFIG_MOBIVEIL_GRIO=y
 
 #
 # NoC interconnect drivers

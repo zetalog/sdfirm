@@ -164,11 +164,13 @@ config ARCH_DPULP
 	select ARCH_HAS_SPI
 	select ARCH_HAS_SD
 	select ARCH_HAS_DDR
+	select ARCH_HAS_RIO
 	select FDT_BUILTIN if SBI_FDT
 	select DPULP_GPIO if GPIO
 	select DPULP_SSI_FLASH if SPI_MASTER
 	select DPULP_UART if CONSOLE || DEBUG_PRINT
 	select DPULP_DDR if DDR
+	select DPULP_RIO if RIO
 	select HPM if (PERF && DPU_CVA6)
 	help
 	  This enables support for smart core (SmarCo) DPU-LP platform.

@@ -11,3 +11,4 @@ obj-$(CONFIG_DPULP_UART) += uart.rel
 #obj-$(CONFIG_DPULP_SPI_FLASH) += spi_flash.rel
 #obj-$(CONFIG_DPULP_SSI_FLASH) += ssi_flash.rel
 #obj-$(CONFIG_DPULP_SD) += sd.rel
+obj-$(CONFIG_DPULP_RIO) += rio.rel

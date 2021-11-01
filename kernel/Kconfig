@@ -780,6 +780,7 @@ source kernel/video/Kconfig
 source kernel/mmc/Kconfig
 source kernel/ddr/Kconfig
 source kernel/pci/Kconfig
+source kernel/rio/Kconfig
 source kernel/iommu/Kconfig
 source kernel/fdt/Kconfig
 source kernel/uefi/Kconfig

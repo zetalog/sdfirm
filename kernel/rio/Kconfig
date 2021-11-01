@@ -1,0 +1,22 @@
+#
+# RIO Devices
+#
+
+config ARCH_HAS_RIO
+	bool
+
+menuconfig RIO
+	bool "RapidIO interconnect (RIO) support"
+	depends ARCH_HAS_RIO
+
+if RIO
+
+config RIO_MAX_PORTS
+	int "Number of RapidIO ports (1~8)"
+	range 1 8
+	default 1
+
+config SRIO
+	bool "LP-Serial physical layer support"
+
+endif

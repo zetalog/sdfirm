@@ -146,6 +146,8 @@ build_sdfirm riscv64 dpu_ddr
 # DPU GEN2
 build_sdfirm riscv64 dpu2_ram
 build_sdfirm riscv64 dpu2_ddr
+# DPU RES
+build_sdfirm riscv64 dpures_ram
 # DPU LP
 build_sdfirm riscv64 dpulp_ram
 # core-v-verif
