@@ -81,9 +81,9 @@ void gpt_hw_oneshot_timeout(timeout_t tout_ms)
 	tmr_enable_irq(cpu);
 	irqc_enable_irq(IRQ_TIMER);
 }
-#endif /* CONFIG_DPU_CLINT */
 
 void gpt_hw_ctrl_init(void)
 {
 	irq_register_vector(IRQ_TIMER, tmr_irq_handler);
 }
+#endif /* CONFIG_DPU_CLINT */

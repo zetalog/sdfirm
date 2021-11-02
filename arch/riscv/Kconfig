@@ -94,6 +94,7 @@ config ARCH_DUOWEN
 config ARCH_DPU
 	bool "SmarCo DPU"
 	select ARCH_IS_TICKLESS
+	select ARCH_HAS_CLINT if DPU_RES
 	select ARCH_HAS_TSC
 	select ARCH_HAS_TSC_CONST
 	select ARCH_HAS_GPT

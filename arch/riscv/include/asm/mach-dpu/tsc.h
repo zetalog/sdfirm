@@ -49,6 +49,7 @@
 #define TSC_FREQ		(__TSC_FREQ/1000) /* kHz based */
 #define TSC_MAX			ULL(0xFFFFFFFFFFFFFFFF)
 
+#define CLINT_BASE		TIMER_BASE
 #define CLINT_MTIMECMP_BASE	0x80
 #define CLINT_MTIME_BASE	0x3F8
 

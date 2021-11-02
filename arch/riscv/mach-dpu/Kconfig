@@ -322,6 +322,7 @@ if DPU_TMR
 config DPU_CLINT
 	bool "DPU CLINT compatible timer/soft IRQ support"
 	depends DPU_RES
+	select CLINT
 
 if DPU_CLINT
 
