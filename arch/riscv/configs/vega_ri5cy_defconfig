@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Nov  1 17:40:24 2021
+# Tue Nov  2 15:06:12 2021
 #
 CONFIG_32BIT=y
 CONFIG_RISCV=y
@@ -366,7 +366,7 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # RIO controller drivers
 #
-# CONFIG_MOBIVEIL_GRIO is not set
+# CONFIG_MOBIVEIL_RAB is not set
 
 #
 # NoC interconnect drivers

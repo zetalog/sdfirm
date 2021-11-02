@@ -28,6 +28,8 @@ config DPU_IMC
 
 config DPU_APC
 	bool "APC"
+	select CPU_VAISRA
+	select ARCH_HAS_SMP
 	depends DPU_RES
 
 endchoice

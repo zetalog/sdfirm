@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Nov  1 17:59:10 2021
+# Tue Nov  2 15:20:35 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -136,6 +136,10 @@ CONFIG_RISCV_EXIT_M=y
 # System peripherals
 #
 CONFIG_RISCV_IRQ_VERBOSE=y
+CONFIG_ARCH_HAS_CLINT=y
+CONFIG_CLINT=y
+# CONFIG_CLINT_XCHG_LLSC is not set
+# CONFIG_CLINT_FORCE_FAST_TIMEOUT is not set
 CONFIG_ARCH_HAS_PLIC=y
 CONFIG_ARCH_HAS_PLIC_EOI_EARLY=y
 CONFIG_PLIC=y
@@ -144,6 +148,8 @@ CONFIG_PLIC=y
 CONFIG_PLIC_COMPLETION_EXIT=y
 # CONFIG_HPM is not set
 # CONFIG_VAISRA_RAS is not set
+CONFIG_ARCH_HAS_SBI_IPI=y
+CONFIG_ARCH_HAS_SBI_TIMER=y
 # CONFIG_SBI is not set
 
 #
@@ -520,7 +526,7 @@ CONFIG_DW_PCIE=y
 #
 # RIO controller drivers
 #
-# CONFIG_MOBIVEIL_GRIO is not set
+# CONFIG_MOBIVEIL_RAB is not set
 
 #
 # NoC interconnect drivers

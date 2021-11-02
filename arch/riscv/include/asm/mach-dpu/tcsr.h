@@ -92,6 +92,12 @@ extern caddr_t dpu_tcsr_reg_base;
 #define IMC_FLASH_SEL(value)		_GET_FV(IMC_FLASH_SEL, value)
 #define IMC_FLASH_SPI			0x00
 #define IMC_FLASH_SSI			0x01
+/* CPU_SEL */
+#define IMC_CPU_SEL_OFFSET		5
+#define IMC_CPU_SEL_MASK		REG_1BIT_MASK
+#define IMC_CPU_SEL(value)		_GET_FV(IMC_CPU_SEL, value)
+#define IMC_CPU_IMC			0x00
+#define IMC_CPU_APC			0x01
 /* SIM MSG SRC */
 #ifdef CONFIG_DPU_TCSR_SIM_FINISH
 #define IMC_SIM_PASS			_BV(31)
@@ -108,6 +114,8 @@ extern caddr_t dpu_tcsr_reg_base;
 	IMC_BOOT_MODE(__raw_readl(TCSR_BOOT_MODE))
 #define imc_boot_flash()			\
 	IMC_FLASH_SEL(__raw_readl(TCSR_BOOT_MODE))
+#define imc_boot_cpu()			\
+	IMC_CPU_SEL(__raw_readl(TCSR_BOOT_MODE))
 #define imc_boot_addr()					\
 	 MAKELLONG(__raw_readl(TCSR_BOOT_ADDR_LO),	\
 		   __raw_readl(TCSR_BOOT_ADDR_HI))

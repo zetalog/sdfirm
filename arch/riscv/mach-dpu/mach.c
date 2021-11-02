@@ -216,6 +216,26 @@ void board_late_init(void)
 	board_boot();
 }
 
+#ifdef CONFIG_DPU_APC
+void dpu_load_ddr(void)
+{
+	if (smp_processor_id() == 0)
+		con_log("boot(ddr): Booting %d cores...\n", MAX_CPU_NUM);
+
+	/* TODO: Jump all CPUs to the same location */
+}
+
+void board_boot_late(void)
+{
+	dpu_load_ddr();
+}
+
+void board_smp_init(void)
+{
+	board_late_init();
+}
+#endif /* CONFIG_DPU_APC */
+
 static int do_dpu_boot(int argc, char *argv[])
 {
 	if (argc < 3)
