@@ -21,5 +21,6 @@ obj-$(CONFIG_DPU_SSI_FLASH) += ssi_flash.rel
 obj-$(CONFIG_DPU_DDR) += ddr.rel
 obj-$(CONFIG_DPU_PCI_SUBSYS) += pcie_dpu.rel
 
+obj-$(CONFIG_DPU_APC) += vaisra.rel
 obj-$(CONFIG_DPU_BOOT_PE) += pe.rel
 obj-$(CONFIG_DPU_BOOT_VPU) += vpu.rel

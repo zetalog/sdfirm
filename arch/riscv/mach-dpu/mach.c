@@ -234,6 +234,34 @@ void board_smp_init(void)
 {
 	board_late_init();
 }
+
+#ifdef CONFIG_DPU_PMA_DEBUG
+static void dpu_pma_debug(void)
+{
+	console_init();
+}
+#else
+#define dpu_pma_debug()			do { } while (0)
+#endif
+
+#ifdef CONFIG_DPU_PMA
+void dpu_pma_cpu_init(void)
+{
+	int n = 0;
+
+	dpu_pma_debug();
+	/* Enable CPU PMA */
+	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
+		     DDR0_DATA_BASE,
+		     ilog2_const(max(SZ_2M, DDR0_DATA_SIZE)));
+	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
+		     DDR1_DATA_BASE,
+		     ilog2_const(max(SZ_2M, DDR1_DATA_SIZE)));
+	n += pma_set(n, PMA_AT_DEVICE,
+		     DEV_BASE,
+		     ilog2_const(max(SZ_2M, DEV_SIZE)));
+}
+#endif /* CONFIG_DPU_PMA */
 #endif /* CONFIG_DPU_APC */
 
 static int do_dpu_boot(int argc, char *argv[])

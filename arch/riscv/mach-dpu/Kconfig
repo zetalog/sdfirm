@@ -305,6 +305,15 @@ config DPU_PLL_BYPASS_PLL
 
 endif
 
+menuconfig DPU_PMA
+	bool "DPU cluster PMA support"
+	depends DPU_APC
+	select VAISRA_PMA
+
+if DPU_PMA
+
+endif
+
 menuconfig DPU_GPIO
 	bool "DPU GPIO controller support"
 	select DW_GPIO

@@ -111,6 +111,9 @@ config ARCH_DPU
 	select ARCH_HAS_PLIC_EOI_EARLY
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_APB_40
+	select ARCH_HAS_BOOT0 if DPU_APC
+	select ARCH_HAS_BOOT1 if DPU_APC
+	select ARCH_HAS_BOOT2 if DPU_APC
 	select DPU_TMR
 	select DPU_CLINT if DPU_RES
 	select RI5CY_FIRQ if (!SYS_NOIRQ && DPU_CV32E40P)

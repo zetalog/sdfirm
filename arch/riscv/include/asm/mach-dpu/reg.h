@@ -52,6 +52,8 @@
 #define CSR_LPCOUNT(n)		(0x7C2 + (n) << 2) /* LPCOUNT[0, 1] */
 
 #ifdef CONFIG_DPU_GEN2
+#define DEV_BASE		FLASH_BASE
+#define DEV_SIZE		UL(0x40000000)
 /* NOCFAB2 */
 #define FLASH_BASE		UL(0x00000000)
 #define UART_BASE		UL(0x04000000)

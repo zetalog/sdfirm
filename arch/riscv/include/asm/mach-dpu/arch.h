@@ -51,6 +51,13 @@
 #include <asm/mach/pe.h>
 #include <asm/mach/vpu.h>
 #include <asm/mach/tsensor.h>
+#ifdef CONFIG_DPU_APC
+#define VAISRA_PMA_G		19
+#include <asm/vaisra_pma.h>
+#ifdef CONFIG_VAISRA_RAS
+#include <asm/vaisra_ras.h>
+#endif /* CONFIG_VAISRA_RAS */
+#endif /* CONFIG_DPU_APC */
 
 /* This file is intended to be used for implementing SoC specific
  * instructions, registers.
@@ -95,12 +102,26 @@
 #endif
 #define PCIE_REF_CLK_FREQ	PLL5_P_FREQ
 
+#if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
+	.macro	boot0_hook
+	jal	ra, vaisra_cpu_init
+	.endm
+	.macro	boot1_hook
+	.endm
+	.macro	boot2_hook
+#ifdef CONFIG_DPU_PMA
+	jal	ra, dpu_pma_cpu_init
+#endif
+	.endm
+#endif /* __ASSEMBLY__ && !__DTS__ && !LINKER_SCRIPT */
+
 #ifndef __ASSEMBLY__
 #ifdef CONFIG_CLK
 void board_init_clock(void);
 #else
 #define board_init_clock()	do { } while (0)
 #endif
+void dpu_pma_cpu_init(void);
 void board_init_timestamp(void);
 
 #ifdef CONFIG_MMU
