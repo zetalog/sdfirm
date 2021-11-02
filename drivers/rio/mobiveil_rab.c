@@ -41,6 +41,8 @@
 
 #include <target/rio.h>
 
+#define RIO_PTR2INT(addr)	((uintptr_t)(addr))
+
 /* ======================================================================
  * RAB Config Access
  * ====================================================================== */
@@ -66,8 +68,8 @@ void rab_writel(uint32_t value, caddr_t addr)
 		__raw_writel(value, addr);
 		return;
 	}
-	pfn = addr >> RAB_PAGE_SHIFT;
-	reg = (addr & RAB_PAGE_MASK) + RAB_PAGE_SIZE;
+	pfn = RIO_PTR2INT(addr) >> RAB_PAGE_SHIFT;
+	reg = (RIO_PTR2INT(addr) & RAB_PAGE_MASK) + RAB_PAGE_SIZE;
 	rab_page_select(pfn);
 	__raw_writel(value, reg);
 }
@@ -79,8 +81,8 @@ uint32_t rab_readl(caddr_t addr)
 
 	if (addr < RAB_PAGE_SIZE)
 		return __raw_readl(addr);
-	pfn = addr >> RAB_PAGE_SHIFT;
-	pad = (addr & RAB_PAGE_MASK) + RAB_PAGE_SIZE;
+	pfn = RIO_PTR2INT(addr) >> RAB_PAGE_SHIFT;
+	pad = (RIO_PTR2INT(addr) & RAB_PAGE_MASK) + RAB_PAGE_SIZE;
 	rab_page_select(pfn);
 	return __raw_readl(pad);
 }
