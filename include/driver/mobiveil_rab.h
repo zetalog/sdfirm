@@ -42,6 +42,15 @@
 #ifndef __MOBIVEIL_RAB_H_INCLUDE__
 #define __MOBIVEIL_RAB_H_INCLUDE__
 
+#ifdef CONFIG_RAB_PAGE_2KB
+#define RAB_PAGE_SHIFT			11
+#endif /* CONFIG_RAB_PAGE_2KB */
+#ifdef CONFIG_RAB_PAGE_4KB
+#define RAB_PAGE_SHIFT			12
+#endif /* CONFIG_RAB_PAGE_4KB */
+#define RAB_PAGE_SIZE			_BV(RAB_PAGE_SHIFT)
+#define RAB_PAGE_MASK			(RAB_PAGE_SIZE - 1)
+
 #define RAB_REG(offset)			(RAB_BASE + (offset))
 
 #define RAB_GLOBAL_CSR(offset)		RAB_REG(0x20000 + (offset))
@@ -107,6 +116,46 @@
 	_SET_FV(RAB_OB_Response_Priority_Control, value)
 #define RAB_Message_Descriptor_Memory_Enable			_BV(12)
 
+/* 19.3.13 APB Control & Status Register */
+#define RAB_APBKey				_BV(0)
+#define RAB_KEY_DEFAULT				0x3A2B
+#define RAB_APBPageSelect_OFFSET		16
+#ifdef CONFIG_RAB_PAGE_2KB
+#define RAB_APBPageSelect_MASK			REG_13BIT_MASK
+#endif /* CONFIG_RAB_PAGE_2KB */
+#ifdef CONFIG_RAB_PAGE_4KB
+#define RAB_APBPageSelect_MASK			REG_12BIT_MASK
+#endif /* CONFIG_RAB_PAGE_4KB */
+#define RAB_APBPageSelect(value)		\
+	_SET_FV(RAB_APBPageSelect, value)
+#define RAB_APBGRIOLocked			_BV(29)
+#define RAB_APBByteSwappingSelect_OFFSET	30
+#define RAB_APBByteSwappingSelect_MASK		REG_2BIT_MASK
+#define RAB_APBByteSwappingSelect(value)	\
+	_SET_FV(RAB_APBByteSwappingSelect, value)
+
+#define rab_setl(v,a)					\
+	do {						\
+		uint32_t __v = rab_readl(a);		\
+		__v |= (v);				\
+		rab_writel(__v, (a));			\
+	} while (0)
+#define rab_clearl(v,a)					\
+	do {						\
+		uint32_t __v = rab_readl(a);		\
+		__v &= ~(v);				\
+		rab_writel(__v, (a));			\
+	} while (0)
+#define rab_writel_mask(v,m,a)				\
+	do {						\
+		uint32_t __v = rab_readl(a);		\
+		__v &= ~(m);				\
+		__v |= (v);				\
+		rab_writel(__v, (a));			\
+	} while (0)
+
 void rab_init_port(void);
+void rab_writel(uint32_t value, caddr_t addr);
+uint32_t rab_readl(caddr_t addr);
 
 #endif /* __MOBIVEIL_RAB_H_INCLUDE__ */

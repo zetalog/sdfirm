@@ -322,6 +322,7 @@ config DPULP_RIO
 	bool "DPULP RapidIO interconnect support"
 	select MOBIVEIL_RAB
 	select ARCH_IS_RAB_SERIAL
+	select ARCH_IS_RAB_PAGE_2KB
 
 endmenu
 

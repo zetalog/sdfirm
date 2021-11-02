@@ -8,11 +8,30 @@ menu "RIO controller drivers"
 config ARCH_IS_RAB_SERIAL
 	bool
 
+config ARCH_IS_RAB_PAGE_2KB
+	bool
+
+config ARCH_IS_RAB_PAGE_4KB
+	bool
+
 menuconfig MOBIVEIL_RAB
 	bool "MobiVeil RapidIO to AXI Bridge (RAB) controller support"
 	select SRIO if ARCH_IS_RAB_SERIAL
 
 if MOBIVEIL_RAB
+
+choice
+	prompt "Page size"
+
+config RAB_PAGE_2KB
+	bool "2KB"
+	depends ARCH_IS_RAB_PAGE_2KB
+
+config RAB_PAGE_4KB
+	bool "4KB"
+	depends ARCH_IS_RAB_PAGE_4KB
+
+endchoice
 
 endif
 

@@ -41,11 +41,58 @@
 
 #include <target/rio.h>
 
+/* ======================================================================
+ * RAB Config Access
+ * ====================================================================== */
+static uint16_t rab_page = 0;
+
+void rab_page_select(uint16_t page)
+{
+	if (rab_page == page)
+		return;
+
+	__raw_writel_mask(RAB_APBPageSelect(page),
+			  RAB_APBPageSelect(RAB_APBPageSelect_MASK),
+			  RAB_APB_CSR);
+	rab_page = page;
+}
+
+void rab_writel(uint32_t value, caddr_t addr)
+{
+	uint16_t pfn;
+	uint16_t reg;
+
+	if (addr < RAB_PAGE_SIZE) {
+		__raw_writel(value, addr);
+		return;
+	}
+	pfn = addr >> RAB_PAGE_SHIFT;
+	reg = (addr & RAB_PAGE_MASK) + RAB_PAGE_SIZE;
+	rab_page_select(pfn);
+	__raw_writel(value, reg);
+}
+
+uint32_t rab_readl(caddr_t addr)
+{
+	uint16_t pfn;
+	uint16_t pad;
+
+	if (addr < RAB_PAGE_SIZE)
+		return __raw_readl(addr);
+	pfn = addr >> RAB_PAGE_SHIFT;
+	pad = (addr & RAB_PAGE_MASK) + RAB_PAGE_SIZE;
+	rab_page_select(pfn);
+	return __raw_readl(pad);
+}
+
+/* ======================================================================
+ * RAB Enumeration
+ * ====================================================================== */
 void rab_enum(void)
 {
-	__raw_setl(RAB_AMBA_PIO_Enable | RAB_RIO_PIO_Enable |
-		   RAB_Write_DMA_Enable | RAB_Read_DMA_Enable,
-		   RAB_CTRL);
+	rab_setl(RAB_AMBA_PIO_Enable | RAB_RIO_PIO_Enable |
+		 RAB_Write_DMA_Enable | RAB_Read_DMA_Enable,
+		 RAB_CTRL);
 }
 
 void rab_init_port(void)
