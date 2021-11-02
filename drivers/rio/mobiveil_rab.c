@@ -40,6 +40,7 @@
  */
 
 #include <target/rio.h>
+#include <target/barrier.h>
 
 #define RIO_PTR2INT(addr)	((uintptr_t)(addr))
 
@@ -56,6 +57,7 @@ void rab_page_select(uint16_t page)
 	__raw_writel_mask(RAB_APBPageSelect(page),
 			  RAB_APBPageSelect(RAB_APBPageSelect_MASK),
 			  RAB_APB_CSR);
+	wmb();
 	rab_page = page;
 }
 
