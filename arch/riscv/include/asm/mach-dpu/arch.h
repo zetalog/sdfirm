@@ -75,7 +75,11 @@
 #else
 #define PLL5_VCO_FREQ		ULL(2800000000) /* 2.8GHz */
 #endif
+#ifdef CONFIG_DPU_RES
+#define PLL0_P_FREQ		UL(1500000000)	/* 1.5GHz */
+#else /* CONFIG_DPU_RES */
 #define PLL0_P_FREQ		UL(800000000)	/* 800MHz */
+#endif /* CONFIG_DPU_RES */
 #define PLL1_P_FREQ		UL(1200000000)	/* 1.2GHz */
 #define PLL2_P_FREQ		UL(800000000)	/* 800MHz */
 #define PLL2_R_FREQ		UL(50000000)	/* 50MHz */
@@ -90,7 +94,18 @@
 #define PLL5_P_FREQ		UL(100000000)	/* 100MHZ */
 #endif
 #define PLL5_R_FREQ		UL(6000000)	/* 6MHz */
+#ifdef CONFIG_DPU_RES
+#define APC_CLK_FREQ		PLL0_P_FREQ
+#define IMC_CLK_FREQ		(PLL0_P_FREQ / 2)
+#ifdef CONFIG_DPU_APC
+#define CPU_CLK_FREQ		APC_CLK_FREQ
+#else /* CONFIG_DPU_APC */
+#define CPU_CLK_FREQ		IMC_CLK_FREQ
+#endif /* CONFIG_DPU_APC */
+#else /* CONFIG_DPU_RES */
 #define IMC_CLK_FREQ		PLL0_P_FREQ
+#define CPU_CLK_FREQ		IMC_CLK_FREQ
+#endif /* CONFIG_DPU_RES */
 #define PE_CLK_FREQ		PLL1_P_FREQ
 #define AXI_CLK_FREQ		PLL3_P_FREQ
 #define APB_CLK_FREQ		PLL3_R_FREQ

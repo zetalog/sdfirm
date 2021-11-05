@@ -84,7 +84,7 @@
 #define pll5_vco		clkid(CLK_VCO, PLL5_VCO)
 
 #define CLK_PLL			((clk_cat_t)2)
-#define PLL0_P			IMC_CLK
+#define PLL0_P			CPU_CLK
 #define PLL1_P			PE_CLK
 #define PLL2_P			DDR_CLK
 #define PLL3_P			AXI_CLK
@@ -119,7 +119,7 @@
 #define CLK_TO_PLL(clk, isrclk)	((isrclk) ? ((clk) - NR_PLLS + 2) : (clk))
 
 #define CLK_SEL			((clk_cat_t)3)
-#define IMC_CLK			((clk_clk_t)0) /* PLL0_P */
+#define CPU_CLK			((clk_clk_t)0) /* PLL0_P */
 #define PE_CLK			((clk_clk_t)1) /* PLL1_P */
 #define DDR_CLK			((clk_clk_t)2) /* PLL2_P */
 #define AXI_CLK			((clk_clk_t)3) /* PLL3_P */
@@ -138,7 +138,7 @@
 #define NR_SEL_CLKS		(VPU_CCLK + 1)
 #endif /* CONFIG_DPU_GEN2 */
 
-#define imc_clk			clkid(CLK_SEL, IMC_CLK)
+#define cpu_clk			clkid(CLK_SEL, CPU_CLK)
 #define pe_clk			clkid(CLK_SEL, PE_CLK)
 #define ddr_clk			clkid(CLK_SEL, DDR_CLK)
 #define axi_clk			clkid(CLK_SEL, AXI_CLK)
@@ -203,7 +203,7 @@
 #define srst_wdt		clkid(CLK_RESET, SRST_WDT)
 #define srst_tcsr		clkid(CLK_RESET, SRST_TCSR)
 #define srst_vpu		clkid(CLK_RESET, SRST_VPU)
-#define srst_imc		clkid(CLK_RESET, SRST_IMC)
+#define srst_cpu		clkid(CLK_RESET, SRST_CPU)
 #define srst_noc		clkid(CLK_RESET, SRST_NOC)
 #define srst_flash		clkid(CLK_RESET, SRST_FLASH)
 #define srst_sys		clkid(CLK_RESET, SRST_SYS)
@@ -236,6 +236,13 @@
 #define pcie0_por_n		srst_pcie0_por
 #define pcie1_arst_n		srst_pcie1
 #define pcie1_por_n		srst_pcie1_por
+
+#ifdef CONFIG_DPU_RES
+#define CLK_DIV			((clk_cat_t)6)
+#define PLL0_CLKP_CPF_DIV2	((clk_clk_t)0)
+#define NR_DIV_CLKS		(PLL0_CLKP_CPF_DIV2 + 1)
+#define pll0_clkp_cpf_div2	clkid(CLK_DIV, PLL0_CLKP_CPF_DIV2)
+#endif /* CONFIG_DPU_RES */
 
 #include <asm/mach/pll.h>
 

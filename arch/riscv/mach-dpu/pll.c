@@ -139,7 +139,7 @@ struct freqplan bus_freqplan[NR_FREQPLANS] = {
 #endif
 
 struct freqplan *freqplans[NR_PLLS] = {
-	[IMC_CLK] = NULL,
+	[CPU_CLK] = NULL,
 	[PE_CLK] = pe_freqplan,
 	[DDR_CLK] = NULL,
 	[AXI_CLK] = bus_freqplan,
@@ -152,7 +152,7 @@ struct freqplan *freqplans[NR_PLLS] = {
 };
 
 struct freqplan freqplans_def[NR_PLLS] = {
-	[IMC_CLK] = {
+	[CPU_CLK] = {
 		.f_pll_vco = PLL0_VCO_FREQ,
 		.f_pll_pclk = PLL0_P_FREQ,
 		.f_pll_rclk = INVALID_FREQ,

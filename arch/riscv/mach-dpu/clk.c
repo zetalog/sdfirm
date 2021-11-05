@@ -138,8 +138,8 @@ struct reset_clk reset_clks[NR_RESET_CLKS] = {
 		.clk_src = vpu_clk,
 		.flags = CLK_SRST_F,
 	},
-	[SRST_IMC] = {
-		.clk_src = imc_clk,
+	[SRST_CPU] = {
+		.clk_src = cpu_clk,
 		.flags = CLK_EN_F,
 	},
 	[SRST_NOC] = {
@@ -226,7 +226,7 @@ const char *reset_clk_names[NR_RESET_CLKS] = {
 	[SRST_WDT] = "srst_wdt",
 	[SRST_TCSR] = "srst_tcsr",
 	[SRST_VPU] = "srst_vpu",
-	[SRST_IMC] = "srst_imc",
+	[SRST_CPU] = "srst_cpu",
 	[SRST_NOC] = "srst_noc",
 	[SRST_FLASH] = "srst_flash",
 	[SRST_DDR0_0] = "srst_ddr0_0",
@@ -388,13 +388,23 @@ struct sel_clk {
 };
 
 struct sel_clk sel_clks[NR_SEL_CLKS] = {
-	[IMC_CLK] = {
+#ifdef CONFIG_DPU_RES
+	[CPU_CLK] = {
+		.clk_sels = {
+			pll0_clkp_cpf_div2,
+			xin,
+		},
+		.allow_gating = false, /* CPU is required to boot */
+	},
+#else /* CONFIG_DPU_RES */
+	[CPU_CLK] = {
 		.clk_sels = {
 			pll0_p,
 			xin,
 		},
 		.allow_gating = false, /* IMC is required to boot */
 	},
+#endif /* CONFIG_DPU_RES */
 	[PE_CLK] = {
 		.clk_sels = {
 			pll1_p,
@@ -476,7 +486,7 @@ struct sel_clk sel_clks[NR_SEL_CLKS] = {
 
 #ifdef CONFIG_CLK_MNEMONICS
 const char *sel_clk_names[NR_SEL_CLKS] = {
-	[IMC_CLK] = "imc_clk",
+	[CPU_CLK] = "cpu_clk",
 	[PE_CLK] = "pe_clk",
 	[DDR_CLK] = "ddr_clk",
 	[AXI_CLK] = "axi_clk",
@@ -986,6 +996,74 @@ struct clk_driver clk_input = {
 	.get_name = get_input_clk_name,
 };
 
+#ifdef CONFIG_DPU_RES
+struct div_clk {
+	clk_t src;
+	uint8_t div;
+};
+
+struct div_clk div_clks[NR_DIV_CLKS] = {
+	[PLL0_CLKP_CPF_DIV2] = {
+		.src = pll0_p,
+		.div = 2,
+	},
+};
+
+#ifdef CONFIG_CLK_MNEMONICS
+const char *div_clk_names[NR_DIV_CLKS] = {
+	[PLL0_CLKP_CPF_DIV2] = "pll0_clkp_cpf_div2",
+};
+
+static const char *get_pll_div_name(clk_clk_t clk)
+{
+	if (clk >= NR_DIV_CLKS)
+		return NULL;
+	return div_clk_names[clk];
+}
+#else
+#define get_pll_div_name	NULL
+#endif
+
+static int enable_pll_div(clk_clk_t clk)
+{
+	if (clk >= NR_DIV_CLKS)
+		return -EINVAL;
+	return clk_enable(div_clks[clk].src);
+}
+
+static void disable_pll_div(clk_clk_t clk)
+{
+	if (clk >= NR_DIV_CLKS)
+		return;
+	clk_disable(div_clks[clk].src);
+}
+
+static clk_freq_t get_pll_div_freq(clk_clk_t clk)
+{
+	if (clk >= NR_DIV_CLKS)
+		return INVALID_FREQ;
+	return clk_get_frequency(div_clks[clk].src) / div_clks[clk].div;
+}
+
+static int set_pll_div_freq(clk_clk_t clk, clk_freq_t freq)
+{
+	if (clk >= NR_DIV_CLKS)
+		return -EINVAL;
+	return clk_set_frequency(div_clks[clk].src,
+				 freq * div_clks[clk].div);
+}
+
+struct clk_driver clk_div = {
+	.max_clocks = NR_DIV_CLKS,
+	.enable = enable_pll_div,
+	.disable = disable_pll_div,
+	.get_freq = get_pll_div_freq,
+	.set_freq = set_pll_div_freq,
+	.select = NULL,
+	.get_name = get_pll_div_name,
+};
+#endif /* CONFIG_DPU_RES */
+
 /*===========================================================================
  * Clock tree APIs
  *===========================================================================*/
@@ -1014,8 +1092,11 @@ void board_init_clock(void)
 		clk_register_driver(CLK_SEL, &clk_gmux);
 		clk_register_driver(CLK_DEP, &clk_dep);
 		clk_register_driver(CLK_RESET, &clk_srst);
+#ifdef CONFIG_DPU_RES
+		clk_register_driver(CLK_DIV, &clk_div);
+#endif /* CONFIG_DPU_RES */
 		/* Update the status of the default enabled clocks */
-		clk_enable(imc_clk);
+		clk_enable(cpu_clk);
 		clk_enable(apb_clk);
 	}
 	clk_hw_init = true;

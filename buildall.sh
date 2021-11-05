@@ -1,6 +1,7 @@
 #!/bin/sh
 
 update_defconfigs=
+build_all_defconfigs=
 
 build_sdfirm()
 {
@@ -54,9 +55,10 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "hu" opt
+while getopts "ahu" opt
 do
 	case $opt in
+	a) build_all_defconfigs=yes;;
 	h) usage 0;;
 	u) update_defconfigs=yes;;
 	?) echo "Invalid argument $opt"
@@ -103,7 +105,9 @@ build_sdfirm arm64 ddr_umctl2_tb
 #build_sdfirm arm64 nanopi_neo2_spl
 
 # RV32M1 Vega
-build_sdfirm riscv32 vega_ri5cy
+if [ "x$build_all_defconfigs" = "xyes" ]; then
+	build_sdfirm riscv32 vega_ri5cy
+fi
 # Emulators
 build_sdfirm riscv32 spike32_tb
 build_sdfirm riscv64 spike64_tb
@@ -147,14 +151,18 @@ build_sdfirm riscv64 dpu_ddr
 build_sdfirm riscv64 dpu2_ram
 build_sdfirm riscv64 dpu2_ddr
 # DPU RES
-build_sdfirm riscv64 dpures_ram
+build_sdfirm riscv64 dpures_rom
 build_sdfirm riscv64 dpures_flash
-build_sdfirm riscv64 dpuresm_ram
+build_sdfirm riscv64 dpures_ram
+build_sdfirm riscv64 dpuresm_rom
 build_sdfirm riscv64 dpuresm_flash
+build_sdfirm riscv64 dpuresm_ram
 # DPU LP
 build_sdfirm riscv64 dpulp_ram
 # core-v-verif
-build_sdfirm riscv32 corev_cv32
+if [ "x$build_all_defconfigs" = "xyes" ]; then
+	build_sdfirm riscv32 corev_cv32
+fi
 
 # Restore environments
 export ARCH=${SAVED_ARCH}

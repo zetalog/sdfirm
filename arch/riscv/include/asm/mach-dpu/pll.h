@@ -136,7 +136,7 @@ extern caddr_t dpu_pll_reg_base;
 #define SRST_WDT			13
 #define SRST_TCSR			14
 #define SRST_VPU			15
-#define SRST_IMC			16
+#define SRST_CPU			16
 #define SRST_NOC			17
 #define SRST_FLASH			18
 #define SRST_DDR0_0			19

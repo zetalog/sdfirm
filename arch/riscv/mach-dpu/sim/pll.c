@@ -101,7 +101,7 @@ struct pll_ctrl pll5ghz_tsmc12ffc[NR_PLLS] = {
 struct dpu_srst dpu_srst = {
 	.soft_rst = _BV(SRST_GPIO) | _BV(SRST_RAM) |
 		    _BV(SRST_ROM) | _BV(SRST_TMR) |
-		    _BV(SRST_TCSR) | _BV(SRST_IMC) |
+		    _BV(SRST_TCSR) | _BV(SRST_CPU) |
 		    _BV(SRST_NOC) | _BV(SRST_FLASH) |
 		    SRST_SYS | WDT_RST_DIS,
 	.cluster_soft_rst = 0xFFFFFFFF,
