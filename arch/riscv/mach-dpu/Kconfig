@@ -60,6 +60,8 @@ config DPU_FIRM
 
 config DPU_LOAD_ZSBL
 	bool
+	select DPU_APC_INIT_CPU if DPU_APC
+	select DPU_APC_INIT_PMA if DPU_APC
 
 config DPU_LOAD_FSBL
 	bool
@@ -199,6 +201,7 @@ config DPU_BOOT_STACK
 
 config DPU_BOOT_DEBUG
 	bool "Enable boot safe debugging messages"
+
 endif
 
 config DPU_FIRM_SIZE
@@ -212,6 +215,21 @@ config DPU_BOOT_PE
 config DPU_BOOT_VPU
 	bool "DPU vision processor unit (VPU)"
 	depends DPU_BOOT
+
+if DPU_APC && DPU_LOAD_ZSBL
+
+menu "Cluster boot hooks"
+
+config DPU_APC_INIT_CPU
+	bool "Enable cluster self-initialization"
+
+config DPU_APC_INIT_PMA
+	bool "Enable PMA initialization"
+	select DPU_PMA
+
+endmenu
+
+endif
 
 endmenu
 
@@ -311,6 +329,12 @@ menuconfig DPU_PMA
 	select VAISRA_PMA
 
 if DPU_PMA
+
+config DPU_PMA_DEBUG
+	bool "Enable debugging messages"
+	depends CONSOLE_DEBUG
+	depends DPU_PMA
+	depends !SBI
 
 endif
 

@@ -104,14 +104,16 @@
 
 #if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
 	.macro	boot0_hook
+#ifdef CONFIG_DPU_APC_INIT_CPU
 	jal	ra, vaisra_cpu_init
+#endif /* CONFIG_DPU_APC_INIT_CPU */
 	.endm
 	.macro	boot1_hook
 	.endm
 	.macro	boot2_hook
-#ifdef CONFIG_DPU_PMA
+#ifdef CONFIG_DPU_APC_INIT_PMA
 	jal	ra, dpu_pma_cpu_init
-#endif
+#endif /* CONFIG_DPU_APC_INIT_PMA */
 	.endm
 #endif /* __ASSEMBLY__ && !__DTS__ && !LINKER_SCRIPT */
 
