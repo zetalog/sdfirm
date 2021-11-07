@@ -85,21 +85,6 @@ config DPU_BOOT_ROM
 	select DPU_SPI_FLASH
 	select DPU_SSI_FLASH
 
-config DPU_BOOT_RAM
-	bool "0-stage boot RAM bootloader (ZSBL)"
-	select ARCH_HAS_BOOT_LOAD
-	select DPU_BOOT
-	select DPU_LOAD_ZSBL
-	select XIP
-	select BFM
-	select SYS_ENTR_M
-	select SYS_EXIT_M
-	select SYS_EXIT_S if DPU_CVA6
-	select SYS_EXIT_U
-	select DPU_TCSR
-	select DPU_SPI_FLASH
-	select DPU_SSI_FLASH
-
 config DPU_BOOT_SPI_FLASH
 	bool "0-stage/1-stage SPINOR bootloader (ZSBL/FSBL)"
 	select ARCH_HAS_BOOT_LOAD
@@ -150,6 +135,18 @@ config DPU_FIRM_DDR
 	select SYS_EXIT_M
 	select SYS_EXIT_S if DPU_CVA6
 	select SYS_EXIT_U
+
+config DPU_BOOT_RAM
+	bool "RAM testbench"
+	select ARCH_HAS_BOOT_LOAD
+	select DPU_BOOT
+	select XIP
+	select BFM
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SYS_EXIT_S if DPU_CVA6
+	select SYS_EXIT_U
+	select DPU_TCSR
 
 endchoice
 

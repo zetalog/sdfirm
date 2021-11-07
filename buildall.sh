@@ -142,20 +142,29 @@ build_sdfirm riscv64 duowen_xsbl_apc
 build_sdfirm riscv64 duowen_ram_imc
 build_sdfirm riscv64 duowen_ram_apc
 build_sdfirm riscv64 duowen_ddr
-# DPU
+# DPU products
 build_sdfirm riscv64 dpu_rom
+build_sdfirm riscv64 dpu_fsbl
 build_sdfirm riscv64 dpu_flash
+# DPU testbenches
 build_sdfirm riscv64 dpu_ram
 build_sdfirm riscv64 dpu_ddr
-# DPU GEN2
+# DPU GEN2 products
+build_sdfirm riscv64 dpu2_rom
+build_sdfirm riscv64 dpu2_fsbl
+build_sdfirm riscv64 dpu2_flash
+# DPU GEN2 testbenches
 build_sdfirm riscv64 dpu2_ram
 build_sdfirm riscv64 dpu2_ddr
-# DPU RES
+# DPU RES products
 build_sdfirm riscv64 dpures_rom
+build_sdfirm riscv64 dpures_fsbl
 build_sdfirm riscv64 dpures_flash
-build_sdfirm riscv64 dpures_ram
 build_sdfirm riscv64 dpuresm_rom
+build_sdfirm riscv64 dpuresm_fsbl
 build_sdfirm riscv64 dpuresm_flash
+# DPU RES testbenches
+build_sdfirm riscv64 dpures_ram
 build_sdfirm riscv64 dpuresm_ram
 # DPU LP
 build_sdfirm riscv64 dpulp_ram
