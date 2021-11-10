@@ -54,6 +54,13 @@ void board_shutdown(void)
 }
 #endif
 
+#ifdef CONFIG_FINISH
+void board_finish(int code)
+{
+	imc_sim_finish(true);
+}
+#endif
+
 #ifdef CONFIG_REBOOT
 void board_reboot(void)
 {
