@@ -391,7 +391,12 @@ struct sel_clk sel_clks[NR_SEL_CLKS] = {
 #ifdef CONFIG_DPU_RES
 	[CPU_CLK] = {
 		.clk_sels = {
-			pll0_clkp_cpf_div2,
+#ifdef CONFIG_DPU_IMC
+			pll0_p_div2,
+#endif /* CONFIG_DPU_IMC */
+#ifdef CONFIG_DPU_APC
+			pll0_p,
+#endif /* CONFIG_DPU_APC */
 			xin,
 		},
 		.allow_gating = false, /* CPU is required to boot */
@@ -1003,7 +1008,7 @@ struct div_clk {
 };
 
 struct div_clk div_clks[NR_DIV_CLKS] = {
-	[PLL0_CLKP_CPF_DIV2] = {
+	[PLL0_P_DIV2] = {
 		.src = pll0_p,
 		.div = 2,
 	},
@@ -1011,7 +1016,7 @@ struct div_clk div_clks[NR_DIV_CLKS] = {
 
 #ifdef CONFIG_CLK_MNEMONICS
 const char *div_clk_names[NR_DIV_CLKS] = {
-	[PLL0_CLKP_CPF_DIV2] = "pll0_clkp_cpf_div2",
+	[PLL0_P_DIV2] = "pll0_p_div2",
 };
 
 static const char *get_pll_div_name(clk_clk_t clk)

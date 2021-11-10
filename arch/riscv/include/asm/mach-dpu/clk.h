@@ -239,9 +239,9 @@
 
 #ifdef CONFIG_DPU_RES
 #define CLK_DIV			((clk_cat_t)6)
-#define PLL0_CLKP_CPF_DIV2	((clk_clk_t)0)
-#define NR_DIV_CLKS		(PLL0_CLKP_CPF_DIV2 + 1)
-#define pll0_clkp_cpf_div2	clkid(CLK_DIV, PLL0_CLKP_CPF_DIV2)
+#define PLL0_P_DIV2		((clk_clk_t)0)
+#define NR_DIV_CLKS		(PLL0_P_DIV2 + 1)
+#define pll0_p_div2		clkid(CLK_DIV, PLL0_P_DIV2)
 #endif /* CONFIG_DPU_RES */
 
 #include <asm/mach/pll.h>
