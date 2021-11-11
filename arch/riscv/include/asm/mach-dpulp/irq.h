@@ -42,7 +42,9 @@
 #ifndef __IRQ_DPULP_H_INCLUDE__
 #define __IRQ_DPULP_H_INCLUDE__
 
-#define IRQ_UART		EXT_IRQ(01)
+#define IRQ_UART		EXT_IRQ(1)
+#define IRQ_SSI			EXT_IRQ(2)
+#define IRQ_SD			EXT_IRQ(3)
 
 #define NR_EXT_IRQS		128
 #define NR_IRQS			(NR_INT_IRQS + NR_EXT_IRQS)

@@ -593,6 +593,7 @@ config DPU_TEST_LINK_SPEED_CHANGE
 	  When this option is enabled, will test link speed change.
 
 endif
+
 endif
 
 endmenu

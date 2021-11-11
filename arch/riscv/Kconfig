@@ -152,30 +152,38 @@ config ARCH_VAISRA
 
 config ARCH_DPULP
 	bool "SmarCo DPU-LP"
-	select CPU_CVA6
-	select DPULP_TCSR
-	select DPULP_TMR
+	select CPU_VAISRA
+	select ARCH_HAS_SMP
 	select ARCH_IS_TICKLESS
 	select ARCH_HAS_TSC
 	select ARCH_HAS_TSC_CONST
 	select ARCH_HAS_GPT
 	select ARCH_HAS_IRQC
+	select ARCH_HAS_CLINT
+	select ARCH_HAS_PLIC
+	select ARCH_HAS_PLIC_EOI_EARLY
+	select ARCH_HAS_APB_40
 	select ARCH_HAS_CLK
 	select ARCH_HAS_FDT
 	select ARCH_HAS_NOVEC
-	select ARCH_HAS_APB_40
 	select ARCH_HAS_GPIO
 	select ARCH_HAS_SPI
 	select ARCH_HAS_SD
 	select ARCH_HAS_DDR
+	select ARCH_HAS_PCI
 	select ARCH_HAS_RIO
+	select ARCH_HAS_ETH
 	select FDT_BUILTIN if SBI_FDT
+	select DPULP_TCSR
+	select DPULP_TMR
 	select DPULP_GPIO if GPIO
-	select DPULP_SSI_FLASH if SPI_MASTER
 	select DPULP_UART if CONSOLE || DEBUG_PRINT
+	select DPULP_SSI_FLASH if SPI_MASTER
+	select DPULP_SD if MMCSD
 	select DPULP_DDR if DDR
+	select DPULP_PCIE if PCI
 	select DPULP_RIO if RIO
-	select HPM if (PERF && DPU_CVA6)
+	select VAISRA_RAS if RAS
 	help
 	  This enables support for smart core (SmarCo) DPU-LP platform.
 

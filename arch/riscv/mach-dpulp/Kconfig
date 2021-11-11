@@ -9,129 +9,153 @@ menu "Smart Core DPULP-LP board options"
 
 config DPULP_BOOT
 	bool
-
-config DPULP_FIRM
-	bool
+	select SPI
+	select SPI_MASTER
+	select MMCSD
 
 config DPULP_LOAD_ZSBL
 	bool
+	select DPULP_BOOT
+	select DPULP_BOOT_CPU
+	select DPULP_BOOT_PMA
 
 config DPULP_LOAD_FSBL
 	bool
+	select DPULP_BOOT
 	select DPULP_DDR
 
 config DPULP_LOAD_BBL
 	bool
+	select SBI
+	select SBI_PAYLOAD
 
 choice
 	prompt "Program type"
 
-config DPULP_BOOT_ROM
+config DPULP_ZSBL
 	bool "0-stage boot ROM bootloader (ZSBL)"
-	select DPULP_BOOT
 	select DPULP_LOAD_ZSBL
 	select XIP
 	select LOAD_DATA
 	select SYS_ENTR_M
 	select SYS_EXIT_M
-	select DPULP_SPI_FLASH
-	select DPULP_SSI_FLASH
+	select DPULP_HAS_FIRM_RAM
 
-config DPULP_BOOT_RAM
-	bool "RAM based test bench"
-	select ARCH_HAS_BOOT_LOAD
-	select XIP
-	select BFM
-	select SYS_ENTR_M
-	select SYS_EXIT_M
-	select SYS_EXIT_S if DPULP_CVA6
-	select SYS_EXIT_U
-
-config DPULP_BOOT_SPI_FLASH
-	bool "0-stage/1-stage SPINOR bootloader (ZSBL/FSBL)"
-	select ARCH_HAS_BOOT_LOAD
-	select DPULP_BOOT
-	select DPULP_LOAD_ZSBL
-	select DPULP_LOAD_FSBL
-	select XIP
-	select LOAD_DATA
-	select SYS_ENTR_M
-	select SYS_EXIT_M
-	select DPULP_SPI_FLASH
-	select DPULP_SSI_FLASH
-
-config DPULP_BOOT_SSI_FLASH
+config DPULP_FSBL
 	bool "1-stage SSI flash bootloader (FSBL)"
 	select ARCH_HAS_BOOT_LOAD
-	select DPULP_BOOT
 	select DPULP_LOAD_FSBL
-	select XIP
-	select SYS_ENTR_M
-	select SYS_EXIT_M
-	select DPULP_SPI_FLASH
-	select DPULP_SSI_FLASH
-
-config DPULP_BOOT_DDR
-	bool "Berkeley bootloader (BBL)"
-	select ARCH_HAS_BOOT_LOAD
-	select DPULP_BOOT
-	select DPULP_LOAD_BBL
-	select SYS_ENTR_M
-	select SYS_EXIT_M
-	select SBI
-	select SBI_PAYLOAD
-	select DPULP_SPI_FLASH
-	select DPULP_SSI_FLASH
-
-config DPULP_FIRM_DDR
-	bool "Runtime target firmware (DPULP-FW)"
-	select ARCH_HAS_BOOT_LOAD
-	select DPULP_FIRM
 	select XIP
 	select BFM
 	select SYS_ENTR_M
 	select SYS_EXIT_M
-	select SYS_EXIT_S if DPULP_CVA6
+	select DPULP_HAS_FIRM_RAM
+	select DPULP_HAS_FIRM_DDR
+
+config DPULP_XSBL
+	bool "0-stage/1-stage SPINOR bootloader (ZSBL/FSBL)"
+	select ARCH_HAS_BOOT_LOAD
+	select DPULP_LOAD_ZSBL
+	select DPULP_LOAD_FSBL
+	select XIP
+	select LOAD_DATA
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select DPULP_SPI_FLASH
+	select DPULP_HAS_FIRM_RAM
+	select DPULP_HAS_FIRM_DDR
+
+config DPULP_BBL
+	bool "Berkeley bootloader (BBL)"
+	select ARCH_HAS_BOOT_LOAD
+	select DPULP_LOAD_BBL
+	select XIP
+	select BFM
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select DPULP_HAS_FIRM_DDR
+
+config DPULP_DFW
+	bool "DPU runtime firmware (DFW)"
+	select ARCH_HAS_BOOT_LOAD
+	select XIP
+	select BFM
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SYS_EXIT_S
 	select SYS_EXIT_U
+	select DPULP_HAS_FIRM_RAM
+	select PCI
+	select RIO
+
+config DPULP_TB
+	bool "RAM/DDR based Testbench"
+	select ARCH_HAS_BOOT_LOAD
+	select XIP
+	select BFM
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SYS_EXIT_S
+	select SYS_EXIT_U
+	select DPULP_HAS_FIRM_RAM
+	select DPULP_HAS_FIRM_DDR
+
+endchoice
+
+config DPULP_HAS_FIRM_RAM
+	bool
+
+config DPULP_HAS_FIRM_DDR
+	bool
+
+choice
+	prompt "Firmware residency"
+	default DPULP_FIRM_DDR
+
+config DPULP_FIRM_DDR
+	bool "DDR"
+	depends DPULP_HAS_FIRM_DDR
+
+config DPULP_FIRM_RAM
+	bool "RAM"
+	depends DPULP_HAS_FIRM_RAM
 
 endchoice
 
 menu "Bootloader/Firmware options"
 
-config DPULP_LOAD
-	bool "Enable bootloader"
-	depends DPULP_LOAD_ZSBL || DPULP_LOAD_FSBL
+if DPULP_LOAD_ZSBL
 
-if DPULP_LOAD
+menu "DPULP Cluster boot hooks"
 
-config DPULP_LOAD_SPI_FLASH
-	bool "Enable load from SPI flash"
-	depends DPULP_SPI_FLASH
+config DPULP_BOOT_CPU
+	bool "Enable CPU self-initialization"
 
-config DPULP_BOOT_ADDR
-	hex "Bootloader SPI flash jump address"
-	range 0x00000000 0x01E00000
-	depends DPULP_LOAD_SPI_FLASH
-	default 0x00000080
+config DPULP_BOOT_PMA
+	bool "Enable PMA initialization"
+	select DPULP_PMA
 
-choice
-	prompt "Storage to load from"
-	default DPULP_LOAD_SSI_FLASH
+endmenu
 
-config DPULP_LOAD_SSI_FLASH
-	bool "SSI flash"
-	depends DPULP_SSI_FLASH
+endif
 
-config DPULP_LOAD_ROM
-	bool "ROM"
+menuconfig DPULP_BOOT_PROT
+	bool "Enable boot .data protection"
+	depends DPULP_ZSBL || DPULP_TB
+	help
+	  By default, each bootloader's .data section should be in
+	  a different memory region. Enable this option only if the next
+	  bootloader resides on SRAM low end, and the region is conflict
+	  with the current bootloader. However, if the next bootloader
+	  occupies the high end of the SRAM region, which is conflict with
+	  the stack of the current bootloader, please do not enable this
+	  option.
+	  If unsure, say 'N'.
 
-config DPULP_LOAD_FAKE_PCIE_MEM
-	bool "fake PCIe memory"
+if DPULP_BOOT_PROT
 
-endchoice	
-
-config DPULP_BOOT_STACK
-	bool "Enable boot from stack"
+config DPULP_BOOT_PROT_STRONG
+	bool "Enable boot .text protection"
 	help
 	  By default, each bootloader's .text section should be in
 	  a different memory region. Enable this option only if the next
@@ -142,14 +166,16 @@ config DPULP_BOOT_STACK
 	  option.
 	  If unsure, say 'N'.
 
-config DPULP_BOOT_DEBUG
-	bool "Enable boot safe debugging messages"
+config DPULP_BOOT_PROT_TEST
+	bool "Enable boot protection test command"
+	depends EXPERIMENTAL && COMMAND
+	depends DPULP_TB
+	select DPULP_BOOT_DEBUG
 
 endif
 
-config DPULP_FIRM_SIZE
-	hex "Firmware size"
-	depends DPULP_FIRM
+config DPULP_BOOT_DEBUG
+	bool "Enable boot safe debugging messages"
 
 endmenu
 
@@ -166,6 +192,20 @@ config DPULP_SIM_CLK
 endif
 
 endmenu
+
+menuconfig DPULP_PMA
+	bool "DPULP cluster PMA support"
+	select VAISRA_PMA
+
+if DPULP_PMA
+
+config DPULP_PMA_DEBUG
+	bool "Enable debugging messages"
+	depends CONSOLE_DEBUG
+	depends DPULP_PMA
+	depends !SBI
+
+endif
 
 menuconfig DPULP_TCSR
 	bool "Top control and status registers (TCSR) support"
@@ -315,14 +355,83 @@ config DPULP_SSI_FLASH_FREQ
 
 endif
 
-config DPULP_DDR
-	bool
+menuconfig DPULP_SD
+	bool "DPULP MSHC controller support"
+	select DW_MSHC
+	select UEFI
+	select UEFI_GPT
+	select MTD_MMCARD
+	select STRING_UUID
+	select GPIO
 
-config DPULP_RIO
+if DPULP_SD
+
+endif
+
+menuconfig DPULP_DDR
+	bool "DPU DDR controller/phy support"
+	select DW_UMCTL2
+	select MATH_DIV32
+
+if DPULP_DDR
+
+endif
+
+menuconfig DPULP_PCIE
+	bool "DPULP PCIe subsystem support"
+	select DW_PCIE
+	select ARCH_HAS_DW_PCIE_RC
+
+if DPULP_PCIE
+
+endif
+
+menuconfig DPULP_RIO
 	bool "DPULP RapidIO interconnect support"
 	select MOBIVEIL_RAB
 	select ARCH_IS_RAB_SERIAL
 	select ARCH_IS_RAB_PAGE_2KB
+
+if DPULP_RIO
+
+endif
+
+menuconfig DPULP_ETH
+	bool "DPULP ethernet XGMAC/XPCS support"
+	select DW_XGMAC
+	select ARCH_IS_DW_XPCS_BACKPLANE
+	select ARCH_HAS_DW_XPCS_10000BASE_KX4
+	select ARCH_HAS_DW_XPCS_10000BASE_KR
+	select ARCH_HAS_DW_XPCS_5000BASE_KR
+	select ARCH_HAS_DW_XPCS_2500BASE_KX
+	select ARCH_HAS_DW_XPCS_1000BASE_KX
+	select ARCH_IS_DW_XPCS_SGMII
+	select ARCH_HAS_DW_XPCS_KRTR
+	select ARCH_HAS_DW_XPCS_AN
+	select ARCH_HAS_DW_XPCS_EEE
+	select ARCH_HAS_DW_XPCS_FEC
+	select ARCH_HAS_DW_XPCS_FEC_FORWARD
+	select ARCH_IS_DW_XPCS_XGMII_SDR
+	select ARCH_HAS_DW_XPCS_RXAUI
+	select ARCH_IS_DW_XPCS_MDIO
+	select ARCH_IS_DW_XPCS_PHY_GEN5_16G if DUOWEN_ASIC
+	select GPIO
+
+if DPULP_ETH
+
+choice
+	prompt "PHY mode"
+	default DPULP_ETH_10000BASE_KR
+
+config DPULP_ETH_10000BASE_KX4
+	bool "usxgmii"
+
+config DPULP_ETH_10000BASE_KR
+	bool "10gbase-kr"
+
+endchoice
+
+endif
 
 endmenu
 

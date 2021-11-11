@@ -60,47 +60,63 @@
 #define TCSR_SD_STATUS			TCSR_REG(0x64)
 
 /* SOC_VERSION */
-#define IMC_MAJOR_OFFSET		8
-#define IMC_MAJOR_MASK			REG_8BIT_MASK
-#define IMC_MAJOR(value)		_GET_FV(IMC_MAJOR, value)
-#define IMC_MINOR_OFFSET		0
-#define IMC_MINOR_MASK			REG_8BIT_MASK
-#define IMC_MINOR(value)		_GET_FV(IMC_MINOR, value)
+#define TCSR_MAJOR_OFFSET		8
+#define TCSR_MAJOR_MASK			REG_8BIT_MASK
+#define TCSR_MAJOR(value)		_GET_FV(TCSR_MAJOR, value)
+#define TCSR_MINOR_OFFSET		0
+#define TCSR_MINOR_MASK			REG_8BIT_MASK
+#define TCSR_MINOR(value)		_GET_FV(TCSR_MINOR, value)
 /* BOOT_MODE */
-#define IMC_BOOT_MODE_OFFSET		0
-#define IMC_BOOT_MODE_MASK		REG_3BIT_MASK
-#define IMC_BOOT_MODE(value)		_GET_FV(IMC_BOOT_MODE, value)
-#define IMC_BOOT_ROM			0x00
-#define IMC_BOOT_FLASH			0x01
-#define IMC_BOOT_USE_BOOT_ADDR		0x02
-/* FLASH_SEL */
-#define IMC_FLASH_SEL_OFFSET		4
-#define IMC_FLASH_SEL_MASK		REG_1BIT_MASK
-#define IMC_FLASH_SEL(value)		_GET_FV(IMC_FLASH_SEL, value)
-#define IMC_FLASH_SPI			0x00
-#define IMC_FLASH_SSI			0x01
+#define TCSR_BOOT_PAD_OFFSET		0
+#define TCSR_BOOT_PAD_MASK		REG_3BIT_MASK
+#define TCSR_BOOT_PAD(value)		_GET_FV(TCSR_BOOT_PAD, value)
+/* BOOT FROM */
+#define TCSR_BOOT_ROM			0x00
+#define TCSR_BOOT_SPI			0x01
+#define TCSR_BOOT_RAM			0x02
+#define TCSR_BOOT_DDR			0x03
+#define TCSR_BOOT_MASK			0x03
+/* LOAD TO */
+#define TCSR_LOAD_SSI			0x00
+#define TCSR_LOAD_SD			0x04
+#define TCSR_LOAD_MASK			0x04
 /* SIM MSG SRC */
 #ifdef CONFIG_DPULP_TCSR_SIM_FINISH
-#define IMC_SIM_PASS			_BV(31)
-#define IMC_SIM_FAIL			_BV(30)
+#define TCSR_SIM_PASS			_BV(31)
+#define TCSR_SIM_FAIL			_BV(30)
 #endif
 
-#define imc_soc_major()			\
-	IMC_MAJOR(__raw_readl(TCSR_SOC_VERSION))
-#define imc_soc_minor()			\
-	IMC_MINOR(__raw_readl(TCSR_SOC_VERSION))
-#define imc_boot_mode()			\
-	IMC_BOOT_MODE(__raw_readl(TCSR_BOOT_MODE))
-#define imc_boot_flash()			\
-	IMC_FLASH_SEL(__raw_readl(TCSR_BOOT_MODE))
-#define imc_boot_addr()					\
-	 MAKELLONG(__raw_readl(TCSR_BOOT_ADDR_LO),	\
-		   __raw_readl(TCSR_BOOT_ADDR_HI))
+/* SD_STABLE */
+#define TCSR_SD_HOST_REG_VOL_STABLE	_BV(0)
+
+/* SD_STATUS */
+#define TCSR_SD_DATXFER_WIDTH_OFFSET	7
+#define TCSR_SD_DATXFER_WIDTH_MASK	REG_2BIT_MASK
+#define TCSR_SD_DATXFER_WIDTH(value)	_GET_FV(TCSR_SD_DATXFER_WIDTH, value)
+#define TCSR_SD_VDD1_SEL_OFFSET		4
+#define TCSR_SD_VDD1_SEL_MASK		REG_3BIT_MASK
+#define TCSR_SD_VDD1_SEL(value)		_GET_FV(TCSR_SD_VDD1_SEL, value)
+#define TCSR_SD_UHSI_DRV_STH_OFFSET	2
+#define TCSR_SD_UHSI_DRV_STH_MASK	REG_2BIT_MASK
+#define TCSR_SD_UHSI_DRV_STH(value)	_GET_FV(TCSR_SD_UHSI_DRV_STH, value)
+#define TCSR_SD_VDD1_ON			_BV(1)
+#define TCSR_SD_UHSI_SWVOLT_EN		_BV(0)
+
+#define tcsr_soc_major()			\
+	TCSR_MAJOR(__raw_readl(TCSR_SOC_VERSION))
+#define tcsr_soc_minor()			\
+	TCSR_MINOR(__raw_readl(TCSR_SOC_VERSION))
+#define tcsr_boot_mode()			\
+	TCSR_BOOT_PAD(__raw_readl(TCSR_BOOT_MODE))
+#define tcsr_boot_from()			\
+	(tcsr_boot_mode() & TCSR_BOOT_MASK)
+#define tcsr_load_to()			\
+	(tcsr_boot_mode() & TCSR_LOAD_MASK)
 #ifdef CONFIG_DPULP_TCSR_SIM_FINISH
-#define imc_sim_finish(pass)		\
-	__raw_setl((pass) ? IMC_SIM_PASS : IMC_SIM_FAIL, TCSR_SIM_FINISH)
+#define tcsr_sim_finish(pass)		\
+	__raw_setl((pass) ? TCSR_SIM_PASS : TCSR_SIM_FAIL, TCSR_SIM_FINISH)
 #else
-#define imc_sim_finish(pass)		do { } while (0)
+#define tcsr_sim_finish(pass)		do { } while (0)
 #endif
 
 #endif /* __TCSR_DPULP_H_INCLUDE__ */

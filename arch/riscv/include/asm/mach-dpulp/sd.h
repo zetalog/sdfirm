@@ -35,55 +35,64 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)spi.h: DPU-LP serial peripheral interface (SPI) definitions
- * $Id: spi.h,v 1.1 2021-11-01 15:16:00 zhenglv Exp $
+ * @(#)sd.h: DPU-LP specific secure digital controller interface
+ * $Id: sd.h,v 1.1 2021-11-11 17:15:00 zhenglv Exp $
  */
 
-#ifndef __SPI_DPULP_H_INCLUDE__
-#define __SPI_DPULP_H_INCLUDE__
+#ifndef __SD_DPULP_H_INCLUDE__
+#define __SD_DPULP_H_INCLUDE__
 
-#include <target/gpio.h>
 #include <target/clk.h>
+#include <target/gpio.h>
 #include <target/mtd.h>
 
-#define DW_SSI_CLK		srst_spi
-#define DW_SSI_BASE(n)		SSI_BASE
-#define SSI_ID			0
+#define SDHC_REG(n, offset)		(SD_BASE + (offset))
 
-#ifdef CONFIG_DW_SSI
-#include <driver/dw_ssi.h>
-#ifndef ARCH_HAVE_SPI
-#define ARCH_HAVE_SPI		1
+#define SD_CLASS2			1
+#define SD_CLASS4			1
+#define SD_CLASS5			1
+#define SD_CLASS8			1
+#define SD_CLASS10			1
+
+#define DPULP_SD_SLOT			0
+#define DPULP_SD_CARD			0
+
+#ifdef CONFIG_DPULP_SD
+#include <driver/dw_mshc.h>
+#ifndef ARCH_HAVE_SD
+#define ARCH_HAVE_SD			1
 #else
-#error "Multiple SPI controller defined"
+#error "Multiple SD controller defined"
 #endif
 #endif
 
-#define DW_SSI_CLK_FREQ			(APB_CLK_FREQ) /* Hz */
+#ifdef CONFIG_DW_MSHC
+void dpulp_mshc_init(void);
 
-#ifdef CONFIG_DW_SSI
-#define spi_hw_config_mode(mode)	dw_ssi_config_mode(SSI_ID, mode)
-#define spi_hw_config_freq(khz)		dw_ssi_config_freq(SSI_ID, khz)
-#define spi_hw_read_byte()		dw_ssi_read_byte(SSI_ID)
-#define spi_hw_write_byte(byte)		dw_ssi_write_byte(SSI_ID, byte)
-#define spi_hw_chip_select(chip)	dw_ssi_select_chip(SSI_ID, chip)
-#define spi_hw_deselect_chips()		dw_ssi_deselect_chips(SSI_ID)
-void spi_hw_ctrl_init(void);
-#define spi_hw_ctrl_start()		dw_ssi_enable_ctrl(SSI_ID)
-#define spi_hw_ctrl_stop()		dw_ssi_disable_ctrl(SSI_ID)
+#define mmc_hw_ctrl_init()		dpulp_mshc_init()
+#define mmc_hw_slot_select(sid)		do { } while (0)
+#define mmc_hw_card_detect()		sdhc_detect_card()
+#define mmc_hw_set_clock(clock)		sdhc_set_clock(clock)
+#define mmc_hw_set_width(width)		sdhc_set_width(width)
+#define mmc_hw_card_busy()		sdhc_card_busy()
+#define mmc_hw_send_command(cmd, arg)	sdhc_send_command(cmd, arg)
+#define mmc_hw_recv_response(resp, size)	\
+	sdhc_recv_response(resp, size)
+#define mmc_hw_tran_data(dat, len, cnt)	sdhc_tran_data(dat, len, cnt)
+#define mmc_hw_irq_init()		sdhc_irq_init()
+#define mmc_hw_irq_poll()		sdhc_irq_poll()
 #endif
 
-#ifdef CONFIG_DPULP_SSI_FLASH
-void dpulp_ssi_init(void);
-void dpulp_ssi_boot(void *boot, uint32_t addr, uint32_t size, bool jump);
-int do_flash(int argc, char *argv[]);
+#ifdef CONFIG_DPULP_SD
+void dpulp_sd_init(void);
+void dpulp_sd_boot(void *boot, uint32_t addr, uint32_t size, bool jump);
 
-extern mtd_t board_flash;
-#else
-#define dpulp_ssi_init()			do { } while (0)
-#define dpulp_ssi_boot(boot, addr, size, jump)	do { } while (0)
+extern mtd_t board_sdcard;
+#else /* CONFIG_DPULP_SD */
+#define dpulp_sd_init()			do { } while (0)
+#define dpulp_sd_boot(boot, addr, size, jump)	do { } while (0)
 
-#define board_flash				INVALID_MTD_ID
-#endif
+#define board_sdcard			INVALID_MTD_ID
+#endif /* CONFIG_DPULP_SD */
 
-#endif /* __SPI_DPULP_H_INCLUDE__ */
+#endif /* __SD_DPULP_H_INCLUDE__ */

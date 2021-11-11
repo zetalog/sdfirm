@@ -42,146 +42,194 @@
 #include <target/arch.h>
 #include <target/irq.h>
 #include <target/clk.h>
+#include <target/uefi.h>
 #include <target/spi.h>
+#include <target/mmc.h>
+#include <target/sbi.h>
 #include <target/cmdline.h>
+#include <asm/mach/boot.h>
+
+#ifdef CONFIG_DPULP_LOAD_FSBL
+#ifdef CONFIG_DPULP_FIRM_RAM
+#define BOOT_LOAD_ADDR				SRAM_BASE
+#define BOOT_LOAD_FILE				"dfw.bin"
+#else /* CONFIG_DPULP_FIRM_RAM */
+#define BOOT_LOAD_ADDR				DDR_BASE
+#define BOOT_LOAD_FILE				"bbl.bin"
+#endif /* CONFIG_DPULP_FIRM_RAM */
+#else /* CONFIG_DPULP_LOAD_FSBL */
+#if !defined(CONFIG_DPULP_LOAD_ZSBL) && !defined(CONFIG_DPULP_TB)
+#error "Only ZSBL can load to RAM!"
+#endif /* !CONFIG_DPULP_LOAD_ZSBL && !CONFIG_DPULP_TB */
+#define BOOT_LOAD_ADDR				SRAM_BASE
+#define BOOT_LOAD_FILE				"fsbl.bin"
+#endif /* CONFIG_DPULP_LOAD_FSBL */
+
+#ifdef CONFIG_FINISH
+#ifdef CONFIG_SBI
+void board_finish(int code)
+{
+	sbi_finish(code);
+}
+#else /* CONFIG_SBI */
+void board_finish(int code)
+{
+	if (code)
+		tcsr_sim_finish(false);
+	else
+		tcsr_sim_finish(true);
+}
+#endif /* CONFIG_SBI */
+#endif /* CONFIG_FINISH */
 
 #ifdef CONFIG_SHUTDOWN
+#ifdef CONFIG_SBI
 void board_shutdown(void)
 {
-	imc_sim_finish(true);
+	sbi_shutdown();
 }
-#endif
+#else /* CONFIG_SBI */
+void board_shutdown(void)
+{
+	tcsr_sim_finish(true);
+}
+#endif /* CONFIG_SBI */
+#endif /* CONFIG_SHUTDOWN */
 
 #ifdef CONFIG_REBOOT
+#ifdef CONFIG_SBI
 void board_reboot(void)
 {
+	sbi_shutdown();
+}
+#else /* CONFIG_SBI */
+void board_reboot(void)
+{
+	tcsr_sim_finish(true);
+}
+#endif /* CONFIG_SBI */
+#endif /* CONFIG_REBOOT */
+
+#ifdef CONFIG_DPULP_BOOT
+typedef void (*boot_cb)(void *, uint32_t, uint32_t, bool);
+
+static void dpulp_load_gpt(mtd_t mtd, const char *file,
+			   const char *name, uint32_t *addr,
+			   uint32_t *size)
+{
+	int ret;
+
+	ret = gpt_get_file_by_name(mtd, file, addr, size);
+	if (ret <= 0) {
+		con_err("boot(%s): %s missing.\n", name, file);
+		bh_panic();
+	}
+	con_log("boot(%s): Booting %s from addr=0x%lx, size=0x%lx...\n",
+		name, file, addr, size);
+}
+
+static void dpulp_load_file(mtd_t mtd, boot_cb boot,
+			    const char *file, void *entry,
+			    const char *name, bool jump)
+{
+	__unused uint32_t addr = 0;
+	__unused uint32_t size = 500000;
+
+	con_log("boot(%s): Booting %s to entry=0x%lx...\n",
+		name, file, (unsigned long)entry);
+	dpulp_load_gpt(mtd, file, name, &addr, &size);
+	boot(entry, addr, size, jump);
+}
+
+#if 0
+static void __dpulp_load(mtd_t mtd, boot_cb boot, const char *file,
+			 caddr_t entry, const char *name)
+{
+	dpulp_load_file(mtd, boot, file, (void *)entry, name, false);
 }
 #endif
 
-#ifdef CONFIG_DPULP_LOAD
-#ifdef CONFIG_DPULP_LOAD_SPI_FLASH
-static void dpulp_boot_spi(void)
+static void __dpulp_boot(mtd_t mtd, boot_cb boot, const char *file,
+			 caddr_t entry, const char *name)
 {
-	void (*boot_entry)(void);
-
-	printf("boot(spi): booting...\n");
-	boot_entry = (void *)CONFIG_DPULP_BOOT_ADDR;
-	clk_enable(srst_flash);
-	/* dpulp_flash_set_frequency(min(DPULP_FLASH_FREQ, APB_CLK_FREQ)); */
-	/* max spi speed is 5M,so here configure to 4M. */
-	dpulp_flash_set_frequency(min(DPULP_FLASH_FREQ,
-				      DPULP_FLASH_REAL_FREQ));
-	boot_entry();
+	dpulp_load_file(mtd, boot, file, (void *)entry, name, true);
+	unreachable();
 }
-#else
-#define dpulp_boot_spi()				do { } while (0)
-#endif
 
-#ifdef CONFIG_DPULP_LOAD_ROM
-static void dpulp_load_rom(void *boot_entry)
+static void dpulp_load(mtd_t mtd, boot_cb boot, const char *name)
 {
-	uint32_t addr;
-	uint32_t size;
-
-	addr = 0x14400080;
-	size = 128 * 1024;
-	printf("from rom\n");
-
-	memcpy(boot_entry, (void *)addr, size);
-}
-#else
-#define dpulp_load_rom(boot_entry)				do { } while (0)
-#endif
-
-#ifdef CONFIG_DPULP_LOAD_SSI_FLASH
-static void dpulp_load_ssi(void *boot_entry, const char *boot_file)
-{
-	uint32_t addr = 0;
-	uint32_t size = 500000;
 	int ret;
 
 	ret = gpt_pgpt_init();
-	if (ret != 0)
-		printf("Error: Failed to init partition.\n");
-	printf("boot(ssi): loading %s...\n", boot_file);
-	ret = gpt_get_file_by_name(board_flash, boot_file, &addr, &size);
-	if (ret <= 0)
-		printf("Error: Failed to load file.\n");
-	printf("boot(ssi): validating content - 0x%lx(0x%lx)...\n",
-	       addr, size);
-	dpulp_ssi_flash_boot(boot_entry, addr, size);
+	if (ret != 0) {
+		con_err("boot(%s): primary GPT failure.\n", name);
+		bh_panic();
+	}
+	__dpulp_boot(mtd, boot, BOOT_LOAD_FILE, BOOT_LOAD_ADDR, name);
+	bh_panic();
 }
-#else
-#define dpulp_load_ssi(boot_entry, boot_file)				do { } while (0)
-#endif
 
-#if defined(CONFIG_DPULP_LOAD_ROM) \
-	|| defined(CONFIG_DPULP_LOAD_SSI_FLASH)
-static void dpulp_boot_ssi(void)
+static void dpulp_load_ssi(void)
 {
-	void (*boot_entry)(void);
-
-#ifdef CONFIG_DPULP_LOAD_ZSBL
-#define DPULP_BOOT_FILE	"fsbl.bin"
-#ifndef CONFIG_DPULP_BOOT_STACK
-	/* fsbl.bin can't copy to SRAM_BASE which is for .data/.bss of zsbl.bin */
-	boot_entry = (void *)(SRAM_BASE + 0x8000);
-#else
-	boot_entry = (void *)SRAM_BASE;
-#endif
-#endif
-
-#ifdef CONFIG_DPULP_LOAD_FSBL
-#define DPULP_BOOT_FILE	"bbl.bin"
-	boot_entry = (void *)DDR_DATA_BASE;
-#endif
-
-#if defined(CONFIG_DPULP_LOAD_ROM) \
-	|| defined(CONFIG_DPULP_LOAD_FAKE_PCIE_MEM)
-	boot_entry = (void *)DDR_DATA_BASE;
-#endif
-
-	dpulp_load_ssi(boot_entry, DPULP_BOOT_FILE);
-	dpulp_load_rom(boot_entry);
-	dpulp_load_fake_pcie_mem(boot_entry);
-	printf("boot(ssi): validating SSI contents...\n");
-	cmd_batch();
-	printf("boot(ssi): booting...\n");
-	boot_entry();
+	dpulp_load(board_flash, dpulp_ssi_boot, "ssi");
 }
-#else
-#define dpulp_boot_ssi()				do { } while (0)
-#endif
 
-void board_boot(void)
+static void dpulp_load_sd(void)
 {
-	uint8_t flash_sel = imc_boot_flash();
+	dpulp_load(board_sdcard, dpulp_sd_boot, "sd");
+}
+
+static void board_boot_early(void)
+{
+	uint8_t load_sel = tcsr_load_to();
 
 	board_init_clock();
-	if (flash_sel == IMC_FLASH_SPI)
-		dpulp_boot_spi();
-	if (flash_sel == IMC_FLASH_SSI)
-		dpulp_boot_ssi();
+	if (load_sel == TCSR_LOAD_SSI)
+		dpulp_load_ssi();
+	if (load_sel == TCSR_LOAD_SD)
+		dpulp_load_sd();
 }
-#else
-#define board_boot()				do { } while (0)
-#endif
+#else /* CONFIG_DPULP_BOOT */
+#define board_boot_early()			do { } while (0)
+#endif /* CONFIG_DPULP_BOOT */
+
+static void board_boot_late(void)
+{
+	void *load_addr = (void *)BOOT_LOAD_ADDR;
+
+	if (smp_processor_id() == 0)
+		con_log("boot(ddr): Booting %d cores...\n", MAX_CPU_NUM);
+	__boot_jump(load_addr);
+}
 
 void board_early_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);
 	board_init_timestamp();
-#ifdef CONFIG_DPULP_GEN2
-#ifndef CONFIG_DPULP_FIRM
-	imc_config_ddr_intlv();
-#endif
+#ifdef CONFIG_DPULP_FSBL
+	/* TODO: Move this to board specific DDR initialization */
+	tcsr_config_ddr_intlv();
 #endif
 }
 
 void board_late_init(void)
 {
-	dpulp_ssi_flash_init();
-	board_boot();
+	__unused uint8_t load_sel = tcsr_load_to();
+
+	if (load_sel == TCSR_LOAD_SSI)
+		dpulp_ssi_init();
+	if (load_sel == TCSR_LOAD_SD)
+		dpulp_sd_init();
+
+	/* Non-BBL bootloader */
+	board_boot_early();
+
+	/* dpulp_eth_late_init(); */
+}
+
+void board_smp_init(void)
+{
+	board_boot_late();
 }
 
 static int do_dpulp_shutdown(int argc, char *argv[])

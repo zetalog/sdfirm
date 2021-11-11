@@ -42,25 +42,29 @@
 #include <target/arch.h>
 #include <target/cmdline.h>
 
-const char *imc_boot2name(uint8_t boot_mode)
+const char *tcsr_boot2name(uint8_t boot_mode)
 {
 	switch (boot_mode) {
-	case IMC_BOOT_ROM:
+	case TCSR_BOOT_ROM:
 		return "rom";
-	case IMC_BOOT_FLASH:
-		return "flash";
+	case TCSR_BOOT_SPI:
+		return "spi";
+	case TCSR_BOOT_RAM:
+		return "ram";
+	case TCSR_BOOT_DDR:
+		return "ddr";
 	default:
 		return "BOOT_ADDR";
 	}
 }
 
-const char *imc_flash2name(uint8_t boot_flash)
+const char *tcsr_load2name(uint8_t load_mode)
 {
-	switch (boot_flash) {
-	case IMC_FLASH_SPI:
-		return "spi";
-	case IMC_FLASH_SSI:
+	switch (load_mode) {
+	case TCSR_LOAD_SSI:
 		return "ssi";
+	case TCSR_LOAD_SD:
+		return "sd";
 	default:
 		return "unknown";
 	}
@@ -68,16 +72,13 @@ const char *imc_flash2name(uint8_t boot_flash)
 
 static int do_tcsr_info(int argc, char *argv[])
 {
-	uint8_t mode = imc_boot_mode();
-	uint8_t flash = imc_boot_flash();
+	uint8_t boot = tcsr_boot_from();
+	uint8_t load = tcsr_load_to();
 
-	printf("Major:      %02x\n", imc_soc_major());
-	printf("Minor:      %02x\n", imc_soc_minor());
-	printf("Boot Mode:  %s\n", imc_boot2name(mode));
-	if (mode == IMC_BOOT_USE_BOOT_ADDR)
-		printf("Boot Addr:  %016llx\n", imc_boot_addr());
-	if (mode == IMC_BOOT_ROM)
-		printf("Boot Flash: %s\n", imc_flash2name(flash));
+	printf("Major:      %02x\n", tcsr_soc_major());
+	printf("Minor:      %02x\n", tcsr_soc_minor());
+	printf("Boot from:  %s\n", tcsr_boot2name(boot));
+	printf("Load to:    %s\n", tcsr_load2name(load));
 	return 0;
 }
 
@@ -87,9 +88,9 @@ static int do_tcsr_sim(int argc, char *argv[])
 		return -EINVAL;
 
 	if (strcmp(argv[2], "fail") == 0)
-		imc_sim_finish(false);
+		tcsr_sim_finish(false);
 	else
-		imc_sim_finish(true);
+		tcsr_sim_finish(true);
 	return 0;
 }
 

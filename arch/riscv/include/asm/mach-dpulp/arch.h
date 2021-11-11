@@ -47,10 +47,30 @@
 
 #include <asm/mach/tcsr.h>
 #include <asm/mach/flash.h>
+#define VAISRA_PMA_G		19
+#include <asm/vaisra_pma.h>
+#ifdef CONFIG_VAISRA_RAS
+#include <asm/vaisra_ras.h>
+#endif /* CONFIG_VAISRA_RAS */
 
 /* This file is intended to be used for implementing SoC specific
  * instructions, registers.
  */
+
+#if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
+	.macro	boot0_hook
+#ifdef CONFIG_DPU_BOOT_CPU
+	jal	ra, vaisra_cpu_init
+#endif /* CONFIG_DPU_BOOT_CPU */
+	.endm
+	.macro	boot1_hook
+	.endm
+	.macro	boot2_hook
+#ifdef CONFIG_DPU_BOOT_PMA
+	jal	ra, dpulp_pma_cpu_init
+#endif /* CONFIG_DPU_BOOT_PMA */
+	.endm
+#endif /* __ASSEMBLY__ && !__DTS__ && !LINKER_SCRIPT */
 
 #ifndef __ASSEMBLY__
 #ifdef CONFIG_CLK
@@ -59,6 +79,7 @@ void board_init_clock(void);
 #define board_init_clock()	do { } while (0)
 #endif
 void board_init_timestamp(void);
+void dpulp_pma_cpu_init(void);
 #endif /* __ASSEMBLY__ */
 
 #endif /* __ARCH_DPULP_H_INCLUDE__ */
