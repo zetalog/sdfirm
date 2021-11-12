@@ -46,7 +46,7 @@ config DPU_CV32E40P
 
 config DPU_CVA6
 	bool "Ariane"
-	select CPU_CVA6
+	select CPU_ARIANE
 
 endchoice
 

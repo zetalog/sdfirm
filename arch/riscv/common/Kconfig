@@ -62,13 +62,17 @@ config CPU_CV32E40P
 	select CPU_RI5CY
 	select ARCH_HAS_RI5CY_FIRQ_EXT
 
-config CPU_CVA6
+config CPU_ARIANE
 	bool
 	select CPU_64G
 	select CPU_C
 	select CPU_S
-	select CPU_PMP
 	select CPU_SV39
+
+config CPU_CVA6
+	bool
+	select CPU_ARIANE
+	select CPU_PMP
 	select CPU_WMO
 
 # ZERO RISCY

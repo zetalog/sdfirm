@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Nov  2 15:16:19 2021
+# Fri Nov 12 13:56:07 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -70,6 +70,7 @@ CONFIG_ARCH_DUOWEN=y
 # CONFIG_ARCH_COREV is not set
 # CONFIG_ARCH_SPIKE is not set
 # CONFIG_ARCH_VIRT is not set
+CONFIG_CPU_ARIANE=y
 CONFIG_CPU_CVA6=y
 CONFIG_CPU_64G=y
 CONFIG_CPU_WMO=y
