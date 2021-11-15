@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Nov 12 14:01:04 2021
+# Mon Nov 15 18:07:15 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -197,10 +197,11 @@ CONFIG_DPU_FLASH_SS_8=y
 # CONFIG_DPU_FLASH_SS_32 is not set
 CONFIG_DPU_SSI_FLASH=y
 CONFIG_DPU_SSI_FLASH_FREQ=50000000
+
+#
+# DPU DDR controller/phy support
+#
 CONFIG_DPU_DDR=y
-CONFIG_DPU_DDR_INTLV_DDR01=y
-# CONFIG_DPU_DDR_NINTLV_DDR0 is not set
-# CONFIG_DPU_DDR_NINTLV_DDR1 is not set
 # CONFIG_DPU_PCI_SUBSYS is not set
 
 #

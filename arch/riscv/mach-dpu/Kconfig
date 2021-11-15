@@ -250,6 +250,7 @@ config DPU_SIM_SSI_IRQ
 
 config DPU_SIM_DDR_BOOT
 	bool "Use DDR model for DDR1 to boot"
+	depends !DDR
 	help
 	  The special boot mode is used to perform OS verification in the
 	  simulation environment. When it is configured, DDR1 becomes a
@@ -521,26 +522,26 @@ config DPU_SSI_FLASH_FREQ
 
 endif
 
-menuconfig DPU_DDR
-	bool "DPU DDR controller/phy support"
+menu "DPU DDR controller/phy support"
+
+config DPU_DDR_NINTLV
+	bool "Non-interleaved DDR0/DDR1"
+	depends DPU_GEN2
+
+config DPU_DDR_DDR0
+	bool "Force to use DDR0 base address"
+	depends DPU_DDR_NINTLV
+	help
+	  By default, programs will be loaded to DDR1_DATA_BASE and CPU
+	  also will boot from DDR1_DATA_BASE. Enable this to test booting
+	  or loading from DDR0.
+
+config DPU_DDR
+	bool "Enable real DDR support"
 	select DW_UMCTL2
 	select MATH_DIV32
 
 if DPU_DDR
-
-choice
-	prompt "Interleave mode"
-
-config DPU_DDR_INTLV_DDR01
-	bool "Interleaved DDR0/DDR1"
-
-config DPU_DDR_NINTLV_DDR0
-	bool "Non-interleaved DDR0"
-
-config DPU_DDR_NINTLV_DDR1
-	bool "Non-interleaved DDR1"
-
-endchoice
 
 config DPU_DDR_SPD_BUS_NUM
 	int "I2C Bus (Master) Number for DDR SPDs"
@@ -554,6 +555,8 @@ config DPU_DDR_SPD_COUNT
 	depends I2C && I2C_MASTER
 
 endif
+
+endmenu
 
 menuconfig DPU_PCI_SUBSYS
 	bool "DPU PCIe subsystem support"
