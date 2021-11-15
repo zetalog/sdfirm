@@ -35,51 +35,31 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)clk.h: DPU-LP specific clock tree definitions
- * $Id: clk.h,v 1.1 2021-11-01 14:54:00 zhenglv Exp $
+ * @(#)cru.h: DPU-LP clock/reset unit controller definitions
+ * $Id: cru.h,v 1.1 2021-11-15 14:18:00 zhenglv Exp $
  */
 
-#ifndef __CLK_DPULP_H_INCLUDE__
-#define __CLK_DPULP_H_INCLUDE__
+#ifndef __CRU_DPULP_H_INCLUDE__
+#define __CRU_DPULP_H_INCLUDE__
 
 #include <target/arch.h>
 
-#ifdef CONFIG_DPULP_PLL
-#ifndef ARCH_HAVE_CLK
-#define ARCH_HAVE_CLK		1
-#else
-#error "Multiple CLK controller defined"
-#endif
-#endif
+#define CRU_REG(offset)			(CRU_BASE + (offset))
+#define CRU_1BIT_REG(off, n)		REG_1BIT_ADDR(CRU_BASE+(off), n)
 
-#include <asm/mach/cru.h>
+#include <asm/mach/pwr.h>
+#include <asm/mach/pll.h>
 
-#define NR_FREQPLANS		5
-#define FREQPLAN_RUN		0
-#define INVALID_FREQPLAN	(-1)
+#define CRU_CLK_CFG(n)			CRU_1BIT_REG(0x400)
+#define CRU_cpu_clksel			0
+#define CRU_swallow_bypass		1
+#define CRU_gpdpu_bus_clksel		32
+#define CRU_gpdpu_core_clksel		33
+#define CRU_gpdpu_clken			34
+#define CRU_bus_swallow_bypass		35
+#define CRU_CORE_SWALLOW_BYPASS		36
+#define CRU_DDR_CLKSEL			48
+#define CRU_DDR0_CLKEN			49
+#define CRU_DDR1
 
-#define XO_CLK_FREQ		25000000 /* 25MHz */
-#define APB_CLK_FREQ		100000000 /* 100MHz */
-
-#define clk_freq_t		uint64_t
-#define invalid_clk		clkid(0xFF, 0xFF)
-
-#define CLK_INPUT		((clk_cat_t)0)
-#define XO_CLK			((clk_clk_t)0)
-#define NR_INPUT_CLKS		(XO_CLK + 1)
-#define xo_clk			clkid(CLK_INPUT, XO_CLK)
-
-#define CLK_VCO			((clk_cat_t)1)
-#define CLK_PLL			((clk_cat_t)2)
-#define CLK_SEL			((clk_cat_t)3)
-#define CLK_DEP			((clk_cat_t)4)
-#define CLK_RESET		((clk_cat_t)5)
-
-#define srst_uart		xo_clk
-#define srst_gpio		xo_clk
-#define srst_spi		xo_clk
-
-/* Enable clock tree core */
-void clk_hw_ctrl_init(void);
-
-#endif /* __CLK_DPULP_H_INCLUDE__ */
+#endif /* __CRU_DPULP_H_INCLUDE__ */

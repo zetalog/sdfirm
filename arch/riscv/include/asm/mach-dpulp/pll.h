@@ -35,26 +35,32 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)pll.h: DPU-LP PLL clock/reset controller definitions
- * $Id: pll.h,v 1.1 2021-11-01 15:31:00 zhenglv Exp $
+ * @(#)pll.h: DPU-LP PLL controller definitions
+ * $Id: pll.h,v 1.1 2021-11-15 14:31:00 zhenglv Exp $
  */
 
 #ifndef __PLL_DPULP_H_INCLUDE__
 #define __PLL_DPULP_H_INCLUDE__
 
-#include <target/arch.h>
+#define CRU_PLL_REG(pll, offset)	\
+	CRU_REG(0x100 + ((pll) << 6) + (offset))
 
-#define PLL_REG_REG(offset)		(PLL_BASE + (offset))
-#define PLL_REG(pll, offset)		\
-	PLL_REG_REG(((pll) << 4) + (offset))
-
-#define NR_PLLS				6
+#define NR_PLLS				11
 
 /* DW PLL5GHz TSMC12FFC registers */
 #define DW_PLL_F_REFCLK(pll)		XO_CLK_FREQ
-#define DW_PLL_CFG0(pll)		PLL_REG(pll, 0x00)
-#define DW_PLL_CFG1(pll)		PLL_REG(pll, 0x04)
-#define DW_PLL_STATUS(pll)		PLL_REG(pll, 0x08)
+#define DW_PLL_CFG0(pll)		CRU_PLL_REG(pll, 0x00)
+#define DW_PLL_CFG1(pll)		CRU_PLL_REG(pll, 0x04)
+#define DW_PLL_CFG2(pll)		CRU_PLL_REG(pll, 0x08)
+#define DW_PLL_STATUS(pll)		CRU_PLL_REG(pll, 0x0C)
+/* PLL register access */
+#define PLL_REG_ACCESS(pll)		CRU_PLL_REG(pll, 0x10)
+#define PLL_REG_TIMING(pll)		CRU_PLL_REG(pll, 0x14)
+#define PLL_HW_CFG(pll)			CRU_PLL_REG(pll, 0x18)
+#define PLL_REFCLK_FREQ(pll)		CRU_PLL_REG(pll, 0x1C)
+#define PLL_CLK_P_FREQ(pll)		CRU_PLL_REG(pll, 0x20)
+#define PLL_CLK_R_FREQ(pll)		CRU_PLL_REG(pll, 0x24)
+#define PLL_CNT(pll)			CRU_PLL_REG(pll, 0x28)
 
 #define dpulp_pll_enable(pll, freq)		\
 	dw_pll5ghz_tsmc12ffc_pwron(pll, freq)
@@ -65,21 +71,6 @@
 	dw_pll5ghz_tsmc12ffc_enable(pll, fvco, freq, r)
 #define dpulp_div_disable(pll, r)		\
 	dw_pll5ghz_tsmc12ffc_disable(pll, r)
-
-#define SRST_BASE			PLL_REG(NR_PLLS, 0)
-#define SRST_REG(offset)		(SRST_BASE + (offset))
-#define SRST_1BIT_REG(off, n)		REG_1BIT_ADDR(SRST_BASE+(off), n)
-
-#define PLL_GLOBAL_RST			SRST_REG(0x00)
-#define PLL_SOFT_RST(n)			SRST_1BIT_REG(0x00, n)
-
-/* global reset bits */
-#define SRST_SYS			_BV(30)
-#define WDT_RST_DIS			_BV(31)
-
-/* PLL register access */
-#define PLL_REG_ACCESS(pll)		SRST_REG(0x08 + ((pll) << 2))
-#define PLL_REG_TIMING(pll)		SRST_REG(0x0C + ((pll) << 2))
 
 /* PLL_REG_ACCESS */
 /* PLL2 specific register bit. DDR0 and DDR1 share same settings, but only
@@ -136,9 +127,5 @@
 void dpulp_pll_reg_write(uint8_t pll, uint8_t reg, uint8_t val);
 uint8_t dpulp_pll_reg_read(uint8_t pll, uint8_t reg);
 #endif
-#define dpulp_pll_sys_reset()			\
-	__raw_clear(SRST_SYS, PLL_GLOBAL_RST)
-#define dpulp_pll_wdt_reset()			\
-	__raw_clear(WDT_RST_DIS, PLL_GLOBAL_RST)
 
 #endif /* __PLL_DPULP_H_INCLUDE__ */

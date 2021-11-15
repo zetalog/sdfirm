@@ -207,22 +207,6 @@ config DPULP_PMA_DEBUG
 
 endif
 
-menuconfig DPULP_TCSR
-	bool "Top control and status registers (TCSR) support"
-	select STRING_STRTOULL if COMMAND
-
-if DPULP_TCSR
-
-endif
-
-menuconfig DPULP_GPIO
-	bool "DPULP GPIO controller support"
-	select DW_GPIO
-
-if DPULP_GPIO
-
-endif
-
 menuconfig DPULP_TMR
 	bool "DPULP RISC-V timer support"
 	select ARCH_HAS_SBI_TIMER
@@ -247,6 +231,29 @@ config DPULP_TMR_CMP_CONST_TOUT
 
 endif
 
+menuconfig DPULP_TCSR
+	bool "Top control and status registers (TCSR) support"
+	select STRING_STRTOULL if COMMAND
+
+if DPULP_TCSR
+
+endif
+
+menuconfig DPULP_CRU
+	bool "DPULP clock reset unit support"
+
+if DPULP_CRU
+
+endif
+
+menuconfig DPULP_GPIO
+	bool "DPULP GPIO controller support"
+	select DW_GPIO
+
+if DPULP_GPIO
+
+endif
+
 menuconfig DPULP_UART
 	bool "DPULP UART controller support"
 	select DW_UART
@@ -254,6 +261,24 @@ menuconfig DPULP_UART
 	select ARCH_HAS_DW_UART_FIFO_MEM_INTERNAL
 
 if DPULP_UART
+
+choice
+	prompt "Console port"
+	default DPULP_UART_CON0
+
+config DPULP_UART_CON0
+	bool "UART0"
+
+config DPULP_UART_CON1
+	bool "UART1"
+
+config DPULP_UART_CON2
+	bool "UART2"
+
+config DPULP_UART_CON3
+	bool "UART3"
+
+endchoice
 
 config DPULP_UART_VIP
 	bool "Enable DPULP UART simulation model support"

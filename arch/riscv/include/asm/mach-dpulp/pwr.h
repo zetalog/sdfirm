@@ -35,51 +35,62 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)clk.h: DPU-LP specific clock tree definitions
- * $Id: clk.h,v 1.1 2021-11-01 14:54:00 zhenglv Exp $
+ * @(#)pwr.h: DPU-LP subsystem power controller definitions
+ * $Id: pwr.h,v 1.1 2021-11-15 14:34:00 zhenglv Exp $
  */
 
-#ifndef __CLK_DPULP_H_INCLUDE__
-#define __CLK_DPULP_H_INCLUDE__
+#ifndef __PWR_DPULP_H_INCLUDE__
+#define __PWR_DPULP_H_INCLUDE__
 
-#include <target/arch.h>
+#define PWR_SHUT_DN			CRU_REG(0x000)
+#define PWR_PS_HOLD			CRU_REG(0x004)
+#define PWR_GLOBAL_RESET		CRU_REG(0x008)
+#define PWR_SUB_PWR_CTRL(n)		CRU_REG(0x040 + ((n) << 3))
+#define PWR_SUB_PWR_CFG(n)		CRU_REG(0x044 + ((n) << 3))
 
-#ifdef CONFIG_DPULP_PLL
-#ifndef ARCH_HAVE_CLK
-#define ARCH_HAVE_CLK		1
-#else
-#error "Multiple CLK controller defined"
-#endif
-#endif
+/* 3.4.1 SHUT_DN */
+#define PWR_SHUTDN			_BV(0)
+/* 3.4.2 PS_HOLD */
+#define PWR_PSHOLD			_BV(0)
+/* 3.4.3 GLOBAL_RESET */
+#define PWR_RESET			_BV(0)
+/* 3.4.4 SUB_PWR_CTRL */
+#define PWR_DN_ACK			_BV(9)
+#define PWR_UP_ACK			_BV(8)
+#define PWR_DN				_BV(5)
+#define PWR_UP				_BV(4)
+#define PWR_SW_HANDSHAKE_OFFSET		0
+#define PWR_SW_HANDSHAKE_MASK		REG_1BIT_MASK
+#define PWR_HANDSHAKE_SOFTWARE		0x01
+#define PWR_HANDSHAKE_HARDWARE		0x00
+/* 3.4.5 SUB_PWR_CFG */
+#define PWR_UP_DELAY_OFFSET		0
+#define PWR_UP_DELAY_MASK		REG_16BIT_MASK
+#define PWR_UP_DELAY(value)		_SET_FV(PWR_UP_DELAY, value)
+#define PWR_DN_DELAY_OFFSET		16
+#define PWR_DN_DELAY_MASK		REG_16BIT_MASK
+#define PWR_DN_DELAY(value)		_SET_FV(PWR_DN_DELAY, value)
 
-#include <asm/mach/cru.h>
+#define PWR_VDD_DPU			0
+#define PWR_VDD_VPU			1
+#define PWR_VDD_PCIE			2
+#define PWR_VDD_RAB0			3
+#define PWR_VDD_RAB1			4
+#define PWR_VDD_ETH0			5
+#define PWR_VDD_ETH1			6
+#define PWR_VDD_DDR_PHY0		7
+#define PWR_VDD_DDR_PHY1		8
 
-#define NR_FREQPLANS		5
-#define FREQPLAN_RUN		0
-#define INVALID_FREQPLAN	(-1)
+#define pwr_shutdown()			__raw_setl(PWR_SHUTDN, PWR_SHUT_DN)
+#define pwr_reset()			__raw_setl(PWR_RESET, PWR_GLOBAL_RESET)
+#define pwr_get_ps_hold()		(__raw_readl(PWR_PSHOLD) & PWR_PS_HOLD)
+#define pwr_set_ps_hold()		__raw_setl(PWR_PSHOLD, PWR_PS_HOLD)
+#define pwr_cfg_handshake(n, type)					\
+	__raw_writel_mask(PWR_SW_HANDSHAKE(type),			\
+			  PWR_SW_HANDSHAKE(PWR_SW_HANDSHAKE_MASK),	\
+			  PWR_SUB_PWR_CTRL(n))
+#define pwr_cfg_delay(n, up_delay, dn_delay)				\
+	__raw_writel(PWR_UP_DELAY(up_delay) | PWR_DN_DELAY(dn_delay),	\
+		     PWR_SUB_PWR_CFG(n))
 
-#define XO_CLK_FREQ		25000000 /* 25MHz */
-#define APB_CLK_FREQ		100000000 /* 100MHz */
-
-#define clk_freq_t		uint64_t
-#define invalid_clk		clkid(0xFF, 0xFF)
-
-#define CLK_INPUT		((clk_cat_t)0)
-#define XO_CLK			((clk_clk_t)0)
-#define NR_INPUT_CLKS		(XO_CLK + 1)
-#define xo_clk			clkid(CLK_INPUT, XO_CLK)
-
-#define CLK_VCO			((clk_cat_t)1)
-#define CLK_PLL			((clk_cat_t)2)
-#define CLK_SEL			((clk_cat_t)3)
-#define CLK_DEP			((clk_cat_t)4)
-#define CLK_RESET		((clk_cat_t)5)
-
-#define srst_uart		xo_clk
-#define srst_gpio		xo_clk
-#define srst_spi		xo_clk
-
-/* Enable clock tree core */
-void clk_hw_ctrl_init(void);
-
-#endif /* __CLK_DPULP_H_INCLUDE__ */
+#endif /* __PWR_DPULP_H_INCLUDE__ */

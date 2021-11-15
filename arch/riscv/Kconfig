@@ -176,6 +176,7 @@ config ARCH_DPULP
 	select FDT_BUILTIN if SBI_FDT
 	select DPULP_TCSR
 	select DPULP_TMR
+	select DPULP_CRU if CLK
 	select DPULP_GPIO if GPIO
 	select DPULP_UART if CONSOLE || DEBUG_PRINT
 	select DPULP_SSI_FLASH if SPI_MASTER

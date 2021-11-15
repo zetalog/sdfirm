@@ -72,19 +72,19 @@
 #define TCSR_BOOT_PAD(value)		_GET_FV(TCSR_BOOT_PAD, value)
 /* BOOT FROM */
 #define TCSR_BOOT_ROM			0x00
-#define TCSR_BOOT_SPI			0x01
-#define TCSR_BOOT_RAM			0x02
-#define TCSR_BOOT_DDR			0x03
-#define TCSR_BOOT_MASK			0x03
+#define TCSR_BOOT_SPI			0x02
+#define TCSR_BOOT_RAM			0x04
+#define TCSR_BOOT_DDR			0x06
+#define TCSR_BOOT_MASK			0x06
 /* LOAD TO */
 #define TCSR_LOAD_SSI			0x00
-#define TCSR_LOAD_SD			0x04
-#define TCSR_LOAD_MASK			0x04
+#define TCSR_LOAD_SD			0x01
+#define TCSR_LOAD_MASK			0x01
 /* SIM MSG SRC */
 #ifdef CONFIG_DPULP_TCSR_SIM_FINISH
 #define TCSR_SIM_PASS			_BV(31)
 #define TCSR_SIM_FAIL			_BV(30)
-#endif
+#endif /* CONFIG_DPULP_TCSR_SIM_FINISH */
 
 /* SD_STABLE */
 #define TCSR_SD_HOST_REG_VOL_STABLE	_BV(0)
