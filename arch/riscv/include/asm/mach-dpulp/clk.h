@@ -78,6 +78,7 @@
 #define srst_uart		xo_clk
 #define srst_gpio		xo_clk
 #define srst_spi		xo_clk
+#define srst_sd			xo_clk
 
 /* Enable clock tree core */
 void clk_hw_ctrl_init(void);

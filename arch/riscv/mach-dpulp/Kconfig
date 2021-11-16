@@ -12,6 +12,7 @@ config DPULP_BOOT
 	select SPI
 	select SPI_MASTER
 	select MMCSD
+	select CLK if !DPULP_SIM_CLK
 
 config DPULP_LOAD_ZSBL
 	bool

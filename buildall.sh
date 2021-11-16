@@ -167,8 +167,8 @@ build_sdfirm riscv64 dpuresm_flash
 build_sdfirm riscv64 dpures_ram
 build_sdfirm riscv64 dpuresm_ram
 # DPU LP
-#build_sdfirm riscv64 dpulp_ram
-#build_sdfirm riscv64 dpulp_zsbl
+build_sdfirm riscv64 dpulp_ram
+build_sdfirm riscv64 dpulp_zsbl
 # core-v-verif
 if [ "x$build_all_defconfigs" = "xyes" ]; then
 	build_sdfirm riscv32 corev_cv32

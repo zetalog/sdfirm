@@ -213,7 +213,7 @@ config DPU_BOOT_VPU
 	bool "DPU vision processor unit (VPU)"
 	depends DPU_BOOT
 
-if DPU_APC && DPU_LOAD_ZSBL
+if (DPU_APC && DPU_LOAD_ZSBL) || DPU_SIM_APC
 
 menu "Cluster boot hooks"
 
@@ -239,6 +239,12 @@ config DPU_SIM_CLK
 	help
 	  On simulation environments, CLK can be opt-off if no need to
 	  configure any clocks (forced in test benches).
+
+config DPU_SIM_APC
+	bool "Enable cluster self-boot initializations"
+	depends DPU_APC
+	select DPU_APC_INIT_CPU
+	select DPU_APC_INIT_PMA
 
 config DPU_SIM_GPIO_IRQ
 	bool "Enable GPIO IRQ testing framework"

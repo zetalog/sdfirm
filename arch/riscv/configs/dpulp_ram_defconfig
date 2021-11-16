@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Nov 11 17:00:32 2021
+# Tue Nov 16 17:13:43 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -177,11 +177,16 @@ CONFIG_DPULP_FIRM_RAM=y
 #
 # CONFIG_DPULP_SIM_CLK is not set
 # CONFIG_DPULP_PMA is not set
-CONFIG_DPULP_TCSR=y
-# CONFIG_DPULP_GPIO is not set
 CONFIG_DPULP_TMR=y
 # CONFIG_DPULP_TMR_CMP_CONST is not set
+CONFIG_DPULP_TCSR=y
+# CONFIG_DPULP_CRU is not set
+# CONFIG_DPULP_GPIO is not set
 CONFIG_DPULP_UART=y
+CONFIG_DPULP_UART_CON0=y
+# CONFIG_DPULP_UART_CON1 is not set
+# CONFIG_DPULP_UART_CON2 is not set
+# CONFIG_DPULP_UART_CON3 is not set
 CONFIG_DPULP_UART_VIP=y
 # CONFIG_DPULP_SPI_FLASH is not set
 # CONFIG_DPULP_SD is not set
