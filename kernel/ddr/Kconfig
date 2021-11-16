@@ -8,16 +8,6 @@ config ARCH_HAS_DDR
 menuconfig DDR
 	bool "Double data rate (DDR) support"
 
-config ZH_DDR0
-	bool "Zhonghe DDR0 support"
-		depends DDR
-	default y
-
-config ZH_DDR1
-	bool "Zhonghe DDR1 support"
-		depends DDR
-	default n
-
 if DDR
 
 choice
