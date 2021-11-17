@@ -51,15 +51,111 @@
 #include <asm/mach/pll.h>
 
 #define CRU_CLK_CFG(n)			CRU_1BIT_REG(0x400)
-#define CRU_cpu_clksel			0
-#define CRU_swallow_bypass		1
-#define CRU_gpdpu_bus_clksel		32
-#define CRU_gpdpu_core_clksel		33
-#define CRU_gpdpu_clken			34
-#define CRU_bus_swallow_bypass		35
-#define CRU_CORE_SWALLOW_BYPASS		36
-#define CRU_DDR_CLKSEL			48
-#define CRU_DDR0_CLKEN			49
-#define CRU_DDR1
+#define CRU_CFG(c, word, bit)		(((r) << 14) + ((word) << 5) + (bit))
+
+/* 3.4.17 CPU_CLK_CFG */
+#define CRU_cpu_clksel			CRU_CFG(0, 0, 0)
+/* 3.4.18 GPDPU_CLK_CFG */
+#define CRU_swallow_bypass		CRU_CFG(0, 0, 1)
+#define CRU_gpdpu_bus_clksel		CRU_CFG(0, 1, 0)
+#define CRU_gpdpu_core_clksel		CRU_CFG(0, 1, 1)
+#define CRU_gpdpu_clken			CRU_CFG(0, 1, 2)
+#define CRU_bus_swallow_bypass		CRU_CFG(0, 1, 3)
+#define CRU_core_swallow_bypass		CRU_CFG(0, 1, 4)
+/* 3.4.19 DDR_CLK_CFG */
+#define CRU_ddr_clksel			CRU_CFG(0, 2, 0)
+#define CRU_ddr0_clken			CRU_CFG(0, 2, 1)
+#define CRU_ddr1_clken			CRU_CFG(0, 2, 2)
+#define CRU_ddr_bypassPclken		CRU_CFG(0, 2, 3)
+/* 3.4.20 SoC_CLK_CFG */
+#define CRU_soc_800_clksel		CRU_CFG(0, 3, 0)
+#define CRU_soc_400_clksel		CRU_CFG(0, 3, 1)
+#define CRU_soc_200_clksel		CRU_CFG(0, 3, 2)
+#define CRU_soc_100_clksel		CRU_CFG(0, 3, 3)
+/* 3.4.21 VPU_CLK_CFG */
+#define CRU_vpu_cclksel			CRU_CFG(0, 4, 0)
+#define CRU_vpu_bclksel			CRU_CFG(0, 4, 1)
+#define CRU_vpu0_clken			CRU_CFG(0, 4, 2)
+#define CRU_vpu1_clken			CRU_CFG(0, 4, 3)
+#define CRU_vpu0_cclk_swallow_bypass	CRU_CFG(0, 4, 4)
+#define CRU_vpu1_cclk_swallow_bypass	CRU_CFG(0, 4, 5)
+#define CRU_vpu0_bclk_swallow_bypass	CRU_CFG(0, 4, 6)
+#define CRU_vpu1_bclk_swallow_bypass	CRU_CFG(0, 4, 7)
+/* 3.4.22 RAB_PHY_CLK_CFG */
+#define CRU_rab0_phy_clksel		CRU_CFG(0, 5, 0)
+#define CRU_rab1_phy_clksel		CRU_CFG(0, 5, 1)
+#define CRU_rab0_clken			CRU_CFG(0, 5, 2)
+#define CRU_rab1_clken			CRU_CFG(0, 5, 3)
+/* 3.4.23 PCIE_CLK_CFG */
+#define CRU_pcie_clken			CRU_CFG(0, 6, 0)
+/* 3.4.24 CPU_RESET */
+#define CRU_cpu_func_reset		CRU_CFG(1, 0, 0)
+#define CRU_cpu_dbg_reset		CRU_CFG(1, 0, 1)
+/* 3.4.25 GPDPU_RESET */
+#define CRU_gpdpu_reset			CRU_CFG(1, 1, 0)
+/* 3.4.26 DDR_RESET */
+#define CRU_ddr0_pwrokin		CRU_CFG(1, 2, 0)
+#define CRU_ddr0_apb_reset		CRU_CFG(1, 2, 1)
+#define CRU_ddr0_axi_reset		CRU_CFG(1, 2, 2)
+#define CRU_ddr0_reset			CRU_CFG(1, 2, 3)
+#define CRU_ddr1_pwrokin		CRU_CFG(1, 2, 4)
+#define CRU_ddr1_apb_reset		CRU_CFG(1, 2, 5)
+#define CRU_ddr1_axi_reset		CRU_CFG(1, 2, 6)
+#define CRU_ddr1_reset			CRU_CFG(1, 2, 7)
+/* 3.4.27 VPU_RESET */
+#define CRU_vpu_reset			CRU_CFG(1, 3, 0)
+/* 3.4.28 PCIE_RESET */
+#define CRU_pcie_pwr_up_reset		CRU_CFG(1, 4, 0)
+/* 3.4.29 RAB_RESET */
+#define CRU_rab0_reset			CRU_CFG(1, 5, 0)
+#define CRU_rab0_rio_reset		CRU_CFG(1, 5, 1)
+#define CRU_rab0_rio_logic_reset	CRU_CFG(1, 5, 2)
+#define CRU_rab1_reset			CRU_CFG(1, 5, 4)
+#define CRU_rab1_rio_reset		CRU_CFG(1, 5, 5)
+#define CRU_rab1_rio_logic_reset	CRU_CFG(1, 5, 6)
+/* 3.4.30 ETH_RESET */
+#define CRU_eth0_reset			CRU_CFG(1, 6, 0)
+#define CRU_eth1_reset			CRU_CFG(1, 6, 1)
+/* 3.4.31 GPIO_RESET */
+#define CRU_gpio_reset			CRU_CFG(1, 7, 0)
+/* 3.4.32 SSI_RESET */
+#define CRU_ssi_reset			CRU_CFG(1, 8, 0)
+/* 3.4.33 FLASH_RESET */
+#define CRU_flash_reset			CRU_CFG(1, 9, 0)
+/* 3.4.34 I2C_RESET */
+#define CRU_i2c0_reset			CRU_CFG(1, 10, 0)
+#define CRU_i2c1_reset			CRU_CFG(1, 10, 1)
+#define CRU_i2c2_reset			CRU_CFG(1, 10, 2)
+#define CRU_i2c3_reset			CRU_CFG(1, 10, 3)
+/* 3.4.35 UART_RESET */
+#define CRU_uart0_reset			CRU_CFG(1, 11, 0)
+#define CRU_uart1_reset			CRU_CFG(1, 11, 1)
+#define CRU_uart2_reset			CRU_CFG(1, 11, 2)
+#define CRU_uart3_reset			CRU_CFG(1, 11, 3)
+/* 3.4.36 SD_RESET */
+#define CRU_sd_reset			CRU_CFG(1, 12, 0)
+/* 3.4.37 PLIC_RESET */
+#define CRU_plic_reset			CRU_CFG(1, 13, 0)
+/* 3.4.38 TMR_RESET */
+#define CRU_tmr_reset			CRU_CFG(1, 14, 0)
+/* 3.4.39 WDT_RESET */
+#define CRU_wdt_reset			CRU_CFG(1, 15, 0)
+/* 3.4.40 TSENSOR_RESET */
+#define CRU_aon_tsensor_reset		CRU_CFG(1, 16, 0)
+#define CRU_gpdpu_tsensor_reset		CRU_CFG(1, 16, 1)
+#define CRU_ddr0_tsensor_reset		CRU_CFG(1, 16, 2)
+#define CRU_ddr1_tsensor_reset		CRU_CFG(1, 16, 3)
+#define CRU_rab0_tsensor_reset		CRU_CFG(1, 16, 4)
+#define CRU_rab1_tsensor_reset		CRU_CFG(1, 16, 5)
+#define CRU_eth0_tsensor_reset		CRU_CFG(1, 16, 6)
+#define CRU_eth1_tsensor_reset		CRU_CFG(1, 16, 7)
+/* 3.4.41 TCSR_RESET */
+#define CRU_tcsr_reset			CRU_CFG(1, 17, 0)
+
+#ifdef CONFIG_CRU_TRACE
+void cru_trace(bool enabling, const char *name);
+#else /* CONFIG_CRU_TRACE */
+#define cru_trace(enabling, name)	do { } while (0)
+#endif /* CONFIG_CRU_TRACE */
 
 #endif /* __CRU_DPULP_H_INCLUDE__ */

@@ -61,3 +61,13 @@ uint8_t dpulp_pll_reg_read(uint8_t pll, uint8_t reg)
 	} while (!(val & PLL_REG_IDLE));
 	return PLL_REG_RDATA(val);
 }
+
+/*===========================================================================
+ * CRU TRACE APIs
+ *===========================================================================*/
+#ifdef CONFIG_CRU_TRACE
+void cru_trace(bool enabling, const char *name)
+{
+	con_dbg("crcntl: %c %s\n", enabling ? 'E' : 'D', name);
+}
+#endif /* CONFIG_CRU_TRACE */

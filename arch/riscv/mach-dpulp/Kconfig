@@ -242,8 +242,17 @@ endif
 
 menuconfig DPULP_CRU
 	bool "DPULP clock reset unit support"
+	select ARCH_HAS_SBI_CLOCK
+	select DW_PLL5GHZ_TSMC12FFC
+	select ARCH_HAS_DW_PLL5GHZ_TIMING if DW_PLL5GHZ_TSMC12FFC
+	select ARCH_HAS_DW_PLL5GHZ_DYNAMIC
 
 if DPULP_CRU
+
+config DPULP_CRU_TRACE
+	bool "Enable clock tree enabling/disabling trace logs"
+	depends CONSOLE_DEBUG
+	depends !SBI
 
 endif
 

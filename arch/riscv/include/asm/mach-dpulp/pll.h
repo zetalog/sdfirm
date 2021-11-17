@@ -62,14 +62,16 @@
 #define PLL_CLK_R_FREQ(pll)		CRU_PLL_REG(pll, 0x24)
 #define PLL_CNT(pll)			CRU_PLL_REG(pll, 0x28)
 
-#define dpulp_pll_enable(pll, freq)		\
+#define dpulp_pll_enable(pll, freq)			\
 	dw_pll5ghz_tsmc12ffc_pwron(pll, freq)
-#define dpuko_pll_disable(pll)			\
+#define dpulp_pll_enable2(pll, fvco, fpclk, frclk)	\
+	dw_pll5ghz_tsmc12ffc_pwron2(pll, fvco, fpclk, frclk)
+#define dpulp_pll_disable(pll)				\
 	dw_pll5ghz_tsmc12ffc_pwrdn(pll)
 
-#define dpulp_div_enable(pll, fvco, freq, r)	\
+#define dpulp_div_enable(pll, fvco, freq, r)		\
 	dw_pll5ghz_tsmc12ffc_enable(pll, fvco, freq, r)
-#define dpulp_div_disable(pll, r)		\
+#define dpulp_div_disable(pll, r)			\
 	dw_pll5ghz_tsmc12ffc_disable(pll, r)
 
 /* PLL_REG_ACCESS */

@@ -43,6 +43,7 @@
 #define __CLK_DPULP_H_INCLUDE__
 
 #include <target/arch.h>
+#include <asm/mach/cru.h>
 
 #ifdef CONFIG_DPULP_PLL
 #ifndef ARCH_HAVE_CLK
@@ -52,28 +53,24 @@
 #endif
 #endif
 
-#include <asm/mach/cru.h>
+#include <dt-bindings/clock/sbi-clock-dpulp.h>
 
 #define NR_FREQPLANS		5
 #define FREQPLAN_RUN		0
 #define INVALID_FREQPLAN	(-1)
 
-#define XO_CLK_FREQ		25000000 /* 25MHz */
-#define APB_CLK_FREQ		100000000 /* 100MHz */
-
 #define clk_freq_t		uint64_t
 #define invalid_clk		clkid(0xFF, 0xFF)
 
-#define CLK_INPUT		((clk_cat_t)0)
-#define XO_CLK			((clk_clk_t)0)
-#define NR_INPUT_CLKS		(XO_CLK + 1)
-#define xo_clk			clkid(CLK_INPUT, XO_CLK)
-
-#define CLK_VCO			((clk_cat_t)1)
-#define CLK_PLL			((clk_cat_t)2)
-#define CLK_SEL			((clk_cat_t)3)
-#define CLK_DEP			((clk_cat_t)4)
-#define CLK_RESET		((clk_cat_t)5)
+#define CPU_VCO_FREQ		ULL(5000000000) /* 5GHz */
+#define GPDPU_BUS_VCO_FREQ	ULL(4800000000)	/* 4.8GHz */
+#define GPDPU_CORE_VCO_FREQ	ULL(4800000000)	/* 4.8GHz */
+#define DDR_VCO_FREQ		ULL(3200000000) /* 3.2GHz */
+#define SOC_VCO_FREQ		ULL(4000000000) /* 4GHz */
+#define VPU_B_VCO_FREQ		ULL(4000000000)	/* 4GHz */
+#define VPU_C_VCO_FREQ		ULL(4400000000) /* 4.4GHz */
+#define RAB_PHY_VCO_FREQ	ULL(2500000000) /* 2.5GHz */
+#define ETH_PHY_VCO_FREQ	ULL(2500000000) /* 2.5GHz */
 
 #define srst_uart		xo_clk
 #define srst_gpio		xo_clk
@@ -82,5 +79,21 @@
 
 /* Enable clock tree core */
 void clk_hw_ctrl_init(void);
+void clk_apply_vco(clk_clk_t vco, clk_clk_t clk, clk_freq_t freq);
+void clk_apply_pll(clk_clk_t pll, clk_clk_t clk, clk_freq_t freq);
+/* XXX: Protect Dynamic PLL Change
+ *
+ * For ASIC environment, CLK_SELECT is managed by the CLK_PLL and CLK_DIV.
+ */
+#define clk_select_mux(clk)			\
+	do {					\
+		if (clk != invalid_clk)		\
+			clk_enable(clk);	\
+	} while (0)
+#define clk_deselect_mux(clk)			\
+	do {					\
+		if (clk != invalid_clk)		\
+			clk_disable(clk);	\
+	} while (0)
 
 #endif /* __CLK_DPULP_H_INCLUDE__ */
