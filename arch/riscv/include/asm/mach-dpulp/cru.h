@@ -50,8 +50,22 @@
 #include <asm/mach/pwr.h>
 #include <asm/mach/pll.h>
 
+/* CLK_CFG/RESET register */
 #define CRU_CLK_CFG(n)			CRU_1BIT_REG(0x400)
-#define CRU_CFG(c, word, bit)		(((r) << 14) + ((word) << 5) + (bit))
+#define CRU_RESET(n)			CRU_1BIT_REG(0x500)
+
+/* CRU_1BIT_REG bits encodings */
+#define CRU_B_OFFSET			0
+#define CRU_B_MASK			REG_5BIT_MASK
+#define CRU_B(bit)			_SET_FV(CRU_B, bit)
+#define cru_b(cfg)			_GET_FV(CRU_B, cfg)
+#define CRU_R_OFFSET			5
+#define CRU_R_MASK			REG_10BIT_MASK
+#define CRU_R(reg)			_SET_FV(CRU_R, reg)
+#define cru_r(cfg)			_GET_FV(CRU_R, cfg)
+#define CRU_T				_BV(15)
+#define CRU_CFG(r, reg, bit)		\
+	(((r) ? CRU_T : 0) | CRU_R(reg) | CRU_B(bit))
 
 /* 3.4.17 CPU_CLK_CFG */
 #define CRU_cpu_clksel			CRU_CFG(0, 0, 0)
@@ -151,6 +165,23 @@
 #define CRU_eth1_tsensor_reset		CRU_CFG(1, 16, 7)
 /* 3.4.41 TCSR_RESET */
 #define CRU_tcsr_reset			CRU_CFG(1, 17, 0)
+
+#define cru_set_bit(cfg)		do { } while (0)
+#define cru_clear_bit(cfg)		do { } while (0)
+#define cru_test_bit(cfg)		0
+
+#define cru_clk_enable(cfg)		cru_set_bit(cfg)
+#define cru_clk_disable(cfg)		cru_clear_bit(cfg)
+#define cru_clk_enabled(cfg)		cru_test_bit(cfg)
+#define cru_clk_disabled(cfg)		(!cru_test_bit(cfg))
+#define cru_clk_select(cfg)		cru_clear_bit(cfg)
+#define cru_clk_deselect(cfg)		cru_set_bit(cfg)
+#define cru_clk_selected(cfg)		(!cru_test_bit(cfg))
+#define cru_clk_deselected(cfg)		cru_test_bit(cfg)
+#define cru_clk_swallow(cfg)		cru_clear_bit(cfg)
+#define cru_clk_deswallow(cfg)		cru_set_bit(cfg)
+#define cru_rst_assert(cfg)		cru_set_bit(cfg)
+#define cru_rst_deassert(cfg)		cru_clear_bit(cfg)
 
 #ifdef CONFIG_CRU_TRACE
 void cru_trace(bool enabling, const char *name);

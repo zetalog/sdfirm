@@ -72,6 +72,35 @@
 #define RAB_PHY_VCO_FREQ	ULL(2500000000) /* 2.5GHz */
 #define ETH_PHY_VCO_FREQ	ULL(2500000000) /* 2.5GHz */
 
+/* Clock flags, used by clk drivers to indicate clock features */
+#define CLK_CLKSEL_F		_BV(0)
+#define CLK_CLKEN_F		_BV(1)
+#define CLK_RESET_F		_BV(2)
+/* XXX: CLK_PLL_SEL_F/CLK_DIV_SEL_F:
+ *
+ * Some select clocks marked by this flag are controlled internally by the
+ * PLL clocks.
+ */
+#define CLK_PLL_SEL_F		_BV(5) /* CLK_SEL for PLL P/R clkout */
+#define CLK_DIV_SEL_F		_BV(6) /* CLK_SEL for PLL DIV */
+#define CLK_MUX_SEL_F		(CLK_PLL_SEL_F | CLK_DIV_SEL_F)
+#define CLK_CR			(CLK_CLKEN_F | CLK_RESET_F)
+#define CLK_C			CLK_CLKEN_F
+#define CLK_R			CLK_RESET_F
+
+#define CLK_DEC_FLAGS					\
+	uint8_t flags;
+#define CLK_DEF_FLAGS(__flags)				\
+	.flags = __flags,
+#define CLK_DEC_FLAGS_RO				\
+	uint8_t flags;
+#define CLK_DEF_FLAGS_RO(__flags)			\
+	.flags = __flags,
+#define clk_read_flags(soc, clk)		((clk).flags)
+#define clk_write_flags(soc, clk, __flags)	((clk).flags = (__flags))
+#define clk_set_flags(soc, clk, __flags)	((clk).flags |= (__flags))
+#define clk_clear_flags(soc, clk, __flags)	((clk).flags &= ~(__flags))
+
 #define srst_uart		xo_clk
 #define srst_gpio		xo_clk
 #define srst_spi		xo_clk

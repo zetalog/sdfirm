@@ -42,6 +42,268 @@
 #include <target/clk.h>
 #include <target/ddr.h>
 
+struct div_clk {
+	clk_t src;
+	uint8_t div;
+};
+
+struct div_clk div_clks[NR_DIV_CLKS] = {
+	[SOC_PLL_DIV2] = {
+		.src = axi_pll,
+		.div = 2,
+	},
+	[SOC_PLL_DIV4] = {
+		.src = axi_pll,
+		.div = 4,
+	},
+};
+
+#ifdef CONFIG_CLK_MNEMONICS
+const char *div_clk_names[NR_DIV_CLKS] = {
+	[SOC_PLL_DIV2] = "soc_pll_div2",
+	[SOC_PLL_DIV4] = "soc_pll_div4",
+};
+
+static const char *get_pll_div_name(clk_clk_t clk)
+{
+	if (clk >= NR_DIV_CLKS)
+		return NULL;
+	return div_clk_names[clk];
+}
+#else
+#define get_pll_div_name	NULL
+#endif
+
+static int enable_pll_div(clk_clk_t clk)
+{
+	int ret;
+
+	if (clk >= NR_DIV_CLKS)
+		return -EINVAL;
+	cru_trace(true, get_pll_div_name(clk));
+	ret = clk_enable(div_clks[clk].src);
+	if (ret)
+		return ret;
+	return 0;
+}
+
+static void disable_pll_div(clk_clk_t clk)
+{
+	if (clk >= NR_DIV_CLKS)
+		return;
+	cru_trace(false, get_pll_div_name(clk));
+	clk_disable(div_clks[clk].src);
+}
+
+static clk_freq_t get_pll_div_freq(clk_clk_t clk)
+{
+	if (clk >= NR_DIV_CLKS)
+		return INVALID_FREQ;
+	return clk_get_frequency(div_clks[clk].src) / div_clks[clk].div;
+}
+
+static int set_pll_div_freq(clk_clk_t clk, clk_freq_t freq)
+{
+	if (clk >= NR_DIV_CLKS)
+		return -EINVAL;
+	return clk_set_frequency(div_clks[clk].src,
+				 freq * div_clks[clk].div);
+}
+
+struct clk_driver clk_div = {
+	.max_clocks = NR_DIV_CLKS,
+	.enable = enable_pll_div,
+	.disable = disable_pll_div,
+	.get_freq = get_pll_div_freq,
+	.set_freq = set_pll_div_freq,
+	.select = NULL,
+	.get_name = get_pll_div_name,
+};
+
+struct sel_clk {
+	clk_t clk_sels[2];
+	uint16_t clk_cfg;
+	CLK_DEC_FLAGS
+};
+
+struct sel_clk sel_clks[NR_SEL_CLKS] = {
+	[CPU_CLKSEL] = {
+		.clk_sels = {
+			cpu_pll,
+			xo_clk,
+		},
+		.clk_cfg = CRU_cpu_clksel,
+		CLK_DEF_FLAGS(CLK_PLL_SEL_F)
+	},
+	[GPDPU_BUS_CLKSEL] = {
+		.clk_sels = {
+			gpdpu_bus_pll,
+			xo_clk,
+		},
+		.clk_cfg = CRU_gpdpu_bus_clksel,
+		CLK_DEF_FLAGS(CLK_PLL_SEL_F)
+	},
+	[GPDPU_CORE_CLKSEL] = {
+		.clk_sels = {
+			gpdpu_core_pll,
+			xo_clk,
+		},
+		.clk_cfg = CRU_gpdpu_core_clksel,
+		CLK_DEF_FLAGS(CLK_PLL_SEL_F)
+	},
+	[DDR_CLKSEL] = {
+		.clk_sels = {
+			ddr_pll,
+			xo_clk,
+		},
+		.clk_cfg = CRU_ddr_clksel,
+		CLK_DEF_FLAGS(CLK_PLL_SEL_F)
+	},
+	[SOC_800_CLKSEL] = {
+		.clk_sels = {
+			axi_pll,
+			xo_clk,
+		},
+		.clk_cfg = CRU_soc_800_clksel,
+		CLK_DEF_FLAGS(CLK_PLL_SEL_F)
+	},
+	[SOC_400_CLKSEL] = {
+		.clk_sels = {
+			soc_pll_div2,
+			xo_clk,
+		},
+		.clk_cfg = CRU_soc_400_clksel,
+		CLK_DEF_FLAGS(CLK_DIV_SEL_F)
+	},
+	[SOC_200_CLKSEL] = {
+		.clk_sels = {
+			soc_pll_div4,
+			xo_clk,
+		},
+		.clk_cfg = CRU_soc_200_clksel,
+		CLK_DEF_FLAGS(CLK_DIV_SEL_F)
+	},
+	[SOC_100_CLKSEL] = {
+		.clk_sels = {
+			apb_pll,
+			xo_clk,
+		},
+		.clk_cfg = CRU_soc_100_clksel,
+		CLK_DEF_FLAGS(CLK_PLL_SEL_F)
+	},
+	[VPU_CCLKSEL] = {
+		.clk_sels = {
+			vpu_c_pll,
+			xo_clk,
+		},
+		.clk_cfg = CRU_vpu_cclksel,
+		CLK_DEF_FLAGS(CLK_PLL_SEL_F)
+	},
+	[VPU_BCLKSEL] = {
+		.clk_sels = {
+			vpu_b_pll,
+			xo_clk,
+		},
+		.clk_cfg = CRU_vpu_bclksel,
+		CLK_DEF_FLAGS(CLK_PLL_SEL_F)
+	},
+	[RAB0_PHY_CLKSEL] = {
+		.clk_sels = {
+			rab0_phy_pll,
+			xo_clk,
+		},
+		.clk_cfg = CRU_rab0_phy_clksel,
+		CLK_DEF_FLAGS(CLK_PLL_SEL_F)
+	},
+	[RAB1_PHY_CLKSEL] = {
+		.clk_sels = {
+			rab1_phy_pll,
+			xo_clk,
+		},
+		.clk_cfg = CRU_rab1_phy_clksel,
+		CLK_DEF_FLAGS(CLK_PLL_SEL_F)
+	},
+};
+
+#ifdef CONFIG_CLK_MNEMONICS
+const char *sel_clk_names[NR_SEL_CLKS] = {
+	[CPU_CLKSEL] = "cpu_clksel",
+	[GPDPU_BUS_CLKSEL] = "gpdpu_bus_clksel",
+	[GPDPU_CORE_CLKSEL] = "gpdpu_core_clksel",
+	[DDR_CLKSEL] = "ddr_clksel",
+	[SOC_800_CLKSEL] = "soc_800_clksel",
+	[SOC_400_CLKSEL] = "soc_400_clksel",
+	[SOC_200_CLKSEL] = "soc_200_clksel",
+	[SOC_100_CLKSEL] = "soc_100_clksel",
+	[VPU_CCLKSEL] = "vpu_cclksel",
+	[VPU_BCLKSEL] = "vpu_bclksel",
+	[RAB0_PHY_CLKSEL] = "rab0_phy_clksel",
+	[RAB1_PHY_CLKSEL] = "rab1_phy_clksel",
+};
+
+static const char *get_clk_sel_name(clk_clk_t clk)
+{
+	if (clk >= NR_SEL_CLKS)
+		return NULL;
+	return sel_clk_names[clk];
+}
+#else
+#define get_clk_sel_name	NULL
+#endif
+
+static int enable_clk_sel(clk_clk_t clk)
+{
+	if (clk >= NR_SEL_CLKS)
+		return -EINVAL;
+	if (!(clk_read_flags(0, sel_clks[clk]) & CLK_CLKSEL_F)) {
+		cru_trace(true, get_clk_sel_name(clk));
+		if (!(clk_read_flags(0, sel_clks[clk]) & CLK_MUX_SEL_F))
+			clk_enable(sel_clks[clk].clk_sels[0]);
+		cru_clk_select(clk);
+		if (!(clk_read_flags(0, sel_clks[clk]) & CLK_CLKEN_F))
+			clk_set_flags(0, sel_clks[clk], CLK_CLKEN_F);
+		clk_set_flags(0, sel_clks[clk], CLK_CLKSEL_F);
+	}
+	return 0;
+}
+
+static void disable_clk_sel(clk_clk_t clk)
+{
+	if (clk >= NR_SEL_CLKS)
+		return;
+	if (clk_read_flags(0, sel_clks[clk]) & CLK_CLKSEL_F) {
+		cru_trace(false, get_clk_sel_name(clk));
+		clk_enable(sel_clks[clk].clk_sels[1]);
+		cru_clk_deselect(clk);
+		if (!(clk_read_flags(0, sel_clks[clk]) & CLK_CLKEN_F))
+			clk_set_flags(0, sel_clks[clk], CLK_CLKEN_F);
+		clk_clear_flags(0, sel_clks[clk], CLK_CLKSEL_F);
+	}
+}
+
+static clk_freq_t get_clk_sel_freq(clk_clk_t clk)
+{
+	bool selected;
+
+	if (clk >= NR_SEL_CLKS)
+		return INVALID_FREQ;
+	selected = cru_clk_selected(clk);
+	if (selected)
+		return clk_get_frequency(sel_clks[clk].clk_sels[0]);
+	else
+		return clk_get_frequency(sel_clks[clk].clk_sels[1]);
+}
+
+struct clk_driver clk_sel = {
+	.max_clocks = NR_SEL_CLKS,
+	.enable = enable_clk_sel,
+	.disable = disable_clk_sel,
+	.get_freq = get_clk_sel_freq,
+	.set_freq = NULL,
+	.select = NULL,
+	.get_name = get_clk_sel_name,
+};
+
 struct pll_clk {
 	clk_t src;
 	clk_t mux;
@@ -476,40 +738,40 @@ struct clk_driver clk_vco = {
 	.get_name = get_vco_name,
 };
 
-uint32_t input_clks[NR_INPUT_CLKS] = {
+uint32_t ref_clks[NR_REF_CLKS] = {
 	[XO_CLK] = XO_CLK_FREQ,
 };
 
 #ifdef CONFIG_CLK_MNEMONICS
-const char *input_clk_names[NR_INPUT_CLKS] = {
+const char *ref_clk_names[NR_REF_CLKS] = {
 	[XO_CLK] = "xo_clk",
 };
 
-static const char *get_input_clk_name(clk_clk_t clk)
+static const char *get_ref_clk_name(clk_clk_t clk)
 {
-	if (clk >= NR_INPUT_CLKS)
+	if (clk >= NR_REF_CLKS)
 		return NULL;
-	return input_clk_names[clk];
+	return ref_clk_names[clk];
 }
 #else
-#define get_input_clk_name	NULL
+#define get_ref_clk_name	NULL
 #endif
 
-static clk_freq_t get_input_clk_freq(clk_clk_t clk)
+static clk_freq_t get_ref_clk_freq(clk_clk_t clk)
 {
-	if (clk >= NR_INPUT_CLKS)
+	if (clk >= NR_REF_CLKS)
 		return INVALID_FREQ;
-	return input_clks[clk];
+	return ref_clks[clk];
 }
 
-struct clk_driver clk_input = {
-	.max_clocks = NR_INPUT_CLKS,
+struct clk_driver clk_ref = {
+	.max_clocks = NR_REF_CLKS,
 	.enable = NULL,
 	.disable = NULL,
-	.get_freq = get_input_clk_freq,
+	.get_freq = get_ref_clk_freq,
 	.set_freq = NULL,
 	.select = NULL,
-	.get_name = get_input_clk_name,
+	.get_name = get_ref_clk_name,
 };
 
 void clk_apply_vco(clk_clk_t vco, clk_clk_t clk, clk_freq_t freq)
@@ -552,28 +814,27 @@ void clk_pll_dump(void)
 		if (name)
 			printf("pll  %3d %20s %20s\n", i, name, "xo_clk");
 	}
-#if 0
 	for (i = 0; i < NR_SEL_CLKS; i++) {
 		if (sel_clk_names[i]) {
 			printf("clk  %3d %20s %20s\n",
 			       i, sel_clk_names[i],
-			       clk_get_mnemonic(select_clks[i].clk_sels[0]));
-			if (select_clks[i].clk_sels[1] != invalid_clk)
+			       clk_get_mnemonic(sel_clks[i].clk_sels[0]));
+			if (sel_clks[i].clk_sels[1] != invalid_clk)
 				printf("%4s %3s %20s %20s\n", "", "", "",
 				       clk_get_mnemonic(
-					       select_clks[i].clk_sels[1]));
+					       sel_clks[i].clk_sels[1]));
 		}
 	}
-#endif
 }
 #endif
 
 void clk_pll_init(void)
 {
-	clk_register_driver(CLK_INPUT, &clk_input);
+	clk_register_driver(CLK_REF, &clk_ref);
 	clk_register_driver(CLK_VCO, &clk_vco);
 	clk_register_driver(CLK_PLL, &clk_pll);
-/*	clk_register_driver(CLK_SELECT, &clk_select); */
+	clk_register_driver(CLK_SEL, &clk_sel);
+	clk_register_driver(CLK_DIV, &clk_div);
 }
 
 void board_init_clock(void)

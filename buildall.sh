@@ -156,16 +156,20 @@ build_sdfirm riscv64 dpu2_flash
 # DPU GEN2 testbenches
 build_sdfirm riscv64 dpu2_ram
 build_sdfirm riscv64 dpu2_ddr
-# DPU RES products
+# DPU RES IMC products
 build_sdfirm riscv64 dpures_rom
 build_sdfirm riscv64 dpures_fsbl
 build_sdfirm riscv64 dpures_flash
+# DPU RES IMC testbenches
+build_sdfirm riscv64 dpures_ram
+build_sdfirm riscv64 dpures_ddr
+# DPU RES APC products
+build_sdfirm riscv64 dpuresm_flash
 build_sdfirm riscv64 dpuresm_rom
 build_sdfirm riscv64 dpuresm_fsbl
-build_sdfirm riscv64 dpuresm_flash
-# DPU RES testbenches
-build_sdfirm riscv64 dpures_ram
+# DPU RES APC testbenches
 build_sdfirm riscv64 dpuresm_ram
+build_sdfirm riscv64 dpuresm_ddr
 # DPU LP
 build_sdfirm riscv64 dpulp_ram
 build_sdfirm riscv64 dpulp_zsbl

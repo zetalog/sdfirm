@@ -133,7 +133,7 @@ config DPU_FIRM_DDR
 	select BFM
 	select SYS_ENTR_M
 	select SYS_EXIT_M
-	select SYS_EXIT_S if DPU_CVA6
+	select SYS_EXIT_S if (DPU_CVA6 || DPU_APC)
 	select SYS_EXIT_U
 
 config DPU_BOOT_RAM
@@ -144,7 +144,7 @@ config DPU_BOOT_RAM
 	select BFM
 	select SYS_ENTR_M
 	select SYS_EXIT_M
-	select SYS_EXIT_S if DPU_CVA6
+	select SYS_EXIT_S if (DPU_CVA6 || DPU_APC)
 	select SYS_EXIT_U
 	select DPU_TCSR
 
@@ -294,6 +294,8 @@ endif
 menuconfig DPU_PLL
 	bool "DPU PLL and clock/reset support"
 	select DW_PLL5GHZ_TSMC12FFC if !DPU_PLL_BYPASS_PLL
+	select DW_PLL5GHZ_TSMC12FFC_REG_ACCESS if DW_PLL5GHZ_TSMC12FFC
+	select DW_PLL5GHZ_TSMC12FFC_BYPASS_SYNC if DW_PLL5GHZ_TSMC12FFC
 	select MATH_DIV32
 
 if DPU_PLL
