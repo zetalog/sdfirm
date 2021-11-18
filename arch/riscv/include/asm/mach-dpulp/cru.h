@@ -51,8 +51,8 @@
 #include <asm/mach/pll.h>
 
 /* CLK_CFG/RESET register */
-#define CRU_CLK_CFG(n)			CRU_1BIT_REG(0x400)
-#define CRU_RESET(n)			CRU_1BIT_REG(0x500)
+#define CRU_CLK_CFG(n)			CRU_1BIT_REG(0x400, n)
+#define CRU_RESET(n)			CRU_1BIT_REG(0x500, n)
 
 /* CRU_1BIT_REG bits encodings */
 #define CRU_B_OFFSET			0
@@ -66,6 +66,10 @@
 #define CRU_T				_BV(15)
 #define CRU_CFG(r, reg, bit)		\
 	(((r) ? CRU_T : 0) | CRU_R(reg) | CRU_B(bit))
+#define cru_adr(cfg)			\
+	((cru_r(cfg) << 2) + ((cfg & CRU_T) ? CRU_RESET(0) : CRU_CLK_CFG(0)))
+#define cru_msk(cfg)			_BV(cru_b(cfg))
+#define cru_bit(cfg)			((cru_r(cfg) << 5) + cru_b(cfg))
 
 /* 3.4.17 CPU_CLK_CFG */
 #define CRU_cpu_clksel			CRU_CFG(0, 0, 0)

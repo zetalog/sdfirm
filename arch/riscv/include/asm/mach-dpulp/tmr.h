@@ -42,19 +42,12 @@
 #ifndef __TMR_DPULP_H_INCLUDE__
 #define __TMR_DPULP_H_INCLUDE__
 
-#ifndef TMR_CNT_CTRL_BASE
-#define TMR_CNT_CTRL_BASE	0x00
-#endif
-#ifndef TMR_CNT_BASE
-#define TMR_CNT_BASE		0x40
-#endif
-
 #define TMR_BASE		TIMER_BASE
 #define TMR_REG(offset)		(TMR_BASE + (offset))
 
-#define TMR_CNT_CTRL		TMR_REG(TMR_CNT_CTRL_BASE)
-#define TMR_CNT_LO		TMR_REG(TMR_CNT_BASE)
-#define TMR_CNT_HI		TMR_REG(TMR_CNT_BASE + 0x04)
+#define TMR_CNT_CTRL		TMR_REG(0x40)
+#define TMR_CNT_LO		TMR_REG(0x44)
+#define TMR_CNT_HI		TMR_REG(0x48)
 
 /* TMR_CNT_CTRL */
 #define TMR_EN			_BV(0)

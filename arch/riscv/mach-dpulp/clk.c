@@ -307,6 +307,7 @@ struct clk_driver clk_sel = {
 struct pll_clk {
 	clk_t src;
 	clk_t mux;
+	caddr_t reg;
 	uint32_t alt;
 	clk_freq_t freq;
 	bool enabled;
@@ -344,6 +345,10 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 	[AXI_PLL] = {
 		.src = soc_vco,
 		.mux = soc_800_clksel,
+		.reg = cru_adr(CRU_soc_800_clksel),
+		.alt = cru_msk(CRU_soc_400_clksel) |
+		       cru_msk(CRU_soc_200_clksel) |
+		       cru_msk(CRU_soc_100_clksel),
 		.alt = 0,
 		.freq = AXI_CLK_FREQ,
 		.enabled = false,
@@ -393,7 +398,10 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 	[APB_PLL] = {
 		.src = soc_vco,
 		.mux = soc_100_clksel,
-		.alt = 0,
+		.reg = cru_adr(CRU_soc_100_clksel),
+		.alt = cru_msk(CRU_soc_800_clksel) |
+		       cru_msk(CRU_soc_400_clksel) |
+		       cru_msk(CRU_soc_200_clksel),
 		.freq = APB_CLK_FREQ,
 		.enabled = false,
 	},
@@ -430,12 +438,14 @@ static void __enable_pll(clk_clk_t pll, clk_clk_t clk, bool force)
 	bool r = !!(clk >= DPULP_MAX_PLLS);
 	clk_clk_t vco = r ? clk - DPULP_MAX_PLLS : clk;
 	uint32_t clk_sels = 0;
+	caddr_t reg;
 	uint32_t alt;
 	clk_freq_t fvco_orig, fvco, fclk;
 
 	if (!pll_clks[pll].enabled || force) {
 		cru_trace(true, get_pll_name(clk));
 		fclk = pll_clks[pll].freq;
+		reg = pll_clks[pll].reg;
 		alt = pll_clks[pll].alt;
 		/* XXX: Protect Dynamic PLL Change
 		 *
@@ -454,17 +464,10 @@ static void __enable_pll(clk_clk_t pll, clk_clk_t clk, bool force)
 		if (pll_clks[pll].mux != invalid_clk &&
 		    alt == 0 && fclk == XO_CLK_FREQ)
 			goto exit_xo_clk;
-#if 0
 		if (alt) {
-			/* XXX: No Cohfab Clock Selection Masking
-			 *
-			 * To avoid complications, no cohfab clock
-			 * selection are masked as alternative masks.
-			 */
-			clk_sels = crcntl_clk_sel_read();
-			crcntl_clk_sel_write(clk_sels | alt);
+			clk_sels = __raw_readl(reg);
+			__raw_writel(clk_sels | alt, reg);
 		}
-#endif
 		fvco_orig = fvco = clk_get_frequency(pll_clks[pll].src);
 		if (clk == DDR_PLL)
 			fvco = ddr_clk_fvco(fclk, fvco_orig);
@@ -474,10 +477,8 @@ static void __enable_pll(clk_clk_t pll, clk_clk_t clk, bool force)
 		}
 		clk_enable(pll_clks[pll].src);
 		dpulp_div_enable(vco, fvco, fclk, r);
-#if 0
 		if (alt)
-			crcntl_clk_sel_write(clk_sels);
-#endif
+			__raw_writel(clk_sels, reg);
 		clk_select_mux(pll_clks[pll].mux);
 exit_xo_clk:
 		pll_clks[pll].enabled = true;
@@ -489,10 +490,12 @@ static void __disable_pll(clk_clk_t pll, clk_clk_t clk)
 	bool r = !!(clk >= DPULP_MAX_PLLS);
 	clk_clk_t vco = r ? clk - DPULP_MAX_PLLS : clk;
 	uint32_t clk_sels = 0;
+	caddr_t reg;
 	uint32_t alt;
 
 	if (pll_clks[pll].enabled) {
 		cru_trace(false, get_pll_name(clk));
+		reg = pll_clks[pll].reg;
 		alt = pll_clks[pll].alt;
 		pll_clks[pll].enabled = false;
 		/* XXX: Ensure System Clocking
@@ -502,17 +505,10 @@ static void __disable_pll(clk_clk_t pll, clk_clk_t clk)
 		 * disabling the P/R clkout by switching to the xo_clk.
 		 */
 		clk_deselect_mux(pll_clks[pll].mux);
-#if 0
 		if (alt) {
-			/* XXX: No Cohfab Clock Selection Masking
-			 *
-			 * To avoid complications, no cohfab clock
-			 * selection are masked as alternative masks.
-			 */
-			clk_sels = crcntl_clk_sel_read();
-			crcntl_clk_sel_write(clk_sels | alt);
+			clk_sels = __raw_readl(reg);
+			__raw_writel(clk_sels | alt, reg);
 		}
-#endif
 		dpulp_div_disable(vco, r);
 		/* XXX: Lowest Power Consumption VCO
 		 *
@@ -521,10 +517,8 @@ static void __disable_pll(clk_clk_t pll, clk_clk_t clk)
 		 */
 		if ((clk_sels & alt) == alt)
 			clk_disable(pll_clks[pll].src);
-#if 0
 		else if (alt)
-			crcntl_clk_sel_write(clk_sels);
-#endif
+			__raw_writel(clk_sels, reg);
 	}
 }
 

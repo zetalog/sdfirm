@@ -44,23 +44,31 @@
 
 #define CRU_PLL_REG(pll, offset)	\
 	CRU_REG(0x100 + ((pll) << 6) + (offset))
+#define ETH_PLL_REG(pll, offset)	\
+	(ETH0_BASE + ((pll) << 22) + (offset))
+#define DPU_PLL_REG(pll, offset)	\
+	((pll > NR_CRU_PLLS) ?		\
+	 CRU_PLL_REG((pll), offset) :	\
+	 ETH_PLL_REG((pll) - NR_CRU_PLLS, offset))
 
-#define NR_PLLS				11
+#define NR_CRU_PLLS			9
+#define NR_ETH_PLLS			2
+#define NR_PLLS				(NR_CRU_PLLS + NR_ETH_PLLS)
 
 /* DW PLL5GHz TSMC12FFC registers */
 #define DW_PLL_F_REFCLK(pll)		XO_CLK_FREQ
-#define DW_PLL_CFG0(pll)		CRU_PLL_REG(pll, 0x00)
-#define DW_PLL_CFG1(pll)		CRU_PLL_REG(pll, 0x04)
-#define DW_PLL_CFG2(pll)		CRU_PLL_REG(pll, 0x08)
-#define DW_PLL_STATUS(pll)		CRU_PLL_REG(pll, 0x0C)
+#define DW_PLL_CFG0(pll)		DPU_PLL_REG(pll, 0x00)
+#define DW_PLL_CFG1(pll)		DPU_PLL_REG(pll, 0x04)
+#define DW_PLL_CFG2(pll)		DPU_PLL_REG(pll, 0x08)
+#define DW_PLL_STATUS(pll)		DPU_PLL_REG(pll, 0x0C)
 /* PLL register access */
-#define PLL_REG_ACCESS(pll)		CRU_PLL_REG(pll, 0x10)
-#define PLL_REG_TIMING(pll)		CRU_PLL_REG(pll, 0x14)
-#define PLL_HW_CFG(pll)			CRU_PLL_REG(pll, 0x18)
-#define PLL_REFCLK_FREQ(pll)		CRU_PLL_REG(pll, 0x1C)
-#define PLL_CLK_P_FREQ(pll)		CRU_PLL_REG(pll, 0x20)
-#define PLL_CLK_R_FREQ(pll)		CRU_PLL_REG(pll, 0x24)
-#define PLL_CNT(pll)			CRU_PLL_REG(pll, 0x28)
+#define PLL_REG_ACCESS(pll)		DPU_PLL_REG(pll, 0x10)
+#define PLL_REG_TIMING(pll)		DPU_PLL_REG(pll, 0x14)
+#define PLL_HW_CFG(pll)			DPU_PLL_REG(pll, 0x18)
+#define PLL_REFCLK_FREQ(pll)		DPU_PLL_REG(pll, 0x1C)
+#define PLL_CLK_P_FREQ(pll)		DPU_PLL_REG(pll, 0x20)
+#define PLL_CLK_R_FREQ(pll)		DPU_PLL_REG(pll, 0x24)
+#define PLL_CNT(pll)			DPU_PLL_REG(pll, 0x28)
 
 #define dpulp_pll_enable(pll, freq)			\
 	dw_pll5ghz_tsmc12ffc_pwron(pll, freq)
