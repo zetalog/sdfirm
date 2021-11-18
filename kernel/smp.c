@@ -69,6 +69,34 @@ void smp_boot(void)
 #define SMP_WAIT_BOOT_MS		0
 #endif /* CONFIG_SMP_WAIT_BOOT */
 
+void smp_boot_secondary_cpus(caddr_t context)
+{
+	cpu_t cpu;
+	cpu_t nr_online_cpus;
+	tick_t smp_wait;
+
+	smp_hw_ctrl_init();
+	for (cpu = 0; cpu < NR_CPUS; cpu++) {
+		if (cpu != smp_boot_cpu)
+			smp_cpu_on(cpu, context);
+	}
+	smp_wait = tick_get_counter() + SMP_WAIT_BOOT_MS;
+	do {
+		nr_online_cpus = 0;
+		for (cpu = 0; cpu < NR_CPUS; cpu++) {
+			if (cpumask_test_cpu(cpu, &smp_online_cpus))
+				nr_online_cpus++;
+		}
+		if (nr_online_cpus >= NR_CPUS)
+			break;
+		if (time_after_eq(tick_get_counter(), smp_wait)) {
+			con_err("smp: Bring up CPUs timeout - %d/%d!\n",
+				nr_online_cpus, NR_CPUS);
+			break;
+		}
+	} while (1);
+}
+
 void smp_init(void)
 {
 	cpu_t cpu = smp_processor_id();
@@ -86,30 +114,7 @@ void smp_init(void)
 		board_smp_init();
 		bench_init();
 	} else {
-		cpu_t cpu;
-		cpu_t nr_online_cpus;
-		tick_t smp_wait;
-
-		smp_hw_ctrl_init();
-		for (cpu = 0; cpu < NR_CPUS; cpu++) {
-			if (cpu != smp_boot_cpu)
-				smp_cpu_on(cpu, (caddr_t)smp_init);
-		}
-		smp_wait = tick_get_counter() + SMP_WAIT_BOOT_MS;
-		do {
-			nr_online_cpus = 0;
-			for (cpu = 0; cpu < NR_CPUS; cpu++) {
-				if (cpumask_test_cpu(cpu, &smp_online_cpus))
-					nr_online_cpus++;
-			}
-			if (nr_online_cpus >= NR_CPUS)
-				break;
-			if (time_after_eq(tick_get_counter(), smp_wait)) {
-				con_err("smp: Bring up CPUs timeout - %d/%d!\n",
-					nr_online_cpus, NR_CPUS);
-				break;
-			}
-		} while (1);
+		smp_boot_secondary_cpus((caddr_t)smp_init);
 		board_smp_init();
 		bench_init();
 		cmd_init();

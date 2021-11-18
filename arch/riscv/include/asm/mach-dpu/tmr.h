@@ -44,12 +44,13 @@
 
 #include <driver/dw_timers.h>
 
-#ifndef TMR_CNT_CTRL_BASE
+#ifdef CONFIG_DPU_RES
+#define TMR_CNT_CTRL_BASE	0x40
+#define TMR_CNT_BASE		0x44
+#else /* CONFIG_DPU_RES */
 #define TMR_CNT_CTRL_BASE	0x00
-#endif
-#ifndef TMR_CNT_BASE
 #define TMR_CNT_BASE		0x40
-#endif
+#endif /* CONFIG_DPU_RES */
 
 #define TMR_BASE		TIMER_BASE
 #define TMR_REG(offset)		(TMR_BASE + (offset))
