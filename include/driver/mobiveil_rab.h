@@ -50,6 +50,12 @@
 #endif /* CONFIG_RAB_PAGE_4KB */
 #define RAB_PAGE_SIZE			_BV(RAB_PAGE_SHIFT)
 #define RAB_PAGE_MASK			(RAB_PAGE_SIZE - 1)
+#define RAB_ACCESS_SIZE			_BV(RAB_PAGE_SHIFT + 1)
+#define RAB_ACCESS_MASK			(RAB_ACCESS_SIZE - 1)
+#define RAB_ACCESS(addr)				\
+	((RIO_PTR2INT(addr) & ~RAB_ACCESS_MASK) +	\
+	 (RIO_PTR2INT(addr) & RAB_PAGE_MASK) +		\
+	 RAB_PAGE_SIZE)
 
 #define RAB_REG(offset)			(RAB_BASE + (offset))
 

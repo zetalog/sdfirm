@@ -64,14 +64,14 @@ void rab_page_select(uint16_t page)
 void rab_writel(uint32_t value, caddr_t addr)
 {
 	uint16_t pfn;
-	uint16_t reg;
+	caddr_t reg;
 
 	if (addr < RAB_PAGE_SIZE) {
 		__raw_writel(value, addr);
 		return;
 	}
 	pfn = RIO_PTR2INT(addr) >> RAB_PAGE_SHIFT;
-	reg = (RIO_PTR2INT(addr) & RAB_PAGE_MASK) + RAB_PAGE_SIZE;
+	reg = RAB_ACCESS(addr);
 	rab_page_select(pfn);
 	__raw_writel(value, reg);
 }
@@ -79,14 +79,14 @@ void rab_writel(uint32_t value, caddr_t addr)
 uint32_t rab_readl(caddr_t addr)
 {
 	uint16_t pfn;
-	uint16_t pad;
+	caddr_t reg;
 
 	if (addr < RAB_PAGE_SIZE)
 		return __raw_readl(addr);
 	pfn = RIO_PTR2INT(addr) >> RAB_PAGE_SHIFT;
-	pad = (RIO_PTR2INT(addr) & RAB_PAGE_MASK) + RAB_PAGE_SIZE;
+	reg = RAB_ACCESS(addr);
 	rab_page_select(pfn);
-	return __raw_readl(pad);
+	return __raw_readl(reg);
 }
 
 /* ======================================================================

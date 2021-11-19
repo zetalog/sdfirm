@@ -66,10 +66,13 @@
 #define CRU_T				_BV(15)
 #define CRU_CFG(r, reg, bit)		\
 	(((r) ? CRU_T : 0) | CRU_R(reg) | CRU_B(bit))
-#define cru_adr(cfg)			\
-	((cru_r(cfg) << 2) + ((cfg & CRU_T) ? CRU_RESET(0) : CRU_CLK_CFG(0)))
-#define cru_msk(cfg)			_BV(cru_b(cfg))
-#define cru_bit(cfg)			((cru_r(cfg) << 5) + cru_b(cfg))
+#define CRU_MSK(cfg)			_BV(cru_b(cfg))
+#define CRU_BIT(cfg)			((cru_r(cfg) << 5) + cru_b(cfg))
+#define CRU_ADR(cfg)			\
+	(((cfg) & CRU_T) ?		\
+	 CRU_RESET(CRU_BIT(cfg)) :	\
+	 CRU_CLK_CFG(CRU_BIT(cfg)))
+#define CRU_FLD(cfg)			REG_1BIT_OFFSET(CRU_BIT(cfg))
 
 /* 3.4.17 CPU_CLK_CFG */
 #define CRU_cpu_clksel			CRU_CFG(0, 0, 0)
@@ -170,9 +173,12 @@
 /* 3.4.41 TCSR_RESET */
 #define CRU_tcsr_reset			CRU_CFG(1, 17, 0)
 
-#define cru_set_bit(cfg)		do { } while (0)
-#define cru_clear_bit(cfg)		do { } while (0)
-#define cru_test_bit(cfg)		0
+#define cru_set_bit(cfg)		\
+	__raw_setl(CRU_FLD(cfg), CRU_ADR(cfg))
+#define cru_clear_bit(cfg)		\
+	__raw_clearl(CRU_FLD(cfg), CRU_ADR(cfg))
+#define cru_test_bit(cfg)		\
+	(__raw_readl(CRU_ADR(cfg)) & CRU_FLD(cfg))
 
 #define cru_clk_enable(cfg)		cru_set_bit(cfg)
 #define cru_clk_disable(cfg)		cru_clear_bit(cfg)

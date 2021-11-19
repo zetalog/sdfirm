@@ -42,6 +42,468 @@
 #include <target/clk.h>
 #include <target/ddr.h>
 
+struct rst_clk {
+	clk_t clk_dep;
+	clk_t clk_src;
+	uint16_t clken;
+	/* uint16_t swallow_bypass; */
+	uint16_t reset;
+	CLK_DEC_FLAGS_RO
+};
+
+struct rst_clk rst_clks[] = {
+	/* 3.1.1 CPU/RAM Clocks */
+	[CPU_FUNC_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cpu_clksel,
+		.reset = CRU_cpu_func_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[CPU_DBG_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = cpu_clksel,
+		.reset = CRU_cpu_dbg_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	/* 3.1.2 GPDPU clocks */
+	[GPDPU_CLKEN] = {
+		.clk_dep = gpdpu_bus_clksel,
+		.clk_src = gpdpu_core_clksel,
+		.clken = CRU_gpdpu_clken,
+		CLK_DEF_FLAGS_RO(CLK_C)
+	},
+	[GPDPU_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = gpdpu_clk,
+		.reset = CRU_gpdpu_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	/* 3.1.3 DDR clocks */
+	[DDR0_CLKEN] = {
+		.clk_dep = invalid_clk,
+		.clk_src = ddr_clksel,
+		.clken = CRU_ddr0_clken,
+		CLK_DEF_FLAGS_RO(CLK_C)
+	},
+	[DDR1_CLKEN] = {
+		.clk_dep = invalid_clk,
+		.clk_src = ddr_clksel,
+		.clken = CRU_ddr1_clken,
+		CLK_DEF_FLAGS_RO(CLK_C)
+	},
+	[DDR_BYPASSPCLKEN] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_200_clksel,
+		.clken = CRU_ddr_bypassPclken,
+		CLK_DEF_FLAGS_RO(CLK_C)
+	},
+	[DDR0_PWROKIN] = {
+		.clk_dep = invalid_clk,
+		.clk_src = invalid_clk,
+		.reset = CRU_ddr0_pwrokin,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[DDR0_APB_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_ddr0_apb_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[DDR0_AXI_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_800_clksel,
+		.reset = CRU_ddr0_axi_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[DDR0_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = invalid_clk,
+		.reset = CRU_ddr0_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[DDR1_PWROKIN] = {
+		.clk_dep = invalid_clk,
+		.clk_src = invalid_clk,
+		.reset = CRU_ddr1_pwrokin,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[DDR1_APB_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_ddr1_apb_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[DDR1_AXI_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_800_clksel,
+		.reset = CRU_ddr1_axi_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[DDR1_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = invalid_clk,
+		.reset = CRU_ddr1_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	/* 3.1.4 VPU Clocks */
+	[VPU0_CLKEN] = {
+		.clk_dep = vpu_bclksel,
+		.clk_src = vpu_cclksel,
+		.clken = CRU_vpu0_clken,
+		CLK_DEF_FLAGS_RO(CLK_C)
+	},
+	[VPU1_CLKEN] = {
+		.clk_dep = vpu_bclksel,
+		.clk_src = vpu_cclksel,
+		.clken = CRU_vpu1_clken,
+		CLK_DEF_FLAGS_RO(CLK_C)
+	},
+	[VPU_RESET] = {
+		.clk_dep = vpu1_clk,
+		.clk_src = vpu0_clk,
+		.reset = CRU_vpu_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	/* 3.1.5 PCIe CLocks */
+	[PCIE_CLKEN] = {
+		.clk_dep = pcie_aux_clk,
+		.clk_src = soc_800_clksel,
+		.clken = CRU_pcie_clken,
+		CLK_DEF_FLAGS_RO(CLK_C)
+	},
+	[PCIE_PWR_UP_RESET] = {
+		.clk_dep = soc_100_clksel,
+		.clk_src = pcie_clk,
+		.reset = CRU_pcie_pwr_up_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	/* 3.1.6 RAB Clocks */
+	[RAB0_CLKEN] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_400_clksel,
+		.clken = CRU_rab0_clken,
+		CLK_DEF_FLAGS_RO(CLK_C)
+	},
+	[RAB1_CLKEN] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_400_clksel,
+		.clken = CRU_rab1_clken,
+		CLK_DEF_FLAGS_RO(CLK_C)
+	},
+	[RAB0_RESET] = {
+		.clk_dep = rab0_rio_reset,
+		.clk_src = rab0_clk,
+		.reset = CRU_rab0_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[RAB0_RIO_RESET] = {
+		.clk_dep = rab0_rio_logic_reset,
+		.clk_src = rab0_phy_clksel,
+		.reset = CRU_rab0_rio_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[RAB0_RIO_LOGIC_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = invalid_clk,
+		.reset = CRU_rab0_rio_logic_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[RAB1_RESET] = {
+		.clk_dep = rab1_rio_reset,
+		.clk_src = rab1_clk,
+		.reset = CRU_rab1_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[RAB1_RIO_RESET] = {
+		.clk_dep = rab1_rio_logic_reset,
+		.clk_src = rab1_phy_clksel,
+		.reset = CRU_rab1_rio_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[RAB1_RIO_LOGIC_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = invalid_clk,
+		.reset = CRU_rab1_rio_logic_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	/* 3.1.7 Ethernet Clocks */
+	[ETH0_RESET] = {
+		.clk_dep = eth0_phy_pll,
+		.clk_src = soc_200_clksel,
+		.reset = CRU_eth0_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[ETH1_RESET] = {
+		.clk_dep = eth1_phy_pll,
+		.clk_src = soc_200_clksel,
+		.reset = CRU_eth1_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	/* 3.1.8 Low Speed IO Clocks */
+	[GPIO_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_gpio_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[SSI_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_ssi_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[FLASH_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_flash_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[I2C0_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_i2c0_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[I2C1_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_i2c1_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[I2C2_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_i2c2_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[I2C3_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_i2c3_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[UART0_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_uart0_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[UART1_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_uart1_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[UART2_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_uart2_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[UART3_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_uart3_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[SD_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_sd_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[PLIC_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_plic_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[TMR_RESET] = {
+		.clk_dep = soc_100_clksel,
+		.clk_src = xo_clk,
+		.reset = CRU_tmr_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[WDT_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_wdt_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[AON_TSENSOR_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_aon_tsensor_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[GPDPU_TSENSOR_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_gpdpu_tsensor_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[DDR0_TSENSOR_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_ddr0_tsensor_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[DDR1_TSENSOR_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_ddr1_tsensor_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[RAB0_TSENSOR_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_rab0_tsensor_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[RAB1_TSENSOR_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_rab1_tsensor_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[ETH0_TSENSOR_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_eth0_tsensor_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+	[ETH1_TSENSOR_RESET] = {
+		.clk_dep = invalid_clk,
+		.clk_src = soc_100_clksel,
+		.reset = CRU_eth1_tsensor_reset,
+		CLK_DEF_FLAGS_RO(CLK_R)
+	},
+};
+
+#ifdef CONFIG_CLK_MNEMONICS
+const char *rst_clk_names[] = {
+	[GPDPU_CLKEN] = "gpdpu_clk",
+	[DDR0_CLKEN] = "ddr0_clk",
+	[DDR1_CLKEN] = "ddr1_clk",
+	[DDR_BYPASSPCLKEN] = "ddr_bypassPclk",
+	[VPU0_CLKEN] = "vpu0_clk",
+	[VPU1_CLKEN] = "vpu1_clk",
+	[PCIE_CLKEN] = "pcie_clk",
+	[RAB0_CLKEN] = "rab0_clk",
+	[RAB1_CLKEN] = "rab1_clk",
+	[CPU_FUNC_RESET] = "cpu_func_reset",
+	[CPU_DBG_RESET] = "cpu_dbg_reset",
+	[GPDPU_RESET] = "gpdpu_reset",
+	[DDR0_PWROKIN] = "ddr0_pwrokin",
+	[DDR0_APB_RESET] = "ddr0_apb_reset",
+	[DDR0_AXI_RESET] = "ddr0_axi_reset",
+	[DDR0_RESET] = "ddr0_reset",
+	[DDR1_PWROKIN] = "ddr1_pwrokin",
+	[DDR1_APB_RESET] = "ddr1_apb_reset",
+	[DDR1_AXI_RESET] = "ddr1_axi_reset",
+	[DDR1_RESET] = "ddr1_reset",
+	[VPU_RESET] = "vpu_reset",
+	[PCIE_PWR_UP_RESET] = "pcie_pwr_up_reset",
+	[RAB0_RESET] = "rab0_reset",
+	[RAB0_RIO_RESET] = "rab0_rio_reset",
+	[RAB0_RIO_LOGIC_RESET] = "rab0_rio_logic_reset",
+	[RAB1_RESET] = "rab1_reset",
+	[RAB1_RIO_RESET] = "rab1_rio_reset",
+	[RAB1_RIO_LOGIC_RESET] = "rab1_rio_logic_reset",
+	[ETH0_RESET] = "eth0_reset",
+	[ETH1_RESET] = "eth1_reset",
+	[GPIO_RESET] = "gpio_reset",
+	[SSI_RESET] = "ssi_reset",
+	[FLASH_RESET] = "flash_reset",
+	[I2C0_RESET] = "i2c0_reset",
+	[I2C1_RESET] = "i2c1_reset",
+	[I2C2_RESET] = "i2c2_reset",
+	[I2C3_RESET] = "i2c3_reset",
+	[UART0_RESET] = "uart0_reset",
+	[UART1_RESET] = "uart1_reset",
+	[UART2_RESET] = "uart2_reset",
+	[UART3_RESET] = "uart3_reset",
+	[SD_RESET] = "sd_reset",
+	[PLIC_RESET] = "plic_reset",
+	[TMR_RESET] = "tmr_reset",
+	[WDT_RESET] = "wdt_reset",
+	[AON_TSENSOR_RESET] = "aon_tsensor_reset",
+	[GPDPU_TSENSOR_RESET] = "gpdpu_tsensor_reset",
+	[DDR0_TSENSOR_RESET] = "ddr0_tsensor_reset",
+	[DDR1_TSENSOR_RESET] = "ddr1_tsensor_reset",
+	[RAB0_TSENSOR_RESET] = "rab0_tsensor_reset",
+	[RAB1_TSENSOR_RESET] = "rab1_tsensor_reset",
+	[ETH0_TSENSOR_RESET] = "eth0_tsensor_reset",
+	[ETH1_TSENSOR_RESET] = "eth1_tsensor_reset",
+};
+
+static const char *get_rst_clk_name(clk_clk_t clk)
+{
+	if (clk >= NR_RST_CLKS)
+		return NULL;
+	return rst_clk_names[clk];
+}
+#else
+#define get_rst_clk_name		NULL
+#endif
+
+static int enable_rst_clk(clk_clk_t clk)
+{
+	if (clk >= NR_RST_CLKS)
+		return -EINVAL;
+
+	cru_trace(true, get_rst_clk_name(clk));
+	if (rst_clks[clk].clk_dep != invalid_clk)
+		clk_enable(rst_clks[clk].clk_dep);
+	if (rst_clks[clk].clk_src != invalid_clk)
+		clk_enable(rst_clks[clk].clk_src);
+	if (rst_clks[clk].flags & CLK_CLKEN_F)
+		cru_clk_enable(clk);
+	if (rst_clks[clk].flags & CLK_RESET_F)
+		cru_rst_deassert(clk);
+	return 0;
+}
+
+static void disable_rst_clk(clk_clk_t clk)
+{
+	if (clk >= NR_RST_CLKS)
+		return;
+
+	cru_trace(false, get_rst_clk_name(clk));
+	if (rst_clks[clk].clk_dep != invalid_clk)
+		clk_disable(rst_clks[clk].clk_dep);
+	if (rst_clks[clk].clk_src != invalid_clk)
+		clk_disable(rst_clks[clk].clk_src);
+	if (rst_clks[clk].flags & CLK_RESET_F)
+		cru_rst_assert(clk);
+	if (rst_clks[clk].flags & CLK_CLKEN_F)
+		cru_clk_disable(clk);
+}
+
+static clk_freq_t get_rst_clk_freq(clk_clk_t clk)
+{
+	if (clk >= NR_RST_CLKS)
+		return INVALID_FREQ;
+	return clk_get_frequency(rst_clks[clk].clk_src);
+}
+
+static int set_rst_clk_freq(clk_clk_t clk, clk_freq_t freq)
+{
+	if (clk >= NR_RST_CLKS)
+		return -EINVAL;
+	return clk_set_frequency(rst_clks[clk].clk_src, freq);
+}
+
+struct clk_driver clk_rst = {
+	.max_clocks = NR_RST_CLKS,
+	.enable = enable_rst_clk,
+	.disable = disable_rst_clk,
+	.select = NULL,
+	.get_freq = get_rst_clk_freq,
+	.set_freq = set_rst_clk_freq,
+	.get_name = get_rst_clk_name,
+};
+
 struct div_clk {
 	clk_t src;
 	uint8_t div;
@@ -122,6 +584,7 @@ struct clk_driver clk_div = {
 
 struct sel_clk {
 	clk_t clk_sels[2];
+	clk_t clk_dep;
 	uint16_t clk_cfg;
 	CLK_DEC_FLAGS
 };
@@ -148,6 +611,7 @@ struct sel_clk sel_clks[NR_SEL_CLKS] = {
 			gpdpu_core_pll,
 			xo_clk,
 		},
+		.clk_dep = gpdpu_bus_clksel,
 		.clk_cfg = CRU_gpdpu_core_clksel,
 		CLK_DEF_FLAGS(CLK_PLL_SEL_F)
 	},
@@ -345,10 +809,10 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 	[AXI_PLL] = {
 		.src = soc_vco,
 		.mux = soc_800_clksel,
-		.reg = cru_adr(CRU_soc_800_clksel),
-		.alt = cru_msk(CRU_soc_400_clksel) |
-		       cru_msk(CRU_soc_200_clksel) |
-		       cru_msk(CRU_soc_100_clksel),
+		.reg = CRU_ADR(CRU_soc_800_clksel),
+		.alt = CRU_MSK(CRU_soc_400_clksel) |
+		       CRU_MSK(CRU_soc_200_clksel) |
+		       CRU_MSK(CRU_soc_100_clksel),
 		.alt = 0,
 		.freq = AXI_CLK_FREQ,
 		.enabled = false,
@@ -398,10 +862,10 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 	[APB_PLL] = {
 		.src = soc_vco,
 		.mux = soc_100_clksel,
-		.reg = cru_adr(CRU_soc_100_clksel),
-		.alt = cru_msk(CRU_soc_800_clksel) |
-		       cru_msk(CRU_soc_400_clksel) |
-		       cru_msk(CRU_soc_200_clksel),
+		.reg = CRU_ADR(CRU_soc_100_clksel),
+		.alt = CRU_MSK(CRU_soc_800_clksel) |
+		       CRU_MSK(CRU_soc_400_clksel) |
+		       CRU_MSK(CRU_soc_200_clksel),
 		.freq = APB_CLK_FREQ,
 		.enabled = false,
 	},
@@ -829,6 +1293,7 @@ void clk_pll_init(void)
 	clk_register_driver(CLK_PLL, &clk_pll);
 	clk_register_driver(CLK_SEL, &clk_sel);
 	clk_register_driver(CLK_DIV, &clk_div);
+	clk_register_driver(CLK_RST, &clk_rst);
 }
 
 void board_init_clock(void)
