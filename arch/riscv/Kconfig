@@ -114,6 +114,7 @@ config ARCH_DPU
 	select ARCH_HAS_BOOT0 if DPU_APC
 	select ARCH_HAS_BOOT1 if DPU_APC
 	select ARCH_HAS_BOOT2 if DPU_APC
+	select DPU_TCSR
 	select DPU_TMR
 	select DPU_CLINT if DPU_RES
 	select RI5CY_FIRQ if (!SYS_NOIRQ && DPU_CV32E40P)
@@ -153,7 +154,6 @@ config ARCH_VAISRA
 config ARCH_DPULP
 	bool "SmarCo DPU-LP"
 	select CPU_VAISRA
-	select ARCH_HAS_SMP
 	select ARCH_IS_TICKLESS
 	select ARCH_HAS_TSC
 	select ARCH_HAS_TSC_CONST

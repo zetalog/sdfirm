@@ -5,9 +5,6 @@
 #include <target/irq.h>
 
 #ifdef CONFIG_DPU_CLINT
-#ifdef CONFIG_SBI
-/* TODO use hvc sbi_console like Linux kernel */
-#else
 void clint_irq_handler(irq_t irq)
 {
 	uint8_t cpu = smp_processor_id();
@@ -45,7 +42,6 @@ void gpt_hw_ctrl_init(void)
 {
 	irq_register_vector(IRQ_TIMER, clint_irq_handler);
 }
-#endif /* CONFIG_SBI */
 #else /* CONFIG_DPU_CLINT */
 void tmr_irq_handler(irq_t irq)
 {

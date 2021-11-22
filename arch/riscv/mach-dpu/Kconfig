@@ -81,7 +81,6 @@ config DPU_BOOT_ROM
 	select LOAD_DATA
 	select SYS_ENTR_M
 	select SYS_EXIT_M
-	select DPU_TCSR
 	select DPU_SPI_FLASH
 	select DPU_SSI_FLASH
 
@@ -95,7 +94,6 @@ config DPU_BOOT_SPI_FLASH
 	select LOAD_DATA
 	select SYS_ENTR_M
 	select SYS_EXIT_M
-	select DPU_TCSR
 	select DPU_DDR
 	select DPU_SPI_FLASH
 	select DPU_SSI_FLASH
@@ -108,7 +106,6 @@ config DPU_BOOT_SSI_FLASH
 	select XIP
 	select SYS_ENTR_M
 	select SYS_EXIT_M
-	select DPU_TCSR
 	select DPU_DDR
 	select DPU_SPI_FLASH
 	select DPU_SSI_FLASH
@@ -146,7 +143,6 @@ config DPU_BOOT_RAM
 	select SYS_EXIT_M
 	select SYS_EXIT_S if (DPU_CVA6 || DPU_APC)
 	select SYS_EXIT_U
-	select DPU_TCSR
 
 endchoice
 
@@ -296,6 +292,7 @@ menuconfig DPU_PLL
 	select DW_PLL5GHZ_TSMC12FFC if !DPU_PLL_BYPASS_PLL
 	select DW_PLL5GHZ_TSMC12FFC_REG_ACCESS if DW_PLL5GHZ_TSMC12FFC
 	select DW_PLL5GHZ_TSMC12FFC_BYPASS_SYNC if DW_PLL5GHZ_TSMC12FFC
+	select DPU_TCSR_LOW_POWER if DPU_TCSR
 	select MATH_DIV32
 
 if DPU_PLL

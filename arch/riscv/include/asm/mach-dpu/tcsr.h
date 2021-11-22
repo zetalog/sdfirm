@@ -104,23 +104,23 @@ extern caddr_t dpu_tcsr_reg_base;
 #define IMC_SIM_FAIL			_BV(30)
 #endif
 
-#define imc_soc_major()			\
+#define imc_soc_major()					\
 	IMC_MAJOR(__raw_readl(TCSR_SOC_HW_VERSION))
-#define imc_soc_minor()			\
+#define imc_soc_minor()					\
 	IMC_MINOR(__raw_readl(TCSR_SOC_HW_VERSION))
-#define imc_hart_id()			\
+#define imc_hart_id()					\
 	MAKELLONG(__raw_readl(TCSR_HART_ID_LO), __raw_readl(TCSR_HART_ID_HI))
-#define imc_boot_mode()			\
+#define imc_boot_mode()					\
 	IMC_BOOT_MODE(__raw_readl(TCSR_BOOT_MODE))
-#define imc_boot_flash()			\
+#define imc_boot_flash()				\
 	IMC_FLASH_SEL(__raw_readl(TCSR_BOOT_MODE))
-#define imc_boot_cpu()			\
+#define imc_boot_cpu()					\
 	IMC_CPU_SEL(__raw_readl(TCSR_BOOT_MODE))
 #define imc_boot_addr()					\
 	 MAKELLONG(__raw_readl(TCSR_BOOT_ADDR_LO),	\
 		   __raw_readl(TCSR_BOOT_ADDR_HI))
 #ifdef CONFIG_DPU_TCSR_SIM_FINISH
-#define imc_sim_finish(pass)		\
+#define imc_sim_finish(pass)				\
 	__raw_setl((pass) ? IMC_SIM_PASS : IMC_SIM_FAIL, TCSR_SIM_FINISH)
 #else
 #define imc_sim_finish(pass)		do { } while (0)

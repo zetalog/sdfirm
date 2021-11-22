@@ -168,7 +168,7 @@ static int dpu_ipi_init(bool cold_boot)
 #ifdef CONFIG_DPU_CLINT
 uint64_t dpu_timer_value(void)
 {
-	clint_read_mtime();
+	return clint_read_mtime();
 }
 
 void dpu_timer_event_stop(void)
@@ -214,7 +214,7 @@ static int dpu_timer_init(bool cold_boot)
 
 static int dpu_system_down(uint32_t type)
 {
-	imc_sim_finish();
+	imc_sim_finish(true);
 	return 0;
 }
 
