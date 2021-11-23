@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Nov 18 10:32:39 2021
+# Tue Nov 23 10:03:59 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -196,7 +196,8 @@ CONFIG_DPU_FIRM_SIZE=0x800000
 # Simulation options
 #
 # CONFIG_DPU_SIM_TSENSOR_IRQ is not set
-# CONFIG_DPU_TCSR is not set
+CONFIG_DPU_TCSR=y
+CONFIG_DPU_TCSR_LOW_POWER=y
 CONFIG_DPU_PLL=y
 # CONFIG_DPU_PLL_FREQPLAN_PE is not set
 # CONFIG_DPU_PLL_FREQPLAN_BUS is not set
