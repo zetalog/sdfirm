@@ -56,7 +56,7 @@ extern caddr_t dpu_tcsr_reg_base;
 #define DPU_TCSR_BASE			__DPU_TCSR_BASE
 #endif
 #define TCSR_REG(offset)		(DPU_TCSR_BASE + (offset))
-#define TCSR_MSG_REG(offset)		TCSR_REG(0xFFF00 + (offset))
+#define TCSR_MSG_REG(offset)		TCSR_REG(0xF00 + (offset))
 #define TCSR_SOC_HW_VERSION		TCSR_REG(0x00)
 #define TCSR_BOOT_MODE			TCSR_REG(0x04)
 #define TCSR_BOOT_ADDR_LO		TCSR_REG(0x10)
@@ -70,7 +70,7 @@ extern caddr_t dpu_tcsr_reg_base;
 #define TCSR_SHUTDN_ACK			TCSR_REG(0x88)
 #define TCSR_BRINGUP_ACK		TCSR_REG(0x8C)
 #define TCSR_LP_STATUS			TCSR_REG(0x90)
-#define TCSR_SIM_FINISH			TCSR_MSG_REG(0x0C)
+#define TCSR_SIM_FINISH			TCSR_MSG_REG(0xFC)
 
 /* SOC_HW_VERSION */
 #define IMC_MAJOR_OFFSET		8
