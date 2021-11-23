@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Nov 18 10:40:47 2021
+# Tue Nov 23 13:06:07 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -255,8 +255,10 @@ CONFIG_NO_ZERO_GPR=y
 #
 # CONFIG_STACK_CUST is not set
 # CONFIG_HEAP is not set
-# CONFIG_MEM is not set
-# CONFIG_PAGE is not set
+CONFIG_MEM=y
+CONFIG_MEM_MAX_REGIONS=3
+# CONFIG_MEM_RESIZE is not set
+CONFIG_PAGE=y
 CONFIG_ARCH_HAS_DMAC=y
 # CONFIG_DMA is not set
 CONFIG_ARCH_HAS_FP=y
@@ -456,8 +458,31 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # Test setup
 #
-# CONFIG_TEST_VERBOSE is not set
-# CONFIG_TEST_BENCH is not set
+CONFIG_TEST_VERBOSE=y
+CONFIG_TEST_BENCH=y
+CONFIG_TEST_BENCH_LOCAL=y
+# CONFIG_TEST_BENCH_REMOTE is not set
+# CONFIG_TEST_BENCH_DIDT is not set
+# CONFIG_TEST_BENCH_DEBUG is not set
+
+#
+# Standard benchmark tests
+#
+# CONFIG_DHRYSTONE is not set
+# CONFIG_LINPACK is not set
+# CONFIG_COREMARK is not set
+# CONFIG_MEMSTREAM is not set
+# CONFIG_SHA256 is not set
+# CONFIG_MD5 is not set
+# CONFIG_HANOITOWER is not set
+# CONFIG_CFFT is not set
+# CONFIG_JPGENC is not set
+# CONFIG_GENANN is not set
+
+#
+# Santiy check tests
+#
+# CONFIG_TLB_TEST is not set
 # CONFIG_TEST_LITMUS is not set
 # CONFIG_TEST_MEMTESTER is not set
 
@@ -476,11 +501,11 @@ CONFIG_SPD_BUS_KHZ=60
 CONFIG_BIT_FLS8=y
 # CONFIG_BIT_FLS16 is not set
 CONFIG_BIT_FLS32=y
-CONFIG_BIT_FLS64=y
+# CONFIG_BIT_FLS64 is not set
 # CONFIG_BIT_FFS16 is not set
 # CONFIG_BIT_FFS32 is not set
 # CONFIG_BIT_FFS64 is not set
-# CONFIG_BIT_HWEIGHT64 is not set
+CONFIG_BIT_HWEIGHT64=y
 
 #
 # Bitmap operations
@@ -512,7 +537,7 @@ CONFIG_STDLIB=y
 # Print operations
 #
 CONFIG_PRINT_VSNPRINTF=y
-CONFIG_PRINT_SNPRINTF=y
+# CONFIG_PRINT_SNPRINTF is not set
 CONFIG_PRINT_VPRINTF=y
 # CONFIG_PRINT_SPRINTF is not set
 CONFIG_PRINT_PRINTF=y
@@ -521,7 +546,7 @@ CONFIG_PRINT_PRINTF=y
 #
 # String operations
 #
-# CONFIG_STRING_STRNCMP is not set
+CONFIG_STRING_STRNCMP=y
 CONFIG_STRING_STRTOUL=y
 CONFIG_STRING_STRTOULL=y
 # CONFIG_STRING_UUID is not set
@@ -536,7 +561,7 @@ CONFIG_STRING_STRTOULL=y
 #
 # Cryptographic algorithms
 #
-# CONFIG_CRYPTO_RAND is not set
+CONFIG_CRYPTO_RAND=y
 # CONFIG_FONTS is not set
 
 #

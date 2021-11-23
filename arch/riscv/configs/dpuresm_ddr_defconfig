@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Nov 23 10:20:04 2021
+# Tue Nov 23 13:10:58 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -549,7 +549,7 @@ CONFIG_TEST_BENCH_LOCAL=y
 # Bit-wise operations
 #
 CONFIG_BIT_FLS8=y
-CONFIG_BIT_FLS16=y
+# CONFIG_BIT_FLS16 is not set
 CONFIG_BIT_FLS32=y
 CONFIG_BIT_FLS64=y
 # CONFIG_BIT_FFS16 is not set
@@ -587,7 +587,7 @@ CONFIG_STDLIB=y
 # Print operations
 #
 CONFIG_PRINT_VSNPRINTF=y
-CONFIG_PRINT_SNPRINTF=y
+# CONFIG_PRINT_SNPRINTF is not set
 CONFIG_PRINT_VPRINTF=y
 # CONFIG_PRINT_SPRINTF is not set
 CONFIG_PRINT_PRINTF=y
@@ -599,14 +599,14 @@ CONFIG_PRINT_PRINTF=y
 CONFIG_STRING_STRNCMP=y
 CONFIG_STRING_STRTOUL=y
 CONFIG_STRING_STRTOULL=y
-CONFIG_STRING_UUID=y
+# CONFIG_STRING_UUID is not set
 # CONFIG_STRING_GETOPT is not set
 # CONFIG_STRING_BYTELIST is not set
 
 #
 # Time opeartions
 #
-CONFIG_TIME_CLOCK=y
+# CONFIG_TIME_CLOCK is not set
 
 #
 # Cryptographic algorithms
