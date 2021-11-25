@@ -98,7 +98,7 @@ static void dpu_load_rom(void *boot_entry)
 	memcpy(boot_entry, (void *)addr, size);
 }
 #else
-#define dpu_load_rom(boot_entry)				do { } while (0)
+#define dpu_load_rom(boot_entry)		do { } while (0)
 #endif
 
 #ifdef CONFIG_DPU_LOAD_FAKE_PCIE_MEM
@@ -121,7 +121,7 @@ static void dpu_load_fake_pcie_mem(void *boot_entry)
 	/* =====pcie model========// */
 }
 #else
-#define dpu_load_fake_pcie_mem(boot_entry)				do { } while (0)
+#define dpu_load_fake_pcie_mem(boot_entry)	do { } while (0)
 #endif
 
 #ifdef CONFIG_DPU_LOAD_SSI_FLASH
@@ -143,7 +143,7 @@ static void dpu_load_ssi(void *boot_entry, const char *boot_file)
 	dpu_ssi_flash_boot(boot_entry, addr, size);
 }
 #else
-#define dpu_load_ssi(boot_entry, boot_file)				do { } while (0)
+#define dpu_load_ssi(boot_entry, boot_file)	do { } while (0)
 #endif
 
 #if defined(CONFIG_DPU_LOAD_ROM) \
@@ -198,6 +198,18 @@ void board_boot(void)
 }
 #else
 #define board_boot()				do { } while (0)
+#endif
+
+#ifdef CONFIG_DPU_SIM_RAM_BOOT_DDR
+static void dpu_ram_boot_ddr(void)
+{
+	void (*boot_entry)(void);
+
+	boot_entry = (void *)DDR1_DATA_BASE;
+	boot_entry();
+}
+#else
+#define dpu_ram_boot_ddr()			do { } while (0)
 #endif
 
 void board_early_init(void)
@@ -258,15 +270,25 @@ void dpu_pma_cpu_init(void)
 
 	dpu_pma_debug();
 	/* Enable CPU PMA */
-	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
-		     DDR0_DATA_BASE,
-		     ilog2_const(max(SZ_2M, DDR0_DATA_SIZE)));
-	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
-		     DDR1_DATA_BASE,
-		     ilog2_const(max(SZ_2M, DDR1_DATA_SIZE)));
 	n += pma_set(n, PMA_AT_DEVICE,
 		     DEV_BASE,
 		     ilog2_const(max(SZ_2M, DEV_SIZE)));
+#ifdef CONFIG_DPU_DDR_NINTLV
+#ifdef CONFIG_DPU_DDR_DDR0
+	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
+		     DDR0_DATA_BASE,
+		     ilog2_const(max(SZ_2M, DDR0_DATA_SIZE)));
+#endif /* CONFIG_DPU_DDR_DDR0 */
+	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
+		     DDR1_DATA_BASE,
+		     ilog2_const(max(SZ_2M, DDR1_DATA_SIZE)));
+#else /* CONFIG_DPU_DDR_NINTLV */
+	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
+		     DDR_DATA_BASE,
+		     ilog2_const(max(SZ_2M, DDR_DATA_SIZE)));
+#endif /* CONFIG_DPU_DDR_NINTLV */
+
+	dpu_ram_boot_ddr();
 }
 #endif /* CONFIG_DPU_PMA */
 #endif /* CONFIG_DPU_APC */

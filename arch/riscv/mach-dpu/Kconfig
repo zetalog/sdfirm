@@ -259,6 +259,9 @@ config DPU_SIM_DDR_BOOT
 	  RAM model, and sizes 512MB. The CPU will boot the the start
 	  address of DDR1 (0x08_0000_0000).
 
+config DPU_SIM_RAM_BOOT_DDR
+	bool "Use RAM to boot to DDR1"
+	depends DPU_BOOT_RAM
 
 endif
 
