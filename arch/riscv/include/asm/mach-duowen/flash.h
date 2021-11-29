@@ -50,7 +50,12 @@
 #define FLASH_REG(offset)	(FLASH_BASE + FLASH_REG_OFFSET + (offset))
 #define FLASH_CFG(offset)	(FLASH_BASE + FLASH_CFG_OFFSET + (offset))
 
-#define DUOWEN_FLASH_FREQ		80000000 /* 80MHz */
+#if 0
+/* It is tested on DPU that the flash model can only work in 5MHz */
+#define DUOWEN_FLASH_FREQ	5000000 /* 5MHz */
+#else
+#define DUOWEN_FLASH_FREQ	80000000 /* 80MHz */
+#endif
 
 #define SPI_CTRL		FLASH_CFG(0x00)
 #define SPI_DIVIDER		FLASH_CFG(0x04)
