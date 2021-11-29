@@ -1031,6 +1031,15 @@ config DUOWEN_ETH_10000BASE_KX4
 config DUOWEN_ETH_10000BASE_KR
 	bool "10gbase-kr"
 
+config DUOWEN_ETH_10000BASE_RXAUI
+	bool "10gbase-rxaui"
+
+config DUOWEN_ETH_SGMII_1000M
+	bool "1000M-sgmii"
+
+config DUOWEN_ETH_USXGMII_AN37
+	bool "an37-usxgmii"
+
 endchoice
 
 choice

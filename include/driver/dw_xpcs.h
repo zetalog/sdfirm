@@ -201,7 +201,22 @@
 #define VR_XS_PCS_DIG_CTRL2		VR(0x0001)
 #define VR_XS_PCS_XAUI_CTRL		VR(0x0004)
 #define VR_XS_PCS_DEBUG_CTRL		VR(0x0005)
+#define VR_XS_PCS_KR_CTRL		VR(0x0007)
 #define VR_XS_PCS_DIG_STS		VR(0x0010)
+
+/* VR_XS_PCS_KR_CTRL */
+#define USXG_MODE_OFFSET		10
+#define USXG_MODE_MASK			REG_3BIT_MASK
+#define USXG_MODE(value)		_GET_FV(USXG_MODE, value)
+#define USXG_MODE_10G_SXGMII		0
+
+/* VR_XS_PCS_DIG_CTRL1 */
+#define VR_RST				_BV(15)
+#define USXG_EN				_BV(9)
+
+/* VR_XS_PCS_XAUI_CTRL */
+#define XAUI_MODE			0
+#define RXAUI_MODE			1
 
 /* SR_XS_PCS_CTRL1 */
 #define SR_PCS_RST			_BV(15)
@@ -214,6 +229,18 @@
 #define SR_PCS_SS52_OFFSET		2
 #define SR_PCS_SS52_MASK		REG_4BIT_MASK
 #define SR_PCS_SS52(value)		_GET_FV(SR_PCS_SS52, value)
+#define KX_MODE_1G			0
+#define KX4_MODE_10G			SR_PCS_SS13
+
+#ifdef CONFIG_DUOWEN_ETH_10000BASE_RXAUI
+#define PCS_SPEED_SELECTION		KX4_MODE_10G
+#endif
+
+#ifdef CONFIG_DUOWEN_ETH_SGMII_1000M
+#define PCS_SPEED_SELECTION		KX_MODE_1G
+#endif
+
+
 
 /* SR_XS_PCS_STS1 */
 #define SR_PCS_TXLPIR			_BV(11) /* Tx received LPI */
@@ -287,7 +314,6 @@
 #define SR_XS_PCS_TP_B3			SR(0x0029)
 #define SR_XS_PCS_TP_CTRL		SR(0x002A)
 #define SR_XS_PCS_TP_ERRCTR		SR(0x002B)
-#define VR_XS_PCS_KR_CTRL		VR(0x0007)
 #else /* CONFIG_DW_XPCS_RPCS */
 #define SR_XS_PCS_TCTRL			SR(0x0019)
 #define VR_XS_PCS_DIG_ERRCNT_SEL	VR(0x0002)
@@ -544,6 +570,12 @@
 #define VR_MII_AN_CTRL				VR(0x0001)
 #define VR_MII_AN_INTR_STS			VR(0x0002)
 #define VR_MII_LINK_TIMER_CTRL			VR(0x000A)
+
+/* SR_MII_CTRL */
+#define SR_MII_SS13				_BV(13)
+#define SR_MII_AN_ENABLE			_BV(12)
+#define SR_MII_SS6				_BV(6)
+#define SR_MII_SS5				_BV(5)
 
 #ifdef CONFIG_DW_XPCS_GPIO
 #define VR_MII_GPIO				VR(0x0015)
