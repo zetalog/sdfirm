@@ -22,7 +22,7 @@ static uint8_t ee_page = 0;
 
 int spd_hw_init(void)
 {
-	unsigned int i2c_master = SPD_BUS_NUM;
+	__unused unsigned int i2c_master = SPD_BUS_NUM;
 	uint16_t i2c_freq = SPD_BUS_KHZ;
 
 	spd_dbg("spd_ee1004: Debug: Enter %s\n", __func__);

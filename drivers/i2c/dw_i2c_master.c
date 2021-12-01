@@ -3,8 +3,7 @@
 #include <target/console.h>
 #include <target/panic.h>
 #include <driver/dw_i2c.h>
-
-#define CONFIG_DW_I2C_DEBUG
+#include <target/irq.h>
 
 #ifdef CONFIG_DW_I2C_DEBUG
 #define i2c_dbg(...)			con_dbg(__VA_ARGS__)
@@ -12,29 +11,21 @@
 #define i2c_dbg(...)			do { } while (0)
 #endif
 
-enum dw_i2c_driver_state {
-	DW_I2C_DRIVER_INIT = 0,
-	DW_I2C_DRIVER_START,
-	DW_I2C_DRIVER_ADDRESS,
-	DW_I2C_DRIVER_TRANS,
-	DW_I2C_DRIVER_STOP,
-#ifdef CONFIG_I2C_DEVICE_ID
-	DW_I2C_DRIVER_DEVID_START,
-	DW_I2C_DRIVER_DEVID_TAR,
+#if NR_DW_I2CS > 1
+static int dw_i2c_did = 0;
+static struct dw_i2c_ctx dw_i2cs[NR_DW_I2CS] = {0};
+#define dw_i2c		dw_i2cs[dw_i2c_did]
+
+void dw_i2c_master_select(i2c_t i2c)
+{
+	BUG_ON(i2c >= NR_DW_I2CS);
+
+	dw_i2c_did = i2c;
+}
+#else
+static struct dw_i2c_ctx dw_i2c;
+#define dw_i2c_master_select(i2c)		do { } while (0)
 #endif
-
-	DW_I2C_DRIVER_INVALID
-};
-
-struct dw_i2c_private {
-	caddr_t base;
-	uint8_t addr_mode;
-	int state;
-};
-
-static struct dw_i2c_private dw_i2c_masters[CONFIG_I2C_MAX_MASTERS] = {0};
-
-static struct dw_i2c_private *dw_i2c_pri = NULL;
 
 #ifdef CONFIG_DW_I2C_TEST_IRQ
 /* Give RX_FULL interrupt when get 1 or more entry in RX FIFO. */
@@ -42,51 +33,65 @@ static struct dw_i2c_private *dw_i2c_pri = NULL;
 #undef CONFIG_DW_I2C_RX_TL
 #define CONFIG_DW_I2C_RX_TL 0
 #endif
-#include <target/irq.h>
-static unsigned int irq_test_master_num = 0;
+
 static unsigned int irq_test_flag = 0;
 static irq_flags_t irq_flags;
+
 /* Interrupts cared about:
  *	- RX_FULL : auto cleared
  */
-void dw_i2c_irq_handler(irq_t irq)
+void dw_i2c_test_irq(irq_t irq)
 {
 	/* The IRQ handler do not automatically mask irq for hardware, as
 	 * there is no return value indicated by the handler.
 	 */
-	irqc_mask_irq(IRQ_I2C0 + irq_test_master_num);
-	irq_test_flag = 1 + irq_test_master_num;
+	irqc_mask_irq(IRQ_I2C0 + dw_i2c_did);
+	irq_test_flag = 1 + dw_i2c_did;
 }
+
+static dw_i2c_test_loop(void)
+{
+	while (irq_test_flag == 0) {
+		irq_local_save(irq_flags);
+		irq_local_enable();
+		irq_local_disable();
+		irq_local_restore(irq_flags);
+	}
+	irq_test_flag = 0;
+	irqc_ack_irq(IRQ_I2C0 + dw_i2c_did);
+	irqc_unmask_irq(IRQ_I2C0 + dw_i2c_did);
+}
+
+void dw_i2c_test_init(void)
+{
+	int i;
+
+	for (i = 0; i < NR_DW_I2CS; i++) {
+		irqc_configure_irq(IRQ_I2C0 + i, 0, IRQ_LEVEL_TRIGGERED);
+	}
+	for (i = 0; i < NR_DW_I2CS; i++) {
+		irq_register_vector(IRQ_I2C0 + i, dw_i2c_test_irq);
+	}
+	for (i = 0; i < NR_DW_I2CS; i++) {
+		irqc_enable_irq(IRQ_I2C0 + i);
+	}
+}
+#else
+#define dw_i2c_test_loop()		do { } while (0)
+#define dw_i2c_test_init()		do { } while (0)
 #endif
 
 void dw_i2c_init(void)
 {
 	int i;
-	for (i = 0; i < CONFIG_I2C_MAX_MASTERS; i++) {
-		dw_i2c_masters[i].base = DW_I2C_BASE(i);
-		dw_i2c_masters[i].addr_mode = 0;
-		dw_i2c_masters[i].state = DW_I2C_DRIVER_INVALID;
-	}
-#ifdef CONFIG_DW_I2C_TEST_IRQ
-	for (i = 0; i < CONFIG_I2C_MAX_MASTERS; i++) {
-		irqc_configure_irq(IRQ_I2C0 + i, 0, IRQ_LEVEL_TRIGGERED);
-	}
-	for (i = 0; i < CONFIG_I2C_MAX_MASTERS; i++) {
-		irq_register_vector(IRQ_I2C0 + i, dw_i2c_irq_handler);
-	}
-	for (i = 0; i < CONFIG_I2C_MAX_MASTERS; i++) {
-		irqc_enable_irq(IRQ_I2C0 + i);
-	}
-#endif
-}
 
-void dw_i2c_master_select(i2c_t i2c)
-{
-	BUG_ON(i2c >= CONFIG_I2C_MAX_MASTERS);
-	dw_i2c_pri = dw_i2c_masters + i2c;
-#ifdef CONFIG_DW_I2C_TEST_IRQ
-	irq_test_master_num = i2c;
-#endif
+	for (i = 0; i < NR_DW_I2CS; i++) {
+		dw_i2c_master_select(i);
+		dw_i2c.base = DW_I2C_BASE(i);
+		dw_i2c.addr_mode = 0;
+		dw_i2c.state = DW_I2C_DRIVER_INVALID;
+	}
+	dw_i2c_test_init();
 }
 
 /*
@@ -94,7 +99,7 @@ void dw_i2c_master_select(i2c_t i2c)
  */
 void dw_i2c_master_init(void)
 {
-	caddr_t base = dw_i2c_pri->base;
+	caddr_t base = dw_i2c.base;
 
 	uint32_t val;
 	uint32_t offset;
@@ -163,7 +168,7 @@ void dw_i2c_master_init(void)
 	i2c_dbg("dw_i2c: w 0x%2x 0x%x _ENABLE\n", offset, val);
 	__raw_writel(val, base + offset);
 
-	dw_i2c_pri->state = DW_I2C_DRIVER_INIT;
+	dw_i2c.state = DW_I2C_DRIVER_INIT;
 	i2c_dbg("dw_i2c: Debug: Exit %s\n", __func__);
 	return;
 }
@@ -173,7 +178,7 @@ void dw_i2c_master_init(void)
  */
 void dw_i2c_set_address(i2c_addr_t addr, boolean call)
 {
-	caddr_t base = dw_i2c_pri->base;
+	caddr_t base = dw_i2c.base;
 
 	i2c_dbg("dw_i2c: Debug: Enter %s. addr = 0x%x\n", __func__, addr);
 	__raw_writel(0, base + IC_ENABLE);
@@ -187,7 +192,7 @@ void dw_i2c_set_address(i2c_addr_t addr, boolean call)
  */
 void dw_i2c_set_frequency(uint16_t khz)
 {
-	caddr_t base = dw_i2c_pri->base;
+	caddr_t base = dw_i2c.base;
 	uint32_t cntl;
 	uint32_t hcnt, lcnt;
 	uint32_t ena;
@@ -517,7 +522,7 @@ static int i2c_tx_finish(caddr_t base)
 int dw_i2c_read_mem(uint8_t dev, unsigned int addr,
 		    int alen, uint8_t *buffer, int len)
 {
-	caddr_t base = dw_i2c_pri->base;
+	caddr_t base = dw_i2c.base;
 	unsigned int active = 0;
 	uint32_t val;
 	uint32_t offset;
@@ -584,7 +589,7 @@ int dw_i2c_read_mem(uint8_t dev, unsigned int addr,
 int dw_i2c_write_mem(uint8_t dev, unsigned int addr,
 		     int alen, uint8_t *buffer, int len)
 {
-	caddr_t base = dw_i2c_pri->base;
+	caddr_t base = dw_i2c.base;
 	//int nb = len;
 	uint32_t val;
 	uint32_t offset;
@@ -629,7 +634,7 @@ int dw_i2c_write_mem(uint8_t dev, unsigned int addr,
 int dw_i2c_read_bytes(uint8_t dev, uint8_t *buffer,
 		      int len, unsigned int stop)
 {
-	caddr_t base = dw_i2c_pri->base;
+	caddr_t base = dw_i2c.base;
 	unsigned int active = 0;
 	uint32_t val;
 	uint32_t offset;
@@ -689,7 +694,7 @@ int dw_i2c_read_bytes(uint8_t dev, uint8_t *buffer,
 int dw_i2c_write_bytes(uint8_t dev, uint8_t *buffer,
 		       int len, unsigned int stop)
 {
-	caddr_t base = dw_i2c_pri->base;
+	caddr_t base = dw_i2c.base;
 	uint32_t val;
 	uint32_t offset;
 	int orig_len = len;
@@ -743,7 +748,7 @@ int dw_i2c_write_vip(uint8_t dev, unsigned int addr,
 
 int dw_i2c_read_vip(uint8_t dev, uint8_t *buffer, int len)
 {
-	caddr_t base = dw_i2c_pri->base;
+	caddr_t base = dw_i2c.base;
 	unsigned int active = 0;
 	uint32_t val;
 	uint32_t offset;
@@ -776,17 +781,7 @@ int dw_i2c_read_vip(uint8_t dev, uint8_t *buffer, int len)
 			active = 1;
 		}
 
-#ifdef CONFIG_DW_I2C_TEST_IRQ
-		while (irq_test_flag == 0) {
-			irq_local_save(irq_flags);
-			irq_local_enable();
-			irq_local_disable();
-			irq_local_restore(irq_flags);
-		}
-		irq_test_flag = 0;
-		irqc_ack_irq(IRQ_I2C0 + irq_test_master_num);
-		irqc_unmask_irq(IRQ_I2C0 + irq_test_master_num);
-#endif
+		dw_i2c_test_loop();
 
 		offset = IC_STATUS;
 		val = __raw_readl(base + offset);
@@ -816,7 +811,7 @@ int dw_i2c_read_vip(uint8_t dev, uint8_t *buffer, int len)
 void dw_i2c_start_condition(void)
 {
 	i2c_dbg("dw_i2c: Debug: Enter %s\n", __func__);
-	dw_i2c_pri->state = DW_I2C_DRIVER_START;
+	dw_i2c.state = DW_I2C_DRIVER_START;
 	return;
 }
 
@@ -834,13 +829,13 @@ void dw_i2c_start_condition(void)
 void dw_i2c_stop_condition(void)
 {
 	i2c_dbg("dw_i2c: Debug: Enter %s\n", __func__);
-	dw_i2c_pri->state = DW_I2C_DRIVER_STOP;
+	dw_i2c.state = DW_I2C_DRIVER_STOP;
 	return;
 }
 
 void dw_i2c_write_byte(uint8_t byte)
 {
-	caddr_t base = dw_i2c_pri->base;
+	caddr_t base = dw_i2c.base;
 	uint32_t val;
 
 	i2c_dbg("dw_i2c: Debug: Enter %s\n", __func__);
@@ -854,27 +849,27 @@ void dw_i2c_write_byte(uint8_t byte)
 	 */
 	/* Process 1st byte: Detect this case. */
 	if (byte == (I2C_ADDR_DEVID << 7 | I2C_MODE_TX) &&
-		dw_i2c_pri->state == DW_I2C_DRIVER_START) {
-		dw_i2c_pri->state = DW_I2C_DRIVER_DEVID_START;
+		dw_i2c.state == DW_I2C_DRIVER_START) {
+		dw_i2c.state = DW_I2C_DRIVER_DEVID_START;
 		return;
 	}
 
 	/* Process 2nd byte:
 	   Write 1 to IC_TAR[13] and IC_TAR[11] (along with target address) to
 	   enable a Device ID read between disable and enable. */
-	if (dw_i2c_pri->state == DW_I2C_DRIVER_DEVID_START) {
-		val = dw_i2c_pri->addr_mode >> 1;
+	if (dw_i2c.state == DW_I2C_DRIVER_DEVID_START) {
+		val = dw_i2c.addr_mode >> 1;
 		val |= TAR_DEVID;
 		__raw_writel(0, base + IC_ENABLE);
 		__raw_writel(val, base + IC_TAR);
 		__raw_writel(1, base + IC_ENABLE);
-		dw_i2c_pri->state = DW_I2C_DRIVER_DEVID_TAR;
+		dw_i2c.state = DW_I2C_DRIVER_DEVID_TAR;
 		return;
 	}
 	/* Process 3rd byte:
 	   Push 3 read commands into IC_DATA_CMD. */
-	if (dw_i2c_pri->state == DW_I2C_DRIVER_DEVID_TAR) {
-		dw_i2c_pri->state = DW_I2C_DRIVER_TRANS;
+	if (dw_i2c.state == DW_I2C_DRIVER_DEVID_TAR) {
+		dw_i2c.state = DW_I2C_DRIVER_TRANS;
 		return;
 	}
 #endif
@@ -888,9 +883,9 @@ void dw_i2c_write_byte(uint8_t byte)
 	/* The 1st byte after START is target address and direction. 
 	   If dynamically updating is not supported, the controller
 	   should be disabled first. */
-	if (dw_i2c_pri->state == DW_I2C_DRIVER_START) {
-		dw_i2c_pri->addr_mode = byte;
-		val = dw_i2c_pri->addr_mode >> 1;
+	if (dw_i2c.state == DW_I2C_DRIVER_START) {
+		dw_i2c.addr_mode = byte;
+		val = dw_i2c.addr_mode >> 1;
 #ifndef CONFIG_DW_I2C_DYNAMIC_TAR_UPDATE
 		__raw_writel(0, base + IC_ENABLE);
 #endif
@@ -898,19 +893,19 @@ void dw_i2c_write_byte(uint8_t byte)
 #ifndef CONFIG_DW_I2C_DYNAMIC_TAR_UPDATE
 		__raw_writel(1, base + IC_ENABLE);
 #endif
-		if (dw_i2c_pri->addr_mode & I2C_DIR_MASK) { /* Read */
+		if (dw_i2c.addr_mode & I2C_DIR_MASK) { /* Read */
 			/* XXX No STOP for Read. */
 			val = IC_CMD;
 			__raw_writel(val, base + IC_DATA_CMD);
 		}
-		dw_i2c_pri->state = DW_I2C_DRIVER_TRANS;
+		dw_i2c.state = DW_I2C_DRIVER_TRANS;
 		return;
 	}
 
-	if (dw_i2c_pri->state != DW_I2C_DRIVER_TRANS) {
+	if (dw_i2c.state != DW_I2C_DRIVER_TRANS) {
 		con_dbg("dw_i2c: Debug: Error state = %d in %s\n",
-			dw_i2c_pri->state, __func__);
-		dw_i2c_pri->state = DW_I2C_DRIVER_INVALID;
+			dw_i2c.state, __func__);
+		dw_i2c.state = DW_I2C_DRIVER_INVALID;
 		return;
 	}
 
@@ -931,14 +926,14 @@ void dw_i2c_write_byte(uint8_t byte)
 
 uint8_t dw_i2c_read_byte(void)
 {
-	caddr_t base = dw_i2c_pri->base;
+	caddr_t base = dw_i2c.base;
 	uint32_t val;
 
 	i2c_dbg("dw_i2c: Debug: Enter %s\n", __func__);
-	if (dw_i2c_pri->state != DW_I2C_DRIVER_TRANS) {
+	if (dw_i2c.state != DW_I2C_DRIVER_TRANS) {
 		con_dbg("dw_i2c: Debug: Error state = %d in %s\n",
-			dw_i2c_pri->state, __func__);
-		dw_i2c_pri->state = DW_I2C_DRIVER_INVALID;
+			dw_i2c.state, __func__);
+		dw_i2c.state = DW_I2C_DRIVER_INVALID;
 		return 0xFF; // XXX Invalid value
 	}
 	/* When IC_RX_TL = 0 (set in _init()), RX_FULL will be reported as
@@ -956,7 +951,7 @@ uint8_t dw_i2c_read_byte(void)
  */
 void dw_i2c_transfer_reset(void)
 {
-	caddr_t base = dw_i2c_pri->base;
+	caddr_t base = dw_i2c.base;
 	uint32_t val;
 
 	i2c_dbg("dw_i2c: Debug: Enter %s\n", __func__);
@@ -968,7 +963,7 @@ void dw_i2c_transfer_reset(void)
 	/* Note: Do not identify the source as ABRT_USER_ABRT */
 
 	/* Reset internal status of driver */
-	dw_i2c_pri->addr_mode = 0;
-	dw_i2c_pri->state = DW_I2C_DRIVER_INIT;
+	dw_i2c.addr_mode = 0;
+	dw_i2c.state = DW_I2C_DRIVER_INIT;
 	return;
 }
