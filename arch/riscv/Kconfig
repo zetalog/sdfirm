@@ -173,6 +173,7 @@ config ARCH_DPULP
 	select ARCH_HAS_PCI
 	select ARCH_HAS_RIO
 	select ARCH_HAS_ETH
+	select ARCH_HAS_VAISRA_PMA_FORCE
 	select FDT_BUILTIN if SBI_FDT
 	select DPULP_TCSR
 	select DPULP_TMR

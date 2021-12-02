@@ -18,7 +18,7 @@ config DPULP_LOAD_ZSBL
 	bool
 	select DPULP_BOOT
 	select DPULP_BOOT_CPU
-	select DPULP_BOOT_PMA
+	select DPULP_BOOT_PMA if !ARCH_HAS_VAISRA_PMA_FORCE
 
 config DPULP_LOAD_FSBL
 	bool
@@ -125,6 +125,9 @@ endchoice
 
 menu "Bootloader/Firmware options"
 
+config ARCH_HAS_VAISRA_PMA_FORCE
+	bool
+
 if DPULP_LOAD_ZSBL
 
 menu "DPULP Cluster boot hooks"
@@ -134,6 +137,7 @@ config DPULP_BOOT_CPU
 
 config DPULP_BOOT_PMA
 	bool "Enable PMA initialization"
+	depends !ARCH_HAS_VAISRA_PMA_FORCE
 	select DPULP_PMA
 
 endmenu
@@ -196,6 +200,7 @@ endmenu
 
 menuconfig DPULP_PMA
 	bool "DPULP cluster PMA support"
+	depends !ARCH_HAS_VAISRA_PMA_FORCE
 	select VAISRA_PMA
 
 if DPULP_PMA
