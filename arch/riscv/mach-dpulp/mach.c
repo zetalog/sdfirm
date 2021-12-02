@@ -46,6 +46,7 @@
 #include <target/spi.h>
 #include <target/mmc.h>
 #include <target/sbi.h>
+#include <target/ddr.h>
 #include <target/cmdline.h>
 #include <asm/mach/boot.h>
 
@@ -54,12 +55,12 @@
 #define BOOT_LOAD_ADDR				SRAM_BASE
 #define BOOT_LOAD_FILE				"dfw.bin"
 #else /* CONFIG_DPULP_FIRM_RAM */
-#define BOOT_LOAD_ADDR				DDR_BASE
+#define BOOT_LOAD_ADDR				DDR_DATA_BASE
 #define BOOT_LOAD_FILE				"bbl.bin"
 #endif /* CONFIG_DPULP_FIRM_RAM */
 #else /* CONFIG_DPULP_LOAD_FSBL */
 #if !defined(CONFIG_DPULP_LOAD_ZSBL) && !defined(CONFIG_DPULP_TB)
-#error "Only ZSBL can load to RAM!"
+#warning "Only ZSBL can load to RAM!"
 #endif /* !CONFIG_DPULP_LOAD_ZSBL && !CONFIG_DPULP_TB */
 #define BOOT_LOAD_ADDR				SRAM_BASE
 #define BOOT_LOAD_FILE				"fsbl.bin"
@@ -208,7 +209,7 @@ void board_early_init(void)
 	board_init_timestamp();
 #ifdef CONFIG_DPULP_FSBL
 	/* TODO: Move this to board specific DDR initialization */
-	tcsr_config_ddr_intlv();
+	//tcsr_config_ddr_intlv();
 #endif
 }
 

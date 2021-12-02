@@ -60,7 +60,7 @@
 #define GPIO_HW_MAX_PORTS	4
 #define GPIO_HW_MAX_PINS	32
 
-#define gpio_hw_ctrl_init()			clk_enable(srst_gpio)
+#define gpio_hw_ctrl_init()			clk_enable(gpio_reset)
 #define gpio_hw_read_pin(port, pin)		\
 	dw_gpio_read_pin(0, port, pin)
 #define gpio_hw_write_pin(port, pin, val)	\

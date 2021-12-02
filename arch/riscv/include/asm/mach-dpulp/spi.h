@@ -46,7 +46,7 @@
 #include <target/clk.h>
 #include <target/mtd.h>
 
-#define DW_SSI_CLK		srst_spi
+#define DW_SSI_CLK		ssi_reset
 #define DW_SSI_BASE(n)		SSI_BASE
 #define SSI_ID			0
 

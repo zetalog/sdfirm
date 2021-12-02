@@ -81,7 +81,7 @@ void dpulp_mshc_init(void)
 	dpulp_sd_gpio(pad_gpio_40, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
 #endif
 
-	clk_enable(srst_sd);
+	clk_enable(sd_reset);
 	sslot = mmc_slot_save(0);
 	sdhc_init(0, 0, IRQ_SD);
 	/* SoC power stable PIN assignment */

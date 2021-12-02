@@ -85,7 +85,7 @@ config DPULP_DFW
 	select SYS_EXIT_M
 	select SYS_EXIT_S
 	select SYS_EXIT_U
-	select DPULP_HAS_FIRM_RAM
+	select DPULP_HAS_FIRM_DDR
 	select PCI
 	select RIO
 

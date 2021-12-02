@@ -101,11 +101,6 @@
 #define clk_set_flags(soc, clk, __flags)	((clk).flags |= (__flags))
 #define clk_clear_flags(soc, clk, __flags)	((clk).flags &= ~(__flags))
 
-#define srst_uart		xo_clk
-#define srst_gpio		xo_clk
-#define srst_spi		xo_clk
-#define srst_sd			xo_clk
-
 /* Enable clock tree core */
 void clk_hw_ctrl_init(void);
 void clk_apply_vco(clk_clk_t vco, clk_clk_t clk, clk_freq_t freq);

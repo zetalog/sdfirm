@@ -87,6 +87,7 @@ build_sdfirm riscv64 virt64_bbl
 build_sdfirm riscv64 unleashed_bbl
 build_sdfirm riscv64 k210_bbl
 build_sdfirm riscv64 dpu2_bbl
+build_sdfirm riscv64 dpulp_bbl
 build_sdfirm riscv64 duowen_bbl_apc
 build_sdfirm riscv64 duowen_bbl_imc
 if [ "x$PSEUDO_IMAGE" = "xyes" ]; then
@@ -172,7 +173,11 @@ build_sdfirm riscv64 dpuresm_ram
 build_sdfirm riscv64 dpuresm_ddr
 # DPU LP
 build_sdfirm riscv64 dpulp_ram
+build_sdfirm riscv64 dpulp_ddr
 build_sdfirm riscv64 dpulp_zsbl
+build_sdfirm riscv64 dpulp_fsbl
+build_sdfirm riscv64 dpulp_xsbl
+build_sdfirm riscv64 dpulp_dfw
 # core-v-verif
 if [ "x$build_all_defconfigs" = "xyes" ]; then
 	build_sdfirm riscv32 corev_cv32

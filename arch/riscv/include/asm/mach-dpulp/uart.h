@@ -46,25 +46,29 @@
 #include <target/clk.h>
 
 #ifdef CONFIG_DPULP_UART_CON0
-#define UART_CLK_ID		srst_uart
+#define UART_CLK_ID		uart0_reset
+#define __SBI_UART_BASE		UART0_BASE
 #define DW_UART_REG(n, offset)	(UART0_BASE + (offset))
 #define UART_CON_ID		0
 #define UART_CON_IRQ		IRQ_UART0
 #endif /* CONFIG_DPULP_UART_CON0 */
 #ifdef CONFIG_DPULP_UART_CON1
-#define UART_CLK_ID		srst_uart
+#define UART_CLK_ID		uart1_reset
+#define __SBI_UART_BASE		UART1_BASE
 #define DW_UART_REG(n, offset)	(UART1_BASE + (offset))
 #define UART_CON_ID		1
 #define UART_CON_IRQ		IRQ_UART1
 #endif /* CONFIG_DPULP_UART_CON1 */
 #ifdef CONFIG_DPULP_UART_CON2
-#define UART_CLK_ID		srst_uart
+#define UART_CLK_ID		uart2_reset
+#define __SBI_UART_BASE		UART2_BASE
 #define DW_UART_REG(n, offset)	(UART2_BASE + (offset))
 #define UART_CON_ID		2
 #define UART_CON_IRQ		IRQ_UART2
 #endif /* CONFIG_DPULP_UART_CON2 */
 #ifdef CONFIG_DPULP_UART_CON3
-#define UART_CLK_ID		srst_uart
+#define UART_CLK_ID		uart3_reset
+#define __SBI_UART_BASE		UART3_BASE
 #define DW_UART_REG(n, offset)	(UART3_BASE + (offset))
 #define UART_CON_ID		3
 #define UART_CON_IRQ		IRQ_UART3

@@ -57,6 +57,12 @@
 
 #define NR_DDR_SPEEDS		(DDR4_3200 + 1)
 #define DDR_SPEED_DEFAULT	DDR4_2400
+#define ddr_por			ddr0_pwrokin
+#define ddr_prst		ddr0_apb_reset
+#define ddr_arst		ddr0_axi_reset
+#define ddr_rst			ddr0_reset
+#define ddr_clk			ddr0_clk
+#define ddr_bypass_pclk		ddr_bypassPclk
 
 #ifdef CONFIG_DPULP_DDR
 /* DDR frequency plans */
