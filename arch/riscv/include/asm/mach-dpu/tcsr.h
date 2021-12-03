@@ -190,17 +190,13 @@ void imc_axi_unregister_periphs(uint16_t periphs);
 #define imc_apb_is_low_power(periph)		false
 #endif
 
-#ifdef CONFIG_DPU_DDR_NINTLV
-#define IMC_DDR_INTLV		1
-#else /* CONFIG_DPU_DDR_NINTLV */
-#define IMC_DDR_INTLV		0
-#endif
+#ifdef CONFIG_DPU_DDR_INTLV
+#define IMC_DDR_INTLV				1
+#else /* CONFIG_DPU_DDR_INTLV */
+#define IMC_DDR_INTLV				0
+#endif /* CONFIG_DPU_DDR_INTLV */
 
-#ifdef CONFIG_DDR
 #define imc_config_ddr_intlv()			\
 	__raw_writel(IMC_DDR_INTLV, TCSR_DDR_INTERLEAVE)
-#else
-#define imc_config_ddr_intlv()			do { } while (0)
-#endif /* CONFIG_DDR */
 
 #endif /* __TCSR_DPU_H_INCLUDE__ */
