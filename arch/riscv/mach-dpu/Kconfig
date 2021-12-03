@@ -263,6 +263,14 @@ config DPU_SIM_RAM_BOOT_DDR
 	bool "Use RAM to boot to DDR1"
 	depends DPU_BOOT_RAM
 
+config DPU_SIM_DDR_BASE16
+	bool "Enable 16G DDR address base"
+	depends !DPU_DDR_BANK0
+
+config DPU_SIM_DDR_SIZE32
+	bool "Enable 32G DDR address size"
+	depends !DPU_DDR_BANK1
+
 endif
 
 config DPU_SIM_TSENSOR_IRQ
@@ -532,17 +540,19 @@ endif
 
 menu "DPU DDR controller/phy support"
 
-config DPU_DDR_NINTLV
-	bool "Non-interleaved DDR0/DDR1"
-	depends DPU_GEN2
+config DPU_DDR_BANK0
+	bool "Enable DDR bank 0"
+	default y
 
-config DPU_DDR_DDR0
-	bool "Force to use DDR0 base address"
-	depends DPU_DDR_NINTLV
-	help
-	  By default, programs will be loaded to DDR1_DATA_BASE and CPU
-	  also will boot from DDR1_DATA_BASE. Enable this to test booting
-	  or loading from DDR0.
+config DPU_DDR_BANK1
+	bool "Enable DDR bank 1"
+	default y
+
+config DPU_DDR_INTLV
+	bool "Enable interleaved DDR0/DDR1"
+	depends DPU_GEN2
+	depends SIMULATION || (DPU_DDR_BANK0 && DPU_DDR_BANK1)
+	default y
 
 config DPU_DDR
 	bool "Enable real DDR support"

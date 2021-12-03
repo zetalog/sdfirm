@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Nov 23 10:16:55 2021
+# Fri Dec  3 12:08:59 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -208,7 +208,9 @@ CONFIG_DPU_UART=y
 #
 # DPU DDR controller/phy support
 #
-# CONFIG_DPU_DDR_NINTLV is not set
+CONFIG_DPU_DDR_BANK0=y
+CONFIG_DPU_DDR_BANK1=y
+CONFIG_DPU_DDR_INTLV=y
 # CONFIG_DPU_DDR is not set
 # CONFIG_DPU_PCI_SUBSYS is not set
 

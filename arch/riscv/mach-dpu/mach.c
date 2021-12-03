@@ -273,20 +273,9 @@ void dpu_pma_cpu_init(void)
 	n += pma_set(n, PMA_AT_DEVICE,
 		     DEV_BASE,
 		     ilog2_const(max(SZ_2M, DEV_SIZE)));
-#ifdef CONFIG_DPU_DDR_NINTLV
-#ifdef CONFIG_DPU_DDR_DDR0
 	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
 		     DDR0_DATA_BASE,
-		     ilog2_const(max(SZ_2M, DDR0_DATA_SIZE)));
-#endif /* CONFIG_DPU_DDR_DDR0 */
-	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
-		     DDR1_DATA_BASE,
-		     ilog2_const(max(SZ_2M, DDR1_DATA_SIZE)));
-#else /* CONFIG_DPU_DDR_NINTLV */
-	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
-		     DDR_DATA_BASE,
-		     ilog2_const(max(SZ_2M, DDR_DATA_SIZE)));
-#endif /* CONFIG_DPU_DDR_NINTLV */
+		     ilog2_const(max(SZ_2M, DDR0_DATA_SIZE + DDR1_DATA_SIZE)));
 
 	dpu_ram_boot_ddr();
 }
