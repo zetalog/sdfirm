@@ -191,9 +191,9 @@ void imc_axi_unregister_periphs(uint16_t periphs);
 #endif
 
 #ifdef CONFIG_DPU_DDR_INTLV
-#define IMC_DDR_INTLV				1
+#define IMC_DDR_INTLV				0 /* 0 means intlv mode */
 #else /* CONFIG_DPU_DDR_INTLV */
-#define IMC_DDR_INTLV				0
+#define IMC_DDR_INTLV				1 /* 1 means non-intlv mode */
 #endif /* CONFIG_DPU_DDR_INTLV */
 
 #define imc_config_ddr_intlv()			\
