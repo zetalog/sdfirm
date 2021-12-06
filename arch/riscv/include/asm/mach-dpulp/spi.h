@@ -69,8 +69,8 @@
 #define spi_hw_chip_select(chip)	dw_ssi_select_chip(SSI_ID, chip)
 #define spi_hw_deselect_chips()		dw_ssi_deselect_chips(SSI_ID)
 void spi_hw_ctrl_init(void);
-#define spi_hw_ctrl_start()		dw_ssi_enable_ctrl(SSI_ID)
-#define spi_hw_ctrl_stop()		dw_ssi_disable_ctrl(SSI_ID)
+#define spi_hw_ctrl_start()		dw_ssi_start_ctrl(SSI_ID)
+#define spi_hw_ctrl_stop()		dw_ssi_stop_ctrl(SSI_ID)
 #endif
 
 #ifdef CONFIG_DPULP_SSI_FLASH
