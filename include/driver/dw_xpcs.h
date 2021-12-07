@@ -240,8 +240,6 @@
 #define PCS_SPEED_SELECTION		KX_MODE_1G
 #endif
 
-
-
 /* SR_XS_PCS_STS1 */
 #define SR_PCS_TXLPIR			_BV(11) /* Tx received LPI */
 #define SR_PCS_RXLPIR			_BV(10) /* Rx received LPI */
