@@ -59,10 +59,23 @@
 
 #define RAB_REG(offset)			(RAB_BASE + (offset))
 
-#define RAB_GLOBAL_CSR(offset)		RAB_REG(0x20000 + (offset))
-#define RAB_INTERRUPT_CSR(offset)	RAB_REG(0x20040 + (offset))
-#define RAB_PIO_ENGINE_CSR(n, offset)	RAB_REG(0x20080 + (offset) + 0x08 * (n))
+#define RAB_GLOBAL_CSR(offset)			RAB_REG(0x20000 + (offset))
+#define RAB_INTERRUPT_CSR(offset)		RAB_REG(0x20040 + (offset))
+#define RAB_RIO_PIO_ENGINE_CSR(n, offset)	\
+	RAB_REG(0x20080 + (offset) + 0x08 * (n))
+#define RAB_RIO_ADDRESS_MAPPING_CSR(offset)	\
+	RAB_REG(0x20100 + (offset))
+#define RAB_AXI_PIO_ENGINE_CSR(n, offset)	\
+	RAB_REG(0x20180 + (offset) + 0x08 * (n))
+#define RAB_AXI_SLAVE_CSR(n, offset)		\
+	RAB_REG(0x201C0 + (offset) + 0x08 * (n))
+#define RAB_AXI_MASTER_CSR(n, offset)		\
+	RAB_REG(0x201E0 + (offset) + 0x08 * (n))
+#define RAB_AXI_ADDRESS_MAPPING_CSR(n, offset)	\
+	RAB_REG(0x20100 + (offset) + 0x10 * (n))
+#define RAB_DOORBELL_MESSAGE_CSR(offset)	RAB_REG(0x20400 + (offset))
 
+/* RAB Global CSR */
 #define RAB_VER				RAB_GLOBAL_CSR(0x00)
 #define RAB_CAPA			RAB_GLOBAL_CSR(0x04)
 #define RAB_CTRL			RAB_GLOBAL_CSR(0x08)
@@ -79,6 +92,7 @@
 #define RAB_ARB_TIMEOUT			RAB_GLOBAL_CSR(0x34)
 #define RAB_DESC_RDY_TIMEOUT		RAB_GLOBAL_CSR(0x38)
 
+/* Interrupt CSR */
 #define RAB_INTR_ENAB_GNRL		RAB_INTERRUPT_CSR(0x00)
 #define RAB_INTR_ENAB_APIO		RAB_INTERRUPT_CSR(0x04)
 #define RAB_INTR_ENAB_RPIO		RAB_INTERRUPT_CSR(0x08)
@@ -96,8 +110,66 @@
 #define RAB_INTR_STAT_ODME		RAB_INTERRUPT_CSR(0x38)
 #define RAB_INTR_STAT_MISC		RAB_INTERRUPT_CSR(0x3C)
 
-#define RAB_RIO_PIO_CTRL(n)		RAB_PIO_ENGINE_CSR(n, 0x00)
-#define RAB_RIO_PIO_STAT(n)		RAB_PIO_ENGINE_CSR(n, 0x04)
+/* RIO PIO Engine CSR (N = 0~RAB_NUM_RIO_PIO [max 8]) */
+#define RAB_RIO_PIO_CTRL(n)		RAB_RIO_PIO_ENGINE_CSR(n, 0x00)
+#define RAB_RIO_PIO_STAT(n)		RAB_RIO_PIO_ENGINE_CSR(n, 0x04)
+
+/* RIO Address Mapping CSR */
+#define RAB_RIO_AMAP_LUT(n)		RAB_ADDRESS_MAPPING_CSR(0x04 * n)
+#define RAB_RIO_AMAP_IDSL		RAB_ADDRESS_MAPPING_CSR(0x40)
+#define RAB_RIO_AMAP_BYPS		RAB_ADDRESS_MAPPING_CSR(0x44)
+
+/* AXI PIO Engine CSR (N = 0~RAB_NUM_AXI_PIO [max 8]) */
+#define RAB_APIO_N_CTRL(n)		RAB_AXI_PIO_ENGINE_CSR(n, 0x00)
+#define RAB_APIO_N_STAT(n)		RAB_AXI_PIO_ENGINE_CSR(n, 0x04)
+
+/* AXI Slave CSR */
+#define RAB_ASLV_STAT_CMD(n)		RAB_AXI_SLAVE_CSR(n, 0x00)
+#define RAB_ASLV_STAT_ADDR(n)		RAB_AXI_SLAVE_CSR(n, 0x04)
+
+/* AXI Master CSR */
+#define RAB_AMST_STAT(n)		RAB_AXI_MASTER_CSR(n, 0x00)
+
+/* AXI Address Mapping CSR (N = 0~RAB_NUM_A2P_AMAP_WIN [max 32] */
+#define RAB_APIO_AMAP_CTRL(n)		RAB_AXI_ADDRESS_MAPPING_CSR(n, 0x00)
+#define RAB_APIO_AMAP_SIZE(n)		RAB_AXI_ADDRESS_MAPPING_CSR(n, 0x04)
+#define RAB_APIO_AMAP_ABAR(n)		RAB_AXI_ADDRESS_MAPPING_CSR(n, 0x08)
+#define RAB_APIO_AMAP_RBAR(n)		RAB_AXI_ADDRESS_MAPPING_CSR(n, 0x0C)
+
+/* Doorbell Message CSR */
+#define RAB_OB_DB_CSR(n)		RAB_DOORBELL_MESSAGE_CSR(0x08 * (n))
+#define RAB_OB_DB_INFO(n)		\
+	RAB_DOORBELL_MESSAGE_CSR(0x04 + (0x08 * (n)))
+#define RAB_OB_IDB_CSR			RAB_DOORBELL_MESSAGE_CSR(0x78)
+#define RAB_OB_IDB_INFO			RAB_DOORBELL_MESSAGE_CSR(0x7C)
+#define RAB_IB_DB_CSR			RAB_DOORBELL_MESSAGE_CSR(0x80)
+#define RAB_IB_DB_INFO			RAB_DOORBELL_MESSAGE_CSR(0x84)
+#define RAB_IB_DB_CHK(n)		\
+	RAB_DOORBELL_MESSAGE_CSR(0x88 + (0x04 * (n)))
+
+/* Outbound DME CSR */
+#define RAB_OB_DME_CTRL(n)		RAB_OUTBOUND_DME_CSR(n, 0x00)
+#define RAB_OB_DME_ADDR(n)		RAB_OUTBOUND_DME_CSR(n, 0x04)
+#define RAB_OB_DME_STAT(n)		RAB_OUTBOUND_DME_CSR(n, 0x08)
+#define RAB_OB_DME_TIDMSK		RAB_REG(0x205F0)
+
+/* Inbound DME CSR */
+#define RAB_IB_DME_CTRL(n)		RAB_INBOUND_DME_CSR(n, 0x00)
+#define RAB_IB_DME_ADDR(n)		RAB_INBOUND_DME_CSR(n, 0x04)
+#define RAB_IB_DME_STAT(n)		RAB_INBOUND_DME_CSR(n, 0x08)
+#define RAB_IB_DME_DESC(n)		RAB_INBOUND_DME_CSR(n, 0x0C)
+
+/* Write DMA CSR */
+#define RAB_WDMA_CTRL(n)		RAB_WRITE_DMA_CSR(n, 0x00)
+#define RAB_WDMA_ADDR(n)		RAB_WRITE_DMA_CSR(n, 0x04)
+#define RAB_WDMA_STAT(n)		RAB_WRITE_DMA_CSR(n, 0x08)
+#define RAB_WDMA_ADDR_EXT(n)		RAB_WRITE_DMA_CSR(n, 0x0C)
+
+/* Read DMA CSR */
+#define RAB_RDMA_CTRL(n)		RAB_READ_DMA_CSR(n, 0x00)
+#define RAB_RDMA_ADDR(n)		RAB_READ_DMA_CSR(n, 0x04)
+#define RAB_RDMA_STAT(n)		RAB_READ_DMA_CSR(n, 0x08)
+#define RAB_RDMA_ADDR_EXT(n)		RAB_READ_DMA_CSR(n, 0x0C)
 
 /* 19.3.3 Bridge Control Register */
 #define RAB_AMBA_PIO_Enable		_BV(0)

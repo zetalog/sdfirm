@@ -14,6 +14,15 @@ config ARCH_IS_RAB_PAGE_2KB
 config ARCH_IS_RAB_PAGE_4KB
 	bool
 
+config ARCH_HAS_RAB_DEBUG
+	bool
+
+config ARCH_HAS_RAB_INTR
+	bool
+
+config ARCH_HAS_RAB_RIO_50BIT
+	bool
+
 menuconfig MOBIVEIL_RAB
 	bool "MobiVeil RapidIO to AXI Bridge (RAB) controller support"
 	select SRIO if ARCH_IS_RAB_SERIAL
@@ -32,6 +41,18 @@ config RAB_PAGE_4KB
 	depends ARCH_IS_RAB_PAGE_4KB
 
 endchoice
+
+config RAB_DEBUG
+	bool "Enable debug feature registers"
+	depends ARCH_HAS_RAB_DEBUG
+
+config RAB_INTR
+	bool "Enable AXI-WR registers for interrupt"
+	depends ARCH_HAS_RAB_INTR
+
+config RAB_RIO_50BIT
+	bool "Enable RIO 50-bit addressing registers"
+	depends ARCH_HAS_RAB_RIO_50BIT
 
 endif
 

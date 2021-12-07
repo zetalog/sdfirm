@@ -170,6 +170,56 @@
 #define RIO_ExtendedFeatureID_MASK		REG_16BIT_MASK
 #define RIO_ExtendedFeatureID(value)		_GET_FV(RIO_ExtendedFeatureID, value)
 
+/* Part 2: Message Passing Logical Specification */
+
+/* Chapter 5 Message Passing Registers */
+
+/* 5.4 Capability Registers (CARs) */
+#define RIO_CAR_SourceOperations		0x18
+#define RIO_CAR_DestinationOperations		0x1C
+
+/* 5.4.1 Source Operations CAR
+ * 5.4.2 Destination Operations CAR
+ */
+#define RIO_Data_message			_BV(20)
+#define RIO_Doorbell				_BV(21)
+
+/* Part 3: Common Transport Specification */
+/* #define RIO_CAR_ProcessingElementFeatures	0x10 */
+#define RIO_CAR_SwitchRouteTableDestinationIDLimit	0x34
+
+/* Chapter 3 Common Transport Registers */
+
+/* 3.4 Capibility Registers (CARs) */
+
+/* 3.5 Command and Status Registers (CSRs) */
+#define RIO_CSR_BaseDeviceID			0x60
+#define RIO_CSR_HostBaseDeviceIDLock		0x68
+#define RIO_CSR_ComponentTag			0x6C
+#define RIO_CSR_StandardRouteConfigurationDestinationIDSelect	0x70
+#define RIO_CSR_StandardRouteConfigurationPortSelect		0x74
+#define RIO_CSR_StandardRouteDefaultPort	0x78
+
+/* Part 5: Globally Shared Memory Logical Specification */
+
+/* Chapter 5 Globally Shared Memory Registers */
+/* #define RIO_CAR_SourceOperations		0x18 */
+/* #define RIO_CAR_DestinationOperations		0x1C */
+
+/* 5.4.1 Source Operations CAR
+ * 5.4.2 Destination Operations CAR
+ */
+#define RIO_Memory_read				_BV(0)
+#define RIO_Instruction_read			_BV(1)
+#define RIO_Read_for_ownership			_BV(2)
+#define RIO_Data_cache_invalidate		_BV(3)
+#define RIO_Castout				_BV(4)
+#define RIO_Data_cache_flush			_BV(5)
+#define RIO_IO_read				_BV(6)
+#define RIO_Instruction_cache_invalidate	_BV(7)
+#define RIO_TLB_invalidate_entry		_BV(8)
+#define RIO_TLB_invalidate_entry_sync		_BV(9)
+
 #include <target/rio_srio.h>
 #include <driver/rio.h>
 
