@@ -160,7 +160,8 @@ unsigned long duowen_soc_base;
 #define DDR_BASE		(SOC_BASE + __DDR_BASE)
 
 /* PCIe memory region */
-#define PCIE_BASE		(SOC_BASE + ULL(0x40000000000))
+#define __PCIE_BASE		ULL(0x40000000000)
+#define PCIE_BASE		(SOC_BASE + __PCIE_BASE)
 #define PCIE_SIZE		SZ_2T
 
 /* Reserved APC self-bootloader RAM */

@@ -114,7 +114,7 @@ uint32_t dw_get_pci_conf_reg(int bus, int dev, int fun, int reg,
 		cpu_addr = pp->cfg_bar0;
 	pci_addr = form_pci_addr(bus, dev, fun);
 
-	base = PCIE_SUBSYS_ADDR_START + PCIE_CORE_RANGE * index;
+	base = PCIE_SUBSYS_ADDR_START + PCIE_CORE_ADDR_START(index);
 	val = __raw_readl(base + cpu_addr + pci_addr + reg);
 	return val;
 }
@@ -130,7 +130,7 @@ void dw_set_pci_conf_reg(int bus, int dev, int fun, int reg,
 		cpu_addr = pp->cfg_bar0;
 	pci_addr = form_pci_addr(bus, dev, fun);
 
-	base = PCIE_SUBSYS_ADDR_START + PCIE_CORE_RANGE * index;
+	base = PCIE_SUBSYS_ADDR_START + PCIE_CORE_ADDR_START(index);
 	__raw_writel(val, base + cpu_addr + pci_addr + reg);
 }
 
@@ -343,11 +343,15 @@ static void __duowen_pcie_test(struct pcie_port *pp)
 		printf("MEM32 Read/Write transaction passed\n");
 
 	/* cfg0 read */
-	val = __raw_readl(PCIE_CORE_X16_CFG0_START + 0x0);
+	val = __raw_readl(PCIE_SUBSYS_ADDR_START +
+			  PCIE_CORE_ADDR_START(PCIE_CORE_X16) +
+			  PCIE_CORE_CFG0_START + 0x0);
 	printf("cfg0: %x\n", val);
 
 	/* cfg1 read */
-	val = __raw_readl(PCIE_CORE_X16_CFG1_START + 0x100000);
+	val = __raw_readl(PCIE_SUBSYS_ADDR_START +
+			  PCIE_CORE_ADDR_START(PCIE_CORE_X16) +
+			  PCIE_CORE_CFG1_START + 0x100000);
 	printf("cfg1: %x\n", val);
 }
 #else
@@ -360,7 +364,6 @@ static void __duowen_pcie_test(struct pcie_port *pp)
 
 static void duowen_pcie_test(void)
 {
-	struct pcie_port *pp;
 	int i;
 
 	printf("bird: PCIE TEST start\n");
@@ -368,7 +371,6 @@ static void duowen_pcie_test(void)
 	for (i = 0; i < PCIE_MAX_CORES; i++) {
 		if (duowen_pcie_ctrls[i].active) {
 			__duowen_pcie_test(&(duowen_pcie_ctrls[i].pp));
-			pp = &(duowen_pcie_ctrls[i].pp);
 			break;
 		}
 	}
