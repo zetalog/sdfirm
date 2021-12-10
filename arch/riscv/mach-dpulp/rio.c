@@ -40,8 +40,20 @@
  */
 
 #include <target/rio.h>
+#include <target/delay.h>
 
-void dpulp_rio_init(void)
+void dpulp_rio_init(int n)
 {
+	__raw_setw(RAB_ref_clk_en | \
+		   RAB_rx_reset | RAB_tx_reset | RAB_phy_reset,
+		   PHY_RESET(n));
+	udelay(10);
+	__raw_clearw(RAB_phy_reset, PHY_RESET(n));
+	__raw_clearw(RAB_tx_reset | RAB_rx_reset, PHY_RESET(n));
+
+	while (!(__raw_readw(SRAM_INIT_DONE(n)) & RAB_sram_init_done));
+	__raw_writew(RAB_sram_ext_ld_done, SRAM_EXT_LD_DONE(n));
+
+	/* TODO: Read lane asic_tx|rx_axic_out */
 	rab_init_port();
 }

@@ -42,9 +42,12 @@
 #ifndef __RIO_DPULP_H_INCLUDE__
 #define __RIO_DPULP_H_INCLUDE__
 
+#include <target/arch.h>
 #include <target/clk.h>
 
 #define RAB_BASE		RAB0_CTRL_BASE
+
+#define RAB_CUST_REG(n, offset)	((RAB0_PHY_BASE + ((n) << 24)) + (offset))
 
 #ifdef CONFIG_DPULP_RIO
 #include <driver/mobiveil_rab.h>
@@ -55,10 +58,66 @@
 #endif
 #endif
 
-#ifdef CONFIG_MOBIVEIL_RAB
-#define rio_hw_ctrl_init()		dpulp_rio_init()
+#define PHY_RESET(n)			RAB_CUST_REG(n, 0x00)
+#define SC_AICAR_AR(n)			RAB_CUST_REG(n, 0x02)
+#define SC_AIDCAR_AI(n)			RAB_CUST_REG(n, 0x04)
+#define SC_AIDCAR_AVI(n)		RAB_CUST_REG(n, 0x06)
+#define SC_DICAR_DR_LOW(n)		RAB_CUST_REG(n, 0x08)
+#define SC_DICAR_DR_HI(n)		RAB_CUST_REG(n, 0x0A)
+#define SC_DIDCAR_DI(n)			RAB_CUST_REG(n, 0x0C)
+#define SC_DIDCAR_DVI(n)		RAB_CUST_REG(n, 0x0E)
+#define SC_MISC(n)			RAB_CUST_REG(n, 0x10)
+#define SC_PRESCALE_VALUE(n)		RAB_CUST_REG(n, 0x12)
+#define CLOCK_SEL(n)			RAB_CUST_REG(n, 0x14)
+#define SRAM_BYPASS(n)			RAB_CUST_REG(n, 0x16)
+#define SRAM_EXT_LD_DONE(n)		RAB_CUST_REG(n, 0x18)
+#define SRAM_INIT_DONE(n)		RAB_CUST_REG(n, 0x1a)
 
-void dpulp_rio_init(void);
-#endif
+/* PHY_RESET */
+#define RAB_phy_reset			_BV(0)
+#define RAB_tx_reset			_BV(1)
+#define RAB_rx_reset			_BV(2)
+#define RAB_ref_clk_en			_BV(3)
+
+/* SC_MISC */
+#define RAB_sc_pefcar_ctls		_BV(0)
+#define RAB_sc_srio_mode_OFFSET		1
+#define RAB_sc_srio_mode_MASK		REG_2BIT_MASK
+#define RAB_sc_srio_mode(value)		_SET_FV(RAB_sc_srio_mode, value)
+#define RAB_sc_rio_version		_BV(3)
+#define RAB_sc_2x_force			_BV(4)
+#define RAB_sc_1x_force			_BV(5)
+#define RAB_sc_port_number_OFFSET	6
+#define RAB_sc_port_number_MASK		REG_4BIT_MASK
+#define RAB_sc_port_number(value)	_SET_FV(RAB_sc_port_number, value)
+
+/* SC_PRESCALE_VALUE */
+#define RAB_sc_prescale_value_OFFSET	0
+#define RAB_sc_prescale_value_MASK	REG_7BIT_MASK
+#define RAB_sc_prescale_value(value)	_SET_FV(RAB_sc_prescale_value, value)
+
+/* CLOCK_SEL */
+#define RAB_clock_sel_OFFSET		0
+#define RAB_clock_sel_MASK		REG_2BIT_MASK
+#define RAB_clock_sel(value)		_SET_FV(RAB_clock_sel, value)
+
+/* SRAM_BYPASS */
+#define RAB_sram_bypass			_BV(0)
+
+/* SRAM_EXT_LD_DONE */
+#define RAB_sram_ext_ld_done		_BV(0)
+
+/* SRAM_INIT_DONE */
+#define RAB_sram_init_done		_BV(0)
+
+#ifdef CONFIG_MOBIVEIL_RAB
+#define rio_hw_ctrl_init()		dpulp_rio_init(0)
+#endif /* CONFIG_MOBIVEIL_RAB */
+
+#ifdef CONFIG_DPULP_RIO
+void dpulp_rio_init(int n);
+#else /* CONFIG_DPULP_RIO */
+#define dpulp_rio_init(n)		do { } while (0)
+#endif /* CONFIG_DPULP_RIO */
 
 #endif /* __RIO_DPULP_H_INCLUDE__ */
