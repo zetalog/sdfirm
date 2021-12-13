@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Dec  3 12:11:36 2021
+# Mon Dec 13 18:45:37 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -210,7 +210,6 @@ CONFIG_DPU_TCSR_LOW_POWER=y
 CONFIG_DPU_PLL=y
 # CONFIG_DPU_PLL_FREQPLAN_PE is not set
 # CONFIG_DPU_PLL_FREQPLAN_BUS is not set
-# CONFIG_DPU_PMA is not set
 CONFIG_DPU_GPIO=y
 CONFIG_DPU_TMR=y
 CONFIG_DPU_CLINT=y

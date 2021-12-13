@@ -47,7 +47,8 @@
 
 #define RAB_BASE		RAB0_CTRL_BASE
 
-#define RAB_CUST_REG(n, offset)	((RAB0_PHY_BASE + ((n) << 24)) + (offset))
+#define RAB_CUST_REG(n, offset)	\
+	((RAB0_PHY_BASE + ((n) << 24)) + 0x20000 + (offset))
 
 #ifdef CONFIG_DPULP_RIO
 #include <driver/mobiveil_rab.h>

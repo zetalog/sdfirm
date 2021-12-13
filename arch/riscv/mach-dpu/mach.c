@@ -279,6 +279,11 @@ void dpu_pma_cpu_init(void)
 
 	dpu_ram_boot_ddr();
 }
+#else
+void dpu_pma_cpu_init(void)
+{
+	dpu_ram_boot_ddr();
+}
 #endif /* CONFIG_DPU_PMA */
 #endif /* CONFIG_DPU_APC */
 

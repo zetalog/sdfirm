@@ -218,7 +218,7 @@ config DPU_APC_INIT_CPU
 
 config DPU_APC_INIT_PMA
 	bool "Enable PMA initialization"
-	select DPU_PMA
+	select DPU_PMA if ARCH_HAS_DPU_PMA_DYNAMIC
 
 endmenu
 
@@ -337,9 +337,13 @@ config DPU_PLL_BYPASS_PLL
 
 endif
 
+config ARCH_HAS_DPU_PMA_DYNAMIC
+	bool
+
 menuconfig DPU_PMA
 	bool "DPU cluster PMA support"
 	depends DPU_APC
+	depends ARCH_HAS_DPU_PMA_DYNAMIC
 	select VAISRA_PMA
 
 if DPU_PMA
