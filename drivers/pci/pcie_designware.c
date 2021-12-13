@@ -532,13 +532,16 @@ void dw_pcie_setup_dpu2_sub(struct dw_pcie *pci)
 {
 	uint32_t val, tmp;
 	uint32_t lanes = pci->lane_num;
+	uint8_t order = pci->order;
 
+#ifndef CONFIG_DW_PCIE_RC
 	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_MSI_CAPABILITY, 0x4);
 
 	/* pcie multiple message capable set to 4 vectors */
 	tmp = 0x2 << 17;
 	val |= tmp;
 	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_MSI_CAPABILITY, val, 0x4);
+#endif	
 
 	/* Conifg Fast Link Scale Factor is 64(16us) */
 	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_TIMER_CTRL_MAX_FUN_NUM_OFF, 0x4);
@@ -581,6 +584,31 @@ void dw_pcie_setup_dpu2_sub(struct dw_pcie *pci)
 		break;
 	}
 	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_LINK_WIDTH_SPEED_CONTROL, val, 0x4);
+
+#ifdef CONFIG_DW_PCIE_RC
+	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_PORT_FORCE_OFF, 0x4);
+	val &= ~PORT_LINK_NUM_MASK;
+	val |= PORT_LINK_NUM(order);
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_PORT_FORCE_OFF, val, 0x4);
+
+	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_GEN3_RELATED_OFF, 0x4);
+	val |= 0x200;
+	val &= ~RATE_SHADOW_SEL_MASK;
+	val |= RATE_SHADOW_SEL(0x0);
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_GEN3_RELATED_OFF, val, 0x4);
+
+	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_GEN3_RELATED_OFF, 0x4);
+	val &= ~RATE_SHADOW_SEL_MASK;
+	val |= RATE_SHADOW_SEL(0x1);
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_GEN3_RELATED_OFF, val, 0x4);
+
+	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_GEN3_RELATED_OFF, 0x4);
+	val |= 0x200;
+	val &= ~RATE_SHADOW_SEL_MASK;
+	val |= RATE_SHADOW_SEL(0x1);
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_GEN3_RELATED_OFF, val, 0x4);
+
+#endif
 }
 
 void dw_pcie_setup_dpu2(struct pcie_port *pp)
@@ -591,6 +619,7 @@ void dw_pcie_setup_dpu2(struct pcie_port *pp)
 	dw_pcie_dbi_ro_wr_en(pci);
 	dw_pcie_setup_dpu2_sub(pci);
 
+#ifndef CONFIG_DW_PCIE_RC
 	dw_pcie_prog_outbound_atu(pci, 0, PCIE_ATU_TYPE_MEM,
 			pp->mem_base, 0x10000000, pp->mem_size);
 
@@ -603,7 +632,50 @@ void dw_pcie_setup_dpu2(struct pcie_port *pp)
 	dw_pcie_rd_own_conf(pp, PCI_COMMAND, 4, &val);
 	val |= 0x6;
 	dw_pcie_wr_own_conf(pp, PCI_COMMAND, 4, val);
+#else
+	/* Setup RC BARs */
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM,
+			PCI_BASE_ADDRESS_0, 0x00000004, 0x4);
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM,
+			PCI_BASE_ADDRESS_1, 0x00000000, 0x4);
 
+	/* Setup interrupt pins */
+	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM,
+			PCI_INTERRUPT_LINE, 0x4);
+	val &= 0xffff00ff;
+	val |= 0x00000100;
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM,
+			PCI_INTERRUPT_LINE, val, 0x4);
+
+	/* Setup bus numbers */
+	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM,
+			PCI_PRIMARY_BUS, 0x4);
+	val &= 0xff000000;
+	val |= 0x00ff0100;
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM,
+			PCI_PRIMARY_BUS, val, 0x4);
+
+	/* Setup command register */
+	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCI_COMMAND, 0x4);
+	val &= 0xffff0000;
+	val |= PCI_COMMAND_IO | PCI_COMMAND_MEMORY |
+		PCI_COMMAND_MASTER | PCI_COMMAND_SERR;
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_COMMAND, val, 0x4);
+
+	dw_pcie_prog_outbound_atu(pci, 0, PCIE_ATU_TYPE_CFG0,
+			pp->cfg_bar0, 0x0, pp->cfg_size);
+	dw_pcie_prog_outbound_atu(pci, 1, PCIE_ATU_TYPE_CFG1,
+			pp->cfg_bar1, 0x0, pp->cfg_size);
+	dw_pcie_prog_outbound_atu(pci, 2, PCIE_ATU_TYPE_MEM,
+			pp->mem_base, 0x0, pp->mem_size);
+	dw_pcie_wr_own_conf(pp, PCI_BASE_ADDRESS_0, 4, 0);
+
+	/* Program correct class for RC */
+	dw_pcie_wr_own_conf(pp, PCI_CLASS_DEVICE, 2,
+			PCI_CLASS_BRIDGE_PCI);
+
+
+#endif	
 #ifdef CONFIG_DW_PCIE_SPEED_GEN1
 	printf("gen1 speed cfg\n");
 	/* link_control2_link_status */
@@ -617,10 +689,12 @@ void dw_pcie_setup_dpu2(struct pcie_port *pp)
 	dw_pcie_wr_own_conf(pp, PCIE_LINK_WIDTH_SPEED_CONTROL, 4, val);
 	dw_pcie_dbi_ro_wr_dis(pci);
 
+#ifndef CONFIG_DW_PCIE_RC
 	 /* Enable MSI int */
 	dw_pcie_rd_own_conf(pp, PCIE_MSI_CAPABILITY, 4, &val);
 	val |= 0x10000;
 	dw_pcie_wr_own_conf(pp, PCIE_MSI_CAPABILITY, 4, val);
+#endif	
 }
 
 

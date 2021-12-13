@@ -18,11 +18,11 @@ struct dw_pcie controllers[] = {
 	{
 		//.axi_dbi_port = AXI_DBI_PORT_X16,
 		.dbi_base = CFG_AXI_CORE_X16,
-		.pp.cfg_bar0 = 3*GB + 512*KB,
-		.pp.cfg_bar1 = 3*GB + 1*MB,
+		.pp.cfg_bar0 = PCIE_CORE_X16_CFG0_START,
+		.pp.cfg_bar1 = PCIE_CORE_X16_CFG1_START,
 		.pp.cfg_size = PCIE_CORE_CFG_SIZE,
 		.pp.mem_base = 0,
-		.pp.mem_size = 3*GB,
+		.pp.mem_size = PCIE_CORE_MEM_SIZE,
 	},
 
 #ifndef CONFIG_DPU_GEN2
@@ -321,7 +321,7 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
 		break;
 	}
 
-#ifdef CONFIG_DPU_PCIE_ROLE_RC
+#ifdef CONFIG_DW_PCIE_RC
 	write_apb((base + 0), 0xc810010, port);
 #else
 	val = read_apb((base + 0), port);
@@ -372,7 +372,11 @@ static void subsys_link_init_post(struct duowen_pcie_subsystem *pcie_subsys)
 		break;
 #endif
 	case LINK_MODE_16_0_0_0:
+#ifdef CONFIG_DW_PCIE_RC
+		write_apb(pcie_subsys->cfg_apb[X16], 0xc018010, APB_PORT_X16);//xkm
+#else
 		write_apb(pcie_subsys->cfg_apb[X16], 0xc018000, APB_PORT_X16);//xkm
+#endif
 #ifdef DPU
 		break;
 #endif
@@ -853,6 +857,23 @@ void pcie_dw_dma_ep2rc(uint8_t channel, uint64_t src, uint32_t size)
 	printf("rc ddr addr 4 result=%llx\n", dst);
 
 	dma_ep2rc(&(controller->pp), channel, src, dst, size);
+}
+
+void dpu_rc_pcie_inta_handler(irq_t irq)
+{
+	uint32_t val;
+	struct dw_pcie *pci = NULL;
+	struct dw_pcie *controller;
+
+	controller = &controllers[0];
+	pci = to_dw_pcie_from_pp(&(controller->pp));
+
+	irqc_mask_irq(IRQ_PCIE_X16_INTA);
+
+	printf("RC Receive INTA interrupt\n");
+
+	irqc_unmask_irq(IRQ_PCIE_X16_INTA);
+	irqc_ack_irq(IRQ_PCIE_X16_INTA);
 }
 
 void dpu_pcie_inta_handler(irq_t irq)
@@ -1344,6 +1365,7 @@ void pci_platform_init(void)
 #ifndef CONFIG_SIMULATION
 	int j;
 	uint32_t addr;
+	uint64_t addr64;
 #endif
 	struct dw_pcie *pci = NULL;
 
@@ -1382,15 +1404,13 @@ void pci_platform_init(void)
 			break;
 		controller++;
 	}
-#ifdef CONFIG_DPU_PCIE_ROLE_RC
-	uint64_t val;
-
+#ifdef CONFIG_DW_PCIE_RC
 	irqc_configure_irq(IRQ_PCIE_X16_MSI, 0, IRQ_LEVEL_TRIGGERED);
 	irq_register_vector(IRQ_PCIE_X16_MSI, dpu_pcie_msi_handler);
 	irqc_enable_irq(IRQ_PCIE_X16_MSI);
 
 	irqc_configure_irq(IRQ_PCIE_X16_INTA, 0, IRQ_LEVEL_TRIGGERED);
-	irq_register_vector(IRQ_PCIE_X16_INTA, dpu_pcie_inta_handler);
+	irq_register_vector(IRQ_PCIE_X16_INTA, dpu_rc_pcie_inta_handler);
 	irqc_enable_irq(IRQ_PCIE_X16_INTA);
 
 	dw_pcie_enable_msi(&(controller->pp));
@@ -1400,23 +1420,39 @@ void pci_platform_init(void)
 	// trigger EP VIP INTA interrupt
 	__raw_writel(0x2, TCSR_MSG_REG(0x80));
 
-	__raw_writeq(0x64646464, 0xc00000010);
-	val = __raw_readq(0xc00000010);
+	__raw_writeq(0x64646464, (PCIE_SUBSYS_ADDR_START + 0x10));
+	val = __raw_readq(PCIE_SUBSYS_ADDR_START + 0x10);
 	if (val == 0x64646464)
 		printf("MEM64 Read/Write transaction passed\n");
 
-	__raw_writel(0x32323232, 0xc00000100);
-	val = __raw_readl(0xc00000100);
+	__raw_writel(0x32323232, (PCIE_SUBSYS_ADDR_START + 0x100));
+	val = __raw_readl(PCIE_SUBSYS_ADDR_START + 0x100);
 	if (val == 0x32323232)
 		printf("MEM32 Read/Write transaction passed\n");
 
 	// cfg0 read
-	val = __raw_readl(0xcc0080000);
+	val = __raw_readl(PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG0_START + 0x0);
 	printf("cfg0: %x\n", val);
 
 	// cfg1 read
-	val = __raw_readl(0xc00100000);
+	val = __raw_readl(PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG1_START + 0x100000);
 	printf("cfg1: %x\n", val);
+
+	// cfg0 read
+	val = __raw_readl(PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG0_START + 0x700);
+	printf("cfg0 0x700= %x\n", val);
+
+	__raw_writel(0x0ca5045a, (PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG0_START + 0x700));
+	val = __raw_readl(PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG0_START + 0x700);
+	printf("cfg0 0x700 after wr= %x\n", val);
+
+	// cfg1 read
+	val = __raw_readl(PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG1_START + 0x700);
+	printf("cfg1 0x700= %x\n", val);
+
+	__raw_writel(0x0ba5035a, (PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG1_START + 0x700));
+	val = __raw_readl(PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG1_START + 0x700);
+	printf("cfg1 0x700 after wr= %x\n", val);
 #else
 
 #ifdef CONFIG_DPU_TEST_LINK_SPEED_CHANGE
