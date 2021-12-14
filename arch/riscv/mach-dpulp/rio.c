@@ -42,7 +42,14 @@
 #include <target/rio.h>
 #include <target/delay.h>
 
-void dpulp_rio_init(int n)
+/* Define DPULP_RAB_TEST to specify the original RAB test environment,
+ * Undefine it to specify the DPU-LP RAB integration environment.
+ */
+
+#ifdef CONFIG_DPULP_RAB_TES
+#define dpulp_rio_init_phy(n)		do { } while (0)
+#else /* CONFIG_DPULP_RAB_TES */
+void dpulp_rio_init_phy(int n)
 {
 	__raw_setw(RAB_ref_clk_en | \
 		   RAB_rx_reset | RAB_tx_reset | RAB_phy_reset,
@@ -53,6 +60,12 @@ void dpulp_rio_init(int n)
 
 	while (!(__raw_readw(SRAM_INIT_DONE(n)) & RAB_sram_init_done));
 	__raw_writew(RAB_sram_ext_ld_done, SRAM_EXT_LD_DONE(n));
+}
+#endif /* CONFIG_DPULP_RAB_TES */
+
+void dpulp_rio_init(int n)
+{
+	dpulp_rio_init_phy(n);
 
 	/* TODO: Read lane asic_tx|rx_axic_out */
 	rab_init_port();
