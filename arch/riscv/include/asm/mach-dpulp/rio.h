@@ -111,6 +111,20 @@
 /* SRAM_INIT_DONE */
 #define RAB_sram_init_done		_BV(0)
 
+/* IP integration */
+#ifdef CONFIG_DPULP_RIO_62500KHZ
+#define RAB_SDS_FREQ			62500
+#endif /* CONFIG_DPULP_RIO_62500KHZ */
+#ifdef CONFIG_DPULP_RIO_78125KHZ
+#define RAB_SDS_FREQ			78125
+#endif /* CONFIG_DPULP_RIO_78125KHZ */
+#ifdef CONFIG_DPULP_RIO_125000KHZ
+#define RAB_SDS_FREQ			125000
+#endif /* CONFIG_DPULP_RIO_125000KHZ */
+#ifdef CONFIG_DPULP_RIO_156250KHZ
+#define RAB_SDS_FREQ			156250
+#endif /* CONFIG_DPULP_RIO_156250KHZ */
+
 #ifdef CONFIG_MOBIVEIL_RAB
 #define rio_hw_ctrl_init()		dpulp_rio_init(0)
 #endif /* CONFIG_MOBIVEIL_RAB */

@@ -212,6 +212,43 @@
 #define RAB_APBByteSwappingSelect(value)	\
 	_SET_FV(RAB_APBByteSwappingSelect, value)
 
+/* IP integration */
+/* Table 117: Minimum Frequency of ulk_clk */
+#ifdef CONFIG_RAB_SRIO_1_25G
+#define RAB_ULI_FREQ_4X		62500
+#define RAB_ULI_FREQ_2X		31250
+#define RAB_ULI_FREQ_1X		31250
+#endif /* CONFIG_RAB_SRIO_1_25G */
+#ifdef CONFIG_RAB_SRIO_2_5G
+#define RAB_ULI_FREQ_4X		125000
+#define RAB_ULI_FREQ_2X		62500
+#define RAB_ULI_FREQ_1X		62500
+#endif /* CONFIG_RAB_SRIO_2_5G */
+#ifdef CONFIG_RAB_SRIO_3_125G
+#define RAB_ULI_FREQ_4X		156250
+#define RAB_ULI_FREQ_2X		78125
+#define RAB_ULI_FREQ_1X		78125
+#endif /* CONFIG_RAB_SRIO_3_125G */
+#ifdef CONFIG_RAB_SRIO_5G
+#define RAB_ULI_FREQ_4X		250000
+#define RAB_ULI_FREQ_2X		125000
+#define RAB_ULI_FREQ_1X		125000
+#endif /* CONFIG_RAB_SRIO_5G */
+#ifdef CONFIG_RAB_SRIO_6_25G
+#define RAB_ULI_FREQ_4X		312500
+#define RAB_ULI_FREQ_2X		156250
+#define RAB_ULI_FREQ_1X		156250
+#endif /* CONFIG_RAB_SRIO_6_25G */
+#ifdef CONFIG_RAB_SRIO_4X
+#define RAB_ULI_FREQ		RAB_ULI_FREQ_4X
+#endif /* CONFIG_RAB_SRIO_4X */
+#ifdef CONFIG_RAB_SRIO_2X
+#define RAB_ULI_FREQ		RAB_ULI_FREQ_2X
+#endif /* CONFIG_RAB_SRIO_2X */
+#ifdef CONFIG_RAB_SRIO_1X
+#define RAB_ULI_FREQ		RAB_ULI_FREQ_1X
+#endif /* CONFIG_RAB_SRIO_1X */
+
 #define rab_setl(v,a)					\
 	do {						\
 		uint32_t __v = rab_readl(a);		\

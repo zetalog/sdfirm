@@ -5,6 +5,47 @@
 config ARCH_HAS_RIO
 	bool
 
+config ARCH_HAS_SRIO_1X
+	bool
+
+config ARCH_HAS_SRIO_2X
+	bool
+
+config ARCH_HAS_SRIO_4X
+	bool
+
+config ARCH_HAS_SRIO_8X
+	bool
+
+config ARCH_HAS_SRIO_16X
+	bool
+
+config ARCH_HAS_SRIO_1_25G
+	bool
+
+config ARCH_HAS_SRIO_2_5G
+	bool
+
+config ARCH_HAS_SRIO_3_125G
+	bool
+
+config ARCH_HAS_SRIO_5G
+	bool
+
+config ARCH_HAS_SRIO_6_25G
+	bool
+
+config ARCH_HAS_SRIO_LEVEL_I
+	bool
+	select ARCH_HAS_RIO_1_25G
+	select ARCH_HAS_RIO_2_5G
+	select ARCH_HAS_RIO_3_125G
+
+config ARCH_HAS_SRIO_LEVEL_II
+	bool
+	select ARCH_HAS_RIO_5G
+	select ARCH_HAS_RIO_6_25G
+
 menuconfig RIO
 	bool "RapidIO interconnect (RIO) support"
 	depends ARCH_HAS_RIO
@@ -18,5 +59,56 @@ config RIO_MAX_PORTS
 
 config SRIO
 	bool "LP-Serial physical layer support"
+
+choice
+	prompt "Link speed"
+
+config SRIO_1_25G
+	bool "1.25Gbaud"
+	depends ARCH_HAS_SRIO_1_25G
+
+config SRIO_2_5G
+	bool "2.5Gbaud"
+	depends ARCH_HAS_SRIO_2_5G
+
+config SRIO_3_125G
+	bool "3.125Gbaud"
+	depends ARCH_HAS_SRIO_3_125G
+
+config SRIO_5G
+	bool "5Gbaud"
+	depends ARCH_HAS_SRIO_5G
+
+config SRIO_6_25G
+	bool "6.25Gbaud"
+	depends ARCH_HAS_SRIO_6_25G
+
+endchoice
+
+choice
+	prompt "Link mode"
+	default SRIO_4X
+
+config SRIO_1X
+	bool "1X lanes"
+	depends ARCH_HAS_SRIO_1X
+
+config SRIO_2X
+	bool "2X lanes"
+	depends ARCH_HAS_SRIO_2X
+
+config SRIO_4X
+	bool "4X lanes"
+	depends ARCH_HAS_SRIO_4X
+
+config SRIO_8X
+	bool "8X lanes"
+	depends ARCH_HAS_SRIO_8X
+
+config SRIO_16X
+	bool "16X lanes"
+	depends ARCH_HAS_SRIO_16X
+
+endchoice
 
 endif

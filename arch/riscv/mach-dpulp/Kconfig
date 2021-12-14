@@ -433,8 +433,30 @@ menuconfig DPULP_RIO
 	select MOBIVEIL_RAB
 	select ARCH_IS_RAB_SERIAL
 	select ARCH_IS_RAB_PAGE_2KB
+	select ARCH_HAS_RAB_SRIO_1_25G
+	select ARCH_HAS_RAB_SRIO_4X
+	select ARCH_IS_RAB_SCS
+	select ARCH_HAS_RAB_AET
 
 if DPULP_RIO
+
+choice
+	prompt "PHY serdes reference clock frequency"
+	default DPULP_RIO_62500KHZ
+
+config DPULP_RIO_62500KHZ
+	bool "62.5MHz"
+
+config DPULP_RIO_78125KHZ
+	bool "78.125MHz"
+
+config DPULP_RIO_125000KHZ
+	bool "125MHz"
+
+config DPULP_RIO_156250KHZ
+	bool "156.25MHz"
+
+endchoice
 
 endif
 

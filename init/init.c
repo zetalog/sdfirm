@@ -31,6 +31,11 @@ void pci_init(void);
 #else
 #define pci_init()
 #endif
+#ifdef CONFIG_RIO
+void rio_init(void);
+#else
+#define rio_init()
+#endif
 #ifdef CONFIG_NET
 void net_init(void);
 #else
@@ -158,6 +163,7 @@ void modules_init(void)
 {
 	/* buses */
 	pci_init();
+	rio_init();
 	uart_init();
 #ifndef CONFIG_I2C_CMD_TOOL
 	i2c_init();

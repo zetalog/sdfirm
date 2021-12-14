@@ -23,6 +23,54 @@ config ARCH_HAS_RAB_INTR
 config ARCH_HAS_RAB_RIO_50BIT
 	bool
 
+config ARCH_HAS_RAB_SRIO_1X
+	bool
+
+config ARCH_HAS_RAB_SRIO_2X
+	bool
+
+config ARCH_HAS_RAB_SRIO_4X
+	bool
+
+config ARCH_HAS_RAB_SRIO_1_25G
+	bool
+
+config ARCH_HAS_RAB_SRIO_2_5G
+	bool
+
+config ARCH_HAS_RAB_SRIO_3_125G
+	bool
+
+config ARCH_HAS_RAB_SRIO_5G
+	bool
+
+config ARCH_HAS_RAB_SRIO_6_25G
+	bool
+
+config ARCH_IS_RAB_LCS
+	bool
+
+config ARCH_IS_RAB_SCS
+	bool
+
+config ARCH_HAS_RAB_BPOT_LI
+	bool
+
+config ARCH_HAS_RAB_BPIN_LO
+	bool
+
+config ARCH_HAS_RAB_BPOT_PBUS
+	bool
+
+config ARCH_HAS_RAB_BPIN_PBUS
+	bool
+
+config ARCH_HAS_RAB_CSRLOCK
+	bool
+
+config ARCH_HAS_RAB_AET
+	bool
+
 menuconfig MOBIVEIL_RAB
 	bool "MobiVeil RapidIO to AXI Bridge (RAB) controller support"
 	select SRIO if ARCH_IS_RAB_SERIAL
@@ -30,17 +78,102 @@ menuconfig MOBIVEIL_RAB
 if MOBIVEIL_RAB
 
 choice
+	prompt "Link mode"
+
+config RAB_SRIO_1X
+	bool "1X lane"
+	depends ARCH_HAS_RAB_SRIO_1X
+	select ARCH_HAS_SRIO_1X
+
+config RAB_SRIO_2X
+	bool "2X lane"
+	depends ARCH_HAS_RAB_SRIO_2X
+	select ARCH_HAS_SRIO_2X
+
+config RAB_SRIO_4X
+	bool "4X lane"
+	depends ARCH_HAS_RAB_SRIO_4X
+	select ARCH_HAS_SRIO_4X
+
+endchoice
+
+choice
+	prompt "Link speed"
+
+config RAB_SRIO_1_25G
+	bool "1.25Gbaud"
+	depends ARCH_HAS_RAB_SRIO_1_25G
+	select ARCH_HAS_SRIO_1_25G
+
+config RAB_SRIO_2_5G
+	bool "2.5Gbaud"
+	depends ARCH_HAS_RAB_SRIO_2_5G
+	select ARCH_HAS_SRIO_2_5G
+
+config RAB_SRIO_3_125G
+	bool "3.125Gbaud"
+	depends ARCH_HAS_RAB_SRIO_3_125G
+	select ARCH_HAS_SRIO_3_125G
+
+config RAB_SRIO_5G
+	bool "5Gbaud"
+	depends ARCH_HAS_RAB_SRIO_5G
+	select ARCH_HAS_SRIO_5G
+
+config RAB_SRIO_6_25G
+	bool "6.25Gbaud"
+	depends ARCH_HAS_RAB_SRIO_6_25G
+	select ARCH_HAS_SRIO_6_25G
+
+endchoice
+
+choice
+	prompt "Transport system"
+
+config RAB_LCS
+	bool "Large"
+	depends ARCH_IS_RAB_LCS
+
+config RAB_SCS
+	bool "Small"
+	depends ARCH_IS_RAB_SCS
+
+endchoice
+
+choice
 	prompt "Page size"
+	help
+	  A dedicated APB slave interface is provided to AMBA hosts for
+	  CSR access. It provides either 4KB or 8KB access window. The
+	  page size is decided based on RAB_APB_CSR[page] register fields.
 
 config RAB_PAGE_2KB
 	bool "2KB"
 	depends ARCH_IS_RAB_PAGE_2KB
+	help
+	  For 4KB access window, the lower 2KB APB addresses directly
+	  mapped to RAB registers (the lower 2KB), and the higher APB 2KB
+	  addresses get mapped to a 2KB paged window in the 16MB space.
+	  There are 8K pages of size 2KB to access full 16MB space.
 
 config RAB_PAGE_4KB
 	bool "4KB"
 	depends ARCH_IS_RAB_PAGE_4KB
+	help
+	  For 8KB access window, the lower 4KB APB addresses directly
+	  mapped to RAB registers (the lower 4KB), and the higher APB 4KB
+	  addresses get mapped to a 4KB paged window in the 16MB space.
+	  There are 4K pages of size 4KB to access full 16MB space.
 
 endchoice
+
+config RAB_FORCE_2X
+	bool "Enable force 2X lane"
+	depends RAB_SRIO_4X
+
+config RAB_FORCE_1X
+	bool "Enable force 1X lane"
+	depends RAB_SRIO_4X
 
 config RAB_DEBUG
 	bool "Enable debug feature registers"
@@ -53,6 +186,34 @@ config RAB_INTR
 config RAB_RIO_50BIT
 	bool "Enable RIO 50-bit addressing registers"
 	depends ARCH_HAS_RAB_RIO_50BIT
+
+menu "Bypass interface"
+
+config RAB_BPOT_LI
+	bool "Enable bypass out logic inbound"
+	depends ARCH_HAS_RAB_BPOT_LI
+
+config RAB_BPIN_LO
+	bool "Enable bypass in logic outbound"
+	depends ARCH_HAS_RAB_BPIN_LO
+
+config RAB_BPOT_PBUS
+	bool "Enable bypass out PBUS"
+	depends ARCH_HAS_RAB_BPOT_PBUS
+
+config RAB_BPIN_PBUS
+	bool "Enable bypass in PBUS"
+	depends ARCH_HAS_RAB_BPIN_PBUS
+
+config RAB_CSRLOCK
+	bool "Enable bypass CSR lock"
+	depends ARCH_HAS_RAB_CSRLOCK
+
+endmenu
+
+config RAB_AET
+	bool "Enable adaptive equalizatiion training"
+	depends ARCH_HAS_RAB_AET
 
 endif
 
