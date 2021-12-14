@@ -46,6 +46,7 @@
 #include <target/pci.h>
 #include <target/uefi.h>
 #include <target/cmdline.h>
+#include <target/smp.h>
 
 #ifdef CONFIG_SHUTDOWN
 void board_shutdown(void)
@@ -79,6 +80,7 @@ static void dpu_boot_spi(void)
 	/* dpu_flash_set_frequency(min(DPU_FLASH_FREQ, APB_CLK_FREQ)); */
 	/* max spi speed is 5M,so here configure to 4M. */
 	dpu_flash_set_frequency(min(DPU_FLASH_FREQ, DPU_FLASH_REAL_FREQ));
+	smp_boot_secondary_cpus((caddr_t)boot_entry);
 	boot_entry();
 }
 #else
@@ -180,6 +182,7 @@ static void dpu_boot_ssi(void)
 	printf("boot(ssi): validating SSI contents...\n");
 	cmd_batch();
 	printf("boot(ssi): booting...\n");
+	smp_boot_secondary_cpus((caddr_t)boot_entry);
 	boot_entry();
 }
 #else
