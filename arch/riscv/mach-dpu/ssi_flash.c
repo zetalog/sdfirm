@@ -3,6 +3,7 @@
 #include <target/mem.h>
 #include <target/uefi.h>
 #include <target/irq.h>
+#include <target/smp.h>
 #include <asm/mach/boot.h>
 
 #define FLASH_TOTAL_SIZE	4000000
@@ -66,6 +67,7 @@ void __dpu_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 	__boot_dbg('o');
 	__boot_dbg('t');
 	__boot_dbg('\n');
+	smp_boot_secondary_cpus((caddr_t)boot_entry);
 	boot_entry();
 }
 
