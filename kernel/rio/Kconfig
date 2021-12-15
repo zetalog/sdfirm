@@ -37,14 +37,14 @@ config ARCH_HAS_SRIO_6_25G
 
 config ARCH_HAS_SRIO_LEVEL_I
 	bool
-	select ARCH_HAS_RIO_1_25G
-	select ARCH_HAS_RIO_2_5G
-	select ARCH_HAS_RIO_3_125G
+	select ARCH_HAS_SRIO_1_25G
+	select ARCH_HAS_SRIO_2_5G
+	select ARCH_HAS_SRIO_3_125G
 
 config ARCH_HAS_SRIO_LEVEL_II
 	bool
-	select ARCH_HAS_RIO_5G
-	select ARCH_HAS_RIO_6_25G
+	select ARCH_HAS_SRIO_5G
+	select ARCH_HAS_SRIO_6_25G
 
 menuconfig RIO
 	bool "RapidIO interconnect (RIO) support"

@@ -101,12 +101,20 @@ DEFINE_COMMAND(help, do_help, "Print command description/usage",
 int cmd_execute(int argc, char * argv[])
 {
 	cmd_tbl *cmdp;
+	int ret;
 
 	cmdp = find_cmd(argv[0]);
-	if (cmdp == NULL)
+	if (cmdp == NULL) {
+		printf("No such command '%s'\n\n", argv[0]);
 		return -1;
+	}
 	getopt_reset();
-	return cmdp->cmd(argc, argv);
+	ret = cmdp->cmd(argc, argv);
+	if (ret < 0)
+		printf("Command failure '%s - %d'\n\n", argv[0], ret);
+	else
+		printf("Command success '%s - %d'\n\n", argv[0], ret);
+	return ret;
 }
 
 #ifdef CONFIG_CONSOLE_COMMAND
