@@ -56,6 +56,22 @@ void dpu_pll_soft_reset(uint8_t comp)
 	while (!(__raw_readl(PLL_SOFT_RST(comp)) & srst));
 }
 
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_DYNAMIC
+uint32_t dpu_gmux_save(int pll)
+{
+	uint32_t gmux;
+
+	gmux = __raw_readl(PLL_GMUX_CFG(pll)) & PLL_GMUX_SEL_PR;
+	__raw_clearl(PLL_GMUX_SEL_PR, PLL_GMUX_CFG(pll));
+	return gmux;
+}
+
+void dpu_gmux_restore(int pll, uint32_t gmux)
+{
+	__raw_setl((gmux & PLL_GMUX_SEL_PR), PLL_GMUX_CFG(pll));
+}
+#endif /* CONFIG_DW_PLL5GHZ_TSMC12FFC_DYNAMIC */
+
 struct freqplan {
 	uint64_t f_pll_vco;
 	uint32_t f_pll_pclk;

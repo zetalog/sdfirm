@@ -62,14 +62,16 @@ extern caddr_t dpu_pll_reg_base;
 #define DW_PLL_CFG1(pll)		PLL_REG(pll, 0x04)
 #define DW_PLL_STATUS(pll)		PLL_REG(pll, 0x08)
 
-#define dpu_pll_enable(pll, freq)		\
+#define dpu_pll_enable(pll, freq)			\
 	dw_pll5ghz_tsmc12ffc_pwron(pll, freq)
-#define dpu_pll_disable(pll)			\
+#define dpu_pll_enable2(pll, fvco, fpclk, frclk)	\
+	dw_pll5ghz_tsmc12ffc_pwron2(pll, fvco, fpclk, frclk)
+#define dpu_pll_disable(pll)				\
 	dw_pll5ghz_tsmc12ffc_pwrdn(pll)
 
-#define dpu_div_enable(pll, fvco, freq, r)	\
+#define dpu_div_enable(pll, fvco, freq, r)		\
 	dw_pll5ghz_tsmc12ffc_enable(pll, fvco, freq, r)
-#define dpu_div_disable(pll, r)			\
+#define dpu_div_disable(pll, r)				\
 	dw_pll5ghz_tsmc12ffc_disable(pll, r)
 
 /* PLL GMUX registers */
@@ -80,6 +82,7 @@ extern caddr_t dpu_pll_reg_base;
 #define PLL_GMUX_SEL_R			_BV(2)
 #define PLL_GMUX_EN_P			_BV(1)
 #define PLL_GMUX_SEL_P			_BV(0)
+#define PLL_GMUX_SEL_PR			(PLL_GMUX_SEL_P | PLL_GMUX_SEL_R)
 #define DPU_GMUX_SEL(r)			((r) ? PLL_GMUX_SEL_R : PLL_GMUX_SEL_P)
 #define DPU_GMUX_EN(r)			((r) ? PLL_GMUX_EN_R : PLL_GMUX_EN_P)
 
@@ -95,6 +98,14 @@ extern caddr_t dpu_pll_reg_base;
 	__raw_setl(DPU_GMUX_EN(r), PLL_GMUX_CFG(pll))
 #define dpu_gmux_disable(pll, r)	\
 	__raw_clearl(DPU_GMUX_EN(r), PLL_GMUX_CFG(pll))
+
+#ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_DYNAMIC
+uint32_t dpu_gmux_save(int pll);
+void dpu_gmux_restore(int pll, uint32_t gmux);
+#else /* CONFIG_DW_PLL5GHZ_TSMC12FFC_DYNAMIC */
+#define dpu_gmux_save(pll)		0
+#define dpu_gmux_restore(pll, gmux)	do { } while (0)
+#endif /* CONFIG_DW_PLL5GHZ_TSMC12FFC_DYNAMIC */
 
 /*swallow registers*/
 #define SWAL_BASE			PLL_REG(NR_PLLS, 0)
