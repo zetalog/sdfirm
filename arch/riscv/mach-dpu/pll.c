@@ -290,6 +290,30 @@ static void freq_swal_cfg(enum dpu_freq_reduce_type reduce_type,
 
 }
 
+static int board_init_all_clock(void)
+{
+	clk_enable(srst_tsensor_mets);
+	clk_enable(srst_tsensor_xo);
+	clk_enable(ddr0_clk);
+	clk_enable(ddr0_aclk);
+	clk_enable(pe_clk);
+	clk_enable(vpu_cclk);
+	clk_enable(srst_gpdpu);
+	clk_enable(srst_pcie0);
+	clk_enable(srst_pcie1);
+	clk_enable(srst_vpu);
+	clk_enable(ddr_bypass_pclk);
+	clk_enable(srst_ddr0_0);
+	clk_enable(srst_ddr0_1);
+	clk_enable(srst_ddr1_0);
+	clk_enable(srst_ddr1_1);
+	clk_enable(srst_ddr0_por);
+	clk_enable(srst_ddr1_por);
+	clk_enable(srst_pcie0_por);
+
+	return 0;
+}
+
 static int do_freq_reduce(int argc, char *argv[])
 {
 	int fac;
@@ -319,11 +343,15 @@ static int do_freq(int argc, char *argv[])
 
 	if (strcmp(argv[1], "reduce") == 0)
 		return do_freq_reduce(argc, argv);
+	if (strcmp(argv[1], "show") == 0)
+		return board_init_all_clock();
 	return -ENODEV;
 }
 
 DEFINE_COMMAND(freq, do_freq, "freq reduce tree",
 	"freq reduce soft/tsensor [0/1/2/3]\n"
 	"    -soft/tsensor reduce frequency\n"
+	"freq show\n"
+	"    -show all pll\n"
 );
 #endif
