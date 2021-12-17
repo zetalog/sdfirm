@@ -47,17 +47,19 @@
 
 #define RAB_BASE		RAB0_CTRL_BASE
 
+#define DW_E16MP_BASE(n)	(RAB0_PHY_BASE + ((n) << 24))
 #define RAB_CUST_REG(n, offset)	\
 	((RAB0_PHY_BASE + ((n) << 24)) + 0x20000 + (offset))
 
 #ifdef CONFIG_DPULP_RIO
 #include <driver/mobiveil_rab.h>
+#include <driver/dw_e16mp_tsmc12ffc.h>
 #ifndef ARCH_HAVE_RIO
 #define ARCH_HAVE_RIO		1
 #else
 #error "Multiple RIO controller defined"
 #endif
-#endif
+#endif /* CONFIG_DPULP_RIO */
 
 #define PHY_RESET(n)			RAB_CUST_REG(n, 0x00)
 #define SC_AICAR_AR(n)			RAB_CUST_REG(n, 0x02)

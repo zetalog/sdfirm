@@ -431,6 +431,7 @@ endif
 menuconfig DPULP_RIO
 	bool "DPULP RapidIO interconnect support"
 	select MOBIVEIL_RAB
+	select DW_E16MP_TSMC12FFC
 	select ARCH_IS_RAB_SERIAL
 	select ARCH_IS_RAB_PAGE_2KB
 	select ARCH_HAS_RAB_SRIO_1_25G

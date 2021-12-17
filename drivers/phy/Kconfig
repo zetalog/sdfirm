@@ -1,0 +1,15 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "Physical medium drivers"
+
+config DW_E16MP_TSMC12FFC
+	bool "Synopsys DWC E16MP PHY TSMC12FFC support"
+
+if DW_E16MP_TSMC12FFC
+
+endif
+
+endmenu
