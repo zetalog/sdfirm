@@ -47,6 +47,7 @@ struct vaisra_err {
 	const char *verbose;
 };
 
+#ifdef CONFIG_SBI
 static struct vaisra_err vaisra_dces[MAX_DCES] = {
 	{ DCE_L1VTPE,    "L1-dcache virtual tag parity error" },
 	{ DCE_L1PTPE,    "L1-dcache physical tag parity error" },
@@ -100,6 +101,7 @@ static struct vaisra_err vaisra_l2es[MAX_L2ES] = {
 	{ L2E_BMPDEC1AD, "Bus master port data error cpu1 abort or discard" },
 	{ L2E_BMPDEC1NA, "Bus master port data error cpu1 no-abort" },
 };
+#endif
 
 void l2csr_write(uint16_t csr, uint64_t val)
 {

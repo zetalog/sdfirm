@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Dec  3 12:06:47 2021
+# Fri Dec 17 21:48:54 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -512,6 +512,11 @@ CONFIG_DW_PCIE=y
 #
 # CONFIG_DW_XGMAC is not set
 # CONFIG_DW_XPCS is not set
+
+#
+# Physical medium drivers
+#
+# CONFIG_DW_E16MP_TSMC12FFC is not set
 
 #
 # Test setup

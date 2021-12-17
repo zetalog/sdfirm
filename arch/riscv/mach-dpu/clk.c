@@ -754,12 +754,15 @@ static void __enable_pll(clk_clk_t clk)
 {
 	bool r = CLK_IS_PLL_RCLK(clk);
 	uint8_t pll = CLK_TO_PLL(clk, r);
+	__unused uint32_t gmux;
 
 	if (!pll_clks[clk].enabled) {
+		gmux = dpu_gmux_save(pll);
 		clk_enable(pll_clks[clk].src);
 		dpu_div_enable(pll,
 			       clk_get_frequency(pll_clks[clk].src),
 			       pll_clks[clk].freq, r);
+		dpu_gmux_restore(pll, gmux);
 		pll_clks[clk].enabled = true;
 	}
 }
@@ -768,11 +771,14 @@ static void __disable_pll(clk_clk_t clk)
 {
 	bool r = CLK_IS_PLL_RCLK(clk);
 	uint8_t pll = CLK_TO_PLL(clk, r);
+	__unused uint32_t gmux;
 
 	if (pll_clks[clk].enabled) {
 		pll_clks[clk].enabled = false;
+		gmux = dpu_gmux_save(pll);
 		dpu_div_disable(pll, r);
 		clk_disable(pll_clks[clk].src);
+		dpu_gmux_restore(pll, gmux);
 	}
 }
 

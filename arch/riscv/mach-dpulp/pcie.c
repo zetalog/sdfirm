@@ -4,9 +4,12 @@
 #include <target/page.h>
 #include <asm/mach/tcsr.h>
 
-
+#ifdef CONFIG_DPU_PCIE_TEST
+#ifndef CONFIG_DPU_PCIE_ROLE_RC
 #ifndef CONFIG_SIMULATION
 static int pcie_dma_bh_poll;
+#endif
+#endif
 #endif
 int huge_data_finished = 0;
 int dma_irq_triggered = false;
@@ -348,7 +351,6 @@ void wait_controller_linkup(struct duowen_pcie_subsystem *pcie_subsys)
 			break;
 		}
 	}
-
 }
 
 static void subsys_link_init_post(struct duowen_pcie_subsystem *pcie_subsys)
@@ -498,7 +500,8 @@ void dw_pcie_ep_dma_ep2rc(struct pcie_port *pp, uint8_t channel)
 #ifndef CONFIG_SIMULATION
 	uint32_t intflg;
 #endif
-	#if 0//read some regs:0x1fc is the base addr of the vsec dma capability
+#if 0
+	//read some regs:0x1fc is the base addr of the vsec dma capability
 	uint32_t val, addr;
 
 	printf("read vsec dma capability\n");
@@ -506,7 +509,7 @@ void dw_pcie_ep_dma_ep2rc(struct pcie_port *pp, uint8_t channel)
 		val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, addr, 0x4);
 		addr += 4;
 	}
-	#endif
+#endif
 	/* DMA write control 1 reg */
 	data = dw_pcie_read_dbi(pci, DW_PCIE_DMA, (0x200 + (channel * 0x200)), 0x4);
 	if ((data & 0x60) == 0x20) {
@@ -596,7 +599,6 @@ void dw_pcie_ep_dma_ep2rc(struct pcie_port *pp, uint8_t channel)
 		}
 	}
 #endif
-
 }
 
 /* This api used for DMA initiated by Riscv */
@@ -607,7 +609,8 @@ void dw_pcie_ep_dma_rc2ep(struct pcie_port *pp, uint8_t channel)
 #ifndef CONFIG_SIMULATION
 	uint32_t intflg;
 #endif
-	#if 0//read some regs:0x1fc is the base addr of the vsec dma capability
+#if 0
+	//read some regs:0x1fc is the base addr of the vsec dma capability
 	uint32_t val, addr;
 
 	printf("read vsec dma capability\n");
@@ -615,7 +618,7 @@ void dw_pcie_ep_dma_rc2ep(struct pcie_port *pp, uint8_t channel)
 		val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, addr, 0x4);
 		addr += 4;
 	}
-	#endif
+#endif
 	/* DMA read control 1 reg */
 	data = dw_pcie_read_dbi(pci, DW_PCIE_DMA, (0x300 + (channel * 0x200)), 0x4);
 	if ((data & 0x60) == 0x20) {
@@ -783,9 +786,7 @@ void dw_pcie_ep_dma_ep2rc_api(struct pcie_port *pp, uint8_t channel,
 			//printf("wr ch%d st=%x\n", channel, val);
 		}
 	}
-
 }
-
 
 void dma_ep2rc(struct pcie_port *pp, uint8_t channel, uint64_t src, uint64_t dst, uint32_t size)
 {
@@ -923,6 +924,8 @@ void dpu_pcie_inta_handler(irq_t irq)
 }
 #endif
 
+#ifdef CONFIG_DPU_PCIE_TEST
+#ifndef CONFIG_DPU_PCIE_ROLE_RC
 #ifndef CONFIG_SIMULATION
 static void pcie_dma_bh_poll_handler(uint8_t events)//forever polling
 {
@@ -968,9 +971,7 @@ static void pcie_dma_bh_poll_handler(uint8_t events)//forever polling
 		size = val;
 		dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_EP_RCVED_REG, 1, 0x4);//EP rcved
 		dma_ep2rc(&(controller->pp), 0, dst, src, size);
-
-
-#else
+#else /* CONFIG_DPU_TEST_DDR_BY_DMA */
 		val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_EP_ADDR_LOW_REG, 0x4);//ep addr low
 		//printf("ep ddr addr low=%x\n",val);
 		dst = val;
@@ -1086,9 +1087,9 @@ static void pcie_dma_bh_poll_handler(uint8_t events)//forever polling
 			printf("check ddr end\n");
 		}
 		dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_EP_RCVED_REG, 1, 0x4);//EP rcved
-#endif
+#endif /* CONFIG_DPU_TEST_DDR_BY_DMA */
 	}
-#else
+#else /* CONFIG_DPU_INITIATE_DMA_BY_LOCAL */
 	asm("fence.i\n\t");
 	tmp = __raw_readl(0x800000000);
 	asm("fence.i\n\t");
@@ -1160,7 +1161,7 @@ static void pcie_dma_bh_poll_handler(uint8_t events)//forever polling
 		asm("fence.i\n\t");
 
 	}
-#endif
+#endif /* CONFIG_DPU_INITIATE_DMA_BY_LOCAL */
 	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_FLAG_REG, 0x4);
 	val &= 0x7;
 	if (val == RC2EP_RUN_MCU_CODE_FLG) {
@@ -1194,6 +1195,8 @@ static void pcie_dma_bh_poll_handler(uint8_t events)//forever polling
 		// unreachable();
 	}
 }
+#endif
+#endif
 #endif
 
 void change_link_speed(struct dw_pcie *pci, struct duowen_pcie_subsystem *pcie_subsys)
@@ -1341,13 +1344,13 @@ void pci_platform_init(void)
 {
 	struct duowen_pcie_subsystem *pcie_subsys;
 	struct dw_pcie *controller;
-	int i, channel;
-	uint32_t num, val;
-#ifndef CONFIG_SIMULATION
-	int j;
-	uint32_t addr;
-#endif
-	struct dw_pcie *pci = NULL;
+	int i;
+	__unused uint32_t val;
+	__unused int channel;
+	__unused uint32_t num;
+	__unused int j;
+	__unused uint32_t addr;
+	__unused struct dw_pcie *pci = NULL;
 
 	printf("bird: PCIE start\n");
 	//imc_addr_trans(0, 0x20000000, 0xc00000000, 0);
@@ -1419,8 +1422,7 @@ void pci_platform_init(void)
 	// cfg1 read
 	val = __raw_readl(0xc00100000);
 	printf("cfg1: %x\n", val);
-#else
-
+#else /* CONFIG_DPU_PCIE_ROLE_RC */
 #ifdef CONFIG_DPU_TEST_LINK_SPEED_CHANGE
 	change_link_speed(pci, pcie_subsys);
 #endif	
@@ -1571,13 +1573,10 @@ void pci_platform_init(void)
 	/* save EP reserved page HI[3:0] for invalid DMA */
 	dw_pcie_write_dbi(pci, DW_PCIE_CDM, RC_FREE_MEM_HI_REG, val, 0x4);
 
-
-
 	irq_local_enable();
 	pcie_dma_bh_poll = bh_register_handler(pcie_dma_bh_poll_handler);
 	irq_register_poller(pcie_dma_bh_poll);
-
 #endif
-#endif
+#endif /* CONFIG_DPU_PCIE_ROLE_RC */
 #endif
 }

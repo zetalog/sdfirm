@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Nov 12 13:53:55 2021
+# Fri Dec 17 21:45:09 2021
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -605,6 +605,11 @@ CONFIG_ARCH_HAS_NOC=y
 #
 # CONFIG_DW_XGMAC is not set
 # CONFIG_DW_XPCS is not set
+
+#
+# Physical medium drivers
+#
+# CONFIG_DW_E16MP_TSMC12FFC is not set
 
 #
 # Test setup

@@ -61,14 +61,14 @@ uint32_t dpu_gmux_save(int pll)
 {
 	uint32_t gmux;
 
-	gmux = __raw_readl(PLL_GMUX_CFG(pll)) & PLL_GMUX_SEL_PR;
-	__raw_clearl(PLL_GMUX_SEL_PR, PLL_GMUX_CFG(pll));
-	return gmux;
+	gmux = __raw_readl(PLL_GMUX_CFG(pll));
+	__raw_setl(PLL_GMUX_SEL_PR, PLL_GMUX_CFG(pll));
+	return (~gmux) & PLL_GMUX_SEL_PR;
 }
 
 void dpu_gmux_restore(int pll, uint32_t gmux)
 {
-	__raw_setl((gmux & PLL_GMUX_SEL_PR), PLL_GMUX_CFG(pll));
+	__raw_clearl((gmux & PLL_GMUX_SEL_PR), PLL_GMUX_CFG(pll));
 }
 #endif /* CONFIG_DW_PLL5GHZ_TSMC12FFC_DYNAMIC */
 
