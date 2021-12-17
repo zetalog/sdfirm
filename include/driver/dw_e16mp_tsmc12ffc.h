@@ -35,12 +35,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)dw_e16mp_tsmc12ffc.h: Synopsys 16G PY TSMC12FFC interface
+ * @(#)dw_e16mp_tsmc12ffc.h: Synopsys 16G PHY TSMC12FFC interface
  * $Id: dw_e16mp_tsmc12ffc.h,v 1.0 2021-12-17 16:00:00 zhenglv Exp $
  */
 
 #ifndef __DW_E16MP_TSMC12FFC_H_INCLUDE__
 #define __DW_E16MP_TSMC12FFC_H_INCLUDE__
+
+#include <target/arch.h>
 
 #ifndef DW_E16MP_BASE
 #define DW_E16MP_BASE(n)		(DW_E16MP##n##_BASE)
@@ -165,6 +167,7 @@
 /* LANE registers */
 #define DW_E16MP_LREG(n, l, offset)		\
 	DW_E16MP_REG(n, (offset) + ((l) << 8))
+#define DW_E16MP_ALL_LANE			0x80
 #define LANE_DIG_ASIC_LANE_OVRD_IN(n, l)	DW_E16MP_LREG(n, l, 0x1000)
 #define LANE_DIG_ASIC_TX_OVRD_IN_0(n, l)	DW_E16MP_LREG(n, l, 0x1001)
 #define LANE_DIG_ASIC_TX_OVRD_IN_1(n, l)	DW_E16MP_LREG(n, l, 0x1002)
@@ -269,6 +272,309 @@
 	DW_E16MP_LREG(n, l, 0x106E)
 #define LANE_DIG_RX_ADPTCTL_DFE_TAP2_STATUS(n, l)	\
 	DW_E16MP_LREG(n, l, 0x106F)
+
+/* 11.2.28 SUP_DIG_ASIC_IN */
+#define SUP_BG_EN				_BV(15)
+#define SUP_MPLLB_STATE				_BV(14)
+#define SUP_MPLLA_STATE				_BV(13)
+#define SUP_RES_ACK_OUT				_BV(12)
+#define SUP_RES_ACK_IN				_BV(11)
+#define SUP_RES_REQ_OUT				_BV(10)
+#define SUP_RES_REQ_IN				_BV(9)
+#define SUP_RTUNE_ACK				_BV(8)
+#define SUP_RTUNE_REQ				_BV(7)
+#define SUP_TEST_POWERDOWN			_BV(6)
+#define SUP_TEST_BURNIN				_BV(5)
+#define SUP_REF_USE_PAD				_BV(4)
+#define SUP_REF_REPEAT_CLK_EN			_BV(3)
+#define SUP_REF_CLK_DIV2_EN			_BV(2)
+#define SUP_REF_CLK_EN				_BV(1)
+#define SUP_PHY_RESET				_BV(0)
+/* 11.2.96 LANEN_DIG_ASIC_LANE_OVRD_IN */
+#define LANE_OVRD_IN_EN				_BV(2)
+#define LANE_OVRD_RX2TX_PAR_LB			_BV(1)
+#define LANE_OVRD_TX2RX_SER_LB			_BV(0)
+/* 11.2.97 LANEN_DIG_ASIC_TX_OVRD_IN_0 */
+#define TX_OVRD_IN_0_EN			_BV(15)
+#define TX_OVRD_DETECT_RX_REQ			_BV(14)
+#define TX_OVRD_MPLLB_SEL			_BV(13)
+#define TX_OVRD_WIDTH_OFFSET			11
+#define TX_OVRD_WIDTH_MASK			REG_2BIT_MASK
+#define TX_OVRD_WIDTH(value)			_SET_FV(TX_OVRD_WIDTH, value)
+#define TX_OVRD_RATE_OFFSET			8
+#define TX_OVRD_RATE_MASK			REG_3BIT_MASK
+#define TX_OVRD_RATE(value)			_SET_FV(TX_OVRD_RATE, value)
+#define TX_OVRD_PSTATE_OFFSET			6
+#define TX_OVRD_PSTATE_MASK			REG_2BIT_MASK
+#define TX_OVRD_PSTATE(value)			_SET_FV(TX_OVRD_PSTATE, value)
+#define TX_OVRD_LPD				_BV(5)
+#define TX_OVRD_REQ				_BV(4)
+#define TX_OVRD_DATA_EN				_BV(3)
+#define TX_OVRD_INVERT				_BV(2)
+#define TX_OVRD_RESET				_BV(1)
+#define TX_OVRD_CLK_RDY				_BV(0)
+/* 11.2.98 LANEN_DIG_ASIC_TX_OVRD_IN_1 */
+#define TX_OVRD_MAIN_OVRD_EN			_BV(15)
+#define TX_OVRD_MAIN_CURSOR_OFFSET		9
+#define TX_OVRD_MAIN_CURSOR_MASK		REG_6BIT_MASK
+#define TX_OVRD_MAIN_CURSOR(value)		_SET_FV(TX_OVRD_MAIN_CURSOR, value)
+#define TX_OVRD_IN_1_EN				_BV(8)
+#define TX_OVRD_VBOOST_EN			_BV(7)
+#define TX_OVRD_IBOOST_LVL_OFFSET		3
+#define TX_OVRD_IBOOST_LVL_MASK			REG_4BIT_MASK
+#define TX_OVRD_IBOOST_LVL(value)		_SET_FV(TX_OVRD_IBOOST_LVL, value)
+#define TX_OVRD_BEACON_EN			_BV(2)
+#define TX_OVRD_DISABLE				_BV(1)
+#define TX_OVRD_NYQUIST_DATA			_BV(0)
+/* 11.2.99 LANEN_DIG_ASIC_TX_OVRD_IN_2 */
+#define TX_OVRD_POST_OVRD_EN			_BV(13)
+#define TX_OVRD_POST_CURSOR_OFFSET		7
+#define TX_OVRD_POST_CURSOR_MASK		REG_6BIT_MASK
+#define TX_OVRD_POST_CURSOR(value)		_SET_FV(TX_OVRD_POST_CURSOR, value)
+#define TX_OVRD_PRE_OVRD_EN			_BV(6)
+#define TX_OVRD_PRE_CURSOR_OFFSET		0
+#define TX_OVRD_PRE_CURSOR_MASK			REG_6BIT_MASK
+#define TX_OVRD_PRE_CURSOR(value)		_SET_FV(TX_OVRD_PRE_CURSOR, value)
+/* 11.2.100 LANEN_DIG_ASIC_TX_OVRD_OUT */
+#define TX_OVRD_EN_DETRX_RESULT			_BV(3)
+#define TX_OVRD_DETRX_RESULT			_BV(2)
+#define TX_OVRD_EN_TX_ACK			_BV(1)
+#define TX_OVRD_ACK				_BV(0)
+/* 11.2.101 LANEN_DIG_ASIC_RX_OVRD_IN_0 */
+#define RX_OVRD_IN_0_EN				_BV(13)
+#define RX_OVRD_DFE_BYPASS			_BV(12)
+#define RX_OVRD_DIV16P5_CLK_EN			_BV(11)
+#define RX_OVRD_WIDTH_OFFSET			9
+#define RX_OVRD_WIDTH_MASK			REG_2BIT_MASK
+#define RX_OVRD_WIDTH(value)			_SET_FV(RX_OVRD_WIDTH, value)
+#define RX_OVRD_RATE_OFFSET			7
+#define RX_OVRD_RATE_MASK			REG_2BIT_MASK
+#define RX_OVRD_RATE(value)			_SET_FV(RX_OVRD_RATE, value)
+#define RX_OVRD_PSTATE_OFFSET			5
+#define RX_OVRD_PSTATE_MASK			REG_2BIT_MASK
+#define RX_OVRD_PSTATE(value)			_SET_FV(RX_OVRD_PSTATE, value)
+#define RX_OVRD_LPD				_BV(4)
+#define RX_OVRD_REQ				_BV(3)
+#define RX_OVRD_DATA_EN				_BV(2)
+#define RX_OVRD_INVERT				_BV(1)
+#define RX_OVRD_RESET				_BV(0)
+/* 11.2.102 LANEN_DIG_ASIC_RX_OVRD_IN_1 */
+#define RX_OVRD_CDR_VCO_STEP_CTRL		_BV(11)
+#define RX_OVRD_CDR_VCO_TEMP_COMP_EN		_BV(10)
+#define RX_OVRD_IN_1_EN				_BV(9)
+#define RX_OVRD_CDR_VCO_FREQBAND_1_0_OFFSET	7
+#define RX_OVRD_CDR_VCO_FREQBAND_1_0_MASK	REG_2BIT_MASK
+#define RX_OVRD_CDR_VCO_FREQBAND_1_0(value)	_SET_FV(RX_OVRD_CDR_VCO_FREQBAND_1_0, value)
+#define RX_OVRD_REF_LD_VAL_OFFSET		0
+#define RX_OVRD_REF_LD_VAL_MASK			REG_7BIT_MASK
+#define RX_OVRD_REF_LD_VAL(value)		_SET_FV(RX_OVRD_REF_LD_VAL, value)
+/* 11.2.103 LANEN_DIG_ASIC_RX_OVRD_IN_2 */
+#define RX_OVRD_IN_2_EN				_BV(13)
+#define RX_OVRD_VCO_LD_VAL_OFFSET		0
+#define RX_OVRD_VCO_LD_VAL_MASK			REG_13BIT_MASK
+#define RX_OVRD_VCO_LD_VAL(value)		_SET_FV(RX_OVRD_VCO_LD_VAL, value)
+/* 11.2.104 LANEN_DIG_ASIC_RX_OVRD_IN_3 */
+#define RX_OVRD_IN_3_EN				_BV(11)
+#define RX_OVRD_TERM_ACDC			_BV(10)
+#define RX_OVRD_TERM_EN				_BV(9)
+#define RX_OVRD_LOS_LPFS_EN			_BV(8)
+#define RX_OVRD_LOS_THRSHLD_OFFSET		5
+#define RX_OVRD_LOS_THRSHLD_MASK		REG_3BIT_MASK
+#define RX_OVRD_LOS_THRSHLD(value)		_SET_FV(RX_OVRD_LOS_THRSHLD, value)
+#define RX_OVRD_DISABLE				_BV(4)
+#define RX_OVRD_CLK_SHIFT			_BV(3)
+#define RX_OVRD_ALIGN_EN			_BV(2)
+#define RX_OVRD_CDR_SSC_EN			_BV(1)
+#define RX_OVRD_CDR_TRACK_EN			_BV(0)
+/* 11.2.105 LANEN_DIG_ASIC_RX_OVRD_EQ_IN_0 */
+#define RX_OVRD_EQ_CTLE_BOOST_OFFSET		9
+#define RX_OVRD_EQ_CTLE_BOOST_MASK		REG_5BIT_MASK
+#define RX_OVRD_EQ_CTLE_BOOST(value)		_SET_FV(RX_OVRD_EQ_CTLE_BOOST, value)
+#define RX_OVRD_EQ_VGA2_GAIN_OFFSET		6
+#define RX_OVRD_EQ_VGA2_GAIN_MASK		REG_3BIT_MASK
+#define RX_OVRD_EQ_VGA2_GAIN(value)		_SET_FV(RX_OVRD_EQ_VGA2_GAIN, value)
+#define RX_OVRD_EQ_VGA1_GAIN_OFFSET		3
+#define RX_OVRD_EQ_VGA1_GAIN_MASK		REG_3BIT_MASK
+#define RX_OVRD_EQ_VGA1_GAIN(value)		_SET_FV(RX_OVRD_EQ_VGA1_GAIN, value)
+#define RX_OVRD_EQ_ATT_LVL_OFFSET		0
+#define RX_OVRD_EQ_ATT_LVL_MASK			REG_3BIT_MASK
+#define RX_OVRD_EQ_ATT_LVL(value)		_SET_FV(RX_OVRD_EQ_ATT_LVL, value)
+/* 11.2.106 LANEN_DIG_ASIC_RX_OVRD_EQ_IN_1 */
+#define RX_OVRD_EQ_OVRD_EN			_BV(10)
+#define RX_OVRD_EQ_DFE_TAP1_OFFSET		2
+#define RX_OVRD_EQ_DFE_TAP1_MASK		REG_8BIT_MASK
+#define RX_OVRD_EQ_DFE_TAP1(value)		_SET_FV(RX_OVRD_EQ_DFE_TAP1, value)
+#define RX_OVRD_EQ_CTLE_POLE_OFFSET		0
+#define RX_OVRD_EQ_CTLE_POLE_MASK		REG_2BIT_MASK
+#define RX_OVRD_EQ_CTLE_POLE(value)		_SET_FV(RX_OVRD_EQ_CTLE_POLE, value)
+/* 11.2.107 LANEN_DIG_ASIC_RX_OVRD_OUT_0 */
+#define RX_OVRD_EN_CTL				_BV(4)
+#define RX_OVRD_ADAPT_STS_OFFSET		2
+#define RX_OVRD_ADAPT_STS_MASK			REG_2BIT_MASK
+#define RX_OVRD_ADAPT_STS(value)		_SET_FV(RX_OVRD_ADAPT_STS, value)
+#define RX_OVRD_LOS				_BV(1)
+#define RX_OVRD_ACK				_BV(0)
+/* 11.2.108 LANEN_DIG_ASIC_LANE_ASIC_IN */
+#define LANE_ASIC_LANE_RX2TX_PAR_LB		_BV(1)
+#define LANE_ASIC_LANE_TX2RX_SER_LB		_BV(0)
+/* 11.2.109 LANEN_DIG_ASIC_TX_ASIC_IN_0 */
+#define TX_ASIC_DISABLE				_BV(15)
+#define TX_ASIC_DETECT_RX_REQ			_BV(14)
+#define TX_ASIC_MPLLB_SEL			_BV(13)
+#define TX_ASIC_WIDTH_OFFSET			11
+#define TX_ASIC_WIDTH_MASK			REG_2BIT_MASK
+#define TX_ASIC_WIDTH(value)			_GET_FV(TX_ASIC_WIDTH, value)
+#define TX_ASIC_RATE_OFFSET			8
+#define TX_ASIC_RATE_MASK			REG_3BIT_MASK
+#define TX_ASIC_RATE(value)			_GET_FV(TX_ASIC_RATE, value)
+#define TX_ASIC_PSTATE_OFFSET			6
+#define TX_ASIC_PSTATE_MASK			REG_2BIT_MASK
+#define TX_ASIC_PSTATE(value)			_GET_FV(TX_ASIC_PSTATE, value)
+#define TX_ASIC_LPD				_BV(5)
+#define TX_ASIC_REQ				_BV(4)
+#define TX_ASIC_DATA_EN				_BV(3)
+#define TX_ASIC_INVERT				_BV(2)
+#define TX_ASIC_RESET				_BV(1)
+#define TX_ASIC_CLK_RDY				_BV(0)
+/* 11.2.110 LANEN_DIG_ASIC_TX_ASIC_IN_1 */
+#define TX_ASIC_MAIN_CURSOR_OFFSET		6
+#define TX_ASIC_MAIN_CURSOR_MASK		REG_6BIT_MASK
+#define TX_ASIC_MAIN_CURSOR(value)		_GET_FV(TX_ASIC_MAIN_CURSOR, value)
+#define TX_ASIC_VBOOST_EN			_BV(5)
+#define TX_ASIC_IBOOST_LVL_OFFSET		1
+#define TX_ASIC_IBOOST_LVL_MASK			REG_4BIT_MASK
+#define TX_ASIC_IBOOST_LVL(value)		_GET_FV(TX_ASIC_IBOOST_LVL, value)
+#define TX_ASIC_BEACON_EN			_BV(0)
+/* 11.2.111 LANEN_DIG_ASIC_TX_ASIC_IN_2 */
+#define TX_ASIC_POST_CURSOR_OFFSET		6
+#define TX_ASIC_POST_CURSOR_MASK		REG_6BIT_MASK
+#define TX_ASIC_POST_CURSOR(value)		_GET_FV(TX_ASIC_POST_CURSOR, value)
+#define TX_ASIC_PRE_CURSOR_OFFSET		0
+#define TX_ASIC_PRE_CURSOR_MASK			REG_6BIT_MASK
+#define TX_ASIC_PRE_CURSOR(value)		_GET_FV(TX_ASIC_PRE_CURSOR, value)
+/* 11.2.112 LANEN_DIG_ASIC_TX_ASIC_OUT */
+#define TX_ASIC_DETRX_RESULT			_BV(1)
+#define TX_ASIC_ACK				_BV(0)
+/* 11.2.113 LANEN_DIG_ASIC_RX_ASIC_IN_0 */
+#define RX_ASIC_CDR_TRACK_EN			_BV(13)
+#define RX_ASIC_RX_DFE_BYPASS			_BV(12)
+#define RX_ASIC_DIV16P5_CLK_EN			_BV(11)
+#define RX_ASIC_WIDTH_OFFSET			9
+#define RX_ASIC_WIDTH_MASK			REG_2BIT_MASK
+#define RX_ASIC_WIDTH(value)			_GET_FV(RX_ASIC_WIDTH, value)
+#define RX_ASIC_RATE_OFFSET			7
+#define RX_ASIC_RATE_MASK			REG_2BIT_MASK
+#define RX_ASIC_RATE(value)			_GET_FV(RX_ASIC_RATE, value)
+#define RX_ASIC_PSTATE_OFFSET			5
+#define RX_ASIC_PSTATE_MASK			REG_2BIT_MASK
+#define RX_ASIC_PSTATE(value)			_GET_FV(RX_ASIC_PSTATE, value)
+#define RX_ASIC_LPD				_BV(4)
+#define RX_ASIC_REQ				_BV(3)
+#define RX_ASIC_DATA_EN				_BV(2)
+#define RX_ASIC_INVERT				_BV(1)
+#define RX_ASIC_RESET				_BV(0)
+/* 11.2.114 LANEN_DIG_ASIC_RX_ASIC_IN_1 */
+#define RX_ASIC_RX_TERM_ACDC			_BV(9)
+#define RX_ASIC_RX_TERM_EN			_BV(8)
+#define RX_ASIC_LOS_LPFS_EN			_BV(7)
+#define RX_ASIC_LOS_THRSHLD_OFFSET		4
+#define RX_ASIC_LOS_THRSHLD_MASK		REG_3BIT_MASK
+#define RX_ASIC_LOS_THRSHLD(value)		_GET_FV(RX_ASIC_LOS_THRSHLD, value)
+#define RX_ASIC_DISABLE				_BV(3)
+#define RX_ASIC_CLK_SHIFT			_BV(2)
+#define RX_ASIC_ALIGN_EN			_BV(1)
+#define RX_ASIC_CDR_SSC_EN			_BV(0)
+/* 11.2.115 LANEN_DIG_ASIC_RX_EQ_ASIC_IN_0 */
+#define RX_ASIC_EQ_CTLE_BOOST_OFFSET		9
+#define RX_ASIC_EQ_CTLE_BOOST_MASK		REG_5BIT_MASK
+#define RX_ASIC_EQ_CTLE_BOOST(value)		_GET_FV(RX_ASIC_EQ_CTLE_BOOST, value)
+#define RX_ASIC_EQ_VGA2_GAIN_OFFSET		6
+#define RX_ASIC_EQ_VGA2_GAIN_MASK		REG_3BIT_MASK
+#define RX_ASIC_EQ_VGA2_GAIN(value)		_GET_FV(RX_ASIC_EQ_VGA2_GAIN, value)
+#define RX_ASIC_EQ_VGA1_GAIN_OFFSET		3
+#define RX_ASIC_EQ_VGA1_GAIN_MASK		REG_3BIT_MASK
+#define RX_ASIC_EQ_VGA1_GAIN(value)		_GET_FV(RX_ASIC_EQ_VGA1_GAIN, value)
+#define RX_ASIC_EQ_ATT_LVL_OFFSET		0
+#define RX_ASIc_EQ_ATT_LVL_MASK			REG_3BIT_MASK
+#define RX_ASIc_EQ_ATT_LVL(value)		_GET_FV(RX_ASIC_EQ_ATT_LVL, value)
+/* 11.2.116 LANEN_DIG_ASIC_RX_EQ_ASIC_IN_1 */
+#define RX_ASIC_EQ_DFE_TAP1_OFFSET		2
+#define RX_ASIC_EQ_DFE_TAP1_MASK		REG_8BIT_MASK
+#define RX_ASIC_EQ_DFE_TAP1(value)		_GET_FV(RX_ASIC_EQ_DFE_TAP1, value)
+#define RX_ASIC_EQ_CTLE_POLE_OFFSET		0
+#define RX_ASIC_EQ_CTLE_POLE_MASK		REG_2BIT_MASK
+#define RX_ASIC_EQ_CTLE_POLE(value)		_GET_FV(RX_ASIC_EQ_CTLE_POLE, value)
+/* 11.2.117 LANEN_DIG_ASIC_RX_CDR_VCO_ASIC_IN_0 */
+#define RX_ASIC_REF_LD_VAL_OFFSET		4
+#define RX_ASIC_REF_LD_VAL_MASK			REG_7BIT_MASK
+#define RX_ASIC_REF_LD_VAL(value)		_GET_FV(RX_ASIC_REF_LD_VAL, value)
+#define RX_ASIC_CDR_VCO_FREQBAND_OFFSET		2
+#define RX_ASIC_CDR_VCO_FREQBAND_MASK		REG_2BIT_MASK
+#define RX_ASIC_CDR_VCO_FREQBAND(value)		_GET_FV(RX_ASIC_CDR_VCO_FREQBAND, value)
+#define RX_ASIC_CDR_VCO_STEP_CTRL		_BV(1)
+#define RX_ASIC_CDR_VCO_TEMP_COMP_EN		_BV(0)
+/* 11.2.118 LANEN_DIG_ASIC_RX_CDR_VCO_ASIC_IN_1 */
+#define RX_ASIC_VCO_LD_VAL_OFFSET		0
+#define RX_ASIC_VCO_LD_VAL_MASK			REG_13BIT_MASK
+#define RX_ASIC_VCO_LD_VAL(value)		_GET_FV(RX_ASIC_VCO_LD_VAL, value)
+/* 11.2.119 LANEN_DIG_ASIC_RX_ASIC_ASIC_OUT_0 */
+#define RX_ASIC_ADAPT_STS_OFFSET		3
+#define RX_ASIC_ADAPT_STS_MASK			REG_2BIT_MASK
+#define RX_ASIC_ADAPT_STS(value)		_GET_FV(RX_ASIC_ADAPT_STS, value)
+#define RX_ASIC_VALID				_BV(2)
+#define RX_ASIC_LOS				_BV(1)
+#define RX_ASIC_ACK				_BV(0)
+/* 11.2.120 LANEN_DIG_ASIC_RX_OVRD_EQ_IN_2 */
+#define RX_OVRD_EQ_DFE_TAP3_OFFSET		7
+#define RX_OVRD_EQ_DFE_TAP3_MASK		REG_7BIT_MASK
+#define RX_OVRD_EQ_DFE_TAP3(value)		_SET_FV(RX_OVRD_EQ_DFE_TAP3, value)
+#define RX_OVRD_EQ_DFE_TAP2_OFFSET		0
+#define RX_OVRD_EQ_DFE_TAP2_MASK		REG_7BIT_MASK
+#define RX_OVRD_EQ_DFE_TAP2(value)		_SET_FV(RX_OVRD_EQ_DFE_TAP2, value)
+/* 11.2.121 LANEN_DIG_ASIC_RX_OVRD_EQ_IN_3 */
+#define RX_OVRD_EQ_DFE_TAP5_OFFSET		7
+#define RX_OVRD_EQ_DFE_TAP5_MASK		REG_7BIT_MASK
+#define RX_OVRD_EQ_DFE_TAP5(value)		_SET_FV(RX_OVRD_EQ_DFE_TAP5, value)
+#define RX_OVRD_EQ_DFE_TAP4_OFFSET		0
+#define RX_OVRD_EQ_DFE_TAP4_MASK		REG_7BIT_MASK
+#define RX_OVRD_EQ_DFE_TAP4(value)		_SET_FV(RX_OVRD_EQ_DFE_TAP4, value)
+/* 11.2.122 LANEN_DIG_ASIC_TX_OVRD_MISC */
+#define TX_OVRD_MISC_OVRD_EN			_BV(8)
+#define TX_OVRD_MISC_OVRD_VAL_OFFSET		0
+#define TX_OVRD_MISC_OVRD_VAL_MASK		REG_8BIT_MASK
+#define TX_OVRD_MISC_OVRD_VAL(value)		_SET_FV(TX_OVRD_MISC_OVRD_VAL, value)
+
+#define dw_e16mp_lane_get_rx_ack(n, l)				\
+	(__raw_readw(LANE_DIG_ASIC_RX_ASIC_OUT_0(n, l)) & RX_ASIC_ACK)
+#define dw_e16mp_lane_set_rx_ovrd_in_0(n, l)			\
+	__raw_setw(RX_OVRD_IN_0_EN, LANE_DIG_ASIC_RX_OVRD_IN_0(n, l))
+#define dw_e16mp_lane_set_rx_req(n, l)				\
+	__raw_setw(RX_OVRD_REQ, LANE_DIG_ASIC_RX_OVRD_IN_0(n, l))
+#define dw_e16mp_lane_clear_rx_req(n, l)			\
+	__raw_clearw(RX_OVRD_REQ, LANE_DIG_ASIC_RX_OVRD_IN_0(n, l))
+#define dw_e16mp_lane_set_rx_pstate(n, l, s)			\
+	__raw_writew_mask(RX_OVRD_PSTATE(s),			\
+			  RX_OVRD_PSTATE(RX_OVRD_PSTATE_MASK),	\
+			  LANE_DIG_ASIC_RX_OVRD_IN_0(n, l))
+#define dw_e16mp_lane_set_rx_data_en(n, l)			\
+	__raw_setw(RX_OVRD_DATA_EN, LANE_DIG_ASIC_RX_OVRD_IN_0(n, l))
+
+#define dw_e16mp_lane_get_tx_ack(n, l)				\
+	(__raw_readw(LANE_DIG_ASIC_TX_ASIC_OUT(n, l)) & TX_ASIC_ACK)
+#define dw_e16mp_lane_set_tx_ovrd_in_0(n, l)			\
+	__raw_setw(TX_OVRD_IN_0_EN, LANE_DIG_ASIC_TX_OVRD_IN_0(n, l))
+#define dw_e16mp_lane_set_tx_req(n, l)				\
+	__raw_setw(TX_OVRD_REQ, LANE_DIG_ASIC_TX_OVRD_IN_0(n, l))
+#define dw_e16mp_lane_clear_tx_req(n, l)			\
+	__raw_setw(TX_OVRD_REQ, LANE_DIG_ASIC_TX_OVRD_IN_0(n, l))
+#define dw_e16mp_lane_set_tx_pstate(n, l, s)			\
+	__raw_writew_mask(TX_OVRD_PSTATE(s),			\
+			  TX_OVRD_PSTATE(TX_OVRD_PSTATE_MASK),	\
+			  LANE_DIG_ASIC_TX_OVRD_IN_0(n, l))
+#define dw_e16mp_lane_set_tx_clk_rdy(n, l)			\
+	__raw_setw(TX_OVRD_CLK_RDY, LANE_DIG_ASIC_TX_OVRD_IN_0(n, l))
+#define dw_e16mp_lane_set_tx_data_en(n, l)			\
+	__raw_setw(TX_OVRD_DATA_EN, LANE_DIG_ASIC_TX_OVRD_IN_0(n, l))
 
 void dw_e16mp_tsmc12ffc_init(int n);
 
