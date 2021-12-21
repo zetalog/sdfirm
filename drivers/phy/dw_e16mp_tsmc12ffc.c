@@ -70,24 +70,28 @@
 		dw_e16mp_lane_wait_tx_idle(n, l);	\
 	} while (0)
 
-void dw_e16mp_tsmc12ffc_init(int n)
+void dw_e16mp_tsmc12ffc_init(int n, int l)
 {
-	/* Step 6: complete phy init */
-	dw_e16mp_lane_wait_idle(n, DW_E16MP_ALL_LANE);
+	int i;
 
-	dw_e16mp_lane_set_rx_ovrd_in_0(n, DW_E16MP_ALL_LANE);
-	dw_e16mp_lane_set_tx_ovrd_in_0(n, DW_E16MP_ALL_LANE);
+	for (i = 0; i < l; i++) {
+		/* Step 6: complete phy init */
+		dw_e16mp_lane_wait_idle(n, l);
 
-	/* Step 7: update rxX_pstate */
-	dw_e16mp_lane_cfg_rx_pstate(n, DW_E16MP_ALL_LANE, 0x00);
+		dw_e16mp_lane_set_rx_ovrd_in_0(n, l);
+		dw_e16mp_lane_set_tx_ovrd_in_0(n, l);
 
-	/* Step 8: update txX_pstate */
-	dw_e16mp_lane_cfg_tx_pstate(n, DW_E16MP_ALL_LANE, 0x10);
-	while (!(__raw_readw(SUP_DIG_ASIC_IN(n)) & SUP_MPLLA_STATE));
-	dw_e16mp_lane_set_tx_clk_rdy(n, DW_E16MP_ALL_LANE);
-	dw_e16mp_lane_cfg_tx_pstate(n, DW_E16MP_ALL_LANE, 0x00);
+		/* Step 7: update rxX_pstate */
+		dw_e16mp_lane_cfg_rx_pstate(n, l, LANE_P0);
 
-	/* Step 9: rxX_data_en, txX_data_en */
-	dw_e16mp_lane_set_rx_data_en(n, DW_E16MP_ALL_LANE);
-	dw_e16mp_lane_set_tx_data_en(n, DW_E16MP_ALL_LANE);
+		/* Step 8: update txX_pstate */
+		dw_e16mp_lane_cfg_tx_pstate(n, l, LANE_P1);
+		while (!(__raw_readw(SUP_DIG_ASIC_IN(n)) & SUP_MPLLA_STATE));
+		dw_e16mp_lane_set_tx_clk_rdy(n, l);
+		dw_e16mp_lane_cfg_tx_pstate(n, l, LANE_P2);
+
+		/* Step 9: rxX_data_en, txX_data_en */
+		dw_e16mp_lane_set_rx_data_en(n, l);
+		dw_e16mp_lane_set_tx_data_en(n, l);
+	}
 }

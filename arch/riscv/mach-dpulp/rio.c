@@ -66,7 +66,7 @@ void dpulp_rio_init_phy(int n)
 void dpulp_rio_init(int n)
 {
 	dpulp_rio_init_phy(n);
-	dw_e16mp_tsmc12ffc_init(n);
+	dw_e16mp_tsmc12ffc_init(n, RAB_SRIO_LANES);
 
 	/* TODO: Read lane asic_tx|rx_axic_out */
 	rab_init_port();

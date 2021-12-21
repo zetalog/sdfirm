@@ -82,6 +82,8 @@
 #define RAB_rx_reset			_BV(2)
 #define RAB_ref_clk_en			_BV(3)
 
+#define RAB_SRIO_LANES			4
+
 /* SC_MISC */
 #define RAB_sc_pefcar_ctls		_BV(0)
 #define RAB_sc_srio_mode_OFFSET		1

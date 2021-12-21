@@ -544,6 +544,12 @@
 #define TX_OVRD_MISC_OVRD_VAL_MASK		REG_8BIT_MASK
 #define TX_OVRD_MISC_OVRD_VAL(value)		_SET_FV(TX_OVRD_MISC_OVRD_VAL, value)
 
+/* RX/TX pstate */
+#define LANE_P0					0x0
+#define LANE_P0S				0x1
+#define LANE_P1					0x2
+#define LANE_P2					0x3
+
 #define dw_e16mp_lane_get_rx_ack(n, l)				\
 	(__raw_readw(LANE_DIG_ASIC_RX_ASIC_OUT_0(n, l)) & RX_ASIC_ACK)
 #define dw_e16mp_lane_set_rx_ovrd_in_0(n, l)			\
@@ -576,6 +582,6 @@
 #define dw_e16mp_lane_set_tx_data_en(n, l)			\
 	__raw_setw(TX_OVRD_DATA_EN, LANE_DIG_ASIC_TX_OVRD_IN_0(n, l))
 
-void dw_e16mp_tsmc12ffc_init(int n);
+void dw_e16mp_tsmc12ffc_init(int n, int l);
 
 #endif /* __DW_E16MP_TSMC12FFC_H_INCLUDE__ */
