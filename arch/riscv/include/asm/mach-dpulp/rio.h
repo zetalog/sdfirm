@@ -46,6 +46,7 @@
 #include <target/clk.h>
 
 #define RAB_BASE		RAB0_CTRL_BASE
+#define RAB_ABAR		RAB0_SLV_BASE
 
 #define DW_E16MP_BASE(n)	(RAB0_PHY_BASE + ((n) << 24))
 #define RAB_CUST_REG(n, offset)	\

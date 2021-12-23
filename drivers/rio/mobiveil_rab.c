@@ -92,15 +92,49 @@ uint32_t rab_readl(caddr_t addr)
 /* ======================================================================
  * RAB Enumeration
  * ====================================================================== */
-void rab_enum(void)
+static void rab_config_axi_amap(int win, uint8_t type, uint8_t prio,
+				caddr_t axi_base, uint64_t axi_size,
+				uint64_t rio_base)
 {
-	rab_setl(RAB_AMBA_PIO_Enable | RAB_RIO_PIO_Enable |
-		 RAB_Write_DMA_Enable | RAB_Read_DMA_Enable,
-		 RAB_CTRL);
+	rab_writel(RAB_AXI_AMAP_Enable |
+		   RAB_AXI_AMAP_Type(type) | RAB_AXI_AMAP_Priority(prio),
+		   RAB_AXI_AMAP_CTRL(win));
+	rab_writel(RAB_AXI_AMAP_MASK(axi_size), RAB_AXI_AMAP_SIZE(win));
+	rab_writel(RAB_AXI_AMAP_BASE(axi_base), RAB_AXI_AMAP_ABAR(win));
+	rab_writel(RAB_AXI_AMAP_BASE(rio_base), RAB_AXI_AMAP_RBAR(win));
+}
+
+void rab_enable_axi_amap(int apio, int win, uint8_t type, uint8_t prio,
+			 caddr_t axi_base, uint64_t axi_size,
+			 uint64_t rio_base)
+{
+	rab_writel(RAB_APIO_Enable | RAB_APIO_MemoryMappingEnable |
+		   RAB_APIO_CCPEnable, RAB_APIO_CTRL(apio));
+
+	while (axi_size > RAB_AXI_AMAP_SIZE_MAX) {
+		rab_config_axi_amap(win, type, prio, axi_base,
+				    RAB_AXI_AMAP_SIZE_MAX, rio_base);
+		axi_base += RAB_AXI_AMAP_SIZE_MAX;
+		rio_base += RAB_AXI_AMAP_SIZE_MAX;
+		axi_size -= RAB_AXI_AMAP_SIZE_MAX;
+	}
+
+#ifdef CONFIG_RAB_RIO_50BIT
+	rab_writel(RAB_AXI_AMAP_UPPER(rio_base),
+		   RAB_APIO_RIO_UPPER16_ADDR(apio));
+#endif /* CONFIG_RAB_RIO_50BIT */
+}
+
+/* apio_maint_read_trans */
+void rab_axi_testcase(void)
+{
 }
 
 void rab_init_port(void)
 {
-	rab_enum();
+	rab_setl(RAB_AXIPIOEnable | RAB_RIOPIOEnable |
+		 RAB_WriteDMAEnable | RAB_ReadDMAEnable, RAB_CTRL);
 	srio_init_port();
+
+	rab_axi_testcase();
 }

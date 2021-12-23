@@ -65,9 +65,17 @@ void dpulp_rio_init_phy(int n)
 
 void dpulp_rio_init(int n)
 {
+	int win = 0;
+	int pio = 0;
+
 	dpulp_rio_init_phy(n);
 	dw_e16mp_tsmc12ffc_init(n, RAB_SRIO_LANES);
 
 	/* TODO: Read lane asic_tx|rx_axic_out */
 	rab_init_port();
+
+	rab_enable_axi_amap(pio, win, RAB_AXI_AMAP_MAINT_READ_WRITE, 0,
+			    RAB_ABAR, RAB_AXI_AMAP_SIZE_MAX * 8, 0);
+	win += 8;
+	pio++;
 }
