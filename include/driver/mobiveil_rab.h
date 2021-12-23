@@ -317,13 +317,13 @@
 /* Due to the design of RAM_AXI_AMAP_SIZE register, the maximum NAOPT size
  * supported by RAB is 0x8000000.
  */
-#define RAB_AXI_AMAP_SIZE_MAX			0x80000000
-#define RAB_AXI_AMAP_MASK(size)			((size) & ~0x3ff)
+#define RAB_AXI_AMAP_SIZE_MAX			ULL(0x80000000)
+#define RAB_AXI_AMAP_MASK(size)			ALIGN(size, 0x400)
 /* 19.10.3 AXI Address Mapping AXI Base Register
  * 19.10.4 AXI Address Mapping RIO Base Register
  */
-#define RAB_AXI_AMAP_BASE(base)			((base) >> 10)
-#define RAB_AXI_AMAP_UPPER(base)		((base) >> 34)
+#define RAB_AXI_AMAP_BASE(base)			(((uint64_t)(base)) >> 10)
+#define RAB_AXI_AMAP_UPPER(base)		(((uint64_t)(base)) >> 34)
 /* 19.10.4 AXI Address Mapping RIO Base Register */
 #define RAB_AXI_AMAP_Hopcount_OFFSET		14
 #define RAB_AXI_AMAP_Hopcount_MASK		REG_8BIT_MASK
@@ -415,6 +415,7 @@ void rab_enable_axi_amap(int apio, int win, uint8_t type, uint8_t prio,
 			 caddr_t axi_base, uint64_t axi_size,
 			 uint64_t rio_base);
 
+void rab_axi_testcase(void);
 void rab_init_port(void);
 
 #endif /* __MOBIVEIL_RAB_H_INCLUDE__ */

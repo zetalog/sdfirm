@@ -60,6 +60,8 @@ void dpulp_rio_init_phy(int n)
 
 	while (!(__raw_readw(SRAM_INIT_DONE(n)) & RAB_sram_init_done));
 	__raw_writew(RAB_sram_ext_ld_done, SRAM_EXT_LD_DONE(n));
+
+	dw_e16mp_tsmc12ffc_init(n, RAB_SRIO_LANES);
 }
 #endif /* CONFIG_DPULP_RAB_TES */
 
@@ -69,7 +71,6 @@ void dpulp_rio_init(int n)
 	int pio = 0;
 
 	dpulp_rio_init_phy(n);
-	dw_e16mp_tsmc12ffc_init(n, RAB_SRIO_LANES);
 
 	/* TODO: Read lane asic_tx|rx_axic_out */
 	rab_init_port();
@@ -78,4 +79,6 @@ void dpulp_rio_init(int n)
 			    RAB_ABAR, RAB_AXI_AMAP_SIZE_MAX * 8, 0);
 	win += 8;
 	pio++;
+
+	rab_axi_testcase();
 }

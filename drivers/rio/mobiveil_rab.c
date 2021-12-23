@@ -117,7 +117,11 @@ void rab_enable_axi_amap(int apio, int win, uint8_t type, uint8_t prio,
 		axi_base += RAB_AXI_AMAP_SIZE_MAX;
 		rio_base += RAB_AXI_AMAP_SIZE_MAX;
 		axi_size -= RAB_AXI_AMAP_SIZE_MAX;
+		win++;
 	}
+	if (axi_size)
+		rab_config_axi_amap(win, type, prio, axi_base,
+				    axi_size, rio_base);
 
 #ifdef CONFIG_RAB_RIO_50BIT
 	rab_writel(RAB_AXI_AMAP_UPPER(rio_base),
@@ -135,6 +139,4 @@ void rab_init_port(void)
 	rab_setl(RAB_AXIPIOEnable | RAB_RIOPIOEnable |
 		 RAB_WriteDMAEnable | RAB_ReadDMAEnable, RAB_CTRL);
 	srio_init_port();
-
-	rab_axi_testcase();
 }
