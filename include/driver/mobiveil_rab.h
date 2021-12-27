@@ -275,6 +275,27 @@
 #define RAB_APB_SWAPPING_HALF_WORD		3
 
 /* ======================================================================
+ * 19.6 Interrupt Registers (INTR)
+ * ====================================================================== */
+/* 19.6.1 Interrupt Enable Registers */
+/* 19.6.1.1 General Interrupt Enable Register */
+#define RAB_INTR_AXIPIOInterruptEnable		_BV(0)
+#define RAB_INTR_RIOPIOInterruptEnable		_BV(1)
+#define RAB_INTR_WriteDMAInterrupatEnable	_BV(2)
+#define RAB_INTR_ReadDMAInterruptEnable		_BV(3)
+#define RAB_INTR_InboundDMEInterruptEnable	_BV(4)
+#define RAB_INTR_OutboundDMEInterruptEnable	_BV(5)
+#define RAB_INTR_MiscInterruptEnable		_BV(6)
+#define RAB_INTR_InboundDSInterruptEnable	_BV(7)
+#define RAB_INTR_OutboundDSInterruptEnable	_BV(8)
+#define RAB_INTR_Axi_write_for_rab_intrEnable	_BV(15)
+#define RAB_INTR_ExternalInterruptOBDBEnable	_BV(31)
+
+/* 19.6.1.2 AXI PIO Interrupt Enable Register */
+#define RAB_INTR_AXIPIOTransactionCompleted(apio)	_BV(apio)
+#define RAB_INTR_AXIPIOTransactionFailed(apio)		_BV((apio) + 8)
+
+/* ======================================================================
  * 19.9 AXI PIO Registers (APIO)
  * ====================================================================== */
 /* 19.9.1 AXI PIO Control Register */

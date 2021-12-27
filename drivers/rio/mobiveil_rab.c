@@ -132,6 +132,18 @@ void rab_enable_axi_amap(int apio, int win, uint8_t type, uint8_t prio,
 /* apio_maint_read_trans */
 void rab_axi_testcase(void)
 {
+	int apio = 0;
+	int win = 0;
+
+	rab_setl(RAB_AXIPIOEnable | RAB_RIOPIOEnable, RAB_CTRL);
+	rab_setl(RAB_APIO_Enable | RAB_APIO_MemoryMappingEnable |
+		 RAB_APIO_CCPEnable, RAB_APIO_CTRL(apio));
+	rab_setl(RAB_AXI_AMAP_Enable, RAB_AXI_AMAP_CTRL(win));
+	rab_setl(RAB_INTR_AXIPIOTransactionCompleted(apio),
+		 RAB_INTR_ENAB_APIO);
+	rab_setl(RAB_INTR_AXIPIOInterruptEnable, RAB_INTR_ENAB_GNRL);
+
+	printf("AXI PIO test %04x", __raw_readl(RAB0_SLV_BASE + 0x40));
 }
 
 void rab_init_port(void)
