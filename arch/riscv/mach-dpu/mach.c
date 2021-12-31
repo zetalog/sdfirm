@@ -208,6 +208,7 @@ static void dpu_ram_boot_ddr(void)
 {
 	void (*boot_entry)(void);
 
+	imc_config_ddr_intlv();
 	boot_entry = (void *)DDR1_DATA_BASE;
 	boot_entry();
 }

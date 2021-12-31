@@ -75,7 +75,9 @@
 #define CLOCK_SEL(n)			RAB_CUST_REG(n, 0x14)
 #define SRAM_BYPASS(n)			RAB_CUST_REG(n, 0x16)
 #define SRAM_EXT_LD_DONE(n)		RAB_CUST_REG(n, 0x18)
-#define SRAM_INIT_DONE(n)		RAB_CUST_REG(n, 0x1a)
+#define SRAM_INIT_DONE(n)		RAB_CUST_REG(n, 0x1A)
+#define CR_PARA_SEL(n)			RAB_CUST_REG(n, 0x1C)
+#define TX_RX_ACK(n)			RAB_CUST_REG(n, 0x1E)
 
 /* PHY_RESET */
 #define RAB_phy_reset			_BV(0)
@@ -115,6 +117,10 @@
 
 /* SRAM_INIT_DONE */
 #define RAB_sram_init_done		_BV(0)
+
+/* TX_RX_ACK */
+#define RAB_rx_ack(n)			_BV(n)
+#define RAB_tx_ack(n)			_BV(4 + (n))
 
 /* IP integration */
 #ifdef CONFIG_DPULP_RIO_62500KHZ
