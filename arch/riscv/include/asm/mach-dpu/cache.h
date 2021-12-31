@@ -42,6 +42,8 @@
 #ifndef __CACHE_DPU_H_INCLUDE__
 #define __CACHE_DPU_H_INCLUDE__
 
+#include <asm/vaisra_cache.h>
+
 /* To use cache_aligned */
 #define __SMP_CACHE_SHIFT	7
 

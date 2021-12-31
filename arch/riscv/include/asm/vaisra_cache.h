@@ -45,17 +45,67 @@
 #include <target/generic.h>
 
 #ifdef CONFIG_CPU_VAISRA
+#define CSR_SSYSCFG		0x5DE /* control guest/user */
+#define CSR_HSYSCFG		0x6C0 /* control host/user */
+#define CSR_MSYSCFG		0x7E6 /* control machine mode */
+
+#define SCR_DC			_BV(2)	/* Dcache on/off */
+#define SCR_IC			_BV(12)	/* Icache on/off */
+
+#ifdef CONFIG_RISCV_EXIT_M
+#define CSR_SYSCFG		CSR_MSYSCFG
+#endif
+#ifdef CONFIG_RISCV_EXIT_S
+#define CSR_SYSCFG		CSR_SSYSCFG
+#endif
+
+#if !defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
+#define vaisra_cache_off()	csr_clear(CSR_SYSCFG, SCR_DC | SCR_IC)
+#define vaisra_cache_on()	csr_set(CSR_SYSCFG, SCR_DC | SCR_IC)
+
+/* Data Cache maintenance instructions */
+/* Data cache maintenance instructions use vendor specific encodings as
+ * there is no CMO standard ratified when vaisra is developed.
+ * 31        20        15       0
+ * +---------+---------+--------+
+ * | funct12 | opcode5 | func15 |
+ * +---------+---------+--------+
+ * opcode: register ID, 0=x0, 1=x1, ..., 31=x31
+ */
+#define INSN_DCACHE_FLUSH_ALL		0x9C70802B
+
+#define INSN_DCACHE_FLUSH_ADDR(reg)	(0x9C30002B | ((reg) << 15))
+#define INSN_ICACHE_FLUSH_ADDR(reg)	(0x9C90002B | ((reg) << 15))
+
+#define vaisra_flush_dcache_all()	\
+	asm volatile(".word %0" : : "i" (INSN_DCACHE_FLUSH_ALL))
+
 static __inline void vaisra_flush_dcache_addr(void *addr)
 {
 	__unused register uint64_t a0 asm ("x10") = (uint64_t)addr;
 
 	asm volatile (
 		"	add	%0, %0, 0\n"
-		"	.word	0x9c30002b | (10 << 15)"
-		: "=r" (a0) : : "memory");
+		"	.word	%1"
+		: "=r" (a0) : "i" (INSN_DCACHE_FLUSH_ADDR(10)) : "memory");
 }
+
+static __inline void vaisra_flush_icache_addr(void *addr)
+{
+	__unused register uint64_t a0 asm ("x10") = (uint64_t)addr;
+
+	asm volatile (
+		"	add	%0, %0, 0\n"
+		"	.word	%1"
+		: "=r" (a0) : "i" (INSN_ICACHE_FLUSH_ADDR(10)) : "memory");
+}
+#endif
 #else
+#define vaisra_cache_off()		do { } while (0)
+#define vaisra_cache_on()		do { } while (0)
+#define vaisra_flush_dcache_all()	do { } while (0)
 #define vaisra_flush_dcache_addr(addr)	do { } while (0)
+#define vaisra_flush_icache_addr(addr)	do { } while (0)
 #endif
 
 #endif /* __VAISRA_CACHE_H_INCLUDE__ */

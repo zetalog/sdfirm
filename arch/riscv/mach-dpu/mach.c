@@ -267,6 +267,12 @@ static void dpu_pma_debug(void)
 #define dpu_pma_debug()			do { } while (0)
 #endif
 
+#ifdef CONFIG_SMP
+#define dpu_cpu_cache_init()		vaisra_cache_on()
+#else
+#define dpu_cpu_cache_init()		vaisra_cache_off()
+#endif
+
 #ifdef CONFIG_DPU_PMA
 void dpu_pma_cpu_init(void)
 {
@@ -280,12 +286,13 @@ void dpu_pma_cpu_init(void)
 	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
 		     DDR0_DATA_BASE,
 		     ilog2_const(max(SZ_2M, DDR0_DATA_SIZE + DDR1_DATA_SIZE)));
-
+	dpu_cpu_cache_init();
 	dpu_ram_boot_ddr();
 }
 #else
 void dpu_pma_cpu_init(void)
 {
+	dpu_cpu_cache_init();
 	dpu_ram_boot_ddr();
 }
 #endif /* CONFIG_DPU_PMA */
