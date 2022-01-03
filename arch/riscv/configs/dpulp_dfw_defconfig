@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Dec 17 21:56:18 2021
+# Mon Jan  3 10:17:23 2022
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -476,6 +476,7 @@ CONFIG_DW_PCIE_RC=y
 #
 CONFIG_ARCH_IS_RAB_SERIAL=y
 CONFIG_ARCH_IS_RAB_PAGE_2KB=y
+CONFIG_ARCH_HAS_RAB_RIO_50BIT=y
 CONFIG_ARCH_HAS_RAB_SRIO_4X=y
 CONFIG_ARCH_HAS_RAB_SRIO_1_25G=y
 CONFIG_ARCH_IS_RAB_SCS=y
@@ -495,6 +496,7 @@ CONFIG_RAB_PAGE_2KB=y
 # CONFIG_RAB_PAGE_4KB is not set
 # CONFIG_RAB_FORCE_2X is not set
 # CONFIG_RAB_FORCE_1X is not set
+CONFIG_RAB_RIO_50BIT=y
 
 #
 # Bypass interface
