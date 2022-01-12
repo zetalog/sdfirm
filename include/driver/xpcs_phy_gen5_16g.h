@@ -129,32 +129,25 @@
 #define RX0_ADPT_MODE_MASK		REG_2BIT_MASK
 #define RX0_ADPT_MODE(value)		_SET_FV(RX0_ADPT_MODE, value)
 
-
 /* VR_XS_PMA_Gen5_16G_RX_IQ_CTRL3 */
 #define RX3_DELTA_IQ_OFFSET		8
 #define RX3_DELTA_IQ_MASK		REG_4BIT_MASK
 #define RX3_DELTA_IQ(value)		_SET_FV(RX3_DELTA_IQ, value)
-
 
 /* VR_XS_PMA_Gen5_16G_RX_IQ_CTRL2 */
 #define RX2_DELTA_IQ_OFFSET		8
 #define RX2_DELTA_IQ_MASK		REG_4BIT_MASK
 #define RX2_DELTA_IQ(value)		_SET_FV(RX2_DELTA_IQ, value)
 
-
-
 /* VR_XS_PMA_Gen5_16G_RX_IQ_CTRL1 */
 #define RX1_DELTA_IQ_OFFSET		8
 #define RX1_DELTA_IQ_MASK		REG_4BIT_MASK
 #define RX1_DELTA_IQ(value)		_SET_FV(RX1_DELTA_IQ, value)
 
-
-
 /* VR_XS_PMA_Gen5_16G_RX_IQ_CTRL0 */
 #define RX0_DELTA_IQ_OFFSET		8
 #define RX0_DELTA_IQ_MASK		REG_4BIT_MASK
 #define RX0_DELTA_IQ(value)		_SET_FV(RX0_DELTA_IQ, value)
-
 
 /* VR_XS_PMA_Gen5_16G_RX_CDR_CTRL1 */
 #define VCO_FRQBAND_3_OFFSET		14
@@ -172,40 +165,34 @@
 #define VCO_TEMP_COMP_EN_0			_BV(0)
 #define VCO_STEP_CTRL_0			_BV(4)
 
-
-
 /* VR_XS_PMA_Gen5_16G_RX_GEN_CTRL4 */
 #define RX_DFE_BYP_3_1_OFFSET		9
 #define RX_DFE_BYP_3_1_MASK		REG_3BIT_MASK
 #define RX_DFE_BYP_3_1(value)		_SET_FV(RX_DFE_BYP_3_1, value)
 #define RX_DFE_BYP_0			_BV(8)
 
-
 /* VR_XS_PMA_Gen5_16G_RX_MISC_CTRL1 */
-#define RX3_MISC_OFFSET		8
-#define RX3_MISC_MASK		REG_8BIT_MASK
-#define RX3_MISC(value)		_SET_FV(RX3_MISC, value)
+#define RX3_MISC_OFFSET			8
+#define RX3_MISC_MASK			REG_8BIT_MASK
+#define RX3_MISC(value)			_SET_FV(RX3_MISC, value)
 
-#define RX2_MISC_OFFSET		0
-#define RX2_MISC_MASK		REG_8BIT_MASK
-#define RX2_MISC(value)		_SET_FV(RX2_MISC, value)
-
+#define RX2_MISC_OFFSET			0
+#define RX2_MISC_MASK			REG_8BIT_MASK
+#define RX2_MISC(value)			_SET_FV(RX2_MISC, value)
 
 /* VR_XS_PMA_Gen5_16G_RX_MISC_CTRL0 */
-#define RX1_MISC_OFFSET		8
-#define RX1_MISC_MASK		REG_8BIT_MASK
-#define RX1_MISC(value)		_SET_FV(RX1_MISC, value)
+#define RX1_MISC_OFFSET			8
+#define RX1_MISC_MASK			REG_8BIT_MASK
+#define RX1_MISC(value)			_SET_FV(RX1_MISC, value)
 
-#define RX0_MISC_OFFSET		0
-#define RX0_MISC_MASK		REG_8BIT_MASK
-#define RX0_MISC(value)		_SET_FV(RX0_MISC, value)
-
+#define RX0_MISC_OFFSET			0
+#define RX0_MISC_MASK			REG_8BIT_MASK
+#define RX0_MISC(value)			_SET_FV(RX0_MISC, value)
 
 /* VR_XS_PMA_Gen5_16G_RX_EQ_CTRL0 */
 #define CTLE_BOOST_0_OFFSET		0
 #define CTLE_BOOST_0_MASK		REG_5BIT_MASK
 #define CTLE_BOOST_0(value)		_SET_FV(CTLE_BOOST_0, value)
-
 
 /* VR_XS_PMA_Gen5_16G_RX_EQ_CTRL1 */
 #define CTLE_BOOST_1_OFFSET		0
@@ -235,240 +222,129 @@
 /* VR_XS_PMA_Gen5_12G_16G_TX_EQ_CTRL1 */
 #define TX_EQ_OVR_RIDE			_BV(6)
 #define TX_EQ_POST_OFFSET		0
-#define TX_EQ_POST_MASK		REG_6BIT_MASK
+#define TX_EQ_POST_MASK			REG_6BIT_MASK
 #define TX_EQ_POST(value)		_SET_FV(TX_EQ_POST, value)
-
-
 
 /* VR_XS_PMA_Gen5_12G_16G_TX_EQ_CTRL0 */
 #define TX_EQ_MAIN_OFFSET		8
-#define TX_EQ_MAIN_MASK		REG_6BIT_MASK
+#define TX_EQ_MAIN_MASK			REG_6BIT_MASK
 #define TX_EQ_MAIN(value)		_SET_FV(TX_EQ_MAIN, value)
 
-
-
 #define TX_EQ_PRE_OFFSET		0
-#define TX_EQ_PRE_MASK		REG_6BIT_MASK
+#define TX_EQ_PRE_MASK			REG_6BIT_MASK
 #define TX_EQ_PRE(value)		_SET_FV(TX_EQ_PRE, value)
 
-#define TX_EQ_PRE_LEVEL		0
-
+#define TX_EQ_PRE_LEVEL			0
 
 /* VR_XS_PMA_Gen5_12G_16G_MPLLA_CTRL2 */
 #define MPLLA_DIV_OFFSET		8
-#define MPLLA_DIV_MASK		REG_3BIT_MASK
+#define MPLLA_DIV_MASK			REG_3BIT_MASK
 #define MPLLA_DIV(value)		_SET_FV(MPLLA_DIV, value)
-
-
-
 
 /* VR_XS_PMA_Gen5_12G_16G_TX_GENCTRL2 */
 #define TX3_WIDTH_OFFSET		14
-#define TX3_WIDTH_MASK		REG_2BIT_MASK
+#define TX3_WIDTH_MASK			REG_2BIT_MASK
 #define TX3_WIDTH(value)		_SET_FV(TX3_WIDTH, value)
 
 #define TX2_WIDTH_OFFSET		12
-#define TX2_WIDTH_MASK		REG_2BIT_MASK
+#define TX2_WIDTH_MASK			REG_2BIT_MASK
 #define TX2_WIDTH(value)		_SET_FV(TX2_WIDTH, value)
 
 #define TX1_WIDTH_OFFSET		10
-#define TX1_WIDTH_MASK		REG_2BIT_MASK
+#define TX1_WIDTH_MASK			REG_2BIT_MASK
 #define TX1_WIDTH(value)		_SET_FV(TX1_WIDTH, value)
 
 #define TX0_WIDTH_OFFSET		8
-#define TX0_WIDTH_MASK		REG_2BIT_MASK
+#define TX0_WIDTH_MASK			REG_2BIT_MASK
 #define TX0_WIDTH(value)		_SET_FV(TX0_WIDTH, value)
 #define WIDTH_10BIT	1
 #define WIDTH_20BIT	3
 
-
-
 /* VR_XS_PMA_Gen5_12G_16G_RX_GENCTRL2 */
 #define RX3_WIDTH_OFFSET		14
-#define RX3_WIDTH_MASK		REG_2BIT_MASK
+#define RX3_WIDTH_MASK			REG_2BIT_MASK
 #define RX3_WIDTH(value)		_SET_FV(RX3_WIDTH, value)
 
 #define RX2_WIDTH_OFFSET		12
-#define RX2_WIDTH_MASK		REG_2BIT_MASK
+#define RX2_WIDTH_MASK			REG_2BIT_MASK
 #define RX2_WIDTH(value)		_SET_FV(RX2_WIDTH, value)
 
 #define RX1_WIDTH_OFFSET		10
-#define RX1_WIDTH_MASK		REG_2BIT_MASK
+#define RX1_WIDTH_MASK			REG_2BIT_MASK
 #define RX1_WIDTH(value)		_SET_FV(RX1_WIDTH, value)
 
 #define RX0_WIDTH_OFFSET		8
-#define RX0_WIDTH_MASK		REG_2BIT_MASK
+#define RX0_WIDTH_MASK			REG_2BIT_MASK
 #define RX0_WIDTH(value)		_SET_FV(RX0_WIDTH, value)
 
 /* VR_XS_PMA_Gen5_12G_16G_TX_RATE_CTRL */
-#define TX0_RATE_OFFSET		0
-#define TX0_RATE_MASK		REG_3BIT_MASK
-#define TX0_RATE(value)		_SET_FV(TX0_RATE, value)
+#define TX0_RATE_OFFSET			0
+#define TX0_RATE_MASK			REG_3BIT_MASK
+#define TX0_RATE(value)			_SET_FV(TX0_RATE, value)
 
-#define TX1_RATE_OFFSET		4
-#define TX1_RATE_MASK		REG_3BIT_MASK
-#define TX1_RATE(value)		_SET_FV(TX1_RATE, value)
+#define TX1_RATE_OFFSET			4
+#define TX1_RATE_MASK			REG_3BIT_MASK
+#define TX1_RATE(value)			_SET_FV(TX1_RATE, value)
 
-#define TX2_RATE_OFFSET		8
-#define TX2_RATE_MASK		REG_3BIT_MASK
-#define TX2_RATE(value)		_SET_FV(TX2_RATE, value)
+#define TX2_RATE_OFFSET			8
+#define TX2_RATE_MASK			REG_3BIT_MASK
+#define TX2_RATE(value)			_SET_FV(TX2_RATE, value)
 
-#define TX3_RATE_OFFSET		12
-#define TX3_RATE_MASK		REG_3BIT_MASK
-#define TX3_RATE(value)		_SET_FV(TX3_RATE, value)
-
+#define TX3_RATE_OFFSET			12
+#define TX3_RATE_MASK			REG_3BIT_MASK
+#define TX3_RATE(value)			_SET_FV(TX3_RATE, value)
 
 /* VR_XS_PMA_Gen5_12G_16G_RX_RATE_CTRL */
-#define RX0_RATE_OFFSET		0
-#define RX0_RATE_MASK		REG_2BIT_MASK
-#define RX0_RATE(value)		_SET_FV(RX0_RATE, value)
+#define RX0_RATE_OFFSET			0
+#define RX0_RATE_MASK			REG_2BIT_MASK
+#define RX0_RATE(value)			_SET_FV(RX0_RATE, value)
 
-#define RX1_RATE_OFFSET		4
-#define RX1_RATE_MASK		REG_2BIT_MASK
-#define RX1_RATE(value)		_SET_FV(RX1_RATE, value)
+#define RX1_RATE_OFFSET			4
+#define RX1_RATE_MASK			REG_2BIT_MASK
+#define RX1_RATE(value)			_SET_FV(RX1_RATE, value)
 
-#define RX2_RATE_OFFSET		8
-#define RX2_RATE_MASK		REG_2BIT_MASK
-#define RX2_RATE(value)		_SET_FV(RX2_RATE, value)
+#define RX2_RATE_OFFSET			8
+#define RX2_RATE_MASK			REG_2BIT_MASK
+#define RX2_RATE(value)			_SET_FV(RX2_RATE, value)
 
-#define RX3_RATE_OFFSET		12
-#define RX3_RATE_MASK		REG_2BIT_MASK
-#define RX3_RATE(value)		_SET_FV(RX3_RATE, value)
+#define RX3_RATE_OFFSET			12
+#define RX3_RATE_MASK			REG_2BIT_MASK
+#define RX3_RATE(value)			_SET_FV(RX3_RATE, value)
 
 /* VR_XS_PMA_Gen5_12G_16G_MPLLA_CTRL0 */
 #define VR_PMA_MPLLA_MULTIPLIER_OFFSET		0
 #define VR_PMA_MPLLA_MULTIPLIER_MASK		REG_8BIT_MASK
-#define VR_PMA_MPLLA_MULTIPLIER(value) _SET_FV(VR_PMA_MPLLA_MULTIPLIER, value)
-
+#define VR_PMA_MPLLA_MULTIPLIER(value)		\
+	_SET_FV(VR_PMA_MPLLA_MULTIPLIER, value)
 
 /* VR_XS_PMA_Gen5_12G_16G_REF_CLK_CTRL */
-#define REF_MPLLA_DIV2			_BV(6)
-#define REF_RANGE_OFFSET		3
+#define REF_MPLLA_DIV2		_BV(6)
+#define REF_RANGE_OFFSET	3
 #define REF_RANGE_MASK		REG_3BIT_MASK
-#define REF_RANGE(value) _SET_FV(REF_RANGE, value)
-#define REF_CLK_DIV2			_BV(2)
-#define CLK_156P1_182MHZ 6
+#define REF_RANGE(value)	_SET_FV(REF_RANGE, value)
+#define REF_CLK_DIV2		_BV(2)
+#define CLK_156P1_182MHZ	6
 
+#define VCO_REF_LD_1_OFFSET	8
+#define VCO_REF_LD_1_MASK	REG_7BIT_MASK
+#define VCO_REF_LD_1(value)	_SET_FV(VCO_REF_LD_1, value)
 
-
-#ifdef CONFIG_DUOWEN_ETH_10000BASE_KX4
-#define CTLE_BOOST_0_LEVEL		6
-#define TX_EQ_POST_LEVEL		0
-#define RX3_DELTA_IQ_VAL		0
-#define RX2_DELTA_IQ_VAL		0
-#define RX1_DELTA_IQ_VAL		0
-#define RX0_DELTA_IQ_VAL		0
-#define VCO_FRQBAND_VAL			2
-#define RX_DFE_BYP_3_1_VAL		7
-#define RX_DFE_BYP_0_VAL		RX_DFE_BYP_0
-#define RX3_MISC_VAL		7
-#define RX2_MISC_VAL		7
-#define RX1_MISC_VAL		7
-#define RX0_MISC_VAL		7
-#define TX_EQ_MAIN_AMPLITUDE		40
-#define MPLLA_DIV_CLK_EN		2
-#define WIDTH_BITS	WIDTH_10BIT
-#define BAUD_DIV4	2
-#define MPLLA_MULTIPLIER 40
-#define VCO_LD_VAL_0 1360
-#define VCO_LD_VAL_1 1360
-#define VCO_LD_VAL_2 1360
-#define VCO_LD_VAL_3 1360
-#define RX_ADPT_MODE_VAL		0
-#define VCO_REF_LD_1_VAL 0x22
-#define VCO_REF_LD_0_VAL 0x22
-#define VCO_REF_LD_3_VAL 0x22
-#define VCO_REF_LD_2_VAL 0x22
-#endif
-
-#ifdef CONFIG_DUOWEN_ETH_10000BASE_RXAUI
-#define CTLE_BOOST_0_LEVEL		6
-#define TX_EQ_POST_LEVEL		0x28
-#define RX3_DELTA_IQ_VAL		0
-#define RX2_DELTA_IQ_VAL		0
-#define RX1_DELTA_IQ_VAL		0
-#define RX0_DELTA_IQ_VAL		0
-#define VCO_FRQBAND_VAL			2
-#define RX_DFE_BYP_3_1_VAL		0
-#define RX_DFE_BYP_0_VAL		0
-#define RX3_MISC_VAL		5
-#define RX2_MISC_VAL		5
-#define RX1_MISC_VAL		5
-#define RX0_MISC_VAL		5
-#define TX_EQ_MAIN_AMPLITUDE		30
-#define MPLLA_DIV_CLK_EN		2
-#define WIDTH_BITS	WIDTH_20BIT
-#define BAUD_DIV4	1
-#define MPLLA_MULTIPLIER 40
-#define VCO_LD_VAL_0 1360
-#define VCO_LD_VAL_1 1360
-#define VCO_LD_VAL_2 1360
-#define VCO_LD_VAL_3 1360
-#define RX_ADPT_MODE_VAL		3
-#define VCO_REF_LD_1_VAL 0x22
-#define VCO_REF_LD_0_VAL 0x22
-#define VCO_REF_LD_3_VAL 0x22
-#define VCO_REF_LD_2_VAL 0x22
-#endif
-
-#ifdef CONFIG_DUOWEN_ETH_SGMII_1000M
-#define CTLE_BOOST_0_LEVEL		6
-#define TX_EQ_POST_LEVEL		0
-#define RX0_DELTA_IQ_VAL		0
-#define VCO_FRQBAND_VAL			1
-#define RX_DFE_BYP_0_VAL		RX_DFE_BYP_0
-#define RX0_MISC_VAL		6
-#define TX_EQ_MAIN_AMPLITUDE		40
-#define MPLLA_DIV_CLK_EN		2
-#define WIDTH_BITS	WIDTH_10BIT
-#define BAUD_DIV4	3
-#define MPLLA_MULTIPLIER 32
-#define VCO_LD_VAL_0 1344
-#define RX_ADPT_MODE_VAL		0
-#define VCO_REF_LD_1_VAL 0x2a
-#define VCO_REF_LD_0_VAL 0x2a
-#endif
-
-#ifdef CONFIG_DUOWEN_ETH_USXGMII_AN37
-#define CTLE_BOOST_0_LEVEL		0xa
-#define RX0_DELTA_IQ_VAL		3
-#define VCO_FRQBAND_VAL			1
-#define RX_DFE_BYP_3_1_VAL		0
-#define RX_DFE_BYP_0_VAL		0
-#define RX1_MISC_VAL		5
-#define RX0_MISC_VAL		2
-#define MPLLA_DIV_CLK_EN		6
-#define WIDTH_BITS	WIDTH_20BIT
-#define BAUD_DIV4	0
-#define MPLLA_MULTIPLIER 33
-#define VCO_LD_VAL_0 1353
-#define RX_ADPT_MODE_VAL		3
-#define VCO_REF_LD_1_VAL 0x29
-#define VCO_REF_LD_0_VAL 0x29
-#endif
-
-#define VCO_REF_LD_1_OFFSET		8
-#define VCO_REF_LD_1_MASK		REG_7BIT_MASK
-#define VCO_REF_LD_1(value) _SET_FV(VCO_REF_LD_1, value)
-
-#define VCO_REF_LD_0_OFFSET		0
-#define VCO_REF_LD_0_MASK		REG_7BIT_MASK
-#define VCO_REF_LD_0(value) _SET_FV(VCO_REF_LD_0, value)
+#define VCO_REF_LD_0_OFFSET	0
+#define VCO_REF_LD_0_MASK	REG_7BIT_MASK
+#define VCO_REF_LD_0(value)	_SET_FV(VCO_REF_LD_0, value)
 
 /* VR_XS_PMA_Gen5_16G_VCO_CAL_REF1 */
-#define VCO_REF_LD_3_OFFSET		8
-#define VCO_REF_LD_3_MASK		REG_7BIT_MASK
-#define VCO_REF_LD_3(value) _SET_FV(VCO_REF_LD_3, value)
+#define VCO_REF_LD_3_OFFSET	8
+#define VCO_REF_LD_3_MASK	REG_7BIT_MASK
+#define VCO_REF_LD_3(value)	_SET_FV(VCO_REF_LD_3, value)
 
-#define VCO_REF_LD_2_OFFSET		0
-#define VCO_REF_LD_2_MASK		REG_7BIT_MASK
-#define VCO_REF_LD_2(value) _SET_FV(VCO_REF_LD_2, value)
-
-
+#define VCO_REF_LD_2_OFFSET	0
+#define VCO_REF_LD_2_MASK	REG_7BIT_MASK
+#define VCO_REF_LD_2(value)	_SET_FV(VCO_REF_LD_2, value)
 
 /* VR_XS_PMA_Gen5_12G_16G_SRAM */
-#define VR_PMA_EXT_LD_DN				_BV(1)
-#define VR_PMA_INIT_DN					_BV(0)
+#define VR_PMA_EXT_LD_DN	_BV(1)
+#define VR_PMA_INIT_DN		_BV(0)
 
 #define dw_xpcs_is_int_sram_done()					\
 	(dw_xpcs_read(XS_PMA_MMD, VR_XS_PMA_Gen5_12G_16G_SRAM) &	\
@@ -557,14 +433,10 @@
 #define VR_MII_Gen5_12G_16G_EEE_CTRL		VR(0x009A)
 
 /* VR_MII_Gen5_12G_16G_RX_EQ_CTRL4 */
-#define CONT_ADAPT_3_1_OFFSET		1
-#define CONT_ADAPT_3_1_MASK		REG_3BIT_MASK
-#define CONT_ADAPT_3_1(value) _SET_FV(CONT_ADAPT_3_1, value)
-#define CONT_ADAPT_0		_BV(0)
-#define CONT_ADAPT_DISABLE 0
-#define CONT_ADAPT_0_ENABLE 1
-
-
+#define CONT_ADAPT_3_1_OFFSET			1
+#define CONT_ADAPT_3_1_MASK			REG_3BIT_MASK
+#define CONT_ADAPT_3_1(value)			_SET_FV(CONT_ADAPT_3_1, value)
+#define CONT_ADAPT_0				_BV(0)
 
 #define VR_MII_Gen5_16G_TX_GEN_CTRL3		VR(0x003C)
 #define VR_MII_Gen5_16G_TX_GEN_CTRL4		VR(0x003D)

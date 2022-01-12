@@ -229,16 +229,6 @@
 #define SR_PCS_SS52_OFFSET		2
 #define SR_PCS_SS52_MASK		REG_4BIT_MASK
 #define SR_PCS_SS52(value)		_GET_FV(SR_PCS_SS52, value)
-#define KX_MODE_1G			0
-#define KX4_MODE_10G			SR_PCS_SS13
-
-#ifdef CONFIG_DUOWEN_ETH_10000BASE_RXAUI
-#define PCS_SPEED_SELECTION		KX4_MODE_10G
-#endif
-
-#ifdef CONFIG_DUOWEN_ETH_SGMII_1000M
-#define PCS_SPEED_SELECTION		KX_MODE_1G
-#endif
 
 /* SR_XS_PCS_STS1 */
 #define SR_PCS_TXLPIR			_BV(11) /* Tx received LPI */
@@ -637,6 +627,13 @@ void dw_xpcs_write(uint16_t mmd, uint16_t addr, uint16_t value);
 	do {						\
 		uint16_t __v = dw_xpcs_read(mmd, addr);	\
 		__v &= ~(value);			\
+		dw_xpcs_write(mmd, addr, __v);		\
+	} while (0)
+#define dw_xpcs_write_mask(mmd, addr, value, mask)	\
+	do {						\
+		uint32_t __v = dw_xpcs_read(mmd, addr);	\
+		__v &= ~(mask);				\
+		__v |= (value);				\
 		dw_xpcs_write(mmd, addr, __v);		\
 	} while (0)
 
