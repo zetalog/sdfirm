@@ -433,10 +433,55 @@
 #define VR_MII_Gen5_12G_16G_EEE_CTRL		VR(0x009A)
 
 /* VR_MII_Gen5_12G_16G_RX_EQ_CTRL4 */
-#define CONT_ADAPT_3_1_OFFSET			1
-#define CONT_ADAPT_3_1_MASK			REG_3BIT_MASK
-#define CONT_ADAPT_3_1(value)			_SET_FV(CONT_ADAPT_3_1, value)
+#define CONT_ADAPT_3_OFFSET			0
+#define CONT_ADAPT_3_MASK			REG_4BIT_MASK
+#define CONT_ADAPT_3(value)			_SET_FV(CONT_ADAPT_3, value)
 #define CONT_ADAPT_0				_BV(0)
+
+#define dw_xpcs_enable_rx_cont_adapt(l)					\
+	do {								\
+		if ((l) == 4) {						\
+			dw_xpcs_write_mask(VS_MII_MMD,			\
+				VR_MII_Gen5_12G_16G_RX_EQ_CTRL4,	\
+				CONT_ADAPT_3(CONT_ADAPT_MASK),		\
+				CONT_ADAPT_3(CONT_ADAPT_MASK));		\
+		} else {						\
+			dw_xpcs_set(VS_MII_MMD,				\
+				VR_MII_Gen5_12G_16G_RX_EQ_CTRL4,	\
+				CONT_ADAPT_0);				\
+		}							\
+	} while (0)
+#define dw_xpcs_disable_rx_cont_adapt(l)				\
+	do {								\
+		if ((l) == 4) {						\
+			dw_xpcs_write_mask(VS_MII_MMD,			\
+				VR_MII_Gen5_12G_16G_RX_EQ_CTRL4,	\
+				CONT_ADAPT_3(0),			\
+				CONT_ADAPT_3(CONT_ADAPT_MASK));		\
+		} else {						\
+			dw_xpcs_clear(VS_MII_MMD,			\
+				VR_MII_Gen5_12G_16G_RX_EQ_CTRL4,	\
+				CONT_ADAPT_0);				\
+		}							\
+	} while (0)
+#define dw_xpcs_config_rx_adapt_mode(l, v)				\
+	do {								\
+		if ((l) == 4) {						\
+			dw_xpcs_write_mask(PMA_MMD,			\
+				VR_XS_PMA_Gen5_16G_RX_EQ_CTRL5,		\
+				RX3_ADPT_MODE(v) | RX2_ADPT_MODE(v) |	\
+				RX1_ADPT_MODE(v) | RX0_ADPT_MODE(v),	\
+				RX3_ADPT_MODE(RX3_ADPT_MODE_MASK) |	\
+				RX2_ADPT_MODE(RX2_ADPT_MODE_MASK) |	\
+				RX1_ADPT_MODE(RX1_ADPT_MODE_MASK) |	\
+				RX0_ADPT_MODE(RX0_ADPT_MODE_MASK));	\
+		} else {						\
+			dw_xpcs_write_mask(PMA_MMD,			\
+				VR_XS_PMA_Gen5_16G_RX_EQ_CTRL5,		\
+				RX0_ADPT_MODE(v),			\
+				RX0_ADPT_MODE(RX0_ADPT_MODE_MASK));	\
+		}							\
+	} while (0)
 
 #define VR_MII_Gen5_16G_TX_GEN_CTRL3		VR(0x003C)
 #define VR_MII_Gen5_16G_TX_GEN_CTRL4		VR(0x003D)
@@ -459,7 +504,15 @@
 #define VR_MII_Gen5_16G_MPLLB_CTRL5		VR(0x007C)
 #define VR_MII_Gen5_16G_VCO_CAL_REF0		VR(0x0096)
 #define VR_MII_Gen5_16G_MISC_CTRL2		VR(0x009C)
+#else
+#define dw_xpcs_enable_rx_cont_adapt(l)		do { } while (0)
+#define dw_xpcs_disable_rx_cont_adapt(l)	do { } while (0)
+#define dw_xpcs_config_rx_adapt_mode(l, v)	do { } while (0)
 #endif /* CONFIG_ARCH_IS_DW_XPCS_1000BASE_X */
+#else
+#define dw_xpcs_enable_rx_cont_adapt(l)		do { } while (0)
+#define dw_xpcs_disable_rx_cont_adapt(l)	do { } while (0)
+#define dw_xpcs_config_rx_adapt_mode(l, v)	do { } while (0)
 #endif /* CONFIG_DW_XPCS_VS_MII_MMD */
 
 #endif /* __XPCS_PHY_GEN5_16G_H_INCLUDE__ */

@@ -205,6 +205,10 @@ config DW_XPCS_BACKPLANE
 	select DW_XPCS_AN_MMD
 	select DW_XPCS_PMA_PMD_MMD
 	select DW_XPCS_PCS_MMD
+	help
+	  Support 802.3AP ethernet operation over electrical backplanes.
+	  802.3AP defines 1000BASE-KX (clause 70), 10GBASE-KX4 (clause 71)
+	  and 10GBASE-KR (clause 72) encodings.
 
 config DW_XPCS_1000BASE_X_ONLY
 	bool "1000BASE-X PCS"

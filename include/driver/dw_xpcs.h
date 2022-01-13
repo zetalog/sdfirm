@@ -215,8 +215,12 @@
 #define USXG_EN				_BV(9)
 
 /* VR_XS_PCS_XAUI_CTRL */
-#define XAUI_MODE			0
-#define RXAUI_MODE			1
+#define MRVL_RXAUI			_BV(2)
+#define RXAUI_MODE			_BV(1)
+#define dw_xpcs_config_xaui()		\
+	dw_xpcs_clear(PCS_MMD, VR_XS_PCS_XAUI_CTRL, RXAUI_MODE)
+#define dw_xpcs_config_rxaui()		\
+	dw_xpcs_set(PCS_MMD, VR_XS_PCS_XAUI_CTRL, RXAUI_MODE)
 
 /* SR_XS_PCS_CTRL1 */
 #define SR_PCS_RST			_BV(15)
@@ -564,10 +568,33 @@
 #define SR_MII_AN_ENABLE			_BV(12)
 #define SR_MII_SS6				_BV(6)
 #define SR_MII_SS5				_BV(5)
+#define SR_MII_SS_MASK				\
+	(SR_MII_SS5 | SR_MII_SS6 | SR_MII_SS13)
+
+#define dw_xpcs_mii_select_speed(ss)		\
+	dw_xpcs_write_mask(VS_MII_MMD, SR_MII_CTRL, ss, SR_MII_SS_MASK)
+#define dw_xpcs_mii_enable_an()			\
+	dw_xpcs_set(VS_MII_MMD, SR_MII_CTRL, SR_MII_AN_ENABLE)
+#define dw_xpcs_mii_disable_an()		\
+	dw_xpcs_clear(VS_MII_MMD, SR_MII_CTRL, SR_MII_AN_ENABLE)
+
+#define DW_XPCS_USXGMII_5000			(SR_MII_SS5 | SR_MII_SS13)
+#define DW_XPCS_USXGMII_2500			(SR_MII_SS5)
+#define DW_XPCS_USXGMII_10000			(SR_MII_SS6 | SR_MII_SS13)
+#define DW_XPCS_USXGMII_1000			(SR_MII_SS6)
+#define DW_XPCS_USXGMII_100			(SR_MII_SS13)
+#define DW_XPCS_USXGMII_10			0
+#define DW_XPCS_SGMII_1000			(SR_MII_SS6)
+#define DW_XPCS_SGMII_100			(SR_MII_SS13)
+#define DW_XPCS_SGMII_10			0
 
 #ifdef CONFIG_DW_XPCS_GPIO
 #define VR_MII_GPIO				VR(0x0015)
 #endif /* CONFIG_DW_XPCS_GPIO */
+#else
+#define dw_xpcs_mii_select_speed(ss)		do { } while (0)
+#define dw_xpcs_mii_enable_an()			do { } while (0)
+#define dw_xpcs_mii_disable_an()		do { } while (0)
 #endif /* CONFIG_ARCH_IS_DW_XPCS_1000BASE_X */
 
 #ifdef CONFIG_ARCH_IS_DW_XPCS_1000BASE_X
@@ -606,6 +633,10 @@
 #define VR_MII_Consumer_10G_RX_TERM_CTRL	VR(0x0064)
 #define VR_MII_Consumer_10G_RX_IQ_CTRL0		VR(0x006B)
 #endif /* CONFIG_ARCH_IS_DW_XPCS_1000BASE_X */
+#else
+#define dw_xpcs_mii_select_speed(ss)		do { } while (0)
+#define dw_xpcs_mii_enable_an()			do { } while (0)
+#define dw_xpcs_mii_disable_an()		do { } while (0)
 #endif
 
 #ifndef CONFIG_ARCH_IS_DW_XPCS_PHY_SNPS_XAUI
@@ -639,8 +670,10 @@ void dw_xpcs_write(uint16_t mmd, uint16_t addr, uint16_t value);
 
 #ifdef CONFIG_DW_XPCS
 void dw_xpcs_link_up(void);
+void dw_xpcs_switch_mode(uint8_t mode);
 #else
 #define dw_xpcs_link_up()		do { } while (0)
+#define dw_xpcs_switch_mode(mode)	do { } while (0)
 #endif
 
 #endif /* __DW_XPCS_H_INCLUDE__ */

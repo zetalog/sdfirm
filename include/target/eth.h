@@ -90,6 +90,30 @@
 #define MII_TPISTATUS		0x1b	/* TPI status for 10mbps       */
 #define MII_NCONFIG		0x1c	/* Network interface config    */
 
+/* PHY mode */
+#define PHY_INTFC_NONE		0
+#define PHY_INTFC_MII		1
+#define PHY_INTFC_GMII		2
+#define PHY_INTFC_SGMII		3
+#define PHY_INTFC_RMII		4
+#define PHY_INTFC_RGMII		5
+#define PHY_INTFC_SMII		6
+#define PHY_INTFC_XGMII		7
+#define PHY_INTFC_XLGMII	8
+#define PHY_INTFC_QSGMII	9
+#define PHY_INTFC_RXAUI		10
+#define PHY_INTFC_XAUI		11
+#define PHY_INTFC_USXGMII	12
+#define PHY_INTFC_100BASEX	100
+#define PHY_INTFC_1000BASEX	101
+#define PHY_INTFC_2500BASEX	102
+#define PHY_INTFC_5000BASER	103
+#define PHY_INTFC_10000BASER	104
+#define PHY_INTFC_25000BASER	105
+#define PHY_INTFC_1000BASE_KX	70 /* Clause 70 */
+#define PHY_INTFC_10000BASE_KX4	71 /* Clause 71 */
+#define PHY_INTFC_10000BASE_KR	72 /* Clause 72 */
+
 #include <driver/eth.h>
 
 static inline void eth_random_addr(uint8_t *addr)

@@ -1002,19 +1002,8 @@ menuconfig DUOWEN_ETH
 	bool "Duowen ethernet XGMAC/XPCS support"
 	select DW_XGMAC
 	select ARCH_IS_DW_XPCS_BACKPLANE
-	select ARCH_HAS_DW_XPCS_10000BASE_KX4
-	select ARCH_HAS_DW_XPCS_10000BASE_KR
-	select ARCH_HAS_DW_XPCS_5000BASE_KR
-	select ARCH_HAS_DW_XPCS_2500BASE_KX
-	select ARCH_HAS_DW_XPCS_1000BASE_KX
 	select ARCH_IS_DW_XPCS_SGMII
-	select ARCH_HAS_DW_XPCS_KRTR
-	select ARCH_HAS_DW_XPCS_AN
 	select ARCH_HAS_DW_XPCS_EEE
-	select ARCH_HAS_DW_XPCS_FEC
-	select ARCH_HAS_DW_XPCS_FEC_FORWARD
-	select ARCH_IS_DW_XPCS_XGMII_SDR
-	select ARCH_HAS_DW_XPCS_RXAUI
 	select ARCH_IS_DW_XPCS_MDIO
 	select ARCH_IS_DW_XPCS_PHY_GEN5_16G if DUOWEN_ASIC
 	select GPIO
@@ -1025,11 +1014,39 @@ choice
 	prompt "PHY mode"
 	default DUOWEN_ETH_10000BASE_KR
 
+config DUOWEN_ETH_1000BASE_KX
+	bool "clause 70 1000base-kx"
+	select ARCH_HAS_DW_XPCS_1000BASE_KX
+	select ARCH_HAS_DW_XPCS_AN
+	select ARCH_HAS_DW_XPCS_GMII
+	select DW_XPCS_AN
+
 config DUOWEN_ETH_10000BASE_KX4
-	bool "usxgmii"
+	bool "clause 71 10gbase-kx4"
+	select ARCH_HAS_DW_XPCS_10000BASE_KX4
+	select ARCH_HAS_DW_XPCS_AN
+	select DW_XPCS_AN
+	select ARCH_IS_DW_XPCS_XGMII_SDR
+	select ARCH_HAS_DW_XPCS_RXAUI
 
 config DUOWEN_ETH_10000BASE_KR
-	bool "10gbase-kr"
+	bool "clause 72 10gbase-kr"
+	select ARCH_HAS_DW_XPCS_10000BASE_KR
+	select ARCH_HAS_DW_XPCS_AN
+	select ARCH_HAS_DW_XPCS_KRTR
+	select DW_XPCS_AN
+	select ARCH_IS_DW_XPCS_XGMII_SDR
+	select ARCH_HAS_DW_XPCS_RXAUI
+	select ARCH_HAS_DW_XPCS_FEC
+	select ARCH_HAS_DW_XPCS_FEC_FORWARD
+
+config DUOWEN_ETH_5000BASE_KR
+	bool "5gbase-kr"
+	select ARCH_HAS_DW_XPCS_5000BASE_KR
+
+config DUOWEN_ETH_2500BASE_KX
+	bool "2.5gbase-kx"
+	select ARCH_HAS_DW_XPCS_2500BASE_KX
 
 config DUOWEN_ETH_10000BASE_RXAUI
 	bool "10gbase-rxaui"
