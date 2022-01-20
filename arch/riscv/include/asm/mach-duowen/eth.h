@@ -97,33 +97,8 @@
 #include <driver/dw_xpcs.h>
 
 #ifdef CONFIG_DUOWEN_ETH_10000BASE_KX4
-#define CTLE_BOOST_0_LEVEL	6
-#define TX_EQ_POST_LEVEL	0
-#define RX3_DELTA_IQ_VAL	0
-#define RX2_DELTA_IQ_VAL	0
-#define RX1_DELTA_IQ_VAL	0
-#define RX0_DELTA_IQ_VAL	0
 #define VCO_FRQBAND_VAL		2
-#define RX_DFE_BYP_3_1_VAL	7
-#define RX_DFE_BYP_0_VAL	RX_DFE_BYP_0
-#define RX3_MISC_VAL		7
-#define RX2_MISC_VAL		7
-#define RX1_MISC_VAL		7
-#define RX0_MISC_VAL		7
-#define TX_EQ_MAIN_AMPLITUDE	40
 #define MPLLA_DIV_CLK_EN	2
-#define WIDTH_BITS		WIDTH_10BIT
-#define BAUD_DIV4		2
-#define MPLLA_MULTIPLIER	40
-#define VCO_LD_VAL_0		1360
-#define VCO_LD_VAL_1		1360
-#define VCO_LD_VAL_2		1360
-#define VCO_LD_VAL_3		1360
-#define RX_ADPT_MODE_VAL	0
-#define VCO_REF_LD_1_VAL	0x22
-#define VCO_REF_LD_0_VAL	0x22
-#define VCO_REF_LD_3_VAL	0x22
-#define VCO_REF_LD_2_VAL	0x22
 #endif
 
 #ifdef CONFIG_DUOWEN_ETH_10000BASE_RXAUI
@@ -144,16 +119,6 @@
 #define MPLLA_DIV_CLK_EN	2
 #define WIDTH_BITS		WIDTH_20BIT
 #define BAUD_DIV4		1
-#define MPLLA_MULTIPLIER	40
-#define VCO_LD_VAL_0		1360
-#define VCO_LD_VAL_1		1360
-#define VCO_LD_VAL_2		1360
-#define VCO_LD_VAL_3		1360
-#define RX_ADPT_MODE_VAL	3
-#define VCO_REF_LD_1_VAL	0x22
-#define VCO_REF_LD_0_VAL	0x22
-#define VCO_REF_LD_3_VAL	0x22
-#define VCO_REF_LD_2_VAL	0x22
 #endif
 
 #ifdef CONFIG_DUOWEN_ETH_SGMII_1000M
@@ -167,7 +132,6 @@
 #define MPLLA_DIV_CLK_EN	2
 #define WIDTH_BITS		WIDTH_10BIT
 #define BAUD_DIV4		3
-#define MPLLA_MULTIPLIER	32
 #define VCO_LD_VAL_0		1344
 #define RX_ADPT_MODE_VAL	0
 #define VCO_REF_LD_1_VAL	0x2a
@@ -185,7 +149,6 @@
 #define MPLLA_DIV_CLK_EN	6
 #define WIDTH_BITS		WIDTH_20BIT
 #define BAUD_DIV4		0
-#define MPLLA_MULTIPLIER	33
 #define VCO_LD_VAL_0		1353
 #define RX_ADPT_MODE_VAL	3
 #define VCO_REF_LD_1_VAL	0x29

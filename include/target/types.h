@@ -98,6 +98,10 @@ typedef unsigned long			loff_t;
 #define REG_40BIT_MASK			ULL(0xFFFFFFFFFF)
 #define REG_44BIT_MASK			ULL(0xFFFFFFFFFFF)
 
+#define REG16_1BIT_INDEX(n)		((((uint16_t)(n)) & (~UL(15))) >> 4)
+#define REG16_2BIT_INDEX(n)		((((uint16_t)(n)) & (~UL(7 ))) >> 3)
+#define REG16_4BIT_INDEX(n)		((((uint16_t)(n)) & (~UL(3 ))) >> 2)
+#define REG16_8BIT_INDEX(n)		((((uint16_t)(n)) & (~UL(1 ))) >> 1)
 #define REG32_1BIT_INDEX(n)		((((uint32_t)(n)) & (~UL(31))) >> 5)
 #define REG32_2BIT_INDEX(n)		((((uint32_t)(n)) & (~UL(15))) >> 4)
 #define REG32_4BIT_INDEX(n)		((((uint32_t)(n)) & (~UL(7 ))) >> 3)
@@ -115,6 +119,10 @@ typedef unsigned long			loff_t;
 #define REG_8BIT_INDEX(n)		REG32_8BIT_INDEX(n)
 #define REG_16BIT_INDEX(n)		REG32_16BIT_INDEX(n)
 
+#define REG16_1BIT_OFFSET(n)		((((uint16_t)(n)) & UL(15)) << 0)
+#define REG16_2BIT_OFFSET(n)		((((uint16_t)(n)) & UL( 7)) << 1)
+#define REG16_4BIT_OFFSET(n)		((((uint16_t)(n)) & UL( 3)) << 2)
+#define REG16_8BIT_OFFSET(n)		((((uint16_t)(n)) & UL( 1)) << 3)
 #define REG32_1BIT_OFFSET(n)		((((uint32_t)(n)) & UL(31)) << 0)
 #define REG32_2BIT_OFFSET(n)		((((uint32_t)(n)) & UL(15)) << 1)
 #define REG32_4BIT_OFFSET(n)		((((uint32_t)(n)) & UL( 7)) << 2)
