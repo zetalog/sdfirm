@@ -214,14 +214,6 @@
 #define VR_RST				_BV(15)
 #define USXG_EN				_BV(9)
 
-/* VR_XS_PCS_XAUI_CTRL */
-#define MRVL_RXAUI			_BV(2)
-#define RXAUI_MODE			_BV(1)
-#define dw_xpcs_config_xaui()		\
-	dw_xpcs_clear(PCS_MMD, VR_XS_PCS_XAUI_CTRL, RXAUI_MODE)
-#define dw_xpcs_config_rxaui()		\
-	dw_xpcs_set(PCS_MMD, VR_XS_PCS_XAUI_CTRL, RXAUI_MODE)
-
 /* SR_XS_PCS_CTRL1 */
 #define SR_PCS_RST			_BV(15)
 #define SR_PCS_LBE			_BV(14)
@@ -244,7 +236,7 @@
 #define SR_PCS_RLU			_BV(2)  /* Rx link up */
 #define SR_PCS_LPMS			_BV(1)  /* Low-power mode support */
 
-/* SR_XS_PCS_CTRL2 */
+/* 6.61 SR_XS_PCS_CTRL2 */
 #define SR_PCS_TYPE_OFFSET		0
 #define SR_PCS_TYPE_MASK		REG_4BIT_MASK
 #define SR_PCS_TYPE(value)		_SET_FV(SR_PCS_TYPE, value)
@@ -253,6 +245,14 @@
 #define SR_PCS_10000BASE_X		0x01
 #define SR_PCS_25000BASE_X		0x0E
 #define SR_PCS_50000BASE_R		0x0F
+
+/* 6.96 VR_XS_PCS_XAUI_CTRL */
+#define VR_PCS_MRVL_RXAUI		_BV(1)
+#define VR_PCS_XAUI_MODE		_BV(0)
+#define dw_xpcs_config_xaui()		\
+	dw_xpcs_clear(XS_PCS_MMD, VR_XS_PCS_XAUI_CTRL, VR_PCS_XAUI_MODE)
+#define dw_xpcs_config_rxaui()		\
+	dw_xpcs_set(XS_PCS_MMD, VR_XS_PCS_XAUI_CTRL, VR_PCS_XAUI_MODE)
 
 /* VR_XS_PCS_DIG_STS */
 #define VR_PCS_LTX_STATE_OFFSET		13

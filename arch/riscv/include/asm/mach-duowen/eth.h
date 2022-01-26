@@ -96,31 +96,6 @@
 #include <driver/dw_xgmac.h>
 #include <driver/dw_xpcs.h>
 
-#ifdef CONFIG_DUOWEN_ETH_10000BASE_KX4
-#define VCO_FRQBAND_VAL		2
-#define MPLLA_DIV_CLK_EN	2
-#endif
-
-#ifdef CONFIG_DUOWEN_ETH_10000BASE_RXAUI
-#define CTLE_BOOST_0_LEVEL	6
-#define TX_EQ_POST_LEVEL	0x28
-#define RX3_DELTA_IQ_VAL	0
-#define RX2_DELTA_IQ_VAL	0
-#define RX1_DELTA_IQ_VAL	0
-#define RX0_DELTA_IQ_VAL	0
-#define VCO_FRQBAND_VAL		2
-#define RX_DFE_BYP_3_1_VAL	0
-#define RX_DFE_BYP_0_VAL	0
-#define RX3_MISC_VAL		5
-#define RX2_MISC_VAL		5
-#define RX1_MISC_VAL		5
-#define RX0_MISC_VAL		5
-#define TX_EQ_MAIN_AMPLITUDE	30
-#define MPLLA_DIV_CLK_EN	2
-#define WIDTH_BITS		WIDTH_20BIT
-#define BAUD_DIV4		1
-#endif
-
 #ifdef CONFIG_DUOWEN_ETH_SGMII_1000M
 #define CTLE_BOOST_0_LEVEL	6
 #define TX_EQ_POST_LEVEL	0

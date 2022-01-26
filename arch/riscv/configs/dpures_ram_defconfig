@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Dec 17 21:51:44 2021
+# Wed Jan 26 14:26:31 2022
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -54,7 +54,7 @@ CONFIG_CONSOLE_115200=y
 # CONFIG_CONSOLE_4000000 is not set
 CONFIG_CONSOLE_VERBOSE=y
 # CONFIG_CONSOLE_DEBUG is not set
-# CONFIG_CONSOLE_BANNER is not set
+CONFIG_CONSOLE_BANNER=y
 # CONFIG_CONSOLE_DEBUG_BOOT is not set
 
 #
