@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Jan  3 10:17:23 2022
+# Wed Jan 26 18:18:23 2022
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -199,12 +199,12 @@ CONFIG_DPULP_UART_CON0=y
 # CONFIG_DPULP_SD is not set
 # CONFIG_DPULP_DDR is not set
 CONFIG_DPULP_PCIE=y
+# CONFIG_DPULP_ETH is not set
 CONFIG_DPULP_RIO=y
 CONFIG_DPULP_RIO_62500KHZ=y
 # CONFIG_DPULP_RIO_78125KHZ is not set
 # CONFIG_DPULP_RIO_125000KHZ is not set
 # CONFIG_DPULP_RIO_156250KHZ is not set
-# CONFIG_DPULP_ETH is not set
 
 #
 # Feature setup

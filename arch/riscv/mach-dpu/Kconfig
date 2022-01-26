@@ -180,6 +180,12 @@ config DPU_LOAD_FAKE_PCIE_MEM
 
 endchoice	
 
+config DPU_BOOT_RES_SLOW
+	bool "Enable slower CPU frequency"
+	depends DPU_RES
+	help
+	  1.0GHz for cluster and 500MHz for IMC.
+
 config DPU_BOOT_STACK
 	bool "Enable boot from stack"
 	help
@@ -298,13 +304,20 @@ config DPU_TCSR_SIM_FINISH
 
 endif
 
-#	select ARCH_HAS_DW_PLL5GHZ_DYNAMIC if DPU_RES
+config DPU_PLL_INT
+	bool
 
-menuconfig DPU_PLL
-	bool "DPU PLL and clock/reset support"
+config DPU_PLL_EXT
+	bool
 	select DW_PLL5GHZ_TSMC12FFC if !DPU_PLL_BYPASS_PLL
 	select DW_PLL5GHZ_TSMC12FFC_REG_ACCESS if DW_PLL5GHZ_TSMC12FFC
 	select DW_PLL5GHZ_TSMC12FFC_BYPASS_SYNC if DW_PLL5GHZ_TSMC12FFC
+
+#	select ARCH_HAS_DW_PLL5GHZ_DYNAMIC if DPU_RES
+menuconfig DPU_PLL
+	bool "DPU PLL and clock/reset support"
+	select DPU_PLL_INT if (DPU_BOOT_ROM && DPU_RES)
+	select DPU_PLL_EXT if !(DPU_BOOT_ROM && DPU_RES)
 	select DPU_TCSR_LOW_POWER if DPU_TCSR
 	select MATH_DIV32
 

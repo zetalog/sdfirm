@@ -77,9 +77,8 @@ static void dpu_boot_spi(void)
 	printf("boot(spi): booting...\n");
 	boot_entry = (void *)CONFIG_DPU_BOOT_ADDR;
 	clk_enable(srst_flash);
-	/* dpu_flash_set_frequency(min(DPU_FLASH_FREQ, APB_CLK_FREQ)); */
-	/* max spi speed is 5M,so here configure to 4M. */
-	dpu_flash_set_frequency(min(DPU_FLASH_FREQ, DPU_FLASH_REAL_FREQ));
+	/* Allow maximum 1/25 APB frequency */
+	dpu_flash_set_frequency(min(DPU_FLASH_FREQ, APB_CLK_FREQ / 25));
 	smp_boot_secondary_cpus((caddr_t)boot_entry);
 	boot_entry();
 }

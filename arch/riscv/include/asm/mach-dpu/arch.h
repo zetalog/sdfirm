@@ -76,11 +76,15 @@
 #define PLL4_VCO_FREQ		ULL(4000000000)	/* 4GHz */
 #ifdef CONFIG_DPU_GEN2
 #define PLL5_VCO_FREQ		ULL(4400000000) /* 4.4GHz */
-#else
+#else /* CONFIG_DPU_GEN2 */
 #define PLL5_VCO_FREQ		ULL(2800000000) /* 2.8GHz */
-#endif
+#endif /* CONFIG_DPU_GEN2 */
 #ifdef CONFIG_DPU_RES
+#ifdef CONFIG_DPU_RES_SLOW
+#define PLL0_P_FREQ		UL(1000000000)	/* 1GHz */
+#else /* CONFIG_DPU_RES_SLOW */
 #define PLL0_P_FREQ		UL(1500000000)	/* 1.5GHz */
+#endif /* CONFIG_DPU_RES_SLOW */
 #else /* CONFIG_DPU_RES */
 #define PLL0_P_FREQ		UL(800000000)	/* 800MHz */
 #endif /* CONFIG_DPU_RES */
@@ -93,14 +97,21 @@
 #ifdef CONFIG_DPU_GEN2
 #define PLL4_R_FREQ		UL(25000000)	/* 25MHZ */
 #define PLL5_P_FREQ		UL(1100000000)	/* 1.1GHZ */
-#else
+#else /* CONFIG_DPU_GEN2 */
 #define PLL4_R_FREQ		UL(500000000)	/* 500MHZ */
 #define PLL5_P_FREQ		UL(100000000)	/* 100MHZ */
-#endif
+#endif /* CONFIG_DPU_GEN2 */
 #define PLL5_R_FREQ		UL(6000000)	/* 6MHz */
 #ifdef CONFIG_DPU_RES
+#ifdef CONFIG_DPU_BOOT_ROM
+#define APC_CLK_FREQ		XIN_FREQ
+#define IMC_CLK_FREQ		XIN_FREQ
+#define APB_CLK_FREQ		XIN_FREQ
+#else /* CONFIG_DPU_BOOT_ROM */
 #define APC_CLK_FREQ		PLL0_P_FREQ
 #define IMC_CLK_FREQ		(PLL0_P_FREQ / 2)
+#define APB_CLK_FREQ		PLL3_R_FREQ
+#endif /* CONFIG_DPU_BOOT_ROM */
 #ifdef CONFIG_DPU_APC
 #define CPU_CLK_FREQ		APC_CLK_FREQ
 #else /* CONFIG_DPU_APC */
@@ -109,16 +120,16 @@
 #else /* CONFIG_DPU_RES */
 #define IMC_CLK_FREQ		PLL0_P_FREQ
 #define CPU_CLK_FREQ		IMC_CLK_FREQ
+#define APB_CLK_FREQ		PLL3_R_FREQ
 #endif /* CONFIG_DPU_RES */
 #define PE_CLK_FREQ		PLL1_P_FREQ
 #define AXI_CLK_FREQ		PLL3_P_FREQ
-#define APB_CLK_FREQ		PLL3_R_FREQ
 #define VPU_BCLK_FREQ		PLL4_P_FREQ
 #ifdef CONFIG_DPU_GEN2
 #define VPU_CCLK_FREQ		PLL5_P_FREQ
-#else
+#else /* CONFIG_DPU_GEN2 */
 #define VPU_CCLK_FREQ		PLL4_R_FREQ
-#endif
+#endif /* CONFIG_DPU_GEN2 */
 #define PCIE_REF_CLK_FREQ	PLL5_P_FREQ
 
 #if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)

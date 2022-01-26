@@ -239,9 +239,15 @@
 
 #ifdef CONFIG_DPU_RES
 #define CLK_DIV			((clk_cat_t)6)
+#ifdef CONFIG_DPU_BOOT_ROM
+#define XIN_DIV2		((clk_clk_t)0)
+#define NR_DIV_CLKS		(XIN_DIV2 + 1)
+#define xin_div2		clkid(CLK_DIV, XIN_DIV2)
+#else /* CONFIG_DPU_BOOT_ROM */
 #define PLL0_P_DIV2		((clk_clk_t)0)
 #define NR_DIV_CLKS		(PLL0_P_DIV2 + 1)
 #define pll0_p_div2		clkid(CLK_DIV, PLL0_P_DIV2)
+#endif /* CONFIG_DPU_BOOT_ROM */
 #endif /* CONFIG_DPU_RES */
 
 #include <asm/mach/pll.h>
