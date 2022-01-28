@@ -16,7 +16,7 @@ limitations under the License.
 Original Author: Shay Gal-on
 */
 
-#include "coremark_common.h"
+#include "coremark.h"
 /* Function: get_seed
         Get a values that cannot be determined at compile time.
 

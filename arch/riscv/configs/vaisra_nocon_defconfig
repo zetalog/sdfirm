@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Dec 17 21:43:48 2021
+# Fri Jan 28 13:52:46 2022
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -444,17 +444,8 @@ CONFIG_DHRYSTONE_BENCH_PERCPU=y
 # CONFIG_LINPACK is not set
 # CONFIG_COREMARK is not set
 # CONFIG_MEMSTREAM is not set
-# CONFIG_SHA256 is not set
-# CONFIG_MD5 is not set
-# CONFIG_HANOITOWER is not set
-# CONFIG_CFFT is not set
-# CONFIG_JPGENC is not set
-# CONFIG_GENANN is not set
-
-#
-# Santiy check tests
-#
-# CONFIG_TLB_TEST is not set
+# CONFIG_TEST_ALGO is not set
+# CONFIG_TEST_SANITY is not set
 # CONFIG_TEST_LITMUS is not set
 # CONFIG_TEST_MEMTESTER is not set
 

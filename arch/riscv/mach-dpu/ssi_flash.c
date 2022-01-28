@@ -15,6 +15,8 @@ void dpu_ssi_flash_init(void)
 	board_flash = spiflash_register_bank(0);
 }
 
+typedef void (*dpu_boot_cb)(void *, uint32_t, uint32_t);
+
 static __always_inline void dpu_ssi_flash_select(uint32_t chips)
 {
 	__raw_writel(chips, SSI_SER(0));

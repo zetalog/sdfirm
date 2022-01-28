@@ -1,0 +1,51 @@
+#
+# Algorithm Tests
+#
+
+menuconfig TEST_ALGO
+	bool "Simple algorithm tests"
+
+if TEST_ALGO
+
+config SHA256
+	bool "256-bit SHA algorithm"
+
+if SHA256
+
+config SHA256_TEST_CNT 
+	int "Count of tests"
+	range 1 6
+	default 2
+
+endif
+
+config MD5
+	bool "MD5 algorithm"
+
+if MD5
+
+config MD5_TEST_CNT 
+	int "Count of tests"
+	range 1 6
+	default 2
+
+endif
+
+config HANOITOWER
+	bool "Hanoi Tower"
+
+if HANOITOWER
+
+config HANOITOWER_DEPTH
+	int "Hanoi tower depth (the number of disks)"
+	range 1 16
+	default 4
+
+endif
+
+source tests/bench/algo/cfft/Kconfig
+source tests/bench/algo/jpgenc/Kconfig
+source tests/bench/algo/gen_ann/Kconfig
+
+endif
+

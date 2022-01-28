@@ -20,7 +20,7 @@ Original Author: Shay Gal-on
         This file contains the framework to acquire a block of memory, seed
    initial parameters, tun t he benchmark and report the results.
 */
-#include "coremark_common.h"
+#include "coremark.h"
 
 /* Function: iterate
         Run the benchmark for a specified number of iterations.

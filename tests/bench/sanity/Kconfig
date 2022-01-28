@@ -1,0 +1,24 @@
+#
+# Sanity Tests
+#
+
+menuconfig TEST_SANITY
+	bool "Sanity check tests"
+
+if TEST_SANITY
+
+menuconfig TLB_TEST
+	bool "Test TLB flush"
+
+if TLB_TEST
+
+config TLB_TEST_FLUSH_RANGE
+	bool "Test flush range"
+	default y
+
+config TLB_TEST_FLUSH_ALL
+	bool "Test flush all"
+
+endif
+
+endif

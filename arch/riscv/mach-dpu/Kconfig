@@ -188,6 +188,7 @@ config DPU_BOOT_RES_SLOW
 
 config DPU_BOOT_STACK
 	bool "Enable boot from stack"
+	depends !SMP
 	help
 	  By default, each bootloader's .text section should be in
 	  a different memory region. Enable this option only if the next
@@ -196,6 +197,9 @@ config DPU_BOOT_STACK
 	  occupies the high end of the SRAM region, which is conflict with
 	  the stack of the current bootloader, please do not enable this
 	  option.
+	  We could not support this feature when SMP boot is enabled on
+	  DPU as we haven't coverted smp_boot_secondary_cpus() to an
+	  inlined function.
 	  If unsure, say 'N'.
 
 config DPU_BOOT_DEBUG

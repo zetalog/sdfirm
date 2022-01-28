@@ -127,7 +127,28 @@ endchoice
 
 endif
 
-source tests/bench/coremark/Kconfig
+menuconfig COREMARK
+	bool "CoreMark"
+
+if COREMARK
+
+config COREMARK_FORCE_VERY_QUICK
+	bool "Use minimal data size and iteration count to run quickly"
+
+config COREMARK_RUN_CNT
+	int "How many times to run those iterations"
+	default 3
+
+config COREMARK_SIMPLE_REPORT
+	bool "Give report of simple format"
+	default y
+
+config COREMARK_ITERATION_CNT
+	int "CoreMark iterations count"
+	depends !COREMARK_FORCE_VERY_QUICK
+	default 200
+
+endif
 
 menuconfig MEMSTREAM
 	bool "Memory Stream"
@@ -154,62 +175,7 @@ config MEMSTREAM_TIME_ON
 
 endif
 
-config SHA256
-	bool "256-bit SHA algorithm"
-
-if SHA256
-
-config SHA256_TEST_CNT 
-	int "Count of tests"
-	range 1 6
-	default 2
-
-endif
-
-config MD5
-	bool "MD5 algorithm"
-
-if MD5
-
-config MD5_TEST_CNT 
-	int "Count of tests"
-	range 1 6
-	default 2
-
-endif
-
-config HANOITOWER
-	bool "Hanoi Tower"
-
-if HANOITOWER
-
-config HANOITOWER_DEPTH
-	int "Hanoi tower depth (the number of disks)"
-	range 1 16
-	default 4
-
-endif
-
-source tests/bench/cfft/Kconfig
-source tests/bench/jpgenc/Kconfig
-source tests/bench/gen_ann/Kconfig
-
 endmenu
 
-menu "Santiy check tests"
-
-menuconfig TLB_TEST
-	bool "Test TLB flush"
-
-if TLB_TEST
-
-config TLB_TEST_FLUSH_RANGE
-	bool "Test flush range"
-	default y
-
-config TLB_TEST_FLUSH_ALL
-	bool "Test flush all"
-
-endif
-
-endmenu
+source tests/bench/algo/Kconfig
+source tests/bench/sanity/Kconfig

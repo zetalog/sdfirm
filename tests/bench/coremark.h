@@ -49,7 +49,7 @@ Original Author: Shay Gal-on
 #define MEM_MALLOC 1
 #define MEM_STACK  2
 
-#include "coremark_portme.h"
+#include "core_portme.h"
 
 #if HAS_STDIO
 #include <stdio.h>

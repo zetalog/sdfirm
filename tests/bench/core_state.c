@@ -16,7 +16,7 @@ limitations under the License.
 Original Author: Shay Gal-on
 */
 
-#include "coremark_common.h"
+#include "coremark.h"
 /* local functions */
 enum CORE_STATE core_state_transition(ee_u8 **instr, ee_u32 *transition_count);
 

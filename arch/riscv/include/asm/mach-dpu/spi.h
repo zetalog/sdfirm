@@ -81,15 +81,12 @@
 #endif
 
 #ifdef CONFIG_DPU_SSI_FLASH
-typedef void (*dpu_boot_cb)(void *, uint32_t, uint32_t);
 void dpu_ssi_flash_init(void);
-void dpu_ssi_flash_copy(void *buf, uint32_t addr, uint32_t size);
 void dpu_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size);
 
 extern mtd_t board_flash;
 #else
 #define dpu_ssi_flash_init()			do { } while (0)
-#define dpu_ssi_flash_copy(buf, addr, size)	do { } while (0)
 #define dpu_ssi_flash_boot(boot, addr, size)	do { } while (0)
 #endif
 
