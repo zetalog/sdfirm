@@ -87,7 +87,7 @@ static __inline void vaisra_flush_dcache_addr(void *addr)
 	asm volatile (
 		"	add	%0, %0, 0\n"
 		"	.word	%1"
-		: "=r" (a0) : "i" (INSN_DCACHE_FLUSH_ADDR(10)) : "memory");
+		: : "r" (a0), "i" (INSN_DCACHE_FLUSH_ADDR(10)) : "memory");
 }
 
 static __inline void vaisra_flush_icache_addr(void *addr)
@@ -97,7 +97,7 @@ static __inline void vaisra_flush_icache_addr(void *addr)
 	asm volatile (
 		"	add	%0, %0, 0\n"
 		"	.word	%1"
-		: "=r" (a0) : "i" (INSN_ICACHE_FLUSH_ADDR(10)) : "memory");
+		: : "r" (a0), "i" (INSN_ICACHE_FLUSH_ADDR(10)) : "memory");
 }
 #endif
 #else
