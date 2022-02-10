@@ -88,10 +88,14 @@ static void dpu_boot_spi(void)
 
 #if defined(CONFIG_DPU_LOAD_SSI_FLASH) || \
     defined(CONFIG_DPU_LOAD_FAKE_PCIE_MEM)
-#ifdef CONFIG_DPU_LOAD_ZSBL
 /* ======================================================================
  * Boot definitions
  * ====================================================================== */
+#ifdef CONFIG_DPU_LOAD_FSBL
+#define DPU_BOOT_FILE		"bbl.bin"
+#define DPU_BOOT_ADDR		((void *)DDR_DATA_BASE)
+#else /* CONFIG_DPU_LOAD_FSBL */
+#ifdef CONFIG_DPU_LOAD_ZSBL
 #define DPU_BOOT_FILE		"fsbl.bin"
 #ifdef CONFIG_DPU_LOAD_FAKE_PCIE_MEM
 #define DPU_BOOT_ADDR		((void *)DDR_DATA_BASE)
@@ -106,10 +110,7 @@ static void dpu_boot_spi(void)
 #endif /* CONFIG_DPU_BOOT_STACK */
 #endif /* CONFIG_DPU_LOAD_FAKE_PCIE_MEM */
 #endif /* CONFIG_DPU_LOAD_ZSBL */
-#ifdef CONFIG_DPU_LOAD_FSBL
-#define DPU_BOOT_FILE		"bbl.bin"
-#define DPU_BOOT_ADDR		((void *)DDR_DATA_BASE)
-#endif /* CONFIG_DPU_LOAD_ZSBL */
+#endif /* CONFIG_DPU_LOAD_FSBL */
 
 #ifdef CONFIG_DPU_LOAD_SSI_FLASH
 static void dpu_load_ssi(void *boot_entry, const char *boot_file)
