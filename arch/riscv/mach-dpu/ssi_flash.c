@@ -62,6 +62,17 @@ void __dpu_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 		if ((i % 0x2000) == 0)
 			__boot_dump32(i, is_last(i, size));
 	}
+#ifdef CONFIG_DPU_IMC
+	/* XXX: Ariane Workaround between D-cache and I-cache
+	 * When the address is first time fetched as instruction, there
+	 * should be no dirty I-cache need to be flushed.
+	 * However, Ariane w/ STD cache (DPU IMC, rather than WT cache)
+	 * requires an I-cache synchronization barrier or later
+	 * instruction fetch may fail with spurious instructions fetched
+	 * from wrong D-cache.
+	 */
+	fence_i();
+#endif /* CONFIG_DPU_IMC */
 
 	__boot_dbg('\n');
 	__boot_dbg('B');
