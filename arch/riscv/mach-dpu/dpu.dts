@@ -190,17 +190,23 @@
 				&cpu0_intc 0x3		&cpu0_intc 0x7
 #endif /* CONFIG_SMP */
 			>;
-			reg = <0x0 0x04015C00 0x0 0x400>;
-			smarco,rvtimer-cmp-off = <0x200>;
-			smarco,rvtimer-val-off = <0x40>;
-			compatible = "riscv,clint0";
+			reg = <0x0 0x04015c00 0x0 0x400>;
+			smarco,clint-ipi-off = <0x0>;
+			smarco,clint-cmp-off = <0x80>;
+			smarco,clint-val-off = <0x3f8>;
+			compatible = "smarco,rvtimer";
 		};
 #else /* CONFIG_DPU_CLINT */
 		tmr0: tmr@4015c00 {
 			interrupts-extended = <&cpu0_intc  0x7>;
-			reg = <0x0 0x04015C00 0x0 0x400>;
+			reg = <0x0 0x04015c00 0x0 0x400>;
+#ifdef CONFIG_DPU_RES
+			smarco,rvtimer-cmp-off = <0x80>;
+			smarco,rvtimer-val-off = <0x3f8>;
+#else /* CONFIG_DPU_RES */
 			smarco,rvtimer-cmp-off = <0x200>;
 			smarco,rvtimer-val-off = <0x40>;
+#endif /* CONFIG_DPU_RES */
 			compatible = "smarco,rvtimer0";
 		};
 #endif /* CONFIG_DPU_CLINT */
