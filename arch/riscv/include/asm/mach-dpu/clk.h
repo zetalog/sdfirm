@@ -59,6 +59,23 @@
 #define clk_freq_t		uint64_t
 #define invalid_clk		clkid(0xFF, 0xFF)
 
+#ifdef CONFIG_DPU_RES
+#define PLL0_VCO_FREQ		ULL(3000000000)	/* 3GHz */
+#else /* CONFIG_DPU_RES */
+#define PLL0_VCO_FREQ		ULL(3200000000)	/* 3.2GHz */
+#endif /* CONFIG_DPU_RES */
+#define PLL1_VCO_FREQ		ULL(4800000000)	/* 4.8GHz */
+#define PLL2_VCO_FREQ		ULL(3200000000)	/* 3.2GHz */
+#define PLL3_VCO_FREQ		ULL(3200000000)	/* 3.2GHz */
+#define PLL4_VCO_FREQ		ULL(4000000000)	/* 4GHz */
+#ifdef CONFIG_DPU_GEN2
+#define PLL5_VCO_FREQ		ULL(4400000000)	/* 4.4GHz */
+#else /* CONFIG_DPU_GEN2 */
+#define PLL5_VCO_FREQ		ULL(2800000000)	/* 2.8GHz */
+#endif /* CONFIG_DPU_GEN2 */
+
+#include <dt-bindings/clock/sbi-clock-dpu.h>
+
 #define CLK_INPUT		((clk_cat_t)0)
 #define XIN			((clk_clk_t)0)
 #define PCIE_PHY_CLK		((clk_clk_t)1)

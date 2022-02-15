@@ -1,4 +1,4 @@
-#include <target/arch.h>
+#include <target/clk.h>
 
 void dpu_flash_set_frequency(uint32_t freq)
 {

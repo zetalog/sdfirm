@@ -1,7 +1,6 @@
 #include <target/arch.h>
-#if 0
 #include <dt-bindings/clock/sbi-clock-dpu.h>
-#endif
+#include <dt-bindings/memory/dpu-ddr.h>
 
 /dts-v1/;
 
@@ -22,32 +21,34 @@
 
 #ifdef CONFIG_DPU_UART_DTS
 	uart@4015000 {
-		interrupts = <0x54>;
+		interrupts = <69>;
 		interrupt-parent = <&plic0>;
-#ifdef CONFIG_DUOWEN_ZEBU
-		clock-frequency = <0x7735940>;
-#endif
-#ifdef CONFIG_DUOWEN_ASIC
-		clock-frequency = <0x7735940>;
-#endif
-		reg = <0x0 0x04015000 0x0 0x100>;
-		reg-io-width = <0x4>;
+		clock-frequency = <APB_CLK_FREQ>;
+		reg = <0x0 0x4015000 0x0 0x100>;
+		reg-io-width = <4>;
+		reg-shift = <2>;
 		compatible = "snps,dw-apb-uart";
+#ifdef CONFIG_DPU_UART_DTS_CON
+		status = "okay";
+		current-speed = <UART_CURRENT_SPEED>;
+#else /* CONFIG_DPU_UART_DTS_CON */
+		status = "disabled";
+#endif /* CONFIG_DPU_UART_DTS_CON */
 	};
-#endif
+#endif /* CONFIG_DPU_UART_DTS */
 
 	poweroff {
 		value = <0x5555>;
 		offset = <0x0>;
-		regmap = <0x4>;
-		compatible = "syscsr-poweroff";
+		regmap = <0xffc>;
+		compatible = "tcsr-poweroff";
 	};
 
 	reboot {
 		value = <0x7777>;
 		offset = <0x0>;
-		regmap = <0x4>;
-		compatible = "syscsr-reboot";
+		regmap = <0xffc>;
+		compatible = "tcsr-reboot";
 	};
 
 	cpus {
@@ -55,6 +56,30 @@
 		#size-cells = <0x0>;
 		timebase-frequency = <0x989680>;
 
+#ifdef CONFIG_SMP
+		cpu-map {
+			cluster0 {
+				core0 {
+					cpu = <&cpu0>;
+				};
+			};
+			cluster1 {
+				core0 {
+					cpu = <&cpu1>;
+				};
+			};
+			cluster2 {
+				core0 {
+					cpu = <&cpu2>;
+				};
+			};
+			cluster3 {
+				core0 {
+					cpu = <&cpu3>;
+				};
+			};
+		};
+#else /* CONFIG_SMP */
 		cpu-map {
 			cluster0 {
 				core0 {
@@ -62,9 +87,10 @@
 				};
 			};
 		};
+#endif /* CONFIG_SMP */
 		cpu0: cpu@0 {
 			device_type = "cpu";
-			reg = <0x0>;
+			reg = <0>;
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdsu";
@@ -75,15 +101,74 @@
 				compatible = "riscv,cpu-intc";
 			};
 		};
-
+#ifdef CONFIG_SMP
+		cpu0: cpu@0 {
+			device_type = "cpu";
+			reg = <0>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu0_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu1: cpu@1 {
+			device_type = "cpu";
+			reg = <1>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu1_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu2: cpu@2 {
+			device_type = "cpu";
+			reg = <2>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu2_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu3: cpu@3 {
+			device_type = "cpu";
+			reg = <3>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu3_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+#endif /* CONFIG_SMP */
 	};
 
 	memory@0 {
 		device_type = "memory";
+#if 1
+		reg = <DPU_DDRHI(DDR_DATA_BASE) DPU_DDRLO(DDR_DATA_BASE)
+		       DPU_DDRHI(DDR_DATA_SIZE) DPU_DDRLO(DDR_DATA_SIZE)
+		>;
+#else
 #ifdef CONFIG_DPU_SIM_DDR_BOOT
 		reg = <0x8 0x00000000 0x0 0x20000000>;
 #else
 		reg = <0x4 0x00000000 0xC 0x00000000>;
+#endif
 #endif
 	};
 
@@ -93,24 +178,42 @@
 		compatible = "simple-bus";
 		ranges;
 
-		plic0: interrupt-controller@10000000 {
-			riscv,ndev = <0xf0>;
-			reg = <0x0 0x10000000 0x0 0x4000000>;
+#ifdef CONFIG_DPU_CLINT
+		clint0: clint@4015c00 {
 			interrupts-extended = <
-				&cpu0_intc  0xb        &cpu0_intc  0x9
+#ifdef CONFIG_SMP
+				&cpu0_intc 0x3		&cpu0_intc 0x7
+				&cpu1_intc 0x3		&cpu1_intc 0x7
+				&cpu2_intc 0x3		&cpu2_intc 0x7
+				&cpu3_intc 0x3		&cpu3_intc 0x7
+#else /* CONFIG_SMP */
+				&cpu0_intc 0x3		&cpu0_intc 0x7
+#endif /* CONFIG_SMP */
 			>;
-			interrupt-controller;
-			compatible = "riscv,plic0";
-			#interrupt-cells = <0x1>;
-			#address-cells = <0x0>;
+			reg = <0x0 0x04015C00 0x0 0x400>;
+			smarco,rvtimer-cmp-off = <0x200>;
+			smarco,rvtimer-val-off = <0x40>;
+			compatible = "riscv,clint0";
 		};
-
+#else /* CONFIG_DPU_CLINT */
 		tmr0: tmr@4015c00 {
 			interrupts-extended = <&cpu0_intc  0x7>;
 			reg = <0x0 0x04015C00 0x0 0x400>;
 			smarco,rvtimer-cmp-off = <0x200>;
 			smarco,rvtimer-val-off = <0x40>;
 			compatible = "smarco,rvtimer0";
+		};
+#endif /* CONFIG_DPU_CLINT */
+		plic0: interrupt-controller@10000000 {
+			riscv,ndev = <0xf0>;
+			reg = <0x0 0x10000000 0x0 0x4000000>;
+			interrupts-extended = <
+				&cpu0_intc 0xb		&cpu0_intc 0x9
+			>;
+			interrupt-controller;
+			compatible = "riscv,plic0";
+			#interrupt-cells = <0x1>;
+			#address-cells = <0x0>;
 		};
 
 #if 0

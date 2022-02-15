@@ -87,6 +87,8 @@ build_sdfirm riscv64 virt64_bbl
 build_sdfirm riscv64 unleashed_bbl
 build_sdfirm riscv64 k210_bbl
 build_sdfirm riscv64 dpu2_bbl
+build_sdfirm riscv64 dpures_bbl
+build_sdfirm riscv64 dpuresm_bbl
 build_sdfirm riscv64 dpulp_bbl
 build_sdfirm riscv64 duowen_bbl_apc
 build_sdfirm riscv64 duowen_bbl_imc
