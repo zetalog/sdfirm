@@ -86,6 +86,7 @@ struct linpack_context {
 #define __fprintf(fp, ...)		printf(__VA_ARGS__)
 #define __print_time(t)			print_time(t)
 #else
+#define fprintf(fp, ...)		printf(__VA_ARGS__)
 #define __printf(fmt, ...)		do { } while (0)
 #define __fprintf(fp, fmt, ...)		do { } while (0)
 #define __print_time(t)			do { } while (0)

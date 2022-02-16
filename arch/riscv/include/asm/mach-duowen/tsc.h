@@ -53,7 +53,8 @@
 #define DW_TIMERS_TSC		0
 #define DW_TIMERS_TSC_CLK	TIMER3_CLK
 
-#define TSC_FREQ		XO_CLK_FREQ
+#define __TSC_FREQ		XO_CLK_FREQ
+#define TSC_FREQ		(__TSC_FREQ / 1000) /* kHz based */
 /* TMR and CLINT are all implemented as 64-bit timestamp */
 #define TSC_MAX			ULL(0xFFFFFFFFFFFFFFFF)
 

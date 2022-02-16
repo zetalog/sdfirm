@@ -24,14 +24,13 @@ Original Author: Shay Gal-on
 #endif
 
 #if (MEM_METHOD == MEM_MALLOC)
-#include <target/heap.h>
 /* Function: portable_malloc
         Provide malloc() functionality in a platform specific way.
 */
 void *
 portable_malloc(size_t size)
 {
-    return (void *)heap_alloc(size);
+    return ee_malloc(size);
 }
 /* Function: portable_free
         Provide free() functionality in a platform specific way.
@@ -39,7 +38,7 @@ portable_malloc(size_t size)
 void
 portable_free(void *p)
 {
-    heap_free((caddr_t)p);
+    ee_free(p);
 }
 #else
 void *
@@ -95,6 +94,14 @@ volatile ee_s32 seed5_volatile = 0;
 #define MYTIMEDIFF(fin, ini)       ((fin) - (ini))
 #define TIMER_RES_DIVIDER          1
 #define SAMPLE_TIME_IMPLEMENTATION 1
+#elif USE_TSC
+#define NSECS_PER_SEC              1000000
+#define EE_TIMER_TICKER_RATE       1000
+#define CORETIMETYPE               tsc_count_t
+#define GETMYTIME(_t)              (*_t = tsc_read_counter())
+#define MYTIMEDIFF(fin, ini)       (((fin) - (ini)) / TICKS_TO_MICROSECONDS)
+#define TIMER_RES_DIVIDER          1
+#define SAMPLE_TIME_IMPLEMENTATION 1
 #elif defined(_MSC_VER)
 #define NSECS_PER_SEC        10000000
 #define EE_TIMER_TICKER_RATE 1000
@@ -126,20 +133,10 @@ volatile ee_s32 seed5_volatile = 0;
 #define EE_TICKS_PER_SEC (NSECS_PER_SEC / TIMER_RES_DIVIDER)
 
 #if SAMPLE_TIME_IMPLEMENTATION
-#ifdef CONFIG_COREMARK_SIMPLE_REPORT
-void start_time(void) { return; }
-void stop_time(void) { return; }
-CORE_TICKS get_time(void) { return 0; }
-CORE_TICKS
-get_time_ticks(void)
-{
-    CORETIMETYPE curr_ticks;
-    GETMYTIME(&curr_ticks);
-    return (CORE_TICKS)curr_ticks;
-}
-#else
 /** Define Host specific (POSIX), or target specific global time variables. */
+#ifdef HOSTED
 static CORETIMETYPE start_time_val, stop_time_val;
+#endif
 
 /* Function: start_time
         This function will be called right before starting the timed portion of
@@ -184,7 +181,7 @@ stop_time(void)
 
         Actual value returned may be cpu cycles, milliseconds or any other
    value, as long as it can be converted to seconds by <time_in_secs>. This
-   methodology is taken to accomodate any hardware or simulated platform. The
+   methodology is taken to accommodate any hardware or simulated platform. The
    sample implementation returns millisecs by default, and the resolution is
    controlled by <TIMER_RES_DIVIDER>
 */
@@ -195,12 +192,10 @@ get_time(void)
         = (CORE_TICKS)(MYTIMEDIFF(stop_time_val, start_time_val));
     return elapsed;
 }
-CORE_TICKS get_time_ticks(void) { return 0; }
-#endif
 /* Function: time_in_secs
         Convert the value returned by get_time to seconds.
 
-        The <secs_ret> type is used to accomodate systems with no support for
+        The <secs_ret> type is used to accommodate systems with no support for
    floating point. Default implementation implemented by the EE_TICKS_PER_SEC
    macro above.
 */
@@ -208,12 +203,6 @@ secs_ret
 time_in_secs(CORE_TICKS ticks)
 {
     secs_ret retval = ((secs_ret)ticks) / (secs_ret)EE_TICKS_PER_SEC;
-#if HAS_FLOAT
-	printf("Time: 0x%llx ticks, /= 0x%llx => %f seconds\n", ticks, EE_TICKS_PER_SEC, retval);
-#else
-	printf("Time: 0x%llx ticks, /= 0x%llx => %llu seconds\n", ticks, EE_TICKS_PER_SEC, retval);
-#endif
-
     return retval;
 }
 #else

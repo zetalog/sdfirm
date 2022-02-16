@@ -70,6 +70,7 @@ if [ "x${BUILD_APPS}" = "xyes" ]; then
 	APPELFS="		\
 		bench/dhrystone	\
 		bench/linpack	\
+		bench/coremark	\
 		net/loopback	\
 	"
 	for d in ${APPDIRS}; do

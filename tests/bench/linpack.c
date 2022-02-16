@@ -413,8 +413,8 @@ int linpack(caddr_t percpu_area)
 #if 0
 	fprintf(outfile, "Optimisation %s, %s\n", options, timeday);
 #endif
-	do_fprintf(outfile, "Minimum Average: %10.2f MFLOPS\n", mflops);
-	do_fprintf(outfile, "Maximum Speed:   %10.2f MFLOPS\n", max2);
+	fprintf(outfile, "Minimum Average: %10.2f MFLOPS\n", mflops);
+	fprintf(outfile, "Maximum Speed:   %10.2f MFLOPS\n", max2);
 
 	sprintf(was[0], "%16.1f", (double)residn);
 	sprintf(was[1], "%16.8e", (double)resid);

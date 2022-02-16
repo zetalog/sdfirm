@@ -129,24 +129,105 @@ endif
 
 menuconfig COREMARK
 	bool "CoreMark"
+	select FP
+	select PRINT_SPRINTF
 
 if COREMARK
 
-config COREMARK_FORCE_VERY_QUICK
-	bool "Use minimal data size and iteration count to run quickly"
+choice
+	prompt "Run type"
+	default COREMARK_RUN_PERFORMANCE
 
-config COREMARK_RUN_CNT
-	int "How many times to run those iterations"
-	default 3
+config COREMARK_RUN_PERFORMANCE
+	bool "Performance"
 
-config COREMARK_SIMPLE_REPORT
-	bool "Give report of simple format"
-	default y
+config COREMARK_RUN_VALIDATION
+	bool "Validation"
 
-config COREMARK_ITERATION_CNT
-	int "CoreMark iterations count"
-	depends !COREMARK_FORCE_VERY_QUICK
-	default 200
+config COREMARK_RUN_PROFILE
+	bool "Profile"
+
+endchoice
+
+choice
+	prompt "Seed method"
+	default COREMARK_SEED_VOLATILE
+
+config COREMARK_SEED_VOLATILE
+	bool "Volatile"
+
+config COREMARK_SEED_ARG
+	bool "Arguments"
+
+config COREMARK_SEED_FUNC
+	bool "Function"
+
+endchoice
+
+choice
+	prompt "Memory method"
+	default COREMARK_MEM_STATIC
+
+config COREMARK_MEM_STATIC
+	bool "Static"
+
+config COREMARK_MEM_STACK
+	bool "Stack"
+
+config COREMARK_MEM_MALLOC
+	bool "Malloc"
+	depends HEAP
+
+endchoice
+
+choice
+	prompt "Percpu mechanism"
+	default COREMARK_STATIC_PERCPU
+
+config COREMARK_STATIC_PERCPU
+	bool "SMP percpu variable"
+
+config COREMARK_STATIC_SPECIFIC
+	bool "Specific percpu arrary"
+
+endchoice
+
+choice
+	prompt "Time measure API"
+	default COREMARK_TIME_TSC
+
+config COREMARK_TIME_CLOCK
+	bool "clock()"
+
+config COREMARK_TIME_TSC
+	bool "tick()"
+
+endchoice
+
+config COREMARK_ITERATIONS
+	int "Iterations"
+	default 0
+	help
+	  By default, the benchmark will run between 10-100 seconds. And
+	  ITERATIONS is set to the 0. To override, use ITERATIONS=N
+
+config COREMARK_TOTAL_DATA_SIZE
+	int "Total size of data"
+	default 2000 if !COREMARK_RUN_PROFILE
+	default 1200 if COREMARK_RUN_PROFILE
+	help
+	  If not using malloc or command line arguments are not supported,
+	  the buffer size for the algorithms must be defined via the
+	  compiler define TOTAL_DATA_SIZE.  TOTAL_DATA_SIZE must be set to
+	  2000 bytes (default) for standard runs.  The default for such a
+	  target when testing different configurations could be...
+
+config COREMARK_DEBUG
+	bool "Enable debug run"
+
+config COREMARK_PRINT_ARGS
+	bool "Enable printing of CoreMark arguments"
+	depends COREMARK_SEED_ARG
 
 endif
 

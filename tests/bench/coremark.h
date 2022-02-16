@@ -19,24 +19,12 @@ Original Author: Shay Gal-on
 /* Topic: Description
         This file contains  declarations of the various benchmark functions.
 */
+#ifndef COREMARK_H
+#define COREMARK_H
 
 /* Configuration: TOTAL_DATA_SIZE
         Define total size for data algorithms will operate on
 */
-
-#ifdef CONFIG_COREMARK_FORCE_VERY_QUICK
-#define TOTAL_DATA_SIZE 400
-#define ITERATION_CNT 1
-#else
-#define ITERATION_CNT CONFIG_COREMARK_ITERATION_CNT
-#endif
-
-#ifdef CONFIG_COREMARK_RUN_CNT
-#define RUN_CNT CONFIG_COREMARK_RUN_CNT
-#else
-#define RUN_CNT 1
-#endif
-
 #ifndef TOTAL_DATA_SIZE
 #define TOTAL_DATA_SIZE 2 * 1000
 #endif
@@ -79,7 +67,6 @@ typedef ee_u32 secs_ret;
 #define MAIN_RETURN_TYPE int
 #endif
 
-CORE_TICKS get_time_ticks(void);
 void       start_time(void);
 void       stop_time(void);
 CORE_TICKS get_time(void);
@@ -196,3 +183,5 @@ ee_u32 core_init_matrix(ee_u32      blksize,
                         ee_s32      seed,
                         mat_params *p);
 ee_u16 core_bench_matrix(mat_params *p, ee_s16 seed, ee_u16 crc);
+
+#endif

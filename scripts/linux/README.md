@@ -53,13 +53,14 @@ If you want to add userspace programs, you need to put your pre-built
 programs to sdfirm/scripts/linux/bench folder. It will be automatically
 archived into the linux rootfs.
 
-As an example, here is a way to build dhrystone/linpack:
+As an example, here is a way to build dhrystone/linpack/coremark:
 
     $ cd ./sdfirm/tests/bench
     $ make -f Makefile.target clean
     $ make -f Makefile.target
     $ cp ./dhrystone.elf ../../scripts/linux/bench/dhrystone
     $ cp ./linpack.elf ../../scripts/linux/bench/linpack
+    $ cp ./coremark.elf ../../scripts/linux/bench/coremark
     $ cd -
 
 To simplify the above process, you can also utilize the mechnisms provided

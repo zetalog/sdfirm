@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Jan 28 13:51:02 2022
+# Thu Feb 17 09:48:55 2022
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -25,7 +25,7 @@ CONFIG_FIRMWARE=y
 # CONFIG_RIS is not set
 CONFIG_COMMAND=y
 CONFIG_COMMAND_BATCH=y
-CONFIG_COMMAND_BATCH_COMMAND="bench sync all dhrystone 1 2 1; spike shutdown"
+CONFIG_COMMAND_BATCH_COMMAND="bench sync all dhrystone 1 0 1; spike shutdown"
 CONFIG_ARCH_HAS_CONSOLE_EARLY=y
 CONFIG_CONSOLE=y
 CONFIG_CONSOLE_COMMAND=y

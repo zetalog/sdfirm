@@ -3,7 +3,13 @@ CONFIG_DHRYSTONE_REGISTER=1
 CONFIG_DHRYSTONE_MICROSECOND=1
 CONFIG_DHRYSTONE_OPTIMISED=3
 
-PROGS=dhrystone.elf linpack.elf
+CONFIG_COREMARK_RUN_PERFORMANCE=1
+#CONFIG_COREMARK_RUN_VALIDATION=1
+#CONFIG_COREMARK_RUN_PROFILE=1
+#CONFIG_COREMARK_TOTAL_DATA_SIZE=2000
+#CONFIG_COREMARK_ITERATIONS=0
+
+PROGS=dhrystone.elf linpack.elf coremark.elf
 
 include ../Makefile.bench
 
@@ -53,6 +59,35 @@ CFLAGS_dhrystone=\
 	-I../../include
 
 CFLAGS_linpack=\
+	-I../../include
+
+ifdef CONFIG_COREMARK_RUN_PERFORMANCE
+CFLAGS_coremark_run = -DPERFORMANCE_RUN=1
+endif
+ifdef CONFIG_COREMARK_RUN_VALIDATION
+CFLAGS_coremark_run = -DVALIDATION_RUN=1
+endif
+ifdef CONFIG_COREMARK_RUN_PROFILE
+CFLAGS_coremark_run = -DPROFILE_RUN=1
+endif
+ifneq ($(CONFIG_COREMARK_TOTAL_DATA_SIZE),)
+CFLAGS_coremark_run += -DTOTAL_DATA_SIZE=$(CONFIG_COREMARK_TOTAL_DATA_SIZE)
+else
+ifdef CONFIG_COREMARK_RUN_PROFILE
+CFLAGS_coremark_run += -DTOTAL_DATA_SIZE=1200
+endif
+endif
+ifneq ($(CONFIG_COREMARK_ITERATIONS),)
+CFLAGS_coremark_run += -DITERATIONS=$(CONFIG_COREMARK_ITERATIONS)
+else
+CFLAGS_coremark_run += -DITERATIONS=0
+endif
+CFLAGS_coremark_port = -O2 $(CONFIG_COREMARK_XCFLAGS)
+FLAGS_STR="$(CFLAGS_coremark_port)"
+CFLAGS_coremark=\
+	$(CFLAGS_coremark_port) \
+	$(CFLAGS_coremark_run) \
+	-DFLAGS_STR=\"$(FLAGS_STR)\" \
 	-I../../include
 
 clean:

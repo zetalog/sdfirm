@@ -23,15 +23,7 @@ Original Author: Shay Gal-on
 #ifndef CORE_PORTME_H
 #define CORE_PORTME_H
 
-#define COMPILER_VERSION "GCC 9.2.0"
-#define COMPILER_FLAGS ""
-#define USE_CLOCK 1
-#ifdef CONFIG_FP
-#define HAS_FLOAT 1
-#else
-#define HAS_FLOAT 0
-#endif
-#define MEM_METHOD MEM_STATIC
+#include "core_portme_posix_overrides.h"
 
 /************************/
 /* Data types and settings */
@@ -67,7 +59,7 @@ Original Author: Shay Gal-on
    function.
 */
 #ifndef HAS_PRINTF
-#define HAS_PRINTF 1
+/*#define HAS_PRINTF 1*/
 #endif
 
 /* Configuration: CORE_TICKS
@@ -79,8 +71,6 @@ typedef size_t CORE_TICKS;
 #elif HAS_TIME_H
 #include <time.h>
 typedef clock_t CORE_TICKS;
-#define iterations_per_sec(iterations, ticks) \
-         ((unsigned long long)iterations * 1000000 / ticks)
 #else
 #error \
     "Please define type of CORE_TICKS and implement start_time, end_time get_time and time_in_secs functions!"
@@ -107,6 +97,8 @@ typedef clock_t CORE_TICKS;
 #define MEM_LOCATION_UNSPEC 1
 #endif
 
+#include <stdint.h>
+
 /* Data Types:
         To avoid compiler issues, define the data types that need ot be used for
    8b, 16b and 32b in <core_portme.h>.
@@ -115,14 +107,14 @@ typedef clock_t CORE_TICKS;
         ee_ptr_int needs to be the data type used to hold pointers, otherwise
    coremark may fail!!!
 */
-typedef signed short       ee_s16;
-typedef unsigned short     ee_u16;
-typedef signed int         ee_s32;
-typedef double             ee_f32;
-typedef unsigned char      ee_u8;
-typedef unsigned int       ee_u32;
-typedef unsigned long long ee_ptr_int;
-typedef size_t             ee_size_t;
+typedef signed short   ee_s16;
+typedef unsigned short ee_u16;
+typedef signed int     ee_s32;
+typedef double         ee_f32;
+typedef unsigned char  ee_u8;
+typedef unsigned int   ee_u32;
+typedef uintptr_t      ee_ptr_int;
+typedef size_t         ee_size_t;
 /* align an offset to point to a 32b value */
 #define align_mem(x) (void *)(4 + (((ee_ptr_int)(x)-1) & ~3))
 

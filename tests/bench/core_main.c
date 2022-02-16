@@ -33,7 +33,6 @@ Original Author: Shay Gal-on
         Returns:
         NULL.
 */
-#ifndef CONFIG_COREMARK_SIMPLE_REPORT
 static ee_u16 list_known_crc[]   = { (ee_u16)0xd4b0,
                                    (ee_u16)0x3340,
                                    (ee_u16)0x6a79,
@@ -49,7 +48,6 @@ static ee_u16 state_known_crc[]  = { (ee_u16)0x5e47,
                                     (ee_u16)0xe5a4,
                                     (ee_u16)0x8e3a,
                                     (ee_u16)0x8d84 };
-#endif
 void *
 iterate(void *pres)
 {
@@ -84,10 +82,11 @@ ee_s32 get_seed_32(int i);
 #endif
 
 #if (MEM_METHOD == MEM_STATIC)
-ee_u8 *static_memblk;
+#ifdef HOSTED
+ee_u8 static_memblk[TOTAL_DATA_SIZE];
 #endif
-
-char *mem_name[3] = { "Static", "Heap", "Stack" };
+#endif
+const char *mem_name[3] = { "Static", "Heap", "Stack" };
 /* Function: main
         Main entry routine for the benchmark.
         This function is responsible for the following steps:
@@ -107,59 +106,21 @@ char *mem_name[3] = { "Static", "Heap", "Stack" };
 
 */
 
-#include <target/bench.h>
-#include <target/cpus.h>
-#include <target/percpu.h>
-#include <target/coremark.h>
-
-struct coremark_percpu {
-	struct coremark_context *ptr;
-} __cache_aligned;
-static struct coremark_percpu coremark_ctx[MAX_CPU_NUM];
-#ifdef CONFIG_COREMARK_SIMPLE_REPORT
-static CORE_TICKS clock_ticks[MAX_CPU_NUM][RUN_CNT+1] = {0};
-#endif
-static int coremark_t_pass(void) { return 1; }
-static int coremark_t_fail(void) { return 0; }
-
-#ifdef HOSTED
 #if MAIN_HAS_NOARGC
 MAIN_RETURN_TYPE
-main(void)
+COREMARK_MAIN(void)
 {
     int   argc = 0;
     char *argv[1];
 #else
 MAIN_RETURN_TYPE
-main(int argc, char *argv[])
+COREMARK_MAIN(int argc, char *argv[])
 {
-#endif
-#else
-int coremark(caddr_t percpu_area)
-{
-	char *argv[] = {
-		"coremark",
-		"0",
-		"0",
-		"0x66",
-		"200"};
-	int argc = 5;
-	int cpu_id = smp_processor_id();
-	coremark_ctx[cpu_id].ptr = (struct coremark_context *)percpu_area;
-	ee_u8 *static_memblk = (ee_u8 *)coremark_ctx[cpu_id].ptr->static_memblk;
 #endif
     ee_u16       i, j = 0, num_algorithms = 0;
-    ee_s16       total_errors = 0;
-#ifndef CONFIG_COREMARK_SIMPLE_REPORT
-    ee_s16       known_id = -1;
+    ee_s16       known_id = -1, total_errors = 0;
     ee_u16       seedcrc = 0;
     CORE_TICKS   total_time;
-#endif
-#ifdef CONFIG_COREMARK_RUN_CNT
-    ee_u16       run_cnt = CONFIG_COREMARK_RUN_CNT;
-#else
-    ee_u16       run_cnt = 1;
-#endif
     core_results results[MULTITHREAD];
 #if (MEM_METHOD == MEM_STACK)
     ee_u8 stack_memblock[TOTAL_DATA_SIZE * MULTITHREAD];
@@ -175,11 +136,7 @@ int coremark(caddr_t percpu_area)
     results[0].seed1      = get_seed(1);
     results[0].seed2      = get_seed(2);
     results[0].seed3      = get_seed(3);
-#ifdef ITERATION_CNT
-    results[0].iterations = ITERATION_CNT;
-#else
     results[0].iterations = get_seed_32(4);
-#endif
 #if CORE_DEBUG
     results[0].iterations = 1;
 #endif
@@ -188,11 +145,10 @@ int coremark(caddr_t percpu_area)
     { /* if not supplied, execute all algorithms */
         results[0].execs = ALL_ALGORITHMS_MASK;
     }
-
     /* put in some default values based on one seed only for easy testing */
     if ((results[0].seed1 == 0) && (results[0].seed2 == 0)
         && (results[0].seed3 == 0))
-    { /* perfromance run */
+    { /* performance run */
         results[0].seed1 = 0;
         results[0].seed2 = 0;
         results[0].seed3 = 0x66;
@@ -240,17 +196,6 @@ for (i = 0; i < MULTITHREAD; i++)
 #else
 #error "Please define a way to initialize a memory block."
 #endif
-
-    ee_printf("Starting coremark %d %d 0x%x %d",
-				results[0].seed1,
-				results[0].seed2,
-				results[0].seed3,
-				results[0].iterations,
-				results[0].execs);
-	ee_printf(" data-size %d", results[0].size);
-	ee_printf(" run-count %d", run_cnt);
-	ee_printf("\n");
-
     /* Data init */
     /* Find out how space much we have based on number of algorithms */
     for (i = 0; i < NUM_ALGORITHMS; i++)
@@ -336,24 +281,8 @@ for (i = 0; i < MULTITHREAD; i++)
         core_stop_parallel(&results[i]);
     }
 #else
-    for (i = 0; i < RUN_CNT; i++) {
-#ifdef CONFIG_COREMARK_SIMPLE_REPORT
-        clock_ticks[cpu_id][i] = get_time_ticks();
+    iterate(&results[0]);
 #endif
-        iterate(&results[0]);
-    }
-#endif
-
-#ifdef CONFIG_COREMARK_SIMPLE_REPORT
-    clock_ticks[cpu_id][RUN_CNT] = get_time_ticks();
-    ee_printf("cpu run ticks-start - ticks-stop : ticks-diff iterations/sec\n");
-    for (i = 1; i <= RUN_CNT; i++) {
-        CORE_TICKS diff_ticks =  clock_ticks[cpu_id][i] - clock_ticks[cpu_id][i-1];
-        ee_printf("%3d %3d %llu - %llu : %llu %llu\n", cpu_id, i,
-                clock_ticks[cpu_id][i-1], clock_ticks[cpu_id][i], diff_ticks,
-				iterations_per_sec(results[0].iterations, diff_ticks));
-    }
-#else
     stop_time();
     total_time = get_time();
     /* get a function of the input to report */
@@ -428,36 +357,36 @@ for (i = 0; i < MULTITHREAD; i++)
     }
     total_errors += check_data_types();
     /* and report results */
-    ee_printf("CoreMark Size    : %lu\n", (long unsigned)results[0].size);
-    ee_printf("Total ticks      : %lu\n", (long unsigned)total_time);
+    printf("CoreMark Size    : %lu\n", (long unsigned)results[0].size);
+    printf("Total ticks      : %lu\n", (long unsigned)total_time);
 #if HAS_FLOAT
-    ee_printf("Total time (secs): %f\n", time_in_secs(total_time));
+    printf("Total time (secs): %f\n", time_in_secs(total_time));
     if (time_in_secs(total_time) > 0)
-        ee_printf("Iterations/Sec   : %f\n",
+        printf("Iterations/Sec   : %f\n",
                   default_num_contexts * results[0].iterations
                       / time_in_secs(total_time));
 #else
-    ee_printf("Total time (secs): %d\n", time_in_secs(total_time));
+    printf("Total time (secs): %d\n", time_in_secs(total_time));
     if (time_in_secs(total_time) > 0)
-        ee_printf("Iterations/Sec   : %d\n",
+        printf("Iterations/Sec   : %d\n",
                   default_num_contexts * results[0].iterations
                       / time_in_secs(total_time));
 #endif
     if (time_in_secs(total_time) < 10)
     {
-        ee_printf(
+        printf(
             "ERROR! Must execute for at least 10 secs for a valid result!\n");
-        //total_errors++;
+        total_errors++;
     }
 
-    ee_printf("Iterations       : %lu\n",
+    printf("Iterations       : %lu\n",
               (long unsigned)default_num_contexts * results[0].iterations);
-    ee_printf("Compiler version : %s\n", COMPILER_VERSION);
-    ee_printf("Compiler flags   : %s\n", COMPILER_FLAGS);
+    printf("Compiler version : %s\n", COMPILER_VERSION);
+    printf("Compiler flags   : %s\n", COMPILER_FLAGS);
 #if (MULTITHREAD > 1)
-    ee_printf("Parallel %s : %d\n", PARALLEL_METHOD, default_num_contexts);
+    printf("Parallel %s : %d\n", PARALLEL_METHOD, default_num_contexts);
 #endif
-    ee_printf("Memory location  : %s\n", MEM_LOCATION);
+    printf("Memory location  : %s\n", MEM_LOCATION);
     /* output for verification */
     ee_printf("seedcrc          : 0x%04x\n", seedcrc);
     if (results[0].execs & ID_LIST)
@@ -473,47 +402,46 @@ for (i = 0; i < MULTITHREAD; i++)
         ee_printf("[%d]crcfinal      : 0x%04x\n", i, results[i].crc);
     if (total_errors == 0)
     {
-        ee_printf(
+        printf(
             "Correct operation validated. See README.md for run and reporting "
             "rules.\n");
 #if HAS_FLOAT
         if (known_id == 3)
         {
-            ee_printf("CoreMark 1.0 : %f / %s %s",
+            printf("CoreMark 1.0 : %f / %s %s",
                       default_num_contexts * results[0].iterations
                           / time_in_secs(total_time),
                       COMPILER_VERSION,
                       COMPILER_FLAGS);
 #if defined(MEM_LOCATION) && !defined(MEM_LOCATION_UNSPEC)
-            ee_printf(" / %s", MEM_LOCATION);
+            printf(" / %s", MEM_LOCATION);
 #else
-            ee_printf(" / %s", mem_name[MEM_METHOD]);
+            printf(" / %s", mem_name[MEM_METHOD]);
 #endif
 
 #if (MULTITHREAD > 1)
-            ee_printf(" / %d:%s", default_num_contexts, PARALLEL_METHOD);
+            printf(" / %d:%s", default_num_contexts, PARALLEL_METHOD);
 #endif
-            ee_printf("\n");
+            printf("\n");
         }
 #endif
     }
-#endif
+    if (total_errors > 0)
+        printf("Errors detected\n");
+    if (total_errors < 0)
+        printf(
+            "Cannot validate operation for these seed values, please compare "
+            "with results on a known platform.\n");
 
 #if (MEM_METHOD == MEM_MALLOC)
     for (i = 0; i < MULTITHREAD; i++)
         portable_free(results[i].memblock[0]);
 #endif
-
     /* And last call any target specific code for finalizing */
     portable_fini(&(results[0].port));
-	if (total_errors == 0) {
-		ee_printf("Bench %s Success.\n", __func__);
-		return coremark_t_pass();
-	} else {
-		ee_printf("Bench %s Failed.\n", __func__);
-		return coremark_t_fail();
-	}
-}
 
-__define_testfn(coremark, sizeof(struct coremark_context), SMP_CACHE_BYTES,
-		CPU_EXEC_META, 1, CPU_WAIT_INFINITE);
+#ifndef HOSTED
+    static_total_errors = total_errors;
+#endif
+    return MAIN_RETURN_VAL;
+}

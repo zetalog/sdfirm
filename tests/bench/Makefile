@@ -11,12 +11,21 @@ endif
 
 obj-$(CONFIG_LINPACK) += linpack.rel
 
-obj-$(CONFIG_COREMARK) += core_main.rel
-obj-$(CONFIG_COREMARK) += core_list_join.rel
-obj-$(CONFIG_COREMARK) += core_matrix.rel
-obj-$(CONFIG_COREMARK) += core_state.rel
-obj-$(CONFIG_COREMARK) += core_util.rel
-obj-$(CONFIG_COREMARK) += core_portme.rel
+# Default data size need to be handled in Makefile while the others can be
+# handled by core_portme_posix_overrides.h.
+ifneq ($(CONFIG_COREMARK_TOTAL_DATA_SIZE),)
+CFLAGS_coremark.o += -DTOTAL_DATA_SIZE=$(CONFIG_COREMARK_TOTAL_DATA_SIZE)
+else
+ifdef CONFIG_COREMARK_RUN_PROFILE
+CFLAGS_coremark.o += -DTOTAL_DATA_SIZE=1200
+endif
+endif
+# CoreMark should always be built with -O2
+XCFLAGS_coremark.o = -O2 $(CONFIG_COREMARK_XCFLAGS)
+FLAGS_STR_coremark.o="$(XCFLAGS_coremark.o)"
+CFLAGS_coremark.o += $(XCFLAGS_coremark.o)
+CFLAGS_coremark.o += -DFLAGS_STR=\"$(FLAGS_STR_coremark.o)\"
+obj-$(CONFIG_COREMARK) += coremark.rel
 
 obj-$(CONFIG_MEMSTREAM) += memstream.rel
 
