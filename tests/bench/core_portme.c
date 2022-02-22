@@ -222,7 +222,7 @@ portable_init(core_portable *p, int *argc, char *argv[])
     int i;
     for (i = 0; i < *argc; i++)
     {
-        ee_printf("Arg[%d]=%s\n", i, argv[i]);
+        printf("Arg[%d]=%s\n", i, argv[i]);
     }
 #endif
     if (sizeof(ee_ptr_int) != sizeof(ee_u8 *))

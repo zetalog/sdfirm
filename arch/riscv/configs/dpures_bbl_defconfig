@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Feb 15 14:46:05 2022
+# Tue Feb 22 16:36:19 2022
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -584,7 +584,7 @@ CONFIG_CC_ALWAYS_INLINE=y
 # Simulation options
 #
 # CONFIG_SIMULATION is not set
-CONFIG_VERILOG_DATA_WIDTH=64
+CONFIG_VERILOG_DATA_WIDTH=256
 CONFIG_DEBUG=y
 CONFIG_CC_GEN_DEBUG=y
 CONFIG_DEBUG_PANIC=y

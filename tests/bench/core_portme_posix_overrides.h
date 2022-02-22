@@ -38,6 +38,7 @@ Original Author: Shay Gal-on
  *                                   Add USE_TSC implementation
  *                                   Add ifdef HOSTED around start_time_val
  *                                   Add ifdef HOSTED around stop_time_val
+ *                                   Convert ee_printf to printf for PRINT_ARGS
  *  x core_main.c:                   Convert main to COREMARK_MAIN
  *                                   Convert ee_printf to printf for the result
  *                                   Add ifdef HOSTED around static_memblk
