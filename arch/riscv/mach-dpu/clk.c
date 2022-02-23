@@ -1106,9 +1106,31 @@ void board_init_clock(void)
 #ifdef CONFIG_DPU_RES
 		clk_register_driver(CLK_DIV, &clk_div);
 #endif /* CONFIG_DPU_RES */
-		/* Update the status of the default enabled clocks */
+		/* Accelerate the Boot Clocks
+		 *
+		 * The only place in sdfirm to accelerate the boot clocks
+		 * is where all of the clock drivers have been registered.
+		 *
+		 * Update the status of the default enabled clocks to make
+		 * sure that CPU, ROM/RAM are accelerated.
+		 *
+		 * For the programs running in the DDR (currently
+		 * indicated by CONFIG_DPU_LOAD_BBL, making sure that the
+		 * DDR is * accelerated. However, this is hackish as we
+		 * have no idea if the DDR supports glitch free clock
+		 * switching. Ideally the hardware should have the DDR
+		 * clocks accelerated before executing the program. But the
+		 * hardware doesn't do that much for us.
+		 *
+		 * No srst is handled here as they should have already
+		 * been deasserted or the program won't execute.
+		 */
 		clk_enable(cpu_clk);
 		clk_enable(apb_clk);
+#ifdef CONFIG_DPU_LOAD_BBL
+		clk_enable(axi_clk);
+		clk_enable(ddr_clk);
+#endif /* CONFIG_DPU_LOAD_BBL */
 	}
 	clk_hw_init = true;
 }

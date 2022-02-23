@@ -125,6 +125,7 @@ config DPU_FIRM_DDR
 	bool "Runtime target firmware (DPU-FW)"
 	select ARCH_HAS_BOOT_LOAD
 	select DPU_FIRM
+	select DPU_LOAD_BBL
 	select XIP
 	select BFM
 	select SYS_ENTR_M

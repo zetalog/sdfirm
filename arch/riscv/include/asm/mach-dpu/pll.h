@@ -99,6 +99,7 @@ extern caddr_t dpu_pll_reg_base;
 #define dpu_gmux_disable(pll, r)	\
 	__raw_clearl(DPU_GMUX_EN(r), PLL_GMUX_CFG(pll))
 
+void dpu_gmux_gate_switch(clk_clk_t clk, bool allow_gating);
 #ifdef CONFIG_DW_PLL5GHZ_TSMC12FFC_DYNAMIC
 uint32_t dpu_gmux_save(int pll);
 void dpu_gmux_restore(int pll, uint32_t gmux);

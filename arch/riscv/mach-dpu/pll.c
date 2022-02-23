@@ -72,6 +72,16 @@ void dpu_gmux_restore(int pll, uint32_t gmux)
 }
 #endif /* CONFIG_DW_PLL5GHZ_TSMC12FFC_DYNAMIC */
 
+void dpu_gmux_gate_switch(clk_clk_t clk, bool allow_gating)
+{
+	bool r = CLK_IS_PLL_RCLK(clk);
+	uint8_t pll = CLK_TO_PLL(clk, r);
+
+	dpu_gmux_select(pll, r);
+	if (allow_gating)
+		dpu_gmux_enable(pll, r);
+}
+
 struct freqplan {
 	uint64_t f_pll_vco;
 	uint32_t f_pll_pclk;

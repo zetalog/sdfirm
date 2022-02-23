@@ -194,8 +194,8 @@ static void dpu_ram_boot_ddr(void)
 	void (*boot_entry)(void);
 
 	imc_config_ddr_intlv();
-	dpu_pll_soft_reset(srst_ddr0_0);
-	dpu_pll_soft_reset(srst_ddr0_1);
+	dpu_pll_soft_reset(SRST_DDR0_0);
+	dpu_pll_soft_reset(SRST_DDR0_1);
 	boot_entry = (void *)DDR1_DATA_BASE;
 	boot_entry();
 }
