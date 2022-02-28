@@ -30,6 +30,7 @@ config DPU_APC
 	bool "APC"
 	select CPU_VAISRA
 	select ARCH_HAS_SMP
+	select ARCH_HAS_DPU_PMA_DYNAMIC if SMP
 	depends DPU_RES
 
 endchoice
@@ -302,6 +303,13 @@ config DPU_TCSR_SIM_FINISH
 	help
 	  In simulation environment, enabling this allows to shutdown
 	  VCS simulation.
+
+#config DPU_TCSR_SIM_TRACE
+#	bool "Enable cluster trace log support"
+#	depends DPU_APC
+#	help
+#	  Currently this zebu trace log feature is only used in the Linux
+#	  userspace programs.
 
 endif
 

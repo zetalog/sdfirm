@@ -104,6 +104,15 @@ extern caddr_t dpu_tcsr_reg_base;
 #define IMC_SIM_FAIL			_BV(30)
 #endif
 
+#ifdef CONFIG_DPU_TCSR_SIM_TRACE
+#define PE_DMA0_REG(offset)		(PE_DMA_BASE + (offset))
+#define IMC_CPU_TRACE			PE_DMA0_REG(0xB0)
+#define IMC_TRACE_START			0x01
+#define IMC_TRACE_STARTED		0x02
+#define IMC_TRACE_STOP			0x03
+#define IMC_TRACE_STOPPED		0x00
+#endif
+
 #define imc_soc_major()					\
 	IMC_MAJOR(__raw_readl(TCSR_SOC_HW_VERSION))
 #define imc_soc_minor()					\
@@ -124,6 +133,21 @@ extern caddr_t dpu_tcsr_reg_base;
 	__raw_setl((pass) ? IMC_SIM_PASS : IMC_SIM_FAIL, TCSR_SIM_FINISH)
 #else
 #define imc_sim_finish(pass)		do { } while (0)
+#endif
+#ifdef CONFIG_DPU_TCSR_SIM_TRACE
+#define imc_sim_open_trace()						\
+	do {								\
+		__raw_writel(IMC_TRACE_START, IMC_SIM_TRACE);		\
+		while (__raw_readl(IMC_SIM_TRACE) != IMC_TRACE_STARTED);\
+	} while (0)
+#define imc_sim_close_trace()						\
+	do {								\
+		__raw_writel(IMC_TRACE_STOP, IMC_SIM_TRACE);		\
+		while (__raw_readl(IMC_SIM_TRACE) != IMC_TRACE_STOPPED);\
+	} while (0)
+#else
+#define imc_sim_open_trace()		do { } while (0)
+#define imc_sim_close_trace()		do { } while (0)
 #endif
 
 #ifdef CONFIG_DPU_TCSR_LOW_POWER

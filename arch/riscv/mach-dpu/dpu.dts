@@ -79,29 +79,6 @@
 				};
 			};
 		};
-#else /* CONFIG_SMP */
-		cpu-map {
-			cluster0 {
-				core0 {
-					cpu = <&cpu0>;
-				};
-			};
-		};
-#endif /* CONFIG_SMP */
-		cpu0: cpu@0 {
-			device_type = "cpu";
-			reg = <0>;
-			status = "okay";
-			compatible = "riscv";
-			riscv,isa = "rv64imafdsu";
-			mmu-type = "riscv,sv48";
-			cpu0_intc: interrupt-controller {
-				#interrupt-cells = <0x1>;
-				interrupt-controller;
-				compatible = "riscv,cpu-intc";
-			};
-		};
-#ifdef CONFIG_SMP
 		cpu0: cpu@0 {
 			device_type = "cpu";
 			reg = <0>;
@@ -149,6 +126,27 @@
 			riscv,isa = "rv64imafdsu";
 			mmu-type = "riscv,sv48";
 			cpu3_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+#else /* CONFIG_SMP */
+		cpu-map {
+			cluster0 {
+				core0 {
+					cpu = <&cpu0>;
+				};
+			};
+		};
+		cpu0: cpu@0 {
+			device_type = "cpu";
+			reg = <0>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			cpu0_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
 				interrupt-controller;
 				compatible = "riscv,cpu-intc";

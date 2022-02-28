@@ -286,6 +286,7 @@ static void __dpu_pma_cpu_init(void)
 void dpu_pma_cpu_init(void)
 {
 	dpu_cpu_cache_init();
+	__dpu_pma_cpu_init();
 	dpu_ram_boot_ddr();
 }
 #endif /* CONFIG_DPU_APC */

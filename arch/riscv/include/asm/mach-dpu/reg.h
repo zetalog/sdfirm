@@ -155,7 +155,8 @@
 
 #include <dt-bindings/memory/dpu-ddr.h>
 
-#ifdef CONFIG_DPU_FIRM_DDR
+#ifdef CONFIG_DPU_LOAD_BBL
+/* For DPU_BOOT_DDR or DPU_FIRM_DDR, DPU_LOAD_BBL is defined */
 #ifdef CONFIG_DPU_FIRM_SIZE
 #define DPU_FIRM_SIZE		CONFIG_DPU_FIRM_SIZE
 #else
@@ -165,7 +166,7 @@
 #define ROMEND			(DDR_DATA_BASE + DPU_FIRM_SIZE)
 #define RAM_BASE		DDR_DATA_BASE
 #define RAMEND			(DDR_DATA_BASE + DDR_DATA_SIZE)
-#endif /* CONFIG_DPU_FIRM_DDR */
+#endif /* CONFIG_DPU_LOAD_BBL */
 
 #ifdef CONFIG_DPU_BOOT_ROM
 #define ROM_BASE		BOOTROM_BASE
