@@ -105,8 +105,10 @@ extern caddr_t dpu_tcsr_reg_base;
 #endif
 
 #ifdef CONFIG_DPU_TCSR_SIM_TRACE
-#define PE_DMA0_REG(offset)		(PE_DMA_BASE + (offset))
-#define IMC_CPU_TRACE			PE_DMA0_REG(0xB0)
+#define TCSR_ZEBU_TRACE			TCSR_VPU_HIGH_ADDR
+#define IMC_TRACE_STEP_OFFSET		0
+#define IMC_TRACE_STEP_MASK		REG_2BIT_MASK
+#define IMC_TRACE_STEP(value)		_GET_FV(IMC_TRACE_STEP, value)
 #define IMC_TRACE_START			0x01
 #define IMC_TRACE_STARTED		0x02
 #define IMC_TRACE_STOP			0x03
@@ -135,15 +137,17 @@ extern caddr_t dpu_tcsr_reg_base;
 #define imc_sim_finish(pass)		do { } while (0)
 #endif
 #ifdef CONFIG_DPU_TCSR_SIM_TRACE
+#define imc_sim_is_trace(step)		\
+	(IMC_TRACE_STEP(__raw_readl(TCSR_SIM_TRACE)) == (step))
 #define imc_sim_open_trace()						\
 	do {								\
-		__raw_writel(IMC_TRACE_START, IMC_SIM_TRACE);		\
-		while (__raw_readl(IMC_SIM_TRACE) != IMC_TRACE_STARTED);\
+		__raw_writel(IMC_TRACE_START, TCSR_SIM_TRACE);		\
+		while (!imc_sim_is_trace(IMC_TRACE_STARTED));		\
 	} while (0)
 #define imc_sim_close_trace()						\
 	do {								\
-		__raw_writel(IMC_TRACE_STOP, IMC_SIM_TRACE);		\
-		while (__raw_readl(IMC_SIM_TRACE) != IMC_TRACE_STOPPED);\
+		__raw_writel(IMC_TRACE_STOP, TCSR_SIM_TRACE);		\
+		while (!imc_sim_is_trace(IMC_TRACE_STOPPED));		\
 	} while (0)
 #else
 #define imc_sim_open_trace()		do { } while (0)
