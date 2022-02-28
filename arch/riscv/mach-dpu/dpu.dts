@@ -13,9 +13,9 @@
 	chosen {
 #ifdef CONFIG_DPU_UART_DTS_CON
 		bootargs = [00];
-		stdout-path = "/uart@4015000";
+		stdout-path = "/uart@4015000 rdinit=/sbin/init";
 #else
-		bootargs = "console=hvc0 earlycon=sbi";
+		bootargs = "console=hvc0 earlycon=sbi rdinit=/sbin/init";
 #endif
 	};
 
@@ -157,17 +157,13 @@
 
 	memory@0 {
 		device_type = "memory";
-#if 1
+#ifdef CONFIG_DPU_SIM_DDR_BOOT
+		reg = <0x8 0x00000000 0x0 0x20000000>;
+#else /* CONFIG_DPU_SIM_DDR_BOOT */
 		reg = <DPU_DDRHI(DDR_DATA_BASE) DPU_DDRLO(DDR_DATA_BASE)
 		       DPU_DDRHI(DDR_DATA_SIZE) DPU_DDRLO(DDR_DATA_SIZE)
 		>;
-#else
-#ifdef CONFIG_DPU_SIM_DDR_BOOT
-		reg = <0x8 0x00000000 0x0 0x20000000>;
-#else
-		reg = <0x4 0x00000000 0xC 0x00000000>;
-#endif
-#endif
+#endif /* CONFIG_DPU_SIM_DDR_BOOT */
 	};
 
 	soc {

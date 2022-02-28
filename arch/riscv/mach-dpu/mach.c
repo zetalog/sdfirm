@@ -260,6 +260,7 @@ static void dpu_pma_debug(void)
 #endif /* CONFIG_DPU_PMA_DEBUG */
 
 #ifdef CONFIG_DPU_PMA
+#ifdef CONFIG_SMP
 static void __dpu_pma_cpu_init(void)
 {
 	int n = 0;
@@ -269,10 +270,48 @@ static void __dpu_pma_cpu_init(void)
 	n += pma_set(n, PMA_AT_DEVICE,
 		     DEV_BASE,
 		     ilog2_const(max(SZ_2M, DEV_SIZE)));
+	/* XXX: Split the Single Big DDR Region
+	 *
+	 * The PMA driver won't automatically split too big NAPOT regions
+	 * into several pieces. So we have to split it from the caller
+	 * side.
+	 */
 	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
 		     DDR0_DATA_BASE,
-		     ilog2_const(max(SZ_2M, DDR0_DATA_SIZE + DDR1_DATA_SIZE)));
+		     ilog2_const(max(SZ_2M, DDR0_DATA_SIZE)));
+	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
+		     DDR1_DATA_BASE,
+		     ilog2_const(max(SZ_2M, DDR1_DATA_SIZE)));
+	n += pma_set(n, PMA_AT_DEVICE,
+		     PCIE_BASE,
+		     ilog2_const(max(SZ_2M, PCIE_SIZE)));
 }
+#else /* CONFIG_SMP */
+static void __dpu_pma_cpu_init(void)
+{
+	int n = 0;
+
+	dpu_pma_debug();
+	/* Enable CPU PMA */
+	n += pma_set(n, PMA_AT_DEVICE,
+		     DEV_BASE,
+		     ilog2_const(max(SZ_2M, DEV_SIZE)));
+	/* XXX: Split the Single Big DDR Region
+	 *
+	 * The PMA driver won't automatically split too big NAPOT regions
+	 * into several pieces. So we have to split it from the caller
+	 * side.
+	 */
+	n += pma_set(n, PMA_AT_DEVICE,
+		     DDR0_DATA_BASE,
+		     ilog2_const(max(SZ_2M, DDR0_DATA_SIZE)));
+	n += pma_set(n, PMA_AT_DEVICE,
+		     DDR1_DATA_BASE,
+		     ilog2_const(max(SZ_2M, DDR1_DATA_SIZE)));
+	n += pma_set(n, PMA_AT_DEVICE,
+		     PCIE_BASE,
+		     ilog2_const(max(SZ_2M, PCIE_SIZE)));
+#endif /* CONFIG_SMP */
 #else /* CONFIG_DPU_PMA */
 #define __dpu_pma_cpu_init()		do { } while (0)
 #endif /* CONFIG_DPU_PMA */

@@ -30,7 +30,6 @@ config DPU_APC
 	bool "APC"
 	select CPU_VAISRA
 	select ARCH_HAS_SMP
-	select ARCH_HAS_DPU_PMA_DYNAMIC if SMP
 	depends DPU_RES
 
 endchoice
@@ -250,6 +249,62 @@ config DPU_SIM_APC
 	select DPU_APC_INIT_CPU
 	select DPU_APC_INIT_PMA
 
+config DPU_SIM_DDR_BOOT
+	bool "Use DDR model for DDR1 to boot"
+	depends !DDR
+	help
+	  The special boot mode is used to perform OS verification in the
+	  simulation environment. When it is configured, DDR1 becomes a
+	  RAM model, and sizes 512MB. The CPU will boot from the start
+	  address of DDR1 (0x08_0000_0000).
+
+config DPU_SIM_DDR_BASE16
+	bool "Enable 16G DDR address base"
+	depends !DPU_DDR_BANK0
+	help
+	  Use DDR base is DDR0. This is used when real DDR0 bank is not
+	  configured, but fake DDR0 bank exists in the SoC.
+
+config DPU_SIM_DDR_SIZE32
+	bool "Enable 32G DDR address size"
+	depends !DPU_DDR_BANK1
+	help
+	  Use both DDR0 and DDR1 address regions. This is used when real
+	  DDR1 bank is not configured, but fake DDR1 bank exists in the
+	  SoC.
+
+config DPU_SIM_RAM_BOOT_DDR
+	bool "Enable tiny RAM bootloader to boot to DDR1"
+	depends DPU_BOOT_RAM
+	select DPU_SIM_APC if DPU_APC
+	help
+	  DPU is lack of DDR booting simulation mode support for APC due
+	  to the wrong default hardware PMA in some versions; and the
+	  hardware doesn't release DDR resets, doesn't accelerate DDR
+	  clocks in some testbenches. To work all of the above issues
+	  around, RAM boot mode is always used in the testbench DDR booting
+	  scenarios, and this RAM bootloader is a very tiny startup program
+	  to boot to DDR with all of the required hardware status prepared
+	  by the software.
+
+config DPU_SIM_PMA
+	bool "Use customized PMA settings"
+	depends DPU_SIM_RAM_BOOT_DDR
+	depends DPU_APC
+	select ARCH_HAS_DPU_PMA_DYNAMIC if DPU_APC
+	select DPU_PMA if DPU_APC
+	help
+	  The default hardware PMA is actually working after performing
+	  ECO. Thus in production mode, PMA shouldn't be programmed by the
+	  software. However there are versions the PMA is wrong; and there
+	  are tests need to be performed to test various PMA settings.
+	  To have PMA programmed by the software, PMA should be reset in
+	  early boot state (vaisra.S) and re-configured correctly late
+	  after preparing necessary software execution environments.
+	  After all, this feature is limited to be use with APC RAM boot
+	  to DDR bootloader.
+	  If unsure, say 'N'.
+
 config DPU_SIM_GPIO_IRQ
 	bool "Enable GPIO IRQ testing framework"
 	depends DPU_GPIO && SYS_IRQ
@@ -257,27 +312,6 @@ config DPU_SIM_GPIO_IRQ
 config DPU_SIM_SSI_IRQ
 	bool "Enable SSI IRQ testing support"
 	depends DPU_SSI_FLASH && SYS_IRQ
-
-config DPU_SIM_DDR_BOOT
-	bool "Use DDR model for DDR1 to boot"
-	depends !DDR
-	help
-	  The special boot mode is used to perform OS verification in the
-	  simulation environment. When it is configured, DDR1 becomes a
-	  RAM model, and sizes 512MB. The CPU will boot the the start
-	  address of DDR1 (0x08_0000_0000).
-
-config DPU_SIM_RAM_BOOT_DDR
-	bool "Use RAM to boot to DDR1"
-	depends DPU_BOOT_RAM
-
-config DPU_SIM_DDR_BASE16
-	bool "Enable 16G DDR address base"
-	depends !DPU_DDR_BANK0
-
-config DPU_SIM_DDR_SIZE32
-	bool "Enable 32G DDR address size"
-	depends !DPU_DDR_BANK1
 
 endif
 
