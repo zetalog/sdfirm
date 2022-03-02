@@ -47,7 +47,6 @@
 
 #include <asm/mach/tcsr.h>
 #include <asm/mach/flash.h>
-#define VAISRA_PMA_G		19
 #include <asm/vaisra_pma.h>
 #ifdef CONFIG_VAISRA_RAS
 #include <asm/vaisra_ras.h>

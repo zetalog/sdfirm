@@ -370,7 +370,9 @@ config RISCV_PMA
 config RISCV_PMP
 	bool "Physical address protection (PMP) support"
 	depends CPU_PMP
+	select BIT_FFS32 if 32BIT
 	select BIT_FLS32 if 32BIT
+	select BIT_FFS64 if 64BIT
 	select BIT_FLS64 if 64BIT
 	default y
 
@@ -780,6 +782,10 @@ menuconfig VAISRA_TBOX
 menuconfig VAISRA_PMA
 	bool "Vaisra physical memory attributes support"
 	depends CPU_VAISRA
+	select BIT_FFS32 if 32BIT
+	select BIT_FLS32 if 32BIT
+	select BIT_FFS64 if 64BIT
+	select BIT_FLS64 if 64BIT
 	help
 	  Vaisra SoC PMA driver.
 

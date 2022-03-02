@@ -43,8 +43,9 @@
 #define __PMA_VAISRA_H_INCLUDE__
 
 #ifndef VAISRA_PMA_G
-#error "VAISRA_PMA_G should be defined!"
-#endif
+/* VAISRA_PMA_G is not defined, use default 19 (2MB). */
+#define VAISRA_PMA_G		19
+#endif /* VAISRA_PMA_SIZE */
 
 #define PMA_GRAIN_SHIFT		(VAISRA_PMA_G + 2)
 #define PMA_GRAIN_ALIGN		(ULL(1) << PMA_GRAIN_SHIFT)

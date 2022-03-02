@@ -52,7 +52,6 @@
 #include <asm/mach/vpu.h>
 #include <asm/mach/tsensor.h>
 #ifdef CONFIG_DPU_APC
-#define VAISRA_PMA_G		19
 #include <asm/vaisra_pma.h>
 #ifdef CONFIG_VAISRA_RAS
 #include <asm/vaisra_ras.h>

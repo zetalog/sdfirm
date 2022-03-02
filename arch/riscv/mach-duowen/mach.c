@@ -97,17 +97,13 @@ static void __duowen_pma_soc_init(void)
 	duowen_pma_debug();
 	/* Enable SoC PMA */
 	n += imc_pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
-			 SOC0_BASE + __DDR_BASE,
-			 ilog2_const(max(SZ_2M, DDR_SIZE)));
+			 SOC0_BASE + __DDR_BASE, ilog2_const(DDR_SIZE));
 	n += imc_pma_set(n, PMA_AT_DEVICE,
-			 SOC0_BASE + __DEV_BASE,
-			 ilog2_const(max(SZ_2M, DEV_SIZE)));
+			 SOC0_BASE + __DEV_BASE, ilog2_const(DEV_SIZE));
 	n += imc_pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
-			 SOC1_BASE + __DDR_BASE,
-			 ilog2_const(max(SZ_2M, DDR_SIZE)));
+			 SOC1_BASE + __DDR_BASE, ilog2_const(DDR_SIZE));
 	n += imc_pma_set(n, PMA_AT_DEVICE,
-			 SOC1_BASE + __DEV_BASE,
-			 ilog2_const(max(SZ_2M, DEV_SIZE)));
+			 SOC1_BASE + __DEV_BASE, ilog2_const(DEV_SIZE));
 }
 
 void duowen_pma_soc_init(void)
@@ -127,17 +123,13 @@ void duowen_pma_cpu_init(void)
 	duowen_pma_debug();
 	/* Enable CPU PMA */
 	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
-		     SOC0_BASE + __DDR_BASE,
-		     ilog2_const(max(SZ_2M, DDR_SIZE)));
+		     SOC0_BASE + __DDR_BASE, ilog2_const(DDR_SIZE));
 	n += pma_set(n, PMA_AT_DEVICE,
-		     SOC0_BASE + __DEV_BASE,
-		     ilog2_const(max(SZ_2M, DEV_SIZE)));
+		     SOC0_BASE + __DEV_BASE, ilog2_const(DEV_SIZE));
 	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
-		     SOC1_BASE + __DDR_BASE,
-		     ilog2_const(max(SZ_2M, DDR_SIZE)));
+		     SOC1_BASE + __DDR_BASE, ilog2_const(DDR_SIZE));
 	n += pma_set(n, PMA_AT_DEVICE,
-		     SOC1_BASE + __DEV_BASE,
-		     ilog2_const(max(SZ_2M, DEV_SIZE)));
+		     SOC1_BASE + __DEV_BASE, ilog2_const(DEV_SIZE));
 }
 #endif
 

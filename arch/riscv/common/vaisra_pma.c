@@ -217,46 +217,45 @@ static void __pma_cfg(int n, unsigned long attr)
 	csr_write_pmacfg(pmacfg_index, pmacfg);
 }
 
+#if __riscv_xlen == 64
+#define pma_ffs		__ffs64
+#define pma_fls		__fls64
+#else
+#define pma_ffs		__ffs32
+#define pma_fls		__fls32
+#endif
+
 int pma_set(int n, unsigned long attr, phys_addr_t addr, unsigned long log2len)
 {
 	unsigned long addrmask, pmaaddr;
-	bool tor = !IS_ALIGNED(addr, PMA_GRAIN_ALIGN) ||
-		   log2len < PMA_GRAIN_SHIFT;
+	int nr_pmas = 1;
 
 	/* check parameters */
 	if (n >= PMA_COUNT || log2len > __riscv_xlen || log2len < PMA_SHIFT)
 		return -EINVAL;
 
-	/* encode PMA config */
-	attr |= tor ? PMA_A_TOR :
-		((log2len == PMA_SHIFT) ? PMA_A_NA4 : PMA_A_NAPOT);
-
-	if (tor) {
-		if (n == 0 && addr == 0)
+	if (pma_ffs(addr) < log2len) {
+		attr |= PMA_A_TOR;
+		if (n == 0 && addr == 0) {
 			csr_write_pmaaddr(n, addr + (UL(1) << log2len));
-		else {
+		} else {
+			if (n >= (PMA_COUNT - 1))
+				return -EINVAL;
 			csr_write_pmaaddr(n, addr);
 			csr_write_pmaaddr(n + 1, addr + (UL(1) << log2len));
+			nr_pmas = 2;
 		}
-		__pma_cfg(n, attr);
-		return 2;
-	}
-
-	/* encode PMA address */
-	if (log2len == PMA_SHIFT) {
+	} else if (log2len == PMA_SHIFT) {
+		attr |= PMA_A_NA4;
 		pmaaddr = (addr >> PMA_SHIFT);
+		csr_write_pmaaddr(n, pmaaddr);
 	} else {
-		if (log2len == __riscv_xlen) {
-			pmaaddr = -UL(1);
-		} else {
-			addrmask = (UL(1) << (log2len - PMA_SHIFT)) - 1;
-			pmaaddr	 = ((addr >> PMA_SHIFT) & ~addrmask);
-			pmaaddr |= (addrmask >> 1);
-		}
+		attr |= PMA_A_NAPOT;
+		addrmask = (UL(1) << (log2len - PMA_SHIFT)) - 1;
+		pmaaddr = ((addr >> PMA_SHIFT) & ~addrmask);
+		pmaaddr |= (addrmask >> 1);
+		csr_write_pmaaddr(n, pmaaddr);
 	}
-
-	/* write csrs */
-	csr_write_pmaaddr(n, pmaaddr);
 	__pma_cfg(n, attr);
-	return 1;
+	return nr_pmas;
 }
