@@ -65,21 +65,13 @@ void smp_boot(void)
 
 #ifdef CONFIG_SMP_WAIT_BOOT
 #define SMP_WAIT_BOOT_MS		2000
-#else /* CONFIG_SMP_WAIT_BOOT */
-#define SMP_WAIT_BOOT_MS		0
-#endif /* CONFIG_SMP_WAIT_BOOT */
 
-void smp_boot_secondary_cpus(caddr_t context)
+static void smp_wait_secondary_cpus(void)
 {
 	cpu_t cpu;
 	cpu_t nr_online_cpus;
 	tick_t smp_wait;
 
-	smp_hw_ctrl_init();
-	for (cpu = 0; cpu < NR_CPUS; cpu++) {
-		if (cpu != smp_boot_cpu)
-			smp_cpu_on(cpu, context);
-	}
 	smp_wait = tick_get_counter() + SMP_WAIT_BOOT_MS;
 	do {
 		nr_online_cpus = 0;
@@ -95,6 +87,21 @@ void smp_boot_secondary_cpus(caddr_t context)
 			break;
 		}
 	} while (1);
+}
+#else /* CONFIG_SMP_WAIT_BOOT */
+#define smp_wait_secondary_cpus()	do { } while (0)
+#endif /* CONFIG_SMP_WAIT_BOOT */
+
+void smp_boot_secondary_cpus(caddr_t context)
+{
+	cpu_t cpu;
+
+	smp_hw_ctrl_init();
+	for (cpu = 0; cpu < NR_CPUS; cpu++) {
+		if (cpu != smp_boot_cpu)
+			smp_cpu_on(cpu, context);
+	}
+	smp_wait_secondary_cpus();
 }
 
 void smp_init(void)
