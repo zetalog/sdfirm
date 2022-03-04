@@ -128,11 +128,6 @@ void fu540_ipi_send(uint32_t target_cpu)
 	clint_set_ipi(target_cpu);
 }
 
-void fu540_ipi_sync(uint32_t target_cpu)
-{
-	clint_sync_ipi(target_cpu);
-}
-
 void fu540_ipi_clear(uint32_t target_cpu)
 {
 	clint_clear_ipi(target_cpu);
@@ -187,7 +182,6 @@ const struct sbi_platform_operations platform_ops = {
 	.console_getc		= fu540_console_getc,
 	.irqchip_init		= fu540_irqchip_init,
 	.ipi_send		= fu540_ipi_send,
-	.ipi_sync		= fu540_ipi_sync,
 	.ipi_clear		= fu540_ipi_clear,
 	.ipi_init		= fu540_ipi_init,
 	.timer_value		= fu540_timer_value,

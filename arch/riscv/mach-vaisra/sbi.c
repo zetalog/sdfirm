@@ -155,11 +155,6 @@ void vaisra_ipi_send(uint32_t target_cpu)
 	clint_set_ipi(target_cpu);
 }
 
-void vaisra_ipi_sync(uint32_t target_cpu)
-{
-	clint_sync_ipi(target_cpu);
-}
-
 void vaisra_ipi_clear(uint32_t target_cpu)
 {
 	clint_clear_ipi(target_cpu);
@@ -216,7 +211,6 @@ const struct sbi_platform_operations platform_ops = {
 	.console_getc		= vaisra_console_getc,
 	.irqchip_init		= vaisra_irqchip_init,
 	.ipi_send		= vaisra_ipi_send,
-	.ipi_sync		= vaisra_ipi_sync,
 	.ipi_clear		= vaisra_ipi_clear,
 	.ipi_init		= vaisra_ipi_init,
 	.timer_value		= vaisra_timer_value,

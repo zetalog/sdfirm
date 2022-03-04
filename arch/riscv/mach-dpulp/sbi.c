@@ -132,11 +132,6 @@ void dpulp_ipi_send(uint32_t target_cpu)
 	clint_set_ipi(target_cpu);
 }
 
-void dpulp_ipi_sync(uint32_t target_cpu)
-{
-	clint_sync_ipi(target_cpu);
-}
-
 void dpulp_ipi_clear(uint32_t target_cpu)
 {
 	clint_clear_ipi(target_cpu);
@@ -192,7 +187,6 @@ const struct sbi_platform_operations platform_ops = {
 	.console_getc		= dpulp_console_getc,
 	.irqchip_init		= dpulp_irqchip_init,
 	.ipi_send		= dpulp_ipi_send,
-	.ipi_sync		= dpulp_ipi_sync,
 	.ipi_clear		= dpulp_ipi_clear,
 	.ipi_init		= dpulp_ipi_init,
 	.timer_value		= dpulp_timer_value,

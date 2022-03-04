@@ -63,11 +63,6 @@ void spike_ipi_send(uint32_t target_cpu)
 	clint_set_ipi(target_cpu);
 }
 
-void spike_ipi_sync(uint32_t target_cpu)
-{
-	clint_sync_ipi(target_cpu);
-}
-
 void spike_ipi_clear(uint32_t target_cpu)
 {
 	clint_clear_ipi(target_cpu);
@@ -122,7 +117,6 @@ const struct sbi_platform_operations platform_ops = {
 	.console_getc		= spike_console_getc,
 	.irqchip_init		= spike_irqchip_init,
 	.ipi_send		= spike_ipi_send,
-	.ipi_sync		= spike_ipi_sync,
 	.ipi_clear		= spike_ipi_clear,
 	.ipi_init		= spike_ipi_init,
 	.timer_value		= spike_timer_value,

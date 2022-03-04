@@ -97,11 +97,6 @@ void virt_ipi_send(uint32_t target_cpu)
 	clint_set_ipi(target_cpu);
 }
 
-void virt_ipi_sync(uint32_t target_cpu)
-{
-	clint_sync_ipi(target_cpu);
-}
-
 void virt_ipi_clear(uint32_t target_cpu)
 {
 	clint_clear_ipi(target_cpu);
@@ -159,7 +154,6 @@ const struct sbi_platform_operations platform_ops = {
 	.console_getc		= virt_console_getc,
 	.irqchip_init		= virt_irqchip_init,
 	.ipi_send		= virt_ipi_send,
-	.ipi_sync		= virt_ipi_sync,
 	.ipi_clear		= virt_ipi_clear,
 	.ipi_init		= virt_ipi_init,
 	.timer_value		= virt_timer_value,

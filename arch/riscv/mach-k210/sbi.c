@@ -53,11 +53,6 @@ void k210_ipi_send(uint32_t target_cpu)
 	clint_set_ipi(target_cpu);
 }
 
-void k210_ipi_sync(uint32_t target_cpu)
-{
-	clint_sync_ipi(target_cpu);
-}
-
 void k210_ipi_clear(uint32_t target_cpu)
 {
 	clint_clear_ipi(target_cpu);
@@ -118,7 +113,6 @@ const struct sbi_platform_operations platform_ops = {
 
 	.ipi_init  = k210_ipi_init,
 	.ipi_send  = k210_ipi_send,
-	.ipi_sync  = k210_ipi_sync,
 	.ipi_clear = k210_ipi_clear,
 
 	.timer_init	   = k210_timer_init,

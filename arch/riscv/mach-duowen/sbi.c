@@ -164,11 +164,6 @@ void duowen_ipi_send(uint32_t target_cpu)
 	clint_set_ipi(target_cpu);
 }
 
-void duowen_ipi_sync(uint32_t target_cpu)
-{
-	clint_sync_ipi(target_cpu);
-}
-
 void duowen_ipi_clear(uint32_t target_cpu)
 {
 	clint_clear_ipi(target_cpu);
@@ -212,10 +207,6 @@ static bool duowen_hart_disabled(uint32_t hartid)
 
 #ifdef CONFIG_DUOWEN_IMC
 void duowen_ipi_send(uint32_t target_cpu)
-{
-}
-
-void duowen_ipi_sync(uint32_t target_cpu)
 {
 }
 
@@ -291,7 +282,6 @@ const struct sbi_platform_operations platform_ops = {
 	.console_getc		= duowen_console_getc,
 	.irqchip_init		= duowen_irqchip_init,
 	.ipi_send		= duowen_ipi_send,
-	.ipi_sync		= duowen_ipi_sync,
 	.ipi_clear		= duowen_ipi_clear,
 	.ipi_init		= duowen_ipi_init,
 	.timer_value		= duowen_timer_value,

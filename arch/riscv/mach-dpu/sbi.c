@@ -133,21 +133,12 @@ void dpu_ipi_send(uint32_t target_cpu)
 	clint_set_ipi(target_cpu);
 }
 
-void dpu_ipi_sync(uint32_t target_cpu)
-{
-	clint_sync_ipi(target_cpu);
-}
-
 void dpu_ipi_clear(uint32_t target_cpu)
 {
 	clint_clear_ipi(target_cpu);
 }
 #else /* CONFIG_DPU_APC */
 void dpu_ipi_send(uint32_t target_cpu)
-{
-}
-
-void dpu_ipi_sync(uint32_t target_cpu)
 {
 }
 
@@ -227,7 +218,6 @@ const struct sbi_platform_operations platform_ops = {
 	.console_getc		= dpu_console_getc,
 	.irqchip_init		= dpu_irqchip_init,
 	.ipi_send		= dpu_ipi_send,
-	.ipi_sync		= dpu_ipi_sync,
 	.ipi_clear		= dpu_ipi_clear,
 	.ipi_init		= dpu_ipi_init,
 	.timer_value		= dpu_timer_value,
