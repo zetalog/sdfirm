@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Feb 22 16:36:19 2022
+# Fri Mar  4 19:21:20 2022
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -196,6 +196,10 @@ CONFIG_DPU_BOOT_DDR=y
 #
 # CONFIG_DPU_BOOT_PE is not set
 # CONFIG_DPU_BOOT_VPU is not set
+
+#
+# Cluster boot hooks
+#
 
 #
 # Simulation options

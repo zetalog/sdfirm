@@ -4,13 +4,26 @@
 #ifndef __ASSEMBLY__
 #include <target/arch.h>
 #include <target/uart.h>
+#include <target/smp.h>
 
-#ifdef CONFIG_DPU_BOOT_DEBUG
-static __always_inline void __boot_dbg(uint8_t byte)
+#ifdef CONFIG_DPU_UART
+static __always_inline void dpu_boot_putc(uint8_t byte)
 {
 	while (!dw_uart_write_poll(UART_CON_ID));
 	dw_uart_write_byte(UART_CON_ID, byte);
 }
+#else /* CONFIG_DPU_UART */
+#define dpu_boot_putc(byte)		do { } while (0)
+#endif /* CONFIG_DPU_UART */
+
+#ifdef CONFIG_DPU_APC_INIT_MSG
+#define __boot_msg(cpu)			dpu_boot_putc((cpu) + '0')
+#else /* CONFIG_DPU_APC_INIT_MSG */
+#define __boot_msg(cpu)			do { } while (0)
+#endif /* CONFIG_DPU_APC_INIT_MSG */
+
+#ifdef CONFIG_DPU_BOOT_DEBUG
+#define __boot_dbg(byte)		dpu_boot_putc(byte)
 
 static __always_inline void __boot_dump8(uint8_t byte, bool last)
 {
@@ -37,11 +50,11 @@ static __always_inline void __boot_dump32(uint32_t dword, bool last)
 		__boot_dump8(ptr[i], last && i == 3);
 	}
 }
-#else
+#else /* CONFIG_DPU_BOOT_DEBUG */
 #define __boot_dbg(byte)			do { } while (0)
 #define __boot_dump8(byte, last)		do { } while (0)
 #define __boot_dump32(dword, last)		do { } while (0)
-#endif
+#endif /* CONFIG_DPU_BOOT_DEBUG */
 
 #endif /* __ASSEMBLY__ */
 

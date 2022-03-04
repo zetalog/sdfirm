@@ -84,6 +84,7 @@ config DPU_BOOT_ROM
 	select SYS_EXIT_M
 	select DPU_SPI_FLASH
 	select DPU_SSI_FLASH
+	select DPU_APC_INIT_MSG if DPU_APC
 
 config DPU_BOOT_SPI_FLASH
 	bool "0-stage/1-stage SPINOR bootloader (ZSBL/FSBL)"
@@ -216,9 +217,9 @@ config DPU_BOOT_VPU
 	bool "DPU vision processor unit (VPU)"
 	depends DPU_BOOT
 
-if (DPU_APC && DPU_LOAD_ZSBL) || DPU_SIM_APC
-
 menu "Cluster boot hooks"
+
+if (DPU_APC && DPU_LOAD_ZSBL) || DPU_SIM_APC
 
 config DPU_APC_INIT_CPU
 	bool "Enable cluster self-initialization"
@@ -227,9 +228,17 @@ config DPU_APC_INIT_PMA
 	bool "Enable PMA initialization"
 	select DPU_PMA if ARCH_HAS_DPU_PMA_DYNAMIC
 
-endmenu
+endif
+
+if (DPU_APC && DPU_BOOT_ROM) || DPU_SIM_APC
+
+config DPU_APC_INIT_MSG
+	bool "Enable boot hint messages"
+	select DPU_UART
 
 endif
+
+endmenu
 
 endmenu
 

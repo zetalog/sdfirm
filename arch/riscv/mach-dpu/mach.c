@@ -47,6 +47,7 @@
 #include <target/uefi.h>
 #include <target/cmdline.h>
 #include <target/smp.h>
+#include <asm/mach/boot.h>
 
 #ifdef CONFIG_SHUTDOWN
 void board_shutdown(void)
@@ -79,7 +80,9 @@ static void dpu_boot_spi(void)
 	clk_enable(srst_flash);
 	/* Allow maximum 1/25 APB frequency */
 	dpu_flash_set_frequency(min(DPU_FLASH_FREQ, APB_CLK_FREQ / 25));
+	__boot_msg(smp_processor_id());
 	smp_boot_secondary_cpus((caddr_t)boot_entry);
+	__boot_msg(NR_CPUS);
 	boot_entry();
 }
 #else /* CONFIG_DPU_LOAD_SPI_FLASH */
@@ -111,6 +114,7 @@ static void dpu_boot_spi(void)
 #endif /* CONFIG_DPU_LOAD_FAKE_PCIE_MEM */
 #endif /* CONFIG_DPU_LOAD_ZSBL */
 #endif /* CONFIG_DPU_LOAD_FSBL */
+#endif /* CONFIG_DPU_LOAD_SSI_FLASH || CONFIG_DPU_LOAD_FAKE_PCIE_MEM */
 
 #ifdef CONFIG_DPU_LOAD_SSI_FLASH
 static void dpu_load_ssi(void *boot_entry, const char *boot_file)
@@ -130,8 +134,22 @@ static void dpu_load_ssi(void *boot_entry, const char *boot_file)
 	       addr, size);
 	dpu_ssi_flash_boot(boot_entry, addr, size);
 }
+
+static void dpu_boot_ssi(void)
+{
+	void (*boot_entry)(void) = DPU_BOOT_ADDR;
+
+	dpu_pe_boot();
+	dpu_load_ssi(boot_entry, DPU_BOOT_FILE);
+	printf("boot(ssi): booting...\n");
+	__boot_msg(smp_processor_id());
+	smp_boot_secondary_cpus((caddr_t)boot_entry);
+	__boot_msg(NR_CPUS);
+	boot_entry();
+}
 #else /* CONFIG_DPU_LOAD_SSI_FLASH */
 #define dpu_load_ssi(boot_entry, boot_file)	do { } while (0)
+#define dpu_boot_ssi()				do { } while (0)
 #endif /* CONFIG_DPU_LOAD_SSI_FLASH */
 
 #ifdef CONFIG_DPU_LOAD_FAKE_PCIE_MEM
@@ -153,26 +171,23 @@ static void dpu_load_fake_pcie_mem(void *boot_entry)
 	while (!(PCIE_DDR_TransferFinish(0)))
 		;
 }
-#else /* CONFIG_DPU_LOAD_FAKE_PCIE_MEM */
-#define dpu_load_fake_pcie_mem(boot_entry)	do { } while (0)
-#endif /* CONFIG_DPU_LOAD_FAKE_PCIE_MEM */
 
-static void dpu_boot_ssi(void)
+static void dpu_boot_pcie(void)
 {
 	void (*boot_entry)(void) = DPU_BOOT_ADDR;
 
 	dpu_pe_boot();
-	dpu_load_ssi(boot_entry, DPU_BOOT_FILE);
 	dpu_load_fake_pcie_mem(boot_entry);
-	printf("boot(ssi): validating SSI contents...\n");
-	cmd_batch();
-	printf("boot(ssi): booting...\n");
+	printf("boot(pcie): booting...\n");
+	__boot_msg(smp_processor_id());
 	smp_boot_secondary_cpus((caddr_t)boot_entry);
+	__boot_msg(NR_CPUS);
 	boot_entry();
 }
-#else /* CONFIG_DPU_LOAD_SSI_FLASH || CONFIG_DPU_LOAD_FAKE_PCIE_MEM */
-#define dpu_boot_ssi()				do { } while (0)
-#endif /* CONFIG_DPU_LOAD_SSI_FLASH || CONFIG_DPU_LOAD_FAKE_PCIE_MEM */
+#else /* CONFIG_DPU_LOAD_FAKE_PCIE_MEM */
+#define dpu_load_fake_pcie_mem(boot_entry)	do { } while (0)
+#define dpu_boot_pcie()				do { } while (0)
+#endif /* CONFIG_DPU_LOAD_FAKE_PCIE_MEM */
 
 void board_boot(void)
 {
@@ -181,8 +196,10 @@ void board_boot(void)
 	board_init_clock();
 	if (flash_sel == IMC_FLASH_SPI)
 		dpu_boot_spi();
-	if (flash_sel == IMC_FLASH_SSI)
+	if (flash_sel == IMC_FLASH_SSI) {
 		dpu_boot_ssi();
+		dpu_boot_pcie();
+	}
 }
 #else /* CONFIG_DPU_LOAD */
 #define board_boot()				do { } while (0)
