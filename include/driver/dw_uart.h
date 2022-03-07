@@ -283,8 +283,8 @@
 #define dw_uart_enable_irq(n, irq)	__raw_setl(irq, UART_IER(n))
 #define dw_uart_disable_irq(n, irq)	__raw_clearl(irq, UART_IER(n))
 
-#ifdef CONFIG_CONSOLE
-void dw_uart_con_init(uint32_t freq);
+#ifdef CONFIG_DW_UART
+void dw_uart_ctrl_init(uint32_t freq);
 #endif
 #ifdef CONFIG_CONSOLE_OUTPUT
 void dw_uart_con_write(uint8_t byte);

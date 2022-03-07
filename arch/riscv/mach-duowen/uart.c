@@ -75,7 +75,7 @@ void uart_hw_con_init(void)
 
 	board_init_clock();
 	clk_enable(UART_CLK_ID);
-	dw_uart_con_init(clk_get_frequency(UART_CLK_ID));
+	dw_uart_ctrl_init(clk_get_frequency(UART_CLK_ID));
 }
 
 #ifdef CONFIG_MMU

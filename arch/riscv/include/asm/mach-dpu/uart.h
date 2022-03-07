@@ -82,17 +82,27 @@ void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
 void uart_hw_mmu_init(void);
 #endif
 
-#ifdef CONFIG_CONSOLE
+#ifdef CONFIG_DW_UART
 #ifdef CONFIG_CLK
-#define uart_hw_con_init()						\
+#define dpu_uart_init()							\
 	do {								\
 		board_init_clock();					\
 		clk_enable(UART_CLK_ID);				\
-		dw_uart_con_init(clk_get_frequency(UART_CLK_ID));	\
+		dw_uart_ctrl_init(clk_get_frequency(UART_CLK_ID));	\
 	} while (0)
-#else
-#define uart_hw_con_init()	do { } while (0)
-#endif
+#define dpu_uart_putc(byte)						\
+	do {								\
+		while (!dw_uart_write_poll(UART_CON_ID));		\
+		dw_uart_write_byte(UART_CON_ID, byte);			\
+	} while (0)
+#else /* CONFIG_CLK */
+#define dpu_uart_init()		do { } while (0)
+#define dpu_uart_putc(byte)	do { } while (0)
+#endif /* CONFIG_CLK */
+#endif /* CONFIG_DW_UART */
+
+#ifdef CONFIG_CONSOLE
+#define uart_hw_con_init()	dpu_uart_init()
 #endif
 #ifdef CONFIG_CONSOLE_OUTPUT
 #define uart_hw_con_write(byte)	dw_uart_con_write(byte)

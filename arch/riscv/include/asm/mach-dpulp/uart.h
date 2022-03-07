@@ -101,7 +101,7 @@ void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
 	do {								\
 		board_init_clock();					\
 		clk_enable(UART_CLK_ID);				\
-		dw_uart_con_init(clk_get_frequency(UART_CLK_ID));	\
+		dw_uart_ctrl_init(clk_get_frequency(UART_CLK_ID));	\
 	} while (0)
 #else
 #define uart_hw_con_init()	do { } while (0)

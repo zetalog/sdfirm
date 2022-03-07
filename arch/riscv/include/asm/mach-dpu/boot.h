@@ -6,24 +6,27 @@
 #include <target/uart.h>
 #include <target/smp.h>
 
-#ifdef CONFIG_DPU_UART
-static __always_inline void dpu_boot_putc(uint8_t byte)
-{
-	while (!dw_uart_write_poll(UART_CON_ID));
-	dw_uart_write_byte(UART_CON_ID, byte);
-}
-#else /* CONFIG_DPU_UART */
-#define dpu_boot_putc(byte)		do { } while (0)
-#endif /* CONFIG_DPU_UART */
-
 #ifdef CONFIG_DPU_APC_INIT_MSG
-#define __boot_msg(cpu)			dpu_boot_putc((cpu) + '0')
+#define __boot_cpu(cpu)			dpu_uart_putc((cpu) + '0')
+#define __boot_init()			\
+	do {				\
+		dpu_uart_init();	\
+		dpu_uart_putc('\n');	\
+		dpu_uart_putc('-');	\
+	} while (0)
+#define __boot_fini()			\
+	do {				\
+		dpu_uart_putc('-');	\
+		dpu_uart_putc('\n');	\
+	} while (0)
 #else /* CONFIG_DPU_APC_INIT_MSG */
-#define __boot_msg(cpu)			do { } while (0)
+#define __boot_cpu(cpu)			do { } while (0)
+#define __boot_init()			do { } while (0)
+#define __boot_fini()			do { } while (0)
 #endif /* CONFIG_DPU_APC_INIT_MSG */
 
 #ifdef CONFIG_DPU_BOOT_DEBUG
-#define __boot_dbg(byte)		dpu_boot_putc(byte)
+#define __boot_dbg(byte)		dpu_uart_putc(byte)
 
 static __always_inline void __boot_dump8(uint8_t byte, bool last)
 {

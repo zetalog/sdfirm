@@ -77,12 +77,13 @@ static void dpu_boot_spi(void)
 
 	printf("boot(spi): booting...\n");
 	boot_entry = (void *)CONFIG_DPU_BOOT_ADDR;
+	__boot_init();
 	clk_enable(srst_flash);
 	/* Allow maximum 1/25 APB frequency */
 	dpu_flash_set_frequency(min(DPU_FLASH_FREQ, APB_CLK_FREQ / 25));
-	__boot_msg(smp_processor_id());
+	__boot_cpu(smp_processor_id());
 	smp_boot_secondary_cpus((caddr_t)boot_entry);
-	__boot_msg(NR_CPUS);
+	__boot_fini();
 	boot_entry();
 }
 #else /* CONFIG_DPU_LOAD_SPI_FLASH */
@@ -139,12 +140,13 @@ static void dpu_boot_ssi(void)
 {
 	void (*boot_entry)(void) = DPU_BOOT_ADDR;
 
+	__boot_init();
 	dpu_pe_boot();
 	dpu_load_ssi(boot_entry, DPU_BOOT_FILE);
 	printf("boot(ssi): booting...\n");
-	__boot_msg(smp_processor_id());
+	__boot_cpu(smp_processor_id());
 	smp_boot_secondary_cpus((caddr_t)boot_entry);
-	__boot_msg(NR_CPUS);
+	__boot_fini();
 	boot_entry();
 }
 #else /* CONFIG_DPU_LOAD_SSI_FLASH */
@@ -176,12 +178,13 @@ static void dpu_boot_pcie(void)
 {
 	void (*boot_entry)(void) = DPU_BOOT_ADDR;
 
+	__boot_init();
 	dpu_pe_boot();
 	dpu_load_fake_pcie_mem(boot_entry);
 	printf("boot(pcie): booting...\n");
-	__boot_msg(smp_processor_id());
+	__boot_cpu(smp_processor_id());
 	smp_boot_secondary_cpus((caddr_t)boot_entry);
-	__boot_msg(NR_CPUS);
+	__boot_fini();
 	boot_entry();
 }
 #else /* CONFIG_DPU_LOAD_FAKE_PCIE_MEM */

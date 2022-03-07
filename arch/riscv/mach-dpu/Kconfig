@@ -202,6 +202,7 @@ config DPU_BOOT_STACK
 
 config DPU_BOOT_DEBUG
 	bool "Enable boot safe debugging messages"
+	depends DPU_UART
 
 endif
 

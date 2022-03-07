@@ -79,8 +79,7 @@ uint8_t dw_uart_convert_params(uint8_t params)
 	return cfg;
 }
 
-#ifdef CONFIG_CONSOLE
-void dw_uart_con_init(uint32_t freq)
+void dw_uart_ctrl_init(uint32_t freq)
 {
 	uint16_t divisor;
 	uint8_t fraction;
@@ -112,7 +111,6 @@ void dw_uart_con_init(uint32_t freq)
 	/* Configure FIFO */
 	dw_uart_config_fifo(UART_CON_ID);
 }
-#endif
 
 #ifdef CONFIG_CONSOLE_OUTPUT
 void dw_uart_con_write(uint8_t byte)
