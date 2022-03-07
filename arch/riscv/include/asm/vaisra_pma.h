@@ -73,6 +73,15 @@
 #define PMA_AT_DEVICE_nGnRE	_AC(0x00000004, UL)
 #define PMA_AT_DEVICE_nGRE	_AC(0x00000008, UL)
 #define PMA_AT_DEVICE_GRE	_AC(0x0000000C, UL)
+/* NOTE: VAISRA Device AMO
+ *
+ * The VAISRA CPU never handles the device AMO instructions, thus it cares
+ * no about the SHARABLE field for the device PMA entries. It always
+ * treats the device regions' sharability as PMA_S_OUTER and there is
+ * always an AMU hardware in the SoC handling the device AMO instructions
+ * instead of the VAISRA CPU. Thus we have no sharebility alternative
+ * configurations for the device regions.
+ */
 #if defined(CONFIG_VAISRA_PMA_GATHERING)
 #define PMA_AT_DEVICE		PMA_AT_DEVICE_GRE
 #elif defined(CONFIG_VAISRA_PMA_RE_ORDERING)
