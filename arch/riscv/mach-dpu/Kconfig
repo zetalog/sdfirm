@@ -204,6 +204,13 @@ config DPU_BOOT_DEBUG
 	bool "Enable boot safe debugging messages"
 	depends DPU_UART
 
+config DPU_BOOT_BACKDOOR
+	bool "Enable backdoor loading"
+	depends DPU_LOAD_SSI_FLASH
+	help
+	  Enable this feature to skip loading from SSI flash. The image is
+	  supposed to have been loaded via simulation backdoor.
+
 endif
 
 config DPU_FIRM_SIZE

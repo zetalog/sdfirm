@@ -118,6 +118,9 @@ static void dpu_boot_spi(void)
 #endif /* CONFIG_DPU_LOAD_SSI_FLASH || CONFIG_DPU_LOAD_FAKE_PCIE_MEM */
 
 #ifdef CONFIG_DPU_LOAD_SSI_FLASH
+#ifdef CONFIG_DPU_BOOT_BACKDOOR
+#define dpu_load_ssi(boot_entry, boot_file)	do { } while (0)
+#else /* CONFIG_DPU_BOOT_BACKDOOR */
 static void dpu_load_ssi(void *boot_entry, const char *boot_file)
 {
 	uint32_t addr = 0;
@@ -135,6 +138,7 @@ static void dpu_load_ssi(void *boot_entry, const char *boot_file)
 	       addr, size);
 	dpu_ssi_flash_boot(boot_entry, addr, size);
 }
+#endif /* CONFIG_DPU_BOOT_BACKDOOR */
 
 static void dpu_boot_ssi(void)
 {

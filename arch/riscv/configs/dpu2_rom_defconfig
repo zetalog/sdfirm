@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Mar  4 19:31:52 2022
+# Mon Mar  7 18:09:27 2022
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -168,6 +168,7 @@ CONFIG_DPU_LOAD_SSI_FLASH=y
 # CONFIG_DPU_LOAD_FAKE_PCIE_MEM is not set
 # CONFIG_DPU_BOOT_STACK is not set
 # CONFIG_DPU_BOOT_DEBUG is not set
+# CONFIG_DPU_BOOT_BACKDOOR is not set
 CONFIG_DPU_BOOT_PE=y
 CONFIG_DPU_BOOT_VPU=y
 
