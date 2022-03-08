@@ -51,6 +51,20 @@
 #define SSI_ID			0
 
 #ifdef CONFIG_DW_SSI
+#ifdef CONFIG_DPU_BOOT_ROM
+/* Considering the delay, 12.5MHz SPI clock should work. However, this is
+ * left here for customization rather than using the default max frequency
+ * definition in dw_ssi.h.
+ */
+#define SPI_HW_MAX_FREQ			(DW_SSI_CLK_FREQ / 2000) /* kHz */
+#else /* CONFIG_DPU_BOOT_ROM */
+/* In the mindelay simulation, it founds a 10.4ns delay from master to the
+ * slave and back when SSI clocks at 100MHz rate. Thus when slave sends
+ * data using delayed clock, master samples wrong data with un-delayed
+ * clock.
+ */
+#define SPI_HW_MAX_FREQ			(DW_SSI_CLK_FREQ / 4000) /* kHz */
+#endif /* CONFIG_DPU_BOOT_ROM */
 #include <driver/dw_ssi.h>
 #ifndef ARCH_HAVE_SPI
 #define ARCH_HAVE_SPI		1

@@ -231,8 +231,11 @@ struct dw_ssi_ctx {
 
 /* The maximum frequency of the bit-rate clock (sclk_out) is one-half the
  * frequency of ssi_clk.
+ * However this depends on sampling rate allowed by the IC logic library.
  */
+#ifndef SPI_HW_MAX_FREQ
 #define SPI_HW_MAX_FREQ			(DW_SSI_CLK_FREQ / 2000) /* kHz */
+#endif /* SPI_HW_MAX_FREQ */
 
 #define dw_ssi_enable_ctrl(n)		__raw_setl(SSI_EN, SSI_SSIENR(n))
 #define dw_ssi_disable_ctrl(n)		__raw_clearl(SSI_EN, SSI_SSIENR(n))

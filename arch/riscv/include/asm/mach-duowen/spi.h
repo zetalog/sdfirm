@@ -96,6 +96,12 @@
 #endif
 
 #ifdef CONFIG_DW_SSI
+/* In the mindelay simulation, it founds a 10.4ns delay from master to the
+ * slave and back when SSI clocks at 100MHz rate. Thus when slave sends
+ * data using delayed clock, master samples wrong data with un-delayed
+ * clock.
+ */
+#define SPI_HW_MAX_FREQ			(DW_SSI_CLK_FREQ / 4000) /* kHz */
 #include <driver/dw_ssi.h>
 #ifndef ARCH_HAVE_SPI
 #define ARCH_HAVE_SPI		1
