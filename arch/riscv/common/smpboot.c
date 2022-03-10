@@ -7,6 +7,17 @@
 #include <target/sbi.h>
 #include <target/bench.h>
 
+#ifdef CONFIG_SMP_BOOT
+void *__cpu_up_entry[NR_CPUS];
+
+void smp_hw_cpu_boot(cpu_t cpu, caddr_t ep)
+{
+	smp_mb();
+	WRITE_ONCE(__cpu_up_entry[cpu], ep);
+	smp_mb();
+}
+#endif
+
 #ifdef CONFIG_SMP
 enum ipi_message_type {
 	IPI_RESCHEDULE,
@@ -19,15 +30,6 @@ enum ipi_message_type {
 static struct {
 	unsigned long bits;
 } ipi_data[NR_CPUS] __cache_aligned;
-
-void *__cpu_up_entry[NR_CPUS];
-
-void smp_hw_cpu_boot(cpu_t cpu, caddr_t ep)
-{
-	smp_mb();
-	WRITE_ONCE(__cpu_up_entry[cpu], ep);
-	smp_mb();
-}
 
 void smp_hw_map_init(void)
 {

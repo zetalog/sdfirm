@@ -57,11 +57,12 @@
 cpu_t smp_boot_cpu;
 cpu_mask_t smp_online_cpus;
 
-void smp_map_init(void)
-{
-	smp_hw_map_init();
-	cpumask_set_cpu(smp_boot_cpu, &smp_online_cpus);
-}
+#define smp_set_online(cpu)	cpumask_set_cpu((cpu), &smp_online_cpus)
+#define smp_test_online(cpu)	cpumask_test_cpu((cpu), &smp_online_cpus)
+#else /* CONFIG_SMP */
+#define smp_set_online(cpu)		do { } while (0)
+#define smp_test_online(cpu)		false
+#endif /* CONFIG_SMP */
 
 #ifdef CONFIG_SMP_WAIT_BOOT
 #define SMP_WAIT_BOOT_MS		2000
@@ -76,7 +77,7 @@ static void smp_wait_secondary_cpus(void)
 	do {
 		nr_online_cpus = 0;
 		for (cpu = 0; cpu < NR_CPUS; cpu++) {
-			if (cpumask_test_cpu(cpu, &smp_online_cpus))
+			if (smp_test_online(cpu))
 				nr_online_cpus++;
 		}
 		if (nr_online_cpus >= NR_CPUS)
@@ -92,6 +93,13 @@ static void smp_wait_secondary_cpus(void)
 #define smp_wait_secondary_cpus()	do { } while (0)
 #endif /* CONFIG_SMP_WAIT_BOOT */
 
+#ifdef CONFIG_SMP_BOOT
+void smp_map_init(void)
+{
+	smp_hw_map_init();
+	smp_set_online(smp_boot_cpu);
+}
+
 void smp_boot_secondary_cpus(caddr_t context)
 {
 	cpu_t cpu;
@@ -106,12 +114,12 @@ void smp_boot_secondary_cpus(caddr_t context)
 
 void smp_init(void)
 {
-	cpu_t cpu = smp_processor_id();
+	__unused cpu_t cpu = smp_processor_id();
 
 	con_log("smp: Bringing up CPU %d...\n", cpu);
 
 	if (smp_processor_id() != smp_boot_cpu) {
-		cpumask_set_cpu(cpu, &smp_online_cpus);
+		smp_set_online(cpu);
 		irq_smp_init();
 		mmu_smp_init();
 		bh_init();
@@ -128,11 +136,11 @@ void smp_init(void)
 	}
 	bh_loop();
 }
-#else
+#else /* CONFIG_SMP_BOOT */
 void smp_init(void)
 {
 	bench_init();
 	cmd_init();
 	bh_loop();
 }
-#endif
+#endif /* CONFIG_SMP_BOOT */

@@ -4,6 +4,7 @@
 
 #define INVALID_ADDR		0
 
+#ifdef CONFIG_SMP_BOOT
 static volatile phys_addr_t cpu_spin_table[NR_CPUS];
 void _smp_start(void *, void *, void *, void *, void *entry_point);
 
@@ -28,6 +29,7 @@ void smp_hw_cpu_boot(cpu_t cpu, caddr_t ep)
 	dsb(sy);
 	sev();
 }
+#endif /* CONFIG_SMP_BOOT */
 
 void smp_hw_map_init(void)
 {

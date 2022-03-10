@@ -46,11 +46,11 @@
 #define MAX_CPU_NUM		1
 #endif /* CONFIG_DPU_IMC */
 #ifdef CONFIG_DPU_APC
-#ifdef CONFIG_SMP
+#ifdef CONFIG_SMP_BOOT
 #define MAX_CPU_NUM		4
-#else /* CONFIG_SMP */
+#else /* CONFIG_SMP_BOOT */
 #define MAX_CPU_NUM		1
-#endif /* CONFIG_SMP */
+#endif /* CONFIG_SMP_BOOT */
 #endif /* CONFIG_DPU_APC */
 
 #endif /* __CPUS_DPU_H_INCLUDE__ */

@@ -45,13 +45,11 @@
 #include <target/generic.h>
 #include <target/arch.h>
 
-#ifdef CONFIG_SMP
-#define smp_processor_id()			__smp_processor_id()
+#ifdef CONFIG_SMP_BOOT
 #define NR_CPUS					MAX_CPU_NUM
-#else /* CONFIG_SMP */
-#define smp_processor_id()			0
+#else /* CONFIG_SMP_BOOT */
 #define NR_CPUS					1
-#endif /* CONFIG_SMP */
+#endif /* CONFIG_SMP_BOOT */
 
 #ifndef __ASSEMBLY__
 #if NR_CPUS > 65535
@@ -64,6 +62,16 @@ typedef uint8_t cpu_t;
 #endif /* __ASSEMBLY__ */
 
 #include <asm/smp.h>
+
+#ifdef CONFIG_SMP_BOOT
+#ifndef __ASSEMBLY__
+#define smp_cpu_boot(cpu, ep)			smp_hw_cpu_boot(cpu, ep)
+void smp_boot_secondary_cpus(caddr_t context);
+#endif /* __ASSEMBLY__ */
+#else /* CONFIG_SMP_BOOT */
+#define smp_cpu_boot(cpu, ep, context)		do { } while (0)
+#define smp_boot_secondary_cpus(context)	do { } while (0)
+#endif /* CONFIG_SMP_BOOT */
 
 #ifdef CONFIG_SMP
 #define SMP_CACHE_BYTES				__SMP_CACHE_BYTES
@@ -88,9 +96,8 @@ extern bool smp_initialized;
 	for ((cpu) = cpumask_first(mask);	\
 	     (cpu) = cpumask_next((cpu), (mask)), (cpu) < NR_CPUS;)
 
+#define smp_processor_id()			__smp_processor_id()
 #define smp_cpu_off(cpu)			smp_hw_cpu_off(cpu)
-#define smp_cpu_boot(cpu, ep)			smp_hw_cpu_boot(cpu, ep)
-void smp_boot_secondary_cpus(caddr_t context);
 #endif /* __ASSEMBLY__ */
 #else /* CONFIG_SMP */
 #ifndef __SMP_CACHE_BYTES
@@ -116,10 +123,8 @@ extern cpu_mask_t smp_online_cpus;
 #define for_each_cpu(cpu, mask)			\
 	for ((cpu) = 0; (cpu) < 1; (cpu)++, (void)(mask))
 
+#define smp_processor_id()			0
 #define smp_cpu_off(cpu)			do { } while (0)
-
-#define smp_cpu_boot(cpu, ep, context)		do { } while (0)
-#define smp_boot_secondary_cpus(context)	do { } while (0)
 #endif /* __ASSEMBLY__ */
 #endif /* CONFIG_SMP */
 #define __cache_aligned				__align(SMP_CACHE_BYTES)

@@ -60,7 +60,7 @@
 	.endm
 
 	.macro get_smpid reg
-#ifdef CONFIG_SMP
+#ifdef CONFIG_SMP_BOOT
 	csrr	\reg, CSR_MHARTID
 	get_arch_smpid \reg
 #else
@@ -73,7 +73,7 @@
 	.endm
 
 	.macro init_sp
-#ifdef CONFIG_SMP
+#ifdef CONFIG_SMP_BOOT
 	get_smpid a3
 	slli	sp, a3, PERCPU_STACK_SHIFT
 	la	a3, (ABI_PERCPU_STACKS_START + PERCPU_STACK_SIZE)
@@ -330,7 +330,7 @@ ENTRY(relocate)
 ENDPROC(relocate)
 
 secondary_start:
-#ifdef CONFIG_SMP
+#ifdef CONFIG_SMP_BOOT
 	/* Convert hartid to smpid */
 	get_arch_smpid a6
 	slli	a3, a6, LGREG

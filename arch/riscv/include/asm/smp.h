@@ -46,6 +46,14 @@
 #include <asm/mach/smp.h>
 #endif /* CONFIG_ARCH_HAS_SMP */
 
+#ifdef CONFIG_SMP_BOOT
+#ifndef __ASSEMBLY__
+void smp_hw_cpu_boot(cpu_t cpu, caddr_t ep);
+#endif /* __ASSEMBLY__ */
+#else /* CONFIG_SMP_BOOT */
+#define smp_hw_cpu_boot(cpu, ep)		do { } while (0)
+#endif /* CONFIG_SMP_BOOT */
+
 #ifdef CONFIG_SMP
 #ifndef __ASSEMBLY__
 static inline uint8_t sbi_processor_id(void)
@@ -88,7 +96,6 @@ cpu_t smp_hw_cpu_id(void);
 void smp_hw_map_init(void);
 void smp_hw_ctrl_init(void);
 void smp_hw_cpu_off(cpu_t cpu);
-void smp_hw_cpu_boot(cpu_t cpu, caddr_t ep);
 #endif /* __ASSEMBLY__ */
 #ifdef CONFIG_RISCV_EXIT_M
 #define __smp_processor_id()		sbi_processor_id()
@@ -106,7 +113,6 @@ void smp_hw_cpu_boot(cpu_t cpu, caddr_t ep);
 #define smp_hw_ctrl_init()		do { } while (0)
 #define smp_hw_map_init()		do { } while (0)
 #define smp_hw_cpu_off(cpu)		do { } while (0)
-#define smp_hw_cpu_boot(cpu, ep)	do { } while (0)
 #endif /* CONFIG_SMP */
 
 #endif /* __RISCV_SMP_H_INCLUDE__ */

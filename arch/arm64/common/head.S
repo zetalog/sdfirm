@@ -239,7 +239,9 @@ ENTRY(smp_hw_cpu_id)
 	madd	x0, x0, x2, x1
 	ret
 ENDPROC(smp_hw_cpu_id)
+#endif /* CONFIG_SMP */
 
+#ifdef CONFIG_SMP_BOOT
 ENTRY(_smp_start)
 	init_sp
 
@@ -259,7 +261,7 @@ ENTRY(_smp_start)
 	br	x27
 #endif
 ENDPROC(_smp_start)
-#endif
+#endif /* CONFIG_SMP_BOOT */
 
 ENTRY(__init_exception_level)
 	# switch different EL entries
