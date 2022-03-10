@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Dec 17 21:39:07 2021
+# Tue Mar  8 16:34:44 2022
 #
 CONFIG_ARM64=y
 
@@ -193,7 +193,12 @@ CONFIG_MAX_VECTORS=4
 # Scheduling facility (bh) support
 #
 CONFIG_MAX_BHS=4
+
+#
+# Scheduling facility (SMP) support
+#
 CONFIG_ARCH_HAS_SMP=y
+# CONFIG_SMP_BOOT is not set
 # CONFIG_SMP is not set
 
 #

@@ -177,7 +177,9 @@ ENTRY(__start)
 	# register addresses are valid mappings for the GIC drivers.
 	# However, when Linux kernel is booted, SMP code won't do that for
 	# kernel which requires GICC to be initialized by the bootloader.
+#ifdef CONFIG_SMP
 	call_l	irq_smp_init
+#endif
 #endif
 
 #ifdef CONFIG_SYS_KERNEL

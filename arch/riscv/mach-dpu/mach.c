@@ -269,10 +269,12 @@ void board_boot_late(void)
 	dpu_load_ddr();
 }
 
+#ifdef CONFIG_SMP
 void board_smp_init(void)
 {
 	board_late_init();
 }
+#endif /* CONFIG_SMP */
 
 #ifdef CONFIG_DPU_PMA_DEBUG
 static void dpu_pma_debug(void)

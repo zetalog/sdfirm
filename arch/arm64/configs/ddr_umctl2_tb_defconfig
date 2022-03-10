@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Dec 17 21:40:31 2021
+# Tue Mar  8 17:10:38 2022
 #
 CONFIG_ARM64=y
 
@@ -170,7 +170,12 @@ CONFIG_ARCH_HAS_BOOT_LOAD=y
 # Scheduling facility (bh) support
 #
 CONFIG_MAX_BHS=4
+
+#
+# Scheduling facility (SMP) support
+#
 CONFIG_ARCH_HAS_SMP=y
+CONFIG_SMP_BOOT=y
 CONFIG_SMP=y
 CONFIG_ARCH_HAS_QSPINLOCK=y
 # CONFIG_SMP_WAIT_BOOT is not set

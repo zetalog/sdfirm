@@ -194,15 +194,6 @@ static void board_boot_early(void)
 #define board_boot_early()			do { } while (0)
 #endif /* CONFIG_DPULP_BOOT */
 
-static void board_boot_late(void)
-{
-	void *load_addr = (void *)BOOT_LOAD_ADDR;
-
-	if (smp_processor_id() == 0)
-		con_log("boot(ddr): Booting %d cores...\n", MAX_CPU_NUM);
-	__boot_jump(load_addr);
-}
-
 void board_early_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);
@@ -228,10 +219,21 @@ void board_late_init(void)
 	/* dpulp_eth_late_init(); */
 }
 
+#ifdef CONFIG_SMP
+static void board_boot_late(void)
+{
+	void *load_addr = (void *)BOOT_LOAD_ADDR;
+
+	if (smp_processor_id() == 0)
+		con_log("boot(ddr): Booting %d cores...\n", MAX_CPU_NUM);
+	__boot_jump(load_addr);
+}
+
 void board_smp_init(void)
 {
 	board_boot_late();
 }
+#endif /* CONFIG_SMP */
 
 static int do_dpulp_shutdown(int argc, char *argv[])
 {

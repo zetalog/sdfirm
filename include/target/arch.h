@@ -90,7 +90,9 @@ void board_early_init(void);
 void board_late_init(void);
 #ifdef CONFIG_SMP
 void board_smp_init(void);
-#endif
+#else /* CONFIG_SMP */
+#define board_smp_init()		do { } while (0)
+#endif /* CONFIG_SMP */
 void appl_init(void);
 void modules_init(void);
 #endif

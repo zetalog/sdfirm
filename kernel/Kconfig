@@ -157,13 +157,24 @@ endif
 
 endif
 
+menu "Scheduling facility (SMP) support"
+
 config ARCH_HAS_SMP
 	bool
 
+menuconfig SMP_BOOT
+	bool "Enable SMP bootloader support"
+	depends ARCH_HAS_SMP
+
+if SMP_BOOT
+
+endif
+
 menuconfig SMP
-	bool "Scheduling facility (SMP) support"
+	bool "Enable SMP kernel support"
 	depends ARCH_HAS_SMP
 	select PAGE
+	select SMP_BOOT
 
 if SMP
 
@@ -174,6 +185,8 @@ config SMP_WAIT_BOOT
 	bool "Enable wait for SMP bring-up"
 
 endif
+
+endmenu
 
 menu "Timing facility (jiffy) support"
 

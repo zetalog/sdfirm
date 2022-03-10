@@ -7,6 +7,7 @@
 #include <target/sbi.h>
 #include <target/bench.h>
 
+#ifdef CONFIG_SMP
 enum ipi_message_type {
 	IPI_RESCHEDULE,
 	IPI_CALL_FUNC,
@@ -102,3 +103,4 @@ int ipi_sanity(caddr_t percpu_area)
 }
 __define_testfn(ipi_sanity, 0, SMP_CACHE_BYTES,
 		CPU_EXEC_META, 1, CPU_WAIT_INFINITE);
+#endif /* CONFIG_SMP */

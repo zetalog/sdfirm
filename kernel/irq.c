@@ -119,12 +119,14 @@ void irq_register_poller(bh_t bh)
 	irq_is_polling = true;
 }
 
+#ifdef CONFIG_SMP
 void irq_smp_init(void)
 {
 	BUG_ON(!smp_initialized);
 	irq_smp_vectors_init();
 	irq_local_disable();
 }
+#endif /* CONFIG_SMP */
 
 void irq_init(void)
 {

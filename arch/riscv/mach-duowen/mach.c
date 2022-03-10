@@ -439,10 +439,12 @@ void board_late_init(void)
 	duowen_eth_late_init();
 }
 
+#ifdef CONFIG_SMP
 void board_smp_init(void)
 {
 	board_boot_late();
 }
+#endif /* CONFIG_SMP */
 
 static int do_duowen_shutdown(int argc, char *argv[])
 {

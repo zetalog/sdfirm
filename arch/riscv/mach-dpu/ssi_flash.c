@@ -73,6 +73,10 @@ void __dpu_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 	 */
 	fence_i();
 #endif /* CONFIG_DPU_IMC */
+#ifdef CONFIG_APC
+	vaisra_flush_dcache_all();
+	fence_i();
+#endif /* CONFIG_APC */
 
 	__boot_dbg('\n');
 	__boot_dbg('B');

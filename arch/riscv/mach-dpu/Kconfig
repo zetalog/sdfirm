@@ -84,7 +84,7 @@ config DPU_BOOT_ROM
 	select SYS_EXIT_M
 	select DPU_SPI_FLASH
 	select DPU_SSI_FLASH
-	select DPU_APC_INIT_MSG if DPU_APC
+	select DPU_APC_INIT_MSG if DPU_APC && !CONSOLE
 
 config DPU_BOOT_SPI_FLASH
 	bool "0-stage/1-stage SPINOR bootloader (ZSBL/FSBL)"
@@ -242,6 +242,7 @@ if (DPU_APC && DPU_BOOT_ROM) || DPU_SIM_APC
 
 config DPU_APC_INIT_MSG
 	bool "Enable boot hint messages"
+	depends !CONSOLE
 	select DPU_UART
 
 endif
