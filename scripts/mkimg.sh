@@ -14,15 +14,17 @@ MKIMG_BLKSZ=1024
 MKIMG_PADSZ=2
 MKIMG_KBYTES=32768
 MKIMG_GUID="73646669-726D-6470-7500-0000"
+MKIMG_FIRST=""
 
 usage()
 {
 	echo "Usage:"
-	echo "`basename $0` [-p] [-l log] [input] [output] [capacity]"
+	echo "`basename $0` [-p] [-l log] [-m file] [input] [output] [capacity]"
 	echo "Where:"
 	echo " -l:       specify log file"
 	echo "           default /dev/null"
 	echo " -p:       print partition information"
+	echo " -m:       specifify file name for the major (first) partition"
 	echo " input:    specify input binary directory"
 	echo " output:   specify output image file"
 	echo " capacity: specify storage capacity in KB (1024B)"
@@ -42,10 +44,26 @@ fatal_exit()
 	exit 1
 }
 
-while getopts "l:p" opt
+iter_names()
+{
+	for n in $1; do
+		if [ "x$2" = "x${n}" ];then
+			if [ "x$3" = "xinc" ]; then
+				echo ${n}
+			fi
+		else
+			if [ "x$3" = "xexc" ]; then
+				echo ${n}
+			fi
+		fi
+	done
+}
+
+while getopts "l:m:p" opt
 do
 	case $opt in
 	l) MKIMG_LOG=$OPTARG;;
+	m) MKIMG_FIRST=$OPTARG;;
 	p) MKIMG_PRINT=yes;;
 	?) echo "Invalid argument $opt"
 	   fatal_usage;;
@@ -83,7 +101,10 @@ mkimg_log=">${MKIMG_LOG} 2>&1"
 
 # Get a list of  input files
 cd ${MKIMG_INPUT}
-input_list=`find . -maxdepth 1 -type f | cut -d / -f 2 | sort`
+raw_list=`find . -maxdepth 1 -type f | cut -d / -f 2`
+inc_list=`iter_names "${raw_list}" ${MKIMG_FIRST} inc`
+exc_list=`iter_names "${raw_list}" ${MKIMG_FIRST} exc`
+input_list="${inc_list} ${exc_list}"
 cd -
 echo "============================================================"
 echo "Creating GPT Image..."
