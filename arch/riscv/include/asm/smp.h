@@ -44,7 +44,7 @@
 
 #ifdef CONFIG_ARCH_HAS_SMP
 #include <asm/mach/smp.h>
-#endif
+#endif /* CONFIG_ARCH_HAS_SMP */
 
 #ifdef CONFIG_SMP
 #ifndef __ASSEMBLY__
@@ -85,23 +85,28 @@ static inline uintptr_t __smp_processor_stack_top(void)
 }
 
 cpu_t smp_hw_cpu_id(void);
-void smp_hw_cpu_boot(void);
-void smp_hw_cpu_on(cpu_t cpu, caddr_t ep);
-void smp_hw_cpu_off(cpu_t cpu);
+void smp_hw_map_init(void);
 void smp_hw_ctrl_init(void);
+void smp_hw_cpu_off(cpu_t cpu);
+void smp_hw_cpu_boot(cpu_t cpu, caddr_t ep);
 #endif /* __ASSEMBLY__ */
 #ifdef CONFIG_RISCV_EXIT_M
-#define __smp_processor_id()	sbi_processor_id()
-#define riscv_hart_id()		sbi_hart_id()
-#endif
+#define __smp_processor_id()		sbi_processor_id()
+#define riscv_hart_id()			sbi_hart_id()
+#endif /* CONFIG_RISCV_EXIT_M */
 #ifdef CONFIG_RISCV_EXIT_S
-#define __smp_processor_id()	abi_processor_id()
-#define riscv_hart_id()		abi_hart_id()
-#endif
+#define __smp_processor_id()		abi_processor_id()
+#define riscv_hart_id()			abi_hart_id()
+#endif /* CONFIG_RISCV_EXIT_S */
 #else /* CONFIG_SMP */
-#define sbi_processor_id()	0
-#define abi_processor_id()	0
-#define riscv_hart_id()		0
+#define sbi_processor_id()		0
+#define abi_processor_id()		0
+#define riscv_hart_id()			0
+#define smp_hw_cpu_id()			0
+#define smp_hw_ctrl_init()		do { } while (0)
+#define smp_hw_map_init()		do { } while (0)
+#define smp_hw_cpu_off(cpu)		do { } while (0)
+#define smp_hw_cpu_boot(cpu, ep)	do { } while (0)
 #endif /* CONFIG_SMP */
 
 #endif /* __RISCV_SMP_H_INCLUDE__ */

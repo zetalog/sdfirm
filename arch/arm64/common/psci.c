@@ -16,7 +16,7 @@
 
 static uint64_t psci_cpu_on(uint64_t cpu, uint64_t ep, uint64_t context)
 {
-	smp_cpu_on(cpu, ep, context);
+	smp_cpu_boot(cpu, ep, context);
 	return PSCI_SUCCESS;
 }
 

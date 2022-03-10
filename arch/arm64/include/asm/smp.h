@@ -53,8 +53,8 @@
 	sub	\_res, \_res, \_tmp
 	ubfx	\_res, \_res, #PERCPU_STACK_SHIFT, #(32 - PERCPU_STACK_SHIFT)
 .endm
-#endif
-#else
+#endif /* LINKER_SCRIPT */
+#else /* __ASSEMBLY__ */
 static inline cpu_t __smp_processor_id(void)
 {
 	unsigned int t;
@@ -73,10 +73,10 @@ static inline uintptr_t __smp_processor_stack_top(void)
 }
 
 cpu_t smp_hw_cpu_id(void);
-void smp_hw_cpu_boot(void);
-void smp_hw_cpu_on(cpu_t cpu, caddr_t ep);
+void smp_hw_map_init(void);
+void smp_hw_cpu_boot(cpu_t cpu, caddr_t ep);
 #define smp_hw_ctrl_init()		do { } while (0)
-#endif
-#endif
+#endif /* __ASSEMBLY__ */
+#endif /* CONFIG_SMP */
 
 #endif /* __ARM64_SMP_H_INCLUDE__ */

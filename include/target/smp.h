@@ -46,78 +46,83 @@
 #include <target/arch.h>
 
 #ifdef CONFIG_SMP
-#define smp_processor_id()		__smp_processor_id()
-#define NR_CPUS				MAX_CPU_NUM
-#else
-#define smp_processor_id()		0
-#define NR_CPUS				1
-#endif
+#define smp_processor_id()			__smp_processor_id()
+#define NR_CPUS					MAX_CPU_NUM
+#else /* CONFIG_SMP */
+#define smp_processor_id()			0
+#define NR_CPUS					1
+#endif /* CONFIG_SMP */
 
 #ifndef __ASSEMBLY__
 #if NR_CPUS > 65535
 typedef uint32_t cpu_t;
 #elif NR_CPUS > 255
 typedef uint16_t cpu_t;
-#else
+#else /* NR_CPUS */
 typedef uint8_t cpu_t;
-#endif
+#endif /* NR_CPUS */
 #endif /* __ASSEMBLY__ */
 
 #include <asm/smp.h>
 
 #ifdef CONFIG_SMP
-#define SMP_CACHE_BYTES			__SMP_CACHE_BYTES
+#define SMP_CACHE_BYTES				__SMP_CACHE_BYTES
 #ifndef __ASSEMBLY__
 typedef struct cpu_mask { DECLARE_BITMAP(bits, NR_CPUS); } cpu_mask_t;
-
 extern cpu_t smp_boot_cpu;
 extern cpu_mask_t smp_online_cpus;
 extern bool smp_initialized;
 
+#define cpumask_bits(maskp)			((maskp)->bits)
+#define cpumask_set_cpu(cpu, maskp)		\
+	set_bit((cpu), cpumask_bits(maskp))
+#define cpumask_clear_cpu(cpu, maskp)		\
+	clear_bit((cpu), cpumask_bits(maskp))
+#define cpumask_test_cpu(cpu, maskp)		\
+	test_bit((cpu), cpumask_bits(maskp))
+#define cpumask_first(srcp)			\
+	find_first_set_bit(cpumask_bits(srcp), NR_CPUS)
+#define cpumask_next(n, srcp)			\
+	find_next_set_bit(cpumask_bits(srcp), NR_CPUS, (n)+ 1)
+#define for_each_cpu(cpu, mask)			\
+	for ((cpu) = cpumask_first(mask);	\
+	     (cpu) = cpumask_next((cpu), (mask)), (cpu) < NR_CPUS;)
+
+#define smp_cpu_off(cpu)			smp_hw_cpu_off(cpu)
+#define smp_cpu_boot(cpu, ep)			smp_hw_cpu_boot(cpu, ep)
 void smp_boot_secondary_cpus(caddr_t context);
-
-#define cpumask_bits(maskp)		((maskp)->bits)
-#define cpumask_set_cpu(cpu, maskp)	set_bit((cpu), cpumask_bits(maskp))
-#define cpumask_clear_cpu(cpu, maskp)	clear_bit((cpu), cpumask_bits(maskp))
-#define cpumask_test_cpu(cpu, maskp)	test_bit((cpu), cpumask_bits(maskp))
-
-#define cpumask_first(srcp)		find_first_set_bit(cpumask_bits(srcp), NR_CPUS)
-#define cpumask_next(n, srcp)		find_next_set_bit(cpumask_bits(srcp), NR_CPUS, (n)+ 1)
-#define for_each_cpu(cpu, mask)		\
-	for ((cpu) = cpumask_first(mask); (cpu) = cpumask_next((cpu), (mask)), (cpu) < NR_CPUS;)
-#endif
-#define smp_cpu_on(cpu, ep)		smp_hw_cpu_on(cpu, ep)
-#define smp_cpu_off(cpu)		smp_hw_cpu_off(cpu)
+#endif /* __ASSEMBLY__ */
 #else /* CONFIG_SMP */
 #ifndef __SMP_CACHE_BYTES
-#define SMP_CACHE_BYTES			1
-#else
-#define SMP_CACHE_BYTES			__SMP_CACHE_BYTES
-#endif
+#define SMP_CACHE_BYTES				1
+#else /* __SMP_CACHE_BYTES */
+#define SMP_CACHE_BYTES				__SMP_CACHE_BYTES
+#endif /* __SMP_CACHE_BYTES */
 
 #ifndef __ASSEMBLY__
-#define smp_boot_cpu			0
-#define smp_initialized			true
+#define smp_boot_cpu				0
+#define smp_initialized				true
 
 typedef int cpu_mask_t;
 extern cpu_mask_t smp_online_cpus;
 
-#define cpumask_bits(maskp)		(maskp)
-#define cpumask_set_cpu(cpu, maskp)	(*(maskp) = 1)
-#define cpumask_clear_cpu(cpu, maskp)	(*(maskp) = 0)
-#define cpumask_test_cpu(cpu, maskp)	(C(cpu) == *(maskp))
-#define cpumask_first(srcp)		(0)
+#define cpumask_bits(maskp)			(maskp)
+#define cpumask_set_cpu(cpu, maskp)		(*(maskp) = 1)
+#define cpumask_clear_cpu(cpu, maskp)		(*(maskp) = 0)
+#define cpumask_test_cpu(cpu, maskp)		(C(cpu) == *(maskp))
+#define cpumask_first(srcp)			(0)
 /* Valid inputs for n are -1 and 0. */
-#define cpumask_next(n, srcp)		((n)+1)
-#define for_each_cpu(cpu, mask)		\
+#define cpumask_next(n, srcp)			((n)+1)
+#define for_each_cpu(cpu, mask)			\
 	for ((cpu) = 0; (cpu) < 1; (cpu)++, (void)(mask))
 
-#define smp_cpu_on(cpu, ep, context)		do { } while (0)
 #define smp_cpu_off(cpu)			do { } while (0)
+
+#define smp_cpu_boot(cpu, ep, context)		do { } while (0)
 #define smp_boot_secondary_cpus(context)	do { } while (0)
 #endif /* __ASSEMBLY__ */
 #endif /* CONFIG_SMP */
-#define __cache_aligned			__align(SMP_CACHE_BYTES)
+#define __cache_aligned				__align(SMP_CACHE_BYTES)
 
 #ifndef __ASSEMBLY__
 void smp_init(void);

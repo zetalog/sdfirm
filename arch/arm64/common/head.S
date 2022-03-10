@@ -224,7 +224,7 @@ ENDPROC(__start)
 ENTRY(stext)
 	bl	__linux_boot_el2
 #ifdef CONFIG_SMP
-	bl	smp_boot
+	bl	smp_map_init
 #endif
 	bl	system_init
 ENDPIPROC(stext)

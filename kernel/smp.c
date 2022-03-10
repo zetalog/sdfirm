@@ -57,9 +57,9 @@
 cpu_t smp_boot_cpu;
 cpu_mask_t smp_online_cpus;
 
-void smp_boot(void)
+void smp_map_init(void)
 {
-	smp_hw_cpu_boot();
+	smp_hw_map_init();
 	cpumask_set_cpu(smp_boot_cpu, &smp_online_cpus);
 }
 
@@ -99,7 +99,7 @@ void smp_boot_secondary_cpus(caddr_t context)
 	smp_hw_ctrl_init();
 	for (cpu = 0; cpu < NR_CPUS; cpu++) {
 		if (cpu != smp_boot_cpu)
-			smp_cpu_on(cpu, context);
+			smp_cpu_boot(cpu, context);
 	}
 	smp_wait_secondary_cpus();
 }

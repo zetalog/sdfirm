@@ -22,14 +22,14 @@ __noreturn void _smp_spin(int cpu)
 	__builtin_unreachable();
 }
 
-void smp_hw_cpu_on(cpu_t cpu, caddr_t ep)
+void smp_hw_cpu_boot(cpu_t cpu, caddr_t ep)
 {
 	cpu_spin_table[cpu & 0xff] = __pa(ep);
 	dsb(sy);
 	sev();
 }
 
-void smp_hw_cpu_boot(void)
+void smp_hw_map_init(void)
 {
 	smp_boot_cpu = 0;
 }

@@ -300,7 +300,7 @@ ENTRY(__sbi_exit)
 	call	relocate
 	enable_abi
 #ifdef CONFIG_SMP
-	call	smp_boot
+	call	smp_map_init
 #endif
 
 	/* Initialize task */

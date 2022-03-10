@@ -22,14 +22,14 @@ static struct {
 
 void *__cpu_up_entry[NR_CPUS];
 
-void smp_hw_cpu_on(cpu_t cpu, caddr_t ep)
+void smp_hw_cpu_boot(cpu_t cpu, caddr_t ep)
 {
 	smp_mb();
 	WRITE_ONCE(__cpu_up_entry[cpu], ep);
 	smp_mb();
 }
 
-void smp_hw_cpu_boot(void)
+void smp_hw_map_init(void)
 {
 	smp_boot_cpu = smp_processor_id();
 }
