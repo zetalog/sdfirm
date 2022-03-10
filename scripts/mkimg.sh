@@ -197,6 +197,6 @@ done
 if [ "x${MKIMG_PRINT}" = "xyes" ]; then
 	echo "------------------------------------------------------------"
 	echo "Final partition information:"
-	fdisk -l ${MKIMG_OUTPUT}
+	sgdisk -p ${MKIMG_OUTPUT}
 fi
 echo "============================================================"
