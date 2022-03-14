@@ -286,7 +286,7 @@ static void dpu_pma_debug(void)
 #endif /* CONFIG_DPU_PMA_DEBUG */
 
 #ifdef CONFIG_DPU_PMA
-#ifdef CONFIG_SMP
+#ifdef CONFIG_SMP_BOOT
 static void __dpu_pma_cpu_init(void)
 {
 	int n = 0;
@@ -302,7 +302,7 @@ static void __dpu_pma_cpu_init(void)
 	n += pma_set(n, PMA_AT_DEVICE,
 		     PCIE_BASE, ilog2_const(PCIE_SIZE));
 }
-#else /* CONFIG_SMP */
+#else /* CONFIG_SMP_BOOT */
 static void __dpu_pma_cpu_init(void)
 {
 	int n = 0;
@@ -317,16 +317,16 @@ static void __dpu_pma_cpu_init(void)
 		     ilog2_const(DDR0_DATA_SIZE + DDR1_DATA_SIZE));
 	n += pma_set(n, PMA_AT_DEVICE,
 		     PCIE_BASE, ilog2_const(PCIE_SIZE));
-#endif /* CONFIG_SMP */
+#endif /* CONFIG_SMP_BOOT */
 #else /* CONFIG_DPU_PMA */
 #define __dpu_pma_cpu_init()		do { } while (0)
 #endif /* CONFIG_DPU_PMA */
 
-#ifdef CONFIG_SMP
+#ifdef CONFIG_SMP_BOOT
 #define dpu_cpu_cache_init()		vaisra_cache_on()
-#else /* CONFIG_SMP */
+#else /* CONFIG_SMP_BOOT */
 #define dpu_cpu_cache_init()		vaisra_cache_off()
-#endif /* CONFIG_SMP */
+#endif /* CONFIG_SMP_BOOT */
 
 void dpu_pma_cpu_init(void)
 {
