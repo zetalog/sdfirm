@@ -111,7 +111,7 @@ static int device_specified = 0;
 static void usage(void)
 {
 	fprintf(stderr, "\n"
-		"Usage: memtester [-p physaddrbase [-d device] "
+		"Usage: memtester [-p physaddrbase] [-d device] "
 		"<mem>[B|K|M|G] [loops]\n");
 }
 

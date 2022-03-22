@@ -6,8 +6,11 @@
 #include <target/uart.h>
 #include <target/smp.h>
 
+#define BOOT_ERROR_INIT			(NR_CPUS + 1)
+#define BOOT_ERROR_FIND			(NR_CPUS + 2)
+
 #ifdef CONFIG_DPU_APC_INIT_MSG
-#define __boot_cpu(cpu)			dpu_uart_putc((cpu) + '0')
+#define __boot_msg(msg)			dpu_uart_putc((msg) + '0')
 #define __boot_init()			\
 	do {				\
 		dpu_uart_init();	\
@@ -20,7 +23,7 @@
 		dpu_uart_putc('\n');	\
 	} while (0)
 #else /* CONFIG_DPU_APC_INIT_MSG */
-#define __boot_cpu(cpu)			do { } while (0)
+#define __boot_msg(msg)			do { } while (0)
 #define __boot_init()			do { } while (0)
 #define __boot_fini()			do { } while (0)
 #endif /* CONFIG_DPU_APC_INIT_MSG */

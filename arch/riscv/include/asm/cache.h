@@ -61,7 +61,7 @@
 #define __flush_dcache_area(addr, size)		do { } while (0)
 #define __clean_dcache_area_poc(addr, size)	do { } while (0)
 #define __inval_dcache_area_poc(addr, size)	do { } while (0)
-void local_flush_icache_all(void);
+#define local_flush_icache_all()		fence_i()
 
 #define __flush_dcache_addr(addr)		do { } while (0)
 #define __clean_dcache_addr(addr)		do { } while (0)

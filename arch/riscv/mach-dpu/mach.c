@@ -81,9 +81,10 @@ static void dpu_boot_spi(void)
 	clk_enable(srst_flash);
 	/* Allow maximum 1/25 APB frequency */
 	dpu_flash_set_frequency(min(DPU_FLASH_FREQ, APB_CLK_FREQ / 25));
-	__boot_cpu(smp_processor_id());
+	__boot_msg(smp_processor_id());
 	smp_boot_secondary_cpus((caddr_t)boot_entry);
 	__boot_fini();
+	local_flush_icache_all();
 	boot_entry();
 }
 #else /* CONFIG_DPU_LOAD_SPI_FLASH */
@@ -127,15 +128,19 @@ static void dpu_load_ssi(void *boot_entry, const char *boot_file)
 	uint32_t size = 500000;
 	int ret;
 
+	__boot_init();
 	ret = gpt_pgpt_init();
-	if (ret != 0)
-		printf("Error: Failed to init partition.\n");
+	if (ret != 0) {
+		__boot_msg(BOOT_ERROR_INIT);
+		printf("boot(ssi): failed to init gpt.\n");
+	}
 	printf("boot(ssi): loading %s...\n", boot_file);
 	ret = gpt_get_file_by_name(board_flash, boot_file, &addr, &size);
-	if (ret <= 0)
-		printf("Error: Failed to load file.\n");
-	printf("boot(ssi): validating content - 0x%lx(0x%lx)...\n",
-	       addr, size);
+	if (ret <= 0) {
+		__boot_msg(BOOT_ERROR_FIND);
+		printf("boot(ssi): failed to load %s.\n", boot_file);
+	}
+	printf("boot(ssi): booting - 0x%lx(0x%lx)...\n", addr, size);
 	dpu_ssi_flash_boot(boot_entry, addr, size);
 }
 #endif /* CONFIG_DPU_BOOT_BACKDOOR */
@@ -144,14 +149,8 @@ static void dpu_boot_ssi(void)
 {
 	void (*boot_entry)(void) = DPU_BOOT_ADDR;
 
-	__boot_init();
 	dpu_pe_boot();
 	dpu_load_ssi(boot_entry, DPU_BOOT_FILE);
-	printf("boot(ssi): booting...\n");
-	__boot_cpu(smp_processor_id());
-	smp_boot_secondary_cpus((caddr_t)boot_entry);
-	__boot_fini();
-	boot_entry();
 }
 #else /* CONFIG_DPU_LOAD_SSI_FLASH */
 #define dpu_load_ssi(boot_entry, boot_file)	do { } while (0)
@@ -186,9 +185,10 @@ static void dpu_boot_pcie(void)
 	dpu_pe_boot();
 	dpu_load_fake_pcie_mem(boot_entry);
 	printf("boot(pcie): booting...\n");
-	__boot_cpu(smp_processor_id());
+	__boot_msg(smp_processor_id());
 	smp_boot_secondary_cpus((caddr_t)boot_entry);
 	__boot_fini();
+	local_flush_icache_all();
 	boot_entry();
 }
 #else /* CONFIG_DPU_LOAD_FAKE_PCIE_MEM */

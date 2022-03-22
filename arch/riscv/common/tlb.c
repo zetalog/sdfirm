@@ -28,11 +28,6 @@ void local_flush_tlb_asid_page(int asid, caddr_t addr)
 	sfence_vma_asid_page(asid, addr);
 }
 
-void local_flush_icache_all(void)
-{
-	fence_i();
-}
-
 #ifdef CONFIG_SMP
 void __flush_tlb_all(void)
 {

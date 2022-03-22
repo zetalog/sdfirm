@@ -52,6 +52,7 @@
 #include <target/cmdline.h>
 #include <target/arch.h>
 #include <target/console.h>
+#include <target/cache.h>
 
 #ifdef CONFIG_SMP
 cpu_t smp_boot_cpu;
