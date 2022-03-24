@@ -199,9 +199,14 @@ int imc_pma_set(int n, unsigned long attr,
 #endif /* CONFIG_MMU */
 #define LCSR_REG(offset)		(__LCSR_BASE + (offset))
 
-#define SCSR_BOOT_MODE			LCSR_REG(0x00)
+/* Boot code used definitions */
+#define ____SCSR_BOOT_MODE		0x00
 #define ____SCSR_SOCKET_ID		0x04
+
+#define __SCSR_BOOT_MODE		(LCSR_BASE + ____SCSR_BOOT_MODE)
 #define __SCSR_SOCKET_ID		(LCSR_BASE + ____SCSR_SOCKET_ID)
+
+#define SCSR_BOOT_MODE			LCSR_REG(____SCSR_BOOT_MODE)
 #define SCSR_SOCKET_ID			LCSR_REG(____SCSR_SOCKET_ID)
 #define SCSR_IMC_BOOT_ADDR_LO		LCSR_REG(0x08)
 #define SCSR_IMC_BOOT_ADDR_HI		LCSR_REG(0x0C)

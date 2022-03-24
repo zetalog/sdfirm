@@ -66,6 +66,7 @@ config DUOWEN_ASBL
 	select DUOWEN_BOOT
 	select DUOWEN_LOAD_ASBL
 	select DUOWEN_BOOT_APC
+	select DUOWEN_PLL_NONE
 	select XIP
 	select LOAD_DATA
 	select SYS_ENTR_M
@@ -80,6 +81,7 @@ config DUOWEN_ZSBL
 	select DUOWEN_BOOT
 	select DUOWEN_LOAD_ZSBL
 	select DUOWEN_BOOT_APC if DUOWEN_APC
+	select DUOWEN_PLL_NONE if DUOWEN_IMC
 	select XIP
 	select LOAD_DATA
 	select SYS_ENTR_M
@@ -603,6 +605,7 @@ choice
 config DUOWEN_PLL_REAL
 	bool "Real"
 	depends DUOWEN_ASIC
+	depends !DUOWEN_PLL_NONE
 
 config DUOWEN_PLL_FAKE
 	bool "Fake"
@@ -611,6 +614,12 @@ config DUOWEN_PLL_FAKE
 	  forced by RTL.
 
 endchoice
+
+config DUOWEN_PLL_NONE
+	bool "None"
+	depends DUOWEN_IMC && DUOWEN_ZSBL
+	help
+	  This is used by IMC ROM to omit PLL driver from IMC ROM code.
 
 config CRCNTL_MUX
 	bool "Enable clock multiplexing support"

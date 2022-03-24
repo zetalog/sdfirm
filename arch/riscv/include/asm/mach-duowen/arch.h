@@ -60,6 +60,13 @@
 #include <asm/vaisra_ras.h>
 #endif
 
+#ifdef CONFIG_DUOWEN_IMC
+#define DUOWEN_SECONDARY_ROM_BASE	0xFF8F020000
+#endif
+#ifdef CONFIG_DUOWEN_APC
+#define DUOWEN_SECONDARY_ROM_BASE	0xFF8F0C0000
+#endif
+
 #if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
 	.macro	boot0_hook
 #ifdef CONFIG_DUOWEN_APC_BOOT_HOOK
@@ -69,6 +76,18 @@
 #ifdef CONFIG_DUOWEN_APC_INIT
 	jal	ra, vaisra_cpu_init
 #endif
+#endif
+#ifdef CONFIG_DUOWEN_PLL_NONE
+	li	t0, __SCSR_BOOT_MODE
+	lw	t0, 0(t0)
+	/* Boot to the secondary ROM if the flash jumper is not configured
+	 * as SSI.
+	 */
+	andi	t0, t0, IMC_BOOT_SSI
+	bnez	t0, 1111f
+	li	t0, DUOWEN_SECONDARY_ROM_BASE
+	jr	t0
+1111:
 #endif
 	.endm
 	.macro	boot1_hook
