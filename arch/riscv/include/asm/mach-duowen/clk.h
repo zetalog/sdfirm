@@ -65,7 +65,7 @@
 #define DDR_BUS_VCO_FREQ	ULL(3200000000) /* 3.2GHz */
 #define DDR_VCO_FREQ		ULL(3200000000) /* 3.2GHz */
 #define COHFAB_VCO_FREQ		ULL(4000000000) /* 4GHz */
-#define CL_VCO_FREQ		ULL(5000000000) /* 5GHz */
+#define CL_VCO_FREQ		ULL(3000000000) /* 3GHz */
 #define ETH_VCO_FREQ		ULL(2500000000) /* 2.5GHz */
 #endif
 
