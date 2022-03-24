@@ -16,7 +16,6 @@
 #define SOC_PLL_FREQ		1000000000 /* 1GHz */
 #define DDR_BUS_PLL_FREQ	800000000
 #define DDR_PLL_FREQ		800000000
-#define PCIE_PLL_FREQ		100000000 /* 100MHz */
 #define CFAB_PLL_FREQ		1400000000 /* 1.4GHz */
 #define CL_PLL_FREQ		2000000000 /* 2GHz */
 #if defined(CONFIG_DUOWEN_ETH_312500KHZ)
@@ -40,7 +39,6 @@
 #define SOC_PLL_FREQ		1000000000
 #define DDR_BUS_PLL_FREQ	800000000
 #define DDR_PLL_FREQ		800000000
-#define PCIE_PLL_FREQ		100000000
 #define CFAB_PLL_FREQ		1400000000
 #define CL_PLL_FREQ		2000000000
 #define ETH_PLL_FREQ		156250000
@@ -133,7 +131,7 @@
 #define SOC_PLL			0
 #define DDR_BUS_PLL		1
 #define DDR_PLL			2
-#define PCIE_PLL		3
+/* Reserved for old version SoC PLL reference clock */
 #define COHFAB_PLL		4
 #define CL0_PLL			5
 #define CL1_PLL			6
@@ -177,7 +175,6 @@
 #define SOC_VCO			SOC_PLL
 #define DDR_BUS_VCO		DDR_BUS_PLL
 #define DDR_VCO			DDR_PLL
-#define PCIE_VCO		PCIE_PLL
 #define COHFAB_VCO		COHFAB_PLL
 #define CL0_VCO			CL0_PLL
 #define CL1_VCO			CL1_PLL
@@ -189,7 +186,6 @@
 #define SOC_VCO2		(__DUOWEN_MAX_PLLS + SOC_PLL)
 #define DDR_BUS_VCO2		(__DUOWEN_MAX_PLLS + DDR_BUS_PLL)
 #define DDR_VCO2		(__DUOWEN_MAX_PLLS + DDR_PLL)
-#define PCIE_VCO2		(__DUOWEN_MAX_PLLS + PCIE_PLL)
 #define COHFAB_VCO2		(__DUOWEN_MAX_PLLS + COHFAB_PLL)
 #define CL0_VCO2		(__DUOWEN_MAX_PLLS + CL0_PLL)
 #define CL1_VCO2		(__DUOWEN_MAX_PLLS + CL1_PLL)
@@ -202,7 +198,6 @@
 #define soc_vco			clkid(CLK_VCO, SOC_VCO)
 #define ddr_bus_vco		clkid(CLK_VCO, DDR_BUS_VCO)
 #define ddr_vco			clkid(CLK_VCO, DDR_VCO)
-#define pcie_vco		clkid(CLK_VCO, PCIE_VCO)
 #define cohfab_vco		clkid(CLK_VCO, COHFAB_VCO)
 #define cl0_vco			clkid(CLK_VCO, CL0_VCO)
 #define cl1_vco			clkid(CLK_VCO, CL1_VCO)
@@ -214,7 +209,6 @@
 #define soc_vco2		clkid(CLK_VCO2, SOC_VCO)
 #define ddr_bus_vco2		clkid(CLK_VCO2, DDR_BUS_VCO)
 #define ddr_vco2		clkid(CLK_VCO2, DDR_VCO)
-#define pcie_vco2		clkid(CLK_VCO2, PCIE_VCO)
 #define cohfab_vco2		clkid(CLK_VCO2, COHFAB_VCO)
 #define cl0_vco2		clkid(CLK_VCO2, CL0_VCO)
 #define cl1_vco2		clkid(CLK_VCO2, CL1_VCO)
@@ -237,7 +231,6 @@
 #define soc_pll			clkid(CLK_PLL, SOC_PLL)
 #define ddr_bus_pll		clkid(CLK_PLL, DDR_BUS_PLL)
 #define ddr_pll			clkid(CLK_PLL, DDR_PLL)
-#define pcie_pll		clkid(CLK_PLL, PCIE_PLL)
 #define cohfab_pll		clkid(CLK_PLL, COHFAB_PLL)
 #define cl0_pll			clkid(CLK_PLL, CL0_PLL)
 #define cl1_pll			clkid(CLK_PLL, CL1_PLL)
@@ -252,7 +245,6 @@
 #define SOC_PLL2		(DUOWEN_MAX_PLLS + SOC_PLL)
 #define DDR_BUS_PLL2		(DUOWEN_MAX_PLLS + DDR_BUS_PLL)
 #define DDR_PLL2		(DUOWEN_MAX_PLLS + DDR_PLL)
-#define PCIE_PLL2		(DUOWEN_MAX_PLLS + PCIE_PLL)
 #define COHFAB_PLL2		(DUOWEN_MAX_PLLS + COHFAB_PLL)
 #define CL0_PLL2		(DUOWEN_MAX_PLLS + CL0_PLL)
 #define CL1_PLL2		(DUOWEN_MAX_PLLS + CL1_PLL)
@@ -264,7 +256,6 @@
 #define soc_pll2		clkid(CLK_PLL2, SOC_PLL)
 #define ddr_bus_pll2		clkid(CLK_PLL2, DDR_BUS_PLL)
 #define ddr_pll2		clkid(CLK_PLL2, DDR_PLL)
-#define pcie_pll2		clkid(CLK_PLL2, PCIE_PLL)
 #define cohfab_pll2		clkid(CLK_PLL2, COHFAB_PLL)
 #define cl0_pll2		clkid(CLK_PLL2, CL0_PLL)
 #define cl1_pll2		clkid(CLK_PLL2, CL1_PLL)
@@ -296,7 +287,6 @@
 #define soc_clk_sel		clkid(CLK_SELECT, SOC_CLK_SEL)
 #define ddr_bus_clk_sel		clkid(CLK_SELECT, DDR_BUS_CLK_SEL)
 #define ddr_clk_sel		clkid(CLK_SELECT, DDR_CLK_SEL)
-#define pcie_ref_clk_sel	clkid(CLK_SELECT, PCIE_REF_CLK_SEL)
 #define soc_clk_sel		clkid(CLK_SELECT, SOC_CLK_SEL)
 #define cohfab_clk_sel		clkid(CLK_SELECT, COHFAB_CLK_SEL)
 #define cl0_clk_sel		clkid(CLK_SELECT, CL0_CLK_SEL)
@@ -310,7 +300,6 @@
 #define soc_clk_sel2		clkid(CLK_SELECT2, SOC_CLK_SEL)
 #define ddr_bus_clk_sel2	clkid(CLK_SELECT2, DDR_BUS_CLK_SEL)
 #define ddr_clk_sel2		clkid(CLK_SELECT2, DDR_CLK_SEL)
-#define pcie_ref_clk_sel2	clkid(CLK_SELECT2, PCIE_REF_CLK_SEL)
 #define soc_clk_sel2		clkid(CLK_SELECT2, SOC_CLK_SEL)
 #define cohfab_clk_sel2		clkid(CLK_SELECT2, COHFAB_CLK_SEL)
 #define cl0_clk_sel2		clkid(CLK_SELECT2, CL0_CLK_SEL)
@@ -328,7 +317,6 @@
 #define sysfab_clk_src		sysfab_pll
 #define ddr_bus_clk_src		ddr_bus_pll
 #define ddr_clk_src		ddr_pll
-#define pcie_ref_clk_src	pcie_pll
 #define cohfab_clk_src		cohfab_pll
 #define cl0_clk_src		cl0_pll
 #define cl1_clk_src		cl1_pll
@@ -340,7 +328,6 @@
 #define sysfab_clk_src2		sysfab_pll2
 #define ddr_bus_clk_src2	ddr_bus_pll2
 #define ddr_clk_src2		ddr_pll2
-#define pcie_ref_clk_src2	pcie_pll2
 #define cohfab_clk_src2		cohfab_pll2
 #define cl0_clk_src2		cl0_pll2
 #define cl1_clk_src2		cl1_pll2
@@ -366,7 +353,6 @@
 #define soc_pll			clkid(CLK_PLL, SOC_PLL)
 #define ddr_bus_pll		clkid(CLK_PLL, DDR_BUS_PLL)
 #define ddr_pll			clkid(CLK_PLL, DDR_PLL)
-#define pcie_pll		clkid(CLK_PLL, PCIE_PLL)
 #define cohfab_pll		clkid(CLK_PLL, COHFAB_PLL)
 #define cl0_pll			clkid(CLK_PLL, CL0_PLL)
 #define cl1_pll			clkid(CLK_PLL, CL1_PLL)
@@ -384,7 +370,6 @@
 #define soc_pll2		clkid(CLK_PLL2, SOC_PLL)
 #define ddr_bus_pll2		clkid(CLK_PLL2, DDR_BUS_PLL)
 #define ddr_pll2		clkid(CLK_PLL2, DDR_PLL)
-#define pcie_pll2		clkid(CLK_PLL2, PCIE_PLL)
 #define cohfab_pll2		clkid(CLK_PLL2, COHFAB_PLL)
 #define cl0_pll2		clkid(CLK_PLL2, CL0_PLL)
 #define cl1_pll2		clkid(CLK_PLL2, CL1_PLL)
@@ -399,11 +384,10 @@
 #endif /* CONFIG_DUOWEN_SBI_DUAL */
 
 /* CLK_SELECT: CLK_SEL_CFG */
-#define SOC_CLK_DIV2_SEL	0
-#define SYSFAB_CLK_SEL		1
+#define SOC_CLK_DIV2_SEL	0 /* SOC_HIGH_SPEED_CLK_SEL */
+#define SYSFAB_CLK_SEL		1 /* SOC_LOW_SPEED_CLK_SEL */
 #define DDR_BUS_CLK_SEL		2
 #define DDR_CLK_SEL		3
-#define PCIE_REF_CLK_SEL	4
 #define SOC_CLK_SEL		5 /* PCIE_AXI_CLK_SEL */
 #define COHFAB_CLK_SEL		7
 #define CL0_CLK_SEL		8
@@ -415,7 +399,6 @@
 #define sysfab_clk_sel		clkid(CLK_SELECT, SYSFAB_CLK_SEL)
 #define ddr_bus_clk_sel		clkid(CLK_SELECT, DDR_BUS_CLK_SEL)
 #define ddr_clk_sel		clkid(CLK_SELECT, DDR_CLK_SEL)
-#define pcie_ref_clk_sel	clkid(CLK_SELECT, PCIE_REF_CLK_SEL)
 #define soc_clk_sel		clkid(CLK_SELECT, SOC_CLK_SEL)
 #define cohfab_clk_sel		clkid(CLK_SELECT, COHFAB_CLK_SEL)
 #define cl0_clk_sel		clkid(CLK_SELECT, CL0_CLK_SEL)
@@ -428,7 +411,6 @@
 #define sysfab_clk_sel2		clkid(CLK_SELECT2, SYSFAB_CLK_SEL)
 #define ddr_bus_clk_sel2	clkid(CLK_SELECT2, DDR_BUS_CLK_SEL)
 #define ddr_clk_sel2		clkid(CLK_SELECT2, DDR_CLK_SEL)
-#define pcie_ref_clk_sel2	clkid(CLK_SELECT2, PCIE_REF_CLK_SEL)
 #define soc_clk_sel2		clkid(CLK_SELECT2, SOC_CLK_SEL)
 #define cohfab_clk_sel2		clkid(CLK_SELECT2, COHFAB_CLK_SEL)
 #define cl0_clk_sel2		clkid(CLK_SELECT2, CL0_CLK_SEL)
@@ -446,7 +428,6 @@
 #define sysfab_clk_src		sysfab_clk_sel
 #define ddr_bus_clk_src		ddr_bus_clk_sel
 #define ddr_clk_src		ddr_clk_sel
-#define pcie_ref_clk_src	pcie_ref_clk_sel
 #define cohfab_clk_src		cohfab_clk_sel
 #define cl0_clk_src		cl0_clk_sel
 #define cl1_clk_src		cl1_clk_sel
@@ -458,7 +439,6 @@
 #define sysfab_clk_src2		sysfab_clk_sel2
 #define ddr_bus_clk_src2	ddr_bus_clk_sel2
 #define ddr_clk_src2		ddr_clk_sel2
-#define pcie_ref_clk_src2	pcie_ref_clk_sel2
 #define cohfab_clk_src2		cohfab_clk_sel2
 #define cl0_clk_src2		cl0_clk_sel2
 #define cl1_clk_src2		cl1_clk_sel2

@@ -71,12 +71,6 @@ struct select_clk select_clks[NR_SELECT_CLKS] = {
 			xo_clk,
 		},
 	},
-	[PCIE_REF_CLK_SEL] = {
-		.clk_sels = {
-			pcie_pll,
-			xo_clk,
-		},
-	},
 	[SOC_CLK_SEL] = {
 		.clk_sels = {
 			soc_pll,
@@ -126,7 +120,6 @@ const char *sel_clk_names[NR_SELECT_CLKS] = {
 	[SYSFAB_CLK_SEL] = "sysfab_clk_sel",
 	[DDR_BUS_CLK_SEL] = "ddr_bus_clk_sel",
 	[DDR_CLK_SEL] = "ddr_clk_sel",
-	[PCIE_REF_CLK_SEL] = "pcie_ref_clk_sel",
 	[SOC_CLK_SEL] = "soc_clk_sel",
 	[COHFAB_CLK_SEL] = "cohfab_clk_sel",
 	[CL0_CLK_SEL] = "cl0_clk_sel",
@@ -286,7 +279,6 @@ uint32_t input_clks[NR_INPUT_CLKS] = {
 	[SOC_PLL] = SOC_PLL_FREQ,
 	[DDR_BUS_PLL] = DDR_BUS_PLL_FREQ,
 	[DDR_PLL] = DDR_PLL_FREQ,
-	[PCIE_PLL] = PCIE_PLL_FREQ,
 	[COHFAB_PLL] = CFAB_PLL_FREQ,
 	[CL0_PLL] = CL_PLL_FREQ,
 	[CL1_PLL] = CL_PLL_FREQ,
@@ -303,7 +295,6 @@ const char *input_clk_names[NR_INPUT_CLKS] = {
 	[SOC_PLL] = "soc_pll",
 	[DDR_BUS_PLL] = "ddr_bus_pll",
 	[DDR_PLL] = "ddr_pll",
-	[PCIE_PLL] = "pcie_pll",
 	[COHFAB_PLL] = "cohfab_pll",
 	[CL0_PLL] = "cl0_pll",
 	[CL1_PLL] = "cl1_pll",

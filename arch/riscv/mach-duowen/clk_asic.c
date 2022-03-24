@@ -76,13 +76,6 @@ struct select_clk select_clks[NR_SELECT_CLKS] = {
 		},
 		CLK_DEF_FLAGS(CLK_PLL_SEL_F)
 	},
-	[PCIE_REF_CLK_SEL] = {
-		.clk_sels = {
-			pcie_pll,
-			xo_clk,
-		},
-		CLK_DEF_FLAGS(CLK_PLL_SEL_F)
-	},
 	[SOC_CLK_SEL] = {
 		.clk_sels = {
 			soc_pll,
@@ -133,7 +126,6 @@ const char *sel_clk_names[NR_SELECT_CLKS] = {
 	[SYSFAB_CLK_SEL] = "sysfab_clk_sel",
 	[DDR_BUS_CLK_SEL] = "ddr_bus_clk_sel",
 	[DDR_CLK_SEL] = "ddr_clk_sel",
-	[PCIE_REF_CLK_SEL] = "pcie_ref_clk_sel",
 	[SOC_CLK_SEL] = "soc_clk_sel",
 	[COHFAB_CLK_SEL] = "cohfab_clk_sel",
 	[CL0_CLK_SEL] = "cl0_clk_sel",
@@ -308,13 +300,6 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 		.freq = DDR_PLL_FREQ,
 		.enabled = false,
 	},
-	[PCIE_PLL] = {
-		.src = pcie_vco,
-		.mux = pcie_ref_clk_sel,
-		.alt = 0,
-		.freq = PCIE_PLL_FREQ,
-		.enabled = false,
-	},
 	[COHFAB_PLL] = {
 		.src = cohfab_vco,
 		.mux = cohfab_clk_sel,
@@ -393,13 +378,6 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 		.freq = DDR_PLL_FREQ,
 		.enabled = false,
 	},
-	[PCIE_PLL2] = {
-		.src = pcie_vco2,
-		.mux = pcie_ref_clk_sel2,
-		.alt = 0,
-		.freq = PCIE_PLL_FREQ,
-		.enabled = false,
-	},
 	[COHFAB_PLL2] = {
 		.src = cohfab_vco2,
 		.mux = cohfab_clk_sel2,
@@ -464,7 +442,6 @@ const char *pll_clk_names[__NR_PLL_CLKS] = {
 	[SOC_PLL] = "soc_pll",
 	[DDR_BUS_PLL] = "ddr_bus_pll",
 	[DDR_PLL] = "ddr_pll",
-	[PCIE_PLL] = "pcie_pll",
 	[COHFAB_PLL] = "cohfab_pll",
 	[CL0_PLL] = "cl0_pll",
 	[CL1_PLL] = "cl1_pll",
@@ -799,12 +776,6 @@ struct vco_clk vco_clks[NR_VCO_CLKS] = {
 		.freq_r = INVALID_FREQ,
 		.enabled = false,
 	},
-	[PCIE_VCO] = {
-		.freq = PCIE_VCO_FREQ,
-		.freq_p = PCIE_PLL_FREQ,
-		.freq_r = INVALID_FREQ,
-		.enabled = false,
-	},
 	[COHFAB_VCO] = {
 		.freq = COHFAB_VCO_FREQ,
 		.freq_p = CFAB_PLL_FREQ,
@@ -860,12 +831,6 @@ struct vco_clk vco_clks[NR_VCO_CLKS] = {
 		.freq_r = INVALID_FREQ,
 		.enabled = false,
 	},
-	[PCIE_VCO2] = {
-		.freq = PCIE_VCO_FREQ,
-		.freq_p = PCIE_PLL_FREQ,
-		.freq_r = INVALID_FREQ,
-		.enabled = false,
-	},
 	[COHFAB_VCO2] = {
 		.freq = COHFAB_VCO_FREQ,
 		.freq_p = CFAB_PLL_FREQ,
@@ -910,7 +875,6 @@ const char *vco_clk_names[__NR_VCO_CLKS] = {
 	[SOC_VCO] = "soc_vco",
 	[DDR_BUS_VCO] = "ddr_bus_vco",
 	[DDR_VCO] = "ddr_vco",
-	[PCIE_VCO] = "pcie_vco",
 	[COHFAB_VCO] = "cohfab_vco",
 	[CL0_VCO] = "cl0_vco",
 	[CL1_VCO] = "cl1_vco",
