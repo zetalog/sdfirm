@@ -25,7 +25,7 @@ config DUOWEN_APC
 	select VAISRA_PMA
 	select ARCH_HAS_DMAC
 	select ARCH_HAS_PCI
-	select DUOWEN_APC_BOOT_HOOK if (SMP && !DUOWEN_SBL_LOAD)
+	select DUOWEN_APC_BOOT_HOOK if (SMP_BOOT && !DUOWEN_SBL_LOAD)
 	help
 	  It is too late for vaisra to initialize its SMP cores in SBI due
 	  to the restrictions of the vaisra atomicity implementation, so
@@ -35,7 +35,7 @@ endchoice
 
 config DUOWEN_SOC_DUAL
 	bool "Enable dual sockets"
-	depends SMP
+	depends SMP_BOOT
 	select PCI
 	select DUOWEN_PCIE_CHIPLINK
 
@@ -338,17 +338,17 @@ choice
 
 config DUOWEN_APC_16
 	bool "16"
-	depends DUOWEN_IMC || SMP
+	depends DUOWEN_IMC || SMP_BOOT
 	select DUOWEN_HAS_APC_PARTIAL_GOOD
 
 config DUOWEN_APC_4
 	bool "4"
-	depends DUOWEN_IMC || SMP
+	depends DUOWEN_IMC || SMP_BOOT
 	select DUOWEN_SBI_DUAL_SPARSE if DUOWEN_SBI_DUAL
 
 config DUOWEN_APC_1
 	bool "1"
-	depends DUOWEN_IMC || !SMP
+	depends DUOWEN_IMC || !SMP_BOOT
 
 endchoice
 
