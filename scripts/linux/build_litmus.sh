@@ -5,6 +5,7 @@
 TOP=`pwd`
 SCRIPT=`(cd \`dirname $0\`; pwd)`
 SRCDIR=`(cd ${SCRIPT}/..; pwd)`
+WORKING_DIR=`(cd ${SCRIPT}/../../..; pwd)`
 
 # Default options
 LITMUS_REBUILD=no
@@ -43,7 +44,7 @@ if [ "x${LITMUS_CORES}" = "x" ]; then
 	LITMUS_CORES=4
 fi
 if [ -z ${LITMUS_ROOT} ]; then
-	LITMUS_ROOT=${HOME}/workspace/memory-model/litmus-tests-riscv
+	LITMUS_ROOT=${WORKING_DIR}/litmus-tests-riscv
 fi
 if [ -z ${CROSS_COMPILE} ]; then
 	export CROSS_COMPILE=riscv64-unknown-linux-gnu-

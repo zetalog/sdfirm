@@ -62,6 +62,9 @@ fi
 if [ -z ${BUSYBOX_DIR} ]; then
 	export BUSYBOX_DIR=${WORKING_DIR}/busybox
 fi
+if [ -z ${LITMUS_ROOT} ]; then
+	export LITMUS_ROOT=${WORKING_DIR}/litmus-tests-riscv
+fi
 
 # Build default applications
 mkdir -p ${TOP}/obj/bench
