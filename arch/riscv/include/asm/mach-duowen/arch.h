@@ -69,14 +69,6 @@
 
 #if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
 	.macro	boot0_hook
-#ifdef CONFIG_DUOWEN_APC_BOOT_HOOK
-#ifdef CONFIG_DUOWEN_LOAD_SRAM
-	jal	ra, duowen_load_sram
-#endif
-#ifdef CONFIG_DUOWEN_APC_INIT
-	jal	ra, vaisra_cpu_init
-#endif
-#endif
 #ifdef CONFIG_DUOWEN_PLL_NONE
 	li	t0, __SCSR_BOOT_MODE
 	lw	t0, 0(t0)
@@ -88,6 +80,14 @@
 	li	t0, DUOWEN_SECONDARY_ROM_BASE
 	jr	t0
 1111:
+#endif
+#ifdef CONFIG_DUOWEN_APC_BOOT_HOOK
+#ifdef CONFIG_DUOWEN_LOAD_SRAM
+	jal	ra, duowen_load_sram
+#endif
+#ifdef CONFIG_DUOWEN_APC_INIT
+	jal	ra, vaisra_cpu_init
+#endif
 #endif
 	.endm
 	.macro	boot1_hook

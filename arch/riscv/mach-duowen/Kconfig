@@ -397,6 +397,12 @@ menuconfig DUOWEN_MSG
 	  This hardware can only be found in testbench, mostly be used to
 	  drive tests and UVM sequences.
 
+config DUOWEN_SIM_BOOT_CLOCKS
+	bool "Enable faster clock/reset booting support"
+	help
+	  This feature is used in simulation environment to bypass clock
+	  framework to make simulation faster.
+
 endmenu
 
 if FDT

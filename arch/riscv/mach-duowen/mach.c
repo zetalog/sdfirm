@@ -394,10 +394,16 @@ void board_boot_late(void)
 #define board_boot_late()			do { } while (0)
 #endif /* CONFIG_DUOWEN_BOOT_APC */
 
+#ifdef CONFIG_DUOWEN_SIM_BOOT_CLOCKS
+void board_init_clock(void)
+{
+}
+#else
 void board_init_clock(void)
 {
 	duowen_clk_init();
 }
+#endif
 
 void board_early_init(void)
 {
