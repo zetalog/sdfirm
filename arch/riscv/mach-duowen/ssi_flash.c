@@ -46,6 +46,8 @@
 #include <target/irq.h>
 #include <asm/mach/boot.h>
 
+#define SSI_BOOT_SIZE		1024
+
 mtd_t board_flash = INVALID_MTD_ID;
 
 static inline void spi_config_pad(uint16_t pin, uint8_t pad, uint8_t func)
@@ -118,20 +120,26 @@ void __duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size, bool jump)
 
 #define is_last(index, length)		(((index) + 1) == length)
 
+	__boot_dbg('|');
 	for (i = 0; i < size; i++, addr++) {
 		dst[i] = __duowen_ssi_flash_read(addr);
 		__boot_dump8(dst[i], is_last(i, size));
+		if ((i % 0x200) == 0)
+			__boot_dbg('.');
 	}
+	__boot_dbg('|');
+	__boot_dbg('\n');
 	if (jump)
 		__boot_jump(boot);
 }
 
 void duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size, bool jump)
 {
-	boot_cb boot_func;
-	DUOWEN_BOOT_PROT_FUNC_DEFINE(1024);
+	volatile boot_cb boot_func;
+	DUOWEN_BOOT_PROT_FUNC_DEFINE(SSI_BOOT_SIZE);
 
-	DUOWEN_BOOT_PROT_FUNC_ASSIGN(boot_cb, __duowen_ssi_boot, boot_func);
+	DUOWEN_BOOT_PROT_FUNC_ASSIGN(boot_cb, __duowen_ssi_boot,
+				     boot_func, SSI_BOOT_SIZE);
 	boot_func(boot, addr, size, jump);
 }
 #else

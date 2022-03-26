@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Mar  8 16:33:44 2022
+# Sat Mar 26 13:23:19 2022
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -235,6 +235,7 @@ CONFIG_DUOWEN_APC_16=y
 # CONFIG_DUOWEN_APC_1_1000 is not set
 # CONFIG_DUOWEN_SIM_LOAD is not set
 CONFIG_DUOWEN_SBL_LOAD=y
+# CONFIG_DUOWEN_SIM_BOOT_CLOCKS is not set
 
 #
 # Linux device tree options

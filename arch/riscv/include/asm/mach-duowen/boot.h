@@ -6,27 +6,36 @@
 #include <target/uart.h>
 
 #ifdef CONFIG_DUOWEN_BOOT_PROT_STRONG
-#define DUOWEN_BOOT_PROT_FUNC_DEFINE(size)		\
-	__align(4) uint8_t boot_from_stack[size];
+#undef SOC_BASE
+#define SOC_BASE	0
+#endif
+
+#ifdef CONFIG_DUOWEN_BOOT_PROT_STRONG
+/* RAMEND in the current sdfirm is not used, sdfirm uses lower RAM storage
+ * as .data section and stackes. And CONFIG_DUOWEN_BOOT_PROT_STRONG is not
+ * dependent on HEAP.
+ */
+#define DUOWEN_BOOT_PROT_FUNC_DEFINE(size)			\
+	uint8_t *boot_from_stack = ((uint8_t *)RAMEND - (size));
 
 static __always_inline void __boot_copy(uint8_t *dst, void *src,
 					size_t size)
 {
 	printf("src=%016llx: dst=%016llx\n", (uintptr_t)src, (uintptr_t)dst);
 	memcpy(dst, src, size);
+	local_flush_icache_all();
 }
 
-#define DUOWEN_BOOT_PROT_FUNC_ASSIGN(type, func, ptr)	\
-	do {						\
-		__boot_copy(boot_from_stack, func,	\
-			    sizeof(boot_from_stack));	\
-		ptr = (type)boot_from_stack;		\
+#define DUOWEN_BOOT_PROT_FUNC_ASSIGN(type, func, ptr, size)	\
+	do {							\
+		__boot_copy(boot_from_stack, func, size);	\
+		ptr = (type)boot_from_stack;			\
 	} while (0)
 #else
 #define DUOWEN_BOOT_PROT_FUNC_DEFINE(size)
-#define DUOWEN_BOOT_PROT_FUNC_ASSIGN(type, func, ptr)	\
-	do {						\
-		ptr = (type)func;			\
+#define DUOWEN_BOOT_PROT_FUNC_ASSIGN(type, func, ptr, size)	\
+	do {							\
+		ptr = (type)func;				\
 	} while (0)
 #endif
 
@@ -77,6 +86,7 @@ static __always_inline void __boot_jump(void *boot)
 	__boot_dbg('o');
 	__boot_dbg('t');
 	__boot_dbg('\n');
+	local_flush_icache_all();
 	boot_entry();
 	unreachable();
 }

@@ -45,6 +45,8 @@
 #include <target/mmcard.h>
 #include <asm/mach/boot.h>
 
+#define SD_BOOT_SIZE		2048
+
 mtd_t board_sdcard = INVALID_MTD_ID;
 
 #ifdef CONFIG_DUOWEN_SD_IPDV
@@ -320,6 +322,7 @@ void __sdhc_boot(void *boot, bool block_ccs, uint16_t block_len,
 	if (!__sdhc_xfer_cmd(cmd, block_ccs ? address / block_len : address,
 			     block_cnt, block_len))
 		BUG();
+	__boot_dbg('|');
 	cnt = 0;
 	offset = addr - address;
 	do {
@@ -336,7 +339,10 @@ void __sdhc_boot(void *boot, bool block_ccs, uint16_t block_len,
 		cnt++;
 		dst += length;
 		offset = 0;
+		__boot_dbg('.');
 	} while (cnt < block_cnt);
+	__boot_dbg('|');
+	__boot_dbg('\n');
 	cmd = MMC_CMD_STOP_TRANSMISSION;
 	if (!__sdhc_xfer_cmd(cmd, 0, 0, 0))
 		BUG();
@@ -346,18 +352,19 @@ void __sdhc_boot(void *boot, bool block_ccs, uint16_t block_len,
 
 void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size, bool jump)
 {
-	boot_cb boot_func;
+	volatile boot_cb boot_func;
 	bool block_ccs = true;
 	uint16_t block_len;
 	__unused mmc_slot_t sslot;
-	DUOWEN_BOOT_PROT_FUNC_DEFINE(2048);
+	DUOWEN_BOOT_PROT_FUNC_DEFINE(SD_BOOT_SIZE);
 
 	sslot = mmc_slot_save(DUOWEN_SD_SLOT);
 	block_len = mmc_slot_ctrl.capacity_len;
 	block_ccs = mmc_slot_ctrl.high_capacity;
 	mmc_slot_restore(sslot);
 
-	DUOWEN_BOOT_PROT_FUNC_ASSIGN(boot_cb, __sdhc_boot, boot_func);
+	DUOWEN_BOOT_PROT_FUNC_ASSIGN(boot_cb, __sdhc_boot,
+				     boot_func, SD_BOOT_SIZE);
 	boot_func(boot, block_ccs, block_len, addr, ALIGN_UP(size, 4), jump);
 }
 #else
