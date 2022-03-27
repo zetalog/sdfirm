@@ -69,7 +69,7 @@
 
 #if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
 	.macro	boot0_hook
-#ifdef CONFIG_DUOWEN_PLL_NONE
+#ifdef CONFIG_DUOWEN_LOAD_ROM
 	li	t0, __SCSR_BOOT_MODE
 	lw	t0, 0(t0)
 	/* Boot to the secondary ROM if the flash jumper is not configured

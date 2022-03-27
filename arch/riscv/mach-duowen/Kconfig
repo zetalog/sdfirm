@@ -65,8 +65,8 @@ config DUOWEN_ASBL
 	depends DUOWEN_APC
 	select DUOWEN_BOOT
 	select DUOWEN_LOAD_ASBL
+	select DUOWEN_LOAD_ROM
 	select DUOWEN_BOOT_APC
-	select DUOWEN_PLL_NONE
 	select XIP
 	select LOAD_DATA
 	select SYS_ENTR_M
@@ -81,13 +81,13 @@ config DUOWEN_ZSBL
 	select DUOWEN_BOOT
 	select DUOWEN_LOAD_ZSBL
 	select DUOWEN_BOOT_APC if DUOWEN_APC
-	select DUOWEN_PLL_NONE if DUOWEN_IMC
 	select XIP
 	select LOAD_DATA
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select DUOWEN_SPI_FLASH if !DUOWEN_APC
 	select DUOWEN_SSI_FLASH if !DUOWEN_APC
+	select DUOWEN_LOAD_ROM if !DUOWEN_APC
 	select DUOWEN_APC_INIT if DUOWEN_APC
 	select DUOWEN_NOC if DUOWEN_APC
 	select DUOWEN_PMA_CPU if DUOWEN_APC
@@ -200,7 +200,7 @@ config DUOWEN_SBI_DUAL_SPARSE
 
 menuconfig DUOWEN_BOOT_PROT
 	bool "Enable boot .data protection"
-	depends DUOWEN_ZSBL || DUOWEN_TB
+	depends (DUOWEN_ZSBL && DUOWEN_IMC) || DUOWEN_TB
 	help
 	  By default, each bootloader's .data section should be in
 	  a different memory region. Enable this option only if the next
@@ -268,6 +268,10 @@ config DUOWEN_LOAD_SD
 	bool "Enable load from SD card"
 	depends DUOWEN_SD
 	select DUOWEN_LOAD_FLASH
+
+config DUOWEN_LOAD_ROM
+	bool "Enable load secondary ROM"
+	depends (DUOWEN_ZSBLi && DUOWEN_IMC) || DUOWEN_ASBL
 
 config DUOWEN_LOAD_GPT
 	bool
@@ -601,7 +605,7 @@ menuconfig CRCNTL
 	select ARCH_HAS_DW_PLL5GHZ_DYNAMIC if DUOWEN_ASIC
 	select DW_PLL5GHZ_TSMC12FFC_REG_ACCESS if DW_PLL5GHZ_TSMC12FFC
 	select DW_PLL5GHZ_TSMC12FFC_BYPASS_SYNC if DW_PLL5GHZ_TSMC12FFC
-	select CRCNTL_MUX
+	select CRCNTL_MUX if !DUOWEN_PLL_NONE
 
 if CRCNTL
 
@@ -611,25 +615,27 @@ choice
 config DUOWEN_PLL_REAL
 	bool "Real"
 	depends DUOWEN_ASIC
-	depends !DUOWEN_PLL_NONE
+	depends !DUOWEN_ASBL && !(DUOWEN_ZSBL && DUOWEN_IMC)
 
 config DUOWEN_PLL_FAKE
 	bool "Fake"
+	depends DUOWEN_ASBL
 	help
 	  This happens in VCS testbench and ZeBu where PLL frequency is
 	  forced by RTL. Note this feature is also used for real asic
 	  where PLL is not required to be configured.
 
-endchoice
-
 config DUOWEN_PLL_NONE
-	bool
-	depends DUOWEN_ZSBL
+	bool "None"
+	depends DUOWEN_ZSBL && DUOWEN_IMC
 	help
 	  This is used by IMC ROM to omit PLL driver from IMC ROM code.
 
+endchoice
+
 config CRCNTL_MUX
 	bool "Enable clock multiplexing support"
+	depends !DUOWEN_PLL_NONE
 	help
 	  In FPGA environment, PLLs are designed to output from the nodes
 	  of the clock select gates. In such case, CRCNTL needn't provide

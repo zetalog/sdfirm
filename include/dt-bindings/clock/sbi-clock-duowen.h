@@ -117,6 +117,7 @@
 
 #include <dt-bindings/clock/sbi-clock-duowen-real.h>
 #include <dt-bindings/clock/sbi-clock-duowen-fake.h>
+#include <dt-bindings/clock/sbi-clock-duowen-none.h>
 
 /* Alias for select clocks */
 #define sysfab_100m_clk		sysfab_clk_src

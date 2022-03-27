@@ -13,6 +13,7 @@ obj-$(CONFIG_CLK) += clk.rel
 obj-$(CONFIG_CRCNTL) += crcntl.rel
 obj-$(CONFIG_DUOWEN_PLL_REAL) += clk_real.rel
 obj-$(CONFIG_DUOWEN_PLL_FAKE) += clk_fake.rel
+obj-$(CONFIG_DUOWEN_PLL_NONE) += clk_none.rel
 obj-$(CONFIG_DUOWEN_SCSR) += scsr.rel
 obj-$(CONFIG_DUOWEN_GPIO) += gpio.rel
 obj-$(CONFIG_DUOWEN_TLMM) += tlmm.rel
