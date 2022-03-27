@@ -617,13 +617,14 @@ config DUOWEN_PLL_FAKE
 	bool "Fake"
 	help
 	  This happens in VCS testbench and ZeBu where PLL frequency is
-	  forced by RTL.
+	  forced by RTL. Note this feature is also used for real asic
+	  where PLL is not required to be configured.
 
 endchoice
 
 config DUOWEN_PLL_NONE
-	bool "None"
-	depends DUOWEN_IMC && DUOWEN_ZSBL
+	bool
+	depends DUOWEN_ZSBL
 	help
 	  This is used by IMC ROM to omit PLL driver from IMC ROM code.
 
