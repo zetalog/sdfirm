@@ -8,19 +8,23 @@
 #define __DT_BINDINGS_CLOCK_SBI_DUOWEN_NONE_H
 
 #ifdef CONFIG_DUOWEN_PLL_NONE
-#ifdef CONFIG_DUOWEN_XO_25M
 #define XO_CLK_FREQ		25000000
-#endif
-#ifdef CONFIG_DUOWEN_XO_125M
-#define XO_CLK_FREQ		125000000
-#endif
 #define SOC_PLL_FREQ		XO_CLK_FREQ
 #define DDR_BUS_PLL_FREQ	XO_CLK_FREQ
 #define DDR_PLL_FREQ		XO_CLK_FREQ
 #define CFAB_PLL_FREQ		XO_CLK_FREQ
 #define CL_PLL_FREQ		XO_CLK_FREQ
 #define ETH_PLL_FREQ		XO_CLK_FREQ
+#define SFAB_PLL_FREQ		XO_CLK_FREQ
 #define SGMII_PLL_FREQ		XO_CLK_FREQ
+
+#define SOC_CLK_FREQ		SOC_PLL_FREQ
+#define IMC_CLK_FREQ		SOC_CLK_FREQ /* Not div2 */
+#define APC_CLK_FREQ		CL_PLL_FREQ
+#define SFAB_CLK_FREQ		SFAB_PLL_FREQ
+#define CFAB_CLK_FREQ		CFAB_PLL_FREQ
+#define APB_CLK_FREQ		SFAB_CLK_FREQ
+#define AHB_CLK_FREQ		SFAB_CLK_FREQ
 
 #define CLK_INPUT		0
 #define CLK_OUTPUT		1
@@ -29,7 +33,6 @@
 /* CLK_INPUT */
 #define CLK_PLL			CLK_INPUT
 #define CLK_SELECT		CLK_INPUT
-#define SYSFAB_PLL		(__DUOWEN_MAX_PLLS + 0)
 #define SGMII_PLL		(__DUOWEN_MAX_PLLS + 1)
 #define XO_CLK			(__DUOWEN_MAX_PLLS + 2)
 #define TIC_CLK			(__DUOWEN_MAX_PLLS + 3)
@@ -46,15 +49,7 @@
 #define CL3_CLK_SEL		(__DUOWEN_MAX_PLLS + 14)
 #define NR_INPUT_CLKS		(CL3_CLK_SEL + 1)
 #define soc_pll			clkid(CLK_PLL, SOC_PLL)
-#define ddr_bus_pll		clkid(CLK_PLL, DDR_BUS_PLL)
-#define ddr_pll			clkid(CLK_PLL, DDR_PLL)
-#define cohfab_pll		clkid(CLK_PLL, COHFAB_PLL)
-#define cl0_pll			clkid(CLK_PLL, CL0_PLL)
-#define cl1_pll			clkid(CLK_PLL, CL1_PLL)
-#define cl2_pll			clkid(CLK_PLL, CL2_PLL)
-#define cl3_pll			clkid(CLK_PLL, CL3_PLL)
 #define eth_pll			clkid(CLK_PLL, ETH_PLL)
-#define sysfab_pll		clkid(CLK_PLL, SYSFAB_PLL)
 #define sgmii_pll		clkid(CLK_PLL, SGMII_PLL)
 #define xo_clk			clkid(CLK_INPUT, XO_CLK)
 #define tic_clk			clkid(CLK_INPUT, TIC_CLK)
@@ -74,15 +69,7 @@
 #define CLK_SELECT2		(CLK_SELECT | CLK_DUAL)
 #define CLK_PLL2		(CLK_PLL | CLK_DUAL)
 #define soc_pll2		clkid(CLK_PLL2, SOC_PLL)
-#define ddr_bus_pll2		clkid(CLK_PLL2, DDR_BUS_PLL)
-#define ddr_pll2		clkid(CLK_PLL2, DDR_PLL)
-#define cohfab_pll2		clkid(CLK_PLL2, COHFAB_PLL)
-#define cl0_pll2		clkid(CLK_PLL2, CL0_PLL)
-#define cl1_pll2		clkid(CLK_PLL2, CL1_PLL)
-#define cl2_pll2		clkid(CLK_PLL2, CL2_PLL)
-#define cl3_pll2		clkid(CLK_PLL2, CL3_PLL)
 #define eth_pll2		clkid(CLK_PLL2, ETH_PLL)
-#define sysfab_pll2		clkid(CLK_PLL2, SYSFAB_PLL)
 #define sgmii_pll2		clkid(CLK_PLL2, SGMII_PLL)
 #define xo_clk2			clkid(CLK_INPUT2, XO_CLK)
 #define tic_clk2		clkid(CLK_INPUT2, TIC_CLK)

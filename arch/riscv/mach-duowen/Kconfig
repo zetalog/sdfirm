@@ -619,7 +619,7 @@ config DUOWEN_PLL_REAL
 
 config DUOWEN_PLL_FAKE
 	bool "Fake"
-	depends DUOWEN_ASBL
+	depends !DUOWEN_ASIC || DUOWEN_ASBL
 	help
 	  This happens in VCS testbench and ZeBu where PLL frequency is
 	  forced by RTL. Note this feature is also used for real asic
