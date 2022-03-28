@@ -68,13 +68,15 @@
 #endif
 
 #if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
+#include <asm/vaisra_asm.h>
+
 	.macro	boot0_hook
 #ifdef CONFIG_DUOWEN_APC_BOOT_HOOK
+#ifdef CONFIG_DUOWEN_APC_INIT
+	vaisra_cpu_init
+#endif
 #ifdef CONFIG_DUOWEN_LOAD_SRAM
 	jal	ra, duowen_load_sram
-#endif
-#ifdef CONFIG_DUOWEN_APC_INIT
-	jal	ra, vaisra_cpu_init
 #endif
 #endif
 #ifdef CONFIG_DUOWEN_LOAD_ROM

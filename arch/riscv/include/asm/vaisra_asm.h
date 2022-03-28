@@ -1,6 +1,3 @@
-#include <target/init.h>
-#include <target/arch.h>
-
 .macro	pmarst
 	li	t1, 0x100000000000	# PMAADDR0 is a top address
 	srli	t1, t1, 2		# 4-bytes granule
@@ -9,7 +6,6 @@
 	csrw	CSR_PMACFG(0), t1
 .endm
 
-ENTRY(vaisra_cpu_init)
+.macro vaisra_cpu_init
 	pmarst
-	ret
-ENDPROC(vaisra_cpu_init)
+.endm
