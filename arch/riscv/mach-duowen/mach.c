@@ -383,6 +383,9 @@ void duowen_load_ddr(void)
 
 	if (smp_processor_id() == 0)
 		con_log("boot(ddr): Booting %d cores...\n", MAX_CPU_NUM);
+#if defined(CONFIG_SMP_BOOT) && !defined(CONFIG_SMP)
+	smp_boot_secondary_cpus((caddr_t)boot_addr);
+#endif
 	__boot_jump(boot_addr);
 }
 
@@ -443,6 +446,11 @@ void board_late_init(void)
 	smmu_dma_alloc_sme();
 	//smmu_pcie_alloc_sme();
 	duowen_eth_late_init();
+
+#if defined(CONFIG_SMP_BOOT) && !defined(CONFIG_SMP)
+	/* Standalone SMP boot */
+	board_boot_late();
+#endif
 }
 
 #ifdef CONFIG_SMP
