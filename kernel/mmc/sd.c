@@ -825,10 +825,14 @@ void sd_resp_r2(void)
 	if (mmc_slot_ctrl.cmd == MMC_CMD_SEND_CSD) {
 		mmc_slot_ctrl.csd = sd_decode_csd(r2);
 		mmc_slot_ctrl.csd_valid = true;
+#ifdef CONFIG_SD_LEGACY_ONLY
+		mmc_slot_ctrl.default_speed = SD_FREQ_PP;
+#else
 		if (mmc_slot_ctrl.csd.tran_speed == 0x5A)
 			mmc_slot_ctrl.default_speed = SD_FREQ_HS;
 		else /* 0x32 */
 			mmc_slot_ctrl.default_speed = SD_FREQ_PP;
+#endif
 	} else
 		mmc_slot_ctrl.cid = sd_decode_cid(r2);
 }

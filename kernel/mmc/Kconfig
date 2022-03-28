@@ -111,6 +111,13 @@ config SD_SDXC
 
 endchoice
 
+config SD_LEGACY_ONLY
+	bool "Enable legacy only mode support"
+	help
+	  This option is useful for programs where PLL drivers are not
+	  used for acceleration.
+	  If unsure, say 'N'.
+
 config SD_SPI
 	bool "SPI bus protocol support"
 	select MMC_SPI
