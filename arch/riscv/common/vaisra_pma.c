@@ -200,21 +200,31 @@ static void csr_write_pmaaddr(int n, unsigned long val)
 	};
 }
 
-static void __pma_cfg(int n, unsigned long attr)
+static void ____pma_cfg(int n, unsigned long attr)
 {
 	unsigned long cfgmask, pmacfg;
 	int pmacfg_index, pmacfg_shift;
-	bool tor = ((attr & PMA_A) == PMA_A_TOR);
 
 	/* calculate PMA register and offset */
-	pmacfg_index = REG64_16BIT_INDEX(tor ? n + 1 : n);
-	pmacfg_shift = REG64_16BIT_OFFSET(tor ? n + 1 : n);
+	pmacfg_index = REG64_16BIT_INDEX(n);
+	pmacfg_shift = REG64_16BIT_OFFSET(n);
 
 	cfgmask = ~(UL(0xffff) << pmacfg_shift);
 	pmacfg	= csr_read_pmacfg(pmacfg_index) & cfgmask;
 	pmacfg |= ((attr << pmacfg_shift) & ~cfgmask);
 
 	csr_write_pmacfg(pmacfg_index, pmacfg);
+}
+
+static void __pma_cfg(int n, unsigned long attr)
+{
+	bool tor = ((attr & PMA_A) == PMA_A_TOR);
+
+	if (tor && n != 0) {
+		____pma_cfg(n, 0);
+		n++;
+	}
+	____pma_cfg(n, attr);
 }
 
 #if __riscv_xlen == 64
