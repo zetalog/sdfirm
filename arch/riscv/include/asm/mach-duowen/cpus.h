@@ -100,13 +100,13 @@
 
 #ifdef CONFIG_DUOWEN_APC
 #ifdef CONFIG_SMP_BOOT
-#ifdef CONFIG_SBI
+#ifdef CONFIG_DUOWEN_SBI_DUAL
 #define MAX_CPU_NUM		(2 * MAX_APC_NUM)
 #define MAX_CPU_CLUSTERS	(2 * __MAX_CPU_CLUSTERS)
-#else /* CONFIG_SBI */
+#else /* CONFIG_DUOWEN_SBI_DUAL */
 #define MAX_CPU_NUM		MAX_APC_NUM
 #define MAX_CPU_CLUSTERS	__MAX_CPU_CLUSTERS
-#endif /* CONFIG_SBI */
+#endif /* CONFIG_DUOWEN_SBI_DUAL */
 #else /* CONFIG_SMP_BOOT */
 #ifdef CONFIG_DUOWEN_SBI_DUAL
 #error "Do not support dual socket as SMP_BOOT is not configured!"
