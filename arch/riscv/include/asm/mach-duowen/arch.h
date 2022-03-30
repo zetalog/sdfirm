@@ -86,7 +86,7 @@
 	 * as SSI.
 	 */
 	andi	t0, t0, IMC_BOOT_SSI
-	bnez	t0, 1111f
+	beqz	t0, 1111f
 	li	t0, DUOWEN_SECONDARY_ROM_BASE
 	jr	t0
 1111:
