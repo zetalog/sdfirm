@@ -38,6 +38,7 @@ typedef __builtin_va_list va_list;
 #define __packed			__attribute__((__packed__))
 #define __used				__attribute__((__used__))
 #define __pure				__attribute__((__pure__))
+#define __naked				__attribute__((__naked__))
 #define __unused			__attribute__((__unused__))
 #define __align(a)			__attribute__((__aligned__(a)))
 #define __always_inline			inline __attribute__((__always_inline__))

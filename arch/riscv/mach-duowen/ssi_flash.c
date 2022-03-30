@@ -112,7 +112,7 @@ static __always_inline uint8_t __duowen_ssi_flash_read(uint32_t addr)
 	return byte;
 }
 
-__align(4)
+__naked __align(4)
 void __duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size, bool jump)
 {
 	int i;

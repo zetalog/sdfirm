@@ -10,6 +10,16 @@
 #define SOC_BASE	0
 #endif
 
+#if defined(CONFIG_CONSOLE_OUTPUT) || defined(CONFIG_DUOWEN_BOOT_DEBUG)
+static __always_inline void __boot_dbg(uint8_t byte)
+{
+	while (!dw_uart_write_poll(UART_CON_ID));
+	dw_uart_write_byte(UART_CON_ID, byte);
+}
+#else
+#define __boot_dbg(byte)			do { } while (0)
+#endif
+
 #ifdef CONFIG_DUOWEN_BOOT_PROT_STRONG
 /* RAMEND in the current sdfirm is not used, sdfirm uses lower RAM storage
  * as .data section and stackes. And CONFIG_DUOWEN_BOOT_PROT_STRONG is not
@@ -21,7 +31,8 @@
 static __always_inline void __boot_copy(uint8_t *dst, void *src,
 					size_t size)
 {
-	printf("src=%016llx: dst=%016llx\n", (uintptr_t)src, (uintptr_t)dst);
+	con_log("boot(stack): src=%016llx: dst=%016llx\n",
+		(uintptr_t)src, (uintptr_t)dst);
 	memcpy(dst, src, size);
 	local_flush_icache_all();
 }
@@ -40,12 +51,6 @@ static __always_inline void __boot_copy(uint8_t *dst, void *src,
 #endif
 
 #ifdef CONFIG_DUOWEN_BOOT_DEBUG
-static __always_inline void __boot_dbg(uint8_t byte)
-{
-	while (!dw_uart_write_poll(UART_CON_ID));
-	dw_uart_write_byte(UART_CON_ID, byte);
-}
-
 static __always_inline void __boot_dump8(uint8_t byte, bool last)
 {
 	if (HIHALF(byte) > 9)
@@ -72,7 +77,6 @@ static __always_inline void __boot_dump32(uint32_t dword, bool last)
 	}
 }
 #else
-#define __boot_dbg(byte)			do { } while (0)
 #define __boot_dump8(byte, last)		do { } while (0)
 #define __boot_dump32(dword, last)		do { } while (0)
 #endif
