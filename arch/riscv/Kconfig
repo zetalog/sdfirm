@@ -77,7 +77,7 @@ config ARCH_DUOWEN
 	select FDT_BUILTIN if SBI_FDT
 	select CLINT if DUOWEN_APC
 	select PLIC if !SYS_NOIRQ
-	select CRCNTL if CLK
+	select CRCNTL
 	select DUOWEN_GPIO if GPIO
 	select DUOWEN_UART if CONSOLE || DEBUG_PRINT
 	select DUOWEN_SSI_FLASH if SPI_MASTER
