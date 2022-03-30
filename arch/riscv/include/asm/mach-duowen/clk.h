@@ -71,6 +71,61 @@
 
 #include <dt-bindings/clock/sbi-clock-duowen.h>
 
+#ifdef CONFIG_DUOWEN_PLL_NONE
+#define XO_CLK_FREQ		25000000
+#define SOC_PLL_FREQ		XO_CLK_FREQ
+#define DDR_BUS_PLL_FREQ	XO_CLK_FREQ
+#define DDR_PLL_FREQ		XO_CLK_FREQ
+#define CFAB_PLL_FREQ		XO_CLK_FREQ
+#define CL_PLL_FREQ		XO_CLK_FREQ
+#define ETH_PLL_FREQ		XO_CLK_FREQ
+#define SFAB_PLL_FREQ		XO_CLK_FREQ
+#define SGMII_PLL_FREQ		XO_CLK_FREQ
+
+#define SOC_CLK_FREQ		SOC_PLL_FREQ
+#define IMC_CLK_FREQ		SOC_CLK_FREQ /* Not div2 */
+#define APC_CLK_FREQ		CL_PLL_FREQ
+#define SFAB_CLK_FREQ		SFAB_PLL_FREQ
+#define CFAB_CLK_FREQ		CFAB_PLL_FREQ
+#define APB_CLK_FREQ		SFAB_CLK_FREQ
+#define AHB_CLK_FREQ		SFAB_CLK_FREQ
+
+#define gpio0_clk		GPIO0_CLK
+#define gpio1_clk		GPIO1_CLK
+#define gpio2_clk		GPIO2_CLK
+#define uart0_clk		UART0_CLK
+#define uart1_clk		UART1_CLK
+#define uart2_clk		UART2_CLK
+#define uart3_clk		UART3_CLK
+#define i2c0_clk		I2C0_CLK
+#define i2c1_clk		I2C1_CLK
+#define i2c2_clk		I2C2_CLK
+#define i2c3_clk		I2C3_CLK
+#define i2c4_clk		I2C4_CLK
+#define i2c5_clk		I2C5_CLK
+#define i2c6_clk		I2C6_CLK
+#define i2c7_clk		I2C7_CLK
+#define i2c8_clk		I2C8_CLK
+#define i2c9_clk		I2C9_CLK
+#define i2c10_clk		I2C10_CLK
+#define i2c11_clk		I2C11_CLK
+#define spi_flash_clk		SPI_FLASH_CLK
+#define spi0_clk		SPI0_CLK
+#define spi1_clk		SPI1_CLK
+#define spi2_clk		SPI2_CLK
+#define spi3_clk		SPI3_CLK
+#define spi4_clk		SPI4_CLK
+#define sd_clk			SD_CLK
+#define eth_clk			ETH_CLK
+#define tsensor_clk		TSENSOR_CLK
+#define clk_hw_enable(clk)		do { } while (0)
+#define clk_hw_get_frequency(clk)	XO_CLK_FREQ
+#define clk_pll_init()			do { } while (0)
+#define clk_pll_dump()			do { } while (0)
+#define duowen_clk_init()		do { } while (0)
+#endif /* CONFIG_DUOWEN_PLL_NONE */
+
+#ifdef CONFIG_CLK
 /* Clock flags, used by clk drivers to indicate clock features */
 #define CLK_CLK_SEL_F		_BV(0)
 #define CLK_CLK_EN_F		_BV(1)
@@ -137,19 +192,20 @@
 #define clk_set_flags(soc, clk, __flags)	((clk).flags |= (__flags))
 #define clk_clear_flags(soc, clk, __flags)	((clk).flags &= ~(__flags))
 #endif /* CONFIG_DUOWEN_SBI_DUAL */
-
 #ifdef CONFIG_CONSOLE_COMMAND
 void clk_pll_dump(void);
-#else
+#else /* CONFIG_CONSOLE_COMMAND */
 #define clk_pll_dump()				do { } while (0)
-#endif
+#endif /* CONFIG_CONSOLE_COMMAND */
 void clk_pll_init(void);
-
 /* Enable clock tree core */
 void clk_hw_ctrl_init(void);
 #ifdef CONFIG_MMU
 void clk_hw_mmu_init(void);
-#endif
+#endif /* CONFIG_MMU */
+void duowen_clk_init(void);
+#endif /* CONFIG_CLK */
+
 #ifdef CONFIG_DUOWEN_PLL_REAL
 void clk_apply_vco(clk_clk_t vco, clk_clk_t clk, clk_freq_t freq);
 void clk_apply_pll(clk_clk_t pll, clk_clk_t clk, clk_freq_t freq);
@@ -174,7 +230,6 @@ void clk_apply_pll(clk_clk_t pll, clk_clk_t clk, clk_freq_t freq);
 #define clk_deselect_mux(clk)			do { } while (0)
 #endif /* CONFIG_DUOWEN_PLL_REAL */
 
-void duowen_clk_init(void);
 void duowen_clk_imc_init(void);
 void duowen_clk_apc_init(void);
 

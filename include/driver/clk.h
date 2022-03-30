@@ -42,7 +42,7 @@
 #ifndef __CLK_DRIVER_H_INCLUDE__
 #define __CLK_DRIVER_H_INCLUDE__
 
-#ifdef CONFIG_ARCH_HAS_CLK
+#if defined(CONFIG_ARCH_HAS_CLK) || defined(CONFIG_ARCH_HAS_CLK_GENERIC)
 #include <asm/mach/clk.h>
 #endif
 

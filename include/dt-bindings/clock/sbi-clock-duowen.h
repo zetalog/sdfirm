@@ -105,9 +105,9 @@
 
 #define CLK_DUAL		8 /* DUAL socket clock bit */
 
+#ifdef CONFIG_CLK
 #include <dt-bindings/clock/sbi-clock-duowen-real.h>
 #include <dt-bindings/clock/sbi-clock-duowen-fake.h>
-#include <dt-bindings/clock/sbi-clock-duowen-none.h>
 
 /* Alias for select clocks */
 #define sysfab_100m_clk		sysfab_clk_src
@@ -122,6 +122,7 @@
 #define sysfab_clk2		sysfab_100m_clk2
 #define pcie_axi_clk2		soc_clk_src2
 #endif /* CONFIG_DUOWEN_SBI_DUAL */
+#endif /* CONFIG_CLK */
 
 /* CLK_OUTPUT: CLK_EN_CFG0 */
 #define DMA_CLK			0
@@ -226,6 +227,7 @@
 #define CLUSTER3_APC1_L2_CLK	135
 #define NR_OUTPUT_CLKS		(CLUSTER3_APC1_L2_CLK + 1)
 
+#ifdef CONFIG_CLK
 /* CLK_OUTPUT: CLK_EN_CFG0 */
 /* Integrated overall clocks */
 #define dma_clk			clkid(CLK_OUTPUT, DMA_CLK)
@@ -575,5 +577,6 @@
 #define sbi_eth_alt_ref_clk2	sbi_clk2(sbi_eth_alt_ref_clk)
 #define sbi_sgmii_ref_clk2	sbi_clk2(sbi_sgmii_ref_clk)
 #endif /* CONFIG_DUOWEN_SBI_DUAL */
+#endif /* CONFIG_CLK */
 
 #endif /* __DT_BINDINGS_CLOCK_SBI_DUOWEN_H */
