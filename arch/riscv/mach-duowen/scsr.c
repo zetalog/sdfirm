@@ -76,15 +76,14 @@ void imc_pma_write_cfg(int n, unsigned long cfg)
 #define imc_pma_write_cfg(n, cfg)	__imc_pma_write_cfg(n, cfg)
 #endif
 
-static void __pma_cfg(int n, unsigned long attr)
+static void ____pma_cfg(int n, unsigned long attr)
 {
 	unsigned long cfgmask, pmacfg;
 	int pmacfg_index, pmacfg_shift;
-	bool tor = ((attr & PMA_A) == PMA_A_TOR);
 
 	/* calculate PMA register and offset */
-	pmacfg_index = REG64_16BIT_INDEX(tor ? n + 1 : n);
-	pmacfg_shift = REG64_16BIT_OFFSET(tor ? n + 1 : n);
+	pmacfg_index = REG64_16BIT_INDEX(n);
+	pmacfg_shift = REG64_16BIT_OFFSET(n);
 
 	cfgmask = ~(UL(0xffff) << pmacfg_shift);
 	pmacfg	= imc_pma_read_cfg(pmacfg_index) & cfgmask;
@@ -93,45 +92,58 @@ static void __pma_cfg(int n, unsigned long attr)
 	imc_pma_write_cfg(pmacfg_index, pmacfg);
 }
 
+static void __pma_cfg(int n, int nr_pmas, unsigned long attr)
+{
+	bool tor = ((attr & PMA_A) == PMA_A_TOR);
+
+	if (tor && nr_pmas > 1) {
+		____pma_cfg(n, 0);
+		n++;
+	}
+	____pma_cfg(n, attr);
+}
+
 int imc_pma_set(int n, unsigned long attr,
 		phys_addr_t addr, unsigned long log2len)
 {
 	unsigned long addrmask, pmaaddr;
-	bool tor = !IS_ALIGNED(addr, PMA_GRAIN_ALIGN) ||
-		   log2len < PMA_GRAIN_SHIFT;
+	int nr_pmas = 1;
 
 	/* check parameters */
 	if (n >= PMA_COUNT || log2len > __riscv_xlen || log2len < PMA_SHIFT)
 		return -EINVAL;
 
-	/* encode PMA config */
-	attr |= tor ? PMA_A_TOR :
-		((log2len == PMA_SHIFT) ? PMA_A_NA4 : PMA_A_NAPOT);
-
-	if (tor) {
-		imc_pma_write_addr(n, addr);
-		imc_pma_write_addr(n + 1, addr + (1 << log2len));
-		__pma_cfg(n, attr);
-		return 2;
-	}
-
-	/* encode PMA address */
-	if (log2len == PMA_SHIFT) {
-		pmaaddr = (addr >> PMA_SHIFT);
-	} else {
-		if (log2len == __riscv_xlen) {
-			pmaaddr = -UL(1);
+	if (__ffs64(addr) < log2len) {
+		attr |= PMA_A_TOR;
+		if (n == 0 && addr == 0) {
+			imc_pma_write_addr(n, addr + (UL(1) << log2len));
 		} else {
-			addrmask = (UL(1) << (log2len - PMA_SHIFT)) - 1;
-			pmaaddr	 = ((addr >> PMA_SHIFT) & ~addrmask);
-			pmaaddr |= (addrmask >> 1);
+			pmaaddr = imc_pma_read_addr(n - 1);
+			if (addr == pmaaddr) {
+				imc_pma_write_addr(n,
+					addr + (UL(1) << log2len));
+			} else {
+				if (n >= (PMA_COUNT - 1))
+					return -EINVAL;
+				imc_pma_write_addr(n, addr);
+				imc_pma_write_addr(n + 1,
+					addr + (UL(1) << log2len));
+				nr_pmas = 2;
+			}
 		}
+	} else if (log2len == PMA_SHIFT) {
+		attr |= PMA_A_NA4;
+		pmaaddr = (addr >> PMA_SHIFT);
+		imc_pma_write_addr(n, pmaaddr);
+	} else {
+		attr |= PMA_A_NAPOT;
+		addrmask = (UL(1) << (log2len - PMA_SHIFT)) - 1;
+		pmaaddr = ((addr >> PMA_SHIFT) & ~addrmask);
+		pmaaddr |= (addrmask >> 1);
+		imc_pma_write_addr(n, pmaaddr);
 	}
-
-	/* write csrs */
-	imc_pma_write_addr(n, pmaaddr);
-	__pma_cfg(n, attr);
-	return 1;
+	__pma_cfg(n, nr_pmas, attr);
+	return nr_pmas;
 }
 
 /* ====================================================================== *
