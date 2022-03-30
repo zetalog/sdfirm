@@ -780,14 +780,6 @@ config CLK_MNEMONICS
 
 endif
 
-config ARCH_HAS_CLK_GENERIC
-	bool
-
-menuconfig CLK_GENERIC
-	bool "General clock layer support"
-	depends ARCH_HAS_CLK_GENERIC
-	depends !CLK
-
 source kernel/io/Kconfig
 source kernel/uart/Kconfig
 source kernel/spi/Kconfig

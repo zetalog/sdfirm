@@ -83,23 +83,11 @@ int clk_enable(clk_t clk);
 void clk_disable(clk_t clk);
 void clk_select_source(clk_t clk, clk_t src);
 const char *clk_get_mnemonic(clk_t clk);
+
 int clk_register_driver(clk_cat_t category, struct clk_driver *clkd);
 void clk_init(void);
 #ifndef CONFIG_MMU
 #define clk_hw_mmu_init()		do { } while (0)
-#endif /* CONFIG_MMU */
-#else
-#ifdef CONFIG_CLK_GENERIC
-#define clk_get_frequency(clk)		clk_hw_get_frequency(clk)
-#define clk_set_frequency(clk)		0
-#define clk_enable(clk)			clk_hw_enable(clk)
-#define clk_disable(clk)		do { } while (0)
-#define clk_select_source(clk, src)	do { } while (0)
-#define clk_get_mnemonic(clk)		NULL
-#define clk_init()			do { } while (0)
-#ifndef CONFIG_MMU
-#define clk_hw_mmu_init()		do { } while (0)
-#define clk_register_driver(cat, clkd)	(-ENODEV)
 #endif /* CONFIG_MMU */
 #else
 #define clk_get_frequency(clk)		INVALID_FREQ
@@ -113,7 +101,6 @@ void clk_init(void);
 #define clk_hw_mmu_init()		do { } while (0)
 #define clk_register_driver(cat, clkd)	(-ENODEV)
 #endif /* CONFIG_MMU */
-#endif
 #endif
 #endif /* __ASSEMBLY__ */
 
