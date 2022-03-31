@@ -158,7 +158,6 @@ unsigned long duowen_soc_base;
 /* DDR memory region */
 #define __DDR_BASE		ULL(0x0000000000)
 #define DDR_BASE		(SOC_BASE + __DDR_BASE)
-#define __DDR_SIZE		SZ_512G
 
 /* PCIe memory region */
 #define __PCIE_BASE		ULL(0x40000000000)

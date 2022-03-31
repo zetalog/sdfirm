@@ -216,11 +216,11 @@ static void ____pma_cfg(int n, unsigned long attr)
 	csr_write_pmacfg(pmacfg_index, pmacfg);
 }
 
-static void __pma_cfg(int n, int nr_pmas, unsigned long attr)
+static void __pma_cfg(int n, unsigned long attr)
 {
 	bool tor = ((attr & PMA_A) == PMA_A_TOR);
 
-	if (tor && nr_pmas > 1) {
+	if (tor && n != 0) {
 		____pma_cfg(n, 0);
 		n++;
 	}
@@ -249,18 +249,11 @@ int pma_set(int n, unsigned long attr, phys_addr_t addr, unsigned long log2len)
 		if (n == 0 && addr == 0) {
 			csr_write_pmaaddr(n, addr + (UL(1) << log2len));
 		} else {
-			pmaaddr = csr_read_pmaaddr(n - 1);
-			if (addr == pmaaddr) {
-				csr_write_pmaaddr(n,
-						  addr + (UL(1) << log2len));
-			} else {
-				if (n >= (PMA_COUNT - 1))
-					return -EINVAL;
-				csr_write_pmaaddr(n, addr);
-				csr_write_pmaaddr(n + 1,
-						  addr + (UL(1) << log2len));
-				nr_pmas = 2;
-			}
+			if (n >= (PMA_COUNT - 1))
+				return -EINVAL;
+			csr_write_pmaaddr(n, addr);
+			csr_write_pmaaddr(n + 1, addr + (UL(1) << log2len));
+			nr_pmas = 2;
 		}
 	} else if (log2len == PMA_SHIFT) {
 		attr |= PMA_A_NA4;
@@ -273,6 +266,6 @@ int pma_set(int n, unsigned long attr, phys_addr_t addr, unsigned long log2len)
 		pmaaddr |= (addrmask >> 1);
 		csr_write_pmaaddr(n, pmaaddr);
 	}
-	__pma_cfg(n, nr_pmas, attr);
+	__pma_cfg(n, attr);
 	return nr_pmas;
 }
