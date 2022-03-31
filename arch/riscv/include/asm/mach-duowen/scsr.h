@@ -174,6 +174,9 @@
 #define imc_pma_read_cfg(n)						\
 	MAKELLONG(__raw_readl(SCSR_PMA_CFG_LO(n)),			\
 		  __raw_readl(SCSR_PMA_CFG_HI(n)))
+#define imc_pma_read_addr(n)						\
+	MAKELLONG(__raw_readl(SCSR_PMA_ADDR_LO(n)),			\
+		  __raw_readl(SCSR_PMA_ADDR_HI(n)))
 #define __imc_pma_write_cfg(n, v)					\
 	do {								\
 		__raw_writel(LODWORD(v), SCSR_PMA_CFG_LO(n));		\
