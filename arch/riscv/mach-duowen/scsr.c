@@ -117,7 +117,8 @@ int imc_pma_set(int n, unsigned long attr, phys_addr_t addr, unsigned long log2l
 
 	if (n == 0 && addr == 0) {
 		attr |= PMA_A_TOR;
-		imc_pma_write_addr(n, addr + (UL(1) << log2len));
+		pmaaddr = ((addr + (UL(1) << log2len)) >> PMA_SHIFT);
+		imc_pma_write_addr(n, pmaaddr);
 	} else if (log2len == PMA_SHIFT) {
 		attr |= PMA_A_NA4;
 		pmaaddr = (addr >> PMA_SHIFT);
@@ -131,13 +132,15 @@ int imc_pma_set(int n, unsigned long attr, phys_addr_t addr, unsigned long log2l
 	} else {
 		attr |= PMA_A_TOR;
 		pmaaddr = imc_pma_read_addr(n - 1);
-		if (addr == pmaaddr) {
-			imc_pma_write_addr(n, addr + (UL(1) << log2len));
+		if ((addr >> PMA_SHIFT) == pmaaddr) {
+			pmaaddr = ((addr + (UL(1) << log2len)) >> PMA_SHIFT);
+			imc_pma_write_addr(n, pmaaddr);
 		} else {
 			if (n >= (PMA_COUNT - 1))
 				return -EINVAL;
-			imc_pma_write_addr(n, addr);
-			imc_pma_write_addr(n + 1, addr + (UL(1) << log2len));
+			pmaaddr = ((addr + (UL(1) << log2len)) >> PMA_SHIFT);
+			imc_pma_write_addr(n, addr >> PMA_SHIFT);
+			imc_pma_write_addr(n + 1, pmaaddr);
 			nr_pmas = 2;
 		}
 	}

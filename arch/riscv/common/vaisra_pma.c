@@ -246,7 +246,8 @@ int pma_set(int n, unsigned long attr, phys_addr_t addr, unsigned long log2len)
 
 	if (n == 0 && addr == 0) {
 		attr |= PMA_A_TOR;
-		csr_write_pmaaddr(n, addr + (UL(1) << log2len));
+		pmaaddr = ((addr + (UL(1) << log2len)) >> PMA_SHIFT);
+		csr_write_pmaaddr(n, pmaaddr);
 	} else if (log2len == PMA_SHIFT) {
 		attr |= PMA_A_NA4;
 		pmaaddr = (addr >> PMA_SHIFT);
@@ -260,13 +261,15 @@ int pma_set(int n, unsigned long attr, phys_addr_t addr, unsigned long log2len)
 	} else {
 		attr |= PMA_A_TOR;
 		pmaaddr = csr_read_pmaaddr(n - 1);
-		if (addr == pmaaddr) {
-			csr_write_pmaaddr(n, addr + (UL(1) << log2len));
+		if ((addr >> PMA_SHIFT) == pmaaddr) {
+			pmaaddr = ((addr + (UL(1) << log2len)) >> PMA_SHIFT);
+			csr_write_pmaaddr(n, pmaaddr);
 		} else {
 			if (n >= (PMA_COUNT - 1))
 				return -EINVAL;
-			csr_write_pmaaddr(n, addr);
-			csr_write_pmaaddr(n + 1, addr + (UL(1) << log2len));
+			pmaaddr = ((addr + (UL(1) << log2len)) >> PMA_SHIFT);
+			csr_write_pmaaddr(n, addr >> PMA_SHIFT);
+			csr_write_pmaaddr(n + 1, pmaaddr);
 			nr_pmas = 2;
 		}
 	}
