@@ -73,6 +73,9 @@
 	.macro	boot0_hook
 #ifdef CONFIG_DUOWEN_APC_BOOT_HOOK
 #ifdef CONFIG_DUOWEN_APC_INIT
+#ifndef CONFIG_DUOWEN_LOAD_ROM
+	pmarst
+#endif
 	vaisra_cpu_init
 #endif
 #ifdef CONFIG_DUOWEN_LOAD_SRAM
@@ -90,6 +93,9 @@
 	li	t0, DUOWEN_SECONDARY_ROM_BASE
 	jr	t0
 1111:
+#ifdef CONFIG_DUOWEN_APC_INIT
+	pmarst
+#endif
 #endif
 	.endm
 	.macro	boot1_hook
