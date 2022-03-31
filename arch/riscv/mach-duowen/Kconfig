@@ -614,11 +614,13 @@ choice
 
 config DUOWEN_PLL_REAL
 	bool "Real"
-	depends DUOWEN_ASIC && !(DUOWEN_LOAD_ROM && DUOWEN_ZSBL)
+	depends DUOWEN_ASIC
+	depends !DUOWEN_LOAD_ROM
 
 config DUOWEN_PLL_FAKE
 	bool "Fake"
-	depends !DUOWEN_ASIC || (DUOWEN_LOAD_ROM && DUOWEN_ASBL)
+	depends !DUOWEN_ASIC
+	depends !DUOWEN_LOAD_ROM
 	help
 	  This happens in VCS testbench and ZeBu where PLL frequency is
 	  forced by RTL. Note this feature is also used for real asic
@@ -627,7 +629,7 @@ config DUOWEN_PLL_FAKE
 config DUOWEN_PLL_NONE
 	bool "None"
 	depends DUOWEN_LOAD_ROM
-	select SD_LEGACY_ONLY if (DUOWEN_LOAD_ROM && DUOWEN_ZSBL)
+	select SD_LEGACY_ONLY if DUOWEN_LOAD_ROM
 	help
 	  This is used by IMC ROM to omit PLL driver from IMC ROM code.
 
