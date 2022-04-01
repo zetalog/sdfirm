@@ -365,8 +365,12 @@ void board_boot_early(void)
 	__unused uint8_t load_sel = imc_load_from();
 
 	board_init_clock();
-	if (load_sel == IMC_BOOT_SD)
-		duowen_load_sd();
+	if (load_sel == IMC_BOOT_SD) {
+		if (duowen_sd_inserted())
+			duowen_load_sd();
+		else
+			duowen_load_ssi();
+	}
 	if (load_sel == IMC_BOOT_SSI)
 		duowen_load_ssi();
 }
@@ -431,8 +435,12 @@ void board_late_init(void)
 	duowen_ssi_irq_init();
 
 	/* Bootloader initialization */
-	if (load_sel == IMC_BOOT_SD)
-		duowen_sd_init();
+	if (load_sel == IMC_BOOT_SD) {
+		if (duowen_sd_inserted())
+			duowen_sd_init();
+		else
+			duowen_ssi_init();
+	}
 	if (load_sel == IMC_BOOT_SSI)
 		duowen_ssi_init();
 

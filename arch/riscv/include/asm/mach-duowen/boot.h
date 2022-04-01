@@ -7,7 +7,7 @@
 
 #ifdef CONFIG_DUOWEN_BOOT_PROT_STRONG
 #undef SOC_BASE
-#define SOC_BASE	0
+#define SOC_BASE	(imc_socket_id() ? SOC1_BASE : SOC0_BASE)
 #endif
 
 #if defined(CONFIG_CONSOLE_OUTPUT) || defined(CONFIG_DUOWEN_BOOT_DEBUG)
