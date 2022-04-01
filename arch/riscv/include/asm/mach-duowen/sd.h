@@ -84,11 +84,13 @@ void duowen_mshc_init(void);
 #endif
 
 #ifdef CONFIG_DUOWEN_SD
+bool duowen_sd_inserted(void);
 void duowen_sd_init(void);
 void duowen_sd_boot(void *boot, uint32_t addr, uint32_t size, bool jump);
 
 extern mtd_t board_sdcard;
 #else
+#define duowen_sd_inserted()			false
 #define duowen_sd_init()			do { } while (0)
 #define duowen_sd_boot(boot, addr, size, jump)	do { } while (0)
 

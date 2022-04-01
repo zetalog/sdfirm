@@ -48,6 +48,7 @@
 #define SD_BOOT_SIZE		2048
 
 mtd_t board_sdcard = INVALID_MTD_ID;
+bool duowen_sd_initialized = false;
 
 #ifdef CONFIG_DUOWEN_SD_IPDV
 #define duowen_sd_power()		do { } while (0)
@@ -65,21 +66,43 @@ static inline void duowen_sd_gpio(uint16_t pin, uint8_t pad, uint8_t mux)
 }
 #endif
 
+static void __duowen_mshc_init(void)
+{
+	if (!duowen_sd_initialized) {
+		duowen_sd_gpio(pad_gpio_32, GPIO_PAD_PULL_UP,
+			       TLMM_PAD_FUNCTION);
+		duowen_sd_gpio(pad_gpio_33, GPIO_PAD_PULL_DOWN,
+			       TLMM_PAD_FUNCTION);
+		duowen_sd_gpio(pad_gpio_34, GPIO_PAD_PULL_DOWN,
+			       TLMM_PAD_FUNCTION);
+		duowen_sd_gpio(pad_gpio_35, GPIO_PAD_PULL_DOWN,
+			       TLMM_PAD_FUNCTION);
+		duowen_sd_gpio(pad_gpio_36, GPIO_PAD_PULL_DOWN,
+			       TLMM_PAD_FUNCTION);
+		duowen_sd_gpio(pad_gpio_37, GPIO_PAD_PULL_DOWN,
+			       TLMM_PAD_FUNCTION);
+		duowen_sd_gpio(pad_gpio_38, GPIO_PAD_PULL_DOWN,
+			       TLMM_PAD_FUNCTION);
+		duowen_sd_gpio(pad_gpio_39, GPIO_PAD_PULL_DOWN,
+			       TLMM_PAD_FUNCTION);
+		duowen_sd_gpio(pad_gpio_40, GPIO_PAD_PULL_DOWN,
+			       TLMM_PAD_FUNCTION);
+		clk_enable(sd_clk);
+		duowen_sd_initialized = true;
+	}
+}
+
+bool duowen_sd_inserted(void)
+{
+	__duowen_mshc_init();
+	return sdhc_state_present(0, SDHC_CARD_INSERTED);
+}
+
 void duowen_mshc_init(void)
 {
 	__unused mmc_slot_t sslot;
 
-	duowen_sd_gpio(pad_gpio_32, GPIO_PAD_PULL_UP, TLMM_PAD_FUNCTION);
-	duowen_sd_gpio(pad_gpio_33, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
-	duowen_sd_gpio(pad_gpio_34, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
-	duowen_sd_gpio(pad_gpio_35, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
-	duowen_sd_gpio(pad_gpio_36, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
-	duowen_sd_gpio(pad_gpio_37, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
-	duowen_sd_gpio(pad_gpio_38, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
-	duowen_sd_gpio(pad_gpio_39, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
-	duowen_sd_gpio(pad_gpio_40, GPIO_PAD_PULL_DOWN, TLMM_PAD_FUNCTION);
-
-	clk_enable(sd_clk);
+	__duowen_mshc_init();
 	sslot = mmc_slot_save(0);
 	sdhc_init(0, 0, IRQ_SD);
 	/* SoC power stable PIN assignment */
