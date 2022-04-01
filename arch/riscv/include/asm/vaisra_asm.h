@@ -28,3 +28,10 @@
 .macro vaisra_cpu_init
 	pmarst
 .endm
+
+.macro vaisra_cache_init
+	li	t1, SCR_DC | SCR_IC
+	csrw	CSR_MSYSCFG, t1
+	csrw	CSR_HSYSCFG, t1
+	csrw	CSR_SSYSCFG, t1
+.endm

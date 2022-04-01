@@ -60,6 +60,8 @@
 #include <asm/vaisra_ras.h>
 #endif
 
+#include <asm/vaisra_cache.h>
+
 #ifdef CONFIG_DUOWEN_IMC
 #define DUOWEN_SECONDARY_ROM_BASE	0xFF8F020000
 #endif
@@ -106,6 +108,9 @@
 #endif
 #if defined(CONFIG_DUOWEN_NOC) && defined(CONFIG_DUOWEN_APC)
 	jal	ra, duowen_noc_init
+#endif
+#ifdef CONFIG_DUOWEN_APC_INIT
+	vaisra_cache_init
 #endif
 #ifdef CONFIG_DUOWEN_SMMU
 	jal	ra, duowen_smmu_pma_init
