@@ -2,7 +2,6 @@ EXTRA_CFLAGS += -DSDFIRM
 
 obj-y += mach.rel
 obj-y += tsc.rel
-obj-$(CONFIG_DUOWEN_LOAD_SRAM) += load_sram.rel
 obj-$(CONFIG_RISCV_VIRQ) += entry.rel
 obj-$(CONFIG_SBI) += sbi.rel
 obj-$(CONFIG_MEM) += mem.rel

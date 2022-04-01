@@ -76,12 +76,9 @@
 #ifdef CONFIG_DUOWEN_APC_BOOT_HOOK
 #ifdef CONFIG_DUOWEN_APC_INIT
 #ifndef CONFIG_DUOWEN_LOAD_ROM
-	pmarst
+	vaisra_pma_init
 #endif
 	vaisra_cpu_init
-#endif
-#ifdef CONFIG_DUOWEN_LOAD_SRAM
-	jal	ra, duowen_load_sram
 #endif
 #endif
 #ifdef CONFIG_DUOWEN_LOAD_ROM
@@ -95,8 +92,15 @@
 	li	t0, DUOWEN_SECONDARY_ROM_BASE
 	jr	t0
 1111:
+#ifdef CONFIG_DUOWEN_APC_BOOT_HOOK
 #ifdef CONFIG_DUOWEN_APC_INIT
-	pmarst
+	vaisra_pma_init
+#endif
+#endif
+#endif
+#ifdef CONFIG_DUOWEN_APC_BOOT_HOOK
+#ifdef CONFIG_DUOWEN_APC_INIT
+	vaisra_cache_init
 #endif
 #endif
 	.endm
@@ -108,9 +112,6 @@
 #endif
 #if defined(CONFIG_DUOWEN_NOC) && defined(CONFIG_DUOWEN_APC)
 	jal	ra, duowen_noc_init
-#endif
-#ifdef CONFIG_DUOWEN_APC_INIT
-	vaisra_cache_init
 #endif
 #ifdef CONFIG_DUOWEN_SMMU
 	jal	ra, duowen_smmu_pma_init

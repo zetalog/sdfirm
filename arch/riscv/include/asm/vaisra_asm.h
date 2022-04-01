@@ -1,4 +1,4 @@
-.macro	pmarst
+.macro	vaisra_pma_init
 	li	t1, 0x100000000000	# PMAADDR0 is a top address
 	srli	t1, t1, 2		# 4-bytes granule
 	csrw	CSR_PMAADDR(0), t1
@@ -26,7 +26,7 @@
 .endm
 
 .macro vaisra_cpu_init
-	pmarst
+	vaisra_pma_init
 .endm
 
 .macro vaisra_cache_init

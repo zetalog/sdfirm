@@ -245,17 +245,6 @@ menuconfig DUOWEN_LOAD
 
 if DUOWEN_LOAD
 
-config DUOWEN_LOAD_SRAM
-	bool "Enable load from SRAM"
-	depends DUOWEN_ASBL && DUOWEN_APC_BOOT_HOOK
-	depends SIMULATION
-	help
-	  Enable APC self-bootloader (ASBL) to jump to the SRAM base
-	  instead of jumping to the DDR entry point. This is only used in
-	  the simulation environment, where the next bootloader is loaded
-	  by the simulator. This kind of ROM is only used by the DDR
-	  verification VCS bench.
-
 config DUOWEN_LOAD_FLASH
 	bool
 
@@ -620,7 +609,7 @@ config DUOWEN_PLL_REAL
 config DUOWEN_PLL_FAKE
 	bool "Fake"
 	depends !DUOWEN_ASIC
-	depends !DUOWEN_LOAD_ROM
+	depends !DUOWEN_LOAD_ROM || DUOWEN_ZEBU
 	help
 	  This happens in VCS testbench and ZeBu where PLL frequency is
 	  forced by RTL. Note this feature is also used for real asic
