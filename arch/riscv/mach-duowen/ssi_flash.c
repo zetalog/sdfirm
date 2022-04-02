@@ -46,7 +46,7 @@
 #include <target/irq.h>
 #include <asm/mach/boot.h>
 
-#define SSI_BOOT_SIZE		1024
+#define SSI_BOOT_SIZE		4096
 
 mtd_t board_flash = INVALID_MTD_ID;
 

@@ -45,7 +45,7 @@
 #include <target/mmcard.h>
 #include <asm/mach/boot.h>
 
-#define SD_BOOT_SIZE		2048
+#define SD_BOOT_SIZE		8192
 
 mtd_t board_sdcard = INVALID_MTD_ID;
 bool duowen_sd_initialized = false;
