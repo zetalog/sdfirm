@@ -6,7 +6,7 @@
 menu "DDR controller drivers"
 
 menuconfig DW_UMCTL2
-	bool "Synopsys DesignWare DDR uMCTL2 support"
+	bool "Synopsys DesignWare universal memory controller (uMCTL2) support"
 
 if DW_UMCTL2
 
