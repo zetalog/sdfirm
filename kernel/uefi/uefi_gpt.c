@@ -201,3 +201,21 @@ void gpt_mtd_dump(mtd_t mtd)
 		}
 	}
 }
+
+bool gpt_mtd_test(mtd_t mtd)
+{
+	gpt_header hdr;
+	union {
+		uint64_t sig;
+		uint8_t buf[8];
+	} __packed gsig = {
+		.buf = { 'E', 'F', 'I', ' ', 'P', 'A', 'R', 'T' },
+	};
+
+	if (mtd == INVALID_MTD_ID) {
+		printf("Error: Invalid MTD device\n");
+		return false;
+	}
+	mtd_load(mtd, &hdr, GPT_HEADER_LBA * GPT_LBA_SIZE, 8);
+	return !!(hdr.signature == (uint64_t)gsig.sig);
+}

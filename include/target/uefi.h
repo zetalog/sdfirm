@@ -121,11 +121,13 @@ int gpt_get_part_by_name(mtd_t mtd, const char *part_name,
 int gpt_get_file_by_name(mtd_t mtd, const char *file_name,
 			 mtd_addr_t *offset, mtd_size_t *size);
 void gpt_mtd_dump(mtd_t mtd);
+bool gpt_mtd_test(mtd_t mtd);
 #else
 #define gpt_pgpt_init()				do { } while (0)
 #define gpt_get_file_by_name(mtd, n, o, s)	-EINVAL
 #define gpt_get_part_by_name(mtd, n, o, s, p)	-EINVAL
 #define gpt_mtd_dump(mtd)			do { } while (0)
+#define gpt_mtd_test(mtd)			false
 #endif
 
 #endif /* __UEFI_H_INCLUDE__ */

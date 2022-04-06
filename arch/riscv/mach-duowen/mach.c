@@ -259,6 +259,17 @@ void board_finish(int code)
 typedef void (*boot_cb)(void *, uint32_t, uint32_t, bool);
 
 #ifdef CONFIG_DUOWEN_LOAD_GPT
+#ifdef CONFIG_DUOWEN_SIM_ROM_FINISH
+static void __duowen_load_gpt(mtd_t mtd, const char *file,
+			      const char *name, uint32_t *addr,
+			      uint32_t *size)
+{
+	if (gpt_mtd_test(mtd))
+		msg_imc_success();
+	else
+		msg_imc_failure();
+}
+#else
 static void __duowen_load_gpt(mtd_t mtd, const char *file,
 			      const char *name, uint32_t *addr,
 			      uint32_t *size)
@@ -267,18 +278,13 @@ static void __duowen_load_gpt(mtd_t mtd, const char *file,
 
 	ret = gpt_get_file_by_name(mtd, file, addr, size);
 	if (ret <= 0) {
-#ifdef CONFIG_DUOWEN_SIM_ROM_FINISH
-		msg_imc_failure();
-#endif
 		con_err("boot(%s): %s missing.\n", name, file);
 		bh_panic();
 	}
-#ifdef CONFIG_DUOWEN_SIM_ROM_FINISH
-	msg_imc_success();
-#endif
 	con_log("boot(%s): Booting %s from addr=0x%lx, size=0x%lx...\n",
 		name, file, addr, size);
 }
+#endif
 #else /* CONFIG_DUOWEN_LOAD_GPT */
 #define __duowen_load_gpt(mtd, file, name, addr, size)	do { } while (0)
 #endif /* CONFIG_DUOWEN_LOAD_GPT */
@@ -395,6 +401,9 @@ void board_boot_early(void)
 #endif /* CONFIG_DUOWEN_LOAD_FLASH */
 
 #ifdef CONFIG_DUOWEN_BOOT_APC
+#ifdef CONFIG_DUOWEN_SIM_ROM_FINISH
+#define duowen_load_ddr()		msg_imc_success()
+#else
 void duowen_load_ddr(void)
 {
 	void *boot_addr = (void *)apc_get_jump_addr();
@@ -406,12 +415,10 @@ void duowen_load_ddr(void)
 #endif
 	__boot_jump(boot_addr);
 }
+#endif
 
 void board_boot_late(void)
 {
-#ifdef CONFIG_DUOWEN_SIM_ROM_FINISH
-	msg_imc_success();
-#endif
 	duowen_load_ddr();
 }
 #else /* CONFIG_DUOWEN_BOOT_APC */
