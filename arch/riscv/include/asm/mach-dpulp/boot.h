@@ -48,7 +48,7 @@
 
 #ifdef CONFIG_DPULP_BOOT_PROT_STRONG
 #define DPULP_BOOT_PROT_FUNC_DEFINE(size)		\
-	__align(4) uint8_t boot_from_stack[size];
+	__align(__WORDSIZE) uint8_t boot_from_stack[size];
 
 static __always_inline void __boot_copy(uint8_t *dst, void *src,
 					size_t size)

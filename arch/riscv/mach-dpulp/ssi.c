@@ -114,7 +114,7 @@ static __always_inline uint8_t __dpulp_ssi_flash_read(uint32_t addr)
 	return byte;
 }
 
-__align(4)
+__align(__WORDSIZE)
 void __dpulp_ssi_boot(void *boot, uint32_t addr, uint32_t size, bool jump)
 {
 	int i;

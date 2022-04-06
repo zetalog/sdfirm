@@ -48,7 +48,7 @@ static __always_inline uint8_t dpu_ssi_flash_read(uint32_t addr)
 	return byte;
 }
 
-__align(4)
+__align(__WORDSIZE)
 void __dpu_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 {
 	int i;
@@ -80,7 +80,7 @@ void dpu_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 {
 	dpu_boot_cb boot_func;
 #ifdef CONFIG_DPU_BOOT_STACK
-	__align(4) uint8_t boot_from_stack[1024];
+	__align(__WORDSIZE) uint8_t boot_from_stack[1024];
 
 	boot_func = (dpu_boot_cb)boot_from_stack;
 	memcpy(boot_from_stack, __dpu_ssi_flash_boot,

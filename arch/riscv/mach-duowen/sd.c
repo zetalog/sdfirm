@@ -323,7 +323,7 @@ exit_xfer:
 	return result;
 }
 
-__naked __align(4)
+__naked __align(__WORDSIZE)
 void __sdhc_boot(void *boot, bool block_ccs, uint16_t block_len,
 		 uint32_t addr, uint32_t size, bool jump)
 {
