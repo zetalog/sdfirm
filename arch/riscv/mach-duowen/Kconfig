@@ -390,6 +390,11 @@ menuconfig DUOWEN_MSG
 	  This hardware can only be found in testbench, mostly be used to
 	  drive tests and UVM sequences.
 
+config DUOWEN_SIM_ROM_FINISH
+	bool "Enable simultion finish after searching ssi/sd"
+	depends DUOWEN_MSG && DUOWEN_LOAD_GPT
+	depends DUOWEN_ZSBL || DUOWEN_ASBL
+
 config DUOWEN_SIM_BOOT_CLOCKS
 	bool "Enable faster clock/reset booting support"
 	help

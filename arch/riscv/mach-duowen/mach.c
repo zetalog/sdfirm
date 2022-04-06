@@ -267,9 +267,15 @@ static void __duowen_load_gpt(mtd_t mtd, const char *file,
 
 	ret = gpt_get_file_by_name(mtd, file, addr, size);
 	if (ret <= 0) {
+#ifdef CONFIG_DUOWEN_SIM_ROM_FINISH
+		msg_imc_failure();
+#endif
 		con_err("boot(%s): %s missing.\n", name, file);
 		bh_panic();
 	}
+#ifdef CONFIG_DUOWEN_SIM_ROM_FINISH
+	msg_imc_success();
+#endif
 	con_log("boot(%s): Booting %s from addr=0x%lx, size=0x%lx...\n",
 		name, file, addr, size);
 }
@@ -403,6 +409,9 @@ void duowen_load_ddr(void)
 
 void board_boot_late(void)
 {
+#ifdef CONFIG_DUOWEN_SIM_ROM_FINISH
+	msg_imc_success();
+#endif
 	duowen_load_ddr();
 }
 #else /* CONFIG_DUOWEN_BOOT_APC */
