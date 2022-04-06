@@ -43,11 +43,11 @@
 #include <target/cmdline.h>
 #include <target/panic.h>
 
-struct clk_driver *clk_drivers[MAX_CLK_DRIVERS];
+const struct clk_driver *clk_drivers[MAX_CLK_DRIVERS];
 
 clk_freq_t clk_get_frequency(clk_t clk)
 {
-	struct clk_driver *clkd;
+	const struct clk_driver *clkd;
 	clk_cat_t cat = clk_cat(clk);
 
 	if (cat >= MAX_CLK_DRIVERS)
@@ -61,7 +61,7 @@ clk_freq_t clk_get_frequency(clk_t clk)
 
 int clk_enable(clk_t clk)
 {
-	struct clk_driver *clkd;
+	const struct clk_driver *clkd;
 	clk_cat_t cat = clk_cat(clk);
 	int ret = 0;
 
@@ -77,7 +77,7 @@ int clk_enable(clk_t clk)
 
 int clk_set_frequency(clk_t clk, clk_freq_t freq)
 {
-	struct clk_driver *clkd;
+	const struct clk_driver *clkd;
 	clk_cat_t cat = clk_cat(clk);
 
 	if (cat >= MAX_CLK_DRIVERS)
@@ -90,7 +90,7 @@ int clk_set_frequency(clk_t clk, clk_freq_t freq)
 
 void clk_disable(clk_t clk)
 {
-	struct clk_driver *clkd;
+	const struct clk_driver *clkd;
 	clk_cat_t cat = clk_cat(clk);
 
 	if (cat >= MAX_CLK_DRIVERS)
@@ -103,7 +103,7 @@ void clk_disable(clk_t clk)
 
 void clk_select_source(clk_t clk, clk_t src)
 {
-	struct clk_driver *clkd;
+	const struct clk_driver *clkd;
 	clk_cat_t cat = clk_cat(clk);
 
 	if (cat >= MAX_CLK_DRIVERS)
@@ -117,7 +117,7 @@ void clk_select_source(clk_t clk, clk_t src)
 
 const char *clk_get_mnemonic(clk_t clk)
 {
-	struct clk_driver *clkd;
+	const struct clk_driver *clkd;
 	clk_cat_t cat = clk_cat(clk);
 
 	if (cat >= MAX_CLK_DRIVERS)
@@ -128,7 +128,7 @@ const char *clk_get_mnemonic(clk_t clk)
 	return clkd->get_name(clk_clk(clk));
 }
 
-int clk_register_driver(clk_cat_t category, struct clk_driver *clkd)
+int clk_register_driver(clk_cat_t category, const struct clk_driver *clkd)
 {
 	if (category >= MAX_CLK_DRIVERS)
 		return -EINVAL;
@@ -147,7 +147,7 @@ clk_t clk_search_mnemonic(const char *mnem)
 {
 	clk_cat_t cat;
 	clk_clk_t clk;
-	struct clk_driver *clkd;
+	const struct clk_driver *clkd;
 	clk_t clkid;
 	const char *name;
 
@@ -169,7 +169,7 @@ static int do_clk_dump(int argc, char *argv[])
 {
 	clk_cat_t cat;
 	clk_clk_t clk;
-	struct clk_driver *clkd;
+	const struct clk_driver *clkd;
 	clk_t clkid;
 	const char *name;
 

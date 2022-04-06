@@ -49,7 +49,7 @@ struct output_clk {
 	CLK_DEC_FLAGS_RO
 };
 
-struct output_clk output_clks[] = {
+const struct output_clk output_clks[] = {
 	/* 4.2 Cluster Clocks
 	 * +-----------------------------+
 	 * |                             v
@@ -850,7 +850,7 @@ static int set_output_clk_freq(clk_clk_t clk, clk_freq_t freq)
 	return clk_set_frequency(output_clks[clk].clk_src, freq);
 }
 
-struct clk_driver clk_output = {
+const struct clk_driver clk_output = {
 	.max_clocks = NR_OUTPUT_CLKS,
 	.enable = enable_output_clk,
 	.disable = disable_output_clk,
@@ -932,7 +932,7 @@ static int set_output_clk_freq2(clk_clk_t clk, clk_freq_t freq)
 	return clk_set_frequency(clkid2(output_clks[clk].clk_src), freq);
 }
 
-struct clk_driver clk_output2 = {
+const struct clk_driver clk_output2 = {
 	.max_clocks = NR_OUTPUT_CLKS,
 	.enable = enable_output_clk2,
 	.disable = disable_output_clk2,
@@ -949,7 +949,7 @@ struct div_clk {
 	uint8_t div;
 };
 
-struct div_clk div_clks[NR_DIV_CLKS] = {
+const struct div_clk div_clks[NR_DIV_CLKS] = {
 	[SOC_CLK_DIV2] = {
 		.src = soc_pll,
 		.mux = soc_clk_div2_sel,
@@ -1022,7 +1022,7 @@ static int set_pll_div_freq(clk_clk_t clk, clk_freq_t freq)
 				 freq * div_clks[clk].div);
 }
 
-struct clk_driver clk_div = {
+const struct clk_driver clk_div = {
 	.max_clocks = NR_DIV_CLKS,
 	.enable = enable_pll_div,
 	.disable = disable_pll_div,
@@ -1072,7 +1072,7 @@ static int set_pll_div_freq2(clk_clk_t clk, clk_freq_t freq)
 				 freq * clkid2(div_clks[clk].div));
 }
 
-struct clk_driver clk_div2 = {
+const struct clk_driver clk_div2 = {
 	.max_clocks = NR_DIV_CLKS,
 	.enable = enable_pll_div2,
 	.disable = disable_pll_div2,
@@ -1092,7 +1092,7 @@ struct clk_driver clk_div2 = {
 
 static uint8_t clk_hw_init;
 
-clk_t duowen_apc_clocks[__MAX_CPU_CORES] = {
+const clk_t duowen_apc_clocks[__MAX_CPU_CORES] = {
 	cluster0_apc0_cpu0_clk,
 	cluster0_apc0_cpu1_clk,
 	cluster0_apc1_cpu0_clk,

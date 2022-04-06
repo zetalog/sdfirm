@@ -196,7 +196,7 @@ static clk_freq_t get_clk_sel_freq(clk_clk_t clk)
 		return clk_get_frequency(select_clks[clk].clk_sels[1]);
 }
 
-struct clk_driver clk_select = {
+const struct clk_driver clk_select = {
 	.max_clocks = NR_SELECT_CLKS,
 	.enable = enable_clk_sel,
 	.disable = disable_clk_sel,
@@ -259,7 +259,7 @@ static clk_freq_t get_clk_sel_freq2(clk_clk_t clk)
 		return clk_get_frequency(clkid2(select_clks[clk].clk_sels[1]));
 }
 
-struct clk_driver clk_select2 = {
+const struct clk_driver clk_select2 = {
 	.max_clocks = NR_SELECT_CLKS,
 	.enable = enable_clk_sel2,
 	.disable = disable_clk_sel2,
@@ -591,7 +591,7 @@ static int set_pll_freq(clk_clk_t clk, clk_freq_t freq)
 	return 0;
 }
 
-struct clk_driver clk_pll = {
+const struct clk_driver clk_pll = {
 	.max_clocks = __NR_PLL_CLKS,
 	.enable = enable_pll,
 	.disable = disable_pll,
@@ -739,7 +739,7 @@ static int set_pll_freq2(clk_clk_t clk, clk_freq_t freq)
 	return 0;
 }
 
-struct clk_driver clk_pll2 = {
+const struct clk_driver clk_pll2 = {
 	.max_clocks = __NR_PLL_CLKS,
 	.enable = enable_pll2,
 	.disable = disable_pll2,
@@ -948,7 +948,7 @@ static int set_vco_freq(clk_clk_t clk, clk_freq_t freq)
 	return 0;
 }
 
-struct clk_driver clk_vco = {
+const struct clk_driver clk_vco = {
 	.max_clocks = __NR_VCO_CLKS,
 	.enable = enable_vco,
 	.disable = disable_vco,
@@ -1002,7 +1002,7 @@ static int set_vco_freq2(clk_clk_t clk, clk_freq_t freq)
 	return 0;
 }
 
-struct clk_driver clk_vco2 = {
+const struct clk_driver clk_vco2 = {
 	.max_clocks = __NR_VCO_CLKS,
 	.enable = enable_vco2,
 	.disable = disable_vco2,
@@ -1013,7 +1013,7 @@ struct clk_driver clk_vco2 = {
 };
 #endif /* CONFIG_DUOWEN_SBI_DUAL */
 
-uint32_t input_clks[NR_INPUT_CLKS] = {
+const uint32_t input_clks[NR_INPUT_CLKS] = {
 	[XO_CLK] = XO_CLK_FREQ,
 };
 
@@ -1039,7 +1039,7 @@ static clk_freq_t get_input_clk_freq(clk_clk_t clk)
 	return input_clks[clk];
 }
 
-struct clk_driver clk_input = {
+const struct clk_driver clk_input = {
 	.max_clocks = NR_INPUT_CLKS,
 	.enable = NULL,
 	.disable = NULL,
@@ -1050,7 +1050,7 @@ struct clk_driver clk_input = {
 };
 
 #ifdef CONFIG_DUOWEN_SBI_DUAL
-struct clk_driver clk_input2 = {
+const struct clk_driver clk_input2 = {
 	.max_clocks = NR_INPUT_CLKS,
 	.enable = NULL,
 	.disable = NULL,

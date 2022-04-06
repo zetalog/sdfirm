@@ -494,7 +494,7 @@ static int set_rst_clk_freq(clk_clk_t clk, clk_freq_t freq)
 	return clk_set_frequency(rst_clks[clk].clk_src, freq);
 }
 
-struct clk_driver clk_rst = {
+const struct clk_driver clk_rst = {
 	.max_clocks = NR_RST_CLKS,
 	.enable = enable_rst_clk,
 	.disable = disable_rst_clk,
@@ -572,7 +572,7 @@ static int set_pll_div_freq(clk_clk_t clk, clk_freq_t freq)
 				 freq * div_clks[clk].div);
 }
 
-struct clk_driver clk_div = {
+const struct clk_driver clk_div = {
 	.max_clocks = NR_DIV_CLKS,
 	.enable = enable_pll_div,
 	.disable = disable_pll_div,
@@ -758,7 +758,7 @@ static clk_freq_t get_clk_sel_freq(clk_clk_t clk)
 		return clk_get_frequency(sel_clks[clk].clk_sels[1]);
 }
 
-struct clk_driver clk_sel = {
+const struct clk_driver clk_sel = {
 	.max_clocks = NR_SEL_CLKS,
 	.enable = enable_clk_sel,
 	.disable = disable_clk_sel,
@@ -1020,7 +1020,7 @@ static int set_pll_freq(clk_clk_t clk, clk_freq_t freq)
 	return 0;
 }
 
-struct clk_driver clk_pll = {
+const struct clk_driver clk_pll = {
 	.max_clocks = NR_PLL_CLKS,
 	.enable = enable_pll,
 	.disable = disable_pll,
@@ -1186,7 +1186,7 @@ static int set_vco_freq(clk_clk_t clk, clk_freq_t freq)
 	return 0;
 }
 
-struct clk_driver clk_vco = {
+const struct clk_driver clk_vco = {
 	.max_clocks = NR_VCO_CLKS,
 	.enable = enable_vco,
 	.disable = disable_vco,
@@ -1222,7 +1222,7 @@ static clk_freq_t get_ref_clk_freq(clk_clk_t clk)
 	return ref_clks[clk];
 }
 
-struct clk_driver clk_ref = {
+const struct clk_driver clk_ref = {
 	.max_clocks = NR_REF_CLKS,
 	.enable = NULL,
 	.disable = NULL,

@@ -462,7 +462,7 @@ static uint32_t get_const_clk_freq(clk_clk_t clk)
 	return const_clks[clk];
 }
 
-struct clk_driver clk_const = {
+const struct clk_driver clk_const = {
 	.max_clocks = NR_CONST_CLKS,
 	.enable = NULL,
 	.disable = NULL,
@@ -520,7 +520,7 @@ static uint32_t get_input_clk_freq(clk_clk_t clk)
 	return scg_input_get_freq(CLK_SCG_SCS(clk));
 }
 
-struct clk_driver clk_input = {
+const struct clk_driver clk_input = {
 	.max_clocks = NR_INPUT_CLKS,
 	.enable = enable_input_clk,
 	.disable = disable_input_clk,
@@ -573,7 +573,7 @@ static uint32_t get_system_clk_freq(clk_clk_t clk)
 	return INVALID_FREQ;
 }
 
-struct clk_driver clk_system = {
+const struct clk_driver clk_system = {
 	.max_clocks = NR_SYSTEM_CLKS,
 	.enable = enable_system_clk,
 	.disable = disable_system_clk,
@@ -651,7 +651,7 @@ static uint32_t get_output_clk_freq(clk_clk_t clk)
 					   CLK_DIV_DIVID(clk));
 }
 
-struct clk_driver clk_output = {
+const struct clk_driver clk_output = {
 	.max_clocks = NR_OUTPUT_CLKS,
 	.enable = enable_output_clk,
 	.disable = disable_output_clk,
@@ -683,7 +683,7 @@ static uint32_t get_interface_clk_freq(clk_clk_t clk)
 	return clk_get_frequency(interface_clks[clk].intfc);
 }
 
-struct clk_driver clk_interface = {
+const struct clk_driver clk_interface = {
 	.max_clocks = NR_INTERFACE_CLKS,
 	.enable = enable_interface_clk,
 	.disable = disable_interface_clk,
@@ -761,7 +761,7 @@ static uint32_t get_functional_clk_freq(clk_clk_t clk)
 	return functional_clks[clk].freq;
 }
 
-struct clk_driver clk_functional = {
+const struct clk_driver clk_functional = {
 	.max_clocks = NR_FUNCTIONAL_CLKS,
 	.enable = enable_functional_clk,
 	.disable = disable_functional_clk,

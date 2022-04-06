@@ -83,7 +83,7 @@ int clk_enable(clk_t clk);
 void clk_disable(clk_t clk);
 void clk_select_source(clk_t clk, clk_t src);
 const char *clk_get_mnemonic(clk_t clk);
-int clk_register_driver(clk_cat_t category, struct clk_driver *clkd);
+int clk_register_driver(clk_cat_t category, const struct clk_driver *clkd);
 void clk_init(void);
 #ifndef CONFIG_MMU
 #define clk_hw_mmu_init()		do { } while (0)

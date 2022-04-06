@@ -113,7 +113,7 @@ static int set_output_clk_freq(clk_clk_t clk, uint32_t freq)
 	return 0;
 }
 
-struct clk_driver clk_output = {
+const struct clk_driver clk_output = {
 	.max_clocks = NR_OUTPUT_CLKS,
 	.enable = enable_output_clk,
 	.disable = disable_output_clk,
@@ -202,7 +202,7 @@ static int set_pll_freq(clk_clk_t clk, uint32_t freq)
 	return 0;
 }
 
-struct clk_driver clk_pll = {
+const struct clk_driver clk_pll = {
 	.max_clocks = NR_PLL_CLKS,
 	.enable = enable_pll,
 	.disable = disable_pll,
@@ -239,7 +239,7 @@ static uint32_t get_input_clk_freq(clk_clk_t clk)
 	return input_clks[clk];
 }
 
-struct clk_driver clk_input = {
+const struct clk_driver clk_input = {
 	.max_clocks = NR_INPUT_CLKS,
 	.enable = NULL,
 	.disable = NULL,

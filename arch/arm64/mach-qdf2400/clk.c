@@ -79,7 +79,7 @@ static uint32_t get_padring_freq(clk_clk_t clk)
 	return padring_clks[clk];
 }
 
-struct clk_driver clk_padring = {
+const struct clk_driver clk_padring = {
 	.max_clocks = NR_PADRING_CLKS,
 	.enable = NULL,
 	.disable = NULL,
@@ -164,7 +164,7 @@ static int enable_fabia_pll(clk_clk_t pll)
 	return 0;
 }
 
-struct clk_driver clk_fabia_pll = {
+const struct clk_driver clk_fabia_pll = {
 	.max_clocks = NR_FABIA_PLL_CLKS,
 	.enable = enable_fabia_pll,
 	.disable = NULL,
@@ -239,7 +239,7 @@ static int enable_fabia_pll_out(clk_clk_t clk)
 	}
 }
 
-struct clk_driver clk_fabia_pllout = {
+const struct clk_driver clk_fabia_pllout = {
 	.max_clocks = NR_FABIA_PLLOUT_CLKS,
 	.enable = enable_fabia_pll_out,
 	.disable = NULL,
@@ -1272,7 +1272,7 @@ int set_root_clock_freq(clk_clk_t clk, uint32_t freq)
 	return 0;
 }
 
-struct clk_driver clk_root_clock = {
+const struct clk_driver clk_root_clock = {
 	.max_clocks = NR_ROOT_CLKS,
 	.enable = enable_root_clock,
 	.disable = NULL,
@@ -2342,7 +2342,7 @@ int set_branch_clock_freq(clk_clk_t clk, uint32_t freq)
 	return 0;
 }
 
-struct clk_driver clk_branch_clock = {
+const struct clk_driver clk_branch_clock = {
 	.max_clocks = NR_BRANCH_CLKS,
 	.enable = enable_branch_clock,
 	.disable = NULL,

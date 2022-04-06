@@ -41,7 +41,7 @@
 
 #include <target/clk.h>
 
-uint32_t input_clks[NR_INPUT_CLKS] = {
+const uint32_t input_clks[NR_INPUT_CLKS] = {
 	[XO_CLK] = XO_CLK_FREQ,
 	[SOC_PLL] = SOC_PLL_FREQ,
 	[ETH_PLL] = ETH_PLL_FREQ,
@@ -93,7 +93,7 @@ static clk_freq_t get_input_clk_freq(clk_clk_t clk)
 	return input_clks[clk];
 }
 
-struct clk_driver clk_input = {
+const struct clk_driver clk_input = {
 	.max_clocks = NR_INPUT_CLKS,
 	.enable = NULL,
 	.disable = NULL,
@@ -104,7 +104,7 @@ struct clk_driver clk_input = {
 };
 
 #ifdef CONFIG_DUOWEN_SBI_DUAL
-struct clk_driver clk_input2 = {
+const struct clk_driver clk_input2 = {
 	.max_clocks = NR_INPUT_CLKS,
 	.enable = NULL,
 	.disable = NULL,
