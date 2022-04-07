@@ -230,10 +230,23 @@ void board_finish(int code)
 #endif
 
 #if defined(CONFIG_DUOWEN_ZSBL) && !defined(CONFIG_DUOWEN_BOOT_PROT)
+/* CONFIG_DUOWEN_BOOT_PROT is used, but our program layout is:
+ *  stack
+ *  .bss
+ *  .data
+ *  .rodata
+ *  .text
+ * Where stack is located right after .bss section, so by configuring
+ * CONFIG_LOAD_BASE, ZSBL can stop using lower SRAM and thus FSBL can use
+ * 0x0 BOOT_OFFSET. Care must be taken to maintain ZSBL CONFIG_LOAD_BASE,
+ * currently 0x8000 is safe for about 0x2000 sized data section and 0x2000
+ * (maximum 8KB) sized stack. Please tune CONFIG_LOAD_BASE for ZSBL when
+ * its data section is extended.
+ */
 #ifdef CONFIG_DUOWEN_BOOT_OFFSET
 #define BOOT_OFFSET		CONFIG_DUOWEN_BOOT_OFFSET
 #else
-#define BOOT_OFFSET		0x4000
+#define BOOT_OFFSET		0x0
 #endif
 #else
 #define BOOT_OFFSET		0x0
@@ -282,7 +295,7 @@ static void __duowen_load_gpt(mtd_t mtd, const char *file,
 		bh_panic();
 	}
 	con_log("boot(%s): Booting %s from addr=0x%lx, size=0x%lx...\n",
-		name, file, addr, size);
+		name, file, *addr, *size);
 }
 #endif
 #else /* CONFIG_DUOWEN_LOAD_GPT */

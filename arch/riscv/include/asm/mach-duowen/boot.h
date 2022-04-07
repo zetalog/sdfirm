@@ -5,11 +5,6 @@
 #include <target/arch.h>
 #include <target/uart.h>
 
-#ifdef CONFIG_DUOWEN_BOOT_PROT_STRONG
-#undef SOC_BASE
-#define SOC_BASE	(imc_socket_id() ? SOC1_BASE : SOC0_BASE)
-#endif
-
 #if defined(CONFIG_CONSOLE_OUTPUT) || defined(CONFIG_DUOWEN_BOOT_DEBUG)
 static __always_inline void __boot_dbg(uint8_t byte)
 {

@@ -293,7 +293,7 @@ config DUOWEN_BOOT_OFFSET
 	hex "SRAM offset for FSBL"
 	depends !DUOWEN_BOOT_PROT
 	depends DUOWEN_ZSBL
-	default 0x4000
+	default 0x0
 	help
 	  ZSBL loads FSBL to SRAM start addresses, while SRAM may still be
 	  used as ZSBL .data/.bss sections during the image loading. This
