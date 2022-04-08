@@ -41,6 +41,7 @@
 
 #include <target/sbi.h>
 #include <target/fdt.h>
+#include <target/gpio.h>
 #include <target/uart.h>
 #include <target/irq.h>
 #include <target/delay.h>
@@ -128,14 +129,26 @@ static int duowen_pmp_region_info(uint32_t hartid, uint32_t index,
 	return ret;
 }
 
+#ifdef CONFIG_CONSOLE
 #define __DUOWEN_UART_REG(n, offset)		(__DUOWEN_UART_BASE + (offset))
 #define __UART_RBR(n)				__DUOWEN_UART_REG(n, 0x00)
 #define __UART_THR(n)				__DUOWEN_UART_REG(n, 0x00)
 #define __UART_LSR(n)				__DUOWEN_UART_REG(n, 0x14)
+#endif
+#ifdef CONFIG_CONSOLE_OUTPUT
 #define __duowen_uart_write_poll(n)		(!!(__raw_readl(__UART_LSR(n)) & LSR_TEMT))
+#define __duowen_uart_write_byte(n, byte)	__raw_writel((byte), __UART_THR(n))
+#else
+#define __duowen_uart_write_poll(n)		true
+#define __duowen_uart_write_byte(n, byte)	do { } while (0)
+#endif
+#ifdef CONFIG_CONSOLE_INPUT
 #define __duowen_uart_read_poll(n)		(!!(__raw_readl(__UART_LSR(n)) & LSR_DR))
 #define __duowen_uart_read_byte(n)		__raw_readl(__UART_RBR(n))
-#define __duowen_uart_write_byte(n, byte)	__raw_writel((byte), __UART_THR(n))
+#else
+#define __duowen_uart_read_poll(n)		true
+#define __duowen_uart_read_byte(n)		0
+#endif
 
 static void duowen_console_putc(char ch)
 {

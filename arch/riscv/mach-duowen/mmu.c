@@ -41,6 +41,7 @@
 
 #include <target/paging.h>
 #include <target/console.h>
+#include <target/gpio.h>
 
 #ifdef CONFIG_CRCNTL
 #ifdef CONFIG_DUOWEN_SBI_DUAL
