@@ -620,12 +620,10 @@ config DUOWEN_PLL_REAL
 
 config DUOWEN_PLL_FAKE
 	bool "Fake"
-	depends !DUOWEN_ASIC
-	depends !DUOWEN_LOAD_ROM || DUOWEN_ZEBU
 	help
 	  This happens in VCS testbench and ZeBu where PLL frequency is
-	  forced by RTL. Note this feature is also used for real asic
-	  where PLL is not required to be configured.
+	  forced by RTL. Note this feature can also be used for real asic
+	  where PLL is already configured by previous bootloaders.
 
 config DUOWEN_PLL_NONE
 	bool "None"
