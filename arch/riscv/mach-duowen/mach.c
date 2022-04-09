@@ -271,7 +271,6 @@ void board_finish(int code)
 #ifdef CONFIG_DUOWEN_LOAD_FLASH
 typedef void (*boot_cb)(void *, uint32_t, uint32_t, bool);
 
-#ifdef CONFIG_DUOWEN_LOAD_GPT
 #ifdef CONFIG_DUOWEN_SIM_ROM_FINISH
 static void __duowen_load_gpt(mtd_t mtd, const char *file,
 			      const char *name, uint32_t *addr,
@@ -282,7 +281,8 @@ static void __duowen_load_gpt(mtd_t mtd, const char *file,
 	else
 		msg_imc_failure();
 }
-#else
+#else /* CONFIG_DUOWEN_SIM_ROM_FINISH */
+#ifdef CONFIG_DUOWEN_LOAD_GPT
 static void __duowen_load_gpt(mtd_t mtd, const char *file,
 			      const char *name, uint32_t *addr,
 			      uint32_t *size)
@@ -297,10 +297,10 @@ static void __duowen_load_gpt(mtd_t mtd, const char *file,
 	con_log("boot(%s): Booting %s from addr=0x%lx, size=0x%lx...\n",
 		name, file, *addr, *size);
 }
-#endif
 #else /* CONFIG_DUOWEN_LOAD_GPT */
 #define __duowen_load_gpt(mtd, file, name, addr, size)	do { } while (0)
 #endif /* CONFIG_DUOWEN_LOAD_GPT */
+#endif /* CONFIG_DUOWEN_SIM_ROM_FINISH */
 
 static void __duowen_load_file(mtd_t mtd, boot_cb boot,
 			       const char *file, void *entry,

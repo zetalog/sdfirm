@@ -268,7 +268,7 @@ config DUOWEN_LOAD_GPT
 
 config DUOWEN_LOAD_DDR_BACKDOOR
 	bool "Enable load to DDR backdoor"
-	depends DUOWEN_FSBL
+	depends DUOWEN_FSBL || DUOWEN_XSBL
 	depends SIMULATION
 	help
 	  Enabling this to allow BBL to be loaded from the DDR backdoor.
@@ -279,6 +279,10 @@ config DUOWEN_TEST_DDR_BACKDOOR
 	bool "Enable GPT partition test"
 	depends DUOWEN_LOAD_DDR_BACKDOOR
 	select DUOWEN_LOAD_GPT
+	help
+	  When SSI0/SD programs have already been loaded via backdoors,
+	  you may still want to test SSI0/SD functionality. Enabling this
+	  to do perform a read-only partition file searching as the test.
 
 config DUOWEN_LOAD_IMC_FIRMWARE
 	bool "Enable load of IMC firmware"
@@ -383,7 +387,7 @@ config DUOWEN_SBL_LOAD
 	  This option is always invisible to ZSBL and visible to non SPI
 	  resident FSBL and BBL, TBs.
 
-menuconfig DUOWEN_MSG
+config DUOWEN_MSG
 	bool "Duowen shared message support"
 	depends SIMULATION
 	help
@@ -391,9 +395,12 @@ menuconfig DUOWEN_MSG
 	  drive tests and UVM sequences.
 
 config DUOWEN_SIM_ROM_FINISH
-	bool "Enable simultion finish after searching ssi/sd"
-	depends DUOWEN_MSG && DUOWEN_LOAD_GPT
+	bool "Enable simultion finish for ROMs"
+	depends DUOWEN_MSG
 	depends DUOWEN_ZSBL || DUOWEN_ASBL
+	help
+	  Enabling this to finish ZSBL right after testing SSI0/SD
+	  flashes. Enabling this to finish ASBL right before booting APCs.
 
 config DUOWEN_SIM_BOOT_CLOCKS
 	bool "Enable faster clock/reset booting support"
