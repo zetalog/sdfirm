@@ -150,3 +150,7 @@ SECTIONS
 ASSERT((__proc_info_end - __proc_info_begin), "missing CPU support")
 ASSERT((__arch_info_end - __arch_info_begin), "no machine record defined")
 */
+ASSERT((ABI_PERCPU_STACKS_END <= RAMEND), "bad stack size, please tune CONFIG_STACK_SHIFT")
+#ifdef CONFIG_SBI
+ASSERT((SBI_PERCPU_STACKS_END <= RAMEND), "bad stack size, please tune CONFIG_STACK_SHIFT")
+#endif

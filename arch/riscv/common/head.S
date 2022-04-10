@@ -85,7 +85,7 @@
 
 	.macro init_gpsptp
 	init_gp
-#ifdef CONFIG_SMP
+#ifdef CONFIG_SMP_BOOT
 	get_smpid a3
 	slli	sp, a3, PERCPU_STACK_SHIFT
 	la	a3, (ABI_PERCPU_STACKS_START + PERCPU_STACK_SIZE)

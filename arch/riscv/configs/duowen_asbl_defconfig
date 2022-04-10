@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Apr  1 07:29:32 2022
+# Mon Apr 11 01:19:56 2022
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -288,7 +288,8 @@ CONFIG_LOAD_DATA=y
 #
 # Address space allocator (stack) support
 #
-# CONFIG_STACK_CUST is not set
+CONFIG_STACK_CUST=y
+CONFIG_STACK_SHIFT=9
 # CONFIG_HEAP is not set
 # CONFIG_MEM is not set
 # CONFIG_PAGE is not set
