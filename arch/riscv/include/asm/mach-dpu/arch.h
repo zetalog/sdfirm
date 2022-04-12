@@ -58,6 +58,13 @@
 #endif /* CONFIG_VAISRA_RAS */
 #endif /* CONFIG_DPU_APC */
 
+/* PHY registers */
+#define DW_E16MP_BASE(n)	PCIEx_PHY_BASE
+#define NR_DW_E16MPS		1
+#ifndef __ASSEMBLY__
+#include <driver/dw_e16mp_tsmc12ffc.h>
+#endif
+
 /* This file is intended to be used for implementing SoC specific
  * instructions, registers.
  */
