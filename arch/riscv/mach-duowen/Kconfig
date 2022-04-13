@@ -264,7 +264,12 @@ config DUOWEN_LOAD_ROM
 
 config DUOWEN_LOAD_GPT
 	bool
-	default y if !DUOWEN_LOAD_DDR_BACKDOOR
+	default y if !DUOWEN_LOAD_RAM_BACKDOOR && !DUOWEN_LOAD_DDR_BACKDOOR
+
+config DUOWEN_LOAD_RAM_BACKDOOR
+	bool "Enable load to RAM backdoor"
+	depends DUOWEN_ZSBL
+	depends SIMULATION
 
 config DUOWEN_LOAD_DDR_BACKDOOR
 	bool "Enable load to DDR backdoor"
@@ -275,9 +280,9 @@ config DUOWEN_LOAD_DDR_BACKDOOR
 	  This is useful in simulation environment as FSBL can then do
 	  nothing for copying BBL.
 
-config DUOWEN_TEST_DDR_BACKDOOR
+config DUOWEN_TEST_BACKDOOR
 	bool "Enable GPT partition test"
-	depends DUOWEN_LOAD_DDR_BACKDOOR
+	depends DUOWEN_LOAD_RAM_BACKDOOR || DUOWEN_LOAD_DDR_BACKDOOR
 	select DUOWEN_LOAD_GPT
 	help
 	  When SSI0/SD programs have already been loaded via backdoors,
