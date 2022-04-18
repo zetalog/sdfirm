@@ -692,12 +692,13 @@ void mem_free_all(void)
 
 static void mem_dump(struct mem_type *type)
 {
-	phys_addr_t base, end, size;
+	phys_addr_t base, end;
+	size_t size;
 	struct mem_region *rgn;
 	int idx;
 
 	printf(" %s.size  = %llx\n",
-	       mem_type_name(type), type->total_size);
+	       mem_type_name(type), (uint64_t)type->total_size);
 	printf(" %s.count = 0x%lx\n",
 	       mem_type_name(type), type->cnt);
 
@@ -705,8 +706,9 @@ static void mem_dump(struct mem_type *type)
 		base = rgn->base;
 		size = rgn->size;
 		end = base + size - 1;
-		printf(" %.8s [%p-%p], %p bytes\n",
-		       mem_type_name(type), base, end, size);
+		printf(" %.8s [%llx-%llx], %ld bytes\n",
+		       mem_type_name(type),
+		       (uint64_t)base, (uint64_t)end, size);
 	}
 }
 
@@ -746,8 +748,8 @@ void mem_init(void)
 void mem_dump_all(void)
 {
 	printf("Memory configuration:\n");
-	printf(" start: %llx\n", mem_start());
-	printf(" end:   %llx\n", mem_end());
+	printf(" start: %llx\n", (uint64_t)mem_start());
+	printf(" end:   %llx\n", (uint64_t)mem_end());
 
 	mem_dump(&mem_memory_regions);
 	mem_dump(&mem_reserved_regions);

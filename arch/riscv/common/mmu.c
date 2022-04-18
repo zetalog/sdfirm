@@ -77,7 +77,7 @@ __init static void sv_satp_switch(caddr_t map, const char *hint)
 	unsigned long satp;
 
 	satp = PFN_DOWN(__pa(map)) | SATP_MODE;
-	printf("%s: %016llx\n", hint, satp);
+	printf("%s: %016llx\n", hint, (uint64_t)satp);
 	csr_write(CSR_SATP, satp);
 }
 
@@ -87,7 +87,8 @@ __init void bpgt_init(void)
 	phys_addr_t start = round_down(SDFIRM_START, BPGT_BLOCK_SIZE);
 	phys_addr_t end = round_up(SDFIRM_END, BPGT_BLOCK_SIZE);
 
-	printf("Early  MAP: %016llx - %016llx\n", start, end);
+	printf("Early  MAP: %016llx - %016llx\n",
+	       (uint64_t)start, (uint64_t)end);
 	tbl = bpgt_create_dir(tbl, start);
 	bpgt_create_blk(tbl, start, end);
 #if defined(CONFIG_MMU_IDMAP_DEVICE) && defined(IDMAP_DEV_BASE)

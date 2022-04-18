@@ -294,8 +294,8 @@ static void __duowen_load_gpt(mtd_t mtd, const char *file,
 		con_err("boot(%s): %s missing.\n", name, file);
 		bh_panic();
 	}
-	con_log("boot(%s): Booting %s from addr=0x%lx, size=0x%lx...\n",
-		name, file, *addr, *size);
+	con_log("boot(%s): Booting %s from addr=0x%llx, size=0x%llx...\n",
+		name, file, (uint64_t)(*addr), (uint64_t)(*size));
 }
 #endif /* CONFIG_DUOWEN_SIM_ROM_FINISH */
 #else /* CONFIG_DUOWEN_LOAD_GPT */

@@ -89,7 +89,8 @@ static bool mmcard_buffered(mtd_addr_t addr)
 				    mmcard_privs[mmcard_cid].buffer,
 				    blk_off / MMC_DEF_BL_LEN, blk_cnt);
 	if (result != 0) {
-		con_err("mtd_mmcard: Failed to read %08lx\n", blk_off);
+		con_err("mtd_mmcard: Failed to read %08llx\n",
+			(uint64_t)blk_off);
 		return false;
 	}
 	mmcard_privs[mmcard_cid].buffered_address = blk_off;
@@ -108,14 +109,14 @@ static uint8_t mmcard_read(void)
 			 mmcard_privs[mmcard_cid].buffered_address;
 		if (offset >= MMC_DEF_BL_LEN)
 			con_err("mtd_mmcard: Wrong offset %016llx\n",
-				offset);
+				(uint64_t)offset);
 		else
 			byte = mmcard_privs[mmcard_cid].buffer[offset];
 		mmcard_privs[mmcard_cid].offset++;
 		mmcard_privs[mmcard_cid].length--;
 	} else {
 		con_err("mtd_mmcard: Failed to buffer offset %016llx\n",
-			mmcard_privs[mmcard_cid].offset);
+			(uint64_t)mmcard_privs[mmcard_cid].offset);
 	}
 	return byte;
 }

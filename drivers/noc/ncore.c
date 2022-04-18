@@ -54,44 +54,53 @@ void ncore_discover(void)
 	nr_dirus = ncore_num_dirus();
 	nr_cmius = ncore_num_cmius();
 
-	printf("Release version: %d\n", ncore_release_version());
-	printf("Directory cacheline offset: %d\n", ncore_dir_cacheline_offset());
+	printf("Release version: %d\n", (int)ncore_release_version());
+	printf("Directory cacheline offset: %d\n",
+	       (int)ncore_dir_cacheline_offset());
 	printf("Number of memory regions: %d\n", nr_mems);
 	for (i = 0; i < nr_mems; i++) {
-		printf("Snoop filter type: %d\n", ncore_sf_type(i));
-		printf("Snoop filter number of ways: %d\n", ncore_sf_num_ways(i));
-		printf("Snoop filter number of sets: %d\n", ncore_sf_num_sets(i));
+		printf("Snoop filter type: %d\n",
+		       (int)ncore_sf_type(i));
+		printf("Snoop filter number of ways: %d\n",
+		       (int)ncore_sf_num_ways(i));
+		printf("Snoop filter number of sets: %d\n",
+		       (int)ncore_sf_num_sets(i));
 	}
 
-	printf("Number of CAIU: %d\n", nr_caius);
-	printf("Number of NCBU: %d\n", nr_ncbus);
-	printf("Number of DIRU: %d\n", nr_dirus);
-	printf("Number of CMIU: %d\n", nr_cmius);
+	printf("Number of CAIU: %d\n", (int)nr_caius);
+	printf("Number of NCBU: %d\n", (int)nr_ncbus);
+	printf("Number of DIRU: %d\n", (int)nr_dirus);
+	printf("Number of CMIU: %d\n", (int)nr_cmius);
 
 	for (i = 0; i < NCORE_MAX_SUS; i++) {
 		printf("SU %d implementation version: %d\n",
-		       ncore_su_i2t(i), ncore_su_impl_ver(i));
+		       (int)ncore_su_i2t(i), (int)ncore_su_impl_ver(i));
 		switch (ncore_su_i2t(i)) {
 		case NCORE_SU_CAIU:
 			if ((i - ncore_su_t2i(NCORE_SU_CAIU)) >= nr_caius)
 				continue;
-			printf("CAIU id: %d\n", ncore_caiu_id(i));
-			printf("CAIU type: %d\n", ncore_caiu_type(i));
-			printf("CAIU caching agent: %d\n", ncore_caiu_ca(i));
-			printf("CAIU snoop filter id: %d\n", ncore_caiu_sf_id(i));
+			printf("CAIU id: %d\n", (int)ncore_caiu_id(i));
+			printf("CAIU type: %d\n", (int)ncore_caiu_type(i));
+			printf("CAIU caching agent: %d\n",
+			       (int)ncore_caiu_ca(i));
+			printf("CAIU snoop filter id: %d\n",
+			       (int)ncore_caiu_sf_id(i));
 			break;
 		case NCORE_SU_NCBU:
 			if ((i - ncore_su_t2i(NCORE_SU_NCBU)) >= nr_ncbus)
 				continue;
-			printf("NCBU id: %d\n", ncore_ncbu_id(i));
-			printf("NCBU type: %d\n", ncore_ncbu_type(i));
-			printf("NCBU caching agent: %d\n", ncore_ncbu_ca(i));
-			printf("NCBU snoop filter id: %d\n", ncore_ncbu_sf_id(i));
-			printf("NCBU PC type: %d\n", ncore_ncbu_pc_type(i));
+			printf("NCBU id: %d\n", (int)ncore_ncbu_id(i));
+			printf("NCBU type: %d\n", (int)ncore_ncbu_type(i));
+			printf("NCBU caching agent: %d\n",
+			       (int)ncore_ncbu_ca(i));
+			printf("NCBU snoop filter id: %d\n",
+			       (int)ncore_ncbu_sf_id(i));
+			printf("NCBU PC type: %d\n",
+			       (int)ncore_ncbu_pc_type(i));
 			printf("NCBU PC number of ways: %d\n",
-			       ncore_ncbu_pc_num_ways(i));
+			       (int)ncore_ncbu_pc_num_ways(i));
 			printf("NCBU PC number of sets: %d\n",
-			       ncore_ncbu_pc_num_sets(i));
+			       (int)ncore_ncbu_pc_num_sets(i));
 			break;
 		case NCORE_SU_DIRU:
 			if ((i - ncore_su_t2i(NCORE_SU_DIRU)) >= nr_dirus)
@@ -100,15 +109,18 @@ void ncore_discover(void)
 		case NCORE_SU_CMIU:
 			if ((i - ncore_su_t2i(NCORE_SU_CMIU)) >= nr_cmius)
 				continue;
-			printf("CMIU id: %d\n", ncore_cmiu_id(i));
-			printf("CMIU hint capable: %d\n", ncore_cmiu_hnt_cap(i));
-			printf("CMIU CMC (coherent memory cache): %d\n", ncore_cmiu_cmc(i));
+			printf("CMIU id: %d\n", (int)ncore_cmiu_id(i));
+			printf("CMIU hint capable: %d\n",
+			       (int)ncore_cmiu_hnt_cap(i));
+			printf("CMIU CMC (coherent memory cache): %d\n",
+			       (int)ncore_cmiu_cmc(i));
 			if (ncore_cmiu_cmc(i)) {
-				printf("CMIU CMC type: %d\n", ncore_cmiu_cmc_type(i));
+				printf("CMIU CMC type: %d\n",
+				       (int)ncore_cmiu_cmc_type(i));
 				printf("CMIU CMC number of ways: %d\n",
-				       ncore_cmiu_cmc_num_ways(i));
+				       (int)ncore_cmiu_cmc_num_ways(i));
 				printf("CMIU CMC number of sets: %d\n",
-				       ncore_cmiu_cmc_num_sets(i));
+				       (int)ncore_cmiu_cmc_num_sets(i));
 			}
 			break;
 		}

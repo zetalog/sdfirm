@@ -1645,7 +1645,7 @@ static int do_heap_test(int argc, char **argv)
 	for (i = 0; i < nr_heaps; i++) {
 		printf("Allocating heap...\n");
 		addr = heap_alloc(size);
-		printf("alloc = %016llx\n", addr);
+		printf("alloc = %016llx\n", (uint64_t)addr);
 		printf("Freeing heap...\n");
 		heap_free(addr);
 	}

@@ -47,6 +47,9 @@ typedef __builtin_va_list va_list;
 #define __stringify_1(x...)		#x
 #define __stringify(x...)		__stringify_1(x)
 
+#define __printf_chk(c)			\
+	__attribute__((__format__(__printf__, c, c+1)))
+
 #ifdef CONFIG_CC_ALWAYS_INLINE
 #define __inline			__always_inline
 #else

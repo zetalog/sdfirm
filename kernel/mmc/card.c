@@ -289,7 +289,8 @@ static int do_card_read(int argc, char *argv[])
 		cnt = 1;
 	memset(mem_card_buf, 0, 2 * MMC_DEF_BL_LEN);
 	if (mmc_card_read_sync(cid, mem_card_buf, lba, cnt))
-		printf("read_blocks %016x(%d) failure.\n", lba, cnt);
+		printf("read_blocks %016llx(%d) failure.\n",
+		       (uint64_t)lba, (int)cnt);
 	else
 		hexdump(0, mem_card_buf, 1, cnt * MMC_DEF_BL_LEN);
 	return 0;
@@ -320,7 +321,8 @@ static int do_card_write(int argc, char *argv[])
 	for (i = 0; i < (2*MMC_DEF_BL_LEN); i += 16)
 		*((uint8_t *)mem_card_buf + i) = byte + (uint8_t)i;
 	if (mmc_card_write_sync(cid, mem_card_buf, lba, cnt))
-		printf("write_blocks %016x(%d) failure.\n", lba, cnt);
+		printf("write_blocks %016llx(%d) failure.\n",
+		       (uint64_t)lba, (int)cnt);
 	return 0;
 }
 

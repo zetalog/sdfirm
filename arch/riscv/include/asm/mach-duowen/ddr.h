@@ -53,6 +53,8 @@
 #endif
 #endif
 
+#define DW_UMCTL2_BASE(n)	(DDR0_CTRL_BASE + (n) << 26)
+
 #include <driver/dw_umctl2.h>
 
 #define NR_DDR_SPEEDS		(DDR4_3200 + 1)

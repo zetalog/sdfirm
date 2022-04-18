@@ -190,8 +190,10 @@ void sdhc_send_command(uint8_t cmd, uint32_t arg)
 #ifdef CONFIG_MMC_DEBUG
 		con_dbg("sdhc: BLOCK_SIZE: %04lx\n",
 			SDHC_TRANSFER_BLOCK_SIZE(mmc_slot_ctrl.block_len));
-		con_dbg("sdhc: BLOCK_COUNT: %04lx\n", mmc_slot_ctrl.block_cnt);
-		con_dbg("sdhc: TRANSFER_MODE: %04lx\n", mode);
+		con_dbg("sdhc: BLOCK_COUNT: %04llx\n",
+			(uint64_t)mmc_slot_ctrl.block_cnt);
+		con_dbg("sdhc: TRANSFER_MODE: %04llx\n",
+			(uint64_t)mode);
 #endif
 		__raw_writew(sdhc_dma_boundary() |
 			SDHC_TRANSFER_BLOCK_SIZE(mmc_slot_ctrl.block_len),
@@ -204,8 +206,8 @@ void sdhc_send_command(uint8_t cmd, uint32_t arg)
 	}
 
 #ifdef CONFIG_MMC_DEBUG
-	con_dbg("sdhc: COMMAND: %04lx\n", SDHC_COMMAND(mmc_sid));
-	con_dbg("sdhc: ARGUMENT: %08lx\n", arg);
+	con_dbg("sdhc: COMMAND: %04x\n", SDHC_CMD(cmd, flags));
+	con_dbg("sdhc: ARGUMENT: %08x\n", arg);
 #endif
 	__raw_writel(arg, SDHC_ARGUMENT(mmc_sid));
 	__raw_writew(SDHC_CMD(cmd, flags), SDHC_COMMAND(mmc_sid));

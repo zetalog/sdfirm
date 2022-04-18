@@ -14,8 +14,8 @@ typedef void	*FILE;
 #define EOF	(-1)
 #endif
 
-int sprintf(char *, const char *, ...);
-int snprintf(char *, size_t, const char *, ...);
+__printf_chk(2) int sprintf(char *, const char *, ...);
+__printf_chk(3) int snprintf(char *, size_t, const char *, ...);
 int vsprintf(char *, const char *, va_list);
 int vsnprintf(char *, size_t, const char *, va_list);
 #define putch(c)	putchar(c)
@@ -23,7 +23,7 @@ int vsnprintf(char *, size_t, const char *, va_list);
 #ifdef CONFIG_CONSOLE_OUTPUT
 int putchar(int c);
 int puts(const char *s);
-int printf(const char *format, ...);
+__printf_chk(1) int printf(const char *format, ...);
 int vprintf(const char *format, va_list arg);
 #else
 static inline int putchar(int c)

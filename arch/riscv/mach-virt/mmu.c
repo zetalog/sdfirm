@@ -49,10 +49,10 @@ void virt_mmu_dump_maps(void)
 {
 	if (virt_uart_reg_base != __VIRT_UART_BASE)
 		printf("FIXMAP: %016llx -> %016llx: UART\n",
-		       __VIRT_UART_BASE, fix_to_virt(FIX_UART));
+		       (uint64_t)__VIRT_UART_BASE, fix_to_virt(FIX_UART));
 	if (virt_test_reg_addr != __VIRT_TEST_ADDR)
 		printf("FIXMAP: %016llx -> %016llx: TEST\n",
-		       __VIRT_TEST_ADDR, fix_to_virt(FIX_TEST));
+		       (uint64_t)__VIRT_TEST_ADDR, fix_to_virt(FIX_TEST));
 }
 
 void virt_mmu_map_uart(int n)

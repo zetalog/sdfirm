@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Mar 28 16:37:45 2022
+# Mon Apr 18 17:19:29 2022
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -529,7 +529,19 @@ CONFIG_DW_MSHC_SD=y
 #
 # DDR controller drivers
 #
+CONFIG_ARCH_IS_DW_UMCTL2_DATA_WIDTH_64=y
+CONFIG_ARCH_IS_DW_UMCTL2_DUAL_HIF=y
 CONFIG_DW_UMCTL2=y
+# CONFIG_DW_UMCTL2_DATA_WIDTH_8 is not set
+# CONFIG_DW_UMCTL2_DATA_WIDTH_16 is not set
+# CONFIG_DW_UMCTL2_DATA_WIDTH_24 is not set
+# CONFIG_DW_UMCTL2_DATA_WIDTH_32 is not set
+# CONFIG_DW_UMCTL2_DATA_WIDTH_40 is not set
+# CONFIG_DW_UMCTL2_DATA_WIDTH_48 is not set
+# CONFIG_DW_UMCTL2_DATA_WIDTH_56 is not set
+CONFIG_DW_UMCTL2_DATA_WIDTH_64=y
+# CONFIG_DW_UMCTL2_DATA_WIDTH_72 is not set
+# CONFIG_DW_UMCTL2_DUAL_HIF is not set
 
 #
 # Serial Presence Detect (SPD) drivers

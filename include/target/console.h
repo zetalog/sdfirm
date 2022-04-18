@@ -121,7 +121,7 @@ void console_handle_irq(void);
 void console_early_init(void);
 void console_init(void);
 void console_late_init(void);
-void con_err(const char *fmt, ...);
+__printf_chk(1) void con_err(const char *fmt, ...);
 #else
 #define console_early_init()			do { } while (0)
 #define console_init()				do { } while (0)
@@ -131,12 +131,12 @@ void con_err(const char *fmt, ...);
 #endif
 
 #ifdef CONFIG_CONSOLE_VERBOSE
-void con_log(const char *fmt, ...);
+__printf_chk(1) void con_log(const char *fmt, ...);
 #else
 #define con_log(...)			do { } while (0)
 #endif
 #ifdef CONFIG_CONSOLE_DEBUG
-void con_dbg(const char *fmt, ...);
+__printf_chk(1) void con_dbg(const char *fmt, ...);
 #else
 #define con_dbg(...)			do { } while (0)
 #endif

@@ -116,9 +116,9 @@ extern caddr_t dpu_tcsr_reg_base;
 #endif
 
 #define imc_soc_major()					\
-	IMC_MAJOR(__raw_readl(TCSR_SOC_HW_VERSION))
+	((uint8_t)IMC_MAJOR(__raw_readl(TCSR_SOC_HW_VERSION)))
 #define imc_soc_minor()					\
-	IMC_MINOR(__raw_readl(TCSR_SOC_HW_VERSION))
+	((uint8_t)IMC_MINOR(__raw_readl(TCSR_SOC_HW_VERSION)))
 #define imc_hart_id()					\
 	MAKELLONG(__raw_readl(TCSR_HART_ID_LO), __raw_readl(TCSR_HART_ID_HI))
 #define imc_boot_mode()					\

@@ -219,7 +219,7 @@
 #define SDHC_RESPONSE_LENGTH_48_BUSY		3
 
 #define SDHC_CMD(c, f)				\
-	(((c & 0xff) << 8) | (f & 0xff))
+	((uint32_t)(((c & 0xff) << 8) | (f & 0xff)))
 /* 2.2.9 Present State Register (Cat.C Offset 024h) */
 #ifdef CONFIG_SDHC_UHSII
 #define SDHC_UHSII_IF_DETECTION			_BV(31)

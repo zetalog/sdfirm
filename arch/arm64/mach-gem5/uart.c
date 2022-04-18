@@ -53,7 +53,7 @@ void uart_hw_mmu_init(void)
 	set_fixmap_io(FIX_UART0, __UART_BASE(0) & PAGE_MASK);
 	uart_hw_reg_base[0] = fix_to_virt(FIX_UART0);
 	printf("FIXMAP: %016llx -> %016llx: UART0\n",
-	       __UART_BASE(0), fix_to_virt(FIX_UART0));
+	       (uint64_t)__UART_BASE(0), fix_to_virt(FIX_UART0));
 	uart_hw_con_init();
 }
 #endif

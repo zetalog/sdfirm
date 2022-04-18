@@ -27,7 +27,8 @@ static __always_inline void __boot_copy(uint8_t *dst, void *src,
 					size_t size)
 {
 	con_log("boot(stack): src=%016llx: dst=%016llx\n",
-		(uintptr_t)src, (uintptr_t)dst);
+		(uint64_t)((uintptr_t)src),
+		(uint64_t)((uintptr_t)dst));
 	memcpy(dst, src, size);
 	local_flush_icache_all();
 }

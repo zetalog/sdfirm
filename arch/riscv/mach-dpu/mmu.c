@@ -55,16 +55,16 @@ void dpu_mmu_dump_maps(void)
 {
 	if (dpu_pll_reg_base != PLL_REG_BASE)
 		printf("FIXMAP: %016llx -> %016llx: PLL\n",
-		       PLL_REG_BASE, fix_to_virt(FIX_PLL));
+		       (uint64_t)PLL_REG_BASE, fix_to_virt(FIX_PLL));
 	if (dpu_gpio_reg_base != GPIO_BASE)
 		printf("FIXMAP: %016llx -> %016llx: GPIO\n",
-		       GPIO_BASE, fix_to_virt(FIX_GPIO));
+		       (uint64_t)GPIO_BASE, fix_to_virt(FIX_GPIO));
 	if (dpu_uart_reg_base != __DPU_UART_BASE)
 		printf("FIXMAP: %016llx -> %016llx: UART\n",
-		       __DPU_UART_BASE, fix_to_virt(FIX_UART));
+		       (uint64_t)__DPU_UART_BASE, fix_to_virt(FIX_UART));
 	if (dpu_tcsr_reg_base != TCSR_BASE)
 		printf("FIXMAP: %016llx -> %016llx: TCSR\n",
-		       TCSR_BASE, fix_to_virt(FIX_TCSR));
+		       (uint64_t)TCSR_BASE, fix_to_virt(FIX_TCSR));
 }
 
 void dpu_mmu_map_periph(void)
@@ -78,7 +78,8 @@ void dpu_mmu_map_periph(void)
 	}
 	if (ddr0_ctrl_reg_base != DDR0_CTRL_BASE)
 		printf("FIXMAP: %016llx -> %016llx: DDR0_CTRL\n",
-		       DDR0_CTRL_BASE, fix_to_virt(FIX_DDR0_CTRL));
+		       (uint64_t)DDR0_CTRL_BASE,
+		       fix_to_virt(FIX_DDR0_CTRL));
 
 	if (pe_dma0_reg_base == PE_DMA0_BASE) {
 		set_fixmap_io(FIX_PE_DMA0, PE_DMA0_BASE & PAGE_MASK);
@@ -86,7 +87,7 @@ void dpu_mmu_map_periph(void)
 	}
 	if (pe_dma0_reg_base != PE_DMA0_BASE)
 		printf("FIXMAP: %016llx -> %016llx: PE_DMA0\n",
-		       PE_DMA0_BASE, fix_to_virt(FIX_PE_DMA0));
+		       (uint64_t)PE_DMA0_BASE, fix_to_virt(FIX_PE_DMA0));
 
 	if (pciex_subsys_cust_reg_base == PCIEx_SUBSYS_CUST_BASE) {
 		set_fixmap_io(FIX_PCIEx_SUBSYS_CUST,
@@ -96,7 +97,7 @@ void dpu_mmu_map_periph(void)
 	}
 	if (pciex_subsys_cust_reg_base != PCIEx_SUBSYS_CUST_BASE)
 		printf("FIXMAP: %016llx -> %016llx: PCIEx_SUBSYS_CUST\n",
-		       PCIEx_SUBSYS_CUST_BASE,
+		       (uint64_t)PCIEx_SUBSYS_CUST_BASE,
 		       fix_to_virt(FIX_PCIEx_SUBSYS_CUST));
 }
 

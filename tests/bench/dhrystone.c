@@ -136,7 +136,7 @@ int dhrystone (caddr_t percpu_area)
 #else /* CONFIG_FP */
 #define DHRY_FMT    "%6lld"
 #define DHRY_FMT2   "%12lld"
-        long        __unused Microseconds;
+        long long   __unused Microseconds;
         long long   Vax_Mips,
                     Dhrystones_Per_Second;
 #endif /* CONFIG_FP */

@@ -452,17 +452,17 @@ static sd_cid_t sd_decode_cid(mmc_r2_t raw_cid)
 	cid.prv = raw_cid[8];
 	memcpy(cid.pnm, &raw_cid[3], 5);
 #ifdef CONFIG_MMC_DEBUG
-	con_dbg("sd: MDT: %d\n", cid.mdt);
-	con_dbg("sd: PSN: %d\n", cid.psn);
-	con_dbg("sd: PRV: %d\n", cid.prv);
+	con_dbg("sd: MDT: %d\n", (int)cid.mdt);
+	con_dbg("sd: PSN: %d\n", (int)cid.psn);
+	con_dbg("sd: PRV: %d\n", (int)cid.prv);
 	con_dbg("sd: PNM: %.5s\n", cid.pnm);
 #endif
 #endif
 	cid.oid = MAKEWORD(raw_cid[2], raw_cid[1]);
 	cid.mid = raw_cid[0];
 #ifdef CONFIG_MMC_DEBUG
-	con_dbg("sd: OID: %d\n", cid.oid);
-	con_dbg("sd: MID: %d\n", cid.mid);
+	con_dbg("sd: OID: %d\n", (int)cid.oid);
+	con_dbg("sd: MID: %d\n", (int)cid.mid);
 #endif
 	return cid;
 }
@@ -510,10 +510,10 @@ static mmc_csd_t sd_decode_csd(mmc_r2_t raw_csd)
 	}
 	csd.capacity = (csize + 1) << (cmult + 2);
 #ifdef CONFIG_MMC_DEBUG
-	con_dbg("sd: CSD_STRUCTURE: %d\n", csd.csd_structure);
-	con_dbg("sd: TRAN_SPEED: %d\n", csd.tran_speed);
-	con_dbg("sd: Block number: %d\n", csd.capacity);
-	con_dbg("sd: Block length: %d\n", _BV(csd.read_bl_len));
+	con_dbg("sd: CSD_STRUCTURE: %d\n", (int)csd.csd_structure);
+	con_dbg("sd: TRAN_SPEED: %d\n", (int)csd.tran_speed);
+	con_dbg("sd: Block number: %d\n", (int)csd.capacity);
+	con_dbg("sd: Block length: %d\n", (int)(_BV(csd.read_bl_len)));
 #endif
 	mmc_slot_ctrl.capacity_len = _BV(csd.read_bl_len);
 	mmc_slot_ctrl.capacity_cnt = csd.capacity;
@@ -549,10 +549,10 @@ sd_scr_t sd_decode_scr(void)
 	scr.bus_widths = SD_SCR1_SD_BUS_WIDTHS(scr1);
 	scr.cmd_support = SD_SCR1_CMD_SUPPORT(scr1);
 #ifdef CONFIG_MMC_DEBUG
-	con_dbg("sd: SCR_STRUCTURE: %d\n", scr.scr_structure);
-	con_dbg("sd: Version: %d\n", scr.version);
-	con_dbg("sd: BUS_WIDTHS: 0x%02x\n", scr.bus_widths);
-	con_dbg("sd: CMD_SUPPORT: 0x%02x\n", scr.cmd_support);
+	con_dbg("sd: SCR_STRUCTURE: %d\n", (int)scr.scr_structure);
+	con_dbg("sd: Version: %d\n", (int)scr.version);
+	con_dbg("sd: BUS_WIDTHS: 0x%02x\n", (int)scr.bus_widths);
+	con_dbg("sd: CMD_SUPPORT: 0x%02x\n", (int)scr.cmd_support);
 #endif
 	return scr;
 }
@@ -873,7 +873,7 @@ void sd_resp_r6(void)
 	/* Decode card status */
 	cs = MAKEWORD(r6[3], r6[2]);
 #ifdef CONFIG_MMC_DEBUG
-	con_dbg("sd: RCA: %d\n", mmc_slot_ctrl.rca);
+	con_dbg("sd: RCA: %d\n", (int)mmc_slot_ctrl.rca);
 	con_dbg("sd: Card status: 0x%04x\n", cs);
 #endif
 	if (cs & SD_R6_COM_CRC_ERROR)
@@ -1011,7 +1011,7 @@ static uint32_t sd_block_address(void)
 	/* high capacity should be checked in mmc_core.c */
 	address = mmc_slot_ctrl.address;
 #ifdef CONFIG_MMC_DEBUG
-	con_dbg("sd: ARGUMENT(address): 0x%08lx\n", address);
+	con_dbg("sd: ARGUMENT(address): 0x%016llx\n", (uint64_t)address);
 #endif
 	return address;
 }

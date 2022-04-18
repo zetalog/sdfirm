@@ -425,7 +425,8 @@ static void __create_pgd_mapping(pgd_t *pgdir, phys_addr_t phys,
 	pgd_t *pgdp = pgd_offset(pgdir, virt);
 
 	con_log("LOWMAP: %016llx -> %016llx: %016llx %s\n",
-		phys, virt, size, name ? name : "memory");
+		(uint64_t)phys, (uint64_t)virt,
+		(uint64_t)size, name ? name : "memory");
 
 	/* If the virtual and physical address don't have the same offset
 	 * within a page, we cannot map the region as the caller expects.

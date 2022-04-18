@@ -413,6 +413,8 @@ endif
 menuconfig DPULP_DDR
 	bool "DPU DDR controller/phy support"
 	select DW_UMCTL2
+	select ARCH_IS_DW_UMCTL2_DATA_WIDTH_64
+	select ARCH_IS_DW_UMCTL2_DUAL_HIF
 	select MATH_DIV32
 
 if DPULP_DDR

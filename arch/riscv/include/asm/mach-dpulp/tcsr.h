@@ -103,11 +103,11 @@
 #define TCSR_SD_UHSI_SWVOLT_EN		_BV(0)
 
 #define tcsr_soc_major()			\
-	TCSR_MAJOR(__raw_readl(TCSR_SOC_VERSION))
+	((uint8_t)TCSR_MAJOR(__raw_readl(TCSR_SOC_VERSION)))
 #define tcsr_soc_minor()			\
-	TCSR_MINOR(__raw_readl(TCSR_SOC_VERSION))
+	((uint8_t)TCSR_MINOR(__raw_readl(TCSR_SOC_VERSION)))
 #define tcsr_boot_mode()			\
-	TCSR_BOOT_PAD(__raw_readl(TCSR_BOOT_MODE))
+	((uint8_t)TCSR_BOOT_PAD(__raw_readl(TCSR_BOOT_MODE)))
 #define tcsr_boot_from()			\
 	(tcsr_boot_mode() & TCSR_BOOT_MASK)
 #define tcsr_load_to()			\

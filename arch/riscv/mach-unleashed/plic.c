@@ -51,7 +51,7 @@ void plic_hw_mmu_init(void)
 		set_fixmap_io(FIX_PLIC, PLIC_REG_BASE & PAGE_MASK);
 		sifive_plic_reg_base = fix_to_virt(FIX_PLIC);
 		printf("FIXMAP: %016llx -> %016llx: PLIC\n",
-		       PLIC_REG_BASE, fix_to_virt(FIX_PLIC));
+		       (uint64_t)PLIC_REG_BASE, fix_to_virt(FIX_PLIC));
 	}
 }
 #endif

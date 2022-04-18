@@ -5,10 +5,82 @@
 
 menu "DDR controller drivers"
 
+config ARCH_IS_DW_UMCTL2_DATA_WIDTH_8
+	bool
+
+config ARCH_IS_DW_UMCTL2_DATA_WIDTH_16
+	bool
+
+config ARCH_IS_DW_UMCTL2_DATA_WIDTH_32
+	bool
+
+config ARCH_IS_DW_UMCTL2_DATA_WIDTH_40
+	bool
+
+config ARCH_IS_DW_UMCTL2_DATA_WIDTH_48
+	bool
+
+config ARCH_IS_DW_UMCTL2_DATA_WIDTH_56
+	bool
+
+config ARCH_IS_DW_UMCTL2_DATA_WIDTH_64
+	bool
+
+config ARCH_IS_DW_UMCTL2_DATA_WIDTH_72
+	bool
+
+config ARCH_IS_DW_UMCTL2_DUAL_HIF
+	bool
+
 menuconfig DW_UMCTL2
 	bool "Synopsys DesignWare universal memory controller (uMCTL2) support"
 
 if DW_UMCTL2
+
+choice
+	prompt "DRAM data width"
+
+config DW_UMCTL2_DATA_WIDTH_8
+	bool "8-bits"
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_8
+
+config DW_UMCTL2_DATA_WIDTH_16
+	bool "16-bits"
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_16
+
+config DW_UMCTL2_DATA_WIDTH_24
+	bool "24-bits"
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_24
+
+config DW_UMCTL2_DATA_WIDTH_32
+	bool "32-bits"
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_32
+
+config DW_UMCTL2_DATA_WIDTH_40
+	bool "40-bits"
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_40
+
+config DW_UMCTL2_DATA_WIDTH_48
+	bool "48-bits"
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_48
+
+config DW_UMCTL2_DATA_WIDTH_56
+	bool "56-bits"
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_56
+
+config DW_UMCTL2_DATA_WIDTH_64
+	bool "64-bits"
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_64
+
+config DW_UMCTL2_DATA_WIDTH_72
+	bool "72-bits"
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_72
+
+endchoice
+
+config DW_UMCTL2_DUAL_HIF
+	bool "Enable dual HIF"
+	depends ARCH_IS_DW_UMCTL2_DUAL_HIF
 
 endif
 

@@ -1005,6 +1005,8 @@ menuconfig DUOWEN_DDR
 	bool "Duowen DDR memory support"
 	depends DDR
 	select DW_UMCTL2
+	select ARCH_IS_DW_UMCTL2_DATA_WIDTH_64
+	select ARCH_IS_DW_UMCTL2_DUAL_HIF
 
 if DUOWEN_DDR
 

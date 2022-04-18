@@ -140,7 +140,8 @@ static void dpu_load_ssi(void *boot_entry, const char *boot_file)
 		__boot_msg(BOOT_ERROR_FIND);
 		printf("boot(ssi): failed to load %s.\n", boot_file);
 	}
-	printf("boot(ssi): booting - 0x%lx(0x%lx)...\n", addr, size);
+	printf("boot(ssi): booting - 0x%llx(0x%llx)...\n",
+	       (uint64_t)addr, (uint64_t)size);
 	dpu_ssi_flash_boot(boot_entry, addr, size);
 }
 #endif /* CONFIG_DPU_BOOT_BACKDOOR */

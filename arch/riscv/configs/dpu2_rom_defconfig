@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Mar  8 17:16:50 2022
+# Mon Apr 18 17:15:50 2022
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -471,7 +471,7 @@ CONFIG_SPIFLASH_W25Q32=y
 #
 # DDR controller drivers
 #
-CONFIG_DW_UMCTL2=y
+# CONFIG_DW_UMCTL2 is not set
 
 #
 # Serial Presence Detect (SPD) drivers

@@ -14,16 +14,16 @@ void sifive_mmu_dump_maps(void)
 {
 	if (sifive_prci_reg_base != PRCI_BASE)
 		printf("FIXMAP: %016llx -> %016llx: PRCI\n",
-		       PRCI_BASE, fix_to_virt(FIX_PRCI));
+		       (uint64_t)PRCI_BASE, fix_to_virt(FIX_PRCI));
 	if (sifive_gpio_reg_base != GPIO_BASE)
 		printf("FIXMAP: %016llx -> %016llx: GPIO\n",
-		       GPIO_BASE, fix_to_virt(FIX_GPIO));
+		       (uint64_t)GPIO_BASE, fix_to_virt(FIX_GPIO));
 	if (sifive_uart_reg_base[0] != UART0_BASE)
 		printf("FIXMAP: %016llx -> %016llx: UART0\n",
-		       UART0_BASE, fix_to_virt(FIX_UART));
+		       (uint64_t)UART0_BASE, fix_to_virt(FIX_UART));
 	if (sifive_uart_reg_base[1] != UART1_BASE)
 		printf("FIXMAP: %016llx -> %016llx: UART1\n",
-		       UART1_BASE, fix_to_virt(FIX_UART));
+		       (uint64_t)UART1_BASE, fix_to_virt(FIX_UART));
 }
 
 void sifive_mmu_map_gpio(void)
