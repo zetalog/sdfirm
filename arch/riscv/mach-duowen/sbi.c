@@ -210,10 +210,44 @@ void duowen_timer_event_start(uint64_t next_event)
 	clint_set_mtimecmp(cpu, next_event);
 }
 
+#define __DUOWEN_LCSR_REG(offset)	(__DUOWEN_LCSR_BASE + (offset))
+#define __DUOWEN_SCSR_SOCKET_ID		__DUOWEN_LCSR_REG(____SCSR_SOCKET_ID)
+#define __DUOWEN_SCSR_REG(soc, offset)	(__DUOWEN_SCSR_BASE(soc) + (offset))
+#define __DUOWEN_SCSR_SW_MSG(soc, n)	__DUOWEN_SCSR_REG(soc, ____SCSR_SW_MSG(n))
+#ifdef CONFIG_DUOWEN_SBI_DUAL
+#define __DUOWEN_ROM_SOC_STATUS(soc)	__DUOWEN_SCSR_SW_MSG(soc, 1)
+#else
+#define __DUOWEN_ROM_SOC_STATUS(soc)	__DUOWEN_SCSR_SW_MSG(0, 1)
+#endif
+
+#define duowen_imc_socket_id()					\
+	(__raw_readl(__DUOWEN_SCSR_SOCKET_ID) & IMC_SOCKET_ID ? 1 : 0)
+#define duowen_imc_chip_link()					\
+	(!!(__raw_readl(__DUOWEN_SCSR_SOCKET_ID) & IMC_CHIP_LINK))
+
+static uint16_t __duowen_get_apc_map(uint8_t soc)
+{
+	if (__raw_readl(__DUOWEN_ROM_SOC_STATUS(soc)) & ROM_APC_VALID)
+		return ROM_GET_APC_PG(__raw_readl(__DUOWEN_ROM_SOC_STATUS(soc)));
+	return GOOD_CPU_MASK;
+}
+
+uint32_t duowen_get_apc_map(void)
+{
+	if (duowen_imc_chip_link()) {
+		uint32_t map1, map2;
+
+		map1 = (uint32_t)__duowen_get_apc_map(0);
+		map2 = (uint32_t)__duowen_get_apc_map(1);
+		return map1 | map2 << 16;
+	}
+	return (uint32_t)__duowen_get_apc_map(duowen_imc_socket_id());
+}
+
 static bool duowen_hart_disabled(uint32_t hartid)
 {
 	if (__GOOD_CPU_MASK == GOOD_CPU_MASK)
-		return ~rom_get_apc_map() & CPU_TO_MASK(hartid);
+		return ~duowen_get_apc_map() & CPU_TO_MASK(hartid);
 	return false;
 }
 #endif /* CONFIG_DUOWEN_APC */

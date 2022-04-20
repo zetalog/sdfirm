@@ -8,6 +8,13 @@ void riscv_timer(irq_t irq)
 {
 	irqc_clear_irq(IRQ_TIMER);
 	irqc_disable_irq(IRQ_TIMER);
+#ifdef CONFIG_RISCV_IRQ_VERBOSE
+	/* Useful for testing exception entry code with
+	 * CONFIG_TIMER_TEST.
+	 */
+	printf("SP %016llx on %d\n",
+	       (uint64_t)get_sp(), smp_processor_id());
+#endif
 	tick_handler();
 }
 
