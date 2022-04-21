@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Apr 18 17:19:45 2022
+# Thu Apr 21 01:23:32 2022
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -253,10 +253,10 @@ CONFIG_LPS_NO_LPS=y
 #
 # Address space layout (xip) support
 #
-CONFIG_BFM=y
+# CONFIG_BFM is not set
 CONFIG_XIP=y
-CONFIG_BOOT_BASE=0x14400000
-CONFIG_LOAD_BASE=0x14400000
+CONFIG_BOOT_BASE=0x00000080
+CONFIG_LOAD_BASE=0x15000000
 CONFIG_LOAD_DATA=y
 # CONFIG_NO_ZERO_BSS is not set
 # CONFIG_NO_ZERO_GPR is not set

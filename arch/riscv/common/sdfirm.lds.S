@@ -154,3 +154,12 @@ ASSERT((ABI_PERCPU_STACKS_END <= RAMEND), "bad stack size, please tune CONFIG_ST
 #ifdef CONFIG_SBI
 ASSERT((SBI_PERCPU_STACKS_END <= RAMEND), "bad stack size, please tune CONFIG_STACK_SHIFT")
 #endif
+#ifdef CONFIG_XIP
+#ifdef CONFIG_BFM
+ASSERT((TEXT_OFFSET >= RAM_BASE) && (TEXT_OFFSET < RAMEND), "Wrong CONFIG_BOOT_BASE is specified against RAM_BASE!")
+#else /* CONFIG_BFM */
+ASSERT((TEXT_OFFSET >= ROM_BASE) && (TEXT_OFFSET < ROMEND), "Wrong CONFIG_BOOT_BASE is specified against ROM_BASE!")
+#endif /* CONFIG_BFM */
+#else /* CONFIG_XIP */
+ASSERT((TEXT_OFFSET >= RAM_BASE) && (TEXT_OFFSET < RAMEND), "Wrong CONFIG_LOAD_BASE is specified against RAM_BASE!")
+#endif /* CONFIG_XIP */

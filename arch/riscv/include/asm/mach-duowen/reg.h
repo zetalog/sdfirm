@@ -57,6 +57,11 @@ unsigned long duowen_soc_base;
 #define SFAB_ROM_BASE		ULL(0xFF8F000000) /* Boot ROM */
 #define SFAB_ROM_SIZE		0x100000
 #define FLASH_BASE		ULL(0xFF88000000)
+/* The SPINOR model uses 24-bit addressing, however some of the addresses
+ * are overlapped with controller own registers, so it can only access
+ * <16MB address space, say 15M here
+ */
+#define FLASH_SIZE		0x1E00000
 #define SFAB_RAM_BASE		ULL(0xFF80000000) /* Sys Mem */
 #define SFAB_RAM_SIZE		0x100000
 
@@ -169,7 +174,6 @@ unsigned long duowen_soc_base;
 #define ASBL_RAM_SIZE		0x8000 /* APC ZSBL */
 #define ZSBL_RAM_SIZE		SFAB_RAM_SIZE
 #define FSBL_RAM_SIZE		(SFAB_RAM_SIZE - ASBL_RAM_SIZE)
-#ifdef CONFIG_DUOWEN_IMC
 #define IMC_ROM_BASE		SFAB_ROM_BASE
 #define IMC_ROM_SIZE		0xE0000
 #define IMC_RAM_BASE		SFAB_RAM_BASE
@@ -178,7 +182,6 @@ unsigned long duowen_soc_base;
 #else /* CONFIG_DUOWEN_FSBL */
 #define IMC_RAM_SIZE		ZSBL_RAM_SIZE
 #endif /* CONFIG_DUOWEN_FSBL */
-#endif /* CONFIG_DUOWEN_IMC */
 
 /* DDR memory region */
 #ifdef CONFIG_DUOWEN_DDR_32M
@@ -236,6 +239,7 @@ unsigned long duowen_soc_base;
 #define ROM_BASE		APC_ROM_BASE
 #define ROMEND			(APC_ROM_BASE + APC_ROM_SIZE)
 #endif
+
 #ifdef CONFIG_DUOWEN_ZSBL
 #ifdef CONFIG_DUOWEN_BOOT_APC
 #define ROM_BASE		APC_ROM_BASE
@@ -247,6 +251,10 @@ unsigned long duowen_soc_base;
 #endif /* CONFIG_DUOWEN_ZSBL */
 
 #ifdef CONFIG_DUOWEN_FSBL
+#ifdef CONFIG_DUOWEN_FSBL_SPI
+#define ROM_BASE		FLASH_BASE
+#define ROMEND			(FLASH_BASE + FLASH_SIZE)
+#else /* CONFIG_DUOWEN_FSBL_SPI */
 #ifdef CONFIG_DUOWEN_BOOT_APC
 #define ROM_BASE		APC_RAM_BASE
 #define ROMEND			(APC_RAM_BASE + APC_RAM_SIZE)
@@ -254,19 +262,25 @@ unsigned long duowen_soc_base;
 #define ROM_BASE		IMC_RAM_BASE
 #define ROMEND			(IMC_RAM_BASE + IMC_RAM_SIZE)
 #endif /* CONFIG_DUOWEN_BOOT_APC */
+#endif /* CONFIG_DUOWEN_FSBL_SPI */
 #endif /* CONFIG_DUOWEN_FSBL */
+
+#ifdef CONFIG_DUOWEN_BBL
+#define ROM_BASE		__DDR_BASE
+#define ROMEND			(__DDR_BASE + __DDR_SIZE)
+#endif /* CONFIG_DUOWEN_BBL */
 
 #ifdef CONFIG_DUOWEN_BOOT_APC
 #define RAM_BASE		APC_RAM_BASE
 #define RAM_SIZE		APC_RAM_SIZE
 #else /* CONFIG_DUOWEN_BOOT_APC */
-#ifdef CONFIG_DUOWEN_APC
-#define RAM_BASE		DDR_BASE
-#define RAM_SIZE		DDR_SIZE
-#else /* CONFIG_DUOWEN_APC */
+#if defined(CONFIG_DUOWEN_BBL) || defined(CONFIG_DUOWEN_TB_DDR)
+#define RAM_BASE		__DDR_BASE
+#define RAM_SIZE		__DDR_SIZE
+#else /* CONFIG_DUOWEN_BBL || CONFIG_DUOWEN_TB_DDR */
 #define RAM_BASE		IMC_RAM_BASE
 #define RAM_SIZE		IMC_RAM_SIZE
-#endif /* CONFIG_DUOWEN_APC */
+#endif /* CONFIG_DUOWEN_BBL || CONFIG_DUOWEN_TB_DDR */
 #endif /* CONFIG_DUOWEN_BOOT_APC */
 #define RAMEND			(RAM_BASE + RAM_SIZE)
 

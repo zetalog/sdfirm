@@ -378,6 +378,20 @@ config DUOWEN_APC_1_1000
 
 endchoice
 
+choice
+	prompt "Testbench residence"
+	depends DUOWEN_TB
+	default DUOWEN_TB_RAM if DUOWEN_IMC
+	default DUOWEN_TB_DDR if DUOWEN_APC
+
+config DUOWEN_TB_RAM
+	bool "RAM"
+
+config DUOWEN_TB_DDR
+	bool "DDR"
+
+endchoice
+
 config DUOWEN_SIM_LOAD
 	bool "Enable loading by simulator"
 

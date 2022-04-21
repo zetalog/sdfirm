@@ -98,6 +98,11 @@
 #define RAB0_SLV_BASE		ULL(0x02000000000)
 #define RAB1_SLV_BASE		ULL(0x02400000000)
 
+/* The SPINOR model uses 24-bit addressing, however some of the addresses
+ * are overlapped with controller own registers, so it can only access
+ * <16MB address space, say 15M here
+ */
+#define FLASH_SIZE		0x1E00000
 #define SRAM_SIZE		0x100000
 #define BROM_SIZE		0x100000
 #define DDRC_DATA_SIZE		ULL(0x400000000) /* 16GB */
@@ -116,17 +121,17 @@
 #define DPULP_FIRM_SIZE		DDR_DATA_SIZE
 #endif /* CONFIG_DPULP_FIRM_SIZE */
 
-#ifdef CONFIG_DPULP_BOOT_ROM
+#ifdef CONFIG_DPULP_ZSBL
 #define ROM_BASE		BROM_BASE
 #define ROMEND			(ROM_BASE + BROM_SIZE)
 #endif /* CONFIG_DPULP_BOOT_ROM */
 
-#ifdef CONFIG_DPULP_BOOT_FLASH
+#ifdef CONFIG_DPULP_XSBL
 #define ROM_BASE		FLASH_BASE
-#define ROMEND			(ROM_BASE + FLASH_SIZE)
+#define ROMEND			(FLASH_BASE + FLASH_SIZE)
 #endif /* CONFIG_DPULP_BOOT_FLASH */
 
-#ifdef CONFIG_DPULP_LOAD_FSBL
+#ifdef CONFIG_DPULP_FSBL
 #define ROM_BASE		BROM_BASE
 #define ROMEND			(ROM_BASE + BROM_SIZE)
 #endif /* CONFIG_DPULP_LOAD_FSBL */

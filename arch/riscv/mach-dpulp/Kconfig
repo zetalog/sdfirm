@@ -51,7 +51,6 @@ config DPULP_FSBL
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select DPULP_HAS_FIRM_RAM
-	select DPULP_HAS_FIRM_DDR
 
 config DPULP_XSBL
 	bool "0-stage/1-stage SPINOR bootloader (ZSBL/FSBL)"
@@ -85,6 +84,7 @@ config DPULP_DFW
 	select SYS_EXIT_M
 	select SYS_EXIT_S
 	select SYS_EXIT_U
+	select DPULP_HAS_FIRM_RAM
 	select DPULP_HAS_FIRM_DDR
 	select PCI
 	select RIO

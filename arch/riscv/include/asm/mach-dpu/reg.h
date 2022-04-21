@@ -156,9 +156,49 @@
 
 #define SRAM_SIZE		0x100000
 #define BOOTROM_SIZE		0x100000
+/* The SPINOR model uses 24-bit addressing, however some of the addresses
+ * are overlapped with controller own registers, so it can only access
+ * <16MB address space, say 15M here
+ */
+#define FLASH_SIZE		0x1E00000
 
 #include <dt-bindings/memory/dpu-ddr.h>
 
+#ifdef CONFIG_DPU_BOOT_ROM
+#define ROM_BASE		BOOTROM_BASE
+#define ROMEND			(ROM_BASE + BOOTROM_SIZE)
+#define RAM_BASE		SRAM_BASE
+#define RAMEND			(SRAM_BASE + SRAM_SIZE)
+#endif /* CONFIG_DPU_BOOT_ROM */
+
+/* FSBL or XSBL, note that the old DPU may use FSBL as runtime firmware, so
+ * CONFIG_DPU_FIRM_SIZE is maintained for this configuration.
+ */
+#ifdef CONFIG_DPU_LOAD_FSBL
+#ifdef CONFIG_DPU_BOOT_SPI_FLASH
+#ifdef CONFIG_DPU_FIRM_SIZE
+#define DPU_FIRM_SIZE		CONFIG_DPU_FIRM_SIZE
+#else /* CONFIG_DPU_FIRM_SIZE */
+#define DPU_FIRM_SIZE		FLASH_SIZE
+#endif /* CONFIG_DPU_FIRM_SIZE */
+#define ROM_BASE		FLASH_BASE
+#define ROMEND			(ROM_BASE + DPU_FIRM_SIZE)
+#else /* CONFIG_DPU_BOOT_SPI_FLASH */
+#ifdef CONFIG_DPU_FIRM_SIZE
+#define DPU_FIRM_SIZE		CONFIG_DPU_FIRM_SIZE
+#else /* CONFIG_DPU_FIRM_SIZE */
+#define DPU_FIRM_SIZE		BOOTROM_SIZE
+#endif /* CONFIG_DPU_FIRM_SIZE */
+#define ROM_BASE		BOOTROM_BASE
+#define ROMEND			(ROM_BASE + DPU_FIRM_SIZE)
+#endif /* CONFIG_DPU_BOOT_SPI_FLASH */
+#define RAM_BASE		SRAM_BASE
+#define RAMEND			(SRAM_BASE + SRAM_SIZE)
+#endif /* CONFIG_DPU_LOAD_FSBL */
+
+/* BBL, note that the new DPU may use BBL as runtime firmware, so
+ * CONFIG_DPU_FIRM_SIZE is maintained for this configuration.
+ */
 #ifdef CONFIG_DPU_LOAD_BBL
 /* For DPU_BOOT_DDR or DPU_FIRM_DDR, DPU_LOAD_BBL is defined */
 #ifdef CONFIG_DPU_FIRM_SIZE
@@ -172,33 +212,13 @@
 #define RAMEND			(DDR_DATA_BASE + DDR_DATA_SIZE)
 #endif /* CONFIG_DPU_LOAD_BBL */
 
-#ifdef CONFIG_DPU_BOOT_ROM
-#define ROM_BASE		BOOTROM_BASE
-#define ROMEND			(ROM_BASE + BOOTROM_SIZE)
-#define RAM_BASE		SRAM_BASE
-#define RAMEND			(SRAM_BASE + SRAM_SIZE)
-#endif /* CONFIG_DPU_BOOT_ROM */
-
-#ifdef CONFIG_DPU_BOOT_FLASH
-#define ROM_BASE		FLASH_BASE
-#define ROMEND			(ROM_BASE + FLASH_SIZE)
-#define RAM_BASE		SRAM_BASE
-#define RAMEND			(SRAM_BASE + SRAM_SIZE)
-#endif /* CONFIG_DPU_BOOT_SPI_FLASH */
-
-#ifdef CONFIG_DPU_LOAD_FSBL
-#ifdef CONFIG_DPU_FIRM_SIZE
-#define DPU_FIRM_SIZE		CONFIG_DPU_FIRM_SIZE
-#else /* CONFIG_DPU_FIRM_SIZE */
-#define DPU_FIRM_SIZE		DDR_DATA_SIZE
-#endif /* CONFIG_DPU_FIRM_SIZE */
-#define ROM_BASE		BOOTROM_BASE
-#define ROMEND			(ROM_BASE + BOOTROM_SIZE)
-#define RAM_BASE		SRAM_BASE
-#define RAMEND			(SRAM_BASE + SRAM_SIZE)
-#endif /* CONFIG_DPU_LOAD_FSBL */
-
+/* RAM testbench, note that DDR testbench is derived from
+ * CONFIG_DPU_FIRM_DDDR (see CONFIG_DPU_LOAD_BBL).
+ */
 #ifdef CONFIG_DPU_BOOT_RAM
+/* Note that for CONFIG_BFM=y and CONFIG_XIP=y, ROM_BASE/ROMEND won't be
+ * used, thus it is kept just as the real ROM space.
+ */
 #define ROM_BASE		BOOTROM_BASE
 #define ROMEND			(ROM_BASE + BOOTROM_SIZE)
 #define RAM_BASE		SRAM_BASE

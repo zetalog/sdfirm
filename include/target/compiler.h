@@ -15,6 +15,11 @@
 #include <target/compiler_keil.h>
 #endif
 
+/* Used to print macro value during compile time:
+ * #pragma message(__macro(XXX))
+ */
+#define __compiletime_macro(x)	#x"="__stringify(x)
+
 #define ARRAY_ADDR(arr)		(&((arr)[0]))
 #define ARRAY_SIZE(arr)		(sizeof(arr) / sizeof((arr)[0]))
 
