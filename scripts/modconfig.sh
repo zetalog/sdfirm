@@ -13,12 +13,16 @@ fatal()
 
 modify_kconfig()
 {
-	if [ "x$1" =  "x--disable" ]; then
-		echo "Disabling CONFIG_$2"
-	else
-		echo "Enabling CONFIG_$2"
+	if [ "x${VERBOSE}" = "xyes" ]; then
+		if [ "x$1" =  "x--disable" ]; then
+			echo "Disabling CONFIG_$2"
+		else
+			echo "Enabling CONFIG_$2"
+		fi
 	fi
-	eval $MODCONFIG $@
+	# Use --keep-case|-k to allow litmus configurations to be
+	# automatically adopted.
+	eval $MODCONFIG -k $@
 	cfg=`cat ./.config | grep ^CONFIG_$2=`
 	if [ "x$1" =  "x--disable" ]; then
 		if [ "x$cfg" != "x" ]; then

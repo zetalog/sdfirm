@@ -436,7 +436,8 @@ config HEAP_PAGE
 
 choice
 	prompt "Heap start address alignment"
-	default HEAP_ALIGN_4
+	default HEAP_ALIGN_4 if 32BIT
+	default HEAP_ALIGN_8 if 64BIT
 
 config HEAP_ALIGN_1
 	bool "1"
