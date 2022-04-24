@@ -386,6 +386,11 @@
 				  DW_PCIE_phy_sram_ext_ld_done_all);	\
 	} while (0)
 
+uint32_t dw_get_pci_conf_reg(int bus, int dev, int fun, int reg,
+			     uint8_t index);
+void dw_set_pci_conf_reg(int bus, int dev, int fun, int reg,
+			 uint32_t val, uint8_t index);
+
 #ifndef CONFIG_DUOWEN_PCIE_IPDV
 uint32_t dw_pcie_read_apb(uint64_t addr);
 void dw_pcie_write_apb(uint64_t addr, uint32_t data);

@@ -120,7 +120,8 @@ uint32_t dw_get_pci_conf_reg(int bus, int dev, int fun, int reg,
 }
 
 void dw_set_pci_conf_reg(int bus, int dev, int fun, int reg,
-			 uint32_t val, uint8_t index) {
+			 uint32_t val, uint8_t index)
+{
 	struct pcie_port *pp = &(duowen_pcie_ctrls[index].pp);
 	uint64_t pci_addr, cpu_addr, base;
 
