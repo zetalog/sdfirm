@@ -58,7 +58,7 @@
 /* uMCTL2 DDRC DCH1 Registers UMCTL2_REGS_DCH1 (UMCTL2_CREG)
  * if UMCTL2_DUAL_DATA_CHANNEL=1
  */
-#define UMCTL2_CREG(n, c, offset)	\
+#define DW_UMCTL2_CREG(n, c, offset)	\
 	DW_UMCTL2_REG((n), (offset) + (0x1B00 * (n)))
 /* uMCTL2 DDRC FREQ1 Registers UMCTL2_REGS_FREQ1 (UMCTL2_FREG)
  * if UMCTL2_FAST_FREQUENCY_CHANGE==1
@@ -67,7 +67,7 @@
  * uMCTL2 DDRC FREQ3 Registers UMCTL2_REGS_FREQ3 (UMCTL2_FREG)
  * if UMCTL2_FREQUENCY_NUM>3
  */
-#define UMCTL2_FREG(n, f, offset)	\
+#define DW_UMCTL2_FREG(n, f, offset)	\
 	DW_UMCTL2_REG((n), (offset) + (0x2000 * (f)))
 /* uMCTL2 DDRC Alternative Address Map Registers UMCTL2_REGS_ADDRMAP_ALT
  * (UMCTL2_AREG)
@@ -293,6 +293,77 @@
 #define UMCTL2_SBRRANGE1DCH1(n)		DW_UMCTL2_REG(n, 0xF54)
 #define UMCTL2_VER_NUMBER(n)		DW_UMCTL2_REG(n, 0xFF0)
 #define UMCTL2_VER_TYPE(n)		DW_UMCTL2_REG(n, 0xFF4)
+
+/* 5.1 UMCTL2_REGS Registers */
+/* 5.1.1 MSTR */
+#define MSTR_ddr3			_BV(0)
+#define MSTR_mobile			_BV(1)
+#define MSTR_lpddr2			_BV(2)
+#define MSTR_lpddr3			_BV(3)
+#define MSTR_ddr4			_BV(4)
+#define MSTR_lpddr4			_BV(5)
+#define MSTR_burst_mode			_BV(8)
+#define MSTR_burstchop			_BV(9)
+#define MSTR_en_2t_timing_mode		_BV(10)
+#define MSTR_geardown_mode		_BV(11)
+#define MSTR_data_bus_width_OFFSET	12
+#define MSTR_data_bus_width_MASK	REG_2BIT_MASK
+#define MSTR_data_bus_width(value)	_SET_FV(MSTR_data_bus_width, value)
+#define MSTR_data_bus_full_DQ		0
+#define MSTR_data_bus_half_DQ		1
+#define MSTR_data_bus_quarter_DQ	2
+#define MSTR_dll_off_mode		_BV(15)
+#define MSTR_burst_rdwr_OFFSET		16
+#define MSTR_burst_rdwr_MASK		REG_4BIT_MASK
+#define MSTR_burst_rdwr(value)		_SET_FV(MSTR_burst_rdwr, value)
+#define MSTR_burst_rdwr_2		1 /* mDDR */
+#define MSTR_burst_rdwr_4		2
+#define MSTR_burst_rdwr_8		4
+#define MSTR_burst_rdwr_16		8 /* mDDR, LPDDR2, LPDDR4 */
+#define MSTR_active_logic_ranks_OFFSET	20
+#define MSTR_active_logic_ranks_MASK	REG_2BIT_MASK
+#define MSTR_active_logic_ranks(value)	_SET_FV(MSTR_active_logic_ranks, value)
+#define MSTR_frequency_ratio		_BV(22)
+#define MSTR_active_ranks_OFFSET	24
+#define MSTR_active_ranks_MASK		REG_5BIT_MASK
+#define MSTR_active_ranks(value)	_SET_FV(MSTR_active_ranks, value)
+#define MSTR_frequency_mode		_BV(29)
+#define MSTR_device_config_OFFSET	30
+#define MSTR_device_config_MASK		REG_2BIT_MASK
+#define MSTR_device_config(value)	_SET_FV(MSTR_device_config, value)
+#define MSTR_device_x4			0
+#define MSTR_device_x8			1
+#define MSTR_device_x16			2
+#define MSTR_device_x32			3
+
+/* 5.1.2 STAT */
+#define STAT_operating_mode_OFFSET	0
+#define STAT_operating_mode_MASK	REG_5BIT_MASK
+#define STAT_operating_mode(value)	_GET_FV(STAT_operating_mode, value)
+#define STAT_operating_mode_Init		0
+#define STAT_operating_mode_Normal		1
+#define STAT_operating_mode_Power_down		2
+#define STAT_operating_mode_Self_refresh	3
+#define STAT_selfref_type_OFFSET	4
+#define STAT_selfref_type_MASK		REG_2BIT_MASK
+#define STAT_selfref_type(value)	_GET_FV(STAT_selfref_type, value)
+#define STAT_selfref_state_OFFSET	8
+#define STAT_selfref_state_MASK		REG_2BIT_MASK
+#define STAT_selfref_state(value)	_GET_FV(STAT_selfref_state, value)
+#define STAT_selfref_cam_not_empty	_BV(12)
+
+/* 5.1.133 DBG1 */
+#define DBG1_dis_dq			_BV(0)
+#define DBG1_dis_hif			_BV(1)
+
+/* 5.1.134 DBGCAM */
+#define DBGCAM_dbg_stall		_BV(24)
+#define DBGCAM_dbg_rd_q_empty		_BV(25)
+#define DBGCAM_dbg_wr_q_empty		_BV(26)
+#define DBGCAM_rd_data_pipeline_empty	_BV(28)
+#define DBGCAM_wr_data_pipeline_empty	_BV(29)
+#define DBGCAM_dbg_stall_wr		_BV(30)
+#define DBGCAM_dbg_stall_rd		_BV(31)
 
 /* ssi_memory_map/ssi_address_block registers */
 

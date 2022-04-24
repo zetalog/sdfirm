@@ -5,6 +5,9 @@
 
 menu "DDR controller drivers"
 
+config ARCH_HAS_DW_UMCTL2_ADV_FEATURE_PKG
+	bool
+
 config ARCH_IS_DW_UMCTL2_DATA_WIDTH_8
 	bool
 
@@ -30,6 +33,72 @@ config ARCH_IS_DW_UMCTL2_DATA_WIDTH_72
 	bool
 
 config ARCH_IS_DW_UMCTL2_DUAL_HIF
+	bool
+
+config ARCH_HAS_DW_UMCTL2_DDR2
+	bool
+
+config ARCH_HAS_DW_UMCTL2_DDR3
+	bool
+
+config ARCH_HAS_DW_UMCTL2_DDR4
+	bool
+
+config ARCH_HAS_DW_UMCTL2_MOBILE
+	bool
+
+config ARCH_HAS_DW_UMCTL2_LPDDR2
+	bool
+
+config ARCH_HAS_DW_UMCTL2_LPDDR3
+	bool
+
+config ARCH_HAS_DW_UMCTL2_LPDDR4
+	bool
+
+config ARCH_IS_DW_UMCTL2_BURST_LENGTH_4
+	bool
+
+config ARCH_IS_DW_UMCTL2_BURST_LENGTH_8
+	bool
+
+config ARCH_IS_DW_UMCTL2_BURST_LENGTH_16
+	bool
+
+if ARCH_IS_DW_UMCTL2_DATA_WIDTH_16 || ARCH_IS_DW_UMCTL2_DATA_WIDTH_32 || \
+   ARCH_IS_DW_UMCTL2_DATA_WIDTH_64
+
+config ARCH_IS_DW_UMCTL2_SECDED_ECC
+	bool
+
+config ARCH_IS_DW_UMCTL2_ADV_ECC_X4
+	bool
+
+config ARCH_IS_DW_UMCTL2_ADV_ECC_X8
+	bool
+
+config ARCH_HAS_DW_UMCTL2_SIDEBAND_ECC
+	bool
+
+endif
+
+config ARCH_HAS_DW_UMCTL2_QBUS
+	bool
+
+config ARCH_HAS_DW_UMCTL2_DDR4_MRAM
+	bool
+	depends ARCH_HAS_DW_UMCTL2_DDR4
+
+config ARCH_IS_DW_UMCTL2_FREQ_RATIO_HW
+	bool
+
+config ARCH_IS_DW_UMCTL2_FREQ_RATIO_SW
+	bool
+
+config ARCH_IS_DW_UMCTL2_FREQ_RATIO_HW_1
+	bool
+
+config ARCH_IS_DW_UMCTL2_FREQ_RATIO_HW_2
 	bool
 
 menuconfig DW_UMCTL2
@@ -81,6 +150,124 @@ endchoice
 config DW_UMCTL2_DUAL_HIF
 	bool "Enable dual HIF"
 	depends ARCH_IS_DW_UMCTL2_DUAL_HIF
+
+config DW_UMCTL2_ECC
+	bool
+
+choice
+	prompt "ECC type"
+	depends DW_UMCTL2_DATA_WIDTH_16 || DW_UMCTL2_DATA_WIDTH_32 || \
+		DW_UMCTL2_DATA_WIDTH_64
+
+config DW_UMCTL2_SECDED_ECC
+	bool "SECDED ECC"
+	depends ARCH_IS_DW_UMCTL2_SECDED_ECC
+	select DW_UMCTL2_ECC
+
+config DW_UMCTL2_ADV_ECC_X4
+	bool "Advanced ECC X4"
+	depends ARCH_IS_DW_UMCTL2_ADV_ECC_X4
+	select DW_UMCTL2_ECC
+
+config DW_UMCTL2_ADV_ECC_X8
+	bool "Advanced ECC X8"
+	depends ARCH_IS_DW_UMCTL2_ADV_ECC_X8
+	select DW_UMCTL2_ECC
+
+endchoice
+
+config DW_UMCTL2_SIDEBAND_ECC
+	bool "Enable sideband ECC"
+	depends DW_UMCTL2_ECC
+
+config DW_UMCTL2_DDR2
+	bool "Enable DDR2 mode"
+	depends ARCH_HAS_DW_UMCTL2_DDR2
+
+config DW_UMCTL2_DDR3
+	bool "Enable DDR3 mode"
+	depends ARCH_HAS_DW_UMCTL2_DDR3
+
+config DW_UMCTL2_DDR4
+	bool "Enable DDR4 mode"
+	depends ARCH_HAS_DW_UMCTL2_DDR4
+
+config DW_UMCTL2_MOBILE
+	bool "Enable mobile (mDDR and LPDDR) mode"
+	depends ARCH_HAS_DW_UMCTL2_MOBILE
+
+config DW_UMCTL2_LPDDR2
+	bool "Enable LPDDR2 mode"
+	depends ARCH_HAS_DW_UMCTL2_LPDDR2
+
+config DW_UMCTL2_LPDDR3
+	bool "Enable LPDDR3 mode"
+	depends ARCH_HAS_DW_UMCTL2_LPDDR3
+
+config DW_UMCTL2_LPDDR4
+	bool "Enable LPDDR4 mode"
+	depends ARCH_HAS_DW_UMCTL2_LPDDR4
+
+config DW_UMCTL2_DDR4_MRAM
+	bool "Enable spin-torque MRAM (ST-MRAM) support"
+	depends ARCH_HAS_DW_UMCTL2_DDR4_MRAM
+	depends DW_UMCTL2_DDR4
+
+choice
+	prompt "Frequency ratio"
+
+config DW_UMCTL2_FREQ_RATIO_HW
+	bool "HW configrable only"
+	depends ARCH_IS_DW_UMCTL2_FREQ_RATIO_HW
+
+config DW_UMCTL2_FREQ_RATIO_SW
+	bool "SW programmable"
+	depends ARCH_IS_DW_UMCTL2_FREQ_RATIO_SW
+
+endchoice
+
+choice
+	prompt "Frequency ratio"
+	depends DW_UMCTL2_FREQ_RATIO_HW
+
+config DW_UMCTL2_FREQ_RATIO_HW_1
+	bool "1:1"
+	depends ARCH_IS_DW_UMCTL2_FREQ_RATIO_HW_1
+
+config DW_UMCTL2_FREQ_RATIO_HW_2
+	bool "1:2"
+	depends ARCH_IS_DW_UMCTL2_FREQ_RATIO_HW_2
+
+endchoice
+
+choice
+	prompt "SDRAM burst length"
+	help
+	  - BL4 controller is not supported in MEMC_FREQ_RATIO=2 (1:2).
+	  - BL4 controller does not support DDR3/DDR4 in full bus width
+	    (as SDRAM BL=8 only), so requires MEMC_DRAM_DATA_WIDTH%16=0
+	    to support half bus width.
+	  - BL4 controller does not support LPDDR3 in full bus width (as
+	    SDRAM BL=8 only), so requires MEM_DRAM_DATA_WIDTH%32=0 to
+	    support half bus width.
+	  - BL4 controller does not support LPDDR4 (as SDRAM BL=16 only).
+	  - BL16 conntroller is required only for full bus width and mDDR,
+	    LPDDR2 or LPDDR4 (as these support SDRAM BL=16).
+
+config DW_UMCTL2_BURST_LENGTH_4
+	bool "4"
+	depends ARCH_IS_DW_UMCTL2_BURST_LENGTH_4
+	depends !DW_UMCTL2_FREQ_RATIO_HW_2
+
+config DW_UMCTL2_BURST_LENGTH_8
+	bool "8"
+	depends ARCH_IS_DW_UMCTL2_BURST_LENGTH_8
+
+config DW_UMCTL2_BURST_LENGTH_16
+	bool "16"
+	depends ARCH_IS_DW_UMCTL2_BURST_LENGTH_16
+
+endchoice
 
 endif
 

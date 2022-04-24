@@ -51,6 +51,8 @@ typedef void dump_outcome(intmax_t *o, count_t c, int show);
 
 #define PCTR "llu"
 #define PTSC "%llu"
+/* kept for old version released to silicon team */
+#define PRIu64 "llu"
 
 /**********/
 /* Random */
