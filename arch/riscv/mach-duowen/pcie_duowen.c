@@ -411,8 +411,20 @@ void pci_platform_init(void)
 		duowen_pcie_wait_linkup(PCIE_CORE_CHIPLINK);
 
 #ifdef CONFIG_DUOWEN_PCIE_SMMU_BYPASS
-	/* bypass pcie smmu temporarily*/
+	/* FIXME: chiplink and socket ID support
+	 *
+	 * Need DMA coherence working here by bypassing pcie SMMU. Should
+	 * be done by an SMMU API to support chiplink and socket ID
+	 * configuration.
+	 */
 	__raw_writel(0x9f0001, (caddr_t)0xff08400000);
+#endif
+
+#ifdef CONFIG_DUOWEN_PCIE_ENUM
+	for (i = 0; i < PCIE_MAX_CORES; i++) {
+		if (duowen_pcie_ctrls[i].active)
+			pci_enum(1, i);
+	}
 #endif
 
 	/* This part carry out an simple communication test between dual

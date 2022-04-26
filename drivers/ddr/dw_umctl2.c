@@ -5,7 +5,8 @@ static void dw_umctl2_init_static_regs(uint8_t n, uint8_t c,
 				       uint8_t f, uint8_t spd)
 {
 	if (spd == DDR4_1600) {
-		__raw_writel(0x00000001, UMCTL2_DBG1(n, c));
+		/* jedec_ddr4_rdimm_2G_x8_1600J_1_250_2R_ecc */
+		__raw_writel(DBG1_dis_dq, UMCTL2_DBG1(n, c));
 		__raw_writel(0x00000001, UMCTL2_PWRCTL(n, c));
 		__raw_writel(0x6F040210, UMCTL2_MSTR(n));
 		__raw_writel(0x00000000, UMCTL2_MSTR2(n));

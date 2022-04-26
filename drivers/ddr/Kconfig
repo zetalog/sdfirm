@@ -5,35 +5,21 @@
 
 menu "DDR controller drivers"
 
-config ARCH_HAS_DW_UMCTL2_ADV_FEATURE_PKG
-	bool
+menuconfig DW_UMCTL2
+	bool "Synopsys DesignWare universal memory controller (uMCTL2) support"
+	select DW_UMCTL2_DDR2 if ARCH_HAS_DW_UMCTL2_DDR2
+	select DW_UMCTL2_DDR3 if ARCH_HAS_DW_UMCTL2_DDR3
+	select DW_UMCTL2_DDR4 if ARCH_HAS_DW_UMCTL2_DDR2
+	select DW_UMCTL2_MOBILE if ARCH_HAS_DW_UMCTL2_MOBILE
+	select DW_UMCTL2_LPDDR2 if ARCH_HAS_DW_UMCTL2_LPDDR2
+	select DW_UMCTL2_LPDDR3 if ARCH_HAS_DW_UMCTL2_LPDDR3
+	select DW_UMCTL2_LPDDR4 if ARCH_HAS_DW_UMCTL2_LPDDR4
 
-config ARCH_IS_DW_UMCTL2_DATA_WIDTH_8
-	bool
+if DW_UMCTL2
 
-config ARCH_IS_DW_UMCTL2_DATA_WIDTH_16
-	bool
+menu "DDRC parameters"
 
-config ARCH_IS_DW_UMCTL2_DATA_WIDTH_32
-	bool
-
-config ARCH_IS_DW_UMCTL2_DATA_WIDTH_40
-	bool
-
-config ARCH_IS_DW_UMCTL2_DATA_WIDTH_48
-	bool
-
-config ARCH_IS_DW_UMCTL2_DATA_WIDTH_56
-	bool
-
-config ARCH_IS_DW_UMCTL2_DATA_WIDTH_64
-	bool
-
-config ARCH_IS_DW_UMCTL2_DATA_WIDTH_72
-	bool
-
-config ARCH_IS_DW_UMCTL2_DUAL_HIF
-	bool
+menu "DDR protocol support"
 
 config ARCH_HAS_DW_UMCTL2_DDR2
 	bool
@@ -43,6 +29,8 @@ config ARCH_HAS_DW_UMCTL2_DDR3
 
 config ARCH_HAS_DW_UMCTL2_DDR4
 	bool
+	select ARCH_HAS_DW_UMCTL2_DDR3
+	depends !ARCH_HAS_DW_UMCTL2_MOBILE
 
 config ARCH_HAS_DW_UMCTL2_MOBILE
 	bool
@@ -52,133 +40,18 @@ config ARCH_HAS_DW_UMCTL2_LPDDR2
 
 config ARCH_HAS_DW_UMCTL2_LPDDR3
 	bool
+	select ARCH_HAS_DW_UMCTL2_LPDDR2
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_16X
 
 config ARCH_HAS_DW_UMCTL2_LPDDR4
 	bool
-
-config ARCH_IS_DW_UMCTL2_BURST_LENGTH_4
-	bool
-
-config ARCH_IS_DW_UMCTL2_BURST_LENGTH_8
-	bool
-
-config ARCH_IS_DW_UMCTL2_BURST_LENGTH_16
-	bool
-
-if ARCH_IS_DW_UMCTL2_DATA_WIDTH_16 || ARCH_IS_DW_UMCTL2_DATA_WIDTH_32 || \
-   ARCH_IS_DW_UMCTL2_DATA_WIDTH_64
-
-config ARCH_IS_DW_UMCTL2_SECDED_ECC
-	bool
-
-config ARCH_IS_DW_UMCTL2_ADV_ECC_X4
-	bool
-
-config ARCH_IS_DW_UMCTL2_ADV_ECC_X8
-	bool
-
-config ARCH_HAS_DW_UMCTL2_SIDEBAND_ECC
-	bool
-
-endif
-
-config ARCH_HAS_DW_UMCTL2_QBUS
-	bool
+	select ARCH_HAS_DW_UMCTL2_LPDDR3
+	depends !ARCH_HAS_DW_UMCTL2_MOBILE && \
+		ARCH_IS_DW_UMCTL2_DATA_WIDTH_16X
 
 config ARCH_HAS_DW_UMCTL2_DDR4_MRAM
 	bool
 	depends ARCH_HAS_DW_UMCTL2_DDR4
-
-config ARCH_IS_DW_UMCTL2_FREQ_RATIO_HW
-	bool
-
-config ARCH_IS_DW_UMCTL2_FREQ_RATIO_SW
-	bool
-
-config ARCH_IS_DW_UMCTL2_FREQ_RATIO_HW_1
-	bool
-
-config ARCH_IS_DW_UMCTL2_FREQ_RATIO_HW_2
-	bool
-
-menuconfig DW_UMCTL2
-	bool "Synopsys DesignWare universal memory controller (uMCTL2) support"
-
-if DW_UMCTL2
-
-choice
-	prompt "DRAM data width"
-
-config DW_UMCTL2_DATA_WIDTH_8
-	bool "8-bits"
-	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_8
-
-config DW_UMCTL2_DATA_WIDTH_16
-	bool "16-bits"
-	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_16
-
-config DW_UMCTL2_DATA_WIDTH_24
-	bool "24-bits"
-	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_24
-
-config DW_UMCTL2_DATA_WIDTH_32
-	bool "32-bits"
-	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_32
-
-config DW_UMCTL2_DATA_WIDTH_40
-	bool "40-bits"
-	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_40
-
-config DW_UMCTL2_DATA_WIDTH_48
-	bool "48-bits"
-	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_48
-
-config DW_UMCTL2_DATA_WIDTH_56
-	bool "56-bits"
-	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_56
-
-config DW_UMCTL2_DATA_WIDTH_64
-	bool "64-bits"
-	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_64
-
-config DW_UMCTL2_DATA_WIDTH_72
-	bool "72-bits"
-	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_72
-
-endchoice
-
-config DW_UMCTL2_DUAL_HIF
-	bool "Enable dual HIF"
-	depends ARCH_IS_DW_UMCTL2_DUAL_HIF
-
-config DW_UMCTL2_ECC
-	bool
-
-choice
-	prompt "ECC type"
-	depends DW_UMCTL2_DATA_WIDTH_16 || DW_UMCTL2_DATA_WIDTH_32 || \
-		DW_UMCTL2_DATA_WIDTH_64
-
-config DW_UMCTL2_SECDED_ECC
-	bool "SECDED ECC"
-	depends ARCH_IS_DW_UMCTL2_SECDED_ECC
-	select DW_UMCTL2_ECC
-
-config DW_UMCTL2_ADV_ECC_X4
-	bool "Advanced ECC X4"
-	depends ARCH_IS_DW_UMCTL2_ADV_ECC_X4
-	select DW_UMCTL2_ECC
-
-config DW_UMCTL2_ADV_ECC_X8
-	bool "Advanced ECC X8"
-	depends ARCH_IS_DW_UMCTL2_ADV_ECC_X8
-	select DW_UMCTL2_ECC
-
-endchoice
-
-config DW_UMCTL2_SIDEBAND_ECC
-	bool "Enable sideband ECC"
-	depends DW_UMCTL2_ECC
 
 config DW_UMCTL2_DDR2
 	bool "Enable DDR2 mode"
@@ -191,6 +64,8 @@ config DW_UMCTL2_DDR3
 config DW_UMCTL2_DDR4
 	bool "Enable DDR4 mode"
 	depends ARCH_HAS_DW_UMCTL2_DDR4
+	depends !DW_UMCTL2_MOBILE
+	select DW_UMCTL2_DDR3
 
 config DW_UMCTL2_MOBILE
 	bool "Enable mobile (mDDR and LPDDR) mode"
@@ -203,15 +78,47 @@ config DW_UMCTL2_LPDDR2
 config DW_UMCTL2_LPDDR3
 	bool "Enable LPDDR3 mode"
 	depends ARCH_HAS_DW_UMCTL2_LPDDR3
+	select DW_UMCTL2_LPDDR2
 
 config DW_UMCTL2_LPDDR4
 	bool "Enable LPDDR4 mode"
 	depends ARCH_HAS_DW_UMCTL2_LPDDR4
+	select DW_UMCTL2_LPDDR3
 
 config DW_UMCTL2_DDR4_MRAM
 	bool "Enable spin-torque MRAM (ST-MRAM) support"
 	depends ARCH_HAS_DW_UMCTL2_DDR4_MRAM
 	depends DW_UMCTL2_DDR4
+
+endmenu
+
+menu "Host interface configuration options"
+
+config ARCH_IS_DW_UMCTL2_FREQ_RATIO_HW
+	bool
+
+config ARCH_IS_DW_UMCTL2_FREQ_RATIO_SW
+	bool
+
+config ARCH_IS_DW_UMCTL2_FREQ_RATIO_HW_1
+	bool
+	select ARCH_IS_DW_UMCTL2_FREQ_RATIO_HW
+
+config ARCH_IS_DW_UMCTL2_FREQ_RATIO_HW_2
+	bool
+	select ARCH_IS_DW_UMCTL2_FREQ_RATIO_HW
+
+config ARCH_IS_DW_UMCTL2_BURST_LENGTH_4
+	bool
+
+config ARCH_IS_DW_UMCTL2_BURST_LENGTH_8
+	bool
+
+config ARCH_IS_DW_UMCTL2_BURST_LENGTH_16
+	bool
+
+config ARCH_IS_DW_UMCTL2_DUAL_HIF
+	bool
 
 choice
 	prompt "Frequency ratio"
@@ -268,6 +175,535 @@ config DW_UMCTL2_BURST_LENGTH_16
 	depends ARCH_IS_DW_UMCTL2_BURST_LENGTH_16
 
 endchoice
+
+config DW_UMCTL2_DUAL_HIF
+	bool "Enable dual HIF"
+	depends ARCH_IS_DW_UMCTL2_DUAL_HIF
+
+endmenu
+
+menu "Memory system interface parameters"
+
+config ARCH_IS_DW_UMCTL2_DATA_WIDTH_16X
+	bool
+
+config ARCH_IS_DW_UMCTL2_DATA_WIDTH_32X
+	bool
+
+config ARCH_IS_DW_UMCTL2_DATA_WIDTH_8
+	bool
+
+config ARCH_IS_DW_UMCTL2_DATA_WIDTH_16
+	bool
+	select ARCH_IS_DW_UMCTL2_DATA_WIDTH_16X
+
+config ARCH_IS_DW_UMCTL2_DATA_WIDTH_32
+	bool
+	select ARCH_IS_DW_UMCTL2_DATA_WIDTH_16X
+	select ARCH_IS_DW_UMCTL2_DATA_WIDTH_32X
+
+config ARCH_IS_DW_UMCTL2_DATA_WIDTH_40
+	bool
+
+config ARCH_IS_DW_UMCTL2_DATA_WIDTH_48
+	bool
+	select ARCH_IS_DW_UMCTL2_DATA_WIDTH_16X
+
+config ARCH_IS_DW_UMCTL2_DATA_WIDTH_56
+	bool
+
+config ARCH_IS_DW_UMCTL2_DATA_WIDTH_64
+	bool
+	select ARCH_IS_DW_UMCTL2_DATA_WIDTH_16X
+	select ARCH_IS_DW_UMCTL2_DATA_WIDTH_32X
+
+config ARCH_IS_DW_UMCTL2_DATA_WIDTH_72
+	bool
+
+config ARCH_IS_DW_UMCTL2_RANK_1
+	bool
+
+config ARCH_IS_DW_UMCTL2_RANK_2
+	bool
+
+config ARCH_IS_DW_UMCTL2_RANK_4
+	bool
+
+config ARCH_HAS_DW_UMCTL2_QBUS
+	bool
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_32X
+
+config ARCH_HAS_DW_UMCTL2_CMD_RTN2IDLE
+	bool
+
+config ARCH_IS_DW_UMCTL2_HET_RANK
+	bool
+	depends !ARCH_IS_DW_UMCTL2_RANK_1
+
+config ARCH_HAS_DW_UMCTL2_HET_RANK_DDR34
+	bool
+	depends !ARCH_IS_DW_UMCTL2_RANK_1
+	depends ARCH_IS_DW_UMCTL2_DDR3
+	depends !ARCH_HAS_DW_UMCTL2_DDR4_MRAM
+	depends !ARCH_HAS_DW_UMCTL2_INLINE_ECC
+
+choice
+	prompt "DRAM data width"
+
+config DW_UMCTL2_DATA_WIDTH_8
+	bool "8-bits"
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_8
+
+config DW_UMCTL2_DATA_WIDTH_16
+	bool "16-bits"
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_16
+
+config DW_UMCTL2_DATA_WIDTH_24
+	bool "24-bits"
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_24
+
+config DW_UMCTL2_DATA_WIDTH_32
+	bool "32-bits"
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_32
+
+config DW_UMCTL2_DATA_WIDTH_40
+	bool "40-bits"
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_40
+
+config DW_UMCTL2_DATA_WIDTH_48
+	bool "48-bits"
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_48
+
+config DW_UMCTL2_DATA_WIDTH_56
+	bool "56-bits"
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_56
+
+config DW_UMCTL2_DATA_WIDTH_64
+	bool "64-bits"
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_64
+
+config DW_UMCTL2_DATA_WIDTH_72
+	bool "72-bits"
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_72
+
+endchoice
+
+choice
+	prompt "Maximum number of ranks"
+
+config DW_UMCTL2_RANK_1
+	bool "1"
+	depends ARCH_IS_DW_UMCTL2_RANK_1
+
+config DW_UMCTL2_RANK_2
+	bool "2"
+	depends ARCH_IS_DW_UMCTL2_RANK_2
+
+config DW_UMCTL2_RANK_4
+	bool "4"
+	depends ARCH_IS_DW_UMCTL2_RANK_4
+
+endchoice
+
+config DW_UMCTL2_QBUS
+	bool "Enable quarter-bus mode"
+	depends ARCH_HAS_DW_UMCTL2_QBUS
+
+config DW_UMCTL2_CMD_RTN2IDLE
+	bool "Enable DFI commands return to idle"
+	depends ARCH_HAS_DW_UMCTL2_CMD_RTN2IDLE
+
+config DW_UMCTL2_HET_RANK
+	bool "Enable heterogeneous density ranks"
+	depends ARCH_HAS_DW_UMCTL2_HET_RANK
+	default y if DW_UMCTL2_DDR4_MRAM && !DW_UMCTL2_RANK_1
+
+config DW_UMCTL2_HET_RANK_DDR34
+	bool "Enable heterogeneous density ranks for DDR3/DDR4"
+	depends ARCH_HAS_DW_UMCTL2_HET_RANK_DDR34
+	depends !DW_UMCTL2_RANK_1
+	depends DW_UMCTL2_DDR3
+	depends !DW_UMCTL2_DDR4_MRAM
+	depends !DW_UMCTL2_INLINE_ECC
+
+endmenu
+
+menu "DFI data options"
+
+config ARCH_HAS_DW_UMCTL2_DFI_DATA_CS
+	bool
+	select DW_UMCTL2_DFI_DATA_CS if DW_UMCTL2_LPDDR4
+
+config DW_UMCTL2_DFI_DATA_CS
+	bool "Enable dfi_wrdata_cs/dfi_rddata_cs signals"
+	depends ARCH_HAS_DW_UMCTL2_DFI_DATA_CS
+
+endmenu
+
+menu "DDRC internal configuration options"
+
+config ARCH_HAS_DW_UMCTL2_DYN_BSM
+	bool
+	depends !ARCH_HAS_DW_UMCTL2_HWFFC
+	depends !ARCH_IS_DW_UMCTL2_INLINE_ECC
+
+config DW_UMCTL2_DYN_BSM
+	bool "Enable dynamic BSM feature"
+	depends ARCH_HAS_DW_UMCTL2_DYN_BSM
+
+endmenu
+
+config ARCH_HAS_DW_UMCTL2_CRC_PARITY_RETRY
+	bool
+	depends ARCH_IS_DW_UMCTL2_DDR4
+	depends ARCH_IS_DW_UMCTL2_INLINE_ECC
+
+config ARCH_HAS_DW_UMCTL2_DQ_MAPPING
+	bool
+	depends ARCH_IS_DW_UMCTL2_DDR4 && ARCH_IS_DW_UMCTL2_FREQ_RATIO_2
+
+config ARCH_IS_DW_UMCTL2_CID_WIDTH_0
+	bool
+
+config ARCH_IS_DW_UMCTL2_CID_WIDTH_1
+	bool
+
+config ARCH_IS_DW_UMCTL2_CID_WIDTH_2
+	bool
+
+config ARCH_IS_DW_UMCTL2_LRANK_1
+	bool
+
+config ARCH_IS_DW_UMCTL2_LRANK_2
+	bool
+
+config ARCH_IS_DW_UMCTL2_LRANK_4
+	bool
+
+config ARCH_IS_DW_UMCTL2_LRANK_8
+	bool
+
+config ARCH_IS_DW_UMCTL2_LRANK_16
+	bool
+
+if DW_UMCTL2_DDR4
+
+menu "DDR4 specific configuration options"
+
+config DW_UMCTL2_CRC_PARITY_RETRY
+	bool "Enable retry for CRC/parity error"
+	depends ARCH_HAS_DW_UMCTL2_CRC_PARITY_RETRY
+
+config DW_UMCTL2_DQ_MAPPING
+	bool "Enable DQ mapping for CRC"
+	depends ARCH_HAS_UMCTL2_DQ_MAPPING
+	depends DW_UMCTL2_FREQ_RATIO_2
+
+config DW_UMCTL2_CID_WIDTH_0
+	bool
+	default y if ARCH_IS_DW_UMCTL2_CID_WIDTH_0
+
+if !DW_UMCTL2_CID_WIDTH_0
+
+choice
+	prompt "DDR4 3DS chip ID width"
+
+config DW_UMCTL2_CID_WIDTH_1
+	bool "2H"
+	depends ARCH_IS_DW_UMCTL2_CID_WIDTH_1
+
+config DW_UMCTL2_CID_WIDTH_2
+	bool "4H"
+	depends ARCH_IS_DW_UMCTL2_CID_WIDTH_2
+
+endchoice
+
+choice
+	prompt "Maximum number of logical ranks"
+
+config DW_UMCTL2_LRANK_1
+	bool "1"
+	depends ARCH_IS_DW_UMCTL2_LRANK_1
+
+config DW_UMCTL2_LRANK_2
+	bool "2"
+	depends ARCH_IS_DW_UMCTL2_LRANK_2
+
+config DW_UMCTL2_LRANK_4
+	bool "4"
+	depends ARCH_IS_DW_UMCTL2_LRANK_4
+
+config DW_UMCTL2_LRANK_8
+	bool "8"
+	depends ARCH_IS_DW_UMCTL2_LRANK_8
+
+config DW_UMCTL2_LRANK_16
+	bool "16"
+	depends ARCH_IS_DW_UMCTL2_LRANK_16
+
+endchoice
+
+endif
+
+endmenu
+
+endif
+
+menu "Fast frequency change support"
+
+config ARCH_HAS_DW_UMCTL2_FAST_FREQ_CHANGE
+	bool
+	depends !ARCH_IS_DW_UMCTL2_FREQ_1
+
+config ARCH_IS_DW_UMCTL2_FREQ_1
+	bool
+
+config ARCH_IS_DW_UMCTL2_FREQ_2
+	bool
+	select ARCH_HAS_DW_UMCTL2_FAST_FREQ_CHANGE
+
+config ARCH_IS_DW_UMCTL2_FREQ_3
+	bool
+	select ARCH_HAS_DW_UMCTL2_FAST_FREQ_CHANGE
+
+config ARCH_IS_DW_UMCTL2_FREQ_4
+	bool
+	select ARCH_HAS_DW_UMCTL2_FAST_FREQ_CHANGE
+
+config ARCH_HAS_DW_UMCTL2_HWFFC
+	bool
+	depends ARCH_IS_DW_UMCTL2_DDR3 || ARCH_IS_DW_UMCTL2_DDR4
+	depends ARCH_HAS_DW_UMCTL2_FAST_FREQ_CHANGE
+	depends !ARCH_IS_DW_UMCTL2_FREQ_1
+
+config DW_UMCTL2_FAST_FREQ_CHANGE
+	bool "Enable fast frequency change"
+	depends ARCH_HAS_DW_UMCTL2_FAST_FREQ_CHANGE
+
+choice
+	prompt "Number of operational frequencies"
+
+config DW_UMCTL2_FREQ_1
+	bool "1"
+	depends !DW_UMCTL2_FAST_FREQ_CHANGE
+
+config DW_UMCTL2_FREQ_2
+	bool "2"
+	depends ARCH_IS_DW_UMCTL2_FREQ_2
+	depends DW_UMCTL2_FAST_FREQ_CHANGE
+
+config DW_UMCTL2_FREQ_3
+	bool "4"
+	depends ARCH_IS_DW_UMCTL2_FREQ_3
+	depends DW_UMCTL2_FAST_FREQ_CHANGE
+
+config DW_UMCTL2_FREQ_4
+	bool "4"
+	depends ARCH_IS_DW_UMCTL2_FREQ_4
+	depends DW_UMCTL2_FAST_FREQ_CHANGE
+
+endchoice
+
+config DW_UMCTL2_HWFFC
+	bool "Enable hardware fast frequency change"
+	depends ARCH_HAS_DW_UMCTL2_HWFFC
+	depends DW_UMCTL2_DDR3 || DW_UMCTL2_DDR4
+	depends DW_UMCTL2_FAST_FREQ_CHANGE
+	depends !DW_UMCTL2_FREQ_1
+
+endmenu
+
+menu "Enhanced scheduler support"
+
+config ARCH_HAS_DW_UMCTL2_ENH_CAM_PTR
+	bool
+
+config ARCH_HAS_DW_UMCTL2_ENH_RDWR_SWITCH
+	bool
+
+config DW_UMCTL2_ENH_CAM_PTR
+	bool "Enable enhanced CAM pointer mechanism"
+	depends ARCH_HAS_DW_UMCTL2_ENH_CAM_PTR
+
+config DW_UMCTL2_ENH_RDWR_SWITCH
+	bool "Enable enhanced RD/WR switching mechanism"
+	depends ARCH_HAS_DW_UMCTL2_ENH_RDWR_SWITCH
+
+endmenu
+
+endmenu
+
+menu "Reliability feature parameters"
+
+menu "Memory ECC"
+
+config ARCH_IS_DW_UMCTL2_ECC
+	bool
+
+if ARCH_IS_DW_UMCTL2_DATA_WIDTH_16 || ARCH_IS_DW_UMCTL2_DATA_WIDTH_32 || \
+   ARCH_IS_DW_UMCTL2_DATA_WIDTH_64
+
+config ARCH_IS_DW_UMCTL2_SECDED_ECC
+	bool
+	select ARCH_IS_DW_UMCTL2_ECC
+
+config ARCH_IS_DW_UMCTL2_ADV_ECC_X4
+	bool
+	select ARCH_IS_DW_UMCTL2_ECC
+
+config ARCH_IS_DW_UMCTL2_ADV_ECC_X8
+	bool
+	select ARCH_IS_DW_UMCTL2_ECC
+
+config ARCH_HAS_DW_UMCTL2_SIDEBAND_ECC
+	bool
+	depends ARCH_IS_DW_UMCTL2_ECC
+
+config ARCH_HAS_DW_UMCTL2_INLINE_ECC
+	bool
+	depends ARCH_IS_DW_UMCTL2_ECC
+	depends !ARCH_IS_DW_UMCTL2_FREQ_RATIO_HW_1
+	depends ARCH_IS_DW_UMCTL2_DDR3 || ARCH_IS_DW_UMCTL2_DDR4 || \
+		ARCH_IS_DW_UMCTL2_LPDDR2 || ARCH_IS_DW_UMCTL2_LPDDR3 || \
+		ARCH_IS_DW_UMCTL2_LPDDR4
+	depends !ARCH_IS_DW_UMCTL2_DUAL_HIF
+	depends !ARCH_HAS_DW_UMCTL2_DDR4_MRAM
+
+config ARCH_IS_DW_UMCTL2_BLK_CHANNEL_4
+	bool
+	depends ARCH_HAS_DW_UMCTL2_INLINE_ECC
+
+config ARCH_IS_DW_UMCTL2_BLK_CHANNEL_8
+	bool
+	depends ARCH_HAS_DW_UMCTL2_INLINE_ECC
+
+config ARCH_IS_DW_UMCTL2_BLK_CHANNEL_16
+	bool
+	depends ARCH_HAS_DW_UMCTL2_INLINE_ECC
+
+config ARCH_IS_DW_UMCTL2_BLK_CHANNEL_32
+	bool
+	depends ARCH_HAS_DW_UMCTL2_INLINE_ECC
+
+config ARCH_HAS_DW_UMCTL2_ECCAP
+	bool
+	depends ARCH_HAS_DW_UMCTL2_INLINE_ECC
+
+config ARCH_HAS_DW_UMCTL2_SBR
+	bool
+	depends ARCH_IS_DW_UMCTL2_ECC
+
+endif
+
+config DW_UMCTL2_ECC
+	bool
+
+choice
+	prompt "ECC type"
+	depends DW_UMCTL2_DATA_WIDTH_16 || DW_UMCTL2_DATA_WIDTH_32 || \
+		DW_UMCTL2_DATA_WIDTH_64
+
+config DW_UMCTL2_SECDED_ECC
+	bool "SECDED ECC"
+	depends ARCH_IS_DW_UMCTL2_SECDED_ECC
+	select DW_UMCTL2_ECC
+
+config DW_UMCTL2_ADV_ECC_X4
+	bool "Advanced ECC X4"
+	depends ARCH_IS_DW_UMCTL2_ADV_ECC_X4
+	select DW_UMCTL2_ECC
+
+config DW_UMCTL2_ADV_ECC_X8
+	bool "Advanced ECC X8"
+	depends ARCH_IS_DW_UMCTL2_ADV_ECC_X8
+	select DW_UMCTL2_ECC
+
+endchoice
+
+config DW_UMCTL2_SIDEBAND_ECC
+	bool "Enable sideband ECC"
+	depends ARCH_HAS_DW_UMCTL2_SIDEBAND_ECC
+	depends DW_UMCTL2_ECC
+
+config DW_UMCTL2_INLINE_ECC
+	bool "Enable inline ECC"
+	depends ARCH_HAS_DW_UMCTL2_INLINE_ECC
+	depends DW_UMCTL2_ECC
+	depends !DW_UMCTL2_FREQ_RATIO_HW_1
+	depends !DW_UMCTL2_DUAL_HIF
+	depends !DW_UMCTL2_DDR4_MRAM
+
+choice
+	prompt "Number of blocks interleaved"
+	depends DW_UMCTL2_INLINE_ECC
+
+config DW_UMCTL2_BLK_CHANNEL_4
+	bool "4"
+	depends ARCH_IS_DW_UMCTL2_BLK_CHANNEL_4
+
+config DW_UMCTL2_BLK_CHANNEL_8
+	bool "8"
+	depends ARCH_IS_DW_UMCTL2_BLK_CHANNEL_8
+
+config DW_UMCTL2_BLK_CHANNEL_16
+	bool "16"
+	depends ARCH_IS_DW_UMCTL2_BLK_CHANNEL_16
+
+config DW_UMCTL2_BLK_CHANNEL_32
+	bool "32"
+	depends ARCH_IS_DW_UMCTL2_BLK_CHANNEL_32
+
+endchoice
+
+config DW_UMCTL2_ECCAP
+	bool "Enable address parity checking"
+	depends ARCH_HAS_DW_UMCTL2_ECCAP
+	depends DW_UMCTL2_INLINE_ECC
+
+config DW_UMCTL2_SBR
+	bool "Enable ECC scrubber block"
+	depends ARCH_HAS_DW_UMCTL2_SBR
+
+endmenu
+
+config ARCH_HAS_DW_UMCTL2_OCPAR
+	bool
+
+config ARCH_HAS_DW_UMCTL2_OCECC
+	bool
+
+config ARCH_HAS_DW_UMCTL2_REGPAR
+	bool
+
+config ARCH_HAS_DW_UMCTL2_OCCAP
+	bool
+
+if ARCH_HAS_DW_UMCTL2_OCPAR || ARCH_HAS_DW_UMCTL2_OCECC || \
+   ARCH_HAS_DW_UMCTL2_REGPAR || ARCH_HAS_DW_UMCTL2_OCCAP
+
+menu "On-chip reliability"
+
+config DW_UMCTL2_OCPAR
+	bool "Enable on-chip parity feature"
+	depends ARCH_HAS_DW_UMCTL2_OCPAR
+
+config DW_UMCTL2_OCECC
+	bool "Enable on-chip ECC feature"
+	depends ARCH_HAS_DW_UMCTL2_OCECC
+
+config DW_UMCTL2_REGPAR
+	bool "Enable register parity feature"
+	depends ARCH_HAS_DW_UMCTL2_REGPAR
+
+config DW_UMCTL2_OCCAP
+	bool "Enable on-chip command/address protection feature"
+	depends ARCH_HAS_DW_UMCTL2_OCCAP
+
+endmenu
+
+endif
+
+endmenu
 
 endif
 
