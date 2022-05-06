@@ -370,7 +370,7 @@ menuconfig DPULP_SSI_FLASH
 	select ARCH_HAS_SSI_SPI
 	select ARCH_HAS_SSI_SPI_1WIRE
 	select ARCH_HAS_SPIFLASH
-	select SPIFLASH_W25Q32
+	select SPIFLASH_W25Q
 	select STRING_UUID
 	help
 	  The DPULP SoC also contains a DW_SSI controller that can be used

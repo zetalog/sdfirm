@@ -54,6 +54,32 @@
 #define NR_DW_UMCTL2S		1
 #endif
 
+#ifdef CONFIG_DW_UMCTL2_CID_WIDTH_1
+#define DW_UMCTL2_CID_WIDTH		1
+#endif
+#ifdef CONFIG_DW_UMCTL2_CID_WIDTH_2
+#define DW_UMCTL2_CID_WIDTH		2
+#endif
+
+#ifdef CONFIG_DW_UMCTL2_RANK_1
+#define DW_UMCTL2_NUM_RANKS		1
+#endif
+#ifdef CONFIG_DW_UMCTL2_RANK_2
+#define DW_UMCTL2_NUM_RANKS		2
+#endif
+#ifdef CONFIG_DW_UMCTL2_RANK_4
+#define DW_UMCTL2_NUM_RANKS		4
+#endif
+
+/* MEMC_PAGE_BITS */
+#ifdef CONFIG_DW_UMCTL2_DDR4
+#define DW_UMCTRL2_PAGE_BITS		18
+#elif defined(CONFIG_DW_UMCTL2_LPDDR4)
+#define DW_UMCTRL2_PAGE_BITS		17
+#else
+#define DW_UMCTRL2_PAGE_BITS		16
+#endif
+
 /* uMCTL2 DDRC Registers UMCTL2_REGS */
 /* uMCTL2 DDRC DCH1 Registers UMCTL2_REGS_DCH1 (UMCTL2_CREG)
  * if UMCTL2_DUAL_DATA_CHANNEL=1
@@ -85,8 +111,10 @@
 #define UMCTL2_PWRCTL(n, c)		DW_UMCTL2_CREG(n, c, 0x030)
 #define UMCTL2_PWRTMG(n, f)		DW_UMCTL2_FREG(n, f, 0x034)
 #define UMCTL2_RFSHCTL0(n, f)		DW_UMCTL2_FREG(n, f, 0x050)
+#if DW_UMCTL2_NUM_RANKS > 1
 #define UMCTL2_RFSHCTL1(n)		DW_UMCTL2_REG(n, 0x054)
 #define UMCTL2_RFSHCTL2(n)		DW_UMCTL2_REG(n, 0x058)
+#endif /* DW_UMCTL2_NUM_RANKS > 1 */
 #define UMCTL2_RFSHCTL4(n)		DW_UMCTL2_REG(n, 0x05C)
 #define UMCTL2_RFSHCTL3(n)		DW_UMCTL2_REG(n, 0x060)
 #define UMCTL2_RFSHTMG(n, f)		DW_UMCTL2_FREG(n, f, 0x064)
@@ -376,8 +404,12 @@
  *   some specific conditions outside reset. There are four groups this
  *   type.
  */
+/* Static */
 /* 5.1 UMCTL2_REGS Registers */
 /* 5.1.1 MSTR */
+#define MSTR_protocols_OFFSET		0
+#define MSTR_protocols_MASK		REG_6BIT_MASK
+#define MSTR_protocols(value)		_SET_FV(MSTR_protocols, value)
 #ifdef CONFIG_DW_UMCTL2_DDR3
 #define MSTR_ddr3			_BV(0)
 #else
@@ -423,20 +455,12 @@
 #ifndef CONFIG_DW_UMCTL2_CMD_RTN2IDLE
 #define MSTR_en_2t_timing_mode		_BV(10)
 #endif
-#if defined(CONFIG_DW_UMCTL2_DDR4) && \
-    !defined(CONFIG_DW_UMCTL2_CMD_RTN2IDLE) && \
-    defined(CONFIG_DW_UMCTL2_FREQ_RATIO_2)
-#define MSTR_geardown_mode		_BV(11)
-#endif
 #define MSTR_data_bus_width_OFFSET	12
 #define MSTR_data_bus_width_MASK	REG_2BIT_MASK
 #define MSTR_data_bus_width(value)	_SET_FV(MSTR_data_bus_width, value)
 #define MSTR_data_bus_full_DQ		0
 #define MSTR_data_bus_half_DQ		1
 #define MSTR_data_bus_quarter_DQ	2
-#if defined(CONFIG_DW_UMCTL2_DDR3) || defined(CONFIG_DW_UMCTL2_DDR4)
-#define MSTR_dll_off_mode		_BV(15)
-#endif
 #define MSTR_burst_rdwr_OFFSET		16
 #define MSTR_burst_rdwr_MASK		REG_4BIT_MASK
 #define MSTR_burst_rdwr(value)		_SET_FV(MSTR_burst_rdwr, value)
@@ -453,9 +477,8 @@
 #define MSTR_active_ranks_OFFSET	24
 #define MSTR_active_ranks_MASK		REG_5BIT_MASK
 #define MSTR_active_ranks(value)	_SET_FV(MSTR_active_ranks, value)
-#define MSTR_frequency_mode		_BV(29)
 #ifdef CONFIG_DW_UMCTL2_DDR4
-#define MSTR_device_config_OFFSET	30 /* Static */
+#define MSTR_device_config_OFFSET	30
 #define MSTR_device_config_MASK		REG_2BIT_MASK
 #define MSTR_device_config(value)	_SET_FV(MSTR_device_config, value)
 #define MSTR_device_x4			0
@@ -480,22 +503,17 @@
 #define STAT_selfref_state(value)	_GET_FV(STAT_selfref_state, value)
 #define STAT_selfref_cam_not_empty	_BV(12)
 
-/* 5.1.12 PWRCTL */
-#define PWRCTL_slfref_en		_BV(0)
-#define PWRCTL_powerdown_en		_BV(1)
-#if defined(CONFIG_DW_UMCTL2_MOBILE) || defined(CONFIG_DW_UMCTL2_LPDDR2)
-#define PWRCTL_deeppowerdown_en		_BV(2)
-#endif
-#define PWRCTL_en_dfi_dram_clk_disable	_BV(3)
-#ifdef CONFIG_DW_UMCTL2_DDR4
-#define PWRCTL_mpsm_en			_BV(4)
-#endif
-#define PWRCTL_slfref_sw		_BV(5)
-#define PWRCTL_dis_cam_drain_selfref	_BV(7)
-#ifdef CONFIG_DW_UMCTL2_LPDDR4
-#define PWRCTL_stay_in_selfref		_BV(6)
-#define PWRCTL_lpddr4_sr_allowed	_BV(8)
-#endif
+/* 5.1.4 MRCTRL0 */
+#ifndef CONFIG_DW_UMCTL2_CID_WIDTH_0
+#define MRCTRL0_mr_cid_OFFSET		16
+#define MRCTRL0_mr_cid_MASK		(_BV(DW_UMCTL2_CID_WIDTH) - 1)
+#define MRCTRL0_mr_cid(value)		_SET_FV(MRCTRL0_mr_cid, value)
+#endif /* CONFIG_DW_UMCTL2_CID_WIDTH_0 */
+
+/* 5.1.14 HWLPCTL */
+#define HWLPCTL_hw_lp_exit_idle_en	_BV(1)
+#define HWLPCTL_hw_lp_idle_x32_OFFSET	16
+#define HWLPCTL_hw_lp_idle_x32_MASK	_SET_FV(HWLPCTL_hw_lp_idle_x32, value)
 
 /* 5.1.133 DBG1 */
 #define DBG1_dis_dq			_BV(0)
@@ -509,6 +527,106 @@
 #define DBGCAM_wr_data_pipeline_empty	_BV(29)
 #define DBGCAM_dbg_stall_wr		_BV(30)
 #define DBGCAM_dbg_stall_rd		_BV(31)
+
+/* 5.1.20 RFSHCTL0 */
+#define RFSHCTL0_per_bank_refresh	_BV(2)
+
+/* Dynamic */
+/* 5.1.4 MRCTRL0 */
+#define MRCTRL0_mr_type			_BV(0)
+#define MRCTRL0_mpr_en			_BV(1)
+#define MRCTRL0_pda_en			_BV(2)
+#define MRCTRL0_sw_init_int		_BV(3)
+#define MRCTRL0_mr_rank_OFFSET		4
+#define MRCTRL0_mr_rank_MASK		(_BV(DW_UMCTL2_NUM_RANKS) - 1)
+#define MRCTRL0_mr_rank(value)		_SET_FV(MRCTRL0_mr_rank, value)
+#define MRCTRL0_mr_addr_OFFSET		12
+#define MRCTRL0_mr_addr_MASK		REG_4BIT_MASK
+#define MRCTRL0_mr_addr(value)		_SET_FV(MRCTRL0_mr_addr, value)
+#define MRCTRL0_pba_mode		_BV(30)
+#define MRCTRL0_mr_wr			_BV(31)
+
+/* 5.1.5 MRCTRL1 */
+#define MRCTRL1_mr_data_OFFSET		0
+#define MRCTRL1_mr_data_MASK		(_BV(DW_UMCTL2_PAGE_BITS) - 1)
+#define MRCTRL1_mr_data(value)		_SET_FV(MRCTRL1_mr_data, value)
+
+/* 5.1.12 PWRCTL */
+#define PWRCTL_slfref_en		_BV(0)
+#define PWRCTL_powerdown_en		_BV(1)
+#if defined(CONFIG_DW_UMCTL2_MOBILE) || defined(CONFIG_DW_UMCTL2_LPDDR2)
+#define PWRCTL_deeppowerdown_en		_BV(2)
+#endif /* CONFIG_DW_UMCTL2_MOBILE || CONFIG_DW_UMCTL2_LPDDR2 */
+#define PWRCTL_en_dfi_dram_clk_disable	_BV(3)
+#ifdef CONFIG_DW_UMCTL2_DDR4
+#define PWRCTL_mpsm_en			_BV(4)
+#endif /* CONFIG_DW_UMCTL2_DDR4 */
+#define PWRCTL_slfref_sw		_BV(5)
+#define PWRCTL_dis_cam_drain_selfref	_BV(7)
+#ifdef CONFIG_DW_UMCTL2_LPDDR4
+#define PWRCTL_stay_in_selfref		_BV(6)
+#define PWRCTL_lpddr4_sr_allowed	_BV(8)
+#endif /* CONFIG_DW_UMCTL2_LPDDR4 */
+
+/* Dynamic - refresh */
+/* 5.1.20 RFSHCTL0 */
+#define RFSHCTL0_refresh_burst_OFFSET	4
+#define RFSHCTL0_refresh_burst_MASK	REG_6BIT_MASK
+#define RFSHCTL0_refresh_burst(value)	_SET_FV(RFSHCTL0_refresh_burst, value)
+#define RFSHCTL0_refresh_to_x1_x32_OFFSET	12
+#define RFSHCTL0_refresh_to_x1_x32_MASK		REG_5BIT_MASK
+#define RFSHCTL0_refresh_to_x1_x32(value)	\
+	_SET_FV(RFSHCTL0_refresh_to_x1_x32, value)
+#define RFSHCTL0_refresh_margin_OFFSET	20
+#define RFSHCTL0_refresh_margin_MASK	REG_4BIT_MASK
+#define RFSHCTL0_refresh_margin(value)	_SET_FV(RFSHCTL0_refresh_margin, value)
+
+/* Quasi-dynamic Group 2 */
+/* 5.1 UMCTL2_REGS Registers */
+/* 5.1.1 MSTR */
+#if defined(CONFIG_DW_UMCTL2_DDR4) && \
+    !defined(CONFIG_DW_UMCTL2_CMD_RTN2IDLE) && \
+    defined(CONFIG_DW_UMCTL2_FREQ_RATIO_2)
+#define MSTR_geardown_mode		_BV(11)
+#endif /* CONFIG_DW_UMCTL2_DDR4 && !CONFIG_DW_UMCTL2_CMD_RTN2IDLE &&
+	  CONFIG_DW_UMCTL2_FREQ_RATIO_2 */
+#if defined(CONFIG_DW_UMCTL2_DDR3) || defined(CONFIG_DW_UMCTL2_DDR4)
+#define MSTR_dll_off_mode		_BV(15)
+#endif /* CONFIG_DW_UMCTL2_DDR3 || CONFIG_DW_UMCTL2_DDR4 */
+#define MSTR_frequency_mode		_BV(29)
+
+/* 5.1.10 MSTR2 */
+#define MSTR2_target_frequency_OFFSET	0
+#define MSTR2_target_frequency_MASK	REG_2BIT_MASK
+#define MSTR2_target_frequency(value)	_SET_FV(MSTR2_target_frequency, value)
+
+#ifdef CONFIG_DW_UMCTL2_FAST_FREQ_CHANGE
+#define dw_umctl2_fast_frequency_change(f)			\
+	do {							\
+		__raw_setl(MSTR_frequency_mode, UMCTL2_MSTR);	\
+		__raw_writel_mask(MSTR2_target_frequency(f),	\
+				  MSTR2_target_frequency(	\
+				   MSTR2_target_frequency_MASK),\
+				  UMCTL2_MSTR2);		\
+	} while (0)
+#else /* CONFIG_DW_UMCTL2_FAST_FREQ_CHANGE */
+#define dw_umctl2_fast_frequency_change(f)			\
+	__raw_clearl(MSTR_frequency_mode, UMCTL2_MSTR)
+#endif /* CONFIG_DW_UMCTL2_FAST_FREQ_CHANGE */
+
+/* 5.1.14 HWLPCTL */
+#define HWLPCTL_hw_lp_en		_BV(0)
+
+/* Quasi-dynamic Group 4 */
+#define PWRTMG_powerdown_to_x32_OFFSET	0
+#define PWRTMG_powerdown_to_x32_MASK	REG_5BIT_MASK
+#define PWRTMG_powerdown_to_x32(value)	_SET_FV(PWRTMG_powerdown_to_x32, value)
+#define PWRTMG_t_dpd_x4096_OFFSET	8
+#define PWRTMG_t_dpd_x4096_MASK		REG_8BIT_MASK
+#define PWRTMG_t_dpd_x4096(value)	_SET_FV(PWRTMG_t_dpd_x4096, value)
+#define PWRTMG_selfref_to_x32_OFFSET	16
+#define PWRTMG_selfref_to_x32_MASK	REG_8BIT_MASK
+#define PWRTMG_selfref_to_x32(value)	_SET_FV(PWRTMG_selfref_to_x32, value)
 
 /* ssi_memory_map/ssi_address_block registers */
 

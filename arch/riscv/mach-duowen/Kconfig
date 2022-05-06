@@ -763,7 +763,7 @@ menuconfig DUOWEN_SSI_FLASH
 	select DW_SSI
 	select UEFI
 	select UEFI_GPT
-	select SPIFLASH_W25Q32
+	select SPIFLASH_W25Q
 	select ARCH_HAS_SSI_FIFO
 	select ARCH_HAS_SSI_XFER_32
 	select ARCH_HAS_SSI_FRF

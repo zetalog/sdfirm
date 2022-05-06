@@ -1,5 +1,5 @@
-#ifndef __SPIFLASH_W25Q32_H_INCLUDE__
-#define __SPIFLASH_W25Q32_H_INCLUDE__
+#ifndef __SPIFLASH_W25Q_H_INCLUDE__
+#define __SPIFLASH_W25Q_H_INCLUDE__
 
 #include <target/spi.h>
 
@@ -15,4 +15,4 @@
 #define SPIFLASH_HW_MAX_SIZE		(4 * 1024 * 1024)
 void spiflash_hw_chip_init(void);
 
-#endif /* __SPIFLASH_W25Q32_H_INCLUDE__ */
+#endif /* __SPIFLASH_W25Q_H_INCLUDE__ */

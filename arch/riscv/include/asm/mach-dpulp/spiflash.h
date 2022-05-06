@@ -35,7 +35,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)spiflash.h: DPU-LP SPI flash (w25q32) definitions
+ * @(#)spiflash.h: DPU-LP SPI flash (w25q) definitions
  * $Id: spiflash.h,v 1.1 2021-11-01 15:26:00 zhenglv Exp $
  */
 
@@ -52,6 +52,6 @@
 #define SPIFLASH_HW_MAX_FREQ		50000
 #endif
 
-#include <driver/spiflash_w25q32.h>
+#include <driver/spiflash_w25q.h>
 
 #endif /* __SPIFLASH_DPULP_H_INCLUDE__ */

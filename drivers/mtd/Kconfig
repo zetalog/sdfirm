@@ -10,13 +10,14 @@ config DATAFLASH_AT45DB642D
 	select MTD_DATAFLASH
 
 if DATAFLASH_AT45DB642D
+
 endif
 
-config SPIFLASH_W25Q32
-	bool "Winbond W25Q32 SPI flash support"
+config SPIFLASH_W25Q
+	bool "Winbond W25Q series SPI flash support"
 	select MTD_SPIFLASH
 
-if SPIFLASH_W25Q32
+if SPIFLASH_W25Q
 
 endif
 

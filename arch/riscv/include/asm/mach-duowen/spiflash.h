@@ -35,7 +35,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)spiflash.h: DUOWEN SPI flash (w25q32) definitions
+ * @(#)spiflash.h: DUOWEN SPI flash (w25q) definitions
  * $Id: spiflash.h,v 1.1 2020-05-13 17:46:00 zhenglv Exp $
  */
 
@@ -52,6 +52,6 @@
 #define SPIFLASH_HW_MAX_FREQ		50000
 #endif
 
-#include <driver/spiflash_w25q32.h>
+#include <driver/spiflash_w25q.h>
 
 #endif /* __SPIFLASH_DUOWEN_H_INCLUDE__ */

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Mar  8 17:17:31 2022
+# Fri May  6 12:12:43 2022
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -464,7 +464,7 @@ CONFIG_DW_UART_FIFO_MEM_INTERNAL=y
 # MTD memory drivers
 #
 # CONFIG_DATAFLASH_AT45DB642D is not set
-# CONFIG_SPIFLASH_W25Q32 is not set
+# CONFIG_SPIFLASH_W25Q is not set
 # CONFIG_PN53X is not set
 # CONFIG_ACR122 is not set
 
