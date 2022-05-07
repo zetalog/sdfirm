@@ -93,6 +93,9 @@ endif
 config ARCH_HAS_SPIFLASH
 	bool
 
+config ARCH_HAS_SPIFLASH_ADDR_4BYTE
+	bool
+
 menuconfig MTD_SPIFLASH
 	bool "Winbond SPI interfaced flash support"
 
@@ -142,6 +145,10 @@ config SPIFLASH_ERASE_64K
 	bool "Block 64KB"
 
 endchoice
+
+config SPIFLASH_ADDR_4BYTE
+	bool "Enable 4-byte address mode"
+	depends ARCH_HAS_SPIFLASH_ADDR_4BYTE
 
 endif
 

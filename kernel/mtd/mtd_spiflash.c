@@ -41,6 +41,7 @@ struct spiflash_info {
 	mtd_t mtd;
 	mtd_size_t offset;
 	mtd_size_t length;
+	uint8_t status3;
 };
 
 spiflash_bid_t spiflash_last_bid = 0;
@@ -65,10 +66,15 @@ void spiflash_deselect(void)
 		spiflash_bid = INVALID_SPIFLASH_BID;
 }
 
-static void __spiflash_spi_exchange(uint8_t opcode, mtd_addr_t addr)
+/* Address mode dependent exchange */
+static void __spiflash_spi_writeA(uint8_t opcode, mtd_addr_t addr, bool ads)
 {
 	spiflash_apb_delay(APB_DELAY);
 	spi_write_byte(opcode);
+	if (ads) {
+		spiflash_apb_delay(APB_DELAY);
+		spi_write_byte((uint8_t)(addr >> 24));
+	}
 	spiflash_apb_delay(APB_DELAY);
 	spi_write_byte((uint8_t)(addr >> 16));
 	spiflash_apb_delay(APB_DELAY);
@@ -77,23 +83,26 @@ static void __spiflash_spi_exchange(uint8_t opcode, mtd_addr_t addr)
 	spi_write_byte((uint8_t)(addr >> 0));
 }
 
-static void spiflash_spi_exchange(uint8_t opcode, mtd_addr_t addr)
+static void spiflash_spi_writeA(uint8_t opcode, mtd_addr_t addr, bool ads)
 {
 	__unused uint8_t status;
 
-	__spiflash_spi_exchange(opcode, addr);
+	__spiflash_spi_writeA(opcode, addr, ads);
 	spi_select_device(spiflash_privs[spiflash_bid].spi);
 	status = spi_read_byte();
 	spi_deselect_device();
 }
 
-uint8_t spiflash_status(void)
+static uint8_t spiflash_spi_status(uint8_t opcode)
 {
 	uint8_t status;
 
+	/* Status register will be repeated continously unless the CS is
+	 * driven high. Thus, unlike spiflash_spi_writeA(), CS is driven
+	 * low prior than preparing the SPI request.
+	 */
 	spi_select_device(spiflash_privs[spiflash_bid].spi);
-	spi_write_byte(SF_READ_STATUS_1);
-	status = spi_read_byte();
+	status = spi_txrx(opcode);
 	spi_deselect_device();
 	return status;
 }
@@ -102,9 +111,18 @@ uint8_t spiflash_waitready(void)
 {
 	uint8_t status;
 	do {
-		status = spiflash_status();
+		status = spiflash_spi_status(SF_READ_STATUS_1);
 	} while (status & SF_BUSY);
 	return status;
+}
+
+bool spiflash_is4byte(spiflash_bid_t bid)
+{
+	uint8_t status;
+
+	status = spiflash_spi_status(SF_READ_STATUS_3);
+	spiflash_privs[spiflash_bid].status3 = status;
+	return !!(status & SF_ADS);
 }
 
 static mtd_addr_t spiflash_page2addr(mtd_addr_t addr)
@@ -148,12 +166,37 @@ mtd_addr_t spiflash_page_addr(mtd_addr_t addr)
 	return spiflash_page2addr(spiflash_page_number(addr));
 }
 
+#ifdef CONFIG_SPIFLASH_ADDR_4BYTE
+static void spiflash_spi_write0(uint8_t opcode)
+{
+	spi_select_device(spiflash_privs[spiflash_bid].spi);
+	(void)spi_txrx(opcode);
+	spi_deselect_device();
+}
+
+void spiflash_enter_4byte(spiflash_bid_t bid)
+{
+	spiflash_spi_write0(SF_ENTER_ADDR_4BYTE);
+	(void)spiflash_is4byte(bid);
+}
+
+void spiflash_exit_4byte(spiflash_bid_t bid)
+{
+	spiflash_spi_write0(SF_EXIT_ADDR_4BYTE);
+	(void)spiflash_is4byte(bid);
+}
+#else
+#define spiflash_enter_4byte(bid)		do { } while (0)
+#define spiflash_exit_4byte(bid)		do { } while (0)
+#endif
+
 static void spiflash_erase(mtd_t mtd, mtd_addr_t addr, mtd_size_t size)
 {
 	spiflash_bid_t bid = spiflash_mtd2bid(mtd);
 	mtd_page_t page;
 	mtd_size_t eraselen, blocksize;
 	boolean do_block;
+	bool ads = !!(spiflash_privs[bid].status3 & SF_ADS);
 
 	spiflash_select(bid);
 
@@ -172,8 +215,8 @@ static void spiflash_erase(mtd_t mtd, mtd_addr_t addr, mtd_size_t size)
 		page = page & (SPIFLASH_PAGES_PER_BLOCK - 1);
 
 		spiflash_waitready();
-		spiflash_spi_exchange(SF_ERASE_DATA,
-				      spiflash_page2addr(page));
+		spiflash_spi_writeA(SF_ERASE_DATA,
+				    spiflash_page2addr(page), ads);
 
 		addr += eraselen;
 		size -= eraselen;
@@ -183,10 +226,12 @@ static void spiflash_erase(mtd_t mtd, mtd_addr_t addr, mtd_size_t size)
 static uint8_t spiflash_read(void)
 {
 	uint8_t byte = 0;
+	bool ads = !!(spiflash_privs[spiflash_bid].status3 & SF_ADS);
 
 	if (spiflash_privs[spiflash_bid].length) {
-		__spiflash_spi_exchange(SF_READ_DATA,
-			spiflash_privs[spiflash_bid].offset);
+		__spiflash_spi_writeA(SF_READ_DATA,
+				      spiflash_privs[spiflash_bid].offset,
+				      ads);
 		spi_select_device(spiflash_privs[spiflash_bid].spi);
 		byte = spi_read_byte();
 		spiflash_privs[spiflash_bid].offset++;
@@ -198,10 +243,12 @@ static uint8_t spiflash_read(void)
 
 static void spiflash_write(uint8_t byte)
 {
+	bool ads = !!(spiflash_privs[spiflash_bid].status3 & SF_ADS);
 
 	if (spiflash_privs[spiflash_bid].length) {
-		__spiflash_spi_exchange(SF_PAGE_PROGRAM,
-			spiflash_privs[spiflash_bid].offset);
+		__spiflash_spi_writeA(SF_PAGE_PROGRAM,
+				      spiflash_privs[spiflash_bid].offset,
+				      ads);
 		spi_select_device(spiflash_privs[spiflash_bid].spi);
 		spi_write_byte(byte);
 		spiflash_privs[spiflash_bid].offset++;
@@ -217,11 +264,13 @@ static boolean spiflash_open(uint8_t mode,
 	spiflash_waitready();
 	spiflash_privs[spiflash_bid].offset = addr;
 	spiflash_privs[spiflash_bid].length = size;
+	spiflash_enter_4byte(spiflash_bid);
 	return true;
 }
 
 static void spiflash_close(void)
 {
+	spiflash_exit_4byte(spiflash_bid);
 }
 
 mtd_chip_t spiflash_chip = {

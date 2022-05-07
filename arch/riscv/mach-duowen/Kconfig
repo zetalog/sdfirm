@@ -439,13 +439,13 @@ config DUOWEN_UART_DTS
 if DUOWEN_UART_DTS
 
 config DUOWEN_UART_DTS_CON
-	bool "Enable dw-apc-uart console in DTS"
+	bool "Enable dw-apb-uart console in DTS"
 	help
 	  By default, sbi/hvc0 will be used as console. Enabling this
 	  option to allow DTS to report dw-apb-uart as console.
 
 config DUOWEN_UART_DTS_DMA
-	bool "Enable dw-apc-uart DMA in DTS"
+	bool "Enable dw-apb-uart DMA in DTS"
 	select DUOWEN_DMAC_DTS
 
 config DUOWEN_UART_DTS_CLK_FREQ

@@ -518,7 +518,7 @@ config DPU_UART_DTS
 	depends FDT
 
 config DPU_UART_DTS_CON
-	bool "Enable dw-apc-uart console in DTS"
+	bool "Enable dw-apb-uart console in DTS"
 	depends DPU_UART_DTS
 	help
 	  By default, sbi/hvc0 will be used as console. Enabling this
