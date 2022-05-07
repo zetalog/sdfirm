@@ -705,6 +705,12 @@ endif
 
 endmenu
 
+menu "Custom configurations"
+
+source drivers/ddr/Kconfig.custom
+
+endmenu
+
 endif
 
 endmenu

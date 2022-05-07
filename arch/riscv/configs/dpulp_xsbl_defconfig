@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri May  6 12:15:08 2022
+# Sat May  7 16:34:42 2022
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -640,6 +640,10 @@ CONFIG_DW_UMCTL2_SECDED_ECC=y
 # CONFIG_DW_UMCTL2_ADV_ECC_X4 is not set
 # CONFIG_DW_UMCTL2_ADV_ECC_X8 is not set
 # CONFIG_DW_UMCTL2_SIDEBAND_ECC is not set
+
+#
+# Custom configurations
+#
 
 #
 # Serial Presence Detect (SPD) drivers
