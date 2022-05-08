@@ -67,6 +67,7 @@ config DPU_LOAD_ZSBL
 config DPU_LOAD_FSBL
 	bool
 	select DPU_DDR
+	select SPIFLASH_ADDR_4BYTE
 
 config DPU_LOAD_BBL
 	bool
@@ -593,6 +594,7 @@ menuconfig DPU_SSI_FLASH
 	select ARCH_HAS_SPIFLASH
 	select SPIFLASH_W25Q
 	select STRING_UUID
+	select ARCH_HAS_SPIFLASH_ADDR_4BYTE if !DPU_BOOT_ROM
 	help
 	  The DPU SoC also contains a DW_SSI controller that can be used
 	  to interface with the external SSI flashes. However, the
@@ -602,7 +604,7 @@ if DPU_SSI_FLASH
 
 config DPU_SSI_FLASH_FREQ
 	int "DPU SSI flash frequency"
-	range 100000 80000000
+	range 100000 133000000
 	default 50000000
 	help
 	  The SPINOR flash uses the "EEPROM read" protocol that the CS
@@ -615,6 +617,7 @@ config DPU_SSI_FLASH_FREQ
 	  It's tested that 8MHz is working for the case of "ROM booting
 	  SSI" in the simulation environment, for the non-simulation
 	  environment, it's preferred to use 1MHz by design.
+	  Most of the product line use 80/104/133MHz clocks.
 
 endif
 

@@ -36,6 +36,13 @@
 #define SPIFLASH_PAGES_PER_BLOCK	\
 	(SPIFLASH_ERASE_SIZE/SPIFLASH_PAGE_SIZE)
 
+#define spiflash_tx(byte)			\
+	do {					\
+		spiflash_apb_delay(APB_DELAY);	\
+		spi_write_byte(byte);		\
+	} while (0)
+#define spiflash_rx()			spi_read_byte()
+
 struct spiflash_info {
 	spi_t spi;
 	mtd_t mtd;
@@ -67,30 +74,30 @@ void spiflash_deselect(void)
 }
 
 /* Address mode dependent exchange */
-static void __spiflash_spi_writeA(uint8_t opcode, mtd_addr_t addr, bool ads)
+static void spiflash_eeprom(uint8_t opcode, mtd_addr_t addr, bool ads)
 {
-	spiflash_apb_delay(APB_DELAY);
-	spi_write_byte(opcode);
-	if (ads) {
-		spiflash_apb_delay(APB_DELAY);
-		spi_write_byte((uint8_t)(addr >> 24));
-	}
-	spiflash_apb_delay(APB_DELAY);
-	spi_write_byte((uint8_t)(addr >> 16));
-	spiflash_apb_delay(APB_DELAY);
-	spi_write_byte((uint8_t)(addr >> 8));
-	spiflash_apb_delay(APB_DELAY);
-	spi_write_byte((uint8_t)(addr >> 0));
+	spiflash_tx(opcode);
+	if (ads)
+		spiflash_tx((uint8_t)(addr >> 24));
+	spiflash_tx((uint8_t)(addr >> 16));
+	spiflash_tx((uint8_t)(addr >> 8));
+	spiflash_tx((uint8_t)(addr >> 0));
 }
 
-static void spiflash_spi_writeA(uint8_t opcode, mtd_addr_t addr, bool ads)
+static void spiflash_spi_eeprom(uint8_t opcode, mtd_addr_t addr, bool ads)
 {
 	__unused uint8_t status;
 
-	__spiflash_spi_writeA(opcode, addr, ads);
+	spiflash_eeprom(opcode, addr, ads);
 	spi_select_device(spiflash_privs[spiflash_bid].spi);
-	status = spi_read_byte();
+	status = spiflash_rx();
 	spi_deselect_device();
+}
+
+static uint8_t spiflash_txrx(uint8_t byte)
+{
+	spiflash_tx(byte);
+	return spiflash_rx();
 }
 
 static uint8_t spiflash_spi_status(uint8_t opcode)
@@ -98,11 +105,11 @@ static uint8_t spiflash_spi_status(uint8_t opcode)
 	uint8_t status;
 
 	/* Status register will be repeated continously unless the CS is
-	 * driven high. Thus, unlike spiflash_spi_writeA(), CS is driven
-	 * low prior than preparing the SPI request.
+	 * driven high. Thus, unlike spiflash_eeprom(), CS is driven low
+	 * prior than preparing the SPI request.
 	 */
 	spi_select_device(spiflash_privs[spiflash_bid].spi);
-	status = spi_txrx(opcode);
+	status = spiflash_txrx(opcode);
 	spi_deselect_device();
 	return status;
 }
@@ -170,7 +177,8 @@ mtd_addr_t spiflash_page_addr(mtd_addr_t addr)
 static void spiflash_spi_write0(uint8_t opcode)
 {
 	spi_select_device(spiflash_privs[spiflash_bid].spi);
-	(void)spi_txrx(opcode);
+	spiflash_tx(opcode);
+	(void)spiflash_rx();
 	spi_deselect_device();
 }
 
@@ -215,7 +223,7 @@ static void spiflash_erase(mtd_t mtd, mtd_addr_t addr, mtd_size_t size)
 		page = page & (SPIFLASH_PAGES_PER_BLOCK - 1);
 
 		spiflash_waitready();
-		spiflash_spi_writeA(SF_ERASE_DATA,
+		spiflash_spi_eeprom(SF_ERASE_DATA,
 				    spiflash_page2addr(page), ads);
 
 		addr += eraselen;
@@ -229,11 +237,10 @@ static uint8_t spiflash_read(void)
 	bool ads = !!(spiflash_privs[spiflash_bid].status3 & SF_ADS);
 
 	if (spiflash_privs[spiflash_bid].length) {
-		__spiflash_spi_writeA(SF_READ_DATA,
-				      spiflash_privs[spiflash_bid].offset,
-				      ads);
+		spiflash_eeprom(SF_READ_DATA,
+				spiflash_privs[spiflash_bid].offset, ads);
 		spi_select_device(spiflash_privs[spiflash_bid].spi);
-		byte = spi_read_byte();
+		byte = spiflash_rx();
 		spiflash_privs[spiflash_bid].offset++;
 		spiflash_privs[spiflash_bid].length--;
 		spi_deselect_device();
@@ -246,11 +253,10 @@ static void spiflash_write(uint8_t byte)
 	bool ads = !!(spiflash_privs[spiflash_bid].status3 & SF_ADS);
 
 	if (spiflash_privs[spiflash_bid].length) {
-		__spiflash_spi_writeA(SF_PAGE_PROGRAM,
-				      spiflash_privs[spiflash_bid].offset,
-				      ads);
+		spiflash_eeprom(SF_PAGE_PROGRAM,
+				spiflash_privs[spiflash_bid].offset, ads);
 		spi_select_device(spiflash_privs[spiflash_bid].spi);
-		spi_write_byte(byte);
+		spiflash_tx(byte);
 		spiflash_privs[spiflash_bid].offset++;
 		spiflash_privs[spiflash_bid].length--;
 		spi_deselect_device();

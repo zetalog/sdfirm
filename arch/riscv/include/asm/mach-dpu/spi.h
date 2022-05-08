@@ -74,6 +74,11 @@
 #endif
 
 #define DW_SSI_CLK_FREQ			(APB_CLK_FREQ) /* Hz */
+#ifdef CONFIG_SPIFLASH_ADDR_4BYTE
+#define DW_SSI_ADDR_LEN			32
+#else
+#define DW_SSI_ADDR_LEN			24
+#endif
 
 #ifdef CONFIG_DW_SSI
 #define spi_hw_config_mode(mode)	dw_ssi_config_mode(SSI_ID, mode)
@@ -88,7 +93,7 @@
 		dw_ssi_init_master(SSI_ID, SSI_SPI_FRF_STD,	\
 				   SSI_TMOD_EEPROM_READ, 8, 8);	\
 		dw_ssi_init_spi(SSI_ID, SSI_SPI_FRF_STD,	\
-				8, 24, 0);			\
+				8, DW_SSI_ADDR_LEN, 0);		\
 	} while (0)
 #define spi_hw_ctrl_start()		dw_ssi_start_ctrl(SSI_ID)
 #define spi_hw_ctrl_stop()		dw_ssi_stop_ctrl(SSI_ID)
