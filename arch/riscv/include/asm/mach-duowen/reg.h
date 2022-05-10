@@ -276,7 +276,7 @@ unsigned long duowen_soc_base;
 #else /* CONFIG_DUOWEN_BOOT_APC */
 #if defined(CONFIG_DUOWEN_BBL) || defined(CONFIG_DUOWEN_TB_DDR)
 #define RAM_BASE		__DDR_BASE
-#define RAM_SIZE		__DDR_SIZE
+#define RAM_SIZE		DDR_SIZE
 #else /* CONFIG_DUOWEN_BBL || CONFIG_DUOWEN_TB_DDR */
 #define RAM_BASE		IMC_RAM_BASE
 #define RAM_SIZE		IMC_RAM_SIZE
