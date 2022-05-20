@@ -36,6 +36,7 @@ usage()
 {
 	echo "Usage:"
 	echo "`basename $0` [-p procs] [-b base] [-s size] [-e entry]"
+	echo "              [-k kernel] [-i initrd] [-a bootargs]"
 	echo "              [-l trace] [-u uart]"
 	echo "              [-j port] [-d]"
 	echo "              [-t dts]"
@@ -45,6 +46,10 @@ usage()
 	echo " -b mem-base:  specify first memory region base"
 	echo " -s mem-size:  specify first memory region size"
 	echo " -e entry:     specify entry point"
+	echo "Loader options:"
+	echo " -k kernel:    specify kernel image loaded"
+	echo " -i initrd:    specify initrd image loaded"
+	echo " -a bootargs:  specify kernel boot arguments"
 	echo "Tracer options:"
 	echo " -l trace-log: enable execution log to files (default stderr)"
 	echo "               where trace-log can be some special file:"
@@ -65,7 +70,7 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "b:de:hj:l:p:u:s:t:" opt
+while getopts "a:b:de:hi:j:k:l:p:u:s:t:" opt
 do
 	case $opt in
 	b) SPIKE_MEM_BASE=$OPTARG
@@ -74,6 +79,9 @@ do
 	   SPIKE_MEM_CUST=yes;;
 	e) SPIKE_OPTS="${SPIKE_OPTS} --pc=$OPTARG";;
 	d) SPIKE_OPTS="${SPIKE_OPTS} -d";;
+	k) SPIKE_OPTS="${SPIKE_OPTS} --kernel=$OPTARG";;
+	i) SPIKE_OPTS="${SPIKE_OPTS} --initrd=$OPTARG";;
+	a) SPIKE_OPTS="${SPIKE_OPTS} --bootargs=$OPTARG";;
 	h) usage 0;;
 	j) SPIKE_RBB_PORT=$OPTARG
 	   SPIKE_RBB=yes;;
