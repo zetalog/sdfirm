@@ -152,6 +152,7 @@
 #define DDR4_2933	(DDR4_1600 + 5)
 #define DDR4_3200	(DDR4_1600 + 6)
 
+#include <target/ddr_spd.h>
 #include <driver/ddr.h>
 
 #define ddr_config_speed(speed)		ddr_hw_config_speed(speed)

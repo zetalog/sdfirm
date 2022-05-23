@@ -48,6 +48,7 @@
 
 #ifndef ARCH_HAVE_DDR
 #define ddr_hw_ctrl_init()		do { } while (0)
+#define ddr_hw_ctrl_start()		do { } while (0)
 #define ddr_hw_config_speed(speed)	do { } while (0)
 #define ddr_hw_enable_speed(speed)	do { } while (0)
 #define ddr_hw_wait_dfi(cycles)		do { } while (0)

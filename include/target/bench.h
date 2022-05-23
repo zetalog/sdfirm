@@ -126,15 +126,15 @@ extern struct cpu_exec_test __testfn_start[];
 extern struct cpu_exec_test __testfn_end[];
 
 #define __define_testfn(__func, __size, __align, __flags, __repeat, __timeout)	\
-	static struct cpu_exec_test __testfn_##__func __used			\
-	__attribute__((__section__(".testfn"))) = {				\
-		.name = #__func,						\
-		.func = __func,							\
-		.alloc_size = __size,						\
-		.alloc_align = __align,						\
-		.flags = __flags,						\
-		.repeat = __repeat,						\
-		.timeout = __timeout,						\
+	static struct cpu_exec_test __testfn_##__func __used		\
+	__attribute__((__section__(".testfn"))) = {			\
+		.name = #__func,					\
+		.func = __func,						\
+		.alloc_size = __size,					\
+		.alloc_align = __align,					\
+		.flags = __flags,					\
+		.repeat = __repeat,					\
+		.timeout = __timeout,					\
 	}
 
 #define c_testfn_repeat(fn, size, align, repeat)		\
