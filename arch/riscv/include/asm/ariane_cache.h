@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2020
+ * Copyright (c) 2022
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,17 +35,33 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cache.h: DPU specific cache maintenance defintions
- * $Id: cache.h,v 1.1 2020-03-02 16:09:00 zhenglv Exp $
+ * @(#)ariane_cache.h: ARIANE specific dcache interface
+ * $Id: ariane_cache.h,v 1.1 2022-05-23 14:21:00 zhenglv Exp $
  */
 
-#ifndef __CACHE_DPU_H_INCLUDE__
-#define __CACHE_DPU_H_INCLUDE__
+#ifndef __ARIANE_CACHE_H_INCLUDE__
+#define __ARIANE_CACHE_H_INCLUDE__
 
-#include <asm/vaisra_cache.h>
-#include <asm/ariane_cache.h>
+#include <target/generic.h>
 
-/* To use cache_aligned */
-#define __SMP_CACHE_SHIFT	7
+#ifdef CONFIG_CPU_ARIANE
+#define CSR_DCACHE		0x701
+#define CSR_ICACHE		0x702
 
-#endif /* __CACHE_DPU_H_INCLUDE__ */
+#define DCR_EN			_BV(0)
+#define ICR_EN			_BV(0)
+
+#if !defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
+#define ariane_dcache_off()	csr_clear(CSR_DCACHE, DCR_EN)
+#define ariane_dcache_on()	csr_set(CSR_DCACHE, DCR_EN)
+#define ariane_icache_off()	csr_clear(CSR_ICACHE, ICR_EN)
+#define ariane_icache_on()	csr_set(CSR_ICACHE, ICR_EN)
+#endif
+#else /* CONFIG_CPU_ARIANE */
+#define ariane_dcache_off()	do { } while (0)
+#define ariane_dcache_on()	do { } while (0)
+#define ariane_icache_off()	do { } while (0)
+#define ariane_icache_on()	do { } while (0)
+#endif /*  CONFIG_CPU_ARIANE */
+
+#endif /* __ARIANE_CACHE_H_INCLUDE__ */
