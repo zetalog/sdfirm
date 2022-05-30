@@ -147,6 +147,8 @@ extern __noreturn uint8_t ____ilog2_NaN(void);
 	____ilog2_NaN()			\
 )
 
+#define bitrev3(bits)			\
+	 ((((bits) & 0x1) << 2) | (((bits)& 0x4) >> 2) | ((bits) & 0x2))
 uint8_t bitrev8(uint8_t byte);
 uint8_t hweight8(uint8_t byte);
 uint8_t hweight16(uint16_t word);

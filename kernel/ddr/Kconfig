@@ -65,4 +65,10 @@ config DDR_SPD_200
 
 endchoice
 
+config DDR3
+	bool "Enable DDR3 support"
+
+config DDR4
+	bool "Enable DDR4 support"
+
 endif

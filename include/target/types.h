@@ -144,6 +144,7 @@ typedef unsigned long			loff_t;
 #define REG_2BIT_ADDR(base, n)		((base)+(((n) & (~15)) >> 2))
 #define REG_4BIT_ADDR(base, n)		((base)+(((n) & (~7 )) >> 1))
 #define REG_8BIT_ADDR(base, n)		((base)+(((n) & (~3 )) >> 0))
+#define REG_16BIT_ADDR(base, n)		((base)+(((n) & (~1 )) << 1))
 #define _GET_FVn(n, name, value)	\
 	(((value) >> (name##_OFFSET(n))) & (name##_MASK))
 #define _SET_FVn(n, name, value)	\

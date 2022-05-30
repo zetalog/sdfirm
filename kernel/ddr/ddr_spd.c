@@ -152,9 +152,12 @@ const char udimm_test_spd[512] = {
 #define PRINT_NXXS(n0, n1, f, s) 					\
 	do {								\
 		int i;							\
-		printf("%-3d-%3d: " s "\n         ", n0, n1);		\
-		for (i = n0; i <= n1; i++)				\
+		printf("%-3d-%3d: " s, n0, n1);				\
+		for (i = n0; i <= n1; i++) {				\
+			if ((i - (n0)) % 16 == 0)			\
+				printf("\n         ");			\
 			printf("%02x ", (f)[i - n0]);			\
+		}							\
 		printf("\n");						\
 	} while (0)
 

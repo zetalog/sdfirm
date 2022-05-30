@@ -306,8 +306,25 @@ config DW_UMCTL2_RANK_4
 endchoice
 
 config DW_UMCTL2_QBUS
-	bool "Enable quarter-bus mode"
+	bool "quarter DQ"
 	depends ARCH_HAS_DW_UMCTL2_QBUS
+
+choice
+	prompt "Data bus width"
+	default DW_UMCTL2_FULL_DQ
+
+config DW_UMCTL2_FULL_DQ
+	bool "full DQ"
+
+config DW_UMCTL2_HALF_DQ
+	bool "half DQ"
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_16X
+
+config DW_UMCTL2_QUARTER_DQ
+	bool "quarter DQ"
+	depends ARCH_IS_DW_UMCTL2_DATA_WIDTH_32X && DW_UMCTL2_QBUS
+
+endchoice
 
 config DW_UMCTL2_CMD_RTN2IDLE
 	bool "Enable DFI commands return to idle"
@@ -457,6 +474,7 @@ config ARCH_HAS_DW_UMCTL2_FAST_FREQ_CHANGE
 
 config ARCH_IS_DW_UMCTL2_FREQ_1
 	bool
+	default y if !ARCH_HAS_DW_UMCTL2_FAST_FREQ_CHANGE
 
 config ARCH_IS_DW_UMCTL2_FREQ_2
 	bool
@@ -708,6 +726,48 @@ endmenu
 menu "Custom configurations"
 
 source drivers/ddr/Kconfig.custom
+
+endmenu
+
+menu "Multi-channel Parameters"
+
+config ARCH_HAS_DW_UMCTL2_DUAL_CHANNEL
+	bool
+
+config ARCH_HAS_DW_UMCTL2_SHARED_AC
+	bool
+
+config DW_UMCTL2_DUAL_CHANNEL
+	bool "Enable dual channel support"
+	depends ARCH_HAS_DW_UMCTL2_DUAL_CHANNEL
+
+config DW_UMCTL2_SHARED_AC
+	bool "Enable dual channel shared address/command support"
+	depends ARCH_HAS_DW_UMCTL2_SHARED_AC
+
+endmenu
+
+menu "Other options"
+
+config DW_UMCTL2_2T_TIMING
+	bool "Enable 2T timing mode"
+	depends !DW_UMCTL2_LPDDR2 && !DW_UMCTL2_LPDDR3 && !DW_UMCTL2_LPDDR4
+	depends !DW_UMCTL2_CMD_RTN2IDLE
+	depends !DW_UMCTL2_DDR4_GEARDOWN
+	depends !DW_UMCTL2_SHARED_AC
+
+config DW_UMCTL2_GEARDOWN
+	bool "Enable geardown mode"
+	depends DW_UMCTL2_DDR4
+	depends !DW_UMCTL2_CMD_RTN2IDLE
+	depends DW_UMCTL2_FREQ_RATIO_HW_2
+
+config DW_UMCTL2_DLL_OFF
+	bool "Enable DLL off mode"
+	depends DW_UMCTL2_DDR3 || DW_UMCTL2_DDR4
+
+config DW_UMCTL2_TRAINING
+	bool "Allow training procedure"
 
 endmenu
 
