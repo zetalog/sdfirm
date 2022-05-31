@@ -749,6 +749,9 @@ endmenu
 
 menu "Other options"
 
+config DW_UMCTL2_DBG_RFSH
+	bool "Enable direct software request of refresh command"
+
 config DW_UMCTL2_2T_TIMING
 	bool "Enable 2T timing mode"
 	depends !DW_UMCTL2_LPDDR2 && !DW_UMCTL2_LPDDR3 && !DW_UMCTL2_LPDDR4

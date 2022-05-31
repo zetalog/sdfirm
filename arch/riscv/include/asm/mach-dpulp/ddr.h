@@ -76,6 +76,8 @@ clk_freq_t ddr_get_fclk(int speed);
 void ddr_hw_config_speed(uint8_t speed);
 void ddr_hw_enable_speed(uint8_t speed);
 void ddr_hw_wait_dfi(uint32_t cycles);
+#define ddr4_hw_config_refresh(n, mode, tREFI, tRFCmin)	\
+	dw_umctl2_ddr4_config_refresh(n, mode, tREFI, tRFCmin)
 #define ddr_clk_fvco(fclk, fvco_orig)	ddr_get_fvco(ddr_clk_speed(fclk))
 #else /* CONFIG_DPULP_DDR */
 #define ddr_clk_fvco(fclk, fvco_orig)	fvco_orig

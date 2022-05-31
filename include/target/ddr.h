@@ -49,22 +49,26 @@
 #define DDR_200		0
 /* DDR-266n, 133MHz, DDR-266B CASLatency = 2.5, DDR-266A CASLatency = 2
  */
-#define DDR_266		(DDR_200 + 1)
-#define DDR2_400	(DDR_200 + 2)
-#define DDR2_533	(DDR2_400 + 1)
-#define DDR2_667	(DDR2_400 + 2)
-#define DDR2_800	(DDR2_400 + 3)
-#define DDR3_800	DDR2_800
-#define DDR3_1066	(DDR3_800 + 1)
-#define DDR3_1333	(DDR3_800 + 2)
-#define DDR3_1600	(DDR3_800 + 3)
-#define DDR4_1600	DDR3_1600
-#define DDR4_1866	(DDR4_1600 + 1)
-#define DDR4_2133	(DDR4_1600 + 2)
-#define DDR4_2400	(DDR4_1600 + 3)
-#define DDR4_2666	(DDR4_1600 + 4)
-#define DDR4_2933	(DDR4_1600 + 5)
-#define DDR4_3200	(DDR4_1600 + 6)
+#define DDR_266			(DDR_200 + 1)
+#define DDR2_400		(DDR_200 + 2)
+#define DDR2_533		(DDR2_400 + 1)
+#define DDR2_667		(DDR2_400 + 2)
+#define DDR2_800		(DDR2_400 + 3)
+#define DDR23_800		DDR2_800
+#define DDR3_800		DDR23_800
+#define DDR3_1066		(DDR3_800 + 1)
+#define DDR3_1333		(DDR3_800 + 2)
+#define DDR3_1600		(DDR3_800 + 3)
+#define DDR34_1600		DDR3_1600
+#define DDR4_1600		DDR34_1600
+#define DDR4_1866		(DDR4_1600 + 1)
+#define DDR4_2133		(DDR4_1600 + 2)
+#define DDR4_2400		(DDR4_1600 + 3)
+#define DDR4_2666		(DDR4_1600 + 4)
+#define DDR4_2933		(DDR4_1600 + 5)
+#define DDR4_3200		(DDR4_1600 + 6)
+#define DDR_MAX_SPDS		(DDR4_3200 + 1)
+#define __DDR_SPD2tCK(spd, n)	((n) * 1000 * 1000 / ddr_spd2speed(spd)) /* In ps */
 
 #include <target/ddr1.h>
 #include <target/ddr4.h>
@@ -77,8 +81,10 @@
 #define ddr_mr_write(n, c, ranks, v, r)	ddr_hw_mr_write(n, c, ranks, v, r)
 
 #ifdef CONFIG_DDR
+uint16_t ddr_spd2speed(uint8_t spd);
 void ddr_init(void);
 #else
+#define ddr_spd2speed(spd)		0
 #define ddr_init()			do { } while (0)
 #endif
 

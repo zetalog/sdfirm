@@ -653,6 +653,8 @@ config DPU_DDR
 	select ARCH_IS_DW_UMCTL2_SECDED_ECC
 	select ARCH_HAS_DW_UMCTL2_SIDEBAND_ECC
 	select MATH_DIV32
+	select DDR3
+	select DDR4
 
 if DPU_DDR
 

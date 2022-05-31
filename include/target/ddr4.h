@@ -43,12 +43,38 @@
 #define __DDR4_H_INCLUDE__
 
 #ifdef CONFIG_DDR4
+/* 2.8 DDR4 SDRAM Addressing */
+#define DDR4_2GB			0
+#define DDR4_4GB			1
+#define DDR4_8GB			2
+#define DDR4_16GB			3
+#define DDR4_MAX_ADDRESSINGS		4
+
 #define DDR4_BANK_GROUP_x4		4
 #define DDR4_BANK_GROUP_x8		4
 #define DDR4_BANK_GROUP_x16		2
 #define DDR4_PAGE_SIZE_x4		512
-#define DDR4_PAGE_SIZE_x8		1024
-#define DDR4_PAGE_SIZE_x16		2048
+#define DDR4_PAGE_SIZE_x8		(DDR4_PAGE_SIZE_x4 << 1)
+#define DDR4_PAGE_SIZE_x16		(DDR4_PAGE_SIZE_x8 << 1)
+
+#define DDR4_DEV(x)			((x) << 16)
+#define DDR4_CONF(cap, x)		(DDR4_DEV(x) | (cap))
+/* 2.8.1 2Gb Addressing Table */
+#define DDR4_2GB_512M_x4		DDR4_CONF(512, 4)
+#define DDR4_2GB_258M_x8		DDR4_CONF(256, 8)
+#define DDR4_2GB_128M_x16		DDR4_CONF(128, 16)
+/* 2.8.2 4Gb Addressing Table */
+#define DDR4_4GB_1G_x4			DDR4_CONF(1024, 4)
+#define DDR4_4GB_512M_x8		DDR4_CONF(512, 8)
+#define DDR4_4GB_256M_x16		DDR4_CONF(256, 16)
+/* 2.8.3 8Gb Addressing Table */
+#define DDR4_8GB_2G_x4			DDR4_CONF(2048, 4)
+#define DDR4_8GB_1G_x8			DDR4_CONF(1024, 8)
+#define DDR4_8GB_512M_x16		DDR4_CONF(512, 16)
+/* 2.8.4 4Gb Addressing Table */
+#define DDR4_16GB_4G_x4			DDR4_CONF(4096, 4)
+#define DDR4_16GB_2G_x8			DDR4_CONF(2048, 8)
+#define DDR4_16GB_1G_x16		DDR4_CONF(1024, 16)
 
 /* 3.1 Simplified State Diagram */
 #define DDR4_state_PowerOn		0
@@ -89,6 +115,22 @@
 #define DDR4_func_SRE			13 /* Self-Refresh entry */
 #define DDR4_func_SRX			14 /* Self-Refresh exit */
 #define DDR4_func_MPR			15 /* Multi Purpose Register */
+
+/* Refresh modes */
+#define DDR4_REFRESH_Fixed_1x		0x0
+#define DDR4_REFRESH_Fixed_2x		0x1
+#define DDR4_REFRESH_Fixed_4x		0x2
+#define DDR4_REFRESH_OnTheFly_2x	\
+	(DDR4_REFRESH_OnTheFly | DDR4_REFRESH_Fixed_2x)
+#define DDR4_REFRESH_OnTheFly_4x	\
+	(DDR4_REFRESH_OnTheFly | DDR4_REFRESH_Fixed_4x)
+#define DDR4_MAX_REFRESHES		3
+#define DDR4_MAX_REFRESH_MODES		7
+#define DDR4_REFRESH_MASK		0x3
+#define DDR4_REFRESH_MODE_MASK		\
+	(DDR4_REFRESH_OnTheFly | DDR4_REFRESH_MASK)
+#define DDR4_REFRESH_OnTheFly		0x04
+#define DDR4_REFRESH_TempControlled	0x80
 
 /* 3.5 Mode Register */
 
@@ -311,11 +353,11 @@
 	 DDR4_MR3_PerDRAMAddressability(pda) |				\
 	 DDR4_MR3_GeardownMode(geardown))
 /* Table 8 - Fine Granularity Refresh Mode */
-#define DDR4_MR3_Refresh_Fixed_1x		0
-#define DDR4_MR3_Refresh_Fixed_2x		1
-#define DDR4_MR3_Refresh_Fixed_4x		2
-#define DDR4_MR3_Refresh_OnTheFly_2x		5
-#define DDR4_MR3_Refresh_OnTheFly_4x		6
+#define DDR4_MR3_Refresh_Fixed_1x		DDR4_REFRESH_Fixed_1x
+#define DDR4_MR3_Refresh_Fixed_2x		DDR4_REFRESH_Fixed_2x
+#define DDR4_MR3_Refresh_Fixed_4x		DDR4_REFRESH_Fixed_4x
+#define DDR4_MR3_Refresh_OnTheFly_2x		DDR4_REFRESH_OnTheFly_2x
+#define DDR4_MR3_Refresh_OnTheFly_4x		DDR4_REFRESH_OnTheFly_4x
 /* Table 9 - Write Command Latency when CRC and DM are both enabled */
 #define DDR4_MR3_Write_CL(nCk)			((nCK) - 4)
 
@@ -402,6 +444,12 @@
 #define DDR4_MR6_VrefDQTraining(r, value)	\
 	((r) == DDR4_MR6_VrefDQTrainingRage1 ?	\
 	 (((value) - 6000) / 65) : (((value) - 45) / 65))
+
+#define DDR_SPD2tCK(spd)		__DDR_SPD2tCK(spd, 2)
+
+void ddr4_config_refresh(uint8_t n, uint8_t cap, uint8_t mode);
+#else
+#define ddr4_config_fgr(n, c, cap, mode)	do { } while (0)
 #endif /* CONFIG_DDR4 */
 
 #endif /* __DDR4_H_INCLUDE__ */

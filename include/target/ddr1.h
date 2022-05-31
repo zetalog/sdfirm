@@ -128,6 +128,8 @@
 #define DDR_CMD_AUTO_REFRESH		DDR_WE
 #define DDR_CMD_SELF_REFRESH		DDR_WE
 #define DDR_CMD_MODE_REGISTER_SET	0
+
+#define DDR_SPD2tCK(spd)		__DDR_SPD2tCK(spd, 1)
 #endif /* CONFIG_DDR1 */
 
 #endif /* __DDR1_H_INCLUDE__ */

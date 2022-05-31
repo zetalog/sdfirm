@@ -71,4 +71,18 @@ config DDR3
 config DDR4
 	bool "Enable DDR4 support"
 
+if DDR4
+
+menu "DDR4 Options"
+
+config DDR4_FGR
+	bool "Enable Fine Granularity Refresh (FGR)"
+
+config DDR4_TCR
+	bool "Enable Temperature Controlled Refresh (TCR)"
+
+endmenu
+
+endif
+
 endif

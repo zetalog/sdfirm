@@ -54,4 +54,9 @@
 #define ddr_hw_wait_dfi(cycles)		do { } while (0)
 #endif
 
+#ifndef CONFIG_DDR4
+#define ddr4_hw_config_refresh(n, mode, tREFI, tRFCmin)	\
+	do { } while (0)
+#endif
+
 #endif /* __DDR_DRIVER_H_INCLUDE__ */

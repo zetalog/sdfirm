@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sun May  8 06:15:09 2022
+# Thu Jun  2 13:06:05 2022
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -370,6 +370,14 @@ CONFIG_DDR_SPD_3200=y
 # CONFIG_DDR_SPD_400 is not set
 # CONFIG_DDR_SPD_266 is not set
 # CONFIG_DDR_SPD_200 is not set
+CONFIG_DDR3=y
+CONFIG_DDR4=y
+
+#
+# DDR4 Options
+#
+# CONFIG_DDR4_FGR is not set
+# CONFIG_DDR4_TCR is not set
 CONFIG_ARCH_HAS_PCI=y
 # CONFIG_PCI is not set
 # CONFIG_IOMMU is not set
@@ -552,6 +560,9 @@ CONFIG_DW_UMCTL2_DATA_WIDTH_64=y
 # CONFIG_DW_UMCTL2_RANK_1 is not set
 # CONFIG_DW_UMCTL2_RANK_2 is not set
 CONFIG_DW_UMCTL2_RANK_4=y
+CONFIG_DW_UMCTL2_FULL_DQ=y
+# CONFIG_DW_UMCTL2_HALF_DQ is not set
+# CONFIG_DW_UMCTL2_QUARTER_DQ is not set
 
 #
 # DFI data options
@@ -601,6 +612,19 @@ CONFIG_DW_UMCTL2_SECDED_ECC=y
 #
 # Custom configurations
 #
+
+#
+# Multi-channel Parameters
+#
+
+#
+# Other options
+#
+# CONFIG_DW_UMCTL2_DBG_RFSH is not set
+# CONFIG_DW_UMCTL2_2T_TIMING is not set
+# CONFIG_DW_UMCTL2_GEARDOWN is not set
+# CONFIG_DW_UMCTL2_DLL_OFF is not set
+# CONFIG_DW_UMCTL2_TRAINING is not set
 
 #
 # Serial Presence Detect (SPD) drivers

@@ -473,8 +473,8 @@
 #else
 #define MSTR_frequency_ratio(value)	0
 #endif
-#define MSTR_frequency_ratio_1		0
-#define MSTR_frequency_ratio_2		1
+#define MSTR_frequency_ratio_1		1
+#define MSTR_frequency_ratio_2		0
 #ifdef CONFIG_DW_UMCTL2_FREQ_RATIO_HW
 #ifdef CONFIG_DW_UMCTL2_FREQ_RATIO_HW_1
 #define MSTR_frequency_ratio_static	\
@@ -486,7 +486,7 @@
 #endif
 #else
 #define MSTR_frequency_ratio_static	\
-	MSTR_frequency_ratio(MSTR_frequency_ratio_1)
+	MSTR_frequency_ratio(MSTR_frequency_ratio_2)
 #endif
 #ifndef CONFIG_DW_UMCTL2_CID_WIDTH_0
 #define MSTR_active_logical_ranks_OFFSET	20
@@ -641,7 +641,8 @@
 #define RFSHCTL4_refresh_timer_lr_offset_x32_OFFSET	0
 #define RFSHCTL4_refresh_timer_lr_offset_x32_MASK	REG_11BIT_MASK
 #define RFSHCTL4_refresh_timer_lr_offset_x32(value)	\
-	_SET_FV(RFSHCTL4_refresh_timer_lr_offset_x32, DW_UMCTL2_ROUNDUP(value))
+	_SET_FV(RFSHCTL4_refresh_timer_lr_offset_x32,	\
+		DW_UMCTL2_ROUNDUP(value, 5))
 #define RFSHCTL4_refresh_timer_lr_offset_x32_static	\
 	RFSHCTL4_refresh_timer_lr_offset_x32(0)
 #endif
@@ -657,6 +658,53 @@
 /* 5.1.25 RFSHTMG */
 #ifdef CONFIG_DW_UMCTL2_LPDDR3
 #define RFSHTMG_lpddr3_trefbw_en		_BV(15)
+#endif
+
+/* 5.1.51 INIT0 */
+#define INIT0_post_cke_x1024_OFFSET	16
+#define INIT0_post_cke_x1024_MASK	REG_10BIT_MASK
+#define INIT0_post_cke_x1024(value)	\
+	_SET_FV(INIT0_post_cke_x1024, DW_UMCTL2_ROUNDUP(value, 10))
+#define INIT0_pre_cke_x1024_OFFSET	0
+#define INIT0_pre_cke_x1024_MASK	REG_12BIT_MASK
+#define INIT0_pre_cke_x1024(value)	\
+	_SET_FV(INIT0_pre_cke_x1024, DW_UMCTL2_ROUNDUP(value, 10))
+
+/* 5.1.52 INIT1 */
+#define INIT1_dram_rstn_x1024_OFFSET	16
+#define INIT1_dram_rstn_x1024_MASK	REG_9BIT_MASK
+#define INIT1_dram_rstn_x1024(value)	\
+	_SET_FV(INIT1_dram_rstn_x1024, DW_UMCTL2_ROUNDUP(value, 10))
+#define INIT1_pre_ocd_x32_OFFSET	0
+#define INIT1_pre_ocd_x32_MASK		REG_4BIT_MASK
+#define INIT1_pre_ocd_x32(value)	\
+	_SET_FV(INIT1_pre_ocd_x32, DW_UMCTL2_ROUNDUP(value, 5))
+
+/* 5.1.53 INIT2 */
+#ifdef CONFIG_DW_UMCTL2_LPDDR2
+#define INIT2_idle_after_reset_x32_OFFSET	8
+#define INIT2_idle_after_reset_x32_MASK		REG_8BIT_MASK
+#define INIT2_idle_after_reset_x32(value)	\
+	_SET_FV(INIT2_idle_after_reset_x32, DW_UMCTL2_ROUNDUP(value, 5))
+#define INIT2_min_stable_clock_x1_OFFSET	0
+#define INIT2_min_stable_clock_x1_MASK		REG_4BIT_MASK
+#define INIT2_min_stable_clock_x1(value)	\
+	_SET_FV(INIT2_min_stable_clock_x1, value)
+#endif
+
+/* 5.1.56 INIT5 */
+#if defined(CONFIG_DW_UMCTL2_DDR3) || defined(CONFIG_DW_UMCTL2_DDR4) ||	\
+    defined(CONFIG_DW_UMCTL2_LPDDR2)
+#define INIT5_dev_zqinit_x32_OFFSET	16
+#define INIT5_dev_zqinit_x32_MASK	REG_8BIT_MASK
+#define INIT5_dev_zqinit_x32(value)	\
+	_SET_FV(INIT5_dev_zqinit_x32, DW_UMCTL2_ROUNDUP(value, 5))
+#endif
+#ifdef CONFIG_DW_UMCTL2_LPDDR
+#define INIT5_max_auto_init_x1024_OFFSET	0
+#define INIT5_max_auto_init_x1024_MASK		REG_10BIT_MASK
+#define INIT5_max_auto_init_x1024(value)	\
+	_SET_FV(INIT5_max_auto_init_x1024, DW_UMCTL2_ROUNDUP(value, 10))
 #endif
 
 /* 5.1.133 DBG1 */
@@ -752,6 +800,28 @@
 /* 5.1.24 RFSHCTL3 */
 #define RFSHCTL3_refresh_update_level	_BV(1)
 
+/* 5.1.135 DBGCMD */
+#define DBGCMD_rank_refresh(r)		_BV((r) > 4 ? (r) + 4 : (r))
+#define DBGCMD_ranks_refresh(ranks)	\
+	(((ranks) & REG_4BIT_MASK) |	\
+	 ((((ranks) >> 4) & REG_12BIT_MASK) << 8))
+#define DBGCMD_ctrlupd			_BV(5)
+#if defined(CONFIG_DW_UMCTL2_DDR3) || defined(CONFIG_DW_UMCTL2_DDR4) ||	\
+    defined(CONFIG_DW_UMCTL2_LPDDR2)
+#define DBGCMD_zq_calib_short		_BV(4)
+#endif
+
+/* 5.1.136 DBGSTAT */
+#define DBGSTAT_rank_refresh_busy(r)	_BV((r) > 4 ? (r) + 4 : (r))
+#define DBGSTAT_ranks_refresh_busy(ranks)	\
+	(((ranks) & REG_4BIT_MASK) |	\
+	 ((((ranks) >> 4) & REG_12BIT_MASK) << 8))
+#define DBGSTAT_ctrlupd_busy		_BV(5)
+#if defined(CONFIG_DW_UMCTL2_DDR3) || defined(CONFIG_DW_UMCTL2_DDR4) ||	\
+    defined(CONFIG_DW_UMCTL2_LPDDR2)
+#define DBGCMD_zq_calib_short_busy	_BV(4)
+#endif
+
 /* Dynamic - refresh */
 /* 5.1.20 RFSHCTL0 */
 #define RFSHCTL0_refresh_margin_OFFSET		20
@@ -805,11 +875,17 @@
 #define RFSHTMG_t_rfc_min(value)		\
 	_SET_FV(RFSHTMG_t_rfc_min, value)
 
+/* Quasi-dynamic Group 1, Group 4 */
+/* 5.1.54 */
+#define INIT3_mr_OFFSET		16
+#define INIT3_mr_MASK		REG_16BIT_MASK
+#define INIT3_mr(value)		_SET_FV(INIT3_mr)
+
 /* Quasi-dynamic Group 2 */
 /* 5.1 UMCTL2_REGS Registers */
 /* 5.1.1 MSTR */
-#ifdef CONFIG_DW_UMCTL2_FAST_FREQ_CHANGE
 #define MSTR_frequency_mode		_BV(29)
+#ifdef CONFIG_DW_UMCTL2_FAST_FREQ_CHANGE
 #define MSTR_frequency_mode_quasi	MSTR_frequency_mode
 #else /* CONFIG_DW_UMCTL2_FAST_FREQ_CHANGE */
 #define MSTR2_target_frequency_quasi	0
@@ -851,8 +927,31 @@
 #define RFSHCTL3_refresh_mode_OnTheFly4x	6 /* not supported */
 #define RFSHCTL3_refresh_mode_quasi		\
 	RFSHCTL3_refresh_mode(RFSHCTL3_refresh_mode_Fixed1x)
+#define RFSHCTL3_refresh_mode_mask		\
+	RFSHCTL3_refresh_mode(RFSHCTL3_refresh_mode_MASK)
 #else
 #define RFSHCTL3_refresh_mode_quasi		0
+#define RFSHCTL3_refresh_mode_mask		0
+#endif
+
+/* 5.1.51 INIT0 */
+#define INIT0_skip_dram_init_OFFSET		30
+#define INIT0_skip_dram_init_MASK		REG_2BIT_MASK
+#define INIT0_skip_dram_init(value)		\
+	_SET_FV(INIT0_skip_dram_init, value)
+#define INIT0_skip_dram_init_none		0
+#define INIT0_skip_dram_init_normal		1
+#define INIT0_skip_dram_init_self_refresh	2
+
+/* Quasi-dynamic Group 2, Group 4 */
+/* 5.1.57 INIT6 */
+#if defined(CONFIG_DW_UMCTL2_DDR4) || defined(CONFIG_DW_UMCTL2_LPDDR4)
+#define INIT6_mr4_OFFSET		16
+#define INIT6_mr4_MASK			REG_16BIT_MASK
+#define INIT6_mr4(value)		_SET_FV(INIT6_mr4, value)
+#define INIT6_mr5_OFFSET		0
+#define INIT6_mr5_MASK			REG_16BIT_MASK
+#define INIT6_mr5(value)		_SET_FV(INIT6_mr5, value)
 #endif
 
 /* Quasi-dynamic Group 4 */
@@ -871,6 +970,31 @@
 #define PWRTMG_powerdown_to_x32_MASK	REG_5BIT_MASK
 #define PWRTMG_powerdown_to_x32(value)	\
 	_SET_FV(PWRTMG_powerdown_to_x32, DW_UMCTL2_ROUNDUP(value, 5))
+
+/* 5.1.54 INIT3 */
+#define INIT3_emr_OFFSET		0
+#define INIT3_emr_MASK			REG_16BIT_MASK
+#define INIT3_emr(value)		_SET_FV(INIT3_emr, value)
+
+/* 5.1.55 INIT4 */
+#define INIT4_emr2_OFFSET		16
+#define INIT4_emr2_MASK			REG_16BIT_MASK
+#define INIT4_emr2(value)		_SET_FV(INIT4_emr2, value)
+#define INIT4_emr3_OFFSET		0
+#define INIT4_emr3_MASK			REG_16BIT_MASK
+#define INIT4_emr3(value)		_SET_FV(INIT4_emr3, value)
+
+/* 5.1.58 INIT7 */
+#ifdef CONFIG_DW_UMCTL2_LPDDR4
+#define INIT7_mr22_OFFSET		16
+#define INIT7_mr22_MASK			REG_16BIT_MASK
+#define INIT7_mr22(value)		_SET_FV(INIT7_mr22, value)
+#endif
+#if defined(CONFIG_DW_UMCTL2_DDR4) || defined(CONFIG_DW_UMCTL2_LPDDR4)
+#define INIT7_mr6_OFFSET		0
+#define INIT7_mr6_MASK			REG_16BIT_MASK
+#define INIT7_mr6(value)		_SET_FV(INIT7_mr6, value)
+#endif
 
 /* ssi_memory_map/ssi_address_block registers */
 
@@ -910,6 +1034,14 @@
 		__v |= (v);				\
 		dw_umctl2_write(__v, (a));		\
 	} while (0)
+
+#ifdef CONFIG_DW_UMCTL2_DDR4
+void dw_umctl2_ddr4_config_refresh(uint8_t n, uint8_t mode,
+				   uint32_t tREFI, uint32_t tRFCmin);
+#else
+#define dw_umctl2_ddr4_config_refresh(n, c, mode, tREFI, tRFCmin)	\
+	do { } while (0)
+#endif
 
 void dw_umctl2_init(void);
 void dw_umctl2_start(void);
