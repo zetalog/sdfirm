@@ -197,13 +197,6 @@ void con_log(const char *fmt, ...)
 }
 #endif
 
-void console_early_init(void)
-{
-	clk_hw_mmu_init();
-	gpio_hw_mmu_init();
-	uart_hw_mmu_init();
-}
-
 #ifdef CONFIG_CONSOLE_DEBUG_BOOT
 static void console_debug_boot(void)
 {

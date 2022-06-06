@@ -118,12 +118,10 @@ static inline int console_output_space(void)
 /* Console command line related */
 void console_handle_irq(void);
 
-void console_early_init(void);
 void console_init(void);
 void console_late_init(void);
 __printf_chk(1) void con_err(const char *fmt, ...);
 #else
-#define console_early_init()			do { } while (0)
 #define console_init()				do { } while (0)
 #define console_late_init()			do { } while (0)
 #define con_err(...)				do { } while (0)
@@ -143,11 +141,9 @@ __printf_chk(1) void con_dbg(const char *fmt, ...);
 
 #ifdef CONFIG_MMU_IDMAP_DEVICE
 #define idmap_early_con_init()		console_init()
-#define fixmap_early_con_init()		console_early_init()
 #define fixmap_late_con_init()		do { } while (0)
 #else
 #define idmap_early_con_init()
-#define fixmap_early_con_init()		console_early_init()
 #define fixmap_late_con_init()		console_init()
 #endif
 #endif /* !__ASSEMBLY__ */

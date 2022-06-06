@@ -5,6 +5,9 @@
 #include <target/cmdline.h>
 #include <target/panic.h>
 #include <target/init.h>
+#include <target/clk.h>
+#include <target/gpio.h>
+#include <target/uart.h>
 
 #ifdef CONFIG_MMU_IDMAP
 pgd_t mmu_pg_dir[PTRS_PER_PGD] __page_aligned_bss;
@@ -712,6 +715,28 @@ void early_fixmap_init(void)
 		con_dbg("FIX_BTMAP_BEGIN:     %d\n", FIX_BTMAP_BEGIN);
 		BUG();
 	}
+
+	/* TODO: GPT Fixmap Initialization
+	 *
+	 * On some architectures, it might be required to configure a
+	 * general purpose timer to get delay working prior than touching
+	 * any hardware drivers. However, this is assumed to be done in a
+	 * machine (MACH) specific manner.
+	 *
+	 * gpt_hw_mmu_init();
+	 */
+
+	/* XXX: Console Fixmap Initialization
+	 *
+	 * The clock and the GPIO pad is required to configure the UART
+	 * controller. This is done in the common layer because there is
+	 * a need to generate a test pattern without console while the
+	 * pattern is developed with console enabled. And there might be
+	 * mapping requirements for the clk/gpio hardware concerned.
+	 */
+	clk_hw_mmu_init();
+	gpio_hw_mmu_init();
+	uart_hw_mmu_init();
 }
 
 void paging_init(void)

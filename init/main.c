@@ -42,7 +42,6 @@ void system_init(void)
 	idmap_early_con_init();
 	mem_init();
 	early_fixmap_init();
-	fixmap_early_con_init();
 	main_debug(MAIN_DEBUG_INIT, 0);
 	board_early_init();
 	clk_init();

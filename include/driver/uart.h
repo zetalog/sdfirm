@@ -28,7 +28,6 @@ __TEXT_TYPE__(const struct uart_port, uart_port_t);
 #endif
 #ifdef CONFIG_CONSOLE
 #define uart_hw_con_init()	do { } while (0)
-#define uart_hw_mmu_init()	do { } while (0)
 #endif
 #ifdef CONFIG_CONSOLE_OUTPUT
 #define uart_hw_con_write(byte)	do { } while (0)
@@ -36,6 +35,9 @@ __TEXT_TYPE__(const struct uart_port, uart_port_t);
 #ifdef CONFIG_CONSOLE_INPUT
 #define uart_hw_con_read()	-1
 #define uart_hw_con_poll()	false
+#endif
+#ifdef CONFIG_MMU
+#define uart_hw_mmu_init()	do { } while (0)
 #endif
 #ifdef CONFIG_UART
 #define uart_hw_ctrl_init()
