@@ -867,7 +867,7 @@
 #define RFSHTMG_t_rfc_nom_x1_x32_OFFSET		16
 #define RFSHTMG_t_rfc_nom_x1_x32_MASK		REG_12BIT_MASK
 #define RFSHTMG_t_rfc_nom_x1_x32(value)		\
-	_SET_FV(RFSHTMG_t_rfc_nom_x1_x32, value)
+	_SET_FV(RFSHTMG_t_rfc_nom_x1_x32, DW_UMCTL2_ROUNDUP(value, 5))
 #define RFSHTMG_t_rfc_nom_x1_x32_dynamic	\
 	RFSHTMG_t_rfc_nom_x1_x32(DW_UMCTL2_RANKS_MASK)
 #define RFSHTMG_t_rfc_min_OFFSET		0
@@ -960,16 +960,22 @@
 #define PWRTMG_selfref_to_x32_MASK	REG_8BIT_MASK
 #define PWRTMG_selfref_to_x32(value)	\
 	_SET_FV(PWRTMG_selfref_to_x32, DW_UMCTL2_ROUNDUP(value, 5))
+#define PWRTMG_selfref_to_x32_mask	\
+	PWRTMG_selfref_to_x32(PWRTMG_selfref_to_x32_MASK)
 #if defined(CONFIG_DW_UMCTL2_MOBILE) || defined(CONFIG_DW_UMCTL2_LPDDR2)
 #define PWRTMG_t_dpd_x4096_OFFSET	8
 #define PWRTMG_t_dpd_x4096_MASK		REG_8BIT_MASK
 #define PWRTMG_t_dpd_x4096(value)	\
 	_SET_FV(PWRTMG_t_dpd_x4096, DW_UMCTL2_ROUNDUP(value, 12))
+#define PWRTMG_t_dpd_x4096_mask		\
+	PWRTMG_t_dpd_x4096(PWRTMG_t_dpd_x4096_MASK)
 #endif
 #define PWRTMG_powerdown_to_x32_OFFSET	0
 #define PWRTMG_powerdown_to_x32_MASK	REG_5BIT_MASK
 #define PWRTMG_powerdown_to_x32(value)	\
 	_SET_FV(PWRTMG_powerdown_to_x32, DW_UMCTL2_ROUNDUP(value, 5))
+#define PWRTMG_powerdown_to_x32_mask	\
+	PWRTMG_powerdown_to_x32(PWRTMG_powerdown_to_x32_MASK)
 
 /* 5.1.54 INIT3 */
 #define INIT3_emr_OFFSET		0
@@ -1004,7 +1010,7 @@
 #define dw_umctl2_write(v, a)		\
 	printf("CTL W: %016llx %08x\n", (uint64_t)(a), (unsigned int)(v))
 #define dw_umctl2_read(a)		\
-	printf("CTL R: %016llx\n", (uint64_t)(a))
+	(printf("CTL R: %016llx\n", (uint64_t)(a)), 0)
 #else
 #define dw_umctl2_write(v, a)		__raw_writel(v, a)
 #define dw_umctl2_read(a)		__raw_readl(a)
@@ -1034,6 +1040,85 @@
 		__v |= (v);				\
 		dw_umctl2_write(__v, (a));		\
 	} while (0)
+
+/* Device Idle Power Control:
+ *
+ * Configures how deep the device should enter when idle:
+ * SR: self refresh: command idle
+ * PD: power down: command idle
+ * DPD: deep power down: transaction store is empty
+ * MPSM: maximum power saving mode: transaction store is empty
+ * CS: clock stop
+ * The default initialization process only configures the device into idle
+ * self-refresh mode, while cycles are configured to the default values.
+ */
+#define DW_UMCTL2_IDLE_NONE		0
+#define DW_UMCTL2_IDLE_SR		1
+#define DW_UMCTL2_IDLE_PD		2
+#if defined(CONFIG_DW_UMCTL2_MOBILE) || defined(CONFIG_DW_UMCTL2_LPDDR2)
+#define DW_UMCTL2_IDLE_DPD		3
+#else
+#define DW_UMCTL2_IDLE_DPD		DW_UMCTL2_IDLE_PD
+#endif
+#ifdef CONFIG_DW_UMCTL2_DDR4
+#define DW_UMCTL2_IDLE_MPSM		4
+#else
+#define DW_UMCTL2_IDLE_MPSM		DW_UMCTL2_IDLE_DPD
+#endif
+#define DW_UMCTL2_IDLE_CS		5
+#ifdef CONFIG_DW_UMCTL2_TRAINING
+/* Should use selfref_sw */
+#define DW_UMCTL2_IDLE_DEF		DW_UMCTL2_IDLE_NONE
+#else
+#define DW_UMCTL2_IDLE_DEF		DW_UMCTL2_IDLE_PD
+#endif
+#define dw_umctl2_enable_idle_sr(n, c)			\
+	dw_umctl2_set(PWRCTL_selfref_en, UMCTL2_PWRCTL(n, c))
+#define dw_umctl2_disable_idle_sr(n, c)			\
+	dw_umctl2_clear(PWRCTL_selfref_en, UMCTL2_PWRCTL(n, c))
+void dw_umctl2_set_idle_sr(uint8_t n, uint8_t c, uint8_t f,
+			   bool enable, uint16_t cycles);
+#define dw_umctl2_enable_idle_pd(n, c)			\
+	dw_umctl2_set(PWRCTL_powerdown_en, UMCTL2_PWRCTL(n, c))
+#define dw_umctl2_disable_idle_pd(n, c)			\
+	dw_umctl2_clear(PWRCTL_powerdown_en, UMCTL2_PWRCTL(n, c))
+void dw_umctl2_set_idle_pd(uint8_t n, uint8_t c, uint8_t f,
+			   bool enable, uint16_t cycles);
+#if defined(CONFIG_DW_UMCTL2_MOBILE) || defined(CONFIG_DW_UMCTL2_LPDDR2)
+#define dw_umctl2_enable_idle_dpd(n, c)			\
+	dw_umctl2_set(PWRCTL_deeppowerdown_en, UMCTL2_PWRCTL(n, c))
+#define dw_umctl2_disable_idle_dpd(n, c)		\
+	dw_umctl2_clear(PWRCTL_deeppowerdown_en, UMCTL2_PWRCTL(n, c))
+void dw_umctl2_set_idle_dpd(uint8_t n, uint8_t c, uint8_t f,
+			    bool enable, uint32_t cycles);
+#else
+#define dw_umctl2_enable_idle_dpd(n, c)			do { } while (0)
+#define dw_umctl2_disable_idle_dpd(n, c)		do { } while (0)
+#define dw_umctl2_set_idle_dpd(n, c, f, en, cyc)	do { } while (0)
+#endif
+#ifdef CONFIG_DW_UMCTL2_DDR4
+#define dw_umctl2_enable_idle_mpsm(n, c)		\
+	dw_umctl2_set(PWRCTL_mpsm_en, UMCTL2_PWRCTL(n, c))
+#define dw_umctl2_disable_idle_mpsm(n, c)		\
+	dw_umctl2_clear(PWRCTL_mpsm_en, UMCTL2_PWRCTL(n, c))
+void dw_umctl2_set_idle_mpsm(uint8_t n, uint8_t c, bool enable);
+#else
+#define dw_umctl2_enable_idle_mpsm(n, c)		do { } while (0)
+#define dw_umctl2_disable_idle_mpsm(n, c)		do { } while (0)
+#define dw_umctl2_set_idle_mpsm(n, c, en)		do { } while (0)
+#endif
+#define dw_umctl2_enable_idle_cs(n, c)			\
+	dw_umctl2_set(PWRCTL_en_dfi_dram_clk_disable, UMCTL2_PWRCTL(n, c))
+#define dw_umctl2_disable_idle_cs(n, c)			\
+	dw_umctl2_clear(PWRCTL_en_dfi_dram_clk_disable, UMCTL2_PWRCTL(n, c))
+void dw_umctl2_set_idle(uint8_t n, uint8_t c, uint8_t f,
+			uint8_t state, uint16_t cycles_selfref,
+			uint16_t cycles_powerdown);
+
+#define dw_umctl2_entry_sr(n, c)	\
+	dw_umctl2_set(PWRCTL_selfref_sw, UMCTL2_PWRCTL(n, c))
+#define dw_umctl2_exit_sr(n, c)		\
+	dw_umctl2_clear(PWRCTL_selfref_sw, UMCTL2_PWRCTL(n, c))
 
 #ifdef CONFIG_DW_UMCTL2_DDR4
 void dw_umctl2_ddr4_config_refresh(uint8_t n, uint8_t mode,
