@@ -665,16 +665,22 @@
 #define INIT0_post_cke_x1024_MASK	REG_10BIT_MASK
 #define INIT0_post_cke_x1024(value)	\
 	_SET_FV(INIT0_post_cke_x1024, DW_UMCTL2_ROUNDUP(value, 10))
+#define INIT0_post_cke_x1024_mask	\
+	INIT0_post_cke_x1024(INIT0_post_cke_x1024_MASK)
 #define INIT0_pre_cke_x1024_OFFSET	0
 #define INIT0_pre_cke_x1024_MASK	REG_12BIT_MASK
 #define INIT0_pre_cke_x1024(value)	\
 	_SET_FV(INIT0_pre_cke_x1024, DW_UMCTL2_ROUNDUP(value, 10))
+#define INIT0_pre_cke_x1024_mask	\
+	INIT0_pre_cke_x1024(INIT0_pre_cke_x1024_MASK)
 
 /* 5.1.52 INIT1 */
 #define INIT1_dram_rstn_x1024_OFFSET	16
 #define INIT1_dram_rstn_x1024_MASK	REG_9BIT_MASK
 #define INIT1_dram_rstn_x1024(value)	\
 	_SET_FV(INIT1_dram_rstn_x1024, DW_UMCTL2_ROUNDUP(value, 10))
+#define INIT1_dram_rstn_x1024_mask	\
+	INIT1_dram_rstn_x1024(INIT1_dram_rstn_x1024_MASK)
 #define INIT1_pre_ocd_x32_OFFSET	0
 #define INIT1_pre_ocd_x32_MASK		REG_4BIT_MASK
 #define INIT1_pre_ocd_x32(value)	\
@@ -879,7 +885,8 @@
 /* 5.1.54 */
 #define INIT3_mr_OFFSET		16
 #define INIT3_mr_MASK		REG_16BIT_MASK
-#define INIT3_mr(value)		_SET_FV(INIT3_mr)
+#define INIT3_mr(value)		_SET_FV(INIT3_mr, value)
+#define INIT3_mr_mask		INIT3_mr(INIT3_mr_MASK)
 
 /* Quasi-dynamic Group 2 */
 /* 5.1 UMCTL2_REGS Registers */
@@ -939,9 +946,11 @@
 #define INIT0_skip_dram_init_MASK		REG_2BIT_MASK
 #define INIT0_skip_dram_init(value)		\
 	_SET_FV(INIT0_skip_dram_init, value)
+#define INIT0_skip_dram_init_mask		\
+	INIT0_skip_dram_init(INIT0_skip_dram_init_MASK)
 #define INIT0_skip_dram_init_none		0
 #define INIT0_skip_dram_init_normal		1
-#define INIT0_skip_dram_init_self_refresh	2
+#define INIT0_skip_dram_init_self_refresh	3
 #if defined(CONFIG_DW_UMCTL2_TRAINING) || \
     defined(CONFIG_DW_UMCTL2_DRAM_INIT_ACCEL)
 #define INIT0_skip_dram_init_quasi		\
@@ -957,9 +966,11 @@
 #define INIT6_mr4_OFFSET		16
 #define INIT6_mr4_MASK			REG_16BIT_MASK
 #define INIT6_mr4(value)		_SET_FV(INIT6_mr4, value)
+#define INIT6_mr4_mask			INIT6_mr4(INIT6_mr4_MASK)
 #define INIT6_mr5_OFFSET		0
 #define INIT6_mr5_MASK			REG_16BIT_MASK
 #define INIT6_mr5(value)		_SET_FV(INIT6_mr5, value)
+#define INIT6_mr5_mask			INIT6_mr5(INIT6_mr5_MASK)
 #endif
 
 /* Quasi-dynamic Group 4 */
@@ -989,25 +1000,30 @@
 #define INIT3_emr_OFFSET		0
 #define INIT3_emr_MASK			REG_16BIT_MASK
 #define INIT3_emr(value)		_SET_FV(INIT3_emr, value)
+#define INIT3_emr_mask			INIT3_emr(INIT3_emr_MASK)
 
 /* 5.1.55 INIT4 */
 #define INIT4_emr2_OFFSET		16
 #define INIT4_emr2_MASK			REG_16BIT_MASK
 #define INIT4_emr2(value)		_SET_FV(INIT4_emr2, value)
+#define INIT4_emr2_mask			INIT4_emr2(INIT4_emr2_MASK)
 #define INIT4_emr3_OFFSET		0
 #define INIT4_emr3_MASK			REG_16BIT_MASK
 #define INIT4_emr3(value)		_SET_FV(INIT4_emr3, value)
+#define INIT4_emr3_mask			INIT4_emr3(INIT4_emr3_MASK)
 
 /* 5.1.58 INIT7 */
 #ifdef CONFIG_DW_UMCTL2_LPDDR4
 #define INIT7_mr22_OFFSET		16
 #define INIT7_mr22_MASK			REG_16BIT_MASK
 #define INIT7_mr22(value)		_SET_FV(INIT7_mr22, value)
+#define INIT7_mr22_mask			INIT7_mr22(INIT7_mr22_MASK)
 #endif
 #if defined(CONFIG_DW_UMCTL2_DDR4) || defined(CONFIG_DW_UMCTL2_LPDDR4)
 #define INIT7_mr6_OFFSET		0
 #define INIT7_mr6_MASK			REG_16BIT_MASK
 #define INIT7_mr6(value)		_SET_FV(INIT7_mr6, value)
+#define INIT7_mr6_mask			INIT7_mr6(INIT7_mr6_MASK)
 #endif
 
 /* ssi_memory_map/ssi_address_block registers */
@@ -1049,7 +1065,7 @@
 		dw_umctl2_write(__v, (a));		\
 	} while (0)
 
-/* Device Idle Power Control:
+/* Device Low Power Control:
  *
  * Configures how deep the device should enter when idle:
  * PD:   2.25.2.1 Precharge Power Down: command idle
@@ -1061,26 +1077,26 @@
  * The default initialization process only configures the device into idle
  * self-refresh mode, while cycles are configured to the default values.
  */
-#define DW_UMCTL2_IDLE_NONE		0
-#define DW_UMCTL2_IDLE_SR		_BV(1)
-#define DW_UMCTL2_IDLE_PD		_BV(2)
+#define DW_UMCTL2_POWER_NONE		0
+#define DW_UMCTL2_POWER_SR		_BV(1)
+#define DW_UMCTL2_POWER_PD		_BV(2)
 #if defined(CONFIG_DW_UMCTL2_MOBILE) || defined(CONFIG_DW_UMCTL2_LPDDR2)
-#define DW_UMCTL2_IDLE_DPD		_BV(3)
+#define DW_UMCTL2_POWER_DPD		_BV(3)
 #else
-#define DW_UMCTL2_IDLE_DPD		DW_UMCTL2_IDLE_PD
+#define DW_UMCTL2_POWER_DPD		DW_UMCTL2_POWER_PD
 #endif
 #ifdef CONFIG_DW_UMCTL2_DDR4
-#define DW_UMCTL2_IDLE_MPSM		_BV(3) /* Excluded with DPD */
+#define DW_UMCTL2_POWER_MPSM		_BV(3) /* Excluded with DPD */
 #else
-#define DW_UMCTL2_IDLE_MPSM		DW_UMCTL2_IDLE_PD
+#define DW_UMCTL2_POWER_MPSM		DW_UMCTL2_POWER_PD
 #endif
-#define DW_UMCTL2_IDLE_CS		_BV(4)
-#define DW_UMCTL2_IDLE_DO		_BV(5)
+#define DW_UMCTL2_POWER_CS		_BV(4)
+#define DW_UMCTL2_POWER_DO		_BV(5)
 #ifdef CONFIG_DW_UMCTL2_TRAINING
 /* Should use selfref_sw */
-#define DW_UMCTL2_IDLE_DEF		DW_UMCTL2_IDLE_NONE
+#define DW_UMCTL2_POWER_DEF		DW_UMCTL2_POWER_NONE
 #else
-#define DW_UMCTL2_IDLE_DEF		DW_UMCTL2_IDLE_PD
+#define DW_UMCTL2_POWER_DEF		DW_UMCTL2_POWER_PD
 #endif
 #define dw_umctl2_enable_idle_sr(n, c)			\
 	dw_umctl2_set(PWRCTL_selfref_en, UMCTL2_PWRCTL(n, c))
@@ -1131,16 +1147,35 @@ void dw_umctl2_set_idle(uint8_t n, uint8_t c, uint8_t f,
 	dw_umctl2_clear(PWRCTL_selfref_sw, UMCTL2_PWRCTL(n, c))
 
 #ifdef CONFIG_DW_UMCTL2_DDR4
+void dw_umctl2_ddr4_init_device(uint8_t n);
+void dw_umctl2_ddr4_init_refresh(uint8_t n, uint8_t ranks);
 void dw_umctl2_ddr4_config_refresh(uint8_t n, uint8_t mode,
 				   uint32_t tREFI, uint32_t tRFCmin);
+void dw_umctl2_ddr4_init_rstn(uint8_t n, uint32_t tRESET_n);
+void dw_umctl2_ddr4_init_pre_cke(uint8_t n,
+				 uint32_t tCKEactive, uint32_t tCKEstab);
+void dw_umctl2_ddr4_init_post_cke(uint8_t n, uint32_t tXS);
 #else
+#define dw_umctl2_ddr4_init_device(n)		do { } while (0)
+#define dw_umctl2_ddr4_init_refresh(n, ranks)	do { } while (0)
+#define dw_umctl2_ddr4_init_rstn(n, tRESET_n)	do { } while (0)
 #define dw_umctl2_ddr4_config_refresh(n, c, mode, tREFI, tRFCmin)	\
 	do { } while (0)
+#define dw_umctl2_ddr4_init_pre_cke(n, tCKEactive, tCKEstab)		\
+	do { } while (0)
+#define dw_umctl2_ddr4_init_post_cke(n, tXS)	do { } while (0)
 #endif
 
 void dw_umctl2_init(void);
 void dw_umctl2_start(void);
-void dw_umctl2_wr_write(uint8_t n, uint8_t c, uint8_t ranks,
+void dw_umctl2_mr_write(uint8_t n, uint8_t c, uint8_t ranks,
 			uint16_t v, uint8_t r);
+
+/* Power-up and Initialization */
+void dw_umctl2_init_mr(uint8_t n, uint16_t v, uint8_t r);
+
+extern uint8_t dw_umctl2_f;
+extern uint16_t dw_umctl2_spd;
+extern uint8_t dw_umctl2_freq_ratio;
 
 #endif /* __DW_UMCTL2_H_INCLUDE__ */

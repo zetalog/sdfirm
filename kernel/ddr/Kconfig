@@ -10,6 +10,15 @@ menuconfig DDR
 
 if DDR
 
+config DDR_MAX_DEVICES
+	int "Num of devices (1~255)"
+	range 1 255
+	default 2
+	help
+	  Devices are comprised of multiple ranks with single capacity.
+	  Setting maximum device number the software currently is using
+	  can reduce firmware memory consumption.
+
 choice
 	prompt "Custom default SPD"
 	default DDR_SPD_3200

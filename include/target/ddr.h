@@ -44,6 +44,8 @@
 
 #include <target/generic.h>
 
+#define DDR_MAX_DEVICES		CONFIG_DDR_MAX_DEVICES
+
 /* Speed grade */
 /* DDR-200, 100MHz */
 #define DDR_200		0

@@ -447,6 +447,11 @@
 
 #define DDR_SPD2tCK(spd)		__DDR_SPD2tCK(spd, 2)
 
+struct ddr4_dev {
+	uint32_t tREFI;
+	uint32_t tRFCmin;
+};
+
 void ddr4_config_refresh(uint8_t n, uint8_t cap, uint8_t mode);
 void ddr4_powerup_init(uint8_t n);
 void ddr4_reset_init(uint8_t n);

@@ -52,6 +52,7 @@
 #define ddr_hw_config_speed(speed)	do { } while (0)
 #define ddr_hw_enable_speed(speed)	do { } while (0)
 #define ddr_hw_wait_dfi(cycles)		do { } while (0)
+#define ddr_hw_init_MR(n, v, r)		do { } while (0)
 #endif
 
 #ifndef CONFIG_DDR4
