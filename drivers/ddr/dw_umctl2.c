@@ -203,14 +203,14 @@ void dw_umctl2_set_idle(uint8_t n, uint8_t c, uint8_t f,
 			uint8_t state, uint16_t cycles_selfref,
 			uint16_t cycles_powerdown)
 {
-	dw_umctl2_set_idle_sr(n, c, f, !!(state >= DW_UMCTL2_IDLE_SR),
+	dw_umctl2_set_idle_sr(n, c, f, !!(state & DW_UMCTL2_IDLE_SR),
 			      cycles_selfref);
-	dw_umctl2_set_idle_pd(n, c, f, !!(state >= DW_UMCTL2_IDLE_PD),
+	dw_umctl2_set_idle_pd(n, c, f, !!(state & DW_UMCTL2_IDLE_PD),
 			      cycles_powerdown);
-	dw_umctl2_set_idle_dpd(n, c, f, !!(state >= DW_UMCTL2_IDLE_DPD),
+	dw_umctl2_set_idle_dpd(n, c, f, !!(state & DW_UMCTL2_IDLE_DPD),
 			       cycles_powerdown * 64);
-	dw_umctl2_set_idle_mpsm(n, c, !!(state >= DW_UMCTL2_IDLE_MPSM));
-	dw_umctl2_set_idle_cs(n, c, !!(state >= DW_UMCTL2_IDLE_CS));
+	dw_umctl2_set_idle_mpsm(n, c, !!(state & DW_UMCTL2_IDLE_MPSM));
+	dw_umctl2_set_idle_cs(n, c, !!(state & DW_UMCTL2_IDLE_CS));
 }
 
 static void dw_umctl2_init_pwr(uint8_t n, uint8_t c, uint8_t f)

@@ -942,6 +942,14 @@
 #define INIT0_skip_dram_init_none		0
 #define INIT0_skip_dram_init_normal		1
 #define INIT0_skip_dram_init_self_refresh	2
+#if defined(CONFIG_DW_UMCTL2_TRAINING) || \
+    defined(CONFIG_DW_UMCTL2_DRAM_INIT_ACCEL)
+#define INIT0_skip_dram_init_quasi		\
+	INIT0_skip_dram_init(INIT0_skip_dram_init_self_refresh)
+#else
+#define INIT0_skip_dram_init_quasi		\
+	INIT0_skip_dram_init(INIT0_skip_dram_init_none)
+#endif
 
 /* Quasi-dynamic Group 2, Group 4 */
 /* 5.1.57 INIT6 */
@@ -1044,28 +1052,30 @@
 /* Device Idle Power Control:
  *
  * Configures how deep the device should enter when idle:
- * SR: self refresh: command idle
- * PD: power down: command idle
- * DPD: deep power down: transaction store is empty
- * MPSM: maximum power saving mode: transaction store is empty
- * CS: clock stop
+ * PD:   2.25.2.1 Precharge Power Down: command idle
+ * SR:   2.25.2.2 Self-refresh: command idle
+ * DPD:  2.25.2.3 Deep Power-down: transaction store is empty
+ * MPSM: 2.25.2.4 Maximum Power Saving Mode: transaction store is empty
+ * CS:   2.25.2.5 Assertion of dfi_dram_clk_disable (clock stop)
+ * DO:   2.25.2.6 DLL-off Mode (DDR3 and DDR4)
  * The default initialization process only configures the device into idle
  * self-refresh mode, while cycles are configured to the default values.
  */
 #define DW_UMCTL2_IDLE_NONE		0
-#define DW_UMCTL2_IDLE_SR		1
-#define DW_UMCTL2_IDLE_PD		2
+#define DW_UMCTL2_IDLE_SR		_BV(1)
+#define DW_UMCTL2_IDLE_PD		_BV(2)
 #if defined(CONFIG_DW_UMCTL2_MOBILE) || defined(CONFIG_DW_UMCTL2_LPDDR2)
-#define DW_UMCTL2_IDLE_DPD		3
+#define DW_UMCTL2_IDLE_DPD		_BV(3)
 #else
 #define DW_UMCTL2_IDLE_DPD		DW_UMCTL2_IDLE_PD
 #endif
 #ifdef CONFIG_DW_UMCTL2_DDR4
-#define DW_UMCTL2_IDLE_MPSM		4
+#define DW_UMCTL2_IDLE_MPSM		_BV(3) /* Excluded with DPD */
 #else
-#define DW_UMCTL2_IDLE_MPSM		DW_UMCTL2_IDLE_DPD
+#define DW_UMCTL2_IDLE_MPSM		DW_UMCTL2_IDLE_PD
 #endif
-#define DW_UMCTL2_IDLE_CS		5
+#define DW_UMCTL2_IDLE_CS		_BV(4)
+#define DW_UMCTL2_IDLE_DO		_BV(5)
 #ifdef CONFIG_DW_UMCTL2_TRAINING
 /* Should use selfref_sw */
 #define DW_UMCTL2_IDLE_DEF		DW_UMCTL2_IDLE_NONE

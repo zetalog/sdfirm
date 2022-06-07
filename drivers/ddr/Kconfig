@@ -753,11 +753,18 @@ config DW_UMCTL2_DBG_RFSH
 	bool "Enable direct software request of refresh command"
 
 config DW_UMCTL2_2T_TIMING
-	bool "Enable 2T timing mode"
+	bool "Enable 2T command timing"
 	depends !DW_UMCTL2_LPDDR2 && !DW_UMCTL2_LPDDR3 && !DW_UMCTL2_LPDDR4
 	depends !DW_UMCTL2_CMD_RTN2IDLE
 	depends !DW_UMCTL2_DDR4_GEARDOWN
 	depends !DW_UMCTL2_SHARED_AC
+	help
+	  Memory command duration is one memory clock cycle, which is
+	  referred to as 1T command timing. Optionally, to provide
+	  sufficient address setup time in heavily loaded memory bus
+	  configurations, memory address and memory command is asserted
+	  for two memory clock cycles which is referred to as 2T command
+	  timing.
 
 config DW_UMCTL2_GEARDOWN
 	bool "Enable geardown mode"
@@ -770,7 +777,27 @@ config DW_UMCTL2_DLL_OFF
 	depends DW_UMCTL2_DDR3 || DW_UMCTL2_DDR4
 
 config DW_UMCTL2_TRAINING
-	bool "Allow training procedure"
+	bool "Allow PHY independent DFI training"
+	help
+	  In uMCTL2, the following modes are supported: No Support and PHY
+	  Independent Mode.
+	  If you are using the Synopsys DWC DDR PHY, use PHY independent
+	  mode.  While interfacing to Synopsys DWC DDR PHYs, the training
+	  is initiated by the PHY Utility Block (PUB) present in the PHY,
+	  and PHY independent training mode is used.
+	  No Support and PHY independent mode are enabled by default and
+	  no dedicated signals are required.  Training is assumed to be
+	  performed automatically by the PHY, without any intervention
+	  from the uMCTL2.
+	  If you are using the Synopsys DWC DDR PHY, the PUB or PUBL
+	  block (part of the PHY) performs all required MRS commands to
+	  move the SDRAM to the correct state for each training stage.
+	  If you are using a non-Synopsys PHY that supports PHY
+	  independent training mode, uMCTL2 may have to perform these MRS
+	  commands.
+	  However, uMCTL2 has no knowledge on when the PHY is ready to
+	  execute each training stage, so this must be controlled by the
+	  user.
 
 endmenu
 

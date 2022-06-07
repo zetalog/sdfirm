@@ -66,3 +66,20 @@ void ddr4_config_refresh(uint8_t n, uint8_t cap, uint8_t mode)
 
 	ddr4_hw_config_refresh(n, mode, tREFI, tRFCmin);
 }
+
+/* 3.3 RESET and Initialization Procedure */
+/* 3.3.1 Power-up Initialization Sequence
+ *
+ * Implements step 2-14 of this sequence.
+ */
+void ddr4_powerup_init(uint8_t n)
+{
+}
+
+/* 3.3.2 Reset Initialization with Stable Power
+ *
+ * Implements step 2-10 of this sequence.
+ */
+void ddr4_reset_init(uint8_t n)
+{
+}

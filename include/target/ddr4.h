@@ -448,8 +448,12 @@
 #define DDR_SPD2tCK(spd)		__DDR_SPD2tCK(spd, 2)
 
 void ddr4_config_refresh(uint8_t n, uint8_t cap, uint8_t mode);
+void ddr4_powerup_init(uint8_t n);
+void ddr4_reset_init(uint8_t n);
 #else
-#define ddr4_config_fgr(n, c, cap, mode)	do { } while (0)
+#define ddr4_config_refresh(n, cap, mode)	do { } while (0)
+#define ddr4_powerup_init(n)			do { } while (0)
+#define ddr4_reset_init(n)			do { } while (0)
 #endif /* CONFIG_DDR4 */
 
 #endif /* __DDR4_H_INCLUDE__ */
