@@ -43,6 +43,11 @@
 #define __DDR4_H_INCLUDE__
 
 #ifdef CONFIG_DDR4
+#define __ddr4_spd(spd)		((spd) - DDR4_MIN_SPD)
+#define ddr4_spd		__ddr4_spd(ddr_spd)
+#define ddr4_spd_valid(spd)	\
+	(!!(((spd) >= DDR4_MIN_SPD) && ((spd) <= DDR4_MAX_SPD)))
+
 /* 2.8 DDR4 SDRAM Addressing */
 #define DDR4_2GB			0
 #define DDR4_4GB			1
@@ -116,21 +121,101 @@
 #define DDR4_func_SRX			14 /* Self-Refresh exit */
 #define DDR4_func_MPR			15 /* Multi Purpose Register */
 
+/* Modes can be controlled by MR */
+#define DDR4_MODE_TsensReadout		_BV(0)
+#define DDR4_MODE_GeardownRate_4	_BV(1)
+#define DDR4_MODE_PDA			_BV(2)
+#define DDR4_MODE_VrefDQTraining	_BV(3)
+#define DDR4_MODE_ReadDBI		_BV(4)
+#define DDR4_MODE_WriteDBI		_BV(5)
+#define DDR4_MODE_DataMask		_BV(6)
+#define DDR4_MODE_CAPAR			_BV(7)
+#define DDR4_MODE_CAPARLatency		_BV(8)
+#define DDR4_MODE_ODTInputBuffer	_BV(9)
+#define DDR4_MODE_hPPR			_BV(10)
+#define DDR4_MODE_sPPR			_BV(11)
+#define DDR4_MODE_WritePreamble_2T	_BV(12)
+#define DDR4_MODE_ReadPreamble_2T	_BV(13)
+#define DDR4_MODE_ReadPreambleTraining	_BV(14)
+#define DDR4_MODE_SelfRefreshAbort	_BV(15)
+#define DDR4_MODE_InternalVrefMonitor	_BV(16)
+#define DDR4_MODE_TCR			_BV(17)
+#define DDR4_MODE_TCR_RangeExtended	_BV(18)
+#define DDR4_MODE_MPDM			_BV(19)
+#define DDR4_MODE_WriteCRC		_BV(20)
+#define DDR4_MODE_Qoff			_BV(21)
+#define DDR4_MODE_TDQS			_BV(22)
+#define DDR4_MODE_WriteLeveling		_BV(23)
+#define DDR4_MODE_DLL			_BV(24)
+#define DDR4_MODE_DLLReset		_BV(25)
+#define DDR4_MODE_TM			_BV(26)
+#define DDR4_MODE_CS_CA_Latency		_BV(27)
+#define DDR4_MODE_RTT_WR_DynamicODT	_BV(28)
+#define DDR4_MODE_ReadBurstInterleave	_BV(29)
+
 /* Refresh modes */
-#define DDR4_REFRESH_Fixed_1x		0x0
-#define DDR4_REFRESH_Fixed_2x		0x1
-#define DDR4_REFRESH_Fixed_4x		0x2
-#define DDR4_REFRESH_OnTheFly_2x	\
+#define DDR4_REFRESH_Fixed_1x			0x000
+#define DDR4_REFRESH_Fixed_2x			0x001
+#define DDR4_REFRESH_Fixed_4x			0x002
+#define DDR4_REFRESH_OnTheFly			0x004
+#define DDR4_REFRESH_OnTheFly_2x		\
 	(DDR4_REFRESH_OnTheFly | DDR4_REFRESH_Fixed_2x)
-#define DDR4_REFRESH_OnTheFly_4x	\
+#define DDR4_REFRESH_OnTheFly_4x		\
 	(DDR4_REFRESH_OnTheFly | DDR4_REFRESH_Fixed_4x)
-#define DDR4_MAX_REFRESHES		3
-#define DDR4_MAX_REFRESH_MODES		7
-#define DDR4_REFRESH_MASK		0x3
-#define DDR4_REFRESH_MODE_MASK		\
+#define DDR4_MAX_REFRESHES			3
+#define DDR4_MAX_REFRESH_MODES			7
+#define DDR4_REFRESH_MASK			0x003
+#define DDR4_FGR_MODE_MASK			\
 	(DDR4_REFRESH_OnTheFly | DDR4_REFRESH_MASK)
-#define DDR4_REFRESH_OnTheFly		0x04
-#define DDR4_REFRESH_TempControlled	0x80
+#define DDR4_REFRESH_TCR_ModeEnabled		0x080
+#define DDR4_REFRESH_TCR_RangeExtended		0x100
+#define DDR4_REFRESH_TCR_Normal			(DDR4_REFRESH_TCR_ModeEnabled)
+#define DDR4_REFRESH_TCR_Extended		\
+	(DDR4_REFRESH_TCR_ModeEnabled | DDR4_REFRESH_TCR_RangeExtended)
+#define DDR4_TCR_MODE_MASK			\
+	(DDR4_REFRESH_TCR_ModeEnabled | DDR4_REFRESH_TCR_RangeExtended)
+
+/* MPR Related */
+#define DDR4_MPR_ReadFormat_Serial	0
+#define DDR4_MPR_ReadFormat_Parallel	1
+#define DDR4_MPR_ReadFormat_Staggered	2
+#define DDR4_MPR_Operation_Normal	0
+#define DDR4_MPR_Operation_MPR		1
+
+/* Table 15 - VrefDQ Training: Range */
+#define DDR4_TRAINING_VrefDQ_Range1	0
+#define DDR4_TRAINING_VrefDQ_Range2	1
+
+/* C/A Parity */
+#define DDR4_CAPAR_Clear		0 /* C/A Parity Error Status */
+#define DDR4_CAPAR_Error		1 /* C/A Parity Error Status */
+#define DDR4_CRC_Clear			0 /* CRC Error Clear */
+#define DDR4_CRC_Error			1 /* CRC Error Clear */
+
+/* Low Power Auto Self Refresh LP_ASR */
+#define DDR4_LP_MANUAL_Normal		0
+#define DDR4_LP_MANUAL_Reduced		1
+#define DDR4_LP_MANUAL_Extended		2
+#define DDR4_LP_ASR			3
+
+/* RTT_WR special value */
+#define DDR4_RTT_WR_HiZ			0
+#define DDR4_RTT_NOM_Disable		0
+#define DDR4_RTT_PARK_Disable		0
+
+/* Additive Latency */
+#define DDR4_AdditiveLatency_Disable	0
+#define DDR4_AdditiveLatency_CL_1	1
+#define DDR4_AdditiveLatency_CL_2	2
+
+/* Read Burst Type */
+#define DDR4_ReadBurst_Sequential	0
+#define DDR4_ReadBurst_Interleave	1
+
+/* Burst Length */
+#define DDR4_BL8MRS			0
+#define DDR4_BL8_BC4_OTF		1
+#define DDR4_BC4MRS			2
 
 /* 3.5 Mode Register */
 
@@ -259,22 +344,28 @@
 #define DDR4_MR_A0(value)		_SET_FV(DDR4_MR_A0, value)
 
 /* MR0 */
-#define DDR4_MR0_WT_RTP(value)		\
-	(DDR4_MR_A13((value) >> 3) | DDR4_MR_A11_A9(value))
-#define DDR4_MR0_DLL_Reset(value)	DDR4_MR_A8(value)
-#define DDR4_MR0_TM(value)		DDR4_MR_A7(value)
-#define DDR4_MR0_CASLatency(value)	\
-	(DDR4_MR_A12((value) >> 4) | DDR4_MR_A6_A4((value) >> 1) |	\
-	 DDR4_MR_A2(value))
-#define DDR4_MR0_ReadBurstType(value)	DDR4_MR_A3(value)
+#define DDR4_MR0_WT_RTP(value)				\
+	(DDR4_MR_A13((DDR4_MR0_WR(value)) >> 3) |	\
+	 DDR4_MR_A11_A9(DDR4_MR0_WR(value)))
+#define DDR4_MR0_DLL_Reset(value)	DDR4_MR_A8(!!(value))
+#define DDR4_MR0_TM(value)		DDR4_MR_A7(!!(value))
+#define DDR4_MR0_CASLatency(value)			\
+	(DDR4_MR_A12((DDR4_MR0_CL(value)) >> 4) |	\
+	 DDR4_MR_A6_A4((DDR4_MR0_CL(value)) >> 1) |	\
+	 DDR4_MR_A2(DDR4_MR0_CL(value)))
+#define DDR4_MR0_ReadBurstType(value)	DDR4_MR_A3(!!(value))
 #define DDR4_MR0_BurstLength(value)	DDR4_MR_A1_A0(value)
-#define DDR4_MR_MR0(wr_rtp, dll_rst, tm, cas_lat, rd_bt, bl)		\
-	(DDR4_MR0_WT_RTP(wr_rtp) | DDR4_MR0_DLL_Reset(dll_rst) |	\
-	 DDR4_MR0_TM(tm) | DDR4_MR0_CASLatency(cas_lat) |		\
-	 DDR4_MR0_ReadBurstType(rd_bt) | DDR4_MR0_BurstLength(bl))
+#define DDR4_MR_MR0(mode, wr_rtp, cas_lat, bl)				\
+	(DDR4_MR0_WT_RTP(wr_rtp) |					\
+	 DDR4_MR0_DLL_Reset((mode) & DDR4_MODE_DLLReset) |		\
+	 DDR4_MR0_TM((mode) & DDR4_MODE_TM) |				\
+	 DDR4_MR0_CASLatency(cas_lat) |					\
+	 DDR4_MR0_BurstLength(bl) |					\
+	 DDR4_MR0_ReadBurstType((mode) & DDR4_MODE_ReadBurstInterleave))
 /* Table 2 - Write Recovery and Read to Precharge (cycles) */
-#define DDR4_MR0_WR(n)			(((n) - 10) >> 1)
-#define DDR4_MR0_RTP(n)			((n) - 5)
+#define DDR4_MR0_WR(n)			DDR4_MR0_RTP((n) >> 1)
+#define DDR4_MR0_RTP(n)			\
+	(((((n) - 5) & 6) == 6) ? (((((n) - 5) & 1) ? 0 : 1) | 6) : (n) - 5)
 #define DDR4_MR0_WR_MAX			26
 #define DDR4_MR0_RTP_MAX		13
 /* Table 3 - CAS Latency:
@@ -292,66 +383,71 @@
 	 ((n) - 9))
 
 /* MR1 */
-#define DDR4_MR1_Qoff(value)			DDR4_MR_A12(value)
-#define DDR4_MR1_TDQSEnable(value)		DDR4_MR_A11(value)
-#define DDR4_MR1_RTT_NOM(value)			DDR4_MR_A10_A8(value)
-#define DDR4_MR1_WriteLevelingEnable(value)	DDR4_MR_A7(value)
+#define DDR4_MR1_Qoff(value)			DDR4_MR_A12(!!(value))
+#define DDR4_MR1_TDQSEnable(value)		DDR4_MR_A11(!!(value))
+#define DDR4_MR1_RTT_NOM(value)				\
+	DDR4_MR_A10_A8(DDR4_MR1_RTT_NOM_RZQ(value))
+#define DDR4_MR1_WriteLevelingEnable(value)	DDR4_MR_A7(!!(value))
 #define DDR4_MR1_AdditiveLatency(value)		DDR4_MR_A4_A3(value)
 #define DDR4_MR1_OutputDriverImpedanceControl(value)	\
-	DDR4_MR_A2_A1(value)
-#define DDR4_MR1_DLLEnable(value)		DDR4_MR_A0(value)
-#define DDR4_MR_MR1(qoff, tdqs_en, rtt_nom, wl_en, add_lat, out_imp, dll_en) \
-	(DDR4_MR1_Qoff(qoff) | DDR4_MR1_TDQSEnable(tdqs_en) |		     \
-	 DDR4_MR1_RTT_NOM(rtt_nom) | DDR4_MR1_WriteLevelingEnable(wl_en) |   \
-	 DDR4_MR1_AdditiveLatency(add_lat) | 				     \
-	 DDR4_MR1_OutputDriverImpedanceControl(out_imp) |		     \
-	 DDR4_MR1_DLLEnable(dll_en))
+	DDR4_MR_A2_A1(DDR4_MR1_OutputDriverImpedanceControl_RZQ(value))
+#define DDR4_MR1_DLLEnable(value)		DDR4_MR_A0(!!(value))
+#define DDR4_MR_MR1(mode, rtt_nom, add_lat, out_imp) 		\
+	(DDR4_MR1_Qoff((mode) & DDR4_MODE_Qoff) |		\
+	 DDR4_MR1_TDQSEnable((mode) & DDR4_MODE_TDQS) |		\
+	 DDR4_MR1_RTT_NOM(rtt_nom) |				\
+	 DDR4_MR1_WriteLevelingEnable((mode) &			\
+		 DDR4_MODE_WriteLeveling) |			\
+	 DDR4_MR1_AdditiveLatency(add_lat) |			\
+	 DDR4_MR1_OutputDriverImpedanceControl(out_imp) |	\
+	 DDR4_MR1_DLLEnable((mode) & DDR4_MODE_DLL))
 /* Table 4 - RTT_NOM */
 #define DDR4_MR1_RTT_NOM_RZQ(rzq_div)	bitrev3(rzq_div)
-#define DDR4_MR1_RTT_NOM_Disable	DDR4_MR1_RTT_NOM_RZQ(0)
 /* Table 5 - Output Driver Impedance Control */
 #define DDR4_MR1_OutputDriverImpedanceControl_RZQ(rzq_div)	\
 	((7 - (rzq_div)) >> 1)
 
 /* MR2 */
-#define DDR4_MR2_WriteCRC(value)	DDR4_MR_A12(value)
-#define DDR4_MR2_RTT_WR(value)		DDR4_MR_A11_A9(value)
+#define DDR4_MR2_WriteCRC(value)	DDR4_MR_A12(!!(value))
+#define DDR4_MR2_RTT_WR(value)		\
+	DDR4_MR_A11_A9(DDR4_MR2_RTT_WR_RZQ(value))
 #define DDR4_MR2_LP_ASR(value)		DDR4_MR_A7_A6(value)
-#define DDR4_MR2_CASWriteLatency(value)	DDR4_MR_A5_A3(value)
-#define DDR4_MR_MR2(wr_crc, rtt_wr, lp_asr, cwl)		\
-	(DDR4_MR2_WriteCRC(wr_crc) | DDR4_MR2_RTT_WR(rtt_wr) |	\
+#define DDR4_MR2_CASWriteLatency(value)	DDR4_MR_A5_A3(DDR4_MR2_CWL(value))
+#define DDR4_MR_MR2(mode, rtt_wr, lp_asr, cwl)			\
+	(DDR4_MR2_WriteCRC((mode) & DDR4_MODE_WriteCRC) |	\
+	 ((mode) & DDR4_MODE_RTT_WR_DynamicODT ?		\
+	  DDR4_MR2_RTT_WR(rtt_wr) : 0) |			\
 	 DDR4_MR2_LP_ASR(lp_asr) | DDR4_MR2_CASWriteLatency(cwl))
 /* Table 6 - RTT_WR */
-#define DDR4_MR1_RTT_WR_RZQ(rzq_div)		\
+#define DDR4_MR2_RTT_WR_RZQ(rzq_div)		\
 	(((rzq_div) > 2) ? ((rzq_div) + 1) : 3 - (rzq_div))
-#define DDR4_MR1_RTT_WQ_DynamicODTOff		0
-#define DDR4_MR1_RTT_WQ_HiZ			3
 /* Table 7 - CWL (CAS Write Lantency) */
-#define DDR4_MR1_CWL(n)				\
+#define DDR4_MR2_CWL(n)				\
 	(((n) - 9 < 4) ? ((n) - 9) : (((n) - 14) >> 1) + 4)
 
 /* MR3 */
 #define DDR4_MR3_MPRReadFormat(value)		DDR4_MR_A12_A11(value)
-#define DDR4_MR3_WriteCMDLatency(value)		DDR4_MR_A10_A9(value)
+#define DDR4_MR3_WriteCMDLatency(value)			\
+	DDR4_MR_A10_A9(DDR4_MR3_Write_CL(value))
 #define DDR4_MR3_FineGranularityRefreshMode(value)	\
 	DDR4_MR_A8_A6(value)
 #define DDR4_MR3_Temperature_sensor_readout(value)	\
-	DDR4_MR_A5(value)
+	DDR4_MR_A5(!!(value))
 #define DDR4_MR3_PerDRAMAddressability(value)		\
-	DDR4_MR_A4(value)
-#define DDR4_MR3_GeardownMode(value)		DDR4_MR_A3(value)
+	DDR4_MR_A4(!!(value))
+#define DDR4_MR3_GeardownMode(value)		DDR4_MR_A3(!!(value))
 #define DDR4_MR3_MPROperation(value)		DDR4_MR_A2(value)
 #define DDR4_MR3_MPRPageSelection(value)	DDR4_MR_A1_A0(value)
-#define DDR4_MR_MR3(mpr_rd_fmt, wr_cmd_lat, fine_rfsh, tsens_rdout,	\
-		    pda, geardown, mpr_op, mpr_page)			\
-	(DDR4_MR3_MPRReadFormat(mpr_rd_fmt) |				\
-	 DDR4_MR3_MPROperation(mpr_op) |				\
-	 DDR4_MR3_MPRPageSelection(mpr_page) |				\
+#define DDR4_MR_MR3(mode, wr_cmd_lat, fine_rfsh)			\
+	(DDR4_MR3_MPRReadFormat(DDR4_MPR_ReadFormat_Serial) |		\
+	 DDR4_MR3_MPROperation(DDR4_MPR_Operation_Normal) |		\
+	 DDR4_MR3_MPRPageSelection(0) |					\
 	 DDR4_MR3_WriteCMDLatency(wr_cmd_lat) |				\
 	 DDR4_MR3_FineGranularityRefreshMode(fine_rfsh) |		\
-	 DDR4_MR3_Temperature_sensor_readout(tsens_rdout) |		\
-	 DDR4_MR3_PerDRAMAddressability(pda) |				\
-	 DDR4_MR3_GeardownMode(geardown))
+	 DDR4_MR3_Temperature_sensor_readout((mode) &			\
+					     DDR4_MODE_TsensReadout) |	\
+	 DDR4_MR3_PerDRAMAddressability((mode) & DDR4_MODE_PDA) |	\
+	 DDR4_MR3_GeardownMode((mode) & DDR4_MODE_GeardownRate_4))
 /* Table 8 - Fine Granularity Refresh Mode */
 #define DDR4_MR3_Refresh_Fixed_1x		DDR4_REFRESH_Fixed_1x
 #define DDR4_MR3_Refresh_Fixed_2x		DDR4_REFRESH_Fixed_2x
@@ -359,103 +455,141 @@
 #define DDR4_MR3_Refresh_OnTheFly_2x		DDR4_REFRESH_OnTheFly_2x
 #define DDR4_MR3_Refresh_OnTheFly_4x		DDR4_REFRESH_OnTheFly_4x
 /* Table 9 - Write Command Latency when CRC and DM are both enabled */
-#define DDR4_MR3_Write_CL(nCk)			((nCK) - 4)
+#define DDR4_MR3_Write_CL(nCK)			((nCK) - 4)
 
 /* MR4 */
-#define DDR4_MR4_hPPR(value)		DDR4_MR_A13(value)
-#define DDR4_MR4_WritePreamble(value)	DDR4_MR_A12(value)
-#define DDR4_MR4_ReadPreamble(value)	DDR4_MR_A11(value)
-#define DDR4_MR4_ReadPreambleTrainingMode(value)		\
-	DDR4_MR_A10(value)
-#define DDR4_MR4_SelfRefreshAbort(value)			\
-	DDR4_MR_A9(value)
-#define DDR4_MR4_CStoCALatency(value)	DDR4_MR_A8_A6(value)
-#define DDR4_MR4_sPPR(value)		DDR4_MR_A5(value)
-#define DDR4_MR4_InternalVrefMonitor(value)			\
-	DDR4_MR_A4(value)
+#define DDR4_MR4_hPPR(value)			DDR4_MR_A13(!!(value))
+#define DDR4_MR4_WritePreamble(value)		DDR4_MR_A12(!!(value))
+#define DDR4_MR4_ReadPreamble(value)		DDR4_MR_A11(!!(value))
+#define DDR4_MR4_ReadPreambleTrainingMode(value)\
+	DDR4_MR_A10(!!(value))
+#define DDR4_MR4_SelfRefreshAbort(value)	DDR4_MR_A9(!!(value))
+#define DDR4_MR4_CStoCALatency(value)		\
+	DDR4_MR_A8_A6(DDR4_MR4_CS_CA_L(value))
+#define DDR4_MR4_sPPR(value)			DDR4_MR_A5(!!(value))
+#define DDR4_MR4_InternalVrefMonitor(value)	DDR4_MR_A4(!!(value))
 #define DDR4_MR4_TemperatureControlledRefreshMode(value)	\
-	DDR4_MR_A3(value)
+	DDR4_MR_A3(!!(value))
 #define DDR4_MR4_TemperatureControlledRefreshRange(value)	\
-	DDR4_MR_A2(value)
-#define DDR4_MR4_MaximumPowerDownMode(value)	\
-	DDR4_MR_A1(value)
-#define DDR4_MR_MR4(hppr, wr_pre, rd_pre, rd_pre_mode, slf_rfsh_abt,	\
-		    cs_ca_lat, sppr, vref_imon, trfsh_mode, trfsh_range,\
-		    mpdm)	   					\
-	(DDR4_MR4_hPPR(hppr) | DDR4_MR4_sPPR(sppr) |			\
-	 DDR4_MR4_WritePreamble(wr_pre) |				\
-	 DDR4_MR4_ReadPreamble(rd_pre) |				\
-	 DDR4_MR4_ReadPreambleTrainingMode(rd_pre_mode) |		\
-	 DDR4_MR4_SelfRefreshAbort(slf_rfsh_abt) |			\
-	 DDR4_MR4_CStoCALatency(cs_ca_lat) |				\
-	 DDR4_MR4_InternalVrefMonitor(vref_imon) |			\
-	 DDR4_MR4_TemperatureControlledRefreshMode(trfsh_mode) |	\
-	 DDR4_MR4_TemperatureControlledRefreshRange(trfsh_range) |	\
-	 DDR4_MR4_MaximumPowerDownMode(mpdm))
+	DDR4_MR_A2(!!(value))
+#define DDR4_MR4_MaximumPowerDownMode(value)	DDR4_MR_A1(!!(value))
+#define DDR4_MR_MR4(mode, cs_ca_lat)					\
+	(DDR4_MR4_hPPR((mode) & DDR4_MODE_hPPR) |			\
+	 DDR4_MR4_sPPR((mode) & DDR4_MODE_sPPR) |			\
+	 DDR4_MR4_WritePreamble((mode) & DDR4_MODE_WritePreamble_2T) |	\
+	 DDR4_MR4_ReadPreamble((mode) & DDR4_MODE_ReadPreamble_2T) |	\
+	 DDR4_MR4_ReadPreambleTrainingMode((mode) &			\
+		DDR4_MODE_ReadPreambleTraining) |			\
+	 DDR4_MR4_SelfRefreshAbort((mode) &				\
+		 DDR4_MODE_SelfRefreshAbort) |				\
+	 ((mode) & DDR4_MODE_CS_CA_Latency ?				\
+	  DDR4_MR4_CStoCALatency(cs_ca_lat) : 0) |			\
+	 DDR4_MR4_InternalVrefMonitor((mode) &				\
+		 DDR4_MODE_InternalVrefMonitor) |			\
+	 DDR4_MR4_TemperatureControlledRefreshMode((mode) &		\
+		 DDR4_MODE_TCR) |					\
+	 DDR4_MR4_TemperatureControlledRefreshRange((mode) &		\
+		 DDR4_MODE_TCR_RangeExtended) |				\
+	 DDR4_MR4_MaximumPowerDownMode((mode) & DDR4_MODE_MPDM))
 /* Table 11 - CS to CMD/ADDR Latency Mode Setting */
-#define DDR4_MR4_CS_CAL(lat)		\
+#define DDR4_MR4_CS_CA_L(lat)		\
 	(((lat) < 8) ? (lat) - 2 : (((lat) - 6) >> 1) + 4)
-#define DDR4_MR4_CS_CAL_Disable		DDR4_MR4_CS_CAL(2)
 
 /* MR5 */
-#define DDR4_MR5_ReadDBI(value)			DDR4_MR_A12(value)
-#define DDR4_MR5_WriteDBI(value)		DDR4_MR_A11(value)
-#define DDR4_MR5_DataMask(value)		DDR4_MR_A10(value)
-#define DDR4_MR5_CAParityPersistentError(value)	DDR4_MR_A9(value)
-#define DDR4_MR5_RTT_PARK(value)		DDR4_MR_A8_A6(value)
-#define DDR4_MR5_ODTInputBuffer(value)		DDR4_MR_A5(value)
-#define DDR4_MR5_CAParityErrorStatus(value)	DDR4_MR_A4(value)
-#define DDR4_MR5_CRCErrorClear(value)		DDR4_MR_A3(value)
-#define DDR4_MR5_CAParityLatencyMode(value)	DDR4_MR_A2_A0(value)
-#define DDR4_MR_MR5(rd_dbi, wr_dbi, data_msk, ca_par_per_err,		\
-		    rtt_park, odt_input_buf, ca_par_err_sts,		\
-		    crc_err_clr, ca_par_lat_mode)			\
-	(DDR4_MR5_ReadDBI(rd_dbi) | DDR4_MR5_WriteDBI(wr_dbi) |		\
-	 DDR4_MR5_DataMask(data_msk) | DDR4_MR5_RTT_PARK(rtt_park) |	\
-	 DDR4_MR5_CAParityPersistentError(ca_par_per_err) |		\
-	 DDR4_MR5_CAParityErrorStatus(ca_par_err_sts) |			\
-	 DDR4_MR5_CAParityLatencyMode(ca_par_lat_mode) |		\
-	 DDR4_MR5_CRCErrorClear(crc_err_clr) |				\
-	 DDR4_MR5_ODTInputBuffer(odt_input_buf))
+#define DDR4_MR5_ReadDBI(value)			DDR4_MR_A12(!!(value))
+#define DDR4_MR5_WriteDBI(value)		DDR4_MR_A11(!!(value))
+#define DDR4_MR5_DataMask(value)		DDR4_MR_A10(!!(value))
+#define DDR4_MR5_CAParityPersistentError(value)	DDR4_MR_A9(!!(value))
+#define DDR4_MR5_RTT_PARK(value)		\
+	DDR4_MR_A8_A6(DDR4_MR5_RTT_PARK_RZQ(value))
+#define DDR4_MR5_ODTInputBuffer(value)		DDR4_MR_A5(!!(!(value)))
+#define DDR4_MR5_CAParityErrorStatus(value)	DDR4_MR_A4(!!(value))
+#define DDR4_MR5_CRCErrorClear(value)		DDR4_MR_A3(!!(value))
+#define DDR4_MR5_CAParityLatencyMode(value)	\
+	DDR4_MR_A2_A0(DDR4_MR5_CAPL(value))
+#define DDR4_MR_MR5(mode, rtt_park, capar_lat)				\
+	(DDR4_MR5_ReadDBI((mode) & DDR4_MODE_ReadDBI) |			\
+	 DDR4_MR5_WriteDBI((mode) & DDR4_MODE_WriteDBI) |		\
+	 DDR4_MR5_DataMask((mode) & DDR4_MODE_DataMask) |		\
+	 DDR4_MR5_ODTInputBuffer((mode) & DDR4_MODE_ODTInputBuffer) |	\
+	 DDR4_MR5_CAParityPersistentError((mode) & DDR4_MODE_CAPAR) |	\
+	 ((mode) & DDR4_MODE_CAPARLatency ?				\
+	  DDR4_MR5_CAParityLatencyMode(capar_lat) : 0) |		\
+	 DDR4_MR5_RTT_PARK(rtt_park) |					\
+	 DDR4_MR5_CAParityErrorStatus(DDR4_CAPAR_Clear) |		\
+	 DDR4_MR5_CRCErrorClear(DDR4_CRC_Clear))
 /* Table 12 - RTT_PARK */
 #define DDR4_MR5_RTT_PARK_RZQ(rzq_div)	bitrev3(rzq_div)
-#define DDR4_MR5_RTT_PARK_Disable	DDR4_MR1_RTT_PARK_RZQ(0)
 /* Table 13 - C/A Parity Latency Mode */
-#define DDR4_MR5_CAPL(n)				\
+#define DDR4_MR5_CAPL(lat)				\
 	(((lat) < 8) ? (lat) - 3 : (((lat) - 6) >> 1) + 3)
 
 /* MR6 */
-#define DDR4_MR6_tCCD_L(value)			DDR4_MR_A12_A10(value)
-#define DDR4_MR6_VrefDQTrainingEnable(value)	DDR4_MR_A7(value)
-#define DDR4_MR6_VrefDQTrainingRange(value)	DDR4_MR_A6(value)
+#define DDR4_MR6_tCCD_L(value)			\
+	DDR4_MR_A12_A10(DDR4_MR6_tCCD_L_min(value))
+#define DDR4_MR6_VrefDQTrainingEnable(value)	DDR4_MR_A7(!!(value))
+#define DDR4_MR6_VrefDQTrainingRange(value)	DDR4_MR_A6(!!(value))
 #define DDR4_MR6_VrefDQTrainingValue(value)	DDR4_MR_A5_A0(value)
-#define DDR4_MR_MR6(t_ccd_l, vref_dq_train_en, vref_dq_train_range,	\
-		    vref_dq_train_val)					\
-	(DDR4_MR6_tCCD_L(t_ccd_l) |					\
-	 DDR4_MR6_VrefDQTrainingEnable(vref_dq_train_en) |		\
-	 DDR4_MR6_VrefDQTrainingRange(vref_dq_train_range) |		\
-	 DDR4_MR6_VrefDQTrainingValue(vref_dq_train_val))
+#define DDR4_MR6_VrefDQTrainingRangeValue(r, v)	\
+	(DDR4_MR6_VrefDQTrainingRange(r) |	\
+	 DDR4_MR6_VrefDQTrainingValue(DDR4_MR6_VrefDQTraining(r, v)))
+#define DDR4_MR_MR6(mode, t_ccd_l, vref_dq_r, vref_dq_v)		\
+	(DDR4_MR6_VrefDQTrainingEnable((mode) &				\
+				       DDR4_MODE_VrefDQTraining) |	\
+	 DDR4_MR6_tCCD_L(t_ccd_l) |					\
+	 DDR4_MR6_VrefDQTrainingRangeValue(vref_dq_r, vref_dq_v))
 /* Table 14 - tCCD_L and tDLLK */
 #define DDR4_MR6_tCCD_L_min(nCK)	((nCK) - 4)
-/* Table 15 - VrefDQ Training: Range */
-#define DDR4_MR6_VrefDQTrainingRage1	0
-#define DDR4_MR6_VrefDQTrainingRage2	1
 /* Table 16 - VrefDQ Training: Values */
 #define DDR4_MR6_VrefDQTraining(r, value)	\
-	((r) == DDR4_MR6_VrefDQTrainingRage1 ?	\
-	 (((value) - 6000) / 65) : (((value) - 45) / 65))
+	((((r) == DDR4_TRAINING_VrefDQ_Range1 ?	\
+	  ((value) - 6000) : ((value) - 4500)) + 64) / 65)
+
+/* ZQ calibration timings (nCK) */
+#define DDR4_tZQinit	1024
+#define DDR4_tZQoper	512
+#define DDR4_tZQCS	128
 
 #define DDR_SPD2tCK(spd)		__DDR_SPD2tCK(spd, 2)
 
 struct ddr4_dev {
+	uint32_t mode;
+	uint16_t tCK;
+
+	/* FGR related */
+	uint8_t FGR_mode; /* Fine Granularity Refresh */
+	uint16_t tRFCmin;
 	uint32_t tREFI;
-	uint32_t tRFCmin;
+
+	uint8_t LP_ASR_mode;
+
+	/* Core parameters */
+	uint8_t tCCD_Lmin;
+
+	uint16_t tDLLK;
+
+	uint8_t CAPAR_latency_mode;
+	uint8_t CS_CA_latency_mode;
+	uint8_t WR_CMD_latency;
+	uint8_t additive_latency;
+	uint8_t CAS_latency;
+
+	uint8_t RTT_WR;
+	uint8_t RTT_PARK;
+	uint8_t RTT_NOM;
+	uint8_t output_driver_impedance_control;
+
+	uint8_t CWL;
+	uint8_t WR_RTP;
+	uint8_t burst_length;
 };
 
+void ddr4_config_speed(uint8_t n, uint8_t spd);
 void ddr4_config_refresh(uint8_t n, uint8_t cap, uint8_t mode);
 void ddr4_powerup_init(uint8_t n);
 void ddr4_reset_init(uint8_t n);
 #else
+#define ddr4_config_speed(n, spd)		do { } while (0)
 #define ddr4_config_refresh(n, cap, mode)	do { } while (0)
 #define ddr4_powerup_init(n)			do { } while (0)
 #define ddr4_reset_init(n)			do { } while (0)

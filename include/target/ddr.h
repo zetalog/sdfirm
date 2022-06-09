@@ -47,29 +47,39 @@
 #define DDR_MAX_DEVICES		CONFIG_DDR_MAX_DEVICES
 
 /* Speed grade */
-/* DDR-200, 100MHz */
-#define DDR_200		0
-/* DDR-266n, 133MHz, DDR-266B CASLatency = 2.5, DDR-266A CASLatency = 2
- */
-#define DDR_266			(DDR_200 + 1)
-#define DDR2_400		(DDR_200 + 2)
-#define DDR2_533		(DDR2_400 + 1)
-#define DDR2_667		(DDR2_400 + 2)
-#define DDR2_800		(DDR2_400 + 3)
-#define DDR23_800		DDR2_800
-#define DDR3_800		DDR23_800
-#define DDR3_1066		(DDR3_800 + 1)
-#define DDR3_1333		(DDR3_800 + 2)
-#define DDR3_1600		(DDR3_800 + 3)
-#define DDR34_1600		DDR3_1600
-#define DDR4_1600		DDR34_1600
-#define DDR4_1866		(DDR4_1600 + 1)
-#define DDR4_2133		(DDR4_1600 + 2)
-#define DDR4_2400		(DDR4_1600 + 3)
-#define DDR4_2666		(DDR4_1600 + 4)
-#define DDR4_2933		(DDR4_1600 + 5)
-#define DDR4_3200		(DDR4_1600 + 6)
-#define DDR_MAX_SPDS		(DDR4_3200 + 1)
+#define DDR_MIN_SPD		0
+#define DDR1_MIN_SPD		DDR_MIN_SPD
+#define DDR_200			(DDR1_MIN_SPD + 0)
+#define DDR_266			(DDR1_MIN_SPD + 1)
+#define DDR_333			(DDR1_MIN_SPD + 2)
+#define DDR_400			(DDR1_MIN_SPD + 3)
+#define DDR1_MAX_SPD		DDR_400
+#define DDR1_MAX_SPDS		(DDR1_MAX_SPD - DDR1_MIN_SPD + 1)
+#define DDR2_MIN_SPD		DDR1_MAX_SPD
+#define DDR2_400		(DDR2_MIN_SPD + 0)
+#define DDR2_533		(DDR2_MIN_SPD + 1)
+#define DDR2_667		(DDR2_MIN_SPD + 2)
+#define DDR2_800		(DDR2_MIN_SPD + 3)
+#define DDR2_MAX_SPD		DDR2_800
+#define DDR2_MAX_SPDS		(DDR2_MAX_SPD - DDR2_MIN_SPD + 1)
+#define DDR3_MIN_SPD		DDR2_MAX_SPD
+#define DDR3_800		(DDR3_MIN_SPD + 0)
+#define DDR3_1066		(DDR3_MIN_SPD + 1)
+#define DDR3_1333		(DDR3_MIN_SPD + 2)
+#define DDR3_1600		(DDR3_MIN_SPD + 3)
+#define DDR3_MAX_SPD		DDR3_1600
+#define DDR3_MAX_SPDS		(DDR3_MAX_SPD - DDR3_MIN_SPD + 1)
+#define DDR4_MIN_SPD		DDR3_MAX_SPD
+#define DDR4_1600		(DDR4_MIN_SPD + 0)
+#define DDR4_1866		(DDR4_MIN_SPD + 1)
+#define DDR4_2133		(DDR4_MIN_SPD + 2)
+#define DDR4_2400		(DDR4_MIN_SPD + 3)
+#define DDR4_2666		(DDR4_MIN_SPD + 4)
+#define DDR4_2933		(DDR4_MIN_SPD + 5)
+#define DDR4_3200		(DDR4_MIN_SPD + 6)
+#define DDR4_MAX_SPD		DDR4_3200
+#define DDR4_MAX_SPDS		(DDR4_MAX_SPD - DDR4_MIN_SPD + 1)
+#define DDR_MAX_SPDS		(DDR4_MAX_SPD + 1)
 #define __DDR_SPD2tCK(spd, n)	((n) * 1000 * 1000 / ddr_spd2speed(spd)) /* In ps */
 
 #include <target/ddr1.h>
@@ -77,14 +87,17 @@
 #include <target/ddr_spd.h>
 #include <driver/ddr.h>
 
-#define ddr_config_speed(speed)		ddr_hw_config_speed(speed)
 #define ddr_enable_speed(speed)		ddr_hw_enable_speed(speed)
 #define ddr_wait_dfi(cycles)		ddr_hw_wait_dfi(cycles)
 #define ddr_mr_write(n, c, ranks, v, r)	ddr_hw_mr_write(n, c, ranks, v, r)
 
 #ifdef CONFIG_DDR
+void ddr_config_speed(uint8_t spd);
 uint16_t ddr_spd2speed(uint8_t spd);
 void ddr_init(void);
+
+extern uint8_t ddr_spd;
+extern uint8_t ddr_dev;
 #else
 #define ddr_spd2speed(spd)		0
 #define ddr_init()			do { } while (0)

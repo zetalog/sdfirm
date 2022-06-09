@@ -705,6 +705,8 @@
 #define INIT5_dev_zqinit_x32_MASK	REG_8BIT_MASK
 #define INIT5_dev_zqinit_x32(value)	\
 	_SET_FV(INIT5_dev_zqinit_x32, DW_UMCTL2_ROUNDUP(value, 5))
+#define INIT5_dev_zqinit_x32_mask	\
+	INIT5_dev_zqinit_x32(INIT5_dev_zqinit_x32_MASK)
 #endif
 #ifdef CONFIG_DW_UMCTL2_LPDDR
 #define INIT5_max_auto_init_x1024_OFFSET	0
@@ -1151,10 +1153,11 @@ void dw_umctl2_ddr4_init_device(uint8_t n);
 void dw_umctl2_ddr4_init_refresh(uint8_t n, uint8_t ranks);
 void dw_umctl2_ddr4_config_refresh(uint8_t n, uint8_t mode,
 				   uint32_t tREFI, uint32_t tRFCmin);
-void dw_umctl2_ddr4_init_rstn(uint8_t n, uint32_t tRESET_n);
+void dw_umctl2_ddr4_init_rstn(uint8_t n, uint32_t tPW_RESET);
 void dw_umctl2_ddr4_init_pre_cke(uint8_t n,
 				 uint32_t tCKEactive, uint32_t tCKEstab);
 void dw_umctl2_ddr4_init_post_cke(uint8_t n, uint32_t tXS);
+void dw_umctl2_ddr4_init_zqcl(uint8_t n, uint32_t tZQinit);
 #else
 #define dw_umctl2_ddr4_init_device(n)		do { } while (0)
 #define dw_umctl2_ddr4_init_refresh(n, ranks)	do { } while (0)
@@ -1164,6 +1167,7 @@ void dw_umctl2_ddr4_init_post_cke(uint8_t n, uint32_t tXS);
 #define dw_umctl2_ddr4_init_pre_cke(n, tCKEactive, tCKEstab)		\
 	do { } while (0)
 #define dw_umctl2_ddr4_init_post_cke(n, tXS)	do { } while (0)
+#define dw_umctl2_ddr4_init_zqcl(n, tZQinit)	do { } while (0)
 #endif
 
 void dw_umctl2_init(void);

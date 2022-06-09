@@ -246,11 +246,12 @@ static void dw_umctl2_init_static_regs(uint8_t n, uint8_t c,
 		dw_umctl2_set_msk(INIT0_skip_dram_init_quasi,
 				  INIT0_skip_dram_init_mask,
 				  UMCTL2_INIT0(n));
+		printf("================================\n");
 		dw_umctl2_write(0xC0030128, UMCTL2_INIT0(n));
 #else
+		printf("================================\n");
 		dw_umctl2_write(0x00030128, UMCTL2_INIT0(n));
 #endif
-		printf("================================\n");
 		dw_umctl2_write(0x00010002, UMCTL2_INIT1(n));
 		dw_umctl2_write(0x0C450001, UMCTL2_INIT3(n, f));
 		dw_umctl2_write(0x00280400, UMCTL2_INIT4(n, f));
@@ -291,5 +292,5 @@ void dw_umctl2_init(void)
 	clk_enable(ddr_prst);
 #endif
 
-	dw_umctl2_init_static_regs(0, 0, 0, DDR4_3200);
+	dw_umctl2_init_static_regs(0, 0, 0, ddr_spd);
 }
