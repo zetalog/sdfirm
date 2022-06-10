@@ -330,6 +330,10 @@ void ddr4_reset_init(uint8_t n)
 	 */
 }
 
+void ddr4_config_write_leveling(bool enable, bool Qoff)
+{
+}
+
 void ddr4_config_speed(uint8_t n, uint8_t spd)
 {
 	uint8_t ddr4spd;

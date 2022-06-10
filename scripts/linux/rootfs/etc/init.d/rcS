@@ -1,23 +1,96 @@
 #!/bin/sh
 
-PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
+export PATH=/etc/init.d:/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:.
 
 mount -t proc none /proc
 mount -t sysfs none /sys
-mount -t devtmpfs none /dev
+#mount -t devtmpfs none /dev
+mkdir /dev/pts
+mount -t devpts none /dev/pts
 
 echo -e "\nuptime: $(cut -d' ' -f1 /proc/uptime) seconds\n" >> /dev/console
 
-ip addr add 127.0.0.1/8 dev lo
-ip link set lo up
-if [ -e /dev/eth0 ]; then
-	ip addr add 192.168.100.1/8 dev eth0
+OUTPUT="/dev/null 2>&1"
+ENTRY_POINT=sysinit
+
+echo "===== SDFIRM Administrative Address ====="
+echo "192.168.10.1/255.255.255.0"
+echo "========================================="
+if [ -e /sys/class/net/lo ]; then
+	ip addr add 127.0.0.1/8 dev lo
+	ip link set lo up
+	route add -net 127.0.0.0/8 dev lo
+fi
+if [ -e /sys/class/net/eth0 ]; then
+	ip addr add 192.168.10.1/24 dev eth0
 	ip link set eth0 up
+	route add -net 192.168.10.0/24 dev eth0
+	route add default gw 192.168.10.254
 fi
 
-dhrystone 50
-litmus.sh || echo "Skip litmus tests"
+stty sane -F /dev/tty1 > $OUTPUT
+cat /etc/uk.bmap | loadkmap > $OUTPUT
+hostname sdfirm > $OUTPUT
+
+base=telnetd
+cfg=/etc/network/interfaces
+up=ifup
+down=ifdown
+
+sdfirm_log()
+{
+	echo -n "sdfirm: $@"
+}
+
+start_net()
+{
+	sdfirm_log "Configuring network..."
+	if [ -x $up ]; then
+		if $up -a 1>/dev/null 2>&1; then
+			ifconfig eth0
+			echo "[Success]" && return 0
+		fi
+	fi
+	echo "[Failure]" && return 1
+}
+
+stop_net()
+{
+	sdfirm_log "Deconfiguring network..."
+	if [ -x $down ]; then
+		if $down -a 1>/dev/null 2>&1; then
+			echo "[Success]" && return 0
+		fi
+	fi
+	echo "[Failure]" && return 1
+}
+
+start_telnetd()
+{
+	sdfirm_log "Configuring telnetd..."
+	if /usr/sbin/$base 2>&1; then
+		echo "[Success]" && return 0
+	fi
+	echo "[Failure]" && return 1
+}
+
+stop_net()
+{
+	sdfirm_log "Deconfiguring telnetd..."
+	pid=`bin/pidof $base`
+	if [ -n "$pid" ]; then
+		kill -9 $pid
+	fi
+	echo "[Success]" && return 0
+}
+
+start_net
+start_telnetd
+#$ENTRY_POINT start
+
+#/bin/sh -i
+
+#dhrystone 50
 #dhrystone 200000000
 #linpack
-
-/bin/sh -i
+#litmus.sh || echo "Skip litmus tests"

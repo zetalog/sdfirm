@@ -1,0 +1,4 @@
+::sysinit:/etc/init.d/rcS
+::respawn:/sbin/getty 115200 hvc0 vt100
+::restart:/sbin/init
+::ctrlaltdel:/etc/init.d/rc6

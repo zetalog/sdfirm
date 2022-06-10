@@ -1,0 +1,9 @@
+
+PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:."
+
+TERM=linux
+
+PS1='\u:\w# '
+export PATH DISPLAY TERM PS1
+
+umask 022

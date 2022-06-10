@@ -1,0 +1,30 @@
+#!/bin/sh
+
+export PATH=/etc/init.d:/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:.
+export OUTPUT="/dev/null 2>&1"
+
+ENTRY_POINT=sysinit
+
+check_err()
+{
+	if [ ! "$?" = "0" ] ; then
+		disp_msg FAILURE_$1
+	else
+		disp_msg SUCCESS_$1
+	fi
+}
+
+msg()
+{
+	LEVEL=$1
+	MSG=$2
+	
+	echo "$MSG"
+}
+
+disp_msg()
+{
+	msg 1 $1
+}
+
+$ENTRY_POINT stop
