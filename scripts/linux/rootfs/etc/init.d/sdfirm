@@ -1,0 +1,101 @@
+#!/bin/sh
+
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin
+export OUTPUT="/dev/null 2>&1"
+
+msg()
+{
+	LEVEL=$1
+	MSG=$2
+	
+	echo "$MSG"
+}
+
+disp_msg()
+{
+	msg 1 $1
+}
+
+check_err()
+{
+	if [ ! "$?" = "0" ] ; then
+		msg 2 FAILURE_$1
+	else
+		msg 1 SUCCESS_$1
+	fi
+}
+
+start_sdfirm()
+{
+	disp_msg BEGIN_STARTUP
+
+	ldconfig > $OUTPUT
+	#disp_msg START_DISKS
+	#/etc/init.d/disks start
+	#check_err DISKS
+	#ldconfig > $OUTPUT
+
+	disp_msg START_SYSLOGD
+	$PREFIX/sbin/syslogd
+	check_err SYSLOGD
+
+	disp_msg START_NETWORK
+	/etc/init.d/networking stop > $OUTPUT
+	/etc/init.d/networking start > $OUTPUT
+	check_err NETWORK
+
+	/bin/hostname `cat /etc/hostname` > $OUTPUT
+
+	disp_msg START_TELNETD
+	/etc/init.d/telnetd start > $OUTPUT
+	check_err TELNETD
+
+	#disp_msg START_HTTPD
+	#/etc/init.d/httpd start
+	#check_err HTTPD
+
+	disp_msg END_STARTUP
+
+	/usr/bin/clear
+}
+
+stop_sdfirm()
+{
+	disp_msg BEGIN_SHUTDOWN
+
+	#disp_msg STOP_HTTPD
+	#/etc/init.d/httpd stop > $OUTPUT
+	#check_err HTTPD
+
+	disp_msg STOP_TELNETD
+	/etc/init.d/telnetd stop
+	check_err TELNETD
+
+	disp_msg STOP_NETWORK
+	/etc/init.d/networking stop
+	check_err NETWORK
+	
+	#disp_msg STOP_DISKS
+	#/etc/init.d/disks stop
+	#check_err DISKS
+
+	disp_msg STOP_SYSLOGD
+	killall syslogd
+	check_err SYSLOGD
+
+	disp_msg END_SHUTDOWN
+}
+
+case "$1" in
+	start)
+		start_sdfirm || exit 1
+		;;
+	stop)
+		stop_sdfirm || exit 1
+		;;
+	*)
+		echo "Usage: `basename $0` {start|stop}"
+		exit 1
+		;;
+esac
+exit 0

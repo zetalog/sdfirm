@@ -1,0 +1,5 @@
+#!/bin/sh
+
+#dhrystone 50
+#dhrystone 200000000
+#linpack
