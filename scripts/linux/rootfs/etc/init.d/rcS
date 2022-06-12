@@ -6,11 +6,10 @@ echo -e "\nuptime: $(cut -d' ' -f1 /proc/uptime) seconds\n" >> /dev/console
 PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin:.
 
 mount -t sysfs none /sys
-#mount -t devtmpfs none /dev
+mount -t devtmpfs none /dev
 mkdir /dev/pts
 mount -t devpts none /dev/pts
 
-OUTPUT="/dev/null 2>&1"
 ENTRY_POINT=/etc/init.d/sdfirm
 
 echo "  _      _"
@@ -39,10 +38,10 @@ if [ -e /sys/class/net/eth0 ]; then
 	route add default gw 192.168.10.254
 fi
 
-stty sane -F /dev/tty1 > $OUTPUT
-cat /etc/uk.bmap | loadkmap > $OUTPUT
-hostname sdfirm > $OUTPUT
-ldconfig > $OUTPUT
+stty sane -F /dev/tty1
+cat /etc/uk.bmap | loadkmap
+hostname sdfirm
+ldconfig
 
 if [ -f /etc/init.d/test_early ]; then
 	/etc/init.d/test_early

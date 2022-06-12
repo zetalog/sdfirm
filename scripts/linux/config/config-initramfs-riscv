@@ -5,4 +5,5 @@ dir /var 755 0 0
 dir /var/run 755 0 0
 nod /dev/console 644 0 0 c 5 1
 nod /dev/null 644 0 0 c 1 3
+nod /dev/hvc0 644 0 0 c 229 0
 nod /dev/ptmx 644 0 0 c 5 2

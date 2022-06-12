@@ -56,7 +56,7 @@ start_sdfirm()
 
 	disp_msg END_STARTUP
 
-	clear
+	#clear
 }
 
 stop_sdfirm()
