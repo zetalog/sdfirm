@@ -1,9 +1,9 @@
 #!/bin/sh
 
-export PATH=/etc/init.d:/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:.
+export PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin:.
 export OUTPUT="/dev/null 2>&1"
 
-ENTRY_POINT=sysinit
+ENTRY_POINT=/etc/init.d/sdfirm
 
 check_err()
 {
@@ -18,7 +18,7 @@ msg()
 {
 	LEVEL=$1
 	MSG=$2
-	
+
 	echo "$MSG"
 }
 

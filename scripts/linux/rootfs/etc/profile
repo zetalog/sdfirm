@@ -1,9 +1,16 @@
 
-PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:."
+PATH="/usr/local/bin:/usr/bin:/bin:."
+
+if [ "`id -u`" = "0" ]; then
+	echo $PATH | grep /usr/local/sbin 1> /dev/null 2> /dev/null
+	if [ ! $? = 0 ]; then
+		PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
+	fi
+fi
 
 TERM=linux
 
-PS1='\u:\w# '
+PS1='\u@\h:\w# '
 export PATH DISPLAY TERM PS1
 
 umask 022

@@ -1,21 +1,28 @@
 #!/bin/sh
 
-export PATH=/etc/init.d:/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:.
-
 mount -t proc none /proc
+echo -e "\nuptime: $(cut -d' ' -f1 /proc/uptime) seconds\n" >> /dev/console
+
+PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin:.
+
 mount -t sysfs none /sys
 #mount -t devtmpfs none /dev
 mkdir /dev/pts
 mount -t devpts none /dev/pts
 
-echo -e "\nuptime: $(cut -d' ' -f1 /proc/uptime) seconds\n" >> /dev/console
-
 OUTPUT="/dev/null 2>&1"
-ENTRY_POINT=sysinit
+ENTRY_POINT=/etc/init.d/sdfirm
 
-echo "===== SDFIRM Administrative Address ====="
+echo "  _      _"
+echo " | |    (_)"
+echo " | |     _ _ __  _   ___  __"
+echo " | |    | | '_ \\| | | \\ \\/ /"
+echo " | |____| | | | | |_| |>  <"
+echo " |______|_|_| |_|\\__,_/_/\\_\\"
+echo ""
+echo "===== Factory Address ====="
 echo "192.168.10.1/255.255.255.0"
-echo "========================================="
+echo "==========================="
 if [ -e /sys/class/net/lo ]; then
 	ip addr add 127.0.0.1/8 dev lo
 	ip link set lo up
@@ -24,6 +31,10 @@ fi
 if [ -e /sys/class/net/eth0 ]; then
 	ip addr add 192.168.10.1/24 dev eth0
 	ip link set eth0 up
+	# IPUPDOWN via IP
+	#
+	# This requires ip route plugin:
+	# ip route add default via 192.168.10.254 dev eth0
 	route add -net 192.168.10.0/24 dev eth0
 	route add default gw 192.168.10.254
 fi
@@ -31,66 +42,16 @@ fi
 stty sane -F /dev/tty1 > $OUTPUT
 cat /etc/uk.bmap | loadkmap > $OUTPUT
 hostname sdfirm > $OUTPUT
+ldconfig > $OUTPUT
 
-base=telnetd
-cfg=/etc/network/interfaces
-up=ifup
-down=ifdown
+if [ -f /etc/init.d/test_early ]; then
+	/etc/init.d/test_early
+fi
 
-sdfirm_log()
-{
-	echo -n "sdfirm: $@"
-}
+$ENTRY_POINT start
 
-start_net()
-{
-	sdfirm_log "Configuring network..."
-	if [ -x $up ]; then
-		if $up -a 1>/dev/null 2>&1; then
-			ifconfig eth0
-			echo "[Success]" && return 0
-		fi
-	fi
-	echo "[Failure]" && return 1
-}
-
-stop_net()
-{
-	sdfirm_log "Deconfiguring network..."
-	if [ -x $down ]; then
-		if $down -a 1>/dev/null 2>&1; then
-			echo "[Success]" && return 0
-		fi
-	fi
-	echo "[Failure]" && return 1
-}
-
-start_telnetd()
-{
-	sdfirm_log "Configuring telnetd..."
-	if /usr/sbin/$base 2>&1; then
-		echo "[Success]" && return 0
-	fi
-	echo "[Failure]" && return 1
-}
-
-stop_net()
-{
-	sdfirm_log "Deconfiguring telnetd..."
-	pid=`bin/pidof $base`
-	if [ -n "$pid" ]; then
-		kill -9 $pid
-	fi
-	echo "[Success]" && return 0
-}
-
-start_net
-start_telnetd
-#$ENTRY_POINT start
+if [ -f /etc/init.d/test_late ]; then
+	/etc/init.d/test_late
+fi
 
 #/bin/sh -i
-
-#dhrystone 50
-#dhrystone 200000000
-#linpack
-#litmus.sh || echo "Skip litmus tests"

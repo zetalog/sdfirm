@@ -80,22 +80,43 @@ build_initramfs_busybox()
 	done
 }
 
-build_initramfs_rootfs()
+#	libs=`ldd $from | sort | uniq | \
+#	      awk -F\= '{print $2}' | \
+#	      awk '{print $2}' | uniq`
+#	for lib in $libs ; do
+#		install_file $lib $prefix
+#	done
+
+install_initramfs()
 {
-	ROOTFS_INSTALL=${SCRIPT}/rootfs
-	ROOTFS_FILES=`ls ${ROOTFS_INSTALL}$1`
+	ROOTFS_INSTALL=$1
+	ROOTFS_FILES=`ls ${ROOTFS_INSTALL}$2`
 	for f in ${ROOTFS_FILES}; do
-		if [ -d ${ROOTFS_INSTALL}$1/${f} ]; then
-			echo "dir $1/${f} 755 0 0" >> $TOP/$INITRAMFS_FILELIST
-			build_initramfs_rootfs $1/$f
+		if [ -d ${ROOTFS_INSTALL}$2/${f} ]; then
+			echo "dir $2/${f} 755 0 0" >> $TOP/$INITRAMFS_FILELIST
+			install_initramfs $1 $2/$f
 		else
-			if [ -x ${ROOTFS_INSTALL}$1/${f} ]; then
-				echo "file $1/$f ${ROOTFS_INSTALL}$1/$f 755 0 0" >> $TOP/$INITRAMFS_FILELIST
+			if [ -L ${ROOTFS_INSTALL}$2/${f} ]; then
+				echo "slink $2/$f ${ROOTFS_INSTALL}$2/$f 777 0 0" >> $TOP/$INITRAMFS_FILELIST
 			else
-				echo "file $1/$f ${ROOTFS_INSTALL}$1/$f 644 0 0" >> $TOP/$INITRAMFS_FILELIST
+				if [ -x ${ROOTFS_INSTALL}$2/${f} ]; then
+					echo "file $2/$f ${ROOTFS_INSTALL}$2/$f 755 0 0" >> $TOP/$INITRAMFS_FILELIST
+				else
+					echo "file $2/$f ${ROOTFS_INSTALL}$2/$f 644 0 0" >> $TOP/$INITRAMFS_FILELIST
+				fi
 			fi
 		fi
 	done
+}
+
+get_sysroot()
+{
+	GCC=`which ${CROSS_COMPILE}gcc`
+	echo $GCC
+	GCCDIR=`dirname $GCC`
+	TOOLSDIR=`cd ${GCCDIR}/..; pwd`
+
+	echo ${TOOLSDIR}/sysroot
 }
 
 function build_initramfs()
@@ -112,11 +133,17 @@ function build_initramfs()
 	cp -av $TOP/obj/busybox-$ARCH/_install/* $TOP/$INITRAMFS_DIR
 	build_initramfs_busybox
 
+	rm -rf $TOP/obj/rootfs
 	# TODO: Smarter way to build rootfs
 	# Currently we only lists files in config-initramfs-${ARCH}
 	echo "Installing rootfs..."
-	rm -rf $TOP/obj/rootfs
-	build_initramfs_rootfs
+	install_initramfs ${SCRIPT}/rootfs
+
+	# Copy libraries
+	echo "Installing rootfs..."
+	SYSROOT=`get_sysroot`
+	install_initramfs ${SYSROOT} sbin
+	install_initramfs ${SYSROOT} lib
 
 	echo "Installing benchmarks..."
 	if [ -x $TOP/obj/bench ]; then
