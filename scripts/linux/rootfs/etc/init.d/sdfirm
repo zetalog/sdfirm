@@ -36,7 +36,7 @@ start_sdfirm()
 	#ldconfig > $OUTPUT
 
 	disp_msg START_SYSLOGD
-	$PREFIX/sbin/syslogd
+	syslogd
 	check_err SYSLOGD
 
 	disp_msg START_NETWORK
@@ -44,7 +44,7 @@ start_sdfirm()
 	/etc/init.d/networking start > $OUTPUT
 	check_err NETWORK
 
-	/bin/hostname `cat /etc/hostname` > $OUTPUT
+	hostname `cat /etc/hostname` > $OUTPUT
 
 	disp_msg START_TELNETD
 	/etc/init.d/telnetd start > $OUTPUT
@@ -56,7 +56,7 @@ start_sdfirm()
 
 	disp_msg END_STARTUP
 
-	/usr/bin/clear
+	clear
 }
 
 stop_sdfirm()

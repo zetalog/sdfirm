@@ -112,7 +112,6 @@ install_initramfs()
 get_sysroot()
 {
 	GCC=`which ${CROSS_COMPILE}gcc`
-	echo $GCC
 	GCCDIR=`dirname $GCC`
 	TOOLSDIR=`cd ${GCCDIR}/..; pwd`
 
@@ -136,14 +135,14 @@ function build_initramfs()
 	rm -rf $TOP/obj/rootfs
 	# TODO: Smarter way to build rootfs
 	# Currently we only lists files in config-initramfs-${ARCH}
-	echo "Installing rootfs..."
+	echo "Installing rootfs ${SCRIPT}/rootfs..."
 	install_initramfs ${SCRIPT}/rootfs
 
 	# Copy libraries
-	echo "Installing rootfs..."
 	SYSROOT=`get_sysroot`
-	install_initramfs ${SYSROOT} sbin
-	install_initramfs ${SYSROOT} lib
+	echo "Installing sysroot ${SYSROOT}..."
+	install_initramfs ${SYSROOT} /sbin
+	install_initramfs ${SYSROOT} /lib
 
 	echo "Installing benchmarks..."
 	if [ -x $TOP/obj/bench ]; then

@@ -10,7 +10,7 @@ sdfirm_log()
 start_telnetd()
 {
 	sdfirm_log "Configuring telnetd..."
-	if /usr/sbin/$base -w10 2>&1; then
+	if $base; then
 		echo "[Success]" && return 0
 	fi
 	echo "[Failure]" && return 1
@@ -19,7 +19,7 @@ start_telnetd()
 stop_telnetd()
 {
 	sdfirm_log "Deconfiguring telnetd..."
-	pid=`bin/pidof $base`
+	pid=`pidof $base`
 	if [ -n "$pid" ]; then
 		kill -9 $pid
 	fi
