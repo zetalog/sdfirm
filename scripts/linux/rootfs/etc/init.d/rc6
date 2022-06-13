@@ -1,8 +1,6 @@
 #!/bin/sh
 
 export PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin:.
-export OUTPUT="/dev/null 2>&1"
-
 ENTRY_POINT=/etc/init.d/sdfirm
 
 check_err()

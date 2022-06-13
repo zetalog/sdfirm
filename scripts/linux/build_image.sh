@@ -8,10 +8,11 @@ BUILD_MODULE_OPS="-s"
 usage()
 {
 	echo "Usage:"
-	echo "`basename $0` [-a arch] [-c cores] [-f] [-m mach] [-u]"
+	echo "`basename $0` [-a arch] [-c cores] [-f] [-m mach] [-n host] [-u]"
 	echo "Where:"
 	echo " -a arch:     specify architecture"
 	echo " -m mach:     specify machine type"
+	echo " -n host:     specify hostname (default sdfirm)"
 	echo " -f:          enable firmware builds"
 	echo " -u:          enable userspace program builds"
 	echo " -c cores:    specify number of CPUs to enable litmus"
@@ -24,7 +25,7 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "a:c:fm:u" opt
+while getopts "a:c:fm:n:u" opt
 do
 	case $opt in
 	a) ARCH=$OPTARG;;
@@ -32,6 +33,7 @@ do
 	   BUILD_LITMUS=yes;;
 	f) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -m sdfirm";;
 	m) MACH=$OPTARG;;
+	n) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -n $OPTARG";;
 	u) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -u"
 	   BUILD_LITMUS=yes
 	   BUILD_APPS=yes;;

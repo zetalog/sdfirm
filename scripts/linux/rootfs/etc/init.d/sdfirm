@@ -1,14 +1,24 @@
 #!/bin/sh
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
-export OUTPUT="/dev/null 2>&1"
 
 msg()
 {
 	LEVEL=$1
 	MSG=$2
 	
-	echo "$MSG"
+	LOG_FACILITY=local0
+	LOG_TAG=sdfirm
+
+	if [ "$LEVEL" = "1" ] ; then
+		logger -p $LOG_FACILITY.info -t $LOG_TAG $MSG
+	fi
+	if [ "$LEVEL" = "2" ] ; then
+		logger -p $LOG_FACILITY.err -t $LOG_TAG $MSG
+	fi
+	if [ "$LEVEL" = "3" ] ; then
+		logger -p $LOG_FACILITY.crit -t $LOG_TAG $MSG
+	fi
 }
 
 disp_msg()
@@ -29,30 +39,29 @@ start_sdfirm()
 {
 	disp_msg BEGIN_STARTUP
 
-	ldconfig > $OUTPUT
+	ldconfig
 	#disp_msg START_DISKS
 	#/etc/init.d/disks start
 	#check_err DISKS
-	#ldconfig > $OUTPUT
+	#ldconfig
 
 	disp_msg START_SYSLOGD
 	syslogd
 	check_err SYSLOGD
 
 	disp_msg START_NETWORK
-	/etc/init.d/networking stop > $OUTPUT
-	/etc/init.d/networking start > $OUTPUT
+	/etc/init.d/networking stop
+	/etc/init.d/networking start
+	hostname `cat /etc/hostname`
 	check_err NETWORK
 
-	hostname `cat /etc/hostname` > $OUTPUT
-
 	disp_msg START_TELNETD
-	/etc/init.d/telnetd start > $OUTPUT
+	/etc/init.d/telnetd start
 	check_err TELNETD
 
-	#disp_msg START_HTTPD
-	#/etc/init.d/httpd start
-	#check_err HTTPD
+	disp_msg START_HTTPD
+	/etc/init.d/httpd start
+	check_err HTTPD
 
 	disp_msg END_STARTUP
 
@@ -63,9 +72,9 @@ stop_sdfirm()
 {
 	disp_msg BEGIN_SHUTDOWN
 
-	#disp_msg STOP_HTTPD
-	#/etc/init.d/httpd stop > $OUTPUT
-	#check_err HTTPD
+	disp_msg STOP_HTTPD
+	/etc/init.d/httpd stop
+	check_err HTTPD
 
 	disp_msg STOP_TELNETD
 	/etc/init.d/telnetd stop

@@ -3,6 +3,7 @@
 TOP=`pwd`
 SCRIPT=`(cd \`dirname $0\`; pwd)`
 ARCH=riscv
+HOSTNAME=sdfirm
 if [ -z $CROSS_COMPILE ]; then
 	CROSS_COMPILE=riscv64-unknown-linux-gnu-
 fi
@@ -133,10 +134,15 @@ function build_initramfs()
 	build_initramfs_busybox
 
 	rm -rf $TOP/obj/rootfs
+	mkdir -p $TOP/obj/rootfs/etc
+	echo $HOSTNAME > $TOP/obj/rootfs/etc/hostname
 	# TODO: Smarter way to build rootfs
 	# Currently we only lists files in config-initramfs-${ARCH}
 	echo "Installing rootfs ${SCRIPT}/rootfs..."
+	# Install non-customizables
 	install_initramfs ${SCRIPT}/rootfs
+	# Install customizables
+	install_initramfs ${TOP}/obj/rootfs
 
 	# Copy libraries
 	SYSROOT=`get_sysroot`
@@ -243,12 +249,13 @@ cd $TOP
 usage()
 {
 	echo "Usage:"
-	echo "`basename $0` [-m] [-s] [-u] [-a] [target]"
+	echo "`basename $0` [-m bbl] [-s] [-u] [-a] [-n hostname] [target]"
 	echo "Where:"
 	echo " -m bbl:      specify rebuild of M-mode program"
 	echo " -s:          specify rebuild of S-mode program"
 	echo " -u:          specify rebuild of U-mode programs"
 	echo " -a:          specify rebuild of all modes programs"
+	echo " -n:          specify system hostname (default sdfirm)"
 	echo " target:      specify build type (default build)"
 	echo "  build       build specified modules (default mode)"
 	echo "  clean       build specified modules"
@@ -261,7 +268,7 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "am:su" opt
+while getopts "am:n:su" opt
 do
 	case $opt in
 	a) M_MODE=yes
@@ -269,6 +276,7 @@ do
 	   U_MODE=yes;;
 	m) M_MODE=yes
 	   BBL=$OPTARG;;
+	n) HOSTNAME=$OPTARG;;
 	s) S_MODE=yes;;
 	u) U_MODE=yes;;
 	?) echo "Invalid argument $opt"
