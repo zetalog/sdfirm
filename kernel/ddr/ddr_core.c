@@ -76,14 +76,23 @@ uint16_t ddr_spd2speed(uint8_t spd)
 
 void ddr_config_speed(uint8_t spd)
 {
+	ddr_spd = spd;
 	ddr_hw_config_speed(spd);
-	ddr4_config_speed(ddr_dev, ddr_spd);
+	ddr4_config_speed(ddr_dev);
 }
+
+#if 0
+void ddr_config_module(uint8_t n, uint8_t type,
+		       uint8_t dies, uint8_t ranks, uint8_t width)
+{
+	ddr4_config_module(n, type, dies, ranks, width);
+}
+#endif
 
 void ddr_init(void)
 {
 	/* TODO: SPD initialization */
-	ddr_config_speed(ddr_spd);
+	ddr_config_speed(DDR_SPD_DEFAULT);
 	ddr_enable_speed(ddr_spd);
 
 	ddr_hw_ctrl_init();

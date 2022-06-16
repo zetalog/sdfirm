@@ -2,8 +2,6 @@
 #include <target/clk.h>
 #include <target/console.h>
 
-#define CONFIG_DW_UMCTL2_DEBUG 1
-
 /* 2.22 Mode Register Reads and Writes
  */
 void dw_umctl2_mr_write(uint8_t n, uint8_t c, uint8_t ranks,

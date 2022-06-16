@@ -47,13 +47,27 @@
 #include <asm/mach/tmr.h>
 #include <asm/clint.h>
 
+#ifdef CONFIG_DUOWEN_ZEBU_FREQ_1991KHZ
+#define TSC_SIM_RATIO		(CL_PLL_FREQ / 1991000)
+#endif
+#ifdef CONFIG_DUOWEN_ZEBU_FREQ_1690KHZ
+#define TSC_SIM_RATIO		(CL_PLL_FREQ / 1690000)
+#endif
+#ifdef CONFIG_DUOWEN_ZEBU_FREQ
+#define TSC_SIM_RATIO		(CL_PLL_FREQ / 1000 / CONFIG_DUOWEN_ZEBU_FREQ)
+#endif
+
 #define DW_TIMERS_BASE		IMC_TIMER_BASE
 #define DW_TIMERS_SIZE		0x14
 #define DW_TIMERS_WIDTH		32
 #define DW_TIMERS_TSC		0
 #define DW_TIMERS_TSC_CLK	TIMER3_CLK
 
+#ifdef TSC_SIM_RATIO
+#define __TSC_FREQ		XO_CLK_FREQ / TSC_SIM_RATIO
+#else
 #define __TSC_FREQ		XO_CLK_FREQ
+#endif
 #define TSC_FREQ		(__TSC_FREQ / 1000) /* kHz based */
 /* TMR and CLINT are all implemented as 64-bit timestamp */
 #define TSC_MAX			ULL(0xFFFFFFFFFFFFFFFF)

@@ -217,7 +217,6 @@ static inline void __ddr4_reset_init(uint8_t n)
 	 *    settings (To issue MRS command to MR3, provide "Low" to BG0,
 	 *    "High" to BA1, BA0)
 	 */
-	printf("MR3\n");
 	MR = DDR4_MR_MR3(ddr4_devices[n].mode,
 			 ddr4_devices[n].WR_CMD_latency,
 			 ddr4_devices[n].FGR_mode);
@@ -226,7 +225,6 @@ static inline void __ddr4_reset_init(uint8_t n)
 	 *    (To issue MRS command to MR6, provide "Low" to BA0, "High" to
 	 *    BG0, BA1)
 	 */
-	printf("MR6\n");
 	MR = DDR4_MR_MR6(ddr4_devices[n].mode,
 			 ddr4_devices[n].tCCD_Lmin,
 			 DDR4_TRAINING_VrefDQ_Range2, 6125);
@@ -235,7 +233,6 @@ static inline void __ddr4_reset_init(uint8_t n)
 	 *    (To issue MRS command to MR5, provide "Low" to BA1, "High" to
 	 *    BG0, BA0)
 	 */
-	printf("MR5\n");
 	MR = DDR4_MR_MR5(ddr4_devices[n].mode,
 			 ddr4_devices[n].RTT_PARK,
 			 ddr4_devices[n].CAPAR_latency_mode);
@@ -244,7 +241,6 @@ static inline void __ddr4_reset_init(uint8_t n)
 	 *    (To issue MRS command to MR4, provide "Low" to BA1, BA0,
 	 *    "High" to BG0)
 	 */
-	printf("MR4\n");
 	MR = DDR4_MR_MR4(ddr4_devices[n].mode,
 			 ddr4_devices[n].CS_CA_latency_mode);
 	ddr_hw_init_MR(n, MR, DDR4_MR4);
@@ -252,7 +248,6 @@ static inline void __ddr4_reset_init(uint8_t n)
 	 *     (To issue MRS command to MR2, provide "Low" to BG0, BA0,
 	 *     "High" to BA1)
 	 */
-	printf("MR2\n");
 	MR = DDR4_MR_MR2(ddr4_devices[n].mode,
 			 ddr4_devices[n].RTT_WR,
 			 ddr4_devices[n].LP_ASR_mode,
@@ -262,7 +257,6 @@ static inline void __ddr4_reset_init(uint8_t n)
 	 *     (To issue MRS command to MR1, provide "Low" to BG0, BA1,
 	 *     "High" to BA0)
 	 */
-	printf("MR1\n");
 	MR = DDR4_MR_MR1(ddr4_devices[n].mode,
 			 ddr4_devices[n].RTT_NOM,
 			 ddr4_devices[n].additive_latency,
@@ -272,7 +266,6 @@ static inline void __ddr4_reset_init(uint8_t n)
 	 *     (To issue MRS command to MR0, provide "Low" to BG0, BA1,
 	 *     BA0)
 	 */
-	printf("MR0\n");
 	MR = DDR4_MR_MR0(ddr4_devices[n].mode,
 			 ddr4_devices[n].WR_RTP,
 			 ddr4_devices[n].CAS_latency,
@@ -330,36 +323,75 @@ void ddr4_reset_init(uint8_t n)
 	 */
 }
 
-void ddr4_config_write_leveling(bool enable, bool Qoff)
+void ddr4_config_write_leveling(uint8_t n, uint8_t c, uint8_t ranks,
+				bool enable, bool Qoff)
+{
+	uint16_t MR;
+
+	/* NOTE:
+	 * In write leveling mode, only DQS_t/DQS_c terminations are
+	 * activated and deactivated via ODT pin, unlike normal operation.
+	 * NOTE 1:
+	 * In Write Leveling Mode with its output buffer disabled
+	 * (MR1[bit A7] = 1 with MR1[bit A12] = 1) all RTT_NOM and
+	 * RTT_PARK settings are allowed;
+	 * in Write Leveling Mode with its output buffer enabled
+	 * (MR1[bit A7] = 1 with MR1[bit A12] = 0) all RTT_NOM and
+	 * RTT_PARK settings are allowed.
+	 * NOTE 2:
+	 * Dynamic ODT function is not available in Write Leveling Mode.
+	 * DRAM MR2 bits A[11:9] must be ‘000’ prior to entering Write
+	 * Leveling Mode.
+	 */
+	if (enable) {
+		MR = ddr_hw_mr_read(n, c, ranks, DDR4_MR2);
+		MR &= ~DDR4_MR2_RTT_WR_mask;
+		ddr_hw_mr_write(n, c, ranks, MR, DDR4_MR4);
+	}
+	MR = ddr_hw_mr_read(n, c, ranks, DDR4_MR1);
+	MR &= ~(DDR4_MR1_WriteLevelingEnable(1) | DDR4_MR1_Qoff(1));
+	MR |= DDR4_MR1_WriteLevelingEnable(enable) | DDR4_MR1_Qoff(Qoff);
+	ddr_hw_mr_write(n, c, ranks, MR, DDR4_MR1);
+}
+
+void ddr4_config_ZQ_caibration(uint8_t n, uint8_t c, uint8_t ranks)
 {
 }
 
-void ddr4_config_speed(uint8_t n, uint8_t spd)
+void ddr4_config_DQ_Vref_training(uint8_t n, uint8_t c, uint8_t ranks)
+{
+}
+
+void ddr4_config_speed(uint8_t n)
 {
 	uint8_t ddr4spd;
-	uint8_t i;
 
 	BUG_ON(n >= DDR_MAX_DEVICES);
 
 	/* Sanity check SPD */
-	if (!ddr4_spd_valid(spd)) {
-		con_err("Unsupported DDR4 SPD: %d\n", spd);
+	if (!ddr4_spd_valid(ddr_spd)) {
+		con_err("Unsupported DDR4 SPD: %d\n", ddr_spd);
 		return;
 	}
-	ddr4spd = __ddr4_spd(spd);
+	ddr4spd = __ddr4_spd(ddr_spd);
 
 	ddr4_devices[n].mode = DDR4_MODE_ODTInputBuffer |
 			       DDR4_MODE_DLL;
+	/* According to DE, DM must be disabled when ECC is enabled in
+	 * dw_umctl2.
+	 */
 #ifdef CONFIG_DW_UMCTL2_ECC
-	ddr4_devices[n].mode |= DDR4_MODE_DataMask;
+	ddr4_devices[n].mode &= ~DDR4_MODE_DM;
+#else
+	ddr4_devices[n].mode |= DDR4_MODE_DM;
 #endif
-	ddr4_devices[n].tCK = DDR_SPD2tCK(spd);
+	ddr4_devices[n].tCK = DDR_SPD2tCK(ddr_spd);
 	ddr4_devices[n].tCCD_Lmin = DDR4_tCCD_Lmin[ddr4spd];
 	ddr4_devices[n].tDLLK = DDR4_tDLLK[ddr4spd];
 	ddr4_devices[n].WR_CMD_latency = DDR4_WriteCommandLatencies[ddr4spd];
 	ddr4_devices[n].CAPAR_latency_mode = DDR4_CAPAR_latency_modes[ddr4spd];
 	if (ddr4_devices[n].mode & DDR4_MODE_WritePreamble_2T &&
-	    spd >= DDR4_2400)
+	    ddr_spd >= DDR4_2400)
 		ddr4_devices[n].CWL = DDR4_CWL_2T[0][ddr4spd];
 	else
 		ddr4_devices[n].CWL = DDR4_CWL_1T[0][ddr4spd];
@@ -375,7 +407,31 @@ void ddr4_config_speed(uint8_t n, uint8_t spd)
 	ddr4_devices[n].WR_RTP = 24;
 	ddr4_devices[n].CAS_latency = 20;
 	ddr4_devices[n].burst_length = DDR4_BL8_BC4_OTF;
-
-	for (i = 5; i < 14; i++)
-		printf("WR=%d -> %02x\n", i << 1, DDR4_MR0_WR(i << 1));
 }
+
+#if 0
+void ddr4_config_module(uint8_t n, uint8_t type, uint8_t dies,
+			uint8_t ranks, uint8_t width)
+{
+	uint32_t mode;
+
+	ddr4_devices[n].ranks = ranks;
+	ddr4_devices[n].width = width;
+
+	switch (width) {
+	case 4:
+		break;
+	case 8:
+		mode |= DDR4_MODE_TDQS;
+		mode |= DDR4_MODE_DM;
+		mode |= DDR4_MODE_ReadDBI;
+		mode |= DDR4_MODE_WriteDBI;
+		break;
+	case 16:
+		mode |= DDR4_MODE_DM;
+		mode |= DDR4_MODE_ReadDBI;
+		mode |= DDR4_MODE_WriteDBI;
+		break;
+	}
+}
+#endif

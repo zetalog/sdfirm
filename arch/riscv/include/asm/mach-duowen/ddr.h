@@ -66,6 +66,8 @@
 #define ddr_hw_ctrl_start()		dw_umctl2_start()
 #define ddr_hw_mr_write(n, c, ranks, v, r)	\
 	dw_umctl2_mr_write(n, c, ranks, v, r)
+#define ddr_hw_mr_read(n, c, ranks, r)		\
+	dw_umctl2_mr_read(n, c, ranks, r)
 int ddr_clk_speed(clk_freq_t freq);
 clk_freq_t ddr_get_fvco(int speed);
 clk_freq_t ddr_get_fclk(int speed);

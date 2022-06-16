@@ -62,24 +62,34 @@
 #define DDR4_PAGE_SIZE_x8		(DDR4_PAGE_SIZE_x4 << 1)
 #define DDR4_PAGE_SIZE_x16		(DDR4_PAGE_SIZE_x8 << 1)
 
-#define DDR4_DEV(x)			((x) << 16)
-#define DDR4_CONF(cap, x)		(DDR4_DEV(x) | (cap))
+#define DDR4_CONF(cap, dev)		MAKELONG(cap, dev)
+#define ddr4_dev(x)			HIWORD(x)
+#define ddr4_cap(x)			LOWORD(x)
+
 /* 2.8.1 2Gb Addressing Table */
-#define DDR4_2GB_512M_x4		DDR4_CONF(512, 4)
-#define DDR4_2GB_258M_x8		DDR4_CONF(256, 8)
-#define DDR4_2GB_128M_x16		DDR4_CONF(128, 16)
+#define DDR4_2Gb_512Mb_x4		DDR4_CONF(512, 4)
+#define DDR4_2Gb_256Mb_x8		DDR4_CONF(256, 8)
+#define DDR4_2Gb_128Mb_x16		DDR4_CONF(128, 16)
 /* 2.8.2 4Gb Addressing Table */
-#define DDR4_4GB_1G_x4			DDR4_CONF(1024, 4)
-#define DDR4_4GB_512M_x8		DDR4_CONF(512, 8)
-#define DDR4_4GB_256M_x16		DDR4_CONF(256, 16)
+#define DDR4_4Gb_1Gb_x4			DDR4_CONF(1024, 4)
+#define DDR4_4Gb_512Mb_x8		DDR4_CONF(512, 8)
+#define DDR4_4Gb_256Mb_x16		DDR4_CONF(256, 16)
 /* 2.8.3 8Gb Addressing Table */
-#define DDR4_8GB_2G_x4			DDR4_CONF(2048, 4)
-#define DDR4_8GB_1G_x8			DDR4_CONF(1024, 8)
-#define DDR4_8GB_512M_x16		DDR4_CONF(512, 16)
+#define DDR4_8Gb_2Gb_x4			DDR4_CONF(2048, 4)
+#define DDR4_8Gb_1Gb_x8			DDR4_CONF(1024, 8)
+#define DDR4_8Gb_512Mb_x16		DDR4_CONF(512, 16)
 /* 2.8.4 4Gb Addressing Table */
-#define DDR4_16GB_4G_x4			DDR4_CONF(4096, 4)
-#define DDR4_16GB_2G_x8			DDR4_CONF(2048, 8)
-#define DDR4_16GB_1G_x16		DDR4_CONF(1024, 16)
+#define DDR4_16Gb_4Gb_x4		DDR4_CONF(4096, 4)
+#define DDR4_16Gb_2Gb_x8		DDR4_CONF(2048, 8)
+#define DDR4_16Gb_1Gb_x16		DDR4_CONF(1024, 16)
+
+#define DDR4_CAP(conf)			\
+	(__ilog2_u8(ddr4_dev(conf) * ddr4_cap(conf) / 1024) - 1)
+
+#define DDR4_MODULE_RDIMM		0x01
+#define DDR4_MODULE_UDIMM		0x02
+#define DDR4_MODULE_SO_DIMM		0x03
+#define DDR4_MODULE_LRDIMM		0x04
 
 /* 3.1 Simplified State Diagram */
 #define DDR4_state_PowerOn		0
@@ -128,7 +138,7 @@
 #define DDR4_MODE_VrefDQTraining	_BV(3)
 #define DDR4_MODE_ReadDBI		_BV(4)
 #define DDR4_MODE_WriteDBI		_BV(5)
-#define DDR4_MODE_DataMask		_BV(6)
+#define DDR4_MODE_DM			_BV(6)
 #define DDR4_MODE_CAPAR			_BV(7)
 #define DDR4_MODE_CAPARLatency		_BV(8)
 #define DDR4_MODE_ODTInputBuffer	_BV(9)
@@ -244,6 +254,18 @@
 #define DDR4_MR5			7
 #define DDR4_MR6			6
 #define DDR4_RCW			7
+
+/* 4.11 Data Mask (DM), Data Bus Inversion (DBI) and TDQS
+ *
+ * TDQS is supported by x8 devices.
+ * DM/DBI are supported by x8/x16 devices.
+ * DM/DBI cannot be used with TDQS.
+ * DM cannot be used with write DBI, but can be used with read DBI.
+ */
+#define DDR4_TDQS			DDR4_MODE_TDQS
+#define DDR4_DM				DDR4_MODE_DM
+#define DDR4_DM_DBI			(DDR4_MODE_DM | DDR4_MODE_WriteDBI)
+#define DDR4_DBI			(DDR4_MODE_WriteDBI | DDR4_MODE_ReadDBI)
 
 /* Mode Register: Encoded in A17-A0
  *
@@ -411,6 +433,7 @@
 #define DDR4_MR2_WriteCRC(value)	DDR4_MR_A12(!!(value))
 #define DDR4_MR2_RTT_WR(value)		\
 	DDR4_MR_A11_A9(DDR4_MR2_RTT_WR_RZQ(value))
+#define DDR4_MR2_RTT_WR_mask		DDR4_MR_A11_A9(REG_3BIT_MASK)
 #define DDR4_MR2_LP_ASR(value)		DDR4_MR_A7_A6(value)
 #define DDR4_MR2_CASWriteLatency(value)	DDR4_MR_A5_A3(DDR4_MR2_CWL(value))
 #define DDR4_MR_MR2(mode, rtt_wr, lp_asr, cwl)			\
@@ -510,7 +533,7 @@
 #define DDR4_MR_MR5(mode, rtt_park, capar_lat)				\
 	(DDR4_MR5_ReadDBI((mode) & DDR4_MODE_ReadDBI) |			\
 	 DDR4_MR5_WriteDBI((mode) & DDR4_MODE_WriteDBI) |		\
-	 DDR4_MR5_DataMask((mode) & DDR4_MODE_DataMask) |		\
+	 DDR4_MR5_DataMask((mode) & DDR4_MODE_DM) |			\
 	 DDR4_MR5_ODTInputBuffer((mode) & DDR4_MODE_ODTInputBuffer) |	\
 	 DDR4_MR5_CAParityPersistentError((mode) & DDR4_MODE_CAPAR) |	\
 	 ((mode) & DDR4_MODE_CAPARLatency ?				\
@@ -584,15 +607,21 @@ struct ddr4_dev {
 	uint8_t burst_length;
 };
 
-void ddr4_config_speed(uint8_t n, uint8_t spd);
+void ddr4_config_speed(uint8_t n);
+void ddr4_config_module(uint8_t n, uint8_t type, uint8_t dies,
+			uint8_t ranks, uint8_t width);
 void ddr4_config_refresh(uint8_t n, uint8_t cap, uint8_t mode);
 void ddr4_powerup_init(uint8_t n);
 void ddr4_reset_init(uint8_t n);
+void ddr4_config_write_leveling(uint8_t n, uint8_t c, uint8_t ranks,
+				bool enable, bool Qoff);
 #else
-#define ddr4_config_speed(n, spd)		do { } while (0)
+#define ddr4_config_speed(n)			do { } while (0)
 #define ddr4_config_refresh(n, cap, mode)	do { } while (0)
 #define ddr4_powerup_init(n)			do { } while (0)
 #define ddr4_reset_init(n)			do { } while (0)
+#define ddr4_config_write_leveling(n, c, ranks, enable, Qoff)	\
+	do { } while (0)
 #endif /* CONFIG_DDR4 */
 
 #endif /* __DDR4_H_INCLUDE__ */

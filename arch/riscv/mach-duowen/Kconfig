@@ -335,6 +335,28 @@ config DUOWEN_XO_25M
 endchoice
 
 choice
+	prompt "Theoretical frequency (zTime)"
+	depends DUOWEN_ZEBU
+
+config DUOWEN_ZEBU_FREQ_1991KHZ
+	bool "1991Khz"
+	depends DUOWEN_APC_4 || DUOWEN_APC_1
+
+config DUOWEN_ZEBU_FREQ_1690KHZ
+	bool "1690Khz"
+	depends DUOWEN_APC_16
+
+config DUOWEN_ZEBU_FREQ_CUSTOM
+	bool "Custom"
+
+endchoice
+
+config DUOWEN_ZEBU_FREQ
+	int "Custom theoretical frequency (Khz)"
+	depends DUOWEN_ZEBU_FREQ_CUSTOM
+	range 1000 4000
+
+choice
 	prompt "VAISRA CPUs"
 	default DUOWEN_APC_16
 

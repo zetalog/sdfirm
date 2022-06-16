@@ -456,11 +456,7 @@
 #ifdef CONFIG_DW_UMCTL2_DDR4
 #define MSTR_device_config_OFFSET	30
 #define MSTR_device_config_MASK		REG_2BIT_MASK
-#define MSTR_device_config(value)	_SET_FV(MSTR_device_config, value)
-#define MSTR_device_x4			0
-#define MSTR_device_x8			1
-#define MSTR_device_x16			2
-#define MSTR_device_x32			3
+#define MSTR_device_config(value)	_SET_FV(MSTR_device_config, __ilog2_u16(value) - 2)
 #endif
 #define MSTR_active_ranks_OFFSET	24
 #define MSTR_active_ranks_MASK		REG_5BIT_MASK
@@ -1174,6 +1170,7 @@ void dw_umctl2_init(void);
 void dw_umctl2_start(void);
 void dw_umctl2_mr_write(uint8_t n, uint8_t c, uint8_t ranks,
 			uint16_t v, uint8_t r);
+uint16_t dw_umctl2_mr_read(uint8_t n, uint8_t c, uint8_t ranks, uint8_t r);
 
 /* Power-up and Initialization */
 void dw_umctl2_init_mr(uint8_t n, uint16_t v, uint8_t r);

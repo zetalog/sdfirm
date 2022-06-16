@@ -1,8 +1,8 @@
 #include <target/ddr.h>
 #include <target/clk.h>
+#include <target/console.h>
 
 uint8_t dw_umctl2_f;
-uint16_t dw_umctl2_spd;
 uint8_t dw_umctl2_freq_ratio;
 
 #ifdef CONFIG_DW_UMCTL2_ECC
@@ -23,14 +23,12 @@ static inline void dw_umctl2_init_ffc(uint8_t n, uint8_t f, uint8_t spd)
 	dw_umctl2_set(MSTR_frequency_mode, UMCTL2_MSTR(n));
 	dw_umctl2_write(MSTR2_target_frequency(f), UMCTL2_MSTR2(n));
 	dw_umctl2_f = f;
-	dw_umctl2_spd = spd;
 }
 #else
 static inline void dw_umctl2_init_ffc(uint8_t n, uint8_t f, uint8_t spd)
 {
 	dw_umctl2_clear(MSTR_frequency_mode, UMCTL2_MSTR(n));
 	dw_umctl2_f = 0;
-	dw_umctl2_spd = spd;
 }
 #endif
 
@@ -39,7 +37,7 @@ static void dw_umctl2_init_dev(uint8_t n, uint8_t spd, uint8_t dev,
 {
 	dw_umctl2_freq_ratio = MSTR_frequency_ratio_static;
 	dw_umctl2_write(MSTR_protocols(MSTR_ddr4) | /* static */
-			MSTR_device_config(MSTR_device_x8) | /* static */
+			MSTR_device_config(dev) | /* static */
 			MSTR_active_ranks(ranks) | /* static */
 			MSTR_burst_mode_static |
 			MSTR_burstchop_static |
@@ -183,92 +181,71 @@ void dw_umctl2_dbg_rfsh_issue(uint8_t n, uint8_t c, uint8_t ranks)
 #endif
 
 static void dw_umctl2_init_static_regs(uint8_t n, uint8_t c,
-				       uint8_t f, uint8_t spd)
+				       uint8_t f, uint8_t spd,
+				       uint32_t conf, uint8_t ranks)
 {
-	if (spd == DDR4_1600) {
-		/* jedec_ddr4_rdimm_2G_x8_1600J_1_250_2R_ecc */
-		dw_umctl2_write(DBG1_dis_dq, UMCTL2_DBG1(n, c));
+	uint16_t dev = ddr4_dev(conf);
+	uint16_t cap = ddr4_cap(conf);
 
-		dw_umctl2_init_dev(n, spd, MSTR_device_x8, 2);
-		dw_umctl2_init_ffc(n, f, spd);
+	ddr_config_speed(spd);
 
-		dw_umctl2_init_pwr(n, c, f);
-#ifdef CONFIG_DW_UMCTL2_TRAINING
-		dw_umctl2_entry_sr(n, c);
-#else
-		dw_umctl2_exit_sr(n, c);
+#ifdef CONFIG_DW_UMCTL2_DEBUG
+	con_dbg("DDR4 %ldGb %d%cbx%d %dR\n",
+		_BV(DDR4_CAP(conf) + 1),
+		cap < 1024 ? cap : cap / 1024,
+		cap < 1024 ? 'M' : 'G',
+		dev, ranks);
 #endif
-		dw_umctl2_init_rfsh(n, 4);
+
+	dw_umctl2_write(DBG1_dis_dq, UMCTL2_DBG1(n, c));
+	dw_umctl2_init_dev(n, spd, dev, ranks);
+	dw_umctl2_init_ffc(n, f, spd);
+	dw_umctl2_init_pwr(n, c, f);
+	/* Configure self refresh for training */
+#ifdef CONFIG_DW_UMCTL2_TRAINING
+	dw_umctl2_entry_sr(n, c);
+#else
+	dw_umctl2_exit_sr(n, c);
+#endif
+	dw_umctl2_init_rfsh(n, 4);
+	if (spd == DDR4_1600) {
 		dw_umctl2_set_refresh_timer_start(n, 0, 0x900);
 		dw_umctl2_set_refresh_timer_start(n, 1, 0x9A0);
 		dw_umctl2_set_refresh_timer_start(n, 2, 0xCE0);
 		dw_umctl2_set_refresh_timer_start(n, 3, 0xD20);
-		printf("================================\n");
-		ddr4_config_refresh(n, DDR4_2GB, DDR4_REFRESH_Fixed_1x);
-		dw_umctl2_write(0x00000000, UMCTL2_RFSHCTL3(n));
-		dw_umctl2_write(0x00A200EA, UMCTL2_RFSHTMG(n, f));
-		printf("================================\n");
-
-#ifdef CONFIG_UMCTL2_TRAINING
-		dw_umctl2_write(0xC0030128, UMCTL2_INIT0(n));
-#else
-		dw_umctl2_write(0x00030128, UMCTL2_INIT0(n));
-#endif
-		dw_umctl2_write(0x00010002, UMCTL2_INIT1(n));
-		dw_umctl2_write(0x0A150001, UMCTL2_INIT3(n, f));
-		dw_umctl2_write(0x00000000, UMCTL2_INIT4(n, f));
-		dw_umctl2_write(0x00110000, UMCTL2_INIT5(n));
 	}
 	if (spd == DDR4_3200) {
-		/* jedec_ddr4_rdimm_8G_x8_3200W_0_625_2R_ecc */
-		dw_umctl2_write(DBG1_dis_dq, UMCTL2_DBG1(n, c));
-
-		dw_umctl2_init_dev(n, spd, MSTR_device_x8, 2);
-		dw_umctl2_init_ffc(n, f, spd);
-
-		dw_umctl2_init_pwr(n, c, f);
-		/* Configure self refresh for training */
-#ifdef CONFIG_DW_UMCTL2_TRAINING
-		dw_umctl2_entry_sr(n, c);
-#else
-		dw_umctl2_exit_sr(n, c);
-#endif
-		dw_umctl2_init_rfsh(n, 4);
 		dw_umctl2_set_refresh_timer_start(n, 0, 0xAE0);
 		dw_umctl2_set_refresh_timer_start(n, 1, 0xBA0);
 		dw_umctl2_set_refresh_timer_start(n, 2, 0xF80);
 		dw_umctl2_set_refresh_timer_start(n, 3, 0xFC0);
-		ddr4_config_refresh(n, DDR4_8GB, DDR4_REFRESH_Fixed_1x);
+	}
+	ddr4_config_refresh(n, DDR4_CAP(conf), DDR4_REFRESH_Fixed_1x);
 
-		printf("================================\n");
-		ddr4_powerup_init(n);
-#ifdef CONFIG_DW_UMCTL2_TRAINING
-		dw_umctl2_set_msk(INIT0_skip_dram_init_quasi,
-				  INIT0_skip_dram_init_mask,
-				  UMCTL2_INIT0(n));
-		printf("================================\n");
-		dw_umctl2_write(0xC0030128, UMCTL2_INIT0(n));
-#else
-		printf("================================\n");
-		dw_umctl2_write(0x00030128, UMCTL2_INIT0(n));
+#ifdef CONFIG_UMCTL2_TRAINING
+	dw_umctl2_set_msk(INIT0_skip_dram_init_quasi,
+			  INIT0_skip_dram_init_mask,
+			  UMCTL2_INIT0(n));
 #endif
-		dw_umctl2_write(0x00010002, UMCTL2_INIT1(n));
+	if (spd == DDR4_1600) {
+		ddr4_powerup_init(n);
+		/* TODO: Convert to ddr4_powerup_init()
+		 *
+		 * The following MRs are not aligned to the default
+		 * ddr4_powerup_init() settings and need further
+		 * investigation.
+		 */
+		dw_umctl2_write(0x0A150001, UMCTL2_INIT3(n, f));
+		dw_umctl2_write(0x00200400, UMCTL2_INIT4(n, f));
+		dw_umctl2_write(0x00000459, UMCTL2_INIT7(n, f));
+	}
+	if (spd == DDR4_3200) {
+		ddr4_powerup_init(n);
 		dw_umctl2_write(0x0C450001, UMCTL2_INIT3(n, f));
 		dw_umctl2_write(0x00280400, UMCTL2_INIT4(n, f));
-		dw_umctl2_write(0x00110000, UMCTL2_INIT5(n));
-#ifdef CONFIG_DW_UMCTL2_ECC
-		dw_umctl2_write(0x00000100, UMCTL2_INIT6(n, f));
-#else
-		dw_umctl2_write(0x00000500, UMCTL2_INIT6(n, f));
-#endif
 		dw_umctl2_write(0x00001059, UMCTL2_INIT7(n, f));
-
-		printf("================================\n");
-		/* Testing: configure MR7 (RCD) to 20 cycles */
-		dw_umctl2_mr_write(n, c, DW_UMCTL2_NUM_RANKS_MASK(2),
-				   20, DDR4_RCW);
-		printf("================================\n");
 	}
+	printf("================================\n");
 }
 
 void dw_umctl2_start(void)
@@ -292,5 +269,8 @@ void dw_umctl2_init(void)
 	clk_enable(ddr_prst);
 #endif
 
-	dw_umctl2_init_static_regs(0, 0, 0, ddr_spd);
+	/* jedec_ddr4_rdimm_2G_x8_1600J_1_250_2R_ecc */
+	dw_umctl2_init_static_regs(0, 0, 0, DDR4_1600, DDR4_2Gb_256Mb_x8, 2);
+	/* jedec_ddr4_rdimm_8G_x8_3200W_0_625_2R_ecc */
+	dw_umctl2_init_static_regs(0, 0, 0, DDR4_3200, DDR4_8Gb_1Gb_x8, 2);
 }

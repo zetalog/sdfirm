@@ -7,6 +7,7 @@ config ARCH_HAS_DDR
 
 menuconfig DDR
 	bool "Double data rate (DDR) support"
+	select BIT_FLS8
 
 if DDR
 
