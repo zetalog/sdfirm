@@ -81,29 +81,58 @@ build_initramfs_busybox()
 	done
 }
 
-#	libs=`ldd $from | sort | uniq | \
-#	      awk -F\= '{print $2}' | \
-#	      awk '{print $2}' | uniq`
-#	for lib in $libs ; do
-#		install_file $lib $prefix
-#	done
+install_initramfs_dir()
+{
+	echo "dir ${ROOTFS_TARGET} 755 0 0" >> $TOP/$INITRAMFS_FILELIST
+}
+
+install_initramfs_slink()
+{
+	echo "slink ${ROOTFS_TARGET} ${ROOTFS_HOST} 777 0 0" >> \
+	       $TOP/$INITRAMFS_FILELIST
+}
+
+install_initramfs_file()
+{
+	echo "file ${ROOTFS_TARGET} ${ROOTFS_HOST} $1 0 0" >> \
+		$TOP/$INITRAMFS_FILELIST
+}
+
+install_initramfs_lib()
+{
+	# TODO: Reduce Image Size
+	#
+	# Use ldd to reduce installed dependent libraries.
+	echo "lib $1 $2"
+}
 
 install_initramfs()
 {
 	ROOTFS_INSTALL=$1
 	ROOTFS_FILES=`ls ${ROOTFS_INSTALL}$2`
 	for f in ${ROOTFS_FILES}; do
-		if [ -d ${ROOTFS_INSTALL}$2/${f} ]; then
-			echo "dir $2/${f} 755 0 0" >> $TOP/$INITRAMFS_FILELIST
-			install_initramfs $1 $2/$f
+		ROOTFS_HOST=${ROOTFS_INSTALL}$2/${f}
+		ROOTFS_TARGET=$2/${f}
+		if [ -d ${ROOTFS_HOST} ]; then
+			install_initramfs_dir
+			install_initramfs $1 ${ROOTFS_TARGET}
 		else
-			if [ -L ${ROOTFS_INSTALL}$2/${f} ]; then
-				echo "slink $2/$f ${ROOTFS_INSTALL}$2/$f 777 0 0" >> $TOP/$INITRAMFS_FILELIST
+			if [ -L ${ROOTFS_HOST} ]; then
+				install_initramfs_slink
 			else
-				if [ -x ${ROOTFS_INSTALL}$2/${f} ]; then
-					echo "file $2/$f ${ROOTFS_INSTALL}$2/$f 755 0 0" >> $TOP/$INITRAMFS_FILELIST
+				if [ -x ${ROOTFS_HOST} ]; then
+					ROOTFS_LIBS=`ldd ${ROOTFS_HOST} | \
+						sort | uniq | \
+						awk -F\= '{print $2}' | \
+						awk '{print $2}' | uniq`
+					for ROOTFS_LIB in ${ROOTFS_LIBS} ; do
+						install_initramfs_lib \
+							$1 ${ROOTFS_LIB}
+					done
+					${CROSS_COMPILE}strip ${ROOTFS_HOST}
+					install_initramfs_file 755
 				else
-					echo "file $2/$f ${ROOTFS_INSTALL}$2/$f 644 0 0" >> $TOP/$INITRAMFS_FILELIST
+					install_initramfs_file 644
 				fi
 			fi
 		fi
@@ -133,30 +162,33 @@ function build_initramfs()
 	cp -av $TOP/obj/busybox-$ARCH/_install/* $TOP/$INITRAMFS_DIR
 	build_initramfs_busybox
 
+	echo "Generating customizables..."
 	rm -rf $TOP/obj/rootfs
 	mkdir -p $TOP/obj/rootfs/etc
 	echo $HOSTNAME > $TOP/obj/rootfs/etc/hostname
+
 	# TODO: Smarter way to build rootfs
 	# Currently we only lists files in config-initramfs-${ARCH}
-	echo "Installing rootfs ${SCRIPT}/rootfs..."
+
 	# Install non-customizables
+	echo "Installing rootfs fixed ${SCRIPT}/rootfs..."
 	install_initramfs ${SCRIPT}/rootfs
+
 	# Install customizables
+	echo "Installing rootfs no-fixed ${TOP}/obj/rootfs..."
 	install_initramfs ${TOP}/obj/rootfs
 
 	# Copy libraries
 	SYSROOT=`get_sysroot`
-	echo "Installing sysroot ${SYSROOT}..."
+	echo "Installing rootfs toolchain ${SYSROOT}..."
 	install_initramfs ${SYSROOT} /sbin
 	install_initramfs ${SYSROOT} /lib
+	install_initramfs ${SYSROOT} /usr/bin/ldd
+	install_initramfs ${SYSROOT} /usr/lib
 
-	echo "Installing benchmarks..."
 	if [ -x $TOP/obj/bench ]; then
-		echo "dir /usr/local 755 0 0" >> $TOP/$INITRAMFS_FILELIST
-		echo "dir /usr/local/bin 755 0 0" >> $TOP/$INITRAMFS_FILELIST
-		for f in `ls $TOP/obj/bench`; do
-			echo "file /usr/local/bin/$f $TOP/obj/bench/$f 755 0 0" >> $TOP/$INITRAMFS_FILELIST
-		done
+		echo "Installing rootfs testbench $TOP/obj/bench..."
+		install_initramfs $TOP/obj/bench
 	fi
 
 	echo "Use INITRAMFS_SOURCE file list: $INITRAMFS_FILELIST"

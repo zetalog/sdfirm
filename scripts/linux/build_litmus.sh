@@ -49,7 +49,9 @@ fi
 if [ -z ${CROSS_COMPILE} ]; then
 	export CROSS_COMPILE=riscv64-unknown-linux-gnu-
 fi
-LITMUS_SCPT=${TOP}/obj/bench/litmus.sh
+LITMUS_DIR=${TOP}/obj/bench/usr/local/bin
+LITMUS_SHL=${LITMUS_DIR}/litmus.sh
+LITMUS_ELF=${LITMUS_DIR}/litmus
 LITMUS_SRCS=${LITMUS_ROOT}/litmus-${LITMUS_CORES}cores
 
 if [ -d ${LITMUS_SRCS} ]; then
@@ -81,15 +83,15 @@ else
 	fi
 	LITMUS_RUN=${LITMUS_SRCS}/hw-tests
 fi
-mkdir -p ${TOP}/obj/bench
-cp -f ${LITMUS_RUN}/run.exe ${TOP}/obj/bench/litmus
-${CROSS_COMPILE}strip ${TOP}/obj/bench/litmus
-cp -f ${LITMUS_RUN}/run.sh ${LITMUS_SCPT}.0
-sed "s/\.\/run\.exe/litmus/" ${LITMUS_SCPT}.0 > ${LITMUS_SCPT}.1
-sed "s/> .*//" ${LITMUS_SCPT}.1 > ${LITMUS_SCPT}.2
-mv -f ${LITMUS_SCPT}.2 ${LITMUS_SCPT}
-rm -f ${LITMUS_SCPT}.*
-chmod +x ${LITMUS_SCPT}
+mkdir -p ${LITMUS_DIR}
+cp -f ${LITMUS_RUN}/run.exe ${LITMUS_ELF}
+${CROSS_COMPILE}strip ${LITMUS_ELF}
+cp -f ${LITMUS_RUN}/run.sh ${LITMUS_SHL}.0
+sed "s/\.\/run\.exe/litmus/" ${LITMUS_SHL}.0 > ${LITMUS_SHL}.1
+sed "s/> .*//" ${LITMUS_SHL}.1 > ${LITMUS_SHL}.2
+mv -f ${LITMUS_SHL}.2 ${LITMUS_SHL}
+rm -f ${LITMUS_SHL}.*
+chmod +x ${LITMUS_SHL}
 
 if [ "x${LITMUS_TAR}" = "xyes" ]; then
 	echo "Generating ${LITMUS_CORES}cores litmus tarball..."

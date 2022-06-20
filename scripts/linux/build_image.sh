@@ -69,7 +69,8 @@ if [ -z ${LITMUS_ROOT} ]; then
 fi
 
 # Build default applications
-mkdir -p ${TOP}/obj/bench
+APPDIR=${TOP}/obj/bench/usr/local/bin
+mkdir -p ${APPDIR}
 if [ "x${BUILD_APPS}" = "xyes" ]; then
 	APPDIRS="bench net"
 	APPELFS="		\
@@ -89,7 +90,7 @@ if [ "x${BUILD_APPS}" = "xyes" ]; then
 	for f in ${APPELFS}; do
 		echo "Creating ${f} application..."
 		cp -f ${SDFIRM_DIR}/tests/${f}.elf \
-			${TOP}/obj/bench/`basename ${f}`
+			${APPDIR}/`basename ${f}`
 	done
 fi
 

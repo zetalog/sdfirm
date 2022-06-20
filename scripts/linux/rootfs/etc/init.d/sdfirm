@@ -1,23 +1,31 @@
 #!/bin/sh
 
+# SDFIRM Embedded Linux distribution configuration
+SDFIRM_SYSLOG=no
+SDFIRM_TELNET=yes
+SDFIRM_HTTP=no
+SDFIRM_SILENT=no
+
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
 msg()
 {
-	LEVEL=$1
-	MSG=$2
+	if [ "x${SDFIRM_SYSLOG}" = "xyes" ]; then
+		LEVEL=$1
+		MSG=$2
 	
-	LOG_FACILITY=local0
-	LOG_TAG=sdfirm
+		LOG_FACILITY=local0
+		LOG_TAG=sdfirm
 
-	if [ "$LEVEL" = "1" ] ; then
-		logger -p $LOG_FACILITY.info -t $LOG_TAG $MSG
-	fi
-	if [ "$LEVEL" = "2" ] ; then
-		logger -p $LOG_FACILITY.err -t $LOG_TAG $MSG
-	fi
-	if [ "$LEVEL" = "3" ] ; then
-		logger -p $LOG_FACILITY.crit -t $LOG_TAG $MSG
+		if [ "$LEVEL" = "1" ] ; then
+			logger -p $LOG_FACILITY.info -t $LOG_TAG $MSG
+		fi
+		if [ "$LEVEL" = "2" ] ; then
+			logger -p $LOG_FACILITY.err -t $LOG_TAG $MSG
+		fi
+		if [ "$LEVEL" = "3" ] ; then
+			logger -p $LOG_FACILITY.crit -t $LOG_TAG $MSG
+		fi
 	fi
 }
 
@@ -45,9 +53,11 @@ start_sdfirm()
 	#check_err DISKS
 	#ldconfig
 
-	disp_msg START_SYSLOGD
-	syslogd
-	check_err SYSLOGD
+	if [ "x${SDFIRM_SYSLOG}" = "xyes" ]; then
+		disp_msg START_SYSLOGD
+		syslogd
+		check_err SYSLOGD
+	fi
 
 	disp_msg START_NETWORK
 	/etc/init.d/networking stop
@@ -55,30 +65,40 @@ start_sdfirm()
 	hostname `cat /etc/hostname`
 	check_err NETWORK
 
-	disp_msg START_TELNETD
-	/etc/init.d/telnetd start
-	check_err TELNETD
+	if [ "x${SDFIRM_TELNET}" = "xyes" ]; then
+		disp_msg START_TELNETD
+		/etc/init.d/telnetd start
+		check_err TELNETD
+	fi
 
-	disp_msg START_HTTPD
-	/etc/init.d/httpd start
-	check_err HTTPD
+	if [ "x${SDFIRM_HTTP}" = "xyes" ]; then
+		disp_msg START_HTTPD
+		/etc/init.d/httpd start
+		check_err HTTPD
+	fi
 
 	disp_msg END_STARTUP
 
-	#clear
+	if [ "x${SDFIRM_SILENT}" = "xyes" ]; then
+		clear
+	fi
 }
 
 stop_sdfirm()
 {
 	disp_msg BEGIN_SHUTDOWN
 
-	disp_msg STOP_HTTPD
-	/etc/init.d/httpd stop
-	check_err HTTPD
+	if [ "x${SDFIRM_HTTP}" = "xyes" ]; then
+		disp_msg STOP_HTTPD
+		/etc/init.d/httpd stop
+		check_err HTTPD
+	fi
 
-	disp_msg STOP_TELNETD
-	/etc/init.d/telnetd stop
-	check_err TELNETD
+	if [ "x${SDFIRM_TELNET}" = "xyes" ]; then
+		disp_msg STOP_TELNETD
+		/etc/init.d/telnetd stop
+		check_err TELNETD
+	fi
 
 	disp_msg STOP_NETWORK
 	/etc/init.d/networking stop
@@ -88,9 +108,11 @@ stop_sdfirm()
 	#/etc/init.d/disks stop
 	#check_err DISKS
 
-	disp_msg STOP_SYSLOGD
-	killall syslogd
-	check_err SYSLOGD
+	if [ "x${SDFIRM_SYSLOG}" = "xyes" ]; then
+		disp_msg STOP_SYSLOGD
+		killall syslogd
+		check_err SYSLOGD
+	fi
 
 	disp_msg END_SHUTDOWN
 }

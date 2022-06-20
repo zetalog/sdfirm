@@ -1,5 +1,12 @@
+CONFIG_BENCH_STATIC=n
+
 CC=$(CROSS_COMPILE)gcc
 STRIP=$(CROSS_COMPILE)strip
+
+ifeq ($(CONFIG_BENCH_STATIC),y)
+	CFLAGS_static=-static
+	CFLAGS_static_libgcc=-static-libgcc
+endif
 
 CFLAGS_align = \
 	-falign-functions=1 \
@@ -27,7 +34,7 @@ CFLAGS_warn = \
 	-Wdeclaration-after-statement \
 	-Wold-style-definition
 CFLAGS =-DHOSTED -DCONFIG_FP=1 \
-	-static-libgcc \
+	$(CFLAGS_static_libgcc) \
 	-finline-limit=0 \
 	-ffunction-sections \
 	-fdata-sections \
@@ -47,7 +54,7 @@ CFLAGS =-DHOSTED -DCONFIG_FP=1 \
 
 %.unstrip: %.o
 	@echo " LD     $<"
-	@$(CC) $(CFLAGS) $(CFLAGS_$*) -static $< -o $@ $(LIBS)
+	@$(CC) $(CFLAGS) $(CFLAGS_$*) $(CFLAGS_static) $< -o $@ $(LIBS)
 	@cp -f $@ $(basename $<).debug
 
 %.elf: %.unstrip
