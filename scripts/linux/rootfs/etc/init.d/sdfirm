@@ -1,6 +1,8 @@
 #!/bin/sh
 
 # SDFIRM Embedded Linux distribution configuration
+SDFIRM_STORAGING=no
+SDFIRM_NETWORKING=no
 SDFIRM_SYSLOG=no
 SDFIRM_TELNET=yes
 SDFIRM_HTTP=no
@@ -47,11 +49,15 @@ start_sdfirm()
 {
 	disp_msg BEGIN_STARTUP
 
+	hostname `cat /etc/hostname`
 	ldconfig
-	#disp_msg START_DISKS
-	#/etc/init.d/disks start
-	#check_err DISKS
-	#ldconfig
+
+	if [ "x${SDFIRM_STORAGING}" = "xyes" ]; then
+		disp_msg START_DISKS
+		#/etc/init.d/storaging start
+		check_err DISKS
+		#ldconfig
+	fi
 
 	if [ "x${SDFIRM_SYSLOG}" = "xyes" ]; then
 		disp_msg START_SYSLOGD
@@ -59,11 +65,12 @@ start_sdfirm()
 		check_err SYSLOGD
 	fi
 
-	disp_msg START_NETWORK
-	/etc/init.d/networking stop
-	/etc/init.d/networking start
-	hostname `cat /etc/hostname`
-	check_err NETWORK
+	if [ "x${SDFIRM_NETWORKING}" = "xyes" ]; then
+		disp_msg START_NETWORK
+		/etc/init.d/networking stop
+		/etc/init.d/networking start
+		check_err NETWORK
+	fi
 
 	if [ "x${SDFIRM_TELNET}" = "xyes" ]; then
 		disp_msg START_TELNETD
@@ -100,18 +107,22 @@ stop_sdfirm()
 		check_err TELNETD
 	fi
 
-	disp_msg STOP_NETWORK
-	/etc/init.d/networking stop
-	check_err NETWORK
-	
-	#disp_msg STOP_DISKS
-	#/etc/init.d/disks stop
-	#check_err DISKS
+	if [ "x${SDFIRM_NETWORKING}" = "xyes" ]; then
+		disp_msg STOP_NETWORK
+		/etc/init.d/networking stop
+		check_err NETWORK
+	fi
 
 	if [ "x${SDFIRM_SYSLOG}" = "xyes" ]; then
 		disp_msg STOP_SYSLOGD
 		killall syslogd
 		check_err SYSLOGD
+	fi
+
+	if [ "x${SDFIRM_STORAGING}" = "xyes" ]; then
+		disp_msg STOP_DISKS
+		#/etc/init.d/storaging stop
+		check_err DISKS
 	fi
 
 	disp_msg END_SHUTDOWN

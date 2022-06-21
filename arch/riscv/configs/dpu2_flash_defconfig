@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Jun  2 13:06:39 2022
+# Tue Jun 21 12:03:40 2022
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -351,6 +351,7 @@ CONFIG_SPIFLASH_ADDR_4BYTE=y
 # CONFIG_VIDEO is not set
 CONFIG_ARCH_HAS_DDR=y
 CONFIG_DDR=y
+CONFIG_DDR_MAX_DEVICES=2
 CONFIG_DDR_SPD_3200=y
 # CONFIG_DDR_SPD_2933 is not set
 # CONFIG_DDR_SPD_2666 is not set
@@ -621,6 +622,7 @@ CONFIG_DW_UMCTL2_SECDED_ECC=y
 # CONFIG_DW_UMCTL2_GEARDOWN is not set
 # CONFIG_DW_UMCTL2_DLL_OFF is not set
 # CONFIG_DW_UMCTL2_TRAINING is not set
+# CONFIG_DW_UMCTL2_DEBUG is not set
 
 #
 # Serial Presence Detect (SPD) drivers

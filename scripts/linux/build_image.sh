@@ -3,7 +3,7 @@
 TOP=`pwd`
 SCRIPT=`(cd \`dirname $0\`; pwd)`
 WORKING_DIR=`(cd ${SCRIPT}/../../..; pwd)`
-BUILD_MODULE_OPS="-s"
+BUILD_MODULE_OPS="-s -u"
 
 usage()
 {
@@ -34,8 +34,7 @@ do
 	f) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -m sdfirm";;
 	m) MACH=$OPTARG;;
 	n) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -n $OPTARG";;
-	u) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -u"
-	   BUILD_LITMUS=yes
+	u) BUILD_LITMUS=yes
 	   BUILD_APPS=yes;;
 	?) echo "Invalid argument $opt"
 	   fatal_usage;;

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Jun 14 17:50:59 2022
+# Tue Jun 21 11:41:08 2022
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -732,6 +732,7 @@ CONFIG_DW_UMCTL2_SECDED_ECC=y
 # CONFIG_DW_UMCTL2_GEARDOWN is not set
 # CONFIG_DW_UMCTL2_DLL_OFF is not set
 # CONFIG_DW_UMCTL2_TRAINING is not set
+# CONFIG_DW_UMCTL2_DEBUG is not set
 
 #
 # Serial Presence Detect (SPD) drivers

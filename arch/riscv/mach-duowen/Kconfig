@@ -334,9 +334,19 @@ config DUOWEN_XO_25M
 
 endchoice
 
-choice
-	prompt "Theoretical frequency (zTime)"
+config DUOWEN_ZEBU_TIME
+	bool "Enable theoretical frequency (zTime)"
 	depends DUOWEN_ZEBU
+	depends EXPERIMENTAL
+	help
+	  This is useful when ZeBu system is trying to communicate with
+	  the real world via TCP/IP networking. By aligning the time
+	  value, the communication may not be timed out just because of
+	  the simulation speed.
+
+choice
+	prompt "zTime ratio"
+	depends DUOWEN_ZEBU_TIME
 
 config DUOWEN_ZEBU_FREQ_1991KHZ
 	bool "1991Khz"

@@ -71,11 +71,30 @@ clk_freq_t ddr_get_frclk(int speed);
 /* DDR frequency plans */
 #define ddr_hw_ctrl_init()	dw_umctl2_init()
 #define ddr_hw_ctrl_start()	dw_umctl2_start()
+
+#define ddr_hw_mr_write(n, c, ranks, v, r)	\
+	dw_umctl2_mr_write(n, c, ranks, v, r)
+#define ddr_hw_mr_read(n, c, ranks, r)		\
+	dw_umctl2_mr_read(n, c, ranks, r)
+#define ddr4_hw_config_refresh(n, mode, tREFI, tRFCmin)	\
+	dw_umctl2_ddr4_config_refresh(n, mode, tREFI, tRFCmin)
+#define ddr_hw_init_MR(n, v, r)		dw_umctl2_init_mr(n, v, r)
+#define ddr4_hw_init_RESET_n(n, tPW_RESET)		\
+	dw_umctl2_ddr4_init_rstn(n, tPW_RESET)
+#define ddr4_hw_init_CKE(n, tCKEactive, tCKEstab)	\
+	dw_umctl2_ddr4_init_pre_cke(n, tCKEactive, tCKEstab)
+#define ddr4_hw_init_tXPR(n, tXS)			\
+	dw_umctl2_ddr4_init_post_cke(n, tXS)
+#define ddr4_hw_init_ZQCL(n, tZQinit)			\
+	dw_umctl2_ddr4_init_zqcl(n, tZQinit)
+#define ddr_hw_mr_write(n, c, ranks, v, r)		\
+	dw_umctl2_mr_write(n, c, ranks, v, r)
+#define ddr_hw_mr_read(n, c, ranks, r)			\
+	dw_umctl2_mr_read(n, c, ranks, r)
+
 void ddr_hw_config_speed(uint8_t speed);
 void ddr_hw_enable_speed(uint8_t speed);
 void ddr_hw_wait_dfi(uint32_t cycles);
-#define ddr4_hw_config_refresh(n, mode, tREFI, tRFCmin)	\
-	dw_umctl2_ddr4_config_refresh(n, mode, tREFI, tRFCmin)
 #else
 #define ddr_get_fvco(speed)	PLL2_VCO_FREQ
 #define ddr_get_fpclk(speed)	PLL2_P_FREQ

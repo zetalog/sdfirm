@@ -185,7 +185,7 @@ static void dw_umctl2_init_static_regs(uint8_t n, uint8_t c,
 				       uint32_t conf, uint8_t ranks)
 {
 	uint16_t dev = ddr4_dev(conf);
-	uint16_t cap = ddr4_cap(conf);
+	__unused uint16_t cap = ddr4_cap(conf);
 
 	ddr_config_speed(spd);
 

@@ -106,37 +106,45 @@ install_initramfs_lib()
 	echo "lib $1 $2"
 }
 
-install_initramfs()
+install_initramfs_one()
 {
-	ROOTFS_INSTALL=$1
-	ROOTFS_FILES=`ls ${ROOTFS_INSTALL}$2`
-	for f in ${ROOTFS_FILES}; do
-		ROOTFS_HOST=${ROOTFS_INSTALL}$2/${f}
-		ROOTFS_TARGET=$2/${f}
-		if [ -d ${ROOTFS_HOST} ]; then
-			install_initramfs_dir
-			install_initramfs $1 ${ROOTFS_TARGET}
+	ROOTFS_HOST=$1$2
+	ROOTFS_TARGET=$2
+	if [ -d ${ROOTFS_HOST} ]; then
+		install_initramfs_dir
+		install_initramfs $1 ${ROOTFS_TARGET}
+	else
+		if [ -L ${ROOTFS_HOST} ]; then
+			install_initramfs_slink
 		else
-			if [ -L ${ROOTFS_HOST} ]; then
-				install_initramfs_slink
+			if [ -x ${ROOTFS_HOST} ]; then
+				ROOTFS_LIBS=`ldd ${ROOTFS_HOST} | \
+					sort | uniq | \
+					awk -F\= '{print $2}' | \
+					awk '{print $2}' | uniq`
+				for ROOTFS_LIB in ${ROOTFS_LIBS} ; do
+					install_initramfs_lib \
+						$1 ${ROOTFS_LIB}
+				done
+				${CROSS_COMPILE}strip ${ROOTFS_HOST}
+				install_initramfs_file 755
 			else
-				if [ -x ${ROOTFS_HOST} ]; then
-					ROOTFS_LIBS=`ldd ${ROOTFS_HOST} | \
-						sort | uniq | \
-						awk -F\= '{print $2}' | \
-						awk '{print $2}' | uniq`
-					for ROOTFS_LIB in ${ROOTFS_LIBS} ; do
-						install_initramfs_lib \
-							$1 ${ROOTFS_LIB}
-					done
-					${CROSS_COMPILE}strip ${ROOTFS_HOST}
-					install_initramfs_file 755
-				else
-					install_initramfs_file 644
-				fi
+				install_initramfs_file 644
 			fi
 		fi
-	done
+	fi
+}
+
+install_initramfs()
+{
+	if [ -d $1$2 ]; then
+		ROOTFS_FILES=`ls $1$2`
+		for f in ${ROOTFS_FILES}; do
+			install_initramfs_one $1 $2/${f}
+		done
+	else
+		install_initramfs_one $1 $2
+	fi
 }
 
 get_sysroot()
