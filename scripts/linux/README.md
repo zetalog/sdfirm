@@ -32,10 +32,11 @@ qemu image:
 
     $ MACH=virt64 ./sdfirm/scripts/linux/build_image.sh
 
-Note that the current working directory is used as build top ($TOP). By
-default, build_module.sh which is invoked by build_image.sh finds linux,
-busybox and sdfirm right below the $TOP folder unless LINUX_DIR,
-BUSYBOX_DIR and SDFIRM_DIR is specified via shell environments.
+Note that the current working directory is used as build top (say, $TOP in
+the rest of this document). By default, build_module.sh which is invoked by
+build_image.sh finds sdfirm/linux/busybox right below the $TOP folder
+unless $SDFIRM_DIR/$LINUX_DIR/$BUSYBOX_DIR shell environments are specified
+and passed to the build_image.sh.
 
 Run steps
 -------------
@@ -55,8 +56,8 @@ Add userspace programs
 --------------------------
 
 If you want to add userspace programs, you need to put your pre-built
-programs to ${TOP}/obj/bench folder or cross compile a software by
-specifying the prefix as ${TOP}/obj/bench. This folder (${TOP}/obj/bench)
+programs to $TOP/obj/bench folder or cross compile a software by
+specifying the prefix as $TOP/obj/bench. This folder ($TOP/obj/bench)
 will be automatically archived into the linux rootfs by the
 build_module.sh which is invoked by build_image.sh.
 
@@ -69,8 +70,8 @@ build_module.sh which is invoked by build_image.sh.
     $ MACH=spike64 ./sdfirm/scripts/linux/build_image.sh
 
 You can also add simple programs into the test bench rootfs
-(${TOP}/obj/bench), As an example, here is a way to build sdfirm
-integrated dhrystone/linpack/coremarki into the linux rootfs:
+($TOP/obj/bench), As an example, here is a way to build sdfirm
+integrated dhrystone/linpack/coremark into the linux rootfs:
 
     $ export PREFIX=`pwd`/obj/bench
     $ mkdir -p ${PREFIx}/usr/local/bin

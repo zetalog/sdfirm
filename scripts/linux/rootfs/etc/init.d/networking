@@ -9,25 +9,49 @@ sdfirm_log()
 	echo -n "sdfirm: $@"
 }
 
+dump_net()
+{
+	ncfgs=`ifconfig | grep "inet " | awk -F ' ' '{print $2,$3}'`
+
+	sp=0
+	for n in $ncfgs; do
+		adr=`echo $n | awk -F ':' '{print $2}'`
+		if [ $sp -eq 0 ]; then
+			echo -n "$adr "
+			sp=1
+		else
+			echo $adr
+			sp=0
+		fi
+	done
+}
+
 start_net()
 {
+	net=1
+
 	sdfirm_log "Configuring network..."
 	if [ -x $up ]; then
-		if $up -a 1>/dev/null 2>&1; then
-			echo "===== Custom Address ====="
-			ifconfig eth0
-			echo "=========================="
-			echo "[Success]" && return 0
-		fi
+		$up -a >/dev/null 2>&1
+		net=$?
 	fi
-	echo "[Failure]" && return 1
+	if [ $net -eq 0 ]; then
+		echo "[Success]"
+	else
+		echo "[Failure]"
+	fi
+	echo "===== Custom Address ====="
+	dump_net
+	echo "=========================="
+	return $net
 }
 
 stop_net()
 {
 	sdfirm_log "Deconfiguring network..."
 	if [ -x $down ]; then
-		if $down -a 1>/dev/null 2>&1; then
+		$down -a >/dev/null 2>&1
+		if [ $? -eq 0 ]; then
 			echo "[Success]" && return 0
 		fi
 	fi

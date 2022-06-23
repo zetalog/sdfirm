@@ -12,7 +12,7 @@ mkdir /dev/pts
 mount -t devpts none /dev/pts
 
 echo "===== Factory Address ====="
-echo "192.168.10.1/255.255.255.0"
+echo "192.168.10.1 255.255.255.0"
 echo "==========================="
 if [ -e /sys/class/net/lo ]; then
 	ip addr add 127.0.0.1/8 dev lo
