@@ -47,21 +47,29 @@
 #include <asm/mach/tmr.h>
 #include <asm/clint.h>
 
-#ifdef CONFIG_DUOWEN_ZEBU_FREQ_1991KHZ
-#define TSC_SIM_RATIO		(CL_PLL_FREQ / 1991000)
-#endif
-#ifdef CONFIG_DUOWEN_ZEBU_FREQ_1690KHZ
-#define TSC_SIM_RATIO		(CL_PLL_FREQ / 1690000)
-#endif
-#ifdef CONFIG_DUOWEN_ZEBU_FREQ
-#define TSC_SIM_RATIO		(CL_PLL_FREQ / 1000 / CONFIG_DUOWEN_ZEBU_FREQ)
-#endif
-
 #define DW_TIMERS_BASE		IMC_TIMER_BASE
 #define DW_TIMERS_SIZE		0x14
 #define DW_TIMERS_WIDTH		32
 #define DW_TIMERS_TSC		0
 #define DW_TIMERS_TSC_CLK	TIMER3_CLK
+
+/* Define the khz frequency of tickClk (zTime) from simulated target's
+ * point of view.
+ */
+#ifdef CONFIG_DUOWEN_ZTIME_TARGET_3200MHZ
+#define SIM_TICK_FREQ		3200000
+#endif
+/* Define the khz frequency of tickClk (zTime) from simulating host's
+ * point of view.
+ */
+#ifdef SIM_TICK_FREQ
+#ifdef CONFIG_DUOWEN_ZTIME_HOST_1991KHZ
+#define TSC_SIM_RATIO		(SIM_TICK_FREQ / 1991)
+#endif
+#ifdef CONFIG_DUOWEN_ZTIME_HOST_1690KHZ
+#define TSC_SIM_RATIO		(SIM_TICK_FREQ / 1690)
+#endif
+#endif /* SIM_TICK_FREQ */
 
 #ifdef TSC_SIM_RATIO
 #define __TSC_FREQ		XO_CLK_FREQ / TSC_SIM_RATIO

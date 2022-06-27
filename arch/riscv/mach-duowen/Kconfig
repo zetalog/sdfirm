@@ -326,15 +326,7 @@ config DUOWEN_ZEBU
 
 endchoice
 
-choice
-	prompt "xo_clk frequency"
-
-config DUOWEN_XO_25M
-	bool "25MHz"
-
-endchoice
-
-config DUOWEN_ZEBU_TIME
+menuconfig DUOWEN_ZEBU_TIME
 	bool "Enable theoretical frequency (zTime)"
 	depends DUOWEN_ZEBU
 	depends EXPERIMENTAL
@@ -344,27 +336,40 @@ config DUOWEN_ZEBU_TIME
 	  value, the communication may not be timed out just because of
 	  the simulation speed.
 
+if DUOWEN_ZEBU_TIME
+
 choice
-	prompt "zTime ratio"
-	depends DUOWEN_ZEBU_TIME
+	prompt "zTime target frequency"
+	help
+	  This defines the theoretical frequency of ZeBu tickClk, which is
+	  aligned to the time axis of the simulated target design.
+	  Also, this is known as the frequency of the tickClk from the
+	  target's point of view.
 
-config DUOWEN_ZEBU_FREQ_1991KHZ
-	bool "1991Khz"
-	depends DUOWEN_APC_4 || DUOWEN_APC_1
-
-config DUOWEN_ZEBU_FREQ_1690KHZ
-	bool "1690Khz"
-	depends DUOWEN_APC_16
-
-config DUOWEN_ZEBU_FREQ_CUSTOM
-	bool "Custom"
+config DUOWEN_ZTIME_TARGET_3200MHZ
+	bool "3200MHz"
 
 endchoice
 
-config DUOWEN_ZEBU_FREQ
-	int "Custom theoretical frequency (Khz)"
-	depends DUOWEN_ZEBU_FREQ_CUSTOM
-	range 1000 4000
+choice
+	prompt "zTime host frequency"
+	help
+	  This defines the real world frequency of ZeBu tickClk, which is
+	  aligned to the time axis of the simulation host.
+	  Also, this is known as the frequency of the tickClk from the
+	  host's point of view.
+
+config DUOWEN_ZTIME_HOST_1991KHZ
+	bool "1991Khz"
+	depends DUOWEN_APC_4 || DUOWEN_APC_1
+
+config DUOWEN_ZTIME_HOST_1690KHZ
+	bool "1690Khz"
+	depends DUOWEN_APC_16
+
+endchoice
+
+endif
 
 choice
 	prompt "VAISRA CPUs"
