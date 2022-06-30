@@ -311,8 +311,6 @@ config ARCH_SPIKE
 	select ARCH_HAS_CONSOLE_EARLY
 	select SPIKE_HTIF if UART || DEBUG_PRINT || CONSOLE
 	select SPIKE_CLINT if !SYS_NOIRQ
-	select ARCH_HAS_DDR
-	select SPIKE_DDR if DDR
 	help
 	  This enables support for simulated riscv platforms.
 
