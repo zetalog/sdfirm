@@ -1,4 +1,4 @@
-# Duowen Vaisra
+# Duowen Vaisra(vara)
 config CPU_VAISRA
 	bool
 	select CPU_64G
@@ -10,6 +10,26 @@ config CPU_VAISRA
 	select CPU_WMO
 	select ARCH_IS_ATOMIC_UNFAIR
 	select ARCH_HAS_HPM_EVENT if HPM
+	help
+	  Vaisra is a code name for SmarCo CPU that implements RV64G with
+	  ACE bus interface.
+
+# Guangmu Virapa(ksa)
+config CPU_VIRAPA
+	bool
+	select CPU_64G
+	select CPU_S
+	select CPU_SV39
+	select CPU_SV48
+	select CPU_PMP
+	select CPU_COUNTERS
+	select CPU_WMO
+	select ARCH_IS_ATOMIC_UNFAIR
+	select ARCH_HAS_HPM_EVENT if HPM
+	help
+	  Varapa is a code name for SmarCo CPU that has VAISRA bus
+	  interface replaced with CHI. Generally it is same as VAISRA, but
+	  its peripherals are different on the VIRAPA test bench.
 
 # SiFive E51
 config CPU_E51

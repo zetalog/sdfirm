@@ -1,0 +1,74 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+if ARCH_VIRAPA
+
+menu "Smart Core Virapa(ksa) bench options"
+
+config VIRAPA_SMP_CPUS
+	int "Number of cores per cluster"
+	depends SMP
+	range 1 2
+	default 2
+	help
+	  VIRAPA test bench has only 2 CPUs embedded.
+
+config VIRAPA_MEM_BASE
+	hex "Primary memory base address"
+	default 0x80000000
+
+config VIRAPA_MEM_SIZE
+	hex "Primary memory size"
+	default 0x80000000
+
+menu "Peripheral settings"
+
+config VIRAPA_UART
+	bool "Enable PL011 uart console"
+	select ARCH_IS_UART_PL011
+	select UART_PL01X
+
+endmenu
+
+choice
+	prompt "Program type"
+
+config VIRAPA_TB
+	bool "Test bench"
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SYS_EXIT_S
+	select ARCH_HAS_BOOT_LOAD if VIRAPA_SIM_LOAD
+
+config VIRAPA_BBL
+	bool "Berkeley boot loader (BBL)"
+	select ARCH_HAS_BOOT_LOAD
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SYS_EXIT_S
+	select SBI
+	select XIP
+	select BFM
+
+endchoice
+
+menu "Simulation options"
+
+config VIRAPA_BOOT_RAM
+	bool "Enable booting from RAM"
+	select VAISRA_PMA
+	help
+	  When BOOT_MODE=ram is configured in virapa tb environment,
+	  virapa resets from 0x80000000 instead of resetting from internal
+	  ROM address.
+
+config VIRAPA_SIM_LOAD
+	bool "Enable loading by simulator"
+
+endmenu
+
+endmenu
+
+endif

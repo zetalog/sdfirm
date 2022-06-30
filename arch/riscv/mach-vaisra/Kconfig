@@ -5,7 +5,7 @@
 
 if ARCH_VAISRA
 
-menu "Smart Core Vaisra bench options"
+menu "Smart Core Vaisra(vana) bench options"
 
 config VAISRA_SMP_CPUS
 	int "Number of cores per cluster"

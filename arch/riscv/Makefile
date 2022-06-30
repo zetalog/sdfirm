@@ -83,6 +83,10 @@ ifeq ($(CONFIG_ARCH_VAISRA),y)
  machine-$(CONFIG_ARCH_VAISRA)		:= vaisra
  incdir-$(CONFIG_ARCH_VAISRA)		:= vaisra
 endif
+ifeq ($(CONFIG_ARCH_VIRAPA),y)
+ machine-$(CONFIG_ARCH_VIRAPA)		:= virapa
+ incdir-$(CONFIG_ARCH_VIRAPA)		:= virapa
+endif
 ifeq ($(CONFIG_ARCH_DPULP),y)
  machine-$(CONFIG_ARCH_DPULP)		:= dpulp
  incdir-$(CONFIG_ARCH_DPULP)		:= dpulp

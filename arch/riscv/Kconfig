@@ -149,7 +149,32 @@ config ARCH_VAISRA
 	select VAISRA_TBOX if SHUTDOWN
 	select VAISRA_UART if CONSOLE || DEBUG_PRINT
 	help
-	  This enables support for smart core (SmarCo) vaisra riscv CPU bench platforms.
+	  This enables support for smart core (SmarCo) vaisra riscv CPU
+	  (core of DUOWEN) bench platforms.
+
+config ARCH_VIRAPA
+	bool "SmarCo MP Virapa"
+	select CPU_VIRAPA
+	select ARCH_HAS_NOVEC
+	select ARCH_IS_TICKLESS
+	select ARCH_HAS_TSC
+	select ARCH_HAS_TSC_CONST
+	select ARCH_HAS_GPT
+	select ARCH_HAS_IRQC
+	select ARCH_HAS_CLINT
+	select ARCH_HAS_FDT
+	select RISCV_COUNTERS if SBI
+	select CLINT
+	select VAISRA_TBOX if SYS_IRQ
+	select VAISRA_TBOX if SHUTDOWN
+	select VIRAPA_UART if CONSOLE || DEBUG_PRINT
+	help
+	  This enables support for smart core (SmarCo) varapa riscv CPU
+	  (core of GUANGMU) bench platforms.
+	  Note that this test bench will be greatly changed when more
+	  features are added to virapa via small projects (virapa_rvh,
+	  virapa_rvv, virapa_imsic...). Currently there is only virapa_chi
+	  project feature implemented in this test bench.
 
 config ARCH_DPULP
 	bool "SmarCo DPU-LP"
@@ -321,6 +346,7 @@ source "arch/riscv/mach-duowen/Kconfig"
 source "arch/riscv/mach-dpu/Kconfig"
 source "arch/riscv/mach-vaisra/Kconfig"
 source "arch/riscv/mach-dpulp/Kconfig"
+source "arch/riscv/mach-virapa/Kconfig"
 source "arch/riscv/mach-unleashed/Kconfig"
 source "arch/riscv/mach-k210/Kconfig"
 source "arch/riscv/mach-vega/Kconfig"
