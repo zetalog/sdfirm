@@ -123,6 +123,8 @@ build_sdfirm riscv64 virt64_litmus
 build_sdfirm riscv64 vaisra_tb
 build_sdfirm riscv64 vaisra_nocon
 build_sdfirm riscv64 vaisra_fsbl
+# Guangmu Virapa TB
+build_sdfirm riscv64 virapa_tb
 # SiFive unleashed
 build_sdfirm riscv64 unleashed_zsbl
 build_sdfirm riscv64 unleashed_fsbl
