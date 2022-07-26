@@ -35,6 +35,9 @@ if MONACO
 
 endif
 
+config CCN512
+	bool "ARM CCN512 support"
+
 endmenu
 
 

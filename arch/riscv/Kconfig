@@ -89,7 +89,8 @@ config ARCH_DUOWEN
 	select DUOWEN_SMMU_SV if IOMMU
 	select VAISRA_RAS if RAS
 	help
-	  This enables support for smart core (SmarCo) duowen riscv cluster platforms.
+	  This enables support for smart core (SmarCo) duowen riscv cluster
+	  platforms.
 
 config ARCH_DPU
 	bool "SmarCo DPU"
@@ -131,6 +132,27 @@ config ARCH_DPU
 	select HPM if (PERF && DPU_CVA6)
 	help
 	  This enables support for smart core (SmarCo) DPU platform.
+
+config ARCH_GUANGMU
+	bool "SmarCo MC Guangmu"
+	select ARCH_IS_TICKLESS
+	select ARCH_HAS_TSC
+	select ARCH_HAS_TSC_CONST
+	select CPU_VAISRA
+	select ARCH_HAS_NOVEC
+	select ARCH_HAS_CLINT
+	select ARCH_HAS_PLIC
+	select CLINT
+	select PLIC if !SYS_NOIRQ
+	select ARCH_HAS_IRQC
+	select ARCH_HAS_DDR
+	select ARCH_HAS_NOC
+	select ARCH_HAS_BOOT0
+	select ARCH_HAS_UART
+	select DW_UART_BIRD
+	help
+	  This enables support for smart core (SmarCo) guangmu cluster
+	  platforms.
 
 config ARCH_VAISRA
 	bool "SmarCo MC Vaisra"
@@ -341,6 +363,7 @@ source "arch/riscv/fdt/Kconfig"
 endmenu
 
 source "arch/riscv/mach-duowen/Kconfig"
+source "arch/riscv/mach-guangmu/Kconfig"
 source "arch/riscv/mach-dpu/Kconfig"
 source "arch/riscv/mach-vaisra/Kconfig"
 source "arch/riscv/mach-dpulp/Kconfig"

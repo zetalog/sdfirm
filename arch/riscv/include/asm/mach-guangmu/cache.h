@@ -1,0 +1,4 @@
+#ifndef __CACHE_GUANGMU_H_INCLUDE__
+#define __CACHE_GUANGMU_H_INCLUDE__
+
+#endif /* __CACHE_GUANGMU_H_INCLUDE__ */

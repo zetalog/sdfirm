@@ -75,6 +75,10 @@ ifeq ($(CONFIG_ARCH_DUOWEN),y)
  machine-$(CONFIG_ARCH_DUOWEN)		:= duowen
  incdir-$(CONFIG_ARCH_DUOWEN)		:= duowen
 endif
+ifeq ($(CONFIG_ARCH_GUANGMU),y)
+ machine-$(CONFIG_ARCH_GUANGMU)		:= guangmu
+ incdir-$(CONFIG_ARCH_GUANGMU)		:= guangmu
+endif
 ifeq ($(CONFIG_ARCH_DPU),y)
  machine-$(CONFIG_ARCH_DPU)		:= dpu
  incdir-$(CONFIG_ARCH_DPU)		:= dpu

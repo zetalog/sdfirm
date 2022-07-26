@@ -323,4 +323,9 @@ config SEGGER_RTT
           real-time communication on targets which support debugger memory
           accesses while the CPU is running.
 
+config DW_UART_BIRD
+	bool "Temp dw uart driver"
+	help
+	  temp uart driver
+
 endmenu

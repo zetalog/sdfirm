@@ -1,0 +1,40 @@
+if ARCH_GUANGMU
+
+menu "SmarCo GUANGMU board options"
+
+config GM_SMP_CPUS
+	int "Number of cores per cluster"
+	depends SMP
+	range 1 8
+	default 8
+
+config GM_MEM_SIZE
+	hex "Memory size"
+	default 0x80000000
+
+choice
+	prompt "Program type"
+
+config GM_TB
+	bool "Test bench"
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SYS_EXIT_S
+
+config GM_BBL
+	bool "Berkeley boot loader (BBL)"
+	select ARCH_HAS_BOOT_LOAD
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SBI
+	select SBI_PAYLOAD
+	select XIP
+
+endchoice
+
+config GM_RSTCRU
+	bool "Guangmu clock configuration"
+
+endmenu
+
+endif
