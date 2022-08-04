@@ -47,7 +47,7 @@
 #include <target/gpio.h>
 #include <target/clk.h>
 
-#define __GM_UART_BASE		UART0_BASE
+#define __GM_UART_BASE			UART0_BASE
 #ifdef CONFIG_MMU
 #define GM_UART_BASE			gm_uart_reg_base
 extern caddr_t gm_uart_reg_base;
@@ -56,8 +56,9 @@ extern caddr_t gm_uart_reg_base;
 #endif
 
 #define UART_CON_ID			0
-#define UART_BASE(n)			VIRT_UART_BASE
+//#define UART_BASE(n)			VIRT_UART_BASE
 
+#include <driver/dw_uart_bird.h>
 #ifndef ARCH_HAVE_UART
 #define ARCH_HAVE_UART
 #else

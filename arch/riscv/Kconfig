@@ -135,21 +135,23 @@ config ARCH_DPU
 
 config ARCH_GUANGMU
 	bool "SmarCo MC Guangmu"
+	select CPU_VAISRA
 	select ARCH_IS_TICKLESS
 	select ARCH_HAS_TSC
 	select ARCH_HAS_TSC_CONST
-	select CPU_VAISRA
-	select ARCH_HAS_NOVEC
+	select ARCH_HAS_IRQC
 	select ARCH_HAS_CLINT
 	select ARCH_HAS_PLIC
-	select CLINT
-	select PLIC if !SYS_NOIRQ
-	select ARCH_HAS_IRQC
+	select ARCH_HAS_PLIC_EOI_EARLY
+	select ARCH_HAS_NOVEC
 	select ARCH_HAS_DDR
+	select ARCH_HAS_UART
 	select ARCH_HAS_NOC
 	select ARCH_HAS_BOOT0
-	select ARCH_HAS_UART
-	select DW_UART_BIRD
+	select CLINT
+	select PLIC if !SYS_NOIRQ
+	select GM_CRU
+	select GM_UART if CONSOLE || DEBUG_PRINT
 	help
 	  This enables support for smart core (SmarCo) guangmu cluster
 	  platforms.

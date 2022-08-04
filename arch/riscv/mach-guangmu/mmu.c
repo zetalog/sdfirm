@@ -71,3 +71,22 @@ void gm_mmu_map_test(void)
 		gm_test_reg_addr = fix_to_gm(FIX_TEST);
 	}
 }
+
+void uart_hw_mmu_init(void)
+{
+	gm_mmu_map_uart(UART_CON_ID);
+	uart_hw_con_init();
+	gm_mmu_dump_maps();
+}
+
+caddr_t gm_plic_reg_base = PLIC_REG_BASE;
+
+void gm_hw_mmu_init(void)
+{
+	if (gm_plic_reg_base == PLIC_REG_BASE) {
+		set_fixmap_io(FIX_PLIC, PLIC_REG_BASE & PAGE_MASK);
+		gm_plic_reg_base = fix_to_virt(FIX_PLIC);
+		printf("FIXMAP: %016llx -> %016llx: PLIC\n",
+		       (uint64_t)PLIC_REG_BASE, fix_to_virt(FIX_PLIC));
+	}
+}

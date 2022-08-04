@@ -1,7 +1,4 @@
-//#include <types.h>
-#include <std/stdint.h>
-#include <io.h>
-//include <sysma.h>
+#include <target/uart.h>
 
 #define UART_BASE	0x83000000
 #define UART_REG(n)	(UART_BASE + n)

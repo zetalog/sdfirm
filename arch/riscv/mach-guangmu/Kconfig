@@ -3,10 +3,10 @@ if ARCH_GUANGMU
 menu "SmarCo GUANGMU board options"
 
 config GM_SMP_CPUS
-	int "Number of cores per cluster"
+	int "Number of cores"
 	depends SMP
-	range 1 8
-	default 8
+	range 1 16
+	default 16
 
 config GM_MEM_SIZE
 	hex "Memory size"
@@ -22,7 +22,7 @@ config GM_TB
 	select SYS_EXIT_S
 
 config GM_BBL
-	bool "Berkeley boot loader (BBL)"
+	bool "SBI loader"
 	select ARCH_HAS_BOOT_LOAD
 	select SYS_ENTR_M
 	select SYS_EXIT_M
@@ -32,8 +32,12 @@ config GM_BBL
 
 endchoice
 
-config GM_RSTCRU
-	bool "Guangmu clock configuration"
+config GM_CRU
+	bool "Guangmu clock/reset unit (CRU) configuration"
+
+menuconfig GM_UART
+	bool "Guangmu UART controller support"
+	select DW_UART_BIRD
 
 endmenu
 

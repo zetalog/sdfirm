@@ -1,12 +1,10 @@
-#include <asm/mach/reg.h>
-#include <std/stdint.h>
-#include <types.h>
+#include <target/arch.h>
 
 #define DDR_RESET_OFF	0x90
 
 #define SOC_CLK_CFG	0x200
 #define PCIE_CLK_CFG	0x204
-#define CLUSTER_CLK_CG	0x040
+#define CLUSTER_CLK_CFG	0x040
 #define BUS_CLK_CFG	0x080
 #define DDR_CLK_CFG	0x084
 
