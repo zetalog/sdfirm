@@ -27,6 +27,27 @@ design, it grows up to be an IC verification methodology, and takes part
 into open source RISC-V IC revolution to be a full SMP CPU verification
 program that can be run by the RTL CPUs in simulators (VCS, verilator).
 
+Prerequisites
+-----------------
+
+You need RISC-V system development environment prepared before going
+further. For example, you need to install RISC-V toolchains (e.x.,
+riscv64-linux-gnu-gcc which is used to build linux user space applications
+or riscv64-linux-gcc which is used to build system software) in your $PATH
+environment, and prepare Kbuild system required shell environments:
+
+    $ export ARCH=riscv
+    $ export CROSS_COMPILE=riscv64-linux-gnu-
+
+Note that, when you only want to build sdfirm (e.x., to try sdfirm bare
+metal test benches), the following environments are equivelent to setting
+ARCH=riscv and CROSS_COMPILE=riscv64|32-linux- which is the default
+nolib sysetm software compiler used by kernel.org:
+
+  $ export SUBARCH=riscv : automatically sets ARCH=riscv
+  $ export RISCV64=1     : automatically sets CROSS_COMPILE=riscv64-linux-
+  $ export RISCV64=      : automatically sets CROSS_COMPILE=riscv32-linux-
+
 Build steps of SPIKE test benches
 -------------------------------------
 
@@ -36,8 +57,6 @@ install path and spike is already installed in the PATH environment.
 Running bare metal test bench in spike:
 
     $ apt-get install device-tree-compiler
-    $ export SUBARCH=riscv
-    $ export RISCV64=1
     $ make spike64_tb_defconfig
     $ make menuconfig
     $ make clean
@@ -140,7 +159,7 @@ Running Linux test bench in spike:
     $ MACH=spike64 ./sdfirm/scripts/linux/build_image.sh -f
     $ ./sdfirm/scripts/run-spike.sh -p4 obj/sdfirm-riscv/sdfirm
 
-You can also do this in sdfirm folder:
+You can also do this in sdfirm folder if Linux image is prepared:
 
     $ cp ../obj/linux-riscv/arch/riscv/boot/Image ./Image
     $ make spike64_bbl_defconfig
@@ -269,8 +288,6 @@ environment.
 Running bare metal test bench in qemu:
 
     $ apt-get install device-tree-compiler
-    $ export SUBARCH=riscv
-    $ export RISCV64=1
     $ make virt64_tb_defconfig
     $ make menuconfig
     $ make clean
@@ -285,7 +302,7 @@ Running Linux test bench in qemu:
     $ MACH=virt64 ./sdfirm/scripts/linux/build_image.sh -f
     $ ./sdfirm/scripts/run-qemu.sh -p4 obj/sdfirm-riscv/sdfirm
 
-You can also do this in sdfirm folder:
+You can also do this in sdfirm folder if Linux image is prepared:
 
     $ cp ../obj/linux-riscv/arch/riscv/boot/Image ./Image
     $ make virt64_bbl_defconfig
