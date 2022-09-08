@@ -104,7 +104,7 @@ config DUOWEN_FSBL
 	select BFM if !DUOWEN_FSBL_SPI
 	select SYS_ENTR_M
 	select SYS_EXIT_M
-	select DUOWEN_DDR
+	select DUOWEN_DDR if DDR
 	select DUOWEN_SPI_FLASH
 	select DUOWEN_SSI_FLASH
 	select DUOWEN_APC_INIT if (DUOWEN_APC && !DUOWEN_SBL_LOAD)
