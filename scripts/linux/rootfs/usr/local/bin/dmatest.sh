@@ -1,6 +1,6 @@
 #!/bin/sh
 
-DMATEST_MODULE=/sys/modules/dmatest
+DMATEST_MODULE=/sys/module/dmatest
 DMATEST_test_buf_size=16384
 DMATEST_iterations=0
 DMATEST_timeout=3000
@@ -150,7 +150,6 @@ if [ "x$1" = "xtest" ]; then
 	if [ -z $2 ]; then
 		echo "Warning: no channel specified, use 'any'!"
 	fi
-	update_dmatest channel $2
 	update_dmatest test_buf_size $DMATEST_test_buf_size
 	update_dmatest iterations $DMATEST_iterations
 	update_dmatest timeout $DMATEST_timeout
@@ -159,6 +158,7 @@ if [ "x$1" = "xtest" ]; then
 	update_dmatest verbose $DMATEST_verbose
 	update_dmatest alignment $DMATEST_alignment
 	update_dmatest transfer_size $DMATEST_transfer_size
+	update_dmatest channel $2
 	update_dmatest polled $DMATEST_polled
 	set_dmatest run Y
 fi
@@ -166,7 +166,7 @@ if [ "x$1" = "xkern" ]; then
 	if [ ! -d ${DMATEST_MODULE} ]; then
 		echo "Error: dmatest is not probed!"
 	fi
-	grep -H . /sys/module/dmatest/parameters/*
+	grep -H . ${DMATEST_MODULE}/parameters/*
 fi
 if [ "x$1" = "xuser" ]; then
 	echo "test_buf_size=$DMATEST_test_buf_size"
