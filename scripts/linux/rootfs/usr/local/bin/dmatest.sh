@@ -8,15 +8,16 @@ DMATEST_noverify=N
 DMATEST_norandom=N
 DMATEST_verbose=N
 DMATEST_alignment=-1
-DMATEST_transfer_size=-1
+DMATEST_transfer_size=0
 DMATEST_polled=N
+DMATEST_waited=N
 
 usage()
 {
 	echo "Usage:"
 	echo "`basename $0` [-b buf_size] [-i iterations] [-t timeout]"
 	echo "              [-d feature] [-v] [-a alignment] [-x xfer_size]"
-	echo "              [-p]"
+	echo "              [-p] [-w]"
 	echo "              action [channel]"
 	echo "Where:"
 	echo " Options:"
@@ -42,6 +43,7 @@ usage()
 	echo "    xfer_size  number / notused(0)"
 	echo "               default: notused"
 	echo " -p            Use polling for completion instead of interrupts"
+	echo " -w            Wait previous test to end before testing"
 	echo " action:"
 	echo "  list:       list DMA devices"
 	echo "  kern:       list kernel configured DMA test parameters"
@@ -94,7 +96,7 @@ wait_dmatest()
 	fi
 }
 
-while getopts "a:b:d:i:pt:vx:" opt
+while getopts "a:b:d:i:pt:vwx:" opt
 do
 	case $opt in
 	a) if [ "x$OPTARG" = "xnotused" ]; then
@@ -120,6 +122,7 @@ do
 		DMATEST_timeout=$OPTARG
 	   fi;;
 	v) DMATEST_verbose=Y;;
+	w) DMATEST_waited=Y;;
 	x) if [ "x$OPTARG" = "xnotused" ]; then
 		DMATEST_transfer_size=0
 	   else
@@ -142,13 +145,16 @@ if [ "x$1" = "xtest" ]; then
 	if [ ! -d ${DMATEST_MODULE} ]; then
 		echo "Error: dmatest is not probed!"
 	fi
-	DMATEST_run=`get_dmatest run`
-	if [ "x$DMATEST_run" = "xY" ]; then
-		echo "Error: dmatest is running!"
-		exit 1;
-	fi
 	if [ -z $2 ]; then
 		echo "Warning: no channel specified, use 'any'!"
+	fi
+	DMATEST_run=`get_dmatest run`
+	if [ "x$DMATEST_run" = "xY" ]; then
+		if [ "x$DMATEST_waited" = "xN" ]; then
+			echo "Error: dmatest is running!"
+			exit 1;
+		fi
+		wait_dmatest
 	fi
 	update_dmatest test_buf_size $DMATEST_test_buf_size
 	update_dmatest iterations $DMATEST_iterations
