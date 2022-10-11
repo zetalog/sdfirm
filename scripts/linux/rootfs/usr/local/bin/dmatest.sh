@@ -75,7 +75,7 @@ update_dmatest()
 {
 	v=`get_dmatest $1`
 	if [ "x$v" != "x$2" ]; then
-		echo "Info: Updating $1..."
+		echo "Info: Updating $1: $v -> $2..."
 		set_dmatest $1 $2
 	fi
 }
@@ -169,6 +169,9 @@ if [ "x$1" = "xtest" ]; then
 	update_dmatest channel $2
 	update_dmatest polled $DMATEST_polled
 	set_dmatest run Y
+	if [ "x$DMATEST_waited" = "xY" ]; then
+		wait_dmatest
+	fi
 fi
 if [ "x$1" = "xkern" ]; then
 	if [ ! -d ${DMATEST_MODULE} ]; then
