@@ -51,6 +51,7 @@ function build_busybox()
 {
 	echo "== Build Busybox =="
 	rm -rf $TOP/obj/busybox-$ARCH
+	(
 	cd $BUSYBOX_PATH
 	mkdir -pv $TOP/obj/busybox-$ARCH
 	cp $SCRIPT/config/$BUSYBOX_CONFIG ./.config
@@ -60,7 +61,7 @@ function build_busybox()
 	cd $TOP/obj/busybox-$ARCH
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE -j6
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE install
-	cd -
+	)
 }
 
 build_initramfs_busybox()
@@ -210,6 +211,7 @@ function build_linux()
 	echo "== Build Linux =="
 	rm -rf $TOP/obj/linux-$ARCH
 	#mkdir -p $TOP/obj/linux-$ARCH
+	(
 	cd $LINUX_PATH
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE distclean
 	cp $SCRIPT/config/$LINUX_CONFIG arch/$ARCH/configs/my_defconfig
@@ -227,7 +229,7 @@ function build_linux()
 	${CROSS_COMPILE}objcopy \
 		--only-keep-debug $TOP/obj/linux-$ARCH/vmlinux \
 		$TOP/obj/linux-$ARCH/kernel.sym
-	cd -
+	)
 }
 
 function build_sdfirm()
@@ -235,6 +237,7 @@ function build_sdfirm()
 	echo "== Build sdfirm =="
 	rm -rf $TOP/obj/sdfirm-$ARCH
 	mkdir -p $TOP/obj/sdfirm-$ARCH
+	(
 	cd $SDFIRM_PATH
 	if [ -x $TOP/obj/sdfirm-$ARCH ]; then
 		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
@@ -258,7 +261,7 @@ function build_sdfirm()
 	${CROSS_COMPILE}objcopy \
 		--only-keep-debug $TOP/obj/sdfirm-$ARCH/sdfirm \
 		$TOP/obj/sdfirm-$ARCH/sdfirm.sym
-	cd -
+	)
 }
 
 function build_riscv-pk()
@@ -266,12 +269,13 @@ function build_riscv-pk()
 	echo "== Build riscv-pk =="
 	rm -rf $TOP/$BBL_DIR
 	mkdir -pv $TOP/$BBL_DIR
+	(
 	cd $BBL_DIR
 	$SCRIPT/riscv-pk/configure \
 		--enable-logo --host=riscv64-unknown-linux-gnu \
 		--with-payload=$TOP/obj/linux-$ARCH/vmlinux
 	make
-	cd -
+	)
 }
 
 function build_bbl()
