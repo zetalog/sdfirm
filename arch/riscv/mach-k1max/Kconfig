@@ -1,0 +1,109 @@
+if ARCH_K1MAX
+
+menu "Spacemit K1MAX board options"
+
+choice
+	prompt "Simulation chip"
+
+config K1M_CPU
+	bool "CPU verification TB"
+
+config K1M_SOC
+	bool "SoC verification TB"
+
+endchoice
+
+config K1M_SMP_CPUS
+	int "Number of cores"
+	depends SMP
+	range 1 32
+	default 4
+
+config K1M_SMP_SPARSE_HART_ID
+	bool "Enable sparse hart ID support"
+	depends K1M_SOC
+	depends EXPERIMENTAL
+	help
+	 Requires lots of changes to the software to determine if the ID
+	 is a hart ID or a CPU ID.
+
+choice
+	prompt "Program type"
+
+config K1M_TB
+	bool "Test bench"
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SYS_EXIT_S
+
+config K1M_BBL
+	bool "SBI loader"
+	select ARCH_HAS_BOOT_LOAD
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SBI
+	select SBI_PAYLOAD
+	select XIP
+
+endchoice
+
+choice
+	prompt "Program residency"
+
+config K1M_SRAM
+	bool "SRAM"
+	depends K1M_TB || K1M_BBL
+
+config K1M_DDR
+	bool "DDR"
+	depends K1M_TB || K1M_BBL
+
+endchoice
+
+config K1M_MEM_SIZE
+	hex "Memory size"
+	default 0x2000000
+	depends K1M_CPU || K1M_DDR
+
+menuconfig K1M_CCI
+	bool "K1MAX cache coherent interconnect support"
+	select CCI550
+	depends ARCH_HAS_NOC
+
+menuconfig K1M_TIMER
+	bool "K1MAX timer controller support"
+	select ARCH_HAS_SBI_TIMER
+
+if K1M_TIMER
+
+endif
+
+menuconfig K1M_UART
+	bool "K1MAX UART controller support"
+	select DW_UART
+	select ARCH_HAS_NS16550_FIFO_64
+	select ARCH_HAS_DW_UART_FIFO_MEM_USER
+	select ARCH_HAS_DW_UART_AFCE_MODE
+	select ARCH_HAS_DW_UART_FIFO_ACCESS
+	select ARCH_HAS_DW_UART_FIFO_STAT
+	select ARCH_HAS_DW_UART_SHADOW
+	select ARCH_HAS_DW_UART_ADD_ENCODED_PARAMS
+
+if K1M_UART
+
+config K1M_UART_ACCEL
+	bool "Enable K1MAX UART acceleration support"
+	depends SIMULATION
+	help
+	  When this is selected, the UART baudrate generator frequency will
+	  be Fsrc/80, making things happening quicker.
+	  In case your are using a UART master DPI VIP, selecting this is
+	  safe as the VIP cares no about the baudrate.
+	  This option is also useful for simulation acceleration.
+	  If unsure, say 'N'.
+
+endif
+
+endmenu
+
+endif

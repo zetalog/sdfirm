@@ -64,6 +64,7 @@ config CPU_C910
 	select CPU_WMO
 	select CPU_SVPBMT
 	select CPU_SSTC
+	select ARCH_IS_ATOMIC_UNFAIR
 
 # RI5CY
 config CPU_RI5CY
@@ -765,6 +766,13 @@ config CLINT_FORCE_FAST_TIMEOUT
 	  to be simulated. Select this option allows the driver to force
 	  a small enough value for simulation.
 	  If unsure, say 'N'.
+
+config CLINT_THEAD
+	bool "Enable T-head clint extension"
+	depends CPU_C910
+	select RISCV_SSTC
+	help
+	  Enable S-mode software/timer interrupts, and Sstc extension.
 
 endif
 

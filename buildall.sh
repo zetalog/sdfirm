@@ -180,6 +180,10 @@ build_sdfirm riscv64 dpulp_zsbl
 build_sdfirm riscv64 dpulp_fsbl
 build_sdfirm riscv64 dpulp_xsbl
 build_sdfirm riscv64 dpulp_dfw
+# K1-max
+build_sdfirm riscv64 k1max_bbl
+build_sdfirm riscv64 k1max_cpu_litmus
+build_sdfirm riscv64 k1max_soc_litmus
 # core-v-verif
 if [ "x$build_all_defconfigs" = "xyes" ]; then
 	build_sdfirm riscv32 corev_cv32
