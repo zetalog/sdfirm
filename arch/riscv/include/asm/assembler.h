@@ -120,8 +120,10 @@
 	.endm
 
 	.macro init_gprs
+#ifndef CONFIG_ARCH_K1MAX
 	/* flush the instruction cache */
 	fence.i
+#endif
 #ifndef CONFIG_NO_ZERO_GPR
 	li	tp, 0
 	li	t0, 0

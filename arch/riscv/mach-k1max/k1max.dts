@@ -1,0 +1,83 @@
+#include <target/arch.h>
+#include <dt-bindings/clock/sbi-clock-k1max.h>
+
+/dts-v1/;
+
+/ {
+	#address-cells = <0x2>;
+	#size-cells = <0x2>;
+	compatible = "riscv-spacemit";
+	model = "riscv-spacemit,k1max";
+
+	chosen {
+		bootargs = "console=hvc0 earlycon=sbi rdinit=/sdfirm_init";
+	};
+
+	uart@10010000 {
+		interrupts = <84>;
+		interrupt-parent = <&plic>;
+		clock-frequency = <APB_CLK_FREQ>;
+		reg = <0x0 0x10010000 0x0 0x1000>;
+		reg-io-width = <4>;
+		reg-shift = <2>;
+		compatible = "snps,dw-apb-uart";
+		status = "disabled";
+	};
+
+	cpus {
+		#address-cells = <0x1>;
+		#size-cells = <0x0>;
+		timebase-frequency = <APB_CLK_FREQ>;
+
+		cpu-map {
+			cluster0 {
+				core0 {
+					cpu = <&cpu0>;
+				};
+			};
+		};
+
+		cpu0: cpu@0 {
+			device_type = "cpu";
+			reg = <0>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu";
+			mmu-type = "riscv,sv48";
+
+			cpu0_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+	};
+
+	memory@20000000 {
+		device_type = "memory";
+		reg = <0x0 0x20000000 0x0 0x2000000>;
+	};
+
+	soc {
+		#address-cells = <0x2>;
+		#size-cells = <0x2>;
+		compatible = "simple-bus";
+		ranges;
+
+		plic: interrupt-controller@b0000000 {
+			riscv,ndev = <160>;
+			reg = <0x0 0xb0000000 0x0 0x4000000>;
+			interrupts-extended = <&cpu0_intc 0xb &cpu0_intc 0x9>;
+			interrupt-controller;
+			compatible = "riscv,plic0";
+			#interrupt-cells = <0x1>;
+			#address-cells = <0x0>;
+		};
+
+		clint: clint@b4000000 {
+			interrupts-extended = <&cpu0_intc 0x3 &cpu0_intc 0x7>;
+			reg = <0x0 0xb4000000 0x0 0x10000>;
+			compatible = "riscv,clint0";
+		};
+	};
+};

@@ -38,6 +38,9 @@ endif
 config CCN512
 	bool "ARM CCN512 support"
 
+config CCI550
+	bool "ARM CCI550 support"
+
 endmenu
 
 

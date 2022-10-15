@@ -103,6 +103,10 @@ ifeq ($(CONFIG_ARCH_K210),y)
  machine-$(CONFIG_ARCH_K210)		:= k210
  incdir-$(CONFIG_ARCH_K210)		:= k210
 endif
+ifeq ($(CONFIG_ARCH_K1MAX),y)
+ machine-$(CONFIG_ARCH_K1MAX)		:= k1max
+ incdir-$(CONFIG_ARCH_K1MAX)		:= k1max
+endif
 ifeq ($(CONFIG_ARCH_COREV),y)
  machine-$(CONFIG_ARCH_COREV)		:= corev
  incdir-$(CONFIG_ARCH_COREV)		:= corev
