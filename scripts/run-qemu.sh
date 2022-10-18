@@ -14,10 +14,19 @@ QEMU_MOPTS=
 usage()
 {
 	echo "Usage:"
-	echo "`basename $0` [-p procs] [-t file]"
-	echo "Where:"
+	echo "`basename $0` [-b base] [-m size] [-p procs]"
+	echo "              [-n] [-s]"
+	echo "              [-l trace] [-u uart]"
+	echo "              [-g port]"
+	echo "              [-t dts]"
 	echo " -p num-cpus: specify number of CPUs"
+	echo " -b mem-base: specify first memory region base"
+	echo " -m mem-size: specify first memory region size"
 	echo " -t dts-file: dump device tree string file"
+	echo " -l log-file: dump CPU trace to log file"
+	echo " -g gdb-port: enable gdb server (default 1234)"
+	echo " -s         : specify usage of storage device (nvm)"
+	echo " -n         : specify usage of network device (eth)"
 	exit $1
 }
 
@@ -27,12 +36,16 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "hnp:t:" opt
+while getopts "g:hl:m:np:st:" opt
 do
 	case $opt in
+	m) QEMU_OPTS="-m $OPTARG";;
 	h) usage 0;;
+	g) QEMU_OPTS="-gdb tcp::$OPTARG -S ${QEMU_OPTS}";;
+	l) QEMU_OPTS="-D $OPTARG -d cpu,exec,in_asm ${QEMU_OPTS}";;
 	n) QEMU_OPTS="-netdev type=tap,script=qemu-ifup,downscript=qemu-ifdown,id=net0 -device virtio-net-device,netdev=net0 ${QEMU_OPTS}";;
 	p) QEMU_OPTS="-smp $OPTARG ${QEMU_OPTS}";;
+	s) QEMU_OPTS="-device nvme,serial=deadbeef,drive=nvm -drive file=nvm.qcow,if=none,id=nvm ${QEMU_OPTS}";;
 	t) QEMU_DTS=$OPTARG;;
 	?) echo "Invalid argument $opt"
 	   fatal_usage;;
@@ -60,6 +73,7 @@ else
 	QEMU_FIRM="-bios ${QEMU_PROG}"
 fi
 
+echo "${QEMU} ${QEMU_OPTS} -machine virt${QEMU_MOPTS} ${QEMU_FIRM}"
 ${QEMU} ${QEMU_OPTS} -machine virt${QEMU_MOPTS} ${QEMU_FIRM} 2>/dev/null
 
 if [ "x${QEMU_DTS}" != "x" ]; then

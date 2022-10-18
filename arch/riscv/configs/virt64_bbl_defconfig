@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri May  6 10:47:07 2022
+# Tue Oct 18 14:03:41 2022
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -61,7 +61,9 @@ CONFIG_CONSOLE_BANNER=y
 #
 # CONFIG_ARCH_DUOWEN is not set
 # CONFIG_ARCH_DPU is not set
+# CONFIG_ARCH_GUANGMU is not set
 # CONFIG_ARCH_VAISRA is not set
+# CONFIG_ARCH_VIRAPA is not set
 # CONFIG_ARCH_DPULP is not set
 # CONFIG_ARCH_UNLEASHED is not set
 # CONFIG_ARCH_K210 is not set
@@ -178,7 +180,7 @@ CONFIG_SBI_FDT=y
 #
 # CONFIG_VIRT_CPU32 is not set
 CONFIG_VIRT_CPU64=y
-CONFIG_VIRT_SMP_CPUS=8
+CONFIG_VIRT_SMP_CPUS=4
 CONFIG_VIRT_MEM_SIZE=0x80000000
 # CONFIG_VIRT_TB is not set
 CONFIG_VIRT_BBL=y
@@ -340,6 +342,7 @@ CONFIG_NS16550=y
 # CONFIG_DW_UART is not set
 # CONFIG_UART_PL01X is not set
 # CONFIG_SEGGER_RTT is not set
+# CONFIG_DW_UART_BIRD is not set
 
 #
 # I2C host drivers
@@ -415,6 +418,7 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # CONFIG_NCORE is not set
 # CONFIG_MONACO is not set
+# CONFIG_CCN512 is not set
 
 #
 # Network drivers

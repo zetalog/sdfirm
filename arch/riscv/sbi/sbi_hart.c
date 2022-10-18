@@ -103,9 +103,9 @@ static int delegate_traps(struct sbi_scratch *scratch, uint32_t hartid)
 	csr_write(CSR_MIDELEG, interrupts);
 	csr_write(CSR_MEDELEG, exceptions);
 
-	if (csr_read(CSR_MIDELEG) != interrupts)
+	if ((csr_read(CSR_MIDELEG) & interrupts) != interrupts)
 		return -ENODEV;
-	if (csr_read(CSR_MEDELEG) != exceptions)
+	if ((csr_read(CSR_MEDELEG) & exceptions) != exceptions)
 		return -ENODEV;
 	return 0;
 }
