@@ -4,7 +4,11 @@
 SDFIRM_STORAGING=no
 SDFIRM_NETWORKING=no
 SDFIRM_SYSLOG=no
-SDFIRM_TELNET=yes
+if [ -e /sys/class/net/eth0 ]; then
+	SDFIRM_TELNET=yes
+else
+	SDFIRM_TELNET=no
+fi
 SDFIRM_HTTP=no
 SDFIRM_SILENT=no
 

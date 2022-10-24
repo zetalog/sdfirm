@@ -91,6 +91,8 @@ if [ "x${BUILD_APPS}" = "xyes" ]; then
 		cp -f ${SDFIRM_DIR}/tests/${f}.elf \
 			${APPDIR}/`basename ${f}`
 	done
+else
+	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -d -t"
 fi
 
 # Build memory model application tests
