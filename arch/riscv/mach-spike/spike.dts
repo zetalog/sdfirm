@@ -12,22 +12,34 @@
     #address-cells = <1>;
     #size-cells = <0>;
     timebase-frequency = <10000000>;
+
+    cpu-map {
+      cluster0 {
+        core0 {
+          cpu = <&cpu0>;
+        };
+      };
+    };
+
     CPU0: cpu@0 {
       device_type = "cpu";
       reg = <0>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv64imafdc";
+      riscv,isa = "rv64imafdcsu";
       mmu-type = "riscv,sv48";
+#ifdef CONFIG_SPIKE_PMP
       riscv,pmpregions = <16>;
       riscv,pmpgranularity = <4>;
       clock-frequency = <1000000000>;
+#endif
       CPU0_intc: interrupt-controller {
         #interrupt-cells = <1>;
         interrupt-controller;
         compatible = "riscv,cpu-intc";
       };
     };
+#ifdef CONFIG_SMP
     CPU1: cpu@1 {
       device_type = "cpu";
       reg = <1>;
@@ -76,6 +88,7 @@
         compatible = "riscv,cpu-intc";
       };
     };
+#endif
   };
   memory@80000000 {
     device_type = "memory";
@@ -85,10 +98,16 @@
     #address-cells = <2>;
     #size-cells = <2>;
     compatible = "ucbbar,spike-bare-soc", "simple-bus";
-    ranges;
     clint@2000000 {
       compatible = "riscv,clint0";
-      interrupts-extended = <&CPU0_intc 3 &CPU0_intc 7 &CPU1_intc 3 &CPU1_intc 7 &CPU2_intc 3 &CPU2_intc 7 &CPU3_intc 3 &CPU3_intc 7 >;
+      interrupts-extended = <
+		&CPU0_intc 3 &CPU0_intc 7
+#ifdef CONFIG_SMP
+		&CPU1_intc 3 &CPU1_intc 7
+		&CPU2_intc 3 &CPU2_intc 7
+		&CPU3_intc 3 &CPU3_intc 7
+#endif
+      >;
       reg = <0x0 0x2000000 0x0 0xc0000>;
     };
   };

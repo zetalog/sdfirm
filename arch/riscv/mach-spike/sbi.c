@@ -6,6 +6,9 @@
 
 static void spike_modify_dt(void *fdt)
 {
+	fdt_cpu_fixup(fdt);
+	fdt_irq_fixup(fdt, "riscv,clint0");
+	fdt_fixups(fdt);
 }
 
 static int spike_final_init(bool cold_boot)

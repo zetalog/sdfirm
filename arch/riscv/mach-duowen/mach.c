@@ -481,6 +481,8 @@ void board_late_init(void)
 	duowen_pma_soc_init();
 	/* Coherence initialization */
 	duowen_imc_noc_init();
+	/* SMMU global bypass initialization */
+	duowen_smmu_pma_init();
 	/* PCIe dual socket connection, must be done prior than all other
 	 * dual socket operations.
 	 */
