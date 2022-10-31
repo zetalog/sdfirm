@@ -1,117 +1,154 @@
+#include <target/arch.h>
+
 /dts-v1/;
 
 / {
-  #address-cells = <2>;
-  #size-cells = <2>;
-  compatible = "ucbbar,spike-bare-dev";
-  model = "ucbbar,spike-bare";
-  chosen {
-    bootargs = "console=hvc0 earlycon=sbi";
-  };
-  cpus {
-    #address-cells = <1>;
-    #size-cells = <0>;
-    timebase-frequency = <10000000>;
+	#address-cells = <2>;
+	#size-cells = <2>;
+	compatible = "ucbbar,spike-bare-dev";
+	model = "ucbbar,spike-bare";
+	chosen {
+		bootargs = "console=hvc0 earlycon=sbi";
+	};
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		timebase-frequency = <10000000>;
 
-    cpu-map {
-      cluster0 {
-        core0 {
-          cpu = <&cpu0>;
-        };
-      };
-    };
+		cpu-map {
+			cluster0 {
+				core0 {
+					cpu = <&cpu0>;
+				};
+#ifdef CONFIG_SMP
+#if SPIKE_SMP_CPUS > 1
+				core1 {
+					cpu = <&cpu1>;
+				};
+#endif
+#if SPIKE_SMP_CPUS > 2
+				core2 {
+					cpu = <&cpu2>;
+				};
+#endif
+#if SPIKE_SMP_CPUS > 3
+				core3 {
+					cpu = <&cpu3>;
+				};
+#endif
+#endif
+			};
+		};
 
-    CPU0: cpu@0 {
-      device_type = "cpu";
-      reg = <0>;
-      status = "okay";
-      compatible = "riscv";
-      riscv,isa = "rv64imafdcsu";
-      mmu-type = "riscv,sv48";
-#ifdef CONFIG_SPIKE_PMP
-      riscv,pmpregions = <16>;
-      riscv,pmpgranularity = <4>;
-      clock-frequency = <1000000000>;
+		CPU0: cpu@0 {
+			device_type = "cpu";
+			reg = <0>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu";
+			mmu-type = "riscv,sv48";
+#ifdef CONFIG_RISCV_PMP
+			riscv,pmpregions = <16>;
+			riscv,pmpgranularity = <4>;
 #endif
-      CPU0_intc: interrupt-controller {
-        #interrupt-cells = <1>;
-        interrupt-controller;
-        compatible = "riscv,cpu-intc";
-      };
-    };
+			clock-frequency = <1000000000>;
+			CPU0_intc: interrupt-controller {
+				#interrupt-cells = <1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
 #ifdef CONFIG_SMP
-    CPU1: cpu@1 {
-      device_type = "cpu";
-      reg = <1>;
-      status = "okay";
-      compatible = "riscv";
-      riscv,isa = "rv64imafdc";
-      mmu-type = "riscv,sv48";
-      riscv,pmpregions = <16>;
-      riscv,pmpgranularity = <4>;
-      clock-frequency = <1000000000>;
-      CPU1_intc: interrupt-controller {
-        #interrupt-cells = <1>;
-        interrupt-controller;
-        compatible = "riscv,cpu-intc";
-      };
-    };
-    CPU2: cpu@2 {
-      device_type = "cpu";
-      reg = <2>;
-      status = "okay";
-      compatible = "riscv";
-      riscv,isa = "rv64imafdc";
-      mmu-type = "riscv,sv48";
-      riscv,pmpregions = <16>;
-      riscv,pmpgranularity = <4>;
-      clock-frequency = <1000000000>;
-      CPU2_intc: interrupt-controller {
-        #interrupt-cells = <1>;
-        interrupt-controller;
-        compatible = "riscv,cpu-intc";
-      };
-    };
-    CPU3: cpu@3 {
-      device_type = "cpu";
-      reg = <3>;
-      status = "okay";
-      compatible = "riscv";
-      riscv,isa = "rv64imafdc";
-      mmu-type = "riscv,sv48";
-      riscv,pmpregions = <16>;
-      riscv,pmpgranularity = <4>;
-      clock-frequency = <1000000000>;
-      CPU3_intc: interrupt-controller {
-        #interrupt-cells = <1>;
-        interrupt-controller;
-        compatible = "riscv,cpu-intc";
-      };
-    };
+#if SPIKE_SMP_CPUS > 1
+		CPU1: cpu@1 {
+			device_type = "cpu";
+			reg = <1>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu";
+			mmu-type = "riscv,sv48";
+#ifdef CONFIG_RISCV_PMP
+			riscv,pmpregions = <16>;
+			riscv,pmpgranularity = <4>;
 #endif
-  };
-  memory@80000000 {
-    device_type = "memory";
-    reg = <0x0 0x80000000 0x0 0x80000000>;
-  };
-  soc {
-    #address-cells = <2>;
-    #size-cells = <2>;
-    compatible = "ucbbar,spike-bare-soc", "simple-bus";
-    clint@2000000 {
-      compatible = "riscv,clint0";
-      interrupts-extended = <
-		&CPU0_intc 3 &CPU0_intc 7
+			clock-frequency = <1000000000>;
+			CPU1_intc: interrupt-controller {
+				#interrupt-cells = <1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+#endif
+#if SPIKE_SMP_CPUS > 2
+		CPU2: cpu@2 {
+			device_type = "cpu";
+			reg = <2>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu";
+			mmu-type = "riscv,sv48";
+#ifdef CONFIG_RISCV_PMP
+			riscv,pmpregions = <16>;
+			riscv,pmpgranularity = <4>;
+#endif
+			clock-frequency = <1000000000>;
+			CPU2_intc: interrupt-controller {
+				#interrupt-cells = <1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+#endif
+#if SPIKE_SMP_CPUS > 3
+		CPU3: cpu@3 {
+			device_type = "cpu";
+			reg = <3>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdc";
+			mmu-type = "riscv,sv48";
+#ifdef CONFIG_RISCV_PMP
+			riscv,pmpregions = <16>;
+			riscv,pmpgranularity = <4>;
+#endif
+			clock-frequency = <1000000000>;
+			CPU3_intc: interrupt-controller {
+				#interrupt-cells = <1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+#endif
+#endif
+	};
+	memory@MEM1BASE {
+		device_type = "memory";
+		reg = <0x0 MEM1_BASE 0x0 MEM1_SIZE>;
+	};
+	soc {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		compatible = "ucbbar,spike-bare-soc", "simple-bus";
+		clint@2000000 {
+			compatible = "riscv,clint0";
+			interrupts-extended = <
+				&CPU0_intc 3 &CPU0_intc 7
 #ifdef CONFIG_SMP
-		&CPU1_intc 3 &CPU1_intc 7
-		&CPU2_intc 3 &CPU2_intc 7
-		&CPU3_intc 3 &CPU3_intc 7
+#if SPIKE_SMP_CPUS > 1
+				&CPU1_intc 3 &CPU1_intc 7
 #endif
-      >;
-      reg = <0x0 0x2000000 0x0 0xc0000>;
-    };
-  };
-  htif {
-    compatible = "ucb,htif0";
-  };
+#if SPIKE_SMP_CPUS > 2
+				&CPU2_intc 3 &CPU2_intc 7
+#endif
+#if SPIKE_SMP_CPUS > 3
+				&CPU3_intc 3 &CPU3_intc 7
+#endif
+#endif
+			>;
+			reg = <0x0 0x2000000 0x0 0xc0000>;
+		};
+	};
+	htif {
+		compatible = "ucb,htif0";
+	};
 };
