@@ -4,8 +4,6 @@ TOP=`pwd`
 SCRIPT=`(cd \`dirname $0\`; pwd)`
 WORKING_DIR=`(cd ${SCRIPT}/../../..; pwd)`
 BUILD_MODULE_OPS="-s -u"
-BUILD_LIB=yes
-BUILD_NET=yes
 
 usage()
 {
@@ -27,17 +25,15 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "a:c:dfm:n:tu" opt
+while getopts "a:c:fm:n:u" opt
 do
 	case $opt in
 	a) ARCH=$OPTARG;;
 	c) LITMUS=$OPTARG
 	   BUILD_LITMUS=yes;;
-	d) BUILD_LIB=no;;
 	f) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -m sdfirm";;
 	m) MACH=$OPTARG;;
 	n) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -n $OPTARG";;
-	t) BUILD_NET=no;;
 	u) BUILD_LITMUS=yes
 	   BUILD_APPS=yes;;
 	?) echo "Invalid argument $opt"
@@ -95,12 +91,8 @@ if [ "x${BUILD_APPS}" = "xyes" ]; then
 		cp -f ${SDFIRM_DIR}/tests/${f}.elf \
 			${APPDIR}/`basename ${f}`
 	done
-fi
-if [ "x${BUILD_LIB}" = "xno" ]; then
-	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -d"
-fi
-if [ "x${BUILD_NET}" = "xno" ]; then
-	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -t"
+else
+	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -d -t"
 fi
 
 # Build memory model application tests
