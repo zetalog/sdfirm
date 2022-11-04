@@ -32,7 +32,6 @@ fi
 
 cat /etc/uk.bmap | loadkmap
 hostname `cat /etc/hostname`
-ldconfig
 
 if [ -f /etc/init.d/test_early ]; then
 	/etc/init.d/test_early

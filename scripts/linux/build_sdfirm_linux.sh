@@ -68,6 +68,12 @@ else
 	# Enable busybox only
 	BUILD_IMAGE_OPS="-f -n sdfirm"
 fi
+if [ "x${BUILD_LIB}" = "xno" ]; then
+	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -d"
+fi
+if [ "x${BUILD_NET}" = "xno" ]; then
+	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -t"
+fi
 
 # Control LITMUS partial builds
 if [ "x${LITMUS_SUIT}" = "xHAND" ]; then
