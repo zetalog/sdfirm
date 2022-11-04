@@ -14,7 +14,11 @@
 
 	chosen {
 		rng-seed = <0x58472ac0 0xfe668fa5 0xb4484ec0 0x6a125683 0x289b8433 0x1577b616 0xd6105098 0xe55ad8ad>;
+#ifdef CONFIG_VIRT_UART_CON
 		stdout-path = "/soc/serial@10000000";
+#else
+		bootargs = "console=hvc0 earlycon=sbi";
+#endif
 	};
 
 	poweroff {
