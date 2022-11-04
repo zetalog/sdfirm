@@ -5,20 +5,8 @@ SCRIPT=`(cd \`dirname $0\`; pwd)`
 ARCH=riscv
 HOSTNAME=sdfirm
 TTYNAME=hvc0
-if [ -z $CROSS_COMPILE ]; then
-	CROSS_COMPILE=riscv64-unknown-linux-gnu-
-fi
-if [ -f $SCRIPT/config/config-busybox-$ARCH-$MACH ]; then
-	BUSYBOX_CONFIG=config-busybox-$ARCH-$MACH
-else
-	BUSYBOX_CONFIG=config-busybox-$ARCH
-fi
-if [ -f $SCRIPT/config/config-linux-$ARCH-$MACH ]; then
-	LINUX_CONFIG=config-linux-$ARCH-$MACH
-else
-	LINUX_CONFIG=config-linux-$ARCH
-fi
-INITRAMFS_FILELIST_TEMPLATE=config-initramfs-$ARCH
+BUILD_LIB=no
+BUILD_NET=no
 
 if [ -z $BUSYBOX_DIR ]; then
 	BUSYBOX_DIR=busybox
@@ -183,7 +171,7 @@ function build_initramfs()
 	# Install non-customizables
 	echo "Installing rootfs fixed ${SCRIPT}/rootfs..."
 	install_initramfs ${SCRIPT}/rootfs
-	if [ "xyes" != "x${NO_NET}" ]; then
+	if [ "xno" != "x${BUILD_NET}" ]; then
 		install_initramfs ${SCRIPT}/net
 	fi
 
@@ -192,7 +180,7 @@ function build_initramfs()
 	install_initramfs ${TOP}/obj/rootfs
 
 	# Copy libraries
-	if [ "x${NO_LIB}" != "xyes" ]; then
+	if [ "x${BUILD_LIB}" != "xno" ]; then
 		SYSROOT=`get_sysroot`
 		echo "Installing rootfs toolchain ${SYSROOT}..."
 		install_initramfs ${SYSROOT} /sbin
@@ -327,19 +315,56 @@ do
 	a) M_MODE=yes
 	   S_MODE=yes
 	   U_MODE=yes;;
-	d) NO_LIB=yes;;
+	d) BUILD_LIB=no;;
 	m) M_MODE=yes
 	   BBL=$OPTARG;;
 	n) HOSTNAME=$OPTARG;;
 	p) TTYNAME=$OPTARG;;
 	s) S_MODE=yes;;
-	t) NO_NET=yes;;
+	t) BUILD_NET=no;;
 	u) U_MODE=yes;;
 	?) echo "Invalid argument $opt"
 	   fatal_usage;;
 	esac
 done
 shift $(($OPTIND - 1))
+
+if [ -z $CROSS_COMPILE ]; then
+	CROSS_COMPILE=riscv64-unknown-linux-gnu-
+fi
+if [ -f $SCRIPT/config/config-busybox-$ARCH-$MACH ]; then
+	if [ "x${BUILD_NET}${BUILD_LIB}" = "xnono" -a \
+	     -f $SCRIPT/config/config-busybox-$ARCH-$MACH-tiny ]; then
+		BUSYBOX_CONFIG=config-busybox-$ARCH-$MACH-tiny
+	else
+		BUSYBOX_CONFIG=config-busybox-$ARCH-$MACH
+	fi
+else
+	if [ "x${BUILD_NET}${BUILD_LIB}" = "xnono" -a \
+	     -f $SCRIPT/config/config-busybox-$ARCH-tiny ]; then
+		BUSYBOX_CONFIG=config-busybox-$ARCH-tiny
+	else
+		BUSYBOX_CONFIG=config-busybox-$ARCH
+	fi
+fi
+echo "Using busybox configuration ${BUSYBOX_CONFIG}..."
+if [ -f $SCRIPT/config/config-linux-$ARCH-$MACH ]; then
+	if [ "x${BUILD_NET}" = "xno" -a \
+	     -f $SCRIPT/config/config-linux-$ARCH-$MACH-tiny ]; then
+		LINUX_CONFIG=config-linux-$ARCH-$MACH-tiny
+	else
+		LINUX_CONFIG=config-linux-$ARCH-$MACH
+	fi
+else
+	if [ "x${BUILD_NET}" = "xno" -a \
+	     -f $SCRIPT/config/config-linux-$ARCH-tiny ]; then
+		LINUX_CONFIG=config-linux-$ARCH-tiny
+	else
+		LINUX_CONFIG=config-linux-$ARCH
+	fi
+fi
+echo "Using linux configuration ${LINUX_CONFIG}..."
+INITRAMFS_FILELIST_TEMPLATE=config-initramfs-$ARCH
 
 echo "== Prepare =="
 if [ "x${M_MODE}" = "xyes" ]; then

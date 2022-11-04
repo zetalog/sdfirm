@@ -11,6 +11,7 @@ else
 fi
 SDFIRM_HTTP=no
 SDFIRM_SILENT=no
+SDFIRM_SHLIB=yes
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
@@ -54,13 +55,15 @@ start_sdfirm()
 	disp_msg BEGIN_STARTUP
 
 	hostname `cat /etc/hostname`
-	ldconfig
+	if [ "x${SDFIRM_SHLIB}" = "xyes" ]; then
+	if [ -x /sbin/ldconfig ]; then
+		ldconfig
+	fi
 
 	if [ "x${SDFIRM_STORAGING}" = "xyes" ]; then
 		disp_msg START_DISKS
 		#/etc/init.d/storaging start
 		check_err DISKS
-		#ldconfig
 	fi
 
 	if [ "x${SDFIRM_SYSLOG}" = "xyes" ]; then
