@@ -4,7 +4,6 @@ TOP=`pwd`
 SCRIPT=`(cd \`dirname $0\`; pwd)`
 ARCH=riscv
 HOSTNAME=sdfirm
-TTYNAME=hvc0
 if [ -z $CROSS_COMPILE ]; then
 	CROSS_COMPILE=riscv64-unknown-linux-gnu-
 fi
@@ -183,23 +182,18 @@ function build_initramfs()
 	# Install non-customizables
 	echo "Installing rootfs fixed ${SCRIPT}/rootfs..."
 	install_initramfs ${SCRIPT}/rootfs
-	if [ "xyes" != "x${NO_NET}" ]; then
-		install_initramfs ${SCRIPT}/net
-	fi
 
 	# Install customizables
 	echo "Installing rootfs no-fixed ${TOP}/obj/rootfs..."
 	install_initramfs ${TOP}/obj/rootfs
 
 	# Copy libraries
-	if [ "x${NO_LIB}" != "xyes" ]; then
-		SYSROOT=`get_sysroot`
-		echo "Installing rootfs toolchain ${SYSROOT}..."
-		install_initramfs ${SYSROOT} /sbin
-		install_initramfs ${SYSROOT} /lib
-		install_initramfs ${SYSROOT} /usr/bin/ldd
-		install_initramfs ${SYSROOT} /usr/lib
-	fi
+	SYSROOT=`get_sysroot`
+	echo "Installing rootfs toolchain ${SYSROOT}..."
+	install_initramfs ${SYSROOT} /sbin
+	install_initramfs ${SYSROOT} /lib
+	install_initramfs ${SYSROOT} /usr/bin/ldd
+	install_initramfs ${SYSROOT} /usr/lib
 
 	if [ -x $TOP/obj/bench ]; then
 		echo "Installing rootfs testbench $TOP/obj/bench..."
@@ -299,16 +293,13 @@ cd $TOP
 usage()
 {
 	echo "Usage:"
-	echo "`basename $0` [-m bbl] [-s] [-u] [-a] [-t] [-n hostname] [-p pty] [target]"
+	echo "`basename $0` [-m bbl] [-s] [-u] [-a] [-n hostname] [target]"
 	echo "Where:"
 	echo " -m bbl:      specify rebuild of M-mode program"
 	echo " -s:          specify rebuild of S-mode program"
 	echo " -u:          specify rebuild of U-mode programs"
 	echo " -a:          specify rebuild of all modes programs"
 	echo " -n:          specify system hostname (default sdfirm)"
-	echo " -p:          specify system console pty (default hvc0)"
-	echo " -t:          disable networking and telnet support"
-	echo " -d:          disable dynamic library support"
 	echo " target:      specify build type (default build)"
 	echo "  build       build specified modules (default mode)"
 	echo "  clean       build specified modules"
@@ -321,19 +312,16 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "adm:n:p:stu" opt
+while getopts "am:n:su" opt
 do
 	case $opt in
 	a) M_MODE=yes
 	   S_MODE=yes
 	   U_MODE=yes;;
-	d) NO_LIB=yes;;
 	m) M_MODE=yes
 	   BBL=$OPTARG;;
 	n) HOSTNAME=$OPTARG;;
-	p) TTYNAME=$OPTARG;;
 	s) S_MODE=yes;;
-	t) NO_NET=yes;;
 	u) U_MODE=yes;;
 	?) echo "Invalid argument $opt"
 	   fatal_usage;;
