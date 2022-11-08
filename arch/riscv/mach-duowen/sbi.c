@@ -88,6 +88,7 @@ static int duowen_final_init(bool cold_boot)
 	if (!cold_boot)
 		return 0;
 
+	duowen_dma_test();
 	duowen_gpio_init();
 	duowen_eth_init();
 

@@ -39,6 +39,7 @@
  * $Id: dma.c,v 1.1 2020-11-24 23:20:00 zhenglv Exp $
  */
 
+#ifdef CONFIG_DUOWEN_DMAC
 #include <target/clk.h>
 #include <target/dma.h>
 #include <target/iommu.h>
@@ -88,3 +89,6 @@ void dmac_hw_ctrl_init(void)
 		dma_register_channel(dma, DW_DMAC_CAPS);
         dw_dma_chip_init(0, DW_DMA_CHIP_IRQ);
 }
+#else
+#include "dma_test.c"
+#endif

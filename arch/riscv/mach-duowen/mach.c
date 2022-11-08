@@ -89,6 +89,12 @@ static void duowen_pma_debug(void)
 #define duowen_pma_debug()			do { } while (0)
 #endif
 
+#ifdef CONFIG_DUOWEN_PMA_DDR_NONCACHEABLE
+#define PMA_AT_DDR				(PMA_AT_NORM_NC | PMA_S_INNER)
+#else
+#define PMA_AT_DDR				(PMA_AT_NORMAL | PMA_S_INNER)
+#endif
+
 #ifdef CONFIG_DUOWEN_PMA_SOC
 static void __duowen_pma_soc_init(void)
 {
@@ -96,13 +102,13 @@ static void __duowen_pma_soc_init(void)
 
 	duowen_pma_debug();
 	/* Enable SoC PMA */
-	n += imc_pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
+	n += imc_pma_set(n, PMA_AT_DDR,
 			 SOC0_BASE + __DDR_BASE, ilog2_const(__DDR_SIZE));
 	n += imc_pma_set(n, PMA_AT_DEVICE,
 			 SOC0_BASE + __DEV_BASE, ilog2_const(DEV_SIZE));
 	n += imc_pma_set(n, PMA_AT_DEVICE,
 			 SOC0_BASE + __PCIE_BASE, ilog2_const(PCIE_SIZE));
-	n += imc_pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
+	n += imc_pma_set(n, PMA_AT_DDR,
 			 SOC1_BASE + __DDR_BASE, ilog2_const(__DDR_SIZE));
 	n += imc_pma_set(n, PMA_AT_DEVICE,
 			 SOC1_BASE + __DEV_BASE, ilog2_const(DEV_SIZE));
@@ -126,13 +132,13 @@ void duowen_pma_cpu_init(void)
 
 	duowen_pma_debug();
 	/* Enable CPU PMA */
-	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
+	n += pma_set(n, PMA_AT_DDR,
 		     SOC0_BASE + __DDR_BASE, ilog2_const(__DDR_SIZE));
 	n += pma_set(n, PMA_AT_DEVICE,
 		     SOC0_BASE + __DEV_BASE, ilog2_const(DEV_SIZE));
 	n += pma_set(n, PMA_AT_DEVICE,
 		     SOC0_BASE + __PCIE_BASE, ilog2_const(PCIE_SIZE));
-	n += pma_set(n, PMA_AT_NORMAL | PMA_S_INNER,
+	n += pma_set(n, PMA_AT_DDR,
 		     SOC1_BASE + __DDR_BASE, ilog2_const(__DDR_SIZE));
 	n += pma_set(n, PMA_AT_DEVICE,
 		     SOC1_BASE + __DEV_BASE, ilog2_const(DEV_SIZE));

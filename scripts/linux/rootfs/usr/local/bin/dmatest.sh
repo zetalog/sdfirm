@@ -88,9 +88,7 @@ wait_dmatest()
 		v=`get_dmatest run`
 		while [ "x$v" = "xY" ]
 		do
-			# It's too long time for a silicon emulation to
-			# wait for 1 second, so perform a busy waiting...
-			# sleep 1
+			usleep 1
 			echo -n "."
 			v=`get_dmatest run`
 		done

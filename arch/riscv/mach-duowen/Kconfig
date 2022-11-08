@@ -949,6 +949,35 @@ config DUOWEN_SMMU_SV
 
 endif
 
+if !DMA
+
+menu "Duowen DMA controller test support"
+
+config DUOWEN_DMA
+	bool
+
+config DUOWEN_DMA_TEST_SBI
+	bool "Enable DMA test in SBI"
+	depends SBI
+	select DUOWEN_DMA
+	help
+	  This enables the internal DMA test driver for SBI. This driver
+	  is not aligned to the sdfirm DMAC framework and is useful for
+	  testing S-mode DDR DMA, e.x., APC DDR DMA testing.
+
+config DUOWEN_DMA_TEST_XSBL
+	bool "Enable DMA test in xSBL"
+	depends !SBI
+	select DUOWEN_DMA
+	help
+	  This enables the internal DMA test driver for xSBL. This driver
+	  is not aligned to the sdfirm DMAC framework and is useful for
+	  testing M-mode RAM DMA, e.x., IMC SRAM DMA testing.
+
+endmenu
+
+endif
+
 menuconfig DUOWEN_DMAC
 	bool "Duowen DMA controller support"
 	select DW_DMA
@@ -1033,6 +1062,11 @@ config DUOWEN_DDR_512G
 	bool "Real/fake 512G DDR memory"
 
 endchoice
+
+config DUOWEN_PMA_DDR_NONCACHEABLE
+	bool "Enable non-cacheable attribute"
+	help
+	  This enables DDR attributes as non-cacheable.
 
 choice
 	prompt "Dual socket memory region in DTS"

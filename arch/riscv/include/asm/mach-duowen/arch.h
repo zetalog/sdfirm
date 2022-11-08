@@ -242,6 +242,11 @@ void duowen_pma_soc_init(void);
 #define duowen_pma_soc_init()	do { } while (0)
 #endif
 void duowen_plic_dual_init(void);
+#ifdef CONFIG_DUOWEN_DMA
+void duowen_dma_test(void);
+#else
+#define duowen_dma_test()	do { } while (0)
+#endif
 #endif /* __ASSEMBLY__ */
 
 #endif /* __ARCH_DUOWEN_H_INCLUDE__ */
