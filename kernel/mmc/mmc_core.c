@@ -493,6 +493,13 @@ void mmc_cmd(uint8_t cmd)
 {
 	mmc_slot_ctrl.cmd = cmd;
 	mmc_slot_ctrl.err = MMC_ERR_NO_ERROR;
+#if 0
+	/* Reset block data, leave it for mmc_phy_send_cmd() to
+	 * determinate.
+	 * Due to reduction of mmc_dat_complete(), disabled.
+	 */
+	mmc_set_block_data(0);
+#endif
 	mmc_debug_cmd(cmd);
 	mmc_phy_send_cmd();
 }

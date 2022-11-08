@@ -59,6 +59,18 @@ config MMC_DEBUG
 	depends DEBUG_PRINT || CONSOLE
 	select CONSOLE_DEBUG
 
+if MMC_DEBUG
+
+config MMC_DEBUG_DATA
+	bool "MMC full DATA line debug message support"
+	help
+	  By default, only necessary data line communications (e.x., SCR
+	  and etc.) are dumped as debugging message to avoid flooding
+	  consoles. Enabling this allows developer to dump full data line
+	  contents.
+
+endif
+
 choice
 	prompt "Physical layer"
 

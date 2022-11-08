@@ -75,6 +75,17 @@ struct sdhc_host sdhc_host_ctrl;
 
 static void sdhc_handle_irq(irq_t irq);
 
+#ifdef CONFIG_MMC_DEBUG_DATA
+/* Debugging all commands' data */
+#define sdhc_is_debug_data()		true
+#else
+/* Debugging only SEND_SCR command's data */
+static bool sdhc_is_debug_data(void)
+{
+	return !!(mmc_slot_ctrl.block_len < 512);
+}
+#endif
+
 static void sdhc_transfer_pio(uint32_t *block)
 {
 	uint8_t type = mmc_get_block_data();
@@ -90,15 +101,13 @@ static void sdhc_transfer_pio(uint32_t *block)
 		len--;
 	}
 
-#ifdef CONFIG_MMC_DEBUG
-	if (mmc_slot_ctrl.block_len < 512) {
+	if (sdhc_is_debug_data()) {
 		int i;
 		con_dbg("sdhc: DATA: \n");
 		for (i = 0; i < mmc_slot_ctrl.block_len; i++)
 			con_dbg("%02x ", ((uint8_t *)block)[i]);
 		con_dbg("\n");
 	}
-#endif
 }
 
 #ifdef CONFIG_SDHC_SDMA

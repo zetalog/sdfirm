@@ -321,10 +321,6 @@ static void sd_handle_select_mode(bool is_op)
 		} else {
 			if (!mmc_slot_ctrl.csd_valid)
 				mmc_cmd(MMC_CMD_SEND_CSD);
-			else if (!mmc_slot_ctrl.scr_valid)
-				mmc_send_acmd(SD_ACMD_SEND_SCR);
-			else if (!mmc_width_configured())
-				mmc_send_acmd(SD_ACMD_SET_BUS_WIDTH);
 			else {
 				mmc_config_mode(mmc_slot_ctrl.select_mode);
 				mmc_cmd(MMC_CMD_SELECT_DESELECT_CARD);
@@ -375,7 +371,11 @@ static void sd_handle_deselect_card(bool is_op)
 static void sd_handle_read_blocks(bool is_op)
 {
 	if (mmc_state_is(tran)) {
-		if (!(mmc_slot_ctrl.flags & MMC_SLOT_TRANS_START)) {
+		if (!mmc_slot_ctrl.scr_valid)
+			mmc_send_acmd(SD_ACMD_SEND_SCR);
+		else if (!mmc_width_configured())
+			mmc_send_acmd(SD_ACMD_SET_BUS_WIDTH);
+		else if (!(mmc_slot_ctrl.flags & MMC_SLOT_TRANS_START)) {
 			raise_bits(mmc_slot_ctrl.flags, MMC_SLOT_TRANS_START);
 			unraise_bits(mmc_slot_ctrl.flags, MMC_SLOT_TRANS_STOP);
 			if (mmc_slot_ctrl.trans_cnt > 1)
@@ -387,8 +387,8 @@ static void sd_handle_read_blocks(bool is_op)
 			if (is_op)
 				mmc_op_success();
 		} else {
-			mmc_set_block_data(0);
-			mmc_cmd(MMC_CMD_STOP_TRANSMISSION);
+			if (mmc_slot_ctrl.trans_cnt > 1)
+				mmc_cmd(MMC_CMD_STOP_TRANSMISSION);
 		}
 	} else if (mmc_state_is(__ina))
 		mmc_cmd(MMC_CMD_GO_INACTIVE_STATE);
@@ -401,7 +401,11 @@ static void sd_handle_read_blocks(bool is_op)
 static void sd_handle_write_blocks(bool is_op)
 {
 	if (mmc_state_is(tran)) {
-		if (!(mmc_slot_ctrl.flags & MMC_SLOT_TRANS_START)) {
+		if (!mmc_slot_ctrl.scr_valid)
+			mmc_send_acmd(SD_ACMD_SEND_SCR);
+		else if (!mmc_width_configured())
+			mmc_send_acmd(SD_ACMD_SET_BUS_WIDTH);
+		else if (!(mmc_slot_ctrl.flags & MMC_SLOT_TRANS_START)) {
 			raise_bits(mmc_slot_ctrl.flags, MMC_SLOT_TRANS_START);
 			unraise_bits(mmc_slot_ctrl.flags, MMC_SLOT_TRANS_STOP);
 			if (mmc_slot_ctrl.trans_cnt > 1)
@@ -413,8 +417,8 @@ static void sd_handle_write_blocks(bool is_op)
 			if (is_op)
 				mmc_op_success();
 		} else {
-			mmc_set_block_data(0);
-			mmc_cmd(MMC_CMD_STOP_TRANSMISSION);
+			if (mmc_slot_ctrl.trans_cnt > 1)
+				mmc_cmd(MMC_CMD_STOP_TRANSMISSION);
 		}
 	} else if (mmc_state_is(__ina))
 		mmc_cmd(MMC_CMD_GO_INACTIVE_STATE);
@@ -748,7 +752,9 @@ void mmc_phy_handle_stm(void)
 			if (mmc_cmd_is(MMC_CMD_SELECT_DESELECT_CARD))
 				mmc_state_enter(stby);
 			else {
-				if (mmc_cmd_is(MMC_CMD_STOP_TRANSMISSION))
+				if (mmc_cmd_is(MMC_CMD_STOP_TRANSMISSION) ||
+				    mmc_cmd_is(MMC_CMD_READ_SINGLE_BLOCK) ||
+				    mmc_cmd_is(MMC_CMD_WRITE_BLOCK))
 					raise_bits(mmc_slot_ctrl.flags,
 						   MMC_SLOT_TRANS_STOP);
 				mmc_state_enter(tran);
