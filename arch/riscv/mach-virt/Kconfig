@@ -54,6 +54,13 @@ config VIRT_UART
 
 if VIRT_UART
 
+config VIRT_UART_DTS_CON_HVC
+	bool "Enable SBI HVC console in DTS"
+	depends EXPERIMENTAL
+	help
+	  By default, Qemu platform uses NS16550 ttyS0 console. Enabling
+	  this to switch to use SBI hvc0 console.
+
 endif
 
 endmenu
