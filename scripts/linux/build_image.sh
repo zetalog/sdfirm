@@ -4,13 +4,16 @@ TOP=`pwd`
 SCRIPT=`(cd \`dirname $0\`; pwd)`
 WORKING_DIR=`(cd ${SCRIPT}/../../..; pwd)`
 BUILD_MODULE_OPS="-s -u"
+BUILD_TINY=no
 BUILD_LIB=yes
 BUILD_NET=yes
+BUILD_STO=no
 
 usage()
 {
 	echo "Usage:"
 	echo "`basename $0` [-a arch] [-c cores] [-f] [-m mach] [-n host] [-u]"
+	echo "              [-d feat] [-e feat]"
 	echo "Where:"
 	echo " -a arch:     specify architecture"
 	echo " -m mach:     specify machine type"
@@ -18,6 +21,14 @@ usage()
 	echo " -f:          enable firmware builds"
 	echo " -u:          enable userspace program builds"
 	echo " -c cores:    specify number of CPUs to enable litmus"
+	echo " -d feat:     disable special features"
+	echo "              feature includes:"
+	echo "    shared:   shared library support"
+	echo "    network:  network and telnet login support"
+	echo " -e feat:     disable special features"
+	echo "              feature includes:"
+	echo "    tiny:     kernel image as tiny as possible"
+	echo "    storage:  storage and NVME rootfs support"
 	exit $1
 }
 
@@ -27,17 +38,27 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "a:c:dfm:n:tu" opt
+while getopts "a:c:d:e:fm:n:u" opt
 do
 	case $opt in
 	a) ARCH=$OPTARG;;
 	c) LITMUS=$OPTARG
 	   BUILD_LITMUS=yes;;
-	d) BUILD_LIB=no;;
+	d) if [ "x$OPTARG" = "xshared" ]; then
+		BUILD_LIB=no
+	   fi
+	   if [ "x$OPTARG" = "xnetwork" ]; then
+		BUILD_NET=no
+	   fi;;
+	e) if [ "x$OPTARG" = "xtiny" ]; then
+		BUILD_TINY=yes
+	   fi
+	   if [ "x$OPTARG" = "xstorage" ]; then
+		BUILD_STO=yes
+	   fi;;
 	f) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -m sdfirm";;
 	m) MACH=$OPTARG;;
 	n) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -n $OPTARG";;
-	t) BUILD_NET=no;;
 	u) BUILD_LITMUS=yes
 	   BUILD_APPS=yes;;
 	?) echo "Invalid argument $opt"
@@ -70,6 +91,11 @@ fi
 if [ -z ${LITMUS_ROOT} ]; then
 	export LITMUS_ROOT=${WORKING_DIR}/litmus-tests-riscv
 fi
+if [ "x${BUILD_LIB}" = "xyes" ]; then
+	BENCH_STATIC=n
+else
+	BENCH_STATIC=y
+fi
 
 # Build default applications
 APPDIR=${TOP}/obj/bench/usr/local/bin
@@ -87,7 +113,7 @@ if [ "x${BUILD_APPS}" = "xyes" ]; then
 		echo "Generating ${d} applications..."
 		cd ${SDFIRM_DIR}/tests/${d}
 		make -f Makefile.target clean
-		make -f Makefile.target
+		CONFIG_BENCH_STATIC=$BENCH_STATIC make -f Makefile.target
 		)
 	done
 	for f in ${APPELFS}; do
@@ -96,11 +122,17 @@ if [ "x${BUILD_APPS}" = "xyes" ]; then
 			${APPDIR}/`basename ${f}`
 	done
 fi
+if [ "x${BUILD_TINY}" = "xyes" ]; then
+	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -e tiny"
+fi
 if [ "x${BUILD_LIB}" = "xno" ]; then
-	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -d"
+	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -d shared"
 fi
 if [ "x${BUILD_NET}" = "xno" ]; then
-	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -t"
+	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -d network"
+fi
+if [ "x${BUILD_STO}" = "xyes" ]; then
+	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -e storage"
 fi
 
 # Build memory model application tests

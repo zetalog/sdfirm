@@ -68,11 +68,17 @@ else
 	# Enable busybox only
 	BUILD_IMAGE_OPS="-f -n sdfirm"
 fi
+if [ "x${BUILD_TINY}" = "xyes" ]; then
+	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -e tiny"
+fi
 if [ "x${BUILD_LIB}" = "xno" ]; then
-	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -d"
+	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -d shared"
 fi
 if [ "x${BUILD_NET}" = "xno" ]; then
-	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -t"
+	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -d network"
+fi
+if [ "x${BUILD_STO}" = "xyes" ]; then
+	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -e storage"
 fi
 
 # Control LITMUS partial builds
@@ -245,6 +251,8 @@ build_test()
 
 	if [ "x${TEST_EARLY}" = "xbenchmark" ]; then
 		echo "#!/bin/sh" > ${EARLY_TEST}
+		echo "echo -e \$PATH" >> ${EARLY_TEST}
+		echo "ls /usr/local/bin" >> ${EARLY_TEST}
 		echo "dhrystone 50" >> ${EARLY_TEST}
 		echo "linpack" >> ${EARLY_TEST}
 		echo "dhrystone 200000000" >> ${EARLY_TEST}

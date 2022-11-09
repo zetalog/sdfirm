@@ -4,7 +4,7 @@
 SDFIRM_STORAGING=no
 SDFIRM_NETWORKING=no
 SDFIRM_SYSLOG=no
-if [ -e /sys/class/net/eth0 ]; then
+if [ -e /sys/class/net/lo ]; then
 	SDFIRM_TELNET=yes
 else
 	SDFIRM_TELNET=no
@@ -12,8 +12,6 @@ fi
 SDFIRM_HTTP=no
 SDFIRM_SILENT=no
 SDFIRM_SHLIB=yes
-
-export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
 msg()
 {
@@ -54,10 +52,8 @@ start_sdfirm()
 {
 	disp_msg BEGIN_STARTUP
 
+	cat /etc/uk.bmap | loadkmap
 	hostname `cat /etc/hostname`
-	if [ -x /sbin/ldconfig ]; then
-		ldconfig
-	fi
 
 	if [ "x${SDFIRM_STORAGING}" = "xyes" ]; then
 		disp_msg START_DISKS

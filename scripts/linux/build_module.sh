@@ -4,8 +4,10 @@ TOP=`pwd`
 SCRIPT=`(cd \`dirname $0\`; pwd)`
 ARCH=riscv
 HOSTNAME=sdfirm
+BUILD_TINY=no
 BUILD_LIB=yes
 BUILD_NET=yes
+BUILD_STO=no
 
 if [ -z $BUSYBOX_DIR ]; then
 	BUSYBOX_DIR=busybox
@@ -170,9 +172,12 @@ function build_initramfs()
 	# Install non-customizables
 	echo "Installing rootfs fixed ${SCRIPT}/rootfs..."
 	install_initramfs ${SCRIPT}/rootfs
-	if [ "xno" != "x${BUILD_NET}" ]; then
-		install_initramfs ${SCRIPT}/net
-	fi
+	#if [ "xno" != "x${BUILD_NET}" ]; then
+	#	install_initramfs ${SCRIPT}/features/net
+	#fi
+	#if [ "xno" != "x${BUILD_STO}" ]; then
+	#	install_initramfs ${SCRIPT}/features/sto
+	#fi
 
 	# Install customizables
 	echo "Installing rootfs no-fixed ${TOP}/obj/rootfs..."
@@ -199,6 +204,19 @@ function build_initramfs()
 	cat $TOP/$INITRAMFS_FILELIST
 }
 
+function apply_modcfg()
+{
+	dcfg=arch/$ARCH/configs/$2
+	mcfg=$SCRIPT/modcfg/$1/$3
+
+	if [ -f $mcfg ]; then
+		echo "Applying $1 modcfg $3..."
+		$SDFIRM_PATH/scripts/modconfig.sh $2 $mcfg
+		make oldconfig
+		cp -f ./.config $dcfg
+	fi
+}
+
 function build_linux()
 {
 	echo "== Build Linux =="
@@ -207,12 +225,23 @@ function build_linux()
 	(
 	cd $LINUX_PATH
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE distclean
-	cp $SCRIPT/config/$LINUX_CONFIG arch/$ARCH/configs/my_defconfig
+	# Doing modcfgs in the original directory and save my_defconfig
+	cp $SCRIPT/config/$LINUX_CONFIG arch/riscv/configs/my_defconfig
+	if [ "xyes" = "x${BUILD_TINY}" ]; then
+		apply_modcfg linux my_defconfig e_tiny.cfg
+	fi
+	if [ "xno" = "x${BUILD_NET}" ]; then
+		apply_modcfg linux my_defconfig d_net.cfg
+	fi
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
+	# Starting the build process
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 		O=$TOP/obj/linux-$ARCH/ my_defconfig
 	ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE $LINUX_PATH/scripts/config \
 		--file $TOP/obj/linux-$ARCH/.config \
 		--set-str INITRAMFS_SOURCE $TOP/$INITRAMFS_FILELIST
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
+		O=$TOP/obj/linux-$ARCH/ clean
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 		O=$TOP/obj/linux-$ARCH/ -j6
 	if [ ! -f $TOP/obj/linux-$ARCH/vmlinux ]; then
@@ -286,15 +315,21 @@ cd $TOP
 usage()
 {
 	echo "Usage:"
-	echo "`basename $0` [-m bbl] [-s] [-u] [-a] [-t] [-n hostname] [target]"
+	echo "`basename $0` [-m bbl] [-s] [-u] [-a] [-n hostname] [target]"
+	echo "              [-d feat] [-e feat]"
 	echo "Where:"
 	echo " -m bbl:      specify rebuild of M-mode program"
 	echo " -s:          specify rebuild of S-mode program"
 	echo " -u:          specify rebuild of U-mode programs"
 	echo " -a:          specify rebuild of all modes programs"
 	echo " -n:          specify system hostname (default sdfirm)"
-	echo " -t:          disable networking and telnet support"
-	echo " -d:          disable dynamic library support"
+	echo " -d feat:     disable special features"
+	echo "              feature includes:"
+	echo "    shared:   shared library support"
+	echo "    network:  network and telnet login support"
+	echo " -e feat:     enable special features"
+	echo "              feature includes:"
+	echo "    storage:  storage and NVME rootfs support"
 	echo " target:      specify build type (default build)"
 	echo "  build       build specified modules (default mode)"
 	echo "  clean       build specified modules"
@@ -307,18 +342,28 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "adm:n:stu" opt
+while getopts "ad:e:m:n:su" opt
 do
 	case $opt in
 	a) M_MODE=yes
 	   S_MODE=yes
 	   U_MODE=yes;;
-	d) BUILD_LIB=no;;
+	d) if [ "x$OPTARG" = "xshared" ]; then
+		BUILD_LIB=no
+	   fi
+	   if [ "x$OPTARG" = "xnetwork" ]; then
+		BUILD_NET=no
+	   fi;;
+	e) if [ "x$OPTARG" = "xtiny" ]; then
+		BUILD_TINY=yes
+	   fi
+	   if [ "x$OPTARG" = "xstorage" ]; then
+		BUILD_STO=yes
+	   fi;;
 	m) M_MODE=yes
 	   BBL=$OPTARG;;
 	n) HOSTNAME=$OPTARG;;
 	s) S_MODE=yes;;
-	t) BUILD_NET=no;;
 	u) U_MODE=yes;;
 	?) echo "Invalid argument $opt"
 	   fatal_usage;;
@@ -330,35 +375,15 @@ if [ -z $CROSS_COMPILE ]; then
 	CROSS_COMPILE=riscv64-unknown-linux-gnu-
 fi
 if [ -f $SCRIPT/config/config-busybox-$ARCH-$MACH ]; then
-	if [ "x${BUILD_NET}${BUILD_LIB}" = "xnono" -a \
-	     -f $SCRIPT/config/config-busybox-$ARCH-$MACH-tiny ]; then
-		BUSYBOX_CONFIG=config-busybox-$ARCH-$MACH-tiny
-	else
-		BUSYBOX_CONFIG=config-busybox-$ARCH-$MACH
-	fi
+	BUSYBOX_CONFIG=config-busybox-$ARCH-$MACH
 else
-	if [ "x${BUILD_NET}${BUILD_LIB}" = "xnono" -a \
-	     -f $SCRIPT/config/config-busybox-$ARCH-tiny ]; then
-		BUSYBOX_CONFIG=config-busybox-$ARCH-tiny
-	else
-		BUSYBOX_CONFIG=config-busybox-$ARCH
-	fi
+	BUSYBOX_CONFIG=config-busybox-$ARCH
 fi
 echo "Using busybox configuration ${BUSYBOX_CONFIG}..."
 if [ -f $SCRIPT/config/config-linux-$ARCH-$MACH ]; then
-	if [ "x${BUILD_NET}" = "xno" -a \
-	     -f $SCRIPT/config/config-linux-$ARCH-$MACH-tiny ]; then
-		LINUX_CONFIG=config-linux-$ARCH-$MACH-tiny
-	else
-		LINUX_CONFIG=config-linux-$ARCH-$MACH
-	fi
+	LINUX_CONFIG=config-linux-$ARCH-$MACH
 else
-	if [ "x${BUILD_NET}" = "xno" -a \
-	     -f $SCRIPT/config/config-linux-$ARCH-tiny ]; then
-		LINUX_CONFIG=config-linux-$ARCH-tiny
-	else
-		LINUX_CONFIG=config-linux-$ARCH
-	fi
+	LINUX_CONFIG=config-linux-$ARCH
 fi
 echo "Using linux configuration ${LINUX_CONFIG}..."
 INITRAMFS_FILELIST_TEMPLATE=config-initramfs-$ARCH

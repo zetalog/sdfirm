@@ -1,4 +1,5 @@
-CONFIG_BENCH_STATIC=n
+# Should be passed from command line
+# CONFIG_BENCH_STATIC=y
 
 CC=$(CROSS_COMPILE)gcc
 STRIP=$(CROSS_COMPILE)strip

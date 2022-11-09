@@ -1,14 +1,14 @@
 #!/bin/sh
 
-PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin:.
+export PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin:.
 ENTRY_POINT=/etc/init.d/sdfirm
 
 mount -t proc none /proc
 # Quick test to obtain kernel boot speed
 #echo -e "\nuptime: $(cut -d' ' -f1 /proc/uptime) seconds\n" >> /dev/console
 mount -t sysfs none /sys
-mount -t devtmpfs none /dev
 mkdir /dev/pts
+mount -t devtmpfs none /dev
 mount -t devpts none /dev/pts
 
 echo "===== Factory Address ====="
@@ -30,8 +30,10 @@ if [ -e /sys/class/net/eth0 ]; then
 	route add default gw 192.168.10.254
 fi
 
-cat /etc/uk.bmap | loadkmap
-hostname `cat /etc/hostname`
+# Required for running tests
+if [ -f /sbin/ldconfig ]; then
+	ldconfig
+fi
 
 if [ -f /etc/init.d/test_early ]; then
 	/etc/init.d/test_early
