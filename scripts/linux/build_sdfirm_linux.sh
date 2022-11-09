@@ -254,8 +254,6 @@ build_test()
 
 	if [ "x${TEST_EARLY}" = "xbenchmark" ]; then
 		echo "#!/bin/sh" > ${EARLY_TEST}
-		echo "echo -e \$PATH" >> ${EARLY_TEST}
-		echo "ls /usr/local/bin" >> ${EARLY_TEST}
 		echo "dhrystone 50" >> ${EARLY_TEST}
 		echo "linpack" >> ${EARLY_TEST}
 		echo "dhrystone 200000000" >> ${EARLY_TEST}

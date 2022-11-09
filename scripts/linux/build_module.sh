@@ -29,6 +29,23 @@ INITRAMFS_FILELIST=obj/initramfs/list-$ARCH
 BBL_DIR=obj/bbl
 ARCHIVES_DIR=$TOP/archive
 
+function apply_modcfg()
+{
+	if [ "x$1" = "xlinux" ]; then
+		dcfg=arch/$ARCH/configs/$2
+	else
+		dcfg=configs/$2
+	fi
+	mcfg=$SCRIPT/modcfg/$1/$3
+
+	if [ -f $mcfg ]; then
+		echo "Applying $1 modcfg $3..."
+		$SDFIRM_PATH/scripts/modconfig.sh $2 $mcfg
+		make oldconfig
+		cp -f ./.config $dcfg
+	fi
+}
+
 function clean_all()
 {
 	echo "== Clean all =="
@@ -45,9 +62,18 @@ function build_busybox()
 	(
 	cd $BUSYBOX_PATH
 	mkdir -pv $TOP/obj/busybox-$ARCH
-	cp $SCRIPT/config/$BUSYBOX_CONFIG ./.config
+
+	# Doing modcfgs in the original directory and save my_defconfig
+	cp $SCRIPT/config/$BUSYBOX_CONFIG configs/my_defconfig
+	if [ "xyes" = "x${BUILD_TINY}" ]; then
+		apply_modcfg busybox my_defconfig e_tiny.cfg
+	fi
+	if [ "xno" = "x${BUILD_NET}" ]; then
+		apply_modcfg busybox my_defconfig d_net.cfg
+	fi
+	# Starting the build process
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
-		O=$TOP/obj/busybox-$ARCH/ oldconfig
+		O=$TOP/obj/busybox-$ARCH/ my_defconfig
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
 	cd $TOP/obj/busybox-$ARCH
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE -j6
@@ -203,19 +229,6 @@ function build_initramfs()
 	grep INITRAMFS_SOURCE $SCRIPT/config/$LINUX_CONFIG
 	echo "So initramfs is built not here now but together with kernel later"
 	cat $TOP/$INITRAMFS_FILELIST
-}
-
-function apply_modcfg()
-{
-	dcfg=arch/$ARCH/configs/$2
-	mcfg=$SCRIPT/modcfg/$1/$3
-
-	if [ -f $mcfg ]; then
-		echo "Applying $1 modcfg $3..."
-		$SDFIRM_PATH/scripts/modconfig.sh $2 $mcfg
-		make oldconfig
-		cp -f ./.config $dcfg
-	fi
 }
 
 function build_linux()
