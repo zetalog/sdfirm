@@ -6,6 +6,7 @@ ARCH=riscv
 HOSTNAME=sdfirm
 BUILD_TINY=no
 BUILD_LIB=yes
+BUILD_SMP=yes
 BUILD_NET=yes
 BUILD_STO=no
 
@@ -230,6 +231,9 @@ function build_linux()
 	if [ "xyes" = "x${BUILD_TINY}" ]; then
 		apply_modcfg linux my_defconfig e_tiny.cfg
 	fi
+	if [ "xno" = "x${BUILD_SMP}" ]; then
+		apply_modcfg linux my_defconfig d_smp.cfg
+	fi
 	if [ "xno" = "x${BUILD_NET}" ]; then
 		apply_modcfg linux my_defconfig d_net.cfg
 	fi
@@ -326,6 +330,7 @@ usage()
 	echo " -d feat:     disable special features"
 	echo "              feature includes:"
 	echo "    shared:   shared library support"
+	echo "    smp:      SMP support in OSen"
 	echo "    network:  network and telnet login support"
 	echo " -e feat:     enable special features"
 	echo "              feature includes:"
@@ -350,6 +355,9 @@ do
 	   U_MODE=yes;;
 	d) if [ "x$OPTARG" = "xshared" ]; then
 		BUILD_LIB=no
+	   fi
+	   if [ "x$OPTARG" = "xsmp" ]; then
+		BUILD_SMP=no
 	   fi
 	   if [ "x$OPTARG" = "xnetwork" ]; then
 		BUILD_NET=no

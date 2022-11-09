@@ -6,6 +6,7 @@ WORKING_DIR=`(cd ${SCRIPT}/../../..; pwd)`
 BUILD_MODULE_OPS="-s -u"
 BUILD_TINY=no
 BUILD_LIB=yes
+BUILD_SMP=yes
 BUILD_NET=yes
 BUILD_STO=no
 
@@ -24,6 +25,7 @@ usage()
 	echo " -d feat:     disable special features"
 	echo "              feature includes:"
 	echo "    shared:   shared library support"
+	echo "    smp:      SMP support in OSen"
 	echo "    network:  network and telnet login support"
 	echo " -e feat:     disable special features"
 	echo "              feature includes:"
@@ -46,6 +48,9 @@ do
 	   BUILD_LITMUS=yes;;
 	d) if [ "x$OPTARG" = "xshared" ]; then
 		BUILD_LIB=no
+	   fi
+	   if [ "x$OPTARG" = "xsmp" ]; then
+		BUILD_SMP=no
 	   fi
 	   if [ "x$OPTARG" = "xnetwork" ]; then
 		BUILD_NET=no
@@ -127,6 +132,9 @@ if [ "x${BUILD_TINY}" = "xyes" ]; then
 fi
 if [ "x${BUILD_LIB}" = "xno" ]; then
 	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -d shared"
+fi
+if [ "x${BUILD_SMP}" = "xno" ]; then
+	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -d smp"
 fi
 if [ "x${BUILD_NET}" = "xno" ]; then
 	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -d network"

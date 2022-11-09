@@ -74,6 +74,9 @@ fi
 if [ "x${BUILD_LIB}" = "xno" ]; then
 	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -d shared"
 fi
+if [ "x${BUILD_SMP}" = "xno" ]; then
+	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -d smp"
+fi
 if [ "x${BUILD_NET}" = "xno" ]; then
 	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -d network"
 fi
