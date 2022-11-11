@@ -1,35 +1,50 @@
 #!/bin/sh
 
+SDFIRM_SYSLOG=no
+
 # This invokes a program mounting partitions used for storing firmware and
 # implements factory firmware save/restore ability.
-export DEVICE=`cat /etc/sdfirm/storaging.conf`
+export DEVICE=nvme0n1
 
-FIRM_PART=/dev/${DEVICE}2
-FIRM_MOUNT=/mnt/p2
-CONF_PART=/dev/${DEVICE}3
-CONF_MOUNT=/mnt/p3
+# partition 1 is used for root
+if [ -e /dev/${DEVICE}p1 ]; then
+	SDFIRM_DFU=yes
+	ROOT_PART=/dev/${DEVICE}p1
+	# partition 2 is used for storing firmware
+	FIRM_PART=/dev/${DEVICE}p2
+	FIRM_MOUNT=/mnt/p2
+	# partition 3 is used for storing configurations
+	CONF_PART=/dev/${DEVICE}p3
+	CONF_MOUNT=/mnt/p3
 
-DATA_IMAGE=var.img
-NEW_IMAGE=new/var.img
-INIT_IMAGE=init.tgz
+	DATA_IMAGE=var.img
+	NEW_IMAGE=new/var.img
+	INIT_IMAGE=init.tgz
 
-ONLINE_PATH=/var
-OFFLINE_PATH=/tmp/fwsave
+	ONLINE_PATH=/var
+	OFFLINE_PATH=/tmp/fwsave
 
-SYSCONF_DIR=sysconf
+	SYSCONF_DIR=sysconf
+else
+	SDFIRM_DFU=no
+	ROOT_PART=/dev/${DEVICE}
+fi
+ROOT_MOUNT=/disk
 
 log_msg()
 {
-	LOG_LEVEL=$1
-	LOG_MSG=$2
-	LOG_FACILITY=local0
-	LOG_TAG=sdfirm
+	if [ "x${SDFIRM_SYSLOG}" = "xyes" ]; then
+		LOG_LEVEL=$1
+		LOG_MSG=$2
+		LOG_FACILITY=local0
+		LOG_TAG=sdfirm
 
-	logger -p $LOG_FACILITY.$LOG_LEVEL -t $LOG_TAG $LOG_MSG
-	echo "$LOG_MSG"
+		logger -p $LOG_FACILITY.$LOG_LEVEL -t $LOG_TAG $LOG_MSG
+		echo "$LOG_MSG"
+	fi
 }
 
-init_all()
+init_dfu()
 {
 	(
 		cd $OFFLINE_PATH
@@ -43,65 +58,83 @@ init_all()
 	log_msg info "sdfirm: success"
 }
 
+init_root()
+{
+	(
+		if [ -e $ROOT_PART ]; then
+			echo "sdfirm: Mouting $ROOT_PART to $ROOT_MOUNT"
+			mkdir -p $ROOT_MOUNT
+			#mount -t ext4 $ROOT_PART $ROOT_MOUNT
+			#chroot $ROOT_MOUNT /sbin/init
+		fi
+	)
+}
+
 start_storage()
 {
-	restoring=0
+	init_root
+	if [ "x${SDFIRM_DFU}" = "xyes" ]; then
+		restoring=0
 
-	# prepare everyting needed
-	mount -n -t proc /proc /proc
-	mkdir -p $OFFLINE_PATH
+		# prepare everyting needed
+		mount -n -t proc /proc /proc
+		mkdir -p $OFFLINE_PATH
 
-	# prepare /mnt/p2
-	if ! e2fsck -fp $CONF_PART
-	then
-		mke2fs -F -m0 -q $CONF_PART
-		tune2fs -c 0 -i 0 $CONF_PART
-		restoring=1
-	fi
-	mount -w $CONF_PART $CONF_MOUNT
+		# prepare /mnt/p2
+		if ! e2fsck -fp $CONF_PART
+		then
+			mke2fs -F -m0 -q $CONF_PART
+			tune2fs -c 0 -i 0 $CONF_PART
+			restoring=1
+		fi
+		mount -w $CONF_PART $CONF_MOUNT
 
-	# prepare var.img
-	[ -f $CONF_MOUNT/$NEW_IMAGE ] && echo "upgrade system" && \
-	mv -f $CONF_MOUNT/$NEW_IMAGE $CONF_MOUNT/$DATA_IMAGE
+		# prepare var.img
+		[ -f $CONF_MOUNT/$NEW_IMAGE ] && echo "upgrade system" && \
+		mv -f $CONF_MOUNT/$NEW_IMAGE $CONF_MOUNT/$DATA_IMAGE
 
-	if ! e2fsck -B 1024 -fp $CONF_MOUNT/$DATA_IMAGE 1>/dev/null 2>&1
-	then
-		echo "lock temporal image."
-		touch /$DATA_IMAGE
-		rm -f $CONF_MOUNT/$DATA_IMAGE
-		dd if=/dev/zero of=/$DATA_IMAGE bs=1024 count=16384
-		mke2fs -F -m0 -q /$DATA_IMAGE
-		tune2fs -c 0 -i 0 /$DATA_IMAGE
-		mv -f /$DATA_IMAGE $CONF_MOUNT/$DATA_IMAGE
-		restoring=1
-	fi
+		if ! e2fsck -B 1024 -fp $CONF_MOUNT/$DATA_IMAGE 1>/dev/null 2>&1
+		then
+			echo "lock temporal image."
+			touch /$DATA_IMAGE
+			rm -f $CONF_MOUNT/$DATA_IMAGE
+			dd if=/dev/zero of=/$DATA_IMAGE bs=1024 count=16384
+			mke2fs -F -m0 -q /$DATA_IMAGE
+			tune2fs -c 0 -i 0 /$DATA_IMAGE
+			mv -f /$DATA_IMAGE $CONF_MOUNT/$DATA_IMAGE
+			restoring=1
+		fi
 
-	mount -o loop $CONF_MOUNT/$DATA_IMAGE $OFFLINE_PATH
-	if [ ! -d "$OFFLINE_PATH/$SYSCONF_DIR" ] ; then
-		restoring=1
-	fi
-	umount $OFFLINE_PATH
-	rm -rf $OFFLINE_PATH
-
-	if [ "$restoring" != "0" ] ; then
 		mount -o loop $CONF_MOUNT/$DATA_IMAGE $OFFLINE_PATH
-		init_all
+		if [ ! -d "$OFFLINE_PATH/$SYSCONF_DIR" ] ; then
+			restoring=1
+		fi
 		umount $OFFLINE_PATH
 		rm -rf $OFFLINE_PATH
+
+		if [ "$restoring" != "0" ] ; then
+			mount -o loop $CONF_MOUNT/$DATA_IMAGE $OFFLINE_PATH
+			init_dfu
+			umount $OFFLINE_PATH
+			rm -rf $OFFLINE_PATH
+		fi
+
+		/bin/mount -av > /dev/null 2>&1
+
+		cp -fp $CONF_MOUNT/$DATA_IMAGE /tmp
+		umount $CONF_MOUNT
+		mount -o loop /tmp/$DATA_IMAGE $ONLINE_PATH
 	fi
-
-	/bin/mount -av > /dev/null 2>&1
-
-	cp -fp $CONF_MOUNT/$DATA_IMAGE /tmp
-	umount $CONF_MOUNT
-	mount -o loop /tmp/$DATA_IMAGE $ONLINE_PATH
 }
 
 stop_storage()
 {
-	umount $CONF_PART
-	umount $OFFLINE_PATH
-	/usr/dot1x/sbin/fwsave all
+	if [ "x${SDFIRM_DFU}" = "xyes" ]; then
+		umount $CONF_PART
+		umount $OFFLINE_PATH
+		# TODO: User provided firmware saving
+		# /usr/sdfirm/sbin/fwsave all
+	fi
 }
 
 case "$1" in
@@ -116,4 +149,3 @@ case "$1" in
 		;;
 esac
 exit 0
-

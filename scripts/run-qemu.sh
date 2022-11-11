@@ -45,7 +45,7 @@ do
 	l) QEMU_OPTS="-D $OPTARG -d cpu,exec,in_asm ${QEMU_OPTS}";;
 	n) QEMU_OPTS="-netdev type=tap,script=qemu-ifup,downscript=qemu-ifdown,id=net0 -device virtio-net-device,netdev=net0 ${QEMU_OPTS}";;
 	p) QEMU_OPTS="-smp $OPTARG ${QEMU_OPTS}";;
-	s) QEMU_OPTS="-device nvme,serial=deadbeef,drive=nvm -drive file=nvm.qcow,if=none,id=nvm ${QEMU_OPTS}";;
+	s) QEMU_OPTS="-device nvme,serial=deadbeef,drive=nvm -drive file=nvme.img,if=none,id=nvm ${QEMU_OPTS}";;
 	t) QEMU_DTS=$OPTARG;;
 	?) echo "Invalid argument $opt"
 	   fatal_usage;;

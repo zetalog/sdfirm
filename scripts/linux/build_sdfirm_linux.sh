@@ -80,8 +80,8 @@ fi
 if [ "x${BUILD_NET}" = "xno" ]; then
 	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -d network"
 fi
-if [ "x${BUILD_STO}" = "xyes" ]; then
-	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -e storage"
+if [ "x${BUILD_STO}" = "xno" ]; then
+	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -d storage"
 fi
 
 # Control LITMUS partial builds

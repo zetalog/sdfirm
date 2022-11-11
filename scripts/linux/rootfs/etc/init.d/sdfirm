@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # SDFIRM Embedded Linux distribution configuration
-SDFIRM_STORAGING=no
+SDFIRM_STORAGING=yes
 SDFIRM_NETWORKING=no
 SDFIRM_SYSLOG=no
 if [ -e /sys/class/net/lo ]; then
@@ -57,7 +57,7 @@ start_sdfirm()
 
 	if [ "x${SDFIRM_STORAGING}" = "xyes" ]; then
 		disp_msg START_DISKS
-		#/etc/init.d/storaging start
+		/etc/init.d/storaging start
 		check_err DISKS
 	fi
 

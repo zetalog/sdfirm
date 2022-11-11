@@ -8,7 +8,7 @@ BUILD_TINY=no
 BUILD_LIB=yes
 BUILD_SMP=yes
 BUILD_NET=yes
-BUILD_STO=no
+BUILD_STO=yes
 
 usage()
 {
@@ -27,10 +27,10 @@ usage()
 	echo "    shared:   shared library support"
 	echo "    smp:      SMP support in OSen"
 	echo "    network:  network and telnet login support"
+	echo "    storage:  storage and NVME rootfs support"
 	echo " -e feat:     disable special features"
 	echo "              feature includes:"
 	echo "    tiny:     kernel image as tiny as possible"
-	echo "    storage:  storage and NVME rootfs support"
 	exit $1
 }
 
@@ -54,12 +54,12 @@ do
 	   fi
 	   if [ "x$OPTARG" = "xnetwork" ]; then
 		BUILD_NET=no
+	   fi
+	   if [ "x$OPTARG" = "xstorage" ]; then
+		BUILD_STO=no
 	   fi;;
 	e) if [ "x$OPTARG" = "xtiny" ]; then
 		BUILD_TINY=yes
-	   fi
-	   if [ "x$OPTARG" = "xstorage" ]; then
-		BUILD_STO=yes
 	   fi;;
 	f) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -m sdfirm";;
 	m) MACH=$OPTARG;;
@@ -139,8 +139,8 @@ fi
 if [ "x${BUILD_NET}" = "xno" ]; then
 	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -d network"
 fi
-if [ "x${BUILD_STO}" = "xyes" ]; then
-	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -e storage"
+if [ "x${BUILD_STO}" = "xno" ]; then
+	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -d storage"
 fi
 
 # Build memory model application tests

@@ -20,6 +20,7 @@
 		bootargs = "console=hvc0 earlycon=sbi";
 #else
 		stdout-path = "/soc/serial@10000000";
+		bootargs = "console=ttyS0 rdinit=/sbin/init";
 #endif
 	};
 

@@ -8,7 +8,7 @@ BUILD_TINY=no
 BUILD_LIB=yes
 BUILD_SMP=yes
 BUILD_NET=yes
-BUILD_STO=no
+BUILD_STO=yes
 
 if [ -z $BUSYBOX_DIR ]; then
 	BUSYBOX_DIR=busybox
@@ -26,6 +26,7 @@ else
 fi
 INITRAMFS_DIR=obj/initramfs/$ARCH
 INITRAMFS_FILELIST=obj/initramfs/list-$ARCH
+STORAGE_DIR=obj/storage/$ARCH
 BBL_DIR=obj/bbl
 ARCHIVES_DIR=$TOP/archive
 
@@ -174,6 +175,24 @@ get_sysroot()
 	echo ${TOOLSDIR}/sysroot
 }
 
+function make_ramdisk()
+{
+	local image=$1
+	local base=`basename $1`
+	local ksize=$2
+
+	echo "Creating image $base of ${ksize}KB"
+	if dd if=/dev/zero of=$image bs=1024 count=$ksize 1>/dev/null 2>&1
+	then
+		if mkfs -t ext4 $image 1>/dev/null 2>&1; then
+			echo "Creating image $base success"
+			return 0
+		fi
+	fi
+	echo "Creating image $base failure"
+	return 1
+}
+
 function build_initramfs()
 {
 	echo "== Build initramfs =="
@@ -181,11 +200,30 @@ function build_initramfs()
 	echo "Installing initramfs..."
 	rm -rf $TOP/$INITRAMFS_DIR
 	mkdir -pv $TOP/$INITRAMFS_DIR
+
+	if [ "xno" != "x${BUILD_STO}" ]; then
+		if [ -z $1 ]; then
+			img_size=2097152
+			#img_size=16384
+		else
+			img_size=$1
+		fi
+		img_file=$TOP/nvme.img
+		rm -f ${img_file}
+		rm -rf $TOP/$STORAGE_DIR
+		make_ramdisk ${img_file} ${img_size}
+		mkdir -p $TOP/$STORAGE_DIR
+		sudo mount ${img_file} $TOP/$STORAGE_DIR -o loop
+		sudo cp -av $TOP/obj/busybox-$ARCH/_install/* $TOP/$STORAGE_DIR
+	fi
 	cp -rf $SCRIPT/config/$INITRAMFS_FILELIST_TEMPLATE \
 		$TOP/$INITRAMFS_FILELIST
 
 	echo "Installing busybox..."
 	cp -av $TOP/obj/busybox-$ARCH/_install/* $TOP/$INITRAMFS_DIR
+	if [ "xno" != "x${BUILD_STO}" ]; then
+		cp -av $TOP/obj/busybox-$ARCH/_install/* $TOP/$STORAGE_DIR
+	fi
 	build_initramfs_busybox
 
 	echo "Generating customizables..."
@@ -229,6 +267,10 @@ function build_initramfs()
 	grep INITRAMFS_SOURCE $SCRIPT/config/$LINUX_CONFIG
 	echo "So initramfs is built not here now but together with kernel later"
 	cat $TOP/$INITRAMFS_FILELIST
+
+	if [ "xno" != "x${BUILD_STO}" ]; then
+		sudo umount $TOP/$STORAGE_DIR
+	fi
 }
 
 function build_linux()
@@ -249,6 +291,9 @@ function build_linux()
 	fi
 	if [ "xno" = "x${BUILD_NET}" ]; then
 		apply_modcfg linux my_defconfig d_net.cfg
+	fi
+	if [ "xno" = "x${BUILD_STO}" ]; then
+		apply_modcfg linux my_defconfig d_sto.cfg
 	fi
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
 	# Starting the build process
@@ -374,12 +419,12 @@ do
 	   fi
 	   if [ "x$OPTARG" = "xnetwork" ]; then
 		BUILD_NET=no
+	   fi
+	   if [ "x$OPTARG" = "xstorage" ]; then
+		BUILD_STO=no
 	   fi;;
 	e) if [ "x$OPTARG" = "xtiny" ]; then
 		BUILD_TINY=yes
-	   fi
-	   if [ "x$OPTARG" = "xstorage" ]; then
-		BUILD_STO=yes
 	   fi;;
 	m) M_MODE=yes
 	   BBL=$OPTARG;;
@@ -457,7 +502,7 @@ if [ "x$1" = "xclean" ]; then
 else
 	if [ "x${U_MODE}" = "xyes" ]; then
 		build_busybox
-		build_initramfs
+		build_initramfs ${BUILD_STO_SIZE}
 	fi
 	if [ "x${S_MODE}" = "xyes" ]; then
 		build_linux
