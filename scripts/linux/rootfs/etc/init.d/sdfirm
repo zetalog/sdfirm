@@ -57,7 +57,7 @@ start_sdfirm()
 
 	if [ "x${SDFIRM_STORAGING}" = "xyes" ]; then
 		disp_msg START_DISKS
-		/etc/init.d/storaging start
+		#/etc/init.d/storaging start
 		check_err DISKS
 	fi
 

@@ -1,0 +1,27 @@
+#!/bin/sh
+
+export PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin:.
+ROOT_CFG=/sdfirm_root
+ROOT_DEV=/dev/vda
+ROOT_MNT=/pivot
+
+mount -t proc none /proc
+mount -t sysfs none /sys
+mkdir -p /dev/pts
+mount -t devtmpfs none /dev
+# Quick test to obtain kernel boot speed
+#echo -e "\nuptime: $(cut -d' ' -f1 /proc/uptime) seconds\n" >> /dev/console
+
+if [ -e $ROOT_DEV ]; then
+	if [ -f $ROOT_CFG ]; then
+		ROOT_DEV=`cat $ROOT_CFG`
+	fi
+	mkdir -p $ROOT_MNT
+	mount -t ext4 $ROOT_DEV $ROOT_MNT
+	echo "sdfirm: Changing root to $ROOT_DEV..."
+	cd $ROOT_MNT
+	exec chroot . /sbin/init
+	echo "sdfirm: Root changed to $ROOT_DEV"
+else
+	exec /sbin/init
+fi

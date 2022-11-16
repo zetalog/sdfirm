@@ -8,7 +8,7 @@
 	compatible = "ucbbar,spike-bare-dev";
 	model = "ucbbar,spike-bare";
 	chosen {
-		bootargs = "console=hvc0 earlycon=sbi";
+		bootargs = "console=hvc0 earlycon=sbi rdinit=/sdfirm_init";
 	};
 	cpus {
 		#address-cells = <1>;

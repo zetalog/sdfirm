@@ -25,9 +25,6 @@ if [ -e /dev/${DEVICE}p1 ]; then
 	OFFLINE_PATH=/tmp/fwsave
 
 	SYSCONF_DIR=sysconf
-else
-	SDFIRM_DFU=no
-	ROOT_PART=/dev/${DEVICE}
 fi
 ROOT_MOUNT=/disk
 
@@ -58,21 +55,8 @@ init_dfu()
 	log_msg info "sdfirm: success"
 }
 
-init_root()
-{
-	(
-		if [ -e $ROOT_PART ]; then
-			echo "sdfirm: Mouting $ROOT_PART to $ROOT_MOUNT"
-			mkdir -p $ROOT_MOUNT
-			#mount -t ext4 $ROOT_PART $ROOT_MOUNT
-			#chroot $ROOT_MOUNT /sbin/init
-		fi
-	)
-}
-
 start_storage()
 {
-	init_root
 	if [ "x${SDFIRM_DFU}" = "xyes" ]; then
 		restoring=0
 

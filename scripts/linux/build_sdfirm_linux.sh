@@ -82,6 +82,9 @@ if [ "x${BUILD_NET}" = "xno" ]; then
 fi
 if [ "x${BUILD_STO}" = "xno" ]; then
 	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -d storage"
+	if [ "x${BUILD_STO_DEV}" != "x" ]; then
+		export BUILD_STO_DEV
+	fi
 fi
 
 # Control LITMUS partial builds

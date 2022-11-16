@@ -103,18 +103,31 @@ build_initramfs_busybox()
 install_initramfs_dir()
 {
 	echo "dir ${ROOTFS_TARGET} 755 0 0" >> $TOP/$INITRAMFS_FILELIST
+	if [ "xno" != "x${BUILD_STO}" ]; then
+		echo "Creating directory $TOP/$STORAGE_DIR ${ROOTFS_TARGET}..."
+		sudo mkdir -p $TOP/$STORAGE_DIR/${ROOTFS_TARGET}
+	fi
 }
 
 install_initramfs_slink()
 {
 	echo "slink ${ROOTFS_TARGET} ${ROOTFS_HOST} 777 0 0" >> \
 	       $TOP/$INITRAMFS_FILELIST
+	if [ "xno" != "x${BUILD_STO}" ]; then
+		ROOTFS_LINK=`readlink ${ROOTFS_HOST}`
+		echo "Creating link $TOP/$STORAGE_DIR ${ROOTFS_TARGET} -> ${ROOTFS_LINK}..."
+		sudo ln -s ${ROOTFS_LINK} $TOP/$STORAGE_DIR/${ROOTFS_TARGET}
+	fi
 }
 
 install_initramfs_file()
 {
 	echo "file ${ROOTFS_TARGET} ${ROOTFS_HOST} $1 0 0" >> \
 		$TOP/$INITRAMFS_FILELIST
+	if [ "xno" != "x${BUILD_STO}" ]; then
+		echo "Creating file $TOP/$STORAGE_DIR ${ROOTFS_TARGET}..."
+		sudo cp -f ${ROOTFS_HOST} $TOP/$STORAGE_DIR/${ROOTFS_TARGET}
+	fi
 }
 
 install_initramfs_lib()
@@ -145,7 +158,11 @@ install_initramfs_one()
 					install_initramfs_lib \
 						$1 ${ROOTFS_LIB}
 				done
-				${CROSS_COMPILE}strip ${ROOTFS_HOST}
+				file ${ROOTFS_HOST} | grep shell >/dev/null
+				if [ $? != 0 ]; then
+					echo "Stripping ${ROOTFS_HOST}..."
+					${CROSS_COMPILE}strip ${ROOTFS_HOST}
+				fi
 				install_initramfs_file 755
 			else
 				install_initramfs_file 644
@@ -208,13 +225,25 @@ function build_initramfs()
 		else
 			img_size=$1
 		fi
-		img_file=$TOP/nvme.img
+		img_file=$TOP/storage.img
 		rm -f ${img_file}
-		rm -rf $TOP/$STORAGE_DIR
-		make_ramdisk ${img_file} ${img_size}
-		mkdir -p $TOP/$STORAGE_DIR
-		sudo mount ${img_file} $TOP/$STORAGE_DIR -o loop
-		sudo cp -av $TOP/obj/busybox-$ARCH/_install/* $TOP/$STORAGE_DIR
+		echo "************************************************************"
+		echo "Do not proceed as the root priviledge will be required."
+		echo "Please confirm the directory used for rootfs is correct."
+		echo "************************************************************"
+		echo -n "Creating rootfs in $TOP/$STORAGE_DIR (y/n)? "
+		read input
+		if [ "x$input" = "xy" ]; then
+			sudo rm -rf $TOP/$STORAGE_DIR
+			make_ramdisk ${img_file} ${img_size}
+			mkdir -p $TOP/$STORAGE_DIR
+			sudo mount ${img_file} $TOP/$STORAGE_DIR -o loop
+			sudo mkdir -p $TOP/$STORAGE_DIR/sys
+			sudo mkdir -p $TOP/$STORAGE_DIR/proc
+			sudo mkdir -p $TOP/$STORAGE_DIR/dev/pts
+		else
+			BUILD_STO=no
+		fi
 	fi
 	cp -rf $SCRIPT/config/$INITRAMFS_FILELIST_TEMPLATE \
 		$TOP/$INITRAMFS_FILELIST
@@ -222,14 +251,26 @@ function build_initramfs()
 	echo "Installing busybox..."
 	cp -av $TOP/obj/busybox-$ARCH/_install/* $TOP/$INITRAMFS_DIR
 	if [ "xno" != "x${BUILD_STO}" ]; then
-		cp -av $TOP/obj/busybox-$ARCH/_install/* $TOP/$STORAGE_DIR
+		sudo cp -av $TOP/obj/busybox-$ARCH/_install/* $TOP/$STORAGE_DIR
 	fi
 	build_initramfs_busybox
+	# busybox need special handling
+	#install_initramfs $TOP/obj/busybox-$ARCH/_install
 
 	echo "Generating customizables..."
 	rm -rf $TOP/obj/rootfs
 	mkdir -p $TOP/obj/rootfs/etc
 	echo $HOSTNAME > $TOP/obj/rootfs/etc/hostname
+	if [ "xno" != "x${BUILD_STO}" ]; then
+		sudo mkdir -p $TOP/$STORAGE_DIR/etc
+		sudo echo $HOSTNAME > $TOP/$STORAGE_DIR/etc/hostname
+		if [ "x${BUILD_STO_DEV}" != "x" ]; then
+			sudo echo -n "/dev/${BUILD_STO_DEV}" > \
+				$TOP/obj/rootfs/sdfirm_root
+			sudo echo -n "/dev/${BUILD_STO_DEV}" > \
+				$TOP/$STORAGE_DIR/sdfirm_root
+		fi
+	fi
 
 	# TODO: Smarter way to build rootfs
 	# Currently we only lists files in config-initramfs-${ARCH}
@@ -266,7 +307,7 @@ function build_initramfs()
 	echo "Use INITRAMFS_SOURCE file list: $INITRAMFS_FILELIST"
 	grep INITRAMFS_SOURCE $SCRIPT/config/$LINUX_CONFIG
 	echo "So initramfs is built not here now but together with kernel later"
-	cat $TOP/$INITRAMFS_FILELIST
+	#cat $TOP/$INITRAMFS_FILELIST
 
 	if [ "xno" != "x${BUILD_STO}" ]; then
 		sudo umount $TOP/$STORAGE_DIR

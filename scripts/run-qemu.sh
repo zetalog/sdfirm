@@ -15,7 +15,7 @@ usage()
 {
 	echo "Usage:"
 	echo "`basename $0` [-b base] [-m size] [-p procs]"
-	echo "              [-n] [-s]"
+	echo "              [-n] [-s drive]"
 	echo "              [-l trace] [-u uart]"
 	echo "              [-g port]"
 	echo "              [-t dts]"
@@ -25,7 +25,10 @@ usage()
 	echo " -t dts-file: dump device tree string file"
 	echo " -l log-file: dump CPU trace to log file"
 	echo " -g gdb-port: enable gdb server (default 1234)"
-	echo " -s         : specify usage of storage device (nvm)"
+	echo " -s    drive: specify usage of storage device"
+	echo " Where drivers are:"
+	echo "        virt: use VirtIO emulation"
+	echo "        nvme: use NVME emulation"
 	echo " -n         : specify usage of network device (eth)"
 	exit $1
 }
@@ -36,7 +39,7 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "g:hl:m:np:st:" opt
+while getopts "g:hl:m:np:s:t:" opt
 do
 	case $opt in
 	m) QEMU_OPTS="-m $OPTARG";;
@@ -45,7 +48,12 @@ do
 	l) QEMU_OPTS="-D $OPTARG -d cpu,exec,in_asm ${QEMU_OPTS}";;
 	n) QEMU_OPTS="-netdev type=tap,script=qemu-ifup,downscript=qemu-ifdown,id=net0 -device virtio-net-device,netdev=net0 ${QEMU_OPTS}";;
 	p) QEMU_OPTS="-smp $OPTARG ${QEMU_OPTS}";;
-	s) QEMU_OPTS="-device nvme,serial=deadbeef,drive=nvm -drive file=nvme.img,if=none,id=nvm ${QEMU_OPTS}";;
+	s) if [ "x$OPTARG" = "xnvme" ]; then
+		QEMU_OPTS="-device nvme,serial=deadbeef,drive=nvm -drive file=storage.img,if=none,id=nvm ${QEMU_OPTS}"
+	   fi
+	   if [ "x$OPTARG" = "xvirt" ]; then
+		QEMU_OPTS="-hda storage.img -drive file=storage.img,if=virtio,id=drive-virtio-disk0 ${QEMU_OPTS}"
+	   fi;;
 	t) QEMU_DTS=$OPTARG;;
 	?) echo "Invalid argument $opt"
 	   fatal_usage;;
