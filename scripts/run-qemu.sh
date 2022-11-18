@@ -42,7 +42,7 @@ fatal_usage()
 while getopts "g:hl:m:np:s:t:" opt
 do
 	case $opt in
-	m) QEMU_OPTS="-m $OPTARG";;
+	m) QEMU_OPTS="-m $OPTARG ${QEMU_OPTS}";;
 	h) usage 0;;
 	g) QEMU_OPTS="-gdb tcp::$OPTARG -S ${QEMU_OPTS}";;
 	l) QEMU_OPTS="-D $OPTARG -d cpu,exec,in_asm ${QEMU_OPTS}";;

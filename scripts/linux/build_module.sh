@@ -9,6 +9,7 @@ BUILD_LIB=yes
 BUILD_SMP=yes
 BUILD_NET=yes
 BUILD_STO=yes
+INSTALL_INITRAMFS=yes
 
 if [ -z $BUSYBOX_DIR ]; then
 	BUSYBOX_DIR=busybox
@@ -102,7 +103,9 @@ build_initramfs_busybox()
 
 install_initramfs_dir()
 {
-	echo "dir ${ROOTFS_TARGET} 755 0 0" >> $TOP/$INITRAMFS_FILELIST
+	if [ "xno" != "${INSTALL_INITRAMFS}" ]; then
+		echo "dir ${ROOTFS_TARGET} 755 0 0" >> $TOP/$INITRAMFS_FILELIST
+	fi
 	if [ "xno" != "x${BUILD_STO}" ]; then
 		echo "Creating directory $TOP/$STORAGE_DIR ${ROOTFS_TARGET}..."
 		sudo mkdir -p $TOP/$STORAGE_DIR/${ROOTFS_TARGET}
@@ -111,8 +114,10 @@ install_initramfs_dir()
 
 install_initramfs_slink()
 {
-	echo "slink ${ROOTFS_TARGET} ${ROOTFS_HOST} 777 0 0" >> \
-	       $TOP/$INITRAMFS_FILELIST
+	if [ "xno" != "${INSTALL_INITRAMFS}" ]; then
+		echo "slink ${ROOTFS_TARGET} ${ROOTFS_HOST} 777 0 0" >> \
+		       $TOP/$INITRAMFS_FILELIST
+	fi
 	if [ "xno" != "x${BUILD_STO}" ]; then
 		ROOTFS_LINK=`readlink ${ROOTFS_HOST}`
 		echo "Creating link $TOP/$STORAGE_DIR ${ROOTFS_TARGET} -> ${ROOTFS_LINK}..."
@@ -122,8 +127,10 @@ install_initramfs_slink()
 
 install_initramfs_file()
 {
-	echo "file ${ROOTFS_TARGET} ${ROOTFS_HOST} $1 0 0" >> \
-		$TOP/$INITRAMFS_FILELIST
+	if [ "xno" != "${INSTALL_INITRAMFS}" ]; then
+		echo "file ${ROOTFS_TARGET} ${ROOTFS_HOST} $1 0 0" >> \
+			$TOP/$INITRAMFS_FILELIST
+	fi
 	if [ "xno" != "x${BUILD_STO}" ]; then
 		echo "Creating file $TOP/$STORAGE_DIR ${ROOTFS_TARGET}..."
 		sudo cp -f ${ROOTFS_HOST} $TOP/$STORAGE_DIR/${ROOTFS_TARGET}
@@ -218,9 +225,14 @@ function build_initramfs()
 	rm -rf $TOP/$INITRAMFS_DIR
 	mkdir -pv $TOP/$INITRAMFS_DIR
 
+	# Prepare initramfs
+	cp -rf $SCRIPT/config/$INITRAMFS_FILELIST_TEMPLATE \
+		$TOP/$INITRAMFS_FILELIST
+
+	# Prepare block rootfs
 	if [ "xno" != "x${BUILD_STO}" ]; then
 		if [ -z $1 ]; then
-			img_size=2097152
+			img_size=4194304
 			#img_size=16384
 		else
 			img_size=$1
@@ -245,8 +257,6 @@ function build_initramfs()
 			BUILD_STO=no
 		fi
 	fi
-	cp -rf $SCRIPT/config/$INITRAMFS_FILELIST_TEMPLATE \
-		$TOP/$INITRAMFS_FILELIST
 
 	echo "Installing busybox..."
 	cp -av $TOP/obj/busybox-$ARCH/_install/* $TOP/$INITRAMFS_DIR
@@ -303,6 +313,9 @@ function build_initramfs()
 		echo "Installing rootfs testbench $TOP/obj/bench..."
 		install_initramfs $TOP/obj/bench
 	fi
+
+	# Following stuffs are not installed in initramfs
+	export INSTALL_INITRAMFS=no
 
 	echo "Use INITRAMFS_SOURCE file list: $INITRAMFS_FILELIST"
 	grep INITRAMFS_SOURCE $SCRIPT/config/$LINUX_CONFIG

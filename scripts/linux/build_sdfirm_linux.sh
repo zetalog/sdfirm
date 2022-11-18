@@ -111,6 +111,7 @@ fi
 rm -rf ${BUILD_ROOT}/obj/bench/*
 mkdir -p ${BUILD_BIN}
 mkdir -p ${BUILD_INIT}
+mkdir -p ${BACKUP_ROOT}
 
 build_litmus()
 {

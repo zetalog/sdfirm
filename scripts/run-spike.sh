@@ -145,18 +145,23 @@ split_cpulog()
 echo "spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE}"
 if [ "x${SPIKE_TRACE}" = "xstderr" ]; then
 	if [ "x${SPIKE_UART}" != "x" ]; then
+		echo spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE} | tee ${SPIKE_UART}
 		eval spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE} | tee ${SPIKE_UART}
 	else
+		echo spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE}
 		eval spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE}
 	fi
 elif [ "x${SPIKE_TRACE}" != "xcpulog" ]; then
 	if [ "x${SPIKE_UART}" != "x" ]; then
+		echo spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE} 2>${SPIKE_TRACE} | tee ${SPIKE_UART}
 		eval spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE} 2>${SPIKE_TRACE} | tee ${SPIKE_UART}
 	else
+		echo spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE} 2>${SPIKE_TRACE}
 		eval spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE} 2>${SPIKE_TRACE}
 	fi
 else
 	rm -rf cpu*.log*
 	riscv64-linux-objdump -D -M numeric ${SPIKE_PROG} > ${SPIKE_PROG}.dis
+	echo spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE} 2> >(split_cpulog)
 	eval spike ${SPIKE_OPTS} ${SPIKE_PROG} ${SPIKE_PIPE} 2> >(split_cpulog)
 fi
