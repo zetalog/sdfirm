@@ -381,14 +381,14 @@ function build_sdfirm()
 		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 			O=$TOP/obj/sdfirm-$ARCH/ distclean
 	fi
-	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE distclean
-	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE distclean
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 		O=$TOP/obj/sdfirm-$ARCH/ ${MACH}_bbl_defconfig
 	ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPLE $SDFIRM_PATH/scripts/config \
 		--file $TOP/obj/sdfirm-$ARCH/.config \
 		--set-str SBI_PAYLOAD_PATH \
 		$TOP/obj/linux-$ARCH/arch/$ARCH/boot/Image
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
+		O=$TOP/obj/sdfirm-$ARCH/ clean
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 		O=$TOP/obj/sdfirm-$ARCH/ -j6
 	if [ ! -f $TOP/obj/sdfirm-$ARCH/sdfirm ]

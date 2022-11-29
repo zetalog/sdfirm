@@ -316,7 +316,43 @@ build_image()
 
 backup_elfs()
 {
-	echo
+	# Backup ELF files for debugging
+	echo "Backing up ${BACKUP_ROOT}..."
+	if [ -f ${BUILD_ROOT}/obj/linux-${ARCH}/vmlinux ]; then
+		echo "Copying linux images..."
+		cp -f ${BUILD_ROOT}/obj/linux-${ARCH}/vmlinux \
+			${BACKUP_ROOT}/vmlinux
+		cp -f ${BUILD_ROOT}/obj/linux-${ARCH}/arch/riscv/boot/Image \
+			${BACKUP_ROOT}/Image
+		echo "Copying busybox images..."
+		cp -f ${BUILD_ROOT}/obj/busybox-${ARCH}/busybox \
+			${BACKUP_ROOT}/busybox
+		if [ -z ${BUILD_CUSTOMER} ]; then
+			if [ "x${TEST_EARLY}" = "xbenchmark" ]; then
+				echo "Copying benchmarks..."
+				cp -f ${SDFIRM_ROOT}/tests/bench/dhrystone.debug \
+					${BACKUP_ROOT}/dhrystone
+				cp -f ${SDFIRM_ROOT}/tests/bench/linpack.debug \
+					${BACKUP_ROOT}/linpack
+				cp -f ${SDFIRM_ROOT}/tests/bench/coremark.debug \
+					${BACKUP_ROOT}/coremark
+				cp -f ${SDFIRM_ROOT}/tests/bench/loopback.debug \
+					${BACKUP_ROOT}/loopback
+			fi
+			if [ "x${TEST_EARLY}" = "xlitmus" ]; then
+				echo "Copying litmus tests..."
+				cp -f ${LITMUS_ROOT}/litmus-${LITMUS_CORES}cores/run.exe \
+					${BACKUP_ROOT}/litmus
+				cp -f ${LITMUS_ROOT}/litmus-${LITMUS_CORES}cores/run.exe \
+					${BACKUP_ROOT}/litmus${LITMUS_CORES}
+			fi
+			if [ "x${TEST_LATE}" = "xperf" ]; then
+				echo "Copying linux kernel programs..."
+				cp -f ${PERF_ROOT}/perf \
+					${BACKUP_ROOT}/perf
+			fi
+		fi
+	fi
 }
 
 if [ -z ${BUILD_CUSTOMER} ]; then
