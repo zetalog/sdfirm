@@ -41,6 +41,7 @@ config SYS_TASK
 	bool "Multiple tasking with various IRQs"
 	select TASK
 	depends EXPERIMENTAL
+	depends !SMP
 	help
 	  Same as "Polling states with various IRQs", but multi-tasking is
 	  added instead of timer-driven state machines.

@@ -14,6 +14,13 @@ struct task_entry *task_current = INIT_TASK;
 
 tid_t task_tid = INVALID_TID;
 
+/* This is actually a thread implementation as it passes an arg to the task
+ * entry function. As far as RTOS is concerned rather than a multi-process
+ * rich OS, this is sufficient.
+ *
+ * NOTE that, the current implementation is not SMP safe and should only be
+ * used when SMP is configured out.
+ */
 pid_t task_create(task_call_cb call, void *priv,
 		  caddr_t stack_bottom, size_t stack_size)
 {
@@ -44,7 +51,14 @@ void task_schedule(void)
 	struct task_entry *prev, *next;
 
 	irq_local_save(flags);
-	/* TODO: real task schedular */
+
+	/* TODO: Real Task Scheduler
+	 *
+	 * The following only implements a simplest round-robin scheduler
+	 * to demonstrate task switching ability of the firmware.
+	 * It dequeues a next task and rounds to the INIT_TASK when next
+	 * task is the last task.
+	 */
 	prev = task_current;
 	next = prev+1;
 	if (next == &task_entries[task_nr_regs])
@@ -61,6 +75,9 @@ void task_schedule(void)
 
 void task_timer_handler(void)
 {
+#ifdef CONFIG_TASK_TEST
+	printf("task slicing...\n");
+#endif
 	timer_schedule_shot(task_tid, TASK_SLICE);
 	task_schedule();
 }
@@ -73,17 +90,23 @@ timer_desc_t task_timer = {
 #ifdef CONFIG_TASK_TEST
 static void task1_main(void *priv)
 {
+	int a = 1;
+
 	while (1) {
-		printf("task 1 scheduled\n");
+		printf("task 1 scheduled - %d\n", a);
 		task_schedule();
+		a += 100;
 	}
 }
 
 static void task2_main(void *priv)
 {
+	int a = 2;
+
 	while (1) {
-		printf("task 2 scheduled\n");
+		printf("task 2 scheduled - %d\n", a);
 		task_schedule();
+		a += 1000;
 	}
 }
 
