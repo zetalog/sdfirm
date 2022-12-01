@@ -113,6 +113,16 @@ void smp_boot_secondary_cpus(caddr_t context)
 	smp_wait_secondary_cpus();
 }
 
+void smp_idle(void *arg)
+{
+	bh_loop();
+}
+
+void smp_init_idle(void)
+{
+	task_create(smp_idle, NULL, PERCPU_STACK_SIZE);
+}
+
 void smp_init(void)
 {
 	__unused cpu_t cpu = smp_processor_id();

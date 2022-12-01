@@ -39,14 +39,16 @@ struct task_entry {
 
 #ifdef CONFIG_TASK
 void task_init(void);
-pid_t task_create(task_call_cb call, void *priv,
-		  caddr_t stack_bottom, size_t stack_size);
+pid_t task_create_stack(task_call_cb call, void *priv,
+			caddr_t stack_bottom, size_t stack_size);
+pid_t task_create(task_call_cb call, void *priv, size_t stack_size);
 void task_schedule(void);
 extern struct task_entry task_entries[];
 #else
-#define task_init()			do { } while (0)
-#define task_create(call, priv, sb, ss)	INVALID_PID
-#define task_schedule()			do { } while (0)
+#define task_init()				do { } while (0)
+#define task_create_stack(call, priv, sb, ss)	(call)(priv)
+#define task_create(call, priv, ss)		(call)(priv)
+#define task_schedule()				do { } while (0)
 #endif
 #endif /* __ASSEMBLY__ */
 

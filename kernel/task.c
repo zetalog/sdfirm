@@ -21,8 +21,8 @@ tid_t task_tid = INVALID_TID;
  * NOTE that, the current implementation is not SMP safe and should only be
  * used when SMP is configured out.
  */
-pid_t task_create(task_call_cb call, void *priv,
-		  caddr_t stack_bottom, size_t stack_size)
+pid_t task_create_stack(task_call_cb call, void *priv,
+			caddr_t stack_bottom, size_t stack_size)
 {
 	struct task_entry *task;
 	pid_t pid;
@@ -43,6 +43,14 @@ pid_t task_create(task_call_cb call, void *priv,
 	arch_hw_init_task(task, call, priv);
 	irq_local_restore(flags);
 	return pid;
+}
+
+pid_t task_create(task_call_cb call, void *priv, size_t stack_size)
+{
+	caddr_t stack;
+
+	stack = page_alloc();
+	return task_create_stack(call, NULL, stack, stack_size);
 }
 
 void task_schedule(void)
@@ -112,12 +120,8 @@ static void task2_main(void *priv)
 
 static void task_test(void)
 {
-	caddr_t stack;
-
-	stack = page_alloc();
-	task_create(task1_main, NULL, stack, PAGE_SIZE);
-	stack = page_alloc();
-	task_create(task2_main, NULL, stack, PAGE_SIZE);
+	task_create(task1_main, NULL, PAGE_SIZE);
+	task_create(task2_main, NULL, PAGE_SIZE);
 }
 #else
 #define task_test()			do { } while (0)
