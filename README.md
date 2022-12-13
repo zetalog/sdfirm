@@ -48,6 +48,12 @@ nolib sysetm software compiler used by kernel.org:
   $ export RISCV64=1     : automatically sets CROSS_COMPILE=riscv64-linux-
   $ export RISCV64=      : automatically sets CROSS_COMPILE=riscv32-linux-
 
+Note that due to the development progress of the GNU toolchain and RISC-V
+community, there is a support variation between GCC versions around the C
+builtin functions. Thus it is not guaranteed that the following DEMOs can
+work with all GNU toolchain versions. By testing, it is working with
+upstream GCC 8.3.0 and 10.1.0.
+
 Build steps of SPIKE test benches
 -------------------------------------
 
@@ -156,7 +162,11 @@ Running Linux test bench in spike:
     $ cd ..
     $ git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
     $ git clone git://busybox.net/busybox.git
-    $ MACH=spike64 ./sdfirm/scripts/linux/build_image.sh -f
+
+Modifying sdfirm/scripts/linux/build_spike64_linux.sh to configure
+linux/busybox/sdfirm features, then:
+
+    $ ./sdfirm/scripts/linux/build_spike64_linux.sh
     $ ./sdfirm/scripts/run-spike.sh -p4 obj/sdfirm-riscv/sdfirm
 
 You can also do this in sdfirm folder if Linux image is prepared:
@@ -265,18 +275,32 @@ You can also do this in sdfirm folder if Linux image is prepared:
     [    0.010260] clocksource: Switched to clocksource riscv_clocksource
     [    0.039775] workingset: timestamp_bits=62 max_order=19 bucket_order=0
     [    0.043275] Serial: 8250/16550 driver, 1 ports, IRQ sharing disabled
-    [    0.044020] random: get_random_bytes called from init_oops_id+0x32/0x3a with crng_init=0
-    [    0.044090] Warning: unable to open an initial console.
-    [    0.044985] Freeing unused kernel memory: 564K
-    [    0.062495] Run /init as init process
+    [    0.377985] devtmpfs: mounted
+    [    0.380520] Freeing unused kernel image (initmem) memory: 8832K
+    [    0.392810] Run /sbin/init as init process
+    starting pid 37, tty '': '/etc/init.d/rcS'
+    mount: mounting none on /dev failed: Device or resource busy
+    ===== Factory Address =====
+    192.168.10.1 255.255.255.0
+    ===========================
+    starting pid 65, tty '': '/sbin/getty 115200 console vt100'
     
-    Boot took 0.06 seconds
+    sdfirm login:
+
+Using root/sdfirm as username/password to login to the console:
+
+      _      _
+     | |    (_)
+     | |     _ _ __  _   ___  __
+     | |    | | '_ \| | | \ \/ /
+     | |____| | | | | |_| |>  <
+     |______|_|_| |_|\__,_/_/\_\
+    login[65]: root login on 'console'
     
     
+    BusyBox v1.33.0.git (2022-12-13 15:05:43 CST) built-in shell (ash)
     
-    BusyBox v1.32.0.git (2020-06-17 10:28:19 CST) built-in shell (ash)
-    
-    #
+    root@sdfirm:~#
 
 Build steps of QEMU test benches
 ------------------------------------
@@ -299,7 +323,11 @@ Running Linux test bench in qemu:
     $ cd ..
     $ git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
     $ git clone git://busybox.net/busybox.git
-    $ MACH=virt64 ./sdfirm/scripts/linux/build_image.sh -f
+
+Modifying sdfirm/scripts/linux/build_virt64_linux.sh to configure
+linux/busybox/sdfirm features, then:
+
+    $ ./sdfirm/scripts/linux/build_virt64_linux.sh
     $ ./sdfirm/scripts/run-qemu.sh -p4 obj/sdfirm-riscv/sdfirm
 
 You can also do this in sdfirm folder if Linux image is prepared:
@@ -310,6 +338,12 @@ You can also do this in sdfirm folder if Linux image is prepared:
     $ make clean
     $ make
     $ ./scripts/run-qemu.sh -p4
+
+Note that QEMU contains many bugs, e.x., fails litmus memory consistency
+model tests, SSTC not supported but reported, write delegate CSR returning
+wrong read value, etc., so runing Linux kernel 5.8.0 with QEMU is
+suggested unless those issues are known to be fixed in another QEMU
+upstream version.
 
 Build steps of SPIKE baremetal litmus benches
 -------------------------------------------------
@@ -410,18 +444,22 @@ Another choice to run litmus tests is to run sdfirm as BBL and to boot a
 Linux kernel to run the litmus tests.
 
 Please refer to "Build steps of SPIKE test benches" chapter and run linux
-section. The only step you should modify is:
+section. The only thing you should do is to modify the
+build_spike64_linux.sh with the following configurations enabled:
 
-    $ export LITMUS_ROOT=<path to litmus-tests-riscv>
-    $ MACH=spike64 ./sdfirm/scripts/linux/build_image.sh -f -u -c 4
+    LITMUS_CORES=4
+    LITMUS_UPDATE=yes
+    LITMUS_DUMP=no
+    LITMUS_ROOT=<path to litmus-tests-riscv>
+    TEST_EARLY=litmus
+
+Then running the tests:
+
     $ ./sdfirm/scripts/run-spike.sh -p4 obj/sdfirm-riscv/sdfirm -u litmus.log
 
-Where "-u" enables userspace program (including litmus tests) builds and
-"-c 4" specifies 4 cores spike simulation. And in the userspace launch
-script sdfirm/scripts/linux/rootfs/etc/init.d/rcS, litmus tests will be
-automatically executed after booting Linux kernel to the userspace.
-The litmus.log files will contain litmus test result and can be used by
-mcompare to tell the test results.
+The litmus tests will be automatically executed after booting Linux kernel
+to the userspace.  The litmus.log files will contain litmus test result
+and can be used by mcompare7 to tell the test results.
 
     $ mcompare7 -nohash litmus.log ${LITMUS_ROOT}/model-results/herd.logs
 
