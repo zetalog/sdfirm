@@ -16,6 +16,7 @@
 #include <target/litmus.h>
 
 static uint8_t litmus_witness;
+bool litmus_finishing = true;
 
 int gcd(int a, int b)
 {
@@ -1495,7 +1496,8 @@ void litmus_exec(const char *test)
 void litmus_finish(void)
 {
 	/* litmus_witness == 0 means success */
-	board_finish(litmus_witness);
+	if (litmus_finishing)
+		board_finish(litmus_witness);
 }
 #endif
 

@@ -288,6 +288,7 @@ void litmus_run_start(void);
 void litmus_run_stop(void);
 bool litmus_closed(void);
 void litmus_observed(const char *cond, bool p_true, bool p_false);
+extern bool litmus_finishing;
 #ifdef CONFIG_TEST_LITMUS_FINISH
 void litmus_finish(void);
 #else

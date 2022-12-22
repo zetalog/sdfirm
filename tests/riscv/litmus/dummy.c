@@ -607,7 +607,7 @@ bool litmus_closed(void) {
   return g_n_run >= prm.max_run;
 }
 
-static int dummy(int argc, char **argv) {
+int litmus_dummy_test(int argc, char **argv) {
   g_def_all_cpus = read_force_affinity(AVAIL,0,"g_def_all_cpus");
   if (g_def_all_cpus->sz < N) {
     cpus_free(g_def_all_cpus,"g_def_all_cpus");
@@ -623,7 +623,7 @@ static int dummy(int argc, char **argv) {
   return 0;
 }
 
-DEFINE_COMMAND(dummy,dummy,"Run memory model litmus tests - dummy",
+DEFINE_COMMAND(dummy,litmus_dummy_test,"Run memory model litmus tests - dummy",
   "dummy -h\n"
   "    -display test usage\n"
 );
