@@ -1,0 +1,8 @@
+initramfs.cpio
+linux-riscv64.efi
+build
+linux.iso
+*.log
+*.txt
+*.dtb
+*.fd
