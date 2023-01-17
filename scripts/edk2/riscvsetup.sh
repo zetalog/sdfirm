@@ -1,5 +1,20 @@
 #!/bin/sh
 
+# (
+# mkdir -p uefi
+# cd uefi
+# git clone https://github.com/tianocore/edk2
+# git clone https://github.com/smarco-mc/edk2-platforms
+# (
+# cd edk2
+# git submodule update --init --recursive
+# )
+# (
+# cd edk2-platforms
+# git checkout smarco-next
+# )
+# )
+
 #EDK2_PLATFORM=riscv-edk2-platforms
 EDK2_PLATFORMS=edk2-platforms
 

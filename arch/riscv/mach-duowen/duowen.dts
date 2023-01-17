@@ -4,7 +4,7 @@
  *    Author: 2021 Lv Zheng <zhenglv@smarco.cn>
  */
 
-#include <target/arch.h>
+#include <target/config.h>
 #include <dt-bindings/clock/sbi-clock-duowen.h>
 
 /dts-v1/;
