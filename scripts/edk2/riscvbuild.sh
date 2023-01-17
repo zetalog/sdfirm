@@ -6,8 +6,6 @@ EDK2_DIR=${CURDIR}/build
 
 EDK2_REPO=$HOME/workspace/uefi/tianocore
 #EDK2_REPO=$HOME/workspace/uefi/riscv
-EDK2_SRC=${EDK2_REPO}/edk2
-EDK2_PLATFORMS_SRC=${EDK2_REPO}/edk2-platforms
 #EDK2_PLAT=U540
 EDK2_PLAT=Duowen
 
@@ -24,31 +22,66 @@ if [ "x${EDK2_PLAT}" = "xDuowen" ]; then
 	EDK2_RISCV64_MISA=rv64imafd
 fi
 
+usage()
+{
+	echo "Usage:"
+	echo "`basename $0` [-r repo]"
+	echo "Where:"
+	echo " -r:       specify repository root for edk2 and edk2-platforms"
+	echo "           default $EDK2_REPO"
+	exit $1
+}
+
+fatal_usage()
+{
+	echo $1
+	usage 1
+}
+
+while getopts "r:" opt
+do
+	case $opt in
+	r) EDK2_REPO=$OPTARG;;
+	?) echo "Invalid argument $opt"
+	   fatal_usage;;
+	esac
+done
+shift $(($OPTIND - 1))
+
+EDK2_SRC=${EDK2_REPO}/edk2
+EDK2_PLATFORMS_SRC=${EDK2_REPO}/edk2-platforms
+
 echo "Creating repository ${EDK2_DIR}..."
 
 rm -rf ${EDK2_DIR}
 mkdir -p ${EDK2_DIR}
 cp -rf ${EDK2_SRC}/* ${EDK2_DIR}/
 cp -rf ${EDK2_PLATFORMS_SRC}/* ${EDK2_DIR}/
-sed "s/\(^DEFINE\sGCC5_RISCV64_ARCH\s*=\s*\)\([0-9a-z_]*\)\(.*\)/\1${EDK2_RISCV64_MISA}\3/g" ${EDK2_DIR}/BaseTools/Conf/tools_def.template > ${EDK2_DIR}/BaseTools/Conf/tools_def.txt
-mv ${EDK2_DIR}/BaseTools/Conf/tools_def.txt ${EDK2_DIR}/BaseTools/Conf/tools_def.template
+
+# Change compiler options -march
+sed "s/\(^DEFINE\sGCC5_RISCV64_ARCH\s*=\s*\)\([0-9a-z_]*\)\(.*\)/\1${EDK2_RISCV64_MISA}\3/g" \
+    ${EDK2_DIR}/BaseTools/Conf/tools_def.template > \
+    ${EDK2_DIR}/BaseTools/Conf/tools_def.txt
+mv ${EDK2_DIR}/BaseTools/Conf/tools_def.txt \
+   ${EDK2_DIR}/BaseTools/Conf/tools_def.template
 
 (
-cd ${EDK2_DIR}
+	cd ${EDK2_DIR}
 
-export GCC5_RISCV64_PREFIX=riscv64-linux-
+	export GCC5_RISCV64_PREFIX=riscv64-linux-
 
-. ./edksetup.sh
-make -C BaseTools clean
-make -C BaseTools
-make -C BaseTools/Source/C
+	. ./edksetup.sh
+	make -C BaseTools clean
+	make -C BaseTools
+	make -C BaseTools/Source/C
 
-. ./edksetup.sh BaseTools
+	. ./edksetup.sh BaseTools
 
-export PATH=$PATH:${EDK2_DIR}/BaseTools/BinWrappers/PosixLike
-export EDK_TOOLS_PATH=${EDK2_DIR}/BaseTools
+	export PATH=$PATH:${EDK2_DIR}/BaseTools/BinWrappers/PosixLike
+	export EDK_TOOLS_PATH=${EDK2_DIR}/BaseTools
 
-EDK2_PLAT_UPPER=`echo ${EDK2_PLAT} | tr '[a-z]' '[A-Z]'`
-build -a RISCV64 -p Platform/$EDK2_DSC_PATH/${EDK2_PLAT}.dsc -t GCC5
-cp -v Build/${EDK2_FD_PATH}/DEBUG_GCC5/FV/${EDK2_PLAT_UPPER}.fd ../${EDK2_PLAT}.fd
+	EDK2_PLAT_UPPER=`echo ${EDK2_PLAT} | tr '[a-z]' '[A-Z]'`
+	build -a RISCV64 -p Platform/$EDK2_DSC_PATH/${EDK2_PLAT}.dsc -t GCC5
+	cp -v Build/${EDK2_FD_PATH}/DEBUG_GCC5/FV/${EDK2_PLAT_UPPER}.fd \
+	      ../${EDK2_PLAT}.fd
 )
