@@ -381,6 +381,7 @@ function build_sdfirm()
 		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 			O=$TOP/obj/sdfirm-$ARCH/ distclean
 	fi
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 		O=$TOP/obj/sdfirm-$ARCH/ ${MACH}_bbl_defconfig
 	ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPLE $SDFIRM_PATH/scripts/config \

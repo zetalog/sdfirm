@@ -666,7 +666,7 @@ export CPPFLAGS_sdfirm.lds += -P -C -U$(ARCH)
 # before switching between archs anyway.
 # FIXME: SDCC can not recognize cygwin's symlink
 
-include/asm:
+include/asm: FORCE
 	@echo '  SYMLINK $@ -> arch/$(ARCH)/include/asm'
 	$(Q)if [ ! -d include ]; then mkdir -p include; fi;
 	@$(SYMLINK) $(TOPDIR)/arch/$(ARCH)/include/asm $@
