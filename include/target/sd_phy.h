@@ -481,6 +481,7 @@ typedef struct {
 	sd_ssr_t sd_status;			\
 	bool scr_valid;				\
 	bool ssr_valid;				\
+	bool inquiry_ocr;			\
 	bool voltage_ready;			\
 	uint8_t card_version;			\
 	uint32_t wr_blk_erase_count : 23;	\

@@ -369,6 +369,16 @@ static int do_dpu_pll2(int argc, char *argv[])
 	return -EINVAL;
 }
 
+#ifdef CONFIG_DPU_EARLY_PUTCH
+void dpu_early_putch(uint8_t ch)
+{
+	typedef void (*early_putch_cb)(uint8_t);
+	early_putch_cb func = (early_putch_cb)EARLY_PUTCH;
+
+	func(ch);
+}
+#endif
+
 static int do_dpu_shutdown(int argc, char *argv[])
 {
 	board_shutdown();

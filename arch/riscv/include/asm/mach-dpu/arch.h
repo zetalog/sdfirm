@@ -69,6 +69,9 @@
  * instructions, registers.
  */
 
+#ifdef CONFIG_DPU_EARLY_PUTCH
+#define EARLY_PUTCH		CONFIG_DPU_EARLY_PUTCH_ADDRESS
+#endif
 #if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
 	.macro	boot0_hook
 #ifdef CONFIG_DPU_APC_INIT_CPU
@@ -81,6 +84,12 @@
 #ifdef CONFIG_DPU_APC_INIT_PMA
 	jal	ra, dpu_pma_cpu_init
 #endif /* CONFIG_DPU_APC_INIT_PMA */
+	.endm
+	.macro	boot_putch ch
+#ifdef CONFIG_DPU_EARLY_PUTCH
+	li	a0, \ch
+	jal	ra, dpu_early_putch
+#endif
 	.endm
 #endif /* __ASSEMBLY__ && !__DTS__ && !LINKER_SCRIPT */
 
@@ -98,6 +107,11 @@ void dpu_mmu_dump_maps(void);
 void dpu_mmu_map_uart(int n);
 void dpu_mmu_map_gpio(void);
 void dpu_mmu_map_pll(void);
+#endif
+#ifdef CONFIG_DPU_EARLY_PUTCH
+void dpu_early_putch(uint8_t ch);
+#else
+#define dpu_early_putch(ch)	do { } while (0)
 #endif
 #endif /* __ASSEMBLY__ */
 

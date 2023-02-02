@@ -49,7 +49,7 @@ void mmc_hw_spi_init(void)
 	board_init_clock();
 	sifive_qspi_chip_mode(SPI_FLASH_ID, QSPI_MODE_OFF);
 	sifive_qspi_chip_select(SPI_FLASH_ID, 0);
-	mmc_slot_ctrl.host_ocr = SD_OCR_HCS | MMC_OCR_DUAL_VOLTAGE;
+	mmc_slot_ctrl.host_ocr = SD_OCR_HCS | MMC_OCR_DUAL_VOLTAGES;
 }
 
 void mmc_hw_card_detect(void)

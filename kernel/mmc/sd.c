@@ -678,12 +678,8 @@ void mmc_phy_handle_stm(void)
 			 */
 			if (mmc_err_is(MMC_ERR_CARD_NON_COMP_VOLT) ||
 			    mmc_err_is(MMC_ERR_TIMEOUT)) {
-#if 0
-				if (!mmc_next_vhs())
-					sd_state_enter_ina();
-				else
-#endif
-					mmc_state_enter(idle);
+				mmc_slot_ctrl.inquiry_ocr = true;
+				sd_state_enter(ver);
 			}
 			unraise_bits(flags, MMC_EVENT_CMD_FAILURE);
 		}
@@ -846,14 +842,21 @@ void sd_resp_r2(void)
 bool sd_resp_r3(void)
 {
 	mmc_r3_t r3;
+	uint32_t ocr;
 
 	mmc_hw_recv_response(r3, 4);
-	mmc_slot_ctrl.card_ocr = sd_decode_ocr(r3);
-	if (!(mmc_slot_ctrl.card_ocr & MMC_OCR_BUSY)) {
-		mmc_rsp_failure(MMC_ERR_CARD_IS_BUSY);
-		return false;
+	ocr = sd_decode_ocr(r3);
+	if (mmc_slot_ctrl.inquiry_ocr)
+		mmc_slot_ctrl.host_ocr &= MMC_OCR_VOLTAGE_RANGE(ocr);
+	else {
+		if (ocr & MMC_OCR_BUSY) {
+			mmc_rsp_failure(MMC_ERR_CARD_IS_BUSY);
+			return false;
+		}
+		mmc_slot_ctrl.card_ocr = ocr;
+		mmc_slot_ctrl.ocr_valid = true;
 	}
-	mmc_slot_ctrl.ocr_valid = true;
+	mmc_slot_ctrl.inquiry_ocr = false;
 	return true;
 }
 
@@ -992,7 +995,10 @@ void sd_send_acmd(void)
 		break;
 	case SD_ACMD_SEND_OP_COND:
 		mmc_slot_ctrl.rsp = MMC_R3;
-		arg = mmc_slot_ctrl.host_ocr;
+		if (mmc_slot_ctrl.inquiry_ocr)
+			arg = 0;
+		else
+			arg = mmc_slot_ctrl.host_ocr;
 		break;
 	case SD_ACMD_SET_CLR_CARD_DETECT:
 		mmc_slot_ctrl.rsp = MMC_R1;
