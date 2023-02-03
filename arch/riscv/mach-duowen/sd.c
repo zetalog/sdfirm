@@ -61,8 +61,8 @@ void duowen_sd_power(void)
 
 static inline void duowen_sd_gpio(uint16_t pin, uint8_t pad, uint8_t mux)
 {
-	gpio_config_pad(GPIO1A, pin, pad, 8);
 	gpio_config_mux(GPIO1A, pin, mux);
+	gpio_config_pad(GPIO1A, pin, pad, 8);
 }
 #endif
 

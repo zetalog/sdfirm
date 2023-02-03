@@ -46,11 +46,11 @@ static inline void uart_config_pad(bool rxtx, uint16_t pin,
 				   uint8_t pad, uint8_t func)
 {
 	if (rxtx) {
-		gpio_config_pad(UART_CON_PORT_DATA, pin, pad, 8);
 		gpio_config_mux(UART_CON_PORT_DATA, pin, func);
+		gpio_config_pad(UART_CON_PORT_DATA, pin, pad, 8);
 	} else {
-		gpio_config_pad(UART_CON_PORT_CTRL, pin, pad, 8);
 		gpio_config_mux(UART_CON_PORT_CTRL, pin, func);
+		gpio_config_pad(UART_CON_PORT_CTRL, pin, pad, 8);
 	}
 }
 

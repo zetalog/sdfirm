@@ -52,8 +52,8 @@ mtd_t board_flash = INVALID_MTD_ID;
 
 static inline void spi_config_pad(uint16_t pin, uint8_t pad, uint8_t func)
 {
-	gpio_config_pad(SSI_PORT, pin, pad, 8);
 	gpio_config_mux(SSI_PORT, pin, func);
+	gpio_config_pad(SSI_PORT, pin, pad, 8);
 }
 
 void spi_hw_ctrl_init(void)
