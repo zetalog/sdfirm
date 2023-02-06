@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Jun 27 10:06:16 2022
+# Mon Feb  6 16:46:56 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -62,7 +62,9 @@ CONFIG_CONSOLE_VERBOSE=y
 #
 CONFIG_ARCH_DUOWEN=y
 # CONFIG_ARCH_DPU is not set
+# CONFIG_ARCH_GUANGMU is not set
 # CONFIG_ARCH_VAISRA is not set
+# CONFIG_ARCH_VIRAPA is not set
 # CONFIG_ARCH_DPULP is not set
 # CONFIG_ARCH_UNLEASHED is not set
 # CONFIG_ARCH_K210 is not set
@@ -292,6 +294,11 @@ CONFIG_DUOWEN_FLASH_SS_8=y
 # CONFIG_DUOWEN_SD is not set
 # CONFIG_DUOWEN_PCIE is not set
 # CONFIG_DUOWEN_SMMU is not set
+
+#
+# Duowen DMA controller test support
+#
+# CONFIG_DUOWEN_DMA_TEST_SBI is not set
 # CONFIG_DUOWEN_DMAC is not set
 
 #
@@ -312,6 +319,7 @@ CONFIG_DUOWEN_FLASH_SS_8=y
 # CONFIG_DUOWEN_DDR_128G is not set
 # CONFIG_DUOWEN_DDR_256G is not set
 CONFIG_DUOWEN_DDR_512G=y
+# CONFIG_DUOWEN_PMA_DDR_NONCACHEABLE is not set
 CONFIG_DUOWEN_DDR_DUAL_SOC0=y
 # CONFIG_DUOWEN_DDR_DUAL_SOC1 is not set
 # CONFIG_DUOWEN_ETH is not set
@@ -514,6 +522,7 @@ CONFIG_DW_UART_FIFO_MEM_USER=y
 # CONFIG_DW_UART_ADDITIONAL_FEATURES is not set
 # CONFIG_UART_PL01X is not set
 # CONFIG_SEGGER_RTT is not set
+# CONFIG_DW_UART_BIRD is not set
 
 #
 # I2C host drivers
@@ -596,6 +605,7 @@ CONFIG_SPD_BUS_KHZ=60
 CONFIG_ARCH_HAS_NOC=y
 # CONFIG_NCORE is not set
 # CONFIG_MONACO is not set
+# CONFIG_CCN512 is not set
 
 #
 # Network drivers
