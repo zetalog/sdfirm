@@ -144,6 +144,8 @@ build_sdfirm riscv64 duowen_xsbl_apc
 ###########################################################################
 # DUOWEN simulations
 ###########################################################################
+build_sdfirm riscv64 duowen_spi_imc
+build_sdfirm riscv64 duowen_spi_apc
 build_sdfirm riscv64 duowen_ram_imc
 build_sdfirm riscv64 duowen_ram_apc
 build_sdfirm riscv64 duowen_ddr

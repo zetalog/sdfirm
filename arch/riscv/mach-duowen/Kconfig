@@ -418,14 +418,22 @@ endchoice
 choice
 	prompt "Testbench residence"
 	depends DUOWEN_TB
-	default DUOWEN_TB_RAM if DUOWEN_IMC
-	default DUOWEN_TB_DDR if DUOWEN_APC
+	default DUOWEN_TB_SPI if !SIMULATION
+	default DUOWEN_TB_RAM if (SIMULATION && DUOWEN_IMC)
+	default DUOWEN_TB_DDR if (SIMULATION && DUOWEN_APC)
+
+config DUOWEN_TB_SPI
+	bool "SPI"
+	depends !SIMULATION
+	select DUOWEN_BOOT_APC if DUOWEN_APC
 
 config DUOWEN_TB_RAM
 	bool "RAM"
+	select DUOWEN_BOOT_APC if (SIMULATION && DUOWEN_APC)
 
 config DUOWEN_TB_DDR
 	bool "DDR"
+	select DUOWEN_BOOT_APC if (SIMULATION && DUOWEN_APC)
 
 endchoice
 

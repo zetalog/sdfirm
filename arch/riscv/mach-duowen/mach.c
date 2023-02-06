@@ -423,7 +423,7 @@ void board_boot_early(void)
 }
 #endif /* CONFIG_DUOWEN_LOAD_FLASH */
 
-#ifdef CONFIG_DUOWEN_BOOT_APC
+#if defined(CONFIG_DUOWEN_BOOT_APC) && !defined(CONFIG_DUOWEN_TB)
 #ifdef CONFIG_DUOWEN_SIM_ROM_FINISH
 #define duowen_load_ddr()		msg_imc_success()
 #else
