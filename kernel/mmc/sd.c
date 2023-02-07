@@ -664,6 +664,7 @@ void mmc_phy_handle_stm(void)
 	/* identification mode */
 	} else if (mmc_state_is(idle)) {
 		if (flags & MMC_EVENT_CMD_SUCCESS) {
+			mmc_slot_ctrl.inquiry_ocr = true;
 			sd_state_enter(ver);
 			unraise_bits(flags, MMC_EVENT_CMD_SUCCESS);
 		}
@@ -843,13 +844,18 @@ bool sd_resp_r3(void)
 {
 	mmc_r3_t r3;
 	uint32_t ocr;
+	uint32_t voltages;
 
 	mmc_hw_recv_response(r3, 4);
 	ocr = sd_decode_ocr(r3);
-	if (mmc_slot_ctrl.inquiry_ocr)
-		mmc_slot_ctrl.host_ocr &= MMC_OCR_VOLTAGE_RANGE(ocr);
-	else {
-		if (ocr & MMC_OCR_BUSY) {
+	if (mmc_slot_ctrl.inquiry_ocr) {
+		voltages = mmc_slot_ctrl.host_ocr &
+		       MMC_OCR_VOLTAGE_RANGE(ocr);
+		mmc_slot_ctrl.host_ocr &=
+			~MMC_OCR_VOLTAGE_RANGE(MMC_OCR_DUAL_VOLTAGES);
+		mmc_slot_ctrl.host_ocr |= voltages;
+	} else {
+		if (!(ocr & MMC_OCR_BUSY)) {
 			mmc_rsp_failure(MMC_ERR_CARD_IS_BUSY);
 			return false;
 		}
