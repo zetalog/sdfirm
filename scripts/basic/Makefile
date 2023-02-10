@@ -9,7 +9,7 @@
 # fixdep: 	 Used to generate dependency information during build process
 # docproc:	 Used in Documentation/docbook
 
-hostprogs-y	:= fixdep docproc srec2vhx mksunxiboot
+hostprogs-y	:= fixdep docproc srec2vhx mksunxiboot convertflash
 always		:= $(hostprogs-y)
 
 # fixdep is needed to compile other host programs
