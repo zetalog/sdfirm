@@ -80,26 +80,40 @@
 #define CSR_STVAL		0x143
 #define CSR_SIP			0x144
 #define CSR_SATP		0x180
+#define CSR_SCONTEXT		0x5A8
 #endif
 #ifdef CONFIG_CPU_H
-#define CSR_HSTATUS		0xA00
-#define CSR_HEDELEG		0xA02
-#define CSR_HIDELEG		0xA03
-#define CSR_HGATP		0xA80
-#define CSR_BSSTATUS		0x200
-#define CSR_BSIE		0x204
-#define CSR_BSTVEC		0x205
-#define CSR_BSSCRATCH		0x240
-#define CSR_BSEPC		0x241
-#define CSR_BSCAUSE		0x242
-#define CSR_BSTVAL		0x243
-#define CSR_BSIP		0x244
-#define CSR_BSATP		0x280
+#define CSR_HSTATUS		0x600
+#define CSR_HEDELEG		0x602
+#define CSR_HIDELEG		0x603
+#define CSR_HIE			0x604
+#define CSR_HCOUNNTEREN		0x606
+#define CSR_HTVAL		0x643
+#define CSR_HIP			0x644
+#define CSR_HVIP		0x645
+#define CSR_HTINST		0x64A
+#define CSR_HGEIP		0xE12
+#define CSR_HENVCFG		0x60A
+#define CSR_HENVCFGH		0x61A
+#define CSR_HGATP		0x680
+#define CSR_HCONTEXT		0x6A8
+#define CSR_HTIMEDELTA		0x605
+#define CSR_HTIMEDELTAH		0x615
+#define CSR_VSSTATUS		0x200
+#define CSR_VSIE		0x204
+#define CSR_VSTVEC		0x205
+#define CSR_VSSCRATCH		0x240
+#define CSR_VSEPC		0x241
+#define CSR_VSCAUSE		0x242
+#define CSR_VSTVAL		0x243
+#define CSR_VSIP		0x244
+#define CSR_VSATP		0x280
 #endif
 #define CSR_MVENDORID		0xF11
 #define CSR_MARCHID		0xF12
 #define CSR_MIMPID		0xF13
 #define CSR_MHARTID		0xF14
+#define CSR_MCONFIGPTR		0xF15
 #define CSR_MSTATUS		0x300
 #define CSR_MISA		0x301
 #define CSR_MEDELEG		0x302
@@ -107,11 +121,18 @@
 #define CSR_MIE			0x304
 #define CSR_MTVEC		0x305
 #define CSR_MCOUNTEREN		0x306
+#define CSR_MSTATUSH		0x310
 #define CSR_MSCRATCH		0x340
 #define CSR_MEPC		0x341
 #define CSR_MCAUSE		0x342
 #define CSR_MTVAL		0x343
 #define CSR_MIP			0x344
+#define CSR_MTINST		0x34A
+#define CSR_MTVAL2		0x34B
+#define CSR_MENVCFG		0x30A
+#define CSR_MENVCFGH		0x31A
+#define CSR_MSECCFG		0x747
+#define CSR_MSECCFGH		0x757
 #ifdef CONFIG_CPU_PMP
 #define CSR_PMPCFG(n)		(0x3A0+(n)) /* n=0..3 */
 #define CSR_PMPADDR(n)		(0x3B0+(n)) /* n=0..15 */
@@ -128,6 +149,7 @@
 #define CSR_TDATA1		0x7A1
 #define CSR_TDATA2		0x7A2
 #define CSR_TDATA3		0x7A3
+#define CSR_MCONTEXT		0x7A8
 #define CSR_DCSR		0x7B0
 #define CSR_DPC			0x7B1
 #define CSR_DSCRATCH0		0x7B2
@@ -136,10 +158,7 @@
 /* MSTATUS/SSTATUS/HSTATUS/BSSTATUS */
 #define SR_UIE		_AC(0x00000001, UL) /* User Interrupt Enable */
 #define SR_UPIE		_AC(0x00000010, UL) /* User Previous IE */
-#define SR_MIE		_AC(0x00000008, UL) /* Machine Interrupt Enable */
-#define SR_MPIE		_AC(0x00000080, UL) /* Machine Previous IE */
-#define SR_MPP_SHIFT	11
-#define SR_MPP		_AC(0x00001800, UL) /* Previously Machine */
+#define SR_UBE		_AC(0x00000040, UL)
 #ifdef CONFIG_CPU_S
 #define SR_SIE		_AC(0x00000002, UL) /* Supervisor Interrupt Enable */
 #define SR_SPIE		_AC(0x00000020, UL) /* Supervisor Previous IE */
@@ -152,7 +171,19 @@
 #define SR_HPIE		_AC(0x00000040, UL) /* Hypervisor Previous IE */
 #define SR_HPP		_AC(0x00000600, UL) /* Previously Hypervisor */
 #endif
-
+#define SR_MIE		_AC(0x00000008, UL) /* Machine Interrupt Enable */
+#define SR_MPIE		_AC(0x00000080, UL) /* Machine Previous IE */
+#define SR_MPP_SHIFT	11
+#define SR_MPP		_AC(0x00001800, UL) /* Previously Machine */
+#define SR_MPRV		_AC(0x00020000, UL)
+#define SR_MXR		_AC(0x00080000, UL)
+#define SR_VS		_AC(0x00000600, UL) /* Vector extension */
+#ifdef CONFIG_CPU_V
+#define SR_VS_OFF	_AC(0x00000000, UL)
+#define SR_VS_INITIAL	_AC(0x00000200, UL)
+#define SR_VS_CLEAN	_AC(0x00000400, UL)
+#define SR_VS_DIRTY	_AC(0x00000600, UL)
+#endif
 #define SR_FS		_AC(0x00006000, UL) /* Floating-point Status */
 #ifdef CONFIG_CPU_F
 #define SR_FS_OFF	_AC(0x00000000, UL)
@@ -160,15 +191,6 @@
 #define SR_FS_CLEAN	_AC(0x00004000, UL)
 #define SR_FS_DIRTY	_AC(0x00006000, UL)
 #endif
-
-#define SR_VS		_AC(0x01800000, UL) /* Vector extension */
-#ifdef CONFIG_CPU_V
-#define SR_VS_OFF	_AC(0x00000000, UL)
-#define SR_VS_INITIAL	_AC(0x00800000, UL)
-#define SR_VS_CLEAN	_AC(0x01000000, UL)
-#define SR_VS_DIRTY	_AC(0x01800000, UL)
-#endif
-
 #define SR_XS		_AC(0x00018000, UL) /* Extension Status */
 #define SR_XS_OFF	_AC(0x00000000, UL)
 #define SR_XS_INITIAL	_AC(0x00008000, UL)
@@ -180,30 +202,32 @@
 #else
 #define SR_SD		_AC(0x8000000000000000, UL) /* FS/XS dirty */
 #endif
-
-#define SR_MPRV		_AC(0x00020000, UL)
-#define SR_MXR		_AC(0x00080000, UL)
 #define SR_TVM		_AC(0x00100000, UL)
 #define SR_TW		_AC(0x00200000, UL)
 #define SR_TSR		_AC(0x00400000, UL)
 #ifdef CONFIG_64BIT
 #define SR_UXL		_AC(0x0000000300000000, UL)
 #define SR_SXL		_AC(0x0000000C00000000, UL)
+#define SR_SBE		_AC(0x0000001000000000, UL)
+#define SR_MBE		_AC(0x0000002000000000, UL)
+#else
+#define SR_SBE		_AC(0x00000010, UL)
+#define SR_MBE		_AC(0x00000020, UL)
 #endif
 
 /* MIP/MIE/SIP/SIE/BSIP/BSIE */
-#define IR_USI			(_AC(0x1, UL) << IRQ_U_SOFT)
-#define IR_UTI			(_AC(0x1, UL) << IRQ_U_TIMER)
-#define IR_UEI			(_AC(0x1, UL) << IRQ_U_EXT)
-#define IR_SSI			(_AC(0x1, UL) << IRQ_S_SOFT)
-#define IR_STI			(_AC(0x1, UL) << IRQ_S_TIMER)
-#define IR_SEI			(_AC(0x1, UL) << IRQ_S_EXT)
-#define IR_HSI			(_AC(0x1, UL) << IRQ_H_SOFT)
-#define IR_HTI			(_AC(0x1, UL) << IRQ_H_TIMER)
-#define IR_HEI			(_AC(0x1, UL) << IRQ_H_EXT)
-#define IR_MSI			(_AC(0x1, UL) << IRQ_M_SOFT)
-#define IR_MTI			(_AC(0x1, UL) << IRQ_M_TIMER)
-#define IR_MEI			(_AC(0x1, UL) << IRQ_M_EXT)
+#define IR_USI		(_AC(0x1, UL) << IRQ_U_SOFT)
+#define IR_UTI		(_AC(0x1, UL) << IRQ_U_TIMER)
+#define IR_UEI		(_AC(0x1, UL) << IRQ_U_EXT)
+#define IR_SSI		(_AC(0x1, UL) << IRQ_S_SOFT)
+#define IR_STI		(_AC(0x1, UL) << IRQ_S_TIMER)
+#define IR_SEI		(_AC(0x1, UL) << IRQ_S_EXT)
+#define IR_HSI		(_AC(0x1, UL) << IRQ_H_SOFT)
+#define IR_HTI		(_AC(0x1, UL) << IRQ_H_TIMER)
+#define IR_HEI		(_AC(0x1, UL) << IRQ_H_EXT)
+#define IR_MSI		(_AC(0x1, UL) << IRQ_M_SOFT)
+#define IR_MTI		(_AC(0x1, UL) << IRQ_M_TIMER)
+#define IR_MEI		(_AC(0x1, UL) << IRQ_M_EXT)
 
 /* SATP/HGATP */
 #ifndef CONFIG_64BIT
@@ -213,10 +237,32 @@
 #define ATP_PPN		_AC(0x00000FFFFFFFFFFF, UL)
 #define ATP_MODE_39	_AC(0x8000000000000000, UL)
 #define ATP_MODE_48	_AC(0x9000000000000000, UL)
+#define ATP_MODE_57	_AC(0xA000000000000000, UL)
+#define ATP_MODE_64	_AC(0xB000000000000000, UL)
 #endif
 
 /* MCAUSE/SCAUSE/BSCAUSE */
-#define ICR_IRQ_FLAG			(_AC(1, UL) << (__riscv_xlen - 1))
+#define ICR_IRQ_FLAG	(_AC(1, UL) << (__riscv_xlen - 1))
+
+/* MENVCFG */
+#define ECR_FIOM	_AC(0x00000001, UL) /* Fence of IO implies memory */
+#define ECR_CBIE	_AC(0x00000030, UL) /* Zicbom extension */
+#define ECR_CBCFE	_AC(0x00000040, UL) /* Zicbom extension */
+#define ECR_CBZE	_AC(0x00000080, UL) /* Zicboz extension */
+#ifdef CONFIG_64BIT
+#define ECR_PBMTE	_AC(0x4000000000000000, UL) /* Svpbmt extension */
+#define ECR_STCE	_AC(0x8000000000000000, UL) /* Sstc extension */
+#else
+#define ECR_PBMTE	_AC(0x40000000, UL) /* Svpbmt extension */
+#define ECR_STCE	_AC(0x80000000, UL) /* Sstc extension */
+#endif
+
+/* MSECCFG */
+#define SCR_MML		_AC(0x00000001, UL)
+#define SCR_MMWP	_AC(0x00000002, UL)
+#define SCR_RLB		_AC(0x00000004, UL)
+#define SCR_USEED	_AC(0x00000100, UL)
+#define SCR_SSEED	_AC(0x00000200, UL)
 
 #define PRV_U				0
 #define PRV_S				1

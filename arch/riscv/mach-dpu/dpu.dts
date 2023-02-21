@@ -13,9 +13,9 @@
 	chosen {
 #ifdef CONFIG_DPU_UART_DTS_CON
 		bootargs = [00];
-		stdout-path = "/uart@4015000 rdinit=/sbin/init";
+		stdout-path = "/uart@4015000 rdinit=/sdfirm_init";
 #else
-		bootargs = "console=hvc0 earlycon=sbi rdinit=/sbin/init";
+		bootargs = "console=hvc0 earlycon=sbi rdinit=/sdfirm_init";
 #endif
 	};
 
