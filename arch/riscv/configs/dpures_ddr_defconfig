@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri May  6 12:13:28 2022
+# Tue Feb 21 16:55:22 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -62,7 +62,9 @@ CONFIG_CONSOLE_VERBOSE=y
 #
 # CONFIG_ARCH_DUOWEN is not set
 CONFIG_ARCH_DPU=y
+# CONFIG_ARCH_GUANGMU is not set
 # CONFIG_ARCH_VAISRA is not set
+# CONFIG_ARCH_VIRAPA is not set
 # CONFIG_ARCH_DPULP is not set
 # CONFIG_ARCH_UNLEASHED is not set
 # CONFIG_ARCH_K210 is not set
@@ -82,14 +84,14 @@ CONFIG_RISCV_64I=y
 # ISA extensions
 #
 CONFIG_CPU_S=y
-CONFIG_CPU_ZIFENCEI=y
-CONFIG_CPU_ZICSR=y
 CONFIG_CPU_M=y
 CONFIG_CPU_A=y
 CONFIG_CPU_F=y
 CONFIG_CPU_D=y
 CONFIG_CPU_C=y
 CONFIG_CPU_COUNTERS=y
+CONFIG_CPU_ZIFENCEI=y
+CONFIG_CPU_ZICSR=y
 CONFIG_CPU_SV39=y
 CONFIG_RISCV_S=y
 CONFIG_RISCV_M=y
@@ -428,6 +430,7 @@ CONFIG_DW_UART_FIFO_MEM_INTERNAL=y
 # CONFIG_DW_UART_ADDITIONAL_FEATURES is not set
 # CONFIG_UART_PL01X is not set
 # CONFIG_SEGGER_RTT is not set
+# CONFIG_DW_UART_BIRD is not set
 
 #
 # I2C host drivers
@@ -504,6 +507,7 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # CONFIG_NCORE is not set
 # CONFIG_MONACO is not set
+# CONFIG_CCN512 is not set
 
 #
 # Network drivers

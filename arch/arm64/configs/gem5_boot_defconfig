@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri May  6 10:53:31 2022
+# Tue Feb 21 16:46:10 2023
 #
 CONFIG_ARM64=y
 
@@ -280,6 +280,7 @@ CONFIG_ARCH_IS_UART_PL011=y
 CONFIG_UART_PL011=y
 # CONFIG_UART_PL01X_SBSA is not set
 # CONFIG_SEGGER_RTT is not set
+# CONFIG_DW_UART_BIRD is not set
 
 #
 # I2C host drivers
@@ -355,6 +356,7 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # CONFIG_NCORE is not set
 # CONFIG_MONACO is not set
+# CONFIG_CCN512 is not set
 
 #
 # Network drivers

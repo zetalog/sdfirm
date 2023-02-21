@@ -437,6 +437,7 @@ config RISCV_SVPBMT
 
 config RISCV_SVINVAL
 	bool "Fine grained invalidation and ordering (Svinval) support"
+	depends CPU_SVINVAL
 
 config RISCV_SSTC
 	bool "Supervisor-level time compare (Sstc) support"
