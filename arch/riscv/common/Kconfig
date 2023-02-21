@@ -62,6 +62,8 @@ config CPU_C910
 	select CPU_SV39
 	select CPU_PMP
 	select CPU_WMO
+	select CPU_SVPBMT
+	select CPU_SSTC
 
 # RI5CY
 config CPU_RI5CY
@@ -214,12 +216,6 @@ menu "ISA extensions"
 config CPU_S
 	bool
 
-config CPU_ZIFENCEI
-	bool
-
-config CPU_ZICSR
-	bool
-
 config CPU_M
 	bool
 
@@ -240,12 +236,6 @@ config CPU_Q
 	select CPU_D
 
 config CPU_C
-	bool
-
-config CPU_ZTSO
-	bool
-
-config CPU_COUNTERS
 	bool
 
 config CPU_L
@@ -269,10 +259,45 @@ config CPU_V
 config CPU_N
 	bool
 
+config CPU_H
+	bool
+
+config CPU_COUNTERS
+	bool
+
 config CPU_ZAM
 	bool
 
-config CPU_H
+config CPU_ZIFENCEI
+	bool
+
+config CPU_ZICSR
+	bool
+
+config CPU_ZTSO
+	bool
+
+config CPU_ZICBOZ
+	bool
+
+config CPU_ZICBOP
+	bool
+
+config CPU_ZICBOM
+	bool
+
+config CPU_SSTC
+	bool
+
+config CPU_SVNAPOT
+	bool
+	depends CPU_SV39
+
+config CPU_SVPBMT
+	bool
+	depends CPU_SV39 || CPU_SV48 || CPU_SV57
+
+config CPU_SVINVAL
 	bool
 
 config CPU_PMA
@@ -293,6 +318,12 @@ config CPU_SV39
 	select ARCH_HAS_MMU_HUGE
 
 config CPU_SV48
+	bool
+	depends 64BIT && RISCV_EXIT_S
+	select ARCH_HAS_MMU
+	select ARCH_HAS_MMU_HUGE
+
+config CPU_SV57
 	bool
 	depends 64BIT && RISCV_EXIT_S
 	select ARCH_HAS_MMU
@@ -381,6 +412,35 @@ config RISCV_ZAM
 	bool "Misaligned atomics (Zam) support"
 	depends CPU_ZAM
 	default y
+
+config RISCV_ZICBOM
+	bool "Cache-block management (Zicbom) support"
+	depends CPU_ZICBOM
+
+config RISCV_ZICBOP
+	bool "Cache-block prefetch (Zicbop) support"
+	depends CPU_ZICBOP
+
+config RISCV_ZICBOZ
+	bool "Cache-block zero (Zecboz) support"
+	depends CPU_ZICBOZ
+
+config RISCV_SVNAPOT
+	bool "Sv39 NAPOT page size (Svnapot) support"
+	depends CPU_SVNAPOT
+	depends RISCV_SV39
+
+config RISCV_SVPBMT
+	bool "Sv39/Sv48/Sv57 page base memory types (Svpbmt) support"
+	depends CPU_SVPBMT
+	depends RISCV_SV39 || RISCV_SV48 || RISCV_SV57
+
+config RISCV_SVINVAL
+	bool "Fine grained invalidation and ordering (Svinval) support"
+
+config RISCV_SSTC
+	bool "Supervisor-level time compare (Sstc) support"
+	depends CPU_SSTC
 
 config RISCV_PMA
 	bool "Physical address attributes (PMA) support"

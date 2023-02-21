@@ -246,15 +246,40 @@
 
 /* MENVCFG */
 #define ECR_FIOM	_AC(0x00000001, UL) /* Fence of IO implies memory */
+#ifdef CONFIG_RISCV_ZICBOM
 #define ECR_CBIE	_AC(0x00000030, UL) /* Zicbom extension */
 #define ECR_CBCFE	_AC(0x00000040, UL) /* Zicbom extension */
+#else /* CONFIG_RISCV_ZICBOM */
+#define ECR_CBIE	_AC(0x00000000, UL) /* Zicbom extension */
+#define ECR_CBCFE	_AC(0x00000000, UL) /* Zicbom extension */
+#endif /* CONFIG_RISCV_ZICBOM */
+#ifdef CONFIG_RISCV_ZICBOZ
 #define ECR_CBZE	_AC(0x00000080, UL) /* Zicboz extension */
+#else /* CONFIG_RISCV_ZICBOZ */
+#define ECR_CBZE	_AC(0x00000000, UL) /* Zicboz extension */
+#endif /* CONFIG_RISCV_ZICBOZ */
 #ifdef CONFIG_64BIT
+#ifdef CONFIG_RISCV_SVPBMT
 #define ECR_PBMTE	_AC(0x4000000000000000, UL) /* Svpbmt extension */
+#else /* CONFIG_RISCV_SVPBMT */
+#define ECR_PBMTE	_AC(0x0000000000000000, UL) /* Svpbmt extension */
+#endif /* CONFIG_RISCV_SVPBMT */
+#ifdef CONFIG_RISCV_SSTC
 #define ECR_STCE	_AC(0x8000000000000000, UL) /* Sstc extension */
+#else /* CONFIG_RISCV_SSTC */
+#define ECR_STCE	_AC(0x0000000000000000, UL) /* Sstc extension */
+#endif /* CONFIG_RISCV_SSTC */
 #else
+#ifdef CONFIG_RISCV_SVPBMT
 #define ECR_PBMTE	_AC(0x40000000, UL) /* Svpbmt extension */
+#else /* CONFIG_RISCV_SVPBMT */
+#define ECR_PBMTE	_AC(0x00000000, UL) /* Svpbmt extension */
+#endif /* CONFIG_RISCV_SVPBMT */
+#ifdef CONFIG_RISCV_SSTC
 #define ECR_STCE	_AC(0x80000000, UL) /* Sstc extension */
+#else /* CONFIG_RISCV_SSTC */
+#define ECR_STCE	_AC(0x00000000, UL) /* Sstc extension */
+#endif /* CONFIG_RISCV_SSTC */
 #endif
 
 /* MSECCFG */
