@@ -45,12 +45,63 @@
 #include <target/generic.h>
 
 #ifdef CONFIG_CPU_VAISRA
+/* System control */
 #define CSR_SSYSCFG		0x5DE /* control guest/user */
 #define CSR_HSYSCFG		0x6C0 /* control host/user */
 #define CSR_MSYSCFG		0x7E6 /* control machine mode */
+#define CSR_NMICFG		0x7E8 /* NMI control */
+#define CSR_MTRPCFG		0x7E9 /* control machine mode trap */
+#define CSR_SCPMCFG		0x5CB /* clock and PM control */
 
+/* BP */
+#define CSR_SBPCFG		0x5C2 /* branch predictor config register */
+#define CSR_SBPDAT		0x5C3 /* branch predictor data register */
+#define CSR_SBPTAG0		0x5C4 /* branch predictor tag0 */
+#define CSR_SBPTAG1		0x5C5 /* branch predictor tag1 */
+#define CSR_SBPTAG2		0x5C6 /* branch predictor tag2 */
+#define CSR_SBPUBTCFG		0x5C7 /* unresolved branch throttle config */
+#define CSR_SBPUBTTHR		0x5C8 /* unresolved branch throttle threshold */
+
+/* L1 */
+#define CSR_SICECFG		0x5D0 /* inst cache error config */
+#define CSR_SICESTS		0x5D1 /* inst cache error status */
+#define CSR_SDCCFG		0x5CC /* data cache config */
+#define CSR_SDCECFG		0x5CD /* data cache error config */
+#define CSR_SDCESTS		0x5CE /* data cache error status */
+
+/* L2 */
+#define CSR_SL2CPUSRDAT		0x5D2 /* L2 register data */
+#define CSR_SL2CPUSRSEL		0x5D3 /* L2 register selection */
+
+/* TLB */
+#define CSR_STLBCFG		0x5D4 /* TLB control */
+
+/* Cache coherency policy */
+#define CSR_SCCPCFG		0x5C9
+#define CSR_MCCPCFG		0x7E2
+
+/* Processor verification */
+#define CSR_SVRF2F0		0x5E7 /* 0x2F0 */
+#define CSR_SVRF2F1		0x5E8 /* 0x2F1 */
+#define CSR_SVRF2F2		0x5E9 /* 0x2F2 */
+#define CSR_SVRF2F3		0x5EA /* 0x2F3 */
+
+/* CSR_xSYSCFG register bits */
 #define SCR_DC			_BV(2)	/* Dcache on/off */
 #define SCR_IC			_BV(12)	/* Icache on/off */
+
+/* L2CSR registers */
+#define L2CFG_IA		0x000 /* L2 config */
+#define L2LCK_IA		0x100 /* L2 lock control */
+#define L2CPM_IA		0x500 /* L2 clock and PM */
+#define L2BC0_IA		0x008 /* L2 bus control 0 */
+#define L2BC1_IA		0x009 /* L2 bus control 1 */
+#define L2ECFG0_IA		0x200 /* L2 error config 0 */
+#define L2ECFG1_IA		0x201 /* L2 error config 1 */
+#define L2ESTS_IA		0x204 /* L2 error status */
+#define L2VRF0_IA		0x700 /* L2 verification 0 */
+#define L2VRF1_IA		0x701 /* L2 verification 1 */
+#define L2VRF2_IA		0x702 /* L2 verification 2 */
 
 #ifdef CONFIG_RISCV_EXIT_M
 #define CSR_SYSCFG		CSR_MSYSCFG
