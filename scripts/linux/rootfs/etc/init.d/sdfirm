@@ -52,7 +52,7 @@ start_sdfirm()
 {
 	disp_msg BEGIN_STARTUP
 
-	cat /etc/uk.bmap | loadkmap
+	#loadkmap </etc/uk.bmap
 	hostname `cat /etc/hostname`
 
 	if [ "x${SDFIRM_STORAGING}" = "xyes" ]; then

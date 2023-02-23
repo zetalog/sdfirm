@@ -3,8 +3,12 @@
 export PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin:.
 ENTRY_POINT=/etc/init.d/sdfirm
 
-mount -t proc none /proc
-mount -t sysfs none /sys
+if [ ! -f /proc/version ]; then
+	mount -t proc none /proc
+fi
+if [ ! -d /sys/class ]; then
+	mount -t sysfs none /sys
+fi
 mkdir -p /dev/pts
 mount -t devtmpfs none /dev
 mount -t devpts none /dev/pts
