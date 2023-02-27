@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Feb 21 16:49:30 2023
+# Wed Mar  1 12:32:22 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -440,8 +440,8 @@ CONFIG_MMC_DEBUG=y
 # CONFIG_MMC is not set
 CONFIG_SD=y
 CONFIG_SD_PHY_VERSION=6
-CONFIG_SD_SDSC=y
-# CONFIG_SD_SDHC is not set
+# CONFIG_SD_SDSC is not set
+CONFIG_SD_SDHC=y
 # CONFIG_SD_SDXC is not set
 # CONFIG_SD_LEGACY_ONLY is not set
 # CONFIG_SD_SPI is not set

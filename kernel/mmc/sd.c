@@ -625,7 +625,12 @@ void mmc_phy_handle_stm(void)
 	mmc_event_t flags;
 
 	flags = mmc_event_save();
-	if (flags & MMC_EVENT_CARD_INSERT) {
+	if (flags & MMC_EVENT_CARD_REMOVE) {
+		if (mmc_slot_ctrl.mmc_cid != INVALID_MMC_CARD)
+			mmc_unregister_card(mmc_slot_ctrl.mmc_cid);
+		mmc_reset_slot();
+		unraise_bits(flags, MMC_EVENT_CARD_REMOVE);
+	} else if (flags & MMC_EVENT_CARD_INSERT) {
 		mmc_identify_card();
 		unraise_bits(flags, MMC_EVENT_CARD_INSERT);
 	} else if (flags & MMC_EVENT_CARD_BUSY &&
@@ -1241,4 +1246,6 @@ void mmc_phy_stop_dat(void)
 void mmc_phy_reset_slot(void)
 {
 	mmc_slot_ctrl.card_version = SD_PHY_VERSION_UNKNOWN;
+	mmc_slot_ctrl.inquiry_ocr = false;
+	mmc_hw_slot_reset();
 }

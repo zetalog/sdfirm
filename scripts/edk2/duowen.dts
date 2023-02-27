@@ -1,0 +1,775 @@
+/dts-v1/;
+
+/ {
+	#address-cells = <0x2>;
+	#size-cells = <0x2>;
+	compatible = "riscv-smarco";
+	model = "riscv-smarco,duowen";
+
+	chosen {
+		bootargs = "console=hvc0 earlycon=sbi rdinit=/sdfirm_init";
+	};
+
+	poweroff {
+		value = <0x5555>;
+		offset = <0x0>;
+		regmap = <0x4>;
+		compatible = "syscsr-poweroff";
+	};
+
+	reboot {
+		value = <0x7777>;
+		offset = <0x0>;
+		regmap = <0x4>;
+		compatible = "syscsr-reboot";
+	};
+
+	memory@0 {
+		device_type = "memory";
+		reg = <0x0 0x0 0x80 0x0>;
+	};
+
+	cpus {
+		#address-cells = <0x1>;
+		#size-cells = <0x0>;
+		timebase-frequency = <0x17d7840>;
+
+		cpu-map {
+
+			cluster0 {
+
+				core0 {
+					cpu = <0x1>;
+				};
+
+				core1 {
+					cpu = <0x2>;
+				};
+
+				core2 {
+					cpu = <0x3>;
+				};
+
+				core3 {
+					cpu = <0x4>;
+				};
+			};
+
+			cluster1 {
+
+				core0 {
+					cpu = <0x5>;
+				};
+
+				core1 {
+					cpu = <0x6>;
+				};
+
+				core2 {
+					cpu = <0x7>;
+				};
+
+				core3 {
+					cpu = <0x8>;
+				};
+			};
+
+			cluster2 {
+
+				core0 {
+					cpu = <0x9>;
+				};
+
+				core1 {
+					cpu = <0xa>;
+				};
+
+				core2 {
+					cpu = <0xb>;
+				};
+
+				core3 {
+					cpu = <0xc>;
+				};
+			};
+
+			cluster3 {
+
+				core0 {
+					cpu = <0xd>;
+				};
+
+				core1 {
+					cpu = <0xe>;
+				};
+
+				core2 {
+					cpu = <0xf>;
+				};
+
+				core3 {
+					cpu = <0x10>;
+				};
+			};
+
+			cluster4 {
+
+				core0 {
+					cpu = <0x11>;
+				};
+
+				core1 {
+					cpu = <0x12>;
+				};
+
+				core2 {
+					cpu = <0x13>;
+				};
+
+				core3 {
+					cpu = <0x14>;
+				};
+			};
+
+			cluster5 {
+
+				core0 {
+					cpu = <0x15>;
+				};
+
+				core1 {
+					cpu = <0x16>;
+				};
+
+				core2 {
+					cpu = <0x17>;
+				};
+
+				core3 {
+					cpu = <0x18>;
+				};
+			};
+
+			cluster6 {
+
+				core0 {
+					cpu = <0x19>;
+				};
+
+				core1 {
+					cpu = <0x1a>;
+				};
+
+				core2 {
+					cpu = <0x1b>;
+				};
+
+				core3 {
+					cpu = <0x1c>;
+				};
+			};
+
+			cluster7 {
+
+				core0 {
+					cpu = <0x1d>;
+				};
+
+				core1 {
+					cpu = <0x1e>;
+				};
+
+				core2 {
+					cpu = <0x1f>;
+				};
+
+				core3 {
+					cpu = <0x20>;
+				};
+			};
+		};
+
+		cpu@0 {
+			device_type = "cpu";
+			reg = <0x0>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x1>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x21>;
+			};
+		};
+
+		cpu@1 {
+			device_type = "cpu";
+			reg = <0x1>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x2>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x22>;
+			};
+		};
+
+		cpu@2 {
+			device_type = "cpu";
+			reg = <0x2>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x3>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x23>;
+			};
+		};
+
+		cpu@3 {
+			device_type = "cpu";
+			reg = <0x3>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x4>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x24>;
+			};
+		};
+
+		cpu@4 {
+			device_type = "cpu";
+			reg = <0x4>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x5>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x25>;
+			};
+		};
+
+		cpu@5 {
+			device_type = "cpu";
+			reg = <0x5>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x6>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x26>;
+			};
+		};
+
+		cpu@6 {
+			device_type = "cpu";
+			reg = <0x6>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x7>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x27>;
+			};
+		};
+
+		cpu@7 {
+			device_type = "cpu";
+			reg = <0x7>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x8>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x28>;
+			};
+		};
+
+		cpu@8 {
+			device_type = "cpu";
+			reg = <0x8>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x9>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x29>;
+			};
+		};
+
+		cpu@9 {
+			device_type = "cpu";
+			reg = <0x9>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0xa>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x2a>;
+			};
+		};
+
+		cpu@10 {
+			device_type = "cpu";
+			reg = <0xa>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0xb>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x2b>;
+			};
+		};
+
+		cpu@11 {
+			device_type = "cpu";
+			reg = <0xb>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0xc>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x2c>;
+			};
+		};
+
+		cpu@12 {
+			device_type = "cpu";
+			reg = <0xc>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0xd>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x2d>;
+			};
+		};
+
+		cpu@13 {
+			device_type = "cpu";
+			reg = <0xd>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0xe>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x2e>;
+			};
+		};
+
+		cpu@14 {
+			device_type = "cpu";
+			reg = <0xe>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0xf>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x2f>;
+			};
+		};
+
+		cpu@15 {
+			device_type = "cpu";
+			reg = <0xf>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x10>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x30>;
+			};
+		};
+
+		cpu@16 {
+			device_type = "cpu";
+			reg = <0x10>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x11>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x31>;
+			};
+		};
+
+		cpu@17 {
+			device_type = "cpu";
+			reg = <0x11>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x12>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x32>;
+			};
+		};
+
+		cpu@18 {
+			device_type = "cpu";
+			reg = <0x12>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x13>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x33>;
+			};
+		};
+
+		cpu@19 {
+			device_type = "cpu";
+			reg = <0x13>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x14>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x34>;
+			};
+		};
+
+		cpu@20 {
+			device_type = "cpu";
+			reg = <0x14>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x15>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x35>;
+			};
+		};
+
+		cpu@21 {
+			device_type = "cpu";
+			reg = <0x15>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x16>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x36>;
+			};
+		};
+
+		cpu@22 {
+			device_type = "cpu";
+			reg = <0x16>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x17>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x37>;
+			};
+		};
+
+		cpu@23 {
+			device_type = "cpu";
+			reg = <0x17>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x18>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x38>;
+			};
+		};
+
+		cpu@24 {
+			device_type = "cpu";
+			reg = <0x18>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x19>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x39>;
+			};
+		};
+
+		cpu@25 {
+			device_type = "cpu";
+			reg = <0x19>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x1a>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x3a>;
+			};
+		};
+
+		cpu@26 {
+			device_type = "cpu";
+			reg = <0x1a>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x1b>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x3b>;
+			};
+		};
+
+		cpu@27 {
+			device_type = "cpu";
+			reg = <0x1b>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x1c>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x3c>;
+			};
+		};
+
+		cpu@28 {
+			device_type = "cpu";
+			reg = <0x1c>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x1d>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x3d>;
+			};
+		};
+
+		cpu@29 {
+			device_type = "cpu";
+			reg = <0x1d>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x1e>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x3e>;
+			};
+		};
+
+		cpu@30 {
+			device_type = "cpu";
+			reg = <0x1e>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x1f>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x3f>;
+			};
+		};
+
+		cpu@31 {
+			device_type = "cpu";
+			reg = <0x1f>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdsu";
+			mmu-type = "riscv,sv48";
+			phandle = <0x20>;
+
+			interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+				phandle = <0x40>;
+			};
+		};
+	};
+
+	soc {
+		#address-cells = <0x2>;
+		#size-cells = <0x2>;
+		compatible = "simple-bus";
+		ranges;
+
+		interrupt-controller@ff70000000 {
+			riscv,ndev = <0xff>;
+			reg = <0xff 0x70000000 0x0 0x4000000>;
+			interrupts-extended = <0x21 0xb 0x22 0xb 0x23 0xb 0x24 0xb 0x25 0xb 0x26 0xb 0x27 0xb 0x28 0xb 0x29 0xb 0x2a 0xb 0x2b 0xb 0x2c 0xb 0x2d 0xb 0x2e 0xb 0x2f 0xb 0x30 0xb 0x21 0xffffffff 0x21 0x9 0x22 0x9 0x23 0x9 0x24 0x9 0x25 0x9 0x26 0x9 0x27 0x9 0x28 0x9 0x29 0x9 0x2a 0x9 0x2b 0x9 0x2c 0x9 0x2d 0x9 0x2e 0x9 0x2f 0x9 0x30 0x9 0x21 0xffffffff>;
+			interrupt-controller;
+			compatible = "riscv,plic0";
+			#interrupt-cells = <0x1>;
+			#address-cells = <0x0>;
+		};
+
+		interrupt-controller@8ff70000000 {
+			riscv,ndev = <0xff>;
+			reg = <0x8ff 0x70000000 0x0 0x4000000>;
+			interrupts-extended = <0x31 0xb 0x32 0xb 0x33 0xb 0x34 0xb 0x35 0xb 0x36 0xb 0x37 0xb 0x38 0xb 0x39 0xb 0x3a 0xb 0x3b 0xb 0x3c 0xb 0x3d 0xb 0x3e 0xb 0x3f 0xb 0x40 0xb 0x21 0xffffffff 0x31 0x9 0x32 0x9 0x33 0x9 0x34 0x9 0x35 0x9 0x36 0x9 0x37 0x9 0x38 0x9 0x39 0x9 0x3a 0x9 0x3b 0x9 0x3c 0x9 0x3d 0x9 0x3e 0x9 0x3f 0x9 0x40 0x9 0x21 0xffffffff>;
+			interrupt-controller;
+			compatible = "riscv,plic0";
+			#interrupt-cells = <0x1>;
+			#address-cells = <0x0>;
+		};
+
+		clint@ff010f0000 {
+			interrupts-extended = <0x21 0x3 0x21 0x7 0x22 0x3 0x22 0x7 0x23 0x3 0x23 0x7 0x24 0x3 0x24 0x7 0x25 0x3 0x25 0x7 0x26 0x3 0x26 0x7 0x27 0x3 0x27 0x7 0x28 0x3 0x28 0x7 0x29 0x3 0x29 0x7 0x2a 0x3 0x2a 0x7 0x2b 0x3 0x2b 0x7 0x2c 0x3 0x2c 0x7 0x2d 0x3 0x2d 0x7 0x2e 0x3 0x2e 0x7 0x2f 0x3 0x2f 0x7 0x30 0x3 0x30 0x7 0x31 0x3 0x31 0x7 0x32 0x3 0x32 0x7 0x33 0x3 0x33 0x7 0x34 0x3 0x34 0x7 0x35 0x3 0x35 0x7 0x36 0x3 0x36 0x7 0x37 0x3 0x37 0x7 0x38 0x3 0x38 0x7 0x39 0x3 0x39 0x7 0x3a 0x3 0x3a 0x7 0x3b 0x3 0x3b 0x7 0x3c 0x3 0x3c 0x7 0x3d 0x3 0x3d 0x7 0x3e 0x3 0x3e 0x7 0x3f 0x3 0x3f 0x7 0x40 0x3 0x40 0x7>;
+			reg = <0xff 0x10f0000 0x0 0x10000>;
+			compatible = "riscv,clint0";
+		};
+
+		crcntl-clock@ff60000000 {
+			compatible = "smarco,duowen-crcntl";
+			reg = <0xff 0x60000000 0x0 0x1000>;
+			#clock-cells = <0x1>;
+		};
+	};
+};

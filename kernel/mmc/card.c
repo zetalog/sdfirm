@@ -118,6 +118,17 @@ mmc_card_t mmc_register_card(mmc_rca_t rca)
 	return cid;
 }
 
+void mmc_unregister_card(mmc_card_t cid)
+{
+	/* FIXME: only allow one card to be registered. */
+	if (mmc_nr_cards == (cid + 1)) {
+		mem_cards[cid].sid = 0;
+		mem_cards[cid].rca = 0;
+		mem_cards[cid].tran = 0;
+		mmc_nr_cards--;
+	}
+}
+
 void mmc_slot_start_tran(mmc_rca_t rca)
 {
 	mmc_card_t cid;

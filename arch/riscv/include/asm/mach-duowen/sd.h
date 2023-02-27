@@ -68,9 +68,11 @@
 
 #ifdef CONFIG_DW_MSHC
 void duowen_mshc_init(void);
+void duowen_mshc_reset(void);
 
 #define mmc_hw_ctrl_init()		duowen_mshc_init()
 #define mmc_hw_slot_select(sid)		do { } while (0)
+#define mmc_hw_slot_reset()		duowen_mshc_reset()
 #define mmc_hw_card_detect()		sdhc_detect_card()
 #define mmc_hw_set_clock(clock)		sdhc_set_clock(clock)
 #define mmc_hw_set_width(width)		sdhc_set_width(width)

@@ -628,6 +628,7 @@ void mmc_reset_slot(void)
 	mmc_slot_ctrl.state = MMC_STATE_idle;
 	mmc_slot_ctrl.rca = MMC_RCA_DEFAULT;
 	mmc_slot_ctrl.mmc_cid = INVALID_MMC_CARD;
+	mmc_slot_ctrl.ocr_valid = false;
 	mmc_slot_ctrl.event = 0;
 	mmc_slot_ctrl.flags = 0;
 	mmc_phy_reset_slot();

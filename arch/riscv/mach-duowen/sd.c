@@ -110,6 +110,15 @@ void duowen_mshc_init(void)
 	mmc_slot_restore(sslot);
 }
 
+void duowen_mshc_reset(void)
+{
+	__unused mmc_slot_t sslot;
+
+	sslot = mmc_slot_save(0);
+	sdhc_reset(0, 0);
+	mmc_slot_restore(sslot);
+}
+
 void duowen_sd_init(void)
 {
 	__unused mmc_slot_t sslot;

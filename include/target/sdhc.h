@@ -742,5 +742,6 @@ void sdhc_irq_poll(void);
 void sdhc_start_transfer(void);
 void sdhc_stop_transfer(void);
 void sdhc_init(uint32_t f_min, uint32_t f_max, irq_t irq);
+void sdhc_reset(uint32_t f_min, uint32_t f_max);
 
 #endif /* __SDHC_H_INCLUDE__ */

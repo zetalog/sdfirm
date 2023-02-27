@@ -7,3 +7,4 @@ docproc
 fixdep
 srec2vhx
 mksunxiboot
+convertflash

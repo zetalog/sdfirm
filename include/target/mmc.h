@@ -774,6 +774,7 @@ void mmc_state_set(uint8_t state);
 void mmc_event_raise(mmc_event_t event);
 mmc_event_t mmc_event_save(void);
 void mmc_event_restore(mmc_event_t event);
+void mmc_reset_slot(void);
 void mmc_set_block_data(uint8_t type);
 uint8_t mmc_get_block_data(void);
 void mmc_wait_busy(void);
@@ -800,6 +801,7 @@ bool mmc_slot_wait_state(mmc_slot_t slot, uint8_t state);
 
 /* MMC internal slot specific card APIs */
 mmc_card_t mmc_register_card(mmc_rca_t rca);
+void mmc_unregister_card(mmc_card_t cid);
 
 /* MMC external card APIs */
 int mmc_card_read_async(mmc_card_t cid, uint8_t *buf,

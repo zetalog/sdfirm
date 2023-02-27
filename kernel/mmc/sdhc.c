@@ -442,7 +442,8 @@ void sdhc_set_width(uint8_t width)
 	__raw_writeb(ctrl, SDHC_HOST_CONTROL_1(mmc_sid));
 }
 
-void sdhc_init(uint32_t f_min, uint32_t f_max, irq_t irq)
+
+void sdhc_reset(uint32_t f_min, uint32_t f_max)
 {
 	uint32_t caps_0, caps_1;
 
@@ -486,10 +487,6 @@ void sdhc_init(uint32_t f_min, uint32_t f_max, irq_t irq)
 			mmc_slot_ctrl.f_min = mmc_slot_ctrl.f_max /
 				SDHC_8BIT_DIVIDED_CLOCK_MAX_DIV;
 	}
-#ifdef CONFIG_MMC_DEBUG
-	con_dbg("sdhc: clock: %dHz ~ %dHz\n",
-		mmc_slot_ctrl.f_min, mmc_slot_ctrl.f_max);
-#endif
 
 	mmc_slot_ctrl.host_ocr = SD_OCR_HCS;
 	if (caps_0 & SDHC_CAP_VOLTAGE_SUPPORT_330)
@@ -518,9 +515,19 @@ void sdhc_init(uint32_t f_min, uint32_t f_max, irq_t irq)
 	sdhc_software_reset(mmc_sid, SDHC_SOFTWARE_RESET_FOR_ALL);
 	sdhc_set_power(__fls32(
 			MMC_OCR_VOLTAGE_RANGE(mmc_slot_ctrl.host_ocr)));
+	__raw_writeb(0xE, SDHC_TIMEOUT_CONTROL(mmc_sid));
 
-	sdhc_host_ctrl.irq = irq;
 	sdhc_host_ctrl.trans = SDHC_TRANS_NON;
+}
+
+void sdhc_init(uint32_t f_min, uint32_t f_max, irq_t irq)
+{
+	sdhc_host_ctrl.irq = irq;
+	sdhc_reset(f_min, f_max);
+#ifdef CONFIG_MMC_DEBUG
+	con_dbg("sdhc: clock: %dHz ~ %dHz\n",
+		mmc_slot_ctrl.f_min, mmc_slot_ctrl.f_max);
+#endif
 }
 
 void sdhc_err_failure(uint8_t err)
