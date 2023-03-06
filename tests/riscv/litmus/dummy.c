@@ -44,6 +44,7 @@ inline static void barrier_wait(unsigned int id, unsigned int k, int volatile *b
   }
 }
 
+#if MAX_CPU_NUM == 4
 /*
  Topology: {{{0, 1}, {2, 3}}}
 */
@@ -54,6 +55,19 @@ static int cpu_scan[] = {
 // [[0,1]]
 2, 3, 0, 1,
 };
+#endif
+#if MAX_CPU_NUM == 8
+/*
+ Topology: {{{0, 1}, {2, 3}, {4, 5}, {6, 7}}}
+*/
+
+static int cpu_scan[] = {
+// [[0],[1]]
+6, 4, 7, 2, 3, 5, -1, -1,
+// [[0,1]]
+6, 7, 2, 3, 5, 4, 1, 0,
+};
+#endif
 
 static char *group[] = {
 "[[0],[1]]",
@@ -61,7 +75,12 @@ static char *group[] = {
 };
 
 #define SCANSZ 2
+#if MAX_CPU_NUM == 4
 #define SCANLINE 4
+#endif
+#if MAX_CPU_NUM == 8
+#define SCANLINE 8
+#endif
 
 static count_t ngroups[SCANSZ];
 
