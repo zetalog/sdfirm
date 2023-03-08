@@ -20,12 +20,8 @@
 #endif
 #endif
 
+#ifdef CONFIG_DUOWEN_I2C
 #define i2c_hw_master_select(i2c)	dw_i2c_master_select(i2c)
-#define i2c_hw_ctrl_init()				\
-	do {						\
-		clk_enable(i2c0_clk + i2c_mid);		\
-		dw_i2c_master_init();			\
-	} while (0)
 #define i2c_hw_set_address(addr, call)	dw_i2c_set_address(addr, call)
 #define i2c_hw_set_frequency(khz)	dw_i2c_set_frequency(khz)
 #define i2c_hw_start_condition()	dw_i2c_start_condition()
@@ -33,5 +29,7 @@
 #define i2c_hw_read_byte()		dw_i2c_read_byte()
 #define i2c_hw_write_byte(byte)		dw_i2c_write_byte(byte)
 #define i2c_hw_transfer_reset()		dw_i2c_transfer_reset()
+void i2c_hw_ctrl_init(void);
+#endif
 
 #endif /* __I2C_DUOWEN_H_INCLUDE__ */

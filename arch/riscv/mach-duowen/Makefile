@@ -17,6 +17,7 @@ obj-$(CONFIG_DUOWEN_SCSR) += scsr.rel
 obj-$(CONFIG_DUOWEN_GPIO) += gpio.rel
 obj-$(CONFIG_DUOWEN_TLMM) += tlmm.rel
 obj-$(CONFIG_DUOWEN_UART) += uart.rel
+obj-$(CONFIG_DUOWEN_I2C) += i2c.rel
 obj-$(CONFIG_DUOWEN_TMR) += tmr.rel
 obj-$(CONFIG_DUOWEN_DDR) += ddr.rel
 obj-y += dmac.rel
