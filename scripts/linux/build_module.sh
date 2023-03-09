@@ -7,6 +7,7 @@ HOSTNAME=sdfirm
 BUILD_TINY=no
 BUILD_LIB=yes
 BUILD_SMP=yes
+BUILD_UEFI=no
 BUILD_NET=yes
 BUILD_STO=yes
 INSTALL_INITRAMFS=yes
@@ -339,6 +340,9 @@ function build_linux()
 	cp $SCRIPT/config/$LINUX_CONFIG arch/riscv/configs/my_defconfig
 	if [ "xyes" = "x${BUILD_TINY}" ]; then
 		apply_modcfg linux my_defconfig e_tiny.cfg
+	fi
+	if [ "xyes" = "x${BUILD_UEFI}" ]; then
+		apply_modcfg linux my_defconfig e_uefi.cfg
 	fi
 	if [ "xno" = "x${BUILD_SMP}" ]; then
 		apply_modcfg linux my_defconfig d_smp.cfg
