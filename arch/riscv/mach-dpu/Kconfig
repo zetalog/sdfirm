@@ -179,12 +179,6 @@ config DPU_LOAD_FAKE_PCIE_MEM
 
 endchoice	
 
-config DPU_BOOT_RES_SLOW
-	bool "Enable slower CPU frequency"
-	depends DPU_RES
-	help
-	  1.0GHz for cluster and 500MHz for IMC.
-
 config DPU_BOOT_STACK
 	bool "Enable boot from stack"
 	depends !SMP
@@ -214,9 +208,19 @@ config DPU_BOOT_BACKDOOR
 
 endif
 
+config DPU_BOOT_RES_SLOW
+	bool "Enable slower CPU frequency"
+	depends DPU_RES
+	help
+	  1.0GHz for cluster and 500MHz for IMC.
+
+config DPU_DDR_SIZE_CUST
+	bool "Enable customized DDR size for DDR firmware"
+	depends DPU_BOOT_DDR
+
 config DPU_FIRM_SIZE
 	hex "Firmware size"
-	depends DPU_FIRM
+	depends DPU_FIRM || DPU_DDR_SIZE_CUST
 
 config DPU_BOOT_PE
 	bool "DPU process elements (PE)"

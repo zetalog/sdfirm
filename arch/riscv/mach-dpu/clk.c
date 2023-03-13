@@ -1129,7 +1129,9 @@ void board_init_clock(void)
 		clk_enable(apb_clk);
 #ifdef CONFIG_DPU_LOAD_BBL
 		clk_enable(axi_clk);
+#if 0
 		clk_enable(ddr_clk);
+#endif
 #endif /* CONFIG_DPU_LOAD_BBL */
 	}
 	clk_hw_init = true;
