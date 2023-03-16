@@ -146,7 +146,7 @@ fi
 # Build memory model application tests
 if [ "x${BUILD_LITMUS}" = "xyes" ]; then
 	if [ "x${LITMUS}" != "x" ]; then
-		${SCRIPT}/build_litmus.sh ${LITMUS}
+		${SCRIPT}/build_litmus.sh -r ${LITMUS}
 	fi
 fi
 

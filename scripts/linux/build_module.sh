@@ -331,6 +331,7 @@ function build_initramfs()
 function build_linux()
 {
 	echo "== Build Linux =="
+	echo "Building $LINUX_CONFIG..."
 	rm -rf $TOP/obj/linux-$ARCH
 	#mkdir -p $TOP/obj/linux-$ARCH
 	(
@@ -377,6 +378,7 @@ function build_linux()
 function build_sdfirm()
 {
 	echo "== Build sdfirm =="
+	echo "Building ${MACH}_bbl_defconfig..."
 	rm -rf $TOP/obj/sdfirm-$ARCH
 	mkdir -p $TOP/obj/sdfirm-$ARCH
 	(

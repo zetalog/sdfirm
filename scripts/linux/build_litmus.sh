@@ -60,9 +60,11 @@ if [ -d ${LITMUS_SRCS} ]; then
 	(
 		cd ${LITMUS_SRCS}
 		if [ "x${LITMUS_REBUILD}" = "xyes" ]; then
+			echo "Cleaning ${LITMUS_CORES}cores litmus..."
 			make -f Makefile.litmus GCC=${CROSS_COMPILE}gcc \
 				clean >/dev/null
 		fi
+		echo "Building ${LITMUS_CORES}cores litmus..."
 		make -f Makefile.litmus GCC=${CROSS_COMPILE}gcc
 	)
 	LITMUS_TAR=no
@@ -73,9 +75,11 @@ else
 	(
 		cd ${LITMUS_ROOT}
 		if [ "x${LITMUS_REBUILD}" = "xyes" ]; then
+			echo "Cleaning ${LITMUS_CORES}cores litmus..."
 			make hw-tests CORES=${LITMUS_CORES} \
 				GCC=${CROSS_COMPILE}gcc clean >/dev/null
 		fi
+		echo "Building ${LITMUS_CORES}cores litmus..."
 		make hw-tests CORES=${LITMUS_CORES} GCC=${CROSS_COMPILE}gcc
 	)
 	if [ "x${LITMUS_ARCHIVE}" = "xyes" ]; then
