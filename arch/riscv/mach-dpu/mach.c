@@ -273,7 +273,7 @@ void board_boot_late(void)
 #ifdef CONFIG_SMP
 void board_smp_init(void)
 {
-	board_late_init();
+	board_boot_late();
 }
 #endif /* CONFIG_SMP */
 
