@@ -54,7 +54,7 @@
 	cpus {
 		#address-cells = <0x1>;
 		#size-cells = <0x0>;
-		timebase-frequency = <0x989680>;
+		timebase-frequency = <25000000>;
 
 #ifdef CONFIG_SMP
 		cpu-map {
