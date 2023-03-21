@@ -79,32 +79,45 @@ uint8_t dw_uart_convert_params(uint8_t params)
 	return cfg;
 }
 
+#ifdef CONFIG_DW_UART_DLAB_NOWAIT
+#define dw_uart_dlab_init(n)
+#define dw_uart_dlab_set(n)	__raw_setl(LCR_DLAB, UART_LCR(n))
+#define dw_uart_dlab_clear(n)	__raw_clearl(LCR_DLAB, UART_LCR(n))
+#else /* CONFIG_DW_UART_DLAB_NOWAIT */
+#define dw_uart_dlab_init(n)				\
+	bool latched = false
+#define dw_uart_dlab_set(n)				\
+	do {						\
+		__raw_setl(LCR_DLAB, UART_LCR(n));	\
+		latched = !!dw_uart_is_baud(n);		\
+	} while (!latched)
+#define dw_uart_dlab_clear(n)				\
+	do {						\
+		__raw_clearl(LCR_DLAB, UART_LCR(n));	\
+		latched = !!dw_uart_is_baud(n);		\
+	} while (latched);
+#endif /* CONFIG_DW_UART_DLAB_NOWAIT */
+
 void dw_uart_ctrl_init(uint32_t freq)
 {
 	uint16_t divisor;
 	uint8_t fraction;
-	bool latched = false;
 
+	dw_uart_dlab_init(UART_CON_ID);
 	/* Configure UART mode */
 	dw_uart_modem_disable(UART_CON_ID);
 	dw_uart_loopback_disable(UART_CON_ID);
 	dw_uart_16750_disable(UART_CON_ID);
 	dw_uart_irda_disable(UART_CON_ID);
 
-	do {
-		__raw_setl(LCR_DLAB, UART_LCR(UART_CON_ID));
-		latched = !!dw_uart_is_baud(UART_CON_ID);
-	} while (!latched);
+	dw_uart_dlab_set(UART_CON_ID);
 	/* Configure baudrate */
 	dw_uart_convert_baudrate(freq, UART_CON_BAUDRATE,
 				 divisor, fraction);
 	__raw_writel(LOBYTE(divisor), UART_DLL(UART_CON_ID));
 	__raw_writel(HIBYTE(divisor), UART_DLH(UART_CON_ID));
 	dw_uart_config_frac(UART_CON_ID, fraction);
-	do {
-		__raw_clearl(LCR_DLAB, UART_LCR(UART_CON_ID));
-		latched = !!dw_uart_is_baud(UART_CON_ID);
-	} while (latched);
+	dw_uart_dlab_clear(UART_CON_ID);
 	/* Configure parameters */
 	__raw_writel(dw_uart_convert_params(UART_DEF_PARAMS),
 		     UART_LCR(UART_CON_ID));

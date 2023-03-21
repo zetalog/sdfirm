@@ -60,11 +60,15 @@
 #define invalid_clk		clkid(0xFF, 0xFF)
 
 #ifdef CONFIG_DPU_RES
+#ifdef CONFIG_DPU_RES_SLOW
+#define PLL0_VCO_FREQ		ULL(4800000000)	/* 4.8GHz */
+#else /* CONFIG_DPU_RES_SLOW */
 #define PLL0_VCO_FREQ		ULL(3000000000)	/* 3GHz */
+#endif /* CONFIG_DPU_RES_SLOW */
 #else /* CONFIG_DPU_RES */
 #define PLL0_VCO_FREQ		ULL(3200000000)	/* 3.2GHz */
 #endif /* CONFIG_DPU_RES */
-#define PLL1_VCO_FREQ		ULL(4800000000)	/* 4.8GHz */
+#define PLL1_VCO_FREQ		ULL(3600000000)	/* 3.6GHz */
 #define PLL2_VCO_FREQ		ULL(3200000000)	/* 3.2GHz */
 #define PLL3_VCO_FREQ		ULL(3200000000)	/* 3.2GHz */
 #define PLL4_VCO_FREQ		ULL(4000000000)	/* 4GHz */
