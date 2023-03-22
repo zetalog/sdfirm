@@ -134,7 +134,8 @@ static void dpu_load_ssi(void *boot_entry, const char *boot_file)
 		__boot_msg(BOOT_ERROR_INIT);
 		printf("boot(ssi): failed to init gpt.\n");
 	}
-	printf("boot(ssi): loading %s...\n", boot_file);
+	printf("boot(ssi): loading %s to 0x%llx...\n",
+	       boot_file, (caddr_t)boot_entry);
 	ret = gpt_get_file_by_name(board_flash, boot_file, &addr, &size);
 	if (ret <= 0) {
 		__boot_msg(BOOT_ERROR_FIND);
@@ -202,11 +203,14 @@ void board_boot(void)
 	uint8_t flash_sel = imc_boot_flash();
 
 	board_init_clock();
-	if (flash_sel == IMC_FLASH_SPI)
+	if (flash_sel == IMC_FLASH_SPI) {
+		/* SPI flash never loads itself, ensured by Kconfig */
 		dpu_boot_spi();
-	if (flash_sel == IMC_FLASH_SSI) {
 		dpu_boot_ssi();
+	}
+	if (flash_sel == IMC_FLASH_SSI) {
 		dpu_boot_pcie();
+		dpu_boot_ssi();
 	}
 }
 #else /* CONFIG_DPU_LOAD */

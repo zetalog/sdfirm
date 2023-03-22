@@ -57,12 +57,13 @@ void __dpu_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 
 #define is_last(index, length)		(((index) + 1) == length)
 
+	__boot_dbg('|');
 	for (i = 0; i < size; i++, addr++) {
 		dst[i] = dpu_ssi_flash_read(addr);
 		if ((i % 0x2000) == 0)
-			__boot_dump32(i, is_last(i, size));
+			__boot_dbg('.');
 	}
-
+	__boot_dbg('|');
 	__boot_dbg('\n');
 	__boot_dbg('B');
 	__boot_dbg('o');

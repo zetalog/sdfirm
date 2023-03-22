@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Mar 22 17:11:54 2023
+# Thu Mar 23 09:39:39 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -194,7 +194,12 @@ CONFIG_DPU_BOOT_SPI_FLASH=y
 # Bootloader/Firmware options
 #
 # CONFIG_DPU_BOOT_ROM_EXT is not set
-# CONFIG_DPU_LOAD is not set
+CONFIG_DPU_LOAD=y
+CONFIG_DPU_LOAD_SSI_FLASH=y
+# CONFIG_DPU_LOAD_FAKE_PCIE_MEM is not set
+# CONFIG_DPU_BOOT_STACK is not set
+# CONFIG_DPU_BOOT_DEBUG is not set
+# CONFIG_DPU_BOOT_BACKDOOR is not set
 CONFIG_DPU_RES_SLOW=y
 CONFIG_DPU_BOOT_PE=y
 CONFIG_DPU_BOOT_VPU=y
@@ -233,7 +238,7 @@ CONFIG_DPU_SSI_FLASH_FREQ=8000000
 #
 # DPU DDR controller/phy support
 #
-CONFIG_DPU_DDR_BANK0=y
+# CONFIG_DPU_DDR_BANK0 is not set
 CONFIG_DPU_DDR_BANK1=y
 # CONFIG_DPU_DDR_INTLV is not set
 CONFIG_DPU_DDR=y

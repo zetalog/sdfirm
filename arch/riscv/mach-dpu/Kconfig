@@ -167,6 +167,7 @@ if DPU_LOAD
 config DPU_LOAD_SPI_FLASH
 	bool "Enable load from SPI flash"
 	depends DPU_SPI_FLASH
+	depends !DPU_BOOT_SPI_FLASH
 
 config DPU_BOOT_ADDR
 	hex "Bootloader SPI flash jump address"

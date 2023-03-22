@@ -229,9 +229,9 @@ CONFIG_DPU_UART=y
 #
 # DPU DDR controller/phy support
 #
-CONFIG_DPU_DDR_BANK0=y
+# CONFIG_DPU_DDR_BANK0 is not set
 CONFIG_DPU_DDR_BANK1=y
-CONFIG_DPU_DDR_INTLV=y
+# CONFIG_DPU_DDR_INTLV is not set
 # CONFIG_DPU_DDR is not set
 # CONFIG_DPU_PCI_SUBSYS is not set
 
