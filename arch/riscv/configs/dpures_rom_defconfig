@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Mar 22 16:01:59 2023
+# Wed Mar 22 17:11:13 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -176,18 +176,13 @@ CONFIG_DPU_LOAD_SSI_FLASH=y
 # CONFIG_DPU_BOOT_STACK is not set
 # CONFIG_DPU_BOOT_DEBUG is not set
 # CONFIG_DPU_BOOT_BACKDOOR is not set
-# CONFIG_DPU_BOOT_RES_SLOW is not set
+CONFIG_DPU_RES_SLOW=y
 CONFIG_DPU_BOOT_PE=y
 CONFIG_DPU_BOOT_VPU=y
 
 #
 # Cluster boot hooks
 #
-
-#
-# Board quirks
-#
-# CONFIG_DPU_PLL_QUIRK_CPU_XO is not set
 
 #
 # Simulation options

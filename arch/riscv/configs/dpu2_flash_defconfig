@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Mar 22 16:40:22 2023
+# Wed Mar 22 17:10:59 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -173,10 +173,6 @@ CONFIG_DPU_BOOT_VPU=y
 
 #
 # Cluster boot hooks
-#
-
-#
-# Board quirks
 #
 
 #

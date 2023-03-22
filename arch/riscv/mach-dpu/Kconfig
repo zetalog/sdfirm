@@ -216,7 +216,7 @@ config DPU_BOOT_BACKDOOR
 
 endif
 
-config DPU_BOOT_RES_SLOW
+config DPU_RES_SLOW
 	bool "Enable slower CPU frequency"
 	depends DPU_RES
 	help
@@ -261,18 +261,6 @@ config DPU_APC_INIT_MSG
 endif
 
 endmenu
-
-endmenu
-
-menu "Board quirks"
-
-config DPU_PLL_QUIRK_CPU_XO
-	bool "Enable GMUX quirk driving CPU with XO"
-	depends DPU_RES && DPU_IMC
-	help
-	  On some boards, it is not possible to switch CPU clocks to the
-	  PLL driven clock. Enabling this quirk to stay being driven by
-	  XO clock.
 
 endmenu
 

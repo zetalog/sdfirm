@@ -517,27 +517,19 @@ static const char *get_clk_sel_name(clk_clk_t clk)
 #define get_clk_sel_name	NULL
 #endif
 
-#ifdef CONFIG_DPU_PLL_QUIRK_CPU_XO
-#define DPU_QUIRK_CLK_SEL_CPU	true
-#else
-#define DPU_QUIRK_CLK_SEL_CPU	false
-#endif
-
 static void __select_clk0(clk_clk_t clk, uint8_t pll, bool r)
 {
 	if (sel_clks[clk].enabled) {
 		if (!dpu_gmux_selected(pll, r)) {
 			clk_enable(sel_clks[clk].clk_sels[0]);
-			if (!DPU_QUIRK_CLK_SEL_CPU || clk != CPU_CLK)
-				dpu_gmux_select(pll, r);
+			dpu_gmux_select(pll, r);
 			clk_disable(sel_clks[clk].clk_sels[1]);
 		}
 		return;
 	}
 	clk_enable(sel_clks[clk].clk_sels[0]);
 	sel_clks[clk].enabled = true;
-	if (!DPU_QUIRK_CLK_SEL_CPU || clk != CPU_CLK)
-		dpu_gmux_select(pll, r);
+	dpu_gmux_select(pll, r);
 }
 
 static void __select_clk1(clk_clk_t clk, uint8_t pll, bool r)
