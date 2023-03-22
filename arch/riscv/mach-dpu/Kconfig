@@ -89,9 +89,9 @@ config DPU_BOOT_ROM
 
 config DPU_BOOT_SPI_FLASH
 	bool "0-stage/1-stage SPINOR bootloader (ZSBL/FSBL)"
-	select ARCH_HAS_BOOT_LOAD
+	select ARCH_HAS_BOOT_LOAD if !DPU_BOOT_ROM_EXT
 	select DPU_BOOT
-	select DPU_LOAD_ZSBL
+	select DPU_LOAD_ZSBL if DPU_BOOT_ROM_EXT
 	select DPU_LOAD_FSBL
 	select XIP
 	select LOAD_DATA
@@ -149,6 +149,14 @@ config DPU_BOOT_RAM
 endchoice
 
 menu "Bootloader/Firmware options"
+
+config DPU_BOOT_ROM_EXT
+	bool "Enable external ROM using SPI flash"
+	depends DPU_BOOT_SPI_FLASH
+	help
+	  By default, SPI flash image is loaded by internal ROM, however,
+	  it can be used as external ROM using jumpers. This affects APC
+	  initialization steps.
 
 config DPU_LOAD
 	bool "Enable bootloader"
