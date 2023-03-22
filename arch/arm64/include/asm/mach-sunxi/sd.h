@@ -134,6 +134,7 @@ void sunxi_sd_set_width(uint8_t mmc_no, uint8_t width);
 bool sunxi_sd_card_busy(uint8_t mmc_no);
 void sunxi_sd_ctrl_init(uint8_t mmc_no);
 
+#define mmc_hw_slot_reset()		do { } while (0)
 #define mmc_hw_card_detect()		sunxi_sd_detect_card(MMC_BOOT_ID)
 #define mmc_hw_set_clock(clock)		sunxi_sd_set_clock(MMC_BOOT_ID, clock)
 #define mmc_hw_set_width(width)		sunxi_sd_set_width(MMC_BOOT_ID, width)

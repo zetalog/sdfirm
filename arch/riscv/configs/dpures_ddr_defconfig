@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Mar 13 18:27:25 2023
+# Wed Mar 22 16:02:18 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -202,6 +202,11 @@ CONFIG_DPU_FIRM_SIZE=0x800000
 #
 # Cluster boot hooks
 #
+
+#
+# Board quirks
+#
+# CONFIG_DPU_PLL_QUIRK_CPU_XO is not set
 
 #
 # Simulation options

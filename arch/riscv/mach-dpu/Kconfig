@@ -256,6 +256,18 @@ endmenu
 
 endmenu
 
+menu "Board quirks"
+
+config DPU_PLL_QUIRK_CPU_XO
+	bool "Enable GMUX quirk driving CPU with XO"
+	depends DPU_RES && DPU_IMC
+	help
+	  On some boards, it is not possible to switch CPU clocks to the
+	  PLL driven clock. Enabling this quirk to stay being driven by
+	  XO clock.
+
+endmenu
+
 menu "Simulation options"
 
 if SIMULATION
@@ -378,8 +390,8 @@ config DPU_PLL_EXT
 	select DW_PLL5GHZ_TSMC12FFC if !DPU_PLL_BYPASS_PLL
 	select DW_PLL5GHZ_TSMC12FFC_REG_ACCESS if DW_PLL5GHZ_TSMC12FFC
 	select DW_PLL5GHZ_TSMC12FFC_BYPASS_SYNC if DW_PLL5GHZ_TSMC12FFC
-
 #	select ARCH_HAS_DW_PLL5GHZ_DYNAMIC if DPU_RES
+
 menuconfig DPU_PLL
 	bool "DPU PLL and clock/reset support"
 	select DPU_PLL_INT if (DPU_BOOT_ROM && DPU_RES)

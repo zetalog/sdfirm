@@ -58,6 +58,7 @@
 
 void mmc_hw_spi_init(void);
 void mmc_hw_card_detect(void);
+#define mmc_hw_slot_reset()		do { } while (0)
 
 #ifdef SYS_REALTIME
 void mmc_hw_irq_poll(void);

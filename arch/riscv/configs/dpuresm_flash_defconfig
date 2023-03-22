@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Mar 21 14:23:15 2023
+# Wed Mar 22 16:02:38 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -204,6 +204,10 @@ CONFIG_DPU_BOOT_VPU=y
 #
 CONFIG_DPU_APC_INIT_CPU=y
 CONFIG_DPU_APC_INIT_PMA=y
+
+#
+# Board quirks
+#
 
 #
 # Simulation options
