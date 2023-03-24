@@ -68,6 +68,7 @@
 
 #ifdef CONFIG_DW_MSHC
 void dpulp_mshc_init(void);
+void dpulp_mshc_reset(void);
 
 #define mmc_hw_ctrl_init()		dpulp_mshc_init()
 #define mmc_hw_slot_select(sid)		do { } while (0)

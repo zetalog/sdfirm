@@ -92,19 +92,24 @@ static void dpu_boot_spi(void)
 #endif /* CONFIG_DPU_LOAD_SPI_FLASH */
 
 #if defined(CONFIG_DPU_LOAD_SSI_FLASH) || \
-    defined(CONFIG_DPU_LOAD_FAKE_PCIE_MEM)
+    defined(CONFIG_DPU_LOAD_PCIE_EP)
 /* ======================================================================
  * Boot definitions
  * ====================================================================== */
+#ifdef CONFIG_DPU_BOOT_DDR0
+#define DDR_BOOT_BASE		((void *)DDR0_DATA_BASE)
+#else /* CONFIG_DPU_BOOT_DDR0 */
+#define DDR_BOOT_BASE		((void *)DDR1_DATA_BASE)
+#endif /* CONFIG_DPU_BOOT_DDR0 */
 #ifdef CONFIG_DPU_LOAD_FSBL
 #define DPU_BOOT_FILE		"bbl.bin"
-#define DPU_BOOT_ADDR		((void *)DDR_DATA_BASE)
+#define DPU_BOOT_ADDR		DDR_BOOT_BASE
 #else /* CONFIG_DPU_LOAD_FSBL */
 #ifdef CONFIG_DPU_LOAD_ZSBL
 #define DPU_BOOT_FILE		"fsbl.bin"
-#ifdef CONFIG_DPU_LOAD_FAKE_PCIE_MEM
-#define DPU_BOOT_ADDR		((void *)DDR_DATA_BASE)
-#else /* CONFIG_DPU_LOAD_FAKE_PCIE_MEM */
+#ifdef CONFIG_DPU_LOAD_PCIE_EP
+#define DPU_BOOT_ADDR		DDR_BOOT_BASE
+#else /* CONFIG_DPU_LOAD_PCIE_EP */
 #ifndef CONFIG_DPU_BOOT_STACK
 /* Can't load fsbl to SRAM_BASE where zsbl .data/.bss sections are
  * required to persist during loading.
@@ -113,10 +118,10 @@ static void dpu_boot_spi(void)
 #else /* CONFIG_DPU_BOOT_STACK */
 #define DPU_BOOT_ADDR		((void *)SRAM_BASE)
 #endif /* CONFIG_DPU_BOOT_STACK */
-#endif /* CONFIG_DPU_LOAD_FAKE_PCIE_MEM */
+#endif /* CONFIG_DPU_LOAD_PCIE_EP */
 #endif /* CONFIG_DPU_LOAD_ZSBL */
 #endif /* CONFIG_DPU_LOAD_FSBL */
-#endif /* CONFIG_DPU_LOAD_SSI_FLASH || CONFIG_DPU_LOAD_FAKE_PCIE_MEM */
+#endif /* CONFIG_DPU_LOAD_SSI_FLASH || CONFIG_DPU_LOAD_PCIE_EP */
 
 #ifdef CONFIG_DPU_LOAD_SSI_FLASH
 #ifdef CONFIG_DPU_BOOT_BACKDOOR
@@ -134,8 +139,8 @@ static void dpu_load_ssi(void *boot_entry, const char *boot_file)
 		__boot_msg(BOOT_ERROR_INIT);
 		printf("boot(ssi): failed to init gpt.\n");
 	}
-	printf("boot(ssi): loading %s to 0x%llx...\n",
-	       boot_file, (caddr_t)boot_entry);
+	printf("boot(ssi): loading %s to 0x%016llx...\n",
+	       boot_file, (uint64_t)boot_entry);
 	ret = gpt_get_file_by_name(board_flash, boot_file, &addr, &size);
 	if (ret <= 0) {
 		__boot_msg(BOOT_ERROR_FIND);
@@ -159,8 +164,8 @@ static void dpu_boot_ssi(void)
 #define dpu_boot_ssi()				do { } while (0)
 #endif /* CONFIG_DPU_LOAD_SSI_FLASH */
 
-#ifdef CONFIG_DPU_LOAD_FAKE_PCIE_MEM
-static void dpu_load_fake_pcie_mem(void *boot_entry)
+#ifdef CONFIG_DPU_LOAD_PCIE_EP
+static void dpu_load_pcie(void *boot_entry)
 {
 	uint64_t pcie_ddr_addr = (uint64_t)(boot_entry);
 	unsigned int pcie_inmem_addr = 0;
@@ -168,8 +173,8 @@ static void dpu_load_fake_pcie_mem(void *boot_entry)
 	unsigned int y_slice_pcie = 1;
 	unsigned int x_full_pcie = x_slice_pcie;
 
-	printf("boot(pcie): booting mcu_code.hex...\n");
-	printf("boot(pcie): DMA from pcie model (RC VIP) DDR to mcu DDR\n");
+	printf("boot(pcie): loading program to 0x%016llx...\n",
+	       (uint64_t)boot_entry);
 
 	/* Transfer const data from memory to spm */
 	Pcie_DDR_Transfer((void *)&pcie_ddr_addr, 0,
@@ -185,7 +190,7 @@ static void dpu_boot_pcie(void)
 
 	__boot_init();
 	dpu_pe_boot();
-	dpu_load_fake_pcie_mem(boot_entry);
+	dpu_load_pcie(boot_entry);
 	printf("boot(pcie): booting...\n");
 	__boot_msg(smp_processor_id());
 	smp_boot_secondary_cpus((caddr_t)boot_entry);
@@ -193,10 +198,10 @@ static void dpu_boot_pcie(void)
 	local_flush_icache_all();
 	boot_entry();
 }
-#else /* CONFIG_DPU_LOAD_FAKE_PCIE_MEM */
-#define dpu_load_fake_pcie_mem(boot_entry)	do { } while (0)
+#else /* CONFIG_DPU_LOAD_PCIE_EP */
+#define dpu_load_pcie(boot_entry)		do { } while (0)
 #define dpu_boot_pcie()				do { } while (0)
-#endif /* CONFIG_DPU_LOAD_FAKE_PCIE_MEM */
+#endif /* CONFIG_DPU_LOAD_PCIE_EP */
 
 void board_boot(void)
 {

@@ -169,6 +169,18 @@ config DPU_LOAD_SPI_FLASH
 	depends DPU_SPI_FLASH
 	depends !DPU_BOOT_SPI_FLASH
 
+config DPU_BOOT_DDR0
+	bool "Bootloader jump DDR bank0"
+	depends DPU_DDR_BANK0 && !DPU_DDR_INTLV
+	depends DPU_LOAD_SSI_FLASH || DPU_LOAD_PCIE_EP
+	help
+	  When DDR is configured in non-interleave mode, DDR bank0 is
+	  located at 0x400000000. This option allows you to load BBL
+	  or PCIe programs to the DDR bank0. Note you must also manually
+	  change the base address of the loaded program accordingly. e.x.,
+	  you need to modify dpuxxx_bbl_defconfig's
+	  CONFIG_BOOT_BASE/CONFIG_LOAD_BASE to 0x400000000.
+
 config DPU_BOOT_ADDR
 	hex "Bootloader SPI flash jump address"
 	range 0x00000000 0x01E00000
@@ -183,8 +195,12 @@ config DPU_LOAD_SSI_FLASH
 	bool "SSI flash"
 	depends DPU_SSI_FLASH
 
-config DPU_LOAD_FAKE_PCIE_MEM
-	bool "fake PCIe memory"
+config DPU_LOAD_PCIE_EP
+	bool "PCIe EP"
+	depends DW_PCIE && !DW_PCIE_RC
+	help
+	  When the DPU/RES board is used as a PCIe peripheral, programs can be
+	  downloaded via PCIe when the booloader is running in PCIe EP mode.
 
 endchoice	
 
