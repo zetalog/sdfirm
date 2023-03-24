@@ -2,8 +2,7 @@
 #include <target/clk.h>
 #include <target/irq.h>
 #include <target/page.h>
-#include <asm/mach/tcsr.h>
-
+#include <target/arch.h>
 
 #ifndef CONFIG_SIMULATION
 static int pcie_dma_bh_poll;
@@ -61,31 +60,24 @@ struct dw_pcie controllers[] = {
 #endif /* CONFIG_DPU_GEN2 */
 };
 
-uint32_t read_apb(uint64_t addr, uint8_t port)
+#ifndef CONFIG_DPU_PCIE_IPDV
+uint32_t dw_pcie_read_apb(uint64_t addr)
 {
 	uint32_t data;
 
-#ifdef IPBENCH
-	apb_read_c(addr, &data, port);
-#else
 	data = __raw_readl(addr);
-#endif
-#ifdef CONFIG_DW_PCIE_DEBUG
-	con_dbg("ReadAPB: addr: 0x%x; data: 0x%x, port: %d\n", addr, data, port);
+#ifdef CONFIG_DPU_PCIE_DEBUG
+	con_dbg("dw_pcie: APB(R): 0x%llx=0x%08x\n", addr, data);
 #endif
 	return data;
 }
 
-void write_apb(uint64_t addr, uint32_t data, uint8_t port)
+void dw_pcie_write_apb(uint64_t addr, uint32_t data)
 {
-#ifdef CONFIG_DW_PCIE_DEBUG
-	con_dbg("WriteAPB: addr: 0x%x; data: 0x%x port: %d\n", addr, data, port);
+#ifdef CONFIG_DPU_PCIE_DEBUG
+	con_dbg("dw_pcie: APB(W): 0x%llx=0x%x\n", addr, data);
 #endif
-#ifdef IPBENCH
-	apb_write_c(addr, data, port);
-#else
 	__raw_writel(data, addr);
-#endif
 }
 
 uint32_t dw_pcie_read_axi(uint64_t addr)
@@ -93,41 +85,18 @@ uint32_t dw_pcie_read_axi(uint64_t addr)
 	uint32_t data;
 
 	data = __raw_readl(addr);
-#ifdef CONFIG_DUOWEN_PCIE_DEBUG
-	con_dbg("dw_pcie: AXI(R): 0x%llx=0x%x\n", addr, data);
+#ifdef CONFIG_DPU_PCIE_DEBUG
+	con_dbg("dw_pcie: AXI(R): 0x%llx=0x%x\n", addr);
 #endif
 	return data;
 }
 
 void dw_pcie_write_axi(uint64_t addr, uint32_t data)
 {
-#ifdef CONFIG_DUOWEN_PCIE_DEBUG
+#ifdef CONFIG_DPU_PCIE_DEBUG
 	con_dbg("dw_pcie: AXI(W): 0x%llx=0x%x\n", addr, data);
 #endif
 	__raw_writel(data, addr);
-}
-
-
-#ifdef IPBENCH
-#define COUNTER_ADDR    0xf0000000
-static uint32_t get_counter(void)
-{
-	uint32_t cnt;
-
-	cnt = read_apb(COUNTER_ADDR, 8);
-	return cnt;
-}
-
-void udelay(uint32_t time)
-{
-	uint32_t current, next;
-
-	current = get_counter();
-	next = current + time * 125;
-
-	do {
-		current = get_counter();
-	} while (current < next);
 }
 #endif
 
@@ -139,44 +108,42 @@ static uint8_t duowen_get_link_mode(struct duowen_pcie_subsystem *pcie_subsystem
 void reset_init(struct duowen_pcie_subsystem *pcie_subsystem)
 {
 	uint64_t base = pcie_subsystem->cfg_apb[SUBSYS];
-	uint8_t port = APB_PORT_SUBSYS;
 	uint8_t mode = duowen_get_link_mode(pcie_subsystem);
 
-	write_apb((base + RESET_PHY), 0x00, port);
-//	write_apb((base + SRAM_CONTROL), 0x0, port);
-	write_apb((base + REFCLK_CONTROL), 0x3, port);//xkm use ref clk from pad
+	dw_pcie_write_apb((base + RESET_PHY), 0x00);
+//	dw_pcie_write_apb((base + SRAM_CONTROL), 0x0);
+	dw_pcie_write_apb((base + REFCLK_CONTROL), 0x3);//xkm use ref clk from pad
 	// #200ns
-	write_apb((base + RESET_PHY), 0x1f, port);
+	dw_pcie_write_apb((base + RESET_PHY), 0x1f);
 	// #100ns
 
 	if (mode == LINK_MODE_16_0_0_0)
-		write_apb((base + RESET_CORE_X16), 0xff, port);
+		dw_pcie_write_apb((base + RESET_CORE_X16), 0xff);
 	else if (mode == LINK_MODE_8_8_0_0)
-		write_apb((base + RESET_CORE_X8), 0xff, port);
+		dw_pcie_write_apb((base + RESET_CORE_X8), 0xff);
 	else if (mode == LINK_MODE_4_4_4_4)
-		write_apb((base + RESET_CORE_X4_0), 0xff, port);
+		dw_pcie_write_apb((base + RESET_CORE_X4_0), 0xff);
 	else
-		write_apb((base + RESET_CORE_X4_1), 0xff, port);
+		dw_pcie_write_apb((base + RESET_CORE_X4_1), 0xff);
 #if 0/*xkm: temply if0 here since rtl set it to fixed hz state*/
 	while ((data & 0xf) != 0xf)
-		data = read_apb((base + SRAM_STATUS), port);
+		data = dw_pcie_read_apb((base + SRAM_STATUS));
 #endif
-  //  write_apb((base + SRAM_CONTROL), 0x55, port);//xkm:should be 0xaa,now don't set this register
-	//write_apb((base + RESET_PHY), 0xff, port);
+  //  dw_pcie_write_apb((base + SRAM_CONTROL), 0x55);//xkm:should be 0xaa,now don't set this register
+	//dw_pcie_write_apb((base + RESET_PHY), 0xff);
 }
 
 static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
 {
 	uint64_t base = pcie_subsystem->cfg_apb[SUBSYS];
 	struct dw_pcie *controller = pcie_subsystem->controller;
-	uint8_t port = APB_PORT_SUBSYS;
 	uint8_t link_mode = pcie_subsystem->link_mode;
 	uint32_t val;
 
 	//assert(link_mode != LINK_MODE_INVALID);
 
 	// #10ns
-	//write_apb((base + SUBSYS_CONTROL), link_mode, port);//xkm: there is no 0x14 reg
+	//dw_pcie_write_apb((base + SUBSYS_CONTROL), link_mode);//xkm: there is no 0x14 reg
 
 	switch (link_mode) {
 	case LINK_MODE_4_4_4_4:	 // 0: In DPU, X4_0
@@ -212,7 +179,6 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
 		(controller + X4_1)->order = 3;
 #endif
 		base = pcie_subsystem->cfg_apb[X4_0];
-		port = APB_PORT_X4_0;
 		break;
 	case LINK_MODE_8_4_0_4:	 // 1: In DPU, X4_1
 #ifdef DPU
@@ -247,7 +213,6 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
 		(controller + X4_1)->order = 2;
 #endif
 		base = pcie_subsystem->cfg_apb[X4_1];
-		port = APB_PORT_X4_1;
 		break;
 	case LINK_MODE_8_8_0_0:	 // 2: In DPU, X8
 #ifdef DPU
@@ -282,7 +247,6 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
 		(controller + X4_1)->order = 0xff;
 #endif
 		base = pcie_subsystem->cfg_apb[X8];
-		port = APB_PORT_X8;
 		break;
 	case LINK_MODE_16_0_0_0:	//  3: In DPU: X16
 #ifdef DPU
@@ -317,30 +281,29 @@ static void subsys_link_init_pre(struct duowen_pcie_subsystem *pcie_subsystem)
 		(controller + X4_1)->order = 0xff;
 #endif
 		base = pcie_subsystem->cfg_apb[X16];
-		port = APB_PORT_X16;
 		break;
 	}
 
 #ifdef CONFIG_DW_PCIE_RC
-	write_apb((base + 0), 0xc810010, port);
+	dw_pcie_write_apb((base + 0), 0xc810010);
 #else
-	val = read_apb((base + 0), port);
+	val = dw_pcie_read_apb((base + 0));
 	printf("before setting=%x\n", val);//xkm:if no read this reg,the vcs will fail
 	/* xkm:can't write this reg,otherwise will case error */
-	/* write_apb((base + 0), 0xc810000, port); */
+	/* dw_pcie_write_apb((base + 0), 0xc810000); */
 #endif
 }
 
 void wait_controller_linkup(struct duowen_pcie_subsystem *pcie_subsys)
 {
-	uint8_t i = 0, port = APB_PORT_X16;
+	uint8_t i = 0;
 	uint32_t data;
 	uint64_t base = pcie_subsys->cfg_apb[X16];
 
-	data = read_apb((base + 0x10), port);
+	data = dw_pcie_read_apb((base + 0x10));
 	printf("wait controller smlh&rdlh ready\n");
 	while ((data & (_BV(0) | _BV(11))) != (_BV(0) | _BV(11))) {
-		data = read_apb((base + 0x10), port);
+		data = dw_pcie_read_apb((base + 0x10));
 		printf("count %d: link_status is:0x%x\n", i, data);
 		i++;
 		if (i > 100) {
@@ -357,25 +320,25 @@ static void subsys_link_init_post(struct duowen_pcie_subsystem *pcie_subsys)
 
 	switch (mode) {
 	case LINK_MODE_4_4_4_4:
-		write_apb(pcie_subsys->cfg_apb[X4_0], 0xc018010, APB_PORT_X4_0);
+		dw_pcie_write_apb(pcie_subsys->cfg_apb[X4_0], 0xc018010);
 #ifdef DPU
 		break;
 #endif
 	case LINK_MODE_8_4_0_4:
-		write_apb(pcie_subsys->cfg_apb[X4_1], 0xc018010, APB_PORT_X4_1);
+		dw_pcie_write_apb(pcie_subsys->cfg_apb[X4_1], 0xc018010);
 #ifdef DPU
 		break;
 #endif
 	case LINK_MODE_8_8_0_0:
-		write_apb(pcie_subsys->cfg_apb[X8], 0xc018010, APB_PORT_X8);
+		dw_pcie_write_apb(pcie_subsys->cfg_apb[X8], 0xc018010);
 #ifdef DPU
 		break;
 #endif
 	case LINK_MODE_16_0_0_0:
 #ifdef CONFIG_DW_PCIE_RC
-		write_apb(pcie_subsys->cfg_apb[X16], 0xc018010, APB_PORT_X16);//xkm
+		dw_pcie_write_apb(pcie_subsys->cfg_apb[X16], 0xc018010);//xkm
 #else
-		write_apb(pcie_subsys->cfg_apb[X16], 0xc018000, APB_PORT_X16);//xkm
+		dw_pcie_write_apb(pcie_subsys->cfg_apb[X16], 0xc018000);//xkm
 #endif
 #ifdef DPU
 		break;
@@ -711,11 +674,8 @@ void dw_pcie_ep_dma_ep2rc_api(struct pcie_port *pp, uint8_t channel,
 		uint64_t src, uint64_t dst, uint32_t size)
 {
 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
-
 	uint32_t val, data;
-#ifndef CONFIG_SIMULATION
-	uint32_t intflg;
-#endif
+
 	/* DMA write control 1 reg */
 	data = dw_pcie_read_dbi(pci, DW_PCIE_DMA, (0x200 + (channel * 0x200)), 0x4);
 	if ((data & 0x60) == 0x20) {
@@ -787,7 +747,6 @@ void dw_pcie_ep_dma_ep2rc_api(struct pcie_port *pp, uint8_t channel,
 	}
 
 }
-
 
 void dma_ep2rc(struct pcie_port *pp, uint8_t channel, uint64_t src, uint64_t dst, uint32_t size)
 {
@@ -861,12 +820,10 @@ void pcie_dw_dma_ep2rc(uint8_t channel, uint64_t src, uint32_t size)
 
 void dpu_rc_pcie_inta_handler(irq_t irq)
 {
-	uint32_t val;
-	struct dw_pcie *pci = NULL;
-	struct dw_pcie *controller;
-
-	controller = &controllers[0];
-	pci = to_dw_pcie_from_pp(&(controller->pp));
+#if 0
+	struct dw_pcie *controller = &controllers[0];
+	struct dw_pcie *pci = to_dw_pcie_from_pp(&(controller->pp));
+#endif
 
 	irqc_mask_irq(IRQ_PCIE_X16_INTA);
 
@@ -875,6 +832,144 @@ void dpu_rc_pcie_inta_handler(irq_t irq)
 	irqc_unmask_irq(IRQ_PCIE_X16_INTA);
 	irqc_ack_irq(IRQ_PCIE_X16_INTA);
 }
+
+void dpu_pcie_test(void)
+{
+#ifdef CONFIG_SIMULATION
+	int channel;
+#endif
+#ifdef CONFIG_DW_PCIE_RC
+	// trigger EP VIP MSI interrupt
+	__raw_writel(0x3, TCSR_MSG_REG(0x80));
+	// trigger EP VIP INTA interrupt
+	__raw_writel(0x2, TCSR_MSG_REG(0x80));
+
+	__raw_writeq(0x64646464, (PCIE_SUBSYS_ADDR_START + 0x10));
+	val = __raw_readq(PCIE_SUBSYS_ADDR_START + 0x10);
+	if (val == 0x64646464)
+		printf("MEM64 Read/Write transaction passed\n");
+
+	__raw_writel(0x32323232, (PCIE_SUBSYS_ADDR_START + 0x100));
+	val = __raw_readl(PCIE_SUBSYS_ADDR_START + 0x100);
+	if (val == 0x32323232)
+		printf("MEM32 Read/Write transaction passed\n");
+
+	// cfg0 read
+	val = __raw_readl(PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG0_START + 0x0);
+	printf("cfg0: %x\n", val);
+
+	// cfg1 read
+	val = __raw_readl(PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG1_START + 0x100000);
+	printf("cfg1: %x\n", val);
+
+	// cfg0 read
+	val = __raw_readl(PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG0_START + 0x700);
+	printf("cfg0 0x700= %x\n", val);
+
+	__raw_writel(0x0ca5045a, (PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG0_START + 0x700));
+	val = __raw_readl(PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG0_START + 0x700);
+	printf("cfg0 0x700 after wr= %x\n", val);
+
+	// cfg1 read
+	val = __raw_readl(PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG1_START + 0x700);
+	printf("cfg1 0x700= %x\n", val);
+
+	__raw_writel(0x0ba5035a, (PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG1_START + 0x700));
+	val = __raw_readl(PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG1_START + 0x700);
+	printf("cfg1 0x700 after wr= %x\n", val);
+#else
+#ifdef CONFIG_DPU_TEST_LINK_SPEED_CHANGE
+	change_link_speed(pci, pcie_subsys);
+#endif	
+#ifndef CONFIG_DDR
+	clk_enable(axi_clk);
+	clk_enable(srst_ddr0_0);
+	__raw_writel(0xffffffff, SRST_REG(0));
+#endif
+	// carry out EP DMA test
+#ifdef CONFIG_SIMULATION
+	for (channel = 0; channel < 2; channel++) {
+		printf("RC2EP 4 ch%d\n", channel);
+		__raw_writel((0x12345678 + channel), 0x100000000);
+		__raw_writel((0x23456789 + channel), 0x100000004);
+
+		val = __raw_readl(0x100000000);
+		printf("RC_Ori0:%x\n", val);
+		val = __raw_readl(0x100000004);
+		printf("RC_Ori4:%x\n", val);
+
+		dw_pcie_ep_dma_rc2ep(&(controller->pp), channel);
+
+		num = 0;
+		dma_irq_triggered = false;
+		while (!dma_irq_triggered) {
+			irq_local_enable();
+			irq_local_disable();
+			num++;
+			if (num >= 20) {
+				printf("nottrigged\n");
+				break;
+			}
+		}
+
+		asm("fence.i\n\t");
+		val = __raw_readl(0x800000000);
+		asm("fence.i\n\t");
+		printf("EP_aft0:%x\n", val);
+		asm("fence.i\n\t");
+		val = __raw_readl(0x800000004);
+		asm("fence.i\n\t");
+		printf("EP_aft4:%x\n", val);
+
+		printf("EP2RC 4 ch%d\n", channel);
+
+		__raw_writel((0x32323232 + channel), 0x100000000);
+		__raw_writel((0x64646464 + channel), 0x100000004);
+
+		val = __raw_readl(0x100000000);
+		printf("RC_Ori0:%x\n", val);
+		val = __raw_readl(0x100000004);
+		printf("RC_Ori4:%x\n", val);
+
+		asm("fence.i\n\t");
+		__raw_writel((0x11111111 + channel), 0x800000000);
+		__raw_writel((0x22222222 + channel), 0x800000004);
+		asm("fence.i\n\t");
+
+		asm("fence.i\n\t");
+		val = __raw_readl(0x800000000);
+		asm("fence.i\n\t");
+		printf("EP_Ori0:%x\n", val);
+		asm("fence.i\n\t");
+		val = __raw_readl(0x800000004);
+		asm("fence.i\n\t");
+		printf("EP_Ori4:%x\n", val);
+
+		dma_irq_triggered = false;
+		dw_pcie_ep_dma_ep2rc(&(controller->pp), channel);
+
+		num = 0;
+		while (!dma_irq_triggered) {
+			irq_local_enable();
+			irq_local_disable();
+			num++;
+			if (num >= 20) {
+				printf("nottrigged2\n");
+				break;
+			}
+		}
+
+		val = __raw_readl(0x100000000);
+		printf("RC_aft0:%x\n", val);
+		val = __raw_readl(0x100000004);
+		printf("RC_aft4:%x\n", val);
+	}
+#endif
+#endif
+}
+#else
+#define dpu_pcie_test()		do { } while (0)
+#endif
 
 void dpu_pcie_inta_handler(irq_t irq)
 {
@@ -940,7 +1035,6 @@ void dpu_pcie_inta_handler(irq_t irq)
 	irqc_unmask_irq(IRQ_PCIE_X16_LDMA);
 	irqc_ack_irq(IRQ_PCIE_X16_LDMA);
 }
-#endif
 
 #ifndef CONFIG_SIMULATION
 static void pcie_dma_bh_poll_handler(uint8_t events)//forever polling
@@ -1360,16 +1454,12 @@ void pci_platform_init(void)
 {
 	struct duowen_pcie_subsystem *pcie_subsys;
 	struct dw_pcie *controller;
-	int i, channel;
+	int i, j;
 	uint32_t num, val;
-#ifndef CONFIG_SIMULATION
-	int j;
 	uint32_t addr;
 	uint64_t addr64;
-#endif
 	struct dw_pcie *pci = NULL;
 
-	printf("bird: PCIE start\n");
 	//imc_addr_trans(0, 0x20000000, 0xc00000000, 0);
 
 	pcie_subsys = &pcie_subsystem;
@@ -1382,7 +1472,7 @@ void pci_platform_init(void)
 	controller = pcie_subsys->controller;
 	pci = to_dw_pcie_from_pp(&(controller->pp));
 
-	for (i = 0; i < sizeof(controllers) / sizeof(struct dw_pcie); i++) {
+	for (i = 0; i < ARRAY_SIZE(controllers); i++) {
 		if (i != 0)//xkm
 			break;
 		if (controller->active == true)
@@ -1393,17 +1483,16 @@ void pci_platform_init(void)
 
 	subsys_link_init_post(pcie_subsys);
 
-#ifdef CONFIG_DPU_PCIE_TEST
-	printf("bird: PCIE TEST start\n");
-	// find which controller is in use, and enable its MSI int
+	/* Find first active controller to enable MSI */
 	controller = pcie_subsys->controller;
-	for (i = 0; i < sizeof(controllers) / sizeof(struct dw_pcie); i++) {
+	for (i = 0; i < ARRAY_SIZE(controllers); i++) {
 		if (i != 0)//xkm
 			break;
 		if (controller->active == true)
 			break;
 		controller++;
 	}
+
 #ifdef CONFIG_DW_PCIE_RC
 	irqc_configure_irq(IRQ_PCIE_X16_MSI, 0, IRQ_LEVEL_TRIGGERED);
 	irq_register_vector(IRQ_PCIE_X16_MSI, dpu_pcie_msi_handler);
@@ -1414,157 +1503,12 @@ void pci_platform_init(void)
 	irqc_enable_irq(IRQ_PCIE_X16_INTA);
 
 	dw_pcie_enable_msi(&(controller->pp));
-
-	// trigger EP VIP MSI interrupt
-	__raw_writel(0x3, TCSR_MSG_REG(0x80));
-	// trigger EP VIP INTA interrupt
-	__raw_writel(0x2, TCSR_MSG_REG(0x80));
-
-	__raw_writeq(0x64646464, (PCIE_SUBSYS_ADDR_START + 0x10));
-	val = __raw_readq(PCIE_SUBSYS_ADDR_START + 0x10);
-	if (val == 0x64646464)
-		printf("MEM64 Read/Write transaction passed\n");
-
-	__raw_writel(0x32323232, (PCIE_SUBSYS_ADDR_START + 0x100));
-	val = __raw_readl(PCIE_SUBSYS_ADDR_START + 0x100);
-	if (val == 0x32323232)
-		printf("MEM32 Read/Write transaction passed\n");
-
-	// cfg0 read
-	val = __raw_readl(PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG0_START + 0x0);
-	printf("cfg0: %x\n", val);
-
-	// cfg1 read
-	val = __raw_readl(PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG1_START + 0x100000);
-	printf("cfg1: %x\n", val);
-
-	// cfg0 read
-	val = __raw_readl(PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG0_START + 0x700);
-	printf("cfg0 0x700= %x\n", val);
-
-	__raw_writel(0x0ca5045a, (PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG0_START + 0x700));
-	val = __raw_readl(PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG0_START + 0x700);
-	printf("cfg0 0x700 after wr= %x\n", val);
-
-	// cfg1 read
-	val = __raw_readl(PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG1_START + 0x700);
-	printf("cfg1 0x700= %x\n", val);
-
-	__raw_writel(0x0ba5035a, (PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG1_START + 0x700));
-	val = __raw_readl(PCIE_SUBSYS_ADDR_START + PCIE_CORE_X16_CFG1_START + 0x700);
-	printf("cfg1 0x700 after wr= %x\n", val);
 #else
-
-#ifdef CONFIG_DPU_TEST_LINK_SPEED_CHANGE
-	change_link_speed(pci, pcie_subsys);
-#endif	
 	irqc_configure_irq(IRQ_PCIE_X16_LDMA, 0, IRQ_LEVEL_TRIGGERED);
 	irq_register_vector(IRQ_PCIE_X16_LDMA, dpu_pcie_inta_handler);
 	irqc_enable_irq(IRQ_PCIE_X16_LDMA);
-#ifndef CONFIG_DDR
-	clk_enable(axi_clk);
-	clk_enable(srst_ddr0_0);
-	__raw_writel(0xffffffff, SRST_REG(0));
-#endif
-
-	// config max payload size/read request size, 0x78?
-	dw_pcie_write_dbi(pci, DW_PCIE_CDM, 0x78, 0x50b0, 0x4);
-	// carry out EP DMA test
-#ifdef CONFIG_SIMULATION
-	for (channel = 0; channel < 2; channel++) {
-		printf("RC2EP 4 ch%d\n", channel);
-		__raw_writel((0x12345678 + channel), 0x100000000);
-		__raw_writel((0x23456789 + channel), 0x100000004);
-
-		val = __raw_readl(0x100000000);
-		printf("RC_Ori0:%x\n", val);
-		val = __raw_readl(0x100000004);
-		printf("RC_Ori4:%x\n", val);
-
-		dw_pcie_ep_dma_rc2ep(&(controller->pp), channel);
-
-		num = 0;
-		dma_irq_triggered = false;
-		while (!dma_irq_triggered) {
-			irq_local_enable();
-			irq_local_disable();
-			num++;
-			if (num >= 20) {
-				printf("nottrigged\n");
-				break;
-			}
-		}
-
-		asm("fence.i\n\t");
-		val = __raw_readl(0x800000000);
-		asm("fence.i\n\t");
-		printf("EP_aft0:%x\n", val);
-		asm("fence.i\n\t");
-		val = __raw_readl(0x800000004);
-		asm("fence.i\n\t");
-		printf("EP_aft4:%x\n", val);
-
-		printf("EP2RC 4 ch%d\n", channel);
-
-		__raw_writel((0x32323232 + channel), 0x100000000);
-		__raw_writel((0x64646464 + channel), 0x100000004);
-
-		val = __raw_readl(0x100000000);
-		printf("RC_Ori0:%x\n", val);
-		val = __raw_readl(0x100000004);
-		printf("RC_Ori4:%x\n", val);
-
-		asm("fence.i\n\t");
-		__raw_writel((0x11111111 + channel), 0x800000000);
-		__raw_writel((0x22222222 + channel), 0x800000004);
-		asm("fence.i\n\t");
-
-		asm("fence.i\n\t");
-		val = __raw_readl(0x800000000);
-		asm("fence.i\n\t");
-		printf("EP_Ori0:%x\n", val);
-		asm("fence.i\n\t");
-		val = __raw_readl(0x800000004);
-		asm("fence.i\n\t");
-		printf("EP_Ori4:%x\n", val);
-
-		dma_irq_triggered = false;
-		dw_pcie_ep_dma_ep2rc(&(controller->pp), channel);
-
-		num = 0;
-		while (!dma_irq_triggered) {
-			irq_local_enable();
-			irq_local_disable();
-			num++;
-			if (num >= 20) {
-				printf("nottrigged2\n");
-				break;
-			}
-		}
-
-		val = __raw_readl(0x100000000);
-		printf("RC_aft0:%x\n", val);
-		val = __raw_readl(0x100000004);
-		printf("RC_aft4:%x\n", val);
-	}
-#else
-#ifdef CONFIG_DPU_INITIATE_DMA_BY_LOCAL
-	addr64 = 0x800000000;
-#else
-	//addr64 = 0x808000000;
-	addr64 = 0x900000000;
-#endif
-	asm("fence.i\n\t");
-	for (num = 0; num < 0x10; num++)
-		__raw_writel((num*4), (addr64 + num*4));
-	asm("fence.i\n\t");
-
-	printf("fakeddr %llx:\n", addr64);
-	for (num = 0; num < 0x4; num++) {
-		val = __raw_readl((addr64 + num*4));
-		printf("fakeddr addr%x :%x\n", (num*4), val);
-	}
-	asm("fence.i\n\t");
+	/* Configure maximum payload size, read request size */
+	dw_pcie_write_dbi(pci, DW_PCIE_CDM, 0x78, 0x5030, 0x4);
 
 	j = 0;
 	for (i = 0; i < 27; i++) {
@@ -1581,16 +1525,16 @@ void pci_platform_init(void)
 	}
 	printf("There are %d reserved regs can be used\n", j);
 
-#ifdef CONFIG_FIRMWARE
 	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_FLAG_REG, 0x4);
 	val &= 0xfffffff8;
 	val |= EP2RC_RUN_MCU_OK_FLG;
 	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCIE_FLAG_REG, val, 0x4);
-#endif
 	/* Reserved 1 page(4KB) for invalid DMA just for generate interrupt */
 	addr64 = (uint64_t)page_alloc_pages(1);
 	ep_rsved_page_addr = addr64;
 	printf("Reserved addr = %llx\n", addr64);
+	if (addr64 != 0)
+		memset((void *)addr64, 0xff, PAGE_SIZE);
 
 	addr = (uint32_t)(addr64 & 0xffffffff);
 	printf("EP rsved page low=%x\n", addr);
@@ -1606,12 +1550,9 @@ void pci_platform_init(void)
 	dw_pcie_write_dbi(pci, DW_PCIE_CDM, RC_FREE_MEM_HI_REG, val, 0x4);
 
 
-
 	irq_local_enable();
 	pcie_dma_bh_poll = bh_register_handler(pcie_dma_bh_poll_handler);
 	irq_register_poller(pcie_dma_bh_poll);
-
 #endif
-#endif
-#endif
+	dpu_pcie_test();
 }

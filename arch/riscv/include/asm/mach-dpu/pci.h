@@ -60,7 +60,11 @@
 #else
 #include "pcie_designware.h"
 #endif
+#ifdef CONFIG_DPU_PCIE_IPDV
+#include "pcie_ipdv.h"
+#endif
 
+/* PCIe core_x[lane] IDs */
 #define X16         0
 #define X8          1
 #define X4_0        2
@@ -78,6 +82,7 @@
 #define AXI_DBI_PORT_X4_0           0x2
 #define AXI_DBI_PORT_X4_1           0x3
 
+/* PCIe subsystem registers */
 #define RESET_CORE_X16              0x0
 #define RESET_CORE_X8               0x4
 #define RESET_CORE_X4_0             0x8

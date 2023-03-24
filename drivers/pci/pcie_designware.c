@@ -532,7 +532,9 @@ void dw_pcie_setup_dpu2_sub(struct dw_pcie *pci)
 {
 	uint32_t val, tmp;
 	uint32_t lanes = pci->lane_num;
+#ifdef CONFIG_DW_PCIE_RC
 	uint8_t order = pci->order;
+#endif
 
 #ifndef CONFIG_DW_PCIE_RC
 	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCIE_MSI_CAPABILITY, 0x4);
