@@ -150,6 +150,7 @@ _scratch_init:
 	/* Store fw_start and fw_size in scratch space */
 	la	a4, _start
 	la	a5, _end
+	sub	a5, a5, a4
 	REG_S	a4, SBI_SCRATCH_FW_START(tp)
 	REG_S	a5, SBI_SCRATCH_FW_SIZE(tp)
 	/* Store next arg1 in scratch space */
