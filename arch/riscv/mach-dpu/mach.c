@@ -75,7 +75,7 @@ static void dpu_boot_spi(void)
 {
 	void (*boot_entry)(void);
 
-	printf("boot(spi): booting...\n");
+	printf("boot(spi): %sbooting...\n", BOOT_PREFIX);
 	boot_entry = (void *)CONFIG_DPU_BOOT_ADDR;
 	__boot_init();
 	clk_enable(srst_flash);
@@ -146,8 +146,8 @@ static void dpu_load_ssi(void *boot_entry, const char *boot_file)
 		__boot_msg(BOOT_ERROR_FIND);
 		printf("boot(ssi): failed to load %s.\n", boot_file);
 	}
-	printf("boot(ssi): booting - 0x%llx(0x%llx)...\n",
-	       (uint64_t)addr, (uint64_t)size);
+	printf("boot(ssi): %sbooting - 0x%llx(0x%llx)...\n",
+	       BOOT_PREFIX, (uint64_t)addr, (uint64_t)size);
 	dpu_ssi_flash_boot(boot_entry, addr, size);
 }
 #endif /* CONFIG_DPU_BOOT_BACKDOOR */
@@ -191,7 +191,7 @@ static void dpu_boot_pcie(void)
 	__boot_init();
 	dpu_pe_boot();
 	dpu_load_pcie(boot_entry);
-	printf("boot(pcie): booting...\n");
+	printf("boot(pcie): %sbooting...\n", BOOT_PREFIX);
 	__boot_msg(smp_processor_id());
 	smp_boot_secondary_cpus((caddr_t)boot_entry);
 	__boot_fini();
@@ -266,17 +266,8 @@ void board_late_init(void)
 }
 
 #ifdef CONFIG_DPU_APC
-void dpu_load_ddr(void)
-{
-	if (smp_processor_id() == 0)
-		con_log("boot(ddr): Booting %d cores...\n", MAX_CPU_NUM);
-
-	/* TODO: Jump all CPUs to the same location */
-}
-
 void board_boot_late(void)
 {
-	dpu_load_ddr();
 }
 
 #ifdef CONFIG_SMP

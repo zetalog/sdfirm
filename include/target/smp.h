@@ -65,10 +65,12 @@ typedef uint8_t cpu_t;
 
 #ifdef CONFIG_SMP_BOOT
 #ifndef __ASSEMBLY__
+#define BOOT_PREFIX				"smp "
 #define smp_cpu_boot(cpu, ep)			smp_hw_cpu_boot(cpu, ep)
 void smp_boot_secondary_cpus(caddr_t context);
 #endif /* __ASSEMBLY__ */
 #else /* CONFIG_SMP_BOOT */
+#define BOOT_PREFIX				"up "
 #define smp_cpu_boot(cpu, ep, context)		do { } while (0)
 #define smp_boot_secondary_cpus(context)	do { } while (0)
 #endif /* CONFIG_SMP_BOOT */
