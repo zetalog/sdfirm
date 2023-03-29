@@ -23,7 +23,15 @@
 #define PLL1_P_FREQ		900000000	/* 900MHz */
 #define PLL2_P_FREQ		800000000	/* 800MHz */
 #define PLL2_R_FREQ		50000000	/* 50MHz */
+#ifdef CONFIG_DPU_RES
+#ifdef CONFIG_DPU_RES_LOW
+#define PLL3_P_FREQ		600000000	/* 600MHz */
+#else /* CONFIG_DPU_RES_LOW */
 #define PLL3_P_FREQ		800000000	/* 800MHz */
+#endif /* CONFIG_DPU_RES_LOW */
+#else /* CONFIG_DPU_RES */
+#define PLL3_P_FREQ		800000000	/* 800MHz */
+#endif /* CONFIG_DPU_RES */
 #define PLL3_R_FREQ		100000000	/* 100MHz */
 #define PLL4_P_FREQ		1000000000	/* 1GHz */
 #ifdef CONFIG_DPU_GEN2
