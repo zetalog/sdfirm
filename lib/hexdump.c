@@ -24,7 +24,7 @@ void hexdump(caddr_t addr, const void *data, uint8_t width, size_t count)
 
 	while (count) {
 		unsigned int thislinelen = linelen;
-		printf("%08lx:", addr);
+		printf("%08lx", addr);
 
 		/* check for overflow condition */
 		if (count < thislinelen)
@@ -40,6 +40,8 @@ void hexdump(caddr_t addr, const void *data, uint8_t width, size_t count)
 				x = lb.us[i] = *(volatile uint16_t *)data;
 			else
 				x = lb.uc[i] = *(volatile uint8_t *)data;
+			if ((i % 8) == 0)
+				printf(" ");
 			printf(" %0*llx", width * 2, (long long)x);
 			data += width;
 		}
@@ -57,7 +59,7 @@ void hexdump(caddr_t addr, const void *data, uint8_t width, size_t count)
 				lb.uc[i] = '.';
 		}
 		lb.uc[i] = '\0';
-		printf("    %s\n", lb.uc);
+		printf("  |%s|\n", lb.uc);
 
 		/* update references */
 		addr += thislinelen * width;

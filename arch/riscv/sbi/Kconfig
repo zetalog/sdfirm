@@ -103,6 +103,10 @@ config SBI_PAYLOAD_PATH
 config SBI_PAYLOAD_ALIGN_RELAXED
 	bool "Enable relaxed alignment"
 
+config SBI_PAYLOAD_DUMP
+	bool "Enable payload dump test"
+	depends CONSOLE_OUTPUT
+
 endif
 
 config SBI_FDT

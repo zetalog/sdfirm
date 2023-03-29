@@ -648,6 +648,12 @@ config DPU_SSI_FLASH_FREQ
 	  environment, it's preferred to use 1MHz by design.
 	  Most of the product line use 80/104/133MHz clocks.
 
+config DPU_SSI_FLASH_DUMP_PAYLOAD
+	bool "Enable payload dump test"
+	depends DPU_LOAD_FSBL
+	depends !DPU_BOOT_STACK
+	depends CONSOLE_OUTPUT
+
 endif
 
 menu "DPU DDR controller/phy support"

@@ -22,6 +22,28 @@
 
 struct sbi_scratch *sbi_scratches[MAX_HARTS];
 
+#ifdef CONFIG_SBI_PAYLOAD_DUMP
+static DEFINE_SPINLOCK(payload_dump_lock);
+unsigned long _payload_start[0];
+unsigned long _payload_end[0];
+
+static void sbi_payload_dump(void)
+{
+	uint32_t hartid = sbi_current_hartid();
+	struct sbi_scratch *scratch = sbi_scratches[hartid];
+	size_t payload_size =
+		(caddr_t)_payload_end - (caddr_t)_payload_start;
+
+	spin_lock(&payload_dump_lock);
+	sbi_printf("CPU %d loading 0x%llx to 0x%llx...\n",
+		   sbi_processor_id(), payload_size, scratch->next_addr);
+	hexdump(0, (void *)scratch->next_addr, 1, payload_size);
+	spin_unlock(&payload_dump_lock);
+}
+#else
+#define sbi_payload_dump()	do { } while (0)
+#endif
+
 #ifdef CONFIG_SBI_BOOT_PRINTS
 void sbi_boot_hart_prints(void)
 {
@@ -182,6 +204,7 @@ static void __noreturn init_coldboot(void)
 
 	if (!sbi_platform_has_hart_hotplug(plat))
 		wake_coldboot_harts(scratch, smp_hw_hart_cpu(hartid));
+	sbi_payload_dump();
 	sbi_hart_mark_available(hartid);
 	sbi_hart_switch_mode(hartid, scratch->next_arg1, scratch->next_addr,
 			     scratch->next_mode);
@@ -226,6 +249,7 @@ static void __noreturn init_warmboot(void)
 		bh_panic();
 	else {
 		sbi_boot_hart_prints();
+		sbi_payload_dump();
 		sbi_hart_switch_mode(hartid, scratch->next_arg1,
 				     scratch->next_addr, scratch->next_mode);
 	}

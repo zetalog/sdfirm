@@ -48,6 +48,40 @@ static __always_inline uint8_t dpu_ssi_flash_read(uint32_t addr)
 	return byte;
 }
 
+#ifdef CONFIG_DPU_SSI_FLASH_DUMP_PAYLOAD
+#define PAYLOAD_START	0x200000
+#define PAYLOAD_CHUNK	0x2000
+
+uint8_t dpu_payload_dump[PAYLOAD_CHUNK];
+caddr_t dpu_payload_addr = 0;
+
+void __dpu_ssi_flash_dump_payload(size_t size)
+{
+	if (size <= 0)
+		return;
+
+	hexdump(dpu_payload_addr + 1 - PAYLOAD_CHUNK,
+		dpu_payload_dump, 1, size);
+}
+
+void __dpu_ssi_flash_save_payload(int i, uint8_t byte)
+{
+	caddr_t offset;
+
+	if (i < 0)
+		return;
+
+	offset = i % PAYLOAD_CHUNK;
+	dpu_payload_addr = i;
+	dpu_payload_dump[offset] = byte;
+	if ((offset + 1) == PAYLOAD_CHUNK)
+		__dpu_ssi_flash_dump_payload(PAYLOAD_CHUNK);
+}
+#else
+#define __dpu_ssi_flash_dump_payload(size)	do { } while (0)
+#define __dpu_ssi_flash_save_payload(i, byte)	do { } while (0)
+#endif
+
 __align(__WORDSIZE)
 void __dpu_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 {
@@ -57,13 +91,12 @@ void __dpu_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 
 #define is_last(index, length)		(((index) + 1) == length)
 
-	__boot_dbg('|');
+	__boot_dbg('\n');
 	for (i = 0; i < size; i++, addr++) {
 		dst[i] = dpu_ssi_flash_read(addr);
-		if ((i % 0x2000) == 0)
-			__boot_dbg('.');
+		__dpu_ssi_flash_save_payload(i - PAYLOAD_START, dst[i]);
 	}
-	__boot_dbg('|');
+	__dpu_ssi_flash_dump_payload((i - PAYLOAD_START) % PAYLOAD_CHUNK);
 	__boot_dbg('\n');
 	__boot_dbg('B');
 	__boot_dbg('o');
