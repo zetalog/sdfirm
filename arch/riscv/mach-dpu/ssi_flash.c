@@ -77,10 +77,18 @@ void __dpu_ssi_flash_save_payload(int i, uint8_t byte)
 	if ((offset + 1) == PAYLOAD_CHUNK)
 		__dpu_ssi_flash_dump_payload(PAYLOAD_CHUNK);
 }
-#else
+#else /* CONFIG_DPU_SSI_FLASH_DUMP_PAYLOAD */
+#define PAYLOAD_START	0
+#define PAYLOAD_CHUNK	0x2000
+
 #define __dpu_ssi_flash_dump_payload(size)	do { } while (0)
-#define __dpu_ssi_flash_save_payload(i, byte)	do { } while (0)
-#endif
+
+void __dpu_ssi_flash_save_payload(int i, uint8_t byte)
+{
+	if ((i % PAYLOAD_CHUNK) == 0)
+		__boot_dbg('.');
+}
+#endif /* CONFIG_DPU_SSI_FLASH_DUMP_PAYLOAD */
 
 __align(__WORDSIZE)
 void __dpu_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
