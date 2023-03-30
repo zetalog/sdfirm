@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Mar 24 17:26:11 2023
+# Thu Mar 30 21:01:57 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -14,15 +14,15 @@ CONFIG_PRODUCT_NAME="SmarCo DPU XSBL"
 CONFIG_VENDOR_ID=0
 CONFIG_PRODUCT_ID=0
 CONFIG_SERIAL_NO=0
-# CONFIG_BOOTLOADER is not set
-CONFIG_FIRMWARE=y
+CONFIG_BOOTLOADER=y
+# CONFIG_FIRMWARE is not set
 # CONFIG_EMBEDDED is not set
 
 #
-# Firmware options
+# Bootloader options
 #
-# CONFIG_GEM5 is not set
-# CONFIG_RIS is not set
+# CONFIG_BOOT_LINUX is not set
+CONFIG_BOOT_ROM=y
 CONFIG_COMMAND=y
 # CONFIG_COMMAND_BATCH is not set
 CONFIG_CONSOLE=y
@@ -130,6 +130,7 @@ CONFIG_RISCV_ENTR_M=y
 # CONFIG_RISCV_EXIT_U is not set
 # CONFIG_RISCV_EXIT_S is not set
 CONFIG_RISCV_EXIT_M=y
+CONFIG_SYS_LOADER=y
 
 #
 # System peripherals
@@ -213,6 +214,7 @@ CONFIG_DPU_FLASH_SS_8=y
 # CONFIG_DPU_FLASH_SS_32 is not set
 CONFIG_DPU_SSI_FLASH=y
 CONFIG_DPU_SSI_FLASH_FREQ=8000000
+# CONFIG_DPU_SSI_FLASH_DUMP_PAYLOAD is not set
 
 #
 # DPU DDR controller/phy support
@@ -241,7 +243,6 @@ CONFIG_ARCH_HAS_GPT=y
 CONFIG_ARCH_HAS_TSC=y
 CONFIG_ARCH_HAS_TSC_CONST=y
 CONFIG_ARCH_IS_TICKLESS=y
-CONFIG_ARCH_HAS_BOOT_LOAD=y
 
 #
 # Scheduling facility (irq) support
@@ -275,7 +276,6 @@ CONFIG_LPS_NO_LPS=y
 #
 # Address space layout (xip) support
 #
-# CONFIG_BFM is not set
 CONFIG_XIP=y
 CONFIG_BOOT_BASE=0x00000080
 CONFIG_LOAD_BASE=0x15000000

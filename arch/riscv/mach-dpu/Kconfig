@@ -89,7 +89,6 @@ config DPU_BOOT_ROM
 
 config DPU_BOOT_SPI_FLASH
 	bool "0-stage/1-stage SPINOR bootloader (ZSBL/FSBL)"
-	select ARCH_HAS_BOOT_LOAD if !DPU_BOOT_ROM_EXT
 	select DPU_BOOT
 	select DPU_LOAD_ZSBL if DPU_BOOT_ROM_EXT
 	select DPU_LOAD_FSBL
