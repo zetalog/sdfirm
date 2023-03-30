@@ -13,7 +13,7 @@
 #define PCIE_PHY_CLK_FREQ	25000000	/* 25MHz */
 #ifdef CONFIG_DPU_RES
 #ifdef CONFIG_DPU_RES_SLOW
-#define PLL0_P_FREQ		1200000000	/* 1.2GHz */
+#define PLL0_P_FREQ		1000000000	/* 1GHz */
 #else /* CONFIG_DPU_RES_SLOW */
 #define PLL0_P_FREQ		1500000000	/* 1.5GHz */
 #endif /* CONFIG_DPU_RES_SLOW */
