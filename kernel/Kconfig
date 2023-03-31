@@ -163,11 +163,18 @@ menu "Scheduling facility (SMP) support"
 config ARCH_HAS_SMP
 	bool
 
+config ARCH_HAS_SMP_BOOT_QUIRK_INIT_WAIT_ENTRY
+	bool
+
 menuconfig SMP_BOOT
 	bool "Enable SMP bootloader support"
 	depends ARCH_HAS_SMP
 
 if SMP_BOOT
+
+config SMP_BOOT_QUIRK_INIT_WAIT_ENTRY
+	bool "Enable quirk to initialize wait entry"
+	depends ARCH_HAS_SMP_BOOT_QUIRK_INIT_WAIT_ENTRY
 
 endif
 

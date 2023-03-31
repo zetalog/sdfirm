@@ -68,6 +68,7 @@ config DPU_LOAD_FSBL
 	bool
 	select DPU_DDR
 	select SPIFLASH_ADDR_4BYTE
+	select ARCH_HAS_SMP_BOOT_QUIRK_INIT_WAIT_ENTRY if SMP_BOOT
 
 config DPU_LOAD_BBL
 	bool

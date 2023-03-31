@@ -336,6 +336,7 @@ ENTRY(relocate)
 	ret
 ENDPROC(relocate)
 
+#define CONFIG_SMP_BOOT_QUIRK_INIT_WAIT_ENTRY	1
 secondary_start:
 #ifdef CONFIG_SMP_BOOT
 	/* Convert hartid to smpid */
@@ -343,6 +344,9 @@ secondary_start:
 	slli	a3, a6, LGREG
 	la	a4, __cpu_up_entry
 	add	a4, a3, a4
+#ifdef CONFIG_SMP_BOOT_QUIRK_INIT_WAIT_ENTRY
+	REG_S   zero, (a4)
+#endif
 
 wait_for_cpu_up:
 	fence	rw, rw
