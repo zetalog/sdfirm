@@ -34,6 +34,34 @@ static __always_inline uint8_t dpu_ssi_flash_readb(void)
 	return __raw_readl(SSI_DR(0, 0));
 }
 
+static __always_inline void dpu_ssi_flash_txbegin(uint8_t nr_bytes)
+{
+	while (__raw_readl(SSI_TXFLR(SSI_ID)) < nr_bytes);
+}
+
+static __always_inline void dpu_ssi_flash_txend(void)
+{
+	while (!(__raw_readl(SSI_SR(SSI_ID)) & SSI_TFE));
+}
+
+#ifdef CONFIG_SPIFLASH_ADDR_4BYTE
+static __always_inline uint8_t dpu_ssi_flash_read(uint32_t addr)
+{
+	uint8_t byte;
+
+	dpu_ssi_flash_writeb(SF_READ_DATA_4BYTE);
+	dpu_ssi_flash_writeb((uint8_t)(addr >> 24));
+	dpu_ssi_flash_writeb((uint8_t)(addr >> 16));
+	dpu_ssi_flash_writeb((uint8_t)(addr >> 8));
+	dpu_ssi_flash_writeb((uint8_t)(addr >> 0));
+	dpu_ssi_flash_txbegin(5);
+	dpu_ssi_flash_select(_BV(0));
+	dpu_ssi_flash_txend();
+	byte = dpu_ssi_flash_readb();
+	dpu_ssi_flash_select(0);
+	return byte;
+}
+#else
 static __always_inline uint8_t dpu_ssi_flash_read(uint32_t addr)
 {
 	uint8_t byte;
@@ -42,11 +70,14 @@ static __always_inline uint8_t dpu_ssi_flash_read(uint32_t addr)
 	dpu_ssi_flash_writeb((uint8_t)(addr >> 16));
 	dpu_ssi_flash_writeb((uint8_t)(addr >> 8));
 	dpu_ssi_flash_writeb((uint8_t)(addr >> 0));
+	dpu_ssi_flash_txbegin(4);
 	dpu_ssi_flash_select(_BV(0));
+	dpu_ssi_flash_txend();
 	byte = dpu_ssi_flash_readb();
 	dpu_ssi_flash_select(0);
 	return byte;
 }
+#endif
 
 #ifdef CONFIG_DPU_SSI_FLASH_DUMP_PAYLOAD
 #define PAYLOAD_START	0x200000
