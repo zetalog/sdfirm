@@ -73,8 +73,8 @@
 	.endm
 
 	.macro init_sp
-#ifdef CONFIG_SMP_BOOT
 	get_smpid a3
+#ifdef CONFIG_SMP_BOOT
 	slli	sp, a3, PERCPU_STACK_SHIFT
 	la	a3, (ABI_PERCPU_STACKS_START + PERCPU_STACK_SIZE)
 	add	sp, sp, a3
@@ -85,8 +85,8 @@
 
 	.macro init_gpsptp
 	init_gp
-#ifdef CONFIG_SMP_BOOT
 	get_smpid a3
+#ifdef CONFIG_SMP_BOOT
 	slli	sp, a3, PERCPU_STACK_SHIFT
 	la	a3, (ABI_PERCPU_STACKS_START + PERCPU_STACK_SIZE)
 	add	sp, sp, a3
@@ -244,6 +244,9 @@ ENTRY(__start)
 	/* At this point we are running from link address */
 #ifdef CONFIG_ARCH_HAS_BOOT1
 	init_sp
+	/* Note that a3 shouldn't be touched in boot hooks, boot1_hook is
+	 * only invoked by the boot core.
+	 */
 	boot1_hook
 #endif
 
@@ -268,6 +271,9 @@ __abi_start_warm:
 
 #ifdef CONFIG_ARCH_HAS_BOOT2
 	init_sp
+	/* Note that a3 shouldn't be touched in boot hooks, boot2_hook is
+	 * invoked by all cores.
+	 */
 	boot2_hook
 #endif
 
@@ -291,6 +297,7 @@ ENTRY(__sbi_exit)
 	init_gpsptp
 
 	get_hartid a6
+	/* Pick up boot core */
 	get_arch_hartboot a7
 	bne	a6, a7, secondary_start
 

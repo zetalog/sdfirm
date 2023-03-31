@@ -95,12 +95,6 @@ static void smp_wait_secondary_cpus(void)
 #endif /* CONFIG_SMP_WAIT_BOOT */
 
 #ifdef CONFIG_SMP_BOOT
-void smp_map_init(void)
-{
-	smp_hw_map_init();
-	smp_set_online(smp_boot_cpu);
-}
-
 void smp_boot_secondary_cpus(caddr_t context)
 {
 	cpu_t cpu;
@@ -111,6 +105,14 @@ void smp_boot_secondary_cpus(caddr_t context)
 			smp_cpu_boot(cpu, context);
 	}
 	smp_wait_secondary_cpus();
+}
+#endif /* CONFIG_SMP_BOOT */
+
+#ifdef CONFIG_SMP
+void smp_map_init(void)
+{
+	smp_hw_map_init();
+	smp_set_online(smp_boot_cpu);
 }
 
 void smp_idle(void *arg)
@@ -147,11 +149,11 @@ void smp_init(void)
 	}
 	bh_loop();
 }
-#else /* CONFIG_SMP_BOOT */
+#else /* CONFIG_SMP */
 void smp_init(void)
 {
 	bench_init();
 	cmd_init();
 	bh_loop();
 }
-#endif /* CONFIG_SMP_BOOT */
+#endif /* CONFIG_SMP */
