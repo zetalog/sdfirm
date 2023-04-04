@@ -1,7 +1,8 @@
 This software contains source code developed by Lv "ZETALOG" Zheng during
 his career. These source files may contain source code somewhat looks
 "LIKE" an open source implementation. But surely, they have been modified
-or thoroughly re-written and become into "ZETALOG" own style.
+or thoroughly re-written and have been transformed into "ZETALOG" own
+style.
 
 As an engineer working in a nation that has many offshore software
 development jobs, "ZETALOG" has to hop between the local commercial
@@ -25,7 +26,7 @@ The "ZETALOG" license is basically a GPLv2, with one exception.
    GPLv2.
 2. When the source code in this project is used and re-used by a company or
    an individual that has business including but not limited to "hiring
-   ZETALOG", "being launced by ZETALOG", etc., with "ZETALOG", the project
+   ZETALOG", "being launched by ZETALOG", etc., with "ZETALOG", the project
    and its source code can be considered released under the special
    "ZETALOG" terms. The following paragraph describes "ZETALOG" terms.
 
