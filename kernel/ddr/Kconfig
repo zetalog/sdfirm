@@ -11,13 +11,20 @@ menuconfig DDR
 
 if DDR
 
-config DDR_MAX_DEVICES
-	int "Num of devices (1~255)"
+config DDR_MAX_CHANNELS
+	int "Number of channels (1~255)"
 	range 1 255
 	default 2
 	help
-	  Devices are comprised of multiple ranks with single capacity.
-	  Setting maximum device number the software currently is using
+	  Channel controls single or multiple modules.
+
+config DDR_MAX_MODULES
+	int "Number of modules (1~255)"
+	range 1 255
+	default 4
+	help
+	  Module is comprised of multiple ranks with single capacity.
+	  Setting maximum module number the software currently is using
 	  can reduce firmware memory consumption.
 
 choice
@@ -75,11 +82,24 @@ config DDR_SPD_200
 
 endchoice
 
+config ARCH_HAS_DDR_SPD
+	bool
+
+config DDR_SPD
+	bool "Enable serial presence detect (SPD) eeprom support"
+	depends ARCH_HAS_DDR_SPD
+	select I2C_MASTER
+
+config DDR_TS
+	bool "Enable thermal sensor support"
+
 config DDR3
 	bool "Enable DDR3 support"
 
 config DDR4
 	bool "Enable DDR4 support"
+	select SPD_EE1004 if (DDR_SPD && !DDR_TS)
+	#select SPD_TS2004AV if (DDR_SPD && DDR_TS)
 
 if DDR4
 

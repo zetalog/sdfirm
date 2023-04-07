@@ -420,6 +420,14 @@ static void ddr4_spd_dump(const char *buf)
 		   "End User Programmable");
 }
 
+void ddr_spd_read(uint8_t *buf)
+{
+}
+
+void ddr_spd_init(void)
+{
+}
+
 void ddr_spd_dump(const char *buf)
 {
 	ddr4_spd_dump(buf);

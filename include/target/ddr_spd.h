@@ -43,6 +43,7 @@
 #define __DDR_SPD_H_INCLUDE__
 
 #include <target/generic.h>
+#include <target/i2c.h>
 
 /* JEDEC Standard No. 21-C
  * 4.1.2.4 – Appendix D, Rev. 1.0 : SPD’s for DDR SDRAM
@@ -1166,5 +1167,15 @@ typedef struct ddr_spd {
 	uint32_t serial_number;
 	uint8_t  part_number[SPD_MODULE_PART_NUM_LEN_STR];
 } ddr_spd_t;
+
+#include <driver/spd.h>
+
+#ifdef CONFIG_DDR_SPD
+void ddr_spd_read(uint8_t *buf);
+void ddr_spd_init(void);
+#else
+#define ddr_spd_read(buf)
+#define ddr_spd_init()
+#endif
 
 #endif /* __DDR_SPD_H_INCLUDE__ */

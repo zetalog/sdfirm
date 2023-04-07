@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Mar 24 16:45:33 2023
+# Thu Apr  6 12:41:32 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -342,6 +342,7 @@ CONFIG_SPIFLASH_ERASE_4K=y
 # CONFIG_VIDEO is not set
 CONFIG_ARCH_HAS_DDR=y
 # CONFIG_DDR is not set
+CONFIG_ARCH_HAS_DDR_SPD=y
 CONFIG_ARCH_HAS_PCI=y
 # CONFIG_PCI is not set
 # CONFIG_IOMMU is not set

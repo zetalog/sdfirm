@@ -44,7 +44,7 @@
 
 #include <target/generic.h>
 
-#define DDR_MAX_DEVICES		CONFIG_DDR_MAX_DEVICES
+#define DDR_MAX_CHANNELS	CONFIG_DDR_MAX_CHANNELS
 
 /* Speed grade */
 #define DDR_MIN_SPD		0

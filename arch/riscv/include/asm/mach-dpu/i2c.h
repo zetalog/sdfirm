@@ -19,6 +19,7 @@
 #endif
 #endif
 
+#ifdef ARCH_HAVE_I2C
 #define i2c_hw_master_select(i2c)	dw_i2c_master_select(i2c)
 #define i2c_hw_ctrl_init()				\
 	do {						\
@@ -32,5 +33,6 @@
 #define i2c_hw_read_byte()		dw_i2c_read_byte()
 #define i2c_hw_write_byte(byte)		dw_i2c_write_byte(byte)
 #define i2c_hw_transfer_reset()		dw_i2c_transfer_reset()
+#endif /* ARCH_HAVE_I2C */
 
 #endif /* __I2C_DPU_H_INCLUDE__ */
