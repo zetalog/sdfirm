@@ -141,7 +141,7 @@ void ddr4_config_refresh(uint8_t n, uint8_t cap, uint8_t mode)
 	uint32_t tREFI;
 	uint32_t tRFCmin;
 
-	BUG_ON(n >= DDR_MAX_CHANNELS);
+	BUG_ON(n >= NR_DDR_CHANNELS);
 
 	if (cap >= DDR4_MAX_ADDRESSINGS) {
 		con_err("Unsupported capacity - %d\n", cap);
@@ -280,7 +280,7 @@ static inline void __ddr4_reset_init(uint8_t n)
  */
 void ddr4_powerup_init(uint8_t n)
 {
-	BUG_ON(n >= DDR_MAX_CHANNELS);
+	BUG_ON(n >= NR_DDR_CHANNELS);
 
 	/* 1. Apply power (RESET_n and TEN are recommended to be
 	 *    maintained below 0.2 x VDD; all other inputs may be
@@ -307,7 +307,7 @@ void ddr4_powerup_init(uint8_t n)
 
 void ddr4_reset_init(uint8_t n)
 {
-	BUG_ON(n >= DDR_MAX_CHANNELS);
+	BUG_ON(n >= NR_DDR_CHANNELS);
 
 	/* 1. Asserted RESET_n below 0.2 * VDD anytime when reset is
 	 *    needed (all other inputs may be undefined). RESET_n needs to
@@ -366,7 +366,7 @@ void ddr4_config_speed(uint8_t n)
 {
 	uint8_t ddr4spd;
 
-	BUG_ON(n >= DDR_MAX_CHANNELS);
+	BUG_ON(n >= NR_DDR_CHANNELS);
 
 	/* Sanity check SPD */
 	if (!ddr4_spd_valid(ddr_spd)) {

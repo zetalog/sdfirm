@@ -57,6 +57,9 @@
 
 #include <driver/dw_umctl2.h>
 
+#define DDR_HW_MAX_CHANNELS	2
+#define DDR_HW_MAX_MODULES	4
+
 #define NR_DDR_SPEEDS		(DDR4_3200 + 1)
 #define DDR_SPEED_DEFAULT	DDR4_2400
 

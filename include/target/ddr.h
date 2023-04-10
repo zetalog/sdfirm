@@ -45,6 +45,7 @@
 #include <target/generic.h>
 
 #define DDR_MAX_CHANNELS	CONFIG_DDR_MAX_CHANNELS
+#define DDR_MAX_MODULES		CONFIG_DDR_MAX_MODULLES
 
 /* Speed grade */
 #define DDR_MIN_SPD		0
@@ -86,6 +87,15 @@
 #include <target/ddr4.h>
 #include <target/ddr_spd.h>
 #include <driver/ddr.h>
+
+#define NR_DDR_CHANNELS		DDR_HW_MAX_CHANNELS
+#define NR_DDR_MODULES		DDR_HW_MAX_MODULES
+#if (NR_DDR_CHANNELS < DDR_MAX_CHANNNELS)
+#error "Too small CONFIG_DDR_MAX_CHANNELS is specified!"
+#endif
+#if (NR_DDR_MODULES < DDR_MAX_MODULES)
+#error "Too small CONFIG_DDR_MAX_MODULES is specified!"
+#endif
 
 #define ddr_enable_speed(speed)		ddr_hw_enable_speed(speed)
 #define ddr_wait_dfi(cycles)		ddr_hw_wait_dfi(cycles)

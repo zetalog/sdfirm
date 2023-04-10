@@ -1,0 +1,40 @@
+This software contains source code developed by Lv "ZETALOG" Zheng during
+his career. These source files may contain source code looks like another
+open source implementation. But surely, it is totally a different
+implementation as it is implemented with a very special software
+architecture than the others and is always released under the "ZETALOG"
+license. In order to avoid re-creating wheels, which is essential for
+"sdfirm" engineering as "ZETALOG" conceptually believe that software
+trends to converge to one single implementation for a pre-defined set of
+functionalities and "sdfirm" is trying to become THE impelentation.
+"ZETALOG" has to make sure that the source code in this project can retian
+the ability for being re-used by "ZETALOG" throughout his career by
+releasing "sdfirm" with the special "ZETALOG" license.
+
+The "ZETALOG" license is basically a GPLv2:
+L1. When the source code in this project is used and re-used by a company
+    or an individual that has nothing to do with ZETALOG's business, the
+    project and its souce code that is derived from this project can be
+    simply considered to have been re-licensed to GPLv2, thus released
+    under GPLv2.
+WITH one exception known as "ZETALOG" terms:
+L2. When the source code in this project is used and re-used by a company
+    or an individual that has business including but not limited to
+    "hiring ZETALOG", "being launched by ZETALOG", etc., with "ZETALOG",
+    the project and its source code that is derived from this project can
+    be considered released under the special "ZETALOG" terms which is
+    totally different from GPLv2.
+The following paragraph describes the details of the "ZETALOG" terms
+mentioned in L2:
+T1. The company or the individual can re-license this project and its
+    source code into any expected license without informing "ZETALOG".
+    However, when the source code is going to be published as open source,
+    it has to be re-licensed to "ZETALOG" license.
+T2. "ZETALOG" has the rights to keep some source code related to the
+    technology created by the company or the individual in an open source
+    manner to make sure this project can demonstrate its special software
+    architecture to run the hardware created on top of that technology.
+    Such open sourced software components are only limited to those
+    components that are required to boot this project (clock, power, pin,
+    serial, timer) or that whose open source variations can be found in the
+    community.
