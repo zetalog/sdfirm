@@ -55,6 +55,24 @@
 
 #define DW_UMCTL2_BASE(n)	(DDR0_CTRL_BASE + ((n) << 15))
 
+#ifdef CONFIG_DPU_DDR_INTLV
+#define DDR_HW_MAX_CHANNELS	2
+#define DDR_HW_MAX_MODULES	2
+#else /* CONFIG_DPU_DDR_INTLV */
+#ifdef CONFIG_DPU_DDR_BANK0
+#ifdef CONFIG_DPU_DDR_BANK1
+#define DDR_HW_MAX_CHANNELS	2
+#define DDR_HW_MAX_MODULES	2
+#else /* CONFIG_DPU_DDR_BANK1 */
+#define DDR_HW_MAX_CHANNELS	1
+#define DDR_HW_MAX_MODULES	1
+#endif /* CONFIG_DPU_DDR_BANK1 */
+#else /* CONFIG_DPU_DDR_BANK0 */
+#define DDR_HW_MAX_CHANNELS	1
+#define DDR_HW_MAX_MODULES	1
+#endif /* CONFIG_DPU_DDR_BANK0 */
+#endif /* CONFIG_DPU_DDR_INTLV */
+
 #include <driver/dw_umctl2.h>
 
 #define NR_DDR_SPEEDS		(DDR4_3200 + 1)
