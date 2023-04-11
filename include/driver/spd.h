@@ -7,6 +7,7 @@
 
 #ifndef ARCH_HAVE_SPD
 #define spd_hw_ctrl_init()
+#define spd_hw_read_bytes(bus, addr, buf, len)
 #endif
 
 #endif /* __SPD_DRIVER_H_INCLUDE__ */

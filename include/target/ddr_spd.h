@@ -45,6 +45,11 @@
 #include <target/generic.h>
 #include <target/i2c.h>
 
+#define DDR_SPD_FREQ		100 /* kHz */
+#ifndef DDR_SPD_SIZE
+#define DDR_SPD_SIZE		128
+#endif
+
 /* JEDEC Standard No. 21-C
  * 4.1.2.4 – Appendix D, Rev. 1.0 : SPD’s for DDR SDRAM
  */
@@ -168,6 +173,7 @@ struct ddr1_spd_eeprom {
 	/* 99-127: Manufacturer's Specific Data */
 	uint8_t mod_spec_data[27];
 } __packed;
+#define DDR1_SPD_SIZE		128
 
 /* JEDEC Standard No. 21-C
  * Annex J: Serial Presence Detects for DDR2 SDRAM (Revision 1.3)
@@ -378,6 +384,7 @@ struct ddr2_spd_eeprom {
 	/* 99-127: Manufacturer's Specific Data */
 	uint8_t mod_spec_data[27];
 } __packed;
+#define DDR2_SPD_SIZE		128
 
 /* Annex K.1: Module Specific Bytes for Unbuffered Memory Module Types
  */
@@ -438,6 +445,7 @@ struct ddr3_spd_registered_eeprom {
 	/* 77-116: Reserved */
 	uint8_t rsvd_77[40];
 } __packed;
+#define DDR3_SPD_SIZE		128
 
 /* JEDEC Standard No. 21-C
  * Annex K: Serial Presence Detect (SPD) for DDR3 SDRAM Modules
@@ -555,6 +563,7 @@ struct ddr3_spd_eeprom {
 	/* 176:255: Open for customer use */
 	uint8_t cust[80];
 } __packed;
+#define DDR4_SPD_SIZE		256
 
 /* Annex L.1: Module Specific Bytes for Unbuffered Memory Module Types
  */
@@ -1172,10 +1181,8 @@ typedef struct ddr_spd {
 
 #ifdef CONFIG_DDR_SPD
 void ddr_spd_read(uint8_t *buf);
-void ddr_spd_init(void);
 #else
 #define ddr_spd_read(buf)
-#define ddr_spd_init()
 #endif
 
 #endif /* __DDR_SPD_H_INCLUDE__ */

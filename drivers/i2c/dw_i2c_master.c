@@ -1,20 +1,13 @@
-#include <target/clk.h>
 #include <target/i2c.h>
+#include <target/clk.h>
 #include <target/console.h>
-#include <target/panic.h>
-#include <driver/dw_i2c.h>
 #include <target/irq.h>
 
-#ifdef CONFIG_DW_I2C_DEBUG
-#define i2c_dbg(...)			con_dbg(__VA_ARGS__)
-#else
-#define i2c_dbg(...)			do { } while (0)
-#endif
-
 #if NR_DW_I2CS > 1
+#define dw_i2c				dw_i2cs[dw_i2c_did]
+
 static int dw_i2c_did = 0;
 static struct dw_i2c_ctx dw_i2cs[NR_DW_I2CS] = {0};
-#define dw_i2c		dw_i2cs[dw_i2c_did]
 
 void dw_i2c_master_select(i2c_t i2c)
 {
@@ -23,8 +16,10 @@ void dw_i2c_master_select(i2c_t i2c)
 	dw_i2c_did = i2c;
 }
 #else
+#define dw_i2c_did			0
+#define dw_i2c_master_select(i2c)	do { } while (0)
+
 static struct dw_i2c_ctx dw_i2c;
-#define dw_i2c_master_select(i2c)		do { } while (0)
 #endif
 
 #ifdef CONFIG_DW_I2C_TEST_IRQ
@@ -61,97 +56,37 @@ static dw_i2c_test_loop(void)
 	irqc_ack_irq(IRQ_I2C0 + dw_i2c_did);
 	irqc_unmask_irq(IRQ_I2C0 + dw_i2c_did);
 }
-
-void dw_i2c_test_init(void)
-{
-	int i;
-
-	for (i = 0; i < NR_DW_I2CS; i++) {
-		irqc_configure_irq(IRQ_I2C0 + i, 0, IRQ_LEVEL_TRIGGERED);
-	}
-	for (i = 0; i < NR_DW_I2CS; i++) {
-		irq_register_vector(IRQ_I2C0 + i, dw_i2c_test_irq);
-	}
-	for (i = 0; i < NR_DW_I2CS; i++) {
-		irqc_enable_irq(IRQ_I2C0 + i);
-	}
-}
 #else
+#define dw_i2c_test_irq(irq)		do { } while (0)
 #define dw_i2c_test_loop()		do { } while (0)
-#define dw_i2c_test_init()		do { } while (0)
 #endif
 
-void dw_i2c_init(void)
-{
-	int i;
-
-	for (i = 0; i < NR_DW_I2CS; i++) {
-		dw_i2c_master_select(i);
-		dw_i2c.base = DW_I2C_BASE(i);
-		dw_i2c.addr_mode = 0;
-		dw_i2c.state = DW_I2C_DRIVER_INVALID;
-	}
-	dw_i2c_test_init();
-}
-
-/*
- * Initialize controller as master device
- */
-void dw_i2c_master_init(void)
+/* Initialize controller as master device */
+void __dw_i2c_master_init(void)
 {
 	caddr_t base = dw_i2c.base;
-
 	uint32_t val;
 	uint32_t offset;
 
-	i2c_dbg("dw_i2c: Debug: Enter %s\n", __func__);
 	offset = IC_ENABLE;
 	val = 0;
-	i2c_dbg("dw_i2c: w 0x%2x 0x%x _ENABLE\n", offset, val);
 	__raw_writel(val, base + offset);
 
-#ifdef CONFIG_DW_I2C_DEBUG
-	offset = IC_CON; val = __raw_readl(base + offset);
-	i2c_dbg("dw_i2c: r 0x%2x 0x%x _CON\n", offset, val);
-	offset = IC_RX_TL; val = __raw_readl(base + offset);
-	i2c_dbg("dw_i2c: r 0x%2x 0x%x _RX_TL\n", offset, val);
-	offset = IC_TX_TL; val = __raw_readl(base + offset);
-	i2c_dbg("dw_i2c: r 0x%2x 0x%x _TX_TL\n", offset, val);
-	offset = IC_INTR_MASK; val = __raw_readl(base + offset);
-	i2c_dbg("dw_i2c: r 0x%2x 0x%x _INTR_MASK\n", offset, val);
-	offset = IC_SS_SCL_HCNT; val = __raw_readl(base + offset);
-	i2c_dbg("dw_i2c: r 0x%2x 0x%x _SS_SCL_HCNT\n", offset, val);
-	offset = IC_SS_SCL_LCNT; val = __raw_readl(base + offset);
-	i2c_dbg("dw_i2c: r 0x%2x 0x%x _SS_SCL_LCNT\n", offset, val);
-	offset = IC_HS_SCL_HCNT; val = __raw_readl(base + offset);
-	i2c_dbg("dw_i2c: r 0x%2x 0x%x _HS_SCL_HCNT\n", offset, val);
-	offset = IC_HS_SCL_LCNT; val = __raw_readl(base + offset);
-	i2c_dbg("dw_i2c: r 0x%2x 0x%x _HS_SCL_LCNT\n", offset, val);
-	offset = IC_FS_SCL_HCNT; val = __raw_readl(base + offset);
-	i2c_dbg("dw_i2c: r 0x%2x 0x%x _FS_SCL_HCNT\n", offset, val);
-	offset = IC_FS_SCL_LCNT; val = __raw_readl(base + offset);
-	i2c_dbg("dw_i2c: r 0x%2x 0x%x _FS_SCL_LCNT\n", offset, val);
-#endif
-
 	offset = IC_CON;
-	val = IC_CON_SD /* IC_SLAVE_DISABLE */
-		| IC_CON_RE /* IC_RESTART_EN */
-		/* IC_10BITADDR_MASTER = 0 */
-		/* IC_10BITADDR_SLAVE = 0 */
-		| IC_CON_SPD_SS /* SEEP = Stand */
-		| IC_CON_MM /* IC_MASTER_MODE */
-		;
-	i2c_dbg("dw_i2c: w 0x%2x 0x%x _CON\n", offset, val);
+	val = IC_CON_SD |     /* IC_SLAVE_DISABLE */
+	      IC_CON_RE |     /* IC_RESTART_EN */
+	                      /* IC_10BITADDR_MASTER = 0 */
+	                      /* IC_10BITADDR_SLAVE = 0 */
+	      IC_CON_SPD_SS | /* SEEP = Stand */
+	      IC_CON_MM;      /* IC_MASTER_MODE */
 	__raw_writel(val, base + offset);
 
 	offset = IC_RX_TL;
 	val = CONFIG_DW_I2C_RX_TL;
-	i2c_dbg("dw_i2c: w 0x%2x 0x%x _RX_TL\n", offset, val);
 	__raw_writel(val, base + offset);
 
 	offset = IC_TX_TL;
 	val = CONFIG_DW_I2C_TX_TL;
-	i2c_dbg("dw_i2c: w 0x%2x 0x%x _TX_TL\n", offset, val);
 	__raw_writel(val, base + offset);
 
 	offset = IC_INTR_MASK;
@@ -160,17 +95,13 @@ void dw_i2c_master_init(void)
 #else
 	val = IC_INTR_ALL;
 #endif
-	i2c_dbg("dw_i2c: w 0x%2x 0x%x _INTR_MASK\n", offset, val);
 	__raw_writel(val, base + offset);
 
 	offset = IC_ENABLE;
 	val = 1;
-	i2c_dbg("dw_i2c: w 0x%2x 0x%x _ENABLE\n", offset, val);
 	__raw_writel(val, base + offset);
 
 	dw_i2c.state = DW_I2C_DRIVER_INIT;
-	i2c_dbg("dw_i2c: Debug: Exit %s\n", __func__);
-	return;
 }
 
 /*
@@ -180,11 +111,9 @@ void dw_i2c_set_address(i2c_addr_t addr, boolean call)
 {
 	caddr_t base = dw_i2c.base;
 
-	i2c_dbg("dw_i2c: Debug: Enter %s. addr = 0x%x\n", __func__, addr);
 	__raw_writel(0, base + IC_ENABLE);
 	__raw_writel((uint32_t)addr, base + IC_SAR);
 	__raw_writel(1, base + IC_ENABLE);
-	return;
 }
 
 /*
@@ -202,12 +131,9 @@ void dw_i2c_set_frequency(uint16_t khz)
 #ifndef CONFIG_DW_I2C_USE_COUNT
 	int bus_mhz = bus_speed / 1000 / 1000;
 #endif
-
 	uint32_t val;
 	uint32_t offset;
 
-	i2c_dbg("dw_i2c: Debug: Enter %s. bus speed = %ld Hz, i2c seep = %d kHz\n",
-		__func__, bus_speed, khz);
 	if (speed >= I2C_MAX_SPEED)
 		i2c_spd = IC_SPEED_MODE_MAX;
 	else if (speed >= I2C_FAST_SPEED)
@@ -217,16 +143,13 @@ void dw_i2c_set_frequency(uint16_t khz)
 
 	offset = IC_ENABLE;
 	val = __raw_readl(base + offset);
-	i2c_dbg("dw_i2c: r 0x%2x 0x%x _ENABLE\n", offset, val);
 	ena = val;
 
 	val = 0;
-	i2c_dbg("dw_i2c: w 0x%2x 0x%x _ENABLE\n", offset, val);
 	__raw_writel(val, base + offset);
 
 	offset = IC_CON;
 	val = __raw_readl(base + offset);
-	i2c_dbg("dw_i2c: r 0x%2x 0x%x _CON\n", offset, val);
 	cntl = val;
 
 #ifdef CONFIG_DW_I2C_USE_COUNT
@@ -236,44 +159,16 @@ void dw_i2c_set_frequency(uint16_t khz)
 		hcnt = bus_speed / speed / (6+16) * 6 - (1+7);
 		lcnt = bus_speed / speed / (6+16) * 16 - 1;
 		lcnt = hcnt * 2;
-#ifdef CONFIG_DW_I2C_DEBUG
-		offset = IC_HS_SCL_HCNT; val = hcnt;
-		i2c_dbg("dw_i2c: w 0x%2x 0x%x _HS_SCL_HCNT\n", offset, val);
-#endif
 		__raw_writel(hcnt, base + IC_HS_SCL_HCNT);
-#ifdef CONFIG_DW_I2C_DEBUG
-		offset = IC_HS_SCL_LCNT; val = lcnt;
-		i2c_dbg("dw_i2c: w 0x%2x 0x%x _HS_SCL_LCNT\n", offset, val);
-#endif
 		__raw_writel(lcnt, base + IC_HS_SCL_LCNT);
-#ifdef CONFIG_DW_I2C_DEBUG
-		offset = IC_HS_SCL_HCNT; val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _HS_SCL_HCNT\n", offset, val);
-		offset = IC_HS_SCL_LCNT; val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _HS_SCL_LCNT\n", offset, val);
-#endif
 		break;
 
 	case IC_SPEED_MODE_STANDARD:
 		cntl |= IC_CON_SPD_SS;
 		hcnt = bus_speed / speed / (40+47) * 40 - (5+7);
 		lcnt = bus_speed / speed / (40+47) * 47 - 1;
-#ifdef CONFIG_DW_I2C_DEBUG
-		offset = IC_SS_SCL_HCNT; val = hcnt;
-		i2c_dbg("dw_i2c: w 0x%2x 0x%x _SS_SCL_HCNT\n", offset, val);
-#endif
 		__raw_writel(hcnt, base + IC_SS_SCL_HCNT);
-#ifdef CONFIG_DW_I2C_DEBUG
-		offset = IC_SS_SCL_LCNT; val = lcnt;
-		i2c_dbg("dw_i2c: w 0x%2x 0x%x _SS_SCL_LCNT\n", offset, val);
-#endif
 		__raw_writel(lcnt, base + IC_SS_SCL_LCNT);
-#ifdef CONFIG_DW_I2C_DEBUG
-		offset = IC_SS_SCL_HCNT; val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _SS_SCL_HCNT\n", offset, val);
-		offset = IC_SS_SCL_LCNT; val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _SS_SCL_LCNT\n", offset, val);
-#endif
 		break;
 
 	case IC_SPEED_MODE_FAST:
@@ -281,22 +176,8 @@ void dw_i2c_set_frequency(uint16_t khz)
 		cntl |= IC_CON_SPD_FS;
 		hcnt = bus_speed / speed / (6+13) * 6 - (5+7);
 		lcnt = bus_speed / speed / (6+13) * 13 - 1;
-#ifdef CONFIG_DW_I2C_DEBUG
-		offset = IC_FS_SCL_HCNT; val = hcnt;
-		i2c_dbg("dw_i2c: w 0x%2x 0x%x _FS_SCL_HCNT\n", offset, val);
-#endif
 		__raw_writel(hcnt, base + IC_FS_SCL_HCNT);
-#ifdef CONFIG_DW_I2C_DEBUG
-		offset = IC_FS_SCL_LCNT; val = lcnt;
-		i2c_dbg("dw_i2c: w 0x%2x 0x%x _FS_SCL_LCNT\n", offset, val);
-#endif
 		__raw_writel(lcnt, base + IC_FS_SCL_LCNT);
-#ifdef CONFIG_DW_I2C_DEBUG
-		offset = IC_FS_SCL_HCNT; val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _FS_SCL_HCNT\n", offset, val);
-		offset = IC_FS_SCL_LCNT; val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _FS_SCL_LCNT\n", offset, val);
-#endif
 		break;
 	}
 #else
@@ -305,44 +186,16 @@ void dw_i2c_set_frequency(uint16_t khz)
 		cntl |= IC_CON_SPD_HS;
 		hcnt = (bus_mhz * MIN_HS_SCL_HIGHTIME) / 1000;
 		lcnt = (bus_mhz * MIN_HS_SCL_LOWTIME) / 1000;
-#ifdef CONFIG_DW_I2C_DEBUG
-		offset = IC_HS_SCL_HCNT; val = hcnt;
-		i2c_dbg("dw_i2c: w 0x%2x 0x%x _HS_SCL_HCNT\n", offset, val);
-#endif
 		__raw_writel(hcnt, base + IC_HS_SCL_HCNT);
-#ifdef CONFIG_DW_I2C_DEBUG
-		offset = IC_HS_SCL_LCNT; val = lcnt;
-		i2c_dbg("dw_i2c: w 0x%2x 0x%x _HS_SCL_LCNT\n", offset, val);
-#endif
 		__raw_writel(lcnt, base + IC_HS_SCL_LCNT);
-#ifdef CONFIG_DW_I2C_DEBUG
-		offset = IC_HS_SCL_HCNT; val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _HS_SCL_HCNT\n", offset, val);
-		offset = IC_HS_SCL_LCNT; val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _HS_SCL_LCNT\n", offset, val);
-#endif
 		break;
 
 	case IC_SPEED_MODE_STANDARD:
 		cntl |= IC_CON_SPD_SS;
 		hcnt = (bus_mhz * MIN_SS_SCL_HIGHTIME) / 1000;
 		lcnt = (bus_mhz * MIN_SS_SCL_LOWTIME) / 1000;
-#ifdef CONFIG_DW_I2C_DEBUG
-		offset = IC_SS_SCL_HCNT; val = hcnt;
-		i2c_dbg("dw_i2c: w 0x%2x 0x%x _SS_SCL_HCNT\n", offset, val);
-#endif
 		__raw_writel(hcnt, base + IC_SS_SCL_HCNT);
-#ifdef CONFIG_DW_I2C_DEBUG
-		offset = IC_SS_SCL_LCNT; val = lcnt;
-		i2c_dbg("dw_i2c: w 0x%2x 0x%x _SS_SCL_LCNT\n", offset, val);
-#endif
 		__raw_writel(lcnt, base + IC_SS_SCL_LCNT);
-#ifdef CONFIG_DW_I2C_DEBUG
-		offset = IC_SS_SCL_HCNT; val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _SS_SCL_HCNT\n", offset, val);
-		offset = IC_SS_SCL_LCNT; val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _SS_SCL_LCNT\n", offset, val);
-#endif
 		break;
 
 	case IC_SPEED_MODE_FAST:
@@ -350,59 +203,39 @@ void dw_i2c_set_frequency(uint16_t khz)
 		cntl |= IC_CON_SPD_FS;
 		hcnt = (bus_mhz * MIN_FS_SCL_HIGHTIME) / 1000;
 		lcnt = (bus_mhz * MIN_FS_SCL_LOWTIME) / 1000;
-#ifdef CONFIG_DW_I2C_DEBUG
-		offset = IC_FS_SCL_HCNT; val = hcnt;
-		i2c_dbg("dw_i2c: w 0x%2x 0x%x _FS_SCL_HCNT\n", offset, val);
-#endif
 		__raw_writel(hcnt, base + IC_FS_SCL_HCNT);
-#ifdef CONFIG_DW_I2C_DEBUG
-		offset = IC_FS_SCL_LCNT; val = lcnt;
-		i2c_dbg("dw_i2c: w 0x%2x 0x%x _FS_SCL_LCNT\n", offset, val);
-#endif
 		__raw_writel(lcnt, base + IC_FS_SCL_LCNT);
-#ifdef CONFIG_DW_I2C_DEBUG
-		offset = IC_FS_SCL_HCNT; val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _FS_SCL_HCNT\n", offset, val);
-		offset = IC_FS_SCL_LCNT; val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _FS_SCL_LCNT\n", offset, val);
-#endif
 		break;
 	}
 #endif
 
 	offset = IC_CON;
 	val = cntl;
-	i2c_dbg("dw_i2c: w 0x%2x 0x%x _CON\n", offset, val);
 	__raw_writel(val, base + offset);
 
 	/* Restore back i2c now speed set */
 	if (ena == IC_ENABLE_0B) {
 		offset = IC_ENABLE;
 		val = 1;
-		i2c_dbg("dw_i2c: w 0x%2x 0x%x _ENABLE\n", offset, val);
 		__raw_writel(val, base + offset);
 	}
-
-	return;
 }
 
 static void i2c_setaddress(caddr_t base, unsigned int i2c_addr)
 {
-	i2c_dbg("dw_i2c: Debug: Enter %s\n", __func__);
 	__raw_writel(0, base + IC_ENABLE);
 	__raw_writel(i2c_addr, base + IC_TAR);
 	__raw_writel(1, base + IC_ENABLE);
-	i2c_dbg("dw_i2c: Debug: Exit %s\n", __func__);
 }
 
 static void i2c_flush_rxfifo(caddr_t base)
 {
 	uint32_t val;
 	uint32_t offset;
+
 	offset  = IC_STATUS;
 	do {
 		val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _STATUS\n", offset, val);
 	} while (val & IC_STATUS_RFNE);
 }
 
@@ -412,24 +245,20 @@ static int i2c_wait_for_bb(caddr_t base)
 	uint32_t offset;
 
 	offset  = IC_STATUS;
-	i2c_dbg("dw_i2c: Debug: Enter %s\n", __func__);
 	do {
 		val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _STATUS\n", offset, val);
 	} while(val & IC_STATUS_MA || !(val & IC_STATUS_TFE));
-	i2c_dbg("dw_i2c: Debug: Exit %s\n", __func__);
 	return 0;
 }
 
-static int i2c_xfer_init(caddr_t base, unsigned char chip, unsigned int addr,
-			 int alen)
+static int i2c_xfer_init(caddr_t base, unsigned char chip,
+			 unsigned int addr, int alen)
 {
 	uint32_t val;
 	uint32_t offset;
 
-	i2c_dbg("dw_i2c: Debug: Enter %s\n", __func__);
 	if (i2c_wait_for_bb(base))
-		return 1;
+		return -EBUSY;
 
 	i2c_setaddress(base, chip);
 	offset = IC_DATA_CMD;
@@ -437,10 +266,8 @@ static int i2c_xfer_init(caddr_t base, unsigned char chip, unsigned int addr,
 		alen--;
 		/* high byte address going out first */
 		val = (addr >> (alen * 8)) & 0xff;
-		i2c_dbg("dw_i2c: w 0x%2x 0x%x _DATA_CMD\n", offset, val);
 		__raw_writel(val, base + offset);
 	}
-	i2c_dbg("dw_i2c: Debug: Exit %s\n", __func__);
 	return 0;
 }
 
@@ -449,28 +276,19 @@ static int i2c_rx_finish(caddr_t base)
 	uint32_t val;
 	uint32_t offset;
 
-	i2c_dbg("dw_i2c: Debug: Enter %s\n", __func__);
 	while (1) {
 		offset = IC_RAW_INTR_STAT;
 		val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _RAW_INTR_STAT\n", offset, val);
 		if (val & IC_STOP_DET) {
 			offset = IC_CLR_STOP_DET;
 			val = __raw_readl(base + offset);
-			i2c_dbg("dw_i2c: r 0x%2x 0x%x _CLR_STOP_DET\n",
-				offset, val);
 			break;
 		}
 	}
 
-	if (i2c_wait_for_bb(base)) {
-		con_err("dw_i2c: Timed out waiting for bus\n");
-		return 1;
-	}
-
+	if (i2c_wait_for_bb(base))
+		return -EBUSY;
 	i2c_flush_rxfifo(base);
-	i2c_dbg("dw_i2c: Debug: Exit %s\n", __func__);
-
 	return 0;
 }
 
@@ -479,33 +297,24 @@ static int i2c_tx_finish(caddr_t base)
 	uint32_t val;
 	uint32_t offset;
 
-	i2c_dbg("dw_i2c: Debug: Enter %s\n", __func__);
 	while (1) {
 		offset = IC_STATUS;
 		val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _STATUS\n", offset, val);
 		if (val & IC_STATUS_TFE) {
 			break;
 		}
 
 		offset = IC_RAW_INTR_STAT;
 		val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _RAW_INTR_STAT\n", offset, val);
 		if (val & IC_STOP_DET) {
 			offset = IC_CLR_STOP_DET;
 			val = __raw_readl(base + offset);
-			i2c_dbg("dw_i2c: r 0x%2x 0x%x _CLR_STOP_DET\n",
-				offset, val);
 			break;
 		}
 	}
 
-	if (i2c_wait_for_bb(base)) {
-		con_err("dw_i2c: Timed out waiting for bus\n");
-		return 1;
-	}
-
-	i2c_dbg("dw_i2c: Debug: Exit %s\n", __func__);
+	if (i2c_wait_for_bb(base))
+		return -EBUSY;
 	return 0;
 }
 
@@ -528,13 +337,9 @@ int dw_i2c_read_mem(uint8_t dev, unsigned int addr,
 	uint32_t offset;
 	int ret;
 
-	i2c_dbg("dw_i2c: Debug: Enter %s\n", __func__);
 	ret = i2c_xfer_init(base, dev, addr, alen);
-	if (ret != 0) {
-		con_err("dw_i2c: Error: Failed i2c_xfer_init. ret = %d\n",
-			ret);
-		return 1;
-	}
+	if (ret != 0)
+		return ret;
 
 	while (len) {
 		if (!active) {
@@ -551,29 +356,22 @@ int dw_i2c_read_mem(uint8_t dev, unsigned int addr,
 			if (len == 1)
 				val |= IC_STOP;
 #endif
-			i2c_dbg("dw_i2c: w 0x%2x 0x%x _DATA_CMD\n",
-				offset, val);
 			__raw_writel(val, base + offset);
 			active = 1;
 		}
 
 		offset = IC_STATUS;
 		val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _STATUS\n", offset, val);
 		if (val & IC_STATUS_RFNE) {
 			offset = IC_DATA_CMD;
 			val = __raw_readl(base + offset);
-			i2c_dbg("dw_i2c: r 0x%2x 0x%x _DATA_CMD\n",
-				offset, val);
 			*buffer++ = (uint8_t)val;
 			len--;
 			active = 0;
 		}
 	}
 
-	ret = i2c_rx_finish(base);
-	i2c_dbg("dw_i2c: Debug: Exit %s\n", __func__);
-	return ret;
+	return i2c_rx_finish(base);
 }
 
 /*
@@ -595,37 +393,27 @@ int dw_i2c_write_mem(uint8_t dev, unsigned int addr,
 	uint32_t offset;
 	int ret;
 
-	i2c_dbg("dw_i2c: Debug: Enter %s\n", __func__);
 	ret = i2c_xfer_init(base, dev, addr, alen);
-	if (ret != 0) {
-		con_err("dw_i2c: Error: Failed i2c_xfer_init. ret = %d\n",
-			ret);
-		return 1;
-	}
+	if (ret != 0)
+		return ret;
 
 	while (len) {
 		offset = IC_STATUS;
 		val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _STATUS\n", offset, val);
 		if (val & IC_STATUS_TFNF) {
 			offset = IC_DATA_CMD;
 			val = *buffer;
 #ifdef CONFIG_DW_I2C_EMPTYFIFO_HOLD_MASTER
-			if (len == 1) {
+			if (len == 1)
 				val = *buffer | IC_STOP;
-			}
 #endif
-			i2c_dbg("dw_i2c: w 0x%2x 0x%x _DATA_CMD\n",
-				offset, val);
 			__raw_writel(val, base + offset);
 			buffer++;
 			len--;
 		}
 	}
 
-	ret = i2c_tx_finish(base);
-	i2c_dbg("dw_i2c: Debug: Exit %s\n", __func__);
-	return ret;
+	return i2c_tx_finish(base);
 }
 
 /*
@@ -639,11 +427,9 @@ int dw_i2c_read_bytes(uint8_t dev, uint8_t *buffer,
 	uint32_t val;
 	uint32_t offset;
 	int orig_len = len;
-	int ret;
 
-	i2c_dbg("dw_i2c: Debug: Enter %s\n", __func__);
 	if (i2c_wait_for_bb(base))
-		return -1;
+		return -EBUSY;
 	i2c_setaddress(base, dev);
 
 	while (len) {
@@ -661,20 +447,15 @@ int dw_i2c_read_bytes(uint8_t dev, uint8_t *buffer,
 			if (len == 1 && stop != 0)
 				val |= IC_STOP;
 #endif
-			i2c_dbg("dw_i2c: w 0x%2x 0x%x _DATA_CMD\n",
-				offset, val);
 			__raw_writel(val, base + offset);
 			active = 1;
 		}
 
 		offset = IC_STATUS;
 		val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _STATUS\n", offset, val);
 		if (val & IC_STATUS_RFNE) {
 			offset = IC_DATA_CMD;
 			val = __raw_readl(base + offset);
-			i2c_dbg("dw_i2c: r 0x%2x 0x%x _DATA_CMD\n",
-				offset, val);
 			*buffer++ = (uint8_t)val;
 			len--;
 			active = 0;
@@ -682,13 +463,7 @@ int dw_i2c_read_bytes(uint8_t dev, uint8_t *buffer,
 		/* TODO Timeout. */
 	}
 
-	ret = i2c_rx_finish(base);
-	i2c_dbg("dw_i2c: Debug: Exit %s\n", __func__);
-	if (ret != 0) {
-		return -1;
-	}
-
-	return (orig_len - len);
+	return i2c_rx_finish(base) == 0 ? orig_len - len : -1;
 }
 
 int dw_i2c_write_bytes(uint8_t dev, uint8_t *buffer,
@@ -698,17 +473,14 @@ int dw_i2c_write_bytes(uint8_t dev, uint8_t *buffer,
 	uint32_t val;
 	uint32_t offset;
 	int orig_len = len;
-	int ret;
 
-	i2c_dbg("dw_i2c: Debug: Enter %s\n", __func__);
 	if (i2c_wait_for_bb(base))
-		return -1;
+		return -EBUSY;
 	i2c_setaddress(base, dev);
 
 	while (len) {
 		offset = IC_STATUS;
 		val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _STATUS\n", offset, val);
 		if (val & IC_STATUS_TFNF) {
 			offset = IC_DATA_CMD;
 			val = *buffer;
@@ -717,8 +489,6 @@ int dw_i2c_write_bytes(uint8_t dev, uint8_t *buffer,
 				val = *buffer | IC_STOP;
 			}
 #endif
-			i2c_dbg("dw_i2c: w 0x%2x 0x%x _DATA_CMD\n",
-				offset, val);
 			__raw_writel(val, base + offset);
 			buffer++;
 			len--;
@@ -726,13 +496,7 @@ int dw_i2c_write_bytes(uint8_t dev, uint8_t *buffer,
 		/* TODO Timeout. */
 	}
 
-	ret = i2c_tx_finish(base);
-	i2c_dbg("dw_i2c: Debug: Exit %s\n", __func__);
-	if (ret != 0) {
-		return -1;
-	}
-
-	return (orig_len - len);
+	return i2c_tx_finish(base) == 0 ? orig_len - len : -1;
 }
 
 /*
@@ -752,12 +516,9 @@ int dw_i2c_read_vip(uint8_t dev, uint8_t *buffer, int len)
 	unsigned int active = 0;
 	uint32_t val;
 	uint32_t offset;
-	int ret;
 
-	i2c_dbg("dw_i2c: Debug: Enter %s\n", __func__);
 	if (i2c_wait_for_bb(base))
 		return 1;
-
 	i2c_setaddress(base, dev);
 
 	while (len) {
@@ -775,8 +536,6 @@ int dw_i2c_read_vip(uint8_t dev, uint8_t *buffer, int len)
 			if (len == 1)
 				val |= IC_STOP;
 #endif
-			i2c_dbg("dw_i2c: w 0x%2x 0x%x _DATA_CMD\n",
-				offset, val);
 			__raw_writel(val, base + offset);
 			active = 1;
 		}
@@ -785,21 +544,16 @@ int dw_i2c_read_vip(uint8_t dev, uint8_t *buffer, int len)
 
 		offset = IC_STATUS;
 		val = __raw_readl(base + offset);
-		i2c_dbg("dw_i2c: r 0x%2x 0x%x _STATUS\n", offset, val);
 		if (val & IC_STATUS_RFNE) {
 			offset = IC_DATA_CMD;
 			val = __raw_readl(base + offset);
-			i2c_dbg("dw_i2c: r 0x%2x 0x%x _DATA_CMD\n",
-				offset, val);
 			*buffer++ = (uint8_t)val;
 			len--;
 			active = 0;
 		}
 	}
 
-	ret = i2c_rx_finish(base);
-	i2c_dbg("dw_i2c: Debug: Exit %s\n", __func__);
-	return ret;
+	return i2c_rx_finish(base);
 }
 
 /*
@@ -810,9 +564,7 @@ int dw_i2c_read_vip(uint8_t dev, uint8_t *buffer, int len)
  */
 void dw_i2c_start_condition(void)
 {
-	i2c_dbg("dw_i2c: Debug: Enter %s\n", __func__);
 	dw_i2c.state = DW_I2C_DRIVER_START;
-	return;
 }
 
 /*
@@ -828,9 +580,7 @@ void dw_i2c_start_condition(void)
  */
 void dw_i2c_stop_condition(void)
 {
-	i2c_dbg("dw_i2c: Debug: Enter %s\n", __func__);
 	dw_i2c.state = DW_I2C_DRIVER_STOP;
-	return;
 }
 
 void dw_i2c_write_byte(uint8_t byte)
@@ -838,7 +588,6 @@ void dw_i2c_write_byte(uint8_t byte)
 	caddr_t base = dw_i2c.base;
 	uint32_t val;
 
-	i2c_dbg("dw_i2c: Debug: Enter %s\n", __func__);
 #ifdef CONFIG_I2C_DEVICE_ID
 	/*
 	 * Special case: to probe device ID.
@@ -855,8 +604,9 @@ void dw_i2c_write_byte(uint8_t byte)
 	}
 
 	/* Process 2nd byte:
-	   Write 1 to IC_TAR[13] and IC_TAR[11] (along with target address) to
-	   enable a Device ID read between disable and enable. */
+	 * Write 1 to IC_TAR[13] and IC_TAR[11] (along with target address)
+	 * to enable a Device ID read between disable and enable.
+	 */
 	if (dw_i2c.state == DW_I2C_DRIVER_DEVID_START) {
 		val = dw_i2c.addr_mode >> 1;
 		val |= TAR_DEVID;
@@ -867,7 +617,8 @@ void dw_i2c_write_byte(uint8_t byte)
 		return;
 	}
 	/* Process 3rd byte:
-	   Push 3 read commands into IC_DATA_CMD. */
+	 * Push 3 read commands into IC_DATA_CMD.
+	 */
 	if (dw_i2c.state == DW_I2C_DRIVER_DEVID_TAR) {
 		dw_i2c.state = DW_I2C_DRIVER_TRANS;
 		return;
@@ -881,8 +632,9 @@ void dw_i2c_write_byte(uint8_t byte)
 	 *   following: data
 	 */
 	/* The 1st byte after START is target address and direction. 
-	   If dynamically updating is not supported, the controller
-	   should be disabled first. */
+	 * If dynamically updating is not supported, the controller
+	 * should be disabled first.
+	 */
 	if (dw_i2c.state == DW_I2C_DRIVER_START) {
 		dw_i2c.addr_mode = byte;
 		val = dw_i2c.addr_mode >> 1;
@@ -903,8 +655,6 @@ void dw_i2c_write_byte(uint8_t byte)
 	}
 
 	if (dw_i2c.state != DW_I2C_DRIVER_TRANS) {
-		con_dbg("dw_i2c: Debug: Error state = %d in %s\n",
-			dw_i2c.state, __func__);
 		dw_i2c.state = DW_I2C_DRIVER_INVALID;
 		return;
 	}
@@ -920,8 +670,6 @@ void dw_i2c_write_byte(uint8_t byte)
 	do {
 		val = __raw_readl(base + IC_INTR_STAT);
 	} while (!(val & IC_TX_EMPTY));
-
-	return;
 }
 
 uint8_t dw_i2c_read_byte(void)
@@ -929,10 +677,7 @@ uint8_t dw_i2c_read_byte(void)
 	caddr_t base = dw_i2c.base;
 	uint32_t val;
 
-	i2c_dbg("dw_i2c: Debug: Enter %s\n", __func__);
 	if (dw_i2c.state != DW_I2C_DRIVER_TRANS) {
-		con_dbg("dw_i2c: Debug: Error state = %d in %s\n",
-			dw_i2c.state, __func__);
 		dw_i2c.state = DW_I2C_DRIVER_INVALID;
 		return 0xFF; // XXX Invalid value
 	}
@@ -954,16 +699,43 @@ void dw_i2c_transfer_reset(void)
 	caddr_t base = dw_i2c.base;
 	uint32_t val;
 
-	i2c_dbg("dw_i2c: Debug: Enter %s\n", __func__);
-	__raw_writel(IC_ENABLE_ABRT, base + IC_ENABLE);
-	do {
-		val = __raw_readl(base + IC_INTR_STAT);
-	} while (!(val & IC_TX_ABRT));
+	if (dw_i2c.state == DW_I2C_DRIVER_TRANS) {
+		__raw_writel(IC_ENABLE_ABRT, base + IC_ENABLE);
+		do {
+			val = __raw_readl(base + IC_INTR_STAT);
+		} while (!(val & IC_TX_ABRT));
+	}
 
 	/* Note: Do not identify the source as ABRT_USER_ABRT */
 
 	/* Reset internal status of driver */
 	dw_i2c.addr_mode = 0;
 	dw_i2c.state = DW_I2C_DRIVER_INIT;
-	return;
+}
+
+#ifndef CONFIG_SYS_NOIRQ
+void dw_i2c_irq_handler(irq_t irq)
+{
+	dw_i2c_test_irq(irq);
+}
+
+void dw_i2c_irq_init(void)
+{
+	irqc_configure_irq(IRQ_I2C0 + dw_i2c_did, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(IRQ_I2C0 + dw_i2c_did, dw_i2c_irq_handler);
+	irqc_enable_irq(IRQ_I2C0 + dw_i2c_did);
+}
+#else
+void dw_i2c_irq_init(void)
+{
+}
+#endif
+
+void dw_i2c_master_init(void)
+{
+	dw_i2c.base = DW_I2C_BASE(dw_i2c_did);
+	dw_i2c.addr_mode = 0;
+	dw_i2c.state = DW_I2C_DRIVER_INVALID;
+	__dw_i2c_master_init();
+	dw_i2c_irq_init();
 }

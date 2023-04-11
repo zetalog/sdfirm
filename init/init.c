@@ -165,9 +165,7 @@ void modules_init(void)
 	pci_init();
 	rio_init();
 	uart_init();
-#ifndef CONFIG_I2C_CMD_TOOL
 	i2c_init();
-#endif
 	spi_init();
 	net_init();
 	mmcsd_init();

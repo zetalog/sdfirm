@@ -250,6 +250,5 @@ int dw_i2c_write_mem(uint8_t dev, unsigned int addr,
 int dw_i2c_read_vip(uint8_t dev, uint8_t *buffer, int len);
 int dw_i2c_write_vip(uint8_t dev, unsigned int addr,
 		     uint8_t *buffer, int len);
-void dw_i2c_init(void);
 
 #endif /* __DW_I2C_H_INCLUDE__ */

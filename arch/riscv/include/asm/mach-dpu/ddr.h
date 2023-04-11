@@ -113,6 +113,10 @@ clk_freq_t ddr_get_frclk(int speed);
 void ddr_hw_config_speed(uint8_t speed);
 void ddr_hw_enable_speed(uint8_t speed);
 void ddr_hw_wait_dfi(uint32_t cycles);
+void ddr_hw_chan_select(ddr_cid_t cid);
+void ddr_hw_slot_select(ddr_sid_t sid);
+void ddr_hw_slot_reset(void);
+void ddr_hw_chan_reset(void);
 #else
 #define ddr_get_fvco(speed)	PLL2_VCO_FREQ
 #define ddr_get_fpclk(speed)	PLL2_P_FREQ

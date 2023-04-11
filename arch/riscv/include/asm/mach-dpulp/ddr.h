@@ -100,6 +100,10 @@ clk_freq_t ddr_get_fclk(int speed);
 void ddr_hw_config_speed(uint8_t speed);
 void ddr_hw_enable_speed(uint8_t speed);
 void ddr_hw_wait_dfi(uint32_t cycles);
+void ddr_hw_chan_select(ddr_cid_t cid);
+void ddr_hw_slot_select(ddr_sid_t sid);
+void ddr_hw_slot_reset(void);
+void ddr_hw_chan_reset(void);
 #define ddr_clk_fvco(fclk, fvco_orig)	ddr_get_fvco(ddr_clk_speed(fclk))
 #else /* CONFIG_DPULP_DDR */
 #define ddr_clk_fvco(fclk, fvco_orig)	fvco_orig

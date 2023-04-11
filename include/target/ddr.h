@@ -86,20 +86,64 @@
 #include <target/ddr1.h>
 #include <target/ddr4.h>
 #include <target/ddr_spd.h>
-#include <driver/ddr.h>
 
-#define NR_DDR_CHANNELS		DDR_HW_MAX_CHANNELS
-#define NR_DDR_MODULES		DDR_HW_MAX_MODULES
-#if (NR_DDR_CHANNELS < DDR_MAX_CHANNNELS)
+#define NR_DDR_CHANS		DDR_HW_MAX_CHANNELS
+#define NR_DDR_SLOTS		DDR_HW_MAX_MODULES
+#if (NR_DDR_CHANS < DDR_MAX_CHANNNELS)
 #error "Too small CONFIG_DDR_MAX_CHANNELS is specified!"
 #endif
-#if (NR_DDR_MODULES < DDR_MAX_MODULES)
+#if (NR_DDR_SLOTS < DDR_MAX_MODULES)
 #error "Too small CONFIG_DDR_MAX_MODULES is specified!"
 #endif
+#define INVALID_DDR_CHAN	NR_DDR_CHANS
+#define INVALID_DDR_SLOT	NR_DDR_SLOTS
+
+typedef uint16_t ddr_cid_t;
+typedef uint16_t ddr_sid_t;
+
+struct ddr_slot {
+	ddr_sid_t sid;
+	ddr_cid_t cid;
+	uint8_t smbus;
+	uint8_t spd_addr;
+	uint8_t ts_addr;
+	uint8_t spd_buf[DDR_SPD_SIZE];
+};
+
+struct ddr_chan {
+	ddr_cid_t cid;
+};
+
+#include <driver/ddr.h>
 
 #define ddr_enable_speed(speed)		ddr_hw_enable_speed(speed)
 #define ddr_wait_dfi(cycles)		ddr_hw_wait_dfi(cycles)
 #define ddr_mr_write(n, c, ranks, v, r)	ddr_hw_mr_write(n, c, ranks, v, r)
+
+#if NR_DDR_CHANS > 1
+ddr_cid_t ddr_chan_save(ddr_cid_t chan);
+void ddr_chan_restore(ddr_cid_t chan);
+extern ddr_cid_t ddr_cid;
+extern struct ddr_chan ddr_chans[NR_DDR_CHANS];
+#define ddr_chan_ctrl ddr_chans[ddr_cid]
+#else
+#define ddr_chan_save(cid)	0
+#define ddr_chan_restore(cid)
+#define ddr_cid			0
+extern struct ddr_chan ddr_chan_ctrl;
+#endif
+#if NR_DDR_SLOTS > 1
+ddr_sid_t ddr_slot_save(ddr_sid_t slot);
+void ddr_slot_restore(ddr_sid_t slot);
+extern ddr_sid_t ddr_sid;
+extern struct ddr_slot ddr_slots[NR_DDR_SLOTS];
+#define ddr_slot_ctrl ddr_slots[ddr_sid]
+#else
+#define ddr_slot_save(sid)	0
+#define ddr_slot_restore(sid)
+#define ddr_sid			0
+extern struct ddr_slot ddr_slot_ctrl;
+#endif
 
 #ifdef CONFIG_DDR
 void ddr_config_speed(uint8_t spd);

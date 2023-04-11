@@ -143,6 +143,14 @@ void ddr_hw_enable_speed(uint8_t speed)
 }
 #endif
 
+static ddr_cid_t ddr_cids[NR_DDR_SLOTS] = {
+	0, 1,
+};
+
+static uint8_t ddr_spd_addrs[NR_DDR_SLOTS] = {
+	0x51, 0x50,
+};
+
 void ddr_hw_wait_dfi(uint32_t cycles)
 {
 	uint32_t ratio;
@@ -151,4 +159,23 @@ void ddr_hw_wait_dfi(uint32_t cycles)
 	ratio = DIV_ROUND_UP(clk_get_frequency(ddr_clk), __TSC_FREQ);
 	last = DIV_ROUND_UP(cycles, ratio) + tsc_read_counter();
 	while (time_before(tsc_read_counter(), last));
+}
+
+void ddr_hw_slot_reset(void)
+{
+	ddr_slot_ctrl.cid = ddr_cids[ddr_sid];
+	ddr_slot_ctrl.smbus = 0;
+	ddr_slot_ctrl.spd_addr = ddr_spd_addrs[ddr_sid];
+}
+
+void ddr_hw_slot_select(ddr_sid_t sid)
+{
+}
+
+void ddr_hw_chan_reset(void)
+{
+}
+
+void ddr_hw_chan_select(ddr_cid_t cid)
+{
 }

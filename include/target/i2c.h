@@ -5,10 +5,61 @@
 
 typedef uint8_t i2c_t;
 
+#include <driver/i2c.h>
+
+#if CONFIG_I2C_MAX_MASTERS > I2C_HW_MAX_MASTERS
+#define NR_I2C_MASTERS		I2C_HW_MAX_MASTERS
+#else
 #define NR_I2C_MASTERS		CONFIG_I2C_MAX_MASTERS
+#endif
 #define INVALID_I2C		NR_I2C_MASTERS
 
-#include <driver/i2c.h>
+struct i2c_device {
+	i2c_io_cb iocb;
+};
+typedef struct i2c_device i2c_device_t;
+
+struct i2c_master {
+	i2c_addr_t target;
+	i2c_addr_t address;
+	uint16_t freq;
+	uint8_t mode;
+	i2c_len_t limit;
+	i2c_len_t current;
+	uint8_t status;
+	i2c_device_t *device;
+};
+
+#if NR_I2C_MASTERS > 1
+extern struct i2c_master i2c_masters[NR_I2C_MASTERS];
+extern i2c_t i2c_mid;
+
+#define i2c_target	i2c_masters[i2c_mid].target
+#define i2c_address	i2c_masters[i2c_mid].address
+#define i2c_freq	i2c_masters[i2c_mid].freq
+#define i2c_mode	i2c_masters[i2c_mid].mode
+#define i2c_limit	i2c_masters[i2c_mid].limit
+#define i2c_current	i2c_masters[i2c_mid].current
+#define i2c_status	i2c_masters[i2c_mid].status
+#define i2c_device	i2c_masters[i2c_mid].device
+
+void i2c_master_select(i2c_t i2c);
+i2c_t i2c_master_save(i2c_t i2c);
+#define i2c_master_restore(i2c)		i2c_master_select(i2c)
+#else
+extern i2c_addr_t i2c_target;
+extern i2c_addr_t i2c_address;
+extern uint16_t i2c_freq;
+extern uint8_t i2c_mode;
+extern i2c_len_t i2c_limit;
+extern i2c_len_t i2c_current;
+extern uint8_t i2c_status;
+extern i2c_device_t *i2c_device;
+
+#define i2c_mid				0
+#define i2c_master_save(i2c)		0
+#define i2c_master_restore(i2c)		do { } while (0)
+#endif
 
 #ifdef I2C_HW_FREQ
 #define I2C_FREQ		I2C_HW_FREQ
@@ -59,11 +110,6 @@ typedef uint8_t i2c_t;
 #define I2C_MODE_MASTER_TX	(I2C_MODE_MASTER | I2C_MODE_TX)
 #define I2C_MODE_SLAVE_RX	(I2C_MODE_SLAVE | I2C_MODE_RX)
 #define I2C_MODE_MASTER_RX	(I2C_MODE_MASTER | I2C_MODE_RX)
-
-struct i2c_device {
-	i2c_io_cb iocb;
-};
-typedef struct i2c_device i2c_device_t;
 
 #ifdef CONFIG_I2C_MASTER
 void i2c_apply_frequency(void);

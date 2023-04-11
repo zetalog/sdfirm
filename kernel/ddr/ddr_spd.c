@@ -266,7 +266,7 @@ static void ddr4_spd_dump_load_reduced(struct ddr4_spd_load_reduced_eeprom *spd)
 		   "CRC for Module Specific Section");
 }
 
-static void ddr4_spd_dump(const char *buf)
+static void ddr4_spd_dump(const uint8_t *buf)
 {
 	struct ddr4_spd_eeprom *spd = (struct ddr4_spd_eeprom *)buf;
 
@@ -422,29 +422,28 @@ static void ddr4_spd_dump(const char *buf)
 
 void ddr_spd_read(uint8_t *buf)
 {
+	i2c_master_select(ddr_slot_ctrl.smbus);
+	i2c_set_frequency(DDR_SPD_FREQ);
+
+	spd_hw_read_bytes(ddr_slot_ctrl.spd_addr, 0,
+			  ddr_slot_ctrl.spd_buf, DDR_SPD_SIZE);
 }
 
-void ddr_spd_init(void)
-{
-}
-
-void ddr_spd_dump(const char *buf)
+static void ddr_spd_dump(const uint8_t *buf)
 {
 	ddr4_spd_dump(buf);
 }
 
 static int do_spd_dump(int argc, char *argv[])
 {
+	ddr_sid_t slot, sslot;
+
 	if (argc < 3)
 		return -EINVAL;
-	if (strcmp(argv[2], "udimm") == 0) {
-		ddr_spd_dump(udimm_test_spd);
-		return 0;
-	}
-	if (strcmp(argv[2], "rdimm") == 0) {
-		ddr_spd_dump(rdimm_test_spd);
-		return 0;
-	}
+	slot = (ddr_cid_t)strtoul(argv[2], 0, 0);
+	sslot = ddr_slot_save(slot);
+	ddr_spd_dump(ddr_slot_ctrl.spd_buf);
+	ddr_slot_restore(sslot);
 	return 0;
 }
 
@@ -459,6 +458,6 @@ static int do_spd(int argc, char *argv[])
 }
 
 DEFINE_COMMAND(spd, do_spd, "DDR SPD commands",
-	"dump\n"
-	"    - dump and parse SPD\n"
+	"dump slot\n"
+	"    - dump SPD of DDR slot\n"
 );

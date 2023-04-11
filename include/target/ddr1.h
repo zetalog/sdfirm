@@ -43,6 +43,8 @@
 #define __DDR1_H_INCLUDE__
 
 #ifdef CONFIG_DDR1
+#define DDR_SPD_SIZE		DDR1_SPD_SIZE
+
 /* JESD79 - Double Data Rate (DDR) SDRAM Specification */
 /* INITIALIZATION
  * VDD -> VDDQQ -> VREF/VTT:

@@ -43,6 +43,8 @@
 #define __DDR4_H_INCLUDE__
 
 #ifdef CONFIG_DDR4
+#define DDR_SPD_SIZE		DDR4_SPD_SIZE
+
 #define __ddr4_spd(spd)		((spd) - DDR4_MIN_SPD)
 #define ddr4_spd		__ddr4_spd(ddr_spd)
 #define ddr4_spd_valid(spd)	\

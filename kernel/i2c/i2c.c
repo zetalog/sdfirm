@@ -1,29 +1,9 @@
 #include <target/i2c.h>
 #include <target/panic.h>
 
-struct i2c_master {
-	i2c_addr_t target;
-	i2c_addr_t address;
-	uint16_t freq;
-	uint8_t mode;
-	i2c_len_t limit;
-	i2c_len_t current;
-	uint8_t status;
-	i2c_device_t *device;
-};
-
-#if CONFIG_I2C_MAX_MASTERS > 1
+#if NR_I2C_MASTERS > 1
 struct i2c_master i2c_masters[NR_I2C_MASTERS];
 i2c_t i2c_mid;
-
-#define i2c_target	i2c_masters[i2c_mid].target
-#define i2c_address	i2c_masters[i2c_mid].address
-#define i2c_freq	i2c_masters[i2c_mid].freq
-#define i2c_mode	i2c_masters[i2c_mid].mode
-#define i2c_limit	i2c_masters[i2c_mid].limit
-#define i2c_current	i2c_masters[i2c_mid].current
-#define i2c_status	i2c_masters[i2c_mid].status
-#define i2c_device	i2c_masters[i2c_mid].device
 
 void i2c_master_select(i2c_t i2c)
 {
@@ -37,8 +17,6 @@ i2c_t i2c_master_save(i2c_t i2c)
 	i2c_mid = i2c;
 	return i2cs;
 }
-
-#define i2c_master_restore(i2c)		i2c_master_select(i2c)
 #else
 /* slave address addressed by the i2c controller */
 i2c_addr_t i2c_target;
@@ -51,10 +29,6 @@ i2c_len_t i2c_limit;
 i2c_len_t i2c_current;
 uint8_t i2c_status;
 i2c_device_t *i2c_device = NULL;
-
-#define i2c_mid				0
-#define i2c_master_save(i2c)		0
-#define i2c_master_restore(i2c)		do { } while (0)
 #endif
 
 static void i2c_config_mode(uint8_t mode);
@@ -316,6 +290,13 @@ void i2c_master_init(void)
 
 void i2c_init(void)
 {
-	i2c_master_init();
-	i2c_transfer_reset();
+	i2c_t i2c;
+	__unused i2c_t si2c;
+
+	for (i2c = 0; i2c <= NR_I2C_MASTERS; i2c++) {
+		si2c = i2c_master_save(i2c);
+		i2c_master_init();
+		i2c_transfer_reset();
+		i2c_master_restore(si2c);
+	}
 }
