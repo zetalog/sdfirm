@@ -693,17 +693,6 @@ config DPU_DDR
 
 if DPU_DDR
 
-config DPU_DDR_SPD_BUS_NUM
-	int "I2C Bus (Master) Number for DDR SPDs"
-	depends I2C && I2C_MASTER
-	default 0
-
-config DPU_DDR_SPD_COUNT
-	int "Count of DDR SPDs (DIMMs)"
-	default 2
-	range 1 8
-	depends I2C && I2C_MASTER
-
 endif
 
 endmenu

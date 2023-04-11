@@ -21,6 +21,8 @@
 #endif
 
 #ifdef CONFIG_DUOWEN_I2C
+#define I2C_HW_MAX_MASTERS		8
+#define I2C_HW_MAX_SLAVES		1
 #define i2c_hw_master_select(i2c)	dw_i2c_master_select(i2c)
 #define i2c_hw_set_address(addr, call)	dw_i2c_set_address(addr, call)
 #define i2c_hw_set_frequency(khz)	dw_i2c_set_frequency(khz)

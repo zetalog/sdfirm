@@ -88,6 +88,7 @@ config ARCH_HAS_DDR_SPD
 config DDR_SPD
 	bool "Enable serial presence detect (SPD) eeprom support"
 	depends ARCH_HAS_DDR_SPD
+	select I2C
 	select I2C_MASTER
 
 config DDR_TS

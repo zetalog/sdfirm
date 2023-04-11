@@ -47,6 +47,40 @@
 #endif
 uint8_t ddr_spd = DDR_SPD_DEFAULT;
 uint8_t ddr_dev = 0;
+struct ddr_slot ddr_slots[NR_DDR_SLOTS];
+struct ddr_chan ddr_chans[NR_DDR_CHANS];
+ddr_cid_t ddr_cid;
+ddr_sid_t ddr_sid;
+
+#if NR_DDR_CHANS > 1
+void ddr_chan_restore(ddr_cid_t chan)
+{
+	ddr_cid = chan;
+	ddr_hw_chan_select(chan);
+}
+
+ddr_cid_t ddr_chan_save(ddr_cid_t chan)
+{
+	ddr_cid_t ocid = ddr_cid;
+	ddr_chan_restore(chan);
+	return ocid;
+}
+#endif
+
+#if NR_DDR_SLOTS > 1
+void ddr_slot_restore(ddr_sid_t slot)
+{
+	ddr_sid = slot;
+	ddr_hw_slot_select(slot);
+}
+
+ddr_sid_t ddr_slot_save(ddr_sid_t slot)
+{
+	ddr_sid_t osid = ddr_sid;
+	ddr_slot_restore(slot);
+	return osid;
+}
+#endif
 
 uint16_t ddr_spd_speeds[DDR_MAX_SPDS] = {
 	[DDR_200] = 200,
@@ -89,9 +123,36 @@ void ddr_config_module(uint8_t n, uint8_t type,
 }
 #endif
 
+void ddr_reset_slot(void)
+{
+	ddr_slot_ctrl.sid = ddr_sid;
+	ddr_hw_slot_reset();
+	ddr_spd_read(ddr_slot_ctrl.spd_buf);
+}
+
+void ddr_reset_chan(void)
+{
+	ddr_chan_ctrl.cid = ddr_cid;
+}
+
 void ddr_init(void)
 {
-	/* TODO: SPD initialization */
+	ddr_cid_t chan;
+	ddr_sid_t slot;
+	__unused ddr_cid_t schan;
+	__unused ddr_sid_t sslot;
+
+	DEVICE_INTF(DEVICE_INTF_DDR);
+	for (slot = 0; slot < NR_DDR_SLOTS; slot++) {
+		sslot = ddr_slot_save(slot);
+		ddr_reset_slot();
+		ddr_slot_restore(sslot);
+	}
+	for (chan = 0; chan < NR_DDR_CHANS; chan++) {
+		schan = ddr_chan_save(chan);
+		ddr_reset_chan();
+		ddr_chan_restore(schan);
+	}
 	ddr_config_speed(DDR_SPD_DEFAULT);
 	ddr_enable_speed(ddr_spd);
 

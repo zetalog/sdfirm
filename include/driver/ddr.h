@@ -49,15 +49,19 @@
 #ifndef ARCH_HAVE_DDR
 #define ddr_hw_ctrl_init()		do { } while (0)
 #define ddr_hw_ctrl_start()		do { } while (0)
+#define ddr_hw_chan_select(s)		do { } while (0)
+#define ddr_hw_slot_select(s)		do { } while (0)
+#define ddr_hw_chan_reset()		do { } while (0)
+#define ddr_hw_slot_reset()		do { } while (0)
 #define ddr_hw_config_speed(speed)	do { } while (0)
 #define ddr_hw_enable_speed(speed)	do { } while (0)
 #define ddr_hw_wait_dfi(cycles)		do { } while (0)
-#define ddr_hw_init_MR(n, v, r)		do { } while (0)
-#endif
 
+#define ddr_hw_init_MR(n, v, r)		do { } while (0)
 #ifndef CONFIG_DDR4
 #define ddr4_hw_config_refresh(n, mode, tREFI, tRFCmin)	\
 	do { } while (0)
+#endif
 #endif
 
 #endif /* __DDR_DRIVER_H_INCLUDE__ */
