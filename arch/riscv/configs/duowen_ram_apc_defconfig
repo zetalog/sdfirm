@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Apr 11 17:01:53 2023
+# Thu Apr 13 18:49:29 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -400,7 +400,6 @@ CONFIG_I2C_MAX_MASTERS=1
 CONFIG_I2C_GENERAL_CALL=y
 CONFIG_I2C_10BIT_ADDRESS=y
 CONFIG_I2C_DEVICE_ID=y
-CONFIG_I2C_CMD_TOOL=y
 # CONFIG_USB is not set
 # CONFIG_SCS is not set
 CONFIG_MTD=y

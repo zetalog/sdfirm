@@ -154,7 +154,7 @@ void ddr_init(void)
 		ddr_chan_restore(schan);
 	}
 	ddr_config_speed(DDR_SPD_DEFAULT);
-	ddr_enable_speed(ddr_spd);
+	//ddr_enable_speed(ddr_spd);
 
 	ddr_hw_ctrl_init();
 	ddr_hw_ctrl_start();
