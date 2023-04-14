@@ -101,7 +101,7 @@ void dw_i2c_set_frequency(uint16_t khz)
 	int i2c_spd;
 	int speed = khz * 1000;
 	int bus_speed = DW_I2C_FREQ;
-#ifndef CONFIG_DW_I2C_USE_COUNT
+#ifndef CONFIG_DW_I2C_USE_COUNTS
 	int bus_mhz = bus_speed / 1000 / 1000;
 #endif
 
@@ -117,7 +117,7 @@ void dw_i2c_set_frequency(uint16_t khz)
 	cntl = __raw_readl(IC_CON(dw_i2c_did));
 
 	cntl |= IC_CON_SPEED(i2c_spd);
-#ifdef CONFIG_DW_I2C_USE_COUNT
+#ifdef CONFIG_DW_I2C_USE_COUNTS
 	switch (i2c_spd) {
 	case IC_CON_SPEED_HIGH:
 		hcnt = bus_speed / speed / (6+16) * 6 - (1+7);
