@@ -5,6 +5,137 @@
 
 menu "I2C host drivers"
 
+config ARCH_IS_DW_I2C_MAX_SPEED_STANDARD
+	bool
+	depends ARCH_IS_DW_I2C_ULTRA_FAST_MODE
+
+config ARCH_IS_DW_I2C_MAX_SPEED_FAST
+	bool
+	depends !ARCH_IS_DW_I2C_ULTRA_FAST_MODE
+
+config ARCH_IS_DW_I2C_MAX_SPEED_HIGH
+	bool
+	depends !ARCH_IS_DW_I2C_ULTRA_FAST_MODE
+
+config ARCH_HAS_DW_I2C_MASTER
+	bool
+
+config ARCH_HAS_DW_I2C_HS_MASTER
+	bool
+
+config ARCH_HAS_DW_I2C_10BITADDR_SLAVE
+	bool
+
+config ARCH_HAS_DW_I2C_10BITADDR_MASTER
+	bool
+
+config ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_8
+	bool
+
+config ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_16
+	bool
+
+config ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_32
+	bool
+
+config ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_64
+	bool
+
+config ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_128
+	bool
+
+config ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_256
+	bool
+
+config ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_8
+	bool
+
+config ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_16
+	bool
+
+config ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_32
+	bool
+
+config ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_64
+	bool
+
+config ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_128
+	bool
+
+config ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_256
+	bool
+
+config ARCH_HAS_DW_I2C_RESTART
+	bool
+
+config ARCH_HAS_DW_I2C_DMA
+	bool
+
+config ARCH_IS_DW_I2C_INTR_IO
+	bool
+
+config ARCH_HAS_DW_I2C_USE_COUNTS
+	bool
+	depends !ARCH_HAS_DW_I2C_CLOCK_PERIOD
+
+config ARCH_HAS_DW_I2C_HC_COUNTS
+	bool
+
+config ARCH_HAS_DW_I2C_CLOCK_PERIOD
+	bool
+
+config ARCH_HAS_DW_I2C_DYNAMIC_TAR_UPDATE
+	bool
+
+config ARCH_HAS_DW_I2C_SLV_RX_DATA_NACK
+	bool
+	depends !ARCH_IS_DW_I2C_ULTRA_FAST_MODE
+
+config ARCH_HAS_DW_I2C_SLV_RX_FULL_NACK
+	bool
+	depends !ARCH_IS_DW_I2C_ULTRA_FAST_MODE
+	depends !ARCH_HAS_DW_I2C_SLV_DATA_NACK
+
+config ARCH_HAS_DW_I2C_EMPTYFIFO_HOLD_MASTER
+	bool
+
+config ARCH_HAS_DW_I2C_RX_FULL_HLD_BUS
+	bool
+	depends !ARCH_IS_DW_I2C_ULTRA_FAST_MODE
+
+config ARCH_HAS_DW_I2C_SLV_RESTART_DET
+	bool
+
+config ARCH_HAS_DW_I2C_STOP_DET_IF_MASTER_ACTIVE
+	bool
+
+config ARCH_HAS_DW_I2C_TX_CMD_BLOCK
+	bool
+
+config ARCH_HAS_DW_I2C_FIRST_DATA_BYTE_STATUS
+	bool
+
+config ARCH_HAS_DW_I2C_AVOID_RX_FIFO_FLUSH_ON_TX_ABRT
+	bool
+
+config ARCH_HAS_DW_I2C_BUS_CLEAR
+	bool
+
+config ARCH_HAS_DW_I2C_DEVICE_ID
+	bool
+
+config ARCH_HAS_DW_I2C_SMBUS
+	bool
+
+config ARCH_HAS_DW_I2C_SMBUS_SUSPEND_ALERT
+	bool
+
+config ARCH_HAS_DW_I2C_SMBUS_ARP
+	bool
+
+config ARCH_IS_DW_I2C_ULTRA_FAST_MODE
+	bool
+
 menuconfig DW_I2C
 	bool "Synopsys DesignWare APB I2C support"
 
@@ -12,13 +143,16 @@ if DW_I2C
 
 config DW_I2C_EMPTYFIFO_HOLD_MASTER
 	bool "If IC_EMPTYFIFO_HOLD_MASTER_EN is set"
+	depends ARCH_HAS_DW_I2C_EMPTYFIFO_HOLD_MASTER
 	default y
 
 config DW_I2C_DYNAMIC_TAR_UPDATE
 	bool "If I2C_DYNAMIC_TAR_UPDATE is set"
+	depends ARCH_HAS_DW_I2C_DYNAMIC_TAR_UPDATE
 
-config DW_I2C_USE_COUNT
+config DW_I2C_USE_COUNTS
 	bool "If SCL frequency is configured with clock count or period(ns)"
+	depends ARCH_HAS_DW_I2C_USE_COUNTS
 
 config DW_I2C_RX_TL
 	int "Threshold level for RX FIFO"
