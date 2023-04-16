@@ -59,7 +59,7 @@ wait:
 	}
 }
 
-void i2c_hw_start_condition(void)
+void i2c_hw_start_condition(bool sr)
 {
 	TWCR = __TWI_HW_TWCR_DEF | _BV(TWSTA);
 	__twi_hw_translate_status();

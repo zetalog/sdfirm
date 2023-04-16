@@ -1,5 +1,6 @@
 #include <target/ddr.h>
 #include <target/cmdline.h>
+#include <target/console.h>
 
 const char rdimm_test_spd[512] = {
 	0x23, 0x12, 0x0c, 0x01, 0x85, 0x21, 0x00, 0x08,
@@ -427,6 +428,7 @@ void ddr_spd_read(uint8_t *buf)
 
 	spd_hw_read_bytes(ddr_slot_ctrl.spd_addr, 0,
 			  ddr_slot_ctrl.spd_buf, DDR_SPD_SIZE);
+	hexdump(0, ddr_slot_ctrl.spd_buf, 1, DDR_SPD_SIZE);
 }
 
 static void ddr_spd_dump(const uint8_t *buf)

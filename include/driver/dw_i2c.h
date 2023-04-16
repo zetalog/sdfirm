@@ -174,9 +174,17 @@
  * 5.1.16 IC_INTR_MASK
  * 5.1.17 IC_RAW_INTR_STAT
  */
+#ifdef CONFIG_DW_I2C_BUS_CLEAR
 #define IC_INTR_SCL_STUCK_AT_LOW		_BV(14)
+#else
+#define IC_INTR_SCL_STUCK_AT_LOW		0
+#endif
 #define IC_INTR_MASTER_ON_HOLD			_BV(13)
+#ifdef CONFIG_DW_I2C_SLV_RESTART_DET
 #define IC_INTR_RESTART_DET			_BV(12)
+#else
+#define IC_INTR_RESTART_DET			0
+#endif
 #define IC_INTR_GEN_CALL			_BV(11)
 #define IC_INTR_START_DET			_BV(10)
 #define IC_INTR_STOP_DET			_BV(9)
@@ -190,16 +198,16 @@
 #define IC_INTR_RX_OVER 			_BV(1)
 #define IC_INTR_RX_UNDER			_BV(0)
 #define IC_INTR_ALL				\
-	IC_INTR_SCL_STUCK_AT_LOW |		\
-	IC_INTR_MASTER_ON_HOLD |		\
-	IC_INTR_RESTART_DET |			\
-	IC_INTR_GEN_CALL |			\
-	IC_INTR_START_DET | IC_INTR_STOP_DET |	\
-	IC_INTR_ACTIVITY |			\
-	IC_INTR_RX_DONE | IC_INTR_TX_ABRT |	\
-	IC_INTR_RD_REQ |			\
-	IC_INTR_TX_EMPTY | IC_INTR_TX_OVER |	\
-	IC_INTR_RX_FULL	| IC_INTR_RX_OVER | IC_INTR_RX_UNDER
+	(IC_INTR_SCL_STUCK_AT_LOW |		\
+	 IC_INTR_MASTER_ON_HOLD |		\
+	 IC_INTR_RESTART_DET |			\
+	 IC_INTR_GEN_CALL |			\
+	 IC_INTR_START_DET | IC_INTR_STOP_DET |	\
+	 IC_INTR_ACTIVITY |			\
+	 IC_INTR_RX_DONE | IC_INTR_TX_ABRT |	\
+	 IC_INTR_RD_REQ |			\
+	 IC_INTR_TX_EMPTY | IC_INTR_TX_OVER |	\
+	 IC_INTR_RX_FULL | IC_INTR_RX_OVER | IC_INTR_RX_UNDER)
 
 /* 5.1.18 IC_RX_TL */
 #define IC_RX_TL_TL_OFFSET			0
@@ -239,6 +247,43 @@
 #define IC_STATUS_TFNF				_BV(1)
 #define IC_STATUS_ACTIVITY			_BV(0)
 
+/* 5.1.36 IC_TX_ABRT_SOURCE */
+#define IC_TX_ABRT_SOURCE_TX_FLUSH_CNT_OFFSET		23
+#define IC_TX_ABRT_SOURCE_TX_FLUSH_CNT_MASK		REG_9BIT_MASK
+#define IC_TX_ABRT_SOURCE_TX_FLUSH_CNT(value)		_GET_FV(IC_TX_ABRT_SOURCE_TX_FLUSH_CNT, value)
+#define IC_TX_ABRT_SOURCE_ABRT_DEVICE_WRITE		_BV(20)
+#define IC_TX_ABRT_SOURCE_ABRT_DEVICE_SLVADDR_NOACK	_BV(19)
+#define IC_TX_ABRT_SOURCE_ABRT_DEVICE_NOACK		_BV(18)
+#define IC_TX_ABRT_SOURCE_ABRT_SDA_STUCK_AT_LOW		_BV(17)
+#define IC_TX_ABRT_SOURCE_ABRT_USER_ABRT		_BV(16)
+#define IC_TX_ABRT_SOURCE_ABRT_SLVRD_INTX		_BV(15)
+#define IC_TX_ABRT_SOURCE_ABRT_SLV_ARBLOST		_BV(14)
+#define IC_TX_ABRT_SOURCE_ABRT_SLVFLUSH_TXFIFO		_BV(13)
+#define IC_TX_ABRT_SOURCE_ARB_LOST			_BV(12)
+#define IC_TX_ABRT_SOURCE_ABRT_MASTER_DIS		_BV(11)
+#define IC_TX_ABRT_SOURCE_ABRT_10B_RD_NORSTRT		_BV(10)
+#define IC_TX_ABRT_SOURCE_ABRT_SBYTE_NORSTRT		_BV(9)
+#define IC_TX_ABRT_SOURCE_ABRT_HS_NORSTRT		_BV(8)
+#define IC_TX_ABRT_SOURCE_ABRT_SBYTE_ACKDET		_BV(7)
+#define IC_TX_ABRT_SOURCE_ABRT_HAS_ACKDET		_BV(6)
+#define IC_TX_ABRT_SOURCE_ABRT_GCALL_READ		_BV(5)
+#define IC_TX_ABRT_SOURCE_ABRT_GCALL_NOACK		_BV(4)
+#define IC_TX_ABRT_SOURCE_ABRT_TXDATA_NOACK		_BV(3)
+#define IC_TX_ABRT_SOURCE_ABRT_10B_ADDR2_NOACK		_BV(2)
+#define IC_TX_ABRT_SOURCE_ABRT_10B_ADDR1_NOACK		_BV(1)
+#define IC_TX_ABRT_SOURCE_ABRT_7B_ADDR_NOACK		_BV(0)
+
+#define IC_TX_ABRT_SOURCE_NOACK				\
+	(IC_TX_ABRT_SOURCE_ABRT_7B_ADDR_NOACK |		\
+	 IC_TX_ABRT_SOURCE_ABRT_10B_ADDR1_NOACK |	\
+	 IC_TX_ABRT_SOURCE_ABRT_10B_ADDR2_NOACK |	\
+	 IC_TX_ABRT_SOURCE_ABRT_TXDATA_NOACK |		\
+	 IC_TX_ABRT_SOURCE_ABRT_GCALL_NOACK |		\
+	 IC_TX_ABRT_SOURCE_ABRT_GCALL_READ |		\
+	 IC_TX_ABRT_SOURCE_ABRT_DEVICE_NOACK |		\
+	 IC_TX_ABRT_SOURCE_ABRT_DEVICE_SLVADDR_NOACK |	\
+	 IC_TX_ABRT_SOURCE_ABRT_DEVICE_WRITE)
+
 /* Starting speed for each Mode */
 #define I2C_FAST_SPEED			400000
 #define I2C_FAST_PLUS_SPEED		1000000
@@ -261,20 +306,64 @@
 enum dw_i2c_driver_state {
 	DW_I2C_DRIVER_INIT = 0,
 	DW_I2C_DRIVER_START,
-	DW_I2C_DRIVER_ADDRESS,
-	DW_I2C_DRIVER_TRANS,
-	DW_I2C_DRIVER_STOP,
 #ifdef CONFIG_I2C_DEVICE_ID
 	DW_I2C_DRIVER_DEVID_START,
 	DW_I2C_DRIVER_DEVID_TAR,
 #endif
+	DW_I2C_DRIVER_ADDRESS,
+	DW_I2C_DRIVER_TX,
+	DW_I2C_DRIVER_DATA,
+	DW_I2C_DRIVER_STOP,
 	DW_I2C_DRIVER_INVALID
 };
 
 struct dw_i2c_ctx {
 	uint8_t addr_mode;
+	uint8_t last_tx_byte;
 	int state;
 };
+
+#ifdef CONFIG_ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_8
+#define DW_I2C_TX_FIFO_SIZE		8
+#endif
+#ifdef CONFIG_ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_16
+#define DW_I2C_TX_FIFO_SIZE		16
+#endif
+#ifdef CONFIG_ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_32
+#define DW_I2C_TX_FIFO_SIZE		32
+#endif
+#ifdef CONFIG_ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_64
+#define DW_I2C_TX_FIFO_SIZE		64
+#endif
+#ifdef CONFIG_ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_128
+#define DW_I2C_TX_FIFO_SIZE		128
+#endif
+#ifdef CONFIG_ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_256
+#define DW_I2C_TX_FIFO_SIZE		256
+#endif
+#ifdef CONFIG_ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_8
+#define DW_I2C_RX_FIFO_SIZE		8
+#endif
+#ifdef CONFIG_ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_16
+#define DW_I2C_RX_FIFO_SIZE		16
+#endif
+#ifdef CONFIG_ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_32
+#define DW_I2C_RX_FIFO_SIZE		32
+#endif
+#ifdef CONFIG_ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_64
+#define DW_I2C_RX_FIFO_SIZE		64
+#endif
+#ifdef CONFIG_ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_128
+#define DW_I2C_RX_FIFO_SIZE		128
+#endif
+#ifdef CONFIG_ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_256
+#define DW_I2C_RX_FIFO_SIZE		256
+#endif
+
+#define dw_i2c_ctrl_disable()		\
+	__raw_clearl(IC_ENABLE_ENABLE, IC_ENABLE(dw_i2cd))
+#define dw_i2c_ctrl_enable()		\
+	__raw_setl(IC_ENABLE_ENABLE, IC_ENABLE(dw_i2cd))
 
 #if NR_DW_I2CS > 1
 void dw_i2c_master_select(i2c_t i2c);
@@ -282,17 +371,11 @@ void dw_i2c_master_select(i2c_t i2c);
 void dw_i2c_master_init(void);
 void dw_i2c_set_address(i2c_addr_t addr, boolean call);
 void dw_i2c_set_frequency(uint16_t khz);
-void dw_i2c_start_condition(void);
+void dw_i2c_start_condition(bool sr);
 void dw_i2c_stop_condition(void);
 void dw_i2c_write_byte(uint8_t byte);
 uint8_t dw_i2c_read_byte(void);
 void dw_i2c_transfer_reset(void);
 void dw_i2c_irq_init(void);
-
-/* Non-standard APIs, used for tests */
-int dw_i2c_read_bytes(uint8_t dev, uint8_t *buffer,
-		      int len, unsigned int stop);
-int dw_i2c_write_bytes(uint8_t dev, uint8_t *buffer,
-		       int len, unsigned int stop);
 
 #endif /* __DW_I2C_H_INCLUDE__ */

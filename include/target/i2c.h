@@ -115,6 +115,8 @@ extern i2c_device_t *i2c_device;
 void i2c_apply_frequency(void);
 uint8_t i2c_master_write(i2c_addr_t slave, i2c_len_t txlen);
 uint8_t i2c_master_read(i2c_addr_t slave, i2c_len_t rxlen);
+uint8_t i2c_master_submit(i2c_addr_t slave,
+			  i2c_len_t txlimit, i2c_len_t rxlimit);
 void i2c_master_release(void);
 void i2c_master_init(void);
 #define i2c_set_frequency(khz) i2c_hw_set_frequency(khz)
@@ -139,7 +141,7 @@ uint32_t i2c_probe_devid(i2c_addr_t slave);
 #define i2c_apply_frequency()
 #define i2c_master_write(slave, txlen)		I2C_STATUS_ARBI
 #define i2c_master_read(slave, rxlen)		I2C_STATUS_ARBI
-#define i2c_set_frequency(khz)          do { } while (0)
+#define i2c_set_frequency(khz)			do { } while (0)
 #define i2c_general_call(cbyte, limit)		I2C_STATUS_ARBI
 #define i2c_master_release()			do { } while (0)
 #define i2c_master_select(i2c)			do { } while (0)
@@ -158,6 +160,7 @@ void i2c_apply_address(void);
 void i2c_register_device(i2c_device_t *dev);
 uint8_t i2c_read_byte(void);
 void i2c_write_byte(uint8_t byte);
+bool i2c_last_byte(void);
 
 /* called by bus controller driver */
 void i2c_set_status(uint8_t status);

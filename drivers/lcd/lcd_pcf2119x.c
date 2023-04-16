@@ -239,15 +239,17 @@ static void __lcd_hw_pcf_init(void)
 #endif
 }
 
-static void __lcd_hw_i2c_iocb(void)
+static void __lcd_hw_i2c_iocb(i2c_len_t len)
 {
-	uint8_t i;
+	i2c_len_t i;
 
-	/* both of RX/TX will send some bytes */
-	for (i = 0; i < __lcd_pcf_txlen; i++) {
-		i2c_write_byte(__lcd_pcf_cmd[i]);
-	}
-	if (i2c_dir_mode() == I2C_MODE_RX) {
+	if (i2c_dir_mode() == I2C_MODE_TX) {
+		BUG_ON(len != __lcd_pcf_txlen);
+		for (i = 0; i < __lcd_pcf_txlen; i++) {
+			i2c_write_byte(__lcd_pcf_cmd[i]);
+		}
+	} else {
+		BUG_ON(len != __lcd_pcf_rxlen);
 		for (i = 0; i < __lcd_pcf_rxlen; i++) 
 			(void)i2c_read_byte();
 	}

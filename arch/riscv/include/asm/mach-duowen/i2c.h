@@ -26,7 +26,7 @@
 #define i2c_hw_master_select(i2c)	dw_i2c_master_select(i2c)
 #define i2c_hw_set_address(addr, call)	dw_i2c_set_address(addr, call)
 #define i2c_hw_set_frequency(khz)	dw_i2c_set_frequency(khz)
-#define i2c_hw_start_condition()	dw_i2c_start_condition()
+#define i2c_hw_start_condition(sr)	dw_i2c_start_condition(sr)
 #define i2c_hw_stop_condition()		dw_i2c_stop_condition()
 #define i2c_hw_read_byte()		dw_i2c_read_byte()
 #define i2c_hw_write_byte(byte)		dw_i2c_write_byte(byte)

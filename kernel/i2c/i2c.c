@@ -31,7 +31,7 @@ uint8_t i2c_status;
 i2c_device_t *i2c_device = NULL;
 #endif
 
-static void i2c_config_mode(uint8_t mode);
+static void i2c_config_mode(uint8_t mode, bool freq);
 
 uint8_t i2c_bus_dir_mode(void)
 {
@@ -52,6 +52,11 @@ static void i2c_transfer_reset(void)
 {
 	i2c_set_status(I2C_STATUS_IDLE);
 	i2c_hw_transfer_reset();
+}
+
+bool i2c_last_byte(void)
+{
+	return (i2c_current + 1) == i2c_limit;
 }
 
 static void i2c_handle_status(void)
@@ -105,7 +110,7 @@ static void i2c_write_address(void)
 #else
 static void i2c_write_address(void)
 {
-	i2c_write_byte(i2c_addr_mode(i2c_target, I2C_DIR(i2c_mode)));
+	i2c_write_byte(i2c_addr_mode(i2c_target, i2c_dir_mode()));
 }
 #endif
 
@@ -114,7 +119,8 @@ void i2c_apply_frequency(void)
 	i2c_hw_set_frequency(I2C_FREQ);
 }
 
-static uint8_t i2c_master_submit(i2c_addr_t slave, i2c_len_t limit)
+uint8_t i2c_master_submit(i2c_addr_t slave,
+			  i2c_len_t txlen, i2c_len_t rxlen)
 {
 	/* IDLE means start, STOP means repeated start */
 	BUG_ON(!i2c_device ||
@@ -122,29 +128,40 @@ static uint8_t i2c_master_submit(i2c_addr_t slave, i2c_len_t limit)
 	        i2c_status != I2C_STATUS_STOP));
 
 	i2c_target = slave;
-	i2c_limit = limit + I2C_ADDR_LEN;
-	i2c_current = 0;
 
-	i2c_hw_start_condition();
-	while (i2c_status == I2C_STATUS_IDLE ||
-	       i2c_status == I2C_STATUS_STOP);
+	if (txlen > 0) {
+		i2c_limit = txlen + I2C_ADDR_LEN;
+		i2c_current = 0;
+		i2c_config_mode(I2C_MODE_MASTER_TX, true);
+		i2c_hw_start_condition(false);
+		while (i2c_status == I2C_STATUS_IDLE ||
+		       i2c_status == I2C_STATUS_STOP);
+		i2c_write_address();
+		i2c_device->iocb(txlen);
+	}
 
-	i2c_write_address();
-	i2c_device->iocb();
+	if (rxlen > 0) {
+		i2c_limit = rxlen + I2C_ADDR_LEN;
+		i2c_current = 0;
+		i2c_config_mode(I2C_MODE_MASTER_RX, txlen == 0);
+		i2c_hw_start_condition(txlen != 0);
+		while (i2c_status == I2C_STATUS_IDLE ||
+		       i2c_status == I2C_STATUS_STOP);
+		i2c_write_address();
+		i2c_device->iocb(rxlen);
+	}
 
 	return i2c_status;
 }
 
 uint8_t i2c_master_write(i2c_addr_t slave, i2c_len_t txlen)
 {
-	i2c_config_mode(I2C_MODE_MASTER_TX);
-	return i2c_master_submit(slave, txlen);
+	return i2c_master_submit(slave, txlen, 0);
 }
 
 uint8_t i2c_master_read(i2c_addr_t slave, i2c_len_t rxlen)
 {
-	i2c_config_mode(I2C_MODE_MASTER_RX);
-	return i2c_master_submit(slave, rxlen);
+	return i2c_master_submit(slave, 0, rxlen);
 }
 
 void i2c_master_release(void)
@@ -163,18 +180,18 @@ uint8_t i2c_general_call(uint8_t cbyte, i2c_len_t limit)
 	       (i2c_status != I2C_STATUS_IDLE &&
 	        i2c_status != I2C_STATUS_STOP));
 
-	i2c_config_mode(I2C_MODE_MASTER_TX);
+	i2c_config_mode(I2C_MODE_MASTER_TX, true);
 	i2c_target = cbyte;
 	i2c_limit = limit + 2;
 	i2c_current = 0;
 
-	i2c_hw_start_condition();
+	i2c_hw_start_condition(false);
 	while (i2c_status == I2C_STATUS_IDLE ||
 	       i2c_status == I2C_STATUS_STOP);
 
 	i2c_write_byte(i2c_addr_mode(I2C_ADDR_CALL, I2C_MODE_TX));
 	i2c_write_byte(i2c_target);
-	i2c_device->iocb();
+	i2c_device->iocb(limit);
 
 	status = i2c_status;
 	i2c_master_release();
@@ -193,12 +210,12 @@ uint32_t i2c_probe_devid(i2c_addr_t slave)
 	       (i2c_status != I2C_STATUS_IDLE &&
 	        i2c_status != I2C_STATUS_STOP));
 
-	i2c_config_mode(I2C_MODE_MASTER_TX);
+	i2c_config_mode(I2C_MODE_MASTER_TX, true);
 	i2c_target = slave;
 	i2c_limit = 1 + I2C_ADDR_LEN;
 	i2c_current = 0;
 
-	i2c_hw_start_condition();
+	i2c_hw_start_condition(false);
 	while (i2c_status == I2C_STATUS_IDLE ||
 	       i2c_status == I2C_STATUS_STOP);
 
@@ -209,7 +226,7 @@ uint32_t i2c_probe_devid(i2c_addr_t slave)
 		return I2C_DEVID_INVAL;
 	}
 
-	i2c_config_mode(I2C_MODE_MASTER_RX);
+	i2c_config_mode(I2C_MODE_MASTER_RX, false);
 	i2c_target = slave;
 	i2c_limit = I2C_DEVID_LEN + I2C_ADDR_LEN;
 	i2c_current = 0;
@@ -261,12 +278,13 @@ void i2c_apply_address(void)
 }
 #endif
 
-static void i2c_config_mode(uint8_t mode)
+static void i2c_config_mode(uint8_t mode, bool freq)
 {
 	i2c_mode = mode;
 
 	if (I2C_BUS(i2c_mode) == I2C_MODE_MASTER) {
-		i2c_apply_frequency();
+		if (freq)
+			i2c_apply_frequency();
 	} else {
 		i2c_apply_address();
 	}
@@ -274,7 +292,6 @@ static void i2c_config_mode(uint8_t mode)
 
 void i2c_register_device(i2c_device_t *dev)
 {
-	BUG_ON(i2c_device);
 	i2c_device = dev;
 }
 

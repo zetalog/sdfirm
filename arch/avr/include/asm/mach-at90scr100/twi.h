@@ -82,7 +82,7 @@
 #endif
 
 void i2c_hw_transfer_reset(void);
-void i2c_hw_start_condition(void);
+void i2c_hw_start_condition(bool sr);
 void i2c_hw_stop_condition(void);
 void i2c_hw_write_byte(uint8_t byte);
 uint8_t i2c_hw_read_byte(void);
