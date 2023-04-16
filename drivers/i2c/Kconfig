@@ -141,18 +141,38 @@ menuconfig DW_I2C
 
 if DW_I2C
 
+config DW_I2C_RESTART
+	bool "Enable RESTART condition support"
+	depends ARCH_HAS_DW_I2C_RESTART
+
 config DW_I2C_EMPTYFIFO_HOLD_MASTER
-	bool "If IC_EMPTYFIFO_HOLD_MASTER_EN is set"
+	bool "Enable master hold on empty FIFO support"
 	depends ARCH_HAS_DW_I2C_EMPTYFIFO_HOLD_MASTER
 	default y
 
 config DW_I2C_DYNAMIC_TAR_UPDATE
-	bool "If I2C_DYNAMIC_TAR_UPDATE is set"
+	bool "Enable dynamic target address support"
 	depends ARCH_HAS_DW_I2C_DYNAMIC_TAR_UPDATE
 
 config DW_I2C_USE_COUNTS
-	bool "If SCL frequency is configured with clock count or period(ns)"
+	bool "Enable SCL frequency configuration with COUNT*"
 	depends ARCH_HAS_DW_I2C_USE_COUNTS
+
+config DW_I2C_BUS_CLEAR
+	bool "Enable bus clear support"
+	depends ARCH_HAS_DW_I2C_BUS_CLEAR
+
+if I2C_SLAVE
+
+menu "Slave options"
+
+config DW_I2C_SLV_RESTART_DET
+	bool "Enable restart detection support"
+	depends ARCH_HAS_DW_I2C_SLV_RESTART_DET
+
+endmenu
+
+endif
 
 config DW_I2C_RX_TL
 	int "Threshold level for RX FIFO"
