@@ -342,19 +342,19 @@ struct heap_chunk {
  * ..........................
  *    95   2496-  2559     64
  * ==========================
- *    96   2560-  3072    512
+ *    96   2560-  3071    512
  * ..........................
  *   111  10239- 10751    512
  * ==========================
  *   112  10752- 12287   1536 (including < 512 blocks)
- *   113  11288- 16383   4096
+ *   113  12288- 16383   4096
  * ..........................
  *   119  36864- 40959   4096
  * ==========================
  *   120  40960- 65535  24576 (including < 4096 blocks)
  *   121  65536- 98303  32768
  * ..........................
- *   123 131072-163840  32768
+ *   123 131072-163839  32768
  * ==========================
  *   124 163840-262143  98304 (including < 32768 blocks)
  *   125 262144-524287 262144
@@ -369,30 +369,30 @@ struct heap_chunk {
  */
 #define heap_bin_hash(sz)					\
 	((uint8_t)(((((heap_size_t)(sz)) >>  9) ==    0) ?	\
-		    (((heap_size_t)(sz)) >>  3) :		\
+		    (((heap_size_t)(sz)) >>  3)          :	\
 		   ((((heap_size_t)(sz)) >>  9) <=    4) ?	\
-		    (((heap_size_t)(sz)) >>  6) +    56 :	\
+		    (((heap_size_t)(sz)) >>  6) +    56  :	\
 		   ((((heap_size_t)(sz)) >>  9) <=   20) ?	\
-		    (((heap_size_t)(sz)) >>  9) +    91 :	\
+		    (((heap_size_t)(sz)) >>  9) +    91  :	\
 		   ((((heap_size_t)(sz)) >>  9) <=   84) ?	\
-		    (((heap_size_t)(sz)) >> 12) +   110 :	\
+		    (((heap_size_t)(sz)) >> 12) +   110  :	\
 		   ((((heap_size_t)(sz)) >>  9) <=  340) ?	\
-		    (((heap_size_t)(sz)) >> 15) +   119 :	\
+		    (((heap_size_t)(sz)) >> 15) +   119  :	\
 		   ((((heap_size_t)(sz)) >>  9) <= 1364) ?	\
-		    (((heap_size_t)(sz)) >> 18) +   124 :	\
+		    (((heap_size_t)(sz)) >> 18) +   124  :	\
 		    126))
 
 #if CONFIG_HEAP_SIZE < 512
 #define __NR_HEAP_BINS	(CONFIG_HEAP_SIZE >> 3)
-#elif CONFIG_HEAP_SIZE < (512*5)
+#elif CONFIG_HEAP_SIZE < (64*40)
 #define __NR_HEAP_BINS	((CONFIG_HEAP_SIZE >> 6) + 56)
 #elif CONFIG_HEAP_SIZE < (512*21)
-#define __NR_HEAP_BINS	((CONFIG_HEAP_SIZE >> 6) + 91)
-#elif CONFIG_HEAP_SIZE < (512*85)
+#define __NR_HEAP_BINS	((CONFIG_HEAP_SIZE >> 9) + 91)
+#elif CONFIG_HEAP_SIZE < (4096*10)
 #define __NR_HEAP_BINS	((CONFIG_HEAP_SIZE >> 12) + 110)
-#elif CONFIG_HEAP_SIZE < (512*341)
+#elif CONFIG_HEAP_SIZE < (32768*5)
 #define __NR_HEAP_BINS	((CONFIG_HEAP_SIZE >> 15) + 119)
-#elif CONFIG_HEAP_SIZE < (512*1365)
+#elif CONFIG_HEAP_SIZE < (262144*2)
 #define __NR_HEAP_BINS	((CONFIG_HEAP_SIZE >> 18) + 124)
 #else
 #define __NR_HEAP_BINS	126
@@ -803,6 +803,73 @@ static struct list_head heap_bins[NR_HEAP_BINS] = {
 #endif
 };
 
+#ifdef CONFIG_HEAP_DLMALLOC_TEST
+/* Emulate CONFIG_HEAP_SIZE macro behavior */
+void heap_cfg_setting(uint32_t cfg)
+{
+	if (cfg < 512)
+		printf("bins(%d): %d\n", cfg, cfg >> 3);
+	else if (cfg < (64 * 40))
+		printf("bins(%d): %d\n", cfg, (cfg >> 6) + 56);
+	else if (cfg < (512 * 21))
+		printf("bins(%d): %d\n", cfg, (cfg >> 9) + 91);
+	else if (cfg < (4096 * 10))
+		printf("bins(%d): %d\n", cfg, (cfg >> 12) + 110);
+	else if (cfg < (32768 * 5))
+		printf("bins(%d): %d\n", cfg, (cfg >> 15) + 119);
+	else if (cfg < (262144 * 2))
+		printf("bins(%d): %d\n", cfg, (cfg >> 18) + 124);
+	else
+		printf("bins(%d): %d\n", cfg, 126);
+}
+
+void heap_cfg_test(void)
+{
+	uint32_t sz;
+
+	for (sz = 40959; sz < 524288; sz += 4096) {
+		heap_cfg_setting(sz);
+		heap_cfg_setting(sz + 1);
+	}
+}
+
+void heap_bin_test(void)
+{
+	uint32_t sz;
+
+	heap_cfg_test();
+	printf("==========================\n");
+	for (sz = 7; sz < 512; sz += 8)
+		printf("%d-%d\n", heap_bin_hash(sz), sz);
+	printf("==========================\n");
+	for (sz = 575; sz < 2560; sz += 64)
+		printf("%d-%d\n", heap_bin_hash(sz), sz);
+	printf("==========================\n");
+	for (sz = 3071; sz < 10752; sz += 512)
+		printf("%d-%d\n", heap_bin_hash(sz), sz);
+	printf("==========================\n");
+	for (sz = 12287; sz < 40960; sz += 4096)
+		printf("%d-%d\n", heap_bin_hash(sz), sz);
+	printf("==========================\n");
+	for (sz = 65535; sz < 163840; sz += 32768)
+		printf("%d-%d\n", heap_bin_hash(sz), sz);
+	printf("==========================\n");
+	for (sz = 262143; sz < 524288; sz += 262144)
+		printf("%d-%d\n", heap_bin_hash(sz), sz);
+	printf("==========================\n");
+	sz = 524288;
+	printf("%d-%d\n", heap_bin_hash(sz), sz);
+}
+
+void heap_dlmalloc_test(void)
+{
+	heap_cfg_test();
+	heap_bin_test();
+}
+#else
+#define heap_dlmalloc_test()		do { } while (0)
+#endif
+
 #define heap_first_node(b)	((b)->next)
 #define heap_last_node(b)	((b)->prev)
 #define heap_first_chunk(b)	((struct heap_chunk *)((b)->node.next))
@@ -817,21 +884,15 @@ static struct list_head heap_bins[NR_HEAP_BINS] = {
 
 /* To help compensate for the large number of bins, a one-level index
  * structure is used for bin-by-bin searching.  'heap_blocks' is a bitmap
- * recording whether groups of HEAP_BINS_PER_BLOCK bins have any
- * (possibly) non-empty bins, so they can be skipped over all at once
- * during traversals. The bits are NOT always cleared as soon as all bins
- * in a block are empty, but instead only when all are noticed to be empty
- * during traversal in heap_alloc.
+ * recording whether bins is non-empty, so they can be skipped over all at
+ * once during traversals.
  */
-#define HEAP_BINS_PER_BLOCK	1
-#define HEAP_NR_BLOCKS		\
-	((NR_HEAP_BINS+HEAP_BINS_PER_BLOCK-1)/(HEAP_BINS_PER_BLOCK))
 
-#define heap_block_index(index)	((uint8_t)(index / HEAP_BINS_PER_BLOCK))
+#define heap_block_index(index)	(index)
 #define heap_set_block(index)	set_bit(heap_block_index(index), heap_blocks)
 #define heap_clear_block(index)	clear_bit(heap_block_index(index), heap_blocks)
 
-DECLARE_BITMAP(heap_blocks, HEAP_NR_BLOCKS);
+DECLARE_BITMAP(heap_blocks, NR_HEAP_BINS);
 
 /*=========================================================================
  * bookkeeping data
@@ -1013,31 +1074,52 @@ static void heap_free_trim(heap_size_t sz)
 #define heap_chunk_for_each_safe(P, N, B)	\
 	list_for_each_entry_safe(struct heap_chunk, P, N, B, node)
 
-#define heap_chunk_link(P, S, IDX)					\
-do {									\
-	struct list_head *BK, *FD;					\
-	if (S < HEAP_EXACT_MAX) {					\
-		IDX = heap_exact_index(S);				\
-		heap_set_block(IDX);					\
-		INIT_LIST_HEAD(&((P)->node));				\
-		list_add_tail(&((P)->node), heap_bin(IDX));		\
-	}  else {							\
-		IDX = heap_bin_hash(S);					\
-		BK = heap_bin(IDX);					\
-		FD = BK->next;						\
-		if (FD == BK) heap_set_block(IDX);			\
-		else {							\
-			while (FD != BK &&				\
-			       S < heap_curr_size(heap_node2chunk(FD)))	\
-				FD = FD->next;				\
-			BK = FD->prev;					\
-		}							\
-		INIT_LIST_HEAD(&((P)->node));				\
-		list_add_tail(&((P)->node), BK);			\
-	}								\
-} while (0)
+void heap_chunk_link(struct heap_chunk* P, heap_size_t S)
+{
+	struct list_head *BK;
+	heap_offset_t IDX;
+	struct heap_chunk *BC, *BN;
 
-#define heap_chunk_unlink(P)		list_del_init(&((P)->node))
+	if (S < HEAP_EXACT_MAX) {
+		IDX = heap_exact_index(S);
+		BK = heap_bin(IDX);
+		heap_set_block(IDX);
+		BC = heap_node2chunk(BK);
+	} else {
+		IDX = heap_bin_hash(S);
+		BK = heap_bin(IDX);
+		if (list_empty(BK)) {
+			heap_set_block(IDX);
+			BC = heap_node2chunk(BK);
+		} else {
+			heap_chunk_for_each_safe(BC, BN, BK) {
+				if (S < heap_curr_size(BC))
+					break;
+			}
+			if (!BC)
+				BC = heap_node2chunk(BK);
+		}
+	}
+	INIT_LIST_HEAD(&(P->node));
+	list_add_tail(&(P->node), &(BC->node));
+#ifdef CONFIG_HEAP_TEST
+	heap_chunk_for_each_safe(BC, BN, BK) {
+		printf("%d/%d\n", heap_curr_size(BC), IDX);
+	}
+#endif
+}
+
+void heap_chunk_unlink(struct heap_chunk *P)
+{
+	struct list_head* BK;
+	heap_offset_t IDX;
+
+	IDX = heap_bin_hash(heap_curr_size(P));
+	BK = heap_bin(IDX);
+	list_del_init(&((P)->node));
+	if (list_empty(BK))
+		heap_clear_block(IDX);
+}
 
 #define heap_set_last_remainder(P)	(heap_last_chunk = (P))
 #define heap_clear_last_remainder()	(heap_last_chunk = NULL)
@@ -1085,7 +1167,7 @@ static void heap_extend_top(heap_size_t nb)
 
 		/* guarantee alignment of first new chunk made from this space */
 		front_misalign = (heap_size_t)(heap_chunk2mem(brk) & HEAP_ALIGN_MASK);
-		if (front_misalign == 0) {
+		if (front_misalign > 0) {
 			correction = (heap_size_t)(HEAP_ALIGN_SIZE) - front_misalign;
 			brk += correction;
 		} else {
@@ -1161,9 +1243,6 @@ static caddr_t __heap_alloc(heap_size_t bytes)
 	struct list_head *bin;
 	struct heap_chunk *remainder;
 	heap_offset_t remainder_size;
-	uint8_t remainder_index;
-	uint8_t block;			/* index for block traversal */
-	uint8_t startidx;		/* first bin of a traversed block */
 	struct list_head *q;
 	struct heap_chunk *n;
 	heap_size_t nb;
@@ -1242,68 +1321,40 @@ static caddr_t __heap_alloc(heap_size_t bytes)
 		}
 
 		/* else place in bin */
-		heap_chunk_link(victim, victim_size, remainder_index);
+		heap_chunk_link(victim, victim_size);
 	}
 
-	/* if there are any possibly nonempty big-enough blocks,
-	 * search for best fitting chunk by scanning bins in blockwidth units.
+	/* if there are any possibly nonempty big-enough bins, search for
+	 * best fitting chunk.
 	 */
-	block = heap_block_index(idx);
-	do {
-		block = find_next_set_bit(heap_blocks, HEAP_NR_BLOCKS, block);
-		if (block >= HEAP_NR_BLOCKS)
+	while (1) {
+		idx = find_next_set_bit(heap_blocks, NR_HEAP_BINS, idx);
+		if (idx >= NR_HEAP_BINS)
 			break;
 
-		/* force to an even block boundary */
-		if (block > heap_block_index(idx)) {
-			idx = block*HEAP_BINS_PER_BLOCK;
+		q = bin = heap_bin(idx);
+
+		heap_chunk_for_each_safe(victim, n, bin) {
+			victim_size = heap_curr_size(victim);
+			remainder_size = victim_size - nb;
+			if (remainder_size >= (heap_size_t)HEAP_HEAD_SIZE) {
+				heap_chunk_unlink(victim);
+				remainder = heap_get_chunk_at(victim, nb);
+				heap_set_head(victim, nb);
+				heap_set_last_remainder(remainder);
+				heap_set_head(remainder, remainder_size);
+				heap_set_foot(remainder, remainder_size);
+				heap_check_alloc_chunk(victim, nb);
+				return heap_chunk2mem(victim);
+			} else if (remainder_size >= 0) {
+				heap_chunk_unlink(victim);
+				heap_set_inuse_at(victim, victim_size);
+				heap_check_alloc_chunk(victim, nb);
+				return heap_chunk2mem(victim);
+			}
 		}
-		while (idx < NR_HEAP_BINS) {
-			startidx = idx;     /* (track incomplete blocks) */
-			q = bin = heap_bin(idx);
-
-			do {
-				heap_chunk_for_each_safe(victim, n, bin) {
-					victim_size = heap_curr_size(victim);
-					remainder_size = victim_size - nb;
-
-					if (remainder_size >= (heap_size_t)HEAP_HEAD_SIZE) {
-						remainder = heap_get_chunk_at(victim, nb);
-						heap_set_head(victim, nb);
-						heap_chunk_unlink(victim);
-						heap_set_last_remainder(remainder);
-						heap_set_head(remainder, remainder_size);
-						heap_set_foot(remainder, remainder_size);
-						heap_check_alloc_chunk(victim, nb);
-						return heap_chunk2mem(victim);
-					} else if (remainder_size >= 0) {
-						heap_set_inuse_at(victim, victim_size);
-						heap_chunk_unlink(victim);
-						heap_check_alloc_chunk(victim, nb);
-						return heap_chunk2mem(victim);
-					}
-				}
-				bin = heap_next_bin(bin);
-				idx++;
-			} while (((idx & (HEAP_BINS_PER_BLOCK - 1)) != 0) &&
-				 (idx < NR_HEAP_BINS));
-
-			/* clear out the block bit */
-			do  {
-				/* possibly backtrack to try to clear a
-				 * partial block
-				 */
-				if ((startidx & (HEAP_BINS_PER_BLOCK - 1)) == 0) {
-					heap_clear_block(startidx);
-					break;
-				}
-
-				--startidx;
-				q = heap_prev_bin(q);
-			} while (heap_first_node(q) == q);
-		}
-		block++;
-	} while (1);
+		idx++;
+	}
 
 	/* try to use heap_first_chunk chunk */
 	/* require that there be a remainder, ensuring heap_first_chunk always exists */
@@ -1324,6 +1375,11 @@ static caddr_t __heap_alloc(heap_size_t bytes)
 	return heap_chunk2mem(victim);
 }
 
+struct heap_chunk *heap_chunk(caddr_t mem)
+{
+	return heap_mem2chunk(mem);
+}
+
 /* free algorithm:
  *
  * cases:
@@ -1340,7 +1396,6 @@ static void __heap_free(caddr_t mem)
 	struct heap_chunk *p;
 	heap_size_t hd;
 	heap_size_t sz;
-	uint8_t idx;
 	/* next contiguous chunk */
 	struct heap_chunk *next;
 	heap_size_t nextsz;
@@ -1369,9 +1424,9 @@ static void __heap_free(caddr_t mem)
 			prevsz = p->prev_size;
 			p = heap_get_chunk_at(p, -((heap_offset_t)prevsz));
 			sz += prevsz;
-			heap_chunk_unlink(p);
 		}
 
+		/* previous chunk should always be inuse */
 		heap_set_head(p, sz);
 		heap_first_chunk = p;
 		heap_free_trim(sz);
@@ -1406,10 +1461,11 @@ static void __heap_free(caddr_t mem)
 		}
 	}
 
+	/* previous chunk should always be inuse */
 	heap_set_head(p, sz);
 	heap_set_foot(p, sz);
 	if (!islr)
-		heap_chunk_link(p, sz, idx);
+		heap_chunk_link(p, sz);
 }
 
 #ifdef CONFIG_ALLOC_REALLOC
@@ -1627,6 +1683,7 @@ void heap_free(caddr_t mem)
 
 void heap_alloc_init(void)
 {
+	heap_dlmalloc_test();
 }
 
 static int do_heap_test(int argc, char **argv)

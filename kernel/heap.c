@@ -84,9 +84,83 @@ void heap_page_init(void)
 #define heap_page_init()	do { } while (0)
 #endif
 
+#ifdef CONFIG_HEAP_TEST
+caddr_t heap_test_addrs[13];
+int heap_test_last = 0;
+struct heap_chunk* heap_test_chunks[13];
+
+void alloc_chunk(heap_size_t size, const char* name)
+{
+	heap_test_addrs[heap_test_last] = heap_alloc(size);
+	printf("M(%s:%d): %016llx - %08lx\r\n", name, heap_test_last,
+		heap_test_addrs[heap_test_last], size);
+	heap_test_chunks[heap_test_last] = heap_chunk(heap_test_addrs[heap_test_last]);
+	heap_test_last++;
+}
+
+void free_chunk(int order, const char* name)
+{
+	int heap_test_last = order;
+
+	printf("F(%s:%d): %016llx\r\n", name, heap_test_last,
+	       heap_test_addrs[heap_test_last]);
+	heap_free(heap_test_addrs[heap_test_last]);
+	heap_test_addrs[heap_test_last] = 0;
+}
+
+static void heap_test1(void)
+{
+	alloc_chunk(0x40, "old");
+	alloc_chunk(0x20, "next");
+	free_chunk(0, "old");
+	alloc_chunk(0x20, "new");
+	free_chunk(1, "next");
+	free_chunk(2, "new");
+
+	heap_test_last = 0;
+}
+
+static void heap_test2(void)
+{
+	alloc_chunk(0x4020, "B");
+	alloc_chunk(0x20, "S");
+	alloc_chunk(0x4080, "B");
+	alloc_chunk(0x20, "S");
+	alloc_chunk(0x4000, "B");
+	alloc_chunk(0x20, "S");
+	alloc_chunk(0x4060, "B");
+	alloc_chunk(0x20, "S");
+	alloc_chunk(0x4040, "B");
+	alloc_chunk(0x20, "S");
+
+	free_chunk(0, "B");
+	free_chunk(2, "B");
+	free_chunk(4, "B");
+	free_chunk(6, "B");
+	free_chunk(8, "B");
+	free_chunk(1, "S");
+	free_chunk(3, "S");
+	free_chunk(5, "S");
+	free_chunk(7, "S");
+	free_chunk(9, "S");
+
+	heap_test_last = 0;
+}
+
+void heap_test(void)
+{
+	heap_test2();
+	heap_test1();
+}
+#else
+#define heap_test()		do { } while (0)
+#endif
+
 void heap_init(void)
 {
 	heap_page_init();
 	__heap_brk = __heap_start;
 	heap_alloc_init();
+
+	heap_test();
 }
