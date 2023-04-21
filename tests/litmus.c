@@ -726,6 +726,9 @@ void po_reinit(po_t *p)
 	pm_lock(p->cond);
 	t = p->turn;
 	--p->count;
+	pm_unlock(p->cond);
+	smp_mb();
+	pm_lock(p->cond);
 	if (p->count == 0) {
 		p->count = p->nprocs;
 		p->val = 0;
@@ -754,6 +757,9 @@ int po_wait(po_t *p, int v)
 	t = p->turn;
 	--p->count;
 	p->val = p->val || v;
+	pm_unlock(p->cond);
+	smp_mb();
+	pm_lock(p->cond);
 	if (p->count == 0) {
 		p->count = p->nprocs;
 		p->turn = !t;
@@ -769,8 +775,8 @@ int po_wait(po_t *p, int v)
 			pm_lock(p->cond);
 		} while (p->turn == t);
 	}
-	r = p->val;
 	pm_unlock(p->cond);
+	r = p->val;
 	return r;
 }
 

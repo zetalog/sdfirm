@@ -14,6 +14,7 @@
 
 void show_regs(struct pt_regs *regs)
 {
+	printf(" cpu: %d\n", smp_processor_id());
 	printf(" epc: " REG_FMT " ra : " REG_FMT " sp : " REG_FMT "\n",
 	       regs->epc, regs->ra, regs->sp);
 	printf(" gp : " REG_FMT " tp : " REG_FMT " t0 : " REG_FMT "\n",
