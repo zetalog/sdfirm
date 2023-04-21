@@ -61,7 +61,6 @@ fi
 		cd ${LITMUS_TSTS}
 
 		echo "Generating litmus source to ${LITMUS_SRCS}..."
-		cp -f ${LITMUS_SRCS}/run.c ${SCRIPT}/run.c.backup
 		LITMUS_FLAGS="-mode sdfirm -mach ./riscv.cfg \
 			-avail ${LITMUS_CPUS} -o ${LITMUS_SRCS}"
 		if [ "x${LITMUS_DTCS}" = "xyes" ]; then
@@ -73,8 +72,8 @@ fi
 		if [ -e instructions.excl ]; then
 			LITMUS_FLAGS="${LITMUS_FLAGS} -excl instructions.excl"
 		fi
+		cp -f ${LITMUS_SRCS}/run.c ${SCRIPT}/run.c.backup
 		litmus7 ${LITMUS_FLAGS} "tests/non-mixed-size/@all" 2>/dev/null
-		cp -f ${SCRIPT}/run.c.backup ${LITMUS_SRCS}/run.c
 	fi
 	if [ "x${LITMUS_MODE}" = "xclean" ]; then
 		cd ${LITMUS_SRCS}
@@ -90,5 +89,6 @@ fi
 		rm -f *.awk
 		rm -f *.sh
 		rm -f src
+		cp -f ${SCRIPT}/run.c.backup ${LITMUS_SRCS}/run.c
 	fi
 )
