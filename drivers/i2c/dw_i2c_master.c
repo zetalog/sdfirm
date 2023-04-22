@@ -23,12 +23,6 @@ static struct dw_i2c_ctx dw_i2c;
 #endif
 
 #ifdef CONFIG_DW_I2C_TEST_IRQ
-/* Give RX_FULL interrupt when get 1 or more entry in RX FIFO. */
-#ifdef CONFIG_DW_I2C_RX_TL
-#undef CONFIG_DW_I2C_RX_TL
-#define CONFIG_DW_I2C_RX_TL 0
-#endif
-
 static unsigned int irq_test_flag = 0;
 static irq_flags_t irq_flags;
 
@@ -212,7 +206,7 @@ static void dw_i2c_translate_status(void)
 	uint32_t irqs = __raw_readl(IC_RAW_INTR_STAT(dw_i2cd));
 	uint32_t abrt;
 
-	/* con_dbg("dw_i2c: irqs=%08x\n", irqs); */
+	con_dbg("dw_i2c: irqs=%08x\n", irqs);
 
 	if (irqs & IC_INTR_TX_ABRT) {
 		abrt = __raw_readl(IC_TX_ABRT_SOURCE(dw_i2cd));
@@ -445,13 +439,8 @@ void __dw_i2c_master_init(void)
 	__raw_writel(IC_CON_SLAVE_DISABLE | IC_CON_RESTART_EN |
 		     IC_CON_SPEED(IC_CON_SPEED_STD) | IC_CON_MASTER_MODE,
 		     IC_CON(dw_i2cd));
-#if 0
-	__raw_writel(CONFIG_DW_I2C_RX_TL, IC_RX_TL(dw_i2cd));
-	__raw_writel(CONFIG_DW_I2C_TX_TL, IC_TX_TL(dw_i2cd));
-#else
 	__raw_writel(DW_I2C_RX_FIFO_SIZE - 1, IC_RX_TL(dw_i2cd));
-	__raw_writel(0/* DW_I2C_TX_FIFO_SIZE */, IC_TX_TL(dw_i2cd));
-#endif
+	__raw_writel(0, IC_TX_TL(dw_i2cd));
 	__raw_writel(IC_INTR_ALL, IC_INTR_MASK(dw_i2cd));
 	dw_i2c_ctrl_disable();
 

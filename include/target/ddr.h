@@ -104,6 +104,7 @@ typedef uint16_t ddr_sid_t;
 struct ddr_slot {
 	ddr_sid_t sid;
 	ddr_cid_t cid;
+	bool present;
 	uint8_t smbus;
 	uint8_t spd_addr;
 	uint8_t ts_addr;

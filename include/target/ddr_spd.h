@@ -1180,9 +1180,9 @@ typedef struct ddr_spd {
 #include <driver/spd.h>
 
 #ifdef CONFIG_DDR_SPD
-void ddr_spd_read(uint8_t *buf);
+bool ddr_spd_read(uint8_t *buf);
 #else
-#define ddr_spd_read(buf)
+#define ddr_spd_read(buf)		false
 #endif
 
 #endif /* __DDR_SPD_H_INCLUDE__ */
