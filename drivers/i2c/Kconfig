@@ -148,7 +148,6 @@ config DW_I2C_RESTART
 config DW_I2C_EMPTYFIFO_HOLD_MASTER
 	bool "Enable master hold on empty FIFO support"
 	depends ARCH_HAS_DW_I2C_EMPTYFIFO_HOLD_MASTER
-	default y
 
 config DW_I2C_DYNAMIC_TAR_UPDATE
 	bool "Enable dynamic target address support"
@@ -173,16 +172,6 @@ config DW_I2C_SLV_RESTART_DET
 endmenu
 
 endif
-
-config DW_I2C_RX_TL
-	int "Threshold level for RX FIFO"
-	default 1
-	range 0 255
-
-config DW_I2C_TX_TL
-	int "Threshold level for TX FIFO"
-	default 0
-	range 0 255
 
 config DW_I2C_TEST_IRQ
 	bool "Test IRQ handler for DW I2C"

@@ -421,7 +421,7 @@ static void ddr4_spd_dump(const uint8_t *buf)
 		   "End User Programmable");
 }
 
-void ddr_spd_read(uint8_t *buf)
+bool ddr_spd_read(uint8_t *buf)
 {
 	i2c_master_select(ddr_slot_ctrl.smbus);
 	i2c_set_frequency(DDR_SPD_FREQ);
@@ -429,6 +429,7 @@ void ddr_spd_read(uint8_t *buf)
 	spd_hw_read_bytes(ddr_slot_ctrl.spd_addr, 0,
 			  ddr_slot_ctrl.spd_buf, DDR_SPD_SIZE);
 	hexdump(0, ddr_slot_ctrl.spd_buf, 1, DDR_SPD_SIZE);
+	return true;
 }
 
 static void ddr_spd_dump(const uint8_t *buf)

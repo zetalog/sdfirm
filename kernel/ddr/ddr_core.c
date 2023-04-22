@@ -127,7 +127,10 @@ void ddr_reset_slot(void)
 {
 	ddr_slot_ctrl.sid = ddr_sid;
 	ddr_hw_slot_reset();
-	ddr_spd_read(ddr_slot_ctrl.spd_buf);
+	if (ddr_spd_read(ddr_slot_ctrl.spd_buf))
+		ddr_slot_ctrl.present = true;
+	else
+		ddr_slot_ctrl.present = false;
 }
 
 void ddr_reset_chan(void)
