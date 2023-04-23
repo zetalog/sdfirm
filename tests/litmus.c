@@ -685,6 +685,9 @@ void pb_wait(pb_t *p)
 	pm_lock(p->cond);
 	t = p->turn;
 	--p->count;
+	pm_unlock(p->cond);
+	smp_mb();
+	pm_lock(p->cond);
 	if (p->count == 0) {
 		p->count = p->nprocs;
 		p->turn = !t;
@@ -775,8 +778,8 @@ int po_wait(po_t *p, int v)
 			pm_lock(p->cond);
 		} while (p->turn == t);
 	}
-	pm_unlock(p->cond);
 	r = p->val;
+	pm_unlock(p->cond);
 	return r;
 }
 
