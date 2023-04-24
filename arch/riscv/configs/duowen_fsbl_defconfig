@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sat Apr 22 14:46:04 2023
+# Mon Apr 24 13:54:25 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -69,6 +69,7 @@ CONFIG_ARCH_DUOWEN=y
 # CONFIG_ARCH_UNLEASHED is not set
 # CONFIG_ARCH_K210 is not set
 # CONFIG_ARCH_VEGA is not set
+# CONFIG_ARCH_K1MAX is not set
 # CONFIG_ARCH_COREV is not set
 # CONFIG_ARCH_SPIKE is not set
 # CONFIG_ARCH_VIRT is not set
@@ -796,6 +797,7 @@ CONFIG_NCORE=y
 CONFIG_NCORE_RECONF=y
 # CONFIG_MONACO is not set
 # CONFIG_CCN512 is not set
+# CONFIG_CCI550 is not set
 
 #
 # Network drivers
