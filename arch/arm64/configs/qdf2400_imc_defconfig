@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Feb 21 16:46:04 2023
+# Mon Apr 24 13:52:15 2023
 #
 CONFIG_ARM64=y
 
@@ -403,6 +403,7 @@ CONFIG_ARCH_HAS_NOC=y
 # CONFIG_NCORE is not set
 # CONFIG_MONACO is not set
 # CONFIG_CCN512 is not set
+# CONFIG_CCI550 is not set
 
 #
 # Network drivers

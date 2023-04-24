@@ -803,77 +803,7 @@ static struct list_head heap_bins[NR_HEAP_BINS] = {
 #endif
 };
 
-#ifdef CONFIG_HEAP_DLMALLOC_TEST
-/* Emulate CONFIG_HEAP_SIZE macro behavior */
-void heap_cfg_setting(uint32_t cfg)
-{
-	if (cfg < 512)
-		printf("bins(%d): %d\n", cfg, cfg >> 3);
-	else if (cfg < (64 * 40))
-		printf("bins(%d): %d\n", cfg, (cfg >> 6) + 56);
-	else if (cfg < (512 * 21))
-		printf("bins(%d): %d\n", cfg, (cfg >> 9) + 91);
-	else if (cfg < (4096 * 10))
-		printf("bins(%d): %d\n", cfg, (cfg >> 12) + 110);
-	else if (cfg < (32768 * 5))
-		printf("bins(%d): %d\n", cfg, (cfg >> 15) + 119);
-	else if (cfg < (262144 * 2))
-		printf("bins(%d): %d\n", cfg, (cfg >> 18) + 124);
-	else
-		printf("bins(%d): %d\n", cfg, 126);
-}
-
-void heap_cfg_test(void)
-{
-	uint32_t sz;
-
-	for (sz = 40959; sz < 524288; sz += 4096) {
-		heap_cfg_setting(sz);
-		heap_cfg_setting(sz + 1);
-	}
-}
-
-void heap_bin_test(void)
-{
-	uint32_t sz;
-
-	heap_cfg_test();
-	printf("==========================\n");
-	for (sz = 7; sz < 512; sz += 8)
-		printf("%d-%d\n", heap_bin_hash(sz), sz);
-	printf("==========================\n");
-	for (sz = 575; sz < 2560; sz += 64)
-		printf("%d-%d\n", heap_bin_hash(sz), sz);
-	printf("==========================\n");
-	for (sz = 3071; sz < 10752; sz += 512)
-		printf("%d-%d\n", heap_bin_hash(sz), sz);
-	printf("==========================\n");
-	for (sz = 12287; sz < 40960; sz += 4096)
-		printf("%d-%d\n", heap_bin_hash(sz), sz);
-	printf("==========================\n");
-	for (sz = 65535; sz < 163840; sz += 32768)
-		printf("%d-%d\n", heap_bin_hash(sz), sz);
-	printf("==========================\n");
-	for (sz = 262143; sz < 524288; sz += 262144)
-		printf("%d-%d\n", heap_bin_hash(sz), sz);
-	printf("==========================\n");
-	sz = 524288;
-	printf("%d-%d\n", heap_bin_hash(sz), sz);
-}
-
-void heap_dlmalloc_test(void)
-{
-	heap_cfg_test();
-	heap_bin_test();
-}
-#else
-#define heap_dlmalloc_test()		do { } while (0)
-#endif
-
-#define heap_first_node(b)	((b)->next)
-#define heap_last_node(b)	((b)->prev)
-#define heap_first_chunk(b)	((struct heap_chunk *)((b)->node.next))
-#define heap_last_chunk(b)	((struct heap_chunk *)((b)->node.prev))
+#define heap_smallest_chunk(b)		heap_node2chunk((b)->next)
 
 /* bins for chunks < 512 are all spaced 8 bytes apart, and hold
  * identically sized chunks while other bins are holding chunks with
@@ -888,9 +818,8 @@ void heap_dlmalloc_test(void)
  * once during traversals.
  */
 
-#define heap_block_index(index)	(index)
-#define heap_set_block(index)	set_bit(heap_block_index(index), heap_blocks)
-#define heap_clear_block(index)	clear_bit(heap_block_index(index), heap_blocks)
+#define heap_set_block(index)	set_bit((index), heap_blocks)
+#define heap_clear_block(index)	clear_bit((index), heap_blocks)
 
 DECLARE_BITMAP(heap_blocks, NR_HEAP_BINS);
 
@@ -938,8 +867,10 @@ static void __heap_check_free_chunk(struct heap_chunk *p)
 		BUG_ON(!(next == heap_first_chunk || heap_curr_inuse(next)));
 
 		/* ... and has minimally sane links */
-		BUG_ON(heap_node2chunk(p->node.next->prev) != p);
-		BUG_ON(heap_node2chunk(p->node.prev->next) != p);
+		if (p != heap_last_chunk) {
+			BUG_ON(heap_node2chunk(p->node.next->prev) != p);
+			BUG_ON(heap_node2chunk(p->node.prev->next) != p);
+		}
 	} else {
 		/* markers are always of size HEAP_SIZE_SIZE */
 		BUG_ON(heap_curr_size(p) != HEAP_SIZE_SIZE);
@@ -961,9 +892,11 @@ static void __heap_check_inuse_chunk(struct heap_chunk *p)
 		__heap_check_free_chunk(prev);
 	}
 	/* check next chunk */
-	if (heap_next_chunk(p) == heap_first_chunk) {
+	if (next == heap_first_chunk) {
 		BUG_ON(!heap_prev_inuse(next));
 		BUG_ON(heap_curr_size(next) < HEAP_HEAD_SIZE);
+	} else if (next == heap_last_chunk) {
+		//__heap_check_malloced_chunk(next, )
 	} else if (!heap_curr_inuse(next)) {
 		__heap_check_free_chunk(next);
 	}
@@ -1074,7 +1007,7 @@ static void heap_free_trim(heap_size_t sz)
 #define heap_chunk_for_each_safe(P, N, B)	\
 	list_for_each_entry_safe(struct heap_chunk, P, N, B, node)
 
-void heap_chunk_link(struct heap_chunk* P, heap_size_t S)
+static __always_inline void heap_chunk_link(struct heap_chunk* P, heap_size_t S)
 {
 	struct list_head *BK;
 	heap_offset_t IDX;
@@ -1102,22 +1035,12 @@ void heap_chunk_link(struct heap_chunk* P, heap_size_t S)
 	}
 	INIT_LIST_HEAD(&(P->node));
 	list_add_tail(&(P->node), &(BC->node));
-#ifdef CONFIG_HEAP_TEST
-	heap_chunk_for_each_safe(BC, BN, BK) {
-		printf("%d/%d\n", heap_curr_size(BC), IDX);
-	}
-#endif
 }
 
-void heap_chunk_unlink(struct heap_chunk *P)
+static __always_inline void heap_chunk_unlink(struct heap_chunk *P, uint8_t IDX)
 {
-	struct list_head* BK;
-	heap_offset_t IDX;
-
-	IDX = heap_bin_hash(heap_curr_size(P));
-	BK = heap_bin(IDX);
 	list_del_init(&((P)->node));
-	if (list_empty(BK))
+	if (list_empty(heap_bin(IDX)))
 		heap_clear_block(IDX);
 }
 
@@ -1240,7 +1163,6 @@ static caddr_t __heap_alloc(heap_size_t bytes)
 	struct heap_chunk *victim;
 	heap_size_t victim_size;
 	uint8_t idx;			/* index for bin traversal */
-	struct list_head *bin;
 	struct heap_chunk *remainder;
 	heap_offset_t remainder_size;
 	struct list_head *q;
@@ -1257,23 +1179,21 @@ static caddr_t __heap_alloc(heap_size_t bytes)
 		q = heap_bin(idx);
 		if (list_empty(q)) {
 			q = heap_next_bin(q);
+			++idx;
 		}
 		if (!list_empty(q)) {
-			victim = heap_node2chunk(heap_last_node(q));
+			victim = heap_smallest_chunk(q);
 			victim_size = heap_curr_size(victim);
-			heap_chunk_unlink(victim);
+			heap_chunk_unlink(victim, idx);
 			heap_set_inuse_at(victim, victim_size);
 			heap_check_alloc_chunk(victim, nb);
 			return heap_chunk2mem(victim);
 		}
-
-		/* set for bin scan below. We've already scanned 2 bins. */
-		idx += 2;
 	} else {
 		idx = heap_bin_hash(nb);
-		bin = heap_bin(idx);
+		q = heap_bin(idx);
 
-		heap_chunk_for_each_safe(victim, n, bin) {
+		heap_chunk_for_each_safe(victim, n, q) {
 			victim_size = heap_curr_size(victim);
 			remainder_size = victim_size - nb;
 
@@ -1285,17 +1205,16 @@ static caddr_t __heap_alloc(heap_size_t bytes)
 				--idx;
 				break;
 			} else if (remainder_size >= 0) {
-				heap_chunk_unlink(victim);
+				heap_chunk_unlink(victim, idx);
 				heap_set_inuse_at(victim, victim_size);
 				heap_check_alloc_chunk(victim, nb);
 				return heap_chunk2mem(victim);
 			}
 		}
-
-		++idx;
 	}
+	++idx;
 
-	/* try to use the last split-off remainder */
+	/* split from heap_last_chunk */
 	victim = heap_last_chunk;
 	if (victim) {
 		victim_size = heap_curr_size(victim);
@@ -1320,25 +1239,25 @@ static caddr_t __heap_alloc(heap_size_t bytes)
 			return heap_chunk2mem(victim);
 		}
 
-		/* else place in bin */
+		/* trigger to place last remainder into bin */
 		heap_chunk_link(victim, victim_size);
 	}
 
-	/* if there are any possibly nonempty big-enough bins, search for
-	 * best fitting chunk.
-	 */
+	BUG_ON(heap_last_chunk);
+
+	/* split from matching bin */
 	while (1) {
 		idx = find_next_set_bit(heap_blocks, NR_HEAP_BINS, idx);
 		if (idx >= NR_HEAP_BINS)
 			break;
 
-		q = bin = heap_bin(idx);
+		q = heap_bin(idx);
 
-		heap_chunk_for_each_safe(victim, n, bin) {
+		heap_chunk_for_each_safe(victim, n, q) {
 			victim_size = heap_curr_size(victim);
 			remainder_size = victim_size - nb;
 			if (remainder_size >= (heap_size_t)HEAP_HEAD_SIZE) {
-				heap_chunk_unlink(victim);
+				heap_chunk_unlink(victim, idx);
 				remainder = heap_get_chunk_at(victim, nb);
 				heap_set_head(victim, nb);
 				heap_set_last_remainder(remainder);
@@ -1347,17 +1266,15 @@ static caddr_t __heap_alloc(heap_size_t bytes)
 				heap_check_alloc_chunk(victim, nb);
 				return heap_chunk2mem(victim);
 			} else if (remainder_size >= 0) {
-				heap_chunk_unlink(victim);
+				heap_chunk_unlink(victim, idx);
 				heap_set_inuse_at(victim, victim_size);
 				heap_check_alloc_chunk(victim, nb);
 				return heap_chunk2mem(victim);
 			}
 		}
-		idx++;
 	}
 
-	/* try to use heap_first_chunk chunk */
-	/* require that there be a remainder, ensuring heap_first_chunk always exists */
+	/* split from heap_first_chunk */
 	if (heap_first_chunk == heap_init_top ||
 	    ((heap_offset_t)(heap_curr_size(heap_first_chunk) - nb) <
 	     (heap_offset_t)HEAP_HEAD_SIZE)) {
@@ -1401,7 +1318,7 @@ static void __heap_free(caddr_t mem)
 	heap_size_t nextsz;
 	heap_size_t prevsz;
 	/* track whether merging with heap_last_chunk */
-	boolean islr;
+	boolean islr = false;
 
 	BUG_ON(mem == 0);
 	BUG_ON(mem < heap_base);
@@ -1415,14 +1332,18 @@ static void __heap_free(caddr_t mem)
 	next = heap_get_chunk_at(p, sz);
 	nextsz = heap_curr_size(next);
 
+	/* merge with heap_first_chunk */
 	if (next == heap_first_chunk) {
-		/* merge with heap_first_chunk */
 		sz += nextsz;
 
 		if (!(hd & HEAP_CHUNK_FLAG_P)) {
 			/* consolidate backward */
 			prevsz = p->prev_size;
 			p = heap_get_chunk_at(p, -((heap_offset_t)prevsz));
+			if (p == heap_last_chunk)
+				heap_clear_last_remainder();
+			else
+				heap_chunk_unlink(p, heap_bin_hash(prevsz));
 			sz += prevsz;
 		}
 
@@ -1436,8 +1357,7 @@ static void __heap_free(caddr_t mem)
 	/* clear inuse bit */
 	__heap_set_head(next, nextsz);
 
-	islr = false;
-
+	/* merge with heap_last_chunk */
 	if (!(hd & HEAP_CHUNK_FLAG_P))  {
 		/* consolidate backward */
 		prevsz = p->prev_size;
@@ -1445,19 +1365,19 @@ static void __heap_free(caddr_t mem)
 		sz += prevsz;
 
 		/* keep as heap_last_chunk */
-		if (heap_first_chunk(p) == heap_last_chunk)
+		if (p == heap_last_chunk)
 			islr = true;
 		else
-			heap_chunk_unlink(p);
+			heap_chunk_unlink(p, heap_bin_hash(prevsz));
 	}
-
-	if (!(heap_get_inuse_at(next, nextsz))) {
+	if (!(heap_prev_inuse(heap_get_chunk_at(next, nextsz)))) {
+		/* consolidated forward */
 		sz += nextsz;
-		if (!islr && heap_first_chunk(next) == heap_last_chunk) {
+		if (!islr && next == heap_last_chunk) {
 			islr = true;
 			heap_set_last_remainder(p);
 		} else {
-			heap_chunk_unlink(next);
+			heap_chunk_unlink(next, heap_bin_hash(nextsz));
 		}
 	}
 
@@ -1538,7 +1458,7 @@ static caddr_t __heap_realloc(caddr_t oldmem, heap_size_t bytes)
 				}
 			} else if ((nextsize + newsize) >= nb) {
 				/* Forward into next chunk */
-				heap_chunk_unlink(next);
+				heap_chunk_unlink(next, heap_bin_hash(nextsize));
 				newsize += nextsize;
 				goto split;
 			}
@@ -1560,7 +1480,7 @@ static caddr_t __heap_realloc(caddr_t oldmem, heap_size_t bytes)
 				if (next == heap_first_chunk) {
 					if ((heap_offset_t)(nextsize + prevsize + newsize) >=
 					    (heap_offset_t)(nb + HEAP_HEAD_SIZE)) {
-						heap_chunk_unlink(prev);
+						heap_chunk_unlink(prev, heap_bin_hash(prevsize));
 						newp = prev;
 						newsize += prevsize + nextsize;
 						newmem = heap_chunk2mem(newp);
@@ -1572,8 +1492,8 @@ static caddr_t __heap_realloc(caddr_t oldmem, heap_size_t bytes)
 					}
 				} else if ((nextsize + prevsize + newsize) >= nb) {
 					/* into next chunk */
-					heap_chunk_unlink(next);
-					heap_chunk_unlink(prev);
+					heap_chunk_unlink(next, heap_bin_hash(nextsize));
+					heap_chunk_unlink(prev, heap_bin_hash(prevsize));
 					newp = prev;
 					newsize += nextsize + prevsize;
 					newmem = heap_chunk2mem(newp);
@@ -1585,7 +1505,7 @@ static caddr_t __heap_realloc(caddr_t oldmem, heap_size_t bytes)
 			/* backward only */
 			if (prev != 0 &&
 			    (prevsize + newsize) >= nb) {
-				heap_chunk_unlink(prev);
+				heap_chunk_unlink(prev, heap_bin_hash(prevsize));
 				newp = prev;
 				newsize += prevsize;
 				newmem = heap_chunk2mem(newp);
@@ -1681,6 +1601,94 @@ void heap_free(caddr_t mem)
 	spin_unlock_irqrestore(&heap_lock, flags);
 }
 
+#ifdef CONFIG_HEAP_DLMALLOC_TEST
+/* Emulate CONFIG_HEAP_SIZE macro behavior */
+void heap_cfg_setting(uint32_t cfg)
+{
+	if (cfg < 512)
+		printf("bins(%d): %d\n", cfg, cfg >> 3);
+	else if (cfg < (64 * 40))
+		printf("bins(%d): %d\n", cfg, (cfg >> 6) + 56);
+	else if (cfg < (512 * 21))
+		printf("bins(%d): %d\n", cfg, (cfg >> 9) + 91);
+	else if (cfg < (4096 * 10))
+		printf("bins(%d): %d\n", cfg, (cfg >> 12) + 110);
+	else if (cfg < (32768 * 5))
+		printf("bins(%d): %d\n", cfg, (cfg >> 15) + 119);
+	else if (cfg < (262144 * 2))
+		printf("bins(%d): %d\n", cfg, (cfg >> 18) + 124);
+	else
+		printf("bins(%d): %d\n", cfg, 126);
+}
+
+void heap_cfg_test(void)
+{
+	uint32_t sz;
+
+	for (sz = 40959; sz < 524288; sz += 4096) {
+		heap_cfg_setting(sz);
+		heap_cfg_setting(sz + 1);
+	}
+}
+
+void heap_bin_test(void)
+{
+	uint32_t sz;
+
+	heap_cfg_test();
+	printf("==========================\n");
+	for (sz = 7; sz < 512; sz += 8)
+		printf("%d-%d\n", heap_bin_hash(sz), sz);
+	printf("==========================\n");
+	for (sz = 575; sz < 2560; sz += 64)
+		printf("%d-%d\n", heap_bin_hash(sz), sz);
+	printf("==========================\n");
+	for (sz = 3071; sz < 10752; sz += 512)
+		printf("%d-%d\n", heap_bin_hash(sz), sz);
+	printf("==========================\n");
+	for (sz = 12287; sz < 40960; sz += 4096)
+		printf("%d-%d\n", heap_bin_hash(sz), sz);
+	printf("==========================\n");
+	for (sz = 65535; sz < 163840; sz += 32768)
+		printf("%d-%d\n", heap_bin_hash(sz), sz);
+	printf("==========================\n");
+	for (sz = 262143; sz < 524288; sz += 262144)
+		printf("%d-%d\n", heap_bin_hash(sz), sz);
+	printf("==========================\n");
+	sz = 524288;
+	printf("%d-%d\n", heap_bin_hash(sz), sz);
+}
+
+static void heap_block_test(void)
+{
+	int idx;
+
+	heap_set_block(0);
+	heap_set_block(4);
+	heap_set_block(100);
+	heap_clear_block(4);
+	idx = 512;
+	while (1) {
+		idx = find_next_set_bit(heap_blocks, NR_HEAP_BINS, idx);
+		if (idx >= NR_HEAP_BINS)
+			break;
+		printf("idx: %d\n", idx);
+		++idx;
+	}
+	heap_clear_block(0);
+	heap_clear_block(100);
+}
+
+static void heap_dlmalloc_test(void)
+{
+	heap_block_test();
+	heap_cfg_test();
+	heap_bin_test();
+}
+#else
+#define heap_dlmalloc_test()		do { } while (0)
+#endif
+
 void heap_alloc_init(void)
 {
 	heap_dlmalloc_test();
@@ -1709,31 +1717,46 @@ static int do_heap_test(int argc, char **argv)
 	return 0;
 }
 
-static int do_heap_bins(int argc, char **argv)
+static int do_heap_dump(int argc, char **argv)
 {
-	int idx;
+	uint8_t idx;
 	struct list_head *bin;
 	heap_size_t victim_size;
 	struct heap_chunk *victim;
 	struct heap_chunk *n;
+	heap_size_t unused = 0;
 
+	printf("Heap size: %8x\n", heap_size);
 	printf("Number of BINs: %d\n", NR_HEAP_BINS);
-	if (heap_first_chunk)
-		printf("First chunk: %08x\n",
-		       heap_curr_size(heap_first_chunk));
-	if (heap_last_chunk)
-		printf("Last chunk: %08x\n",
-		       heap_curr_size(heap_last_chunk));
+	if (heap_first_chunk) {
+		victim_size = heap_curr_size(heap_first_chunk);
+		printf("First chunk: %016llx[%08x]\n",
+			(unsigned long long)heap_first_chunk,
+			(int)victim_size);
+		unused += victim_size;
+	}
+	if (heap_last_chunk) {
+		victim_size = heap_curr_size(heap_last_chunk);
+		printf("Last chunk: %016llx[%08x]\n",
+			(unsigned long long)heap_last_chunk,
+			(int)victim_size);
+		unused += victim_size;
+	}
 	for (idx = 0; idx < NR_HEAP_BINS; idx++) {
 		bin = heap_bin(idx);
 		if (!list_empty(bin)) {
 			printf("BIN%d chunks:\n", idx);
 			heap_chunk_for_each_safe(victim, n, bin) {
 				victim_size = heap_curr_size(victim);
-				printf("  %08x\n", victim_size);
+				printf("  %016llx[%08x]\n",
+					(unsigned long long)victim,
+					(int)victim_size);
+				unused += victim_size;
 			}
 		}
 	}
+	printf("Free:  %08x\n", unused);
+	printf("Alloc: %08x\n", heap_size - unused);
 	return 0;
 }
 
@@ -1744,14 +1767,14 @@ static int do_heap(int argc, char **argv)
 
 	if (strcmp(argv[1], "test") == 0)
 		return do_heap_test(argc, argv);
-	if (strcmp(argv[1], "bins") == 0)
-		return do_heap_bins(argc, argv);
+	if (strcmp(argv[1], "dump") == 0)
+		return do_heap_dump(argc, argv);
 	return 0;
 }
 
 DEFINE_COMMAND(heap, do_heap, "Display free heap ranges",
 	"heap test size [N]\n"
 	"    -test heap allocator and display first N allocations\n"
-	"heap bins\n"
-	"    -dump heap bins\n"
+	"heap dump\n"
+	"    -dump heap free chunks' details\n"
 );
