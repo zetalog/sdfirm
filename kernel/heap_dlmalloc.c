@@ -1602,7 +1602,6 @@ void heap_free(caddr_t mem)
 	spin_unlock_irqrestore(&heap_lock, flags);
 }
 
-#define CONFIG_HEAP_DLMALLOC_TEST 1
 #ifdef CONFIG_HEAP_DLMALLOC_TEST
 /* Emulate CONFIG_HEAP_SIZE macro behavior */
 void heap_cfg_setting(uint32_t cfg)
