@@ -10,6 +10,7 @@ LITMUS_CPUS=4
 LITMUS_DTCS=
 LITMUS_MODEL=herd
 LITMUS_TRACE=no
+LITMUS_CONT_CASE=
 
 LITMUS_GEN=no
 LITMUS_STRIDE=1
@@ -21,7 +22,7 @@ usage()
 	echo "Usage:"
 	echo "`basename $0` [-c cpus] [-f] [-g cross] [-m mach] [-x] [-e]"
 	echo "          [-r max_run] [-s stride] [-t size_of_test]"
-	echo "          [-p path] -[-l] [test]"
+	echo "          [-p path] -[-l] [-b test] [test]"
 	echo "Where:"
 	echo " Options:"
 	echo " -c num-cpus:     specify number of CPUs"
@@ -37,6 +38,7 @@ usage()
 	echo "                  default is ${CROSS_COMPILE}"
 	echo " -p test-dir:     specify litmus-tests-riscv directory"
 	echo "                  default is ${LITMUS_TSTS}"
+	echo " -b test:         continue case generation from test"
 	echo " -l:              enable CPU trace logs"
 	echo " Options with -e applied:"
 	echo " -r max_run:      litmus max runs (-r)"
@@ -85,10 +87,11 @@ run_litmus()
 	fi
 }
 
-while getopts "c:eg:m:p:r:s:t:xl" opt
+while getopts "c:b:eg:m:p:r:s:t:xl" opt
 do
 	case $opt in
 	c) LITMUS_CPUS=$OPTARG;;
+	b) LITMUS_CONT_CASE="-b $OPTARG";;
 	f) LITMUS_MODEL=flat;;
 	g) CROSS_COMPILE=$OPTARG;;
 	e) LITMUS_GEN=yes;;
@@ -112,6 +115,7 @@ if [ "x${LITMUS_GEN}" = "xyes" ]; then
 	${SCRIPT}/sync-litmus.sh ${LITMUS_DTCS} -c ${LITMUS_CPUS} -t ${LITMUS_TSTS} -g ${CROSS_COMPILE}
 	${SCRIPT}/gen-litmus.sh -m ${MACH} -o ${SRCDIR} \
 		-r ${LITMUS_MAX_RUN} -s ${LITMUS_STRIDE} \
+		${LITMUS_CONT_CASE} \
 		-t ${LITMUS_SIZE_OF_TEST} -g ${CROSS_COMPILE} $1
 	${SCRIPT}/sync-litmus.sh clean
 fi

@@ -1272,6 +1272,7 @@ static caddr_t __heap_alloc(heap_size_t bytes)
 				return heap_chunk2mem(victim);
 			}
 		}
+		++idx;
 	}
 
 	/* split from heap_first_chunk */

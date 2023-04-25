@@ -15,6 +15,7 @@ LITMUS_JOBS=8
 LITMUS_STRIDE=2
 LITMUS_SIZE_OF_TEST=5
 LITMUS_MAX_RUN=1
+LITMUS_CONT=no
 
 LITMUS_WAIT=no
 
@@ -24,7 +25,7 @@ usage()
 	echo "`basename $0` [-a arch] [-m mach] [-g cross]"
 	echo "              [-j jobs] [-o path]"
 	echo "              [-r max_run] [-s stride] [-t size_of_test]"
-	echo "              [-w] [test]"
+	echo "              [-b test] [-w] [test]"
 	echo "Where:"
 	echo " Options:"
 	echo " -a arch:         specify CPU architecture"
@@ -32,6 +33,7 @@ usage()
 	echo " -g cross:        specify GCC cross compiler prefix"
 	echo " -j jobs:         specify number of build threads"
 	echo " -o path:         specify ELF output directory"
+	echo " -b test:         continue ELF generation from test"
 	echo " -w:              wait and refresh ELF output results"
 	echo " -r max_run:      litmus max runs (-r)"
 	echo " -s stride:       litmus stride (-st)"
@@ -47,10 +49,12 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "a:m:g:j:o:r:s:t:w" opt
+while getopts "a:b:m:g:j:o:r:s:t:w" opt
 do
 	case $opt in
 	a) ARCH=$OPTARG;;
+	b) LITMUS_CONT=yes
+	   LITMUS_CONT_CASE=$OPTARG;;
 	m) MACH=$OPTARG;;
 	g) CROSS_COMPILE=$OPTARG;;
 	j) LITMUS_JOBS=$OPTARG;;
@@ -156,22 +160,35 @@ if [ "x${LITMUS_WAIT}" = "xyes" ]; then
 else
 	litmus_tsts=`parse_litmus ${LITMUS_SRCS}/Makefile.litmus`
 
-	echo "Removing litmus binary from ${LITMUS_ELFS}..."
-	rm -f ${LITMUS_ELFS}/*.elf
-	rm -f ${LITMUS_ELFS}/*.rom
-	rm -f ${LITMUS_ELFS}/*.ram
-	if ls ${LITMUS_ELFS}/*.cfg >/dev/null 2>&1; then
-		echo -n ""
+	if [ "x${LITMUS_CONT}" != "xyes" ]; then
+		echo "Removing litmus binary from ${LITMUS_ELFS}..."
+		rm -f ${LITMUS_ELFS}/*.elf
+		rm -f ${LITMUS_ELFS}/*.rom
+		rm -f ${LITMUS_ELFS}/*.ram
+		if ls ${LITMUS_ELFS}/*.cfg >/dev/null 2>&1; then
+			echo -n ""
+		else
+			ls ${LITMUS_ELFS}/*.cfg | grep -v make.cfg | xargs rm -f
+		fi
+		echo -n "" > ${LITMUS_LOG}
+		echo -n "" > ${LITMUS_INCL}
+		echo -n "" > ${LITMUS_EXCL}
 	else
-		ls ${LITMUS_ELFS}/*.cfg | grep -v make.cfg | xargs rm -f
+		LITMUS_CONT_START=no
 	fi
-	echo -n "" > ${LITMUS_LOG}
-	echo -n "" > ${LITMUS_INCL}
-	echo -n "" > ${LITMUS_EXCL}
 
 	if [ -z ${LITMUS_CASE} ]; then
 		echo "Generating litmus binary to ${LITMUS_ELFS}..."
 		for t in ${litmus_tsts}; do
+			if [ "x${LITMUS_CONT}" = "xyes" ]; then
+				if [ "x${LITMUS_CONT_START}" = "xno" ]; then
+					if [ "x${t}" != "x${LITMUS_CONT_CASE}" ]; then
+						continue
+					else
+						LITMUS_CONT_START=yes
+					fi
+				fi
+			fi
 			build_litmus $t
 			if [ $? -eq 0 ]; then
 				echo $t >> ${LITMUS_INCL}
