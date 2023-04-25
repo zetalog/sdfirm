@@ -127,7 +127,7 @@ found_first:
 	if (tmp == (bits_t)0)
 		return result + size;
 found_middle:
-	return result + __ffs8(tmp);
+	return result + __ffs_unit(tmp);
 }
 
 #ifdef CONFIG_BIT_FIND_CLEAR
@@ -168,7 +168,7 @@ found_first:
 	if (tmp == (bits_t)(~((bits_t)0)))	
 		return result + size;
 found_middle:
-	return result + __ffz8(tmp);
+	return result + __ffz_unit(tmp);
 }
 #endif
 

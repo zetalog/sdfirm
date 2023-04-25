@@ -1602,6 +1602,7 @@ void heap_free(caddr_t mem)
 	spin_unlock_irqrestore(&heap_lock, flags);
 }
 
+#define CONFIG_HEAP_DLMALLOC_TEST 1
 #ifdef CONFIG_HEAP_DLMALLOC_TEST
 /* Emulate CONFIG_HEAP_SIZE macro behavior */
 void heap_cfg_setting(uint32_t cfg)
@@ -1664,19 +1665,19 @@ static void heap_block_test(void)
 {
 	int idx;
 
-	heap_set_block(0);
-	heap_set_block(4);
+	heap_set_block(7);
+	heap_set_block(0x40);
 	heap_set_block(100);
-	heap_clear_block(4);
-	idx = 512;
+	idx = 0;
 	while (1) {
 		idx = find_next_set_bit(heap_blocks, NR_HEAP_BINS, idx);
 		if (idx >= NR_HEAP_BINS)
 			break;
 		printf("idx: %d\n", idx);
-		++idx;
+		idx++;
 	}
-	heap_clear_block(0);
+	heap_clear_block(7);
+	heap_clear_block(0x40);
 	heap_clear_block(100);
 }
 
