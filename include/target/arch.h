@@ -73,6 +73,9 @@ extern uintptr_t __erodata[];
 #define PAGEABLE_START			__PA(PERCPU_STACKS_END)
 #define PAGEABLE_END			RAMEND
 
+#define DT_REGLO(w)			((w) & 0xFFFFFFFF)
+#define DT_REGHI(w)			(((w) & 0xFFFFFFFF00000000) >>32)
+
 #include <target/smp.h>
 
 #ifndef __ASSEMBLY__
