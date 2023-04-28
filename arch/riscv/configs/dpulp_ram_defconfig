@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Apr 24 13:57:31 2023
+# Fri Apr 28 09:58:58 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -481,10 +481,10 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # CONFIG_BIT_FLS8 is not set
 # CONFIG_BIT_FLS16 is not set
-# CONFIG_BIT_FLS32 is not set
+CONFIG_BIT_FLS32=y
 CONFIG_BIT_FLS64=y
 # CONFIG_BIT_FFS16 is not set
-# CONFIG_BIT_FFS32 is not set
+CONFIG_BIT_FFS32=y
 CONFIG_BIT_FFS64=y
 # CONFIG_BIT_HWEIGHT64 is not set
 

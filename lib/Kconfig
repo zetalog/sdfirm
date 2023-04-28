@@ -36,15 +36,18 @@ menu "Bitmap operations"
 
 config ARCH_HAS_BITS_PER_UNIT_16
 	bool
-	select BIT_FFS16 if BIT_FIND_CLEAR
+	select BIT_FFS16
+	select BIT_FLS16
 
 config ARCH_HAS_BITS_PER_UNIT_32
 	bool
-	select BIT_FFS32 if BIT_FIND_CLEAR
+	select BIT_FFS32
+	select BIT_FLS32
 
 config ARCH_HAS_BITS_PER_UNIT_64
 	bool
-	select BIT_FFS64 if BIT_FIND_CLEAR
+	select BIT_FFS64
+	select BIT_FLS64
 
 config BIT_FIND_CLEAR
 	bool "find_clear_bit"
