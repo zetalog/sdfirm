@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Apr 27 11:30:46 2023
+# Fri Apr 28 19:36:50 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -194,7 +194,7 @@ CONFIG_SBI_FDT_BUILTIN=y
 #
 # CONFIG_K1M_CPU is not set
 CONFIG_K1M_SOC=y
-CONFIG_K1M_SMP_CPUS=8
+CONFIG_K1M_SMP_CPUS=4
 # CONFIG_K1M_SMP_SPARSE_HART_ID is not set
 # CONFIG_K1M_TB is not set
 CONFIG_K1M_BBL=y
@@ -263,7 +263,7 @@ CONFIG_BFM=y
 CONFIG_XIP=y
 CONFIG_BOOT_BASE=0x40000000
 CONFIG_LOAD_BASE=0x40000000
-CONFIG_NO_ZERO_BSS=y
+# CONFIG_NO_ZERO_BSS is not set
 # CONFIG_NO_ZERO_GPR is not set
 
 #
