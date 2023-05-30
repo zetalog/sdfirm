@@ -9,7 +9,7 @@
 
 #include <dt-bindings/clock/sbi-clock.h>
 
-#define APB_CLK_FREQ		500000000
-#define CPU_FREQ		500000000
+#define APB_CLK_FREQ		2000000000
+#define CPU_FREQ		2000000000
 
 #endif /* __DT_BINDINGS_CLOCK_SBI_K1MAX_H */

@@ -42,19 +42,22 @@
 #ifndef __ARCH_K1MAX_H_INCLUDE__
 #define __ARCH_K1MAX_H_INCLUDE__
 
-#include <asm/c910.h>
+#include <asm/mach/cpus.h>
+#include <asm/x100.h>
+#include <asm/mach/sysreg.h>
 
 #if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
 	.macro	boot0_hook
-	c910_init
+	x100_init
 	.endm
 	.macro	boot1_hook
 #ifdef CONFIG_K1M_CCI
 	jal	ra, k1max_cci_init
 #endif
+	jal	ra, k1max_cpu_reset
 	.endm
 	.macro	boot2_hook
-	c910_smp_init
+	x100_smp_init
 	.endm
 #endif
 

@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2022
+ * Copyright (c) 2023
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,29 +35,32 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)tsc.h: K1MAX specific mandatory TSC driver
- * $Id: tsc.h,v 1.1 2022-10-15 13:41:00 zhenglv Exp $
+ * @(#)sysreg.h: K1-max system registers definitions
+ * $Id: sysreg.h,v 1.1 2023-05-30 18:48:00 zhenglv Exp $
  */
 
-#ifndef __TSC_K1MAX_H_INCLUDE__
-#define __TSC_K1MAX_H_INCLUDE__
+#ifndef __SYSREG_K1MAX_H_INCLUDE__
+#define __SYSREG_K1MAX_H_INCLUDE__
 
-#include <target/arch.h>
-#include <target/clk.h>
+#include <asm/mach/reg.h>
 
-#define TSC_FREQ		(CPU_FREQ/1000)
-#define TSC_MAX			ULL(0xFFFFFFFFFFFFFFFF)
+#define SYSREG_REG(offset)	(SYSREG_BASE + (offset))
 
-#include <asm/mach/timer.h>
-#include <asm/clint.h>
+#define SYS_IP_CTRL_0		SYSREG_REG(0x00)
+#define SYS_IP_CTRL_1		SYSREG_REG(0x04)
+#define SYS_GLB_SOFTWARE_RST	SYSREG_REG(0x08)
+#define SYS_DDR_RD_DLY_CNT	SYSREG_REG(0x0C)
+#define SYS_CPU_SOFTWARE_RST	SYSREG_REG(0x10)
+
+#define SYS_CPU_RST(cpu)	_BV((cpu) - 1)
+
+#define sysreg_soft_reset()		\
+	__raw_writel(0xAA55A5A5, SYS_GLB_SOFTWARE_RST)
+#define sysreg_soft_reset_cpu(cpu)	\
+	__raw_setl(SYS_CPU_RST(cpu), SYS_CPU_SOFTWARE_RST)
 
 #ifndef __ASSEMBLY__
-#define tsc_hw_ctrl_init()	do { } while (0)
-#if defined(CONFIG_RISCV_COUNTERS) || defined(CONFIG_SBI)
-#define tsc_hw_read_counter()	rdtime()
-#else
-#define tsc_hw_read_counter()	clint_read_mtime()
+void k1max_cpu_reset(void);
 #endif
-#endif /* __ASSEMBLY__ */
 
-#endif /* __TSC_K1MAX_H_INCLUDE__ */
+#endif /* __SYSREG_K1MAX_H_INCLUDE__ */

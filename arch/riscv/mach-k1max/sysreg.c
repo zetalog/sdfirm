@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2022
+ * Copyright (c) 2023
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,29 +35,23 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)tsc.h: K1MAX specific mandatory TSC driver
- * $Id: tsc.h,v 1.1 2022-10-15 13:41:00 zhenglv Exp $
+ * @(#)sysreg.c: K1-max system registers implementation
+ * $Id: sysreg.c,v 1.1 2023-05-30 17:48:00 zhenglv Exp $
  */
 
-#ifndef __TSC_K1MAX_H_INCLUDE__
-#define __TSC_K1MAX_H_INCLUDE__
-
 #include <target/arch.h>
-#include <target/clk.h>
 
-#define TSC_FREQ		(CPU_FREQ/1000)
-#define TSC_MAX			ULL(0xFFFFFFFFFFFFFFFF)
+void k1max_cpu_reset(void)
+{
+	cpu_t cpu;
+	uint32_t reset = __raw_readl(SYS_CPU_SOFTWARE_RST);
 
-#include <asm/mach/timer.h>
-#include <asm/clint.h>
-
-#ifndef __ASSEMBLY__
-#define tsc_hw_ctrl_init()	do { } while (0)
-#if defined(CONFIG_RISCV_COUNTERS) || defined(CONFIG_SBI)
-#define tsc_hw_read_counter()	rdtime()
-#else
-#define tsc_hw_read_counter()	clint_read_mtime()
-#endif
-#endif /* __ASSEMBLY__ */
-
-#endif /* __TSC_K1MAX_H_INCLUDE__ */
+	if (BOOT_HART == csr_read(CSR_MHARTID)) {
+		for (cpu = 0; cpu < MAX_CPU_NUM; cpu++) {
+			if (cpu == smp_hw_hart_cpu(BOOT_HART))
+				continue;
+			reset |= SYS_CPU_RST(cpu);
+		}
+	}
+	__raw_writel(reset, SYS_CPU_SOFTWARE_RST);
+}

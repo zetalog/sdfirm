@@ -108,6 +108,15 @@ struct pt_regs {
 #define IRQ_S_EXT		9
 #define IRQ_H_EXT		10
 #define IRQ_M_EXT		11
+#ifdef CONFIG_RISCV_AIA
+#ifdef CONFIG_HPM
+#define IRQ_M_HPM		13
+#endif /* CONFIG_HPM */
+#ifdef CONFIG_RAS
+#define IRQ_M_RAS_CE		35
+#define IRQ_M_RAS_UE		43
+#endif /* CONFIG_RAS */
+#endif /* RISCV_RISCV_AIA */
 #ifdef CONFIG_RISCV_EXIT_M
 #define IRQ_SOFT		IRQ_M_SOFT
 #define IRQ_TIMER		IRQ_M_TIMER
@@ -120,8 +129,12 @@ struct pt_regs {
 #endif
 
 #ifndef ARCH_HAVE_INT_IRQS
+#ifdef ARCH_HAVE_INT_IRQS_64
+#define NR_INT_IRQS		64
+#else /* ARCH_HAVE_INT_IRQS_64 */
 #define NR_INT_IRQS		16
-#endif
+#endif /* ARCH_HAVE_INT_IRQS_64 */
+#endif /* ARCH_HAVE_INT_IRQS */
 #define IRQ_PLATFORM		NR_INT_IRQS
 #define EXT_IRQ(irq)		(IRQ_PLATFORM + (irq))
 #define irq_ext(irq)		((irq) - IRQ_PLATFORM)
