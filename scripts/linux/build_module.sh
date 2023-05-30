@@ -10,6 +10,7 @@ BUILD_SMP=yes
 BUILD_UEFI=no
 BUILD_NET=yes
 BUILD_STO=yes
+BUILD_KVM=yes
 INSTALL_INITRAMFS=yes
 
 if [ -z $BUSYBOX_DIR ]; then
@@ -353,6 +354,9 @@ function build_linux()
 	fi
 	if [ "xno" = "x${BUILD_STO}" ]; then
 		apply_modcfg linux my_defconfig d_sto.cfg
+	fi
+	if [ "xyes" = "x${BUILD_KVM}" ]; then
+		apply_modcfg linux my_defconfig e_kvm.cfg
 	fi
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
 	# Starting the build process

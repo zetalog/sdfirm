@@ -66,6 +66,20 @@ config CPU_C910
 	select CPU_SSTC
 	select ARCH_IS_ATOMIC_UNFAIR
 
+# SpacemiT CPUs
+config CPU_SPACEMIT
+	bool
+	select CPU_64G
+	select CPU_S
+	select CPU_C
+	select CPU_V
+	select CPU_SV39
+	select CPU_PMP
+	select CPU_WMO
+	select CPU_SVPBMT
+	select CPU_SSTC
+	select ARCH_IS_ATOMIC_UNFAIR
+
 # RI5CY
 config CPU_RI5CY
 	bool

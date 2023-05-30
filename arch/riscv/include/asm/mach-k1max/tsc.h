@@ -48,9 +48,6 @@
 #define TSC_FREQ		(CPU_FREQ/1000)
 #define TSC_MAX			ULL(0xFFFFFFFFFFFFFFFF)
 
-#define CLINT_MTIMECMP_BASE	0x80
-#define CLINT_MTIME_BASE	0x3F8
-
 #include <asm/mach/timer.h>
 #include <asm/clint.h>
 

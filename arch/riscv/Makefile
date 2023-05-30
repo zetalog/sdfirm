@@ -58,6 +58,7 @@ endif
 # RISC-V ISA, they're emulated by machine mode traps on all extant
 # architectures.  It's faster to have GCC emit only aligned accesses.
 CFLAGS += $(call cc-option,-mstrict-align)
+CFLAGS += $(call cc-option,-fno-tree-loop-distribute-patterns)
 
 # Default target when executing plain make
 boot		:= arch/riscv/boot

@@ -48,6 +48,8 @@
 #define MAX_CPU_NUM		1
 #endif
 
+#define BOOT_HART		0
+
 #define CPUS_PER_CLUSTER	4
 #define MAX_CPU_CLUSTERS	(MAX_CPU_NUM / CPUS_PER_CLUSTER)
 

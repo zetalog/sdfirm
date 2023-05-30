@@ -270,12 +270,26 @@ __sexctab:
 	RISCV_PTR do_trap_store_fault
 	RISCV_PTR do_trap_ecall_u
 	RISCV_PTR do_trap_ecall_s
+#ifdef CONFIG_RISCV_H
+	RISCV_PTR do_trap_ecall_h
+#else
 	RISCV_PTR do_trap_unknown
+#endif
 	RISCV_PTR do_trap_ecall_m
 	RISCV_PTR do_trap_unknown /* do_page_fault (insn) */
 	RISCV_PTR do_trap_unknown /* do_page_fault (load) */
 	RISCV_PTR do_trap_unknown
 	RISCV_PTR do_trap_unknown /* do_page_fault (store) */
+	RISCV_PTR do_trap_unknown
+	RISCV_PTR do_trap_unknown
+	RISCV_PTR do_trap_unknown
+	RISCV_PTR do_trap_unknown
+#ifdef CONFIG_RISCV_H
+	RISCV_PTR do_guest_page_fault /* insn */
+	RISCV_PTR do_guest_page_fault /* load */
+	RISCV_PTR do_virtual_insn_illegal
+	RISCV_PTR do_guest_page_fault /* store */
+#endif
 __eexctab:
 END(exc_table)
 
