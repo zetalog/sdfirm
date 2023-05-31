@@ -563,6 +563,12 @@ config RISCV_ATOMIC_COUNT_64
 
 endchoice
 
+config ARCH_IS_MMIO_32BIT
+	bool
+	help
+	  SoC may require 64-bit IO to be split into two 32-bit IOs to
+	  access system peripherals.
+
 config ARCH_IS_ATOMIC_UNFAIR
 	bool
 
