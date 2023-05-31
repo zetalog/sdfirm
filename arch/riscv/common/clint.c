@@ -50,19 +50,46 @@
 #endif
 
 #if __riscv_xlen == 64
+#ifdef CONFIG_ARCH_IS_MMIO_32BIT
+uint64_t clint_read_mtime(void)
+{
+	caddr_t a = CLINT_MTIME;
+	uint32_t hi, lo, tmp;
+
+	do {
+		hi = __raw_readl((caddr_t)((uintptr_t)(a) + 4));
+		lo = __raw_readl(a);
+		tmp = __raw_readl((caddr_t)((uintptr_t)(a) + 4));
+	} while (hi != tmp);
+	return (uint64_t)hi << 32 | lo;
+}
+
+void clint_write_mtimecmp(cpu_t cpu, uint64_t cmp)
+{
+	caddr_t a = CLINT_MTIMECMP(smp_hw_cpu_hart(cpu));
+
+	__raw_writel(HIDWORD(cmp), (caddr_t)((uintptr_t)(a) + 4));
+	__raw_writel(LODWORD(cmp), (a));
+}
+#else
 uint64_t clint_read_mtime(void)
 {
 	return __raw_readq(CLINT_MTIME);
 }
 
+void clint_write_mtimecmp(cpu_t cpu, uint64_t cmp)
+{
+	__raw_writeq(cmp, CLINT_MTIMECMP(smp_hw_cpu_hart(cpu)));
+}
+#endif
+
 void clint_set_mtimecmp(cpu_t cpu, uint64_t cmp)
 {
 #ifdef CONFIG_CLINT_FORCE_FAST_TIMEOUT
-	uint64_t val;
-	val = __raw_readq(CLINT_MTIME);
+	uint64_t val = clint_read_mtime();
 	cmp = val + FAST_TIMEOUT_DIFF;
 #endif
-	__raw_writeq(cmp, CLINT_MTIMECMP(smp_hw_cpu_hart(cpu)));
+	clint_write_mtimecmp(cpu, cmp);
 }
 
 void clint_unset_mtimecmp(cpu_t cpu)
