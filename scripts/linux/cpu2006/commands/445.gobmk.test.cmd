@@ -1,0 +1,7 @@
+--quiet --mode gtp < capture.tst
+--quiet --mode gtp < connect.tst
+--quiet --mode gtp < connect_rot.tst
+--quiet --mode gtp < connection.tst
+--quiet --mode gtp < connection_rot.tst
+--quiet --mode gtp < cutstone.tst
+--quiet --mode gtp < dniwog.tst

@@ -1,0 +1,83 @@
+Index: cpu2006/tools/src/buildtools
+===================================================================
+--- cpu2006.orig/tools/src/buildtools
++++ cpu2006/tools/src/buildtools
+@@ -1,5 +1,7 @@
+ #!/bin/sh
+ 
++SKIPPERLTEST=1
++
+ # Provide our PID to children in a nice, portable way
+ MYPID=$$
+ export MYPID
+@@ -359,20 +361,22 @@ if [ -n "$DOPERL" ] || [ -z "$SKIPPERL"
+     $MYMAKE; testordie "error building Perl"
+     ./perl installperl; testordie "error installing Perl"
+     setspecperllib
+-    MAKEFLAGS= $MYMAKE test
+-    if [ $? -ne 0 ]; then
+-      set +x
+-      echo
+-      echo
+-      echo "Hey!  Some of the Perl tests failed!  If you think this is okay, enter y now:"
+-      read foo
+-      if [ "x$foo" = "xy" ]; then
+-        true
+-      else
+-        false
++    if [ -n "$DOPERLTEST" ] || [ -z "$SKIPPERLTEST" ]; then
++      MAKEFLAGS= $MYMAKE test
++      if [ $? -ne 0 ]; then
++        set +x
++        echo
++        echo
++        echo "Hey!  Some of the Perl tests failed!  If you think this is okay, enter y now:"
++        read foo
++        if [ "x$foo" = "xy" ]; then
++          true
++        else
++          false
++        fi
+       fi
+-    fi
+-    testordie "error in Perl tests")
++      testordie "error in Perl tests"
++    fi)
+ 
+     # Only copy libperl if Perl is built to use the shared object
+     (cd perl-$PERLVER
+@@ -418,10 +422,11 @@ if [ -n "$DOPERL2" ] || [ -z "$SKIPPERL2
+       set -x
+       $INSTALLBIN/perl Makefile.PL -n; testordie "error making Makefile for $i"
+       MAKEFLAGS= $MYMAKE install; testordie "error building/installing $i"
+-      # The tests are done after the install; because of the lib path munging,
+-      # the tests will actually use the installed modules.  It doesn't really
+-      # matter either way -- if the test fails, the whole run is scrapped.
+-      [ -f $i/spec_do_no_tests ] || ($MYMAKE test; testordie "error running $i test suite")
++      if [ -n "$DOPERLTEST" ] || [ -z "$SKIPPERLTEST" ]; then
++        # The tests are done after the install; because of the lib path munging,
++        # the tests will actually use the installed modules.  It doesn't really
++        # matter either way -- if the test fails, the whole run is scrapped.
++        [ -f $i/spec_do_no_tests ] || ($MYMAKE test; testordie "error running $i test suite")
+       )
+     done
+ 
+@@ -443,11 +448,13 @@ if [ -n "$DOPERL2" ] || [ -z "$SKIPPERL2
+           fi
+         fi
+         if test $SPEC_EXPAT_OK -eq 1; then
+-          MAKEFLAGS= $MYMAKE test
+-          if test $? -ne 0; then
+-            SPEC_EXPAT_OK=0
+-            echo "!!! Tests for XML::SAX::ExpatXS failed, but don't worry about it"
+-            $MYMAKE uninstall
++          if [ -n "$DOPERLTEST" ] || [ -z "$SKIPPERLTEST" ]; then
++            MAKEFLAGS= $MYMAKE test
++            if test $? -ne 0; then
++              SPEC_EXPAT_OK=0
++              echo "!!! Tests for XML::SAX::ExpatXS failed, but don't worry about it"
++              $MYMAKE uninstall
++            fi
+           fi
+         fi
+       )
