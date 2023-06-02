@@ -22,6 +22,10 @@ usage()
 	echo " -f:          enable firmware builds"
 	echo " -u:          enable userspace program builds"
 	echo " -c cores:    specify number of CPUs to enable litmus"
+	echo " -b spec:     specify CPU workload to enable spec"
+	echo "              spec includes:"
+	echo "    cpu2006:  cpu2006 benchmarks"
+	echo "    cpu2017:  cpu2017 benchmarks"
 	echo " -d feat:     disable special features"
 	echo "              feature includes:"
 	echo "    shared:   shared library support"
@@ -40,10 +44,16 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "a:c:d:e:fm:n:u" opt
+while getopts "a:b:c:d:e:fm:n:u" opt
 do
 	case $opt in
 	a) ARCH=$OPTARG;;
+	b) if [ "x$OPTARG" = "cpu2006" ]; then
+		BUILD_CPU2006=yes
+	   fi
+	   if [ "x$OPTARG" = "cpu2017" ]; then
+		BUILD_CPU2017=yes
+	   fi;;
 	c) LITMUS=$OPTARG
 	   BUILD_LITMUS=yes;;
 	d) if [ "x$OPTARG" = "xshared" ]; then
@@ -65,6 +75,7 @@ do
 	m) MACH=$OPTARG;;
 	n) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -n $OPTARG";;
 	u) BUILD_LITMUS=yes
+	   BUILD_CPU2006=yes
 	   BUILD_APPS=yes;;
 	?) echo "Invalid argument $opt"
 	   fatal_usage;;
@@ -95,6 +106,9 @@ if [ -z ${BUSYBOX_DIR} ]; then
 fi
 if [ -z ${LITMUS_ROOT} ]; then
 	export LITMUS_ROOT=${WORKING_DIR}/litmus-tests-riscv
+fi
+if [ -z ${CPU2006_ROOT} ]; then
+	export CPU2006_ROOT=${WORKING_DIR}/cpu2006
 fi
 if [ "x${BUILD_LIB}" = "xyes" ]; then
 	BENCH_STATIC=n
@@ -148,6 +162,14 @@ if [ "x${BUILD_LITMUS}" = "xyes" ]; then
 	if [ "x${LITMUS}" != "x" ]; then
 		${SCRIPT}/build_litmus.sh -r ${LITMUS}
 	fi
+fi
+# Build SPEC CPU2006 benchmark tests
+if [ "x${BUILD_CPU2006}" = "xyes" ]; then
+	${SCRIPT}/build_cpu2006.sh
+fi
+# Build SPEC CPU2017 benchmark tests
+if [ "x${BUILD_CPU2017}" = "xyes" ]; then
+	${SCRIPT}/build_cpu2017.sh
 fi
 
 # Build linux image along with rootfs

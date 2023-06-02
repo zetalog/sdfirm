@@ -251,6 +251,34 @@ build_perf()
 	fi
 }
 
+run_speccpu()
+{
+	RUN="spike pk -c "
+	# running the binaries/building the command file
+	# we could also just run through BUILD_DIR/CMD_FILE and run those...
+	for b in ${BENCHMARKS[@]}; do
+		cd $BUILD_DIR/${b}_${INPUT_TYPE}
+		SHORT_EXE=${b##*.} # cut off the numbers ###.short_exe
+		# handle benchmarks that don't conform to the naming convention
+		if [ $b == "482.sphinx3" ]; then
+			SHORT_EXE=sphinx_livepretend;
+		fi
+		if [ $b == "483.xalancbmk" ]; then
+			SHORT_EXE=Xalan;
+		fi
+		# read the command file
+		IFS=$'\n' read -d '' -r -a commands < $BUILD_DIR/../commands/${b}.${INPUT_TYPE}.cmd
+		for input in "${commands[@]}"; do
+			if [[ ${input:0:1} != '#' ]]; then
+				# allow us to comment out lines in the cmd files
+				echo "~~~Running ${b}"
+				echo "  ${RUN} ${SHORT_EXE}_base.${CONFIG} ${input}"
+				eval ${RUN} ${SHORT_EXE}_base.${CONFIG} ${input}
+			fi
+		done
+	done
+}
+
 build_test()
 {
 	EARLY_TEST=${BUILD_INIT}/test_early
@@ -261,6 +289,9 @@ build_test()
 		echo "dhrystone 50" >> ${EARLY_TEST}
 		echo "linpack" >> ${EARLY_TEST}
 		echo "dhrystone 200000000" >> ${EARLY_TEST}
+	fi
+	if [ "x${TEST_EARLY}" = "xcpu2006" ]; then
+		echo "#!/bin/sh" > ${EARLY_TEST}
 	fi
 	if [ "x${TEST_EARLY}" = "xlitmus" ]; then
 		build_litmus
