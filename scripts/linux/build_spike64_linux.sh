@@ -19,9 +19,12 @@ LITMUS_UPDATE=yes
 LITMUS_DUMP=no
 LITMUS_ROOT=$BUILD_ROOT/memory-model/litmus-tests-riscv
 
+CPU2006_UPDATE=yes
+CPU2006_BENCHMARKS=""
+
 PERF_UPDATE=yes
 
-# Early tests include litmus, benchmark
+# Early tests include benchmark, litmus, cpu2006
 TEST_EARLY=
 TEST_LATE=
 

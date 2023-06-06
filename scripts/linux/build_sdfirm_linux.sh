@@ -113,6 +113,20 @@ mkdir -p ${BUILD_BIN}
 mkdir -p ${BUILD_INIT}
 mkdir -p ${BACKUP_ROOT}
 
+build_cpu2006()
+{
+	if [ "x${CPU2006_UPDATE}" = "xyes" ]; then
+		if [ -z ${CPU2006_BENCHMARKS} ]; then
+			BUILD_IMAGE_OPS="${BUILD_IMAGE_OPS} -b cint -b cfp"
+		else
+			benches=
+			for b in ${CPU2006_BENCHMARKS}; do
+				BUILD_IMAGE_OPS="${BUILD_IMAGE_OPS} -b ${b}"
+			done
+		fi
+	fi
+}
+
 build_litmus()
 {
 	if [ "x${LITMUS_UPDATE}" = "xyes" ]; then
@@ -251,34 +265,6 @@ build_perf()
 	fi
 }
 
-run_speccpu()
-{
-	RUN="spike pk -c "
-	# running the binaries/building the command file
-	# we could also just run through BUILD_DIR/CMD_FILE and run those...
-	for b in ${BENCHMARKS[@]}; do
-		cd $BUILD_DIR/${b}_${INPUT_TYPE}
-		SHORT_EXE=${b##*.} # cut off the numbers ###.short_exe
-		# handle benchmarks that don't conform to the naming convention
-		if [ $b == "482.sphinx3" ]; then
-			SHORT_EXE=sphinx_livepretend;
-		fi
-		if [ $b == "483.xalancbmk" ]; then
-			SHORT_EXE=Xalan;
-		fi
-		# read the command file
-		IFS=$'\n' read -d '' -r -a commands < $BUILD_DIR/../commands/${b}.${INPUT_TYPE}.cmd
-		for input in "${commands[@]}"; do
-			if [[ ${input:0:1} != '#' ]]; then
-				# allow us to comment out lines in the cmd files
-				echo "~~~Running ${b}"
-				echo "  ${RUN} ${SHORT_EXE}_base.${CONFIG} ${input}"
-				eval ${RUN} ${SHORT_EXE}_base.${CONFIG} ${input}
-			fi
-		done
-	done
-}
-
 build_test()
 {
 	EARLY_TEST=${BUILD_INIT}/test_early
@@ -291,7 +277,9 @@ build_test()
 		echo "dhrystone 200000000" >> ${EARLY_TEST}
 	fi
 	if [ "x${TEST_EARLY}" = "xcpu2006" ]; then
+		build_cpu2006
 		echo "#!/bin/sh" > ${EARLY_TEST}
+		echo "/opt/cpu2006/cpu2006.sh" >> ${EARLY_TEST}
 	fi
 	if [ "x${TEST_EARLY}" = "xlitmus" ]; then
 		build_litmus
