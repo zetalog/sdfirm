@@ -113,7 +113,7 @@ fi
 
 cpu2006_init
 
-while getopts "b:rt" opt
+while getopts "b:crt" opt
 do
 	case $opt in
 	b) if [ "x$OPTARG" = "xdefault" ]; then
@@ -167,9 +167,9 @@ if [ "x${CPU2006_BUILD_TOOLS}" = "xyes" ]; then
 	#SKIPPERL=1
 	#SKIPPERL2=1
 	#SKIPPERTEST=1
-
 	cpu2006_tools
 fi
+CPU2006_ARCHIVE=yes
 if [ "x${CPU2006_CLEAN_BENCHES}" = "xyes" ]; then
 	echo "Cleaning cpu2006 binaries from $CPU2006_ROOT..."
 	cp -f $CPU2006_CONFIG $CPU2006_ROOT/config/$ARCH.cfg
@@ -179,6 +179,11 @@ if [ "x${CPU2006_CLEAN_BENCHES}" = "xyes" ]; then
 		. ./shrc
 		time runspec --config $ARCH --size $CPU2006_INPUT --action scrub $CPU2006_BENCHMARKS
 	)
+	CPU2006_ARCHIVE=no
+	rm -f $CPU2006_ROOT/config/$ARCH.cfg
+else
+	# TODO: verify if the benchmarks have already been built
+	echo
 fi
 if [ "x${CPU2006_BUILD_BENCHES}" = "xyes" ]; then
 	echo "Building cpu2006 binaries from $CPU2006_ROOT..."
@@ -189,48 +194,51 @@ if [ "x${CPU2006_BUILD_BENCHES}" = "xyes" ]; then
 		. ./shrc
 		time runspec --config $ARCH --size $CPU2006_INPUT --action setup $CPU2006_BENCHMARKS
 	)
+	CPU2006_ARCHIVE=yes
+	rm -f $CPU2006_ROOT/config/$ARCH.cfg
 fi
-
-echo "Generating cpu2006 binaries from $CPU2006_ROOT..."
-rm -rf $CPU2006_OBJDIR
-mkdir -p $CPU2006_OBJDIR
-for b in $CPU2006_BENCHMARKS; do
-	echo ${b}
-	CPU2006_ELF=`cpu2006_elfname $b`
-	echo $CPU2006_ELF
-	CPU2006_RUNDIR=${CPU2006_ROOT}/benchspec/CPU2006/$b/run
-	CPU2006_INPUTDIR=${CPU2006_RUNDIR}/run_base_${CPU2006_INPUT}_${ARCH}.0000
-	ls $CPU2006_RUNDIR
-	ls $CPU2006_INPUTDIR
-	# make a symlink to SPEC (to prevent data duplication for
-	# huge input files)
-	CPU2006_INPUTLNK=${CPU2006_OBJDIR}/${b}_${CPU2006_INPUT}
-	if [ -d $CPU2006_INPUTLNK ]; then
-		unlink $CPU2006_INPUTLNK
-	fi
-	ln -sf $CPU2006_INPUTDIR $CPU2006_INPUTLNK
-done
-for b in $CPU2006_BENCHMARKS; do
-	echo ${b}
-	CPU2006_ELF=`cpu2006_elfname $b`
-	echo $CPU2006_ELF
-	CPU2006_RUNDIR=${CPU2006_ROOT}/benchspec/CPU2006/$b/run
-	CPU2006_INPUTDIR=${CPU2006_RUNDIR}/run_base_${CPU2006_INPUT}_${ARCH}.0000
-	echo "Installing cpu2006 benchmark $b..."
-	mkdir -p $CPU2006_DIR/$b
-	cp -r ${SCRIPT}/cpu2006/commands $CPU2006_DIR/commands
-	cp ${SCRIPT}/cpu2006/run.sh $CPU2006_DIR/run.sh
-	sed -i '4s/.*/INPUT_TYPE='${CPU2006_INPUT}' #this line was auto-generated from build_cpu2006.sh/' $CPU2006_DIR/run.sh
-	for f in $CPU2006_INPUTDIR/*; do
-		echo $f
-		if [[ -d $f ]]; then
-			echo "Installing $b directory $f..."
-			cp -r $f $CPU2006_DIR/$b/$(basename "$f")
-		else
-			echo "Installing $b file $f..."
-			cp $f $CPU2006_DIR/$b/$(basename "$f")
+if [ "x${CPU2006_ARCHIVE}" = "xyes" ]; then
+	echo "Generating cpu2006 binaries from $CPU2006_ROOT..."
+	rm -rf $CPU2006_OBJDIR
+	mkdir -p $CPU2006_OBJDIR
+	for b in $CPU2006_BENCHMARKS; do
+		echo ${b}
+		CPU2006_ELF=`cpu2006_elfname $b`
+		echo $CPU2006_ELF
+		CPU2006_RUNDIR=${CPU2006_ROOT}/benchspec/CPU2006/$b/run
+		CPU2006_INPUTDIR=${CPU2006_RUNDIR}/run_base_${CPU2006_INPUT}_${ARCH}.0000
+		ls $CPU2006_RUNDIR
+		ls $CPU2006_INPUTDIR
+		# make a symlink to SPEC (to prevent data duplication for
+		# huge input files)
+		CPU2006_INPUTLNK=${CPU2006_OBJDIR}/${b}_${CPU2006_INPUT}
+		if [ -d $CPU2006_INPUTLNK ]; then
+			unlink $CPU2006_INPUTLNK
 		fi
+		ln -sf $CPU2006_INPUTDIR $CPU2006_INPUTLNK
 	done
-	mv ${CPU2006_DIR}/$b/${CPU2006_ELF}_base.${ARCH} \
-		${CPU2006_DIR}/$b/${CPU2006_ELF}
-done
+	for b in $CPU2006_BENCHMARKS; do
+		echo ${b}
+		CPU2006_ELF=`cpu2006_elfname $b`
+		echo $CPU2006_ELF
+		CPU2006_RUNDIR=${CPU2006_ROOT}/benchspec/CPU2006/$b/run
+		CPU2006_INPUTDIR=${CPU2006_RUNDIR}/run_base_${CPU2006_INPUT}_${ARCH}.0000
+		echo "Installing cpu2006 benchmark $b..."
+		mkdir -p $CPU2006_DIR/$b
+		cp -r ${SCRIPT}/cpu2006/commands $CPU2006_DIR/commands
+		cp ${SCRIPT}/cpu2006/run.sh $CPU2006_DIR/run.sh
+		sed -i '4s/.*/INPUT_TYPE='${CPU2006_INPUT}' #this line was auto-generated from build_cpu2006.sh/' $CPU2006_DIR/run.sh
+		for f in $CPU2006_INPUTDIR/*; do
+			echo $f
+			if [[ -d $f ]]; then
+				echo "Installing $b directory $f..."
+				cp -r $f $CPU2006_DIR/$b/$(basename "$f")
+			else
+				echo "Installing $b file $f..."
+				cp $f $CPU2006_DIR/$b/$(basename "$f")
+			fi
+		done
+		mv ${CPU2006_DIR}/$b/${CPU2006_ELF}_base.${ARCH} \
+			${CPU2006_DIR}/$b/${CPU2006_ELF}
+	done
+fi
