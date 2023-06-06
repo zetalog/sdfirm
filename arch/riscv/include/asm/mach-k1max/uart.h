@@ -68,7 +68,7 @@
 #endif
 
 #ifdef CONFIG_K1M_UART_ACCEL
-#define UART_CON_BAUDRATE		(APB_CLK_FREQ/80)
+#define UART_CON_BAUDRATE		(115200)
 #endif
 
 #ifdef CONFIG_DEBUG_PRINT
