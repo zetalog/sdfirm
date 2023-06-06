@@ -139,7 +139,10 @@ CPORTABILITY   = -funconstrained-commons
 FPORTABILITY   = -std=legacy
  
 447.dealII=default=default=default:
-FPORTABILITY   = -fpermissive
+CXXPORTABILITY = -fpermissive
+
+450.soplex=default=default=default:
+CXXPORTABILITY = -std=c++03
 
 462.libquantum=default=default=default:
 CPORTABILITY   = -DSPEC_CPU_LINUX
