@@ -3,6 +3,10 @@
 # This scripts build sdfirm bootable Linux image with early/late test
 # specified.
 
+TOP=`pwd`
+SCRIPT=`(cd \`dirname $0\`; pwd)`
+WORKING_DIR=`(cd ${SCRIPT}/../../..; pwd)`
+
 if [ -z $ARCH ]; then
 	ARCH=riscv
 fi
@@ -14,10 +18,10 @@ if [ -z $CROSS_COMPILE ]; then
 	CROSS_COMPILE=riscv64-linux-gnu-
 fi
 if [ -z $BUILD_ROOT ]; then
-	BUILD_ROOT=$HOME/workspace/Software
+	BUILD_ROOT=$WORKING_DIR
 fi
 if [ -z $BACKUP_ROOT ]; then
-	BACKUP_ROOT=$HOME/workspace/Hardware
+	BACKUP_ROOT=$WORKING_DIR/backup
 fi
 if [ -z $LITMUS_CORES ]; then
 	LITMUS_CORES=4
