@@ -1,1 +1,0 @@
-< exam29.config
