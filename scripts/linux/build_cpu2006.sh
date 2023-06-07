@@ -4,7 +4,6 @@
 
 TOP=`pwd`
 SCRIPT=`(cd \`dirname $0\`; pwd)`
-SRCDIR=`(cd ${SCRIPT}/..; pwd)`
 WORKING_DIR=`(cd ${SCRIPT}/../../..; pwd)`
 
 CPU2006_BENCHMARKS=
