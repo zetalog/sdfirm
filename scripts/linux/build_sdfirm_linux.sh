@@ -86,6 +86,9 @@ if [ "x${BUILD_STO}" = "xno" ]; then
 		export BUILD_STO_DEV
 	fi
 fi
+if [ "x${FORCE_REBUILD}" = "xyes" ]; then
+	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -r"
+fi
 
 # Control LITMUS partial builds
 if [ "x${LITMUS_SUIT}" = "xHAND" ]; then

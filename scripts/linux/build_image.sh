@@ -14,7 +14,7 @@ usage()
 {
 	echo "Usage:"
 	echo "`basename $0` [-a arch] [-c cores] [-f] [-m mach] [-n host] [-u]"
-	echo "              [-d feat] [-e feat]"
+	echo "              [-d feat] [-e feat] [-r]"
 	echo "Where:"
 	echo " -a arch:     specify architecture"
 	echo " -m mach:     specify machine type"
@@ -32,6 +32,7 @@ usage()
 	echo " -e feat:     disable special features"
 	echo "              feature includes:"
 	echo "    tiny:     kernel image as tiny as possible"
+	echo " -r:          enable force module rebuild"
 	exit $1
 }
 
@@ -41,7 +42,7 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "a:b:c:d:e:fm:n:u" opt
+while getopts "a:b:c:d:e:fm:n:ru" opt
 do
 	case $opt in
 	a) ARCH=$OPTARG;;
@@ -67,6 +68,7 @@ do
 	f) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -m sdfirm";;
 	m) MACH=$OPTARG;;
 	n) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -n $OPTARG";;
+	r) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -r";;
 	u) BUILD_LITMUS=yes
 	   BUILD_APPS=yes;;
 	?) echo "Invalid argument $opt"
