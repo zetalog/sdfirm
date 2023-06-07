@@ -85,6 +85,7 @@ tune          = base
 basepeak      = yes
 ext           = riscv
 output_format = asc,csv,html
+output_root   = /opt/cpu2006
 
 # The publicly-accessible PathScale flags file at the URL below works
 # with the settings in this file.  If you change compilers or compiler

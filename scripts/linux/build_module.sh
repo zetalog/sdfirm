@@ -12,6 +12,7 @@ BUILD_NET=yes
 BUILD_STO=yes
 BUILD_KVM=yes
 INSTALL_INITRAMFS=yes
+FORCE_REBUILD=no
 
 if [ -z $BUSYBOX_DIR ]; then
 	BUSYBOX_DIR=busybox
@@ -62,23 +63,26 @@ function clean_all()
 function build_busybox()
 {
 	echo "== Build Busybox =="
-	rm -rf $TOP/obj/busybox-$ARCH
+	if [ "xyes" = "x${FORCE_REBUILD}" ]; then
+		rm -rf $TOP/obj/busybox-$ARCH
+		mkdir -pv $TOP/obj/busybox-$ARCH
+	fi
 	(
 	cd $BUSYBOX_PATH
-	mkdir -pv $TOP/obj/busybox-$ARCH
-
-	# Doing modcfgs in the original directory and save my_defconfig
-	cp $SCRIPT/config/$BUSYBOX_CONFIG configs/my_defconfig
-	if [ "xyes" = "x${BUILD_TINY}" ]; then
-		apply_modcfg busybox my_defconfig e_tiny.cfg
+	if [ "xyes" = "x${FORCE_REBUILD}" ]; then
+		# Doing modcfgs in the original directory and save my_defconfig
+		cp $SCRIPT/config/$BUSYBOX_CONFIG configs/my_defconfig
+		if [ "xyes" = "x${BUILD_TINY}" ]; then
+			apply_modcfg busybox my_defconfig e_tiny.cfg
+		fi
+		if [ "xno" = "x${BUILD_NET}" ]; then
+			apply_modcfg busybox my_defconfig d_net.cfg
+		fi
+		# Starting the build process
+		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
+			O=$TOP/obj/busybox-$ARCH/ my_defconfig
+		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
 	fi
-	if [ "xno" = "x${BUILD_NET}" ]; then
-		apply_modcfg busybox my_defconfig d_net.cfg
-	fi
-	# Starting the build process
-	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
-		O=$TOP/obj/busybox-$ARCH/ my_defconfig
-	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
 	cd $TOP/obj/busybox-$ARCH
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE -j6
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE install
@@ -333,40 +337,45 @@ function build_linux()
 {
 	echo "== Build Linux =="
 	echo "Building $LINUX_CONFIG..."
-	rm -rf $TOP/obj/linux-$ARCH
-	#mkdir -p $TOP/obj/linux-$ARCH
+	if [ "xyes" = "x${FORCE_REBUILD}" ]; then
+		rm -rf $TOP/obj/linux-$ARCH
+		#mkdir -p $TOP/obj/linux-$ARCH
+	fi
 	(
 	cd $LINUX_PATH
-	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE distclean
-	# Doing modcfgs in the original directory and save my_defconfig
-	cp $SCRIPT/config/$LINUX_CONFIG arch/riscv/configs/my_defconfig
-	if [ "xyes" = "x${BUILD_TINY}" ]; then
-		apply_modcfg linux my_defconfig e_tiny.cfg
+	if [ "xyes" = "x${FORCE_REBUILD}" ]; then
+		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE distclean
+		# Doing modcfgs in the original directory and save my_defconfig
+		cp $SCRIPT/config/$LINUX_CONFIG arch/riscv/configs/my_defconfig
+		if [ "xyes" = "x${BUILD_TINY}" ]; then
+			apply_modcfg linux my_defconfig e_tiny.cfg
+		fi
+		if [ "xyes" = "x${BUILD_UEFI}" ]; then
+			apply_modcfg linux my_defconfig e_uefi.cfg
+		fi
+		if [ "xno" = "x${BUILD_SMP}" ]; then
+			apply_modcfg linux my_defconfig d_smp.cfg
+		fi
+		if [ "xno" = "x${BUILD_NET}" ]; then
+			apply_modcfg linux my_defconfig d_net.cfg
+		fi
+		if [ "xno" = "x${BUILD_STO}" ]; then
+			apply_modcfg linux my_defconfig d_sto.cfg
+		fi
+		if [ "xyes" = "x${BUILD_KVM}" ]; then
+			apply_modcfg linux my_defconfig e_kvm.cfg
+		fi
+		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
+		# Starting the build process
+		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
+			O=$TOP/obj/linux-$ARCH/ my_defconfig
+		ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
+			$LINUX_PATH/scripts/config \
+			--file $TOP/obj/linux-$ARCH/.config \
+			--set-str INITRAMFS_SOURCE $TOP/$INITRAMFS_FILELIST
+		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
+			O=$TOP/obj/linux-$ARCH/ clean
 	fi
-	if [ "xyes" = "x${BUILD_UEFI}" ]; then
-		apply_modcfg linux my_defconfig e_uefi.cfg
-	fi
-	if [ "xno" = "x${BUILD_SMP}" ]; then
-		apply_modcfg linux my_defconfig d_smp.cfg
-	fi
-	if [ "xno" = "x${BUILD_NET}" ]; then
-		apply_modcfg linux my_defconfig d_net.cfg
-	fi
-	if [ "xno" = "x${BUILD_STO}" ]; then
-		apply_modcfg linux my_defconfig d_sto.cfg
-	fi
-	if [ "xyes" = "x${BUILD_KVM}" ]; then
-		apply_modcfg linux my_defconfig e_kvm.cfg
-	fi
-	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
-	# Starting the build process
-	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
-		O=$TOP/obj/linux-$ARCH/ my_defconfig
-	ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE $LINUX_PATH/scripts/config \
-		--file $TOP/obj/linux-$ARCH/.config \
-		--set-str INITRAMFS_SOURCE $TOP/$INITRAMFS_FILELIST
-	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
-		O=$TOP/obj/linux-$ARCH/ clean
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 		O=$TOP/obj/linux-$ARCH/ -j6
 	if [ ! -f $TOP/obj/linux-$ARCH/vmlinux ]; then
@@ -442,13 +451,14 @@ cd $TOP
 usage()
 {
 	echo "Usage:"
-	echo "`basename $0` [-m bbl] [-s] [-u] [-a] [-n hostname] [target]"
+	echo "`basename $0` [-m bbl] [-s] [-u] [-a] [-r] [-n hostname] [target]"
 	echo "              [-d feat] [-e feat]"
 	echo "Where:"
-	echo " -m bbl:      specify rebuild of M-mode program"
-	echo " -s:          specify rebuild of S-mode program"
-	echo " -u:          specify rebuild of U-mode programs"
-	echo " -a:          specify rebuild of all modes programs"
+	echo " -m bbl:      specify build of M-mode program"
+	echo " -s:          specify build of S-mode program"
+	echo " -u:          specify build of U-mode programs"
+	echo " -a:          specify build of all modes programs"
+	echo " -r:          force rebuild of all modes programs"
 	echo " -n:          specify system hostname (default sdfirm)"
 	echo " -d feat:     disable special features"
 	echo "              feature includes:"
@@ -470,7 +480,7 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "ad:e:m:n:su" opt
+while getopts "ad:e:m:n:rsu" opt
 do
 	case $opt in
 	a) M_MODE=yes
@@ -494,6 +504,7 @@ do
 	m) M_MODE=yes
 	   BBL=$OPTARG;;
 	n) HOSTNAME=$OPTARG;;
+	r) FORCE_REBUILD=yess;;
 	s) S_MODE=yes;;
 	u) U_MODE=yes;;
 	?) echo "Invalid argument $opt"
