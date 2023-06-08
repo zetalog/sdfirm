@@ -84,7 +84,8 @@ ignore_errors = yes
 tune          = base
 basepeak      = yes
 ext           = arm
-output_format = asc,csv,html
+output_format = asc,csv
+output_root   = /opt/cpu2006
 
 # The publicly-accessible PathScale flags file at the URL below works
 # with the settings in this file.  If you change compilers or compiler
@@ -127,10 +128,20 @@ default=base=default=default:
 #####################################################################
 
 400.perlbench=default=default=default:
-CPORTABILITY   =  -DSPEC_CPU_LINUX
+CPORTABILITY   = -DSPEC_CPU_LINUX
+
+416.gamess=default=default=default:
+CPORTABILITY   = -funconstrained-commons
+FPORTABILITY   = -std=legacy
+
+447.dealII=default=default=default:
+CXXPORTABILITY = -fpermissive
+
+450.soplex=default=default=default:
+CXXPORTABILITY = -std=c++03
 
 462.libquantum=default=default=default:
-CPORTABILITY   =  -DSPEC_CPU_LINUX
+CPORTABILITY   = -DSPEC_CPU_LINUX
 
 483.xalancbmk=default=default=default:
 CXXPORTABILITY = -DSPEC_CPU_LINUX
@@ -143,4 +154,4 @@ CPORTABILITY   = -DSPEC_CPU_CASE_FLAG -DSPEC_CPU_LINUX
 #####################################################################
 
 notes_submit_005 =See the configuration file for details.
- 
+

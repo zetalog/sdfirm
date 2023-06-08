@@ -63,7 +63,7 @@ license_num     = 0
 
 # Operating system, file system
 
-sw_os           = RISC-V Proxy-Kernel Version Unknown
+sw_os           = RISC-V Sdfirm Linux
 sw_file         = Unknown File System
 sw_state        = Multi-user
 sw_other        = None
@@ -84,7 +84,7 @@ ignore_errors = yes
 tune          = base
 basepeak      = yes
 ext           = riscv
-output_format = asc,csv,html
+output_format = asc,csv
 output_root   = /opt/cpu2006
 
 # The publicly-accessible PathScale flags file at the URL below works
@@ -138,7 +138,7 @@ CPORTABILITY   = -DSPEC_CPU_LINUX_X64 -std=gnu89
 416.gamess=default=default=default:
 CPORTABILITY   = -funconstrained-commons
 FPORTABILITY   = -std=legacy
- 
+
 447.dealII=default=default=default:
 CXXPORTABILITY = -fpermissive
 
@@ -165,4 +165,4 @@ CPORTABILITY   = -DSPEC_CPU_CASE_FLAG -DSPEC_CPU_LINUX
 #####################################################################
 
 notes_submit_005 =See the configuration file for details.
- 
+
