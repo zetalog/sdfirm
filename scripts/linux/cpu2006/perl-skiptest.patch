@@ -46,7 +46,7 @@ Index: cpu2006/tools/src/buildtools
  
      # Only copy libperl if Perl is built to use the shared object
      (cd perl-$PERLVER
-@@ -418,10 +422,11 @@ if [ -n "$DOPERL2" ] || [ -z "$SKIPPERL2
+@@ -418,11 +422,12 @@ if [ -n "$DOPERL2" ] || [ -z "$SKIPPERL2
        set -x
        $INSTALLBIN/perl Makefile.PL -n; testordie "error making Makefile for $i"
        MAKEFLAGS= $MYMAKE install; testordie "error building/installing $i"
@@ -54,14 +54,16 @@ Index: cpu2006/tools/src/buildtools
 -      # the tests will actually use the installed modules.  It doesn't really
 -      # matter either way -- if the test fails, the whole run is scrapped.
 -      [ -f $i/spec_do_no_tests ] || ($MYMAKE test; testordie "error running $i test suite")
+-       )
 +      if [ -n "$DOPERLTEST" ] || [ -z "$SKIPPERLTEST" ]; then
 +        # The tests are done after the install; because of the lib path munging,
 +        # the tests will actually use the installed modules.  It doesn't really
 +        # matter either way -- if the test fails, the whole run is scrapped.
 +        [ -f $i/spec_do_no_tests ] || ($MYMAKE test; testordie "error running $i test suite")
-       )
++      fi)
      done
  
+     # XML::SAX::ExpatXS is special, because we shouldn't even TRY unless
 @@ -443,11 +448,13 @@ if [ -n "$DOPERL2" ] || [ -z "$SKIPPERL2
            fi
          fi

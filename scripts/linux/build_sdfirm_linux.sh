@@ -282,11 +282,13 @@ build_test()
 		echo "dhrystone 50" >> ${EARLY_TEST}
 		echo "linpack" >> ${EARLY_TEST}
 		echo "dhrystone 200000000" >> ${EARLY_TEST}
+		echo "coremark" >> ${EARLY_TEST}
 	fi
 	if [ "x${TEST_EARLY}" = "xcpu2006" ]; then
 		build_cpu2006
 		echo "#!/bin/sh" > ${EARLY_TEST}
-		echo "/opt/cpu2006/cpu2006.sh" >> ${EARLY_TEST}
+		echo "ARCH=${ARCH}" >> ${EARLY_TEST}
+		cat ${SCRIPT}/cpu2006/run.sh >> ${EARLY_TEST}
 	fi
 	if [ "x${TEST_EARLY}" = "xlitmus" ]; then
 		build_litmus
