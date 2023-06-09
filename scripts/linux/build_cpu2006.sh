@@ -13,14 +13,13 @@ CPU2006_DATA=all
 CPU2006_REPORTABLE=yes
 CPU2006_METRICS=speed
 CPU2006_COPIES=4
-CPU2006_ITERATIONS=3
 CPU2006_OUTPUT_ROOT=/opt/cpu2006
 
 usage()
 {
 	echo "Usage:"
 	echo "`basename $0` [-b benchmark] [-c] [-r] [-h] [-t]"
-	echo "              [-d data] [-m metrics] [-i iter]"
+	echo "              [-d data] [-m metrics]"
 	echo "Where:"
 	echo " -b bench:    specify benchmark"
 	echo "    cint:     all CINT2006 benchmarks"
@@ -39,7 +38,6 @@ usage()
 	echo " -m metrics:  specify the testing metrics"
 	echo "    speed:    SPECspeed testing metrics (default)"
 	echo "    rate:     SPECrate testing metrics (copies:4)"
-	echo " -i iter:     specify the iterations for ref data set (default:3)"
 	echo " -c:          force cleanup benchmarks"
 	echo " -r:          force rebuild benchmarks"
 	echo " -h:          force rebuild host tools"
@@ -132,7 +130,7 @@ fi
 
 cpu2006_init
 
-while getopts "b:cd:i:m:rht" opt
+while getopts "b:cd:m:rht" opt
 do
 	case $opt in
 	b) if [ "x$OPTARG" = "xdefault" ]; then
@@ -152,7 +150,6 @@ do
 		CPU2006_BENCHMARKS="$CPU2006_BENCHMARKS $OPTARG"
 	   fi;;
 	d) CPU2006_DATA=$OPTARG;;
-	i) CPU2006_ITERATIONS=$OPTARG;;
 	m) CPU2006_METRICS=$OPTARG;;
 	c) CPU2006_CLEAN_BENCHES=yes;;
 	r) CPU2006_BUILD_BENCHES=yes;;
@@ -208,12 +205,8 @@ CPU2006_OPTS="--config $ARCH --size $CPU2006_DATA"
 if [ "x${CPU2006_METRICS}" = "xrate" ]; then
 	CPU2006_OPTS="${CPU2006_OPTS} --rate ${CPU2006_COPIES}"
 fi
-if [ "x${CPU2006_DATA}" = "xref" ]; then
-	CPU2006_OPTS="${CPU2006_OPTS} --iterations ${CPU2006_ITERATIONS}"
-fi
 if [ "x${CPU2006_DATA}" = "xall" ]; then
-	CPU2006_OPTS="ref test train"
-	CPU2006_OPTS="${CPU2006_OPTS} --iterations ${CPU2006_ITERATIONS}"
+	CPU2006_DATA="ref test train"
 fi
 if [ "x${CPU2006_CLEAN_BENCHES}" = "xyes" ]; then
 	echo "Cleaning cpu2006 binaries from $CPU2006_ROOT..."
@@ -247,13 +240,13 @@ if [ "x${CPU2006_BUILD_BENCHES}" = "xyes" ]; then
 		# Installing benbchmarks
 		cd $CPU2006_OUTPUT_ROOT
 		for b in ${CPU2006_BENCHMARKS}; do
-			echo "Generating ${b}.sh..."
-
 			for s in ${CPU2006_DATA}; do
 				CPU2006_RUNBASE=/benchspec/CPU2006/${b}/run/run_base_${s}_${ARCH}.0000
 				CPU2006_HOSTDIR=${CPU2006_OUTPUT_ROOT}${CPU2006_RUNBASE}
 				CPU2006_TARGETDIR=${CPU2006_DIR}${CPU2006_RUNBASE}
+				if [ -d ${CPU2006_HOSTDIR} ]; then
 				(
+					echo "Generating ${b}.sh..."
 					echo ${CPU2006_HOSTDIR}
 					cd ${CPU2006_HOSTDIR}
 					echo "#!/bin/sh" > ./${b}.sh
@@ -261,11 +254,14 @@ if [ "x${CPU2006_BUILD_BENCHES}" = "xyes" ]; then
 					chmod +x ./${b}.sh
 					ls
 				)
+				fi
 			done
-			mkdir -p ${CPU2006_OUTPUT_ROOT}/config
-			cp -f $CPU2006_ROOT/config/$ARCH.cfg \
-				${CPU2006_OUTPUT_ROOT}/config/$ARCH.cfg
 		done
+		mkdir -p ${CPU2006_OUTPUT_ROOT}/config
+		cp -f $CPU2006_ROOT/config/$ARCH.cfg \
+			${CPU2006_OUTPUT_ROOT}/config/$ARCH.cfg
+		cp -f $CPU2006_ROOT/shrc \
+			${CPU2006_OUTPUT_ROOT}/shrc
 	)
 	CPU2006_ARCHIVE=yes
 fi
@@ -278,14 +274,17 @@ if [ "x${CPU2006_ARCHIVE}" = "xyes" ]; then
 	# Installing benchmarks
 	BENCHMARKS=(${CPU2006_BENCHMARKS})
 	for b in $CPU2006_BENCHMARKS; do
-		echo "Installing $b..."
-
-		CPU2006_RUNBASE=/benchspec/CPU2006/$b/run/run_base_${CPU2006_DATA}_${ARCH}.0000
-		CPU2006_HOSTDIR=${CPU2006_OUTPUT_ROOT}${CPU2006_RUNBASE}
-		CPU2006_TARGETDIR=${CPU2006_DIR}${CPU2006_RUNBASE}
-		# Install run directory
-		mkdir -p ${CPU2006_TARGETDIR}
-		cp -rf ${CPU2006_HOSTDIR}/* ${CPU2006_TARGETDIR}/
+		for s in ${CPU2006_DATA}; do
+			CPU2006_RUNBASE=/benchspec/CPU2006/${b}/run/run_base_${s}_${ARCH}.0000
+			CPU2006_HOSTDIR=${CPU2006_OUTPUT_ROOT}${CPU2006_RUNBASE}
+			CPU2006_TARGETDIR=${CPU2006_DIR}${CPU2006_RUNBASE}
+			# Install run directory
+			if [ -d ${CPU2006_HOSTDIR} ]; then
+				echo "Installing $b..."
+				mkdir -p ${CPU2006_TARGETDIR}
+				cp -rf ${CPU2006_HOSTDIR}/* ${CPU2006_TARGETDIR}/
+			fi
+		done
 	done
 	mkdir -p ${CPU2006_DIR}/config
 	cp -f $CPU2006_OUTPUT_ROOT/config/$ARCH.cfg \

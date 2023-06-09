@@ -2,17 +2,6 @@
 #
 # NOTE: This file is modified from $SPEC/tools/src/buildtools
 CROSS_COMPILE=riscv64-unknown-linux-gnu
-SKIPTOOLSCP=1
-SKIPTOOLSRM=1
-SKIPCLEAN=1
-SKIPMAKE=1
-SKIPXZ=1
-SKIPTAR=1
-SKIPMD5=1
-SKIPSPECINVOKE=1
-SKIPRXP=1
-SKIPEXPAT=1
-SKIPPERL=1
 
 # Never used in cross compilation.
 SKIPPERL2=1
@@ -618,8 +607,13 @@ if [ -n "$DOCOPY" ] || [ -z "$SKIPCOPY" ]; then
 	    echo "Uh-oh! I appear to have had problems building 'perl'"
 	    error=yes
 	fi
-    elif $CPU2006_SPECBIN/spectar -C $INSTALLDIR/lib/perl5 --exclude=.svn --exclude=CVS -cf - . | $CPU2006_SPECBIN/spectar -C $SPECBIN/lib -xvf -; then
-	true
+    elif [ -d $INSTALLDIR/lib/perl5 ]; then
+        if $CPU2006_SPECBIN/spectar -C $INSTALLDIR/lib/perl5 --exclude=.svn --exclude=CVS -cf - . | $CPU2006_SPECBIN/spectar -C $SPECBIN/lib -xvf -; then
+            true
+        else
+	    echo "Uh-oh! I appear to have had problems building 'perl'"
+	    error=yes
+        fi
     elif $CPU2006_SPECBIN/spectar -C $INSTALLDIR/lib/perl --exclude=.svn --exclude=CVS -cf - . | $CPU2006_SPECBIN/spectar -C $SPECBIN/lib -xvf -; then
 	true
     else

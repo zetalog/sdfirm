@@ -159,7 +159,7 @@ if [ "x${BUILD_LITMUS}" = "xyes" ]; then
 fi
 # Build SPEC CPU2006 benchmark tests
 if [ "x${BUILD_CPU2006}" = "xyes" ]; then
-	${SCRIPT}/build_cpu2006.sh -r ${CPU2006_OPTS}
+	${SCRIPT}/build_cpu2006.sh -h -t -r ${CPU2006_OPTS}
 fi
 
 # Build linux image along with rootfs
