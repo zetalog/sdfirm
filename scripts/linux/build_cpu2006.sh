@@ -9,7 +9,7 @@ WORKING_DIR=`(cd ${SCRIPT}/../../..; pwd)`
 CPU2006_BENCHMARKS=
 CPU2006_CINT2006=
 CPU2006_CFP2006=
-CPU2006_DATA=all
+CPU2006_DATA="test ref train"
 CPU2006_REPORTABLE=yes
 CPU2006_METRICS=speed
 CPU2006_COPIES=4
@@ -149,7 +149,11 @@ do
 	   else
 		CPU2006_BENCHMARKS="$CPU2006_BENCHMARKS $OPTARG"
 	   fi;;
-	d) CPU2006_DATA=$OPTARG;;
+	d) if [ "x$OPTARG" = "xall" ]; then
+		CPU2006_DATA="test ref train"
+	   else
+		CPU2006_DATA=$OPTARG
+	   fi;;
 	m) CPU2006_METRICS=$OPTARG;;
 	c) CPU2006_CLEAN_BENCHES=yes;;
 	r) CPU2006_BUILD_BENCHES=yes;;
@@ -201,12 +205,9 @@ if [ "x${CPU2006_BUILD_TARGET_TOOLS}" = "xyes" ]; then
 	${SCRIPT}/cpu2006/buildtools
 fi
 CPU2006_ARCHIVE=yes
-CPU2006_OPTS="--config $ARCH --size $CPU2006_DATA"
+CPU2006_OPTS="--config $ARCH"
 if [ "x${CPU2006_METRICS}" = "xrate" ]; then
 	CPU2006_OPTS="${CPU2006_OPTS} --rate ${CPU2006_COPIES}"
-fi
-if [ "x${CPU2006_DATA}" = "xall" ]; then
-	CPU2006_DATA="ref test train"
 fi
 if [ "x${CPU2006_CLEAN_BENCHES}" = "xyes" ]; then
 	echo "Cleaning cpu2006 binaries from $CPU2006_ROOT..."
@@ -215,6 +216,9 @@ if [ "x${CPU2006_CLEAN_BENCHES}" = "xyes" ]; then
 	(
 		cd $CPU2006_ROOT
 		. ./shrc
+		echo "============================================="
+		echo "runspec $CPU2006_OPTS --action scrub $CPU2006_BENCHMARKS"
+		echo "============================================="
 		time runspec $CPU2006_OPTS --action scrub $CPU2006_BENCHMARKS
 	)
 	CPU2006_ARCHIVE=no
@@ -230,12 +234,18 @@ if [ "x${CPU2006_BUILD_BENCHES}" = "xyes" ]; then
 	rm -rf $CPU2006_OUTPUT_ROOT || exit 1
 	mkdir -p $CPU2006_OUTPUT_ROOT || exit 1
 
+	rm -f $CPU2006_ROOT/config/$ARCH.cfg*
 	cp -f $CPU2006_CONFIG $CPU2006_ROOT/config/$ARCH.cfg
 	BENCHMARKS=(${CPU2006_BENCHMARKS})
 	(
 		cd $CPU2006_ROOT
 		. ./shrc
-		time runspec $CPU2006_OPTS --action setup $CPU2006_BENCHMARKS
+		for s in ${CPU2006_DATA}; do
+			echo "============================================="
+			echo "runspec $CPU2006_OPTS --action setup --size $s $CPU2006_BENCHMARKS"
+			echo "============================================="
+			time runspec $CPU2006_OPTS --action setup --size $s $CPU2006_BENCHMARKS
+		done
 
 		# Installing benbchmarks
 		cd $CPU2006_OUTPUT_ROOT
