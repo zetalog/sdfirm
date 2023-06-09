@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.33.0.git
-# Thu Jun 23 16:03:11 2022
+# Fri Jun  9 22:22:50 2023
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -305,9 +305,9 @@ CONFIG_TAIL=y
 CONFIG_FEATURE_FANCY_TAIL=y
 CONFIG_TEE=y
 CONFIG_FEATURE_TEE_USE_BLOCK_IO=y
-# CONFIG_TEST is not set
+CONFIG_TEST=y
 CONFIG_TEST1=y
-# CONFIG_TEST2 is not set
+CONFIG_TEST2=y
 # CONFIG_FEATURE_TEST_64 is not set
 # CONFIG_TIMEOUT is not set
 CONFIG_TOUCH=y
@@ -615,7 +615,6 @@ CONFIG_FEATURE_FDISK_ADVANCED=y
 # CONFIG_GETOPT is not set
 # CONFIG_FEATURE_GETOPT_LONG is not set
 CONFIG_HEXDUMP=y
-CONFIG_FEATURE_HEXDUMP_REVERSE=y
 # CONFIG_HD is not set
 # CONFIG_XXD is not set
 # CONFIG_HWCLOCK is not set

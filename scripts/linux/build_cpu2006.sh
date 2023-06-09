@@ -107,7 +107,7 @@ cpu2006_benchmarks()
 	done
 }
 
-cpu2006_tools()
+cpu2006_build_host_tools()
 {
 	(
 		cd ${CPU2006_ROOT}/tools/src
@@ -180,6 +180,7 @@ CPU2006_COMMANDS=commands.txt
 CPU2006_DIR=${TOP}/obj/bench${CPU2006_OUTPUT_ROOT}
 
 if [ "x${CPU2006_BUILD_HOST_TOOLS}" = "xyes" ]; then
+	(
 	# Tune buildtools steps
 	#export SKIPTOOLSRM=1
 	#export SKIPCLEAN=1
@@ -193,9 +194,12 @@ if [ "x${CPU2006_BUILD_HOST_TOOLS}" = "xyes" ]; then
 	#export SKIPPERL=1
 	#export SKIPPERL2=1
 	#export SKIPCOPY=1
-	cpu2006_tools
+	echo "CPU2006: Building host tools..."
+	cpu2006_build_host_tools
+	)
 fi
 if [ "x${CPU2006_BUILD_TARGET_TOOLS}" = "xyes" ]; then
+	(
 	# Tune buildtools steps
 	#export SKIPTOOLSCP=1
 	#export SKIPTOOLSRM=1
@@ -209,7 +213,9 @@ if [ "x${CPU2006_BUILD_TARGET_TOOLS}" = "xyes" ]; then
 	#export SKIPEXPAT=1
 	#export SKIPPERL=1
 	#export SKIPCOPY=1
+	echo "CPU2006: Building target tools..."
 	${SCRIPT}/cpu2006/buildtools
+	)
 fi
 CPU2006_ARCHIVE=yes
 CPU2006_OPTS="--config $ARCH"
