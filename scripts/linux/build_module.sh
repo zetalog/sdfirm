@@ -310,12 +310,13 @@ function build_initramfs()
 	if [ "x${BUILD_LIB}" != "xno" ]; then
 		SYSROOT=`get_sysroot`
 		echo "Installing rootfs toolchain ${SYSROOT}..."
-		install_initramfs ${SYSROOT} /sbin
-		install_initramfs ${SYSROOT} /lib
-		install_initramfs ${SYSROOT} /usr/bin
-		install_initramfs ${SYSROOT} /usr/sbin
-		install_initramfs ${SYSROOT} /usr/lib
-		install_initramfs ${SYSROOT} /usr/libexec
+		install_initramfs ${SYSROOT}
+		#install_initramfs ${SYSROOT} /sbin
+		#install_initramfs ${SYSROOT} /lib
+		#install_initramfs ${SYSROOT} /usr/bin
+		#install_initramfs ${SYSROOT} /usr/sbin
+		#install_initramfs ${SYSROOT} /usr/lib
+		#install_initramfs ${SYSROOT} /usr/libexec
 	fi
 
 	if [ -x $TOP/obj/bench ]; then
