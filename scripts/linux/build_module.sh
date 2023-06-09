@@ -70,6 +70,7 @@ function build_busybox()
 	(
 	cd $BUSYBOX_PATH
 	if [ "xyes" = "x${FORCE_REBUILD}" ]; then
+		echo "Rebuilding $BUSYBOX_CONFIG..."
 		# Doing modcfgs in the original directory and save my_defconfig
 		cp $SCRIPT/config/$BUSYBOX_CONFIG configs/my_defconfig
 		if [ "xyes" = "x${BUILD_TINY}" ]; then
@@ -163,14 +164,14 @@ install_initramfs_one()
 			install_initramfs_slink
 		else
 			if [ -x ${ROOTFS_HOST} ]; then
-				ROOTFS_LIBS=`ldd ${ROOTFS_HOST} | \
-					sort | uniq | \
-					awk -F\= '{print $2}' | \
-					awk '{print $2}' | uniq`
-				for ROOTFS_LIB in ${ROOTFS_LIBS} ; do
-					install_initramfs_lib \
-						$1 ${ROOTFS_LIB}
-				done
+				#ROOTFS_LIBS=`ldd ${ROOTFS_HOST} | \
+				#	sort | uniq | \
+				#	awk -F\= '{print $2}' | \
+				#	awk '{print $2}' | uniq`
+				#for ROOTFS_LIB in ${ROOTFS_LIBS} ; do
+				#	install_initramfs_lib \
+				#		$1 ${ROOTFS_LIB}
+				#done
 				file ${ROOTFS_HOST} | grep shell >/dev/null
 				if [ $? != 0 ]; then
 					echo "Stripping ${ROOTFS_HOST}..."
@@ -311,8 +312,10 @@ function build_initramfs()
 		echo "Installing rootfs toolchain ${SYSROOT}..."
 		install_initramfs ${SYSROOT} /sbin
 		install_initramfs ${SYSROOT} /lib
-		install_initramfs ${SYSROOT} /usr/bin/ldd
+		install_initramfs ${SYSROOT} /usr/bin
+		install_initramfs ${SYSROOT} /usr/sbin
 		install_initramfs ${SYSROOT} /usr/lib
+		install_initramfs ${SYSROOT} /usr/libexec
 	fi
 
 	if [ -x $TOP/obj/bench ]; then
@@ -336,14 +339,14 @@ function build_initramfs()
 function build_linux()
 {
 	echo "== Build Linux =="
-	echo "Building $LINUX_CONFIG..."
 	if [ "xyes" = "x${FORCE_REBUILD}" ]; then
 		rm -rf $TOP/obj/linux-$ARCH
-		#mkdir -p $TOP/obj/linux-$ARCH
+		mkdir -p $TOP/obj/linux-$ARCH
 	fi
 	(
 	cd $LINUX_PATH
 	if [ "xyes" = "x${FORCE_REBUILD}" ]; then
+		echo "Rebuilding $LINUX_CONFIG..."
 		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE distclean
 		# Doing modcfgs in the original directory and save my_defconfig
 		cp $SCRIPT/config/$LINUX_CONFIG arch/riscv/configs/my_defconfig
@@ -504,7 +507,7 @@ do
 	m) M_MODE=yes
 	   BBL=$OPTARG;;
 	n) HOSTNAME=$OPTARG;;
-	r) FORCE_REBUILD=yess;;
+	r) FORCE_REBUILD=yes;;
 	s) S_MODE=yes;;
 	u) U_MODE=yes;;
 	?) echo "Invalid argument $opt"

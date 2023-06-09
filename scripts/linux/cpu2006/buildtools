@@ -141,6 +141,7 @@ if [ -n "$DOCLEAN" ] || [ -z "$SKIPCLEAN" ]; then
     echo "=== Don't worry about errors below this ==="
     echo "==========================================="
     # Make sure that files can be removed
+    rm -rf ${CPU2006_BUILD}/tools/src/perl-*
     find . \( -name .svn -prune \) -o \( -type d -exec chmod u+rwx {} \; \)
     for i in */.; do (cd $i; MAKEFLAGS= make -k realclean; MAKEFLAGS= make -k distclean; MAKEFLAGS= make -k clean) 2>&1 | grep -v "No rule to make target" | grep -v "Nothing to be done"; done
     echo Now doing extra-special cleaning...
@@ -187,6 +188,7 @@ echo "================================================================"
 echo "=== Patching perl                                            ==="
 echo "================================================================"
 (
+    cp -rf ${CPU2006_ROOT}/tools/src/perl-* ${CPU2006_BUILD}/tools/src/
     cd ${CPU2006_BUILD}/tools/src
     tar -zxvf ${SCRIPT}/perl-5.12.3-cross-0.5.tar.gz > /dev/null
     if [ -n "$DOPERL" ] || [ -z "$SKIPPERL" ]; then
@@ -244,13 +246,10 @@ if [ -n "$DOMAKE" ] || [ -z "$SKIPNONPERL" ] && [ -z "$SKIPMAKE" ]; then
     LDFLAGS="$ALLLDFLAGS $MAKELDFLAGS"; export LDFLAGS
     LIBS="$ALLLIBS $MAKELIBS"; export LIBS
     ./configure --host=${CROSS_COMPILE} --target=riscv64 $CONFIGFLAGS $MAKECONFFLAGS --prefix=$INSTALLDIR; testordie "error configuring make"
-    echo "here 1"
     sh build.sh; testordie "error building make with build.sh"
     PATH=`pwd`:$PATH
     export PATH
-    echo "here 2"
     $MYMAKE; testordie "error rebuilding make with make"
-    echo "here 3"
     MAKEFLAGS= $MYMAKE install; testordie "error installing make")
 fi
 
@@ -327,9 +326,6 @@ if [ -n "$DOMD5" ] || [ -z "$SKIPNONPERL" ] && [ -z "$SKIPMD5" ]; then
 fi
 
 if [ -n "$DOSPECINVOKE" ] || [ -z "$SKIPNONPERL" ] && [ -z "$SKIPSPECINVOKE" ]; then
-    echo "================================================================"
-    echo "=== Building specinvoke                                      ==="
-    echo "================================================================"
     (cd $CPU2006_BUILD
     specinvokedir=`ls ./tools/src | grep specinvoke`
     if [ ! -f ./tools/src/$specinvokedir/.SPECINVOKE_PATCHED ]; then
@@ -340,6 +336,9 @@ if [ -n "$DOSPECINVOKE" ] || [ -z "$SKIPNONPERL" ] && [ -z "$SKIPSPECINVOKE" ]; 
         chmod +x ./tools/src/$specinvokedir/autogen.sh
         touch ./tools/src/$specinvokedir/.SPECINVOKE_PATCHED
     fi)
+    echo "================================================================"
+    echo "=== Building specinvoke                                      ==="
+    echo "================================================================"
     (cd specinvoke*
     # Fool autoconf and friends
     find . $FOOL_AC_FILES -print | xargs touch

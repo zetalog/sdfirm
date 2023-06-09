@@ -159,10 +159,16 @@ if [ "x${BUILD_LITMUS}" = "xyes" ]; then
 fi
 # Build SPEC CPU2006 benchmark tests
 if [ "x${BUILD_CPU2006}" = "xyes" ]; then
-	${SCRIPT}/build_cpu2006.sh -h -t -r ${CPU2006_OPTS}
+	${SCRIPT}/build_cpu2006.sh -t -r ${CPU2006_OPTS}
 fi
 
 # Build linux image along with rootfs
 ${SCRIPT}/build_module.sh ${BUILD_MODULE_OPS} build
+
+if [ "x${BUILD_CPU2006}" = "xyes" ]; then
+	CPU2006_PERL_DIR=${TOP}/obj/bench/usr/bin
+	mkdir -p $CPU2006_PERL_DIR
+	(cd ${CPU2006_PERL_DIR}; ln -s ${CPU2006_OUTPUT_ROOT}/bin/specperl ./perl)
+fi
 
 cp -f ${TOP}/obj/linux-riscv/arch/${ARCH}/boot/Image ${SDFIRM_DIR}/Image
