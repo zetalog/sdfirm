@@ -18,11 +18,13 @@ WORKING_DIR=`(cd ${SCRIPT}/../../../..; pwd)`
 
 CPU2006_ROOT=${WORKING_DIR}/cpu2006
 CPU2006_BUILD=${WORKING_DIR}/obj/cpu2006-riscv
-CPU2006_INSTALL=${WORKING_DIR}/obj/bench/opt/cpu2006
 
-mkdir -p ${CPU2006_BUILD}/tools/src
 if [ -n "$DOTOOLSCP" ] || [ -z "$SKIPTOOLSCP" ]; then
+	rm -rf ${CPU2006_BUILD}/*
+	mkdir -p ${CPU2006_BUILD}/tools/src
 	cp -rf ${CPU2006_ROOT}/tools/src/* ${CPU2006_BUILD}/tools/src/
+else
+	mkdir -p ${CPU2006_BUILD}/tools/src
 fi
 
 # Provide our PID to children in a nice, portable way
@@ -328,6 +330,16 @@ if [ -n "$DOSPECINVOKE" ] || [ -z "$SKIPNONPERL" ] && [ -z "$SKIPSPECINVOKE" ]; 
     echo "================================================================"
     echo "=== Building specinvoke                                      ==="
     echo "================================================================"
+    (cd $CPU2006_BUILD
+    specinvokedir=`ls ./tools/src | grep specinvoke`
+    if [ ! -f ./tools/src/$specinvokedir/.SPECINVOKE_PATCHED ]; then
+        echo "================================================================"
+        echo "=== Patching specinvoke                                      ==="
+        echo "================================================================"
+        patch -p 1 < ${SCRIPT}/specinvoke-cross.patch
+        chmod +x ./tools/src/$specinvokedir/autogen.sh
+        touch ./tools/src/$specinvokedir/.SPECINVOKE_PATCHED
+    fi)
     (cd specinvoke*
     # Fool autoconf and friends
     find . $FOOL_AC_FILES -print | xargs touch
@@ -336,6 +348,7 @@ if [ -n "$DOSPECINVOKE" ] || [ -z "$SKIPNONPERL" ] && [ -z "$SKIPSPECINVOKE" ]; 
     CPPFLAGS="$ALLCPPFLAGS $SPECINVOKECPPFLAGS"; export CPPFLAGS
     LDFLAGS="$ALLLDFLAGS $SPECINVOKELDFLAGS"; export LDFLAGS
     LIBS="$ALLLIBS $SPECINVOKELIBS"; export LIBS
+    ./autogen.sh
     ./configure --host=${CROSS_COMPILE} --target=riscv64 $CONFIGFLAGS $SPECINVOKEFLAGS --prefix=$INSTALLDIR; testordie "error configuring specinvoke"
     $MYMAKE; testordie "error building specinvoke"
     MAKEFLAGS= $MYMAKE install; testordie "error installing specinvoke")

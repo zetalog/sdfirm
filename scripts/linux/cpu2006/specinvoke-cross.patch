@@ -1,0 +1,56 @@
+Index: cpu2006-riscv/tools/src/specinvoke/autogen.sh
+===================================================================
+--- /dev/null
++++ cpu2006-riscv/tools/src/specinvoke/autogen.sh
+@@ -0,0 +1,8 @@
++#!/bin/sh
++
++set -e -x
++
++${ACLOCAL:-aclocal}
++${AUTOHEADER:-autoheader}
++${AUTOCONF:-autoconf}
++${AUTOMAKE:-automake} -acf --foreign
+Index: cpu2006-riscv/tools/src/specinvoke/configure.in
+===================================================================
+--- cpu2006-riscv.orig/tools/src/specinvoke/configure.in
++++ cpu2006-riscv/tools/src/specinvoke/configure.in
+@@ -1,7 +1,7 @@
+ dnl Process this file with autoconf to produce a configure script.
+ AC_REVISION([ $Id: configure.in 6361 2011-03-03 22:29:36Z cloyce $ ])
+-AC_INIT(specinvoke.c)
+-
++AC_INIT(specinvoke.c, 1.0)
++AM_INIT_AUTOMAKE
+ AC_CONFIG_HEADER(config.h)
+ 
+ dnl AC_CANONICAL_SYSTEM
+@@ -49,4 +49,9 @@ dnl check for environment variables
+ AC_SUBST(OPTIMIZE)
+ AC_SUBST(USE_GETOPT_C)
+ 
+-AC_OUTPUT(Makefile pm_stub/Makefile)
++AC_MSG_CHECKING(--disable-nls argument)
++AC_ARG_ENABLE(nls,
++	[  --disable-nls           Don't support NLS (gettext()).], ,
++	[enable_nls="yes"])
++
++AC_OUTPUT(Makefile)
+Index: cpu2006-riscv/tools/src/specinvoke/Makefile.am
+===================================================================
+--- /dev/null
++++ cpu2006-riscv/tools/src/specinvoke/Makefile.am
+@@ -0,0 +1,13 @@
++PM_DIR=pm_stub
++include $(PM_DIR)/Makefile.settings
++
++bin_PROGRAMS = specinvoke specinvoke_pm
++
++specinvoke_SOURCES = specinvoke.c unix.c getopt.c specinvoke.h
++specinvoke_pm_SOURCES = specinvoke.pm.c unix.pm.c getopt.c pmfuncs.c $(PM_DIR)/specinvoke_pm.h specinvoke.h
++specinvoke_pm_CPPFLAGS = -DPERFMON -I$(PM_DIR)
++
++%.pm.c: %.c
++	cp -f $< $@
++%.c: $(PM_DIR)/%.c
++	cp -f $< $@

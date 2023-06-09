@@ -3,10 +3,17 @@
 # This scripts build sdfirm bootable Linux image with early/late test
 # specified.
 
-TOP=`pwd`
-SCRIPT=`(cd \`dirname $0\`; pwd)`
-WORKING_DIR=`(cd ${SCRIPT}/../../..; pwd)`
+if [ -z $SDFIRM_ROOT ]; then
+	echo "SDFIRM_ROOT must be specified!"
+	echo "As this script is sourced by the invoker, you must specify"
+	echo "the abstract path of this script via SDFIRM_ROOT"
+	echo "environment."
+	exit 1
+fi
 
+TOP=`pwd`
+SCRIPT=`(cd ${SDFIRM_ROOT}/scripts/linux; pwd)`
+WORKING_DIR=`(cd ${SCRIPT}/../../..; pwd)`
 if [ -z $ARCH ]; then
 	ARCH=riscv
 fi
@@ -46,10 +53,8 @@ if [ -z $TEST_LATE ]; then
 fi
 # Control if customer's rootfs is specified
 #BUILD_CUSTOMER=kuhan
-
-if [ -z $SDFIRM_ROOT ]; then
-	SDFIRM_ROOT=${BUILD_ROOT}/sdfirm
-fi
+# Update SDFIRM_ROOT to abstract path
+SDFIRM_ROOT=${BUILD_ROOT}/sdfirm
 if [ -z $LINUX_ROOT ]; then
 	LINUX_ROOT=${BUILD_ROOT}/linux
 fi
@@ -62,6 +67,7 @@ SCRIPT=${SDFIRM_ROOT}/scripts/linux
 export ARCH
 export MACH
 export CROSS_COMPILE
+export SDFIRM_ROOT
 export LITMUS_ROOT
 
 # Customer support
@@ -288,7 +294,13 @@ build_test()
 		build_cpu2006
 		echo "#!/bin/sh" > ${EARLY_TEST}
 		echo "ARCH=${ARCH}" >> ${EARLY_TEST}
-		cat ${SCRIPT}/cpu2006/run.sh >> ${EARLY_TEST}
+		if [ "x${CPU2006_REPORT}" = "x" ]; then
+			# stress test only
+			cat ${SCRIPT}/cpu2006/run.sh >> ${EARLY_TEST}
+		else
+			# Waiting for runspec to work
+			echo "exit 0" >> ${EARLY_TEST}
+		fi
 	fi
 	if [ "x${TEST_EARLY}" = "xlitmus" ]; then
 		build_litmus
