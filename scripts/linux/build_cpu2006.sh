@@ -155,19 +155,19 @@ cpu2006_install_target_tools()
 }
 
 if [ -z $ARCH ]; then
-	ARCH=riscv
+	export ARCH=riscv
 fi
 if [ -z $MACH ]; then
-	MACH=spike64
+	export MACH=spike64
 fi
 if [ -z ${CROSS_COMPILE} ]; then
 	export CROSS_COMPILE=riscv64-unknown-linux-gnu-
 fi
 if [ -z ${CPU2006_ROOT} ]; then
-	CPU2006_ROOT=${WORKING_DIR}/cpu2006
+	export CPU2006_ROOT=${WORKING_DIR}/cpu2006
 fi
 if [ -z ${CPU2006_BUILD} ]; then
-	CPU2006_BUILD=${WORKING_DIR}/obj/cpu2006-riscv
+	export CPU2006_BUILD=${WORKING_DIR}/obj/cpu2006-riscv
 fi
 
 cpu2006_init

@@ -1,7 +1,6 @@
 #!/bin/sh
 #
 # NOTE: This file is modified from $SPEC/tools/src/buildtools
-CROSS_COMPILE=riscv64-unknown-linux-gnu
 
 # Never used in cross compilation.
 SKIPTOOLSRM=1
@@ -17,8 +16,18 @@ TOP=`pwd`
 SCRIPT=`(cd \`dirname $0\`; pwd)`
 WORKING_DIR=`(cd ${SCRIPT}/../../../..; pwd)`
 
-CPU2006_ROOT=${WORKING_DIR}/cpu2006
-CPU2006_BUILD=${WORKING_DIR}/obj/cpu2006-riscv
+if [ -z ${ARCH} ]; then
+	ARCH=riscv
+fi
+if [ -z ${CROSS_COMPILE} ]; then
+	CROSS_COMPILE=riscv64-unknown-linux-gnu-
+fi
+if [ -z ${CPU2006_ROOT} ]; then
+	CPU2006_ROOT=${WORKING_DIR}/cpu2006
+fi
+if [ -z ${CPU2006_BUILD} ]; then
+	CPU2006_BUILD=${WORKING_DIR}/obj/cpu2006-riscv
+fi
 
 mkdir -p ${CPU2006_BUILD}/tools/src
 if [ -n "$DOTOOLSCP" ] || [ -z "$SKIPTOOLSCP" ]; then
