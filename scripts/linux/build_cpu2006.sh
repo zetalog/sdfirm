@@ -107,12 +107,51 @@ cpu2006_benchmarks()
 	done
 }
 
+# Do not invoke this due to the failure in building target perl with a
+# duplicate and configured host perl source tree.
+# This feature is never invoked by build_image.sh and can only be used
+# directly via build_cpu2006.sh.
+# Note that, before using it please patch buildtools with
+# cpu2006/perl-skiptest.patch.
 cpu2006_build_host_tools()
 {
+	(
+		cd ${CPU2006_ROOT}
+		if [ ! -f ${CPU2006_ROOT}/tools/src/.BUILDTOOLS_PATCHED ]; then
+			patch -p 1 < ${SCRIPT}/cpu2006/perl-skiptest.patch
+			touch ${CPU2006_ROOT}/tools/src/.BUILDTOOLS_PATCHED
+		fi
+	)
 	(
 		cd ${CPU2006_ROOT}/tools/src
 		./buildtools
 	)
+}
+
+cpu2006_build_target_tools()
+{
+	${SCRIPT}/cpu2006/buildtools
+}
+
+cpu2006_install_target_tools()
+{
+	# Copy cross tools from CPU2006_BUILD to overwrite host tools
+	echo "Installing cpu2006 target tools from $CPU2006_BUILD..."
+	SPECBINFILES="configpp convert_to_development dumpsrcalt extract_config extract_flags extract_raw flag_dump flags_dump makesrcalt port_progress rawformat relocate runspec specdiff specpp toolsver verify_md5"
+	SPECBINDIRS="fonts formats formatter modules.specpp scripts.misc test"
+	rm -rf ${CPU2006_OUTPUT_ROOT}/bin
+	cp -rf $CPU2006_BUILD/bin ${CPU2006_OUTPUT_ROOT}/bin
+	cp -f $CPU2006_ROOT/bin/*.pl ${CPU2006_OUTPUT_ROOT}/bin/
+	cp -f $CPU2006_ROOT/bin/*.pm ${CPU2006_OUTPUT_ROOT}/bin/
+	for f in $SPECBINFILES; do
+		cp -f $CPU2006_ROOT/bin/$f ${CPU2006_OUTPUT_ROOT}/bin/
+	done
+	for d in $SPECBINDIRS; do
+		cp -rf $CPU2006_ROOT/bin/$d ${CPU2006_OUTPUT_ROOT}/bin/
+	done
+	cp -f $CPU2006_ROOT/bin/packagetools ${CPU2006_OUTPUT_ROOT}/bin/
+	cp -f $CPU2006_ROOT/bin/redistributable ${CPU2006_OUTPUT_ROOT}/bin/
+	cp -f $CPU2006_ROOT/bin/version.txt ${CPU2006_OUTPUT_ROOT}/bin/
 }
 
 if [ -z $ARCH ]; then
@@ -202,7 +241,6 @@ if [ "x${CPU2006_BUILD_TARGET_TOOLS}" = "xyes" ]; then
 	(
 	# Tune buildtools steps
 	#export SKIPTOOLSCP=1
-	#export SKIPTOOLSRM=1
 	#export SKIPCLEAN=1
 	#export SKIPMAKE=1
 	#export SKIPXZ=1
@@ -214,7 +252,7 @@ if [ "x${CPU2006_BUILD_TARGET_TOOLS}" = "xyes" ]; then
 	#export SKIPPERL=1
 	#export SKIPCOPY=1
 	echo "CPU2006: Building target tools..."
-	${SCRIPT}/cpu2006/buildtools
+	cpu2006_build_target_tools
 	)
 fi
 CPU2006_ARCHIVE=yes
@@ -297,11 +335,10 @@ if [ "x${CPU2006_ARCHIVE}" = "xyes" ]; then
 	cp -rf $CPU2006_ROOT/config/flags ${CPU2006_DIR}/config/flags
 	cp -rf $CPU2006_ROOT/Docs/flags ${CPU2006_DIR}/Docs/flags
 	cp -rf $CPU2006_ROOT/Docs/sysinfo ${CPU2006_DIR}/Docs/sysinfo
-	cp -rf $CPU2006_ROOT/bin ${CPU2006_DIR}/bin
 	cp -f $CPU2006_ROOT/shrc ${CPU2006_DIR}/shrc
 	cp -f $CPU2006_ROOT/MANIFEST ${CPU2006_DIR}/MANIFEST
-	cp -f $CPU2006_ROOT/SUMS.tools ${CPU2006_DIR}/SUMS.tools
 	cp -f $CPU2006_ROOT/version.txt ${CPU2006_DIR}/version.txt
+	cp -f $CPU2006_ROOT/SUMS.tools ${CPU2006_DIR}/SUMS.tools
 
 	# Copy cross tests from CPU2006_OUTPUT_ROOT to overwrite host tools
 	echo "Installing cpu2006 target tests from $CPU2006_OUTPUT_ROOT..."
@@ -321,7 +358,7 @@ if [ "x${CPU2006_ARCHIVE}" = "xyes" ]; then
 	done
 	cp -f $CPU2006_OUTPUT_ROOT/config/$ARCH.cfg ${CPU2006_DIR}/config/$ARCH.cfg
 
-	# Copy cross tools from CPU2006_BUILD to overwrite host tools
-	echo "Installing cpu2006 target tools from $CPU2006_BUILD..."
-	cp -f $CPU2006_BUILD/bin/* ${CPU2006_DIR}/bin/
+	# Copy cross toolsfrom CPU2006_OUTPUT_ROOT to overwrite host tools
+	cpu2006_install_target_tools
+	cp -rf $CPU2006_OUTPUT_ROOT/bin ${CPU2006_DIR}/bin
 fi

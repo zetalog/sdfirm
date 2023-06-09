@@ -39,6 +39,9 @@ fi
 if [ -z $LITMUS_DUMP ]; then
 	LITMUS_DUMP=no
 fi
+if [ -z $CPU2006_UPDATE ]; then
+	CPU2006_UPDATE=yes
+fi
 if [ -z $PERF_UPDATE ]; then
 	PERF_UPDATE=yes
 fi
@@ -511,6 +514,9 @@ backup_elfs()
 				echo "Copying linux kernel programs..."
 				cp -f ${PERF_ROOT}/perf \
 					${BACKUP_ROOT}/perf
+			fi
+			if [ "x${TEST_EARLY}" = "xcpu2006" ]; then
+				echo "Copying cpu2006 tests..."
 			fi
 		fi
 	fi

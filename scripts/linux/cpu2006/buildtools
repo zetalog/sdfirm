@@ -4,6 +4,7 @@
 CROSS_COMPILE=riscv64-unknown-linux-gnu
 
 # Never used in cross compilation.
+SKIPTOOLSRM=1
 SKIPPERL2=1
 # Must be enabled to skip cross test.
 SKIPXZTEST=1
@@ -19,12 +20,10 @@ WORKING_DIR=`(cd ${SCRIPT}/../../../..; pwd)`
 CPU2006_ROOT=${WORKING_DIR}/cpu2006
 CPU2006_BUILD=${WORKING_DIR}/obj/cpu2006-riscv
 
+mkdir -p ${CPU2006_BUILD}/tools/src
 if [ -n "$DOTOOLSCP" ] || [ -z "$SKIPTOOLSCP" ]; then
-	rm -rf ${CPU2006_BUILD}/*
-	mkdir -p ${CPU2006_BUILD}/tools/src
+	rm -rf ${CPU2006_BUILD}/tools/src/*
 	cp -rf ${CPU2006_ROOT}/tools/src/* ${CPU2006_BUILD}/tools/src/
-else
-	mkdir -p ${CPU2006_BUILD}/tools/src
 fi
 
 # Provide our PID to children in a nice, portable way
@@ -69,7 +68,7 @@ FOOL_AC_FILES='( -name configure -o -name Makefile.in -o -name config.h.in -o -n
 # but sometimes the shell being used doesn't rehash its directories quickly
 # enough, and we end up using the crappy system utilities instead.  Thus:
 MYMAKE=$CPU2006_ROOT/bin/specmake
-INSTALLBIN=$CPU2006_BUILD/tools/output/bin
+INSTALLBIN=$INSTALLDIR/bin
 PATH=$CPU2006_ROOT/tools/output/bin:$PATH
 export PATH
 
@@ -120,10 +119,10 @@ fi
 
 if [ -n "$DOTOOLSRM" ] || [ -z "$SKIPTOOLSRM" ]; then
     # Remove previously-installed tools, if any
-    if [ -f $SPECBIN/../SUMS.tools -o -f $SPECBIN/specperl -o -d $SPECBIN/lib ]; then
+    if [ -f $CPU2006_SPECBIN/../SUMS.tools -o -f $SPECBIN/specperl -o -d $SPECBIN/lib ]; then
         echo Removing previous tools installation...
-        if [ -f $SPECBIN/../SUMS.tools ]; then
-          (cd $SPECBIN/..; cat SUMS.tools | grep bin/ | awk '{print $4}' | xargs rm -f)
+        if [ -f $CPU2006_SPECBIN/../SUMS.tools ]; then
+          (cd $SPECBIN/..; cat $cPU2006_SPECBIN/../SUMS.tools | grep bin/ | awk '{print $4}' | xargs rm -f)
         fi
         # At this point bin/lib is probably empty, but just to be sure...
         rm -rf $SPECBIN/lib 
@@ -141,15 +140,13 @@ if [ -n "$DOCLEAN" ] || [ -z "$SKIPCLEAN" ]; then
     echo "=== Don't worry about errors below this ==="
     echo "==========================================="
     # Make sure that files can be removed
-    rm -rf ${CPU2006_BUILD}/tools/src/perl-*
     find . \( -name .svn -prune \) -o \( -type d -exec chmod u+rwx {} \; \)
-    for i in */.; do (cd $i; MAKEFLAGS= make -k realclean; MAKEFLAGS= make -k distclean; MAKEFLAGS= make -k clean) 2>&1 | grep -v "No rule to make target" | grep -v "Nothing to be done"; done
+    for i in */.; do (cd $i; find . | xargs touch; MAKEFLAGS= make -k realclean; MAKEFLAGS= make -k distclean; MAKEFLAGS= make -k clean) 2>&1 | grep -v "No rule to make target" | grep -v "Nothing to be done"; done
     echo Now doing extra-special cleaning...
     (cd perl*; /usr/bin/perl distclean)
     find perl-* -depth -type d -print | grep -v '/\.svn/' | xargs rmdir 2>/dev/null
     find . \( -name config.cache -o -name Makefile.old -o -name autom4te.cache \) -exec rm -rf {} \;
     find . \( -name \*.exe -o -name \*.dll -o -name \*.lib -o -name \*.a -o -name WinRel -o -name WinDebug \) -exec rm -rf {} \;
-    rm -rf ../output
     # Special stuff for special components
     rm -rf IO-stringy*/testout
     rm -f libwww-perl*/t/CAN_TALK_TO_OURSELF
@@ -188,7 +185,6 @@ echo "================================================================"
 echo "=== Patching perl                                            ==="
 echo "================================================================"
 (
-    cp -rf ${CPU2006_ROOT}/tools/src/perl-* ${CPU2006_BUILD}/tools/src/
     cd ${CPU2006_BUILD}/tools/src
     tar -zxvf ${SCRIPT}/perl-5.12.3-cross-0.5.tar.gz > /dev/null
     if [ -n "$DOPERL" ] || [ -z "$SKIPPERL" ]; then
