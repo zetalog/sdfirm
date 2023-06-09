@@ -127,6 +127,9 @@ fi
 if [ -z ${CPU2006_ROOT} ]; then
 	CPU2006_ROOT=${WORKING_DIR}/cpu2006
 fi
+if [ -z ${CPU2006_BUILD} ]; then
+	CPU2006_BUILD=${WORKING_DIR}/obj/cpu2006-riscv
+fi
 
 cpu2006_init
 
@@ -178,30 +181,34 @@ CPU2006_DIR=${TOP}/obj/bench${CPU2006_OUTPUT_ROOT}
 
 if [ "x${CPU2006_BUILD_HOST_TOOLS}" = "xyes" ]; then
 	# Tune buildtools steps
-	#SKIPCLEAN=1
-	#SKIPMAKE=1
-	#SKIPXZ=1
-	#SKIPTAR=1
-	#SKIPMD5=1
-	#SKIPSPECINVOKE=1
-	#SKIPRXP=1
-	#SKIPEXPAT=1
-	#SKIPPERL=1
-	#SKIPPERL2=1
+	#export SKIPTOOLSRM=1
+	#export SKIPCLEAN=1
+	#export SKIPMAKE=1
+	#export SKIPXZ=1
+	#export SKIPTAR=1
+	#export SKIPMD5=1
+	#export SKIPSPECINVOKE=1
+	#export SKIPRXP=1
+	#export SKIPEXPAT=1
+	#export SKIPPERL=1
+	#export SKIPPERL2=1
+	#export SKIPCOPY=1
 	cpu2006_tools
 fi
 if [ "x${CPU2006_BUILD_TARGET_TOOLS}" = "xyes" ]; then
-	#SKIPTOOLSCP=1
-	#SKIPTOOLSRM=1
-	#SKIPCLEAN=1
-	#SKIPMAKE=1
-	#SKIPXZ=1
-	#SKIPTAR=1
-	#SKIPMD5=1
-	#SKIPSPECINVOKE=1
-	#SKIPRXP=1
-	#SKIPEXPAT=1
-	#SKIPPERL=1
+	# Tune buildtools steps
+	#export SKIPTOOLSCP=1
+	#export SKIPTOOLSRM=1
+	#export SKIPCLEAN=1
+	#export SKIPMAKE=1
+	#export SKIPXZ=1
+	#export SKIPTAR=1
+	#export SKIPMD5=1
+	#export SKIPSPECINVOKE=1
+	#export SKIPRXP=1
+	#export SKIPEXPAT=1
+	#export SKIPPERL=1
+	#export SKIPCOPY=1
 	${SCRIPT}/cpu2006/buildtools
 fi
 CPU2006_ARCHIVE=yes
@@ -270,18 +277,28 @@ if [ "x${CPU2006_BUILD_BENCHES}" = "xyes" ]; then
 		mkdir -p ${CPU2006_OUTPUT_ROOT}/config
 		cp -f $CPU2006_ROOT/config/$ARCH.cfg \
 			${CPU2006_OUTPUT_ROOT}/config/$ARCH.cfg
-		cp -f $CPU2006_ROOT/shrc \
-			${CPU2006_OUTPUT_ROOT}/shrc
 	)
 	CPU2006_ARCHIVE=yes
 fi
 if [ "x${CPU2006_ARCHIVE}" = "xyes" ]; then
-	echo "Installing cpu2006 binaries from $CPU2006_ROOT..."
-
 	rm -rf $CPU2006_DIR
 	mkdir -p $CPU2006_DIR
+	mkdir -p ${CPU2006_DIR}/config
+	mkdir -p ${CPU2006_DIR}/Docs
 
-	# Installing benchmarks
+	# Copy files from CPU2006_ROOT
+	echo "Installing cpu2006 host tools from $CPU2006_ROOT..."
+	cp -rf $CPU2006_ROOT/config/flags ${CPU2006_DIR}/config/flags
+	cp -rf $CPU2006_ROOT/Docs/flags ${CPU2006_DIR}/Docs/flags
+	cp -rf $CPU2006_ROOT/Docs/sysinfo ${CPU2006_DIR}/Docs/sysinfo
+	cp -rf $CPU2006_ROOT/bin ${CPU2006_DIR}/bin
+	cp -f $CPU2006_ROOT/shrc ${CPU2006_DIR}/shrc
+	cp -f $CPU2006_ROOT/MANIFEST ${CPU2006_DIR}/MANIFEST
+	cp -f $CPU2006_ROOT/SUMS.tools ${CPU2006_DIR}/SUMS.tools
+	cp -f $CPU2006_ROOT/version.txt ${CPU2006_DIR}/version.txt
+
+	# Copy cross tests from CPU2006_OUTPUT_ROOT to overwrite host tools
+	echo "Installing cpu2006 target tests from $CPU2006_OUTPUT_ROOT..."
 	BENCHMARKS=(${CPU2006_BENCHMARKS})
 	for b in $CPU2006_BENCHMARKS; do
 		for s in ${CPU2006_DATA}; do
@@ -296,7 +313,9 @@ if [ "x${CPU2006_ARCHIVE}" = "xyes" ]; then
 			fi
 		done
 	done
-	mkdir -p ${CPU2006_DIR}/config
-	cp -f $CPU2006_OUTPUT_ROOT/config/$ARCH.cfg \
-		${CPU2006_DIR}/config/$ARCH.cfg
+	cp -f $CPU2006_OUTPUT_ROOT/config/$ARCH.cfg ${CPU2006_DIR}/config/$ARCH.cfg
+
+	# Copy cross tools from CPU2006_BUILD to overwrite host tools
+	echo "Installing cpu2006 target tools from $CPU2006_BUILD..."
+	cp -f $CPU2006_BUILD/bin/* ${CPU2006_DIR}/bin/
 fi
