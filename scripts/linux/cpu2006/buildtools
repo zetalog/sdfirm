@@ -3,7 +3,6 @@
 # NOTE: This file is modified from $SPEC/tools/src/buildtools
 
 # Never used in cross compilation.
-SKIPTOOLSRM=1
 SKIPPERL2=1
 # Must be enabled to skip cross test.
 SKIPXZTEST=1
@@ -20,7 +19,9 @@ if [ -z ${ARCH} ]; then
 	ARCH=riscv
 fi
 if [ -z ${CROSS_COMPILE} ]; then
-	CROSS_COMPILE=riscv64-unknown-linux-gnu-
+	TARGET=riscv64-unknown-linux-gnu
+else
+	TARGET=${CROSS_COMPILE:0:${#CROSS_COMPILE}-1}
 fi
 if [ -z ${CPU2006_ROOT} ]; then
 	CPU2006_ROOT=${WORKING_DIR}/cpu2006
@@ -28,6 +29,8 @@ fi
 if [ -z ${CPU2006_BUILD} ]; then
 	CPU2006_BUILD=${WORKING_DIR}/obj/cpu2006-riscv
 fi
+
+echo "Cross-compiling $TARGET..."
 
 mkdir -p ${CPU2006_BUILD}/tools/src
 if [ -n "$DOTOOLSCP" ] || [ -z "$SKIPTOOLSCP" ]; then
@@ -131,14 +134,14 @@ if [ -n "$DOTOOLSRM" ] || [ -z "$SKIPTOOLSRM" ]; then
     if [ -f $CPU2006_SPECBIN/../SUMS.tools -o -f $SPECBIN/specperl -o -d $SPECBIN/lib ]; then
         echo Removing previous tools installation...
         if [ -f $CPU2006_SPECBIN/../SUMS.tools ]; then
-          (cd $SPECBIN/..; cat $cPU2006_SPECBIN/../SUMS.tools | grep bin/ | awk '{print $4}' | xargs rm -f)
+          (cd $SPECBIN/..; cat $CPU2006_SPECBIN/../SUMS.tools | grep bin/ | awk '{print $4}' | xargs rm -f)
         fi
         # At this point bin/lib is probably empty, but just to be sure...
         rm -rf $SPECBIN/lib 
         rm -f $SPECBIN/packagename
         rm -f $SPECBIN/../SUMS.tools
         # These are almost certainly present:
-        for i in xz bzip2 gzip invoke invoke_pm make md5sum perl tar perldoc; do
+        for i in xz bzip2 gzip invoke invoke_pm make md5sum perl tar perldoc rxp; do
             rm -f $SPECBIN/spec$i
         done
     fi
@@ -250,7 +253,7 @@ if [ -n "$DOMAKE" ] || [ -z "$SKIPNONPERL" ] && [ -z "$SKIPMAKE" ]; then
     CPPFLAGS="$ALLCPPFLAGS $MAKECPPFLAGS"; export CPPFLAGS
     LDFLAGS="$ALLLDFLAGS $MAKELDFLAGS"; export LDFLAGS
     LIBS="$ALLLIBS $MAKELIBS"; export LIBS
-    ./configure --host=${CROSS_COMPILE} --target=riscv64 $CONFIGFLAGS $MAKECONFFLAGS --prefix=$INSTALLDIR; testordie "error configuring make"
+    ./configure --host=${TARGET} --target=riscv64 $CONFIGFLAGS $MAKECONFFLAGS --prefix=$INSTALLDIR; testordie "error configuring make"
     sh build.sh; testordie "error building make with build.sh"
     PATH=`pwd`:$PATH
     export PATH
@@ -276,7 +279,7 @@ if [ -n "$DOXZ" ] || [ -z "$SKIPNONPERL" ] && [ -z "$SKIPXZ" ]; then
     CPPFLAGS="$ALLCPPFLAGS $XZCPPFLAGS"; export CPPFLAGS
     LDFLAGS="$ALLLDFLAGS $XZLDFLAGS"; export LDFLAGS
     LIBS="$ALLLIBS $XZLIBS"; export LIBS
-    INSTALL="../$TARSRC/build-aux/install-sh" ./configure --host=${CROSS_COMPILE} --target=riscv64 $CONFIGFLAGS $XZFLAGS --prefix=$INSTALLDIR --enable-shared=no --disable-lzmadec --disable-lzmainfo --disable-lzma-links --disable-scripts; testordie "error configuring xz"
+    INSTALL="../$TARSRC/build-aux/install-sh" ./configure --host=${TARGET} --target=riscv64 $CONFIGFLAGS $XZFLAGS --prefix=$INSTALLDIR --enable-shared=no --disable-lzmadec --disable-lzmainfo --disable-lzma-links --disable-scripts; testordie "error configuring xz"
     $MYMAKE; testordie "error building xz"
     if [ -n "$DOXZTEST" ] || [ -z "$SKIPXZTEST" ]; then
         MAKEFLAGS= $MYMAKE check; testordie "error testing xz"
@@ -302,7 +305,7 @@ if [ -n "$DOTAR" ] || [ -z "$SKIPNONPERL" ] && [ -z "$SKIPTAR" ]; then
     CPPFLAGS="$ALLCPPFLAGS $TARCPPFLAGS"; export CPPFLAGS
     LDFLAGS="$ALLLDFLAGS $TARLDFLAGS"; export LDFLAGS
     LIBS="$ALLLIBS $TARLIBS"; export LIBS
-    ./configure --host=${CROSS_COMPILE} --target=riscv64 $CONFIGFLAGS $TARFLAGS --with-xz=specxz --prefix=$INSTALLDIR; testordie "error configuring tar"
+    ./configure --host=${TARGET} --target=riscv64 $CONFIGFLAGS $TARFLAGS --with-xz=specxz --prefix=$INSTALLDIR; testordie "error configuring tar"
     $MYMAKE; testordie "error building tar"
     if [ -n "$DOTARTEST" ] || [ -z "$SKIPTARTEST" ]; then
         MAKEFLAGS= $MYMAKE check; testordie "error testing tar"
@@ -322,7 +325,7 @@ if [ -n "$DOMD5" ] || [ -z "$SKIPNONPERL" ] && [ -z "$SKIPMD5" ]; then
     CPPFLAGS="$ALLCPPFLAGS $MD5CPPFLAGS"; export CPPFLAGS
     LDFLAGS="$ALLLDFLAGS $MD5LDFLAGS"; export LDFLAGS
     LIBS="$ALLLIBS $MD5LIBS"; export LIBS
-    ./configure --host=${CROSS_COMPILE} --target=riscv64 $CONFIGFLAGS $MD5FLAGS --prefix=$INSTALLDIR --disable-nls; testordie "error configuring specsum package"
+    ./configure --host=${TARGET} --target=riscv64 $CONFIGFLAGS $MD5FLAGS --prefix=$INSTALLDIR --disable-nls; testordie "error configuring specsum package"
     $MYMAKE; testordie "error building specsum"
     if [ -n "$DOMD5TEST" ] || [ -z "$SKIPMD5TEST" ]; then
         MAKEFLAGS= $MYMAKE check; testordie "error testing specsum"
@@ -353,7 +356,7 @@ if [ -n "$DOSPECINVOKE" ] || [ -z "$SKIPNONPERL" ] && [ -z "$SKIPSPECINVOKE" ]; 
     LDFLAGS="$ALLLDFLAGS $SPECINVOKELDFLAGS"; export LDFLAGS
     LIBS="$ALLLIBS $SPECINVOKELIBS"; export LIBS
     ./autogen.sh
-    ./configure --host=${CROSS_COMPILE} --target=riscv64 $CONFIGFLAGS $SPECINVOKEFLAGS --prefix=$INSTALLDIR; testordie "error configuring specinvoke"
+    ./configure --host=${TARGET} --target=riscv64 $CONFIGFLAGS $SPECINVOKEFLAGS --prefix=$INSTALLDIR; testordie "error configuring specinvoke"
     $MYMAKE; testordie "error building specinvoke"
     MAKEFLAGS= $MYMAKE install; testordie "error installing specinvoke")
 fi
@@ -374,7 +377,7 @@ if [ -n "$DORXP" ] || [ -z "$SKIPNONPERL" ] && [ -z "$SKIPRXP" ]; then
     CPPFLAGS="$ALLCPPFLAGS $RXPCPPFLAGS"; export CPPFLAGS
     LDFLAGS="$ALLLDFLAGS $RXPLDFLAGS"; export LDFLAGS
     LIBS="$ALLLIBS $RXPLIBS"; export LIBS
-    ./configure --host=${CROSS_COMPILE} --target=riscv64 $CONFIGFLAGS $RXPFLAGS --prefix=$INSTALLDIR --enable-shared=no; testordie "error configuring rxp"
+    ./configure --host=${TARGET} --target=riscv64 $CONFIGFLAGS $RXPFLAGS --prefix=$INSTALLDIR --enable-shared=no; testordie "error configuring rxp"
     $MYMAKE; testordie "error building rxp"
     MAKEFLAGS= $MYMAKE install; testordie "error installing rxp")
 fi
@@ -394,7 +397,7 @@ if [ -n "$DOEXPAT" ] || [ -z "$SKIPPERL" ] && [ -z "$SKIPEXPAT" ]; then
     CPPFLAGS="$ALLCPPFLAGS $EXPATCPPFLAGS"; export CPPFLAGS
     LDFLAGS="$ALLLDFLAGS $EXPATLDFLAGS"; export LDFLAGS
     LIBS="$ALLLIBS $EXPATLIBS"; export LIBS
-    ./configure --host=${CROSS_COMPILE} --target=riscv64 --prefix=$INSTALLDIR --enable-shared=no --with-pic $EXPATFLAGS;
+    ./configure --host=${TARGET} --target=riscv64 --prefix=$INSTALLDIR --enable-shared=no --with-pic $EXPATFLAGS;
     if test $? != 0; then
       echo 0 > /tmp/spec_expat_ok
       SPEC_EXPAT_OK=0
@@ -450,7 +453,7 @@ if [ -n "$DOPERL" ] || [ -z "$SKIPPERL" ]; then
     LD_LIBRARY_PATH=`pwd`
     DYLD_LIBRARY_PATH=`pwd`
     export LD_LIBRARY_PATH DYLD_LIBRARY_PATH
-    ./configure --target=${CROSS_COMPILE} -Ud_flock $PERLFLAGS -Ddosuid=undef -Dprefix=$INSTALLDIR -Dd_bincompat3=undef -A ldflags=-L${INSTALLDIR}/lib -A ccflags=-I${INSTALLDIR}/include -Ui_db -Ui_gdbm -Ui_ndbm -Ui_dbm -Uuse5005threads; testordie "error configuring perl"
+    ./configure --target=${TARGET} -Ud_flock $PERLFLAGS -Ddosuid=undef -Dprefix=$INSTALLDIR -Dd_bincompat3=undef -A ldflags=-L${INSTALLDIR}/lib -A ccflags=-I${INSTALLDIR}/include -Ui_db -Ui_gdbm -Ui_ndbm -Ui_dbm -Uuse5005threads; testordie "error configuring perl"
     # workaround library dependencies
     $MYMAKE
     $MYMAKE
@@ -473,7 +476,7 @@ if [ -n "$DOPERL" ] || [ -z "$SKIPPERL" ]; then
       fi
       testordie "error in Perl tests"
     fi)
-    #./Configure --host=${CROSS_COMPILE} -dOes -Ud_flock $PERLFLAGS -Ddosuid=undef -Dprefix=$INSTALLDIR -Dd_bincompat3=undef -A ldflags=-L${INSTALLDIR}/lib -A ccflags=-I${INSTALLDIR}/include -Ui_db -Ui_gdbm -Ui_ndbm -Ui_dbm -Uuse5005threads ; testordie "error configuring perl"
+    #./Configure --host=${TARGET} -dOes -Ud_flock $PERLFLAGS -Ddosuid=undef -Dprefix=$INSTALLDIR -Dd_bincompat3=undef -A ldflags=-L${INSTALLDIR}/lib -A ccflags=-I${INSTALLDIR}/include -Ui_db -Ui_gdbm -Ui_ndbm -Ui_dbm -Uuse5005threads ; testordie "error configuring perl"
 
     # Only copy libperl if Perl is built to use the shared object
     #if [ `./perl -Ilib -MConfig -e 'print $Config{useshrplib}'` = 'true' ]
@@ -574,7 +577,7 @@ if [ -n "$DOCOPY" ] || [ -z "$SKIPCOPY" ]; then
     do
 	if cp $INSTALLBIN/$i $SPECBIN/spec$i; then
             if [ -n "$DOSTRIP" ] || [ -z "$SKIPSTRIP" ]; then
-                ${CROSS_COMPILE}-strip $SPECBIN/spec$i || :
+                ${TARGET}-strip $SPECBIN/spec$i || :
             else
                 true
             fi
@@ -642,7 +645,7 @@ if [ -n "$DOCOPY" ] || [ -z "$SKIPCOPY" ]; then
     do
 	if cp $INSTALLBIN/spec$i* $SPECBIN; then
             if [ -n "$DOSTRIP" ] || [ -z "$SKIPSTRIP" ]; then
-                ${CROSS_COMPILE}-strip $SPECBIN/spec$i* || :
+                ${TARGET}-strip $SPECBIN/spec$i* || :
             else
                 true
             fi
