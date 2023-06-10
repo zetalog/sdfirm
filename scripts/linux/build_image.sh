@@ -14,6 +14,7 @@ usage()
 {
 	echo "Usage:"
 	echo "`basename $0` [-a arch] [-c cores] [-f] [-m mach] [-n host] [-u]"
+	echo "              [-b spec] [-i input]"
 	echo "              [-d feat] [-e feat] [-r]"
 	echo "Where:"
 	echo " -a arch:     specify architecture"
@@ -23,6 +24,12 @@ usage()
 	echo " -u:          enable userspace program builds"
 	echo " -c cores:    specify number of CPUs to enable litmus"
 	echo " -b spec:     specify CPU2006 benchmark to enable specCPU"
+	echo " -i input:    specify CPU2006 input data size"
+	echo "              input data set includes:"
+	echo "    all:      all data sets"
+	echo "    test:     data for simple executable test"
+	echo "    ref:      data used for generating reports"
+	echo "    train:    data for feedback-directed optimization"
 	echo " -d feat:     disable special features"
 	echo "              feature includes:"
 	echo "    shared:   shared library support"
@@ -42,7 +49,7 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "a:b:c:d:e:fm:n:ru" opt
+while getopts "a:b:c:d:e:fi:m:n:ru" opt
 do
 	case $opt in
 	a) ARCH=$OPTARG;;
@@ -66,6 +73,7 @@ do
 		BUILD_TINY=yes
 	   fi;;
 	f) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -m sdfirm";;
+	i) CPU2006_OPTS="${CPU2006_OPTS} -d $OPTARG";;
 	m) MACH=$OPTARG;;
 	n) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -n $OPTARG";;
 	r) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -r";;
@@ -160,11 +168,7 @@ fi
 
 # Build SPEC CPU2006 benchmark tests
 if [ "x${BUILD_CPU2006}" = "xyes" ]; then
-	CPU2006_PERL_DIR=${TOP}/obj/bench/usr/bin
-	rm -f ${CPU2006_PERL_DIR}/perl
 	${SCRIPT}/build_cpu2006.sh -t -r ${CPU2006_OPTS}
-	mkdir -p $CPU2006_PERL_DIR
-	(cd ${CPU2006_PERL_DIR}; ln -s ${CPU2006_OUTPUT_ROOT}/bin/specperl ./perl)
 fi
 
 # Build linux image along with rootfs

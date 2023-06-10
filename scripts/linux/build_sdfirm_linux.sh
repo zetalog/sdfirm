@@ -140,6 +140,9 @@ build_cpu2006()
 				BUILD_IMAGE_OPS="${BUILD_IMAGE_OPS} -b ${b}"
 			done
 		fi
+		if [ -z ${CPU2006_DATA} ]; then
+			BUILD_IMAGE_OPS="${BUILD_IMAGE_OPS} -i ${CPU2006_DATA}"
+		fi
 	fi
 }
 

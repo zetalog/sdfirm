@@ -241,6 +241,7 @@ if [ "x${CPU2006_BUILD_TARGET_TOOLS}" = "xyes" ]; then
 	(
 	# Tune buildtools steps
 	#export SKIPTOOLSCP=1
+	#export SKIPTOOLSRM=1
 	#export SKIPCLEAN=1
 	#export SKIPMAKE=1
 	#export SKIPXZ=1
