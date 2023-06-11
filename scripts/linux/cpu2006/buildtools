@@ -27,7 +27,8 @@ if [ -z ${CPU2006_ROOT} ]; then
 	CPU2006_ROOT=${WORKING_DIR}/cpu2006
 fi
 if [ -z ${CPU2006_BUILD} ]; then
-	CPU2006_BUILD=${WORKING_DIR}/obj/cpu2006-riscv
+	#CPU2006_BUILD=${WORKING_DIR}/obj/cpu2006-riscv
+	CPU2006_BUILD=/opt/cpu2006
 fi
 
 echo "Cross-compiling $TARGET..."
@@ -70,6 +71,7 @@ INSTALLDIR=`pwd`
 INSTALLDIR=`dirname $INSTALLDIR`/output
 SPECBIN=${CPU2006_BUILD}/bin
 CPU2006_SPECBIN=${CPU2006_ROOT}/bin
+#PERLVER=5.24.1
 PERLVER=5.12.3
 TARSRC=tar-1.25
 export INSTALLDIR SPECBIN PERLVER TARSRC
@@ -155,8 +157,8 @@ if [ -n "$DOCLEAN" ] || [ -z "$SKIPCLEAN" ]; then
     find . \( -name .svn -prune \) -o \( -type d -exec chmod u+rwx {} \; \)
     for i in */.; do (cd $i; find . | xargs touch; MAKEFLAGS= make -k realclean; MAKEFLAGS= make -k distclean; MAKEFLAGS= make -k clean) 2>&1 | grep -v "No rule to make target" | grep -v "Nothing to be done"; done
     echo Now doing extra-special cleaning...
-    (cd perl*; /usr/bin/perl distclean)
-    find perl-* -depth -type d -print | grep -v '/\.svn/' | xargs rmdir 2>/dev/null
+    (cd perl-${PERLVER}; /usr/bin/perl distclean)
+    find perl-${PERLVER} -depth -type d -print | grep -v '/\.svn/' | xargs rmdir 2>/dev/null
     find . \( -name config.cache -o -name Makefile.old -o -name autom4te.cache \) -exec rm -rf {} \;
     find . \( -name \*.exe -o -name \*.dll -o -name \*.lib -o -name \*.a -o -name WinRel -o -name WinDebug \) -exec rm -rf {} \;
     # Special stuff for special components
@@ -164,11 +166,11 @@ if [ -n "$DOCLEAN" ] || [ -z "$SKIPCLEAN" ]; then
     rm -f libwww-perl*/t/CAN_TALK_TO_OURSELF
     rm -rf XML-SAX*/t/lib
     rm -rf MIME-tools*/testout
-    find perl-* \( -name .svn -prune \) -o \( \! -name tmpdir.t \( -name '*tmp*' -o -name 'results-[01]' \) -exec rm -f {} \; \)
-    rm -rf perl-*/t/runltmp* perl*/t/Recurs perl*/t/err perl*/t/swtest.pm
-    rm -rf perl-*/UU perl-*/.config perl-*/config.sh perl-*/Policy.sh perl-*/config.over
-    rm -rf perl-*/ext/Test-Harness/t/ext
-    rm -rf perl-*/cpan/Module-Build/MB-????????
+    find perl-${PERLVER} \( -name .svn -prune \) -o \( \! -name tmpdir.t \( -name '*tmp*' -o -name 'results-[01]' \) -exec rm -f {} \; \)
+    rm -rf perl-${PERLVER}/t/runltmp* perl-${PERLVER}/t/Recurs perl-${PERLVER}/t/err perl-${PERLVER}/t/swtest.pm
+    rm -rf perl-${PERLVER}/UU perl-${PERLVER}/.config perl-${PERLVER}/config.sh perl-${PERLVER}/Policy.sh perl-${PERLVER}/config.over
+    rm -rf perl-${PERLVER}/ext/Test-Harness/t/ext
+    rm -rf perl-${PERLVER}/cpan/Module-Build/MB-????????
     rm -f File-NFSLock-*/File-NFSLock.spec
     rm -f MIME-tools-*/msg*html
     rm -f MailTools-*/*ppd
@@ -198,7 +200,11 @@ echo "=== Patching perl                                            ==="
 echo "================================================================"
 (
     cd ${CPU2006_BUILD}/tools/src
-    tar -zxvf ${SCRIPT}/perl-5.12.3-cross-0.5.tar.gz > /dev/null
+    if [ -f ${SCRIPT}/perl-${PERLVER}-cross.tar.gz ]; then
+        tar -zxvf ${SCRIPT}/perl-${PERLVER}-cross.tar.gz > /dev/null
+    else
+        echo "No perl-cross tools found!"
+    fi
     if [ -n "$DOPERL" ] || [ -z "$SKIPPERL" ]; then
         # Black-listed modules for cross-compilation
         # MIME-tools-*
@@ -224,7 +230,7 @@ echo "================================================================"
             echo "================================================================"
             echo "=== Patching $pm"
             echo "================================================================"
-            cp -rf ${CPU2006_BUILD}/tools/src/$i ${CPU2006_BUILD}/tools/src/perl-5.12.3/ext/$pm
+            cp -rf ${CPU2006_BUILD}/tools/src/$i ${CPU2006_BUILD}/tools/src/perl-${PERLVER}/ext/$pm
         done
     fi
 )
@@ -355,7 +361,11 @@ if [ -n "$DOSPECINVOKE" ] || [ -z "$SKIPNONPERL" ] && [ -z "$SKIPSPECINVOKE" ]; 
     CPPFLAGS="$ALLCPPFLAGS $SPECINVOKECPPFLAGS"; export CPPFLAGS
     LDFLAGS="$ALLLDFLAGS $SPECINVOKELDFLAGS"; export LDFLAGS
     LIBS="$ALLLIBS $SPECINVOKELIBS"; export LIBS
-    ./autogen.sh
+    if [ -f ./autogen.sh ]; then
+       ./autogen.sh
+    else
+       echo "No autogen.sh found"
+    fi
     ./configure --host=${TARGET} --target=riscv64 $CONFIGFLAGS $SPECINVOKEFLAGS --prefix=$INSTALLDIR; testordie "error configuring specinvoke"
     $MYMAKE; testordie "error building specinvoke"
     MAKEFLAGS= $MYMAKE install; testordie "error installing specinvoke")
@@ -439,7 +449,7 @@ if [ -n "$DOPERL" ] || [ -z "$SKIPPERL" ]; then
     echo "=== Building perl                                            ==="
     echo "================================================================"
 #    cp libnet.cfg perl-$PERLVER/ext/libnet
-    (cd perl-$PERLVER
+    (cd perl-${PERLVER}
     touch x2p/a2p.c
     touch perly.[ch]
     # Perl does not remove these for realclean!
@@ -597,7 +607,7 @@ if [ -n "$DOCOPY" ] || [ -z "$SKIPCOPY" ]; then
     done
     mkdir -p $SPECBIN/lib
     cp -p $INSTALLDIR/bin/pod2* $SPECBIN/lib
-    # Arrange for bin/lib to be flat (i.e. no 5.12.3 or site_perl subdirs)
+    # Arrange for bin/lib to be flat (i.e. no ${PERLVER} or site_perl subdirs)
     if [ -d $INSTALLDIR/lib/perl5/site_perl/$PERLVER ]; then
         if $CPU2006_SPECBIN/spectar -C $INSTALLDIR/lib/perl5/site_perl/$PERLVER --exclude=.svn --exclude=CVS -cf - . | $CPU2006_SPECBIN/spectar -C $SPECBIN/lib -xvf -; then
 	    true
@@ -612,8 +622,8 @@ if [ -n "$DOCOPY" ] || [ -z "$SKIPCOPY" ]; then
 	    echo "Uh-oh! I appear to have had problems building 'perl'"
 	    error=yes
 	fi
-    elif [ -d $INSTALLDIR/lib/perl ]; then
-        if $CPU2006_SPECBIN/spectar -C $INSTALLDIR/lib/perl --exclude=.svn --exclude=CVS -cf - . | $CPU2006_SPECBIN/spectar -C $SPECBIN/lib -xvf -; then
+    elif [ -d $INSTALLDIR/lib/perl/arch ]; then
+        if $CPU2006_SPECBIN/spectar -C $INSTALLDIR/lib/perl/arch --exclude=.svn --exclude=CVS -cf - . | $CPU2006_SPECBIN/spectar -C $SPECBIN/lib -xvf -; then
 	    true
 	else
 	    echo "Uh-oh! I appear to have had problems building 'perl'"

@@ -130,17 +130,14 @@ cpu2006_build_host_tools()
 
 cpu2006_build_target_tools()
 {
-	${SCRIPT}/cpu2006/buildtools
-}
+	rm -rf ${CPU2006_OUTPUT_ROOT}/bin
+	rm -rf ${CPU2006_OUTPUT_ROOT}/tools/output
 
-cpu2006_install_target_tools()
-{
-	# Copy cross tools from CPU2006_BUILD to overwrite host tools
-	echo "Installing cpu2006 target tools from $CPU2006_BUILD..."
+	${SCRIPT}/cpu2006/buildtools
+
 	SPECBINFILES="configpp convert_to_development dumpsrcalt extract_config extract_flags extract_raw flag_dump flags_dump makesrcalt port_progress rawformat relocate runspec specdiff specpp toolsver verify_md5"
 	SPECBINDIRS="fonts formats formatter modules.specpp scripts.misc test"
-	rm -rf ${CPU2006_OUTPUT_ROOT}/bin
-	cp -rf $CPU2006_BUILD/bin ${CPU2006_OUTPUT_ROOT}/bin
+	mkdir -p ${CPU2006_OUTPUT_ROOT}/bin
 	cp -f $CPU2006_ROOT/bin/*.pl ${CPU2006_OUTPUT_ROOT}/bin/
 	cp -f $CPU2006_ROOT/bin/*.pm ${CPU2006_OUTPUT_ROOT}/bin/
 	for f in $SPECBINFILES; do
@@ -167,7 +164,7 @@ if [ -z ${CPU2006_ROOT} ]; then
 	export CPU2006_ROOT=${WORKING_DIR}/cpu2006
 fi
 if [ -z ${CPU2006_BUILD} ]; then
-	export CPU2006_BUILD=${WORKING_DIR}/obj/cpu2006-riscv
+	export CPU2006_BUILD=${CPU2006_OUTPUT_ROOT}
 fi
 
 cpu2006_init
@@ -233,10 +230,16 @@ if [ "x${CPU2006_BUILD_HOST_TOOLS}" = "xyes" ]; then
 	#export SKIPPERL=1
 	#export SKIPPERL2=1
 	#export SKIPCOPY=1
-	echo "CPU2006: Building host tools..."
+	echo "CPU2006: Building host tools from $CPU2006_ROOT..."
 	cpu2006_build_host_tools
 	)
 fi
+
+if [ "x${CPU2006_BUILD_TARGET_TOOLS}" = "xyes" -o "x${CPU2006_BUILD_BENCHES}" = "xyes" ]; then
+	rm -rf $CPU2006_OUTPUT_ROOT || exit 1
+	mkdir -p $CPU2006_OUTPUT_ROOT || exit 1
+fi
+
 if [ "x${CPU2006_BUILD_TARGET_TOOLS}" = "xyes" ]; then
 	(
 	# Tune buildtools steps
@@ -252,7 +255,7 @@ if [ "x${CPU2006_BUILD_TARGET_TOOLS}" = "xyes" ]; then
 	#export SKIPEXPAT=1
 	#export SKIPPERL=1
 	#export SKIPCOPY=1
-	echo "CPU2006: Building target tools..."
+	echo "CPU2006: Building target tools from $CPU2006_ROOT..."
 	cpu2006_build_target_tools
 	)
 fi
@@ -262,7 +265,7 @@ if [ "x${CPU2006_METRICS}" = "xrate" ]; then
 	CPU2006_OPTS="${CPU2006_OPTS} --rate ${CPU2006_COPIES}"
 fi
 if [ "x${CPU2006_CLEAN_BENCHES}" = "xyes" ]; then
-	echo "Cleaning cpu2006 binaries from $CPU2006_ROOT..."
+	echo "CPU2006: Cleaning target tests from $CPU2006_ROOT..."
 	cp -f $CPU2006_CONFIG $CPU2006_ROOT/config/$ARCH.cfg
 	BENCHMARKS=(${CPU2006_BENCHMARKS})
 	(
@@ -280,11 +283,10 @@ else
 	echo
 fi
 if [ "x${CPU2006_BUILD_BENCHES}" = "xyes" ]; then
-	echo "Building cpu2006 binaries from $CPU2006_ROOT..."
+	echo "CPU2006: Building target tests from ${CPU2006_ROOT}..."
 	echo "Please make sure ${CPU2006_OUTPUT_ROOT} is writeable for current user $USER!"
 
-	rm -rf $CPU2006_OUTPUT_ROOT || exit 1
-	mkdir -p $CPU2006_OUTPUT_ROOT || exit 1
+	rm -rf ${CPU2006_OUTPUT_ROOT}/benchspec
 
 	rm -f $CPU2006_ROOT/config/$ARCH.cfg*
 	cp -f $CPU2006_CONFIG $CPU2006_ROOT/config/$ARCH.cfg
@@ -330,6 +332,7 @@ if [ "x${CPU2006_ARCHIVE}" = "xyes" ]; then
 	mkdir -p $CPU2006_DIR
 	mkdir -p ${CPU2006_DIR}/config
 	mkdir -p ${CPU2006_DIR}/Docs
+	mkdir -p ${CPU2006_DIR}/tools/output
 
 	# Copy files from CPU2006_ROOT
 	echo "Installing cpu2006 host tools from $CPU2006_ROOT..."
@@ -360,6 +363,6 @@ if [ "x${CPU2006_ARCHIVE}" = "xyes" ]; then
 	cp -f $CPU2006_OUTPUT_ROOT/config/$ARCH.cfg ${CPU2006_DIR}/config/$ARCH.cfg
 
 	# Copy cross toolsfrom CPU2006_OUTPUT_ROOT to overwrite host tools
-	cpu2006_install_target_tools
 	cp -rf $CPU2006_OUTPUT_ROOT/bin ${CPU2006_DIR}/bin
+	cp -rf $CPU2006_OUTPUT_ROOT/tools/output/lib ${CPU2006_DIR}/tools/output/lib
 fi
