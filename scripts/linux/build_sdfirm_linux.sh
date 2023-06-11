@@ -303,8 +303,11 @@ build_test()
 		if [ "x${CPU2006_REPORT}" = "x" ]; then
 			# stress test only
 			cat ${SCRIPT}/cpu2006/run.sh >> ${EARLY_TEST}
+		elif [ "x${CPU2006_REPORT}" = "xspecinvoke" ]; then
+			# use specinvoke
+			cat ${SCRIPT}/cpu2006/spec.sh >> ${EARLY_TEST}
 		else
-			# Waiting for runspec to work
+			# use runspec
 			echo "exit 0" >> ${EARLY_TEST}
 		fi
 	fi

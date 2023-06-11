@@ -1,5 +1,5 @@
 CPU2006_ROOT=/opt/cpu2006
-CPU2006_BENCHMARKS=`ls ${CPU2006_ROOT}/benchspec/CPU2006}`
+CPU2006_BENCHMARKS=`ls ${CPU2006_ROOT}/benchspec/CPU2006`
 CPU2006_DATA="ref test train"
 
 if [ ! -f /usr/bin/perl ]; then
