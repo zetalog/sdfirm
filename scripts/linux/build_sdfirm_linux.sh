@@ -301,7 +301,7 @@ build_test()
 		echo "#!/bin/sh" > ${EARLY_TEST}
 		echo "ARCH=${ARCH}" >> ${EARLY_TEST}
 		echo "CPU2006_ROOT=/opt/cpu2006" >> ${EARLY_TEST}
-		echo "CPU2006_BENCHMARKS=\`ls \${CPU2006_ROOT\}/benchspec/CPU2006\`" >> ${EARLY_TEST}
+		echo "CPU2006_BENCHMARKS=\`ls \${CPU2006_ROOT}/benchspec/CPU2006\`" >> ${EARLY_TEST}
 		echo "CPU2006_DATA=\"ref test train\"" >> ${EARLY_TEST}
 		echo "if [ ! -f /usr/bin/perl ]; then" >> ${EARLY_TEST}
 		echo "	mkdir /usr/bin" >> ${EARLY_TEST}
@@ -312,9 +312,11 @@ build_test()
 			cat ${SCRIPT}/cpu2006/run.sh >> ${EARLY_TEST}
 		elif [ "x${CPU2006_REPORT}" = "xspecinvoke" ]; then
 			# use specinvoke
-			cat ${SCRIPT}/cpu2006/spec.sh >> ${EARLY_TEST}
-		else
+			cat ${SCRIPT}/cpu2006/specinvoke.sh >> ${EARLY_TEST}
+		elif [ "x${CPU2006_REPORT}" = "xrunspec" ]; then
 			# use runspec
+			cat ${SCRIPT}/cpu2006/runspec.sh >> ${EARLY_TEST}
+		else
 			echo "exit 0" >> ${EARLY_TEST}
 		fi
 	fi

@@ -237,6 +237,7 @@ if [ "x${CPU2006_BUILD_HOST_TOOLS}" = "xyes" ]; then
 	)
 fi
 
+rm -rf $CPU2006_DIR
 if [ "x${CPU2006_BUILD_TARGET_TOOLS}" = "xyes" -o "x${CPU2006_BUILD_BENCHES}" = "xyes" ]; then
 	rm -rf $CPU2006_OUTPUT_ROOT || exit 1
 	mkdir -p $CPU2006_OUTPUT_ROOT || exit 1
@@ -329,7 +330,6 @@ if [ "x${CPU2006_BUILD_BENCHES}" = "xyes" ]; then
 	CPU2006_ARCHIVE=yes
 fi
 if [ "x${CPU2006_ARCHIVE}" = "xyes" ]; then
-	rm -rf $CPU2006_DIR
 	mkdir -p $CPU2006_DIR
 	mkdir -p ${CPU2006_DIR}/config
 	mkdir -p ${CPU2006_DIR}/Docs
