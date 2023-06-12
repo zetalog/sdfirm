@@ -205,6 +205,7 @@ echo "================================================================"
             ${CPU2006_BUILD}/tools/src/perl-${PERLVER}/make_ext_Makefile.pl
     else
         echo "No perl-cross tools found!"
+        exit 1
     fi
     if [ -n "$DOPERL" ] || [ -z "$SKIPPERL" ]; then
         # Black-listed modules for cross-compilation
@@ -367,7 +368,12 @@ if [ -n "$DOSPECINVOKE" ] || [ -z "$SKIPNONPERL" ] && [ -z "$SKIPSPECINVOKE" ]; 
        ./autogen.sh
     else
        echo "No autogen.sh found"
+       exit 1
     fi
+    # Remove old makefiles using new autoconf/automake settings, this may
+    # fail due to wrong old makefiles and dependencies
+    ./configure --host=${TARGET} --target=riscv64 $CONFIGFLAGS $SPECINVOKEFLAGS --prefix=$INSTALLDIR
+    $MYMAKE distcleann
     ./configure --host=${TARGET} --target=riscv64 $CONFIGFLAGS $SPECINVOKEFLAGS --prefix=$INSTALLDIR; testordie "error configuring specinvoke"
     $MYMAKE; testordie "error building specinvoke"
     MAKEFLAGS= $MYMAKE install; testordie "error installing specinvoke")
