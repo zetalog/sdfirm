@@ -304,7 +304,9 @@ build_test()
 		echo "CPU2006_BENCHMARKS=\`ls \${CPU2006_ROOT}/benchspec/CPU2006\`" >> ${EARLY_TEST}
 		echo "CPU2006_DATA=\"ref test train\"" >> ${EARLY_TEST}
 		echo "if [ ! -f /usr/bin/perl ]; then" >> ${EARLY_TEST}
-		echo "	mkdir /usr/bin" >> ${EARLY_TEST}
+		echo "	if [ ! -d /usr/bin ]; then" >> ${EARLY_TEST}
+		echo "		mkdir /usr/bin" >> ${EARLY_TEST}
+		echo "	fi" >> ${EARLY_TEST}
 		echo "	ln -s $CPU2006_ROOT/bin/specperl /usr/bin/perl" >> ${EARLY_TEST}
 		echo "fi" >> ${EARLY_TEST}
 		if [ "x${CPU2006_REPORT}" = "x" ]; then
