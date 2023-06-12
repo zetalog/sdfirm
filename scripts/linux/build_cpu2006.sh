@@ -130,26 +130,26 @@ cpu2006_build_host_tools()
 
 cpu2006_build_target_tools()
 {
-	rm -rf ${CPU2006_OUTPUT_ROOT}/bin
-	rm -rf ${CPU2006_OUTPUT_ROOT}/tools/output
+	rm -rf ${CPU2006_BUILD}/bin
+	rm -rf ${CPU2006_BUILD}/tools/output
 	export SKIPTOOLSRM=1
 
 	${SCRIPT}/cpu2006/buildtools
 
 	SPECBINFILES="configpp convert_to_development dumpsrcalt extract_config extract_flags extract_raw flag_dump flags_dump makesrcalt port_progress rawformat relocate runspec specdiff specpp toolsver verify_md5"
 	SPECBINDIRS="fonts formats formatter modules.specpp scripts.misc test"
-	mkdir -p ${CPU2006_OUTPUT_ROOT}/bin
-	cp -f $CPU2006_ROOT/bin/*.pl ${CPU2006_OUTPUT_ROOT}/bin/
-	cp -f $CPU2006_ROOT/bin/*.pm ${CPU2006_OUTPUT_ROOT}/bin/
+	mkdir -p ${CPU2006_BUILD}/bin
+	cp -f $CPU2006_ROOT/bin/*.pl ${CPU2006_BUILD}/bin/
+	cp -f $CPU2006_ROOT/bin/*.pm ${CPU2006_BUILD}/bin/
 	for f in $SPECBINFILES; do
-		cp -f $CPU2006_ROOT/bin/$f ${CPU2006_OUTPUT_ROOT}/bin/
+		cp -f $CPU2006_ROOT/bin/$f ${CPU2006_BUILD}/bin/
 	done
 	for d in $SPECBINDIRS; do
-		cp -rf $CPU2006_ROOT/bin/$d ${CPU2006_OUTPUT_ROOT}/bin/
+		cp -rf $CPU2006_ROOT/bin/$d ${CPU2006_BUILD}/bin/
 	done
-	cp -f $CPU2006_ROOT/bin/packagetools ${CPU2006_OUTPUT_ROOT}/bin/
-	cp -f $CPU2006_ROOT/bin/redistributable ${CPU2006_OUTPUT_ROOT}/bin/
-	cp -f $CPU2006_ROOT/bin/version.txt ${CPU2006_OUTPUT_ROOT}/bin/
+	cp -f $CPU2006_ROOT/bin/packagetools ${CPU2006_BUILD}/bin/
+	cp -f $CPU2006_ROOT/bin/redistributable ${CPU2006_BUILD}/bin/
+	cp -f $CPU2006_ROOT/bin/version.txt ${CPU2006_BUILD}/bin/
 }
 
 if [ -z $ARCH ]; then
@@ -363,6 +363,5 @@ if [ "x${CPU2006_ARCHIVE}" = "xyes" ]; then
 	cp -f $CPU2006_OUTPUT_ROOT/config/$ARCH.cfg ${CPU2006_DIR}/config/$ARCH.cfg
 
 	# Copy cross toolsfrom CPU2006_OUTPUT_ROOT to overwrite host tools
-	cp -rf $CPU2006_OUTPUT_ROOT/bin ${CPU2006_DIR}/bin
-	#cp -rf $CPU2006_OUTPUT_ROOT/tools/output/lib ${CPU2006_DIR}/tools/output/lib
+	cp -rf $CPU2006_BUILD/bin ${CPU2006_DIR}/bin
 fi

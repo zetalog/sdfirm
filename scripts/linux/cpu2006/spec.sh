@@ -1,14 +1,5 @@
-CPU2006_ROOT=/opt/cpu2006
-CPU2006_DATA="ref test train"
-
-if [ ! -f /usr/bin/perl ]; then
-	mkdir /usr/bin
-	ln -s $CPU2006_ROOT/bin/specperl /usr/bin/perl
-fi
-
 cd $CPU2006_ROOT
 source ./shrc
-CPU2006_BENCHMARKS=`ls benchspec/CPU2006`
 for b in ${CPU2006_BENCHMARKS}; do
 	for s in ${CPU2006_DATA}; do
 		CPU2006_RUNBASE=/benchspec/CPU2006/$b/run/run_base_${s}_${ARCH}.0000
