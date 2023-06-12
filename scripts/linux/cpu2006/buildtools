@@ -27,7 +27,8 @@ if [ -z ${CPU2006_ROOT} ]; then
 	CPU2006_ROOT=${WORKING_DIR}/cpu2006
 fi
 if [ -z ${CPU2006_BUILD} ]; then
-	CPU2006_BUILD=${WORKING_DIR}/obj/cpu2006-${ARCH}
+	CPU2006_BUILD=/opt/cpu2006
+	#CPU2006_BUILD=${WORKING_DIR}/obj/cpu2006-${ARCH}
 fi
 
 echo "Cross-compiling $TARGET..."
@@ -350,15 +351,19 @@ if [ -n "$DOSPECINVOKE" ] || [ -z "$SKIPNONPERL" ] && [ -z "$SKIPSPECINVOKE" ]; 
         echo "================================================================"
         patch -p 1 < ${SCRIPT}/specinvoke-cross.patch
         chmod +x ./tools/src/$specinvokedir/autogen.sh
+        rm -f ./tools/src/$specinvokedir/Makefile
+        rm -f ./tools/src/$specinvokedir/configure
+        rm -f ./tools/src/$specinvokedir/config.h
         touch ./tools/src/$specinvokedir/.SPECINVOKE_PATCHED
+        sync
     fi)
     echo "================================================================"
     echo "=== Building specinvoke                                      ==="
     echo "================================================================"
     (cd specinvoke*
-    find . | xargs touch
     # Fool autoconf and friends
     find . $FOOL_AC_FILES -print | xargs touch
+    sync
     set -x
     CFLAGS="$ALLCFLAGS $SPECINVOKECFLAGS"; export CFLAGS
     CPPFLAGS="$ALLCPPFLAGS $SPECINVOKECPPFLAGS"; export CPPFLAGS
@@ -374,6 +379,7 @@ if [ -n "$DOSPECINVOKE" ] || [ -z "$SKIPNONPERL" ] && [ -z "$SKIPSPECINVOKE" ]; 
     # fail due to wrong old makefiles and dependencies
     ./configure --host=${TARGET} --target=riscv64 $CONFIGFLAGS $SPECINVOKEFLAGS --prefix=$INSTALLDIR
     $MYMAKE distcleann
+    sync
     ./configure --host=${TARGET} --target=riscv64 $CONFIGFLAGS $SPECINVOKEFLAGS --prefix=$INSTALLDIR; testordie "error configuring specinvoke"
     $MYMAKE; testordie "error building specinvoke"
     MAKEFLAGS= $MYMAKE install; testordie "error installing specinvoke")
