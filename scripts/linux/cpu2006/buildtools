@@ -27,8 +27,7 @@ if [ -z ${CPU2006_ROOT} ]; then
 	CPU2006_ROOT=${WORKING_DIR}/cpu2006
 fi
 if [ -z ${CPU2006_BUILD} ]; then
-	#CPU2006_BUILD=${WORKING_DIR}/obj/cpu2006-riscv
-	CPU2006_BUILD=/opt/cpu2006
+	CPU2006_BUILD=${WORKING_DIR}/obj/cpu2006-${ARCH}
 fi
 
 echo "Cross-compiling $TARGET..."
@@ -202,6 +201,8 @@ echo "================================================================"
     cd ${CPU2006_BUILD}/tools/src
     if [ -f ${SCRIPT}/perl-${PERLVER}-cross.tar.gz ]; then
         tar -zxvf ${SCRIPT}/perl-${PERLVER}-cross.tar.gz > /dev/null
+        cp -f ${SCRIPT}/make_ext_Makefile.pl \
+            ${CPU2006_BUILD}/tools/src/perl-${PERLVER}/make_ext_Makefile.pl
     else
         echo "No perl-cross tools found!"
     fi
@@ -354,6 +355,7 @@ if [ -n "$DOSPECINVOKE" ] || [ -z "$SKIPNONPERL" ] && [ -z "$SKIPSPECINVOKE" ]; 
     echo "=== Building specinvoke                                      ==="
     echo "================================================================"
     (cd specinvoke*
+    find . | xargs touch
     # Fool autoconf and friends
     find . $FOOL_AC_FILES -print | xargs touch
     set -x

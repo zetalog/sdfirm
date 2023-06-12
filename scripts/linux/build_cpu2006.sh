@@ -132,6 +132,7 @@ cpu2006_build_target_tools()
 {
 	rm -rf ${CPU2006_OUTPUT_ROOT}/bin
 	rm -rf ${CPU2006_OUTPUT_ROOT}/tools/output
+	export SKIPTOOLSRM=1
 
 	${SCRIPT}/cpu2006/buildtools
 
@@ -164,7 +165,7 @@ if [ -z ${CPU2006_ROOT} ]; then
 	export CPU2006_ROOT=${WORKING_DIR}/cpu2006
 fi
 if [ -z ${CPU2006_BUILD} ]; then
-	export CPU2006_BUILD=${CPU2006_OUTPUT_ROOT}
+	export CPU2006_BUILD=${WORKING_DIR}/obj/cpu2006-${ARCH}
 fi
 
 cpu2006_init
@@ -244,7 +245,6 @@ if [ "x${CPU2006_BUILD_TARGET_TOOLS}" = "xyes" ]; then
 	(
 	# Tune buildtools steps
 	#export SKIPTOOLSCP=1
-	#export SKIPTOOLSRM=1
 	#export SKIPCLEAN=1
 	#export SKIPMAKE=1
 	#export SKIPXZ=1
@@ -364,5 +364,5 @@ if [ "x${CPU2006_ARCHIVE}" = "xyes" ]; then
 
 	# Copy cross toolsfrom CPU2006_OUTPUT_ROOT to overwrite host tools
 	cp -rf $CPU2006_OUTPUT_ROOT/bin ${CPU2006_DIR}/bin
-	cp -rf $CPU2006_OUTPUT_ROOT/tools/output/lib ${CPU2006_DIR}/tools/output/lib
+	#cp -rf $CPU2006_OUTPUT_ROOT/tools/output/lib ${CPU2006_DIR}/tools/output/lib
 fi
