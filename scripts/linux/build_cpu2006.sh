@@ -139,17 +139,17 @@ cpu2006_build_target_tools()
 	SPECBINFILES="configpp convert_to_development dumpsrcalt extract_config extract_flags extract_raw flag_dump flags_dump makesrcalt port_progress rawformat relocate runspec specdiff specpp toolsver verify_md5"
 	SPECBINDIRS="fonts formats formatter modules.specpp scripts.misc test"
 	mkdir -p ${CPU2006_BUILD}/bin
-	cp -f $CPU2006_ROOT/bin/*.pl ${CPU2006_BUILD}/bin/
-	cp -f $CPU2006_ROOT/bin/*.pm ${CPU2006_BUILD}/bin/
+	cp -f ${CPU2006_ROOT}/bin/*.pl ${CPU2006_BUILD}/bin/
+	cp -f ${CPU2006_ROOT}/bin/*.pm ${CPU2006_BUILD}/bin/
 	for f in $SPECBINFILES; do
-		cp -f $CPU2006_ROOT/bin/$f ${CPU2006_BUILD}/bin/
+		cp -f ${CPU2006_ROOT}/bin/$f ${CPU2006_BUILD}/bin/
 	done
 	for d in $SPECBINDIRS; do
-		cp -rf $CPU2006_ROOT/bin/$d ${CPU2006_BUILD}/bin/
+		cp -rf ${CPU2006_ROOT}/bin/$d ${CPU2006_BUILD}/bin/
 	done
-	cp -f $CPU2006_ROOT/bin/packagetools ${CPU2006_BUILD}/bin/
-	cp -f $CPU2006_ROOT/bin/redistributable ${CPU2006_BUILD}/bin/
-	cp -f $CPU2006_ROOT/bin/version.txt ${CPU2006_BUILD}/bin/
+	cp -f ${CPU2006_ROOT}/bin/packagetools ${CPU2006_BUILD}/bin/
+	cp -f ${CPU2006_ROOT}/bin/redistributable ${CPU2006_BUILD}/bin/
+	cp -f ${CPU2006_ROOT}/bin/version.txt ${CPU2006_BUILD}/bin/
 }
 
 if [ -z $ARCH ]; then
@@ -165,7 +165,8 @@ if [ -z ${CPU2006_ROOT} ]; then
 	export CPU2006_ROOT=${WORKING_DIR}/cpu2006
 fi
 if [ -z ${CPU2006_BUILD} ]; then
-	export CPU2006_BUILD=${WORKING_DIR}/obj/cpu2006-${ARCH}
+	export CPU2006_BUILD=${CPU2006_OUTPUT_ROOT}
+	#export CPU2006_BUILD=${WORKING_DIR}/obj/cpu2006-${ARCH}
 fi
 
 cpu2006_init
@@ -357,6 +358,15 @@ if [ "x${CPU2006_ARCHIVE}" = "xyes" ]; then
 				echo "Installing $b..."
 				mkdir -p ${CPU2006_TARGETDIR}
 				cp -rf ${CPU2006_HOSTDIR}/* ${CPU2006_TARGETDIR}/
+				(
+					cd ${CPU2006_TARGETDIR}
+					cmds=`ls *.cmd`
+					for f in $cmds; do
+						echo "Installing ${CPU2006_TARGETDIR}/${f}..."
+						sed -i "s%${CPU2006_ROOT}%${CPU2006_OUTPUT_ROOT}%g" ./$f
+					done
+					sed -i "s%${CPU2006_ROOT}%${CPU2006_OUTPUT_ROOT}%g" ./${b}.sh
+				)
 			fi
 		done
 	done
@@ -364,4 +374,22 @@ if [ "x${CPU2006_ARCHIVE}" = "xyes" ]; then
 
 	# Copy cross toolsfrom CPU2006_OUTPUT_ROOT to overwrite host tools
 	cp -rf $CPU2006_BUILD/bin ${CPU2006_DIR}/bin
+	(
+		cd ${CPU2006_DIR}/bin
+		scps="convert_to_development specdiff flags_dump printpath.pl flag_dump extract_raw makesrcalt configpp rawformat dumpsrcalt printkids.pl specpp toolsver verify_md5 runspec extract_flags extract_config port_progress specperldoc"
+		for f in $scps; do
+			echo "Installing ${CPU2006_DIR}/bin/${f}..."
+			sed -i "s%${CPU2006_ROOT}%${CPU2006_OUTPUT_ROOT}%g" ./$f
+		done
+	)
+	mkdir -p ${CPU2006_DIR}/tools/output
+	cp -rf $CPU2006_BUILD/tools/output/bin ${CPU2006_DIR}/tools/output/
+	(
+		cd ${CPU2006_DIR}/tools/output/bin
+		scps="specperldoc"
+		for f in $scps; do
+			echo "Installing ${CPU2006_DIR}/tools/output/bin/${f}..."
+			sed -i "s%${CPU2006_ROOT}%${CPU2006_OUTPUT_ROOT}%g" ./$f
+		done
+	)
 fi
