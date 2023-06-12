@@ -486,7 +486,7 @@ build_spike64_linux.sh with the following configurations enabled:
     BUILD_TINY=no
     BUILD_LIB=yes
     CPU2006_UPDATE=yes
-    CPU2006_REPORT=specinvoke
+    CPU2006_REPORT=
     CPU2006_BENCHMARKS="401.bzip2"
     TEST_EARLY=cpu2006
 
