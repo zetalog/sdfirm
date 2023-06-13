@@ -36,10 +36,10 @@ ARCHIVES_DIR=$TOP/archive
 
 function apply_modcfg()
 {
-	if [ "x$1" = "xlinux" ]; then
-		dcfg=arch/$ARCH/configs/$2
-	else
+	if [ "x$1" = "xbusybox" ]; then
 		dcfg=configs/$2
+	else
+		dcfg=arch/$ARCH/configs/$2
 	fi
 	mcfg=$SCRIPT/modcfg/$1/$3
 
@@ -404,9 +404,17 @@ function build_sdfirm()
 		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 			O=$TOP/obj/sdfirm-$ARCH/ distclean
 	fi
+	# Doing modcfgs in the original directory and save my_defconfig
+	cp arch/${ARCH}/configs/${MACH}_bbl_defconfig arch/riscv/configs/my_defconfig
+	if [ "xno" = "x${BUILD_SMP}" ]; then
+		apply_modcfg sdfirm my_defconfig d_smp.cfg
+	fi
+	if [ "xno" = "x${SPACET_S2C_SPEEDUP}" ]; then
+		apply_modcfg sdfirm my_defconfig d_k1m_s2c_speedup.cfg
+	fi
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
-		O=$TOP/obj/sdfirm-$ARCH/ ${MACH}_bbl_defconfig
+		O=$TOP/obj/sdfirm-$ARCH/ my_defconfig
 	ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPLE $SDFIRM_PATH/scripts/config \
 		--file $TOP/obj/sdfirm-$ARCH/.config \
 		--set-str SBI_PAYLOAD_PATH \

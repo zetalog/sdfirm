@@ -45,7 +45,7 @@
 #include <target/arch.h>
 #include <target/clk.h>
 
-#define TSC_FREQ		(CPU_FREQ/1000)
+#define TSC_FREQ		(PIC_CLK_FREQ/1000)
 #define TSC_MAX			ULL(0xFFFFFFFFFFFFFFFF)
 
 #include <asm/mach/timer.h>

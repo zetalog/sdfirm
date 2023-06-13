@@ -85,11 +85,29 @@
 #define RAM_SIZE		SRAM_SIZE
 #endif /* CONFIG_K1M_SRAM */
 
+#ifdef CONFIG_K1M_DDR_SIZE_CUSTOM
+#define DRAM_SIZE               CONFIG_K1M_MEM_SIZE
+#else /* CONFIG_K1M_DDR_SIZE_CUSTOM */
+#ifdef CONFIG_K1M_S2C
+/* XXX: DRAM Size
+ * Actually supports up to 8G with dual ranks, 4G in single rank. But due
+ * to the address space limitation, at least up to 3G in single rank.
+ */
+#define DRAM_SIZE		__DRAM_SIZE
+#endif /* CONFIG_K1M_S2C */
+#ifdef CONFIG_K1M_PZ1
+#define DRAM_SIZE		SZ_256M
+#endif /* CONFIG_K1M_PZ1 */
+#ifndef DRAM_SIZE
+#define DRAM_SIZE		CONFIG_K1M_MEM_SIZE
+#endif /* DRAM_SIZE */
+#endif /* CONFIG_K1M_DDR_SIZE_CUSTOM */
+
 #ifdef CONFIG_K1M_DDR
 #define ROM_BASE		DRAM_BASE
-#define ROM_SIZE		CONFIG_K1M_MEM_SIZE
+#define ROM_SIZE		DRAM_SIZE
 #define RAM_BASE		DRAM_BASE
-#define RAM_SIZE		CONFIG_K1M_MEM_SIZE
+#define RAM_SIZE		DRAM_SIZE
 #endif /* CONFIG_K1M_DDR */
 
 #ifdef CONFIG_K1M_ZSBL

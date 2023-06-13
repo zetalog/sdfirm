@@ -25,7 +25,7 @@
 	cpus {
 		#address-cells = <0x1>;
 		#size-cells = <0x0>;
-		timebase-frequency = <APB_CLK_FREQ>;
+		timebase-frequency = <PIC_CLK_FREQ>;
 
 		cpu-map {
 			cluster0 {
