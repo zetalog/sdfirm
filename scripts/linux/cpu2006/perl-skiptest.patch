@@ -54,7 +54,7 @@ Index: cpu2006/tools/src/buildtools
 -      # the tests will actually use the installed modules.  It doesn't really
 -      # matter either way -- if the test fails, the whole run is scrapped.
 -      [ -f $i/spec_do_no_tests ] || ($MYMAKE test; testordie "error running $i test suite")
--       )
+-      )
 +      if [ -n "$DOPERLTEST" ] || [ -z "$SKIPPERLTEST" ]; then
 +        # The tests are done after the install; because of the lib path munging,
 +        # the tests will actually use the installed modules.  It doesn't really

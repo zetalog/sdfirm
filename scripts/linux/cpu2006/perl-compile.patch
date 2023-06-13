@@ -1,0 +1,69 @@
+Index: cpu2006/tools/src/perl-5.12.3/Configure
+===================================================================
+--- cpu2006.orig/tools/src/perl-5.12.3/Configure
++++ cpu2006/tools/src/perl-5.12.3/Configure
+@@ -4536,7 +4536,7 @@ else
+ fi
+ $rm -f try try.*
+ case "$gccversion" in
+-1*) cpp=`./loc gcc-cpp $cpp $pth` ;;
++1.*) cpp=`./loc gcc-cpp $cpp $pth` ;;
+ esac
+ case "$gccversion" in
+ '') gccosandvers='' ;;
+@@ -4576,7 +4576,7 @@ esac
+ # gcc 3.* complain about adding -Idirectories that they already know about,
+ # so we will take those off from locincpth.
+ case "$gccversion" in
+-3*)
++3.*)
+     echo "main(){}">try.c
+     for incdir in $locincpth; do
+        warn=`$cc $ccflags -I$incdir -c try.c 2>&1 | \
+@@ -5128,13 +5128,13 @@ fi
+ case "$hint" in
+ default|recommended)
+ 	case "$gccversion" in
+-	1*) dflt="$dflt -fpcc-struct-return" ;;
++	1.*) dflt="$dflt -fpcc-struct-return" ;;
+ 	esac
+ 	case "$optimize:$DEBUGGING" in
+ 	*-g*:old) dflt="$dflt -DDEBUGGING";;
+ 	esac
+ 	case "$gccversion" in
+-	2*) if $test -d /etc/conf/kconfig.d &&
++	2.*) if $test -d /etc/conf/kconfig.d &&
+ 			$contains _POSIX_VERSION $usrinc/sys/unistd.h >/dev/null 2>&1
+ 		then
+ 			# Interactive Systems (ISC) POSIX mode.
+@@ -5143,7 +5143,7 @@ default|recommended)
+ 		;;
+ 	esac
+ 	case "$gccversion" in
+-	1*) ;;
++	1.*) ;;
+ 	2.[0-8]*) ;;
+ 	?*)	set strict-aliasing -fno-strict-aliasing
+ 		eval $checkccflag
+@@ -5245,7 +5245,7 @@ case "$cppflags" in
+ *)  cppflags="$cppflags $ccflags" ;;
+ esac
+ case "$gccversion" in
+-1*) cppflags="$cppflags -D__GNUC__"
++1.*) cppflags="$cppflags -D__GNUC__"
+ esac
+ case "$mips_type" in
+ '');;
+Index: cpu2006/tools/src/perl-5.12.3/cflags.SH
+===================================================================
+--- cpu2006.orig/tools/src/perl-5.12.3/cflags.SH
++++ cpu2006/tools/src/perl-5.12.3/cflags.SH
+@@ -132,7 +132,7 @@ stdflags=''
+ 
+ case "$gccversion" in
+ '') ;;
+-[12]*) ;; # gcc versions 1 (gasp!) and 2 are not good for this.
++[12].*) ;; # gcc versions 1 (gasp!) and 2 are not good for this.
+ Intel*) ;; # # Is that you, Intel C++?
+ *)  for opt in -ansi -std=c89 -W -Wextra -Wdeclaration-after-statement -Wendif-labels -Wc++-compat
+     do
