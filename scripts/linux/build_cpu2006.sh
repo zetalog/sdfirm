@@ -107,6 +107,19 @@ cpu2006_benchmarks()
 	done
 }
 
+cpu2006_patch_tools()
+{
+	(
+		cd ${CPU2006_ROOT}
+		if [ ! -f ${CPU2006_ROOT}/tools/src/.BUILDTOOLS_PATCHED ]; then
+			patch -p 1 < ${SCRIPT}/cpu2006/perl-skiptest.patch
+			patch -p 1 < ${SCRIPT}/cpu2006/make-compile.patch
+			patch -p 1 < ${SCRIPT}/cpu2006/perl-compile.patch
+			touch ${CPU2006_ROOT}/tools/src/.BUILDTOOLS_PATCHED
+		fi
+	)
+}
+
 # Do not invoke this due to the failure in building target perl with a
 # duplicate and configured host perl source tree.
 # This feature is never invoked by build_image.sh and can only be used
@@ -116,13 +129,6 @@ cpu2006_benchmarks()
 cpu2006_build_host_tools()
 {
 	(
-		cd ${CPU2006_ROOT}
-		if [ ! -f ${CPU2006_ROOT}/tools/src/.BUILDTOOLS_PATCHED ]; then
-			patch -p 1 < ${SCRIPT}/cpu2006/perl-skiptest.patch
-			touch ${CPU2006_ROOT}/tools/src/.BUILDTOOLS_PATCHED
-		fi
-	)
-	(
 		cd ${CPU2006_ROOT}/tools/src
 		./buildtools
 	)
@@ -130,15 +136,23 @@ cpu2006_build_host_tools()
 
 cpu2006_build_target_tools()
 {
-	rm -rf ${CPU2006_BUILD}/bin
-	rm -rf ${CPU2006_BUILD}/tools/output
 	export SKIPTOOLSRM=1
-
-	${SCRIPT}/cpu2006/buildtools
+	if [ -z $SKIPMAKE ] && [ -z $SKIPXZ ] && \
+	   [ -z $SKIPTAR ] && [ -z $SKIPMD5 ] && \
+	   [ -z $SKIPSPECINVOKE ] && [ -z $SKIPRXP ] && \
+	   [ -z $SKIPEXPAT ] && [ -z $SKIPPERL ]; then
+		echo "Removing CPU2006 tools...\n"
+		rm -rf ${CPU2006_BUILD}/tools/output
+		rm -rf ${CPU2006_OUTPUT_ROOT}/tools/output
+	fi
+	if [ -z "$SKIPCOPY" ]; then
+		rm -rf ${CPU2006_BUILD}/bin
+		rm -rf ${CPU2006_OUTPUT_ROOT}/bin
+	fi
+	mkdir -p ${CPU2006_BUILD}/bin
 
 	SPECBINFILES="configpp convert_to_development dumpsrcalt extract_config extract_flags extract_raw flag_dump flags_dump makesrcalt port_progress rawformat relocate runspec specdiff specpp toolsver verify_md5"
 	SPECBINDIRS="fonts formats formatter modules.specpp scripts.misc test"
-	mkdir -p ${CPU2006_BUILD}/bin
 	cp -f ${CPU2006_ROOT}/bin/*.pl ${CPU2006_BUILD}/bin/
 	cp -f ${CPU2006_ROOT}/bin/*.pm ${CPU2006_BUILD}/bin/
 	for f in $SPECBINFILES; do
@@ -150,6 +164,9 @@ cpu2006_build_target_tools()
 	cp -f ${CPU2006_ROOT}/bin/packagetools ${CPU2006_BUILD}/bin/
 	cp -f ${CPU2006_ROOT}/bin/redistributable ${CPU2006_BUILD}/bin/
 	cp -f ${CPU2006_ROOT}/bin/version.txt ${CPU2006_BUILD}/bin/
+	cp -f $CPU2006_ROOT/shrc ${CPU2006_BUILD}/shrc
+
+	${SCRIPT}/cpu2006/buildtools
 }
 
 if [ -z $ARCH ]; then
@@ -217,6 +234,8 @@ fi
 CPU2006_COMMANDS=commands.txt
 CPU2006_DIR=${TOP}/obj/bench${CPU2006_OUTPUT_ROOT}
 
+cpu2006_patch_tools
+
 if [ "x${CPU2006_BUILD_HOST_TOOLS}" = "xyes" ]; then
 	(
 	# Tune buildtools steps
@@ -235,12 +254,6 @@ if [ "x${CPU2006_BUILD_HOST_TOOLS}" = "xyes" ]; then
 	echo "CPU2006: Building host tools from $CPU2006_ROOT..."
 	cpu2006_build_host_tools
 	)
-fi
-
-rm -rf $CPU2006_DIR
-if [ "x${CPU2006_BUILD_TARGET_TOOLS}" = "xyes" -o "x${CPU2006_BUILD_BENCHES}" = "xyes" ]; then
-	rm -rf $CPU2006_OUTPUT_ROOT || exit 1
-	mkdir -p $CPU2006_OUTPUT_ROOT || exit 1
 fi
 
 if [ "x${CPU2006_BUILD_TARGET_TOOLS}" = "xyes" ]; then
@@ -340,10 +353,8 @@ if [ "x${CPU2006_ARCHIVE}" = "xyes" ]; then
 	cp -rf $CPU2006_ROOT/config/flags ${CPU2006_DIR}/config/flags
 	cp -rf $CPU2006_ROOT/Docs/flags ${CPU2006_DIR}/Docs/flags
 	cp -rf $CPU2006_ROOT/Docs/sysinfo ${CPU2006_DIR}/Docs/sysinfo
-	cp -f $CPU2006_ROOT/shrc ${CPU2006_DIR}/shrc
 	cp -f $CPU2006_ROOT/MANIFEST ${CPU2006_DIR}/MANIFEST
 	cp -f $CPU2006_ROOT/version.txt ${CPU2006_DIR}/version.txt
-	cp -f $CPU2006_ROOT/SUMS.tools ${CPU2006_DIR}/SUMS.tools
 
 	# Copy cross tests from CPU2006_OUTPUT_ROOT to overwrite host tools
 	echo "Installing cpu2006 target tests from $CPU2006_OUTPUT_ROOT..."
@@ -373,6 +384,8 @@ if [ "x${CPU2006_ARCHIVE}" = "xyes" ]; then
 	cp -f $CPU2006_OUTPUT_ROOT/config/$ARCH.cfg ${CPU2006_DIR}/config/$ARCH.cfg
 
 	# Copy cross toolsfrom CPU2006_OUTPUT_ROOT to overwrite host tools
+	cp -f $CPU2006_BUILD/SUMS.tools ${CPU2006_DIR}/SUMS.tools
+	cp -f $CPU2006_BUILD/shrc ${CPU2006_DIR}/shrc
 	cp -rf $CPU2006_BUILD/bin ${CPU2006_DIR}/bin
 	(
 		cd ${CPU2006_DIR}/bin
@@ -386,7 +399,7 @@ if [ "x${CPU2006_ARCHIVE}" = "xyes" ]; then
 	cp -rf $CPU2006_BUILD/tools/output/bin ${CPU2006_DIR}/tools/output/
 	(
 		cd ${CPU2006_DIR}/tools/output/bin
-		scps="specperldoc"
+		scps="perldoc"
 		for f in $scps; do
 			echo "Installing ${CPU2006_DIR}/tools/output/bin/${f}..."
 			sed -i "s%${CPU2006_ROOT}%${CPU2006_OUTPUT_ROOT}%g" ./$f

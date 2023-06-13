@@ -1,0 +1,235 @@
+#!/bin/sh
+#
+#  relocate - fixes headers in the tools when the tools are moved
+#  Copyright 1995-2011 Standard Performance Evaluation Corporation
+#   All Rights Reserved
+#
+#  Authors:  Christopher Chan-Nui
+#            Cloyce D. Spradling
+#
+# $Id: relocate 6364 2011-03-05 00:41:51Z cloyce $
+
+RUNSPEC=runspec
+
+UNDO=0
+if [ "$1" = "--undo" ]; then
+    UNDO=1
+    export UNDO
+    shift
+fi
+
+if [ -n "$1" ]; then
+    WANTPERLSHBANGMAGIC=1
+    export WANTPERLSHBANGMAGIC
+fi
+
+# Find top of SPEC heirarchy
+if [ ! -f "$SPEC/bin/$RUNSPEC" ] && [ "$SPEC" != "" ]
+then
+    echo "Your \$SPEC variable is not set correctly!"
+    SPEC=""
+fi
+if [ -z "$SPEC" ] 
+then
+    SPEC=""
+    TEMP=`pwd`
+    while [ ! -f "$TEMP/bin/$RUNSPEC" ] && [ "$TEMP" != "/" ]
+    do 
+	TEMP=`dirname "$TEMP"`
+    done
+    if [ -f "$TEMP/bin/$RUNSPEC" ]
+    then
+	SPEC=$TEMP
+    fi
+fi
+if [ -z "$SPEC" ]
+then
+    echo "Can't find the top of your benchmark tree!  Please change to your benchmark"
+    echo "directory and run $0 again!"
+    exit 1
+fi
+
+echo "Top of SPEC benchmark tree is '$SPEC'"
+
+if [ -z "$SPECPERLLIB" ]; then
+  echo "Some important environment variables are missing!  Please source"
+  echo "$SPEC/shrc before running this program."
+  exit 1
+fi
+
+if [ ! -x "$SPEC/bin/specperl" ] || [ ! -x "$SPEC/bin/specmake" ]
+then
+    echo "You haven't installed specperl and specmake yet!"
+    echo "Please run the \"$SPEC/install.sh\" script."
+    exit 1
+fi
+
+export SPEC
+exec "$CPU2006_SPECBIN/specperl" -x -S "$0"
+#!/usr/bin/perl
+
+use strict;
+use IO::File;
+use Digest::MD5;
+use File::Basename;
+require "$ENV{'SPEC'}/bin/vars_common.pl";
+
+my $SPEC=$ENV{'SPEC'};
+my $suitever = get_suite_version();
+my %md5s = read_manifest($SPEC.'/MANIFEST');
+
+my $check_integrity = 0;
+
+if ($suitever < 4 || $ENV{'SPEC_CHECK'}) {
+  $check_integrity = 1;
+}
+
+foreach my $file (qw(runspec rawformat configpp specdiff extract_raw
+                     extract_config extract_flags flag_dump specperldoc
+                     printpath.pl verify_md5 printkids.pl makesrcalt specpp
+                     port_progress toolsver convert_to_development dumpsrcalt
+                     flags_dump)) {
+    my $name = "$SPEC/bin/$file";
+    my $ifh = new IO::File "<$name";
+    if (!defined($ifh)) {
+      if ($file !~ /(?:runspec|rawformat)/) {
+        # It's not too critical; maybe the tools build just doesn't include it
+        # yet.
+        next;
+      } elsif (-d "$SPEC/bin/.svn") {
+        # Development tree; don't worry about it.
+        next;
+      } else {
+        die "Can't open '$name': $!\n";
+      }
+    }
+    my $ofh = new IO::File ">${name}.new";
+    die "Can't open '$name.new' for writing: $!\n" unless defined($ofh);
+    binmode $ifh, ':raw';
+    binmode $ofh, ':raw';
+    if (!$ENV{'UNDO'} && ($SPEC =~ / / || $ENV{'WANTPERLSHBANGMAGIC'})) {
+    print $ofh <<EOT;
+#!/bin/sh --
+eval 'exec \"\${SPEC:=$SPEC}/bin/specperl\" -S -x \"\$0\" \${1+"\$\@"}'
+if 0;
+
+EOT
+    }
+if ($ENV{'UNDO'}) {
+    print $ofh <<EOT;
+#!/spec/$::lcsuite/bin/specperl
+#!/spec/$::lcsuite/bin/specperl -d
+EOT
+} else {
+    print $ofh <<EOT;
+#!$SPEC/bin/specperl
+#!$SPEC/bin/specperl -d
+EOT
+}
+
+    my $found = 0;
+    foreach my $line (<$ifh>) {
+	if ($line =~ m'^#!/usr/bin/perl') {
+		$found = 1;
+	}
+	next unless $found;
+	print $ofh $line;
+    }
+    $ifh->close();
+    $ofh->close();
+    chmod 0755, "$name.new" || die "Can't change permissions on file '$name': $!";
+    rename "$name.new", "$name" || die "Can't move '$name.new' to '$name': $!\n";
+    # Since we've just munged one of the files in the MANIFEST, re-MD5 it and store
+    # the sum in a hash
+    my $shortpath = $name;
+    $shortpath =~ s/^$SPEC\/+//o;
+    if ($check_integrity && !exists($md5s{$shortpath}) &&
+        $shortpath !~ /specperldoc/) {
+        die "No pre-existing MD5 sum for $shortpath; the MANIFEST is corrupt!\nStopped";
+    } else {
+        $md5s{"${shortpath}/ORIG"} = $md5s{$shortpath} if exists($md5s{$shortpath}) && !$ENV{'UNDO'};
+        $md5s{$shortpath} = [ md5filedigest($name), -s $name ];
+    }
+}
+
+# Now rewrite the MANIFEST file.
+my $ofh = new IO::File '>'."${SPEC}/MANIFEST";
+die "Can't open MANIFEST for writing: $!\n" unless defined($ofh);
+my @md5s = sort grep { !/specperldoc/ } keys %md5s;
+@md5s = grep { !m#/ORIG$# } @md5s if $ENV{'UNDO'};
+foreach my $file (@md5s) {
+    $ofh->printf("%s * %08X $file\n", @{$md5s{$file}});
+}
+$ofh->close();
+
+# specperldoc lives in SUMS.tools.  Rewrite it, too.
+my %tools_md5s = read_manifest($SPEC.'/SUMS.tools', 1);
+foreach my $shortpath (qw(bin/specperldoc)) {
+    $tools_md5s{$shortpath.'/ORIG'} = $tools_md5s{$shortpath} if exists($tools_md5s{$shortpath});
+    $tools_md5s{$shortpath} = $md5s{$shortpath} if exists($md5s{$shortpath});
+}
+$ofh = new IO::File '>'."${SPEC}/SUMS.tools";
+die "Can't open SUMS.tools for writing: $!\n" unless defined($ofh);
+@md5s = sort keys %tools_md5s;
+@md5s = grep { !m#/ORIG$# } @md5s if $ENV{'UNDO'};
+foreach my $file (@md5s) {
+    $ofh->printf("%s * %08X $file\n", @{$tools_md5s{$file}});
+}
+$ofh->close();
+
+sub md5filedigest {
+    my ($file) = @_;
+    my $md5 = new Digest::MD5;
+    my $fh  = new IO::File "<$file";
+    die "relocate: can't open '$file' for reading.\n  The error message was '$!'\n" unless defined($fh);
+
+    $md5->addfile($fh);
+    $fh->close();
+
+    return $md5->hexdigest();
+}
+
+sub read_manifest {
+    my ($path, $missingok) = @_;
+    my %md5 = ();
+    my $count = 0;
+    my $filename = basename($path);
+
+    # Read in the manifest and store it in a hash
+    if (!-r $path) {
+        return () if $missingok;
+	if (!-e $path) {
+	    die "The $filename file is missing; the benchmark suite is incomplete or corrupted!\n";
+	} else {
+	    die "The $filename file cannot be read; please check the permissions!\n";
+	}
+    }
+    my $fh = new IO::File '<'.$path;
+    die "The $filename file could not be opened for reading: $!\n" unless defined($fh);
+    while(defined(my $line = <$fh>)) {
+	my ($md5, $sizehex, $path) = $line =~ m/^([A-Za-z0-9]{32}) (?:\*| ) ([0-9A-F]{8}) (.*)$/o;
+	$md5{$path} = [ $md5, hex($sizehex) ];
+	$count++;
+    }
+    $fh->close();
+    return %md5;
+}
+
+sub get_suite_version {
+    my $fh = new IO::File "<$ENV{'SPEC'}/version.txt";
+    if (defined($fh)) {
+	my $suite_ver = <$fh>;
+	$suite_ver =~ tr/\015\012//d;
+	return $suite_ver;
+    } else {
+        if (!exists ($ENV{'SPEC'}) || !defined($ENV{'SPEC'}) ||
+            $ENV{'SPEC'} eq '') {
+            print STDERR "The SPEC environment variable is not set; are you running relocate by hand?\n\n";
+            exit 1;
+        }
+        print STDERR "\nThe benchmark suite version could not be read.  Your distribution is corrupt\n  or incomplete.\n\n";
+        exit 1;
+    }
+}
+
+__END__

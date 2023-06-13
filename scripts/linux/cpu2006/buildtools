@@ -70,11 +70,12 @@ cd ${CPU2006_BUILD}/tools/src
 INSTALLDIR=`pwd`
 INSTALLDIR=`dirname $INSTALLDIR`/output
 SPECBIN=${CPU2006_BUILD}/bin
+CPU2006_SPEC=${CPU2006_ROOT}
 CPU2006_SPECBIN=${CPU2006_ROOT}/bin
 #PERLVER=5.24.1
 PERLVER=5.12.3
 TARSRC=tar-1.25
-export INSTALLDIR SPECBIN PERLVER TARSRC
+export INSTALLDIR SPECBIN PERLVER TARSRC CPU2006_SPECBIN CPU2006_SPEC
 
 FOOL_AC_FILES='( -name configure -o -name Makefile.in -o -name config.h.in -o -name config.hin -o -name aclocal.m4 -o -name testsuite )'
 
@@ -680,11 +681,15 @@ if [ -n "$DOCOPY" ] || [ -z "$SKIPCOPY" ]; then
     done
     chmod -R u+w $SPECBIN
     if [ -z "$error" ]; then
-	echo "Tools built successfully.  Go to the top of the tree and"
-	echo "source the shrc file.  Then you should be ready."
-    else
-        echo "Uhoh! I appear to have had problems relocating the tree."
-        echo 'Once you fix the problem (is your SPEC environment variable set?) you can make'
-        echo "the tools work by sourcing the shrc and running $SPEC/bin/relocate by hand."
+	cd ../..
+	. ./shrc
+	if ${SCRIPT}/relocate; then
+	    echo "Tools built successfully.  Go to the top of the tree and"
+	    echo "source the shrc file.  Then you should be ready."
+	else
+	    echo "Uhoh! I appear to have had problems relocating the tree."
+            echo 'Once you fix the problem (is your SPEC environment variable set?) you can make'
+            echo "the tools work by sourcing the shrc and running $SPEC/bin/relocate by hand."
+	fi
     fi
 fi
