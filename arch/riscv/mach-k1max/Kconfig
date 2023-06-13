@@ -2,16 +2,64 @@ if ARCH_K1MAX
 
 menu "Spacemit K1MAX board options"
 
+config K1M_SOC
+	bool
+
 choice
 	prompt "Simulation chip"
 
 config K1M_CPU
-	bool "CPU verification TB"
+	bool "CPU verification TB (X60/X100)"
+	help
+	  This configuration contains only CPU subsystem running in RTL
+	  environment.
 
-config K1M_SOC
-	bool "SoC verification TB"
+config K1M_PZ1
+	bool "Palladium Z1 verification TB (STEV10)"
+	select K1M_SOC
+	help
+	  This configuration contains SoC configuration running in RTL
+	  environment or on palladium Z1 platform.
+
+config K1M_S2C
+	bool "S2C FPGA verification TB (STEV10)"
+	select K1M_SOC
+	help
+	  This configuration contains S2C FPGA bit related information
+	  where pad_clk is fed by S2CCLK1 and cpu_clk might be fed by
+	  S2CCLK2.
 
 endchoice
+
+config K1M_S2C_SPEEDUP
+	bool "Speed up configuration on S2C FPGA"
+	depends K1M_S2C && K1M_K1X
+	help
+	  This configuration is only applied on SPACET_K1X, where S2CCLK2
+	  is used as CPU clock, when it is configured as 50MHz, CPU clock
+	  gets a doubled rate, that is to say, 100MHz.
+
+config K1M_S2C_SPEEDUP_QUIRK_RDTIME
+	bool "Enable RDTIME quirk on S2C FPGA"
+	depends K1M_S2C_SPEEDUP
+
+if K1M_SOC
+
+choice
+	prompt "SoC evaluation (STEV10) chip model"
+
+config K1M_K1X
+	bool "K1X"
+
+config K1M_K1PRO
+	bool "K1Pro"
+
+config K1M_K1MAX
+	bool "K1Max"
+
+endchoice
+
+endif
 
 config K1M_SMP_CPUS
 	int "Number of cores"
@@ -60,10 +108,14 @@ config K1M_DDR
 
 endchoice
 
+config K1M_DDR_SIZE_CUSTOM
+	bool "Enable customized DRAM size"
+	depends K1M_DDR
+
 config K1M_MEM_SIZE
 	hex "Memory size"
 	default 0x2000000
-	depends K1M_CPU || K1M_DDR
+	depends K1M_CPU || K1M_DDR_SIZE_CUSTOM
 
 menuconfig K1M_CCI
 	bool "K1MAX cache coherent interconnect support"

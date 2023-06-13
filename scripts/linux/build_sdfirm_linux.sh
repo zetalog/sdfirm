@@ -102,6 +102,10 @@ fi
 if [ "x${FORCE_REBUILD}" = "xyes" ]; then
 	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -r"
 fi
+# Simple environments
+if [ "x${SPACET_S2C_SPEEDUP}" = "xno" ]; then
+	export SPACET_S2C_SPEEDUP
+fi
 
 # Control LITMUS partial builds
 if [ "x${LITMUS_SUIT}" = "xHAND" ]; then

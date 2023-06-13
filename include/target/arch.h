@@ -8,17 +8,17 @@
 #ifdef CONFIG_XIP
 #define TEXT_OFFSET		CONFIG_BOOT_BASE
 #ifdef CONFIG_BFM
-#if (TEXT_OFFSET < RAM_BASE) || (TEXT_OFFSET >= RAMEND)
+#if (TEXT_OFFSET < RAM_BASE) || (RAMEND != 0 && TEXT_OFFSET >= RAMEND)
 #error "Wrong CONFIG_BOOT_BASE is specified against RAM_BASE!"
 #endif
 #else /* CONFIG_BFM */
-#if (TEXT_OFFSET < ROM_BASE) || (TEXT_OFFSET >= ROMEND)
+#if (TEXT_OFFSET < ROM_BASE) || (ROMEND != 0 && TEXT_OFFSET >= ROMEND)
 #error "Wrong CONFIG_BOOT_BASE is specified against ROM_BASE!"
 #endif
 #endif /* CONFIG_BFM */
 #else /* CONFIG_XIP */
 #define TEXT_OFFSET		CONFIG_LOAD_BASE
-#if (TEXT_OFFSET < RAM_BASE) || (TEXT_OFFSET >= RAMEND)
+#if (TEXT_OFFSET < RAM_BASE) || (RAMEND != 0 && TEXT_OFFSET >= RAMEND)
 #error "Wrong CONFIG_LOAD_BASE is specified against RAM_BASE!"
 #endif
 #endif /* CONFIG_XIP */
