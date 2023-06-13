@@ -168,7 +168,6 @@ fi
 
 # Build SPEC CPU2006 benchmark tests
 if [ "x${BUILD_CPU2006}" = "xyes" ]; then
-	#${SCRIPT}/build_cpu2006.sh -t -r ${CPU2006_OPTS}
 	${SCRIPT}/build_cpu2006.sh -t -r ${CPU2006_OPTS}
 fi
 
