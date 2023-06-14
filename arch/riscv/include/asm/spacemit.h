@@ -109,6 +109,10 @@
 	csrs	CSR_MSETUP, x3
 	.endm
 	.macro	spacemit_init
+#ifdef CONFIG_K1M_S2C_SPEEDUP_QUIRK_RDTIME
+	li	x3, 0
+	csrs	CSR_MCOUNTEREN, x3
+#endif
 	li	x3, ECR_PBMTE
 	csrs	CSR_MENVCFG, x3
 	/* MSTATUS */
