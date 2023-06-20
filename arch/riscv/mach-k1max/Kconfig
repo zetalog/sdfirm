@@ -42,6 +42,7 @@ config K1M_S2C_SPEEDUP
 config K1M_S2C_SPEEDUP_QUIRK_RDTIME
 	bool "Enable RDTIME quirk on S2C FPGA"
 	depends K1M_S2C_SPEEDUP
+	depends !RISCV_SSTC
 
 if K1M_SOC
 
