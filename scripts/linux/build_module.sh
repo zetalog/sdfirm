@@ -413,10 +413,10 @@ function build_sdfirm()
 		apply_modcfg sdfirm my_defconfig d_k1m_s2c_speedup.cfg
 	fi
 	if [ "x" != "x${SPACET_CPU}" ]; then
-		apply_modcfg sdfirm mydefconfig e_k1m_cpu${SPACET_CPU}.cfg
+		apply_modcfg sdfirm my_defconfig e_k1m_cpu${SPACET_CPU}.cfg
 	fi
 	if [ "x" != "x${SPACET_DDR}" ]; then
-		apply_modcfg sdfirm mydefconfig e_k1m_ddr${SPACET_DDR}.cfg
+		apply_modcfg sdfirm my_defconfig e_k1m_ddr${SPACET_DDR}.cfg
 	fi
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
