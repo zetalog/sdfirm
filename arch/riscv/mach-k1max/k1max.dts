@@ -36,6 +36,8 @@
 				core1 {
 					cpu = <&cpu1>;
 				};
+#endif
+#if CONFIG_K1M_SMP_CPUS == 4
 				core2 {
 					cpu = <&cpu2>;
 				};
@@ -91,6 +93,8 @@
 				compatible = "riscv,cpu-intc";
 			};
 		};
+#endif
+#if CONFIG_K1M_SMP_CPUS == 4
 		cpu2: cpu@2 {
 			device_type = "cpu";
 			reg = <2>;
@@ -219,6 +223,8 @@
 				&cpu0_intc 0xb &cpu0_intc 0x9
 #ifdef CONFIG_SMP
 				&cpu1_intc 0xb &cpu1_intc 0x9
+#endif
+#if CONFIG_K1M_SMP_CPUS == 4
 				&cpu2_intc 0xb &cpu2_intc 0x9
 				&cpu3_intc 0xb &cpu3_intc 0x9
 #endif
@@ -242,6 +248,8 @@
 				&cpu0_intc 0x3 &cpu0_intc 0x7
 #ifdef CONFIG_SMP
 				&cpu1_intc 0x3 &cpu1_intc 0x7
+#endif
+#if CONFIG_K1M_SMP_CPUS == 4
 				&cpu2_intc 0x3 &cpu2_intc 0x7
 				&cpu3_intc 0x3 &cpu3_intc 0x7
 #endif
