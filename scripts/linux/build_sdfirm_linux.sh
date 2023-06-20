@@ -106,6 +106,12 @@ fi
 if [ "x${SPACET_S2C_SPEEDUP}" = "xno" ]; then
 	export SPACET_S2C_SPEEDUP
 fi
+if [ "x${SPACET_CPU}" != "x" ]; then
+	export SPACET_CPU
+fi
+if [ "x${SPACET_DDR}" != "x" ]; then
+	export SPACET_DDR
+fi
 
 # Control LITMUS partial builds
 if [ "x${LITMUS_SUIT}" = "xHAND" ]; then
