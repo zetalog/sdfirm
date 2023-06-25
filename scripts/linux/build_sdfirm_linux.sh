@@ -513,11 +513,14 @@ backup_elfs()
 		echo "Copying linux images..."
 		cp -f ${BUILD_ROOT}/obj/linux-${ARCH}/vmlinux \
 			${BACKUP_ROOT}/vmlinux
-		cp -f ${BUILD_ROOT}/obj/linux-${ARCH}/arch/riscv/boot/Image \
+		cp -f ${BUILD_ROOT}/obj/linux-${ARCH}/arch/${ARCH}/boot/Image \
 			${BACKUP_ROOT}/Image
 		echo "Copying busybox images..."
 		cp -f ${BUILD_ROOT}/obj/busybox-${ARCH}/busybox \
 			${BACKUP_ROOT}/busybox
+		echo "Copying sdfirm..."
+		cp -f ${BUILD_ROOT}/obj/sdfirm-${ARCH}/sdfirm \
+			${BACKUP_ROOT}/sdfirm
 		echo "Copying sdfirm.rom..."
 		cp -f ${BUILD_ROOT}/obj/sdfirm-${ARCH}/arch/${ARCH}/boot/sdfirm.rom \
 			${BACKUP_ROOT}/sdfirm.rom
