@@ -41,16 +41,25 @@
 
 #include <target/arch.h>
 
+#define BOOT_CLUSTER	CPU_TO_CLUSTER(BOOT_HART)
+
 void k1max_cpu_reset(void)
 {
-	cpu_t cpu;
+	cpu_t cpu, hart, cluster;
 	uint32_t reset = __raw_readl(SYS_CPU_SOFTWARE_RST);
 
 	if (BOOT_HART == csr_read(CSR_MHARTID)) {
 		for (cpu = 0; cpu < MAX_CPU_NUM; cpu++) {
-			if (cpu == smp_hw_hart_cpu(BOOT_HART))
+			hart = smp_hw_cpu_hart(cpu);
+			cluster = CPU_TO_CLUSTER(hart);
+
+			if (hart == BOOT_HART)
 				continue;
 			reset |= SYS_CPU_RST(cpu);
+
+			if (cluster == BOOT_CLUSTER)
+				continue;
+			reset |= SYS_CLUSTER_RST(cluster);
 		}
 	}
 	__raw_writel(reset, SYS_CPU_SOFTWARE_RST);
