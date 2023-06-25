@@ -518,6 +518,9 @@ backup_elfs()
 		echo "Copying busybox images..."
 		cp -f ${BUILD_ROOT}/obj/busybox-${ARCH}/busybox \
 			${BACKUP_ROOT}/busybox
+		echo "Copying sdfirm.rom..."
+		cp -f ${BUILD_ROOT}/obj/sdfirm-${ARCH}/arch/${ARCH}/boot/sdfirm.rom \
+			${BACKUP_ROOT}/sdfirm.rom
 		if [ -z ${BUILD_CUSTOMER} ]; then
 			if [ "x${TEST_EARLY}" = "xbenchmark" ]; then
 				echo "Copying benchmarks..."
@@ -544,6 +547,15 @@ backup_elfs()
 			fi
 			if [ "x${TEST_EARLY}" = "xcpu2006" ]; then
 				echo "Copying cpu2006 tests..."
+				EXE_FILES=("/opt/cpu2006/benchspec/CPU2006/401.bzip2/exe/bzip2_base.riscv"
+				            "..."
+					   )
+				for str in "${EXE_FILES[@]}"
+				do
+					if test -f "$str"; then
+						cp -f ${str} ${BACKUP_ROOT}/
+					fi
+				done
 			fi
 		fi
 	fi
