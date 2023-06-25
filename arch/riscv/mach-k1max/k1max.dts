@@ -39,7 +39,7 @@
 					cpu = <&cpu1>;
 				};
 #endif
-#if CONFIG_K1M_SMP_CPUS == 4
+#if CONFIG_K1M_SMP_CPUS >= 4
 				core2 {
 					cpu = <&cpu2>;
 				};
@@ -48,7 +48,7 @@
 				};
 #endif
 			};
-#if CONFIG_K1M_SMP_CPUS == 8
+#if CONFIG_K1M_SMP_CPUS >= 8
 			cluster1 {
 				core4 {
 					cpu = <&cpu4>;
@@ -96,7 +96,7 @@
 			};
 		};
 #endif
-#if CONFIG_K1M_SMP_CPUS == 4
+#if CONFIG_K1M_SMP_CPUS >= 4
 		cpu2: cpu@2 {
 			device_type = "cpu";
 			reg = <2>;
@@ -126,7 +126,7 @@
 			};
 		};
 #endif
-#if CONFIG_K1M_SMP_CPUS == 8
+#if CONFIG_K1M_SMP_CPUS >= 8
 		cpu4: cpu@4 {
 			device_type = "cpu";
 			reg = <4>;
@@ -226,11 +226,11 @@
 #ifdef CONFIG_SMP
 				&cpu1_intc 0xb &cpu1_intc 0x9
 #endif
-#if CONFIG_K1M_SMP_CPUS == 4
+#if CONFIG_K1M_SMP_CPUS >= 4
 				&cpu2_intc 0xb &cpu2_intc 0x9
 				&cpu3_intc 0xb &cpu3_intc 0x9
 #endif
-#if CONFIG_K1M_SMP_CPUS == 8
+#if CONFIG_K1M_SMP_CPUS >= 8
 				&cpu4_intc 0xb &cpu4_intc 0x9
 				&cpu5_intc 0xb &cpu5_intc 0x9
 				&cpu6_intc 0xb &cpu6_intc 0x9
@@ -251,11 +251,11 @@
 #ifdef CONFIG_SMP
 				&cpu1_intc 0x3 &cpu1_intc 0x7
 #endif
-#if CONFIG_K1M_SMP_CPUS == 4
+#if CONFIG_K1M_SMP_CPUS >= 4
 				&cpu2_intc 0x3 &cpu2_intc 0x7
 				&cpu3_intc 0x3 &cpu3_intc 0x7
 #endif
-#if CONFIG_K1M_SMP_CPUS == 8
+#if CONFIG_K1M_SMP_CPUS >= 8
 				&cpu4_intc 0x3 &cpu4_intc 0x7
 				&cpu5_intc 0x3 &cpu5_intc 0x7
 				&cpu6_intc 0x3 &cpu6_intc 0x7
