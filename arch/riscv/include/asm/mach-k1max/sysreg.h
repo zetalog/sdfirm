@@ -63,7 +63,11 @@
 	__raw_setl(SYS_CLUSTER_RST(cpu), SYS_CPU_SOFTWARE_RST)
 
 #ifndef __ASSEMBLY__
+#ifdef CONFIG_K1M_SOC
 void k1max_cpu_reset(void);
+#else
+#define k1max_cpu_reset()		do { } while (0)
+#endif
 #endif
 
 #endif /* __SYSREG_K1MAX_H_INCLUDE__ */
