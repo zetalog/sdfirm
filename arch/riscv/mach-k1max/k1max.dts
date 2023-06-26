@@ -71,7 +71,7 @@
 			reg = <0>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu";
+			riscv,isa = "rv64imafdcvsu";
 			mmu-type = "riscv,sv48";
 
 			cpu0_intc: interrupt-controller {
@@ -86,7 +86,7 @@
 			reg = <1>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu";
+			riscv,isa = "rv64imafdcvsu";
 			mmu-type = "riscv,sv48";
 
 			cpu1_intc: interrupt-controller {
@@ -102,7 +102,7 @@
 			reg = <2>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu";
+			riscv,isa = "rv64imafdcvsu";
 			mmu-type = "riscv,sv48";
 
 			cpu2_intc: interrupt-controller {
@@ -116,7 +116,7 @@
 			reg = <3>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu";
+			riscv,isa = "rv64imafdcvsu";
 			mmu-type = "riscv,sv48";
 
 			cpu3_intc: interrupt-controller {
@@ -132,7 +132,7 @@
 			reg = <4>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu";
+			riscv,isa = "rv64imafdcvsu";
 			mmu-type = "riscv,sv48";
 
 			cpu4_intc: interrupt-controller {
@@ -146,7 +146,7 @@
 			reg = <5>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu";
+			riscv,isa = "rv64imafdcvsu";
 			mmu-type = "riscv,sv48";
 
 			cpu5_intc: interrupt-controller {
@@ -160,7 +160,7 @@
 			reg = <6>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu";
+			riscv,isa = "rv64imafdcvsu";
 			mmu-type = "riscv,sv48";
 
 			cpu6_intc: interrupt-controller {
@@ -174,7 +174,7 @@
 			reg = <7>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu";
+			riscv,isa = "rv64imafdcvsu";
 			mmu-type = "riscv,sv48";
 
 			cpu7_intc: interrupt-controller {
