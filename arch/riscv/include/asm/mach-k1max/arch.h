@@ -54,7 +54,9 @@
 #ifdef CONFIG_K1M_CCI
 	jal	ra, k1max_cci_init
 #endif
+#ifdef CONFIG_K1M_SOC
 	jal	ra, k1max_cpu_reset
+#endif
 	.endm
 	.macro	boot2_hook
 	x100_smp_init
