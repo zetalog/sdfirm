@@ -817,7 +817,7 @@ CONFIG_FEATURE_LESS_MAXLINES=0
 # CONFIG_SETFATTR is not set
 # CONFIG_SETSERIAL is not set
 # CONFIG_STRINGS is not set
-# CONFIG_TIME is not set
+CONFIG_TIME=y
 # CONFIG_TS is not set
 # CONFIG_TTYSIZE is not set
 # CONFIG_UBIATTACH is not set
