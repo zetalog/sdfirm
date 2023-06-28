@@ -472,9 +472,7 @@ build_test()
 		echo "dmatest.sh -w -i 20000 -b 4096 -v test dma0chan0" >> ${LATE_TEST}
 		echo "dmatest.sh -w -i 20000 -b 2097152 -v test dma0chan0" >> ${LATE_TEST}
 	fi
-	if [ "x${TEST_LATE}" = "xperf" ]; then
-		build_perf
-	fi
+	build_perf
 	if [ -e ${EARLY_TEST} ]; then
 		chmod +x ${EARLY_TEST}
 	fi
