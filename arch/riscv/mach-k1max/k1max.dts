@@ -217,6 +217,32 @@
 #endif
 		};
 
+		tcm: tcm@0x38000000 {
+			compatible = "spacemit,k1-pro-tcm";
+			reg = <0x0 0x38000000 0x0 0x80000>;
+			#address-cells = <1>;
+			#size-cells = <1>;
+			ranges = <0x0 0x0 0x38000000 0x80000>;
+			no-memory-wc;
+
+			core0_tcm@0 {
+				reg = <0x00000 0x20000>;
+				pool;
+			};
+			core1_tcm@20000 {
+				reg = <0x20000 0x20000>;
+				pool;
+			};
+			core2_tcm@40000 {
+				reg = <0x40000 0x20000>;
+				pool;
+			};
+			core3_tcm@60000 {
+				reg = <0x60000 0x20000>;
+				pool;
+			};
+		};
+
 		plic: interrupt-controller@30000000 {
 			reg = <DT_REGHI(PLIC_REG_BASE) DT_REGLO(PLIC_REG_BASE)
 			       0x0 0x08000000
