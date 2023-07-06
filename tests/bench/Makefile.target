@@ -1,13 +1,14 @@
-CONFIG_DHRYSTONE_BESTEFFORT=1
+CONFIG_DHRYSTONE_GROUNDRULE=1
 CONFIG_DHRYSTONE_REGISTER=1
 CONFIG_DHRYSTONE_MICROSECOND=1
-CONFIG_DHRYSTONE_OPTIMISED=3
+CONFIG_DHRYSTONE_OPTIMISED=2
 
 CONFIG_COREMARK_RUN_PERFORMANCE=1
 #CONFIG_COREMARK_RUN_VALIDATION=1
 #CONFIG_COREMARK_RUN_PROFILE=1
 #CONFIG_COREMARK_TOTAL_DATA_SIZE=2000
 #CONFIG_COREMARK_ITERATIONS=0
+CONFIG_COREMARK_OPTIMISED=3
 
 PROGS=dhrystone.elf linpack.elf coremark.elf
 
@@ -19,7 +20,7 @@ ifeq ($(CONFIG_DHRYSTONE_OPTIMISED),)
 CFLAGS_dhrystone_opt=-O -DDHRYSTONE_OPT=\"\"
 endif
 ifeq ($(CONFIG_DHRYSTONE_OPTIMISED),0)
-CFLAGS_dhrystone_opt=-O0 -DDHRYSTONE_OPT=\"0\"
+CFLAGS_dhrystone_opt=-O0 -DCNNT -DDHRYSTONE_OPT=\"0\"
 endif
 ifeq ($(CONFIG_DHRYSTONE_OPTIMISED),1)
 CFLAGS_dhrystone_opt=-O1 -DDHRYSTONE_OPT=\"1\"
@@ -38,7 +39,7 @@ endif
 CFLAGS_dhrystone_besteffort=\
 	$(CFLAGS_dhrystone_opt) $(CFLAGS_dhrystone_reg) -finline-limit=0
 CFLAGS_dhrystone_groundrule=\
-	$(CFLAGS_dhrystone_opt) -DCNNT -fno-inline
+	$(CFLAGS_dhrystone_opt) -fno-inline
 ifdef CONFIG_DHRYSTONE_BESTEFFORT
 CFLAGS_dhrystone_basic=$(CFLAGS_dhrystone_besteffort)
 else
@@ -82,7 +83,22 @@ CFLAGS_coremark_run += -DITERATIONS=$(CONFIG_COREMARK_ITERATIONS)
 else
 CFLAGS_coremark_run += -DITERATIONS=0
 endif
-CFLAGS_coremark_port = -O2 $(CONFIG_COREMARK_XCFLAGS)
+ifeq ($(CONFIG_COREMARK_OPTIMISED),)
+CFLAGS_coremark_opt=-O
+endif
+ifeq ($(CONFIG_COREMARK_OPTIMISED),0)
+CFLAGS_coremark_opt=-O0
+endif
+ifeq ($(CONFIG_COREMARK_OPTIMISED),1)
+CFLAGS_coremark_opt=-O1
+endif
+ifeq ($(CONFIG_COREMARK_OPTIMISED),2)
+CFLAGS_coremark_opt=-O2
+endif
+ifeq ($(CONFIG_COREMARK_OPTIMISED),3)
+CFLAGS_coremark_opt=-O3
+endif
+CFLAGS_coremark_port =$(CFLAGS_coremark_opt) $(CONFIG_COREMARK_XCFLAGS)
 FLAGS_STR="$(CFLAGS_coremark_port)"
 CFLAGS_coremark=\
 	$(CFLAGS_coremark_port) \
