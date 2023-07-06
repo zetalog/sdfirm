@@ -141,7 +141,7 @@ Boolean Func_2 (Str_30 Str_1_Par_Ref, Str_30 Str_2_Par_Ref)
     return (true);
   else /* executed */
   {
-    if (strcmp (Str_1_Par_Ref, Str_2_Par_Ref) > 0)
+    if (dhry_strcmp (Str_1_Par_Ref, Str_2_Par_Ref) > 0)
       /* then, not executed */
     {
       Int_Loc += 7;

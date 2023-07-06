@@ -267,6 +267,7 @@
 #define dhry_printf(...)                printf(__VA_ARGS__)
 #define dhry_fprintf(fp, ...)           fprintf(fp, __VA_ARGS__)
 #define dhry_strcpy                     strcpy
+#define dhry_strcmp                     strcmp
 #else /* HOSTED */
 #ifdef CONFIG_TEST_VERBOSE
 #define dhry_printf(...)                printf(__VA_ARGS__)
@@ -275,6 +276,7 @@
 #endif /* CONFIG_TEST_VERBOSE */
 #define dhry_fprintf(fp, fmt, ...)      do { } while (0)
 #define dhry_strcpy                     __builtin_strcpy
+#define dhry_strcmp                     __builtin_strcmp
 
 #include <target/generic.h>
 #include <target/bench.h>
