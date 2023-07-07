@@ -326,11 +326,10 @@ ENTRY(relocate)
 	/* Load boot identity page directory */
 	enable_mmu mmu_id_map, a3, a4
 
-	init_gp
-
 	/* Point stvec to the CPU park entry */
 	.align 2
 1:
+	init_gp
 	la	a3, secondary_park
 	csrw	CSR_TVEC, a3
 	ret
