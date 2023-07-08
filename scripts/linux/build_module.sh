@@ -122,8 +122,8 @@ install_initramfs_dir()
 install_initramfs_slink()
 {
 	if [ "xno" != "${INSTALL_INITRAMFS}" ]; then
-		echo "slink ${ROOTFS_TARGET} ${ROOTFS_HOST} 777 0 0" >> \
-		       $TOP/$INITRAMFS_FILELIST
+                echo "slink ${ROOTFS_TARGET} $(readlink "$ROOTFS_HOST") 777 0 0" >> \
+                        $TOP/$INITRAMFS_FILELIST
 	fi
 	if [ "xno" != "x${BUILD_STO}" ]; then
 		ROOTFS_LINK=`readlink ${ROOTFS_HOST}`
