@@ -151,14 +151,15 @@ CPORTABILITY   = -DSPEC_CPU_LINUX
 464.h264ref=default=default=default:
 CPORTABILITY   = -fsigned-char
 
+481.wrf=default=default=default:
+CPORTABILITY   = -DSPEC_CPU_CASE_FLAG -DSPEC_CPU_LINUX
+FPORTABILITY   = -std=legacy
+
 482.sphinx3=default=default=default:
 CPORTABILITY   = -fsigned-char
 
 483.xalancbmk=default=default=default:
 CXXPORTABILITY = -DSPEC_CPU_LINUX
-
-481.wrf=default=default=default:
-CPORTABILITY   = -DSPEC_CPU_CASE_FLAG -DSPEC_CPU_LINUX
 
 #####################################################################
 # Notes
