@@ -127,6 +127,7 @@ if [ "x${BUILD_APPS}" = "xyes" ]; then
 		bench/dhrystone	\
 		bench/linpack	\
 		bench/coremark	\
+		bench/mhz	\
 		net/loopback	\
 	"
 	for d in ${APPDIRS}; do
@@ -142,6 +143,8 @@ if [ "x${BUILD_APPS}" = "xyes" ]; then
 		cp -f ${SDFIRM_DIR}/tests/${f}.elf \
 			${APPDIR}/`basename ${f}`
 	done
+
+	${SCRIPT}/build_lrzsz.sh
 fi
 if [ "x${BUILD_TINY}" = "xyes" ]; then
 	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -e tiny"
