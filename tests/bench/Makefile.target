@@ -10,7 +10,7 @@ CONFIG_COREMARK_RUN_PERFORMANCE=1
 #CONFIG_COREMARK_ITERATIONS=0
 CONFIG_COREMARK_OPTIMISED=3
 
-PROGS=dhrystone.elf linpack.elf coremark.elf
+PROGS=dhrystone.elf linpack.elf coremark.elf mhz.elf
 
 include ../Makefile.bench
 
@@ -105,6 +105,8 @@ CFLAGS_coremark=\
 	$(CFLAGS_coremark_run) \
 	-DFLAGS_STR=\"$(FLAGS_STR)\" \
 	-I../../include
+
+LIBS_mhz += -lm
 
 clean:
 	@rm -f $(PROGS)

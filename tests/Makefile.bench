@@ -55,7 +55,7 @@ CFLAGS =-DHOSTED -DCONFIG_FP=1 \
 
 %.unstrip: %.o
 	@echo " LD     $<"
-	@$(CC) $(CFLAGS) $(CFLAGS_$*) $(CFLAGS_static) $< -o $@ $(LIBS)
+	@$(CC) $(CFLAGS) $(CFLAGS_$*) $(CFLAGS_static) $< -o $@ $(LIBS_$*)
 	@cp -f $@ $(basename $<).debug
 
 %.elf: %.unstrip
