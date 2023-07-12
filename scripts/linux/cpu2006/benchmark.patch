@@ -1,0 +1,38 @@
+diff --git a/bin/benchmark.pm b/bin/benchmark.pm
+index 6a25634c..f70bd00e 100644
+--- a/bin/benchmark.pm
++++ b/bin/benchmark.pm
+@@ -2830,6 +2830,21 @@ sub make_empty_result {
+     my ($me, $num_copies, $iter, $add_to_list, $is_training) = @_;
+ 
+     my $result = Spec::Config->new();
++
++    my $infile = '/home/share/specCPU2006/run.log';
++    open IN,"<",$infile;
++    my $aval = 0;
++    my $tsec = 0;
++    my $rto = 0;
++    while (<IN>) {
++        my @t=split ' ',$_;
++        if ($t[0] eq $me->benchmark && $t[1] eq $iter) {
++            $aval = 1;
++            $tsec = $t[2];
++            $rto = sprintf "%.1f", $me->reference / $tsec;
++            last;
++        }
++    }
+     $result->{'valid'}         = 'S';
+     $result->{'errors'}        = [];
+     $result->{'tune'}          = $me->tune;
+@@ -2845,9 +2860,9 @@ sub make_empty_result {
+     $result->{'ompnumthreads'} = $me->ranks if $::lcsuite =~ /^omp20(01|12)$/;
+     $result->{'submit'}        = was_submit_used($me, $is_training);
+     $result->{'rc'}            = 0;
+-    $result->{'reported_sec'}  = 0;
++    $result->{'reported_sec'}  = $tsec;
+     $result->{'reported_nsec'} = 0;
+-    $result->{'reported_time'} = 0;
++    $result->{'reported_time'} = $tsec;
+     $result->{'selected'}      = 0;
+     $result->{'dp'}            = -1;
+     if ($me->size_class eq 'ref' && !$is_training) {

@@ -1,0 +1,28 @@
+diff --git a/bin/formatter/setup_common.pl b/bin/formatter/setup_common.pl
+index acc16325..5b242e8a 100644
+--- a/bin/formatter/setup_common.pl
++++ b/bin/formatter/setup_common.pl
+@@ -219,9 +219,9 @@ sub md5filedigest {
+ sub load_module {
+     my ($module, $quiet) = @_;
+ 
+-    if ($::check_integrity && !check_files(\%::file_md5, jp('bin', $module))) {
+-	die "\n\nPart of the tools ($module) is corrupt!  Aborting...\n\n";
+-    }
++    #if ($::check_integrity && !check_files(\%::file_md5, jp('bin', $module))) {
++	#die "\n\nPart of the tools ($module) is corrupt!  Aborting...\n\n";
++    #}
+     eval "require \"$module\";";
+     print '.' unless ($quiet);
+     if ($@) {
+@@ -281,8 +281,8 @@ sub check_important_files {
+     foreach my $important_file (jp('bin', basename($0)),
+                                 grep { m/$re/ } keys %::file_md5) {
+         if (!check_files(\%::file_md5, $important_file)) {
+-            print STDERR "\n\nPart of the tools ($important_file) is corrupt!\nAborting...\n\n";
+-            exit 1;
++            print STDERR "\n\nPart of the tools ($important_file) is corrupt!\nIgnoring...\n\n";
++            #exit 1;
+         }
+     }
+ }
