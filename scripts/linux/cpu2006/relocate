@@ -63,9 +63,15 @@ then
     echo "Please run the \"$SPEC/install.sh\" script."
     exit 1
 fi
+if [$PERLPATH]; then
+    echo "Using $PERLPATH"
+else 
+    $PERLPATH = "$SPEC/bin/specperl"
+    echo "Using $PERLPATH"
+fi
 
 export SPEC
-exec "$CPU2006_SPECBIN/specperl" -x -S "$0"
+exec "$PERLPATH" -x -S "$0"
 #!/usr/bin/perl
 
 use strict;
