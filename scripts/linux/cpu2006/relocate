@@ -63,12 +63,10 @@ then
     echo "Please run the \"$SPEC/install.sh\" script."
     exit 1
 fi
-if [$PERLPATH]; then
-    echo "Using $PERLPATH"
-else 
+if [ -z "$PERLPATH" ]; then
     $PERLPATH = "$SPEC/bin/specperl"
-    echo "Using $PERLPATH"
 fi
+echo "Using $PERLPATH"
 
 export SPEC
 exec "$PERLPATH" -x -S "$0"
