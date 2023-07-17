@@ -60,6 +60,7 @@ CFLAGS_dhrystone=\
 	-I../../include
 
 CFLAGS_linpack=\
+	-O2 \
 	-I../../include
 
 ifdef CONFIG_COREMARK_RUN_PERFORMANCE
