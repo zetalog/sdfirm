@@ -448,7 +448,6 @@ config RISCV_SVNAPOT
 config RISCV_SVPBMT
 	bool "Sv39/Sv48/Sv57 page base memory types (Svpbmt) support"
 	depends CPU_SVPBMT
-	depends RISCV_SV39 || RISCV_SV48 || RISCV_SV57
 
 config RISCV_SVINVAL
 	bool "Fine grained invalidation and ordering (Svinval) support"
