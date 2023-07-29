@@ -457,6 +457,112 @@ _trap_handler_all_mode:
 	mret
 ENDPROC(_trap_handler)
 
+#ifdef CONFIG_SBI_DYNAMIC
+ENTRY(_bad_dynamic_info)
+1:	wfi
+	j	1b
+ENDPROC(_bad_dynamic_info)
+
+ENTRY(fw_save_info)
+	/*
+	 * We can only use a0, a1, a2, a3, and a4 registers here.
+	 * The a0, a1, and a2 registers will be same as passed by
+	 * previous booting stage.
+	 * Nothing to be returned here.
+	 */
+	/* Save next arg1 in 'a1' */
+	lla	a4, _dynamic_next_arg1
+	REG_S	a1, (a4)
+
+	/* Sanity checks */
+	li	a4, FW_DYNAMIC_INFO_MAGIC_VALUE
+	REG_L	a3, FW_DYNAMIC_INFO_MAGIC_OFFSET(a2)
+	bne	a3, a4, _bad_dynamic_info
+	li	a4, FW_DYNAMIC_INFO_VERSION_MAX
+	REG_L	a3, FW_DYNAMIC_INFO_VERSION_OFFSET(a2)
+	bgt	a3, a4, _bad_dynamic_info
+
+	/* Save version == 0x1 fields */
+	lla	a4, _dynamic_next_addr
+	REG_L	a3, FW_DYNAMIC_INFO_NEXT_ADDR_OFFSET(a2)
+	REG_S	a3, (a4)
+	lla	a4, _dynamic_next_mode
+	REG_L	a3, FW_DYNAMIC_INFO_NEXT_MODE_OFFSET(a2)
+	REG_S	a3, (a4)
+	lla	a4, _dynamic_options
+	REG_L	a3, FW_DYNAMIC_INFO_OPTIONS_OFFSET(a2)
+	REG_S	a3, (a4)
+
+	/* Save version == 0x2 fields */
+	li	a4, 0x2
+	REG_L	a3, FW_DYNAMIC_INFO_VERSION_OFFSET(a2)
+	blt	a3, a4, 2f
+	lla	a4, _dynamic_boot_hart
+	REG_L	a3, FW_DYNAMIC_INFO_BOOT_HART_OFFSET(a2)
+	REG_S	a3, (a4)
+2:
+	ret
+ENDPROC(fw_save_info)
+
+ENTRY(fw_next_arg)
+	/*
+	 * We can only use a0, a1, and a2 registers here.
+	 * The a0, a1, and a2 registers will be same as passed by
+	 * previous booting stage.
+	 * The next arg1 should be returned in 'a0'.
+	 */
+	lla	a0, _dynamic_next_arg1
+	REG_L	a0, (a0)
+	ret
+ENDPROC(fw_next_arg)
+
+ENTRY(fw_next_addr)
+	/*
+	 * We can only use a0, a1, and a2 registers here.
+	 * The next address should be returned in 'a0'.
+	 */
+	lla	a0, _dynamic_next_addr
+	REG_L	a0, (a0)
+	ret
+ENDPROC(fw_next_addr)
+
+ENTRY(fw_next_mode)
+	/*
+	 * We can only use a0, a1, and a2 registers here.
+	 * The next address should be returned in 'a0'
+	 */
+	lla	a0, _dynamic_next_mode
+	REG_L	a0, (a0)
+	ret
+ENDPROC(fw_next_mode)
+
+ENTRY(fw_options)
+	/*
+	 * We can only use a0, a1, and a2 registers here.
+	 * The 'a4' register will have default options.
+	 * The next address should be returned in 'a0'.
+	 */
+	lla	a0, _dynamic_options
+	REG_L	a0, (a0)
+	ret
+ENDPROC(fw_options)
+
+	.pushsection .data
+	.align 3
+sbi_relocate_done:
+_dynamic_next_arg1:
+	RISCV_PTR 0x0
+_dynamic_next_addr:
+	RISCV_PTR 0x0
+_dynamic_next_mode:
+	RISCV_PTR PRV_S
+_dynamic_options:
+	RISCV_PTR 0x0
+_dynamic_boot_hart:
+	RISCV_PTR -1
+	.popsection
+#endif /* CONFIG_SBI_DYNAMIC */
+#ifdef CONFIG_SBI_PAYLOAD
 ENTRY(fw_save_info)
 	/*
 	 * We can only use a0, a1, a2, a3, and a4 registers here.
@@ -466,36 +572,6 @@ ENTRY(fw_save_info)
 	 */
 	ret
 ENDPROC(fw_save_info)
-
-ENTRY(fw_prev_arg1)
-	/*
-	 * We can only use a0, a1, and a2 registers here.
-	 * The previous arg1 should be returned in 'a0'.
-	 */
-#ifdef CONFIG_SBI_FDT
-#ifdef CONFIG_FDT_BUILTIN
-	la	a0, fdt_bin
-#else
-	add	a0, a1, zero
-#endif
-#else
-	add	a0, zero, zero
-#endif
-	ret
-ENDPROC(fw_prev_arg1)
-
-ENTRY(fw_next_arg1)
-	/*
-	 * We can only use a0, a1, and a2 registers here.
-	 * The next arg1 should be returned in 'a0'.
-	 */
-#ifdef CONFIG_SBI_FDT
-	la	a0, _fdt_start
-#else
-	add	a0, zero, zero
-#endif
-	ret
-ENDPROC(fw_next_arg1)
 
 ENTRY(fw_next_addr)
 	/*
@@ -537,7 +613,6 @@ ENTRY(fw_options)
 	ret
 ENDPROC(fw_options)
 
-#ifdef CONFIG_SBI_PAYLOAD
 	.pushsection .payload, "ax", %progbits
 #ifdef CONFIG_SBI_PAYLOAD_ALIGN_RELAXED
 	/* align payload minimally */
@@ -555,7 +630,84 @@ payload_bin:
 	.incbin	CONFIG_SBI_PAYLOAD_PATH
 #endif
 	.popsection
+#endif /* CONFIG_SBI_PAYLOAD */
+#ifdef CONFIG_SBI_DEFAULT
+ENTRY(fw_save_info)
+	/*
+	 * We can only use a0, a1, a2, a3, and a4 registers here.
+	 * The a0, a1, and a2 registers will be same as passed by
+	 * previous booting stage.
+	 * Nothing to be returned here.
+	 */
+	ret
+ENDPROC(fw_save_info)
+
+ENTRY(fw_next_addr)
+	/*
+	 * We can only use a0, a1, and a2 registers here.
+	 * The next address should be returned in 'a0'.
+	 */
+	la	a0, __sbi_exit
+	ret
+ENDPROC(fw_next_addr)
+
+ENTRY(fw_next_mode)
+	/*
+	 * We can only use a0, a1, and a2 registers here.
+	 * The next address should be returned in 'a0'.
+	 */
+#ifdef CONFIG_SBI_RISCV_NEXT_M
+	li	a0, PRV_M
 #endif
+#ifdef CONFIG_SBI_RISCV_NEXT_S
+	li	a0, PRV_S
+#endif
+#ifdef CONFIG_SBI_RISCV_NEXT_U
+	li	a0, PRV_U
+#endif
+	ret
+ENDPROC(fw_next_mode)
+
+ENTRY(fw_options)
+	/*
+	 * We can only use a0, a1, and a2 registers here.
+	 * The 'a4' register will have default options.
+	 * The next address should be returned in 'a0'.
+	 */
+	add	a0, zero, zero
+	ret
+ENDPROC(fw_options)
+#endif
+
+ENTRY(fw_prev_arg1)
+	/*
+	 * We can only use a0, a1, and a2 registers here.
+	 * The previous arg1 should be returned in 'a0'.
+	 */
+#ifdef CONFIG_SBI_FDT
+#ifdef CONFIG_FDT_BUILTIN
+	la	a0, fdt_bin
+#else
+	add	a0, a1, zero
+#endif
+#else
+	add	a0, zero, zero
+#endif
+	ret
+ENDPROC(fw_prev_arg1)
+
+ENTRY(fw_next_arg1)
+	/*
+	 * We can only use a0, a1, and a2 registers here.
+	 * The next arg1 should be returned in 'a0'.
+	 */
+#ifdef CONFIG_SBI_FDT
+	la	a0, _fdt_start
+#else
+	add	a0, zero, zero
+#endif
+	ret
+ENDPROC(fw_next_arg1)
 
 	.pushsection .data
 	.align 3

@@ -64,14 +64,17 @@ choice
 config SBI_RISCV_NEXT_U
 	bool "U-Mode"
 	depends SBI_NEXT_U
+	depends !SBI_DYNAMIC
 
 config SBI_RISCV_NEXT_S
 	bool "S-Mode"
 	depends SBI_NEXT_S
+	depends !SBI_DYNAMIC
 
 config SBI_RISCV_NEXT_M
 	bool "M-Mode"
 	depends SBI_NEXT_M
+	depends !SBI_DYNAMIC
 
 endchoice
 
@@ -82,8 +85,16 @@ config SBI_BOOT_PRINTS
 	bool "Enable SBI boot prints"
 	depends CONSOLE_OUTPUT
 
+choice
+	prompt "Firmware type"
+	default SBI_DEFAULT
+
+config SBI_DEFAULT
+	bool "Enable SBI default binary"
+
 config SBI_PAYLOAD
 	bool "Enable SBI payload binary"
+	depends !SBI_DYNAMIC
 	select SBI_RISCV_F
 	select SBI_RISCV_D
 	select SBI_RISCV_C
@@ -94,6 +105,19 @@ config SBI_PAYLOAD
 	select CONSOLE
 	select CONSOLE_OUTPUT
 	select CONSOLE_INPUT
+
+config SBI_DYNAMIC
+	bool "Enable SBI dynamic binary"
+	select SBI_RISCV_F
+	select SBI_RISCV_D
+	select SBI_RISCV_C
+	select SBI_RISCV_S if RISCV_S
+	select SBI_RISCV_U if RISCV_U
+	select CONSOLE
+	select CONSOLE_OUTPUT
+	select CONSOLE_INPUT
+
+endchoice
 
 if SBI_PAYLOAD
 
