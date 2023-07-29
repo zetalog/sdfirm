@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Apr 24 13:48:52 2023
+# Sat Jul 29 23:29:30 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -161,7 +161,9 @@ CONFIG_SBI_RISCV_NEXT_S=y
 # CONFIG_SBI_RISCV_NEXT_M is not set
 # CONFIG_SBI_HMO is not set
 # CONFIG_SBI_BOOT_PRINTS is not set
+CONFIG_SBI_DEFAULT=y
 # CONFIG_SBI_PAYLOAD is not set
+# CONFIG_SBI_DYNAMIC is not set
 # CONFIG_SBI_FDT is not set
 # CONFIG_SBI_CSR_MIMPID is not set
 

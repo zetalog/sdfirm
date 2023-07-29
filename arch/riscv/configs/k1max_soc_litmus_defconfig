@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Tue Jun 13 19:24:52 2023
+# Sat Jul 29 23:39:28 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -178,7 +178,9 @@ CONFIG_SBI_RISCV_NEXT_S=y
 # CONFIG_SBI_RISCV_NEXT_M is not set
 # CONFIG_SBI_HMO is not set
 # CONFIG_SBI_BOOT_PRINTS is not set
+CONFIG_SBI_DEFAULT=y
 # CONFIG_SBI_PAYLOAD is not set
+# CONFIG_SBI_DYNAMIC is not set
 # CONFIG_SBI_FDT is not set
 # CONFIG_SBI_CSR_MIMPID is not set
 
@@ -189,9 +191,10 @@ CONFIG_K1M_SOC=y
 # CONFIG_K1M_CPU is not set
 # CONFIG_K1M_PZ1 is not set
 CONFIG_K1M_S2C=y
+# CONFIG_K1X_S2C is not set
 CONFIG_K1M_S2C_SPEEDUP=y
 CONFIG_K1M_S2C_SPEEDUP_QUIRK_RDTIME=y
-CONFIG_K1M_K1X=y
+CONFIG_K1M_SOC_K1X=y
 # CONFIG_K1M_K1PRO is not set
 # CONFIG_K1M_K1MAX is not set
 CONFIG_K1M_SMP_CPUS=4

@@ -319,6 +319,7 @@ void __noreturn sbi_finish_hang(void);
 __noreturn void sbi_init(void);
 #endif /* __ASSEMBLY__ */
 
+#include <target/sbi_fw.h>
 #include <driver/sbi.h>
 #include <asm/sbi.h>
 
