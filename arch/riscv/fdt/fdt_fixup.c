@@ -163,7 +163,7 @@ static int fdt_resv_memory_update_node(void *fdt, unsigned long addr,
 }
 
 #ifdef CONFIG_RISCV_PMP
-static void fdt_fixup_pmp(void *fdt, int parent)
+static int fdt_fixup_pmp(void *fdt, int parent)
 {
 	int err;
 	unsigned long log2len;
@@ -187,9 +187,23 @@ static void fdt_fixup_pmp(void *fdt, int parent)
 		fdt_resv_memory_update_node(fdt, addr, size, j, parent, false);
 		j++;
 	}
+	return 0;
 }
 #else
-#define fdt_fixup_pmp(fdt, parent)	do { } while (0)
+static int fdt_fixup_pmp(void *fdt, int parent)
+{
+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+	unsigned long size;
+	phys_addr_t addr;
+
+	/* Update the DT with firmware start & size even if PMP is
+	 * not supported. This makes sure that supervisor OS is
+	 * always aware of SBI resident memory area.
+	 */
+	addr = scratch->fw_start & ~(scratch->fw_size - 1UL);
+	size = (1UL << __ilog2_u64(__roundup64(scratch->fw_size)));
+	return fdt_resv_memory_update_node(fdt, addr, size, 0, parent, true);
+}
 #endif
 
 /* PMP is used to protect SBI firmware to safe-guard it from buggy S-mode
@@ -209,10 +223,6 @@ static void fdt_fixup_pmp(void *fdt, int parent)
  */
 int fdt_reserved_memory_fixup(void *fdt)
 {
-	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
-	unsigned long size;
-	phys_addr_t addr;
 	int parent;
 	int err;
 	int na = fdt_address_cells(fdt, 0);
@@ -261,20 +271,7 @@ int fdt_reserved_memory_fixup(void *fdt)
 	 *
 	 * With above assumption, we create child nodes directly.
 	 */
-	if (!sbi_platform_has_pmp(plat)) {
-		/* Update the DT with firmware start & size even if PMP is
-		 * not supported. This makes sure that supervisor OS is
-		 * always aware of SBI resident memory area.
-		 */
-		addr = scratch->fw_start & ~(scratch->fw_size - 1UL);
-		size = (1UL << __ilog2_u64(__roundup64(scratch->fw_size)));
-		return fdt_resv_memory_update_node(fdt, addr, size,
-						   0, parent, true);
-	}
-
-	fdt_fixup_pmp(fdt, parent);
-
-	return 0;
+	return fdt_fixup_pmp(fdt, parent);
 }
 
 int fdt_reserved_memory_nomap_fixup(void *fdt)

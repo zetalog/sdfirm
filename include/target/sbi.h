@@ -147,6 +147,50 @@ enum sbi_fifo_inplace_update_types {
 
 #define SBI_TLB_INFO_SIZE			sizeof(struct sbi_tlb_info)
 
+/** Possible privileged specification versions of a hart */
+enum sbi_hart_priv_versions {
+	/** Unknown privileged specification */
+	SBI_HART_PRIV_VER_UNKNOWN = 0,
+	/** Privileged specification v1.10 */
+	SBI_HART_PRIV_VER_1_10 = 1,
+	/** Privileged specification v1.11 */
+	SBI_HART_PRIV_VER_1_11 = 2,
+	/** Privileged specification v1.12 */
+	SBI_HART_PRIV_VER_1_12 = 3,
+};
+
+/** Possible ISA extensions of a hart */
+enum sbi_hart_extensions {
+	/** HART has AIA M-mode CSRs */
+	SBI_HART_EXT_SMAIA = 0,
+	/** HART has Smepmp */
+	SBI_HART_EXT_SMEPMP,
+	/** HART has Smstateen CSR **/
+	SBI_HART_EXT_SMSTATEEN,
+	/** Hart has Sscofpmt extension */
+	SBI_HART_EXT_SSCOFPMF,
+	/** HART has Sstc extension */
+	SBI_HART_EXT_SSTC,
+	/** HART has Zicntr extension (i.e. HW cycle, time & instret CSRs) */
+	SBI_HART_EXT_ZICNTR,
+	/** HART has Zihpm extension */
+	SBI_HART_EXT_ZIHPM,
+
+	/** Maximum index of Hart extension */
+	SBI_HART_EXT_MAX,
+};
+
+struct sbi_hart_features {
+	bool detected;
+	int priv_version;
+	unsigned long extensions;
+	unsigned int pmp_count;
+	unsigned int pmp_addr_bits;
+	unsigned long pmp_gran;
+	unsigned int mhpm_count;
+	unsigned int mhpm_bits;
+};
+
 /** Get pointer to sbi_scratch for current HART */
 #define sbi_scratch_thishart_ptr() \
 	((struct sbi_scratch *)csr_read(CSR_MSCRATCH))
@@ -260,6 +304,11 @@ void sbi_hart_unmark_available(uint32_t hartid);
 struct sbi_scratch *sbi_hart_id_to_scratch(struct sbi_scratch *scratch,
 					   uint32_t hartid);
 uint32_t sbi_current_hartid(void);
+int sbi_hart_priv_version(struct sbi_scratch *scratch);
+void sbi_hart_get_priv_version_str(struct sbi_scratch *scratch,
+				   char *version_str, int nvstr);
+bool sbi_hart_has_extension(struct sbi_scratch *scratch,
+			    enum sbi_hart_extensions ext);
 
 #ifdef CONFIG_CONSOLE
 int sbi_console_init(struct sbi_scratch *scratch);

@@ -160,6 +160,21 @@ int strncmp(const char *cs, const char *ct, size_t count)
 }
 #endif
 
+#ifdef CONFIG_STRING_STRNCPY
+char *strncpy(char *dest, const char *src, size_t count)
+{
+	char *tmp = dest;
+
+	while (count) {
+		if ((*tmp = *src) != 0)
+			src++;
+		tmp++;
+		count--;
+	}
+	return dest;
+}
+#endif
+
 #ifdef CONFIG_STRING_STRTOUL
 size_t strtoul(const char *nptr, char **endptr, int base)
 {

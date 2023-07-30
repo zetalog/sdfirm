@@ -66,6 +66,12 @@
 #define PMP_A_NAPOT			_AC(0x00000018, UL)
 #define PMP_L				_AC(0x00000080, UL)
 
+#if __riscv_xlen == 64
+#define PMP_ADDR_MASK			((_ULL(0x1) << 54) - 1)
+#else
+#define PMP_ADDR_MASK			_UL(0xFFFFFFFF)
+#endif
+
 #define PMP_SHIFT			2
 #define PMP_COUNT			16
 

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sat Jul 29 23:36:58 2023
+# Sun Jul 30 15:43:28 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -600,6 +600,7 @@ CONFIG_PRINT_PRINTF=y
 # String operations
 #
 CONFIG_STRING_STRNCMP=y
+CONFIG_STRING_STRNCPY=y
 CONFIG_STRING_STRTOUL=y
 CONFIG_STRING_STRTOULL=y
 # CONFIG_STRING_UUID is not set

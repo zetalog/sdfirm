@@ -153,14 +153,8 @@ endif
 
 menuconfig K1M_UART
 	bool "K1MAX UART controller support"
-	select DW_UART
-	select ARCH_HAS_NS16550_FIFO_64
-	select ARCH_HAS_DW_UART_FIFO_MEM_USER
-	select ARCH_HAS_DW_UART_AFCE_MODE
-	select ARCH_HAS_DW_UART_FIFO_ACCESS
-	select ARCH_HAS_DW_UART_FIFO_STAT
-	select ARCH_HAS_DW_UART_SHADOW
-	select ARCH_HAS_DW_UART_ADD_ENCODED_PARAMS
+	select K1M_UART_DW if !K1M_K1X
+	select K1M_K1X_UART if K1M_K1X
 
 if K1M_UART
 
@@ -176,6 +170,23 @@ config K1M_UART_ACCEL
 	  If unsure, say 'N'.
 
 endif
+
+config K1M_UART_DW
+	bool
+	select DW_UART
+	select ARCH_HAS_NS16550_FIFO_64
+	select ARCH_HAS_DW_UART_FIFO_MEM_USER
+	select ARCH_HAS_DW_UART_AFCE_MODE
+	select ARCH_HAS_DW_UART_FIFO_ACCESS
+	select ARCH_HAS_DW_UART_FIFO_STAT
+	select ARCH_HAS_DW_UART_SHADOW
+	select ARCH_HAS_DW_UART_ADD_ENCODED_PARAMS
+
+config K1M_K1X_UART
+	bool
+	select NS16550
+	select ARCH_HAS_NS16550
+	select ARCH_HAS_NS16550_MEM32
 
 endmenu
 

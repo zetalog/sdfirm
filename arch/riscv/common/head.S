@@ -278,6 +278,7 @@ __abi_start_warm:
 #endif
 
 #ifdef CONFIG_SBI
+	jal	ra, csr_init
 	jal	ra, __sbi_entry
 #else
 	jal	ra, __sbi_exit

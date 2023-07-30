@@ -52,7 +52,7 @@
 #ifdef __ASSEMBLY__
 #define __ASM_STR(x)	x
 #else
-#define __ASM_STR(x)	#x
+#define __ASM_STR(x)	__stringify(x)
 #endif
 #if __riscv_xlen == 64
 #define __REG_SEL(a, b)	__ASM_STR(a)

@@ -155,6 +155,17 @@
 #define CSR_DSCRATCH0		0x7B2
 #define CSR_DSCRATCH1		0x7B3
 
+#ifdef CONFIG_CPU_SSTC
+#define CSR_STIMECMP		0x14D
+#define CSR_STIMECMPH		0x15D
+#endif
+
+#ifdef CONFIG_CPU_SMSTATEEN
+#define CSR_MSTATEEN(n)		(0x30C+(n))
+#define CSR_MSTATEENH(n)	(0x31C+(n))
+#define CSR_SSTATEEN(n)		(0x10C+(n))
+#endif
+
 /* MSTATUS/SSTATUS/HSTATUS/BSSTATUS */
 #define SR_UIE		_AC(0x00000001, UL) /* User Interrupt Enable */
 #define SR_UPIE		_AC(0x00000010, UL) /* User Previous IE */
@@ -210,9 +221,13 @@
 #define SR_SXL		_AC(0x0000000C00000000, UL)
 #define SR_SBE		_AC(0x0000001000000000, UL)
 #define SR_MBE		_AC(0x0000002000000000, UL)
+#define SR_GVA		_AC(0x0000004000000000, UL)
+#define SR_GVA_SHIFT	38
 #else
 #define SR_SBE		_AC(0x00000010, UL)
 #define SR_MBE		_AC(0x00000020, UL)
+#define SR_GVA		_AC(0x00000040, UL)
+#define SR_GVA_SHIFT	6
 #endif
 
 /* MIP/MIE/SIP/SIE/BSIP/BSIE */
@@ -288,6 +303,27 @@
 #define SCR_RLB		_AC(0x00000004, UL)
 #define SCR_USEED	_AC(0x00000100, UL)
 #define SCR_SSEED	_AC(0x00000200, UL)
+
+/* MSTATEEN/SSTATEEN */
+#ifdef CONFIG_RISCV_SMSTATEEN
+#define SER_STATEEN	_AC(0x8000000000000000, UL)
+#define SER_HSENVCFG	_AC(0x4000000000000000, UL)
+#define SER_SVSLCT	_AC(0x1000000000000000, UL)
+#define SER_AIA		_AC(0x0800000000000000, UL)
+#define SER_IMSIC	_AC(0x0400000000000000, UL)
+#define SER_CONTEXT	_AC(0x0200000000000000, UL)
+#define SER_FCSR	_AC(0x0000000000000002, UL)
+#define SER_CS		_AC(0x0000000000000001, UL)
+#else
+#define SER_STATEEN	_AC(0x0000000000000000, UL)
+#define SER_HSENVCFG	_AC(0x0000000000000000, UL)
+#define SER_SVSLCT	_AC(0x0000000000000000, UL)
+#define SER_AIA		_AC(0x0000000000000000, UL)
+#define SER_IMSIC	_AC(0x0000000000000000, UL)
+#define SER_CONTEXT	_AC(0x0000000000000000, UL)
+#define SER_FCSR	_AC(0x0000000000000000, UL)
+#define SER_CS		_AC(0x0000000000000000, UL)
+#endif
 
 #define PRV_U				0
 #define PRV_S				1
@@ -424,7 +460,7 @@
 	(SHIFT_RIGHT((insn), (pos) - LOG_REGBYTES) & REG_MASK)
 
 #define REG_PTR(insn, pos, regs)	\
-	(ulong *)((ulong)(regs) + REG_OFFSET(insn, pos))
+	(unsigned long *)((unsigned long)(regs) + REG_OFFSET(insn, pos))
 
 #define GET_RM(insn)			(((insn) >> 12) & 7)
 
@@ -517,6 +553,58 @@
 		     : : "rK" (__v) : "memory");		\
 })
 
+#define csr_read_allowed(csr, trap)					\
+	({								\
+	register unsigned long tinfo asm("a3") = (unsigned long)trap;	\
+	register unsigned long ttmp asm("a4");				\
+	register unsigned long mtvec = csr_expected_trap_addr();	\
+	register unsigned long value = 0;				\
+	((struct csr_trap_info *)(trap))->cause = 0;			\
+	asm volatile(							\
+		"add %2, %1, zero\n"					\
+		"csrrw %0, " __ASM_STR(CSR_MTVEC) ", %0\n"		\
+		"csrr %3, " __ASM_STR(csr) "\n"				\
+		"csrw " __ASM_STR(CSR_MTVEC) ", %0"			\
+	    : "+&r"(mtvec), "+&r"(tinfo),				\
+	      "+&r"(ttmp), "=r"(value)					\
+	    :								\
+	    : "memory");						\
+	value;								\
+	})
+
+#define csr_write_allowed(csr, trap, value)				\
+	({								\
+	register unsigned long tinfo asm("a3") = (unsigned long)trap;	\
+	register unsigned long ttmp asm("a4");				\
+	register unsigned long mtvec = csr_expected_trap_addr();	\
+	((struct csr_trap_info *)(trap))->cause = 0;			\
+	asm volatile(							\
+		"add %2, %1, zero\n"					\
+		"csrrw %0, " __ASM_STR(CSR_MTVEC) ", %0\n"		\
+		"csrw " __ASM_STR(csr) ", %3\n"				\
+		"csrw " __ASM_STR(CSR_MTVEC) ", %0"			\
+	    : "+&r"(mtvec), "+&r"(tinfo),				\
+	      "+&r"(ttmp)						\
+	    : "rK"(value)						\
+	    : "memory");						\
+	})
+
+/** Representation of trap details */
+struct csr_trap_info {
+	/** epc Trap program counter */
+	unsigned long epc;
+	/** cause Trap exception cause */
+	unsigned long cause;
+	/** tval Trap value */
+	unsigned long tval;
+	/** tval2 Trap value 2 */
+	unsigned long tval2;
+	/** tinst Trap instruction */
+	unsigned long tinst;
+	/** gva Guest virtual address in tval flag */
+	unsigned long gva;
+};
+
 static __inline int misa_extension(char ext)
 {
 	return csr_read(CSR_MISA) & (1 << (ext - 'A'));
@@ -539,6 +627,12 @@ static __inline void misa_string(char *out, unsigned int out_sz)
 	}
 	*out = '\0';
 	out++;
+}
+
+extern void (*csr_expected_trap)(void);
+static __inline unsigned long csr_expected_trap_addr(void)
+{
+	return (unsigned long)csr_expected_trap;
 }
 #endif /* __ASSEMBLY__ */
 

@@ -11,6 +11,7 @@ obj-y += entry.rel
 obj-y += irq.rel
 obj-y += tlb.rel
 obj-y += smpboot.rel
+obj-y += csr_expected_trap.rel
 obj-$(CONFIG_RISCV_PMP) += pmp.rel
 obj-$(CONFIG_RISCV_F) += float.rel
 obj-$(CONFIG_MMU) += mmu.rel

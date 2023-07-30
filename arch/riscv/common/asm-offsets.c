@@ -94,6 +94,13 @@ int main(void)
 	OFFSET(SBI_PLATFORM_PLATFORM_OPS_ADDR, sbi_platform, platform_ops_addr);
 	OFFSET(SBI_PLATFORM_FIRMWARE_CONTEXT, sbi_platform, firmware_context);
 
+	OFFSET(CSR_TRAP_INFO_EPC, csr_trap_info, epc);
+	OFFSET(CSR_TRAP_INFO_CAUSE, csr_trap_info, cause);
+	OFFSET(CSR_TRAP_INFO_TVAL, csr_trap_info, tval);
+	OFFSET(CSR_TRAP_INFO_TVAL2, csr_trap_info, tval2);
+	OFFSET(CSR_TRAP_INFO_TINST, csr_trap_info, tinst);
+	OFFSET(CSR_TRAP_INFO_GVA, csr_trap_info, gva);
+
 #ifdef CONFIG_TASK
 	DEFINE(TASK_THREAD_RA_RA,
 		  offsetof(struct task_entry, thread.ra)

@@ -7,21 +7,25 @@
 typedef uint64_t bits_t;
 #define BITS_PER_UNIT		64
 #define __ffs_unit		__ffs64
+#define __fls_unit		__fls64
 #define __ffz_unit		__ffz64
 #elif defined(CONFIG_ARCH_HAS_BITS_PER_UNIT_32)
 typedef uint32_t bits_t;
 #define BITS_PER_UNIT		32
 #define __ffs_unit		__ffs32
+#define __fls_unit		__fls32
 #define __ffz_unit		__ffz32
 #elif defined(CONFIG_ARCH_HAS_BITS_PER_UINT_16)
 typedef uint8_t bits_t;
 #define BITS_PER_UNIT		16
 #define __ffs_unit		__ffs16
+#define __fls_unit		__fls16
 #define __ffz_unit		__ffz16
 #else
 typedef uint8_t bits_t;
 #define BITS_PER_UNIT		8
 #define __ffs_unit		__ffs8
+#define __fls_unit		__fls8
 #define __ffz_unit		__ffz8
 #endif
 
