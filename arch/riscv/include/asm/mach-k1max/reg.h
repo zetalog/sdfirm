@@ -105,6 +105,7 @@
 #define PCIEB_DATA_BASE		ULL(0x90000000)
 #define PCIEA_DATA_BASE		ULL(0x80000000)
 #define DRAM_LO_BASE		ULL(0x00000000)
+#define UART_BASE(n)		(ULL(0xD4017000)+((n)<<8))
 
 #define __DRAM_SIZE		ULL(0x80000000)
 #ifdef CONFIG_K1X_DRAM_HIGH
@@ -114,7 +115,11 @@
 #endif
 #endif /* CONFIG_K1M_K1X */
 
+#ifdef CONFIG_K1M_SOC
 #define k1max_finish(code)	__raw_writel(code, FINISH_ADDR)
+#else
+#define k1max_finish(code)
+#endif
 
 #ifdef CONFIG_K1M_SRAM
 #define ROM_BASE		SRAM_BASE
@@ -136,6 +141,9 @@
 #ifdef CONFIG_K1M_PZ1
 #define DRAM_SIZE		SZ_256M
 #endif /* CONFIG_K1M_PZ1 */
+#ifdef CONFIG_K1M_K1X
+#define DRAM_SIZE		__DRAM_SIZE
+#endif
 #ifndef DRAM_SIZE
 #define DRAM_SIZE		CONFIG_K1M_MEM_SIZE
 #endif /* DRAM_SIZE */

@@ -63,33 +63,33 @@
 #if !defined(NS16550_REG_SIZE) || (NS16550_REG_SIZE == 0)
 #error "Please define NS16550 registers size."
 #elif defined(CONFIG_ARCH_HAS_NS16550_MEM32)
-#define UART_REG2(n, offset)		(UART_BASE(n) + (offset) << 2)
+#define UART_REG2(n, offset)		(UART_BASE(n) + ((offset) << 2))
 #define uart_reg_write(v, reg)		__raw_writel(v, reg)
 #define uart_reg_read(reg)		__raw_readl(reg)
 #define UART_REG(x)			uint32_t x
 #elif (NS16550_REG_SIZE == -4)
-#define UART_REG2(n, offset)		(UART_BASE(n) + (offset) << 2)
+#define UART_REG2(n, offset)		(UART_BASE(n) + ((offset) << 2))
 #define uart_reg_write(v, reg)		__raw_writeb(v, reg)
 #define uart_reg_read(reg)		__raw_readb(reg)
 #define UART_REG(x)			\
 	uint8_t x;			\
 	uint8_t postpad_##x[3];
 #elif (NS16550_REG_SIZE == -2)
-#define UART_REG2(n, offset)		(UART_BASE(n) + (offset) << 1)
+#define UART_REG2(n, offset)		(UART_BASE(n) + ((offset) << 1))
 #define uart_reg_write(v, reg)		__raw_writeb(v, reg)
 #define uart_reg_read(reg)		__raw_readb(reg)
 #define UART_REG(x)			\
 	uint8_t x;			\
 	uint8_t postpad_##x;
 #elif (NS16550_REG_SIZE == 4)
-#define UART_REG2(n, offset)		(UART_BASE(n) + (offset) << 2)
+#define UART_REG2(n, offset)		(UART_BASE(n) + ((offset) << 2))
 #define uart_reg_write(v, reg)		__raw_writeb(v, reg)
 #define uart_reg_read(reg)		__raw_readb(reg)
 #define UART_REG(x)			\
 	uint8_t prepad_##x[3];		\
 	uint8_t x;
 #elif (NS16550_REG_SIZE == 2)
-#define UART_REG2(n, offset)		(UART_BASE(n) + (offset) << 1)
+#define UART_REG2(n, offset)		(UART_BASE(n) + ((offset) << 1))
 #define uart_reg_write(v, reg)		__raw_writeb(v, reg)
 #define uart_reg_read(reg)		__raw_readb(reg)
 #define UART_REG(x)			\
