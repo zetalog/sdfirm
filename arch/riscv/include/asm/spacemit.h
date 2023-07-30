@@ -114,11 +114,6 @@
 	li	x3, 0
 	csrs	CSR_MCOUNTEREN, x3
 #endif
-	li	x3, ECR_PBMTE | ECR_STCE
-	csrs	CSR_MENVCFG, x3
-	/* MSTATUS */
-	li	x3, (SR_FS | SR_VS)
-	csrs	CSR_MSTATUS, x3
 	/* spacemit specific */
 	li	x3, L2S_SMP_MASK
 	csrs	CSR_ML2SETUP, x3

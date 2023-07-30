@@ -76,9 +76,16 @@ config CPU_SPACEMIT
 	select CPU_SV39
 	select CPU_PMP
 	select CPU_WMO
+	select CPU_SSCOFPMF
+	select CPU_SMSTATEEN
+	select CPU_SVNAPOT
 	select CPU_SVPBMT
+	select CPU_SMAIA
 	select CPU_SSTC
+	select CPU_ZICBOZ
+	select CPU_ZICBOM
 	select ARCH_IS_ATOMIC_UNFAIR
+	select ARCH_HAS_ACLINT
 
 # RI5CY
 config CPU_RI5CY
@@ -304,6 +311,12 @@ config CPU_ZICBOM
 config CPU_SSTC
 	bool
 
+config CPU_SMSTATEEN
+	bool
+
+config CPU_SSCOFPMF
+	bool
+
 config CPU_SVNAPOT
 	bool
 	depends CPU_SV39
@@ -313,6 +326,9 @@ config CPU_SVPBMT
 	depends CPU_SV39 || CPU_SV48 || CPU_SV57
 
 config CPU_SVINVAL
+	bool
+
+config CPU_SMAIA
 	bool
 
 config CPU_PMA
@@ -456,6 +472,18 @@ config RISCV_SVINVAL
 config RISCV_SSTC
 	bool "Supervisor-level time compare (Sstc) support"
 	depends CPU_SSTC
+
+config RISCV_SMSTATEEN
+	bool "State enable (Smstateen) support"
+	depends CPU_SMSTATEEN
+
+config RISCV_SSCOFPMF
+	bool "Count overflow and mode-based filtering (Sscofpmf) support"
+	depends CPU_SSCOFPMF
+
+config RISCV_SMAIA
+	bool "Advanced interrupt architecture (Smaia) support"
+	depends CPU_SMAIA
 
 config RISCV_PMA
 	bool "Physical address attributes (PMA) support"
@@ -761,9 +789,22 @@ config HTIF
 config ARCH_HAS_CLINT
 	bool
 
+config ARCH_HAS_ACLINT
+	bool
+	select ARCH_HAS_CLINT
+	select CPU_SSTC
+
+menuconfig ACLINT
+	bool "Advanced Core Local Interruptor (ACLINT) support"
+	depends ARCH_HAS_ACLINT
+	select ARCH_HAS_SBI_IPI
+	select ARCH_HAS_SBI_TIMER
+	select RISCV_SSTC
+
 menuconfig CLINT
 	bool "Core Local Interruptor (CLINT) support"
 	depends ARCH_HAS_CLINT
+	depends !ACLINT
 	select ARCH_HAS_SBI_IPI
 	select ARCH_HAS_SBI_TIMER
 	select MATH_DIV64
@@ -786,14 +827,15 @@ config CLINT_FORCE_FAST_TIMEOUT
 	  a small enough value for simulation.
 	  If unsure, say 'N'.
 
-config CLINT_THEAD
-	bool "Enable T-head clint extension"
-	depends CPU_C910
-	select RISCV_SSTC
-	help
-	  Enable S-mode software/timer interrupts, and Sstc extension.
-
 endif
+
+config CLINT_THEAD
+	bool "T-head ACLINT extension support"
+	depends CPU_C910
+	select ACLINT
+	help
+	  T-head based ACLINT requires this option to be enabled to turn
+	  the feature on via T-head specific registers.
 
 config ARCH_HAS_PLIC
 	bool

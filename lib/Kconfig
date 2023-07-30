@@ -135,6 +135,10 @@ config STRING_STRNCMP
 	bool "strncmp"
 	select STDLIB
 
+config STRING_STRNCPY
+	bool "strncpy"
+	select STDLIB
+
 config STRING_STRTOUL
 	bool "strtoul"
 	select STDLIB

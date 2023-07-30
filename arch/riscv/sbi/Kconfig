@@ -29,6 +29,8 @@ menuconfig SBI
 	select SBI_NEXT_S if !SBI_PAYLOAD && SYS_EXIT_S
 	select SBI_NEXT_M if !SBI_PAYLOAD && SYS_EXIT_M
 	select CLK_MNEMONICS if ARCH_HAS_SBI_CLOCK
+	select PRINT_SNPRINTF
+	select STRING_STRNCPY
 
 if SBI
 

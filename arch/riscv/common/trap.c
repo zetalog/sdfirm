@@ -74,6 +74,17 @@ DO_ERROR_INFO(do_trap_ecall_m, "environment call from M-mode");
 
 asmlinkage void __vectors(void);
 
+extern void __csr_expected_trap(void);
+extern void __csr_expected_trap_hext(void);
+
+void (*csr_expected_trap)(void) = &__csr_expected_trap;
+
+__init void csr_init(void)
+{
+	if (misa_extension('H'))
+		csr_expected_trap = &__csr_expected_trap_hext;
+}
+
 __init void trap_init(void)
 {
 	csr_write(CSR_SCRATCH, 0);
