@@ -60,11 +60,16 @@
 
 #if defined(CONFIG_DW_UART)
 #include <driver/dw_uart.h>
+#elif defined(CONFIG_NS16550)
+#define NS16550_REG_SIZE	(-4)
+#define NS16550_CLK		APB_CLK_FREQ
+#include <driver/ns16550.h>
+#endif
+
 #ifndef ARCH_HAVE_UART
 #define ARCH_HAVE_UART		1
 #else
 #error "Multiple UART controller defined"
-#endif
 #endif
 
 #ifdef CONFIG_K1M_UART_ACCEL
@@ -86,8 +91,12 @@ void uart_hw_dbg_write(uint8_t byte);
 void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
 #endif
 
+#ifdef CONFIG_DW_UART
 #ifdef CONFIG_CONSOLE
-void uart_hw_con_init(void);
+#define uart_hw_con_init()				\
+	do {						\
+		dw_uart_ctrl_init(APB_CLK_FREQ);	\
+	} while (0)
 #endif
 #ifdef CONFIG_CONSOLE_OUTPUT
 #define uart_hw_con_write(byte)	dw_uart_con_write(byte)
@@ -104,6 +113,26 @@ void uart_hw_con_init(void);
 #define uart_hw_irq_init()	dw_uart_irq_init()
 #define uart_hw_irq_ack()	dw_uart_irq_ack()
 #endif
+#endif /* CONFIG_DW_UART */
+
+#ifdef CONFIG_NS16550
+#ifdef CONFIG_CONSOLE
+#define uart_hw_con_init()              \
+        do {                            \
+                ns16550_con_init();     \
+        } while (0)
+#endif
+#ifdef CONFIG_CONSOLE_OUTPUT
+#define uart_hw_con_write(byte)		ns16550_con_write(byte)
+#endif
+#ifdef CONFIG_CONSOLE_INPUT
+#define uart_hw_con_read()		ns16550_con_read()
+#define uart_hw_con_poll()		ns16550_con_poll()
+
+void uart_hw_irq_ack(void);
+void uart_hw_irq_init(void);
+#endif
+#endif /* CONFIG_NS16550 */
 
 #ifdef CONFIG_MMU
 void uart_hw_mmu_init(void);

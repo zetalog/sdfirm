@@ -42,11 +42,6 @@
 #include <target/console.h>
 #include <target/paging.h>
 
-void uart_hw_con_init(void)
-{
-	dw_uart_ctrl_init(APB_CLK_FREQ);
-}
-
 #ifdef CONFIG_MMU
 void uart_hw_mmu_init(void)
 {

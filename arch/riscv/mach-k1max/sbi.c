@@ -60,6 +60,7 @@ static int k1max_pmp_region_info(uint32_t hartid, uint32_t index,
 	return ret;
 }
 
+#ifdef CONFIG_DW_UART
 #ifdef CONFIG_CONSOLE
 #define __K1MAX_UART_REG(n, offset)		(__K1MAX_UART_BASE + (offset))
 #define __UART_RBR(n)				__K1MAX_UART_REG(n, 0x00)
@@ -79,6 +80,32 @@ static int k1max_pmp_region_info(uint32_t hartid, uint32_t index,
 #else
 #define __k1max_uart_read_poll(n)		true
 #define __k1max_uart_read_byte(n)		0
+#endif
+#endif /* CONFIG_DW_UART */
+
+#ifdef CONFIG_NS16550
+#ifdef CONFIG_CONSOLE
+#define __K1MAX_UART_REG2(n, offset)		(UART_BASE(n) + ((offset) << 2))
+#define __UART_RBR(n)				__K1MAX_UART_REG2(n, 0)
+#define __UART_LSR(n)				__K1MAX_UART_REG2(n, 5)
+#define __UART_THR(n)				__UART_RBR(n)
+#define __uart_reg_write(v, reg)		__raw_writeb(v, reg)
+#define __uart_reg_read(reg)			__raw_readb(reg)
+#endif
+#ifdef CONFIG_CONSOLE_OUTPUT
+#define __k1max_uart_write_poll(n)		(!!(__uart_reg_read(__UART_LSR(n)) & UART_LSR_TEMT))
+#define __k1max_uart_write_byte(n, byte)	__uart_reg_write((byte), __UART_THR(n))
+#else
+#define __k1max_uart_write_poll(n)		true
+#define __k1max_uart_write_byte(n, byte)	do { } while (0)
+#endif
+#ifdef CONFIG_CONSOLE_INPUT
+#define __k1max_uart_read_poll(n)		(!!(__uart_reg_read(__UART_LSR(n)) & UART_LSR_DR))
+#define __k1max_uart_read_byte(n)		__uart_reg_read(__UART_RBR(n))
+#else
+#define __k1max_uart_read_poll(n)		true
+#define __k1max_uart_read_byte(n)		0
+#endif
 #endif
 
 static void k1max_console_putc(char ch)

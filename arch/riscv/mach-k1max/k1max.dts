@@ -199,6 +199,7 @@
 		compatible = "simple-bus";
 		ranges;
 
+#ifdef CONFIG_DW_UART
 		uart@10010000 {
 			interrupts = <16>;
 			interrupt-parent = <&plic>;
@@ -216,6 +217,10 @@
 			status = "disabled";
 #endif
 		};
+#endif
+
+#ifdef CONFIG_NS16550
+#endif
 
 		tcm: tcm@0x38000000 {
 			compatible = "spacemit,k1-pro-tcm";
