@@ -123,19 +123,19 @@ static void mstatus_init(struct sbi_scratch *scratch, uint32_t hartid)
 	/* Enable FPU */
 #if defined(CONFIG_CPU_F) || defined(CONFIG_CPU_D)
 	if (misa_extension('D') || misa_extension('F'))
-		csr_write(CSR_MSTATUS, SR_FS);
+		csr_set(CSR_MSTATUS, SR_FS);
 #endif
 
 #ifdef CONFIG_CPU_V
 	if (misa_extension('V'))
-		csr_write(CSR_MSTATUS, SR_VS);
+		csr_set(CSR_MSTATUS, SR_VS);
 #endif
 
 #ifdef CONFIG_CPU_S
 	/* Disable user mode usage of all perf counters except default ones (CY, TM, IR) */
 	if (misa_extension('S') &&
 	    sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_10)
-		csr_write(CSR_SCOUNTEREN, 7);
+		csr_set(CSR_SCOUNTEREN, 7);
 #endif
 	/**
 	 * OpenSBI doesn't use any PMU counters in M-mode.
@@ -212,8 +212,8 @@ static int delegate_traps(struct sbi_scratch *scratch, uint32_t hartid)
 			      (1U << EXC_LOAD_PAGE_FAULT) |
 			      (1U << EXC_STORE_PAGE_FAULT);
 
-	csr_write(CSR_MIDELEG, interrupts);
-	csr_write(CSR_MEDELEG, exceptions);
+	csr_set(CSR_MIDELEG, interrupts);
+	csr_set(CSR_MEDELEG, exceptions);
 
 	if ((csr_read(CSR_MIDELEG) & interrupts) != interrupts)
 		return -ENODEV;
