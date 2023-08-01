@@ -308,9 +308,15 @@
 #ifdef CONFIG_RISCV_SMSTATEEN
 #define SER_STATEEN	_AC(0x8000000000000000, UL)
 #define SER_HSENVCFG	_AC(0x4000000000000000, UL)
+#ifdef CONFIG_RISCV_SMAIA
 #define SER_SVSLCT	_AC(0x1000000000000000, UL)
 #define SER_AIA		_AC(0x0800000000000000, UL)
 #define SER_IMSIC	_AC(0x0400000000000000, UL)
+#else /* CONFIG_RISCV_SMAIA */
+#define SER_SVSLCT	_AC(0x0000000000000000, UL)
+#define SER_AIA		_AC(0x0000000000000000, UL)
+#define SER_IMSIC	_AC(0x0000000000000000, UL)
+#endif /* CONFIG_RISCV_SMAIA */
 #define SER_CONTEXT	_AC(0x0200000000000000, UL)
 #define SER_FCSR	_AC(0x0000000000000002, UL)
 #define SER_CS		_AC(0x0000000000000001, UL)
@@ -634,6 +640,8 @@ static __inline unsigned long csr_expected_trap_addr(void)
 {
 	return (unsigned long)csr_expected_trap;
 }
+
+void csr_init(void);
 #endif /* __ASSEMBLY__ */
 
 #endif /* __CSR_RISCV_H_INCLUDE__ */

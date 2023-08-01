@@ -98,14 +98,10 @@ static void mstateen_init(struct sbi_scratch *scratch, uint32_t hartid)
 		mstateen_val |= SER_CONTEXT;
 		mstateen_val |= SER_HSENVCFG;
 
-#ifdef CONFIG_RISCV_SMAIA
 		if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMAIA))
 			mstateen_val |= (SER_AIA | SER_SVSLCT | SER_IMSIC);
 		else
 			mstateen_val &= ~(SER_AIA | SER_SVSLCT | SER_IMSIC);
-#else
-		mstateen_val &= ~(SER_AIA | SER_SVSLCT | SER_IMSIC);
-#endif
 		csr_write(CSR_MSTATEEN(0), mstateen_val);
 #if __riscv_xlen == 32
 		csr_write(CSR_MSTATEENH(0), mstateen_val >> 32);
@@ -649,6 +645,8 @@ int sbi_hart_init(struct sbi_scratch *scratch, uint32_t hartid, bool cold_boot)
 	int rc;
 
 	if (cold_boot) {
+		csr_init();
+
 		trap_info_offset = sbi_scratch_alloc_offset(__SIZEOF_POINTER__,
 							    "HART_TRAP_INFO");
 		if (!trap_info_offset)
