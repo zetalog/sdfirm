@@ -28,6 +28,10 @@ else
 	LINUX_PATH=`(cd $LINUX_DIR; pwd)`
 	LINUX_DIR=`dirname $LINUX_PATH`
 fi
+if [ -z $UBOOT_DIR ]; then
+	UBOOT_DIR=u-boot
+	UBOOT_PATH=$TOP/u-boot
+fi
 INITRAMFS_DIR=obj/initramfs/$ARCH
 INITRAMFS_FILELIST=obj/initramfs/list-$ARCH
 STORAGE_DIR=obj/storage/$ARCH
@@ -464,6 +468,53 @@ function build_bbl()
 	fi
 }
 
+function build_uboot()
+{
+	echo "== Build u-boot =="
+	echo "Building ${MACH}_spl_defconfig..."
+	rm -rf $TOP/obj/u-boot-$ARCH
+	mkdir -p $TOP/obj/u-boot-$ARCH
+	(
+	cd $UBOOT_PATH
+	if [ -x $TOP/obj/u-boot-$ARCH ]; then
+		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
+			O=$TOP/obj/u-boot-$ARCH/ distclean
+	fi
+	# Doing modcfgs in the original directory and save my_defconfig
+	cp arch/${ARCH}/configs/${MACH}_spl_defconfig arch/riscv/configs/my_defconfig
+	#if [ "xno" = "x${BUILD_SMP}" ]; then
+	#	apply_modcfg u-boot my_defconfig d_smp.cfg
+	#fi
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
+		O=$TOP/obj/u-boot-$ARCH/ my_defconfig
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
+		O=$TOP/obj/u-boot-$ARCH/ clean
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
+		O=$TOP/obj/u-boot-$ARCH/ -j6
+	if [ ! -f $TOP/obj/u-boot-$ARCH/u-boot ]
+	then
+		echo "Error: Failed to build u-boot"
+		exit 1
+	fi
+	${CROSS_COMPILE}objcopy \
+		--only-keep-debug $TOP/obj/u-boot-$ARCH/u-boot \
+		$TOP/obj/u-boot-$ARCH/u-boot.sym
+	)
+	#cp -v $TOP/obj/u-boot-$ARCH/spl/u-boot-spl.bin
+	#cp -v $TOP/obj/u-boot-$ARCH/u-boot.itb
+}
+
+function build_boot()
+{
+	if [ "x$BOOT" = "xuboot" ]; then
+		build_uboot
+	fi
+	if [ "x$BOOT" = "xedk2" ]; then
+		build_edk2
+	fi
+}
+
 cd $TOP
 
 usage()
@@ -472,10 +523,17 @@ usage()
 	echo "`basename $0` [-m bbl] [-s] [-u] [-a] [-r] [-n hostname] [target]"
 	echo "              [-d feat] [-e feat]"
 	echo "Where:"
-	echo " -m bbl:      specify build of M-mode program"
+	echo " -m bbl:      specify build of M-mode program (default sdfirm)"
+	echo "              bbl includes:"
+	echo "    sdfirm:   SDFIRM modified opensbi"
+	echo "    riscv-pk: original BBL program"
+	echo "    opensbi:  RISC-V opensbi"
 	echo " -s:          specify build of S-mode program"
 	echo " -u:          specify build of U-mode programs"
 	echo " -a:          specify build of all modes programs"
+	echo " -b:          specify build of boot loader (default uboot)"
+	echo "    uboot:    Das U-Boot linux bootloader"
+	echo "    edk2:     UEFI EDK-II BIOS"
 	echo " -r:          force rebuild of all modes programs"
 	echo " -n:          specify system hostname (default sdfirm)"
 	echo " -d feat:     disable special features"
@@ -498,7 +556,7 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "ad:e:m:n:rsu" opt
+while getopts "ab:d:e:m:n:rsu" opt
 do
 	case $opt in
 	a) M_MODE=yes
@@ -521,6 +579,8 @@ do
 	   fi;;
 	m) M_MODE=yes
 	   BBL=$OPTARG;;
+	b) B_MODE=yes
+	   BOOT=$OPTARG;;
 	n) HOSTNAME=$OPTARG;;
 	r) FORCE_REBUILD=yes;;
 	s) S_MODE=yes;;
@@ -603,5 +663,8 @@ else
 	fi
 	if [ "x${M_MODE}" = "xyes" ]; then
 		build_bbl
+		if [ "x${B_MODE}" = "xyes" ]; then
+			build_boot
+		fi
 	fi
 fi
