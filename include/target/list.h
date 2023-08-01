@@ -54,9 +54,11 @@
  * using the generic single-entry routines.
  */
 
+#ifndef __ASSEMBLY__
 struct list_head {
 	struct list_head *next, *prev;
 };
+#endif
 
 /*
  * These are non-NULL pointers that will result in page faults
@@ -321,6 +323,7 @@ struct list_head {
  * You lose the ability to access the tail in O(1).
  */
 
+#ifndef __ASSEMBLY__
 struct hlist_head {
 	struct hlist_node *first;
 };
@@ -328,6 +331,7 @@ struct hlist_head {
 struct hlist_node {
 	struct hlist_node *next, **pprev;
 };
+#endif
 
 #define HLIST_HEAD_INIT { NULL }
 #define HLIST_HEAD(name) struct hlist_head name = {  NULL }

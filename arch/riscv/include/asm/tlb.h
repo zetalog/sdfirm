@@ -63,6 +63,24 @@ void flush_tlb_all(void);
 void flush_tlb_page(int asid, caddr_t addr);
 void flush_tlb_range_user(int asid, caddr_t start, caddr_t end);
 void flush_tlb_range_kern(caddr_t start, caddr_t end);
+
+/** Invalidate Stage2 TLBs for given VMID and guest physical address */
+void __sbi_hfence_gvma_vmid_gpa(unsigned long gpa_divby_4,
+				unsigned long vmid);
+/** Invalidate Stage2 TLBs for given VMID */
+void __sbi_hfence_gvma_vmid(unsigned long vmid);
+/** Invalidate Stage2 TLBs for given guest physical address */
+void __sbi_hfence_gvma_gpa(unsigned long gpa_divby_4);
+/** Invalidate all possible Stage2 TLBs */
+void __sbi_hfence_gvma_all(void);
+/** Invalidate unified TLB entries for given asid and guest virtual address */
+void __sbi_hfence_vvma_asid_va(unsigned long va, unsigned long asid);
+/** Invalidate unified TLB entries for given ASID for a guest*/
+void __sbi_hfence_vvma_asid(unsigned long asid);
+/** Invalidate unified TLB entries for a given guest virtual address */
+void __sbi_hfence_vvma_va(unsigned long va);
+/** Invalidate all possible Stage2 TLBs */
+void __sbi_hfence_vvma_all(void);
 #endif /* !__ASSEMBLY__ */
 
 #endif /* __TLB_RISCV_H_INCLUDE__ */

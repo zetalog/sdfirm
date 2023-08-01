@@ -297,6 +297,9 @@
 			       0x0 0x00010000
 			>;
 			compatible = "riscv,clint0";
+#ifdef CONFIG_ARCH_IS_MMIO_32BIT
+			clint,has-no-64bit-mmio;
+#endif
 		};
 	};
 };
