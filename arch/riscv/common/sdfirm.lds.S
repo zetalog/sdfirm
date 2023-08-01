@@ -4,6 +4,7 @@
 #include <target/cmdline.h>
 #include <target/paging.h>
 #include <target/bench.h>
+#include <target/sbi.h>
 
 #define IDMAP_TEXT			\
 	. = ALIGN(SZ_4K);		\
@@ -46,6 +47,7 @@ SECTIONS
 		RODATA_RODATA
 		CMDLINE_INPUT(WORD_SIZE)
 		BENCH_INPUT(WORD_SIZE)
+		SBIECALL_INPUT(WORD_SIZE)
 	}
 	SRODATA(WORD_SIZE)
 	. = ALIGN(PAGE_SIZE);

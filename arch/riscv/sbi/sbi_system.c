@@ -35,7 +35,8 @@ sbi_system_shutdown(struct sbi_scratch *scratch, uint32_t type)
 
 	/* If that fails (or is not implemented) send an IPI on every
 	 * hart to hang and then hang the current hart */
-	sbi_ipi_send_many(scratch, NULL, NULL, SBI_IPI_EVENT_HALT, NULL);
+	sbi_ipi_send_many(sbi_hart_available_mask(), 0,
+		          SBI_IPI_EVENT_HALT, NULL);
 	bh_panic();
 }
 
@@ -43,6 +44,7 @@ void __noreturn
 sbi_system_finish(struct sbi_scratch *scratch, uint32_t code)
 {
 	sbi_platform_system_finish(sbi_platform_ptr(scratch), code);
-	sbi_ipi_send_many(scratch, NULL, NULL, SBI_IPI_EVENT_HALT, NULL);
+	sbi_ipi_send_many(sbi_hart_available_mask(), 0,
+			  SBI_IPI_EVENT_HALT, NULL);
 	bh_panic();
 }

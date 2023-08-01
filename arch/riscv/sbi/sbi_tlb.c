@@ -17,7 +17,7 @@ static unsigned long tlb_sync_off;
 static unsigned long tlb_fifo_off;
 static unsigned long tlb_fifo_mem_off;
 
-static void sbi_tlb_fifo_sfence_vma(struct sbi_tlb_info *tinfo)
+void sbi_tlb_fifo_sfence_vma(struct sbi_tlb_info *tinfo)
 {
 	unsigned long start = tinfo->start;
 	unsigned long size  = tinfo->size;
@@ -32,7 +32,7 @@ static void sbi_tlb_fifo_sfence_vma(struct sbi_tlb_info *tinfo)
 		local_flush_tlb_page(start + i);
 }
 
-static void sbi_tlb_fifo_sfence_vma_asid(struct sbi_tlb_info *tinfo)
+void sbi_tlb_fifo_sfence_vma_asid(struct sbi_tlb_info *tinfo)
 {
 	unsigned long start = tinfo->start;
 	unsigned long size  = tinfo->size;
@@ -54,12 +54,114 @@ static void sbi_tlb_fifo_sfence_vma_asid(struct sbi_tlb_info *tinfo)
 		local_flush_tlb_asid_page(asid, start + i);
 }
 
+#ifdef CONFIG_RISCV_H
+void sbi_tlb_fifo_hfence_gvma(struct sbi_tlb_info *tinfo)
+{
+	unsigned long start = tinfo->start;
+	unsigned long size  = tinfo->size;
+	unsigned long i;
+
+	if ((start == 0 && size == 0) || (size == SBI_TLB_FLUSH_ALL)) {
+		__sbi_hfence_gvma_all();
+		return;
+	}
+
+	for (i = 0; i < size; i += PAGE_SIZE) {
+		__sbi_hfence_gvma_gpa((start + i) >> 2);
+	}
+}
+
+void sbi_tlb_fifo_hfence_gvma_vmid(struct sbi_tlb_info *tinfo)
+{
+	unsigned long start = tinfo->start;
+	unsigned long size  = tinfo->size;
+	unsigned long vmid  = tinfo->vmid;
+	unsigned long i;
+
+	if (start == 0 && size == 0) {
+		__sbi_hfence_gvma_all();
+		return;
+	}
+
+	if (size == SBI_TLB_FLUSH_ALL) {
+		__sbi_hfence_gvma_vmid(vmid);
+		return;
+	}
+
+	for (i = 0; i < size; i += PAGE_SIZE) {
+		__sbi_hfence_gvma_vmid_gpa((start + i) >> 2, vmid);
+	}
+}
+
+void sbi_tlb_fifo_hfence_vvma(struct sbi_tlb_info *tinfo)
+{
+	unsigned long start = tinfo->start;
+	unsigned long size  = tinfo->size;
+	unsigned long vmid  = tinfo->vmid;
+	unsigned long i, hgatp;
+
+	hgatp = csr_swap(CSR_HGATP,
+			 (vmid << ATP_VMID_SHIFT) & ATP_VMID);
+
+	if ((start == 0 && size == 0) || (size == SBI_TLB_FLUSH_ALL)) {
+		__sbi_hfence_vvma_all();
+		goto done;
+	}
+
+	for (i = 0; i < size; i += PAGE_SIZE) {
+		__sbi_hfence_vvma_va(start+i);
+	}
+
+done:
+	csr_write(CSR_HGATP, hgatp);
+}
+
+void sbi_tlb_fifo_hfence_vvma_asid(struct sbi_tlb_info *tinfo)
+{
+	unsigned long start = tinfo->start;
+	unsigned long size  = tinfo->size;
+	unsigned long asid  = tinfo->asid;
+	unsigned long vmid  = tinfo->vmid;
+	unsigned long i, hgatp;
+
+	hgatp = csr_swap(CSR_HGATP,
+			 (vmid << ATP_VMID_SHIFT) & ATP_VMID);
+
+	if (start == 0 && size == 0) {
+		__sbi_hfence_vvma_all();
+		goto done;
+	}
+
+	if (size == SBI_TLB_FLUSH_ALL) {
+		__sbi_hfence_vvma_asid(asid);
+		goto done;
+	}
+
+	for (i = 0; i < size; i += PAGE_SIZE) {
+		__sbi_hfence_vvma_asid_va(start + i, asid);
+	}
+
+done:
+	csr_write(CSR_HGATP, hgatp);
+}
+#endif
+
 static void sbi_tlb_local_flush(struct sbi_tlb_info *tinfo)
 {
 	if (tinfo->type == SBI_TLB_FLUSH_VMA)
 		sbi_tlb_fifo_sfence_vma(tinfo);
 	else if (tinfo->type == SBI_TLB_FLUSH_VMA_ASID)
 		sbi_tlb_fifo_sfence_vma_asid(tinfo);
+#ifdef CONFIG_RISCV_H
+	else if (tinfo->type == SBI_TLB_FLUSH_VVMA)
+		sbi_tlb_fifo_hfence_vvma(tinfo);
+	else if (tinfo->type == SBI_TLB_FLUSH_VVMA_ASID)
+		sbi_tlb_fifo_hfence_vvma_asid(tinfo);
+	else if (tinfo->type == SBI_TLB_FLUSH_GVMA)
+		sbi_tlb_fifo_hfence_gvma(tinfo);
+	else if (tinfo->type == SBI_TLB_FLUSH_GVMA_VMID)
+		sbi_tlb_fifo_hfence_gvma_vmid(tinfo);
+#endif
 	else if (tinfo->type == SBI_ITLB_FLUSH)
 		local_flush_icache_all();
 	else
@@ -245,6 +347,17 @@ int sbi_tlb_fifo_update(struct sbi_scratch *rscratch,
 	}
 
 	return 0;
+}
+
+int sbi_tlb_request(unsigned long hmask, unsigned long hbase,
+		     struct sbi_tlb_info *tinfo)
+{
+#if 0
+	if (!tinfo->local_fn)
+		return SBI_EINVAL;
+#endif
+
+	return sbi_ipi_send_many(hmask, hbase, SBI_IPI_EVENT_RFENCE, tinfo);
 }
 
 int sbi_tlb_fifo_init(struct sbi_scratch *scratch, bool cold_boot)

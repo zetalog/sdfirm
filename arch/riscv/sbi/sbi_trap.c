@@ -195,7 +195,7 @@ void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch)
 		break;
 	case EXC_ECALL_H:
 	case EXC_ECALL_S:
-		rc  = sbi_ecall_handler(hartid, mcause, regs, scratch);
+		rc  = sbi_ecall_handler(regs);
 		msg = "ecall handler failed";
 		break;
 	case EXC_LOAD_ACCESS:

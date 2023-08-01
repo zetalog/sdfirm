@@ -34,6 +34,35 @@ menuconfig SBI
 
 if SBI
 
+menu "SBI versions"
+
+config SBI_V01
+	bool "v0.1"
+
+config SBI_V10
+	bool "v1.0"
+
+if SBI_V10
+
+config SBI_ECALL_LEGACY
+	bool "Enable legacy (v0.1) ecall support"
+	select SBI_V01
+
+config SBI_ECALL_TIME
+	bool "Enable time extension ecall support"
+	depends ARCH_HAS_SBI_TIMER
+
+config SBI_ECALL_IPI
+	bool "Enable IPI ecall support"
+	depends ARCH_HAS_SBI_IPI
+
+config SBI_ECALL_RFENCE
+	bool "Enable remote fence ecall support"
+
+endif
+
+endmenu
+
 config SBI_RISCV_F
 	bool "Enable single precision FP load/store"
 

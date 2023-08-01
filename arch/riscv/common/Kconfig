@@ -80,12 +80,13 @@ config CPU_SPACEMIT
 	select CPU_SMSTATEEN
 	select CPU_SVNAPOT
 	select CPU_SVPBMT
-	select CPU_SMAIA
 	select CPU_SSTC
 	select CPU_ZICBOZ
 	select CPU_ZICBOM
 	select ARCH_IS_ATOMIC_UNFAIR
 	select ARCH_HAS_ACLINT
+	select CPU_H
+	select CPU_SMAIA
 
 # RI5CY
 config CPU_RI5CY

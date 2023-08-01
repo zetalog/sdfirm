@@ -15,7 +15,13 @@ obj-y += sbi_trap.rel
 obj-y += sbi_emulate_csr.rel
 obj-y += sbi_illegal_insn.rel
 obj-y += sbi_misaligned_ldst.rel
-obj-y += sbi_ecall.rel
+obj-$(CONFIG_SBI_V01) += sbi_ecall_legacy.rel
+obj-$(CONFIG_SBI_V10) += sbi_ecall.rel
+obj-$(CONFIG_SBI_V10) += sbi_ecall_base.rel
+obj-$(CONFIG_SBI_ECALL_TIME) += sbi_ecall_time.rel
+obj-$(CONFIG_SBI_ECALL_IPI) += sbi_ecall_ipi.rel
+obj-$(CONFIG_SBI_ECALL_RFENCE) += sbi_ecall_rfence.rel
+obj-$(CONFIG_RISCV_H) += sbi_hfence.rel
 obj-y += sbi_tlb.rel
 
 obj-$(CONFIG_CONSOLE_OUTPUT) += sbi_console.rel

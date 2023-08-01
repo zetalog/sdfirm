@@ -34,9 +34,7 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, cpu_t cpu,
 	 */
 	remote_scratch = sbi_hart_id_to_scratch(scratch, hartid);
 	ipi_data = sbi_scratch_offset_ptr(remote_scratch, ipi_data_off);
-	if (event == SBI_IPI_EVENT_SFENCE_VMA ||
-	    event == SBI_IPI_EVENT_SFENCE_VMA_ASID ||
-	    event == SBI_IPI_EVENT_FENCE_I) {
+	if (event == SBI_IPI_EVENT_RFENCE) {
 		ret = sbi_tlb_fifo_update(remote_scratch, hartid, data);
 		if (ret < 0)
 			return ret;
@@ -45,30 +43,19 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, cpu_t cpu,
 	smp_mb();
 	sbi_platform_ipi_send(plat, cpu);
 
-	if (event == SBI_IPI_EVENT_SFENCE_VMA ||
-	    event == SBI_IPI_EVENT_SFENCE_VMA_ASID ||
-	    event == SBI_IPI_EVENT_FENCE_I) {
+	if (event == SBI_IPI_EVENT_RFENCE)
 		sbi_tlb_fifo_sync(scratch);
-	}
-
 	return 0;
 }
 
-int sbi_ipi_send_many(struct sbi_scratch *scratch, struct unpriv_trap *uptrap,
-		      ulong *pmask, uint32_t event, void *data)
+int sbi_ipi_send_many(ulong hmask, ulong hbase, uint32_t event, void *data)
 {
 	ulong i, m;
-	ulong mask = sbi_hart_available_mask();
 	uint32_t hartid = sbi_current_hartid();
-
-	if (pmask) {
-		mask &= load_ulong(pmask, scratch, uptrap);
-		if (uptrap->cause)
-			return ETRAP;
-	}
+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
 
 	/* Send IPIs to every other hart on the set */
-	for (i = 0, m = mask; m; i++, m >>= 1)
+	for (i = hbase, m = hmask; m; i++, m >>= 1)
 		if ((m & 1UL) && (i != hartid))
 			sbi_ipi_send(scratch, smp_hw_hart_cpu(i),
 				     event, data);
@@ -77,7 +64,7 @@ int sbi_ipi_send_many(struct sbi_scratch *scratch, struct unpriv_trap *uptrap,
 	 * If the current hart is on the set, send an IPI
 	 * to it as well
 	 */
-	if (mask & (1UL << hartid))
+	if (hmask & (1UL << hartid))
 		sbi_ipi_send(scratch, smp_hw_hart_cpu(hartid),
 			     event, data);
 	return 0;
@@ -110,16 +97,8 @@ void sbi_ipi_process(struct sbi_scratch *scratch)
 			sbi_trap_log("%d: IPI_EVENT_SOFT\n", hartid);
 			csr_set(CSR_MIP, IR_SSI);
 			break;
-		case SBI_IPI_EVENT_FENCE_I:
-			sbi_trap_log("%d: IPI_EVENT_FENCE_I\n", hartid);
-			sbi_tlb_fifo_process(scratch);
-			break;
-		case SBI_IPI_EVENT_SFENCE_VMA:
-			sbi_trap_log("%d: IPI_EVENT_SFENCE_VMA\n", hartid);
-			sbi_tlb_fifo_process(scratch);
-			break;
-		case SBI_IPI_EVENT_SFENCE_VMA_ASID:
-			sbi_trap_log("%d: IPI_EVENT_SFENCE_VMA_ASID\n", hartid);
+		case SBI_IPI_EVENT_RFENCE:
+			sbi_trap_log("%d: IPI_EVENT_RFENCE\n", hartid);
 			sbi_tlb_fifo_process(scratch);
 			break;
 		case SBI_IPI_EVENT_HALT:
