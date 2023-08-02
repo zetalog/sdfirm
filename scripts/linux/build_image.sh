@@ -7,6 +7,7 @@ BUILD_MODULE_OPS="-s -u"
 BUILD_TINY=no
 BUILD_LIB=yes
 BUILD_SMP=yes
+BUILD_KVM=no
 BUILD_NET=yes
 BUILD_STO=yes
 
@@ -39,6 +40,7 @@ usage()
 	echo " -e feat:     disable special features"
 	echo "              feature includes:"
 	echo "    tiny:     kernel image as tiny as possible"
+	echo "    kvm:      KVM virtualization support"
 	echo " -r:          enable force module rebuild"
 	exit $1
 }
@@ -71,6 +73,9 @@ do
 	   fi;;
 	e) if [ "x$OPTARG" = "xtiny" ]; then
 		BUILD_TINY=yes
+	   fi
+	   if [ "x$OPTARG" = "xkvm" ]; then
+		BUILD_KVM=yes
 	   fi;;
 	f) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -m sdfirm";;
 	i) CPU2006_OPTS="${CPU2006_OPTS} -d $OPTARG";;
@@ -148,6 +153,9 @@ if [ "x${BUILD_APPS}" = "xyes" ]; then
 fi
 if [ "x${BUILD_TINY}" = "xyes" ]; then
 	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -e tiny"
+fi
+if [ "x${BUILD_KVM}" = "xyes" ]; then
+	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -e kvm"
 fi
 if [ "x${BUILD_LIB}" = "xno" ]; then
 	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -d shared"
