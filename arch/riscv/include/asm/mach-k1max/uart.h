@@ -117,10 +117,15 @@ void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
 
 #ifdef CONFIG_NS16550
 #ifdef CONFIG_CONSOLE
+#if 1
+#define uart_hw_con_init()
+#else
 #define uart_hw_con_init()              \
         do {                            \
+		k1max_k1x_uart_init();	\
                 ns16550_con_init();     \
         } while (0)
+#endif
 #endif
 #ifdef CONFIG_CONSOLE_OUTPUT
 #define uart_hw_con_write(byte)		ns16550_con_write(byte)
@@ -132,6 +137,7 @@ void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
 void uart_hw_irq_ack(void);
 void uart_hw_irq_init(void);
 #endif
+void k1max_k1x_uart_init(void);
 #endif /* CONFIG_NS16550 */
 
 #ifdef CONFIG_MMU
