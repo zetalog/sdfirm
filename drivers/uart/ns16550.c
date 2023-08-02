@@ -100,15 +100,15 @@ void NS16550_reinit(int com_port, int baud_divisor)
 
 void NS16550_putc(int com_port, char c)
 {
-	while ((uart_reg_read(UART_LSR(com_port)) & UART_LSR_THRE) == 0)
-		;
+	//while ((uart_reg_read(UART_LSR(com_port)) & UART_LSR_THRE) == 0)
+	//	;
 	uart_reg_write(c, UART_THR(com_port));
 }
 
 char NS16550_getc(int com_port)
 {
-	while ((uart_reg_read(UART_LSR(com_port)) & UART_LSR_DR) == 0) {
-	}
+	//while ((uart_reg_read(UART_LSR(com_port)) & UART_LSR_DR) == 0) {
+	//}
 	return uart_reg_read(UART_RBR(com_port));
 }
 
