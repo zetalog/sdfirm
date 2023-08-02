@@ -10,10 +10,17 @@ BUILD_SMP=yes
 BUILD_UEFI=no
 BUILD_NET=yes
 BUILD_STO=yes
-BUILD_KVM=yes
+BUILD_KVM=no
 INSTALL_INITRAMFS=yes
 FORCE_REBUILD=no
 
+if [ -z $KVMTOOL_DIR ]; then
+	KVMTOOL_DIR=kvmtool
+	KVMTOOL_PATH=$TOP/kvmtool
+else
+	KVMTOOL_PATH=`(cd $KVMTOOL_DIR; pwd)`
+	KVMTOOL_DIR=`dirname $KVMTOOL_PATH`
+fi
 if [ -z $BUSYBOX_DIR ]; then
 	BUSYBOX_DIR=busybox
 	BUSYBOX_PATH=$TOP/busybox
@@ -31,6 +38,9 @@ fi
 if [ -z $UBOOT_DIR ]; then
 	UBOOT_DIR=u-boot
 	UBOOT_PATH=$TOP/u-boot
+else
+	UBOOT_PATH=`(cd $UBOOT_DIR; pwd)`
+	UBOOT_DIR=`dirname $UBOOT_PATH`
 fi
 INITRAMFS_DIR=obj/initramfs/$ARCH
 INITRAMFS_FILELIST=obj/initramfs/list-$ARCH
@@ -62,6 +72,19 @@ function clean_all()
 	rm -rf $TOP/$INITRAMFS_DIR
 	rm -rf $TOP/obj/linux-$ARCH
 	rm -rf $TOP/$BBL_DIR
+}
+
+function build_kvmtool()
+{
+	echo "== Build KVMTOOL =="
+	(
+	cd $KVMTOOL_PATH
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE O=$TOP/obj/kvmtool-$ARCH defconfig
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE O=$TOP/obj/kvmtool-$ARCH mrproper
+	cd $TOP/obj/kvmtool-$ARCH
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE -j6
+	#make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE install
+	)
 }
 
 function build_busybox()
@@ -413,6 +436,9 @@ function build_sdfirm()
 	if [ "xno" = "x${BUILD_SMP}" ]; then
 		apply_modcfg sdfirm my_defconfig d_smp.cfg
 	fi
+	if [ "xyes" = "x${BUILD_KVM}" ]; then
+		apply_modcfg sdfirm my_defconfig e_kvm.cfg
+	fi
 	if [ "xno" = "x${SPACET_S2C_SPEEDUP}" ]; then
 		apply_modcfg sdfirm my_defconfig d_k1m_s2c_speedup.cfg
 	fi
@@ -543,7 +569,9 @@ usage()
 	echo "    network:  network and telnet login support"
 	echo " -e feat:     enable special features"
 	echo "              feature includes:"
+	echo "    tiny:     ultra tiny kernel/busybox support"
 	echo "    storage:  storage and NVME rootfs support"
+	echo "    kvm:      KVM virtualization support"
 	echo " target:      specify build type (default build)"
 	echo "  build       build specified modules (default mode)"
 	echo "  clean       build specified modules"
@@ -576,6 +604,9 @@ do
 	   fi;;
 	e) if [ "x$OPTARG" = "xtiny" ]; then
 		BUILD_TINY=yes
+	   fi
+	   if [ "x$OPTARG" = "xkvm" ] then
+		BUILD_KVM=yes
 	   fi;;
 	m) M_MODE=yes
 	   BBL=$OPTARG;;
@@ -655,6 +686,9 @@ if [ "x$1" = "xclean" ]; then
 	clean_all
 else
 	if [ "x${U_MODE}" = "xyes" ]; then
+		if [ "x${BUILD_KVM}" = "xyes" ]; then
+			build_kvmtool
+		fi
 		build_busybox
 		build_initramfs ${BUILD_STO_SIZE}
 	fi

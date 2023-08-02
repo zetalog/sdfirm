@@ -90,6 +90,9 @@ fi
 if [ "x${BUILD_SMP}" = "xno" ]; then
 	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -d smp"
 fi
+if [ "x${BUILD_KVM}" = "xyes" ]; then
+	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -e kvm"
+fi
 if [ "x${BUILD_NET}" = "xno" ]; then
 	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -d network"
 fi
