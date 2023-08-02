@@ -71,7 +71,7 @@
 			reg = <0>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvsu";
+			riscv,isa = "rv64imafdcvsu_sstc";
 			mmu-type = "riscv,sv48";
 
 			cpu0_intc: interrupt-controller {
@@ -220,6 +220,14 @@
 #endif
 
 #ifdef CONFIG_NS16550
+		serial@d4017000 {
+			compatible = "mrvl,pxa-uart";
+			reg = <0x00 0xd4017000 0x00 0x100>;
+			interrupt-parent = <0x02>;
+			interrupts = <0x2a>;
+			clocks = <0x04>;
+			status = "ok";
+		};
 #endif
 
 		tcm: tcm@0x38000000 {
@@ -248,10 +256,11 @@
 			};
 		};
 
-		plic: interrupt-controller@30000000 {
-			reg = <DT_REGHI(PLIC_REG_BASE) DT_REGLO(PLIC_REG_BASE)
-			       0x0 0x08000000
-			>;
+		plic: interrupt-controller@e0000000 {
+			reg = <0x00 0xe0000000 0x00 0x2000000>;
+			//reg = <DT_REGHI(PLIC_REG_BASE) DT_REGLO(PLIC_REG_BASE)
+			//        0x0 0x08000000
+			// >;
 			interrupts-extended = <
 				&cpu0_intc 0xb &cpu0_intc 0x9
 #ifdef CONFIG_SMP

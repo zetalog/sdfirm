@@ -46,5 +46,7 @@
 #include <target/clk.h>
 
 #include <asm/mach/timer.h>
-
+#ifdef CONFIG_K1M_K1X
+#include <cnt.h>
+#endif /* CONFIG_K1M_K1X */
 #endif /* __GPT_K1MAX_H_INCLUDE__ */
