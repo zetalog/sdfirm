@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sun Jul 30 15:41:22 2023
+# Wed Aug  2 11:09:34 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -159,6 +159,12 @@ CONFIG_VAISRA_TBOX=y
 CONFIG_ARCH_HAS_SBI_IPI=y
 CONFIG_ARCH_HAS_SBI_TIMER=y
 CONFIG_SBI=y
+
+#
+# SBI versions
+#
+CONFIG_SBI_V01=y
+# CONFIG_SBI_V10 is not set
 CONFIG_SBI_RISCV_F=y
 CONFIG_SBI_RISCV_D=y
 # CONFIG_SBI_RISCV_C is not set

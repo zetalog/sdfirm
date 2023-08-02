@@ -200,6 +200,17 @@ static void __noreturn init_coldboot(void)
 	if (rc)
 		bh_panic();
 
+	/*
+	 * Note: Ecall initialization should be after platform final
+	 * initialization so that all available platform devices are
+	 * already registered.
+	 */
+	rc = sbi_ecall_init();
+	if (rc) {
+		sbi_printf("%s: ecall init failed (error %d)\n", __func__, rc);
+		bh_panic();
+	}
+
 	sbi_boot_prints();
 
 	if (!sbi_platform_has_hart_hotplug(plat))

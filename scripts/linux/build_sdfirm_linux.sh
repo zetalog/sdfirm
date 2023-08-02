@@ -290,7 +290,7 @@ build_perf()
 		(
 			cd ${PERF_ROOT}
 			make clean
-			make
+			make NO_LIBELF=1
 			${CROSS_COMPILE}strip -R .comment -R .note \
 				${PERF_ROOT}/perf -o ${BUILD_BIN}/perf
 		)

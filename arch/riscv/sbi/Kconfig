@@ -38,6 +38,7 @@ menu "SBI versions"
 
 config SBI_V01
 	bool "v0.1"
+	default y
 
 config SBI_V10
 	bool "v1.0"
