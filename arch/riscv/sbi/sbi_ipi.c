@@ -94,6 +94,7 @@ void sbi_ipi_process(struct sbi_scratch *scratch)
 
 		switch (ipi_event) {
 		case SBI_IPI_EVENT_SOFT:
+			sbi_printf("%d: IPI_EVENT_SOFT\n", hartid);
 			sbi_trap_log("%d: IPI_EVENT_SOFT\n", hartid);
 			csr_set(CSR_MIP, IR_SSI);
 			break;

@@ -149,7 +149,7 @@ if [ "x${BUILD_APPS}" = "xyes" ]; then
 			${APPDIR}/`basename ${f}`
 	done
 
-	${SCRIPT}/build_lrzsz.sh
+	#${SCRIPT}/build_lrzsz.sh
 fi
 if [ "x${BUILD_TINY}" = "xyes" ]; then
 	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -e tiny"

@@ -148,6 +148,7 @@ config CPU_SPIKE64
 	select CPU_SV48
 	select CPU_PMP
 	select CPU_WMO
+	select CPU_H
 
 # VIRT
 config CPU_VIRT32
@@ -503,6 +504,11 @@ config RISCV_PMP
 config RISCV_H
 	bool "Hypervisor extension support"
 	depends CPU_H
+	select SBI_V10 if SBI
+	select SBI_ECALL_LEGACY if SBI
+	select SBI_ECALL_RFENCE if SBI
+	select SBI_ECALL_TIME if ARCH_HAS_SBI_TIMER
+	select SBI_ECALL_IPI if ARCH_HAS_SBI_IPI
 
 menuconfig RISCV_SV
 	bool "Supervisor virtual addresing"

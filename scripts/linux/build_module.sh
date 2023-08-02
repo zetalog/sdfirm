@@ -14,6 +14,13 @@ BUILD_KVM=no
 INSTALL_INITRAMFS=yes
 FORCE_REBUILD=no
 
+if [ -z $LIBFDT_DIR ]; then
+	LIBFDT_DIR=dtc
+	LIBFDT_PATH=$TOP/dtc
+else
+	LIBFDT_PATH=`(cd $LIBFDT_DIR; pwd)`
+	LIBFDT_DIR=`dirname $LIBFDT_PATH`
+fi
 if [ -z $KVMTOOL_DIR ]; then
 	KVMTOOL_DIR=kvmtool
 	KVMTOOL_PATH=$TOP/kvmtool
@@ -47,6 +54,9 @@ INITRAMFS_FILELIST=obj/initramfs/list-$ARCH
 STORAGE_DIR=obj/storage/$ARCH
 BBL_DIR=obj/bbl
 ARCHIVES_DIR=$TOP/archive
+DESTDIR=${TOP}/obj/bench
+APPDIR=${DESTDIR}/usr/local/bin
+mkdir -p ${APPDIR}
 
 function apply_modcfg()
 {
@@ -74,16 +84,36 @@ function clean_all()
 	rm -rf $TOP/$BBL_DIR
 }
 
+function build_libfdt()
+{
+	echo "== Build libfdt =="
+	(
+	cd $LIBFDT_PATH
+	export CC="${CROSS_COMPILE}gcc"
+	TRIPLET=$($CC -dumpmachine)
+	_SYSROOT=$($CC -print-sysroot)
+	SYSROOT=`cd ${_SYSROOT}; pwd`
+	echo "== TRIPLET: ${TRIPLET} =="
+	echo "== SYSROOT: ${SYSROOT} =="
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE libfdt
+	#make NO_PYTHON=1 NO_YAML=1 DESTDIR=${SYSROOT} PREFIX=/usr LIBDIR=/usr/lib/lp64d install-lib install-includes
+	make NO_PYTHON=1 NO_YAML=1 DESTDIR=${DESTDIR} PREFIX=/usr install-lib install-includes
+	mkdir -p ${SYSROOT}/usr/include
+	mkdir -p ${SYSROOT}/usr/lib
+	mv -f ${DESTDIR}/usr/include/* ${SYSROOT}/usr/include/
+	mv -f ${DESTDIR}/usr/lib/* ${SYSROOT}/usr/lib/
+	)
+}
+
 function build_kvmtool()
 {
 	echo "== Build KVMTOOL =="
 	(
 	cd $KVMTOOL_PATH
-	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE O=$TOP/obj/kvmtool-$ARCH defconfig
-	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE O=$TOP/obj/kvmtool-$ARCH mrproper
-	cd $TOP/obj/kvmtool-$ARCH
-	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE -j6
-	#make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE install
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE lkvm-static
+	${CROSS_COMPILE}strip -R .comment -R .note \
+		${KVMTOOL_PATH}/lkvm-static
+	cp ${KVMTOOL_PATH}/lkvm-static ${APPDIR}/lkvm-static
 	)
 }
 
@@ -605,7 +635,7 @@ do
 	e) if [ "x$OPTARG" = "xtiny" ]; then
 		BUILD_TINY=yes
 	   fi
-	   if [ "x$OPTARG" = "xkvm" ] then
+	   if [ "x$OPTARG" = "xkvm" ]; then
 		BUILD_KVM=yes
 	   fi;;
 	m) M_MODE=yes
@@ -687,13 +717,20 @@ if [ "x$1" = "xclean" ]; then
 else
 	if [ "x${U_MODE}" = "xyes" ]; then
 		if [ "x${BUILD_KVM}" = "xyes" ]; then
+			build_libfdt
 			build_kvmtool
+			cp ${TOP}/backup/Image ${APPDIR}/
 		fi
 		build_busybox
 		build_initramfs ${BUILD_STO_SIZE}
 	fi
 	if [ "x${S_MODE}" = "xyes" ]; then
 		build_linux
+		if [ "x${BUILD_KVM}" = "xyes" ]; then
+			cp -f $TOP/obj/linux-$ARCH/arch/${ARCH}/boot/Image ${APPDIR}/
+			build_initramfs ${BUILD_STO_SIZE}
+			build_linux
+		fi
 	fi
 	if [ "x${M_MODE}" = "xyes" ]; then
 		build_bbl

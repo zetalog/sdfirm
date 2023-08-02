@@ -207,5 +207,6 @@ int sbi_ecall_handler(struct pt_regs *regs)
 
 int sbi_ecall_init(void)
 {
+	return 0;
 }
 #endif

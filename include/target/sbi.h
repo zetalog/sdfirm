@@ -50,7 +50,6 @@
 #define SBI_IPI_EVENT_RFENCE			0x2
 #define SBI_IPI_EVENT_HALT			0x10
 
-#ifdef CONFIG_SBI_V01
 #define SBI_ECALL_SET_TIMER			0x0
 #define SBI_ECALL_CONSOLE_PUTCHAR		0x1
 #define SBI_ECALL_CONSOLE_GETCHAR		0x2
@@ -74,9 +73,7 @@
 #define SBI_ECALL_DISABLE_CLK			0x43
 #define SBI_ECALL_CONFIG_PIN_MUX		0x44
 #define SBI_ECALL_CONFIG_PIN_PAD		0x45
-#endif
 
-#ifdef CONFIG_SBI_V10
 #define SBI_EXT_0_1_SET_TIMER			SBI_ECALL_SET_TIMER
 #define SBI_EXT_0_1_CONSOLE_PUTCHAR		SBI_ECALL_CONSOLE_PUTCHAR
 #define SBI_EXT_0_1_CONSOLE_GETCHAR		SBI_ECALL_CONSOLE_GETCHAR
@@ -366,7 +363,6 @@ enum sbi_cppc_reg_id {
 #define SBI_EXT_VENDOR_END			0x09FFFFFF
 #define SBI_EXT_FIRMWARE_START			0x0A000000
 #define SBI_EXT_FIRMWARE_END			0x0AFFFFFF
-#endif /* CONFIG_SBI_V10 */
 
 /* SBI return error codes */
 #define SBI_SUCCESS				0
@@ -593,21 +589,13 @@ void sbi_scratch_free_offset(unsigned long offset);
 	((void *)sbi_scratch_thishart_ptr() + (offset))
 
 #ifdef CONFIG_ARCH_HAS_SBI_IPI
-int sbi_tlb_request(unsigned long hmask, unsigned long hbase,
-		     struct sbi_tlb_info *tinfo);
 int sbi_ipi_send_many(ulong hmask, ulong hbase, uint32_t event, void *data);
 void sbi_ipi_clear_smode(struct sbi_scratch *scratch);
 void sbi_ipi_process(struct sbi_scratch *scratch);
 int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot);
 #else
-static inline int sbi_tlb_request(unsigned long hmask, unsigned long hbase,
-				  struct sbi_tlb_info *tinfo)
-{
-	return 0;
-}
-static inline int sbi_ipi_send_many(struct sbi_scratch *scratch,
-				    struct unpriv_trap *uptrap,
-				    ulong *pmask, uint32_t event, void *data)
+static inline int sbi_ipi_send_many(ulong hmask, ulong hbase,
+				    uint32_t event, void *data)
 {
 	return 0;
 }
@@ -674,6 +662,7 @@ struct sbi_ecall_extension {
 extern struct sbi_ecall_extension __sbi_ecall_start[0];
 extern struct sbi_ecall_extension __sbi_ecall_end[0];
 
+int sbi_ecall_init(void);
 uint16_t sbi_ecall_version_major(void);
 uint16_t sbi_ecall_version_minor(void);
 int sbi_ecall_handler(struct pt_regs *regs);
@@ -719,6 +708,8 @@ int sbi_tlb_fifo_update(struct sbi_scratch *scratch,
 void sbi_tlb_fifo_process(struct sbi_scratch *scratch);
 int sbi_tlb_fifo_init(struct sbi_scratch *scratch, bool cold_boot);
 void sbi_tlb_fifo_sync(struct sbi_scratch *scratch);
+int sbi_tlb_request(unsigned long hmask, unsigned long hbase,
+		     struct sbi_tlb_info *tinfo);
 
 uint64_t sbi_timer_value(struct sbi_scratch *scratch);
 #ifdef CONFIG_ARCH_HAS_SBI_TIMER
