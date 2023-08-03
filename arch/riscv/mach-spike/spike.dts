@@ -2,6 +2,8 @@
 
 /dts-v1/;
 
+/memreserve/ RAM_BASE 0x02000000;
+
 / {
 	#address-cells = <2>;
 	#size-cells = <2>;
@@ -40,7 +42,7 @@
 			};
 		};
 
-		CPU0: cpu@0 {
+		cpu0: cpu@0 {
 			device_type = "cpu";
 			reg = <0>;
 			status = "okay";
@@ -52,7 +54,7 @@
 			riscv,pmpgranularity = <4>;
 #endif
 			clock-frequency = <1000000000>;
-			CPU0_intc: interrupt-controller {
+			cpu0_intc: interrupt-controller {
 				#interrupt-cells = <1>;
 				interrupt-controller;
 				compatible = "riscv,cpu-intc";
@@ -60,7 +62,7 @@
 		};
 #ifdef CONFIG_SMP
 #if SPIKE_SMP_CPUS > 1
-		CPU1: cpu@1 {
+		cpu1: cpu@1 {
 			device_type = "cpu";
 			reg = <1>;
 			status = "okay";
@@ -72,7 +74,7 @@
 			riscv,pmpgranularity = <4>;
 #endif
 			clock-frequency = <1000000000>;
-			CPU1_intc: interrupt-controller {
+			cpu1_intc: interrupt-controller {
 				#interrupt-cells = <1>;
 				interrupt-controller;
 				compatible = "riscv,cpu-intc";
@@ -80,7 +82,7 @@
 		};
 #endif
 #if SPIKE_SMP_CPUS > 2
-		CPU2: cpu@2 {
+		cpu2: cpu@2 {
 			device_type = "cpu";
 			reg = <2>;
 			status = "okay";
@@ -92,7 +94,7 @@
 			riscv,pmpgranularity = <4>;
 #endif
 			clock-frequency = <1000000000>;
-			CPU2_intc: interrupt-controller {
+			cpu2_intc: interrupt-controller {
 				#interrupt-cells = <1>;
 				interrupt-controller;
 				compatible = "riscv,cpu-intc";
@@ -100,7 +102,7 @@
 		};
 #endif
 #if SPIKE_SMP_CPUS > 3
-		CPU3: cpu@3 {
+		cpu3: cpu@3 {
 			device_type = "cpu";
 			reg = <3>;
 			status = "okay";
@@ -112,7 +114,7 @@
 			riscv,pmpgranularity = <4>;
 #endif
 			clock-frequency = <1000000000>;
-			CPU3_intc: interrupt-controller {
+			cpu3_intc: interrupt-controller {
 				#interrupt-cells = <1>;
 				interrupt-controller;
 				compatible = "riscv,cpu-intc";
@@ -132,16 +134,16 @@
 		clint@2000000 {
 			compatible = "riscv,clint0";
 			interrupts-extended = <
-				&CPU0_intc 3 &CPU0_intc 7
+				&cpu0_intc 3 &cpu0_intc 7
 #ifdef CONFIG_SMP
 #if SPIKE_SMP_CPUS > 1
-				&CPU1_intc 3 &CPU1_intc 7
+				&cpu1_intc 3 &cpu1_intc 7
 #endif
 #if SPIKE_SMP_CPUS > 2
-				&CPU2_intc 3 &CPU2_intc 7
+				&cpu2_intc 3 &cpu2_intc 7
 #endif
 #if SPIKE_SMP_CPUS > 3
-				&CPU3_intc 3 &CPU3_intc 7
+				&cpu3_intc 3 &cpu3_intc 7
 #endif
 #endif
 			>;
