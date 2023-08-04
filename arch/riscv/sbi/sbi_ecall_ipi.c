@@ -26,16 +26,5 @@ static int sbi_ecall_ipi_handler(unsigned long extid, unsigned long funcid,
 	return ret;
 }
 
-static struct sbi_ecall_extension ecall_ipi;
-
-static int sbi_ecall_ipi_register_extensions(void)
-{
-	return sbi_ecall_register_extension(&ecall_ipi);
-}
-
-DEFINE_SBI_ECALL(ecall_ipi,
-		 SBI_EXT_IPI,
-		 SBI_EXT_IPI,
-		 sbi_ecall_ipi_register_extensions,
-		 NULL,
-		 sbi_ecall_ipi_handler);
+DEFINE_SBI_ECALL(ipi, SBI_EXT_IPI, SBI_EXT_IPI,
+		 NULL, sbi_ecall_ipi_handler);

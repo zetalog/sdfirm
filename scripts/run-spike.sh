@@ -22,6 +22,7 @@
 SCRIPT=`(cd \`dirname $0\`; pwd)`
 
 SPIKE_OPTS=
+SPIKE_MISA="rv64gch"
 SPIKE_RBB_PORT=9824
 SPIKE_RBB=no
 SPIKE_PIPE=
@@ -70,7 +71,7 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "a:b:de:hi:j:k:l:p:u:s:t:" opt
+while getopts "a:b:de:hi:j:k:l:m:p:u:s:t:" opt
 do
 	case $opt in
 	b) SPIKE_MEM_BASE=$OPTARG
@@ -87,6 +88,7 @@ do
 	   SPIKE_RBB=yes;;
 	l) SPIKE_OPTS="${SPIKE_OPTS} -l --log-commits"
 	   SPIKE_TRACE=$OPTARG;;
+	m) SPIKE_MISA=$OPTARG;;
 	u) SPIKE_UART=$OPTARG;;
 	p) SPIKE_OPTS="-p$OPTARG ${SPIKE_OPTS}";;
 	t) SPIKE_OPTS="--dump-dts ${SPIKE_OPTS}"
@@ -105,6 +107,9 @@ else
 	SPIKE_PROG=$1
 fi
 
+if [ "x${SPIKE_MISA}" != "x" ]; then
+	SPIKE_OPTS="--isa=${SPIKE_MISA} ${SPIKE_OPTS}"
+fi
 if [ "x${SPIKE_RBB}" = "xyes" ]; then
 	SPIKE_OPTS="-H --rbb-port=${SPIKE_RBB_PORT} ${SPIKE_OPTS}"
 fi

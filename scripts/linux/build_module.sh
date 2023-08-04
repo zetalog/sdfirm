@@ -719,18 +719,17 @@ else
 		if [ "x${BUILD_KVM}" = "xyes" ]; then
 			build_libfdt
 			build_kvmtool
-			cp ${TOP}/backup/Image ${APPDIR}/
 		fi
 		build_busybox
 		build_initramfs ${BUILD_STO_SIZE}
 	fi
 	if [ "x${S_MODE}" = "xyes" ]; then
 		build_linux
-		if [ "x${BUILD_KVM}" = "xyes" ]; then
-			cp -f $TOP/obj/linux-$ARCH/arch/${ARCH}/boot/Image ${APPDIR}/
-			build_initramfs ${BUILD_STO_SIZE}
-			build_linux
-		fi
+#		if [ "x${BUILD_KVM}" = "xyes" ]; then
+#			cp -f $TOP/obj/linux-$ARCH/arch/${ARCH}/boot/Image ${APPDIR}/
+#			build_initramfs ${BUILD_STO_SIZE}
+#			build_linux
+#		fi
 	fi
 	if [ "x${M_MODE}" = "xyes" ]; then
 		build_bbl

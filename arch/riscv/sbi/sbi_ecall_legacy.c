@@ -16,6 +16,16 @@ bool sbi_trap_log_enabled(void)
 	return sbi_trap_log_on;
 }
 
+void sbi_enable_trap_log(void)
+{
+	sbi_trap_log_on = true;
+}
+
+void sbi_disable_trap_log(void)
+{
+	sbi_trap_log_on = false;
+}
+
 uint16_t sbi_ecall_version_major(void)
 {
 	return SBI_ECALL_VERSION_MAJOR;
@@ -128,11 +138,11 @@ static int sbi_ecall_legacy_handler(unsigned long extid, unsigned long funcid,
 		ret = 0;
 		break;
 	case SBI_ECALL_ENABLE_LOG:
-		sbi_trap_log_on = true;
+		sbi_enable_trap_log();
 		ret = 0;
 		break;
 	case SBI_ECALL_DISABLE_LOG:
-		sbi_trap_log_on = false;
+		sbi_disable_trap_log();
 		ret = 0;
 		break;
 	case SBI_ECALL_GET_CLK_FREQ:
@@ -183,18 +193,9 @@ static int sbi_ecall_legacy_handler(unsigned long extid, unsigned long funcid,
 }
 
 #ifdef CONFIG_SBI_V10
-static int sbi_ecall_legacy_register_extensions(void);
-
-DEFINE_SBI_ECALL(ecall_legacy,
+DEFINE_SBI_ECALL(legacy,
 		 SBI_EXT_0_1_SET_TIMER, SBI_EXT_0_1_SHUTDOWN,
-		 sbi_ecall_legacy_register_extensions,
-		 NULL,
-		 sbi_ecall_legacy_handler);
-
-static int sbi_ecall_legacy_register_extensions(void)
-{
-	return sbi_ecall_register_extension(&ecall_legacy);
-}
+		 NULL, sbi_ecall_legacy_handler);
 #else
 int sbi_ecall_handler(struct pt_regs *regs)
 {

@@ -607,12 +607,20 @@ static inline int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
 }
 #endif
 
-#define DEFINE_SBI_ECALL(name, extid_start, extid_end, reg, probe, handler)	\
-	static struct sbi_ecall_extension name					\
+#define DEFINE_SBI_ECALL(name, extid_start, extid_end, probe, handler)	\
+	static struct sbi_ecall_extension sbi_ecall_##name;			\
+	static int sbi_ecall_##name##_register_extensions(void)			\
+	{									\
+		return sbi_ecall_register_extension(&sbi_ecall_##name);		\
+	}									\
+	static struct sbi_ecall_extension sbi_ecall_##name			\
 	__attribute__((used,__section__(".sbi_ecall.rodata")))			\
-	= { LIST_HEAD_INIT(name.head), extid_start, extid_end, reg, probe, handler }
+	= { #name, LIST_HEAD_INIT(sbi_ecall_##name.head),			\
+	    extid_start, extid_end,						\
+	    sbi_ecall_##name##_register_extensions, probe, handler }
 
 struct sbi_ecall_extension {
+	const char *name;
 	/* head is used by the extension list */
 	struct list_head head;
 	/*
@@ -671,11 +679,15 @@ int sbi_ecall_register_extension(struct sbi_ecall_extension *ext);
 void sbi_ecall_unregister_extension(struct sbi_ecall_extension *ext);
 unsigned long sbi_ecall_get_impid(void);
 void sbi_ecall_set_impid(unsigned long impid);
+uint16_t sbi_ecall_version_major(void);
+uint16_t sbi_ecall_version_minor(void);
 
 int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
 		      ulong epc, ulong cause, ulong tval);
 void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch);
 bool sbi_trap_log_enabled(void);
+void sbi_enable_trap_log(void);
+void sbi_disable_trap_log(void);
 void sbi_trap_log(const char *fmt, ...);
 
 int sbi_misaligned_load_handler(uint32_t hartid, ulong mcause,
