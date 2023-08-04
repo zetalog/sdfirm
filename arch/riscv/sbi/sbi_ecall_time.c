@@ -31,16 +31,5 @@ static int sbi_ecall_time_handler(unsigned long extid, unsigned long funcid,
 	return ret;
 }
 
-static struct sbi_ecall_extension ecall_time;
-
-static int sbi_ecall_time_register_extensions(void)
-{
-	return sbi_ecall_register_extension(&ecall_time);
-}
-
-DEFINE_SBI_ECALL(ecall_time,
-		 SBI_EXT_TIME,
-		 SBI_EXT_TIME,
-		 sbi_ecall_time_register_extensions,
-		 NULL,
-		 sbi_ecall_time_handler);
+DEFINE_SBI_ECALL(time, SBI_EXT_TIME, SBI_EXT_TIME,
+		 NULL, sbi_ecall_time_handler);

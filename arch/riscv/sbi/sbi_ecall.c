@@ -143,8 +143,10 @@ int sbi_ecall_init(void)
 	foreach_ecall(ext) {
 		ret = SBI_ENODEV;
 
-		if (ext->register_extensions)
+		if (ext->register_extensions) {
+			sbi_printf("Registering ecall %s\n", ext->name);
 			ret = ext->register_extensions();
+		}
 		if (ret)
 			return ret;
 	}

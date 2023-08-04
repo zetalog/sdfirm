@@ -74,16 +74,5 @@ static int sbi_ecall_rfence_handler(unsigned long extid, unsigned long funcid,
 	return ret;
 }
 
-static struct sbi_ecall_extension ecall_rfence;
-
-static int sbi_ecall_rfence_register_extensions(void)
-{
-	return sbi_ecall_register_extension(&ecall_rfence);
-}
-
-DEFINE_SBI_ECALL(ecall_rfence,
-		 SBI_EXT_RFENCE,
-		 SBI_EXT_RFENCE,
-		 sbi_ecall_rfence_register_extensions,
-		 NULL,
-		 sbi_ecall_rfence_handler);
+DEFINE_SBI_ECALL(rfence, SBI_EXT_RFENCE, SBI_EXT_RFENCE,
+		 NULL, sbi_ecall_rfence_handler);

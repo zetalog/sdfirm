@@ -42,6 +42,18 @@
 #ifndef __SBI_RISCV_H_INCLUDE__
 #define __SBI_RISCV_H_INCLUDE__
 
+#ifndef __ASSEMBLER__
+struct sbiret {
+	long error;
+	long value;
+};
+
+struct sbiret sbi_ecall(int ext, int fid, unsigned long arg0,
+			unsigned long arg1, unsigned long arg2,
+			unsigned long arg3, unsigned long arg4,
+			unsigned long arg5);
+#endif
+
 #define SBI_CALL(ext, fid, arg0, arg1, arg2, arg3, arg4, arg5) ({	\
 	register uintptr_t a0 asm ("a0") = (uintptr_t)(arg0);		\
 	register uintptr_t a1 asm ("a1") = (uintptr_t)(arg1);		\
