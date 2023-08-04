@@ -73,6 +73,7 @@
 			compatible = "riscv";
 			riscv,isa = "rv64imafdcvsu";
 			mmu-type = "riscv,sv48";
+			cpu-ai = "true";
 
 			cpu0_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -88,6 +89,7 @@
 			compatible = "riscv";
 			riscv,isa = "rv64imafdcvsu";
 			mmu-type = "riscv,sv48";
+			cpu-ai = "true";
 
 			cpu1_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -104,6 +106,7 @@
 			compatible = "riscv";
 			riscv,isa = "rv64imafdcvsu";
 			mmu-type = "riscv,sv48";
+			cpu-ai = "true";
 
 			cpu2_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -118,6 +121,7 @@
 			compatible = "riscv";
 			riscv,isa = "rv64imafdcvsu";
 			mmu-type = "riscv,sv48";
+			cpu-ai = "true";
 
 			cpu3_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -222,7 +226,7 @@
 #ifdef CONFIG_NS16550
 #endif
 
-		tcm: tcm@0x38000000 {
+		tcm: tcm@38000000 {
 			compatible = "spacemit,k1-pro-tcm";
 			reg = <0x0 0x38000000 0x0 0x80000>;
 			#address-cells = <1>;
