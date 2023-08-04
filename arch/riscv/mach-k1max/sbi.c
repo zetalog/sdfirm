@@ -60,6 +60,19 @@ static int k1max_pmp_region_info(uint32_t hartid, uint32_t index,
 	return ret;
 }
 
+static int k1max_early_init(bool cold_boot)
+{
+	struct csr_trap_info trap = {0};
+	
+	csr_read_allowed(CSR_TCMCFG, (unsigned long)&trap);
+	if (!trap.cause) {
+		printf("cpu id:%d\n", sbi_current_hartid());
+		csr_write(CSR_TCMCFG, 1);
+	}
+
+	return 0;
+}
+
 #ifdef CONFIG_DW_UART
 #ifdef CONFIG_CONSOLE
 #define __K1MAX_UART_REG(n, offset)		(__K1MAX_UART_BASE + (offset))
@@ -209,6 +222,7 @@ static int k1max_system_finish(uint32_t code)
 const struct sbi_platform_operations platform_ops = {
 	.pmp_region_count	= k1max_pmp_region_count,
 	.pmp_region_info	= k1max_pmp_region_info,
+	.early_init		= k1max_early_init,
 	.final_init		= k1max_final_init,
 	.console_putc		= k1max_console_putc,
 	.console_getc		= k1max_console_getc,

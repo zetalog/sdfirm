@@ -178,6 +178,8 @@
 #define CSR_VSTOPI		0xEB0
 #endif
 
+#define CSR_TCMCFG		0x5DB
+
 /* MSTATUS/SSTATUS/HSTATUS/BSSTATUS */
 #define SR_UIE		_AC(0x00000001, UL) /* User Interrupt Enable */
 #define SR_UPIE		_AC(0x00000010, UL) /* User Previous IE */
