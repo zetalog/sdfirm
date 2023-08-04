@@ -66,7 +66,6 @@ static int k1max_early_init(bool cold_boot)
 	
 	csr_read_allowed(CSR_TCMCFG, (unsigned long)&trap);
 	if (!trap.cause) {
-		printf("cpu id:%d\n", sbi_current_hartid());
 		csr_write(CSR_TCMCFG, 1);
 	}
 
