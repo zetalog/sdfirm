@@ -10,11 +10,11 @@
 	compatible = "ucbbar,spike-bare-dev";
 	model = "ucbbar,spike-bare";
 	chosen {
-#ifdef CONFIG_SPIKE_8250
-		stdout-path = "/soc/ns16550@10000000";
-		bootargs = "console=ttyS0 earlycon rdinit=/sdfirm_init";
-#else
+#ifdef CONFIG_SPIKE_UART_HVC
 		bootargs = "console=hvc0 earlycon=sbi rdinit=/sdfirm_init";
+#else
+		stdout-path = &uart;
+		bootargs = "console=ttyS0 earlycon rdinit=/sdfirm_init";
 #endif
 	};
 	cpus {
@@ -28,17 +28,17 @@
 					cpu = <&cpu0>;
 				};
 #ifdef CONFIG_SMP
-#if SPIKE_SMP_CPUS > 1
+#if CONFIG_SPIKE_SMP_CPUS > 1
 				core1 {
 					cpu = <&cpu1>;
 				};
 #endif
-#if SPIKE_SMP_CPUS > 2
+#if CONFIG_SPIKE_SMP_CPUS > 2
 				core2 {
 					cpu = <&cpu2>;
 				};
 #endif
-#if SPIKE_SMP_CPUS > 3
+#if CONFIG_SPIKE_SMP_CPUS > 3
 				core3 {
 					cpu = <&cpu3>;
 				};
@@ -66,7 +66,7 @@
 			};
 		};
 #ifdef CONFIG_SMP
-#if SPIKE_SMP_CPUS > 1
+#if CONFIG_SPIKE_SMP_CPUS > 1
 		cpu1: cpu@1 {
 			device_type = "cpu";
 			reg = <1>;
@@ -86,7 +86,7 @@
 			};
 		};
 #endif
-#if SPIKE_SMP_CPUS > 2
+#if CONFIG_SPIKE_SMP_CPUS > 2
 		cpu2: cpu@2 {
 			device_type = "cpu";
 			reg = <2>;
@@ -106,7 +106,7 @@
 			};
 		};
 #endif
-#if SPIKE_SMP_CPUS > 3
+#if CONFIG_SPIKE_SMP_CPUS > 3
 		cpu3: cpu@3 {
 			device_type = "cpu";
 			reg = <3>;
@@ -141,30 +141,35 @@
 			interrupts-extended = <
 				&cpu0_intc 3 &cpu0_intc 7
 #ifdef CONFIG_SMP
-#if SPIKE_SMP_CPUS > 1
+#if CONFIG_SPIKE_SMP_CPUS > 1
 				&cpu1_intc 3 &cpu1_intc 7
 #endif
-#if SPIKE_SMP_CPUS > 2
+#if CONFIG_SPIKE_SMP_CPUS > 2
 				&cpu2_intc 3 &cpu2_intc 7
 #endif
-#if SPIKE_SMP_CPUS > 3
+#if CONFIG_SPIKE_SMP_CPUS > 3
 				&cpu3_intc 3 &cpu3_intc 7
 #endif
 #endif
 			>;
 			reg = <0x0 0x2000000 0x0 0xc0000>;
 		};
+#ifdef CONFIG_SPIKE_PLIC
 		plic: plic@c000000 {
 			compatible = "riscv,plic0";
-			#address-cells = <0>;
+			#address-cells = <2>;
 			interrupts-extended = <
 				&cpu0_intc 0xb &cpu0_intc 0x9
 #ifdef CONFIG_SMP
+#if CONFIG_SPIKE_SMP_CPUS > 1
 				&cpu1_intc 0xb &cpu1_intc 0x9
 #endif
-#if CONFIG_SPIKE_SMP_CPUS >= 4
+#if CONFIG_SPIKE_SMP_CPUS > 2
 				&cpu2_intc 0xb &cpu2_intc 0x9
+#endif
+#if CONFIG_SPIKE_SMP_CPUS > 3
 				&cpu3_intc 0xb &cpu3_intc 0x9
+#endif
 #endif
 			>;
 			reg = <0x0 0xc000000 0x0 0x1000000>;
@@ -173,6 +178,7 @@
 			#interrupt-cells = <1>;
 			interrupt-controller;
 		};
+#endif
 #ifdef CONFIG_SPIKE_8250
 		uart: ns16550@10000000 {
 			compatible = "ns16550a";
