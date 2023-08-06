@@ -42,6 +42,10 @@
 #ifndef __REG_SPIKE_H_INCLUDE__
 #define __REG_SPIKE_H_INCLUDE__
 
+#define CLINT_BASE		0x2000000
+#define PLIC_REG_BASE		0xc000000
+#define __UART_BASE		0x10000000
+
 /* MEM1 default:
  *
  * memory@80000000 {

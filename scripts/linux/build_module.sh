@@ -741,18 +741,18 @@ fi
 if [ "x$1" = "xclean" ]; then
 	clean_all
 else
-	if [ "x${U_MODE}" = "xyes" ]; then
-		if [ "x${BUILD_KVM}" = "xyes" ]; then
-			build_libfdt
-			build_kvmtool
-			build_linux v
-		fi
-		build_busybox
-		build_initramfs ${BUILD_STO_SIZE}
-	fi
-	if [ "x${S_MODE}" = "xyes" ]; then
-		build_linux
-	fi
+#	if [ "x${U_MODE}" = "xyes" ]; then
+#		if [ "x${BUILD_KVM}" = "xyes" ]; then
+#			build_libfdt
+#			build_kvmtool
+#			build_linux v
+#		fi
+#		build_busybox
+#		build_initramfs ${BUILD_STO_SIZE}
+#	fi
+#	if [ "x${S_MODE}" = "xyes" ]; then
+#		build_linux
+#	fi
 	if [ "x${M_MODE}" = "xyes" ]; then
 		build_bbl
 		if [ "x${B_MODE}" = "xyes" ]; then

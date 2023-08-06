@@ -139,10 +139,28 @@ config SPIKE_CLINT_RTC_FREQ
 	  perspective. This configuration allows users to select a lower
 	  frequency for the RTC to match the speed of the emulation host.
 
+config SPIKE_PLIC
+	bool
+	select ARCH_HAS_PLIC
+	select PLIC if !SYS_NOIRQ
+
+config SPIKE_UART
+	bool "Enable serial port support"
+
+choice
+	prompt "Serial port type"
+	default SPIKE_8250
+
 config SPIKE_HTIF
-	bool "Enable HTIF emulation"
-	select ARCH_HAS_HTIF
+	bool "HTIF"
 	select HTIF if UART || DEBUG_PRINT || CONSOLE
+
+config SPIKE_8250
+	bool "NS8250/NS16550 compatible"
+	select NS16550 if UART || DEBUG_PRINT || CONSOLE
+	select SPIKE_PLIC
+
+endchoice
 
 endmenu
 

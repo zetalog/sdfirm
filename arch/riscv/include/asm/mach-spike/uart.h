@@ -46,13 +46,15 @@
 
 #define UART_CON_ID			0
 
-#ifdef CONFIG_HTIF
+#ifdef CONFIG_SPIKE_UART
 #ifndef ARCH_HAVE_UART
 #define ARCH_HAVE_UART		1
 #else
 #error "Multiple UART controller defined"
 #endif
+#endif
 
+#ifdef CONFIG_SPIKE_HTIF
 #define uart_hw_con_write(byte)	htif_console_write(byte)
 #define uart_hw_con_read()	htif_console_read()
 #define uart_hw_con_poll()	htif_console_poll()
@@ -64,6 +66,26 @@
 #define uart_hw_irq_init()	do { } while (0)
 #define uart_hw_irq_ack()	do { } while (0)
 #endif
-#endif /* CONFIG_HTIF */
+#endif /* CONFIG_SPIKE_HTIF */
+
+#ifdef CONFIG_SPIKE_8250
+#define NS16550_CLK		10000000
+#define UART_BASE(n)		__UART_BASE
+#include <driver/ns16550.h>
+
+#ifdef CONFIG_CONSOLE
+#define uart_hw_con_init()              \
+        do {                            \
+                ns16550_con_init();     \
+        } while (0)
+#endif
+#ifdef CONFIG_CONSOLE_OUTPUT
+#define uart_hw_con_write(byte)		ns16550_con_write(byte)
+#endif
+#ifdef CONFIG_CONSOLE_INPUT
+#define uart_hw_con_read()		ns16550_con_read()
+#define uart_hw_con_poll()		ns16550_con_poll()
+#endif
+#endif /* CONFIG_SPIKE_8250 */
 
 #endif /* __UART_SPIKE_H_INCLUDE__ */
