@@ -181,14 +181,6 @@ static int sbi_ecall_legacy_handler(unsigned long extid, unsigned long funcid,
 		break;
 	};
 
-	if (!ret) {
-		regs->epc += 4;
-	} else if (ret == ETRAP) {
-		ret = 0;
-		sbi_trap_redirect(regs, scratch, regs->epc,
-				  uptrap.cause, uptrap.tval);
-	}
-
 	return ret;
 }
 
@@ -201,9 +193,22 @@ int sbi_ecall_handler(struct pt_regs *regs)
 {
 	unsigned long out_val = 0;
 	struct csr_trap_info trap = {0};
+	struct unpriv_trap uptrap;
+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+	int ret;
 
-	return sbi_ecall_legacy_handler(regs->a7, regs->a6, regs,
-					&out_val, &trap);
+	ret = sbi_ecall_legacy_handler(regs->a7, regs->a6, regs,
+				       &out_val, &trap);
+
+	if (!ret) {
+		regs->epc += 4;
+	} else if (ret == ETRAP) {
+		ret = 0;
+		sbi_trap_redirect(regs, scratch, regs->epc,
+				  uptrap.cause, uptrap.tval);
+	}
+
+	return ret;
 }
 
 int sbi_ecall_init(void)
