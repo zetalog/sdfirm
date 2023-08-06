@@ -81,6 +81,7 @@ function clean_all()
 	rm -rf $TOP/obj/busybox-$ARCH
 	rm -rf $TOP/$INITRAMFS_DIR
 	rm -rf $TOP/obj/linux-$ARCH
+	rm -rf $TOP/obj/vlinux-$ARCH
 	rm -rf $TOP/$BBL_DIR
 }
 
@@ -122,8 +123,8 @@ function build_busybox()
 	echo "== Build Busybox =="
 	if [ "xyes" = "x${FORCE_REBUILD}" ]; then
 		rm -rf $TOP/obj/busybox-$ARCH
-		mkdir -pv $TOP/obj/busybox-$ARCH
 	fi
+	mkdir -pv $TOP/obj/busybox-$ARCH
 	(
 	cd $BUSYBOX_PATH
 	if [ "xyes" = "x${FORCE_REBUILD}" ]; then
@@ -396,11 +397,19 @@ function build_initramfs()
 
 function build_linux()
 {
-	echo "== Build Linux =="
-	if [ "xyes" = "x${FORCE_REBUILD}" ]; then
-		rm -rf $TOP/obj/linux-$ARCH
-		mkdir -p $TOP/obj/linux-$ARCH
+	if [ "x$1" = "xv" ]; then
+		echo "== Build vLinux =="
+		LINUX_BUILD=$TOP/obj/vlinux-$ARCH
+		BUILD_VLINUX=yes
+	else
+		echo "== Build Linux =="
+		LINUX_BUILD=$TOP/obj/linux-$ARCH
+		BUILD_VLINUX=no
 	fi
+	if [ "xyes" = "x${FORCE_REBUILD}" ]; then
+		rm -rf $LINUX_BUILD
+	fi
+	mkdir -p $LINUX_BUILD
 	(
 	cd $LINUX_PATH
 	if [ "xyes" = "x${FORCE_REBUILD}" ]; then
@@ -429,23 +438,40 @@ function build_linux()
 		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
 		# Starting the build process
 		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
-			O=$TOP/obj/linux-$ARCH/ my_defconfig
-		ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
-			$LINUX_PATH/scripts/config \
-			--file $TOP/obj/linux-$ARCH/.config \
-			--set-str INITRAMFS_SOURCE $TOP/$INITRAMFS_FILELIST
+			O=$LINUX_BUILD/ my_defconfig
+		if [ "xyes" = "x${BUILD_VLINUX}" ]; then
+			ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
+				$LINUX_PATH/scripts/config \
+				--file $LINUX_BUILD/.config \
+				--disable BLK_DEV_INITRD
+		else
+			ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
+				$LINUX_PATH/scripts/config \
+				--file $LINUX_BUILD/.config \
+				--set-str INITRAMFS_SOURCE $TOP/$INITRAMFS_FILELIST
+		fi
 		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
-			O=$TOP/obj/linux-$ARCH/ clean
+			O=$LINUX_BUILD/ clean
 	fi
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
-		O=$TOP/obj/linux-$ARCH/ -j6
-	if [ ! -f $TOP/obj/linux-$ARCH/vmlinux ]; then
+		O=$LINUX_BUILD/ -j6
+	if [ ! -f $LINUX_BUILD/vmlinux ]; then
 		echo "Error: Failed to build Linux"
 		exit 1
 	fi
 	${CROSS_COMPILE}objcopy \
-		--only-keep-debug $TOP/obj/linux-$ARCH/vmlinux \
-		$TOP/obj/linux-$ARCH/kernel.sym
+		--only-keep-debug $LINUX_BUILD/vmlinux \
+		$LINUX_BUILD/kernel.sym
+	if [ "xyes" = "x${BUILD_VLINUX}" ]; then
+		mkdir -p $DESTDIR
+		#(
+		#cd $LINUX_BUILD
+		#make ARCH=$ARCH INSTALL_MOD_PATH=$DESTDIR modules_install
+		#make ARCH=$ARCH INSTALL_PATH=$DESTDIR install
+		#)
+		cp -f $LINUX_BUILD/arch/$ARCH/kvm/kvm.ko ${APPDIR}/
+		cp -f $LINUX_BUILD/arch/$ARCH/boot/Image ${APPDIR}/
+	fi
 	)
 }
 
@@ -719,17 +745,13 @@ else
 		if [ "x${BUILD_KVM}" = "xyes" ]; then
 			build_libfdt
 			build_kvmtool
+			build_linux v
 		fi
 		build_busybox
 		build_initramfs ${BUILD_STO_SIZE}
 	fi
 	if [ "x${S_MODE}" = "xyes" ]; then
 		build_linux
-#		if [ "x${BUILD_KVM}" = "xyes" ]; then
-#			cp -f $TOP/obj/linux-$ARCH/arch/${ARCH}/boot/Image ${APPDIR}/
-#			build_initramfs ${BUILD_STO_SIZE}
-#			build_linux
-#		fi
 	fi
 	if [ "x${M_MODE}" = "xyes" ]; then
 		build_bbl
