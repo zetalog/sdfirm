@@ -83,10 +83,20 @@ static int spike_console_getc(void)
 }
 #endif
 
+#ifdef CONFIG_SPIKE_PLIC
+static int spike_irqchip_init(bool cold_boot)
+{
+	if (cold_boot)
+		plic_sbi_init_cold();
+	plic_sbi_init_warm(sbi_processor_id());
+	return 0;
+}
+#else
 static int spike_irqchip_init(bool cold_boot)
 {
 	return 0;
 }
+#endif
 
 void spike_ipi_send(uint32_t target_cpu)
 {

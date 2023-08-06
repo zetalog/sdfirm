@@ -147,6 +147,8 @@ config SPIKE_PLIC
 config SPIKE_UART
 	bool "Enable serial port support"
 
+if SPIKE_UART
+
 choice
 	prompt "Serial port type"
 	default SPIKE_8250
@@ -154,6 +156,7 @@ choice
 config SPIKE_HTIF
 	bool "HTIF"
 	select HTIF if UART || DEBUG_PRINT || CONSOLE
+	select SPIKE_UART_HVC
 
 config SPIKE_8250
 	bool "NS8250/NS16550 compatible"
@@ -161,6 +164,11 @@ config SPIKE_8250
 	select SPIKE_PLIC
 
 endchoice
+
+config SPIKE_UART_HVC
+	bool "Enable hvc console support"
+
+endif
 
 endmenu
 

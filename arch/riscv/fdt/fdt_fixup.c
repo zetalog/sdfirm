@@ -192,6 +192,12 @@ static int fdt_fixup_pmp(void *fdt, int parent)
 #else
 static int fdt_fixup_pmp(void *fdt, int parent)
 {
+	return 0;
+}
+#endif
+
+static int fdt_fixup_fw(void *fdt, int parent)
+{
 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
 	unsigned long size;
 	phys_addr_t addr;
@@ -204,7 +210,6 @@ static int fdt_fixup_pmp(void *fdt, int parent)
 	size = (1UL << __ilog2_u64(__roundup64(scratch->fw_size)));
 	return fdt_resv_memory_update_node(fdt, addr, size, 0, parent, true);
 }
-#endif
 
 /* PMP is used to protect SBI firmware to safe-guard it from buggy S-mode
  * software, see pmp_init(). The protected memory region information needs
@@ -271,6 +276,7 @@ int fdt_reserved_memory_fixup(void *fdt)
 	 *
 	 * With above assumption, we create child nodes directly.
 	 */
+	fdt_fixup_fw(fdt, parent);
 	return fdt_fixup_pmp(fdt, parent);
 }
 
