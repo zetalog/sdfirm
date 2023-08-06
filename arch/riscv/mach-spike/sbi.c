@@ -46,6 +46,32 @@ static int spike_pmp_region_info(uint32_t hartid, uint32_t index,
 	return ret;
 }
 
+#define __UART_REG(n, offset)	(__UART_BASE + (offset))
+#define __UART_RBR(n)		__UART_REG(n, 0)
+#define __UART_LSR(n)		__UART_REG(n, 5)
+#define __UART_THR(n)		__UART_RBR(n)
+
+#define __ns16550_con_write(c)								\
+	do {										\
+		while ((uart_reg_read(__UART_LSR(UART_CON_ID)) & UART_LSR_THRE) == 0);	\
+		uart_reg_write(c, __UART_THR(UART_CON_ID));				\
+	} while (0)
+#define __ns16550_con_read()		uart_reg_read(__UART_RBR(UART_CON_ID))
+#define __ns16550_con_poll()		(uart_reg_read(__UART_LSR(UART_CON_ID)) & UART_LSR_DR)
+
+#ifdef CONFIG_SPIKE_8250
+static void spike_console_putc(char ch)
+{
+	__ns16550_con_write(ch);
+}
+
+static int spike_console_getc(void)
+{
+	if (!__ns16550_con_poll())
+		return -1;
+	return (int)__ns16550_con_read();
+}
+#else
 static void spike_console_putc(char ch)
 {
 	htif_putc(ch);
@@ -55,6 +81,7 @@ static int spike_console_getc(void)
 {
 	return htif_getc();
 }
+#endif
 
 static int spike_irqchip_init(bool cold_boot)
 {

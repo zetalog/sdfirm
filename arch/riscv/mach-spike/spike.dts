@@ -10,7 +10,12 @@
 	compatible = "ucbbar,spike-bare-dev";
 	model = "ucbbar,spike-bare";
 	chosen {
+#ifdef CONFIG_SPIKE_8250
+		stdout-path = "/soc/ns16550@10000000";
+		bootargs = "console=ttyS0 earlycon rdinit=/sdfirm_init";
+#else
 		bootargs = "console=hvc0 earlycon=sbi rdinit=/sdfirm_init";
+#endif
 	};
 	cpus {
 		#address-cells = <1>;
@@ -48,7 +53,7 @@
 			status = "okay";
 			compatible = "riscv";
 			riscv,isa = "rv64imafdchsu";
-			mmu-type = "riscv,sv48";
+			mmu-type = "riscv,sv57";
 #ifdef CONFIG_RISCV_PMP
 			riscv,pmpregions = <16>;
 			riscv,pmpgranularity = <4>;
@@ -67,8 +72,8 @@
 			reg = <1>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu";
-			mmu-type = "riscv,sv48";
+			riscv,isa = "rv64imafdchsu";
+			mmu-type = "riscv,sv57";
 #ifdef CONFIG_RISCV_PMP
 			riscv,pmpregions = <16>;
 			riscv,pmpgranularity = <4>;
@@ -87,8 +92,8 @@
 			reg = <2>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu";
-			mmu-type = "riscv,sv48";
+			riscv,isa = "rv64imafdchsu";
+			mmu-type = "riscv,sv57";
 #ifdef CONFIG_RISCV_PMP
 			riscv,pmpregions = <16>;
 			riscv,pmpgranularity = <4>;
@@ -107,8 +112,8 @@
 			reg = <3>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdc";
-			mmu-type = "riscv,sv48";
+			riscv,isa = "rv64imafdchsu";
+			mmu-type = "riscv,sv57";
 #ifdef CONFIG_RISCV_PMP
 			riscv,pmpregions = <16>;
 			riscv,pmpgranularity = <4>;
@@ -149,8 +154,40 @@
 			>;
 			reg = <0x0 0x2000000 0x0 0xc0000>;
 		};
+		plic: plic@c000000 {
+			compatible = "riscv,plic0";
+			#address-cells = <0>;
+			interrupts-extended = <
+				&cpu0_intc 0xb &cpu0_intc 0x9
+#ifdef CONFIG_SMP
+				&cpu1_intc 0xb &cpu1_intc 0x9
+#endif
+#if CONFIG_SPIKE_SMP_CPUS >= 4
+				&cpu2_intc 0xb &cpu2_intc 0x9
+				&cpu3_intc 0xb &cpu3_intc 0x9
+#endif
+			>;
+			reg = <0x0 0xc000000 0x0 0x1000000>;
+			riscv,ndev = <0x20>;
+			riscv,max-priority = <15>;
+			#interrupt-cells = <1>;
+			interrupt-controller;
+		};
+#ifdef CONFIG_SPIKE_8250
+		uart: ns16550@10000000 {
+			compatible = "ns16550a";
+			clock-frequency = <10000000>;
+			interrupt-parent = <&plic>;
+			interrupts = <1>;
+			reg = <0x0 0x10000000 0x0 0x100>;
+			reg-shift = <0x0>;
+			reg-io-width = <0x1>;
+		};
+#endif
 	};
+#ifdef CONFIG_SPIKE_HTIF
 	htif {
 		compatible = "ucb,htif0";
 	};
+#endif
 };

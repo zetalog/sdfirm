@@ -464,9 +464,9 @@ build_test()
 	fi
 	if [ "x${TEST_LATE}" = "xkvm" ]; then
 		echo "#!/bin/sh" > ${LATE_TEST}
-#		echo "modprobe kvm" >> ${LATE_TEST}
-#		echo "cd /usr/local/bin"  >> ${LATE_TEST}
-#		echo "lkvm-static run -m 128 -c2 --console serial -p "console=hvc0 earlycon=sbi" -k ./Image"   >> ${LATE_TEST}
+		echo "modprobe kvm" >> ${LATE_TEST}
+		echo "cd /usr/local/bin"  >> ${LATE_TEST}
+		echo "lkvm-static run -m 128 -c2 --console serial -p "console=hvc0 earlycon=sbi" -k ./Image"   >> ${LATE_TEST}
 	fi
 	if [ "x${TEST_LATE}" = "xdmatest" ]; then
 		echo "#!/bin/sh" > ${LATE_TEST}

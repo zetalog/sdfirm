@@ -42,6 +42,12 @@
 #ifndef __IRQ_SPIKE_H_INCLUDE__
 #define __IRQ_SPIKE_H_INCLUDE__
 
+#ifdef CONFIG_SPIKE_PLIC
+#define IRQ_UART	EXT_IRQ(1)
+#define NR_EXT_IRQS	0x20
+#define NR_IRQS		(NR_INT_IRQS + NR_EXT_IRQS)
+#else
 #define NR_IRQS		64
+#endif
 
 #endif  /* __IRQ_SPIKE_H_INCLUDE__ */
