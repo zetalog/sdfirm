@@ -115,6 +115,8 @@
 		#address-cells = <2>;
 		#size-cells = <2>;
 		compatible = "ucbbar,spike-bare-soc", "simple-bus";
+		ranges;
+
 		clint@2000000 {
 			compatible = "riscv,clint0";
 			interrupts-extended = <
