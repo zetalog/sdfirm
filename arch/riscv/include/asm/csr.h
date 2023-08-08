@@ -244,6 +244,9 @@
 #define SR_GVA_SHIFT	6
 #endif
 
+/* MISA */
+#define HYPERVISOR_EXT  _AC(0x00000080, UL)
+
 /* MIP/MIE/SIP/SIE/BSIP/BSIE */
 #define IR_USI		(_AC(0x1, UL) << IRQ_U_SOFT)
 #define IR_UTI		(_AC(0x1, UL) << IRQ_U_TIMER)

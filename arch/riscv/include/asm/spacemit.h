@@ -117,6 +117,10 @@
 	/* spacemit specific */
 	li	x3, L2S_SMP_MASK
 	csrs	CSR_ML2SETUP, x3
+
+	/* enable hypervisor extension */
+	li	x3, HYPERVISOR_EXT
+	csrs    CSR_MISA, x3
 	.endm
 #endif /* __ASSEMBLY__ */
 
