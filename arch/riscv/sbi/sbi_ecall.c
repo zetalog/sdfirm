@@ -11,6 +11,16 @@
 
 static unsigned long ecall_impid = SBI_OPENSBI_IMPID;
 
+uint16_t sbi_ecall_version_major(void)
+{
+	return SBI_ECALL_VERSION_MAJOR;
+}
+
+uint16_t sbi_ecall_version_minor(void)
+{
+	return SBI_ECALL_VERSION_MINOR;
+}
+
 unsigned long sbi_ecall_get_impid(void)
 {
 	return ecall_impid;

@@ -9,6 +9,23 @@
 
 #include <target/sbi.h>
 
+static bool sbi_trap_log_on;
+
+bool sbi_trap_log_enabled(void)
+{
+	return sbi_trap_log_on;
+}
+
+void sbi_enable_trap_log(void)
+{
+	sbi_trap_log_on = true;
+}
+
+void sbi_disable_trap_log(void)
+{
+	sbi_trap_log_on = false;
+}
+
 static void __noreturn sbi_trap_error(const char *msg, int rc,
 				      ulong mcause, ulong mtval,
 				      struct pt_regs *regs)

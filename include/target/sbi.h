@@ -44,7 +44,7 @@
 #define ETRAP		-256
 
 /* Maximum size of sbi_scratch and sbi_ipi_data */
-#define SBI_SCRATCH_SIZE			(64 * __SIZEOF_POINTER__)
+#define SBI_SCRATCH_SIZE			(128 * __SIZEOF_POINTER__)
 
 #define SBI_IPI_EVENT_SOFT			0x1
 #define SBI_IPI_EVENT_RFENCE			0x2
@@ -671,10 +671,9 @@ extern struct sbi_ecall_extension __sbi_ecall_start[0];
 extern struct sbi_ecall_extension __sbi_ecall_end[0];
 
 int sbi_ecall_init(void);
-uint16_t sbi_ecall_version_major(void);
-uint16_t sbi_ecall_version_minor(void);
 int sbi_ecall_handler(struct pt_regs *regs);
 struct sbi_ecall_extension *sbi_ecall_find_extension(unsigned long extid);
+
 int sbi_ecall_register_extension(struct sbi_ecall_extension *ext);
 void sbi_ecall_unregister_extension(struct sbi_ecall_extension *ext);
 unsigned long sbi_ecall_get_impid(void);
@@ -744,6 +743,8 @@ int sbi_hart_init(struct sbi_scratch *scratch,
 void *sbi_hart_get_trap_info(struct sbi_scratch *scratch);
 void sbi_hart_set_trap_info(struct sbi_scratch *scratch, void *data);
 void sbi_hart_pmp_dump(struct sbi_scratch *scratch);
+int  sbi_hart_pmp_check_addr(struct sbi_scratch *scratch, unsigned long daddr,
+			     unsigned long attr);
 __noreturn void sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
 				     unsigned long next_addr,
 				     unsigned long next_mode);
@@ -815,6 +816,8 @@ void __noreturn sbi_system_finish(struct sbi_scratch *scratch, uint32_t code);
 void __noreturn sbi_finish_hang(void);
 
 __noreturn void sbi_init(void);
+unsigned long sbi_init_count(uint32_t hartid);
+
 #endif /* __ASSEMBLY__ */
 
 #include <target/sbi_fw.h>

@@ -371,12 +371,14 @@ int sbi_tlb_fifo_init(struct sbi_scratch *scratch, bool cold_boot)
 							    "IPI_TLB_SYNC");
 		if (!tlb_sync_off)
 			return -ENOMEM;
+		
 		tlb_fifo_off = sbi_scratch_alloc_offset(sizeof(*tlb_q),
 							    "IPI_TLB_FIFO");
 		if (!tlb_fifo_off) {
 			sbi_scratch_free_offset(tlb_sync_off);
 			return -ENOMEM;
 		}
+
 		tlb_fifo_mem_off = sbi_scratch_alloc_offset(
 				SBI_TLB_FIFO_NUM_ENTRIES * SBI_TLB_INFO_SIZE,
 				"IPI_TLB_FIFO_MEM");

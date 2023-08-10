@@ -9,33 +9,6 @@
 
 #include <target/sbi.h>
 
-bool sbi_trap_log_on;
-
-bool sbi_trap_log_enabled(void)
-{
-	return sbi_trap_log_on;
-}
-
-void sbi_enable_trap_log(void)
-{
-	sbi_trap_log_on = true;
-}
-
-void sbi_disable_trap_log(void)
-{
-	sbi_trap_log_on = false;
-}
-
-uint16_t sbi_ecall_version_major(void)
-{
-	return SBI_ECALL_VERSION_MAJOR;
-}
-
-uint16_t sbi_ecall_version_minor(void)
-{
-	return SBI_ECALL_VERSION_MINOR;
-}
-
 static int sbi_load_hart_mask_unpriv(struct sbi_scratch *scratch,
 				     struct unpriv_trap *uptrap,
 				     ulong *pmask, ulong *hmask)

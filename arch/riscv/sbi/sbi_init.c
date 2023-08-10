@@ -9,6 +9,7 @@
 
 #include <target/smp.h>
 #include <target/sbi.h>
+#include <sbi/sbi_hsm.h>
 
 #define BANNER                                              \
 	"   ____                    _____ ____ _____\n"     \
@@ -169,13 +170,24 @@ static void wake_coldboot_harts(struct sbi_scratch *scratch, uint32_t cpu)
 	/* Release coldboot lock */
 	spin_unlock(&coldboot_lock);
 }
+static unsigned long init_count_offset;
 
 static void __noreturn init_coldboot(void)
 {
 	int rc;
+	unsigned long *init_count;
 	cpu_t hartid = sbi_current_hartid();
 	struct sbi_scratch *scratch = sbi_scratches[hartid];
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+
+	init_count_offset = sbi_scratch_alloc_offset(__SIZEOF_POINTER__,
+						     "INIT_COUNT");
+	if (!init_count_offset)
+		bh_panic();
+
+	rc = sbi_hsm_init(scratch, hartid, true);
+	if (rc)
+		bh_panic();
 
 	rc = sbi_system_early_init(scratch, true);
 	if (rc)
@@ -193,7 +205,10 @@ static void __noreturn init_coldboot(void)
 	if (rc)
 		bh_panic();
 
-	sbi_ipi_init(scratch, true);
+	rc = sbi_ipi_init(scratch, true);
+	if (rc)
+		bh_panic();
+
 	sbi_timer_init(scratch, true);
 
 	rc = sbi_system_final_init(scratch, true);
@@ -217,6 +232,11 @@ static void __noreturn init_coldboot(void)
 		wake_coldboot_harts(scratch, smp_hw_hart_cpu(hartid));
 	sbi_payload_dump();
 	sbi_hart_mark_available(hartid);
+
+	init_count = sbi_scratch_offset_ptr(scratch, init_count_offset);
+	(*init_count)++;
+
+	sbi_hsm_prepare_next_jump(scratch, hartid);
 	sbi_hart_switch_mode(hartid, scratch->next_arg1, scratch->next_addr,
 			     scratch->next_mode);
 }
@@ -224,12 +244,20 @@ static void __noreturn init_coldboot(void)
 static void __noreturn init_warmboot(void)
 {
 	int rc;
+	unsigned long *init_count;
 	cpu_t hartid = sbi_current_hartid();
 	struct sbi_scratch *scratch = sbi_scratches[hartid];
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 
 	if (!sbi_platform_has_hart_hotplug(plat))
 		wait_for_coldboot(scratch, smp_hw_hart_cpu(hartid));
+
+	if (!init_count_offset)
+		bh_panic();
+
+	rc = sbi_hsm_init(scratch, hartid, false);
+	if (rc)
+		bh_panic();
 
 	if (sbi_platform_hart_disabled(plat, hartid))
 		bh_panic();
@@ -255,12 +283,16 @@ static void __noreturn init_warmboot(void)
 
 	sbi_hart_mark_available(hartid);
 
+	init_count = sbi_scratch_offset_ptr(scratch, init_count_offset);
+	(*init_count)++;
+
 	if (sbi_platform_has_hart_hotplug(plat))
 		/* TODO: To be implemented in-future. */
 		bh_panic();
 	else {
 		sbi_boot_hart_prints();
 		sbi_payload_dump();
+		sbi_hsm_prepare_next_jump(scratch, hartid);
 		sbi_hart_switch_mode(hartid, scratch->next_arg1,
 				     scratch->next_addr, scratch->next_mode);
 	}
@@ -310,4 +342,19 @@ void __noreturn sbi_init(void)
 		init_coldboot();
 	else
 		init_warmboot();
+}
+
+unsigned long sbi_init_count(uint32_t hartid)
+{
+	struct sbi_scratch *scratch;
+	unsigned long *init_count;
+
+	if (sbi_platform_hart_count(sbi_platform_thishart_ptr()) <= hartid ||
+	    !init_count_offset)
+		return 0;
+
+	scratch = sbi_hart_id_to_scratch(sbi_scratch_thishart_ptr(), hartid);
+	init_count = sbi_scratch_offset_ptr(scratch, init_count_offset);
+
+	return *init_count;
 }
