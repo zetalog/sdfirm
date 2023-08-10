@@ -22,8 +22,16 @@ enum sbi_platform_features {
 	SBI_PLATFORM_HAS_TIMER_VALUE = (1 << 0),
 	/** Platform has HART hotplug support */
 	SBI_PLATFORM_HAS_HART_HOTPLUG = (1 << 1),
+	/** Platform has PMP support */
+	SBI_PLATFORM_HAS_PMP = (1 << 2),
+	/** Platform has S-mode counter enable */
+	SBI_PLATFORM_HAS_SCOUNTEREN = (1 << 3),
+	/** Platform has M-mode counter enable */
+	SBI_PLATFORM_HAS_MCOUNTEREN = (1 << 4),
 	/** Platform has fault delegation support */
 	SBI_PLATFORM_HAS_MFAULTS_DELEGATION = (1 << 5),
+	/** Platform has custom secondary hart booting support */
+	SBI_PLATFORM_HAS_HART_SECONDARY_BOOT = (1 << 6),
 };
 
 /** Default feature set for a platform */
@@ -70,6 +78,14 @@ struct sbi_platform_operations {
 	/** Initialize platform timer for current HART */
 	int (*timer_init)(bool cold_boot);
 
+	/** Bringup the given hart from previous stage **/
+	int (*hart_start)(uint32_t hartid, uint64_t saddr, uint64_t priv);
+	/**
+	 *  Stop the current hart from running. This call doesn't expect to
+	 *  return if success.
+	 */
+	int (*hart_stop)(void);
+
 	/** Reboot the platform */
 	int (*system_reboot)(uint32_t type);
 	/** Shutdown or poweroff the platform */
@@ -102,6 +118,8 @@ struct sbi_platform {
 	char name[64];
 	/** Supported features */
 	uint64_t features;
+	/** Total number of HARTs */
+	uint32_t hart_count;
 	/** Mask representing the set of disabled HARTs */
 	uint64_t disabled_hart_mask;
 	/** Pointer to sbi platform operations */
@@ -126,9 +144,15 @@ struct sbi_platform {
 /** Check whether the platform supports HART hotplug */
 #define sbi_platform_has_hart_hotplug(__p) \
 	((__p)->features & SBI_PLATFORM_HAS_HART_HOTPLUG)
+/** Check whether the platform has PMP support */
+#define sbi_platform_has_pmp(__p) \
+	((__p)->features & SBI_PLATFORM_HAS_PMP)
 /** Check whether the platform supports fault delegation */
 #define sbi_platform_has_mfaults_delegation(__p) \
 	((__p)->features & SBI_PLATFORM_HAS_MFAULTS_DELEGATION)
+/** Check whether the platform supports custom secondary hart booting support */
+#define sbi_platform_has_hart_secondary_boot(__p) \
+	((__p)->features & SBI_PLATFORM_HAS_HART_SECONDARY_BOOT)
 
 /**
  * Get name of the platform
@@ -162,6 +186,55 @@ static inline bool sbi_platform_hart_disabled(const struct sbi_platform *plat,
 			return true;
 	}
 	return false;
+}
+
+/**
+ * Get total number of HARTs supported by the platform
+ *
+ * @param plat pointer to struct sbi_platform
+ *
+ * @return total number of HARTs
+ */
+static inline uint32_t sbi_platform_hart_count(const struct sbi_platform *plat)
+{
+	if (plat)
+		return plat->hart_count;
+	return 0;
+}
+
+/**
+ * Stop the current hart in OpenSBI.
+ *
+ * @param plat pointer to struct sbi_platform
+ *
+ * @return Negative error code on failure. It doesn't return on success.
+ */
+static inline int sbi_platform_hart_stop(const struct sbi_platform *plat)
+{
+	if (plat && sbi_platform_ops(plat)->hart_stop)
+		return sbi_platform_ops(plat)->hart_stop();
+	return SBI_ENOTSUPP;
+}
+
+/**
+ * Bringup a given hart from previous stage. Platform should implement this
+ * operation if they support a custom mechanism to start a hart. Otherwise,
+ * a generic WFI based approach will be used to start/stop a hart in OpenSBI.
+ *
+ * @param plat pointer to struct sbi_platform
+ * @param hartid Hart ID
+ * @param saddr  Physical address in supervisor mode for hart to jump after
+ *		 OpenSBI
+ * @param priv	 A private context data from the caller
+ *
+ * @return 0 if sucessful and negative error code on failure
+ */
+static inline int sbi_platform_hart_start(const struct sbi_platform *plat,
+					  uint32_t hartid, uint64_t saddr, uint64_t priv)
+{
+	if (plat && sbi_platform_ops(plat)->hart_start)
+		return sbi_platform_ops(plat)->hart_start(hartid, saddr, priv);
+	return SBI_ENOTSUPP;
 }
 
 /**

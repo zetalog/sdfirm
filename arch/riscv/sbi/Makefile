@@ -10,6 +10,8 @@ obj-y += sbi_hart.rel
 obj-y += sbi_init.rel
 obj-y += sbi_scratch.rel
 obj-y += sbi_system.rel
+obj-y += sbi_hsm.rel
+obj-y += sbi_ecall_hsm.rel
 
 obj-y += sbi_trap.rel
 obj-y += sbi_emulate_csr.rel

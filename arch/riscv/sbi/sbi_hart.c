@@ -233,6 +233,32 @@ static int delegate_traps(struct sbi_scratch *scratch, uint32_t hartid)
 	return 0;
 }
 
+int sbi_hart_pmp_check_addr(struct sbi_scratch *scratch, unsigned long addr,
+			    unsigned long attr)
+{
+	unsigned long prot, size, l2l, i;
+	phys_addr_t tempaddr;
+	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+
+	if (!sbi_platform_has_pmp(plat))
+		return SBI_OK;
+
+	for (i = 0; i < PMP_COUNT; i++) {
+		pmp_get(i, &prot, &tempaddr, &l2l);
+		if (!(prot & PMP_A))
+			continue;
+		if (l2l < __riscv_xlen)
+			size = (1UL << l2l);
+		else
+			size = 0;
+		if (tempaddr <= addr && addr <= tempaddr + size)
+			if (!(prot & attr))
+				return SBI_EINVALID_ADDR;
+	}
+
+	return SBI_OK;
+}
+
 #ifdef CONFIG_RISCV_PMP
 static int pmp_init(struct sbi_scratch *scratch, uint32_t hartid)
 {
