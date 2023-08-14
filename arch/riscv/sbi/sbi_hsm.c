@@ -9,6 +9,7 @@
 
 #include <target/sbi.h>
 #include <target/atomic.h>
+#include <target/irq.h>
 #include <sbi/sbi_hsm.h>
 
 static unsigned long hart_data_offset;
@@ -81,8 +82,6 @@ void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, uint32_t hartid)
 	if (oldstate != SBI_HART_STARTING)
 		bh_panic();
 }
-#define IRQ_M_SOFT			3
-#define MIP_MSIP			(_UL(1) << IRQ_M_SOFT)
 
 static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, uint32_t hartid)
 {
@@ -94,7 +93,7 @@ static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, uint32_t hartid)
 	saved_mie = csr_read(CSR_MIE);
 
 	/* Set MSIE bit to receive IPI */
-	csr_set(CSR_MIE, MIP_MSIP);
+	csr_set(CSR_MIE, IR_MSI);
 
 	/* Wait for hart_add call*/
 	while (atomic_read(&hdata->state) != SBI_HART_STARTING) {
