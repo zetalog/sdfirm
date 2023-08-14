@@ -71,7 +71,7 @@
 			reg = <0>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvsu_sstc";
+			riscv,isa = "rv64imafdcvsu";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
 

@@ -42,7 +42,7 @@
 #include <target/console.h>
 #include <target/paging.h>
 
-#ifdef CONFIG_K1M_K1X_UART
+/*#ifdef CONFIG_K1M_K1X_UART
 void k1max_k1x_uart_init(void)
 {
 	uint32_t data;
@@ -73,7 +73,7 @@ void k1max_k1x_uart_init(void)
 	__raw_writel(data, MFPR_BASE+0x294);
 
 }
-#endif
+#endif*/
 
 #ifdef CONFIG_MMU
 void uart_hw_mmu_init(void)
