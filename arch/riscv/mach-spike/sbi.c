@@ -98,73 +98,23 @@ static int spike_irqchip_init(bool cold_boot)
 }
 #endif
 
-#define SPIKE_HART_STACK_SIZE			8192
-#define SPIKE_CLINT_ADDR			0x2000000
-
-static uint32_t clint_ipi_hart_count;
-static volatile void *clint_ipi_base;
-static volatile uint32_t *clint_ipi;
-
-static void spike_ipi_send(uint32_t target_hart)
+void spike_ipi_send(uint32_t target_cpu)
 {
-	if (clint_ipi_hart_count <= target_hart)
-		return;
-
-	/* Set CLINT IPI */
-	__raw_writel(1, (caddr_t)&clint_ipi[target_hart]);
+	clint_set_ipi(target_cpu);
 }
 
-static void spike_ipi_clear(uint32_t target_hart)
+void spike_ipi_clear(uint32_t target_cpu)
 {
-	if (clint_ipi_hart_count <= target_hart)
-		return;
-
-	/* Clear CLINT IPI */
-	__raw_writel(0, (caddr_t)&clint_ipi[target_hart]);
-}
-
-static int clint_cold_ipi_init(unsigned long base, uint32_t hart_count)
-{
-	/* Figure-out CLINT IPI register address */
-	clint_ipi_hart_count = hart_count;
-	clint_ipi_base	     = (void *)base;
-	clint_ipi	     = (uint32_t *)clint_ipi_base;
-
-	return 0;
-}
-
-static void clint_ipi_clear(uint32_t target_hart)
-{
-	if (clint_ipi_hart_count <= target_hart)
-		return;
-
-	/* Clear CLINT IPI */
-	__raw_writel(0, (caddr_t)&clint_ipi[target_hart]);
-}
-
-static int clint_warm_ipi_init(void)
-{
-	uint32_t hartid = sbi_current_hartid();
-
-	if (!clint_ipi_base)
-		return -1;
-
-	/* Clear CLINT IPI */
-	clint_ipi_clear(hartid);
-
-	return 0;
+	clint_clear_ipi(target_cpu);
 }
 
 static int spike_ipi_init(bool cold_boot)
 {
-	if (cold_boot) {
-		int ret = clint_cold_ipi_init(SPIKE_CLINT_ADDR,
-					  MAX_CPU_NUM);
-		if (ret)
-			return ret;
-	}
+	cpu_t cpu = sbi_processor_id();
 
-	return clint_warm_ipi_init();
+	if (!cold_boot)
+		spike_ipi_clear(cpu);
+	return 0;
 }
 
 uint64_t spike_timer_value(void)
@@ -222,7 +172,7 @@ const struct sbi_platform platform = {
 	.platform_version	= SBI_PLATFORM_VERSION(0x0, 0x01),
 	.name			= "RISC-V ISA simulator (spike)",
 	.features		= SBI_PLATFORM_DEFAULT_FEATURES,
-	.hart_count		= MAX_CPU_NUM,
+	.hart_count		= NR_CPUS,
 	.disabled_hart_mask	= ~HART_ALL,
 	.platform_ops_addr	= (unsigned long)&platform_ops
 };
