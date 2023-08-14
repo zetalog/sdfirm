@@ -60,6 +60,9 @@ config SBI_ECALL_IPI
 config SBI_ECALL_RFENCE
 	bool "Enable remote fence ecall support"
 
+config SBI_ECALL_HSM
+	bool "Hart State Management extension"
+	default y
 endif
 
 endmenu
