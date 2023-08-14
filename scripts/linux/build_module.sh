@@ -443,7 +443,7 @@ function build_linux()
 			ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 				$LINUX_PATH/scripts/config \
 				--file $LINUX_BUILD/.config \
-				--disable BLK_DEV_INITRD
+				--set-str INITRAMFS_SOURCE $TOP/$INITRAMFS_FILELIST
 		else
 			ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 				$LINUX_PATH/scripts/config \
@@ -745,6 +745,7 @@ else
 		if [ "x${BUILD_KVM}" = "xyes" ]; then
 			build_libfdt
 			build_kvmtool
+			build_initramfs ${BUILD_STO_SIZE}
 			build_linux v
 		fi
 		build_busybox
