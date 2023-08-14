@@ -24,14 +24,12 @@ enum sbi_platform_features {
 	SBI_PLATFORM_HAS_HART_HOTPLUG = (1 << 1),
 	/** Platform has PMP support */
 	SBI_PLATFORM_HAS_PMP = (1 << 2),
-	/** Platform has S-mode counter enable */
-	SBI_PLATFORM_HAS_SCOUNTEREN = (1 << 3),
-	/** Platform has M-mode counter enable */
-	SBI_PLATFORM_HAS_MCOUNTEREN = (1 << 4),
 	/** Platform has fault delegation support */
 	SBI_PLATFORM_HAS_MFAULTS_DELEGATION = (1 << 5),
 	/** Platform has custom secondary hart booting support */
 	SBI_PLATFORM_HAS_HART_SECONDARY_BOOT = (1 << 6),
+	/** Last index of Platform features*/
+	SBI_PLATFORM_HAS_LAST_FEATURE = SBI_PLATFORM_HAS_HART_HOTPLUG,
 };
 
 /** Default feature set for a platform */
