@@ -4,6 +4,7 @@
 void k1max_k1x_uart_init(void)
 {
 	uint32_t data;
+
 	data = __raw_readl(0xD4090104); // pll
 	data |= 0x1f << 3;
 	__raw_writel(data, 0xD4090104);
