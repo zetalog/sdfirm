@@ -81,7 +81,6 @@ void gpt_hw_oneshot_timeout(timeout_t tout_ms)
 void gpt_hw_ctrl_init(void)
 {
 	irq_register_vector(IRQ_TIMER, riscv_timer);
-	#ifdef CONFIG_K1M_K1X
-	g_counter_enable();
-	#endif /* CONFIG_K1M_K1X */
+	if (!cnt_status_gcounter())
+		cnt_enable_gcounter();
 }
