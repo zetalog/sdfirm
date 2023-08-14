@@ -45,6 +45,7 @@
 #include <target/paging.h>
 #include <target/gpio.h>
 #include <target/clk.h>
+#include <asm/mach/k1x_uart.h>
 
 #define __K1MAX_UART_BASE	UART_BASE
 #define UART_CLK_ID		uart_clk
@@ -137,7 +138,6 @@ void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
 void uart_hw_irq_ack(void);
 void uart_hw_irq_init(void);
 #endif
-void k1max_k1x_uart_init(void);
 #endif /* CONFIG_NS16550 */
 
 #ifdef CONFIG_MMU

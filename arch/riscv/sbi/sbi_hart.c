@@ -468,8 +468,6 @@ static int hart_mhpm_get_allowed_bits(void)
 	return num_bits;
 }
 
-volatile int g_flag;
-volatile unsigned long g_extensions;
 int hart_detect_features(struct sbi_scratch *scratch)
 {
 	struct csr_trap_info trap = {0};
@@ -607,15 +605,11 @@ __mhpm_skip:
 	/* Detect if hart supports stimecmp CSR(Sstc extension) */
 	if (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_12) {
 		csr_read_allowed(CSR_STIMECMP, (unsigned long)&trap);
-		g_flag = 1;
 		if (!trap.cause) {
-			g_flag = 3;
 			__sbi_hart_update_extension(hfeatures,
 					SBI_HART_EXT_SSTC, true);
-			g_extensions = hfeatures->extensions;
 		}
 	}
-	g_flag = hfeatures->priv_version;
 #endif
 
 #ifdef CONFIG_RISCV_SMSTATEEN

@@ -7,3 +7,5 @@ obj-$(CONFIG_TIMER) += gpt.rel
 obj-$(CONFIG_K1M_CCI) += cci.rel
 obj-$(CONFIG_K1M_TIMER) += timer.rel
 obj-$(CONFIG_K1M_UART) += uart.rel
+obj-$(CONFIG_K1M_K1X_UART) += k1x_uart.rel
+obj-$(CONFIG_K1M_K1X) += cnt.rel
