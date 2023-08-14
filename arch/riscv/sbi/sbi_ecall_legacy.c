@@ -53,8 +53,12 @@ static int sbi_ecall_legacy_handler(unsigned long extid, unsigned long funcid,
 		ret = 0;
 		break;
 	case SBI_ECALL_CONSOLE_GETCHAR:
+#ifdef CONFIG_SBI_V10
+		ret = sbi_getc();
+#else
 		regs->a0 = sbi_getc();
 		ret = 0;
+#endif
 		break;
 	case SBI_ECALL_CLEAR_IPI:
 		sbi_trap_log("%d: ECALL_CLEAR_IPI\n", source_hart);
