@@ -3,3 +3,5 @@
 
 void cnt_enable_gcounter(void);
 int cnt_status_gcounter(void);
+
+#endif
