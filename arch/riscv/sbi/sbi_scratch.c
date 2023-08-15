@@ -10,12 +10,17 @@
 #include <target/sbi.h>
 #include <asm/asm-offsets.h>
 
+extern struct sbi_scratch *sbi_scratches[];
+
 DEFINE_SPINLOCK(extra_lock);
 static unsigned long extra_offset = SBI_SCRATCH_EXTRA_SPACE;
 
 unsigned long sbi_scratch_alloc_offset(unsigned long size, const char *owner)
 {
+	int i;
+	void *ptr;
 	unsigned long ret = 0;
+	struct sbi_scratch *rscratch;
 
 	/*
 	 * We have a simple brain-dead allocator which never expects
@@ -42,6 +47,16 @@ unsigned long sbi_scratch_alloc_offset(unsigned long size, const char *owner)
 
 done:
 	spin_unlock(&extra_lock);
+
+	if (ret) {
+		for (i = 0; i <= MAX_HARTS; i++) {
+			rscratch = sbi_scratches[i];
+			if (!rscratch)
+				continue;
+			ptr = sbi_scratch_offset_ptr(rscratch, ret);
+			memset(ptr, 0, size);
+		}
+	}
 
 	return ret;
 }
