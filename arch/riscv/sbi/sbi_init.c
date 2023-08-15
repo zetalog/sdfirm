@@ -185,9 +185,11 @@ static void __noreturn init_coldboot(void)
 	if (!init_count_offset)
 		bh_panic();
 
+#ifdef CONFIG_SBI_ECALL_HSM
 	rc = sbi_hsm_init(scratch, hartid, true);
 	if (rc)
 		bh_panic();
+#endif
 
 	rc = sbi_system_early_init(scratch, true);
 	if (rc)
@@ -235,8 +237,9 @@ static void __noreturn init_coldboot(void)
 
 	init_count = sbi_scratch_offset_ptr(scratch, init_count_offset);
 	(*init_count)++;
-
+#ifdef CONFIG_SBI_ECALL_HSM
 	sbi_hsm_prepare_next_jump(scratch, hartid);
+#endif
 	sbi_hart_switch_mode(hartid, scratch->next_arg1, scratch->next_addr,
 			     scratch->next_mode);
 }
@@ -255,9 +258,11 @@ static void __noreturn init_warmboot(void)
 	if (!init_count_offset)
 		bh_panic();
 
+#ifdef CONFIG_SBI_ECALL_HSM
 	rc = sbi_hsm_init(scratch, hartid, false);
 	if (rc)
 		bh_panic();
+#endif
 
 	if (sbi_platform_hart_disabled(plat, hartid))
 		bh_panic();
@@ -292,7 +297,9 @@ static void __noreturn init_warmboot(void)
 	else {
 		sbi_boot_hart_prints();
 		sbi_payload_dump();
+#ifdef CONFIG_SBI_ECALL_HSM
 		sbi_hsm_prepare_next_jump(scratch, hartid);
+#endif
 		sbi_hart_switch_mode(hartid, scratch->next_arg1,
 				     scratch->next_addr, scratch->next_mode);
 	}

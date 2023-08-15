@@ -42,6 +42,7 @@ config SBI_V01
 
 config SBI_V10
 	bool "v1.0"
+	select SBI_ECALL_LEGACY
 
 if SBI_V10
 
@@ -62,7 +63,6 @@ config SBI_ECALL_RFENCE
 
 config SBI_ECALL_HSM
 	bool "Hart State Management extension"
-	default y
 endif
 
 endmenu
