@@ -38,8 +38,6 @@ int sbi_printf(const char *fmt, ...)
 
 void sbi_putc(char ch)
 {
-	if (ch == '\n')
-		sbi_platform_console_putc(sbi_console_plat, '\r');
 	sbi_platform_console_putc(sbi_console_plat, ch);
 }
 #endif

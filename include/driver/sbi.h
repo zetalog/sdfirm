@@ -321,8 +321,11 @@ static inline int sbi_platform_pmp_region_info(const struct sbi_platform *plat,
 static inline void sbi_platform_console_putc(const struct sbi_platform *plat,
 						char ch)
 {
-	if (plat && sbi_platform_ops(plat)->console_putc)
+	if (plat && sbi_platform_ops(plat)->console_putc) {
+		if (ch == '\n')
+			sbi_platform_ops(plat)->console_putc('\r');
 		sbi_platform_ops(plat)->console_putc(ch);
+	}
 }
 
 /**
