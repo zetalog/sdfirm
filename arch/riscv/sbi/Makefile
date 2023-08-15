@@ -10,7 +10,6 @@ obj-y += sbi_hart.rel
 obj-y += sbi_init.rel
 obj-y += sbi_scratch.rel
 obj-y += sbi_system.rel
-obj-y += sbi_hsm.rel
 
 obj-y += sbi_trap.rel
 obj-y += sbi_emulate_csr.rel
@@ -24,6 +23,7 @@ obj-$(CONFIG_SBI_ECALL_IPI) += sbi_ecall_ipi.rel
 obj-$(CONFIG_SBI_ECALL_RFENCE) += sbi_ecall_rfence.rel
 obj-$(CONFIG_RISCV_H) += sbi_hfence.rel
 obj-$(CONFIG_SBI_ECALL_HSM) += sbi_ecall_hsm.rel
+obj-$(CONFIG_SBI_ECALL_HSM) += sbi_hsm.rel
 obj-y += sbi_tlb.rel
 
 obj-$(CONFIG_CONSOLE_OUTPUT) += sbi_console.rel

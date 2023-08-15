@@ -9,6 +9,30 @@
 
 #include <target/sbi.h>
 
+uint16_t sbi_ecall_version_major(void)
+{
+	return SBI_ECALL_VERSION_MAJOR;
+}
+
+uint16_t sbi_ecall_version_minor(void)
+{
+	return SBI_ECALL_VERSION_MINOR;
+}
+
+#ifdef CONFIG_SBI_V10
+
+static unsigned long ecall_impid = SBI_OPENSBI_IMPID;
+unsigned long sbi_ecall_get_impid(void)
+{
+	return ecall_impid;
+}
+
+void sbi_ecall_set_impid(unsigned long impid)
+{
+	ecall_impid = impid;
+}
+#endif
+
 static int sbi_load_hart_mask_unpriv(struct sbi_scratch *scratch,
 				     struct unpriv_trap *uptrap,
 				     ulong *pmask, ulong *hmask)
