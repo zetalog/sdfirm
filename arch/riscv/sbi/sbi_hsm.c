@@ -209,7 +209,7 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch, uint32_t hartid,
 		return sbi_platform_hart_start(plat, hartid,
 					     scratch->warmboot_addr, priv);
 	} else {
-		sbi_platform_ipi_send(plat, hartid);
+		sbi_platform_ipi_send(plat, smp_hw_hart_cpu(hartid));
 	}
 
 	return 0;
