@@ -12,6 +12,7 @@ BUILD_LIB=yes
 BUILD_SMP=no
 BUILD_NET=no
 BUILD_STO=no
+BUILD_KVM=no
 
 # If you only want to re-build kernel drivers, you can use no to omit
 # rebuilding whole busybox/linux
