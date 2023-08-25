@@ -14,7 +14,6 @@
 #include <target/irq.h>
 #include <target/delay.h>
 #include <target/bench.h>
-#include <asm/mach/cnt.h>
 
 static void k1max_modify_dt(void *fdt)
 {
