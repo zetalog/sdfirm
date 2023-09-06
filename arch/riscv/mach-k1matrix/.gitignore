@@ -1,0 +1,15 @@
+*.d
+*.cmd
+*.tmp
+*.rel
+*.lst
+*.rst
+*.sym
+*.asm
+*.adb
+*.lib
+*.lnk
+*.map
+*.mem
+*.swp
+*.bak
