@@ -41,6 +41,9 @@ config CCN512
 config CCI550
 	bool "ARM CCI550 support"
 
+config CMN600
+	bool "ARM CMN600 support"
+
 endmenu
 
 
