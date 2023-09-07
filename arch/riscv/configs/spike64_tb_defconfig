@@ -113,7 +113,7 @@ CONFIG_RISCV_SV=y
 # CONFIG_RISCV_SV32 is not set
 CONFIG_RISCV_SV39=y
 # CONFIG_RISCV_SV48 is not set
-# CONFIG_RISCV_SV_ZIFENCEI is not set
+# CONFIG_RISCV_ZIFENCEI is not set
 
 #
 # CPU architecture options

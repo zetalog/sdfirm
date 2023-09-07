@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Sep  6 20:43:49 2023
+# Thu Sep  7 20:51:49 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -123,6 +123,7 @@ CONFIG_RISCV_SSTC=y
 # CONFIG_RISCV_SMAIA is not set
 CONFIG_RISCV_PMP=y
 # CONFIG_RISCV_H is not set
+# CONFIG_RISCV_ZIFENCEI is not set
 
 #
 # CPU architecture options
@@ -180,29 +181,11 @@ CONFIG_PLIC_COMPLETION_EXIT=y
 CONFIG_ARCH_HAS_SBI_IPI=y
 CONFIG_ARCH_HAS_SBI_TIMER=y
 # CONFIG_SBI is not set
-# CONFIG_SBI_RISCV_NEXT_U is not set
-# CONFIG_SBI_RISCV_NEXT_S is not set
-# CONFIG_SBI_RISCV_NEXT_M is not set
-# CONFIG_SBI_DEFAULT is not set
-# CONFIG_SBI_PAYLOAD is not set
-# CONFIG_SBI_DYNAMIC is not set
-# CONFIG_K1M_CPU is not set
-# CONFIG_K1M_PZ1 is not set
-# CONFIG_K1M_S2C is not set
-# CONFIG_K1X_S2C is not set
-# CONFIG_K1M_SOC_K1X is not set
-# CONFIG_K1M_K1PRO is not set
-# CONFIG_K1M_K1MAX is not set
-# CONFIG_K1M_TB is not set
-# CONFIG_K1M_BBL is not set
-# CONFIG_K1M_SRAM is not set
-# CONFIG_K1M_DDR is not set
 
 #
 # SpacemiT K1Matrix board options
 #
 CONFIG_K1MXLITE=y
-CONFIG_K1MATRIX_SMP_CPUS=4
 # CONFIG_K1MATRIX_ZSBL is not set
 CONFIG_K1MATRIX_FSBL=y
 # CONFIG_K1MATRIX_BBL is not set
@@ -250,9 +233,8 @@ CONFIG_ARCH_HAS_THREAD=y
 # Scheduling facility (SMP) support
 #
 CONFIG_ARCH_HAS_SMP=y
-CONFIG_SMP_BOOT=y
-CONFIG_SMP=y
-# CONFIG_SMP_WAIT_BOOT is not set
+# CONFIG_SMP_BOOT is not set
+# CONFIG_SMP is not set
 
 #
 # Timing facility (jiffy) support
@@ -385,7 +367,8 @@ CONFIG_DW_UART_FIFO_64=y
 CONFIG_DW_UART_FIFO_MEM_USER=y
 # CONFIG_DW_UART_FIFO_MEM_INTERNAL is not set
 # CONFIG_DW_UART_9BIT_DATA is not set
-# CONFIG_DW_UART_DLF is not set
+CONFIG_DW_UART_DLF=y
+CONFIG_DW_UART_DLF_SIZE=4
 # CONFIG_DW_UART_AFCE_MODE is not set
 # CONFIG_DW_UART_FIFO_ACCESS is not set
 # CONFIG_DW_UART_ADDITIONAL_FEATURES is not set

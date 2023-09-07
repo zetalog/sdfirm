@@ -514,7 +514,7 @@ menuconfig RISCV_SV
 	bool "Supervisor virtual addresing"
 	depends ARCH_HAS_MMU
 	select RISCV_S
-	select ARCH_HAS_MMU_BARRIER if !RISCV_SV_ZIFENCEI
+	select ARCH_HAS_MMU_BARRIER if !RISCV_ZIFENCEI
 
 if RISCV_SV
 
@@ -541,11 +541,11 @@ config RISCV_SV48
 
 endchoice
 
-config RISCV_SV_ZIFENCEI
-	bool "Enable instrution fetch barrier"
-	depends CPU_ZIFENCEI
-
 endif
+
+config RISCV_ZIFENCEI
+	bool "Instrution fetch fence support"
+	depends CPU_ZIFENCEI
 
 config RISCV_VIRQ
 	bool "Vectorized interrupt support"
