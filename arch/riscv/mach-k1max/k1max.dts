@@ -71,9 +71,11 @@
 			reg = <0>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sstc";
+			riscv,isa = "rv64imafdcvhsu_zicbom_svpbmt_sstc";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
 
 			cpu0_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -87,9 +89,11 @@
 			reg = <1>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sstc";
+			riscv,isa = "rv64imafdcvhsu_zicbom_svpbmt_sstc";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
 
 			cpu1_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -104,9 +108,11 @@
 			reg = <2>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sstc";
+			riscv,isa = "rv64imafdcvhsu_zicbom_svpbmt_sstc";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
 
 			cpu2_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -119,9 +125,11 @@
 			reg = <3>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sstc";
+			riscv,isa = "rv64imafdcvhsu_zicbom_svpbmt_sstc";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
 
 			cpu3_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -136,8 +144,10 @@
 			reg = <4>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sstc";
+			riscv,isa = "rv64imafdcvhsu_zicbom_svpbmt_sstc";
 			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
 
 			cpu4_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -150,8 +160,10 @@
 			reg = <5>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sstc";
+			riscv,isa = "rv64imafdcvhsu_zicbom_svpbmt_sstc";
 			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
 
 			cpu5_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -164,8 +176,10 @@
 			reg = <6>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sstc";
+			riscv,isa = "rv64imafdcvhsu_zicbom_svpbmt_sstc";
 			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
 
 			cpu6_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -178,8 +192,10 @@
 			reg = <7>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sstc";
+			riscv,isa = "rv64imafdcvhsu_zicbom_svpbmt_sstc";
 			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
 
 			cpu7_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -260,11 +276,10 @@
 			};
 		};
 
-		plic: interrupt-controller@e0000000 {
-			reg = <0x00 0xe0000000 0x00 0x2000000>;
-			//reg = <DT_REGHI(PLIC_REG_BASE) DT_REGLO(PLIC_REG_BASE)
-			//        0x0 0x08000000
-			// >;
+		plic: interrupt-controller@30000000 {
+			reg = <DT_REGHI(PLIC_REG_BASE) DT_REGLO(PLIC_REG_BASE)
+			       0x0 0x08000000
+			>;
 			interrupts-extended = <
 				&cpu0_intc 0xb &cpu0_intc 0x9
 #ifdef CONFIG_SMP
@@ -287,6 +302,22 @@
 			compatible = "riscv,plic0";
 			#interrupt-cells = <0x1>;
 			#address-cells = <0x0>;
+		};
+
+		dma: dma-controller@10030000{
+			compatible = "snps,dma-spear1340";
+			reg = <0x0 0x10030000 0x0 0x1000>;
+			interrupt-parent = <&plic>;
+			interrupts = <21>;
+			dma-masters = <1>;
+			dma-channels = <8>;
+			chan_allocation_order = <0>;
+			chan_priority = <0>;
+			block_size = <2047>;
+			data-width = <4 4 4 4>;
+			snps,dma-protection-control = <1>;
+			snps,max-burst-len = <16 16 16 16 16 16 16 16>;
+			status = "okay";
 		};
 
 		clint: clint@34000000 {
