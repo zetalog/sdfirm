@@ -178,7 +178,7 @@ extern unsigned long empty_zero_page[PAGE_SIZE / sizeof (unsigned long)];
 
 #include <target/mem.h>
 
-#ifdef CONFIG_RISCV_SV_ZIFENCEI
+#ifdef CONFIG_RISCV_ZIFENCEI
 #define mmu_barrier()		local_flush_icache_all()
 #else
 #define mmu_barrier()		do { } while (0)
