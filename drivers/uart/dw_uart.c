@@ -49,8 +49,8 @@
 		div = (uint16_t)div32u(freq * 10,	\
 					(baud) << 4);	\
 		frac = div % 10;			\
-		div /= 10;				\
-		frac = frac * 18 / 10;			\
+		div = div32u(div, 10);			\
+		frac = div32u(frac * 18, 10);		\
 	} while (0)
 #define dw_uart_config_frac(n, frac)			\
 	__raw_writel(frac, UART_DLF(n))
