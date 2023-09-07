@@ -104,6 +104,7 @@ menuconfig K1MATRIX_N100
 menuconfig K1MATRIX_UART
 	bool "K1Mmatrix UART controller support"
 	select DW_UART
+	select DW_UART_DLF
 	select ARCH_HAS_DW_AMBA_ADVANCED
 	select ARCH_HAS_NS16550_FIFO_64
 	select ARCH_HAS_DW_UART_FIFO_MEM_USER
