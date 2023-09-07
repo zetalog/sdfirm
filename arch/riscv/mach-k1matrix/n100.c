@@ -44,4 +44,5 @@
 
 void k1matrix_n100_init(void)
 {
+	cmn600_init();
 }

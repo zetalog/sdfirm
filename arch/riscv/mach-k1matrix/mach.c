@@ -47,10 +47,13 @@
 #include <target/percpu.h>
 #include <target/cmdline.h>
 #include <target/sbi.h>
+#include <target/noc.h>
 
 void board_early_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);
+
+	k1matrix_n100_init();
 }
 
 void board_late_init(void)

@@ -43,6 +43,13 @@
 #define __NOC_K1MATRIX_H_INCLUDE__
 
 #include <target/arch.h>
+
+#define CMN_PERIPH_BASE		N100_CFG_BASE
+#define CMN_HND_NID		0
+#define CMN_MESH_DIMEN_X	3
+#define CMN_MESH_DIMEN_Y	2
+#define CMN_MAX_NODES		12
+
 #include <driver/cmn600.h>
 
 #ifdef CONFIG_K1MATRIX_N100
