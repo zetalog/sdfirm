@@ -44,7 +44,7 @@
 
 #include <asm/mach/reg.h>
 
-#define SYSREG_REG(offset)	(SYSREG_BASE + (offset))
+#define SYSREG_REG(offset)	(SYSCTL_BASE + (offset))
 
 #define CPU_SW_RESET		SYSREG_REG(0x000)
 #define DDR_SW_RESET		SYSREG_REG(0x100)
@@ -99,6 +99,8 @@
 #define sysreg_soft_reset_cpu(cpu)	\
 	__raw_setl(CPU_RESET(cpu), CPU_SW_RESET)
 
-#define k1matrix_cpu_reset()	do { } while (0)
+#ifndef __ASSEMBLY__
+void k1matrix_cpu_reset(void);
+#endif
 
 #endif /* __SYSREG_K1MATRIX_H_INCLUDE__ */

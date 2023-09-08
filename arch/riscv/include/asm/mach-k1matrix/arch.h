@@ -54,9 +54,7 @@
 #ifdef CONFIG_K1MATRIX_N100
 	jal	ra, k1matrix_n100_init
 #endif
-#ifdef CONFIG_K1MATRIX_SOC
 	jal	ra, k1matrix_cpu_reset
-#endif
 	.endm
 	.macro	boot2_hook
 	x100_smp_init
