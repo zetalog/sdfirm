@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Sep  7 20:51:49 2023
+# Fri Sep  8 08:32:00 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -123,7 +123,7 @@ CONFIG_RISCV_SSTC=y
 # CONFIG_RISCV_SMAIA is not set
 CONFIG_RISCV_PMP=y
 # CONFIG_RISCV_H is not set
-# CONFIG_RISCV_ZIFENCEI is not set
+CONFIG_RISCV_ZIFENCEI=y
 
 #
 # CPU architecture options
