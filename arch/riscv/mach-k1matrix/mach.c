@@ -52,12 +52,11 @@
 void board_early_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);
-
-	k1matrix_n100_init();
 }
 
 void board_late_init(void)
 {
+	k1matrix_n100_init();
 }
 
 #ifdef CONFIG_SMP
