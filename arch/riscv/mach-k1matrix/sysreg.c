@@ -35,72 +35,24 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)sysreg.h: K1Matrix system registers definitions
- * $Id: sysreg.h,v 1.1 2023-09-06 18:48:00 zhenglv Exp $
+ * @(#)sysreg.c: K1Matrix system registers implementation
+ * $Id: sysreg.c,v 1.1 2023-09-06 10:48:00 zhenglv Exp $
  */
 
-#ifndef __SYSREG_K1MATRIX_H_INCLUDE__
-#define __SYSREG_K1MATRIX_H_INCLUDE__
+#include <target/arch.h>
 
-#include <asm/mach/reg.h>
+#define BOOT_CLUSTER	CPU_TO_CLUSTER(BOOT_HART)
 
-#define SYSREG_REG(offset)	(SYSCTL_BASE + (offset))
+void k1matrix_cpu_reset(void)
+{
+	cpu_t cpu, hart;
 
-#define CPU_SW_RESET		SYSREG_REG(0x000)
-#define DDR_SW_RESET		SYSREG_REG(0x100)
-#define SYS_SW_RESET		SYSREG_REG(0x200)
-#define PCIE_SW_RESET		SYSREG_REG(0x300)
-#define GMAC_SW_RESET		SYSREG_REG(0x400)
-#define SYS_CTRL_GMAC		SYSREG_REG(0x500)
-#define SYS_CTRL_MESH		SYSREG_REG(0x600)
-
-#define GPIO_AUX_CFG0		SYSREG_REG(0x2000)
-#define GPIO_AUX_CFG1		SYSREG_REG(0x2004)
-#define GPIO_AUX_CFG2		SYSREG_REG(0x2008)
-#define GPIO_AUX_CFG3		SYSREG_REG(0x200C)
-#define PAD_IN_STATUS		SYSREG_REG(0x2010)
-
-/* CPU_SW_RESET */
-#define CPU_GLOBAL_RESET	_BV(0)
-#define CPU_RESET(cpu)		_BV(1+(cpu))
-
-/* DDR_SW_RESET */
-#define DDR_GLOBAL_RESET	_BV(0)
-
-/* SYS_SW_RESET */
-#define SYS_GLOBAL_RESET	_BV(0)
-
-/* PCIE_SW_RESET */
-#define PCIE_GLOBAL_RESET	_BV(0)
-#define PCIE0_COLD_RESET	_BV(1)
-#define PCIE0_BUTTON_RESET	_BV(2)
-#define PCIE0_WARM_RESET	_BV(3)
-#define PCIE1_COLD_RESET	_BV(4)
-#define PCIE1_BUTTON_RESET	_BV(5)
-#define PCIE1_WARM_RESET	_BV(6)
-
-/* GMAC_SW_RESET */
-#define GMAC_GLOBAL_RESET	_BV(0)
-#define GMAC_CSR_RESET		_BV(1)
-#define GMAC_DMA_RESET		_BV(2)
-
-/* SYS_CTRL_GMAC */
-#define GMAC_RMII_EN		_BV(0)
-#define GMAC_CLK_EN		_BV(1)
-
-/* SYS_CTRL_MESH */
-#define MESH_NID8_SYSCOREQ	_BV(0)
-#define MESH_NID40_SYSCOREQ	_BV(1)
-#define MESH_NID8_SYSCOACK	_BV(8)
-#define MESH_NID40_SYSCOACK	_BV(9)
-
-#define sysreg_soft_reset()		\
-	__raw_writel(CPU_GLOBAL_RESET, CPU_SW_RESET)
-#define sysreg_soft_reset_cpu(cpu)	\
-	__raw_setl(CPU_RESET(cpu), CPU_SW_RESET)
-
-#ifndef __ASSEMBLY__
-void k1matrix_cpu_reset(void);
-#endif
-
-#endif /* __SYSREG_K1MATRIX_H_INCLUDE__ */
+	if (BOOT_HART == csr_read(CSR_MHARTID)) {
+		for (cpu = 0; cpu < MAX_CPU_NUM; cpu++) {
+			hart = smp_hw_cpu_hart(cpu);
+			if (hart == BOOT_HART)
+				continue;
+			sysreg_soft_reset_cpu(cpu);
+		}
+	}
+}
