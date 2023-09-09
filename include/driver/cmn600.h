@@ -42,24 +42,34 @@
 #ifndef __CMN600_H_INCLUDE__
 #define __CMN600_H_INCLUDE__
 
-#define CMN_INVAL	0x0
-#define CMN_DVM		0x1
-#define CMN_CFG		0x2
-#define CMN_DTC		0x3
-#define CMN_HNI		0x4
-#define CMN_HNF		0x5
-#define CMN_XP		0x6
-#define CMN_SBSX	0x7
-#define CMN_RNI		0xA
-#define CMN_RND		0xD
-#define CMN_RN_SAM	0xF
-/* CML components */
-#define CMN_CML		0x100
-#define CMN_CXRA	(CMN_CML + 0x0)
-#define CMN_CXHA	(CMN_CML + 0x1)
-#define CMN_CXLA	(CMN_CML + 0x2)
-#define CMN_CML_MAX	CMN_CXLA
+/* The mach layer should provide the followings:
+ * 1. CMN_PERIPH_BASE: base address of CFGM node
+ * 2. CMN_MESH_DIMEN_X: X dimension
+ * 3. CMN_MESH_DIMEN_Y: Y dimension
+ * 4. CMN_HND_NID: NID of HN_D
+ * 5. CMN_MAX_NODES: maximum mesh nodes
+ */
 
+/* CMN node types */
+#define CMN_INVAL		0x0
+#define CMN_DVM			0x1
+#define CMN_CFG			0x2
+#define CMN_DTC			0x3
+#define CMN_HNI			0x4
+#define CMN_HNF			0x5
+#define CMN_XP			0x6
+#define CMN_SBSX		0x7
+#define CMN_RNI			0xA
+#define CMN_RND			0xD
+#define CMN_RN_SAM		0xF
+/* CML components */
+#define CMN_CML			0x100
+#define CMN_CXRA		(CMN_CML + 0x0)
+#define CMN_CXHA		(CMN_CML + 0x1)
+#define CMN_CXLA		(CMN_CML + 0x2)
+#define CMN_CML_MAX		CMN_CXLA
+
+/* XP device types */
 #define CMN_MXP_INVAL		0x00
 #define CMN_MXP_RNI		0x01
 #define CMN_MXP_RND		0x02
@@ -77,13 +87,6 @@
 #define CMN_MXP_CXRA		0x12
 #define CMN_MXP_CXRH		0x13
 
-/* The mach layer should provide the followings:
- * 1. CMN_PERIPH_BASE: base address of CFGM node
- * 2. CMN_MESH_DIMEN_X: X dimension
- * 3. CMN_MESH_DIMEN_Y: Y dimension
- * 4. CMN_HND_NID: NID of HN_D
- * 5. CMN_MAX_NODES: maximum mesh nodes
- */
 #ifdef CMN_HNF_COUNT
 #define CMN_MAX_HNF_COUNT		CMN_HNF_COUNT
 #else
@@ -104,7 +107,18 @@
 #else
 #define CMN_MAX_RNI_COUNT		32
 #endif
+#ifdef CMN_RN_SAM_INT_COUNT
+#define CMN_MAX_RN_SAM_INT_COUNT	CMN_RN_SAM_INT_COUNT
+#else
+#define CMN_MAX_RN_SAM_INT_COUNT	32
+#endif
+#ifdef CMN_RN_SAM_EXT_COUNT
+#define CMN_MAX_RN_SAM_EXT_COUNT	CMN_RN_SAM_EXT_COUNT
+#else
+#define CMN_MAX_RN_SAM_EXT_COUNT	32
+#endif
 
+/* NID and RNP (root node pointer) encodings */
 #define CMN_NID_DeviceID_OFFFSET	0
 #define CMN_NID_DeviceID_MASK		REG_2BIT_MASK
 #define CMN_DID(nid)			_GET_FV(CMN_NID_DeviceID, nid)
@@ -160,28 +174,60 @@ typedef uint8_t cmn_id_t;
 #define CMN_INVAL_ID			CMN_MAX_NODES
 
 #define CMN_CFGM_BASE			(cmn_bases[CMN_CFGM_ID])
+#define CMN_HNF_BASE(id)		(cmn_bases[id])
+#define CMN_RND_BASE(id)		(cmn_bases[id])
+#define CMN_RNI_BASE(id)		(cmn_bases[id])
+#define CMN_RN_SAM_INT_BASE(id)		(cmn_bases[id])
+#define CMN_RN_SAM_EXT_BASE(id)		(cmn_bases[id])
 #define CMN_CXRA_BASE			(cmn_bases[cmn_cxra_id])
 #define CMN_CXLA_BASE			(cmn_bases[cmn_cxla_id])
 #define CMN_CXHA_BASE			(cmn_bases[cmn_cxha_id])
 
+#define __CMN_HNF_BASE(i)		(cmn_bases[cmn_hnf_ids[i]])
+#define __CMN_RND_BASE(i)		(cmn_bases[cmn_rnd_ids[i]])
+#define __CMN_RNI_BASE(i)		(cmn_bases[cmn_rni_ids[i]])
+#define __CMN_RN_SAM_INT_BASE(i)	(cmn_bases[cmn_rn_sam_int_ids[i]])
+#define __CMN_RN_SAM_EXT_BASE(i)	(cmn_bases[cmn_rn_sam_ext_ids[i]])
+
 #define CMN_REG(base, offset)		((base) + (offset))
 #define CMN_CFGM_REG(offset)		CMN_REG(CMN_CFGM_BASE + (offset))
 
+/* Common to all nodes */
 #define CMN_node_info(base)		CMN_REG(base, 0x0)
 #define CMN_child_info(base)		CMN_REG(base, 0x80)
 
-#define CMN_cfgm_node_info		CMN_node_info(CMN_CFGM_BASE)
+/* 3.2.1 Configuration master register summery */
 #define CMN_cfgm_periph_id(n)		CMN_CFGM_REG(0x8 + ((n) << 2))
 #define CMN_cfgm_component_id(n)	CMN_CFGM_REG(0x28 + ((n) << 2))
-#define CMN_cfgm_child_info		CMN_child_info(CMN_CFGM_BASE)
 
-#define CMN_mxp_device_port_connect_info(base, n)	CMN_REG(base, 0x8 + ((n) << 3))
+/* 3.2.4 HN-F register summery */
+#define CMN_hnf_unit_info(base)		CMN_REG(base, 0x900)
+#define CMN_hnf_cfg_ctl(base)		CMN_REG(base, 0xA00)
+#define CMN_hnf_aux_ctl(base)		CMN_REG(base, 0xA08)
+#define CMN_hnf_r2_aux_ctl(base)	CMN_REG(base, 0xA10)
+#define CMN_hnf_ppu_pwpr(base)		CMN_REG(base, 0x1000)
+#define CMN_hnf_ppu_pwsr(base)		CMN_REG(base, 0x1008)
+#define CMN_hnf_ppu_misr(base)		CMN_REG(base, 0x1014)
+#define CMN_hnf_sam_memregion(base, n)	CMN_REG(base, 0xD08 + ((n) << 3))
+#define CMN_hnf_sam_sn_properties(base)	CMN_REG(base, 0xD18)
+
+/* 3.2.6 XP register summery */
+#define CMN_mxp_device_port_connect_info(base, n)	\
+					CMN_REG(base, 0x8 + ((n) << 3))
+#define CMN_mxp_mesh_port_connect_info_east(base)	\
+					CMN_REG(base, 0x18)
+#define CMN_mxp_mesh_port_connect_info_north(base)	\
+					CMN_REG(base, 0x20)
+#define CMN_mxp_p0_info(base)		CMN_REG(base, 0x900)
+#define CMN_mxp_p1_info(base)		CMN_REG(base, 0x908)
+#define CMN_mxp_aux_ctl(base)		CMN_REG(base, 0xA00)
 
 typedef uint16_t cmn_nid_t;
 typedef uint32_t cmn_lid_t;
 typedef uint8_t cmn_pid_t;
 typedef uint8_t cmn_did_t;
 
+/* CMN_node_info */
 #define CMN_node_type_OFFSET		0
 #define CMN_node_type_MASK		REG_16BIT_MASK
 #define CMN_node_type(value)		_GET_FV(CMN_node_type, value)
@@ -192,6 +238,7 @@ typedef uint8_t cmn_did_t;
 #define CMN_logical_id_MASK		REG_32BIT_MASK
 #define CMN_logical_id(value)		_GET_FV_ULL(CMN_logical_id, value)
 
+/* CMN_child_info */
 #define CMN_child_count_OFFSET		0
 #define CMN_child_count_MASK		REG_16BIT_MASK
 #define CMN_child_count(value)		_GET_FV(CMN_child_count, value)
@@ -203,12 +250,13 @@ typedef uint8_t cmn_did_t;
 #define CMN_child_base(base, index)	\
 	((base) + CMN_child_ptr_offset(CMN_child_info(base)) + ((index) << 3))
 
-/* MXP_device_port_connect_info */
+/* CMN_mxp_device_port_connect_info */
 #define CMN_device_type_OFFSET		0
 #define CMN_device_type_MASK		REG_5BIT_MASK
 #define CMN_device_type(device_port_connect_info)	\
 	_GET_FV(CMN_device_type, device_port_connect_info)
 
+/* CMN macros and APIs */
 #define cmn_node_type(base)			\
 	CMN_node_type(__raw_readq(CMN_node_info(base)))
 #define cmn_node_id(base)			\
@@ -230,6 +278,8 @@ typedef uint8_t cmn_did_t;
 
 #define cmn_child_node_id(base, index)		\
 	cmn_node_id(cmn_child_node(base, index))
+#define cmn_child_node_pid(base, index)		\
+	cmn_node_pid(cmn_child_node_id(base, index))
 
 #define cmn_mxp_device_type(base, pid)		\
 	CMN_device_type(CMN_mxp_device_port_connect_info(base, pid))
@@ -238,6 +288,10 @@ typedef uint8_t cmn_did_t;
 	(cmn_child_ptr(base, index) & CMN_child_external)
 
 extern caddr_t cmn600_bases[];
+extern cmn_nid_t cmn_cxra_id;
+extern cmn_nid_t cmn_cxla_id;
+extern cmn_nid_t cmn_cxha_id;
+
 void cmn600_init(void);
 
 #endif /* __CMN600_H_INCLUDE__ */

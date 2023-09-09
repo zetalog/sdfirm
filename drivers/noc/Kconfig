@@ -44,6 +44,13 @@ config CCI550
 config CMN600
 	bool "ARM CMN600 support"
 
+if CMN600
+
+config CMN600_HNF_CAL
+	bool "Enable HN-F CAL mode"
+
+endif
+
 endmenu
 
 
