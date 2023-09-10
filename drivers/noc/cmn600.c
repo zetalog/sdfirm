@@ -1,4 +1,10 @@
 /*
+ * Arm SCP/MCP Software
+ * Copyright (c) 2017-2022, Arm Limited and Contributors. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+/*
  * ZETALOG's Personal COPYRIGHT
  *
  * Copyright (c) 2023
@@ -305,9 +311,37 @@ void cmn600_configure(void)
 	}
 }
 
+#ifdef CONFIG_CMN600_CCIX
+static void cmn600_setup_ccix_host(void)
+{
+	int i;
+
+	/* Capture CCIX Host Topology */
+	for (i = 0; i < cmn_mmap_count; i++) {
+		if (cmn_mmap_table[i].type == CMN600_REGION_TYPE_CCIX) {
+			ccix_mmap_idx = cmn_ccix_host_mmap_count;
+			BUG_ON(ccix_mmap_idx >= MAX_HA_MMAP_ENTRIES);
+
+			cmn_ccix_host_mmap[cmn_ccix_mmap_idx].base =
+				cmn_mmap_table[i].base;
+			cmn_ccix_host_mmap[ccix_mmap_idx].size =
+				cmn_mmap_table[i].size;
+			cmn_ccix_host_mmap_count++;
+		}
+	}
+}
+#else
+#define cmn600_setup_ccix_host()	do { } while (0)
+#endif
+
+static void cmn600_setup_sam(caddr_t rnsam)
+{
+}
+
 void cmn600_init(void)
 {
 	caddr_t root_node_pointer;
+	unsigned int rnsam;
 
 	if (cmn600_initialized)
 		return;
@@ -319,6 +353,12 @@ void cmn600_init(void)
 	cmn600_discovery();
 	/* TODO: Dynamic internal/external RN_SAM nodes and HNF cache groups */
 	cmn600_configure();
+
+	/* Setup internal RN-SAM nodes */
+	for (rnsam = 0; rnsam < cmn_rn_sam_int_count; rnsam++)
+		cmn600_setup_sam(CMN_RN_SAM_INT_BASE(rnsam));
+	/* Setup CCIX host */
+	cmn600_setup_ccix_host();
 
 	cmn600_initialized = true;
 }

@@ -1,4 +1,10 @@
 /*
+ * Arm SCP/MCP Software
+ * Copyright (c) 2017-2022, Arm Limited and Contributors. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+/*
  * ZETALOG's Personal COPYRIGHT
  *
  * Copyright (c) 2023
