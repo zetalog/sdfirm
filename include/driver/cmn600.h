@@ -195,16 +195,25 @@ typedef uint8_t cmn_id_t;
 #define __CMN_RN_SAM_INT_BASE(i)	(cmn_bases[cmn_rn_sam_int_ids[i]])
 #define __CMN_RN_SAM_EXT_BASE(i)	(cmn_bases[cmn_rn_sam_ext_ids[i]])
 
+#define CMN_12BIT_INDEX(n)		REG64_16BIT_INDEX(n)
+#define CMN_12BIT_OFFSET(n)		\
+	(((((uint64_t)(n)) & ULL( 3)) << 4) -	\
+	 ((((uint64_t)(n)) & ULL( 3)) << 2))
+
 #define CMN_REG(base, offset)		((base) + (offset))
-#define CMN_CFGM_REG(offset)		CMN_REG(CMN_CFGM_BASE + (offset))
+#define CMN_CFGM_REG(offset)		CMN_REG(CMN_CFGM_BASE, offset)
+#define CMN_12BIT_REG(base, offset, n)	\
+	CMN_REG((base), (offset) + CMN_12BIT_INDEX(n))
+#define CMN_32BIT_REG(base, offset, n)	\
+	CMN_REG((base), (offset) + REG64_32BIT_INDEX(n))
 
 /* Common to all nodes */
 #define CMN_node_info(base)		CMN_REG(base, 0x0)
 #define CMN_child_info(base)		CMN_REG(base, 0x80)
 
 /* 3.2.1 Configuration master register summery */
-#define CMN_cfgm_periph_id(n)		CMN_CFGM_REG(0x8 + ((n) << 2))
-#define CMN_cfgm_component_id(n)	CMN_CFGM_REG(0x28 + ((n) << 2))
+#define CMN_cfgm_periph_id(n)		CMN_32BIT_REG(CMN_CFGM_BASE, 0x8, (n))
+#define CMN_cfgm_component_id(n)	CMN_32BIT_REG(CMN_CFGM_BASE, 0x28, (n))
 
 /* 3.2.4 HN-F register summery */
 #define CMN_hnf_unit_info(base)		CMN_REG(base, 0x900)
@@ -214,8 +223,32 @@ typedef uint8_t cmn_id_t;
 #define CMN_hnf_ppu_pwpr(base)		CMN_REG(base, 0x1000)
 #define CMN_hnf_ppu_pwsr(base)		CMN_REG(base, 0x1008)
 #define CMN_hnf_ppu_misr(base)		CMN_REG(base, 0x1014)
+#define CMN_hnf_ppu_idr0(base)		CMN_REG(base, 0x1FB0)
+#define CMN_hnf_ppu_idr1(base)		CMN_REG(base, 0x1FB4)
+#define CMN_hnf_ppu_iidr(base)		CMN_REG(base, 0x1FC8)
+#define CMN_hnf_ppu_aidr(base)		CMN_REG(base, 0x1FCC)
+#define CMN_hnf_ppu_dyn_ret_threshold(base)		\
+					CMN_REG(base, 0x1100)
+#define CMN_hnf_rn_starvation(base)	CMN_REG(base, 0xA90)
+#define CMN_hnf_slc_lock_ways(base)	CMN_REG(base, 0xC00)
+#define CMN_hnf_slc_lock_base(base, n)	CMN_REG(base, 0xC08 + ((n) << 3))
+#define CMN_hnf_rni_region_vec(base)	CMN_REG(base, 0xC30)
+#define CMN_hnf_rnf_region_vec(base)	CMN_REG(base, 0xC38)
+#define CMN_hnf_rnd_region_vec(base)	CMN_REG(base, 0xC40)
+#define CMN_hnf_slcway_partition_rnf_vec(base, n)	\
+					CMN_REG(base, 0xC48 + ((n) << 3))
+#define CMN_hnf_rnf_region_vec1(base)	CMN_REG(base, 0xC28)
+#define CMN_hnf_slcway_partition_rnf_vec1(base, n)	\
+					CMN_REG(base, 0xCB0 + ((n) << 3))
+#define CMN_hnf_slcway_partition_rni_vec(base, n)	\
+					CMN_REG(base, 0xC68 + ((n) << 3))
+#define CMN_hnf_slcway_partition_rnd_vec(base, n)	\
+					CMN_REG(base, 0xC88 + ((n) << 3))
+#define CMN_hnf_rn_region_lock(base)	CMN_REG(base, 0xCA8)
+#define CMN_hnf_sam_control(base)	CMN_REG(base, 0xD00)
 #define CMN_hnf_sam_memregion(base, n)	CMN_REG(base, 0xD08 + ((n) << 3))
 #define CMN_hnf_sam_sn_properties(base)	CMN_REG(base, 0xD18)
+#define CMN_hnf_sam_6sn_nodeid(base)	CMN_REG(base, 0xD20)
 
 /* 3.2.6 XP register summery */
 #define CMN_mxp_device_port_connect_info(base, n)	\
@@ -227,6 +260,21 @@ typedef uint8_t cmn_id_t;
 #define CMN_mxp_p0_info(base)		CMN_REG(base, 0x900)
 #define CMN_mxp_p1_info(base)		CMN_REG(base, 0x908)
 #define CMN_mxp_aux_ctl(base)		CMN_REG(base, 0xA00)
+
+/* 3.2.9 RN SAM register summery */
+#define CMN_rnsam_status(base)		CMN_REG(base, 0xC00)
+#define CMN_rnsam_non_hash_mem_region(base, n)		\
+					CMN_32BIT_REG(base, 0xC08, n)
+#define CMN_rnsam_non_hash_tgt_nodeid(base, n)		\
+					CMN_12BIT_REG(base, 0xC30, n)
+#define CMN_rnsam_sys_cache_grp_region(base, n)		\
+					CMN_32BIT_REG(base, 0xC48, n)
+#define CMN_rnsam_sys_cache_grp_hn_nodeid(base, n)		\
+					CMN_12BIT_REG(base, 0xC68, n)
+#define CMN_rnsam_sys_cache_grp_nonhash_nodeid(base)	\
+					CMN_REG(base, 0xC98)
+#define CMN_rnsam_sys_cache_group_hn_count(base)	\
+					CMN_REG(base, 0xD00)
 
 typedef uint16_t cmn_nid_t;
 typedef uint32_t cmn_lid_t;

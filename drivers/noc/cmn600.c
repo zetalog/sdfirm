@@ -224,7 +224,7 @@ void cmn600_discovery(void)
 			cmn_rnf_count, CMN_MAX_RNF_COUNT);
 		BUG();
 	}
-#ifdef CONFIG_CMN600_HNF_CAL
+#ifdef CONFIG_CMN600_CAL
 	if ((cmn_hnf_count % 2) != 0) {
 		con_err("cmn600: HN-F count %d should be even for cal mode\n";
 			cmn_hnf_count);
