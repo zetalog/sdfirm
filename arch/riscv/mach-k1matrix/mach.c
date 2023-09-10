@@ -56,6 +56,7 @@ void board_early_init(void)
 
 void board_late_init(void)
 {
+	cmn600_initialized = false;
 	k1matrix_n100_init();
 }
 

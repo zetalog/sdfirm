@@ -240,8 +240,8 @@ typedef uint8_t cmn_did_t;
 #define CMN_node_id_OFFSET		16
 #define CMN_node_id_MASK		REG_16BIT_MASK
 #define CMN_node_id(value)		_GET_FV(CMN_node_id, value)
-#define CMN_logical_id_OFFSET		0
-#define CMN_logical_id_MASK		REG_32BIT_MASK
+#define CMN_logical_id_OFFSET		32
+#define CMN_logical_id_MASK		REG_16BIT_MASK
 #define CMN_logical_id(value)		_GET_FV_ULL(CMN_logical_id, value)
 
 /* CMN_child_info */
@@ -251,10 +251,18 @@ typedef uint8_t cmn_did_t;
 #define CMN_child_ptr_offset_OFFSET	16
 #define CMN_child_ptr_offset_MASK	REG_16BIT_MASK
 #define CMN_child_ptr_offset(value)	_GET_FV(CMN_child_ptr_offset, value)
-#define CMN_child_external		_BV(31)
 
-#define CMN_child_base(base, index)	\
-	((base) + CMN_child_ptr_offset(CMN_child_info(base)) + ((index) << 3))
+/* 2.5.3 Child pointers */
+#define CMN_child_external		_BV(31)
+#define CMN_child_address_offset_OFFSET		0
+#define CMN_child_address_offset_MASK		REG_28BIT_MASK
+#define CMN_child_address_offset(value)		_GET_FV(CMN_child_address_offset, value)
+#define CMN_child_node_pointer_OFFSET		14
+#define CMN_child_node_pointer_MASK		REG_14BIT_MASK
+#define CMN_child_node_pointer(value)		_GET_FV(CMN_child_node_pointer, value)
+#define CMN_child_register_offset_OFFSET	0
+#define CMN_child_register_offset_MASK		REG_14BIT_MASK
+#define CMN_child_register_offset(value)	_GET_FV(CMN_child_register_offset, value)
 
 /* CMN_mxp_device_port_connect_info */
 #define CMN_device_type_OFFSET		0
@@ -274,13 +282,18 @@ typedef uint8_t cmn_did_t;
 #define cmn_child_ptr_offset(base)		\
 	CMN_child_ptr_offset(__raw_readq(CMN_child_info(base)))
 #define cmn_child_ptr(base, index)		\
-	(CMN_PERIPH_BASE + cmn_child_ptr_offset(base) + ((index) << 3))
-#define cmn_child_node(base, index)		\
-	(CMN_PERIPH_BASE + cmn_child_ptr(base, index))
+	((base) + cmn_child_ptr_offset(base) + ((index) << 3))
 #define cmn_node_x(base)	CMN_X(cmn_node_id(base))
 #define cmn_node_y(base)	CMN_Y(cmn_node_id(base))
 #define cmn_node_pid(base)	CMN_PID(cmn_node_id(base))
 #define cmn_node_did(base)	CMN_DID(cmn_node_id(base))
+
+#define cmn_child_external(base, index)		\
+	(cmn_child_ptr(base, index) & CMN_child_external)
+#define cmn_child_address(base, index)		\
+	CMN_child_address_offset(__raw_readq(cmn_child_ptr(base, index)))
+#define cmn_child_node(base, index)		\
+	(CMN_PERIPH_BASE + cmn_child_ptr(base, index))
 
 #define cmn_child_node_id(base, index)		\
 	cmn_node_id(cmn_child_node(base, index))
@@ -290,13 +303,12 @@ typedef uint8_t cmn_did_t;
 #define cmn_mxp_device_type(base, pid)		\
 	CMN_device_type(CMN_mxp_device_port_connect_info(base, pid))
 
-#define cmn_child_external(base, index)		\
-	(cmn_child_ptr(base, index) & CMN_child_external)
 
 extern caddr_t cmn600_bases[];
 extern cmn_nid_t cmn_cxra_id;
 extern cmn_nid_t cmn_cxla_id;
 extern cmn_nid_t cmn_cxha_id;
+extern bool cmn600_initialized;
 
 void cmn600_init(void);
 
