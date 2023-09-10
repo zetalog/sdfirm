@@ -72,7 +72,7 @@ static const char * const cmn_cml_type2name[] = {
 
 const char *cmn_node_type_name(uint16_t node_type)
 {
-	if (node_type == CMN_RN_SAM)
+	if (node_type <= CMN_RN_SAM)
 		return cmn_type2name[node_type];
 
 	if (node_type >= CMN_CML &&
@@ -113,7 +113,7 @@ static void cmn600_discovery_external(caddr_t xp, int node_index)
 	uint8_t dev_type;
 	cmn_pid_t xp_pid;
 
-	xp_pid = cmn_node_pid(cmn_child_node_id(xp, node_index));
+	xp_pid = cmn_child_node_pid(xp, node_index);
 	dev_type = cmn_mxp_device_type(xp, xp_pid);
 	if ((dev_type == CMN_MXP_CXRH) ||
 	    (dev_type == CMN_MXP_CXHA) ||
