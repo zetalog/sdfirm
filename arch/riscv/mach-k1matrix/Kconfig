@@ -15,7 +15,7 @@ endchoice
 
 config K1MATRIX_SMP_CPUS
 	int "Number of cores"
-	depends SMP
+	depends SMP_BOOT
 	range 1 32
 	default 4
 
