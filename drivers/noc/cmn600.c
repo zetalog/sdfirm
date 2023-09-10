@@ -108,26 +108,28 @@ static void cmn600_process_hnf(caddr_t hnf)
 {
 }
 
-static void cmn600_discovery_external(caddr_t xp, int node_index)
+static void cmn600_discovery_external(caddr_t node, caddr_t xp)
 {
 	uint8_t dev_type;
 	cmn_pid_t xp_pid;
 
-	xp_pid = cmn_child_node_pid(xp, node_index);
+	xp_pid = cmn_node_pid(node);
 	dev_type = cmn_mxp_device_type(xp, xp_pid);
 	if ((dev_type == CMN_MXP_CXRH) ||
 	    (dev_type == CMN_MXP_CXHA) ||
 	    (dev_type == CMN_MXP_CXRA)) {
 		cmn_cxla_id = cmn_nr_nodes;
-		cmn_bases[cmn_nr_nodes++] = xp;
-		con_log("cmn600: Found CXLA at node ID: %d\n",
-			cmn_child_node_id(xp, node_index));
+		cmn_bases[cmn_nr_nodes++] = node;
+		con_log("cmn600: CXLA external (%d, %d) ID: %d, LID: %d\n",
+			(int)cmn_node_x(node), (int)cmn_node_y(node),
+			(int)cmn_node_id(node), (int)cmn_logical_id(node));
 	} else {
 		/* External RN-SAM node */
 		cmn_rn_sam_ext_count++;
 		BUG_ON(cmn_rn_sam_ext_count > CMN_MAX_RN_SAM_EXT_COUNT);
-		con_log("cmn600: Found ext node ID: %d\n",
-			cmn_child_node_id(xp, node_index));
+		con_log("cmn600: RN_SAM external (%d, %d) ID: %d, LID: %d\n",
+			(int)cmn_node_x(node), (int)cmn_node_y(node),
+			(int)cmn_node_id(node), (int)cmn_logical_id(node));
 	}
 }
 
@@ -178,7 +180,7 @@ static void cmn600_discovery_internal(caddr_t node)
 		/* Nothing to be done for other node types */
 		break;
 	}
-	con_log("cmn600: %s ID: %d, LID: %d\n",
+	con_dbg("cmn600: %s ID: %d, LID: %d\n",
 		cmn_node_type_name(cmn_node_type(node)),
 		cmn_node_id(node), cmn_logical_id(node));
 }
@@ -191,12 +193,12 @@ void cmn600_discovery(void)
 
 	BUG_ON(cmn_node_type(CMN_CFGM_BASE) != CMN_CFG);
 
-	con_log("cmn600: discovery:\n");
+	con_dbg("cmn600: discovery:\n");
 	xp_count = cmn_child_count(CMN_CFGM_BASE);
 	for (xp_index = 0; xp_index < xp_count; xp_index++) {
 		xp = cmn_child_node(CMN_CFGM_BASE, xp_index);
 
-		con_log("cmn600: XP (%d, %d) ID: %d, LID: %d\n",
+		con_dbg("cmn600: XP (%d, %d) ID: %d, LID: %d\n",
 			(int)cmn_node_x(xp), (int)cmn_node_y(xp),
 			(int)cmn_node_id(xp), (int)cmn_logical_id(xp));
 
@@ -205,7 +207,7 @@ void cmn600_discovery(void)
 			node = cmn_child_node(xp, node_index);
 
 			if (cmn_child_external(xp, node_index))
-				cmn600_discovery_external(xp, node_index);
+				cmn600_discovery_external(node, xp);
 			else
 				cmn600_discovery_internal(node);
 		}
@@ -230,19 +232,19 @@ void cmn600_discovery(void)
 	}
 #endif
 
-	con_log("cmn600: Total internal RN-SAM: %d\n", cmn_rn_sam_int_count);
-	con_log("cmn600: Total external RN-SAM: %d\n", cmn_rn_sam_ext_count);
-	con_log("cmn600: Total HN-F: %d\n", cmn_hnf_count);
-	con_log("cmn600: Total RN-F: %d\n", cmn_rnf_count);
-	con_log("cmn600: Total RN-D: %d\n", cmn_rnd_count);
-	con_log("cmn600: Total RN-I: %d\n", cmn_rni_count);
+	con_dbg("cmn600: Total internal RN-SAM: %d\n", cmn_rn_sam_int_count);
+	con_dbg("cmn600: Total external RN-SAM: %d\n", cmn_rn_sam_ext_count);
+	con_dbg("cmn600: Total HN-F: %d\n", cmn_hnf_count);
+	con_dbg("cmn600: Total RN-F: %d\n", cmn_rnf_count);
+	con_dbg("cmn600: Total RN-D: %d\n", cmn_rnd_count);
+	con_dbg("cmn600: Total RN-I: %d\n", cmn_rni_count);
 
 	if (cmn_cxla_id != CMN_INVAL_ID)
-		con_log("cmn600: CCIX CXLA node id %016lx\n", CMN_CXLA_BASE);
+		con_dbg("cmn600: CCIX CXLA node id %016lx\n", CMN_CXLA_BASE);
 	if (cmn_cxra_id != CMN_INVAL_ID)
-		con_log("cmn600: CCIX CXRA node id %016lx\n", CMN_CXRA_BASE);
+		con_dbg("cmn600: CCIX CXRA node id %016lx\n", CMN_CXRA_BASE);
 	if (cmn_cxha_id != CMN_INVAL_ID)
-		con_log("cmn600: CCIX CXHA node id %016lx\n", CMN_CXHA_BASE);
+		con_dbg("cmn600: CCIX CXHA node id %016lx\n", CMN_CXHA_BASE);
 }
 
 static void cmn600_configure_rn_sam_ext(caddr_t xp, unsigned int xrnsam)
@@ -311,8 +313,8 @@ void cmn600_configure(void)
 	}
 }
 
-#ifdef CONFIG_CMN600_CCIX
-static void cmn600_setup_ccix_host(void)
+#ifdef CONFIG_CMN600_CML
+static void cmn600_setup_cml(void)
 {
 	int i;
 
@@ -331,7 +333,7 @@ static void cmn600_setup_ccix_host(void)
 	}
 }
 #else
-#define cmn600_setup_ccix_host()	do { } while (0)
+#define cmn600_setup_cml()	do { } while (0)
 #endif
 
 static void cmn600_setup_sam(caddr_t rnsam)
@@ -358,7 +360,7 @@ void cmn600_init(void)
 	for (rnsam = 0; rnsam < cmn_rn_sam_int_count; rnsam++)
 		cmn600_setup_sam(CMN_RN_SAM_INT_BASE(rnsam));
 	/* Setup CCIX host */
-	cmn600_setup_ccix_host();
+	cmn600_setup_cml();
 
 	cmn600_initialized = true;
 }
