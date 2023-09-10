@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Sep  8 08:32:00 2023
+# Sun Sep 10 13:14:45 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -186,6 +186,7 @@ CONFIG_ARCH_HAS_SBI_TIMER=y
 # SpacemiT K1Matrix board options
 #
 CONFIG_K1MXLITE=y
+CONFIG_K1MATRIX_SMP_CPUS=4
 # CONFIG_K1MATRIX_ZSBL is not set
 CONFIG_K1MATRIX_FSBL=y
 # CONFIG_K1MATRIX_BBL is not set
@@ -195,6 +196,7 @@ CONFIG_K1MATRIX_BOOT_LLP=y
 # CONFIG_K1MATRIX_BOOT_SYS is not set
 CONFIG_K1MATRIX_ASIC=y
 # CONFIG_K1MATRIX_FPGA is not set
+# CONFIG_K1MATRIX_D2D is not set
 # CONFIG_K1MATRIX_DDR_SIZE_CUSTOM is not set
 # CONFIG_K1MATRIX_CPRINT is not set
 # CONFIG_K1MATRIX_N100 is not set
@@ -233,7 +235,7 @@ CONFIG_ARCH_HAS_THREAD=y
 # Scheduling facility (SMP) support
 #
 CONFIG_ARCH_HAS_SMP=y
-# CONFIG_SMP_BOOT is not set
+CONFIG_SMP_BOOT=y
 # CONFIG_SMP is not set
 
 #
@@ -254,18 +256,16 @@ CONFIG_BFM=y
 CONFIG_XIP=y
 CONFIG_BOOT_BASE=0x0110000000
 CONFIG_LOAD_BASE=0x0110000000
-# CONFIG_NO_ZERO_BSS is not set
-# CONFIG_NO_ZERO_GPR is not set
+CONFIG_NO_ZERO_BSS=y
+CONFIG_NO_ZERO_GPR=y
 
 #
 # Address space allocator (stack) support
 #
 # CONFIG_STACK_CUST is not set
 # CONFIG_HEAP is not set
-CONFIG_MEM=y
-CONFIG_MEM_MAX_REGIONS=4
-CONFIG_MEM_RESIZE=y
-CONFIG_PAGE=y
+# CONFIG_MEM is not set
+# CONFIG_PAGE is not set
 # CONFIG_DMA is not set
 CONFIG_ARCH_HAS_FP=y
 # CONFIG_FP is not set
