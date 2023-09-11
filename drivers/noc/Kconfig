@@ -44,7 +44,7 @@ config CCI550
 config ARCH_HAS_CMN600
 	bool
 
-config CMN600
+menuconfig CMN600
 	bool "ARM CMN600 support"
 	depends ARCH_HAS_CMN600
 

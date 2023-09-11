@@ -179,6 +179,8 @@ typedef uint8_t cmn_id_t;
 #define CMN_CFGM_ID			0
 #define CMN_INVAL_ID			CMN_MAX_NODES
 
+#define CMN_MAX_SCGS			4
+
 #define CMN_CFGM_BASE			(cmn_bases[CMN_CFGM_ID])
 #define CMN_HNF_BASE(id)		(cmn_bases[id])
 #define CMN_RND_BASE(id)		(cmn_bases[id])
@@ -277,6 +279,8 @@ typedef uint8_t cmn_id_t;
 					CMN_REG(base, 0xD00)
 #define CMN_rnsam_sys_cache_grp_sn_nodeid(base, n)		\
 					CMN_12BIT_REG(base, 0xD08, n)
+#define CMN_rnsam_sys_cache_grp_cal_mode(base)		\
+					CMN_REG(base, 0xF10)
 
 typedef uint16_t cmn_nid_t;
 typedef uint16_t cmn_lid_t;
@@ -301,6 +305,28 @@ typedef uint8_t cmn_did_t;
 #define CMN_child_ptr_offset_OFFSET	16
 #define CMN_child_ptr_offset_MASK	REG_16BIT_MASK
 #define CMN_child_ptr_offset(value)	_GET_FV_ULL(CMN_child_ptr_offset, value)
+
+/* CMN_cfgm_periph_id */
+#define CMN_periph_id_OFFSET(n)		REG64_32BIT_OFFSET(n)
+#define CMN_periph_id_MASK		REG_32BIT_MASK
+#define CMN_periph_id(n, value)		(_GET_FVn(n, CMN_periph_id, value) & REG_8BIT_MASK)
+
+/* CMN_cfgm_periph_id_2 */
+#define CMN_JEP106_id_code_6_4_OFFSET	0
+#define CMN_JEP106_id_code_6_4_MASK	REG_3BIT_MASK
+#define CMN_JEP106_id_code_6_4(value)	_GET_FV(CMN_JEP106_id_code_6_4, value)
+#define CMN_JEDED_JEP106		_BV(3)
+#define CMN_revision_OFFSET		4
+#define CMN_revision_MASK		REG_4BIT_MASK
+#define CMN_revision(value)		_GET_FV(CMN_revision, value)
+#define CMN_r1p0			0
+#define CMN_r1p1			1
+#define CMN_r1p2			2
+#define CMN_r1p3			3
+#define CMN_r2p0			4
+#define CMN_r3p0			5
+#define CMN_r3p1			6
+#define CMN_r3p2			7
 
 /* 2.5.3 Child pointers */
 #define CMN_child_external			_BV_ULL(31)
@@ -354,6 +380,13 @@ typedef uint8_t cmn_did_t;
 #define CMN_ppu_op_mode_FAM		3
 #define CMN_ppu_dyn_en			_BV_ULL(8)
 
+#define CMN_sam_use_default_node	_BV_ULL(0)
+#define CMN_sam_nstall_req_OFFSET	1
+#define CMN_sam_nstall_req_MASK		REG_1BIT_MASK
+#define CMN_sam_nstall_req(value)	_SET_FV_ULL(CMN_sam_nstall_req, value)
+#define CMN_sam_stall_req		0
+#define CMN_sam_unstall_req		1
+
 #define CMN_sam_range_nodeid_OFFSET	0
 #define CMN_sam_range_nodeid_MASK	REG_11BIT_MASK
 #define CMN_sam_range_nodeid(value)	_SET_FV_ULL(CMN_sam_range_nodeid, value)
@@ -364,6 +397,8 @@ typedef uint8_t cmn_did_t;
 #define CMN_sam_range_base_addr_MASK	REG_22BIT_MASK
 #define CMN_sam_range_base_addr(value)	_SET_FV_ULL(CMN_sam_range_base_addr, value)
 #define CMN_sam_range_valid		_BV_ULL(63)
+
+#define CMN_scg_hnf_cal_mode_en(n)	(_BV(0) << ((n) << 4))
 
 /* CMN macros and APIs */
 #define cmn_node_type(base)			\
@@ -394,6 +429,12 @@ typedef uint8_t cmn_did_t;
 	cmn_node_id(cmn_child_node(base, index))
 #define cmn_child_node_pid(base, index)		\
 	cmn_node_pid(cmn_child_node_id(base, index))
+
+#define cmn_periph_id(id)			\
+	CMN_periph_id(__raw_readq(CMN_cfgm_periph_id(id)), id)
+#define cmn_revision()				\
+	CMN_revision(cmn_periph_id(2))
+#define cmn_cal_supported()	(cmn_revision() >= CMN_r2p0)
 
 #define cmn_mxp_device_type(base, pid)		\
 	CMN_device_type(CMN_mxp_device_port_connect_info(base, pid))
