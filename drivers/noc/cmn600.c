@@ -422,6 +422,8 @@ void cmn600_configure(void)
 			}
 		}
 	}
+
+	con_log("cmn600: Total nodes: %d\n", cmn_nr_nodes);
 }
 
 #ifdef CONFIG_CMN600_CML
@@ -480,6 +482,8 @@ static void cmn600_setup_sam(caddr_t rnsam)
 		__raw_writeq_mask(CMN_nodeid(lid, nid),
 				  CMN_nodeid(lid, CMN_nodeid_MASK),
 				  CMN_rnsam_sys_cache_grp_hn_nodeid(rnsam, lid));
+		con_log("cmn600: SCG: %d/%d, ID: %d\n",
+			lid, cmn_hnf_count, nid);
 	}
 	__raw_writeq(cmn_hnf_count, CMN_rnsam_sys_cache_group_hn_count(rnsam));
 
