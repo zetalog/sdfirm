@@ -90,6 +90,7 @@ typedef unsigned long			loff_t;
 #define REG_16BIT_MASK			0xFFFF
 #define REG_17BIT_MASK			0x1FFFF
 #define REG_20BIT_MASK			0xFFFFF
+#define REG_22BIT_MASK			0x3FFFFF
 #define REG_23BIT_MASK			0x7FFFFF
 #define REG_24BIT_MASK			0xFFFFFF
 #define REG_28BIT_MASK			0xFFFFFFF

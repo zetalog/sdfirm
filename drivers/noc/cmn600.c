@@ -112,22 +112,22 @@ static void cmn600_process_hnf(caddr_t hnf)
 {
 	static unsigned int cal_mode_factor = 1;
 	cmn_lid_t lid;
-	cmn_nid_t nid;
 	unsigned int group;
 	unsigned int bit_pos;
 	unsigned int region_sub_count = 0;
 	unsigned int region_index;
 	struct cmn600_memregion *region;
+	uint64_t base_offset;
 
 	lid = cmn_logical_id(hnf);
-	nid = cmn_node_id(hnf);
 
 #ifdef CONFIG_CMN600_CAL
 	/* If CAL mode is set, only even numbered hnf node should be added
 	 * to the sys_cache_grp_hn_nodeid registers and hnf_count should
 	 * be incremented only for the even numbered hnf nodes.
 	 */
-	if ((nid % 2 == 1) && cmn_cal_supported(CMN_CFGM_BASE)) {
+	if (((cmn_node_id(hnf)) % 2 == 1) &&
+	    cmn_cal_supported(CMN_CFGM_BASE)) {
 		/* Factor to manipulate the group and bit_pos */
 		cal_mode_factor = 2;
 
@@ -176,6 +176,12 @@ static void cmn600_process_hnf(caddr_t hnf)
 		if (region->type != CMN600_REGION_TYPE_SYSCACHE_SUB)
 			continue;
 
+		__raw_setl(CMN_sam_range_nodeid(region->node_id) |
+			   CMN_sam_range_size(region->size) |
+			   CMN_sam_range_base_addr((region->base + base_offset) /
+						   SZ_64M) |
+			   CMN_sam_range_valid,
+			   CMN_hnf_sam_memregion(hnf, region_sub_count));
 		region_sub_count++;
 	}
 
