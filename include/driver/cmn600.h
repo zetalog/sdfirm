@@ -203,9 +203,9 @@ typedef uint8_t cmn_id_t;
 #define CMN_REG(base, offset)		((base) + (offset))
 #define CMN_CFGM_REG(offset)		CMN_REG(CMN_CFGM_BASE, offset)
 #define CMN_12BIT_REG(base, offset, n)	\
-	CMN_REG((base), (offset) + CMN_12BIT_INDEX(n))
+	CMN_REG((base), (offset) + (CMN_12BIT_INDEX(n) << 3))
 #define CMN_32BIT_REG(base, offset, n)	\
-	CMN_REG((base), (offset) + REG64_32BIT_INDEX(n))
+	CMN_REG((base), (offset) + (REG64_32BIT_INDEX(n) << 3))
 
 /* Common to all nodes */
 #define CMN_node_info(base)		CMN_REG(base, 0x0)
@@ -275,9 +275,11 @@ typedef uint8_t cmn_id_t;
 					CMN_REG(base, 0xC98)
 #define CMN_rnsam_sys_cache_group_hn_count(base)	\
 					CMN_REG(base, 0xD00)
+#define CMN_rnsam_sys_cache_grp_sn_nodeid(base, n)		\
+					CMN_12BIT_REG(base, 0xD08, n)
 
 typedef uint16_t cmn_nid_t;
-typedef uint32_t cmn_lid_t;
+typedef uint16_t cmn_lid_t;
 typedef uint8_t cmn_pid_t;
 typedef uint8_t cmn_did_t;
 
@@ -301,7 +303,7 @@ typedef uint8_t cmn_did_t;
 #define CMN_child_ptr_offset(value)	_GET_FV(CMN_child_ptr_offset, value)
 
 /* 2.5.3 Child pointers */
-#define CMN_child_external		_BV(31)
+#define CMN_child_external			_BV_ULL(31)
 #define CMN_child_address_offset_OFFSET		0
 #define CMN_child_address_offset_MASK		REG_28BIT_MASK
 #define CMN_child_address_offset(value)		_GET_FV(CMN_child_address_offset, value)
@@ -312,11 +314,45 @@ typedef uint8_t cmn_did_t;
 #define CMN_child_register_offset_MASK		REG_14BIT_MASK
 #define CMN_child_register_offset(value)	_GET_FV(CMN_child_register_offset, value)
 
+/* CMN_hnf_sam_control */
+#define CMN_hn_cfg_three_sn_en			_BV_ULL(36)
+#define CMN_hn_cfg_six_sn_en			_BV_ULL(37)
+#define CMN_hn_cfg_sam_top_address_bit_OFFSET(n)	\
+						(REG64_8BIT_OFFSET(n) + 40)
+#define CMN_hn_cfg_sam_top_address_bit_MASK	REG64_8BIT_MASK
+#define CMN_hn_cfg_sam_top_address_bit(n, value)	\
+	_SET_FVn(n, CMN_hn_cfg_sam_top_address_bit, value)
+#define CMN_hn_cfg_sam_inv_top_address_bit	_BV_ULL(63)
+
 /* CMN_mxp_device_port_connect_info */
 #define CMN_device_type_OFFSET		0
 #define CMN_device_type_MASK		REG_5BIT_MASK
-#define CMN_device_type(device_port_connect_info)	\
-	_GET_FV(CMN_device_type, device_port_connect_info)
+#define CMN_device_type(value)		_GET_FV(CMN_device_type, value)
+
+/* CMN_rnsam_non_hash_tgt_nodeid
+ * CMN_rnsam_sys_cache_grp_hn_nodeid
+ * CMN_rnsam_sys_cache_grp_sn_nodeid
+ */
+#define CMN_nodeid_OFFSET(n)		CMN_12BIT_OFFSET(n)
+#define CMN_nodeid_MASK			REG_12BIT_MASK
+#define CMN_nodeid(n, value)		_SET_FVn(n, CMN_nodeid, value)
+
+/* CMN_hnf_ppu_pwpr */
+#define CMN_ppu_policy_OFFSET		0
+#define CMN_ppu_policy_MASK		REG_4BIT_MASK
+#define CMN_ppu_policy(value)		_SET_FV(CMN_ppu_policy, value)
+#define CMN_ppu_policy_OFF		0
+#define CMN_ppu_policy_MEM_RET		2
+#define CMN_ppu_policy_FUNC_RET		7
+#define CMN_ppu_policy_ON		8
+#define CMN_ppu_op_mode_OFFSET		4
+#define CMN_ppu_op_mode_MASK		REG_4BIT_MASK
+#define CMN_ppu_op_mode(value)		_SET_FV(CMN_ppu_op_mode, value)
+#define CMN_ppu_op_mode_NOSFSLC		0
+#define CMN_ppu_op_mode_SFONLY		1
+#define CMN_ppu_op_mode_HAM		2
+#define CMN_ppu_op_mode_FAM		3
+#define CMN_ppu_dyn_en			_BV_ULL(8)
 
 /* CMN macros and APIs */
 #define cmn_node_type(base)			\
@@ -350,6 +386,19 @@ typedef uint8_t cmn_did_t;
 
 #define cmn_mxp_device_type(base, pid)		\
 	CMN_device_type(CMN_mxp_device_port_connect_info(base, pid))
+
+#define CMN600_MEMORY_REGION_TYPE_IO		0
+#define CMN600_MEMORY_REGION_TYPE_SYSCACHE	1
+#define CMN600_REGION_TYPE_SYSCACHE_SUB		2
+#define CMN600_REGION_TYPE_CCIX			3
+#define CMN600_REGION_TYPE_SYSCACHE_NONHASH	4
+
+struct cmn600_memregion {
+    caddr_t base;
+    uint64_t size;
+    uint16_t type;
+    uint16_t node_id;
+};
 
 extern caddr_t cmn600_bases[];
 extern cmn_nid_t cmn_cxra_id;

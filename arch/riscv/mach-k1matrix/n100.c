@@ -42,6 +42,16 @@
 #include <target/arch.h>
 #include <target/noc.h>
 
+int cmn_snf_count;
+cmn_nid_t cmn_snf_table[] = {
+	0,
+};
+
+int cmn_mmap_count;
+struct cmn600_memregion cmn_mmap_table[] = {
+	{ 0, 0, 0, 0 },
+};
+
 void k1matrix_n100_init(void)
 {
 	cmn600_initialized = false;

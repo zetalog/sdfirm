@@ -53,6 +53,11 @@
 #include <driver/cmn600.h>
 
 #ifdef CONFIG_K1MATRIX_N100
+extern int cmn_snf_count;
+extern cmn_nid_t cmn_snf_table[];
+extern int cmn_mmap_count;
+extern struct cmn600_memregion cmn_mmap_table[];
+
 void k1matrix_n100_init(void);
 #else
 #define k1matrix_n100_init()		do { } while (0)
