@@ -42,9 +42,10 @@
 #include <target/arch.h>
 #include <target/noc.h>
 
-int cmn_snf_count;
+int cmn_snf_count = 2;
 cmn_nid_t cmn_snf_table[] = {
-	0,
+	32,
+	32,
 };
 
 int cmn_mmap_count;
