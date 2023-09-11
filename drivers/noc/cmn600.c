@@ -50,23 +50,23 @@
 
 #ifdef CONFIG_CONSOLE_VERBOSE
 static const char * const cmn_type2name[] = {
-    [CMN_INVAL] = "<Invalid>",
-    [CMN_DVM] = "DVM",
-    [CMN_CFG] = "CFG",
-    [CMN_DTC] = "DTC",
-    [CMN_HNI] = "HN-I",
-    [CMN_HNF] = "HN-F",
-    [CMN_XP] = "XP",
-    [CMN_SBSX] = "SBSX",
-    [CMN_RNI] = "RN-I",
-    [CMN_RND] = "RN-D",
-    [CMN_RN_SAM] = "RN-SAM",
+	[CMN_INVAL] = "<Invalid>",
+	[CMN_DVM] = "DVM",
+	[CMN_CFG] = "CFG",
+	[CMN_DTC] = "DTC",
+	[CMN_HNI] = "HN-I",
+	[CMN_HNF] = "HN-F",
+	[CMN_XP] = "XP",
+	[CMN_SBSX] = "SBSX",
+	[CMN_RNI] = "RN-I",
+	[CMN_RND] = "RN-D",
+	[CMN_RN_SAM] = "RN-SAM",
 };
 
 static const char * const cmn_cml_type2name[] = {
-    [CMN_CXRA - CMN_CML] = "CXRA",
-    [CMN_CXHA - CMN_CML] = "CXHA",
-    [CMN_CXLA - CMN_CML] = "CXLA",
+	[CMN_CXRA - CMN_CML] = "CXRA",
+	[CMN_CXHA - CMN_CML] = "CXHA",
+	[CMN_CXLA - CMN_CML] = "CXLA",
 
 };
 
@@ -80,6 +80,22 @@ const char *cmn_node_type_name(uint16_t node_type)
 		return cmn_cml_type2name[node_type - CMN_CML];
 
 	return cmn_type2name[CMN_INVAL];
+}
+
+static const char *const cmn_mmap2name[] = {
+	[CMN600_MEMORY_REGION_TYPE_IO] = "I/O",
+	[CMN600_MEMORY_REGION_TYPE_SYSCACHE] = "System Cache",
+	[CMN600_REGION_TYPE_SYSCACHE_SUB] = "Sub-System Cache",
+	[CMN600_REGION_TYPE_CCIX] = "CCIX",
+	[CMN600_REGION_TYPE_SYSCACHE_NONHASH] = "System Cache Non-hash",
+};
+
+const char *cmn_mem_region_name(uint8_t type)
+{
+	if (type >= ARRAY_SIZE(cmn_mmap2name))
+		return "<Invalid>";
+
+	return cmn_mmap2name[type];
 }
 #endif
 
@@ -97,27 +113,39 @@ cmn_id_t cmn_rn_sam_int_count;
 cmn_id_t cmn_rn_sam_ext_count;
 bool cmn600_initialized = false;
 
+#define CMN_MAX_SCG_COUNT		64
+
 uint8_t cmn_hnf_ids[CMN_MAX_HNF_COUNT];
 uint8_t cmn_rnd_ids[CMN_MAX_RND_COUNT];
 uint8_t cmn_rni_ids[CMN_MAX_RND_COUNT];
 uint8_t cmn_rn_sam_ext_ids[CMN_MAX_RN_SAM_EXT_COUNT];
 uint8_t cmn_rn_sam_int_ids[CMN_MAX_RN_SAM_INT_COUNT];
-uint16_t cmn_hnf_cache_groups[CMN_MAX_HNF_COUNT];
+cmn_nid_t cmn_scg_nids[CMN_MAX_SCG_COUNT];
+cmn_nid_t cmn_hnf_scgs[CMN_MAX_HNF_COUNT];
+uint8_t cmn_scg_count;
 
 #define CMN600_HNF_CACHE_GROUP_ENTRIES_MAX		32
 #define CMN600_HNF_CACHE_GROUP_ENTRIES_PER_GROUP	4
 #define CMN600_HNF_CACHE_GROUP_ENTRY_BITS_WIDTH		12
+
+#if 0
+static int cmn_hnf_cache_group_count(void)
+{
+	return (cmn_hnf_count + CMN600_HNF_CACHE_GROUP_ENTRIES_PER_GROUP - 1) /
+	       CMN600_HNF_CACHE_GROUP_ENTRIES_PER_GROUP;
+}
+#endif
 
 static void cmn600_process_hnf(caddr_t hnf)
 {
 	static unsigned int cal_mode_factor = 1;
 	cmn_lid_t lid;
 	unsigned int group;
-	unsigned int bit_pos;
+	unsigned int group_index, scg;
 	unsigned int region_sub_count = 0;
 	unsigned int region_index;
 	struct cmn600_memregion *region;
-	uint64_t base_offset;
+	uint64_t base;
 
 	lid = cmn_logical_id(hnf);
 
@@ -126,8 +154,7 @@ static void cmn600_process_hnf(caddr_t hnf)
 	 * to the sys_cache_grp_hn_nodeid registers and hnf_count should
 	 * be incremented only for the even numbered hnf nodes.
 	 */
-	if (((cmn_node_id(hnf)) % 2 == 1) &&
-	    cmn_cal_supported(CMN_CFGM_BASE)) {
+	if (((cmn_node_id(hnf)) % 2 == 1) && cmn_cal_supported()) {
 		/* Factor to manipulate the group and bit_pos */
 		cal_mode_factor = 2;
 
@@ -141,34 +168,35 @@ static void cmn600_process_hnf(caddr_t hnf)
 
 	BUG_ON(lid >= cmn_snf_count);
 
-	group = lid /
-		(CMN600_HNF_CACHE_GROUP_ENTRY_BITS_WIDTH * cal_mode_factor);
-	bit_pos = (CMN600_HNF_CACHE_GROUP_ENTRY_BITS_WIDTH / cal_mode_factor) *
-		  (lid % (CMN600_HNF_CACHE_GROUP_ENTRIES_PER_GROUP *
-			  cal_mode_factor));
+	group = lid / (CMN600_HNF_CACHE_GROUP_ENTRY_BITS_WIDTH * cal_mode_factor);
+	group_index = (cal_mode_factor) * (lid % (CMN600_HNF_CACHE_GROUP_ENTRIES_PER_GROUP * cal_mode_factor));
+	scg = group * CMN600_HNF_CACHE_GROUP_ENTRIES_PER_GROUP + group_index;
 
 	/* If CAL mode is set, add only even numbered hnd node to
 	 * cmn_rnsam_sys_cache_grp_hn_nodeid registers
 	 */
 #ifdef CONFIG_CMN600_CAL
-	if (is_cal_mode_supported(CMN_CFGM_BASE)) {
-		if (node_id % 2 == 0)
-			cmn_hnf_cache_groups[group] +=
-				((uint64_t)cmn_node_id(hnf)) << bit_pos;
+	if (cmn_cal_supported()) {
+		if ((cmn_node_id(hnf) % 2) == 0) {
+			cmn_hnf_scgs[lid] = scg;
+			cmn_scg_nids[cmn_scg_count++] = cmn_node_id(hnf);
+		}
 	} else
 #endif
-		cmn_hnf_cache_groups[group] +=
-			((uint64_t)cmn_node_id(hnf)) << bit_pos;
+	{
+		cmn_hnf_scgs[lid] = cmn_scg_count;
+		cmn_scg_nids[cmn_scg_count++] = cmn_node_id(hnf);
+	}
 
 	/* Set target node */
 	__raw_writeq(cmn_snf_table[lid], CMN_hnf_sam_control(hnf));
 
 #ifdef CONFIG_CMN600_CML
 	if (cmn600_hw_chip_id() != 0)
-		base_offset = cmn600_hw_chip_addr_space() * cmn600_hw_chip_id();
+		base = cmn600_hw_chip_addr_space() * cmn600_hw_chip_id();
 	else
 #endif
-		base_offset = 0;
+		base = 0;
 
 	for (region_index = 0; region_index < cmn_mmap_count; region_index++) {
 		region = &cmn_mmap_table[region_index];
@@ -176,18 +204,35 @@ static void cmn600_process_hnf(caddr_t hnf)
 		if (region->type != CMN600_REGION_TYPE_SYSCACHE_SUB)
 			continue;
 
-		__raw_setl(CMN_sam_range_nodeid(region->node_id) |
-			   CMN_sam_range_size(region->size) |
-			   CMN_sam_range_base_addr((region->base + base_offset) /
-						   SZ_64M) |
-			   CMN_sam_range_valid,
-			   CMN_hnf_sam_memregion(hnf, region_sub_count));
+		__raw_writeq(CMN_sam_range_nodeid(region->node_id) |
+			     CMN_sam_range_size(region->size) |
+			     CMN_sam_range_base_addr((region->base + base) / SZ_64M) |
+			     CMN_sam_range_valid,
+			     CMN_hnf_sam_memregion(hnf, region_sub_count));
 		region_sub_count++;
 	}
 
-	__raw_setq(CMN_ppu_policy(CMN_ppu_policy_ON) |
-		   CMN_ppu_op_mode(CMN_ppu_op_mode_FAM) |
-		   CMN_ppu_dyn_en, CMN_hnf_ppu_pwpr(hnf));
+	__raw_writeq(CMN_ppu_policy(CMN_ppu_policy_ON) |
+		     CMN_ppu_op_mode(CMN_ppu_op_mode_FAM) |
+		     CMN_ppu_dyn_en, CMN_hnf_ppu_pwpr(hnf));
+}
+
+static int cmn_tgt_nodeid_reg_count(void)
+{
+	switch (cmn_revision()) {
+	case CMN_r1p0:
+	case CMN_r1p1:
+	case CMN_r1p3:
+		return 2;
+	case CMN_r1p2:
+	case CMN_r2p0:
+		return 3;
+	case CMN_r3p0:
+	case CMN_r3p1:
+	case CMN_r3p2:
+		return 5;
+	}
+	return 0;
 }
 
 static void cmn600_discovery_external(caddr_t node, caddr_t xp)
@@ -308,7 +353,7 @@ void cmn600_discovery(void)
 	}
 #ifdef CONFIG_CMN600_CAL
 	if ((cmn_hnf_count % 2) != 0) {
-		con_err("cmn600: HN-F count %d should be even for cal mode\n";
+		con_err("cmn600: HN-F count %d should be even for cal mode\n",
 			cmn_hnf_count);
 		BUG();
 	}
@@ -420,6 +465,51 @@ static void cmn600_setup_cml(void)
 
 static void cmn600_setup_sam(caddr_t rnsam)
 {
+	unsigned int tgt_nodeid_reg_count;
+	uint64_t base;
+	unsigned int region_index;
+	struct cmn600_memregion *region;
+	unsigned int scg, i;
+
+	tgt_nodeid_reg_count = cmn_tgt_nodeid_reg_count();
+	BUG_ON(tgt_nodeid_reg_count == 0);
+
+	for (region_index = 0; region_index < cmn_mmap_count; region_index++) {
+		region = &cmn_mmap_table[region_index];
+#ifdef CONFIG_CMN600_CML
+		if (cmn600_hw_chip_id() != 0) {
+			if (region->type == CMN_REGION_TYPE_CCIX)
+				base = 0;
+			else if (region->type == CMN600_MEMORY_REGION_TYPE_SYSCACHE)
+				base = region->base;
+			else
+				base = cmn600_hw_chip_addr_space() * cmn600_hw_chip_id() +
+				       region->base;
+		} else
+#endif
+			base = region->base;
+	}
+
+	for (i = 0; i < cmn_scg_count; i++) {
+		scg = cmn_hnf_scgs[i];
+		__raw_writeq_mask(CMN_nodeid(scg, cmn_scg_nids[scg]),
+				  CMN_nodeid(scg, CMN_nodeid_MASK),
+				  CMN_rnsam_sys_cache_grp_hn_nodeid(rnsam, scg));
+	}
+	__raw_writeq(cmn_hnf_count, CMN_rnsam_sys_cache_group_hn_count(rnsam));
+
+#ifdef CONFIG_CMN600_CAL
+	if (cmn_cal_supported()) {
+		for (region_index = 0; region_index < CMN_MAX_SCGS; region_index++) {
+			__raw_setq(CMN_scg_hnf_cal_mode_en(region_index),
+				   CMN_rnsam_sys_cache_grp_cal_mode(rnsam));
+		}
+	}
+#endif
+
+	__raw_writeq_mask(CMN_sam_nstall_req(CMN_sam_unstall_req),
+			  CMN_sam_nstall_req(CMN_sam_nstall_req_MASK),
+			  CMN_rnsam_status(rnsam));
 }
 
 void cmn600_init(void)
