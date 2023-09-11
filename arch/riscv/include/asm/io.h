@@ -122,6 +122,12 @@ static __inline uint64_t __raw_readq(const caddr_t a)
 		__v |= (v);				\
 		__raw_writel(__v, (a));			\
 	} while (0)
+#define __raw_setq(v,a)					\
+	do {						\
+		uint64_t __v = __raw_readq(a);		\
+		__v |= (v);				\
+		__raw_writeq(__v, (a));			\
+	} while (0)
 #define __raw_clearb(v,a)				\
 	do {						\
 		uint8_t __v = __raw_readb(a);		\
@@ -139,6 +145,12 @@ static __inline uint64_t __raw_readq(const caddr_t a)
 		uint32_t __v = __raw_readl(a);		\
 		__v &= ~(v);				\
 		__raw_writel(__v, (a));			\
+	} while (0)
+#define __raw_clearq(v,a)				\
+	do {						\
+		uint64_t __v = __raw_readq(a);		\
+		__v &= ~(v);				\
+		__raw_writeq(__v, (a));			\
 	} while (0)
 #define __raw_writeb_mask(v,m,a)			\
 	do {						\
@@ -160,6 +172,13 @@ static __inline uint64_t __raw_readq(const caddr_t a)
 		__v &= ~(m);				\
 		__v |= (v);				\
 		__raw_writel(__v, (a));			\
+	} while (0)
+#define __raw_writeq_mask(v,m,a)			\
+	do {						\
+		uint64_t __v = __raw_readq(a);		\
+		__v &= ~(m);				\
+		__v |= (v);				\
+		__raw_writeq(__v, (a));			\
 	} while (0)
 #define __raw_testb(v, a)				\
 	(__raw_readb(a) & (v))
