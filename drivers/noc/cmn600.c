@@ -113,16 +113,12 @@ cmn_id_t cmn_rn_sam_int_count;
 cmn_id_t cmn_rn_sam_ext_count;
 bool cmn600_initialized = false;
 
-#define CMN_MAX_SCG_COUNT		64
-
 uint8_t cmn_hnf_ids[CMN_MAX_HNF_COUNT];
 uint8_t cmn_rnd_ids[CMN_MAX_RND_COUNT];
 uint8_t cmn_rni_ids[CMN_MAX_RND_COUNT];
 uint8_t cmn_rn_sam_ext_ids[CMN_MAX_RN_SAM_EXT_COUNT];
 uint8_t cmn_rn_sam_int_ids[CMN_MAX_RN_SAM_INT_COUNT];
-cmn_nid_t cmn_scg_nids[CMN_MAX_SCG_COUNT];
-cmn_nid_t cmn_hnf_scgs[CMN_MAX_HNF_COUNT];
-uint8_t cmn_scg_count;
+uint8_t cmn_hnf_scgs[CMN_MAX_HNF_COUNT];
 
 #define CMN600_HNF_CACHE_GROUP_ENTRIES_MAX		32
 #define CMN600_HNF_CACHE_GROUP_ENTRIES_PER_GROUP	4
@@ -140,8 +136,6 @@ static void cmn600_process_hnf(caddr_t hnf)
 {
 	static unsigned int cal_mode_factor = 1;
 	cmn_lid_t lid;
-	unsigned int group;
-	unsigned int group_index, scg;
 	unsigned int region_sub_count = 0;
 	unsigned int region_index;
 	struct cmn600_memregion *region;
@@ -158,7 +152,7 @@ static void cmn600_process_hnf(caddr_t hnf)
 		/* Factor to manipulate the group and bit_pos */
 		cal_mode_factor = 2;
 
-		/* Reduce the hnf_count as the current hnf node is not
+		/* Reduce the cmn_hnf_count as the current hnf node is not
 		 * getting included in the sys_cache_grp_hn_nodeid
 		 * register.
 		 */
@@ -168,25 +162,15 @@ static void cmn600_process_hnf(caddr_t hnf)
 
 	BUG_ON(lid >= cmn_snf_count);
 
-	group = lid / (CMN600_HNF_CACHE_GROUP_ENTRY_BITS_WIDTH * cal_mode_factor);
-	group_index = (cal_mode_factor) * (lid % (CMN600_HNF_CACHE_GROUP_ENTRIES_PER_GROUP * cal_mode_factor));
-	scg = group * CMN600_HNF_CACHE_GROUP_ENTRIES_PER_GROUP + group_index;
-
 	/* If CAL mode is set, add only even numbered hnd node to
 	 * cmn_rnsam_sys_cache_grp_hn_nodeid registers
 	 */
 #ifdef CONFIG_CMN600_CAL
-	if (cmn_cal_supported()) {
-		if ((cmn_node_id(hnf) % 2) == 0) {
-			cmn_hnf_scgs[lid] = scg;
-			cmn_scg_nids[cmn_scg_count++] = cmn_node_id(hnf);
-		}
-	} else
+	if (((cmn_node_id(hnf) % 2) == 0) && cmn_cal_supported())
+		cmn_hnf_scgs[lid / cal_mode_factor] = cmn_node_id(hnf);
+	else
 #endif
-	{
-		cmn_hnf_scgs[lid] = cmn_scg_count;
-		cmn_scg_nids[cmn_scg_count++] = cmn_node_id(hnf);
-	}
+		cmn_hnf_scgs[lid] = cmn_node_id(hnf);
 
 	/* Set target node */
 	__raw_writeq(cmn_snf_table[lid], CMN_hnf_sam_control(hnf));
@@ -469,7 +453,8 @@ static void cmn600_setup_sam(caddr_t rnsam)
 	uint64_t base;
 	unsigned int region_index;
 	struct cmn600_memregion *region;
-	unsigned int scg, i;
+	cmn_lid_t lid;
+	cmn_nid_t nid;
 
 	tgt_nodeid_reg_count = cmn_tgt_nodeid_reg_count();
 	BUG_ON(tgt_nodeid_reg_count == 0);
@@ -490,11 +475,11 @@ static void cmn600_setup_sam(caddr_t rnsam)
 			base = region->base;
 	}
 
-	for (i = 0; i < cmn_scg_count; i++) {
-		scg = cmn_hnf_scgs[i];
-		__raw_writeq_mask(CMN_nodeid(scg, cmn_scg_nids[scg]),
-				  CMN_nodeid(scg, CMN_nodeid_MASK),
-				  CMN_rnsam_sys_cache_grp_hn_nodeid(rnsam, scg));
+	for (lid = 0; lid < cmn_hnf_count; lid++) {
+		nid = cmn_hnf_scgs[lid];
+		__raw_writeq_mask(CMN_nodeid(lid, nid),
+				  CMN_nodeid(lid, CMN_nodeid_MASK),
+				  CMN_rnsam_sys_cache_grp_hn_nodeid(rnsam, lid));
 	}
 	__raw_writeq(cmn_hnf_count, CMN_rnsam_sys_cache_group_hn_count(rnsam));
 
