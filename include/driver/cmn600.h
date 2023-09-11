@@ -209,6 +209,8 @@ typedef uint8_t cmn_id_t;
 #define CMN_32BIT_REG(base, offset, n)	\
 	CMN_REG((base), (offset) + (REG64_32BIT_INDEX(n) << 3))
 
+#define CMN_SAM_GRANU			SZ_64M
+
 /* Common to all nodes */
 #define CMN_node_info(base)		CMN_REG(base, 0x0)
 #define CMN_child_info(base)		CMN_REG(base, 0x80)
@@ -273,14 +275,37 @@ typedef uint8_t cmn_id_t;
 					CMN_32BIT_REG(base, 0xC48, n)
 #define CMN_rnsam_sys_cache_grp_hn_nodeid(base, n)		\
 					CMN_12BIT_REG(base, 0xC68, n)
-#define CMN_rnsam_sys_cache_grp_nonhash_nodeid(base)	\
-					CMN_REG(base, 0xC98)
+#define CMN_rnsam_sys_cache_grp_nonhash_nodeid(base, n)	\
+					CMN_12BIT_REG(base, 0xC98, n)
+#define CMN_rnsam_non_hash_tgt_nodeid2(base, n)		\
+					CMN_12BIT_REG(base, 0xCE0, ((n) - 20))
 #define CMN_rnsam_sys_cache_group_hn_count(base)	\
 					CMN_REG(base, 0xD00)
 #define CMN_rnsam_sys_cache_grp_sn_nodeid(base, n)		\
 					CMN_12BIT_REG(base, 0xD08, n)
 #define CMN_rnsam_sys_cache_grp_cal_mode(base)		\
 					CMN_REG(base, 0xF10)
+
+#define CMN_MAX_NON_HASH_TGT_NODES_20	20
+
+#define CMN_region_OFFSET(n)		REG64_32BIT_OFFSET(n)
+#define CMN_region_MASK			REG_32BIT_MASK
+#define CMN_region(n, value)		_SET_FVn(n, CMN_region, value)
+
+#define CMN_region_valid		_BV(0)
+#define CMN_region_nonhash_reg_en	_BV(1)
+#define CMN_region_target_type_OFFSET	2
+#define CMN_region_target_type_MASK	REG_2BIT_MASK
+#define CMN_region_target_type(value)	_SET_FV_ULL(CMN_region_target_type, value)
+#define CMN_region_target_HNF		0
+#define CMN_region_target_HNI		1
+#define CMN_region_target_CXRA		2
+#define CMN_region_size_OFFSET		4
+#define CMN_region_size_MASK		REG_5BIT_MASK
+#define CMN_region_size(value)		_SET_FV_ULL(CMN_region_size, value)
+#define CMN_region_base_addr_OFFSET	9
+#define CMN_region_base_addr_MASK	REG_22BIT_MASK
+#define CMN_region_base_addr(value)	_SET_FV_ULL(CMN_region_base_addr, value)
 
 typedef uint16_t cmn_nid_t;
 typedef uint16_t cmn_lid_t;
@@ -399,6 +424,18 @@ typedef uint8_t cmn_did_t;
 #define CMN_sam_range_valid		_BV_ULL(63)
 
 #define CMN_scg_hnf_cal_mode_en(n)	(_BV(0) << ((n) << 4))
+
+#define CMN_valid_region(t, b, s)		\
+	(CMN_region_valid |			\
+	 CMN_region_target_type(t) |		\
+	 CMN_region_base_addr(b >> 26) |	\
+	 CMN_region_size(__ilog2_u64((s) / CMN_SAM_GRANU)))
+#define CMN_valid_nonhash_region(t, b, s)	\
+	(CMN_region_valid |			\
+	 CMN_region_nonhash_reg_en |		\
+	 CMN_region_target_type(t) |		\
+	 CMN_region_base_addr(b >> 26) |	\
+	 CMN_region_size(__ilog2_u64((s) / CMN_SAM_GRANU)))
 
 /* CMN macros and APIs */
 #define cmn_node_type(base)			\
