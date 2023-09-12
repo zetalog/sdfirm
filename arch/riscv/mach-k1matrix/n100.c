@@ -48,9 +48,56 @@ cmn_nid_t cmn_snf_table[] = {
 	32,
 };
 
-int cmn_mmap_count;
+int cmn_mmap_count = 8;
 struct cmn600_memregion cmn_mmap_table[] = {
-	{ 0, 0, 0, 0 },
+	{
+		.base = DDR_BASE,
+		.size = SZ_4G,
+		.type = CMN_region_target_HNI,
+		.node_id = 0
+	},
+	{
+		.base = (CCIX_SLV_BASE + DDR_BASE) >> 26,
+		.size = SZ_128M,
+		.type = CMN_region_target_HNI,
+		.node_id = 36
+	},
+	{
+		.base = (PCIE1_SLV_BASE + DDR_BASE) >> 26,
+		.size = SZ_128M,
+		.type = CMN_region_target_HNI,
+		.node_id = 72
+	},
+	{
+		.base = SRAM0_BASE >> 26
+		.size = SZ_128M,
+		.type = CMN_region_target_HNI,
+		.node_id = 0
+	},
+	{
+		.base = SYS_IO_LC_BASE >> 26,
+		.size = SZ_4G,
+		.type = CMN_region_target_HNI,
+		.node_id = 0
+	},
+	{
+		.base = (SYS_IO_BASE - DDR_BASE) >> 26,
+		.size = SZ_4G,
+		.type = CMN_region_target_CXRA,
+		.node_id = 64
+	},
+	{
+		.base = (PCIE0_MMIO_BASE - DDR_BASE) >> 26,
+		.size = SZ_256M,
+		.type = CMN_region_target_CXRA,
+		.node_id = 64
+	},
+	{
+		.base = (DRAM_BASE - DDR_BASE) >> 26,
+		.size = SZ_4G,
+		.type = CMN_region_target_CXRA,
+		.node_id = 64
+	},
 };
 
 void k1matrix_n100_init(void)
