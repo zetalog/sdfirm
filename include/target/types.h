@@ -150,6 +150,10 @@ typedef unsigned long			loff_t;
 	(((value) >> (name##_OFFSET(n))) & (name##_MASK))
 #define _SET_FVn(n, name, value)	\
 	(((value) & (name##_MASK)) << (name##_OFFSET(n)))
+#define _GET_FV_ULLn(n, name, value)	\
+	((((uint64_t)(value)) >> (name##_OFFSET(n))) & (name##_MASK))
+#define _SET_FV_ULLn(n, name, value)	\
+	((((uint64_t)(value)) & (name##_MASK)) << (name##_OFFSET(n)))
 
 /* Create a contiguous bitmask starting at bit position @l and ending at
  * position @h. For example
