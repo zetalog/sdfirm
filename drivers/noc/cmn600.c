@@ -210,7 +210,7 @@ static void cmn600_process_hnf(caddr_t hnf)
 			continue;
 
 		__raw_writeq(CMN_sam_range_nodeid(region->node_id) |
-			     CMN_sam_range_size(region->size) |
+			     CMN_sam_range_size(__ilog2_u64((region->size) / CMN_SAM_GRANU)) |
 			     CMN_sam_range_base_addr((region->base + base) / CMN_SAM_GRANU) |
 			     CMN_sam_range_valid,
 			     CMN_hnf_sam_memregion(hnf, region_sub_count));
