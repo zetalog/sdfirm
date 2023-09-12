@@ -290,7 +290,7 @@ typedef uint8_t cmn_id_t;
 
 #define CMN_region_OFFSET(n)		REG64_32BIT_OFFSET(n)
 #define CMN_region_MASK			REG_32BIT_MASK
-#define CMN_region(n, value)		_SET_FVn(n, CMN_region, value)
+#define CMN_region(n, value)		_SET_FV_ULLn(n, CMN_region, value)
 
 #define CMN_region_valid		_BV(0)
 #define CMN_region_nonhash_reg_en	_BV(1)
@@ -334,7 +334,7 @@ typedef uint8_t cmn_did_t;
 /* CMN_cfgm_periph_id */
 #define CMN_periph_id_OFFSET(n)		REG64_32BIT_OFFSET(n)
 #define CMN_periph_id_MASK		REG_32BIT_MASK
-#define CMN_periph_id(n, value)		(_GET_FVn(n, CMN_periph_id, value) & REG_8BIT_MASK)
+#define CMN_periph_id(n, value)		(_GET_FV_ULLn(n, CMN_periph_id, value) & REG_8BIT_MASK)
 
 /* CMN_cfgm_periph_id_2 */
 #define CMN_JEP106_id_code_6_4_OFFSET	0
@@ -372,7 +372,7 @@ typedef uint8_t cmn_did_t;
 						(REG64_8BIT_OFFSET(n) + 40)
 #define CMN_hn_cfg_sam_top_address_bit_MASK	REG64_8BIT_MASK
 #define CMN_hn_cfg_sam_top_address_bit(n, value)	\
-	_SET_FVn(n, CMN_hn_cfg_sam_top_address_bit, value)
+	_SET_FV_ULLn(n, CMN_hn_cfg_sam_top_address_bit, value)
 #define CMN_hn_cfg_sam_inv_top_address_bit	_BV_ULL(63)
 
 /* CMN_mxp_device_port_connect_info */
@@ -386,7 +386,7 @@ typedef uint8_t cmn_did_t;
  */
 #define CMN_nodeid_OFFSET(n)		CMN_12BIT_OFFSET(n)
 #define CMN_nodeid_MASK			REG_12BIT_MASK
-#define CMN_nodeid(n, value)		_SET_FVn(n, CMN_nodeid, value)
+#define CMN_nodeid(n, value)		_SET_FV_ULLn(n, CMN_nodeid, value)
 
 /* CMN_hnf_ppu_pwpr */
 #define CMN_ppu_policy_OFFSET		0
