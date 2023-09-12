@@ -69,7 +69,7 @@ struct cmn600_memregion cmn_mmap_table[] = {
 		.node_id = 72
 	},
 	{
-		.base = SRAM0_BASE >> 26
+		.base = SRAM0_BASE >> 26,
 		.size = SZ_128M,
 		.type = CMN_region_target_HNI,
 		.node_id = 0
