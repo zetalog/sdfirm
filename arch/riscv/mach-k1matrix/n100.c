@@ -42,57 +42,51 @@
 #include <target/arch.h>
 #include <target/noc.h>
 
-int cmn_snf_count = 2;
 cmn_nid_t cmn_snf_table[] = {
 	32,
 	32,
 };
+int cmn_snf_count = ARRAY_SIZE(cmn_snf_table);
 
-int cmn_mmap_count = 7;
 struct cmn600_memregion cmn_mmap_table[] = {
 	{
-		.base = DDR_BASE,
+		.base = SYS_IO_BASE,
 		.size = SZ_4G,
-		.type = CMN600_MEMORY_REGION_TYPE_SYSCACHE,
+		.type = CMN600_MEMORY_REGION_TYPE_IO,
 		.node_id = 0
 	},
 	{
 		.base = PCIE0_SLV_BASE,
 		.size = SZ_128M,
-		.type = CMN600_MEMORY_REGION_TYPE_SYSCACHE,
+		.type = CMN600_MEMORY_REGION_TYPE_IO,
 		.node_id = 36
 	},
 	{
 		.base = PCIE1_SLV_BASE,
 		.size = SZ_128M,
-		.type = CMN600_MEMORY_REGION_TYPE_SYSCACHE,
+		.type = CMN600_MEMORY_REGION_TYPE_IO,
 		.node_id = 72
 	},
 	{
 		.base = SRAM0_BASE,
 		.size = SZ_128M,
-		.type = CMN600_MEMORY_REGION_TYPE_SYSCACHE,
+		.type = CMN600_MEMORY_REGION_TYPE_IO,
 		.node_id = 0
 	},
 	{
 		.base = GMAC_BASE,
 		.size = SZ_4G,
-		.type = CMN600_MEMORY_REGION_TYPE_SYSCACHE,
+		.type = CMN600_MEMORY_REGION_TYPE_IO,
 		.node_id = 0
 	},
 	{
-		.base = PCIE0_SLV_DEV_BASE,
-		.size = SZ_128M,
-		.type = CMN600_MEMORY_REGION_TYPE_SYSCACHE,
-		.node_id = 64
-	},
-	{
-		.base = PCIE1_SLV_DEV_BASE,
-		.size = SZ_128M,
-		.type = CMN600_MEMORY_REGION_TYPE_SYSCACHE,
-		.node_id = 64
+		.base = DDR_BASE,
+		.size = SZ_4G,
+		.type = CMN600_REGION_TYPE_SYSCACHE_SUB,
+		.node_id = 0
 	}
 };
+int cmn_mmap_count = ARRAY_SIZE(cmn_mmap_table);
 
 void k1matrix_n100_init(void)
 {
