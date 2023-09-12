@@ -386,18 +386,18 @@ void cmn600_discovery(void)
 		con_dbg(CMN_MODNAME ": CCIX CXHA node id %016lx\n", CMN_CXHA_BASE);
 }
 
-static void cmn600_configure_rn_sam_ext(caddr_t xp, unsigned int xrnsam)
+static void cmn600_configure_rn_sam_ext(caddr_t node, unsigned int xrnsam)
 {
 	BUG_ON(xrnsam >= cmn_rn_sam_ext_count);
 	cmn_rn_sam_ext_ids[xrnsam] = cmn_nr_nodes;
-	cmn_bases[cmn_nr_nodes++] = xp;
+	cmn_bases[cmn_nr_nodes++] = node;
 }
 
-static void cmn600_configure_rn_sam_int(caddr_t xp, unsigned int irnsam)
+static void cmn600_configure_rn_sam_int(caddr_t node, unsigned int irnsam)
 {
 	BUG_ON(irnsam >= cmn_rn_sam_int_count);
 	cmn_rn_sam_int_ids[irnsam] = cmn_nr_nodes;
-	cmn_bases[cmn_nr_nodes++] = xp;
+	cmn_bases[cmn_nr_nodes++] = node;
 }
 
 void cmn600_configure(void)
@@ -437,12 +437,12 @@ void cmn600_configure(void)
 				    (dev_type == CMN_MXP_CXRA))
 					continue;
 
-				cmn600_configure_rn_sam_ext(xp, xrnsam);
+				cmn600_configure_rn_sam_ext(node, xrnsam);
 				xrnsam++;
 			} else {
 				switch (cmn_node_type(node)) {
 				case CMN_RN_SAM:
-					cmn600_configure_rn_sam_int(xp, irnsam);
+					cmn600_configure_rn_sam_int(node, irnsam);
 					irnsam++;
 					break;
 				case CMN_HNF:
