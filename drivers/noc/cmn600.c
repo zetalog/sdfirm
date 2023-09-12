@@ -215,7 +215,7 @@ static void cmn600_process_hnf(caddr_t hnf)
 			     CMN_sam_range_valid,
 			     CMN_hnf_sam_memregion(hnf, region_sub_count));
 
-		con_log(CMN_MODNAME ": %s: HN-F SAM %d: ID: %d, [%016llx - %016llx]\n",
+		con_dbg(CMN_MODNAME ": %s: HN-F SAM %d: ID: %d, [%016llx - %016llx]\n",
 			cmn_mem_region_name(region->type),
 			region_sub_count, region->node_id,
 			region->base + base,
@@ -259,14 +259,14 @@ static void cmn600_discovery_external(caddr_t node, caddr_t xp)
 	    (dev_type == CMN_MXP_CXRA)) {
 		cmn_cxla_id = cmn_nr_nodes;
 		cmn_bases[cmn_nr_nodes++] = node;
-		con_log(CMN_MODNAME ": CXLA external (%d, %d) ID: %d, LID: %d\n",
+		con_dbg(CMN_MODNAME ": CXLA external (%d, %d) ID: %d, LID: %d\n",
 			(int)cmn_node_x(node), (int)cmn_node_y(node),
 			(int)cmn_node_id(node), (int)cmn_logical_id(node));
 	} else {
 		/* External RN-SAM node */
 		cmn_rn_sam_ext_count++;
 		BUG_ON(cmn_rn_sam_ext_count > CMN_MAX_RN_SAM_EXT_COUNT);
-		con_log(CMN_MODNAME ": RN_SAM external (%d, %d) ID: %d, LID: %d\n",
+		con_dbg(CMN_MODNAME ": RN_SAM external (%d, %d) ID: %d, LID: %d\n",
 			(int)cmn_node_x(node), (int)cmn_node_y(node),
 			(int)cmn_node_id(node), (int)cmn_logical_id(node));
 	}
@@ -358,7 +358,7 @@ void cmn600_discovery(void)
 	 */
 	cmn_rnf_count = cmn_rn_sam_int_count + cmn_rn_sam_ext_count -
 		(cmn_rnd_count + cmn_rni_count + cmn_cxha_count);
-	if (cmn_rnf_count >= CMN_MAX_RNF_COUNT) {
+	if (cmn_rnf_count > CMN_MAX_RNF_COUNT) {
 		con_err(CMN_MODNAME ": RN-F count %d >= limit %d\n",
 			cmn_rnf_count, CMN_MAX_RNF_COUNT);
 		BUG();
@@ -413,7 +413,7 @@ void cmn600_configure(void)
 	xrnsam = 0;
 	irnsam = 0;
 
-	con_log(CMN_MODNAME ": configure: revision=%s\n",
+	con_dbg(CMN_MODNAME ": configure: revision=%s\n",
 		cmn_revision_name(cmn_revision()));
 
 	xp_count = cmn_child_count(CMN_CFGM_BASE);
@@ -453,7 +453,7 @@ void cmn600_configure(void)
 		}
 	}
 
-	con_log(CMN_MODNAME ": Total nodes: %d\n", cmn_nr_nodes);
+	con_dbg(CMN_MODNAME ": Total nodes: %d\n", cmn_nr_nodes);
 }
 
 #ifdef CONFIG_CMN600_CML
@@ -517,7 +517,7 @@ static void cmn600_setup_sam(caddr_t rnsam)
 #endif
 			base = region->base;
 
-		con_log(CMN_MODNAME ": %s: RN SAM %d: ID: %d, [%016llx - %016llx]\n",
+		con_dbg(CMN_MODNAME ": %s: RN SAM %d: ID: %d, [%016llx - %016llx]\n",
 			cmn_mem_region_name(region->type), region_index,
 			region->node_id, base, base + region->size);
 
@@ -597,7 +597,7 @@ static void cmn600_setup_sam(caddr_t rnsam)
 		__raw_writeq_mask(CMN_nodeid(lid, nid),
 				  CMN_nodeid(lid, CMN_nodeid_MASK),
 				  CMN_rnsam_sys_cache_grp_hn_nodeid(rnsam, lid));
-		con_log(CMN_MODNAME ": SCG: %d/%d, ID: %d\n",
+		con_dbg(CMN_MODNAME ": SCG: %d/%d, ID: %d\n",
 			lid, cmn_hnf_count, nid);
 	}
 	__raw_writeq(cmn_hnf_count, CMN_rnsam_sys_cache_group_hn_count(rnsam));
@@ -606,7 +606,7 @@ static void cmn600_setup_sam(caddr_t rnsam)
 	if (cmn_cal_supported()) {
 		for (region_index = 0; region_index < CMN_MAX_SCGS; region_index++) {
 			if (scg_region_enabled[region_index]) {
-				con_log(CMN_MODNAME ": SCG: %d/%d, CAL: en\n",
+				con_dbg(CMN_MODNAME ": SCG: %d/%d, CAL: en\n",
 					region_index, CMN_MAX_SCGS);
 				__raw_setq(CMN_scg_hnf_cal_mode_en(region_index),
 					   CMN_rnsam_sys_cache_grp_cal_mode(rnsam));
@@ -640,7 +640,7 @@ void cmn600_init(void)
 
 	/* Setup internal RN-SAM nodes */
 	for (rnsam = 0; rnsam < cmn_rn_sam_int_count; rnsam++)
-		cmn600_setup_sam(CMN_RN_SAM_INT_BASE(rnsam));
+		cmn600_setup_sam(CMN_RN_SAM_INT_BASE(cmn_rn_sam_int_ids[rnsam]));
 	/* Setup CCIX host */
 	cmn600_setup_cml();
 

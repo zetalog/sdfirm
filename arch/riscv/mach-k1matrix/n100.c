@@ -51,18 +51,30 @@ int cmn_snf_count = ARRAY_SIZE(cmn_snf_table);
 struct cmn600_memregion cmn_mmap_table[] = {
 	{
 		.base = SYS_IO_BASE,
-		.size = SZ_4G,
+		.size = SZ_2G,
 		.type = CMN600_MEMORY_REGION_TYPE_IO,
 		.node_id = 0
 	},
 	{
-		.base = PCIE0_SLV_BASE,
+		.base = PCIE0_SLV_DEV_BASE,
 		.size = SZ_128M,
 		.type = CMN600_MEMORY_REGION_TYPE_IO,
 		.node_id = 36
 	},
 	{
-		.base = PCIE1_SLV_BASE,
+		.base = PCIE1_SLV_DEV_BASE,
+		.size = SZ_128M,
+		.type = CMN600_MEMORY_REGION_TYPE_IO,
+		.node_id = 72
+	},
+	{
+		.base = PCIE0_SLV_MEM_BASE,
+		.size = SZ_128M,
+		.type = CMN600_MEMORY_REGION_TYPE_IO,
+		.node_id = 36
+	},
+	{
+		.base = PCIE1_SLV_MEM_BASE,
 		.size = SZ_128M,
 		.type = CMN600_MEMORY_REGION_TYPE_IO,
 		.node_id = 72
