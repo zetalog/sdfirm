@@ -43,7 +43,7 @@
 #define __REG_DUOWEN_H_INCLUDE__
 
 #ifndef __ASSEMBLY__
-unsigned long duowen_soc_base;
+extern unsigned long duowen_soc_base;
 #endif
 
 #define SOC0_BASE		0
