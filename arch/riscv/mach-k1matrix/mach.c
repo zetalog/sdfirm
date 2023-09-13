@@ -49,6 +49,21 @@
 #include <target/sbi.h>
 #include <target/noc.h>
 
+#ifdef CONFIG_K1MATRIX_BOOT
+void board_boot(void)
+{
+	void (*boot_entry)(void);
+
+	boot_entry = (void *)DDR_BASE;
+	printf("boot(ddr): booting...\n");
+	smp_boot_secondary_cpus((caddr_t)boot_entry);
+	local_flush_icache_all();
+	boot_entry();
+}
+#else
+#define board_boot()		do { } while (0)
+#endif
+
 void board_early_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);
@@ -57,6 +72,8 @@ void board_early_init(void)
 void board_late_init(void)
 {
 	k1matrix_n100_init();
+
+	board_boot();
 }
 
 #ifdef CONFIG_SMP
