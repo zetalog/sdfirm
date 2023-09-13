@@ -57,8 +57,8 @@ config CMN600_CML
 	bool "Enable Coherent Multichip Link (CML) support"
 	depends ARCH_HAS_CMN600_CML
 
-config CMN600_CAL
-	bool "Enable Component Aggregation Layer (CAL) mode support"
+config CMN600_HNF_CAL
+	bool "Enable Component Aggregation Layer (CAL) mode on HN-F support"
 
 endif
 
