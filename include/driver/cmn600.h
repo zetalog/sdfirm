@@ -274,7 +274,7 @@ typedef uint8_t cmn_id_t;
 #define CMN_rnsam_sys_cache_grp_region(base, n)		\
 					CMN_32BIT_REG(base, 0xC48, n)
 #define CMN_rnsam_sys_cache_grp_hn_nodeid(base, n)		\
-					CMN_12BIT_REG(base, 0xC68, n)
+					CMN_12BIT_REG(base, 0xC58, n)
 #define CMN_rnsam_sys_cache_grp_nonhash_nodeid(base, n)	\
 					CMN_12BIT_REG(base, 0xC98, n)
 #define CMN_rnsam_non_hash_tgt_nodeid2(base, n)		\
