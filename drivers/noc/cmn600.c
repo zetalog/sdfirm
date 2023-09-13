@@ -650,9 +650,14 @@ static void cmn600_setup_sam(caddr_t rnsam)
 
 	cmn_hnf_cal_apply_scg(rnsam);
 
-	__raw_writeq_mask(CMN_sam_nstall_req(CMN_sam_unstall_req),
-			  CMN_sam_nstall_req(CMN_sam_nstall_req_MASK),
-			  CMN_rnsam_status(rnsam));
+#ifdef CONFIG_CMN600_HNF_SAM_DIRECT
+	for (i = 0; i < (cmn_snf_count/2); i++) {
+		__raw_writeq(CMN_nodeid(i, cmn_snf_table[i*2]),
+			     CMN_rnsam_sys_cache_grp_sn_nodeid(rnsam, i));
+	}
+#endif
+	__raw_writeq(CMN_sam_nstall_req(CMN_sam_unstall_req),
+		     CMN_rnsam_status(rnsam));
 }
 
 void cmn600_init(void)
