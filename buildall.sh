@@ -181,7 +181,8 @@ build_sdfirm riscv64 dpulp_fsbl
 build_sdfirm riscv64 dpulp_xsbl
 build_sdfirm riscv64 dpulp_dfw
 # K1-max
-build_sdfirm riscv64 k1max_bbl
+build_sdfirm riscv64 k1max_cpu_bbl
+build_sdfirm riscv64 k1max_soc_bbl
 build_sdfirm riscv64 k1max_cpu_litmus
 build_sdfirm riscv64 k1max_soc_litmus
 # K1MXLite
