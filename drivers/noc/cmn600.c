@@ -153,18 +153,21 @@ static int cmn_hnf_cache_group_count(void)
 }
 #endif
 
-static void cmn600_process_hnf(caddr_t hnf)
+#ifdef CONFIG_CMN600_HNF_CAL
+static unsigned int cal_mode_factor = 1;
+static bool scg_region_enabled[CMN_MAX_SCGS] = { false, false, false, false };
+
+static void cmn_hnf_cal_validate(void)
 {
-	static unsigned int cal_mode_factor = 1;
-	cmn_lid_t lid;
-	unsigned int region_sub_count = 0;
-	unsigned int region_index;
-	struct cmn600_memregion *region;
-	uint64_t base;
+	if ((cmn_hnf_count % 2) != 0) {
+		con_err(CMN_MODNAME ": HN-F count %d should be even for cal mode\n",
+			cmn_hnf_count);
+		BUG();
+	}
+}
 
-	lid = cmn_logical_id(hnf);
-
-#ifdef CONFIG_CMN600_CAL
+static void cmn_hnf_cal_process(caddr_t hnf)
+{
 	/* If CAL mode is set, only even numbered hnf node should be added
 	 * to the sys_cache_grp_hn_nodeid registers and hnf_count should
 	 * be incremented only for the even numbered hnf nodes.
@@ -179,19 +182,72 @@ static void cmn600_process_hnf(caddr_t hnf)
 		 */
 		cmn_hnf_count--;
 	}
-#endif
+}
 
-	BUG_ON(lid >= cmn_snf_count);
-
+static void cmn_hnf_cal_config_scg(caddr_t hnf, cmn_lid_t lid)
+{
 	/* If CAL mode is set, add only even numbered hnd node to
 	 * cmn_rnsam_sys_cache_grp_hn_nodeid registers
 	 */
-#ifdef CONFIG_CMN600_CAL
 	if (((cmn_node_id(hnf) % 2) == 0) && cmn_cal_supported())
 		cmn_hnf_scgs[lid / cal_mode_factor] = cmn_node_id(hnf);
 	else
-#endif
 		cmn_hnf_scgs[lid] = cmn_node_id(hnf);
+}
+
+static void cmn_hnf_cal_enable_scg(unsigned int scg)
+{
+	unsigned int scg_region = 0;
+
+	scg_region = ((2 * scg) / 2) + (scg % 2);
+	BUG_ON(scg_region >= CMN_MAX_SCGS);
+	scg_region_enabled[scg_region] = true;
+}
+
+static void cmn_hnf_cal_apply_scg(caddr_t rnsam)
+{
+	unsigned int region_index;
+
+	if (cmn_cal_supported()) {
+		for (region_index = 0; region_index < CMN_MAX_SCGS; region_index++) {
+			if (scg_region_enabled[region_index]) {
+				con_dbg(CMN_MODNAME ": SCG: %d/%d, CAL: en\n",
+					region_index, CMN_MAX_SCGS);
+				__raw_setq(CMN_scg_hnf_cal_mode_en(region_index),
+					   CMN_rnsam_sys_cache_grp_cal_mode(rnsam));
+			} else
+				__raw_clearq(CMN_scg_hnf_cal_mode_en(region_index),
+					     CMN_rnsam_sys_cache_grp_cal_mode(rnsam));
+		}
+	}
+}
+#else
+#define cmn_hnf_cal_validate()		do { } while (0)
+#define cmn_hnf_cal_process(hnf)	do { } while (0)
+#define cmn_hnf_cal_enable_scg(scg)	do { } while (0)
+#define cmn_hnf_cal_apply_scg(rnsam)	do { } while (0)
+
+static void cmn_hnf_cal_config_scg(caddr_t hnf, cmn_lid_t lid)
+{
+	cmn_hnf_scgs[lid] = cmn_node_id(hnf);
+}
+#endif
+
+static void cmn600_process_hnf(caddr_t hnf)
+{
+	cmn_lid_t lid;
+	unsigned int region_sub_count = 0;
+	unsigned int region_index;
+	struct cmn600_memregion *region;
+	uint64_t base;
+
+	lid = cmn_logical_id(hnf);
+
+	cmn_hnf_cal_process(hnf);
+
+	BUG_ON(lid >= cmn_snf_count);
+
+	cmn_hnf_cal_config_scg(hnf, lid);
 
 	/* Set target node */
 	__raw_writeq(cmn_snf_table[lid], CMN_hnf_sam_control(hnf));
@@ -363,13 +419,7 @@ void cmn600_discovery(void)
 			cmn_rnf_count, CMN_MAX_RNF_COUNT);
 		BUG();
 	}
-#ifdef CONFIG_CMN600_CAL
-	if ((cmn_hnf_count % 2) != 0) {
-		con_err(CMN_MODNAME ": HN-F count %d should be even for cal mode\n",
-			cmn_hnf_count);
-		BUG();
-	}
-#endif
+	cmn_hnf_cal_validate();
 
 	con_dbg(CMN_MODNAME ": Total internal RN-SAM: %d\n", cmn_rn_sam_int_count);
 	con_dbg(CMN_MODNAME ": Total external RN-SAM: %d\n", cmn_rn_sam_ext_count);
@@ -495,8 +545,6 @@ static void cmn600_setup_sam(caddr_t rnsam)
 	unsigned int region_sys_count = 0;
 	unsigned int region_type;
 	uint32_t memregion;
-	unsigned int scg_region = 0;
-	bool scg_region_enabled[CMN_MAX_SCGS] = { false, false, false, false };
 	unsigned int tgt_nodes;
 
 	tgt_nodes = cmn_max_tgt_nodes();
@@ -562,9 +610,7 @@ static void cmn600_setup_sam(caddr_t rnsam)
 					  CMN_region(region_sys_count, CMN_region_MASK),
 					  CMN_rnsam_sys_cache_grp_region(rnsam, region_sys_count));
 
-			scg_region = ((2 * region_sys_count) / 2) + (region_sys_count % 2);
-			BUG_ON(scg_region >= CMN_MAX_SCGS);
-			scg_region_enabled[scg_region] = true;
+			cmn_hnf_cal_enable_scg(region_sys_count);
 			region_sys_count++;
 			break;
 
@@ -602,20 +648,7 @@ static void cmn600_setup_sam(caddr_t rnsam)
 	}
 	__raw_writeq(cmn_hnf_count, CMN_rnsam_sys_cache_group_hn_count(rnsam));
 
-#ifdef CONFIG_CMN600_CAL
-	if (cmn_cal_supported()) {
-		for (region_index = 0; region_index < CMN_MAX_SCGS; region_index++) {
-			if (scg_region_enabled[region_index]) {
-				con_dbg(CMN_MODNAME ": SCG: %d/%d, CAL: en\n",
-					region_index, CMN_MAX_SCGS);
-				__raw_setq(CMN_scg_hnf_cal_mode_en(region_index),
-					   CMN_rnsam_sys_cache_grp_cal_mode(rnsam));
-			} else
-				__raw_clearq(CMN_scg_hnf_cal_mode_en(region_index),
-					     CMN_rnsam_sys_cache_grp_cal_mode(rnsam));
-		}
-	}
-#endif
+	cmn_hnf_cal_apply_scg(rnsam);
 
 	__raw_writeq_mask(CMN_sam_nstall_req(CMN_sam_unstall_req),
 			  CMN_sam_nstall_req(CMN_sam_nstall_req_MASK),

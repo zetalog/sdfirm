@@ -29,6 +29,7 @@ config K1MATRIX_ZSBL
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select XIP
+	select K1MATRIX_BOOT
 
 config K1MATRIX_FSBL
 	bool "FSBL loader"
@@ -36,6 +37,7 @@ config K1MATRIX_FSBL
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select XIP
+	select K1MATRIX_BOOT
 
 config K1MATRIX_BBL
 	bool "SBI loader"
@@ -95,6 +97,26 @@ config K1MATRIX_DDR_SIZE
 	hex "Memory size"
 	default 0x2000000
 	depends K1MATRIX_DDR_SIZE_CUSTOM
+
+config K1MATRIX_BOOT
+	bool
+	select K1MATRIX_N100
+
+if K1MATRIX_BOOT
+
+menu "Bootloader options"
+
+choice
+	prompt "Boot mode"
+
+config K1MATRIX_BOOT_JUMP_DDR
+	bool "Jump to DDR base address"
+
+endchoice
+
+endmenu
+
+endif
 
 config K1MATRIX_CPRINT
 	bool "K1Matrix C_Print simulation support"
