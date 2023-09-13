@@ -126,6 +126,7 @@ menuconfig K1MATRIX_N100
 	bool "K1Matrix N100 on-chip networking support"
 	select ARCH_HAS_CMN600
 	select ARCH_HAS_CMN600_CML
+	select ARCH_IS_CMN600_HNF_SAM_DIRECT
 	select CMN600
 	select CMN600_CML if K1MATRIX_D2D
 	depends ARCH_HAS_NOC

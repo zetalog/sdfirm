@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Sep 13 12:06:30 2023
+# Wed Sep 13 20:03:03 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -462,8 +462,12 @@ CONFIG_ARCH_HAS_NOC=y
 CONFIG_ARCH_HAS_CMN600=y
 CONFIG_CMN600=y
 CONFIG_ARCH_HAS_CMN600_CML=y
+CONFIG_ARCH_IS_CMN600_HNF_SAM_DIRECT=y
 # CONFIG_CMN600_CML is not set
 # CONFIG_CMN600_HNF_CAL is not set
+# CONFIG_CMN600_HNF_SAM_RANGE is not set
+# CONFIG_CMN600_HNF_SAM_HASHED is not set
+CONFIG_CMN600_HNF_SAM_DIRECT=y
 
 #
 # Network drivers

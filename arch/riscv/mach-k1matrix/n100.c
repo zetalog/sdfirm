@@ -94,8 +94,8 @@ struct cmn600_memregion cmn_mmap_table[] = {
 	{
 		.base = DDR_BASE,
 		.size = SZ_4G,
-		.type = CMN600_REGION_TYPE_SYSCACHE_SUB,
-		.node_id = 0
+		.type = CMN600_MEMORY_REGION_TYPE_SYSCACHE,
+		.node_id = 32
 	}
 };
 int cmn_mmap_count = ARRAY_SIZE(cmn_mmap_table);
