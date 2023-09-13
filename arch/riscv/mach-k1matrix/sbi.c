@@ -14,7 +14,6 @@
 #include <target/irq.h>
 #include <target/delay.h>
 #include <target/bench.h>
-#include <asm/mach/cnt.h>
 
 static void k1matrix_modify_dt(void *fdt)
 {
@@ -165,18 +164,12 @@ static int k1matrix_timer_init(bool cold_boot)
 {
 	if (!cold_boot)
 		k1matrix_timer_event_stop();
-	else {
-		if (!cnt_status_gcounter())
-	 		cnt_enable_gcounter();
-	}
 	return 0;
 }
 
 static int k1matrix_system_down(uint32_t type)
 {
-	/* Tell the "finisher" that the simulation
-	 * was successful so that QEMU exits
-	 */
+	k1matrix_finish(0);
 	return 0;
 }
 

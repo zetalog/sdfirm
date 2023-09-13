@@ -3,7 +3,7 @@
 
 /dts-v1/;
 
-/memreserve/ RAM_BASE 0x02000000;
+/memreserve/ DDR_BASE 0x02000000;
 
 / {
 	#address-cells = <0x2>;
@@ -12,7 +12,7 @@
 	model = "riscv-spacemit,k1matrix";
 
 	aliases {
-		uart0 = "/soc/uart@10010000";
+		uart0 = "/soc/uart0@10010000";
 	};
 
 	chosen {
@@ -203,11 +203,11 @@
 		compatible = "simple-bus";
 		ranges;
 
-		uart@10010000 {
+		uart0@10010000 {
 			interrupts = <16>;
 			interrupt-parent = <&plic>;
 			clock-frequency = <APB_CLK_FREQ>;
-			reg = <DT_REGHI(UART_BASE) DT_REGLO(UART_BASE)
+			reg = <DT_REGHI(UART0_BASE) DT_REGLO(UART0_BASE)
 			       0x0 0x1000
 			>;
 			reg-io-width = <4>;
