@@ -42,6 +42,10 @@
 #ifndef __ARCH_K1MATRIX_H_INCLUDE__
 #define __ARCH_K1MATRIX_H_INCLUDE__
 
+/* This file is intended to be used for implementing SoC specific
+ * instructions, registers.
+ */
+
 #include <asm/mach/cpus.h>
 #include <asm/x100.h>
 #include <asm/mach/sysreg.h>
@@ -56,11 +60,30 @@
 	.macro	boot2_hook
 	x100_smp_init
 	.endm
-#endif
 
-/* This file is intended to be used for implementing SoC specific
- * instructions, registers.
- */
+	/* SMP ID <-> HART ID conversions on APC */
+	.macro get_arch_smpid reg
+	.endm
+	.macro get_arch_hartboot reg
+	li	\reg, BOOT_HART
+	li	t0, PAD_IN_STATUS
+	lw	t0, 0(t0)
+	andi	t0, t0, __PAD_DIE_ID
+	beqz	t0, 4444f
+	addi	\reg, \reg, SOC1_HART
+4444:
+	.endm
+	.macro get_arch_hartmask reg
+	li	\reg, BOOT_MASK
+	li	t0, PAD_IN_STATUS
+	lw	t0, 0(t0)
+	andi	t0, t0, __PAD_DIE_ID
+	beqz	t0, 5555f
+	slli	\reg, \reg, SOC1_HART
+5555:
+	.endm
+#define ARCH_HAVE_BOOT_SMP	1
+#endif /* __ASSEMBLY__ && !__DTS__ && !LINKER_SCRIPT */
 
 #ifndef __ASSEMBLY__
 #ifdef CONFIG_MMU

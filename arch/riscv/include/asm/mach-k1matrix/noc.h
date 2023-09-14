@@ -49,12 +49,6 @@
 #define CMN_MESH_DIMEN_X	3
 #define CMN_MESH_DIMEN_Y	2
 #define CMN_MAX_NODES		32
-#define CMN_HNF_COUNT		2
-#define CMN_RNF_COUNT		3
-#define CMN_RNI_COUNT		2
-#define CMN_RND_COUNT		1
-#define CMN_RN_SAM_INT_COUNT	5
-#define CMN_RN_SAM_EXT_COUNT	1
 
 #include <driver/cmn600.h>
 

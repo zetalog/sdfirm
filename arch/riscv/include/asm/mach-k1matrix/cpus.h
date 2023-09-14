@@ -42,6 +42,9 @@
 #ifndef __CPUS_K1MATRIX_H_INCLUDE__
 #define __CPUS_K1MATRIX_H_INCLUDE__
 
+#define SOC0_HART		0
+#define SOC1_HART		32
+
 #ifdef CONFIG_K1MATRIX_PARTIAL_GOOD
 #define BOOT_HART		CONFIG_K1MATRIX_BOOT_HART_ID
 #define BOOT_MASK		CONFIG_K1MATRIX_PARTIAL_GOOD_MASK
@@ -49,7 +52,7 @@
 #error "Bad ACPU partial good configuration!"
 #endif
 #else /* CONFIG_K1MATRIX_PARTIAL_GOOD */
-#define BOOT_HART		0
+#define BOOT_HART		SOC0_HART
 #define BOOT_MASK		CPU_ALL
 #endif /* CONFIG_K1MATRIX_PARTIAL_GOOD */
 
@@ -61,5 +64,15 @@
 
 #define CPUS_PER_CLUSTER	16
 #define MAX_CPU_CLUSTERS	(MAX_CPU_NUM / CPUS_PER_CLUSTER)
+
+#ifndef __ASSEMBLY__
+extern unsigned long k1matrix_hart_base;
+#endif
+#define HART_BASE		k1matrix_hart_base
+
+#ifndef CONFIG_SBI
+/* Local programs uses special hart mask */
+/* #define HART_ALL		((CPU_TO_MASK(MAX_CPU_NUM)-1) << HART_BASE) */
+#endif /* CONFIG_SBI */
 
 #endif /* __CPUS_K1MATRIX_H_INCLUDE__ */
