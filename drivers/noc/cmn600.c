@@ -546,6 +546,7 @@ static void cmn600_setup_sam(caddr_t rnsam)
 	unsigned int region_type;
 	uint32_t memregion;
 	unsigned int tgt_nodes;
+	unsigned int i;
 
 	tgt_nodes = cmn_max_tgt_nodes();
 	BUG_ON(tgt_nodes == 0);

@@ -49,16 +49,25 @@
 #include <target/sbi.h>
 #include <target/noc.h>
 
-#ifdef CONFIG_K1MATRIX_BOOT
-void board_boot(void)
+#ifdef CONFIG_K1MATRIX_BOOT_DDR
+void board_boot_ddr(void)
 {
 	void (*boot_entry)(void);
 
 	boot_entry = (void *)DDR_BASE;
-	printf("boot(ddr): booting...\n");
+	printf("B(D)\n");
 	smp_boot_secondary_cpus((caddr_t)boot_entry);
 	local_flush_icache_all();
 	boot_entry();
+}
+#else
+#define board_boot_ddr()	do { } while (0)
+#endif
+
+#ifdef CONFIG_K1MATRIX_BOOT
+void board_boot(void)
+{
+	board_boot_ddr();
 }
 #else
 #define board_boot()		do { } while (0)
@@ -118,7 +127,8 @@ static int do_k1matrix_reboot(int argc, char *argv[])
 
 static int do_k1matrix_info(int argc, char *argv[])
 {
-	printf("info:\n");
+	printf("BOOT_SEL: %d\n", (int)sysreg_boot_sel());
+	printf("DIE_ID:   %d\n", (int)sysreg_die_id());
 	return 0;
 }
 
