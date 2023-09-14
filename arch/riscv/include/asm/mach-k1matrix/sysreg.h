@@ -94,10 +94,22 @@
 #define MESH_NID8_SYSCOACK	_BV(8)
 #define MESH_NID40_SYSCOACK	_BV(9)
 
+/* PAD_IN_STATUS */
+#define PAD_BOOT_SEL_OFFSET	0
+#define PAD_BOOT_SEL_MASK	REG_1BIT_MASK
+#define PAD_BOOT_SEL(value)	_GET_FV(PAD_BOOT_SEL, value)
+#define PAD_DIE_ID_OFFSET	1
+#define PAD_DIE_ID_MASK		REG_1BIT_MASK
+#define PAD_DIE_ID(value)	_GET_FV(PAD_DIE_ID, value)
+
 #define sysreg_soft_reset()		\
 	__raw_writel(CPU_GLOBAL_RESET, CPU_SW_RESET)
 #define sysreg_soft_reset_cpu(cpu)	\
 	__raw_setl(CPU_RESET(cpu), CPU_SW_RESET)
+#define sysreg_boot_sel()		\
+	PAD_BOOT_SEL(__raw_readl(PAD_IN_STATUS))
+#define sysreg_die_id()		\
+	PAD_DIE_ID(__raw_readl(PAD_IN_STATUS))
 
 #ifndef __ASSEMBLY__
 void k1matrix_cpu_reset(void);

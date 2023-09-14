@@ -29,7 +29,6 @@ config K1MATRIX_ZSBL
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select XIP
-	select K1MATRIX_BOOT
 
 config K1MATRIX_FSBL
 	bool "FSBL loader"
@@ -86,6 +85,20 @@ config K1MATRIX_FPGA
 	bool "FPGA"
 
 endchoice
+
+config K1MATRIX_PARTIAL_GOOD
+	bool "Enable partial goods support"
+
+config K1MATRIX_BOOT_HART_ID
+	int "Boot hart ID"
+	range 0 63
+	depends K1MATRIX_PARTIAL_GOOD
+	default 0
+
+config K1MATRIX_PARTIAL_GOOD_MASK
+	hex "Good hart mask"
+	depends K1MATRIX_PARTIAL_GOOD
+	default 0x0000000000030003
 
 config K1MATRIX_D2D
 	bool "Enable die2die link support"
