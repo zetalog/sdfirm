@@ -16,8 +16,8 @@ endchoice
 config K1MATRIX_SMP_CPUS
 	int "Number of cores"
 	depends SMP_BOOT
-	range 1 32
-	default 4
+	range 1 64
+	default 64
 
 choice
 	prompt "Program type"

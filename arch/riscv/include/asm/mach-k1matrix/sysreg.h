@@ -98,9 +98,11 @@
 #define PAD_BOOT_SEL_OFFSET	0
 #define PAD_BOOT_SEL_MASK	REG_1BIT_MASK
 #define PAD_BOOT_SEL(value)	_GET_FV(PAD_BOOT_SEL, value)
+#define __PAD_BOOT_SEL		_BV(0)
 #define PAD_DIE_ID_OFFSET	1
 #define PAD_DIE_ID_MASK		REG_1BIT_MASK
 #define PAD_DIE_ID(value)	_GET_FV(PAD_DIE_ID, value)
+#define __PAD_DIE_ID		_BV(1)
 
 #define sysreg_soft_reset()		\
 	__raw_writel(CPU_GLOBAL_RESET, CPU_SW_RESET)
