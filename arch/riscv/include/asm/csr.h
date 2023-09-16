@@ -58,7 +58,7 @@
 #define CSR_FFLAGS		0x001
 #define CSR_FRM			0x002
 #define CSR_FCSR		0x003
-#endif
+#endif /* CONFIG_CPU_F */
 #define CSR_CYCLE		0xC00
 #define CSR_TIME		0xC01
 #define CSR_INSTRET		0xC02
@@ -81,7 +81,7 @@
 #define CSR_SIP			0x144
 #define CSR_SATP		0x180
 #define CSR_SCONTEXT		0x5A8
-#endif
+#endif /* CONFIG_CPU_S */
 #ifdef CONFIG_CPU_H
 #define CSR_HSTATUS		0x600
 #define CSR_HEDELEG		0x602
@@ -108,7 +108,7 @@
 #define CSR_VSTVAL		0x243
 #define CSR_VSIP		0x244
 #define CSR_VSATP		0x280
-#endif
+#endif /* CONFIG_CPU_H */
 #define CSR_MVENDORID		0xF11
 #define CSR_MARCHID		0xF12
 #define CSR_MIMPID		0xF13
@@ -136,7 +136,7 @@
 #ifdef CONFIG_CPU_PMP
 #define CSR_PMPCFG(n)		(0x3A0+(n)) /* n=0..3 */
 #define CSR_PMPADDR(n)		(0x3B0+(n)) /* n=0..15 */
-#endif
+#endif /* CONFIG_CPU_PMP */
 #define CSR_MCYCLE		0xB00
 #define CSR_MINSTRET		0xB02
 #define CSR_MHPMCOUNTER(n)	(0xB03+(n)) /* n=3..31 */
@@ -157,26 +157,43 @@
 #ifdef CONFIG_CPU_SSTC
 #define CSR_STIMECMP		0x14D
 #define CSR_STIMECMPH		0x15D
-#endif
+#endif /* CONFIG_CPU_SSTC */
 #ifdef CONFIG_CPU_SMSTATEEN
 #define CSR_MSTATEEN(n)		(0x30C+(n))
 #define CSR_MSTATEENH(n)	(0x31C+(n))
 #define CSR_SSTATEEN(n)		(0x10C+(n))
-#endif
+#endif /* CONFIG_CPU_SMSTATEEN */
 #ifdef CONFIG_CPU_SSCOFPMF
 #define CSR_SCOUNTOVF		0xDA0
-#endif
+#endif /* CONFIG_CPU_SSCOFPMF */
 #ifdef CONFIG_CPU_SMAIA
 #define CSR_MISELECT		0x350
 #define CSR_MIREG		0x351
 #define CSR_MTOPI		0xFB0
+#define CSR_MVIEN		0x308
+#define CSR_MVIP		0x309
 #define CSR_SISELECT		0x150
 #define CSR_SIREG		0x151
 #define CSR_STOPI		0xDB0
+#define CSR_HVIEN		0x608
+#define CSR_HVICTL		0x609
+#define CSR_HVIPRIO1		0x646
+#define CSR_HVIPRIO2		0x647
 #define CSR_VSISELECT		0x250
 #define CSR_VSIREG		0x251
 #define CSR_VSTOPI		0xEB0
-#endif
+#endif /* CONFIG_CPU_SMAIA */
+#ifdef CONFIG_CPU_SMAIA_IMSIC
+#define CSR_MTOPEI		0x35C
+#define CSR_STOPEI		0x15C
+#define CSR_VSTOPEI		0x25C
+#define AIA_SETEIPNUM		0x00
+#define AIA_IPRIO(n)		(0x30 + (n))
+#define AIA_EIDELIVERY		0x70
+#define AIA_EITHRESHOLD		0x72
+#define AIA_EIP(n)		(0x80 + (n))
+#define AIA_EIE(n)		(0xc0 + (n))
+#endif /* CONFIG_CPU_SMAIA_IMSIC */
 
 #define CSR_TCMCFG		0x5DB
 
@@ -190,12 +207,12 @@
 #define SR_SPP_SHIFT	8
 #define SR_SPP		_AC(0x00000100, UL) /* Previously Supervisor */
 #define SR_SUM		_AC(0x00040000, UL) /* Supervisor User Memory Access */
-#endif
+#endif /* CONFIG_CPU_S */
 #ifdef CONFIG_CPU_H
 #define SR_HIE		_AC(0x00000004, UL) /* Hypervisor Interrupt Enable */
 #define SR_HPIE		_AC(0x00000040, UL) /* Hypervisor Previous IE */
 #define SR_HPP		_AC(0x00000600, UL) /* Previously Hypervisor */
-#endif
+#endif /* CONFIG_CPU_H */
 #define SR_MIE		_AC(0x00000008, UL) /* Machine Interrupt Enable */
 #define SR_MPIE		_AC(0x00000080, UL) /* Machine Previous IE */
 #define SR_MPP_SHIFT	11
@@ -208,14 +225,14 @@
 #define SR_VS_INITIAL	_AC(0x00000200, UL)
 #define SR_VS_CLEAN	_AC(0x00000400, UL)
 #define SR_VS_DIRTY	_AC(0x00000600, UL)
-#endif
+#endif /* CONFIG_CPU_V */
 #define SR_FS		_AC(0x00006000, UL) /* Floating-point Status */
 #ifdef CONFIG_CPU_F
 #define SR_FS_OFF	_AC(0x00000000, UL)
 #define SR_FS_INITIAL	_AC(0x00002000, UL)
 #define SR_FS_CLEAN	_AC(0x00004000, UL)
 #define SR_FS_DIRTY	_AC(0x00006000, UL)
-#endif
+#endif /* CONFIG_CPU_F */
 #define SR_XS		_AC(0x00018000, UL) /* Extension Status */
 #define SR_XS_OFF	_AC(0x00000000, UL)
 #define SR_XS_INITIAL	_AC(0x00008000, UL)

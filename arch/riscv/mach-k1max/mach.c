@@ -79,3 +79,113 @@ void board_finish(int code)
 }
 #endif /* CONFIG_SBI */
 #endif /* CONFIG_FINISH */
+
+#ifdef CONFIG_SHUTDOWN
+void board_shutdown(void)
+{
+	k1max_finish(0);
+}
+#endif
+
+static int do_k1max_aia_msi(int argc, char *argv[])
+{
+	int i, msi;
+	uint64_t inc = 0x0101010101010101;
+	uint64_t val;
+
+	for (msi = 0; msi < 128; msi += 16) {
+		csr_write(CSR_MISELECT, AIA_SETEIPNUM);
+		csr_write(CSR_MIREG, msi);
+		for (i = 0; i < 4; i += 2) {
+			csr_write(CSR_MISELECT, AIA_EIP(i));
+			val = csr_read(CSR_MIREG);
+			printf("EIP%02d      : %016llx\n", i, val);
+		}
+	}
+
+	val = 0x3020100030201000;
+	csr_write(CSR_MISELECT, AIA_EIDELIVERY);
+	csr_write(CSR_MIREG, val);
+	csr_write(CSR_MISELECT, AIA_EITHRESHOLD);
+	csr_write(CSR_MIREG, val);
+
+	val = 0x3020100030201000;
+	for (i = 0; i < 32; i += 2) {
+		csr_write(CSR_MISELECT, AIA_EIP(i));
+		csr_write(CSR_MIREG, val);
+		val += inc;
+	}
+	val = 0x3020100030201000;
+	for (i = 0; i < 32; i += 2) {
+		csr_write(CSR_MISELECT, AIA_EIE(i));
+		csr_write(CSR_MIREG, val);
+		val += inc;
+	}
+
+	csr_write(CSR_MISELECT, AIA_EIDELIVERY);
+	val = csr_read(CSR_MIREG);
+	printf("EIDELIVERY : %016llx\n", val);
+	csr_write(CSR_MISELECT, AIA_EITHRESHOLD);
+	val = csr_read(CSR_MIREG);
+	printf("EITHRESHOLD: %016llx\n", val);
+
+	for (i = 0; i < 32; i += 2) {
+		csr_write(CSR_MISELECT, AIA_EIP(i));
+		val = csr_read(CSR_MIREG);
+		printf("EIP%02d      : %016llx\n", i, val);
+	}
+	for (i = 0; i < 32; i += 2) {
+		csr_write(CSR_MISELECT, AIA_EIE(i));
+		val = csr_read(CSR_MIREG);
+		printf("EIE%02d      : %016llx\n", i, val);
+	}
+	return 0;
+}
+
+static int do_k1max_aia_prio(int argc, char *argv[])
+{
+	int i;
+	uint64_t inc = 0x0101010101010101;
+	uint64_t val = 0x3020100030201000;
+
+	for (i = 0; i < 16; i += 2) {
+		csr_write(CSR_MISELECT, AIA_IPRIO(i));
+		csr_write(CSR_MIREG, val);
+		val += inc;
+	}
+	for (i = 0; i < 16; i += 2) {
+		csr_write(CSR_MISELECT, AIA_IPRIO(i));
+		val = csr_read(CSR_MIREG);
+		printf("MIPRIO%02d   : %016llx\n", i, val);
+	}
+	return 0;
+}
+
+static int do_k1max_aia(int argc, char *argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+
+	if (strcmp(argv[1], "prio") == 0)
+		return do_k1max_aia_prio(argc, argv);
+	if (strcmp(argv[1], "msi") == 0)
+		return do_k1max_aia_msi(argc, argv);
+	return -EINVAL;
+}
+
+static int do_k1max(int argc, char *argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+
+	if (strcmp(argv[1], "aia") == 0)
+		return do_k1max_aia(argc, argv);
+	return -EINVAL;
+}
+
+DEFINE_COMMAND(k1max, do_k1max, "K1MAX SoC global commands",
+	"k1max aia prio\n"
+	"	-AIA MIPRIO register test\n"
+	"k1max aia msi\n"
+	"	-AIA IMSIC register test\n"
+);
