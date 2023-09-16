@@ -46,7 +46,7 @@
 #include <target/atomic.h>
 
 #ifdef CONFIG_CLINT_FORCE_FAST_TIMEOUT
-#define FAST_TIMEOUT_DIFF  0x08
+#define FAST_TIMEOUT_DIFF  0x3000
 #endif
 
 #if __riscv_xlen == 64
@@ -88,6 +88,9 @@ void clint_set_mtimecmp(cpu_t cpu, uint64_t cmp)
 #ifdef CONFIG_CLINT_FORCE_FAST_TIMEOUT
 	uint64_t val = clint_read_mtime();
 	cmp = val + FAST_TIMEOUT_DIFF;
+#ifdef CONFIG_CLINT_TEST
+	printf("val:0x%llx cmp=0x%llx\n", val, cmp);
+#endif
 #endif
 	clint_write_mtimecmp(cpu, cmp);
 }

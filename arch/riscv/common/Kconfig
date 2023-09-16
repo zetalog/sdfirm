@@ -87,6 +87,8 @@ config CPU_SPACEMIT
 	select ARCH_HAS_ACLINT
 	select CPU_H
 	select CPU_SMAIA
+	select CPU_SMAIA_IMSIC
+	select ARCH_HAS_IMSIC
 
 # RI5CY
 config CPU_RI5CY
@@ -331,6 +333,9 @@ config CPU_SVINVAL
 	bool
 
 config CPU_SMAIA
+	bool
+
+config CPU_SMAIA_IMSIC
 	bool
 
 config CPU_PMA
@@ -792,6 +797,19 @@ config HTIF
 	depends ARCH_HAS_HTIF
 	help
 	  The interface can be found in spike (RISCV ISA simulator).
+
+config ARCH_HAS_IMSIC
+	bool
+	select CPU_SMAIA
+
+menuconfig IMSIC
+	bool "Incoming MSI Controller (IMSIC) supprt"
+	select RISCV_SMAIA
+	select CPU_SMAIA_IMSIC
+
+if IMSIC
+
+endif
 
 config ARCH_HAS_CLINT
 	bool
