@@ -27,6 +27,10 @@ void do_riscv_interrupt(struct pt_regs *regs)
 {
 	irq_t irq;
 
+#ifdef CONFIG_RISCV_IRQ_VERBOSE
+	printf("mtopi:0x%08lx\n", csr_read(CSR_MTOPI));
+	printf("stopi:0x%08lx\n", csr_read(CSR_STOPI));
+#endif
 	irq = regs->cause & ~ICR_IRQ_FLAG;
 	if (irq == IRQ_EXT) {
 		irqc_hw_handle_irq();
