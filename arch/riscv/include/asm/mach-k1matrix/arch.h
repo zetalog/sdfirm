@@ -70,7 +70,7 @@
 	lw	t0, 0(t0)
 	andi	t0, t0, __PAD_DIE_ID
 	beqz	t0, 4444f
-	addi	\reg, \reg, SOC1_HART
+	addi	\reg, \reg, DIE1_HART
 4444:
 	.endm
 	.macro get_arch_hartmask reg
@@ -79,7 +79,7 @@
 	lw	t0, 0(t0)
 	andi	t0, t0, __PAD_DIE_ID
 	beqz	t0, 5555f
-	slli	\reg, \reg, SOC1_HART
+	slli	\reg, \reg, DIE1_HART
 5555:
 	.endm
 #define ARCH_HAVE_BOOT_SMP	1
