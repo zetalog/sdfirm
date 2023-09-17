@@ -42,6 +42,13 @@
 #ifndef __REG_K1MATRIX_H_INCLUDE__
 #define __REG_K1MATRIX_H_INCLUDE__
 
+#ifndef __ASSEMBLY__
+extern unsigned long k1matrix_die_base;
+#endif
+
+#define DIE0_BASE		ULL(0x0000000000)
+#define DIE1_BASE		ULL(0x8000000000)
+
 /* SYS SUB */
 #define SYS_IO_BASE		ULL(0x0000000000)
 #define TIMER0_BASE		ULL(0x0000000000)

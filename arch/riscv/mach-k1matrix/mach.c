@@ -49,6 +49,9 @@
 #include <target/sbi.h>
 #include <target/noc.h>
 
+unsigned long k1matrix_die_base = DIE0_BASE;
+unsigned long k1matrix_die_hart = DIE0_HART;
+
 #ifdef CONFIG_K1MATRIX_BOOT_DDR
 void board_boot_ddr(void)
 {

@@ -42,8 +42,8 @@
 #ifndef __CPUS_K1MATRIX_H_INCLUDE__
 #define __CPUS_K1MATRIX_H_INCLUDE__
 
-#define SOC0_HART		0
-#define SOC1_HART		32
+#define DIE0_HART		0
+#define DIE1_HART		32
 
 #ifdef CONFIG_K1MATRIX_PARTIAL_GOOD
 #define BOOT_HART		CONFIG_K1MATRIX_BOOT_HART_ID
@@ -52,7 +52,7 @@
 #error "Bad ACPU partial good configuration!"
 #endif
 #else /* CONFIG_K1MATRIX_PARTIAL_GOOD */
-#define BOOT_HART		SOC0_HART
+#define BOOT_HART		DIE0_HART
 #define BOOT_MASK		CPU_ALL
 #endif /* CONFIG_K1MATRIX_PARTIAL_GOOD */
 
