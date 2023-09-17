@@ -163,12 +163,12 @@ static int do_k1max_aia_prio(int argc, char *argv[])
 
 static int do_k1max_aia(int argc, char *argv[])
 {
-	if (argc < 2)
+	if (argc < 3)
 		return -EINVAL;
 
-	if (strcmp(argv[1], "prio") == 0)
+	if (strcmp(argv[2], "prio") == 0)
 		return do_k1max_aia_prio(argc, argv);
-	if (strcmp(argv[1], "msi") == 0)
+	if (strcmp(argv[2], "msi") == 0)
 		return do_k1max_aia_msi(argc, argv);
 	return -EINVAL;
 }
