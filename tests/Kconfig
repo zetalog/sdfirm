@@ -82,6 +82,7 @@ config TEST_MEMTESTER
 	bool "Enable memtester support"
 	select STRING_GETOPT
 	select STRING_STRTOULL
+	select CRYPTO_RAND
 
 if TEST_MEMTESTER
 
