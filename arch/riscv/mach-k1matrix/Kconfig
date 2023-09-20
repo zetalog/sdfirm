@@ -124,8 +124,12 @@ menu "Bootloader options"
 choice
 	prompt "Boot mode"
 
-config K1MATRIX_BOOT_JUMP_DDR
-	bool "Jump to DDR base address"
+config K1MATRIX_BOOT_DDR
+	bool "DDR"
+	help
+	  Boot to the DDR base address, useful for FSBL. Note, depending
+	  on the configurations, program may be loaded via back doors, and
+	  FSBL may just directly jump to the DDR base address.
 
 endchoice
 
