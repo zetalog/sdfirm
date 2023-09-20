@@ -4,10 +4,11 @@
 #include <errno.h>
 
 #ifdef CONFIG_STRING_GETOPT
-char *optarg;
-int optind;
-int opterr;
-int optopt;
+extern char *optarg;
+extern int optind;
+extern int opterr;
+extern int optopt;
+
 void getopt_reset(void);
 int getopt(int argc, char *const *argv, const char *optstring);
 #else
