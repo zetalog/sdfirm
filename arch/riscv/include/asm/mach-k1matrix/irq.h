@@ -64,7 +64,7 @@
 #define IRQ_GMAC_TX0		EXT_IRQ(37)
 #define IRQ_GMAC_TX1		EXT_IRQ(38)
 
-#define NR_EXT_IRQS		160
+#define NR_EXT_IRQS		64
 #define NR_IRQS			(NR_INT_IRQS + NR_EXT_IRQS)
 
 #endif /* __IRQ_K1MATRIX_H_INCLUDE__ */
