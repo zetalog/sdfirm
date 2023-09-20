@@ -92,6 +92,26 @@ static int do_k1max_aia_msi(int argc, char *argv[])
 	int i, msi;
 	uint64_t inc = 0x0101010101010101;
 	uint64_t val;
+	uint64_t eidelivery[] = {
+		0x00000000, 0x00000001, 0x00000002, 0x00000003,
+		0x40000000, 0x40000001, 0x40000002, 0x40000003,
+	};
+
+	csr_write(CSR_MISELECT, AIA_EIDELIVERY);
+	val = csr_read(CSR_MIREG);
+	printf("EIDELIVERY : %016llx\n", val);
+	for (i = 0; i < ARRAY_SIZE(eidelivery); i++) {
+		csr_write(CSR_MIREG, eidelivery[i]);
+		val = csr_read(CSR_MIREG);
+		printf("EIDELIVERY : %016llx\n", val);
+	}
+
+	val = 0x3020100030201000;
+	csr_write(CSR_MISELECT, AIA_EITHRESHOLD);
+	csr_write(CSR_MIREG, val);
+	csr_write(CSR_MISELECT, AIA_EITHRESHOLD);
+	val = csr_read(CSR_MIREG);
+	printf("EITHRESHOLD: %016llx\n", val);
 
 	for (msi = 0; msi < 128; msi += 16) {
 		csr_write(CSR_MISELECT, AIA_SETEIPNUM);
@@ -104,35 +124,22 @@ static int do_k1max_aia_msi(int argc, char *argv[])
 	}
 
 	val = 0x3020100030201000;
-	csr_write(CSR_MISELECT, AIA_EIDELIVERY);
-	csr_write(CSR_MIREG, val);
-	csr_write(CSR_MISELECT, AIA_EITHRESHOLD);
-	csr_write(CSR_MIREG, val);
-
-	val = 0x3020100030201000;
 	for (i = 0; i < 32; i += 2) {
 		csr_write(CSR_MISELECT, AIA_EIP(i));
 		csr_write(CSR_MIREG, val);
 		val += inc;
 	}
+	for (i = 0; i < 32; i += 2) {
+		csr_write(CSR_MISELECT, AIA_EIP(i));
+		val = csr_read(CSR_MIREG);
+		printf("EIP%02d      : %016llx\n", i, val);
+	}
+
 	val = 0x3020100030201000;
 	for (i = 0; i < 32; i += 2) {
 		csr_write(CSR_MISELECT, AIA_EIE(i));
 		csr_write(CSR_MIREG, val);
 		val += inc;
-	}
-
-	csr_write(CSR_MISELECT, AIA_EIDELIVERY);
-	val = csr_read(CSR_MIREG);
-	printf("EIDELIVERY : %016llx\n", val);
-	csr_write(CSR_MISELECT, AIA_EITHRESHOLD);
-	val = csr_read(CSR_MIREG);
-	printf("EITHRESHOLD: %016llx\n", val);
-
-	for (i = 0; i < 32; i += 2) {
-		csr_write(CSR_MISELECT, AIA_EIP(i));
-		val = csr_read(CSR_MIREG);
-		printf("EIP%02d      : %016llx\n", i, val);
 	}
 	for (i = 0; i < 32; i += 2) {
 		csr_write(CSR_MISELECT, AIA_EIE(i));
