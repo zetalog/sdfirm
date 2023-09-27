@@ -1,4 +1,7 @@
 #!/bin/sh
+# NOTE: This scripts automatically switches cross compile tools using
+#       SUBARCH and uses ARCH default cross compiler prefix. Thus it
+#       unsets CROSS_COMPILE, which may affect your environment.
 
 update_defconfigs=
 build_all_defconfigs=
@@ -92,6 +95,9 @@ build_sdfirm riscv64 dpuresm_bbl
 build_sdfirm riscv64 dpulp_bbl
 build_sdfirm riscv64 duowen_bbl_apc
 build_sdfirm riscv64 duowen_bbl_imc
+build_sdfirm riscv64 k1max_cpu_bbl
+build_sdfirm riscv64 k1max_soc_bbl
+build_sdfirm riscv64 k1mxlite_bbl
 if [ "x$PSEUDO_IMAGE" = "xyes" ]; then
 	echo "Deleting pseudo image..."
 	rm -f Image
@@ -181,13 +187,13 @@ build_sdfirm riscv64 dpulp_fsbl
 build_sdfirm riscv64 dpulp_xsbl
 build_sdfirm riscv64 dpulp_dfw
 # K1-max
-build_sdfirm riscv64 k1max_cpu_bbl
-build_sdfirm riscv64 k1max_soc_bbl
 build_sdfirm riscv64 k1max_cpu_litmus
+build_sdfirm riscv64 k1max_cpu_aia
 build_sdfirm riscv64 k1max_soc_litmus
 # K1MXLite
+build_sdfirm riscv64 k1mxlite_zsbl
 build_sdfirm riscv64 k1mxlite_fsbl
-build_sdfirm riscv64 k1mxlite_bbl
+build_sdfirm riscv64 k1mxlite_litmus
 # core-v-verif
 if [ "x$build_all_defconfigs" = "xyes" ]; then
 	build_sdfirm riscv32 corev_cv32
