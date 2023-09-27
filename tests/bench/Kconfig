@@ -231,28 +231,37 @@ config COREMARK_PRINT_ARGS
 
 endif
 
-menuconfig MEMSTREAM
-	bool "Memory Stream"
+menuconfig STREAM
+	bool "STREAM"
+	select FP
+	select PRINT_FP if PRINT_PRINTF
 
-if MEMSTREAM
+if STREAM
 
-config MEMSTREAM_STATIC_ARRAY
-	bool "Use static array (rather than allocate dynamically)"
-	default y
+choice
+	prompt "Percpu mechnism"
+	default STREAM_BENCH_PERCPU
 
-config MEMSTREAM_ARRAY_SIZE
+config STREAM_BENCH_PERCPU
+	bool "Bench percpu allocation"
+
+config STREAM_GENERIC_PERCPU
+	bool "SMP percpu allocation"
+
+config STREAM_SPECIFIC_PERCPU
+	bool "Specific percpu array"
+
+endchoice
+
+config STREAM_ARRAY_SIZE
 	int "Array size"
 	range 1000 8000000
 	default 200000
 
-config MEMSTREAM_NTIMES
+config STREAM_NTIMES
 	int "Running times"
 	range 1 16
 	default 2
-
-config MEMSTREAM_TIME_ON
-	bool "Turn on time operations"
-	default n
 
 endif
 
