@@ -132,10 +132,8 @@ static int do_k1matrix_info(int argc, char *argv[])
 {
 	printf("BOOT_SEL: %d\n", (int)sysreg_boot_sel());
 	printf("DIE_ID:   %d\n", (int)sysreg_die_id());
-#if 0
-	printf("CPU:      0x%04x\n", apc_get_cpu_map());
-	printf("CLUSTER:  0x%02x\n", apc_get_cluster_map());
-#endif
+	printf("CPU:      0x%04x\n", acpu_get_cpu_map());
+	printf("CLUSTER:  0x%02x\n", acpu_get_cluster_map());
 	return 0;
 }
 

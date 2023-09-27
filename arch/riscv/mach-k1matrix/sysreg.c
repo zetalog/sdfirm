@@ -41,18 +41,40 @@
 
 #include <target/arch.h>
 
-#define BOOT_CLUSTER	CPU_TO_CLUSTER(BOOT_HART)
-
 void k1matrix_cpu_reset(void)
 {
 	cpu_t cpu, hart;
+	cpu_t boot_hart = sysreg_boot_cpu();
 
-	if (BOOT_HART == csr_read(CSR_MHARTID)) {
+	if (boot_hart == csr_read(CSR_MHARTID)) {
 		for (cpu = 0; cpu < MAX_CPU_NUM; cpu++) {
 			hart = smp_hw_cpu_hart(cpu);
-			if (hart == BOOT_HART)
+			if (hart == boot_hart)
 				continue;
-			sysreg_soft_reset_cpu(cpu);
+			if (_BV(hart) & acpu_get_cpu_map())
+				sysreg_soft_reset_cpu(cpu);
 		}
 	}
+}
+
+uint32_t acpu_get_cpu_map(void)
+{
+	return sysreg_cpu_mask();
+}
+
+static uint8_t acpu_contract_cpu_map(uint32_t map)
+{
+	uint32_t mask = map;
+
+	mask = ((mask & 0xaaaaaaaa) >>  1) | (mask & 0x55555555);
+	mask = ((mask & 0x44444444) >>  2) | (mask & 0x11111111);
+	mask = ((mask & 0x10101010) >>  3) | (mask & 0x01010101);
+	mask = ((mask & 0x03000300) >>  6) | (mask & 0x00030003);
+	mask = ((mask & 0x000f0000) >> 12) | (mask & 0x0000000f);
+	return (uint8_t)mask;
+}
+
+uint8_t acpu_get_cluster_map(void)
+{
+	return acpu_contract_cpu_map(acpu_get_cpu_map());
 }
