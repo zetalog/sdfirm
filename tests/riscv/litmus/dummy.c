@@ -44,7 +44,7 @@ inline static void barrier_wait(unsigned int id, unsigned int k, int volatile *b
   }
 }
 
-#if MAX_CPU_NUM == 4
+#if LITMUS_MAX_CPUS == 4
 /*
  Topology: {{{0, 1}, {2, 3}}}
 */
@@ -56,7 +56,7 @@ static int cpu_scan[] = {
 2, 3, 0, 1,
 };
 #endif
-#if MAX_CPU_NUM == 8
+#if LITMUS_MAX_CPUS == 8
 /*
  Topology: {{{0, 1}, {2, 3}, {4, 5}, {6, 7}}}
 */
@@ -75,10 +75,10 @@ static char *group[] = {
 };
 
 #define SCANSZ 2
-#if MAX_CPU_NUM == 4
+#if LITMUS_MAX_CPUS == 4
 #define SCANLINE 4
 #endif
-#if MAX_CPU_NUM == 8
+#if LITMUS_MAX_CPUS == 8
 #define SCANLINE 8
 #endif
 

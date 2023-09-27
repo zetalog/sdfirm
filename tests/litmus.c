@@ -1498,7 +1498,7 @@ void litmus_exec(const char *test)
 		litmus_enter(LITMUS_STA_IDLE);
 		return;
 	}
-	bench_simple(CPU_ALL, fn, true);
+	bench_simple(LITMUS_CPU_MASK, fn, true);
 }
 
 #ifdef CONFIG_TEST_LITMUS_FINISH
