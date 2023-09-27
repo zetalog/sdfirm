@@ -124,24 +124,19 @@ static int do_k1max_aia_msi(int argc, char *argv[])
 	}
 
 	val = 0x3020100030201000;
-	for (i = 0; i < 32; i += 2) {
+	for (i = 30; i >= 0; i -= 2) {
 		csr_write(CSR_MISELECT, AIA_EIP(i));
 		csr_write(CSR_MIREG, val);
+		csr_write(CSR_MISELECT, AIA_EIE(i));
+		csr_write(CSR_MIREG, val);
 		val += inc;
+		printf("MTOPEI     : %016llx\n",
+		       (uint64_t)csr_read(CSR_MTOPEI));
 	}
 	for (i = 0; i < 32; i += 2) {
 		csr_write(CSR_MISELECT, AIA_EIP(i));
 		val = csr_read(CSR_MIREG);
 		printf("EIP%02d      : %016llx\n", i, val);
-	}
-
-	val = 0x3020100030201000;
-	for (i = 0; i < 32; i += 2) {
-		csr_write(CSR_MISELECT, AIA_EIE(i));
-		csr_write(CSR_MIREG, val);
-		val += inc;
-	}
-	for (i = 0; i < 32; i += 2) {
 		csr_write(CSR_MISELECT, AIA_EIE(i));
 		val = csr_read(CSR_MIREG);
 		printf("EIE%02d      : %016llx\n", i, val);
