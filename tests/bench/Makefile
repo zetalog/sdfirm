@@ -27,7 +27,7 @@ CFLAGS_coremark.o += $(XCFLAGS_coremark.o)
 CFLAGS_coremark.o += -DFLAGS_STR=\"$(FLAGS_STR_coremark.o)\"
 obj-$(CONFIG_COREMARK) += coremark.rel
 
-obj-$(CONFIG_MEMSTREAM) += memstream.rel
+obj-$(CONFIG_STREAM) += stream.rel
 
 obj-$(CONFIG_TEST_ALGO) += algo/
 obj-$(CONFIG_TEST_SANITY) += sanity/
