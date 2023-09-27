@@ -182,6 +182,11 @@ static int k1matrix_system_finish(uint32_t code)
 	return 0;
 }
 
+static bool k1matrix_hart_disabled(uint32_t hartid)
+{
+	return ~acpu_get_cpu_mask() & CPU_TO_MASK(hartid);
+}
+
 const struct sbi_platform_operations platform_ops = {
 	.pmp_region_count	= k1matrix_pmp_region_count,
 	.pmp_region_info	= k1matrix_pmp_region_info,
@@ -200,6 +205,7 @@ const struct sbi_platform_operations platform_ops = {
 	.system_reboot		= k1matrix_system_down,
 	.system_shutdown	= k1matrix_system_down,
 	.system_finish		= k1matrix_system_finish,
+	.hart_disabled		= k1matrix_hart_disabled,
 };
 
 const struct sbi_platform platform = {

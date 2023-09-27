@@ -47,12 +47,16 @@
 #define SYSREG_REG(offset)	(SYSCTL_BASE + (offset))
 
 #define CPU_SW_RESET		SYSREG_REG(0x000)
+#define CORE_SW_RESET		SYSREG_REG(0x004)
 #define DDR_SW_RESET		SYSREG_REG(0x100)
 #define SYS_SW_RESET		SYSREG_REG(0x200)
 #define PCIE_SW_RESET		SYSREG_REG(0x300)
 #define GMAC_SW_RESET		SYSREG_REG(0x400)
 #define SYS_CTRL_GMAC		SYSREG_REG(0x500)
 #define SYS_CTRL_MESH		SYSREG_REG(0x600)
+
+#define EFUSE_INFO_REG0		SYSREG_REG(0x1000) /* CPU mask */
+#define EFUSE_INFO_REG1		SYSREG_REG(0x1004) /* boot CPU */
 
 #define GPIO_AUX_CFG0		SYSREG_REG(0x2000)
 #define GPIO_AUX_CFG1		SYSREG_REG(0x2004)
@@ -62,7 +66,9 @@
 
 /* CPU_SW_RESET */
 #define CPU_GLOBAL_RESET	_BV(0)
-#define CPU_RESET(cpu)		_BV(1+(cpu))
+
+/* CORE_SW_RESET */
+#define CPU_RESET(cpu)		_BV(cpu)
 
 /* DDR_SW_RESET */
 #define DDR_GLOBAL_RESET	_BV(0)
@@ -83,6 +89,12 @@
 #define GMAC_GLOBAL_RESET	_BV(0)
 #define GMAC_CSR_RESET		_BV(1)
 #define GMAC_DMA_RESET		_BV(2)
+
+/* EFUSE_INFO_REG0 */
+#define DIE_ID			_BV(5)
+#define BOOTHART_OFFSET		0
+#define BOOTHART_MASK		REG_5BIT_MASK
+#define BOOTHART(value)		_GET_FV(BOOTHART, value)
 
 /* SYS_CTRL_GMAC */
 #define GMAC_RMII_EN		_BV(0)
@@ -107,14 +119,20 @@
 #define sysreg_soft_reset()		\
 	__raw_writel(CPU_GLOBAL_RESET, CPU_SW_RESET)
 #define sysreg_soft_reset_cpu(cpu)	\
-	__raw_setl(CPU_RESET(cpu), CPU_SW_RESET)
+	__raw_setl(CPU_RESET(cpu), CORE_SW_RESET)
 #define sysreg_boot_sel()		\
 	PAD_BOOT_SEL(__raw_readl(PAD_IN_STATUS))
-#define sysreg_die_id()		\
+#define sysreg_die_id()			\
 	PAD_DIE_ID(__raw_readl(PAD_IN_STATUS))
+#define sysreg_boot_cpu()		\
+	BOOTHART(__raw_readl(EFUSE_INFO_REG1))
+#define sysreg_cpu_mask()		\
+	__raw_readl(EFUSE_INFO_REG0)
 
 #ifndef __ASSEMBLY__
 void k1matrix_cpu_reset(void);
+uint32_t acpu_get_cpu_map(void);
+uint8_t acpu_get_cluster_map(void);
 #endif
 
 #endif /* __SYSREG_K1MATRIX_H_INCLUDE__ */
