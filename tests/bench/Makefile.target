@@ -10,7 +10,10 @@ CONFIG_COREMARK_RUN_PERFORMANCE=1
 #CONFIG_COREMARK_ITERATIONS=0
 CONFIG_COREMARK_OPTIMISED=3
 
-PROGS=dhrystone.elf linpack.elf coremark.elf mhz.elf
+CONFIG_STREAM_ARRAY_SIZE=10000000
+CONFIG_STREAM_NTIMES=10
+
+PROGS=dhrystone.elf linpack.elf coremark.elf stream.elf mhz.elf
 
 include ../Makefile.bench
 
@@ -105,6 +108,17 @@ CFLAGS_coremark=\
 	$(CFLAGS_coremark_port) \
 	$(CFLAGS_coremark_run) \
 	-DFLAGS_STR=\"$(FLAGS_STR)\" \
+	-I../../include
+
+ifneq ($(CONFIG_STREAM_ARRAY_SIZE),)
+CFLAGS_stream_cfg += -DSTREAM_ARRAY_SIZE=$(CONFIG_STREAM_ARRAY_SIZE)
+endif
+ifneq ($(CONFIG_STREAM_NTIMES),)
+CFLAGS_stream_cfg += -DSTREAM_NTIMES=$(CONFIG_STREAM_NTIMES)
+endif
+CFLAGS_stream=\
+	$(CFLAGS_stream_cfg) \
+	-O2 \
 	-I../../include
 
 LIBS_mhz += -lm
