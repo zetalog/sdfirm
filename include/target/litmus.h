@@ -275,6 +275,14 @@ int parse_cmd(int argc, char **argv, cmd_t *def, cmd_t *p);
 #define LITMUS_EXISTS_SOMETIMES	LITMUS_WIT_SOMETIMES_NG
 #define LITMUS_FORALL_SOMETIMES	LITMUS_WIT_SOMETIMES_OK
 
+#ifdef CONFIG_TEST_LITMUS_CPU_CUSTOMIZED
+#define LITMUS_MAX_CPUS		CONFIG_TEST_LITMUS_MAX_CPUS
+#define LITMUS_CPU_MASK		CONFIG_TEST_LITMUS_CPU_MASK
+#else
+#define LITMUS_MAX_CPUS		MAX_CPU_NUM
+#define LITMUS_CPU_MASK		CPU_ALL
+#endif
+
 typedef uint16_t litmus_evt_t;
 typedef uint8_t litmus_sta_t;
 
