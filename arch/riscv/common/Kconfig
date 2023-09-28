@@ -814,6 +814,9 @@ endif
 config ARCH_HAS_CLINT
 	bool
 
+config ARCH_HAS_CLINT_CTX
+	bool
+
 config ARCH_HAS_ACLINT
 	bool
 	select ARCH_HAS_CLINT
