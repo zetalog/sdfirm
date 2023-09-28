@@ -61,6 +61,17 @@
 	.macro	boot2_hook
 	x100_smp_init
 	.endm
+
+	/* SMP ID <-> HART ID conversions on APC */
+	.macro get_arch_smpid reg
+	.endm
+	.macro get_arch_hartmask reg
+	li	\reg, BOOT_MASK
+	.endm
+	.macro get_arch_hartboot reg
+	li	\reg, BOOT_HART
+	.endm
+#define ARCH_HAVE_BOOT_SMP	1
 #endif
 
 /* This file is intended to be used for implementing SoC specific
