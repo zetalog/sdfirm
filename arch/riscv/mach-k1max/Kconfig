@@ -92,6 +92,23 @@ config K1M_SMP_SPARSE_HART_ID
 	 Requires lots of changes to the software to determine if the ID
 	 is a hart ID or a CPU ID.
 
+menuconfig K1M_PARTIAL_GOOD
+	bool "Partial goods"
+	select ARCH_HAS_CLINT_CTX
+
+if K1M_PARTIAL_GOOD
+
+config K1M_BOOT_HART_ID
+	int "Boot hart ID"
+	range 0 7
+	default 0
+
+config K1M_PARTIAL_GOOD_MASK
+	hex "Good hart mask"
+	default 0x0033
+
+endif
+
 choice
 	prompt "Program type"
 

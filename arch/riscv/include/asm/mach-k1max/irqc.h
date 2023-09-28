@@ -58,9 +58,15 @@ extern caddr_t k1max_plic_ctx_base[2];
 #define PLIC_CTX_BASE		(PLIC_REG_BASE + PLIC_CONTEXT_BASE)
 #endif
 
+#ifdef CONFIG_K1M_PARTIAL_GOOD
+#define cpu2plic(cpu)			((((cpu) & 0x02) << 1) | ((cpu) & 0x01))
+#else
+#define cpu2plic(cpu)			(cpu)
+#endif
 #define PLIC_HW_PRI_MAX			31
-#define plic_hw_m_ctx(cpu)		(cpu)
-#define plic_hw_s_ctx(cpu)		((cpu) + 1)
+#define plic_hw_m_ctx(cpu)		cpu2plic(cpu)
+#define plic_hw_s_ctx(cpu)		(cpu2plic(cpu) + 1)
+#define clint_hw_ctx(cpu)		cpu2plic(cpu)
 
 #include <asm/plic.h>
 

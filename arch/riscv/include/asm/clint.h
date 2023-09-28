@@ -52,8 +52,13 @@
 #endif
 
 #define CLINT_REG(offset)	(CLINT_BASE + (offset))
+#ifdef CONFIG_ARCH_HAS_CLINT_CTX
+#define CLINT_MSIP(hart)	CLINT_REG((clint_hw_ctx(hart)) << 2)
+#define CLINT_MTIMECMP(hart)	CLINT_REG(CLINT_MTIMECMP_BASE + ((clint_hw_ctx(hart)) << 3))
+#else
 #define CLINT_MSIP(hart)	CLINT_REG((hart) << 2)
 #define CLINT_MTIMECMP(hart)	CLINT_REG(CLINT_MTIMECMP_BASE + ((hart) << 3))
+#endif
 #define CLINT_MTIME		CLINT_REG(CLINT_MTIME_BASE)
 
 #if !defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)

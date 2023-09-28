@@ -42,13 +42,22 @@
 #ifndef __CPUS_K1MAX_H_INCLUDE__
 #define __CPUS_K1MAX_H_INCLUDE__
 
+#ifdef CONFIG_K1M_PARTIAL_GOOD
+#define BOOT_HART		CONFIG_K1M_BOOT_HART_ID
+#define BOOT_MASK		CONFIG_K1M_PARTIAL_GOOD_MASK
+#if !((1 << BOOT_HART) & BOOT_MASK)
+#error "Bad CPU partial good configuration!"
+#endif
+#else /* CONFIG_K1M_PARTIAL_GOOD */
+#define BOOT_HART		0
+#define BOOT_MASK		CPU_ALL
+#endif /* CONFIG_K1M_PARTIAL_GOOD */
+
 #ifdef CONFIG_SMP
 #define MAX_CPU_NUM		CONFIG_K1M_SMP_CPUS
 #else
 #define MAX_CPU_NUM		1
 #endif
-
-#define BOOT_HART		0
 
 #define CPUS_PER_CLUSTER	4
 #define MAX_CPU_CLUSTERS	(MAX_CPU_NUM / CPUS_PER_CLUSTER)
