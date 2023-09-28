@@ -49,6 +49,7 @@
 #endif
 			};
 #if CONFIG_K1M_SMP_CPUS >= 8
+#ifndef CONFIG_K1M_PARTIAL_GOOD
 			cluster1 {
 				core4 {
 					cpu = <&cpu4>;
@@ -63,6 +64,7 @@
 					cpu = <&cpu7>;
 				};
 			};
+#endif
 #endif
 		};
 
@@ -102,6 +104,44 @@
 			};
 		};
 #endif
+#ifdef CONFIG_K1M_PARTIAL_GOOD
+#if CONFIG_K1M_SMP_CPUS == 8
+		cpu2: cpu@2 {
+			device_type = "cpu";
+			reg = <4>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcvhsu_zicbom_svpbmt_sstc";
+			mmu-type = "riscv,sv48";
+			cpu-ai = "true";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu2_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu3: cpu@3 {
+			device_type = "cpu";
+			reg = <5>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcvhsu_zicbom_svpbmt_sstc";
+			mmu-type = "riscv,sv48";
+			cpu-ai = "true";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu3_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+#endif
+#else
 #if CONFIG_K1M_SMP_CPUS >= 4
 		cpu2: cpu@2 {
 			device_type = "cpu";
@@ -139,6 +179,7 @@
 		};
 #endif
 #if CONFIG_K1M_SMP_CPUS >= 8
+#ifndef CONFIG_K1M_PARTIAL_GOOD
 		cpu4: cpu@4 {
 			device_type = "cpu";
 			reg = <4>;
@@ -203,6 +244,8 @@
 				compatible = "riscv,cpu-intc";
 			};
 		};
+#endif
+#endif
 #endif
 	};
 
@@ -290,10 +333,12 @@
 				&cpu3_intc 0xb &cpu3_intc 0x9
 #endif
 #if CONFIG_K1M_SMP_CPUS >= 8
+#ifndef CONFIG_K1M_PARTIAL_GOOD
 				&cpu4_intc 0xb &cpu4_intc 0x9
 				&cpu5_intc 0xb &cpu5_intc 0x9
 				&cpu6_intc 0xb &cpu6_intc 0x9
 				&cpu7_intc 0xb &cpu7_intc 0x9
+#endif
 #endif
 			>;
 			interrupt-controller;
@@ -331,10 +376,12 @@
 				&cpu3_intc 0x3 &cpu3_intc 0x7
 #endif
 #if CONFIG_K1M_SMP_CPUS >= 8
+#ifndef CONFIG_K1M_PARTIAL_GOOD
 				&cpu4_intc 0x3 &cpu4_intc 0x7
 				&cpu5_intc 0x3 &cpu5_intc 0x7
 				&cpu6_intc 0x3 &cpu6_intc 0x7
 				&cpu7_intc 0x3 &cpu7_intc 0x7
+#endif
 #endif
 			>;
 			reg = <DT_REGHI(CLINT_BASE) DT_REGLO(CLINT_BASE)
