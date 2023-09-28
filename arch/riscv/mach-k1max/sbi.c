@@ -223,6 +223,11 @@ static int k1max_system_finish(uint32_t code)
 	return 0;
 }
 
+static bool k1max_hart_disabled(uint32_t hartid)
+{
+	return ~BOOT_MASK & CPU_TO_MASK(hartid);
+}
+
 const struct sbi_platform_operations platform_ops = {
 	.pmp_region_count	= k1max_pmp_region_count,
 	.pmp_region_info	= k1max_pmp_region_info,
@@ -241,6 +246,7 @@ const struct sbi_platform_operations platform_ops = {
 	.system_reboot		= k1max_system_down,
 	.system_shutdown	= k1max_system_down,
 	.system_finish		= k1max_system_finish,
+	.hart_disabled		= k1max_hart_disabled,
 };
 
 const struct sbi_platform platform = {
