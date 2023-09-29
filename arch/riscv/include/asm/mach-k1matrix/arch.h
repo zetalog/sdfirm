@@ -59,6 +59,7 @@
 	.endm
 	.macro	boot2_hook
 	x100_smp_init
+	jal	ra, k1matrix_n100_smp_init
 	.endm
 
 	/* SMP ID <-> HART ID conversions on APC */
