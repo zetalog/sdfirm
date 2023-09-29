@@ -117,6 +117,9 @@ config K1MATRIX_BOOT
 	bool
 	select K1MATRIX_N100
 
+config K1MATRIX_SYSCO
+	bool "Enable CHI SYSCO interfaces"
+
 if K1MATRIX_BOOT
 
 menu "Bootloader options"

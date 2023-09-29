@@ -35,63 +35,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)arch.h: K1Matrix machine specific definitions
- * $Id: arch.h,v 1.1 2023-09-06 15:19:00 zhenglv Exp $
+ * @(#)sysco.c: K1Matrix N100 networking enabling SoC top integration
+ * $Id: sysco.c,v 1.1 2023-09-06 17:39:00 zhenglv Exp $
  */
 
-#ifndef __ARCH_K1MATRIX_H_INCLUDE__
-#define __ARCH_K1MATRIX_H_INCLUDE__
+#include <target/arch.h>
 
-/* This file is intended to be used for implementing SoC specific
- * instructions, registers.
- */
+void k1matrix_n100_smp_init(void)
+{
+	cpu_t c;
 
-#include <asm/mach/cpus.h>
-#include <asm/x100.h>
-#include <asm/mach/sysreg.h>
-
-#if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
-	.macro	boot0_hook
-	x100_init
-	.endm
-	.macro	boot1_hook
-	jal	ra, k1matrix_cpu_reset
-	.endm
-	.macro	boot2_hook
-	x100_smp_init
-	jal	ra, k1matrix_n100_smp_init
-	.endm
-
-	/* SMP ID <-> HART ID conversions on APC */
-	.macro get_arch_smpid reg
-	.endm
-	.macro get_arch_hartboot reg
-	li	\reg, BOOT_HART
-	li	t0, PAD_IN_STATUS
-	lw	t0, 0(t0)
-	andi	t0, t0, __PAD_DIE_ID
-	beqz	t0, 4444f
-	addi	\reg, \reg, DIE1_HART
-4444:
-	.endm
-	.macro get_arch_hartmask reg
-	li	\reg, BOOT_MASK
-	li	t0, PAD_IN_STATUS
-	lw	t0, 0(t0)
-	andi	t0, t0, __PAD_DIE_ID
-	beqz	t0, 5555f
-	slli	\reg, \reg, DIE1_HART
-5555:
-	.endm
-#define ARCH_HAVE_BOOT_SMP	1
-#endif /* __ASSEMBLY__ && !__DTS__ && !LINKER_SCRIPT */
-
-#ifndef __ASSEMBLY__
-#ifdef CONFIG_MMU
-void k1matrix_mmu_init(void);
-#else /* CONFIG_MMU */
-#define k1matrix_mmu_init()	do { } while (0)
-#endif /* CONFIG_MMU */
-#endif /* __ASSEMBLY__ */
-
-#endif /* __ARCH_K1MATRIX_H_INCLUDE__ */
+	for (c = 0; c < MAX_CPU_CLUSTERS; c++) {
+		if (_BV(c) &  acpu_get_cluster_map())
+			sysreg_enable_sysco(c);
+	}
+}
