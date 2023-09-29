@@ -46,6 +46,7 @@
 
 #ifdef CONFIG_K1MATRIX_N100
 void k1matrix_n100_init(void);
+void k1matrix_n100_smp_init(void);
 #else
 #define k1matrix_n100_init()		do { } while (0)
 #endif
