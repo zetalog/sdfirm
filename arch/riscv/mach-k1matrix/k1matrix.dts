@@ -275,5 +275,41 @@
 			clint,has-no-64bit-mmio;
 #endif
 		};
+
+		reset: reset-controller@F00110000 {
+			#address-cells = <0x1>;
+			#size-cells = <0x1>;
+			compatible = "spacemit,k1matrix-reset";
+			reg = <0xF 0x00110000 0x0 0x4000>, <0xF 0x00110000 0x0 0xc000>;
+			#reset-cells = <1>;
+			status = "okay";
+		};
+
+		pcie0: pcie@02000000 {
+			compatible = "spacemit,k1-pro-pcie";
+			reg = <0x0 0x02000000 0x0 0x400000>,
+			      <0x0 0x02800000 0x0 0x100000>,
+			      <0x1 0x00000000 0x0 0x100000>;
+			reg-names = "dbi", "app", "config";
+			num-lanes = <4>;
+			device_type = "pci";
+
+			#address-cells = <3>;
+			#size-cells = <2>;
+			ranges = <0x81000000 0 0x80100000 0 0x80100000 0 0x00100000>,   /* downstream I/O */
+			         <0x82000000 0 0x80200000 0 0x80200000 0 0x05e00000>,   /* non-prefetchable memory */
+			         <0xc3000000 0 0x86000000 0 0x86000000 0 0x02000000>;   /* mem prefetchable */
+			bus-range = <0x00 0xff>;
+
+			interrupt-parent = <&plic>;
+			interrupts = <30>;
+			interrupt-names = "msi";
+
+			resets = <&reset 0>,
+			         <&reset 1>,
+			         <&reset 2>;
+			reset-names = "cold", "button", "warm";
+			status = "okay";
+		};
 	};
 };
