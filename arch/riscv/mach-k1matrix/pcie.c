@@ -43,74 +43,37 @@
 #include <asm/io.h>
 #include <target/delay.h>
 
-#define SYS_RSTGEN_R_BADDR      ULL(0x002F024000)
-#define SYS_CLKGEN_R_BADDR      ULL(0x002F020000)
-#define SYS_XXX                 ULL(0x0040000000)
-#define SYS_XXX2                ULL(0x0044000000)
-#define SYS_XXX3                ULL(0x0045080000)
-
-#define SERDES_SW_RESET_OFFSET  ULL(0x300)
-#define SERDES_CLK_EN_OFFSET    ULL(0x404)
-#define SERDES_SER2MBUS_OFFSET  ULL(0x408)
-#define PCIE_SW_RESET_OFFSET    ULL(0x304)
-#define PCIE_CLK_EN_OFFSET      ULL(0x40C)
-#define PCIE_PHY0_CLKEN_OFFSET  ULL(0x42C)
-#define PCIE_PHY0_RESETN_OFFSET ULL(0x314)
-#define PCIE0_PERSTN_OFFSET     ULL(0x318)
-#define SERDES_LANE_OFFSET      ULL(0xC)
-#define IP_RXSTANDBY_OFFSET     ULL(0x8C4)
-#define PCIE_PHY0_RSTN_OFFSET   ULL(0x0)
-#define IP_FAST_LINK_OFFSET     ULL(0x710)
-#define LTSSM_ENABLE_OFFSET     ULL(0x4)
-#define WAIT_PL_UP_DL_UP        ULL(0x104)
+#define SYS_CTL_BADDR           ULL(0x0F00110000)
+#define PCIE_APP_ADDR           ULL(0x2800000)
+#define PCIE_DBI_ADDR           ULL(0x2000000)
 
 void pcie_linkup(void)
 {
     uint32_t reg;
     int32_t timeout;
 
-    __raw_writel(0x1, SYS_RSTGEN_R_BADDR + SERDES_SW_RESET_OFFSET);  //1
+    reg = __raw_readl(SYS_CTL_BADDR + 0x300);
+    reg |= (0x1 << 1);
+    __raw_writel(reg, SYS_CTL_BADDR + 0x300);          //1
 
-    __raw_writel(0x1, SYS_CLKGEN_R_BADDR + SERDES_CLK_EN_OFFSET);    //2
+    reg = __raw_readl(SYS_CTL_BADDR + 0x300);
+    reg |= (0x1 << 2);
+    __raw_writel(reg, SYS_CTL_BADDR + 0x300);          //2
 
-    __raw_writel(0x1, SYS_CLKGEN_R_BADDR + SERDES_SER2MBUS_OFFSET);  //3
+    __raw_writel(0x4, PCIE_APP_ADDR);                  //3
 
-    __raw_writel(0x1, SYS_RSTGEN_R_BADDR + PCIE_SW_RESET_OFFSET);    //4
+    reg = __raw_readl(SYS_CTL_BADDR + 0x300);
+    reg |= (0x1 << 3);
+    __raw_writel(reg, SYS_CTL_BADDR + 0x300);          //4
 
-    __raw_writel(0x1, SYS_CLKGEN_R_BADDR + PCIE_CLK_EN_OFFSET);      //5
+    __raw_writel(0x701a0, PCIE_DBI_ADDR + 0x710);      //5
 
-    reg = __raw_readl(SYS_CLKGEN_R_BADDR + PCIE_PHY0_CLKEN_OFFSET);  //6
-    reg |= 0x1;
-    __raw_writel(reg, SYS_CLKGEN_R_BADDR + PCIE_PHY0_CLKEN_OFFSET);
-
-    reg = __raw_readl(SYS_RSTGEN_R_BADDR + PCIE_PHY0_RESETN_OFFSET); //7
-    reg |= 0x1;
-    __raw_writel(reg, SYS_RSTGEN_R_BADDR + PCIE_PHY0_RESETN_OFFSET);
-
-    reg = __raw_readl(SYS_RSTGEN_R_BADDR + PCIE0_PERSTN_OFFSET);     //8
-    reg |= 0x1;
-    __raw_writel(reg, SYS_RSTGEN_R_BADDR + PCIE0_PERSTN_OFFSET);
-
-    __raw_writel(0x3210, SYS_XXX3 + SERDES_LANE_OFFSET);             //9
-
-    reg = __raw_readl(SYS_XXX + IP_RXSTANDBY_OFFSET);                //10
-    reg &= 0xFFFFFFF0U;
-    __raw_writel(reg, SYS_XXX + IP_RXSTANDBY_OFFSET);
-
-    __raw_writel(0x1, SYS_XXX3 + PCIE_PHY0_RSTN_OFFSET);             //11
-
-    udelay(2);
-
-    __raw_writel(0x701A0, SYS_XXX + IP_FAST_LINK_OFFSET);            //12
-
-    __raw_writel(0xF0001, SYS_XXX3 + PCIE_PHY0_RSTN_OFFSET);         //13
-
-    __raw_writel(0x1, SYS_XXX2 + LTSSM_ENABLE_OFFSET);               //14
+    __raw_writel(0x1, PCIE_APP_ADDR + 4);              //6
 
     timeout = 10000000;
-    while (__raw_readl(SYS_XXX2 + WAIT_PL_UP_DL_UP) != 3) {          //15
+    while (__raw_readl(PCIE_APP_ADDR + 0x104) != 3) {  //7
         if (timeout-- <= 0) {
-            printf("wait linkup timeout\n");
+            sbi_printf("wait linkup timeout\n");
             break;
         }
     }
