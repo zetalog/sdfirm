@@ -59,7 +59,9 @@
 	.endm
 	.macro	boot2_hook
 	x100_smp_init
+#ifdef CONFIG_K1MATRIX_SYSCO
 	jal	ra, k1matrix_n100_smp_init
+#endif
 	.endm
 
 	/* SMP ID <-> HART ID conversions on APC */
