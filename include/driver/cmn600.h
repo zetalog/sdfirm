@@ -204,6 +204,8 @@ typedef uint8_t cmn_id_t;
 
 #define CMN_REG(base, offset)		((base) + (offset))
 #define CMN_CFGM_REG(offset)		CMN_REG(CMN_CFGM_BASE, offset)
+#define CMN_8BIT_REG(base, offset, n)	\
+	CMN_REG((base), (offset) + (REG64_8BIT_INDEX(n) << 3))
 #define CMN_12BIT_REG(base, offset, n)	\
 	CMN_REG((base), (offset) + (CMN_12BIT_INDEX(n) << 3))
 #define CMN_32BIT_REG(base, offset, n)	\
@@ -215,11 +217,11 @@ typedef uint8_t cmn_id_t;
 #define CMN_node_info(base)		CMN_REG(base, 0x0)
 #define CMN_child_info(base)		CMN_REG(base, 0x80)
 
-/* 3.2.1 Configuration master register summery */
+/* 3.2.1 Configuration master register summary */
 #define CMN_cfgm_periph_id(n)		CMN_32BIT_REG(CMN_CFGM_BASE, 0x8, (n))
 #define CMN_cfgm_component_id(n)	CMN_32BIT_REG(CMN_CFGM_BASE, 0x28, (n))
 
-/* 3.2.4 HN-F register summery */
+/* 3.2.4 HN-F register summary */
 #define CMN_hnf_unit_info(base)		CMN_REG(base, 0x900)
 #define CMN_hnf_cfg_ctl(base)		CMN_REG(base, 0xA00)
 #define CMN_hnf_aux_ctl(base)		CMN_REG(base, 0xA08)
@@ -254,7 +256,7 @@ typedef uint8_t cmn_id_t;
 #define CMN_hnf_sam_sn_properties(base)	CMN_REG(base, 0xD18)
 #define CMN_hnf_sam_6sn_nodeid(base)	CMN_REG(base, 0xD20)
 
-/* 3.2.6 XP register summery */
+/* 3.2.6 XP register summary */
 #define CMN_mxp_device_port_connect_info(base, n)	\
 					CMN_REG(base, 0x8 + ((n) << 3))
 #define CMN_mxp_mesh_port_connect_info_east(base)	\
@@ -265,7 +267,7 @@ typedef uint8_t cmn_id_t;
 #define CMN_mxp_p1_info(base)		CMN_REG(base, 0x908)
 #define CMN_mxp_aux_ctl(base)		CMN_REG(base, 0xA00)
 
-/* 3.2.9 RN SAM register summery */
+/* 3.2.9 RN SAM register summary */
 #define CMN_rnsam_status(base)		CMN_REG(base, 0xC00)
 #define CMN_rnsam_non_hash_mem_region(base, n)		\
 					CMN_32BIT_REG(base, 0xC08, n)
@@ -286,6 +288,84 @@ typedef uint8_t cmn_id_t;
 #define CMN_rnsam_sys_cache_grp_cal_mode(base)		\
 					CMN_REG(base, 0xF10)
 
+/* 3.2.11 CXHA register summary */
+#define CMN_cxg_ha_id(base)		CMN_REG(base, 0x0008)
+#define CMN_cxg_ha_aux_ctl(base)	CMN_REG(base, 0x0A08)
+#define CMN_cxg_ha_secure_register_groups_override(base)	\
+					CMN_REG(base, 0x0980)
+#define CMN_cxg_ha_unit_info(base)	CMN_REG(base, 0x0900)
+#define CMN_cxg_ha_rnf_raid_to_ldid(base, n)			\
+					CMN_8BIT_REG(base, 0x0C00, n)
+#define CMN_cxg_ha_agentid_to_linkid(base, n)			\
+					CMN_8BIT_REG(base, 0x0C40, n)
+#define CMN_cxg_ha_agentid_to_linkid_val(base)			\
+					CMN_REG(base, 0x0D00)
+#define CMN_cxg_ha_rnf_raid_to_ldid_val(base)			\
+					CMN_REG(base, 0x0D08)
+#define CMN_cxg_ha_pmu_event_sel(base)	CMN_REG(base, 0x2000)
+#define CMN_cxg_ha_cxprtcl_link_ctl(base, n)			\
+					CMN_REG(base, 0x1000 + ((n) << 4))
+#define CMN_cxg_ha_cxprtcl_link_status(base, n)			\
+					CMN_REG(base, 0x1008 + ((n) << 4))
+
+/* 3.2.12 CXRA register summary */
+#define CMN_cxg_ra_secure_register_groups_override(base)	\
+					CMN_REG(base, 0x0980)
+#define CMN_cxg_ra_unit_info(base)	CMN_REG(base, 0x0900)
+#define CMN_cxg_ra_cfg_ctl(base)	CMN_REG(base, 0x0A00)
+#define CMN_cxg_ra_aux_ctl(base)	CMN_REG(base, 0x0A08)
+#define CMN_cxg_ra_sam_addr_region(base, 0x0DA8 + ((n) << 3))
+#define CMN_cxg_ra_agentid_to_linkid(base, n)			\
+					CMN_8BIT_REG(base, 0x0E60, n)
+#define CMN_cxg_ra_rnf_ldid_to_raid(base, n)			\
+					CMN_8BIT_REG(base, 0x0EA0, n)
+#define CMN_cxg_ra_rni_ldid_to_raid(base, n)			\
+					CMN_8BIT_REG(base, 0x0EE0, n)
+#define CMN_cxg_ra_rnd_ldid_to_raid(base, n)			\
+					CMN_8BIT_REG(base, 0x0F00, n)
+#define CMN_cxg_ra_agentid_to_linkid_val(base)			\
+					CMN_REG(base, 0x0F20)
+#define CMN_cxg_ra_rnf_ldid_to_raid_val(base)			\
+					CMN_REG(base, 0x0F28)
+#define CMN_cxg_ra_rni_ldid_to_raid_val(base)			\
+					CMN_REG(base, 0x0F30)
+#define CMN_cxg_ra_rnd_ldid_to_raid_val(base)			\
+					CMN_REG(base, 0x0F38)
+#define CMN_cxg_ra_pmu_event_sel(base)	CMN_REG(base, 0x2000)
+#define CMN_cxg_ra_cxprtcl_link_ctl(base, n)			\
+					CMN_REG(base, 0x1000 + ((n) << 4))
+#define CMN_cxg_ra_cxprtcl_link_status(base, n)			\
+					CMN_REG(base, 0x1008 + ((n) << 4))
+
+/* 3.2.13 CXLA register summary */
+#define CMN_cxla_secure_register_groups_override(base)		\
+					CMN_REG(base, 0x0980)
+#define CMN_cxla_unit_info(base)	CMN_REG(base, 0x0900)
+#define CMN_cxla_aux_ctl(base)		CMN_REG(base, 0x0A08)
+#define CMN_cxla_ccix_prop_capabilities(base)			\
+					CMN_REG(base, 0x0C00)
+#define CMN_cxla_ccix_prop_configured(base)			\
+					CMN_REG(base, 0x0C08)
+#define CMN_cxla_tx_cxs_attr_capabilities(base)			\
+					CMN_REG(base, 0x0C10)
+#define CMN_cxla_rx_cxs_attr_capabilities(base)			\
+					CMN_REG(base, 0x0C18)
+#define CMN_cxla_agentid_to_linkid(base, n)			\
+					CMN_8BIT_REG(base, 0x0C30, n)
+#define CMN_cxla_agentid_to_linkid_val(base)			\
+					CMN_REG(base, 0x0C70)
+#define CMN_cxla_linkid_to_pcie_bus_num(base)			\
+					CMN_REG(base, 0x0C78)
+#define CMN_cxla_tlp_hdr_fields(base)	CMN_REG(base, 0x0C80)
+#define CMN_cxla_permsg_pyld(base, n)	CMN_REG(base, 0x0D00 + ((n) << 3))
+#define CMN_cxla_permsg_ctl(base)	CMN_REG(base, 0x0D20)
+#define CMN_cxla_err_agent_id(base)	CMN_REG(base, 0x0D28)
+#define CMN_cxla_pmu_event_sel(base)	CMN_REG(base, 0x2000)
+#define CMN_cxla_pmu_config(base)	CMN_REG(base, 0x2210)
+#define CMN_cxla_pmevent(base)		CMN_REG(base, 0x2220)
+#define CMN_cxla_pmevcntsr(base)	CMN_REG(base, 0x2240)
+
+/* Reigster field definitions */
 #define CMN_MAX_NON_HASH_TGT_NODES_20	20
 
 #define CMN_region_OFFSET(n)		REG64_32BIT_OFFSET(n)
