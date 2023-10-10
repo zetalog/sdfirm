@@ -191,8 +191,10 @@ config SBI_FDT_BUILTIN
 
 endif
 
+config SBI_LDST_MISALIGNED_DELEG
+	bool "Enable load/store misaligned delegation"
+
 config SBI_CSR_MIMPID
 	bool "Support reading the mimpid CSR"
-	default n
 
 endif
