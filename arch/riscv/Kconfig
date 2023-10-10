@@ -356,7 +356,7 @@ config ARCH_K1MATRIX
 	select CLINT
 	select PLIC if !SYS_NOIRQ
 	select K1MATRIX_UART if CONSOLE || DEBUG_PRINT
-	select K1MATRIX_SYSCO if SMP
+	select K1MATRIX_SYSCO if SMP_BOOT && !SMP
 	help
 	  This enables support for SpacemiT K1Matrix server platforms.
 

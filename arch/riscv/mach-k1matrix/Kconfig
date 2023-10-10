@@ -119,6 +119,8 @@ config K1MATRIX_BOOT
 
 config K1MATRIX_SYSCO
 	bool "Enable CHI SYSCO interfaces"
+	depends SMP_BOOT && !SMP
+	depends K1MATRIX_N100
 
 if K1MATRIX_BOOT
 

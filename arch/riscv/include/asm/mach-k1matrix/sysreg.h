@@ -131,9 +131,11 @@
 #define sysreg_cpu_mask()		\
 	__raw_readl(EFUSE_INFO_REG0)
 #define sysreg_enable_sysco(cluster)	\
-	do {									\
-		__raw_writel(MESH_CLUSTER_SYSCOREQ(cluster), SYS_CTRL_MESH);	\
-		while (__raw_readl(MESH_CLUSTER_SYSCOACK(cluster)) == 0);	\
+	do {								\
+		__raw_setl(MESH_CLUSTER_SYSCOREQ(cluster),		\
+			   SYS_CTRL_MESH);				\
+		while ((__raw_readl(SYS_CTRL_MESH) &			\
+			MESH_CLUSTER_SYSCOACK(cluster)) == 0);		\
 	} while (0)
 
 #ifndef __ASSEMBLY__

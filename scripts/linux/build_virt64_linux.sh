@@ -3,7 +3,7 @@
 ARCH=riscv
 MACH=virt64
 BBLVAR=
-CROSS_COMPILE=riscv64-linux-gnu-
+CROSS_COMPILE=riscv64-unknown-linux-gnu-
 
 BUILD_ROOT=$HOME/workspace
 BUILD_CUSTOMER=
