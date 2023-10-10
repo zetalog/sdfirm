@@ -190,6 +190,13 @@ static int fp_init(uint32_t hartid)
 }
 #endif
 
+#ifdef CONFIG_SBI_LDST_MISALIGNED_DELEG
+#define EXC_LDST_MISALIGNED_DELEG	((1U << EXC_LOAD_MISALIGNED) | \
+					 (1U << EXC_STORE_MISALIGNED))
+#else
+#define EXC_LDST_MISALIGNED_DELEG	0
+#endif
+
 static int delegate_traps(struct sbi_scratch *scratch, uint32_t hartid)
 {
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
@@ -202,8 +209,7 @@ static int delegate_traps(struct sbi_scratch *scratch, uint32_t hartid)
 	/* Send M-mode interrupts and most exceptions to S-mode */
 	interrupts = IR_SSI | IR_STI | IR_SEI;
 	exceptions = (1U << EXC_INSN_MISALIGNED) | (1U << EXC_BREAKPOINT) |
-		     (1U << EXC_ECALL_U) | (1U << EXC_LOAD_MISALIGNED) |
-		     (1U << EXC_STORE_MISALIGNED);
+		     (1U << EXC_ECALL_U) | EXC_LDST_MISALIGNED_DELEG;
 	if (sbi_platform_has_mfaults_delegation(plat))
 		exceptions |= (1U << EXC_INSN_PAGE_FAULT) |
 			      (1U << EXC_LOAD_PAGE_FAULT) |
