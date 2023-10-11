@@ -48,88 +48,96 @@
 
 void pcie_linkup(void)
 {
-    uint32_t reg;
-    int32_t timeout;
+	uint32_t reg;
+	int32_t timeout;
 
-    reg = __raw_readl(SYSCTL_BASE + 0x300);
-    reg |= (0x1 << 1);
-    __raw_writel(reg, SYSCTL_BASE + 0x300);            //1
+	reg = __raw_readl(SYSCTL_BASE + 0x300);
+	reg |= (0x1 << 1);
+	__raw_writel(reg, SYSCTL_BASE + 0x300);            //1
 
-    reg = __raw_readl(SYSCTL_BASE + 0x300);
-    reg |= (0x1 << 2);
-    __raw_writel(reg, SYSCTL_BASE + 0x300);            //2
+	reg = __raw_readl(SYSCTL_BASE + 0x300);
+	reg |= (0x1 << 2);
+	__raw_writel(reg, SYSCTL_BASE + 0x300);            //2
 
-    __raw_writel(0x4, CCIX_APP_BASE);                  //3
+	__raw_writel(0x4, CCIX_APP_BASE);                  //3
 
-    reg = __raw_readl(SYSCTL_BASE + 0x300);
-    reg |= (0x1 << 3);
-    __raw_writel(reg, SYSCTL_BASE + 0x300);            //4
+	reg = __raw_readl(SYSCTL_BASE + 0x300);
+	reg |= (0x1 << 3);
+	__raw_writel(reg, SYSCTL_BASE + 0x300);            //4
 
-    __raw_writel(0x701a0, CCIX_DBI_BASE + 0x710);      //5
+	__raw_writel(0x701a0, CCIX_DBI_BASE + 0x710);      //5
 
-    __raw_writel(0x1, CCIX_APP_BASE + 4);              //6
+	__raw_writel(0x1, CCIX_APP_BASE + 4);              //6
 
-    timeout = 10000000;
-    while (__raw_readl(CCIX_APP_BASE + 0x104) != 3) {  //7
-        if (timeout-- <= 0) {
-            sbi_printf("wait linkup timeout\n");
-            break;
-        }
-    }
+	timeout = 10000000;
+	while (__raw_readl(CCIX_APP_BASE + 0x104) != 3) {  //7
+		if (timeout-- <= 0) {
+			sbi_printf("wait linkup timeout\n");
+			break;
+		}
+	}
 }
 
 void pcie_ccix_linkup(void)
 {
-    uint32_t reg;
-    int32_t timeout;
+	uint32_t reg;
+	int32_t timeout;
 
-    reg = __raw_readl(SYSCTL_BASE + 0x300);
-    reg |= (0x1 << 1);
-    __raw_writel(reg, SYSCTL_BASE + 0x300);            //1
+	reg = __raw_readl(SYSCTL_BASE + 0x300);
+	reg |= (0x1 << 1);
+	__raw_writel(reg, SYSCTL_BASE + 0x300);            //1
 
-    reg = __raw_readl(SYSCTL_BASE + 0x300);
-    reg |= (0x1 << 2);
-    __raw_writel(reg, SYSCTL_BASE + 0x300);            //2
+	reg = __raw_readl(SYSCTL_BASE + 0x300);
+	reg |= (0x1 << 2);
+	__raw_writel(reg, SYSCTL_BASE + 0x300);            //2
 
-    if (sysreg_die_id() == 0) {
-        __raw_writel(0x4, CCIX_APP_BASE);
-    } else {
-        __raw_writel(0x0, CCIX_APP_BASE);              //3
-    }
+	if (sysreg_die_id() == 0) {
+		__raw_writel(0x4, CCIX_APP_BASE);
+	} else {
+		__raw_writel(0x0, CCIX_APP_BASE);          //3
+	}
 
-    __raw_writel(0x1, SYSCTL_BASE + 0x300);            //4
+	reg = __raw_readl(SYSCTL_BASE + 0x300);
+	reg |= (0x1 << 3);
+	__raw_writel(reg, SYSCTL_BASE + 0x300);            //4
 
-    __raw_writel(0x701a0, CCIX_DBI_BASE + 0x710);      //5
+	__raw_writel(0x701a0, CCIX_DBI_BASE + 0x710);      //5
 
-    __raw_writel(0x1, CCIX_APP_BASE + 4);              //6
+	__raw_writel(0x1, CCIX_APP_BASE + 4);              //6
 
-    timeout = 10000000;
-    while (__raw_readl(CCIX_APP_BASE + 0x104) != 3) {  //7
-        if (timeout-- <= 0) {
-            sbi_printf("wait linkup timeout\n");
-            break;
-        }
-    }
+	timeout = 10000000;
+	while (__raw_readl(CCIX_APP_BASE + 0x104) != 3) {  //7
+		if (timeout-- <= 0) {
+			sbi_printf("wait linkup timeout\n");
+			break;
+		}
+	}
 
-    reg = __raw_readl(CCIX_DBI_BASE + 0x224);
-    reg &= ~(0x1 << 0);
-    __raw_writel(reg, CCIX_DBI_BASE + 0x224);          //8.1
+	reg = __raw_readl(CCIX_DBI_BASE + 0x224);
+	reg &= ~(0x1 << 0);
+	__raw_writel(reg, CCIX_DBI_BASE + 0x224);          //8.1
 
-    __raw_writel(0x0, CCIX_DBI_BASE + 0x228);          //8.2
+	__raw_writel(0x0, CCIX_DBI_BASE + 0x228);          //8.2
 
-    __raw_writel(0x800000FD, CCIX_DBI_BASE + 0x15C);   //9
+	__raw_writel(0x800000FD, CCIX_DBI_BASE + 0x15C);   //9
 
-    __raw_writel(0x81000002, CCIX_DBI_BASE + 0x168);   //10
+	__raw_writel(0x81000002, CCIX_DBI_BASE + 0x168);   //10
 
-    __raw_writel(0x0, CCIX_DBI_BASE + 0x160);          //11
+	timeout = 10000000;
+	while (__raw_readl(CCIX_DBI_BASE + 0x160) != 0) {  //11
+		if (timeout-- <= 0) {
+			sbi_printf("wait vc0 ready timeout\n");
+			break;
+		}
+	}
 
-    timeout = 10000000;
-    while (__raw_readl(CCIX_DBI_BASE + 0x16C) != 0) {  //12
-        if (timeout-- <= 0) {
-            sbi_printf("wait vc1 ready timeout\n");
-            break;
-        }
-    }
+	timeout = 10000000;
+	while (__raw_readl(CCIX_DBI_BASE + 0x16C) != 0) {  //12
+		if (timeout-- <= 0) {
+			sbi_printf("wait vc1 ready timeout\n");
+			break;
+		}
+	}
 
-    __raw_writel(0x0/*ccid*/, CCIX_DBI_BASE + 0xC20);  //13 TODO:CCID
+	__raw_writel(0x0/*ccid*/, CCIX_DBI_BASE + 0xC20);  //13 TODO:CCID
 }
