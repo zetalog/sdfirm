@@ -35,15 +35,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)gpt.h: K1MAX specific generic timer definition
- * $Id: gpt.h,v 1.1 2022-10-15 14:30:00 zhenglv Exp $
+ * @(#)mem.h: K1MAX memory resource allocator interfaces
+ * $Id: mem.h,v 1.1 2022-10-15 13:37:00 zhenglv Exp $
  */
 
-#ifndef __GPT_K1MAX_H_INCLUDE__
-#define __GPT_K1MAX_H_INCLUDE__
+#ifndef __MEM_K1MAX_H_INCLUDE__
+#define __MEM_K1MAX_H_INCLUDE__
 
-#include <target/arch.h>
-#include <target/clk.h>
+void mem_hw_range_init(void);
 
-#include <asm/mach/timer.h>
-#endif /* __GPT_K1MAX_H_INCLUDE__ */
+#endif /* __MEM_K1MAX_H_INCLUDE__ */

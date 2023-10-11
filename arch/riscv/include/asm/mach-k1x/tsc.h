@@ -35,88 +35,29 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)uart.h: K1MAX specific UART interface
- * $Id: uart.h,v 1.1 2022-10-15 13:56:00 zhenglv Exp $
+ * @(#)tsc.h: K1MAX specific mandatory TSC driver
+ * $Id: tsc.h,v 1.1 2022-10-15 13:41:00 zhenglv Exp $
  */
 
-#ifndef __UART_K1MAX_H_INCLUDE__
-#define __UART_K1MAX_H_INCLUDE__
+#ifndef __TSC_K1MAX_H_INCLUDE__
+#define __TSC_K1MAX_H_INCLUDE__
 
-#include <target/paging.h>
-#include <target/gpio.h>
+#include <target/arch.h>
 #include <target/clk.h>
 
-#define __K1MAX_UART_BASE	UART_BASE
-#define UART_CLK_ID		uart_clk
-#define UART_CON_ID		0
-#define UART_CON_IRQ		IRQ_UART
+#define TSC_FREQ		(PIC_CLK_FREQ/1000)
+#define TSC_MAX			ULL(0xFFFFFFFFFFFFFFFF)
 
-#ifdef CONFIG_MMU
-#define K1MAX_UART_BASE		k1max_uart_reg_base
+#include <asm/mach/timer.h>
+#include <asm/clint.h>
+
+#ifndef __ASSEMBLY__
+#define tsc_hw_ctrl_init()	do { } while (0)
+#if defined(CONFIG_RISCV_COUNTERS) || defined(CONFIG_SBI)
+#define tsc_hw_read_counter()	rdtime()
 #else
-#define K1MAX_UART_BASE		__K1MAX_UART_BASE
+#define tsc_hw_read_counter()	clint_read_mtime()
 #endif
-#define DW_UART_REG(n, offset)	(K1MAX_UART_BASE + (offset))
+#endif /* __ASSEMBLY__ */
 
-#if defined(CONFIG_DW_UART)
-#include <driver/dw_uart.h>
-#elif defined(CONFIG_NS16550)
-#define NS16550_REG_SIZE	(-4)
-#define NS16550_CLK		APB_CLK_FREQ
-#include <driver/ns16550.h>
-#endif
-
-#ifndef ARCH_HAVE_UART
-#define ARCH_HAVE_UART		1
-#else
-#error "Multiple UART controller defined"
-#endif
-
-#ifdef CONFIG_K1M_UART_ACCEL
-#define UART_CON_BAUDRATE_MIN		(CPU_CLK_FREQ/100)
-#if APB_CLK_FREQ/16 < UART_CON_BAUDRATE_MIN
-#define UART_CON_BAUDRATE		(APB_CLK_FREQ/16)
-#else
-#define UART_CON_BAUDRATE		UART_CON_BAUDRATE_MIN
-#endif
-#else
-#define UART_CON_BAUDRATE		(115200)
-#endif
-
-#ifdef CONFIG_DEBUG_PRINT
-void uart_hw_dbg_init(void);
-void uart_hw_dbg_start(void);
-void uart_hw_dbg_stop(void);
-void uart_hw_dbg_write(uint8_t byte);
-void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
-#endif
-
-#ifdef CONFIG_DW_UART
-#ifdef CONFIG_CONSOLE
-#define uart_hw_con_init()				\
-	do {						\
-		dw_uart_ctrl_init(APB_CLK_FREQ);	\
-	} while (0)
-#endif
-#ifdef CONFIG_CONSOLE_OUTPUT
-#define uart_hw_con_write(byte)	dw_uart_con_write(byte)
-#endif
-#ifdef CONFIG_CONSOLE_INPUT
-#define uart_hw_con_read()	dw_uart_con_read()
-#define uart_hw_con_poll()	dw_uart_con_poll()
-#ifndef CONFIG_SYS_NOIRQ
-#define uart_hw_irq_init()	dw_uart_irq_init()
-#define uart_hw_irq_ack()	dw_uart_irq_ack()
-#endif
-#endif
-#ifndef CONFIG_SYS_NOIRQ
-#define uart_hw_irq_init()	dw_uart_irq_init()
-#define uart_hw_irq_ack()	dw_uart_irq_ack()
-#endif
-#endif /* CONFIG_DW_UART */
-
-#ifdef CONFIG_MMU
-void uart_hw_mmu_init(void);
-#endif
-
-#endif /* __UART_K1MAX_H_INCLUDE__ */
+#endif /* __TSC_K1MAX_H_INCLUDE__ */

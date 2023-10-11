@@ -35,15 +35,30 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)gpt.h: K1MAX specific generic timer definition
- * $Id: gpt.h,v 1.1 2022-10-15 14:30:00 zhenglv Exp $
+ * @(#)clk.h: K1MAX specific clock tree definitions
+ * $Id: clk.h,v 1.1 2022-10-14 14:54:00 zhenglv Exp $
  */
 
-#ifndef __GPT_K1MAX_H_INCLUDE__
-#define __GPT_K1MAX_H_INCLUDE__
+#ifndef __CLK_K1MAX_H_INCLUDE__
+#define __CLK_K1MAX_H_INCLUDE__
 
 #include <target/arch.h>
-#include <target/clk.h>
 
-#include <asm/mach/timer.h>
-#endif /* __GPT_K1MAX_H_INCLUDE__ */
+#ifdef CONFIG_K1MAX_CLK
+#ifndef ARCH_HAVE_CLK
+#define ARCH_HAVE_CLK		1
+#else
+#error "Multiple CLK controller defined"
+#endif
+#endif
+
+#include <dt-bindings/clock/sbi-clock-k1max.h>
+
+#define NR_FREQPLANS		5
+#define FREQPLAN_RUN		0
+#define INVALID_FREQPLAN	(-1)
+
+#define clk_freq_t		uint64_t
+#define invalid_clk		clkid(0xFF, 0xFF)
+
+#endif /* __CLK_K1MAX_H_INCLUDE__ */

@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2022
+ * Copyright (c) 2020
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,15 +35,36 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)gpt.h: K1MAX specific generic timer definition
- * $Id: gpt.h,v 1.1 2022-10-15 14:30:00 zhenglv Exp $
+ * @(#)tmr.c: DPU specific timer controller (TMR) driver
+ * $Id: tmr.c,v 1.1 2020-03-04 15:21:00 zhenglv Exp $
  */
 
-#ifndef __GPT_K1MAX_H_INCLUDE__
-#define __GPT_K1MAX_H_INCLUDE__
+#include <target/delay.h>
 
-#include <target/arch.h>
-#include <target/clk.h>
+#ifndef CONFIG_DPU_CLINT
+void tmr_write_compare(uint8_t id, uint64_t count)
+{
+	tmr_disable_cmp(id);
+	__raw_writel(LODWORD(count), TMR_CMP_LO(id));
+	__raw_writel(HIDWORD(count), TMR_CMP_HI(id));
+	tmr_enable_cmp(id);
+}
+#endif
 
-#include <asm/mach/timer.h>
-#endif /* __GPT_K1MAX_H_INCLUDE__ */
+uint64_t tmr_read_counter(void)
+{
+	uint32_t hi1, hi2;
+	uint32_t lo;
+
+	do {
+		hi1 = __raw_readl(TMR_CNT_HI);
+		lo = __raw_readl(TMR_CNT_LO);
+		hi2 = __raw_readl(TMR_CNT_HI);
+	} while (hi1 != hi2);
+	return MAKELLONG(lo, hi1);
+}
+
+void tmr_ctrl_init(void)
+{
+	__raw_setl(TMR_EN, TMR_CNT_CTRL);
+}

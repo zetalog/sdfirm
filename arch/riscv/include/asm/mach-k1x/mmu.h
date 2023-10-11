@@ -35,15 +35,26 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)gpt.h: K1MAX specific generic timer definition
- * $Id: gpt.h,v 1.1 2022-10-15 14:30:00 zhenglv Exp $
+ * @(#)mmu.h: K1MAX specific MMU device mapping definitions
+ * $Id: mmu.h,v 1.1 2022-10-15 14:00:00 zhenglv Exp $
  */
 
-#ifndef __GPT_K1MAX_H_INCLUDE__
-#define __GPT_K1MAX_H_INCLUDE__
+#ifndef __MMU_K1MAX_H_INCLUDE__
+#define __MMU_K1MAX_H_INCLUDE__
 
-#include <target/arch.h>
-#include <target/clk.h>
+#define FIX_PLIC		1
+#define FIX_UART		2
+#define FIX_MAX			(FIX_UART + 1)
+#define MMU_HW_MAX_FIXMAP	(FIX_HOLE + FIX_MAX)
 
-#include <asm/mach/timer.h>
-#endif /* __GPT_K1MAX_H_INCLUDE__ */
+void k1max_mmu_dump_maps(void);
+#ifdef CONFIG_K1M_UART
+extern caddr_t k1max_uart_reg_base;
+void k1max_mmu_map_uart(int n);
+void k1max_mmu_dump_uart(void);
+#else
+#define k1max_mmu_map_uart(n)	do { } while (0)
+#define k1max_mmu_dump_uart()	do { } while (0)
+#endif
+
+#endif /* __MMU_K1MAX_H_INCLUDE__ */

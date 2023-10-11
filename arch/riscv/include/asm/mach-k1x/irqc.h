@@ -35,88 +35,54 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)uart.h: K1MAX specific UART interface
- * $Id: uart.h,v 1.1 2022-10-15 13:56:00 zhenglv Exp $
+ * @(#)irqc.h: K1MAX specific IRQ controller definition
+ * $Id: irqc.h,v 1.1 2022-10-15 13:40:00 zhenglv Exp $
  */
 
-#ifndef __UART_K1MAX_H_INCLUDE__
-#define __UART_K1MAX_H_INCLUDE__
+#ifndef __IRQC_K1MAX_H_INCLUDE__
+#define __IRQC_K1MAX_H_INCLUDE__
 
-#include <target/paging.h>
-#include <target/gpio.h>
-#include <target/clk.h>
-
-#define __K1MAX_UART_BASE	UART_BASE
-#define UART_CLK_ID		uart_clk
-#define UART_CON_ID		0
-#define UART_CON_IRQ		IRQ_UART
+#ifndef ARCH_HAVE_IRQC
+#define ARCH_HAVE_IRQC		1
+#else
+#error "Multiple IRQ controller defined"
+#endif
 
 #ifdef CONFIG_MMU
-#define K1MAX_UART_BASE		k1max_uart_reg_base
+#define PLIC_BASE		k1max_plic_reg_base
+#define PLIC_CTX_BASE		(k1max_plic_ctx_base[0])
+extern caddr_t k1max_plic_reg_base;
+extern caddr_t k1max_plic_ctx_base[2];
 #else
-#define K1MAX_UART_BASE		__K1MAX_UART_BASE
-#endif
-#define DW_UART_REG(n, offset)	(K1MAX_UART_BASE + (offset))
-
-#if defined(CONFIG_DW_UART)
-#include <driver/dw_uart.h>
-#elif defined(CONFIG_NS16550)
-#define NS16550_REG_SIZE	(-4)
-#define NS16550_CLK		APB_CLK_FREQ
-#include <driver/ns16550.h>
+#define PLIC_BASE		PLIC_REG_BASE
+#define PLIC_CTX_BASE		(PLIC_REG_BASE + PLIC_CONTEXT_BASE)
 #endif
 
-#ifndef ARCH_HAVE_UART
-#define ARCH_HAVE_UART		1
+#ifdef CONFIG_K1M_PARTIAL_GOOD
+#define cpu2pic(cpu)			((((cpu) & 0x04) >> 1) | ((cpu) & 0x01))
 #else
-#error "Multiple UART controller defined"
+#define cpu2pic(cpu)			(cpu)
 #endif
+#define PLIC_HW_PRI_MAX			31
+#define plic_hw_m_ctx(cpu)		cpu2pic(cpu)
+#define plic_hw_s_ctx(cpu)		(cpu2pic(cpu) + 1)
+#define clint_hw_ctx(cpu)		cpu2pic(cpu)
 
-#ifdef CONFIG_K1M_UART_ACCEL
-#define UART_CON_BAUDRATE_MIN		(CPU_CLK_FREQ/100)
-#if APB_CLK_FREQ/16 < UART_CON_BAUDRATE_MIN
-#define UART_CON_BAUDRATE		(APB_CLK_FREQ/16)
-#else
-#define UART_CON_BAUDRATE		UART_CON_BAUDRATE_MIN
-#endif
-#else
-#define UART_CON_BAUDRATE		(115200)
-#endif
+#include <asm/plic.h>
 
-#ifdef CONFIG_DEBUG_PRINT
-void uart_hw_dbg_init(void);
-void uart_hw_dbg_start(void);
-void uart_hw_dbg_stop(void);
-void uart_hw_dbg_write(uint8_t byte);
-void uart_hw_dbg_config(uint8_t params, uint32_t baudrate);
-#endif
-
-#ifdef CONFIG_DW_UART
-#ifdef CONFIG_CONSOLE
-#define uart_hw_con_init()				\
-	do {						\
-		dw_uart_ctrl_init(APB_CLK_FREQ);	\
+#define plic_hw_ctrl_init()			\
+	do {					\
+		plic_hw_enable_int(IRQ_EXT);	\
 	} while (0)
-#endif
-#ifdef CONFIG_CONSOLE_OUTPUT
-#define uart_hw_con_write(byte)	dw_uart_con_write(byte)
-#endif
-#ifdef CONFIG_CONSOLE_INPUT
-#define uart_hw_con_read()	dw_uart_con_read()
-#define uart_hw_con_poll()	dw_uart_con_poll()
-#ifndef CONFIG_SYS_NOIRQ
-#define uart_hw_irq_init()	dw_uart_irq_init()
-#define uart_hw_irq_ack()	dw_uart_irq_ack()
-#endif
-#endif
-#ifndef CONFIG_SYS_NOIRQ
-#define uart_hw_irq_init()	dw_uart_irq_init()
-#define uart_hw_irq_ack()	dw_uart_irq_ack()
-#endif
-#endif /* CONFIG_DW_UART */
+
+/* Internal IRQs */
+#define plic_hw_enable_int(irq)		riscv_enable_irq(irq)
+#define plic_hw_disable_int(irq)	riscv_disable_irq(irq)
+#define plic_hw_clear_int(irq)		riscv_clear_irq(irq)
+#define plic_hw_trigger_int(irq)	riscv_trigger_irq(irq)
 
 #ifdef CONFIG_MMU
-void uart_hw_mmu_init(void);
+void plic_hw_mmu_init(void);
 #endif
 
-#endif /* __UART_K1MAX_H_INCLUDE__ */
+#endif /* __IRQC_K1MAX_H_INCLUDE__ */

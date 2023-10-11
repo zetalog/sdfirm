@@ -35,15 +35,55 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)gpt.h: K1MAX specific generic timer definition
- * $Id: gpt.h,v 1.1 2022-10-15 14:30:00 zhenglv Exp $
+ * @(#)arch.h: K1MAX machine specific definitions
+ * $Id: arch.h,v 1.1 2022-10-15 15:19:00 zhenglv Exp $
  */
 
-#ifndef __GPT_K1MAX_H_INCLUDE__
-#define __GPT_K1MAX_H_INCLUDE__
+#ifndef __ARCH_K1MAX_H_INCLUDE__
+#define __ARCH_K1MAX_H_INCLUDE__
 
-#include <target/arch.h>
-#include <target/clk.h>
+#include <asm/mach/cpus.h>
+#include <asm/x100.h>
+#include <asm/mach/sysreg.h>
 
-#include <asm/mach/timer.h>
-#endif /* __GPT_K1MAX_H_INCLUDE__ */
+#if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
+	.macro	boot0_hook
+	x100_init
+	.endm
+	.macro	boot1_hook
+#ifdef CONFIG_K1M_CCI
+	jal	ra, k1max_cci_init
+#endif
+#ifdef CONFIG_K1M_SOC
+	jal	ra, k1max_cpu_reset
+#endif
+	.endm
+	.macro	boot2_hook
+	x100_smp_init
+	.endm
+
+	/* SMP ID <-> HART ID conversions on APC */
+	.macro get_arch_smpid reg
+	.endm
+	.macro get_arch_hartmask reg
+	li	\reg, BOOT_MASK
+	.endm
+	.macro get_arch_hartboot reg
+	li	\reg, BOOT_HART
+	.endm
+#define ARCH_HAVE_BOOT_SMP	1
+#endif
+
+/* This file is intended to be used for implementing SoC specific
+ * instructions, registers.
+ */
+
+#ifndef __ASSEMBLY__
+#ifdef CONFIG_MMU
+void k1max_mmu_init(void);
+#else /* CONFIG_MMU */
+#define k1max_mmu_init()	do { } while (0)
+#endif /* CONFIG_MMU */
+#endif /* __ASSEMBLY__ */
+
+#endif /* __ARCH_K1MAX_H_INCLUDE__ */

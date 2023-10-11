@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2022
+ * Copyright (c) 2023
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,15 +35,26 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)gpt.h: K1MAX specific generic timer definition
- * $Id: gpt.h,v 1.1 2022-10-15 14:30:00 zhenglv Exp $
+ * @(#)mmu.c: K1Max machine specific MMU mappings
+ * $Id: mmu.c,v 1.1 2023-02-20 13:39:00 zhenglv Exp $
  */
 
-#ifndef __GPT_K1MAX_H_INCLUDE__
-#define __GPT_K1MAX_H_INCLUDE__
+#include <target/paging.h>
+#include <target/console.h>
 
-#include <target/arch.h>
-#include <target/clk.h>
+caddr_t k1max_uart_reg_base = __K1MAX_UART_BASE;
 
-#include <asm/mach/timer.h>
-#endif /* __GPT_K1MAX_H_INCLUDE__ */
+void k1max_mmu_dump_maps(void)
+{
+	if (k1max_uart_reg_base != __K1MAX_UART_BASE)
+		printf("FIXMAP: %016llx -> %016llx: UART\n",
+		       (uint64_t)__K1MAX_UART_BASE, fix_to_virt(FIX_UART));
+}
+
+void k1max_mmu_map_uart(int n)
+{
+	if (k1max_uart_reg_base == __K1MAX_UART_BASE) {
+		set_fixmap_io(FIX_UART, __K1MAX_UART_BASE & PAGE_MASK);
+		k1max_uart_reg_base = fix_to_virt(FIX_UART);
+	}
+}
