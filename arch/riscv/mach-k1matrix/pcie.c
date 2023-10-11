@@ -42,39 +42,94 @@
 #include <stdint.h>
 #include <asm/io.h>
 #include <target/delay.h>
-
-#define SYS_CTL_BADDR           ULL(0x0F00110000)
-#define PCIE_APP_ADDR           ULL(0x2800000)
-#define PCIE_DBI_ADDR           ULL(0x2000000)
+#include <target/sbi.h>
+#include <asm/mach/reg.h>
+#include <asm/mach/sysreg.h>
 
 void pcie_linkup(void)
 {
     uint32_t reg;
     int32_t timeout;
 
-    reg = __raw_readl(SYS_CTL_BADDR + 0x300);
+    reg = __raw_readl(SYSCTL_BASE + 0x300);
     reg |= (0x1 << 1);
-    __raw_writel(reg, SYS_CTL_BADDR + 0x300);          //1
+    __raw_writel(reg, SYSCTL_BASE + 0x300);            //1
 
-    reg = __raw_readl(SYS_CTL_BADDR + 0x300);
+    reg = __raw_readl(SYSCTL_BASE + 0x300);
     reg |= (0x1 << 2);
-    __raw_writel(reg, SYS_CTL_BADDR + 0x300);          //2
+    __raw_writel(reg, SYSCTL_BASE + 0x300);            //2
 
-    __raw_writel(0x4, PCIE_APP_ADDR);                  //3
+    __raw_writel(0x4, CCIX_APP_BASE);                  //3
 
-    reg = __raw_readl(SYS_CTL_BADDR + 0x300);
+    reg = __raw_readl(SYSCTL_BASE + 0x300);
     reg |= (0x1 << 3);
-    __raw_writel(reg, SYS_CTL_BADDR + 0x300);          //4
+    __raw_writel(reg, SYSCTL_BASE + 0x300);            //4
 
-    __raw_writel(0x701a0, PCIE_DBI_ADDR + 0x710);      //5
+    __raw_writel(0x701a0, CCIX_DBI_BASE + 0x710);      //5
 
-    __raw_writel(0x1, PCIE_APP_ADDR + 4);              //6
+    __raw_writel(0x1, CCIX_APP_BASE + 4);              //6
 
     timeout = 10000000;
-    while (__raw_readl(PCIE_APP_ADDR + 0x104) != 3) {  //7
+    while (__raw_readl(CCIX_APP_BASE + 0x104) != 3) {  //7
         if (timeout-- <= 0) {
             sbi_printf("wait linkup timeout\n");
             break;
         }
     }
+}
+
+void pcie_ccix_linkup(void)
+{
+    uint32_t reg;
+    int32_t timeout;
+
+    reg = __raw_readl(SYSCTL_BASE + 0x300);
+    reg |= (0x1 << 1);
+    __raw_writel(reg, SYSCTL_BASE + 0x300);            //1
+
+    reg = __raw_readl(SYSCTL_BASE + 0x300);
+    reg |= (0x1 << 2);
+    __raw_writel(reg, SYSCTL_BASE + 0x300);            //2
+
+    if (sysreg_die_id() == 0) {
+        __raw_writel(0x4, CCIX_APP_BASE);
+    } else {
+        __raw_writel(0x0, CCIX_APP_BASE);              //3
+    }
+
+    __raw_writel(0x1, SYSCTL_BASE + 0x300);            //4
+
+    __raw_writel(0x701a0, CCIX_DBI_BASE + 0x710);      //5
+
+    __raw_writel(0x1, CCIX_APP_BASE + 4);              //6
+
+    timeout = 10000000;
+    while (__raw_readl(CCIX_APP_BASE + 0x104) != 3) {  //7
+        if (timeout-- <= 0) {
+            sbi_printf("wait linkup timeout\n");
+            break;
+        }
+    }
+
+    reg = __raw_readl(CCIX_DBI_BASE + 0x224);
+    reg &= ~(0x1 << 0);
+    __raw_writel(reg, CCIX_DBI_BASE + 0x224);          //8.1
+
+    __raw_writel(0x0, CCIX_DBI_BASE + 0x228);          //8.2
+
+    __raw_writel(0x800000FD, CCIX_DBI_BASE + 0x15C);   //9
+
+    __raw_writel(0x81000002, CCIX_DBI_BASE + 0x168);   //10
+
+    __raw_writel(0x0, CCIX_DBI_BASE + 0x160);          //11
+
+    timeout = 10000000;
+    while (__raw_readl(CCIX_DBI_BASE + 0x16C) != 0) {  //12
+        if (timeout-- <= 0) {
+            sbi_printf("wait vc1 ready timeout\n");
+            break;
+        }
+    }
+
+    __raw_writel(0x0/*ccid*/, CCIX_DBI_BASE + 0xC20);  //13 TODO:CCID
 }
