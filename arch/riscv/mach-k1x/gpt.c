@@ -35,15 +35,52 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)gpt.h: K1MAX specific generic timer definition
- * $Id: gpt.h,v 1.1 2022-10-15 14:30:00 zhenglv Exp $
+ * @(#)gpt.c: K1MAX specific generic timer implementation
+ * $Id: gpt.c,v 1.1 2022-10-15 14:39:00 zhenglv Exp $
  */
 
-#ifndef __GPT_K1MAX_H_INCLUDE__
-#define __GPT_K1MAX_H_INCLUDE__
+#include <target/timer.h>
+#include <target/jiffies.h>
+#include <target/smp.h>
+#include <target/sbi.h>
+#include <target/irq.h>
 
-#include <target/arch.h>
-#include <target/clk.h>
+void riscv_timer(irq_t irq)
+{
+	irqc_clear_irq(IRQ_TIMER);
+	irqc_disable_irq(IRQ_TIMER);
+	tick_handler();
+}
 
-#include <asm/mach/timer.h>
-#endif /* __GPT_K1MAX_H_INCLUDE__ */
+#ifdef SYS_BOOTLOAD
+void gpt_hw_irq_poll(void)
+{
+	if (riscv_irq_raised(IRQ_TIMER))
+		riscv_timer(IRQ_TIMER);
+}
+#endif
+
+#ifdef CONFIG_SBI
+void gpt_hw_oneshot_timeout(timeout_t tout_ms)
+{
+	uint64_t next = tick_get_counter() + tout_ms;
+
+	irqc_enable_irq(IRQ_TIMER);
+	sbi_set_timer(TSC_FREQ * next);
+}
+#else
+void gpt_hw_oneshot_timeout(timeout_t tout_ms)
+{
+	uint64_t next = tick_get_counter() + tout_ms;
+
+	irqc_enable_irq(IRQ_TIMER);
+	clint_set_mtimecmp(smp_processor_id(), TSC_FREQ * next);
+}
+#endif
+
+void gpt_hw_ctrl_init(void)
+{
+	irq_register_vector(IRQ_TIMER, riscv_timer);
+	if (!cnt_status_gcounter())
+		cnt_enable_gcounter();
+}

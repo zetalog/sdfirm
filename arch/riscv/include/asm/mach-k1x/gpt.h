@@ -46,4 +46,5 @@
 #include <target/clk.h>
 
 #include <asm/mach/timer.h>
+#include <asm/mach/cnt.h>
 #endif /* __GPT_K1MAX_H_INCLUDE__ */

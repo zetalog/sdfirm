@@ -35,15 +35,48 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)gpt.h: K1MAX specific generic timer definition
- * $Id: gpt.h,v 1.1 2022-10-15 14:30:00 zhenglv Exp $
+ * @(#)cpus.h: K1MAX specific CPU definitions
+ * $Id: cpus.h,v 1.1 2022-10-15 12:11:00 zhenglv Exp $
  */
 
-#ifndef __GPT_K1MAX_H_INCLUDE__
-#define __GPT_K1MAX_H_INCLUDE__
+#ifndef __CPUS_K1MAX_H_INCLUDE__
+#define __CPUS_K1MAX_H_INCLUDE__
 
-#include <target/arch.h>
-#include <target/clk.h>
+#ifdef CONFIG_K1M_PARTIAL_GOOD
+#define BOOT_HART		CONFIG_K1M_BOOT_HART_ID
+#define BOOT_MASK		CONFIG_K1M_PARTIAL_GOOD_MASK
+#if !((1 << BOOT_HART) & BOOT_MASK)
+#error "Bad CPU partial good configuration!"
+#endif
+#else /* CONFIG_K1M_PARTIAL_GOOD */
+#define BOOT_HART		0
+#define BOOT_MASK		CPU_ALL
+#endif /* CONFIG_K1M_PARTIAL_GOOD */
 
-#include <asm/mach/timer.h>
-#endif /* __GPT_K1MAX_H_INCLUDE__ */
+#ifdef CONFIG_SMP
+#define MAX_CPU_NUM		CONFIG_K1M_SMP_CPUS
+#else
+#define MAX_CPU_NUM		1
+#endif
+
+#define CPUS_PER_CLUSTER	4
+#define MAX_CPU_CLUSTERS	(MAX_CPU_NUM / CPUS_PER_CLUSTER)
+
+#ifdef CONFIG_K1M_SMP_SPARSE_HART_ID
+#define HART_CPU_ID_OFFSET		0
+#define HART_CPU_ID_MASK		REG_2BIT_MASK
+#define HART_CPU_ID(hart)		_GET_FV(HART_CPU_ID, hart)
+#define HART_CLUSTER_ID_OFFSET		4
+#define HART_CLUSTER_ID_MASK		REG_2BIT_MASK
+#define HART_CLUSTER_ID(hart)		_GET_FV(HART_CLUSTER_ID, hart)
+#define hart_cluster_id(cluster)	_SET_FV(HART_CLUSTER_ID, cluster)
+
+#define CPU_TO_CLUSTER_CPU(cpu)		((cpu) % CPUS_PER_CLUSTER)
+
+#define HART_TO_CPU(hart)	\
+	(HART_CPU_ID(hart) + (HART_CLUSTER_ID(hart) * CPUS_PER_CLUSTER))
+#define CPU_TO_HART(cpu)	\
+	(hart_cluster_id(CPU_TO_CLUSTER(cpu)) | CPU_TO_CLUSTER_CPU(cpu))
+#endif
+
+#endif /* __CPUS_K1MAX_H_INCLUDE__ */

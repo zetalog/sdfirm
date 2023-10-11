@@ -14,6 +14,7 @@
 #include <target/irq.h>
 #include <target/delay.h>
 #include <target/bench.h>
+#include <asm/mach/cnt.h>
 
 static void k1max_modify_dt(void *fdt)
 {
@@ -198,6 +199,10 @@ static int k1max_timer_init(bool cold_boot)
 {
 	if (!cold_boot)
 		k1max_timer_event_stop();
+	else {
+		if (!cnt_status_gcounter())
+	 		cnt_enable_gcounter();
+	}
 	return 0;
 }
 

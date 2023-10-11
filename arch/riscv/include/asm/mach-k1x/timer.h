@@ -35,15 +35,46 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)gpt.h: K1MAX specific generic timer definition
- * $Id: gpt.h,v 1.1 2022-10-15 14:30:00 zhenglv Exp $
+ * @(#)timer.h: K1MAX specific timer controller (TIMER) driver
+ * $Id: timer.h,v 1.1 2022-10-15 13:48:00 zhenglv Exp $
  */
 
-#ifndef __GPT_K1MAX_H_INCLUDE__
-#define __GPT_K1MAX_H_INCLUDE__
+#ifndef __TIMER_K1MAX_H_INCLUDE__
+#define __TIMER_K1MAX_H_INCLUDE__
 
-#include <target/arch.h>
-#include <target/clk.h>
+#include <driver/dw_timers.h>
 
-#include <asm/mach/timer.h>
-#endif /* __GPT_K1MAX_H_INCLUDE__ */
+#define TMR_CNT_CTRL_BASE	0x00
+#define TMR_CNT_BASE		0x40
+
+#define TMR_BASE		TIMER_BASE
+#define TMR_REG(offset)		(TMR_BASE + (offset))
+
+#define TMR_CNT_CTRL		TMR_REG(TMR_CNT_CTRL_BASE)
+#define TMR_CNT_LO		TMR_REG(TMR_CNT_BASE)
+#define TMR_CNT_HI		TMR_REG(TMR_CNT_BASE + 0x04)
+#define TMR_CMP_CTRL(n)		REG_1BIT_ADDR(TMR_REG(0x04), n)
+#define TMR_INTR_EN(n)		REG_1BIT_ADDR(TMR_REG(0x10), n)
+#define TMR_INTR_STATUS(n)	REG_1BIT_ADDR(TMR_REG(0x14), n)
+#define TMR_CMP_LO(n)		TMR_REG(0x200 + ((n) << 4))
+#define TMR_CMP_HI(n)		TMR_REG(0x204 + ((n) << 4))
+#define TMR_VAL(n)		TMR_REG(0x208 + ((n) << 4))
+
+/* TMR_CNT_CTRL */
+#define TMR_EN			_BV(0)
+#define TMR_HALT_ON_DEBUG	_BV(1)
+
+#define tmr_enable_cmp(id)	__raw_setl(_BV(id), TMR_CMP_CTRL(id))
+#define tmr_disable_cmp(id)	__raw_clearl(_BV(id), TMR_CMP_CTRL(id))
+#define tmr_enable_irq(id)	__raw_setl(_BV(id), TMR_INTR_EN(id))
+#define tmr_disable_irq(id)	__raw_clearl(_BV(id), TMR_INTR_EN(id))
+#define tmr_irq_status(id)	(__raw_readl(TMR_INTR_STATUS(id)) & _BV(id))
+#define tmr_irq_clear(id)	__raw_clearl(_BV(id), TMR_INTR_STATUS(id))
+
+#ifndef __ASSEMBLY__
+uint64_t tmr_read_counter(void);
+void tmr_ctrl_init(void);
+void tmr_write_compare(uint8_t id, uint64_t count);
+#endif
+
+#endif /* __TIMER_K1MAX_H_INCLUDE__ */

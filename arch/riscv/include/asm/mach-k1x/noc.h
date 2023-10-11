@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2022
+ * Copyright (c) 2023
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,15 +35,22 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)gpt.h: K1MAX specific generic timer definition
- * $Id: gpt.h,v 1.1 2022-10-15 14:30:00 zhenglv Exp $
+ * @(#)noc.h: K1MAX specific network on chip driver
+ * $Id: tsc.h,v 1.1 2023-02-20 10:27:00 zhenglv Exp $
  */
 
-#ifndef __GPT_K1MAX_H_INCLUDE__
-#define __GPT_K1MAX_H_INCLUDE__
+#ifndef __NOC_K1MAX_H_INCLUDE__
+#define __NOC_K1MAX_H_INCLUDE__
 
 #include <target/arch.h>
-#include <target/clk.h>
+#include <driver/cci550.h>
 
-#include <asm/mach/timer.h>
-#endif /* __GPT_K1MAX_H_INCLUDE__ */
+extern const int cci_hw_slave_map[];
+
+#ifdef CONFIG_K1M_CCI
+void k1max_cci_init(void);
+#else
+#define k1max_cci_init()		do { } while (0)
+#endif
+
+#endif /* __NOC_K1MAX_H_INCLUDE__ */

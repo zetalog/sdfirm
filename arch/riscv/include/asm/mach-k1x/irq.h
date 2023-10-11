@@ -35,15 +35,17 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)gpt.h: K1MAX specific generic timer definition
- * $Id: gpt.h,v 1.1 2022-10-15 14:30:00 zhenglv Exp $
+ * @(#)irq.h: K1MAX specific IRQ assignments
+ * $Id: irq.h,v 1.1 2022-10-15 13:38:00 zhenglv Exp $
  */
 
-#ifndef __GPT_K1MAX_H_INCLUDE__
-#define __GPT_K1MAX_H_INCLUDE__
+#ifndef __IRQ_K1MAX_H_INCLUDE__
+#define __IRQ_K1MAX_H_INCLUDE__
 
-#include <target/arch.h>
-#include <target/clk.h>
+#define IRQ_UART		EXT_IRQ(1)
+#define IRQ_TIMERS		EXT_IRQ(3)
 
-#include <asm/mach/timer.h>
-#endif /* __GPT_K1MAX_H_INCLUDE__ */
+#define NR_EXT_IRQS		160
+#define NR_IRQS			(NR_INT_IRQS + NR_EXT_IRQS)
+
+#endif /* __IRQ_K1MAX_H_INCLUDE__ */

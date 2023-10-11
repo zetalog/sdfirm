@@ -35,15 +35,19 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)gpt.h: K1MAX specific generic timer definition
- * $Id: gpt.h,v 1.1 2022-10-15 14:30:00 zhenglv Exp $
+ * @(#)smp.h: K1MAX specific SMP id <-> HART id conversion
+ * $Id: smp.h,v 1.1 2022-10-15 13:25:00 zhenglv Exp $
  */
 
-#ifndef __GPT_K1MAX_H_INCLUDE__
-#define __GPT_K1MAX_H_INCLUDE__
+#ifndef __SMP_K1MAX_H_INCLUDE__
+#define __SMP_K1MAX_H_INCLUDE__
 
-#include <target/arch.h>
-#include <target/clk.h>
+#ifdef CONFIG_K1M_SMP_SPARSE_HART_ID
+#define smp_hw_cpu_hart(cpu)	CPU_TO_HART(cpu)
+#define smp_hw_hart_cpu(hart)	HART_TO_CPU(hart)
+#else
+#define smp_hw_cpu_hart(cpu)	(cpu)
+#define smp_hw_hart_cpu(hart)	(hart)
+#endif
 
-#include <asm/mach/timer.h>
-#endif /* __GPT_K1MAX_H_INCLUDE__ */
+#endif /* __SMP_K1MAX_H_INCLUDE__ */

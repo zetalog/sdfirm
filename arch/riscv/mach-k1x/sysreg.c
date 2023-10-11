@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2022
+ * Copyright (c) 2023
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,15 +35,33 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)gpt.h: K1MAX specific generic timer definition
- * $Id: gpt.h,v 1.1 2022-10-15 14:30:00 zhenglv Exp $
+ * @(#)sysreg.c: K1-max system registers implementation
+ * $Id: sysreg.c,v 1.1 2023-05-30 17:48:00 zhenglv Exp $
  */
 
-#ifndef __GPT_K1MAX_H_INCLUDE__
-#define __GPT_K1MAX_H_INCLUDE__
-
 #include <target/arch.h>
-#include <target/clk.h>
 
-#include <asm/mach/timer.h>
-#endif /* __GPT_K1MAX_H_INCLUDE__ */
+#define BOOT_CLUSTER	CPU_TO_CLUSTER(BOOT_HART)
+
+void k1max_cpu_reset(void)
+{
+	cpu_t cpu, hart, cluster;
+	uint32_t reset = __raw_readl(SYS_CPU_SOFTWARE_RST);
+
+	if (BOOT_HART == csr_read(CSR_MHARTID)) {
+		for (cpu = 0; cpu < MAX_CPU_NUM; cpu++) {
+			hart = smp_hw_cpu_hart(cpu);
+			cluster = CPU_TO_CLUSTER(hart);
+
+			if (hart == BOOT_HART)
+				continue;
+			if (!(hart & BOOT_MASK))
+				continue;
+			reset |= SYS_CPU_RST(cpu);
+			if (cluster == BOOT_CLUSTER)
+				continue;
+			reset |= SYS_CLUSTER_RST(cluster);
+		}
+	}
+	__raw_writel(reset, SYS_CPU_SOFTWARE_RST);
+}

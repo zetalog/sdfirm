@@ -35,15 +35,11 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)gpt.h: K1MAX specific generic timer definition
- * $Id: gpt.h,v 1.1 2022-10-15 14:30:00 zhenglv Exp $
+ * @(#)io.h: K1MAX specific CPU definitions
+ * $Id: io.h,v 1.1 2022-10-15 12:11:00 zhenglv Exp $
  */
 
-#ifndef __GPT_K1MAX_H_INCLUDE__
-#define __GPT_K1MAX_H_INCLUDE__
+#ifndef __IO_K1MAX_H_INCLUDE__
+#define __IO_K1MAX_H_INCLUDE__
 
-#include <target/arch.h>
-#include <target/clk.h>
-
-#include <asm/mach/timer.h>
-#endif /* __GPT_K1MAX_H_INCLUDE__ */
+#endif /* __IO_K1MAX_H_INCLUDE__ */
