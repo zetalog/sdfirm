@@ -92,11 +92,10 @@
 
 /* ML2SETUP */
 #define L2S_SMP(cpu)	(_AC(0x1, UL) << (cpu)) /* snoop enable */
-#define L2S_SMP_MASK	(L2S_SMP(MAX_CPU_NUM) - 1)
 #define L2S_ECC		_AC(0x00000100, UL) /* ECC enable */
-#define L2S_PAE		_AC(0x00000200, UL)
-#define L2S_IPRF	_AC(0x00030000, UL)
-#define L2S_TPRF	_AC(0x00040000, UL)
+#define L2S_PAE		_AC(0x00000200, UL) /* partition enable */
+#define L2S_IPRF	_AC(0x00030000, UL) /* I-cache prefetch */
+#define L2S_TPRF	_AC(0x00040000, UL) /* TLB prefetch */
 
 /* ML2BUSERR */
 #define L2BER_ERR	_AC(0x8000000000000000, UL) /* bus error valid */
@@ -106,21 +105,32 @@
 #if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
 	.macro	spacemit_smp_init
 	/* spacemit specific */
-	li	x3, STP_DE | STP_IE | STP_BPE | STP_PRFE | STP_MM
-	csrs	CSR_MSETUP, x3
+	li	t0, STP_DE | STP_IE | STP_BPE | STP_PRFE | STP_MM
+#ifdef CONFIG_SPACEMIT_RAS
+	or	t0, t0, STP_ECC
+#endif
+	csrs	CSR_MSETUP, t0
 	.endm
 	.macro	spacemit_init
 #ifdef CONFIG_K1M_S2C_SPEEDUP_QUIRK_RDTIME
-	li	x3, 0
-	csrs	CSR_MCOUNTEREN, x3
+	li	t0, 0
+	csrs	CSR_MCOUNTEREN, t0
 #endif
 	/* spacemit specific */
-	li	x3, L2S_SMP_MASK
-	csrs	CSR_ML2SETUP, x3
+	csrr	t1, CSR_MHARTID
+	and	t1, t1, (CPU_TO_MASK(CPUS_PER_CLUSTER) - 1)
+	li	t0, 1
+	sllw	t0, t0, t1
+	li	t1, L2S_PAE | L2S_IPRF | L2S_TPRF
+	or	t0, t0, t1
+#ifdef CONFIG_SPACEMIT_RAS
+	or	t0, t0, L2S_ECC
+#endif
+	csrs	CSR_ML2SETUP, t0
 
 	/* enable hypervisor extension */
-	li	x3, HYPERVISOR_EXT
-	csrs    CSR_MISA, x3
+	li	t0, HYPERVISOR_EXT
+	csrs	CSR_MISA, t0
 	.endm
 #endif /* __ASSEMBLY__ */
 

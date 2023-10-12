@@ -214,18 +214,22 @@ typedef uint8_t cmn_id_t;
 #define CMN_SAM_GRANU			SZ_64M
 
 /* Common to all nodes */
-#define CMN_node_info(base)		CMN_REG(base, 0x0)
-#define CMN_child_info(base)		CMN_REG(base, 0x80)
+#define CMN_node_info(base)		CMN_REG(base, 0x0000)
+#define CMN_child_info(base)		CMN_REG(base, 0x0080)
 
 /* 3.2.1 Configuration master register summary */
-#define CMN_cfgm_periph_id(n)		CMN_32BIT_REG(CMN_CFGM_BASE, 0x8, (n))
-#define CMN_cfgm_component_id(n)	CMN_32BIT_REG(CMN_CFGM_BASE, 0x28, (n))
+#define CMN_MAX_cfgm_periph_ids		8
+#define CMN_MAX_cfgm_component_ids	4
+#define CMN_cfgm_periph_id(n)		CMN_32BIT_REG(CMN_CFGM_BASE, 0x0008, (n))
+#define CMN_cfgm_component_id(n)	CMN_32BIT_REG(CMN_CFGM_BASE, 0x0028, (n))
 
 /* 3.2.4 HN-F register summary */
-#define CMN_hnf_unit_info(base)		CMN_REG(base, 0x900)
-#define CMN_hnf_cfg_ctl(base)		CMN_REG(base, 0xA00)
-#define CMN_hnf_aux_ctl(base)		CMN_REG(base, 0xA08)
-#define CMN_hnf_r2_aux_ctl(base)	CMN_REG(base, 0xA10)
+#define CMN_MAX_hnf_slcway_partitions	4
+#define CMN_MAX_hnf_sam_memregions	2
+#define CMN_hnf_unit_info(base)		CMN_REG(base, 0x0900)
+#define CMN_hnf_cfg_ctl(base)		CMN_REG(base, 0x0A00)
+#define CMN_hnf_aux_ctl(base)		CMN_REG(base, 0x0A08)
+#define CMN_hnf_r2_aux_ctl(base)	CMN_REG(base, 0x0A10)
 #define CMN_hnf_ppu_pwpr(base)		CMN_REG(base, 0x1000)
 #define CMN_hnf_ppu_pwsr(base)		CMN_REG(base, 0x1008)
 #define CMN_hnf_ppu_misr(base)		CMN_REG(base, 0x1014)
@@ -235,58 +239,63 @@ typedef uint8_t cmn_id_t;
 #define CMN_hnf_ppu_aidr(base)		CMN_REG(base, 0x1FCC)
 #define CMN_hnf_ppu_dyn_ret_threshold(base)		\
 					CMN_REG(base, 0x1100)
-#define CMN_hnf_rn_starvation(base)	CMN_REG(base, 0xA90)
-#define CMN_hnf_slc_lock_ways(base)	CMN_REG(base, 0xC00)
-#define CMN_hnf_slc_lock_base(base, n)	CMN_REG(base, 0xC08 + ((n) << 3))
-#define CMN_hnf_rni_region_vec(base)	CMN_REG(base, 0xC30)
-#define CMN_hnf_rnf_region_vec(base)	CMN_REG(base, 0xC38)
-#define CMN_hnf_rnd_region_vec(base)	CMN_REG(base, 0xC40)
+#define CMN_hnf_rn_starvation(base)	CMN_REG(base, 0x0A90)
+#define CMN_hnf_slc_lock_ways(base)	CMN_REG(base, 0x0C00)
+#define CMN_hnf_slc_lock_base(base, n)	CMN_REG(base, 0x0C08 + ((n) << 3))
+#define CMN_hnf_rni_region_vec(base)	CMN_REG(base, 0x0C30)
+#define CMN_hnf_rnf_region_vec(base)	CMN_REG(base, 0x0C38)
+#define CMN_hnf_rnd_region_vec(base)	CMN_REG(base, 0x0C40)
 #define CMN_hnf_slcway_partition_rnf_vec(base, n)	\
-					CMN_REG(base, 0xC48 + ((n) << 3))
-#define CMN_hnf_rnf_region_vec1(base)	CMN_REG(base, 0xC28)
+					CMN_REG(base, 0x0C48 + ((n) << 3))
+#define CMN_hnf_rnf_region_vec1(base)	CMN_REG(base, 0x0C28)
 #define CMN_hnf_slcway_partition_rnf_vec1(base, n)	\
-					CMN_REG(base, 0xCB0 + ((n) << 3))
+					CMN_REG(base, 0x0CB0 + ((n) << 3))
 #define CMN_hnf_slcway_partition_rni_vec(base, n)	\
-					CMN_REG(base, 0xC68 + ((n) << 3))
+					CMN_REG(base, 0x0C68 + ((n) << 3))
 #define CMN_hnf_slcway_partition_rnd_vec(base, n)	\
-					CMN_REG(base, 0xC88 + ((n) << 3))
-#define CMN_hnf_rn_region_lock(base)	CMN_REG(base, 0xCA8)
-#define CMN_hnf_sam_control(base)	CMN_REG(base, 0xD00)
-#define CMN_hnf_sam_memregion(base, n)	CMN_REG(base, 0xD08 + ((n) << 3))
-#define CMN_hnf_sam_sn_properties(base)	CMN_REG(base, 0xD18)
-#define CMN_hnf_sam_6sn_nodeid(base)	CMN_REG(base, 0xD20)
+					CMN_REG(base, 0x0C88 + ((n) << 3))
+#define CMN_hnf_rn_region_lock(base)	CMN_REG(base, 0x0CA8)
+#define CMN_hnf_sam_control(base)	CMN_REG(base, 0x0D00)
+#define CMN_hnf_sam_memregion(base, n)	CMN_REG(base, 0x0D08 + ((n) << 3))
+#define CMN_hnf_sam_sn_properties(base)	CMN_REG(base, 0x0D18)
+#define CMN_hnf_sam_6sn_nodeid(base)	CMN_REG(base, 0x0D20)
 
 /* 3.2.6 XP register summary */
+#define CMN_MAX_mxp_device_ports	2
 #define CMN_mxp_device_port_connect_info(base, n)	\
-					CMN_REG(base, 0x8 + ((n) << 3))
+					CMN_REG(base, 0x0008 + ((n) << 3))
 #define CMN_mxp_mesh_port_connect_info_east(base)	\
-					CMN_REG(base, 0x18)
+					CMN_REG(base, 0x0018)
 #define CMN_mxp_mesh_port_connect_info_north(base)	\
-					CMN_REG(base, 0x20)
-#define CMN_mxp_p0_info(base)		CMN_REG(base, 0x900)
-#define CMN_mxp_p1_info(base)		CMN_REG(base, 0x908)
-#define CMN_mxp_aux_ctl(base)		CMN_REG(base, 0xA00)
+					CMN_REG(base, 0x0020)
+#define CMN_mxp_p_info(base, n)		CMN_REG(base, 0x0900 + ((n) << 3))
+#define CMN_mxp_aux_ctl(base)		CMN_REG(base, 0x0A00)
 
 /* 3.2.9 RN SAM register summary */
-#define CMN_rnsam_status(base)		CMN_REG(base, 0xC00)
+#define CMN_MAX_rnsam_sys_cache_groups	4
+#define CMN_MAX_rnsam_non_hash_mem_regions	20
+#define CMN_MAX_rnsam_non_hash_tgt_nodes	20
+#define CMN_MAX_rnsam_sys_cache_grp_hn_nodes	32
+#define CMN_MAX_NON_HASH_TGT_NODES_20	20
+#define CMN_rnsam_status(base)		CMN_REG(base, 0x0C00)
 #define CMN_rnsam_non_hash_mem_region(base, n)		\
-					CMN_32BIT_REG(base, 0xC08, n)
+					CMN_32BIT_REG(base, 0x0C08, n)
 #define CMN_rnsam_non_hash_tgt_nodeid(base, n)		\
-					CMN_12BIT_REG(base, 0xC30, n)
+					CMN_12BIT_REG(base, 0x0C30, n)
 #define CMN_rnsam_sys_cache_grp_region(base, n)		\
-					CMN_32BIT_REG(base, 0xC48, n)
-#define CMN_rnsam_sys_cache_grp_hn_nodeid(base, n)		\
-					CMN_12BIT_REG(base, 0xC58, n)
+					CMN_32BIT_REG(base, 0x0C48, n)
+#define CMN_rnsam_sys_cache_grp_hn_nodeid(base, n)	\
+					CMN_12BIT_REG(base, 0x0C58, n)
 #define CMN_rnsam_sys_cache_grp_nonhash_nodeid(base, n)	\
-					CMN_12BIT_REG(base, 0xC98, n)
+					CMN_12BIT_REG(base, 0x0C98, n)
 #define CMN_rnsam_non_hash_tgt_nodeid2(base, n)		\
-					CMN_12BIT_REG(base, 0xCE0, ((n) - 20))
+					CMN_12BIT_REG(base, 0x0CE0, ((n) - 20))
 #define CMN_rnsam_sys_cache_group_hn_count(base)	\
-					CMN_REG(base, 0xD00)
-#define CMN_rnsam_sys_cache_grp_sn_nodeid(base, n)		\
-					CMN_12BIT_REG(base, 0xD08, n)
+					CMN_REG(base, 0x0D00)
+#define CMN_rnsam_sys_cache_grp_sn_nodeid(base, n)	\
+					CMN_12BIT_REG(base, 0x0D08, n)
 #define CMN_rnsam_sys_cache_grp_cal_mode(base)		\
-					CMN_REG(base, 0xF10)
+					CMN_REG(base, 0x0F10)
 
 /* 3.2.11 CXHA register summary */
 #define CMN_cxg_ha_id(base)		CMN_REG(base, 0x0008)
@@ -314,7 +323,8 @@ typedef uint8_t cmn_id_t;
 #define CMN_cxg_ra_unit_info(base)	CMN_REG(base, 0x0900)
 #define CMN_cxg_ra_cfg_ctl(base)	CMN_REG(base, 0x0A00)
 #define CMN_cxg_ra_aux_ctl(base)	CMN_REG(base, 0x0A08)
-#define CMN_cxg_ra_sam_addr_region(base, 0x0DA8 + ((n) << 3))
+#define CMN_cxg_ra_sam_addr_region(base, n)			\
+					CMN_REG(base, 0x0DA8 + ((n) << 3))
 #define CMN_cxg_ra_agentid_to_linkid(base, n)			\
 					CMN_8BIT_REG(base, 0x0E60, n)
 #define CMN_cxg_ra_rnf_ldid_to_raid(base, n)			\
@@ -365,33 +375,12 @@ typedef uint8_t cmn_id_t;
 #define CMN_cxla_pmevent(base)		CMN_REG(base, 0x2220)
 #define CMN_cxla_pmevcntsr(base)	CMN_REG(base, 0x2240)
 
-/* Reigster field definitions */
-#define CMN_MAX_NON_HASH_TGT_NODES_20	20
-
-#define CMN_region_OFFSET(n)		REG64_32BIT_OFFSET(n)
-#define CMN_region_MASK			REG_32BIT_MASK
-#define CMN_region(n, value)		_SET_FV_ULLn(n, CMN_region, value)
-
-#define CMN_region_valid		_BV(0)
-#define CMN_region_nonhash_reg_en	_BV(1)
-#define CMN_region_target_type_OFFSET	2
-#define CMN_region_target_type_MASK	REG_2BIT_MASK
-#define CMN_region_target_type(value)	_SET_FV_ULL(CMN_region_target_type, value)
-#define CMN_region_target_HNF		0
-#define CMN_region_target_HNI		1
-#define CMN_region_target_CXRA		2
-#define CMN_region_size_OFFSET		4
-#define CMN_region_size_MASK		REG_5BIT_MASK
-#define CMN_region_size(value)		_SET_FV_ULL(CMN_region_size, value)
-#define CMN_region_base_addr_OFFSET	9
-#define CMN_region_base_addr_MASK	REG_22BIT_MASK
-#define CMN_region_base_addr(value)	_SET_FV_ULL(CMN_region_base_addr, value)
-
 typedef uint16_t cmn_nid_t;
 typedef uint16_t cmn_lid_t;
 typedef uint8_t cmn_pid_t;
 typedef uint8_t cmn_did_t;
 
+/* Reigster field definitions */
 /* CMN_node_info */
 #define CMN_node_type_OFFSET		0
 #define CMN_node_type_MASK		REG_16BIT_MASK
@@ -504,6 +493,28 @@ typedef uint8_t cmn_did_t;
 #define CMN_sam_range_valid		_BV_ULL(63)
 
 #define CMN_scg_hnf_cal_mode_en(n)	(_BV(0) << ((n) << 4))
+
+/* CMN_rnsam_sys_cache_grp_region
+ * CMN_rnsam_non_hash_mem_region
+ */
+#define CMN_region_OFFSET(n)		REG64_32BIT_OFFSET(n)
+#define CMN_region_MASK			REG_32BIT_MASK
+#define CMN_region(n, value)		_SET_FV_ULLn(n, CMN_region, value)
+
+#define CMN_region_valid		_BV(0)
+#define CMN_region_nonhash_reg_en	_BV(1)
+#define CMN_region_target_type_OFFSET	2
+#define CMN_region_target_type_MASK	REG_2BIT_MASK
+#define CMN_region_target_type(value)	_SET_FV_ULL(CMN_region_target_type, value)
+#define CMN_region_target_HNF		0
+#define CMN_region_target_HNI		1
+#define CMN_region_target_CXRA		2
+#define CMN_region_size_OFFSET		4
+#define CMN_region_size_MASK		REG_5BIT_MASK
+#define CMN_region_size(value)		_SET_FV_ULL(CMN_region_size, value)
+#define CMN_region_base_addr_OFFSET	9
+#define CMN_region_base_addr_MASK	REG_22BIT_MASK
+#define CMN_region_base_addr(value)	_SET_FV_ULL(CMN_region_base_addr, value)
 
 #define CMN_valid_region(t, b, s)		\
 	(CMN_region_valid |			\
