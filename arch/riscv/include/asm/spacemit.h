@@ -118,7 +118,7 @@
 #endif
 	/* spacemit specific */
 	csrr	t1, CSR_MHARTID
-	and	t1, t1, (CPU_TO_MASK(CPUS_PER_CLUSTER) - 1)
+	and	t1, t1, (CPUS_PER_CLUSTER - 1)
 	li	t0, 1
 	sllw	t0, t0, t1
 	li	t1, L2S_PAE | L2S_IPRF | L2S_TPRF
