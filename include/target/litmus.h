@@ -25,7 +25,7 @@
 #include <target/barrier.h>
 #include <time.h>
 
-#define AVAIL NR_CPUS
+#define AVAIL LITMUS_MAX_CPUS
 
 typedef int			intmax_t;
 #define malloc(sz)		(void *)heap_alloc(sz)
