@@ -1334,17 +1334,25 @@ int parse_cmd(int argc, char **argv, cmd_t *d, cmd_t *p)
 	return 2;
 }
 
+#ifdef CONFIG_TEST_LITMUS_CPU_CUSTOMIZED
+cpu_t litmus_processor_id(void)
+{
+	cpu_t smp = smp_processor_id();
+	uint64_t mask = LITMUS_CPU_MASK & ((1 << (smp + 1)) - 1);
+
+	return hweight64(mask) - 1;
+}
+#endif
+
 #ifdef CPUS_DEFINED
 cpus_t *read_affinity(const char *name)
 {
 	int p, *q;
 	cpus_t *r;
 
-	r = cpus_create(NR_CPUS, name);
-	for (p = 0, q = r->cpu; p < NR_CPUS; p++) {
-		if (C(p) & CPU_ALL)
-			*q++ = p;
-	}
+	r = cpus_create(LITMUS_MAX_CPUS, name);
+	for (p = 0, q = r->cpu; p < LITMUS_MAX_CPUS; p++)
+		*q++ = p;
 	return r;
 }
 

@@ -648,7 +648,7 @@ DEFINE_COMMAND(dummy,litmus_dummy_test,"Run memory model litmus tests - dummy",
 );
 
 int litmus_dummy(caddr_t percpu_area) {
-  int cpu = smp_processor_id();
+  int cpu = litmus_processor_id();
   targ_t *targ = &(g_targs[cpu]);
   if (targ->fun)
     targ->fun(targ->arg);

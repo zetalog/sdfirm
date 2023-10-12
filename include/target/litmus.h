@@ -278,9 +278,11 @@ int parse_cmd(int argc, char **argv, cmd_t *def, cmd_t *p);
 #ifdef CONFIG_TEST_LITMUS_CPU_CUSTOMIZED
 #define LITMUS_MAX_CPUS		CONFIG_TEST_LITMUS_MAX_CPUS
 #define LITMUS_CPU_MASK		CONFIG_TEST_LITMUS_CPU_MASK
+cpu_t litmus_processor_id(void);
 #else
 #define LITMUS_MAX_CPUS		MAX_CPU_NUM
 #define LITMUS_CPU_MASK		CPU_ALL
+#define litmus_processor_id()	smp_processor_id()
 #endif
 
 typedef uint16_t litmus_evt_t;
