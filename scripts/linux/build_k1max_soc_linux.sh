@@ -8,7 +8,7 @@ CROSS_COMPILE=riscv64-unknown-linux-gnu-
 BUILD_ROOT=$HOME/workspace
 BUILD_CUSTOMER=
 BUILD_TINY=no
-BUILD_LIB=yes
+BUILD_LIB=no
 BUILD_SMP=no
 BUILD_NET=no
 BUILD_STO=no
@@ -16,7 +16,7 @@ BUILD_KVM=no
 
 # If you only want to re-build kernel drivers, you can use no to omit
 # rebuilding whole busybox/linux
-FORCE_REBUILD=no
+FORCE_REBUILD=yes
 
 # yes: Baize emulation
 # no:  Xihe emulation
@@ -43,7 +43,7 @@ CPU2006_REPORT=specinvoke
 CPU2006_DATA=all
 CPU2006_BENCHMARKS="401.bzip2"
 
-PERF_UPDATE=yes
+PERF_UPDATE=no
 
 # Early tests include benchmark, litmus, cpu2006
 TEST_EARLY=
