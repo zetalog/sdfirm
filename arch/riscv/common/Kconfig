@@ -1002,6 +1002,12 @@ endif
 
 menuconfig VAISRA_RAS
 	bool "Vaisra reliability availability serviceability (RAS) support"
+	depends CPU_VAISRA
+	depends !SYS_NOIRQ || SBI
+
+menuconfig SPACEMIT_RAS
+	bool "SpacemiT reliability availability serviceability (RAS) support"
+	depends CPU_SPACEMIT
 	depends !SYS_NOIRQ || SBI
 
 endmenu
