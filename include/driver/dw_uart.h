@@ -140,8 +140,12 @@
 			     FCR_RESET_MASK,		\
 			     UART_FCR(n));		\
 	} while (0)
+
+#define dw_uart_fifo_disable(n)		\
+	__raw_clearl(FCR_FIFOE, UART_FCR(n));
 #else
 #define dw_uart_config_fifo(n)
+#define dw_uart_fifo_disable(n)
 #endif
 #ifdef CONFIG_DW_UART_SHADOW
 #define UART_SRBRn(n, i)	DW_UART_REG(n, 0x30 + (i)*0x04)
