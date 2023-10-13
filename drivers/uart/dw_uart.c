@@ -112,6 +112,7 @@ void dw_uart_ctrl_init(uint32_t freq)
 	dw_uart_loopback_disable(UART_CON_ID);
 	dw_uart_16750_disable(UART_CON_ID);
 	dw_uart_irda_disable(UART_CON_ID);
+	dw_uart_fifo_disable(UART_CON_ID);
 
 	dw_uart_dlab_set(UART_CON_ID);
 	/* Configure baudrate */
