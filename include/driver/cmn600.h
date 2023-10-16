@@ -297,6 +297,12 @@ typedef uint8_t cmn_id_t;
 #define CMN_rnsam_sys_cache_grp_cal_mode(base)		\
 					CMN_REG(base, 0x0F10)
 
+/* CXG link register summary: common to CXHA and CXRA */
+#define CMN_cxg_cxprtcl_link_ctl(base, n)			\
+					CMN_REG(base, 0x1000 + ((n) << 4))
+#define CMN_cxg_cxprtcl_link_status(base, n)			\
+					CMN_REG(base, 0x1008 + ((n) << 4))
+
 /* 3.2.11 CXHA register summary */
 #define CMN_cxg_ha_id(base)		CMN_REG(base, 0x0008)
 #define CMN_cxg_ha_aux_ctl(base)	CMN_REG(base, 0x0A08)
@@ -312,10 +318,6 @@ typedef uint8_t cmn_id_t;
 #define CMN_cxg_ha_rnf_raid_to_ldid_val(base)			\
 					CMN_REG(base, 0x0D08)
 #define CMN_cxg_ha_pmu_event_sel(base)	CMN_REG(base, 0x2000)
-#define CMN_cxg_ha_cxprtcl_link_ctl(base, n)			\
-					CMN_REG(base, 0x1000 + ((n) << 4))
-#define CMN_cxg_ha_cxprtcl_link_status(base, n)			\
-					CMN_REG(base, 0x1008 + ((n) << 4))
 
 /* 3.2.12 CXRA register summary */
 #define CMN_cxg_ra_secure_register_groups_override(base)	\
@@ -342,10 +344,6 @@ typedef uint8_t cmn_id_t;
 #define CMN_cxg_ra_rnd_ldid_to_raid_val(base)			\
 					CMN_REG(base, 0x0F38)
 #define CMN_cxg_ra_pmu_event_sel(base)	CMN_REG(base, 0x2000)
-#define CMN_cxg_ra_cxprtcl_link_ctl(base, n)			\
-					CMN_REG(base, 0x1000 + ((n) << 4))
-#define CMN_cxg_ra_cxprtcl_link_status(base, n)			\
-					CMN_REG(base, 0x1008 + ((n) << 4))
 
 /* 3.2.13 CXLA register summary */
 #define CMN_cxla_secure_register_groups_override(base)		\
@@ -409,7 +407,7 @@ typedef uint8_t cmn_did_t;
 #define CMN_JEP106_id_code_6_4_OFFSET	0
 #define CMN_JEP106_id_code_6_4_MASK	REG_3BIT_MASK
 #define CMN_JEP106_id_code_6_4(value)	_GET_FV(CMN_JEP106_id_code_6_4, value)
-#define CMN_JEDED_JEP106		_BV(3)
+#define CMN_JEDED_JEP106		_BV_ULL(3)
 #define CMN_revision_OFFSET		4
 #define CMN_revision_MASK		REG_4BIT_MASK
 #define CMN_revision(value)		_GET_FV(CMN_revision, value)
@@ -422,7 +420,7 @@ typedef uint8_t cmn_did_t;
 #define CMN_r3p1			6
 #define CMN_r3p2			7
 
-/* 2.5.3 Child pointers */
+/* CMN_cfgm_child_info */
 #define CMN_child_external			_BV_ULL(31)
 #define CMN_child_address_offset_OFFSET		0
 #define CMN_child_address_offset_MASK		REG_28BIT_MASK
@@ -474,6 +472,7 @@ typedef uint8_t cmn_did_t;
 #define CMN_ppu_op_mode_FAM		3
 #define CMN_ppu_dyn_en			_BV_ULL(8)
 
+/* CMN_rnsam_status */
 #define CMN_sam_use_default_node	_BV_ULL(0)
 #define CMN_sam_nstall_req_OFFSET	1
 #define CMN_sam_nstall_req_MASK		REG_1BIT_MASK
@@ -481,18 +480,8 @@ typedef uint8_t cmn_did_t;
 #define CMN_sam_stall_req		0
 #define CMN_sam_unstall_req		1
 
-#define CMN_sam_range_nodeid_OFFSET	0
-#define CMN_sam_range_nodeid_MASK	REG_11BIT_MASK
-#define CMN_sam_range_nodeid(value)	_SET_FV_ULL(CMN_sam_range_nodeid, value)
-#define CMN_sam_range_size_OFFSET	12
-#define CMN_sam_range_size_MASK		REG_5BIT_MASK
-#define CMN_sam_range_size(value)	_SET_FV_ULL(CMN_sam_range_size, value)
-#define CMN_sam_range_base_addr_OFFSET	26
-#define CMN_sam_range_base_addr_MASK	REG_22BIT_MASK
-#define CMN_sam_range_base_addr(value)	_SET_FV_ULL(CMN_sam_range_base_addr, value)
-#define CMN_sam_range_valid		_BV_ULL(63)
-
-#define CMN_scg_hnf_cal_mode_en(n)	(_BV(0) << ((n) << 4))
+/* CMN_rnsam_sys_cache_grp_cal_mode */
+#define CMN_scg_hnf_cal_mode_en(n)	(_BV_ULL(0) << ((n) << 4))
 
 /* CMN_rnsam_sys_cache_grp_region
  * CMN_rnsam_non_hash_mem_region
@@ -501,8 +490,9 @@ typedef uint8_t cmn_did_t;
 #define CMN_region_MASK			REG_32BIT_MASK
 #define CMN_region(n, value)		_SET_FV_ULLn(n, CMN_region, value)
 
-#define CMN_region_valid		_BV(0)
-#define CMN_region_nonhash_reg_en	_BV(1)
+/* CMN_rnsam_sys_cache_grp_region */
+#define CMN_region_valid		_BV_ULL(0)
+#define CMN_region_nonhash_reg_en	_BV_ULL(1)
 #define CMN_region_target_type_OFFSET	2
 #define CMN_region_target_type_MASK	REG_2BIT_MASK
 #define CMN_region_target_type(value)	_SET_FV_ULL(CMN_region_target_type, value)
@@ -527,6 +517,265 @@ typedef uint8_t cmn_did_t;
 	 CMN_region_target_type(t) |		\
 	 CMN_region_base_addr(b >> 26) |	\
 	 CMN_region_size(__ilog2_u64((s) / CMN_SAM_GRANU)))
+
+/* CMN_hnf_sam_memregion */
+#define CMN_sam_range_nodeid_OFFSET	0
+#define CMN_sam_range_nodeid_MASK	REG_11BIT_MASK
+#define CMN_sam_range_nodeid(value)	_SET_FV_ULL(CMN_sam_range_nodeid, value)
+#define CMN_sam_range_size_OFFSET	12
+#define CMN_sam_range_size_MASK		REG_5BIT_MASK
+#define CMN_sam_range_size(value)	_SET_FV_ULL(CMN_sam_range_size, value)
+#define CMN_sam_range_base_addr_OFFSET	26
+#define CMN_sam_range_base_addr_MASK	REG_22BIT_MASK
+#define CMN_sam_range_base_addr(value)	_SET_FV_ULL(CMN_sam_range_base_addr, value)
+#define CMN_sam_range_valid		_BV_ULL(63)
+
+/* CMN_cxg_ha_cxprtcl_link_ctl
+ * CMN_cxg_ra_cxprtcl_link_ctl
+ */
+#define CMN_lnk_link_en			_BV_ULL(0)
+#define CMN_lnk_link_req		_BV_ULL(1)
+#define CMN_lnk_link_up			_BV_ULL(2)
+
+/* CMN_cxg_ha_cxprtcl_link_ctl */
+#define CMN_lnk_snoopdomain_req		_BV_ULL(3)
+#define CMN_lnk_num_reqcrds_OFFSET	4
+#define CMN_lnk_num_reqcrds_MASK	REG_4BIT_MASK
+#define CMN_lnk_num_reqcrds(value)	_SET_FV_ULL(CMN_lnk_num_reqcrds, value)
+#define CMN_lnk_num_datcrds_OFFSET	8
+#define CMN_lnk_num_datcrds_MASK	REG_4BIT_MASK
+#define CMN_lnk_num_datcrds(value)	_SET_FV_ULL(CMN_lnk_num_datcrds, value)
+
+/* CMN_cxg_ra_cxprtcl_link_ctl */
+#define CMN_lnk_dvmdomain_req		_BV_ULL(3)
+#define CMN_lnk_num_snpcrds_OFFSET	4
+#define CMN_lnk_num_snpcrds_MASK	REG_4BIT_MASK
+#define CMN_lnk_num_snpcrds(value)	_SET_FV_ULL(CMN_lnk_num_snpcrds, value)
+#define CMN_lnk_dis_cpuevent_prop	_BV_ULL(8)
+
+/* CMN_cxg_ha_cxprtcl_link_status
+ * CMN_cxg_ra_cxprtcl_link_status
+ */
+#define CMN_lnk_link_ack		_BV_ULL(0)
+#define CMN_lnk_link_down		_BV_ULL(1)
+
+/* CMN_cxg_ha_cxprtcl_link_status */
+#define CMN_lnk_snoopdomain_ack		_BV_ULL(2)
+
+/* CMN_cxg_ra_cxprtcl_link_status */
+#define CMN_lnk_dvmdomain_ack		_BV_ULL(2)
+#define CMN_lnk_ot_cbkwr		_BV_ULL(3)
+
+/* CMN_cxg_ha_id */
+#define CMN_ccix_haid_OFFSET		0
+#define CMN_ccix_haid_MASK		REG_6BIT_MASK
+#define CMN_ccix_haid(value)		_GET_FV(CMN_ccix_haid, value)
+
+/* CMN_cxg_ha_aux_ctl
+ * CMN_cxg_ra_aux_ctl
+ */
+#define CMN_cg_disable			_BV_ULL(0)
+
+/* CMN_cxg_ha_aux_ctl */
+#define CMN_ha_smp_mode_en		_BV_ULL(16)
+#define CMN_ha_disable_cg_flopen	_BV_ULL(5)
+#define CMN_ha_disable_secure_access	_BV_ULL(4)
+#define CMN_ha_early_compack_en		_BV_ULL(3)
+#define CMN_ha_remote_chia_rnf_present	_BV_ULL(2)
+#define CMN_ha_snoop_dataret_disable	_BV_ULL(1)
+
+/* CMN_cxg_ra_aux_ctl */
+#define CMN_ra_smp_mode_en		_BV_ULL(16)
+#define CMN_ra_dis_cxsa_early_write_comp	\
+					_BV_ULL(10)
+#define CMN_ra_dis_dbiddispq_rsp	_BV_ULL(9)
+#define CMN_ra_dis_wrreqchain		_BV_ULL(8)
+#define CMN_ra_dis_rdreqchain		_BV_ULL(7)
+#define CMN_ra_r2byp_en			_BV_ULL(6)
+#define CMN_ra_dis_rem_secure_access	_BV_ULL(5)
+#define CMN_ra_sameaddr_ord_wfc		_BV_ULL(4)
+#define CMN_ra_devnr_ord_wfc		_BV_ULL(3)
+#define CMN_ra_early_compack_en		_BV_ULL(2)
+#define CMN_ra_early_rdrcpt_en		_BV_ULL(1)
+
+/* CMN_cxg_la_aux_ctl */
+#define CMN_la_tlp_timeout_en		_BV_ULL(6)
+#define CMN_la_idle_timeout_th_OFFSET	8
+#define CMN_la_idle_timeout_th_MASK	REG_3BIT_MASK
+#define CMN_la_idle_timeout_th(value)	_SET_FV_ULL(CMN_la_idle_timeout_th, value)
+#define CMN_la_rspdat_timeout_th_OFFSET	12
+#define CMN_la_rspdat_timeout_th_MASK	REG_3BIT_MASK
+#define CMN_la_rspdat_timeout_th(value)	_SET_FV_ULL(CMN_la_rspdat_timeout_th, value)
+#define CMN_la_reqrsp_timeout_th_OFFSET	16
+#define CMN_la_reqrsp_timeout_th_MASK	REG_3BIT_MASK
+#define CMN_la_reqrsp_timeout_th(value)	_SET_FV_ULL(CMN_la_reqrsp_timeout_th, value)
+#define CMN_la_snpdat_timeout_th_OFFSET	20
+#define CMN_la_snpdat_timeout_th_MASK	REG_3BIT_MASK
+#define CMN_la_snpdat_timeout_th(value)	_SET_FV_ULL(CMN_la_snpdat_timeout_th, value)
+#define CMN_la_snprsp_timeout_th_OFFSET	24
+#define CMN_la_snprsp_timeout_th_MASK	REG_3BIT_MASK
+#define CMN_la_snprsp_timeout_th(value)	_SET_FV_ULL(CMN_la_snprsp_timeout_th, value)
+#define CMN_la_reqdat_timeout_th_OFFSET	28
+#define CMN_la_reqdat_timeout_th_MASK	REG_3BIT_MASK
+#define CMN_la_reqdat_timeout_th(value)	_SET_FV_ULL(CMN_la_reqdat_timeout_th, value)
+#define CMN_la_snp_timeout_th_OFFSET	32
+#define CMN_la_snp_timeout_th_MASK	REG_3BIT_MASK
+#define CMN_la_snp_timeout_th(value)	_SET_FV_ULL(CMN_la_snp_timeout_th, value)
+#define CMN_la_misc_timeout_th_OFFSET	36
+#define CMN_la_misc_timeout_th_MASK	REG_3BIT_MASK
+#define CMN_la_misc_timeout_th(value)	_SET_FV_ULL(CMN_la_misc_timeout_th, value)
+#define CMN_la_crdgnt_crd_count_th_OFFSET	40
+#define CMN_la_crdgnt_crd_count_th_MASK		REG_3BIT_MASK
+#define CMN_la_crdgnt_crd_count_th(value)	_SET_FV_ULL(CMN_la_crdgnt_crd_count_th, value)
+#define CMN_la_crdgnt_crd_cycle_th_OFFSET	44
+#define CMN_la_crdgnt_crd_cycle_th_MASK		REG_3BIT_MASK
+#define CMN_la_crdgnt_crd_cycle_th(value)	_SET_FV_ULL(CMN_la_crdgnt_crd_cycle_th, value)
+#define CMN_la_smp_mode_en		_BV_ULL(47)
+
+/* CMN_cxg_ha_secure_register_groups_override */
+#define CMN_ha_ldid_ctl			_BV_ULL(0)
+#define CMN_ha_linkid_ctl		_BV_ULL(1)
+
+/* CMN_cxg_ra_secure_register_groups_override */
+#define CMN_ra_cfg_ctl			_BV_ULL(0)
+#define CMN_ra_rasam_ctl		_BV_ULL(1)
+#define CMN_ra_linkid_ctl		_BV_ULL(2)
+#define CMN_ra_ldid_ctl			_BV_ULL(3)
+
+/* CMN_cxg_la_secure_register_groups_override */
+#define CMN_la_cfg_ctl			_BV_ULL(0)
+#define CMN_la_linkid_ctl		_BV_ULL(2)
+
+/* CMN_cxg_ha_unit_info */
+#define CMN_ha_snoop_compack_hazbuf_depth_OFFSET	54
+#define CMN_ha_snoop_compack_hazbuf_depth_MASK		REG_9BIT_MASK
+#define CMN_ha_snoop_compack_hazbuf_depth(value)	_GET_FV_ULL(CMN_ha_snoop_compack_hazbuf_depth, value)
+#define CMN_ha_snoop_databuffer_depth_OFFSET		45
+#define CMN_ha_snoop_databuffer_depth_MASK		REG_9BIT_MASK
+#define CMN_ha_snoop_databuffer_depth(value)		_GET_FV_ULL(CMN_ha_snoop_databuffer_depth, value)
+#define CMN_ha_snoop_tracker_depth_OFFSET		36
+#define CMN_ha_snoop_tracker_depth_MASK			REG_9BIT_MASK
+#define CMN_ha_snoop_tracker_depth(value)		_GET_FV_ULL(CMN_snoop_tracker_depth, value)
+#define CMN_ha_snoop_request_sinkbuffer_depth_OFFSET	27
+#define CMN_ha_snoop_request_sinkbuffer_depth_MASK	REG_9BIT_MASK
+#define CMN_ha_snoop_request_sinkbuffer_depth(value)	_GET_FV_ULL(CMN_snoop_request_sinkbuffer_depth, value)
+#define CMN_ha_wdb_depth_OFFSET				18
+#define CMN_ha_wdb_depth_MASK				REG_9BIT_MASK
+#define CMN_ha_wdb_depth(value)				_GET_FV_ULL(CMN_wdb_depth, value)
+#define CMN_ha_rdb_depth_OFFSET				9
+#define CMN_ha_rdb_depth_MASK				REG_9BIT_MASK
+#define CMN_ha_rdb_depth(value)				_GET_FV_ULL(CMN_rdb_depth, value)
+#define CMN_ha_request_tracker_depth_OFFSET		0
+#define CMN_ha_request_tracker_depth_MASK		REG_9BIT_MASK
+#define CMN_ha_request_tracker_depth(value)		_GET_FV_ULL(CMN_request_tracker_depth, value)
+
+/* CMN_cxg_ra_unit_info */
+#define CMN_num_mem_regions_OFFSET			0
+#define CMN_num_mem_regions_MASK			REG_5BIT_MASK
+#define CMN_num_mem_regions(value)			_GET_FV_ULL(CMN_num_mem_regions, value)
+#define CMN_num_mem_region_limit_enabled		_BV_ULL(6)
+#define CMN_a4s_logicalid_OFFSET			8
+#define CMN_a4s_logicalid_MASK				REG_8BIT_MASK
+#define CMN_a4s_logicalid(value)			_GET_FV_ULL(CMN_a4s_logicalid, value)
+#define CMN_ra_request_tracker_depth_OFFSET		16
+#define CMN_ra_request_tracker_depth_MASK		REG_9BIT_MASK
+#define CMN_ra_request_tracker_depth(value)		_GET_FV_ULL(CMN_ra_request_tracker_depth, value)
+#define CMN_ra_rdb_depth_OFFSET				25
+#define CMN_ra_rdb_depth_MASK				REG_9BIT_MASK
+#define CMN_ra_rdb_depth(value)				_GET_FV_ULL(CMN_ra_rdb_depth, value)
+#define CMN_ra_wdb_depth_OFFSET				34
+#define CMN_ra_wdb_depth_MASK				REG_9BIT_MASK
+#define CMN_ra_wdb_depth(value)				_GET_FV_ULL(CMN_ra_wdb_depth, value)
+#define CMN_ra_snoop_tracker_depth_OFFSET		43
+#define CMN_ra_snoop_tracker_depth_MASK			REG_9BIT_MASK
+#define CMN_ra_snoop_tracker_depth(value)		_GET_FV_ULL(CMN_ra_snoop_tracker_depth, value)
+#define CMN_ra_snoop_databuffer_depth_OFFSET		52
+#define CMN_ra_snoop_databuffer_depth_MASK		REG_9BIT_MASK
+#define CMN_ra_snoop_databuffer_depth(value)		_GET_FV_ULL(CMN_ra_snoop_databuffer_depth, value)
+
+/* CMN_cxg_la_unit_info */
+#define CMN_la_db_present				_BV_ULL(0)
+#define CMN_la_db_lcrd_count_OFFSET			1
+#define CMN_la_db_lcrd_count_MASK			REG_4BIT_MASK
+#define CMN_la_db_lcrd_count(value)			_GET_FV_ULL(CMN_la_db_lcrd_count, value)
+#define CMN_la_tlp_count_tx_OFFSET			8
+#define CMN_la_tlp_count_tx_MASK			REG_3BIT_MASK
+#define CMN_la_tlp_count_tx(value)			_GET_FV_ULL(CMN_la_tlp_count_tx, value)
+#define CMN_la_tlp_count_rx_OFFSET			12
+#define CMN_la_tlp_count_rx_MASK			REG_3BIT_MASK
+#define CMN_la_tlp_count_rx(value)			_GET_FV_ULL(CMN_la_tlp_count_rx, value)
+#define CMN_la_db_fifo_depth_OFFSET			16
+#define CMN_la_db_fifo_depth_MASK			REG_6BIT_MASK
+#define CMN_la_db_fifo_depth(value)			_GET_FV_ULL(CMN_la_db_fifo_depth, value)
+
+/* CMN_cxg_ra_cfg_ctl */
+#define CMN_ra_cxsa_mode_en				_BV_ULL(9)
+#define CMN_ra_en_cxla_pmucmd_prop			_BV_ULL(8)
+#define CMN_ra_pcie_nonqos15_entry_rsv_en		_BV_ULL(2)
+#define CMN_ra_qos15_entry_rsv_en			_BV_ULL(1)
+#define CMN_ra_pcie_qos15_entry_rsv_en			_BV_ULL(0)
+
+/* CMN_cxg_la_ccix_prop_capabilities
+ * CMN_cxg_la_ccix_prop_configured
+ */
+#define CMN_la_nocompack				_BV_ULL(0)
+#define CMN_la_partialcachestates			_BV_ULL(1)
+#define CMN_la_cachelinesize				_BV_ULL(2)
+#define CMN_la_addrwidth_OFFSET				3
+#define CMN_la_addrwidth_MASK				REG_3BIT_MASK
+#define CMN_la_addrwidth(value)				_GET_FV_ULL(CMN_la_addrwidth, value)
+#define CMN_LA_ADDRWIDTH(value)				_SET_FV_ULL(CMN_la_addrwidth, value)
+#define CMN_la_pktheader				_BV_ULL(6)
+#define CMN_la_maxpacketsize_OFFSET			7
+#define CMN_la_maxpacketsize_MASK			REG_3BIT_MASK
+#define CMN_la_maxpacketsize(value)			_GET_FV_ULL(CMN_la_maxpacketsize, value)
+#define CMN_LA_MAXPACKETSIZE(value)			_GET_FV_ULL(CMN_la_maxpacketsize, value)
+#define CMN_la_nomessagepack				_BV_ULL(10)
+
+/* CMN_cxg_la_tx_cxs_attr_capabilities */
+/* CMN_cxg_la_rx_cxs_attr_capabilities */
+
+/* CMN_cxg_ra_sam_addr_region */
+#define CMN_reg_size_OFFSET				0
+#define CMN_reg_size_MASK				REG_6BIT_MASK
+#define CMN_reg_size(value)				_SET_FV_ULL(CMN_reg_size, value)
+#define CMN_reg_base_addr_OFFSET			16
+#define CMN_reg_base_addr_MASK				REG_32BIT_MASK
+#define CMN_reg_base_addr(value)			_SET_FV_ULL(cmn_reg_base_addr, value)
+#define CMN_reg_ha_tgtid_OFFSET				52
+#define CMN_reg_ha_tgtid_MASK				REG_5BIT_MASK
+#define CMN_reg_ha_tgtid(value)				_SET_FV_ULL(CMN_reg_ha_tgtid, value)
+#define CMN_reg_valid					_BV_ULL(63)
+
+/* CMN_cxg_ha_rnf_raid_to_ldid
+ * CMN_cxg_ra_rnf_ldid_to_raid
+ */
+#define CMN_ldid_rnf_OFFSET(n)				REG64_8BIT_OFFSET(n)
+#define CMN_ldid_rnf_MASK				REG_8BIT_MASK
+#define CMN_ldid_rnf(n, value)				_SET_FV_ULLn(n, CMN_ldid_rnf, value)
+/* CMN_cxg_ha_rnf_raid_to_ldid_val
+ * CMN_cxg_ra_rnf_ldid_to_raid_val
+ * CMN_cxg_ra_rni_ldid_to_raid_val
+ * CMN_cxg_ra_rnd_ldid_to_raid_val
+ */
+#define CMN_ldid_rnf_valid(n)				_BV_ULL(n)
+
+/* CMN_cxg_ha_agentid_to_linkid
+ * CMN_cxg_ra_agentid_to_linkid
+ * CMN_cxg_la_agentid_to_linkid
+ */
+#define CMN_agent_linkid_OFFSET(n)			REG64_8BIT_OFFSET(n)
+#define CMN_agent_linkid_MASK				REG_8BIT_MASK
+#define CMN_agent_linkid(n, value)			_SET_FV_ULLn(n, CMN_agent_linkid, value)
+/* CMN_cxg_ha_agentid_to_linkid_val
+ * CMN_cxg_ra_agentid_to_linkid_val
+ * CMN_cxg_la_agentid_to_linkid_val
+ */
+#define CMN_agent_linkid_valid(n)			_BV_ULL(n)
+
+/* CMN_cxg_la_linkid_to_pcie_bus_num */
+
+/* CMN_cxg_la_tlp_hdr_fields */
 
 /* CMN macros and APIs */
 #define cmn_node_type(base)			\
@@ -567,6 +816,19 @@ typedef uint8_t cmn_did_t;
 #define cmn_mxp_device_type(base, pid)		\
 	CMN_device_type(CMN_mxp_device_port_connect_info(base, pid))
 
+/* CXG capabilities */
+#define cmn_ccix_request_credits()		\
+	CMN_ra_request_tracker_depth(__raw_readq(CMN_cxg_ra_unit_info(CMN_CXRA_BASE)))
+#define cmn_ccix_snoop_credits()		\
+	CMN_ha_snoop_tracker_depth(__raw_readq(CMN_cxg_ha_unit_info(CMN_CXHA_BASE)))
+#define cmn_ccix_data_credits()			\
+	CMN_ha_wdb_depth(__raw_readq(CMN_cxg_ha_unit_info(CMN_CXHA_BASE)))
+#define cmn_ccix_max_packet_size()		\
+	CMN_la_maxpacketsize(__raw_readq(CMN_cxg_la_prop_capabilities(CMN_CXLA_BASE)))
+#define cmn_ccix_no_message_pack()		\
+	(!!(__raw_readq(CMN_cxg_la_prop_capabilities(CMN_CXLA_BASE)) & CMN_la_nomessagepack))
+
+/* Configuration interfaces */
 #define CMN600_MEMORY_REGION_TYPE_IO		0
 #define CMN600_MEMORY_REGION_TYPE_SYSCACHE	1
 #define CMN600_REGION_TYPE_SYSCACHE_SUB		2
