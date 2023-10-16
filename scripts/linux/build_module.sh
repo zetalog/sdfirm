@@ -501,6 +501,9 @@ function build_sdfirm()
 	if [ "x" != "x${SPACET_CPU}" ]; then
 		apply_modcfg sdfirm my_defconfig e_k1m_cpu${SPACET_CPU}.cfg
 	fi
+	if [ "x" != "x${SPACET_PG}" ]; then
+		apply_modcfg sdfirm my_defconfig e_k1m_pg${SPACET_PG}.cfg
+	fi
 	if [ "x" != "x${SPACET_DDR}" ]; then
 		apply_modcfg sdfirm my_defconfig e_k1m_ddr${SPACET_DDR}.cfg
 	fi
