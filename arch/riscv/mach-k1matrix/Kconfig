@@ -86,6 +86,11 @@ config K1MATRIX_FPGA
 
 endchoice
 
+config K1MATRIX_FPGA_TDM
+	bool "FPGA time-division multiplexing (TDM) support"
+	depends K1MATRIX_FPGA
+	default y
+
 if K1MATRIX_TB
 
 choice
