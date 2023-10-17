@@ -133,10 +133,18 @@ extern unsigned long k1matrix_die_base;
 #define RAM_SIZE		DRAM_SIZE
 #endif /* CONFIG_K1MATRIX_BBL */
 #ifdef CONFIG_K1MATRIX_TB
+#ifdef CONFIG_K1MATRIX_TB_SRAM
+#define ROM_BASE		SRAM_BASE
+#define ROM_SIZE		SRAM_SIZE
+#define RAM_BASE		SRAM_BASE
+#define RAM_SIZE		SRAM_SIZE
+#endif
+#ifdef CONFIG_K1MATRIX_TB_DDR
 #define ROM_BASE		DDR_BASE
 #define ROM_SIZE		DRAM_SIZE
 #define RAM_BASE		DDR_BASE
 #define RAM_SIZE		DRAM_SIZE
+#endif
 #endif /* CONFIG_K1MATRIX_TB */
 
 #define ROMEND			(ROM_BASE + ROM_SIZE)

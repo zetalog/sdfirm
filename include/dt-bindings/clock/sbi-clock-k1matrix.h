@@ -9,6 +9,7 @@
 
 #include <dt-bindings/clock/sbi-clock.h>
 
+#define CONFIG_
 #define SYS_CLK_FREQ		50000000
 #define CFG_CLK_FREQ		30000000
 #define DDR_CLK_FREQ		200000000
