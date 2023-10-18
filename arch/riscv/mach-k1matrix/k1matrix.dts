@@ -203,8 +203,8 @@
 		compatible = "simple-bus";
 		ranges;
 
-		uart0@10010000 {
-			interrupts = <16>;
+		uart0@8000 {
+			interrupts = <20>;
 			interrupt-parent = <&plic>;
 			clock-frequency = <APB_CLK_FREQ>;
 			reg = <DT_REGHI(UART0_BASE) DT_REGLO(UART0_BASE)
@@ -221,8 +221,8 @@
 #endif
 		};
 
-		plic: interrupt-controller@e0000000 {
-			reg = <0x00 0xe0000000 0x00 0x2000000>;
+		plic: interrupt-controller@10000000 {
+			reg = <0x00 0x10000000 0x00 0x2000000>;
 			//reg = <DT_REGHI(PLIC_REG_BASE) DT_REGLO(PLIC_REG_BASE)
 			//        0x0 0x08000000
 			// >;
@@ -243,7 +243,7 @@
 #endif
 			>;
 			interrupt-controller;
-			riscv,ndev = <160>;
+			riscv,ndev = <39>;
 			riscv,max-priority = <7>;
 			compatible = "riscv,plic0";
 			#interrupt-cells = <0x1>;
