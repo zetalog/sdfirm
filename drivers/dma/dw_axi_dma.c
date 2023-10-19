@@ -97,6 +97,7 @@ static uint64_t base_addr = 0;
 #define CH2_INTSIGNAL_ENABLEREG_BLK2_OFFSET 0x290
 #define CH2_INTCLEARREG_BLK2_OFFSET 0x298
 
+#define sbi_printf printf
 static __inline void writel(uint32_t v, caddr_t a)
 {
 	sbi_printf("wr32 addr:0x%lx, val:%lx\n", a, v);
@@ -290,8 +291,9 @@ static void dma_test(void)
 	uint64_t dst_base_addr, src_addr, dst_addr;
 
 	sbi_printf("1111111111111\n");
-	dma_master_init();
+	// dma_master_init();
 	sbi_printf("222222222222\n");
+	ch2_done = 0;
 
 	memset(src_buf, 0xa5, BUF_LEN);
 	memset(dst_buf, 0x00, BUF_LEN);
