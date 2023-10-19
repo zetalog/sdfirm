@@ -45,7 +45,7 @@
 #include <target/cmdline.h>
 #include <target/panic.h>
 
-#define BUF_LEN 1024
+#define BUF_LEN 32
 static uint8_t src_buf[BUF_LEN];
 static uint8_t dst_buf[BUF_LEN];
 volatile static int ch2_done = 0;
@@ -98,13 +98,15 @@ static uint64_t base_addr = 0;
 #define CH2_INTCLEARREG_BLK2_OFFSET 0x298
 
 #define sbi_printf printf
+
+volatile int g_wr_cnt;
+
 static __inline void writel(uint32_t v, caddr_t a)
 {
 	sbi_printf("wr32 addr:0x%lx, val:%lx\n", a, v);
 	asm volatile("sw %0, 0(%1)" : : "r" (v), "r" (a));
 }
 
-volatile int g_wr_cnt;
 static __inline void writeq(uint64_t v, caddr_t a)
 {
 	sbi_printf("wr64(%d) addr:0x%lx val:0x%llx\n", g_wr_cnt++, a, v);
@@ -296,8 +298,23 @@ static void dma_test(void)
 	ch2_done = 0;
 
 	memset(src_buf, 0xa5, BUF_LEN);
-	memset(dst_buf, 0x00, BUF_LEN);
+	memset(dst_buf, 0x11, BUF_LEN);
 
+#if 1
+	printf('srcbuf:');
+	for(i = 0; i < BUF_LEN; i++) {
+		if (i % 10 == 0) printf("\n");
+		printf("0x%lx ", src_buf[i]);
+	}
+
+	printf('\ndstbuf:');
+	for(i = 0; i < BUF_LEN; i++) {
+		if (i % 10 == 0) printf("\n");
+		printf("0x%lx ", dst_buf[i]);
+	}
+	printf("\n");
+#endif
+#if 1
 	src_addr = src_buf;
 	dst_addr = dst_buf;
 
@@ -306,6 +323,8 @@ static void dma_test(void)
 	irqc_enable_irq(26);
 
 	dma_trans_ch(src_addr, dst_addr, BUF_LEN, 0x02);
+	// dma_trans_ch(0x0000000110001000, 0x0000000110001000+128, 128, 0x02);
+
 
 	// __raw_writel(0x202, base_addr + SYS_DMAC_BADDR + DMAC_COMMONREG_INTCLEARREG_BLK0_OFFSET);
 	// __raw_writel(0x3, base_addr + SYS_DMAC_BADDR+DMAC_CFGREG_BLK0_OFFSET); // [0]:dma_en [1]:int_en
@@ -318,8 +337,30 @@ static void dma_test(void)
 	//enable dma ch2
 	wr(base_addr + SYS_DMAC_BADDR + DMAC_CHENREG_BLK0_OFFSET,0x000000202);
 
-	while(!ch2_done) ;
+	while(!ch2_done) {
+		int ch_int_stat = __raw_readl(base_addr + SYS_DMAC_BADDR + CH2_INTSTATUS_BLK2_OFFSET);
+		// sbi_printf("!!!!!!!!!!(%lx)\n", ch_int_stat);
+		if (ch_int_stat == 0x02) {
+			printf("copy done");
+			break;
+		}
+	}
+#if 1
+	printf('srcbuf:');
+	for(i = 0; i < BUF_LEN; i++) {
+		if (i % 10 == 0) printf("\n");
+		printf("0x%lx ", src_buf[i]);
+	}
+
+	printf('\ndstbuf:');
+	for(i = 0; i < BUF_LEN; i++) {
+		if (i % 10 == 0) printf("\n");
+		printf("0x%lx ", dst_buf[i]);
+	}
+	printf("\n");
+#endif
 	sbi_printf("!!!!!!!!!!");
+#endif
 }
 
 void dw_dma_init(void)
