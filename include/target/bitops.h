@@ -160,6 +160,9 @@ extern __noreturn uint8_t ____ilog2_NaN(void);
 	____ilog2_NaN()			\
 )
 
+#define is_power_of_2(n)		\
+        (n != 0 && ((n & (n - 1)) == 0))
+
 #define bitrev3(bits)			\
 	 ((((bits) & 0x1) << 2) | (((bits)& 0x4) >> 2) | ((bits) & 0x2))
 uint8_t bitrev8(uint8_t byte);

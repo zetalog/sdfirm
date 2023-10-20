@@ -1,4 +1,10 @@
 /*
+ * Arm SCP/MCP Software
+ * Copyright (c) 2017-2022, Arm Limited and Contributors. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+/*
  * ZETALOG's Personal COPYRIGHT
  *
  * Copyright (c) 2023
@@ -35,72 +41,27 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)mmu.c: K1Matrix N100 networking on chip implementation
- * $Id: mmu.c,v 1.1 2023-09-06 17:39:00 zhenglv Exp $
+ * @(#)cmn600.c: ARM CoreLink CMN-600 coherent mesh network implementation
+ * $Id: cmn600.c,v 1.1 2023-09-06 15:21:00 zhenglv Exp $
  */
 
-#include <target/arch.h>
 #include <target/noc.h>
+#include <target/panic.h>
 
-cmn_nid_t cmn_snf_table[] = {
-	32,
-};
-int cmn_snf_count = ARRAY_SIZE(cmn_snf_table);
+#define CMN_MODNAME	"n100"
 
-struct cmn600_memregion cmn_mmap_table[] = {
-	{
-		.base = SYS_IO_BASE,
-		.size = SZ_2G,
-		.type = CMN600_MEMORY_REGION_TYPE_IO,
-		.node_id = 0
-	},
-	{
-		.base = PCIE0_SLV_DEV_BASE,
-		.size = SZ_128M,
-		.type = CMN600_MEMORY_REGION_TYPE_IO,
-		.node_id = 36
-	},
-	{
-		.base = PCIE1_SLV_DEV_BASE,
-		.size = SZ_128M,
-		.type = CMN600_MEMORY_REGION_TYPE_IO,
-		.node_id = 72
-	},
-	{
-		.base = PCIE0_SLV_MEM_BASE,
-		.size = SZ_128M,
-		.type = CMN600_MEMORY_REGION_TYPE_IO,
-		.node_id = 36
-	},
-	{
-		.base = PCIE1_SLV_MEM_BASE,
-		.size = SZ_128M,
-		.type = CMN600_MEMORY_REGION_TYPE_IO,
-		.node_id = 72
-	},
-	{
-		.base = SRAM0_BASE,
-		.size = SZ_128M,
-		.type = CMN600_MEMORY_REGION_TYPE_IO,
-		.node_id = 0
-	},
-	{
-		.base = GMAC_BASE,
-		.size = SZ_4G,
-		.type = CMN600_MEMORY_REGION_TYPE_IO,
-		.node_id = 0
-	},
-	{
-		.base = DDR_BASE,
-		.size = SZ_4G,
-		.type = CMN600_MEMORY_REGION_TYPE_SYSCACHE,
-		.node_id = 32
-	}
-};
-int cmn_mmap_count = ARRAY_SIZE(cmn_mmap_table);
-
-void k1matrix_n100_init(void)
+uint64_t cmn_cml_base_offset(void)
 {
-	cmn600_initialized = false;
-	cmn600_init();
+	if (cmn600_hw_chip_id() != 0)
+		return cmn600_hw_chip_addr_space() * cmn600_hw_chip_id();
+	else
+		return 0;
+}
+
+static void cmn_cml_capabilities(void)
+{
+}
+
+void cmn600_cml_init(void)
+{
 }
