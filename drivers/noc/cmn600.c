@@ -50,6 +50,12 @@
 
 #define CMN_MODNAME	"n100"
 
+#define CMN_HNF_MAPPING_RANGE_BASED	0
+#define CMN_HNF_MAPPING_HASHED_3SN	1
+#define CMN_HNF_MAPPING_HASHED_6SN	2
+#define CMN_HNF_MAPPING_DIRECT		3
+#define CMN_HNF_MAPPING_STRIPED		(~CMN_HNF_MAPPING_RANGE_BASED)
+
 #ifdef CONFIG_CONSOLE_VERBOSE
 static const char * const cmn_type2name[] = {
 	[CMN_INVAL] = "<Invalid>",
@@ -233,6 +239,55 @@ static void cmn_hnf_cal_config_scg(caddr_t hnf, cmn_lid_t lid)
 }
 #endif
 
+uint8_t cmn_hnf_mapping(void)
+{
+	if (cmn_snf_count == 3)
+		return CMN_HNF_MAPPING_HASHED_3SN;
+	else if (cmn_snf_count == 6)
+		return CMN_HNF_MAPPING_HASHED_6SN;
+	else if (is_power_of_2(cmn_snf_count))
+		return CMN_HNF_MAPPING_DIRECT;
+	else
+		return CMN_HNF_MAPPING_RANGE_BASED;
+}
+
+static void cmn_configure_hnf_sam(caddr_t hnf)
+{
+	switch (cmn_hnf_mapping()) {
+	case CMN_HNF_MAPPING_DIRECT:
+		/* TODO: support cmn_snf_count using hnf tgt ids */
+		BUG_ON(cmn_snf_count != 1);
+		__raw_writeq(CMN_hn_cfg_sn_nodeid(0, cmn_snf_table[0]),
+			     CMN_hnf_sam_control(hnf));
+		break;
+
+	case CMN_HNF_MAPPING_HASHED_3SN:
+		/* TODO: top address bit 0/1 calculation */
+		__raw_writeq(hn_cfg_three_sn_en |
+			     CMN_hn_cfg_sn_nodeid(0, cmn_snf_table[0]) |
+			     CMN_hn_cfg_sn_nodeid(1, cmn_snf_table[1]) |
+			     CMN_hn_cfg_sn_nodeid(2, cmn_snf_table[2]),
+			     CMN_hnf_sam_control(hnf));
+		break;
+
+	case CMN_HNF_MAPPING_HASHED_6SN:
+		/* TODO: top address bit 0/1/2 calculation */
+		__raw_writeq(hn_cfg_six_sn_en |
+			     CMN_hn_cfg_sn_nodeid(0, cmn_snf_table[0]) |
+			     CMN_hn_cfg_sn_nodeid(1, cmn_snf_table[1]) |
+			     CMN_hn_cfg_sn_nodeid(2, cmn_snf_table[2]),
+			     CMN_hnf_sam_control(hnf));
+		__raw_writeq(CMN_hn_cfg_sn_nodeid(0, cmn_snf_table[4]) |
+			     CMN_hn_cfg_sn_nodeid(1, cmn_snf_table[5]) |
+			     CMN_hn_cfg_sn_nodeid(2, cmn_snf_table[6]),
+			     CMN_hnf_sam_6sn_nodeid(hnf));
+		break;
+
+	default: /* CMN_HNF_MAPPING_RANGE_BASED */
+		break;
+	}
+}
+
 static void cmn600_process_hnf(caddr_t hnf)
 {
 	cmn_lid_t lid;
@@ -244,20 +299,12 @@ static void cmn600_process_hnf(caddr_t hnf)
 	lid = cmn_logical_id(hnf);
 
 	cmn_hnf_cal_process(hnf);
-
-	BUG_ON(lid >= cmn_snf_count);
-
 	cmn_hnf_cal_config_scg(hnf, lid);
 
 	/* Set target node */
-	__raw_writeq(cmn_snf_table[lid], CMN_hnf_sam_control(hnf));
+	cmn_configure_hnf_sam(hnf);
 
-#ifdef CONFIG_CMN600_CML
-	if (cmn600_hw_chip_id() != 0)
-		base = cmn600_hw_chip_addr_space() * cmn600_hw_chip_id();
-	else
-#endif
-		base = 0;
+	base = cmn_cml_base_offset();
 
 	for (region_index = 0; region_index < cmn_mmap_count; region_index++) {
 		region = &cmn_mmap_table[region_index];
@@ -560,8 +607,7 @@ static void cmn600_setup_sam(caddr_t rnsam)
 			else if (region->type == CMN600_MEMORY_REGION_TYPE_SYSCACHE)
 				base = region->base;
 			else
-				base = cmn600_hw_chip_addr_space() * cmn600_hw_chip_id() +
-				       region->base;
+				base = cmn_cml_base_offset() + region->base;
 		} else
 #endif
 			base = region->base;
@@ -651,12 +697,12 @@ static void cmn600_setup_sam(caddr_t rnsam)
 
 	cmn_hnf_cal_apply_scg(rnsam);
 
-#ifdef CONFIG_CMN600_HNF_SAM_DIRECT
-	for (i = 0; i < (cmn_snf_count/2); i++) {
-		__raw_writeq(CMN_nodeid(i, cmn_snf_table[i*2]),
-			     CMN_rnsam_sys_cache_grp_sn_nodeid(rnsam, i));
+	for (i = 0; i < cmn_snf_count; i++) {
+		__raw_writeq_mask(CMN_nodeid(i, cmn_snf_table[i]),
+				  CMN_nodeid(i, CMN_nodeid_MASK),
+			          CMN_rnsam_sys_cache_grp_sn_nodeid(rnsam, i));
 	}
-#endif
+
 	__raw_writeq(CMN_sam_nstall_req(CMN_sam_unstall_req),
 		     CMN_rnsam_status(rnsam));
 }

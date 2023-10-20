@@ -53,38 +53,12 @@ if CMN600
 config ARCH_HAS_CMN600_CML
 	bool
 
-config ARCH_IS_CMN600_HNF_SAM_RANGE
-	bool
-
-config ARCH_IS_CMN600_HNF_SAM_HASHED
-	bool
-
-config ARCH_IS_CMN600_HNF_SAM_DIRECT
-	bool
-
 config CMN600_CML
 	bool "Enable Coherent Multichip Link (CML) support"
 	depends ARCH_HAS_CMN600_CML
 
 config CMN600_HNF_CAL
 	bool "Enable Component Aggregation Layer (CAL) mode on HN-F support"
-
-choice
-	prompt "HN-F SAM mapping policy"
-
-config CMN600_HNF_SAM_RANGE
-	bool "Range-based"
-	depends ARCH_IS_CMN600_HNF_SAM_RANGE
-
-config CMN600_HNF_SAM_HASHED
-	bool "Hashed"
-	depends ARCH_IS_CMN600_HNF_SAM_HASHED
-
-config CMN600_HNF_SAM_DIRECT
-	bool "Direct mapping"
-	depends ARCH_IS_CMN600_HNF_SAM_DIRECT
-
-endchoice
 
 endif
 
