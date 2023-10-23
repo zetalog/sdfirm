@@ -99,6 +99,8 @@ struct cmn600_memregion cmn_mmap_table[] = {
 };
 int cmn_mmap_count = ARRAY_SIZE(cmn_mmap_table);
 
+int cmn_sa_count = 0;
+
 void k1matrix_n100_init(void)
 {
 	cmn600_initialized = false;

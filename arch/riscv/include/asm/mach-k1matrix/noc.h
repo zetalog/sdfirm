@@ -64,6 +64,7 @@ extern int cmn_snf_count;
 extern cmn_nid_t cmn_snf_table[];
 extern int cmn_mmap_count;
 extern struct cmn600_memregion cmn_mmap_table[];
+extern int cmn_sa_count;
 
 void k1matrix_n100_init(void);
 void k1matrix_n100_smp_init(void);
