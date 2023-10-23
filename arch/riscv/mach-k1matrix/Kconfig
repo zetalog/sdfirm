@@ -52,6 +52,7 @@ config K1MATRIX_TB
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select SYS_EXIT_S
+	select XIP
 
 endchoice
 
@@ -87,7 +88,7 @@ config K1MATRIX_FPGA
 endchoice
 
 config K1MATRIX_FPGA_TDM
-	bool "FPGA time-division multiplexing (TDM) support"
+	bool "FPGA time-division multiplexing (TDM) partition support"
 	depends K1MATRIX_FPGA
 	default y
 
@@ -97,11 +98,17 @@ choice
 	prompt "Testbench residency"
 	default K1MATRIX_TB_DDR
 
+config K1MATRIX_TB_ROM
+	bool "ROM"
+	select LOAD_DATA
+
 config K1MATRIX_TB_SRAM
 	bool "SRAM"
+	select ARCH_HAS_BOOT_LOAD
 
 config K1MATRIX_TB_DDR
 	bool "DDR"
+	select ARCH_HAS_BOOT_LOAD
 
 endchoice
 
