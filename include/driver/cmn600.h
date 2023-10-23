@@ -860,6 +860,8 @@ extern caddr_t cmn600_bases[];
 extern cmn_nid_t cmn_cxra_id;
 extern cmn_nid_t cmn_cxla_id;
 extern cmn_nid_t cmn_cxha_id;
+extern cmn_id_t cmn_rn_sam_int_count;
+extern cmn_id_t cmn_rn_sam_ext_count;
 extern bool cmn600_initialized;
 
 void cmn600_init(void);
