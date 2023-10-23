@@ -50,16 +50,35 @@
 
 #define CMN_MODNAME	"n100"
 
+uint8_t ccix_mmap_count;
+struct cmn600_ccix_ha_mmap ccix_mmap[CMN_MAX_HA_MMAP_COUNT];
+
 uint64_t cmn_cml_base_offset(void)
 {
 	if (cmn600_hw_chip_id() != 0)
-		return cmn600_hw_chip_addr_space() * cmn600_hw_chip_id();
+		return cmn600_hw_chip_base() * cmn600_hw_chip_id();
 	else
 		return 0;
 }
 
 static void cmn_cml_capabilities(void)
 {
+}
+
+void cmn600_cml_detect_mmap(void)
+{
+	unsigned int region_index;
+	struct cmn600_memregion *region;
+
+	for (region_index = 0; region_index < cmn_mmap_count; region_index++) {
+		region = &cmn_mmap_table[region_index];
+
+		if (region->type == CMN600_REGION_TYPE_CCIX) {
+			ccix_mmap[ccix_mmap_count].base = region->base;
+			ccix_mmap[ccix_mmap_count].size = region->size;
+			ccix_mmap_count++;
+		}
+	}
 }
 
 void cmn600_cml_init(void)
