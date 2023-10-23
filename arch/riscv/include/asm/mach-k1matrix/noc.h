@@ -52,6 +52,13 @@
 
 #include <driver/cmn600.h>
 
+#ifdef CONFIG_K1MATRIX_D2D
+#define cmn600_hw_chip_id()	sysreg_die_id()
+#define cmn600_hw_chip_base()	DIE1_BASE
+#else
+#define cmn600_hw_chip_id()	0
+#define cmn600_hw_chip_base()	0
+#endif
 #ifdef CONFIG_K1MATRIX_N100
 extern int cmn_snf_count;
 extern cmn_nid_t cmn_snf_table[];
