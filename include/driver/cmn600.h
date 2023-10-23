@@ -433,7 +433,7 @@ typedef uint8_t cmn_did_t;
 #define CMN_child_register_offset(value)	_GET_FV_ULL(CMN_child_register_offset, value)
 
 /* CMN_hnf_sam_control */
-#define CMN_hn_cfg_sn_nodeid_OFFSET(n)		REG64_12BIT_OFFSET(n)
+#define CMN_hn_cfg_sn_nodeid_OFFSET(n)		CMN_12BIT_OFFSET(n)
 #define CMN_hn_cfg_sn_nodeid_MASK		REG_12BIT_MASK
 #define CMN_hn_cfg_sn_nodeid(n, value)		(_SET_FV_ULLn(n, CMN_hn_cfg_sn_nodeid, value) & REG_11BIT_MASK)
 #define CMN_hn_cfg_three_sn_en			_BV_ULL(36)

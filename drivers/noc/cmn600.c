@@ -263,7 +263,7 @@ static void cmn_configure_hnf_sam(caddr_t hnf)
 
 	case CMN_HNF_MAPPING_HASHED_3SN:
 		/* TODO: top address bit 0/1 calculation */
-		__raw_writeq(hn_cfg_three_sn_en |
+		__raw_writeq(CMN_hn_cfg_three_sn_en |
 			     CMN_hn_cfg_sn_nodeid(0, cmn_snf_table[0]) |
 			     CMN_hn_cfg_sn_nodeid(1, cmn_snf_table[1]) |
 			     CMN_hn_cfg_sn_nodeid(2, cmn_snf_table[2]),
@@ -272,7 +272,7 @@ static void cmn_configure_hnf_sam(caddr_t hnf)
 
 	case CMN_HNF_MAPPING_HASHED_6SN:
 		/* TODO: top address bit 0/1/2 calculation */
-		__raw_writeq(hn_cfg_six_sn_en |
+		__raw_writeq(CMN_hn_cfg_six_sn_en |
 			     CMN_hn_cfg_sn_nodeid(0, cmn_snf_table[0]) |
 			     CMN_hn_cfg_sn_nodeid(1, cmn_snf_table[1]) |
 			     CMN_hn_cfg_sn_nodeid(2, cmn_snf_table[2]),
