@@ -553,29 +553,6 @@ void cmn600_configure(void)
 	con_dbg(CMN_MODNAME ": Total nodes: %d\n", cmn_nr_nodes);
 }
 
-#ifdef CONFIG_CMN600_CML
-static void cmn600_setup_cml(void)
-{
-	int i;
-
-	/* Capture CCIX Host Topology */
-	for (i = 0; i < cmn_mmap_count; i++) {
-		if (cmn_mmap_table[i].type == CMN600_REGION_TYPE_CCIX) {
-			ccix_mmap_idx = cmn_ccix_host_mmap_count;
-			BUG_ON(ccix_mmap_idx >= MAX_HA_MMAP_ENTRIES);
-
-			cmn_ccix_host_mmap[cmn_ccix_mmap_idx].base =
-				cmn_mmap_table[i].base;
-			cmn_ccix_host_mmap[ccix_mmap_idx].size =
-				cmn_mmap_table[i].size;
-			cmn_ccix_host_mmap_count++;
-		}
-	}
-}
-#else
-#define cmn600_setup_cml()	do { } while (0)
-#endif
-
 #define CMN_MAX_HASH_MEM_REGIONS		4
 #define CMN_MAX_NON_HASH_MEM_REGIONS_PER_GROUP	4
 #define CMN_MAX_NON_HASH_MEM_REGIONS(n)		\
@@ -600,17 +577,12 @@ static void cmn600_setup_sam(caddr_t rnsam)
 
 	for (region_index = 0; region_index < cmn_mmap_count; region_index++) {
 		region = &cmn_mmap_table[region_index];
-#ifdef CONFIG_CMN600_CML
-		if (cmn600_hw_chip_id() != 0) {
-			if (region->type == CMN_REGION_TYPE_CCIX)
-				base = 0;
-			else if (region->type == CMN600_MEMORY_REGION_TYPE_SYSCACHE)
-				base = region->base;
-			else
-				base = cmn_cml_base_offset() + region->base;
-		} else
-#endif
+		if (region->type == CMN600_REGION_TYPE_CCIX)
+			base = 0;
+		else if (region->type == CMN600_MEMORY_REGION_TYPE_SYSCACHE)
 			base = region->base;
+		else
+			base = cmn_cml_base_offset() + region->base;
 
 		con_dbg(CMN_MODNAME ": %s: RN SAM %d: ID: %d, [%016llx - %016llx]\n",
 			cmn_mem_region_name(region->type), region_index,
@@ -726,8 +698,8 @@ void cmn600_init(void)
 	/* Setup internal RN-SAM nodes */
 	for (rnsam = 0; rnsam < cmn_rn_sam_int_count; rnsam++)
 		cmn600_setup_sam(CMN_RN_SAM_INT_BASE(cmn_rn_sam_int_ids[rnsam]));
-	/* Setup CCIX host */
-	cmn600_setup_cml();
 
+	/* Capture CCIX host topology */
+	cmn600_cml_detect_mmap();
 	cmn600_initialized = true;
 }

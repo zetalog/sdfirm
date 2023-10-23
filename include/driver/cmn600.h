@@ -123,6 +123,11 @@
 #else
 #define CMN_MAX_RN_SAM_EXT_COUNT	32
 #endif
+#ifdef CMN_HA_MMAP_COUNT
+#define CMN_MAX_HA_MMAP_COUNT		CMN_HA_MMAP_COUNT
+#else
+#define CMN_MAX_HA_MMAP_COUNT		4
+#endif
 
 /* NID and RNP (root node pointer) encodings */
 #define CMN_NID_DeviceID_OFFFSET	0
@@ -845,6 +850,12 @@ struct cmn600_memregion {
     uint16_t node_id;
 };
 
+struct cmn600_ccix_ha_mmap {
+	uint8_t ha_id;
+	caddr_t base;
+	uint64_t size;
+};
+
 extern caddr_t cmn600_bases[];
 extern cmn_nid_t cmn_cxra_id;
 extern cmn_nid_t cmn_cxla_id;
@@ -853,8 +864,10 @@ extern bool cmn600_initialized;
 
 void cmn600_init(void);
 #ifdef CONFIG_CMN600_CML
+void cmn600_cml_detect_mmap(void);
 uint64_t cmn_cml_base_offset(void);
 #else
+#define cmn600_cml_detect_mmap()	do { } while (0)
 #define cmn_cml_base_offset()		0
 #endif
 
