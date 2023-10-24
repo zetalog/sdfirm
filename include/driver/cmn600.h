@@ -843,6 +843,35 @@ typedef uint8_t cmn_did_t;
 #define CMN600_REGION_TYPE_CCIX			3
 #define CMN600_REGION_TYPE_SYSCACHE_NONHASH	4
 
+#ifdef CONFIG_CMN600_DEBUG
+void cmn_writeq(uint64_t v, caddr_t a);
+#define cmn_setq(v,a)					\
+	do {						\
+		uint64_t __v = __raw_readq(a);		\
+		__v |= (v);				\
+		cmn_writeq(__v, (a));			\
+	} while (0)
+#define cmn_clearq(v,a)					\
+	do {						\
+		uint64_t __v = __raw_readq(a);		\
+		__v &= ~(v);				\
+		cmn_writeq(__v, (a));			\
+	} while (0)
+#define cmn_writeq_mask(v,m,a)				\
+	do {						\
+		uint64_t __v = __raw_readq(a);		\
+		__v &= ~(m);				\
+		__v |= (v);				\
+		cmn_writeq(__v, (a));			\
+	} while (0)
+#else
+#define cmn_debug_init()		do { } while (0)
+#define cmn_writeq(v,a)			__raw_writeq(v,a)
+#define cmn_setq(v,a)			__raw_setq(v,a)
+#define cmn_clearq(v,a)			__raw_clearq(v,a)
+#define cmn_writeq_mask(v,m,a)		__raw_writeq_mask(v,m,a)
+#endif
+
 struct cmn600_memregion {
     caddr_t base;
     uint64_t size;

@@ -151,6 +151,19 @@ uint8_t cmn_hnf_scgs[CMN_MAX_HNF_COUNT];
 #define CMN600_HNF_CACHE_GROUP_ENTRIES_PER_GROUP	4
 #define CMN600_HNF_CACHE_GROUP_ENTRY_BITS_WIDTH		12
 
+#ifdef CONFIG_CMN600_DEBUG
+static void cmn_debug_init(void)
+{
+	console_init();
+}
+
+void cmn_writeq(uint64_t v, caddr_t a)
+{
+	__raw_writeq(v, a);
+	con_dbg(CMN_MODNAME ": %016llx=%016llx\n", (uint64_t)a, v);
+}
+#endif
+
 #if 0
 static int cmn_hnf_cache_group_count(void)
 {
@@ -687,6 +700,7 @@ void cmn600_init(void)
 	if (cmn600_initialized)
 		return;
 
+	cmn_debug_init();
 	root_node_pointer = CMN_ROOT_NODE_POINTER(CMN_HND_NID);
 	cmn_bases[CMN_CFGM_ID] = CMN_PERIPH_BASE + root_node_pointer;
 	cmn_nr_nodes = 1;
