@@ -317,7 +317,7 @@ static void cmn600_process_hnf(caddr_t hnf)
 	/* Set target node */
 	cmn_configure_hnf_sam(hnf);
 
-	base = cmn_cml_base_offset();
+	base = cmn600_cml_base();
 
 	for (region_index = 0; region_index < cmn_mmap_count; region_index++) {
 		region = &cmn_mmap_table[region_index];
@@ -596,7 +596,7 @@ static void cmn600_setup_sam(caddr_t rnsam)
 		else if (region->type == CMN600_MEMORY_REGION_TYPE_SYSCACHE)
 			base = region->base;
 		else
-			base = cmn_cml_base_offset() + region->base;
+			base = cmn600_cml_base() + region->base;
 
 		con_dbg(CMN_MODNAME ": %s: RN SAM %d: ID: %d, [%016llx - %016llx]\n",
 			cmn_mem_region_name(region->type), region_index,

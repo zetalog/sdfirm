@@ -55,7 +55,7 @@ cmn_id_t ccix_sa_count;
 cmn_id_t ccix_mmap_count;
 struct cmn600_ccix_ha_mmap ccix_mmap[CMN_MAX_HA_MMAP_COUNT];
 
-uint64_t cmn_cml_base_offset(void)
+uint64_t cmn600_cml_base(void)
 {
 	if (cmn600_hw_chip_id() != 0)
 		return cmn600_hw_chip_base() * cmn600_hw_chip_id();
@@ -70,7 +70,7 @@ static void cmn_cml_get_caps(void)
 int cmn600_cml_get_config(void)
 {
 	if (cmn_rn_sam_int_count == 0)
-		return -EINVAL;
+		return -ENODEV;
 
 	ccix_ra_count = cmn_rn_sam_int_count + cmn_rn_sam_ext_count;
 	ccix_sa_count = cmn_sa_count;
@@ -114,4 +114,10 @@ void cmn600_cml_detect_mmap(void)
 
 void cmn600_cml_init(void)
 {
+	int ret;
+
+	ret = cmn600_cml_get_config();
+	if (ret < 0)
+		return;
+	cmn600_cml_set_config();
 }
