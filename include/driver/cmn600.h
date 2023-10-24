@@ -179,7 +179,14 @@
 				CMN_Y(nid),	\
 				CMN_PID(nid))
 
+#if NR_CMN_NODES < 256
 typedef uint8_t cmn_id_t;
+#elif NR_CMN_NODES < 65536
+typedef uint16_t cmn_id_t;
+#else
+typedef uint32_t cmn_id_t;
+#endif
+
 #define NR_CMN_NODES			CMN_MAX_NODES
 #define CMN_CFGM_ID			0
 #define CMN_INVAL_ID			CMN_MAX_NODES
@@ -894,11 +901,16 @@ extern cmn_id_t cmn_rn_sam_ext_count;
 extern bool cmn600_initialized;
 
 void cmn600_init(void);
+void cmn600_setup_rnsam(cmn_nid_t nid);
 #ifdef CONFIG_CMN600_CML
 void cmn600_cml_detect_mmap(void);
+int cmn600_cml_get_config(void);
+void cmn600_cml_set_config(void);
 uint64_t cmn_cml_base_offset(void);
 #else
 #define cmn600_cml_detect_mmap()	do { } while (0)
+#define cmn600_cml_get_config()		(-EINVAL)
+#define cmn600_cml_set_config()		do { } while (0)
 #define cmn_cml_base_offset()		0
 #endif
 
