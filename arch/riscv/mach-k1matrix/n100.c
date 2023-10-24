@@ -45,7 +45,7 @@
 cmn_nid_t cmn_snf_table[] = {
 	32,
 };
-int cmn_snf_count = ARRAY_SIZE(cmn_snf_table);
+cmn_id_t cmn_snf_count = ARRAY_SIZE(cmn_snf_table);
 
 struct cmn600_memregion cmn_mmap_table[] = {
 	{
@@ -97,9 +97,7 @@ struct cmn600_memregion cmn_mmap_table[] = {
 		.node_id = 32
 	}
 };
-int cmn_mmap_count = ARRAY_SIZE(cmn_mmap_table);
-
-int cmn_sa_count = 0;
+cmn_id_t cmn_mmap_count = ARRAY_SIZE(cmn_mmap_table);
 
 void k1matrix_n100_init(void)
 {

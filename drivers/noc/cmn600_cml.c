@@ -51,8 +51,8 @@
 #define CMN_MODNAME	"n100"
 
 cmn_id_t ccix_ra_count;
-uint8_t ccix_sa_count;
-uint8_t ccix_mmap_count;
+cmn_id_t ccix_sa_count;
+cmn_id_t ccix_mmap_count;
 struct cmn600_ccix_ha_mmap ccix_mmap[CMN_MAX_HA_MMAP_COUNT];
 
 uint64_t cmn_cml_base_offset(void)
@@ -77,6 +77,23 @@ int cmn600_cml_get_config(void)
 	cmn_cml_get_caps();
 
 	return 0;
+}
+
+static void cmn_cml_setup(void)
+{
+}
+
+void cmn600_cml_set_config(void)
+{
+	cmn_id_t region_index;
+	struct cmn600_memregion *region;
+
+	cmn_cml_setup();
+	for (region_index = 0; region_index < cmn_mmap_count; region_index++) {
+		region = &cmn_mmap_table[region_index];
+		if (region->type == CMN600_REGION_TYPE_CCIX)
+			cmn600_setup_rnsam(region->node_id);
+	}
 }
 
 void cmn600_cml_detect_mmap(void)

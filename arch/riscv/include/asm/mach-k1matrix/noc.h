@@ -60,11 +60,11 @@
 #define cmn600_hw_chip_base()	0
 #endif
 #ifdef CONFIG_K1MATRIX_N100
-extern int cmn_snf_count;
+extern cmn_id_t cmn_snf_count;
 extern cmn_nid_t cmn_snf_table[];
-extern int cmn_mmap_count;
+extern cmn_id_t cmn_mmap_count;
 extern struct cmn600_memregion cmn_mmap_table[];
-extern int cmn_sa_count;
+#define cmn_sa_count		0
 
 void k1matrix_n100_init(void);
 void k1matrix_n100_smp_init(void);

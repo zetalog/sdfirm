@@ -304,10 +304,10 @@ static void cmn_configure_hnf_sam(caddr_t hnf)
 static void cmn600_process_hnf(caddr_t hnf)
 {
 	cmn_lid_t lid;
-	unsigned int region_sub_count = 0;
-	unsigned int region_index;
+	cmn_id_t region_index;
+	cmn_id_t region_sub_count = 0;
 	struct cmn600_memregion *region;
-	uint64_t base;
+	caddr_t base;
 
 	lid = cmn_logical_id(hnf);
 
@@ -334,8 +334,8 @@ static void cmn600_process_hnf(caddr_t hnf)
 		con_dbg(CMN_MODNAME ": %s: HN-F SAM %d: ID: %d, [%016llx - %016llx]\n",
 			cmn_mem_region_name(region->type),
 			region_sub_count, region->node_id,
-			region->base + base,
-			region->base + base + region->size);
+			(uint64_t)(region->base + base),
+			(uint64_t)(region->base + base + region->size));
 
 		region_sub_count++;
 	}
@@ -442,8 +442,8 @@ static void cmn600_discovery_internal(caddr_t node)
 
 void cmn600_discovery(void)
 {
-	int xp_count, xp_index;
-	int node_count, node_index;
+	cmn_id_t xp_index, node_index;
+	cmn_id_t xp_count, node_count;
 	caddr_t xp, node;
 
 	BUG_ON(cmn_node_type(CMN_CFGM_BASE) != CMN_CFG);
@@ -496,14 +496,14 @@ void cmn600_discovery(void)
 		con_dbg(CMN_MODNAME ": CCIX CXHA node id %016lx\n", CMN_CXHA_BASE);
 }
 
-static void cmn600_configure_rn_sam_ext(caddr_t node, unsigned int xrnsam)
+static void cmn600_configure_rn_sam_ext(caddr_t node, cmn_id_t xrnsam)
 {
 	BUG_ON(xrnsam >= cmn_rn_sam_ext_count);
 	cmn_rn_sam_ext_ids[xrnsam] = cmn_nr_nodes;
 	cmn_bases[cmn_nr_nodes++] = node;
 }
 
-static void cmn600_configure_rn_sam_int(caddr_t node, unsigned int irnsam)
+static void cmn600_configure_rn_sam_int(caddr_t node, cmn_id_t irnsam)
 {
 	BUG_ON(irnsam >= cmn_rn_sam_int_count);
 	cmn_rn_sam_int_ids[irnsam] = cmn_nr_nodes;
@@ -512,10 +512,11 @@ static void cmn600_configure_rn_sam_int(caddr_t node, unsigned int irnsam)
 
 void cmn600_configure(void)
 {
-	unsigned int xrnsam;
-	unsigned int irnsam;
-	int xp_count, xp_index;
-	int node_count, node_index;
+	cmn_id_t xrnsam;
+	cmn_id_t irnsam;
+	cmn_id_t xp_index;
+	cmn_id_t node_index;
+	cmn_id_t xp_count, node_count;
 	caddr_t xp, node;
 
 	BUG_ON(cmn_node_type(CMN_CFGM_BASE) != CMN_CFG);
@@ -573,17 +574,17 @@ void cmn600_configure(void)
 
 static void cmn600_setup_sam(caddr_t rnsam)
 {
-	uint64_t base;
-	unsigned int region_index;
+	caddr_t base;
+	cmn_id_t region_index;
 	struct cmn600_memregion *region;
 	cmn_lid_t lid;
 	cmn_nid_t nid;
-	unsigned int region_io_count = 0;
-	unsigned int region_sys_count = 0;
+	cmn_id_t region_io_count = 0;
+	cmn_id_t region_sys_count = 0;
 	unsigned int region_type;
 	uint32_t memregion;
-	unsigned int tgt_nodes;
-	unsigned int i;
+	cmn_id_t tgt_nodes;
+	cmn_id_t snf;
 
 	tgt_nodes = cmn_max_tgt_nodes();
 	BUG_ON(tgt_nodes == 0);
@@ -599,7 +600,7 @@ static void cmn600_setup_sam(caddr_t rnsam)
 
 		con_dbg(CMN_MODNAME ": %s: RN SAM %d: ID: %d, [%016llx - %016llx]\n",
 			cmn_mem_region_name(region->type), region_index,
-			region->node_id, base, base + region->size);
+			region->node_id, (uint64_t)base, (uint64_t)(base + region->size));
 
 		switch (region->type) {
 		case CMN600_MEMORY_REGION_TYPE_IO:
@@ -682,20 +683,32 @@ static void cmn600_setup_sam(caddr_t rnsam)
 
 	cmn_hnf_cal_apply_scg(rnsam);
 
-	for (i = 0; i < cmn_snf_count; i++) {
-		__raw_writeq_mask(CMN_nodeid(i, cmn_snf_table[i]),
-				  CMN_nodeid(i, CMN_nodeid_MASK),
-			          CMN_rnsam_sys_cache_grp_sn_nodeid(rnsam, i));
+	for (snf = 0; snf < cmn_snf_count; snf++) {
+		__raw_writeq_mask(CMN_nodeid(snf, cmn_snf_table[snf]),
+				  CMN_nodeid(snf, CMN_nodeid_MASK),
+			          CMN_rnsam_sys_cache_grp_sn_nodeid(rnsam, snf));
 	}
 
 	__raw_writeq(CMN_sam_nstall_req(CMN_sam_unstall_req),
 		     CMN_rnsam_status(rnsam));
 }
 
+void cmn600_setup_rnsam(cmn_nid_t nid)
+{
+	cmn_id_t rnsam;
+	caddr_t base;
+
+	for (rnsam = 0; rnsam < cmn_rn_sam_ext_count; rnsam++) {
+		base = CMN_RN_SAM_EXT_BASE(cmn_rn_sam_ext_ids[rnsam]);
+		if (cmn_node_id(base) == nid)
+			cmn600_setup_sam(base);
+	}
+}
+
 void cmn600_init(void)
 {
 	caddr_t root_node_pointer;
-	unsigned int rnsam;
+	cmn_id_t rnsam;
 
 	if (cmn600_initialized)
 		return;
