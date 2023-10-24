@@ -906,12 +906,14 @@ void cmn600_setup_rnsam(cmn_nid_t nid);
 void cmn600_cml_detect_mmap(void);
 int cmn600_cml_get_config(void);
 void cmn600_cml_set_config(void);
-uint64_t cmn_cml_base_offset(void);
+uint64_t cmn600_cml_base(void);
+void cmn600_cml_init(void);
 #else
 #define cmn600_cml_detect_mmap()	do { } while (0)
-#define cmn600_cml_get_config()		(-EINVAL)
+#define cmn600_cml_get_config()		(-ENODEV)
 #define cmn600_cml_set_config()		do { } while (0)
-#define cmn_cml_base_offset()		0
+#define cmn600_cml_base()		0
+#define cmn600_cml_init()		do { } while (0)
 #endif
 
 #endif /* __CMN600_H_INCLUDE__ */
