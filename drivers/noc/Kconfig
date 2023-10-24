@@ -60,6 +60,10 @@ config CMN600_CML
 config CMN600_HNF_CAL
 	bool "Enable Component Aggregation Layer (CAL) mode on HN-F support"
 
+config CMN600_DEBUG
+	bool "Enable register debugging"
+	depends CONSOLE_DEBUG
+
 endif
 
 endmenu
