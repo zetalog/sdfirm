@@ -48,6 +48,7 @@
 #include <target/cmdline.h>
 #include <target/sbi.h>
 #include <target/noc.h>
+#include <target/pci.h>
 
 unsigned long k1matrix_die_base = DIE0_BASE;
 unsigned long k1matrix_die_hart = DIE0_HART;
@@ -84,6 +85,8 @@ void board_early_init(void)
 void board_late_init(void)
 {
 	k1matrix_n100_init();
+	pcie_ccix_linkup();
+	k1matrix_n100_d2d_init();
 
 	board_boot();
 }
