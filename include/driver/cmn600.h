@@ -662,6 +662,7 @@ typedef uint8_t cmn_did_t;
 #define CMN_la_linkid_ctl		_BV_ULL(2)
 
 /* CMN_cxg_ha_unit_info */
+#define CMN_ha_smp_mode					_BV_ULL(63)
 #define CMN_ha_snoop_compack_hazbuf_depth_OFFSET	54
 #define CMN_ha_snoop_compack_hazbuf_depth_MASK		REG_9BIT_MASK
 #define CMN_ha_snoop_compack_hazbuf_depth(value)	_GET_FV_ULL(CMN_ha_snoop_compack_hazbuf_depth, value)
@@ -707,6 +708,7 @@ typedef uint8_t cmn_did_t;
 #define CMN_ra_snoop_databuffer_depth_OFFSET		52
 #define CMN_ra_snoop_databuffer_depth_MASK		REG_9BIT_MASK
 #define CMN_ra_snoop_databuffer_depth(value)		_GET_FV_ULL(CMN_ra_snoop_databuffer_depth, value)
+#define CMN_ra_smp_mode					_BV_ULL(61)
 
 /* CMN_cxg_la_unit_info */
 #define CMN_la_db_present				_BV_ULL(0)
@@ -762,18 +764,30 @@ typedef uint8_t cmn_did_t;
 #define CMN_reg_ha_tgtid(value)				_SET_FV_ULL(CMN_reg_ha_tgtid, value)
 #define CMN_reg_valid					_BV_ULL(63)
 
-/* CMN_cxg_ha_rnf_raid_to_ldid
- * CMN_cxg_ra_rnf_ldid_to_raid
- */
-#define CMN_ldid_rnf_OFFSET(n)				REG64_8BIT_OFFSET(n)
-#define CMN_ldid_rnf_MASK				REG_8BIT_MASK
-#define CMN_ldid_rnf(n, value)				_SET_FV_ULLn(n, CMN_ldid_rnf, value)
-/* CMN_cxg_ha_rnf_raid_to_ldid_val
- * CMN_cxg_ra_rnf_ldid_to_raid_val
+/* CMN_cxg_ha_rnf_raid_to_ldid */
+#define CMN_ldid_OFFSET					0
+#define CMN_ldid_MASK					REG_6BIT_MASK
+#define CMN_ldid(value)					_SET_FV_ULL(CMN_ldid, value)
+#define CMN_ldid_rnf_OFFSET				7
+#define CMN_ldid_rnf_MASK				REG_1BIT_MASK
+#define CMN_ldid_rnf(value)				_SET_FV_ULL(CMN_ldid_rnf, value)
+#define CMN_rnf_raid_to_ldid(ldid, rnf)			\
+	(CMN_ldid(ldid) | CMN_ldid_rnf(rnf))
+/* CMN_cxg_ha_rnf_raid_to_ldid */
+#define CMN_raid_ldid_OFFSET(n)				REG64_8BIT_OFFSET(n)
+#define CMN_raid_ldid_MASK				REG_8BIT_MASK
+#define CMN_raid_ldid(n, value)				_SET_FV_ULLn(n, CMN_raid_ldid, value)
+/* CMN_cxg_ra_rnf_ldid_to_raid */
+#define CMN_ldid_raid_OFFSET(n)				REG64_8BIT_OFFSET(n)
+#define CMN_ldid_raid_MASK				REG_8BIT_MASK
+#define CMN_ldid_raid(n, value)				_SET_FV_ULLn(n, CMN_ldid_raid, value)
+/* CMN_cxg_ha_rnf_raid_to_ldid_val */
+#define CMN_raid_ldid_valid(n)				_BV_ULL(n)
+/* CMN_cxg_ra_rnf_ldid_to_raid_val
  * CMN_cxg_ra_rni_ldid_to_raid_val
  * CMN_cxg_ra_rnd_ldid_to_raid_val
  */
-#define CMN_ldid_rnf_valid(n)				_BV_ULL(n)
+#define CMN_ldid_raid_valid(n)				_BV_ULL(n)
 
 /* CMN_cxg_ha_agentid_to_linkid
  * CMN_cxg_ra_agentid_to_linkid
@@ -892,16 +906,26 @@ struct cmn600_ccix_ha_mmap {
 	uint64_t size;
 };
 
-extern caddr_t cmn600_bases[];
+extern caddr_t cmn_bases[NR_CMN_NODES];
 extern cmn_nid_t cmn_cxra_id;
 extern cmn_nid_t cmn_cxla_id;
 extern cmn_nid_t cmn_cxha_id;
+extern cmn_id_t cmn_rnf_count;
+extern cmn_id_t cmn_rnd_count;
+extern cmn_id_t cmn_rni_count;
 extern cmn_id_t cmn_rn_sam_int_count;
 extern cmn_id_t cmn_rn_sam_ext_count;
 extern bool cmn600_initialized;
 
+#ifdef CONFIG_CONSOLE_VERBOSE
+const char *cmn600_node_type_name(uint16_t node_type);
+const char *cmn600_mem_region_name(uint8_t type);
+const char *cmn600_revision_name(uint8_t revision);
+#endif
+
 void cmn600_init(void);
 void cmn600_setup_rnsam(cmn_nid_t nid);
+cmn_id_t cmn600_max_tgt_nodes(void);
 #ifdef CONFIG_CMN600_CML
 void cmn600_cml_detect_mmap(void);
 int cmn600_cml_get_config(void);

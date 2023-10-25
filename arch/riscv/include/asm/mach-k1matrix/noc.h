@@ -64,7 +64,13 @@ extern cmn_id_t cmn_snf_count;
 extern cmn_nid_t cmn_snf_table[];
 extern cmn_id_t cmn_mmap_count;
 extern struct cmn600_memregion cmn_mmap_table[];
-#define cmn_sa_count		0
+extern cmn_id_t cmn_sa_count;
+
+extern cmn_id_t cml_link_id;
+extern cmn_id_t cml_remote_rnf_count;
+extern cmn_id_t cml_remote_sa_count;
+extern cmn_id_t cml_remote_ha_count;
+extern cmn_id_t cml_pcie_bus_num;
 
 void k1matrix_n100_init(void);
 void k1matrix_n100_smp_init(void);

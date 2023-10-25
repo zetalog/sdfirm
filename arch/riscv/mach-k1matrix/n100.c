@@ -99,6 +99,14 @@ struct cmn600_memregion cmn_mmap_table[] = {
 };
 cmn_id_t cmn_mmap_count = ARRAY_SIZE(cmn_mmap_table);
 
+cmn_id_t cmn_sa_count = 0;
+cmn_id_t cml_link_id = 0;
+cmn_id_t cml_remote_rnf_count = 2;
+cmn_id_t cml_remote_sa_count = 0;
+cmn_id_t cml_remote_ha_count = 1;
+/* PCIe bus# */
+cmn_id_t cml_pcie_bus_num = 0;
+
 void k1matrix_n100_init(void)
 {
 	cmn600_initialized = false;
