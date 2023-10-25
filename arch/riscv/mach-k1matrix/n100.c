@@ -42,6 +42,10 @@
 #include <target/arch.h>
 #include <target/noc.h>
 
+void k1matrix_n100_d2d_init(void)
+{
+}
+
 void k1matrix_n100_init(void)
 {
 }
