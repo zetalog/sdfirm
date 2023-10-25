@@ -132,6 +132,7 @@ endif
 
 config K1MATRIX_D2D
 	bool "Enable die2die link support"
+	select K1MATRIX_PCIE
 
 config K1MATRIX_DDR_SIZE_CUSTOM
 	bool "Enable customized DRAM size"
@@ -177,6 +178,9 @@ config K1MATRIX_CPRINT
 menuconfig K1MATRIX_N100
 	bool "K1Matrix N100 on-chip networking support"
 	depends ARCH_HAS_NOC
+
+config K1MATRIX_PCIE
+	bool "K1Matrix PCIe subsystem support"
 
 menuconfig K1MATRIX_UART
 	bool "K1Mmatrix UART controller support"

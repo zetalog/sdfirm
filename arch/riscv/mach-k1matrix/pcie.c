@@ -39,12 +39,9 @@
  * $Id: pcie.c,v 1.1 2023-08-01 11:41:01 zhenglv Exp $
  */
 
-#include <stdint.h>
-#include <asm/io.h>
+#include <target/arch.h>
 #include <target/delay.h>
 #include <target/sbi.h>
-#include <asm/mach/reg.h>
-#include <asm/mach/sysreg.h>
 
 void pcie_linkup(void)
 {
@@ -72,7 +69,7 @@ void pcie_linkup(void)
 	timeout = 10000000;
 	while (__raw_readl(CCIX_APP_BASE + 0x104) != 3) {  //7
 		if (timeout-- <= 0) {
-			sbi_printf("wait linkup timeout\n");
+			printf("wait linkup timeout\n");
 			break;
 		}
 	}
@@ -108,7 +105,7 @@ void pcie_ccix_linkup(void)
 	timeout = 10000000;
 	while (__raw_readl(CCIX_APP_BASE + 0x104) != 3) {  //7
 		if (timeout-- <= 0) {
-			sbi_printf("wait linkup timeout\n");
+			printf("wait linkup timeout\n");
 			break;
 		}
 	}
@@ -126,7 +123,7 @@ void pcie_ccix_linkup(void)
 	timeout = 10000000;
 	while (__raw_readl(CCIX_DBI_BASE + 0x160) != 0) {  //11
 		if (timeout-- <= 0) {
-			sbi_printf("wait vc0 ready timeout\n");
+			printf("wait vc0 ready timeout\n");
 			break;
 		}
 	}
@@ -134,7 +131,7 @@ void pcie_ccix_linkup(void)
 	timeout = 10000000;
 	while (__raw_readl(CCIX_DBI_BASE + 0x16C) != 0) {  //12
 		if (timeout-- <= 0) {
-			sbi_printf("wait vc1 ready timeout\n");
+			printf("wait vc1 ready timeout\n");
 			break;
 		}
 	}

@@ -47,8 +47,10 @@
 #ifdef CONFIG_K1MATRIX_N100
 void k1matrix_n100_init(void);
 void k1matrix_n100_smp_init(void);
+void k1matrix_n100_d2d_init(void);
 #else
 #define k1matrix_n100_init()		do { } while (0)
+#define k1matrix_n100_d2d_init()	do { } while (0)
 #endif
 
 #endif /* __NOC_K1MATRIX_H_INCLUDE__ */
