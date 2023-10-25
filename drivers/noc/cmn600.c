@@ -78,7 +78,7 @@ static const char * const cmn_cml_type2name[] = {
 
 };
 
-const char *cmn_node_type_name(uint16_t node_type)
+const char *cmn600_node_type_name(uint16_t node_type)
 {
 	if (node_type <= CMN_RN_SAM)
 		return cmn_type2name[node_type];
@@ -98,7 +98,7 @@ static const char *const cmn_mmap2name[] = {
 	[CMN600_REGION_TYPE_SYSCACHE_NONHASH] = "System Cache Non-hash",
 };
 
-const char *cmn_mem_region_name(uint8_t type)
+const char *cmn600_mem_region_name(uint8_t type)
 {
 	if (type >= ARRAY_SIZE(cmn_mmap2name))
 		return "<Invalid>";
@@ -117,7 +117,7 @@ static const char *const cmn_rev2name[] = {
 	[CMN_r3p2] = "r3p2",
 };
 
-const char *cmn_revision_name(uint8_t revision)
+const char *cmn600_revision_name(uint8_t revision)
 {
 	if (revision >= ARRAY_SIZE(cmn_rev2name))
 		return "<Unknown>";
@@ -332,7 +332,7 @@ static void cmn600_process_hnf(caddr_t hnf)
 			   CMN_hnf_sam_memregion(hnf, region_sub_count));
 
 		con_dbg(CMN_MODNAME ": %s: HN-F SAM %d: ID: %d, [%016llx - %016llx]\n",
-			cmn_mem_region_name(region->type),
+			cmn600_mem_region_name(region->type),
 			region_sub_count, region->node_id,
 			(uint64_t)(region->base + base),
 			(uint64_t)(region->base + base + region->size));
@@ -345,7 +345,7 @@ static void cmn600_process_hnf(caddr_t hnf)
 		   CMN_ppu_dyn_en, CMN_hnf_ppu_pwpr(hnf));
 }
 
-static int cmn_max_tgt_nodes(void)
+cmn_id_t cmn600_max_tgt_nodes(void)
 {
 	switch (cmn_revision()) {
 	case CMN_r1p0:
@@ -436,7 +436,7 @@ static void cmn600_discovery_internal(caddr_t node)
 		break;
 	}
 	con_dbg(CMN_MODNAME ": %s ID: %d, LID: %d\n",
-		cmn_node_type_name(cmn_node_type(node)),
+		cmn600_node_type_name(cmn_node_type(node)),
 		cmn_node_id(node), cmn_logical_id(node));
 }
 
@@ -525,7 +525,7 @@ void cmn600_configure(void)
 	irnsam = 0;
 
 	con_dbg(CMN_MODNAME ": configure: revision=%s\n",
-		cmn_revision_name(cmn_revision()));
+		cmn600_revision_name(cmn_revision()));
 
 	xp_count = cmn_child_count(CMN_CFGM_BASE);
 	for (xp_index = 0; xp_index < xp_count; xp_index++) {
@@ -586,7 +586,7 @@ static void cmn600_setup_sam(caddr_t rnsam)
 	cmn_id_t tgt_nodes;
 	cmn_id_t snf;
 
-	tgt_nodes = cmn_max_tgt_nodes();
+	tgt_nodes = cmn600_max_tgt_nodes();
 	BUG_ON(tgt_nodes == 0);
 
 	for (region_index = 0; region_index < cmn_mmap_count; region_index++) {
@@ -599,7 +599,7 @@ static void cmn600_setup_sam(caddr_t rnsam)
 			base = cmn600_cml_base() + region->base;
 
 		con_dbg(CMN_MODNAME ": %s: RN SAM %d: ID: %d, [%016llx - %016llx]\n",
-			cmn_mem_region_name(region->type), region_index,
+			cmn600_mem_region_name(region->type), region_index,
 			region->node_id, (uint64_t)base, (uint64_t)(base + region->size));
 
 		switch (region->type) {
