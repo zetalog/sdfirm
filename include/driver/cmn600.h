@@ -238,6 +238,7 @@ typedef uint32_t cmn_id_t;
 /* 3.2.4 HN-F register summary */
 #define CMN_MAX_hnf_slcway_partitions	4
 #define CMN_MAX_hnf_sam_memregions	2
+#define CMN_MAX_hnf_phys_ids		64
 #define CMN_hnf_unit_info(base)		CMN_REG(base, 0x0900)
 #define CMN_hnf_cfg_ctl(base)		CMN_REG(base, 0x0A00)
 #define CMN_hnf_aux_ctl(base)		CMN_REG(base, 0x0A08)
@@ -271,6 +272,7 @@ typedef uint32_t cmn_id_t;
 #define CMN_hnf_sam_memregion(base, n)	CMN_REG(base, 0x0D08 + ((n) << 3))
 #define CMN_hnf_sam_sn_properties(base)	CMN_REG(base, 0x0D18)
 #define CMN_hnf_sam_6sn_nodeid(base)	CMN_REG(base, 0x0D20)
+#define CMN_hnf_rn_phys_id(base, n)	CMN_32BIT_REG(base, 0x0D28, (n))
 
 /* 3.2.6 XP register summary */
 #define CMN_MAX_mxp_device_ports	2
@@ -456,6 +458,20 @@ typedef uint8_t cmn_did_t;
 #define CMN_hn_cfg_sam_top_address_bit(n, value)	\
 	_SET_FV_ULLn(n, CMN_hn_cfg_sam_top_address_bit, value)
 #define CMN_hn_cfg_sam_inv_top_address_bit	_BV_ULL(63)
+
+/* CMN_hnf_rn_phys_id */
+#define CMN_nodeid_ra_OFFSET		0
+#define CMN_nodeid_ra_MASK		REG_11BIT_MASK
+#define CMN_nodeid_ra(value)		_SET_FV_ULL(CMN_nodeid_ra, value)
+#define CMN_remote_ra			_BV_ULL(16)
+#define CMN_cpa_grp_ra_OFFSET		17
+#define CMN_cpa_grp_ra_MASK		REG_2BIT_MASK
+#define CMN_cpa_grp_ra(value)		_SET_FV_ULL(CMN_cpa_grp_ra, value)
+#define CMN_cpa_en_ra			_BV_ULL(30)
+#define CMN_valid_ra			_BV_ULL(31)
+#define CMN_phys_id_OFFSET(n)		REG64_32BIT_OFFSET(n)
+#define CMN_phys_id_MASK		REG_32BIT_MASK
+#define CMN_phys_id(n, value)		_SET_FV_ULLn(n, CMN_phys_id, value)
 
 /* CMN_mxp_device_port_connect_info */
 #define CMN_device_type_OFFSET		0
@@ -907,9 +923,13 @@ struct cmn600_ccix_ha_mmap {
 };
 
 extern caddr_t cmn_bases[NR_CMN_NODES];
+extern uint8_t cmn_hnf_ids[CMN_MAX_HNF_COUNT];
+extern uint8_t cmn_rnd_ids[CMN_MAX_RND_COUNT];
+extern uint8_t cmn_rni_ids[CMN_MAX_RND_COUNT];
 extern cmn_nid_t cmn_cxra_id;
 extern cmn_nid_t cmn_cxla_id;
 extern cmn_nid_t cmn_cxha_id;
+extern cmn_id_t cmn_hnf_count;
 extern cmn_id_t cmn_rnf_count;
 extern cmn_id_t cmn_rnd_count;
 extern cmn_id_t cmn_rni_count;
