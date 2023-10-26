@@ -424,7 +424,7 @@ typedef uint8_t cmn_did_t;
 #define CMN_JEDED_JEP106		_BV_ULL(3)
 #define CMN_revision_OFFSET		4
 #define CMN_revision_MASK		REG_4BIT_MASK
-#define CMN_revision(value)		_GET_FV(CMN_revision, value)
+#define CMN_revision(value)		_GET_FV_ULL(CMN_revision, value)
 #define CMN_r1p0			0
 #define CMN_r1p1			1
 #define CMN_r1p2			2
@@ -853,13 +853,13 @@ typedef uint8_t cmn_did_t;
 	cmn_node_pid(cmn_child_node_id(base, index))
 
 #define cmn_periph_id(id)			\
-	CMN_periph_id(__raw_readq(CMN_cfgm_periph_id(id)), id)
+	CMN_periph_id(id, __raw_readq(CMN_cfgm_periph_id(id)))
 #define cmn_revision()				\
-	CMN_revision(cmn_periph_id(2))
+	((uint8_t)CMN_revision(cmn_periph_id(2)))
 #define cmn_cal_supported()	(cmn_revision() >= CMN_r2p0)
 
 #define cmn_mxp_device_type(base, pid)		\
-	CMN_device_type(CMN_mxp_device_port_connect_info(base, pid))
+	CMN_device_type(__raw_readq(CMN_mxp_device_port_connect_info(base, pid)))
 
 /* CXG capabilities */
 #define cmn_ccix_request_credits()		\
@@ -950,12 +950,18 @@ cmn_id_t cmn600_max_tgt_nodes(void);
 void cmn600_cml_detect_mmap(void);
 int cmn600_cml_get_config(void);
 void cmn600_cml_set_config(void);
+void cmn600_cml_link_up(void);
+void cmn600_cml_enable_sf(void);
+void cmn600_cml_enable_dvm(void);
 uint64_t cmn600_cml_base(void);
 void cmn600_cml_init(void);
 #else
 #define cmn600_cml_detect_mmap()	do { } while (0)
 #define cmn600_cml_get_config()		(-ENODEV)
 #define cmn600_cml_set_config()		do { } while (0)
+#define cmn600_cml_link_up()		do { } while (0)
+#define cmn600_cml_enable_sf()		do { } while (0)
+#define cmn600_cml_enable_dvm()		do { } while (0)
 #define cmn600_cml_base()		0
 #define cmn600_cml_init()		do { } while (0)
 #endif
