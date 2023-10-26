@@ -380,9 +380,6 @@ static void cmn600_discovery_external(caddr_t node, caddr_t xp)
 
 	xp_pid = cmn_node_pid(node);
 	dev_type = cmn_mxp_device_type(xp, xp_pid);
-	con_dbg(CMN_MODNAME ": %016llx=%016llx CMN_mxp_device_port_connect_info%d=%d\n",
-		(uint64_t)CMN_mxp_device_port_connect_info(xp, xp_pid),
-		__raw_readq(CMN_mxp_device_port_connect_info(xp, xp_pid)), xp_pid, dev_type);
 	if ((dev_type == CMN_MXP_CXRH) ||
 	    (dev_type == CMN_MXP_CXHA) ||
 	    (dev_type == CMN_MXP_CXRA)) {
@@ -741,11 +738,6 @@ void cmn600_init(void)
 	root_node_pointer = CMN_ROOT_NODE_POINTER(CMN_HND_NID);
 	cmn_bases[CMN_CFGM_ID] = CMN_PERIPH_BASE + root_node_pointer;
 	cmn_nr_nodes = 1;
-
-	con_dbg(CMN_MODNAME ": %016llx=%016llx CMN_cfgm_periph_id2=%d(%s)\n",
-		(uint64_t)CMN_cfgm_periph_id(2),
-		__raw_readq(CMN_cfgm_periph_id(2)), cmn_revision(),
-		cmn600_revision_name(cmn_revision()));
 
 	cmn600_discovery();
 	/* TODO: Dynamic internal/external RN_SAM nodes and HNF cache groups */
