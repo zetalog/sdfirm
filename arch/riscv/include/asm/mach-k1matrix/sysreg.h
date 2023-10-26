@@ -100,14 +100,6 @@
 #define GMAC_RMII_EN		_BV(0)
 #define GMAC_CLK_EN		_BV(1)
 
-/* SYS_CTRL_MESH */
-#define MESH_NID8_SYSCOREQ	_BV(0)
-#define MESH_NID40_SYSCOREQ	_BV(1)
-#define MESH_NID8_SYSCOACK	_BV(8)
-#define MESH_NID40_SYSCOACK	_BV(9)
-#define MESH_CLUSTER_SYSCOREQ(n)	_BV(n)
-#define MESH_CLUSTER_SYSCOACK(n)	_BV((n) + 8)
-
 /* PAD_IN_STATUS */
 #define PAD_BOOT_SEL_OFFSET	1
 #define PAD_BOOT_SEL_MASK	REG_1BIT_MASK
@@ -130,13 +122,6 @@
 	BOOTHART(__raw_readl(EFUSE_INFO_REG1))
 #define sysreg_cpu_mask()		\
 	__raw_readl(EFUSE_INFO_REG0)
-#define sysreg_enable_sysco(cluster)	\
-	do {								\
-		__raw_setl(MESH_CLUSTER_SYSCOREQ(cluster),		\
-			   SYS_CTRL_MESH);				\
-		while ((__raw_readl(SYS_CTRL_MESH) &			\
-			MESH_CLUSTER_SYSCOACK(cluster)) == 0);		\
-	} while (0)
 
 #ifndef __ASSEMBLY__
 void k1matrix_cpu_reset(void);
