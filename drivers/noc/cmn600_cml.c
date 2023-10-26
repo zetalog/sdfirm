@@ -52,10 +52,12 @@
 
 cmn_id_t ccix_ra_count;
 cmn_id_t ccix_sa_count;
-cmn_id_t ccix_mmap_count;
-cmn_id_t ccix_raid_value;
-cmn_nid_t ccix_cxg_ha_nid;
-struct cmn600_ccix_ha_mmap ccix_mmap[CMN_MAX_HA_MMAP_COUNT];
+cmn_nid_t cml_ha_nid_local;
+cmn_id_t cml_ha_id_local;
+cmn_id_t cml_ha_id_remote;
+
+struct cmn600_ccix_ha_mmap cml_ha_mmap_table_local[CMN_MAX_HA_MMAP_COUNT];
+cmn_id_t cml_ha_mmap_count_local;
 
 uint64_t cmn600_cml_base(void)
 {
@@ -90,9 +92,12 @@ static bool cmn_cml_smp_enable(void)
 		      CMN_ha_smp_mode))
 			return true;
 	} else if (cmn_revision() >= CMN_r3p0) {
-		cmn_setq(CMN_ra_smp_mode_en, CMN_cxg_ra_aux_ctl(CMN_CXRA_BASE));
-		cmn_setq(CMN_ha_smp_mode_en, CMN_cxg_ra_aux_ctl(CMN_CXHA_BASE));
-		cmn_setq(CMN_la_smp_mode_en, CMN_cxla_aux_ctl(CMN_CXLA_BASE));
+		cmn_setq(CMN_ra_smp_mode_en, CMN_cxg_ra_aux_ctl(CMN_CXRA_BASE),
+			 "CMN_cxg_ra_aux_ctl", -1);
+		cmn_setq(CMN_ha_smp_mode_en, CMN_cxg_ra_aux_ctl(CMN_CXHA_BASE),
+			 "CMN_cxg_ra_aux_ctl", -1);
+		cmn_setq(CMN_la_smp_mode_en, CMN_cxla_aux_ctl(CMN_CXLA_BASE),
+			 "CMN_cxla_aux_ctl", -1);
 		return true;
 	}
 	return false;
@@ -104,27 +109,53 @@ static void cmn_cml_setup_agentid_to_linkid(cmn_id_t agent_id, cmn_id_t link_id)
 			CMN_agent_linkid(agent_id,
 					 CMN_agent_linkid_MASK),
 			CMN_cxg_ra_agentid_to_linkid(CMN_CXRA_BASE,
-						     agent_id));
+						     agent_id),
+			"CMN_cxg_ra_agentid_to_linkid", agent_id);
 	cmn_writeq_mask(CMN_agent_linkid(agent_id, link_id),
 			CMN_agent_linkid(agent_id,
 					 CMN_agent_linkid_MASK),
 			CMN_cxg_ha_agentid_to_linkid(CMN_CXHA_BASE,
-						     agent_id));
+						     agent_id),
+			"CMN_cxg_ha_agentid_to_linkid", agent_id);
 	cmn_writeq_mask(CMN_agent_linkid(agent_id, link_id),
 			CMN_agent_linkid(agent_id,
 					 CMN_agent_linkid_MASK),
 			CMN_cxla_agentid_to_linkid(CMN_CXLA_BASE,
-						   agent_id));
+						   agent_id),
+			"CMN_cxla_agentid_to_linkid", agent_id);
 	cmn_setq(CMN_agent_linkid_valid(agent_id),
-		 CMN_cxg_ra_agentid_to_linkid_val(CMN_CXRA_BASE));
+		 CMN_cxg_ra_agentid_to_linkid_val(CMN_CXRA_BASE),
+		 "CMN_cxg_ra_agentid_to_linkid_val", -1);
 	cmn_setq(CMN_agent_linkid_valid(agent_id),
-		 CMN_cxg_ha_agentid_to_linkid_val(CMN_CXHA_BASE));
+		 CMN_cxg_ha_agentid_to_linkid_val(CMN_CXHA_BASE),
+		 "CMN_cxg_ha_agentid_to_linkid_val", -1);
 	cmn_setq(CMN_agent_linkid_valid(agent_id),
-		 CMN_cxla_agentid_to_linkid_val(CMN_CXLA_BASE));
+		 CMN_cxla_agentid_to_linkid_val(CMN_CXLA_BASE),
+		 "CMN_cxla_agentid_to_linkid_val", -1);
 }
 
 static void cmn_cml_setup_ra_sam_addr_region(void)
 {
+	cmn_id_t i;
+	uint64_t blocks;
+	uint64_t sz;
+
+	for (i = 0; i < cml_ha_mmap_count_remote; i++) {
+		BUG_ON(cml_ha_mmap_table_remote[i].size % SZ_64K);
+		BUG_ON(cml_ha_mmap_table_remote[i].size &
+		       (cml_ha_mmap_table_remote[i].size - 1));
+		BUG_ON(cml_ha_mmap_table_remote[i].base %
+		       cml_ha_mmap_table_remote[i].size);
+
+		blocks = cml_ha_mmap_table_remote[i].size / SZ_64K;
+		sz = __ilog2_u64(blocks);
+		cmn_writeq(CMN_reg_size(sz) |
+			   CMN_reg_base_addr(cml_ha_mmap_table_remote[i].base) |
+			   CMN_reg_ha_tgtid(cml_ha_id_remote) |
+			   CMN_reg_valid,
+			   CMN_cxg_ra_sam_addr_region(CMN_CXRA_BASE, i),
+			   "CMN_cxg_ra_sam_addr_region", i);
+	}
 }
 
 static void cmn_cml_start_ccix_link_up_seq(void)
@@ -144,27 +175,30 @@ static void cmn_cml_setup(void)
 	unsigned int i, j;
 	unsigned int block;
 	uint8_t raid_ldid;
+	cmn_id_t raid;
 
 	local_ra_count = cmn_rn_sam_int_count + cmn_rn_sam_ext_count;
 	cmn_cml_smp_enable();
 
-	ccix_raid_value = 0;
+	raid = 0;
 	offset_id = cmn600_hw_chip_id() * local_ra_count;
 
 	for (rnf_ldid = 0; rnf_ldid < cmn_rnf_count; rnf_ldid++) {
 		/* TODO: use logical_id of RN-F */
 
 		/* Determine agentid of the remote agents */
-		agent_id = ccix_raid_value + offset_id;
+		agent_id = raid + offset_id;
 
 		/* Program raid in CXRA LDID to RAID LUT. */
 		cmn_writeq_mask(CMN_ldid_raid(rnf_ldid, agent_id),
 				CMN_ldid_raid(rnf_ldid, CMN_ldid_raid_MASK),
 				CMN_cxg_ra_rnf_ldid_to_raid(CMN_CXRA_BASE,
-							    rnf_ldid));
+							    rnf_ldid),
+				"CMN_cxg_ra_rnf_ldid_to_raid", rnf_ldid);
 		cmn_setq(CMN_ldid_raid_valid(rnf_ldid),
-			 CMN_cxg_ra_rnf_ldid_to_raid_val(CMN_CXRA_BASE));
-		ccix_raid_value++;
+			 CMN_cxg_ra_rnf_ldid_to_raid_val(CMN_CXRA_BASE),
+			 "CMN_cxg_ra_rnf_ldid_to_raid_val", -1);
+		raid++;
 
 		/* Program agent to linkid LUT for remote agents in
 		 * CXRA/CXHA/CXLA.
@@ -174,13 +208,12 @@ static void cmn_cml_setup(void)
 		/* The HN-F ldid to CHI node id valid bit for local RN-F
 		 * agents is already programmed.
 		 */
-		ccix_cxg_ha_nid = 0x0;
-#if 0
-		cxg_ha_id = cmn600_hw_chip_id();
-		cxg_ha_id_remote = cml_remote_ha_mmap[0].ha_id;
-#endif
+		cml_ha_nid_local = 0x0;
+		cml_ha_id_remote = cml_ha_mmap_table_remote[0].ha_id;
+		cml_ha_id_local = cmn600_hw_chip_id();
 		cmn_writeq(CMN_ccix_haid(cmn600_hw_chip_id()),
-			   CMN_cxg_ha_id(CMN_CXHA_BASE));
+			   CMN_cxg_ha_id(CMN_CXHA_BASE),
+			   "CMN_cxg_ha_id", -1);
 	}
 
 	/* unique_remote_rnf_ldid is used to keep track of the ldid of the
@@ -188,7 +221,7 @@ static void cmn_cml_setup(void)
 	 */
 	unique_remote_rnf_ldid = cmn_rnf_count;
 
-	for (i = 0; i < cml_remote_rnf_count; i++) {
+	for (i = 0; i < cml_rnf_count_remote; i++) {
 		block = i / cmn_rnf_count;
 
 		/* The remote_agent_id should not include the current
@@ -210,9 +243,12 @@ static void cmn_cml_setup(void)
 				CMN_raid_ldid(remote_agent_id,
 					      CMN_raid_ldid_MASK),
 				CMN_cxg_ha_rnf_raid_to_ldid(CMN_CXHA_BASE,
-							    remote_agent_id));
+							    remote_agent_id),
+				"CMN_cxg_ha_rnf_raid_to_ldid",
+				remote_agent_id);
 		cmn_setq(CMN_raid_ldid_valid(raid_ldid),
-			 CMN_cxg_ha_rnf_raid_to_ldid_val(CMN_CXHA_BASE));
+			 CMN_cxg_ha_rnf_raid_to_ldid_val(CMN_CXHA_BASE),
+			 "CMN_cxg_ha_rnf_raid_to_ldid_val", -1);
 
 		/* Program HN-F ldid to CHI node id for remote RN-F
 		 * agents.
@@ -220,12 +256,13 @@ static void cmn_cml_setup(void)
 		for (j = 0; j < cmn_hnf_count; j++) {
 			uint32_t phys_id;
 
-			phys_id = CMN_nodeid_ra(ccix_cxg_ha_nid) |
+			phys_id = CMN_nodeid_ra(cml_ha_nid_local) |
 				  CMN_remote_ra | CMN_valid_ra;
 			cmn_writeq_mask(CMN_phys_id(unique_remote_rnf_ldid, phys_id),
 					CMN_phys_id(unique_remote_rnf_ldid, CMN_phys_id_MASK),
 					CMN_hnf_rn_phys_id(CMN_HNF_BASE(cmn_hnf_ids[j]),
-							   unique_remote_rnf_ldid));
+							   unique_remote_rnf_ldid),
+					"CMN_hnf_rn_phys_id", unique_remote_rnf_ldid);
 		}
 
 		unique_remote_rnf_ldid++;
@@ -235,16 +272,18 @@ static void cmn_cml_setup(void)
 		rnd_ldid = cmn_logical_id(cmn_rnd_ids[i]);
 
 		/* Determine agentid of the remote agents */
-		agent_id = ccix_raid_value + offset_id;
+		agent_id = raid + offset_id;
 
 		/* Program raid values in CXRA LDID to RAID LUT */
 		cmn_writeq_mask(CMN_ldid_raid(rnd_ldid, agent_id),
 				CMN_ldid_raid(rnd_ldid, CMN_ldid_raid_MASK),
 				CMN_cxg_ra_rnd_ldid_to_raid(CMN_CXRA_BASE,
-							    rnd_ldid));
+							    rnd_ldid),
+				"CMN_cxg_ra_rnd_ldid_to_raid", rnd_ldid);
 		cmn_setq(CMN_ldid_raid_valid(rnd_ldid),
-			 CMN_cxg_ra_rnd_ldid_to_raid_val(CMN_CXRA_BASE));
-		ccix_raid_value++;
+			 CMN_cxg_ra_rnd_ldid_to_raid_val(CMN_CXRA_BASE),
+			 "CMN_cxg_ra_rnd_ldid_to_raid_val", -1);
+		raid++;
 
 		/* Program agentid to linkid LUT for remote agents */
 		cmn_cml_setup_agentid_to_linkid(agent_id, cml_link_id);
@@ -254,16 +293,18 @@ static void cmn_cml_setup(void)
 		rni_ldid = cmn_logical_id(cmn_rni_ids[i]);
 
 		/* Determine agentid of the remote agents */
-		agent_id = ccix_raid_value + offset_id;
+		agent_id = raid + offset_id;
 
 		/* Program raid values in CXRA LDID to RAID LUT */
 		cmn_writeq_mask(CMN_ldid_raid(rni_ldid, agent_id),
 				CMN_ldid_raid(rni_ldid, CMN_ldid_raid_MASK),
 				CMN_cxg_ra_rni_ldid_to_raid(CMN_CXRA_BASE,
-							    rni_ldid));
+							    rni_ldid),
+				"CMN_cxg_ra_rni_ldid_to_raid", rni_ldid);
 		cmn_setq(CMN_ldid_raid_valid(rni_ldid),
-			 CMN_cxg_ra_rni_ldid_to_raid_val(CMN_CXRA_BASE));
-		ccix_raid_value++;
+			 CMN_cxg_ra_rni_ldid_to_raid_val(CMN_CXRA_BASE),
+			 "CMN_cxg_ra_rni_ldid_to_raid_val", -1);
+		raid++;
 
 		/* Program agentid to linkid LUT for remote agents */
 		cmn_cml_setup_agentid_to_linkid(agent_id, cml_link_id);
@@ -295,9 +336,9 @@ void cmn600_cml_detect_mmap(void)
 		region = &cmn_mmap_table[region_index];
 
 		if (region->type == CMN600_REGION_TYPE_CCIX) {
-			ccix_mmap[ccix_mmap_count].base = region->base;
-			ccix_mmap[ccix_mmap_count].size = region->size;
-			ccix_mmap_count++;
+			cml_ha_mmap_table_local[cml_ha_mmap_count_local].base = region->base;
+			cml_ha_mmap_table_local[cml_ha_mmap_count_local].size = region->size;
+			cml_ha_mmap_count_local++;
 		}
 	}
 }

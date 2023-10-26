@@ -147,7 +147,6 @@ uint8_t cmn_rn_sam_ext_ids[CMN_MAX_RN_SAM_EXT_COUNT];
 uint8_t cmn_rn_sam_int_ids[CMN_MAX_RN_SAM_INT_COUNT];
 uint8_t cmn_hnf_scgs[CMN_MAX_HNF_COUNT];
 
-#define CMN600_HNF_CACHE_GROUP_ENTRIES_MAX		32
 #define CMN600_HNF_CACHE_GROUP_ENTRIES_PER_GROUP	4
 #define CMN600_HNF_CACHE_GROUP_ENTRY_BITS_WIDTH		12
 
@@ -157,10 +156,15 @@ static void cmn_debug_init(void)
 	console_init();
 }
 
-void cmn_writeq(uint64_t v, caddr_t a)
+void cmn_writeq(uint64_t v, caddr_t a, const char *n, int i)
 {
 	__raw_writeq(v, a);
-	con_dbg(CMN_MODNAME ": %016llx=%016llx\n", (uint64_t)a, v);
+	if (i < 0)
+		con_dbg(CMN_MODNAME ": %016llx=%016llx %s\n",
+			(uint64_t)a, v, n);
+	else
+		con_dbg(CMN_MODNAME ": %016llx=%016llx %s%d\n",
+			(uint64_t)a, v, n, i);
 }
 #endif
 
@@ -271,7 +275,8 @@ static void cmn_configure_hnf_sam(caddr_t hnf)
 		/* TODO: support cmn_snf_count using hnf tgt ids */
 		BUG_ON(cmn_snf_count != 1);
 		cmn_writeq(CMN_hn_cfg_sn_nodeid(0, cmn_snf_table[0]),
-			   CMN_hnf_sam_control(hnf));
+			   CMN_hnf_sam_control(hnf),
+			   "CMN_hnf_sam_control", -1);
 		break;
 
 	case CMN_HNF_MAPPING_HASHED_3SN:
@@ -280,7 +285,8 @@ static void cmn_configure_hnf_sam(caddr_t hnf)
 			   CMN_hn_cfg_sn_nodeid(0, cmn_snf_table[0]) |
 			   CMN_hn_cfg_sn_nodeid(1, cmn_snf_table[1]) |
 			   CMN_hn_cfg_sn_nodeid(2, cmn_snf_table[2]),
-			   CMN_hnf_sam_control(hnf));
+			   CMN_hnf_sam_control(hnf),
+			   "CMN_hnf_sam_control", -1);
 		break;
 
 	case CMN_HNF_MAPPING_HASHED_6SN:
@@ -289,11 +295,13 @@ static void cmn_configure_hnf_sam(caddr_t hnf)
 			   CMN_hn_cfg_sn_nodeid(0, cmn_snf_table[0]) |
 			   CMN_hn_cfg_sn_nodeid(1, cmn_snf_table[1]) |
 			   CMN_hn_cfg_sn_nodeid(2, cmn_snf_table[2]),
-			   CMN_hnf_sam_control(hnf));
+			   CMN_hnf_sam_control(hnf),
+			   "CMN_hnf_sam_control", -1);
 		cmn_writeq(CMN_hn_cfg_sn_nodeid(0, cmn_snf_table[4]) |
 			   CMN_hn_cfg_sn_nodeid(1, cmn_snf_table[5]) |
 			   CMN_hn_cfg_sn_nodeid(2, cmn_snf_table[6]),
-			   CMN_hnf_sam_6sn_nodeid(hnf));
+			   CMN_hnf_sam_6sn_nodeid(hnf),
+			   "CMN_hnf_sam_control", -1);
 		break;
 
 	default: /* CMN_HNF_MAPPING_RANGE_BASED */
@@ -329,7 +337,8 @@ static void cmn600_process_hnf(caddr_t hnf)
 			   CMN_sam_range_size(__ilog2_u64((region->size) / CMN_SAM_GRANU)) |
 			   CMN_sam_range_base_addr((region->base + base) / CMN_SAM_GRANU) |
 			   CMN_sam_range_valid,
-			   CMN_hnf_sam_memregion(hnf, region_sub_count));
+			   CMN_hnf_sam_memregion(hnf, region_sub_count),
+			   "CMN_hnf_sam_memregion", region_sub_count);
 
 		con_dbg(CMN_MODNAME ": %s: HN-F SAM %d: ID: %d, [%016llx - %016llx]\n",
 			cmn600_mem_region_name(region->type),
@@ -342,11 +351,16 @@ static void cmn600_process_hnf(caddr_t hnf)
 
 	cmn_writeq(CMN_ppu_policy(CMN_ppu_policy_ON) |
 		   CMN_ppu_op_mode(CMN_ppu_op_mode_FAM) |
-		   CMN_ppu_dyn_en, CMN_hnf_ppu_pwpr(hnf));
+		   CMN_ppu_dyn_en, CMN_hnf_ppu_pwpr(hnf),
+		   "CMN_hnf_ppu_pwpr", -1);
 }
 
 cmn_id_t cmn600_max_tgt_nodes(void)
 {
+	con_dbg(CMN_MODNAME ": %016llx=%016llx CMN_cfgm_periph_id2\n",
+		(uint64_t)CMN_cfgm_periph_id(2),
+		__raw_readq(CMN_cfgm_periph_id(2)));
+
 	switch (cmn_revision()) {
 	case CMN_r1p0:
 	case CMN_r1p1:
@@ -369,6 +383,8 @@ static void cmn600_discovery_external(caddr_t node, caddr_t xp)
 	cmn_pid_t xp_pid;
 
 	xp_pid = cmn_node_pid(node);
+	con_dbg(CMN_MODNAME ": %016llx=%016llx CMN_mxp_device_port_connect_info%d\n",
+		(uint64_t)xp, __raw_readq(xp), xp_pid);
 	dev_type = cmn_mxp_device_type(xp, xp_pid);
 	if ((dev_type == CMN_MXP_CXRH) ||
 	    (dev_type == CMN_MXP_CXHA) ||
@@ -616,16 +632,19 @@ static void cmn600_setup_sam(caddr_t rnsam)
 			memregion = CMN_valid_region(region_type, base, region->size);
 			cmn_writeq_mask(CMN_region(region_io_count, memregion),
 					CMN_region(region_io_count, CMN_region_MASK),
-					CMN_rnsam_non_hash_mem_region(rnsam, region_io_count));
+					CMN_rnsam_non_hash_mem_region(rnsam, region_io_count),
+					"CMN_rnsam_non_hash_mem_region", region_io_count);
 
 			if (region_io_count < CMN_MAX_NON_HASH_TGT_NODES_20)
 				cmn_writeq_mask(CMN_nodeid(region_io_count, region->node_id),
 						CMN_nodeid(region_io_count, CMN_nodeid_MASK),
-						CMN_rnsam_non_hash_tgt_nodeid(rnsam, region_io_count));
+						CMN_rnsam_non_hash_tgt_nodeid(rnsam, region_io_count),
+						"CMN_rnsam_non_hash_tgt_nodeid", region_io_count);
 			else
 				cmn_writeq_mask(CMN_nodeid(region_io_count, region->node_id),
 						CMN_nodeid(region_io_count, CMN_nodeid_MASK),
-						CMN_rnsam_non_hash_tgt_nodeid2(rnsam, region_io_count));
+						CMN_rnsam_non_hash_tgt_nodeid2(rnsam, region_io_count),
+						"CMN_rnsam_non_hash_tgt_nodeid2", region_io_count);
 
 			region_io_count++;
 			break;
@@ -641,7 +660,8 @@ static void cmn600_setup_sam(caddr_t rnsam)
 						     region->base, region->size);
 			cmn_writeq_mask(CMN_region(region_sys_count, memregion),
 					CMN_region(region_sys_count, CMN_region_MASK),
-					CMN_rnsam_sys_cache_grp_region(rnsam, region_sys_count));
+					CMN_rnsam_sys_cache_grp_region(rnsam, region_sys_count),
+					"CMN_rnsam_sys_cache_grp_region", region_sys_count);
 
 			cmn_hnf_cal_enable_scg(region_sys_count);
 			region_sys_count++;
@@ -653,11 +673,14 @@ static void cmn600_setup_sam(caddr_t rnsam)
 							     region->size);
 			cmn_writeq_mask(CMN_region(region_sys_count, memregion),
 					CMN_region(region_sys_count, CMN_region_MASK),
-					CMN_rnsam_sys_cache_grp_region(rnsam, region_sys_count));
+					CMN_rnsam_sys_cache_grp_region(rnsam, region_sys_count),
+					"CMN_rnsam_sys_cache_grp_region", region_sys_count);
 			cmn_writeq_mask(CMN_nodeid(region_sys_count - 1, region->node_id),
 					CMN_nodeid(region_sys_count - 1, CMN_nodeid_MASK),
 					CMN_rnsam_sys_cache_grp_nonhash_nodeid(rnsam,
-									       region_sys_count - 1));
+									       region_sys_count - 1),
+					"CMN_rnsam_sys_cache_grp_nonhash_nodeid",
+					region_sys_count - 1);
 			region_sys_count++;
 			break;
 
@@ -675,22 +698,26 @@ static void cmn600_setup_sam(caddr_t rnsam)
 		nid = cmn_hnf_scgs[lid];
 		cmn_writeq_mask(CMN_nodeid(lid, nid),
 				CMN_nodeid(lid, CMN_nodeid_MASK),
-				CMN_rnsam_sys_cache_grp_hn_nodeid(rnsam, lid));
+				CMN_rnsam_sys_cache_grp_hn_nodeid(rnsam, lid),
+				"CMN_rnsam_sys_cache_grp_hn_nodeid", lid);
 		con_dbg(CMN_MODNAME ": SCG: %d/%d, ID: %d\n",
 			lid, cmn_hnf_count, nid);
 	}
-	cmn_writeq(cmn_hnf_count, CMN_rnsam_sys_cache_group_hn_count(rnsam));
+	cmn_writeq(cmn_hnf_count, CMN_rnsam_sys_cache_group_hn_count(rnsam),
+		   "CMN_rnsam_sys_cache_group_hn_count", -1);
 
 	cmn_hnf_cal_apply_scg(rnsam);
 
 	for (snf = 0; snf < cmn_snf_count; snf++) {
 		cmn_writeq_mask(CMN_nodeid(snf, cmn_snf_table[snf]),
 				CMN_nodeid(snf, CMN_nodeid_MASK),
-			        CMN_rnsam_sys_cache_grp_sn_nodeid(rnsam, snf));
+			        CMN_rnsam_sys_cache_grp_sn_nodeid(rnsam, snf),
+				"CMN_rnsam_sys_cache_grp_sn_nodeid", snf);
 	}
 
 	cmn_writeq(CMN_sam_nstall_req(CMN_sam_unstall_req),
-		   CMN_rnsam_status(rnsam));
+		   CMN_rnsam_status(rnsam),
+		   "CMN_rnsam_status", -1);
 }
 
 void cmn600_setup_rnsam(cmn_nid_t nid)

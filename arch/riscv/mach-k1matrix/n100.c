@@ -42,10 +42,14 @@
 #include <target/arch.h>
 #include <target/noc.h>
 
+/* ===========================================================================
+ * CMN configurations
+ * =========================================================================== */
 cmn_nid_t cmn_snf_table[] = {
 	32,
 };
 cmn_id_t cmn_snf_count = ARRAY_SIZE(cmn_snf_table);
+cmn_id_t cmn_sa_count = 0;
 
 struct cmn600_memregion cmn_mmap_table[] = {
 	{
@@ -99,13 +103,29 @@ struct cmn600_memregion cmn_mmap_table[] = {
 };
 cmn_id_t cmn_mmap_count = ARRAY_SIZE(cmn_mmap_table);
 
-cmn_id_t cmn_sa_count = 0;
+/* ===========================================================================
+ * CML (CCIX CXG) configurations
+ * =========================================================================== */
 cmn_id_t cml_link_id = 0;
-cmn_id_t cml_remote_rnf_count = 2;
-cmn_id_t cml_remote_sa_count = 0;
-cmn_id_t cml_remote_ha_count = 1;
+cmn_id_t cml_rnf_count_remote = 2;
+cmn_id_t cml_sa_count_remote = 0;
+cmn_id_t cml_ha_count_remote = 1;
 /* PCIe bus# */
 cmn_id_t cml_pcie_bus_num = 0;
+
+struct cmn600_ccix_ha_mmap cml_ha_mmap_table_remote[] = {
+	{
+		0,
+		.base = SYS_IO_BASE,
+		.size = SZ_2G,
+	},
+	{
+		0,
+		.base = DDR_BASE,
+		.size = SZ_4G,
+	},
+};
+cmn_id_t cml_ha_mmap_count_remote = ARRAY_SIZE(cml_ha_mmap_table_remote);
 
 void k1matrix_n100_d2d_init(void)
 {

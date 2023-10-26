@@ -67,10 +67,13 @@ extern struct cmn600_memregion cmn_mmap_table[];
 extern cmn_id_t cmn_sa_count;
 
 extern cmn_id_t cml_link_id;
-extern cmn_id_t cml_remote_rnf_count;
-extern cmn_id_t cml_remote_sa_count;
-extern cmn_id_t cml_remote_ha_count;
+extern cmn_id_t cml_rnf_count_remote;
+extern cmn_id_t cml_sa_count_remote;
+extern cmn_id_t cml_ha_count_remote;
 extern cmn_id_t cml_pcie_bus_num;
+
+extern struct cmn600_ccix_ha_mmap cml_ha_mmap_table_remote[];
+extern cmn_id_t cml_ha_mmap_count_remote;
 
 void k1matrix_n100_init(void);
 void k1matrix_n100_smp_init(void);
