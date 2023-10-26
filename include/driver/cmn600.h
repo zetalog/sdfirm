@@ -220,6 +220,8 @@ typedef uint32_t cmn_id_t;
 	CMN_REG((base), (offset) + (REG64_8BIT_INDEX(n) << 3))
 #define CMN_12BIT_REG(base, offset, n)	\
 	CMN_REG((base), (offset) + (CMN_12BIT_INDEX(n) << 3))
+#define CMN_16BIT_REG(base, offset, n)	\
+	CMN_REG((base), (offset) + (REG64_16BIT_INDEX(n) << 3))
 #define CMN_32BIT_REG(base, offset, n)	\
 	CMN_REG((base), (offset) + (REG64_32BIT_INDEX(n) << 3))
 
@@ -376,8 +378,8 @@ typedef uint32_t cmn_id_t;
 					CMN_8BIT_REG(base, 0x0C30, n)
 #define CMN_cxla_agentid_to_linkid_val(base)			\
 					CMN_REG(base, 0x0C70)
-#define CMN_cxla_linkid_to_pcie_bus_num(base)			\
-					CMN_REG(base, 0x0C78)
+#define CMN_cxla_linkid_to_pcie_bus_num(base, n)			\
+					CMN_16BIT_REG(base, 0x0C78, n)
 #define CMN_cxla_tlp_hdr_fields(base)	CMN_REG(base, 0x0C80)
 #define CMN_cxla_permsg_pyld(base, n)	CMN_REG(base, 0x0D00 + ((n) << 3))
 #define CMN_cxla_permsg_ctl(base)	CMN_REG(base, 0x0D20)
@@ -629,7 +631,7 @@ typedef uint8_t cmn_did_t;
 #define CMN_ra_early_compack_en		_BV_ULL(2)
 #define CMN_ra_early_rdrcpt_en		_BV_ULL(1)
 
-/* CMN_cxg_la_aux_ctl */
+/* CMN_cxla_aux_ctl */
 #define CMN_la_tlp_timeout_en		_BV_ULL(6)
 #define CMN_la_idle_timeout_th_OFFSET	8
 #define CMN_la_idle_timeout_th_MASK	REG_3BIT_MASK
@@ -673,7 +675,7 @@ typedef uint8_t cmn_did_t;
 #define CMN_ra_linkid_ctl		_BV_ULL(2)
 #define CMN_ra_ldid_ctl			_BV_ULL(3)
 
-/* CMN_cxg_la_secure_register_groups_override */
+/* CMN_cxla_secure_register_groups_override */
 #define CMN_la_cfg_ctl			_BV_ULL(0)
 #define CMN_la_linkid_ctl		_BV_ULL(2)
 
@@ -726,7 +728,7 @@ typedef uint8_t cmn_did_t;
 #define CMN_ra_snoop_databuffer_depth(value)		_GET_FV_ULL(CMN_ra_snoop_databuffer_depth, value)
 #define CMN_ra_smp_mode					_BV_ULL(61)
 
-/* CMN_cxg_la_unit_info */
+/* CMN_cxla_unit_info */
 #define CMN_la_db_present				_BV_ULL(0)
 #define CMN_la_db_lcrd_count_OFFSET			1
 #define CMN_la_db_lcrd_count_MASK			REG_4BIT_MASK
@@ -748,8 +750,8 @@ typedef uint8_t cmn_did_t;
 #define CMN_ra_qos15_entry_rsv_en			_BV_ULL(1)
 #define CMN_ra_pcie_qos15_entry_rsv_en			_BV_ULL(0)
 
-/* CMN_cxg_la_ccix_prop_capabilities
- * CMN_cxg_la_ccix_prop_configured
+/* CMN_cxla_ccix_prop_capabilities
+ * CMN_cxla_ccix_prop_configured
  */
 #define CMN_la_nocompack				_BV_ULL(0)
 #define CMN_la_partialcachestates			_BV_ULL(1)
@@ -765,8 +767,8 @@ typedef uint8_t cmn_did_t;
 #define CMN_LA_MAXPACKETSIZE(value)			_GET_FV_ULL(CMN_la_maxpacketsize, value)
 #define CMN_la_nomessagepack				_BV_ULL(10)
 
-/* CMN_cxg_la_tx_cxs_attr_capabilities */
-/* CMN_cxg_la_rx_cxs_attr_capabilities */
+/* CMN_cxla_tx_cxs_attr_capabilities */
+/* CMN_cxla_rx_cxs_attr_capabilities */
 
 /* CMN_cxg_ra_sam_addr_region */
 #define CMN_reg_size_OFFSET				0
@@ -807,20 +809,61 @@ typedef uint8_t cmn_did_t;
 
 /* CMN_cxg_ha_agentid_to_linkid
  * CMN_cxg_ra_agentid_to_linkid
- * CMN_cxg_la_agentid_to_linkid
+ * CMN_cxla_agentid_to_linkid
  */
 #define CMN_agent_linkid_OFFSET(n)			REG64_8BIT_OFFSET(n)
 #define CMN_agent_linkid_MASK				REG_8BIT_MASK
 #define CMN_agent_linkid(n, value)			_SET_FV_ULLn(n, CMN_agent_linkid, value)
 /* CMN_cxg_ha_agentid_to_linkid_val
  * CMN_cxg_ra_agentid_to_linkid_val
- * CMN_cxg_la_agentid_to_linkid_val
+ * CMN_cxla_agentid_to_linkid_val
  */
 #define CMN_agent_linkid_valid(n)			_BV_ULL(n)
 
-/* CMN_cxg_la_linkid_to_pcie_bus_num */
+/* CMN_cxla_linkid_to_pcie_bus_num */
+#define CMN_link_pcie_bus_num_OFFSET			0
+#define CMN_link_pcie_bus_num_MASK			REG_8BIT_MASK
+#define CMN_link_pcie_bus_num(value)			_SET_FV_ULL(CMN_link_pcie_bus_num, value)
+#define CMN_link_pcie_func_num_OFFSET			8
+#define CMN_link_pcie_func_num_MASK			REG_3BIT_MASK
+#define CMN_link_pcie_func_num(value)			_SET_FV_ULL(CMN_link_pcie_func_num, value)
+#define CMN_link_pcie_dev_num_OFFSET			11
+#define CMN_link_pcie_dev_num_MASK			REG_5BIT_MASK
+#define CMN_link_pcie_dev_num(value)			_SET_FV_ULL(CMN_link_pcie_dev_num, value)
+#define CMN_pcie_bdf(bus, dev, func)			\
+	(CMN_link_pcie_bus_num(bus) |			\
+	 CMN_link_pcie_dev_num(dev) |			\
+	 CMN_link_pcie_func_num(func))
+#define CMN_link_pcie_bdf_OFFSET(n)			REG64_16BIT_OFFSET(n)
+#define CMN_link_pcie_bdf_MASK				REG_16BIT_MASK
+#define CMN_link_pcie_bdf(n, value)			_SET_FV_ULLn(n, CMN_link_pcie_bdf, value)
 
-/* CMN_cxg_la_tlp_hdr_fields */
+/* CMN_cxla_tlp_hdr_fields */
+#define CMN_tlp_pkt_type_OFFSET				0
+#define CMN_tlp_pkt_type_MASK				REG_5BIT_MASK
+#define CMN_tlp_pkt_type(value)				_SET_FV_ULL(CMN_tlp_pkt_type, value)
+#define CMN_tlp_fmt_OFFSET				5
+#define CMN_tlp_fmt_MASK				REG_3BIT_MASK
+#define CMN_tlp_fmt(value)				_SET_FV_ULL(CMN_tlp_fmt, value)
+#define CMN_tlp_attr_OFFSET				8
+#define CMN_tlp_attr_MASK				REG_4BIT_MASK
+#define CMN_tlp_attr(value)				_SET_FV_ULL(CMN_tlp_attr, value)
+#define CMN_tlp_tc_OFFSET				12
+#define CMN_tlp_tc_MASK					REG_3BIT_MASK
+#define CMN_tlp_tc(value)				_SET_FV_ULL(CMN_tlp_tc, value)
+#define CMN_tlp_at_OFFSET				15
+#define CMN_tlp_at_MASK					REG_2BIT_MASK
+#define CMN_tlp_at(value)				_SET_FV_ULL(CMN_tlp_at, value)
+#define CMN_tlp_ep					_BV_ULL(17)
+#define CMN_tlp_td					_BV_ULL(18)
+#define CMN_tlp_messagecode_OFFSET			24
+#define CMN_tlp_messagecode_MASK			REG_8BIT_MASK
+#define CMN_tlp_messagecode(value)			_SET_FV_ULL(CMN_tlp_messagecode, value)
+#define CMN_tlp_vendor_OFFSET				32
+#define CMN_tlp_vendor_MASK				REG_16BIT_MASK
+#define CMN_tlp_vendor(value)				_SET_FV_ULL(CMN_tlp_vendor, value)
+
+#define CCIX_VENDOR_ID					0x1E2C
 
 /* CMN macros and APIs */
 #define cmn_node_type(base)			\
@@ -869,9 +912,9 @@ typedef uint8_t cmn_did_t;
 #define cmn_ccix_data_credits()			\
 	CMN_ha_wdb_depth(__raw_readq(CMN_cxg_ha_unit_info(CMN_CXHA_BASE)))
 #define cmn_ccix_max_packet_size()		\
-	CMN_la_maxpacketsize(__raw_readq(CMN_cxg_la_prop_capabilities(CMN_CXLA_BASE)))
+	CMN_LA_MAXPACKETSIZE(__raw_readq(CMN_cxla_ccix_prop_capabilities(CMN_CXLA_BASE)))
 #define cmn_ccix_no_message_pack()		\
-	(!!(__raw_readq(CMN_cxg_la_prop_capabilities(CMN_CXLA_BASE)) & CMN_la_nomessagepack))
+	(!!(__raw_readq(CMN_cxla_ccix_prop_capabilities(CMN_CXLA_BASE)) & CMN_la_nomessagepack))
 
 /* Configuration interfaces */
 #define CMN600_MEMORY_REGION_TYPE_IO		0
@@ -950,7 +993,6 @@ cmn_id_t cmn600_max_tgt_nodes(void);
 void cmn600_cml_detect_mmap(void);
 int cmn600_cml_get_config(void);
 void cmn600_cml_set_config(void);
-void cmn600_cml_link_up(void);
 void cmn600_cml_enable_sf(void);
 void cmn600_cml_enable_dvm(void);
 uint64_t cmn600_cml_base(void);
@@ -959,7 +1001,6 @@ void cmn600_cml_init(void);
 #define cmn600_cml_detect_mmap()	do { } while (0)
 #define cmn600_cml_get_config()		(-ENODEV)
 #define cmn600_cml_set_config()		do { } while (0)
-#define cmn600_cml_link_up()		do { } while (0)
 #define cmn600_cml_enable_sf()		do { } while (0)
 #define cmn600_cml_enable_dvm()		do { } while (0)
 #define cmn600_cml_base()		0
