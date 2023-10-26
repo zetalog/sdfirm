@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Oct 19 15:23:11 2023
+# Thu Oct 26 17:44:03 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -204,8 +204,8 @@ CONFIG_K1MATRIX_BOOT=y
 # Bootloader options
 #
 CONFIG_K1MATRIX_BOOT_DDR=y
-CONFIG_K1MATRIX_SYSCO=y
 CONFIG_K1MATRIX_N100=y
+# CONFIG_K1MATRIX_PCIE is not set
 CONFIG_K1MATRIX_UART=y
 CONFIG_K1MATRIX_UART_CON0=y
 # CONFIG_K1MATRIX_UART_CON1 is not set
@@ -320,6 +320,8 @@ CONFIG_UART_115200=y
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
 # CONFIG_DDR is not set
+CONFIG_ARCH_HAS_PCI=y
+# CONFIG_PCI is not set
 # CONFIG_IOMMU is not set
 CONFIG_ARCH_HAS_FDT=y
 # CONFIG_FDT is not set
@@ -444,6 +446,7 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # PCI drivers
 #
+# CONFIG_DW_PCIE is not set
 
 #
 # RIO controller drivers

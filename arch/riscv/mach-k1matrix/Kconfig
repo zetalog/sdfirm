@@ -166,11 +166,6 @@ endmenu
 
 endif
 
-config K1MATRIX_SYSCO
-	bool "Enable CHI SYSCO interfaces"
-	depends SMP_BOOT && !SMP
-	depends K1MATRIX_N100
-
 config K1MATRIX_CPRINT
 	bool "K1Matrix C_Print simulation support"
 	depends !K1MATRIX_FPGA
