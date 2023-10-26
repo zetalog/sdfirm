@@ -53,13 +53,20 @@ if CMN600
 config ARCH_HAS_CMN600_CML
 	bool
 
+config CMN600_HNF_CAL
+	bool "Enable Component Aggregation Layer (CAL) mode on HN-F support"
+
 config CMN600_CML
 	bool "Enable Coherent Multichip Link (CML) support"
 	depends ARCH_HAS_CMN600_CML
 	select BIT_FLS64
 
-config CMN600_HNF_CAL
-	bool "Enable Component Aggregation Layer (CAL) mode on HN-F support"
+if CMN600_CML
+
+config CMN600_CML_TLP
+	bool "Enable PCIe TLP header support"
+
+endif
 
 config CMN600_DEBUG
 	bool "Enable register debugging"

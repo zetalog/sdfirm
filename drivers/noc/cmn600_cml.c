@@ -158,8 +158,160 @@ static void cmn_cml_setup_ra_sam_addr_region(void)
 	}
 }
 
-static void cmn_cml_start_ccix_link_up_seq(void)
+static bool cmn_cml_read_link_reg(uint8_t link_id, uint8_t type,
+				  uint64_t cond, bool ctl, bool set)
 {
+	uint64_t val1, val2;
+
+	switch (type) {
+	case CMN_MXP_CXRA:
+		if (ctl)
+			val1 = __raw_readq(
+				CMN_cxg_cxprtcl_link_ctl(CMN_CXRA_BASE,
+							 link_id));
+		else
+			val1 = __raw_readq(
+				CMN_cxg_cxprtcl_link_status(CMN_CXRA_BASE,
+							    link_id));
+		if (set)
+			return val1 & cond;
+		else
+			return !(val1 & cond);
+		break;
+
+	case CMN_MXP_CXHA:
+		if (ctl)
+			val1 = __raw_readq(
+				CMN_cxg_cxprtcl_link_ctl(CMN_CXHA_BASE,
+							 link_id));
+		else
+			val1 = __raw_readq(
+				CMN_cxg_cxprtcl_link_status(CMN_CXHA_BASE,
+							    link_id));
+		if (set)
+			return val1 & cond;
+		else
+			return !(val1 & cond);
+		break;
+
+	case CMN_MXP_CXRH:
+		if (ctl) {
+			val1 = __raw_readq(
+				CMN_cxg_cxprtcl_link_ctl(CMN_CXRA_BASE,
+							 link_id));
+			val2 = __raw_readq(
+				CMN_cxg_cxprtcl_link_ctl(CMN_CXHA_BASE,
+							 link_id));
+		} else {
+			val1 = __raw_readq(
+				CMN_cxg_cxprtcl_link_status(CMN_CXRA_BASE,
+							    link_id));
+			val2 = __raw_readq(
+				CMN_cxg_cxprtcl_link_status(CMN_CXHA_BASE,
+							    link_id));
+		}
+		if (set)
+			return (val1 & cond) && (val2 &cond);
+		else
+			return !(val1 & cond) && !(val2 & cond);
+		break;
+
+	default:
+		break;
+	}
+	return true;
+}
+
+static void cmn_cml_wait_link_ctl(uint8_t link_id, uint8_t type,
+				  uint64_t cond, bool set)
+{
+	while (!cmn_cml_read_link_reg(link_id, type, cond, true, set));
+}
+
+static void cmn_cml_wait_link_status(uint8_t link_id, uint8_t type,
+				     uint64_t cond, bool set)
+{
+	while (!cmn_cml_read_link_reg(link_id, type, cond, false, set));
+}
+
+static void cmn_cml_start_ccix_link(void)
+{
+	uint8_t max_pkt_size;
+
+	if (cml_link_id > 2)
+		return;
+
+#ifdef CONFIG_CMN600_CML_TLP
+	cmn_setq(CMN_la_pktheader, CMN_cxla_ccix_prop_configured(CMN_CXLA_BASE),
+		 "CMN_cxla_ccix_prop_configured", -1);
+#else
+	cmn_clearq(CMN_la_pktheader, CMN_cxla_ccix_prop_configured(CMN_CXLA_BASE),
+		   "CMN_cxla_ccix_prop_configured", -1);
+#endif
+
+	if (!cmn_ccix_no_message_pack())
+		cmn_clearq(CMN_la_nomessagepack,
+			   CMN_cxla_ccix_prop_configured(CMN_CXLA_BASE),
+			   "CMN_cxla_ccix_prop_configured", -1);
+	max_pkt_size = cmn_ccix_max_packet_size();
+	cmn_writeq_mask(CMN_la_maxpacketsize(max_pkt_size),
+			CMN_la_maxpacketsize(CMN_la_maxpacketsize_MASK),
+			CMN_cxla_ccix_prop_configured(CMN_CXLA_BASE),
+                        "CMN_cxla_ccix_prop_configured", -1);
+
+	cmn_writeq_mask(CMN_link_pcie_bdf(cml_link_id, cml_pcie_bus_num),
+			CMN_link_pcie_bdf(cml_link_id, CMN_link_pcie_bdf_MASK),
+			CMN_cxla_linkid_to_pcie_bus_num(CMN_CXLA_BASE,
+							cml_link_id),
+			"CMN_cxla_linkid_to_pcie_bus_num", cml_link_id);
+
+	/* Set up TC1 for PCIe so CCIx uses VC1. */
+	cmn_writeq_mask(CMN_tlp_vendor(CCIX_VENDOR_ID) |
+			CMN_tlp_tc(cml_pcie_tlp_tc),
+			CMN_tlp_vendor(CMN_tlp_vendor_MASK) |
+			CMN_tlp_tc(CMN_tlp_tc_MASK),
+			CMN_cxla_tlp_hdr_fields(CMN_CXLA_BASE),
+			"CMN_cxla_tlp_hdr_fields", -1);
+	con_dbg(CMN_MODNAME ": PCIe TLP header: %016llx\n",
+		__raw_readq(CMN_cxla_tlp_hdr_fields(CMN_CXLA_BASE)));
+
+	con_dbg(CMN_MODNAME ": Enabling CCIX %d...\n", cml_link_id);
+	cmn_writeq(CMN_lnk_link_en,
+		   CMN_cxg_cxprtcl_link_ctl(CMN_CXRA_BASE, cml_link_id),
+		   "CMN_cxg_ra_cxprtcl_link_ctl", cml_link_id);
+	cmn_writeq(CMN_lnk_link_en,
+		   CMN_cxg_cxprtcl_link_ctl(CMN_CXHA_BASE, cml_link_id),
+		   "CMN_cxg_ha_cxprtcl_link_ctl", cml_link_id);
+	cmn_cml_wait_link_ctl(cml_link_id, CMN_MXP_CXRH,
+			      CMN_lnk_link_en, true);
+	cmn_cml_wait_link_ctl(cml_link_id, CMN_MXP_CXRH,
+			      CMN_lnk_link_up, false);
+	cmn_cml_wait_link_status(cml_link_id, CMN_MXP_CXRH,
+				 CMN_lnk_link_down, true);
+	cmn_cml_wait_link_status(cml_link_id, CMN_MXP_CXRH,
+				 CMN_lnk_link_ack, false);
+
+	con_dbg(CMN_MODNAME ": Requesting CCIX %d...\n", cml_link_id);
+	cmn_writeq(CMN_lnk_link_req,
+		   CMN_cxg_cxprtcl_link_ctl(CMN_CXRA_BASE, cml_link_id),
+		   "CMN_cxg_ra_cxprtcl_link_ctl", cml_link_id);
+	cmn_writeq(CMN_lnk_link_req,
+		   CMN_cxg_cxprtcl_link_ctl(CMN_CXHA_BASE, cml_link_id),
+		   "CMN_cxg_ha_cxprtcl_link_ctl", cml_link_id);
+	cmn_cml_wait_link_status(cml_link_id, CMN_MXP_CXRH,
+				 CMN_lnk_link_ack, true);
+	cmn_cml_wait_link_status(cml_link_id, CMN_MXP_CXRH,
+				 CMN_lnk_link_down, false);
+
+	con_dbg(CMN_MODNAME ": Bringing up CCIX %d...\n", cml_link_id);
+	cmn_setq(CMN_lnk_link_up,
+		 CMN_cxg_cxprtcl_link_ctl(CMN_CXRA_BASE, cml_link_id),
+		 "CMN_cxg_ra_cxprtcl_link_ctl", cml_link_id);
+	cmn_setq(CMN_lnk_link_up,
+		 CMN_cxg_cxprtcl_link_ctl(CMN_CXHA_BASE, cml_link_id),
+		 "CMN_cxg_ha_cxprtcl_link_ctl", cml_link_id);
+	cmn_cml_wait_link_ctl(cml_link_id, CMN_MXP_CXRH,
+			      CMN_lnk_link_up, true);
 }
 
 static void cmn_cml_setup(void)
@@ -311,7 +463,7 @@ static void cmn_cml_setup(void)
 	}
 
 	cmn_cml_setup_ra_sam_addr_region();
-	cmn_cml_start_ccix_link_up_seq();
+	cmn_cml_start_ccix_link();
 }
 
 void cmn600_cml_set_config(void)
@@ -327,19 +479,6 @@ void cmn600_cml_set_config(void)
 	}
 }
 
-void cmn600_cml_link_up(void)
-{
-	if (cml_link_id > 2)
-		return;
-
-	cmn_setq(CMN_lnk_link_up,
-		 CMN_cxg_cxprtcl_link_ctl(CMN_CXRA_BASE, cml_link_id),
-		 "CMN_cxg_ra_cxprtcl_link_ctl", cml_link_id);
-	cmn_setq(CMN_lnk_link_up,
-		 CMN_cxg_cxprtcl_link_ctl(CMN_CXHA_BASE, cml_link_id),
-		 "CMN_cxg_ha_cxprtcl_link_ctl", cml_link_id);
-}
-
 void cmn600_cml_enable_sf(void)
 {
 	if (cml_link_id > 2)
@@ -348,8 +487,8 @@ void cmn600_cml_enable_sf(void)
 	cmn_setq(CMN_lnk_snoopdomain_req,
 		 CMN_cxg_cxprtcl_link_ctl(CMN_CXHA_BASE, cml_link_id),
 		 "CMN_cxg_ha_cxprtcl_link_ctl", cml_link_id);
-	while (!(__raw_readq(CMN_cxg_cxprtcl_link_status(CMN_CXHA_BASE, cml_link_id)) &
-	         CMN_lnk_snoopdomain_ack));
+	cmn_cml_wait_link_status(cml_link_id, CMN_MXP_CXHA,
+				 CMN_lnk_snoopdomain_ack, true);
 }
 
 void cmn600_cml_enable_dvm(void)
@@ -360,8 +499,8 @@ void cmn600_cml_enable_dvm(void)
 	cmn_setq(CMN_lnk_dvmdomain_req,
 		 CMN_cxg_cxprtcl_link_ctl(CMN_CXRA_BASE, cml_link_id),
 		 "CMN_cxg_ra_cxprtcl_link_ctl", cml_link_id);
-	while (!(__raw_readq(CMN_cxg_cxprtcl_link_status(CMN_CXRA_BASE, cml_link_id)) &
-	         CMN_lnk_dvmdomain_ack));
+	cmn_cml_wait_link_status(cml_link_id, CMN_MXP_CXRA,
+				 CMN_lnk_dvmdomain_ack, true);
 }
 
 void cmn600_cml_detect_mmap(void)
@@ -388,7 +527,6 @@ void cmn600_cml_init(void)
 	if (ret < 0)
 		return;
 	cmn600_cml_set_config();
-	cmn600_cml_link_up();
 	cmn600_cml_enable_sf();
 	cmn600_cml_enable_dvm();
 }
