@@ -94,7 +94,9 @@
 #define L2S_SMP(cpu)	(_AC(0x1, UL) << (cpu)) /* snoop enable */
 #define L2S_ECC		_AC(0x00000100, UL) /* ECC enable */
 #define L2S_PAE		_AC(0x00000200, UL) /* partition enable */
-#define L2S_IPRF	_AC(0x00030000, UL) /* I-cache prefetch */
+#define L2S_IPRF_1L	_AC(0x00010000, UL) /* I-cache prefetch 1 cache line */
+#define L2S_IPRF_2L	_AC(0x00020000, UL) /* I-cache prefetch 2 cache line */
+#define L2S_IPRF_3L	_AC(0x00030000, UL) /* I-cache prefetch 3 cache line */
 #define L2S_TPRF	_AC(0x00040000, UL) /* TLB prefetch */
 
 /* ML2BUSERR */
@@ -121,7 +123,7 @@
 	and	t1, t1, (CPUS_PER_CLUSTER - 1)
 	li	t0, 1
 	sllw	t0, t0, t1
-	li	t1, L2S_PAE | L2S_IPRF | L2S_TPRF
+	li	t1, L2S_PAE | L2S_IPRF_1L | L2S_TPRF
 	or	t0, t0, t1
 #ifdef CONFIG_SPACEMIT_RAS
 	or	t0, t0, L2S_ECC
