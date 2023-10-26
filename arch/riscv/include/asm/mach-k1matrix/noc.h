@@ -77,7 +77,6 @@ extern struct cmn600_ccix_ha_mmap cml_ha_mmap_table_remote[];
 extern cmn_id_t cml_ha_mmap_count_remote;
 
 void k1matrix_n100_init(void);
-void k1matrix_n100_smp_init(void);
 void k1matrix_n100_d2d_init(void);
 #else
 #define k1matrix_n100_init()		do { } while (0)
