@@ -70,7 +70,8 @@ extern cmn_id_t cml_link_id;
 extern cmn_id_t cml_rnf_count_remote;
 extern cmn_id_t cml_sa_count_remote;
 extern cmn_id_t cml_ha_count_remote;
-extern cmn_id_t cml_pcie_bus_num;
+extern uint8_t cml_pcie_bus_num;
+extern uint8_t cml_pcie_tlp_tc;
 
 extern struct cmn600_ccix_ha_mmap cml_ha_mmap_table_remote[];
 extern cmn_id_t cml_ha_mmap_count_remote;
