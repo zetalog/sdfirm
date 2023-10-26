@@ -756,12 +756,12 @@ typedef uint8_t cmn_did_t;
 #define CMN_la_cachelinesize				_BV_ULL(2)
 #define CMN_la_addrwidth_OFFSET				3
 #define CMN_la_addrwidth_MASK				REG_3BIT_MASK
-#define CMN_la_addrwidth(value)				_GET_FV_ULL(CMN_la_addrwidth, value)
-#define CMN_LA_ADDRWIDTH(value)				_SET_FV_ULL(CMN_la_addrwidth, value)
+#define CMN_la_addrwidth(value)				_SET_FV_ULL(CMN_la_addrwidth, value)
+#define CMN_LA_ADDRWIDTH(value)				_GET_FV_ULL(CMN_la_addrwidth, value)
 #define CMN_la_pktheader				_BV_ULL(6)
 #define CMN_la_maxpacketsize_OFFSET			7
 #define CMN_la_maxpacketsize_MASK			REG_3BIT_MASK
-#define CMN_la_maxpacketsize(value)			_GET_FV_ULL(CMN_la_maxpacketsize, value)
+#define CMN_la_maxpacketsize(value)			_SET_FV_ULL(CMN_la_maxpacketsize, value)
 #define CMN_LA_MAXPACKETSIZE(value)			_GET_FV_ULL(CMN_la_maxpacketsize, value)
 #define CMN_la_nomessagepack				_BV_ULL(10)
 
@@ -774,7 +774,7 @@ typedef uint8_t cmn_did_t;
 #define CMN_reg_size(value)				_SET_FV_ULL(CMN_reg_size, value)
 #define CMN_reg_base_addr_OFFSET			16
 #define CMN_reg_base_addr_MASK				REG_32BIT_MASK
-#define CMN_reg_base_addr(value)			_SET_FV_ULL(cmn_reg_base_addr, value)
+#define CMN_reg_base_addr(value)			_SET_FV_ULL(CMN_reg_base_addr, value)
 #define CMN_reg_ha_tgtid_OFFSET				52
 #define CMN_reg_ha_tgtid_MASK				REG_5BIT_MASK
 #define CMN_reg_ha_tgtid(value)				_SET_FV_ULL(CMN_reg_ha_tgtid, value)
@@ -881,32 +881,32 @@ typedef uint8_t cmn_did_t;
 #define CMN600_REGION_TYPE_SYSCACHE_NONHASH	4
 
 #ifdef CONFIG_CMN600_DEBUG
-void cmn_writeq(uint64_t v, caddr_t a);
-#define cmn_setq(v,a)					\
+void cmn_writeq(uint64_t v, caddr_t a, const char *n, int i);
+#define cmn_setq(v,a,n,i)				\
 	do {						\
 		uint64_t __v = __raw_readq(a);		\
 		__v |= (v);				\
-		cmn_writeq(__v, (a));			\
+		cmn_writeq(__v, (a), (n), (i));		\
 	} while (0)
-#define cmn_clearq(v,a)					\
+#define cmn_clearq(v,a,n,i)				\
 	do {						\
 		uint64_t __v = __raw_readq(a);		\
 		__v &= ~(v);				\
-		cmn_writeq(__v, (a));			\
+		cmn_writeq(__v, (a), (n), (i));		\
 	} while (0)
-#define cmn_writeq_mask(v,m,a)				\
+#define cmn_writeq_mask(v,m,a,n,i)			\
 	do {						\
 		uint64_t __v = __raw_readq(a);		\
 		__v &= ~(m);				\
 		__v |= (v);				\
-		cmn_writeq(__v, (a));			\
+		cmn_writeq(__v, (a), (n), (i));		\
 	} while (0)
 #else
 #define cmn_debug_init()		do { } while (0)
-#define cmn_writeq(v,a)			__raw_writeq(v,a)
-#define cmn_setq(v,a)			__raw_setq(v,a)
-#define cmn_clearq(v,a)			__raw_clearq(v,a)
-#define cmn_writeq_mask(v,m,a)		__raw_writeq_mask(v,m,a)
+#define cmn_writeq(v,a,n,i)		__raw_writeq(v,a)
+#define cmn_setq(v,a,n,i)		__raw_setq(v,a)
+#define cmn_clearq(v,a,n,i)		__raw_clearq(v,a)
+#define cmn_writeq_mask(v,m,a,n,i)	__raw_writeq_mask(v,m,a)
 #endif
 
 struct cmn600_memregion {
