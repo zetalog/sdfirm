@@ -327,6 +327,43 @@ void cmn600_cml_set_config(void)
 	}
 }
 
+void cmn600_cml_link_up(void)
+{
+	if (cml_link_id > 2)
+		return;
+
+	cmn_setq(CMN_lnk_link_up,
+		 CMN_cxg_cxprtcl_link_ctl(CMN_CXRA_BASE, cml_link_id),
+		 "CMN_cxg_ra_cxprtcl_link_ctl", cml_link_id);
+	cmn_setq(CMN_lnk_link_up,
+		 CMN_cxg_cxprtcl_link_ctl(CMN_CXHA_BASE, cml_link_id),
+		 "CMN_cxg_ha_cxprtcl_link_ctl", cml_link_id);
+}
+
+void cmn600_cml_enable_sf(void)
+{
+	if (cml_link_id > 2)
+		return;
+
+	cmn_setq(CMN_lnk_snoopdomain_req,
+		 CMN_cxg_cxprtcl_link_ctl(CMN_CXHA_BASE, cml_link_id),
+		 "CMN_cxg_ha_cxprtcl_link_ctl", cml_link_id);
+	while (!(__raw_readq(CMN_cxg_cxprtcl_link_status(CMN_CXHA_BASE, cml_link_id)) &
+	         CMN_lnk_snoopdomain_ack));
+}
+
+void cmn600_cml_enable_dvm(void)
+{
+	if (cml_link_id > 2)
+		return;
+
+	cmn_setq(CMN_lnk_dvmdomain_req,
+		 CMN_cxg_cxprtcl_link_ctl(CMN_CXRA_BASE, cml_link_id),
+		 "CMN_cxg_ra_cxprtcl_link_ctl", cml_link_id);
+	while (!(__raw_readq(CMN_cxg_cxprtcl_link_status(CMN_CXRA_BASE, cml_link_id)) &
+	         CMN_lnk_dvmdomain_ack));
+}
+
 void cmn600_cml_detect_mmap(void)
 {
 	unsigned int region_index;
@@ -351,4 +388,7 @@ void cmn600_cml_init(void)
 	if (ret < 0)
 		return;
 	cmn600_cml_set_config();
+	cmn600_cml_link_up();
+	cmn600_cml_enable_sf();
+	cmn600_cml_enable_dvm();
 }
