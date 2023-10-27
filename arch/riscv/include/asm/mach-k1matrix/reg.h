@@ -49,8 +49,8 @@ extern unsigned long k1matrix_die_base;
 #define DIE0_BASE		ULL(0x0000000000)
 #define DIE1_BASE		ULL(0x8000000000)
 
-/* SYS SUB */
-#define SYS_IO_BASE		ULL(0x0000000000)
+/* SYS_IO global SUB */
+#define SYS_IO_GLOBAL_BASE	ULL(0x0000000000)
 #define TIMER0_BASE		ULL(0x0000000000)
 #define TIMER1_BASE		ULL(0x0000004000)
 #define UART0_BASE		ULL(0x0000008000)
@@ -82,6 +82,8 @@ extern unsigned long k1matrix_die_base;
 #define SRAM1_BASE		ULL(0x0110080000)
 /* DDR SUB */
 #define DDR_BASE		ULL(0x0200000000)
+/* SYS_IO lobal SUB */
+#define SYS_IO_LOCAL_BASE	ULL(0x0F00000000)
 /* GMAC SUB */
 #define GMAC_BASE		ULL(0x0F00100000)
 #define SYSCTL_BASE		ULL(0x0F00110000)
