@@ -53,53 +53,74 @@ cmn_id_t cmn_sa_count = 0;
 
 struct cmn600_memregion cmn_mmap_table[] = {
 	{
-		.base = SYS_IO_BASE,
+		.base = SYS_IO_GLOBAL_BASE,
 		.size = SZ_2G,
 		.type = CMN600_MEMORY_REGION_TYPE_IO,
-		.node_id = 0
-	},
-	{
-		.base = PCIE0_SLV_DEV_BASE,
-		.size = SZ_128M,
-		.type = CMN600_MEMORY_REGION_TYPE_IO,
-		.node_id = 36
-	},
-	{
-		.base = PCIE1_SLV_DEV_BASE,
-		.size = SZ_128M,
-		.type = CMN600_MEMORY_REGION_TYPE_IO,
-		.node_id = 72
+		.node_id = 0,
 	},
 	{
 		.base = PCIE0_SLV_MEM_BASE,
 		.size = SZ_128M,
 		.type = CMN600_MEMORY_REGION_TYPE_IO,
-		.node_id = 36
+		.node_id = 36,
 	},
 	{
 		.base = PCIE1_SLV_MEM_BASE,
-		.size = SZ_128M,
+		.size = SZ_256M,
 		.type = CMN600_MEMORY_REGION_TYPE_IO,
-		.node_id = 72
+		.node_id = 72,
 	},
 	{
 		.base = SRAM0_BASE,
 		.size = SZ_128M,
 		.type = CMN600_MEMORY_REGION_TYPE_IO,
-		.node_id = 0
+		.node_id = 0,
 	},
 	{
-		.base = GMAC_BASE,
+		.base = SYS_IO_LOCAL_BASE,
 		.size = SZ_4G,
 		.type = CMN600_MEMORY_REGION_TYPE_IO,
-		.node_id = 0
+		.node_id = 0,
 	},
+	{
+		.base = PCIE0_SLV_DEV_BASE,
+		.size = SZ_128M,
+		.type = CMN600_MEMORY_REGION_TYPE_IO,
+		.node_id = 36,
+	},
+	{
+		.base = PCIE1_SLV_DEV_BASE,
+		.size = SZ_128M,
+		.type = CMN600_MEMORY_REGION_TYPE_IO,
+		.node_id = 72,
+	},
+#if 1
 	{
 		.base = DDR_BASE,
 		.size = SZ_4G,
 		.type = CMN600_MEMORY_REGION_TYPE_SYSCACHE,
-		.node_id = 32
+		.node_id = 32,
+	},
+#else
+	{
+		.base = 0,
+		.size = SZ_64G,
+		.type = CMN600_MEMORY_REGION_TYPE_SYSCACHE,
+		.node_id = 12,
+	},
+	{
+		.base = 0,
+		.size = SZ_64G,
+		.type = CMN600_MEMORY_REGION_TYPE_SYSCACHE,
+		.node_id = 44,
+	},
+	{
+		.base = DDR_BASE,
+		.size = SZ_4G,
+		.type = CMN600_MEMORY_REGION_TYPE_SYSCACHE_SUB,
+		.node_id = 32,
 	}
+#endif
 };
 cmn_id_t cmn_mmap_count = ARRAY_SIZE(cmn_mmap_table);
 
@@ -116,9 +137,16 @@ uint8_t cml_pcie_tlp_tc = 0;
 
 struct cmn600_ccix_ha_mmap cml_ha_mmap_table_remote[] = {
 	{
+		/* The region covers SYS_IO_GLOBAL/PCIE0_SLV_DEV/PCIE0_MEM_DEV */
 		0,
-		.base = SYS_IO_BASE,
-		.size = SZ_2G,
+		.base = SYS_IO_GLOBAL_BASE,
+		.size = SZ_4G,
+	},
+	{
+		/* The region covers PCIE0_MEM_DEV/PCIE1_MEM_DEV */
+		0,
+		.base = PCIE0_SLV_DEV_BASE,
+		.size = SZ_256M,
 	},
 	{
 		0,
