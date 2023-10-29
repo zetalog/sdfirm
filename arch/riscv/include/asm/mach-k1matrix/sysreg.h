@@ -91,6 +91,9 @@
 #define GMAC_DMA_RESET		_BV(2)
 
 /* EFUSE_INFO_REG0 */
+#define CPU_CORE_VLD(n)		_BV(n)
+
+/* EFUSE_INFO_REG1 */
 #define DIE_ID			_BV(5)
 #define BOOTHART_OFFSET		0
 #define BOOTHART_MASK		REG_5BIT_MASK

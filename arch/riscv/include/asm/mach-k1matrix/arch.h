@@ -49,6 +49,7 @@
 #include <asm/mach/cpus.h>
 #include <asm/x100.h>
 #include <asm/mach/sysreg.h>
+#include <asm/mach/d2d.h> /* D2D ROM registers */
 
 #if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
 	.macro	boot0_hook
