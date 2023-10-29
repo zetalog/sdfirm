@@ -66,7 +66,7 @@ struct cmn600_memregion cmn_mmap_table[] = {
 	},
 	{
 		.base = PCIE1_SLV_MEM_BASE,
-		.size = SZ_256M,
+		.size = SZ_128M,
 		.type = CMN600_MEMORY_REGION_TYPE_IO,
 		.node_id = 72,
 	},
@@ -83,13 +83,13 @@ struct cmn600_memregion cmn_mmap_table[] = {
 		.node_id = 0,
 	},
 	{
-		.base = PCIE0_SLV_DEV_BASE,
+		.base = PCIE0_SLV_CFG_BASE,
 		.size = SZ_128M,
 		.type = CMN600_MEMORY_REGION_TYPE_IO,
 		.node_id = 36,
 	},
 	{
-		.base = PCIE1_SLV_DEV_BASE,
+		.base = PCIE1_SLV_CFG_BASE,
 		.size = SZ_128M,
 		.type = CMN600_MEMORY_REGION_TYPE_IO,
 		.node_id = 72,
@@ -143,9 +143,9 @@ struct cmn600_ccix_ha_mmap cml_ha_mmap_table_remote[] = {
 		.size = SZ_4G,
 	},
 	{
-		/* The region covers PCIE0_MEM_DEV/PCIE1_MEM_DEV */
+		/* The region covers PCIE0_MEM/PCIE1_MEM */
 		0,
-		.base = PCIE0_SLV_DEV_BASE,
+		.base = PCIE0_SLV_MEM_BASE,
 		.size = SZ_256M,
 	},
 	{
