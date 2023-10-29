@@ -137,7 +137,7 @@ uint8_t cml_pcie_tlp_tc = 0;
 
 struct cmn600_ccix_ha_mmap cml_ha_mmap_table_remote[] = {
 	{
-		/* The region covers SYS_IO_GLOBAL/PCIE0_SLV_DEV/PCIE0_MEM_DEV */
+		/* The region covers SYS_IO_GLOBAL/PCIE0_CFG/PCIE1_CFG */
 		0,
 		.base = SYS_IO_GLOBAL_BASE,
 		.size = SZ_4G,
