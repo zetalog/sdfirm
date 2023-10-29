@@ -516,16 +516,16 @@ typedef uint8_t cmn_did_t;
 /* CMN_rnsam_sys_cache_grp_cal_mode */
 #define CMN_scg_hnf_cal_mode_en(n)	(_BV_ULL(0) << ((n) << 4))
 
-/* CMN_rnsam_sys_cache_grp_region
- * CMN_rnsam_non_hash_mem_region
- */
+/* CMN_rnsam_sys_cache_grp_region */
+#define CMN_region_nonhash_reg_en	_BV_ULL(1)
 #define CMN_region_OFFSET(n)		REG64_32BIT_OFFSET(n)
 #define CMN_region_MASK			REG_32BIT_MASK
 #define CMN_region(n, value)		_SET_FV_ULLn(n, CMN_region, value)
 
-/* CMN_rnsam_sys_cache_grp_region */
+/* CMN_rnsam_sys_cache_grp_region
+ * CMN_rnsam_non_hash_mem_region
+ */
 #define CMN_region_valid		_BV_ULL(0)
-#define CMN_region_nonhash_reg_en	_BV_ULL(1)
 #define CMN_region_target_type_OFFSET	2
 #define CMN_region_target_type_MASK	REG_2BIT_MASK
 #define CMN_region_target_type(value)	_SET_FV_ULL(CMN_region_target_type, value)
