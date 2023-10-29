@@ -158,13 +158,13 @@ static void cmn_debug_init(void)
 
 void cmn_writeq(uint64_t v, caddr_t a, const char *n, int i)
 {
-	__raw_writeq(v, a);
 	if (i < 0)
 		con_dbg(CMN_MODNAME ": %016llx=%016llx %s\n",
 			(uint64_t)a, v, n);
 	else
 		con_dbg(CMN_MODNAME ": %016llx=%016llx %s%d\n",
 			(uint64_t)a, v, n, i);
+	__raw_writeq(v, a);
 }
 #endif
 
