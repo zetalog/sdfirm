@@ -601,12 +601,12 @@ static void cmn600_setup_sam(caddr_t rnsam)
 
 	for (region_index = 0; region_index < cmn_mmap_count; region_index++) {
 		region = &cmn_mmap_table[region_index];
-		if (region->type == CMN600_REGION_TYPE_CCIX)
-			base = 0;
-		else if (region->type == CMN600_MEMORY_REGION_TYPE_SYSCACHE)
+		if (region->type == CMN600_MEMORY_REGION_TYPE_SYSCACHE)
 			base = region->base;
+		else if (region->type == CMN600_REGION_TYPE_CCIX)
+			base = region->base - cmn600_cml_base();
 		else
-			base = cmn600_cml_base() + region->base;
+			base = region->base + cmn600_cml_base();
 
 		con_dbg(CMN_MODNAME ": %s: RN SAM %d: ID: %d, [%016llx - %016llx]\n",
 			cmn600_mem_region_name(region->type), region_index,
