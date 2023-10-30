@@ -162,11 +162,9 @@ cmn_id_t cmn_mmap_count = ARRAY_SIZE(cmn_mmap_table);
  * =========================================================================== */
 cmn_id_t cml_link_id = 0;
 cmn_id_t cml_rnf_count_remote = 2;
-cmn_id_t cml_sa_count_remote = 0;
-cmn_id_t cml_ha_count_remote = 1;
 /* PCIe bus# */
-uint8_t cml_pcie_bus_num = 0;
-uint8_t cml_pcie_tlp_tc = 0;
+uint8_t cml_pcie_bus_num = CMN_pcie_bdf(0, 0, 0);
+uint8_t cml_pcie_tlp_tc = 1;
 
 struct cmn600_ccix_ha_mmap cml_ha_mmap_table_remote[] = {
 	{
