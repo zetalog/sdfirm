@@ -52,7 +52,7 @@ cmn_id_t cmn_snf_count = ARRAY_SIZE(cmn_snf_table);
 cmn_id_t cmn_sa_count = 0;
 
 struct cmn600_memregion cmn_mmap_table[] = {
-#ifdef CONFIG_CMN100_SAM_RANGE_BASED
+#ifdef CONFIG_CMN600_SAM_RANGE_BASED
 	{
 		.base = 0,
 		.size = SZ_512G,
@@ -101,7 +101,7 @@ struct cmn600_memregion cmn_mmap_table[] = {
 		.type = CMN600_MEMORY_REGION_TYPE_IO,
 		.node_id = 0,
 	},
-#ifdef CONFIG_CMN100_CML
+#ifdef CONFIG_CMN600_CML
 	/* Non-hased region 5 SYS I/O, PCIe0 MMIO DEV, PCIe1 MMIO DEV (remote) */
 	{
 		.base = DIE1_BASE + SYS_IO_GLOBAL_BASE,
@@ -139,7 +139,7 @@ struct cmn600_memregion cmn_mmap_table[] = {
 		.node_id = 72,
 	},
 	/* system cache group 0 DDR (local) */
-#ifdef CONFIG_CMN100_SAM_RANGE_BASED
+#ifdef CONFIG_CMN600_SAM_RANGE_BASED
 	{
 		.base = DDR_BASE,
 		.size = SZ_4G,
