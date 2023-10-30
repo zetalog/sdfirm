@@ -67,10 +67,6 @@ uint64_t cmn600_cml_base(void)
 		return 0;
 }
 
-static void cmn_cml_get_caps(void)
-{
-}
-
 int cmn600_cml_get_config(void)
 {
 	if (cmn_rn_sam_int_count == 0)
