@@ -106,21 +106,21 @@ struct cmn600_memregion cmn_mmap_table[] = {
 	{
 		.base = DIE1_BASE + SYS_IO_GLOBAL_BASE,
 		.size = SZ_4G,
-		.type = CMN600_REGION_TYPE_CCIX;
+		.type = CMN600_REGION_TYPE_CCIX,
 		.node_id = 64,
 	},
 	/* Non-hased region 6 PCIe0 MMIO, PCIe1 MMIO (remote) */
 	{
 		.base = DIE1_BASE + PCIE0_SLV_MEM_BASE,
 		.size = SZ_256M,
-		.type = CMN600_REGION_TYPE_CCIX;
+		.type = CMN600_REGION_TYPE_CCIX,
 		.node_id = 64,
 	},
 	/* Non-hashed region 7 DDR (remote) */
 	{
 		.base = DIE1_BASE + DDR_BASE,
 		.size = SZ_4G,
-		.type = CMN600_REGION_TYPE_CCIX;
+		.type = CMN600_REGION_TYPE_CCIX,
 		.node_id = 64,
 	},
 #endif
