@@ -74,7 +74,6 @@ int cmn600_cml_get_config(void)
 
 	ccix_ra_count = cmn_rn_sam_int_count + cmn_rn_sam_ext_count;
 	ccix_sa_count = cmn_sa_count;
-	cmn_cml_get_caps();
 
 	return 0;
 }
