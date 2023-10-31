@@ -417,7 +417,7 @@ static void cmn_cml_setup(void)
 	}
 
 	for (i = 0; i < cmn_rnd_count; i++) {
-		rnd_ldid = cmn_logical_id(cmn_rnd_ids[i]);
+		rnd_ldid = cmn_logical_id(__CMN_RND_BASE(i));
 
 		/* Determine agentid of the remote agents */
 		agent_id = raid + offset_id;
@@ -438,7 +438,7 @@ static void cmn_cml_setup(void)
 	}
 
 	for (i = 0; i < cmn_rni_count; i++) {
-		rni_ldid = cmn_logical_id(cmn_rni_ids[i]);
+		rni_ldid = cmn_logical_id(__CMN_RNI_BASE(i));
 
 		/* Determine agentid of the remote agents */
 		agent_id = raid + offset_id;
