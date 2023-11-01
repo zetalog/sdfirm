@@ -393,7 +393,7 @@ static void cmn_cml_setup(void)
 							    remote_agent_id),
 				"CMN_cxg_ha_rnf_raid_to_ldid",
 				remote_agent_id);
-		cmn_setq(CMN_raid_ldid_valid(raid_ldid),
+		cmn_setq(CMN_raid_ldid_valid(remote_agent_id),
 			 CMN_cxg_ha_rnf_raid_to_ldid_val(CMN_CXHA_BASE),
 			 "CMN_cxg_ha_rnf_raid_to_ldid_val", -1);
 
