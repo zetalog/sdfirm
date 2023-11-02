@@ -132,7 +132,6 @@ endif
 
 config K1MATRIX_D2D
 	bool "Enable die2die link support"
-	select K1MATRIX_PCIE
 
 config K1MATRIX_DDR_SIZE_CUSTOM
 	bool "Enable customized DRAM size"
@@ -145,6 +144,7 @@ config K1MATRIX_DDR_SIZE
 config K1MATRIX_BOOT
 	bool
 	select K1MATRIX_N100
+	select K1MATRIX_PCIE if K1MATRIX_D2D
 
 if K1MATRIX_BOOT
 
