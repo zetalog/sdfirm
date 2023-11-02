@@ -66,6 +66,21 @@ if CMN600_CML
 config CMN600_CML_TLP
 	bool "Enable PCIe TLP header support"
 
+config CMN600_CML_RA_RAID_NO_CXRA
+	bool "Enable counting CXRA as agent ID"
+	help
+	  According to silicon verification, CXRA needn't be assigned of
+	  an agent ID. However, this is the default behavior according to
+	  ARM reference driver.
+
+config CMN600_CML_HA_RAID_RNF_LOCAL
+	bool "Enable programming local RN-F agent IDs"
+	help
+	  According to silicon verification, not only remote RN-F but also
+	  local RN-F should be programmed to CMN_cxg_ha_rnf_raid_to_ldid
+	  with RNF feild filling with 0.
+	  However, ARM reference driver never fills such entries.
+
 endif
 
 config CMN600_DEBUG
