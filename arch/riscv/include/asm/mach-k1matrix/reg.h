@@ -48,6 +48,8 @@ extern unsigned long k1matrix_die_base;
 
 #define DIE0_BASE		ULL(0x0000000000)
 #define DIE1_BASE		ULL(0x8000000000)
+#define __DIE_BASE(die)		((uint64_t)(die) << 39)
+#define DIE_BASE		k1matrix_die_base
 
 /* SYS_IO global SUB */
 #define SYS_IO_GLOBAL_BASE	ULL(0x0000000000)

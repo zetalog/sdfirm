@@ -53,6 +53,25 @@
 unsigned long k1matrix_die_base = DIE0_BASE;
 unsigned long k1matrix_die_hart = DIE0_HART;
 
+#ifdef CONFIG_K1MATRIX_D2D
+void k1matrix_die_init(void)
+{
+	/* NOTE: Boot Core Specific Code in SBI Dual
+	 *
+	 * Even if a boot core is booting from socket 1, we still need the
+	 * SBI to prompt from socket 0. Thus the following logic is not
+	 * boot core bug free. It assumes that the code is always executed
+	 * by a socket 0 boot core in the SBI dual-socket evironment.
+	 */
+	if (sysreg_die_id() == 1) {
+		k1matrix_die_base = DIE1_BASE;
+		k1matrix_die_hart = DIE1_HART;
+	}
+}
+#else
+#define k1matrix_die_init()		do { } while (0)
+#endif
+
 #ifdef CONFIG_K1MATRIX_BOOT_DDR
 void board_boot_ddr(void)
 {
@@ -87,6 +106,7 @@ void board_late_init(void)
 	k1matrix_n100_init();
 	pcie_ccix_linkup();
 	k1matrix_n100_d2d_init();
+	k1matrix_die_init();
 
 	board_boot();
 }
