@@ -327,6 +327,7 @@ static void cmn600_process_hnf(caddr_t hnf)
 
 	base = cmn600_cml_base();
 
+#ifdef CONFIG_CMN600_SAM_RANGE_BASED
 	for (region_index = 0; region_index < cmn_mmap_count; region_index++) {
 		region = &cmn_mmap_table[region_index];
 
@@ -348,6 +349,7 @@ static void cmn600_process_hnf(caddr_t hnf)
 
 		region_sub_count++;
 	}
+#endif
 
 	cmn_writeq(CMN_ppu_policy(CMN_ppu_policy_ON) |
 		   CMN_ppu_op_mode(CMN_ppu_op_mode_FAM) |
@@ -702,12 +704,14 @@ static void cmn600_setup_sam(caddr_t rnsam)
 
 	cmn_hnf_cal_apply_scg(rnsam);
 
+#ifndef CONFIG_CMN600_SAM_RANGE_BASED
 	for (snf = 0; snf < cmn_snf_count; snf++) {
 		cmn_writeq_mask(CMN_nodeid(snf, cmn_snf_table[snf]),
 				CMN_nodeid(snf, CMN_nodeid_MASK),
 			        CMN_rnsam_sys_cache_grp_sn_nodeid(rnsam, snf),
 				"CMN_rnsam_sys_cache_grp_sn_nodeid", snf);
 	}
+#endif
 
 	cmn_writeq(CMN_sam_nstall_req(CMN_sam_unstall_req),
 		   CMN_rnsam_status(rnsam),
