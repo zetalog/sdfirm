@@ -179,6 +179,19 @@ menuconfig K1MATRIX_N100
 	select CMN600_CML if K1MATRIX_D2D
 	depends ARCH_HAS_NOC
 
+if K1MATRIX_N100
+
+config K1MTRIX_N100_DV
+	bool "Enable design verified process"
+	depends K1MATRIX_D2D
+	select CMN600_CML_RA_RAID_NO_CXRA
+	select CMN600_CML_HA_RAID_RNF_LOCAL
+	help
+	  By default, ARM referenced driver will be used. Selecting this
+	  to enable SpacemiT design verified process.
+
+endif
+
 config K1MATRIX_PCIE
 	bool "K1Matrix PCIe subsystem support"
 
