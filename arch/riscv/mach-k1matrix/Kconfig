@@ -181,7 +181,7 @@ menuconfig K1MATRIX_N100
 
 if K1MATRIX_N100
 
-config K1MTRIX_N100_DV
+config K1MATRIX_N100_DV
 	bool "Enable design verified process"
 	depends K1MATRIX_D2D
 	select CMN600_CML_RA_RAID_NO_CXRA
