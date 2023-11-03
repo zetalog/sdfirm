@@ -392,5 +392,43 @@
 			clint,has-no-64bit-mmio;
 #endif
 		};
+
+		ethernet@1003a000 {
+			compatible = "spacemit,k1-pro-mac";
+			reg = <0x00 0x1003a000 0x00 0x10000>;
+			reg-names = "gmac";
+			interrupt-parent = <&plic>;
+			interrupts = <0x1a>;
+			interrupt-names = "macirq";
+			snps,pbl = <0x20>;
+			snps,fixed-burst;
+			snps,axi-config = <0x06>;
+			phy-mode = "rmii";
+			rx-clk-delay = <0x00>;
+			tx-clk-delay = <0x00>;
+			phy-handle = <&phy_88E1111_0>;
+			status = "okay";
+
+			stmmac-axi-config {
+				snps,wr_osr_lmt = <0x03>;
+				snps,rd_osr_lmt = <0x03>;
+				snps,blen = <0x10 0x08 0x04 0x00 0x00 0x00 0x00>;
+				phandle = <0x06>;
+			};
+
+			mdio0 {
+				#address-cells = <0x01>;
+				#size-cells = <0x00>;
+				compatible = "snps,dwmac-mdio";
+
+				phy_88E1111_0:ethernet-phy@0 {
+					reg = <0x07>;
+				};
+
+				 phy_88E1111_1: ethernet-phy@1 {
+					reg = <0x02>;
+				};
+			};
+		};
 	};
 };
