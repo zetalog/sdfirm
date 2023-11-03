@@ -145,6 +145,12 @@ function build_busybox()
 	cd $TOP/obj/busybox-$ARCH
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE -j`nproc`
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE install
+
+	if [ "xyes" = "x${BUILD_NET}" ]; then
+		mkdir -p $SCRIPT/rootfs/usr/share/udhcpc/
+		cp $BUSYBOX_PATH/examples/udhcp/simple.script \
+		$SCRIPT/rootfs/usr/share/udhcpc/default.script
+	fi
 	)
 }
 
