@@ -268,7 +268,7 @@ uint8_t cmn_hnf_mapping(void)
 		return CMN_HNF_MAPPING_RANGE_BASED;
 }
 
-static void cmn_configure_hnf_sam(caddr_t hnf)
+static void cmn_configure_hnf_sam_hashed(caddr_t hnf)
 {
 	switch (cmn_hnf_mapping()) {
 	case CMN_HNF_MAPPING_DIRECT:
@@ -309,25 +309,15 @@ static void cmn_configure_hnf_sam(caddr_t hnf)
 	}
 }
 
-static void cmn600_process_hnf(caddr_t hnf)
+#ifdef CONFIG_CMN600_SAM_RANGE_BASED
+static void cmn_configure_hnf_sam_range_based(caddr_t hnf)
 {
-	cmn_lid_t lid;
 	cmn_id_t region_index;
 	cmn_id_t region_sub_count = 0;
 	struct cmn600_memregion *region;
 	caddr_t base;
 
-	lid = cmn_logical_id(hnf);
-
-	cmn_hnf_cal_process(hnf);
-	cmn_hnf_cal_config_scg(hnf, lid);
-
-	/* Set target node */
-	cmn_configure_hnf_sam(hnf);
-
 	base = cmn600_cml_base();
-
-#ifdef CONFIG_CMN600_SAM_RANGE_BASED
 	for (region_index = 0; region_index < cmn_mmap_count; region_index++) {
 		region = &cmn_mmap_table[region_index];
 
@@ -349,7 +339,23 @@ static void cmn600_process_hnf(caddr_t hnf)
 
 		region_sub_count++;
 	}
+}
+#else
+#define cmn_configure_hnf_sam_range_based(hnf)	do { } while (0)
 #endif
+
+static void cmn600_configure_hnf_sam(caddr_t hnf)
+{
+	cmn_lid_t lid;
+
+	lid = cmn_logical_id(hnf);
+
+	cmn_hnf_cal_process(hnf);
+	cmn_hnf_cal_config_scg(hnf, lid);
+
+	/* Set target node */
+	cmn_configure_hnf_sam_hashed(hnf);
+	cmn_configure_hnf_sam_range_based(hnf);
 
 	cmn_writeq(CMN_ppu_policy(CMN_ppu_policy_ON) |
 		   CMN_ppu_op_mode(CMN_ppu_op_mode_FAM) |
@@ -375,7 +381,7 @@ cmn_id_t cmn600_max_tgt_nodes(void)
 	return 0;
 }
 
-static void cmn600_discovery_external(caddr_t node, caddr_t xp)
+static void cmn600_discover_external(caddr_t node, caddr_t xp)
 {
 	uint8_t dev_type;
 	cmn_pid_t xp_pid;
@@ -387,20 +393,22 @@ static void cmn600_discovery_external(caddr_t node, caddr_t xp)
 	    (dev_type == CMN_MXP_CXRA)) {
 		cmn_cxla_id = cmn_nr_nodes;
 		cmn_bases[cmn_nr_nodes++] = node;
-		con_dbg(CMN_MODNAME ": CXLA external (%d, %d) ID: %d, LID: %d\n",
-			(int)cmn_node_x(node), (int)cmn_node_y(node),
-			(int)cmn_node_id(node), (int)cmn_logical_id(node));
 	} else {
 		/* External RN-SAM node */
-		cmn_rn_sam_ext_count++;
-		BUG_ON(cmn_rn_sam_ext_count > CMN_MAX_RN_SAM_EXT_COUNT);
-		con_dbg(CMN_MODNAME ": RN_SAM external (%d, %d) ID: %d, LID: %d\n",
-			(int)cmn_node_x(node), (int)cmn_node_y(node),
-			(int)cmn_node_id(node), (int)cmn_logical_id(node));
+		if (cmn_rn_sam_ext_count >= CMN_MAX_RN_SAM_EXT_COUNT) {
+			con_err(CMN_MODNAME ": RN_SAM external count %d >= limit %d\n",
+				cmn_rn_sam_ext_count, CMN_MAX_RN_SAM_EXT_COUNT);
+			BUG();
+		}
+		cmn_rn_sam_ext_ids[cmn_rn_sam_ext_count++] = cmn_nr_nodes;
+		cmn_bases[cmn_nr_nodes++] = node;
 	}
+	con_dbg(CMN_MODNAME ": 0x%016llx %s ID: %d, LID: %d\n",
+		(uint64_t)node, cmn600_node_type_name(cmn_node_type(node)),
+		cmn_node_id(node), cmn_logical_id(node));
 }
 
-static void cmn600_discovery_internal(caddr_t node)
+static void cmn600_discover_internal(caddr_t node)
 {
 	switch (cmn_node_type(node)) {
 	case CMN_HNF:
@@ -413,8 +421,13 @@ static void cmn600_discovery_internal(caddr_t node)
 		cmn_bases[cmn_nr_nodes++] = node;
 		break;
 	case CMN_RN_SAM:
-		BUG_ON(cmn_rn_sam_int_count > CMN_MAX_RN_SAM_INT_COUNT);
-		cmn_rn_sam_int_count++;
+		if (cmn_rn_sam_int_count >= CMN_MAX_RN_SAM_INT_COUNT) {
+			con_err(CMN_MODNAME ": RN_SAM internal count %d >= limit %d\n",
+				cmn_rn_sam_int_count, CMN_MAX_RN_SAM_INT_COUNT);
+			BUG();
+		}
+		cmn_rn_sam_int_ids[cmn_rn_sam_int_count++] = cmn_nr_nodes;
+		cmn_bases[cmn_nr_nodes++] = node;
 		break;
 	case CMN_RND:
 		if (cmn_rnd_count >= CMN_MAX_RND_COUNT) {
@@ -447,12 +460,12 @@ static void cmn600_discovery_internal(caddr_t node)
 		/* Nothing to be done for other node types */
 		break;
 	}
-	con_dbg(CMN_MODNAME ": %s ID: %d, LID: %d\n",
-		cmn600_node_type_name(cmn_node_type(node)),
+	con_dbg(CMN_MODNAME ": 0x%016llx %s ID: %d, LID: %d\n",
+		(uint64_t)node, cmn600_node_type_name(cmn_node_type(node)),
 		cmn_node_id(node), cmn_logical_id(node));
 }
 
-void cmn600_discovery(void)
+void cmn600_discover(void)
 {
 	cmn_id_t xp_index, node_index;
 	cmn_id_t xp_count, node_count;
@@ -474,14 +487,14 @@ void cmn600_discovery(void)
 			node = cmn_child_node(xp, node_index);
 
 			if (cmn_child_external(xp, node_index))
-				cmn600_discovery_external(node, xp);
+				cmn600_discover_external(node, xp);
 			else
-				cmn600_discovery_internal(node);
+				cmn600_discover_internal(node);
 		}
 	}
 
 	/* RN-F nodes doesn't have node type identifier and hence the count
-	 * cannot be determined during the discovery process. RN-F count
+	 * cannot be determined during the discover process. RN-F count
 	 * will be total RN-SAM count - total RN-D, RN-I and CXHA count.
 	 */
 	cmn_rnf_count = cmn_rn_sam_int_count + cmn_rn_sam_ext_count -
@@ -499,83 +512,12 @@ void cmn600_discovery(void)
 	con_dbg(CMN_MODNAME ": Total RN-F: %d\n", cmn_rnf_count);
 	con_dbg(CMN_MODNAME ": Total RN-D: %d\n", cmn_rnd_count);
 	con_dbg(CMN_MODNAME ": Total RN-I: %d\n", cmn_rni_count);
-
 	if (cmn_cxla_id != CMN_INVAL_ID)
 		con_dbg(CMN_MODNAME ": CCIX CXLA node id %016lx\n", CMN_CXLA_BASE);
 	if (cmn_cxra_id != CMN_INVAL_ID)
 		con_dbg(CMN_MODNAME ": CCIX CXRA node id %016lx\n", CMN_CXRA_BASE);
 	if (cmn_cxha_id != CMN_INVAL_ID)
 		con_dbg(CMN_MODNAME ": CCIX CXHA node id %016lx\n", CMN_CXHA_BASE);
-}
-
-static void cmn600_configure_rn_sam_ext(caddr_t node, cmn_id_t xrnsam)
-{
-	BUG_ON(xrnsam >= cmn_rn_sam_ext_count);
-	cmn_rn_sam_ext_ids[xrnsam] = cmn_nr_nodes;
-	cmn_bases[cmn_nr_nodes++] = node;
-}
-
-static void cmn600_configure_rn_sam_int(caddr_t node, cmn_id_t irnsam)
-{
-	BUG_ON(irnsam >= cmn_rn_sam_int_count);
-	cmn_rn_sam_int_ids[irnsam] = cmn_nr_nodes;
-	cmn_bases[cmn_nr_nodes++] = node;
-}
-
-void cmn600_configure(void)
-{
-	cmn_id_t xrnsam;
-	cmn_id_t irnsam;
-	cmn_id_t xp_index;
-	cmn_id_t node_index;
-	cmn_id_t xp_count, node_count;
-	caddr_t xp, node;
-
-	BUG_ON(cmn_node_type(CMN_CFGM_BASE) != CMN_CFG);
-
-	xrnsam = 0;
-	irnsam = 0;
-
-	con_dbg(CMN_MODNAME ": configure: revision=%s\n",
-		cmn600_revision_name(cmn_revision()));
-
-	xp_count = cmn_child_count(CMN_CFGM_BASE);
-	for (xp_index = 0; xp_index < xp_count; xp_index++) {
-		xp = cmn_child_node(CMN_CFGM_BASE, xp_index);
-		BUG_ON(cmn_node_type(xp) != CMN_XP);
-
-		/* Traverse nodes */
-		node_count = cmn_child_count(xp);
-		for (node_index = 0; node_index < node_count; node_index++) {
-			node = cmn_child_node(xp, node_index);
-
-			if (cmn_child_external(xp, node_index)) {
-				cmn_pid_t xp_pid;
-				uint8_t dev_type;
-
-				xp_pid = cmn_child_node_pid(xp, node_index);
-				dev_type = cmn_mxp_device_type(xp, xp_pid);
-				if ((dev_type == CMN_MXP_CXRH) ||
-				    (dev_type == CMN_MXP_CXHA) ||
-				    (dev_type == CMN_MXP_CXRA))
-					continue;
-
-				cmn600_configure_rn_sam_ext(node, xrnsam);
-				xrnsam++;
-			} else {
-				switch (cmn_node_type(node)) {
-				case CMN_RN_SAM:
-					cmn600_configure_rn_sam_int(node, irnsam);
-					irnsam++;
-					break;
-				case CMN_HNF:
-					cmn600_process_hnf(node);
-					break;
-				}
-			}
-		}
-	}
-
 	con_dbg(CMN_MODNAME ": Total nodes: %d\n", cmn_nr_nodes);
 }
 
@@ -584,7 +526,7 @@ void cmn600_configure(void)
 #define CMN_MAX_NON_HASH_MEM_REGIONS(n)		\
 	((n) * CMN_MAX_NON_HASH_MEM_REGIONS_PER_GROUP)
 
-static void cmn600_setup_sam(caddr_t rnsam)
+static void cmn600_configure_rn_sam(caddr_t rnsam)
 {
 	caddr_t base;
 	cmn_id_t region_index;
@@ -718,7 +660,27 @@ static void cmn600_setup_sam(caddr_t rnsam)
 		   "CMN_rnsam_status", -1);
 }
 
-void cmn600_setup_rnsam(cmn_nid_t nid)
+void cmn600_configure(void)
+{
+	cmn_id_t i;
+
+	BUG_ON(cmn_node_type(CMN_CFGM_BASE) != CMN_CFG);
+
+	con_dbg(CMN_MODNAME ": configure: revision=%s\n",
+		cmn600_revision_name(cmn_revision()));
+
+	/* Setup HN-F nodes */
+	for (i = 0; i < cmn_hnf_count; i++)
+		cmn600_configure_hnf_sam(CMN_HNF_BASE(cmn_hnf_ids[i]));
+	/* Setup internal RN-SAM nodes */
+	for (i = 0; i < cmn_rn_sam_int_count; i++)
+		cmn600_configure_rn_sam(CMN_RN_SAM_INT_BASE(cmn_rn_sam_int_ids[i]));
+	/* Setup external RN-SAM nodes */
+	for (i = 0; i < cmn_rn_sam_ext_count; i++)
+		cmn600_configure_rn_sam(CMN_RN_SAM_EXT_BASE(cmn_rn_sam_ext_ids[i]));
+}
+
+void cmn600_configure_rn_sam_ext(cmn_nid_t nid)
 {
 	cmn_id_t rnsam;
 	caddr_t base;
@@ -726,14 +688,13 @@ void cmn600_setup_rnsam(cmn_nid_t nid)
 	for (rnsam = 0; rnsam < cmn_rn_sam_ext_count; rnsam++) {
 		base = CMN_RN_SAM_EXT_BASE(cmn_rn_sam_ext_ids[rnsam]);
 		if (cmn_node_id(base) == nid)
-			cmn600_setup_sam(base);
+			cmn600_configure_rn_sam(base);
 	}
 }
 
 void cmn600_init(void)
 {
 	caddr_t root_node_pointer;
-	cmn_id_t rnsam;
 
 	if (cmn600_initialized)
 		return;
@@ -743,13 +704,9 @@ void cmn600_init(void)
 	cmn_bases[CMN_CFGM_ID] = CMN_PERIPH_BASE + root_node_pointer;
 	cmn_nr_nodes = 1;
 
-	cmn600_discovery();
+	cmn600_discover();
 	/* TODO: Dynamic internal/external RN_SAM nodes and HNF cache groups */
 	cmn600_configure();
-
-	/* Setup internal RN-SAM nodes */
-	for (rnsam = 0; rnsam < cmn_rn_sam_int_count; rnsam++)
-		cmn600_setup_sam(CMN_RN_SAM_INT_BASE(cmn_rn_sam_int_ids[rnsam]));
 
 	/* Capture CCIX host topology */
 	cmn600_cml_detect_mmap();
