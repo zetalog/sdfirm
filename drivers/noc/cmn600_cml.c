@@ -480,7 +480,7 @@ void cmn600_cml_set_config(void)
 	for (region_index = 0; region_index < cmn_mmap_count; region_index++) {
 		region = &cmn_mmap_table[region_index];
 		if (region->type == CMN600_REGION_TYPE_CCIX)
-			cmn600_setup_rnsam(region->node_id);
+			cmn600_configure_rn_sam_ext(region->node_id);
 	}
 }
 

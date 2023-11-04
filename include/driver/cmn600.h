@@ -987,7 +987,7 @@ const char *cmn600_revision_name(uint8_t revision);
 #endif
 
 void cmn600_init(void);
-void cmn600_setup_rnsam(cmn_nid_t nid);
+void cmn600_configure_rn_sam_ext(cmn_nid_t nid);
 cmn_id_t cmn600_max_tgt_nodes(void);
 #ifdef CONFIG_CMN600_CML
 void cmn600_cml_detect_mmap(void);
