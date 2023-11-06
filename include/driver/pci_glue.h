@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
-#include "list.h"
+#include "target/list.h"
 #include "pci_regs.h"
 #endif
 
@@ -23,9 +23,6 @@
 
 #ifndef SDFIRM
 typedef unsigned long size_t;
-
-#define UL(x)			x##UL
-#define ULL(x)			x##ULL
 
 #ifndef offsetof
 #define offsetof(s, m)				((size_t)(&(((s *)0)->m)))
@@ -41,7 +38,6 @@ typedef unsigned long size_t;
 #define BITS_PER_BYTE		8
 #define BITS_PER_LONG		64
 #define BITS_PER_LONG_LONG	64
-#define IS_ALIGNED(x, a)	((x & (typeof(x))(a - 1)) == 0)
 
 #define _BV_UL(bit)			(UL(1) << (bit))
 #define _BV_ULL(bit)			(ULL(1) << (bit))

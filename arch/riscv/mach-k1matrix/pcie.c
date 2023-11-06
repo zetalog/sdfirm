@@ -42,99 +42,128 @@
 #include <target/arch.h>
 #include <target/delay.h>
 #include <target/sbi.h>
+#include <driver/pcie_designware.h>
 
-void pcie_linkup(void)
+void pcie_config_rc_ep_mode(void)
 {
-	uint32_t reg;
+	if (sysreg_die_id() == 0) {
+		printf("rc\n");
+		__raw_writel(0x4, CCIX_APP_BASE);
+	} else {
+		printf("ep\n");
+		__raw_writel(0x0, CCIX_APP_BASE);
+	}
+}
+
+void pcie_link_ctrl_setup(void)
+{
+	uint32_t val;
+
+	val = PORT_LINK_MODE_4_LANES | PORT_LINK_RATE(1) |
+		PORT_FASK_LINK_MODE_ENABLE | PORT_DLL_LINK_ENABLE;
+	__raw_writel(val, CCIX_DBI_BASE + PCIE_PORT_LINK_CONTROL);
+}
+
+void pcie_config_ltssm_enable(void)
+{
+	__raw_writel(0x1, CCIX_APP_BASE + 4);
+}
+
+int pcie_wait_linkup(void)
+{
 	int32_t timeout;
 
-	reg = __raw_readl(SYSCTL_BASE + 0x300);
-	reg |= (0x1 << 1);
-	__raw_writel(reg, SYSCTL_BASE + 0x300);            //1
-
-	reg = __raw_readl(SYSCTL_BASE + 0x300);
-	reg |= (0x1 << 2);
-	__raw_writel(reg, SYSCTL_BASE + 0x300);            //2
-
-	__raw_writel(0x4, CCIX_APP_BASE);                  //3
-
-	reg = __raw_readl(SYSCTL_BASE + 0x300);
-	reg |= (0x1 << 3);
-	__raw_writel(reg, SYSCTL_BASE + 0x300);            //4
-
-	__raw_writel(0x701a0, CCIX_DBI_BASE + 0x710);      //5
-
-	__raw_writel(0x1, CCIX_APP_BASE + 4);              //6
-
 	timeout = 10000000;
-	while (__raw_readl(CCIX_APP_BASE + 0x104) != 3) {  //7
+	while (__raw_readl(CCIX_APP_BASE + 0x104) != 3) {
 		if (timeout-- <= 0) {
 			printf("wait linkup timeout\n");
-			break;
+			return -1;
 		}
 	}
+
+	return 0;
+}
+
+void pcie_ccix_packet_mode_config(void)
+{
+	uint32_t reg;
+
+	reg = __raw_readl(CCIX_DBI_BASE + CCIX_TL_CAP);
+	reg &= ~CCIX_OPT_LTP_FMT_SUPPORT;
+	__raw_writel(reg, CCIX_DBI_BASE + CCIX_TL_CAP);
+
+	__raw_writel(0x0, CCIX_DBI_BASE + CCIX_TL_CNTL);
+}
+
+int pcie_ccix_wait_vc0_ready(void)
+{
+	int32_t timeout;
+
+	timeout = 10000000;
+	while (__raw_readl(CCIX_DBI_BASE + PORT_RESOURCE_STATUS_REG_VC0) != 0) {
+		if (timeout-- <= 0) {
+			printf("wait vc0 ready timeout\n");
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+int pcie_ccix_wait_vc1_ready(void)
+{
+	int32_t timeout;
+
+	timeout = 10000000;
+	while (__raw_readl(CCIX_DBI_BASE + PORT_RESOURCE_STATUS_REG_VC1) != 0) {
+		if (timeout-- <= 0) {
+			printf("wait vc1 ready timeout\n");
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+void pcie_vc_resource_config(void)
+{
+	uint32_t reg;
+
+	reg = PORT_VC_ENABLE_VC0 | PORT_VC_TC_MAP_VC0_BIT1(0xFD);
+
+	__raw_writel(reg, CCIX_DBI_BASE + PORT_RESOURCE_CON_REG_VC0);
+
+	reg = PORT_VC_PORT_ARBI_TABLE_VC1(0x81) |
+		PORT_VC_PORT_ARBI_CAP_VC1(0x2);
+	__raw_writel(reg, CCIX_DBI_BASE + PORT_RESOURCE_CAP_REG_VC1);
+
+	pcie_ccix_wait_vc0_ready();
+	pcie_ccix_wait_vc1_ready();
+}
+
+void pcie_ccix_set_id(int id)
+{
+	__raw_writel(id, CCIX_DBI_BASE + 0xC20);
 }
 
 void pcie_ccix_linkup(void)
 {
-	uint32_t reg;
-	int32_t timeout;
+	sysreg_pcie0_cold_reset();
+	sysreg_pcie0_button_reset();
 
-	reg = __raw_readl(SYSCTL_BASE + 0x300);
-	reg |= (0x1 << 1);
-	__raw_writel(reg, SYSCTL_BASE + 0x300);            //1
+	pcie_config_rc_ep_mode();
 
-	reg = __raw_readl(SYSCTL_BASE + 0x300);
-	reg |= (0x1 << 2);
-	__raw_writel(reg, SYSCTL_BASE + 0x300);            //2
+	sysreg_pcie0_warm_reset();
 
-	if (sysreg_die_id() == 0) {
-		__raw_writel(0x4, CCIX_APP_BASE);
-	} else {
-		__raw_writel(0x0, CCIX_APP_BASE);          //3
-	}
+	pcie_link_ctrl_setup();
 
-	reg = __raw_readl(SYSCTL_BASE + 0x300);
-	reg |= (0x1 << 3);
-	__raw_writel(reg, SYSCTL_BASE + 0x300);            //4
+	pcie_config_ltssm_enable();
 
-	__raw_writel(0x701a0, CCIX_DBI_BASE + 0x710);      //5
+	pcie_wait_linkup();
 
-	__raw_writel(0x1, CCIX_APP_BASE + 4);              //6
+	pcie_ccix_packet_mode_config();
 
-	timeout = 10000000;
-	while (__raw_readl(CCIX_APP_BASE + 0x104) != 3) {  //7
-		if (timeout-- <= 0) {
-			printf("wait linkup timeout\n");
-			break;
-		}
-	}
+	pcie_vc_resource_config();
 
-	reg = __raw_readl(CCIX_DBI_BASE + 0x224);
-	reg &= ~(0x1 << 0);
-	__raw_writel(reg, CCIX_DBI_BASE + 0x224);          //8.1
-
-	__raw_writel(0x0, CCIX_DBI_BASE + 0x228);          //8.2
-
-	__raw_writel(0x800000FD, CCIX_DBI_BASE + 0x15C);   //9
-
-	__raw_writel(0x81000002, CCIX_DBI_BASE + 0x168);   //10
-
-	timeout = 10000000;
-	while (__raw_readl(CCIX_DBI_BASE + 0x160) != 0) {  //11
-		if (timeout-- <= 0) {
-			printf("wait vc0 ready timeout\n");
-			break;
-		}
-	}
-
-	timeout = 10000000;
-	while (__raw_readl(CCIX_DBI_BASE + 0x16C) != 0) {  //12
-		if (timeout-- <= 0) {
-			printf("wait vc1 ready timeout\n");
-			break;
-		}
-	}
-
-	__raw_writel(0x0/*ccid*/, CCIX_DBI_BASE + 0xC20);  //13 TODO:CCID
+	pcie_ccix_set_id(0);
 }
