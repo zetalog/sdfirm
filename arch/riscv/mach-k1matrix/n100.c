@@ -170,22 +170,40 @@ struct cmn600_ccix_ha_mmap cml_ha_mmap_table_remote[] = {
 	{
 		/* The region covers SYS_IO_GLOBAL/PCIE0_CFG/PCIE1_CFG */
 		0,
-		.base = __SYS_IO_GLOBAL_BASE,
+		.base = DIE0_BASE + __SYS_IO_GLOBAL_BASE,
 		.size = SZ_4G,
 	},
 	{
 		/* The region covers PCIE0_MEM/PCIE1_MEM */
 		0,
-		.base = __PCIE0_SLV_MEM_BASE,
+		.base = DIE0_BASE + __PCIE0_SLV_MEM_BASE,
 		.size = SZ_256M,
 	},
 	{
 		0,
-		.base = __DDR_BASE,
+		.base = DIE0_BASE + __DDR_BASE,
+		.size = SZ_4G,
+	},
+	{
+		/* The region covers SYS_IO_GLOBAL/PCIE0_CFG/PCIE1_CFG */
+		1,
+		.base = DIE1_BASE + __SYS_IO_GLOBAL_BASE,
+		.size = SZ_4G,
+	},
+	{
+		/* The region covers PCIE0_MEM/PCIE1_MEM */
+		1,
+		.base = DIE1_BASE + __PCIE0_SLV_MEM_BASE,
+		.size = SZ_256M,
+	},
+	{
+		1,
+		.base = DIE1_BASE + __DDR_BASE,
 		.size = SZ_4G,
 	},
 };
 cmn_id_t cml_ha_mmap_count_remote = ARRAY_SIZE(cml_ha_mmap_table_remote);
+cmn_nid_t cml_ha_nid_local = 0x40;
 
 void k1matrix_n100_d2d_init(void)
 {

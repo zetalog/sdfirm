@@ -73,6 +73,7 @@ extern uint8_t cml_pcie_tlp_tc;
 
 extern struct cmn600_ccix_ha_mmap cml_ha_mmap_table_remote[];
 extern cmn_id_t cml_ha_mmap_count_remote;
+extern cmn_nid_t cml_ha_nid_local;
 
 void k1matrix_n100_init(void);
 void k1matrix_n100_d2d_init(void);
