@@ -52,9 +52,6 @@
 
 cmn_id_t ccix_ra_count;
 cmn_id_t ccix_sa_count;
-cmn_nid_t cml_ha_nid_local;
-cmn_id_t cml_ha_id_local;
-cmn_id_t cml_ha_id_remote;
 
 struct cmn600_ccix_ha_mmap cml_ha_mmap_table_local[CMN_MAX_HA_MMAP_COUNT];
 cmn_id_t cml_ha_mmap_count_local;
@@ -134,22 +131,25 @@ static void cmn_cml_setup_ra_sam_addr_region(void)
 	cmn_id_t i;
 	uint64_t blocks;
 	uint64_t sz;
+	cmn_id_t ha_id;
 
 	for (i = 0; i < cml_ha_mmap_count_remote; i++) {
-		BUG_ON(cml_ha_mmap_table_remote[i].size % SZ_64K);
-		BUG_ON(cml_ha_mmap_table_remote[i].size &
-		       (cml_ha_mmap_table_remote[i].size - 1));
-		BUG_ON(cml_ha_mmap_table_remote[i].base %
-		       cml_ha_mmap_table_remote[i].size);
-
-		blocks = cml_ha_mmap_table_remote[i].size / SZ_64K;
-		sz = __ilog2_u64(blocks);
-		cmn_writeq(CMN_reg_size(sz) |
-			   CMN_reg_base_addr(cml_ha_mmap_table_remote[i].base) |
-			   CMN_reg_ha_tgtid(cml_ha_id_remote) |
-			   CMN_reg_valid,
-			   CMN_cxg_ra_sam_addr_region(CMN_CXRA_BASE, i),
-			   "CMN_cxg_ra_sam_addr_region", i);
+		ha_id = cml_ha_mmap_table_remote[i].ha_id;
+		if (ha_id != cmn600_hw_chip_id()) {
+			BUG_ON(cml_ha_mmap_table_remote[i].size % SZ_64K);
+			BUG_ON(cml_ha_mmap_table_remote[i].size &
+			       (cml_ha_mmap_table_remote[i].size - 1));
+			BUG_ON(cml_ha_mmap_table_remote[i].base %
+			       cml_ha_mmap_table_remote[i].size);
+			blocks = cml_ha_mmap_table_remote[i].size / SZ_64K;
+			sz = __ilog2_u64(blocks);
+			cmn_writeq(CMN_reg_size(sz) |
+				   CMN_reg_base_addr(cml_ha_mmap_table_remote[i].base) |
+				   CMN_reg_ha_tgtid(ha_id) |
+				   CMN_reg_valid,
+				   CMN_cxg_ra_sam_addr_region(CMN_CXRA_BASE, i),
+				   "CMN_cxg_ra_sam_addr_region", i);
+		}
 	}
 }
 
@@ -388,9 +388,6 @@ static void cmn_cml_setup(void)
 		/* The HN-F ldid to CHI node id valid bit for local RN-F
 		 * agents is already programmed.
 		 */
-		cml_ha_nid_local = 0x0;
-		cml_ha_id_remote = cml_ha_mmap_table_remote[0].ha_id;
-		cml_ha_id_local = cmn600_hw_chip_id();
 		cmn_writeq(CMN_ccix_haid(cmn600_hw_chip_id()),
 			   CMN_cxg_ha_id(CMN_CXHA_BASE),
 			   "CMN_cxg_ha_id", -1);

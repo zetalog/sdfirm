@@ -19,6 +19,9 @@ config K1MATRIX_SMP_CPUS
 	range 1 64
 	default 64
 
+config K1MATRIX_NUMA
+	bool
+
 choice
 	prompt "Program type"
 
@@ -46,6 +49,7 @@ config K1MATRIX_BBL
 	select SBI
 	select SBI_PAYLOAD
 	select XIP
+	select K1MATRIX_NUMA if K1MATRIX_D2D
 
 config K1MATRIX_TB
 	bool "Test bench"
@@ -109,6 +113,7 @@ config K1MATRIX_TB_SRAM
 config K1MATRIX_TB_DDR
 	bool "DDR"
 	select ARCH_HAS_BOOT_LOAD
+	select K1MATRIX_NUMA if K1MATRIX_D2D
 
 endchoice
 

@@ -547,6 +547,7 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 		region = &cmn_mmap_table[region_index];
 		if (region->type == CMN600_MEMORY_REGION_TYPE_SYSCACHE)
 			base = region->base;
+		/* TODO: Should rely on chip id to fill remote regions */
 		else if (region->type == CMN600_REGION_TYPE_CCIX)
 			base = region->base - cmn600_cml_base();
 		else

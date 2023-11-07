@@ -960,7 +960,7 @@ struct cmn600_memregion {
 };
 
 struct cmn600_ccix_ha_mmap {
-	uint8_t ha_id;
+	cmn_id_t ha_id;
 	caddr_t base;
 	uint64_t size;
 };

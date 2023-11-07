@@ -65,6 +65,15 @@
 	/* SMP ID <-> HART ID conversions on APC */
 	.macro get_arch_smpid reg
 	.endm
+	/* TODO: Use SYSREG/D2DREG */
+#if defined(CONFIG_K1MATRIX_NUMA)
+	.macro get_arch_hartboot reg
+	li	\reg, BOOT_HART
+	.endm
+	.macro get_arch_hartmask reg
+	li	\reg, BOOT_MASK
+	.endm
+#else
 	.macro get_arch_hartboot reg
 	li	\reg, BOOT_HART
 	li	t0, PAD_IN_STATUS
@@ -83,6 +92,7 @@
 	slli	\reg, \reg, DIE1_HART
 5555:
 	.endm
+#endif
 #define ARCH_HAVE_BOOT_SMP	1
 #endif /* __ASSEMBLY__ && !__DTS__ && !LINKER_SCRIPT */
 
