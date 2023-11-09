@@ -242,7 +242,7 @@ int smmu_init_domain_context(void)
 	int start;
 	unsigned long ias, oas;
 	iommu_cfg_t pgtbl_cfg;
-	iommu_fmt_t fmt;
+	iommu_fmt_t fmt = ARM_64_LPAE_S1;
 
 	if (iommu_domain_ctrl.type == IOMMU_DOMAIN_IDENTITY) {
 		smmu_context_ctrl.stage = SMMU_DOMAIN_BYPASS;
