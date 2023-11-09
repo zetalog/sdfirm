@@ -51,13 +51,17 @@
  */
 #define VA_BITS			VMSA_VA_SIZE_SHIFT
 #ifdef CONFIG_VMSA_VA_2_RANGES
+#ifndef PAGE_OFFSET
 #define PAGE_OFFSET		(ULL(0xFFFFFFFFFFFFFFFF) << (VA_BITS - 1))
+#endif
 #define FIXADDR_END		PAGE_OFFSET
 #else
 /* Every address range is linear */
 #define FIXADDR_END		(ULL(0x1) << VA_BITS)
 /*#define FIXADDR_END		PAGE_OFFSET*/
+#ifndef PAGE_OFFSET
 #define PAGE_OFFSET		ULL(0x0)
+#endif
 #endif
 
 /* Highest possible physical address supported */
