@@ -570,7 +570,7 @@ static void smmu_device_reset(void)
 
 iommu_grp_t smmu_find_sme(smmu_gr_t gr, smmu_gr_t sm)
 {
-	iommu_grp_t grp = INVALID_IOMMU_GRP, sgrp;
+	__unused iommu_grp_t grp = INVALID_IOMMU_GRP, sgrp;
 	smmu_sme_t sme;
 	smmu_gr_t sme_gr, sme_sm;
 
@@ -606,7 +606,7 @@ iommu_grp_t smmu_find_sme(smmu_gr_t gr, smmu_gr_t sm)
 
 void smmu_free_sme(iommu_grp_t grp)
 {
-	iommu_grp_t sgrp;
+	__unused iommu_grp_t sgrp;
 
 	sgrp = iommu_group_save(grp);
 	if (smmu_stream_ctrl.count > 0)
@@ -622,8 +622,8 @@ void smmu_free_sme(iommu_grp_t grp)
 
 iommu_grp_t smmu_alloc_sme(smmu_sme_t sme)
 {
-	iommu_dev_t dev, sdev;
-	iommu_grp_t grp, sgrp;
+	__unused iommu_dev_t dev, sdev;
+	__unused iommu_grp_t grp, sgrp;
 	smmu_gr_t gr, sm;
 
 	dev = smmu_sme_dev(sme);
