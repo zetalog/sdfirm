@@ -119,6 +119,7 @@ void page_init(void)
 	mem_free_all();
 }
 
+#ifdef CONFIG_COMMAND
 struct page *page_test_ptr;
 int page_test_num;
 
@@ -191,6 +192,7 @@ static int do_page(int argc, char **argv)
 		return do_page_free(argc, argv);
 	return -EINVAL;
 }
+
 DEFINE_COMMAND(page, do_page, "Display free pages",
 	"page dump\n"
 	"    -dump free page information\n"
@@ -199,3 +201,4 @@ DEFINE_COMMAND(page, do_page, "Display free pages",
 	"page free [N]\n"
 	"    -test page free\n"
 );
+#endif
