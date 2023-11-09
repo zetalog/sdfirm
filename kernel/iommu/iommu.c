@@ -91,7 +91,7 @@ struct iommu_group iommu_group_ctrl;
 
 iommu_grp_t iommu_alloc_group(void)
 {
-	iommu_grp_t grp = INVALID_IOMMU_GRP, sgrp;
+	__unused iommu_grp_t grp = INVALID_IOMMU_GRP, sgrp;
 
 	BUG_ON(iommu_dev == INVALID_IOMMU_DEV);
 
@@ -110,7 +110,7 @@ iommu_grp_t iommu_alloc_group(void)
 
 void iommu_free_group(iommu_grp_t grp)
 {
-	iommu_grp_t sgrp;
+	__unused iommu_grp_t sgrp;
 
 	if (grp < NR_IOMMU_GROUPS) {
 		sgrp = iommu_group_save(grp);
@@ -146,7 +146,7 @@ struct iommu_domain iommu_domain_ctrl;
 iommu_dom_t iommu_alloc_domain(uint8_t type)
 {
 	iommu_dom_t dom = INVALID_IOMMU_DOM, sdom;
-	iommu_dev_t sdev;
+	__unused iommu_dev_t sdev;
 
 	BUG_ON(iommu_grp == INVALID_IOMMU_GRP);
 
@@ -323,8 +323,8 @@ iommu_grp_t iommu_register_master(iommu_t iommu)
 
 void iommu_init(void)
 {
-	iommu_dev_t dev, sdev;
-	iommu_grp_t grp, sgrp;
+	__unused iommu_dev_t dev, sdev;
+	__unused iommu_grp_t grp, sgrp;
 	iommu_dom_t dom, sdom;
 
 	/* Allocatable groups are initialized */
