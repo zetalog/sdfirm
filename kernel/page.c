@@ -139,7 +139,7 @@ static int do_page_free(int argc, char **argv)
 	if (nr_pages < page_test_num) {
 		page_test_ptr = page_offset(page_test_ptr, nr_pages);
 		printf("alloc = %016llx\n",
-		       (uint64_t)((uintptr_t)page_test_ptr));
+		       (unsigned long long)((uintptr_t)page_test_ptr));
 	} else
 		page_test_ptr = NULL;
 	page_test_num -= nr_pages;
@@ -161,7 +161,7 @@ static int do_page_alloc(int argc, char **argv)
 	page_test_ptr = page_alloc_pages(nr_pages);
 	page_test_num = nr_pages;
 	printf("alloc = %016llx\n",
-	       (uint64_t)((uintptr_t)page_test_ptr));
+	       (unsigned long long)((uintptr_t)page_test_ptr));
 	return 0;
 }
 
@@ -172,7 +172,8 @@ int do_page_dump(int argc, char **argv)
 	list_for_each_entry(struct page, page,
 			    &page_free_list, link) {
 		printf("%016llx - %016llx\n",
-		       (uint64_t)ptr_to_phys(page), (uint64_t)page->end);
+		       (unsigned long long)ptr_to_phys(page),
+		       (unsigned long long)page->end);
 	}
 	return 0;
 }
