@@ -102,6 +102,10 @@ extern unsigned long k1matrix_die_base;
 #define SRAM01_SIZE		ULL(0x0000080000)
 #define __DRAM_SIZE		ULL(0x0100000000)
 
+#ifdef CONFIG_K1MATRIX
+#define SMMU_BASE(n)		ULL(0x0000000000)
+#endif
+
 #include <asm/mach/cprint.h>
 
 #ifdef CONFIG_K1MATRIX_BOOT_LLP

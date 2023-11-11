@@ -35,8 +35,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)mmu.c: K1Matrix N100 networking on chip implementation
- * $Id: mmu.c,v 1.1 2023-09-06 17:39:00 zhenglv Exp $
+ * @(#)n100.c: K1Matrix N100 networking on chip implementation
+ * $Id: n100.c,v 1.1 2023-09-06 17:39:00 zhenglv Exp $
  */
 
 #include <target/arch.h>
