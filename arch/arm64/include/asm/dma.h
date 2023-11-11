@@ -15,4 +15,6 @@ typedef phys_addr_t dma_addr_t;
 #define dma_hw_sync_cpu_all()			do { } while (0)
 #endif
 
+#include <asm/mach/dma.h>
+
 #endif /* __DMA_ARM64_H_INCLUDE__ */
