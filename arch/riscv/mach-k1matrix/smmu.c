@@ -35,17 +35,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)n100.c: K1Matrix N100 networking on chip implementation
- * $Id: n100.c,v 1.1 2023-09-06 17:39:00 zhenglv Exp $
+ * @(#)smmu.c: K1Matrix system memory management unit implementation
+ * $Id: smmu.c,v 1.1 2023-10-06 17:39:00 zhenglv Exp $
  */
 
-#include <target/arch.h>
-#include <target/noc.h>
+#include <target/iommu.h>
 
-void k1matrix_n100_d2d_init(void)
-{
-}
-
-void k1matrix_n100_init(void)
-{
-}
+smmu_gr_t smmu_num_sms[2] = {
+	NR_DMA_IOMMUS,
+};

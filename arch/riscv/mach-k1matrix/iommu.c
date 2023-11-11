@@ -35,17 +35,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)n100.c: K1Matrix N100 networking on chip implementation
- * $Id: n100.c,v 1.1 2023-09-06 17:39:00 zhenglv Exp $
+ * @(#)iommu.c: K1Matrix I/O memory management unit implementation
+ * $Id: iommu.c,v 1.1 2023-10-06 17:39:00 zhenglv Exp $
  */
 
-#include <target/arch.h>
-#include <target/noc.h>
-
-void k1matrix_n100_d2d_init(void)
-{
-}
-
-void k1matrix_n100_init(void)
-{
-}
+#include <target/iommu.h>

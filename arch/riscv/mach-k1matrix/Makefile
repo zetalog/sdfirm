@@ -7,3 +7,5 @@ obj-$(CONFIG_TIMER) += gpt.rel
 obj-$(CONFIG_K1MATRIX_N100) += n100.rel
 obj-$(CONFIG_K1MATRIX_UART) += uart.rel
 obj-$(CONFIG_K1MATRIX_PCIE) += pcie.rel
+obj-$(CONFIG_K1MATRIX_IOMMU) += iommu.rel
+obj-$(CONFIG_K1MATRIX_SMMU) += smmu.rel

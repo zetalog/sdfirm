@@ -10,6 +10,7 @@
 
 OBJCOPYFLAGS    := -R .comment
 LDFLAGS_sdfirm	:=
+CC_MISA_STRICT	:= $(call cc-ifversion, -gt, 1100, y)
 
 export BITS
 ifeq ($(CONFIG_RISCV_64I),y)
@@ -35,8 +36,10 @@ riscv-march-$(CONFIG_RISCV_F)	:= $(riscv-march-y)f
 riscv-march-$(CONFIG_RISCV_D)	:= $(riscv-march-y)d
 riscv-march-$(CONFIG_RISCV_C)	:= $(riscv-march-y)c
 ifeq ($(CONFIG_64BIT),y)
+ifeq ($(CC_MISA_STRICT),y)
 riscv-march-y				:= $(riscv-march-y)_zicsr
 riscv-march-$(CONFIG_RISCV_ZIFENCEI)	:= $(riscv-march-y)_zifencei
+endif
 endif
 CFLAGS += -march=$(riscv-march-y)
 AFLAGS += -march=$(riscv-march-y)

@@ -11,6 +11,13 @@ config K1MXLITE
 	  This configuration contains only CPU subsystem running in RTL
 	  environment.
 
+config K1MATRIX
+	bool "K1MATRIX server SoC"
+	select ARCH_HAS_IOMMU
+	select K1MATRIX_DMAR if IOMMU
+	help
+	  This configuration contains server SoC design.
+
 endchoice
 
 config K1MATRIX_SMP_CPUS
@@ -60,8 +67,6 @@ config K1MATRIX_TB
 
 endchoice
 
-if K1MXLITE
-
 config K1MATRIX_ROM
 	bool "Enable head 64KB SRAM as ROM support"
 
@@ -73,10 +78,9 @@ config K1MATRIX_BOOT_LLP
 
 config K1MATRIX_BOOT_SYS
 	bool "SRAM1 (SYS)"
+	depends K1MXLITE
 
 endchoice
-
-endif
 
 choice
 	prompt "Platform type"
@@ -223,6 +227,35 @@ config K1MATRIX_UART_ACCEL
 	  safe as the VIP cares no about the baudrate.
 	  This option is also useful for simulation acceleration.
 	  If unsure, say 'N'.
+
+endif
+
+menuconfig K1MATRIX_DMAR
+	bool "Enable K1Matrix DMA remapping support"
+	depends ARCH_HAS_IOMMU
+
+if K1MATRIX_DMAR
+
+config K1MATRIX_SMMU
+	bool
+
+choice
+	prompt "IOMMU specification"
+
+config K1MATRIX_IOMMU
+	bool "RISC-V IOMMU"
+
+config K1MATRIX_SMMUv2
+	bool "ARM SMMUv2"
+	select SMMU_MMU500
+	select K1MATRIX_SMMU
+
+config K1MATRIX_SMMUv3
+	bool "ARM SMMUv3"
+	select SMMU_MMU600
+	select K1MATRIX_SMMU
+
+endchoice
 
 endif
 
