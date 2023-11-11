@@ -35,12 +35,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)dmac.h: DUOWEN specific DMA controller implementation
+ * @(#)dmac.h: K1Matrix specific DMA controller implementation
  * $Id: dmac.h,v 1.1 2021-09-02 21:52:00 zhenglv Exp $
  */
 
-#ifndef __DMAC_DUOWEN_H_INCLUDE__
-#define __DMAC_DUOWEN_H_INCLUDE__
+#ifndef __DMAC_K1MATRIX_H_INCLUDE__
+#define __DMAC_K1MATRIX_H_INCLUDE__
 
 #define DW_DMA_BASE(n)		DMA_BASE
 #define DW_DMA_MAX_CHIPS	1
@@ -68,4 +68,4 @@
 #define dmac_hw_irq_init()		do { } while (0)
 #define dmac_hw_irq_handle()		do { } while (0)
 
-#endif /* __DMAC_DUOWEN_H_INCLUDE__ */
+#endif /* __DMAC_K1MATRIX_H_INCLUDE__ */
