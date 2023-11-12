@@ -43,7 +43,7 @@
 #define __ARM_SMMUv2_H_INCLUDE__
 
 #include <target/generic.h>
-#include <driver/smmu.h>
+#include <driver/arm_smmu.h>
 
 /* Secure TLB Invalidate MONC by VA, Last level */
 #define SMMU_STLBIVALM(smmu)		SMMU_GR0_REG(smmu, 0x0A0)

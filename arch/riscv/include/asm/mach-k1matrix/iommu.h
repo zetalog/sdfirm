@@ -72,7 +72,7 @@
 #include <driver/arm_smmuv2.h>
 #endif
 #ifdef CONFIG_K1MATRIX_SMMUv3
-#include <driver/arm_smmuv2.h>
+#include <driver/arm_smmuv3.h>
 #endif
 
 #if defined(CONFIG_K1MATRIX_DMAR)
