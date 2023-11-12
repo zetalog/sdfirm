@@ -121,7 +121,7 @@ choice
 
 config SMMU_ARCH64
 	bool "ARCH64"
-	depends ARM_SMMUv2
+	depends ARM_SMMUv2 || ARM_SMMUv3
 
 config SMMU_ARCH32_S
 	bool "ARCH32 short"
