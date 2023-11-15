@@ -43,7 +43,7 @@
 #define __ARM_SMMUv1_H_INCLUDE__
 
 #include <target/generic.h>
-#include <driver/arm_smmuv1.h>
+#include <driver/smmu.h>
 
 /* 10.6.1 SMMU_IDR0-7, Identification registers */
 #define SMMU_PTFS			_BV(24)

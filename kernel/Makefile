@@ -33,7 +33,7 @@ obj-$(CONFIG_MMU) += paging.rel
 
 obj-y += io/
 obj-y += uart/
-# obj-$(CONFIG_DMA) += dma/
+obj-$(CONFIG_DMA) += dma/
 obj-$(CONFIG_SPI) += spi/
 obj-$(CONFIG_I2C) += i2c/
 obj-$(CONFIG_USB) += usb/

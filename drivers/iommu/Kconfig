@@ -26,7 +26,6 @@ config ARCH_HAS_RVSMMU
 
 config ARCH_HAS_SMMUv3
 	bool
-	select ARCH_HAS_SMMU
 
 config ARCH_HAS_SMMUv3_0
 	bool
@@ -111,10 +110,8 @@ config ARCH_HAS_SMMU_PTFS_SV48
 	  RISC-V 48-bit address translation.
 
 config SMMU
-	bool "System memory management unit (SMMU) support"
+	bool
 	select BIT_FIND_CLEAR
-
-if SMMU
 
 choice
 	prompt "Translation scheme"
@@ -140,6 +137,8 @@ config SMMU_SV48
 	depends ARCH_HAS_SMMU_PTFS_SV48
 
 endchoice
+
+if SMMU
 
 config SMMU_CTTW
 	bool "Coherent table walk (CTTW) support"
@@ -181,10 +180,6 @@ config ARM_SMMUv2
 	select ARCH_HAS_SMMU_SSDT
 	select ARCH_HAS_SMMU_COMPINDEX
 
-config ARM_SMMUv3
-	bool "ARM SMMUv3.0, 3.1 and 3.2"
-	depends ARCH_HAS_SMMUv3
-
 endchoice
 
 config SMMU_SSDT
@@ -214,14 +209,18 @@ config SMMU_DISABLE_BYPASS
 
 endif
 
+menuconfig ARM_SMMUv3
+	bool "ARM System Memory Management Unit v3 (SMMUv3) support"
+	depends ARCH_HAS_SMMUv3
+	select BIT_FIND_CLEAR
+
+if ARM_SMMUv3
+
+endif
+
 config SMMU_MMU500
 	bool "ARM CoreLink MMU-500 SMMU support"
 	select ARCH_HAS_SMMUv2
-	select ARM_SMMU
-
-config SMMU_MMU600
-	bool "ARM CoreLink MMU-600 SMMU support"
-	select ARCH_HAS_SMMUv3
 	select ARM_SMMU
 
 config SMARCO_RVSMMU
@@ -232,6 +231,11 @@ config SMARCO_RVSMMU
 	select ARCH_HAS_SMMU_VMID16
 	select ARCH_HAS_SMMU_PTFS_SV39
 	select SMMU
+
+config SMMU_MMU600
+	bool "ARM CoreLink MMU-600 SMMU support"
+	select ARCH_HAS_SMMUv3
+	select ARM_SMMUv3
 
 config IOMMU_PGTABLE_ARMv8
 	bool "ARMv8 I/O page table support"

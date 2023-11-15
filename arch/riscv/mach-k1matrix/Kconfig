@@ -14,7 +14,10 @@ config K1MXLITE
 config K1MATRIX
 	bool "K1MATRIX server SoC"
 	select ARCH_HAS_IOMMU
+	select ARCH_HAS_DMAC
+	select CPU_ZIOMMU if K1MATRIX_IOMMU
 	select K1MATRIX_DMAR if IOMMU
+	select K1MATRIX_DMAC if DMAC
 	help
 	  This configuration contains server SoC design.
 
@@ -244,18 +247,30 @@ choice
 
 config K1MATRIX_IOMMU
 	bool "RISC-V IOMMU"
+	select RISCV_ZIOMMU
+	select IOMMU_PGTABLE_RISCV
 
 config K1MATRIX_SMMUv2
 	bool "ARM SMMUv2"
 	select SMMU_MMU500
+	select IOMMU_PGTABLE_ARMv8
 	select K1MATRIX_SMMU
 
 config K1MATRIX_SMMUv3
 	bool "ARM SMMUv3"
 	select SMMU_MMU600
+	select IOMMU_PGTABLE_ARMv8
 	select K1MATRIX_SMMU
 
 endchoice
+
+endif
+
+menuconfig K1MATRIX_DMAC
+	bool "Enable K1Matrix DMA channel support"
+	depends ARCH_HAS_DMAC
+
+if K1MATRIX_DMAC
 
 endif
 
