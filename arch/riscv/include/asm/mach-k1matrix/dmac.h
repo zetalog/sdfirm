@@ -49,8 +49,8 @@
 				 DMA_CAP_MEM_TO_MEM | DMA_CAP_DEV_TO_DEV | \
 				 DMA_CAP_COHERENT)
 
-#if defined(CONFIG_DW_DMA)
-#include <driver/dw_dma.h>
+#if defined(CONFIG_SVT_DMA)
+#include <driver/svtdma.h>
 #ifndef ARCH_HAVE_DMAC
 #define ARCH_HAVE_DMAC		1
 #else
@@ -58,12 +58,11 @@
 #endif
 #endif
 
-#define DW_DMA_CHIP_IRQ		IRQ_DMAC
-#define DW_DMA_CHAN_IRQ(n)	INVALID_IRQ
-
 #define dmac_hw_ctrl_init()		do { } while (0)
-#define dma_hw_map_single(dma, ptr, size, dir) 0
-#define dma_hw_unmap_single(dma, addr, size, dir)	do {} while (0)
+#define dma_hw_map_single(dma, ptr, size, dir)		\
+					0
+#define dma_hw_unmap_single(dma, addr, size, dir)	\
+					do {} while (0)
 #define dmac_hw_irq_poll()		do { } while (0)
 #define dmac_hw_irq_init()		do { } while (0)
 #define dmac_hw_irq_handle()		do { } while (0)

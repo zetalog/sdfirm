@@ -312,6 +312,9 @@ config CPU_ZICBOP
 config CPU_ZICBOM
 	bool
 
+config CPU_ZIOMMU
+	bool
+
 config CPU_SSTC
 	bool
 
@@ -462,6 +465,10 @@ config RISCV_ZICBOP
 config RISCV_ZICBOZ
 	bool "Cache-block zero (Zecboz) support"
 	depends CPU_ZICBOZ
+
+config RISCV_ZIOMMU
+	bool "I/O memory management unit (Ziommu) support"
+	depends CPU_ZIOMMU
 
 config RISCV_SVNAPOT
 	bool "Sv39 NAPOT page size (Svnapot) support"
