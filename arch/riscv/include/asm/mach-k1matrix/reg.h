@@ -100,7 +100,7 @@ extern unsigned long k1matrix_die_base;
 #define N100_CFG_BASE		ULL(0x0F10000000)
 
 #define SRAM01_SIZE		ULL(0x0000080000)
-#define __DRAM_SIZE		ULL(0x0100000000)
+#define __DRAM_SIZE		ULL(0x0020000000)
 
 #ifdef CONFIG_K1MATRIX
 #define SMMU_BASE(n)		ULL(0x0000000000)
