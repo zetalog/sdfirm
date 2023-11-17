@@ -201,4 +201,7 @@ extern struct iommu_domain iommu_domain_ctrl;
 iommu_dom_t iommu_get_domain(iommu_grp_t grp);
 iommu_dom_t iommu_get_dma_domain(iommu_grp_t grp);
 
+int dma_info_to_prot(uint8_t dir, bool coherent, unsigned long attrs);
+unsigned long iommu_iova_alloc(iommu_dom_t dom, size_t size);
+
 #endif /* __IOMMU_H_INCLUDE__ */
