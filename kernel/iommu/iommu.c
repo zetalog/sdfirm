@@ -41,6 +41,7 @@
 
 #include <target/iommu.h>
 #include <target/panic.h>
+#include <target/dma.h>
 
 /* ======================================================================
  * IOMMU Devices
@@ -116,6 +117,27 @@ void iommu_free_group(iommu_grp_t grp)
 		sgrp = iommu_group_save(grp);
 		iommu_group_ctrl.dev = INVALID_IOMMU_DEV;
 		iommu_group_restore(sgrp);
+	}
+}
+
+unsigned long iommu_iova_alloc(iommu_dom_t dom, size_t size)
+{
+	return 0;
+}
+
+int dma_info_to_prot(uint8_t dir, bool coherent, unsigned long attrs)
+{
+	int prot = coherent ? IOMMU_CACHE : 0;
+
+	switch (dir) {
+		case DMA_BIDIRECTIONAL:
+			return prot | IOMMU_READ | IOMMU_WRITE;
+		case DMA_TO_DEVICE:
+			return prot | IOMMU_READ;
+		case DMA_FROM_DEVICE:
+			return prot | IOMMU_WRITE;
+		default:
+			return 0;
 	}
 }
 
