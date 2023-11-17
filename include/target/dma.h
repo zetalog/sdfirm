@@ -152,7 +152,7 @@ void dma_direct_sync_cpu(dma_t dma, dma_addr_t addr, size_t size,
 void dma_direct_sync_dev(dma_t dma, dma_addr_t addr, size_t size,
 			 dma_dir_t dir);
 
-dma_addr_t dma_map_single(dma_t dma, phys_addr_t ptr, size_t size,
+dma_addr_t dma_map_single(dma_t dma, caddr_t ptr, size_t size,
 			  dma_dir_t dir);
 void dma_unmap_single(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir);
 void dma_sync_cpu(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir);

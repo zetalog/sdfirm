@@ -96,13 +96,14 @@ void dma_direct_unmap(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir)
 	dma_hw_sync_cpu(dma, phys, size, dir);
 }
 
-dma_addr_t dma_map_single(dma_t dma, phys_addr_t ptr, size_t size,
+dma_addr_t dma_map_single(dma_t dma, caddr_t ptr, size_t size,
 			  dma_dir_t dir)
 {
 	if (dma_is_direct(dma))
 		return dma_direct_map(dma, ptr, size, dir);
-	else
-		return dma_hw_map_single(dma, ptr, size, dir);
+	else {
+		return dma_hw_map_single(dma, virt_to_phys(ptr), size, dir);
+	}
 }
 
 void dma_unmap_single(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir)
