@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Nov 16 03:54:39 2023
+# Sun Nov 19 06:58:16 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -214,6 +214,7 @@ CONFIG_K1MATRIX_SMMU=y
 # CONFIG_K1MATRIX_IOMMU is not set
 # CONFIG_K1MATRIX_SMMUv2 is not set
 CONFIG_K1MATRIX_SMMUv3=y
+# CONFIG_K1MATRIX_DMAC is not set
 
 #
 # Feature setup
@@ -272,9 +273,19 @@ CONFIG_LOAD_BASE=0x0110000000
 # Address space allocator (stack) support
 #
 # CONFIG_STACK_CUST is not set
-# CONFIG_HEAP is not set
+CONFIG_HEAP=y
+CONFIG_HEAP_PAGE=y
+# CONFIG_HEAP_ALIGN_1 is not set
+# CONFIG_HEAP_ALIGN_2 is not set
+# CONFIG_HEAP_ALIGN_4 is not set
+CONFIG_HEAP_ALIGN_8=y
+CONFIG_HEAP_SIZE=0x10000
+CONFIG_HEAP_DLMALLOC=y
+# CONFIG_ALLOC_TRIM is not set
+# CONFIG_ALLOC_CHECK is not set
 # CONFIG_MEM is not set
 # CONFIG_PAGE is not set
+CONFIG_ARCH_HAS_DMAC=y
 CONFIG_DMA=y
 CONFIG_MAX_CHANNELS=4
 CONFIG_ARCH_HAS_FP=y
@@ -418,6 +429,7 @@ CONFIG_DW_UART_DLF_SIZE=4
 # IO MMU drivers
 #
 CONFIG_ARCH_HAS_SMMUv3=y
+CONFIG_SMMU_COMMON=y
 CONFIG_SMMU_ARCH64=y
 # CONFIG_SMMU_ARCH32_S is not set
 # CONFIG_SMMU_ARCH32_L is not set

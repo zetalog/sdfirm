@@ -40,3 +40,5 @@
  */
 
 #include <target/iommu.h>
+
+unsigned long smmu_hw_pgsize_bitmap = -1UL;

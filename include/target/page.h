@@ -3,6 +3,12 @@
 
 #include <target/generic.h>
 
+#ifndef CONFIG_NUMA_MAX_ZONEORDER
+#define MAX_ORDER		11
+#else
+#define MAX_ORDER		CONFIG_NUMA_MAX_ZONEORDER
+#endif
+
 #if defined(CONFIG_MMU_64K_PAGE)
 #define PAGE_SHIFT		16
 #elif defined(CONFIG_MMU_16K_PAGE)

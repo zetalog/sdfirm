@@ -43,11 +43,22 @@
 #define __ARM_SMMUv3_H_INCLUDE__
 
 #include <target/arch.h>
-#include <driver/smmu.h>
 #include <target/dma.h>
+#include <target/jiffies.h>
+
+#define SMMU_PAGESHIFT			16
+#define SMMU_PAGESIZE			0x10000
+
+/* SMMU registers, Page 0 */
+#define SMMU_PAGE0_BASE(smmu)		SMMU_BASE(smmu)
+/* SMMU registers, Page 1 */
+#define SMMU_PAGE1_BASE(smmu)		(SMMU_PAGE0_BASE(smmu) + SMMU_PAGESIZE)
+
+#define SMMU_PAGE0_REG(smmu, offset)	(SMMU_PAGE0_BASE(smmu) + (offset))
+#define SMMU_PAGE1_REG(smmu, offset)	(SMMU_PAGE1_BASE(smmu) + (offset))
 
 /* MMIO registers */
-#define ARM_SMMU_IDR0			0x0
+#define SMMU_IDR0(smmu)			SMMU_PAGE0_REG(smmu, 0x0)
 #define IDR0_ST_LVL			GENMASK(28, 27)
 #define IDR0_ST_LVL_2LVL		1
 #define IDR0_STALL_MODEL		GENMASK(25, 24)
@@ -72,7 +83,7 @@
 #define IDR0_S1P			(1 << 1)
 #define IDR0_S2P			(1 << 0)
 
-#define ARM_SMMU_IDR1			0x4
+#define SMMU_IDR1(smmu)			SMMU_PAGE0_REG(smmu, 0x4)
 #define IDR1_TABLES_PRESET		(1 << 30)
 #define IDR1_QUEUES_PRESET		(1 << 29)
 #define IDR1_REL			(1 << 28)
@@ -82,7 +93,7 @@
 #define IDR1_SSIDSIZE			GENMASK(10, 6)
 #define IDR1_SIDSIZE			GENMASK(5, 0)
 
-#define ARM_SMMU_IDR5			0x14
+#define SMMU_IDR5(smmu)			SMMU_PAGE0_REG(smmu, 0x14)
 #define IDR5_STALL_MAX			GENMASK(31, 16)
 #define IDR5_GRAN64K			(1 << 6)
 #define IDR5_GRAN16K			(1 << 5)
@@ -98,16 +109,16 @@
 #define IDR5_VAX			GENMASK(11, 10)
 #define IDR5_VAX_52_BIT			1
 
-#define ARM_SMMU_CR0			0x20
+#define SMMU_CR0(smmu)			SMMU_PAGE0_REG(smmu, 0x20)
 #define CR0_ATSCHK			(1 << 4)
 #define CR0_CMDQEN			(1 << 3)
 #define CR0_EVTQEN			(1 << 2)
 #define CR0_PRIQEN			(1 << 1)
 #define CR0_SMMUEN			(1 << 0)
 
-#define ARM_SMMU_CR0ACK			0x24
+#define SMMU_CR0ACK(smmu)		SMMU_PAGE0_REG(smmu, 0x24)
 
-#define ARM_SMMU_CR1			0x28
+#define SMMU_CR1(smmu)			SMMU_PAGE0_REG(smmu, 0x28)
 #define CR1_TABLE_SH			GENMASK(11, 10)
 #define CR1_TABLE_OC			GENMASK(9, 8)
 #define CR1_TABLE_IC			GENMASK(7, 6)
@@ -119,23 +130,23 @@
 #define CR1_CACHE_WB			1
 #define CR1_CACHE_WT			2
 
-#define ARM_SMMU_CR2			0x2c
+#define SMMU_CR2(smmu)			SMMU_PAGE0_REG(smmu, 0x2c)
 #define CR2_PTM				(1 << 2)
 #define CR2_RECINVSID			(1 << 1)
 #define CR2_E2H				(1 << 0)
 
-#define ARM_SMMU_GBPA			0x44
+#define SMMU_GBPA(smmu)			SMMU_PAGE0_REG(smmu, 0x44)
 #define GBPA_UPDATE			(1 << 31)
 #define GBPA_ABORT			(1 << 20)
 
-#define ARM_SMMU_IRQ_CTRL		0x50
+#define SMMU_IRQ_CTRL(smmu)		SMMU_PAGE0_REG(smmu, 0x50)
 #define IRQ_CTRL_EVTQ_IRQEN		(1 << 2)
 #define IRQ_CTRL_PRIQ_IRQEN		(1 << 1)
 #define IRQ_CTRL_GERROR_IRQEN		(1 << 0)
 
-#define ARM_SMMU_IRQ_CTRLACK		0x54
+#define SMMU_IRQ_CTRLACK(smmu)		SMMU_PAGE0_REG(smmu, 0x54)
 
-#define ARM_SMMU_GERROR			0x60
+#define SMMU_GERROR(smmu)		SMMU_PAGE0_REG(smmu, 0x60)
 #define GERROR_SFM_ERR			(1 << 8)
 #define GERROR_MSI_GERROR_ABT_ERR	(1 << 7)
 #define GERROR_MSI_PRIQ_ABT_ERR		(1 << 6)
@@ -146,40 +157,40 @@
 #define GERROR_CMDQ_ERR			(1 << 0)
 #define GERROR_ERR_MASK			0xfd
 
-#define ARM_SMMU_GERRORN		0x64
+#define SMMU_GERRORN(smmu)		SMMU_PAGE0_REG(smmu, 0x64)
 
-#define ARM_SMMU_GERROR_IRQ_CFG0	0x68
-#define ARM_SMMU_GERROR_IRQ_CFG1	0x70
-#define ARM_SMMU_GERROR_IRQ_CFG2	0x74
+#define SMMU_GERROR_IRQ_CFG0(smmu)	SMMU_PAGE0_REG(smmu, 0x68)
+#define SMMU_GERROR_IRQ_CFG1(smmu)	SMMU_PAGE0_REG(smmu, 0x70)
+#define SMMU_GERROR_IRQ_CFG2(smmu)	SMMU_PAGE0_REG(smmu, 0x74)
 
-#define ARM_SMMU_STRTAB_BASE		0x80
+#define SMMU_STRTAB_BASE(smmu)		SMMU_PAGE0_REG(smmu, 0x80)
 #define STRTAB_BASE_RA			(1UL << 62)
 #define STRTAB_BASE_ADDR_MASK		GENMASK_ULL(51, 6)
 
-#define ARM_SMMU_STRTAB_BASE_CFG	0x88
+#define SMMU_STRTAB_BASE_CFG(smmu)	SMMU_PAGE0_REG(smmu, 0x88)
 #define STRTAB_BASE_CFG_FMT		GENMASK(17, 16)
 #define STRTAB_BASE_CFG_FMT_LINEAR	0
 #define STRTAB_BASE_CFG_FMT_2LVL	1
 #define STRTAB_BASE_CFG_SPLIT		GENMASK(10, 6)
 #define STRTAB_BASE_CFG_LOG2SIZE	GENMASK(5, 0)
 
-#define ARM_SMMU_CMDQ_BASE		0x90
-#define ARM_SMMU_CMDQ_PROD		0x98
-#define ARM_SMMU_CMDQ_CONS		0x9c
+#define SMMU_CMDQ_BASE(smmu)		SMMU_PAGE0_REG(smmu, 0x90)
+#define SMMU_CMDQ_PROD(smmu)		SMMU_PAGE0_REG(smmu, 0x98)
+#define SMMU_CMDQ_CONS(smmu)		SMMU_PAGE0_REG(smmu, 0x9c)
 
-#define ARM_SMMU_EVTQ_BASE		0xa0
-#define ARM_SMMU_EVTQ_PROD		0x100a8
-#define ARM_SMMU_EVTQ_CONS		0x100ac
-#define ARM_SMMU_EVTQ_IRQ_CFG0		0xb0
-#define ARM_SMMU_EVTQ_IRQ_CFG1		0xb8
-#define ARM_SMMU_EVTQ_IRQ_CFG2		0xbc
+#define SMMU_EVTQ_BASE(smmu)		SMMU_PAGE0_REG(smmu, 0xa0)
+#define SMMU_EVTQ_PROD(smmu)		SMMU_PAGE1_REG(smmu, 0xa8)
+#define SMMU_EVTQ_CONS(smmu)		SMMU_PAGE1_REG(smmu, 0xac)
+#define SMMU_EVTQ_IRQ_CFG0(smmu)	SMMU_PAGE0_REG(smmu, 0xb0)
+#define SMMU_EVTQ_IRQ_CFG1(smmu)	SMMU_PAGE0_REG(smmu, 0xb8)
+#define SMMU_EVTQ_IRQ_CFG2(smmu)	SMMU_PAGE0_REG(smmu, 0xbc)
 
-#define ARM_SMMU_PRIQ_BASE		0xc0
-#define ARM_SMMU_PRIQ_PROD		0x100c8
-#define ARM_SMMU_PRIQ_CONS		0x100cc
-#define ARM_SMMU_PRIQ_IRQ_CFG0		0xd0
-#define ARM_SMMU_PRIQ_IRQ_CFG1		0xd8
-#define ARM_SMMU_PRIQ_IRQ_CFG2		0xdc
+#define SMMU_PRIQ_BASE(smmu)		SMMU_PAGE0_REG(smmu, 0xc0
+#define SMMU_PRIQ_PROD(smmu)		SMMU_PAGE1_REG(smmu, 0xc8)
+#define SMMU_PRIQ_CONS(smmu)		SMMU_PAGE1_REG(smmu, 0xcc)
+#define SMMU_PRIQ_IRQ_CFG0(smmu)	SMMU_PAGE0_REG(smmu, 0xd0)
+#define SMMU_PRIQ_IRQ_CFG1(smmu)	SMMU_PAGE0_REG(smmu, 0xd8)
+#define SMMU_PRIQ_IRQ_CFG2(smmu)	SMMU_PAGE0_REG(smmu, 0xdc)
 
 /* Common MSI config fields */
 #define MSI_CFG0_ADDR_MASK		GENMASK_ULL(51, 2)
@@ -431,89 +442,190 @@ enum arm_smmu_msi_index {
 
 struct arm_smmu_cmdq_ent {
 	/* Common fields */
-	uint8_t				opcode;
-	bool				substream_valid;
+	uint8_t opcode;
+	bool substream_valid;
 
 	/* Command-specific fields */
 	union {
-		#define CMDQ_OP_PREFETCH_CFG	0x1
+#define CMDQ_OP_PREFETCH_CFG	0x1
 		struct {
-			uint32_t			sid;
-			uint8_t			size;
-			uint64_t			addr;
+			uint32_t sid;
+			uint8_t size;
+			uint64_t addr;
 		} prefetch;
 
-		#define CMDQ_OP_CFGI_STE	0x3
-		#define CMDQ_OP_CFGI_ALL	0x4
-		#define CMDQ_OP_CFGI_CD		0x5
-		#define CMDQ_OP_CFGI_CD_ALL	0x6
+#define CMDQ_OP_CFGI_STE	0x3
+#define CMDQ_OP_CFGI_ALL	0x4
+#define CMDQ_OP_CFGI_CD		0x5
+#define CMDQ_OP_CFGI_CD_ALL	0x6
 		struct {
-			uint32_t			sid;
-			uint32_t			ssid;
+			uint32_t sid;
+			uint32_t ssid;
 			union {
-				bool		leaf;
-				uint8_t		span;
+				bool leaf;
+				uint8_t span;
 			};
 		} cfgi;
 
-		#define CMDQ_OP_TLBI_NH_ASID	0x11
-		#define CMDQ_OP_TLBI_NH_VA	0x12
-		#define CMDQ_OP_TLBI_EL2_ALL	0x20
-		#define CMDQ_OP_TLBI_S12_VMALL	0x28
-		#define CMDQ_OP_TLBI_S2_IPA	0x2a
-		#define CMDQ_OP_TLBI_NSNH_ALL	0x30
+#define CMDQ_OP_TLBI_NH_ASID	0x11
+#define CMDQ_OP_TLBI_NH_VA	0x12
+#define CMDQ_OP_TLBI_EL2_ALL	0x20
+#define CMDQ_OP_TLBI_S12_VMALL	0x28
+#define CMDQ_OP_TLBI_S2_IPA	0x2a
+#define CMDQ_OP_TLBI_NSNH_ALL	0x30
 		struct {
-			uint16_t			asid;
-			uint16_t			vmid;
-			bool			leaf;
-			uint64_t			addr;
+			uint16_t asid;
+			uint16_t vmid;
+			bool leaf;
+			uint64_t addr;
 		} tlbi;
 
-		#define CMDQ_OP_ATC_INV		0x40
-		#define ATC_INV_SIZE_ALL	52
+#define CMDQ_OP_ATC_INV		0x40
+#define ATC_INV_SIZE_ALL	52
 		struct {
-			uint32_t			sid;
-			uint32_t			ssid;
-			uint64_t			addr;
-			uint8_t			size;
-			bool			global;
+			uint32_t sid;
+			uint32_t ssid;
+			uint64_t addr;
+			uint8_t size;
+			bool global;
 		} atc;
 
-		#define CMDQ_OP_PRI_RESP	0x41
+#define CMDQ_OP_PRI_RESP	0x41
 		struct {
-			uint32_t			sid;
-			uint32_t			ssid;
-			uint16_t			grpid;
-			enum pri_resp		resp;
+			uint32_t sid;
+			uint32_t ssid;
+			uint16_t grpid;
+			enum pri_resp resp;
 		} pri;
 
-		#define CMDQ_OP_CMD_SYNC	0x46
+#define CMDQ_OP_CMD_SYNC	0x46
 		struct {
-			uint64_t			msiaddr;
+			uint64_t msiaddr;
 		} sync;
 	};
 };
 
 /* High-level stream table and context descriptor structures */
 struct arm_smmu_strtab_l1_desc {
-	uint8_t				span;
-
-	uint64_t				*l2ptr;
-	dma_addr_t			l2ptr_dma;
+	uint8_t span;
+	uint64_t *l2ptr;
+	dma_addr_t l2ptr_dma;
 };
 
 struct arm_smmu_ctx_desc {
-	uint16_t				asid;
-	uint64_t				ttbr;
-	uint64_t				tcr;
-	uint64_t				mair;
+	uint16_t asid;
+	uint64_t ttbr;
+	uint64_t tcr;
+	uint64_t mair;
 };
 
 struct arm_smmu_l1_ctx_desc {
-	uint64_t				*l2ptr;
-	dma_addr_t			l2ptr_dma;
+	uint64_t *l2ptr;
+	dma_addr_t l2ptr_dma;
 };
 
+struct arm_smmu_ll_queue {
+	union {
+		uint64_t val;
+		struct {
+			uint32_t prod;
+			uint32_t cons;
+		};
+		uint8_t __pad[SMP_CACHE_BYTES];
+	} __cacheline_aligned;
+	uint32_t max_n_shift;
+};
+
+struct arm_smmu_queue {
+	struct arm_smmu_ll_queue llq;
+	int irq; /* Wired interrupt */
+	caddr_t base;
+	dma_addr_t base_dma;
+	uint64_t q_base;
+	size_t ent_dwords;
+	uint32_t *prod_reg;
+	uint32_t *cons_reg;
+};
+
+struct arm_smmu_queue_poll {
+	tick_t timeout;
+	unsigned int delay;
+	unsigned int spin_cnt;
+	bool wfe;
+};
+
+struct arm_smmu_cmdq {
+	struct arm_smmu_queue q;
+	long *valid_map;
+	long owner_prod;
+};
+
+struct arm_smmu_evtq {
+	struct arm_smmu_queue q;
+	uint32_t max_stalls;
+};
+
+struct arm_smmu_priq {
+	struct arm_smmu_queue q;
+};
+
+#define ARM_SMMU_FEAT_2_LVL_STRTAB	(1 << 0)
+#define ARM_SMMU_FEAT_2_LVL_CDTAB	(1 << 1)
+#define ARM_SMMU_FEAT_TT_LE		(1 << 2)
+#define ARM_SMMU_FEAT_TT_BE		(1 << 3)
+#define ARM_SMMU_FEAT_PRI		(1 << 4)
+#define ARM_SMMU_FEAT_ATS		(1 << 5)
+#define ARM_SMMU_FEAT_SEV		(1 << 6)
+#define ARM_SMMU_FEAT_MSI		(1 << 7)
+#define ARM_SMMU_FEAT_COHERENCY		(1 << 8)
+#define ARM_SMMU_FEAT_TRANS_S1		(1 << 9)
+#define ARM_SMMU_FEAT_TRANS_S2		(1 << 10)
+#define ARM_SMMU_FEAT_STALLS		(1 << 11)
+#define ARM_SMMU_FEAT_HYP		(1 << 12)
+#define ARM_SMMU_FEAT_STALL_FORCE	(1 << 13)
+#define ARM_SMMU_FEAT_VAX		(1 << 14)
+
+#define ARM_SMMU_OPT_SKIP_PREFETCH	(1 << 0)
+#define ARM_SMMU_OPT_PAGE0_REGS_ONLY	(1 << 1)
+
+#define ARM_SMMU_MAX_ASIDS		(1 << 16)
+#define ARM_SMMU_MAX_VMIDS		(1 << 16)
+
+struct arm_smmu_strtab_cfg {
+	uint64_t *strtab;
+	dma_addr_t strtab_dma;
+	struct arm_smmu_strtab_l1_desc *l1_desc;
+	unsigned int num_l1_ents;
+	uint64_t strtab_base;
+	uint32_t strtab_base_cfg;
+};
+
+#define SMMU_DEVICE_ATTR				\
+	uint32_t options;				\
+	struct arm_smmu_cmdq cmdq;			\
+	struct arm_smmu_evtq evtq;			\
+	struct arm_smmu_priq priq;			\
+	int gerr_irq;					\
+	int combined_irq;				\
+	unsigned long ias; /* IPA */			\
+	unsigned long oas; /* PA */			\
+	unsigned long pgsize_bitmap;			\
+	unsigned int asid_bits;				\
+	DECLARE_BITMAP(asid_map, ARM_SMMU_MAX_ASIDS);	\
+	unsigned int vmid_bits;				\
+	DECLARE_BITMAP(vmid_map, ARM_SMMU_MAX_VMIDS);	\
+	unsigned int ssid_bits;				\
+	unsigned int sid_bits;				\
+	struct arm_smmu_strtab_cfg strtab_cfg;		\
+	/* IOMMU core code handle */
+
+#define SMMU_STREAM_ATTR			\
+
+#define SMMU_CONTEXT_ATTR			\
+
 #include <driver/smmu_common.h>
+
+void __smmu_alloc_sme(smmu_sme_t sme);
+void __smmu_free_sme(void);
 
 #endif /* __ARM_SMMUv3_H_INCLUDE__ */

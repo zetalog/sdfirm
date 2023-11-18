@@ -56,14 +56,21 @@ typedef iommu_t smmu_sme_t; /* iommu device and smmu stream mapping group */
 #define INVALID_SMMU_SME		SMMU_SME(INVALID_IOMMU_DEV, 0)
 
 struct smmu_device {
+	uint32_t features;
+	smmu_gr_t gr;
+	smmu_cb_t cb;
 	SMMU_DEVICE_ATTR
 };
 
 struct smmu_stream {
+	iommu_grp_t grp;
+	int count;
+	smmu_sme_t sme;
 	SMMU_STREAM_ATTR
 };
 
 struct smmu_context {
+	smmu_cb_t cb;
 	SMMU_CONTEXT_ATTR
 };
 
