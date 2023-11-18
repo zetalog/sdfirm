@@ -926,7 +926,6 @@
 #define SMMU_DOMAIN_NESTED	3
 
 #define SMMU_DEVICE_ATTR				\
-	uint32_t features;				\
 	int max_streams;				\
 	uint16_t streamid_mask;				\
 	uint16_t smr_mask_mask;				\
@@ -938,8 +937,6 @@
 	uint8_t ipa_size;				\
 	uint8_t opa_size;				\
 	uint8_t va_size;				\
-	smmu_gr_t gr;					\
-	smmu_cb_t cb;					\
 	DECLARE_BITMAP(context_map, SMMU_MAX_CBS);
 #if 0
 	struct arm_smmu_cb *cbs;
@@ -948,14 +945,11 @@
 #endif
 
 #define SMMU_STREAM_ATTR				\
-	iommu_grp_t grp;				\
 	/* S2CR entry */				\
-	int count;					\
 	uint32_t s2cr_type : 2;				\
 	uint32_t s2cr_priv : 2;				\
 /*	smmu_cb_t cb; */				\
-	/* SMR entry */					\
-	smmu_sme_t sme;
+	/* SMR entry */
 
 #ifdef CONFIG_ARCH_HAS_SMMU_S2
 #define SMMU_CONTEXT_S2_ATTR
@@ -971,7 +965,6 @@
 		uint16_t asid;				\
 		SMMU_CONTEXT_S2_ATTR			\
 	};						\
-	smmu_cb_t cb;					\
 	irq_t irpt;					\
 	/* CBAR */					\
 	uint8_t type;
