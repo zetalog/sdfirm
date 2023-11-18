@@ -35,12 +35,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)arm_smmu.h: ARM system memory management unit (SMMU) interfaces
- * $Id: arm_smmu.h,v 1.1 2020-02-20 16:54:00 zhenglv Exp $
+ * @(#)smmu.h: System memory management unit (SMMU) interfaces
+ * $Id: smmu.h,v 1.1 2020-02-20 16:54:00 zhenglv Exp $
  */
 
-#ifndef __ARM_SMMU_H_INLCUDE__
-#define __ARM_SMMU_H_INCLUDE__
+#ifndef __SMMU_H_INLCUDE__
+#define __SMMU_H_INCLUDE__
 
 #include <target/generic.h>
 #include <target/irq.h>
@@ -861,21 +861,6 @@
 #define smmu_test_smr_masks()		do { } while (0)
 #endif
 
-typedef uint16_t smmu_gr_t; /* smmu stream id */
-typedef uint8_t smmu_cb_t; /* smmu context bank id */
-typedef iommu_t smmu_sme_t; /* iommu device and smmu stream mapping group */
-#define SMMU_SME_MASK(iommu, gr, sm)	MAKELLONG(MAKELONG(gr, sm), iommu)
-#define SMMU_SME(iommu, gr)		SMMU_SME_MASK(iommu, gr, 0)
-#define smmu_sme_dev(sme)		((iommu_dev_t)HIDWORD(sme))
-#define smmu_sme_gr(sme)		LOWORD(LODWORD(sme))
-#define smmu_sme_sm(sme)		HIWORD(LODWORD(sme))
-
-#define SMMU_MAX_CBS			128
-#define INVALID_SMMU_CB			SMMU_MAX_CBS
-#define INVALID_SMMU_SME		SMMU_SME(INVALID_IOMMU_DEV, 0)
-
-struct smmu_device {
-	uint32_t features;
 #define SMMU_FEAT_TRANS_S1		(1 << 0)
 #define SMMU_FEAT_TRANS_S2		(1 << 1)
 #define SMMU_FEAT_TRANS_NESTED		(1 << 2)
@@ -927,49 +912,7 @@ struct smmu_device {
 #define SMMU_FEAT_VMID16		(1 << 15)
 #define SMMU_FEAT_HARDWARE_ACCESS	(1 << 16)
 #define SMMU_FEAT_HARDWARE_DIRTY	(1 << 17)
-	int max_streams;
-	uint16_t streamid_mask;
-	uint16_t smr_mask_mask;
-	unsigned int numpage;
-	unsigned int pgshift;
-	uint32_t max_s1_cbs;
-	uint32_t max_s2_cbs;
-	uint32_t max_context_irqs;
-	uint8_t ipa_size;
-	uint8_t opa_size;
-	uint8_t va_size;
 
-	smmu_gr_t gr;
-	smmu_cb_t cb;
-	DECLARE_BITMAP(context_map, SMMU_MAX_CBS);
-#if 0
-	struct arm_smmu_cb *cbs;
-	atomic_t irptndx;
-	uint32_t num_global_irqs;
-#endif
-};
-
-struct smmu_stream {
-	iommu_grp_t grp;
-
-	/* S2CR entry */
-	int count;
-	uint32_t s2cr_type : 2;
-	uint32_t s2cr_priv : 2;
-/*	smmu_cb_t cb; */
-
-	/* SMR entry */
-	smmu_sme_t sme;
-};
-
-struct arm_smmu_cb {
-	uint64_t ttbr[2];
-	uint32_t tcr[2];
-	uint32_t mair[2];
-};
-
-struct smmu_context {
-	uint8_t fmt;
 #define SMMU_CONTEXT_NONE	0
 #define SMMU_CONTEXT_AARCH64	(1 << 0)
 #define SMMU_CONTEXT_AARCH32_L	(1 << 1)
@@ -977,21 +920,68 @@ struct smmu_context {
 #define SMMU_CONTEXT_RISCV_SV48	(1 << 3)
 #define SMMU_CONTEXT_RISCV_SV39	(1 << 4)
 #define SMMU_CONTEXT_RISCV_SV32	(1 << 5)
-	uint8_t stage;
 #define SMMU_DOMAIN_BYPASS	0
 #define SMMU_DOMAIN_S1		1
 #define SMMU_DOMAIN_S2		2
 #define SMMU_DOMAIN_NESTED	3
-	union {
-		uint16_t asid;
-#ifdef CONFIG_ARCH_HAS_SMMU_S2
-		uint16_t vmid;
+
+#define SMMU_DEVICE_ATTR				\
+	uint32_t features;				\
+	int max_streams;				\
+	uint16_t streamid_mask;				\
+	uint16_t smr_mask_mask;				\
+	unsigned int numpage;				\
+	unsigned int pgshift;				\
+	uint32_t max_s1_cbs;				\
+	uint32_t max_s2_cbs;				\
+	uint32_t max_context_irqs;			\
+	uint8_t ipa_size;				\
+	uint8_t opa_size;				\
+	uint8_t va_size;				\
+	smmu_gr_t gr;					\
+	smmu_cb_t cb;					\
+	DECLARE_BITMAP(context_map, SMMU_MAX_CBS);
+#if 0
+	struct arm_smmu_cb *cbs;
+	atomic_t irptndx;
+	uint32_t num_global_irqs;
 #endif
-	};
-	smmu_cb_t cb;
-	irq_t irpt;
-	/* CBAR */
+
+#define SMMU_STREAM_ATTR				\
+	iommu_grp_t grp;				\
+	/* S2CR entry */				\
+	int count;					\
+	uint32_t s2cr_type : 2;				\
+	uint32_t s2cr_priv : 2;				\
+/*	smmu_cb_t cb; */				\
+	/* SMR entry */					\
+	smmu_sme_t sme;
+
+#ifdef CONFIG_ARCH_HAS_SMMU_S2
+#define SMMU_CONTEXT_S2_ATTR
+		uint16_t vmid;
+#else
+#define SMMU_CONTEXT_S2_ATTR
+#endif
+
+#define SMMU_CONTEXT_ATTR				\
+	uint8_t fmt;					\
+	uint8_t stage;					\
+	union {						\
+		uint16_t asid;				\
+		SMMU_CONTEXT_S2_ATTR			\
+	};						\
+	smmu_cb_t cb;					\
+	irq_t irpt;					\
+	/* CBAR */					\
 	uint8_t type;
+
+#include <driver/smmu_common.h>
+
+struct arm_smmu_cb {
+	uint64_t ttbr[2];
+	uint32_t tcr[2];
+	uint32_t mair[2];
 };
 
 #if 0
@@ -1144,20 +1134,8 @@ struct arm_smmu_domain {
 		} while ((size) -= (gran));				\
 	} while (0)
 
-void smmu_gr_restore(smmu_gr_t gr);
-smmu_gr_t smmu_gr_save(smmu_gr_t gr);
-#define smmu_gr			smmu_device_ctrl.gr
-void smmu_cb_restore(smmu_cb_t cb);
-smmu_cb_t smmu_cb_save(smmu_cb_t cb);
-#define smmu_cb			smmu_device_ctrl.cb
-
-extern struct smmu_device smmu_devices[];
-extern struct smmu_stream smmu_streams[];
-extern struct smmu_context smmu_contexts[];
-#define smmu_device_ctrl		smmu_devices[iommu_dev]
-#define smmu_stream_ctrl		smmu_streams[iommu_grp]
-#define smmu_context_ctrl		smmu_contexts[iommu_dom]
-
+void __smmu_free_sme(void);
+void __smmu_alloc_sme(smmu_sme_t sme);
 void smmu_tlb_sync_global(void);
 void smmu_tlb_sync_context(void);
 void smmu_tlb_inv_context_s1(void);
@@ -1173,20 +1151,4 @@ void smmu_tlb_inv_any_s2_v1(unsigned long iova, size_t size, size_t granule);
 void smmu_tlb_add_page_s2_v1(unsigned long iova, size_t granule);
 #endif
 
-#ifdef CONFIG_SMMU
-iommu_grp_t smmu_alloc_sme(smmu_sme_t sme);
-void smmu_free_sme(iommu_grp_t grp);
-smmu_cb_t smmu_alloc_cb(smmu_cb_t start, smmu_cb_t end);
-void smmu_free_cb(smmu_cb_t cb);
-#else
-#define smmu_alloc_sme(sme)			INVALID_IOMMU_GRP
-#define smmu_free_sme(grp)			do { } while (0)
-#endif
-
-void smmu_group_select(void);
-void smmu_domain_select(void);
-
-void smmu_device_exit(void);
-void smmu_device_init(void);
-
-#endif /* __ARM_SMMU_H_INCLUDE__ */
+#endif /* __SMMU_H_INCLUDE__ */

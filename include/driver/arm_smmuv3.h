@@ -514,4 +514,6 @@ struct arm_smmu_l1_ctx_desc {
 	dma_addr_t			l2ptr_dma;
 };
 
+#include <driver/smmu_common.h>
+
 #endif /* __ARM_SMMUv3_H_INCLUDE__ */

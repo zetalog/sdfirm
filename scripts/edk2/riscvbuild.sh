@@ -6,8 +6,8 @@ EDK2_DIR=${CURDIR}/build
 
 EDK2_REPO=$HOME/workspace/uefi/tianocore
 #EDK2_REPO=$HOME/workspace/uefi/riscv
-#EDK2_PLAT=U540
-EDK2_PLAT=Duowen
+EDK2_PLAT=U540
+#EDK2_PLAT=Duowen
 
 #export PACKAGES_PATH=${EDK2_SRC}:${EDK2_PLATFORMS_SRC}
 
