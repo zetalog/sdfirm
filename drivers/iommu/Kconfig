@@ -111,6 +111,7 @@ config ARCH_HAS_SMMU_PTFS_SV48
 
 config SMMU_COMMON
 	bool
+	select HEAP
 
 config SMMU
 	bool
@@ -217,6 +218,7 @@ menuconfig ARM_SMMUv3
 	bool "ARM System Memory Management Unit v3 (SMMUv3) support"
 	depends ARCH_HAS_SMMUv3
 	select BIT_FIND_CLEAR
+	select BIT_FLS64
 	select SMMU_COMMON
 
 if ARM_SMMUv3
