@@ -62,18 +62,6 @@
 
 /* iommu_dev_t */
 #define IOMMU_DMAC		0
-#define IOMMU_PCIE		1
-#ifdef CONFIG_DUOWEN_SBI_DUAL
-#define IOMMU_DMAC1		2
-#define IOMMU_PCIE1		3
-#endif
-
-#ifdef CONFIG_K1MATRIX_SMMUv2
-#include <driver/arm_smmuv2.h>
-#endif
-#ifdef CONFIG_K1MATRIX_SMMUv3
-#include <driver/arm_smmuv3.h>
-#endif
 
 #if defined(CONFIG_K1MATRIX_DMAR)
 #ifndef ARCH_HAVE_IOMMU
@@ -86,11 +74,7 @@
 #define SMMU_SME_DMA_TBU1	SMMU_SME(IOMMU_DMAC, 1)
 #define SMMU_SME_DMA_TBU2	SMMU_SME(IOMMU_DMAC, 2)
 #define SMMU_SME_DMA_TBU3	SMMU_SME(IOMMU_DMAC, 3)
-#define SMMU_SME_DMA_TBU4	SMMU_SME(IOMMU_DMAC, 4)
-#define SMMU_SME_DMA_TBU5	SMMU_SME(IOMMU_DMAC, 5)
-#define SMMU_SME_DMA_TBU6	SMMU_SME(IOMMU_DMAC, 6)
-#define SMMU_SME_DMA_TBU7	SMMU_SME(IOMMU_DMAC, 7)
-#define NR_DMA_IOMMUS		8
+#define NR_DMA_IOMMUS		4
 
 #define NR_IOMMUS		(NR_DMA_IOMMUS)
 #else
@@ -98,11 +82,17 @@
 #endif
 #endif
 
+#ifdef CONFIG_K1MATRIX_SMMUv2
+#include <driver/arm_smmuv2.h>
+#endif
+#ifdef CONFIG_K1MATRIX_SMMUv3
+#include <driver/arm_smmuv3.h>
+#endif
+
 #ifdef ARCH_HAVE_IOMMU
 #define iommu_hw_ctrl_init()				smmu_device_init()
-#define iommu_hw_group_select()				smmu_group_select()
 #define iommu_hw_domain_select()			smmu_domain_select()
-#define iommu_hw_alloc_master(iommu)			smmu_alloc_sme(iommu)
+#define iommu_hw_alloc_master(nr_sids, sids)		smmu_group_alloc(nr_sids, sids)
 
 #ifdef CONFIG_K1MATRIX_SMMUv2
 #define iommu_hw_tlb_flush_all()			\

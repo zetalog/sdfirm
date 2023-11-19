@@ -146,6 +146,8 @@ struct iommu_group {
 	iommu_dev_t dev;
 	iommu_dom_t default_dom;
 	iommu_dom_t dom;
+	int nr_iommus;
+	iommu_t *iommus;
 };
 
 struct iommu_domain {
@@ -166,12 +168,12 @@ struct iommu_domain {
 	iommu_fmt_t fmt;
 };
 
-iommu_grp_t iommu_alloc_group(void);
+iommu_grp_t iommu_alloc_group(int nr_iomms, iommu_t *iommus);
 void iommu_free_group(iommu_grp_t grp);
 iommu_dom_t iommu_alloc_domain(uint8_t type);
 void iommu_free_domain(iommu_dom_t dom);
 
-iommu_grp_t iommu_register_master(iommu_t iommu);
+iommu_grp_t iommu_register_master(int nr_iommus, iommu_t *iommus);
 
 int iommu_map(unsigned long iova, size_t size, phys_addr_t paddr, int prot);
 int iommu_unmap(unsigned long iova, size_t size);

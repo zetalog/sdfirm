@@ -65,7 +65,7 @@ void smmu_tlb_inv_context_s1(void)
 	 * current CPU are visible beforehand.
 	 */
 	wmb();
-	__raw_writel(SMMU_ASID(smmu_context_ctrl.asid),
+	__raw_writel(SMMU_ASID(smmu_domain_ctrl.asid),
 		     SMMU_CB_TLBIASID(iommu_dev, smmu_cb));
 	smmu_tlb_sync_context();
 }
@@ -76,16 +76,16 @@ static void smmu_tlb_inv_range_s1(unsigned long iova, size_t size,
 	if (smmu_device_ctrl.features & SMMU_FEAT_COHERENT_WALK)
 		wmb();
 
-	if (smmu_context_ctrl.fmt == SMMU_CONTEXT_AARCH64) {
+	if (smmu_domain_ctrl.fmt == SMMU_CONTEXT_AARCH64) {
 		iova >>= 12;
-		iova |= (uint64_t)smmu_context_ctrl.asid << 48;
+		iova |= (uint64_t)smmu_domain_ctrl.asid << 48;
 		do {
 			__raw_writeq(iova, reg);
 			iova += granule >> 12;
 		} while (size -= granule);
 	} else {
 		iova = (iova >> 12) << 12;
-		iova |= smmu_context_ctrl.asid;
+		iova |= smmu_domain_ctrl.asid;
 		do {
 			__raw_writel(iova, reg);
 			iova += granule;
@@ -120,7 +120,7 @@ void smmu_tlb_inv_context_s2(void)
 	 * current CPU are visible beforehand.
 	 */
 	wmb();
-	__raw_writel(SMMU_VMID(smmu_context_ctrl.vmid),
+	__raw_writel(SMMU_VMID(smmu_domain_ctrl.vmid),
 		     SMMU_TLBIVMID(iommu_dev));
 	smmu_tlb_sync_global();
 }
@@ -133,7 +133,7 @@ static void smmu_tlb_inv_range_s2(unsigned long iova, size_t size,
 
 	iova >>= 12;
 	do {
-		if (smmu_context_ctrl.fmt == SMMU_CONTEXT_AARCH64)
+		if (smmu_domain_ctrl.fmt == SMMU_CONTEXT_AARCH64)
 			__raw_writeq(iova, reg);
 		else
 			__raw_writel(iova, reg);
@@ -202,51 +202,51 @@ int smmu_init_domain_context(void)
 	iommu_fmt_t fmt = ARM_64_LPAE_S1;
 
 	if (iommu_domain_ctrl.type == IOMMU_DOMAIN_IDENTITY) {
-		smmu_context_ctrl.stage = SMMU_DOMAIN_BYPASS;
+		smmu_domain_ctrl.stage = SMMU_DOMAIN_BYPASS;
 		return 0;
 	}
 
 	if (!(smmu_device_ctrl.features & SMMU_FEAT_TRANS_S1))
-		smmu_context_ctrl.stage = SMMU_DOMAIN_S2;
+		smmu_domain_ctrl.stage = SMMU_DOMAIN_S2;
 	if (!(smmu_device_ctrl.features & SMMU_FEAT_TRANS_S2))
-		smmu_context_ctrl.stage = SMMU_DOMAIN_S1;
+		smmu_domain_ctrl.stage = SMMU_DOMAIN_S1;
 
 #ifdef CONFIG_ARM
 	if (smmu_device_ctrl.features & SMMU_FEAT_PTFS_AARCH32_L)
-		smmu_context_ctrl.fmt = SMMU_CONTEXT_AARCH32_L;
+		smmu_domain_ctrl.fmt = SMMU_CONTEXT_AARCH32_L;
 	else if (smmu_device_ctrl.features & SMMU_FEAT_PTFS_AARCH32_S)
-		smmu_context_ctrl.fmt = SMMU_CONTEXT_AARCH32_S;
+		smmu_domain_ctrl.fmt = SMMU_CONTEXT_AARCH32_S;
 	else
-		smmu_context_ctrl.fmt = SMMU_CONTEXT_NONE;
+		smmu_domain_ctrl.fmt = SMMU_CONTEXT_NONE;
 #endif
 #ifdef CONFIG_ARM64
 	if (smmu_device_ctrl.features & (SMMU_FEAT_PTFS_AARCH64_64K |
 					 SMMU_FEAT_PTFS_AARCH64_16K |
 					 SMMU_FEAT_PTFS_AARCH64_4K))
-		smmu_context_ctrl.fmt = SMMU_CONTEXT_AARCH64;
+		smmu_domain_ctrl.fmt = SMMU_CONTEXT_AARCH64;
 	else
-		smmu_context_ctrl.fmt = SMMU_CONTEXT_NONE;
+		smmu_domain_ctrl.fmt = SMMU_CONTEXT_NONE;
 #endif
 #ifdef CONFIG_RISCV
 	if (smmu_device_ctrl.features & SMMU_FEAT_PTFS_RISCV_SV39)
-		smmu_context_ctrl.fmt = SMMU_CONTEXT_RISCV_SV39;
+		smmu_domain_ctrl.fmt = SMMU_CONTEXT_RISCV_SV39;
 	else
-		smmu_context_ctrl.fmt = SMMU_CONTEXT_NONE;
+		smmu_domain_ctrl.fmt = SMMU_CONTEXT_NONE;
 #endif
 
-	if (smmu_context_ctrl.fmt == SMMU_CONTEXT_NONE)
+	if (smmu_domain_ctrl.fmt == SMMU_CONTEXT_NONE)
 		return 0;
 
-	switch (smmu_context_ctrl.stage) {
+	switch (smmu_domain_ctrl.stage) {
 	case SMMU_DOMAIN_S1:
-		smmu_context_ctrl.type = SMMU_CBAR_TYPE_S1_TRANS_S2_BYPASS;
+		smmu_domain_ctrl.type = SMMU_CBAR_TYPE_S1_TRANS_S2_BYPASS;
 		start = smmu_device_ctrl.max_s2_cbs;
 		ias = smmu_device_ctrl.va_size;
 		oas = smmu_device_ctrl.ipa_size;
 #ifdef CONFIG_ARM64
-		if (smmu_context_ctrl.fmt == SMMU_CONTEXT_AARCH64)
+		if (smmu_domain_ctrl.fmt == SMMU_CONTEXT_AARCH64)
 			fmt = ARM_64_LPAE_S1;
-		else if (smmu_context_ctrl.fmt == SMMU_CONTEXT_AARCH32_L) {
+		else if (smmu_domain_ctrl.fmt == SMMU_CONTEXT_AARCH32_L) {
 			fmt = ARM_64_LPAE_S1;
 			ias = min(ias, UL(32));
 			oas = min(oas, UL(40));
@@ -257,11 +257,11 @@ int smmu_init_domain_context(void)
 		}
 #endif
 #ifdef CONFIG_RISCV
-		if (smmu_context_ctrl.fmt == SMMU_CONTEXT_RISCV_SV39) {
+		if (smmu_domain_ctrl.fmt == SMMU_CONTEXT_RISCV_SV39) {
 			fmt = RISCV_64_SV39_S1;
 			ias = min(ias, UL(39));
 			oas = min(oas, UL(55));
-		} else if (smmu_context_ctrl.fmt == SMMU_CONTEXT_RISCV_SV48) {
+		} else if (smmu_domain_ctrl.fmt == SMMU_CONTEXT_RISCV_SV48) {
 			fmt = RISCV_64_SV48_S1;
 			ias = min(ias, UL(48));
 			oas = min(oas, UL(55));
@@ -281,16 +281,16 @@ int smmu_init_domain_context(void)
 		return -EINVAL;
 	}
 
-	smmu_context_ctrl.cb = smmu_alloc_cb(start,
+	smmu_domain_ctrl.cb = smmu_alloc_cb(start,
 		smmu_device_ctrl.max_s1_cbs);
-	smmu_context_ctrl.irpt = smmu_context_ctrl.cb;
+	smmu_domain_ctrl.irpt = smmu_domain_ctrl.cb;
 
 #ifdef CONFIG_ARCH_HAS_SMMU_S2
-	if (smmu_context_ctrl.stage == SMMU_DOMAIN_S2)
-		smmu_context_ctrl.vmid = smmu_context_ctrl.cb + 1;
+	if (smmu_domain_ctrl.stage == SMMU_DOMAIN_S2)
+		smmu_domain_ctrl.vmid = smmu_domain_ctrl.cb + 1;
 	else
 #endif
-		smmu_context_ctrl.asid = smmu_context_ctrl.cb;
+		smmu_domain_ctrl.asid = smmu_domain_ctrl.cb;
 
 	pgtbl_cfg.fmt = fmt;
 	pgtbl_cfg.pgsize_bitmap = iommu_device_ctrl.pgsize_bitmap;
@@ -460,26 +460,26 @@ static void smmu_device_reset(void)
 	printf("Resetting %d (fw reported) stream mapping groups...\n",
 	       NR_IOMMU_GROUPS);
 	for (i = 0; i < SMMU_HW_NUMSMES(iommu_dev); i++) {
-		sgr = smmu_gr_save(i);
+		sgr = smmu_stream_save(i);
 		smmu_stream_ctrl.count = 0;
 		smmu_stream_ctrl.sme = INVALID_SMMU_SME;
 		printf("Writing group %d S2CR...\n", i);
 		smmu_write_s2cr(SMMU_S2CR_TYPE_INIT, 0, 0, false);
 		printf("Writing group %d SMR...\n", i);
 		smmu_write_smr(0, 0, false);
-		smmu_gr_restore(sgr);
+		smmu_stream_restore(sgr);
 	}
 
 	/* Make sure all context banks are disabled and clear CB_FSR  */
 	printf("Resetting %d (hw reported) context banks...\n",
 	       smmu_device_ctrl.max_s1_cbs);
 	for (i = 0; i < smmu_device_ctrl.max_s1_cbs; i++) {
-		scb = smmu_cb_save(i);
+		scb = smmu_domain_save(i);
 		printf("Writing context bank %d...\n", i);
 		smmu_write_context_bank(NULL, SMMU_CBAR_TYPE_S2_TRANS,
 					false, 0, 0, 0);
 		__raw_writel(SMMU_FSR_FAULT, SMMU_CB_FSR(iommu_dev, smmu_cb));
-		smmu_cb_restore(scb);
+		smmu_domain_restore(scb);
 	}
 
 	/* Invalidate the TLB, just in case */
@@ -525,15 +525,16 @@ static void smmu_device_reset(void)
 	smmu_enable(iommu_dev);
 }
 
-void __smmu_free_sme(void)
+void smmu_stream_uninstall(void)
 {
 	smmu_write_s2cr(SMMU_S2CR_TYPE_INIT, 0, 0, false);
 	smmu_write_smr(0, 0, false);
 }
 
-void __smmu_alloc_sme(smmu_sme_t sme)
+void smmu_stream_install(void)
 {
 	__unused smmu_gr_t gr, sm;
+	smmu_sme_t sme = smmu_stream_ctrl.sme;
 
 	gr = smmu_sme_gr(sme);
 	sm = smmu_sme_sm(sme);

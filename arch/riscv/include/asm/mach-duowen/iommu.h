@@ -109,7 +109,6 @@
 
 #ifdef ARCH_HAVE_IOMMU
 #define iommu_hw_ctrl_init()				smmu_device_init()
-#define iommu_hw_group_select()				smmu_group_select()
 #define iommu_hw_domain_select()			smmu_domain_select()
 #define iommu_hw_alloc_master(iommu)			smmu_alloc_sme(iommu)
 
