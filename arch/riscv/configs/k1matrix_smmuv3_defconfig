@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sun Nov 19 11:48:58 2023
+# Sun Nov 19 12:58:52 2023
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -278,7 +278,16 @@ CONFIG_LOAD_BASE=0x0110000000
 # Address space allocator (stack) support
 #
 # CONFIG_STACK_CUST is not set
-# CONFIG_HEAP is not set
+CONFIG_HEAP=y
+CONFIG_HEAP_PAGE=y
+# CONFIG_HEAP_ALIGN_1 is not set
+# CONFIG_HEAP_ALIGN_2 is not set
+# CONFIG_HEAP_ALIGN_4 is not set
+CONFIG_HEAP_ALIGN_8=y
+CONFIG_HEAP_SIZE=0x40000
+CONFIG_HEAP_DLMALLOC=y
+# CONFIG_ALLOC_TRIM is not set
+# CONFIG_ALLOC_CHECK is not set
 CONFIG_MEM=y
 CONFIG_MEM_MAX_REGIONS=3
 # CONFIG_MEM_RESIZE is not set

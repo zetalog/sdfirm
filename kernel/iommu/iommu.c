@@ -368,6 +368,7 @@ void iommu_init(void)
 	for (dev = 0; dev < NR_IOMMU_DEVICES; dev++) {
 		sdev = iommu_device_save(dev);
 		iommu_device_ctrl.id = dev;
+		iommu_device_ctrl.dma = DMA_DEFAULT;
 		iommu_hw_ctrl_init();
 		iommu_device_restore(sdev);
 	}
