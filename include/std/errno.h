@@ -25,6 +25,7 @@
 #define ENODATA         61
 #define ETIME           62
 #define EPROTO          71
+#define EOVERFLOW	75
 #define EOPNOTSUPP      95
 #define ENOTSUP         EOPNOTSUPP
 #define EINPROGRESS     115

@@ -122,7 +122,7 @@
 
 #define smmu_hw_ctrl_reset(reg)				(reg)
 
-unsigned long smmu_hw_pgsize_bitmap;
+extern unsigned long smmu_hw_pgsize_bitmap;
 extern smmu_gr_t smmu_num_sms[];
 #endif /* ARCH_HAVE_IOMMU */
 
