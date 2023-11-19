@@ -671,6 +671,13 @@ struct arm_smmu_priq {
 
 #include <driver/smmu_common.h>
 
+void smmuv3_tlb_inv_context(void);
+void smmuv3_tlb_inv_walk(unsigned long iova, size_t size, size_t granule);
+void smmuv3_tlb_inv_leaf(unsigned long iova, size_t size, size_t granule);
+void smmuv3_tlb_inv_page_nosync(struct iommu_iotlb_gather *gather,
+				unsigned long iova, size_t granule);
+void smmuv3_flush_iotlb_all(void);
+void smmuv3_iotlb_sync(struct iommu_iotlb_gather *gather);
 void __smmu_alloc_sme(smmu_sme_t sme);
 void __smmu_free_sme(void);
 

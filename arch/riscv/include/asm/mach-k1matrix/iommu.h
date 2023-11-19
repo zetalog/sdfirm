@@ -104,18 +104,32 @@
 #define iommu_hw_domain_select()			smmu_domain_select()
 #define iommu_hw_alloc_master(iommu)			smmu_alloc_sme(iommu)
 
+#ifdef CONFIG_K1MATRIX_SMMUv2
 #define iommu_hw_tlb_flush_all()			\
 	smmu_tlb_inv_context_s1()
 #define iommu_hw_tlb_flush_walk(iova, size, granule)	\
 	smmu_tlb_inv_walk_s1(iova, size, granule)
 #define iommu_hw_tlb_flush_leaf(iova, size, granule)	\
 	smmu_tlb_inv_leaf_s1(iova, size, granule)
-#define iommu_hw_tlb_add_page(iova, granule)	\
+#define iommu_hw_tlb_add_page(gather, iova, granule)	\
 	smmu_tlb_add_page_s1(iova, granule)
+#define iommu_hw_iotlb_sync(gather)			do { } while (0)
+#endif
+#ifdef CONFIG_K1MATRIX_SMMUv3
+#define iommu_hw_tlb_flush_all()			\
+	smmuv3_tlb_inv_context()
+#define iommu_hw_tlb_flush_walk(iova, size, granule)	\
+	smmuv3_tlb_inv_walk(iova, size, granule)
+#define iommu_hw_tlb_flush_leaf(iova, size, granule)	\
+	smmuv3_tlb_inv_leaf(iova, size, granule)
+#define iommu_hw_tlb_add_page(gather, iova, granule)	\
+	smmuv3_tlb_inv_page_nosync(gather, iova, granule)
+#define iommu_hw_iotlb_sync(gather)			\
+	smmuv3_iotlb_sync(gather)
+#endif
 
 #define iommu_hw_map(iova, pgsize, paddr, prot)		0
 #define iommu_hw_unmap(iova, pgsize, gather)		0
-#define iommu_hw_iotlb_sync(gather)			do { } while (0)
 
 #define iommu_hw_alloc_table(cfg)			0
 #define iommu_hw_free_table()				do { } while (0)

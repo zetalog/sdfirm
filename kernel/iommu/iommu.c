@@ -41,7 +41,6 @@
 
 #include <target/iommu.h>
 #include <target/panic.h>
-#include <target/dma.h>
 
 /* ======================================================================
  * IOMMU Devices
@@ -285,6 +284,48 @@ static inline void iommu_iotlb_gather_init(struct iommu_iotlb_gather *gather)
 	};
 }
 
+bool iommu_iotlb_gather_is_disjoint(struct iommu_iotlb_gather *gather,
+				    unsigned long iova, size_t size)
+{
+	unsigned long start = iova, end = start + size - 1;
+
+	return gather->end != 0 &&
+		(end + 1 < gather->start || start > gather->end + 1);
+}
+
+void iommu_iotlb_gather_add_range(struct iommu_iotlb_gather *gather,
+				  unsigned long iova, size_t size)
+{
+	unsigned long end = iova + size - 1;
+
+	if (gather->start > iova)
+		gather->start = iova;
+	if (gather->end < end)
+		gather->end = end;
+}
+
+void iommu_iotlb_gather_add_page(struct iommu_iotlb_gather *gather,
+				 unsigned long iova, size_t size)
+{
+	/*
+	 * If the new page is disjoint from the current range or is mapped at
+	 * a different granularity, then sync the TLB so that the gather
+	 * structure can be rewritten.
+	 */
+	if ((gather->pgsize && gather->pgsize != size) ||
+	    iommu_iotlb_gather_is_disjoint(gather, iova, size))
+		iommu_iotlb_sync(gather);
+
+	gather->pgsize = size;
+	iommu_iotlb_gather_add_range(gather, iova, size);
+}
+
+void iommu_iotlb_sync(struct iommu_iotlb_gather *gather)
+{
+	iommu_hw_iotlb_sync(gather);
+	iommu_iotlb_gather_init(gather);
+}
+
 int iommu_unmap(unsigned long iova, size_t size)
 {
 	unsigned int min_pagesz;
@@ -308,7 +349,7 @@ int iommu_unmap(unsigned long iova, size_t size)
 		unmapped += unmapped_page;
 	}
 
-	iommu_hw_iotlb_sync(&iotlb_gather);
+	iommu_iotlb_sync(&iotlb_gather);
 
 	iommu_iotlb_gather_init(&iotlb_gather);
 	return unmapped;
