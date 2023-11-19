@@ -839,11 +839,11 @@ static int arm_smmu_atc_inv_master(struct arm_smmu_cmdq_ent *cmd)
 {
 	int i;
 
-	if (!smmu_stream_ctrl.ats_enabled)
+	if (!smmu_group_ctrl.ats_enabled)
 		return 0;
 
-	for (i = 0; i < smmu_stream_ctrl.num_sids; i++) {
-		cmd->atc.sid = smmu_stream_ctrl.sids[i];
+	for (i = 0; i < smmu_group_ctrl.num_sids; i++) {
+		cmd->atc.sid = smmu_group_ctrl.sids[i];
 		arm_smmu_cmdq_issue_cmd(cmd);
 	}
 
@@ -855,7 +855,7 @@ static int arm_smmu_atc_inv_domain(int ssid, unsigned long iova, size_t size)
 	int ret = 0;
 	__unused irq_flags_t flags;
 	struct arm_smmu_cmdq_ent cmd;
-	struct smmu_stream *stream;
+	struct smmu_group *group;
 	iommu_grp_t grp;
 
 	if (!(smmu_device_ctrl.features & ARM_SMMU_FEAT_ATS))
@@ -875,14 +875,14 @@ static int arm_smmu_atc_inv_domain(int ssid, unsigned long iova, size_t size)
 	 * ATS was enabled at the PCI device before completion of the TLBI.
 	 */
 	smp_mb();
-	if (!atomic_read(&smmu_context_ctrl.nr_ats_masters))
+	if (!atomic_read(&smmu_domain_ctrl.nr_ats_masters))
 		return 0;
 
 	arm_smmu_atc_inv_to_cmd(ssid, iova, size, &cmd);
 
-	list_for_each_entry(struct smmu_stream, stream,
-			    &smmu_context_ctrl.devices, domain_head) {
-		grp = iommu_group_save(stream->grp);
+	list_for_each_entry(struct smmu_group, group,
+			    &smmu_domain_ctrl.devices, domain_head) {
+		grp = iommu_group_save(group->grp);
 		ret |= arm_smmu_atc_inv_master(&cmd);
 		iommu_group_restore(grp);
 	}
@@ -895,13 +895,13 @@ void smmuv3_tlb_inv_context(void)
 {
 	struct arm_smmu_cmdq_ent cmd;
 
-	if (smmu_context_ctrl.stage == ARM_SMMU_DOMAIN_S1) {
+	if (smmu_domain_ctrl.stage == ARM_SMMU_DOMAIN_S1) {
 		cmd.opcode	= CMDQ_OP_TLBI_NH_ASID;
-		cmd.tlbi.asid	= smmu_context_ctrl.s1_cfg.cd.asid;
+		cmd.tlbi.asid	= smmu_domain_ctrl.s1_cfg.cd.asid;
 		cmd.tlbi.vmid	= 0;
 	} else {
 		cmd.opcode	= CMDQ_OP_TLBI_S12_VMALL;
-		cmd.tlbi.vmid	= smmu_context_ctrl.s2_cfg.vmid;
+		cmd.tlbi.vmid	= smmu_domain_ctrl.s2_cfg.vmid;
 	}
 
 	/*
@@ -931,12 +931,12 @@ static void arm_smmu_tlb_inv_range(unsigned long iova, size_t size,
 	if (!size)
 		return;
 
-	if (smmu_context_ctrl.stage == ARM_SMMU_DOMAIN_S1) {
+	if (smmu_domain_ctrl.stage == ARM_SMMU_DOMAIN_S1) {
 		cmd.opcode	= CMDQ_OP_TLBI_NH_VA;
-		cmd.tlbi.asid	= smmu_context_ctrl.s1_cfg.cd.asid;
+		cmd.tlbi.asid	= smmu_domain_ctrl.s1_cfg.cd.asid;
 	} else {
 		cmd.opcode	= CMDQ_OP_TLBI_S2_IPA;
-		cmd.tlbi.vmid	= smmu_context_ctrl.s2_cfg.vmid;
+		cmd.tlbi.vmid	= smmu_domain_ctrl.s2_cfg.vmid;
 	}
 
 	while (iova < end) {
@@ -1082,7 +1082,7 @@ arm_smmu_write_strtab_l1_desc(uint64_t *dst, struct arm_smmu_strtab_l1_desc *des
 	*dst = cpu_to_le64(val);
 }
 
-static void arm_smmu_write_strtab_ent(struct smmu_stream *stream, uint32_t sid, uint64_t *dst)
+static void arm_smmu_write_strtab_ent(struct smmu_group *group, uint32_t sid, uint64_t *dst)
 {
 	/*
 	 * This is hideously complicated, but we only really care about
@@ -1104,7 +1104,7 @@ static void arm_smmu_write_strtab_ent(struct smmu_stream *stream, uint32_t sid, 
 	bool ste_live = false;
 	struct arm_smmu_s1_cfg *s1_cfg = NULL;
 	struct arm_smmu_s2_cfg *s2_cfg = NULL;
-	struct smmu_context *smmu_domain = NULL;
+	struct smmu_domain *smmu_domain = NULL;
 	struct arm_smmu_cmdq_ent prefetch_cmd = {
 		.opcode		= CMDQ_OP_PREFETCH_CFG,
 		.prefetch	= {
@@ -1112,7 +1112,7 @@ static void arm_smmu_write_strtab_ent(struct smmu_stream *stream, uint32_t sid, 
 		},
 	};
 
-	smmu_domain = stream->domain;
+	smmu_domain = group->domain;
 	if (smmu_domain) {
 		switch (smmu_domain->stage) {
 		case ARM_SMMU_DOMAIN_S1:
@@ -1200,7 +1200,7 @@ static void arm_smmu_write_strtab_ent(struct smmu_stream *stream, uint32_t sid, 
 		val |= FIELD_PREP(STRTAB_STE_0_CFG, STRTAB_STE_0_CFG_S2_TRANS);
 	}
 
-	if (stream && stream->ats_enabled)
+	if (group && group->ats_enabled)
 		dst[1] |= cpu_to_le64(FIELD_PREP(STRTAB_STE_1_EATS,
 						 STRTAB_STE_1_EATS_TRANS));
 
@@ -1742,12 +1742,17 @@ static int arm_smmu_device_reset(bool bypass)
 	return 0;
 }
 
-void __smmu_free_sme(void)
+void smmu_stream_uninstall(void)
 {
 }
 
-void __smmu_alloc_sme(smmu_sme_t sme)
+void smmu_stream_install(void)
 {
+#if 0
+	/* Ensure l2 strtab is initialised */
+	if (smmu_device_ctrl.features & ARM_SMMU_FEAT_2_LVL_STRTAB)
+		arm_smmu_init_l2_strtab(smmu_stream_ctrl.sme);
+#endif
 }
 
 void smmu_device_init(void)
@@ -2665,24 +2670,6 @@ static int arm_smmu_add_device(struct device *dev)
 	master->num_sids = fwspec->num_ids;
 	fwspec->iommu_priv = master;
 
-	/* Check the SIDs are in range of the SMMU and our stream table */
-	for (i = 0; i < master->num_sids; i++) {
-		u32 sid = master->sids[i];
-
-		if (!arm_smmu_sid_in_range(smmu, sid)) {
-			ret = -ERANGE;
-			goto err_free_master;
-		}
-
-		/* Ensure l2 strtab is initialised */
-		if (smmu->features & ARM_SMMU_FEAT_2_LVL_STRTAB) {
-			ret = arm_smmu_init_l2_strtab(smmu, sid);
-			if (ret)
-				goto err_free_master;
-		}
-	}
-
-	master->ssid_bits = min(smmu->ssid_bits, fwspec->num_pasid_bits);
 
 	if (!(smmu->features & ARM_SMMU_FEAT_2_LVL_CDTAB))
 		master->ssid_bits = min_t(u8, master->ssid_bits,

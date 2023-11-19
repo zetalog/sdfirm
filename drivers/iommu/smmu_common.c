@@ -2,66 +2,94 @@
 #include <target/panic.h>
 
 struct smmu_device smmu_devices[NR_IOMMU_DEVICES];
-struct smmu_stream smmu_streams[NR_IOMMU_GROUPS];
-struct smmu_context smmu_contexts[NR_IOMMU_DOMAINS];
+/* Also known as SMMU masters, contains multiple streams, reflects a bus
+ * device that can perform master side DMA.
+ */
+struct smmu_group smmu_groups[NR_IOMMU_GROUPS];
+struct smmu_domain smmu_domains[NR_IOMMU_DOMAINS];
 
-void smmu_gr_restore(smmu_gr_t gr)
+#if NR_SMMU_STREAMS > 1
+struct smmu_stream smmu_streams[NR_SMMU_STREAMS];
+smmu_gr_t smmu_sid;
+
+void smmu_stream_restore(smmu_gr_t gr)
 {
 	smmu_device_ctrl.gr = gr;
 }
 
-smmu_gr_t smmu_gr_save(smmu_gr_t gr)
+smmu_gr_t smmu_stream_save(smmu_gr_t gr)
 {
 	smmu_gr_t sgr = smmu_device_ctrl.gr;
 
-	smmu_gr_restore(gr);
+	smmu_stream_restore(gr);
 	return sgr;
 }
+#endif
 
-void smmu_group_select(void)
+void smmu_stream_select(void)
 {
-	smmu_sme_t sme = smmu_stream_ctrl.sme;
+	smmu_sme_t sme = smmu_group_ctrl.sme;
 	smmu_gr_t gr = smmu_sme_gr(sme);
 
 	BUG_ON(smmu_sme_dev(sme) != iommu_dev);
-	smmu_gr_restore(gr);
+	smmu_stream_restore(gr);
 }
 
-void smmu_cb_restore(smmu_cb_t cb)
+void smmu_domain_restore(smmu_cb_t cb)
 {
 	smmu_device_ctrl.cb = cb;
 }
 
-smmu_cb_t smmu_cb_save(smmu_cb_t cb)
+smmu_cb_t smmu_domain_save(smmu_cb_t cb)
 {
 	smmu_cb_t scb = smmu_device_ctrl.cb;
 
-	smmu_cb_restore(cb);
+	smmu_domain_restore(cb);
 	return scb;
 }
 
 void smmu_domain_select(void)
 {
-	smmu_cb_restore(smmu_context_ctrl.cb);
+	smmu_domain_restore(smmu_domain_ctrl.cb);
 }
 
-iommu_grp_t smmu_find_sme(smmu_gr_t gr, smmu_gr_t sm)
+smmu_gr_t smmu_stream_alloc(smmu_sme_t sme)
 {
-	__unused iommu_grp_t grp = INVALID_IOMMU_GRP, sgrp;
-	smmu_sme_t sme;
-	smmu_gr_t sme_gr, sme_sm;
+	__unused smmu_gr_t sid = INVALID_SMMU_SID, ssid;
 
-	sgrp = iommu_group_save(grp);
-	for (grp = 0; grp < NR_IOMMU_GROUPS; ++grp) {
-		iommu_group_restore(sgrp);
-		sgrp = iommu_group_save(grp);
+	for (sid = 0; sid < NR_SMMU_STREAMS; ++sid) {
+		ssid = smmu_stream_save(sid);
+		if (!smmu_stream_ctrl.valid) {
+			smmu_stream_ctrl.sme = sme;
+			smmu_stream_install();
+			smmu_stream_restore(ssid);
+			return sid;
+		}
+		smmu_stream_restore(ssid);
+	}
+	return INVALID_SMMU_SID;
+}
+
+smmu_gr_t smmu_stream_find(smmu_sme_t sme)
+{
+	__unused smmu_gr_t sid = INVALID_SMMU_SID, ssid;
+	smmu_gr_t sme_gr, sme_sm;
+	smmu_gr_t gr, sm;
+	iommu_dev_t dev;
+
+	dev = smmu_sme_dev(sme);
+	gr = smmu_sme_gr(sme);
+	sm = smmu_sme_sm(sme);
+	for (sid = 0; sid < NR_SMMU_STREAMS; ++sid) {
+		ssid = smmu_stream_save(sid);
 
 		/* Skip other SMMU devices */
-		if (iommu_group_ctrl.dev != iommu_dev)
+		if (iommu_dev != dev || !smmu_stream_ctrl.valid) {
+			smmu_stream_restore(ssid);
 			continue;
+		}
 
 		sme = smmu_stream_ctrl.sme;
-		BUG_ON(smmu_sme_dev(sme) != iommu_dev);
 		sme_gr = smmu_sme_gr(sme);
 		sme_sm = smmu_sme_sm(sme);
 
@@ -73,49 +101,72 @@ iommu_grp_t smmu_find_sme(smmu_gr_t gr, smmu_gr_t sm)
 		if (!((gr ^ sme_gr) & ~(sme_sm | sm))) {
 			con_err("smmu: conflict stream: 0x%04x/0x%04x.",
 				gr, sm);
-			iommu_group_restore(sgrp);
-			return INVALID_IOMMU_GRP;
+			smmu_stream_restore(ssid);
+			return INVALID_SMMU_SID;
 		}
+		smmu_stream_restore(ssid);
 	}
-	iommu_group_restore(sgrp);
-	return grp == INVALID_IOMMU_GRP ? iommu_alloc_group() : grp;
+	return sid == INVALID_SMMU_SID ? smmu_stream_alloc(sme) : sid;
 }
 
-void smmu_free_sme(iommu_grp_t grp)
+void smmu_stream_free(smmu_gr_t sid)
 {
-	__unused iommu_grp_t sgrp;
+	__unused smmu_gr_t ssid;
 
-	sgrp = iommu_group_save(grp);
+	ssid = smmu_stream_save(sid);
 	if (smmu_stream_ctrl.count > 0)
 		smmu_stream_ctrl.count--;
 	if (smmu_stream_ctrl.count == 0) {
+		smmu_stream_uninstall();
 		smmu_stream_ctrl.sme = INVALID_SMMU_SME;
-		__smmu_free_sme();
-		iommu_free_group(grp);
 	}
-	iommu_group_restore(sgrp);
+	smmu_stream_restore(ssid);
 }
 
-iommu_grp_t smmu_alloc_sme(smmu_sme_t sme)
+iommu_grp_t smmu_group_alloc(int nr_sids, smmu_sme_t *sids)
 {
 	__unused iommu_dev_t dev, sdev;
-	__unused iommu_grp_t grp, sgrp;
-	smmu_gr_t gr, sm;
+	__unused smmu_gr_t sid, ssid;
+	__unused smmu_gr_t gr, sm;
+	__unused iommu_grp_t grp;
+	int i;
 
-	gr = smmu_sme_gr(sme);
-	sm = smmu_sme_sm(sme);
-	dev = smmu_sme_dev(sme);
-	sdev = iommu_device_save(dev);
-	grp = smmu_find_sme(gr, sm);
-	if (grp != INVALID_IOMMU_GRP) {
-		sgrp = iommu_group_save(grp);
-		if (smmu_stream_ctrl.count == 0) {
-			smmu_stream_ctrl.sme = sme;
-			__smmu_alloc_sme(sme);
-		}
-		smmu_stream_ctrl.count++;
-		iommu_group_restore(sgrp);
+	grp = iommu_alloc_group(nr_sids, sids);
+	if (grp == INVALID_IOMMU_GRP)
+		return grp;
+
+#if 0
+	/* Check the SIDs are in range of the SMMU and our stream table */
+	for (i = 0; i < smmu_group_ctrl.num_sids; i++) {
+		uint32_t sid = smmu_group_ctrl.sids[i];
+
 	}
-	iommu_device_restore(sdev);
+	smmu_group_ctrl.ssid_bits = min(smmu_device_ctrl.ssid_bits, smmu_hw_num_pasid_bits);
+#endif
+	for (i = 0; i < nr_sids; i++) {
+		smmu_sme_t sme = sids[i];
+
+#if 0
+		BUG_ON(!arm_smmu_sid_in_range(sid));
+#endif
+
+		dev = smmu_sme_dev(sme);
+		sdev = iommu_device_save(dev);
+
+		gr = smmu_sme_gr(sme);
+		sm = smmu_sme_sm(sme);
+
+		sid = smmu_stream_find(sme);
+		if (sid != INVALID_SMMU_SID) {
+			ssid = smmu_stream_save(sid);
+			if (smmu_stream_ctrl.count == 0) {
+				smmu_stream_alloc(sme);
+				smmu_stream_ctrl.sme = sme;
+			}
+			smmu_stream_ctrl.count++;
+			iommu_group_restore(ssid);
+		}
+		iommu_device_restore(sdev);
+	}
 	return grp;
 }
