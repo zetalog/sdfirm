@@ -182,6 +182,11 @@ typedef unsigned long			loff_t;
 		__BUILD_BUG_ON_NOT_POWER_OF_2((_mask) +			\
 					      (1ULL << __bf_shf(_mask))); \
 	})
+#define FIELD_PREP(_mask, _val)						\
+	({								\
+		__BF_FIELD_CHECK(_mask, 0ULL, _val, "FIELD_PREP: ");	\
+		((typeof(_mask))(_val) << __bf_shf(_mask)) & (_mask);	\
+	})
 #define FIELD_GET(_mask, _reg)						\
 	({								\
 		__BF_FIELD_CHECK(_mask, _reg, 0U, "FIELD_GET: ");	\

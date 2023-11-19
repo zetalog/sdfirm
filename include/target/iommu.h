@@ -118,6 +118,7 @@ struct scatterlist {
 
 struct iommu_device {
 	iommu_dev_t id;
+	dma_t dma;		/* contain DMA_PHYS_OFFSET */
 	unsigned long pgsize_bitmap;
 };
 

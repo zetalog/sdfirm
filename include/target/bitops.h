@@ -35,6 +35,8 @@ typedef uint8_t bits_t;
 	bits_t name[BITS_TO_UNITS(bits)]
 #define BITOP_MASK(nr)		((bits_t)1 << ((nr) % BITS_PER_UNIT))
 #define BITOP_WORD(nr)		((bits_t)(nr) / (uint8_t)BITS_PER_UNIT)
+#define BIT_MASK(nr)		((bits_t)1 << ((nr) % BITS_PER_LONG))
+#define BIT_WORD(nr)		((bits_t)(nr) / (uint8_t)BITS_PER_LONG)
 
 void __set_bit(bits_t nr, volatile bits_t *addr);
 void __clear_bit(bits_t nr, volatile bits_t *addr);

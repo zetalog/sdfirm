@@ -81,6 +81,7 @@ typedef uint8_t dma_t;
 #elif NR_DMAS <= 65536
 typedef uint16_t dma_t;
 #endif
+#define DMA_DEFAULT		INVALID_DMA
 
 /* SoC specific DMA offset, should be defined in asm/mach/dma.h */
 #ifdef DMA_HW_PHYS_OFFSET
@@ -133,6 +134,7 @@ bool dma_is_coherent(dma_t dma);
 bool dma_is_direct(dma_t dma);
 uint8_t dma_direction(dma_t dma);
 
+/* TODO: device specific DMA_PHYS_OFFSET */
 phys_addr_t dma_to_phys(dma_t dma, dma_addr_t addr);
 dma_addr_t phys_to_dma(dma_t dma, phys_addr_t phys);
 
