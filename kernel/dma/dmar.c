@@ -41,6 +41,7 @@
 
 #include <target/dma.h>
 #include <target/paging.h>
+#include <target/page.h>
 #include <target/panic.h>
 
 void dma_direct_sync_cpu(dma_t dma, dma_addr_t addr, size_t size,
@@ -101,9 +102,8 @@ dma_addr_t dma_map_single(dma_t dma, caddr_t ptr, size_t size,
 {
 	if (dma_is_direct(dma))
 		return dma_direct_map(dma, ptr, size, dir);
-	else {
+	else
 		return dma_hw_map_single(dma, virt_to_phys(ptr), size, dir);
-	}
 }
 
 void dma_unmap_single(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir)
@@ -112,4 +112,25 @@ void dma_unmap_single(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir)
 		dma_direct_unmap(dma, addr, size, dir);
 	else
 		dma_hw_unmap_single(dma, addr, size, dir);
+}
+
+caddr_t dma_alloc_coherent(dma_t dma, size_t size, dma_addr_t *dma_handle)
+{
+	caddr_t cpu_addr;
+	int nr_pages = ALIGN_UP(size, PAGE_SIZE) / PAGE_SIZE;
+	struct page *page;
+
+	page = page_alloc_pages(nr_pages);
+	cpu_addr = phys_to_virt((caddr_t)page);
+	*dma_handle = dma_map_single(dma, phys_to_virt((caddr_t)page),
+				     size, DMA_BIDIRECTIONAL);
+	return cpu_addr;
+}
+
+void dma_free_coherent(dma_t dma, size_t size, caddr_t cpu_addr, dma_addr_t dma_handle)
+{
+	int nr_pages = ALIGN_UP(size, PAGE_SIZE) / PAGE_SIZE;
+
+	dma_unmap_single(dma, dma_handle, size, DMA_BIDIRECTIONAL);
+	page_free_pages((struct page *)cpu_addr, nr_pages);
 }

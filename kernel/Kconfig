@@ -667,6 +667,7 @@ config ARCH_HAS_DMAC
 
 menuconfig DMA
 	bool "Address space layout (DMA) support"
+	select PAGE
 
 if DMA
 

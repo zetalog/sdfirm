@@ -127,9 +127,6 @@ struct dma_channel dma_channel_ctrl;
 #define __phys_to_dma(phys_addr)	((phys_addr) - DMA_PHYS_OFFSET)
 #define __dma_to_phys(dma_addr)		((dma_addr) + DMA_PHYS_OFFSET)
 
-#define dma_alloc_coherent(size)	heap_alloc(size)
-#define dma_free(phys)			heap_free(phys)
-
 void dma_register_channel(dma_t dma, dma_caps_t caps);
 void dma_config_range(dma_t dma, phys_addr_t phys_base, dma_addr_t dma_base);
 bool dma_is_coherent(dma_t dma);
@@ -155,6 +152,9 @@ void dma_direct_sync_dev(dma_t dma, dma_addr_t addr, size_t size,
 dma_addr_t dma_map_single(dma_t dma, caddr_t ptr, size_t size,
 			  dma_dir_t dir);
 void dma_unmap_single(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir);
+caddr_t dma_alloc_coherent(dma_t dma, size_t size, dma_addr_t *dma_handle);
+void dma_free_coherent(dma_t dma, size_t size,
+		       caddr_t cpu_addr, dma_addr_t dma_handle);
 void dma_sync_cpu(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir);
 void dma_sync_dev(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir);
 #endif /* __ASSEMBLY__ */
